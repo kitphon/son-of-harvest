@@ -56,6 +56,7 @@ follows the player with no lag and stops a few cells inside the fence.
 - `scripts/art/placeholder_art.gd`: pixel sprites made in code until there is real art.
 - `data/*.json`: crops and weather, tuned without touching code.
 
-## Next
-Sprite art (16 x 16 tiles, 16 x 32 characters), charging tools, fatigue, save / load, a town
-map with villagers and schedules, events and dialogue (Dialogic 2), animals, shops.
+## Plan and handoff
+- ROADMAP.md: milestones and "Next up".
+- WORKLOG.md: what was done, how it was checked, what is left.
+- AGENTS.md (and CLAUDE.md): rules and how-to for the next agent, including the clean-room rule.
