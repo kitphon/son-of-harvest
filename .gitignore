@@ -1,0 +1,10 @@
+# Godot cache and exports
+.godot/
+/export/
+*.translation
+
+# The engine binaries live next to the project but are not part of it
+*.exe
+
+# Screenshots / movie frames from test runs
+/shots/

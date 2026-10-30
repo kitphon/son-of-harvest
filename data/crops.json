@@ -1,0 +1,11 @@
+{
+	"turnip":   {"name": "Turnip",   "seasons": ["spring"], "stage_days": [1, 2],    "sell": 60,  "seed_price": 120},
+	"potato":   {"name": "Potato",   "seasons": ["spring"], "stage_days": [2, 2, 2], "sell": 80,  "seed_price": 150},
+	"cucumber": {"name": "Cucumber", "seasons": ["spring"], "stage_days": [2, 3, 3], "regrow_stage": 2, "sell": 60, "seed_price": 200},
+	"tomato":   {"name": "Tomato",   "seasons": ["summer"], "stage_days": [2, 3, 3], "regrow_stage": 2, "sell": 60, "seed_price": 200},
+	"onion":    {"name": "Onion",    "seasons": ["summer"], "stage_days": [2, 2, 3], "sell": 80,  "seed_price": 150},
+	"corn":     {"name": "Corn",     "seasons": ["summer"], "stage_days": [3, 3, 4], "regrow_stage": 2, "sell": 100, "seed_price": 300},
+	"carrot":   {"name": "Carrot",   "seasons": ["fall"],   "stage_days": [2, 2, 2], "sell": 120, "seed_price": 300},
+	"eggplant": {"name": "Eggplant", "seasons": ["fall"],   "stage_days": [2, 3, 3], "regrow_stage": 2, "sell": 80, "seed_price": 120},
+	"pumpkin":  {"name": "Pumpkin",  "seasons": ["fall"],   "stage_days": [3, 4, 5], "sell": 250, "seed_price": 500}
+}

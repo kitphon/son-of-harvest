@@ -1,0 +1,6 @@
+{
+	"spring": {"rain": 0.25},
+	"summer": {"rain": 0.10, "storm": 0.05},
+	"fall":   {"rain": 0.20, "storm": 0.03},
+	"winter": {"snow": 0.40, "storm": 0.05}
+}
