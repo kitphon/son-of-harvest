@@ -54,6 +54,30 @@ func new_game() -> void:
 	farm.generate(rng)
 	bag = {"seeds:turnip": 2, "seeds:potato": 1}
 	weather_tomorrow = roll_weather(_tomorrow_season())
+	if "--demo" in OS.get_cmdline_user_args():
+		_demo_field()
+
+
+## `-- --demo`: 10:00 with a few sown, growing and ripe plots by the house, for screenshots.
+func _demo_field() -> void:
+	hour = 10
+	for y in range(5, 8):
+		for x in range(2, 11):
+			var c := Vector2i(x, y)
+			farm.cell(c).obj = FarmGrid.Obj.NONE
+			farm.till(c)
+	farm.sow(Vector2i(3, 6), "turnip", "spring")
+	farm.sow(Vector2i(6, 6), "potato", "spring")
+	farm.sow(Vector2i(9, 6), "cucumber", "spring")
+	for y in range(5, 8):
+		for x in range(2, 11):
+			var d := farm.cell(Vector2i(x, y))
+			d.stage = (x - 2) / 3 + 1
+			d.wet = x % 2 == 0
+	farm.cell(Vector2i(5, 8)).obj = FarmGrid.Obj.ROCK
+	farm.cell(Vector2i(7, 8)).obj = FarmGrid.Obj.STUMP
+	farm.cell(Vector2i(9, 8)).obj = FarmGrid.Obj.WEED
+	farm.cells_changed.emit()
 
 
 func _process(delta: float) -> void:
@@ -90,6 +114,28 @@ func date_text() -> String:
 
 func time_text() -> String:
 	return "%02d:%02d" % [hour, minute]
+
+
+## Day / night light: minute of the day -> colour, linear in between; rain darkens it.
+const LIGHT := [
+	[0, Color(0.42, 0.45, 0.72)], [300, Color(0.42, 0.45, 0.72)], [420, Color.WHITE],
+	[960, Color.WHITE], [1080, Color(1.0, 0.8, 0.65)], [1200, Color(0.42, 0.45, 0.72)],
+	[1440, Color(0.42, 0.45, 0.72)],
+]
+
+
+func light_color() -> Color:
+	var m := hour * 60 + minute
+	var c := Color.WHITE
+	for i in range(1, LIGHT.size()):
+		if m <= LIGHT[i][0]:
+			var a: Array = LIGHT[i - 1]
+			var b: Array = LIGHT[i]
+			c = a[1].lerp(b[1], float(m - a[0]) / float(b[0] - a[0]))
+			break
+	if weather_today in ["rain", "storm"]:
+		c = c.darkened(0.2)
+	return c
 
 
 func _tomorrow_season() -> int:
