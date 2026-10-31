@@ -1,0 +1,13 @@
+{
+	"_note": "Gen, the smith at the Kurogane Smithy: a big quiet man with a headband and a leather apron. Only seen in events so far (his first-visit intro); standing at his counter in the day comes with the shopkeepers' talking. Format: README.md, Villagers.",
+	"id": "gen",
+	"name": "Gen",
+	"look": {"outfit": "happi", "hair_style": "headband", "hair": "3a3430", "skin": "c8905e", "top": "4a4038", "waist": "8a5a30", "lower": "2e2a28", "accent": "c8452c", "shoes": "3a2a20"},
+	"rules": [],
+	"default": "away",
+	"plans": {
+		"away": [
+			{"at": "06:00", "map": "away"}
+		]
+	}
+}

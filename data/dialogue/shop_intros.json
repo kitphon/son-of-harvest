@@ -1,0 +1,13 @@
+{
+	"_note": "Lines for the first visits to the village shops (data/events/store_intro.json, smithy_intro.json): Sayo at the Yorozu Store (from line store), Gen at the Kurogane Smithy (from line smithy). Each part ends with next: end.",
+	"lines": [
+		{"id": "store", "speaker": "sayo", "face": "surprised", "text": "Welcome! Oh, a new face. You must be the one who took over the old farm up the road. I'm Sayo."},
+		{"speaker": "sayo", "face": "smile", "text": "Yorozu means 'a bit of everything'. Seeds for the season, sweets, odds and ends. And I buy good crops, too."},
+		{"speaker": "sayo", "face": "calm", "text": "We're open from nine to five, every day but Sunday. Talk to me at the counter when you need something."},
+		{"speaker": "sayo", "face": "smile", "text": "The seeds change with the season, so look in again when summer comes!", "next": "end"},
+		{"id": "smithy", "speaker": "gen", "face": "calm", "text": "...Hm. The new farmer. Tome said you'd come. I'm Gen. Mind the forge, it bites."},
+		{"speaker": "gen", "face": "calm", "text": "Bring me a tool you trust, and some coin, and I'll make it better. Wider swings, harder hits."},
+		{"speaker": "gen", "face": "smile", "text": "Good iron takes a few days. Leave it at the counter and come back for it. Open ten to four, shut on Wednesdays."},
+		{"speaker": "gen", "face": "calm", "text": "...That's all. Work your tools hard. They get to know your hands.", "next": "end"}
+	]
+}

@@ -19,6 +19,9 @@ static var _common: Variant = null   # data/villagers/_common.json, read on firs
 static var _loaded := false
 static var _today_key := ""
 static var _today := {}        # id -> DayPlan for the day in _today_key
+## Villagers acting in the event playing now (EventPlayer sets it): id -> {map, pos, facing,
+## moving, walked}. While one is in it, its day plan is set aside.
+static var actors := {}
 
 
 ## Every usable villager, id -> data. A broken file is left out with an error printed.
@@ -177,8 +180,9 @@ static func on_map(map_id: String, t: float, s: Dictionary) -> Array[Dictionary]
 	var out: Array[Dictionary] = []
 	var plans := today(s)
 	for id in plans:
-		var w: Dictionary = plans[id].where(t)
+		var w: Dictionary = plans[id].where(t) if not actors.has(id) else actors[id]
 		if w.map == map_id:
+			w = w.duplicate()
 			w.id = id
 			out.append(w)
 	return out

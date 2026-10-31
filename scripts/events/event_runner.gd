@@ -2,9 +2,9 @@ class_name EventRunner
 extends RefCounted
 ## Plays one event script from data/events/<id>.json step by step, without any drawing, so
 ## headless tests can check it. A script is a list of steps: dialogue, waits, walking and
-## facing the farmer, flags, items, money, a fade and sounds; branch steps jump on a flag. The
-## runner keeps the farmer's scripted position / facing and the fade amount; the view
-## (EventPlayer) copies them onto the screen. The format is in README.md → Events; bad data is
+## facing the farmer, villagers acting in it, flags, items, money, a fade and sounds; branch
+## steps jump on a flag. The runner keeps the farmer's scripted position / facing, the actors
+## and the fade amount; the view (EventPlayer) copies them onto the screen. The format is in README.md → Events; bad data is
 ## refused with `error` set and the runner finished from the start.
 
 signal sound(key: String)   # the view plays it (Sfx)
@@ -19,7 +19,8 @@ const DIRS := {"up": Vector2i.UP, "down": Vector2i.DOWN, "left": Vector2i.LEFT, 
 const COMMANDS := {
 	"say": ["dialogue", "at"], "wait": ["seconds"], "face": ["dir"], "walk": ["to", "by", "run"],
 	"set": ["flags"], "clear": ["flags"], "give": ["item", "count"], "money": ["amount"],
-	"fade": ["to", "seconds"], "sound": ["key"],
+	"fade": ["to", "seconds"], "sound": ["key"], "place": ["at", "dir"],
+	"actor": ["who", "at", "to", "face", "leave"],
 }
 
 var id := ""
@@ -34,10 +35,14 @@ var running := false
 var fade := 0.0             # 0 clear .. 1 black
 var walk_speed := 60.0      # pixels a second; EventPlayer sets the Player's walk and run speeds
 var run_speed := 100.0
+## Villagers acting in the event: id -> {pos (cells, feet; a cell's middle is +0.5), facing,
+## moving, walked}, the shape Villagers.on_map gives. Gone again when the event ends.
+var actors: Dictionary = {}
 var _ids: Dictionary = {}   # step id -> index
 var _active := false        # the step at `index` has begun
 var _timer := 0.0
 var _path: Array[Vector2] = []
+var _actor := ""            # the actor walking in an actor step with `to`
 var _fade_from := 0.0
 var _fade_to := 0.0
 var _fade_len := 0.0
@@ -159,6 +164,30 @@ func _begin(s: Dictionary) -> void:
 			_fade_time = 0.0
 		"sound":
 			sound.emit(s.key)
+		"place":
+			pos = Vector2(_vec(s.at) * T) + Vector2(T / 2.0, T / 2.0)
+			if s.has("dir"):
+				facing = DIRS[s.dir]
+		"actor":
+			_begin_actor(s)
+
+
+## An actor step: off the stage, onto cell `at`, turned to `face`, then walking to `to`.
+func _begin_actor(s: Dictionary) -> void:
+	_actor = ""
+	if s.has("leave"):
+		actors.erase(s.who)
+		return
+	if s.has("at") or not actors.has(s.who):
+		var c: Vector2i = _vec(s.get("at", s.get("to")))
+		actors[s.who] = {"pos": Vector2(c) + Vector2(0.5, 0.5), "facing": Vector2i.DOWN, "moving": false, "walked": 0.0}
+	var a: Dictionary = actors[s.who]
+	if s.has("face"):
+		a.facing = DIRS[s.face]
+	if s.has("to"):
+		var end := Vector2(_vec(s.to)) + Vector2(0.5, 0.5)
+		_path = [Vector2(end.x, a.pos.y), end]   # across first, then up or down, like the farmer
+		_actor = s.who
 
 
 ## True while step `s` still goes on after `delta` more seconds.
@@ -183,6 +212,25 @@ func _going(s: Dictionary, delta: float) -> bool:
 				pos = _path.pop_front()
 			walking = false
 			running = false
+			return false
+		"actor":
+			if _actor == "":
+				return false
+			var a: Dictionary = actors[_actor]
+			var left := walk_speed / T * delta   # cells, at the farmer's walking pace
+			while not _path.is_empty():
+				var d: Vector2 = _path[0] - a.pos
+				if d.length() > 0.0001:
+					a.facing = Vector2i(int(signf(d.x)), 0) if absf(d.x) > absf(d.y) else Vector2i(0, int(signf(d.y)))
+				if d.length() > left:
+					a.pos += d.normalized() * left
+					a.walked += left
+					a.moving = true
+					return true
+				left -= d.length()
+				a.walked += d.length()
+				a.pos = _path.pop_front()
+			a.moving = false
 			return false
 		"fade":
 			_fade_time += delta
@@ -210,6 +258,7 @@ func _advance(s: Dictionary) -> void:
 		fade = 0.0
 		walking = false
 		running = false
+		actors.clear()
 
 
 static func _vec(a: Array) -> Vector2i:
@@ -306,6 +355,25 @@ func _check_step(s: Dictionary) -> String:
 		"sound":
 			if not s.get("key") in sound_keys():
 				return "unknown sound %s" % str(s.get("key"))
+		"place":
+			if not _pair(s.get("at")):
+				return "place needs at [x, y]"
+			if s.has("dir") and not DIRS.has(s.dir):
+				return "dir is up, down, left or right"
+		"actor":
+			if not s.get("who") is String or not Villagers.all().has(s.who):
+				return "unknown villager %s" % str(s.get("who"))
+			if s.has("leave"):
+				if not (s.leave is bool and s.leave) or s.has("at") or s.has("to") or s.has("face"):
+					return "leave is true, with nothing else"
+				return ""
+			if not (s.has("at") or s.has("to") or s.has("face")):
+				return "an actor step needs at, to, face or leave"
+			for k in ["at", "to"]:
+				if s.has(k) and not _pair(s[k]):
+					return "%s needs [x, y]" % k
+			if s.has("face") and not DIRS.has(s.face):
+				return "face is up, down, left or right"
 	return ""
 
 

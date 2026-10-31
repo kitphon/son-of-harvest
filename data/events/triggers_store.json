@@ -1,0 +1,6 @@
+{
+	"_note": "Events inside the Yorozu Store: Sayo's introduction the first time the farmer comes in. Format: README.md, Events.",
+	"rows": [
+		{"event": "store_intro", "on": "enter"}
+	]
+}

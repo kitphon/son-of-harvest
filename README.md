@@ -212,6 +212,14 @@ the script says, and keys go only to the text box. Each step is one of:
 - `{"do": "fade", "to": "black|clear", "seconds": 0.5}` (the screen is always clear again when
   the event ends);
 - `{"do": "sound", "key": "<key in data/sfx.json>"}`;
+- `{"do": "place", "at": [x, y], "dir": "left"}`: the farmer stands on that cell at once (best
+  under a black fade; `dir` optional);
+- `{"do": "actor", "who": "<villager id>", "at": [x, y], "face": "down", "to": [x, y]}`: a
+  villager from `data/villagers` acts in the event: `at` puts them on that cell of the map the
+  event plays on, `face` turns them, `to` walks them there (across, then up or down, at the
+  farmer's walking pace; the event waits until they arrive); any of the three, in that order.
+  `{"do": "actor", "who": "...", "leave": true}` takes them off. While acting, a villager's day
+  plan is set aside (`Villagers.actors`); when the event ends every actor is gone again;
 - a branch: `{"if": "<flag>", "then": "<step id>"}` or `{"unless": ...}`.
 
 Any step can have an `id` and a `next` (a step id or `"end"`). `EventRunner` refuses a file with
