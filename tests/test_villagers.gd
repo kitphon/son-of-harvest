@@ -225,9 +225,13 @@ func _building_day() -> void:
 	check(Villagers.where("hachiro", 600.0, b.merged({"weather": "storm"}, true)).map == "smithy", "not in a storm: the forge")
 	check(Villagers.where("hachiro", 600.0, b.merged({"season": "winter", "day": 11}, true)).map == "town", "his birthday wins over the job")
 	# His farm walks keep off the farm's fixed spots (the house, the chest, the bin, the stand,
-	# the pond, the coop, the barn, the fence): the farm map has no solid cells of its own.
+	# the pond, the coop, the barn, the fence) and off the solid story props that can stand
+	# there while he builds (his own lumber, Kota's streamer pole): FarmGrid.prop_blocks.
 	var farm := FarmGrid.new({})
 	farm.generate(RandomNumberGenerator.new())
+	var props: MapData = MapManager.load_map("farm", null, {"house_work": "kitchen", "kota_streamer": true, "hachiro_bell": true})[1]
+	farm.prop_blocks = func(c: Vector2i) -> bool: return props.in_bounds(c) and props.is_solid(c)
+	check(farm.is_solid(Vector2i(1, 4)) and farm.is_solid(Vector2i(1, 5)), "the lumber is solid on the farm")
 	var v: Dictionary = Villagers.all().hachiro
 	var p: DayPlan = DayPlan.build(v.plans.building, Villagers.speed_of(v))[1]
 	var walks := p.walks().filter(func(x): return x[0] == "farm")
@@ -236,8 +240,8 @@ func _building_day() -> void:
 		var n := int(walk[1].distance_to(walk[2]) * 10) + 1
 		for i in n + 1:
 			var c := Vector2i(walk[1].lerp(walk[2], float(i) / n).floor())
-			if farm.fixed_at(c) != "":
-				check(false, "the building walk %s -> %s crosses the farm's %s at %s" % [walk[1], walk[2], farm.fixed_at(c), c])
+			if farm.fixed_at(c) != "" or farm.under_prop(c):
+				check(false, "the building walk %s -> %s crosses the farm's %s at %s" % [walk[1], walk[2], farm.fixed_at(c) if farm.fixed_at(c) != "" else props.prop_at(c).kind, c])
 				break
 
 
@@ -428,13 +432,17 @@ func _check_farm_views() -> void:
 			and layers2[0]._sprites.hachiro.texture == PlaceholderArt.tex(key), "in the work pose in both views %s" % key)
 		var s3: Node3D = layers3[0]._sprites.hachiro
 		check(Vector2(s3.position.x, s3.position.z).distance_to(Vector2(2.5, 4.5)) < 0.05, "at the wall in 3D")
+		check(g.farm.is_solid(Vector2i(1, 4)) and g.maps.is_solid(Vector2i(1, 5), g.farm) and not g.farm.is_solid(Vector2i(2, 5)),
+			"the lumber blocks the farmer (both views' Player asks Game.maps), the cell he fetches from stays open")
 	else:
 		check(false, "the farm views have their villager layers")
 	_farm3.free()
 	_farm2.free()
 	g.unpause()
-	g.end_day()
-	g.end_day()
+	for i in 2:
+		g.weather_today = "sunny"   # a storm day wouldn't count (Game._count_build_day)
+		g.end_day()
+	check(not g.farm.is_solid(Vector2i(1, 4)), "the lumber's cells are open once it is gone")
 	check(g.has_built("kitchen") and not g.flags.has(g.BUILD_FLAG) and not MapManager.data("farm").props.any(func(p): return p.kind == "lumber"),
 		"built: the flag and the lumber are gone")
 
