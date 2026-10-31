@@ -31,6 +31,7 @@ func _init() -> void:
 	_save()
 	_rucksack()
 	_animal_goods()
+	_barn_goods()
 	_builds()
 	_rod()
 	_extras_save()
@@ -73,9 +74,9 @@ func _data() -> void:
 				if e.item.begins_with("seeds:"):
 					check(crops.has(crop) and season in crops[crop].seasons, "data: %s seeds %s in their season %s" % [id, crop, season])
 				elif e.to == "animal":
-					check(animal_rules.kinds.has(e.item.trim_prefix("animal:")), "data: %s sells the animal %s" % [id, e.item])
-				elif e.to == "feed":
-					check(e.item == "feed", "data: %s sells feed" % id)
+					check(animal_rules.kinds.has(Shop.animal_of(e.item).kind), "data: %s sells the animal %s" % [id, e.item])
+				elif e.to == "feed" or e.to == "fodder":
+					check(e.item == e.to, "data: %s sells %s" % [id, e.to])
 				elif animal_rules.get("items", {}).has(e.item):
 					check(s.item_name(e.item) == animal_rules.items[e.item].name, "data: %s calls %s by its name" % [id, e.item])
 				else:
@@ -139,8 +140,9 @@ func _stock_and_deals() -> void:
 	check(spring.size() == 3 and spring[0].item == "seeds:turnip" and spring[2].item == "food:onigiri", "season first, then any")
 	check(s.stock("fall").size() == 1, "out of season only the any stock")
 	var inv := Inventory.empty(TOOLS, {"slots": {"tools": 7, "bag": 2, "hand": 1, "chest": 4}, "stack_max": 10})
-	var r := s.buy(inv, 100, "seeds:turnip", 1, "spring")
-	check(not r.ok and r.money == 100 and inv.count("seeds:turnip") == 0, "not enough money: nothing bought")
+	var poor := int(crops.turnip.seed_price) - 1
+	var r := s.buy(inv, poor, "seeds:turnip", 1, "spring")
+	check(not r.ok and r.money == poor and inv.count("seeds:turnip") == 0, "not enough money: nothing bought")
 	r = s.buy(inv, 1000, "seeds:turnip", 3, "spring")
 	check(r.ok and r.money == 1000 - 3 * int(crops.turnip.seed_price) and inv.count("seeds:turnip") == 3, "bought 3: %s" % r.note)
 	check(not s.buy(inv, 9999, "seeds:turnip", 1, "summer").ok, "out of season can't be bought")
@@ -260,16 +262,17 @@ func _menu() -> void:
 	check(m.tabs == ["buy", "sell", "build"], "store tabs %s" % [m.tabs])
 	check(ShopMenu.new(g, "smithy").tabs == ["tools"], "smithy tab")
 	var rows := m.rows()
-	check(rows.size() == 13 and rows[0].item == "rucksack" and rows[1].item == "animal:chicken" and rows[4].item == "seeds:turnip",
-		"spring stock: the rucksack, 3 supplies, 4 for spring, 5 any")
+	check(rows.size() == 18 and rows[0].item == "rucksack" and rows[1].item == "animal:chicken" and rows[9].item == "seeds:turnip",
+		"spring stock: the rucksack, 8 supplies, 4 for spring, 5 any")
 	m.move(-1)
-	check(m.cursor == 12, "the cursor wraps up")
+	check(m.cursor == 17, "the cursor wraps up")
 	m.move(1)
 	check(m.most() == 1, "one rucksack at a time")
-	m.point(4)
-	g.money = 300
+	m.point(9)
+	var bag := int(crops.turnip.seed_price)
+	g.money = 2 * bag + 60
 	m.change_count(1)
-	check(m.count == 2 and m.total() == 240, "two turnip bags cost 240")
+	check(m.count == 2 and m.total() == 2 * bag, "two turnip bags cost %d" % (2 * bag))
 	m.change_count(1)
 	check(m.count == 1, "only two affordable: wraps to 1")
 	m.change_count(-1)
@@ -328,16 +331,16 @@ func _save() -> void:
 func _rucksack() -> void:
 	var s := Shop.make("general", crops, foods)
 	check(s.rucksack_offer(8) == {"item": "rucksack", "level": 2, "slots": 12, "price": 2000, "to": "rucksack"}, "first bigger rucksack")
-	check(s.rucksack_offer(12).slots == 16 and s.rucksack_offer(12).price == 6000, "then the biggest")
+	check(s.rucksack_offer(12).slots == 16 and s.rucksack_offer(12).price == 6500, "then the biggest")
 	check(s.rucksack_offer(16).is_empty() and Shop.make("smithy", crops, foods).rucksack_offer(8).is_empty(), "none past the top, none at the smithy")
 	var g := _new_game()
 	g.inventory.add("turnip", 3)
 	g.money = 1999
 	var r: Dictionary = g.shop_buy("general", "rucksack")
 	check(not r.ok and g.money == 1999 and g.inventory.size("bag") == 8 and r.note == "Not enough money (2000 G)", "rucksack: no money")
-	g.money = 9000
+	g.money = 9500
 	r = g.shop_buy("general", "rucksack")
-	check(r.ok and g.money == 7000 and g.inventory.size("bag") == 12 and g.count("turnip") == 3, "rucksack level 2: %s" % r.note)
+	check(r.ok and g.money == 7500 and g.inventory.size("bag") == 12 and g.count("turnip") == 3, "rucksack level 2: %s" % r.note)
 	var m := ShopMenu.new(g, "general")
 	check(m.rows()[0].item == "rucksack" and m.rows()[0].slots == 16, "the menu offers the next one")
 	check(m.choose().begins_with("Your rucksack has 16") and g.money == 1000 and g.inventory.size("bag") == 16, "rucksack level 3 through the menu")
@@ -353,28 +356,31 @@ func _animal_goods() -> void:
 	var g := _new_game()
 	var room: int = g.animals.room("coop")
 	check(room == 4 and g.shop_room("general", "animal:chicken") == 4, "the coop has room for 4 more")
-	g.money = 1499
+	var hen: int = g.shop("general").price("animal:chicken", "spring")
+	g.money = hen - 1
 	var r: Dictionary = g.shop_buy("general", "animal:chicken")
-	check(not r.ok and g.money == 1499 and g.animals.list.size() == 2, "chicken: no money")
+	check(not r.ok and g.money == hen - 1 and g.animals.list.size() == 2, "chicken: no money")
 	g.money = 99999
 	r = g.shop_buy("general", "animal:chicken", 5)
 	check(not r.ok and g.money == 99999 and g.animals.list.size() == 2 and r.note == "The coop is full", "five don't fit: none bought")
 	r = g.shop_buy("general", "animal:chicken", 4)
-	check(r.ok and g.money == 99999 - 4 * 1500 and g.animals.list.size() == 6 and g.animals.is_adult(g.animals.list[5]), "4 grown hens: %s" % r.note)
+	check(r.ok and g.money == 99999 - 4 * hen and g.animals.list.size() == 6 and g.animals.is_adult(g.animals.list[5]), "4 grown hens: %s" % r.note)
 	r = g.shop_buy("general", "animal:chicken")
 	check(not r.ok and g.animals.list.size() == 6 and r.note == "The coop is full", "chicken: coop full")
 	var m := ShopMenu.new(g, "general")
 	m.point(1)
 	check(m.current().item == "animal:chicken" and m.most() == 1 and not m.choose().begins_with("Bought") and not m.last_ok, "the menu refuses a hen for a full coop")
 	var feed: int = g.animals.feed_stock
-	g.money = 199
+	var portion: int = g.shop("general").price("feed", "spring")
+	g.money = 20 * portion - 1
 	check(not g.shop_buy("general", "feed", 20).ok and g.animals.feed_stock == feed, "feed: no money")
-	g.money = 200
+	g.money = 20 * portion
 	r = g.shop_buy("general", "feed", 20)
 	check(r.ok and g.money == 0 and g.animals.feed_stock == feed + 20 and g.count("feed") == 0, "20 feed into the sack: %s" % r.note)
-	g.money = 600
+	var cure: int = g.shop("general").price("medicine", "spring")
+	g.money = 2 * cure
 	r = g.shop_buy("general", "medicine", 2)
-	check(r.ok and g.money == 0 and g.count("medicine") == 2 and r.note == "Bought 2 Animal Medicine for 600 G", "medicine: %s" % r.note)
+	check(r.ok and g.money == 0 and g.count("medicine") == 2 and r.note == "Bought 2 Animal Medicine for %d G" % (2 * cure), "medicine: %s" % r.note)
 	check(not g.shop_buy("general", "medicine").ok, "medicine: no money")
 	# A kind the game doesn't know (cows before the barn) has no room; the shop refuses.
 	var fx := {"shops": {"t": {"name": "T", "map": "store", "stock": {"any": [{"item": "animal:cow", "price": 10, "to": "animal"}]}}}}
@@ -384,20 +390,82 @@ func _animal_goods() -> void:
 	g.free()
 
 
+## Cows, sheep, calves and lambs into the barn (only with room), fodder into its loft.
+func _barn_goods() -> void:
+	var g := _new_game()
+	var store: Shop = g.shop("general")
+	var cow := store.price("animal:cow", "spring")
+	check(cow > 0 and store.price("animal:sheep", "winter") > 0 and store.price("fodder", "fall") > 0, "barn goods sold all year")
+	check(store.price("animal:cow:young", "spring") < cow and store.price("animal:sheep:young", "spring") < store.price("animal:sheep", "spring"),
+		"a calf / lamb costs less than a grown one")
+	check(Shop.animal_of("animal:cow") == {"kind": "cow", "young": false} and Shop.animal_of("animal:sheep:young") == {"kind": "sheep", "young": true},
+		"animal items name the kind and the young")
+	check(g.animals.room("barn") == 6 and g.shop_room("general", "animal:cow") == 6 and g.shop_room("general", "animal:sheep:young") == 6,
+		"the barn starts empty with room for 6")
+	var hens: int = g.animals.list.size()
+	g.money = cow - 1
+	var r: Dictionary = g.shop_buy("general", "animal:cow")
+	check(not r.ok and g.money == cow - 1 and g.animals.in_home("barn").is_empty(), "cow: no money")
+	g.money = 99999
+	r = g.shop_buy("general", "animal:cow", 2)
+	var barn: Array = _barn(g)
+	check(r.ok and g.money == 99999 - 2 * cow and barn.size() == 2 and barn[1].kind == "cow" and g.animals.is_adult(barn[1]),
+		"2 grown cows: %s" % r.note)
+	check(g.shop_room("general", "animal:chicken") == 6 - hens, "cows don't take the coop's room")
+	var money: int = g.money
+	r = g.shop_buy("general", "animal:cow:young")
+	barn = _barn(g)
+	check(r.ok and g.money == money - store.price("animal:cow:young", "spring") and barn[2].kind == "cow" and not g.animals.is_adult(barn[2]),
+		"a calf: %s" % r.note)
+	r = g.shop_buy("general", "animal:sheep:young")
+	barn = _barn(g)
+	check(r.ok and barn[3].kind == "sheep" and not g.animals.is_adult(barn[3]), "a lamb: %s" % r.note)
+	money = g.money
+	r = g.shop_buy("general", "animal:sheep", 3)
+	check(not r.ok and g.money == money and g.animals.in_home("barn").size() == 4 and r.note == "The barn is full", "three sheep don't fit: none bought")
+	r = g.shop_buy("general", "animal:sheep", 2)
+	barn = _barn(g)
+	check(r.ok and barn.size() == 6 and barn[5].kind == "sheep" and g.animals.is_adult(barn[5]), "2 grown sheep: %s" % r.note)
+	r = g.shop_buy("general", "animal:cow:young")
+	check(not r.ok and r.note == "The barn is full" and g.animals.in_home("barn").size() == 6 and g.animals.list.size() == hens + 6, "barn full")
+	var m := ShopMenu.new(g, "general")
+	m.point(2)
+	check(m.current().item == "animal:cow" and m.most() == 1 and not m.choose().begins_with("Bought") and not m.last_ok, "the menu refuses a cow for a full barn")
+	var loft: int = g.animals.stock_of("barn")
+	var bundle := store.price("fodder", "spring")
+	g.money = 30 * bundle - 1
+	check(not g.shop_buy("general", "fodder", 30).ok and g.animals.stock_of("barn") == loft, "fodder: no money")
+	g.money = 30 * bundle
+	r = g.shop_buy("general", "fodder", 30)
+	check(r.ok and g.money == 0 and g.animals.stock_of("barn") == loft + 30 and g.count("fodder") == 0 and g.animals.feed_stock == g.animals.stock_of("coop"),
+		"30 fodder into the loft: %s" % r.note)
+	check(g.shop_room("general", "fodder") == ShopMenu.MOST, "any amount of fodder fits")
+	g.free()
+
+
+## The animals in the barn, in stall order.
+func _barn(g: Node) -> Array:
+	var out := []
+	for i in g.animals.in_home("barn"):
+		out.append(g.animals.list[i])
+	return out
+
+
 ## House extensions: ordered and paid at the store, one at a time, finished overnight on the
 ## ready day; the house map and the chest follow.
 func _builds() -> void:
 	var g := _new_game()
 	var said := []
 	g.message.connect(func(t): said.append(t))
-	g.money = 4999
+	var kitchen := int(Shop.make("general", crops, foods).builds.kitchen.price)
+	g.money = kitchen - 1
 	var r: Dictionary = g.shop_build("general", "kitchen")
-	check(not r.ok and g.money == 4999 and g.house_job.is_empty() and r.note == "Not enough money (5000 G)", "build: no money")
+	check(not r.ok and g.money == kitchen - 1 and g.house_job.is_empty() and r.note == "Not enough money (%d G)" % kitchen, "build: no money")
 	g.money = 30000
 	r = g.shop_build("general", "kitchen")
-	check(r.ok and g.money == 25000 and g.house_job == {"build": "kitchen", "ready": 3, "shop": "general"}, "kitchen ordered: %s" % r.note)
-	check(r.note == "Ordered the kitchen corner for 5000 G. Done in 3 days.", "order note: %s" % r.note)
-	check(not g.shop_build("general", "kitchen").ok and not g.shop_build("general", "room").ok and g.money == 25000, "one job at a time")
+	check(r.ok and g.money == 30000 - kitchen and g.house_job == {"build": "kitchen", "ready": 3, "shop": "general"}, "kitchen ordered: %s" % r.note)
+	check(r.note == "Ordered the kitchen corner for %d G. Done in 3 days." % kitchen, "order note: %s" % r.note)
+	check(not g.shop_build("general", "kitchen").ok and not g.shop_build("general", "room").ok and g.money == 30000 - kitchen, "one job at a time")
 	check(not g.shop_build("general", "nowhere").ok and not g.shop_build("smithy", "kitchen").ok, "unknown builds refused")
 	var m := ShopMenu.new(g, "general")
 	m.next_tab(2)
@@ -413,7 +481,7 @@ func _builds() -> void:
 	check(MapManager.data("house").prop_at(Vector2i(1, 5)).get("kind", "") == "kamado", "the house map has the stove now")
 	check(g.maps.id == "house" and "Hachiro the carpenter has finished the kitchen corner." in said, "the morning message")
 	r = g.shop_build("general", "kitchen")
-	check(not r.ok and r.note == "The kitchen corner is already built" and g.money == 25000, "build: already built")
+	check(not r.ok and r.note == "The kitchen corner is already built" and g.money == 30000 - kitchen, "build: already built")
 	r = g.shop_build("general", "chest")
 	check(r.ok and m.rows()[0].state == "building" and m.rows()[1].state == "done", "chest ordered, kitchen done")
 	g.end_day()

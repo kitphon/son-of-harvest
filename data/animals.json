@@ -12,8 +12,8 @@
 			"adult_days": 7,
 			"_adult_days": "A hatched chick grows up after this many nights; only adults lay.",
 			"lays": "egg",
-			"price": 1500,
-			"_price": "For the shop (another session): Game.add_animal(\"chicken\") once paid."
+			"price": 1400,
+			"_price": "What the store asks (data/shops.json holds the real price): a hen pays about 40 G a day after feed, so she pays back in about 5 weeks."
 		},
 		"cow": {
 			"name": "Cow",
@@ -31,8 +31,8 @@
 			},
 			"_gives": "Product every N fed, healthy nights (prod_days). It waits until taken and doesn't pile up. The tool hangs in the barn: E on the animal uses it.",
 			"brush": true,
-			"price": 5000,
-			"_price": "For the shop: Game.add_animal(\"cow\"). A cow pays 100-220 G a day, so she pays back in about a month."
+			"price": 6000,
+			"_price": "What the store asks (data/shops.json; a calf 3200): a cow gives 110-240 G a day, about 150 after fodder, so she pays back in about 6 weeks."
 		},
 		"sheep": {
 			"name": "Sheep",
@@ -50,8 +50,8 @@
 			},
 			"_gives": "Wool grows back over 3 fed, healthy nights; the sheep looks shorn until then.",
 			"brush": true,
-			"price": 3000,
-			"_price": "Cheaper than a cow: 120-320 G every 3 days (40-107 G a day) for the same fodder."
+			"price": 3600,
+			"_price": "What the store asks (data/shops.json; a lamb 1900): 180-420 G of wool every 3 days (60-140 G a day) for the same fodder as a cow."
 		}
 	},
 	"homes": {
@@ -145,15 +145,15 @@
 		}
 	},
 	"items": {
-		"egg": {"name": "Egg", "sell": 50},
-		"egg_good": {"name": "Good Egg", "sell": 75},
-		"egg_best": {"name": "Golden Yolk Egg", "sell": 110},
-		"milk": {"name": "Milk", "sell": 100},
-		"milk_good": {"name": "Rich Milk", "sell": 150},
-		"milk_best": {"name": "Hillside Cream Milk", "sell": 220},
-		"wool": {"name": "Wool", "sell": 120},
-		"wool_good": {"name": "Soft Wool", "sell": 200},
-		"wool_best": {"name": "Cloud Wool", "sell": 320},
+		"egg": {"name": "Egg", "sell": 30},
+		"egg_good": {"name": "Good Egg", "sell": 45},
+		"egg_best": {"name": "Golden Yolk Egg", "sell": 70},
+		"milk": {"name": "Milk", "sell": 110},
+		"milk_good": {"name": "Rich Milk", "sell": 160},
+		"milk_best": {"name": "Hillside Cream Milk", "sell": 240},
+		"wool": {"name": "Wool", "sell": 180},
+		"wool_good": {"name": "Soft Wool", "sell": 280},
+		"wool_best": {"name": "Cloud Wool", "sell": 420},
 		"medicine": {"name": "Animal Medicine", "sell": 0}
 	},
 	"names": ["Kome", "Mochi", "Azuki", "Kinako", "Goma", "Yuzu", "Sumi", "Hana", "Tama", "Ume", "Kiku", "Nori", "Momo", "Kaede", "Haru", "Yuki", "Tsuki", "Sora"],

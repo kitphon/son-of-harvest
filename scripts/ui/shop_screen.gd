@@ -254,9 +254,12 @@ func _info_text() -> String:
 			match str(row.to):
 				"animal":
 					var room := Game.shop_room(menu.shop.id, row.item)
-					return "Room in the coop: %d" % room if room > 0 else "The coop is full."
+					var home: String = Game.animals.kind_rule(Shop.animal_of(row.item).kind).get("home", "coop")
+					return "Room in the %s: %d" % [home, room] if room > 0 else "The %s is full." % home
 				"feed":
 					return "Feed in the coop's sack: %d" % Game.animals.feed_stock
+				"fodder":
+					return "Fodder in the barn's loft: %d" % Game.animals.stock_of("barn")
 			return "In your rucksack: %d" % Game.count(str(row.item))
 		"build":
 			var b: Dictionary = menu.shop.builds.get(row.item, {})

@@ -75,8 +75,9 @@ shopkeeper only has to stand at the map's `keeper` spawn and call `Game.open_sho
 The store also sells chickens (only with room in the coop), feed, Animal Medicine and two
 bigger rucksacks, and takes orders for house extensions (bigger chest, kitchen corner, second
 room) that Hachiro builds over days; the smithy improves the rod (bite factor per level in
-data/fish.json). Later for shops: cooking in the kitchen corner, Hachiro seen at work while
-building, cows / sheep in the supplies once the barn exists.
+data/fish.json). The store also sells cows, sheep, calves, lambs (only with room in the barn)
+and fodder. Later for shops: cooking in the kitchen corner, Hachiro seen at work while
+building.
 Chickens are in (milestone 7): the thatched coop right of the stand is a map (feed box,
 nests, incubator, hen hatch); rules in `Animals`, numbers in `data/animals.json`, saved
 (save version 2). The shop sells chickens through `Game.add_animal("chicken")`, feed through
@@ -107,8 +108,11 @@ on the day, Kota and Tome out all day. Later for festivals: contests and prizes 
 what each festival judges), festival music (a `festival` condition in the music rules),
 holding back the shipping payout on a festival day (DESIGN), stalls that sell, more villagers
 gathering once they talk.
-Next: milestone 8, the **balance pass** (income per season, seed, animal and extension costs)
-now that the shops, animals, mine and fish all pay; then relationships and endings (milestone 9).
+The balance pass is done (milestone 8): our own crop, product, animal and extension prices,
+`python -I tools/balance.py` prints income per season for a steady year-1 plan (WORKLOG has
+the before / after table). Later for balance: re-run it when the smithy asks for ores (ores
+then go to upgrades, not the bin) and when cooking or contests add income; play a real year.
+Next: relationships and endings (milestone 9).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -161,7 +165,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 8. **Shops and economy**
    - [x] Shops with prices from data, tool upgrades (data/shops.json; store and smithy in the village)
    - [x] House extensions, rucksack upgrade for sale (store: chickens, feed, medicine; smithy: the rod)
-   - [ ] Balance pass (income per season, seed costs)
+   - [x] Balance pass (income per season, seed, animal and extension costs; `tools/balance.py`); the store sells cows, sheep, calves, lambs and fodder
 9. **Festivals, mining / fishing, relationships, endings**
    - [x] Fishing: rod (8th tool slot), cast at the farm / village pond, bite cue, fish per place / season / hour / weather (data/fish.json)
    - [x] Mining: entrance east of the village, floors laid out fresh from a seed, rocks / soft spots / hole down, ores and gems per depth and season (data/mine.json)
