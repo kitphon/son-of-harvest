@@ -164,6 +164,7 @@ func new_game() -> void:
 	house_built = []
 	house_job = {}
 	MapManager.set_built(house_built)
+	MapManager.set_flags(flags)   # props gated by story flags (the bell, the store's sign)
 	animals = Animals.new()
 	animals.start()
 	animal_news = []
@@ -219,6 +220,9 @@ func new_game() -> void:
 		elif arg.begins_with("--built="):   # e.g. `-- --demo --map=house --built=kitchen,room`: extensions done
 			for b in arg.trim_prefix("--built=").split(","):
 				_finish_build({"build": b, "shop": _builder_shop(b), "ready": 0})
+		elif arg.begins_with("--flags="):   # e.g. `-- --demo --flags=hachiro_bell,sayo_sign=new`: story flags set
+			for f in arg.trim_prefix("--flags=").split(",", false):
+				flags[f.get_slice("=", 0)] = f.get_slice("=", 1) if "=" in f else true
 		elif arg.begins_with("--hearts="):   # e.g. `-- --demo --hearts=4 --talk=tome`: everyone at the start of band 4
 			var bands: Array = Affection.rules().get("bands", [0])
 			var b := clampi(arg.trim_prefix("--hearts=").to_int(), 0, bands.size() - 1)
@@ -1941,6 +1945,7 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	for key in n:
 		set(key, n[key])
 	MapManager.set_built(house_built)
+	MapManager.set_flags(flags)
 	fishing = Fishing.new(fish_data)
 	fishing.dry_casts = dry
 	maps = MapManager.new()

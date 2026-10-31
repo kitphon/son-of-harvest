@@ -44,6 +44,8 @@ func _draw() -> void:
 			if map.tile(c) == "wall":
 				draw_rect(Rect2(Vector2(c * T), Vector2(T, T)), COLORS.wall)
 	for p in map.props:
+		if p.kind in StoryView.KINDS:   # drawn as pictures by StoryView
+			continue
 		var r := Rect2(Vector2(p.cell * T), Vector2(p.size * T))
 		draw_rect(r.grow(-1), COLORS.get(p.kind, Color.MAGENTA))
 	for door in map.doors:

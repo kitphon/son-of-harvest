@@ -44,7 +44,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `test_menu: OK (0 failed)`. Fatigue (tired states, oversleeping, collapse):
   `res://tests/test_body.gd` must print `test_body: OK (0 failed)`. Events (runner, trigger
   tables, event data): `res://tests/test_events.gd` must print `test_events: OK (0 failed)`.
-  Maps (data/maps, doors, indoor clock, the fade in the real view): `res://tests/test_maps.gd`
+  Maps (data/maps, doors, indoor clock, story props gated by flags, the fade in the real view): `res://tests/test_maps.gd`
   must print `test_maps: OK (0 failed)`. Rucksack / storage (inventory slots, move rules, menu
   cursor, chest): `res://tests/test_inventory.gd` must print `test_inventory: OK (0 failed)`.
   Food and drink (eating, specials, the stand, the food slot): `res://tests/test_food.gd` must
@@ -97,6 +97,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   counter with its screen open (hours ignored), `--talk=<villager>` (with `--map` / `--time`
   where they are, e.g. `--map=town --time=14:30 --talk=tome`) to stand below them and talk
   (add `--hearts=N` to start every villager at heart band N, e.g. to see the heart colours),
+  `--flags=a,b=c` to set story flags (`--flags=hachiro_bell` the bell by the farmhouse door,
+  `--map=town@sayo --flags=sayo_sign=new` the store's new sign, `--map=house
+  --flags=tome_grandma` Tome's plum jar),
   `--built=kitchen,chest,room` to have those house extensions built (with `--map=house` to see
   them), `--cook` to stand at the kitchen stove with the cooking screen open (builds the kitchen;
   `--demo` adds eggs, a fish, a carrot and one learned recipe), `--map=coop` to look inside the chicken

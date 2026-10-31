@@ -1,5 +1,5 @@
 {
-	"_note": "The first village map: an east-west road from the farm gate (west edge), a shrine with a torii up the north path, four houses and a pond. The noren house south of the road is the Yorozu Store, with Sayo's rooms behind its plain side door; the one north-east is the Kurogane Smithy (data/shops.json), where Hachiro also lives. The west house is Grandma Tome's, the one south-west Kota's family's; their doors (and Sayo's) are open by their `hours` and say `closed` otherwise. Format: README.md, Maps.",
+	"_note": "The first village map: an east-west road from the farm gate (west edge), a shrine with a torii up the north path, four houses and a pond. The noren house south of the road is the Yorozu Store, with Sayo's rooms behind its plain side door; the one north-east is the Kurogane Smithy (data/shops.json), where Hachiro also lives. The west house is Grandma Tome's, the one south-west Kota's family's; their doors (and Sayo's) are open by their `hours` and say `closed` otherwise. Format: README.md, Maps. The two store_sign props are the store's new sign on its roof, one for each answer Sayo got (flag sayo_sign, flag_value old / new, heart_sayo_5).",
 	"id": "town",
 	"name": "Village",
 	"size": [
@@ -221,6 +221,36 @@
 				12,
 				14
 			]
+		},
+		{
+			"kind": "store_sign",
+			"cell": [
+				22,
+				14
+			],
+			"size": [
+				4,
+				2
+			],
+			"solid": false,
+			"flag": "sayo_sign",
+			"flag_value": "old",
+			"style": "old"
+		},
+		{
+			"kind": "store_sign",
+			"cell": [
+				22,
+				14
+			],
+			"size": [
+				4,
+				2
+			],
+			"solid": false,
+			"flag": "sayo_sign",
+			"flag_value": "new",
+			"style": "new"
 		}
 	],
 	"doors": [
