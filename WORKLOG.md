@@ -10,6 +10,45 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Merged six branches: talking, opening event, shop extras, barn, mine, festivals
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged with `--no-ff`, one at a time, all tests after each, in this order:
+  `claude/talk-gifts-9356cc` (c3ddc09), `claude/opening-event-97bc8c` (3a3c5e4),
+  `claude/shop-extras-868703` (6dd2e34), `claude/barn-animals-b077fb` (4e43d8c),
+  `claude/mining-cf98d9` (a5c4d62), `claude/festivals-a062df` (f0b26ab). WORKLOG kept every
+  branch's entry; AGENTS / README / ROADMAP kept both sides (test list, debug flags, sections);
+  "Next up" now points at the balance pass, then relationships and endings. Code joins:
+  - Save version: talking and the barn both raised it to 3. Now 3 = affection, 4 = the barn
+    and the dog (`SaveGame.VERSION := 4`; `Animals.parse` gives the new-game fodder and dog to
+    saves before 4). `test_animals` checks a version 3 save without the barn loads and a
+    version 4 one without it is refused; `test_talk` checks version 3 or later.
+  - Event steps: `affection` (talking) and `place` / `actor` (opening) side by side in
+    `EventRunner.COMMANDS`. `Villagers.where` gives an event actor's place first, then the
+    plan with the talk turn.
+  - Shops: `data/shops.json` `_about` describes both the keeper rule and the new stock /
+    rucksack / builds keys; keepers Sayo and Hachiro kept, the rod in the smithy's tools.
+    `open_shop` checks a festival / hours (`_shop_shut`) and then the keeper.
+  - `FarmActions`: the dog in arms first, then talk, then hold / throw; `interact` asks the
+    coop, the barn, then mine pick-ups. `main_3d` sets up the animal layer with the player
+    (dog) and adds the mine layer. Map props: barn and mine kinds in both views.
+  - `Game`: new-game, save and load keep affection, house extensions, the mine's deepest floor
+    and the barn; `trigger_state` has both `hearts` and `festival`; villager rules accept
+    `festival` and files accept `gifts`.
+- Checked on merged main: all 20 tests (`test_animals`, `test_audio`, `test_body`,
+  `test_dialogue`, `test_events`, `test_farm`, `test_festivals`, `test_fishing`, `test_food`,
+  `test_hold`, `test_inventory`, `test_maps`, `test_menu`, `test_mine`, `test_save`,
+  `test_shops`, `test_talk`, `test_title`, `test_villagers`, `test_weather`) print
+  `OK (0 failed)`; headless `--quit-after 300` (title, `-- --demo`, `--map=town`, `--map=barn`,
+  `--mine=3`, `--festival=lantern_night`, `--map=farm@barn --barn-out`, `--shop=general`,
+  `--map=town --time=14:30 --talk=tome`, `--map=house --built=kitchen,chest,room`,
+  `--fishing`, `--map=coop`) and `res://scenes/main.tscn --quit-after 400` (also with
+  `--festival=blossom_day`) printed no errors or warnings. Movie Maker frames:
+  `--demo --festival=lantern_night` (lanterns, a firework, "Lantern Night" under the clock),
+  `--demo --map=town --time=14:30 --talk=tome` (Tome's talk box with her portrait).
+- Left / next: none of the six was played in a real window, and the new sounds were not
+  heard. The smithy doesn't ask for ores yet; cows / sheep / fodder aren't in the store's
+  stock (hooks: `Game.add_animal("cow" | "sheep", young)`, `Game.animals.add_fodder(n)`).
+
 ## 2026-10-31 — Talking, gifts, affection; keepers at their counters; bump delay
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: E facing a villager (or a counter with them behind it, `Talk.facing_villager`) turns
