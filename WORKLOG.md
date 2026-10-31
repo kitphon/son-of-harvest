@@ -10,6 +10,49 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Shop and event music: the store, the smithy, heart events, the opening
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: four new scores of our own in `data/music.json`, all in the yo scale except the
+  smithy: `store` (C, 100 bpm: a koto tune over a new `shamisen` pluck instrument chugging
+  off the beat, a woodblock and sho chords; easy to stand in while shopping), `smithy` (D in
+  minyo, 84 bpm: a low shakuhachi line, a koto ostinato, the kane bell as the anvil on 1, 3
+  and 3.5, a taiko on the downbeat), `heart` (E flat, 63 bpm in 6: a soft shakuhachi over a
+  koto arpeggio, sho and a rin now and then), `morning` (G, 108 bpm: a bright koto tune, a
+  long shakuhachi line above it, koto bass, woodblock and taiko). Levels -5 / -6 dB like the
+  other tracks. `MusicPicker.pick` takes the map id and the event playing; a rule with
+  `maps` fits only on those maps, one with `events` only while one of those event scripts
+  plays. Rules: `heart` for the eight heart_* events and `morning` for `opening` and
+  `first_morning`, right after the title rule (so they win over festivals, shops, weather
+  and night); `store` on map store and `smithy` on map smithy, after the festivals and before
+  rain / night (a shop is indoors, its tune plays whatever the weather or hour). The first
+  visit events (store_intro, smithy_intro) keep the shop tune instead of a bright one: a
+  3 s cross-fade for a short scene in the same room would only interrupt. `Sfx` passes
+  `Game.maps.id` and `Sfx.event_playing()` (the EventPlayer's runner id while
+  `Game.event_running`).
+- Checked: `test_audio.gd` new checks: the new scores pass the existing score checks (scale,
+  bars, range, two bars not silent); store / smithy picks over storm, rain and night; town and
+  house keep the old picks; every `data/events/heart_*.json` picks heart (also at the store
+  counter and on Blossom Day); opening and first_morning pick morning; the shop intros keep
+  the shop music; pond_first and festival_blossom keep the music around them; rule maps and
+  events exist as files; a sweep over scene x 5 looks x 4 seasons x 6 hours x 5 festivals x
+  5 maps (none, farm, town, house, mine_floor) x 3 events (none, pond_first,
+  festival_blossom) gives exactly what the rules without maps / events give; on the real Sfx,
+  map store picks `{"store": 1.0}`. All 23 test scripts print `OK (0 failed)`. Headless runs
+  (title `--quit-after 300`, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo
+  --shop=general`, `--demo --shop=smithy`, `--demo --map=town --time=14:30
+  --event=heart_tome`, `res://scenes/main.tscn --quit-after 400`) printed no errors or
+  warnings. Movie Maker with `--movie-audio`, 300 frames each, levels after the first 3 s
+  (python -I, wave + numpy): `--shop=general` rms 0.0563 (-25.0 dBFS) peak 0.2792 (-11.1);
+  `--shop=smithy` rms 0.0627 (-24.1) peak 0.2640 (-11.6); `--map=town --time=14:30
+  --event=heart_tome` rms 0.0672 (-23.4) peak 0.2808 (-11.0); `--event=opening` rms 0.0620
+  (-24.1) peak 0.3155 (-10.0); so not silent, but these mixes include the ambient and sound
+  effects too, and the numbers don't say which track played (the picks are checked in the
+  tests). The movie runs print `WARNING: 2 ObjectDB instances were leaked at exit`; the same
+  warning shows with the code before this change (`--shop=general --movie-audio`), so it is
+  not from this work. `shots/` deleted.
+- Left / next: a person still has to listen to all four tunes (and the older ones); mine
+  floors and villagers' homes still use the season / night music.
+
 ## 2026-10-31 — Merged three branches: dish gifts, ending / balance, heart flags in the world
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each:

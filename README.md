@@ -86,7 +86,10 @@ effect the moment it changes and saved to `user://settings.json` (version 2; a v
   cicadas on summer days, crickets at night, cross-faded by weather / season / hour.
 - Music: our own short loops written as notes in `data/music.json` (five-note scales, koto /
   shakuhachi / sho-like voices made by `scripts/audio/music_synth.gd`): a title theme, one
-  per season, night and rain, cross-faded by scene / weather / hour. Esc → Settings has
+  per season, night and rain, cross-faded by scene / weather / hour; inside the Yorozu Store
+  and the Kurogane Smithy their own tunes (rules with `maps`), a gentle score under the heart
+  events and a bright one under the opening of a new game (rules with `events`: while one of
+  those event scripts plays, `Sfx.event_playing()`). Esc → Settings has
   Music / Sounds / Ambient volume sliders.
 - Chickens (`data/animals.json`, `Animals`): the thatched coop right of the stand is a map
   with a door. Inside: E on the feed box fills it from the feed sack (one portion a hen), on
