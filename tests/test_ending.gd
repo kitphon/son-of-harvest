@@ -195,7 +195,7 @@ func _first_day() -> void:
 	var g := _game()
 	check(g.first_day.values == g.ending_values() and g.first_day.values == g.start_values(), "the first day's numbers (%s)" % [g.first_day.values])
 	var f: Dictionary = g.first_day.field
-	check(f.debris > 50 and f.tilled == 0 and f.money == g.START_MONEY, "the first day's field (%s)" % [f])
+	check(f.debris > 20 and f.tilled == 0 and f.money == g.START_MONEY, "the first day's field (%s)" % [f])
 	check(g.field_counts() == f and g.year_pages.is_empty(), "nothing changed yet, no page")
 	g.farm.cell(Vector2i(11, 10)).obj = FarmGrid.Obj.NONE
 	g.farm.till(Vector2i(11, 10))

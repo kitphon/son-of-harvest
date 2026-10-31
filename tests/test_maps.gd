@@ -307,7 +307,8 @@ func _story_props() -> void:
 	for c in [Vector2i(1, 4), Vector2i(1, 5), Vector2i(1, 6)]:
 		check(g.farm.is_solid(c) and g.maps.is_solid(c, g.farm) and not g.farm.can_farm(c) and not g.farm.till(c),
 			"the lumber and the streamer pole block %s" % c)
-	check(not g.farm.is_solid(Vector2i(2, 4)) and not g.farm.is_solid(Vector2i(2, 5)) and not g.farm.is_solid(Vector2i(1, 7)),
+	# under_prop, not is_solid: the field is rolled at random and a rock or weed may lie there.
+	check(not g.farm.under_prop(Vector2i(2, 4)) and not g.farm.under_prop(Vector2i(2, 5)) and not g.farm.under_prop(Vector2i(1, 7)),
 		"the cells beside them stay open (Hachiro works and fetches from there)")
 	check(MapManager.data("farm").prop_at(Vector2i(5, 3)).get("kind", "") == "door_bell" and not MapManager.data("farm").is_solid(Vector2i(5, 3)),
 		"the bell's prop is not solid")
