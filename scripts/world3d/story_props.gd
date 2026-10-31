@@ -5,9 +5,10 @@ extends RefCounted
 ## map, hachiro_bell), the store's new sign stands on its roof over the front (town map,
 ## sayo_sign "old" / "new" as the prop's `style`), Tome's jar of pickled plums sits in the
 ## farmhouse (house map, tome_grandma) and Kota's carp streamer flies on its pole beside the
-## farmhouse (farm map, kota_streamer, band 6). The pictures are PlaceholderArt "story:" keys,
-## the same ones the flat view draws (StoryView, which also keeps the list of kinds). Same
-## units as MapWorld (1 unit = 1 cell).
+## farmhouse (farm map, kota_streamer, band 6); the farmhouse's ribbon board hangs on its back
+## wall once a contest ribbon is won (house map, ribbons: Keepsakes). The pictures are
+## PlaceholderArt "story:" keys, the same ones the flat view draws (StoryView, which also keeps
+## the list of kinds). Same units as MapWorld (1 unit = 1 cell).
 
 
 ## A story prop by its kind (MapWorld calls this; on the farm, FarmWorld.make_story_props).
@@ -32,6 +33,10 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 			for x in [cx - 0.9, cx + 0.9]:
 				w._box(Vector3(0.07, 0.5, 0.07), Vector3(x, 1.75, front + 0.05), timber)
 			w._picture(StoryView.art_key(p), Vector2(2.4, 0.7), Vector3(cx, 1.98, front + 0.1))
+		"ribbon_board":
+			# Hung on the back wall over its cell, in front of the wall post that stands there
+			# (MapWorld._wall: a post every other cell, 0.05 out from the wall face).
+			w._picture(StoryView.art_key(p), Vector2(1.26, 0.78), Vector3(r.get_center().x, 1.15, r.position.y + 0.08))
 		"ume_jar":
 			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))
 			s.pixel_size = 0.04

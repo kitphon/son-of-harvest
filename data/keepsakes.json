@@ -1,0 +1,15 @@
+{
+	"_about": "Things to keep (Keepsakes, scripts/items/keepsakes.gd; README.md, Festivals): they go into the rucksack, cannot be eaten, shipped or sold, and stay as long as the farmer keeps them. keepsakes: bought ones, item id keep:<id>, {name, look {shape (chime, fan), color, accent}}; their prices are in the stall that sells them (data/festivals.json). ribbons: what placing in a festival contest gives besides the prize, item id ribbon:<festival>:<place>; name is filled with the festival's name and the place's name, places by place from 1st on ({name, color}; no ribbon below the last). Every ribbon won is also noted on the board in the farmhouse (the ribbons flag; house map prop ribbon_board). Names, looks and colours are ours; the colours match the rosettes on the judges' table.",
+	"keepsakes": {
+		"wind_chime": {"name": "Wind chime", "look": {"shape": "chime", "color": "a8d4ec", "accent": "c8442c"}},
+		"paper_fan": {"name": "Paper fan", "look": {"shape": "fan", "color": "f0e6c8", "accent": "2c4a8a"}}
+	},
+	"ribbons": {
+		"name": "%s ribbon (%s)",
+		"places": [
+			{"name": "1st", "color": "c8442c"},
+			{"name": "2nd", "color": "f4f0e6"},
+			{"name": "3rd", "color": "2c4a8a"}
+		]
+	}
+}

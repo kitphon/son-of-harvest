@@ -1,11 +1,11 @@
 class_name StoryView
 extends Node2D
-## The story props of a map (KINDS: the door bell, the store's sign, Tome's jar, Kota's carp streamer) in the flat
+## The story props of a map (KINDS: the door bell, the store's sign, Tome's jar, Kota's carp streamer, the ribbon board) in the flat
 ## view, drawn from the same PlaceholderArt "story:" keys as in 3D (StoryProps): centred in
 ## their cells, standing on the bottom edge. MapView leaves them out of its boxes.
 
 const T := 16
-const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer"]
+const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board"]
 
 var map: MapData
 
@@ -14,6 +14,8 @@ var map: MapData
 static func art_key(p: Dictionary) -> String:
 	if str(p.kind) == "store_sign":
 		return "story:sign_" + str(p.get("style", "old"))
+	if str(p.kind) == "ribbon_board":   # one rosette per ribbon won (Keepsakes.RECORD)
+		return "story:ribbon_board:" + Keepsakes.board_places(MapManager.flags)
 	return "story:" + str(p.kind)
 
 

@@ -183,6 +183,8 @@ static func interact(c: Vector2i) -> void:
 				Game.open_inventory("storage")
 			"cook":   # the kitchen corner's stove and cupboard
 				Game.open_cooking()
+			"ribbons":   # the farmhouse's board of contest ribbons
+				Game.message.emit(Keepsakes.board_text(Game.flags))
 		return
 	if DogActions.interact(c):
 		return
@@ -231,7 +233,8 @@ static func festival_spot(c: Vector2i) -> bool:
 		if r.ok:
 			Sfx.play("pick")
 		return true
-	return Festivals.at_stall(fid, c) and Game.open_stall()
+	var stall := Festivals.stall_at(fid, c)
+	return stall != "" and Game.open_stall(stall)
 
 
 static func buy_seeds() -> void:

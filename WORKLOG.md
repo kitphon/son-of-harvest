@@ -10,6 +10,50 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Lantern Night stalls that sell, contest ribbons and the ribbon board
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a festival's `stall` may be a list of stalls, each with an `id`; the shop id is
+  `stall:<festival>:<stall id>` (`stall:<festival>` for a lone stall without an id, so Blossom
+  Day is unchanged). `Festivals.stalls / stall_of / stall_at / stall_of_prop`, the data check
+  refuses a repeated or bad stall id; `Game.open_stall(shop_id)` opens the stall E is pressed
+  at (`FarmActions.festival_spot`). Lantern Night: the red stall at (9, 7) is the Night Eats
+  Stall (new foods, only sold at a stall: yakisoba 150 G / +35 stamina, shaved ice 80 G / +8
+  and -6 fatigue, marble soda 60 G / +6 and -4 fatigue; priced near the stand's dango and
+  sakura mochi for what they give, shaved ice and soda are the cooling ones), the yellow one
+  at (22, 7) the Wind Chime Stall (keepsakes: wind chime 300 G, paper fan 120 G, a treat with
+  no use, so priced like a few snacks). A selling stall sets its stock out on its counter
+  (item icons, 3D sprites and flat view). New `data/keepsakes.json` and `Keepsakes`
+  (scripts/items/keepsakes.gd): keepsakes `keep:<id>` and ribbons `ribbon:<festival>:<place>`
+  have names and icons (a glass chime, a round fan, a rosette per place: red, white, blue like
+  the judges' table) and are never eaten, shipped or sold (no sell price, the store doesn't
+  buy them, the bin leaves them). `Game.enter_contest` gives a ribbon for 1st to 3rd on top
+  of the prize and notes it in the story flag `ribbons` (`<festival>:<place>:<year>`, so it
+  is saved with the flags and needs no save change), even when the rucksack is full. That
+  flag gates a new farmhouse prop: the ribbon board on the back wall over (2, 1), one small
+  rosette per ribbon (the last 12), E on it counts them. The ending record is left alone
+  (its steps were just re-set). README → Festivals, AGENTS.md flags and tests updated.
+- Checked: new checks in `test_festivals.gd` (stall ids and the data check, which stall
+  props sell, both night stalls' stock, prices and hours, every stall-only food on a stall,
+  names fit the item box, E at each stall and at a look-only one, buying a chime and shaved
+  ice, keepsakes not shipped / sold / eaten, icons drawn, ribbon ids / names for every
+  festival and place, a ribbon for first place in year 2, an egg fourth at the Moon Offering
+  gets none, a full rucksack still records it, the board's prop, look and text, the record
+  and a ribbon through `to_dict` / `from_dict`, wares on the counters in 3D: 3 at Blossom
+  Day, 5 at Lantern Night). All 23 test scripts print `OK (0 failed)`. Headless
+  `--quit-after 300` runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo
+  --festival=lantern_night`, with `--shop=stall:lantern_night:chimes`, `--festival=blossom_day
+  --shop=stall:blossom_day`, `--map=house --flags=ribbons=blossom_day:1:1`, and
+  `main_2d.tscn -- --demo --festival=lantern_night`) printed no errors or warnings. Movie
+  Maker frames: `--festival=lantern_night` (lanterns, fireworks, the chime on the yellow
+  stall's counter at the right edge), `--festival=lantern_night --map=town@tome` (the red
+  stall with its three dishes on the counter), `--shop=stall:lantern_night:chimes` (the
+  screen: Wind chime 300 G, Paper fan 120 G, "Lantern Night only"), `--map=house
+  --flags=ribbons=blossom_day:1:1` (the board on the back wall with a red rosette; the first
+  try put it behind the wall post, moved 0.05 out). `shots/` deleted.
+- Left / next: the board's rosettes are small from the camera; keepsakes do nothing yet
+  (could go in the gift lists, left out while the heart work is open in another branch);
+  stalls at Moon Night and Year's Turn. Not played in a real window.
+
 ## 2026-10-31 — Band 6 heart scenes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a third heart event per villager, `data/events/heart_<id>_6.json` with lines in

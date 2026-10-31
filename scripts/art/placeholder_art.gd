@@ -49,8 +49,8 @@ static func _make(key: String) -> Image:
 			return _title_bg()
 		"face":     # face:<speaker>:<calm|smile|surprised|worried>, a 40 x 40 text box portrait
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
-		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer>, things the heart events leave in the world (StoryProps)
-			return _story(parts[1])
+		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
+			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
 
@@ -73,6 +73,10 @@ static func item_key(id: String, seed := "", food := "") -> String:
 		return "ui:kitchen:" + id.trim_prefix("kitchen:")
 	if id in ["hoe", "can", "sickle", "hammer", "axe", "rod"]:
 		return "ui:tool:" + id
+	if id.begins_with("keep:"):
+		return "ui:keep:" + id.trim_prefix("keep:")
+	if id.begins_with("ribbon:"):
+		return "ui:ribbon:%d" % Keepsakes.ribbon_place(id)
 	return "ui:item:" + id.replace(":", "_")
 
 
@@ -1504,6 +1508,12 @@ static func _ui(kind: String, arg: String) -> Image:
 			return _mine_icon(mine_look(arg))
 		"kitchen":  # kitchen:<id>, 14 x 14, a cooking tool (data/recipes.json tools)
 			return _kitchen_icon(arg)
+		"keep":     # keep:<id>, 14 x 14, a keepsake from its look in data/keepsakes.json
+			return _keepsake_icon(Keepsakes.keepsake("keep:" + arg).get("look", {}))
+		"ribbon":   # ribbon:<place>, 14 x 14, a contest rosette in the place's colour
+			var img := _blank(14, 14)
+			_rosette(img, 7, 5, Keepsakes.ribbon_color(int(arg)))
+			return _outline(img)
 		"coin":     # a gold coin with a square hole
 			var img := _blank(9, 9)
 			_oval(img, 4.5, 4.5, 4.0, 4.0, Color("c8962a"))
@@ -1940,6 +1950,59 @@ static func _face(speaker: String, expression: String) -> Image:
 			for x in [15, 24]:
 				_px(img, x, eye_y, 2, 2, ink)
 			_px(img, 18, 27, 4, 1, ink)
+	return img
+
+
+## A keepsake: a glass wind chime (bell, clapper, paper strip) or a round paper fan on a
+## bamboo handle.
+static func _keepsake_icon(look: Dictionary) -> Image:
+	var img := _blank(14, 14)
+	var c := Color(look.get("color", "a8d4ec"))
+	var a := Color(look.get("accent", "c8442c"))
+	match look.get("shape", ""):
+		"chime":
+			_px(img, 6, 0, 2, 2, Color("6a5a48"))          # the cord
+			_oval(img, 7, 4.5, 3.5, 3.0, c)               # the glass bell
+			_px(img, 3, 5, 8, 2, c)
+			_px(img, 4, 3, 1, 2, c.lightened(0.5))
+			_px(img, 5, 4, 4, 1, a)                       # a painted band
+			_px(img, 7, 7, 1, 2, Color("6a5a48"))         # the clapper string
+			_px(img, 6, 9, 3, 5, Color("f4f0e6"))         # the paper strip that catches the wind
+			_px(img, 6, 10, 3, 1, a)
+		"fan":
+			_px(img, 6, 8, 2, 6, Color("c8a060"))          # the bamboo handle
+			_oval(img, 7, 5.5, 5.5, 4.5, c)
+			_oval(img, 7, 5.5, 2.5, 2.0, a)               # a painted flower
+			for x in [3, 7, 11]:                          # the ribs
+				_line(img, Vector2i(7, 9), Vector2i(x, 2), c.darkened(0.15))
+		_:
+			_oval(img, 7, 7, 5, 5, c)
+	return _outline(img)
+
+
+## A contest rosette: a round of pleats in `c` with a darker heart and two tails below it;
+## `small` for the board at home (5 px across instead of 9).
+static func _rosette(img: Image, cx: int, cy: int, c: Color, small := false) -> void:
+	var r := 2.5 if small else 4.5
+	var tail := 1 if small else 2
+	_px(img, cx - 1 - tail, cy + 1, tail, 4 if small else 6, c.darkened(0.15))
+	_px(img, cx + 1, cy + 1, tail, 4 if small else 6, c.darkened(0.15))
+	_oval(img, cx, cy, r, r, c)
+	_oval(img, cx, cy, r * 0.45, r * 0.45, c.darkened(0.25) if c.v > 0.6 else c.lightened(0.3))
+	img.set_pixel(cx - 1, cy - 1, Color("e8c050"))   # the gold button
+
+
+## The farmhouse's ribbon board (StoryProps / StoryView): a framed paper board with one
+## rosette per ribbon won, in the order won ("112" = two firsts, then a second), six to a row.
+static func _ribbon_board(places: String) -> Image:
+	var img := _blank(42, 26)
+	_px(img, 0, 0, 42, 26, Color("4a3424"))   # the frame
+	_px(img, 1, 1, 40, 24, Color("6a4a30"))
+	_px(img, 2, 2, 38, 22, UI_PAPER)
+	for i in mini(places.length(), Keepsakes.BOARD_MOST):
+		var x := 5 + (i % 6) * 6
+		var y := 6 + (i / 6) * 11
+		_rosette(img, x, y, Keepsakes.ribbon_color(int(places[i])), true)
 	return img
 
 

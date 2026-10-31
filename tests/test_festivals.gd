@@ -1,8 +1,8 @@
 extends SceneTree
 ## Headless checks for festivals (data/festivals.json, Festivals, Game's festival day, shops
 ## shut for it, the fair weather, villagers gathering, the event once a year, the decorations
-## and lights in both views, the HUD tag, the contests and their result lines, the stall, the
-## shipping payout held back on the day). Run:
+## and lights in both views, the HUD tag, the contests and their result lines, the stalls and
+## their wares, ribbons and the farmhouse board, the shipping payout held back on the day). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_festivals.gd
 
 var failures := 0
@@ -31,6 +31,8 @@ func _process(_delta: float) -> bool:
 		_event()
 		_contest_game()
 		_stall()
+		_night_stalls()
+		_ribbons()
 		_payout()
 		_start_views("spring", 8, 10, 30)
 	elif _frame == 3:
@@ -232,8 +234,23 @@ func _contest_data() -> void:
 			and not Festivals.at_table(id, Vector2i(int(f.place[0]), int(f.place[1]))), "%s: the judges' table stands away from the gathering place" % id)
 		check(EventRunner.open(c.event, null).error == "", "%s: the result event %s runs" % [id, c.event])
 	check(Festivals.at_table("blossom_day", Vector2i(21, 8)) and not Festivals.at_table("blossom_day", Vector2i(22, 8)), "the whole table, not the cherry next to it")
-	check(Festivals.at_stall("blossom_day", Vector2i(10, 7)) and not Festivals.at_stall("lantern_night", Vector2i(9, 7)),
-		"Blossom Day has the stall, Lantern Night's stalls are only looks")
+	check(Festivals.stall_at("blossom_day", Vector2i(10, 7)) == "stall:blossom_day", "Blossom Day has the stall")
+	check(Festivals.stall_at("lantern_night", Vector2i(10, 7)) == "stall:lantern_night:eats"
+		and Festivals.stall_at("lantern_night", Vector2i(22, 7)) == "stall:lantern_night:chimes"
+		and not Festivals.at_stall("lantern_night", Vector2i(13, 7)) and not Festivals.at_stall("lantern_night", Vector2i(12, 13)),
+		"Lantern Night sells at two of its four stalls, the others are only looks")
+	check(Festivals.stall_of("stall:lantern_night:chimes")[0] == "lantern_night" and Festivals.stall_of("stall:lantern_night:chimes")[1].name == "Wind Chime Stall"
+		and Festivals.stall_of("stall:blossom_day")[1].name == "Hanami Dango Stall" and Festivals.stall_of("stall:lantern_night")[1].is_empty()
+		and Festivals.stall_of("stall:lantern_night:nope")[1].is_empty() and Festivals.stall_of("general")[0] == "", "stall shop ids name the festival and the stall")
+	var night: Dictionary = Festivals.get_festival("lantern_night").duplicate(true)
+	check(Festivals.check({"festivals": {"a": night}}) == "", "Lantern Night's two stalls pass")
+	night.stall[1].id = "eats"
+	check(Festivals.check({"festivals": {"a": night}}) != "", "two stalls with one id are refused")
+	night.stall[1].id = "a b"
+	check(Festivals.check({"festivals": {"a": night}}) != "", "a stall id with a space is refused")
+	night.stall[1].erase("id")
+	night.stall[0].erase("id")
+	check(Festivals.check({"festivals": {"a": night}}) != "", "two stalls without ids are refused")
 	var f: Dictionary = Festivals.get_festival("blossom_day").duplicate(true)
 	check(Festivals.check({"festivals": {"a": f}}) == "", "Blossom Day's data passes on its own")
 	var bad := {
@@ -356,7 +373,12 @@ func _contest_game() -> void:
 	check(r.ok and r.place == 1 and g.flags.get("contest_place_1") == true and (want.place == 1 or not g.flags.has("contest_place_%d" % want.place))
 		and not g.flags.keys().any(func(k): return k.begins_with("contest_won_")), "year 2: first place with the %s, last year's flags cleared" % item)
 	check(g.count("food:sakura_mochi") == mochi + 2 and g.flags.get("contest_prize") == true and int(g.flags.get("contest_wins", 0)) == wins + 1
-		and said.back() == "Prize: 500 G and 2 x Sakura mochi", "first prize: money and two sakura mochi (%s)" % said.back())
+		and "Prize: 500 G and 2 x Sakura mochi" in said, "first prize: money and two sakura mochi (%s)" % [said])
+	var won: Array = [want.place] if want.place <= 3 else []
+	won.append(1)
+	check(g.count("ribbon:blossom_day:1") == (2 if want.place == 1 else 1) and said.back() == "You got a Blossom Day ribbon (1st)!"
+		and Keepsakes.record(g.flags).map(func(e): return e.place) == won and Keepsakes.record(g.flags).back() == {"festival": "blossom_day", "place": 1, "year": 2},
+		"a first-place ribbon goes into the rucksack and onto the record (%s)" % [g.flags.get("ribbons")])
 	g.hour = 16
 	check(g.festival_now() == "" and g.enter_contest().why == "none", "after the hours the table is gone")
 	g.message.disconnect(hear)
@@ -385,8 +407,116 @@ func _stall() -> void:
 	var r: Dictionary = g.shop_buy("stall:blossom_day", "food:dango", 2)
 	check(r.ok and g.money == money - 2 * int(g.foods.dango.price) and g.count("food:dango") == 2, "two dango bought (%s)" % [r])
 	_set_day(g, "summer", 20, 18, 0)
-	check(not g.open_stall(), "Lantern Night has no stall to open")
+	check(not g.open_stall("stall:blossom_day"), "the dango stall isn't out on Lantern Night")
 	g.shop_requested.disconnect(shop_open)
+
+
+## Lantern Night's stalls: the night eats (foods sold only at a stall) and the wind chimes
+## (keepsakes: kept, never eaten, shipped or sold), opened with E in front of them.
+func _night_stalls() -> void:
+	var g := _game()
+	g.new_game()
+	var opened: Array = []
+	var shop_open := func(id): opened.append(id)
+	g.shop_requested.connect(shop_open)
+	var eats: Shop = g.shop("stall:lantern_night:eats")
+	var chimes: Shop = g.shop("stall:lantern_night:chimes")
+	check(eats != null and eats.name == "Night Eats Stall" and eats.stock("summer").size() == 3 and eats.open_hour == 17 and eats.close_hour == 22
+		and eats.price("food:yakisoba", "summer") == int(g.foods.yakisoba.price), "the eats stall sells at the foods' own prices in the festival hours")
+	check(chimes != null and chimes.price("keep:wind_chime", "summer") == 300 and chimes.price("keep:paper_fan", "summer") == 120
+		and chimes.item_name("keep:wind_chime") == "Wind chime" and ShopMenu.new(g, "stall:lantern_night:chimes").tabs == ["buy"], "the chime stall's keepsakes and their prices")
+	check(g.shop("stall:lantern_night") == null, "no stall without its id")
+	# Every stall-only food (shop false with a price) is on some stall, and no stall sells a kitchen dish.
+	var sold := {}
+	for fid in Festivals.all():
+		for st in Festivals.stalls(fid):
+			for e in st.stock:
+				sold[e.item] = true
+				check(not g.foods.get(str(e.item).trim_prefix("food:"), {}).has("sell"), "%s at a stall is no kitchen dish" % e.item)
+				var n: String = g.item_name(e.item)
+				check(n != str(e.item).replace(":", " ").replace("_", " ").capitalize() and PixelFont.width(n) + 12 + PixelFont.width("x99") <= HudLayout.BOXES.item.size.x,
+					"%s has a name that fits the item box" % e.item)
+	for id in g.foods:
+		if not g.foods[id].get("shop", false) and int(g.foods[id].get("price", 0)) > 0:
+			check(sold.has("food:" + id), "%s is sold at a festival stall" % id)
+	var FarmActions: GDScript = load("res://scripts/farm_actions.gd")
+	_set_day(g, "summer", 20, 16, 0)
+	g.maps.place("town", Vector2i(22, 8), Vector2i.UP)
+	check(not FarmActions.festival_spot(Vector2i(22, 7)) and opened.is_empty(), "the stalls are shut before 17:00")
+	g.hour = 18
+	check(FarmActions.festival_spot(Vector2i(23, 7)) and opened == ["stall:lantern_night:chimes"], "E at the chime stall opens it")
+	check(FarmActions.festival_spot(Vector2i(9, 7)) and opened.back() == "stall:lantern_night:eats", "E at the eats stall opens that one")
+	check(not FarmActions.festival_spot(Vector2i(13, 7)) and opened.size() == 2, "the blue stall is only a look")
+	check(g.open_stall() and opened.back() == "stall:lantern_night:eats", "open_stall with no id opens the first")
+	var money: int = g.money
+	var r: Dictionary = g.shop_buy("stall:lantern_night:chimes", "keep:wind_chime")
+	check(r.ok and g.money == money - 300 and g.count("keep:wind_chime") == 1 and g.item_name("keep:wind_chime") == "Wind chime", "a wind chime bought into the rucksack (%s)" % [r])
+	r = g.shop_buy("stall:lantern_night:eats", "food:shaved_ice")
+	check(r.ok and g.count("food:shaved_ice") == 1 and g.edible("food:shaved_ice"), "shaved ice bought, and it can be eaten")
+	var store: Shop = g.shop("general")
+	check(g.sell_price("keep:wind_chime") == 0 and store.buy_back("keep:wind_chime") == 0 and not g.edible("keep:wind_chime")
+		and store.buy_back("food:yakisoba") == 0 and g.sell_price("food:yakisoba") == 0, "keepsakes and stall food can't be shipped or sold back")
+	var bin_total: int = g.bin_total
+	g.held = "keep:wind_chime"
+	check(g.ship_produce() == 0 and g.count("keep:wind_chime") >= 1 and g.bin_total == bin_total, "the bin leaves the keepsake alone")
+	g.held = ""
+	check(PlaceholderArt.item_key("keep:wind_chime") == "ui:keep:wind_chime" and PlaceholderArt.item_key("ribbon:moon_night:2") == "ui:ribbon:2", "keepsake and ribbon icon keys")
+	for key in ["ui:keep:wind_chime", "ui:keep:paper_fan", "ui:ribbon:1", "ui:ribbon:2", "ui:ribbon:3"]:
+		var img := PlaceholderArt.tex(key).get_image()
+		check(img.get_size() == Vector2i(14, 14) and img.get_used_rect().has_area(), "%s drawn" % key)
+	check(PlaceholderArt.tex("ui:ribbon:1").get_image().get_pixel(10, 5) != PlaceholderArt.tex("ui:ribbon:3").get_image().get_pixel(10, 5), "ribbons differ by place")
+	g.shop_requested.disconnect(shop_open)
+
+
+## Ribbons: one per place up to the last ribbon place, by festival; the record (a story flag,
+## saved with the flags) and the board in the farmhouse that shows it.
+func _ribbons() -> void:
+	check(Keepsakes.places().size() == 3 and Keepsakes.ribbon_id("moon_night", 3) == "ribbon:moon_night:3" and Keepsakes.ribbon_id("moon_night", 4) == ""
+		and Keepsakes.ribbon_id("moon_night", 0) == "", "ribbons for 1st to 3rd only")
+	for fid in Festivals.all():
+		for place in [1, 2, 3]:
+			var n := Keepsakes.name_of(Keepsakes.ribbon_id(fid, place))
+			check(n != "" and PixelFont.width(n) + 12 + PixelFont.width("x99") <= HudLayout.BOXES.item.size.x, "%s fits the item box" % n)
+		check(Festivals.contest(fid).prizes.size() <= Keepsakes.places().size(), "%s: a ribbon for every prize place" % fid)
+	check(Keepsakes.name_of("ribbon:years_turn:2") == "Year's Turn ribbon (2nd)" and Keepsakes.name_of("ribbon:nowhere:1") == "" and Keepsakes.name_of("potato") == "", "ribbon names")
+	var g := _game()
+	g.new_game()
+	check(not MapManager.data("house").props.any(func(p): return p.kind == "ribbon_board"), "no ribbon board before the first ribbon")
+	check(Keepsakes.board_text(g.flags) == "An empty board for contest ribbons.", "an empty record")
+	# A fourth place: no ribbon. A full rucksack: the ribbon is noted on the board anyway.
+	_set_day(g, "fall", 15, 19, 0)
+	g.maps.place("town", Vector2i(22, 9), Vector2i.UP)
+	var said: Array = []
+	var hear := func(t): said.append(t)
+	g.message.connect(hear)
+	g.held = "egg"
+	var r: Dictionary = g.enter_contest()
+	check(r.ok and r.place == 4 and Keepsakes.record(g.flags).is_empty() and not g.flags.has(Keepsakes.RECORD) and g.count("ribbon:moon_night:4") == 0,
+		"an egg comes fourth at the Moon Offering: no ribbon (%s)" % [r])
+	g._give_ribbon("moon_night", 3)
+	check(g.count("ribbon:moon_night:3") == 1 and said.back() == "You got a Moon Night ribbon (3rd)!", "a third-place ribbon")
+	while g.add_item("mine:stone", 99) == 0:
+		pass
+	g._give_ribbon("years_turn", 1)
+	check(g.count("ribbon:years_turn:1") == 0 and said.back() == "No room in the rucksack for the ribbon. It is on the board at home."
+		and Keepsakes.record(g.flags).size() == 2, "a full rucksack: the ribbon is only on the board")
+	g.message.disconnect(hear)
+	check(Keepsakes.board_places(g.flags) == "31" and Keepsakes.board_text(g.flags) == "Contest ribbons: 2 on the board, 1 of them for first place.", "the board's look and text")
+	var house := MapManager.data("house")
+	var board: Array = house.props.filter(func(p): return p.kind == "ribbon_board")
+	check(board.size() == 1 and board[0].use == "ribbons" and not house.is_solid(board[0].cell + Vector2i.DOWN), "the board hangs in the farmhouse once a ribbon is won, reachable from below")
+	check(StoryView.art_key(board[0]) == "story:ribbon_board:31", "the board's picture shows both ribbons")
+	var img := PlaceholderArt.tex("story:ribbon_board:31").get_image()
+	check(img.get_size() == Vector2i(42, 26) and img.get_pixel(3, 6).is_equal_approx(Keepsakes.ribbon_color(3))
+		and img.get_pixel(9, 6).is_equal_approx(Keepsakes.ribbon_color(1)) and img.get_pixel(17, 6).is_equal_approx(PlaceholderArt.UI_PAPER),
+		"one rosette per ribbon, in its place's colour, then bare paper")
+	# The record is a story flag: it is saved and read back.
+	var d: Dictionary = g.to_dict()
+	var keep: Dictionary = g.flags.duplicate()
+	g.new_game()
+	check(g.from_dict(JSON.parse_string(JSON.stringify(d))) == "" and g.flags.get(Keepsakes.RECORD) == keep[Keepsakes.RECORD]
+		and g.count("ribbon:moon_night:3") == 1 and MapManager.data("house").props.any(func(p): return p.kind == "ribbon_board"), "ribbons and the record survive a save")
+	g.new_game()
 
 
 ## DESIGN: no shipping payout on a festival day; the bin pays with the next day's.
@@ -440,6 +570,7 @@ func _check_views() -> void:
 		return
 	check(p[0].festival == "blossom_day" and p[0].shown() and p[1].shown(), "Blossom Day decorations stand at 10:30 in both views")
 	check(p[0].glows.size() == 1, "the stall's lantern is the one light (%d)" % p[0].glows.size())
+	check(p[0].wares == 3, "the dango stall sets out its three wares (%d)" % p[0].wares)
 	var huds: Array = _scene3.get_children().filter(func(n): return _script_is(n, "hud.gd"))
 	check(huds.size() == 1 and huds[0]._fest_box.visible and huds[0]._fest.text == "Blossom Day", "the HUD shows the festival")
 	g.hour = 16
@@ -469,6 +600,7 @@ func _check_night() -> void:
 	if p[0] != null:
 		check(p[0].festival == "lantern_night" and p[0].shown(), "Lantern Night decorations at 20:00")
 		check(p[0].glows.size() == 41, "36 string lanterns, 4 stall lanterns and the drum stage glow (%d)" % p[0].glows.size())
+		check(p[0].wares == 5, "the two selling stalls set out their 3 + 2 wares (%d)" % p[0].wares)
 	var glow: GDScript = load("res://scripts/world3d/festival_glow.gd")
 	check(glow.fireworks_on(), "fireworks over the village at 20:00")
 	g.maps.place("farm", Vector2i(4, 4), Vector2i.DOWN)

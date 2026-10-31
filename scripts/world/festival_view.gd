@@ -50,3 +50,9 @@ func _draw() -> void:
 				draw_circle(r.position + Vector2(i * T + T / 2.0, T / 2.0), 4.0, c if i % 2 == 0 else COLORS.paper_lantern)
 		else:
 			draw_rect(r.grow(-2), c)
+		if p.kind == "stall":   # a selling stall's stock along its counter (FestivalProps._wares)
+			var stock: Array = Festivals.stall_of_prop(festival, p).get("stock", [])
+			for i in stock.size():
+				var tex := PlaceholderArt.tex(PlaceholderArt.item_key(str(stock[i].item)))
+				var at := Vector2(r.position.x + (r.size.x - stock.size() * 10) / 2.0 + i * 10 - 2, r.position.y + 1)
+				draw_texture(tex, at.round())

@@ -144,6 +144,8 @@ func item_name(item: String) -> String:
 		return str(_mine(item).name)
 	if HudLayout.TOOL_NAMES.has(item):
 		return HudLayout.TOOL_NAMES[item]
+	if Keepsakes.name_of(item) != "":
+		return Keepsakes.name_of(item)
 	return item.replace(":", " ").replace("_", " ").capitalize()
 
 
