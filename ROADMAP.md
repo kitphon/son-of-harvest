@@ -129,8 +129,13 @@ The balance pass is done (milestone 8): our own crop, product, animal and extens
 the before / after table). Later for balance: the smithy now asks for ores (they go to
 upgrades, not the bin) and cooking and contests add income, so re-run it with those in; play a
 real year.
-Next: **endings** (milestone 9; relationships are done, so an ending can read
-`Game.affection` bands and the `heart_<id>` flags).
+The ending is in (milestone 9): on the first morning of year 3 Tome brings the village record
+(stars per category, a rank and a title from data/ending.json; README → Ending), then the
+villager liked most says a word and the game goes on. Later for the ending: a look back at
+the first day (the field then and now), a record every New Year, real art for the scroll.
+Next: milestone 10, **Settings** (what the settings screen still lacks) and building the .exe
+once the export templates are installed (README → Export); a playtest of a real year to
+check the balance and the ending's steps.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -193,7 +198,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Festivals: one per season in data/festivals.json (Blossom Day, Lantern Night with fireworks, Moon Night, Year's Turn), HUD tag, shops shut, decorations in both views, an event once a year, villagers gather
    - [x] Festival contests with prizes and result events, festival music, payout held on the day, Blossom Day's stall
    - [x] Relationships: hearts on the text box's name tag, birthdays (calendar, gifts x5, birthday lines), the nightly loss for villagers left alone, a heart event per villager at band 3
-   - [ ] Endings (what the year-end / final evaluation looks at; DESIGN lists it as not studied yet)
+   - [x] Ending: the village record on the first morning of year 3 (data/ending.json: ten categories graded in stars, five ranks), Tome's verdict, the closest villager's word; the game goes on
 10. **Audio and release**
     - [x] Sound effects and ambient loops (synthesized from data/sfx.json, SFX / Ambient busses)
     - [x] Music; volume sliders in the settings screen (`Sfx.set_volume`)

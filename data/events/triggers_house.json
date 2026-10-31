@@ -1,6 +1,7 @@
 {
-	"_note": "Events in the farmhouse. The calendar hangs on the north wall above the low table, the radio stands on the chest of drawers. Format: README.md, Events.",
+	"_note": "Events in the farmhouse. The calendar hangs on the north wall above the low table, the radio stands on the chest of drawers. The ending plays once, on the first morning the farmer wakes here in year 3 or later. Format: README.md, Events.",
 	"rows": [
+		{"event": "ending", "on": "day_start", "year": [3, 99]},
 		{"event": "calendar_spring", "on": "examine", "spot": [3, 0], "once": false, "season": ["spring"]},
 		{"event": "calendar_summer", "on": "examine", "spot": [3, 0], "once": false, "season": ["summer"]},
 		{"event": "calendar_fall", "on": "examine", "spot": [3, 0], "once": false, "season": ["fall"]},

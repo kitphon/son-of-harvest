@@ -10,6 +10,44 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — The ending: the village record on the first morning of year 3
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: DESIGN lists the ending as not studied, so the rules are ours. New `Ending`
+  (scripts/ending/ending.gd, pure): `grade(values, points)` gives stars per category (one per
+  step reached), a rank by stars in all, a title, and the closing speaker (the villager with
+  the most points from heart band 3, else Tome); `check` refuses bad data; `value_text`
+  formats numbers. `data/ending.json`: ten categories (shipped value at today's prices, crop
+  kinds shipped, happy animals at half happiness or more, heart bands added up, deepest mine
+  floor, fish kinds, house extensions, tool levels above 1 over the five field tools, contests
+  won, recipes known), 39 stars, five ranks (Passing Traveller 0, New Hand on the Farm 8,
+  Village Farmer 16, Keeper of the Satoyama 24, Heart of the Village 33). Reasoning: from
+  tools/balance.py's year-1 plan (about 150 000 G gross a year, rising in year 2), a steady
+  two years ships 250 000 G or more (3 stars), grows every crop (4), fills a coop and barn
+  (3), talks daily (band 3-4 each, 3), builds all three extensions (3) and lands about 26-30
+  stars: Keeper; a casual run lands in Village Farmer; the top rank needs nearly everything.
+  `Game.ending_values()` / `ending_record()` / `show_ending()` (sets `ending_rank_<n>`,
+  `ending_friend_<id>`, clears older ones; `ending_open` while the screen is up, never without
+  one). New event step `{"do": "ending"}` (EventRunner waits on `ending_open`). The scene
+  `data/events/ending.json` + `data/dialogue/ending.json`, our own: a black fade, the farmer
+  at the futon, Tome slides the door open and brings the record, the EndingScreen, her verdict
+  per rank, then the closest villager comes in for a word (Tome herself when nobody is close),
+  `ending_seen`; the game goes on. Played once by a `day_start` row in triggers_house.json for
+  year 3 or later (a missed morning comes the next day). `EndingScreen`
+  (scripts/ui/ending_screen.gd, both views): wood and paper like the other screens, rows
+  revealed one by one with stars as seal-red boxes, "Written as: <title>"; Enter shows all,
+  then closes. `-- --ending` opens it. README → Ending, AGENTS test line and flag.
+- Checked: new `tests/test_ending.gd` prints `test_ending: OK (0 failed)` (data, grading,
+  ranks, friend pick, trigger once in year 3+, values on the real Game, the event to the end
+  for each closing villager, the screen waits / reveals / closes and the event goes on); all
+  23 tests print OK. Headless `--quit-after 300` (title, `--demo`, `--demo --ending`,
+  `--demo --map=house --event=ending`, `--demo --map=town`), `res://scenes/main.tscn
+  --quit-after 400` and `main_2d.tscn -- --demo --ending` printed no errors or warnings.
+  Movie Maker frames: `--demo --map=house --ending` (the record, 3 of 39 stars, Passing
+  Traveller) and `--demo --map=house --event=ending` (Tome at the door, the opening line).
+- Left / next: nobody has played two real years, so the steps are a guess from
+  tools/balance.py; a playtest should tune them. Not done: a record every New Year, a look
+  back at the first day, real scroll art.
+
 ## 2026-10-31 — Merged six branches: balance, mine extras, homes, relationships, contests, cooking
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each, in this order:

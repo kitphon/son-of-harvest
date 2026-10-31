@@ -1,0 +1,30 @@
+{
+	"_note": "The ending (data/events/ending.json): Tome brings the village record on the first morning of year 3. knock and greet come before the record screen, verdict after it (branches on ending_rank_<n>, set by the event's ending step), then one part for the closing speaker (ending_friend_<id>) and close. Our own scene.",
+	"lines": [
+		{"id": "knock", "text": "Two years have gone by since you came to the farm. Early on this spring morning, someone slides the door open.", "next": "end"},
+
+		{"id": "greet", "speaker": "tome", "face": "smile", "text": "Morning! I hope I'm not too early. The whole village has been talking, so I came to tell you myself."},
+		{"speaker": "tome", "face": "calm", "text": "Every New Year we write in the village record who did what. This year there's a page just for you."},
+		{"speaker": "tome", "face": "smile", "text": "Here, read it. Slowly, now. My handwriting isn't what it was.", "next": "end"},
+
+		{"id": "verdict", "if": "ending_rank_4", "then": "rank_4"},
+		{"if": "ending_rank_3", "then": "rank_3"},
+		{"if": "ending_rank_2", "then": "rank_2"},
+		{"if": "ending_rank_1", "then": "rank_1"},
+		{"speaker": "tome", "face": "calm", "text": "A traveller's page, for now. But the field remembers every row you dug. There's always next year.", "next": "end"},
+		{"id": "rank_1", "speaker": "tome", "face": "smile", "text": "A new hand on the farm, it says. Two years ago that field was all weeds. Don't let anyone tell you that's small.", "next": "end"},
+		{"id": "rank_2", "speaker": "tome", "face": "smile", "text": "Village farmer. That's what we call someone we can't picture the village without anymore.", "next": "end"},
+		{"id": "rank_3", "speaker": "tome", "face": "surprised", "text": "Keeper of the satoyama! The hills, the paddies, the people... you've looked after all of it.", "next": "end"},
+		{"id": "rank_4", "speaker": "tome", "face": "surprised", "text": "Heart of the village. I've written a lot of pages in that book, and I've never written that one before.", "next": "end"},
+
+		{"id": "tome_friend", "speaker": "tome", "face": "smile", "text": "And between us, the old woman you stop to chat with every day thinks you're the best thing to happen here in years.", "next": "end"},
+		{"id": "kota", "speaker": "kota", "face": "smile", "text": "Grandma Tome said I could come too! Two years, huh? You're not the new one anymore."},
+		{"speaker": "kota", "face": "calm", "text": "...I'm still faster than you, though. Race you to the pond later?", "next": "end"},
+		{"id": "sayo", "speaker": "sayo", "face": "calm", "text": "I closed the store for an hour. Don't tell anyone."},
+		{"speaker": "sayo", "face": "smile", "text": "I only wanted to say the shelves have never been as busy as since you came. Thank you, really.", "next": "end"},
+		{"id": "hachiro", "speaker": "hachiro", "face": "calm", "text": "Hm. Came to see your face when you read it. That's all."},
+		{"speaker": "hachiro", "face": "smile", "text": "Good work, farmer. Bring me that hoe when it's dull. I'll make it sing.", "next": "end"},
+
+		{"id": "close", "speaker": "tome", "face": "smile", "text": "Well! The record is written, but the seasons don't stop for it. Spring is waiting for you out there.", "next": "end"}
+	]
+}

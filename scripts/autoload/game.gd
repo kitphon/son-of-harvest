@@ -15,6 +15,7 @@ signal map_entered(map_id: String)   # the farmer stands on the new map (after t
 signal thrown(item: String, from: Vector2i, to: Vector2i, result: String)   # views draw the flight
 signal shop_requested(id: String)    # a ShopScreen opens that shop (data/shops.json)
 signal cooking_requested             # a CookingScreen opens (the kitchen corner, data/recipes.json)
+signal ending_requested(record: Dictionary)   # an EndingScreen shows the village record (Ending.grade)
 signal fishing_event(kind: String)   # "bite" / "escaped" while the line is out (FarmActions plays the cue)
 
 const SECONDS_PER_MINUTE := 0.5
@@ -40,6 +41,7 @@ var flashes_enabled := true     # lightning flashes in storms; off for photosens
 var clock_running := true      # off on the title screen
 var dialogue_open := false      # a text box is up: the clock and the farmer wait (counts as paused)
 var event_running := false      # an event script plays: the clock waits, the script moves the farmer
+var ending_open := false        # the village record is on screen (the ending event waits for it)
 var settings: Settings          # the player's settings (user://settings.json), not saved with the run
 var _pauses := 0                # open menus; while any is open time stands still
 
@@ -126,6 +128,7 @@ func _ready() -> void:
 ## A fresh run: every value back to the start and a newly laid-out farm, so nothing from an
 ## earlier game in the same session is left over. New run state belongs in this list too.
 func new_game() -> void:
+	ending_open = false
 	year = 1
 	season = 0
 	day = 1
@@ -1065,6 +1068,58 @@ func cook(id: String) -> Dictionary:
 		"full":
 			return {"ok": false, "note": "No room in the rucksack for it"}
 	return {"ok": false, "note": "No such recipe"}
+
+
+# --- the ending (data/ending.json, Ending) -----------------------------------
+
+const FIELD_TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe"]
+
+## The numbers the village record grades (Ending.MEASURES), measured from this run.
+func ending_values() -> Dictionary:
+	var value := 0
+	var kinds := 0
+	for id in shipped:
+		value += int(shipped[id]) * sell_price(id)
+		if crops.has(id):
+			kinds += 1
+	var cared := 0
+	for a in animals.list:
+		if int(a.happy) * 2 >= animals.happy_max():
+			cared += 1
+	var hearts := 0
+	for id in Villagers.all():
+		hearts += affection.band(id)
+	var levels := 0
+	for t in FIELD_TOOLS:
+		levels += maxi(int(tool_levels.get(t, 1)) - 1, 0)
+	return {"shipped_value": value, "crop_kinds": kinds, "animal_care": cared, "heart_bands": hearts,
+		"mine_deepest": mine_deepest, "fish_kinds": fish_caught.size(), "house_built": house_built.size(),
+		"tool_levels": levels, "contest_wins": int(flags.get("contest_wins", 0)),
+		"recipes_known": Cooking.known_ids(flags).size()}
+
+
+## The record for this run (Ending.grade).
+func ending_record() -> Dictionary:
+	var points := {}
+	for id in Villagers.all():
+		points[id] = affection.of(id)
+	return Ending.grade(ending_values(), points)
+
+
+## The ending event's `ending` step: grades the run, sets the flags its closing lines branch
+## on (ending_rank_<n>, ending_friend_<id>; earlier ones cleared) and opens the EndingScreen.
+## ending_open stays true until the screen is closed; with no screen it never opens.
+func show_ending() -> Dictionary:
+	var r := ending_record()
+	for k in flags.keys():
+		if String(k).begins_with("ending_rank_") or String(k).begins_with("ending_friend_"):
+			flags.erase(k)
+	flags["ending_rank_%d" % r.rank] = true
+	flags["ending_friend_" + r.friend] = true
+	if not ending_requested.get_connections().is_empty():
+		ending_open = true
+		ending_requested.emit(r)
+	return r
 
 
 # --- fatigue and tired states (data/body.json) -----------------------------

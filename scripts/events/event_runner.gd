@@ -20,7 +20,7 @@ const COMMANDS := {
 	"say": ["dialogue", "at"], "wait": ["seconds"], "face": ["dir"], "walk": ["to", "by", "run"],
 	"set": ["flags"], "clear": ["flags"], "give": ["item", "count"], "money": ["amount"],
 	"fade": ["to", "seconds"], "sound": ["key"], "affection": ["who", "amount"],
-	"place": ["at", "dir"], "actor": ["who", "at", "to", "face", "leave"],
+	"place": ["at", "dir"], "actor": ["who", "at", "to", "face", "leave"], "ending": [],
 }
 
 var id := ""
@@ -172,6 +172,8 @@ func _begin(s: Dictionary) -> void:
 				facing = DIRS[s.dir]
 		"actor":
 			_begin_actor(s)
+		"ending":
+			game.show_ending()
 
 
 ## An actor step: off the stage, onto cell `at`, turned to `face`, then walking to `to`.
@@ -197,6 +199,8 @@ func _going(s: Dictionary, delta: float) -> bool:
 	match s.get("do", ""):
 		"say":
 			return bool(game.dialogue_open)
+		"ending":
+			return bool(game.ending_open)
 		"wait":
 			_timer -= delta
 			return _timer > 0.000001   # float sums: 0.3 s is three 0.1 s frames

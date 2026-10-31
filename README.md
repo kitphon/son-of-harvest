@@ -342,6 +342,8 @@ the script says, and keys go only to the text box. Each step is one of:
   farmer's walking pace; the event waits until they arrive); any of the three, in that order.
   `{"do": "actor", "who": "...", "leave": true}` takes them off. While acting, a villager's day
   plan is set aside (`Villagers.actors`); when the event ends every actor is gone again;
+- `{"do": "ending"}`: grades the run and shows the village record (README → Ending); the
+  event waits until it is closed;
 - a branch: `{"if": "<flag>", "then": "<step id>"}` or `{"unless": ...}`.
 
 Any step can have an `id` and a `next` (a step id or `"end"`). `EventRunner` refuses a file with
@@ -418,6 +420,19 @@ around the farmer (`Game.festival_now()`), so each festival plays its own score 
 `data/music.json`, with a taiko and a small kane bell), over night and season. On a festival
 day the shipping bin is not paid (DESIGN): neither at 18:00 nor overnight; it is paid with
 the next day's shipping (`Game.payout_held()`).
+
+## Ending
+On the first morning the farmer wakes in the farmhouse in year 3 or later (a `day_start` row
+in `data/events/triggers_house.json`, once), Tome comes in with the village record
+(`data/events/ending.json`, lines in `data/dialogue/ending.json`). Its `ending` step calls
+`Game.show_ending()`: `Game.ending_values()` measures the run (shipped value at today's prices,
+crop kinds shipped, happy animals, heart bands, the deepest mine floor, fish kinds, house
+extensions, tool levels, contests won, recipes known) and `Ending.grade` turns it into stars
+per category, a rank and a title from `data/ending.json`; the EndingScreen shows it. The flags
+`ending_rank_<n>` and `ending_friend_<id>` pick Tome's verdict and who comes in to close it
+(the villager liked most, from heart band 3; else Tome). The game goes on afterwards
+(`ending_seen`). DESIGN lists the ending as not studied, so every rule is ours. `-- --ending`
+opens the record at the start; `--map=house --event=ending` plays the scene.
 
 ## Camera
 `scripts/main_3d.gd` uses the field camera geometry of Harvest Moon: Back to Nature, measured

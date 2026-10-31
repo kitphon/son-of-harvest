@@ -68,6 +68,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   fish art): `res://tests/test_fishing.gd` must print `test_fishing: OK (0 failed)`.
   Mine (data/mine.json, floors from a seed, rocks / soft spots / the hole, swings, the save,
   light by depth and the lantern, frozen winter floors, mine art): `res://tests/test_mine.gd` must print `test_mine: OK (0 failed)`.
+  Ending (data/ending.json, grading, the values measured, the event and its trigger, the record
+  screen): `res://tests/test_ending.gd` must print `test_ending: OK (0 failed)`.
   Festivals (calendar, festival day, shops shut, fair weather, the event once a year,
   decorations and lights in both views, the HUD tag, contests and prizes, the stall, the
   payout held back): `res://tests/test_festivals.gd` must
@@ -107,7 +109,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   fireworks; without `--demo`, with `res://scenes/main.tscn`, its event plays; add
   `--contest=<item>`, e.g. `--festival=blossom_day --contest=potato`, to stand at the judges'
   table with that item and enter it, the results' text box open after ~4 s, so use
-  `--quit-after 120`; `--shop=stall:blossom_day` stands at the festival stall with it open), `--mine=N` to stand at the
+  `--quit-after 120`; `--shop=stall:blossom_day` stands at the festival stall with it open), `--ending` to open the village record
+  (README → Ending; `--map=house --event=ending` plays the scene), `--mine=N` to stand at the
   ladder of a fresh mine floor N (darker deeper; `--map=mine` is the entrance, `--map=mine_floor` floor 1),
   `--season=<id>` to start on day 1 of a season (`--season=winter --mine=3`: a frozen floor). Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
