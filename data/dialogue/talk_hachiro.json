@@ -3,6 +3,7 @@
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
+		{"if": {"flags": ["house_work"], "weather": ["sunny", "rain", "snow"], "time": ["08:00", "17:00"]}, "at": ["build_1", "build_2", "build_3"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet_1", "wet_2"]},
 		{"if": {"band": [4, 6]}, "at": ["close_1", "close_2"]},
 		{"if": {"band": [0, 1]}, "at": ["new_1", "new_2"]},
@@ -16,6 +17,9 @@
 	"lines": [
 		{"id": "birthday", "speaker": "hachiro", "face": "calm", "text": "Birthday? Hm. At my age you stop counting and start mending. Still. Thanks.", "next": "end"},
 		{"id": "gift_birthday", "speaker": "hachiro", "face": "smile", "text": "You came out in the cold with this, on the day. ...I won't forget it.", "next": "end"},
+		{"id": "build_1", "speaker": "hachiro", "face": "smile", "text": "Mind the boards. A nail in the foot and you'll be no use to your turnips.", "next": "end"},
+		{"id": "build_2", "speaker": "hachiro", "face": "calm", "text": "Cedar for the posts, pine for the floor. Your grandfather would've argued with me about the pine.", "next": "end"},
+		{"id": "build_3", "speaker": "hachiro", "face": "calm", "text": "Don't hover. It goes up faster when nobody's watching it.", "next": "end"},
 		{"id": "again_1", "speaker": "hachiro", "face": "calm", "text": "Something else? Talk while I work, then.", "next": "end"},
 		{"id": "again_2", "speaker": "hachiro", "face": "smile", "text": "Ha. You like an old man's company, eh?", "next": "end"},
 		{"id": "wet_1", "speaker": "hachiro", "face": "calm", "text": "Rain on the roof, fire in the forge. Not a bad day to be a smith.", "next": "end"},

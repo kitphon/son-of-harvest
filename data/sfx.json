@@ -19,6 +19,9 @@
 			{"kind": "tone", "freq": 1450, "partials": [[1, 1], [2.76, 0.5], [5.4, 0.25]], "dur": 0.4, "attack": 0.001, "decay": 0.07},
 			{"kind": "noise", "hp": 1200, "lp": 6000, "dur": 0.05, "attack": 0.001, "decay": 0.012, "gain": 0.9},
 			{"kind": "grains", "count": 5, "dur": 0.2, "at": 0.02, "hp": 2500, "lp": 7000, "grain": 0.003, "gain": 0.25}]},
+		"build_knock": {"volume_db": -14, "pitch": [0.92, 1.08], "layers": [
+			{"kind": "tone", "freq": 520, "freq_end": 430, "partials": [[1, 1], [2.1, 0.35], [3.3, 0.12]], "dur": 0.16, "attack": 0.001, "decay": 0.03},
+			{"kind": "noise", "lp": 3200, "hp": 300, "dur": 0.04, "attack": 0.001, "decay": 0.01, "gain": 0.7}]},
 		"tool_axe": {"volume_db": -8, "pitch": [0.9, 1.1], "layers": [
 			{"kind": "tone", "freq": 330, "freq_end": 260, "partials": [[1, 1], [2.3, 0.4], [3.9, 0.15]], "dur": 0.3, "attack": 0.001, "decay": 0.05},
 			{"kind": "noise", "lp": 2600, "hp": 200, "dur": 0.08, "attack": 0.001, "decay": 0.02, "gain": 0.8}]},

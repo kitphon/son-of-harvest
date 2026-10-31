@@ -10,6 +10,48 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Hachiro seen at work while building
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: while a house extension is under way the story flag `house_work` holds its id
+  (`Game.BUILD_FLAG`, set by `Game.sync_build_flag` at day start, on load and when a job
+  finishes; from the morning after the order to the ready day, so ordering at the store never
+  teleports Hachiro mid-day). His file has a `building` plan picked by
+  `{"flags": ["house_work"], "weather": [sunny, rain, snow]}` right after the birthday rule
+  (Sundays too, since the job has a due day; a storm keeps him at the forge): out the village
+  road's west end at 7:30, along the farm's row 5 to the cell left of the door, hammering at
+  the farmhouse wall from about 8:20, every 40 minutes a few minutes at the lumber, lunch at
+  12:00, back at the smithy by 18:00. New day plan step `{"work": minutes}` (a wait in the work
+  pose; DayPlan.where gives `working` / `worked`), sprite key `villager:<id>:<side>:work:<0|1>`
+  (hammer raised over the shoulder, then the blow with a 1 px dip; PlaceholderArt), 2 blows a
+  game minute (`work_strokes_per_minute` in _common.json, by eye: a steady beat at 0.25 s);
+  both villager views play the new `build_knock` sound (a short wooden knock, data/sfx.json)
+  on each blow. A talk turn puts the hammer down. Farm map prop `lumber` (cells 1,4-1,5, gated
+  on `house_work`, examine message): boards on bearers with a saw, boxes in 3D (StoryProps),
+  `story:lumber` in the flat view (StoryView). First placed between the house's west wall and
+  the fence, but there the 3D eave hid it, so it moved in front, left of where he works.
+  Three talk lines `build_1..3` while he works (08:00-17:00 with the flag). The smithy's
+  counter respects it through the keeper rule (he is not on the smithy map), and now says the
+  builder's note `builds.away` in data/shops.json (`Game.keeper_away_text`) instead of
+  "Nobody is at the counter". CLI `--building=<id>` (AGENTS.md, README → Shops).
+- Checked: new checks in `test_villagers.gd` (work steps, work frames and keys, the art's two
+  hammer frames for everyone, the building day: road at 7:45, at the wall working at 10:00,
+  fetching boards, lunch, afternoon, home, Sunday, storm, birthday; his farm walks miss every
+  FarmGrid fixed cell; both views on the farm the morning after an order show him in the work
+  pose at (2.5, 4.5) and the lumber, gone with the flag once built) and `test_shops.gd`
+  (order day no flag and the smithy open; day 1 the note at the smithy, the store open, a
+  storm opens the smithy; the talk pick; the flag saved, loaded, cleared on load without a
+  job; done on day 3, the counter back). All 23 test scripts print `OK (0 failed)`; headless
+  runs (title `--quit-after 300`, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo
+  --building=kitchen --time=10:00`, `--demo --map=town --building=room --time=7:50`, `--demo
+  --map=smithy --building=chest --shop=smithy`, `res://scenes/main.tscn --quit-after 400`,
+  `main_2d.tscn -- --demo --building=kitchen`) printed no errors or warnings. Screenshots
+  `--demo --building=kitchen --time=10:00` in 3D (Hachiro with the hammer raised at the wall,
+  the board stack with its saw left of him) and the flat view (both at the house's left);
+  `shots/` deleted.
+- Left / next: the farmer can walk through the lumber on the farm (farm props aren't solid;
+  the farm's collision is FarmGrid's); the job's day count still finishes overnight whether
+  or not he worked (a storm day).
+
 ## 2026-10-31 — Merged three branches: dish gifts, ending / balance, heart flags in the world
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each:

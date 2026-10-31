@@ -4,9 +4,10 @@ extends RefCounted
 ## (MapManager.with_flags). Hachiro's iron door bell hangs by the farmhouse door (farm map,
 ## hachiro_bell), the store's new sign stands on its roof over the front (town map, sayo_sign
 ## "old" / "new" as the prop's `style`) and Tome's jar of pickled plums sits in the farmhouse
-## (house map, tome_grandma). The pictures are PlaceholderArt "story:" keys, the same ones the
-## flat view draws (StoryView, which also keeps the list of kinds). Same units as MapWorld
-## (1 unit = 1 cell).
+## (house map, tome_grandma). While a house extension is being built (Game.BUILD_FLAG) the
+## builder's lumber lies on the farm left of the farmhouse front. The pictures are
+## PlaceholderArt "story:" keys, the same ones the flat view draws (StoryView, which also
+## keeps the list of kinds). Same units as MapWorld (1 unit = 1 cell).
 
 
 ## A story prop by its kind (MapWorld calls this; on the farm, FarmWorld.make_story_props).
@@ -31,6 +32,23 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 			for x in [cx - 0.9, cx + 0.9]:
 				w._box(Vector3(0.07, 0.5, 0.07), Vector3(x, 1.75, front + 0.05), timber)
 			w._picture(StoryView.art_key(p), Vector2(2.4, 0.7), Vector3(cx, 1.98, front + 0.1))
+		"lumber":
+			# Boards stacked on two bearers along the fence left of the house front, a saw on
+			# top; boxes, not a sprite, so the stack keeps its length seen from the camera.
+			var board := FarmWorld.flat_material(Color("d8b07a"))
+			var dark := FarmWorld.flat_material(Color("b08a58"))
+			var bearer := FarmWorld.flat_material(Color("6a4a2a"))
+			var cx := r.get_center().x
+			for z in [r.position.y + 0.3, r.end.y - 0.3]:
+				w._box(Vector3(0.7, 0.08, 0.1), Vector3(cx, 0.04, z), bearer)
+			var layers := 4
+			for layer in layers:
+				for j in 2:
+					var x := cx - 0.13 + j * 0.25 + (layer % 2) * 0.03
+					w._box(Vector3(0.23, 0.06, r.size.y - 0.2 - layer * 0.08), Vector3(x, 0.11 + layer * 0.06, r.get_center().y),
+						board if (j + layer) % 2 == 0 else dark)
+			w._box(Vector3(0.34, 0.012, 0.07), Vector3(cx, 0.1 + layers * 0.06, r.get_center().y), FarmWorld.flat_material(Color("b8bcc4")))
+			w._box(Vector3(0.08, 0.03, 0.14), Vector3(cx + 0.2, 0.1 + layers * 0.06, r.get_center().y), FarmWorld.flat_material(Color("8a5a32")))
 		"ume_jar":
 			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))
 			s.pixel_size = 0.04

@@ -82,6 +82,10 @@ var shipped: Dictionary = {}    # item id -> how many were ever shipped
 var shop_jobs: Dictionary = {}  # shop id -> {tool, level, ready (day number), slot}: a tool left for an upgrade
 var house_built: Array[String] = []   # house extensions done (data/shops.json builds; the maps follow)
 var house_job: Dictionary = {}        # the one being built: {build, shop, ready (day number)}
+## The story flag set to the extension's id while its builder is at work on the farm (from the
+## morning after the order until it is done; sync_build_flag). Day plans (data/villagers),
+## talk picks and map props (the lumber by the farmhouse) read it like any flag.
+const BUILD_FLAG := "house_work"
 var fishing := Fishing.new()       # the line: cast, wait, bite (rules in data/fish.json)
 var fish_caught: Dictionary = {}   # fish id -> how many were caught this game (once-only fish)
 var mine_deepest := 0              # the deepest mine floor reached (the only mine state saved)
@@ -220,6 +224,14 @@ func new_game() -> void:
 		elif arg.begins_with("--built="):   # e.g. `-- --demo --map=house --built=kitchen,room`: extensions done
 			for b in arg.trim_prefix("--built=").split(","):
 				_finish_build({"build": b, "shop": _builder_shop(b), "ready": 0})
+		elif arg.begins_with("--building="):   # e.g. `-- --demo --building=kitchen`: ordered yesterday, Hachiro at work
+			var b := arg.trim_prefix("--building=")
+			var sid := _builder_shop(b)
+			if sid == "" or has_built(b):
+				push_warning("No extension to build for " + arg)
+			else:
+				house_job = {"build": b, "shop": sid, "ready": day_number() + int(shop(sid).builds[b].days) - 1}
+				sync_build_flag()
 		elif arg.begins_with("--flags="):   # e.g. `-- --demo --flags=hachiro_bell,sayo_sign=new`: story flags set
 			for f in arg.trim_prefix("--flags=").split(",", false):
 				flags[f.get_slice("=", 0)] = f.get_slice("=", 1) if "=" in f else true
@@ -669,6 +681,7 @@ func end_day() -> void:
 	_accum = 0.0
 	if Shop.job_ready(house_job, day_number()):
 		_finish_build(house_job)
+	sync_build_flag()
 	go_home()
 	day_started.emit()
 	changed.emit()
@@ -1455,10 +1468,19 @@ func open_shop(id: String, force := false) -> bool:
 		return false
 	# A shop with a keeper sells only while they are in (their day plan puts them at the counter).
 	if not force and s.keeper != "" and not Villagers.is_on(s.keeper, s.map, day_minutes(), trigger_state(Vector2i.ZERO)):
-		message.emit("Nobody is at the counter")
+		message.emit(keeper_away_text(s))
 		return false
 	shop_requested.emit(id)
 	return true
+
+
+## What the counter of shop `s` says while its keeper is out: the builder's note while they
+## are at work on the farm (data/shops.json builds away), else that nobody is there.
+func keeper_away_text(s: Shop) -> String:
+	var b := shop(str(house_job.get("shop", ""))) if flags.has(BUILD_FLAG) else null
+	if b != null and b.builder == s.keeper and b.builds.has(house_job.build):
+		return b.build_away % b.item_name(house_job.build).to_lower()
+	return "Nobody is at the counter"
 
 
 ## Is shop `s` shut now (its hours, its day off, or a festival that closes it)? Says why.
@@ -1615,6 +1637,17 @@ func shop_build(id: String, build: String) -> Dictionary:
 	return _shop_paid(r)
 
 
+## Sets BUILD_FLAG to the job's id while it is under way (the day after it was ordered up to
+## its ready day), clears it otherwise. The builder's day plan and the lumber follow the flag.
+func sync_build_flag() -> void:
+	var s := shop(str(house_job.get("shop", ""))) if not house_job.is_empty() else null
+	var b: Dictionary = s.builds.get(house_job.build, {}) if s != null else {}
+	if not b.is_empty() and day_number() > int(house_job.ready) - int(b.days):
+		flags[BUILD_FLAG] = house_job.build
+	else:
+		flags.erase(BUILD_FLAG)
+
+
 func has_built(build: String) -> bool:
 	return build in house_built
 
@@ -1640,6 +1673,7 @@ func _finish_build(job: Dictionary) -> void:
 		inventory.grow("chest", int(b.chest_slots))
 	if house_job.get("build", "") == job.build:
 		house_job = {}
+	sync_build_flag()
 	MapManager.set_built(house_built)
 	message.emit(s.build_done % s.item_name(job.build).to_lower())
 	changed.emit()
@@ -1944,6 +1978,7 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	farm.add_missing_fixed()   # saves from before the storage chest / the coop / the barn get them
 	for key in n:
 		set(key, n[key])
+	sync_build_flag()
 	MapManager.set_built(house_built)
 	MapManager.set_flags(flags)
 	fishing = Fishing.new(fish_data)

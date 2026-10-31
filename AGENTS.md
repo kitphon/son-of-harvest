@@ -53,14 +53,14 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `test_cooking: OK (0 failed)`.
   Holding and throwing (items on the ground, throws, poses, item art): `res://tests/test_hold.gd`
   must print `test_hold: OK (0 failed)`.
-  Villagers (rule lists, day plans, catch-up, paths, sprites in both views):
+  Villagers (rule lists, day plans, catch-up, paths, sprites in both views, Hachiro building):
   `res://tests/test_villagers.gd` must print `test_villagers: OK (0 failed)`. Talking (talk
   files and picks, gifts, daily limits, affection save, shopkeepers, bump delay):
   `res://tests/test_talk.gd` must print `test_talk: OK (0 failed)`.
   Relationships (hearts on the name tag, birthdays and x5 gifts, the nightly loss, heart
   events at bands 3 and 5, birthday day plans, fair weather and the HUD tag, mine finds as
   gifts): `res://tests/test_relationships.gd` must print `test_relationships: OK (0 failed)`.
-  Shops (data/shops.json, buying / selling, tool upgrades and their ores, mine finds sold,
+  Shops (data/shops.json, buying / selling, tool upgrades and their ores, mine finds sold, the smithy while Hachiro builds,
   shop maps and doors, the screen):
   `res://tests/test_shops.gd` must print `test_shops: OK (0 failed)`.
   Animals (chickens, cows, sheep, the coop and barn, products, brushing, sickness, the dog,
@@ -101,7 +101,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `--map=town@sayo --flags=sayo_sign=new` the store's new sign, `--map=house
   --flags=tome_grandma` Tome's plum jar),
   `--built=kitchen,chest,room` to have those house extensions built (with `--map=house` to see
-  them), `--cook` to stand at the kitchen stove with the cooking screen open (builds the kitchen;
+  them), `--building=<id>` (kitchen, chest, room) to have that extension under way since
+  yesterday (`--time=10:00`: Hachiro hammering at the farmhouse wall by his lumber; the smithy
+  counter has a note), `--cook` to stand at the kitchen stove with the cooking screen open (builds the kitchen;
   `--demo` adds eggs, a fish, a carrot and one learned recipe), `--map=coop` to look inside the chicken
   coop (`--demo` adds a chick, two eggs and a filled feed box), `--hens-out` (with
   `--map=farm@coop`) to have the hens out in the yard, `--map=barn` for the barn (`--demo`

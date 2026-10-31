@@ -39,7 +39,11 @@ func refresh() -> void:
 			_sprites[w.id] = s
 		s.visible = true
 		s.position = Vector3(w.pos.x, 0, w.pos.y)
-		s.texture = PlaceholderArt.tex(Villagers.sprite_key(w))
+		var key := Villagers.sprite_key(w)
+		if key.ends_with(":work:1") and s.get_meta("key", "") != key:
+			Sfx.play("build_knock")   # each blow of the hammer, heard on this map
+		s.set_meta("key", key)
+		s.texture = PlaceholderArt.tex(key)
 		s.flip_h = FarmerAnim.is_mirrored(w.facing)
 	for id in _sprites:
 		if not seen.has(id):

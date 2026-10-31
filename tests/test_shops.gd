@@ -33,6 +33,7 @@ func _init() -> void:
 	_animal_goods()
 	_barn_goods()
 	_builds()
+	_builder_away()
 	_rod()
 	_extras_save()
 	_ores_and_finds()
@@ -519,6 +520,48 @@ func _builds() -> void:
 	g.new_game()
 	check(MapManager.built.is_empty() and MapManager.data("house").w == 8, "a new game has the plain house")
 	g.free()
+
+
+## While Hachiro builds (Game.BUILD_FLAG, from the morning after the order) his smithy
+## counter has nobody and says where he is; he talks about the job; the save keeps it.
+func _builder_away() -> void:
+	var g := _new_game()
+	var said := []
+	g.message.connect(func(t): said.append(t))
+	g.money = 30000
+	g.hour = 10
+	check(g.shop_build("general", "kitchen").ok and not g.flags.has(g.BUILD_FLAG), "ordered on day 0: no work yet")
+	check(g.open_shop("smithy"), "the order day: the smithy keeps its hours")
+	g.end_day()
+	g.weather_today = "sunny"
+	g.hour = 10
+	check(g.flags.get(g.BUILD_FLAG) == "kitchen" and MapManager.flags.get(g.BUILD_FLAG) == "kitchen", "day 1: the kitchen under way")
+	check(not g.open_shop("smithy") and said.back() == "A note on the counter: \"Out at the farm, building the kitchen corner. -Hachiro\"",
+		"the smithy counter while he builds: %s" % said.back())
+	check(g.open_shop("general"), "the store keeps its counter (Sayo)")
+	g.weather_today = "storm"
+	check(g.open_shop("smithy"), "a storm keeps him at the forge, the smithy open")
+	g.weather_today = "sunny"
+	var t := {"year": 1, "season": "spring", "day": 2, "weekday": "tue", "weather": "sunny", "flags": g.flags,
+		"time": 600, "band": 2, "again": false, "day_number": 1}
+	check(Talk.pick("hachiro", t) in ["build_1", "build_2", "build_3"], "he talks about the job at work: %s" % Talk.pick("hachiro", t))
+	check(not Talk.pick("hachiro", t.merged({"time": 1150}, true)).begins_with("build"), "not in the evening")
+	var saved: Dictionary = g.to_dict()
+	check(saved.flags.get(g.BUILD_FLAG) == "kitchen", "the save has the job's flag")
+	var b := _new_game()
+	check(b.from_dict(JSON.parse_string(JSON.stringify(saved))) == "" and b.flags.get(b.BUILD_FLAG) == "kitchen", "loaded, still under way")
+	var broken := saved.duplicate(true)
+	broken.house.job = {}
+	check(b.from_dict(broken) == "" and not b.flags.has(b.BUILD_FLAG), "a flag without a job is cleared on load")
+	g.end_day()
+	check(g.flags.get(g.BUILD_FLAG) == "kitchen", "day 2: still at it")
+	g.end_day()
+	g.weather_today = "sunny"
+	g.hour = 10
+	check(g.has_built("kitchen") and not g.flags.has(g.BUILD_FLAG) and g.open_shop("smithy"), "done on day 3: back at the counter")
+	g.free()
+	b.free()
+	MapManager.set_built([])
 
 
 ## The rod at the smithy: levels from data/fish.json, a bite factor per level.

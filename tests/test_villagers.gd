@@ -7,6 +7,8 @@ var failures := 0
 var _frame := 0
 var _scene3: Node
 var _scene2: Node
+var _farm3: Node
+var _farm2: Node
 
 
 func _init() -> void:
@@ -14,9 +16,11 @@ func _init() -> void:
 	_plan_walks()
 	_plan_loops_and_carry_on()
 	_plan_errors()
+	_work_step()
 	_rules()
 	_files()
 	_paths_stay_clear()
+	_building_day()
 
 
 func _process(_delta: float) -> bool:
@@ -27,6 +31,9 @@ func _process(_delta: float) -> bool:
 		_start_views()
 	elif _frame == 3:
 		_check_views()
+		_start_farm_views()
+	elif _frame == 5:
+		_check_farm_views()
 		print("test_villagers: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -98,9 +105,30 @@ func _plan_errors() -> void:
 		"away with a route": [{"at": "06:00", "map": "away", "route": [{"to": [1, 1]}]}],
 		"a loop that takes no time": [{"at": "06:00", "map": "town", "from": [0, 0], "loop": [{"face": "up"}]}],
 		"an unknown key": [{"at": "06:00", "map": "away", "speed": 3}],
+		"work of no minutes": [{"at": "06:00", "map": "town", "from": [0, 0], "route": [{"work": 0}]}],
 	}
 	for what in bad:
 		check(DayPlan.build(bad[what], 1.5)[0] != "", "refused: " + what)
+
+
+## A work step stands like a wait, at work: the sprite swings the hammer by the minutes worked.
+func _work_step() -> void:
+	var p := _plan([
+		{"at": "06:00", "map": "farm", "from": [2, 4], "route": [{"face": "up"}], "loop": [{"work": 10}, {"wait": 2}]},
+	])
+	var w := p.where(363.0)
+	check(w.working and is_equal_approx(w.worked, 3.0) and not w.moving and w.facing == Vector2i.UP and w.pos == Vector2(2.5, 4.5),
+		"at work 3 minutes in %s" % [w])
+	check(not p.where(371.0).working and p.where(371.0).worked == 0.0, "the wait after it is not work")
+	check(p.where(373.0).working and is_equal_approx(p.where(373.0).worked, 1.0), "the loop goes back to work")
+	var per := float(Villagers.common().get("work_strokes_per_minute", 0))
+	check(per > 0, "work strokes per minute in _common.json")
+	check(Villagers.work_frame(0.0) == 0 and Villagers.work_frame(1.0 / (per * 2.0) + 0.01) == 1
+		and Villagers.work_frame(2.0 / (per * 2.0) + 0.01) == 0, "hammer up, the blow, up again")
+	w.id = "hachiro"
+	check(Villagers.sprite_key(w).begins_with("villager:hachiro:back:work:"), "the work pose key %s" % Villagers.sprite_key(w))
+	w.working = false
+	check(Villagers.sprite_key(w) == "villager:hachiro:back:idle:0", "standing, not at work")
 
 
 ## The first rule that holds picks the plan; flags, days, years and the default.
@@ -169,6 +197,48 @@ func _paths_stay_clear() -> void:
 					if m.is_solid(c):
 						check(false, "%s plan %s walks %s -> %s through solid %s" % [id, name, walk[1], walk[2], c])
 						break
+
+
+## While a house extension is under way (Game.BUILD_FLAG) Hachiro builds on the farm: west
+## along the village road, hammering at the farmhouse wall, the smithy without its keeper.
+func _building_day() -> void:
+	var b := _state({"flags": {"house_work": "kitchen"}})
+	check(Villagers.where("hachiro", 600.0, _state()).map == "smithy", "on a plain day Hachiro keeps the smithy at 10:00")
+	check(Villagers.where("hachiro", 465.0, b).map == "town" and Villagers.where("hachiro", 465.0, b).moving, "building: off down the road at 7:45")
+	var w := Villagers.where("hachiro", 600.0, b)
+	check(w.map == "farm" and w.pos == Vector2(2.5, 4.5) and w.facing == Vector2i.UP and w.working, "hammering at the farmhouse wall at 10:00 %s" % [w])
+	check(not Villagers.is_on("hachiro", "smithy", 600.0, b) and not Villagers.is_on("hachiro", "smithy", 900.0, b),
+		"nobody at the smithy counter while he builds")
+	var fetched := false
+	var worked := 0
+	for t in range(500, 720):
+		var at := Villagers.where("hachiro", float(t), b)
+		fetched = fetched or (at.pos == Vector2(2.5, 5.5) and at.facing == Vector2i.LEFT)
+		worked += 1 if at.working else 0
+	check(fetched and worked > 150, "fetches boards from the stack now and then, mostly at work (%d of 220 minutes)" % worked)
+	w = Villagers.where("hachiro", 740.0, b)
+	check(w.map == "farm" and w.facing == Vector2i.DOWN and not w.working, "a lunch break at 12:20 %s" % [w])
+	check(Villagers.where("hachiro", 900.0, b).working, "back at it in the afternoon")
+	check(Villagers.where("hachiro", 1110.0, b).map == "smithy" and Villagers.where("hachiro", 1320.0, b).map == "away", "home to the smithy by 18:30, in bed at 22:00")
+	var sun := b.merged({"day": 7, "weekday": "sun"}, true)
+	check(Villagers.where("hachiro", 600.0, sun).map == "farm", "the job goes on on a Sunday")
+	check(Villagers.where("hachiro", 600.0, b.merged({"weather": "storm"}, true)).map == "smithy", "not in a storm: the forge")
+	check(Villagers.where("hachiro", 600.0, b.merged({"season": "winter", "day": 11}, true)).map == "town", "his birthday wins over the job")
+	# His farm walks keep off the farm's fixed spots (the house, the chest, the bin, the stand,
+	# the pond, the coop, the barn, the fence): the farm map has no solid cells of its own.
+	var farm := FarmGrid.new({})
+	farm.generate(RandomNumberGenerator.new())
+	var v: Dictionary = Villagers.all().hachiro
+	var p: DayPlan = DayPlan.build(v.plans.building, Villagers.speed_of(v))[1]
+	var walks := p.walks().filter(func(x): return x[0] == "farm")
+	check(walks.size() >= 4, "building walks on the farm %d" % walks.size())
+	for walk in walks:
+		var n := int(walk[1].distance_to(walk[2]) * 10) + 1
+		for i in n + 1:
+			var c := Vector2i(walk[1].lerp(walk[2], float(i) / n).floor())
+			if farm.fixed_at(c) != "":
+				check(false, "the building walk %s -> %s crosses the farm's %s at %s" % [walk[1], walk[2], farm.fixed_at(c), c])
+				break
 
 
 func _state(extra := {}) -> Dictionary:
@@ -255,6 +325,10 @@ func _sprites() -> void:
 		var top := Color(str(Villagers.look(id).get("top")))
 		for side in ["front", "back"]:
 			var idle := PlaceholderArt.tex("villager:%s:%s:idle:0" % [id, side]).get_image()
+			var up := PlaceholderArt.tex("villager:%s:%s:work:0" % [id, side]).get_image()
+			var blow := PlaceholderArt.tex("villager:%s:%s:work:1" % [id, side]).get_image()
+			check(up.get_size() == Vector2i(16, 24) and up.get_data() != blow.get_data() and up.get_data() != idle.get_data()
+				and _has_colour(up, Color("5a5e66")) and _has_colour(blow, Color("5a5e66")), "%s %s work frames: the hammer raised, then the blow" % [id, side])
 			check(idle.get_size() == Vector2i(16, 24), "%s %s frame is 16 x 24" % [id, side])
 			check(_has_colour(idle, top), "%s %s shows their top colour" % [id, side])
 			check(_has_colour(idle, PlaceholderArt.OUTLINE), "%s %s has the outline" % [id, side])
@@ -318,6 +392,51 @@ func _check_views() -> void:
 	_scene3.free()
 	_scene2.free()
 	g.unpause()
+
+
+## Both views on the farm at 10:00 with a build under way: Hachiro at the wall with the
+## hammer, the lumber beside the house.
+func _start_farm_views() -> void:
+	var g: Node = root.get_node("Game")
+	g.money = 99999
+	check(g.shop_build("general", "kitchen").ok and not g.flags.has(g.BUILD_FLAG), "ordered: he starts tomorrow")
+	check(not MapManager.data("farm").props.any(func(p): return p.kind == "lumber"), "no lumber on the order day")
+	g.end_day()
+	check(g.flags.get(g.BUILD_FLAG) == "kitchen", "the next morning the job is under way")
+	g.weather_today = "sunny"
+	g.hour = 10
+	g.minute = 0
+	g.maps.place("farm", Vector2i(4, 5), Vector2i.UP)
+	g.pause()
+	_farm3 = load("res://scenes/main.tscn").instantiate()
+	root.add_child(_farm3)
+	_farm2 = load("res://scenes/main_2d.tscn").instantiate()
+	root.add_child(_farm2)
+
+
+func _check_farm_views() -> void:
+	var g: Node = root.get_node("Game")
+	check(MapManager.data("farm").props.any(func(p): return p.kind == "lumber" and p.cell == Vector2i(1, 4)), "the lumber by the house")
+	var layers3: Array = _farm3.world.get_children().filter(func(n): return _script_is(n, "villager_sprites.gd"))
+	var layers2: Array = _farm2.view.get_children().filter(func(n): return _script_is(n, "villager_view.gd"))
+	var story2: Array = _farm2.view.get_children().filter(func(n): return _script_is(n, "story_view.gd"))
+	check(story2.size() == 1 and story2[0].map.props.any(func(p): return p.kind == "lumber"), "the flat view draws the lumber")
+	if layers3.size() == 1 and layers2.size() == 1:
+		check(layers3[0].shown() == ["hachiro"] and layers2[0].shown() == ["hachiro"], "both views show Hachiro on the farm %s %s" % [layers3[0].shown(), layers2[0].shown()])
+		var key := Villagers.sprite_key(Villagers.where("hachiro", g.day_minutes(), g.trigger_state(Vector2i.ZERO)).merged({"id": "hachiro"}))
+		check(":work:" in key and layers3[0]._sprites.hachiro.texture == PlaceholderArt.tex(key)
+			and layers2[0]._sprites.hachiro.texture == PlaceholderArt.tex(key), "in the work pose in both views %s" % key)
+		var s3: Node3D = layers3[0]._sprites.hachiro
+		check(Vector2(s3.position.x, s3.position.z).distance_to(Vector2(2.5, 4.5)) < 0.05, "at the wall in 3D")
+	else:
+		check(false, "the farm views have their villager layers")
+	_farm3.free()
+	_farm2.free()
+	g.unpause()
+	g.end_day()
+	g.end_day()
+	check(g.has_built("kitchen") and not g.flags.has(g.BUILD_FLAG) and not MapManager.data("farm").props.any(func(p): return p.kind == "lumber"),
+		"built: the flag and the lumber are gone")
 
 
 ## Views are checked by script path: in a --script run the autoload isn't known when this

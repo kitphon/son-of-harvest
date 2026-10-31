@@ -96,7 +96,9 @@ The store also sells chickens (only with room in the coop), feed, Animal Medicin
 bigger rucksacks, and takes orders for house extensions (bigger chest, kitchen corner, second
 room) that Hachiro builds over days; the smithy improves the rod (bite factor per level in
 data/fish.json). The store also sells cows, sheep, calves, lambs (only with room in the barn)
-and fodder. Later for shops: Hachiro seen at work while building.
+and fodder. While an extension is under way Hachiro builds on the farm (his `building` day
+plan from the morning after the order: hammering at the farmhouse wall by a stack of lumber,
+a knock per blow, his own lines; the smithy counter has a note instead of him).
 Chickens are in (milestone 7): the thatched coop right of the stand is a map (feed box,
 nests, incubator, hen hatch); rules in `Animals`, numbers in `data/animals.json`, saved
 (save version 2). The shop sells chickens through `Game.add_animal("chicken")`, feed through
@@ -203,6 +205,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 8. **Shops and economy**
    - [x] Shops with prices from data, tool upgrades (data/shops.json; store and smithy in the village)
    - [x] House extensions, rucksack upgrade for sale (store: chickens, feed, medicine; smithy: the rod)
+   - [x] Hachiro seen at work while building (day plan on the house_work flag, work pose and knock, lumber prop, talk lines, smithy note)
    - [x] Balance pass (income per season, seed, animal and extension costs; `tools/balance.py`); the store sells cows, sheep, calves, lambs and fodder
 9. **Festivals, mining / fishing, relationships, endings**
    - [x] Fishing: rod (8th tool slot), cast at the farm / village pond, bite cue, fish per place / season / hour / weather (data/fish.json)
