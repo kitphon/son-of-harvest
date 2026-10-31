@@ -3,7 +3,7 @@ extends SceneTree
 ## storage chest on the farm, the rucksack key). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_inventory.gd
 
-const TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe", "seeds", "food"]
+const TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe", "seeds", "food", "rod"]
 
 var failures := 0
 

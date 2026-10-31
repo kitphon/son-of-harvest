@@ -32,6 +32,7 @@ func _ready() -> void:
 	Game.minute_passed.connect(_update_tint)
 	Game.day_started.connect(_on_day_started)
 	Game.map_changed.connect(func(_id): fade.run(_enter_map))
+	Game.fishing_event.connect(func(kind): FarmActions.on_fishing_event(kind))
 	_enter_map()
 	Game.map_arrived()
 

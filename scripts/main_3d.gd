@@ -31,6 +31,10 @@ var lightning := Lightning.new()
 var held_sprite: Sprite3D        # the item carried overhead
 var flying: Sprite3D             # a thrown item on its way
 var _flight := {}                # from, to, time, seconds, height, cell (while flying)
+var bobber: Sprite3D             # the float on the water while the line is out
+var bite_mark: Sprite3D          # the "!" over the head when a fish bites
+var fish_line: MeshInstance3D    # from the rod tip to the bobber
+var _line_mesh := ImmediateMesh.new()
 
 
 func _ready() -> void:
@@ -72,6 +76,17 @@ func _ready() -> void:
 	flying = FarmWorld.make_sprite(PlaceholderArt.tex("item:turnip"))
 	flying.visible = false
 	add_child(flying)
+	bobber = FarmWorld.make_sprite(PlaceholderArt.tex("fish_fx:bobber"))
+	bobber.visible = false
+	add_child(bobber)
+	bite_mark = FarmWorld.make_sprite(PlaceholderArt.tex("fish_fx:alert"))
+	bite_mark.position = Vector3(0, 1.25, 0)
+	bite_mark.visible = false
+	sprite.add_child(bite_mark)
+	fish_line = MeshInstance3D.new()
+	fish_line.mesh = _line_mesh
+	fish_line.material_override = FarmWorld.flat_material(Color(0.95, 0.95, 0.9, 0.8))
+	add_child(fish_line)
 
 	cam = Camera3D.new()
 	cam.fov = CAM_FOV
@@ -131,6 +146,7 @@ func _ready() -> void:
 	Game.map_changed.connect(func(_id): fade.run(_enter_map))
 	Game.settings_changed.connect(func(): lightning.reset(Game.lightning_style()))
 	Game.thrown.connect(_on_thrown)
+	Game.fishing_event.connect(func(kind): FarmActions.on_fishing_event(kind))
 	_enter_map()
 	Game.map_arrived()
 
@@ -171,10 +187,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	anim.step(delta, player.moving, player.running, Game.body_state() != "fine", Game.holding())
+	anim.step(delta, player.moving, player.running, Game.body_state() != "fine", Game.holding(), Game.fishing.state)
 	_update_flash(delta)
 	_follow()
 	_fly(delta)
+	_show_fishing()
 
 
 func _follow() -> void:
@@ -207,7 +224,7 @@ func _show_charge() -> void:
 	var cells: Array[Vector2i] = []
 	if player.charging:
 		cells = player.area_preview()
-	target_mark.visible = not player.charging
+	target_mark.visible = not player.charging and not Game.fishing.active()
 	while area_marks.size() < cells.size():
 		var m := MeshInstance3D.new()
 		m.mesh = target_mark.mesh
@@ -231,6 +248,31 @@ func _show_held() -> void:
 		held_sprite.texture = PlaceholderArt.tex(PlaceholderArt.world_item_key(Game.held))
 		var top := 24 - PlaceholderArt.farmer_drop(anim.pose, anim.frame()) - 1
 		held_sprite.position = Vector3(0, top * FarmWorld.PX, 0)
+
+
+## While the line is out: the bobber rocks on its cell (on a bite it dips under and shakes),
+## the line runs from the rod tip to it, and a "!" pops up over the head on a bite.
+func _show_fishing() -> void:
+	var f := Game.fishing
+	bobber.visible = f.active()
+	bite_mark.visible = f.state == "bite"
+	fish_line.visible = f.active()
+	if not f.active():
+		return
+	var bite := f.state == "bite"
+	var dip := -3.0 * FarmWorld.PX if bite else sin(f.time * 3.0) * 0.4 * FarmWorld.PX
+	var shake := sin(f.time * 40.0) * FarmWorld.PX if bite else 0.0
+	bobber.position = Vector3(f.spot.x + 0.5 + shake, dip, f.spot.y + 0.5)
+	# The rod tip: a pixel of the billboard sprite, so along the camera's right and up.
+	var tip := PlaceholderArt.rod_tip(anim.pose, anim.frame())
+	var axes := cam.global_transform.basis
+	var side := (tip.x + 0.5 - 8.0) * (-1.0 if sprite.flip_h else 1.0)
+	var from := sprite.position + axes.x * side * FarmWorld.PX + axes.y * (24.0 - tip.y - 0.5) * FarmWorld.PX
+	_line_mesh.clear_surfaces()
+	_line_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
+	_line_mesh.surface_add_vertex(from)
+	_line_mesh.surface_add_vertex(bobber.position + Vector3(0, 5.5 * FarmWorld.PX, 0))
+	_line_mesh.surface_end()
 
 
 ## A throw: the item flies in an arc from over the head to where it ends up; one that lands

@@ -55,6 +55,11 @@ The rucksack and the storage chest are done (I opens the rucksack, the chest sta
 the house; slot counts in data/inventory.json, so a shop's rucksack upgrade is one number via
 `Inventory.grow("bag", n)`). The item held overhead is the rucksack's hand slot. Later for
 menus: key remapping.
+Fishing is in (milestone 9): the rod is the 8th tool slot, a cast waits for a bite ("!" and a
+plip), a press in time lands a fish overhead (ship it in the bin or keep it in the rucksack);
+fish, odds, bite timing and the pity rule are in `data/fish.json`. Later for fishing: a river,
+better rods from the blacksmith (a bite-chance factor per rod level), fish as food / gifts, and
+the 2D view's action hookup (main_2d.gd doesn't connect the Player's actions yet).
 Next: milestone 5, **villagers with daily schedules from data** (rule list → day plan,
 catch-up on map entry) in the village, then the opening event and first shop visits
 (milestone 6) on the event trigger tables.
@@ -109,6 +114,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [ ] Shops with prices from data, house extensions, tool upgrades
    - [ ] Balance pass (income per season, seed costs)
 9. **Festivals, mining / fishing, relationships, endings**
+   - [x] Fishing: rod (8th tool slot), cast at the farm / village pond, bite cue, fish per place / season / hour / weather (data/fish.json)
+   - [ ] Festivals, mining, relationships, endings
 10. **Audio and release**
     - [x] Sound effects and ambient loops (synthesized from data/sfx.json, SFX / Ambient busses)
     - [x] Music; volume sliders in the settings screen (`Sfx.set_volume`)

@@ -109,7 +109,7 @@ func _init() -> void:
 			'{"version": 1, "game": "x"}', '{"version": 1, "game": {}}']:
 		_put(bad)
 		check(SaveGame.read(b, PATH) != "", "refused: %s" % bad)
-	for broken in [["day", 31], ["hour", "noon"], ["stamina", 500], ["tool_slot", 7], ["tool_slot", -1],
+	for broken in [["day", 31], ["hour", "noon"], ["stamina", 500], ["tool_slot", 8], ["tool_slot", -1],
 			["tool_slot", "hoe"], ["seed", "rice"], ["inventory", []], ["inventory", {"bag": "x"}],
 			["weather_today", 3], ["tool_levels", [1]],
 			["tool_levels", {"hoe": 0}], ["tool_levels", {"hoe": 6}], ["tool_levels", {"spoon": 1}],

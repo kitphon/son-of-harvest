@@ -10,6 +10,55 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Fishing: the rod, bites, fish per place / season / hour / weather
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: DESIGN "การตกปลา" as our own rules and numbers.
+  - `Fishing` (scripts/fishing/fishing.gd, pure): states idle / wait / bite. A cast waits at
+    least `min_wait_seconds` (2.5 s), then every `check_seconds` (1 s) a fish bites with the
+    chance for the hour (dawn 0.4, noon 0.12, dusk / night ~0.3) times the weather (rain 1.3,
+    storm 1.5, snow 0.9, blizzard 0.7). A bite lasts `bite_seconds` (0.9 s); too late = it gets
+    away. Pity rule: after `sure_after` (7) casts in a row with no fish the next check always
+    bites (ours; DESIGN notes 11 -> 12th). Reeling in at once doesn't count as a dry cast, so
+    quick recasts aren't a shortcut. `candidates()` = fish id -> weight for place / season /
+    hour (wraps past midnight) / weather factor / once-only; `pick()` by weight.
+  - `data/fish.json`: ten Japanese freshwater fish (crucian carp, carp, pond loach, pond smelt,
+    sweetfish, masu trout, char, catfish, eel, and our once-only Moonlit koi on clear fall
+    nights after 22:00 in the village). Places are map ids: `farm` (the farm pond) and `town`
+    (the village pond, fed by a mountain stream so stream fish come down into it). Crucian
+    carp bites everywhere always, so no spot is ever empty. Prices 25-300 G (2000 for the koi),
+    in line with crops (turnip 60 G).
+  - Game: `TOOLS` + "rod"; `data/inventory.json` 8 tool slots, the rod last in the start
+    tools; `data/tools.json` `rod` {stamina 2, reach 2} (taps only, no levels yet).
+    `cast_line` (first water cell up to the reach; a solid cell blocks), `reel_in` (a catch goes
+    up overhead into the hand slot as `fish:<id>`), `fishing_event` signal ("bite" / "escaped",
+    stepped in `_process` while nothing is paused), `fish_caught`. A map change and the night
+    take the line out. `sell_price` / `item_name` know fish, so the bin ships a thrown fish
+    ("The ... swam away" when thrown into the pond).
+  - FarmActions: the rod casts on any map (the other tools stay farm-only); with the line out
+    either button reels in; sounds `tool_rod`, `fish_bite`, `fish_catch`, `fish_escape` (new
+    recipes in data/sfx.json). The Player stands still while the line is out.
+  - Save: `fishing` {caught, dry_casts}; saves from before fishing get the rod (free tool slot,
+    else the chest) and nothing caught.
+  - Art / views: poses `fish_wait` (rod up) and `fish_bite` (leaning in, tip jerking down;
+    `PlaceholderArt.rod_tip`), `fish_fx:bobber`, `fish_fx:alert` ("!" on a paper bubble),
+    `ui:fish:<id>` icons from each fish's look (deep / long / slim / trout / eel / catfish),
+    `ui:tool:rod`. 3D: bobber rocking on its cell (dips and shakes on a bite), a line from the
+    rod tip to it, the "!" over the head, the target brackets hidden. 2D: rod, line, bobber and
+    "!" in Player._draw. HUD tool bar widened for 8 slots (hand box moved right).
+  - Debug flag `--fishing` (or `--fishing=wait`): at the farm pond, line out, a fish biting.
+- Checked: all 14 tests print `OK (0 failed)` (test_audio, test_body, test_dialogue,
+  test_events, test_farm, test_fishing, test_food, test_hold, test_inventory, test_maps,
+  test_menu, test_save, test_title, test_weather); test_save's bad tool slot is now 8 and
+  test_inventory's tool list has the rod. Headless `--quit-after 300` (title, `--demo`,
+  `--demo --map=town`, `--demo --fishing`, `--demo --fishing=wait`), `res://scenes/main.tscn
+  --quit-after 400` and `res://scenes/main_2d.tscn --quit-after 200 -- --demo --fishing`
+  printed no errors or warnings. Movie Maker frames `--demo --fishing` (farmer by the pond,
+  rod bent, line to the dunked red bobber, "!" over the head, rod selected in the 8-slot bar)
+  and `--demo --fishing=wait` (rod up, bobber afloat).
+- Left / next: not played in a real window (timing of the bite window by hand, the sounds
+  unheard). No river yet (the village pond stands in for stream fish), no rod levels, fish
+  aren't food or gifts. The 2D view still doesn't connect the Player's actions (from before).
+
 ## 2026-10-31 — Merged six branches: music, events, maps, rucksack, food, hold / throw
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, tests after each, in this order:

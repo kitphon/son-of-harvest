@@ -50,7 +50,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Food and drink (eating, specials, the stand, the food slot): `res://tests/test_food.gd` must
   print `test_food: OK (0 failed)`.
   Holding and throwing (items on the ground, throws, poses, item art): `res://tests/test_hold.gd`
-  must print `test_hold: OK (0 failed)`.
+  must print `test_hold: OK (0 failed)`. Fishing (bites, fish tables, the catch, save, poses,
+  fish art): `res://tests/test_fishing.gd` must print `test_fishing: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field) and `-- --demo --map=town` (the village).
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
@@ -65,7 +66,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `--map=<id>` (or `<id>@<spawn>`, e.g. `town@shrine`, `farm@gate`) to start on another map
   from `data/maps`, `--rucksack` (or `--rucksack=storage`) to open the rucksack (or the
   storage chest; `--demo` puts a few crops in both), `--hold` to start with a turnip overhead
-  and a potato on the ground in front of the bin. Create `shots/` first. Look at the last frame. Delete
+  and a potato on the ground in front of the bin, `--fishing` (or `--fishing=wait`) to start at
+  the farm pond with the line out and a fish biting (or still waiting). Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
 - Audio (sound and music data, synthesis, keys used in code, ambient and music pickers): `res://tests/test_audio.gd`
   must print `test_audio: OK (0 failed)`. Headless runs and Movie Maker runs start no sound

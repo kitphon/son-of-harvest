@@ -13,6 +13,7 @@ signal settings_changed
 signal map_changed(map_id: String)   # the views fade out, rebuild for Game.maps and fade in
 signal map_entered(map_id: String)   # the farmer stands on the new map (after the fade); event triggers key on this
 signal thrown(item: String, from: Vector2i, to: Vector2i, result: String)   # views draw the flight
+signal fishing_event(kind: String)   # "bite" / "escaped" while the line is out (FarmActions plays the cue)
 
 const SECONDS_PER_MINUTE := 0.5
 const DAYS_PER_SEASON := 30
@@ -22,7 +23,7 @@ const WEEKDAYS: Array[String] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"
 const PAYOUT_HOUR := 18
 const PASS_OUT_HOUR := 2
 const WATER_MAX := 40
-const TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe", "seeds", "food"]   # every tool id
+const TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe", "seeds", "food", "rod"]   # every tool id
 const SEED_COST := 1            # stamina per seed bag; the other tools cost by charge (data/tools.json)
 
 var year := 1
@@ -71,6 +72,8 @@ var held: String:
 	set(value):
 		inventory.slots.hand[0] = {} if value == "" else {"id": value, "n": 1}
 var shipped: Dictionary = {}    # item id -> how many were ever shipped
+var fishing := Fishing.new()       # the line: cast, wait, bite (rules in data/fish.json)
+var fish_caught: Dictionary = {}   # fish id -> how many were caught this game (once-only fish)
 
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
@@ -81,6 +84,7 @@ var body: Dictionary = {}          # fatigue, tired states, oversleeping, collap
 var food_data: Dictionary = {}     # data/foods.json: food and drink, the stand's food stock
 var foods: Dictionary = {}         # food id -> {name, price, stamina, fatigue, ...}
 var hold_rules: Dictionary = {}    # throw reach, flight, what the bin and the pond do (data/hold.json)
+var fish_data: Dictionary = {}     # data/fish.json: bites, fish per place / season / hour / weather
 var rng := RandomNumberGenerator.new()
 var farm: FarmGrid
 var maps := MapManager.new()       # the map the farmer is on and where (saved)
@@ -98,6 +102,7 @@ func _ready() -> void:
 	body = _load_json("res://data/body.json")
 	set_food_data(_load_json("res://data/foods.json"))
 	hold_rules = _load_json("res://data/hold.json")
+	fish_data = _load_json("res://data/fish.json")
 	_setup_input()
 	settings = Settings.make()
 	var err := settings.read()
@@ -138,6 +143,8 @@ func new_game() -> void:
 	event_running = false
 	maps = MapManager.new()   # on the farm, in front of the house door
 	shipped = {}
+	fishing = Fishing.new(fish_data)
+	fish_caught = {}
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--demo":
@@ -159,6 +166,15 @@ func new_game() -> void:
 		elif arg == "--hold":   # e.g. `-- --demo --hold`: a turnip overhead, a potato in front of the bin
 			held = "turnip"
 			farm.place_item(Vector2i(8, 4), "potato")
+		elif arg.begins_with("--fishing"):   # `-- --demo --fishing` (or =wait): the line in the farm pond, a fish biting
+			maps.place(MapManager.FARM, Vector2i(24, 3), Vector2i.RIGHT)
+			for i in inventory.size("tools"):
+				if inventory.id_at("tools", i) == "rod":
+					tool_index = i
+			fishing.cast(MapManager.FARM, Vector2i(25, 3))
+			if arg != "--fishing=wait":
+				fishing.state = "bite"
+				fishing.time = -60.0   # the bite waits for the screenshot
 
 
 ## `-- --demo`: 10:00 with a few sown, growing and ripe plots by the house, for screenshots.
@@ -192,6 +208,10 @@ func _demo_field() -> void:
 
 
 func _process(delta: float) -> void:
+	if fishing.active() and not paused():
+		var ev := fishing.step(delta, Fishing.bite_chance(fish_data, hour, weather_look(weather_today, season_name())), rng)
+		if ev != "":
+			fishing_event.emit(ev)
 	if not ticking():
 		return
 	_accum += delta
@@ -252,6 +272,7 @@ func go_to_map(map_id: String, cell: Vector2i, face: Vector2i) -> bool:
 	if not MapManager.has(map_id) or MapManager.data(map_id) == null:
 		return false
 	maps.place(map_id, cell, face)
+	fishing.stop()
 	if maps.on_farm() and farm.in_bounds(cell) and farm.cell(cell).obj != FarmGrid.Obj.NONE:
 		farm.cell(cell).obj = FarmGrid.Obj.NONE
 		farm.cells_changed.emit()
@@ -443,6 +464,7 @@ func end_day() -> void:
 		if season == 0:
 			year += 1
 	work_fatigue_half = false
+	fishing.stop()
 	weather_today = weather_tomorrow
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	snow_cover = next_snow_cover(snow_cover, weather_look(weather_today, season_name()), season_name(), snow_rules)
@@ -487,8 +509,10 @@ func holding() -> bool:
 	return held != ""
 
 
-## What one of `id` fetches in the bin (0 = can't be shipped).
+## What one of `id` fetches in the bin (0 = can't be shipped). Fish are "fish:<id>".
 func sell_price(id: String) -> int:
+	if id.begins_with("fish:"):
+		return int(fish_data.get("fish", {}).get(id.trim_prefix("fish:"), {}).get("sell", 0))
 	return int(crops[id].get("sell", 0)) if crops.has(id) else 0
 
 
@@ -582,6 +606,8 @@ func item_name(id: String) -> String:
 		return String(crops[id].name)
 	if id.begins_with("seeds:") and crops.has(id.trim_prefix("seeds:")):
 		return "%s seeds" % crops[id.trim_prefix("seeds:")].name
+	if id.begins_with("fish:") and fish_data.get("fish", {}).has(id.trim_prefix("fish:")):
+		return String(fish_data.fish[id.trim_prefix("fish:")].name)
 	return id.replace(":", " ").replace("_", " ").capitalize()
 
 
@@ -594,6 +620,61 @@ func spend_stamina(n: int) -> bool:
 	add_fatigue(tired / 2 if work_fatigue_half else tired)
 	changed.emit()
 	return true
+
+
+# --- fishing (data/fish.json, Fishing) -------------------------------------
+
+## Is `c` water a line can go into: the farm pond, or a water tile on another map?
+func is_water(c: Vector2i) -> bool:
+	if maps.on_farm():
+		return farm.fixed_at(c) == "pond"
+	return maps.current().tile(c) == "water"
+
+
+## The first water cell up to the rod's reach in front of `origin` (data/tools.json rod);
+## anything else solid on the way blocks the cast. Vector2i(-1, -1) when there is none.
+func water_ahead(origin: Vector2i, facing: Vector2i) -> Vector2i:
+	for i in range(1, int(tools_data.get("rod", {}).get("reach", 2)) + 1):
+		var c := origin + facing * i
+		if is_water(c):
+			return c
+		if maps.is_solid(c, farm):
+			break
+	return Vector2i(-1, -1)
+
+
+## Casts the rod from `origin` towards `facing`. Returns "cast", "hands_full" (an item
+## overhead) or "no_water". A cast costs stamina.
+func cast_line(origin: Vector2i, facing: Vector2i) -> String:
+	if holding():
+		return "hands_full"
+	var spot := water_ahead(origin, facing)
+	if spot == Vector2i(-1, -1):
+		return "no_water"
+	spend_stamina(int(tools_data.get("rod", {}).get("stamina", 2)))
+	fishing.cast(maps.id, spot)
+	changed.emit()
+	return "cast"
+
+
+## The button while the line is out. A bite hooks a fish from what fits the place, season,
+## hour and weather (Fishing.candidates); it goes up overhead like a harvest. Returns
+## {result: "catch" / "early" / "none", fish: "fish:<id>" or ""}.
+func reel_in() -> Dictionary:
+	var at := fishing.place
+	var r := fishing.reel()
+	var out := {"result": r, "fish": ""}
+	if r == "catch":
+		var look := weather_look(weather_today, season_name())
+		var id := Fishing.pick(Fishing.candidates(fish_data, at, season_name(), hour, look, fish_caught), rng.randf())
+		if id == "":
+			out.result = "none"
+		else:
+			fish_caught[id] = int(fish_caught.get(id, 0)) + 1
+			out.fish = "fish:" + id
+			held = out.fish
+	changed.emit()
+	return out
 
 
 # --- food and drink (data/foods.json) --------------------------------------
@@ -880,6 +961,7 @@ func to_dict() -> Dictionary:
 	d.events_seen = seen
 	d.map = maps.to_dict()
 	d.shipped = shipped.duplicate()
+	d.fishing = {"caught": fish_caught.duplicate(), "dry_casts": fishing.dry_casts}
 	d.farm = farm.to_dict()
 	return d
 
@@ -1006,6 +1088,21 @@ func from_dict(data: Dictionary) -> String:
 		if not id is String or id == "" or c == null:
 			return "Saved shipping counts are broken"
 		n.shipped[id] = c
+	# Saves from before fishing: nothing caught, and the rod goes in a free tool slot (else the chest).
+	var saved_fishing = data.get("fishing", {"caught": {}, "dry_casts": 0})
+	if not saved_fishing is Dictionary or not saved_fishing.get("caught") is Dictionary:
+		return "Saved fishing is broken"
+	n.fish_caught = {}
+	for id in saved_fishing.caught:
+		var c = SaveGame.whole(saved_fishing.caught[id], 1, 1 << 50)
+		if not id is String or id == "" or c == null:
+			return "Saved fishing is broken"
+		n.fish_caught[id] = c
+	var dry = SaveGame.whole(saved_fishing.get("dry_casts"), 0, 9999)
+	if dry == null:
+		return "Saved fishing is broken"
+	if not data.has("fishing") and n.inventory.count("rod", ["tools", "chest"]) == 0:
+		n.inventory.add("rod", 1, ["tools", "chest"])
 	if not data.get("farm") is Dictionary:
 		return "Saved farm is missing"
 	var err := farm.from_dict(data.farm)
@@ -1014,6 +1111,8 @@ func from_dict(data: Dictionary) -> String:
 	farm.add_missing_fixed()   # saves from before the storage chest get it by the house
 	for key in n:
 		set(key, n[key])
+	fishing = Fishing.new(fish_data)
+	fishing.dry_casts = dry
 	maps = MapManager.new()
 	maps.id = place.id
 	maps.pos = place.pos
