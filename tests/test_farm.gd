@@ -81,6 +81,30 @@ func _init() -> void:
 			check(img.get_size() == Vector2i(16, 24) and (img.get_pixel(5, 22).a > 0 or img.get_pixel(10, 22).a > 0),
 				"%s %d: 16 x 24 with a foot on the ground" % [pose, i])
 
+	# Field sprites: every crop has a look in the data and a sprite per growth look; the key
+	# follows the crop's stage.
+	var keys := {}
+	for id in crops:
+		check(crops[id].has("look"), "%s has a look" % id)
+		for growth in 4:
+			for ripe in ["growing", "ripe"] if growth == 3 else ["growing"]:
+				var key := "crop:%s:%d:%s" % [id, growth, ripe]
+				var img := PlaceholderArt.tex(key).get_image()
+				check(img.get_width() == 16 and img.get_used_rect().end.y == img.get_height(),
+					"%s: 16 wide, stands on its bottom row" % key)
+				if ripe == "ripe":
+					keys[img.get_data()] = key
+	check(keys.size() == crops.size(), "ripe crops all look different (%d distinct)" % keys.size())
+	var q := FarmGrid.new(crops)
+	var qc := Vector2i(6, 6)
+	q.till(qc)
+	q.sow(qc, "pumpkin", "fall")
+	check(PlaceholderArt.cell_key(q, q.cell(qc)) == "crop:pumpkin:0:growing", "sown = seed look")
+	q.cell(qc).stage = 3
+	check(PlaceholderArt.cell_key(q, q.cell(qc)) == "crop:pumpkin:3:ripe", "ripe pumpkin key")
+	q.cell(qc).obj = FarmGrid.Obj.ROCK
+	check(PlaceholderArt.cell_key(q, q.cell(qc)) == "rock", "obstacle key wins")
+
 	print("test_farm: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 

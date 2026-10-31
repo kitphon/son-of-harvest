@@ -103,26 +103,9 @@ func _rebuild_objects() -> void:
 			var c := Vector2i(x, y)
 			if not farm.can_farm(c):
 				continue
-			var key := _object_key(farm.cell(c))
+			var key := PlaceholderArt.cell_key(farm, farm.cell(c))
 			if key == "":
 				continue
 			var s := make_sprite(PlaceholderArt.tex(key))
 			s.position = Vector3(x + 0.5, 0, y + 0.5)
 			_objects.add_child(s)
-
-
-func _object_key(d: Dictionary) -> String:
-	match d.obj:
-		FarmGrid.Obj.ROCK:
-			return "rock"
-		FarmGrid.Obj.BRANCH:
-			return "branch"
-		FarmGrid.Obj.WEED:
-			return "weed"
-		FarmGrid.Obj.STUMP:
-			return "stump"
-	if d.crop == "":
-		return ""
-	var ripe := farm.ripe_stage(d.crop)
-	var growth := 0 if d.stage == 0 else (3 if d.stage >= ripe else clampi(1 + 2 * (d.stage - 1) / maxi(ripe - 1, 1), 1, 2))
-	return "crop:%d:%s" % [growth, "ripe" if d.stage >= ripe else "growing"]

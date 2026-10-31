@@ -9,10 +9,6 @@ const COLORS := {
 	"bin": Color("7a6a50"), "stand": Color("d9b45a"), "pond": Color("3d7fc4"),
 	"path": Color("b9a27a"),
 }
-const OBJ_COLORS := {
-	FarmGrid.Obj.ROCK: Color("9a9a9a"), FarmGrid.Obj.BRANCH: Color("7a5230"),
-	FarmGrid.Obj.WEED: Color("3e7a2a"), FarmGrid.Obj.STUMP: Color("5e3d1e"),
-}
 
 ## Ground only (soil, water, building footprints): the 3D view uses this as the ground
 ## texture and stands everything else up as sprites / boxes.
@@ -49,18 +45,9 @@ func _draw_cell(c: Vector2i) -> void:
 		draw_line(r.position + Vector2(2, 11), r.position + Vector2(14, 11), Color(0, 0, 0, 0.2))
 	if ground_only:
 		return
-	var center := r.get_center()
-	match d.obj:
-		FarmGrid.Obj.ROCK:
-			draw_circle(center, 5, OBJ_COLORS[d.obj])
-		FarmGrid.Obj.BRANCH:
-			draw_line(center + Vector2(-6, 3), center + Vector2(6, -3), OBJ_COLORS[d.obj], 2.0)
-		FarmGrid.Obj.WEED:
-			for dx in [-4, 0, 4]:
-				draw_line(center + Vector2(dx, 5), center + Vector2(dx * 1.5, -4), OBJ_COLORS[d.obj], 1.0)
-		FarmGrid.Obj.STUMP:
-			draw_rect(Rect2(center - Vector2(6, 5), Vector2(12, 10)), OBJ_COLORS[d.obj])
-	if d.crop != "":
-		var ripe := farm.ripe_stage(d.crop)
-		var size := 1.5 + 4.5 * float(d.stage) / ripe
-		draw_circle(center, size, Color("e8d34a") if d.stage >= ripe else Color("9ad65a"))
+	# Same sprites as the 3D view, standing on the cell's bottom edge (tall ones overlap the
+	# cell above).
+	var key := PlaceholderArt.cell_key(farm, d)
+	if key != "":
+		var tex := PlaceholderArt.tex(key)
+		draw_texture(tex, r.position + Vector2(0, T - tex.get_height()))

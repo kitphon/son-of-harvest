@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Crop and field-object placeholders
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: rock / branch / weed / stump and every crop are drawn in the farmer's style: 2-3
+  shades, then an automatic 1 px dark outline around the silhouette. Each crop has a `look`
+  in `data/crops.json` (shape root / bush / vine / stalk / ground, leaf and fruit colours,
+  extras like leaf style, bulb size, fruit shape, flower). Seed and sprout are shared (sprout
+  in the crop's leaf colour); young, grown and ripe follow the shape. Vines and corn are
+  16 x 24 with a stake / tall stalk. Keys are now `crop:<id>:<growth>:<ripe|growing>`;
+  `PlaceholderArt.cell_key()` replaces FarmWorld's own key function and the 2D view draws the
+  same sprites instead of circles. Cucumber leaves were lightened after the first sheet so the
+  dark fruit shows.
+- Checked: `test_farm: OK (0 failed)` (new: every crop has a look, all 45 crop sprites are
+  16 wide and stand on their bottom row, the 9 ripe sprites all differ, cell keys for seed /
+  ripe / obstacle); headless `--quit-after 300` printed no errors or warnings; a 4x sheet of
+  all crops x growth looks + obstacles; Movie Maker frames of the 3D and 2D views with `--demo`.
+- Left / next: the demo field shows no ripe crop (stages 1-3 of turnip / potato / cucumber);
+  ripe looks were checked on the sheet only. Seasons other than spring not seen in game.
+
 ## 2026-10-31 — Farmer placeholder frames and walk / run animation
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user chose to refine placeholders before real art. Scale check first: in a demo

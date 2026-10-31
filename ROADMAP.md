@@ -5,11 +5,11 @@ own code, art, story and numbers, shipped as a Windows .exe from Godot 4.7.
 Rules per system: docs/DESIGN.md. What was done and how it was checked: WORKLOG.md.
 
 ## Next up
-The user chose to refine the placeholders first (real art later). The farmer is done
-(framed, animated). Next: milestone 2, **crop and field-object placeholders** in the same
-style as the farmer (1 px dark outline, 2-3 shades, readable at ~2 screen px per sprite px):
-one set per crop and growth stage, keyed per crop id from `data/crops.json` instead of the
-shared `crop:<growth>:<ripe>` look. Then ground tiles.
+The user chose to refine the placeholders first (real art later). Farmer, crops and field
+objects are done. Next: milestone 2, **ground tiles** in the same style (grass with a little
+texture, soil dry / tilled / wet with furrows, paths, pond water with an edge), drawn by
+FarmView (it is also the 3D ground texture). Keep the wet / dry difference obvious from the
+camera. Then house / bin / stand / fence.
 
 ## Milestones
 
@@ -23,7 +23,8 @@ shared `crop:<growth>:<ripe>` look. Then ground tiles.
 2. **Look and feel**
    - [x] Farmer placeholder frames (front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)
-   - [ ] Field object and crop sprites (one set per crop and stage)
+   - [x] Field object and crop placeholders (per crop look in `data/crops.json`, 4 growth looks + ripe)
+   - [ ] Field object and crop real art (same keys: `crop:<id>:<growth>:<ripe|growing>`)
    - [ ] Ground tiles instead of flat colours (grass, soil dry / wet / tilled, paths, water)
    - [ ] House, bin, stand, fence as models or textured boxes
    - [ ] Rain / snow particles, weather tint
