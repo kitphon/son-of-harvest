@@ -15,6 +15,8 @@ func _init() -> void:
 	_pause_rule()
 	_settings()
 	_pause_menu()
+	_controls()
+	_controls_menu()
 
 
 # The farmer is checked on the Game autoload, which is in the tree from the first frame,
@@ -171,7 +173,7 @@ func _pause_menu() -> void:
 	check(m.choose() == "save" and m.page == "main", "save stays on the page")
 	m.list.move(1)
 	check(m.choose() == "" and m.page == "settings", "settings opens its page")
-	check(m.list.items == (["flashes", "window", "music", "sfx", "ambient", "back"] as Array[String]), "settings rows from data, then back")
+	check(m.list.items == (["flashes", "window", "music", "sfx", "ambient", "controls", "back"] as Array[String]), "settings rows from data, then controls and back")
 	check(m.slider("flashes") == Vector2i.ZERO and m.slider("back") == Vector2i.ZERO, "no slider on on / off rows")
 	check(m.label("flashes") == "Lightning: On" and m.label("window") == "Window: 3x", "rows show values")
 	check(m.choose() == "setting" and s.value("flashes") == false and m.label("flashes") == "Lightning: Off", "enter flips flashes")
@@ -197,7 +199,7 @@ func _pause_menu() -> void:
 	check(m.choose() == "setting" and s.value("ambient") == 10, "enter on a slider steps it up")
 	s.values.ambient = 100
 	check(m.choose() == "setting" and s.value("ambient") == 0, "enter at the top wraps to 0")
-	m.list.move(1)
+	m.list.move(2)
 	check(m.adjust(1) == "" and m.choose() == "" and m.page == "main", "back returns to the main page")
 	check(m.list.current() == "settings", "cursor back on settings")
 	m.open("settings")
@@ -223,6 +225,169 @@ func _pause_menu() -> void:
 	l.cursor = 1
 	check(l.choose() == "", "an item that is off can't be chosen")
 
+
+## Controls: defaults from data, binding, swapping, refusing, clearing, the InputMap, the
+## settings file and reset.
+func _controls() -> void:
+	var c := Controls.make()
+	var acts := c.actions()
+	check(acts.slice(0, 5) == (["move_up", "move_down", "move_left", "move_right", "run"] as Array[String]), "actions in data order (%s)" % [acts.slice(0, 5)])
+	for a in ["use_tool", "interact", "next_tool", "next_seed", "rucksack", "pause", "quick_save", "quick_load"]:
+		check(a in acts, "%s listed" % a)
+	var tools: Array = load("res://scripts/autoload/game.gd").get_script_constant_map().TOOLS
+	for i in tools.size():
+		check(acts.has("tool_%d" % (i + 1)) and c.keys("tool_%d" % (i + 1))[0] == KEY_1 + i, "tool %d on its number key" % (i + 1))
+	check(c.label("tool_1") == "Tool 1: Hoe" and c.label("pause") == "Pause (Esc)", "labels (%s, %s)" % [c.label("tool_1"), c.label("pause")])
+	check(c.keys("move_up") == [KEY_W, KEY_UP] and c.keys("run") == [KEY_SHIFT, KEY_NONE], "default keys")
+	var names := []
+	for a in acts:
+		names.append(c.label(a))
+		for k in c.keys(a):
+			names.append(Controls.key_name(k))
+	for k in [KEY_SPACE, KEY_TAB, KEY_BRACKETLEFT, KEY_KP_1, KEY_CTRL]:
+		names.append(Controls.key_name(k))
+	check(PixelFont.missing("".join(names)) == "", "the pixel font has every label and key name (%s)" % PixelFont.missing("".join(names)))
+	var seen := {}
+	var dupes := 0
+	for a in acts:
+		for k in c.keys(a):
+			if k != KEY_NONE:
+				dupes += int(seen.has(k))
+				seen[k] = a
+	check(dupes == 0, "no default key starts two actions")
+
+	# Into the InputMap.
+	c.apply()
+	check(_has_key("move_up", KEY_W) and _has_key("move_up", KEY_UP) and _has_key("rucksack", KEY_I), "keys in the input map")
+	check(_has_key("pause", KEY_ESCAPE), "Esc pauses")
+	var start := InputEventJoypadButton.new()
+	start.button_index = JOY_BUTTON_START
+	check(InputMap.event_is_action(start, "pause"), "the pad's Start still pauses")
+
+	# Binding: a free key, a swap with another action, a trade between the action's own slots.
+	var r := c.bind("run", 1, KEY_C)
+	check(r.done and r.other == "" and c.keys("run") == [KEY_SHIFT, KEY_C], "a free key goes into the slot")
+	r = c.bind("move_up", 0, KEY_E)
+	check(r.done and r.other == "interact" and c.keys("move_up") == [KEY_E, KEY_UP] and c.keys("interact") == [KEY_W, KEY_K], "a taken key swaps (%s / %s)" % [c.keys("move_up"), c.keys("interact")])
+	check(c.owner_of(KEY_W) == "interact" and c.owner_of(KEY_E) == "move_up", "each key has one action")
+	r = c.bind("move_up", 1, KEY_E)
+	check(r.done and r.other == "" and c.keys("move_up") == [KEY_UP, KEY_E], "the action's own slots trade")
+	check(c.bind("move_up", 1, KEY_E).done and c.keys("move_up") == [KEY_UP, KEY_E], "the same key again changes nothing")
+	# Refused: the menu key, and a swap that would leave the other action with no key.
+	r = c.bind("run", 0, KEY_ESCAPE)
+	check(not r.done and r.reason == "reserved" and r.other == "pause" and c.keys("run") == [KEY_SHIFT, KEY_C], "Esc can't be taken")
+	r = c.bind("next_tool", 1, KEY_Q)
+	check(not r.done and r.reason == "last_key" and r.other == "next_seed" and c.keys("next_seed") == [KEY_Q, KEY_NONE], "no swap that leaves an action without a key")
+	r = c.bind("next_tool", 0, KEY_Q)
+	check(r.done and c.keys("next_tool") == [KEY_Q, KEY_NONE] and c.keys("next_seed") == [KEY_TAB, KEY_NONE], "a key for a key is fine")
+	check(c.bind("pause", 0, KEY_P).done and c.key_count("pause") == 2, "pause gets a second key next to Esc")
+	check(c.clear("pause", 0) == "" and c.clear("pause", 1) == "empty", "pause's own key can go, Esc stays")
+	check(c.clear("next_seed", 0) == "last_key" and c.clear("use_tool", 1) == "" and c.keys("use_tool") == [KEY_SPACE, KEY_NONE], "clear: never the last key")
+	c.apply()
+	check(_has_key("move_up", KEY_E) and not _has_key("move_up", KEY_W) and _has_key("interact", KEY_W), "new keys in the input map")
+	check(not _has_key("use_tool", KEY_J) and _has_key("pause", KEY_ESCAPE), "a cleared key is gone, Esc stays")
+
+	# Saved with the settings, next to the other settings.
+	_remove()
+	var s := Settings.make()
+	s.values.flashes = false
+	s.controls.bound = c.bound.duplicate(true)
+	check(s.write(PATH) == "", "wrote settings with keys")
+	var saved = JSON.parse_string(FileAccess.get_file_as_string(PATH))
+	check(saved.controls.move_up == ["Up", "E"] and saved.controls.run == ["Shift", "C"] and saved.controls.use_tool == ["Space", ""], "keys by name in the file (%s)" % [saved.controls.move_up])
+	var t := Settings.make()
+	check(t.read(PATH) == "" and t.controls.bound == c.bound and t.value("flashes") == false, "keys round trip")
+
+	var broken := {
+		"keys not a dict": [1, 2],
+		"keys not a list": {"run": "Shift"},
+		"too many slots": {"run": ["Shift", "C", "V"]},
+		"unknown key": {"run": ["NoSuchKey"]},
+		"Esc taken": {"run": ["Escape"]},
+		"a number": {"run": [16]},
+		"shared key": {"run": ["X"], "interact": ["X"]},
+		"no key at all": {"run": ["", ""]},
+	}
+	for what in broken:
+		_put(JSON.stringify({"version": 1, "settings": {"flashes": false}, "controls": broken[what]}))
+		var b := Settings.make()
+		b.controls.bind("run", 1, KEY_V)
+		var kept: Dictionary = b.controls.bound.duplicate(true)
+		var err := b.read(PATH)
+		check(err != "" and b.controls.bound == kept and b.value("flashes") == true, "broken keys (%s) refused, nothing changed: %s" % [what, err])
+	_put(JSON.stringify({"version": 1, "settings": {"flashes": false}}))
+	var older := Settings.make()
+	older.controls.bind("run", 1, KEY_V)
+	check(older.read(PATH) == "" and older.controls.bound == Controls.make().bound, "a file from before the keys: default keys")
+	_put(JSON.stringify({"version": 1, "settings": {}, "controls": {"run": ["W"], "later_action": ["Z"]}}))
+	var part := Settings.make()
+	check(part.read(PATH) == "" and part.controls.keys("run") == [KEY_W, KEY_NONE] and part.controls.keys("move_up") == [KEY_NONE, KEY_UP], "missing action: defaults less keys taken, unknown action skipped")
+	_remove()
+
+	c.reset()
+	check(c.bound == Controls.make().bound, "reset: every key back to the default")
+	c.apply()
+	check(_has_key("move_up", KEY_W) and _has_key("use_tool", KEY_J), "defaults back in the input map")
+
+
+## The controls page of the pause menu: listening, swapping, cancelling, reset and back.
+func _controls_menu() -> void:
+	var s := Settings.make()
+	var m := PauseMenu.new(s)
+	m.open("settings")
+	m.list.point("controls")
+	check(m.label("controls") == "Controls" and m.adjust(1) == "", "controls row on the settings page")
+	check(m.choose() == "" and m.page == "controls" and m.heading() == "Controls", "controls opens its page")
+	var want := s.controls.actions()
+	want.append_array(["reset", "back"])
+	check(m.list.items == want and m.list.current() == "move_up", "one row per action, then reset and back")
+	check(m.label("move_up") == "Move up" and m.slot_text("move_up", 0) == "W" and m.slot_text("move_up", 1) == "Up", "row shows its keys")
+	check(m.slot_text("run", 1) == "-" and m.slot_text("reset", 0) == "" and m.label("reset") == "Reset to defaults", "empty slot, no slots on reset")
+	check(m.hint() == PauseMenu.HINT, "hint line")
+	check(m.press(KEY_X) == "" and s.controls.keys("move_up")[0] == KEY_W, "a key without listening does nothing")
+	check(m.choose() == "" and m.listening == "move_up" and m.slot_text("move_up", 0) == "...", "enter: listening")
+	check(m.hint().begins_with("Press a key for Move up"), "asks for a key (%s)" % m.hint())
+	m.adjust(1)
+	check(m.slot == 0, "no slot change while listening")
+	check(m.press(KEY_ESCAPE) == "" and m.listening == "" and s.controls.keys("move_up")[0] == KEY_W, "Esc cancels")
+	check(m.adjust(1) == "" and m.slot == 1 and m.adjust(1) == "" and m.slot == 1, "right: second slot, stops there")
+	m.choose()
+	check(m.press(KEY_I) == "controls" and s.controls.keys("move_up") == [KEY_W, KEY_I] and s.controls.keys("rucksack") == [KEY_UP, KEY_NONE], "a taken key swaps")
+	check(m.note == "I was on Rucksack: swapped" and m.hint() == m.note, "says what was swapped (%s)" % m.note)
+	m.choose()
+	check(m.press(KEY_ESCAPE) == "" and m.note == "", "Esc while listening cancels quietly")
+	m.adjust(-1)
+	m.choose()
+	check(m.back() == "" and m.page == "controls" and m.listening == "", "Esc (back) while listening stays on the page")
+	m.list.point("next_tool")
+	m.adjust(1)
+	m.choose()
+	check(m.press(KEY_Q) == "" and m.note == "Q is the only key for Next seed / food", "refused swap says why (%s)" % m.note)
+	m.choose()
+	check(m.press(KEY_ESCAPE) == "" and s.controls.keys("next_tool") == [KEY_TAB, KEY_NONE], "nothing changed")
+	m.list.point("use_tool")
+	m.slot = 1
+	check(m.clear() == "controls" and s.controls.keys("use_tool") == [KEY_SPACE, KEY_NONE], "delete clears the slot")
+	m.slot = 0
+	check(m.clear() == "" and m.note == "Tool / put down needs a key", "never the last key")
+	m.list.point("reset")
+	check(m.choose() == "controls" and s.controls.bound == Controls.make().bound and m.note == "Keys back to the defaults", "reset to defaults")
+	m.list.point("back")
+	check(m.choose() == "" and m.page == "settings" and m.list.current() == "controls", "back: settings, cursor on controls")
+	m.open("controls")
+	check(m.back() == "" and m.page == "settings" and m.list.current() == "controls", "Esc on controls goes back one page")
+	m.open("controls")
+	m.list.point("quick_save")
+	m.choose()
+	m.press(KEY_BACKSPACE)
+	check(s.controls.keys("quick_save") == [KEY_BACKSPACE, KEY_NONE], "any other key can be bound, Backspace too")
+	check(m.clear() == "" and m.note == "Quick save needs a key", "and clearing it is refused")
+
+
+func _has_key(action: String, code: int) -> bool:
+	var ev := InputEventKey.new()
+	ev.physical_keycode = code
+	return InputMap.event_is_action(ev, action, true)
 
 ## A changed volume setting reaches the bus as soon as Game applies the settings.
 func _volumes_in_effect() -> void:

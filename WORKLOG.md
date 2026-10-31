@@ -10,6 +10,38 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Key remapping (Esc → Settings → Controls)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the keys moved out of `Game._setup_input` into `data/controls.json` (13 actions in
+  menu order with labels and up to 2 default keys each, pad buttons, fixed keys; plus one
+  "Tool N: <tool>" action per tool in Game.TOOLS on the number keys, so a new tool gets a
+  rebindable key by itself). New `Controls` (scripts/save/controls.gd): key slots per action,
+  `bind` (a key another action has is swapped over; refused when that would leave the other
+  action with no key, and for Esc, which always pauses and cancels a rebind), `clear` (never
+  the last key), `reset`, `apply` (rewrites the InputMap), to / from the settings file by key
+  name. `Settings` keeps it as `controls` and writes it under "controls" in
+  `user://settings.json`; a broken keys section refuses the whole file like any broken
+  setting, a file without one keeps the defaults, a missing action keeps its defaults less
+  keys the file gives to others. Game reads the settings first, then applies the keys.
+  PauseMenu: "Controls" row on the settings page opens the "controls" page (one row per
+  action, Reset to defaults, Back); left / right pick the key slot, Enter listens, the next
+  key goes in (`press`), Esc / a click cancels, Delete / Backspace clears; a note line says
+  what happened ("I was on Rucksack: swapped", "Q is the only key for ...") or shows the hint.
+  PauseScreen draws it wider (250 px) with two key columns (the picked one in the seal red,
+  empty slots as a soft "-"), scrolls 14 rows at a time with a thin bar; while listening
+  every key goes to the menu. `-- --pause=controls` opens it. Pad buttons stay as in data
+  (Start = pause, Back = rucksack), not remappable yet.
+- Checked: `test_menu` (new `_controls`, `_controls_menu`: defaults, labels in the pixel
+  font, InputMap, bind / swap / refuse / clear, settings round trip, 8 broken files, older
+  files, reset, the menu flow) and all the other tests in AGENTS.md print `OK (0 failed)`;
+  headless `--quit-after 300` (title, `-- --demo`, `--demo --map=town`,
+  `--demo --pause=controls`) and `res://scenes/main.tscn --quit-after 400` printed no errors
+  or warnings. Movie Maker frame `--demo --pause=controls`: the wood / paper box with
+  "Controls", Move up .. Tool 1: Hoe in view, W / Up in two columns, "W" in red under the
+  cursor, "Pause (Esc)" with "-" slots, scroll bar, hint "Enter: new key   Del: clear".
+- Left / next: not tried with a real keyboard in a window (rebinding needs real key
+  presses); pad remapping; menus still also take the arrow keys (Godot's ui_* actions).
+
 ## 2026-10-31 — Merged six branches: music, events, maps, rucksack, food, hold / throw
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, tests after each, in this order:

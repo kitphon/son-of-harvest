@@ -3,7 +3,8 @@ extends RefCounted
 ## The player's settings (lightning flashes, window size, volumes), kept in their own
 ## file apart from the game save. Which settings there are, their kind and default come from
 ## data/settings.json, so a new one is only a data entry. Reading checks the whole file
-## first: a broken file is refused and every setting stays at its default.
+## first: a broken file is refused and every setting stays at its default. The player's keys
+## (Controls, data/controls.json) are kept in the same file under "controls".
 
 const VERSION := 1
 const PATH := "user://settings.json"
@@ -11,6 +12,7 @@ const DATA := "res://data/settings.json"
 
 var spec: Dictionary = {}     # setting -> {label, kind, default, options | min, max, step, unit}
 var values: Dictionary = {}   # setting -> its value now
+var controls: Controls        # the player's keys
 
 
 static func make(spec_path := DATA) -> Settings:
@@ -21,6 +23,7 @@ static func make(spec_path := DATA) -> Settings:
 			if data[key] is Dictionary:
 				s.spec[key] = data[key]
 	s.reset()
+	s.controls = Controls.make()
 	return s
 
 
@@ -107,12 +110,13 @@ func bus_volumes() -> Dictionary:
 
 
 func to_dict() -> Dictionary:
-	return {"version": VERSION, "settings": values.duplicate()}
+	return {"version": VERSION, "settings": values.duplicate(), "controls": controls.to_dict()}
 
 
 ## Takes the settings from saved data. Returns "" or what was wrong; on a problem nothing
 ## changes. A setting missing from the file keeps its default (an older file); a setting
-## this build doesn't know is skipped (a newer file).
+## this build doesn't know is skipped (a newer file). A file without "controls" keeps the
+## default keys.
 func from_dict(data: Variant) -> String:
 	if not data is Dictionary:
 		return "The settings file is broken"
@@ -131,7 +135,13 @@ func from_dict(data: Variant) -> String:
 			n[key] = valid(key, saved[key])
 			if n[key] == null:
 				return "Setting %s is broken" % key
+	var keys := Controls.make()
+	if data.has("controls"):
+		var err := keys.from_dict(data.controls)
+		if err != "":
+			return err
 	values = n
+	controls.bound = keys.bound
 	return ""
 
 

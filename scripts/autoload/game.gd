@@ -98,11 +98,11 @@ func _ready() -> void:
 	body = _load_json("res://data/body.json")
 	set_food_data(_load_json("res://data/foods.json"))
 	hold_rules = _load_json("res://data/hold.json")
-	_setup_input()
 	settings = Settings.make()
 	var err := settings.read()
 	if err != "":
 		push_warning(err + "; using the default settings")
+	_setup_input()
 	apply_settings()
 	new_game()
 
@@ -1055,26 +1055,7 @@ func _load_json(path: String) -> Dictionary:
 	return {}
 
 
+## The game actions and their keys: the player's own from the settings, else the defaults in
+## data/controls.json.
 func _setup_input() -> void:
-	var keys := {
-		"move_up": [KEY_W, KEY_UP], "move_down": [KEY_S, KEY_DOWN],
-		"move_left": [KEY_A, KEY_LEFT], "move_right": [KEY_D, KEY_RIGHT],
-		"run": [KEY_SHIFT], "use_tool": [KEY_SPACE, KEY_J], "interact": [KEY_E, KEY_K],
-		"next_tool": [KEY_TAB], "next_seed": [KEY_Q], "rucksack": [KEY_I],
-		"quick_save": [KEY_F5], "quick_load": [KEY_F9], "pause": [KEY_ESCAPE],
-	}
-	var pad := {"pause": [JOY_BUTTON_START], "rucksack": [JOY_BUTTON_BACK]}
-	for i in TOOLS.size():
-		keys["tool_%d" % (i + 1)] = [KEY_1 + i]
-	for action in keys:
-		if InputMap.has_action(action):
-			continue
-		InputMap.add_action(action)
-		for k in keys[action]:
-			var ev := InputEventKey.new()
-			ev.physical_keycode = k
-			InputMap.action_add_event(action, ev)
-		for b in pad.get(action, []):
-			var ev := InputEventJoypadButton.new()
-			ev.button_index = b
-			InputMap.action_add_event(action, ev)
+	(settings.controls if settings != null else Controls.make()).apply()

@@ -53,8 +53,9 @@ volume sliders in Esc → Settings. Later for audio: more tracks (festivals, sho
 are new scores and rules in `data/music.json`; the music has not been heard by a person yet.
 The rucksack and the storage chest are done (I opens the rucksack, the chest stands right of
 the house; slot counts in data/inventory.json, so a shop's rucksack upgrade is one number via
-`Inventory.grow("bag", n)`). The item held overhead is the rucksack's hand slot. Later for
-menus: key remapping.
+`Inventory.grow("bag", n)`). The item held overhead is the rucksack's hand slot. Keys can be
+rebound in Esc → Settings → Controls (defaults in data/controls.json, saved in the settings
+file). Later for menus: remapping pad buttons.
 Next: milestone 5, **villagers with daily schedules from data** (rule list → day plan,
 catch-up on map entry) in the village, then the opening event and first shop visits
 (milestone 6) on the event trigger tables.
@@ -94,7 +95,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Title screen (new game / continue / quit), Continue only for a save that loads
    - [x] Pause menu (resume / save / settings / back to title), settings file (flashes, window)
    - [x] Rucksack / storage menus (Inventory, InventoryMenu / InventoryScreen, chest by the house)
-   - [ ] Key remapping
+   - [x] Key remapping (Esc → Settings → Controls; data/controls.json, keys in user://settings.json)
 5. **Town and villagers**
    - [x] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause (data/maps, MapManager, fade)
    - [ ] Villagers with daily schedules from data (rule list → day plan), catch-up on map entry

@@ -4,8 +4,10 @@ extends CanvasLayer
 ## Esc (or a pad's Start) opens it; arrows or W / S move, Enter / Space choose, left / right
 ## change a setting, Esc goes back; the mouse points and clicks. While it is open Game is
 ## paused (no time passes, the farmer stands still); weather particles keep falling.
-## The pages and choices are PauseMenu. `-- --pause` (or `--pause=settings`) opens it at
-## the start, for screenshots.
+## The pages and choices are PauseMenu. The controls page is wider, shows each action's key
+## slots in two columns and scrolls; while it waits for a key every key goes to it.
+## `-- --pause` (or `--pause=settings`, `--pause=controls`) opens it at the start, for
+## screenshots.
 
 const TITLE_SCENE := "res://scenes/title.tscn"
 const WIDTH := 150
@@ -13,6 +15,10 @@ const ROW_H := 13
 const TOP := 17             # the heading strip on the wood
 const PAPER := Color("f6ead0")
 const NOTCH := Vector2(3, 5)   # one slider step, px; a pixel apart
+const CONTROLS_WIDTH := 250
+const SLOT_X := 118         # the first key column on the controls page, px from the paper's left
+const SLOT_STEP := 58       # from one key column to the next
+const VISIBLE := 14         # rows shown at once; a longer page scrolls
 
 var menu: PauseMenu
 var _open := false
@@ -20,7 +26,10 @@ var _dim: ColorRect
 var _wood: NinePatchRect
 var _paper: NinePatchRect
 var _heading: Label
-var _rows: Array[Label] = []
+var _rows: Array[Label] = []    # the rows on screen; row i shows item _top + i
+var _slots: Array = []          # per row on the controls page: its key slot Labels
+var _top := 0                   # the first item shown
+var _bar: ColorRect             # the scroll bar on a page that scrolls
 var _notches: Dictionary = {}   # setting -> its slider's ColorRects
 var _mark: Label
 var _note: Label
@@ -40,6 +49,10 @@ func _ready() -> void:
 	_mark = _label(_paper, Vector2i(6, 5), PlaceholderArt.UI_SEAL)
 	_mark.text = ">"
 	_note = _label(_paper, Vector2i(9, 0), Hud.INK_SOFT)
+	_bar = ColorRect.new()
+	_bar.color = Hud.INK_SOFT
+	_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_paper.add_child(_bar)
 	_dim.visible = false
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--pause"):
@@ -84,16 +97,30 @@ func _build() -> void:
 	for r in _rows:
 		r.queue_free()
 	_rows.clear()
+	_slots.clear()
 	_notches.clear()
+	_top = 0
 	_heading.text = menu.heading()
-	for i in menu.list.items.size():
+	var width := CONTROLS_WIDTH if menu.page == "controls" else WIDTH
+	var n := mini(menu.list.items.size(), VISIBLE)
+	for i in n:
 		var item: String = menu.list.items[i]
 		var row := _label(_paper, Vector2i(15, 5 + i * ROW_H))
-		row.size = Vector2(WIDTH - 8 - 19, ROW_H)
+		row.size = Vector2(width - 8 - 19, ROW_H)
 		row.mouse_filter = Control.MOUSE_FILTER_STOP
-		row.mouse_entered.connect(func(): if menu.list.point(item): _refresh())
-		row.gui_input.connect(_on_row_input.bind(item))
+		row.mouse_entered.connect(_on_row_hover.bind(i, -1))
+		row.gui_input.connect(_on_row_input.bind(i, -1))
 		_rows.append(row)
+		if menu.page == "controls":
+			var keys: Array[Label] = []
+			for k in menu.settings.controls.slots:
+				var key := _label(row, Vector2i(SLOT_X - 15 + k * SLOT_STEP, 0))
+				key.size = Vector2(SLOT_STEP - 4, ROW_H)
+				key.mouse_filter = Control.MOUSE_FILTER_STOP
+				key.mouse_entered.connect(_on_row_hover.bind(i, k))
+				key.gui_input.connect(_on_row_input.bind(i, k))
+				keys.append(key)
+			_slots.append(keys)
 		var steps := menu.slider(item).y
 		if steps > 0:
 			var notches: Array[ColorRect] = []
@@ -105,23 +132,41 @@ func _build() -> void:
 				row.add_child(c)
 				notches.append(c)
 			_notches[item] = notches
-	var n := menu.list.items.size()
-	_paper.size = Vector2(WIDTH - 8, 8 + n * ROW_H + ROW_H)   # one line kept for the note
+	_paper.size = Vector2(width - 8, 8 + n * ROW_H + ROW_H)   # one line kept for the note
 	_note.position.y = 5 + n * ROW_H + 1
-	_wood.size = Vector2(WIDTH, TOP + _paper.size.y + 4)
+	_wood.size = Vector2(width, TOP + _paper.size.y + 4)
+	_bar.visible = menu.list.items.size() > n
+	_bar.position.x = _paper.size.x - 6
 	var screen := get_viewport().get_visible_rect().size
 	_wood.position = ((screen - _wood.size) / 2).floor()
 	_refresh()
 
 
 func _refresh() -> void:
-	for i in _rows.size():
-		_rows[i].text = menu.label(menu.list.items[i])
+	var items := menu.list.items
+	var n := _rows.size()
+	_top = clampi(_top, menu.list.cursor - n + 1, menu.list.cursor)   # the cursor stays in view
+	_top = clampi(_top, 0, items.size() - n)
+	for i in n:
+		var item: String = items[_top + i]
+		_rows[i].text = menu.label(item)
+		if i < _slots.size():
+			for k in _slots[i].size():
+				var key: Label = _slots[i][k]
+				key.text = menu.slot_text(item, k)
+				var on: bool = _top + i == menu.list.cursor and k == menu.slot
+				key.add_theme_color_override("font_color", PlaceholderArt.UI_SEAL if on else (Hud.INK_SOFT if key.text == "-" else Hud.INK))
 	for item in _notches:
 		var filled := menu.slider(item).x
 		for k in _notches[item].size():
 			_notches[item][k].color = Hud.INK if k < filled else Color(Hud.INK_SOFT, 0.3)
-	_mark.position.y = 5 + menu.list.cursor * ROW_H
+	_mark.position.y = 5 + (menu.list.cursor - _top) * ROW_H
+	if _bar.visible:
+		var track := n * ROW_H
+		_bar.size = Vector2(2, maxf(track * n / float(items.size()), 4)).floor()
+		_bar.position.y = floorf(5 + (track - _bar.size.y) * _top / float(items.size() - n))
+	if menu.page == "controls":
+		_note.text = menu.hint()
 
 
 func _say(text: String) -> void:
@@ -165,6 +210,13 @@ func _input(event: InputEvent) -> void:
 	if not _open or not (event is InputEventKey or event is InputEventJoypadButton):
 		return
 	get_viewport().set_input_as_handled()
+	if menu.listening != "":
+		# Every key goes into the slot (Esc cancels); of the pad only its back button counts.
+		if event is InputEventKey and event.pressed and not event.echo:
+			_do(menu.press(event.physical_keycode if event.physical_keycode != KEY_NONE else event.keycode))
+		elif event.is_action_pressed("ui_cancel"):
+			_do(menu.back())
+		return
 	if event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
 		_do(menu.back())
 	elif event.is_action_pressed("ui_up") or event.is_action_pressed("move_up"):
@@ -179,11 +231,25 @@ func _input(event: InputEvent) -> void:
 		_do(menu.adjust(1))
 	elif event.is_action_pressed("ui_accept"):
 		_do(menu.choose())
+	elif event is InputEventKey and event.pressed and event.physical_keycode in [KEY_DELETE, KEY_BACKSPACE]:
+		_do(menu.clear())
 
 
-func _on_row_input(event: InputEvent, item: String) -> void:
+## The mouse over row i (and key slot k on the controls page; -1 = the row itself).
+func _on_row_hover(i: int, k: int) -> void:
+	if menu.listening == "" and menu.list.point(menu.list.items[_top + i]):
+		if k >= 0:
+			menu.slot = k
+		_refresh()
+
+
+func _on_row_input(event: InputEvent, i: int, k: int) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if menu.list.point(item):
+		if menu.listening != "":
+			_do(menu.back())   # a click while waiting for a key cancels
+		elif menu.list.point(menu.list.items[_top + i]):
+			if k >= 0:
+				menu.slot = k
 			_do(menu.choose())
 
 
@@ -201,6 +267,11 @@ func _do(command: String) -> void:
 			Game.apply_settings()
 			var err := Game.settings.write()
 			_say(err)
+		"controls":
+			Game.settings.controls.apply()
+			var err := Game.settings.write()
+			if err != "":
+				menu.note = err
 		"save_title":
 			var err := SaveGame.write(Game)
 			if err != "":

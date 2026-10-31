@@ -38,6 +38,13 @@ Save / load, the title menu, weather, dialogue and events: the same with `res://
 | I | rucksack: arrows / WASD move, Enter / Space pick up and put down (stack, swap), E takes it in hand (tool slot = tool in hand, an item = the item hand), Esc / I close; mouse: left click pick / put, right click hold. The chest screen works the same. The clock stops while it is open |
 | Q | next seed type, or next food with the food slot (for eating and for buying) |
 
+These are the default keys. Esc → Settings → Controls rebinds them: pick an action, left / right
+pick its first or second key, Enter, then press the new key (Esc cancels; a key another action
+has is swapped over, never leaving an action without a key). Delete / Backspace empties a key,
+"Reset to defaults" puts them all back. Esc always pauses. The defaults are in
+`data/controls.json`, the player's keys are saved under `controls` in `user://settings.json`.
+Pad buttons (Start = pause, Back = rucksack) are not remappable yet.
+
 ## What works (v0)
 - Clock: 1 game minute = 0.5 s, day starts 6:00, 4 seasons x 30 days, day/night tint.
 - Weather rolled a day ahead per season (`data/weather.json`); rain waters the field, storms
