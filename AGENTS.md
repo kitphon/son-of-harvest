@@ -58,8 +58,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   files and picks, gifts, daily limits, affection save, shopkeepers, bump delay):
   `res://tests/test_talk.gd` must print `test_talk: OK (0 failed)`.
   Relationships (hearts on the name tag, birthdays and x5 gifts, the nightly loss, heart
-  events at bands 3, 5 and 6, birthday day plans, fair weather and the HUD tag, mine finds as
-  gifts): `res://tests/test_relationships.gd` must print `test_relationships: OK (0 failed)`.
+  events at bands 3, 5 and 6, birthday day plans, fair weather and the HUD tag, mine finds, dishes and
+  keepsakes as gifts): `res://tests/test_relationships.gd` must print `test_relationships: OK (0 failed)`.
   Shops (data/shops.json, buying / selling, tool upgrades and their ores, mine finds sold, the smithy while Hachiro builds,
   shop maps and doors, the screen):
   `res://tests/test_shops.gd` must print `test_shops: OK (0 failed)`.
@@ -73,7 +73,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   screen): `res://tests/test_ending.gd` must print `test_ending: OK (0 failed)`.
   Festivals (calendar, festival day, shops shut, fair weather, the event once a year,
   decorations and lights in both views, the HUD tag, contests and prizes, the stalls and their
-  wares, keepsakes, ribbons and the farmhouse ribbon board, the payout held back): `res://tests/test_festivals.gd` must
+  wares at all four festivals, keepsakes, ribbons and the farmhouse ribbon board, the payout held back): `res://tests/test_festivals.gd` must
   print `test_festivals: OK (0 failed)`.
   The flat view (main_2d.tscn builds, its Player's actions reach FarmActions: tools, holding
   and throwing, the bin, eating, fishing, doors, talking, the shop counter, the mine; the
@@ -118,7 +118,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   fireworks; without `--demo`, with `res://scenes/main.tscn`, its event plays; add
   `--contest=<item>`, e.g. `--festival=blossom_day --contest=potato`, to stand at the judges'
   table with that item and enter it, the results' text box open after ~4 s, so use
-  `--quit-after 120`; `--shop=stall:blossom_day` (or `stall:lantern_night:eats`, `stall:lantern_night:chimes`) stands at
+  `--quit-after 120`; `--shop=stall:blossom_day` (or `stall:lantern_night:eats`, `stall:lantern_night:chimes`,
+  `stall:moon_night:eats`, `stall:moon_night:crafts`, `stall:years_turn:soba`, `stall:years_turn:charms`) stands at
   that festival stall with it open; `--map=house --flags=ribbons=blossom_day:1:1` shows the
   ribbon board), `--ending` to open the village record
   (README → Ending; `--map=house --event=ending` plays the scene), `--mine=N` to stand at the

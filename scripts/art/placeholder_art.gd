@@ -1672,7 +1672,8 @@ static func _fish_fx(kind: String) -> Image:
 
 ## Food shapes: a rice ball with a nori band, a round sweet on its leaf, three dumplings on
 ## a stick, a cup with a saucer line, a glass bottle with a paper cap, a full bowl, a slice on
-## a plate, a grilled fish on a plate.
+## a plate, a grilled fish on a plate, a paper bag of roast chestnuts, a baked sweet potato
+## split open.
 static func _food_icon(look: Dictionary) -> Image:
 	var img := _blank(14, 14)
 	var c := Color(look.get("color", "fbf8f0"))
@@ -1726,6 +1727,18 @@ static func _food_icon(look: Dictionary) -> Image:
 			_px(img, 10, 5, 2, 5, c.darkened(0.15))
 			_px(img, 3, 6, 1, 1, Color("1e1e1e"))
 			_px(img, 5, 6, 4, 1, c.darkened(0.35))
+		"bag":   # a paper bag (accent), folded open, full of chestnuts (color)
+			_px(img, 3, 6, 8, 7, a)
+			_px(img, 3, 6, 8, 1, a.darkened(0.15))
+			for p in [[5, 4], [8, 4], [6.5, 2.5], [9.5, 5.5], [4, 5.5]]:
+				_oval(img, p[0], p[1], 1.8, 1.6, c)
+				img.set_pixel(int(p[0]) - 1, int(p[1]) - 1, c.lightened(0.35))
+			_px(img, 5, 9, 4, 1, a.darkened(0.25))   # a printed band on the bag
+		"imo":   # a baked sweet potato: dark skin (accent) split open to its gold inside (color)
+			_oval(img, 7, 8, 6.0, 3.2, a)
+			_oval(img, 7, 7.5, 4.0, 1.8, c)
+			_oval(img, 6, 7, 1.5, 0.8, c.lightened(0.35))
+			_px(img, 1, 9, 2, 1, a.darkened(0.2))
 		_:
 			_px(img, 3, 3, 8, 8, c)
 	return _outline(img)
@@ -1973,8 +1986,9 @@ static func _face(speaker: String, expression: String) -> Image:
 	return img
 
 
-## A keepsake: a glass wind chime (bell, clapper, paper strip) or a round paper fan on a
-## bamboo handle.
+## A keepsake: a glass wind chime (bell, clapper, paper strip), a round paper fan on a
+## bamboo handle, a small clay rabbit, a round paper lantern with a moon on it, a red
+## daruma with gold trim and one painted eye, or a cloth charm bag on its cord.
 static func _keepsake_icon(look: Dictionary) -> Image:
 	var img := _blank(14, 14)
 	var c := Color(look.get("color", "a8d4ec"))
@@ -1995,6 +2009,38 @@ static func _keepsake_icon(look: Dictionary) -> Image:
 			_oval(img, 7, 5.5, 2.5, 2.0, a)               # a painted flower
 			for x in [3, 7, 11]:                          # the ribs
 				_line(img, Vector2i(7, 9), Vector2i(x, 2), c.darkened(0.15))
+		"rabbit":
+			_oval(img, 7, 9.5, 4.5, 3.5, c)                # the body, sitting
+			_oval(img, 9, 6, 2.5, 2.2, c)                 # the head
+			_px(img, 8, 1, 1, 4, c)                       # the long ears
+			_px(img, 10, 1, 1, 4, c)
+			_px(img, 8, 2, 1, 2, a.lightened(0.4))
+			img.set_pixel(10, 6, a)                       # a red eye
+			_px(img, 3, 9, 2, 2, a.lightened(0.3))        # a painted spot on the flank
+			_px(img, 2, 13, 10, 1, c.darkened(0.25))      # where it sits
+		"lantern":
+			_px(img, 6, 0, 2, 2, Color("4a3424"))          # the hanger
+			_px(img, 4, 2, 6, 1, Color("2e2a26"))          # the top and bottom rims
+			_px(img, 4, 12, 6, 1, Color("2e2a26"))
+			_oval(img, 7, 7.5, 5.0, 4.8, c)               # the glowing paper
+			for y in [5, 8, 10]:                          # its ribs
+				_px(img, 3, y, 8, 1, c.darkened(0.12))
+			_oval(img, 7, 6.5, 2.0, 2.0, a)               # a dark night sky...
+			_oval(img, 7.5, 6.5, 1.3, 1.3, Color("f8f4e0"))  # ...round a full moon
+		"daruma":
+			_oval(img, 7, 7.5, 5.5, 6.0, c)               # the round red body
+			_oval(img, 7, 6, 3.2, 2.8, Color("f4ead8"))   # the face
+			_px(img, 5, 5, 1, 2, Color("1e1e1e"))         # one eye painted in (the other waits for a wish)
+			_px(img, 8, 5, 1, 2, Color("f4ead8").darkened(0.2))
+			_px(img, 4, 10, 6, 1, a)                      # gold trim on the belly
+			_px(img, 6, 11, 2, 1, a)
+		"charm":
+			_line(img, Vector2i(5, 0), Vector2i(7, 3), a)  # the cord loop
+			_line(img, Vector2i(9, 0), Vector2i(7, 3), a)
+			_px(img, 4, 3, 6, 10, c)                      # the cloth bag
+			_px(img, 4, 3, 6, 1, c.darkened(0.2))
+			_px(img, 5, 6, 4, 5, c.lightened(0.15))       # a brocade panel with a gold mark
+			_px(img, 6, 7, 2, 3, a)
 		_:
 			_oval(img, 7, 7, 5, 5, c)
 	return _outline(img)

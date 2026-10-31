@@ -20,6 +20,7 @@ func _init() -> void:
 	_birthday_plans()
 	_mine_gifts()
 	_dish_gifts()
+	_keepsake_gifts()
 
 
 func _process(_delta: float) -> bool:
@@ -28,6 +29,7 @@ func _process(_delta: float) -> bool:
 		_hearts_in_text_box()
 		_birthday_talk()
 		_dish_gift_in_game()
+		_keepsake_gift_in_game()
 		_neglect_in_game()
 		_heart_events_play()
 		_birthday_weather()
@@ -249,6 +251,43 @@ func _dish_gifts() -> void:
 	var a := Affection.new()
 	var g := a.give("hachiro", "food:daikon_fish", 3, true)
 	check(g.ok and g.reaction == "love" and g.change == int(Affection.rules().gift.love) * int(Affection.rules().birthday_times), "a loved dish counts x5 on a birthday too")
+
+
+## Festival keepsakes as gifts: the ones in the lists are real keepsakes, every villager loves
+## one, every keepsake is welcome somewhere (loved or liked), and a ribbon (a prize, not a present) is neutral.
+func _keepsake_gifts() -> void:
+	var kept: Dictionary = Keepsakes.data().keepsakes
+	var welcome := {}
+	for id in Villagers.all():
+		var loves := 0
+		for r in Villagers.all()[id].gifts:
+			for item in Villagers.all()[id].gifts[r]:
+				if item.begins_with("keep:"):
+					check(kept.has(item.trim_prefix("keep:")), "%s's %s %s is a keepsake" % [id, r, item])
+					loves += 1 if r == "love" else 0
+					if r in ["love", "like"]:
+						welcome[item] = true
+		check(loves == 1, "%s loves one keepsake (%d)" % [id, loves])
+	for k in kept:
+		check(welcome.has("keep:" + k), "someone likes keep:%s" % k)
+	check(Villagers.reaction("kota", "keep:clay_rabbit") == "love" and Villagers.reaction("hachiro", "keep:wind_chime") == "dislike"
+		and Villagers.reaction("tome", "keep:omamori") == "love" and Villagers.reaction("sayo", "keep:daruma") == "dislike",
+		"Kota's rabbit, Tome's charm; no chime by the forge, no daruma for Sayo")
+	check(Villagers.reaction("tome", "ribbon:moon_night:1") == "neutral", "a ribbon is neither here nor there")
+
+
+## A keepsake held overhead is given like any gift and leaves the hands.
+func _keepsake_gift_in_game() -> void:
+	var g := _game()
+	var said := []
+	g.dialogue_requested.connect(func(id, at): said.append([id, at]))
+	g.season = g.SEASONS.find("summer")
+	g.day = 2
+	g.weather_today = "sunny"
+	g.hour = 9
+	g.inventory.slots.hand[0] = {"id": "keep:wind_chime", "n": 1}
+	check(g.talk_to("sayo", Vector2i.DOWN) == "gift" and said.back() == ["talk_sayo", "gift_love"], "Sayo loves the wind chime %s" % [said.back()])
+	check(g.affection.of("sayo") == int(Affection.rules().gift.love) and not g.holding() and g.count("keep:wind_chime") == 0, "it counts as a loved gift and is given away")
 
 
 # --- on the real Game -------------------------------------------------------

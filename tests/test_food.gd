@@ -23,7 +23,7 @@ func _init() -> void:
 			on_sale += 1
 			check(int(f.get("price", 0)) > 0, "%s on sale has a price" % id)
 		check(sounds.has(g.eat_sound(id)), "%s plays a sound in data/sfx.json (%s)" % [id, g.eat_sound(id)])
-		check(f.get("look", {}).get("shape", "") in ["rice_ball", "round", "skewer", "cup", "bottle", "bowl", "plate", "fish_plate"], "%s has a known icon shape" % id)
+		check(f.get("look", {}).get("shape", "") in ["rice_ball", "round", "skewer", "cup", "bottle", "bowl", "plate", "fish_plate", "bag", "imo"], "%s has a known icon shape" % id)
 		var img := PlaceholderArt.tex("ui:food:" + id).get_image()
 		check(img.get_size() == Vector2i(14, 14) and img.get_used_rect().has_area(), "ui:food:%s drawn" % id)
 		check(PixelFont.width(String(f.name)) + 12 + PixelFont.width("x99") <= HudLayout.BOXES.item.size.x, "%s fits the item box" % id)
