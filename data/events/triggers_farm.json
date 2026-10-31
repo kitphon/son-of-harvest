@@ -1,8 +1,12 @@
 {
-	"_note": "Events on the farm map. On a cause (enter, day_start, minute, step) the first row that matches plays; rows play once unless once is false. Format: README.md, Events.",
+	"_note": "Events on the farm map. On a cause (enter, day_start, minute, step, examine) the first row that matches plays; rows play once unless once is false. Format: README.md, Events.",
 	"rows": [
 		{"event": "first_morning", "on": ["enter", "day_start"], "year": [1, 1], "season": ["spring"], "days": [1, 1], "time": ["6:00", "9:00"]},
 		{"event": "rainy_day", "on": ["enter", "day_start"], "weather": ["rain"], "time": ["6:00", "10:00"]},
-		{"event": "pond_first", "on": "step", "area": [23, 1, 7, 5]}
+		{"event": "pond_first", "on": "step", "area": [23, 1, 7, 5]},
+		{"event": "farm_nameplate", "on": "examine", "spot": [3, 3], "once": false},
+		{"event": "farm_nameplate", "on": "examine", "spot": [5, 3], "once": false},
+		{"event": "farm_sign", "on": "examine", "spot": [31, 4], "once": false},
+		{"event": "farm_sign", "on": "examine", "spot": [31, 7], "once": false}
 	]
 }

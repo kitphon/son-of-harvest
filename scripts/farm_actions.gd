@@ -9,6 +9,7 @@ const HOME := Vector2(4 * T + 8, 4 * T + 10)   # in front of the door, in player
 
 ## kind "enter" = the farmer walked into a door cell `origin + facing`. With an item
 ## overhead on the farm the hands are full: interact throws it, the tool button sets it down.
+## Otherwise interact first asks the map's trigger table about the spot faced (examine).
 static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	if kind == "enter":
 		interact(origin + facing)
@@ -18,9 +19,16 @@ static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge :
 		else:
 			put_down(origin + facing)
 	elif kind == "interact":
-		interact(origin + facing)
+		if not examine(origin + facing):
+			interact(origin + facing)
 	else:
 		use_tool(origin, facing, charge)
+
+
+## An "examine" row of the map's trigger table for cell `c` plays its event (EventPlayer).
+static func examine(c: Vector2i) -> bool:
+	var p := Game.get_tree().get_first_node_in_group(EventPlayer.GROUP) as EventPlayer
+	return p != null and p.examine(c)
 
 
 static func throw(origin: Vector2i, facing: Vector2i) -> void:

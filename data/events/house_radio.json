@@ -1,0 +1,7 @@
+{
+	"_note": "Examining the radio on the chest of drawers in the farmhouse.",
+	"steps": [
+		{"do": "sound", "key": "menu_move"},
+		{"do": "say", "dialogue": "examine_house", "at": "radio"}
+	]
+}

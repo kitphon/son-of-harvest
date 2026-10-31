@@ -1,0 +1,6 @@
+{
+	"_note": "Examining the board on the fence by the farm gate.",
+	"steps": [
+		{"do": "say", "dialogue": "examine_farm", "at": "sign"}
+	]
+}

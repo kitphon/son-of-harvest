@@ -1,0 +1,10 @@
+{
+	"_note": "Events in the farmhouse. The calendar hangs on the north wall above the low table, the radio stands on the chest of drawers. Format: README.md, Events.",
+	"rows": [
+		{"event": "calendar_spring", "on": "examine", "spot": [3, 0], "once": false, "season": ["spring"]},
+		{"event": "calendar_summer", "on": "examine", "spot": [3, 0], "once": false, "season": ["summer"]},
+		{"event": "calendar_fall", "on": "examine", "spot": [3, 0], "once": false, "season": ["fall"]},
+		{"event": "calendar_winter", "on": "examine", "spot": [3, 0], "once": false, "season": ["winter"]},
+		{"event": "house_radio", "on": "examine", "spot": [6, 1], "once": false}
+	]
+}

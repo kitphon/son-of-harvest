@@ -1,0 +1,12 @@
+{
+	"_note": "Lines for the village examine events (data/events/triggers_town.json): the shrine's offering box, the stone lanterns and the empty houses' doors. Each part ends with next: end.",
+	"lines": [
+		{"id": "offering", "speaker": "farmer", "face": "calm", "text": "A small wooden offering box in front of the shrine. The slats are worn smooth by many hands.", "choices": [{"text": "Drop in a coin (5 G)", "next": "end", "set": {"shrine_coin": true}}, {"text": "Just bow", "next": "bow"}]},
+		{"id": "bow", "speaker": "farmer", "face": "calm", "text": "I bow twice, clap twice and bow once more. The pines creak in the wind.", "next": "end"},
+		{"id": "coin", "speaker": "farmer", "face": "smile", "text": "The coin rattles down between the slats. Please let the rain come when the field needs it.", "next": "end"},
+		{"id": "lantern_day", "text": "A stone lantern, its cap green with moss. A spider has hung its web in the light window.", "next": "end"},
+		{"id": "lantern_night", "text": "Someone has lit a candle inside the stone lantern. Its light shivers on the gravel.", "next": "end"},
+		{"id": "lantern_snow", "text": "Snow sits on the lantern's cap like a white hat. The stone is cold to the touch.", "next": "end"},
+		{"id": "house", "speaker": "farmer", "face": "worried", "text": "The name board by the door has been planed blank. Nobody has lived here for a while.", "next": "end"}
+	]
+}

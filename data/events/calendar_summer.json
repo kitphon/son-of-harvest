@@ -1,0 +1,6 @@
+{
+	"_note": "Examining the farmhouse calendar in summer.",
+	"steps": [
+		{"do": "say", "dialogue": "examine_house", "at": "summer"}
+	]
+}

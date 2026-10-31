@@ -42,6 +42,44 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Left / next: not tried with a real keyboard in a window (rebinding needs real key
   presses); pad remapping; menus still also take the arrow keys (Godot's ui_* actions).
 
+## 2026-10-31 — "Examine" event cause: E facing a spot plays an event
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: trigger tables get a fifth cause, `examine`, with a `spot` condition (the cell faced,
+  `[x, y]` or `[x, y, width, height]`; required on examine rows, refused on others; all the
+  other conditions still apply). `EventPlayer.examine(spot)` (in group `event_player`) picks
+  the map's first matching row and plays it; `FarmActions.on_action` asks it before its own
+  interact, so a matching spot wins over doors / bin / futon / pick-up, and an item held
+  overhead on the farm is still thrown. Walking into a door ("enter") never examines.
+  Examining works under `--demo` (only a key press starts it). New content, our own words:
+  - Village (`triggers_town.json`, new): the shrine's offering box (bow, or drop in a coin:
+    the choice sets `shrine_coin`, the event pays 5 G with the `coins` sound and clears the
+    flag), the two stone lanterns (snow > evening 17:00-24:00 > day), the three empty houses'
+    doors (`quiet_house`; walking in still shows the doors' message). The shop door (23, 15)
+    is left to the shops branch, and town.json is untouched.
+  - Farm: the name plate on the house wall beside the door (text changes once `bin_named` is
+    set) and the board on the fence beside the gate.
+  - Farmhouse (`triggers_house.json`, new): the paper calendar on the north wall above the
+    low table, one text per season (no TV in a satoyama house; the radio on the chest of
+    drawers takes its place). The calendar is not drawn yet; the text describes it.
+  - Dialogue in `data/dialogue/examine_{town,farm,house}.json`, 14 small event files.
+  All examine rows say `"once": false`.
+- Checked: `test_events` adds spot validation, spot matching (cell / rectangle / outside /
+  other causes / time still counts), every new table's picks, the coin branch (95 G, flag
+  cleared), and on the real Game in the tree: holding a turnip throws instead of examining,
+  E facing the name plate plays `farm_nameplate`, no second examine while one plays, nothing on
+  open ground. `test_audio`, `test_body`, `test_dialogue`, `test_events`, `test_farm`,
+  `test_food`, `test_hold`, `test_inventory`, `test_maps`, `test_menu`, `test_save`,
+  `test_title`, `test_weather` all print `OK (0 failed)`. Headless `--quit-after 300` (title,
+  `--demo`, `--demo --map=town`, `--demo --map=house`) and `res://scenes/main.tscn
+  --quit-after 400` (triggers on; also `-- --map=town@shrine`) printed no errors or warnings.
+  Movie Maker frame `--demo --map=town@shrine --event=shrine_offering`: the farmer turned to
+  face up, the text box shows the offering line with the two choices "Drop in a coin (5 G)"
+  and "Just bow".
+- Left / next: not pressed in a real window (the frame used `--event`, so the farmer stood at
+  the spawn, not in front of the box). The coin can be given with less than 5 G (money stops at
+  0). The calendar and the radio have no art. When villagers get their houses, drop the
+  `quiet_house` rows for those doors.
+
 ## 2026-10-31 — Merged six branches: music, events, maps, rucksack, food, hold / throw
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, tests after each, in this order:
