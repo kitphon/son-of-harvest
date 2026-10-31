@@ -36,7 +36,13 @@
 		"winter": {"suisho": 2.0}
 	},
 	"_seasons": "Spring melt leaves the soft spots wet and full of clay; summer heat sweats amber out of old seams; fall is when agate turns up in the dry rubble; in winter frost opens the cracks where rock crystal grows.",
-	"_items": "Mine finds are rucksack items \"mine:<id>\": name, kind (stone / ore / gem), sell (G in the bin), look (icon shape and colours for PlaceholderArt). Ores are for the smithy's tool upgrades later.",
+	"light": {"depths": [[1, "b8aa98"], [5, "8c8078"], [10, "5c566a"], [16, "36324a"], [24, "24202e"]],
+		"lantern": {"radius": 3.2, "soft": 0.55, "color": "f4dcac"}},
+	"_light": "Down the mine the picture is multiplied by the floor's light: depths are [floor, colour], blended in between (the last one holds below it), so each floor is a little darker than the one above. The farmer's lantern lights a circle `radius` cells across (`soft` = the share of it that fades out) in its own warm colour, the same on every floor, so it stands out more the deeper it is.",
+	"winter": {"seasons": ["winter"], "to": 9, "name": "frozen", "light": "c4d6f4", "frost": 0.3,
+		"ice": [3, 5], "hits": 2, "finds": {"none": 30, "hyoseki": 45, "suisho": 25}},
+	"_winter": "In winter the cold reaches down to floor `to`: those floors are frozen. Their light is multiplied by `light` (a cold blue), `frost` is the share of the open floor that lies white with frost (only a look), and `ice` [fewest, most] blocks of ice stand about. The hammer breaks ice in `hits` blows; it hides finds from `finds` (frost stone only grows in the ice). The hole down is never under the ice. Deeper floors are warm and stay as they are.",
+	"_items": "Mine finds are rucksack items \"mine:<id>\": name, kind (stone / ore / gem), sell (G in the bin), look (icon shape and colours for PlaceholderArt). The Kurogane Smithy asks for ores in its tool upgrades (data/shops.json upgrades items); the shops buy stones, ores and gems by kind (their buys).",
 	"items": {
 		"stone": {"name": "Grey stone", "kind": "stone", "sell": 2, "look": {"shape": "stone", "body": "8e8a84", "shine": "b8b4ac"}},
 		"clay": {"name": "Potter's clay", "kind": "stone", "sell": 6, "look": {"shape": "lump", "body": "b88a62", "shine": "d8b08a"}},
@@ -48,6 +54,7 @@
 		"meno": {"name": "Agate", "kind": "gem", "sell": 60, "look": {"shape": "gem", "body": "c86a4a", "shine": "f0b098"}},
 		"kohaku": {"name": "Amber", "kind": "gem", "sell": 150, "look": {"shape": "drop", "body": "d89030", "shine": "f8d070"}},
 		"suisho": {"name": "Rock crystal", "kind": "gem", "sell": 120, "look": {"shape": "crystal", "body": "c8e0ec", "shine": "ffffff"}},
-		"hisui": {"name": "Jade", "kind": "gem", "sell": 300, "look": {"shape": "gem", "body": "4a9a6a", "shine": "a0e0b0"}}
+		"hisui": {"name": "Jade", "kind": "gem", "sell": 300, "look": {"shape": "gem", "body": "4a9a6a", "shine": "a0e0b0"}},
+		"hyoseki": {"name": "Frost stone", "kind": "gem", "sell": 80, "look": {"shape": "shard", "body": "9ccce8", "shine": "f4fcff"}}
 	}
 }

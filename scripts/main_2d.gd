@@ -8,6 +8,7 @@ var view: Node2D
 var player: Player
 var cam: Camera2D
 var tint: CanvasModulate
+var mine_light: ColorRect   # down the mine: the floor's light and the lantern (MineLight), over the view
 var fade: MapFade
 
 
@@ -21,6 +22,14 @@ func _ready() -> void:
 
 	tint = CanvasModulate.new()
 	add_child(tint)
+	mine_light = ColorRect.new()
+	mine_light.material = MineLight.material()
+	mine_light.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mine_light.z_index = 100
+	mine_light.size = Vector2(ProjectSettings.get_setting("display/window/size/viewport_width"),
+		ProjectSettings.get_setting("display/window/size/viewport_height"))
+	mine_light.visible = false
+	add_child(mine_light)
 	add_child(Hud.new())
 	fade = MapFade.new()
 	add_child(fade)
@@ -89,4 +98,24 @@ func _on_day_started() -> void:
 
 func _update_tint() -> void:
 	var m := Game.maps.current()
-	tint.color = m.light if m.light != null else Game.light_color()
+	var f := Game.maps.mine_floor
+	tint.color = Color.WHITE if f != null else (m.light if m.light != null else Game.light_color())
+	mine_light.visible = f != null
+	if f != null:
+		mine_light.color = f.light
+	_aim_lantern()
+
+
+func _process(_delta: float) -> void:
+	_aim_lantern()
+
+
+## Down the mine the light rectangle covers what the camera sees; the lantern is on the farmer.
+func _aim_lantern() -> void:
+	var f := Game.maps.mine_floor
+	if f == null:
+		return
+	var z := cam.zoom.x
+	mine_light.scale = Vector2.ONE / z
+	mine_light.position = cam.get_screen_center_position() - mine_light.size / (2.0 * z)
+	MineLight.aim(mine_light.material, f, (player.global_position - mine_light.position) * z, T * z, mine_light.size)

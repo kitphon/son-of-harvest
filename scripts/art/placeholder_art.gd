@@ -27,7 +27,7 @@ static func _make(key: String) -> Image:
 			return _charge(int(parts[1]), int(parts[2]))
 		"rock", "branch", "weed", "stump":
 			return _obstacle(parts[0])
-		"mine":     # mine:<rock|big_rock|soft|hole>, what lies on a mine floor (MineFloor)
+		"mine":     # mine:<rock|big_rock|ice|soft|hole|frost>, what lies on a mine floor (MineFloor)
 			return _mine(parts[1])
 		"crop":     # crop:<id>:<growth 0..3>:<ripe|growing>
 			return _crop(parts[1], int(parts[2]), parts[3] == "ripe")
@@ -805,7 +805,9 @@ static func _obstacle(kind: String) -> Image:
 ## A mine floor's pieces. Rocks stand up as sprites: a rock is 16 x 16 (dark cave stone
 ## with a pale chip), a big rock 24 x 20 (a split boulder with a seam). The soft spot and the
 ## hole lie flat on the ground (16 x 16): a mound of loose dark earth with cracks, and a black
-## pit with the top of a ladder in it.
+## pit with the top of a ladder in it. On a frozen floor a block of ice stands up (16 x 16,
+## pale blue with a white edge and a crack) and frost lies flat (16 x 16, white specks and
+## a thin sheet, mostly see-through).
 static func _mine(kind: String) -> Image:
 	match kind:
 		"rock":
@@ -825,6 +827,22 @@ static func _mine(kind: String) -> Image:
 			_line(img, Vector2i(14, 11), Vector2i(19, 13), Color("2e2824"))
 			_px(img, 6, 8, 4, 1, Color("a09484"))
 			return _outline(img)
+		"ice":
+			var img := _blank(16, 16)
+			_px(img, 3, 4, 10, 10, Color("6a9ec0"))       # the front face
+			_px(img, 3, 3, 10, 2, Color("cfeaf8"))        # the frosted top
+			_px(img, 4, 5, 8, 8, Color("8cc2e0"))
+			_px(img, 5, 6, 2, 5, Color("d8f2fc"))         # the shine down the face
+			_line(img, Vector2i(9, 5), Vector2i(11, 9), Color("4a7c9c"))   # a crack
+			_line(img, Vector2i(11, 9), Vector2i(9, 12), Color("4a7c9c"))
+			return _outline(img)
+		"frost":
+			var img := _blank(16, 16)
+			_oval(img, 8, 8, 6.5, 5.0, Color(0.9, 0.96, 1.0, 0.28))
+			for p in [Vector2i(3, 5), Vector2i(7, 3), Vector2i(12, 6), Vector2i(5, 10), Vector2i(10, 11), Vector2i(8, 7), Vector2i(13, 10), Vector2i(2, 9)]:
+				img.set_pixelv(p, Color(1, 1, 1, 0.85))
+			_px(img, 6, 8, 3, 1, Color(0.95, 0.98, 1.0, 0.6))
+			return img
 		"soft":
 			var img := _blank(16, 16)
 			_oval(img, 8, 8.5, 6.5, 5.5, Color("3e3028"))
@@ -896,6 +914,13 @@ static func _mine_icon(look: Dictionary) -> Image:
 				_px(img, x + 1, 11 - tall, 1, 1, body)
 				_px(img, x, 12 - tall, 1, tall, shine)
 			_px(img, 2, 11, 10, 2, Color("6a625a"))   # the rock it grows from
+		"shard":
+			for y in 10:   # one long splinter leaning right, widest in the middle
+				var w := 4 - absi(y - 5) / 2
+				_px(img, 4 + y / 2, 2 + y, w, 1, body)
+			_px(img, 5, 4, 1, 4, shine)
+			_px(img, 8, 9, 1, 2, body.darkened(0.25))
+			_px(img, 2, 12, 9, 1, Color("6a625a"))
 	return _outline(img)
 
 

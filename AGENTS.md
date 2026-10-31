@@ -55,14 +55,15 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `res://tests/test_villagers.gd` must print `test_villagers: OK (0 failed)`. Talking (talk
   files and picks, gifts, daily limits, affection save, shopkeepers, bump delay):
   `res://tests/test_talk.gd` must print `test_talk: OK (0 failed)`.
-  Shops (data/shops.json, buying / selling, tool upgrades, shop maps and doors, the screen):
+  Shops (data/shops.json, buying / selling, tool upgrades and their ores, mine finds sold,
+  shop maps and doors, the screen):
   `res://tests/test_shops.gd` must print `test_shops: OK (0 failed)`.
   Animals (chickens, cows, sheep, the coop and barn, products, brushing, sickness, the dog,
   the save): `res://tests/test_animals.gd`
   must print `test_animals: OK (0 failed)`. Fishing (bites, fish tables, the catch, save, poses,
   fish art): `res://tests/test_fishing.gd` must print `test_fishing: OK (0 failed)`.
   Mine (data/mine.json, floors from a seed, rocks / soft spots / the hole, swings, the save,
-  mine art): `res://tests/test_mine.gd` must print `test_mine: OK (0 failed)`.
+  light by depth and the lantern, frozen winter floors, mine art): `res://tests/test_mine.gd` must print `test_mine: OK (0 failed)`.
   Festivals (calendar, festival day, shops shut, fair weather, the event once a year,
   decorations and lights in both views, the HUD tag): `res://tests/test_festivals.gd` must
   print `test_festivals: OK (0 failed)`.
@@ -96,7 +97,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   (blossom_day, lantern_night, moon_night, years_turn; ids in `data/festivals.json`) to stand
   in the village on that festival's day half an hour into it (Lantern Night: into the
   fireworks; without `--demo`, with `res://scenes/main.tscn`, its event plays), `--mine=N` to stand at the
-  ladder of a fresh mine floor N (`--map=mine` is the entrance, `--map=mine_floor` floor 1). Create `shots/` first. Look at the last frame. Delete
+  ladder of a fresh mine floor N (darker deeper; `--map=mine` is the entrance, `--map=mine_floor` floor 1),
+  `--season=<id>` to start on day 1 of a season (`--season=winter --mine=3`: a frozen floor). Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
 - Audio (sound and music data, synthesis, keys used in code, ambient and music pickers): `res://tests/test_audio.gd`
   must print `test_audio: OK (0 failed)`. Headless runs and Movie Maker runs start no sound

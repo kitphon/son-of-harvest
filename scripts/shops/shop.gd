@@ -3,11 +3,12 @@ extends RefCounted
 ## One shop from data/shops.json and its rules, without any drawing (ShopMenu / ShopScreen
 ## show it, Game applies the results, headless tests check it): opening hours and days off,
 ## the stock per season with prices, buying into and selling from an Inventory (or for the
-## coop: animals, feed), bigger rucksacks, tool upgrades that take a tool away for some days,
-## and house extensions built over some days. Every action gets the inventory and the
+## coop: animals, feed), bigger rucksacks, tool upgrades that take a tool away for some days
+## (and the ores they need), and house extensions built over some days. Every action gets the inventory and the
 ## money it may change and returns {ok, money, note}; nothing here touches Game.
 
 const DATA := "res://data/shops.json"
+const MINE_DATA := "res://data/mine.json"
 const DAY_NAMES := {"mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun"}
 
 var id := ""
@@ -18,7 +19,7 @@ var close_hour := 24
 var days_off: Array[String] = []
 var keeper := ""                    # the villager at the counter; "" = the counter works alone
 var stock_by_season: Dictionary = {}   # season, "any" or "supplies" -> [{item, price?, name?, to?, full?}]
-var buys: Dictionary = {}           # kind (crop, food) -> percent of the item's value
+var buys: Dictionary = {}           # kind (crop, food; stone, ore, gem from the mine) -> percent of the item's value
 var upgrade_tools: Array[String] = []
 var upgrade_levels: Dictionary = {}    # "2".."5" -> {price, days, items?}
 var tool_upgrade_levels: Dictionary = {}   # tool -> its own levels (the rod)
@@ -30,8 +31,10 @@ var builds: Dictionary = {}            # id -> {name, about, price, days, chest_
 var build_done := ""                   # the morning message when one is finished (%s = its name)
 var crops: Dictionary = {}
 var foods: Dictionary = {}
+var mine_items: Dictionary = {}       # data/mine.json "items": names, kinds and sell prices of finds
 
 static var _data := {}
+static var _mine_items := {}
 
 
 ## data/shops.json, read once.
@@ -40,6 +43,14 @@ static func data() -> Dictionary:
 		var d = JSON.parse_string(FileAccess.get_file_as_string(DATA))
 		_data = d if d is Dictionary else {}
 	return _data
+
+
+## The mine finds from data/mine.json, read once.
+static func mine_data() -> Dictionary:
+	if _mine_items.is_empty():
+		var d = JSON.parse_string(FileAccess.get_file_as_string(MINE_DATA))
+		_mine_items = d.get("items", {}) if d is Dictionary else {}
+	return _mine_items
 
 
 static func ids(d := data()) -> Array[String]:
@@ -76,6 +87,7 @@ static func make(shop_id: String, crop_data: Dictionary, food_data: Dictionary, 
 	shop.build_done = str(s.get("builds", {}).get("done", "The %s is built."))
 	shop.crops = crop_data
 	shop.foods = food_data
+	shop.mine_items = mine_data()
 	return shop
 
 
@@ -121,6 +133,8 @@ func item_name(item: String) -> String:
 		return str(foods[item.trim_prefix("food:")].name)
 	if crops.has(item):
 		return str(crops[item].name)
+	if _mine(item).has("name"):
+		return str(_mine(item).name)
 	if HudLayout.TOOL_NAMES.has(item):
 		return HudLayout.TOOL_NAMES[item]
 	return item.replace(":", " ").replace("_", " ").capitalize()
@@ -171,9 +185,18 @@ func price(item: String, season: String) -> int:
 	return -1
 
 
+## A mine find's data ({} for anything that isn't "mine:<id>").
+func _mine(item: String) -> Dictionary:
+	return mine_items.get(item.trim_prefix("mine:"), {}) if item.begins_with("mine:") else {}
+
+
 ## What the shop pays for one `item` (0 = it doesn't buy it): a percent of a crop's sell
-## price or a food's price, rounded down.
+## price, a food's price or a mine find's sell price (by its kind: stone, ore, gem), rounded
+## down.
 func buy_back(item: String) -> int:
+	var find := _mine(item)
+	if not find.is_empty():
+		return int(find.get("sell", 0)) * int(buys.get(str(find.get("kind", "")), 0)) / 100
 	if crops.has(item) and buys.has("crop"):
 		return int(crops[item].get("sell", 0)) * int(buys.crop) / 100
 	if item.begins_with("food:") and buys.has("food"):
@@ -252,18 +275,41 @@ func upgrades() -> bool:
 	return not upgrade_tools.is_empty()
 
 
-## The deal to take `tool` from `level` to the next: {level, price, days, items}; {} when this
-## shop doesn't work on the tool or the next level has no entry (top level).
+## The deal to take `tool` from `level` to the next: {level, price, days, items (id -> how
+## many, brought in the rucksack)}; {} when this shop doesn't work on the tool or the next
+## level has no entry (top level).
 func upgrade_offer(tool: String, level: int) -> Dictionary:
 	var e = tool_upgrade_levels.get(tool, upgrade_levels).get(str(level + 1))
 	if not tool in upgrade_tools or not e is Dictionary:
 		return {}
-	return {"level": level + 1, "price": int(e.get("price", 0)), "days": maxi(int(e.get("days", 1)), 0),
-		"items": e.get("items", {})}
+	var items := {}
+	for item in e.get("items", {}):
+		items[item] = int(e.items[item])
+	return {"level": level + 1, "price": int(e.get("price", 0)), "days": maxi(int(e.get("days", 1)), 0), "items": items}
+
+
+## The materials of an offer the rucksack lacks: id -> how many more (empty = all there).
+static func short_of(inv: Inventory, items: Dictionary) -> Dictionary:
+	var out := {}
+	for item in items:
+		var lack := int(items[item]) - inv.count(item, ["bag"])
+		if lack > 0:
+			out[item] = lack
+	return out
+
+
+## "3 Akagane ore and 2 Iron sand" for materials id -> how many.
+func materials_text(items: Dictionary) -> String:
+	var parts: Array[String] = []
+	for item in items:
+		parts.append("%d %s" % [int(items[item]), item_name(item)])
+	if parts.size() < 2:
+		return "".join(parts)
+	return ", ".join(parts.slice(0, -1)) + " and " + parts.back()
 
 
 ## Hands `tool` (at `level`, in a tool slot) in for an upgrade on day `today`. One job at a
-## time; the price and any materials are paid now. The result also has the job:
+## time; the price and any materials (from the rucksack) are paid now. The result also has the job:
 ## {tool, level (the new one), ready (day number), slot (where the tool was)}.
 func start_upgrade(inv: Inventory, money: int, tool: String, level: int, today: int, busy := false) -> Dictionary:
 	var offer := upgrade_offer(tool, level)
@@ -273,9 +319,9 @@ func start_upgrade(inv: Inventory, money: int, tool: String, level: int, today: 
 		return _no(money, "The %s can't be improved any more" % item_name(tool).to_lower())
 	if money < offer.price:
 		return _no(money, "Not enough money (%d G)" % offer.price)
-	for item in offer.items:
-		if inv.count(item) < int(offer.items[item]):
-			return _no(money, "Bring %d %s" % [int(offer.items[item]), item_name(item)])
+	var lack := short_of(inv, offer.items)
+	if not lack.is_empty():
+		return _no(money, "Bring %s" % materials_text(lack))
 	var slot := -1
 	for i in inv.size("tools"):
 		if inv.id_at("tools", i) == tool:
@@ -283,7 +329,7 @@ func start_upgrade(inv: Inventory, money: int, tool: String, level: int, today: 
 	if slot < 0:
 		return _no(money, "Bring the %s in your rucksack" % item_name(tool).to_lower())
 	for item in offer.items:
-		inv.take(item, int(offer.items[item]))
+		inv.take(item, int(offer.items[item]), ["bag"])
 	inv.lift("tools", slot)
 	var r := {"ok": true, "money": money - offer.price,
 		"job": {"tool": tool, "level": offer.level, "ready": today + offer.days, "slot": slot}}

@@ -35,6 +35,7 @@ func _init() -> void:
 	_builds()
 	_rod()
 	_extras_save()
+	_ores_and_finds()
 
 
 # The real Game autoload and a screen need the tree, so they wait for the first frame.
@@ -239,9 +240,16 @@ func _game() -> void:
 	money = g.money
 	r = g.shop_sell("general", "turnip", 5)
 	check(r.ok and g.money == money + 5 * (int(crops.turnip.sell) * 80 / 100) and g.count("turnip") == 0, "Game sells: %s" % r.note)
-	# The smithy: hand in, wait, collect one level up.
+	# The smithy: hand in (with the ores from the rucksack), wait, collect one level up.
 	g.money = 5000
 	r = g.shop_upgrade("smithy", "hoe")
+	check(not r.ok and r.note == "Bring 3 Akagane ore" and g.money == 5000 and g.inventory.count("hoe", ["tools"]) == 1, "no ore: %s" % r.note)
+	g.inventory.add("mine:akagane", 2)
+	r = g.shop_upgrade("smithy", "hoe")
+	check(not r.ok and r.note == "Bring 1 Akagane ore" and g.count("mine:akagane") == 2, "short of ore: %s" % r.note)
+	g.inventory.add("mine:akagane", 2)
+	r = g.shop_upgrade("smithy", "hoe")
+	check(r.ok and g.count("mine:akagane") == 1, "three ores taken from the rucksack")
 	check(r.ok and g.money == 4000 and g.shop_jobs.smithy.tool == "hoe" and g.inventory.count("hoe", ["tools"]) == 0, "hoe left at the smithy")
 	check(not g.shop_upgrade("smithy", "axe").ok, "one job at a time")
 	r = g.shop_collect("smithy")
@@ -260,7 +268,7 @@ func _menu() -> void:
 	var g := _new_game()
 	var m := ShopMenu.new(g, "general")
 	check(m.tabs == ["buy", "sell", "build"], "store tabs %s" % [m.tabs])
-	check(ShopMenu.new(g, "smithy").tabs == ["tools"], "smithy tab")
+	check(ShopMenu.new(g, "smithy").tabs == ["tools", "sell"], "smithy tabs")
 	var rows := m.rows()
 	check(rows.size() == 18 and rows[0].item == "rucksack" and rows[1].item == "animal:chicken" and rows[9].item == "seeds:turnip",
 		"spring stock: the rucksack, 8 supplies, 4 for spring, 5 any")
@@ -288,7 +296,10 @@ func _menu() -> void:
 	m.choose()
 	check(g.count("potato") == 0 and m.rows().is_empty() and m.cursor == 0, "sold them all, list empty")
 	var t := ShopMenu.new(g, "smithy")
-	check(t.rows().size() == 6 and t.current().state == "offer" and t.current().price == 1000, "smithy offers")
+	check(t.rows().size() == 6 and t.current().state == "short" and t.current().price == 1000 and t.current().lack == {"mine:akagane": 3},
+		"smithy offers, short of ore")
+	g.inventory.add("mine:akagane", 9)
+	check(t.current().state == "offer" and t.current().items == {"mine:akagane": 3}, "with the ore it's an offer")
 	g.money = 999
 	check(not t.choose().is_empty() and not t.last_ok and g.shop_jobs.is_empty(), "not enough money for the smith")
 	g.money = 2000
@@ -305,6 +316,7 @@ func _menu() -> void:
 func _save() -> void:
 	var a := _new_game()
 	a.money = 3000
+	a.inventory.add("mine:akagane", 3)
 	a.shop_upgrade("smithy", "can")
 	var saved: Dictionary = a.to_dict()
 	check(saved.shop_jobs == {"smithy": {"tool": "can", "level": 2, "ready": 2, "slot": 1}}, "saved job %s" % saved.shop_jobs)
@@ -507,7 +519,8 @@ func _rod() -> void:
 	check(g.tool_max_level("rod") == 4 and g.tool_level("rod") == 1 and is_equal_approx(g.rod_bite_factor(), 1.0), "the rod starts at level 1")
 	check(g.max_charge("rod") == 0, "the rod still doesn't charge")
 	var s: Shop = g.shop("smithy")
-	check(s.upgrade_offer("rod", 1) == {"level": 2, "price": 800, "days": 2, "items": {}}, "rod level 2 offer")
+	check(s.upgrade_offer("rod", 1) == {"level": 2, "price": 800, "days": 2, "items": {"mine:akagane": 2}}, "rod level 2 offer")
+	g.inventory.add("mine:akagane", 2)
 	check(s.upgrade_offer("rod", 4).is_empty(), "no rod level 5")
 	g.money = 799
 	check(not g.shop_upgrade("smithy", "rod").ok and g.inventory.count("rod", ["tools"]) == 1, "rod: no money")
@@ -520,7 +533,7 @@ func _rod() -> void:
 	check(r.ok and g.tool_level("rod") == 2 and is_equal_approx(g.rod_bite_factor(), 1.2) and g.inventory.count("rod", ["tools"]) == 1, "rod level 2: %s" % r.note)
 	g.tool_levels.rod = 4
 	var t := ShopMenu.new(g, "smithy")
-	check(t.rows()[5].item == "rod" and t.rows()[5].state == "top" and is_equal_approx(g.rod_bite_factor(), 1.6), "rod at the top level")
+	check(t.tab_id() == "tools" and t.rows()[5].item == "rod" and t.rows()[5].state == "top" and is_equal_approx(g.rod_bite_factor(), 1.6), "rod at the top level")
 	g.money = 99999
 	check(not g.shop_upgrade("smithy", "rod").ok and g.money == 99999, "rod: max level refused")
 	g.free()
@@ -570,6 +583,62 @@ func _extras_save() -> void:
 	MapManager.set_built([])
 
 
+## The smithy's ores (data/shops.json upgrade items, mine items in data/mine.json) and the
+## shops buying mine finds by kind.
+func _ores_and_finds() -> void:
+	var mine: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/mine.json")).items
+	var smithy := Shop.make("smithy", crops, foods)
+	var store := Shop.make("general", crops, foods)
+	var ores := ["mine:akagane", "mine:shirogane", "mine:kogane", "mine:hoshigane"]
+	for tool in smithy.upgrade_tools:
+		var top: int = fish_rules.rod.bite_factor.size() if tool == "rod" else tools_data.tools[tool].max_charge.size()
+		var last := -1
+		for lv in range(1, top):
+			var offer := smithy.upgrade_offer(tool, lv)
+			check(not offer.items.is_empty(), "data: %s level %d asks for ore" % [tool, lv + 1])
+			var best := -1
+			for item in offer.items:
+				check(item.begins_with("mine:") and mine.has(item.trim_prefix("mine:")) and mine[item.trim_prefix("mine:")].kind == "ore"
+					and int(offer.items[item]) > 0, "data: %s level %d: %s is an ore" % [tool, lv + 1, item])
+				best = maxi(best, ores.find(item))
+			check(best > last, "data: %s level %d needs a rarer ore than the one before" % [tool, lv + 1])
+			last = best
+	check(smithy.upgrade_offer("hoe", 1).items == {"mine:akagane": 3} and smithy.upgrade_offer("axe", 4).items == {"mine:hoshigane": 2, "mine:kogane": 2},
+		"data: akagane for level 2, hoshigane for level 5")
+	check(smithy.item_name("mine:akagane") == "Akagane ore" and store.item_name("mine:hisui") == "Jade", "shops call mine finds by their names")
+	check(smithy.materials_text({"mine:shirogane": 3, "mine:satetsu": 2}) == "3 Shirogane ore and 2 Iron sand"
+		and smithy.materials_text({"mine:kogane": 1}) == "1 Kogane ore", "materials text")
+	# Only what is in the rucksack counts: an ore overhead isn't handed over.
+	var inv := Inventory.starting(TOOLS)
+	inv.add("mine:akagane", 2)
+	inv.slots.hand = [{"id": "mine:akagane", "n": 1}]
+	check(Shop.short_of(inv, {"mine:akagane": 3}) == {"mine:akagane": 1} and Shop.short_of(inv, {"mine:akagane": 2}).is_empty(), "short of: the rucksack only")
+	var r := smithy.start_upgrade(inv, 5000, "hoe", 1, 0)
+	check(not r.ok and r.note == "Bring 1 Akagane ore" and inv.count("mine:akagane") == 3, "the ore overhead doesn't count")
+	# Selling finds: the smithy takes stone and ore, the store gems, each a percent of the find's sell.
+	check(smithy.buy_back("mine:stone") == int(mine.stone.sell) * int(smithy.buys.stone) / 100 and int(smithy.buys.stone) > 100, "the smithy buys stone above the bin's price")
+	check(smithy.buy_back("mine:kogane") == int(mine.kogane.sell) * int(smithy.buys.ore) / 100 and smithy.buy_back("mine:kogane") > int(mine.kogane.sell), "and ore")
+	check(smithy.buy_back("mine:hisui") == 0 and smithy.buy_back("turnip") == 0, "the smithy buys no gems or crops")
+	check(store.buy_back("mine:hisui") == int(mine.hisui.sell) * int(store.buys.gem) / 100 and store.buy_back("mine:hisui") > int(mine.hisui.sell), "the store buys gems")
+	check(store.buy_back("mine:akagane") == 0 and store.buy_back("mine:stone") == 0 and store.buy_back("mine:nothing") == 0, "but no ore or stone")
+	for id in mine:
+		check(smithy.buy_back("mine:" + id) > 0 or store.buy_back("mine:" + id) > 0, "some shop buys %s" % id)
+	var g := _new_game()
+	g.inventory.add("mine:kogane", 2)
+	g.inventory.add("mine:meno", 1)
+	g.inventory.add("turnip", 1)
+	var m := ShopMenu.new(g, "smithy")
+	m.next_tab()
+	check(m.tab_id() == "sell" and m.rows().size() == 1 and m.rows()[0].item == "mine:kogane" and m.rows()[0].have == 2, "the smithy's sell tab lists the ore")
+	var money: int = g.money
+	r = g.shop_sell("smithy", "mine:kogane", 2)
+	check(r.ok and g.money == money + 2 * smithy.buy_back("mine:kogane") and g.count("mine:kogane") == 0, "ore sold: %s" % r.note)
+	money = g.money
+	r = g.shop_sell("general", "mine:meno", 1)
+	check(r.ok and g.money == money + store.buy_back("mine:meno"), "agate sold at the store: %s" % r.note)
+	g.free()
+
+
 ## On the real Game: E at the counter opens the screen (paused), Esc closes it.
 func _counter_and_screen() -> void:
 	var g: Node = root.get_node("Game")
@@ -589,6 +658,13 @@ func _counter_and_screen() -> void:
 	g.hour = 18
 	actions.interact(Vector2i(3, 3))
 	check(not screen.is_open(), "after hours the counter stays shut")
+	# The smithy's screen says what ore a tool needs.
+	screen.open("smithy")
+	check(screen.menu.tab_id() == "tools" and screen._info_text() == "Still needs 3 Akagane ore.", "screen: %s" % screen._info_text())
+	g.inventory.add("mine:akagane", 3)
+	screen._refresh()
+	check(screen._info_text() == "Needs 3 Akagane ore. 2 days.", "screen: %s" % screen._info_text())
+	screen.close()
 	screen.free()
 	g.new_game()
 

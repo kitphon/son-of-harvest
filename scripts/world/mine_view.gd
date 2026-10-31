@@ -1,7 +1,7 @@
 class_name MineView
 extends Node2D
-## A mine floor in the flat view, over the cave's MapView: soft spots and the open hole on
-## the ground, then rocks and finds left lying. Reads a MineFloor and redraws on `changed`.
+## A mine floor in the flat view, over the cave's MapView: frost, soft spots and the open hole
+## on the ground, then rocks (and ice) and finds left lying. Reads a MineFloor and redraws on `changed`.
 
 const T := 16
 
@@ -14,6 +14,8 @@ func _init(f: MineFloor) -> void:
 
 
 func _draw() -> void:
+	for c in floor_.frost:
+		draw_texture(PlaceholderArt.tex("mine:frost"), Vector2(c * T))
 	for c in floor_.soft:
 		draw_texture(PlaceholderArt.tex("mine:soft"), Vector2(c * T))
 	if floor_.open:
