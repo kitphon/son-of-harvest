@@ -30,6 +30,9 @@ var crops: Dictionary
 var cells: Array = []        # W * H dictionaries, row by row
 var fixed: Dictionary = {}   # Vector2i -> "house" / "door" / "chest" / "bin" / "stand" / "pond" / "fence"
 var items: Dictionary = {}   # Vector2i -> item id lying on the ground (put down or thrown)
+## Is a solid story prop standing on this cell (the builder's lumber)? Game points it at the
+## farm map (MapData props, gated by the story flags); not saved. Unset: no props.
+var prop_blocks: Callable
 
 
 func _init(crop_data: Dictionary) -> void:
@@ -130,13 +133,18 @@ func fixed_at(c: Vector2i) -> String:
 
 
 func is_solid(c: Vector2i) -> bool:
-	if not in_bounds(c) or fixed_at(c) != "":
+	if not in_bounds(c) or fixed_at(c) != "" or under_prop(c):
 		return true
 	return cell(c).obj != Obj.NONE
 
 
+## A solid story prop stands here (prop_blocks): nothing is farmed, put down or grown under it.
+func under_prop(c: Vector2i) -> bool:
+	return prop_blocks.is_valid() and bool(prop_blocks.call(c))
+
+
 func can_farm(c: Vector2i) -> bool:
-	return in_bounds(c) and fixed_at(c) == ""
+	return in_bounds(c) and fixed_at(c) == "" and not under_prop(c)
 
 
 func till(c: Vector2i) -> bool:
@@ -422,7 +430,7 @@ func day_end(season: String, weather: String, rng: RandomNumberGenerator) -> voi
 				d.crop = ""
 				d.stage = 0
 				d.days = 0
-		elif d.obj == Obj.NONE and not items.has(pos) and season != "winter" and rng.randf() < WEED_CHANCE:
+		elif d.obj == Obj.NONE and not items.has(pos) and season != "winter" and not under_prop(pos) and rng.randf() < WEED_CHANCE:
 			d.obj = Obj.WEED
 			d.tilled = false
 		var paddy: bool = d.wet and d.crop != "" and bool(crops[d.crop].get("holds_water", false))

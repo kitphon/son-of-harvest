@@ -10,6 +10,46 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Building fixes: solid lumber on the farm, a storm day doesn't count
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the two open points of "Hachiro seen at work while building". (1) Farm map props can
+  be solid now: the farm's collision is FarmGrid's, so FarmGrid has `prop_blocks` (a Callable,
+  not saved) that Game points at the farm map (`Game.farm_prop_blocks`: MapData's solid cells,
+  i.e. the props the story flags show, with `solid` true or left out). `FarmGrid.is_solid`
+  and `can_farm` ask it (`under_prop`), so the farmer in both views (Player asks
+  Game.maps), the dog and throws stop at the prop, nothing is tilled, watered or put down
+  under it, and no weed grows there at night. In data/maps/farm.json the lumber ([1,4]-[1,5])
+  and Kota's carp streamer pole ([1,6]) are solid; the bell on the house wall stays `solid:
+  false`. Hachiro's farm walks keep to x >= 2, so his path is unchanged; the props stand
+  outside the field (rows 7+), and a crop someone planted there before stays in the cell's
+  data and grows back into view once the prop goes. (2) A day of the job that the builder
+  spends on another day plan doesn't count: data/shops.json builds `plan` names his building
+  plan ("building"); `Game._count_build_day()` runs in end_day before the date moves and, when
+  BUILD_FLAG is set and `Villagers.pick_plan` for the day gave another plan (a storm keeps him
+  at the forge; his birthday would too), pushes `house_job.ready` a day and counts `late`
+  (saved in the house job, optional, 0..9999; older saves have none). `sync_build_flag`
+  subtracts `late` so the flag still starts on the morning after the order. The smithy note
+  becomes builds `away_late` ("...The storm cost me a day; done on Spring 5. -Hachiro"), the
+  store's build tab row carries `late` and its info line says builds `late` ("Done on <date>, a
+  day late: a storm kept Hachiro at the forge.").
+- Checked: `test_maps.gd` (with the lumber and the streamer flags the cells [1,4], [1,5], [1,6]
+  are solid in FarmGrid and Game.maps, not farmable, not tillable; [2,4], [2,5], [1,7] open; the
+  bell's prop not solid; a throw left at the lumber lands on [2,5]; 400 nights grow no weed
+  under them but one beside; the lumber can still be examined; open again without the flags),
+  `test_villagers.gd` (his building walks miss the solid prop cells as well as the fixed ones;
+  in the farm view test the lumber blocks the farmer and is gone after the job), `test_shops.gd`
+  (a storm on the order day costs nothing; a storm on day 1 moves the kitchen to day 4 with
+  late 1; the smithy note and the build tab text; saved, loaded, broken late values refused;
+  not done on day 3, done on day 4; a rain day still counts for the chest).
+  All 24 test scripts print `OK (0 failed)`; headless runs (title `--quit-after 300`, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`, `--demo --building=kitchen --time=10:00`, `--demo
+  --map=smithy --building=chest --shop=smithy`, `res://scenes/main.tscn --quit-after 400`,
+  `main_2d.tscn -- --demo --building=kitchen`) printed no errors or warnings. Screenshot `--demo
+  --building=kitchen --time=10:00`: Hachiro hammering at the wall, the lumber left of him as
+  before; `shots/` deleted.
+- Left / next: no player-facing message on the storm morning itself (the note and the build tab
+  say it); the farm's other props (the bell) still not solid by design.
+
 ## 2026-11-01 — Merged six branches: music, 2D actions, cooking tools, band 6, festival stalls, Hachiro building
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each: `claude/music-shops-events-bbe890`

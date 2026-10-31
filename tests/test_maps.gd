@@ -281,6 +281,40 @@ func _story_props() -> void:
 	load("res://scripts/farm_actions.gd").interact(Vector2i(5, 3))
 	g.message.disconnect(hear)
 	check(said == [bell.message], "using the bell rings it %s" % [said])
+
+	# Solid story props on the farm block in FarmGrid (the farmer in both views, the dog,
+	# throws) while their flag shows them; the bell on the house wall is not solid.
+	check(not g.farm.is_solid(Vector2i(1, 4)) and g.farm.can_farm(Vector2i(1, 4)), "no lumber: its cells are open ground")
+	g.flags[g.BUILD_FLAG] = "kitchen"
+	g.flags["kota_streamer"] = true
+	for c in [Vector2i(1, 4), Vector2i(1, 5), Vector2i(1, 6)]:
+		check(g.farm.is_solid(c) and g.maps.is_solid(c, g.farm) and not g.farm.can_farm(c) and not g.farm.till(c),
+			"the lumber and the streamer pole block %s" % c)
+	check(not g.farm.is_solid(Vector2i(2, 4)) and not g.farm.is_solid(Vector2i(2, 5)) and not g.farm.is_solid(Vector2i(1, 7)),
+		"the cells beside them stay open (Hachiro works and fetches from there)")
+	check(MapManager.data("farm").prop_at(Vector2i(5, 3)).get("kind", "") == "door_bell" and not MapManager.data("farm").is_solid(Vector2i(5, 3)),
+		"the bell's prop is not solid")
+	check(g.farm.throw_target(Vector2i(4, 5), Vector2i.LEFT, 4, ["bin"], ["pond"]) == {"result": "land", "cell": Vector2i(2, 5)},
+		"a throw at the lumber drops before it")
+	var nights := FarmGrid.new({})
+	nights.generate(RandomNumberGenerator.new())
+	nights.prop_blocks = g.farm_prop_blocks
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1
+	for i in 400:
+		nights.day_end("spring", "sunny", rng)
+	check(nights.cell(Vector2i(1, 4)).obj == FarmGrid.Obj.NONE and nights.cell(Vector2i(1, 6)).obj == FarmGrid.Obj.NONE
+		and nights.cell(Vector2i(2, 5)).obj != FarmGrid.Obj.NONE, "no weeds grow under them (beside them they do)")
+	g.maps.place("farm", Vector2i(3, 4), Vector2i.LEFT)
+	said.clear()
+	g.message.connect(hear)
+	load("res://scripts/farm_actions.gd").interact(Vector2i(1, 4))
+	g.message.disconnect(hear)
+	check(said.size() == 1 and said[0].begins_with("Planed boards"), "the lumber can still be looked at %s" % [said])
+	g.flags.erase(g.BUILD_FLAG)
+	g.flags.erase("kota_streamer")
+	check(not g.farm.is_solid(Vector2i(1, 4)) and not g.farm.is_solid(Vector2i(1, 6)) and g.farm.can_farm(Vector2i(1, 5)),
+		"gone with their flags: open ground again")
 	for n in [a, b]:
 		n.free()
 

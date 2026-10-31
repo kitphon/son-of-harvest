@@ -81,7 +81,7 @@ var held: String:
 var shipped: Dictionary = {}    # item id -> how many were ever shipped
 var shop_jobs: Dictionary = {}  # shop id -> {tool, level, ready (day number), slot}: a tool left for an upgrade
 var house_built: Array[String] = []   # house extensions done (data/shops.json builds; the maps follow)
-var house_job: Dictionary = {}        # the one being built: {build, shop, ready (day number)}
+var house_job: Dictionary = {}        # the one being built: {build, shop, ready (day number), late?}
 var kitchen_tools: Array[String] = [] # cooking tools owned (data/recipes.json tools; bought at the store)
 ## The story flag set to the extension's id while its builder is at work on the farm (from the
 ## morning after the order until it is done; sync_build_flag). Day plans (data/villagers),
@@ -157,6 +157,7 @@ func new_game() -> void:
 	food_index = 0
 	_accum = 0.0
 	farm = FarmGrid.new(crops)
+	farm.prop_blocks = farm_prop_blocks   # the farm map's solid story props (the lumber)
 	farm.generate(rng)
 	inventory = Inventory.starting(TOOLS)
 	reset_tool_levels()
@@ -672,6 +673,7 @@ func end_day() -> void:
 		if season == 0:
 			year += 1
 	work_fatigue_half = false
+	_count_build_day()   # before the date moves: did the builder work today?
 	animal_news.append_array(animals.day_end(weather_today, rng))
 	fishing.stop()
 	weather_today = weather_tomorrow
@@ -1490,7 +1492,10 @@ func open_shop(id: String, force := false) -> bool:
 func keeper_away_text(s: Shop) -> String:
 	var b := shop(str(house_job.get("shop", ""))) if flags.has(BUILD_FLAG) else null
 	if b != null and b.builder == s.keeper and b.builds.has(house_job.build):
-		return b.build_away % b.item_name(house_job.build).to_lower()
+		var what := b.item_name(house_job.build).to_lower()
+		if int(house_job.get("late", 0)) > 0:
+			return b.build_away_late % [what, date_of(int(house_job.ready)).get_slice(",", 0)]
+		return b.build_away % what
 	return "Nobody is at the counter"
 
 
@@ -1677,10 +1682,32 @@ func shop_build(id: String, build: String) -> Dictionary:
 func sync_build_flag() -> void:
 	var s := shop(str(house_job.get("shop", ""))) if not house_job.is_empty() else null
 	var b: Dictionary = s.builds.get(house_job.build, {}) if s != null else {}
-	if not b.is_empty() and day_number() > int(house_job.ready) - int(b.days):
+	if not b.is_empty() and day_number() > int(house_job.ready) - int(b.days) - int(house_job.get("late", 0)):
 		flags[BUILD_FLAG] = house_job.build
 	else:
 		flags.erase(BUILD_FLAG)
+
+
+## Does a solid prop of the farm map (data/maps/farm.json, the ones its story flags show)
+## stand on cell `c`? FarmGrid.prop_blocks: the farmer, the dog and throws stop at it.
+func farm_prop_blocks(c: Vector2i) -> bool:
+	var m := MapManager.data(MapManager.FARM)
+	return m != null and m.in_bounds(c) and m.is_solid(c)
+
+
+## Today was a day of the job under way (BUILD_FLAG set) but the builder's day plan was not
+## his building one (data/shops.json builds plan): a storm kept him at the forge, or his
+## birthday. Such a day doesn't count: the job is due a day later and `late` counts the lost
+## days (saved; the counter's note and the build tab say so).
+func _count_build_day() -> void:
+	if not flags.has(BUILD_FLAG) or house_job.is_empty():
+		return
+	var s := shop(str(house_job.get("shop", "")))
+	var v: Dictionary = Villagers.all().get(s.builder, {}) if s != null else {}
+	if v.is_empty() or s.build_plan == "" or Villagers.pick_plan(v, trigger_state(Vector2i.ZERO)) == s.build_plan:
+		return
+	house_job.ready = int(house_job.ready) + 1
+	house_job.late = int(house_job.get("late", 0)) + 1
 
 
 func has_built(build: String) -> bool:
@@ -1930,9 +1957,12 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	if not hj.is_empty():
 		var hs := shop(hj.get("shop")) if hj.get("shop") is String else null
 		var ready = SaveGame.whole(hj.get("ready"), 0, 1 << 40)
-		if hs == null or not hj.get("build") is String or not hs.builds.has(hj.build) or hj.build in n.house_built or ready == null:
+		var late = SaveGame.whole(hj.get("late", 0), 0, 9999)   # saves from before lost days: none
+		if hs == null or not hj.get("build") is String or not hs.builds.has(hj.build) or hj.build in n.house_built 				or ready == null or late == null:
 			return "Saved house is broken"
 		n.house_job = {"build": hj.build, "shop": hj.shop, "ready": ready}
+		if late > 0:
+			n.house_job.late = late
 	# Version 5 added kitchen tools; an older kitchen gets the tools of the recipes it knows, so
 	# whatever it cooked before still cooks.
 	n.kitchen_tools = [] as Array[String]

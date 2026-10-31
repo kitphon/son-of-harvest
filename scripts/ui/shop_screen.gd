@@ -273,6 +273,8 @@ func _info_text() -> String:
 				"busy":
 					return "Another job is underway."
 				"building":
+					if int(row.get("late", 0)) > 0:
+						return menu.shop.build_late % Game.date_of(int(row.ready))
 					return "Done on %s." % Game.date_of(int(row.ready))
 			return str(b.get("about", ""))
 		"sell":

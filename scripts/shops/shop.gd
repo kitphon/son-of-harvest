@@ -33,6 +33,9 @@ var build_map := ""                    # the map the extensions change
 var builds: Dictionary = {}            # id -> {name, about, price, days, chest_slots?}
 var build_done := ""                   # the morning message when one is finished (%s = its name)
 var build_away := ""                   # at the builder's own counter while they build (%s = its name)
+var build_away_late := ""              # the same once a day was lost (%s = its name, then the new due date)
+var build_late := ""                   # the build tab's line for a job a day was lost on (%s = the due date)
+var build_plan := ""                   # the builder's day plan while building: other days don't count
 var crops: Dictionary = {}
 var foods: Dictionary = {}
 var mine_items: Dictionary = {}       # data/mine.json "items": names, kinds and sell prices of finds
@@ -92,6 +95,9 @@ static func make(shop_id: String, crop_data: Dictionary, food_data: Dictionary, 
 	shop.builds = s.get("builds", {}).get("jobs", {})
 	shop.build_done = str(s.get("builds", {}).get("done", "The %s is built."))
 	shop.build_away = str(s.get("builds", {}).get("away", "Nobody is at the counter"))
+	shop.build_away_late = str(s.get("builds", {}).get("away_late", shop.build_away))
+	shop.build_late = str(s.get("builds", {}).get("late", "Done on %s."))
+	shop.build_plan = str(s.get("builds", {}).get("plan", ""))
 	shop.crops = crop_data
 	shop.foods = food_data
 	shop.mine_items = mine_data()
@@ -418,6 +424,7 @@ func build_offer(id: String, built: Array, job: Dictionary) -> Dictionary:
 	elif job.get("build", "") == id:
 		out.state = "building"
 		out.ready = int(job.ready)
+		out.late = int(job.get("late", 0))
 	elif not job.is_empty():
 		out.state = "busy"
 	return out

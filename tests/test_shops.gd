@@ -34,6 +34,7 @@ func _init() -> void:
 	_barn_goods()
 	_builds()
 	_builder_away()
+	_build_storm_day()
 	_rod()
 	_extras_save()
 	_ores_and_finds()
@@ -562,6 +563,59 @@ func _builder_away() -> void:
 	g.weather_today = "sunny"
 	g.hour = 10
 	check(g.has_built("kitchen") and not g.flags.has(g.BUILD_FLAG) and g.open_shop("smithy"), "done on day 3: back at the counter")
+	g.free()
+	b.free()
+	MapManager.set_built([])
+
+
+## A day of the job that Hachiro doesn't spend building (a storm keeps him at the forge)
+## doesn't count: the job is due a day later, the smithy note and the build tab say so, and
+## the save keeps the lost day.
+func _build_storm_day() -> void:
+	var g := _new_game()
+	var said := []
+	g.message.connect(func(t): said.append(t))
+	g.money = 30000
+	check(g.shop_build("general", "kitchen").ok and int(g.house_job.ready) == 3, "kitchen ordered on day 0, due on day 3")
+	g.weather_today = "storm"
+	g.end_day()
+	check(int(g.house_job.ready) == 3 and not g.house_job.has("late"), "a storm on the order day costs nothing (no work yet)")
+	g.weather_today = "storm"
+	g.end_day()
+	check(int(g.house_job.ready) == 4 and int(g.house_job.late) == 1 and g.flags.get(g.BUILD_FLAG) == "kitchen",
+		"a storm on day 1: due a day later %s" % g.house_job)
+	g.weather_today = "sunny"
+	g.hour = 10
+	check(not g.open_shop("smithy") and said.back() == "A note on the counter: \"Out at the farm, building the kitchen corner. The storm cost me a day; done on Spring 5. -Hachiro\"",
+		"the smithy note: %s" % said.back())
+	var m := ShopMenu.new(g, "general")
+	m.next_tab(2)
+	var row: Dictionary = m.rows()[1]
+	check(m.tab_id() == "build" and row.state == "building" and int(row.ready) == 4 and int(row.late) == 1, "the build tab row %s" % row)
+	check(m.shop.build_late % g.date_of(int(row.ready)) == "Done on Spring 5, Year 1, a day late: a storm kept Hachiro at the forge.",
+		"the build tab line: %s" % (m.shop.build_late % g.date_of(int(row.ready))))
+	var saved: Dictionary = g.to_dict()
+	check(saved.house.job == {"build": "kitchen", "ready": 4, "shop": "general", "late": 1}, "saved job %s" % saved.house.job)
+	var b := _new_game()
+	check(b.from_dict(JSON.parse_string(JSON.stringify(saved))) == "" and b.house_job == g.house_job and b.flags.get(b.BUILD_FLAG) == "kitchen",
+		"the lost day comes back with the save")
+	for bad in [-1, "one", 1.5]:
+		var broken := saved.duplicate(true)
+		broken.house.job.late = bad
+		check(b.from_dict(broken) != "", "a broken lost-day count is refused: %s" % [bad])
+	g.weather_today = "sunny"
+	g.end_day()
+	check(not g.has_built("kitchen") and g.flags.get(g.BUILD_FLAG) == "kitchen" and g.day_number() == 3, "day 3, the old due day: still at it")
+	g.weather_today = "sunny"
+	g.end_day()
+	check(g.has_built("kitchen") and g.day_number() == 4 and not g.flags.has(g.BUILD_FLAG), "done on day 4 instead of 3")
+	# A day he spends on the job in the rain counts as usual.
+	check(g.shop_build("general", "chest").ok and int(g.house_job.ready) == 6, "chest ordered on day 4, due on day 6")
+	g.weather_today = "sunny"
+	g.end_day()
+	g.weather_today = "rain"
+	g.end_day()
+	check(g.has_built("chest") and g.day_number() == 6, "rain doesn't hold the chest up")
 	g.free()
 	b.free()
 	MapManager.set_built([])
