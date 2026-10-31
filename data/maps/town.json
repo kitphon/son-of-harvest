@@ -288,6 +288,24 @@
 			],
 			"facing": "up",
 			"shop": "general"
+		},
+		{
+			"cells": [
+				[
+					36,
+					10
+				],
+				[
+					36,
+					11
+				]
+			],
+			"to": "mine",
+			"spawn": [
+				1,
+				7
+			],
+			"facing": "right"
 		}
 	],
 	"spawns": {

@@ -25,6 +25,16 @@
 		"tool_seeds": {"volume_db": -14, "pitch": [0.9, 1.1], "layers": [
 			{"kind": "grains", "count": 28, "dur": 0.4, "hp": 2500, "lp": 8000, "grain": 0.003},
 			{"kind": "noise", "hp": 3000, "lp": 8000, "dur": 0.3, "attack": 0.02, "decay": 0.08, "gain": 0.2}]},
+		"rock_break": {"volume_db": -9, "pitch": [0.85, 1.05], "layers": [
+			{"kind": "noise", "color": "brown", "lp": 1800, "hp": 90, "dur": 0.35, "attack": 0.002, "decay": 0.09},
+			{"kind": "grains", "count": 12, "dur": 0.4, "at": 0.03, "hp": 600, "lp": 4200, "grain": 0.008, "gain": 0.7},
+			{"kind": "tone", "freq": 140, "freq_end": 90, "dur": 0.2, "attack": 0.002, "decay": 0.05, "gain": 0.5}]},
+		"mine_find": {"volume_db": -13, "pitch": [0.97, 1.03], "layers": [
+			{"kind": "pluck", "freq": 1175, "dur": 0.35, "damping": 0.4, "gain": 0.6},
+			{"kind": "pluck", "freq": 1568, "dur": 0.45, "at": 0.09, "damping": 0.4, "gain": 0.5}]},
+		"mine_down": {"volume_db": -12, "pitch": [0.9, 1.0], "layers": [
+			{"kind": "noise", "color": "brown", "lp": 900, "dur": 0.6, "attack": 0.05, "decay": 0.2, "gain": 0.7},
+			{"kind": "tone", "freq": 300, "freq_end": 120, "dur": 0.5, "attack": 0.01, "decay": 0.15, "gain": 0.5}]},
 		"pick": {"volume_db": -14, "pitch": [0.95, 1.1], "layers": [
 			{"kind": "tone", "freq": 380, "freq_end": 640, "dur": 0.1, "attack": 0.003, "decay": 0.035},
 			{"kind": "noise", "color": "brown", "lp": 1200, "dur": 0.08, "attack": 0.002, "decay": 0.02, "gain": 0.5}]},

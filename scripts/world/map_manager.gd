@@ -16,6 +16,9 @@ static var built: Array[String] = []  # extensions in effect (data/shops.json bu
 var id := FARM
 var pos := cell_pos(Vector2i(4, 4))  # the farmer's feet; the Player writes it as it walks
 var facing := Vector2i.DOWN
+## The mine floor laid out on this map while the farmer is down the mine (null elsewhere):
+## its rocks are solid and its open hole is a door. Not saved (Game.to_dict).
+var mine_floor: MineFloor = null
 
 
 ## The map with this id, or null (with an error printed) when there is no usable file.
@@ -108,11 +111,14 @@ func place(map_id: String, cell: Vector2i, face: Vector2i) -> void:
 func is_solid(c: Vector2i, farm: FarmGrid) -> bool:
 	if on_farm():
 		return farm.is_solid(c)
-	return current().is_solid(c)
+	return current().is_solid(c) or (mine_floor != null and mine_floor.is_solid(c))
 
 
 func door_at(c: Vector2i) -> Dictionary:
-	return current().door_at(c)
+	var door := current().door_at(c)
+	if door.is_empty() and mine_floor != null:
+		return mine_floor.door_at(c)
+	return door
 
 
 ## Footstep kind for a cell on this map, "" to let Sfx decide by the farm ground.

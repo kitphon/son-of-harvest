@@ -225,6 +225,23 @@ with the screen open, hours ignored). The smithy takes the tool out of its slot;
 days have passed (`Game.day_number()`), picking it up puts it back and calls
 `Game.raise_tool_level()`.
 
+## Mine
+The village road's east end leads to the mine entrance (`data/maps/mine.json`); its cave mouth
+goes down to `mine_floor`, one cave map that every floor is laid out on. `MineFloor`
+(`scripts/mine/mine_floor.gd`, pure rules) makes a floor fresh on every entry from a seed,
+the depth and the season: rocks and big rocks (hammer, hits per floor band), soft spots (hoe)
+and one hole down hidden under one of them; what each hides is rolled when the floor is made.
+Bands, counts, finds per source (weights, `none` = nothing), season factors and the mine
+items (`mine:<id>`: name, kind stone / ore / gem, sell, icon look) are in `data/mine.json`.
+`Game.go_to_map` makes the floor (`Game.maps.mine_floor`: its rocks are solid, its open hole
+is a door to the next floor); `Game.mine_swing` costs stamina and fatigue like field work and
+puts finds in the rucksack, else overhead, else on the ground (E picks them up). The ladder
+goes straight back up. Only `mine.deepest` is saved; a save made down the mine loads at the
+cave mouth. The views add a `MineLayer` (3D) / `MineView` (2D). Ores are rucksack items, so the
+smithy can ask for them in `upgrades.items` (e.g. `mine:akagane`, `mine:shirogane`,
+`mine:kogane`, `mine:hoshigane`). Map files may say `sheltered: true` (no weather; buildings
+are sheltered by default) apart from `indoor` (the clock stops).
+
 ## Dialogue
 Dialogue lives in `data/dialogue/<id>.json`, opened with `Game.talk(id)` (or `-- --dialogue=<id>`
 / `<id>@<line id>`). A file is `{"lines": [...]}`; each line is one of:

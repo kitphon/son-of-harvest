@@ -95,6 +95,12 @@ Talking, gifts and affection are in (a `talk` row with `who` in a trigger table 
 event when the farmer talks to a villager); the keepers are `sayo` (store) and `hachiro`
 (smithy). The opening event and the first shop visits are done (data/events/opening.json,
 store_intro, smithy_intro; villagers act in events with the `actor` step).
+Mining is in (milestone 9): the mine entrance at the village road's east end, floors laid out
+fresh from a seed on every entry (data/mine.json; README → Mine), the hammer on rocks, the hoe
+on soft spots, a hole down under one of them, ores / stones / gems into the rucksack, only the
+deepest floor saved. Later for the mine: the smithy asking for ores (`mine:akagane` ..
+`mine:hoshigane`) in its upgrades, a winter variant (a frozen pond or snow cave), the shops
+buying stones and gems, a lantern or light that changes with depth.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -150,7 +156,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [ ] Balance pass (income per season, seed costs)
 9. **Festivals, mining / fishing, relationships, endings**
    - [x] Fishing: rod (8th tool slot), cast at the farm / village pond, bite cue, fish per place / season / hour / weather (data/fish.json)
-   - [ ] Festivals, mining, relationships, endings
+   - [x] Mining: entrance east of the village, floors laid out fresh from a seed, rocks / soft spots / hole down, ores and gems per depth and season (data/mine.json)
+   - [ ] Festivals, relationships, endings
 10. **Audio and release**
     - [x] Sound effects and ambient loops (synthesized from data/sfx.json, SFX / Ambient busses)
     - [x] Music; volume sliders in the settings screen (`Sfx.set_volume`)

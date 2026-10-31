@@ -119,7 +119,10 @@ func area_preview() -> Array[Vector2i]:
 	var tool := Game.current_tool()
 	if Game.max_charge(tool) == 0:
 		return [target_cell()]
-	return farm.area_cells(cell_of(position), facing, Game.charge_rule(tool, charge).area)
+	var rows: Array = Game.charge_rule(tool, charge).area
+	if Game.maps.mine_floor != null:
+		return Game.maps.mine_floor.area_cells(cell_of(position), facing, rows)
+	return farm.area_cells(cell_of(position), facing, rows)
 
 
 static func cell_of(p: Vector2) -> Vector2i:
@@ -145,8 +148,8 @@ func _try_move(d: Vector2) -> bool:
 
 
 func _draw() -> void:
-	# Target cell outline (on the farm); while charging, every cell of the charge's area and the pips.
-	for tc in (area_preview() if charging else [target_cell()]) if Game.maps.on_farm() else []:
+	# Target cell outline (on the farm, down the mine); while charging, every cell of the charge's area and the pips.
+	for tc in (area_preview() if charging else [target_cell()]) if Game.maps.on_farm() or Game.maps.mine_floor != null else []:
 		draw_rect(Rect2(Vector2(tc * T) - position, Vector2(T, T)), Color(1, 1, 1, 0.6), false, 1.0)
 	if charging:
 		var pips := PlaceholderArt.tex(PlaceholderArt.charge_key(charge, Game.max_charge(_charge_tool)))
