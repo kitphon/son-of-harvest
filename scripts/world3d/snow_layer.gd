@@ -1,9 +1,9 @@
 class_name SnowLayer
 extends RefCounted
-## Snow lying on the 3D farm: the ground shader that lays it over the ground picture, the
-## shader for snow tops on roofs and lids, and the per-cell mask of how much snow each kind of
-## ground holds (data/snow_cover.json "ground": tilled and wet soil hold less, so plots stay
-## readable). The amount itself is Game.snow_cover; this only draws it.
+## Snow lying on the farm: the 3D ground shader that lays it over the ground picture, the
+## shader for snow tops on roofs and lids, the 2D view's overlay (the same pattern), and the
+## per-cell mask of how much snow each kind of ground holds (data/snow_cover.json "ground":
+## tilled and wet soil hold less, so plots stay readable). The amount itself is Game.snow_cover; this only draws it.
 ##
 ## Where snow lies is a noise pattern on the world's pixel grid (16 per cell), equalised so a
 ## cover of 0.4 whitens 40 % of the pixels. Pixels just past the snow line get a pale blue-grey
@@ -13,13 +13,11 @@ const MASK_PER_CELL := 4       # mask pixels per cell; linear filtering blends k
 const NOISE_SIZE := 128        # noise texture pixels; it spans NOISE_CELLS cells and repeats
 const NOISE_CELLS := 8.0
 
-const _COMMON := """
+const _SNOW_AT := """
 uniform sampler2D noise : repeat_enable, filter_nearest;
 uniform float cover = 0.0;
 uniform vec3 snow_color : source_color = vec3(0.94, 0.96, 0.99);
 uniform vec3 rim_color : source_color = vec3(0.74, 0.79, 0.88);
-varying vec3 world;
-void vertex() { world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 // 2 = snow, 1 = rim, 0 = bare, for `amount` 0..1 of the pixels at this spot.
 float snow_at(vec2 p, float amount) {
 	vec2 px = (floor(p * 16.0) + 0.5) / 16.0;
@@ -29,6 +27,11 @@ float snow_at(vec2 p, float amount) {
 }
 """
 
+const _COMMON := _SNOW_AT + """
+varying vec3 world;
+void vertex() { world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+"""
+
 const GROUND_SHADER := "shader_type spatial;\nrender_mode unshaded;\n" + _COMMON + """
 uniform sampler2D ground : filter_nearest;
 uniform sampler2D mask : filter_linear;
@@ -36,6 +39,19 @@ void fragment() {
 	vec3 g = texture(ground, UV).rgb;
 	float s = snow_at(world.xz, cover * texture(mask, UV).r);
 	ALBEDO = s > 1.5 ? snow_color : (s > 0.5 ? mix(g, rim_color, 0.7) : g);
+}
+"""
+
+## The flat 2D view: drawn over the ground tiles (under the field sprites) as the mask texture
+## stretched over the farm, so TEXTURE is the hold and the node's position gives the same
+## pixel pattern as the 3D ground (canvas pixels / 16 = cells = 3D x / z).
+const CANVAS_SHADER := "shader_type canvas_item;
+" + _SNOW_AT + """
+varying vec2 world;
+void vertex() { world = (MODEL_MATRIX * vec4(VERTEX, 0.0, 1.0)).xy / 16.0; }
+void fragment() {
+	float s = snow_at(world, cover * texture(TEXTURE, UV).r);
+	COLOR = s > 1.5 ? vec4(snow_color, 1.0) : (s > 0.5 ? vec4(rim_color, 0.7) : vec4(0.0));
 }
 """
 
@@ -72,6 +88,11 @@ static func ground_material(ground: Texture2D, mask: Texture2D) -> ShaderMateria
 	m.set_shader_parameter("ground", ground)
 	m.set_shader_parameter("mask", mask)
 	return m
+
+
+## For the 2D view: put on a node that draws the mask texture over the whole farm.
+static func canvas_material() -> ShaderMaterial:
+	return _material(CANVAS_SHADER)
 
 
 static func top_material() -> ShaderMaterial:

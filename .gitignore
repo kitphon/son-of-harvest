@@ -1,6 +1,7 @@
 # Godot cache and exports
 .godot/
 /export/
+/build/
 *.translation
 
 # The engine binaries live next to the project but are not part of it

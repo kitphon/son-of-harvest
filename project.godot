@@ -12,8 +12,10 @@ config_version=5
 
 config/name="Harvest Son"
 config/description="A farming life-sim prototype."
+config/version="0.1.0"
 run/main_scene="res://scenes/title.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://icon.png"
 
 [autoload]
 

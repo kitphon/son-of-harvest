@@ -53,6 +53,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] House, bin, stand, fence as models or textured boxes
    - [x] Rain / snow particles, weather tint
    - [x] Snow lying on the ground and roofs (cover rule in Game + data), lightning flashes
+   - [x] Snow on the ground in the 2D view too (same pattern as 3D, under the sprites)
    - [x] Pixel font for the HUD, clock box, a proper item / tool display (Japanese glyphs later)
 3. **Tools and the body**
    - [x] Charging tools (hold to cover more cells, per tool level; data/tools.json)
@@ -80,7 +81,9 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 9. **Festivals, mining / fishing, relationships, endings**
 10. **Audio and release**
     - [ ] Music, sound effects
-    - [ ] Windows export (.exe), icon, settings
+    - [x] Windows export preset (`export_presets.cfg`, .pck embedded) and our app icon
+    - [ ] Build the .exe and check it starts (needs the 4.7.2 export templates; README → Export)
+    - [ ] Settings
 
 ## Tools of record
 Godot 4.7.2 (GL Compatibility), GDScript, headless tests in `tests/`, Movie Maker screenshots.

@@ -46,6 +46,28 @@ Save / load and the title menu: the same with `res://tests/test_save.gd` and
 - Stamina: each swing costs stamina; sleep before midnight restores it all, after midnight
   3/4, passing out at 2:00 half.
 
+## Export (Windows .exe)
+The preset "Windows Desktop" in `export_presets.cfg` builds `build/HarvestSon.exe` (git-ignored)
+with the game data embedded in the exe, our icon (`icon.ico`), version 0.1.0 and
+"Harvest Son Team" as the company. Tests and tools are left out of the build.
+
+Godot needs its export templates for exactly 4.7.2 once per machine:
+1. In the editor: Editor → Manage Export Templates → Download and Install (official mirror),
+   or download `Godot_v4.7.2-stable_export_templates.tpz` from godotengine.org and choose
+   "Install from File".
+2. Check that `%APPDATA%\Godot\export_templates.7.2.stable\windows_release_x86_64.exe` exists.
+3. Build from a shell in the project folder:
+
+       Godot_v4.7.2-stable_win64_console.exe --headless --path . --export-release "Windows Desktop" build/HarvestSon.exe
+
+   (or Project → Export → Windows Desktop → Export Project in the editor).
+4. Try it: `build\HarvestSon.exe` (or `build\HarvestSon.exe --quit-after 300` for a quick start check).
+
+The icon is drawn in code by `tools/make_icon.gd` (a sprout over field rows, 16 x 16 pixels
+scaled up); it writes `icon.png` (project icon) and `icon.ico` (16 to 256 px, for the exe):
+
+    Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tools/make_icon.gd
+
 ## Camera
 `scripts/main_3d.gd` uses the field camera geometry of Harvest Moon: Back to Nature, measured
 in the reverse-engineering project: yaw 45°, pitch 26.6°, the player 25.2 cells from the eye,
@@ -63,6 +85,7 @@ follows the player with no lag and stops a few cells inside the fence.
 - `scripts/art/placeholder_art.gd`: pixel sprites made in code until there is real art.
 - `scripts/world3d/farmer_anim.gd`: picks the farmer's frame (pose, facing, mirror, timing).
 - `data/*.json`: crops and weather, tuned without touching code.
+- `tools/make_icon.gd`: draws the app icon; `export_presets.cfg`: the Windows build.
 
 ## Plan and handoff
 - ROADMAP.md: milestones and "Next up".
