@@ -10,6 +10,60 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Rucksack and storage chest menus
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: an inventory with slots instead of the old bag of counts. `Inventory`
+  (`scripts/items/inventory.gd`, pure logic) has four places: `tools` (the rucksack's tool
+  slots = the HUD tool bar; `Game.tool_index` is the slot in hand), `bag` (item slots),
+  `hand` (one item held in the other hand, per DESIGN "two hands") and `chest` (the storage
+  chest). Rules: tools only in tool slots and the chest, never stacking; every other id (any
+  string, so food items from another branch fit) in the bag, hand and chest, stacking up to
+  `stack_max`; add (stacks first, then empty slots, returns what didn't fit), take (all or
+  nothing), lift / drop (pick up, put down, stack with a remainder, swap), move, stow (a
+  carried stack back home), grow (bigger rucksack later, never shrinks). Numbers and the
+  starting things in the new `data/inventory.json`. `InventoryMenu` (cursor rows of 8, carry,
+  choose / hold / close, no drawing) and `InventoryScreen` (wood + paper box, pixel font,
+  slot grid with counts on a paper plate, vermilion cursor brackets, the carried stack on the
+  cursor, name / level line, a note line and a key hint). I (pad Back) opens the rucksack; the
+  new placeholder chest (cell 7,3 right of the house: a cedar tansu with iron pulls, 3D model
+  and a 2D colour) opens the storage screen on E. Both pause the clock through `Game.pause()`
+  and refuse to open over a menu or text box; a carried stack is put back on close, and if
+  there is no room the screen stays open and says so. HUD: the tool bar draws the tool slots
+  (an empty slot = "No tool"), and a small wood box right of it shows the hand's item. Game
+  callers kept: `count` / `add_item` (now returns what didn't fit) / `take_item`, and `bag`
+  is a property over the carried totals (setting it fills the rucksack, the rest goes to the
+  chest). New: `can_carry`, `item_name`, `open_inventory`, signal `inventory_requested`.
+  Harvesting and buying seeds with a full rucksack say "Your rucksack is full" and leave the
+  crop / money alone; shipping takes crops from the rucksack and the hand, not the chest.
+  Save: `inventory` (every slot) and `tool_slot` replace `bag` and `tool`; a save without
+  `inventory` is migrated (tools in their start slots, the tool in hand found by name, the
+  bag's counts into the rucksack, overflow into a growing chest), and a farm without the chest
+  gets it on a cleared cell (`FarmGrid.add_missing_fixed`). A saved place with fewer slots
+  than the data now has is filled up to the data's count. `--rucksack` / `--rucksack=storage`
+  open the screens at the start; `--demo` puts a few crops in the rucksack and the chest.
+- Balance (ours): 6 tool slots (the six tools; the HUD bar holds six), 8 rucksack slots,
+  24 chest slots, stacks of 99. A small rucksack keeps the chest worth walking to; the shop
+  upgrade later is a bigger `bag` number.
+- Checked: new `test_inventory: OK (0 failed)` (data, stacking, limits, places, take, grow,
+  set_carried, move / swap / partial stack / refusals, lift / drop / stow, save format and
+  bad slots, slot count migration, menu rows / cursor wrap / pick / put / swap / stack /
+  hold / close with and without room, Game bag calls, shipping, empty tool slot, full
+  rucksack, item names, chest on the farm and on an old farm, the I key, icons);
+  `test_save: OK (0 failed)` (round trip with chest, hand and a tool in the chest; bad
+  `tool_slot` / `inventory` refused; a save from before slots loads with the tool by name,
+  the bag in the rucksack and the chest added; bad old tool / bag refused); `test_farm`,
+  `test_title` (new game: hoe in hand, starting bag, empty chest and hand), `test_weather`,
+  `test_dialogue`, `test_menu`, `test_body`, `test_audio` all `OK (0 failed)`. Headless
+  `--quit-after 300` (title, `-- --demo`) and the 2D scene with `-- --rucksack` printed no
+  errors. Movie Maker frames `--demo --rucksack` and `--demo --rucksack=storage`: the box
+  sits in the middle over the field, tools with the hoe slot marked, seed bags / turnip /
+  potato with counts 2, 6, 3, 4, chest with cucumber x12 and turnip seeds x5, the info line
+  "Cucumber x12", the chest stands between the house and the bin. Not checked: the keys and
+  mouse in a real game window, and opening the chest by walking up to it (only the flag).
+- Left / next: key remapping (rest of milestone 4). The hand item is shown and kept but does
+  nothing yet; holding / throwing (another branch) can build on `Inventory` place `hand`.
+  Fridge / tool box as more storage places later (one more entry in `PLACES` and the data).
+
 ## 2026-10-31 — Merged six branches: export, text box, sound, pause, tool exp, fatigue
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, in this order: `claude/win-export-659b37`

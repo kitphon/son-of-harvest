@@ -9,6 +9,7 @@ const BOXES := {
 	"clock": Rect2i(384, 4, 92, 42),
 	"item": Rect2i(4, 214, 128, 21),
 	"tools": Rect2i(4, 238, 128, 28),
+	"hand": Rect2i(136, 238, 28, 28),    # the item in the other hand, only while there is one
 	"status": Rect2i(384, 226, 92, 40),
 	"message": Rect2i(4, 4, 0, 19),
 }

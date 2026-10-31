@@ -38,7 +38,9 @@ Next: milestone 3, **eating / drinking** (food items with stamina / fatigue effe
 trigger tables per map**, built on the dialogue format.
 Sound effects and ambient loops are in (milestone 10, first step); later for audio: music,
 and the settings screen's volume sliders call `Sfx.set_volume("SFX" / "Ambient", 0..1)`.
-Later for menus: rucksack / storage, key remapping.
+The rucksack and the storage chest are done (I opens the rucksack, the chest stands right of
+the house; slot counts in data/inventory.json, so a shop's rucksack upgrade is one number via
+`Inventory.grow("bag", n)`). Later for menus: key remapping.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -74,7 +76,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Save game (Game + FarmGrid to a versioned JSON file), load; F5 / F9, saves on sleep
    - [x] Title screen (new game / continue / quit), Continue only for a save that loads
    - [x] Pause menu (resume / save / settings / back to title), settings file (flashes, window)
-   - [ ] Rucksack / storage menus, key remapping
+   - [x] Rucksack / storage menus (Inventory, InventoryMenu / InventoryScreen, chest by the house)
+   - [ ] Key remapping
 5. **Town and villagers**
    - [ ] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause
    - [ ] Villagers with daily schedules from data (rule list → day plan), catch-up on map entry

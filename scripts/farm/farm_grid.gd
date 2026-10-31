@@ -18,12 +18,13 @@ const CLEAR_RULES := {
 	Obj.STUMP: {"tool": "axe", "hits": 4},
 }
 
+const CHEST := Vector2i(7, 3)   # the storage chest, right of the house
 const WEED_CHANCE := 0.01   # per empty cell per night, not in winter
 const STORM_LOSS := 1.0 / 16.0
 
 var crops: Dictionary
 var cells: Array = []        # W * H dictionaries, row by row
-var fixed: Dictionary = {}   # Vector2i -> "house" / "door" / "bin" / "stand" / "pond" / "fence"
+var fixed: Dictionary = {}   # Vector2i -> "house" / "door" / "chest" / "bin" / "stand" / "pond" / "fence"
 
 
 func _init(crop_data: Dictionary) -> void:
@@ -48,6 +49,7 @@ func generate(rng: RandomNumberGenerator) -> void:
 		for x in range(2, 7):
 			fixed[Vector2i(x, y)] = "house"
 	fixed[Vector2i(4, 3)] = "door"
+	fixed[CHEST] = "chest"
 	fixed[Vector2i(8, 3)] = "bin"
 	fixed[Vector2i(10, 3)] = "stand"
 	for y in range(2, 5):
@@ -67,6 +69,16 @@ func generate(rng: RandomNumberGenerator) -> void:
 			elif r > 0.5:
 				obj = Obj.ROCK
 			cell(Vector2i(x, y)).obj = obj
+	cells_changed.emit()
+
+
+## Fixed spots added after the first saves (the storage chest by the house): a farm loaded
+## from an older save gets them, on a cleared cell, when their cell is free.
+func add_missing_fixed() -> void:
+	if "chest" in fixed.values() or fixed_at(CHEST) != "":
+		return
+	cells[CHEST.y * W + CHEST.x] = _empty_cell()
+	fixed[CHEST] = "chest"
 	cells_changed.emit()
 
 

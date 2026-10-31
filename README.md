@@ -31,9 +31,10 @@ Save / load, the title menu, weather and dialogue: the same with `res://tests/te
 | --- | --- |
 | WASD / arrows | walk along the field's axes (Up = diagonally away from the camera); Shift = run |
 | Space / J | use the tool on the cell in front; hold to charge (pips over the farmer), let go for a bigger area; tools level up with use (pips in the item box) |
-| E / K | interact: harvest, ship at the bin (with nothing to ship: read the note on it), buy seeds at the stand, sleep at the door |
+| E / K | interact: harvest, ship at the bin (with nothing to ship: read the note on it), buy seeds at the stand, open the storage chest right of the house, sleep at the door |
 | E / Space / Enter, click | in a text box: show the whole line, then go on; arrows / W / S or the mouse pick a choice |
-| 1-6 / Tab | pick a tool: hoe, watering can, sickle, hammer, axe, seeds |
+| 1-6 / Tab | pick a tool slot (at the start: hoe, watering can, sickle, hammer, axe, seeds) |
+| I | rucksack: arrows / WASD move, Enter / Space pick up and put down (stack, swap), E takes it in hand (tool slot = tool in hand, an item = the item hand), Esc / I close; mouse: left click pick / put, right click hold. The chest screen works the same. The clock stops while it is open |
 | Q | next seed type (for sowing and for buying) |
 
 ## What works (v0)

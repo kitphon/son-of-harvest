@@ -83,8 +83,9 @@ func _init() -> void:
 	check(fresh.year == 1 and fresh.season == 0 and fresh.day == 1 and fresh.hour == 6 and fresh.minute == 0, "new game: first morning")
 	check(fresh.money == 500 and fresh.bin_total == 0 and fresh.stamina == 100 and fresh.max_stamina == 100, "new game: money and stamina")
 	check(fresh.fatigue == 0 and g.body_state() == "fine", "new game: rested")
-	check(fresh.tool == "hoe" and fresh.water == g.WATER_MAX, "new game: hoe in hand, full can")
-	check(fresh.bag == {"seeds:turnip": 2, "seeds:potato": 1}, "new game: starting bag")
+	check(g.current_tool() == "hoe" and fresh.tool_slot == 0 and fresh.water == g.WATER_MAX, "new game: hoe in hand, full can")
+	check(g.bag == {"seeds:turnip": 2, "seeds:potato": 1}, "new game: starting bag")
+	check(g.inventory.totals(["chest", "hand"]).is_empty(), "new game: empty chest and hand")
 	check(fresh.flags == {}, "new game: no dialogue flags")
 	check(SaveGame.read(g, PATH) == "", "loaded the save again")
 	g.year = 3
@@ -98,7 +99,8 @@ func _init() -> void:
 	g.water = 0
 	g.tool_index = 4
 	g.seed_index = 2
-	g.bag["turnip"] = 5
+	g.add_item("turnip", 5)
+	g.inventory.add("corn", 3, ["chest"])
 	g._accum = 0.4
 	g.snow_cover = 80
 	g.tool_levels["hoe"] = 4
