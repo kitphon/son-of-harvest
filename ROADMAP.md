@@ -46,9 +46,9 @@ EventTriggers / EventPlayer; README → Events); EventPlayer loads a map's table
 The "examine" cause is done (E facing a spot in a trigger table: shrine, lanterns, empty
 houses, name plate, gate board, calendar, radio). Later for events: villagers as actors.
 Maps are in (data/maps: farm, farmhouse inside with the futon, a first village with a
-shrine; doors, a fade, clock stopped indoors). Villagers (milestone 5, next item) get their
-own map props / doors from the same files; the village houses' doors only show a message
-until then.
+shrine; doors, a fade, clock stopped indoors). The villagers' homes are in: Tome's and Kota's
+houses and Sayo's rooms behind the store (irori, tokonoma, altar, screens), doors open by their
+`hours` and shut at night with a message.
 Sound effects, ambient loops and music are in (milestone 10), with Music / Sounds / Ambient
 volume sliders in Esc → Settings. Later for audio: more tracks (festivals, shops, events)
 are new scores and rules in `data/music.json`; the music has not been heard by a person yet.
@@ -66,7 +66,9 @@ villager file, one a day); a daily talk adds a little; `Game.affection` is saved
 with an `affection` event step and `talk` / `hearts` trigger keys. Sayo keeps the store and
 Hachiro the smithy: talking to them at the counter opens the shop, which sells only while
 they are in. Villagers block the farmer and wait when they bump into the farmer (delay, at most 30
-minutes). Later for villagers: their own house maps (`away` until then), hearts shown in the
+minutes). They are at home (house maps; Hachiro in the smithy) in the early morning, at noon,
+in the evening and on wet days, `away` in bed after their door shuts; Sayo has tea at Tome's
+on Sunday afternoons. Later for villagers: hearts shown in the
 text box, birthdays (gifts x5), the small daily affection loss when nobody talks to them,
 whistling, real portraits.
 Shops are in (data/shops.json): the Yorozu Store and the Kurogane Smithy in the village, with
@@ -157,6 +159,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause (data/maps, MapManager, fade)
    - [x] Villagers with daily schedules from data (rule list → day plan), catch-up on map entry
    - [x] Talking, gifts, affection, shopkeepers at their counters (data/dialogue/talk_<id>.json, Affection)
+   - [x] Villagers' homes: Tome's / Kota's houses, Sayo's rooms (data/maps, HomeProps), door hours, home schedules
 6. **Events and dialogue**
    - [x] Text box (typewriter, portraits, choices, flags); our own, data/dialogue
    - [x] Event scripts + trigger tables per map (data/events; three small farm events)

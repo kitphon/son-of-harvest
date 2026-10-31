@@ -364,13 +364,16 @@ func go_to_map(map_id: String, cell: Vector2i, face: Vector2i) -> bool:
 
 
 ## Through a door: to its map, or only its message when it leads nowhere yet. A shop's door
-## stays shut outside its hours and says so.
+## stays shut outside its hours, a home's outside its `hours`, and says so.
 func use_door(door: Dictionary) -> void:
 	if door.get("to", "") == "":
 		message.emit(door.message)
 		return
 	var s := shop(door.get("shop", ""))
 	if s != null and _shop_shut(s):
+		return
+	if not MapData.door_open(door, day_minutes()):
+		message.emit(door.closed)
 		return
 	go_to_map(door.to, door.spawn, door.facing)
 

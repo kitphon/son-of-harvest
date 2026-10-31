@@ -8,7 +8,8 @@ extends RefCounted
 ## A door is a list of cells (solid ones, or cells just off the map edge for a walk-off exit).
 ## Walking into one, or using it, goes to `to` at `spawn` facing `facing`; a door without `to`
 ## only shows its `message` (a locked house). A door with `shop` (data/shops.json) is shut
-## outside that shop's hours.
+## outside that shop's hours; one with `hours` ["H:MM", "H:MM"] (a villager's home) is open
+## from the first time until the second and shows its `closed` message otherwise.
 
 const FACINGS := {"up": Vector2i.UP, "down": Vector2i.DOWN, "left": Vector2i.LEFT, "right": Vector2i.RIGHT}
 
@@ -26,7 +27,7 @@ var tiles: Array[String] = []          # w * h ground kinds, row by row
 var steps: Array[String] = []          # w * h footstep kinds ("" = by the ground)
 var _solid: Array[bool] = []
 var props: Array[Dictionary] = []      # {kind, cell, size, use, ...the rest from the file}
-var doors: Array[Dictionary] = []      # {cells: Array[Vector2i], to, spawn, facing, message, gate, shop}
+var doors: Array[Dictionary] = []      # {cells: Array[Vector2i], to, spawn, facing, message, gate, shop, hours?, closed?}
 var spawns: Dictionary = {}            # name -> [cell, facing]
 
 
@@ -102,6 +103,14 @@ func _read(d: Variant) -> String:
 				return "door to %s needs a spawn cell and a facing" % out.to
 		elif out.message == "":
 			return "a door needs a target map or a message"
+		if door.has("hours"):
+			var hours = door.hours
+			var open := DayPlan.minute_of(hours[0]) if hours is Array and hours.size() == 2 else -1
+			var close := DayPlan.minute_of(hours[1]) if open >= 0 else -1
+			if close <= open or str(door.get("closed", "")) == "":
+				return "door to %s needs hours [\"H:MM\", \"H:MM\"] in order and a closed message" % out.to
+			out.hours = [open, close]
+			out.closed = str(door.closed)
 		doors.append(out)
 	var sp = d.get("spawns", {})
 	if not sp is Dictionary or not sp.has("start"):
@@ -159,6 +168,11 @@ func tile(c: Vector2i) -> String:
 ## The footstep sound kind on a cell, "" to let the ground decide (Sfx.ground).
 func step(c: Vector2i) -> String:
 	return steps[c.y * w + c.x] if in_bounds(c) else ""
+
+
+## Is `door` open at minute `t` of the game day (DayPlan.day_minute)? Doors without hours always are.
+static func door_open(door: Dictionary, t: float) -> bool:
+	return not door.has("hours") or (t >= door.hours[0] and t < door.hours[1])
 
 
 func door_at(c: Vector2i) -> Dictionary:

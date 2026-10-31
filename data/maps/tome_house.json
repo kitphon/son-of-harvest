@@ -1,0 +1,160 @@
+{
+	"_note": "Grandma Tome's house (the west house in the village): a packed-earth entry with the stove and the water jar, a step of floor, then the tatami room round a sunken hearth (irori) with its kettle, the alcove (tokonoma) with a scroll and a branch in a vase, the family altar and a chest. She sits on the cushion right of the hearth (`home`); a guest sits left of it (`guest`). The door in the village is open 6:00-19:00. Format: README.md, Maps.",
+	"id": "tome_house",
+	"name": "Tome's House",
+	"size": [
+		9,
+		7
+	],
+	"indoor": true,
+	"ambient": "indoor",
+	"light": "fff0dc",
+	"background": "1a1410",
+	"legend": {
+		"#": {
+			"tile": "wall",
+			"solid": true
+		},
+		".": {
+			"tile": "tatami",
+			"step": "floor"
+		},
+		"w": {
+			"tile": "floor",
+			"step": "floor"
+		},
+		"e": {
+			"tile": "earth",
+			"step": "soil"
+		},
+		"D": {
+			"tile": "earth",
+			"solid": true
+		}
+	},
+	"ground": [
+		"#########",
+		"#.......#",
+		"#.......#",
+		"#.......#",
+		"#wwwwwww#",
+		"#eeeeeee#",
+		"####D####"
+	],
+	"props": [
+		{
+			"kind": "tokonoma",
+			"cell": [
+				1,
+				1
+			],
+			"size": [
+				2,
+				1
+			]
+		},
+		{
+			"kind": "butsudan",
+			"cell": [
+				5,
+				1
+			]
+		},
+		{
+			"kind": "tansu",
+			"cell": [
+				7,
+				1
+			]
+		},
+		{
+			"kind": "irori",
+			"cell": [
+				4,
+				2
+			],
+			"size": [
+				2,
+				2
+			]
+		},
+		{
+			"kind": "zabuton",
+			"cell": [
+				6,
+				3
+			],
+			"solid": false,
+			"color": "6a4a7a"
+		},
+		{
+			"kind": "zabuton",
+			"cell": [
+				3,
+				3
+			],
+			"solid": false,
+			"color": "8a3a3a"
+		},
+		{
+			"kind": "andon",
+			"cell": [
+				7,
+				2
+			]
+		},
+		{
+			"kind": "kamado",
+			"cell": [
+				1,
+				5
+			]
+		},
+		{
+			"kind": "mizugame",
+			"cell": [
+				7,
+				5
+			]
+		}
+	],
+	"doors": [
+		{
+			"cells": [
+				[
+					4,
+					6
+				]
+			],
+			"to": "town",
+			"spawn": [
+				5,
+				7
+			],
+			"facing": "down"
+		}
+	],
+	"spawns": {
+		"start": [
+			[
+				4,
+				5
+			],
+			"up"
+		],
+		"home": [
+			[
+				6,
+				3
+			],
+			"left"
+		],
+		"guest": [
+			[
+				3,
+				3
+			],
+			"right"
+		]
+	}
+}

@@ -80,7 +80,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   (`--demo` turns the trigger tables off, so plain demo frames have no events; to see a
   trigger fire, run `res://scenes/main.tscn` as the scene argument without `--demo`),
   `--map=<id>` (or `<id>@<spawn>`, e.g. `town@shrine`, `farm@gate`) to start on another map
-  from `data/maps`, `--rucksack` (or `--rucksack=storage`) to open the rucksack (or the
+  from `data/maps` (the villagers' homes: `--map=tome_house --time=6:30` shows Tome by her
+  hearth; `kota_house`, `sayo_house`; `town@sayo` stands at Sayo's side door of the store), `--rucksack` (or `--rucksack=storage`) to open the rucksack (or the
   storage chest; `--demo` puts a few crops in both), `--hold` to start with a turnip overhead
   and a potato on the ground in front of the bin, `--time=H:MM` (after `--demo`) to set the
   clock (villagers stand where their plans say then; `--demo --map=town` at 10:00 shows Kota

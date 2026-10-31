@@ -1,5 +1,5 @@
 {
-	"_note": "Grandma Tome: lives in the west house, visits the shrine every morning, strolls to the pond in the afternoon. Stays in on wet days and until late on winter mornings. Gifts: tea, spring sweets and old-fashioned vegetables. Format: README.md, Villagers.",
+	"_note": "Grandma Tome: lives in the west house (data/maps/tome_house.json), sits by her hearth in the early morning, at noon and in the evening, visits the shrine every morning, strolls to the pond in the afternoon. Stays home on wet days and until late on winter mornings; in bed (away) from 19:00, when her door shuts. Gifts: tea, spring sweets and old-fashioned vegetables. Format: README.md, Villagers.",
 	"id": "tome",
 	"name": "Tome",
 	"look": {"outfit": "kimono", "hair_style": "bun", "hair": "e4e0d8", "skin": "eec39a", "top": "6a4a7a", "waist": "c8a050", "shoes": "6b4423"},
@@ -18,36 +18,40 @@
 	},
 	"plans": {
 		"festival": [
-			{"at": "06:00", "map": "away"},
+			{"at": "06:00", "map": "tome_house", "from": [6, 3], "route": [{"face": "left"}]},
 			{"at": "09:30", "map": "town", "from": [5, 7], "route": [{"to": [5, 10]}, {"to": [17, 10]}, {"to": [17, 8]}, {"face": "right"}]},
 			{"at": "23:30", "map": "town", "route": [{"to": [17, 10]}, {"to": [5, 10]}, {"to": [5, 7]}, {"face": "up"}]},
 			{"at": "23:55", "map": "away"}
 		],
 		"usual": [
-			{"at": "06:00", "map": "away"},
+			{"at": "06:00", "map": "tome_house", "from": [6, 3], "route": [{"face": "left"}]},
 			{"at": "07:00", "map": "town", "from": [5, 7], "route": [{"to": [5, 10]}, {"to": [18, 10]}, {"to": [18, 8]}, {"face": "up"}]},
 			{"at": "09:00", "map": "town", "route": [{"to": [18, 10]}, {"to": [7, 10]}, {"to": [7, 8]}, {"face": "down"}]},
 			{"at": "11:30", "map": "town", "route": [{"to": [5, 8]}, {"to": [5, 7]}, {"face": "up"}]},
-			{"at": "12:00", "map": "away"},
+			{"at": "12:00", "map": "tome_house", "from": [6, 3], "route": [{"face": "left"}]},
 			{"at": "14:00", "map": "town", "from": [5, 7], "route": [{"to": [5, 11]}, {"to": [29, 11]}, {"to": [29, 15]}, {"to": [30, 15]}, {"face": "right"}]},
 			{"at": "16:30", "map": "town", "route": [{"to": [29, 15]}, {"to": [29, 11]}, {"to": [5, 11]}, {"to": [5, 7]}, {"face": "up"}]},
-			{"at": "17:30", "map": "away"}
+			{"at": "17:30", "map": "tome_house", "from": [6, 3], "route": [{"face": "left"}]},
+			{"at": "19:00", "map": "away"}
 		],
 		"sunday": [
-			{"at": "06:00", "map": "away"},
+			{"at": "06:00", "map": "tome_house", "from": [6, 3], "route": [{"face": "left"}]},
 			{"at": "07:00", "map": "town", "from": [5, 7], "route": [{"to": [5, 10]}, {"to": [18, 10]}, {"to": [18, 8]}, {"to": [18, 5]}],
 				"loop": [{"to": [16, 5]}, {"face": "up"}, {"wait": 12}, {"to": [21, 5]}, {"face": "up"}, {"wait": 12}]},
 			{"at": "11:00", "map": "town", "route": [{"to": [18, 5]}, {"to": [18, 10]}, {"to": [5, 10]}, {"to": [5, 7]}, {"face": "up"}]},
-			{"at": "11:40", "map": "away"}
+			{"at": "11:40", "map": "tome_house", "from": [6, 3], "route": [{"face": "left"}]},
+			{"at": "19:00", "map": "away"}
 		],
 		"winter": [
-			{"at": "06:00", "map": "away"},
+			{"at": "06:00", "map": "tome_house", "from": [6, 3], "route": [{"face": "left"}]},
 			{"at": "10:00", "map": "town", "from": [5, 7], "route": [{"to": [5, 10]}, {"to": [18, 10]}, {"to": [18, 8]}, {"face": "up"}]},
 			{"at": "11:30", "map": "town", "route": [{"to": [18, 10]}, {"to": [5, 10]}, {"to": [5, 7]}, {"face": "up"}]},
-			{"at": "12:00", "map": "away"}
+			{"at": "12:00", "map": "tome_house", "from": [6, 3], "route": [{"face": "left"}]},
+			{"at": "19:00", "map": "away"}
 		],
 		"stays_in": [
-			{"at": "06:00", "map": "away"}
+			{"at": "06:00", "map": "tome_house", "from": [6, 3], "route": [{"face": "left"}]},
+			{"at": "19:00", "map": "away"}
 		]
 	}
 }

@@ -206,7 +206,7 @@ func _init() -> void:
 	check(at.call(town, Vector2i(19, 2)) == "shrine_offering", "the shrine's offering box")
 	check(at.call(town, Vector2i(16, 3)) == "lantern_day" and at.call(town, Vector2i(21, 3), {"time": 20 * 60}) == "lantern_night"
 		and at.call(town, Vector2i(16, 3), {"time": 20 * 60, "weather": "snow"}) == "lantern_snow", "the lanterns by day, at night, in snow")
-	check(at.call(town, Vector2i(5, 6)) == "quiet_house" and at.call(town, Vector2i(23, 15)) == "", "the empty houses, not the shop door")
+	check(at.call(town, Vector2i(5, 6)) == "" and at.call(town, Vector2i(8, 15)) == "" and at.call(town, Vector2i(23, 15)) == "", "the house and shop doors are left to the doors")
 	g.events_seen.shrine_offering = true
 	check(at.call(town, Vector2i(18, 1)) == "shrine_offering", "examine rows play every time")
 	check(at.call(town, Vector2i(17, 3)) == "" and town.pick("step", g.trigger_state(Vector2i(19, 2))) == "", "nothing beside the spots or on stepping")

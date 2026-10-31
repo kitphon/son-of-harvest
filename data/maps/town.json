@@ -1,5 +1,5 @@
 {
-	"_note": "The first village map: an east-west road from the farm gate (west edge), a shrine with a torii up the north path, four houses and a pond. The noren house south of the road is the Yorozu Store, the one north-east the Kurogane Smithy (data/shops.json); nobody lives in the other two yet, so their doors only give a message. Format: README.md, Maps.",
+	"_note": "The first village map: an east-west road from the farm gate (west edge), a shrine with a torii up the north path, four houses and a pond. The noren house south of the road is the Yorozu Store, with Sayo's rooms behind its plain side door; the one north-east is the Kurogane Smithy (data/shops.json), where Hachiro also lives. The west house is Grandma Tome's, the one south-west Kota's family's; their doors (and Sayo's) are open by their `hours` and say `closed` otherwise. Format: README.md, Maps.",
 	"id": "town",
 	"name": "Village",
 	"size": [
@@ -96,7 +96,8 @@
 				3
 			],
 			"door": 2,
-			"noren": true
+			"noren": true,
+			"side_door": 4
 		},
 		{
 			"kind": "hokora",
@@ -248,7 +249,17 @@
 					6
 				]
 			],
-			"message": "Nobody answers. The house is quiet."
+			"to": "tome_house",
+			"spawn": [
+				4,
+				5
+			],
+			"facing": "up",
+			"hours": [
+				"06:00",
+				"19:00"
+			],
+			"closed": "Tome's house is dark. She goes to bed early."
 		},
 		{
 			"cells": [
@@ -272,7 +283,17 @@
 					15
 				]
 			],
-			"message": "The door is shut. Someone will live here one day."
+			"to": "kota_house",
+			"spawn": [
+				4,
+				5
+			],
+			"facing": "up",
+			"hours": [
+				"06:00",
+				"20:00"
+			],
+			"closed": "The lights are out at Kota's house."
 		},
 		{
 			"cells": [
@@ -288,6 +309,25 @@
 			],
 			"facing": "up",
 			"shop": "general"
+		},
+		{
+			"cells": [
+				[
+					25,
+					15
+				]
+			],
+			"to": "sayo_house",
+			"spawn": [
+				3,
+				4
+			],
+			"facing": "up",
+			"hours": [
+				"06:00",
+				"21:00"
+			],
+			"closed": "The side door is shut. Sayo has gone to bed."
 		},
 		{
 			"cells": [
@@ -334,6 +374,27 @@
 			[
 				27,
 				7
+			],
+			"down"
+		],
+		"tome": [
+			[
+				5,
+				7
+			],
+			"down"
+		],
+		"kota": [
+			[
+				8,
+				16
+			],
+			"down"
+		],
+		"sayo": [
+			[
+				25,
+				16
 			],
 			"down"
 		]

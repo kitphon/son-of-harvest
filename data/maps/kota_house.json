@@ -1,0 +1,157 @@
+{
+	"_note": "Kota's family house (south-west of the road): the earth entry with the water jar and the stove, the tatami room with a sunken hearth, a folding screen, the alcove and Kota's box of toys in the corner, where he plays (`home`). The door in the village is open 6:00-20:00. Format: README.md, Maps.",
+	"id": "kota_house",
+	"name": "Kota's House",
+	"size": [
+		9,
+		7
+	],
+	"indoor": true,
+	"ambient": "indoor",
+	"light": "fff0dc",
+	"background": "1a1410",
+	"legend": {
+		"#": {
+			"tile": "wall",
+			"solid": true
+		},
+		".": {
+			"tile": "tatami",
+			"step": "floor"
+		},
+		"w": {
+			"tile": "floor",
+			"step": "floor"
+		},
+		"e": {
+			"tile": "earth",
+			"step": "soil"
+		},
+		"D": {
+			"tile": "earth",
+			"solid": true
+		}
+	},
+	"ground": [
+		"#########",
+		"#.......#",
+		"#.......#",
+		"#.......#",
+		"#wwwwwww#",
+		"#eeeeeee#",
+		"####D####"
+	],
+	"props": [
+		{
+			"kind": "toy_box",
+			"cell": [
+				1,
+				1
+			]
+		},
+		{
+			"kind": "byobu",
+			"cell": [
+				2,
+				1
+			],
+			"size": [
+				2,
+				1
+			]
+		},
+		{
+			"kind": "tokonoma",
+			"cell": [
+				6,
+				1
+			],
+			"size": [
+				2,
+				1
+			]
+		},
+		{
+			"kind": "irori",
+			"cell": [
+				4,
+				2
+			],
+			"size": [
+				2,
+				2
+			]
+		},
+		{
+			"kind": "zabuton",
+			"cell": [
+				3,
+				3
+			],
+			"solid": false,
+			"color": "3a5a8a"
+		},
+		{
+			"kind": "zabuton",
+			"cell": [
+				6,
+				2
+			],
+			"solid": false,
+			"color": "7a6a3a"
+		},
+		{
+			"kind": "andon",
+			"cell": [
+				7,
+				3
+			]
+		},
+		{
+			"kind": "mizugame",
+			"cell": [
+				1,
+				5
+			]
+		},
+		{
+			"kind": "kamado",
+			"cell": [
+				7,
+				5
+			]
+		}
+	],
+	"doors": [
+		{
+			"cells": [
+				[
+					4,
+					6
+				]
+			],
+			"to": "town",
+			"spawn": [
+				8,
+				16
+			],
+			"facing": "down"
+		}
+	],
+	"spawns": {
+		"start": [
+			[
+				4,
+				5
+			],
+			"up"
+		],
+		"home": [
+			[
+				1,
+				2
+			],
+			"up"
+		]
+	}
+}

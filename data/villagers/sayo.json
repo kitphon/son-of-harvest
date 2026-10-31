@@ -1,5 +1,5 @@
 {
-	"_note": "Sayo keeps the Yorozu Store (the house with the noren south-east of the road): sweeps in front before opening, stands at the counter (the store map's keeper spot) 9:00-17:00, so talking to her there opens the shop (data/shops.json keeper), and takes an offering to the shrine in the evening. Sundays the store is shut and she visits Grandma Tome. Rain or shine the shop opens. Gifts: fresh summer things and sweets. Format: README.md, Villagers.",
+	"_note": "Sayo keeps the Yorozu Store (the house with the noren south-east of the road): sweeps in front before opening, stands at the counter (the store map's keeper spot) 9:00-17:00, so talking to her there opens the shop (data/shops.json keeper), and takes an offering to the shrine in the evening. She lives in the rooms behind the store (data/maps/sayo_house.json, the side door), where she is before opening, 17:00-18:30 and after the shrine until 21:00, when she goes to bed (away). Sundays the store is shut: she walks over to Grandma Tome's, waits by the house and has tea with her inside after lunch. Rain or shine the shop opens. Gifts: fresh summer things and sweets. Format: README.md, Villagers.",
 	"id": "sayo",
 	"name": "Sayo",
 	"look": {"outfit": "kimono", "hair_style": "long", "hair": "3a2420", "skin": "f2c79b", "top": "c85a6a", "waist": "2e4a7a", "accent": "e8c050", "shoes": "6b4423"},
@@ -15,21 +15,25 @@
 	},
 	"plans": {
 		"shop": [
-			{"at": "06:00", "map": "away"},
-			{"at": "08:30", "map": "town", "from": [23, 16],
+			{"at": "06:00", "map": "sayo_house", "from": [4, 2], "route": [{"face": "left"}]},
+			{"at": "08:30", "map": "town", "from": [25, 16],
 				"loop": [{"to": [22, 16]}, {"face": "left"}, {"wait": 6}, {"to": [26, 16]}, {"face": "right"}, {"wait": 6}]},
 			{"at": "08:58", "map": "town", "route": [{"to": [23, 16]}, {"face": "up"}]},
 			{"at": "09:00", "map": "store", "from": [3, 2], "route": [{"face": "down"}]},
-			{"at": "17:00", "map": "away"},
-			{"at": "18:30", "map": "town", "from": [23, 16], "route": [{"to": [23, 17]}, {"to": [28, 17]}, {"to": [28, 11]}, {"to": [19, 11]}, {"to": [19, 8]}, {"face": "up"}]},
-			{"at": "19:30", "map": "town", "route": [{"to": [19, 11]}, {"to": [28, 11]}, {"to": [28, 17]}, {"to": [23, 17]}, {"to": [23, 16]}, {"face": "up"}]},
-			{"at": "20:00", "map": "away"}
+			{"at": "17:00", "map": "sayo_house", "from": [4, 2], "route": [{"face": "left"}]},
+			{"at": "18:30", "map": "town", "from": [25, 16], "route": [{"to": [25, 17]}, {"to": [28, 17]}, {"to": [28, 11]}, {"to": [19, 11]}, {"to": [19, 8]}, {"face": "up"}]},
+			{"at": "19:30", "map": "town", "route": [{"to": [19, 11]}, {"to": [28, 11]}, {"to": [28, 17]}, {"to": [25, 17]}, {"to": [25, 16]}, {"face": "up"}]},
+			{"at": "20:00", "map": "sayo_house", "from": [4, 2], "route": [{"face": "left"}]},
+			{"at": "21:00", "map": "away"}
 		],
 		"day_off": [
-			{"at": "06:00", "map": "away"},
-			{"at": "10:00", "map": "town", "from": [23, 16], "route": [{"to": [23, 17]}, {"to": [28, 17]}, {"to": [28, 11]}, {"to": [6, 11]}, {"to": [6, 8]}, {"face": "left"}]},
-			{"at": "12:30", "map": "town", "route": [{"to": [6, 11]}, {"to": [28, 11]}, {"to": [28, 17]}, {"to": [23, 17]}, {"to": [23, 16]}, {"face": "up"}]},
-			{"at": "13:10", "map": "away"}
+			{"at": "06:00", "map": "sayo_house", "from": [4, 2], "route": [{"face": "left"}]},
+			{"at": "10:00", "map": "town", "from": [25, 16], "route": [{"to": [25, 17]}, {"to": [28, 17]}, {"to": [28, 11]}, {"to": [6, 11]}, {"to": [6, 8]}, {"face": "left"}]},
+			{"at": "12:30", "map": "town", "route": [{"to": [6, 8]}, {"to": [5, 8]}, {"to": [5, 7]}, {"face": "up"}]},
+			{"at": "12:40", "map": "tome_house", "from": [3, 3], "route": [{"face": "right"}]},
+			{"at": "15:00", "map": "town", "from": [5, 7], "route": [{"to": [5, 11]}, {"to": [28, 11]}, {"to": [28, 17]}, {"to": [25, 17]}, {"to": [25, 16]}, {"face": "up"}]},
+			{"at": "15:40", "map": "sayo_house", "from": [4, 2], "route": [{"face": "left"}]},
+			{"at": "21:00", "map": "away"}
 		]
 	}
 }

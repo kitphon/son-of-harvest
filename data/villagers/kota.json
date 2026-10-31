@@ -1,5 +1,5 @@
 {
-	"_note": "Kota, a boy from the house south-west of the road: plays along the road in the morning, fishes at the pond in the afternoon; in summer he hunts cicadas in the shrine pines instead. Walks a little faster than the grown-ups. Stays in when it is wet. Gifts: corn, sweets and anything with fins; not his vegetables. Format: README.md, Villagers.",
+	"_note": "Kota, a boy from the house south-west of the road: plays along the road in the morning, fishes at the pond in the afternoon; in summer he hunts cicadas in the shrine pines instead. Walks a little faster than the grown-ups. At home (data/maps/kota_house.json) by his toy box before 8:00, at noon and after 17:30, all day when it is wet (with a walk to the hearth now and then); in bed (away) from 20:00, when the door shuts. Gifts: corn, sweets and anything with fins; not his vegetables. Format: README.md, Villagers.",
 	"id": "kota",
 	"name": "Kota",
 	"speed": 2.0,
@@ -18,35 +18,39 @@
 	},
 	"plans": {
 		"festival": [
-			{"at": "06:00", "map": "away"},
+			{"at": "06:00", "map": "kota_house", "from": [1, 2], "route": [{"face": "up"}]},
 			{"at": "09:30", "map": "town", "from": [8, 16], "route": [{"to": [4, 16]}, {"to": [4, 11]}, {"to": [21, 11]}, {"to": [21, 8]}],
 				"loop": [{"face": "up"}, {"wait": 8}, {"to": [16, 8]}, {"face": "down"}, {"wait": 6}, {"to": [21, 8]}]},
 			{"at": "23:30", "map": "town", "route": [{"to": [21, 11]}, {"to": [4, 11]}, {"to": [4, 16]}, {"to": [8, 16]}, {"face": "up"}]},
 			{"at": "23:55", "map": "away"}
 		],
 		"usual": [
-			{"at": "06:00", "map": "away"},
+			{"at": "06:00", "map": "kota_house", "from": [1, 2], "route": [{"face": "up"}]},
 			{"at": "08:00", "map": "town", "from": [8, 16], "route": [{"to": [4, 16]}, {"to": [4, 11]}],
 				"loop": [{"to": [12, 11]}, {"wait": 4}, {"to": [12, 8]}, {"face": "down"}, {"wait": 6}, {"to": [4, 8]}, {"wait": 4}, {"to": [4, 11]}, {"wait": 6}]},
 			{"at": "11:30", "map": "town", "route": [{"to": [4, 11]}, {"to": [4, 16]}, {"to": [8, 16]}, {"face": "up"}]},
-			{"at": "12:00", "map": "away"},
+			{"at": "12:00", "map": "kota_house", "from": [1, 2], "route": [{"face": "up"}]},
 			{"at": "14:00", "map": "town", "from": [8, 16], "route": [{"to": [8, 17]}, {"to": [30, 17]}, {"face": "right"}]},
 			{"at": "17:00", "map": "town", "route": [{"to": [8, 17]}, {"to": [8, 16]}, {"face": "up"}]},
-			{"at": "17:30", "map": "away"}
+			{"at": "17:30", "map": "kota_house", "from": [1, 2], "route": [{"face": "up"}]},
+			{"at": "20:00", "map": "away"}
 		],
 		"summer": [
-			{"at": "06:00", "map": "away"},
+			{"at": "06:00", "map": "kota_house", "from": [1, 2], "route": [{"face": "up"}]},
 			{"at": "08:00", "map": "town", "from": [8, 16], "route": [{"to": [4, 16]}, {"to": [4, 11]}],
 				"loop": [{"to": [12, 11]}, {"wait": 4}, {"to": [12, 8]}, {"face": "down"}, {"wait": 6}, {"to": [4, 8]}, {"wait": 4}, {"to": [4, 11]}, {"wait": 6}]},
 			{"at": "11:30", "map": "town", "route": [{"to": [4, 11]}, {"to": [4, 16]}, {"to": [8, 16]}, {"face": "up"}]},
-			{"at": "12:00", "map": "away"},
+			{"at": "12:00", "map": "kota_house", "from": [1, 2], "route": [{"face": "up"}]},
 			{"at": "14:00", "map": "town", "from": [8, 16], "route": [{"to": [11, 16]}, {"to": [11, 11]}, {"to": [16, 11]}, {"to": [16, 5]}, {"to": [14, 5]}],
 				"loop": [{"to": [14, 2]}, {"face": "left"}, {"wait": 10}, {"to": [14, 5]}, {"to": [23, 5]}, {"to": [23, 3]}, {"face": "right"}, {"wait": 10}, {"to": [23, 5]}, {"to": [14, 5]}]},
 			{"at": "17:00", "map": "town", "route": [{"to": [16, 5]}, {"to": [16, 11]}, {"to": [11, 11]}, {"to": [11, 16]}, {"to": [8, 16]}, {"face": "up"}]},
-			{"at": "17:40", "map": "away"}
+			{"at": "17:40", "map": "kota_house", "from": [1, 2], "route": [{"face": "up"}]},
+			{"at": "20:00", "map": "away"}
 		],
 		"stays_in": [
-			{"at": "06:00", "map": "away"}
+			{"at": "06:00", "map": "kota_house", "from": [1, 2], "route": [{"face": "up"}],
+				"loop": [{"wait": 40}, {"to": [3, 2]}, {"face": "right"}, {"wait": 15}, {"to": [1, 2]}, {"face": "up"}]},
+			{"at": "20:00", "map": "away"}
 		]
 	}
 }

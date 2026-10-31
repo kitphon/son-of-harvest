@@ -21,6 +21,7 @@ func _process(delta: float) -> bool:
 	if _since_door >= 0.0:
 		_since_door += delta
 	if _frame == 1:
+		_homes_3d()
 		_game_maps()
 		_bed_and_doors()
 		_start_view()
@@ -123,7 +124,7 @@ func _map_rules() -> void:
 	check(h.step(Vector2i(3, 3)) == "floor" and h.step(Vector2i(3, 5)) == "soil", "footsteps by floor")
 	var t := MapManager.data("town")
 	check(t.door_at(Vector2i(-1, 10)).to == "farm", "walking off the west edge goes to the farm")
-	check(t.door_at(Vector2i(5, 6)).to == "" and t.door_at(Vector2i(5, 6)).message != "", "village doors are shut for now")
+	_homes(t)
 	check(t.is_solid(Vector2i(17, 6)) and t.is_solid(Vector2i(20, 6)) and not t.is_solid(Vector2i(18, 6)), "torii posts block, the path through it doesn't")
 	check(t.is_solid(Vector2i(32, 15)), "the pond is solid")
 	check(MapView.ground_key(t, Vector2i(31, 14)) == "ground:water:%d" % (PlaceholderArt.WATER_N | PlaceholderArt.WATER_W), "pond banks")
@@ -134,6 +135,59 @@ func _map_rules() -> void:
 	check(inside.get("amb_rain", 0.0) > 0.0 and inside.amb_rain < outside.get("amb_rain", 0.0), "rain is muffled indoors")
 	check(AmbientPicker.pick(rules, "sunny", "summer", 12, "indoor").is_empty(), "no cicadas indoors")
 	check(AmbientPicker.pick(rules, "sunny", "summer", 12) == AmbientPicker.pick(rules, "sunny", "summer", 12, "outdoor"), "outdoor is the default place")
+
+
+## The villagers' homes: doors from the village with hours, the way back out, the furniture.
+func _homes(t: MapData) -> void:
+	var want := {Vector2i(5, 6): "tome_house", Vector2i(8, 15): "kota_house", Vector2i(25, 15): "sayo_house"}
+	for c in want:
+		var d := t.door_at(c)
+		check(d.get("to", "") == want[c] and d.has("hours") and d.closed != "", "the village door %s leads to %s, with hours" % [c, want[c]])
+		var m := MapManager.data(want[c])
+		check(m != null and m.indoor and m.door_at(m.doors[0].cells[0]).to == "town" and m.doors[0].spawn == c + Vector2i.DOWN,
+			"%s is indoors and its door comes out in front of the village door" % want[c])
+		check(m != null and m.spawns.has("home") and not m.is_solid(m.spawns.home[0]), "%s has a free home spot" % want[c])
+	var door := t.door_at(Vector2i(5, 6))
+	check(MapData.door_open(door, 7 * 60) and MapData.door_open(door, 6 * 60) and not MapData.door_open(door, 19 * 60)
+		and not MapData.door_open(door, 25 * 60) and MapData.door_open({}, 25 * 60), "a home is open 6:00-19:00, a door without hours always")
+	check(t.door_at(Vector2i(23, 15)).to == "store" and not t.door_at(Vector2i(23, 15)).has("hours"), "the store's own door keeps its shop hours")
+	var store_house: Dictionary = t.prop_at(Vector2i(23, 14))
+	check(store_house.get("side_door", -1) == 4 and store_house.cell.x + 4 == 25, "the store house draws Sayo's side door over its door cell")
+	# Every prop kind on every map has a look in the flat view, and the homes build in 3D
+	# without the magenta stand-in box.
+	for id in MapManager.ids():
+		var m := MapManager.data(id)
+		for p in m.props:
+			check(MapView.COLORS.has(p.kind), "map %s prop %s has a flat colour" % [id, p.kind])
+	for id in ["tome_house", "kota_house", "sayo_house"]:
+		var kinds := MapManager.data(id).props.map(func(p): return p.kind)
+		for k in (["irori", "tokonoma", "zabuton", "andon"] if id != "sayo_house" else ["tokonoma", "low_table", "zabuton", "byobu"]):
+			check(k in kinds, "%s has a %s" % [id, k])
+	for bad in [["06:00"], ["20:00", "06:00"], ["6", "20:00"]]:
+		check(MapData.parse({"id": "x", "size": [2, 1], "legend": {"a": {"tile": "grass"}}, "ground": ["aa"], "spawns": {"start": [[0, 0], "up"]},
+			"doors": [{"cells": [[1, 0]], "to": "town", "spawn": [5, 7], "facing": "down", "hours": bad, "closed": "Shut."}]})[0] != "",
+			"refused door hours %s" % [bad])
+	check(MapData.parse({"id": "x", "size": [2, 1], "legend": {"a": {"tile": "grass"}}, "ground": ["aa"], "spawns": {"start": [[0, 0], "up"]},
+		"doors": [{"cells": [[1, 0]], "to": "town", "spawn": [5, 7], "facing": "down", "hours": ["06:00", "20:00"]}]})[0] != "",
+		"door hours without a closed message are refused")
+
+
+## The homes build in 3D without the magenta stand-in box (MapWorld needs the autoloads, so
+## this runs on the first frame).
+func _homes_3d() -> void:
+	for id in ["tome_house", "kota_house", "sayo_house"]:
+		var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+		w.build(MapManager.data(id))
+		var stand_in := 0
+		var meshes := 0
+		for n in w.get_children():
+			if n is MeshInstance3D:
+				meshes += 1
+				var mat: Variant = n.material_override
+				if mat is StandardMaterial3D and mat.albedo_color == Color.MAGENTA:
+					stand_in += 1
+		check(stand_in == 0 and meshes > 60, "%s builds in 3D (%d meshes, %d stand-ins)" % [id, meshes, stand_in])
+		w.free()
 
 
 ## Game: the clock stops indoors, map signals, day end puts the farmer home, the saved part.
@@ -158,6 +212,22 @@ func _game_maps() -> void:
 	check(not g.go_to_map("moon", Vector2i.ZERO, Vector2i.DOWN) and g.maps.id == "house", "an unknown map is refused")
 	g.use_door({"to": "", "message": "Locked."})
 	check(g.maps.id == "house", "a door with only a message goes nowhere")
+	# A villager's home: in by day, shut at night with its message.
+	var said := []
+	g.message.connect(func(text): said.append(text))
+	var tome_door: Dictionary = MapManager.data("town").door_at(Vector2i(5, 6))
+	g.go_to_map("town", Vector2i(5, 7), Vector2i.UP)
+	g.hour = 19
+	g.minute = 30
+	g.use_door(tome_door)
+	check(g.maps.id == "town" and not said.is_empty() and said.back() == tome_door.closed, "Tome's house is shut at 19:30 %s" % [said])
+	g.hour = 8
+	g.minute = 0
+	g.use_door(tome_door)
+	check(g.maps.id == "tome_house" and g.maps.pos == MapManager.cell_pos(Vector2i(4, 5)) and g.indoors(), "and open at 8:00")
+	g.use_door(MapManager.data("tome_house").doors[0])
+	check(g.maps.id == "town" and g.maps.pos == MapManager.cell_pos(Vector2i(5, 7)), "out again in front of her door")
+	g.go_to_map("house", Vector2i(4, 5), Vector2i.UP)
 	g.use_door(MapManager.data("house").doors[0])
 	check(g.maps.id == "farm" and g.maps.pos == MapManager.cell_pos(Vector2i(4, 4)) and g.maps.facing == Vector2i.DOWN, "out of the house to the farm door")
 	check(g.ticking(), "outside the clock runs again")
