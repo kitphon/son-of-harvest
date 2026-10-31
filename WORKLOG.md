@@ -10,6 +10,43 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Merged six branches: music, events, maps, rucksack, food, hold / throw
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged with `--no-ff`, one at a time, tests after each, in this order:
+  `claude/music-volume-b700e8` (5c826bd), `claude/event-scripts-bc6b2b` (30b267a),
+  `claude/map-switching-a30ee8` (2ada014), `claude/rucksack-storage-c06aae` (a459971),
+  `claude/food-items-40a9a2` (605572d), `claude/hold-throw-f0459f` (22c67cb). WORKLOG kept
+  main's entries plus each branch's new one; AGENTS / README / ROADMAP kept both sides (test
+  list, debug flags, keys), "Next up" now points at villagers with schedules. Code joins:
+  - Events + maps: EventPlayer loads a map's trigger table on `Game.map_entered`; test_maps
+    marks the farm's morning events seen so its door check isn't taken over by them, and
+    checks that the triggers follow the map into the house.
+  - Rucksack + maps: the farm house door leads inside now, so FarmActions keeps only the
+    chest from the rucksack branch; sleeping stays at the futon.
+  - Food + rucksack: "food" is the 7th tool slot (`data/inventory.json`: 7 tool slots, an
+    onigiri at the start), food items are `food:<id>` in the slots with their own icons
+    (`PlaceholderArt.item_key` takes the food in hand), the hand box moved right of the wider
+    tool bar, the save keeps the inventory and the food in hand.
+  - Hold / throw + rucksack: the item held overhead is the rucksack's hand slot
+    (`Game.held` reads / writes Inventory "hand"; a throw or put-down takes one off it), so
+    there is one hand, not two; a harvest goes up into it, the save keeps it through the
+    inventory (no separate `held` key). Throwing / putting down only on the farm; walking
+    into a door still goes through. The world sprite key is now
+    `PlaceholderArt.world_item_key` (crops as produce, other items as their icon) next to
+    the slot icon key `item_key`. New check in test_hold (a stack in the hand throws one at
+    a time); test_save / test_inventory / test_title updated for the 7th slot and the hand.
+- Checked on merged main: `test_audio`, `test_body`, `test_dialogue`, `test_events`,
+  `test_farm`, `test_food`, `test_hold`, `test_inventory`, `test_maps`, `test_menu`,
+  `test_save`, `test_title`, `test_weather` all print `OK (0 failed)`; headless
+  `--quit-after 300` (title, `-- --demo`, `--demo --map=town`, `--demo --hold`,
+  `--demo --rucksack`) and `res://scenes/main.tscn --quit-after 400` (triggers on) printed
+  no errors or warnings; no conflict markers. Movie Maker frames: `--demo --hold` (turnip
+  overhead and in the hand box, 7 tool slots ending in the onigiri, chest by the house),
+  `--demo --rucksack` (7 tool slots, food icons in the bag).
+- Left / next: nothing of the six was played in a real window (keys, doors, throws, menus,
+  events), and nobody has heard the music. The 2D view doesn't draw the throw arc yet (the
+  hold branch added it to 3D only).
+
 ## 2026-10-31 — Holding and throwing items, shipping by throwing into the bin
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: items are things in the world (DESIGN "ไอเท็มในโลก"). Rules:
