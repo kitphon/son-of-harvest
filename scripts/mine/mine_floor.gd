@@ -5,7 +5,9 @@ extends RefCounted
 ## entry from a seed (make), so the same seed, depth and season always lay out the same
 ## floor. Nothing here is saved: leaving goes back up, and the next visit is a new floor.
 ## MapManager asks it about solid cells and the hole (a door); the views draw it and redraw
-## on `changed`. Numbers and finds come from data/mine.json.
+## on `changed`, and light it with `light` and the farmer's `lantern`. In winter the shallow
+## floors are frozen: frost on the ground, blocks of ice to break. Numbers and finds come
+## from data/mine.json.
 
 signal changed
 
@@ -13,11 +15,15 @@ var depth := 1
 var seed := 0
 var season := "spring"
 var map: MapData
-var rocks: Dictionary = {}     # cell -> {kind: "rock" / "big_rock", hits: needed, done: taken, find: item or "" or "stairs"}
+var rocks: Dictionary = {}     # cell -> {kind: "rock" / "big_rock" / "ice", hits: needed, done: taken, find: item or "" or "stairs"}
 var soft: Dictionary = {}      # cell -> what digging finds there (item, "" or "stairs")
 var stairs := Vector2i(-1, -1) # where the hole down is hidden
 var open := false              # the hole is uncovered: walking into it goes down
 var loose: Dictionary = {}     # cell -> a find left lying (no room for it), picked up with E
+var frozen := false            # a winter floor (data/mine.json "winter")
+var frost: Array[Vector2i] = []   # cells lying white with frost on a frozen floor (only a look)
+var light := Color.WHITE       # the floor's light: the picture is multiplied by it
+var lantern := {}              # the farmer's lantern: {radius (cells), soft, color}
 
 
 ## A new floor at `depth` on the cave `cave_map` in `season_id`, laid out from `floor_seed`.
@@ -27,8 +33,38 @@ static func make(rules: Dictionary, cave_map: MapData, floor_depth: int, season_
 	f.seed = floor_seed
 	f.season = season_id
 	f.map = cave_map
+	f.frozen = is_frozen(rules, f.depth, season_id)
+	f.light = light_at(rules, f.depth, season_id)
+	var l: Dictionary = rules.get("light", {}).get("lantern", {})
+	f.lantern = {"radius": float(l.get("radius", 0.0)), "soft": float(l.get("soft", 0.5)),
+		"color": Color(str(l.get("color", "ffffff")))}
 	f._lay_out(rules)
 	return f
+
+
+## Is floor `floor_depth` frozen in `season_id`? Winter reaches down to the "winter" `to` floor.
+static func is_frozen(rules: Dictionary, floor_depth: int, season_id: String) -> bool:
+	var w: Dictionary = rules.get("winter", {})
+	return season_id in w.get("seasons", []) and floor_depth <= int(w.get("to", 0))
+
+
+## The light on floor `floor_depth`: the "light" depths blended between the two floors around
+## it (held past the last), times the cold of a frozen floor.
+static func light_at(rules: Dictionary, floor_depth: int, season_id := "") -> Color:
+	var stops: Array = rules.get("light", {}).get("depths", [])
+	var c := Color.WHITE
+	if not stops.is_empty():
+		c = Color(str(stops[0][1]))
+		for i in range(1, stops.size()):
+			var a: Array = stops[i - 1]
+			var b: Array = stops[i]
+			if floor_depth >= int(b[0]):
+				c = Color(str(b[1]))
+			elif floor_depth > int(a[0]):
+				c = Color(str(a[1])).lerp(Color(str(b[1])), float(floor_depth - int(a[0])) / float(int(b[0]) - int(a[0])))
+	if is_frozen(rules, floor_depth, season_id):
+		c *= Color(str(rules.get("winter", {}).get("light", "ffffff")))
+	return c
 
 
 ## The band of data/mine.json "floors" for a depth: the last one that starts at or above it.
@@ -108,6 +144,22 @@ func _lay_out(rules: Dictionary) -> void:
 		rocks[stairs].find = "stairs"
 	else:
 		soft[stairs] = "stairs"
+	if frozen:
+		_freeze(rules.get("winter", {}), free, rng)
+
+
+## A frozen floor: blocks of ice on free cells (after the hole is placed, so it is never under
+## the ice), then frost over a share of what is still open.
+func _freeze(w: Dictionary, free: Array[Vector2i], rng: RandomNumberGenerator) -> void:
+	var finds := {}
+	for id in w.get("finds", {}):
+		if float(w.finds[id]) > 0.0:
+			finds[id] = float(w.finds[id])
+	for i in mini(_count(w.get("ice", [0, 0]), rng), free.size()):
+		var c: Vector2i = free.pop_back()
+		rocks[c] = {"kind": "ice", "hits": maxi(int(w.get("hits", 1)), 1), "done": 0, "find": _roll(finds, rng)}
+	for i in mini(roundi(float(w.get("frost", 0.0)) * free.size()), free.size()):
+		frost.append(free.pop_back())
 
 
 static func _count(range_: Array, rng: RandomNumberGenerator) -> int:

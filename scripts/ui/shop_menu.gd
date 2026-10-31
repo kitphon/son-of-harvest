@@ -2,8 +2,8 @@ class_name ShopMenu
 extends RefCounted
 ## The shop screen's tabs, list and cursor, without any drawing (ShopScreen draws it,
 ## headless tests check it). The tabs come from what the shop does: "buy" (its stock this
-## season, and the next bigger rucksack first), "sell" (carried things it buys), "tools"
-## (upgrades) and "build" (house extensions). Up / down pick a row, left / right how many,
+## season, and the next bigger rucksack first), "tools" (upgrades), "sell" (carried things it
+## buys) and "build" (house extensions). Up / down pick a row, left / right how many,
 ## choose() makes the deal through the game `g` (Game's shop_buy, shop_sell, shop_upgrade,
 ## shop_collect, shop_build) and returns its note.
 
@@ -24,10 +24,10 @@ func _init(game, shop_id: String) -> void:
 	shop = game.shop(shop_id)
 	if not shop.stock_by_season.is_empty():
 		tabs.append("buy")
-	if not shop.buys.is_empty():
-		tabs.append("sell")
 	if shop.upgrades():
 		tabs.append("tools")
+	if not shop.buys.is_empty():
+		tabs.append("sell")
 	if not shop.builds.is_empty():
 		tabs.append("build")
 
@@ -37,9 +37,10 @@ func tab_id() -> String:
 
 
 ## The open tab's rows. buy: {item, price, to} (the rucksack row also level and slots);
-## sell: {item, price, have}; tools: {item (the tool), level, state, price?, days?, ready?}
-## with state offer / top (no next level) / missing (not in the tool slots) / away (at the
-## forge) / ready (to collect) / busy (another tool is being worked on); build: Shop.build_offer.
+## sell: {item, price, have}; tools: {item (the tool), level, state, price?, days?, items?,
+## lack?, ready?} with state offer / short (materials missing from the rucksack, lack = how
+## many more) / top (no next level) / missing (not in the tool slots) / away (at the forge) /
+## ready (to collect) / busy (another tool is being worked on); build: Shop.build_offer.
 func rows() -> Array[Dictionary]:
 	match tab_id():
 		"buy":
@@ -73,6 +74,9 @@ func rows() -> Array[Dictionary]:
 						row.merge(offer, true)
 						row.level = g.tool_level(tool)
 						row.state = "busy" if not job.is_empty() else ("offer" if g.inventory.count(tool, ["tools"]) > 0 else "missing")
+						row.lack = Shop.short_of(g.inventory, offer.items)
+						if row.state == "offer" and not row.lack.is_empty():
+							row.state = "short"   # the ores (or other materials) aren't in the rucksack
 				out.append(row)
 			return out
 	return []

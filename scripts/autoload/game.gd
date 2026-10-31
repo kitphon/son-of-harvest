@@ -165,6 +165,13 @@ func new_game() -> void:
 	affection = Affection.new()
 	Villagers.reset_day()
 	mine_deepest = 0
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--season="):   # `-- --demo --season=winter --mine=3`: day 1 of that season
+			var s := SEASONS.find(arg.trim_prefix("--season="))
+			if s < 0:
+				push_warning("No season " + arg)
+			else:
+				season = s
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--festival="):   # `-- --demo --festival=lantern_night`: its day, hours and place
@@ -372,7 +379,8 @@ func use_door(door: Dictionary) -> void:
 func map_arrived() -> void:
 	map_entered.emit(maps.id)
 	if maps.mine_floor != null:
-		message.emit("Mine floor %d" % maps.mine_floor.depth)
+		var frozen := ", %s" % str(mine_data.get("winter", {}).get("name", "frozen")) if maps.mine_floor.frozen else ""
+		message.emit("Mine floor %d%s" % [maps.mine_floor.depth, frozen])
 	# The night's animal news waits for the farmer to look in on them.
 	if animals.home_on_map(maps.id) != "" and not animal_news.is_empty():
 		message.emit(". ".join(animal_news))

@@ -1,5 +1,5 @@
 {
-	"_about": "Shops (Shop, ShopMenu, ShopScreen; README.md, Shops). Per shop: name, map (its inside, data/maps), open [first hour, closing hour) and days_off (mon..sun): outside those the door and the counter only say closed_message (%s = the shop name, then the hours and the days off). keeper: the villager who stands at the counter (\"\" = nobody; the counter works without one); with a keeper the shop also sells only while their day plan has them on the shop's map, and talking to them at the map's keeper spot opens it. stock: what it sells, per season plus \"any\" (every season) and \"supplies\" (every season, listed first), each {item, price?, name?, to?, full?}: without a price the item's own one is used (seed_price in crops.json for seeds:<crop>, price in foods.json for food:<id>). to says where a purchase goes: \"rucksack\" (default), \"animal\" (animal:<kind>, Game.add_animal, refused with full when its home has no room) or \"feed\" (portions into the coop's feed sack). rucksack: bigger rucksacks for sale, each level {slots (the bag's new size), price}, bought once each in order. builds: house extensions the builder (a villager) makes, per id {name, about, price, days, chest_slots?}; done is the morning message (%s = its name); one at a time, paid when ordered, finished overnight on the ready day; the map changes come from the \"extensions\" of that map's file (data/maps/house.json). buys: what it buys from the farmer, kind -> percent of the item's value (crop = its sell price, food = its price). upgrades: tools it improves, per target level {price, days, items?} (tool_levels: other levels for one tool, e.g. the rod, whose levels are in data/fish.json); the tool is handed in, comes back that many days later (collect it while the shop is open). Names, prices and hours are ours; see WORKLOG 2026-10-31 Shops.",
+	"_about": "Shops (Shop, ShopMenu, ShopScreen; README.md, Shops). Per shop: name, map (its inside, data/maps), open [first hour, closing hour) and days_off (mon..sun): outside those the door and the counter only say closed_message (%s = the shop name, then the hours and the days off). keeper: the villager who stands at the counter (\"\" = nobody; the counter works without one); with a keeper the shop also sells only while their day plan has them on the shop's map, and talking to them at the map's keeper spot opens it. stock: what it sells, per season plus \"any\" (every season) and \"supplies\" (every season, listed first), each {item, price?, name?, to?, full?}: without a price the item's own one is used (seed_price in crops.json for seeds:<crop>, price in foods.json for food:<id>). to says where a purchase goes: \"rucksack\" (default), \"animal\" (animal:<kind>, Game.add_animal, refused with full when its home has no room) or \"feed\" (portions into the coop's feed sack). rucksack: bigger rucksacks for sale, each level {slots (the bag's new size), price}, bought once each in order. builds: house extensions the builder (a villager) makes, per id {name, about, price, days, chest_slots?}; done is the morning message (%s = its name); one at a time, paid when ordered, finished overnight on the ready day; the map changes come from the \"extensions\" of that map's file (data/maps/house.json). buys: what it buys from the farmer, kind -> percent of the item's value (crop = its sell price, food = its price; stone, ore and gem = the kinds of mine finds, their sell in data/mine.json). upgrades: tools it improves, per target level {price, days, items?} (items: id -> how many, taken from the rucksack when the tool is handed in, e.g. ores from the mine) (tool_levels: other levels for one tool, e.g. the rod, whose levels are in data/fish.json); the tool is handed in, comes back that many days later (collect it while the shop is open). Names, prices and hours are ours; see WORKLOG 2026-10-31 Shops.",
 	"closed_message": "%s is closed. Open %s, %s.",
 	"shops": {
 		"general": {
@@ -20,7 +20,7 @@
 				"any": [{"item": "food:onigiri"}, {"item": "food:green_tea"}, {"item": "food:dango"},
 					{"item": "food:milk", "price": 100}, {"item": "food:yomogi_tea"}]
 			},
-			"buys": {"crop": 80},
+			"buys": {"crop": 80, "gem": 120},
 			"rucksack": {"name": "Bigger rucksack", "levels": [{"slots": 12, "price": 2000}, {"slots": 16, "price": 6000}]},
 			"builds": {
 				"builder": "hachiro",
@@ -45,19 +45,27 @@
 			"upgrades": {
 				"tools": ["hoe", "can", "sickle", "hammer", "axe", "rod"],
 				"levels": {
-					"2": {"price": 1000, "days": 2},
-					"3": {"price": 2500, "days": 3},
-					"4": {"price": 5000, "days": 3},
-					"5": {"price": 10000, "days": 4}
+					"2": {"price": 1000, "days": 2,
+						"items": {"mine:akagane": 3}},
+					"3": {"price": 2500, "days": 3,
+						"items": {"mine:shirogane": 3, "mine:satetsu": 2}},
+					"4": {"price": 5000, "days": 3,
+						"items": {"mine:kogane": 3, "mine:satetsu": 3}},
+					"5": {"price": 10000, "days": 4,
+						"items": {"mine:hoshigane": 2, "mine:kogane": 2}}
 				},
 				"tool_levels": {
 					"rod": {
-						"2": {"price": 800, "days": 2},
-						"3": {"price": 2000, "days": 2},
-						"4": {"price": 4500, "days": 3}
+						"2": {"price": 800, "days": 2,
+							"items": {"mine:akagane": 2}},
+						"3": {"price": 2000, "days": 2,
+							"items": {"mine:shirogane": 2}},
+						"4": {"price": 4500, "days": 3,
+							"items": {"mine:kogane": 2}}
 					}
 				}
-			}
+			},
+			"buys": {"stone": 150, "ore": 120}
 		}
 	}
 }

@@ -98,9 +98,12 @@ store_intro, smithy_intro; villagers act in events with the `actor` step).
 Mining is in (milestone 9): the mine entrance at the village road's east end, floors laid out
 fresh from a seed on every entry (data/mine.json; README → Mine), the hammer on rocks, the hoe
 on soft spots, a hole down under one of them, ores / stones / gems into the rucksack, only the
-deepest floor saved. Later for the mine: the smithy asking for ores (`mine:akagane` ..
-`mine:hoshigane`) in its upgrades, a winter variant (a frozen pond or snow cave), the shops
-buying stones and gems, a lantern or light that changes with depth.
+deepest floor saved. Mine extras are in too: the Kurogane Smithy asks for ores in its tool
+upgrades (`items` on the upgrade levels in data/shops.json), the smithy buys stones and ores
+and the store buys gems (`buys` by kind), each floor is darker than the one above with a
+lantern circle round the farmer (both views), and in winter floors 1-9 are frozen (frost,
+ice blocks hiding frost stone, a cold light; `winter` in data/mine.json). Later for the mine:
+mine finds in the villagers' gift lists, real art for the ice and the lantern.
 Festivals are in (milestone 9): `data/festivals.json` (date, hours, map, place, event, shops
 shut, decorations, fireworks), the HUD tag under the clock, the calendar notes, fair weather
 on the day, Kota and Tome out all day. Later for festivals: contests and prizes (DESIGN asks
@@ -165,6 +168,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 9. **Festivals, mining / fishing, relationships, endings**
    - [x] Fishing: rod (8th tool slot), cast at the farm / village pond, bite cue, fish per place / season / hour / weather (data/fish.json)
    - [x] Mining: entrance east of the village, floors laid out fresh from a seed, rocks / soft spots / hole down, ores and gems per depth and season (data/mine.json)
+   - [x] Mine extras: ores for the smithy's upgrades, shops buying stones / ores / gems, light by depth with a lantern (both views), frozen floors in winter
    - [x] Festivals: one per season in data/festivals.json (Blossom Day, Lantern Night with fireworks, Moon Night, Year's Turn), HUD tag, shops shut, decorations in both views, an event once a year, villagers gather
    - [ ] Relationships, endings
 10. **Audio and release**

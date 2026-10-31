@@ -22,6 +22,8 @@ var area_marks: Array[MeshInstance3D] = []   # brackets on every cell of a charg
 var charge_pips: Sprite3D
 var cam: Camera3D
 var tint: ColorRect
+var _mul: CanvasItemMaterial       # the tint's plain multiply
+var _lantern: ShaderMaterial       # the tint down the mine: the floor's light and the lantern
 var weather: WeatherFX
 var world: FarmWorld
 var env: Environment
@@ -119,9 +121,10 @@ func _ready() -> void:
 	tint = ColorRect.new()
 	tint.set_anchors_preset(Control.PRESET_FULL_RECT)
 	tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var mul := CanvasItemMaterial.new()
-	mul.blend_mode = CanvasItemMaterial.BLEND_MODE_MUL
-	tint.material = mul
+	_mul = CanvasItemMaterial.new()
+	_mul.blend_mode = CanvasItemMaterial.BLEND_MODE_MUL
+	_lantern = MineLight.material()
+	tint.material = _mul
 	layer.add_child(tint)
 	# Lightning: a short wash of pale sky light added over the picture (Lightning times it).
 	flash = ColorRect.new()
@@ -223,6 +226,7 @@ func _process(delta: float) -> void:
 	anim.step(delta, player.moving, player.running, Game.body_state() != "fine", Game.holding(), Game.fishing.state)
 	_update_flash(delta)
 	_follow()
+	_aim_lantern()
 	_fly(delta)
 	_show_fishing()
 
@@ -354,7 +358,24 @@ func _update_flash(delta: float) -> void:
 	flash.color = Color(sky.r, sky.g, sky.b, 1.0)
 
 
-## Day / night light outdoors; a room has its own steady lamp light.
+## Day / night light outdoors; a room has its own steady lamp light; a mine floor its own
+## (darker deeper) with the farmer's lantern.
 func _update_tint() -> void:
 	var m := Game.maps.current()
-	tint.color = m.light if m.light != null else Game.light_color()
+	var f := Game.maps.mine_floor
+	tint.material = _lantern if f != null else _mul
+	tint.color = f.light if f != null else (m.light if m.light != null else Game.light_color())
+	_aim_lantern()
+
+
+## The lantern circle follows the farmer on screen, one cell measured across at their feet.
+func _aim_lantern() -> void:
+	var f := Game.maps.mine_floor
+	if f == null or tint.material != _lantern:
+		return
+	var at := sprite.global_position + Vector3(0, 0.6, 0)
+	if not cam.is_inside_tree() or cam.is_position_behind(at):   # before the camera follows on a new map
+		return
+	var center := cam.unproject_position(at)
+	var cell := center.distance_to(cam.unproject_position(at + cam.global_basis.x))
+	MineLight.aim(_lantern, f, center, cell, tint.size)

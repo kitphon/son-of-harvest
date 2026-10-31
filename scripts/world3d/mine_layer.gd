@@ -1,7 +1,7 @@
 class_name MineLayer
 extends Node3D
-## A mine floor in 3D, over the cave's MapWorld: rocks and big rocks stand up as sprites, soft
-## spots and the open hole lie flat on the ground, finds left lying stand on their cells.
+## A mine floor in 3D, over the cave's MapWorld: rocks, big rocks and ice stand up as sprites,
+## frost, soft spots and the open hole lie flat on the ground, finds left lying stand on their cells.
 ## Reads a MineFloor and rebuilds on its `changed`. Same units as FarmWorld (1 unit = 1 cell).
 
 var floor_: MineFloor
@@ -16,6 +16,8 @@ func setup(f: MineFloor) -> void:
 func _rebuild() -> void:
 	for child in get_children():
 		child.queue_free()
+	for c in floor_.frost:
+		_flat("mine:frost", c, 0.01)
 	for c in floor_.soft:
 		_flat("mine:soft", c, 0.012)
 	if floor_.open:

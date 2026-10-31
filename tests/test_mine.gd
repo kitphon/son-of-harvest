@@ -1,6 +1,6 @@
 extends SceneTree
 ## Headless checks for the mine (data/mine.json, MineFloor, Game.mine_swing / go_to_map down
-## the mine, the maps and their doors, stamina, the save, the art). Run:
+## the mine, the maps and their doors, stamina, the save, the light, winter floors, the art). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_mine.gd
 
 var failures := 0
@@ -15,6 +15,9 @@ func _init() -> void:
 	_maps()
 	_game_mine(rules)
 	_save(rules)
+	_light(rules)
+	_winter(rules)
+	_game_winter(rules)
 	_art(rules)
 	print("test_mine: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -343,7 +346,8 @@ func _save(rules: Dictionary) -> void:
 ## Rocks, soft spots, the hole, cave ground and an icon for every find, all different.
 func _art(rules: Dictionary) -> void:
 	var magenta := PlaceholderArt.tex("unknown:x").get_image().get_data()
-	var sizes := {"mine:rock": Vector2i(16, 16), "mine:big_rock": Vector2i(24, 20), "mine:soft": Vector2i(16, 16), "mine:hole": Vector2i(16, 16)}
+	var sizes := {"mine:rock": Vector2i(16, 16), "mine:big_rock": Vector2i(24, 20), "mine:soft": Vector2i(16, 16), "mine:hole": Vector2i(16, 16),
+		"mine:ice": Vector2i(16, 16), "mine:frost": Vector2i(16, 16)}
 	for key in sizes:
 		var img := PlaceholderArt.tex(key).get_image()
 		check(img.get_size() == sizes[key] and img.get_data() != magenta, "%s drawn" % key)
@@ -362,6 +366,122 @@ func _art(rules: Dictionary) -> void:
 		check(img.get_size() == Vector2i(14, 14) and solid >= 25, "%s icon (%d px)" % [id, solid])
 		seen[img.get_data()] = id
 	check(seen.size() == rules.items.size(), "every find looks different")
+
+
+## Darker deeper: the light blends between its depths and holds below the last; the lantern
+## is brighter than any floor; the shader and its aim.
+func _light(rules: Dictionary) -> void:
+	var stops: Array = rules.light.depths
+	check(stops.size() >= 2 and int(stops[0][0]) == 1, "light depths start at floor 1")
+	check(MineFloor.light_at(rules, 1).is_equal_approx(Color(str(stops[0][1]))), "floor 1 has the first light")
+	var a: Array = stops[0]
+	var b: Array = stops[1]
+	var mid := (int(a[0]) + int(b[0])) / 2
+	var want := Color(str(a[1])).lerp(Color(str(b[1])), float(mid - int(a[0])) / float(int(b[0]) - int(a[0])))
+	check(MineFloor.light_at(rules, mid).is_equal_approx(want), "floor %d is blended between the first two" % mid)
+	check(MineFloor.light_at(rules, 99).is_equal_approx(Color(str(stops.back()[1]))), "deep floors keep the last light")
+	var darker := true
+	for d in range(2, 40):
+		darker = darker and MineFloor.light_at(rules, d).get_luminance() <= MineFloor.light_at(rules, d - 1).get_luminance() + 0.0001
+	check(darker, "no floor is lighter than the one above")
+	check(MineFloor.light_at(rules, 20).get_luminance() < MineFloor.light_at(rules, 1).get_luminance() * 0.4, "deep floors are much darker")
+	var f := MineFloor.make(rules, MapManager.data(rules.floor_map), 12, "summer", 5)
+	check(f.light.is_equal_approx(MineFloor.light_at(rules, 12)) and not f.frozen and f.frost.is_empty(), "a floor keeps its light; summer isn't frozen")
+	var lantern: Color = f.lantern.color
+	check(float(f.lantern.radius) >= 2.0 and lantern.get_luminance() > MineFloor.light_at(rules, 1).get_luminance(),
+		"the lantern reaches %s cells and outshines every floor" % f.lantern.radius)
+	var m := MineLight.material()
+	check(m.shader != null and m.shader.code.contains("blend_mul"), "the light multiplies the picture")
+	MineLight.aim(m, f, Vector2(240, 135), 20.0, Vector2(480, 270))
+	check(is_equal_approx(m.get_shader_parameter("radius"), float(f.lantern.radius) * 20.0) and m.get_shader_parameter("center") == Vector2(240, 135),
+		"the lantern is aimed at the farmer, in screen pixels")
+
+
+## Winter: floors down to `to` are frozen (ice blocks with their own finds, frost, a cold light);
+## deeper floors and other seasons are not. The hole is never under the ice.
+func _winter(rules: Dictionary) -> void:
+	var w: Dictionary = rules.winter
+	var to := int(w.to)
+	check(MineFloor.is_frozen(rules, 1, "winter") and MineFloor.is_frozen(rules, to, "winter"), "winter floors 1-%d are frozen" % to)
+	check(not MineFloor.is_frozen(rules, to + 1, "winter") and not MineFloor.is_frozen(rules, 1, "fall"), "deeper, or in fall, they aren't")
+	for id in w.finds:
+		check(id == "none" or rules.items.has(id), "winter find %s is an item" % id)
+	check(rules.items.has("hyoseki") and w.finds.has("hyoseki"), "frost stone grows in the ice")
+	for band in rules.floors:
+		for src in band.finds:
+			check(not band.finds[src].has("hyoseki"), "frost stone only comes from ice (band %d %s)" % [band.from, src])
+	var warm := MineFloor.light_at(rules, 3, "fall")
+	var cold := MineFloor.light_at(rules, 3, "winter")
+	check(cold.b / maxf(cold.r, 0.001) > warm.b / maxf(warm.r, 0.001) and cold.is_equal_approx(warm * Color(str(w.light))), "a frozen floor's light is colder")
+	check(MineFloor.light_at(rules, to + 1, "winter").is_equal_approx(MineFloor.light_at(rules, to + 1, "fall")), "deeper floors keep their light in winter")
+	var cave := MapManager.data(rules.floor_map)
+	var start: Vector2i = cave.spawns.start[0]
+	var bad := 0
+	var finds := {}
+	var frost_share := 0.0
+	var n := 200
+	for seed in n:
+		var f := MineFloor.make(rules, cave, 1 + seed % to, "winter", seed)
+		bad += int(not f.frozen)
+		var ice := 0
+		for c in f.rocks:
+			if f.rocks[c].kind == "ice":
+				ice += 1
+				bad += int(f.rocks[c].hits != int(w.hits) or f.rocks[c].find == "stairs" or c == f.stairs)
+				finds[f.rocks[c].find] = int(finds.get(f.rocks[c].find, 0)) + 1
+		bad += int(ice < int(w.ice[0]) or ice > int(w.ice[1]))
+		bad += int(f.stairs == Vector2i(-1, -1))
+		var open := 0
+		for c in f.frost:
+			bad += int(f.rocks.has(c) or f.soft.has(c) or cave.is_solid(c) or not cave.door_at(c).is_empty())
+			bad += int(absi(c.x - start.x) <= int(rules.safe_radius) and absi(c.y - start.y) <= int(rules.safe_radius))
+		for y in cave.h:
+			for x in cave.w:
+				var c := Vector2i(x, y)
+				open += int(not cave.is_solid(c) and not f.rocks.has(c) and not f.soft.has(c))
+		frost_share += float(f.frost.size()) / maxf(open, 1.0)
+	check(bad == 0, "frozen floors keep the rules (%d problems in %d floors)" % [bad, n])
+	check(finds.has("hyoseki") and finds.has("") and int(finds.hyoseki) > int(finds.get("suisho", 0)), "ice hides frost stone most often (%s)" % [finds])
+	check(absf(frost_share / n - float(w.frost)) < 0.08, "about %d%% of the open floor is frosty (%.2f)" % [int(float(w.frost) * 100), frost_share / n])
+	var deep := MineFloor.make(rules, cave, to + 3, "winter", 9)
+	var none := true
+	for c in deep.rocks:
+		none = none and deep.rocks[c].kind != "ice"
+	check(none and deep.frost.is_empty() and not deep.frozen, "a warm deep floor in winter has no ice or frost")
+	var f := MineFloor.make(rules, cave, 2, "winter", 3)
+	var block := _rock(f, "ice")
+	check(block.x >= 0 and f.is_solid(block), "ice blocks the way")
+	f.rocks[block].find = "hyoseki"
+	var blows := 0
+	var r := {}
+	while f.rocks.has(block) and blows < 10:
+		r = f.hit(block, 1)
+		blows += 1
+	check(blows == int(w.hits) and r == {"result": "broke", "find": "hyoseki"}, "ice breaks in %d blows, frost stone inside" % blows)
+
+
+## Game in winter: down the cave mouth to a frozen floor 1, its message, the hammer on ice.
+func _game_winter(rules: Dictionary) -> void:
+	var g := _game(rules)
+	g.season = 3
+	var said := []
+	g.message.connect(func(t): said.append(t))
+	g.use_door(MapManager.data("mine").door_at(Vector2i(7, 2)))
+	var f: MineFloor = g.maps.mine_floor
+	check(f.season == "winter" and f.frozen and not f.frost.is_empty(), "winter: floor 1 is frozen")
+	g.map_arrived()
+	check(not said.is_empty() and said.back() == "Mine floor 1, frozen", "it says so: %s" % [said])
+	var block := _rock(f, "ice")
+	f.rocks[block].find = "hyoseki"
+	f.rocks[block].done = int(rules.winter.hits) - 1
+	var res: Dictionary = g.mine_swing("hammer", block + Vector2i.UP, Vector2i.DOWN, 0)
+	check(res.worked and res.finds == [{"item": "mine:hyoseki", "to": "bag"}] and g.count("mine:hyoseki") == 1, "the hammer breaks ice: %s" % res)
+	check(g.item_name("mine:hyoseki") == "Frost stone" and g.sell_price("mine:hyoseki") == int(rules.items.hyoseki.sell), "frost stone's name and price")
+	g.season = 0
+	g.use_door(MapManager.data("mine_floor").door_at(Vector2i(8, 0)))
+	g.use_door(MapManager.data("mine").door_at(Vector2i(7, 2)))
+	check(not g.maps.mine_floor.frozen, "spring: the cave has thawed")
+	g.free()
 
 
 func _rock(f: MineFloor, kind: String) -> Vector2i:

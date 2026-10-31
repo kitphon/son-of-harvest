@@ -10,6 +10,45 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Mine extras: ores for the smithy, finds sold in shops, light by depth, frozen floors
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: (1) The Kurogane Smithy asks for ores: `items` on its upgrade levels in
+  data/shops.json (new keys only, on their own lines): level 2 = 3 akagane, 3 = 3 shirogane +
+  2 iron sand, 4 = 3 kogane + 3 iron sand, 5 = 2 hoshigane + 2 kogane; the rod 2 akagane / 2
+  shirogane / 2 kogane. `Shop.start_upgrade` takes them from the rucksack only (an ore
+  overhead doesn't count) and says e.g. "Bring 1 Akagane ore" (`Shop.short_of`,
+  `materials_text`; offers now give whole-number counts). `ShopMenu` marks such a row `short`
+  with `lack`; the screen greys it and says "Still needs 3 Akagane ore." (an offer: "Needs 3
+  Akagane ore. 2 days."). Tabs are now buy, tools, sell, build, so the smithy opens on Tools.
+  (2) `buys` take the mine kinds: the smithy pays 150% for stone and 120% for ore, the store
+  120% for gems; `Shop.buy_back` reads the find's sell price from data/mine.json.
+  Reasoning: the ore per level follows the depth bands (akagane from floor 1, shirogane from
+  4, kogane from 8, hoshigane from 13), so each tool level asks for one band deeper; the shops
+  pay a little over the bin so a trip in their hours pays, while the bin still takes anything
+  at any time. (3) Light by depth: `light.depths` in data/mine.json (floor 1 b8aa98 .. floor
+  24 24202e, blended), kept on the floor (`MineFloor.light`, `light_at`). New `MineLight`
+  (scripts/mine/mine_light.gd): a multiply shader with a lantern circle round the farmer
+  (radius 3.2 cells, four rings, a slight flame flicker). 3D: the tint rect uses it down the
+  mine and aims it through the camera; 2D: a rect over the view (CanvasModulate white there).
+  (4) Winter: `winter` in data/mine.json freezes floors 1-9 in winter (`is_frozen`): light
+  times c4d6f4, frost on 30% of the open floor (a look), 3-5 ice blocks (`kind: "ice"`, 2
+  blows) placed after the hole so it is never under them, hiding the new Frost stone
+  (`mine:hyoseki`, gem, 80 G, a shard icon) or rock crystal. Arrival says "Mine floor 3,
+  frozen". New art `mine:ice`, `mine:frost`. New debug flag `--season=<id>`.
+- Checked: all 20 tests print `OK (0 failed)` (`test_mine` adds the light blend, no floor
+  lighter than the one above, the lantern and the shader's aim, 200 frozen floors, ice blows
+  and finds, the winter game; `test_shops` adds ore levels each rarer than the last, names,
+  rucksack-only ores, finds sold per shop, the screen's ore lines). Headless
+  `--quit-after 300` printed no errors or warnings: title, `-- --demo`, `--map=town`,
+  `--mine=3`, `--mine=20`, `--season=winter --mine=3`, `--map=mine_floor`, `--shop=smithy`,
+  and `res://scenes/main_2d.tscn -- --demo --mine=12`. Movie Maker frames looked at:
+  `--mine=2` (warm brown, a faint lantern), `--mine=20` (dark, a clear warm circle round the
+  farmer), `--season=winter --mine=3` (frost patches, ice, a cooler grey, "Mine floor 3,
+  frozen"), the flat view `--mine=16` (dark with the lantern circle), `--shop=smithy` (Tools
+  first, "Still needs 3 Akagane ore.").
+- Left / next: not played in a real window. The balance pass (another branch) may change the
+  upgrade prices in shops.json; the `items` keys sit on their own lines to keep the merge easy.
+
 ## 2026-10-31 — Merged six branches: talking, opening event, shop extras, barn, mine, festivals
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each, in this order:

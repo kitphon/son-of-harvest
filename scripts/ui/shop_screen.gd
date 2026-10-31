@@ -177,7 +177,7 @@ func _refresh() -> void:
 		_names[i].text = _row_name(row)
 		_prices[i].text = _row_price(row, k == menu.cursor)
 		_prices[i].position.x = W - 8 - PixelFont.width(_prices[i].text)
-		var soft: bool = menu.tab_id() in ["tools", "build"] and row.state in ["top", "missing", "busy", "done"]
+		var soft: bool = menu.tab_id() in ["tools", "build"] and row.state in ["top", "missing", "busy", "done", "short"]
 		soft = soft or (menu.tab_id() in ["buy", "build"] and row.get("state", "offer") == "offer" and int(row.price) > Game.money)
 		soft = soft or (menu.tab_id() == "buy" and row.to == "animal" and Game.shop_room(menu.shop.id, row.item) <= 0)
 		_names[i].add_theme_color_override("font_color", Hud.INK_SOFT if soft else Hud.INK)
@@ -210,7 +210,7 @@ func _row_name(row: Dictionary) -> String:
 			return "%s (%d)" % [name, int(row.have)]
 		"tools":
 			match str(row.state):
-				"offer", "missing", "busy":
+				"offer", "missing", "busy", "short":
 					return "%s  Lv %d > %d" % [name, int(row.level), int(row.level) + 1]
 				"top":
 					return "%s  Lv %d" % [name, int(row.level)]
@@ -224,7 +224,7 @@ func _row_name(row: Dictionary) -> String:
 func _row_price(row: Dictionary, here: bool) -> String:
 	if menu.tab_id() == "tools":
 		match str(row.state):
-			"offer", "missing", "busy":
+			"offer", "missing", "busy", "short":
 				return "%d G" % int(row.price)
 			"ready":
 				return "pick up"
@@ -273,8 +273,12 @@ func _info_text() -> String:
 		"tools":
 			match str(row.state):
 				"offer":
+					if not row.get("items", {}).is_empty():
+						return "Needs %s. %d %s." % [menu.shop.materials_text(row.items), int(row.days), "day" if int(row.days) == 1 else "days"]
 					return "Takes %d %s. The %s stays here." % [int(row.days), "day" if int(row.days) == 1 else "days",
 						menu.shop.item_name(row.item).to_lower()]
+				"short":
+					return "Still needs %s." % menu.shop.materials_text(row.lack)
 				"missing":
 					return "Bring it in your tool slots."
 				"busy":

@@ -197,8 +197,9 @@ Shops live in `data/shops.json`: per shop a `name`, its inside `map`, `open` [fi
 closing hour), `days_off`, `keeper` (the villager at the counter: Sayo at the store, Hachiro
 at the smithy; the counter sells only while their plan has them on the shop's map), `stock` per
 season plus `any` (`{item, price?}`; without a price a seed bag costs its crop's `seed_price`,
-a food its `price`), `buys` (kind -> percent: `crop` of its sell price, `food` of its price)
-and `upgrades` (`tools` and per target level `{price, days, items?}`). The rules are `Shop`
+a food its `price`), `buys` (kind -> percent: `crop` of its sell price, `food` of its price, `stone` / `ore` /
+`gem` of a mine find's sell price) and `upgrades` (`tools` and per target level
+`{price, days, items?}`; `items` = id -> how many, taken from the rucksack). The rules are `Shop`
 (`scripts/shops/shop.gd`, pure logic on an Inventory and a money amount); Game wraps them
 (`open_shop`, `shop_buy`, `shop_sell`, `shop_upgrade`, `shop_collect`) and saves
 `shop_jobs` (a tool left at the smithy: tool, new level, ready day, its old slot).
@@ -238,9 +239,19 @@ items (`mine:<id>`: name, kind stone / ore / gem, sell, icon look) are in `data/
 is a door to the next floor); `Game.mine_swing` costs stamina and fatigue like field work and
 puts finds in the rucksack, else overhead, else on the ground (E picks them up). The ladder
 goes straight back up. Only `mine.deepest` is saved; a save made down the mine loads at the
-cave mouth. The views add a `MineLayer` (3D) / `MineView` (2D). Ores are rucksack items, so the
-smithy can ask for them in `upgrades.items` (e.g. `mine:akagane`, `mine:shirogane`,
-`mine:kogane`, `mine:hoshigane`). Map files may say `sheltered: true` (no weather; buildings
+cave mouth. The views add a `MineLayer` (3D) / `MineView` (2D). Ores are rucksack items: the
+Kurogane Smithy asks for them on its upgrade levels (akagane for level 2, then shirogane,
+kogane and hoshigane for 5, some iron sand on the way; the rod has its own), taken from the
+rucksack when the tool is handed in; its Tools tab says "Still needs ..." until they are
+there. The smithy buys stones and ores, the store gems, a bit above the bin's price.
+Light: `light.depths` in data/mine.json are [floor, colour] blended in between, so each
+floor is darker than the one above; `MineLight` (`scripts/mine/mine_light.gd`) is a multiply
+shader over the picture in both views with the farmer's lantern (`light.lantern`: radius in
+cells, soft edge, colour) in four rings round them. Winter: `winter` freezes floors 1 to `to`
+in its seasons: a colder light, frost on part of the floor (only a look) and blocks of ice
+(`kind: "ice"` in `MineFloor.rocks`, `hits` blows) hiding frost stone or rock crystal, never
+the hole; deeper floors stay warm. `-- --season=winter` starts on day 1 of winter (e.g.
+`-- --demo --season=winter --mine=3`). Map files may say `sheltered: true` (no weather; buildings
 are sheltered by default) apart from `indoor` (the clock stops).
 
 ## Dialogue
