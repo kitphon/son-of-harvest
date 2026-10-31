@@ -136,8 +136,8 @@ func _box(parent: Control, kind: String) -> NinePatchRect:
 # --- input --------------------------------------------------------------------
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Not over a text box: the box has the keys until it closes.
-	if not _open and not Game.dialogue_open and event.is_action_pressed("pause"):
+	# Not over a text box or an event: they have the keys until they end.
+	if not _open and not Game.dialogue_open and not Game.event_running and event.is_action_pressed("pause"):
 		get_viewport().set_input_as_handled()
 		open()
 

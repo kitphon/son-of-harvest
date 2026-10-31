@@ -1,0 +1,8 @@
+{
+	"_note": "Events on the farm map. On a cause (enter, day_start, minute, step) the first row that matches plays; rows play once unless once is false. Format: README.md, Events.",
+	"rows": [
+		{"event": "first_morning", "on": ["enter", "day_start"], "year": [1, 1], "season": ["spring"], "days": [1, 1], "time": ["6:00", "9:00"]},
+		{"event": "rainy_day", "on": ["enter", "day_start"], "weather": ["rain"], "time": ["6:00", "10:00"]},
+		{"event": "pond_first", "on": "step", "area": [23, 1, 7, 5]}
+	]
+}

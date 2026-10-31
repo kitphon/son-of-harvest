@@ -49,6 +49,7 @@ func _init() -> void:
 	a.flags = {"bin_note_read": true, "times_asked": 3, "answer": "later"}
 	a.tool_exp.hoe = 950
 	a.tool_exp.axe = 12
+	a.events_seen = {"first_morning": true, "pond_first": true}
 	var saved: Dictionary = a.to_dict()
 	check(SaveGame.write(a, PATH) == "", "write save")
 
@@ -76,6 +77,7 @@ func _init() -> void:
 	check(b.snow_cover == 70, "snow cover back")
 	check(b.flags == a.flags and typeof(b.flags.times_asked) == TYPE_INT, "dialogue flags back %s" % b.flags)
 	check(b.fatigue == 63, "fatigue back")
+	check(b.events_seen == a.events_seen and saved.events_seen == ["first_morning", "pond_first"], "seen events back %s" % b.events_seen)
 	# The loaded farm keeps working by the rules.
 	grid.water_cell(Vector2i(4, 10))
 	grid.day_end("spring", "sunny", rng)
@@ -95,7 +97,8 @@ func _init() -> void:
 			["tool_exp", [1]], ["tool_exp", {"hoe": -1}], ["tool_exp", {"spoon": 3}], ["tool_exp", {"hoe": 1.5}],
 			["tool_exp", {"hoe": 1 << 40}], ["tool_exp", {"seeds": 1}], ["snow_cover", 101], ["snow_cover", "deep"],
 			["flags", [1]], ["flags", {"x": 2.5}], ["flags", {"x": [true]}], ["flags", {"": true}], ["flags", {"x": null}],
-			["fatigue", -1], ["fatigue", 101], ["fatigue", 2.5], ["fatigue", "lots"]]:
+			["fatigue", -1], ["fatigue", 101], ["fatigue", 2.5], ["fatigue", "lots"],
+			["events_seen", {"x": true}], ["events_seen", [1]], ["events_seen", [""]], ["events_seen", ["a", "a"]]]:
 		var d := saved.duplicate(true)
 		d[broken[0]] = broken[1]
 		_put(JSON.stringify({"version": 1, "game": d}))
@@ -147,6 +150,13 @@ func _init() -> void:
 	_put(JSON.stringify({"version": 1, "game": old}))
 	err = SaveGame.read(b, PATH)
 	check(err == "" and b.fatigue == 0, "save without fatigue loads with none (%s)" % err)
+
+	# A save from before events (no events_seen) loads with none seen, so once-only events can play.
+	old = saved.duplicate(true)
+	old.erase("events_seen")
+	_put(JSON.stringify({"version": 1, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.events_seen == {}, "save without events_seen loads with none (%s)" % err)
 
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
 	a.free()

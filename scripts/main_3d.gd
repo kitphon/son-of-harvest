@@ -114,6 +114,7 @@ func _ready() -> void:
 	add_child(Hud.new())
 	add_child(TextBox.new())
 	add_child(PauseScreen.new())
+	add_child(EventPlayer.new(player))   # after the Player: moves it during events
 
 	Game.minute_passed.connect(_update_tint)
 	Game.day_started.connect(_on_day_started)

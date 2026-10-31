@@ -1,5 +1,5 @@
 extends Node
-## Global game state: clock, calendar, weather, money, stamina, tools and the bag.
+## Global game state: clock, calendar, weather, money, stamina, tools, the bag and story state.
 ## Rules follow the design doc; every number here is ours to tune.
 
 signal minute_passed
@@ -7,11 +7,14 @@ signal day_started
 signal changed                  # anything the HUD shows
 signal message(text: String)
 signal dialogue_requested(id: String, at: String)   # a TextBox opens it
+signal event_requested(id: String)                  # an EventPlayer plays it
 signal settings_changed
 
 const SECONDS_PER_MINUTE := 0.5
 const DAYS_PER_SEASON := 30
 const SEASONS: Array[String] = ["spring", "summer", "fall", "winter"]
+## Spring 1 of year 1 is a Monday; the week runs on across seasons and years.
+const WEEKDAYS: Array[String] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 const PAYOUT_HOUR := 18
 const PASS_OUT_HOUR := 2
 const WATER_MAX := 40
@@ -29,6 +32,7 @@ var snow_cover := 0             # snow lying on the ground, 0 (none) .. 100 (all
 var flashes_enabled := true     # lightning flashes in storms; off for photosensitive players
 var clock_running := true      # off on the title screen
 var dialogue_open := false      # a text box is up: the clock and the farmer wait (counts as paused)
+var event_running := false      # an event script plays: the clock waits, the script moves the farmer
 var settings: Settings          # the player's settings (user://settings.json), not saved with the run
 var _pauses := 0                # open menus; while any is open time stands still
 
@@ -43,6 +47,7 @@ var bag: Dictionary = {}        # item id -> count; seeds are "seeds:<crop>"
 var tool_levels: Dictionary = {}   # tool -> level 1..5 (charging tools in data/tools.json)
 var flags: Dictionary = {}      # story flags set by dialogue (bool, whole number or word)
 var tool_exp: Dictionary = {}      # tool -> experience from using it; levels up at data thresholds
+var events_seen: Dictionary = {}   # event id -> true once it has played (once-only triggers)
 var fatigue := 0                # 0..FATIGUE_MAX, rises with work and late nights, only sleep lowers it
 
 var crops: Dictionary = {}
@@ -99,6 +104,8 @@ func new_game() -> void:
 	bag = {"seeds:turnip": 2, "seeds:potato": 1}
 	reset_tool_levels()
 	flags = {}
+	events_seen = {}
+	event_running = false
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--demo":
@@ -171,7 +178,7 @@ func unpause() -> void:
 
 
 func paused() -> bool:
-	return _pauses > 0 or dialogue_open
+	return _pauses > 0 or dialogue_open or event_running
 
 
 ## Does time pass now (not on the title screen, no menu open)?
@@ -222,6 +229,12 @@ func date_text() -> String:
 
 func time_text() -> String:
 	return "%02d:%02d" % [hour, minute]
+
+
+## Today's weekday ("mon" .. "sun").
+func weekday() -> String:
+	var days := ((year - 1) * SEASONS.size() + season) * DAYS_PER_SEASON + day - 1
+	return WEEKDAYS[days % WEEKDAYS.size()]
 
 
 ## Day / night light: minute of the day -> colour, linear in between, times the weather tint.
@@ -377,6 +390,12 @@ func count(id: String) -> int:
 
 func add_item(id: String, n := 1) -> void:
 	bag[id] = count(id) + n
+	changed.emit()
+
+
+## Money from an event or a gift (negative: paid); never below 0 G.
+func add_money(n: int) -> void:
+	money = maxi(money + n, 0)
 	changed.emit()
 
 
@@ -576,6 +595,18 @@ func talk(id: String, at := "") -> void:
 	dialogue_requested.emit(id, at)
 
 
+## Plays event `id` (data/events/<id>.json) in the view's EventPlayer.
+func play_event(id: String) -> void:
+	event_requested.emit(id)
+
+
+## What trigger tables check (EventTriggers.matches), with the farmer on `cell`.
+func trigger_state(cell: Vector2i) -> Dictionary:
+	return {"year": year, "season": season_name(), "day": day, "weekday": weekday(),
+		"time": hour * 60 + minute, "weather": weather_today, "flags": flags,
+		"seen": events_seen, "cell": cell}
+
+
 # --- save / load ------------------------------------------------------------
 
 ## Whole numbers in the save: name -> [lowest, highest]. Stamina is checked against max.
@@ -604,6 +635,9 @@ func to_dict() -> Dictionary:
 	d.tool_levels = tool_levels.duplicate()
 	d.flags = flags.duplicate()
 	d.tool_exp = tool_exp.duplicate()
+	var seen := events_seen.keys()
+	seen.sort()
+	d.events_seen = seen
 	d.farm = farm.to_dict()
 	return d
 
@@ -679,6 +713,15 @@ func from_dict(data: Dictionary) -> String:
 			if e == null:
 				return "Saved tool experience is broken"
 			n.tool_exp[tool] = e
+	# Saves from before events have none seen.
+	n.events_seen = {}
+	var saved_seen = data.get("events_seen", [])
+	if not saved_seen is Array:
+		return "Saved events are broken"
+	for e in saved_seen:
+		if not e is String or e == "" or n.events_seen.has(e):
+			return "Saved events are broken"
+		n.events_seen[e] = true
 	if not data.get("farm") is Dictionary:
 		return "Saved farm is missing"
 	var err := farm.from_dict(data.farm)

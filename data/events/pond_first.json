@@ -1,0 +1,7 @@
+{
+	"_note": "The first time the farmer walks up to the pond.",
+	"steps": [
+		{"do": "wait", "seconds": 0.2},
+		{"do": "say", "dialogue": "pond_first"}
+	]
+}

@@ -23,8 +23,9 @@ Tests (farm rules, headless):
 
     Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_farm.gd
 
-Save / load, the title menu, weather and dialogue: the same with `res://tests/test_save.gd`,
-`res://tests/test_title.gd`, `res://tests/test_weather.gd` and `res://tests/test_dialogue.gd`.
+Save / load, the title menu, weather, dialogue and events: the same with `res://tests/test_save.gd`,
+`res://tests/test_title.gd`, `res://tests/test_weather.gd`, `res://tests/test_dialogue.gd` and
+`res://tests/test_events.gd`.
 
 ## Controls
 | Key | Action |
@@ -93,8 +94,45 @@ Dialogue lives in `data/dialogue/<id>.json`, opened with `Game.talk(id)` (or `--
 Flags are `Game.flags` (true / false, whole numbers or words), saved with the game. Typing
 speed and punctuation pauses are in `data/text_box.json`. `DialogueRunner` refuses a file
 with anything wrong (unknown keys or speakers, jumps to nowhere, letters the font lacks, text
-too long) and says why; `tests/test_dialogue.gd` loads every file in the folder. Event
-scripts (milestone 6) will build on this format.
+too long) and says why; `tests/test_dialogue.gd` loads every file in the folder.
+
+## Events
+An event is a small script in `data/events/<id>.json`: `{"steps": [...]}`, played by
+`Game.play_event(id)` (or `-- --event=<id>`), a trigger table, or nothing else. While it plays
+`Game.event_running` holds the clock (it counts as `Game.paused()`), the farmer moves only as
+the script says, and keys go only to the text box. Each step is one of:
+- `{"do": "say", "dialogue": "<id>", "at": "<line id>"}`: opens a dialogue from
+  `data/dialogue` and waits until the box closes (`at` is optional; a dialogue line with
+  `"next": "end"` stops it, so one file can hold several parts of an event);
+- `{"do": "wait", "seconds": 0.5}` (0 to 60);
+- `{"do": "face", "dir": "up|down|left|right"}`;
+- `{"do": "walk", "to": [x, y]}` or `"by": [dx, dy]` (cells; the farmer walks across first,
+  then up or down, to the middle of the cell, at walking speed or with `"run": true`; scripted
+  walks don't collide, so keep them on open ground);
+- `{"do": "set", "flags": {"name": value}}` / `{"do": "clear", "flags": ["name"]}` (Game.flags,
+  the same flags as dialogue);
+- `{"do": "give", "item": "<crop or seeds:crop>", "count": 1}`, `{"do": "money", "amount": n}`
+  (negative pays; money never goes below 0);
+- `{"do": "fade", "to": "black|clear", "seconds": 0.5}` (the screen is always clear again when
+  the event ends);
+- `{"do": "sound", "key": "<key in data/sfx.json>"}`;
+- a branch: `{"if": "<flag>", "then": "<step id>"}` or `{"unless": ...}`.
+
+Any step can have an `id` and a `next` (a step id or `"end"`). `EventRunner` refuses a file with
+anything wrong and says why.
+
+**Trigger tables**: `data/events/triggers_<map id>.json` holds `{"rows": [...]}`. The view's
+`EventPlayer` asks the table of the map the farmer is on when something happens (`on`):
+`enter` (the farmer arrives on the map, also at the start of a game), `day_start` (a new day,
+or a loaded game), `minute` (each clock minute) and `step` (the farmer steps onto another
+cell). The first row in table order whose conditions all hold plays its `event`; a row plays
+once (`Game.events_seen`, saved) unless it says `"once": false`. Conditions, each optional:
+`year` / `days` `[first, last]`, `season` / `weekday` (`mon` .. `sun`; spring 1 of year 1 is a
+Monday) / `weather` (today's: sunny, rain, storm, snow) lists, `time` `["6:00", "9:00"]` (from,
+until; the end is not included), `flags` / `not_flags` (set or not set), `seen` / `not_seen`
+(event ids) and `area` `[x, y, width, height]` in cells (where the farmer stands). Under
+`-- --demo` the tables are off. Map switching calls `EventPlayer.enter_map(id)` with the new
+map's id.
 
 ## Camera
 `scripts/main_3d.gd` uses the field camera geometry of Harvest Moon: Back to Nature, measured
@@ -114,7 +152,9 @@ follows the player with no lag and stops a few cells inside the fence.
 - `scripts/world3d/farmer_anim.gd`: picks the farmer's frame (pose, facing, mirror, timing).
 - `scripts/dialogue/dialogue_runner.gd` + `scripts/ui/text_box.gd`: dialogue stepping (pure
   logic) and the text box that draws it.
-- `data/*.json`: crops and weather, tuned without touching code; `data/dialogue/`: dialogue.
+- `scripts/events/event_runner.gd`, `event_triggers.gd` (pure logic) and `event_player.gd`
+  (the view's side: triggers, moving the farmer, the fade): event scripts.
+- `data/*.json`: crops and weather, tuned without touching code; `data/dialogue/`: dialogue; `data/events/`: events and trigger tables.
 - `scripts/autoload/sfx.gd` (Sfx): plays sounds by key, SFX / Ambient busses with
   `set_volume(bus, 0..1)`; `scripts/audio/ambient_picker.gd` picks the ambient loops.
 - `tools/make_icon.gd`: draws the app icon; `export_presets.cfg`: the Windows build.
