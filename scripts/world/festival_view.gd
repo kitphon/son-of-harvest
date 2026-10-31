@@ -2,9 +2,11 @@ class_name FestivalView
 extends Node2D
 ## Today's festival decorations on one map in the flat view (data/festivals.json → props) as
 ## flat boxes like MapView's props, shown only during the festival's hours. Made fresh with
-## the map's view.
+## the map's view. Its lights (FestivalProps.glows_of, flattened onto the ground) are in
+## `glows` for FestivalGlow, which draws them over the night tint.
 
 const T := 16
+const GROUP := "festival_view"
 const COLORS := {
 	"sakura": Color("f4b8c8"), "picnic_mat": Color("3a6ab0"), "red_mat": Color("b02a24"),
 	"stall": Color("8a6a48"), "lantern_line": Color("d8402c"), "drum_stage": Color("5a3a24"),
@@ -14,6 +16,7 @@ const COLORS := {
 
 var map_id := ""
 var festival := ""
+var glows: Array[Dictionary] = []   # {pos: Vector2 px in this node, color: Color, size: px across}
 
 
 func _init(map: String) -> void:
@@ -21,9 +24,13 @@ func _init(map: String) -> void:
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	festival = Game.festival_today()
 	if Festivals.get_festival(festival).get("map", "") != map_id:
 		festival = ""
+	else:
+		for g in FestivalProps.glows_of(festival, map_id):
+			glows.append({"pos": Vector2(g.pos.x, g.pos.z) * T, "color": g.color, "size": float(g.size) * T})
 	Game.minute_passed.connect(refresh)
 	refresh()
 

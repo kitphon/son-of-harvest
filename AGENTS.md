@@ -77,7 +77,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   print `test_festivals: OK (0 failed)`.
   The flat view (main_2d.tscn builds, its Player's actions reach FarmActions: tools, holding
   and throwing, the bin, eating, fishing, doors, talking, the shop counter, the mine; the
-  throw's flight): `res://tests/test_view2d.gd` must print `test_view2d: OK (0 failed)`.
+  throw's flight; rain / snow, lightning and the festival glow): `res://tests/test_view2d.gd` must print `test_view2d: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field), `-- --demo --map=town` (the village) and
   `-- --demo --mine=3` (a mine floor).

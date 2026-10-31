@@ -118,8 +118,9 @@ Fishing is in (milestone 9): the rod is the 8th tool slot, a cast waits for a bi
 plip), a press in time lands a fish overhead (ship it in the bin or keep it in the rucksack);
 fish, odds, bite timing and the pity rule are in `data/fish.json`. Later for fishing: a river,
 fish as food / gifts. The 2D view's action hookup is done (`FarmActions.connect_view`, checked
-by tests/test_view2d.gd); the 2D view still has no rain / snow particles, lightning flash or
-festival glow.
+by tests/test_view2d.gd), and it has the 3D view's weather and festival lights too (rain /
+snow particles with splashes, the weather tint, lightning flashes, the lanterns' glow and the
+fireworks).
 Talking, gifts and affection are in (a `talk` row with `who` in a trigger table plays an
 event when the farmer talks to a villager); the keepers are `sayo` (store) and `hachiro`
 (smithy). The opening event and the first shop visits are done (data/events/opening.json,
@@ -182,6 +183,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Snow on the ground in the 2D view too (same pattern as 3D, under the sprites)
    - [x] The 2D view plays the same game: its Player's actions go through FarmActions
      (`connect_view`), thrown items fly in an arc
+   - [x] The 2D view's weather and festival lights: rain / snow (WeatherView), lightning flashes
+     (respecting the flashes setting), the lanterns' glow and fireworks (FestivalGlow)
    - [x] Pixel font for the HUD, clock box, a proper item / tool display (Japanese glyphs later)
 3. **Tools and the body**
    - [x] Charging tools (hold to cover more cells, per tool level; data/tools.json)

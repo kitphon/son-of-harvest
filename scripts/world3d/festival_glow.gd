@@ -2,7 +2,7 @@ class_name FestivalGlow
 extends Control
 ## Festival lights over the 3D view, added on top of the day / night tint (main_3d puts it in
 ## the tint's layer, after the tint) so they shine at night: a soft glow round every lantern
-## and fire of the FestivalProps on show, stronger the darker it is, and fireworks in the
+## and fire of the FestivalProps on show (in the flat view, of the FestivalView on show), stronger the darker it is, and fireworks in the
 ## festival's firework hours. Drawn in screen pixels with additive blending; the bursts are a
 ## pure function of time (`burst`), so they cost a few hundred small rects a frame.
 
@@ -58,10 +58,13 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var cam := get_viewport().get_camera_3d()
 	var dark := darkness(Game.light_color())
-	if cam != null and dark > 0.05:
+	if dark > 0.05:
 		for n in get_tree().get_nodes_in_group(FestivalProps.GROUP):
-			if n.is_inside_tree() and n.shown():
+			if cam != null and n.is_inside_tree() and n.shown():
 				_draw_glows(n, cam, dark)
+		for n in get_tree().get_nodes_in_group(FestivalView.GROUP):
+			if n.is_inside_tree() and n.shown():
+				_draw_flat_glows(n, dark)
 	if time > 0.0:
 		var size := get_viewport_rect().size
 		var k := int(time / BURST_EVERY)
@@ -78,6 +81,17 @@ func _draw_glows(props: FestivalProps, cam: Camera3D, dark: float) -> void:
 		var c: Color = g.color
 		c.a = 0.55 * dark
 		draw_texture_rect(_dot, Rect2(at - Vector2(px, px) / 2, Vector2(px, px)), false, c)
+
+
+## The flat view: its glows are in the FestivalView's pixels, so the canvas transform
+## (the camera) puts them on screen.
+func _draw_flat_glows(props: FestivalView, dark: float) -> void:
+	var xf := props.get_global_transform_with_canvas()
+	for g in props.glows:
+		var px: float = g.size * xf.get_scale().x
+		var c: Color = g.color
+		c.a = 0.55 * dark
+		draw_texture_rect(_dot, Rect2(xf * g.pos - Vector2(px, px) / 2, Vector2(px, px)), false, c)
 
 
 ## Firework `i`, `t` seconds after its launch, on a screen of `size`: {rise: [from, to] or

@@ -50,6 +50,34 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Left / next: no player-facing message on the storm morning itself (the note and the build tab
   say it); the farm's other props (the bell) still not solid by design.
 
+## 2026-11-01 — The flat view gets the weather and festival lights
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `scenes/main_2d.tscn` now shows what the 3D view shows for weather and festivals, reading
+  the same rules. New `WeatherView` (scripts/world/weather_view.gd): rain streaks with splash
+  rings, or snow, from `Game.weather_style()` (amount, speed, wind), in the canvas so the day /
+  night tint (which already carries the weather tint) falls on them, kept over the screen by
+  `follow`; outdoors only (`Game.sheltered()`), redone on map change and each morning. Amount is
+  the 3D look's x0.25 (`WeatherView.AMOUNT`, by eye: the screen shows less ground than the 3D
+  volume), a drop streaks 0.45 s, a flake drifts 4 s. Lightning: the same `Lightning` timer and
+  thunder, a flash ColorRect added over the picture under the HUD; the flash colour is now
+  `Lightning.flash_color` (main_3d uses it too), and the flashes setting / `--no-flashes` turn it
+  off through `Game.lightning_style()` as before. Festival lights: `FestivalProps.glows_of`
+  lists a festival's lights without keeping the meshes; `FestivalView` keeps them flattened onto
+  the ground in `glows` (group `festival_view`) and `FestivalGlow` draws them in the flat view as
+  well (plus its fireworks, unchanged). Fix on the way: main_3d's settings change re-armed
+  lightning under a roof (the mine); both views now keep it off when sheltered.
+- Checked: tests/test_view2d.gd has 16 new checks (no rain or lightning down the mine, storm rain
+  and splashes in the village with the look's amount, the tint, a flash within 10 s, no flash
+  while the clock stands, none with flashes off, winter storm = snow, the emitters follow the
+  camera, Lantern Night's FestivalView with the same light count as the 3D props, the glow layer
+  and fireworks on, sunny = nothing falls). All test scripts print `OK (0 failed)`; headless smoke
+  runs printed no errors. Screenshots of `main_2d.tscn -- --demo --weather=storm` (slanting rain,
+  splash rings, the dark storm tint; frame 121 is a flash, the HUD not lit) and `--demo
+  --festival=lantern_night` (glows round each lantern of both strings, two fireworks over the
+  shrine); `shots/` deleted.
+- Left / next: the flat view's festival decorations are still flat boxes; the particle amount
+  was set by eye on one screenshot each.
+
 ## 2026-11-01 — Merged six branches: music, 2D actions, cooking tools, band 6, festival stalls, Hachiro building
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each: `claude/music-shops-events-bbe890`
