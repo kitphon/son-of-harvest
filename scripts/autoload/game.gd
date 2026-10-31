@@ -576,6 +576,12 @@ func _tomorrow_season() -> int:
 	return season if day < DAYS_PER_SEASON else (season + 1) % 4
 
 
+## Is tomorrow always fair (DESIGN): a festival, or a villager's birthday?
+func fair_tomorrow() -> bool:
+	var d := day % DAYS_PER_SEASON + 1
+	return Festivals.tomorrow(season, day) != "" or not Villagers.birthdays_on(SEASONS[_tomorrow_season()], d).is_empty()
+
+
 func roll_weather(season_idx: int) -> String:
 	var r := rng.randf()
 	var table: Dictionary = weather_chances.get(SEASONS[season_idx], {})
@@ -644,8 +650,8 @@ func end_day() -> void:
 	fishing.stop()
 	weather_today = weather_tomorrow
 	weather_tomorrow = roll_weather(_tomorrow_season())
-	if Festivals.tomorrow(season, day) != "":
-		weather_tomorrow = "sunny"   # DESIGN: a festival day is always fair
+	if fair_tomorrow():
+		weather_tomorrow = "sunny"   # DESIGN: a festival day and a villager's birthday are always fair
 	snow_cover = next_snow_cover(snow_cover, weather_look(weather_today, season_name()), season_name(), snow_rules)
 	farm.day_end(season_name(), weather_today, rng)
 	hour = 6
@@ -1436,6 +1442,11 @@ func _shop_shut(s: Shop) -> bool:
 		message.emit(s.closed_text())
 		return true
 	return false
+
+
+## The villagers whose birthday is today (data/villagers birthday), sorted.
+func birthdays_today() -> Array[String]:
+	return Villagers.birthdays_on(season_name(), day)
 
 
 ## Today's festival id (data/festivals.json), or "".

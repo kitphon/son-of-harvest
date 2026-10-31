@@ -178,7 +178,9 @@ straw_hat, colours `hair`, `skin`, `top`, `waist`, `lower`, `accent`, `shoes`; d
 - `rules`: `[{"if": {conditions}, "plan": "<name>"}]`, the first that holds picks the day's
   plan, else `default`. Conditions: `season`, `weekday`, `weather` (lists), `days`, `year`
   (`[first, last]`), `flags` / `not_flags` (story flags set / not set), `festival` (festival
-  ids from `data/festivals.json`: today is one of them);
+  ids from `data/festivals.json`: today is one of them), `birthday` (true: today is this
+  villager's own birthday; each villager has a `birthday` plan, e.g. Sayo shuts the store at
+  12:30 for lunch at Tome's, Hachiro keeps the smithy shut);
 - `plans`: name -> entries `{"at": "H:MM", "map": "<map id>" or "away", "from": [x, y],
   "route": [steps], "loop": [steps]}`. The first entry is at 06:00, times after midnight
   belong to the same day. `away` = in bed (or somewhere we don't draw): every villager is at
@@ -216,15 +218,21 @@ The first talk of a day adds `affection.talk`. `Affection` (scripts/villagers/af
 `Game.affection`, saved since save version 3) keeps the points (0..`max`), the 7 heart
 `bands` and the last talk / gift day per villager; `Game.affection.add(id, n)` is the hook,
 and events use the `affection` step and the `talk` / `hearts` trigger keys (Events).
-On a villager's birthday a gift counts `affection.birthday_times` over (5, good or bad). Each
+On a villager's birthday a gift counts `affection.birthday_times` over (5, good or bad), the
+weather is fair (`Game.fair_tomorrow`, as on a festival, DESIGN) and the HUD tag under the clock
+reads "<Name>'s birthday" (`HudLayout.day_tag`, `Game.birthdays_today`). Gift lists may name
+mine finds (`mine:<id>`). Each
 night a villager the farmer has met (affection above 0) who got neither a talk nor a gift that
 day loses `affection.neglect.loss` with odds `neglect.chance` (`Affection.day_end`, from
 `Game.end_day`). The text box shows the band as a heart after the speaker's name on the name
 tag whenever a villager speaks (`Game.heart_band`, colours `hearts` in `data/text_box.json`,
 `ui:heart:<band>` in PlaceholderArt). Heart events: a `talk` row with `hearts`
-`{"<id>": [3, 6]}` in `triggers_town.json` (and the keepers' shop tables) plays
-`data/events/heart_<id>.json` once (lines in `data/dialogue/heart_events.json`; each sets the
-flag `heart_<id>`). `-- --demo --hearts=N` starts everyone at the start of band N.
+`{"<id>": [3, 6]}` in `triggers_town.json` (and the keepers' shop tables and the house
+maps' tables) plays `data/events/heart_<id>.json` once (lines in
+`data/dialogue/heart_events.json`; each sets the flag `heart_<id>`). The second one, a row
+right after it with `{"<id>": [5, 6]}` and `seen: ["heart_<id>"]`, plays
+`data/events/heart_<id>_5.json` (lines in `data/dialogue/heart_events_5.json`; flag
+`heart_<id>_5`, plus `tome_grandma`, `sayo_sign` old / new or `hachiro_bell` from the scene). `-- --demo --hearts=N` starts everyone at the start of band N.
 A villager stands `talk_turn_minutes` after a talk, and one walking into the farmer waits
 (`bump_reach`); that time is their delay, the whole plan runs later, at most `delay_max`
 minutes, cleared at 12:00 and 18:00. The farmer can't step within `block_reach` of anyone.

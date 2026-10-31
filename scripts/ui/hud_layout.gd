@@ -7,7 +7,7 @@ extends RefCounted
 ## its text.
 const BOXES := {
 	"clock": Rect2i(384, 4, 92, 42),
-	"festival": Rect2i(384, 48, 92, 17),   # today's festival, only on a festival day
+	"festival": Rect2i(384, 48, 92, 17),   # today's festival, or a villager's birthday; hidden on other days
 	"item": Rect2i(4, 214, 168, 21),
 	"tools": Rect2i(4, 238, 168, 28),
 	"hand": Rect2i(176, 238, 28, 28),    # the item in the other hand, only while there is one
@@ -24,3 +24,11 @@ const WEATHER_ICONS: Array[String] = ["sunny", "rain", "storm", "snow", "blizzar
 ## Icon kind for a weather look (Game.weather_look), sunny for anything without an icon.
 static func weather_icon(look: String) -> String:
 	return look if look in WEATHER_ICONS else "sunny"
+
+
+## The tag under the clock for a day with birthdays `ids` (Game.birthdays_today):
+## "Tome's birthday", "" for none.
+static func day_tag(ids: Array[String]) -> String:
+	if ids.is_empty():
+		return ""
+	return "%s's birthday" % Villagers.all()[ids[0]].name

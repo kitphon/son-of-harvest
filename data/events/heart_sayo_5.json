@@ -1,0 +1,10 @@
+{
+	"_note": "Sayo's second heart event: the first talk once her heart band reaches 5, after heart_sayo, at the store counter, at home or in the village (triggers_store.json, triggers_sayo_house.json, triggers_town.json); it plays instead of opening the shop. She asks what goes on the new sign (sayo_sign: old or new). Sets heart_sayo_5. Format: README.md, Events.",
+	"steps": [
+		{"do": "sound", "key": "coins"},
+		{"do": "wait", "seconds": 0.3},
+		{"do": "say", "dialogue": "heart_events_5", "at": "sayo"},
+		{"do": "affection", "who": "sayo", "amount": 5},
+		{"do": "set", "flags": {"heart_sayo_5": true}}
+	]
+}

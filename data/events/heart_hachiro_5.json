@@ -1,0 +1,12 @@
+{
+	"_note": "Hachiro's second heart event: the first talk once his heart band reaches 5, after heart_hachiro, at the smithy counter or in the village (triggers_smithy.json, triggers_town.json); it plays instead of opening the shop. He gives the farmer an iron door bell he made (hachiro_bell). Sets heart_hachiro_5. Format: README.md, Events.",
+	"steps": [
+		{"do": "sound", "key": "tool_hammer"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "sound", "key": "tool_hammer"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_5", "at": "hachiro"},
+		{"do": "affection", "who": "hachiro", "amount": 5},
+		{"do": "set", "flags": {"heart_hachiro_5": true, "hachiro_bell": true}}
+	]
+}

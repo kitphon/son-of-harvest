@@ -1,5 +1,5 @@
 {
-	"_note": "Kota, a boy from the house south-west of the road: plays along the road in the morning, fishes at the pond in the afternoon; in summer he hunts cicadas in the shrine pines instead. Walks a little faster than the grown-ups. At home (data/maps/kota_house.json) by his toy box before 8:00, at noon and after 17:30, all day when it is wet (with a walk to the hearth now and then); in bed (away) from 20:00, when the door shuts. Gifts: corn, sweets and anything with fins; not his vegetables. Format: README.md, Villagers.",
+	"_note": "Kota, a boy from the house south-west of the road: plays along the road in the morning, fishes at the pond in the afternoon; on his birthday he is out at the pond from early morning to evening after the old carp; in summer he hunts cicadas in the shrine pines instead. Walks a little faster than the grown-ups. At home (data/maps/kota_house.json) by his toy box before 8:00, at noon and after 17:30, all day when it is wet (with a walk to the hearth now and then); in bed (away) from 20:00, when the door shuts. Gifts: corn, sweets, anything with fins and shiny mine finds (crystal best); not his vegetables. Format: README.md, Villagers.",
 	"id": "kota",
 	"name": "Kota",
 	"birthday": {"season": "spring", "day": 19},
@@ -7,13 +7,14 @@
 	"look": {"outfit": "shirt_shorts", "hair_style": "straw_hat", "hair": "2a2422", "skin": "e0a878", "top": "e8e2d0", "lower": "4a6a3a", "accent": "e0c070", "shoes": "6b4423"},
 	"rules": [
 		{"if": {"festival": ["blossom_day", "lantern_night", "moon_night", "years_turn"]}, "plan": "festival"},
+		{"if": {"birthday": true}, "plan": "birthday"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "stays_in"},
 		{"if": {"season": ["summer"]}, "plan": "summer"}
 	],
 	"default": "usual",
 	"gifts": {
-		"love": ["corn", "fish:moon_koi", "food:dango"],
-		"like": ["fish:*", "tomato", "pumpkin", "food:sakura_mochi"],
+		"love": ["corn", "fish:moon_koi", "food:dango", "mine:suisho"],
+		"like": ["fish:*", "tomato", "pumpkin", "food:sakura_mochi", "mine:kohaku", "mine:hyoseki"],
 		"dislike": ["eggplant", "onion", "food:green_tea"],
 		"hate": ["carrot"]
 	},
@@ -46,6 +47,13 @@
 				"loop": [{"to": [14, 2]}, {"face": "left"}, {"wait": 10}, {"to": [14, 5]}, {"to": [23, 5]}, {"to": [23, 3]}, {"face": "right"}, {"wait": 10}, {"to": [23, 5]}, {"to": [14, 5]}]},
 			{"at": "17:00", "map": "town", "route": [{"to": [16, 5]}, {"to": [16, 11]}, {"to": [11, 11]}, {"to": [11, 16]}, {"to": [8, 16]}, {"face": "up"}]},
 			{"at": "17:40", "map": "kota_house", "from": [1, 2], "route": [{"face": "up"}]},
+			{"at": "20:00", "map": "away"}
+		],
+		"birthday": [
+			{"at": "06:00", "map": "kota_house", "from": [1, 2], "route": [{"face": "up"}]},
+			{"at": "07:30", "map": "town", "from": [8, 16], "route": [{"to": [8, 17]}, {"to": [30, 17]}, {"face": "right"}]},
+			{"at": "17:30", "map": "town", "route": [{"to": [8, 17]}, {"to": [8, 16]}, {"face": "up"}]},
+			{"at": "18:00", "map": "kota_house", "from": [1, 2], "route": [{"face": "up"}]},
 			{"at": "20:00", "map": "away"}
 		],
 		"stays_in": [
