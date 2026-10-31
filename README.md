@@ -17,7 +17,8 @@ not in git) and press F5. From a shell:
 The game opens on the title screen (`scenes/title.tscn`): New game, Continue (greyed out when
 `user://save1.json` is missing or can't be loaded) or Quit, with the arrows / W S and
 Enter / Space or the mouse. The field itself is `scenes/main.tscn`.
-The flat top-down view is still there as `scenes/main_2d.tscn` (F6 on that scene).
+The flat top-down view is still there as `scenes/main_2d.tscn` (F6 on that scene). It plays
+the same game: both views hook their Player to `FarmActions.connect_view`.
 Add `-- --demo` to skip the title and start at 10:00 with a few planted plots (for screenshots), and
 `--weather=<sunny|rain|storm|snow|blizzard>` after it to force today's weather.
 
@@ -27,7 +28,8 @@ Tests (farm rules, headless):
 
 Save / load, the title menu, weather, dialogue and events: the same with `res://tests/test_save.gd`,
 `res://tests/test_title.gd`, `res://tests/test_weather.gd`, `res://tests/test_dialogue.gd` and
-`res://tests/test_events.gd`.
+`res://tests/test_events.gd`. The flat view's action hookup: `res://tests/test_view2d.gd`
+(every test script is listed in AGENTS.md → Run and check).
 
 ## Controls
 | Key | Action |
