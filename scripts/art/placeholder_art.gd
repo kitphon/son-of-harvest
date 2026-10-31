@@ -15,7 +15,7 @@ static func tex(key: String) -> Texture2D:
 static func _make(key: String) -> Image:
 	var parts := key.split(":")
 	match parts[0]:
-		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk>:<frame>
+		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk>:<frame>
 			return _player(parts[1] == "back", parts[2], int(parts[3]))
 		"target":   # corner brackets laid on the cell the tool will hit
 			var c := Color(1, 1, 1, 0.85)
@@ -27,6 +27,8 @@ static func _make(key: String) -> Image:
 			return _obstacle(parts[0])
 		"crop":     # crop:<id>:<growth 0..3>:<ripe|growing>
 			return _crop(parts[1], int(parts[2]), parts[3] == "ripe")
+		"item":     # item:<id>, a picked crop held overhead or lying on the ground (12 x 12)
+			return _item(parts[1])
 		"build":    # build:<plaster|board|kawara|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
 		"ground":   # ground:<grass|tilled|wet|path|tatami|floor|earth|gravel|wall>:<variant> or ground:water:<land sides mask>
@@ -90,6 +92,62 @@ static func cell_key(farm: FarmGrid, d: Dictionary) -> String:
 	var ripe := farm.ripe_stage(d.crop)
 	var growth := 0 if d.stage == 0 else (3 if d.stage >= ripe else clampi(1 + 2 * (d.stage - 1) / maxi(ripe - 1, 1), 1, 2))
 	return "crop:%s:%d:%s" % [d.crop, growth, "ripe" if d.stage >= ripe else "growing"]
+
+
+## The key for an item in the world (held overhead, flying, lying on the ground): a crop as
+## its produce sprite, anything else (seeds, food, ...) as its slot icon.
+static func world_item_key(id: String) -> String:
+	crop_look(id)   # fills _looks
+	return "item:" + id if _looks.has(id) else item_key(id)
+
+
+## One piece of produce in the crop's fruit colour, shaped by its look: a root with its leaf
+## tuft, a long or round fruit with a calyx, a tuber, a cob in its husk, a ribbed squash.
+static func _item(id: String) -> Image:
+	var look := crop_look(id)
+	var img := _blank(12, 12)
+	var leaf := Color(look.get("leaf", "5f9e3a"))
+	var fruit := Color(look.get("fruit", "e8a23a"))
+	var dark := fruit.darkened(0.3)
+	var shine := fruit.lightened(0.45)
+	var shape: String = look.get("shape", "bush")
+	var form: String = look.get("fruit_shape", "round")
+	if shape == "root":
+		var b: Array = look.get("bulb", [3.5, 3.0])
+		_oval(img, 6, 7.5, float(b[0]), maxf(float(b[1]), 2.5), fruit)
+		if look.has("fruit_top"):
+			_oval(img, 6, 6.0, float(b[0]) - 0.5, 1.3, Color(look.fruit_top))
+		_px(img, 6, 10, 1, 1, dark)                       # root tip
+		_line(img, Vector2i(6, 4), Vector2i(4, 1), leaf)
+		_line(img, Vector2i(6, 4), Vector2i(6, 1), leaf.darkened(0.2))
+		_line(img, Vector2i(6, 4), Vector2i(8, 1), leaf)
+		_px(img, 4, 6, 1, 1, shine)
+	elif shape == "stalk":
+		_oval(img, 6, 6.5, 2.2, 4.5, fruit)
+		for y in [3, 5, 7, 9]:
+			_px(img, 5, y, 1, 1, dark)
+		_line(img, Vector2i(3, 10), Vector2i(4, 4), leaf)   # husk leaves on both sides
+		_line(img, Vector2i(9, 10), Vector2i(8, 4), leaf.darkened(0.2))
+	elif shape == "ground":
+		_oval(img, 6, 7, 5.0, 3.6, fruit)
+		for x in [3, 6, 9]:
+			_px(img, x, 5, 1, 4, dark)
+		_px(img, 5, 2, 2, 2, Color("6b4a2a"))                # stem
+	elif form == "long":
+		_oval(img, 6, 6.5, 2.4, 4.6, fruit)
+		_px(img, 5, 1, 3, 2, leaf)                          # calyx
+		_px(img, 5, 4, 1, 3, shine)
+	elif form == "tuber":
+		_oval(img, 6, 6.5, 4.3, 3.3, fruit)
+		for p in [Vector2i(4, 5), Vector2i(7, 7), Vector2i(5, 8), Vector2i(8, 5)]:
+			img.set_pixelv(p, dark)
+		_px(img, 4, 4, 1, 1, shine)
+	else:
+		_oval(img, 6, 7, 4.0, 3.8, fruit)
+		_px(img, 4, 3, 4, 1, leaf)                          # calyx and stem
+		_px(img, 6, 2, 1, 1, leaf.darkened(0.2))
+		_px(img, 4, 5, 1, 2, shine)
+	return _outline(img)
 
 
 ## rects = [[x, y, w, h, "rrggbb"], ...] on a transparent w x h image.
@@ -159,6 +217,10 @@ const _FARMER_POSES := {
 	# Tired: slumped 1-2 px lower, slow heavy breaths standing, short dragging steps walking.
 	"tired_idle": [[1, 0, 0, 0, 0, 0, 0], [2, 0, 0, 0, 0, 0, 0]],
 	"tired_walk": [[2, -1, 0, 1, 0, 1, -1], [1, 0, 0, 0, 1, 0, 0], [2, 1, 0, -1, 0, -1, 1], [1, 0, 1, 0, 0, 0, 0]],
+	# Holding: both arms up by the head steadying the item overhead (the hand shifts are
+	# unused); shorter, careful steps, and the load bobs with the body.
+	"hold_idle": [[0, 0, 0, 0, 0, 0, 0]],
+	"hold_walk": [[1, -2, 0, 2, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0], [1, 2, 0, -2, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0]],
 }
 const _SWEAT := Color("9fd8f2")
 
@@ -167,27 +229,47 @@ static func farmer_frames(pose: String) -> int:
 	return _FARMER_POSES[pose].size()
 
 
+## How many pixels a frame drops the body (and what the raised hands hold) below its rest.
+static func farmer_drop(pose: String, frame: int) -> int:
+	return _FARMER_POSES[pose][frame % farmer_frames(pose)][0]
+
+
 ## Draw order back to front: far hand, far leg, near leg, body, bag, near hand. The bag hangs
 ## at the farmer's back on the front view and at the front on the back view.
 static func _player(back: bool, pose: String, frame: int) -> Image:
 	var p: Array = _FARMER_POSES[pose][frame % farmer_frames(pose)]
 	var tired := pose.begins_with("tired")
 	var arms: int = p[0] + int(tired)   # tired arms hang a pixel lower
+	var hold := pose.begins_with("hold")
 	var img := Image.create_empty(16, 24, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
-	_hand(img, 11 + p[6], 14 + arms)
+	if not hold:
+		_hand(img, 11 + p[6], 14 + arms)
 	_leg(img, 8 + p[3], p[4])
 	_leg(img, 5 + p[1], p[2])
 	_map(img, _FARMER_BACK if back else _FARMER_FRONT, p[0])
 	var bag_x := 1 if back else 11
 	img.fill_rect(Rect2i(bag_x, 14 + p[0], 4, 5), Color(_FARMER_COLORS.o))
 	img.fill_rect(Rect2i(bag_x + 1, 15 + p[0], 2, 3), Color(_FARMER_COLORS.y))
-	_hand(img, 4 + p[5], 14 + arms)
+	if hold:
+		_raised_arm(img, 1, p[0])
+		_raised_arm(img, 13, p[0])
+	else:
+		_hand(img, 4 + p[5], 14 + arms)
 	if tired:   # a drop of sweat by the brow: in front of the face, or behind the head seen from the back
 		var sx := 14 if back else 1
 		img.fill_rect(Rect2i(sx, 4 + p[0], 1, 1), Color.WHITE)
 		img.fill_rect(Rect2i(sx, 5 + p[0], 1, 2), _SWEAT)
 	return img
+
+
+## An arm lifted from the shoulder up the side of the head, its hand at the top of the cap
+## where the held item rests (the view draws the item just above the sprite).
+static func _raised_arm(img: Image, x: int, dy: int) -> void:
+	img.fill_rect(Rect2i(x - 1, dy, 4, 12), Color(_FARMER_COLORS.o))
+	img.fill_rect(Rect2i(x, 3 + dy, 2, 8), Color(_FARMER_COLORS.b))
+	img.fill_rect(Rect2i(x, 10 + dy, 2, 1), Color(_FARMER_COLORS.B))
+	img.fill_rect(Rect2i(x, dy, 2, 2), Color(_FARMER_COLORS.s))
 
 
 ## A 2 x 2 hand under the sleeve, outlined on the sides and below.

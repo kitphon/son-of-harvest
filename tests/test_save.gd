@@ -56,6 +56,9 @@ func _init() -> void:
 	a.tool_exp.axe = 12
 	a.events_seen = {"first_morning": true, "pond_first": true}
 	a.maps.place("house", Vector2i(3, 2), Vector2i.LEFT)
+	a.shipped = {"turnip": 14, "corn": 2}
+	f.place_item(Vector2i(9, 5), "potato")
+	f.place_item(Vector2i(10, 6), "turnip")
 	var saved: Dictionary = a.to_dict()
 	check(SaveGame.write(a, PATH) == "", "write save")
 
@@ -92,6 +95,8 @@ func _init() -> void:
 	check(b.inventory.id_at("chest", 4) == "hoe" and b.inventory.id_at("tools", 0) == "", "tools back in their slots")
 	check(b.current_food() == a.current_food() and b.current_food() != "" and b.work_fatigue_half, "food in hand and today's half fatigue back")
 	check(b.count("food:milk") == 4, "food in the bag back")
+	check(b.held == "egg" and b.shipped == a.shipped and typeof(b.shipped.turnip) == TYPE_INT, "held item (the hand slot) and shipping counts back")
+	check(grid.items == {Vector2i(9, 5): "potato", Vector2i(10, 6): "turnip"}, "items on the ground back %s" % grid.items)
 	# The loaded farm keeps working by the rules.
 	grid.water_cell(Vector2i(4, 10))
 	grid.day_end("spring", "sunny", rng)
@@ -116,12 +121,14 @@ func _init() -> void:
 			["events_seen", {"x": true}], ["events_seen", [1]], ["events_seen", [""]], ["events_seen", ["a", "a"]],
 			["map", "house"], ["map", {"id": "moon", "x": 8, "y": 8, "facing": [0, 1]}],
 			["map", {"id": "house", "x": -1, "y": 8, "facing": [0, 1]}], ["map", {"id": "house", "x": 8, "y": 8, "facing": [2, 0]}],
-			["food", "pizza"], ["food", 3], ["work_fatigue_half", 1], ["work_fatigue_half", "yes"]]:
+			["food", "pizza"], ["food", 3], ["work_fatigue_half", 1], ["work_fatigue_half", "yes"],
+			["shipped", [1]], ["shipped", {"turnip": 0}], ["shipped", {"turnip": 1.5}],
+			["shipped", {"": 2}]]:
 		var d := saved.duplicate(true)
 		d[broken[0]] = broken[1]
 		_put(JSON.stringify({"version": 1, "game": d}))
 		check(SaveGame.read(b, PATH) != "", "refused bad %s" % broken[0])
-	for farm_break in ["size", "short", "crop", "stage", "obj", "fixed"]:
+	for farm_break in ["size", "short", "crop", "stage", "obj", "fixed", "items", "item_spot", "item_id", "item_twice"]:
 		var d := saved.duplicate(true)
 		match farm_break:
 			"size": d.farm.w = 10
@@ -130,6 +137,10 @@ func _init() -> void:
 			"stage": d.farm.cells[4 + 10 * FarmGrid.W].stage = 9
 			"obj": d.farm.cells[7].obj = 12
 			"fixed": d.farm.fixed.append([99, 0, "fence"])
+			"items": d.farm.items = {"x": 1}
+			"item_spot": d.farm.items.append([3, 99, "turnip"])
+			"item_id": d.farm.items.append([3, 9, ""])
+			"item_twice": d.farm.items.append([9, 5, "corn"])
 		_put(JSON.stringify({"version": 1, "game": d}))
 		check(SaveGame.read(b, PATH) != "", "refused broken farm (%s)" % farm_break)
 	check(b.to_dict() == before, "failed loads changed nothing")
@@ -208,6 +219,13 @@ func _init() -> void:
 	_put(JSON.stringify({"version": 1, "game": old}))
 	err = SaveGame.read(b, PATH)
 	check(err == "" and b.food_index == 0 and not b.work_fatigue_half, "save without food loads with the first food (%s)" % err)
+	# A save from before holding: nothing shipped, nothing on the ground.
+	old = saved.duplicate(true)
+	old.erase("shipped")
+	old.farm.erase("items")
+	_put(JSON.stringify({"version": 1, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.shipped == {} and b.farm.items.is_empty(), "save without holding loads with nothing shipped (%s)" % err)
 
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
 	a.free()

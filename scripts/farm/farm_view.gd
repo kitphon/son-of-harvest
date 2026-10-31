@@ -95,3 +95,6 @@ func _draw_cell(c: Vector2i) -> void:
 	if key != "":
 		var tex := PlaceholderArt.tex(key)
 		_objects.draw_texture(tex, r.position + Vector2(0, T - tex.get_height()))
+	if farm.item_at(c) != "":   # put down or thrown: lying in the middle of the cell
+		var it := PlaceholderArt.tex(PlaceholderArt.world_item_key(farm.item_at(c)))
+		_objects.draw_texture(it, r.position + (Vector2(T, T) - it.get_size()) / 2.0 + Vector2(0, 2))

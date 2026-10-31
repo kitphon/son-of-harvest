@@ -1,0 +1,13 @@
+{
+	"_comment": "Holding and throwing items (Game.hold_* / throw_held, FarmGrid.throw_target). Numbers are ours; see WORKLOG 2026-10-31 Holding.",
+	"throw_cells": 2,
+	"_throw_cells": "How far a throw goes. It lands on the farthest free cell up to this far; a building, the fence or an obstacle stops it short.",
+	"flight_seconds": 0.35,
+	"_flight_seconds": "How long the thrown item is in the air (the 3D arc and the landing sound wait this long).",
+	"arc_height": 1.2,
+	"_arc_height": "Highest point of the throw over the farmer's head, in cells (3D view).",
+	"ship_into": ["bin"],
+	"_ship_into": "Fixed cells that take a thrown item with a price and ship it (bin_total, paid at 18:00 or on sleep).",
+	"lost_in": ["pond"],
+	"_lost_in": "Fixed cells where a thrown item is gone for good."
+}

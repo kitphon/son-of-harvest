@@ -31,8 +31,8 @@ Save / load, the title menu, weather, dialogue and events: the same with `res://
 | Key | Action |
 | --- | --- |
 | WASD / arrows | walk along the field's axes (Up = diagonally away from the camera); Shift = run |
-| Space / J | use the tool on the cell in front; hold to charge (pips over the farmer), let go for a bigger area; tools level up with use (pips in the item box) |
-| E / K | interact: harvest, ship at the bin (with nothing to ship: read the note on it), buy seeds at the stand, open the storage chest right of the house, go through doors (walking into one works too), sleep at the futon in the house |
+| Space / J | use the tool on the cell in front; hold to charge (pips over the farmer), let go for a bigger area; tools level up with use (pips in the item box). With an item overhead on the farm: set it down on the cell in front |
+| E / K | interact: harvest (the crop goes up overhead, into the hand slot), pick up an item lying in front, ship the rucksack's crops at the bin (with nothing to ship: read the note on it), buy seeds at the stand, open the storage chest right of the house, go through doors (walking into one works too), sleep at the futon in the house. With an item overhead on the farm: throw it up to 2 cells ahead; into the bin it's shipped, into the pond it's gone |
 | E / Space / Enter, click | in a text box: show the whole line, then go on; arrows / W / S or the mouse pick a choice |
 | 1-7 / Tab | pick a tool slot (at the start: hoe, watering can, sickle, hammer, axe, seeds, food; Space / J eats or drinks the food in hand) |
 | I | rucksack: arrows / WASD move, Enter / Space pick up and put down (stack, swap), E takes it in hand (tool slot = tool in hand, an item = the item hand), Esc / I close; mouse: left click pick / put, right click hold. The chest screen works the same. The clock stops while it is open |

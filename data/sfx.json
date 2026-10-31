@@ -37,6 +37,16 @@
 			{"kind": "tone", "freq": 220, "freq_end": 420, "dur": 0.12, "attack": 0.01, "decay": 0.04},
 			{"kind": "tone", "freq": 200, "freq_end": 400, "dur": 0.12, "at": 0.25, "attack": 0.01, "decay": 0.04, "gain": 0.8},
 			{"kind": "noise", "lp": 900, "dur": 0.4, "attack": 0.05, "release": 0.15, "gain": 0.2, "trem": [[8, 0.6]]}]},
+		"hold_throw": {"volume_db": -14, "pitch": [0.9, 1.1], "layers": [
+			{"kind": "noise", "hp": 600, "lp": 3000, "dur": 0.22, "attack": 0.08, "decay": 0.05, "gain": 0.8},
+			{"kind": "tone", "freq": 220, "freq_end": 330, "dur": 0.1, "attack": 0.004, "decay": 0.03, "gain": 0.3}]},
+		"hold_land": {"volume_db": -12, "pitch": [0.85, 1.1], "layers": [
+			{"kind": "noise", "color": "brown", "lp": 500, "dur": 0.14, "attack": 0.002, "decay": 0.035},
+			{"kind": "tone", "freq": 120, "freq_end": 70, "dur": 0.1, "attack": 0.002, "decay": 0.03, "gain": 0.6}]},
+		"hold_splash": {"volume_db": -11, "pitch": [0.9, 1.1], "layers": [
+			{"kind": "tone", "freq": 520, "freq_end": 1300, "dur": 0.09, "attack": 0.002, "decay": 0.03, "gain": 0.7},
+			{"kind": "noise", "hp": 700, "lp": 4500, "dur": 0.45, "at": 0.03, "attack": 0.01, "decay": 0.12},
+			{"kind": "grains", "count": 12, "dur": 0.4, "at": 0.06, "hp": 1500, "lp": 6000, "grain": 0.006, "gain": 0.4}]},
 		"bin_lid": {"volume_db": -10, "pitch": [0.95, 1.05], "layers": [
 			{"kind": "tone", "freq": 175, "partials": [[1, 1], [2.6, 0.35], [4.1, 0.1]], "dur": 0.3, "attack": 0.002, "decay": 0.06},
 			{"kind": "noise", "lp": 2000, "dur": 0.06, "attack": 0.001, "decay": 0.015, "gain": 0.6},

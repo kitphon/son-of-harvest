@@ -28,6 +28,9 @@ var env: Environment
 var flash: ColorRect
 var fade: MapFade
 var lightning := Lightning.new()
+var held_sprite: Sprite3D        # the item carried overhead
+var flying: Sprite3D             # a thrown item on its way
+var _flight := {}                # from, to, time, seconds, height, cell (while flying)
 
 
 func _ready() -> void:
@@ -63,6 +66,12 @@ func _ready() -> void:
 	charge_pips.position = Vector3(0, 1.3, 0)   # over the farmer's head
 	charge_pips.visible = false
 	sprite.add_child(charge_pips)
+	held_sprite = FarmWorld.make_sprite(PlaceholderArt.tex("item:turnip"))
+	held_sprite.visible = false
+	sprite.add_child(held_sprite)
+	flying = FarmWorld.make_sprite(PlaceholderArt.tex("item:turnip"))
+	flying.visible = false
+	add_child(flying)
 
 	cam = Camera3D.new()
 	cam.fov = CAM_FOV
@@ -121,6 +130,7 @@ func _ready() -> void:
 	Game.day_started.connect(_on_day_started)
 	Game.map_changed.connect(func(_id): fade.run(_enter_map))
 	Game.settings_changed.connect(func(): lightning.reset(Game.lightning_style()))
+	Game.thrown.connect(_on_thrown)
 	_enter_map()
 	Game.map_arrived()
 
@@ -161,9 +171,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	anim.step(delta, player.moving, player.running, Game.body_state() != "fine")
+	anim.step(delta, player.moving, player.running, Game.body_state() != "fine", Game.holding())
 	_update_flash(delta)
 	_follow()
+	_fly(delta)
 
 
 func _follow() -> void:
@@ -175,6 +186,7 @@ func _follow() -> void:
 	target_mark.position = Vector3(tc.x + 0.5, 0.02, tc.y + 0.5)
 	if Game.maps.on_farm():
 		_show_charge()
+	_show_held()
 
 	var m := Game.maps.current()
 	var target := Vector3(_clamp_view(feet.x, CAM_MARGIN.x, m.w), 0, _clamp_view(feet.z, CAM_MARGIN.y, m.h))
@@ -210,6 +222,46 @@ func _show_charge() -> void:
 	if player.charging:
 		charge_pips.texture = PlaceholderArt.tex(
 			PlaceholderArt.charge_key(player.charge, Game.max_charge(Game.current_tool())))
+
+
+## The held item rests on the raised hands at the top of the sprite and bobs with the body.
+func _show_held() -> void:
+	held_sprite.visible = Game.holding()
+	if Game.holding():
+		held_sprite.texture = PlaceholderArt.tex(PlaceholderArt.world_item_key(Game.held))
+		var top := 24 - PlaceholderArt.farmer_drop(anim.pose, anim.frame()) - 1
+		held_sprite.position = Vector3(0, top * FarmWorld.PX, 0)
+
+
+## A throw: the item flies in an arc from over the head to where it ends up; one that lands
+## on the ground shows on its cell only when it gets there.
+func _on_thrown(item: String, _from: Vector2i, to: Vector2i, result: String) -> void:
+	var end_y := 0.0
+	if result == "ship":
+		end_y = 0.6    # into the bin under its lid
+	flying.texture = PlaceholderArt.tex(PlaceholderArt.world_item_key(item))
+	flying.visible = true
+	_flight = {
+		"from": sprite.position + held_sprite.position, "to": Vector3(to.x + 0.5, end_y, to.y + 0.5),
+		"time": 0.0, "seconds": float(Game.hold_rules.get("flight_seconds", 0.35)),
+		"height": float(Game.hold_rules.get("arc_height", 1.2)),
+	}
+	world.hidden_item = to if result == "land" else Vector2i(-1, -1)
+	_fly(0.0)
+
+
+func _fly(delta: float) -> void:
+	if _flight.is_empty():
+		return
+	_flight.time += delta
+	var t := clampf(_flight.time / maxf(_flight.seconds, 0.01), 0.0, 1.0)
+	var p: Vector3 = _flight.from.lerp(_flight.to, t)
+	p.y += _flight.height * 4.0 * t * (1.0 - t)
+	flying.position = p
+	if t >= 1.0:
+		flying.visible = false
+		_flight = {}
+		world.hidden_item = Vector2i(-1, -1)
 
 
 ## The farmer is put home by the map change (Game.go_home) that comes with the new day.

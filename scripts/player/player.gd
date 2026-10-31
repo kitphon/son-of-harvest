@@ -23,6 +23,10 @@ var _charge_tool := ""
 var _after_menu := false   # keys held from a menu do nothing until let go
 
 
+func _ready() -> void:
+	Game.changed.connect(queue_redraw)   # picking up / putting down while standing still
+
+
 func _physics_process(delta: float) -> void:
 	# A menu is open: stand still, and opening it drops a charge (as walking away would).
 	if Game.paused():
@@ -64,7 +68,8 @@ func _physics_process(delta: float) -> void:
 			action.emit("enter", ahead - facing, facing, 0)
 			return
 	if Input.is_action_just_pressed("use_tool"):
-		if Game.max_charge(Game.current_tool()) > 0:
+		# Hands full (an item overhead): the button sets it down, nothing charges.
+		if Game.max_charge(Game.current_tool()) > 0 and not Game.holding():
 			charging = true
 			charge = 0
 			_charge_time = 0.0
@@ -141,3 +146,8 @@ func _draw() -> void:
 	draw_circle(Vector2(0, -13), 4.5, Color("f2c79b"))
 	draw_rect(Rect2(-5, -18, 10, 3), Color("c8452c"))   # cap
 	draw_circle(Vector2(facing) * 5 + Vector2(0, -6), 1.5, Color.WHITE)
+	if Game.holding():   # carried overhead, arms up
+		draw_rect(Rect2(-7, -19, 3, 9), Color("3b6fd1"))
+		draw_rect(Rect2(4, -19, 3, 9), Color("3b6fd1"))
+		var item := PlaceholderArt.tex(PlaceholderArt.world_item_key(Game.held))
+		draw_texture(item, Vector2(-item.get_width() / 2.0, -19 - item.get_height()))
