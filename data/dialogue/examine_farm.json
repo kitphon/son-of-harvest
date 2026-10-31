@@ -1,0 +1,9 @@
+{
+	"_note": "Lines for the farm examine events: the name plate by the farmhouse door and the board on the fence by the gate.",
+	"lines": [
+		{"if": "bin_named", "then": "plate_named"},
+		{"id": "plate", "speaker": "farmer", "face": "calm", "text": "A cedar name plate by the door. The old owner's name has weathered away to a few faint strokes.", "next": "end"},
+		{"id": "plate_named", "speaker": "farmer", "face": "smile", "text": "A cedar name plate by the door. Tsuru said she'd bring her brush... maybe she'll do this one too.", "next": "end"},
+		{"id": "sign", "text": "A board nailed to the fence post: 'Village - this way. Mind the slope after rain.'", "next": "end"}
+	]
+}

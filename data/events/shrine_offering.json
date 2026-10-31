@@ -1,0 +1,14 @@
+{
+	"_note": "Examining the shrine's offering box: bow, or drop in a coin (5 G, flag shrine_coin for the branch, cleared after).",
+	"steps": [
+		{"do": "face", "dir": "up"},
+		{"do": "say", "dialogue": "examine_town", "at": "offering"},
+		{"if": "shrine_coin", "then": "pay"},
+		{"next": "end", "do": "wait", "seconds": 0},
+		{"id": "pay", "do": "clear", "flags": ["shrine_coin"]},
+		{"do": "money", "amount": -5},
+		{"do": "sound", "key": "coins"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "examine_town", "at": "coin"}
+	]
+}

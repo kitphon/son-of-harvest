@@ -7,6 +7,8 @@ extends Node
 ## `-- --event=<id>` plays one at the start; under `-- --demo` the triggers are off, so
 ## screenshots of the field stay free of events.
 
+const GROUP := "event_player"   # FarmActions finds the view's player here for examine
+
 var player: Player
 var map_id := "farm"
 var table: EventTriggers
@@ -21,6 +23,7 @@ func _init(farmer: Player) -> void:
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	var layer := CanvasLayer.new()
 	layer.layer = 9   # over the HUD, under the text box
 	_fade = ColorRect.new()
@@ -59,6 +62,20 @@ func check(cause: String) -> void:
 	var id := table.pick(cause, Game.trigger_state(Player.cell_of(player.position)))
 	if id != "":
 		play(id)
+
+
+## The farmer pressed interact facing cell `spot`: plays the map's first matching "examine"
+## row and says whether one played (FarmActions then skips its own interact). Examining is
+## the player's own doing, so it works under `-- --demo` too.
+func examine(spot: Vector2i) -> bool:
+	if runner != null or Game.paused():
+		return false
+	var s := Game.trigger_state(Player.cell_of(player.position))
+	s.spot = spot
+	var id := table.pick("examine", s)
+	if id != "":
+		play(id)
+	return runner != null
 
 
 func play(id: String) -> void:

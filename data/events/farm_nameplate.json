@@ -1,0 +1,6 @@
+{
+	"_note": "Examining the name plate on the farmhouse wall by the door.",
+	"steps": [
+		{"do": "say", "dialogue": "examine_farm"}
+	]
+}

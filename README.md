@@ -153,7 +153,7 @@ anything wrong and says why.
 `EventPlayer` asks the table of the map the farmer is on when something happens (`on`):
 `enter` (the farmer arrives on the map, also at the start of a game), `day_start` (a new day,
 or a loaded game), `minute` (each clock minute) and `step` (the farmer steps onto another
-cell). The first row in table order whose conditions all hold plays its `event`; a row plays
+cell) and `examine` (the farmer presses interact facing a spot; see below). The first row in table order whose conditions all hold plays its `event`; a row plays
 once (`Game.events_seen`, saved) unless it says `"once": false`. Conditions, each optional:
 `year` / `days` `[first, last]`, `season` / `weekday` (`mon` .. `sun`; spring 1 of year 1 is a
 Monday) / `weather` (today's: sunny, rain, storm, snow) lists, `time` `["6:00", "9:00"]` (from,
@@ -161,6 +161,17 @@ until; the end is not included), `flags` / `not_flags` (set or not set), `seen` 
 (event ids) and `area` `[x, y, width, height]` in cells (where the farmer stands). Under
 `-- --demo` the tables are off. Map switching calls `EventPlayer.enter_map(id)` with the new
 map's id.
+
+**Examine**: a row with `"on": "examine"` needs a `spot`, the cell the farmer faces: `[x, y]`
+or `[x, y, width, height]` (a spot is only for examine rows). On interact (E) `FarmActions`
+asks the map's table first; when a row matches its event plays and the normal interact
+(doors, bin, chest, futon, picking up) is skipped. An item held overhead on the farm is still
+thrown. Give examine rows `"once": false`, and put the special cases (snow, evening) above the
+plain row for the same spot. Examining works under `-- --demo` too, since only a key press
+starts it. Spots now: the shrine's offering box, the stone lanterns and the empty houses'
+doors in the village (`triggers_town.json`), the name plate by the farmhouse door and the
+board by the gate (`triggers_farm.json`), the calendar and the radio in the farmhouse
+(`triggers_house.json`).
 
 ## Camera
 `scripts/main_3d.gd` uses the field camera geometry of Harvest Moon: Back to Nature, measured

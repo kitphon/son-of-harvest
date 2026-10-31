@@ -43,7 +43,8 @@ food (DESIGN: about +3 / −1), cooking, a real shop with opening hours (milesto
 Event scripts and trigger tables per map are done (data/events, EventRunner /
 EventTriggers / EventPlayer; README → Events); EventPlayer loads a map's table on
 `Game.map_entered(map_id)`, so a new map's events are one `data/events/triggers_<map id>.json`.
-Later for events: an "examine" cause (E on a spot) and villagers as actors.
+The "examine" cause is done (E facing a spot in a trigger table: shrine, lanterns, empty
+houses, name plate, gate board, calendar, radio). Later for events: villagers as actors.
 Maps are in (data/maps: farm, farmhouse inside with the futon, a first village with a
 shrine; doors, a fade, clock stopped indoors). Villagers (milestone 5, next item) get their
 own map props / doors from the same files; the village houses' doors only show a message
@@ -102,6 +103,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 6. **Events and dialogue**
    - [x] Text box (typewriter, portraits, choices, flags); our own, data/dialogue
    - [x] Event scripts + trigger tables per map (data/events; three small farm events)
+   - [x] "Examine" trigger cause: E facing a spot plays an event (village, farm, farmhouse)
    - [ ] Opening event, first visits to the shops
 7. **Animals**
    - [ ] Chickens, cows / sheep, dog: feeding, happiness, produce grades, sickness

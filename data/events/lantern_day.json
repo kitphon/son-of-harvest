@@ -1,0 +1,6 @@
+{
+	"_note": "Examining a stone lantern by day.",
+	"steps": [
+		{"do": "say", "dialogue": "examine_town", "at": "lantern_day"}
+	]
+}

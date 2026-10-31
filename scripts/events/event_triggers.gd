@@ -2,16 +2,17 @@ class_name EventTriggers
 extends RefCounted
 ## One map's trigger table (data/events/triggers_<map id>.json): rows of conditions, each
 ## naming the event to play when they all hold. The view asks on a cause (the farmer enters
-## the map, a new day starts, a clock minute passes, the farmer steps onto another cell); the
+## the map, a new day starts, a clock minute passes, the farmer steps onto another cell, the
+## farmer presses interact facing a spot); the
 ## first row in table order that matches wins, so the order is the priority. A row plays once
 ## unless it says `"once": false`. Pure logic: the state comes in as a dictionary
 ## (Game.trigger_state), so tests check it headless. Format: README.md → Events.
 
 const GameRules := preload("res://scripts/autoload/game.gd")   # SEASONS, WEEKDAYS
-const CAUSES: Array[String] = ["enter", "day_start", "minute", "step"]
+const CAUSES: Array[String] = ["enter", "day_start", "minute", "step", "examine"]
 const WEATHERS: Array[String] = ["sunny", "rain", "storm", "snow"]
 const ROW_KEYS: Array[String] = ["_note", "event", "on", "once", "year", "season", "days",
-	"weekday", "time", "weather", "flags", "not_flags", "seen", "not_seen", "area"]
+	"weekday", "time", "weather", "flags", "not_flags", "seen", "not_seen", "area", "spot"]
 
 var map_id := ""
 var error := ""      # "" or why the table was refused (then it has no rows)
@@ -47,7 +48,8 @@ func pick(cause: String, state: Dictionary) -> String:
 
 
 ## Does `row` hold for `cause` in `state` ({year, season, day, weekday, time (minutes since
-## midnight), weather, flags, seen, cell})? Conditions a row leaves out always hold.
+## midnight), weather, flags, seen, cell, and for "examine" spot: the cell faced)? Conditions
+## a row leaves out always hold.
 static func matches(row: Dictionary, cause: String, s: Dictionary) -> bool:
 	var on: Variant = row.on
 	if not cause in (on if on is Array else [on]):
@@ -82,7 +84,14 @@ static func matches(row: Dictionary, cause: String, s: Dictionary) -> bool:
 		var a: Array = row.area
 		if not Rect2i(int(a[0]), int(a[1]), int(a[2]), int(a[3])).has_point(s.cell):
 			return false
+	if row.has("spot") and not (s.has("spot") and _rect(row.spot).has_point(s.spot)):
+		return false
 	return true
+
+
+## A spot `[x, y]` (one cell) or `[x, y, width, height]` as a rectangle of cells.
+static func _rect(a: Array) -> Rect2i:
+	return Rect2i(int(a[0]), int(a[1]), int(a[2]) if a.size() == 4 else 1, int(a[3]) if a.size() == 4 else 1)
 
 
 ## "H:MM" -> minutes since midnight (-1 when it isn't a time). "24:00" is the end of the day.
@@ -151,6 +160,15 @@ static func check_row(row: Variant) -> String:
 		var a: Variant = row.area
 		if not a is Array or a.size() != 4 or not a.all(func(v): return EventRunner._whole(v, -999, 999)) or a[2] < 1 or a[3] < 1:
 			return "area needs [x, y, width, height]"
+	# An examine row names the spot faced; a spot means nothing for the other causes.
+	if row.has("spot"):
+		var p: Variant = row.spot
+		if causes != ["examine"]:
+			return "spot is only for on: examine"
+		if not p is Array or not p.size() in [2, 4] or not p.all(func(v): return EventRunner._whole(v, -999, 999)) 				or (p.size() == 4 and (p[2] < 1 or p[3] < 1)):
+			return "spot needs [x, y] or [x, y, width, height]"
+	elif "examine" in causes:
+		return "an examine row needs a spot"
 	return ""
 
 

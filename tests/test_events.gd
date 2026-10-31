@@ -1,6 +1,6 @@
 extends SceneTree
 ## Headless event checks (EventRunner, EventTriggers, the event data, Game's weekday and
-## event pause). Run:
+## event pause, examining a spot through FarmActions and the EventPlayer). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_events.gd
 
 var failures := 0
@@ -157,7 +157,11 @@ func _init() -> void:
 			{"event": "pond_first", "on": "step", "weather": ["fog"]}, {"event": "pond_first", "on": "step", "time": ["9:00", "6:00"]},
 			{"event": "pond_first", "on": "step", "time": ["6:00"]}, {"event": "pond_first", "on": "step", "flags": "a"},
 			{"event": "pond_first", "on": "step", "not_seen": [""]}, {"event": "pond_first", "on": "step", "area": [1, 1, 0, 1]},
-			{"event": "pond_first", "on": "step", "area": [1, 1, 1]}]:
+			{"event": "pond_first", "on": "step", "area": [1, 1, 1]},
+			{"event": "pond_first", "on": "examine"}, {"event": "pond_first", "on": "step", "spot": [1, 1]},
+			{"event": "pond_first", "on": ["examine", "step"], "spot": [1, 1]},
+			{"event": "pond_first", "on": "examine", "spot": [1, 1, 1]}, {"event": "pond_first", "on": "examine", "spot": [1, 1, 0, 2]},
+			{"event": "pond_first", "on": "examine", "spot": [1.5, 1]}]:
 		check(EventTriggers.check_row(bad) != "", "refused row %s" % JSON.stringify(bad))
 	check(EventTriggers.new({"rows": [{"event": "nope", "on": "step"}]}).rows.is_empty(), "a table with a bad row has no rows")
 
@@ -175,6 +179,50 @@ func _init() -> void:
 	check(farm.pick("day_start", g.trigger_state(Vector2i(4, 4))) == "", "and only the first")
 	check(farm.pick("step", g.trigger_state(Vector2i(24, 3))) == "pond_first", "stepping up to the pond")
 	check(farm.pick("step", g.trigger_state(Vector2i(20, 3))) == "", "not further away")
+
+	# Examine: the spot faced, a cell or a rectangle, with the usual conditions on top.
+	var spot_row := {"event": "pond_first", "on": "examine", "spot": [18, 1, 2, 2], "time": ["6:00", "18:00"]}
+	var ss: Dictionary = g.trigger_state(Vector2i(18, 3))
+	check(EventTriggers.check_row(spot_row) == "" and EventTriggers.check_row({"event": "pond_first", "on": "examine", "spot": [4, 4]}) == "", "examine rows with a spot load")
+	check(not EventTriggers.matches(spot_row, "examine", ss), "no spot in the state (another cause): no examine match")
+	for c in [Vector2i(18, 1), Vector2i(19, 2)]:
+		check(EventTriggers.matches(spot_row, "examine", ss.merged({"spot": c}, true)), "examining %s inside the spot" % c)
+	for c in [Vector2i(20, 2), Vector2i(18, 3)]:
+		check(not EventTriggers.matches(spot_row, "examine", ss.merged({"spot": c}, true)), "examining %s outside the spot" % c)
+	check(not EventTriggers.matches(spot_row, "step", ss.merged({"spot": Vector2i(18, 1)}, true)), "an examine row ignores other causes")
+	check(not EventTriggers.matches(spot_row, "examine", ss.merged({"spot": Vector2i(18, 1), "time": 18 * 60}, true)), "the time still counts")
+	# The tables: shrine, lanterns (snow, then evening, then day), houses, farm and farmhouse.
+	var town := EventTriggers.open("town")
+	var at := func(t: EventTriggers, c: Vector2i, extra := {}) -> String:
+		return t.pick("examine", g.trigger_state(Vector2i(0, 0)).merged({"spot": c}).merged(extra, true))
+	check(at.call(town, Vector2i(19, 2)) == "shrine_offering", "the shrine's offering box")
+	check(at.call(town, Vector2i(16, 3)) == "lantern_day" and at.call(town, Vector2i(21, 3), {"time": 20 * 60}) == "lantern_night"
+		and at.call(town, Vector2i(16, 3), {"time": 20 * 60, "weather": "snow"}) == "lantern_snow", "the lanterns by day, at night, in snow")
+	check(at.call(town, Vector2i(5, 6)) == "quiet_house" and at.call(town, Vector2i(23, 15)) == "", "the empty houses, not the shop door")
+	g.events_seen.shrine_offering = true
+	check(at.call(town, Vector2i(18, 1)) == "shrine_offering", "examine rows play every time")
+	check(at.call(town, Vector2i(17, 3)) == "" and town.pick("step", g.trigger_state(Vector2i(19, 2))) == "", "nothing beside the spots or on stepping")
+	check(at.call(farm, Vector2i(5, 3)) == "farm_nameplate" and at.call(farm, Vector2i(31, 4)) == "farm_sign", "the farm's name plate and gate board")
+	var house := EventTriggers.open("house")
+	check(at.call(house, Vector2i(3, 0)) == "calendar_spring" and at.call(house, Vector2i(3, 0), {"season": "winter"}) == "calendar_winter"
+		and at.call(house, Vector2i(6, 1)) == "house_radio", "the farmhouse calendar per season and the radio")
+	# The shrine coin: the choice sets a flag, the event pays 5 G and clears it.
+	g.money = 100
+	g.dialogue_requested.connect(func(id, line):
+		talked.append(id + "@" + line)
+		g.dialogue_open = true)
+	var coin := EventRunner.open("shrine_offering", g)
+	coin.start(Vector2(18 * 16 + 8, 3 * 16 + 10), Vector2i.DOWN)
+	talked.clear()
+	coin.update(0.0)
+	check(coin.facing == Vector2i.UP and talked == ["examine_town@offering"], "faces the shrine and asks %s" % [talked])
+	g.flags.shrine_coin = true   # what the "Drop in a coin" choice sets
+	g.dialogue_open = false
+	for i in 20:
+		coin.update(0.1)
+		g.dialogue_open = false
+	check(g.money == 95 and not EventRunner.is_set(g.flags, "shrine_coin") and coin.done()
+		and talked == ["examine_town@offering", "examine_town@coin"], "a coin: 5 G, flag cleared %s" % [talked])
 
 	# Weekdays: spring 1 of year 1 is a Monday and the week runs on across seasons and years
 	# (a year is 120 days, so year 2 starts on a Tuesday).
@@ -198,8 +246,46 @@ func _init() -> void:
 	check(g.money == 0, "add_money never goes below 0")
 
 	g.free()
-	print("test_events: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
-	quit(1 if failures else 0)
+
+
+var _frame := 0
+var _player: Node
+var _events: Node   # EventPlayer; loaded by path, since it needs the Game autoload to compile
+
+
+## On the real Game, in the tree: interact facing a spot asks the trigger table first; an item
+## held overhead on the farm is thrown instead.
+func _process(_delta: float) -> bool:
+	_frame += 1
+	var g: Node = root.get_node("Game")
+	if _frame == 1:
+		g.new_game()
+		g.events_seen = {"first_morning": true, "rainy_day": true}
+		g.dialogue_requested.connect(func(_id, _at): g.dialogue_open = true)   # a text box stands open
+		_player = load("res://scripts/player/player.gd").new()
+		_player.farm = g.farm
+		root.add_child(_player)
+		_events = load("res://scripts/events/event_player.gd").new(_player)
+		root.add_child(_events)
+	elif _frame == 3:
+		var actions: GDScript = load("res://scripts/farm_actions.gd")
+		g.held = "turnip"
+		actions.on_action("interact", Vector2i(3, 4), Vector2i.UP)
+		check(not _events.is_playing() and g.held == "turnip", "holding a turnip on the farm: interact throws (blocked here), no examine")
+		g.held = ""
+		actions.on_action("interact", Vector2i(3, 4), Vector2i.UP)
+		check(_events.is_playing() and g.events_seen.has("farm_nameplate"), "interact facing the name plate plays its event")
+		g.dialogue_open = false   # (paused while the box is open; this checks the runner)
+		check(not actions.examine(Vector2i(31, 4)) and not g.events_seen.has("farm_sign"), "no second examine while one plays")
+		check(not actions.examine(Vector2i(10, 10)), "nothing to examine on open ground")
+		_events.free()
+		_player.free()
+		g.dialogue_open = false
+		g.event_running = false
+		g.new_game()
+		print("test_events: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
+		quit(1 if failures else 0)
+	return false
 
 
 func _game() -> Node:

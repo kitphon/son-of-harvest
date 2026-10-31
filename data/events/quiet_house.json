@@ -1,0 +1,6 @@
+{
+	"_note": "Knocking on a village house nobody lives in yet (the doors' own message still shows on walking in).",
+	"steps": [
+		{"do": "say", "dialogue": "examine_town", "at": "house"}
+	]
+}
