@@ -24,10 +24,10 @@ seed stand (a noren or a wooden roof), and the shipping bin.
 
 ## Next up
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
-objects, ground tiles, buildings and weather particles are done. Next: milestone 2, **the
-pixel font and HUD clock box** (a warm paper / wood box for date, time and weather, a pixel
-font that can show Japanese later, a proper tool / item display). Later for weather: snow
-lying on the ground in winter, lightning flashes in storms.
+objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
+font are done. Next: milestone 3, **charging tools** (hold to cover more cells, per tool
+level). Later for weather: snow lying on the ground in winter, lightning flashes in storms.
+Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 
@@ -48,7 +48,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Ground tiles instead of flat colours (grass, soil dry / wet / tilled, paths, water)
    - [x] House, bin, stand, fence as models or textured boxes
    - [x] Rain / snow particles, weather tint
-   - [ ] Pixel font for the HUD, clock box, a proper item / tool display
+   - [x] Pixel font for the HUD, clock box, a proper item / tool display (Japanese glyphs later)
 3. **Tools and the body**
    - [ ] Charging tools (hold to cover more cells, per tool level)
    - [ ] Tool levels and upgrades

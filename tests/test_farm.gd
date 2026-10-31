@@ -157,6 +157,55 @@ func _init() -> void:
 		var img := PlaceholderArt.tex(key).get_image()
 		check(img.get_pixel(0, 0) != Color("ff00ff") and img.get_used_rect().has_area(), "%s drawn" % key)
 
+	# HUD: the pixel font draws every character the HUD and the game's messages use, the
+	# FontFile measures text like PixelFont.width, UI pieces are drawn, boxes fit the screen.
+	var font := PixelFont.font()
+	var hud_text := "0123456789:/x>G Bin "
+	for season_id in game_script.SEASONS:
+		hud_text += "%s 30, Year 99" % season_id.capitalize()
+	for name in HudLayout.TOOL_NAMES.values():
+		hud_text += name
+	for id in crops:
+		hud_text += crops[id].name + " seeds"
+	check(PixelFont.missing(hud_text) == "", "font has the HUD's glyphs (missing '%s')" % PixelFont.missing(hud_text))
+	var quote := RegEx.create_from_string("message\\.emit\\(\"([^\"]*)\"")
+	for path in ["res://scripts/autoload/game.gd", "res://scripts/farm_actions.gd"]:
+		for m in quote.search_all(FileAccess.get_file_as_string(path)):
+			var msg := m.get_string(1).replace("%d", "0").replace("%s", "")
+			check(PixelFont.missing(msg) == "", "font has the glyphs of '%s'" % msg)
+	for txt in ["Spring 1, Year 1", "10:00", "Watering can", "x12"]:
+		var fw := font.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, PixelFont.size()).x
+		check(int(fw) == PixelFont.width(txt) + int(PixelFont.data().spacing), "font width of '%s' (%d vs %d)" % [txt, fw, PixelFont.width(txt)])
+	check(font.get_height(PixelFont.size()) == PixelFont.size(), "font line height")
+	var glyph_a := PixelFont.atlas()
+	check(glyph_a.get_height() == PixelFont.size() and glyph_a.get_used_rect().has_area(), "font atlas drawn")
+	for ch in PixelFont.data().glyphs:
+		var rows: Array = PixelFont.data().glyphs[ch]
+		var ok := rows.size() <= PixelFont.size()
+		for row in rows:
+			ok = ok and String(row).length() == String(rows[0]).length()
+		check(ok, "glyph '%s' rows even and fit the line" % ch)
+	var frame := PlaceholderArt.tex("ui:frame:paper").get_image()
+	check(frame.get_pixel(1, 8) == PlaceholderArt.UI_WOOD and frame.get_pixel(8, 8) == PlaceholderArt.UI_PAPER, "paper box: wood edge, paper inside")
+	var ui_keys := ["ui:frame:wood", "ui:slot:on", "ui:slot:off", "ui:coin", "ui:stamina"]
+	for t in game_script.TOOLS:
+		ui_keys.append("ui:seeds:turnip" if t == "seeds" else "ui:tool:" + t)
+	for w in HudLayout.WEATHER_ICONS:
+		ui_keys.append("ui:weather:" + w)
+	for key in ui_keys:
+		var img := PlaceholderArt.tex(key).get_image()
+		check(img.get_pixel(img.get_width() / 2, img.get_height() / 2) != Color("ff00ff") and img.get_used_rect().has_area(), "%s drawn" % key)
+	var screen := Rect2i(0, 0, 480, 270)
+	var boxes: Array = HudLayout.BOXES.values()
+	for i in boxes.size():
+		check(screen.encloses(boxes[i]), "HUD box %s on screen" % boxes[i])
+		for j in range(i + 1, boxes.size()):
+			check(not boxes[i].intersects(boxes[j]), "HUD boxes %s and %s apart" % [boxes[i], boxes[j]])
+	var bar_w: int = 10 + game_script.TOOLS.size() * (HudLayout.SLOT + HudLayout.SLOT_GAP) - HudLayout.SLOT_GAP
+	check(bar_w <= HudLayout.BOXES.tools.size.x, "tool bar holds every tool")
+	var clock_w := 6 + PixelFont.width("Winter 30, Year 99") + 4
+	check(clock_w <= HudLayout.BOXES.clock.size.x, "longest date fits the clock box")
+
 	print("test_farm: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 

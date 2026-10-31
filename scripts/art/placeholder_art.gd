@@ -31,6 +31,8 @@ static func _make(key: String) -> Image:
 			return _ground(parts[1], int(parts[2]))
 		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour)
 			return _fx(parts[1])
+		"ui":       # ui:<frame|slot|weather|tool|seeds|coin|stamina>:<kind>, HUD pieces
+			return _ui(parts[1], parts[2] if parts.size() > 2 else "")
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
 
@@ -573,3 +575,154 @@ static func _fx(kind: String) -> Image:
 				img.set_pixelv(p, c)
 			return img
 	return _draw(4, 4, [[0, 0, 4, 4, "ff00ff"]])
+
+
+## HUD pieces in warm paper and wood. Frames are 16 x 16 nine-patches with a 4 px border
+## (dark edge, two rows of wood, a dark inner line), slots 18 x 18, icons 12 x 12 / 14 x 14.
+const UI_WOOD := Color("8a5a32")
+const UI_WOOD_LIGHT := Color("a8743f")
+const UI_WOOD_DARK := Color("5a3a20")
+const UI_PAPER := Color("efe3c4")
+const UI_PAPER_FIBRE := Color("e3d4b0")
+const UI_SEAL := Color("c8442c")      # vermilion, like a name seal: marks the tool in hand
+
+
+static func _ui(kind: String, arg: String) -> Image:
+	match kind:
+		"frame":    # frame:<paper|wood>
+			var img := _blank(16, 16)
+			_px(img, 0, 0, 16, 16, Color("3a2416"))
+			_px(img, 1, 1, 14, 14, UI_WOOD)
+			_px(img, 1, 1, 14, 1, UI_WOOD_LIGHT)
+			_px(img, 1, 14, 14, 1, Color("6a4222"))
+			_px(img, 3, 3, 10, 10, UI_WOOD_DARK)
+			for p in [Vector2i(0, 0), Vector2i(15, 0), Vector2i(0, 15), Vector2i(15, 15)]:
+				img.set_pixelv(p, Color(0, 0, 0, 0))
+			if arg == "wood":
+				_px(img, 4, 4, 8, 8, Color("7a4e2a"))
+				for y in [5, 9]:
+					_px(img, 4, y, 8, 1, Color("6c4424"))
+				_px(img, 6, 7, 3, 1, Color("8a5a32"))
+			else:
+				_px(img, 4, 4, 8, 8, UI_PAPER)
+				for p in [Vector2i(5, 6), Vector2i(6, 6), Vector2i(9, 4), Vector2i(10, 9), Vector2i(11, 9), Vector2i(7, 11)]:
+					img.set_pixelv(p, UI_PAPER_FIBRE)
+			return img
+		"slot":     # slot:<on|off>, a recessed paper square on the wooden tool bar
+			var img := _blank(18, 18)
+			if arg == "on":
+				_px(img, 0, 0, 18, 18, UI_SEAL)
+				_px(img, 1, 1, 16, 16, Color("f2b05a"))
+				_px(img, 2, 2, 14, 14, Color("fbf3dc"))
+			else:
+				_px(img, 0, 0, 18, 18, Color("3a2416"))
+				_px(img, 1, 1, 16, 16, Color("d9c79e"))
+				_px(img, 1, 1, 16, 1, Color("bba57a"))
+				_px(img, 1, 1, 1, 16, Color("c8b48a"))
+			return img
+		"weather":  # weather:<sunny|rain|storm|snow|blizzard>
+			return _weather_icon(arg)
+		"tool":     # tool:<hoe|can|sickle|hammer|axe>, 14 x 14
+			return _tool_icon(arg)
+		"seeds":    # seeds:<crop>, a paper seed bag with the crop's colour on its label
+			var img := _blank(14, 14)
+			var look := crop_look(arg)
+			_px(img, 3, 4, 8, 9, Color("d8c08a"))
+			_px(img, 4, 2, 6, 2, Color("b89a62"))
+			_px(img, 3, 4, 8, 1, Color("b89a62"))
+			_oval(img, 7, 8.5, 2.5, 2.5, Color(look.get("fruit", "c0a060")))
+			_px(img, 6, 6, 2, 1, Color(look.get("leaf", "5fa83a")))
+			return _outline(img)
+		"coin":     # a gold coin with a square hole
+			var img := _blank(9, 9)
+			_oval(img, 4.5, 4.5, 4.0, 4.0, Color("c8962a"))
+			_oval(img, 4.5, 4.5, 3.0, 3.0, Color("e8c050"))
+			_px(img, 3, 3, 3, 3, Color("c8962a"))
+			_px(img, 4, 4, 1, 1, Color(0, 0, 0, 0))
+			return img
+		"stamina":  # a rice ball: what keeps the farmer going
+			var img := _blank(9, 9)
+			for y in 7:
+				var half := (y + 1) / 2 + 1
+				_px(img, 4 - half + 1, y + 1, half * 2 - 1, 1, Color("fbf8f0"))
+			_px(img, 3, 6, 3, 2, Color("26302a"))
+			return _outline(img)
+	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
+
+
+static func _weather_icon(kind: String) -> Image:
+	var img := _blank(12, 12)
+	if kind == "sunny":
+		var ray := Color("e8902a")
+		for p in [[5, 0, 2, 2], [5, 10, 2, 2], [0, 5, 2, 2], [10, 5, 2, 2], [1, 1, 2, 2], [9, 1, 2, 2], [1, 9, 2, 2], [9, 9, 2, 2]]:
+			_px(img, p[0], p[1], p[2], p[3], ray)
+		_oval(img, 6, 6, 3.5, 3.5, Color("f0a830"))
+		_oval(img, 5.5, 5.5, 2.0, 2.0, Color("f8d868"))
+		return img
+	var dark := kind in ["storm", "blizzard"]
+	var cloud := Color("6a7282") if dark else Color("a8b2c2")
+	var cloud_top := Color("8a92a2") if dark else Color("d4dae4")
+	_oval(img, 4, 4.5, 3, 2.5, cloud)
+	_oval(img, 7.5, 3.5, 3.5, 3, cloud)
+	_px(img, 1, 5, 10, 2, cloud)
+	_oval(img, 7, 3, 2, 1.5, cloud_top)
+	match kind:
+		"rain", "storm":
+			var drop := Color("3a78c8")
+			for x in [2, 5, 8]:
+				_px(img, x, 8 + x % 2, 1, 2, drop)
+			if kind == "storm":
+				_line(img, Vector2i(7, 6), Vector2i(5, 9), Color("f0d040"))
+				_line(img, Vector2i(5, 9), Vector2i(7, 9), Color("f0d040"))
+				_line(img, Vector2i(7, 9), Vector2i(6, 11), Color("f0d040"))
+		"snow", "blizzard":
+			var flake := Color("5a90d0")
+			for p in [Vector2i(2, 9), Vector2i(6, 10), Vector2i(9, 8)]:
+				_px(img, p.x - 1, p.y, 3, 1, flake)
+				_px(img, p.x, p.y - 1, 1, 3, flake)
+			if kind == "blizzard":
+				_px(img, 0, 7, 4, 1, Color("e4eaf5"))
+				_px(img, 8, 11, 4, 1, Color("e4eaf5"))
+	return img
+
+
+static func _tool_icon(kind: String) -> Image:
+	var img := _blank(14, 14)
+	var wood := Color("9a6a3a")
+	var steel := Color("9aa0aa")
+	var steel_light := Color("cfd4dc")
+	match kind:
+		"hoe":
+			_line(img, Vector2i(2, 12), Vector2i(9, 4), wood)
+			_line(img, Vector2i(3, 12), Vector2i(10, 4), wood)
+			_px(img, 8, 1, 5, 2, steel)
+			_px(img, 11, 3, 2, 4, steel)
+			_px(img, 8, 1, 5, 1, steel_light)
+		"can":
+			var tin := Color("6a9ab0")
+			_px(img, 3, 5, 6, 6, tin)
+			_px(img, 3, 5, 6, 1, Color("9ac2d2"))
+			_line(img, Vector2i(9, 8), Vector2i(12, 4), tin)
+			_px(img, 11, 3, 2, 1, tin)
+			_px(img, 4, 2, 4, 1, Color("4a7488"))
+			_px(img, 3, 3, 1, 2, Color("4a7488"))
+			_px(img, 8, 3, 1, 2, Color("4a7488"))
+		"sickle":
+			_line(img, Vector2i(2, 12), Vector2i(5, 9), wood)
+			_line(img, Vector2i(3, 12), Vector2i(6, 9), wood)
+			for p in [Vector2i(5, 8), Vector2i(5, 7), Vector2i(5, 6), Vector2i(6, 5), Vector2i(7, 4), Vector2i(8, 3), Vector2i(9, 3), Vector2i(10, 3), Vector2i(11, 4)]:
+				_px(img, p.x, p.y, 1, 1, steel)
+			for p in [Vector2i(6, 6), Vector2i(7, 5), Vector2i(8, 4), Vector2i(9, 4), Vector2i(10, 4)]:
+				_px(img, p.x, p.y, 1, 1, steel_light)
+		"hammer":
+			_px(img, 6, 5, 2, 8, wood)
+			_px(img, 2, 1, 10, 4, Color("70767e"))
+			_px(img, 2, 1, 10, 1, steel_light)
+		"axe":
+			_line(img, Vector2i(3, 12), Vector2i(9, 2), wood)
+			_line(img, Vector2i(4, 12), Vector2i(10, 2), wood)
+			_px(img, 8, 1, 4, 5, steel)
+			_px(img, 11, 1, 1, 5, steel_light)
+		_:
+			return _draw(14, 14, [[0, 0, 14, 14, "ff00ff"]])
+	return _outline(img)
