@@ -13,6 +13,7 @@ const COLORS := {
 ## Ground only (soil, water, building footprints): the 3D view uses this as the ground
 ## texture and stands everything else up as sprites / boxes.
 var ground_only := false
+var gaps: Array[Vector2i] = []   # fence cells left open (the gate), drawn as plain ground
 
 var farm: FarmGrid:
 	set(value):
@@ -84,7 +85,7 @@ func _draw_cell(c: Vector2i) -> void:
 	var f := farm.fixed_at(c)
 	if f != "":
 		# The flat view marks buildings and the fence on top of their ground.
-		if f != "pond":
+		if f != "pond" and not c in gaps:
 			_objects.draw_rect(r.grow(-5) if f == "fence" else r, COLORS[f])
 		return
 	var d := farm.cell(c)

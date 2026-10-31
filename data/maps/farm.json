@@ -1,0 +1,63 @@
+{
+	"_note": "The farm itself: ground, buildings and field come from FarmGrid, so this file only adds the ways out. The gate cells are fence cells left open in the drawing; walking into them goes to the village.",
+	"id": "farm",
+	"name": "Farm",
+	"farm": true,
+	"size": [
+		32,
+		20
+	],
+	"indoor": false,
+	"ambient": "outdoor",
+	"doors": [
+		{
+			"cells": [
+				[
+					4,
+					3
+				]
+			],
+			"to": "house",
+			"spawn": [
+				4,
+				5
+			],
+			"facing": "up"
+		},
+		{
+			"cells": [
+				[
+					31,
+					5
+				],
+				[
+					31,
+					6
+				]
+			],
+			"to": "town",
+			"spawn": [
+				1,
+				10
+			],
+			"facing": "right",
+			"gate": true
+		}
+	],
+	"spawns": {
+		"start": [
+			[
+				4,
+				4
+			],
+			"down"
+		],
+		"gate": [
+			[
+				29,
+				6
+			],
+			"right"
+		]
+	}
+}

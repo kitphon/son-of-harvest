@@ -36,6 +36,10 @@ entry).
 Next: milestone 3, **eating / drinking** (food items with stamina / fatigue effects in data;
 `Game.add_fatigue()` takes a negative amount). After that milestone 6, **event scripts +
 trigger tables per map**, built on the dialogue format.
+Maps are in (data/maps: farm, farmhouse inside with the futon, a first village with a
+shrine; doors, a fade, clock stopped indoors). Event trigger tables can key on
+`Game.map_entered(map_id)`; villagers (milestone 5, next item) get their own map props /
+doors from the same files; the village houses' doors only show a message until then.
 Sound effects and ambient loops are in (milestone 10, first step); later for audio: music,
 and the settings screen's volume sliders call `Sfx.set_volume("SFX" / "Ambient", 0..1)`.
 Later for menus: rucksack / storage, key remapping.
@@ -52,7 +56,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Shipping bin (paid 18:00 or on sleep), seed stand, sleep / pass out, stamina
    - [x] HUD, 2D view, 3D view with the HM field camera (yaw 45°, pitch 26.6°, FOV 13.7°)
    - [x] Clock pauses in menus (`Game.pause()` / `unpause()`)
-   - [ ] Clock pauses indoors (no indoors yet)
+   - [x] Clock pauses indoors (`Game.ticking()` is false on a map with `indoor: true`)
 2. **Look and feel**
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)
@@ -76,7 +80,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Pause menu (resume / save / settings / back to title), settings file (flashes, window)
    - [ ] Rucksack / storage menus, key remapping
 5. **Town and villagers**
-   - [ ] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause
+   - [x] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause (data/maps, MapManager, fade)
    - [ ] Villagers with daily schedules from data (rule list → day plan), catch-up on map entry
    - [ ] Talking, gifts, affection, shop opening hours
 6. **Events and dialogue**

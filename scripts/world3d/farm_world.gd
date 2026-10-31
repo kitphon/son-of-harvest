@@ -9,13 +9,15 @@ const T := 16
 const PX := 0.045              # world units per sprite pixel (a 24 px farmer ~ 1.1 cells tall)
 
 var farm: FarmGrid
+var gaps: Array[Vector2i] = []   # fence cells left open (the gate to the village)
 var _objects: Node3D
 var _snow_mask: ImageTexture
 var _snow_mats: Array[ShaderMaterial] = []
 
 
-func setup(f: FarmGrid) -> void:
+func setup(f: FarmGrid, open_cells: Array[Vector2i] = []) -> void:
 	farm = f
+	gaps = open_cells
 	_make_ground()
 	_make_buildings()
 	_objects = Node3D.new()
@@ -248,13 +250,14 @@ func _make_fence() -> void:
 	var w := float(FarmGrid.W)
 	var h := float(FarmGrid.H)
 	var bamboo := surface_material("build:bamboo")
-	var line: Array[Vector2] = []      # (x, z) of every post
+	var line: Array[Vector2] = []      # (x, z) of every post, none in the gate
 	for x in FarmGrid.W:
 		line.append(Vector2(x + 0.5, 0.5))
 		line.append(Vector2(x + 0.5, h - 0.5))
 	for z in range(1, FarmGrid.H - 1):
 		line.append(Vector2(0.5, z + 0.5))
 		line.append(Vector2(w - 0.5, z + 0.5))
+	line = line.filter(func(p: Vector2): return not _open(p))
 	var posts: Array[Transform3D] = []
 	var ties: Array[Transform3D] = []
 	for p in line:
@@ -266,11 +269,13 @@ func _make_fence() -> void:
 	for i in range(1, (FarmGrid.W - 1) * 3):
 		if i % 3 != 0:
 			for z in [0.5, h - 0.5]:
-				canes.append(Transform3D(Basis(), Vector3(0.5 + i / 3.0, 0.26, z)))
+				if not _open(Vector2(0.5 + i / 3.0, z), true):
+					canes.append(Transform3D(Basis(), Vector3(0.5 + i / 3.0, 0.26, z)))
 	for i in range(1, (FarmGrid.H - 1) * 3):
 		if i % 3 != 0:
 			for x in [0.5, w - 0.5]:
-				canes.append(Transform3D(Basis(), Vector3(x, 0.26, 0.5 + i / 3.0)))
+				if not _open(Vector2(x, 0.5 + i / 3.0), true):
+					canes.append(Transform3D(Basis(), Vector3(x, 0.26, 0.5 + i / 3.0)))
 	var post := CylinderMesh.new()
 	post.top_radius = 0.06
 	post.bottom_radius = 0.06
@@ -286,12 +291,43 @@ func _make_fence() -> void:
 	var tie := BoxMesh.new()
 	tie.size = Vector3(0.15, 0.06, 0.15)
 	_multi(tie, ties, flat_material(Color("2a2420")))
-	# Cross canes: cylinders lying along x (front / back) and along z (left / right).
+	# Cross canes: cylinders lying along x (front / back) and along z (left / right), cut at
+	# the gate (they run post to post, so the opening spans the gate cells and a post each side).
 	for y in [0.2, 0.44]:
 		for z in [0.5, h - 0.5]:
-			_rail(w - 1, Vector3(w / 2, y, z), Vector3(0, 0, PI / 2), bamboo)
+			for run in _runs(func(t: float): return Vector2(t, z), w):
+				_rail(run.y - run.x, Vector3((run.x + run.y) / 2, y, z), Vector3(0, 0, PI / 2), bamboo)
 		for x in [0.5, w - 0.5]:
-			_rail(h - 1, Vector3(x, y, h / 2), Vector3(PI / 2, 0, 0), bamboo)
+			for run in _runs(func(t: float): return Vector2(x, t), h):
+				_rail(run.y - run.x, Vector3(x, y, (run.x + run.y) / 2), Vector3(PI / 2, 0, 0), bamboo)
+
+
+## Is the fence spot (x, z) in a gate cell? `between` also counts the stretch from a gate
+## cell to the next post (canes between the posts beside the gate).
+func _open(p: Vector2, between := false) -> bool:
+	for g in gaps:
+		var r := Rect2(Vector2(g) - (Vector2(0.5, 0.5) if between else Vector2.ZERO),
+			Vector2.ONE * (2.0 if between else 1.0))
+		if r.has_point(p):
+			return true
+	return false
+
+
+## The stretches [from, to] of one fence side (post middles 0.5 .. length - 0.5) that are not
+## gate; `at` turns a distance along the side into the (x, z) spot.
+func _runs(at: Callable, length: float) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	var start := 0.5
+	var t := 0.5
+	while t <= length - 0.5:
+		if _open(at.call(t)):
+			if t - 1.0 > start:
+				out.append(Vector2(start, t - 1.0))
+			start = t + 1.0
+		t += 1.0
+	if length - 0.5 > start:
+		out.append(Vector2(start, length - 0.5))
+	return out
 
 
 func _rail(length: float, center: Vector3, rot: Vector3, mat: Material) -> void:

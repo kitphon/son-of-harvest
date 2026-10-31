@@ -8,6 +8,8 @@ signal changed                  # anything the HUD shows
 signal message(text: String)
 signal dialogue_requested(id: String, at: String)   # a TextBox opens it
 signal settings_changed
+signal map_changed(map_id: String)   # the views fade out, rebuild for Game.maps and fade in
+signal map_entered(map_id: String)   # the farmer stands on the new map (after the fade); event triggers key on this
 
 const SECONDS_PER_MINUTE := 0.5
 const DAYS_PER_SEASON := 30
@@ -53,6 +55,7 @@ var snow_rules: Dictionary = {}    # how snow builds up and melts (data/snow_cov
 var body: Dictionary = {}          # fatigue, tired states, oversleeping, collapse (data/body.json)
 var rng := RandomNumberGenerator.new()
 var farm: FarmGrid
+var maps := MapManager.new()       # the map the farmer is on and where (saved)
 var _accum := 0.0
 var _shown_state := "fine"      # the tired state last told to the player
 
@@ -99,10 +102,19 @@ func new_game() -> void:
 	bag = {"seeds:turnip": 2, "seeds:potato": 1}
 	reset_tool_levels()
 	flags = {}
+	maps = MapManager.new()   # on the farm, in front of the house door
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--demo":
 			_demo_field()
+		elif arg.begins_with("--map="):   # `-- --demo --map=town` (or town@shrine): start on that spawn
+			var want := arg.trim_prefix("--map=").split("@")
+			var m := MapManager.data(want[0]) if MapManager.has(want[0]) else null
+			var spot: Variant = m.spawns.get(want[1] if want.size() > 1 else "start") if m != null else null
+			if spot == null:
+				push_warning("No map spawn " + arg.trim_prefix("--map="))
+			else:
+				maps.place(m.id, spot[0], spot[1])
 		elif arg.begins_with("--weather="):   # e.g. `-- --demo --weather=storm` for screenshots
 			weather_today = arg.trim_prefix("--weather=")
 			snow_cover = next_snow_cover(0, weather_look(weather_today, season_name()), season_name(), snow_rules)
@@ -174,9 +186,50 @@ func paused() -> bool:
 	return _pauses > 0 or dialogue_open
 
 
-## Does time pass now (not on the title screen, no menu open)?
+## Does time pass now (not on the title screen, no menu open, not inside a building)?
+## Indoors only the clock stands; the farmer still walks (paused() is for menus).
 func ticking() -> bool:
-	return clock_running and not paused()
+	return clock_running and not paused() and not indoors()
+
+
+# --- maps -------------------------------------------------------------------
+
+## DESIGN: time stops in every building, so talking and shopping never race the clock.
+func indoors() -> bool:
+	var m := maps.current()
+	return m != null and m.indoor
+
+
+## Moves the farmer to `map_id` at `cell` facing `face`; the views fade and rebuild, then
+## call map_arrived(). An obstacle that grew on a farm arrival cell is pushed aside.
+func go_to_map(map_id: String, cell: Vector2i, face: Vector2i) -> bool:
+	if not MapManager.has(map_id) or MapManager.data(map_id) == null:
+		return false
+	maps.place(map_id, cell, face)
+	if maps.on_farm() and farm.in_bounds(cell) and farm.cell(cell).obj != FarmGrid.Obj.NONE:
+		farm.cell(cell).obj = FarmGrid.Obj.NONE
+		farm.cells_changed.emit()
+	map_changed.emit(map_id)
+	return true
+
+
+## Through a door: to its map, or only its message when it leads nowhere yet.
+func use_door(door: Dictionary) -> void:
+	if door.get("to", "") == "":
+		message.emit(door.message)
+		return
+	go_to_map(door.to, door.spawn, door.facing)
+
+
+## The view finished the change: the farmer is on the map and can see it.
+func map_arrived() -> void:
+	map_entered.emit(maps.id)
+
+
+## A new day starts at home: in the house, by the futon.
+func go_home() -> void:
+	var spot: Array = MapManager.data(MapManager.HOME).spawns.home
+	go_to_map(MapManager.HOME, spot[0], spot[1])
 
 
 # --- settings ---------------------------------------------------------------
@@ -344,6 +397,7 @@ func end_day() -> void:
 	hour = 6
 	minute = 0
 	_accum = 0.0
+	go_home()
 	day_started.emit()
 	changed.emit()
 
@@ -604,6 +658,7 @@ func to_dict() -> Dictionary:
 	d.tool_levels = tool_levels.duplicate()
 	d.flags = flags.duplicate()
 	d.tool_exp = tool_exp.duplicate()
+	d.map = maps.to_dict()
 	d.farm = farm.to_dict()
 	return d
 
@@ -679,6 +734,13 @@ func from_dict(data: Dictionary) -> String:
 			if e == null:
 				return "Saved tool experience is broken"
 			n.tool_exp[tool] = e
+	# Saves from before maps load on the farm, in front of the house door.
+	var place := {"id": MapManager.FARM, "pos": MapManager.new().pos, "facing": Vector2i.DOWN}
+	if data.has("map"):
+		var r := MapManager.check_saved(data.map)
+		if r[0] != "":
+			return r[0]
+		place = r[1]
 	if not data.get("farm") is Dictionary:
 		return "Saved farm is missing"
 	var err := farm.from_dict(data.farm)
@@ -686,9 +748,14 @@ func from_dict(data: Dictionary) -> String:
 		return err
 	for key in n:
 		set(key, n[key])
+	maps = MapManager.new()
+	maps.id = place.id
+	maps.pos = place.pos
+	maps.facing = place.facing
 	_accum = 0.0
 	_shown_state = body_state()
-	day_started.emit()   # the views put the farmer home and redo weather and light
+	day_started.emit()   # the views redo weather and light
+	map_changed.emit(maps.id)   # and put the farmer where the save says
 	changed.emit()
 	return ""
 

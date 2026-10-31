@@ -1,7 +1,7 @@
 extends Node
 ## Sound effects and ambient loops. Plays sounds by key from data/sfx.json (made by SfxSynth
 ## on first use), on two busses, SFX and Ambient, each with a volume 0..1 for the settings
-## screen. The ambient loops follow the weather, season and hour (AmbientPicker) and fade
+## screen. The ambient loops follow the weather, season, hour and map (AmbientPicker) and fade
 ## out while the clock stands (title screen, menus). Headless runs (tests, smoke runs) have no
 ## audio device, and Movie Maker screenshots drive the mixer frame by frame: in both every
 ## step runs except starting the players (`silent`), since a sound still playing when the
@@ -56,8 +56,9 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	var m := Game.maps.current()
 	_target = AmbientPicker.pick(ambient_rules, Game.weather_look(Game.weather_today, Game.season_name()),
-			Game.season_name(), Game.hour) if Game.clock_running else {}
+			Game.season_name(), Game.hour, m.ambient if m != null else "outdoor") if Game.clock_running else {}
 	var step := delta / maxf(_fade_seconds, 0.01)
 	for key in _loops:
 		var p: AudioStreamPlayer = _loops[key]
@@ -90,17 +91,18 @@ func play(key: String) -> void:
 
 
 ## The farmer moved `px` pixels and stands on `cell`: a footstep every stride, by ground.
-func walk(px: float, farm: FarmGrid, cell: Vector2i) -> void:
+## Off the farm (`farm` null) the map names the step `kind` ("" = grass or snow).
+func walk(px: float, farm: FarmGrid, cell: Vector2i, kind := "") -> void:
 	_walked += px
 	if _walked < STRIDE_PX:
 		return
 	_walked = 0.0
-	play("step_" + ground(farm, cell, Game.snow_cover))
+	play("step_" + (kind if kind != "" else ground(farm, cell, Game.snow_cover)))
 
 
 ## Which footstep a cell gives: soil when tilled, snow when the ground is white, else grass.
 static func ground(farm: FarmGrid, cell: Vector2i, snow_cover: int) -> String:
-	if farm.in_bounds(cell) and farm.cell(cell).tilled:
+	if farm != null and farm.in_bounds(cell) and farm.cell(cell).tilled:
 		return "soil"
 	return "snow" if snow_cover >= SNOW_STEPS else "grass"
 
