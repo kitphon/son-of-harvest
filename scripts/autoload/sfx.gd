@@ -100,7 +100,7 @@ func _process(delta: float) -> void:
 func _music_step(delta: float) -> void:
 	var look := Game.weather_look(Game.weather_today, Game.season_name())
 	_song_target = MusicPicker.pick(music.rules, "field" if Game.clock_running else "title",
-			look, Game.season_name(), Game.hour)
+			look, Game.season_name(), Game.hour, Game.festival_now())
 	var fade := float(music.get("fade_seconds", 3.0))
 	for key in _songs:
 		var p: AudioStreamPlayer = _songs[key]

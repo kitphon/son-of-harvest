@@ -43,6 +43,8 @@ func _ready() -> void:
 	for arg in args:
 		if arg.begins_with("--event="):   # e.g. `-- --demo --event=first_morning`
 			play.call_deferred(arg.trim_prefix("--event="))
+		elif arg.begins_with("--contest="):   # `-- --demo --festival=<id> --contest=<item>`: hand it in, see the results
+			Game.enter_contest.call_deferred()
 
 
 ## The farmer arrived on map `id` (Game.map_entered): its trigger table, then the "enter" check.

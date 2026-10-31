@@ -64,7 +64,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Mine (data/mine.json, floors from a seed, rocks / soft spots / the hole, swings, the save,
   mine art): `res://tests/test_mine.gd` must print `test_mine: OK (0 failed)`.
   Festivals (calendar, festival day, shops shut, fair weather, the event once a year,
-  decorations and lights in both views, the HUD tag): `res://tests/test_festivals.gd` must
+  decorations and lights in both views, the HUD tag, contests and prizes, the stall, the
+  payout held back): `res://tests/test_festivals.gd` must
   print `test_festivals: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field), `-- --demo --map=town` (the village) and
@@ -95,7 +96,10 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   the farm pond with the line out and a fish biting (or still waiting), `--festival=<id>`
   (blossom_day, lantern_night, moon_night, years_turn; ids in `data/festivals.json`) to stand
   in the village on that festival's day half an hour into it (Lantern Night: into the
-  fireworks; without `--demo`, with `res://scenes/main.tscn`, its event plays), `--mine=N` to stand at the
+  fireworks; without `--demo`, with `res://scenes/main.tscn`, its event plays; add
+  `--contest=<item>`, e.g. `--festival=blossom_day --contest=potato`, to stand at the judges'
+  table with that item and enter it, the results' text box open after ~4 s, so use
+  `--quit-after 120`; `--shop=stall:blossom_day` stands at the festival stall with it open), `--mine=N` to stand at the
   ladder of a fresh mine floor N (`--map=mine` is the entrance, `--map=mine_floor` floor 1). Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
 - Audio (sound and music data, synthesis, keys used in code, ambient and music pickers): `res://tests/test_audio.gd`

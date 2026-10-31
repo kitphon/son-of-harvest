@@ -10,6 +10,52 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Festival contests, festival music, payout held, Blossom Day's stall
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: (1) Contests, all our own, one per festival in `data/festivals.json` → `contest`:
+  Blossom Crop Show (a crop), Lantern Night Catch (a fish), Moon Offering (egg, milk or wool),
+  First Stone of the Year (a mine ore or stone). A new `judge_table` prop (white cloth, red and
+  white curtain, name board, three rosettes; 3D in FestivalProps, a box in FestivalView) holds
+  the `table` cell. E there in the hours: empty-handed Tsuru says what to bring
+  (`data/dialogue/contests.json` `<id>_ask`); with the right kind overhead (`Game.item_kind`)
+  the entry is handed in and judged at once (`Game.enter_contest`, `Festivals.judge`): it
+  scores its shipping value (a crop of the festival's season x `in_season` 1.5 at Blossom Day),
+  three villager rivals roll from their ranges with a seed of festival + year, the farmer wins
+  ties. The place's prize is paid (`Prize: 500 G and 2 x Sakura mochi` in the HUD), flags
+  `contest_place_<n>` / `contest_won_<rival>` / `contest_prize` are set (cleared from last
+  time; `contest_wins` counts first prizes), and `data/events/contest_*.json` plays a chime,
+  the result lines (opening, the winning rival's line, the farmer's place) and coins if a
+  prize came. One entry a year (`events_seen` `contest:<id>:<year>`). Festivals.check
+  validates the contest (kind, table on a judge_table, ask line, rivals are villager files,
+  prizes by place, event). Balance (ours, modest for the balance pass): prizes 500 / 200 / 100 G
+  plus a food for first (sakura mochi x2, mugwort tea, dango x3, kagami mochi); rival ranges
+  sit so that a good entry of the season usually wins (Blossom: rivals 50-125, a potato in
+  season scores 120; Lantern: Hachiro 90-190, an iwana 200 wins; Moon: 40-170, rich milk 150 is
+  near the top; Year: Hachiro 50-160, amber 150 / jade 300). (2) Music: a rule key `festivals`
+  (`MusicPicker.pick(..., festival)`, Sfx passes `Game.festival_now()`: today's festival in its
+  hours on its map); four new scores `fest_blossom` (yo, koto and flute with taiko),
+  `fest_lanterns` (minyo matsuri, taiko and a kane bell, 128 bpm), `fest_moon` (3/4, rin and
+  sho), `fest_year` (slow sho chords, rin); new instruments `taiko`, `kane`. The festival rules
+  come before rain and night. (3) Payout: `Game.pay_bin` holds on a festival day (DESIGN), at
+  18:00 and overnight, with a message; the next day's payout includes it. (4) Stall: a festival
+  `stall` (`{name, cell, stock}` on a `stall` prop) opens as shop `stall:<festival>` in the
+  hours (`Game.open_stall`, `Game.shop` builds it from `Festivals.stall_shop_data`); Blossom
+  Day's Hanami Dango Stall sells dango, sakura mochi and green tea at their own prices; its
+  screen says "Open 10:00-16:00, Blossom Day only". `Game.item_name` names foods now. Flags
+  `--contest=<item>` (with `--festival`) and `--shop=stall:<id>`.
+- Checked: all 20 tests print `OK (0 failed)` (test_festivals adds contest data / judging /
+  every result-line path / entering in the game / the stall / the payout; test_audio adds the
+  festival music rule). Headless `--quit-after 300` smoke runs (title, `--demo`, `--map=town`,
+  `--mine=3`, all four `--festival=<id>`, two `--contest` runs, the stall) and
+  `res://scenes/main.tscn --festival=blossom_day` printed no errors or warnings. Movie Maker
+  frames: `--demo --festival=blossom_day --contest=potato` (judges' table by the cherries,
+  Tsuru's results line), `--demo --festival=lantern_night --contest=fish:iwana` (the table
+  among the stalls, lanterns and a firework), `--demo --festival=blossom_day
+  --shop=stall:blossom_day` (the stall's buy list).
+- Left / next: the new scores were not heard by a person; rivals don't walk up with their
+  entries yet (only lines); the result line after the opening needs a key press, so frames
+  show the opening. The other stalls at Lantern Night are still only looks.
+
 ## 2026-10-31 — Merged six branches: talking, opening event, shop extras, barn, mine, festivals
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each, in this order:

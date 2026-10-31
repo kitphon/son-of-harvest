@@ -92,6 +92,8 @@ func open(id: String) -> void:
 	_dim.visible = true
 	_heading.text = menu.shop.name
 	_hours.text = "Open %s, %s" % [menu.shop.hours_text(), menu.shop.days_off_text()]
+	if id.begins_with(Festivals.STALL_PREFIX):   # a festival stall stands for its festival only
+		_hours.text = "Open %s, %s only" % [menu.shop.hours_text(), Festivals.name_of(id.trim_prefix(Festivals.STALL_PREFIX))]
 	for i in _tabs.size():
 		_tabs[i].visible = i < menu.tabs.size()
 		if i < menu.tabs.size():

@@ -195,7 +195,10 @@ func new_game() -> void:
 		elif arg.begins_with("--shop="):   # `-- --demo --shop=general` (or general@build): at the counter (ShopScreen opens it)
 			var s := shop(arg.trim_prefix("--shop=").get_slice("@", 0))
 			var m := MapManager.data(s.map) if s != null and MapManager.has(s.map) else null
-			if m == null or not m.spawns.has("counter"):
+			var stall := Festivals.stall(s.id.trim_prefix(Festivals.STALL_PREFIX)) if s != null and s.id.begins_with(Festivals.STALL_PREFIX) else {}
+			if not stall.is_empty():   # `--festival=blossom_day --shop=stall:blossom_day`: in front of the stall
+				maps.place(m.id, Vector2i(int(stall.cell[0]), int(stall.cell[1]) + 1), Vector2i.UP)
+			elif m == null or not m.spawns.has("counter"):
 				push_warning("No shop counter for " + arg)
 			else:
 				maps.place(m.id, m.spawns.counter[0], m.spawns.counter[1])
@@ -218,6 +221,14 @@ func new_game() -> void:
 			if arg != "--fishing=wait":
 				fishing.state = "bite"
 				fishing.time = -60.0   # the bite waits for the screenshot
+		elif arg.begins_with("--contest="):   # `-- --demo --festival=blossom_day --contest=potato`: at the judges' table with it
+			var fid := festival_today()
+			var c := Festivals.contest(fid)
+			if c.is_empty():
+				push_warning("No contest today for " + arg)
+			else:
+				held = arg.trim_prefix("--contest=")
+				maps.place(Festivals.get_festival(fid).map, Vector2i(int(c.table[0]), int(c.table[1]) + 1), Vector2i.UP)
 		elif arg.begins_with("--mine="):   # `-- --demo --mine=5`: at the ladder of a fresh floor 5
 			var m := MapManager.data(mine_map("floor_map"))
 			maps.place(m.id, m.spawns.start[0], m.spawns.start[1])
@@ -587,8 +598,13 @@ func end_day() -> void:
 
 # --- money, bag, stamina ----------------------------------------------------
 
+## The bin's money comes in at 18:00 or overnight, except on a festival day (DESIGN): then it
+## waits in the bin and is paid with the next day's shipping.
 func pay_bin() -> void:
 	if bin_total <= 0:
+		return
+	if payout_held():
+		message.emit("No shipping pickup on %s. Paid tomorrow." % Festivals.name_of(festival_today()))
 		return
 	money += bin_total
 	message.emit("Shipping paid %d G" % bin_total)
@@ -738,6 +754,8 @@ func item_name(id: String) -> String:
 		return String(fish_data.fish[id.trim_prefix("fish:")].name)
 	if mine_item(id).has("name"):
 		return String(mine_item(id).name)
+	if id.begins_with("food:") and foods.has(id.trim_prefix("food:")):
+		return String(foods[id.trim_prefix("food:")].name)
 	return id.replace(":", " ").replace("_", " ").capitalize()
 
 
@@ -1190,6 +1208,8 @@ func play_event(id: String) -> void:
 
 ## The shop `id` with this game's crop and food data, or null.
 func shop(id: String) -> Shop:
+	if id.begins_with(Festivals.STALL_PREFIX):   # a festival stall (data/festivals.json stall)
+		return Shop.make(id, crops, foods, Festivals.stall_shop_data(id.trim_prefix(Festivals.STALL_PREFIX)))
 	return Shop.make(id, crops, foods) if id != "" else null
 
 
@@ -1224,6 +1244,98 @@ func _shop_shut(s: Shop) -> bool:
 ## Today's festival id (data/festivals.json), or "".
 func festival_today() -> String:
 	return Festivals.on_date(season_name(), day)
+
+
+## The festival going on around the farmer now (today's, in its hours, on its map), or "".
+func festival_now() -> String:
+	var id := festival_today()
+	return id if id != "" and Festivals.on_now(id, maps.id, hour * 60 + minute) else ""
+
+
+## Is the shipping payout held back today (a festival day)?
+func payout_held() -> bool:
+	return festival_today() != ""
+
+
+# --- festival contests and stalls (data/festivals.json; rules in Festivals) ---
+
+## What kind of entry `id` is for a contest: "crop", "fish", "mine", "animal" (eggs, milk,
+## wool) or "" for anything else (seeds, food, tools).
+func item_kind(id: String) -> String:
+	if id.begins_with("fish:"):
+		return "fish"
+	if id.begins_with("mine:"):
+		return "mine"
+	if crops.has(id):
+		return "crop"
+	return "animal" if animals.sell_price(id) > 0 else ""
+
+
+## E at today's judges' table (Festivals.at_table) during the festival. Empty-handed the judge
+## says what the contest takes; with an entry of the right kind overhead it is handed in and
+## judged at once (Festivals.judge): the prize is paid, the flags for the result lines are set
+## and the contest's event plays. One entry a year. Returns Festivals.judge's result with ok,
+## or {ok: false, why: "none" | "entered" | "ask" | "kind"}.
+func enter_contest() -> Dictionary:
+	var fid := festival_now()
+	var c := Festivals.contest(fid)
+	if c.is_empty():
+		return {"ok": false, "why": "none"}
+	if events_seen.has(Festivals.entered_key(fid, year)):
+		message.emit("You already entered the %s this year." % c.name)
+		return {"ok": false, "why": "entered"}
+	if held == "":
+		talk(Festivals.DIALOGUE, c.ask)
+		return {"ok": false, "why": "ask"}
+	if item_kind(held) != c.takes:
+		message.emit("The %s only takes %s." % [c.name, {"crop": "crops", "fish": "fish", "animal": "eggs, milk or wool", "mine": "ores and stones from the mine"}[c.takes]])
+		return {"ok": false, "why": "kind"}
+	var item := held
+	var seasons: Array = crops.get(item, {}).get("seasons", [])
+	var r := Festivals.judge(fid, year, Festivals.entry_score(fid, seasons, sell_price(item)))
+	r.ok = true
+	r.item = item
+	held = ""
+	events_seen[Festivals.entered_key(fid, year)] = true
+	for k in flags.keys():
+		if k.begins_with("contest_place_") or k.begins_with("contest_won_") or k == "contest_prize":
+			flags.erase(k)
+	flags["contest_place_%d" % r.place] = true
+	if r.winner != "farmer":
+		flags["contest_won_" + r.winner] = true
+	if r.place == 1:
+		flags["contest_wins"] = int(flags.get("contest_wins", 0)) + 1
+	_pay_prize(r.prize)
+	changed.emit()
+	play_event(c.event)
+	return r
+
+
+func _pay_prize(prize: Dictionary) -> void:
+	if prize.is_empty():
+		return
+	flags["contest_prize"] = true
+	var got: Array[String] = []
+	if int(prize.get("money", 0)) > 0:
+		add_money(int(prize.money))
+		got.append("%d G" % int(prize.money))
+	if prize.has("item"):
+		var n := int(prize.get("count", 1))
+		var left := add_item(prize.item, n)
+		if left < n:
+			got.append(("%d x %s" % [n - left, item_name(prize.item)]) if n - left > 1 else item_name(prize.item))
+		if left > 0:
+			message.emit("No room in the rucksack for the rest of the prize")
+	message.emit("Prize: " + " and ".join(got))
+
+
+## E at today's festival stall (Festivals.at_stall) while the festival is on opens it as a shop.
+func open_stall() -> bool:
+	var fid := festival_now()
+	if Festivals.stall(fid).is_empty():
+		return false
+	shop_requested.emit(Festivals.stall_shop_id(fid))
+	return true
 
 
 ## Buys `n` of `item` at shop `id`: the next rucksack ("rucksack"), goods into the rucksack,

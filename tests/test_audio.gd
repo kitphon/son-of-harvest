@@ -263,6 +263,18 @@ func _music() -> void:
 	check(at.call("field", "rain", "spring", 10) == {"rain": 1.0}, "rain music")
 	check(at.call("field", "rain", "fall", 22) == {"rain": 1.0}, "rain wins over night")
 	check(at.call("field", "storm", "summer", 12) == {"rain": 0.6}, "storm: softer rain music")
+	# Festivals: their own score while one is on around the farmer, over night and season.
+	var fest := func(festival: String, season_id: String, hour: int) -> Dictionary:
+		return MusicPicker.pick(music.rules, "field", "sunny", season_id, hour, festival)
+	check(fest.call("blossom_day", "spring", 11) == {"fest_blossom": 1.0}, "Blossom Day has its own music")
+	check(fest.call("lantern_night", "summer", 20) == {"fest_lanterns": 1.0}, "Lantern Night's music wins over night")
+	check(fest.call("moon_night", "fall", 21) == {"fest_moon": 1.0} and fest.call("years_turn", "winter", 23) == {"fest_year": 1.0},
+		"Moon Night and Year's Turn")
+	check(fest.call("", "spring", 11) == {"spring": 1.0}, "no festival on: the season's music")
+	check(MusicPicker.pick(music.rules, "title", "sunny", "spring", 11, "blossom_day") == {"title": 1.0}, "the title screen keeps its theme")
+	for id in Festivals.all():
+		check(MusicPicker.tracks(music.rules).any(func(t): return fest.call(id, Festivals.get_festival(id).season, 12).has(t) and t.begins_with("fest_")),
+			"%s has a festival score" % id)
 	check(MusicPicker.pick([], "field", "sunny", "spring", 10).is_empty(), "no rules: silence")
 	check(MusicPicker.pick([{"track": ""}], "field", "sunny", "spring", 10).is_empty(), "an empty track is silence")
 

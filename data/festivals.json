@@ -1,5 +1,5 @@
 {
-	"_about": "The village festivals (Festivals, scripts/festivals/festivals.gd; README.md, Festivals). One per season, all our own: names, dates, hours and looks were made up for Harvest Son. Per festival: name (HUD tag and calendar), season, day, hours [\"H:MM\", \"H:MM\") on the map where it is held, place (the cell it gathers round, [x, y]; `--festival=<id>` starts the farmer there facing up), event (data/events, plays once a year when the farmer is on the map in the hours), closes (shop ids from data/shops.json that stay shut all day), props (decorations on the map during the hours: {kind, cell, size?}; not solid, so they never block a walk; looks in FestivalProps / FestivalView), optional fireworks [\"H:MM\", \"H:MM\") (bursts over the 3D view in those hours). DESIGN: a festival day is always sunny (the weather rolled for it is replaced the evening before).",
+	"_about": "The village festivals (Festivals, scripts/festivals/festivals.gd; README.md, Festivals). One per season, all our own: names, dates, hours and looks were made up for Harvest Son. Per festival: name (HUD tag and calendar), season, day, hours [\"H:MM\", \"H:MM\") on the map where it is held, place (the cell it gathers round, [x, y]; `--festival=<id>` starts the farmer there facing up), event (data/events, plays once a year when the farmer is on the map in the hours), closes (shop ids from data/shops.json that stay shut all day), props (decorations on the map during the hours: {kind, cell, size?}; not solid, so they never block a walk; looks in FestivalProps / FestivalView), optional fireworks [\"H:MM\", \"H:MM\") (bursts over the 3D view in those hours). DESIGN: a festival day is always sunny (the weather rolled for it is replaced the evening before). Optional contest: {name, takes (the kind of entry: crop, fish, animal for eggs / milk / wool, mine for the mine's ores and stones), table (a cell of a judge_table prop; E there with an entry overhead enters it, empty-handed the judge says the `ask` line of data/dialogue/contests.json), in_season (score factor for an entry that grows in the festival's season), rivals [{who (a villager), score [lowest, highest]}] rolled once per festival and year, prizes by place [{money, item?, count?}], event (data/events, the results; flags contest_place_<n> and contest_won_<rival> are set for its lines)}. An entry scores its shipping value; one entry a year; the farmer wins ties. Optional stall: {name, cell (a cell of a stall prop), stock [{item, price?}]}, a shop (id stall:<festival>) that sells only in the festival's hours. Prize money is kept small: a first prize is about a good day's shipping.",
 	"festivals": {
 		"blossom_day": {
 			"name": "Blossom Day",
@@ -19,8 +19,36 @@
 				{"kind": "sakura", "cell": [19, 14]},
 				{"kind": "picnic_mat", "cell": [14, 12], "size": [2, 2]},
 				{"kind": "picnic_mat", "cell": [17, 12], "size": [2, 1]},
-				{"kind": "stall", "cell": [9, 7], "size": [2, 1], "cloth": "e89ab0"}
-			]
+				{"kind": "stall", "cell": [9, 7], "size": [2, 1], "cloth": "e89ab0"},
+				{"kind": "judge_table", "cell": [20, 8], "size": [2, 1]}
+			],
+			"contest": {
+				"name": "Blossom Crop Show",
+				"takes": "crop",
+				"table": [20, 8],
+				"ask": "blossom_day_ask",
+				"in_season": 1.5,
+				"rivals": [
+					{"who": "kota", "score": [60, 110]},
+					{"who": "tome", "score": [70, 125]},
+					{"who": "sayo", "score": [50, 100]}
+				],
+				"prizes": [
+					{"money": 500, "item": "food:sakura_mochi", "count": 2},
+					{"money": 200},
+					{"money": 100}
+				],
+				"event": "contest_blossom"
+			},
+			"stall": {
+				"name": "Hanami Dango Stall",
+				"cell": [9, 7],
+				"stock": [
+					{"item": "food:dango"},
+					{"item": "food:sakura_mochi"},
+					{"item": "food:green_tea"}
+				]
+			}
 		},
 		"lantern_night": {
 			"name": "Lantern Night",
@@ -41,8 +69,26 @@
 				{"kind": "stall", "cell": [13, 7], "size": [2, 1], "cloth": "2c4a8a"},
 				{"kind": "stall", "cell": [22, 7], "size": [2, 1], "cloth": "e0a838"},
 				{"kind": "stall", "cell": [12, 13], "size": [2, 1], "cloth": "3a7a4a"},
-				{"kind": "drum_stage", "cell": [14, 14], "size": [2, 2]}
-			]
+				{"kind": "drum_stage", "cell": [14, 14], "size": [2, 2]},
+				{"kind": "judge_table", "cell": [15, 7], "size": [2, 1]}
+			],
+			"contest": {
+				"name": "Lantern Night Catch",
+				"takes": "fish",
+				"table": [15, 7],
+				"ask": "lantern_night_ask",
+				"rivals": [
+					{"who": "hachiro", "score": [90, 190]},
+					{"who": "kota", "score": [30, 120]},
+					{"who": "tome", "score": [40, 110]}
+				],
+				"prizes": [
+					{"money": 500, "item": "food:yomogi_tea"},
+					{"money": 200},
+					{"money": 100}
+				],
+				"event": "contest_lanterns"
+			}
 		},
 		"moon_night": {
 			"name": "Moon Night",
@@ -60,8 +106,26 @@
 				{"kind": "red_mat", "cell": [14, 4], "size": [2, 1]},
 				{"kind": "red_mat", "cell": [22, 4], "size": [2, 1]},
 				{"kind": "paper_lantern", "cell": [15, 2]},
-				{"kind": "paper_lantern", "cell": [22, 2]}
-			]
+				{"kind": "paper_lantern", "cell": [22, 2]},
+				{"kind": "judge_table", "cell": [22, 8], "size": [2, 1]}
+			],
+			"contest": {
+				"name": "Moon Offering",
+				"takes": "animal",
+				"table": [22, 8],
+				"ask": "moon_night_ask",
+				"rivals": [
+					{"who": "sayo", "score": [80, 170]},
+					{"who": "tome", "score": [60, 150]},
+					{"who": "kota", "score": [40, 120]}
+				],
+				"prizes": [
+					{"money": 500, "item": "food:dango", "count": 3},
+					{"money": 200},
+					{"money": 100}
+				],
+				"event": "contest_moon"
+			}
 		},
 		"years_turn": {
 			"name": "Year's Turn",
@@ -78,8 +142,26 @@
 				{"kind": "bonfire", "cell": [22, 4]},
 				{"kind": "stall", "cell": [14, 2], "size": [2, 1], "cloth": "e8e2d0"},
 				{"kind": "paper_lantern", "cell": [16, 5]},
-				{"kind": "paper_lantern", "cell": [21, 5]}
-			]
+				{"kind": "paper_lantern", "cell": [21, 5]},
+				{"kind": "judge_table", "cell": [14, 4], "size": [2, 1]}
+			],
+			"contest": {
+				"name": "First Stone of the Year",
+				"takes": "mine",
+				"table": [14, 4],
+				"ask": "years_turn_ask",
+				"rivals": [
+					{"who": "hachiro", "score": [50, 160]},
+					{"who": "kota", "score": [20, 110]},
+					{"who": "sayo", "score": [10, 90]}
+				],
+				"prizes": [
+					{"money": 500, "item": "food:kagami_mochi"},
+					{"money": 200},
+					{"money": 100}
+				],
+				"event": "contest_year"
+			}
 		}
 	}
 }

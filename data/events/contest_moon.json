@@ -1,0 +1,31 @@
+{
+	"_note": "The results of the moon_night contest (data/festivals.json contest; Game.enter_contest sets contest_place_<n>, contest_won_<rival> and contest_prize just before it plays).",
+	"steps": [
+		{
+			"do": "wait",
+			"seconds": 0.3
+		},
+		{
+			"do": "sound",
+			"key": "chime_morning"
+		},
+		{
+			"do": "say",
+			"dialogue": "contests",
+			"at": "moon_night_result"
+		},
+		{
+			"unless": "contest_prize",
+			"then": "done"
+		},
+		{
+			"do": "sound",
+			"key": "coins"
+		},
+		{
+			"id": "done",
+			"do": "wait",
+			"seconds": 0.2
+		}
+	]
+}

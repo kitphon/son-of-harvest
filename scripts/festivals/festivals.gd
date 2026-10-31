@@ -2,14 +2,22 @@ class_name Festivals
 extends RefCounted
 ## The festival calendar (data/festivals.json): which festival falls on a date, whether it is
 ## on at a minute of the day, which shops it shuts, which decorations stand on a map and
-## whether its event is due. Pure logic like Villagers: the date and clock come in as
-## arguments (or Game.trigger_state), so tests run it headless. Format: README.md, Festivals.
+## whether its event is due, its contest (what it takes, how it is judged, the prizes) and its
+## stall. Pure logic like Villagers: the date and clock come in as arguments (or
+## Game.trigger_state), so tests run it headless. Format: README.md, Festivals.
 
 const GameRules := preload("res://scripts/autoload/game.gd")   # SEASONS, DAYS_PER_SEASON
 const PATH := "res://data/festivals.json"
 const KEYS: Array[String] = ["_note", "name", "season", "day", "hours", "map", "place", "event",
-	"closes", "props", "fireworks"]
+	"closes", "props", "fireworks", "contest", "stall"]
 const PROP_KEYS: Array[String] = ["kind", "cell", "size", "cloth"]
+const CONTEST_KEYS: Array[String] = ["_note", "name", "takes", "table", "ask", "in_season", "rivals",
+	"prizes", "event"]
+const STALL_KEYS: Array[String] = ["_note", "name", "cell", "stock"]
+## What a contest can take: Game.item_kind of the entry.
+const KINDS: Array[String] = ["crop", "fish", "animal", "mine"]
+const DIALOGUE := "contests"     # data/dialogue/contests.json: the contests' ask and result lines
+const STALL_PREFIX := "stall:"   # a stall's shop id is "stall:<festival id>"
 
 static var _data: Variant = null   # data/festivals.json, read on first use
 static var _error := ""
@@ -115,6 +123,103 @@ static func start_at(g: Node, id: String) -> void:
 	g.maps.place(f.map, Vector2i(int(f.place[0]), int(f.place[1])), Vector2i.UP)
 
 
+# --- contests -----------------------------------------------------------------
+
+## Festival `id`'s contest ({} for none).
+static func contest(id: String) -> Dictionary:
+	return get_festival(id).get("contest", {})
+
+
+## The events_seen key that marks the farmer's entry in festival `id`'s contest in `year`
+## (one entry a year).
+static func entered_key(id: String, year: int) -> String:
+	return "contest:%s:%d" % [id, year]
+
+
+## Is `cell` part of the judges' table of festival `id`'s contest (the prop round its table cell)?
+static func at_table(id: String, cell: Vector2i) -> bool:
+	var c := contest(id)
+	return not c.is_empty() and _prop_rect(id, _cell(c.table)).has_point(cell)
+
+
+## What an entry worth `value` in the bin and grown in `item_seasons` scores at festival
+## `id`'s contest: its value, times `in_season` when it grows in the festival's season.
+static func entry_score(id: String, item_seasons: Array, value: int) -> int:
+	var bonus := float(contest(id).get("in_season", 1.0)) if get_festival(id).get("season") in item_seasons else 1.0
+	return int(round(value * bonus))
+
+
+## Judges festival `id`'s contest in `year` with the farmer's entry scoring `score`: every
+## rival's score is rolled from their range with a seed of the festival and year (one year
+## always comes out the same), and the farmer wins ties. Returns {place (1 = first), score,
+## rivals: [{who, score}] best first, winner ("farmer" or a rival's id), prize ({} or
+## {money, item?, count?})}.
+static func judge(id: String, year: int, score: int) -> Dictionary:
+	var c := contest(id)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("%s:%d" % [id, year])
+	var rivals: Array = []
+	var place := 1
+	for r in c.get("rivals", []):
+		var s := rng.randi_range(int(r.score[0]), int(r.score[1]))
+		rivals.append({"who": r.who, "score": s})
+		if s > score:
+			place += 1
+	rivals.sort_custom(func(a, b): return a.score > b.score)
+	var prizes: Array = c.get("prizes", [])
+	return {"place": place, "score": score, "rivals": rivals,
+		"winner": "farmer" if place == 1 else rivals[0].who,
+		"prize": prizes[place - 1] if place <= prizes.size() else {}}
+
+
+# --- the stall ------------------------------------------------------------------
+
+## Festival `id`'s stall ({} for none).
+static func stall(id: String) -> Dictionary:
+	return get_festival(id).get("stall", {})
+
+
+## The shop id of festival `id`'s stall.
+static func stall_shop_id(id: String) -> String:
+	return STALL_PREFIX + id
+
+
+## Is `cell` part of festival `id`'s stall (the stall prop round its cell)?
+static func at_stall(id: String, cell: Vector2i) -> bool:
+	var s := stall(id)
+	return not s.is_empty() and _prop_rect(id, _cell(s.cell)).has_point(cell)
+
+
+## The stall of festival `id` as shop data for Shop.make ({"shops": {"stall:<id>": ...}}):
+## its name, the festival's map, its stock in every season and the festival's hours (whole
+## hours, for the screen; Game.open_stall checks the festival itself). {} for none.
+static func stall_shop_data(id: String) -> Dictionary:
+	var s := stall(id)
+	if s.is_empty():
+		return {}
+	var f := get_festival(id)
+	var hours := [EventTriggers.clock(f.hours[0]) / 60, ceili(EventTriggers.clock(f.hours[1]) / 60.0)]
+	return {"shops": {stall_shop_id(id): {"name": s.name, "map": f.map, "open": hours, "stock": {"any": s.stock}}}}
+
+
+## The cells of the prop of festival `id` that covers `cell` (an empty rect when none does).
+static func _prop_rect(id: String, cell: Vector2i) -> Rect2i:
+	for p in get_festival(id).get("props", []):
+		var r := _rect(p)
+		if r.has_point(cell):
+			return r
+	return Rect2i()
+
+
+static func _rect(p: Dictionary) -> Rect2i:
+	var size: Array = p.get("size", [1, 1])
+	return Rect2i(_cell(p.get("cell")), Vector2i(int(size[0]), int(size[1])))
+
+
+static func _cell(a: Variant) -> Vector2i:
+	return Vector2i(int(a[0]), int(a[1])) if a is Array and a.size() == 2 else Vector2i(-1, -1)
+
+
 static func _within(hours: Array, minute: int) -> bool:
 	return minute >= EventTriggers.clock(hours[0]) and minute < EventTriggers.clock(hours[1])
 
@@ -171,7 +276,86 @@ static func check_festival(f: Variant) -> String:
 		var err := _check_prop(p, m)
 		if err != "":
 			return "prop %s: %s" % [p, err]
+	if f.has("contest"):
+		var err := _check_contest(f.contest, f)
+		if err != "":
+			return "contest: " + err
+	if f.has("stall"):
+		var err := _check_stall(f.stall, f)
+		if err != "":
+			return "stall: " + err
 	return ""
+
+
+static func _check_contest(c: Variant, f: Dictionary) -> String:
+	if not c is Dictionary:
+		return "not an object"
+	for k in c:
+		if not k in CONTEST_KEYS:
+			return "unknown key " + k
+	if not c.get("name") is String or c.name == "":
+		return "needs a name"
+	if not c.get("takes") in KINDS:
+		return "takes one of %s" % [KINDS]
+	if not _prop_under(f, c.get("table"), "judge_table"):
+		return "table needs a cell [x, y] of a judge_table prop"
+	if c.has("in_season") and not EventRunner._number(c.in_season, 1.0, 10.0):
+		return "in_season is a factor from 1 to 10"
+	if not c.get("ask") is String or DialogueRunner.open(DIALOGUE, {}, c.ask).error != "":
+		return "ask needs a line of data/dialogue/%s.json" % DIALOGUE
+	var rivals: Variant = c.get("rivals")
+	if not rivals is Array or rivals.is_empty():
+		return "needs rivals"
+	for r in rivals:
+		if not r is Dictionary or not r.get("who") in Villagers.file_ids() or not r.get("score") is Array \
+				or r.score.size() != 2 or not EventRunner._whole(r.score[0], 0, 99999) \
+				or not EventRunner._whole(r.score[1], int(r.score[0]), 99999):
+			return "a rival needs who (a villager) and score [lowest, highest]"
+	var prizes: Variant = c.get("prizes")
+	if not prizes is Array or prizes.is_empty() or prizes.size() > rivals.size() + 1:
+		return "prizes is a list by place, at most one more than the rivals"
+	for p in prizes:
+		if not p is Dictionary or not EventRunner._whole(p.get("money", 0), 0, 99999):
+			return "a prize is {money, item?, count?}"
+		for k in p:
+			if not k in ["money", "item", "count"]:
+				return "a prize has no " + k
+		if p.has("item") and (not p.item is String or p.item == ""):
+			return "a prize item is an item id"
+		if p.has("count") and not EventRunner._whole(p.count, 1, 99):
+			return "a prize count is 1 to 99"
+	var ev := EventRunner.open(str(c.get("event", "")), null)
+	if ev.error != "":
+		return "event: " + ev.error
+	return ""
+
+
+static func _check_stall(s: Variant, f: Dictionary) -> String:
+	if not s is Dictionary:
+		return "not an object"
+	for k in s:
+		if not k in STALL_KEYS:
+			return "unknown key " + k
+	if not s.get("name") is String or s.name == "":
+		return "needs a name"
+	if not _prop_under(f, s.get("cell"), "stall"):
+		return "cell needs a cell [x, y] of a stall prop"
+	if not s.get("stock") is Array or s.stock.is_empty():
+		return "needs stock"
+	for e in s.stock:
+		if not e is Dictionary or not e.get("item") is String:
+			return "a stock row is {item, price?}"
+		if e.has("price") and not EventRunner._whole(e.price, 1, 99999):
+			return "a price is a whole number of G"
+	return ""
+
+
+## Is `cell` ([x, y]) inside a prop of `kind` in festival data `f`?
+static func _prop_under(f: Dictionary, cell: Variant, kind: String) -> bool:
+	for p in f.get("props", []):
+		if p is Dictionary and p.get("kind") == kind and _rect(p).has_point(_cell(cell)):
+			return true
+	return false
 
 
 static func _check_prop(p: Variant, m: MapData) -> String:
