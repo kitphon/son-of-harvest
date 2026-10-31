@@ -10,6 +10,37 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Merged six branches: export, text box, sound, pause, tool exp, fatigue
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged with `--no-ff`, one at a time, in this order: `claude/win-export-659b37`
+  (2dfd4ba, b7e0600), `claude/text-box-3ca660` (83f324d), `claude/sound-fx-bf7df1` (5129d6f),
+  `claude/pause-menu-5d4b39` (01e532e), `claude/tool-upgrades-4ff024` (3b4e94d),
+  `claude/fatigue-1d9971` (23754d0). WORKLOG was rebuilt each time as main's entries plus
+  the branch's new ones; AGENTS / README / ROADMAP kept both sides (test list, debug flags,
+  README sections), and "Next up" now points at eating / drinking. Code joins:
+  - `Game`: dialogue flags, tool exp and fatigue sit side by side in the fields,
+    `to_dict()` / `from_dict()` and the save tests (bad-value list and old-save checks).
+  - The pause rule takes in the text box: `Game.paused()` is true while `dialogue_open`,
+    so `ticking()`, the player freeze and the lightning step have one check; the player
+    keeps the pause branch's `_after_menu` guard for both. Esc doesn't open the pause menu
+    over a text box. New check in `tests/test_menu.gd`.
+  - `main_2d` / `main_3d` add both TextBox and PauseScreen; the lightning step uses
+    `Game.ticking()` and still calls `Sfx.thunder_after_flash()`.
+  - `farm_actions.use_tool` plays the tool sound and counts tool exp.
+  - The pause branch moved `--no-flashes` into `apply_settings()`, so it was not brought
+    back into `new_game()`; `--tired` was kept.
+  - Rule clash: the tool-exp test expected "no stamina = no swing", but the fatigue branch
+    lets a swing go through and turns the missing stamina into fatigue. The test in
+    `tests/test_farm.gd` now checks the fatigue rule (the swing tills and gives exp).
+- Checked on merged main: `test_audio`, `test_body`, `test_dialogue`, `test_farm`, `test_menu`,
+  `test_save`, `test_title`, `test_weather` all print `OK (0 failed)`; headless
+  `--quit-after 300` (title, and `-- --demo --weather=storm`) printed no errors or warnings;
+  no conflict markers (`git grep`); Movie Maker frame `--demo --tired --dialogue=bin_note`
+  shows the text box with the portrait over the field and the HUD.
+- Left / next: export templates for 4.7.2 aren't installed, so no .exe was built (README →
+  Export). Sound can't be heard here. The pause menu, text box keys, charging and F5 / F9 still
+  need a try in a real game window.
+
 ## 2026-10-31 — Fatigue, tired poses, oversleeping and collapse
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a second body value, `Game.fatigue` (0..100, hidden like DESIGN says), with every rule
