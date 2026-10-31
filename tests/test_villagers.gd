@@ -120,7 +120,7 @@ func _rules() -> void:
 	check(Villagers.pick_plan(v, s.merged({"flags": {"festival_soon": true, "sick": 1}}, true)) == "usual", "a not_flag that is set")
 	check(Villagers.pick_plan(v, s.merged({"day": 11, "year": 2}, true)) == "later" and Villagers.pick_plan(v, s.merged({"day": 11}, true)) == "usual",
 		"day and year ranges")
-	for c in [{"weekday": ["someday"]}, {"season": "spring"}, {"weather": ["fog"]}, {"days": [5]}, {"birthday": true}, {"flags": [""]}]:
+	for c in [{"weekday": ["someday"]}, {"season": "spring"}, {"weather": ["fog"]}, {"days": [5]}, {"birthday": "yes"}, {"flags": [""]}]:
 		check(Villagers.check_conditions(c) != "", "refused condition %s" % [c])
 
 

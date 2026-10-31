@@ -77,9 +77,11 @@ on Sunday afternoons. Later for villagers: whistling, real portraits.
 Relationships are in (milestone 9): the heart band shows as a coloured heart on the text
 box's name tag, each villager has a birthday (on the farmhouse calendar; gifts x5, a birthday
 line), villagers left alone may lose a point at night, and each has a heart event at band 3
-(data/events/heart_<id>.json). Later for relationships: heart events at higher bands, the
-birthday as a day-plan condition and always-fair weather on it (DESIGN), the birthday on the
-HUD tag.
+(data/events/heart_<id>.json) and a second one at band 5 (heart_<id>_5.json); on a birthday the
+villager follows a `birthday` day plan, the weather is fair and the HUD tag names it. Gift
+lists include mine finds. Later for relationships: a band 6 scene, the story flags the band 5
+scenes set (tome_grandma, sayo_sign, hachiro_bell) shown in the world (the bell by the farmhouse
+door, the store's new sign).
 Shops are in (data/shops.json): the Yorozu Store and the Kurogane Smithy in the village, with
 opening hours and days off, a buy / sell screen and tool upgrades over days (saved). A
 shopkeeper only has to stand at the map's `keeper` spawn and call `Game.open_shop(id)`.
@@ -114,7 +116,7 @@ upgrades (`items` on the upgrade levels in data/shops.json), the smithy buys sto
 and the store buys gems (`buys` by kind), each floor is darker than the one above with a
 lantern circle round the farmer (both views), and in winter floors 1-9 are frozen (frost,
 ice blocks hiding frost stone, a cold light; `winter` in data/mine.json). Later for the mine:
-mine finds in the villagers' gift lists, real art for the ice and the lantern.
+real art for the ice and the lantern (mine finds are in the gift lists now).
 Festivals are in (milestone 9): `data/festivals.json` (date, hours, map, place, event, shops
 shut, decorations, fireworks), the HUD tag under the clock, the calendar notes, fair weather
 on the day, Kota and Tome out all day. Each festival has a contest at a judges' table (best
@@ -198,6 +200,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Festivals: one per season in data/festivals.json (Blossom Day, Lantern Night with fireworks, Moon Night, Year's Turn), HUD tag, shops shut, decorations in both views, an event once a year, villagers gather
    - [x] Festival contests with prizes and result events, festival music, payout held on the day, Blossom Day's stall
    - [x] Relationships: hearts on the text box's name tag, birthdays (calendar, gifts x5, birthday lines), the nightly loss for villagers left alone, a heart event per villager at band 3
+   - [x] Relationships 2: a second heart event per villager at band 5, birthday day plans, fair weather and the HUD tag on a birthday, mine finds in the gift lists
    - [x] Ending: the village record on the first morning of year 3 (data/ending.json: ten categories graded in stars, five ranks), Tome's verdict, the closest villager's word; the game goes on
 10. **Audio and release**
     - [x] Sound effects and ambient loops (synthesized from data/sfx.json, SFX / Ambient busses)

@@ -2,7 +2,8 @@ class_name Villagers
 extends RefCounted
 ## The village's people (data/villagers/<id>.json) and where they are. Each villager has a
 ## rule list: every morning the first rule whose conditions all hold (weekday, season,
-## weather, day of the month, year, story flags) picks the day's plan, else `default`
+## weather, day of the month, year, story flags, a festival, their own birthday) picks the
+## day's plan, else `default`
 ## (DESIGN: villagers). The plan (DayPlan) says where they are at any minute, so the views ask
 ## `on_map` every frame and get everyone who should stand on that map right now; nothing is
 ## simulated off screen and nothing needs saving. Pure logic, the state comes in as Game's
@@ -14,7 +15,7 @@ extends RefCounted
 const GameRules := preload("res://scripts/autoload/game.gd")   # SEASONS, WEEKDAYS
 const DIR := "res://data/villagers/"
 const COMMON := DIR + "_common.json"
-const RULE_KEYS: Array[String] = ["season", "weekday", "weather", "days", "year", "flags", "not_flags", "festival"]
+const RULE_KEYS: Array[String] = ["season", "weekday", "weather", "days", "year", "flags", "not_flags", "festival", "birthday"]
 const FILE_KEYS: Array[String] = ["_note", "id", "name", "speed", "look", "rules", "default", "plans", "gifts", "birthday"]
 const REACTIONS: Array[String] = ["love", "like", "neutral", "dislike", "hate"]   # a gift's reaction, best first
 const DELAY_RESETS: Array[int] = [720, 1080]   # 12:00 and 18:00 as day minutes
@@ -128,11 +129,14 @@ static func check_conditions(c: Dictionary) -> String:
 			return "%s needs a list of names" % k
 	if c.has("festival") and not EventTriggers._names_ok(c.festival, Festivals.all().keys()):
 		return "festival needs a list of festival ids (data/festivals.json)"
+	if c.has("birthday") and not c.birthday is bool:
+		return "birthday is true or false"
 	return ""
 
 
 ## Do all of a rule's conditions hold in `s` (Game.trigger_state)? Left-out ones always do.
-static func conditions_hold(c: Dictionary, s: Dictionary) -> bool:
+## `birthday` is about the villager `id` whose rule it is (or `s.birthday` when given, as Talk does).
+static func conditions_hold(c: Dictionary, s: Dictionary, id := "") -> bool:
 	if c.has("season") and not s.season in c.season:
 		return false
 	if c.has("weekday") and not s.weekday in c.weekday:
@@ -144,6 +148,8 @@ static func conditions_hold(c: Dictionary, s: Dictionary) -> bool:
 	if c.has("year") and not EventTriggers._within(s.year, c.year):
 		return false
 	if c.has("festival") and not s.get("festival", "") in c.festival:
+		return false
+	if c.has("birthday") and c.birthday != bool(s.get("birthday", has_birthday(id, s.season, s.day))):
 		return false
 	for f in c.get("flags", []):
 		if not EventRunner.is_set(s.flags, f):
@@ -157,7 +163,7 @@ static func conditions_hold(c: Dictionary, s: Dictionary) -> bool:
 ## The name of the plan villager `v` follows on a day with state `s`: the first rule that holds.
 static func pick_plan(v: Dictionary, s: Dictionary) -> String:
 	for rule in v.get("rules", []):
-		if conditions_hold(rule.if, s):
+		if conditions_hold(rule.if, s, v.get("id", "")):
 			return rule.plan
 	return v.default
 

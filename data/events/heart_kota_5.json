@@ -1,0 +1,10 @@
+{
+	"_note": "Kota's second heart event: the first talk once his heart band reaches 5, after heart_kota (triggers_town.json, triggers_kota_house.json). He saw the old carp and let it be (a line of its own if kota_carp_promise is set), and wants to help at harvest. Sets heart_kota_5. Format: README.md, Events.",
+	"steps": [
+		{"do": "sound", "key": "hold_splash"},
+		{"do": "wait", "seconds": 0.3},
+		{"do": "say", "dialogue": "heart_events_5", "at": "kota"},
+		{"do": "affection", "who": "kota", "amount": 5},
+		{"do": "set", "flags": {"heart_kota_5": true}}
+	]
+}

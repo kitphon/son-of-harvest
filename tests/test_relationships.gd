@@ -1,7 +1,8 @@
 extends SceneTree
 ## Headless checks for relationships: the heart band on the text box's name tag, birthdays
 ## (villager files, the calendar, gifts counting x5, the birthday lines), the small nightly
-## loss for villagers left alone, and the heart events (one per villager at band 3). Run:
+## loss for villagers left alone, the heart events (one per villager at band 3 and one at band
+## 5), birthday day plans, fair weather and the HUD tag on a birthday, mine finds as gifts. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_relationships.gd
 
 var failures := 0
@@ -14,6 +15,8 @@ func _init() -> void:
 	_birthday_gifts()
 	_neglect()
 	_heart_event_rows()
+	_birthday_plans()
+	_mine_gifts()
 
 
 func _process(_delta: float) -> bool:
@@ -23,6 +26,8 @@ func _process(_delta: float) -> bool:
 		_birthday_talk()
 		_neglect_in_game()
 		_heart_events_play()
+		_birthday_weather()
+		_birthday_tag()
 		print("test_relationships: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -146,6 +151,61 @@ func _heart_event_rows() -> void:
 			check(t.pick("talk", s.merged({"hearts": {id: 6}}, true)) == "heart_" + id, "on %s, still at band 6 if missed" % m)
 			check(t.pick("talk", s.merged({"seen": {"heart_" + id: true, "store_intro": true, "smithy_intro": true}}, true)) != "heart_" + id,
 				"on %s, only once" % m)
+			# The second one at band 5, only after the first was seen.
+			var after := {"heart_" + id: true, "store_intro": true, "smithy_intro": true}
+			var five := "heart_%s_5" % id
+			check(t.pick("talk", s.merged({"hearts": {id: 5}, "seen": after}, true)) == five, "on %s, band 5 plays %s" % [m, five])
+			check(t.pick("talk", s.merged({"hearts": {id: 6}, "seen": after}, true)) == five, "on %s, still at band 6 if missed" % m)
+			check(t.pick("talk", s.merged({"hearts": {id: 4}, "seen": after}, true)) != five, "on %s, not at band 4" % m)
+			check(t.pick("talk", s.merged({"hearts": {id: 5}}, true)) == "heart_" + id, "on %s, band 3's comes first" % m)
+			check(not t.pick("talk", s.merged({"hearts": {id: 6}, "seen": after.merged({five: true})}, true)) in ["heart_" + id, five],
+				"on %s, each plays once" % m)
+
+
+## Each villager has a birthday plan, picked on their birthday (Sayo's Sunday off still wins),
+## not the day after or on someone else's, and differing from their usual day.
+func _birthday_plans() -> void:
+	check(Villagers.check_conditions({"birthday": true}) == "" and Villagers.check_conditions({"birthday": "yes"}) != "", "birthday is a rule condition, true or false")
+	for id in Villagers.all():
+		var v: Dictionary = Villagers.all()[id]
+		var b: Dictionary = v.birthday
+		check(v.plans.has("birthday"), "%s has a birthday plan" % id)
+		var s := {"year": 1, "season": b.season, "day": int(b.day), "weekday": "wed", "weather": "sunny", "flags": {}, "festival": ""}
+		check(Villagers.pick_plan(v, s) == "birthday", "%s follows it on the day" % id)
+		check(Villagers.pick_plan(v, s.merged({"day": int(b.day) % 30 + 1}, true)) != "birthday", "%s doesn't the day after" % id)
+		check(v.plans.birthday != v.plans[v.default], "%s's birthday isn't a usual day" % id)
+		var other := "kota" if id != "kota" else "tome"
+		var bo: Dictionary = Villagers.all()[other].birthday
+		check(Villagers.pick_plan(v, s.merged({"season": bo.season, "day": int(bo.day)}, true)) != "birthday", "%s keeps to their day on %s's birthday" % [id, other])
+	var sayo: Dictionary = Villagers.all().sayo
+	var sb: Dictionary = sayo.birthday
+	check(Villagers.pick_plan(sayo, {"year": 1, "season": sb.season, "day": int(sb.day), "weekday": "sun", "weather": "sunny", "flags": {}, "festival": ""}) == "day_off",
+		"a Sunday birthday is Sayo's day off (the store is shut anyway)")
+	# On their birthdays the keepers leave the counter early, so the shop shuts.
+	var h: Dictionary = Villagers.all().hachiro.birthday
+	var st := {"year": 1, "season": h.season, "day": int(h.day), "weekday": "wed", "weather": "sunny", "flags": {}, "festival": ""}
+	Villagers.reset_day()
+	check(not Villagers.is_on("hachiro", "smithy", 12 * 60, st) and Villagers.where("hachiro", 12 * 60, st).map == "town", "Hachiro is out of the smithy at noon on his birthday")
+	st = st.merged({"season": sb.season, "day": int(sb.day)}, true)
+	check(Villagers.is_on("sayo", "store", 10 * 60, st) and Villagers.where("sayo", 13 * 60 + 20, st).map == "tome_house",
+		"Sayo keeps the store in the morning and lunches at Tome's on her birthday")
+	check(Villagers.where("tome", 13 * 60 + 20, st).map == "tome_house", "and Tome is home then")
+	Villagers.reset_day()
+
+
+## Mine finds in the gift lists are real finds (data/mine.json); each villager likes some.
+func _mine_gifts() -> void:
+	var finds: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/mine.json")).items
+	for id in Villagers.all():
+		var any_good := false
+		for r in Villagers.all()[id].gifts:
+			for item in Villagers.all()[id].gifts[r]:
+				if item.begins_with("mine:"):
+					check(finds.has(item.trim_prefix("mine:")), "%s's %s %s is a mine find" % [id, r, item])
+					any_good = any_good or r in ["love", "like"]
+		check(any_good, "%s likes something from the mine" % id)
+	check(Villagers.reaction("hachiro", "mine:hoshigane") == "love" and Villagers.reaction("hachiro", "mine:stone") == "dislike", "Hachiro loves good ore, not a grey stone")
+	check(Villagers.reaction("kota", "mine:suisho") == "love", "Kota loves a crystal")
 
 
 # --- on the real Game -------------------------------------------------------
@@ -221,24 +281,87 @@ func _neglect_in_game() -> void:
 	check(g.affection.of("kota") > 120, "Kota, talked to every day, lost nothing")
 
 
-## Each heart event runs to the end on the real Game: flag set, affection up.
+## Each heart event (bands 3 and 5) runs to the end on the real Game: flag set, affection up.
+## Kota's second one reads both ways, with and without his carp promise.
 func _heart_events_play() -> void:
 	for id in Villagers.all():
-		var g := _game()
-		g.affection.add(id, int(Affection.rules().bands[3]))
-		var before: int = g.affection.of(id)
-		var r := EventRunner.open("heart_" + id, g)
-		check(r.error == "", "heart_%s runs: %s" % [id, r.error])
-		if r.error != "":
-			continue
-		r.start(Vector2.ZERO, Vector2i.UP)
-		for i in 200:
-			if r.done():
-				break
-			r.update(0.5)
-		check(r.done(), "heart_%s ends" % id)
-		check(EventRunner.is_set(g.flags, "heart_" + id), "heart_%s sets its flag" % id)
-		check(g.affection.of(id) > before, "%s likes the farmer more after it" % id)
+		for band in [3, 5]:
+			for promise in ([false, true] if id == "kota" and band == 5 else [false]):
+				var ev: String = "heart_" + id + ("_5" if band == 5 else "")
+				var g := _game()
+				g.affection.add(id, int(Affection.rules().bands[band]))
+				if promise:
+					g.flags["kota_carp_promise"] = true
+				var before: int = g.affection.of(id)
+				var r := EventRunner.open(ev, g)
+				check(r.error == "", "%s runs: %s" % [ev, r.error])
+				if r.error != "":
+					continue
+				r.start(Vector2.ZERO, Vector2i.UP)
+				for i in 200:
+					if r.done():
+						break
+					r.update(0.5)
+				check(r.done(), "%s ends" % ev)
+				check(EventRunner.is_set(g.flags, ev), "%s sets its flag" % ev)
+				check(g.affection.of(id) > before, "%s likes the farmer more after %s" % [id, ev])
+	var d := DialogueRunner.open("heart_events_5", {"kota_carp_promise": true}, "kota")
+	_next_line(d)
+	check("You promised" in d.text(), "with the promise Kota keeps it too: %s" % d.text())
+	d = DialogueRunner.open("heart_events_5", {}, "kota")
+	_next_line(d)
+	check("didn't" in d.text(), "without it he let the carp be anyway: %s" % d.text())
+
+
+func _next_line(d: DialogueRunner) -> void:
+	if not d.revealed():
+		d.press()
+	d.press()
+
+
+## The day before a villager's birthday the next day's weather is always fair (DESIGN), even
+## when the season's odds say rain; other days roll as usual.
+func _birthday_weather() -> void:
+	var g := _game()
+	var odds: Dictionary = g.weather_chances
+	g.weather_chances = {}
+	for s in g.SEASONS:
+		g.weather_chances[s] = {"rain": 1.0}
+	for id in Villagers.all():
+		var b: Dictionary = Villagers.all()[id].birthday
+		var at: int = g.SEASONS.find(b.season) * g.DAYS_PER_SEASON + int(b.day) - 1 - 2   # two days before
+		at = posmod(at, 4 * g.DAYS_PER_SEASON)
+		g.season = at / g.DAYS_PER_SEASON
+		g.day = at % g.DAYS_PER_SEASON + 1
+		g.end_day()
+		check(g.fair_tomorrow() and g.weather_tomorrow == "sunny", "the day before %s's birthday, tomorrow is fair (%s)" % [id, g.weather_tomorrow])
+		g.end_day()
+		check(g.season_name() == b.season and g.day == int(b.day), "%s: the day is %s %d" % [id, b.season, b.day])
+		check(g.birthdays_today() == [id], "Game.birthdays_today is %s" % [g.birthdays_today()])
+		check(g.weather_today == "sunny", "%s's birthday is fair (%s)" % [id, g.weather_today])
+		check(not g.fair_tomorrow() and g.weather_tomorrow == "rain", "the day after rolls as usual (%s)" % g.weather_tomorrow)
+	g.weather_chances = odds
+	g.new_game()
+
+
+## The HUD tag under the clock names a birthday as it names a festival; it fits the box.
+func _birthday_tag() -> void:
+	check(HudLayout.day_tag([]) == "" and HudLayout.day_tag(["tome"]) == "Tome's birthday", "the tag reads Tome's birthday")
+	for id in Villagers.all():
+		var tag := HudLayout.day_tag([id])
+		check(PixelFont.width(tag) + 12 <= HudLayout.BOXES.festival.size.x, "%s fits the HUD tag" % tag)
+	var g := _game()
+	var hud: CanvasLayer = load("res://scripts/ui/hud.gd").new()
+	root.add_child(hud)
+	var b: Dictionary = Villagers.all().sayo.birthday
+	g.season = g.SEASONS.find(b.season)
+	g.day = int(b.day)
+	g.changed.emit()
+	check(hud._fest_box.visible and hud._fest.text == "Sayo's birthday", "on Sayo's birthday the HUD says so (%s)" % hud._fest.text)
+	g.day = int(b.day) + 1
+	g.changed.emit()
+	check(not hud._fest_box.visible, "and not the day after")
+	hud.free()
 
 
 func check(ok: bool, what: String) -> void:

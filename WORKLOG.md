@@ -10,6 +10,46 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Relationships 2: band 5 heart events, birthday plans, fair weather, HUD tag
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a second heart event per villager at band 5, our own scenes
+  (`data/events/heart_<id>_5.json`, lines in new `data/dialogue/heart_events_5.json`): Tome
+  has written to her son about the farmer and offers to be "Grandma" (choice, `tome_grandma`);
+  Kota saw the old carp and let it be (a line of its own when `kota_carp_promise` from his
+  band 3 scene is set) and wants to help at harvest; Sayo asks what goes on the store's
+  repainted sign (`sayo_sign` old / new); Hachiro gives the farmer an iron door bell
+  (`hachiro_bell`). Each adds 5 affection and sets `heart_<id>_5`. Rows sit right after the
+  band 3 row in every table where that villager can be talked to (town, the house maps, store,
+  smithy), with `hearts [5, 6]` and `seen: [heart_<id>]`, so the band 3 scene always comes
+  first. Band 4 was left out: two scenes a year per villager read better than three short ones.
+  Birthday as a day-plan condition: `{"if": {"birthday": true}}` in the rule lists
+  (`Villagers.conditions_hold` with the villager's id; Talk's own `birthday` state still wins
+  for talk picks). Birthday plans: Tome prays at the shrine 7:00-10:00 and is home for visitors
+  the rest of the day; Kota is at the pond 7:30-17:30 after the carp; Sayo keeps the store until
+  12:30, lunches at Tome's (Tome is home 12:00-14:00 then) and spends the afternoon in her
+  rooms (a Sunday birthday stays her day off); Hachiro keeps the smithy shut, the shrine in the
+  morning, the pond until 16:00. Fair weather: `Game.fair_tomorrow()` (a festival or a
+  birthday tomorrow) replaces the roll in `end_day` (DESIGN). HUD: the festival tag under the
+  clock shows "<Name>'s birthday" on a birthday (`HudLayout.day_tag`, `Game.birthdays_today`;
+  "Hachiro's birthday" is 79 px, fits the 92 px box). Mine finds in gift lists: Tome likes
+  jade and agate; Kota loves crystal, likes amber and frost stone; Sayo likes amber and crystal,
+  dislikes clay; Hachiro loves hoshigane, likes the other ores, dislikes a grey stone.
+  README (Villagers, Relationships), AGENTS test line, ROADMAP.
+- Checked: `test_relationships` (new checks: band 5 rows on every map, band 3 first, once each;
+  both events per villager run to the end on the real Game, Kota's both ways; birthday plans
+  picked only on the day, Sayo's Sunday, Hachiro out of the smithy and Sayo at Tome's;
+  fair weather the day of each birthday with all-rain odds, the day after rolls; the HUD tag
+  on the real HUD; mine gift items exist) prints `test_relationships: OK (0 failed)`;
+  test_villagers' refused-condition case is now `{"birthday": "yes"}`. All 24 test scripts print
+  `OK (0 failed)`. Headless `--quit-after 300` (title, `--demo`, `--map=town`, `--mine=3`,
+  `--map=tome_house`, `--event=heart_tome_5`, `--map=town --event=heart_kota_5`,
+  `--season=fall --map=town --time=12:00`) and `res://scenes/main.tscn --quit-after 400`
+  printed no errors or warnings. Movie Maker frame `--demo --map=smithy --event=heart_hachiro_5`: Hachiro
+  behind the counter, the text box "Hold out your hand. No, the other one." with his heart.
+- Left / next: no band 6 scene; the band 5 flags (`tome_grandma`, `sayo_sign`, `hachiro_bell`)
+  change nothing in the world yet (a bell by the farmhouse door, the store's new sign); the
+  storm-to-rain rule before a festival (DESIGN) is still not done.
+
 ## 2026-10-31 — The ending: the village record on the first morning of year 3
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: DESIGN lists the ending as not studied, so the rules are ours. New `Ending`
