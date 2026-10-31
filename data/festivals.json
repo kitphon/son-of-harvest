@@ -1,5 +1,5 @@
 {
-	"_about": "The village festivals (Festivals, scripts/festivals/festivals.gd; README.md, Festivals). One per season, all our own: names, dates, hours and looks were made up for Harvest Son. Per festival: name (HUD tag and calendar), season, day, hours [\"H:MM\", \"H:MM\") on the map where it is held, place (the cell it gathers round, [x, y]; `--festival=<id>` starts the farmer there facing up), event (data/events, plays once a year when the farmer is on the map in the hours), closes (shop ids from data/shops.json that stay shut all day), props (decorations on the map during the hours: {kind, cell, size?}; not solid, so they never block a walk; looks in FestivalProps / FestivalView), optional fireworks [\"H:MM\", \"H:MM\") (bursts over the 3D view in those hours). DESIGN: a festival day is always sunny (the weather rolled for it is replaced the evening before). Optional contest: {name, takes (the kind of entry: crop, fish, animal for eggs / milk / wool, mine for the mine's ores and stones), table (a cell of a judge_table prop; E there with an entry overhead enters it, empty-handed the judge says the `ask` line of data/dialogue/contests.json), in_season (score factor for an entry that grows in the festival's season), rivals [{who (a villager), score [lowest, highest]}] rolled once per festival and year, prizes by place [{money, item?, count?}], event (data/events, the results; flags contest_place_<n> and contest_won_<rival> are set for its lines)}. An entry scores its shipping value; one entry a year; the farmer wins ties. Optional stall: {name, cell (a cell of a stall prop), stock [{item, price?}]}, a shop (id stall:<festival>) that sells only in the festival's hours. Prize money is kept small: a first prize is about a good day's shipping.",
+	"_about": "The village festivals (Festivals, scripts/festivals/festivals.gd; README.md, Festivals). One per season, all our own: names, dates, hours and looks were made up for Harvest Son. Per festival: name (HUD tag and calendar), season, day, hours [\"H:MM\", \"H:MM\") on the map where it is held, place (the cell it gathers round, [x, y]; `--festival=<id>` starts the farmer there facing up), event (data/events, plays once a year when the farmer is on the map in the hours), closes (shop ids from data/shops.json that stay shut all day), props (decorations on the map during the hours: {kind, cell, size?}; not solid, so they never block a walk; looks in FestivalProps / FestivalView), optional fireworks [\"H:MM\", \"H:MM\") (bursts over the 3D view in those hours). DESIGN: a festival day is always sunny (the weather rolled for it is replaced the evening before). Optional contest: {name, takes (the kind of entry: crop, fish, animal for eggs / milk / wool, mine for the mine's ores and stones), table (a cell of a judge_table prop; E there with an entry overhead enters it, empty-handed the judge says the `ask` line of data/dialogue/contests.json), in_season (score factor for an entry that grows in the festival's season), rivals [{who (a villager), score [lowest, highest]}] rolled once per festival and year, prizes by place [{money, item?, count?}], event (data/events, the results; flags contest_place_<n> and contest_won_<rival> are set for its lines)}. An entry scores its shipping value; one entry a year; the farmer wins ties. Optional stall: {id?, name, cell (a cell of a stall prop), stock [{item, price?}]}, or a list of them (each with its own id), a shop (id stall:<festival>, or stall:<festival>:<stall id>) that sells only in the festival's hours; its stock is set out on the stall's counter in both views, and the other stall props are only looks. Placing in a contest also gives a ribbon (data/keepsakes.json). Prize money is kept small: a first prize is about a good day's shipping.",
 	"festivals": {
 		"blossom_day": {
 			"name": "Blossom Day",
@@ -88,7 +88,28 @@
 					{"money": 100}
 				],
 				"event": "contest_lanterns"
-			}
+			},
+			"stall": [
+				{
+					"id": "eats",
+					"name": "Night Eats Stall",
+					"cell": [9, 7],
+					"stock": [
+						{"item": "food:yakisoba"},
+						{"item": "food:shaved_ice"},
+						{"item": "food:marble_soda"}
+					]
+				},
+				{
+					"id": "chimes",
+					"name": "Wind Chime Stall",
+					"cell": [22, 7],
+					"stock": [
+						{"item": "keep:wind_chime", "price": 300},
+						{"item": "keep:paper_fan", "price": 120}
+					]
+				}
+			]
 		},
 		"moon_night": {
 			"name": "Moon Night",

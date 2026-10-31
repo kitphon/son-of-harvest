@@ -1,5 +1,5 @@
 {
-	"_note": "The farmhouse inside: a packed-earth entry (doma) by the door, a step of wooden floor, then the tatami room with the futon, a low table, a chest and a paper lantern. The clock stands still in here. Format: README.md, Maps. extensions: what the house extensions (data/shops.json builds) change once built, in this order: props are added (the kitchen's stove and cupboard open the cooking screen, use cook; spawn kitchen stands by the stove), any other key (size, ground) replaces the map's own. The ume_jar is Grandma Tome's jar of pickled plums by the chest, there once tome_grandma is set (heart_tome_5); examining it reads her note.",
+	"_note": "The farmhouse inside: a packed-earth entry (doma) by the door, a step of wooden floor, then the tatami room with the futon, a low table, a chest and a paper lantern. The clock stands still in here. Format: README.md, Maps. extensions: what the house extensions (data/shops.json builds) change once built, in this order: props are added (the kitchen's stove and cupboard open the cooking screen, use cook; spawn kitchen stands by the stove), any other key (size, ground) replaces the map's own. The ume_jar is Grandma Tome's jar of pickled plums by the chest, there once tome_grandma is set (heart_tome_5); examining it reads her note. The ribbon_board hangs on the back wall once a festival contest ribbon is won (the ribbons flag, Keepsakes); E on it counts them.",
 	"id": "house",
 	"name": "Farmhouse",
 	"size": [
@@ -84,6 +84,15 @@
 			"flag": "tome_grandma",
 			"use": "examine",
 			"message": "Grandma Tome's pickled plums. The note on the lid says: \"One a day, for my grandchild.\""
+		},
+		{
+			"kind": "ribbon_board",
+			"cell": [
+				2,
+				1
+			],
+			"flag": "ribbons",
+			"use": "ribbons"
 		}
 	],
 	"doors": [

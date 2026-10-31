@@ -13,11 +13,11 @@ const KEYS: Array[String] = ["_note", "name", "season", "day", "hours", "map", "
 const PROP_KEYS: Array[String] = ["kind", "cell", "size", "cloth"]
 const CONTEST_KEYS: Array[String] = ["_note", "name", "takes", "table", "ask", "in_season", "rivals",
 	"prizes", "event"]
-const STALL_KEYS: Array[String] = ["_note", "name", "cell", "stock"]
+const STALL_KEYS: Array[String] = ["_note", "id", "name", "cell", "stock"]
 ## What a contest can take: Game.item_kind of the entry.
 const KINDS: Array[String] = ["crop", "fish", "animal", "mine"]
 const DIALOGUE := "contests"     # data/dialogue/contests.json: the contests' ask and result lines
-const STALL_PREFIX := "stall:"   # a stall's shop id is "stall:<festival id>"
+const STALL_PREFIX := "stall:"   # a stall's shop id is "stall:<festival id>[:<stall id>]"
 
 static var _data: Variant = null   # data/festivals.json, read on first use
 static var _error := ""
@@ -172,34 +172,70 @@ static func judge(id: String, year: int, score: int) -> Dictionary:
 		"prize": prizes[place - 1] if place <= prizes.size() else {}}
 
 
-# --- the stall ------------------------------------------------------------------
+# --- the stalls -----------------------------------------------------------------
 
-## Festival `id`'s stall ({} for none).
-static func stall(id: String) -> Dictionary:
-	return get_festival(id).get("stall", {})
-
-
-## The shop id of festival `id`'s stall.
-static func stall_shop_id(id: String) -> String:
-	return STALL_PREFIX + id
+## Festival `id`'s stalls: its `stall` as a list (one object or a list of them; [] for none).
+static func stalls(id: String) -> Array:
+	var s: Variant = get_festival(id).get("stall", [])
+	return s if s is Array else [s]
 
 
-## Is `cell` part of festival `id`'s stall (the stall prop round its cell)?
+## Festival `id`'s stall with stall id `sid` ("" = the one without an id), {} for none.
+static func stall(id: String, sid := "") -> Dictionary:
+	for s in stalls(id):
+		if str(s.get("id", "")) == sid:
+			return s
+	return {}
+
+
+## The shop id of stall `s` of festival `id`: "stall:<festival>", or "stall:<festival>:<stall
+## id>" for a stall with an id (a festival with more than one stall).
+static func stall_shop_id(id: String, s := {}) -> String:
+	return STALL_PREFIX + id + (":" + str(s.id) if s.has("id") else "")
+
+
+## The festival and the stall a stall's shop id stands for: [festival id, its stall ({} for none)].
+static func stall_of(shop_id: String) -> Array:
+	if not shop_id.begins_with(STALL_PREFIX):
+		return ["", {}]
+	var rest := shop_id.trim_prefix(STALL_PREFIX)
+	return [rest.get_slice(":", 0), stall(rest.get_slice(":", 0), rest.get_slice(":", 1) if ":" in rest else "")]
+
+
+## The shop id of the stall of festival `id` whose prop covers `cell` ("" for none).
+static func stall_at(id: String, cell: Vector2i) -> String:
+	for s in stalls(id):
+		if _prop_rect(id, _cell(s.cell)).has_point(cell):
+			return stall_shop_id(id, s)
+	return ""
+
+
+## Is `cell` part of one of festival `id`'s stalls (the stall prop round its cell)?
 static func at_stall(id: String, cell: Vector2i) -> bool:
-	var s := stall(id)
-	return not s.is_empty() and _prop_rect(id, _cell(s.cell)).has_point(cell)
+	return stall_at(id, cell) != ""
 
 
-## The stall of festival `id` as shop data for Shop.make ({"shops": {"stall:<id>": ...}}):
-## its name, the festival's map, its stock in every season and the festival's hours (whole
-## hours, for the screen; Game.open_stall checks the festival itself). {} for none.
-static func stall_shop_data(id: String) -> Dictionary:
-	var s := stall(id)
+## The stall that stands in prop `p` of festival `id` ({} when the prop is only a look):
+## FestivalProps and FestivalView set its wares out on the counter.
+static func stall_of_prop(id: String, p: Dictionary) -> Dictionary:
+	for s in stalls(id):
+		if _rect(p).has_point(_cell(s.cell)):
+			return s
+	return {}
+
+
+## Stall `shop_id` ("stall:<festival>[:<stall id>]") as shop data for Shop.make ({"shops":
+## {<shop_id>: ...}}): its name, the festival's map, its stock in every season and the
+## festival's hours (whole hours, for the screen; Game.open_stall checks the festival
+## itself). {} for none.
+static func stall_shop_data(shop_id: String) -> Dictionary:
+	var fs := stall_of(shop_id)
+	var s: Dictionary = fs[1]
 	if s.is_empty():
 		return {}
-	var f := get_festival(id)
+	var f := get_festival(fs[0])
 	var hours := [EventTriggers.clock(f.hours[0]) / 60, ceili(EventTriggers.clock(f.hours[1]) / 60.0)]
-	return {"shops": {stall_shop_id(id): {"name": s.name, "map": f.map, "open": hours, "stock": {"any": s.stock}}}}
+	return {"shops": {shop_id: {"name": s.name, "map": f.map, "open": hours, "stock": {"any": s.stock}}}}
 
 
 ## The cells of the prop of festival `id` that covers `cell` (an empty rect when none does).
@@ -281,9 +317,14 @@ static func check_festival(f: Variant) -> String:
 		if err != "":
 			return "contest: " + err
 	if f.has("stall"):
-		var err := _check_stall(f.stall, f)
-		if err != "":
-			return "stall: " + err
+		var ids := {}
+		for st in (f.stall if f.stall is Array else [f.stall]):
+			var err := _check_stall(st, f)
+			if err != "":
+				return "stall: " + err
+			if ids.has(st.get("id", "")):
+				return "stall: two stalls with the same id (or both without one)"
+			ids[st.get("id", "")] = true
 	return ""
 
 
@@ -338,6 +379,8 @@ static func _check_stall(s: Variant, f: Dictionary) -> String:
 			return "unknown key " + k
 	if not s.get("name") is String or s.name == "":
 		return "needs a name"
+	if s.has("id") and (not s.id is String or not s.id.is_valid_identifier()):
+		return "an id is a short name of letters, digits and _"
 	if not _prop_under(f, s.get("cell"), "stall"):
 		return "cell needs a cell [x, y] of a stall prop"
 	if not s.get("stock") is Array or s.stock.is_empty():

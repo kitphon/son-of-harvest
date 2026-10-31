@@ -210,7 +210,7 @@ func new_game() -> void:
 		elif arg.begins_with("--shop="):   # `-- --demo --shop=general` (or general@build): at the counter (ShopScreen opens it)
 			var s := shop(arg.trim_prefix("--shop=").get_slice("@", 0))
 			var m := MapManager.data(s.map) if s != null and MapManager.has(s.map) else null
-			var stall := Festivals.stall(s.id.trim_prefix(Festivals.STALL_PREFIX)) if s != null and s.id.begins_with(Festivals.STALL_PREFIX) else {}
+			var stall: Dictionary = Festivals.stall_of(s.id)[1] if s != null else {}
 			if not stall.is_empty():   # `--festival=blossom_day --shop=stall:blossom_day`: in front of the stall
 				maps.place(m.id, Vector2i(int(stall.cell[0]), int(stall.cell[1]) + 1), Vector2i.UP)
 			elif m == null or not m.spawns.has("counter"):
@@ -853,6 +853,8 @@ func item_name(id: String) -> String:
 		return String(fish_data.fish[id.trim_prefix("fish:")].name)
 	if mine_item(id).has("name"):
 		return String(mine_item(id).name)
+	if Keepsakes.name_of(id) != "":
+		return Keepsakes.name_of(id)
 	if id.begins_with("food:") and foods.has(id.trim_prefix("food:")):
 		return String(foods[id.trim_prefix("food:")].name)
 	return id.replace(":", " ").replace("_", " ").capitalize()
@@ -1441,7 +1443,7 @@ func play_event(id: String) -> void:
 ## The shop `id` with this game's crop and food data, or null.
 func shop(id: String) -> Shop:
 	if id.begins_with(Festivals.STALL_PREFIX):   # a festival stall (data/festivals.json stall)
-		return Shop.make(id, crops, foods, Festivals.stall_shop_data(id.trim_prefix(Festivals.STALL_PREFIX)))
+		return Shop.make(id, crops, foods, Festivals.stall_shop_data(id))
 	return Shop.make(id, crops, foods) if id != "" else null
 
 
@@ -1543,9 +1545,23 @@ func enter_contest() -> Dictionary:
 	if r.place == 1:
 		flags["contest_wins"] = int(flags.get("contest_wins", 0)) + 1
 	_pay_prize(r.prize)
+	_give_ribbon(fid, r.place)
 	changed.emit()
 	play_event(c.event)
 	return r
+
+
+## A ribbon for placing (Keepsakes.ribbon_id; none below the last place) into the rucksack,
+## and noted on the farmhouse board's record even when the rucksack is full.
+func _give_ribbon(fid: String, place: int) -> void:
+	var ribbon := Keepsakes.ribbon_id(fid, place)
+	if ribbon == "":
+		return
+	Keepsakes.note(flags, fid, place, year)
+	if add_item(ribbon) == 0:
+		message.emit("You got a %s!" % item_name(ribbon))
+	else:
+		message.emit("No room in the rucksack for the ribbon. It is on the board at home.")
 
 
 func _pay_prize(prize: Dictionary) -> void:
@@ -1566,12 +1582,17 @@ func _pay_prize(prize: Dictionary) -> void:
 	message.emit("Prize: " + " and ".join(got))
 
 
-## E at today's festival stall (Festivals.at_stall) while the festival is on opens it as a shop.
-func open_stall() -> bool:
+## E at one of today's festival stalls (Festivals.stall_at: its shop id; "" = the first)
+## while the festival is on opens it as a shop.
+func open_stall(shop_id := "") -> bool:
 	var fid := festival_now()
-	if Festivals.stall(fid).is_empty():
+	var list := Festivals.stalls(fid)
+	if shop_id == "" and not list.is_empty():
+		shop_id = Festivals.stall_shop_id(fid, list[0])
+	var fs := Festivals.stall_of(shop_id)
+	if fid == "" or fs[0] != fid or fs[1].is_empty():
 		return false
-	shop_requested.emit(Festivals.stall_shop_id(fid))
+	shop_requested.emit(shop_id)
 	return true
 
 

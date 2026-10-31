@@ -72,8 +72,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Ending (data/ending.json, grading, the values measured, the event and its trigger, the record
   screen): `res://tests/test_ending.gd` must print `test_ending: OK (0 failed)`.
   Festivals (calendar, festival day, shops shut, fair weather, the event once a year,
-  decorations and lights in both views, the HUD tag, contests and prizes, the stall, the
-  payout held back): `res://tests/test_festivals.gd` must
+  decorations and lights in both views, the HUD tag, contests and prizes, the stalls and their
+  wares, keepsakes, ribbons and the farmhouse ribbon board, the payout held back): `res://tests/test_festivals.gd` must
   print `test_festivals: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field), `-- --demo --map=town` (the village) and
@@ -113,7 +113,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   fireworks; without `--demo`, with `res://scenes/main.tscn`, its event plays; add
   `--contest=<item>`, e.g. `--festival=blossom_day --contest=potato`, to stand at the judges'
   table with that item and enter it, the results' text box open after ~4 s, so use
-  `--quit-after 120`; `--shop=stall:blossom_day` stands at the festival stall with it open), `--ending` to open the village record
+  `--quit-after 120`; `--shop=stall:blossom_day` (or `stall:lantern_night:eats`, `stall:lantern_night:chimes`) stands at
+  that festival stall with it open; `--map=house --flags=ribbons=blossom_day:1:1` shows the
+  ribbon board), `--ending` to open the village record
   (README → Ending; `--map=house --event=ending` plays the scene), `--mine=N` to stand at the
   ladder of a fresh mine floor N (darker deeper; `--map=mine` is the entrance, `--map=mine_floor` floor 1),
   `--season=<id>` to start on day 1 of a season (`--season=winter --mine=3`: a frozen floor; with `--demo` the field has that season's crops: `--season=fall` ripe daikon, `--season=summer` ripe rice). Create `shots/` first. Look at the last frame. Delete

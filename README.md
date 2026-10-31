@@ -453,10 +453,24 @@ festival and year, the farmer wins ties (`Festivals.judge`). The prize for the p
 plays. One entry a year (`events_seen` key `contest:<id>:<year>`). `-- --demo
 --festival=<id> --contest=<item>` stands at the table with the item and enters it.
 
-**Stall.** A festival may have a `stall` (`{name, cell, stock}`; the cell is a `stall` prop's):
-E at it in the hours opens it as a shop with id `stall:<festival>` (Blossom Day's Hanami Dango
-Stall sells dango, sakura mochi and green tea at their own prices). `--shop=stall:<id>` (with
+**Stalls.** A festival may have a `stall` (`{id?, name, cell, stock}`; the cell is a `stall`
+prop's), or a list of them, each with its own `id`. E at one in the hours opens it as a shop
+with id `stall:<festival>` (or `stall:<festival>:<stall id>`): Blossom Day's Hanami Dango Stall
+sells dango, sakura mochi and green tea; at Lantern Night the red Night Eats Stall sells
+yakisoba, shaved ice and marble soda (foods with `shop` false and a price: only at a stall)
+and the yellow Wind Chime Stall sells keepsakes, a wind chime and a paper fan (prices in the
+stock rows); the blue and green stalls are only looks. A selling stall sets its stock out on
+the counter in both views. `--shop=stall:<id>` (e.g. `stall:lantern_night:chimes`, with
 `--festival=<id>`) stands at it with the screen open.
+
+**Keepsakes and ribbons** (`data/keepsakes.json`, `Keepsakes`). Keepsakes (`keep:<id>`) and
+ribbons (`ribbon:<festival>:<place>`) sit in the rucksack and are never eaten, shipped or sold.
+Placing 1st, 2nd or 3rd in a contest gives a ribbon of that place (red, white, blue, like the
+rosettes on the judges' table) on top of the prize, and notes it in the story flag `ribbons`
+(`<festival>:<place>:<year>`, comma between; saved with the flags), even when the rucksack is
+full. While that flag is set, a ribbon board hangs on the farmhouse's back wall (house map prop
+`ribbon_board`, a story prop in both views) with one rosette per ribbon (the last 12); E on it
+counts them. `--map=house --flags=ribbons=blossom_day:1:1` shows it.
 
 **Music and payout.** A music rule with `festivals: [ids]` fits only while one of them is on
 around the farmer (`Game.festival_now()`), so each festival plays its own score (`fest_*` in

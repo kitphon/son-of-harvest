@@ -14,6 +14,7 @@ const FLAME := Color("ffb040")
 var map_id := ""
 var festival := ""
 var glows: Array[Dictionary] = []   # {pos: Vector3, color: Color, size: cells across}
+var wares := 0                      # item pictures on the selling stalls' counters
 
 
 func _init(map: String) -> void:
@@ -51,7 +52,9 @@ func _make(p: Dictionary) -> void:
 		"sakura": _sakura(mid)
 		"picnic_mat": _mat(mid, r, Color("3a6ab0"))
 		"red_mat": _mat(mid, r, Color("b02a24"))
-		"stall": _stall(mid, r, cloth)
+		"stall":
+			_stall(mid, r, cloth)
+			_wares(mid, r, Festivals.stall_of_prop(festival, p))
 		"judge_table": _judge_table(mid, r)
 		"lantern_line": _lantern_line(r)
 		"drum_stage": _drum_stage(mid)
@@ -137,6 +140,19 @@ func _stall(mid: Vector3, r: Rect2, cloth: Color) -> void:
 	_box(Vector3(w, 0.26, 0.02), mid + Vector3(0, 1.32, 0.36), flat_material(cloth.lerp(Color.WHITE, 0.25)))
 	var lamp := mid + Vector3(w / 2, 1.2, 0.36)
 	_lantern(lamp, LANTERN_RED)
+
+
+## A selling stall's stock set out along its counter, one item picture each (the same icons
+## as in the rucksack).
+func _wares(mid: Vector3, r: Rect2, stall: Dictionary) -> void:
+	var stock: Array = stall.get("stock", [])
+	var w := r.size.x - 0.5
+	for i in stock.size():
+		var s := make_sprite(PlaceholderArt.tex(PlaceholderArt.item_key(str(stock[i].item))))
+		s.pixel_size = 0.028
+		s.position = mid + Vector3(-w / 2 + w * (i + 0.5) / stock.size(), 0.75, 0.05)
+		add_child(s)
+		wares += 1
 
 
 ## The contest's judges' table: a long low table under a white cloth, a red and white
