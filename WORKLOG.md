@@ -10,6 +10,64 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Talking, gifts, affection; keepers at their counters; bump delay
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: E facing a villager (or a counter with them behind it, `Talk.facing_villager`) turns
+  them to the farmer and calls `Game.talk_to(id, face)`. New `Talk`
+  (scripts/villagers/talk.gd): each villager's lines are `data/dialogue/talk_<id>.json`, a
+  normal dialogue plus `picks` (first row whose `if` holds; rule conditions plus `time`,
+  heart `band`, `again`; the day picks one of the row's lines, so a villager repeats a line
+  all day and changes it tomorrow) and the gift answers `gift_love` .. `gift_hate`,
+  `gift_again`. About 20 lines each for Tome, Hachiro, Sayo and Kota, our own, quiet
+  village tone; speakers.json got their portrait colours (bun / cap styles for now). New
+  `Affection` (scripts/villagers/affection.gd, `Game.affection`): points 0..255, 7 heart
+  bands, the last talk / gift day per villager. Gifts: E with an item overhead gives it;
+  reactions from the villager file's `gifts` lists (`fish:*` = any fish, the rest neutral),
+  one gift a day (a second is refused and stays in hand). Numbers in
+  `data/villagers/_common.json`: talk +1 once a day, gifts +8 / +3 / +1 / -3 / -8, bands start
+  at 0, 20, 50, 90, 140, 190, 235. Reasoning: a daily talk alone reaches band 3 around the end
+  of year 1, a loved gift every day gets there within a season, so gifts matter but talking
+  isn't worthless; the gift steps are a bit softer than a straight copy of DESIGN's table.
+  Save version 3 writes `affection`; older saves load with everyone at 0 (a version 3 save
+  without it is refused); `Affection.parse` keeps ids of villagers whose file is gone.
+  Event hooks: `affection` step (`who`, `amount`), a `talk` trigger cause with `who` (the
+  event plays instead of the lines; EventPlayer.talked_to) and a `hearts` row key for any
+  cause; `Game.trigger_state` carries `hearts`.
+  Shopkeepers: shops.json keepers are Sayo (store) and Hachiro (smithy). Sayo's plan now
+  stands her at the store's keeper spot 9:00-17:00 and her day off moved from Wednesday to
+  Sunday (the store's day off). Hachiro, whose house is the smithy since the shops merge,
+  mends the empty house 8:00-9:30, keeps the smithy 10:00-16:00 (also in bad weather, where he
+  used to stay in) and fishes on Sundays; the smithy's day off moved from Wednesday to
+  Sunday to match. Talking to a keeper at their spot opens the shop (and counts as the day's
+  talk); `Game.open_shop` also says "Nobody is at the counter" when a shop's keeper isn't on
+  its map (the hours still come first, the screenshot flag skips both).
+  Bump delay (the later roadmap item, small enough): a talk holds the villager
+  `talk_turn_minutes` (2) after it, a villager walking into the farmer (within 0.9 cells,
+  heading their way) waits; both add to their delay, so the whole plan runs later, at most
+  30 minutes, cleared at 12:00 and 18:00 (`Villagers.plan_minute`, `bump`, called from
+  `Game._process` while the clock runs). The farmer can't step within 0.7 cells of a
+  villager but can always step away (`Player._try_move` → `Game.villager_in_way`). Nothing
+  of this is saved (a load starts every villager on time).
+  `-- --talk=<villager>` (3D view) puts the farmer below them, facing up, and presses E.
+  test_animals now checks `SaveGame.VERSION >= 2` so later version bumps don't break it.
+- Checked: new `tests/test_talk.gd` (talk files run, picks per season / weather / time /
+  band / day, file and villager errors, reactions, daily limits, bands, save round trip,
+  version 2 save, broken data, keepers across the counter, the keeper-out message, event
+  step and trigger rows, delay, bump and blocking) and every test in AGENTS.md print
+  `OK (0 failed)` (test_villagers updated for the keepers being indoors). Headless
+  `--quit-after 300` (title, `-- --demo`, `--demo --map=town`, `--demo --map=store@counter`,
+  `--demo --map=town --time=14:30 --talk=tome`) and `res://scenes/main.tscn --quit-after 400`
+  printed no errors or warnings. Movie Maker frame `--demo --map=town --time=14:30
+  --talk=tome` (frame 39): the farmer below Tome by the pond, Kota beside them, the paper
+  text box with Tome's grey-bun portrait, the "Tome" name tag and "Hm? Ah, the new farmer.
+  The path" typing out.
+- Left / next: not played in a real window (talking, gifting, bumping by hand). No hearts in
+  the text box yet, no birthdays, no daily affection loss for ignored villagers, no
+  whistling; the portraits reuse the bun / cap styles. The 2D view still has no action
+  hookup, so talking works in the 3D view only. Merge note: Game, SaveGame (version 3),
+  EventTriggers / EventRunner, shops.json keepers and Sayo / Hachiro plans are the shared
+  touches.
+
 ## 2026-10-31 — Merged six branches: key remap, examine, villagers, shops, chickens, fishing
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each, in this order:

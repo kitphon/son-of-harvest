@@ -1,24 +1,27 @@
 {
-	"_note": "Hachiro the carpenter: lives in the east house and is mending the empty house south of the road on work days, with a lunch break at home and an evening look at the pond; fishes there on Sundays. No work in bad weather. Format: README.md, Villagers.",
+	"_note": "Hachiro the smith and handyman: lives behind the Kurogane Smithy (the east house). On work days he mends the empty house south of the road early, keeps the smithy counter (the smithy map's keeper spot) 10:00-16:00, so talking to him there opens the shop (data/shops.json keeper), and looks at the pond in the evening. In bad weather he only works the forge; Sundays he fishes (the smithy is shut). Gifts: rice balls, eels and catfish. Format: README.md, Villagers.",
 	"id": "hachiro",
 	"name": "Hachiro",
 	"look": {"outfit": "happi", "hair_style": "headband", "hair": "2a2422", "skin": "d9a473", "top": "2e4a7a", "waist": "e8e2d0", "lower": "3a3430", "accent": "e8e2d0", "shoes": "8a6a48"},
 	"rules": [
-		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "stays_in"},
-		{"if": {"weekday": ["sun"]}, "plan": "sunday"}
+		{"if": {"weekday": ["sun"]}, "plan": "sunday"},
+		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "forge"}
 	],
 	"default": "work",
+	"gifts": {
+		"love": ["food:onigiri", "fish:unagi", "fish:namazu"],
+		"like": ["fish:*", "corn", "onion", "egg_best"],
+		"dislike": ["food:sakura_mochi", "food:dango"],
+		"hate": ["cucumber"]
+	},
 	"plans": {
 		"work": [
 			{"at": "06:00", "map": "away"},
 			{"at": "08:00", "map": "town", "from": [27, 7], "route": [{"to": [27, 11]}, {"to": [11, 11]}],
 				"loop": [{"to": [11, 14]}, {"face": "left"}, {"wait": 25}, {"to": [11, 16]}, {"to": [9, 16]}, {"face": "up"}, {"wait": 25}, {"to": [11, 16]}]},
-			{"at": "12:00", "map": "town", "route": [{"to": [11, 16]}, {"to": [11, 11]}, {"to": [27, 11]}, {"to": [27, 7]}, {"face": "up"}]},
-			{"at": "12:30", "map": "away"},
-			{"at": "13:30", "map": "town", "from": [27, 7], "route": [{"to": [27, 11]}, {"to": [11, 11]}],
-				"loop": [{"to": [11, 14]}, {"face": "left"}, {"wait": 25}, {"to": [11, 16]}, {"to": [9, 16]}, {"face": "up"}, {"wait": 25}, {"to": [11, 16]}]},
-			{"at": "17:00", "map": "town", "route": [{"to": [11, 16]}, {"to": [11, 11]}, {"to": [27, 11]}, {"to": [27, 7]}, {"face": "up"}]},
-			{"at": "17:30", "map": "away"},
+			{"at": "09:30", "map": "town", "route": [{"to": [11, 16]}, {"to": [11, 11]}, {"to": [27, 11]}, {"to": [27, 7]}, {"face": "up"}]},
+			{"at": "10:00", "map": "smithy", "from": [3, 2], "route": [{"face": "down"}]},
+			{"at": "16:00", "map": "away"},
 			{"at": "19:00", "map": "town", "from": [27, 7], "route": [{"to": [27, 9]}, {"to": [30, 9]}, {"to": [30, 13]}, {"face": "down"}]},
 			{"at": "20:00", "map": "town", "route": [{"to": [30, 9]}, {"to": [27, 9]}, {"to": [27, 7]}, {"face": "up"}]},
 			{"at": "20:15", "map": "away"}
@@ -29,8 +32,10 @@
 			{"at": "15:00", "map": "town", "route": [{"to": [30, 9]}, {"to": [27, 9]}, {"to": [27, 7]}, {"face": "up"}]},
 			{"at": "15:30", "map": "away"}
 		],
-		"stays_in": [
-			{"at": "06:00", "map": "away"}
+		"forge": [
+			{"at": "06:00", "map": "away"},
+			{"at": "10:00", "map": "smithy", "from": [3, 2], "route": [{"face": "down"}]},
+			{"at": "16:00", "map": "away"}
 		]
 	}
 }

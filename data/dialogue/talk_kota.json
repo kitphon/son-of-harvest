@@ -1,0 +1,36 @@
+{
+	"_note": "What Kota says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gifts in data/villagers/kota.json). Our own lines.",
+	"picks": [
+		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"band": [4, 6]}, "at": ["close_1", "close_2"]},
+		{"if": {"band": [0, 1]}, "at": ["new_1", "new_2"]},
+		{"if": {"time": ["14:00", "18:00"], "season": ["spring", "fall", "winter"]}, "at": ["pond_1", "pond_2"]},
+		{"if": {"season": ["summer"], "time": ["14:00", "18:00"]}, "at": ["cicada_1", "cicada_2"]},
+		{"if": {"season": ["winter"]}, "at": ["winter"]},
+		{"at": ["plain_1", "plain_2", "plain_3"]}
+	],
+	"lines": [
+		{"id": "again_1", "speaker": "kota", "face": "surprised", "text": "What? I'm busy! ...Okay, I'm not busy.", "next": "end"},
+		{"id": "again_2", "speaker": "kota", "face": "smile", "text": "You keep coming back. Are you lonely up on that farm?", "next": "end"},
+		{"id": "close_1", "speaker": "kota", "face": "smile", "text": "When I grow up I'm gonna have a farm too. Bigger than yours!"},
+		{"speaker": "kota", "face": "calm", "text": "...Can I help with the watering sometime?", "next": "end"},
+		{"id": "close_2", "speaker": "kota", "face": "smile", "text": "I'll show you my secret fishing spot. Don't tell Hachiro.", "next": "end"},
+		{"id": "new_1", "speaker": "kota", "face": "surprised", "text": "Whoa, who are you? Oh, the new farm. I'm Kota!", "next": "end"},
+		{"id": "new_2", "speaker": "kota", "face": "calm", "text": "Grandma Tome says I talk too much. I don't talk too much.", "next": "end"},
+		{"id": "pond_1", "speaker": "kota", "face": "smile", "text": "Shh! There's a big one under the lily pads. I saw it.", "next": "end"},
+		{"id": "pond_2", "speaker": "kota", "face": "worried", "text": "Nothing's biting. The fish are all asleep today.", "next": "end"},
+		{"id": "cicada_1", "speaker": "kota", "face": "smile", "text": "I've got six cicadas! No, seven. One got out.", "next": "end"},
+		{"id": "cicada_2", "speaker": "kota", "face": "surprised", "text": "Did you hear that one? It's the loudest in the whole shrine!", "next": "end"},
+		{"id": "winter", "speaker": "kota", "face": "smile", "text": "If it snows, I'm making a snowman as big as the torii.", "next": "end"},
+		{"id": "plain_1", "speaker": "kota", "face": "smile", "text": "I can run from my house to the shrine in forty steps. Wanna see?", "next": "end"},
+		{"id": "plain_2", "speaker": "kota", "face": "calm", "text": "Sayo gives me a dango if I help carry the rice. Best job ever.", "next": "end"},
+		{"id": "plain_3", "speaker": "kota", "face": "surprised", "text": "Is it true you've got a pond on your farm? Any koi?", "next": "end"},
+		{"id": "gift_love", "speaker": "kota", "face": "surprised", "text": "No way! For me? For real?"},
+		{"speaker": "kota", "face": "smile", "text": "You're the best! I'm showing everybody!", "next": "end"},
+		{"id": "gift_like", "speaker": "kota", "face": "smile", "text": "Ooh, thanks! That's pretty good.", "next": "end"},
+		{"id": "gift_neutral", "speaker": "kota", "face": "calm", "text": "Huh. Okay. Thanks, I guess.", "next": "end"},
+		{"id": "gift_dislike", "speaker": "kota", "face": "worried", "text": "Yuck... do I have to? ...Thanks.", "next": "end"},
+		{"id": "gift_hate", "speaker": "kota", "face": "worried", "text": "Bleh! Mum makes me eat those. No way!", "next": "end"},
+		{"id": "gift_again", "speaker": "kota", "face": "calm", "text": "You already gave me stuff today. Grandma says don't be greedy.", "next": "end"}
+	]
+}

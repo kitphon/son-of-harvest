@@ -3,16 +3,16 @@ extends RefCounted
 ## One map's trigger table (data/events/triggers_<map id>.json): rows of conditions, each
 ## naming the event to play when they all hold. The view asks on a cause (the farmer enters
 ## the map, a new day starts, a clock minute passes, the farmer steps onto another cell, the
-## farmer presses interact facing a spot); the
+## farmer presses interact facing a spot, the farmer talks to a villager); the
 ## first row in table order that matches wins, so the order is the priority. A row plays once
 ## unless it says `"once": false`. Pure logic: the state comes in as a dictionary
 ## (Game.trigger_state), so tests check it headless. Format: README.md → Events.
 
 const GameRules := preload("res://scripts/autoload/game.gd")   # SEASONS, WEEKDAYS
-const CAUSES: Array[String] = ["enter", "day_start", "minute", "step", "examine"]
+const CAUSES: Array[String] = ["enter", "day_start", "minute", "step", "examine", "talk"]
 const WEATHERS: Array[String] = ["sunny", "rain", "storm", "snow"]
 const ROW_KEYS: Array[String] = ["_note", "event", "on", "once", "year", "season", "days",
-	"weekday", "time", "weather", "flags", "not_flags", "seen", "not_seen", "area", "spot"]
+	"weekday", "time", "weather", "flags", "not_flags", "seen", "not_seen", "area", "spot", "who", "hearts"]
 
 var map_id := ""
 var error := ""      # "" or why the table was refused (then it has no rows)
@@ -48,7 +48,8 @@ func pick(cause: String, state: Dictionary) -> String:
 
 
 ## Does `row` hold for `cause` in `state` ({year, season, day, weekday, time (minutes since
-## midnight), weather, flags, seen, cell, and for "examine" spot: the cell faced)? Conditions
+## midnight), weather, flags, seen, cell, hearts (villager -> heart band), for "examine" spot:
+## the cell faced, for "talk" who: the villager)? Conditions
 ## a row leaves out always hold.
 static func matches(row: Dictionary, cause: String, s: Dictionary) -> bool:
 	var on: Variant = row.on
@@ -86,6 +87,12 @@ static func matches(row: Dictionary, cause: String, s: Dictionary) -> bool:
 			return false
 	if row.has("spot") and not (s.has("spot") and _rect(row.spot).has_point(s.spot)):
 		return false
+	if row.has("who") and s.get("who", "") != row.who:
+		return false
+	for id in row.get("hearts", {}):   # villager id -> [lowest, highest] heart band
+		var b := int(s.get("hearts", {}).get(id, 0))
+		if b < int(row.hearts[id][0]) or b > int(row.hearts[id][1]):
+			return false
 	return true
 
 
@@ -169,6 +176,18 @@ static func check_row(row: Variant) -> String:
 			return "spot needs [x, y] or [x, y, width, height]"
 	elif "examine" in causes:
 		return "an examine row needs a spot"
+	# A talk row names the villager talked to.
+	if row.has("who") != (causes == ["talk"]):
+		return "who is for on: talk, and a talk row needs one"
+	if row.has("who") and (not row.who is String or row.who == ""):
+		return "who needs a villager id"
+	if row.has("hearts"):
+		if not row.hearts is Dictionary or row.hearts.is_empty():
+			return "hearts needs {villager: [lowest, highest]}"
+		for id in row.hearts:
+			var b: Variant = row.hearts[id]
+			if not b is Array or b.size() != 2 or not EventRunner._whole(b[0], 0, 6) or not EventRunner._whole(b[1], 0, 6) or b[0] > b[1]:
+				return "hearts needs {villager: [lowest, highest]} in 0 .. 6"
 	return ""
 
 

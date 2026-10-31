@@ -59,8 +59,16 @@ rebound in Esc → Settings → Controls (defaults in data/controls.json, saved 
 file). Later for menus: remapping pad buttons.
 Villagers with daily schedules are in (data/villagers: Tome, Hachiro, Sayo, Kota; rule
 list → day plan, positions follow the clock, so entering the village shows everyone where
-their plan puts them; README → Villagers). Later for villagers: blocking the farmer and the
-bump delay, their own house maps (`away` until then), talking / gifts / affection.
+their plan puts them; README → Villagers). Talking, gifts and affection are in: E facing a
+villager turns them round and picks a line from `data/dialogue/talk_<id>.json` (season,
+weather, time, heart band, flags, talked already); an item overhead is a gift (likes in the
+villager file, one a day); a daily talk adds a little; `Game.affection` is saved (version 3)
+with an `affection` event step and `talk` / `hearts` trigger keys. Sayo keeps the store and
+Hachiro the smithy: talking to them at the counter opens the shop, which sells only while
+they are in. Villagers block the farmer and wait when they bump into the farmer (delay, at most 30
+minutes). Later for villagers: their own house maps (`away` until then), hearts shown in the
+text box, birthdays (gifts x5), the small daily affection loss when nobody talks to them,
+whistling, real portraits.
 Shops are in (data/shops.json): the Yorozu Store and the Kurogane Smithy in the village, with
 opening hours and days off, a buy / sell screen and tool upgrades over days (saved). A
 shopkeeper only has to stand at the map's `keeper` spawn and call `Game.open_shop(id)`.
@@ -74,10 +82,8 @@ plip), a press in time lands a fish overhead (ship it in the bin or keep it in t
 fish, odds, bite timing and the pity rule are in `data/fish.json`. Later for fishing: a river,
 better rods from the blacksmith (a bite-chance factor per rod level), fish as food / gifts, and
 the 2D view's action hookup (main_2d.gd doesn't connect the Player's actions yet).
-Next: milestone 5, **talking, gifts, affection** for the villagers, with the shopkeepers at
-their counters (`Villagers.is_on` tells whether a keeper is out, `Game.open_shop(id)` opens
-the screen), then the opening event and first shop visits (milestone 6) on the event
-trigger tables.
+Next: the opening event and first shop visits (milestone 6) on the event trigger tables
+(a `talk` row with `who` plays an event when the farmer talks to a villager).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -118,7 +124,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 5. **Town and villagers**
    - [x] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause (data/maps, MapManager, fade)
    - [x] Villagers with daily schedules from data (rule list → day plan), catch-up on map entry
-   - [ ] Talking, gifts, affection, shop opening hours
+   - [x] Talking, gifts, affection, shopkeepers at their counters (data/dialogue/talk_<id>.json, Affection)
 6. **Events and dialogue**
    - [x] Text box (typewriter, portraits, choices, flags); our own, data/dialogue
    - [x] Event scripts + trigger tables per map (data/events; three small farm events)

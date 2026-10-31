@@ -78,6 +78,19 @@ func examine(spot: Vector2i) -> bool:
 	return runner != null
 
 
+## The farmer talks to villager `who`: plays the map's first matching "talk" row for them
+## and says whether one played (then the villager's own lines wait for another time).
+func talked_to(who: String) -> bool:
+	if not _auto or runner != null or Game.paused():
+		return false
+	var s := Game.trigger_state(Player.cell_of(player.position))
+	s.who = who
+	var id := table.pick("talk", s)
+	if id != "":
+		play(id)
+	return runner != null
+
+
 func play(id: String) -> void:
 	if runner != null:
 		return

@@ -1,5 +1,5 @@
 {
-	"_note": "Kota, a boy from the house south-west of the road: plays along the road in the morning, fishes at the pond in the afternoon; in summer he hunts cicadas in the shrine pines instead. Walks a little faster than the grown-ups. Stays in when it is wet. Format: README.md, Villagers.",
+	"_note": "Kota, a boy from the house south-west of the road: plays along the road in the morning, fishes at the pond in the afternoon; in summer he hunts cicadas in the shrine pines instead. Walks a little faster than the grown-ups. Stays in when it is wet. Gifts: corn, sweets and anything with fins; not his vegetables. Format: README.md, Villagers.",
 	"id": "kota",
 	"name": "Kota",
 	"speed": 2.0,
@@ -9,6 +9,12 @@
 		{"if": {"season": ["summer"]}, "plan": "summer"}
 	],
 	"default": "usual",
+	"gifts": {
+		"love": ["corn", "fish:moon_koi", "food:dango"],
+		"like": ["fish:*", "tomato", "pumpkin", "food:sakura_mochi"],
+		"dislike": ["eggplant", "onion", "food:green_tea"],
+		"hate": ["carrot"]
+	},
 	"plans": {
 		"usual": [
 			{"at": "06:00", "map": "away"},

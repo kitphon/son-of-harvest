@@ -153,12 +153,33 @@ straw_hat, colours `hair`, `skin`, `top`, `waist`, `lower`, `accent`, `shoes`; d
 `is_on(id, map, ...)` (the hook for "the shop is shut while its keeper is out"). Positions are
 a pure function of `Game.day_minutes()`, so a map shows everyone where their plan puts them
 when the farmer walks in (the catch-up) and nothing has to be saved. The views add a
-`VillagerSprites` (3D) / `VillagerView` (2D) to each map they build. Not yet: villagers
-blocking the farmer and the bump delay, talking, gifts, affection, their own houses.
+`VillagerSprites` (3D) / `VillagerView` (2D) to each map they build. Not yet: their own houses.
+
+**Talking, gifts, affection.** E facing a villager (or facing a counter with them behind it)
+turns them to the farmer (`Villagers.turn`) and calls `Game.talk_to(id, face)`:
+- an item overhead (the rucksack's hand slot) is a gift: the reaction comes from the
+  villager's `gifts` (`{"love" | "like" | "dislike" | "hate": [items]}`, `"fish:*"` = any
+  fish, anything else neutral), the item is gone, affection changes by the reaction
+  (`_common.json` `affection.gift`), at most one gift a day (a second stays in hand);
+- a shopkeeper at their map's `keeper` spot opens the shop (`data/shops.json` `keeper`);
+- anyone else opens their lines, `data/dialogue/talk_<id>.json`: an ordinary dialogue plus
+  `picks`, `[{"if": {conditions}, "at": [line ids]}]`, the last row without `if`. Conditions
+  are the rule ones above plus `time` (`["H:MM", "H:MM"]`), `band` (heart band `[low, high]`,
+  0..6) and `again` (already talked today); the day picks one of the row's lines. Gift
+  answers are the lines `gift_love` .. `gift_hate` and `gift_again`.
+The first talk of a day adds `affection.talk`. `Affection` (scripts/villagers/affection.gd,
+`Game.affection`, saved since save version 3) keeps the points (0..`max`), the 7 heart
+`bands` and the last talk / gift day per villager; `Game.affection.add(id, n)` is the hook,
+and events use the `affection` step and the `talk` / `hearts` trigger keys (Events).
+A villager stands `talk_turn_minutes` after a talk, and one walking into the farmer waits
+(`bump_reach`); that time is their delay, the whole plan runs later, at most `delay_max`
+minutes, cleared at 12:00 and 18:00. The farmer can't step within `block_reach` of anyone.
+`-- --demo --map=town --time=14:30 --talk=tome` puts the farmer below Tome and talks.
 
 ## Shops
 Shops live in `data/shops.json`: per shop a `name`, its inside `map`, `open` [first hour,
-closing hour), `days_off`, `keeper` (the villager at the counter, "" for now), `stock` per
+closing hour), `days_off`, `keeper` (the villager at the counter: Sayo at the store, Hachiro
+at the smithy; the counter sells only while their plan has them on the shop's map), `stock` per
 season plus `any` (`{item, price?}`; without a price a seed bag costs its crop's `seed_price`,
 a food its `price`), `buys` (kind -> percent: `crop` of its sell price, `food` of its price)
 and `upgrades` (`tools` and per target level `{price, days, items?}`). The rules are `Shop`
@@ -168,8 +189,9 @@ and `upgrades` (`tools` and per target level `{price, days, items?}`). The rules
 `ShopMenu` (tabs, rows, cursor, count) and `ShopScreen` (paper / wood) are the screen.
 
 A map prop with `use: "shop"` and `shop: "<id>"` is a counter: E on it calls
-`Game.open_shop(id)`, which says the closed message or emits `shop_requested(id)`. A
-shopkeeper later calls the same function from their talk; each shop map has a `keeper` spawn
+`Game.open_shop(id)`, which says the closed message (or "Nobody is at the counter" while the
+keeper is out) or emits `shop_requested(id)`. Talking to the keeper calls the same function
+(Villagers); each shop map has a `keeper` spawn
 behind the counter and a `counter` spawn in front of it (`-- --demo --shop=<id>` starts there
 with the screen open, hours ignored). The smithy takes the tool out of its slot; once the
 days have passed (`Game.day_number()`), picking it up puts it back and calls
@@ -212,6 +234,7 @@ the script says, and keys go only to the text box. Each step is one of:
 - `{"do": "fade", "to": "black|clear", "seconds": 0.5}` (the screen is always clear again when
   the event ends);
 - `{"do": "sound", "key": "<key in data/sfx.json>"}`;
+- `{"do": "affection", "who": "<villager id>", "amount": n}` (negative lowers it);
 - a branch: `{"if": "<flag>", "then": "<step id>"}` or `{"unless": ...}`.
 
 Any step can have an `id` and a `next` (a step id or `"end"`). `EventRunner` refuses a file with
@@ -221,7 +244,9 @@ anything wrong and says why.
 `EventPlayer` asks the table of the map the farmer is on when something happens (`on`):
 `enter` (the farmer arrives on the map, also at the start of a game), `day_start` (a new day,
 or a loaded game), `minute` (each clock minute) and `step` (the farmer steps onto another
-cell) and `examine` (the farmer presses interact facing a spot; see below). The first row in table order whose conditions all hold plays its `event`; a row plays
+cell), `examine` (the farmer presses interact facing a spot; see below) and `talk` (E facing
+villager `who`, a key every talk row needs; the event plays instead of their lines). Any row
+may add `hearts`: `{"<villager>": [lowest, highest]}` heart bands (Villagers). The first row in table order whose conditions all hold plays its `event`; a row plays
 once (`Game.events_seen`, saved) unless it says `"once": false`. Conditions, each optional:
 `year` / `days` `[first, last]`, `season` / `weekday` (`mon` .. `sun`; spring 1 of year 1 is a
 Monday) / `weather` (today's: sunny, rain, storm, snow) lists, `time` `["6:00", "9:00"]` (from,

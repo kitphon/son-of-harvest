@@ -150,6 +150,23 @@ func _ready() -> void:
 	Game.fishing_event.connect(func(kind): FarmActions.on_fishing_event(kind))
 	_enter_map()
 	Game.map_arrived()
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--talk="):   # `-- --demo --map=town --time=14:30 --talk=tome`: E facing her
+			_talk_flag.call_deferred(arg.trim_prefix("--talk="))
+
+
+## The `--talk=<villager>` screenshot flag: the farmer stands below them, facing up, and talks.
+func _talk_flag(id: String) -> void:
+	var w := Villagers.where(id, Game.day_minutes(), Game.trigger_state(Vector2i.ZERO))
+	if w.get("map", "") != Game.maps.id:
+		push_warning("--talk: %s is not on this map now" % id)
+		return
+	var c := Vector2i(w.pos.floor()) + Vector2i.DOWN
+	player.position = Vector2(c * T) + Vector2(T / 2.0, T / 2.0)
+	player.facing = Vector2i.UP
+	Game.maps.pos = player.position
+	Game.maps.facing = player.facing
+	FarmActions.on_action("interact", c, Vector2i.UP)
 
 
 ## Builds the world for Game.maps and puts the farmer where it says.

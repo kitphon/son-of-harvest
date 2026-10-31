@@ -236,7 +236,7 @@ func _game() -> void:
 	g.ship_produce()
 	check(g.bin_total == before + 2 * g.sell_price("egg"), "eggs in the rucksack ship at the bin too")
 	# Save: version 2 keeps the animals; a version 1 save gets the starting flock and the coop.
-	check(SaveGame.VERSION == 2, "save version 2")
+	check(SaveGame.VERSION >= 2, "save version 2 or later")
 	var d: Dictionary = JSON.parse_string(JSON.stringify(g.to_dict()))
 	var flock: int = g.animals.list.size()
 	var laid: int = g.animals.eggs.size()

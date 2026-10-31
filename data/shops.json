@@ -1,5 +1,5 @@
 {
-	"_about": "Shops (Shop, ShopMenu, ShopScreen; README.md, Shops). Per shop: name, map (its inside, data/maps), open [first hour, closing hour) and days_off (mon..sun): outside those the door and the counter only say closed_message (%s = the shop name, then the hours and the days off). keeper: the villager who stands at the counter (\"\" = nobody yet; the counter works without one). stock: what it sells, per season plus \"any\" (every season), each {item, price?}: without a price the item's own one is used (seed_price in crops.json for seeds:<crop>, price in foods.json for food:<id>). buys: what it buys from the farmer, kind -> percent of the item's value (crop = its sell price, food = its price). upgrades: tools it improves, per target level {price, days, items?}; the tool is handed in, comes back that many days later (collect it while the shop is open). Names, prices and hours are ours; see WORKLOG 2026-10-31 Shops.",
+	"_about": "Shops (Shop, ShopMenu, ShopScreen; README.md, Shops). Per shop: name, map (its inside, data/maps), open [first hour, closing hour) and days_off (mon..sun): outside those the door and the counter only say closed_message (%s = the shop name, then the hours and the days off). keeper: the villager who stands at the counter (\"\" = nobody; the counter works without one); with a keeper the shop also sells only while their day plan has them on the shop's map, and talking to them at the map's keeper spot opens it. stock: what it sells, per season plus \"any\" (every season), each {item, price?}: without a price the item's own one is used (seed_price in crops.json for seeds:<crop>, price in foods.json for food:<id>). buys: what it buys from the farmer, kind -> percent of the item's value (crop = its sell price, food = its price). upgrades: tools it improves, per target level {price, days, items?}; the tool is handed in, comes back that many days later (collect it while the shop is open). Names, prices and hours are ours; see WORKLOG 2026-10-31 Shops.",
 	"closed_message": "%s is closed. Open %s, %s.",
 	"shops": {
 		"general": {
@@ -7,7 +7,7 @@
 			"map": "store",
 			"open": [9, 17],
 			"days_off": ["sun"],
-			"keeper": "",
+			"keeper": "sayo",
 			"stock": {
 				"spring": [{"item": "seeds:turnip"}, {"item": "seeds:potato"}, {"item": "seeds:cucumber"},
 					{"item": "food:sakura_mochi"}],
@@ -23,8 +23,8 @@
 			"name": "Kurogane Smithy",
 			"map": "smithy",
 			"open": [10, 16],
-			"days_off": ["wed"],
-			"keeper": "",
+			"days_off": ["sun"],
+			"keeper": "hachiro",
 			"upgrades": {
 				"tools": ["hoe", "can", "sickle", "hammer", "axe"],
 				"levels": {

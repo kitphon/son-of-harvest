@@ -52,7 +52,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Holding and throwing (items on the ground, throws, poses, item art): `res://tests/test_hold.gd`
   must print `test_hold: OK (0 failed)`.
   Villagers (rule lists, day plans, catch-up, paths, sprites in both views):
-  `res://tests/test_villagers.gd` must print `test_villagers: OK (0 failed)`.
+  `res://tests/test_villagers.gd` must print `test_villagers: OK (0 failed)`. Talking (talk
+  files and picks, gifts, daily limits, affection save, shopkeepers, bump delay):
+  `res://tests/test_talk.gd` must print `test_talk: OK (0 failed)`.
   Shops (data/shops.json, buying / selling, tool upgrades, shop maps and doors, the screen):
   `res://tests/test_shops.gd` must print `test_shops: OK (0 failed)`.
   Animals (chickens, the coop, eggs, sickness, incubator, the save): `res://tests/test_animals.gd`
@@ -75,7 +77,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   and a potato on the ground in front of the bin, `--time=H:MM` (after `--demo`) to set the
   clock (villagers stand where their plans say then; `--demo --map=town` at 10:00 shows Kota
   and Tome by the start spawn), `--shop=<id>` (general, smithy) to stand at that shop's
-  counter with its screen open (hours ignored), `--map=coop` to look inside the chicken
+  counter with its screen open (hours ignored), `--talk=<villager>` (with `--map` / `--time`
+  where they are, e.g. `--map=town --time=14:30 --talk=tome`) to stand below them and talk, `--map=coop` to look inside the chicken
   coop (`--demo` adds a chick, two eggs and a filled feed box), `--hens-out` (with
   `--map=farm@coop`) to have the hens out in the yard, `--fishing` (or `--fishing=wait`) to start at
   the farm pond with the line out and a fish biting (or still waiting). Create `shots/` first. Look at the last frame. Delete
