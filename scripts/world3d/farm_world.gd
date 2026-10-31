@@ -12,6 +12,11 @@ var farm: FarmGrid
 var _objects: Node3D
 var _snow_mask: ImageTexture
 var _snow_mats: Array[ShaderMaterial] = []
+## A thrown item still in the air: its cell's sprite waits until the flight lands.
+var hidden_item := Vector2i(-1, -1):
+	set(value):
+		hidden_item = value
+		_rebuild_objects()
 
 
 func setup(f: FarmGrid) -> void:
@@ -327,8 +332,12 @@ func _rebuild_objects() -> void:
 			if not farm.can_farm(c):
 				continue
 			var key := PlaceholderArt.cell_key(farm, farm.cell(c))
+			if farm.item_at(c) != "":
+				key = PlaceholderArt.item_key(farm.item_at(c))   # items only lie on empty cells
 			if key == "":
 				continue
 			var s := make_sprite(PlaceholderArt.tex(key))
 			s.position = Vector3(x + 0.5, 0, y + 0.5)
 			_objects.add_child(s)
+			if c == hidden_item:
+				s.visible = false

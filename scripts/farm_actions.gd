@@ -7,11 +7,51 @@ const T := 16
 const HOME := Vector2(4 * T + 8, 4 * T + 10)   # in front of the door, in player pixels
 
 
+## With an item overhead the hands are full: interact throws it, the tool button sets it down.
 static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge := 0) -> void:
-	if kind == "interact":
+	if Game.holding():
+		if kind == "interact":
+			throw(origin, facing)
+		else:
+			put_down(origin + facing)
+	elif kind == "interact":
 		interact(origin + facing)
 	else:
 		use_tool(origin, facing, charge)
+
+
+static func throw(origin: Vector2i, facing: Vector2i) -> void:
+	var t := Game.throw_held(origin, facing)
+	if t.result == "blocked":
+		Game.message.emit("No room to throw it")
+		return
+	Sfx.play("hold_throw")
+	var name := item_name(t.item)
+	match t.result:
+		"ship":
+			_after_flight(func(): Sfx.play("bin_lid"))
+			Game.message.emit("Shipped a %s (%d G)" % [name, t.value])
+		"lost":
+			_after_flight(func(): Sfx.play("hold_splash"))
+			Game.message.emit("The %s sank in the pond" % name)
+		_:
+			_after_flight(func(): Sfx.play("hold_land"))
+
+
+static func put_down(c: Vector2i) -> void:
+	if Game.put_down(c):
+		Sfx.play("hold_land")
+	else:
+		Game.message.emit("No room to put it down")
+
+
+static func item_name(id: String) -> String:
+	return Game.crops[id].name if Game.crops.has(id) else id
+
+
+## The landing sound waits for the item to come down (data/hold.json flight_seconds).
+static func _after_flight(sound: Callable) -> void:
+	Game.get_tree().create_timer(float(Game.hold_rules.get("flight_seconds", 0.35))).timeout.connect(sound)
 
 
 static func interact(c: Vector2i) -> void:
@@ -29,11 +69,11 @@ static func interact(c: Vector2i) -> void:
 		"stand":
 			buy_seeds()
 		_:
-			var id := farm.harvest(c)
+			# An item on the ground, else a ripe crop, goes up overhead.
+			var id := Game.pick_up(c)
 			if id != "":
-				Game.add_item(id)
 				Sfx.play("pick")
-				Game.message.emit("Picked a %s" % Game.crops[id].name)
+				Game.message.emit("Picked up a %s" % item_name(id))
 
 
 static func buy_seeds() -> void:

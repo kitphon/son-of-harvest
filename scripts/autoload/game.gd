@@ -8,6 +8,7 @@ signal changed                  # anything the HUD shows
 signal message(text: String)
 signal dialogue_requested(id: String, at: String)   # a TextBox opens it
 signal settings_changed
+signal thrown(item: String, from: Vector2i, to: Vector2i, result: String)   # views draw the flight
 
 const SECONDS_PER_MINUTE := 0.5
 const DAYS_PER_SEASON := 30
@@ -44,6 +45,8 @@ var tool_levels: Dictionary = {}   # tool -> level 1..5 (charging tools in data/
 var flags: Dictionary = {}      # story flags set by dialogue (bool, whole number or word)
 var tool_exp: Dictionary = {}      # tool -> experience from using it; levels up at data thresholds
 var fatigue := 0                # 0..FATIGUE_MAX, rises with work and late nights, only sleep lowers it
+var held := ""                  # item id carried overhead in the holding hand ("" = hands free)
+var shipped: Dictionary = {}    # item id -> how many were ever shipped
 
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
@@ -51,6 +54,7 @@ var weather_fx: Dictionary = {}    # look per weather: tint, falling particles, 
 var tools_data: Dictionary = {}    # data/tools.json: charge steps per tool
 var snow_rules: Dictionary = {}    # how snow builds up and melts (data/snow_cover.json)
 var body: Dictionary = {}          # fatigue, tired states, oversleeping, collapse (data/body.json)
+var hold_rules: Dictionary = {}    # throw reach, flight, what the bin and the pond do (data/hold.json)
 var rng := RandomNumberGenerator.new()
 var farm: FarmGrid
 var _accum := 0.0
@@ -65,6 +69,7 @@ func _ready() -> void:
 	tools_data = _load_json("res://data/tools.json")
 	snow_rules = _load_json("res://data/snow_cover.json")
 	body = _load_json("res://data/body.json")
+	hold_rules = _load_json("res://data/hold.json")
 	_setup_input()
 	settings = Settings.make()
 	var err := settings.read()
@@ -99,6 +104,8 @@ func new_game() -> void:
 	bag = {"seeds:turnip": 2, "seeds:potato": 1}
 	reset_tool_levels()
 	flags = {}
+	held = ""
+	shipped = {}
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--demo":
@@ -109,6 +116,9 @@ func new_game() -> void:
 		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
 			fatigue = int(body.get("states", {}).get("exhausted", {}).get("fatigue", 80))
 			_shown_state = body_state()
+		elif arg == "--hold":   # e.g. `-- --demo --hold`: a turnip overhead, a potato in front of the bin
+			held = "turnip"
+			farm.place_item(Vector2i(8, 4), "potato")
 
 
 ## `-- --demo`: 10:00 with a few sown, growing and ripe plots by the house, for screenshots.
@@ -365,10 +375,74 @@ func ship_produce() -> int:
 	for id in bag.keys():
 		if crops.has(id):
 			total += int(crops[id].sell) * int(bag[id])
+			shipped[id] = int(shipped.get(id, 0)) + int(bag[id])
 			bag.erase(id)
 	bin_total += total
 	changed.emit()
 	return total
+
+
+# --- holding and throwing ---------------------------------------------------
+
+func holding() -> bool:
+	return held != ""
+
+
+## What one of `id` fetches in the bin (0 = can't be shipped).
+func sell_price(id: String) -> int:
+	return int(crops[id].get("sell", 0)) if crops.has(id) else 0
+
+
+## Hands free: takes the item lying on `c`, else harvests a ripe crop there, into the
+## holding hand. Returns the id taken ("" if nothing).
+func pick_up(c: Vector2i) -> String:
+	if holding() or not farm.in_bounds(c):
+		return ""
+	var id := farm.take_item_at(c)
+	if id == "":
+		id = farm.harvest(c)
+	if id != "":
+		held = id
+		changed.emit()
+	return id
+
+
+## Sets the held item down on `c` (a free cell). Returns whether it was put down.
+func put_down(c: Vector2i) -> bool:
+	if not holding() or not farm.place_item(c, held):
+		return false
+	held = ""
+	changed.emit()
+	return true
+
+
+## Throws the held item from `origin` towards `facing` (FarmGrid.throw_target with the reach
+## from data/hold.json). Shipped: its price goes into the bin, paid like the rest. Lost: gone.
+## Landed: it lies on the cell. Blocked: still in hand. Returns {result, cell, item, value}.
+func throw_held(origin: Vector2i, facing: Vector2i) -> Dictionary:
+	if not holding():
+		return {"result": "none", "cell": origin, "item": "", "value": 0}
+	var item := held
+	var value := sell_price(item)
+	# Something the bin can't take bounces off it like off a wall.
+	var ship_into: Array = hold_rules.get("ship_into", ["bin"]) if value > 0 else []
+	var lost_in: Array = hold_rules.get("lost_in", ["pond"])
+	var t := farm.throw_target(origin, facing, int(hold_rules.get("throw_cells", 2)), ship_into, lost_in)
+	t.item = item
+	t.value = 0
+	match t.result:
+		"blocked":
+			return t
+		"ship":
+			bin_total += value
+			shipped[item] = int(shipped.get(item, 0)) + 1
+			t.value = value
+		"land":
+			farm.place_item(t.cell, item)
+	held = ""
+	thrown.emit(item, origin, t.cell, t.result)
+	changed.emit()
+	return t
 
 
 func count(id: String) -> int:
@@ -604,6 +678,8 @@ func to_dict() -> Dictionary:
 	d.tool_levels = tool_levels.duplicate()
 	d.flags = flags.duplicate()
 	d.tool_exp = tool_exp.duplicate()
+	d.held = held
+	d.shipped = shipped.duplicate()
 	d.farm = farm.to_dict()
 	return d
 
@@ -679,6 +755,19 @@ func from_dict(data: Dictionary) -> String:
 			if e == null:
 				return "Saved tool experience is broken"
 			n.tool_exp[tool] = e
+	# Saves from before holding: hands free, nothing shipped yet.
+	n.held = data.get("held", "")
+	if not n.held is String:
+		return "Saved held item is broken"
+	var saved_shipped = data.get("shipped", {})
+	if not saved_shipped is Dictionary:
+		return "Saved shipping counts are broken"
+	n.shipped = {}
+	for id in saved_shipped:
+		var c = SaveGame.whole(saved_shipped[id], 1, 1 << 50)
+		if not id is String or id == "" or c == null:
+			return "Saved shipping counts are broken"
+		n.shipped[id] = c
 	if not data.get("farm") is Dictionary:
 		return "Saved farm is missing"
 	var err := farm.from_dict(data.farm)

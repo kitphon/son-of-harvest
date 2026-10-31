@@ -24,6 +24,7 @@ const STORM_LOSS := 1.0 / 16.0
 var crops: Dictionary
 var cells: Array = []        # W * H dictionaries, row by row
 var fixed: Dictionary = {}   # Vector2i -> "house" / "door" / "bin" / "stand" / "pond" / "fence"
+var items: Dictionary = {}   # Vector2i -> item id lying on the ground (put down or thrown)
 
 
 func _init(crop_data: Dictionary) -> void:
@@ -96,7 +97,7 @@ func till(c: Vector2i) -> bool:
 	if not can_farm(c):
 		return false
 	var d := cell(c)
-	if d.obj != Obj.NONE or d.crop != "" or d.tilled:
+	if d.obj != Obj.NONE or d.crop != "" or d.tilled or items.has(c):
 		return false
 	d.tilled = true
 	cells_changed.emit()
@@ -125,7 +126,7 @@ func sow(center: Vector2i, crop_id: String, season: String) -> int:
 			if not can_farm(c):
 				continue
 			var d := cell(c)
-			if d.tilled and d.crop == "" and d.obj == Obj.NONE:
+			if d.tilled and d.crop == "" and d.obj == Obj.NONE and not items.has(c):
 				d.crop = crop_id
 				d.stage = 0
 				d.days = 0
@@ -183,6 +184,58 @@ func hit(c: Vector2i, tool: String, power := 1) -> int:
 	return 2
 
 
+# --- items on the ground ------------------------------------------------------
+
+func item_at(c: Vector2i) -> String:
+	return items.get(c, "")
+
+
+## An item can lie on a farm cell with nothing on it: no obstacle, crop or other item.
+## Items don't block walking, so a dropped one never traps the farmer.
+func can_place(c: Vector2i) -> bool:
+	return can_farm(c) and cell(c).obj == Obj.NONE and cell(c).crop == "" and not items.has(c)
+
+
+func place_item(c: Vector2i, id: String) -> bool:
+	if id == "" or not can_place(c):
+		return false
+	items[c] = id
+	cells_changed.emit()
+	return true
+
+
+## Picks up the item on `c`; returns its id ("" if none).
+func take_item_at(c: Vector2i) -> String:
+	var id: String = items.get(c, "")
+	if id != "":
+		items.erase(c)
+		cells_changed.emit()
+	return id
+
+
+## Where an item thrown from `origin` towards `facing` ends up, up to `reach` cells ahead.
+## It flies over crops and other items; a fixed cell in `ship_into` catches it ("ship"), one
+## in `lost_in` swallows it ("lost"); anything else solid (building, fence, obstacle, the
+## edge) stops it and it drops on the farthest free cell before ("land"). With no free cell
+## on the way the throw doesn't happen ("blocked"). Returns {result, cell}.
+func throw_target(origin: Vector2i, facing: Vector2i, reach: int, ship_into: Array, lost_in: Array) -> Dictionary:
+	var landing := origin
+	for i in range(1, reach + 1):
+		var c := origin + facing * i
+		var f := fixed_at(c)
+		if f in ship_into:
+			return {"result": "ship", "cell": c}
+		if f in lost_in:
+			return {"result": "lost", "cell": c}
+		if is_solid(c):
+			break
+		if can_place(c):
+			landing = c
+	if landing == origin:
+		return {"result": "blocked", "cell": origin}
+	return {"result": "land", "cell": landing}
+
+
 ## A tool area from data/tools.json (rows of text, drawn facing down: '@' the farmer, '#' a
 ## cell, rows below '@' ahead) as offsets Vector2i(side, ahead), in the order written.
 static func area_offsets(rows: Array) -> Array[Vector2i]:
@@ -228,7 +281,10 @@ func to_dict() -> Dictionary:
 	var spots := []
 	for c in fixed:
 		spots.append([c.x, c.y, fixed[c]])
-	return {"w": W, "h": H, "cells": rows, "fixed": spots}
+	var lying := []
+	for c in items:
+		lying.append([c.x, c.y, items[c]])
+	return {"w": W, "h": H, "cells": rows, "fixed": spots, "items": lying}
 
 
 ## Puts a saved farm back in place (views keep their reference to this grid).
@@ -257,8 +313,22 @@ func from_dict(data: Dictionary) -> String:
 		if x == null or y == null:
 			return "A saved farm building is broken"
 		new_fixed[Vector2i(x, y)] = s[2]
+	# Saves from before holding have no items on the ground.
+	var lying = data.get("items", [])
+	if not lying is Array:
+		return "The saved items on the ground are broken"
+	var new_items := {}
+	for s in lying:
+		if not s is Array or s.size() != 3 or not s[2] is String or s[2] == "":
+			return "A saved item on the ground is broken"
+		var x = SaveGame.whole(s[0], 0, W - 1)
+		var y = SaveGame.whole(s[1], 0, H - 1)
+		if x == null or y == null or new_items.has(Vector2i(x, y)):
+			return "A saved item on the ground is broken"
+		new_items[Vector2i(x, y)] = s[2]
 	cells = new_cells
 	fixed = new_fixed
+	items = new_items
 	cells_changed.emit()
 	return ""
 
@@ -305,7 +375,7 @@ func day_end(season: String, weather: String, rng: RandomNumberGenerator) -> voi
 				d.crop = ""
 				d.stage = 0
 				d.days = 0
-		elif d.obj == Obj.NONE and season != "winter" and rng.randf() < WEED_CHANCE:
+		elif d.obj == Obj.NONE and not items.has(pos) and season != "winter" and rng.randf() < WEED_CHANCE:
 			d.obj = Obj.WEED
 			d.tilled = false
 		d.wet = d.tilled and weather == "rain"

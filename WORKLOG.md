@@ -10,6 +10,56 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Holding and throwing items, shipping by throwing into the bin
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: items are things in the world (DESIGN "ไอเท็มในโลก"). Rules:
+  - `FarmGrid.items` (cell -> item id) for things lying on the ground; `can_place` = farm
+    cell with no obstacle, crop or other item; `place_item` / `take_item_at` / `item_at`.
+    Items don't block walking (a dropped one can't trap the farmer); till and sow skip their
+    cells, weeds don't grow under them, they stay overnight.
+  - `FarmGrid.throw_target(origin, facing, reach, ship_into, lost_in)`: the item flies over
+    crops and items; a `ship_into` cell (bin) catches it, a `lost_in` cell (pond) swallows it,
+    anything else solid (building, fence, obstacle) stops it and it drops on the farthest
+    free cell before; no free cell on the way = "blocked", no throw. The field is fenced, so
+    nothing leaves it.
+  - `Game.held` (one item in the holding hand) and `Game.shipped` (count per item, DESIGN's
+    "times shipped"). `pick_up(c)` takes the item lying there, else harvests a ripe crop
+    into the hand (not the bag any more); `put_down(c)`; `throw_held(origin, facing)` ships
+    at `sell_price` into `bin_total` (the same 18:00 / sleep payout), loses or lands it and
+    emits `thrown(item, from, to, result)` for the views. An item without a price bounces
+    off the bin. `ship_produce()` (the bag route at the bin) counts shipping too.
+  - `FarmActions.on_action`: with hands full, interact throws and the tool button sets the
+    item down on the cell in front; the Player doesn't start a charge then. Messages:
+    "Shipped a Turnip (60 G)", "The ... sank in the pond", "No room to throw it" / "to put it
+    down". Sounds: `hold_throw` at once; `hold_land`, `hold_splash` or `bin_lid` after
+    `flight_seconds` (new recipes in data/sfx.json).
+  - Numbers in the new `data/hold.json` (ours): throw 2 cells, flight 0.35 s, arc 1.2 cells
+    over the head, bin ships, pond swallows.
+  - Art: `player:<front|back>:hold_idle:0` and `hold_walk:<0-3>` (both arms raised up the
+    sides of the head, hands on the cap; shorter steps; the load bobs with the body,
+    `PlaceholderArt.farmer_drop`). `item:<id>` 12 x 12 produce icons from each crop's look
+    (root with leaves, long / round fruit, tuber, cob, ribbed squash). FarmerAnim takes a
+    `holding` flag (wins over tired; a run steps at the run rate).
+  - Views: 3D carries the item as a Sprite3D on the hands, flies a thrown one in an arc and
+    shows a landed one on its cell when it gets there (`FarmWorld.hidden_item`); items lying
+    on cells are sprites in both views; the 2D placeholder farmer raises arms and draws the
+    item overhead.
+  - Save: `held` and `shipped` in `Game.to_dict()`, `items` in the farm; older saves load
+    empty-handed with nothing on the ground. New `-- --hold` debug flag.
+- Checked: new `test_hold: OK (0 failed)` (placing rules, till / sow / weeds, every throw
+  outcome incl. bin at 2 cells, pond, house, fence, crops in the way, Game pick up / put down
+  / throw / pay out / blocked / no-price item / bag counting / new game, poses, item art);
+  `test_save: OK (0 failed)` (held, shipped, ground items round trip; 6 bad game values and
+  4 bad item lists refused; a save without them loads); `test_farm`, `test_title`,
+  `test_weather`, `test_dialogue`, `test_menu`, `test_body`, `test_audio` all `OK (0 failed)`.
+  Headless `--quit-after 300` (title, `-- --demo`, `-- --demo --hold`) printed no errors.
+  Movie Maker frames `--demo --hold`: 3D farmer with arms up and the turnip on the hands, the
+  potato lying in front of the bin; 2D view shows both too. A throw run with a temporary
+  scene (not committed) showed the turnip in its arc, landed on its cell, then picked up.
+- Left / next: no way yet to take an item out of the bag into the hand (rucksack menu,
+  another session). Throwing into the bin from the side the camera can't see is untested in
+  a real window; keys E / Space need a try by hand. The HUD doesn't name the held item.
+
 ## 2026-10-31 — Merged six branches: export, text box, sound, pause, tool exp, fatigue
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, in this order: `claude/win-export-659b37`

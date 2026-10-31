@@ -10,15 +10,20 @@ const TIRED_IDLE_FPS := 1.5   # one slow breath in, one out
 
 var pose := "idle"
 var time := 0.0
+var fast := false   # running: a hold walk steps at the run rate
 
 
 ## Advance by `delta` seconds. A new pose starts on its first step frame, so a key press
 ## shows a lifted foot at once. `tired` (Game.body_state() not "fine") swaps idle / walk for
-## the tired poses; a tired farmer who can still run runs normally.
-func step(delta: float, moving: bool, running: bool, tired := false) -> void:
+## the tired poses; a tired farmer who can still run runs normally. `holding` (an item
+## overhead) wins over both: hold_idle / hold_walk, the walk stepping faster when running.
+func step(delta: float, moving: bool, running: bool, tired := false, holding := false) -> void:
 	var p := "idle" if not moving else ("run" if running else "walk")
-	if tired and p != "run":
+	if holding:
+		p = "hold_walk" if moving else "hold_idle"
+	elif tired and p != "run":
 		p = "tired_" + p
+	fast = running
 	if p != pose:
 		pose = p
 		time = 1.0 / _fps() if moving else 0.0
@@ -27,7 +32,7 @@ func step(delta: float, moving: bool, running: bool, tired := false) -> void:
 
 
 func frame() -> int:
-	if pose == "idle":
+	if pose == "idle" or pose == "hold_idle":
 		return 0
 	return int(time * _fps()) % PlaceholderArt.farmer_frames(pose)
 
@@ -48,6 +53,8 @@ func _fps() -> float:
 	match pose:
 		"run":
 			return RUN_FPS
+		"hold_walk":
+			return RUN_FPS if fast else WALK_FPS
 		"tired_walk":
 			return TIRED_WALK_FPS
 		"tired_idle":

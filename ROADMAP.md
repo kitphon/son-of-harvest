@@ -28,6 +28,9 @@ objects, ground tiles, buildings, weather particles and the paper / wood HUD wit
 font are done. Charging tools are done, and tools level up with use (tool experience,
 thresholds in data/tools.json; `Game.raise_tool_level()` is the hook for the blacksmith in
 milestone 8). Fatigue, tired poses, oversleeping and collapse are done (data/body.json).
+Holding and throwing is done: a harvest goes up overhead, E throws it (into the bin = shipped,
+into the pond = gone), Space sets it down, items lie on the field and are saved
+(data/hold.json).
 Weather is done for now (snow lies in winter, lightning flashes in storms; flashes can be
 turned off in Esc → Settings or with `-- --no-flashes`), the text box is done (data/dialogue,
 DialogueRunner, TextBox) and the pause menu (Esc: resume, save, settings, back to title;
@@ -69,7 +72,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Tool levels and upgrades (experience from use; shop upgrades with milestone 8)
    - [x] Fatigue, tired animations, oversleeping, collapse (data/body.json)
    - [ ] Eating / drinking, food items
-   - [ ] Holding and throwing items (shipping by throwing into the bin)
+   - [x] Holding and throwing items (shipping by throwing into the bin; data/hold.json)
 4. **Save / load and menus**
    - [x] Save game (Game + FarmGrid to a versioned JSON file), load; F5 / F9, saves on sleep
    - [x] Title screen (new game / continue / quit), Continue only for a save that loads
