@@ -17,7 +17,7 @@ static func _make(key: String) -> Image:
 	match parts[0]:
 		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk|fish_wait|fish_bite>:<frame>
 			return _player(parts[1] == "back", parts[2], int(parts[3]))
-		"villager": # villager:<id>:<front|back>:<idle|walk>:<frame>, from the look in data/villagers/<id>.json
+		"villager": # villager:<id>:<front|back>:<idle|walk|work>:<frame>, from the look in data/villagers/<id>.json
 			return _villager(Villagers.look(parts[1]), parts[2] == "back", parts[3], int(parts[4]))
 		"target":   # corner brackets laid on the cell the tool will hit
 			var c := Color(1, 1, 1, 0.85)
@@ -49,7 +49,7 @@ static func _make(key: String) -> Image:
 			return _title_bg()
 		"face":     # face:<speaker>:<calm|smile|surprised|worried>, a 40 x 40 text box portrait
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
-		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
+		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|lumber|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
@@ -648,9 +648,13 @@ const _VILLAGER_BODIES := {
 }
 
 
-## The villager's picture for a pose and frame; `walk` frames step like the farmer's walk.
+## The villager's picture for a pose and frame; `walk` frames step like the farmer's walk;
+## `work` swings a carpenter's hammer (0 = raised over the shoulder, 1 = the blow, the body
+## dipping a pixel into it).
 static func _villager(look: Dictionary, back: bool, pose: String, frame: int) -> Image:
 	var p: Array = _FARMER_POSES["walk" if pose == "walk" else "idle"][frame % farmer_frames("walk" if pose == "walk" else "idle")]
+	if pose == "work":
+		p = [frame % 2, 0, 0, 0, 0, 0, 0]
 	var style := str(look.get("hair_style", "short"))
 	var outfit := str(look.get("outfit", "happi"))
 	var c := _villager_colors(look)
@@ -658,7 +662,8 @@ static func _villager(look: Dictionary, back: bool, pose: String, frame: int) ->
 	var hand := func(x: int, y: int) -> void:
 		_px(img, x - 1, y, 4, 3, c.o)
 		_px(img, x, y, 2, 2, c.s)
-	hand.call(11 + p[6], 14 + p[0])
+	if pose != "work":
+		hand.call(11 + p[6], 14 + p[0])
 	if outfit == "kimono":   # short steps under the robe: only the sandals show
 		for f in [[8 + p[3], p[4]], [5 + p[1], p[2]]]:
 			_px(img, f[0] - 1, 21 - mini(f[1], 1), 5, 3, c.o)
@@ -678,6 +683,21 @@ static func _villager(look: Dictionary, back: bool, pose: String, frame: int) ->
 			if row[x] != "." and y + p[0] < 24:
 				img.set_pixel(x, y + p[0], c[row[x]])
 	hand.call(4 + p[5], 14 + p[0])
+	if pose == "work":
+		var wood := Color("a07a4a")
+		var iron := Color("5a5e66")
+		if frame % 2 == 0:   # raised: the handle up past the head, the head across its top
+			_px(img, 12, 1, 3, 9, c.o)
+			_px(img, 13, 2, 1, 7, wood)
+			_px(img, 10, 0, 6, 4, c.o)
+			_px(img, 11, 1, 4, 2, iron)
+			hand.call(13, 8)
+		else:   # the blow: out in front at the waist, the head turned down on the work
+			_px(img, 12, 13, 4, 3, c.o)
+			_px(img, 13, 14, 3, 1, wood)
+			_px(img, 13, 11, 3, 7, c.o)
+			_px(img, 14, 12, 1, 5, iron)
+			hand.call(12, 14)
 	return img
 
 
@@ -2010,9 +2030,24 @@ static func _ribbon_board(places: String) -> Image:
 ## Hachiro's iron door bell (12 x 16, hanging from its bracket), the store's new sign board
 ## (48 x 14; "old" = the old name freshly painted, "new" = Sayo's own red board), Tome's
 ## jar of pickled plums with a note on the lid (12 x 12) and Kota's carp streamer on its
-## bamboo pole (26 x 40).
+## bamboo pole (26 x 40). While a house extension is being built, the builder's lumber lies
+## beside the farmhouse: a stack of planed boards on two bearers with a saw on top (16 x 28,
+## a 1 x 2 cell stack seen from the front).
 static func _story(kind: String) -> Image:
 	match kind:
+		"lumber":
+			var img := _blank(16, 28)
+			var board := Color("d8b07a")
+			var bearer := Color("6a4a2a")
+			_px(img, 1, 22, 14, 4, bearer)               # the bearers it rests on, off the ground
+			for i in 5:                                  # boards, the ends showing, stacked up
+				var y := 18 - i * 4
+				_px(img, 1 + i % 2, y, 13, 4, board.darkened(0.06 * (i % 2)))
+				_px(img, 1 + i % 2, y, 13, 1, board.lightened(0.2))
+				_px(img, 1 + i % 2, y + 3, 13, 1, board.darkened(0.25))
+			_px(img, 3, 0, 9, 2, Color("b8bcc4"))        # a saw lying on the top board
+			_px(img, 11, 0, 4, 2, Color("8a5a32"))
+			return _outline(img)
 		"door_bell":
 			var img := _blank(12, 16)
 			var iron := Color("3a3a40")

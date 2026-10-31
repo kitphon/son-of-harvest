@@ -32,6 +32,7 @@ var builder := ""                      # the villager who builds (data/villagers
 var build_map := ""                    # the map the extensions change
 var builds: Dictionary = {}            # id -> {name, about, price, days, chest_slots?}
 var build_done := ""                   # the morning message when one is finished (%s = its name)
+var build_away := ""                   # at the builder's own counter while they build (%s = its name)
 var crops: Dictionary = {}
 var foods: Dictionary = {}
 var mine_items: Dictionary = {}       # data/mine.json "items": names, kinds and sell prices of finds
@@ -90,6 +91,7 @@ static func make(shop_id: String, crop_data: Dictionary, food_data: Dictionary, 
 	shop.build_map = str(s.get("builds", {}).get("map", ""))
 	shop.builds = s.get("builds", {}).get("jobs", {})
 	shop.build_done = str(s.get("builds", {}).get("done", "The %s is built."))
+	shop.build_away = str(s.get("builds", {}).get("away", "Nobody is at the counter"))
 	shop.crops = crop_data
 	shop.foods = food_data
 	shop.mine_items = mine_data()

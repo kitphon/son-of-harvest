@@ -203,7 +203,9 @@ straw_hat, colours `hair`, `skin`, `top`, `waist`, `lower`, `accent`, `shoes`; d
   morning, around noon, in the evening and on wet days, and `away` from the time their door
   shuts (test_villagers checks a plan is on a house map only inside its door's hours). An entry onto a map
   needs `from` unless the entry before was on the same map (then it walks on from there).
-  Steps: `{"to": [x, y]}` (walk straight there), `{"wait": minutes}`, `{"face": "up"}`. The
+  Steps: `{"to": [x, y]}` (walk straight there), `{"wait": minutes}`, `{"work": minutes}`
+  (stands like a wait in the work pose, a hammer up and down, `work_strokes_per_minute` in
+  _common.json; each blow knocks, Sfx `build_knock`), `{"face": "up"}`. The
   route is walked once, then the loop over and over until the next entry. A route must
   arrive before the next entry starts, and test_villagers checks no walk crosses a solid cell.
 
@@ -282,6 +284,12 @@ time, finished overnight on the ready day (`Game.end_day`), saved as `house` {bu
 What they change is data too: `chest_slots` grows the storage chest, and the map file's
 `extensions` (data/maps/house.json) add props or replace `size` / `ground`
 (`MapManager.set_built`, `with_extensions`). A prop with `use: "storage"` opens the chest.
+From the morning after the order until it is done the story flag `house_work`
+(`Game.BUILD_FLAG`, kept in step by `Game.sync_build_flag`) holds the job's id: the builder's
+day plan follows it (Hachiro's `building` plan: on the farm hammering at the farmhouse wall
+08:20-17:00, any weather but a storm), so does a talk pick (`build_1`..`3`) and the farm
+map's `lumber` prop (left of the house front). His own counter then says `builds.away`
+(`Game.keeper_away_text`). `-- --demo --building=kitchen --time=10:00` shows it.
 The smithy's `upgrades.tool_levels` gives one tool its own price list (the rod, whose levels
 are `rod.bite_factor` in data/fish.json: the bite chance per check is multiplied by it).
 
