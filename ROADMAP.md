@@ -142,7 +142,8 @@ The ending is in (milestone 9): on the first morning of year 3 Tome brings the v
 villager liked most says a word and the game goes on. Later for the ending: a look back at
 the first day (the field then and now), a record every New Year, real art for the scroll.
 Next: milestone 10, building the .exe once the export templates are installed (README → Export); a playtest of a real year to
-check the balance and the ending's steps.
+check the balance and the ending's steps (13 recipes and 11 crop kinds now, so the
+ending's Recipes and crop-kind steps need a look); dishes as gifts in the villagers' likes.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.

@@ -10,8 +10,25 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
-## 2026-10-31 — Settings: display, v-sync, text speed, HUD / run toggles, reset, pad remapping
+## 2026-10-31 — Merged three branches: settings, relationships 2, daikon and rice
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged with `--no-ff`, one at a time, all tests after each, in this order:
+  `claude/settings-4fed9a` (605ef62), `claude/relationships-2-f6ce52` (cc8b29c),
+  `claude/food-crops-9a8f14` (29f5c36). Only WORKLOG.md conflicted (each branch's new entry at
+  the top); all three entries were kept. AGENTS, README, ROADMAP, `scripts/autoload/game.gd`
+  and `scripts/ui/hud.gd` merged by themselves.
+- Checked on merged main: all 23 test scripts print `OK (0 failed)`; headless runs (title
+  `--quit-after 300`, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo
+  --pause=settings`, `--demo --event=heart_tome_5`, `--demo --season=summer`, `--demo --cook`,
+  `--demo --ending`, `res://scenes/main.tscn --quit-after 400`, `main_2d.tscn -- --demo`)
+  printed no errors or warnings. Movie Maker frame `--demo --season=summer`: the field with
+  ripe rice and the HUD.
+- Left / next: dishes as gifts (villager likes); the ending's recipe and crop-kind steps
+  re-checked now that there are 13 recipes and 11 crops; the .exe once the export templates
+  are installed; a playtest of a real year.
+
+## 2026-10-31 — Settings: display, v-sync, text speed, HUD / run toggles, reset, pad remapping
+Agent: Claude Code (claude-opus-5-5) · Commit: 605ef62
 - Done: `data/settings.json` now has Display (window / full screen / borderless), Window size
   (2x-4x; the old "full" option moved to Display), V-sync, Lightning, Text speed (slow /
   normal / fast / instant, `values` x0.5 / x1 / x2 / 0), Always run, Show HUD and the three
@@ -43,7 +60,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   what fits shows 4x while the window is 3x; no FPS limit or UI scale setting.
 
 ## 2026-10-31 — Relationships 2: band 5 heart events, birthday plans, fair weather, HUD tag
-Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+Agent: Claude Code (claude-opus-5-5) · Commit: cc8b29c
 - Done: a second heart event per villager at band 5, our own scenes
   (`data/events/heart_<id>_5.json`, lines in new `data/dialogue/heart_events_5.json`): Tome
   has written to her son about the farmer and offers to be "Grandma" (choice, `tome_grandma`);
@@ -83,7 +100,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   storm-to-rain rule before a festival (DESIGN) is still not done.
 
 ## 2026-10-31 — Daikon and rice: two crops, four recipes, dishes shipped
-Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+Agent: Claude Code (claude-opus-5-5) · Commit: 29f5c36
 - Done: `data/crops.json` gains daikon (fall, stages 2/3/3 = 8 days, sell 110, seed 260, a
   root with a white shoulder) and rice (summer and fall, 4/5/5 = 14 days, sell 110, seed 300,
   `holds_water`). Rice's rule, kept simple: a watered rice cell stays wet every night until it
