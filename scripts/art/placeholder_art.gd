@@ -25,7 +25,7 @@ static func _make(key: String) -> Image:
 			return _obstacle(parts[0])
 		"crop":     # crop:<id>:<growth 0..3>:<ripe|growing>
 			return _crop(parts[1], int(parts[2]), parts[3] == "ripe")
-		"build":    # build:<plaster|board|kawara|stone|planks|planks_dark|awning|shoji_door|shoji>
+		"build":    # build:<plaster|board|kawara|planks|planks_dark|sugi|bamboo|noren|shoji_door|shoji>
 			return _building(parts[1])
 		"ground":   # ground:<grass|tilled|wet|path>:<variant> or ground:water:<land sides mask>
 			return _ground(parts[1], int(parts[2]))
@@ -465,7 +465,7 @@ static func _ground(kind: String, n: int) -> Image:
 
 ## Building surfaces, in the Japanese countryside look (see ROADMAP "Mood and tone"). The
 ## repeating ones are 16 x 16 = one world unit, laid on boxes with triplanar mapping; the
-## shoji door and window are single pictures.
+## shoji door and window and the noren are single pictures.
 static func _building(kind: String) -> Image:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(kind)
@@ -511,18 +511,39 @@ static func _building(kind: String) -> Image:
 			for row in 4:
 				_px(img, 0, row * 4 + 3, 16, 1, Color("444c56"))
 			return img
-		"stone":
+		"sugi":
+			# Light cedar boards standing upright, 4 px wide, with a straight reddish grain.
 			var img := _blank(16, 16)
-			img.fill(Color("5a5450"))
-			for row in 4:
-				for x in range(-4 * (row % 2), 16, 8):
-					_px(img, x + 1, row * 4 + 1, 7, 3, Color("8a827a").darkened(rng.randf() * 0.15))
+			img.fill(Color("c49464"))
+			for col in 4:
+				_px(img, col * 4 + 3, 0, 1, 16, Color("8e6440"))
+				_px(img, col * 4 + rng.randi_range(0, 2), 0, 1, 16, Color("b07e52"))
+				_px(img, col * 4, rng.randi_range(0, 12), 1, 4, Color("d8ac7c"))
 			return img
-		"awning":
+		"bamboo":
+			# Dry bamboo for canes and posts laid along texture v: yellow-green with a lit
+			# stripe and a dark node ring every half unit.
 			var img := _blank(16, 16)
-			img.fill(Color("f2ece0"))
-			for x in range(0, 16, 8):
-				_px(img, x, 0, 4, 16, Color("c8452c"))
+			img.fill(Color("a8a464"))
+			for x in [2, 9]:
+				_px(img, x, 0, 2, 16, Color("c8c488"))
+			_px(img, 13, 0, 1, 16, Color("8a8650"))
+			for y in [5, 13]:
+				_px(img, 0, y, 16, 1, Color("6a6a3a"))
+				_px(img, 0, y + 1, 16, 1, Color("bcb87c"))
+			return img
+		"noren":
+			# 21 x 8 shop curtain: indigo cloth in three panels (dark slits), a white sprout
+			# mark on the middle one, a lighter hem.
+			var img := _blank(21, 8)
+			img.fill(Color("2c3a5e"))
+			for x in [6, 14]:
+				_px(img, x, 2, 1, 6, Color("161e32"))
+			_px(img, 0, 0, 21, 1, Color("3a4a72"))
+			_px(img, 10, 3, 1, 4, Color("eeeae0"))
+			_px(img, 8, 3, 2, 1, Color("eeeae0"))
+			_px(img, 11, 2, 2, 1, Color("eeeae0"))
+			_px(img, 0, 7, 21, 1, Color("222d4a"))
 			return img
 		"shoji_door":
 			# 16 x 24 sliding door: wooden frame, paper panes in a lattice, wooden kick panel.
