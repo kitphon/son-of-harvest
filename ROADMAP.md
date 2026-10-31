@@ -56,7 +56,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [ ] Eating / drinking, food items
    - [ ] Holding and throwing items (shipping by throwing into the bin)
 4. **Save / load and menus**
-   - [ ] Save game (Game + FarmGrid to a file), load, title screen
+   - [x] Save game (Game + FarmGrid to a versioned JSON file), load; F5 / F9, saves on sleep
+   - [ ] Title screen (new game / continue)
    - [ ] Rucksack / storage menus, settings, key remapping
 5. **Town and villagers**
    - [ ] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause

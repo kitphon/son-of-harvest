@@ -169,7 +169,9 @@ func sleep() -> void:
 	var late := hour < 6
 	end_day()
 	stamina = max_stamina * 3 / 4 if late else max_stamina
-	message.emit("Good morning!")
+	# Sleeping saves the game (the morning after), like writing in a diary.
+	var err := SaveGame.write(self)
+	message.emit("Good morning! Game saved." if err == "" else "Good morning! " + err)
 	changed.emit()
 
 
@@ -268,6 +270,92 @@ func select_tool(i: int) -> void:
 	changed.emit()
 
 
+# --- save / load ------------------------------------------------------------
+
+## Whole numbers in the save: name -> [lowest, highest]. Stamina is checked against max.
+const SAVED_NUMBERS := {
+	"year": [1, 9999], "season": [0, 3], "day": [1, DAYS_PER_SEASON], "hour": [0, 23],
+	"minute": [0, 59], "money": [0, 1 << 50], "bin_total": [0, 1 << 50],
+	"max_stamina": [1, 9999], "water": [0, WATER_MAX],
+}
+
+
+## The run's state as plain data, the farm included (SaveGame writes it).
+## Tool and seed are saved by name, so reordering data files doesn't change them.
+func to_dict() -> Dictionary:
+	var d := {}
+	for key in SAVED_NUMBERS:
+		d[key] = get(key)
+	d.stamina = stamina
+	d.weather_today = weather_today
+	d.weather_tomorrow = weather_tomorrow
+	d.tool = current_tool()
+	d.seed = current_seed()
+	d.bag = bag.duplicate()
+	d.farm = farm.to_dict()
+	return d
+
+
+## Puts a saved state back and redraws through the usual signals. Returns "" or what was
+## wrong; everything is checked first, so on a problem nothing changes.
+func from_dict(data: Dictionary) -> String:
+	var n := {}
+	for key in SAVED_NUMBERS:
+		n[key] = SaveGame.whole(data.get(key), SAVED_NUMBERS[key][0], SAVED_NUMBERS[key][1])
+		if n[key] == null:
+			return "Saved %s is broken" % key
+	n.stamina = SaveGame.whole(data.get("stamina"), 0, n.max_stamina)
+	if n.stamina == null:
+		return "Saved stamina is broken"
+	for key in ["weather_today", "weather_tomorrow"]:
+		if not data.get(key) is String or data[key] == "":
+			return "Saved %s is broken" % key
+		n[key] = data[key]
+	n.tool_index = TOOLS.find(data.get("tool", ""))
+	if n.tool_index < 0:
+		return "Saved tool is broken"
+	n.seed_index = crops.keys().find(data.get("seed", ""))
+	if n.seed_index < 0:
+		return "Saved seed is broken"
+	var saved_bag = data.get("bag")
+	if not saved_bag is Dictionary:
+		return "Saved bag is broken"
+	n.bag = {}
+	for id in saved_bag:
+		var c = SaveGame.whole(saved_bag[id], 1, 999999)
+		if not id is String or c == null:
+			return "Saved bag is broken"
+		n.bag[id] = c
+	if not data.get("farm") is Dictionary:
+		return "Saved farm is missing"
+	var err := farm.from_dict(data.farm)
+	if err != "":
+		return err
+	for key in n:
+		set(key, n[key])
+	_accum = 0.0
+	day_started.emit()   # the views put the farmer home and redo weather and light
+	changed.emit()
+	return ""
+
+
+func quick_save() -> void:
+	var err := SaveGame.write(self)
+	message.emit("Game saved" if err == "" else err)
+
+
+func quick_load() -> void:
+	var err := SaveGame.read(self)
+	message.emit("Game loaded" if err == "" else "Could not load: " + err)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("quick_save"):
+		quick_save()
+	elif event.is_action_pressed("quick_load"):
+		quick_load()
+
+
 # --- setup ------------------------------------------------------------------
 
 func _load_json(path: String) -> Dictionary:
@@ -284,6 +372,7 @@ func _setup_input() -> void:
 		"move_left": [KEY_A, KEY_LEFT], "move_right": [KEY_D, KEY_RIGHT],
 		"run": [KEY_SHIFT], "use_tool": [KEY_SPACE, KEY_J], "interact": [KEY_E, KEY_K],
 		"next_tool": [KEY_TAB], "next_seed": [KEY_Q],
+		"quick_save": [KEY_F5], "quick_load": [KEY_F9],
 	}
 	for i in TOOLS.size():
 		keys["tool_%d" % (i + 1)] = [KEY_1 + i]
