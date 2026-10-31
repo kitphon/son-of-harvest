@@ -105,8 +105,37 @@ func _init() -> void:
 	q.cell(qc).obj = FarmGrid.Obj.ROCK
 	check(PlaceholderArt.cell_key(q, q.cell(qc)) == "rock", "obstacle key wins")
 
+	# Ground tiles: soil state picks the tile, wet soil is clearly darker than dry, the pond
+	# gets banks only on its land sides.
+	var gk := PlaceholderArt.ground_key(q, qc)
+	check(gk.begins_with("ground:tilled:"), "tilled cell -> tilled tile (%s)" % gk)
+	q.water_cell(qc)
+	check(PlaceholderArt.ground_key(q, qc).begins_with("ground:wet:"), "watered cell -> wet tile")
+	check(PlaceholderArt.ground_key(q, Vector2i(20, 15)).begins_with("ground:grass:"), "untouched cell -> grass")
+	var dry_l := _mean_luma(PlaceholderArt.tex("ground:tilled:0").get_image())
+	var wet_l := _mean_luma(PlaceholderArt.tex("ground:wet:0").get_image())
+	check(dry_l - wet_l > 0.12, "wet soil darker than dry (%.2f vs %.2f)" % [wet_l, dry_l])
+	var pond := FarmGrid.new(crops)
+	for y in range(2, 5):
+		for x in range(25, 29):
+			pond.fixed[Vector2i(x, y)] = "pond"
+	check(PlaceholderArt.ground_key(pond, Vector2i(25, 2)) == "ground:water:%d" % (PlaceholderArt.WATER_N | PlaceholderArt.WATER_W), "pond corner has two banks")
+	check(PlaceholderArt.ground_key(pond, Vector2i(26, 3)) == "ground:water:0", "pond middle has no bank")
+	for key in ["ground:grass:1", "ground:path:2", "ground:water:15", "ground:wet:3"]:
+		var img := PlaceholderArt.tex(key).get_image()
+		check(img.get_size() == Vector2i(16, 16) and img.get_used_rect().size == Vector2i(16, 16) \
+			and not img.detect_alpha(), "%s: full opaque 16 x 16" % key)
+
 	print("test_farm: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
+
+
+func _mean_luma(img: Image) -> float:
+	var sum := 0.0
+	for y in img.get_height():
+		for x in img.get_width():
+			sum += img.get_pixel(x, y).get_luminance()
+	return sum / (img.get_width() * img.get_height())
 
 
 func check(ok: bool, what: String) -> void:

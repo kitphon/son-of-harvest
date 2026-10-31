@@ -21,6 +21,8 @@ static func _make(key: String) -> Image:
 			return _obstacle(parts[0])
 		"crop":     # crop:<id>:<growth 0..3>:<ripe|growing>
 			return _crop(parts[1], int(parts[2]), parts[3] == "ripe")
+		"ground":   # ground:<grass|tilled|wet|path>:<variant> or ground:water:<land sides mask>
+			return _ground(parts[1], int(parts[2]))
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
 
@@ -356,3 +358,91 @@ static func _root(img: Image, look: Dictionary, g: int, big: bool, leaf: Color, 
 			_oval(img, 11.5, g - 3 * s + 1, 2.2, 3 * s, dark)
 			_oval(img, 8, g - 4 * s + 1, 2.4, 4 * s, leaf)
 			_px(img, 8, g - int(7 * s), 1, int(5 * s), light)
+
+
+## Ground tiles, 16 x 16, no outline. Grass and path come in GROUND_VARIANTS so the field
+## does not look stamped; water tiles carry a bank on each side that touches land.
+const GROUND_VARIANTS := 4
+const WATER_N := 1
+const WATER_E := 2
+const WATER_S := 4
+const WATER_W := 8
+
+
+## The ground key for a cell: fixed buildings stand on path, the fence on grass.
+static func ground_key(farm: FarmGrid, c: Vector2i) -> String:
+	var v := posmod(c.x * 7 + c.y * 13 + (c.x * c.y) % 5, GROUND_VARIANTS)
+	match farm.fixed_at(c):
+		"":
+			var d := farm.cell(c)
+			if d.wet:
+				return "ground:wet:%d" % v
+			return "ground:tilled:%d" % v if d.tilled else "ground:grass:%d" % v
+		"pond":
+			var mask := 0
+			for side in [[Vector2i.UP, WATER_N], [Vector2i.RIGHT, WATER_E], [Vector2i.DOWN, WATER_S], [Vector2i.LEFT, WATER_W]]:
+				if farm.fixed_at(c + side[0]) != "pond":
+					mask |= side[1]
+			return "ground:water:%d" % mask
+		"fence":
+			return "ground:grass:%d" % v
+	return "ground:path:%d" % v
+
+
+static func _ground(kind: String, n: int) -> Image:
+	var img := _blank(16, 16)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(kind) + n
+	match kind:
+		"grass":
+			img.fill(Color("6fae4a"))
+			for i in 10:
+				var x := rng.randi_range(0, 15)
+				var y := rng.randi_range(1, 15)
+				_px(img, x, y, 1, 1, Color("5a9a3a"))
+				_px(img, x, y - 1, 1, 1, Color("86c25a") if i % 3 == 0 else Color("5a9a3a"))
+			if n == 0:
+				_px(img, 11, 4, 1, 1, Color("f4f0e8"))   # a tiny flower now and then
+		"tilled", "wet":
+			var wet := kind == "wet"
+			var base := Color("5a3a22") if wet else Color("a07446")
+			img.fill(base)
+			# Furrows: a dark trench and a lit ridge every 4 rows.
+			for y in [3, 7, 11, 15]:
+				_px(img, 0, y, 16, 1, base.darkened(0.3))
+				_px(img, 0, y - 2, 16, 1, base.lightened(0.15 if wet else 0.12))
+			for i in 6:
+				_px(img, rng.randi_range(0, 15), rng.randi_range(0, 15), 1, 1, base.darkened(0.15))
+			if wet:
+				_px(img, rng.randi_range(2, 9), 5, 3, 1, Color("7a6a6a"))   # a wet glint
+		"path":
+			img.fill(Color("c2ab80"))
+			for i in 7:
+				var x := rng.randi_range(0, 14)
+				var y := rng.randi_range(0, 14)
+				_px(img, x, y, 2, 1, Color("a89068"))
+				_px(img, x, y + 1, 2, 1, Color("8f7a58") if i % 2 == 0 else Color("d6c29a"))
+		"water":
+			img.fill(Color("3d7fc4"))
+			for i in 4:
+				_px(img, rng.randi_range(1, 10), rng.randi_range(2, 13), rng.randi_range(3, 5), 1, Color("5d9ad8"))
+			var bank := Color("6b5a3a")
+			var foam := Color("a8d0f0")
+			if n & WATER_N:
+				_px(img, 0, 0, 16, 2, bank)
+				_px(img, 0, 2, 16, 1, foam)
+			if n & WATER_S:
+				_px(img, 0, 14, 16, 2, bank)
+				_px(img, 0, 13, 16, 1, foam)
+			if n & WATER_W:
+				_px(img, 0, 0, 2, 16, bank)
+				_px(img, 2, 0 if not n & WATER_N else 3, 1, 16, foam)
+			if n & WATER_E:
+				_px(img, 14, 0, 2, 16, bank)
+				_px(img, 13, 0 if not n & WATER_N else 3, 1, 16, foam)
+			# Banks drawn last on the corners they share.
+			if n & WATER_N:
+				_px(img, 0, 0, 16, 2, bank)
+			if n & WATER_S:
+				_px(img, 0, 14, 16, 2, bank)
+	return img

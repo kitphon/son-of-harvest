@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Ground tiles
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: PlaceholderArt draws 16 x 16 ground tiles: grass and path in 4 variants each (picked
+  from the cell position so the field is not stamped), tilled soil with furrows (dark trench,
+  lit ridge every 4 rows), wet soil much darker with a glint, pond water with ripples and a
+  bank + foam line on each side that touches land (`ground:water:<mask>`). `ground_key()`
+  picks the tile per cell (buildings stand on path, the fence on grass). FarmView draws these
+  tiles, so the 3D ground texture and the 2D view both use them; the flat colours are gone
+  except the 2D building / fence markers.
+- Checked: `test_farm: OK (0 failed)` (new: tilled / wet / grass keys follow the cell, wet
+  tile mean luminance at least 0.12 below dry, pond corner / middle masks, tiles fully
+  opaque 16 x 16); headless `--quit-after 300` printed no errors or warnings; Movie Maker
+  frames: 3D `--demo` shows wet and dry columns clearly apart and furrows visible; 2D shows
+  grass variety, path under buildings and the pond with banks.
+- Left / next: the pond is not in the 3D demo frame (camera starts by the house), so its
+  banks were seen in the 2D view only.
+
 ## 2026-10-31 — Crop and field-object placeholders
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: rock / branch / weed / stump and every crop are drawn in the farmer's style: 2-3

@@ -5,11 +5,11 @@ own code, art, story and numbers, shipped as a Windows .exe from Godot 4.7.
 Rules per system: docs/DESIGN.md. What was done and how it was checked: WORKLOG.md.
 
 ## Next up
-The user chose to refine the placeholders first (real art later). Farmer, crops and field
-objects are done. Next: milestone 2, **ground tiles** in the same style (grass with a little
-texture, soil dry / tilled / wet with furrows, paths, pond water with an edge), drawn by
-FarmView (it is also the 3D ground texture). Keep the wet / dry difference obvious from the
-camera. Then house / bin / stand / fence.
+The user chose to refine the placeholders first (real art later). Farmer, crops, field
+objects and ground tiles are done. Next: milestone 2, **house / shipping bin / seed stand /
+fence** as textured boxes (or simple meshes) in the same palette: plank and roof textures
+made in code, a door and window on the house, a lid on the bin, posts and rails for the
+fence instead of four long boxes. Then rain / snow particles.
 
 ## Milestones
 
@@ -25,7 +25,7 @@ camera. Then house / bin / stand / fence.
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)
    - [x] Field object and crop placeholders (per crop look in `data/crops.json`, 4 growth looks + ripe)
    - [ ] Field object and crop real art (same keys: `crop:<id>:<growth>:<ripe|growing>`)
-   - [ ] Ground tiles instead of flat colours (grass, soil dry / wet / tilled, paths, water)
+   - [x] Ground tiles instead of flat colours (grass, soil dry / wet / tilled, paths, water)
    - [ ] House, bin, stand, fence as models or textured boxes
    - [ ] Rain / snow particles, weather tint
    - [ ] Pixel font for the HUD, clock box, a proper item / tool display
