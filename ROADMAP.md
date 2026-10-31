@@ -47,8 +47,7 @@ radio (flags `recipe_<id>`; README → Cooking). Daikon (fall) and rice (summer 
 watered paddy stays wet) are crops, their seeds at the store and the stand; four more recipes
 come as recipe cards in the bin with the first daikon / rice shipped; dishes ship at their
 `sell` in foods.json (held out at the bin or thrown in). Later for food: dishes as gifts
-(villager likes in data/villagers), the store buying dishes, cooking tools, the ending's
-recipe and crop-kind steps re-checked for 13 recipes / 11 crops.
+(villager likes in data/villagers), the store buying dishes, cooking tools.
 Event scripts and trigger tables per map are done (data/events, EventRunner /
 EventTriggers / EventPlayer; README → Events); EventPlayer loads a map's table on
 `Game.map_entered(map_id)`, so a new map's events are one `data/events/triggers_<map id>.json`.
@@ -134,16 +133,17 @@ item to keep, a contest that is played (a mochi-pounding rhythm, a fishing race)
 Lantern Night that sell, more villagers gathering once they talk.
 The balance pass is done (milestone 8): our own crop, product, animal and extension prices,
 `python -I tools/balance.py` prints income per season for a steady year-1 plan (WORKLOG has
-the before / after table). Later for balance: the smithy now asks for ores (they go to
-upgrades, not the bin) and cooking and contests add income, so re-run it with those in; play a
-real year.
+the before / after table); it also keeps the smithy's ores back from the bin (an upgrade
+waits while they are short), counts contest prizes from the odds against the rivals, and prints
+each recipe's gain over its raw ingredients. Later for balance: play a real year; the smithy's
+level 2 ores (3 akagane) are short for a spring with two mine trips (WORKLOG note).
 The ending is in (milestone 9): on the first morning of year 3 Tome brings the village record
 (stars per category, a rank and a title from data/ending.json; README → Ending), then the
 villager liked most says a word and the game goes on. Later for the ending: a look back at
 the first day (the field then and now), a record every New Year, real art for the scroll.
 Next: milestone 10, building the .exe once the export templates are installed (README → Export); a playtest of a real year to
-check the balance and the ending's steps (13 recipes and 11 crop kinds now, so the
-ending's Recipes and crop-kind steps need a look); dishes as gifts in the villagers' likes.
+check the balance and the ending's steps (re-set for 11 crops / 13 recipes on 2026-10-31);
+dishes as gifts in the villagers' likes.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -210,6 +210,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Relationships: hearts on the text box's name tag, birthdays (calendar, gifts x5, birthday lines), the nightly loss for villagers left alone, a heart event per villager at band 3
    - [x] Relationships 2: a second heart event per villager at band 5, birthday day plans, fair weather and the HUD tag on a birthday, mine finds in the gift lists
    - [x] Ending: the village record on the first morning of year 3 (data/ending.json: ten categories graded in stars, five ranks), Tome's verdict, the closest villager's word; the game goes on
+   - [x] Ending steps re-set for 11 crops / 13 recipes; balance re-run with smithy ores, contest prizes, cooking, daikon and rice
 10. **Audio and release**
     - [x] Sound effects and ambient loops (synthesized from data/sfx.json, SFX / Ambient busses)
     - [x] Music; volume sliders in the settings screen (`Sfx.set_volume`)

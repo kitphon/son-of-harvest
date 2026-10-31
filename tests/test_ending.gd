@@ -104,6 +104,14 @@ func _values() -> void:
 	for m in Ending.MEASURES:
 		check(v.has(m), "ending_values has %s" % m)
 	check(v.shipped_value == 0 and v.crop_kinds == 0 and v.mine_deepest == 0 and v.house_built == 0, "a new game measures nothing (%s)" % [v])
+	# The crop and recipe steps follow the content: the top step is every crop / recipe, and
+	# the recipes known from the start earn no star.
+	var steps := {}
+	for c in Ending.data().categories:
+		steps[c.measure] = c.steps
+	check(int(steps.crop_kinds.back()) == g.crops.size(), "the top crops step is every crop (%d)" % g.crops.size())
+	check(int(steps.recipes_known.back()) == Cooking.ids().size(), "the top recipes step is every recipe (%d)" % Cooking.ids().size())
+	check(int(steps.recipes_known[0]) > v.recipes_known, "the start recipes (%d) earn no star" % v.recipes_known)
 	g.shipped = {"turnip": 10, "potato": 2, "fish:koi": 1}
 	g.mine_deepest = 14
 	g.fish_caught = {"koi": 1, "ayu": 2}

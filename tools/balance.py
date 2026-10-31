@@ -4,16 +4,22 @@ Reads the data files and plays a simple, steady year 1: a few bags of seeds that
 tools do, the starting hens plus a few bought ones, a cow / sheep once the store sells them,
 some fishing on rainy days and evenings, a mine trip now and then (most in winter), and from
 summer (the kitchen) a few dishes cooked and shipped. Prints income per source and running
-costs per season, then the season goals (rucksacks, house
-extensions, tool upgrades) and the money left after buying them in order.
+costs per season, then the season goals (rucksacks, house extensions, tool upgrades) and the
+money left after buying them in order. A tool upgrade also needs the smithy's ores: they come
+out of the mine finds (kept back instead of shipped, so the mine column is what reached the
+bin), and an upgrade waits while the ores are short. Festival contests: the odds of each place
+for the plan's best entry against the rivals' rolls (data/festivals.json), and the prize money
+expected. Last, every recipe's gain over its ingredients shipped raw, per season.
 
 Not a game rule: the plan below is our guess at how a calm player spends year 1. Run it before
 and after changing prices to compare (WORKLOG has the tables).
 
     python -I tools/balance.py            (from the project folder)
 """
+import functools
 import json
 import os
+import random
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -59,6 +65,9 @@ GOALS = [
 ]
 
 
+CONTEST_ROLLS = 2000              # Monte Carlo rolls per contest (fixed seed, same every run)
+
+
 def load(name):
     with open(os.path.join(ROOT, "data", name), encoding="utf-8") as f:
         return json.load(f)
@@ -71,6 +80,7 @@ mine = load("mine.json")
 shops = load("shops.json")
 foods = load("foods.json")
 recipes = load("recipes.json")
+festivals = load("festivals.json")["festivals"]
 store = shops["shops"]["general"]
 smithy = shops["shops"]["smithy"]
 
@@ -126,31 +136,51 @@ def fish_value(season):
     """Average G per catch at the village pond in the morning and evening of a sunny day."""
     total = 0.0
     for hour in (7, 17):
-        w = {}
-        for fid, f in fish["fish"].items():
-            if f.get("once") or "town" not in f["places"]:
-                continue
-            if season not in f.get("seasons", SEASONS):
-                continue
-            h = f.get("hours")
-            if h and not ((h[0] <= hour < h[1]) if h[0] < h[1] else (hour >= h[0] or hour < h[1])):
-                continue
-            w[fid] = f["places"]["town"]
+        w = fish_weights(season, hour)
         total += sum(fish["fish"][k]["sell"] * v for k, v in w.items()) / sum(w.values())
     return total / 2
 
 
-def mine_floor_value(depth, season):
+def fish_weights(season, hour):
+    """{fish id: weight} at the village pond at `hour` on a sunny day (once-only fish left out)."""
+    w = {}
+    for fid, f in fish["fish"].items():
+        if f.get("once") or "town" not in f["places"] or season not in f.get("seasons", SEASONS):
+            continue
+        h = f.get("hours")
+        if h and not ((h[0] <= hour < h[1]) if h[0] < h[1] else (hour >= h[0] or hour < h[1])):
+            continue
+        w[fid] = f["places"]["town"]
+    return w
+
+
+def mine_floor_finds(depth, season):
+    """Expected finds {item: count} of one floor at `depth`, breaking MINE_TAKEN of its rocks
+    and soft spots, with the season's factors."""
     band = [b for b in mine["floors"] if b["from"] <= depth][-1]
     factors = mine["seasons"].get(season, {})
-    value = 0.0
+    counts = {}
     for source, count_key in (("rock", "rocks"), ("big_rock", "big_rocks"), ("soft", "soft")):
-        finds = band["finds"][source]
-        weights = {k: v * factors.get(k, 1.0) for k, v in finds.items()}
-        each = sum(mine["items"][k]["sell"] * v for k, v in weights.items() if k != "none") / sum(weights.values())
+        weights = {k: v * factors.get(k, 1.0) for k, v in band["finds"][source].items()}
         lo, hi = band[count_key]
-        value += each * (lo + hi) / 2 * MINE_TAKEN
-    return value
+        broken = (lo + hi) / 2 * MINE_TAKEN
+        for k, v in weights.items():
+            if k != "none":
+                counts[k] = counts.get(k, 0.0) + broken * v / sum(weights.values())
+    return counts
+
+
+def mine_season_finds(season):
+    """Expected finds of the season's mine trips, floor 1 down to MINE_FLOORS[season]."""
+    total = {}
+    for d in range(1, MINE_FLOORS[season] + 1):
+        for k, n in mine_floor_finds(d, season).items():
+            total[k] = total.get(k, 0.0) + n * MINE_TRIPS[season]
+    return total
+
+
+def mine_floor_value(depth, season):
+    return sum(mine["items"][k]["sell"] * n for k, n in mine_floor_finds(depth, season).items())
 
 
 def need_value(need, season):
@@ -183,6 +213,78 @@ def cook_season(season):
     return gain
 
 
+def pick(rng, weights):
+    """One key of {key: weight} drawn at random."""
+    x = rng.random() * sum(weights.values())
+    for k, w in weights.items():
+        x -= w
+        if x < 0:
+            return k
+    return k
+
+
+def contest_entry(fid, rng):
+    """The score of the plan's best entry for festival `fid`'s contest, one roll."""
+    f = festivals[fid]
+    c = f["contest"]
+    season, day = f["season"], f["day"]
+    if c["takes"] == "crop":
+        # The best crop of the season's mix ripe by the festival day (in season).
+        ripe = [cid for cid in MIX.get(season, {}) if 1 + grow_days(crops[cid]) <= day]
+        return max(int(crops[cid]["sell"] * c.get("in_season", 1.0)) for cid in ripe) if ripe else 0
+    if c["takes"] == "fish":
+        # The best of the season's catches so far, mornings and evenings.
+        catches = round(FISH_DAYS[season] * FISH_PER_DAY * day / DAYS)
+        return max(fish["fish"][pick(rng, fish_weights(season, (7, 17)[n % 2]))]["sell"] for n in range(catches))
+    if c["takes"] == "animal":
+        # The best product of the festival morning: an egg a hen and milk a cow, a grade roll each.
+        when = (SEASONS.index(season), day)
+        hens = len([a for a in animals["start"] if a == "chicken"])
+        hens += sum(n for (bs, bd, n) in HENS_BOUGHT if (SEASONS.index(bs), bd) <= when)
+        hens = min(hens, animals["homes"]["coop"]["capacity"])
+        cows = len([1 for (bs, bd, k) in BARN_BOUGHT if k == "cow" and (SEASONS.index(bs), bd) < when])
+        best = 0
+        for product, n in (("egg", hens), ("milk", cows)):
+            grades = animals["products"][product]["grades"]
+            for _ in range(n):
+                g = pick(rng, dict(enumerate(GRADE_SHARE)))
+                best = max(best, animals["items"][grades[g]["item"]]["sell"])
+        return best
+    if c["takes"] == "mine":
+        # The best find of the season's trips, every rock and soft spot broken drawn from its table.
+        best = 0
+        factors = mine["seasons"].get(season, {})
+        for _ in range(MINE_TRIPS[season]):
+            for d in range(1, MINE_FLOORS[season] + 1):
+                band = [b for b in mine["floors"] if b["from"] <= d][-1]
+                for source, key in (("rock", "rocks"), ("big_rock", "big_rocks"), ("soft", "soft")):
+                    weights = {k: v * factors.get(k, 1.0) for k, v in band["finds"][source].items()}
+                    for _ in range(round(rng.randint(*band[key]) * MINE_TAKEN)):
+                        k = pick(rng, weights)
+                        if k != "none":
+                            best = max(best, mine["items"][k]["sell"])
+        return best
+    return 0
+
+
+@functools.cache
+def contest_odds(fid):
+    """{place: share of rolls} for the plan's entry at festival `fid` (the farmer wins ties)."""
+    rng = random.Random(fid)
+    places = {}
+    for _ in range(CONTEST_ROLLS):
+        score = contest_entry(fid, rng)
+        place = 1 + sum(1 for r in festivals[fid]["contest"]["rivals"] if rng.randint(*r["score"]) > score)
+        places[place] = places.get(place, 0) + 1
+    return {p: n / CONTEST_ROLLS for p, n in sorted(places.items())}
+
+
+def contest_prize(fid):
+    """Prize money expected at festival `fid` (prize items, festival food, are left out)."""
+    prizes = festivals[fid]["contest"]["prizes"]
+    return sum(share * prizes[p - 1]["money"] for p, share in contest_odds(fid).items() if p <= len(prizes))
+
+
 def main():
     hens = len([a for a in animals["start"] if a == "chicken"])
     cows = sheep = 0
@@ -192,7 +294,7 @@ def main():
     sells_barn = stock_price("animal:cow") is not None and fodder_price is not None
     rows = {}
     for s in SEASONS:
-        r = {"crops": 0, "cook": 0, "eggs": 0, "milk": 0, "wool": 0, "fish": 0, "mine": 0,
+        r = {"crops": 0, "cook": 0, "eggs": 0, "milk": 0, "wool": 0, "fish": 0, "mine": 0, "prize": 0,
              "seeds": 0, "feed": 0, "animals": 0, "medicine": 0, "food": 0}
         r["seeds"], r["crops"] = crop_season(s)
         r["cook"] = cook_season(s)
@@ -212,41 +314,104 @@ def main():
             r["wool"] += sheep * product_value("wool") / animals["kinds"]["sheep"]["gives"]["every"]
             r["feed"] += hens * (1 - graze) * feed_price + (cows + sheep) * (1 - graze) * (fodder_price or 0)
         r["fish"] = FISH_DAYS[s] * FISH_PER_DAY * fish_value(s)
+        r["finds"] = mine_season_finds(s)
         r["mine"] = MINE_TRIPS[s] * sum(mine_floor_value(d, s) for d in range(1, MINE_FLOORS[s] + 1))
+        r["prize"] = sum(contest_prize(fid) for fid, f in festivals.items() if f["season"] == s and "contest" in f)
         r["medicine"] = MEDICINE_PER_SEASON * stock_price("medicine")
         r["food"] = FOOD_PER_DAY * (DAYS if s != "winter" else DAYS // 2)
         rows[s] = r
 
-    print("Income and running costs per season (G), steady year-1 plan")
-    head = ["season", "crops", "cook", "eggs", "milk", "wool", "fish", "mine", "income", "seeds", "feed", "animals", "other", "net"]
-    print(" | ".join(f"{h:>7}" for h in head))
+    # Goals are bought in order as soon as the money (and an upgrade's ores) are there. The ores
+    # an upgrade takes are kept back from the mine finds, so they never reach the bin.
     money = 500
+    ores = {}
     goals = list(GOALS)
     for s in SEASONS:
         r = rows[s]
-        income = sum(r[k] for k in ("crops", "cook", "eggs", "milk", "wool", "fish", "mine"))
-        other = r["medicine"] + r["food"]
-        net = income - r["seeds"] - r["feed"] - r["animals"] - other
-        cells = [s, r["crops"], r["cook"], r["eggs"], r["milk"], r["wool"], r["fish"], r["mine"], income,
-                 r["seeds"], r["feed"], r["animals"], other, net]
-        print(" | ".join(f"{c:>7}" if isinstance(c, str) else f"{round(c):>7}" for c in cells))
-        money += net
+        for k, n in r["finds"].items():
+            ores[k] = ores.get(k, 0.0) + n
+        money += season_net(r)
+        kept = 0.0
         bought = []
+        short = ""
         while goals and SEASONS.index(goals[0][0]) <= SEASONS.index(s):
             cost = goal_cost(goals[0][1])
+            items = goal_items(goals[0][1])
             if cost is None or cost > money:
                 break
+            lack = [k for k, n in items.items() if ores.get(k, 0.0) < n]
+            if lack:
+                short = f"{goals[0][1]} waits for {', '.join(lack)}"
+                break
+            for k, n in items.items():
+                ores[k] -= n
+                kept += n * mine["items"][k]["sell"]
             money -= cost
             bought.append(f"{goals.pop(0)[1]} ({cost})")
-        rows[s]["goals"] = (bought, money)
+        r["mine"] -= kept
+        r["kept"] = kept
+        money -= kept
+        r["goals"] = (bought, money, short)
+
+    print("Income and running costs per season (G), steady year-1 plan")
+    head = ["season", "crops", "cook", "eggs", "milk", "wool", "fish", "mine", "prize", "income", "seeds", "feed", "animals", "other", "net"]
+    print(" | ".join(f"{h:>7}" for h in head))
+    year = 0
+    for s in SEASONS:
+        r = rows[s]
+        year += season_net(r)
+        cells = [s, r["crops"], r["cook"], r["eggs"], r["milk"], r["wool"], r["fish"], r["mine"], r["prize"],
+                 sum(r[k] for k in INCOME), r["seeds"], r["feed"], r["animals"], r["medicine"] + r["food"], season_net(r)]
+        print(" | ".join(f"{c:>7}" if isinstance(c, str) else f"{round(c):>7}" for c in cells))
+    print(f"year net {round(year)} G (mine: finds shipped, less the ores kept for the smithy)")
     print()
     for s in SEASONS:
-        bought, left = rows[s]["goals"]
-        print(f"{s:>7}: bought {', '.join(bought) or 'nothing'}; {round(left)} G left")
+        bought, left, short = rows[s]["goals"]
+        note = f"; ores kept {round(rows[s]['kept'])} G" if rows[s]["kept"] else ""
+        note += f"; {short}" if short else ""
+        print(f"{s:>7}: bought {', '.join(bought) or 'nothing'}; {round(left)} G left{note}")
     if goals:
         print(f"   late: {', '.join(g[1] for g in goals)}")
+    print("   ores left: " + ", ".join(f"{k} {n:.1f}" for k, n in ores.items() if mine["items"][k]["kind"] == "ore"))
     if not sells_barn:
         print("(the store sells no cows / sheep / fodder: no milk or wool)")
+
+    print()
+    print("Festival contests: the plan's entry, odds of 1st / 2nd / 3rd / no place, prize money expected")
+    wins = 0.0
+    for fid, f in festivals.items():
+        if "contest" not in f:
+            continue
+        odds = contest_odds(fid)
+        wins += odds.get(1, 0.0)
+        cells = " / ".join(f"{round(100 * odds.get(p, 0.0)):>3}%" for p in (1, 2, 3, 4))
+        print(f"{fid:>14} ({f['contest']['takes']:>6}): {cells}; {round(contest_prize(fid))} G")
+    print(f"   wins expected a year: {wins:.1f}")
+
+    print()
+    print("Recipes: G one cooking fetches over its ingredients shipped raw (dish sell x makes - ingredients)")
+    print(f"{'recipe':>17} | " + " | ".join(f"{s:>6}" for s in SEASONS))
+    for rid, rec in recipes["recipes"].items():
+        dish = foods["foods"][rid]["sell"] * rec.get("makes", 1)
+        cells = [round(dish - sum(need_value(n, s) for n in rec["needs"])) for s in SEASONS]
+        print(f"{rid:>17} | " + " | ".join(f"{c:>6}" for c in cells))
+
+
+INCOME = ("crops", "cook", "eggs", "milk", "wool", "fish", "mine", "prize")
+
+
+def season_net(r):
+    return sum(r[k] for k in INCOME) - r["seeds"] - r["feed"] - r["animals"] - r["medicine"] - r["food"]
+
+
+def goal_items(goal):
+    """{mine item id: count} a goal takes from the smithy (only upgrades take any)."""
+    kind, *rest = goal.split()
+    if kind != "upgrade":
+        return {}
+    tool, level = rest
+    levels = smithy["upgrades"]["tool_levels"].get(tool, smithy["upgrades"]["levels"])
+    return {k.removeprefix("mine:"): n for k, n in levels[level].get("items", {}).items()}
 
 
 def goal_cost(goal):

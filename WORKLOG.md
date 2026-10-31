@@ -10,6 +10,76 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Ending steps for 11 crops / 13 recipes; balance with ores, contests, cooking
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `data/ending.json`: "Crops grown" [2, 4, 7, 9] -> [3, 6, 9, 11], "Recipes"
+  [2, 4, 6, 9] -> [6, 8, 10, 13]. Reasoning: with 11 crops the old steps gave the last star
+  by early fall; now spring's three crops earn one star, summer's (with rice) make 6-7, and
+  the last two need most of fall's four (daikon included). The 4 start recipes earned two free
+  stars before; now they earn none, the four band-1 lessons and the radio make 9 (2 stars), the
+  two bin cards (first daikon / rice) bring 13 for the last star, so a run that never grows
+  daikon or rice stops at 3. Other categories unchanged (still fit tools/balance.py below).
+  `tests/test_ending.gd`: the top crop step is every crop, the top recipe step every recipe, and
+  the start recipes earn no star (so the steps follow new content). `tools/balance.py`: mine
+  finds are counted per item (`mine_floor_finds`, `mine_season_finds`); a tool upgrade takes
+  its ores from the stock of finds (they no longer reach the bin) and waits while they are
+  short; a "prize" column from each festival's contest (Monte Carlo, 2000 rolls, a fixed seed:
+  the plan's best crop ripe by the day, best catch so far, best egg / milk of the morning, best
+  mine find of the season, against the rivals' rolls; prize items left out); the place odds and
+  wins a year; a per-recipe table of what one cooking fetches over its ingredients shipped raw.
+  Daikon and rice were already in the plan (fall 20 % / summer 15 %). `data/festivals.json`:
+  Year's Turn rivals hachiro [50, 160] -> [120, 320], kota [20, 110] -> [40, 160], sayo
+  [10, 90] -> [20, 120]: the plan won it 100 % of the time (a jade, 300 G, comes up on floors
+  8-10 almost every winter, over every rival's best); now a deep winter wins 88 % and a
+  shallow one (amber 150 / crystal 120) mostly loses. No crop or dish prices changed: every
+  recipe gains 7-67 G a cooking over its raw ingredients, cooking stays a small extra.
+- Balance, before (the old tool, same data, from the daikon / rice entry):
+  ```
+   season |   crops |    cook |    eggs |    milk |    wool |    fish |    mine |  income |   seeds |    feed | animals |   other |     net
+   spring |   10260 |       0 |    3792 |       0 |       0 |    2797 |     259 |   17109 |    2380 |     590 |    2800 |    2050 |    9288
+   summer |   18828 |     576 |    7492 |    2616 |       0 |    3501 |    1218 |   34232 |    3016 |    1406 |    8800 |    2050 |   18959
+     fall |   30758 |    1525 |    8325 |    5886 |    1981 |    3442 |    2062 |   53978 |    7060 |    2151 |    9600 |    2050 |   33117
+   winter |       0 |    1382 |    8325 |    9810 |    2830 |    4161 |   22715 |   49223 |       0 |    4410 |       0 |    1150 |   43663
+   spring: rucksack 1, chest, can 2, hoe 2; 2788 G left · summer: kitchen, sickle 2, can 3; 11748
+   fall: rucksack 2, room; 20365 · winter: hoe 3, can 4, hammer 2; 55528 G left
+  ```
+  After (`python -I tools/balance.py`):
+  ```
+   season |   crops |    cook |    eggs |    milk |    wool |    fish |    mine |   prize |  income |   seeds |    feed | animals |   other |     net
+   spring |   10260 |       0 |    3792 |       0 |       0 |    2797 |     205 |     476 |   17531 |    2380 |     590 |    2800 |    2050 |    9711
+   summer |   18828 |     576 |    7492 |    2616 |       0 |    3501 |     970 |     295 |   34279 |    3016 |    1406 |    8800 |    2050 |   19007
+     fall |   30758 |    1525 |    8325 |    5886 |    1981 |    3442 |    2062 |     406 |   54384 |    7060 |    2151 |    9600 |    2050 |   33523
+   winter |       0 |    1382 |    8325 |    9810 |    2830 |    4161 |   22221 |     464 |   49193 |       0 |    4410 |       0 |    1150 |   43633
+  year net 105874 G (mine: finds shipped, less the ores kept for the smithy)
+
+   spring: bought rucksack 1 (2000), chest (3000), upgrade can 2 (1000); 4211 G left; ores kept 54 G; upgrade hoe 2 waits for akagane
+   summer: bought upgrade hoe 2 (1000), kitchen (6500), upgrade sickle 2 (1000), upgrade can 3 (2500); 12217 G left; ores kept 248 G
+     fall: bought rucksack 2 (6500), room (18000); 21240 G left
+   winter: bought upgrade hoe 3 (2500), upgrade can 4 (5000), upgrade hammer 2 (1000); 56374 G left; ores kept 494 G
+     ores left: satetsu 168.1, akagane 185.2, shirogane 102.9, kogane 32.2
+
+     blossom_day (  crop):  92% /   8% /   0% /   0%; 476 G
+   lantern_night (  fish):  32% /  68% /   0% /   0%; 295 G
+      moon_night (animal):  72% /  18% /   9% /   1%; 406 G
+      years_turn (  mine):  88% /  12% /   0% /   0%; 464 G
+     wins expected a year: 2.8
+  ```
+  Year net 105 027 -> 105 874 G: the ores kept cost under 800 G a year, prizes add about
+  1 640. Contests: ~2.8 wins a year, about 5-6 in two years, so "Contests won" [1, 2, 4, 6]
+  stays (the last star needs nearly every contest). Lantern Night is the hard one: morning /
+  evening fishing brings an ayu (120) and Hachiro rolls over that 70 % of the time; a night
+  eel (300) wins it.
+- Note for later (data/shops.json not touched, another session works there): the smithy's
+  level 2 asks 3 akagane, and a spring with the plan's two mine trips (floors 1-3) finds about
+  4.3, so the second upgrade waits for summer. Fine if the player is meant to mine for it; if
+  not, level 2 could ask 2 akagane, or akagane could weigh more on floors 1-3 (data/mine.json).
+- Checked: all 23 test scripts print `OK (0 failed)` (test_ending with the new checks).
+  Headless `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`,
+  `--demo --ending`, `--demo --festival=years_turn`, `--demo --festival=blossom_day
+  --contest=potato`) and `res://scenes/main.tscn --quit-after 400` printed no errors or
+  warnings.
+- Left / next: still nobody has played two real years; the contest odds are the plan's guess.
+
 ## 2026-10-31 — play.bat / play_demo.bat: double-click to play
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `play.bat` starts `Godot_v4.7.2-stable_win64.exe --path .` from its own folder (full
