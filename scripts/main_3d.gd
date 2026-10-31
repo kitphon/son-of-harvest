@@ -150,7 +150,7 @@ func _ready() -> void:
 	Game.minute_passed.connect(_update_tint)
 	Game.day_started.connect(_on_day_started)
 	Game.map_changed.connect(func(_id): fade.run(_enter_map))
-	Game.settings_changed.connect(func(): lightning.reset(Game.lightning_style()))
+	Game.settings_changed.connect(func(): lightning.reset({} if Game.sheltered() else Game.lightning_style()))
 	Game.thrown.connect(_on_thrown)
 	Game.fishing_event.connect(func(kind): FarmActions.on_fishing_event(kind))
 	_enter_map()
@@ -339,9 +339,7 @@ func _on_day_started() -> void:
 func _update_flash(delta: float) -> void:
 	var b := lightning.step(delta) if Game.ticking() else 0.0
 	if lightning.started: Sfx.thunder_after_flash()
-	var style := Game.lightning_style()
-	var sky := Color(style.get("sky", "ffffff")) * float(style.get("strength", 0.0)) * b
-	flash.color = Color(sky.r, sky.g, sky.b, 1.0)
+	flash.color = Lightning.flash_color(Game.lightning_style(), b)
 
 
 ## Day / night light outdoors; a room has its own steady lamp light; a mine floor its own

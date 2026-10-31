@@ -1,7 +1,8 @@
 extends SceneTree
 ## Headless checks for the flat view (scenes/main_2d.tscn): the scene builds, its Player's
 ## actions reach FarmActions (tools, holding and throwing, the bin, eating, fishing, doors,
-## talking, shops, the mine) and the throw is drawn. Run:
+## talking, shops, the mine), the throw is drawn, and the weather and festival lights read
+## the same rules as the 3D view (rain / snow, lightning, the lanterns' glow). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_view2d.gd
 
 var failures := 0
@@ -38,6 +39,7 @@ func _run() -> void:
 	await _doors()
 	await _talk_and_shop()
 	await _mine()
+	await _weather_and_festival()
 	scene.free()
 	print("test_view2d: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -190,6 +192,60 @@ func _mine() -> void:
 	select("hammer")
 	act("tool", Vector2i(8, 1), Vector2i.DOWN)
 	check(not f.rocks.has(c), "the hammer breaks the rock in front")
+
+
+## Rain / snow and lightning outdoors only, flashes off stops them, and on Lantern Night the
+## village's FestivalView lists its lanterns' glows for FestivalGlow.
+func _weather_and_festival() -> void:
+	var props3d: GDScript = load("res://scripts/world3d/festival_props.gd")   # they name the Game autoload
+	var glow: GDScript = load("res://scripts/world3d/festival_glow.gd")
+	g.weather_today = "storm"
+	scene._show_weather()   # still down the mine: sheltered
+	check(scene.weather.fall == "" and not scene.weather._fall.emitting, "no rain falls down the mine")
+	check(scene.lightning.step(100.0) == 0.0 and not scene.lightning.started, "no lightning down the mine")
+	g.season = 1   # summer 20, 20:00: Lantern Night, into the fireworks
+	g.day = 20
+	g.hour = 20
+	g.minute = 0
+	g.go_to_map("town", Vector2i(2, 10), Vector2i.RIGHT)
+	await _wait_view("map_view.gd")
+	check(scene.weather.fall == "rain" and scene.weather._fall.emitting and scene.weather._splash.emitting, "a storm rains in the village, with splashes")
+	check(scene.weather._fall.amount == int(g.weather_style().amount * scene.weather.AMOUNT), "as heavy as the storm's look says (%d)" % scene.weather._fall.amount)
+	check(scene.tint.color == g.light_color() and g.light_color().b < 0.75, "the tint is the night light times the storm's tint %s" % scene.tint.color)
+	var lit := 0.0
+	for i in 200:   # 10 s: the first flash comes within the style's 'first'
+		lit = maxf(lit, scene.lightning.step(0.05))
+	check(lit > 0.0, "lightning flashes in the storm (%.2f)" % lit)
+	var full: Color = Lightning.flash_color(g.lightning_style(), 1.0)
+	check(full.r > 0.1 and full.r <= 0.5 and Lightning.flash_color(g.lightning_style(), 0.0) == Color.BLACK, "a flash adds pale light %s" % full)
+	scene._update_flash(0.0)
+	check(scene.flash.color == Color.BLACK, "no flash while the clock stands")
+	g.flashes_enabled = false
+	g.settings_changed.emit()
+	var none := 0.0
+	for i in 400:
+		none = maxf(none, scene.lightning.step(0.05))
+	check(none == 0.0, "flashes turned off: no lightning in the 2D view")
+	g.flashes_enabled = true
+	g.season = 3   # a winter storm is a blizzard: snow
+	scene._show_weather()
+	check(scene.weather.fall == "snow", "a winter storm snows (%s)" % scene.weather.fall)
+	g.season = 1
+	await process_frame
+	check(scene.weather._splash.position == scene.cam.get_screen_center_position(), "the weather follows the camera")
+	var fv: Node = null
+	for n in scene.view.get_children():
+		if _is(n, "festival_view.gd"):
+			fv = n
+	check(fv != null and fv.festival == "lantern_night" and fv.shown(), "Lantern Night's decorations stand in the 2D village")
+	if fv != null:
+		var n3d: int = props3d.glows_of("lantern_night", "town").size()
+		check(fv.glows.size() == n3d and n3d > 0, "its lights are the 3D props' lights (%d / %d)" % [fv.glows.size(), n3d])
+		check(fv.is_in_group(fv.GROUP), "FestivalGlow finds it")
+	check(scene.glow.is_inside_tree() and glow.fireworks_on() and glow.darkness(g.light_color()) > 0.5, "the glow layer is up, fireworks on, dark enough to shine")
+	g.weather_today = "sunny"
+	scene._show_weather()
+	check(scene.weather.fall == "" and not scene.weather._fall.emitting, "a sunny day: nothing falls")
 
 
 func _is(n: Object, file: String) -> bool:

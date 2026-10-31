@@ -1,7 +1,7 @@
 class_name Lightning
 extends RefCounted
 ## When lightning flashes in a storm, and how bright it is at each moment (0..1). Pure timing,
-## so tests can step it; the 3D view turns the brightness into a short wash of pale light.
+## so tests can step it; the views turn the brightness into a short wash of pale light.
 ## Style from data/weather_fx.json ("lightning" in a look):
 ##   gap [min, max] s between flashes, first [min, max] s before the first one, and pulses
 ##   [[start s, length s, level 0..1], ...]: each pulse jumps to its level and fades out.
@@ -60,6 +60,12 @@ static func pulse_at(t: float, style: Dictionary) -> float:
 		if into >= 0.0 and into < float(p[1]):
 			b = maxf(b, float(p[2]) * (1.0 - into / float(p[1])))
 	return b
+
+
+## The light a flash of brightness `b` adds over the picture (both views add it on top).
+static func flash_color(style: Dictionary, b: float) -> Color:
+	var sky := Color(style.get("sky", "ffffff")) * float(style.get("strength", 0.0)) * b
+	return Color(sky.r, sky.g, sky.b, 1.0)
 
 
 func _pick(key: String) -> float:

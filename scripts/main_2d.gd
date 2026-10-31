@@ -2,6 +2,8 @@ extends Node2D
 ## The flat top-down view (scenes/main_2d.tscn). The main scene is the 3D one (main_3d.gd).
 ## Same game as the 3D view: the Player's actions go to FarmActions (connect_view).
 ## The farm is a FarmView, other maps a MapView; a change of map fades and swaps them.
+## Weather and festival lights read the same rules as the 3D view: WeatherView for rain and
+## snow, Lightning for the flashes, FestivalGlow for the lanterns and fireworks at night.
 
 const T := 16
 
@@ -11,6 +13,10 @@ var cam: Camera2D
 var tint: CanvasModulate
 var mine_light: ColorRect   # down the mine: the floor's light and the lantern (MineLight), over the view
 var fade: MapFade
+var weather: WeatherView
+var flash: ColorRect   # lightning: pale sky light added over the picture
+var lightning := Lightning.new()
+var glow: FestivalGlow
 var flying: Sprite2D   # a thrown item on its way
 var _flight := {}      # from, to, time, seconds, height (while flying)
 
@@ -33,6 +39,22 @@ func _ready() -> void:
 		ProjectSettings.get_setting("display/window/size/viewport_height"))
 	mine_light.visible = false
 	add_child(mine_light)
+	weather = WeatherView.new()
+	add_child(weather)
+	# Lightning and the festival glow: added over the tinted picture, under the HUD.
+	var layer := CanvasLayer.new()
+	layer.layer = 0
+	flash = ColorRect.new()
+	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var add := CanvasItemMaterial.new()
+	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	flash.material = add
+	flash.color = Color.BLACK
+	layer.add_child(flash)
+	glow = FestivalGlow.new()
+	layer.add_child(glow)
+	add_child(layer)
 	add_child(Hud.new())
 	fade = MapFade.new()
 	add_child(fade)
@@ -50,6 +72,7 @@ func _ready() -> void:
 	Game.minute_passed.connect(_update_tint)
 	Game.day_started.connect(_on_day_started)
 	Game.map_changed.connect(func(_id): fade.run(_enter_map))
+	Game.settings_changed.connect(func(): lightning.reset({} if Game.sheltered() else Game.lightning_style()))
 	Game.fishing_event.connect(func(kind): FarmActions.on_fishing_event(kind))
 	Game.thrown.connect(_on_thrown)
 	_enter_map()
@@ -96,12 +119,21 @@ func _enter_map() -> void:
 	player.position = Game.maps.pos
 	player.facing = Game.maps.facing
 	player.cancel_charge()
+	_show_weather()
 	_update_tint()
+
+
+## Weather falls outdoors only (not in buildings or the mine).
+func _show_weather() -> void:
+	weather.show_weather({} if Game.sheltered() else Game.weather_style())
+	lightning.reset({} if Game.sheltered() else Game.lightning_style())
+	weather.follow(cam.get_screen_center_position())
 
 
 ## The farmer is put home by the map change (Game.go_home) that comes with the new day.
 func _on_day_started() -> void:
 	player.cancel_charge()
+	_show_weather()
 	_update_tint()
 	if view is FarmView:
 		view.set_snow(Game.snow_cover / 100.0)
@@ -120,6 +152,14 @@ func _update_tint() -> void:
 func _process(delta: float) -> void:
 	_aim_lantern()
 	_fly(delta)
+	weather.follow(cam.get_screen_center_position())
+	_update_flash(delta)
+
+
+func _update_flash(delta: float) -> void:
+	var b := lightning.step(delta) if Game.ticking() else 0.0
+	if lightning.started: Sfx.thunder_after_flash()
+	flash.color = Lightning.flash_color(Game.lightning_style(), b)
 
 
 ## A throw: the item flies in an arc from over the head to the cell it ends up on (the bin,

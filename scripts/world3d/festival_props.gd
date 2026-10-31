@@ -269,3 +269,15 @@ func _bonfire(mid: Vector3) -> void:
 	_cylinder(0.0, 0.22, 0.55, mid + Vector3(0, 0.38, 0), flat_material(FLAME))
 	_cylinder(0.0, 0.11, 0.35, mid + Vector3(0, 0.32, 0), flat_material(Color("fff0a0")))
 	_glow(mid + Vector3(0, 0.4, 0), FLAME, 3.0)
+
+
+## The lights a festival's decorations give on a map (as in `glows`), without keeping the
+## meshes: the flat view's FestivalView reads them for FestivalGlow.
+static func glows_of(fest: String, map: String) -> Array[Dictionary]:
+	var fp := FestivalProps.new(map)
+	fp.festival = fest
+	for p in Festivals.get_festival(fest).get("props", []):
+		fp._make(p)
+	var out := fp.glows
+	fp.free()
+	return out
