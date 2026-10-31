@@ -130,9 +130,12 @@ func target_cell() -> Vector2i:
 	return cell_of(position) + facing
 
 
-## Moves by `d` unless a corner of the feet would end on a solid cell; false when blocked.
+## Moves by `d` unless a corner of the feet would end on a solid cell or the step goes into
+## a villager; false when blocked.
 func _try_move(d: Vector2) -> bool:
 	var np := position + d
+	if Game.villager_in_way(position, np):
+		return false
 	for corner in [Vector2(-FEET.x, -FEET.y), Vector2(FEET.x, -FEET.y),
 			Vector2(-FEET.x, FEET.y), Vector2(FEET.x, FEET.y)]:
 		if Game.maps.is_solid(cell_of(np + corner), farm):

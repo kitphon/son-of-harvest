@@ -1,0 +1,43 @@
+{
+	"_note": "What Hachiro says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gifts in data/villagers/hachiro.json). Our own lines.",
+	"picks": [
+		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet_1", "wet_2"]},
+		{"if": {"band": [4, 6]}, "at": ["close_1", "close_2"]},
+		{"if": {"band": [0, 1]}, "at": ["new_1", "new_2"]},
+		{"if": {"weekday": ["sun"]}, "at": ["sunday_1", "sunday_2"]},
+		{"if": {"time": ["06:00", "10:00"]}, "at": ["morning_1", "morning_2"]},
+		{"if": {"time": ["18:00", "24:00"]}, "at": ["evening"]},
+		{"if": {"season": ["summer"]}, "at": ["summer"]},
+		{"if": {"season": ["fall"]}, "at": ["fall"]},
+		{"at": ["plain_1", "plain_2", "plain_3"]}
+	],
+	"lines": [
+		{"id": "again_1", "speaker": "hachiro", "face": "calm", "text": "Something else? Talk while I work, then.", "next": "end"},
+		{"id": "again_2", "speaker": "hachiro", "face": "smile", "text": "Ha. You like an old man's company, eh?", "next": "end"},
+		{"id": "wet_1", "speaker": "hachiro", "face": "calm", "text": "Rain on the roof, fire in the forge. Not a bad day to be a smith.", "next": "end"},
+		{"id": "wet_2", "speaker": "hachiro", "face": "calm", "text": "Can't mend a roof in the wet. So I mend hoes instead.", "next": "end"},
+		{"id": "close_1", "speaker": "hachiro", "face": "smile", "text": "Your hoe sings when it hits the soil now. You've got the swing."},
+		{"speaker": "hachiro", "face": "calm", "text": "Bring it in once in a while. A good tool wants looking after.", "next": "end"},
+		{"id": "close_2", "speaker": "hachiro", "face": "smile", "text": "Saved you a whetstone. No, no, keep your money. Use it.", "next": "end"},
+		{"id": "new_1", "speaker": "hachiro", "face": "calm", "text": "Hachiro. I fix roofs, and I fix tools. Mostly roofs, these days.", "next": "end"},
+		{"id": "new_2", "speaker": "hachiro", "face": "calm", "text": "The old farm, eh? The fence by the gate leans. I'd see to it.", "next": "end"},
+		{"id": "sunday_1", "speaker": "hachiro", "face": "smile", "text": "Sunday. The anvil rests and so do I. The fish don't, though.", "next": "end"},
+		{"id": "sunday_2", "speaker": "hachiro", "face": "calm", "text": "Quiet... Don't scare the koi. I've been waiting an hour for this one.", "next": "end"},
+		{"id": "morning_1", "speaker": "hachiro", "face": "calm", "text": "That empty house won't stay up on its own. Nails before tea.", "next": "end"},
+		{"id": "morning_2", "speaker": "hachiro", "face": "calm", "text": "Morning. Smithy opens at ten. Bring what's broken.", "next": "end"},
+		{"id": "evening", "speaker": "hachiro", "face": "calm", "text": "Evening's the best time at the pond. The water goes gold.", "next": "end"},
+		{"id": "summer", "speaker": "hachiro", "face": "worried", "text": "Hot as the forge out here. And I'd know.", "next": "end"},
+		{"id": "fall", "speaker": "hachiro", "face": "smile", "text": "Good time for an axe. The wood's drying, the stumps come up easy.", "next": "end"},
+		{"id": "plain_1", "speaker": "hachiro", "face": "calm", "text": "Steel is honest. Hit it right and it remembers.", "next": "end"},
+		{"id": "plain_2", "speaker": "hachiro", "face": "calm", "text": "If the can leaks, don't hammer it yourself. Bring it here.", "next": "end"},
+		{"id": "plain_3", "speaker": "hachiro", "face": "smile", "text": "Kota was here asking for a fish hook again. That boy...", "next": "end"},
+		{"id": "gift_love", "speaker": "hachiro", "face": "surprised", "text": "Oh? Now that's a fine thing."},
+		{"speaker": "hachiro", "face": "smile", "text": "You know how to warm a man's stomach. Thank you.", "next": "end"},
+		{"id": "gift_like", "speaker": "hachiro", "face": "smile", "text": "Hm. Not bad at all. Thank you kindly.", "next": "end"},
+		{"id": "gift_neutral", "speaker": "hachiro", "face": "calm", "text": "For me? Well. Thank you.", "next": "end"},
+		{"id": "gift_dislike", "speaker": "hachiro", "face": "worried", "text": "Ah... sweet things aren't for me. Still, thank you.", "next": "end"},
+		{"id": "gift_hate", "speaker": "hachiro", "face": "worried", "text": "Ugh. Can't stand the smell of it. Take it back, will you.", "next": "end"},
+		{"id": "gift_again", "speaker": "hachiro", "face": "calm", "text": "One's enough for today. Don't spoil me.", "next": "end"}
+	]
+}

@@ -7,14 +7,17 @@ const T := 16
 const HOME := Vector2(4 * T + 8, 4 * T + 10)   # in front of the door, in player pixels
 
 
-## kind "enter" = the farmer walked into a door cell `origin + facing`. With an item
-## overhead on the farm the hands are full: interact throws it, the tool button sets it down.
-## Otherwise interact first asks the map's trigger table about the spot faced (examine).
+## kind "enter" = the farmer walked into a door cell `origin + facing`. Interact facing a
+## villager talks to them (or gives them the item overhead). With an item overhead on the
+## farm the hands are full: interact throws it, the tool button sets it down. Otherwise
+## interact first asks the map's trigger table about the spot faced (examine).
 static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	if Game.fishing.active():   # the line is out: either button reels in
 		reel()
 	elif kind == "enter":
 		interact(origin + facing)
+	elif kind == "interact" and talk_to(origin, facing):
+		pass
 	elif Game.holding() and Game.maps.on_farm():
 		if kind == "interact":
 			throw(origin, facing)
@@ -25,6 +28,21 @@ static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge :
 			interact(origin + facing)
 	else:
 		use_tool(origin, facing, charge)
+
+
+## The villager in front (or across a counter) turns to the farmer and talks, takes a gift
+## or opens their shop; a "talk" row of the map's trigger table plays its event instead.
+static func talk_to(origin: Vector2i, facing: Vector2i) -> bool:
+	var w := Talk.facing_villager(Game.maps.current(), origin, facing, Game.day_minutes(), Game.trigger_state(origin))
+	if w.is_empty():
+		return false
+	var p := Game.get_tree().get_first_node_in_group(EventPlayer.GROUP) as EventPlayer
+	if p != null and p.talked_to(w.id):
+		Villagers.turn(w.id, -facing, Game.day_minutes())
+		return true
+	if Game.talk_to(w.id, -facing) == "gift":
+		Sfx.play("pick")
+	return true
 
 
 ## An "examine" row of the map's trigger table for cell `c` plays its event (EventPlayer).

@@ -1,5 +1,18 @@
 {
 	"_note": "Shared numbers for every villager (data/villagers/<id>.json; files starting with _ are not villagers). walk_speed is in cells per game minute (a minute is 0.5 s, so 1.5 = 3 cells a second, a bit slower than the farmer's 3.75); a villager's own speed wins. stride: cells walked per walk frame (4 frames = two steps). Ours, picked by eye.",
 	"walk_speed": 1.5,
-	"stride": 0.5
+	"stride": 0.5,
+	"_delay": "A talk turns the villager to the farmer and they stand talk_turn_minutes after it closes; walking into the farmer (within bump_reach cells, heading their way) makes them wait. Both push their plan back, at most delay_max minutes, cleared at 12:00 and 18:00 (DESIGN: villagers). The farmer can't step closer than block_reach cells to anyone. Ours.",
+	"talk_turn_minutes": 2,
+	"delay_max": 30,
+	"bump_reach": 0.9,
+	"block_reach": 0.7,
+	"_affection": "How much each villager likes the farmer: 0 .. max, starting at start. A talk counts once a day (talk), a gift once a day by the villager's reaction (gift; lists in each villager's gifts). bands: the affection where each of the 7 heart colours starts, 0 = a stranger, 6 = a dear friend; dialogue picks and event rows use the band, not the number. Our numbers: a daily talk alone reaches band 3 by the end of the first year, a loved gift a day gets there in about a season.",
+	"affection": {
+		"max": 255,
+		"start": 0,
+		"talk": 1,
+		"gift": {"love": 8, "like": 3, "neutral": 1, "dislike": -3, "hate": -8},
+		"bands": [0, 20, 50, 90, 140, 190, 235]
+	}
 }

@@ -5,7 +5,7 @@ extends RefCounted
 ## with the file and the format version. Reading checks everything before changing anything,
 ## so a missing or broken file leaves the game as it was.
 
-const VERSION := 2   # 2: animals (Game.animals); a version 1 save loads with the starting flock
+const VERSION := 3   # 2: animals (Game.animals); 3: affection (Game.affection). Older saves load with defaults
 const SLOT := "user://save1.json"
 
 

@@ -92,6 +92,7 @@ var farm: FarmGrid
 var maps := MapManager.new()       # the map the farmer is on and where (saved)
 var animals := Animals.new()       # the chickens and their coop (data/animals.json, saved)
 var animal_news: Array[String] = []   # what happened to the animals overnight, told in the coop
+var affection := Affection.new()   # how much each villager likes the farmer (saved)
 var _accum := 0.0
 var _shown_state := "fine"      # the tired state last told to the player
 
@@ -153,6 +154,8 @@ func new_game() -> void:
 	animal_news = []
 	fishing = Fishing.new(fish_data)
 	fish_caught = {}
+	affection = Affection.new()
+	Villagers.reset_day()
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--demo":
@@ -242,6 +245,7 @@ func _process(delta: float) -> void:
 			fishing_event.emit(ev)
 	if not ticking():
 		return
+	Villagers.bump(maps.id, day_minutes(), delta / SECONDS_PER_MINUTE, maps.pos / 16.0, trigger_state(Vector2i.ZERO))
 	_accum += delta
 	while _accum >= SECONDS_PER_MINUTE:
 		_accum -= SECONDS_PER_MINUTE
@@ -979,6 +983,39 @@ func talk(id: String, at := "") -> void:
 	dialogue_requested.emit(id, at)
 
 
+## E facing villager `id` (Talk.facing_villager) from the farmer's side `face` (the way the
+## villager turns): an item overhead is a gift, a keeper at their counter opens the shop,
+## anyone else says a line picked for now (Talk.pick). Returns "gift", "shop" or "talk".
+func talk_to(id: String, face: Vector2i) -> String:
+	var t := day_minutes()
+	var today := day_number()
+	Villagers.turn(id, face, t)
+	var file := Talk.dialogue_id(id)
+	if holding():
+		var r := affection.give(id, held, today)
+		if r.ok:
+			held = ""
+			changed.emit()
+		talk(file, "gift_" + str(r.reaction))
+		return "gift"
+	var w := Villagers.where(id, t, trigger_state(Vector2i.ZERO))
+	var shop_id := Talk.keeper_shop(id, maps.id, Vector2i(w.get("pos", Vector2(-1, -1)).floor()))
+	var s := trigger_state(Vector2i.ZERO)
+	s.merge({"band": affection.band(id), "again": affection.talked_on(id, today), "day_number": today})
+	affection.talk(id, today)
+	if shop_id != "" and open_shop(shop_id):
+		return "shop"
+	var at := Talk.pick(id, s)
+	if at != "":
+		talk(file, at)
+	return "talk"
+
+
+## Is a villager in the way of the farmer stepping from `from` to `to` (cell pixels)?
+func villager_in_way(from: Vector2, to: Vector2) -> bool:
+	return Villagers.blocks(maps.id, day_minutes(), trigger_state(Vector2i.ZERO), from / 16.0, to / 16.0)
+
+
 ## Plays event `id` (data/events/<id>.json) in the view's EventPlayer.
 func play_event(id: String) -> void:
 	event_requested.emit(id)
@@ -999,6 +1036,10 @@ func open_shop(id: String, force := false) -> bool:
 		return false
 	if not force and not s.is_open(hour, weekday()):
 		message.emit(s.closed_text())
+		return false
+	# A shop with a keeper sells only while they are in (their day plan puts them at the counter).
+	if not force and s.keeper != "" and not Villagers.is_on(s.keeper, s.map, day_minutes(), trigger_state(Vector2i.ZERO)):
+		message.emit("Nobody is at the counter")
 		return false
 	shop_requested.emit(id)
 	return true
@@ -1049,7 +1090,7 @@ func _shop_paid(r: Dictionary) -> Dictionary:
 func trigger_state(cell: Vector2i) -> Dictionary:
 	return {"year": year, "season": season_name(), "day": day, "weekday": weekday(),
 		"time": hour * 60 + minute, "weather": weather_today, "flags": flags,
-		"seen": events_seen, "cell": cell}
+		"seen": events_seen, "cell": cell, "hearts": affection.bands()}
 
 
 # --- save / load ------------------------------------------------------------
@@ -1093,6 +1134,7 @@ func to_dict() -> Dictionary:
 	d.shop_jobs = shop_jobs.duplicate(true)
 	d.animals = animals.to_dict()
 	d.fishing = {"caught": fish_caught.duplicate(), "dry_casts": fishing.dry_casts}
+	d.affection = affection.to_dict()
 	d.farm = farm.to_dict()
 	return d
 
@@ -1260,6 +1302,14 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 		return "Saved fishing is broken"
 	if not data.has("fishing") and n.inventory.count("rod", ["tools", "chest"]) == 0:
 		n.inventory.add("rod", 1, ["tools", "chest"])
+	# Version 3 added affection; older saves start with everyone a stranger.
+	var friends := Affection.new()
+	if version >= 3 or data.has("affection"):
+		var parsed_friends := Affection.parse(data.get("affection"))
+		if parsed_friends[0] != "":
+			return parsed_friends[0]
+		friends = parsed_friends[1]
+	n.affection = friends
 	if not data.get("farm") is Dictionary:
 		return "Saved farm is missing"
 	var err := farm.from_dict(data.farm)

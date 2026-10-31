@@ -181,7 +181,9 @@ func _town_today() -> void:
 	var at := func(t: float) -> Array:
 		return Villagers.on_map("town", t, s).map(func(w): return w.id)
 	check(at.call(360.0).is_empty(), "nobody out at 6:00")
-	check(at.call(600.0) == ["hachiro", "kota", "sayo", "tome"], "everyone out at 10:00 %s" % [at.call(600.0)])
+	check(at.call(600.0) == ["kota", "tome"], "Kota and Tome out at 10:00 %s" % [at.call(600.0)])
+	check(Villagers.on_map("store", 600.0, s).map(func(w): return w.id) == ["sayo"]
+		and Villagers.on_map("smithy", 600.0, s).map(func(w): return w.id) == ["hachiro"], "the keepers at their counters at 10:00")
 	check(at.call(1260.0).is_empty(), "everyone in at 21:00 %s" % [at.call(1260.0)])
 	# Tome's morning: from her door (5, 7) down to the road, east, up to the torii, 1.5 cells / min.
 	var w := Villagers.where("tome", 425.0, s)
@@ -192,10 +194,12 @@ func _town_today() -> void:
 	check(Villagers.where("tome", 425.0, _state({"weather": "rain"})).map == "away", "Tome stays in on a wet day")
 	check(Villagers.where("tome", 425.0, _state({"season": "winter"})).map == "away"
 		and Villagers.where("tome", 620.0, _state({"season": "winter"})).map == "town", "Tome comes out late in winter")
-	check(Villagers.is_on("sayo", "town", 720.0, s) and Villagers.is_on("sayo", "town", 720.0, _state({"day": 3, "weekday": "wed"}))
-		and not Villagers.is_on("sayo", "town", 1100.0, s), "Sayo is out at noon on a shop day and on her day off, in at 18:20")
-	check(Villagers.where("sayo", 720.0, s).pos == Vector2(23.5, 16.5), "Sayo stands at the shop door at noon")
-	check(Villagers.where("sayo", 720.0, _state({"day": 3, "weekday": "wed"})).pos != Vector2(23.5, 16.5), "on Wednesday she is off visiting")
+	check(Villagers.is_on("sayo", "store", 720.0, s) and Villagers.is_on("sayo", "town", 720.0, _state({"day": 7, "weekday": "sun"}))
+		and not Villagers.is_on("sayo", "town", 1100.0, s), "Sayo is in the store at noon on a shop day, out on her day off, in at 18:20")
+	check(Villagers.where("sayo", 720.0, s).pos == Vector2(3.5, 2.5), "Sayo stands at the store's keeper spot at noon")
+	check(Villagers.where("sayo", 525.0, s).map == "town", "and sweeps in front before opening")
+	check(Villagers.where("sayo", 720.0, _state({"day": 7, "weekday": "sun"})).pos == Vector2(6.5, 8.5), "on Sunday she is off visiting Tome")
+	check(Villagers.where("hachiro", 720.0, _state({"weather": "rain"})).map == "smithy", "Hachiro works the forge in the rain")
 	check(Villagers.where("hachiro", 600.0, _state({"day": 7, "weekday": "sun"})).pos == Vector2(30.5, 16.5), "Hachiro fishes on Sunday")
 	check(Villagers.where("nobody", 600.0, s).is_empty() and not Villagers.is_on("nobody", "town", 600.0, s), "an unknown villager is nowhere")
 
@@ -247,7 +251,7 @@ func _check_views() -> void:
 	var g: Node = root.get_node("Game")
 	var want := Villagers.on_map("town", g.day_minutes(), g.trigger_state(Vector2i.ZERO))
 	var ids := want.map(func(w): return w.id)
-	check(ids.size() == 4, "everyone is in the village at 14:20 %s" % [ids])
+	check(ids == ["kota", "tome"], "Kota and Tome are in the village at 14:20 (the keepers are in their shops) %s" % [ids])
 	var layers3: Array = _scene3.world.get_children().filter(func(n): return _script_is(n, "villager_sprites.gd"))
 	check(layers3.size() == 1 and layers3[0].map_id == "town", "the 3D village world has its villagers")
 	var layers2: Array = _scene2.view.get_children().filter(func(n): return _script_is(n, "villager_view.gd"))

@@ -19,14 +19,14 @@ const DIRS := {"up": Vector2i.UP, "down": Vector2i.DOWN, "left": Vector2i.LEFT, 
 const COMMANDS := {
 	"say": ["dialogue", "at"], "wait": ["seconds"], "face": ["dir"], "walk": ["to", "by", "run"],
 	"set": ["flags"], "clear": ["flags"], "give": ["item", "count"], "money": ["amount"],
-	"fade": ["to", "seconds"], "sound": ["key"],
+	"fade": ["to", "seconds"], "sound": ["key"], "affection": ["who", "amount"],
 }
 
 var id := ""
 var error := ""             # "" or why the script was refused
 var steps: Array = []
 var index := -1             # the step going on, -1 once finished
-var game: Object            # Game (or a test's copy): flags, talk(), dialogue_open, add_item(), add_money()
+var game: Object            # Game (or a test's copy): flags, talk(), dialogue_open, add_item(), add_money(), affection
 var pos := Vector2.ZERO     # the farmer's feet, in cell pixels (16 px = 1 cell)
 var facing := Vector2i.DOWN
 var walking := false
@@ -152,6 +152,8 @@ func _begin(s: Dictionary) -> void:
 			game.add_item(s.item, int(s.get("count", 1)))
 		"money":
 			game.add_money(int(s.amount))
+		"affection":
+			game.affection.add(s.who, int(s.amount))
 		"fade":
 			_fade_from = fade
 			_fade_to = 1.0 if s.to == "black" else 0.0
@@ -298,6 +300,9 @@ func _check_step(s: Dictionary) -> String:
 		"money":
 			if not _whole(s.get("amount"), -999999, 999999) or int(s.amount) == 0:
 				return "money needs a whole amount"
+		"affection":
+			if not s.get("who") is String or s.who == "" or not _whole(s.get("amount"), -255, 255) or int(s.amount) == 0:
+				return "affection needs who and a whole amount"
 		"fade":
 			if not s.get("to") in ["black", "clear"]:
 				return "fade to black or clear"
