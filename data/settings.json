@@ -1,6 +1,10 @@
 {
-	"_comment": "Player settings, in menu order. kind: bool (on / off), choice (one of options), range (whole numbers min..max in steps). A new setting only needs an entry here and someone who reads Game.settings.",
+	"_comment": "Player settings, in menu order. kind: bool (on / off), choice (one of options), range (whole numbers min..max in steps, shown with an optional unit). A new setting only needs an entry here and someone who reads Game.settings.",
 	"flashes": {"label": "Lightning", "kind": "bool", "default": true},
 	"window": {"label": "Window", "kind": "choice", "default": "3x", "options": ["2x", "3x", "4x", "full"],
-		"option_labels": {"full": "Full screen"}}
+		"option_labels": {"full": "Full screen"}},
+	"_volume": "Volumes: range entries with a bus are read by the Sfx autoload (Sfx.set_volume(bus, value / max)); the menu draws them as sliders.",
+	"music": {"label": "Music", "kind": "range", "default": 70, "min": 0, "max": 100, "step": 10, "unit": "%", "bus": "Music"},
+	"sfx": {"label": "Sounds", "kind": "range", "default": 80, "min": 0, "max": 100, "step": 10, "unit": "%", "bus": "SFX"},
+	"ambient": {"label": "Ambient", "kind": "range", "default": 60, "min": 0, "max": 100, "step": 10, "unit": "%", "bus": "Ambient"}
 }

@@ -21,6 +21,8 @@ func _init() -> void:
 # over a few frames so a key press and its release don't fall in the same one.
 func _process(_delta: float) -> bool:
 	_frame += 1
+	if _frame == 1:
+		_volumes_in_effect()
 	if _frame < 4:
 		_farmer_in_menu(_frame)
 		return false
@@ -78,7 +80,7 @@ func _pause_rule() -> void:
 ## Settings: defaults from data, changing them, a round trip, and refusing broken files.
 func _settings() -> void:
 	var s := Settings.make()
-	check(s.keys() == (["flashes", "window"] as Array[String]), "settings in data order (%s)" % [s.keys()])
+	check(s.keys() == (["flashes", "window", "music", "sfx", "ambient"] as Array[String]), "settings in data order (%s)" % [s.keys()])
 	check(s.value("flashes") == true and s.value("window") == "3x", "defaults")
 	check(s.value_text("flashes") == "On" and s.value_text("window") == "3x", "value text")
 	check(s.adjust("flashes", 1) and s.value("flashes") == false and s.value_text("flashes") == "Off", "flashes flip")
@@ -104,16 +106,24 @@ func _settings() -> void:
 		"flashes as text": JSON.stringify({"version": 1, "settings": {"flashes": "yes"}}),
 		"unknown window": JSON.stringify({"version": 1, "settings": {"window": "8x"}}),
 		"window as number": JSON.stringify({"version": 1, "settings": {"window": 3}}),
+		"music too loud": JSON.stringify({"version": 1, "settings": {"music": 150}}),
+		"sfx below 0": JSON.stringify({"version": 1, "settings": {"sfx": -10}}),
+		"ambient as text": JSON.stringify({"version": 1, "settings": {"ambient": "loud"}}),
+		"music in pieces": JSON.stringify({"version": 1, "settings": {"music": 45.5}}),
 	}
 	for what in broken:
 		_put(broken[what])
 		var b := Settings.make()
 		b.values.window = "4x"
 		var err := b.read(PATH)
-		check(err != "" and b.values == {"flashes": true, "window": "4x"}, "broken file (%s) refused, nothing changed: %s" % [what, err])
-	_put(JSON.stringify({"version": 1, "settings": {"window": "2x", "volume_from_later": 70}}))
+		var want := Settings.make().values
+		want.window = "4x"
+		check(err != "" and b.values == want, "broken file (%s) refused, nothing changed: %s" % [what, err])
+	_put(JSON.stringify({"version": 1, "settings": {"window": "2x", "from_later": 70}}))
 	var older := Settings.make()
-	check(older.read(PATH) == "" and older.values == {"flashes": true, "window": "2x"}, "missing setting = default, unknown one skipped")
+	var want_older := Settings.make().values
+	want_older.window = "2x"
+	check(older.read(PATH) == "" and older.values == want_older, "missing setting = default, unknown one skipped")
 
 	# A whole-number range (the kind a volume setting would use).
 	var r := Settings.make()
@@ -125,6 +135,27 @@ func _settings() -> void:
 	check(not r.adjust("volume", 1, false) and r.value("volume") == 100, "range stops at the top")
 	check(r.adjust("volume", 1) and r.value("volume") == 0, "range wraps to the bottom")
 	check(r.valid("volume", 50.0) == 50 and r.valid("volume", 55.5) == null and r.valid("volume", 101) == null, "range check")
+
+	# The volume sliders: defaults, %, steps that stop at 0 and 100, a round trip, and the bus
+	# volumes the Sfx autoload takes from them.
+	var v := Settings.make()
+	check(v.value("music") == 70 and v.value("sfx") == 80 and v.value("ambient") == 60, "volume defaults")
+	check(v.value_text("music") == "70%" and v.value_text("ambient") == "60%", "volumes in %% (%s)" % v.value_text("music"))
+	check(v.bus_volumes() == {"Music": 0.7, "SFX": 0.8, "Ambient": 0.6}, "bus volumes (%s)" % [v.bus_volumes()])
+	for i in 3:
+		v.adjust("music", 1, false)
+	check(v.value("music") == 100 and not v.adjust("music", 1, false), "music stops at 100")
+	for i in 12:
+		v.adjust("sfx", -1, false)
+	check(v.value("sfx") == 0 and v.value_text("sfx") == "0%", "sounds down to 0")
+	check(v.bus_volumes().SFX == 0.0 and v.bus_volumes().Music == 1.0, "0 and 100 as bus volumes")
+	v.values.ambient = 30
+	check(v.write(PATH) == "", "wrote the volumes")
+	var w := Settings.make()
+	check(w.read(PATH) == "" and w.value("music") == 100 and w.value("sfx") == 0 and w.value("ambient") == 30, "volumes round trip (%s)" % [w.values])
+	_put(JSON.stringify({"version": 1, "settings": {"flashes": false, "window": "2x"}}))
+	var before := Settings.make()
+	check(before.read(PATH) == "" and before.value("music") == 70 and before.value("flashes") == false, "a file from before the volumes: default volumes")
 	_remove()
 
 
@@ -140,7 +171,8 @@ func _pause_menu() -> void:
 	check(m.choose() == "save" and m.page == "main", "save stays on the page")
 	m.list.move(1)
 	check(m.choose() == "" and m.page == "settings", "settings opens its page")
-	check(m.list.items == (["flashes", "window", "back"] as Array[String]), "settings rows from data, then back")
+	check(m.list.items == (["flashes", "window", "music", "sfx", "ambient", "back"] as Array[String]), "settings rows from data, then back")
+	check(m.slider("flashes") == Vector2i.ZERO and m.slider("back") == Vector2i.ZERO, "no slider on on / off rows")
 	check(m.label("flashes") == "Lightning: On" and m.label("window") == "Window: 3x", "rows show values")
 	check(m.choose() == "setting" and s.value("flashes") == false and m.label("flashes") == "Lightning: Off", "enter flips flashes")
 	check(m.adjust(1) == "setting" and s.value("flashes") == true, "right flips it back")
@@ -149,6 +181,22 @@ func _pause_menu() -> void:
 	check(m.adjust(1) == "setting" and m.label("window") == "Window: Full screen", "right: full screen")
 	check(m.adjust(1) == "" and s.value("window") == "full", "right at the end does nothing")
 	check(m.adjust(-1) == "setting" and s.value("window") == "4x", "left: back a size")
+	m.list.move(1)
+	check(m.label("music") == "Music: 70%" and m.slider("music") == Vector2i(7, 10), "music row: value and slider")
+	check(m.adjust(1) == "setting" and s.value("music") == 80 and m.slider("music") == Vector2i(8, 10), "right: louder music")
+	check(m.adjust(-1) == "setting" and m.adjust(-1) == "setting" and s.value("music") == 60, "left: softer")
+	m.list.move(1)
+	check(m.label("sfx") == "Sounds: 80%", "sounds row")
+	m.adjust(1)
+	m.adjust(1)
+	check(m.adjust(1) == "" and s.value("sfx") == 100 and m.slider("sfx") == Vector2i(10, 10), "right at 100 does nothing")
+	m.list.move(1)
+	for i in 6:
+		m.adjust(-1)
+	check(m.adjust(-1) == "" and s.value("ambient") == 0 and m.label("ambient") == "Ambient: 0%", "left at 0 does nothing")
+	check(m.choose() == "setting" and s.value("ambient") == 10, "enter on a slider steps it up")
+	s.values.ambient = 100
+	check(m.choose() == "setting" and s.value("ambient") == 0, "enter at the top wraps to 0")
 	m.list.move(1)
 	check(m.adjust(1) == "" and m.choose() == "" and m.page == "main", "back returns to the main page")
 	check(m.list.current() == "settings", "cursor back on settings")
@@ -174,6 +222,22 @@ func _pause_menu() -> void:
 	check(l.current() == "c" and not l.point("b") and l.point("a"), "off items skipped")
 	l.cursor = 1
 	check(l.choose() == "", "an item that is off can't be chosen")
+
+
+## A changed volume setting reaches the bus as soon as Game applies the settings.
+func _volumes_in_effect() -> void:
+	var g: Node = root.get_node("Game")
+	var sfx: Node = root.get_node("Sfx")
+	var kept: Dictionary = g.settings.values.duplicate()
+	check(is_equal_approx(sfx.get_volume("Music"), g.settings.value("music") / 100.0), "music volume from the settings on start")
+	g.settings.values.music = 30
+	g.settings.values.ambient = 0
+	g.apply_settings([])
+	check(is_equal_approx(sfx.get_volume("Music"), 0.3), "music slider applied at once (%.2f)" % sfx.get_volume("Music"))
+	check(AudioServer.is_bus_mute(AudioServer.get_bus_index("Ambient")), "ambient at 0 mutes its bus")
+	g.settings.values = kept
+	g.apply_settings([])
+	check(is_equal_approx(sfx.get_volume("SFX"), kept.sfx / 100.0), "volumes back")
 
 
 ## With the menu open the farmer doesn't walk, a charge is dropped, and the key that closed

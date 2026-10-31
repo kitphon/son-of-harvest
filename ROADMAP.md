@@ -36,8 +36,9 @@ entry).
 Next: milestone 3, **eating / drinking** (food items with stamina / fatigue effects in data;
 `Game.add_fatigue()` takes a negative amount). After that milestone 6, **event scripts +
 trigger tables per map**, built on the dialogue format.
-Sound effects and ambient loops are in (milestone 10, first step); later for audio: music,
-and the settings screen's volume sliders call `Sfx.set_volume("SFX" / "Ambient", 0..1)`.
+Sound effects, ambient loops and music are in (milestone 10), with Music / Sounds / Ambient
+volume sliders in Esc → Settings. Later for audio: more tracks (festivals, shops, events)
+are new scores and rules in `data/music.json`; the music has not been heard by a person yet.
 Later for menus: rucksack / storage, key remapping.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
@@ -91,7 +92,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 9. **Festivals, mining / fishing, relationships, endings**
 10. **Audio and release**
     - [x] Sound effects and ambient loops (synthesized from data/sfx.json, SFX / Ambient busses)
-    - [ ] Music; volume sliders in the settings screen (`Sfx.set_volume`)
+    - [x] Music; volume sliders in the settings screen (`Sfx.set_volume`)
     - [x] Windows export preset (`export_presets.cfg`, .pck embedded) and our app icon
     - [ ] Build the .exe and check it starts (needs the 4.7.2 export templates; README → Export)
     - [ ] Settings

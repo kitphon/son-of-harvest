@@ -10,6 +10,45 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Music and volume sliders
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: music made the same way as the sounds. `data/music.json` holds our own scores: seven
+  short loops (title, spring, summer, fall, winter, night, rain; 17-32 s each), written for
+  this game as scale degrees in five-note scales (yo, in, minyo, ritsu), with five instrument
+  recipes: koto-like pluck (rotating-phasor partials, higher ones fade faster), rin bell,
+  wood block, shakuhachi-like flute (scoop into the note, delayed vibrato, breath noise) and
+  a sho-like pad. New `MusicSynth` (score reader: degree / "+" chord / "_" hold / "." rest,
+  voices with fewer bars repeat; notes cached per pitch and length; what rings past the end
+  is added onto the start, so loops have no seam) and `MusicPicker` (first rule that fits:
+  title screen, storm (rain track at 0.6), rain, night 19:00-6:00, then the season).
+  `Sfx` gets a Music bus, one player per track, renders a track on a WorkerThreadPool task
+  when first wanted (at once in Movie Maker runs, where frames don't wait), fades in from
+  silence in `start_fade` 1 s and cross-fades between tracks in `fade_seconds` 3 s; the
+  scene is "title" while `Game.clock_running` is off. Volumes: three range entries in
+  `data/settings.json` (Music 70, Sounds 80, Ambient 60 %, step 10) with a "bus";
+  `Settings.bus_volumes()` turns them into 0..1 and `Sfx.apply_settings()` calls
+  `set_volume` on start and on `Game.settings_changed`. Ranges show a unit ("70%"); the
+  pause screen draws a 10-notch slider on range rows (`PauseMenu.slider()`), left / right
+  stop at 0 and 100, Enter steps up and wraps.
+- Balance (ours): music bus 0.7 by default, tracks -4..-6 dB so the field sounds stay on top;
+  night and storm softer.
+- Checked: all eight tests print OK (`test_audio`: scores well formed, every track's first two
+  bars sound with no silent second, title as a full loop has its exact length / no seam /
+  same seed same music, picker per scene / weather / season / hour, Sfx targets in a storm
+  and on the title; `test_menu`: volume defaults, %, clamp at 0 / 100, round trip, broken
+  values 150 / -10 / "loud" / 45.5 refused, pause menu rows and sliders, a changed setting
+  reaches the bus at once). Headless `--quit-after 300` (title and `-- --demo`) printed
+  nothing. Movie Maker `--demo --pause=settings`: the Settings page shows Music 70%, Sounds
+  80%, Ambient 60% with filled notches (7 / 8 / 6 of 10). With `--movie-audio` (120 frames)
+  `shots/frame.wav` has 383864 non-zero samples, rms about 0.09 after the 1 s fade-in
+  (spring track; no ambient at spring 10:00). Render time about 0.6-1.2 s per track on a
+  worker thread. Windowed runs with the real audio driver (volumes set to 0 in a temporary
+  settings file, then the user's file put back) printed no errors or leaks.
+- Left / next: nobody has listened to the music yet; tune the scores / voices by ear.
+  `--movie-audio` runs and runs with `--audio-driver Dummy` report 2 leaked objects per
+  playing loop at exit (the same happens on main with an ambient loop): the mixer doesn't
+  let go of the playback there before the engine quits; normal runs are clean.
+
 ## 2026-10-31 — Merged six branches: export, text box, sound, pause, tool exp, fatigue
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, in this order: `claude/win-export-659b37`

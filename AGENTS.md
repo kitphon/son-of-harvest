@@ -53,7 +53,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `data/dialogue`, `--pause` (or `--pause=settings`) to open the pause menu, `--tired` to start
   exhausted (tired pose, slow walk). Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
-- Audio (sound data, synthesis, keys used in code, ambient picker): `res://tests/test_audio.gd`
+- Audio (sound and music data, synthesis, keys used in code, ambient and music pickers): `res://tests/test_audio.gd`
   must print `test_audio: OK (0 failed)`. Headless runs and Movie Maker runs start no sound
   (`Sfx.silent`); add `-- --movie-audio` to a Movie Maker run to record the mix as
   `shots/frame.wav`.

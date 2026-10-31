@@ -1,0 +1,98 @@
+{
+	"_about": "Our own music: every melody here was written for Harvest Son, in five-note scales (yo [0,2,5,7,9], in [0,1,5,7,8], minyo [0,3,5,7,10], ritsu [0,2,5,7,10]). Played by scripts/audio/music_synth.gd (score format at its top) on the Music bus. rules pick the track (first fit wins, see music_picker.gd); fade_seconds is the cross-fade between tracks, start_fade the fade-in from silence.",
+	"fade_seconds": 3.0,
+	"start_fade": 1.0,
+	"instruments": {
+		"koto": {"kind": "pluck", "partials": [[1, 1], [2, 0.55], [3, 0.3], [4, 0.18], [5.02, 0.08]], "decay": 0.5, "damp": 0.6, "ring": 2.2, "click": 0.25, "gain": 0.9},
+		"rin": {"kind": "pluck", "partials": [[1, 1], [2.76, 0.45], [5.4, 0.2], [8.9, 0.08]], "decay": 1.6, "damp": 0.3, "ring": 4.0, "click": 0.05, "gain": 0.45},
+		"wood": {"kind": "pluck", "partials": [[1, 1], [2.4, 0.5]], "decay": 0.03, "damp": 0.5, "ring": 0.2, "click": 0.8, "gain": 0.35},
+		"shakuhachi": {"kind": "flute", "partials": [[1, 1], [2, 0.18], [3, 0.05]], "attack": 0.09, "release": 0.2, "vibrato": [5.2, 0.009, 0.35], "breath": 0.25, "scoop": 0.03, "gain": 0.7},
+		"sho": {"kind": "pad", "attack": 0.9, "release": 1.2, "detune": 0.0025, "upper": 0.25, "gain": 0.28}
+	},
+	"tracks": {
+		"title": {"bpm": 76, "steps_per_beat": 2, "steps_per_bar": 8, "bars": 8, "root": 62, "scale": [0, 2, 5, 7, 9], "volume_db": -4,
+			"voices": [
+				{"instrument": "shakuhachi", "octave": 1, "bars": [
+					"3 _ _ _ 4 _ 5 _", "4 _ _ 3 2 _ _ _", "3 _ _ _ 2 _ 1 _", "2 _ _ _ _ _ . .",
+					"3 _ _ _ 4 _ 5 _", "6 _ _ 5 4 _ 3 _", "2 _ 3 _ 1 _ _ 0", "0 _ _ _ _ _ . ."]},
+				{"instrument": "koto", "bars": [
+					"0 . 2 . 4 . 2 .", "-2 . 0 . 3 . 0 .", "-3 . 0 . 2 . 0 .", "-4 . -1 . 1 . 2 .",
+					"0 . 2 . 4 . 2 .", "-3 . 0 . 3 . 4 .", "-2 . 0 . 1 . -1 .", "0 . 2 4 5 . . ."]},
+				{"instrument": "sho", "octave": -1, "bars": [
+					"0+3 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "-3+0 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .",
+					"0+3 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "-2+1 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ ."]}]},
+		"spring": {"bpm": 96, "steps_per_beat": 2, "steps_per_bar": 8, "bars": 8, "root": 55, "scale": [0, 2, 5, 7, 9], "volume_db": -4,
+			"voices": [
+				{"instrument": "shakuhachi", "octave": 1, "bars": [
+					"0 _ 1 2 3 _ 2 _", "4 _ _ _ 3 _ . .", "2 _ 3 4 5 _ 4 3", "4 _ _ _ _ _ . .",
+					"5 _ 4 _ 3 _ 2 3", "4 _ 3 _ 2 _ 1 _", "2 _ _ 1 0 _ 1 _", "0 _ _ _ _ _ . ."]},
+				{"instrument": "koto", "octave": 1, "gain": 0.7, "bars": [
+					"0 2 3 2 0 2 3 2", "-1 1 2 1 -1 1 3 1", "-3 0 2 0 -3 0 2 0", "-1 1 3 1 4 3 1 -1",
+					"-2 0 2 0 -2 0 3 0", "-3 -1 1 -1 -3 -1 2 -1", "-2 0 1 0 -1 1 2 1", "0 2 3 2 0 . . ."]},
+				{"instrument": "wood", "octave": 2, "bars": ["0 . . . 0 . 0 ."]},
+				{"instrument": "sho", "bars": [
+					"0+3 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "-1+2 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .",
+					"-3+0 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "-2+1 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ ."]}]},
+		"summer": {"bpm": 112, "steps_per_beat": 2, "steps_per_bar": 8, "bars": 8, "root": 57, "scale": [0, 3, 5, 7, 10], "volume_db": -5,
+			"voices": [
+				{"instrument": "koto", "octave": 1, "bars": [
+					"0 . 1 2 3 . 2 .", "3 4 3 2 1 . 0 .", "2 . 3 4 5 . 4 3", "4 . 3 . 2 . . .",
+					"5 . 5 4 3 . 4 5", "6 . 5 4 3 . 2 .", "1 2 3 . 2 1 0 .", "0 . . . 0 . . ."]},
+				{"instrument": "koto", "octave": -1, "gain": 0.8, "bars": [
+					"0 . 3 . 0 . 3 .", "2 . 4 . 2 . 4 .", "-1 . 2 . -1 . 2 .", "0 . 3 . 4 . 3 ."]},
+				{"instrument": "shakuhachi", "gain": 0.6, "bars": [
+					"5 _ _ _ _ _ _ _", "_ _ _ _ . . . .", "7 _ _ _ 8 _ _ _", "7 _ _ _ . . . .",
+					"10 _ _ _ _ _ 9 _", "8 _ _ _ . . . .", "6 _ _ _ 7 _ _ _", "5 _ _ _ . . . ."]},
+				{"instrument": "wood", "octave": 2, "bars": ["0 . 0 . 0 . 0 0", "0 . 0 . 3 . 0 ."]}]},
+		"fall": {"bpm": 80, "steps_per_beat": 2, "steps_per_bar": 6, "bars": 8, "root": 60, "scale": [0, 2, 5, 7, 9], "volume_db": -4,
+			"voices": [
+				{"instrument": "shakuhachi", "octave": 1, "bars": [
+					"4 _ _ _ 3 _", "2 _ _ _ _ _", "3 _ 4 _ 5 _", "4 _ _ _ _ _",
+					"3 _ _ _ 2 _", "1 _ _ _ 2 _", "0 _ _ _ 1 _", "0 _ _ _ . ."]},
+				{"instrument": "koto", "bars": [
+					"0 . 3 . 4 .", "-3 . 0 . 2 .", "-2 . 0 . 3 .", "-1 . 1 . 4 .",
+					"-2 . 0 . 2 .", "-4 . -1 . 1 .", "-3 . -1 . 1 .", "0 3 5 . . ."]},
+				{"instrument": "sho", "octave": -1, "bars": [
+					"0+3 _ _ _ _ _", "_ _ _ _ _ .", "-2+1 _ _ _ _ _", "_ _ _ _ _ .",
+					"-2+0 _ _ _ _ _", "_ _ _ _ _ .", "-3+0 _ _ _ _ _", "_ _ _ _ _ ."]}]},
+		"winter": {"bpm": 64, "steps_per_beat": 2, "steps_per_bar": 8, "bars": 8, "root": 64, "scale": [0, 1, 5, 7, 8], "volume_db": -4,
+			"voices": [
+				{"instrument": "koto", "bars": [
+					"5 . . . 4 . 3 .", "2 . . . . . . .", "3 . . 4 3 . 2 .", "1 . . . 0 . . .",
+					"2 . . . 3 . 4 .", "5 . . . 6 . 5 .", "4 . 3 . 1 . 2 .", "0 . . . . . . ."]},
+				{"instrument": "koto", "octave": -1, "gain": 0.6, "bars": [
+					"0 . . . 3 . . .", "-3 . . . 0 . . .", "-2 . . . 1 . . .", "-3 . . . -1 . . ."]},
+				{"instrument": "rin", "octave": 1, "bars": ["0 . . . . . . .", ". . . . . . . .", ". . . . . . . .", ". . . . . . . ."]},
+				{"instrument": "sho", "octave": -1, "bars": [
+					"0+3 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "-3+0 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .",
+					"-2+0 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "-3+1 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ ."]}]},
+		"night": {"bpm": 60, "steps_per_beat": 2, "steps_per_bar": 8, "bars": 8, "root": 62, "scale": [0, 3, 5, 7, 10], "volume_db": -6,
+			"voices": [
+				{"instrument": "shakuhachi", "gain": 0.8, "bars": [
+					"3 _ _ _ _ _ 2 _", "1 _ _ _ _ _ . .", "2 _ _ _ 3 _ 4 _", "3 _ _ _ _ _ . .",
+					". . . . . . . .", ". . . . . . . .", "5 _ _ _ 4 _ 3 _", "2 _ _ _ 0 _ _ _"]},
+				{"instrument": "koto", "gain": 0.8, "bars": [
+					"0 . . 2 . . 3 .", "-2 . . 1 . . 2 .", "-3 . . 0 . . 2 .", "-1 . . 1 . . 3 ."]},
+				{"instrument": "sho", "octave": -1, "bars": [
+					"0+3 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "-2+1 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ ."]}]},
+		"rain": {"bpm": 72, "steps_per_beat": 2, "steps_per_bar": 8, "bars": 8, "root": 60, "scale": [0, 2, 5, 7, 10], "volume_db": -5,
+			"voices": [
+				{"instrument": "koto", "octave": 1, "bars": [
+					". . 4 . . 3 . .", "2 . . . . . 0 .", ". . 3 . . 2 . .", "1 . . . 2 . . .",
+					". . 5 . . 4 . .", "3 . . . . . 2 .", ". . 1 . . 2 . 1", "0 . . . . . . ."]},
+				{"instrument": "koto", "gain": 0.7, "bars": [
+					"0 . 3 . 2 . 3 .", "-2 . 1 . 0 . 1 .", "-1 . 2 . 1 . 2 .", "-3 . 0 . -1 . 0 ."]},
+				{"instrument": "sho", "octave": -1, "bars": [
+					"0+3 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "-2+1 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ ."]}]}
+	},
+	"rules": [
+		{"track": "title", "scenes": ["title"]},
+		{"track": "rain", "looks": ["storm"], "level": 0.6},
+		{"track": "rain", "looks": ["rain"]},
+		{"track": "night", "hours": [19, 6]},
+		{"track": "spring", "seasons": ["spring"]},
+		{"track": "summer", "seasons": ["summer"]},
+		{"track": "fall", "seasons": ["fall"]},
+		{"track": "winter", "seasons": ["winter"]}
+	]
+}
