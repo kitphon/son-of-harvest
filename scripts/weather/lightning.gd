@@ -12,6 +12,7 @@ var rng: RandomNumberGenerator
 var _style: Dictionary = {}
 var _wait := INF      # seconds until the next flash starts
 var _t := -1.0        # seconds into the current flash, -1 between flashes
+var started := false  # a flash began in the last step (for the thunder)
 
 
 func _init(generator: RandomNumberGenerator = null) -> void:
@@ -27,6 +28,7 @@ func reset(style: Dictionary) -> void:
 
 ## Advance by `delta` seconds; returns the brightness now.
 func step(delta: float) -> float:
+	started = false
 	if _style.is_empty():
 		return 0.0
 	if _t >= 0.0:
@@ -38,6 +40,7 @@ func step(delta: float) -> float:
 		_wait -= delta
 		if _wait <= 0.0:
 			_t = -_wait
+			started = true
 	return pulse_at(_t, _style) if _t >= 0.0 else 0.0
 
 

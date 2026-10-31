@@ -10,6 +10,53 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Sound effects and ambient sound (milestone 10, first step)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: new `Sfx` autoload (`scripts/autoload/sfx.gd`) plays sounds by key from the new
+  `data/sfx.json` (per key: bus, volume_db, pitch range, layers; loops have a length).
+  Every sound is our own, synthesized at run time by `SfxSynth` (`scripts/audio/sfx_synth.gd`:
+  filtered white / brown noise, sine partials with a glide, a plucked string, clusters of
+  tiny noise grains; attack / decay / release, tremolo and gate envelopes; loops cross-fade
+  their tail into the start; each sound is normalized and made once, on first use, from a
+  fixed seed). Chosen over WAVs from a Python script: no binary files in git, the recipes are
+  small text that merges and tunes like the other data, and nothing must be re-run by hand.
+  Making all 21 sounds takes about 0.8 s, spread over first uses. Busses `SFX` and
+  `Ambient` are made at start (0.8 / 0.6 from the data); `Sfx.set_volume(bus, 0..1)` /
+  `get_volume` for the settings screen (0 mutes). Ambient: `AmbientPicker` (pure) turns the
+  weather look, season and hour into loop levels from the rules in the data (rain 0.7, storm
+  rain + wind, snow a soft wind, blizzard wind, summer 7-18 cicadas, summer / fall 19-4
+  crickets, spring 20-3 a few crickets); Sfx cross-fades to them over 4 s and fades them out
+  while the clock stands (title screen, later menus). Hooks (one line each): FarmActions
+  plays `tool_<tool>` per swing, seed scatter, pond fill, bin lid, picking a crop; Player
+  calls `Sfx.walk()` (a footstep every 14 px: soil on tilled cells, snow from 50 snow cover,
+  else grass); the title menu plays move / confirm; main_3d plays thunder 1.5-4 s after a
+  lightning flash starts (`Lightning.started`, new). Sfx itself listens to Game: a chime on
+  `day_started` (6:00) and coins when the bin's value went into the money (payday), so
+  game.gd is untouched. Headless and Movie Maker runs start no players (`Sfx.silent`; a sound
+  playing when the engine quits there is reported as a leak); `-- --movie-audio` keeps sound
+  in a Movie Maker run. On quit Sfx stops everything and waits 60 ms for the mixer.
+- Balance (ours): one-shots -8 to -14 dB, footsteps -19 / -20 dB, loops -12 to -24 dB, so
+  insects and rain stay under the tools; pitch spread ±10-15 % on tools and steps.
+- Checked: `test_audio: OK (0 failed)` (data loads; every recipe renders normalized, with
+  numbers, quiet ends, sane lengths; loops have their exact length, the Ambient bus and no
+  seam; 16-bit streams, loop mode; same seed same sound; every key played in code, per tool,
+  per ground and per ambient rule is in the data; picker cases for storm, rain, summer noon
+  and night, after midnight, dawn, fall noon, winter night, spring, snow, blizzard, hour
+  wrap; one `Lightning.started` per flash; on the autoload: busses, volume set / clamp /
+  mute, playing every one-shot, footstep grounds, storm loops picked and started, nothing
+  while the clock stands). `test_farm`, `test_save`, `test_title`, `test_weather`: OK (0
+  failed). Headless `--quit-after 300` (title), `-- --demo --weather=storm` (600 frames),
+  `-- --demo` and the 2D scene printed nothing but the banner; a windowed run with the real
+  audio driver (`--quit-after 300 -- --demo --weather=storm`) printed nothing either.
+  Movie Maker with `--movie-audio` (storm, 10 s) recorded a mix that rises from rms 0.004
+  to 0.03 over the first 4 s (the fade-in) and peaks at 0.30 (python numpy on frame.wav);
+  that run ends with a leak warning (Movie Maker drives the mixer frame by frame), which is
+  why such runs are silent unless asked. Not checked: how anything sounds; no one has heard
+  these sounds yet (no speakers here), so the recipes need a listening pass.
+- Left / next: listen and tune `data/sfx.json`; volume sliders in the settings screen (pause
+  menu session); music; thunder is tied to the flashes, so with `--no-flashes` there is none;
+  the ambient also stops while a pause menu stops the clock.
+
 ## 2026-10-31 — Text box (dialogue)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: our own dialogue system (no Dialogic). Format in `data/dialogue/<id>.json`

@@ -31,6 +31,8 @@ settings menu has it), and the text box is done (data/dialogue, DialogueRunner, 
 Next: milestone 6, **event scripts + trigger tables per map**, built on the dialogue format
 (lines become one command among moves, waits, flags and map changes). Parallel sessions are
 on tool upgrades, fatigue, the pause menu, sound effects and the Windows export.
+Sound effects and ambient loops are in (milestone 10, first step); later for audio: music,
+and the settings screen's volume sliders call `Sfx.set_volume("SFX" / "Ambient", 0..1)`.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -80,7 +82,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [ ] Balance pass (income per season, seed costs)
 9. **Festivals, mining / fishing, relationships, endings**
 10. **Audio and release**
-    - [ ] Music, sound effects
+    - [x] Sound effects and ambient loops (synthesized from data/sfx.json, SFX / Ambient busses)
+    - [ ] Music; volume sliders in the settings screen (`Sfx.set_volume`)
     - [x] Windows export preset (`export_presets.cfg`, .pck embedded) and our app icon
     - [ ] Build the .exe and check it starts (needs the 4.7.2 export templates; README → Export)
     - [ ] Settings

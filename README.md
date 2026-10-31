@@ -46,6 +46,10 @@ Save / load, the title menu, weather and dialogue: the same with `res://tests/te
 - Shipping bin pays at 18:00 (or when you sleep); the seed stand sells this season's seeds.
 - Stamina: each swing costs stamina; sleep before midnight restores it all, after midnight
   3/4, passing out at 2:00 half.
+- Sound: every effect and ambient loop is made in code from recipes in `data/sfx.json`
+  (`scripts/audio/sfx_synth.gd`, no sound files). Tools, footsteps by ground, bin lid,
+  payday coins, menu, a chime at 6:00; rain, storm wind and thunder after lightning,
+  cicadas on summer days, crickets at night, cross-faded by weather / season / hour.
 
 ## Export (Windows .exe)
 The preset "Windows Desktop" in `export_presets.cfg` builds `build/HarvestSon.exe` (git-ignored)
@@ -106,6 +110,8 @@ follows the player with no lag and stops a few cells inside the fence.
 - `scripts/dialogue/dialogue_runner.gd` + `scripts/ui/text_box.gd`: dialogue stepping (pure
   logic) and the text box that draws it.
 - `data/*.json`: crops and weather, tuned without touching code; `data/dialogue/`: dialogue.
+- `scripts/autoload/sfx.gd` (Sfx): plays sounds by key, SFX / Ambient busses with
+  `set_volume(bus, 0..1)`; `scripts/audio/ambient_picker.gd` picks the ambient loops.
 - `tools/make_icon.gd`: draws the app icon; `export_presets.cfg`: the Windows build.
 
 ## Plan and handoff
