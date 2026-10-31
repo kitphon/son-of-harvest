@@ -398,7 +398,8 @@ func _cell_from(v: Variant) -> Variant:
 
 
 ## The night: growth on watered cells, out-of-season crops wither, weeds, storm damage,
-## then today's rain waters the field.
+## then today's rain waters the field. A crop with holds_water (rice) keeps its cell wet once
+## watered, like a flooded paddy, until it is harvested or lost.
 func day_end(season: String, weather: String, rng: RandomNumberGenerator) -> void:
 	for i in cells.size():
 		var pos := Vector2i(i % W, i / W)
@@ -424,5 +425,6 @@ func day_end(season: String, weather: String, rng: RandomNumberGenerator) -> voi
 		elif d.obj == Obj.NONE and not items.has(pos) and season != "winter" and rng.randf() < WEED_CHANCE:
 			d.obj = Obj.WEED
 			d.tilled = false
-		d.wet = d.tilled and weather == "rain"
+		var paddy: bool = d.wet and d.crop != "" and bool(crops[d.crop].get("holds_water", false))
+		d.wet = d.tilled and (weather == "rain" or paddy)
 	cells_changed.emit()

@@ -2,8 +2,9 @@
 
 Reads the data files and plays a simple, steady year 1: a few bags of seeds that grow as the
 tools do, the starting hens plus a few bought ones, a cow / sheep once the store sells them,
-some fishing on rainy days and evenings, a mine trip now and then (most in winter). Prints
-income per source and running costs per season, then the season goals (rucksacks, house
+some fishing on rainy days and evenings, a mine trip now and then (most in winter), and from
+summer (the kitchen) a few dishes cooked and shipped. Prints income per source and running
+costs per season, then the season goals (rucksacks, house
 extensions, tool upgrades) and the money left after buying them in order.
 
 Not a game rule: the plan below is our guess at how a calm player spends year 1. Run it before
@@ -25,8 +26,16 @@ BAGS = {"spring": 5, "summer": 8, "fall": 10, "winter": 0}
 # Crop mix per season: share of the bags given to each crop (regrowers stay all season).
 MIX = {
     "spring": {"turnip": 0.4, "potato": 0.4, "cucumber": 0.2},
-    "summer": {"tomato": 0.3, "onion": 0.4, "corn": 0.3},
-    "fall": {"carrot": 0.4, "eggplant": 0.3, "pumpkin": 0.3},
+    "summer": {"tomato": 0.3, "onion": 0.3, "corn": 0.25, "rice": 0.15},
+    "fall": {"carrot": 0.3, "eggplant": 0.25, "pumpkin": 0.25, "daikon": 0.2},
+}
+# Dishes cooked and shipped per season once the kitchen stands (bought in summer): recipe ->
+# times cooked. The ingredients come out of the season's own harvest, eggs, milk and fish, so
+# the "cook" column is what the dishes fetch over shipping those ingredients raw.
+COOKED = {
+    "summer": {"tamagoyaki": 10, "milk_pudding": 5},
+    "fall": {"tamagoyaki": 10, "furofuki_daikon": 10, "takikomi_gohan": 5, "kinako_mochi": 5, "simmered_pumpkin": 5},
+    "winter": {"tamagoyaki": 15, "milk_pudding": 10, "grilled_fish": 10},
 }
 # Hens bought from the store: (season, day, how many). The coop holds 6.
 HENS_BOUGHT = [("spring", 20, 2), ("summer", 10, 2)]
@@ -60,6 +69,8 @@ animals = load("animals.json")
 fish = load("fish.json")
 mine = load("mine.json")
 shops = load("shops.json")
+foods = load("foods.json")
+recipes = load("recipes.json")
 store = shops["shops"]["general"]
 smithy = shops["shops"]["smithy"]
 
@@ -142,6 +153,36 @@ def mine_floor_value(depth, season):
     return value
 
 
+def need_value(need, season):
+    """Shipping value of one need of a recipe: a group uses its cheapest item (eggs and milk at
+    their average grade, fish at the season's average catch)."""
+    if "group" in need:
+        g = recipes["groups"][need["group"]]
+        if g.get("prefix") == "fish:":
+            each = fish_value(season)
+        elif need["group"] in ("egg", "milk"):
+            each = product_value(need["group"])
+        else:
+            each = min(crops[i]["sell"] for i in g["items"])
+    elif need["item"].startswith("food:"):
+        each = foods["foods"][need["item"][5:]]["price"]
+    elif need["item"] in crops:
+        each = crops[need["item"]]["sell"]
+    else:
+        each = animals["items"][need["item"]]["sell"]
+    return each * need["n"]
+
+
+def cook_season(season):
+    """G the season's dishes fetch over their ingredients shipped raw."""
+    gain = 0.0
+    for rid, times in COOKED.get(season, {}).items():
+        r = recipes["recipes"][rid]
+        dish = foods["foods"][rid]["sell"] * r.get("makes", 1)
+        gain += times * (dish - sum(need_value(n, season) for n in r["needs"]))
+    return gain
+
+
 def main():
     hens = len([a for a in animals["start"] if a == "chicken"])
     cows = sheep = 0
@@ -151,9 +192,10 @@ def main():
     sells_barn = stock_price("animal:cow") is not None and fodder_price is not None
     rows = {}
     for s in SEASONS:
-        r = {"crops": 0, "eggs": 0, "milk": 0, "wool": 0, "fish": 0, "mine": 0,
+        r = {"crops": 0, "cook": 0, "eggs": 0, "milk": 0, "wool": 0, "fish": 0, "mine": 0,
              "seeds": 0, "feed": 0, "animals": 0, "medicine": 0, "food": 0}
         r["seeds"], r["crops"] = crop_season(s)
+        r["cook"] = cook_season(s)
         for day in range(1, DAYS + 1):
             for (bs, bd, n) in HENS_BOUGHT:
                 if (bs, bd) == (s, day) and chicken_price:
@@ -176,16 +218,16 @@ def main():
         rows[s] = r
 
     print("Income and running costs per season (G), steady year-1 plan")
-    head = ["season", "crops", "eggs", "milk", "wool", "fish", "mine", "income", "seeds", "feed", "animals", "other", "net"]
+    head = ["season", "crops", "cook", "eggs", "milk", "wool", "fish", "mine", "income", "seeds", "feed", "animals", "other", "net"]
     print(" | ".join(f"{h:>7}" for h in head))
     money = 500
     goals = list(GOALS)
     for s in SEASONS:
         r = rows[s]
-        income = sum(r[k] for k in ("crops", "eggs", "milk", "wool", "fish", "mine"))
+        income = sum(r[k] for k in ("crops", "cook", "eggs", "milk", "wool", "fish", "mine"))
         other = r["medicine"] + r["food"]
         net = income - r["seeds"] - r["feed"] - r["animals"] - other
-        cells = [s, r["crops"], r["eggs"], r["milk"], r["wool"], r["fish"], r["mine"], income,
+        cells = [s, r["crops"], r["cook"], r["eggs"], r["milk"], r["wool"], r["fish"], r["mine"], income,
                  r["seeds"], r["feed"], r["animals"], other, net]
         print(" | ".join(f"{c:>7}" if isinstance(c, str) else f"{round(c):>7}" for c in cells))
         money += net

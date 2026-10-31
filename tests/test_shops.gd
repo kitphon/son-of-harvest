@@ -114,6 +114,14 @@ func _data() -> void:
 	check(store.price("seeds:turnip", "spring") == int(crops.turnip.seed_price), "data: seed price from crops.json")
 	check(store.price("food:milk", "summer") == 100, "data: a price set in shops.json wins")
 	check(store.price("seeds:turnip", "summer") == -1, "data: spring seeds aren't sold in summer")
+	# Every crop's seeds are on the store's shelf in each of its seasons (daikon and rice too).
+	for crop in crops:
+		for season in crops[crop].seasons:
+			check(store.price("seeds:" + crop, season) == int(crops[crop].seed_price), "data: the store sells %s seeds in %s" % [crop, season])
+	check(store.price("seeds:rice", "summer") > 0 and store.price("seeds:rice", "fall") > 0 and store.price("seeds:daikon", "summer") == -1,
+		"data: rice seeds in summer and fall, daikon only in fall")
+	check(store.buy_back("daikon") == int(crops.daikon.sell) * int(store.buys.crop) / 100 and store.buy_back("rice") > 0, "data: the store buys daikon and rice")
+	check(store.buy_back("food:kinako_mochi") == 0, "data: the store doesn't buy dishes (the bin does)")
 	check(Shop.make("nowhere", crops, foods) == null, "data: unknown shop")
 
 

@@ -149,6 +149,13 @@ static func _item(id: String) -> Image:
 		for x in [3, 6, 9]:
 			_px(img, x, 5, 1, 4, dark)
 		_px(img, 5, 2, 2, 2, Color("6b4a2a"))                # stem
+	elif shape == "grain":   # a sheaf: straw tied at the middle, ears fanning out on top
+		for x in range(4, 9):
+			_px(img, x, 5, 1, 6, fruit.darkened(0.15) if x % 2 == 0 else fruit.darkened(0.3))
+		_px(img, 4, 8, 5, 1, Color("8a5a2a"))
+		for p in [Vector2(3.5, 3.5), Vector2(6.5, 2.5), Vector2(9, 3.5)]:
+			_oval(img, p.x, p.y, 1.6, 2.4, fruit)
+		_px(img, 6, 1, 1, 2, shine)
 	elif form == "long":
 		_oval(img, 6, 6.5, 2.4, 4.6, fruit)
 		_px(img, 5, 1, 3, 2, leaf)                          # calyx
@@ -687,7 +694,7 @@ const _DEFAULT_LOOK := {"shape": "bush", "leaf": "5f9e3a", "fruit": "e8a23a"}
 static var _looks := {}
 
 
-## A crop's "look" from data/crops.json: shape (root / bush / vine / stalk / ground),
+## A crop's "look" from data/crops.json: shape (root / bush / vine / stalk / ground / grain),
 ## leaf and fruit colours, and per-shape extras (leaves, bulb, fruit_shape, flower, fruit_top).
 static func crop_look(id: String) -> Dictionary:
 	if _looks.is_empty():
@@ -1002,6 +1009,20 @@ static func _crop(id: String, growth: int, ripe: bool) -> Image:
 				_oval(img, 10.5, g - 11, 1.8, 3.5, fruit)
 				_px(img, 10, g - 13, 1, 3, fruit.lightened(0.3))
 				_px(img, 9, g - 8, 3, 2, leaf)
+		"grain":   # a clump of upright blades; ripe, the stems go straw and the ears bow over
+			var hs := [8, 11, 13, 10, 7] if big else [4, 6, 7, 5, 3]
+			var stem := leaf.lerp(fruit.darkened(0.2), 0.55) if ripe else leaf
+			for i in 5:
+				_px(img, 4 + i * 2, g - hs[i], 1, hs[i] + 1, stem if i % 2 == 0 else stem.darkened(0.2))
+			_px(img, 8, g - hs[2] + 1, 1, 3, stem.lightened(0.25))
+			if ripe:
+				for i in 5:
+					var x := 4 + i * 2
+					var top: int = g - hs[i]
+					var side := -1 if i < 2 else 1
+					_px(img, x, top, 1, 2, fruit)
+					_px(img, x + side, top + 1, 1, 3, fruit)
+					_px(img, x + side, top + 3, 1, 1, fruit.darkened(0.2))
 		"ground":
 			_line(img, Vector2i(2, g), Vector2i(14, g - 1), dark)
 			_oval(img, 4, g - 3, 2.8, 2.2, leaf)

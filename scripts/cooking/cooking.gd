@@ -47,6 +47,11 @@ static func known_ids(flags: Dictionary, d := data()) -> Array[String]:
 	return ids(d).filter(func(id: String) -> bool: return known(id, flags, d))
 
 
+## The recipes whose card (recipes.json card) comes with the first `item` shipped.
+static func cards(item: String, d := data()) -> Array[String]:
+	return ids(d).filter(func(id: String) -> bool: return String(recipe(id, d).get("card", "")) == item)
+
+
 ## The rucksack item a cooking of `id` gives, and how many.
 static func dish(id: String) -> String:
 	return "food:" + id

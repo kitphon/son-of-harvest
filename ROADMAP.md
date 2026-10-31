@@ -43,8 +43,12 @@ are food too (`raw` in foods.json; F in the rucksack, or the food slot with one 
 cooking is in: the kitchen corner's stove opens a cooking screen, recipes in
 `data/recipes.json` take ingredients from the rucksack and the chest, the dishes are foods;
 four recipes are known at the start, five are taught by Tome, Sayo, Hachiro, Kota and the
-radio (flags `recipe_<id>`; README → Cooking). Later for food: daikon and rice crops for the
-recipes, dishes as gifts / sold, cooking tools.
+radio (flags `recipe_<id>`; README → Cooking). Daikon (fall) and rice (summer into fall; a
+watered paddy stays wet) are crops, their seeds at the store and the stand; four more recipes
+come as recipe cards in the bin with the first daikon / rice shipped; dishes ship at their
+`sell` in foods.json (held out at the bin or thrown in). Later for food: dishes as gifts
+(villager likes in data/villagers), the store buying dishes, cooking tools, the ending's
+recipe and crop-kind steps re-checked for 13 recipes / 11 crops.
 Event scripts and trigger tables per map are done (data/events, EventRunner /
 EventTriggers / EventPlayer; README → Events); EventPlayer loads a map's table on
 `Game.map_entered(map_id)`, so a new map's events are one `data/events/triggers_<map id>.json`.
@@ -170,6 +174,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Fatigue, tired animations, oversleeping, collapse (data/body.json)
    - [x] Eating / drinking, food items (data/foods.json, food slot, sold at the stand)
    - [x] Raw farm goods as food, cooking at the kitchen corner (data/recipes.json, recipe lessons)
+   - [x] Daikon and rice crops, their recipes (recipe cards), dishes shipped at a sell price
+   - [ ] Dishes as gifts (villager likes), the store buying dishes, cooking tools
    - [x] Holding and throwing items (shipping by throwing into the bin; data/hold.json)
 4. **Save / load and menus**
    - [x] Save game (Game + FarmGrid to a versioned JSON file), load; F5 / F9, saves on sleep

@@ -19,8 +19,9 @@
 					{"item": "medicine", "price": 250, "name": "Animal Medicine"}],
 				"spring": [{"item": "seeds:turnip"}, {"item": "seeds:potato"}, {"item": "seeds:cucumber"},
 					{"item": "food:sakura_mochi"}],
-				"summer": [{"item": "seeds:tomato"}, {"item": "seeds:onion"}, {"item": "seeds:corn"}],
-				"fall": [{"item": "seeds:carrot"}, {"item": "seeds:eggplant"}, {"item": "seeds:pumpkin"}],
+				"summer": [{"item": "seeds:tomato"}, {"item": "seeds:onion"}, {"item": "seeds:corn"}, {"item": "seeds:rice"}],
+				"fall": [{"item": "seeds:carrot"}, {"item": "seeds:eggplant"}, {"item": "seeds:pumpkin"}, {"item": "seeds:daikon"},
+					{"item": "seeds:rice"}],
 				"winter": [{"item": "food:amazake"}],
 				"any": [{"item": "food:onigiri"}, {"item": "food:green_tea"}, {"item": "food:dango"},
 					{"item": "food:milk", "price": 100}, {"item": "food:yomogi_tea"}]

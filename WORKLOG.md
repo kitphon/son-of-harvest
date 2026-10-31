@@ -82,6 +82,70 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   change nothing in the world yet (a bell by the farmhouse door, the store's new sign); the
   storm-to-rain rule before a festival (DESIGN) is still not done.
 
+## 2026-10-31 — Daikon and rice: two crops, four recipes, dishes shipped
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `data/crops.json` gains daikon (fall, stages 2/3/3 = 8 days, sell 110, seed 260, a
+  root with a white shoulder) and rice (summer and fall, 4/5/5 = 14 days, sell 110, seed 300,
+  `holds_water`). Rice's rule, kept simple: a watered rice cell stays wet every night until it
+  is picked or lost (`FarmGrid.day_end`), like a flooded paddy; it can be sown late in summer
+  and ripen in fall. New placeholder shape `grain` (a clump of blades; ripe, straw stems and
+  gold ears bowing over; the item is a tied sheaf). Seeds: the store sells rice in summer and
+  fall, daikon in fall (the stand follows the crops' seasons). Raw daikon / rice eat a little.
+  `data/recipes.json`: daikon joins the pickle and soup groups; four new recipes,
+  furofuki daikon (1 daikon), fish and daikon (daikon + any fish), takikomi gohan (rice +
+  carrot, makes 2), kinako mochi (2 rice, makes 3). They are learned by a new `card` key: the
+  first of that crop shipped (E at the bin or thrown in) sets the flags of its cards and says
+  "A recipe card in the bin lid: ..." (`Cooking.cards`, `Game._note_shipped`; deferred so
+  it follows the bin's own line). No event or trigger files were touched (the other sessions
+  work there). Dishes ship: a `sell` per dish in foods.json, `Game.sell_price("food:<id>")`;
+  E at the bin takes dishes only from the hand (the rucksack's are lunch), throwing works too;
+  shipped dishes count in the ending's shipped value. The store does not buy dishes.
+  `-- --demo --season=fall|summer` sows that season's crops in the demo field (spring as
+  before). test_save's "bad seed" example was "rice"; now "moonflower".
+- Balance (ours): daikon is set next to carrot per plot over a season (30 days: carrot
+  4 x 9 x 85 - 800 = 2260 G a bag, daikon 3 x 9 x 110 - 780 = 2190); rice earns less per bag
+  than onion (2 harvests a summer: 1380 vs 1575) but needs one watering per crop instead of
+  fourteen. Dish `sell` is about 1.3 x the shipping value of ordinary ingredients (cheapest
+  crop of a group, middle-grade eggs 46 / milk 164, a fish about 60): onigiri 20, miso soup
+  45, grilled fish 80, tamagoyaki 120, turnip stew 200, potato stew 240, ochazuke 130,
+  pumpkin nimono 125, milk pudding 270, furofuki daikon 140, fish and daikon 220, takikomi
+  gohan 130, kinako mochi 95. Cooking a cheap fish or a turnip pays best; cooking an ayu or a
+  carrot into miso soup loses money, on purpose. `tools/balance.py` now plants rice (15 % of
+  summer bags) and daikon (20 % of fall) and adds a "cook" column: dishes cooked per season
+  from summer (the kitchen) less their ingredients' raw value. `python -I tools/balance.py`:
+  ```
+   season |   crops |    cook |    eggs |    milk |    wool |    fish |    mine |  income |   seeds |    feed | animals |   other |     net
+   spring |   10260 |       0 |    3792 |       0 |       0 |    2797 |     259 |   17109 |    2380 |     590 |    2800 |    2050 |    9288
+   summer |   18828 |     576 |    7492 |    2616 |       0 |    3501 |    1218 |   34232 |    3016 |    1406 |    8800 |    2050 |   18959
+     fall |   30758 |    1525 |    8325 |    5886 |    1981 |    3442 |    2062 |   53978 |    7060 |    2151 |    9600 |    2050 |   33117
+   winter |       0 |    1382 |    8325 |    9810 |    2830 |    4161 |   22715 |   49223 |       0 |    4410 |       0 |    1150 |   43663
+
+   spring: bought rucksack 1 (2000), chest (3000), upgrade can 2 (1000), upgrade hoe 2 (1000); 2788 G left
+   summer: bought kitchen (6500), upgrade sickle 2 (1000), upgrade can 3 (2500); 11748 G left
+     fall: bought rucksack 2 (6500), room (18000); 20365 G left
+   winter: bought upgrade hoe 3 (2500), upgrade can 4 (5000), upgrade hammer 2 (1000); 55528 G left
+  ```
+  Before (main): summer net 19119, fall 31980, winter 42282, 53169 G left at year end; now
+  105 027 G net for the year (was 102 669). Cooking is a small extra (about 3 500 G a year),
+  not a new main income; the goals are bought in the same seasons.
+- Checked: all 23 tests print `OK (0 failed)` (new checks in test_farm: daikon / rice data,
+  a dry paddy, rice ripe from one watering across summer into fall, the plot dries once
+  empty, daikon dries like any crop and withers in winter, ripe looks all distinct;
+  test_cooking: cards are real crops, every dish has a sell, cards learned by the bin and by
+  a throw, kinako mochi and fish and daikon cooked, cards survive a save, the bin leaves the
+  rucksack's dishes and ships the hand's, shipped dishes in the record; test_shops: every
+  crop's seeds sold in each of its seasons, the store buys daikon / rice but not dishes;
+  test_food: every crop eats raw, a dish's sell is under its stand price). Headless
+  `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`,
+  `--demo --season=fall`, `--demo --cook`, `--demo --shop=general`) and
+  `res://scenes/main.tscn --quit-after 400` printed no errors or warnings. Movie Maker
+  frames `--demo --season=fall` (pumpkin sprouts, young rice clumps, ripe daikon with white
+  shoulders) and `--demo --season=summer` (ripe rice, straw and gold ears) looked at.
+- Left / next: dishes as gifts need villager likes in data/villagers (another session works
+  there); the store buying dishes; cooking tools. The ending's steps were not changed: 13
+  recipes (4 at the start) and 11 crop kinds now, so "Recipes" [2, 4, 6, 9] and the crop
+  kinds steps are easier than planned; re-check them in a playtest pass.
+
 ## 2026-10-31 — The ending: the village record on the first morning of year 3
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: DESIGN lists the ending as not studied, so the rules are ours. New `Ending`

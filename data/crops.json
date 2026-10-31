@@ -16,5 +16,9 @@
 	"eggplant": {"name": "Eggplant", "seasons": ["fall"],   "stage_days": [3, 3, 3], "regrow_stage": 2, "sell": 45, "seed_price": 200,
 		"look": {"shape": "bush", "leaf": "4f7f35", "fruit": "5a2a6a", "fruit_shape": "long"}},
 	"pumpkin":  {"name": "Pumpkin",  "seasons": ["fall"],   "stage_days": [4, 4, 5], "sell": 190, "seed_price": 520,
-		"look": {"shape": "ground", "leaf": "4f8f35", "fruit": "e8882a"}}
+		"look": {"shape": "ground", "leaf": "4f8f35", "fruit": "e8882a"}},
+	"daikon":   {"name": "Daikon",   "seasons": ["fall"],   "stage_days": [2, 3, 3], "sell": 110, "seed_price": 260,
+		"look": {"shape": "root", "leaves": "broad", "leaf": "4f9a3a", "fruit": "f4f2e8", "fruit_top": "c8dc8a", "bulb": [2.4, 4.2]}},
+	"rice":     {"name": "Rice",     "seasons": ["summer", "fall"], "stage_days": [4, 5, 5], "sell": 110, "seed_price": 300, "holds_water": true,
+		"look": {"shape": "grain", "leaf": "7aa848", "fruit": "e2c25a"}}
 }

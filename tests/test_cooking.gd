@@ -11,6 +11,7 @@ func _init() -> void:
 	_cooking()
 	_menu()
 	_lessons()
+	_cards()
 
 
 ## The data: every recipe makes a kitchen-only food, every need is a real item or group, every
@@ -34,6 +35,9 @@ func _data() -> void:
 			if need.has("item"):
 				var it := String(need.item)
 				check(crops.has(it) or products.has(it) or (it.begins_with("food:") and foods.has(it.trim_prefix("food:"))), "%s needs a real item (%s)" % [id, it])
+		if r.has("card"):
+			check(crops.has(String(r.card)) and not r.get("start", false), "%s's card comes with a real crop (%s)" % [id, r.card])
+		check(int(foods[id].get("sell", 0)) > 0, "%s can be shipped (sell %d)" % [id, int(foods[id].get("sell", 0))])
 	for g in d.groups:
 		for it in d.groups[g].get("items", []):
 			check(crops.has(it) or products.has(it), "group %s: %s is a real item" % [g, it])
@@ -167,7 +171,7 @@ func _lessons() -> void:
 			for row in _json("res://data/events/" + f).rows:
 				rows[row.event] = row
 	for id in Cooking.ids():
-		if Cooking.recipe(id).get("start", false):
+		if Cooking.recipe(id).get("start", false) or Cooking.recipe(id).has("card"):
 			continue
 		var ev := String(taught.get(Cooking.flag(id), ""))
 		check(ev != "", "%s is taught by an event" % id)
@@ -182,6 +186,52 @@ func _lessons() -> void:
 	var radio := s.merged({"spot": Vector2i(6, 1), "weekday": "sat"}, true)
 	check(house.pick("examine", radio) == "recipe_radio", "the radio's Saturday cooking hour")
 	check(house.pick("examine", radio.merged({"weekday": "fri"}, true)) == "house_radio", "on other days only static")
+
+
+## The daikon and rice recipes: their cards come with the first of the crop shipped (by the bin
+## or thrown in); dishes ship at their sell price, from the hand only.
+func _cards() -> void:
+	var g := _game()
+	_empty_bag(g)
+	g.house_built.append("kitchen")
+	var daikon := Cooking.cards("daikon")
+	var rice := Cooking.cards("rice")
+	check(daikon == (["furofuki_daikon", "daikon_fish"] as Array[String]) and rice == (["takikomi_gohan", "kinako_mochi"] as Array[String]),
+		"two recipe cards each for daikon and rice (%s, %s)" % [daikon, rice])
+	check(Cooking.cards("turnip").is_empty(), "no card with turnips")
+	check(not Cooking.known("furofuki_daikon", g.flags) and not g.cook("furofuki_daikon").ok, "no card yet: unknown")
+	g.inventory.add("daikon", 3)
+	g.inventory.take("daikon", 2)
+	check(g.ship_produce() == int(g.crops.daikon.sell), "the daikon shipped at %d G" % int(g.crops.daikon.sell))
+	check(daikon.all(func(id): return Cooking.known(id, g.flags)), "the first daikon shipped brings its cards")
+	check(not Cooking.known("kinako_mochi", g.flags), "rice cards wait for rice")
+	g.held = "rice"
+	var t: Dictionary = g.throw_held(Vector2i(8, 5), Vector2i.UP)
+	check(t.result == "ship" and rice.all(func(id): return Cooking.known(id, g.flags)), "rice thrown in the bin brings the rice cards (%s)" % t.result)
+	g.inventory.add("rice", 2)
+	g.inventory.add("carrot", 1)
+	check(g.cook("kinako_mochi").ok and g.count("food:kinako_mochi") == 3 and g.count("rice") == 0, "kinako mochi from two rice, three of them")
+	g.inventory.add("daikon", 1)
+	g.inventory.add("fish:funa", 1)
+	check(not g.cook("takikomi_gohan").ok, "takikomi gohan needs rice")
+	check(g.cook("daikon_fish").ok and g.count("food:daikon_fish") == 1, "fish and daikon cooked")
+	var known_after := Cooking.known_ids(g.flags)
+	var saved: Dictionary = g.to_dict()
+	g.new_game()
+	check(g.from_dict(saved) == "" and Cooking.known_ids(g.flags) == known_after, "the cards survive a save")
+	# Dishes in the rucksack stay there; one held out goes in at its sell price.
+	_empty_bag(g)
+	g.bin_total = 0
+	g.inventory.add("food:kinako_mochi", 3)
+	g.inventory.add("turnip", 1)
+	var sell := int(g.foods.kinako_mochi.sell)
+	check(g.sell_price("food:kinako_mochi") == sell and g.sell_price("food:kagami_mochi") == 0, "a dish's sell price from foods.json")
+	check(g.ship_produce() == int(g.crops.turnip.sell) and g.count("food:kinako_mochi") == 3, "the bin leaves the rucksack's dishes alone")
+	g.inventory.move("bag", g.inventory.slots.bag.find_custom(func(s): return s.get("id", "") == "food:kinako_mochi"), "hand", 0)
+	check(g.inventory.count("food:kinako_mochi", ["hand"]) == 3, "three mochi in hand")
+	check(g.ship_produce() == 3 * sell and g.count("food:kinako_mochi") == 0, "held out at the bin: shipped (%d G)" % g.bin_total)
+	check(int(g.shipped.get("food:kinako_mochi", 0)) == 3 and g.ending_values().shipped_value >= 3 * sell, "dishes count as shipped for the record")
+	g.free()
 
 
 ## The stove and the cupboard in the real Game: E opens the cooking screen once the kitchen is
