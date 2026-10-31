@@ -1,0 +1,38 @@
+{
+	"_note": "Kota, a boy from the house south-west of the road: plays along the road in the morning, fishes at the pond in the afternoon; in summer he hunts cicadas in the shrine pines instead. Walks a little faster than the grown-ups. Stays in when it is wet. Format: README.md, Villagers.",
+	"id": "kota",
+	"name": "Kota",
+	"speed": 2.0,
+	"look": {"outfit": "shirt_shorts", "hair_style": "straw_hat", "hair": "2a2422", "skin": "e0a878", "top": "e8e2d0", "lower": "4a6a3a", "accent": "e0c070", "shoes": "6b4423"},
+	"rules": [
+		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "stays_in"},
+		{"if": {"season": ["summer"]}, "plan": "summer"}
+	],
+	"default": "usual",
+	"plans": {
+		"usual": [
+			{"at": "06:00", "map": "away"},
+			{"at": "08:00", "map": "town", "from": [8, 16], "route": [{"to": [4, 16]}, {"to": [4, 11]}],
+				"loop": [{"to": [12, 11]}, {"wait": 4}, {"to": [12, 8]}, {"face": "down"}, {"wait": 6}, {"to": [4, 8]}, {"wait": 4}, {"to": [4, 11]}, {"wait": 6}]},
+			{"at": "11:30", "map": "town", "route": [{"to": [4, 11]}, {"to": [4, 16]}, {"to": [8, 16]}, {"face": "up"}]},
+			{"at": "12:00", "map": "away"},
+			{"at": "14:00", "map": "town", "from": [8, 16], "route": [{"to": [8, 17]}, {"to": [30, 17]}, {"face": "right"}]},
+			{"at": "17:00", "map": "town", "route": [{"to": [8, 17]}, {"to": [8, 16]}, {"face": "up"}]},
+			{"at": "17:30", "map": "away"}
+		],
+		"summer": [
+			{"at": "06:00", "map": "away"},
+			{"at": "08:00", "map": "town", "from": [8, 16], "route": [{"to": [4, 16]}, {"to": [4, 11]}],
+				"loop": [{"to": [12, 11]}, {"wait": 4}, {"to": [12, 8]}, {"face": "down"}, {"wait": 6}, {"to": [4, 8]}, {"wait": 4}, {"to": [4, 11]}, {"wait": 6}]},
+			{"at": "11:30", "map": "town", "route": [{"to": [4, 11]}, {"to": [4, 16]}, {"to": [8, 16]}, {"face": "up"}]},
+			{"at": "12:00", "map": "away"},
+			{"at": "14:00", "map": "town", "from": [8, 16], "route": [{"to": [11, 16]}, {"to": [11, 11]}, {"to": [16, 11]}, {"to": [16, 5]}, {"to": [14, 5]}],
+				"loop": [{"to": [14, 2]}, {"face": "left"}, {"wait": 10}, {"to": [14, 5]}, {"to": [23, 5]}, {"to": [23, 3]}, {"face": "right"}, {"wait": 10}, {"to": [23, 5]}, {"to": [14, 5]}]},
+			{"at": "17:00", "map": "town", "route": [{"to": [16, 5]}, {"to": [16, 11]}, {"to": [11, 11]}, {"to": [11, 16]}, {"to": [8, 16]}, {"face": "up"}]},
+			{"at": "17:40", "map": "away"}
+		],
+		"stays_in": [
+			{"at": "06:00", "map": "away"}
+		]
+	}
+}

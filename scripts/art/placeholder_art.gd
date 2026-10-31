@@ -17,6 +17,8 @@ static func _make(key: String) -> Image:
 	match parts[0]:
 		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk>:<frame>
 			return _player(parts[1] == "back", parts[2], int(parts[3]))
+		"villager": # villager:<id>:<front|back>:<idle|walk>:<frame>, from the look in data/villagers/<id>.json
+			return _villager(Villagers.look(parts[1]), parts[2] == "back", parts[3], int(parts[4]))
 		"target":   # corner brackets laid on the cell the tool will hit
 			var c := Color(1, 1, 1, 0.85)
 			return _draw(16, 16, [[0, 0, 5, 1, c], [0, 0, 1, 5, c], [11, 0, 5, 1, c], [15, 0, 1, 5, c],
@@ -293,6 +295,109 @@ static func _map(img: Image, rows: Array, dy: int) -> void:
 		for x in row.length():
 			if row[x] != ".":
 				img.set_pixel(x, y + dy, Color(_FARMER_COLORS[row[x]]))
+
+
+## Villager frames, 16 x 24 like the farmer and seen the same way (front = three-quarters
+## towards Down, back = towards Left; mirrored for Right / Up). The head is a hair style over
+## a shared face, the body an outfit; colours come from the villager's look (hair, skin, top,
+## waist, lower, accent, shoes; darker shades are worked out). Map letters: o outline,
+## h / H hair, s / S skin, e eye, a / A accent (hat, headband, hairpin), t / T top, w waist
+## (obi, sash), l / L lower (trousers, shorts).
+const VILLAGER_STYLES: Array[String] = ["bun", "short", "headband", "long", "straw_hat"]
+const VILLAGER_OUTFITS: Array[String] = ["kimono", "happi", "shirt_shorts"]
+const _VILLAGER_HEADS := {
+	"bun": [[
+		"..........ooo...", ".....ooooohhho..", "....ohhhhhhhhho.", "...ohhhhhhhhhho.", "..ohhssssshhhho.",
+	], [
+		"......ooo.......", ".....ohhho......", "....ohhhhhoo....", "...ohhhhhhhhho..", "..oHhhhhhhhhho..",
+	]],
+	"short": [[
+		"................", ".....ooooooo....", "....ohhhhhhhoo..", "...ohhhhhhhhhho.", "..ohhhsssshhhho.",
+	], [
+		"................", ".....ooooooo....", "....ohhhhhhhoo..", "...ohhhhhhhhhho.", "..oHhhhhhhhhho..",
+	]],
+	"headband": [[
+		"................", ".....ooooooo....", "....ohhhhhhhoo..", "...oaaaaaaaaaaoo", "..ohhsssssshhhoA",
+	], [
+		"................", ".....ooooooo....", "....ohhhhhhhoo..", "oo.oaaaaaaaaaao.", "Ao.oHhhhhhhhho..",
+	]],
+	"long": [[
+		"................", ".....oooooooo...", "....ohhhhhhhhoa.", "...ohhhhhhhhhhoa", "..ohhsssssshhhho",
+	], [
+		"................", ".....oooooooo...", ".aoohhhhhhhhho..", "aohhhhhhhhhhho..", "..oHhhhhhhhhho..",
+	]],
+	"straw_hat": [[
+		"......oooo......", ".....oaaaaoo....", "....oaaaaaaao...", ".ooAAAAAAAAAAAoo", "..ohhsssssshhho.",
+	], [
+		"......oooo......", ".....oaaaaoo....", "....oaaaaaaao...", ".ooAAAAAAAAAAAoo", "..oHhhhhhhhhho..",
+	]],
+}
+const _VILLAGER_FACE := [
+	"..osssssssshhho.", "..osessessShho..", "..osessessShho..", "...oSssssSSoo...", ".....oSSSoo.....",
+]
+const _VILLAGER_NAPE := [
+	"..oShhhhhhhhho..", "..oshhhhhhhhho..", "..oHhhhhhhhhHo..", "...oSHhhhhhHo...", ".....oSSSoo.....",
+]
+## Rows 10 down; a kimono runs on to the ankles, the others stop where the legs start (16).
+const _VILLAGER_BODIES := {
+	"kimono": [
+		"....otTttTto....", "...ottTttTtto...", "...owwwwwwwwo...", "...otttttttTo...", "...otttttttTo...",
+		"...otttttttTo...", "...otttttttTo...", "...otttttttTo...", "...otttttttTo...", "...otttttttTo...",
+		"...otttttttTo...", "...oTTTTTTTTo...",
+	],
+	"happi": [
+		"....otTttTto....", "...ottTttTtto...", "...owwwwwwwwo...", "...otttttttTo...", "...oTttttttTo...",
+		"....ollllllo....", "....ollllllo....",
+	],
+	"shirt_shorts": [
+		"....otttttto....", "...otttttttto...", "...otttttttto...", "...oTttttttTo...", "....ollllllo....",
+		"....ollllllo....", "....oLLLLLLo....",
+	],
+}
+
+
+## The villager's picture for a pose and frame; `walk` frames step like the farmer's walk.
+static func _villager(look: Dictionary, back: bool, pose: String, frame: int) -> Image:
+	var p: Array = _FARMER_POSES["walk" if pose == "walk" else "idle"][frame % farmer_frames("walk" if pose == "walk" else "idle")]
+	var style := str(look.get("hair_style", "short"))
+	var outfit := str(look.get("outfit", "happi"))
+	var c := _villager_colors(look)
+	var img := _blank(16, 24)
+	var hand := func(x: int, y: int) -> void:
+		_px(img, x - 1, y, 4, 3, c.o)
+		_px(img, x, y, 2, 2, c.s)
+	hand.call(11 + p[6], 14 + p[0])
+	if outfit == "kimono":   # short steps under the robe: only the sandals show
+		for f in [[8 + p[3], p[4]], [5 + p[1], p[2]]]:
+			_px(img, f[0] - 1, 21 - mini(f[1], 1), 5, 3, c.o)
+			_px(img, f[0], 22 - mini(f[1], 1), 3, 1, c.k)
+	else:
+		var shin: Color = c.s if outfit == "shirt_shorts" else c.l
+		for f in [[8 + p[3], p[4]], [5 + p[1], p[2]]]:
+			var bottom: int = 23 - f[1]
+			_px(img, f[0] - 1, 16, 5, bottom - 15, c.o)
+			_px(img, f[0], 16, 3, bottom - 19, shin)
+			_px(img, f[0], bottom - 3, 3, 3, c.k)
+	var head: Array = _VILLAGER_HEADS.get(style, _VILLAGER_HEADS.short)[1 if back else 0]
+	var rows: Array = head + (_VILLAGER_NAPE if back else _VILLAGER_FACE) + _VILLAGER_BODIES.get(outfit, _VILLAGER_BODIES.happi)
+	for y in rows.size():
+		var row: String = rows[y]
+		for x in row.length():
+			if row[x] != "." and y + p[0] < 24:
+				img.set_pixel(x, y + p[0], c[row[x]])
+	hand.call(4 + p[5], 14 + p[0])
+	return img
+
+
+static func _villager_colors(look: Dictionary) -> Dictionary:
+	var pick := func(k: String, fallback: String) -> Color:
+		return Color(str(look.get(k, fallback)))
+	var c := {"o": OUTLINE, "e": Color("2a2a3a"), "h": pick.call("hair", "2a2422"), "s": pick.call("skin", "f2c79b"),
+		"a": pick.call("accent", "e0c070"), "t": pick.call("top", "6a7a8a"), "w": pick.call("waist", "c8a050"),
+		"l": pick.call("lower", "3a3430"), "k": pick.call("shoes", "6b4423")}
+	for k in ["h", "s", "a", "t", "l"]:
+		c[k.to_upper()] = (c[k] as Color).darkened(0.25)
+	return c
 
 
 ## Field objects and crops share one style with the farmer: shapes in 2-3 shades, then a

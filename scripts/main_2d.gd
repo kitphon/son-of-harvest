@@ -58,6 +58,7 @@ func _enter_map() -> void:
 		mv.map = m
 		view = mv
 		add_child(view)
+	view.add_child(VillagerView.new(m.id))
 	move_child(view, 0)
 	cam.limit_left = 0
 	cam.limit_top = 0

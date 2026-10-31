@@ -114,6 +114,32 @@ DESIGN asks for every building), `ambient` (which `places` of the ambient rules 
 `Game.go_to_map()` changes it and emits `map_changed` (the views fade, rebuild, place the
 farmer), and once the picture is back `map_entered(map_id)`, the hook for event triggers.
 
+## Villagers
+Each villager is a file `data/villagers/<id>.json` (shared numbers in `_common.json`: walk
+speed in cells per game minute, cells per walk frame): `id`, `name`, optional `speed`, `look`
+(`outfit` kimono / happi / shirt_shorts, `hair_style` bun / short / headband / long /
+straw_hat, colours `hair`, `skin`, `top`, `waist`, `lower`, `accent`, `shoes`; drawn by
+`PlaceholderArt` as `villager:<id>:<front|back>:<idle|walk>:<frame>`), then:
+- `rules`: `[{"if": {conditions}, "plan": "<name>"}]`, the first that holds picks the day's
+  plan, else `default`. Conditions: `season`, `weekday`, `weather` (lists), `days`, `year`
+  (`[first, last]`), `flags` / `not_flags` (story flags set / not set);
+- `plans`: name -> entries `{"at": "H:MM", "map": "<map id>" or "away", "from": [x, y],
+  "route": [steps], "loop": [steps]}`. The first entry is at 06:00, times after midnight
+  belong to the same day. `away` = indoors somewhere we don't draw yet. An entry onto a map
+  needs `from` unless the entry before was on the same map (then it walks on from there).
+  Steps: `{"to": [x, y]}` (walk straight there), `{"wait": minutes}`, `{"face": "up"}`. The
+  route is walked once, then the loop over and over until the next entry. A route must
+  arrive before the next entry starts, and test_villagers checks no walk crosses a solid cell.
+
+`DayPlan` (scripts/villagers/day_plan.gd) turns a plan into timed legs and answers
+`where(minute)`; `Villagers` loads the files, picks the plans for the day in
+`Game.trigger_state` and answers `on_map(map, minute, state)`, `where(id, ...)` and
+`is_on(id, map, ...)` (the hook for "the shop is shut while its keeper is out"). Positions are
+a pure function of `Game.day_minutes()`, so a map shows everyone where their plan puts them
+when the farmer walks in (the catch-up) and nothing has to be saved. The views add a
+`VillagerSprites` (3D) / `VillagerView` (2D) to each map they build. Not yet: villagers
+blocking the farmer and the bump delay, talking, gifts, affection, their own houses.
+
 ## Dialogue
 Dialogue lives in `data/dialogue/<id>.json`, opened with `Game.talk(id)` (or `-- --dialogue=<id>`
 / `<id>@<line id>`). A file is `{"lines": [...]}`; each line is one of:

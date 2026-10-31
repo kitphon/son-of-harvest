@@ -153,6 +153,13 @@ func new_game() -> void:
 		elif arg.begins_with("--weather="):   # e.g. `-- --demo --weather=storm` for screenshots
 			weather_today = arg.trim_prefix("--weather=")
 			snow_cover = next_snow_cover(0, weather_look(weather_today, season_name()), season_name(), snow_rules)
+		elif arg.begins_with("--time="):   # e.g. `-- --demo --map=town --time=14:30` (villagers by their plans)
+			var t := EventTriggers.clock(arg.trim_prefix("--time="))
+			if t < 0 or t >= 24 * 60:
+				push_warning("No clock time " + arg)
+			else:
+				hour = t / 60
+				minute = t % 60
 		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
 			fatigue = int(body.get("states", {}).get("exhausted", {}).get("fatigue", 80))
 			_shown_state = body_state()
@@ -321,6 +328,12 @@ func date_text() -> String:
 
 func time_text() -> String:
 	return "%02d:%02d" % [hour, minute]
+
+
+## The clock as a minute of the game day (6:00 = 360, 1:30 at night = 1530) with the part
+## of the minute that has passed, so villagers (Villagers.on_map) walk smoothly between ticks.
+func day_minutes() -> float:
+	return DayPlan.day_minute(hour, minute) + _accum / SECONDS_PER_MINUTE
 
 
 ## Today's weekday ("mon" .. "sun").
