@@ -5,19 +5,24 @@ extends RefCounted
 
 const WALK_FPS := 8.0     # 4 frames = 0.5 s per two steps; at 60 px/s a step is ~1 cell
 const RUN_FPS := 12.0     # 0.33 s per two steps at 100 px/s
+const TIRED_WALK_FPS := 6.0   # slower, dragging steps (the exhausted farmer is slower too)
+const TIRED_IDLE_FPS := 1.5   # one slow breath in, one out
 
 var pose := "idle"
 var time := 0.0
 
 
 ## Advance by `delta` seconds. A new pose starts on its first step frame, so a key press
-## shows a lifted foot at once.
-func step(delta: float, moving: bool, running: bool) -> void:
+## shows a lifted foot at once. `tired` (Game.body_state() not "fine") swaps idle / walk for
+## the tired poses; a tired farmer who can still run runs normally.
+func step(delta: float, moving: bool, running: bool, tired := false) -> void:
 	var p := "idle" if not moving else ("run" if running else "walk")
+	if tired and p != "run":
+		p = "tired_" + p
 	if p != pose:
 		pose = p
 		time = 1.0 / _fps() if moving else 0.0
-	elif moving:
+	else:
 		time += delta
 
 
@@ -40,4 +45,11 @@ static func is_mirrored(facing: Vector2i) -> bool:
 
 
 func _fps() -> float:
-	return RUN_FPS if pose == "run" else WALK_FPS
+	match pose:
+		"run":
+			return RUN_FPS
+		"tired_walk":
+			return TIRED_WALK_FPS
+		"tired_idle":
+			return TIRED_IDLE_FPS
+	return WALK_FPS

@@ -45,6 +45,11 @@ Save / load and the title menu: the same with `res://tests/test_save.gd` and
 - Shipping bin pays at 18:00 (or when you sleep); the seed stand sells this season's seeds.
 - Stamina: each swing costs stamina; sleep before midnight restores it all, after midnight
   3/4, passing out at 2:00 half.
+- Fatigue (hidden, data/body.json): rises with work in the rain or late at night, with staying
+  up past 22:00 and with working on an empty stamina bar; only sleep lowers it, more the
+  earlier you go to bed. Tired: the farmer slumps and sweats; exhausted: slower and can't run.
+  Going to bed tired or after midnight means oversleeping; full fatigue is a collapse (wake at
+  12:00 next day, a doctor's fee).
 
 ## Camera
 `scripts/main_3d.gd` uses the field camera geometry of Harvest Moon: Back to Nature, measured

@@ -25,9 +25,11 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 ## Next up
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
-font are done. Charging tools are done (levels in data/tools.json, all at level 1). Next:
-milestone 3, **tool levels and upgrades** (a way to raise `Game.tool_levels`; the shop comes
-with milestone 8, so for now e.g. tool experience or a blacksmith stub). Weather is done for now
+font are done. Charging tools are done (levels in data/tools.json, all at level 1), and so are
+fatigue, tired poses, oversleeping and collapse (data/body.json). Next: milestone 3, **tool
+levels and upgrades** (a way to raise `Game.tool_levels`; the shop comes with milestone 8, so
+for now e.g. tool experience or a blacksmith stub), then **eating / drinking** (food items
+with stamina / fatigue effects in data; `Game.add_fatigue()` takes a negative amount). Weather is done for now
 (snow lies on the ground and roofs in winter, lightning flashes in storms; turn flashes off with
 `-- --no-flashes` until the settings menu has it).
 Later for menus: a pause menu (save, back to the title screen).
@@ -57,7 +59,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 3. **Tools and the body**
    - [x] Charging tools (hold to cover more cells, per tool level; data/tools.json)
    - [ ] Tool levels and upgrades
-   - [ ] Fatigue, tired animations, oversleeping, collapse
+   - [x] Fatigue, tired animations, oversleeping, collapse (data/body.json)
    - [ ] Eating / drinking, food items
    - [ ] Holding and throwing items (shipping by throwing into the bin)
 4. **Save / load and menus**
