@@ -40,6 +40,7 @@ func _init() -> void:
 	a.stamina = 41
 	a.water = 9
 	a.snow_cover = 70
+	a.fatigue = 63
 	a.tool_index = 2
 	a.seed_index = 4
 	a.bag = {"seeds:turnip": 3, "corn": 2}
@@ -74,6 +75,7 @@ func _init() -> void:
 	check(b.tool_exp.hoe == 950 and b.tool_exp.axe == 12 and b.tool_exp.can == 0, "tool exp back")
 	check(b.snow_cover == 70, "snow cover back")
 	check(b.flags == a.flags and typeof(b.flags.times_asked) == TYPE_INT, "dialogue flags back %s" % b.flags)
+	check(b.fatigue == 63, "fatigue back")
 	# The loaded farm keeps working by the rules.
 	grid.water_cell(Vector2i(4, 10))
 	grid.day_end("spring", "sunny", rng)
@@ -92,7 +94,8 @@ func _init() -> void:
 			["tool_levels", {"hoe": 2.5}],
 			["tool_exp", [1]], ["tool_exp", {"hoe": -1}], ["tool_exp", {"spoon": 3}], ["tool_exp", {"hoe": 1.5}],
 			["tool_exp", {"hoe": 1 << 40}], ["tool_exp", {"seeds": 1}], ["snow_cover", 101], ["snow_cover", "deep"],
-			["flags", [1]], ["flags", {"x": 2.5}], ["flags", {"x": [true]}], ["flags", {"": true}], ["flags", {"x": null}]]:
+			["flags", [1]], ["flags", {"x": 2.5}], ["flags", {"x": [true]}], ["flags", {"": true}], ["flags", {"x": null}],
+			["fatigue", -1], ["fatigue", 101], ["fatigue", 2.5], ["fatigue", "lots"]]:
 		var d := saved.duplicate(true)
 		d[broken[0]] = broken[1]
 		_put(JSON.stringify({"version": 1, "game": d}))
@@ -137,6 +140,13 @@ func _init() -> void:
 	_put(JSON.stringify({"version": 1, "game": old}))
 	err = SaveGame.read(b, PATH)
 	check(err == "" and b.flags == {}, "save without flags loads with none (%s)" % err)
+
+	# A save from before fatigue existed loads rested.
+	old = saved.duplicate(true)
+	old.erase("fatigue")
+	_put(JSON.stringify({"version": 1, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.fatigue == 0, "save without fatigue loads with none (%s)" % err)
 
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
 	a.free()

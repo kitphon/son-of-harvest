@@ -1,0 +1,49 @@
+{
+	"_comment": "Fatigue (0..100, hidden, only sleep lowers it) and the farmer's tired states. Numbers are ours; see WORKLOG 2026-10-31 Fatigue.",
+	"work": {
+		"_comment": "Extra fatigue per tool swing: in rain or a storm, from late_from_hour to midnight, after midnight; a swing without enough stamina still happens and every missing stamina point becomes overwork fatigue.",
+		"rain": 1,
+		"late_from_hour": 22,
+		"late": 1,
+		"after_midnight": 2,
+		"overwork_per_stamina": 1
+	},
+	"awake_late": {
+		"_comment": "Fatigue when the clock reaches this hour and the farmer is still up.",
+		"22": 2,
+		"23": 3,
+		"0": 4,
+		"1": 5
+	},
+	"sleep": {
+		"_comment": "Fatigue lost in bed: base + per_hour for every hour from bedtime to 6:00, so going to bed early rests more.",
+		"base": 10,
+		"per_hour": 4
+	},
+	"oversleep": {
+		"_comment": "Waking later: the latest of the fatigue rule (fatigue at bedtime at least this much) and the bedtime rule (bed at this hour after midnight).",
+		"fatigue": [[40, 7], [60, 8], [80, 10]],
+		"bed_hour": {"0": 7, "1": 8}
+	},
+	"states": {
+		"_comment": "Tired from fatigue >= fatigue or stamina <= stamina_pct % of max; the worst state that applies wins.",
+		"tired": {"fatigue": 50, "stamina_pct": 30, "speed": 0.85, "message": "You're getting tired."},
+		"exhausted": {"fatigue": 80, "stamina_pct": 0, "speed": 0.6, "message": "You're exhausted. Get some sleep."}
+	},
+	"pass_out": {
+		"_comment": "Still up at 2:00: carried home, wakes late and stiff.",
+		"wake": 8,
+		"fee": 0,
+		"stamina_pct": 50,
+		"fatigue_change": 10,
+		"message": "You fell asleep outside and woke up at home..."
+	},
+	"collapse": {
+		"_comment": "Fatigue reached 100: a neighbour carries the farmer home and calls the doctor; half the morning is lost.",
+		"wake": 12,
+		"fee": 30,
+		"stamina_pct": 50,
+		"fatigue_change": -40,
+		"message": "You collapsed! A neighbour carried you home. The doctor's visit cost %d G."
+	}
+}

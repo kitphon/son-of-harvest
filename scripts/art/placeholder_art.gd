@@ -15,7 +15,7 @@ static func tex(key: String) -> Texture2D:
 static func _make(key: String) -> Image:
 	var parts := key.split(":")
 	match parts[0]:
-		"player":   # player:<front|back>:<idle|walk|run>:<frame>
+		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk>:<frame>
 			return _player(parts[1] == "back", parts[2], int(parts[3]))
 		"target":   # corner brackets laid on the cell the tool will hit
 			var c := Color(1, 1, 1, 0.85)
@@ -140,7 +140,11 @@ const _FARMER_POSES := {
 	"idle": [[0, 0, 0, 0, 0, 0, 0]],
 	"walk": [[1, -2, 0, 2, 0, 2, -2], [0, 0, 0, 0, 2, 0, 0], [1, 2, 0, -2, 0, -2, 2], [0, 0, 2, 0, 0, 0, 0]],
 	"run": [[1, -3, 0, 3, 0, 3, -3], [0, 0, 0, 0, 3, 0, 0], [1, 3, 0, -3, 0, -3, 3], [0, 0, 3, 0, 0, 0, 0]],
+	# Tired: slumped 1-2 px lower, slow heavy breaths standing, short dragging steps walking.
+	"tired_idle": [[1, 0, 0, 0, 0, 0, 0], [2, 0, 0, 0, 0, 0, 0]],
+	"tired_walk": [[2, -1, 0, 1, 0, 1, -1], [1, 0, 0, 0, 1, 0, 0], [2, 1, 0, -1, 0, -1, 1], [1, 0, 1, 0, 0, 0, 0]],
 }
+const _SWEAT := Color("9fd8f2")
 
 
 static func farmer_frames(pose: String) -> int:
@@ -151,16 +155,22 @@ static func farmer_frames(pose: String) -> int:
 ## at the farmer's back on the front view and at the front on the back view.
 static func _player(back: bool, pose: String, frame: int) -> Image:
 	var p: Array = _FARMER_POSES[pose][frame % farmer_frames(pose)]
+	var tired := pose.begins_with("tired")
+	var arms: int = p[0] + int(tired)   # tired arms hang a pixel lower
 	var img := Image.create_empty(16, 24, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
-	_hand(img, 11 + p[6], 14 + p[0])
+	_hand(img, 11 + p[6], 14 + arms)
 	_leg(img, 8 + p[3], p[4])
 	_leg(img, 5 + p[1], p[2])
 	_map(img, _FARMER_BACK if back else _FARMER_FRONT, p[0])
 	var bag_x := 1 if back else 11
 	img.fill_rect(Rect2i(bag_x, 14 + p[0], 4, 5), Color(_FARMER_COLORS.o))
 	img.fill_rect(Rect2i(bag_x + 1, 15 + p[0], 2, 3), Color(_FARMER_COLORS.y))
-	_hand(img, 4 + p[5], 14 + p[0])
+	_hand(img, 4 + p[5], 14 + arms)
+	if tired:   # a drop of sweat by the brow: in front of the face, or behind the head seen from the back
+		var sx := 14 if back else 1
+		img.fill_rect(Rect2i(sx, 4 + p[0], 1, 1), Color.WHITE)
+		img.fill_rect(Rect2i(sx, 5 + p[0], 1, 2), _SWEAT)
 	return img
 
 

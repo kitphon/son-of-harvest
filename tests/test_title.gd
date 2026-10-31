@@ -82,6 +82,7 @@ func _init() -> void:
 	var fresh: Dictionary = g.to_dict()
 	check(fresh.year == 1 and fresh.season == 0 and fresh.day == 1 and fresh.hour == 6 and fresh.minute == 0, "new game: first morning")
 	check(fresh.money == 500 and fresh.bin_total == 0 and fresh.stamina == 100 and fresh.max_stamina == 100, "new game: money and stamina")
+	check(fresh.fatigue == 0 and g.body_state() == "fine", "new game: rested")
 	check(fresh.tool == "hoe" and fresh.water == g.WATER_MAX, "new game: hoe in hand, full can")
 	check(fresh.bag == {"seeds:turnip": 2, "seeds:potato": 1}, "new game: starting bag")
 	check(fresh.flags == {}, "new game: no dialogue flags")
@@ -103,11 +104,14 @@ func _init() -> void:
 	g.tool_levels["hoe"] = 4
 	g.flags = {"bin_note_read": true}
 	g.tool_exp["hoe"] = 700
+	g.fatigue = 90
+	g._shown_state = "exhausted"
 	var old_farm: FarmGrid = g.farm
 	g.rng.seed = 11
 	g.new_game()
 	check(g.to_dict() == fresh, "new game after a played game equals a fresh one")
 	check(g.farm != old_farm and g._accum == 0.0, "new game: a new farm and a clean clock")
+	check(g.fatigue == 0 and g._shown_state == "fine", "new game: fatigue and the tired warning reset")
 	var tilled := 0
 	for d in g.farm.cells:
 		tilled += int(d.tilled or d.crop != "")

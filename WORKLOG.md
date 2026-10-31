@@ -10,6 +10,48 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Fatigue, tired poses, oversleeping and collapse
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a second body value, `Game.fatigue` (0..100, hidden like DESIGN says), with every rule
+  number in the new `data/body.json`. Work: a swing adds fatigue in rain / storm, from 22:00,
+  more after midnight; a swing without enough stamina now still happens, stamina stops at 0
+  and every missing point becomes fatigue (overwork), so `spend_stamina` no longer refuses
+  ("Too tired" is gone). Staying up: fatigue on the hour at 22, 23, 0 and 1. Sleep: fatigue
+  - (base + per hour from bedtime to 6:00), so going to bed early rests more. Oversleeping:
+  `wake_hour()` = the later of a fatigue-at-bedtime table and a bed-after-midnight table;
+  `sleep()` jumps the clock to it and says "You overslept until 8:00.". States:
+  `body_state()` fine / tired / exhausted from fatigue or a low stamina share;
+  `speed_factor()` (tired 0.85, exhausted 0.6) and `can_run()` (not when exhausted) are used
+  by the Player; `check_body()` runs every minute, tells a worse state once and collapses the
+  farmer at 100. `knock_out(kind)` is shared by the 2:00 pass out and the new `collapse()`:
+  day ends without rest, wake hour, fee (never below 0 G), stamina share and fatigue change
+  from data, message. No clinic yet, so the farmer wakes at home. Save: `fatigue` in
+  SAVED_NUMBERS (0..100) with default 0 for older saves; `new_game()` resets it and the
+  warning state. Art: new placeholder poses `player:<front|back>:tired_idle:<0-1>` (slow
+  breath) and `tired_walk:<0-3>` (short dragging steps): body 1-2 px lower, arms a pixel
+  lower, a sweat drop by the brow. FarmerAnim takes a `tired` flag (main_3d passes
+  `body_state() != "fine"`); a tired run stays a run. New `-- --tired` flag for screenshots.
+- Balance (ours): work +1 rain / +1 late / +2 after midnight, overwork 1 per missing stamina;
+  awake 22:00 +2, 23:00 +3, 0:00 +4, 1:00 +5; sleep rest 10 + 4 per hour (bed at 22:00 =
+  -42); oversleep fatigue 40 -> 7:00, 60 -> 8:00, 80 -> 10:00, bed at 0:xx -> 7:00, 1:xx ->
+  8:00; tired at fatigue 50 or stamina <= 30 %, exhausted at 80 or stamina 0; pass out wakes
+  8:00 with half stamina and fatigue +10; collapse wakes 12:00 next day, 30 G, half stamina,
+  fatigue -40. A normal day (bed by 22:00, no overwork) never builds fatigue; it takes about
+  a full stamina bar of overwork or several late nights in a row to collapse.
+- Checked: `test_farm: OK (0 failed)` (tired poses / frames, overwork swing),
+  `test_save: OK (0 failed)` (fatigue round trip; refused -1, 101, 2.5, "lots"; a save without
+  fatigue loads at 0), `test_title: OK (0 failed)` (new game resets fatigue and the warning),
+  `test_weather: OK (0 failed)`, new `test_body: OK (0 failed)` (states, speed, running,
+  warning once, work / late / overwork fatigue, the 22:00 tick, sleep rest, oversleep
+  tables, sleep and collapse and pass out results, fee floor; it puts the real save slot
+  back since `sleep()` writes it). Headless `--quit-after 300` (title, `-- --demo`,
+  `-- --demo --tired`) printed no errors. Movie Maker frame `--demo --tired`: the farmer
+  stands slumped with a light blue sweat drop left of the face, HUD intact. Not checked:
+  the slower walk and the messages in a real game window; the 2D view has no tired look.
+- Left / next: food lowering fatigue (eating milestone); the clinic for the collapse when
+  the town exists; DESIGN's per-threshold tired animation is a message plus the tired poses
+  for now.
+
 ## 2026-10-31 — Tool levels from experience
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: every swing of hoe / can / sickle / hammer / axe gives the tool experience

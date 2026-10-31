@@ -75,7 +75,20 @@ func _init() -> void:
 	a.step(0.0, false, false)
 	check(a.key(Vector2i.RIGHT) == "player:front:idle:0" and FarmerAnim.is_mirrored(Vector2i.RIGHT), "right = mirrored front")
 	check(FarmerAnim.is_back(Vector2i.LEFT) and not FarmerAnim.is_mirrored(Vector2i.LEFT), "left = back, not mirrored")
-	for pose in ["idle", "walk", "run"]:
+	# Tired: idle / walk become the tired poses (slower steps, slow breaths); running stays a run.
+	a.step(0.0, false, false, true)
+	check(a.key(Vector2i.DOWN) == "player:front:tired_idle:0", "tired idle frame")
+	a.step(1.0 / FarmerAnim.TIRED_IDLE_FPS, false, false, true)
+	check(a.frame() == 1, "tired idle breathes")
+	a.step(0.0, true, false, true)
+	check(a.key(Vector2i.UP) == "player:back:tired_walk:1", "tired walk starts on a step frame")
+	a.step(2.0 / FarmerAnim.TIRED_WALK_FPS, true, false, true)
+	check(a.frame() == 3 and FarmerAnim.TIRED_WALK_FPS < FarmerAnim.WALK_FPS, "tired walk steps slower")
+	a.step(0.0, true, true, true)
+	check(a.pose == "run", "a tired run is a run")
+	a.step(0.0, false, false)
+	check(PlaceholderArt.tex("player:front:tired_idle:0").get_image().get_data() != PlaceholderArt.tex("player:front:idle:0").get_image().get_data(), "tired idle looks different")
+	for pose in ["idle", "walk", "run", "tired_idle", "tired_walk"]:
 		for i in PlaceholderArt.farmer_frames(pose):
 			var img := PlaceholderArt.tex("player:front:%s:%d" % [pose, i]).get_image()
 			check(img.get_size() == Vector2i(16, 24) and (img.get_pixel(5, 22).a > 0 or img.get_pixel(10, 22).a > 0),
@@ -345,9 +358,11 @@ func _charge_actions() -> void:
 	g.select_tool(g.TOOLS.find("axe"))
 	actions.use_tool(Vector2i(20, 12), Vector2i.DOWN, 1)
 	check(g.farm.cell(Vector2i(20, 13)).hits == 2, "charged axe hits twice")
+	# Out of stamina the swing still happens; the missing stamina becomes fatigue (test_body.gd).
 	g.stamina = 1
+	g.fatigue = 0
 	actions.use_tool(Vector2i(20, 12), Vector2i.DOWN, 1)
-	check(g.farm.cell(Vector2i(20, 13)).hits == 2 and g.stamina == 1, "too tired: no swing")
+	check(g.farm.cell(Vector2i(20, 13)).obj == FarmGrid.Obj.NONE and g.stamina == 0 and g.fatigue > 0, "overwork: the swing clears the stump, fatigue %d" % g.fatigue)
 
 
 ## Tool experience on the real Game: per swing, none for a use that never swung, levels at
@@ -379,7 +394,8 @@ func _tool_exp() -> void:
 	check(g.tool_exp.can == 0 and g.tool_exp.sickle == 0, "only the tool used learns")
 	g.stamina = 1
 	actions.use_tool(Vector2i(11, 8), Vector2i.DOWN, 0)
-	check(g.tool_exp.hoe == work + miss and not g.farm.cell(Vector2i(11, 9)).tilled, "too tired: no swing, no exp")
+	# Fatigue rule: an empty stamina bar doesn't stop the swing, the shortfall turns into fatigue.
+	check(g.tool_exp.hoe == work + miss + work and g.farm.cell(Vector2i(11, 9)).tilled, "overworked swing still tills and teaches (%d)" % g.tool_exp.hoe)
 	g.stamina = 100
 	g.select_tool(g.TOOLS.find("can"))
 	g.water = 0

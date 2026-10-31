@@ -127,7 +127,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	anim.step(delta, player.moving, player.running)
+	anim.step(delta, player.moving, player.running, Game.body_state() != "fine")
 	_update_flash(delta)
 	_follow()
 

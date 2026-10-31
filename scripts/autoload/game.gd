@@ -43,15 +43,18 @@ var bag: Dictionary = {}        # item id -> count; seeds are "seeds:<crop>"
 var tool_levels: Dictionary = {}   # tool -> level 1..5 (charging tools in data/tools.json)
 var flags: Dictionary = {}      # story flags set by dialogue (bool, whole number or word)
 var tool_exp: Dictionary = {}      # tool -> experience from using it; levels up at data thresholds
+var fatigue := 0                # 0..FATIGUE_MAX, rises with work and late nights, only sleep lowers it
 
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
 var weather_fx: Dictionary = {}    # look per weather: tint, falling particles, lightning
 var tools_data: Dictionary = {}    # data/tools.json: charge steps per tool
 var snow_rules: Dictionary = {}    # how snow builds up and melts (data/snow_cover.json)
+var body: Dictionary = {}          # fatigue, tired states, oversleeping, collapse (data/body.json)
 var rng := RandomNumberGenerator.new()
 var farm: FarmGrid
 var _accum := 0.0
+var _shown_state := "fine"      # the tired state last told to the player
 
 
 func _ready() -> void:
@@ -61,6 +64,7 @@ func _ready() -> void:
 	weather_fx = _load_json("res://data/weather_fx.json")
 	tools_data = _load_json("res://data/tools.json")
 	snow_rules = _load_json("res://data/snow_cover.json")
+	body = _load_json("res://data/body.json")
 	_setup_input()
 	settings = Settings.make()
 	var err := settings.read()
@@ -83,6 +87,8 @@ func new_game() -> void:
 	bin_total = 0
 	max_stamina = 100
 	stamina = max_stamina
+	fatigue = 0
+	_shown_state = "fine"
 	water = WATER_MAX
 	snow_cover = 0
 	tool_index = 0
@@ -100,6 +106,9 @@ func new_game() -> void:
 		elif arg.begins_with("--weather="):   # e.g. `-- --demo --weather=storm` for screenshots
 			weather_today = arg.trim_prefix("--weather=")
 			snow_cover = next_snow_cover(0, weather_look(weather_today, season_name()), season_name(), snow_rules)
+		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
+			fatigue = int(body.get("states", {}).get("exhausted", {}).get("fatigue", 80))
+			_shown_state = body_state()
 
 
 ## `-- --demo`: 10:00 with a few sown, growing and ripe plots by the house, for screenshots.
@@ -142,6 +151,9 @@ func _tick_minute() -> void:
 			pay_bin()
 		elif hour == PASS_OUT_HOUR:
 			pass_out()
+		else:
+			add_fatigue(int(body.get("awake_late", {}).get(str(hour), 0)))
+	check_body()
 	minute_passed.emit()
 	changed.emit()
 
@@ -273,22 +285,47 @@ func roll_weather(season_idx: int) -> String:
 	return "sunny"
 
 
-## Sleep before midnight: full stamina. After midnight: three quarters.
+## Sleep before midnight: full stamina. After midnight: three quarters. Fatigue goes down by
+## the hours in bed, and a tired farmer or a very late bedtime wakes up later (sleep_rest,
+## wake_hour).
 func sleep() -> void:
 	var late := hour < 6
+	var wake := wake_hour(fatigue, hour)
+	fatigue = maxi(fatigue - sleep_rest(hour, minute), 0)
 	end_day()
 	stamina = max_stamina * 3 / 4 if late else max_stamina
+	hour = wake
+	_shown_state = body_state()
 	# Sleeping saves the game (the morning after), like writing in a diary.
 	var err := SaveGame.write(self)
-	message.emit("Good morning! Game saved." if err == "" else "Good morning! " + err)
+	var hello := "Good morning!" if wake == 6 else "You overslept until %d:00." % wake
+	message.emit(hello + (" Game saved." if err == "" else " " + err))
 	changed.emit()
 
 
-## Still awake at PASS_OUT_HOUR: wake at home with half stamina.
+## Still awake at PASS_OUT_HOUR: wake at home, late, with half stamina.
 func pass_out() -> void:
+	knock_out("pass_out")
+
+
+## Fatigue reached FATIGUE_MAX: carried home, the doctor's fee, half the next morning lost.
+func collapse() -> void:
+	knock_out("collapse")
+
+
+## Shared by pass_out and collapse: the day ends with no rest; wake hour, fee, stamina and the
+## fatigue change come from data/body.json.
+func knock_out(kind: String) -> void:
+	var r: Dictionary = body.get(kind, {})
 	end_day()
-	stamina = max_stamina / 2
-	message.emit("You passed out from exhaustion...")
+	hour = int(r.get("wake", 6))
+	var fee := mini(int(r.get("fee", 0)), money)
+	money -= fee
+	stamina = max_stamina * int(r.get("stamina_pct", 50)) / 100
+	fatigue = clampi(fatigue + int(r.get("fatigue_change", 0)), 0, FATIGUE_MAX)
+	_shown_state = body_state()
+	var text := String(r.get("message", "You passed out..."))
+	message.emit(text % fee if "%d" in text else text)
 	changed.emit()
 
 
@@ -353,13 +390,88 @@ func take_item(id: String, n := 1) -> bool:
 	return true
 
 
+## A swing costs stamina and adds work fatigue. Without enough stamina the farmer still
+## works, but every missing point turns into fatigue (overwork), the way to a collapse.
 func spend_stamina(n: int) -> bool:
-	if stamina < n:
-		message.emit("Too tired. Go to bed.")
-		return false
-	stamina -= n
+	var missing := maxi(n - stamina, 0)
+	stamina -= n - missing
+	add_fatigue(work_fatigue() + missing * int(body.get("work", {}).get("overwork_per_stamina", 1)))
 	changed.emit()
 	return true
+
+
+# --- fatigue and tired states (data/body.json) -----------------------------
+
+const FATIGUE_MAX := 100
+const BODY_STATES: Array[String] = ["fine", "tired", "exhausted"]
+
+
+func add_fatigue(n: int) -> void:
+	fatigue = clampi(fatigue + n, 0, FATIGUE_MAX)
+
+
+## Extra fatigue a swing costs now: rain or storm, late evening, after midnight.
+func work_fatigue() -> int:
+	var w: Dictionary = body.get("work", {})
+	var n := 0
+	if weather_today == "rain" or weather_today == "storm":
+		n += int(w.get("rain", 0))
+	if hour >= int(w.get("late_from_hour", 22)):
+		n += int(w.get("late", 0))
+	elif hour < 6:
+		n += int(w.get("after_midnight", 0))
+	return n
+
+
+## "fine", "tired" or "exhausted": the worst state whose fatigue or stamina mark is reached.
+func body_state() -> String:
+	var states: Dictionary = body.get("states", {})
+	for s in ["exhausted", "tired"]:
+		var r: Dictionary = states.get(s, {})
+		if r.is_empty():
+			continue
+		if fatigue >= int(r.fatigue) or stamina * 100 <= int(r.stamina_pct) * max_stamina:
+			return s
+	return "fine"
+
+
+## Walking speed factor for the current state (1.0 when fine).
+func speed_factor() -> float:
+	return float(body.get("states", {}).get(body_state(), {}).get("speed", 1.0))
+
+
+func can_run() -> bool:
+	return body_state() != "exhausted"
+
+
+## Fatigue lost in bed from h:m until 6:00: more hours in bed, more rest.
+func sleep_rest(h: int, m: int) -> int:
+	var minutes := posmod(6 * 60 - (h * 60 + m), 24 * 60)
+	if minutes == 0:
+		minutes = 24 * 60
+	var r: Dictionary = body.get("sleep", {})
+	return int(r.get("base", 0)) + int(r.get("per_hour", 0)) * minutes / 60
+
+
+## The hour the farmer wakes after going to bed at `bed_hour` with fatigue `f`.
+func wake_hour(f: int, bed_hour: int) -> int:
+	var over: Dictionary = body.get("oversleep", {})
+	var wake := 6
+	for pair in over.get("fatigue", []):
+		if f >= int(pair[0]):
+			wake = maxi(wake, int(pair[1]))
+	return maxi(wake, int(over.get("bed_hour", {}).get(str(bed_hour), 6)))
+
+
+## Every minute: fatigue at the top collapses the farmer; a worse tired state says so once.
+func check_body() -> void:
+	if fatigue >= FATIGUE_MAX:
+		collapse()
+		return
+	var s := body_state()
+	if BODY_STATES.find(s) > BODY_STATES.find(_shown_state):
+		message.emit(String(body.states[s].get("message", "")))
+	_shown_state = s
 
 
 # --- tool levels and charging ----------------------------------------------
@@ -471,9 +583,10 @@ const SAVED_NUMBERS := {
 	"year": [1, 9999], "season": [0, 3], "day": [1, DAYS_PER_SEASON], "hour": [0, 23],
 	"minute": [0, 59], "money": [0, 1 << 50], "bin_total": [0, 1 << 50],
 	"max_stamina": [1, 9999], "water": [0, WATER_MAX], "snow_cover": [0, 100],
+	"fatigue": [0, FATIGUE_MAX],
 }
 ## Numbers added after the first saves went out: an older save without them gets these.
-const SAVED_DEFAULTS := {"snow_cover": 0}
+const SAVED_DEFAULTS := {"snow_cover": 0, "fatigue": 0}
 
 
 ## The run's state as plain data, the farm included (SaveGame writes it).
@@ -574,6 +687,7 @@ func from_dict(data: Dictionary) -> String:
 	for key in n:
 		set(key, n[key])
 	_accum = 0.0
+	_shown_state = body_state()
 	day_started.emit()   # the views put the farmer home and redo weather and light
 	changed.emit()
 	return ""

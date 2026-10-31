@@ -50,6 +50,11 @@ Save / load, the title menu, weather and dialogue: the same with `res://tests/te
   (`scripts/audio/sfx_synth.gd`, no sound files). Tools, footsteps by ground, bin lid,
   payday coins, menu, a chime at 6:00; rain, storm wind and thunder after lightning,
   cicadas on summer days, crickets at night, cross-faded by weather / season / hour.
+- Fatigue (hidden, data/body.json): rises with work in the rain or late at night, with staying
+  up past 22:00 and with working on an empty stamina bar; only sleep lowers it, more the
+  earlier you go to bed. Tired: the farmer slumps and sweats; exhausted: slower and can't run.
+  Going to bed tired or after midnight means oversleeping; full fatigue is a collapse (wake at
+  12:00 next day, a doctor's fee).
 
 ## Export (Windows .exe)
 The preset "Windows Desktop" in `export_presets.cfg` builds `build/HarvestSon.exe` (git-ignored)
