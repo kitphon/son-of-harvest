@@ -150,6 +150,9 @@ func _enter_map() -> void:
 	world.add_child(VillagerSprites.new(m.id))
 	add_child(world)
 	move_child(world, 0)
+	var animals := AnimalLayer.new()   # hens, eggs and feed (the coop, or the farm yard)
+	world.add_child(animals)
+	animals.setup(m, Game.maps.on_farm())
 	player.farm = Game.farm
 	player.position = Game.maps.pos
 	player.facing = Game.maps.facing

@@ -74,6 +74,8 @@ static func interact(c: Vector2i) -> void:
 			Sfx.play("door_slide")
 		Game.use_door(door)
 		return
+	if CoopActions.interact(c):   # the hens, feed box, nests, incubator and hatch
+		return
 	if not Game.maps.on_farm():
 		var prop := Game.maps.current().prop_at(c)
 		match str(prop.get("use", "")):

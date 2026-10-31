@@ -45,7 +45,7 @@ func _init() -> void:
 		"not json": "{ this is not json",
 		"cut off": good.substr(0, good.length() / 2),
 		"no version": JSON.stringify({"game": g.to_dict()}),
-		"newer version": JSON.stringify({"version": 2, "game": g.to_dict()}),
+		"newer version": JSON.stringify({"version": SaveGame.VERSION + 1, "game": g.to_dict()}),
 		"bad day": JSON.stringify({"version": 1, "game": bad_day}),
 		"unknown crop": JSON.stringify({"version": 1, "game": bad_crop}),
 	}

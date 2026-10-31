@@ -174,6 +174,71 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   House extensions and the rucksack upgrade (`Inventory.grow`) are not for sale yet; ore for
   upgrades waits for mining.
 
+## 2026-10-31 — Chickens: the coop, feeding, happiness, egg grades, sickness, incubator
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: milestone 7 starts with chickens (DESIGN "สัตว์"; ideas only, our numbers and code).
+  - Rules in the new pure-logic `Animals` (`scripts/animals/animals.gd`, `Game.animals`),
+    every number in the new `data/animals.json`. A hen is {kind, name, happy, age, sick,
+    sick_days, petted, out_hours}; happiness 0..100, new hens 30. Each night
+    (`day_end`, from `Game.end_day`): a hen eats from the feed box or counts as fed after 4
+    hours outside in good weather (+3 fed, +2 sun), unfed −8, petted +2, still out at night
+    −10 (they come in by themselves), sick −3 a night. Adults that ate and aren't sick lay
+    one egg into the nests (at most the coop's 6), graded by happiness: under 40 Egg (50 G),
+    under 75 Good Egg (75 G), else Golden Yolk Egg (110 G). Happiness ≤ 5 gives a 35% chance
+    of falling sick, a night without food 10% more; Animal Medicine (`medicine`) cures at
+    once, otherwise she is well after 5 nights (no deaths: DESIGN's advice that risks stay
+    recoverable). Each clock hour while out (`hour_passed`): +1 grazing hour in sunny
+    weather, −3 happiness in bad weather. The hatch opens only on sunny days 6:00–17:59.
+    Chicks (age 0) grow up after 7 nights; the incubator hatches a held egg in 3 nights and
+    takes a coop place meanwhile. Names from a list in the data (Kome, Mochi, ...).
+  - The coop: a farm building at x 13..17, y 1..3 (`FarmGrid.COOP`, door `COOP_DOOR` 15, 3;
+    older saves get it on cleared ground through `add_missing_fixed`) and a map
+    `data/maps/coop.json` (straw floor, earth by the door, indoor = clock stops): feed box
+    along the back wall, three straw nests, incubator basket with a lantern, a tawara feed
+    sack (40 portions on a new game), the hen hatch in the right wall. `CoopActions` (E):
+    feed box tops up one portion a hen from the sack, the sack tells what's left, a nest
+    puts the oldest egg overhead (the hand slot, so it ships by throwing it into the bin,
+    and eggs in the rucksack ship at the bin too: `Game.sell_price` / `item_name` know animal
+    goods), the incubator takes a held egg, the hatch lets the hens out / in, a hen (on her
+    spot from the data) gets stroked, or the medicine when sick. The night's news ("Mochi
+    looks sick", "A chick hatched") is told on the next walk into the coop.
+  - Shop hook for the shops session: `Game.add_animal("chicken")` (false when the coop is
+    full), `Game.animals.add_feed(n)`; `medicine` is an item nothing sells yet. A new game
+    starts with two hens.
+  - Views: `AnimalLayer` (3D) puts the hens near their spots (wandering, pecking, walking;
+    sick ones sit fluffed up), eggs in the nests, an egg in the incubator and a grain mound a
+    portion in the feed box; out on the farm the hens peck about the yard in front of the
+    coop. `CoopProps` builds the thatched coop (cedar boards, kaya roof with ridge sticks,
+    board door, bamboo-barred window, a hatch with a ramp) and the furniture. 2D: `AnimalView`
+    draws hens and eggs, MapView colours for the new props.
+  - Art in `placeholder_art.gd`: `animal:<chicken|chick>:<idle|peck|walk|sick>:<frame>`,
+    eggs per grade (`item:egg*`, slot icons too), `ground:straw`, `build:thatch`. Sounds
+    `hen_cluck` and `feed_pour` in `data/sfx.json`.
+  - Save version 2 (`SaveGame.VERSION`; `_parse` passes the version to `Game.from_dict`):
+    `animals` holds the flock, feed, eggs, incubator, hatch state; a version 2 save without
+    it is refused, a version 1 save loads with the new-game flock and gets the coop.
+  - Debug flags: `-- --demo --map=coop` (a chick, two eggs, a filled box with --demo),
+    `--hens-out` (with `--map=farm@coop`).
+- Checked: new `test_animals: OK (0 failed)` (data, start flock, capacity, grades, feed box,
+  fed / unfed / petted / grazing / rain / night out, nest cap, sickness, cure, recovery,
+  chicks growing, incubator, round trip and 8 broken saves, Game hook / prices / clock hour /
+  night eggs / egg thrown into the bin / bag shipping, version 1 and 2 loads, coop actions
+  through FarmActions with the real autoload, coop map and spots, coop on an older farm,
+  art sizes). `test_audio`, `test_body`, `test_dialogue`, `test_events`, `test_farm`,
+  `test_food`, `test_hold`, `test_inventory`, `test_maps`, `test_menu`, `test_save`,
+  `test_title`, `test_weather` all `OK (0 failed)` (test_title's "newer version" case now
+  uses `SaveGame.VERSION + 1`). Headless `--quit-after 300` (title, `-- --demo`,
+  `--demo --map=town`, `--demo --map=coop`, `--demo --map=farm@coop`),
+  `res://scenes/main.tscn --quit-after 400` and `res://scenes/main_2d.tscn -- --demo
+  --map=coop` printed no errors or warnings. Movie Maker frames: `--demo --map=coop` (two
+  hens and a chick on the straw, eggs in the nests, trough, tawara sack, incubator) and
+  `--demo --map=farm@coop --hens-out` (thatched coop right of the stand, hens and the chick
+  in the yard).
+- Left / next: not played in a real window (keys, doors, the hatch, throwing an egg). No
+  shop sells chickens, feed or medicine yet (shops session). Hens out in the yard can't be
+  talked to; the clock stands still in the coop, so hens out only graze while the farmer is
+  outdoors. Cows / sheep / dog next in milestone 7.
+
 ## 2026-10-31 — Merged six branches: music, events, maps, rucksack, food, hold / throw
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, tests after each, in this order:

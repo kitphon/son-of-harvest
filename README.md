@@ -67,6 +67,15 @@ Pad buttons (Start = pause, Back = rucksack) are not remappable yet.
   shakuhachi / sho-like voices made by `scripts/audio/music_synth.gd`): a title theme, one
   per season, night and rain, cross-faded by scene / weather / hour. Esc → Settings has
   Music / Sounds / Ambient volume sliders.
+- Chickens (`data/animals.json`, `Animals`): the thatched coop right of the stand is a map
+  with a door. Inside: E on the feed box fills it from the feed sack (one portion a hen), on
+  a nest takes an egg overhead (throw it into the bin to ship it), on the incubator puts a
+  held egg in (a chick in 3 nights), on the hatch in the right wall lets the hens out to the
+  yard on a sunny day (4 hours out = a meal), on a hen strokes her (or gives her Animal
+  Medicine when she is sick). Happiness moves each night; it picks the egg grade (Egg, Good
+  Egg, Golden Yolk Egg). Unhappy or hungry hens can fall sick; they get well with medicine
+  or by themselves after 5 nights. A new game starts with two hens; `Game.add_animal(kind)`
+  is the shop's hook. Overnight news is told when you next walk into the coop.
 - Fatigue (hidden, data/body.json): rises with work in the rain or late at night, with staying
   up past 22:00 and with working on an empty stamina bar; only sleep lowers it, more the
   earlier you go to bed. Tired: the farmer slumps and sweats; exhausted: slower and can't run.
@@ -111,6 +120,8 @@ DESIGN asks for every building), `ambient` (which `places` of the ambient rules 
   shop's hours and says so. Door cells are solid; walking into one, or
   using it, goes through. Cells just off the edge make a walk-off exit; on the farm
   `gate: true` leaves those fence cells open in the drawing;
+- the coop (`coop`) uses props with `use` `feed_box`, `nest`, `incubator`, `feed_sack` and
+  `hatch` (CoopActions), their 3D looks in `scripts/world3d/coop_props.gd`;
 - `spawns`: named `[cell, facing]`, `start` needed (`--map=<id>@<spawn>`), the house has
   `home` (where a new day starts).
 
@@ -260,6 +271,9 @@ corner, so the front walls are drawn as low sills (a cutaway) instead of moving 
 - `scripts/autoload/sfx.gd` (Sfx): plays sounds by key and the music, SFX / Ambient / Music
   busses with `set_volume(bus, 0..1)` (set from the volume settings);
   `scripts/audio/ambient_picker.gd` picks the ambient loops, `music_picker.gd` the track.
+- `scripts/animals/animals.gd` (Animals, pure logic) + `coop_actions.gd` (the farmer's coop
+  actions); `scripts/world3d/animal_layer.gd` / `scripts/world/animal_view.gd` draw the hens,
+  eggs and feed; `scripts/world3d/coop_props.gd` the coop building and furniture.
 - `tools/make_icon.gd`: draws the app icon; `export_presets.cfg`: the Windows build.
 
 ## Plan and handoff

@@ -86,6 +86,8 @@ var hold_rules: Dictionary = {}    # throw reach, flight, what the bin and the p
 var rng := RandomNumberGenerator.new()
 var farm: FarmGrid
 var maps := MapManager.new()       # the map the farmer is on and where (saved)
+var animals := Animals.new()       # the chickens and their coop (data/animals.json, saved)
+var animal_news: Array[String] = []   # what happened to the animals overnight, told in the coop
 var _accum := 0.0
 var _shown_state := "fine"      # the tired state last told to the player
 
@@ -141,6 +143,9 @@ func new_game() -> void:
 	maps = MapManager.new()   # on the farm, in front of the house door
 	shipped = {}
 	shop_jobs = {}
+	animals = Animals.new()
+	animals.start()
+	animal_news = []
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--demo":
@@ -173,6 +178,8 @@ func new_game() -> void:
 				push_warning("No shop counter for " + arg)
 			else:
 				maps.place(m.id, m.spawns.counter[0], m.spawns.counter[1])
+		elif arg == "--hens-out":   # e.g. `-- --demo --map=farm@coop --hens-out`: the hens in the yard
+			animals.outside = true
 		elif arg == "--hold":   # e.g. `-- --demo --hold`: a turnip overhead, a potato in front of the bin
 			held = "turnip"
 			farm.place_item(Vector2i(8, 4), "potato")
@@ -206,6 +213,10 @@ func _demo_field() -> void:
 	inventory.add("seeds:cucumber", 4)
 	inventory.add("cucumber", 12, ["chest"])
 	inventory.add("seeds:turnip", 5, ["chest"])
+	# The coop with a chick, eggs in the nests and the feed box filled (`-- --demo --map=coop`).
+	animals.add("chicken", true)
+	animals.eggs.assign(["egg", "egg_good"])
+	animals.fill_feed_box()
 
 
 func _process(delta: float) -> void:
@@ -222,6 +233,7 @@ func _tick_minute() -> void:
 	if minute == 60:
 		minute = 0
 		hour = (hour + 1) % 24
+		animals.hour_passed(weather_today)
 		if hour == PAYOUT_HOUR:
 			pay_bin()
 		elif hour == PASS_OUT_HOUR:
@@ -292,6 +304,10 @@ func use_door(door: Dictionary) -> void:
 ## The view finished the change: the farmer is on the map and can see it.
 func map_arrived() -> void:
 	map_entered.emit(maps.id)
+	# The night's animal news waits for the farmer to look in on them.
+	if maps.id == animals.home_rule("coop").get("map", "coop") and not animal_news.is_empty():
+		message.emit(". ".join(animal_news))
+		animal_news.clear()
 
 
 ## A new day starts at home: in the house, by the futon.
@@ -482,6 +498,7 @@ func end_day() -> void:
 		if season == 0:
 			year += 1
 	work_fatigue_half = false
+	animal_news.append_array(animals.day_end(weather_today, rng))
 	weather_today = weather_tomorrow
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	snow_cover = next_snow_cover(snow_cover, weather_look(weather_today, season_name()), season_name(), snow_rules)
@@ -511,13 +528,23 @@ func ship_produce() -> int:
 	var total := 0
 	var carried := inventory.totals()
 	for id in carried:
-		if crops.has(id):
-			total += int(crops[id].sell) * int(carried[id])
+		if sell_price(id) > 0:
+			total += sell_price(id) * int(carried[id])
 			shipped[id] = int(shipped.get(id, 0)) + int(carried[id])
 			inventory.take(id, int(carried[id]))
 	bin_total += total
 	changed.emit()
 	return total
+
+
+# --- animals (data/animals.json) -------------------------------------------
+
+## The shop's hook: one more grown animal of `kind` (e.g. "chicken") into its home. False
+## when the home is full or the kind unknown (the shop then keeps the money).
+func add_animal(kind: String) -> bool:
+	var ok := animals.add(kind)
+	changed.emit()
+	return ok
 
 
 # --- holding and throwing ---------------------------------------------------
@@ -528,7 +555,7 @@ func holding() -> bool:
 
 ## What one of `id` fetches in the bin (0 = can't be shipped).
 func sell_price(id: String) -> int:
-	return int(crops[id].get("sell", 0)) if crops.has(id) else 0
+	return int(crops[id].get("sell", 0)) if crops.has(id) else animals.sell_price(id)
 
 
 ## Hands free: takes the item lying on `c`, else harvests a ripe crop there, into the
@@ -621,6 +648,8 @@ func item_name(id: String) -> String:
 		return String(crops[id].name)
 	if id.begins_with("seeds:") and crops.has(id.trim_prefix("seeds:")):
 		return "%s seeds" % crops[id.trim_prefix("seeds:")].name
+	if animals.item_info(id).has("name"):
+		return String(animals.item_info(id).name)
 	return id.replace(":", " ").replace("_", " ").capitalize()
 
 
@@ -981,13 +1010,14 @@ func to_dict() -> Dictionary:
 	d.map = maps.to_dict()
 	d.shipped = shipped.duplicate()
 	d.shop_jobs = shop_jobs.duplicate(true)
+	d.animals = animals.to_dict()
 	d.farm = farm.to_dict()
 	return d
 
 
 ## Puts a saved state back and redraws through the usual signals. Returns "" or what was
 ## wrong; everything is checked first, so on a problem nothing changes.
-func from_dict(data: Dictionary) -> String:
+func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	var n := {}
 	for key in SAVED_NUMBERS:
 		n[key] = SaveGame.whole(data.get(key, SAVED_DEFAULTS.get(key)), SAVED_NUMBERS[key][0], SAVED_NUMBERS[key][1])
@@ -1122,12 +1152,23 @@ func from_dict(data: Dictionary) -> String:
 		if null in job.values():
 			return "Saved shop jobs are broken"
 		n.shop_jobs[sid] = job
+	# Version 2 added the animals; older saves start with the new-game flock.
+	var flock := Animals.new()
+	if version >= 2 or data.has("animals"):
+		var parsed_animals := Animals.parse(data.get("animals"))
+		if parsed_animals[0] != "":
+			return parsed_animals[0]
+		flock = parsed_animals[1]
+	else:
+		flock.start()
+	n.animals = flock
+	n.animal_news = [] as Array[String]
 	if not data.get("farm") is Dictionary:
 		return "Saved farm is missing"
 	var err := farm.from_dict(data.farm)
 	if err != "":
 		return err
-	farm.add_missing_fixed()   # saves from before the storage chest get it by the house
+	farm.add_missing_fixed()   # saves from before the storage chest / the coop get them
 	for key in n:
 		set(key, n[key])
 	maps = MapManager.new()

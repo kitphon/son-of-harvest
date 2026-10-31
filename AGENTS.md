@@ -55,6 +55,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `res://tests/test_villagers.gd` must print `test_villagers: OK (0 failed)`.
   Shops (data/shops.json, buying / selling, tool upgrades, shop maps and doors, the screen):
   `res://tests/test_shops.gd` must print `test_shops: OK (0 failed)`.
+  Animals (chickens, the coop, eggs, sickness, incubator, the save): `res://tests/test_animals.gd`
+  must print `test_animals: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field) and `-- --demo --map=town` (the village).
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
@@ -72,7 +74,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   and a potato on the ground in front of the bin, `--time=H:MM` (after `--demo`) to set the
   clock (villagers stand where their plans say then; `--demo --map=town` at 10:00 shows Kota
   and Tome by the start spawn), `--shop=<id>` (general, smithy) to stand at that shop's
-  counter with its screen open (hours ignored). Create `shots/` first. Look at the last frame. Delete
+  counter with its screen open (hours ignored), `--map=coop` to look inside the chicken
+  coop (`--demo` adds a chick, two eggs and a filled feed box), `--hens-out` (with
+  `--map=farm@coop`) to have the hens out in the yard. Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
 - Audio (sound and music data, synthesis, keys used in code, ambient and music pickers): `res://tests/test_audio.gd`
   must print `test_audio: OK (0 failed)`. Headless runs and Movie Maker runs start no sound
