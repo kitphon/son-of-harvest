@@ -36,25 +36,19 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `Godot_v4.7.2-stable_win64_console.exe --headless --path . --import`
 - Tests: `Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_farm.gd`
   must print `test_farm: OK (0 failed)`. Save / load: same with `res://tests/test_save.gd`
-<<<<<<< HEAD
   must print `test_save: OK (0 failed)`. Title menu / new game: same with
-  `res://tests/test_title.gd` must print `test_title: OK (0 failed)`.
+  `res://tests/test_title.gd` must print `test_title: OK (0 failed)`. Weather (snow cover,
+  lightning): `res://tests/test_weather.gd` must print `test_weather: OK (0 failed)`.
+  Dialogue (runner, data, text box layout): `res://tests/test_dialogue.gd` must print
+  `test_dialogue: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field).
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
   --fixed-fps 30 --quit-after 20 -- --demo` writes `shots/frameNNNNNNNN.png` (git-ignored). `--demo`
   starts at 10:00 with planted plots (without `--demo` the frame shows the title screen);
-  add `--weather=rain` (storm, snow, blizzard) to force the weather. Create `shots/` first. Look at the last frame. Delete `shots/` afterwards.
-=======
-  must print `test_save: OK (0 failed)`. Weather (snow cover, lightning): `res://tests/test_weather.gd`
-  must print `test_weather: OK (0 failed)`.
-- Smoke run (no errors expected): `... --headless --path . --quit-after 300`
-- Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
-  --fixed-fps 30 --quit-after 20 -- --demo` writes `shots/frameNNNNNNNN.png` (git-ignored). `--demo`
-  starts at 10:00 with planted plots;
   add `--weather=rain` (storm, snow, blizzard) to force the weather, `--no-flashes` to turn
-  lightning off. Create `shots/` first. Look at the last frame. Delete `shots/` afterwards.
->>>>>>> refs/heads/claude/snow-lightning-b2757e
+  lightning off, `--dialogue=<id>` (or `<id>@<line id>`) to open a text box from
+  `data/dialogue`. Create `shots/` first. Look at the last frame. Delete `shots/` afterwards.
 - Run Python as `python -I` (numpy and Pillow are installed) for pixel checks.
 
 ## How the code is built
@@ -62,7 +56,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   pure logic, tested headless) and `scripts/autoload/game.gd` (Game: clock, calendar, weather,
   money, bag, stamina, light). Views only read them and redraw on signals (`cells_changed`,
   `changed`, `minute_passed`, `day_started`).
-- **Data-driven.** Crops and weather odds are in `data/*.json`. Put new content (crops, items,
+- **Data-driven.** Crops and weather odds are in `data/*.json`, dialogue in `data/dialogue/`. Put new content (crops, items,
   villagers, schedules, events) in data files, not in code.
 - `scripts/farm_actions.gd` maps the player's actions to rules. Both views share it.
 - The 3D view (`scripts/main_3d.gd`, `scripts/world3d/farm_world.gd`) hides the 2D Player

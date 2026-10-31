@@ -1,0 +1,5 @@
+{
+	"_note": "Who can speak in a dialogue: the name on the name tag and the colours of the placeholder portrait (face:<speaker>:<expression> in PlaceholderArt; real art replaces those keys). Expressions: calm, smile, surprised, worried. hair: cap (a cap over short hair) or bun (hair tied up).",
+	"farmer": {"name": "Farmer", "face": {"bg": "a9c8d8", "skin": "f2c79b", "hair": "4a3020", "style": "cap", "hat": "c8452c", "clothes": "3b6fd1"}},
+	"tsuru": {"name": "Tsuru", "face": {"bg": "b5c9a0", "skin": "e8c09a", "hair": "d6d2ca", "style": "bun", "hat": "c8442c", "clothes": "6a5a8a"}}
+}

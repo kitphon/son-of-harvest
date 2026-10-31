@@ -20,9 +20,21 @@ var charging := false   # the use button is held with a charging tool
 var charge := 0         # charge steps reached so far
 var _charge_time := 0.0
 var _charge_tool := ""
+var _after_talk := false   # a text box just closed: the key that closed it is still down
 
 
 func _physics_process(delta: float) -> void:
+	if Game.dialogue_open:
+		if charging:
+			cancel_charge()
+		moving = false
+		running = false
+		_after_talk = true
+		return
+	if _after_talk:
+		if Input.is_action_pressed("use_tool") or Input.is_action_pressed("interact"):
+			return
+		_after_talk = false
 	if charging:
 		_charge_step(delta)
 		return

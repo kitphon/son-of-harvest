@@ -1,0 +1,187 @@
+extends SceneTree
+## Headless dialogue checks (DialogueRunner, TextBoxLayout, the dialogue data, the clock
+## holding while a text box is open). Run:
+##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_dialogue.gd
+
+var failures := 0
+
+
+func _init() -> void:
+	var who := DialogueRunner.speakers()
+	var look := {"chars_per_second": 10, "pause_seconds": {".": 0.2}}
+
+	# Every dialogue in data/dialogue loads.
+	for file in DirAccess.get_files_at(DialogueRunner.DIR):
+		if file.ends_with(".json") and file != "speakers.json":
+			var r := DialogueRunner.open(file.get_basename(), {})
+			check(r.error == "" and not r.done(), "data/dialogue/%s loads (%s)" % [file, r.error])
+
+	# The sample, first time: the branch is skipped, letters come at the data's speed.
+	var flags := {}
+	var r := DialogueRunner.open("bin_note", flags)
+	check(r.line().speaker == "farmer" and r.line().face == "surprised", "first time: the farmer finds the note")
+	check(r.shown == 0 and not r.revealed(), "a line starts empty")
+	r.update(0.1)
+	check(r.shown == 4, "40 letters a second: 4 after 0.1 s (got %d)" % r.shown)
+	r.press()
+	check(r.revealed() and r.index == 1, "a press shows the whole line and stays on it")
+	r.press()
+	check(r.index == 2 and r.shown == 0 and r.line().speaker == "tsuru", "a second press goes to the next line")
+	r.press()
+	r.press()
+	check(r.line().id == "ask", "on to the question")
+	check(r.choices().is_empty(), "no choices until the line is all shown")
+	r.press()
+	check(r.choices().size() == 2 and r.choice == 0, "two choices, cursor on the first")
+	r.press()
+	check(r.line().id == "ask", "a press doesn't skip the choices")
+	r.move_choice(-1)
+	check(r.choice == 1, "up from the first choice wraps to the last")
+	r.move_choice(1)
+	check(r.choice == 0, "down wraps back to the first")
+	r.move_choice(1)
+	check(r.pick() and r.line().id == "no", "picking the cursor's choice jumps to its line")
+	check(flags.get("bin_note_read") == true and not flags.has("bin_named"), "the choice set its flag only")
+	r.press()
+	r.press()
+	check(r.done() and r.line().is_empty() and r.choices().is_empty(), "\"end\" finishes the dialogue")
+	r.press()
+	r.update(1.0)
+	check(r.done(), "a finished dialogue stays finished")
+
+	# The second time the flag sends it to the short line, which ends after it.
+	r = DialogueRunner.open("bin_note", flags)
+	check(r.line().get("id") == "again", "flag set: the branch jumps to the short line")
+	r.press()
+	r.press()
+	check(r.done(), "the last line in the list ends the dialogue")
+
+	# The other choice, started at the question with `at` (the --dialogue=id@line flag).
+	flags = {}
+	r = DialogueRunner.open("bin_note", flags, "ask")
+	check(r.line().id == "ask", "starts at the line asked for")
+	r.press()
+	check(r.pick(0) and r.line().id == "yes", "picking choice 0 by number")
+	check(flags == {"bin_note_read": true, "bin_named": true}, "both flags set %s" % flags)
+	check(not r.pick(5), "a choice that isn't there is refused")
+	check(DialogueRunner.open("bin_note", {}, "nowhere").error != "", "starting at a missing line is refused")
+	check(DialogueRunner.open("no_such_dialogue", {}).error != "", "a missing file is refused")
+	check(DialogueRunner.open("../speakers", {}).error != "", "a path is not a dialogue id")
+
+	# Punctuation waits a little longer; falling through, line flags, numbers as flags.
+	flags = {"count": 2}
+	r = DialogueRunner.new({"lines": [
+		{"text": "Hi. Yo", "set": {"met": true, "times": 3.0}},
+		{"if": "count", "then": "c"},
+		{"text": "skipped"},
+		{"id": "c", "text": "Done!"}]}, who, flags, look)
+	check(r.error == "", "inline dialogue loads (%s)" % r.error)
+	check(flags.met == true and typeof(flags.times) == TYPE_INT and flags.times == 3, "a line's flags are set when it shows")
+	r.update(0.3)
+	check(r.shown == 3, "3 letters after 0.3 s (got %d)" % r.shown)
+	r.update(0.1)
+	check(r.shown == 3, "a full stop waits 0.2 s longer (got %d)" % r.shown)
+	r.update(0.2)
+	check(r.shown == 4, "then the next letter (got %d)" % r.shown)
+	r.update(5.0)
+	check(r.revealed() and r.shown == 6, "never past the end of the line")
+	r.press()
+	check(r.text() == "Done!", "a whole number flag counts as set")
+	r = DialogueRunner.new({"lines": [{"id": "a", "if": "x", "then": "a"}, {"text": "after"}]}, who, {"x": true}, look)
+	check(r.done(), "a branch that loops on itself ends instead of hanging")
+	r = DialogueRunner.new({"lines": [{"if": "x", "then": "b"}, {"text": "no x"}, {"id": "b", "text": "x"}]}, who, {"x": ""}, look)
+	check(r.text() == "no x", "an empty word is not set")
+
+	# Bad data is refused, with the runner finished.
+	var line := {"speaker": "tsuru", "text": "Hello."}
+	var bad := {
+		"not a dictionary": [1, 2],
+		"no lines": {},
+		"empty lines": {"lines": []},
+		"line not a dictionary": {"lines": ["Hello."]},
+		"unknown key": {"lines": [{"text": "Hello.", "colour": "red"}]},
+		"repeated id": {"lines": [{"id": "a", "text": "A."}, {"id": "a", "text": "B."}]},
+		"id end": {"lines": [{"id": "end", "text": "A."}]},
+		"no text": {"lines": [{"speaker": "tsuru"}]},
+		"blank text": {"lines": [{"text": "   "}]},
+		"text not a string": {"lines": [{"text": 12}]},
+		"missing glyph": {"lines": [{"text": "Say \"hi\"; ok"}]},
+		"too long": {"lines": [{"text": "The rice is green. ".repeat(20)}]},
+		"unknown speaker": {"lines": [{"speaker": "stranger", "text": "Hello."}]},
+		"bad face": {"lines": [line.merged({"face": "angry"})]},
+		"face, no speaker": {"lines": [{"face": "smile", "text": "Hello."}]},
+		"next nowhere": {"lines": [line.merged({"next": "b"})]},
+		"bad flags": {"lines": [line.merged({"set": {"x": [1]}})]},
+		"fraction flag": {"lines": [line.merged({"set": {"x": 2.5}})]},
+		"empty flag name": {"lines": [line.merged({"set": {"": true}})]},
+		"choices and next": {"lines": [line.merged({"next": "end", "choices": [{"text": "Yes"}]})]},
+		"no choices": {"lines": [line.merged({"choices": []})]},
+		"five choices": {"lines": [line.merged({"choices": [{"text": "A"}, {"text": "B"}, {"text": "C"}, {"text": "D"}, {"text": "E"}]})]},
+		"choice no text": {"lines": [line.merged({"choices": [{"next": "end"}]})]},
+		"choice too wide": {"lines": [line.merged({"choices": [{"text": "Yes ".repeat(30)}]})]},
+		"choice nowhere": {"lines": [line.merged({"choices": [{"text": "Yes", "next": "zz"}]})]},
+		"choice bad flags": {"lines": [line.merged({"choices": [{"text": "Yes", "set": "x"}]})]},
+		"choice unknown key": {"lines": [line.merged({"choices": [{"text": "Yes", "money": 5}]})]},
+		"branch, no then": {"lines": [{"if": "x"}, line]},
+		"branch to end": {"lines": [{"if": "x", "then": "end"}, line]},
+		"branch with text": {"lines": [{"id": "a", "if": "x", "then": "a", "text": "Hi"}]},
+		"then without if": {"lines": [line.merged({"then": "end"})]},
+	}
+	for what in bad:
+		r = DialogueRunner.new(bad[what], who, {}, look)
+		check(r.error != "" and r.done() and r.choices().is_empty(), "refused: %s" % what)
+
+	# Flag values as they are kept (the save uses the same rule).
+	check(DialogueRunner.flag_value(true) == true and DialogueRunner.flag_value("x") == "x", "bools and words kept")
+	check(typeof(DialogueRunner.flag_value(4.0)) == TYPE_INT, "whole numbers become ints")
+	check(DialogueRunner.flag_value(2.5) == null and DialogueRunner.flag_value([]) == null and DialogueRunner.flag_value(null) == null, "anything else refused")
+
+	# Wrapping: rows fit, the letters stay where they are, a long word gets a row.
+	var text := "Put your crops in this bin before six in the evening, and rest when the sun goes down."
+	var rows := TextBoxLayout.wrap_rows(text, 120)
+	var fits := rows.size() > 1
+	for row in rows:
+		fits = fits and PixelFont.width(row) <= 120
+	check(fits, "wrapped rows fit the width %s" % rows)
+	check(TextBoxLayout.wrapped(text, 120).length() == text.length(), "wrapping keeps the length")
+	check(TextBoxLayout.wrapped(text, 120).replace("\n", " ") == text, "only spaces become line breaks")
+	check(TextBoxLayout.wrap_rows("a Persimmon-orchard-roadside b", 30).size() == 3, "a word wider than a row gets its own row")
+	check(TextBoxLayout.wrap_rows("One\nTwo", 400).size() == 2, "line breaks in the text are kept")
+	check(TextBoxLayout.TEXT_POS.y + TextBoxLayout.ROWS * TextBoxLayout.row_h() <= TextBoxLayout.BOX.size.y - 4, "four rows fit in the box")
+
+	# Portraits: one 40 x 40 face per speaker and expression, each expression different.
+	for speaker in who:
+		if speaker.begins_with("_"):
+			continue
+		var seen := {}
+		for e in DialogueRunner.EXPRESSIONS:
+			var img := PlaceholderArt.tex("face:%s:%s" % [speaker, e]).get_image()
+			check(img.get_size() == Vector2i(40, 40), "face %s %s is 40 x 40" % [speaker, e])
+			seen[img.get_data()] = true
+		check(seen.size() == DialogueRunner.EXPRESSIONS.size(), "%s: every expression looks different" % speaker)
+		check(who[speaker].get("name", "") != "" and PixelFont.missing(who[speaker].name) == "", "%s has a name the font can draw" % speaker)
+
+	# The Game side: talk() asks the view, and an open text box holds the clock.
+	var game: Node = load("res://scripts/autoload/game.gd").new()
+	var asked := []
+	game.dialogue_requested.connect(func(id, at): asked.append([id, at]))
+	game.talk("bin_note", "ask")
+	check(asked == [["bin_note", "ask"]], "talk() asks for the dialogue %s" % [asked])
+	game.hour = 8
+	game.minute = 0
+	game.dialogue_open = true
+	game._process(10.0)
+	check(game.minute == 0 and game._accum == 0.0, "the clock waits while a text box is open")
+	game.dialogue_open = false
+	game._process(1.0)
+	check(game.minute == 2, "and runs again when it closes (got %d)" % game.minute)
+	game.free()
+
+	print("test_dialogue: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
+	quit(1 if failures else 0)
+
+
+func check(ok: bool, what: String) -> void:
+	if not ok:
+		failures += 1
+		print("FAIL: " + what)

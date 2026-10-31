@@ -1,0 +1,5 @@
+{
+	"_note": "How the text box writes: letters per second, and a short extra wait after punctuation so sentences breathe. A press shows the rest of the line at once.",
+	"chars_per_second": 40,
+	"pause_seconds": {".": 0.2, "!": 0.2, "?": 0.2, ",": 0.08}
+}

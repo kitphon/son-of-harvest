@@ -1,0 +1,16 @@
+{
+	"_note": "Checking the empty shipping bin: a note from Tsuru, the village head, tied to the lid. The first time it asks one question; the flag bin_note_read makes later checks short. Format: README.md, Dialogue.",
+	"lines": [
+		{"if": "bin_note_read", "then": "again"},
+		{"speaker": "farmer", "face": "surprised", "text": "Nothing to ship yet. Oh, there's a folded note tucked under the straw rope on the lid."},
+		{"speaker": "tsuru", "face": "smile", "text": "Welcome to the valley! Put your crops in this bin before six in the evening. The cart from town takes them and leaves the money with me for you."},
+		{"id": "ask", "speaker": "tsuru", "face": "calm", "text": "Shall I write your name on the lid, so the cart driver knows whose bin this is?",
+			"choices": [
+				{"text": "Yes, please.", "next": "yes", "set": {"bin_note_read": true, "bin_named": true}},
+				{"text": "Not yet.", "next": "no", "set": {"bin_note_read": true}}
+			]},
+		{"id": "yes", "speaker": "tsuru", "face": "smile", "text": "Then I'll bring my brush next time I walk past. Work hard, and rest when the sun goes down. - Tsuru", "next": "end"},
+		{"id": "no", "speaker": "tsuru", "face": "worried", "text": "No hurry. Tell me when you've settled in. And don't skip meals! - Tsuru", "next": "end"},
+		{"id": "again", "speaker": "farmer", "face": "calm", "text": "Nothing to ship yet. Tsuru's note is still tucked under the rope."}
+	]
+}

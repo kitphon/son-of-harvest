@@ -6,6 +6,7 @@ signal minute_passed
 signal day_started
 signal changed                  # anything the HUD shows
 signal message(text: String)
+signal dialogue_requested(id: String, at: String)   # a TextBox opens it
 
 const SECONDS_PER_MINUTE := 0.5
 const DAYS_PER_SEASON := 30
@@ -26,6 +27,7 @@ var weather_tomorrow := "sunny"
 var snow_cover := 0             # snow lying on the ground, 0 (none) .. 100 (all white)
 var flashes_enabled := true     # lightning flashes in storms; off for photosensitive players
 var clock_running := true
+var dialogue_open := false      # a text box is up: the clock and the farmer wait
 
 var money := 500
 var bin_total := 0
@@ -36,6 +38,7 @@ var tool_index := 0
 var seed_index := 0
 var bag: Dictionary = {}        # item id -> count; seeds are "seeds:<crop>"
 var tool_levels: Dictionary = {}   # tool -> level 1..5 (charging tools in data/tools.json)
+var flags: Dictionary = {}      # story flags set by dialogue (bool, whole number or word)
 
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
@@ -80,6 +83,7 @@ func new_game() -> void:
 	farm.generate(rng)
 	bag = {"seeds:turnip": 2, "seeds:potato": 1}
 	reset_tool_levels()
+	flags = {}
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--demo":
@@ -114,7 +118,7 @@ func _demo_field() -> void:
 
 
 func _process(delta: float) -> void:
-	if not clock_running:
+	if not clock_running or dialogue_open:
 		return
 	_accum += delta
 	while _accum >= SECONDS_PER_MINUTE:
@@ -353,6 +357,11 @@ func select_tool(i: int) -> void:
 	changed.emit()
 
 
+## Opens dialogue `id` (data/dialogue/<id>.json) in the view's text box, at line `at`.
+func talk(id: String, at := "") -> void:
+	dialogue_requested.emit(id, at)
+
+
 # --- save / load ------------------------------------------------------------
 
 ## Whole numbers in the save: name -> [lowest, highest]. Stamina is checked against max.
@@ -378,6 +387,7 @@ func to_dict() -> Dictionary:
 	d.seed = current_seed()
 	d.bag = bag.duplicate()
 	d.tool_levels = tool_levels.duplicate()
+	d.flags = flags.duplicate()
 	d.farm = farm.to_dict()
 	return d
 
@@ -427,6 +437,16 @@ func from_dict(data: Dictionary) -> String:
 			if lv == null:
 				return "Saved tool levels are broken"
 			n.tool_levels[tool] = lv
+	# Saves from before dialogue have no flags.
+	n.flags = {}
+	var saved_flags = data.get("flags", {})
+	if not saved_flags is Dictionary:
+		return "Saved flags are broken"
+	for k in saved_flags:
+		var v = DialogueRunner.flag_value(saved_flags[k])
+		if not k is String or k == "" or v == null:
+			return "Saved flags are broken"
+		n.flags[k] = v
 	if not data.get("farm") is Dictionary:
 		return "Saved farm is missing"
 	var err := farm.from_dict(data.farm)

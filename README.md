@@ -23,15 +23,16 @@ Tests (farm rules, headless):
 
     Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_farm.gd
 
-Save / load and the title menu: the same with `res://tests/test_save.gd` and
-`res://tests/test_title.gd`.
+Save / load, the title menu, weather and dialogue: the same with `res://tests/test_save.gd`,
+`res://tests/test_title.gd`, `res://tests/test_weather.gd` and `res://tests/test_dialogue.gd`.
 
 ## Controls
 | Key | Action |
 | --- | --- |
 | WASD / arrows | walk along the field's axes (Up = diagonally away from the camera); Shift = run |
 | Space / J | use the tool on the cell in front; hold to charge (pips over the farmer), let go for a bigger area |
-| E / K | interact: harvest, ship at the bin, buy seeds at the stand, sleep at the door |
+| E / K | interact: harvest, ship at the bin (with nothing to ship: read the note on it), buy seeds at the stand, sleep at the door |
+| E / Space / Enter, click | in a text box: show the whole line, then go on; arrows / W / S or the mouse pick a choice |
 | 1-6 / Tab | pick a tool: hoe, watering can, sickle, hammer, axe, seeds |
 | Q | next seed type (for sowing and for buying) |
 
@@ -45,6 +46,24 @@ Save / load and the title menu: the same with `res://tests/test_save.gd` and
 - Shipping bin pays at 18:00 (or when you sleep); the seed stand sells this season's seeds.
 - Stamina: each swing costs stamina; sleep before midnight restores it all, after midnight
   3/4, passing out at 2:00 half.
+
+## Dialogue
+Dialogue lives in `data/dialogue/<id>.json`, opened with `Game.talk(id)` (or `-- --dialogue=<id>`
+/ `<id>@<line id>`). A file is `{"lines": [...]}`; each line is one of:
+- a text line: `text` (our pixel font only, at most 4 rows in the box), optional `speaker`
+  (a key of `data/dialogue/speakers.json`: name tag and portrait colours; no speaker =
+  narration), `face` (calm, smile, surprised, worried), `id` (to jump to), `next` (a line id
+  or `"end"`; without it the following line, and after the last line the dialogue ends),
+  `set` (flags to set when the line shows) and `choices`: 1-4 of `{text, next, set}` (a line
+  with choices has no `next`);
+- a branch: `{"if": "<flag>", "then": "<line id>"}` jumps when the flag is set (true, a
+  number other than 0, a word other than ""), else goes on to the following line.
+
+Flags are `Game.flags` (true / false, whole numbers or words), saved with the game. Typing
+speed and punctuation pauses are in `data/text_box.json`. `DialogueRunner` refuses a file
+with anything wrong (unknown keys or speakers, jumps to nowhere, letters the font lacks, text
+too long) and says why; `tests/test_dialogue.gd` loads every file in the folder. Event
+scripts (milestone 6) will build on this format.
 
 ## Camera
 `scripts/main_3d.gd` uses the field camera geometry of Harvest Moon: Back to Nature, measured
@@ -62,7 +81,9 @@ follows the player with no lag and stops a few cells inside the fence.
 - `scripts/player/player.gd`: movement and collision (the 3D view hides it and follows it).
 - `scripts/art/placeholder_art.gd`: pixel sprites made in code until there is real art.
 - `scripts/world3d/farmer_anim.gd`: picks the farmer's frame (pose, facing, mirror, timing).
-- `data/*.json`: crops and weather, tuned without touching code.
+- `scripts/dialogue/dialogue_runner.gd` + `scripts/ui/text_box.gd`: dialogue stepping (pure
+  logic) and the text box that draws it.
+- `data/*.json`: crops and weather, tuned without touching code; `data/dialogue/`: dialogue.
 
 ## Plan and handoff
 - ROADMAP.md: milestones and "Next up".

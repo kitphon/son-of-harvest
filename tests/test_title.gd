@@ -84,6 +84,7 @@ func _init() -> void:
 	check(fresh.money == 500 and fresh.bin_total == 0 and fresh.stamina == 100 and fresh.max_stamina == 100, "new game: money and stamina")
 	check(fresh.tool == "hoe" and fresh.water == g.WATER_MAX, "new game: hoe in hand, full can")
 	check(fresh.bag == {"seeds:turnip": 2, "seeds:potato": 1}, "new game: starting bag")
+	check(fresh.flags == {}, "new game: no dialogue flags")
 	check(SaveGame.read(g, PATH) == "", "loaded the save again")
 	g.year = 3
 	g.season = 2
@@ -100,6 +101,7 @@ func _init() -> void:
 	g._accum = 0.4
 	g.snow_cover = 80
 	g.tool_levels["hoe"] = 4
+	g.flags = {"bin_note_read": true}
 	var old_farm: FarmGrid = g.farm
 	g.rng.seed = 11
 	g.new_game()

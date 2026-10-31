@@ -112,6 +112,7 @@ func _ready() -> void:
 	layer.add_child(flash)
 	add_child(layer)
 	add_child(Hud.new())
+	add_child(TextBox.new())
 
 	Game.minute_passed.connect(_update_tint)
 	Game.day_started.connect(_on_day_started)

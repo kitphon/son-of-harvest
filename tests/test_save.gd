@@ -45,6 +45,7 @@ func _init() -> void:
 	a.bag = {"seeds:turnip": 3, "corn": 2}
 	a.tool_levels.hoe = 3
 	a.tool_levels.can = 5
+	a.flags = {"bin_note_read": true, "times_asked": 3, "answer": "later"}
 	var saved: Dictionary = a.to_dict()
 	check(SaveGame.write(a, PATH) == "", "write save")
 
@@ -69,6 +70,7 @@ func _init() -> void:
 	check(b.current_tool() == "sickle" and b.hour == 14 and b.weather_tomorrow == "storm", "game fields back")
 	check(b.tool_level("hoe") == 3 and b.tool_level("can") == 5 and b.max_charge("hoe") == 3, "tool levels back")
 	check(b.snow_cover == 70, "snow cover back")
+	check(b.flags == a.flags and typeof(b.flags.times_asked) == TYPE_INT, "dialogue flags back %s" % b.flags)
 	# The loaded farm keeps working by the rules.
 	grid.water_cell(Vector2i(4, 10))
 	grid.day_end("spring", "sunny", rng)
@@ -84,7 +86,8 @@ func _init() -> void:
 	for broken in [["day", 31], ["hour", "noon"], ["stamina", 500], ["tool", "spoon"], ["seed", "rice"],
 			["bag", {"corn": -1}], ["weather_today", 3], ["tool_levels", [1]],
 			["tool_levels", {"hoe": 0}], ["tool_levels", {"hoe": 6}], ["tool_levels", {"spoon": 1}],
-			["tool_levels", {"hoe": 2.5}], ["snow_cover", 101], ["snow_cover", "deep"]]:
+			["tool_levels", {"hoe": 2.5}], ["snow_cover", 101], ["snow_cover", "deep"],
+			["flags", [1]], ["flags", {"x": 2.5}], ["flags", {"x": [true]}], ["flags", {"": true}], ["flags", {"x": null}]]:
 		var d := saved.duplicate(true)
 		d[broken[0]] = broken[1]
 		_put(JSON.stringify({"version": 1, "game": d}))
@@ -115,6 +118,13 @@ func _init() -> void:
 	_put(JSON.stringify({"version": 1, "game": old}))
 	err = SaveGame.read(b, PATH)
 	check(err == "" and b.snow_cover == 0, "save without snow_cover loads with none (%s)" % err)
+
+	# A save from before dialogue (no flags) loads with no flags set.
+	old = saved.duplicate(true)
+	old.erase("flags")
+	_put(JSON.stringify({"version": 1, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.flags == {}, "save without flags loads with none (%s)" % err)
 
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
 	a.free()

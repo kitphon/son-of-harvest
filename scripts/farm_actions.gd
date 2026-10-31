@@ -19,7 +19,10 @@ static func interact(c: Vector2i) -> void:
 	match farm.fixed_at(c):
 		"bin":
 			var got := Game.ship_produce()
-			Game.message.emit("Put %d G of crops in the bin" % got if got > 0 else "Nothing to ship")
+			if got > 0:
+				Game.message.emit("Put %d G of crops in the bin" % got)
+			else:
+				Game.talk("bin_note")   # nothing to ship: read the note on the lid
 		"door":
 			Game.sleep()
 		"stand":

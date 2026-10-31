@@ -10,7 +10,52 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
-<<<<<<< HEAD
+## 2026-10-31 — Text box (dialogue)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: our own dialogue system (no Dialogic). Format in `data/dialogue/<id>.json`
+  (README → Dialogue): a list of lines with `speaker`, `face` (calm / smile / surprised /
+  worried), `text`, `next` (a line id or "end"; default the next line), `set` (flags), up to 4
+  `choices` (text, next, set) and branch lines `{"if": flag, "then": id}`. Speakers (name tag
+  and portrait colours) in `data/dialogue/speakers.json`, typing speed and punctuation pauses
+  in `data/text_box.json` (40 letters/s, 0.2 s after . ! ?, 0.08 s after a comma).
+  `DialogueRunner` (scripts/dialogue, pure logic) checks a dialogue before running it (keys,
+  ids, targets, speakers, faces, flags, the font has every letter, the text fits 4 rows,
+  choices fit) and refuses bad data with `error`; then reveals letters, a press shows the
+  whole line or goes on, choices move / wrap / pick and write flags. `TextBoxLayout` holds
+  the box geometry and a word wrap that keeps the text length (so the typewriter's first n
+  letters draw the same words as the full line). `TextBox` (scripts/ui/text_box.gd, both
+  views): a paper box across the bottom over the tool bar, a 40 x 40 portrait in a wooden
+  frame (new `face:<speaker>:<expression>` placeholders: cap or hair bun, eyes / brows /
+  mouth per expression), a wooden name tag, a blinking vermilion arrow when a press goes on,
+  a choice box above the right end; E / Space / Enter or a click, arrows / W / S and the
+  mouse for choices; it takes every key while open (no tools, no F5 / F9). Game: new
+  `flags` (saved, checked, an old save without them loads with none; reset by `new_game()`),
+  `dialogue_open` (the clock skips its tick, the farmer stands, a charge is dropped; the key
+  that closed the box doesn't act again) and `talk(id, at)` / `dialogue_requested` so
+  FarmActions can ask the view. Kept apart from the pause rule of the pause-menu session.
+  Sample: checking the shipping bin with nothing to ship opens `bin_note` (a note from Tsuru,
+  the village head, one question: write your name on the lid?); afterwards the flag
+  `bin_note_read` gives a one-line reminder. Debug flag `-- --dialogue=<id>[@<line id>]`.
+- Checked: new `tests/test_dialogue.gd` prints `test_dialogue: OK (0 failed)` (all data files
+  load; letter timing and punctuation pause; press reveals then steps; choices wait for the
+  full line, wrap, pick by cursor or number, set flags; branch both ways, a self-loop ends;
+  `at` start; 31 kinds of bad data refused; wrap rows fit and keep the length; 40 x 40 faces
+  differ per expression; `talk()` emits; the clock holds while open). `test_save: OK (0
+  failed)` (flags round trip with an int kept an int; 5 bad flag sets refused; old save
+  without flags), `test_title: OK (0 failed)` (new game clears flags), `test_farm: OK (0
+  failed)`, `test_weather: OK (0 failed)`. Headless `--quit-after 300` plain, `-- --demo`,
+  `--dialogue=bin_note`, `--dialogue=bin_note@ask` and the 2D scene: no errors
+  (`--dialogue=nope` reports "No dialogue nope" as meant). Movie Maker: frame 29 of
+  `--demo --dialogue=bin_note` shows the box mid-line ("Nothing to ship yet. Oh, th") with the
+  farmer portrait and name tag; frame 119 of `--dialogue=bin_note@ask` shows Tsuru with both
+  choices and the clock still at 10:00. A temporary scene (removed) sent real key events
+  through the viewport: E stepped and picked, key 2 did not change the tool, Enter closed it,
+  the clock stayed at 09:00. Not checked: the mouse, in a real window.
+- Left / next: event scripts and trigger tables per map (milestone 6, item 2) build on this;
+  kana / kanji glyphs once there is Japanese text; the player's and farm's names in text.
+  Fixed on the way: conflict markers left in AGENTS.md, ROADMAP.md and WORKLOG.md by the
+  last merge (both sides kept).
+
 ## 2026-10-31 — Merged charging tools, title screen and snow / lightning
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three parallel sessions merged into main with `--no-ff`:
@@ -96,7 +141,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   Not checked: pressing keys / clicking in a real game window (no input headless).
 - Left / next: no pause menu or "back to title" yet; charging tools (other session) should
   add any new run state to the reset list in `Game.new_game()`.
-=======
+
 ## 2026-10-31 — Snow lying on the ground, lightning flashes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `Game.snow_cover` (0..100) is set each morning by `Game.next_snow_cover()` from
@@ -134,7 +179,6 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   flash frames 148-149 and 154-160, peak 121.9; with `--no-flashes` no frame above
   median + 3 (max 78.6, run at strength 0.4).
 - Left / next: the 2D view shows no snow; flashes off is a flag, not yet in a menu.
->>>>>>> refs/heads/claude/snow-lightning-b2757e
 
 ## 2026-10-31 — Merged HUD, Japanese props and save / load
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

@@ -37,6 +37,8 @@ static func _make(key: String) -> Image:
 			return _ui(parts[1], parts[2] if parts.size() > 2 else "")
 		"title":    # title:bg, the title screen picture (480 x 270)
 			return _title_bg()
+		"face":     # face:<speaker>:<calm|smile|surprised|worried>, a 40 x 40 text box portrait
+			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
 
@@ -680,6 +682,11 @@ static func _ui(kind: String, arg: String) -> Image:
 			_px(img, 3, 3, 3, 3, Color("c8962a"))
 			_px(img, 4, 4, 1, 1, Color(0, 0, 0, 0))
 			return img
+		"more":     # the small vermilion arrow that says a press goes on
+			var img := _blank(7, 4)
+			for y in 4:
+				_px(img, y, y, 7 - y * 2, 1, UI_SEAL)
+			return img
 		"stamina":  # a rice ball: what keeps the farmer going
 			var img := _blank(9, 9)
 			for y in 7:
@@ -858,3 +865,65 @@ static func _farm_house(img: Image, cx: int, base: int) -> void:
 	for x in [cx - 6, cx - 2, cx + 2]:
 		_px(img, x, base - 11, 1, 11, Color("b8a888"))
 	_px(img, cx - 32, base - 1, 64, 2, Color("6a4e34"))    # engawa
+
+
+# --- text box portraits ----------------------------------------------------
+
+## A head-and-shoulders face for the text box, in the speaker's colours from
+## data/dialogue/speakers.json; the expression changes the eyes, brows and mouth.
+static func _face(speaker: String, expression: String) -> Image:
+	var look: Dictionary = DialogueRunner.speakers().get(speaker, {}).get("face", {})
+	var skin := Color(look.get("skin", "f2c79b"))
+	var hair := Color(look.get("hair", "4a3020"))
+	var hat := Color(look.get("hat", "c8452c"))
+	var ink := Color("2a1e1e")
+	var img := _blank(40, 40)
+	_px(img, 0, 0, 40, 40, Color(look.get("bg", "c8d8c0")))
+	_oval(img, 20, 44, 15, 10, Color(look.get("clothes", "3b6fd1")))     # shoulders
+	_px(img, 17, 29, 6, 5, skin.darkened(0.15))                          # neck
+	_oval(img, 20, 20, 10.5, 11.5, OUTLINE)
+	_oval(img, 20, 20, 9.5, 10.5, skin)
+	if look.get("style", "cap") == "bun":
+		_oval(img, 20, 4.5, 4.5, 3.5, OUTLINE)
+		_oval(img, 20, 4.5, 3.5, 2.5, hair)
+		_oval(img, 20, 13, 10, 5.5, hair)
+		_px(img, 10, 13, 2, 9, hair)
+		_px(img, 28, 13, 2, 9, hair)
+		_px(img, 23, 6, 4, 1, hat)                                       # a hairpin
+	else:
+		_px(img, 10, 13, 2, 7, hair)
+		_px(img, 28, 13, 2, 7, hair)
+		_oval(img, 20, 11, 10.5, 5.5, hat)                               # the cap
+		_px(img, 9, 13, 23, 2, hat.darkened(0.25))                       # its brim
+	var eye_y := 21
+	match expression:
+		"smile":
+			for x in [14, 23]:
+				_px(img, x, eye_y, 1, 1, ink)
+				_px(img, x + 1, eye_y - 1, 2, 1, ink)
+				_px(img, x + 3, eye_y, 1, 1, ink)
+			_px(img, 17, 27, 6, 1, ink)
+			_px(img, 16, 26, 1, 1, ink)
+			_px(img, 23, 26, 1, 1, ink)
+			_px(img, 12, 24, 3, 1, Color("e89a8a"))
+			_px(img, 25, 24, 3, 1, Color("e89a8a"))
+		"surprised":
+			for x in [15, 24]:
+				_px(img, x, eye_y - 1, 2, 3, ink)
+				_px(img, x - 1, eye_y - 5, 4, 1, hair.darkened(0.3))
+			_px(img, 19, 26, 2, 2, ink)
+		"worried":
+			for x in [15, 24]:
+				_px(img, x, eye_y, 2, 2, ink)
+			_px(img, 13, eye_y - 3, 2, 1, hair.darkened(0.3))
+			_px(img, 15, eye_y - 4, 2, 1, hair.darkened(0.3))
+			_px(img, 23, eye_y - 4, 2, 1, hair.darkened(0.3))
+			_px(img, 25, eye_y - 3, 2, 1, hair.darkened(0.3))
+			_px(img, 18, 27, 4, 1, ink)
+			_px(img, 17, 28, 1, 1, ink)
+			_px(img, 22, 28, 1, 1, ink)
+		_:   # calm
+			for x in [15, 24]:
+				_px(img, x, eye_y, 2, 2, ink)
+			_px(img, 18, 27, 4, 1, ink)
+	return img
