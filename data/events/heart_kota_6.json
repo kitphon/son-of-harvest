@@ -1,10 +1,14 @@
 {
-	"_note": "Kota's third heart event: the first talk once his heart band reaches 6, after heart_kota_5 (triggers_town.json, triggers_kota_house.json). He gives the farmer a carp streamer he made, the old black carp with its white spot (a line of its own if kota_carp_promise is set); it flies on a pole by the farmhouse (kota_streamer, a story prop on the farm map). Sets heart_kota_6. Format: README.md, Events.",
+	"_note": "Kota's third heart event: the first talk once his heart band reaches 6, after heart_kota_5 (triggers_town.json, triggers_kota_house.json). He gives the farmer a carp streamer he made, the old black carp with its white spot (a line of its own if kota_carp_promise is set); it flies on a pole by the farmhouse (kota_streamer, a story prop on the farm map). Sets heart_kota_6. Kota acts in it from where the talk found them (an actor step at plan; played where their plan has them elsewhere, they walk up to the farmer), faces the farmer through the lines and goes back to their day plan. Format: README.md, Events.",
 	"steps": [
+		{"do": "actor", "who": "kota", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "kota"},
 		{"do": "sound", "key": "amb_wind"},
 		{"do": "wait", "seconds": 0.3},
 		{"do": "say", "dialogue": "heart_events_6", "at": "kota"},
 		{"do": "affection", "who": "kota", "amount": 5},
-		{"do": "set", "flags": {"heart_kota_6": true, "kota_streamer": true}}
+		{"do": "set", "flags": {"heart_kota_6": true, "kota_streamer": true}},
+		{"do": "actor", "who": "kota", "to": "plan"},
+		{"do": "actor", "who": "kota", "leave": true}
 	]
 }

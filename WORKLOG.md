@@ -10,6 +10,36 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Villagers act in their heart scenes
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: all 12 heart events (`heart_<id>`, `_5`, `_6` for Tome, Kota, Sayo, Hachiro) start
+  with `{"do": "actor", "who": "<id>", "at": "plan", "face": "farmer"}` and `{"do": "face",
+  "dir": "<id>"}`, and end with `"to": "plan"` and `leave`, so the villager stands facing the
+  farmer through their lines and then goes back to their day plan. EventRunner, generally:
+  `on_stage` (the villagers on the event's map as it starts; EventPlayer fills it from
+  `Villagers.on_map`); actor `at` may be `"plan"` (their spot from `on_stage`; when their
+  plan has them on another map they come in `COME_IN` = 4 cells beside the cell in front of
+  the farmer, on the side away from the farmer, and walk up by themselves); `to` may be
+  `"farmer"` (the cell in front of the farmer) or `"plan"` (back where `at: plan` put them);
+  `face` may be `"farmer"`; the farmer's `face` step takes a villager id (turn to that actor).
+  Two fixes the scenes needed: an actor step's `face` now turns them after its walk (before,
+  the walk's direction overwrote it; no existing event had both), and an actor walk turns its
+  corner the other way round when the corner would be the farmer's cell. README → Events.
+- Checked: test_events (Kota on stage: stays put, faces the farmer, never walks, gone at the
+  end; off stage: comes in from the left, walks up, both face each other for the lines,
+  walks back off; Tome's walk round the farmer; 5 new refused steps) and test_relationships
+  (every heart event, on stage and off: the villager stands still facing the farmer, and the
+  farmer them, each time a line opens; walked only when off stage; no actors after). All 24
+  test scripts print `OK (0 failed)`; headless runs (title `--quit-after 300`, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`, `--demo --map=town --time=10:00 --event=heart_tome`,
+  `--demo --map=smithy --time=10:00 --event=heart_hachiro_6`, `res://scenes/main.tscn
+  --quit-after 400`) printed no errors or warnings. Screenshots `--demo --event=heart_kota_6`
+  in 3D (1 s: Kota walking up; 3.3 s: his line open, Kota in front of the farmer facing him)
+  and the flat view (Kota below the farmer facing up), and `--demo --map=smithy --time=10:00
+  --event=heart_hachiro_6` (Hachiro behind his counter facing the farmer); `shots/` deleted.
+- Left / next: no gestures yet (the scenes only stand and talk); a talk across a shop
+  counter keeps the keeper behind it, which is what we want.
+
 ## 2026-11-01 — Merged six branches: music, 2D actions, cooking tools, band 6, festival stalls, Hachiro building
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each: `claude/music-shops-events-bbe890`

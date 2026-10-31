@@ -1,12 +1,16 @@
 {
-	"_note": "Hachiro's second heart event: the first talk once his heart band reaches 5, after heart_hachiro, at the smithy counter or in the village (triggers_smithy.json, triggers_town.json); it plays instead of opening the shop. He gives the farmer an iron door bell he made (hachiro_bell). Sets heart_hachiro_5. Format: README.md, Events.",
+	"_note": "Hachiro's second heart event: the first talk once his heart band reaches 5, after heart_hachiro, at the smithy counter or in the village (triggers_smithy.json, triggers_town.json); it plays instead of opening the shop. He gives the farmer an iron door bell he made (hachiro_bell). Sets heart_hachiro_5. Hachiro acts in it from where the talk found them (an actor step at plan; played where their plan has them elsewhere, they walk up to the farmer), faces the farmer through the lines and goes back to their day plan. Format: README.md, Events.",
 	"steps": [
+		{"do": "actor", "who": "hachiro", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "hachiro"},
 		{"do": "sound", "key": "tool_hammer"},
 		{"do": "wait", "seconds": 0.4},
 		{"do": "sound", "key": "tool_hammer"},
 		{"do": "wait", "seconds": 0.4},
 		{"do": "say", "dialogue": "heart_events_5", "at": "hachiro"},
 		{"do": "affection", "who": "hachiro", "amount": 5},
-		{"do": "set", "flags": {"heart_hachiro_5": true, "hachiro_bell": true}}
+		{"do": "set", "flags": {"heart_hachiro_5": true, "hachiro_bell": true}},
+		{"do": "actor", "who": "hachiro", "to": "plan"},
+		{"do": "actor", "who": "hachiro", "leave": true}
 	]
 }

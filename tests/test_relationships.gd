@@ -365,12 +365,28 @@ func _heart_events_play() -> void:
 				check(r.error == "", "%s runs: %s" % [ev, r.error])
 				if r.error != "":
 					continue
-				r.start(Vector2.ZERO, Vector2i.UP)
+				# Talked to with the villager on the cell above (as a talk trigger plays it), or
+				# (the promise runs) played where their plan has them elsewhere.
+				r.start(Vector2(8, 8), Vector2i.UP)
+				if not promise:
+					r.on_stage = {id: {"pos": Vector2(0.5, -0.5), "facing": Vector2i.LEFT}}
+				var seen := [0, 0]   # lines said, lines said with the villager and the farmer facing each other
+				var on_line := func(_d, _at):   # the text box opens: who stands where
+					var a: Dictionary = r.actors.get(id, {})
+					seen[0] += 1
+					if a.has("pos") and (a.pos + Vector2(a.facing)).floor() == Vector2.ZERO 							and (Vector2(0.5, 0.5) + Vector2(r.facing)).floor() == a.pos.floor() and not a.moving:
+						seen[1] += 1
+				g.dialogue_requested.connect(on_line)
+				var walked := false
 				for i in 200:
 					if r.done():
 						break
 					r.update(0.5)
+					walked = walked or r.actors.get(id, {}).get("moving", false)
+				g.dialogue_requested.disconnect(on_line)
 				check(r.done(), "%s ends" % ev)
+				check(seen[0] > 0 and seen[1] == seen[0], "%s: %s stands facing the farmer through every line (%d of %d)" % [ev, id, seen[1], seen[0]])
+				check(walked == promise and r.actors.is_empty(), "%s: %s %s, gone back to their plan at the end" % [ev, id, "came and went" if promise else "never walked"])
 				check(EventRunner.is_set(g.flags, ev), "%s sets its flag" % ev)
 				check(g.affection.of(id) > before, "%s likes the farmer more after %s" % [id, ev])
 				if band == 6 and SIX_FLAGS[id] != "":

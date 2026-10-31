@@ -1,9 +1,13 @@
 {
-	"_note": "Tome's second heart event: the first talk once her heart band reaches 5, after heart_tome (trigger rows in triggers_town.json, triggers_tome_house.json). She has written to her son about the farmer and offers to be Grandma (tome_grandma). Sets heart_tome_5. Format: README.md, Events.",
+	"_note": "Tome's second heart event: the first talk once her heart band reaches 5, after heart_tome (trigger rows in triggers_town.json, triggers_tome_house.json). She has written to her son about the farmer and offers to be Grandma (tome_grandma). Sets heart_tome_5. Tome acts in it from where the talk found them (an actor step at plan; played where their plan has them elsewhere, they walk up to the farmer), faces the farmer through the lines and goes back to their day plan. Format: README.md, Events.",
 	"steps": [
+		{"do": "actor", "who": "tome", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "tome"},
 		{"do": "sound", "key": "chime_morning"},
 		{"do": "say", "dialogue": "heart_events_5", "at": "tome"},
 		{"do": "affection", "who": "tome", "amount": 5},
-		{"do": "set", "flags": {"heart_tome_5": true}}
+		{"do": "set", "flags": {"heart_tome_5": true}},
+		{"do": "actor", "who": "tome", "to": "plan"},
+		{"do": "actor", "who": "tome", "leave": true}
 	]
 }

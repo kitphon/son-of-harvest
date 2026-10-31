@@ -394,7 +394,8 @@ the script says, and keys go only to the text box. Each step is one of:
   `data/dialogue` and waits until the box closes (`at` is optional; a dialogue line with
   `"next": "end"` stops it, so one file can hold several parts of an event);
 - `{"do": "wait", "seconds": 0.5}` (0 to 60);
-- `{"do": "face", "dir": "up|down|left|right"}`;
+- `{"do": "face", "dir": "up|down|left|right"}`, or `"dir": "<villager id>"` to turn to that
+  actor;
 - `{"do": "walk", "to": [x, y]}` or `"by": [dx, dy]` (cells; the farmer walks across first,
   then up or down, to the middle of the cell, at walking speed or with `"run": true`; scripted
   walks don't collide, so keep them on open ground);
@@ -410,10 +411,18 @@ the script says, and keys go only to the text box. Each step is one of:
   under a black fade; `dir` optional);
 - `{"do": "actor", "who": "<villager id>", "at": [x, y], "face": "down", "to": [x, y]}`: a
   villager from `data/villagers` acts in the event: `at` puts them on that cell of the map the
-  event plays on, `face` turns them, `to` walks them there (across, then up or down, at the
-  farmer's walking pace; the event waits until they arrive); any of the three, in that order.
+  event plays on, `to` walks them there (across, then up or down, at the farmer's walking pace,
+  turning the corner the other way round if it would be the farmer's cell; the event waits
+  until they arrive), `face` turns them (after the walk); any of the three. `"at": "plan"`
+  starts them where their day plan has them on this map as the event begins (so a scene a
+  talk plays keeps the villager where the farmer found them); if their plan has them on another
+  map they come in 4 cells beside the farmer (`EventRunner.COME_IN`, on the side away from them)
+  and walk up to the farmer by themselves. `to` may also be `"farmer"` (the cell in front of the
+  farmer) or `"plan"` (back where `"at": "plan"` put them), and `face` may be `"farmer"`.
   `{"do": "actor", "who": "...", "leave": true}` takes them off. While acting, a villager's day
-  plan is set aside (`Villagers.actors`); when the event ends every actor is gone again;
+  plan is set aside (`Villagers.actors`); when the event ends every actor is gone again. The
+  heart events start with `{"do": "actor", "who": "<id>", "at": "plan", "face": "farmer"}` and
+  end with `"to": "plan"` and `leave`;
 - `{"do": "ending"}`: grades the run and shows the village record (README → Ending); the
   event waits until it is closed;
 - a branch: `{"if": "<flag>", "then": "<step id>"}` or `{"unless": ...}`.
