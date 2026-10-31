@@ -152,6 +152,42 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Left / next: villagers' own talk lines about a keepsake given (they answer with the plain gift
   lines); the keepsakes are not seen in the world after they are given.
 
+## 2026-11-01 — River fishing
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a new map `river` (data/maps/river.json, 20 x 14): the lane behind Kota's house now runs
+  down column 4 off the village's south edge (town door `[3..5, 22]`, spawn `river`), a grassy
+  slope to a gravel shore, the river across the whole map (rows 6-9), three stepping rocks
+  (`river_rock`, new prop: boulders and a pale water line in 3D, a grey box in the flat view)
+  and pines on the far bank. A map of its own rather than more water in the village: the
+  village has no room for a river without moving houses that day plans and events use, and
+  fish tables already key on the map id (place `river` in data/fish.json), so casting,
+  catching overhead, the rucksack and the save needed no code. `MapView.ground_key` (both
+  views) draws no bank where water meets the map's edge, so the river flows on.
+  Fish (ours, data/fish.json): Dace `ugui` 40 G all year (the common one, so every season /
+  hour / weather has a bite), Pale chub `oikawa` 55 G spring-fall 5-19h, River sculpin
+  `kajika` 90 G winter / spring at night (17-7h), Autumn salmon `sake` 450 G in fall by day
+  (x1.5 in rain / storm: the run comes up on high water), River elder `nushi` 2500 G, once
+  only, summer dawn (3-7h) in rain or storm. The stream fish bite more in the river than in
+  the village pond (ayu 40, yamame 25, iwana 18, unagi 8 vs 30 / 15 / 8 / 6); no pond fish
+  (crucian carp, loach, smelt) in it. Reasoning: dace slightly above crucian carp (30) since
+  the walk is longer; the salmon is the river's season prize like ayu is summer's; the elder
+  sits just above the moonlit koi (2000) and is harder to time.
+  Food: every fish eats through foods.json `fish:*`, checked for a river catch. Gifts: Kota
+  loves the river elder (and likes any fish via `fish:*`), Hachiro loves the fall salmon, Tome
+  likes the salmon and sweetfish, Sayo dislikes the bony dace (with loach and crucian carp).
+  CLI `--fishing=river` (or `river:wait`) stands on the shore with the line out (AGENTS.md,
+  README → controls and Maps).
+- Checked: test_fishing (river data, seasons / hours / weather, the once-only elder, the
+  lane door from the village, a cast from the shore, 30 catches all river fish, overhead and
+  into the rucksack, edible, the gift reactions) and test_maps (doors both ways, edge banks,
+  rocks in water, the river builds in 3D with no stand-ins) print OK; all 24 test scripts
+  print `OK (0 failed)`; headless runs (title, `--demo`, `--demo --map=town`, `--demo
+  --mine=3`, `--demo --map=river`, `--demo --map=town@river`) printed nothing. Screenshots
+  `--demo --fishing=river` in 3D and in `main_2d.tscn`: the farmer on the shore, the bobber
+  in the current, "!" over the head, the river running off both sides; `shots/` deleted.
+- Left / next: no villager visits the river yet (Kota or Hachiro could fish there on
+  Sundays); no river ambient sound (it uses `outdoor`).
+
 ## 2026-11-01 — Merged six branches: music, 2D actions, cooking tools, band 6, festival stalls, Hachiro building
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each: `claude/music-shops-events-bbe890`

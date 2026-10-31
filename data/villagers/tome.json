@@ -1,5 +1,5 @@
 {
-	"_note": "Grandma Tome: lives in the west house (data/maps/tome_house.json), sits by her hearth in the early morning, at noon and in the evening, visits the shrine every morning, strolls to the pond in the afternoon. A long prayer at the shrine on her birthday, then home all day for visitors, facing the door. Stays home on wet days and until late on winter mornings; in bed (away) from 19:00, when her door shuts. Gifts: tea, spring sweets and old-fashioned vegetables; quiet stones from the mine (jade, agate); slow-simmered home cooking (furofuki daikon, pumpkin nimono best), not a sweet milk pudding. Format: README.md, Villagers.",
+	"_note": "Grandma Tome: lives in the west house (data/maps/tome_house.json), sits by her hearth in the early morning, at noon and in the evening, visits the shrine every morning, strolls to the pond in the afternoon. A long prayer at the shrine on her birthday, then home all day for visitors, facing the door. Stays home on wet days and until late on winter mornings; in bed (away) from 19:00, when her door shuts. Gifts: tea, spring sweets and old-fashioned vegetables, a sweetfish or a fall salmon from the river; quiet stones from the mine (jade, agate); slow-simmered home cooking (furofuki daikon, pumpkin nimono best), not a sweet milk pudding. Format: README.md, Villagers.",
 	"id": "tome",
 	"name": "Tome",
 	"birthday": {"season": "fall", "day": 24},
@@ -15,7 +15,7 @@
 	"gifts": {
 		"love": ["food:sakura_mochi", "food:yomogi_tea", "eggplant", "food:furofuki_daikon", "food:simmered_pumpkin",
 			"keep:omamori"],
-		"like": ["turnip", "potato", "pumpkin", "food:green_tea", "egg", "egg_good", "egg_best", "mine:hisui", "mine:meno",
+		"like": ["turnip", "potato", "pumpkin", "fish:sake", "fish:ayu", "food:green_tea", "egg", "egg_good", "egg_best", "mine:hisui", "mine:meno",
 			"food:miso_soup", "food:ochazuke", "food:turnip_stew", "food:takikomi_gohan", "food:kinako_mochi",
 			"keep:wind_chime", "keep:moon_lantern", "food:yuzu_tea", "food:baked_imo"],
 		"dislike": ["corn", "fish:dojo", "food:milk_pudding"],

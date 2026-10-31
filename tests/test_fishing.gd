@@ -1,6 +1,6 @@
 extends SceneTree
 ## Headless checks for fishing (Fishing rules, data/fish.json, Game.cast_line / reel_in, the
-## catch as a held item, the save, the poses and fish art). Run:
+## catch as a held item, the river, the save, the poses and fish art). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_fishing.gd
 
 var failures := 0
@@ -53,6 +53,30 @@ func _init() -> void:
 	check(Fishing.candidates(rules, "town", "fall", 23, "sunny").has("moon_koi"), "the moonlit koi on a clear fall night")
 	check(not Fishing.candidates(rules, "town", "fall", 23, "rain").has("moon_koi"), "not in rain")
 	check(not Fishing.candidates(rules, "town", "fall", 23, "sunny", {"moon_koi": 1}).has("moon_koi"), "caught only once")
+
+	# The river (data/maps/river.json): its own fish, more stream fish than the pond, no pond fish.
+	check(rules.places.has("river"), "the river is a fishing place")
+	var river_kinds := {}
+	for s in seasons:
+		for hour in 24:
+			for wx in weathers:
+				for id in Fishing.candidates(rules, "river", s, hour, wx):
+					river_kinds[id] = true
+	for id in ["ugui", "oikawa", "kajika", "sake", "nushi"]:
+		check(fish.has(id) and fish[id].places.keys() == ["river"], "%s lives only in the river" % id)
+		check(river_kinds.has(id), "%s can bite in the river" % id)
+	for id in ["funa", "dojo", "wakasagi"]:
+		check(not river_kinds.has(id), "no pond fish %s in the river" % id)
+	for id in ["ayu", "yamame", "iwana"]:
+		check(int(fish[id].places.get("river", 0)) > int(fish[id].places.town), "more %s in the river than the village pond" % id)
+	check(Fishing.candidates(rules, "river", "fall", 10, "sunny").has("sake") and not Fishing.candidates(rules, "river", "summer", 10, "sunny").has("sake"), "the salmon run is in fall")
+	var run_dry: Dictionary = Fishing.candidates(rules, "river", "fall", 10, "sunny")
+	var run_wet: Dictionary = Fishing.candidates(rules, "river", "fall", 10, "rain")
+	check(run_wet.sake / _sum(run_wet) > run_dry.sake / _sum(run_dry), "salmon run better in rain")
+	check(Fishing.candidates(rules, "river", "winter", 22, "snow").has("kajika") and not Fishing.candidates(rules, "river", "winter", 12, "snow").has("kajika"), "sculpins at night in the cold months")
+	check(Fishing.candidates(rules, "river", "summer", 4, "rain").has("nushi"), "the river elder at a wet summer dawn")
+	check(not Fishing.candidates(rules, "river", "summer", 4, "sunny").has("nushi") and not Fishing.candidates(rules, "river", "summer", 10, "rain").has("nushi"), "not on a clear day, not late")
+	check(not Fishing.candidates(rules, "river", "summer", 4, "rain", {"nushi": 1}).has("nushi"), "the river elder only once")
 
 	# Picking by weight.
 	var w := {"a": 1.0, "b": 3.0}
@@ -130,6 +154,37 @@ func _init() -> void:
 	var town_fish: String = g.reel_in().fish.trim_prefix("fish:")
 	check(rules.fish[town_fish].places.has("town"), "a village fish (%s)" % town_fish)
 	g.held = ""
+
+	# The river: down the lane off the village's south edge, a cast from the shore, a river fish.
+	var lane: Dictionary = MapManager.data("town").door_at(Vector2i(4, 22))
+	check(lane.get("to", "") == "river", "the village's south lane goes to the river")
+	g.use_door(lane)
+	check(g.maps.id == "river" and not g.indoors(), "at the river")
+	var shore: Array = MapManager.data("river").spawns.shore
+	check(g.water_ahead(shore[0], Vector2i.DOWN) == shore[0] + Vector2i.DOWN, "the river is in front of the shore")
+	check(g.water_ahead(shore[0], Vector2i.UP) == Vector2i(-1, -1), "and none behind")
+	check(g.cast_line(shore[0], Vector2i.DOWN) == "cast" and g.fishing.place == "river", "cast in the river")
+	var river_seen := {}
+	for i in 30:
+		g.fishing.state = "bite"
+		var rf: String = g.reel_in().fish
+		check(rf.begins_with("fish:") and g.held == rf, "a river catch goes overhead (%s)" % rf)
+		river_seen[rf.trim_prefix("fish:")] = true
+		g.held = ""
+		g.cast_line(shore[0], Vector2i.DOWN)
+	var only_river := true
+	for id in river_seen:
+		only_river = only_river and rules.fish[id].places.has("river")
+	check(only_river and river_seen.size() >= 2, "river catches are river fish %s" % [river_seen.keys()])
+	g.fishing.state = "bite"
+	var kept: String = g.reel_in().fish
+	check(g.inventory.add(kept, 1) == 0 and g.count(kept) >= 1, "a river fish goes in the rucksack")
+	check(g.edible(kept) and g.food_info(kept).name == String(rules.fish[kept.trim_prefix("fish:")].name), "a river fish is food (fish:*)")
+	g.held = ""
+	check(Villagers.reaction("kota", "fish:nushi") == "love" and Villagers.reaction("kota", "fish:ugui") == "like", "Kota: the river elder best, any fish")
+	check(Villagers.reaction("hachiro", "fish:sake") == "love" and Villagers.reaction("tome", "fish:sake") == "like", "the fall salmon for Hachiro and Tome")
+	check(Villagers.reaction("sayo", "fish:ugui") == "dislike", "Sayo minds the bony dace")
+	g.go_to_map("town", Vector2i(30, 15), Vector2i.RIGHT)
 	g.cast_line(Vector2i(30, 15), Vector2i.RIGHT)
 	g.end_day()
 	check(not g.fishing.active(), "the night takes the line out")
@@ -204,6 +259,13 @@ func _game(rules: Dictionary) -> Node:
 	g.rng.seed = 7
 	g.new_game()
 	return g
+
+
+func _sum(weights: Dictionary) -> float:
+	var t := 0.0
+	for id in weights:
+		t += float(weights[id])
+	return t
 
 
 func _json(path: String) -> Dictionary:

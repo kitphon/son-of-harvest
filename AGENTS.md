@@ -65,7 +65,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `res://tests/test_shops.gd` must print `test_shops: OK (0 failed)`.
   Animals (chickens, cows, sheep, the coop and barn, products, brushing, sickness, the dog,
   the save): `res://tests/test_animals.gd`
-  must print `test_animals: OK (0 failed)`. Fishing (bites, fish tables, the catch, save, poses,
+  must print `test_animals: OK (0 failed)`. Fishing (bites, fish tables, the river, the catch, save, poses,
   fish art): `res://tests/test_fishing.gd` must print `test_fishing: OK (0 failed)`.
   Mine (data/mine.json, floors from a seed, rocks / soft spots / the hole, swings, the save,
   light by depth and the lantern, frozen winter floors, mine art): `res://tests/test_mine.gd` must print `test_mine: OK (0 failed)`.
@@ -112,7 +112,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `--map=farm@coop`) to have the hens out in the yard, `--map=barn` for the barn (`--demo`
   adds a cow with milk, a sheep in full wool and a calf; the dog follows the farmer),
   `--barn-out` (with `--map=farm@barn`) for the cows and sheep out grazing, `--fishing` (or `--fishing=wait`) to start at
-  the farm pond with the line out and a fish biting (or still waiting), `--festival=<id>`
+  the farm pond with the line out and a fish biting (or still waiting; `--fishing=river`, `--fishing=river:wait` at the
+  river south of the village, `--map=river` its path in), `--festival=<id>`
   (blossom_day, lantern_night, moon_night, years_turn; ids in `data/festivals.json`) to stand
   in the village on that festival's day half an hour into it (Lantern Night: into the
   fireworks; without `--demo`, with `res://scenes/main.tscn`, its event plays; add

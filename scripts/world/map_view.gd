@@ -11,7 +11,7 @@ const COLORS := {
 	"village_house": Color("a0522d"), "torii": Color("c8442c"), "hokora": Color("8a6a48"),
 	"stone_lantern": Color("9a968e"), "pine": Color("2f5a34"),
 	"counter": Color("4a3424"), "shelf": Color("6a4a30"), "rice_sacks": Color("d8c088"),
-	"forge": Color("7a746c"), "anvil": Color("2a2a2e"), "tool_rack": Color("8a6a48"), "water_tub": Color("2a4a5a"),
+	"forge": Color("7a746c"), "anvil": Color("2a2a2e"), "tool_rack": Color("8a6a48"), "water_tub": Color("2a4a5a"), "river_rock": Color("6e6a62"),
 	"feed_box": Color("9a7048"), "nest": Color("d8bc78"), "incubator": Color("c8a868"),
 	"feed_sack": Color("a88a52"), "hatch": Color("4a2a14"),
 	"fodder_box": Color("8a6440"), "stalls": Color("d0b478"), "hay": Color("c8b060"), "barn_gate": Color("4a2a14"),
@@ -24,13 +24,15 @@ var map: MapData
 
 
 ## The ground key for a cell: water gets banks where it meets land, others a variant by spot.
+## Water at the map's edge has no bank there (the river flows on off the map).
 static func ground_key(m: MapData, c: Vector2i) -> String:
 	var kind := m.tile(c)
 	if kind == "water":
 		var mask := 0
 		for side in [[Vector2i.UP, PlaceholderArt.WATER_N], [Vector2i.RIGHT, PlaceholderArt.WATER_E],
 				[Vector2i.DOWN, PlaceholderArt.WATER_S], [Vector2i.LEFT, PlaceholderArt.WATER_W]]:
-			if m.tile(c + side[0]) != "water":
+			var n: Vector2i = c + side[0]
+			if m.in_bounds(n) and m.tile(n) != "water":
 				mask |= side[1]
 		return "ground:water:%d" % mask
 	return "ground:%s:%d" % [kind, posmod(c.x * 7 + c.y * 13 + (c.x * c.y) % 5, PlaceholderArt.GROUND_VARIANTS)]

@@ -39,7 +39,7 @@ Save / load, the title menu, weather, dialogue and events: the same with `res://
 | E / K | interact: harvest (the crop goes up overhead, into the hand slot), pick up an item lying in front, ship the rucksack's crops at the bin (with nothing to ship: read the note on it), buy seeds at the stand, open the storage chest right of the house, go through doors (walking into one works too), sleep at the futon in the house. With an item overhead on the farm: throw it up to 2 cells ahead; into the bin it's shipped, into the pond it's gone |
 | E / Space / Enter, click | in a text box: show the whole line, then go on; arrows / W / S or the mouse pick a choice |
 | 1-8 / Tab | pick a tool slot (at the start: hoe, watering can, sickle, hammer, axe, seeds, food, fishing rod; Space / J eats or drinks the food in hand, on any map; with a crop, egg, milk, fish or dish overhead it eats that instead) |
-| Space / J with the rod | cast at water up to 2 cells ahead (the farm pond, the village pond); wait for the "!" and a plip, then Space / J / E in time to land the fish (it goes up overhead: throw it in the bin to ship it, or put it in the rucksack). Pressing before a bite reels in empty. Fish per place / season / hour / weather: `data/fish.json` |
+| Space / J with the rod | cast at water up to 2 cells ahead (the farm pond, the village pond, the river down the lane off the village's south edge); wait for the "!" and a plip, then Space / J / E in time to land the fish (it goes up overhead: throw it in the bin to ship it, or put it in the rucksack). Pressing before a bite reels in empty. Fish per place / season / hour / weather: `data/fish.json` |
 | I | rucksack: arrows / WASD move, Enter / Space pick up and put down (stack, swap), E takes it in hand (tool slot = tool in hand, an item = the item hand), Esc / I close; mouse: left click pick / put, right click hold, F eats or drinks the thing under the cursor (food, crops, eggs, milk, fish; not out of the chest). The chest screen works the same. The clock stops while it is open |
 | Q | next seed type, or next food with the food slot (for eating and for buying) |
 | E at the kitchen stove / cupboard | (kitchen corner built) the cooking screen: up / down pick a recipe, Enter / Space / E cook it once, Esc / I leave (README → Cooking) |
@@ -146,7 +146,8 @@ scaled up); it writes `icon.png` (project icon) and `icon.ico` (16 to 256 px, fo
 ## Maps
 Maps live in `data/maps/<id>.json`: the farm (`farm`, its ground and buildings stay
 FarmGrid's, so the file only adds doors and spawns), the farmhouse inside (`house`) and the
-village (`town`). A file has `id`, `size` [w, h], `indoor` (the clock stands still inside, as
+village (`town`), the river south of it (`river`, its own fish table: place `river` in
+`data/fish.json`; water at a map's side edge draws no bank, so the river flows on). A file has `id`, `size` [w, h], `indoor` (the clock stands still inside, as
 DESIGN asks for every building), `ambient` (which `places` of the ambient rules in
 `data/sfx.json` apply), optional `light` (a fixed room light instead of day / night) and
 `background`, then:

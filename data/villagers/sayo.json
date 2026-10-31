@@ -1,5 +1,5 @@
 {
-	"_note": "Sayo keeps the Yorozu Store (the house with the noren south-east of the road): sweeps in front before opening, stands at the counter (the store map's keeper spot) 9:00-17:00, so talking to her there opens the shop (data/shops.json keeper), and takes an offering to the shrine in the evening. She lives in the rooms behind the store (data/maps/sayo_house.json, the side door), where she is before opening, 17:00-18:30 and after the shrine until 21:00, when she goes to bed (away). Sundays the store is shut: she walks over to Grandma Tome's, waits by the house and has tea with her inside after lunch. On her birthday (unless a Sunday) she shuts the store at 12:30, has lunch at Tome's, and spends the afternoon in her rooms before the shrine. Rain or shine the shop opens. Gifts: fresh summer things, sweets and pretty mine gems; not muddy clay. Dishes: egg and milk ones (tamagoyaki, milk pudding best) and light rice dishes; no river fish on a plate either. Format: README.md, Villagers.",
+	"_note": "Sayo keeps the Yorozu Store (the house with the noren south-east of the road): sweeps in front before opening, stands at the counter (the store map's keeper spot) 9:00-17:00, so talking to her there opens the shop (data/shops.json keeper), and takes an offering to the shrine in the evening. She lives in the rooms behind the store (data/maps/sayo_house.json, the side door), where she is before opening, 17:00-18:30 and after the shrine until 21:00, when she goes to bed (away). Sundays the store is shut: she walks over to Grandma Tome's, waits by the house and has tea with her inside after lunch. On her birthday (unless a Sunday) she shuts the store at 12:30, has lunch at Tome's, and spends the afternoon in her rooms before the shrine. Rain or shine the shop opens. Gifts: fresh summer things, sweets and pretty mine gems; not muddy clay or the bony fish (loach, crucian carp, dace). Dishes: egg and milk ones (tamagoyaki, milk pudding best) and light rice dishes; no river fish on a plate either. Format: README.md, Villagers.",
 	"id": "sayo",
 	"name": "Sayo",
 	"birthday": {"season": "summer", "day": 6},
@@ -15,7 +15,7 @@
 		"like": ["cucumber", "carrot", "onion", "food:green_tea", "egg", "egg_good", "mine:kohaku", "mine:suisho",
 			"food:kinako_mochi", "food:simmered_pumpkin", "food:takikomi_gohan", "food:ochazuke",
 			"keep:moon_lantern", "keep:clay_rabbit", "keep:paper_fan", "food:yuzu_tea"],
-		"dislike": ["fish:dojo", "fish:funa", "mine:clay", "food:grilled_fish", "food:daikon_fish",
+		"dislike": ["fish:dojo", "fish:funa", "fish:ugui", "mine:clay", "food:grilled_fish", "food:daikon_fish",
 			"keep:daruma"],
 		"hate": ["medicine"]
 	},

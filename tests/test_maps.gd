@@ -129,6 +129,15 @@ func _map_rules() -> void:
 	check(t.is_solid(Vector2i(17, 6)) and t.is_solid(Vector2i(20, 6)) and not t.is_solid(Vector2i(18, 6)), "torii posts block, the path through it doesn't")
 	check(t.is_solid(Vector2i(32, 15)), "the pond is solid")
 	check(MapView.ground_key(t, Vector2i(31, 14)) == "ground:water:%d" % (PlaceholderArt.WATER_N | PlaceholderArt.WATER_W), "pond banks")
+	# The river: down the lane off the village's south edge and back; water across the map with
+	# banks only at the shores (none at the map's side edges, it flows on), rocks in the current.
+	var rv := MapManager.data("river")
+	check(t.door_at(Vector2i(4, 22)).get("to", "") == "river" and rv.door_at(Vector2i(4, -1)).get("to", "") == "town", "the village lane and the river path join up")
+	check(not t.is_solid(Vector2i(4, 21)) and t.tile(Vector2i(4, 21)) == "path", "the lane runs to the village's south edge")
+	check(rv.tile(Vector2i(0, 7)) == "water" and rv.is_solid(Vector2i(10, 7)) and not rv.is_solid(rv.spawns.shore[0]), "the river is solid, the shore is not")
+	check(MapView.ground_key(rv, Vector2i(0, 6)) == "ground:water:%d" % PlaceholderArt.WATER_N, "no bank at the map's edge, one at the shore")
+	check(MapView.ground_key(rv, Vector2i(19, 9)) == "ground:water:%d" % PlaceholderArt.WATER_S, "the far shore's bank")
+	check(rv.props.filter(func(p): return p.kind == "river_rock").all(func(p): return rv.tile(p.cell) == "water"), "the rocks stand in the water")
 	# Ambient by place.
 	var rules: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/sfx.json")).ambient.rules
 	var outside := AmbientPicker.pick(rules, "rain", "summer", 12, "outdoor")
@@ -189,6 +198,14 @@ func _homes_3d() -> void:
 					stand_in += 1
 		check(stand_in == 0 and meshes > 60, "%s builds in 3D (%d meshes, %d stand-ins)" % [id, meshes, stand_in])
 		w.free()
+	var river: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	river.build(MapManager.data("river"))
+	var magenta := 0
+	for n in river.get_children():
+		if n is MeshInstance3D and n.material_override is StandardMaterial3D and n.material_override.albedo_color == Color.MAGENTA:
+			magenta += 1
+	check(magenta == 0 and river.get_child_count() > 10, "the river builds in 3D (%d nodes, %d stand-ins)" % [river.get_child_count(), magenta])
+	river.free()
 
 
 ## The props the band 5 heart events leave (StoryProps): each shows only with its flag (the

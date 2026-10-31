@@ -118,8 +118,9 @@ starts empty; the shop sells cows / sheep through `Game.add_animal("cow" | "shee
 and fodder through `Game.animals.add_fodder(n)`. The dog Goro follows the farmer once fond.
 Fishing is in (milestone 9): the rod is the 8th tool slot, a cast waits for a bite ("!" and a
 plip), a press in time lands a fish overhead (ship it in the bin or keep it in the rucksack);
-fish, odds, bite timing and the pity rule are in `data/fish.json`. Later for fishing: a river,
-fish as food / gifts. The 2D view's action hookup is done (`FarmActions.connect_view`, checked
+fish, odds, bite timing and the pity rule are in `data/fish.json`. The river south of the
+village (map `river`) has its own fish table; fish are food (foods.json `fish:*`) and on the
+villagers' gift lists. The 2D view's action hookup is done (`FarmActions.connect_view`, checked
 by tests/test_view2d.gd), and it has the 3D view's weather and festival lights too (rain /
 snow particles with splashes, the weather tint, lightning flashes, the lanterns' glow and the
 fireworks).
@@ -226,6 +227,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Balance pass (income per season, seed, animal and extension costs; `tools/balance.py`); the store sells cows, sheep, calves, lambs and fodder
 9. **Festivals, mining / fishing, relationships, endings**
    - [x] Fishing: rod (8th tool slot), cast at the farm / village pond, bite cue, fish per place / season / hour / weather (data/fish.json)
+   - [x] The river: a map off the village's south lane, its own fish (dace, chub, sculpin, fall salmon, the once-only river elder), river fish on gift lists
    - [x] Mining: entrance east of the village, floors laid out fresh from a seed, rocks / soft spots / hole down, ores and gems per depth and season (data/mine.json)
    - [x] Mine extras: ores for the smithy's upgrades, shops buying stones / ores / gems, light by depth with a lantern (both views), frozen floors in winter
    - [x] Festivals: one per season in data/festivals.json (Blossom Day, Lantern Night with fireworks, Moon Night, Year's Turn), HUD tag, shops shut, decorations in both views, an event once a year, villagers gather

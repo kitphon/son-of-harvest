@@ -1,5 +1,5 @@
 {
-	"_about": "Fishing (scripts/fishing/fishing.gd, Game.cast_line / reel_in). Cast the rod at water; the line waits at least min_wait_seconds, then every check_seconds a fish bites with the chance for the hour (bite_chance: [from hour, chance], the last band that starts at or before the hour counts) times the weather's factor. A bite lasts bite_seconds: press a button in time to land it, too late and it gets away. After sure_after casts in a row without a fish, the next check always bites (the pity rule). The rod's stamina and reach are in data/tools.json (rod). Numbers and fish are ours; see WORKLOG 2026-10-31 Fishing.",
+	"_about": "Fishing (scripts/fishing/fishing.gd, Game.cast_line / reel_in). Cast the rod at water; the line waits at least min_wait_seconds, then every check_seconds a fish bites with the chance for the hour (bite_chance: [from hour, chance], the last band that starts at or before the hour counts) times the weather's factor. A bite lasts bite_seconds: press a button in time to land it, too late and it gets away. After sure_after casts in a row without a fish, the next check always bites (the pity rule). The rod's stamina and reach are in data/tools.json (rod). Numbers and fish are ours; see WORKLOG 2026-10-31 Fishing and 2026-11-01 River.",
 	"min_wait_seconds": 2.5,
 	"check_seconds": 1.0,
 	"bite_seconds": 0.9,
@@ -11,7 +11,8 @@
 	"weather_bite": {"sunny": 1.0, "rain": 1.3, "storm": 1.5, "snow": 0.9, "blizzard": 0.7},
 	"places": {
 		"farm": {"name": "the farm pond"},
-		"town": {"name": "the village pond", "_note": "Fed by a cold mountain stream, so stream fish (ayu, yamame, iwana) come down into it."}
+		"town": {"name": "the village pond", "_note": "Fed by a cold mountain stream, so stream fish (ayu, yamame, iwana) come down into it."},
+		"river": {"name": "the river", "_note": "The river south of the village (data/maps/river.json): running water, so its own fish (dace, chub, sculpin, the fall salmon run, the river elder) and more of the stream fish than the pond gets; no pond fish (crucian carp, loach, smelt)."}
 	},
 	"_fish": "Per fish: name, sell (G in the bin), places {map id: weight}, optional seasons (default all), hours [from, to) on the clock (wraps past midnight; default all day), weather {weather: weight factor, 0 = never} (default 1), once (caught only once per game), look (icon colours and shape for PlaceholderArt). The weights of every fish that fits the place, season, hour and weather share the bite.",
 	"fish": {
@@ -24,20 +25,32 @@
 			"look": {"body": "8a6a4a", "belly": "c8a882", "fin": "6a4a32", "shape": "eel"}},
 		"wakasagi": {"name": "Pond smelt", "sell": 35, "places": {"farm": 30, "town": 30}, "seasons": ["winter"],
 			"look": {"body": "a8c0c8", "belly": "e8eef0", "fin": "7890a0", "shape": "slim"}},
-		"ayu": {"name": "Sweetfish", "sell": 120, "places": {"town": 30}, "seasons": ["summer"], "hours": [5, 18],
+		"ayu": {"name": "Sweetfish", "sell": 120, "places": {"town": 30, "river": 40}, "seasons": ["summer"], "hours": [5, 18],
 			"look": {"body": "8a9a7a", "belly": "e0d8a8", "fin": "d8b84a", "shape": "slim"}},
-		"yamame": {"name": "Masu trout", "sell": 150, "places": {"town": 15}, "seasons": ["spring", "fall"], "hours": [4, 11],
+		"yamame": {"name": "Masu trout", "sell": 150, "places": {"town": 15, "river": 25}, "seasons": ["spring", "fall"], "hours": [4, 11],
 			"look": {"body": "8a8a9a", "belly": "e8d8d0", "fin": "5a5a6a", "shape": "trout"}},
-		"iwana": {"name": "Char", "sell": 200, "places": {"town": 8}, "seasons": ["fall", "winter"], "hours": [4, 9],
+		"iwana": {"name": "Char", "sell": 200, "places": {"town": 8, "river": 18}, "seasons": ["fall", "winter"], "hours": [4, 9],
 			"look": {"body": "6a6a5a", "belly": "e8b878", "fin": "4a4a3a", "shape": "trout"}},
 		"namazu": {"name": "Catfish", "sell": 160, "places": {"farm": 10, "town": 14}, "seasons": ["summer", "fall"], "hours": [19, 4],
 			"weather": {"rain": 3.0, "storm": 3.0},
 			"look": {"body": "4a4a3a", "belly": "a8a088", "fin": "3a3a2a", "shape": "catfish"}},
-		"unagi": {"name": "Eel", "sell": 300, "places": {"town": 6}, "seasons": ["summer"], "hours": [20, 3],
+		"unagi": {"name": "Eel", "sell": 300, "places": {"town": 6, "river": 8}, "seasons": ["summer"], "hours": [20, 3],
 			"weather": {"rain": 2.0, "storm": 2.0},
 			"look": {"body": "3a4a3a", "belly": "b8b070", "fin": "2a3a2a", "shape": "eel"}},
 		"moon_koi": {"name": "Moonlit koi", "sell": 2000, "places": {"town": 4}, "seasons": ["fall"], "hours": [22, 2],
 			"weather": {"rain": 0, "storm": 0, "snow": 0, "blizzard": 0}, "once": true,
-			"look": {"body": "e8e8f0", "belly": "ffffff", "fin": "e86a3a", "shape": "long"}}
+			"look": {"body": "e8e8f0", "belly": "ffffff", "fin": "e86a3a", "shape": "long"}},
+		"ugui": {"name": "Dace", "sell": 40, "places": {"river": 35},
+			"look": {"body": "9aa0a0", "belly": "e0e4e0", "fin": "c86a4a", "shape": "slim"}},
+		"oikawa": {"name": "Pale chub", "sell": 55, "places": {"river": 28}, "seasons": ["spring", "summer", "fall"], "hours": [5, 19],
+			"look": {"body": "8ab0c0", "belly": "f0e8e0", "fin": "d8805a", "shape": "long"}},
+		"kajika": {"name": "River sculpin", "sell": 90, "places": {"river": 16}, "seasons": ["winter", "spring"], "hours": [17, 7],
+			"look": {"body": "6a5a42", "belly": "b8a88a", "fin": "4a3e2e", "shape": "catfish"}},
+		"sake": {"name": "Autumn salmon", "sell": 450, "places": {"river": 10}, "seasons": ["fall"], "hours": [5, 17],
+			"weather": {"rain": 1.5, "storm": 1.5},
+			"look": {"body": "8a7a8a", "belly": "e89a8a", "fin": "5a4a5a", "shape": "trout"}},
+		"nushi": {"name": "River elder", "sell": 2500, "places": {"river": 3}, "seasons": ["summer"], "hours": [3, 7],
+			"weather": {"sunny": 0, "snow": 0, "blizzard": 0}, "once": true,
+			"look": {"body": "4a5260", "belly": "c8c0a0", "fin": "c8a03a", "shape": "deep"}}
 	}
 }
