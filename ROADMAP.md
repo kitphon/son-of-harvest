@@ -82,8 +82,10 @@ plip), a press in time lands a fish overhead (ship it in the bin or keep it in t
 fish, odds, bite timing and the pity rule are in `data/fish.json`. Later for fishing: a river,
 better rods from the blacksmith (a bite-chance factor per rod level), fish as food / gifts, and
 the 2D view's action hookup (main_2d.gd doesn't connect the Player's actions yet).
-Next: the opening event and first shop visits (milestone 6) on the event trigger tables
-(a `talk` row with `who` plays an event when the farmer talks to a villager).
+Talking, gifts and affection are in (a `talk` row with `who` in a trigger table plays an
+event when the farmer talks to a villager); the keepers are `sayo` (store) and `hachiro`
+(smithy). The opening event and the first shop visits are done (data/events/opening.json,
+store_intro, smithy_intro; villagers act in events with the `actor` step).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -129,7 +131,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Text box (typewriter, portraits, choices, flags); our own, data/dialogue
    - [x] Event scripts + trigger tables per map (data/events; three small farm events)
    - [x] "Examine" trigger cause: E facing a spot plays an event (village, farm, farmhouse)
-   - [ ] Opening event, first visits to the shops
+   - [x] Opening event (Tome on the farm), first visits to the shops (Sayo, Hachiro); `actor` / `place` event steps
 7. **Animals**
    - [x] Chickens: coop map, feed box, happiness, egg grades, sickness / medicine, going out, incubator (data/animals.json)
    - [ ] Cows / sheep (barn, milk / wool, brushing), dog

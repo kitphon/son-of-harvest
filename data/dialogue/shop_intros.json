@@ -1,0 +1,13 @@
+{
+	"_note": "Lines for the first visits to the village shops (data/events/store_intro.json, smithy_intro.json): Sayo at the Yorozu Store (from line store), Hachiro at the Kurogane Smithy (from line smithy). Each part ends with next: end.",
+	"lines": [
+		{"id": "store", "speaker": "sayo", "face": "surprised", "text": "Welcome! Oh, a new face. You must be the one who took over the old farm up the road. I'm Sayo."},
+		{"speaker": "sayo", "face": "smile", "text": "Yorozu means 'a bit of everything'. Seeds for the season, sweets, odds and ends. And I buy good crops, too."},
+		{"speaker": "sayo", "face": "calm", "text": "We're open from nine to five, every day but Sunday. Talk to me at the counter when you need something."},
+		{"speaker": "sayo", "face": "smile", "text": "The seeds change with the season, so look in again when summer comes!", "next": "end"},
+		{"id": "smithy", "speaker": "hachiro", "face": "smile", "text": "Oh, the new farmer! Tome said you'd come. I'm Hachiro. Mornings I build, afternoons I'm at the forge. Mind it, it bites."},
+		{"speaker": "hachiro", "face": "calm", "text": "Bring me a tool you trust, and some coin, and I'll make it better. Wider swings, harder hits."},
+		{"speaker": "hachiro", "face": "smile", "text": "Good iron takes a few days. Leave it at the counter and come back for it. Open ten to four, shut on Sundays."},
+		{"speaker": "hachiro", "face": "calm", "text": "Work your tools hard. They get to know your hands, same as a good plane does.", "next": "end"}
+	]
+}

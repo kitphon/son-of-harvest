@@ -128,8 +128,13 @@ func _physics_process(delta: float) -> void:
 	player.running = runner.running
 	player.queue_redraw()
 	_fade.color.a = runner.fade
+	var cast := {}
+	for id in runner.actors:
+		cast[id] = runner.actors[id].merged({"map": map_id})
+	Villagers.actors = cast
 	if runner.done():
 		runner = null
+		Villagers.actors = {}
 		Game.event_running = false
 		_cell = Player.cell_of(player.position)
 		Game.changed.emit()

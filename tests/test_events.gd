@@ -165,13 +165,21 @@ func _init() -> void:
 		check(EventTriggers.check_row(bad) != "", "refused row %s" % JSON.stringify(bad))
 	check(EventTriggers.new({"rows": [{"event": "nope", "on": "step"}]}).rows.is_empty(), "a table with a bad row has no rows")
 
-	# The farm's table with a new game: the first morning on entering, once.
+	# The farm's table with a new game: the opening on entering, once; a loaded game that has
+	# seen it (or a save from before it, with the first morning seen) doesn't play it again.
 	g.free()
 	g = _game()
 	var farm := EventTriggers.open("farm")
-	check(farm.pick("enter", g.trigger_state(Vector2i(4, 4))) == "first_morning", "new game: the first morning plays on entering")
-	g.events_seen.first_morning = true
-	check(farm.pick("enter", g.trigger_state(Vector2i(4, 4))) == "", "seen: nothing more on the first morning")
+	check(farm.pick("enter", g.trigger_state(Vector2i(4, 4))) == "opening", "new game: the opening plays on entering")
+	check(farm.pick("day_start", g.trigger_state(Vector2i(4, 4))) == "opening", "and on the first day's start")
+	g.events_seen.opening = true   # EventPlayer.play marks it as it starts
+	var loaded := _game()
+	check(loaded.from_dict(JSON.parse_string(JSON.stringify(g.to_dict()))) == "" and loaded.events_seen.has("opening"), "the save keeps the opening as seen")
+	check(farm.pick("enter", loaded.trigger_state(Vector2i(4, 4))) == "" and farm.pick("day_start", loaded.trigger_state(Vector2i(4, 4))) == "",
+		"loading that save on the first morning: no opening again")
+	loaded.events_seen = {"first_morning": true}
+	check(farm.pick("enter", loaded.trigger_state(Vector2i(4, 4))) == "", "an older save that saw the first morning: no opening")
+	loaded.free()
 	g.day = 2
 	g.weather_today = "rain"
 	check(farm.pick("day_start", g.trigger_state(Vector2i(4, 4))) == "rainy_day", "the first rainy morning")
@@ -224,6 +232,65 @@ func _init() -> void:
 	check(g.money == 95 and not EventRunner.is_set(g.flags, "shrine_coin") and coin.done()
 		and talked == ["examine_town@offering", "examine_town@coin"], "a coin: 5 G, flag cleared %s" % [talked])
 
+	# The opening, played through with every text box closed at once: the farmer comes in at
+	# the gate, Tome acts in it (placed, walking, turning, leaving) and gives seed potatoes.
+	g.free()
+	g = _game()
+	g.dialogue_requested.connect(func(id, line):
+		talked.append(id + "@" + line)
+		g.dialogue_open = true)
+	talked.clear()
+	var potatoes: int = g.count("seeds:potato")
+	r = EventRunner.open("opening", g)
+	r.start(Vector2(4 * 16 + 8, 4 * 16 + 10), Vector2i.DOWN)
+	r.update(0.0)
+	check(r.fade == 1.0 and r.pos == Vector2(30 * 16 + 8, 6 * 16 + 8) and r.facing == Vector2i.LEFT, "black, the farmer at the gate facing in (%s)" % r.pos)
+	check(r.actors.has("tome") and r.actors.tome.pos == Vector2(24.5, 6.5) and r.actors.tome.facing == Vector2i.RIGHT, "Tome waits by the pond %s" % [r.actors])
+	var tome_walked := false
+	var tome_faced := {}
+	for i in 600:
+		r.update(0.1)
+		g.dialogue_open = false
+		if r.done():
+			break
+		tome_walked = tome_walked or r.actors.get("tome", {}).get("moving", false)
+		if r.actors.has("tome"):
+			tome_faced[r.actors.tome.facing] = true
+	check(r.done() and r.actors.is_empty(), "the opening ends, no actors left")
+	check(tome_walked and tome_faced.size() == 4, "Tome walked and turned every way (%d)" % tome_faced.size())
+	check(talked == ["opening@arrive", "opening@greet", "opening@field", "opening@bin", "opening@road", "opening@gift", "opening@bye", "opening@alone"],
+		"the opening's lines in order %s" % [talked])
+	check(g.count("seeds:potato") == potatoes + 2 and EventRunner.is_set(g.flags, "met_tome"), "two seed potato bags and the met_tome flag")
+	check(r.pos == Vector2(12 * 16 + 8, 5 * 16 + 8) and r.facing == Vector2i.RIGHT, "the farmer ends by the stand, looking after Tome (%s)" % r.pos)
+
+	# Actor and place steps that are wrong are refused.
+	for bad in [{"do": "actor", "who": "nobody", "at": [1, 1]}, {"do": "actor", "who": "tome"},
+			{"do": "actor", "who": "tome", "to": [1]}, {"do": "actor", "who": "tome", "face": "north"},
+			{"do": "actor", "who": "tome", "leave": false}, {"do": "actor", "who": "tome", "leave": true, "at": [1, 1]},
+			{"do": "actor", "who": "tome", "at": [1, 1], "speed": 2}, {"do": "place"}, {"do": "place", "at": [1, 1], "dir": "in"}]:
+		r = EventRunner.new({"steps": [bad]}, g)
+		check(r.error != "" and r.done(), "refused %s (%s)" % [JSON.stringify(bad), r.error])
+
+	# The shops: each intro on the first entering only; the keeper stands behind the counter.
+	for shop in [["store", "store_intro", "sayo"], ["smithy", "smithy_intro", "hachiro"]]:
+		var tbl := EventTriggers.open(shop[0])
+		check(tbl.error == "" and tbl.pick("enter", g.trigger_state(Vector2i(4, 5))) == shop[1], "first time in the %s: %s" % [shop[0], shop[1]])
+		g.events_seen[shop[1]] = true
+		check(tbl.pick("enter", g.trigger_state(Vector2i(4, 5))) == "", "the second time in the %s: nothing" % shop[0])
+		talked.clear()
+		r = EventRunner.open(shop[1], g)
+		r.start(Vector2(4 * 16 + 8, 5 * 16 + 8), Vector2i.UP)
+		r.update(0.0)
+		var keeper_seen: bool = r.actors.has(shop[2])
+		for i in 100:
+			r.update(0.1)
+			g.dialogue_open = false
+			if r.done():
+				break
+		check(keeper_seen and r.done() and r.pos == Vector2(3 * 16 + 8, 4 * 16 + 8) and r.facing == Vector2i.UP,
+			"%s: the keeper is there, the farmer at the counter" % shop[1])
+		check(talked == ["shop_intros@" + shop[0]] and EventRunner.is_set(g.flags, "met_" + shop[2]), "%s: the intro lines, met_%s" % [shop[1], shop[2]])
+
 	# Weekdays: spring 1 of year 1 is a Monday and the week runs on across seasons and years
 	# (a year is 120 days, so year 2 starts on a Tuesday).
 	g.free()
@@ -251,6 +318,16 @@ func _init() -> void:
 var _frame := 0
 var _player: Node
 var _events: Node   # EventPlayer; loaded by path, since it needs the Game autoload to compile
+var _saved: Dictionary
+
+
+## Ends the event playing in the EventPlayer at once, as if it had run to its end.
+func _stop() -> void:
+	var g: Node = root.get_node("Game")
+	_events.runner = null
+	g.event_running = false
+	g.dialogue_open = false
+	Villagers.actors = {}
 
 
 ## On the real Game, in the tree: interact facing a spot asks the trigger table first; an item
@@ -278,6 +355,39 @@ func _process(_delta: float) -> bool:
 		g.dialogue_open = false   # (paused while the box is open; this checks the runner)
 		check(not actions.examine(Vector2i(31, 4)) and not g.events_seen.has("farm_sign"), "no second examine while one plays")
 		check(not actions.examine(Vector2i(10, 10)), "nothing to examine on open ground")
+		_stop()
+		g.new_game()   # a new game from the title: the farm's "enter" plays the opening
+		_player.position = g.maps.pos
+		_events.enter_map("farm")
+	elif _frame == 5:
+		check(_events.is_playing() and _events.runner.id == "opening", "a new game plays the opening")
+		var here: Array = Villagers.on_map("farm", g.day_minutes(), g.trigger_state(Vector2i.ZERO)).map(func(w): return w.id)
+		check(here == ["tome"], "Tome stands on the farm while the opening plays %s" % [here])
+		_saved = JSON.parse_string(JSON.stringify(g.to_dict()))
+		_stop()
+		check(Villagers.on_map("farm", g.day_minutes(), g.trigger_state(Vector2i.ZERO)).is_empty(), "after the event Tome is gone again")
+		g.new_game()
+		check(g.from_dict(_saved) == "", "Continue: the save loads")
+		_player.position = g.maps.pos
+		_events.enter_map("farm")
+	elif _frame == 7:
+		check(not _events.is_playing(), "Continue on the first morning doesn't replay the opening")
+		_events.enter_map("store")
+	elif _frame == 9:
+		check(_events.is_playing() and _events.runner.id == "store_intro", "first time in the store: the intro")
+		var here: Array = Villagers.on_map("store", g.day_minutes(), g.trigger_state(Vector2i.ZERO)).map(func(w): return w.id)
+		check(here == ["sayo"], "Sayo behind the counter %s" % [here])
+		_stop()
+		_events.enter_map("store")
+	elif _frame == 11:
+		check(not _events.is_playing(), "the store intro plays once")
+		_events.enter_map("smithy")
+	elif _frame == 13:
+		check(_events.is_playing() and _events.runner.id == "smithy_intro", "first time in the smithy: the intro")
+		_stop()
+		_events.enter_map("smithy")
+	elif _frame == 15:
+		check(not _events.is_playing(), "the smithy intro plays once")
 		_events.free()
 		_player.free()
 		g.dialogue_open = false

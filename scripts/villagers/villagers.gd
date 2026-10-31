@@ -26,6 +26,9 @@ static var _today_key := ""
 static var _today := {}        # id -> DayPlan for the day in _today_key
 static var _turns := {}        # id -> {facing, from, until}: turned to the farmer for a talk
 static var _delay := {}        # id -> [part of the day, minutes]: plan time lost to talks and bumps
+## Villagers acting in the event playing now (EventPlayer sets it): id -> {map, pos, facing,
+## moving, walked}. While one is in it, its day plan is set aside.
+static var actors := {}
 
 
 ## Every usable villager, id -> data. A broken file is left out with an error printed.
@@ -187,6 +190,8 @@ static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 	var plans := today(s)
 	if not plans.has(id):
 		return {}
+	if actors.has(id):   # acting in an event: its place, not the plan's
+		return actors[id].duplicate()
 	var w: Dictionary = plans[id].where(plan_minute(id, t))
 	var turn: Variant = _turns.get(id)
 	if turn != null and t >= turn.from:

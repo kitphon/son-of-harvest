@@ -1,0 +1,10 @@
+{
+	"_note": "The first visit to the Yorozu Store: Sayo is behind the counter at the keeper spot, the farmer steps up, she says what the store sells and when it is open, and stays at the counter. Played once by triggers_store.json. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "sayo", "at": [3, 2], "face": "down"},
+		{"do": "walk", "to": [3, 4]},
+		{"do": "face", "dir": "up"},
+		{"do": "say", "dialogue": "shop_intros", "at": "store"},
+		{"do": "set", "flags": {"met_sayo": true}}
+	]
+}

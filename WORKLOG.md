@@ -67,6 +67,74 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   hookup, so talking works in the 3D view only. Merge note: Game, SaveGame (version 3),
   EventTriggers / EventRunner, shops.json keepers and Sayo / Hachiro plans are the shared
   touches.
+## 2026-10-31 — Shop intros: Hachiro keeps the smithy (matches the talking branch)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the talking branch (`claude/talk-gifts-9356cc`) made Hachiro the smith (his house
+  door has been the smithy since the shops merge) and Sayo the store keeper, standing on the
+  shop maps at the keeper spot (3, 2) in opening hours. To merge cleanly: `gen.json` is
+  gone; `smithy_intro` now has Hachiro turn from the forge to the keeper spot (flag
+  `met_hachiro`, lines rewritten for him; "shut on Sundays", their new day off); both
+  intros leave the keeper standing at (3, 2) facing down, where their plans put them after
+  the event (no walking off any more); the opening's road line names Hachiro.
+  `data/dialogue/speakers.json` is now the same as on the talking branch (tome, hachiro,
+  sayo, kota with their colours), so it merges without a conflict. The actor override
+  moved into `Villagers.where` and `on_map` asks `where`, the same shape as on that branch.
+  This replaces the Gen parts of the entry below.
+- Checked: all 17 tests in AGENTS.md print `OK (0 failed)` (`test_events` now checks the
+  smithy intro with `hachiro` and `met_hachiro`); headless `--quit-after 300` (title,
+  `--demo`, `--demo --map=town`, `--demo --map=store`, `--demo --event=opening`,
+  `--demo --event=smithy_intro --map=smithy`) and `res://scenes/main.tscn --quit-after 900`
+  printed no errors or warnings. Movie Maker: smithy intro frame 149 shows Hachiro (headband)
+  behind the counter with his portrait and name tag; `res://scenes/main.tscn` frame 159
+  still shows the opening's text box with Tome by the pond.
+- Left / next: on this branch alone the keepers still vanish after their intro (their plans
+  here don't stand them in the shops); after the merge Game.open_shop needs the keeper on
+  the shop map, which the plans give in opening hours, and the intro plays only then (the
+  door is shut outside the hours).
+
+## 2026-10-31 — Opening event and first visits to the shops
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a new game now opens with `opening` (data/events/opening.json, lines in
+  data/dialogue/opening.json, our own): the screen comes up on the farmer just inside the
+  farm gate; Grandma Tome is waiting by the pond, greets them (the village head Tsuru sent
+  her), points out the field, the shipping bin and stand, and the road east to the village
+  (the store's Sayo, the smithy's Gen), gives 2 bags of seed potatoes (flag `met_tome`) and
+  walks home through the gate. `triggers_farm.json` plays it where `first_morning` used to be
+  (spring 1, year 1, 6:00-9:00), with `not_seen: ["first_morning"]` so saves from before the
+  opening never get it; `first_morning` stays as the runner test's sample and for `--event`.
+  First visits: new `triggers_store.json` / `triggers_smithy.json` play `store_intro` (Sayo
+  behind the counter: what Yorozu sells, that she buys crops, hours) and `smithy_intro` (Gen
+  turns from the forge: tool upgrades over days, hours) once each on `enter` (flags
+  `met_sayo`, `met_gen`); lines in data/dialogue/shop_intros.json. Events got two steps:
+  `place` (the farmer onto a cell at once) and `actor` (a villager placed with `at`, turned
+  with `face`, walked with `to`, taken off with `leave`; EventRunner.actors, gone when the
+  event ends). EventPlayer copies the actors into `Villagers.actors`, which `on_map` uses in
+  place of their day plan, so both views draw them with no view changes. New villager file
+  `gen.json` (the smith, plan `away` all day: only seen in his intro for now) and speakers
+  tome, sayo, gen. Continue: the opening is in `events_seen` from the moment it starts, and
+  the save keeps that list, so a loaded game never replays it; `--demo` still keeps the
+  trigger tables off (unchanged EventPlayer rule). Numbers: 2 potato bags (a starter gift
+  next to the turnips already in the bag, not enough to skip the stand).
+- Checked: `test_events` (new: the farm table picks the opening on a new game, not after a
+  save round trip, not for an older save that saw the first morning; the whole opening
+  played with boxes closed: gate position, Tome placed / walking / turning all four ways /
+  gone, lines in order, potatoes and flag; 9 bad actor / place steps refused; both shop
+  tables once each with the keeper as actor; in the tree: a new game's EventPlayer plays the
+  opening with Tome on the farm in `Villagers.on_map`, a loaded save doesn't, the store and
+  smithy intros play on the first entering only) and all the other tests in AGENTS.md print
+  `OK (0 failed)` (17 scripts). A mutation (store table removed, opening's `not_seen`
+  changed) made 4 checks fail, so they bite. Headless `--quit-after 300` (title, `--demo`,
+  `--demo --map=town`, `--demo --map=store`, `--demo --event=opening`,
+  `--demo --event=smithy_intro --map=smithy`) and `res://scenes/main.tscn --quit-after 900`
+  printed no errors or warnings. Movie Maker: `res://scenes/main.tscn` frame 159 shows the
+  opening's text box ("So this is the farm...") with Tome standing by the pond; the smithy
+  intro frame shows Gen behind the counter with his portrait (headband made off-white after
+  the first frame looked like the farmer's red cap).
+- Left / next: the keepers vanish when their intro ends (they go to the back first);
+  standing at the counters all day comes with the talking branch, which should use the ids
+  `sayo` and `gen` (an actor overrides the plan by id). The opening was not played in a
+  real window with key presses (tests close the boxes), and the actors' walk speed is the
+  farmer's, not the villager speed in `_common.json`.
 
 ## 2026-10-31 — Merged six branches: key remap, examine, villagers, shops, chickens, fishing
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
