@@ -191,8 +191,8 @@ func _town_today() -> void:
 		"Tome walks along the road at 7:05 %s" % [w])
 	w = Villagers.where("tome", 460.0, s)
 	check(w.pos == Vector2(18.5, 8.5) and w.facing == Vector2i.UP and not w.moving, "Tome stands at the torii at 7:40 %s" % [w])
-	check(Villagers.where("tome", 425.0, _state({"weather": "rain"})).map == "away", "Tome stays in on a wet day")
-	check(Villagers.where("tome", 425.0, _state({"season": "winter"})).map == "away"
+	check(Villagers.where("tome", 425.0, _state({"weather": "rain"})).map == "tome_house", "Tome stays home on a wet day")
+	check(Villagers.where("tome", 425.0, _state({"season": "winter"})).map == "tome_house"
 		and Villagers.where("tome", 620.0, _state({"season": "winter"})).map == "town", "Tome comes out late in winter")
 	check(Villagers.is_on("sayo", "store", 720.0, s) and Villagers.is_on("sayo", "town", 720.0, _state({"day": 7, "weekday": "sun"}))
 		and not Villagers.is_on("sayo", "town", 1100.0, s), "Sayo is in the store at noon on a shop day, out on her day off, in at 18:20")
@@ -202,6 +202,51 @@ func _town_today() -> void:
 	check(Villagers.where("hachiro", 720.0, _state({"weather": "rain"})).map == "smithy", "Hachiro works the forge in the rain")
 	check(Villagers.where("hachiro", 600.0, _state({"day": 7, "weekday": "sun"})).pos == Vector2(30.5, 16.5), "Hachiro fishes on Sunday")
 	check(Villagers.where("nobody", 600.0, s).is_empty() and not Villagers.is_on("nobody", "town", 600.0, s), "an unknown villager is nowhere")
+	_homes()
+
+
+## At home in the mornings, at noon, in the evenings and on wet days; in bed at night.
+func _homes() -> void:
+	var s := _state()
+	var on := func(map_id: String, t: float, st: Dictionary) -> Array:
+		return Villagers.on_map(map_id, t, st).map(func(w): return w.id)
+	check(on.call("tome_house", 380.0, s) == ["tome"] and on.call("kota_house", 380.0, s) == ["kota"]
+		and on.call("sayo_house", 380.0, s) == ["sayo"] and on.call("smithy", 380.0, s) == ["hachiro"], "everyone at home at 6:20")
+	var w := Villagers.where("tome", 380.0, s)
+	check(w.pos == Vector2(6.5, 3.5) and w.facing == Vector2i.LEFT, "Tome sits right of her hearth %s" % [w])
+	check(on.call("tome_house", 740.0, s) == ["tome"] and on.call("kota_house", 740.0, s) == ["kota"], "home for lunch at 12:20")
+	check(on.call("tome_house", 1100.0, s) == ["tome"] and on.call("kota_house", 1100.0, s) == ["kota"]
+		and on.call("sayo_house", 1050.0, s) == ["sayo"] and on.call("sayo_house", 1230.0, s) == ["sayo"], "home in the evening")
+	var rain := _state({"weather": "rain"})
+	check(on.call("kota_house", 600.0, rain) == ["kota"] and on.call("tome_house", 900.0, rain) == ["tome"], "home all day in the rain")
+	var kota_moves := false
+	for t in range(360, 1200, 5):
+		kota_moves = kota_moves or Villagers.where("kota", float(t), rain).moving
+	check(kota_moves, "Kota gets up and walks to the hearth now and then on a wet day")
+	var sun := _state({"day": 7, "weekday": "sun"})
+	check(on.call("tome_house", 800.0, sun) == ["sayo", "tome"] and Villagers.where("sayo", 800.0, sun).pos == Vector2(3.5, 3.5),
+		"on Sunday afternoon Sayo has tea at Tome's %s" % [on.call("tome_house", 800.0, sun)])
+	for id in ["tome", "kota", "sayo", "hachiro"]:
+		check(Villagers.where(id, 1320.0, s).map == "away", "%s is in bed at 22:00" % id)
+	# Talking at home: facing Tome from the floor below her.
+	var m := MapManager.data("tome_house")
+	check(Talk.facing_villager(m, Vector2i(6, 4), Vector2i.UP, 380.0, s).get("id", "") == "tome", "Tome can be talked to at home")
+	check(Talk.keeper_shop("sayo", "sayo_house", Vector2i(4, 2)) == "", "at home Sayo is not keeping the store")
+	# Every stretch a villager spends on a house map is inside that house's door hours (the
+	# village doors that lead there), so the farmer finds them in when the door is open.
+	var hours := {}
+	for d in MapManager.data("town").doors:
+		if d.has("hours"):
+			hours[d.to] = d.hours
+	check(hours.has("tome_house") and hours.has("kota_house") and hours.has("sayo_house"), "the village doors to the homes have hours %s" % [hours.keys()])
+	for id in Villagers.all():
+		var v: Dictionary = Villagers.all()[id]
+		for name in v.plans:
+			var p: DayPlan = DayPlan.build(v.plans[name], Villagers.speed_of(v))[1]
+			for e in p.entries:
+				if hours.has(e.map):
+					check(e.start >= hours[e.map][0] and e.end <= hours[e.map][1],
+						"%s %s at home on %s %d-%d within its hours %s" % [id, name, e.map, e.start, e.end, hours[e.map]])
 
 
 ## Every villager's frames draw at the farmer's size with their own colours; walking steps.

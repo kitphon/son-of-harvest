@@ -1,5 +1,5 @@
 {
-	"_note": "Events in the village. examine rows play when the farmer presses interact facing their spot ([x, y] or [x, y, width, height]); the first matching row wins, so special cases go first. The shop doors (store 23, 15; smithy 27, 6) are left to the shops. Format: README.md, Events.",
+	"_note": "Events in the village. examine rows play when the farmer presses interact facing their spot ([x, y] or [x, y, width, height]); the first matching row wins, so special cases go first. The doors (the shops, Tome's 5, 6, Kota's 8, 15, Sayo's 25, 15) are left to the doors. Format: README.md, Events.",
 	"rows": [
 		{"event": "shrine_offering", "on": "examine", "spot": [18, 1, 2, 2], "once": false},
 		{"event": "lantern_snow", "on": "examine", "spot": [16, 3], "once": false, "weather": ["snow"]},
@@ -7,8 +7,6 @@
 		{"event": "lantern_night", "on": "examine", "spot": [16, 3], "once": false, "time": ["17:00", "24:00"]},
 		{"event": "lantern_night", "on": "examine", "spot": [21, 3], "once": false, "time": ["17:00", "24:00"]},
 		{"event": "lantern_day", "on": "examine", "spot": [16, 3], "once": false},
-		{"event": "lantern_day", "on": "examine", "spot": [21, 3], "once": false},
-		{"event": "quiet_house", "on": "examine", "spot": [5, 6], "once": false},
-		{"event": "quiet_house", "on": "examine", "spot": [8, 15], "once": false}
+		{"event": "lantern_day", "on": "examine", "spot": [21, 3], "once": false}
 	]
 }

@@ -24,7 +24,7 @@
 		{"id": "new_2", "speaker": "hachiro", "face": "calm", "text": "The old farm, eh? The fence by the gate leans. I'd see to it.", "next": "end"},
 		{"id": "sunday_1", "speaker": "hachiro", "face": "smile", "text": "Sunday. The anvil rests and so do I. The fish don't, though.", "next": "end"},
 		{"id": "sunday_2", "speaker": "hachiro", "face": "calm", "text": "Quiet... Don't scare the koi. I've been waiting an hour for this one.", "next": "end"},
-		{"id": "morning_1", "speaker": "hachiro", "face": "calm", "text": "That empty house won't stay up on its own. Nails before tea.", "next": "end"},
+		{"id": "morning_1", "speaker": "hachiro", "face": "calm", "text": "The roof over Kota's house won't mend itself. Nails before tea.", "next": "end"},
 		{"id": "morning_2", "speaker": "hachiro", "face": "calm", "text": "Morning. Smithy opens at ten. Bring what's broken.", "next": "end"},
 		{"id": "evening", "speaker": "hachiro", "face": "calm", "text": "Evening's the best time at the pond. The water goes gold.", "next": "end"},
 		{"id": "summer", "speaker": "hachiro", "face": "worried", "text": "Hot as the forge out here. And I'd know.", "next": "end"},

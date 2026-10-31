@@ -130,16 +130,22 @@ DESIGN asks for every building), `ambient` (which `places` of the ambient rules 
   `{tile, solid?, step?}` (tile = a `ground:<kind>` placeholder, step = footstep sound kind);
 - `props`: `{kind, cell, size?, solid? (default true), blocks? (only these cell offsets
   block), use?}`; `use: "sleep"` is the futon. Their 3D looks are in `scripts/world3d/map_world.gd`;
-- `doors`: `{cells, to, spawn, facing, shop?}`, or `{cells, message}` for a door that only says
-  something (village houses, no villagers yet). A door with `shop` stays shut outside that
-  shop's hours and says so. Door cells are solid; walking into one, or
+- `doors`: `{cells, to, spawn, facing, shop?, hours?, closed?}`, or `{cells, message}` for a
+  door that only says something. A door with `shop` stays shut outside that shop's hours and
+  says so; one with `hours` `["H:MM", "H:MM"]` (a villager's home) is open from the first
+  time until the second and shows its `closed` message otherwise (`MapData.door_open`). Door cells are solid; walking into one, or
   using it, goes through. Cells just off the edge make a walk-off exit; on the farm
   `gate: true` leaves those fence cells open in the drawing;
 - the coop (`coop`) uses props with `use` `feed_box`, `nest`, `incubator`, `feed_sack` and
   `hatch` (CoopActions), their 3D looks in `scripts/world3d/coop_props.gd`; the barn (`barn`)
   `fodder_box`, `fodder`, `barn_tools`, `barn_gate` (BarnActions), looks in `barn_props.gd`;
+- the villagers' homes (`tome_house`, `kota_house`, `sayo_house`; Hachiro lives in the
+  smithy) use `irori`, `tokonoma`, `butsudan`, `zabuton` (`solid: false`, optional `color`),
+  `byobu`, `toy_box` and `mizugame`, their 3D looks in `scripts/world3d/home_props.gd`; a
+  `village_house` prop's `side_door` (cells from the left) draws a second, plain door (Sayo's
+  rooms behind the store);
 - `spawns`: named `[cell, facing]`, `start` needed (`--map=<id>@<spawn>`), the house has
-  `home` (where a new day starts).
+  `home` (where a new day starts); the villagers' homes have `home` where their owner sits.
 
 `Game.maps` (MapManager) holds the map, the farmer's position and facing (saved);
 `Game.go_to_map()` changes it and emits `map_changed` (the views fade, rebuild, place the
@@ -157,7 +163,10 @@ straw_hat, colours `hair`, `skin`, `top`, `waist`, `lower`, `accent`, `shoes`; d
   ids from `data/festivals.json`: today is one of them);
 - `plans`: name -> entries `{"at": "H:MM", "map": "<map id>" or "away", "from": [x, y],
   "route": [steps], "loop": [steps]}`. The first entry is at 06:00, times after midnight
-  belong to the same day. `away` = indoors somewhere we don't draw yet. An entry onto a map
+  belong to the same day. `away` = in bed (or somewhere we don't draw): every villager is at
+  home on their house map (`tome_house`, `kota_house`, `sayo_house`, `smithy`) in the early
+  morning, around noon, in the evening and on wet days, and `away` from the time their door
+  shuts (test_villagers checks a plan is on a house map only inside its door's hours). An entry onto a map
   needs `from` unless the entry before was on the same map (then it walks on from there).
   Steps: `{"to": [x, y]}` (walk straight there), `{"wait": minutes}`, `{"face": "up"}`. The
   route is walked once, then the loop over and over until the next entry. A route must
@@ -169,7 +178,8 @@ straw_hat, colours `hair`, `skin`, `top`, `waist`, `lower`, `accent`, `shoes`; d
 `is_on(id, map, ...)` (the hook for "the shop is shut while its keeper is out"). Positions are
 a pure function of `Game.day_minutes()`, so a map shows everyone where their plan puts them
 when the farmer walks in (the catch-up) and nothing has to be saved. The views add a
-`VillagerSprites` (3D) / `VillagerView` (2D) to each map they build. Not yet: their own houses.
+`VillagerSprites` (3D) / `VillagerView` (2D) to each map they build, homes included, so the
+farmer can talk to them at home too (`-- --demo --map=tome_house --time=6:30`).
 
 **Talking, gifts, affection.** E facing a villager (or facing a counter with them behind it)
 turns them to the farmer (`Villagers.turn`) and calls `Game.talk_to(id, face)`:
@@ -315,8 +325,8 @@ asks the map's table first; when a row matches its event plays and the normal in
 (doors, bin, chest, futon, picking up) is skipped. An item held overhead on the farm is still
 thrown. Give examine rows `"once": false`, and put the special cases (snow, evening) above the
 plain row for the same spot. Examining works under `-- --demo` too, since only a key press
-starts it. Spots now: the shrine's offering box, the stone lanterns and the empty houses'
-doors in the village (`triggers_town.json`), the name plate by the farmhouse door and the
+starts it. Spots now: the shrine's offering box and the stone lanterns in the village
+(`triggers_town.json`; the house doors are left to the doors), the name plate by the farmhouse door and the
 board by the gate (`triggers_farm.json`), the calendar and the radio in the farmhouse
 (`triggers_house.json`).
 

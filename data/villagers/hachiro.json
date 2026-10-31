@@ -1,5 +1,5 @@
 {
-	"_note": "Hachiro the smith and handyman: lives behind the Kurogane Smithy (the east house). On work days he mends the empty house south of the road early, keeps the smithy counter (the smithy map's keeper spot) 10:00-16:00, so talking to him there opens the shop (data/shops.json keeper), and looks at the pond in the evening. In bad weather he only works the forge; Sundays he fishes (the smithy is shut). Gifts: rice balls, eels and catfish. Format: README.md, Villagers.",
+	"_note": "Hachiro the smith and handyman: lives in the Kurogane Smithy (the north-east house): off hours he is at the anvil behind the counter (out of sight, the smithy's door is shut then) and in bed (away) from 21:00. On work days he mends the roof of Kota's family house south of the road early, keeps the smithy counter (the smithy map's keeper spot) 10:00-16:00, so talking to him there opens the shop (data/shops.json keeper), and looks at the pond in the evening. In bad weather he only works the forge; Sundays he fishes (the smithy is shut). Gifts: rice balls, eels and catfish. Format: README.md, Villagers.",
 	"id": "hachiro",
 	"name": "Hachiro",
 	"look": {"outfit": "happi", "hair_style": "headband", "hair": "2a2422", "skin": "d9a473", "top": "2e4a7a", "waist": "e8e2d0", "lower": "3a3430", "accent": "e8e2d0", "shoes": "8a6a48"},
@@ -16,26 +16,29 @@
 	},
 	"plans": {
 		"work": [
-			{"at": "06:00", "map": "away"},
+			{"at": "06:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "08:00", "map": "town", "from": [27, 7], "route": [{"to": [27, 11]}, {"to": [11, 11]}],
 				"loop": [{"to": [11, 14]}, {"face": "left"}, {"wait": 25}, {"to": [11, 16]}, {"to": [9, 16]}, {"face": "up"}, {"wait": 25}, {"to": [11, 16]}]},
 			{"at": "09:30", "map": "town", "route": [{"to": [11, 16]}, {"to": [11, 11]}, {"to": [27, 11]}, {"to": [27, 7]}, {"face": "up"}]},
 			{"at": "10:00", "map": "smithy", "from": [3, 2], "route": [{"face": "down"}]},
-			{"at": "16:00", "map": "away"},
+			{"at": "16:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "19:00", "map": "town", "from": [27, 7], "route": [{"to": [27, 9]}, {"to": [30, 9]}, {"to": [30, 13]}, {"face": "down"}]},
 			{"at": "20:00", "map": "town", "route": [{"to": [30, 9]}, {"to": [27, 9]}, {"to": [27, 7]}, {"face": "up"}]},
-			{"at": "20:15", "map": "away"}
+			{"at": "20:15", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "21:00", "map": "away"}
 		],
 		"sunday": [
-			{"at": "06:00", "map": "away"},
+			{"at": "06:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "09:00", "map": "town", "from": [27, 7], "route": [{"to": [27, 9]}, {"to": [30, 9]}, {"to": [30, 16]}, {"face": "right"}]},
 			{"at": "15:00", "map": "town", "route": [{"to": [30, 9]}, {"to": [27, 9]}, {"to": [27, 7]}, {"face": "up"}]},
-			{"at": "15:30", "map": "away"}
+			{"at": "15:30", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "21:00", "map": "away"}
 		],
 		"forge": [
-			{"at": "06:00", "map": "away"},
+			{"at": "06:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "10:00", "map": "smithy", "from": [3, 2], "route": [{"face": "down"}]},
-			{"at": "16:00", "map": "away"}
+			{"at": "16:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "21:00", "map": "away"}
 		]
 	}
 }

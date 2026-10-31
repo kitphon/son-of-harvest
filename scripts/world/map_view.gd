@@ -16,6 +16,8 @@ const COLORS := {
 	"feed_sack": Color("a88a52"), "hatch": Color("4a2a14"),
 	"fodder_box": Color("8a6440"), "stalls": Color("d0b478"), "hay": Color("c8b060"), "barn_gate": Color("4a2a14"),
 	"cave_mouth": Color("0c0a08"), "ladder": Color("8a6a3a"),
+	"irori": Color("8a847a"), "tokonoma": Color("c9a26b"), "butsudan": Color("1a1616"), "zabuton": Color("8a3a3a"),
+	"byobu": Color("e8dcb8"), "toy_box": Color("c8442c"), "mizugame": Color("6a4028"),
 }
 
 var map: MapData

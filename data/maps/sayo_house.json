@@ -1,0 +1,146 @@
+{
+	"_note": "Sayo's rooms behind the Yorozu Store, through the plain side door right of the shop's noren: a narrow earth kitchen, then one tatami room with a low table, a chest, a folding screen, the alcove and a lantern. She has her tea by the table (`home`). The side door is open 6:00-21:00. Format: README.md, Maps.",
+	"id": "sayo_house",
+	"name": "Sayo's Rooms",
+	"size": [
+		8,
+		6
+	],
+	"indoor": true,
+	"ambient": "indoor",
+	"light": "fff0dc",
+	"background": "1a1410",
+	"legend": {
+		"#": {
+			"tile": "wall",
+			"solid": true
+		},
+		".": {
+			"tile": "tatami",
+			"step": "floor"
+		},
+		"w": {
+			"tile": "floor",
+			"step": "floor"
+		},
+		"e": {
+			"tile": "earth",
+			"step": "soil"
+		},
+		"D": {
+			"tile": "earth",
+			"solid": true
+		}
+	},
+	"ground": [
+		"########",
+		"#......#",
+		"#......#",
+		"#wwwwww#",
+		"#eeeeee#",
+		"###D####"
+	],
+	"props": [
+		{
+			"kind": "tansu",
+			"cell": [
+				1,
+				1
+			]
+		},
+		{
+			"kind": "byobu",
+			"cell": [
+				2,
+				1
+			]
+		},
+		{
+			"kind": "tokonoma",
+			"cell": [
+				5,
+				1
+			],
+			"size": [
+				2,
+				1
+			]
+		},
+		{
+			"kind": "low_table",
+			"cell": [
+				3,
+				2
+			]
+		},
+		{
+			"kind": "zabuton",
+			"cell": [
+				2,
+				2
+			],
+			"solid": false,
+			"color": "c85a6a"
+		},
+		{
+			"kind": "andon",
+			"cell": [
+				6,
+				2
+			]
+		},
+		{
+			"kind": "kamado",
+			"cell": [
+				1,
+				4
+			]
+		},
+		{
+			"kind": "mizugame",
+			"cell": [
+				5,
+				4
+			]
+		},
+		{
+			"kind": "mizuya",
+			"cell": [
+				6,
+				4
+			]
+		}
+	],
+	"doors": [
+		{
+			"cells": [
+				[
+					3,
+					5
+				]
+			],
+			"to": "town",
+			"spawn": [
+				25,
+				16
+			],
+			"facing": "down"
+		}
+	],
+	"spawns": {
+		"start": [
+			[
+				3,
+				4
+			],
+			"up"
+		],
+		"home": [
+			[
+				4,
+				2
+			],
+			"left"
+		]
+	}
+}

@@ -10,6 +10,45 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Villagers' homes: Tome's and Kota's houses, Sayo's rooms, door hours
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three new indoor maps in `data/maps`, Japanese style of our own: `tome_house` (earth
+  entry with stove and water jar, tatami room round a sunken hearth with a hanging kettle, the
+  alcove with a scroll and a branch, the family altar, a chest, two cushions), `kota_house`
+  (hearth, folding screen, alcove, Kota's toy box with a top and a kite) and `sayo_house`
+  (Sayo's rooms behind the store: low table, alcove, screen, kitchen corner). New props drawn
+  in both views: `irori`, `tokonoma`, `butsudan`, `zabuton` (not solid, `color`), `byobu`,
+  `toy_box`, `mizugame` (`scripts/world3d/home_props.gd`, flat colours in MapView). The
+  village doors that only gave a message now lead in: Tome's (5, 6), Kota's (8, 15), and a new
+  plain side door (25, 15) right of the store's noren (`village_house` `side_door`). Doors take
+  `hours` `["H:MM", "H:MM"]` and a `closed` message (`MapData.door_open`, `Game.use_door`):
+  Tome 6:00-19:00 (she goes to bed early), Kota 6:00-20:00, Sayo 6:00-21:00. The old
+  `quiet_house` examine rows on those doors (and the event / its line) are gone, since
+  examine runs before the door. Schedules: `away` now means in bed; everyone is on their house
+  map in the early morning, at noon, in the evening and all day when wet (Kota walks from his
+  toys to the hearth now and then), Hachiro at the anvil in the smithy off hours (its shop
+  door is shut then, so it's for later), and each goes `away` when their door shuts (Tome 19:00,
+  Kota 20:00, Sayo and Hachiro 21:00). Sayo leaves by the side door; on Sundays she waits by
+  Tome's house and has tea with her inside 12:40-15:00. Keeper hours unchanged (Sayo at the
+  store 9:00-17:00, Hachiro at the smithy 10:00-16:00). Town spawns `tome`, `kota`, `sayo`;
+  each home has a `home` spawn. Hachiro's "empty house" line and note now say Kota's roof.
+- Checked: all 20 tests print `OK (0 failed)`. New checks: test_maps (the three doors lead in
+  with hours and come back out in front of them, `door_open` at 6:00 / 7:00 / 19:00 / 1:00,
+  broken hours refused, `Game.use_door` refuses Tome's door at 19:30 with its message and
+  lets the farmer in at 8:00, every prop kind on every map has a flat colour, each home builds
+  in 3D with no magenta stand-in), test_villagers (everyone home at 6:20, lunch, evening, all
+  day in rain, Sayo at Tome's on Sunday, everyone `away` at 22:00, Tome can be talked to at
+  home, every stretch on a house map lies inside its door's hours), test_events (house doors
+  have no examine row). Smoke runs (title, `--demo`, `--map=town`, `--mine=3`, each home,
+  `--map=town@sayo --time=19:00`, `res://scenes/main.tscn`) printed no errors or warnings.
+  Movie Maker frames: `--demo --map=tome_house --time=6:30` (Tome on her cushion right of the
+  hearth, kettle over the embers, scroll in the alcove), `--map=kota_house --time=7:30` (Kota at
+  his toy box), `--map=sayo_house --time=7:30` (Sayo by the low table), `--map=town@sayo
+  --time=10:00` (the side door beside the store's noren).
+- Left / next: not played in a real window. The talk files have no home-specific lines yet
+  (a `map` pick condition would allow "welcome in" lines). Hachiro's home is the smithy floor;
+  a room of his own behind it, and festival-night door hours, are later.
+
 ## 2026-10-31 — Merged six branches: talking, opening event, shop extras, barn, mine, festivals
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each, in this order:
