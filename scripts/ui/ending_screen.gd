@@ -1,14 +1,20 @@
 class_name EndingScreen
 extends CanvasLayer
 ## The village record over the room: a wood box with "Village Record" and the stars in all,
-## a paper page with one row per category of data/ending.json (its name, the number measured
-## and its stars, revealed one row at a time) and the title the farmer earned. Opens on
-## Game.ending_requested (the ending event's `ending` step) and clears Game.ending_open when
-## closed, so the event goes on. Enter / Space / E shows every row at once, then closes;
-## a click does the same. `-- --ending` opens it at the start (with `--demo`: a demo run's
-## numbers), for screenshots. Rules: Ending.
+## a paper page with one row per category of data/ending.json (its name, the number on the
+## first day, the number now, the gain since the last page and its stars), then the field
+## rows (then and now, no stars), revealed one row at a time, and the title the farmer earned.
+## The year 3 ending and the yearly pages share it; the heading line says which. Opens on
+## Game.ending_requested (the `ending` event step) and clears Game.ending_open when closed,
+## so the event goes on. Enter / Space / E shows every row at once, then closes; a click
+## does the same. `-- --ending` (or `--ending=year`) opens it at the start (with `--demo`:
+## a demo run's numbers, against the untouched first-day field), for screenshots. Rules: Ending.
 
-const W := 300              # the paper's width
+const W := 360              # the paper's width
+const NAME_W := 100         # a row's name fits in this
+const THEN_R := 176         # right edges of the first day, now and gain columns
+const NOW_R := 240
+const GAIN_R := 294
 const TOP := 17             # the heading strip on the wood
 const ROW := 12
 const LINE := 11
@@ -25,9 +31,13 @@ var _dim: ColorRect
 var _wood: NinePatchRect
 var _paper: NinePatchRect
 var _total: Label
-var _names: Array[Label] = []
+var _heading: Label
+var _gain_head: Label
+var _names: Array[Label] = []   # per row: the categories, then the field rows
+var _thens: Array[Label] = []
 var _values: Array[Label] = []
-var _stars: Array[Array] = []   # per row: its star boxes
+var _gains: Array[Label] = []
+var _stars: Array[Array] = []   # per row: its star boxes (none on field rows)
 var _title: Label
 var _hint: Label
 
@@ -49,8 +59,9 @@ func _ready() -> void:
 	_build()
 	_dim.visible = false
 	Game.ending_requested.connect(open)
-	if "--ending" in OS.get_cmdline_user_args():
-		Game.show_ending.call_deferred()
+	for arg in OS.get_cmdline_user_args():
+		if arg == "--ending" or arg == "--ending=year":
+			Game.show_ending.call_deferred("year" if arg.ends_with("year") else "ending")
 
 
 func _exit_tree() -> void:
@@ -86,9 +97,14 @@ func close() -> void:
 	Game.changed.emit()
 
 
+## The rows shown, in order: the categories, then the field.
+func all_rows() -> Array:
+	return record.get("rows", []) + record.get("field", [])
+
+
 ## Every row at once, or (all shown) close.
 func advance() -> void:
-	var rows: Array = record.get("rows", [])
+	var rows := all_rows()
 	if _shown < rows.size():
 		_shown = rows.size()
 		_refresh()
@@ -98,32 +114,43 @@ func advance() -> void:
 
 
 func _process(delta: float) -> void:
-	if not _open or _shown >= record.get("rows", []).size():
+	var count := all_rows().size()
+	if not _open or _shown >= count:
 		return
 	_time += delta
 	if _time >= REVEAL:
 		_time = 0.0
 		_shown += 1
-		Sfx.play("menu_move" if _shown < record.rows.size() else "coins")
+		Sfx.play("menu_move" if _shown < count else "coins")
 		_refresh()
 
 
 # --- drawing ------------------------------------------------------------------
 
 func _build() -> void:
-	var count: int = Ending.data().get("categories", []).size()
+	var cats: Array = Ending.data().get("categories", [])
+	var count: int = cats.size()
 	var most := 0
-	for c in Ending.data().get("categories", []):
+	for c in cats:
 		most = maxi(most, c.steps.size())
-	var title := _label(_paper, Vector2i(6, 5))
-	title.text = "A page for the farmer"
+	_heading = _label(_paper, Vector2i(6, 5))
 	_rule(16)
 	var y := 20
-	for i in count:
+	for head in [["First day", THEN_R], ["Now", NOW_R], ["Gained", GAIN_R]]:
+		var l := _label(_paper, Vector2i(head[1] - PixelFont.width(head[0]), y), Hud.INK_SOFT)
+		l.text = head[0]
+		_gain_head = l
+	y += LINE
+	for i in count + Ending.data().get("field", []).size():
+		if i == count:
+			_rule(y + 2)
+			y += 4
 		_names.append(_label(_paper, Vector2i(8, y + 2)))
+		_thens.append(_label(_paper, Vector2i(0, y + 2), Hud.INK_SOFT))
 		_values.append(_label(_paper, Vector2i(0, y + 2)))
+		_gains.append(_label(_paper, Vector2i(0, y + 2), PlaceholderArt.UI_SEAL))
 		var boxes: Array[ColorRect] = []
-		for k in most:
+		for k in (most if i < count else 0):
 			var b := ColorRect.new()
 			b.size = Vector2(STAR, STAR)
 			b.position = Vector2(W - 8 - (most - k) * (STAR + 2), y + 3)
@@ -144,25 +171,34 @@ func _build() -> void:
 
 
 func _refresh() -> void:
-	var rows: Array = record.get("rows", [])
+	var rows := all_rows()
 	var all := _shown >= rows.size()
 	_total.text = "%d of %d stars" % [record.get("stars", 0), record.get("max", 0)] if all else ""
 	_total.position.x = _wood.size.x - 9 - PixelFont.width(_total.text)
+	_heading.text = "A page for the farmer" if record.get("page", "ending") == "ending" \
+		else "The farmer's page, year %d" % int(record.get("year", 0))
+	_gain_head.visible = not record.get("first", true)
 	for i in _names.size():
 		var on := i < rows.size() and i < _shown
-		_names[i].visible = on
-		_values[i].visible = on
+		for l in [_names[i], _thens[i], _values[i], _gains[i]]:
+			l.visible = on
 		var row: Dictionary = rows[i] if i < rows.size() else {}
 		if on:
 			_names[i].text = String(row.name)
-			_values[i].text = Ending.value_text(row)
-			_values[i].position.x = W - 8 - _stars[i].size() * (STAR + 2) - 6 - PixelFont.width(_values[i].text)
+			_put(_thens[i], Ending.then_text(row), THEN_R)
+			_put(_values[i], Ending.value_text(row), NOW_R)
+			_put(_gains[i], Ending.gain_text(row), GAIN_R)
 		for k in _stars[i].size():
 			var b: ColorRect = _stars[i][k]
 			b.visible = on and k < int(row.get("max", 0))
 			b.color = PlaceholderArt.UI_SEAL if k < int(row.get("stars", 0)) else Hud.RULE
 	_title.text = "Written as: " + String(record.get("title", "")) if all else ""
 	_hint.visible = all
+
+
+func _put(l: Label, text: String, right: int) -> void:
+	l.text = text
+	l.position.x = right - PixelFont.width(text)
 
 
 func _rule(y: int) -> void:

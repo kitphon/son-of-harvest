@@ -149,8 +149,9 @@ each recipe's gain over its raw ingredients. Later for balance: play a real year
 level 2 ores (3 akagane) are short for a spring with two mine trips (WORKLOG note).
 The ending is in (milestone 9): on the first morning of year 3 Tome brings the village record
 (stars per category, a rank and a title from data/ending.json; README → Ending), then the
-villager liked most says a word and the game goes on. Later for the ending: a look back at
-the first day (the field then and now), a record every New Year, real art for the scroll.
+villager liked most says a word and the game goes on. Every other New Year Tome brings a
+shorter yearly page, and every page shows the first day's numbers and field beside today's
+and the gain since the last page. Later for the ending: real art for the scroll.
 Next: milestone 10, building the .exe once the export templates are installed (README → Export); a playtest of a real year to
 check the balance and the ending's steps (re-set for 11 crops / 13 recipes on 2026-10-31;
 the playtest should include the 6,600 G of kitchen tools).
@@ -228,6 +229,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Band 6 heart scenes: Tome stays in the village, Kota's carp streamer (a farm prop), Sayo's new ledger, Hachiro's sickle; band 6 talk lines
    - [x] Ending: the village record on the first morning of year 3 (data/ending.json: ten categories graded in stars, five ranks), Tome's verdict, the closest villager's word; the game goes on
    - [x] Ending steps re-set for 11 crops / 13 recipes; balance re-run with smithy ores, contest prizes, cooking, daikon and rice
+   - [x] Yearly pages: a shorter village record every New Year (year 2, year 4 on), the first day kept in the save and shown beside today's numbers, the gain since the last page
 10. **Audio and release**
     - [x] Sound effects and ambient loops (synthesized from data/sfx.json, SFX / Ambient busses)
     - [x] Music; volume sliders in the settings screen (`Sfx.set_volume`)

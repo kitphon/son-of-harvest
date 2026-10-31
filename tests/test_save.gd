@@ -59,6 +59,8 @@ func _init() -> void:
 	a.shipped = {"turnip": 14, "corn": 2}
 	f.place_item(Vector2i(9, 5), "potato")
 	f.place_item(Vector2i(10, 6), "turnip")
+	a.first_day = {"values": {"shipped_value": 0, "recipes_known": 4}, "field": {"debris": 88, "tilled": 0, "money": 500}}
+	a.year_pages = {2: {"year": 2, "values": {"mine_deepest": 5, "fish_kinds": 1}, "field": {"debris": 40, "money": 900}, "stars": 3, "rank": 0}}
 	var saved: Dictionary = a.to_dict()
 	check(SaveGame.write(a, PATH) == "", "write save")
 
@@ -97,6 +99,8 @@ func _init() -> void:
 	check(b.count("food:milk") == 4, "food in the bag back")
 	check(b.held == "egg" and b.shipped == a.shipped and typeof(b.shipped.turnip) == TYPE_INT, "held item (the hand slot) and shipping counts back")
 	check(grid.items == {Vector2i(9, 5): "potato", Vector2i(10, 6): "turnip"}, "items on the ground back %s" % grid.items)
+	check(b.first_day == a.first_day and b.year_pages == a.year_pages and b.year_pages.keys()[0] is int
+		and typeof(b.year_pages[2].values.mine_deepest) == TYPE_INT, "the first day and the yearly pages back %s" % [b.year_pages])
 	# The loaded farm keeps working by the rules.
 	grid.water_cell(Vector2i(4, 10))
 	grid.day_end("spring", "sunny", rng)
@@ -123,7 +127,12 @@ func _init() -> void:
 			["map", {"id": "house", "x": -1, "y": 8, "facing": [0, 1]}], ["map", {"id": "house", "x": 8, "y": 8, "facing": [2, 0]}],
 			["food", "pizza"], ["food", 3], ["work_fatigue_half", 1], ["work_fatigue_half", "yes"],
 			["shipped", [1]], ["shipped", {"turnip": 0}], ["shipped", {"turnip": 1.5}],
-			["shipped", {"": 2}]]:
+			["shipped", {"": 2}],
+			["records", []], ["records", {"first_day": {}, "pages": []}], ["records", {"first_day": saved.records.first_day}],
+			["records", {"first_day": {"values": {"luck": 1}, "field": {}}, "pages": []}],
+			["records", {"first_day": {"values": {}, "field": {"money": -5}}, "pages": []}],
+			["records", {"first_day": saved.records.first_day, "pages": [{"year": 2}]}],
+			["records", {"first_day": saved.records.first_day, "pages": [saved.records.pages[0], saved.records.pages[0]]}]]:
 		var d := saved.duplicate(true)
 		d[broken[0]] = broken[1]
 		_put(JSON.stringify({"version": 1, "game": d}))
@@ -226,6 +235,15 @@ func _init() -> void:
 	_put(JSON.stringify({"version": 1, "game": old}))
 	err = SaveGame.read(b, PATH)
 	check(err == "" and b.shipped == {} and b.farm.items.is_empty(), "save without holding loads with nothing shipped (%s)" % err)
+	# A save from before the yearly pages: none written, and of the first day what every game starts with.
+	old = saved.duplicate(true)
+	old.erase("records")
+	_put(JSON.stringify({"version": 5, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.year_pages == {} and b.first_day.values == b.start_values() and b.first_day.field == {"money": b.START_MONEY},
+		"save without records loads with no page and the start's numbers (%s)" % err)
+	var back := Ending.compare(b.ending_record(), b.first_day, {}, b.field_counts())
+	check(Ending.then_text(back.field[0]) == "-" and Ending.then_text(back.field.back()) == "500 G", "the field not kept shows a dash")
 
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
 	a.free()
