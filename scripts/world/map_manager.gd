@@ -126,7 +126,10 @@ static func shows(p: Variant, f: Dictionary) -> bool:
 	if not p is Dictionary or not p.get("flag") is String:
 		return true
 	if p.has("flag_value"):
-		return f.get(p.flag) == DialogueRunner.flag_value(p.flag_value)
+		# Compared by type first: GDScript stops on == between a bool and a String.
+		var have: Variant = f.get(p.flag)
+		var want: Variant = DialogueRunner.flag_value(p.flag_value)
+		return typeof(have) == typeof(want) and have == want
 	return EventRunner.is_set(f, p.flag)
 
 

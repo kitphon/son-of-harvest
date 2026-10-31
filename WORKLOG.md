@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Merged three branches: dish gifts, ending / balance, heart flags in the world
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged with `--no-ff`, one at a time, all tests after each:
+  `claude/dish-gifts-4909dc` (73c84fe, clean), `claude/ending-balance-4cc810` (df904b6;
+  WORKLOG and ROADMAP conflicted, both entries kept, the ROADMAP food / next lines joined),
+  `claude/heart-flags-world-6c7f7a` (7139105; WORKLOG conflicted, entries kept). The entries'
+  "this commit" now name their hashes. Fix found in the smoke runs: `--flags=sayo_sign` (true,
+  no answer) stopped `MapManager.shows()` with `Invalid operands 'bool' and 'String' in
+  operator '=='`; a prop's `flag_value` now compares types first, with a check in test_maps.
+- Checked on merged main: all 23 test scripts print `OK (0 failed)`; headless runs (title
+  `--quit-after 300`, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --map=town
+  --time=14:30 --talk=tome`, `--demo --shop=general`, `--demo --ending`, `--demo --map=town
+  --flags=hachiro_bell,sayo_sign,tome_grandma` and `--flags=sayo_sign=new`,
+  `res://scenes/main.tscn --quit-after 400`, `main_2d.tscn -- --demo`) printed no errors or
+  warnings after the fix. No screenshots taken in this merge.
+- Left / next: cooking tools; a playtest of a real year; the .exe once the export templates
+  are installed.
+
 ## 2026-10-31 — Dishes as gifts, the store buys dishes
 Agent: Claude Code (claude-opus-5-5) · Commit: 73c84fe
 - Done: every villager file lists kitchen dishes in `gifts` (`food:<id>`): Tome loves

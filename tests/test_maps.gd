@@ -209,6 +209,7 @@ func _story_props() -> void:
 	check(kinds.call("house", {"tome_grandma": true}) == ["ume_jar"], "Tome's jar is in the house once tome_grandma is set")
 	check(kinds.call("town", {"sayo_sign": "old"}) == ["store_sign:old"], "sayo_sign old: the old name repainted")
 	check(kinds.call("town", {"sayo_sign": "new"}) == ["store_sign:new"], "sayo_sign new: Sayo's own sign")
+	check(kinds.call("town", {"sayo_sign": true}).is_empty(), "sayo_sign set to true (no answer) shows no sign")
 	check(kinds.call("town", {"hachiro_bell": true, "tome_grandma": true}).is_empty(), "other flags show no sign")
 	check(MapManager.gate_flags(JSON.parse_string(FileAccess.get_file_as_string("res://data/maps/town.json"))) == ["sayo_sign"],
 		"the village is gated by sayo_sign only")
