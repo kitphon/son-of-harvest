@@ -37,6 +37,7 @@ Save / load, the title menu, weather, dialogue and events: the same with `res://
 | 1-7 / Tab | pick a tool slot (at the start: hoe, watering can, sickle, hammer, axe, seeds, food; Space / J eats or drinks the food in hand) |
 | I | rucksack: arrows / WASD move, Enter / Space pick up and put down (stack, swap), E takes it in hand (tool slot = tool in hand, an item = the item hand), Esc / I close; mouse: left click pick / put, right click hold. The chest screen works the same. The clock stops while it is open |
 | Q | next seed type, or next food with the food slot (for eating and for buying) |
+| E at a shop counter | opens the shop (village store and smithy, inside their doors, while open): up / down pick, left / right how many, Enter / Space / E buy, sell or hand a tool in / pick it up, Tab / Q next tab, Esc / I leave; the mouse points and clicks |
 
 ## What works (v0)
 - Clock: 1 game minute = 0.5 s, day starts 6:00, 4 seasons x 30 days, day/night tint.
@@ -47,6 +48,8 @@ Save / load, the title menu, weather, dialogue and events: the same with `res://
   weeds appear, rocks / branches / weeds / stumps cleared by the right tool.
 - Shipping bin pays at 18:00 (or when you sleep); the seed stand sells this season's seeds,
   and food / drink when the food slot is in hand (`data/foods.json`: stamina +, fatigue −).
+- Shops (`data/shops.json`, README → Shops): the village store sells seeds by season and food
+  and buys crops; the smithy upgrades tools for money over a few days.
 - Stamina: each swing costs stamina; sleep before midnight restores it all, after midnight
   3/4, passing out at 2:00 half.
 - Sound: every effect and ambient loop is made in code from recipes in `data/sfx.json`
@@ -96,8 +99,9 @@ DESIGN asks for every building), `ambient` (which `places` of the ambient rules 
   `{tile, solid?, step?}` (tile = a `ground:<kind>` placeholder, step = footstep sound kind);
 - `props`: `{kind, cell, size?, solid? (default true), blocks? (only these cell offsets
   block), use?}`; `use: "sleep"` is the futon. Their 3D looks are in `scripts/world3d/map_world.gd`;
-- `doors`: `{cells, to, spawn, facing}`, or `{cells, message}` for a door that only says
-  something (village houses, no villagers yet). Door cells are solid; walking into one, or
+- `doors`: `{cells, to, spawn, facing, shop?}`, or `{cells, message}` for a door that only says
+  something (village houses, no villagers yet). A door with `shop` stays shut outside that
+  shop's hours and says so. Door cells are solid; walking into one, or
   using it, goes through. Cells just off the edge make a walk-off exit; on the farm
   `gate: true` leaves those fence cells open in the drawing;
 - `spawns`: named `[cell, facing]`, `start` needed (`--map=<id>@<spawn>`), the house has
@@ -106,6 +110,25 @@ DESIGN asks for every building), `ambient` (which `places` of the ambient rules 
 `Game.maps` (MapManager) holds the map, the farmer's position and facing (saved);
 `Game.go_to_map()` changes it and emits `map_changed` (the views fade, rebuild, place the
 farmer), and once the picture is back `map_entered(map_id)`, the hook for event triggers.
+
+## Shops
+Shops live in `data/shops.json`: per shop a `name`, its inside `map`, `open` [first hour,
+closing hour), `days_off`, `keeper` (the villager at the counter, "" for now), `stock` per
+season plus `any` (`{item, price?}`; without a price a seed bag costs its crop's `seed_price`,
+a food its `price`), `buys` (kind -> percent: `crop` of its sell price, `food` of its price)
+and `upgrades` (`tools` and per target level `{price, days, items?}`). The rules are `Shop`
+(`scripts/shops/shop.gd`, pure logic on an Inventory and a money amount); Game wraps them
+(`open_shop`, `shop_buy`, `shop_sell`, `shop_upgrade`, `shop_collect`) and saves
+`shop_jobs` (a tool left at the smithy: tool, new level, ready day, its old slot).
+`ShopMenu` (tabs, rows, cursor, count) and `ShopScreen` (paper / wood) are the screen.
+
+A map prop with `use: "shop"` and `shop: "<id>"` is a counter: E on it calls
+`Game.open_shop(id)`, which says the closed message or emits `shop_requested(id)`. A
+shopkeeper later calls the same function from their talk; each shop map has a `keeper` spawn
+behind the counter and a `counter` spawn in front of it (`-- --demo --shop=<id>` starts there
+with the screen open, hours ignored). The smithy takes the tool out of its slot; once the
+days have passed (`Game.day_number()`), picking it up puts it back and calls
+`Game.raise_tool_level()`.
 
 ## Dialogue
 Dialogue lives in `data/dialogue/<id>.json`, opened with `Game.talk(id)` (or `-- --dialogue=<id>`
@@ -180,6 +203,7 @@ corner, so the front walls are drawn as low sills (a cutaway) instead of moving 
 - `scripts/world/map_data.gd` + `map_manager.gd`: maps from `data/maps` (cells, props, doors)
   and where the farmer is; `scripts/world/map_view.gd` / `scripts/world3d/map_world.gd` draw
   maps other than the farm; `scripts/ui/map_fade.gd`: the fade between maps.
+- `scripts/shops/shop.gd` (pure logic), `scripts/ui/shop_menu.gd` + `shop_screen.gd`: shops.
 - `scripts/player/player.gd`: movement and collision (the 3D view hides it and follows it).
 - `scripts/art/placeholder_art.gd`: pixel sprites made in code until there is real art.
 - `scripts/world3d/farmer_anim.gd`: picks the farmer's frame (pose, facing, mirror, timing).

@@ -1,0 +1,39 @@
+{
+	"_about": "Shops (Shop, ShopMenu, ShopScreen; README.md, Shops). Per shop: name, map (its inside, data/maps), open [first hour, closing hour) and days_off (mon..sun): outside those the door and the counter only say closed_message (%s = the shop name, then the hours and the days off). keeper: the villager who stands at the counter (\"\" = nobody yet; the counter works without one). stock: what it sells, per season plus \"any\" (every season), each {item, price?}: without a price the item's own one is used (seed_price in crops.json for seeds:<crop>, price in foods.json for food:<id>). buys: what it buys from the farmer, kind -> percent of the item's value (crop = its sell price, food = its price). upgrades: tools it improves, per target level {price, days, items?}; the tool is handed in, comes back that many days later (collect it while the shop is open). Names, prices and hours are ours; see WORKLOG 2026-10-31 Shops.",
+	"closed_message": "%s is closed. Open %s, %s.",
+	"shops": {
+		"general": {
+			"name": "Yorozu Store",
+			"map": "store",
+			"open": [9, 17],
+			"days_off": ["sun"],
+			"keeper": "",
+			"stock": {
+				"spring": [{"item": "seeds:turnip"}, {"item": "seeds:potato"}, {"item": "seeds:cucumber"},
+					{"item": "food:sakura_mochi"}],
+				"summer": [{"item": "seeds:tomato"}, {"item": "seeds:onion"}, {"item": "seeds:corn"}],
+				"fall": [{"item": "seeds:carrot"}, {"item": "seeds:eggplant"}, {"item": "seeds:pumpkin"}],
+				"winter": [{"item": "food:amazake"}],
+				"any": [{"item": "food:onigiri"}, {"item": "food:green_tea"}, {"item": "food:dango"},
+					{"item": "food:milk", "price": 100}, {"item": "food:yomogi_tea"}]
+			},
+			"buys": {"crop": 80}
+		},
+		"smithy": {
+			"name": "Kurogane Smithy",
+			"map": "smithy",
+			"open": [10, 16],
+			"days_off": ["wed"],
+			"keeper": "",
+			"upgrades": {
+				"tools": ["hoe", "can", "sickle", "hammer", "axe"],
+				"levels": {
+					"2": {"price": 1000, "days": 2},
+					"3": {"price": 2500, "days": 3},
+					"4": {"price": 5000, "days": 3},
+					"5": {"price": 10000, "days": 4}
+				}
+			}
+		}
+	}
+}

@@ -10,6 +10,56 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Shops with prices from data, the smithy's tool upgrades
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: first part of milestone 8 (DESIGN "ร้านและประตู": doors with opening rules).
+  - `data/shops.json`: Yorozu Store (general, 9:00-17:00, closed Sun; seeds by season, food
+    all year, sakura mochi in spring, amazake in winter; buys crops at 80% of their sell
+    price) and Kurogane Smithy (10:00-16:00, closed Wed; upgrades hoe / can / sickle / hammer /
+    axe). A stock entry without a price uses the item's own (crops.json `seed_price`,
+    foods.json `price`); milk is 100 G here (90 G at the stand) to show a shop price.
+  - `Shop` (`scripts/shops/shop.gd`, pure logic): hours / days off / closed text, stock per
+    season, buy (in stock, money, rucksack room, all or nothing), sell (only what it buys,
+    only what is carried, percent rounded down), upgrade offer / hand-in (one job at a time,
+    the tool must be in a tool slot, optional `items` materials for ore later) / give back
+    (old slot, another tool slot, else the chest). Returns `{ok, money, note}`, touches no Game.
+  - Game: `shop()`, `open_shop(id, force)` (closed message or `shop_requested`),
+    `shop_buy` / `shop_sell` / `shop_upgrade` / `shop_collect` (raises the level with
+    `raise_tool_level()` and lifts the tool's experience to that level's start),
+    `day_number()` / `date_of()`, `shop_jobs` saved (older saves load with none, broken jobs
+    refused). A door with `shop` stays shut outside its hours and says so.
+  - Maps: `data/maps/store.json` (shelves, counter, rice sacks) and `smithy.json` (forge,
+    anvil, tool rack, counter, quench tub), both indoor with `counter` and `keeper` spawns;
+    the town's noren house (door 23,15) and the north-east house (door 27,6, now with a
+    noren) lead in. New 3D props in `map_world.gd`, flat colours in `map_view.gd`. A prop
+    with `use: "shop"` is a counter (FarmActions.interact → `Game.open_shop`).
+  - Screen: `ShopMenu` (tabs buy / sell / tools from what the shop does, rows, a count that
+    wraps within money / room / what is carried, choose → Game) and `ShopScreen` (wood box,
+    shop name and money, tabs, 7 rows with icons that scroll, info / note / keys / hours
+    lines; keys and mouse, pauses Game). In both views. New flag `-- --demo --shop=<id>`.
+  - Hook for villagers: `keeper` in the data, the `keeper` spawn behind each counter, and
+    `Game.open_shop()` as the one entry a shopkeeper's talk can call.
+- Balance (ours): upgrades 1000 / 2500 / 5000 / 10000 G for levels 2-5, 2 / 3 / 3 / 4 days,
+  so level 2 is a week or two of spring turnips and the top level a late-game goal; buying
+  crops back at 80% keeps the bin (full price, paid at 18:00) the better deal and the shop
+  the quick cash.
+- Checked: new `test_shops: OK (0 failed)` (data against maps / crops / foods / tools, hours,
+  stock and prices, buy / sell edge cases, upgrade hand-in / materials / give back, doors,
+  Game buy / sell / upgrade over two nights / collect, ShopMenu, save round trip and 7 bad
+  job lists, the real counter opening the screen and Esc closing it; a planted failing check
+  was reported, then removed). `test_farm`, `test_save`, `test_title`, `test_weather`,
+  `test_dialogue`, `test_menu`, `test_body`, `test_events`, `test_maps`, `test_inventory`,
+  `test_food`, `test_hold`, `test_audio` all `OK (0 failed)`. Headless `--quit-after 300`
+  (title, `--demo`, `--demo --map=town`, `town@store`, `store`, `smithy`, `--shop=general`,
+  `--shop=smithy`), `res://scenes/main.tscn --quit-after 400` and the 2D scene with
+  `--shop=general` printed no errors or warnings. Movie Maker frames: `--demo --shop=general`
+  (the buy screen: 7 of 9 rows, prices, "In your rucksack: 2", hours line), `--shop=smithy`
+  (tools tab, Lv 1 > 2 at 1000 G), `--map=store`, `--map=smithy`, `--map=town@smithy`.
+- Left / next: not played in a real window (keys, mouse, scrolling past row 7). No shopkeeper
+  stands at the counter yet (villagers session); the seed stand on the farm still sells too.
+  House extensions and the rucksack upgrade (`Inventory.grow`) are not for sale yet; ore for
+  upgrades waits for mining.
+
 ## 2026-10-31 — Merged six branches: music, events, maps, rucksack, food, hold / throw
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, tests after each, in this order:

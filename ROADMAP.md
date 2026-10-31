@@ -55,6 +55,10 @@ The rucksack and the storage chest are done (I opens the rucksack, the chest sta
 the house; slot counts in data/inventory.json, so a shop's rucksack upgrade is one number via
 `Inventory.grow("bag", n)`). The item held overhead is the rucksack's hand slot. Later for
 menus: key remapping.
+Shops are in (data/shops.json): the Yorozu Store and the Kurogane Smithy in the village, with
+opening hours and days off, a buy / sell screen and tool upgrades over days (saved). A
+shopkeeper only has to stand at the map's `keeper` spawn and call `Game.open_shop(id)`.
+Later for shops: house extensions and the rucksack upgrade for sale.
 Next: milestone 5, **villagers with daily schedules from data** (rule list → day plan,
 catch-up on map entry) in the village, then the opening event and first shop visits
 (milestone 6) on the event trigger tables.
@@ -106,7 +110,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 7. **Animals**
    - [ ] Chickens, cows / sheep, dog: feeding, happiness, produce grades, sickness
 8. **Shops and economy**
-   - [ ] Shops with prices from data, house extensions, tool upgrades
+   - [x] Shops with prices from data, tool upgrades (data/shops.json; store and smithy in the village)
+   - [ ] House extensions, rucksack upgrade for sale
    - [ ] Balance pass (income per season, seed costs)
 9. **Festivals, mining / fishing, relationships, endings**
 10. **Audio and release**

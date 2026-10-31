@@ -57,8 +57,8 @@ static func _after_flight(sound: Callable) -> void:
 	Game.get_tree().create_timer(float(Game.hold_rules.get("flight_seconds", 0.35))).timeout.connect(sound)
 
 
-## Using what is in front: a door first (on any map), then the map's props, or on the farm
-## the bin, the seed stand and ripe crops.
+## Using what is in front: a door first (on any map), then the map's props (the futon, a
+## shop counter), or on the farm the bin, the seed stand and ripe crops.
 static func interact(c: Vector2i) -> void:
 	var door := Game.maps.door_at(c)
 	if not door.is_empty():
@@ -67,9 +67,12 @@ static func interact(c: Vector2i) -> void:
 		Game.use_door(door)
 		return
 	if not Game.maps.on_farm():
-		match str(Game.maps.current().prop_at(c).get("use", "")):
+		var prop := Game.maps.current().prop_at(c)
+		match str(prop.get("use", "")):
 			"sleep":
 				Game.sleep()
+			"shop":
+				Game.open_shop(str(prop.get("shop", "")))
 		return
 	var farm := Game.farm
 	match farm.fixed_at(c):
