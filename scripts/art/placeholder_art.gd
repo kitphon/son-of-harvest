@@ -33,6 +33,8 @@ static func _make(key: String) -> Image:
 			return _fx(parts[1])
 		"ui":       # ui:<frame|slot|weather|tool|seeds|coin|stamina>:<kind>, HUD pieces
 			return _ui(parts[1], parts[2] if parts.size() > 2 else "")
+		"title":    # title:bg, the title screen picture (480 x 270)
+			return _title_bg()
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
 
@@ -747,3 +749,95 @@ static func _tool_icon(kind: String) -> Image:
 		_:
 			return _draw(14, 14, [[0, 0, 14, 14, "ff00ff"]])
 	return _outline(img)
+
+
+## The title screen: an early morning over a satoyama valley. Banded sky with a pale sun,
+## two hazy mountain ridges, a cedar hill with a small torii on the left, a thatched farm
+## house on the right, and flooded rice paddies with young seedlings in front.
+const TITLE_SIZE := Vector2i(480, 270)
+
+
+static func _title_bg() -> Image:
+	var w := TITLE_SIZE.x
+	var h := TITLE_SIZE.y
+	var img := _blank(w, h)
+	var top := Color("8fb8d6")
+	var glow := Color("f4dcb6")
+	for y in 170:
+		var t := floorf(float(y) / 170.0 * 9.0) / 8.0   # 9 bands, no smooth gradient
+		_px(img, 0, y, w, 1, top.lerp(glow, t))
+	_oval(img, 364, 104, 21, 21, Color("f8e8c8"))
+	_oval(img, 364, 104, 13, 13, Color("fdf6e4"))
+	for i in 3:   # thin morning clouds
+		_px(img, 60 + i * 130, 40 + i * 14, 70 - i * 10, 2, Color("d8e4ea"))
+		_px(img, 74 + i * 130, 38 + i * 14, 36 - i * 6, 2, Color("e6ecee"))
+
+	_ridge(img, Color("a7b8c6"), func(x: float): return 128.0 + 16.0 * sin(x * 0.011 + 0.6) + 7.0 * sin(x * 0.043))
+	_ridge(img, Color("88a198"), func(x: float): return 152.0 + 10.0 * sin(x * 0.017 + 2.1) + 5.0 * sin(x * 0.061 + 1.0))
+	# The cedar hill on the left, cedars as small dark triangles along its top.
+	var hill := func(x: float): return 136.0 + pow(x / 190.0, 2.0) * 60.0
+	_ridge(img, Color("5b7d50"), hill)
+	for i in 14:
+		var cx := 6 + i * 13 + (i * 7) % 5
+		var base := int(hill.call(float(cx))) + 4
+		var tall := 16 + (i * 5) % 9
+		for r in tall:
+			var half := r * 4 / tall
+			_px(img, cx - half, base - tall + r, half * 2 + 1, 1, Color("3e5e3e") if i % 3 else Color("46694a"))
+	_torii(img, 112, int(hill.call(112.0)) + 2)
+	_farm_house(img, 392, 182)
+
+	# Rice paddies: levee lines further apart nearer the eye, water showing the sky.
+	_px(img, 0, 182, w, h - 182, Color("6f9a4a"))
+	var y := 184
+	var gap := 6
+	var row := 0
+	while y < h:
+		var water := Color("c3d8de").lerp(Color("a9c6d2"), float(y - 184) / float(h - 184))
+		_px(img, 0, y, w, gap, water)
+		var step := 6 + gap / 2
+		for x in range((row * 3) % step, w, step):   # seedling tufts
+			_px(img, x, y + gap / 2 - 1, 1, maxi(gap / 3, 1) + 1, Color("6aa04a"))
+			if gap > 9:
+				_px(img, x + 1, y + gap / 2, 1, gap / 3, Color("8cbf5a"))
+		_px(img, 0, y + gap, w, 1, Color("8a7a50"))
+		_px(img, 0, y + gap + 1, w, 1 + gap / 6, Color("6f9a4a"))
+		y += gap + 2 + gap / 6
+		gap += 3
+		row += 1
+	return img
+
+
+## Fills from a ridge line (y for each x) down to the bottom.
+static func _ridge(img: Image, c: Color, line: Callable) -> void:
+	for x in img.get_width():
+		var top := int(line.call(float(x)))
+		if top < img.get_height():
+			_px(img, x, top, 1, img.get_height() - top, c)
+
+
+static func _torii(img: Image, cx: int, base: int) -> void:
+	var red := UI_SEAL
+	var dark := Color("2a1e1e")
+	_px(img, cx - 6, base - 15, 2, 15, red)
+	_px(img, cx + 4, base - 15, 2, 15, red)
+	_px(img, cx - 9, base - 17, 18, 2, dark)    # the top beam, a little wider
+	_px(img, cx - 8, base - 15, 16, 1, red)
+	_px(img, cx - 7, base - 11, 14, 1, red)     # the lower tie beam
+	_px(img, cx - 1, base - 15, 2, 4, red)
+
+
+static func _farm_house(img: Image, cx: int, base: int) -> void:
+	var thatch := Color("a88a52")
+	var thatch_dark := Color("7e653a")
+	for r in 16:   # a steep thatched roof
+		var half := 6 + r * 2
+		_px(img, cx - half, base - 30 + r, half * 2, 1, thatch if r % 4 else thatch_dark)
+	_px(img, cx - 8, base - 33, 16, 3, Color("5a4a2c"))   # ridge cap
+	_px(img, cx - 30, base - 14, 60, 14, Color("e8dcc0"))  # plaster walls
+	for x in [cx - 30, cx - 12, cx + 6, cx + 28]:
+		_px(img, x, base - 14, 2, 14, Color("4a3424"))     # posts
+	_px(img, cx - 10, base - 11, 16, 11, Color("f2ead6"))  # shoji
+	for x in [cx - 6, cx - 2, cx + 2]:
+		_px(img, x, base - 11, 1, 11, Color("b8a888"))
+	_px(img, cx - 32, base - 1, 64, 2, Color("6a4e34"))    # engawa

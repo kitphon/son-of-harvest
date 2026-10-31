@@ -12,13 +12,19 @@ not in git) and press F5. From a shell:
 
     Godot_v4.7.2-stable_win64_console.exe --path .
 
+The game opens on the title screen (`scenes/title.tscn`): New game, Continue (greyed out when
+`user://save1.json` is missing or can't be loaded) or Quit, with the arrows / W S and
+Enter / Space or the mouse. The field itself is `scenes/main.tscn`.
 The flat top-down view is still there as `scenes/main_2d.tscn` (F6 on that scene).
-Add `-- --demo` to start at 10:00 with a few planted plots (for screenshots), and
+Add `-- --demo` to skip the title and start at 10:00 with a few planted plots (for screenshots), and
 `--weather=<sunny|rain|storm|snow|blizzard>` after it to force today's weather.
 
 Tests (farm rules, headless):
 
     Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_farm.gd
+
+Save / load and the title menu: the same with `res://tests/test_save.gd` and
+`res://tests/test_title.gd`.
 
 ## Controls
 | Key | Action |

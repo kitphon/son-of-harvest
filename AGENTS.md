@@ -29,17 +29,20 @@ This file is for any coding agent. Claude Code also reads CLAUDE.md, which impor
 The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the project folder
 (git-ignored). From the project folder:
 
-- Play: `Godot_v4.7.2-stable_win64.exe --path .` (main scene = the 3D view; `scenes/main_2d.tscn`
-  is the flat view).
+- Play: `Godot_v4.7.2-stable_win64.exe --path .` (main scene = the title screen
+  `scenes/title.tscn`, which leads to the 3D view `scenes/main.tscn`; `scenes/main_2d.tscn` is
+  the flat view). `-- --demo` skips the title and goes straight to the field.
 - After adding or renaming a script with `class_name`, run the importer first:
   `Godot_v4.7.2-stable_win64_console.exe --headless --path . --import`
 - Tests: `Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_farm.gd`
   must print `test_farm: OK (0 failed)`. Save / load: same with `res://tests/test_save.gd`
-  must print `test_save: OK (0 failed)`.
-- Smoke run (no errors expected): `... --headless --path . --quit-after 300`
+  must print `test_save: OK (0 failed)`. Title menu / new game: same with
+  `res://tests/test_title.gd` must print `test_title: OK (0 failed)`.
+- Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
+  the same with `-- --demo` (the field).
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
   --fixed-fps 30 --quit-after 20 -- --demo` writes `shots/frameNNNNNNNN.png` (git-ignored). `--demo`
-  starts at 10:00 with planted plots;
+  starts at 10:00 with planted plots (without `--demo` the frame shows the title screen);
   add `--weather=rain` (storm, snow, blizzard) to force the weather. Create `shots/` first. Look at the last frame. Delete `shots/` afterwards.
 - Run Python as `python -I` (numpy and Pillow are installed) for pixel checks.
 

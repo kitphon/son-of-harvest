@@ -27,6 +27,7 @@ The user chose to refine the placeholders first (real art later). Farmer, crops,
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
 font are done. Next: milestone 3, **charging tools** (hold to cover more cells, per tool
 level). Later for weather: snow lying on the ground in winter, lightning flashes in storms.
+Later for menus: a pause menu (save, back to the title screen).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -57,7 +58,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [ ] Holding and throwing items (shipping by throwing into the bin)
 4. **Save / load and menus**
    - [x] Save game (Game + FarmGrid to a versioned JSON file), load; F5 / F9, saves on sleep
-   - [ ] Title screen (new game / continue)
+   - [x] Title screen (new game / continue / quit), Continue only for a save that loads
    - [ ] Rucksack / storage menus, settings, key remapping
 5. **Town and villagers**
    - [ ] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause
