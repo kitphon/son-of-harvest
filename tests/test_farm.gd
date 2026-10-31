@@ -206,6 +206,9 @@ func _init() -> void:
 	check(bar_w <= HudLayout.BOXES.tools.size.x, "tool bar holds every tool")
 	var clock_w := 6 + PixelFont.width("Winter 30, Year 99") + 4
 	check(clock_w <= HudLayout.BOXES.clock.size.x, "longest date fits the clock box")
+	var pips_w := PlaceholderArt.tex(PlaceholderArt.charge_key(5, 5)).get_width()
+	var can_end := 6 + PixelFont.width(HudLayout.TOOL_NAMES.can) + 4 + pips_w
+	check(can_end + 4 <= HudLayout.BOXES.item.size.x - 6 - PixelFont.width("40/40"), "can name, level pips and water fit the item box")
 
 	_charge_rules(crops, game_script)
 	# FarmActions works on the Game autoload, which is in the tree from the first frame.
@@ -213,6 +216,7 @@ func _init() -> void:
 
 func _process(_delta: float) -> bool:
 	_charge_actions()
+	_tool_exp()
 	print("test_farm: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 	return true
@@ -235,6 +239,12 @@ func _charge_rules(crops: Dictionary, game_script: GDScript) -> void:
 	for tool in tools.tools:
 		var t: Dictionary = tools.tools[tool]
 		check(t.max_charge.size() == 5 and t.max_charge.max() < t.charges.size(), "%s: 5 levels within its charges" % tool)
+		var steps: Array = t.get("exp_to_level", [])
+		var rising: bool = steps.size() == t.max_charge.size() - 1 and int(steps[0]) > 0
+		for i in range(1, steps.size()):
+			rising = rising and int(steps[i]) > int(steps[i - 1])
+		check(rising, "%s: an exp step per level up, each higher" % tool)
+		check(String(t.get("level_up", "")).count("%d") == 1, "%s: level-up message takes the level" % tool)
 		var last := 0
 		for i in t.charges.size():
 			var ch: Dictionary = t.charges[i]
@@ -339,6 +349,88 @@ func _charge_actions() -> void:
 	actions.use_tool(Vector2i(20, 12), Vector2i.DOWN, 1)
 	check(g.farm.cell(Vector2i(20, 13)).hits == 2 and g.stamina == 1, "too tired: no swing")
 
+
+## Tool experience on the real Game: per swing, none for a use that never swung, levels at
+## the data thresholds, the cap at level 5, and more charge after a level-up.
+func _tool_exp() -> void:
+	var g: Node = root.get_node("Game")
+	var actions: GDScript = load("res://scripts/farm_actions.gd")
+	var work := int(g.tools_data.exp_per_swing.work)
+	var miss := int(g.tools_data.exp_per_swing.miss)
+	check(work > miss and miss >= 0, "a swing that works teaches more than a miss")
+	var said := []
+	var listen := func(text: String): said.append(text)
+	g.message.connect(listen)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5
+	g.farm = FarmGrid.new(g.crops)
+	g.farm.generate(rng)
+	for y in range(5, FarmGrid.H - 1):
+		for x in range(1, FarmGrid.W - 1):
+			g.farm.cell(Vector2i(x, y)).obj = FarmGrid.Obj.NONE
+	g.reset_tool_levels()
+	g.stamina = 100
+	check(g.tool_exp.hoe == 0 and g.tool_level("hoe") == 1, "a new game: no exp, level 1")
+	g.select_tool(g.TOOLS.find("hoe"))
+	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 0)
+	check(g.tool_exp.hoe == work, "a hoe swing that tills gives work exp (%d)" % g.tool_exp.hoe)
+	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 0)
+	check(g.tool_exp.hoe == work + miss, "a hoe swing on tilled soil gives miss exp (%d)" % g.tool_exp.hoe)
+	check(g.tool_exp.can == 0 and g.tool_exp.sickle == 0, "only the tool used learns")
+	g.stamina = 1
+	actions.use_tool(Vector2i(11, 8), Vector2i.DOWN, 0)
+	check(g.tool_exp.hoe == work + miss and not g.farm.cell(Vector2i(11, 9)).tilled, "too tired: no swing, no exp")
+	g.stamina = 100
+	g.select_tool(g.TOOLS.find("can"))
+	g.water = 0
+	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 0)
+	check(g.tool_exp.can == 0, "an empty can gives no exp")
+	actions.use_tool(Vector2i(24, 3), Vector2i.RIGHT, 0)
+	check(g.tool_exp.can == 0 and g.water == g.WATER_MAX, "filling at the pond gives no exp")
+	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 0)
+	check(g.tool_exp.can == work and g.farm.cell(Vector2i(10, 9)).wet, "watering tilled soil gives work exp")
+	g.select_tool(g.TOOLS.find("axe"))
+	g.farm.cell(Vector2i(20, 13)).obj = FarmGrid.Obj.STUMP
+	actions.use_tool(Vector2i(20, 12), Vector2i.DOWN, 0)
+	check(g.tool_exp.axe == work, "a hit on a stump that holds still counts as work")
+
+	# Thresholds: one swing short of the step, then the swing that reaches it levels up.
+	var step := float(g.tools_data.charge_seconds)
+	var need: int = g.exp_for_next_level("hoe", 1)
+	check(need == int(g.tools_data.tools.hoe.exp_to_level[0]), "level 2 needs the first exp step")
+	g.select_tool(g.TOOLS.find("hoe"))
+	g.tool_exp.hoe = need - work - 1
+	actions.use_tool(Vector2i(12, 8), Vector2i.DOWN, 0)
+	check(g.tool_level("hoe") == 1, "one exp short: still level 1")
+	said.clear()
+	actions.use_tool(Vector2i(13, 8), Vector2i.DOWN, 0)
+	check(g.tool_level("hoe") == 2 and g.tool_exp.hoe >= need, "reaching the step: level 2")
+	check(said.size() == 1 and said[0].contains("level 2"), "level-up message %s" % [said])
+	check(g.max_charge("hoe") == 2 and g.charge_after("hoe", step * 5) == 2, "level 2 hoe charges twice")
+	actions.use_tool(Vector2i(14, 4), Vector2i.DOWN, 2)
+	var tilled := 0
+	for y in range(5, 10):
+		tilled += int(g.farm.cell(Vector2i(14, y)).tilled)
+	check(tilled == g.farm.area_cells(Vector2i(14, 4), Vector2i.DOWN, g.tools_data.tools.hoe.charges[2].area).size(),
+		"after the level-up a charge-2 swing tills its whole area (%d)" % tilled)
+	# A big gain passes several steps at once; the top level is the cap and exp stops there.
+	said.clear()
+	g.add_tool_exp("hoe", 1 << 20)
+	var top := int(g.tools_data.tools.hoe.exp_to_level.back())
+	check(g.tool_level("hoe") == 5 and g.tool_exp.hoe == top, "big gain: level 5, exp kept at %d" % top)
+	check(said.size() == 3, "one message per level passed (%d)" % said.size())
+	check(g.exp_for_next_level("hoe", 5) == -1, "nothing after level 5")
+	check(not g.raise_tool_level("hoe") and g.tool_level("hoe") == 5, "no raise past level 5")
+	g.add_tool_exp("hoe", work)
+	check(g.tool_exp.hoe == top, "a level-5 tool's exp stays at the cap")
+	g.add_tool_exp("seeds", 50)
+	check(not g.tool_exp.has("seeds"), "the seed bag has no levels or exp")
+	# The blacksmith path: a raise without exp, then the next level still needs its own step.
+	check(g.raise_tool_level("sickle") and g.tool_level("sickle") == 2 and g.tool_exp.sickle == 0, "raise_tool_level: one level, exp kept")
+	g.add_tool_exp("sickle", int(g.tools_data.tools.sickle.exp_to_level[0]))
+	check(g.tool_level("sickle") == 2, "after a raise the next level needs the level-3 step")
+	g.message.disconnect(listen)
+	g.reset_tool_levels()
 
 func _mean_luma(img: Image) -> float:
 	var sum := 0.0

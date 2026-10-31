@@ -30,7 +30,7 @@ Save / load, the title menu, weather and dialogue: the same with `res://tests/te
 | Key | Action |
 | --- | --- |
 | WASD / arrows | walk along the field's axes (Up = diagonally away from the camera); Shift = run |
-| Space / J | use the tool on the cell in front; hold to charge (pips over the farmer), let go for a bigger area |
+| Space / J | use the tool on the cell in front; hold to charge (pips over the farmer), let go for a bigger area; tools level up with use (pips in the item box) |
 | E / K | interact: harvest, ship at the bin (with nothing to ship: read the note on it), buy seeds at the stand, sleep at the door |
 | E / Space / Enter, click | in a text box: show the whole line, then go on; arrows / W / S or the mouse pick a choice |
 | 1-6 / Tab | pick a tool: hoe, watering can, sickle, hammer, axe, seeds |

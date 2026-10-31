@@ -25,11 +25,13 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 ## Next up
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
-font are done. Charging tools are done (levels in data/tools.json), weather is done for now
-(snow lies in winter, lightning flashes in storms; flashes can be turned off in Esc → Settings
-or with `-- --no-flashes`), the text box is done (data/dialogue, DialogueRunner, TextBox) and
-the pause menu (Esc: resume, save, settings, back to title; settings in `data/settings.json` /
-`user://settings.json`, so a volume setting is one data entry).
+font are done. Charging tools are done, and tools level up with use (tool experience,
+thresholds in data/tools.json; `Game.raise_tool_level()` is the hook for the blacksmith in
+milestone 8). Weather is done for now (snow lies in winter, lightning flashes in storms;
+flashes can be turned off in Esc → Settings or with `-- --no-flashes`), the text box is done
+(data/dialogue, DialogueRunner, TextBox) and the pause menu (Esc: resume, save, settings,
+back to title; settings in `data/settings.json` / `user://settings.json`, so a volume setting
+is one data entry).
 Next: milestone 6, **event scripts + trigger tables per map**, built on the dialogue format
 (lines become one command among moves, waits, flags and map changes).
 Sound effects and ambient loops are in (milestone 10, first step); later for audio: music,
@@ -62,7 +64,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Pixel font for the HUD, clock box, a proper item / tool display (Japanese glyphs later)
 3. **Tools and the body**
    - [x] Charging tools (hold to cover more cells, per tool level; data/tools.json)
-   - [ ] Tool levels and upgrades
+   - [x] Tool levels and upgrades (experience from use; shop upgrades with milestone 8)
    - [ ] Fatigue, tired animations, oversleeping, collapse
    - [ ] Eating / drinking, food items
    - [ ] Holding and throwing items (shipping by throwing into the bin)

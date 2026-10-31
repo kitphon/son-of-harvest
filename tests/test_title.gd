@@ -102,6 +102,7 @@ func _init() -> void:
 	g.snow_cover = 80
 	g.tool_levels["hoe"] = 4
 	g.flags = {"bin_note_read": true}
+	g.tool_exp["hoe"] = 700
 	var old_farm: FarmGrid = g.farm
 	g.rng.seed = 11
 	g.new_game()

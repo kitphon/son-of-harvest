@@ -1,8 +1,11 @@
 {
-	"_about": "Charging tools. Hold the use button: the charge goes up one step every charge_seconds, up to max_charge[tool level - 1]. Each charge step has an area drawn with the farmer facing down: '@' is the farmer's cell, '#' a cell the tool works on, rows below '@' are ahead. Hammer and axe hit one cell harder instead (hits). Numbers are ours.",
+	"_about": "Charging tools. Hold the use button: the charge goes up one step every charge_seconds, up to max_charge[tool level - 1]. Each charge step has an area drawn with the farmer facing down: '@' is the farmer's cell, '#' a cell the tool works on, rows below '@' are ahead. Hammer and axe hit one cell harder instead (hits). Using a tool gives experience (exp_per_swing: work = the swing changed a cell, miss = it hit nothing; a use that never swung gives none). exp_to_level[i] is the total a tool needs to go from level i+1 to i+2; level_up is the message (%d = the new level). Numbers are ours.",
+	"exp_per_swing": {"work": 3, "miss": 1},
 	"charge_seconds": 0.6,
 	"tools": {
 		"hoe": {
+			"exp_to_level": [300, 900, 2100, 4200],
+			"level_up": "The hoe bites into the soil more easily. Hoe level %d!",
 			"max_charge": [1, 2, 3, 4, 4],
 			"charges": [
 				{"area": ["@", "#"], "stamina": 2},
@@ -13,6 +16,8 @@
 			]
 		},
 		"can": {
+			"exp_to_level": [300, 900, 2100, 4200],
+			"level_up": "You have a feel for the watering can now. Can level %d!",
 			"max_charge": [1, 2, 3, 4, 4],
 			"water_per_cell": 1,
 			"charges": [
@@ -24,6 +29,8 @@
 			]
 		},
 		"sickle": {
+			"exp_to_level": [240, 720, 1680, 3360],
+			"level_up": "The sickle swings cleaner than before. Sickle level %d!",
 			"max_charge": [1, 2, 3, 4, 4],
 			"charges": [
 				{"area": ["@", "#"], "stamina": 1},
@@ -34,6 +41,8 @@
 			]
 		},
 		"hammer": {
+			"exp_to_level": [90, 270, 630, 1260],
+			"level_up": "Your hammer blows land true. Hammer level %d!",
 			"max_charge": [1, 2, 3, 4, 4],
 			"charges": [
 				{"area": ["@", "#"], "hits": 1, "stamina": 2},
@@ -44,6 +53,8 @@
 			]
 		},
 		"axe": {
+			"exp_to_level": [90, 270, 630, 1260],
+			"level_up": "The axe sits lighter in your hands. Axe level %d!",
 			"max_charge": [1, 2, 3, 4, 4],
 			"charges": [
 				{"area": ["@", "#"], "hits": 1, "stamina": 2},

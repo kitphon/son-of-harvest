@@ -1,7 +1,7 @@
 class_name Hud
 extends CanvasLayer
 ## Paper-and-wood HUD in our pixel font: date, clock and the weather for today and tomorrow
-## (top right), the tool bar with the item in hand (bottom left), money, shipping bin and a
+## (top right), the tool bar with the item in hand and its level pips (bottom left), money, shipping bin and a
 ## stamina bar (bottom right), and a message line (top left). Reads Game and redraws on its
 ## signals.
 
@@ -18,6 +18,7 @@ var _slots: Array[TextureRect] = []
 var _slot_icons: Array[TextureRect] = []
 var _item_name: Label
 var _item_count: Label
+var _item_level: TextureRect   # one pip per tool level after the name, filled up to the level
 var _money: Label
 var _bin: Label
 var _stamina_fill: ColorRect
@@ -58,6 +59,7 @@ func _build_tools(r: Rect2i, item_r: Rect2i) -> void:
 	var item := _box(item_r, "paper")
 	_item_name = _label(item, Vector2i(6, 6))
 	_item_count = _label(item, Vector2i(6, 6), INK_SOFT)
+	_item_level = _icon(item, Vector2i(6, 7))
 	var bar := _box(r, "wood")
 	for i in Game.TOOLS.size():
 		var slot := _icon(bar, Vector2i(5 + i * (HudLayout.SLOT + HudLayout.SLOT_GAP), 5))
@@ -147,6 +149,11 @@ func _refresh() -> void:
 	_item_name.text = item[0]
 	_item_count.text = item[1]
 	_item_count.position.x = HudLayout.BOXES.item.size.x - 6 - PixelFont.width(item[1])
+	var levels := Game.tool_max_level(tool)
+	_item_level.visible = levels > 0
+	if levels > 0:
+		_item_level.texture = PlaceholderArt.tex(PlaceholderArt.charge_key(Game.tool_level(tool), levels))
+		_item_level.position.x = 6 + PixelFont.width(item[0]) + 4
 
 	_money.text = "%d G" % Game.money
 	_bin.text = "Bin %d G" % Game.bin_total

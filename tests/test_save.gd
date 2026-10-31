@@ -46,6 +46,8 @@ func _init() -> void:
 	a.tool_levels.hoe = 3
 	a.tool_levels.can = 5
 	a.flags = {"bin_note_read": true, "times_asked": 3, "answer": "later"}
+	a.tool_exp.hoe = 950
+	a.tool_exp.axe = 12
 	var saved: Dictionary = a.to_dict()
 	check(SaveGame.write(a, PATH) == "", "write save")
 
@@ -69,6 +71,7 @@ func _init() -> void:
 	check(typeof(grid.cell(Vector2i(4, 10)).stage) == TYPE_INT and typeof(b.money) == TYPE_INT, "numbers come back as ints")
 	check(b.current_tool() == "sickle" and b.hour == 14 and b.weather_tomorrow == "storm", "game fields back")
 	check(b.tool_level("hoe") == 3 and b.tool_level("can") == 5 and b.max_charge("hoe") == 3, "tool levels back")
+	check(b.tool_exp.hoe == 950 and b.tool_exp.axe == 12 and b.tool_exp.can == 0, "tool exp back")
 	check(b.snow_cover == 70, "snow cover back")
 	check(b.flags == a.flags and typeof(b.flags.times_asked) == TYPE_INT, "dialogue flags back %s" % b.flags)
 	# The loaded farm keeps working by the rules.
@@ -86,7 +89,9 @@ func _init() -> void:
 	for broken in [["day", 31], ["hour", "noon"], ["stamina", 500], ["tool", "spoon"], ["seed", "rice"],
 			["bag", {"corn": -1}], ["weather_today", 3], ["tool_levels", [1]],
 			["tool_levels", {"hoe": 0}], ["tool_levels", {"hoe": 6}], ["tool_levels", {"spoon": 1}],
-			["tool_levels", {"hoe": 2.5}], ["snow_cover", 101], ["snow_cover", "deep"],
+			["tool_levels", {"hoe": 2.5}],
+			["tool_exp", [1]], ["tool_exp", {"hoe": -1}], ["tool_exp", {"spoon": 3}], ["tool_exp", {"hoe": 1.5}],
+			["tool_exp", {"hoe": 1 << 40}], ["tool_exp", {"seeds": 1}], ["snow_cover", 101], ["snow_cover", "deep"],
 			["flags", [1]], ["flags", {"x": 2.5}], ["flags", {"x": [true]}], ["flags", {"": true}], ["flags", {"x": null}]]:
 		var d := saved.duplicate(true)
 		d[broken[0]] = broken[1]
@@ -111,6 +116,13 @@ func _init() -> void:
 	_put(JSON.stringify({"version": 1, "game": old}))
 	check(SaveGame.read(b, PATH) == "", "old save without tool levels loads")
 	check(b.tool_level("hoe") == 1 and b.tool_level("can") == 1, "old save: tools at level 1")
+
+	# A save from before tool experience (no tool_exp) loads with every tool at 0.
+	old = saved.duplicate(true)
+	old.erase("tool_exp")
+	_put(JSON.stringify({"version": 1, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.tool_exp.hoe == 0 and b.tool_level("hoe") == 3, "old save without tool exp loads at 0 (%s)" % err)
 
 	# A save from before snow cover existed still loads, with no snow.
 	old = saved.duplicate(true)
