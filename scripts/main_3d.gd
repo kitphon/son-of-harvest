@@ -20,10 +20,13 @@ var target_mark: MeshInstance3D
 var cam: Camera3D
 var tint: ColorRect
 var weather: WeatherFX
+var world: FarmWorld
+var flash: ColorRect
+var lightning := Lightning.new()
 
 
 func _ready() -> void:
-	var world := FarmWorld.new()
+	world = FarmWorld.new()
 	add_child(world)
 	world.setup(Game.farm)
 
@@ -80,6 +83,7 @@ func _ready() -> void:
 	weather = WeatherFX.new()
 	add_child(weather)
 	weather.show_weather(Game.weather_style())
+	lightning.reset(Game.lightning_style())
 
 	# Day / night and the weather tint: multiply the whole 3D picture, under the HUD.
 	var layer := CanvasLayer.new()
@@ -91,6 +95,15 @@ func _ready() -> void:
 	mul.blend_mode = CanvasItemMaterial.BLEND_MODE_MUL
 	tint.material = mul
 	layer.add_child(tint)
+	# Lightning: a short wash of pale sky light added over the picture (Lightning times it).
+	flash = ColorRect.new()
+	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var add := CanvasItemMaterial.new()
+	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	flash.material = add
+	flash.color = Color.BLACK
+	layer.add_child(flash)
 	add_child(layer)
 	add_child(Hud.new())
 
@@ -106,6 +119,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(delta: float) -> void:
 	anim.step(delta, player.moving, player.running)
+	_update_flash(delta)
 	_follow()
 
 
@@ -129,7 +143,16 @@ func _on_day_started() -> void:
 	player.position = FarmActions.HOME
 	player.facing = Vector2i.DOWN
 	weather.show_weather(Game.weather_style())
+	lightning.reset(Game.lightning_style())
+	world.set_snow(Game.snow_cover / 100.0)
 	_update_tint()
+
+
+func _update_flash(delta: float) -> void:
+	var b := lightning.step(delta) if Game.clock_running else 0.0
+	var style := Game.lightning_style()
+	var sky := Color(style.get("sky", "ffffff")) * float(style.get("strength", 0.0)) * b
+	flash.color = Color(sky.r, sky.g, sky.b, 1.0)
 
 
 func _update_tint() -> void:

@@ -35,12 +35,14 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `Godot_v4.7.2-stable_win64_console.exe --headless --path . --import`
 - Tests: `Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_farm.gd`
   must print `test_farm: OK (0 failed)`. Save / load: same with `res://tests/test_save.gd`
-  must print `test_save: OK (0 failed)`.
+  must print `test_save: OK (0 failed)`. Weather (snow cover, lightning): `res://tests/test_weather.gd`
+  must print `test_weather: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300`
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
   --fixed-fps 30 --quit-after 20 -- --demo` writes `shots/frameNNNNNNNN.png` (git-ignored). `--demo`
   starts at 10:00 with planted plots;
-  add `--weather=rain` (storm, snow, blizzard) to force the weather. Create `shots/` first. Look at the last frame. Delete `shots/` afterwards.
+  add `--weather=rain` (storm, snow, blizzard) to force the weather, `--no-flashes` to turn
+  lightning off. Create `shots/` first. Look at the last frame. Delete `shots/` afterwards.
 - Run Python as `python -I` (numpy and Pillow are installed) for pixel checks.
 
 ## How the code is built

@@ -23,6 +23,8 @@ var hour := 6
 var minute := 0
 var weather_today := "sunny"
 var weather_tomorrow := "sunny"
+var snow_cover := 0             # snow lying on the ground, 0 (none) .. 100 (all white)
+var flashes_enabled := true     # lightning flashes in storms; off for photosensitive players
 var clock_running := true
 
 var money := 500
@@ -36,7 +38,8 @@ var bag: Dictionary = {}        # item id -> count; seeds are "seeds:<crop>"
 
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
-var weather_fx: Dictionary = {}    # look per weather: tint, falling particles
+var weather_fx: Dictionary = {}    # look per weather: tint, falling particles, lightning
+var snow_rules: Dictionary = {}    # how snow builds up and melts (data/snow_cover.json)
 var rng := RandomNumberGenerator.new()
 var farm: FarmGrid
 var _accum := 0.0
@@ -47,6 +50,7 @@ func _ready() -> void:
 	crops = _load_json("res://data/crops.json")
 	weather_chances = _load_json("res://data/weather.json")
 	weather_fx = _load_json("res://data/weather_fx.json")
+	snow_rules = _load_json("res://data/snow_cover.json")
 	_setup_input()
 	new_game()
 
@@ -61,6 +65,9 @@ func new_game() -> void:
 			_demo_field()
 		elif arg.begins_with("--weather="):   # e.g. `-- --demo --weather=storm` for screenshots
 			weather_today = arg.trim_prefix("--weather=")
+			snow_cover = next_snow_cover(0, weather_look(weather_today, season_name()), season_name(), snow_rules)
+		elif arg == "--no-flashes":
+			flashes_enabled = false
 
 
 ## `-- --demo`: 10:00 with a few sown, growing and ripe plots by the house, for screenshots.
@@ -150,6 +157,24 @@ func weather_style() -> Dictionary:
 	return weather_fx.get(weather_look(weather_today, season_name()), {})
 
 
+## Lightning for today's look ({} when there is none, or flashes are turned off).
+func lightning_style() -> Dictionary:
+	return weather_style().get("lightning", {}) if flashes_enabled else {}
+
+
+## Snow on the ground the morning after: a snowfall adds to it (a blizzard covers everything),
+## any other day melts some, a lot outside winter, and rain washes more away. So snow lies
+## from the first snowfall through winter, thins over clear days and is gone on spring 1.
+static func next_snow_cover(cover: int, look: String, season_id: String, rules: Dictionary) -> int:
+	var fall := int(rules.get("fall", {}).get(look, 0))
+	if fall > 0:
+		return mini(cover + fall, 100)
+	var melt := int(rules.get("melt_per_day", {}).get(season_id, 100))
+	if look == "rain" or look == "storm":
+		melt += int(rules.get("rain_melt", 0))
+	return maxi(cover - melt, 0)
+
+
 func _tomorrow_season() -> int:
 	return season if day < DAYS_PER_SEASON else (season + 1) % 4
 
@@ -193,6 +218,7 @@ func end_day() -> void:
 			year += 1
 	weather_today = weather_tomorrow
 	weather_tomorrow = roll_weather(_tomorrow_season())
+	snow_cover = next_snow_cover(snow_cover, weather_look(weather_today, season_name()), season_name(), snow_rules)
 	farm.day_end(season_name(), weather_today, rng)
 	hour = 6
 	minute = 0
@@ -276,8 +302,10 @@ func select_tool(i: int) -> void:
 const SAVED_NUMBERS := {
 	"year": [1, 9999], "season": [0, 3], "day": [1, DAYS_PER_SEASON], "hour": [0, 23],
 	"minute": [0, 59], "money": [0, 1 << 50], "bin_total": [0, 1 << 50],
-	"max_stamina": [1, 9999], "water": [0, WATER_MAX],
+	"max_stamina": [1, 9999], "water": [0, WATER_MAX], "snow_cover": [0, 100],
 }
+## Numbers added after the first saves went out: an older save without them gets these.
+const SAVED_DEFAULTS := {"snow_cover": 0}
 
 
 ## The run's state as plain data, the farm included (SaveGame writes it).
@@ -301,7 +329,7 @@ func to_dict() -> Dictionary:
 func from_dict(data: Dictionary) -> String:
 	var n := {}
 	for key in SAVED_NUMBERS:
-		n[key] = SaveGame.whole(data.get(key), SAVED_NUMBERS[key][0], SAVED_NUMBERS[key][1])
+		n[key] = SaveGame.whole(data.get(key, SAVED_DEFAULTS.get(key)), SAVED_NUMBERS[key][0], SAVED_NUMBERS[key][1])
 		if n[key] == null:
 			return "Saved %s is broken" % key
 	n.stamina = SaveGame.whole(data.get("stamina"), 0, n.max_stamina)
