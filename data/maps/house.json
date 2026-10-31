@@ -1,5 +1,5 @@
 {
-	"_note": "The farmhouse inside: a packed-earth entry (doma) by the door, a step of wooden floor, then the tatami room with the futon, a low table, a chest and a paper lantern. The clock stands still in here. Format: README.md, Maps. extensions: what the house extensions (data/shops.json builds) change once built, in this order: props are added, any other key (size, ground) replaces the map's own.",
+	"_note": "The farmhouse inside: a packed-earth entry (doma) by the door, a step of wooden floor, then the tatami room with the futon, a low table, a chest and a paper lantern. The clock stands still in here. Format: README.md, Maps. extensions: what the house extensions (data/shops.json builds) change once built, in this order: props are added (the kitchen's stove and cupboard open the cooking screen, use cook; spawn kitchen stands by the stove), any other key (size, ground) replaces the map's own.",
 	"id": "house",
 	"name": "Farmhouse",
 	"size": [
@@ -106,6 +106,13 @@
 				2
 			],
 			"down"
+		],
+		"kitchen": [
+			[
+				2,
+				5
+			],
+			"left"
 		]
 	},
 	"extensions": {
@@ -128,14 +135,16 @@
 					"cell": [
 						1,
 						5
-					]
+					],
+					"use": "cook"
 				},
 				{
 					"kind": "mizuya",
 					"cell": [
 						6,
 						5
-					]
+					],
+					"use": "cook"
 				}
 			]
 		},

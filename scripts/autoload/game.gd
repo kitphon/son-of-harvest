@@ -14,6 +14,7 @@ signal map_changed(map_id: String)   # the views fade out, rebuild for Game.maps
 signal map_entered(map_id: String)   # the farmer stands on the new map (after the fade); event triggers key on this
 signal thrown(item: String, from: Vector2i, to: Vector2i, result: String)   # views draw the flight
 signal shop_requested(id: String)    # a ShopScreen opens that shop (data/shops.json)
+signal cooking_requested             # a CookingScreen opens (the kitchen corner, data/recipes.json)
 signal fishing_event(kind: String)   # "bite" / "escaped" while the line is out (FarmActions plays the cue)
 
 const SECONDS_PER_MINUTE := 0.5
@@ -217,6 +218,13 @@ func new_game() -> void:
 			var b := clampi(arg.trim_prefix("--hearts=").to_int(), 0, bands.size() - 1)
 			for id in Villagers.all():
 				affection.points[id] = int(bands[b])
+		elif arg == "--cook":   # `-- --demo --cook`: at the kitchen corner (CookingScreen opens it)
+			if not has_built("kitchen"):
+				_finish_build({"build": "kitchen", "shop": _builder_shop("kitchen"), "ready": 0})
+			var m := MapManager.data("house")
+			maps.place(m.id, m.spawns.kitchen[0], m.spawns.kitchen[1])
+			if "--demo" in OS.get_cmdline_user_args():
+				_demo_kitchen()
 		elif arg == "--hens-out":   # e.g. `-- --demo --map=farm@coop --hens-out`: the hens in the yard
 			animals.outside = true
 		elif arg == "--barn-out":   # e.g. `-- --demo --map=farm@barn --barn-out`: cows and sheep grazing
@@ -290,6 +298,14 @@ func _demo_field() -> void:
 	animals.add("cow", true)
 	animals.fill_feed_box("barn")
 	animals.dog.affection = int(animals.dog_rule().get("follow_affection", 0))   # follows the farmer
+
+
+## `-- --demo --cook`: eggs, a fish and vegetables to cook with (the chest when the rucksack is
+## full), one recipe learned.
+func _demo_kitchen() -> void:
+	for id in ["egg", "egg", "fish:funa", "carrot", "onion"]:
+		inventory.add(id, 1, ["bag", "chest"])
+	flags[Cooking.flag("turnip_stew")] = true
 
 
 func _process(delta: float) -> void:
@@ -757,7 +773,7 @@ func take_item(id: String, n := 1) -> bool:
 	return true
 
 
-## A name to show for any item id: tools, crops, seed bags; anything else from its id.
+## A name to show for any item id: tools, crops, seed bags, food; anything else from its id.
 func item_name(id: String) -> String:
 	if id in TOOLS:
 		return HudLayout.TOOL_NAMES.get(id, id.capitalize())
@@ -765,6 +781,8 @@ func item_name(id: String) -> String:
 		return String(crops[id].name)
 	if id.begins_with("seeds:") and crops.has(id.trim_prefix("seeds:")):
 		return "%s seeds" % crops[id.trim_prefix("seeds:")].name
+	if id.begins_with("food:") and foods.has(id.trim_prefix("food:")):
+		return String(foods[id.trim_prefix("food:")].name)
 	if animals.item_info(id).has("name"):
 		return String(animals.item_info(id).name)
 	if id.begins_with("fish:") and fish_data.get("fish", {}).has(id.trim_prefix("fish:")):
@@ -938,44 +956,115 @@ func current_food() -> String:
 	return foods.keys()[food_index] if food_index < foods.size() else ""
 
 
+## Q with the food slot: the next food the stand sells or the farmer carries (dishes from the
+## kitchen and specials only show up while there are some).
 func cycle_food() -> void:
-	if foods.size() > 0:
+	for i in foods.size():
 		food_index = (food_index + 1) % foods.size()
+		var id: String = foods.keys()[food_index]
+		if foods[id].get("shop", false) or count("food:" + id) > 0:
+			break
 	changed.emit()
 
 
-## Eats (or drinks) one `id` from the bag: stamina up to the max, fatigue down, and the
-## specials (a higher max stamina, half swing fatigue for the day). A food that would do
-## nothing is kept. Returns true when it was eaten; says what happened either way.
+## What eating `item` does: a food ("food:<id>") or a raw farm good (foods.json "raw", fish:*
+## for any fish), with its name; {} when it can't be eaten.
+func food_info(item: String) -> Dictionary:
+	if item.begins_with("food:"):
+		return foods.get(item.trim_prefix("food:"), {})
+	var raw: Dictionary = food_data.get("raw", {})
+	var f: Dictionary = raw.get(item, raw.get("fish:*", {}) if item.begins_with("fish:") else {})
+	if f.is_empty():
+		return {}
+	var out := f.duplicate()
+	out.name = item_name(item)
+	return out
+
+
+func edible(item: String) -> bool:
+	return not food_info(item).is_empty()
+
+
+## Eats (or drinks) one food `id` (data/foods.json) from the bag; see eat_item.
 func eat(id: String) -> bool:
-	var f: Dictionary = foods.get(id, {})
-	if f.is_empty() or count("food:" + id) == 0:
-		message.emit("No %s left" % String(f.get("name", id)).to_lower())
-		return false
+	return eat_item("food:" + id).ok
+
+
+## Eats (or drinks) one `item` from `places`: stamina up to the max, fatigue down, and the
+## specials (a higher max stamina, half swing fatigue for the day). A food that would do
+## nothing is kept. Returns {ok, note}; says the note either way.
+func eat_item(item: String, places: Array = Inventory.CARRIED) -> Dictionary:
+	var f := food_info(item)
+	var name := String(f.get("name", item_name(item))).to_lower()
+	if f.is_empty():
+		return _ate(false, "You can't eat the %s" % name)
+	if inventory.count(item, places) == 0:
+		return _ate(false, "No %s left" % name)
 	var grow := mini(int(f.get("max_stamina", 0)), maxi(int(food_data.get("max_stamina_cap", 200)) - max_stamina, 0))
 	var half := bool(f.get("work_fatigue_half", false)) and not work_fatigue_half
 	var lowers := int(f.get("fatigue", 0)) < 0 and fatigue > 0
 	if stamina >= max_stamina and not lowers and grow == 0 and not half:
-		message.emit(String(food_data.get("full_message", "You're full.")))
-		return false
-	take_item("food:" + id)
+		return _ate(false, String(food_data.get("full_message", "You're full.")))
+	inventory.take(item, 1, places)
 	max_stamina += grow
 	stamina = clampi(stamina + int(f.get("stamina", 0)), 0, max_stamina)
 	add_fatigue(int(f.get("fatigue", 0)))
 	work_fatigue_half = work_fatigue_half or half
 	_shown_state = body_state()   # feeling better: a later tired state is told again
-	var text := "You %s the %s." % ["drank" if f.get("drink", false) else "ate", String(f.name).to_lower()]
+	var text := "You %s the %s." % ["drank" if f.get("drink", false) else "ate", name]
 	var special := String(f.get("special_message", ""))
 	if special != "" and (grow > 0 or half):
 		text += " " + (special % grow if "%d" in special else special)
-	message.emit(text)
 	changed.emit()
+	return _ate(true, text)
+
+
+func _ate(ok: bool, note: String) -> Dictionary:
+	message.emit(note)
+	return {"ok": ok, "note": note}
+
+
+## Sound key for eating food `id`: "drink" or "eat" (both in data/sfx.json).
+func eat_sound(id: String) -> String:
+	return item_sound("food:" + id)
+
+
+## Sound key for eating any edible `item`.
+func item_sound(item: String) -> String:
+	return "drink" if food_info(item).get("drink", false) else "eat"
+
+
+# --- cooking (data/recipes.json, Cooking) ----------------------------------
+
+## E at the kitchen corner's stove or cupboard: the cooking screen, once the kitchen is built.
+func open_cooking() -> bool:
+	if not has_built("kitchen"):
+		message.emit("There's no kitchen here yet")
+		return false
+	cooking_requested.emit()
 	return true
 
 
-## Sound key for eating `id`: "drink" or "eat" (both in data/sfx.json).
-func eat_sound(id: String) -> String:
-	return "drink" if foods.get(id, {}).get("drink", false) else "eat"
+## Cooks recipe `id` once (Cooking.cook): needs the kitchen and the recipe known; the
+## ingredients come from the rucksack, the hand and the chest, the dishes go into the
+## rucksack. Returns {ok, note}.
+func cook(id: String) -> Dictionary:
+	var name := String(foods.get(id, {}).get("name", id))
+	if not has_built("kitchen"):
+		return {"ok": false, "note": "There's no kitchen here yet"}
+	if not Cooking.known(id, flags):
+		return {"ok": false, "note": "You don't know how to make that yet"}
+	var r := Cooking.cook(id, inventory)
+	changed.emit()
+	match r.result:
+		"cooked":
+			var n := Cooking.makes(id)
+			return {"ok": true, "note": "Made %s%s" % [name.to_lower(), " x%d" % n if n > 1 else ""]}
+		"missing":
+			return {"ok": false, "note": "Not enough to make %s" % name.to_lower()}
+		"full":
+			return {"ok": false, "note": "No room in the rucksack for it"}
+	return {"ok": false, "note": "No such recipe"}
 
 
 # --- fatigue and tired states (data/body.json) -----------------------------

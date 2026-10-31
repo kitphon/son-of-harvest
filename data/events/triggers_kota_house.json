@@ -1,6 +1,7 @@
 {
-	"_note": "Events inside Kota's home: Kota's heart event, if it comes while at home. Format: README.md, Events.",
+	"_note": "Events inside Kota's home: Kota's heart event and recipe, if they come while at home. Format: README.md, Events.",
 	"rows": [
-		{"event": "heart_kota", "on": "talk", "who": "kota", "hearts": {"kota": [3, 6]}}
+		{"event": "heart_kota", "on": "talk", "who": "kota", "hearts": {"kota": [3, 6]}},
+		{"event": "recipe_kota", "on": "talk", "who": "kota", "hearts": {"kota": [1, 6]}, "not_flags": ["recipe_simmered_pumpkin"]}
 	]
 }

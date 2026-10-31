@@ -10,8 +10,9 @@ const HOME := Vector2(4 * T + 8, 4 * T + 10)   # in front of the door, in player
 ## kind "enter" = the farmer walked into a door cell `origin + facing`. Interact facing a
 ## villager talks to them (or gives them the item overhead). With an item overhead on the
 ## farm the hands are full: interact throws it, the tool button sets it down. With the dog in
-## the arms either button sets it down (DogActions). Otherwise interact first asks the map's
-## trigger table about the spot faced (examine).
+## the arms either button sets it down (DogActions). With the food slot in hand the tool
+## button eats an edible item overhead (a crop, an egg, a fish, a dish). Otherwise interact
+## first asks the map's trigger table about the spot faced (examine).
 static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	if Game.fishing.active():   # the line is out: either button reels in
 		reel()
@@ -21,6 +22,8 @@ static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge :
 		interact(origin + facing)
 	elif kind == "interact" and talk_to(origin, facing):
 		pass
+	elif kind != "interact" and Game.current_tool() == "food" and Game.edible(Game.held):
+		eat_held()
 	elif Game.holding() and Game.maps.on_farm():
 		if kind == "interact":
 			throw(origin, facing)
@@ -153,6 +156,8 @@ static func interact(c: Vector2i) -> void:
 				Game.open_shop(str(prop.get("shop", "")))
 			"storage":   # the house's chest lid (bigger chest extension): the same storage
 				Game.open_inventory("storage")
+			"cook":   # the kitchen corner's stove and cupboard
+				Game.open_cooking()
 		return
 	if DogActions.interact(c):
 		return
@@ -222,11 +227,24 @@ static func buy_food() -> void:
 		Game.message.emit("Bought %s for %d G" % [String(data.name).to_lower(), price])
 
 
+## The item overhead, eaten with the food slot in hand.
+static func eat_held() -> void:
+	var item := Game.held
+	if Game.eat_item(item, ["hand"]).ok:
+		Sfx.play(Game.item_sound(item))
+
+
 ## A tool from the farmer's cell `origin` towards `facing`. `charge` is the charge step the
-## button was held to; it picks the area and the stamina cost from data/tools.json.
+## button was held to; it picks the area and the stamina cost from data/tools.json. Food
+## works on every map.
 static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	if Game.current_tool() == "rod":
 		cast(origin, facing)
+		return
+	if Game.current_tool() == "food":
+		var id := Game.current_food()
+		if Game.eat(id):
+			Sfx.play(Game.eat_sound(id))
 		return
 	if Game.maps.mine_floor != null:
 		mine(origin, facing, charge)
@@ -244,11 +262,6 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 		Sfx.play("pond_fill")
 		Game.message.emit("Filled the watering can")
 		Game.changed.emit()
-		return
-	if tool == "food":
-		var id := Game.current_food()
-		if Game.eat(id):
-			Sfx.play(Game.eat_sound(id))
 		return
 	if tool == "seeds":
 		var s := Game.current_seed()
@@ -299,15 +312,10 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	Game.add_tool_exp(tool, Game.swing_exp(worked))
 
 
-## Down the mine the hammer breaks rocks and the hoe digs soft spots (Game.mine_swing); food
-## still works, the other tools do nothing here.
+## Down the mine the hammer breaks rocks and the hoe digs soft spots (Game.mine_swing); the
+## other tools do nothing here (food is eaten before this, in use_tool).
 static func mine(origin: Vector2i, facing: Vector2i, charge: int) -> void:
 	var tool := Game.current_tool()
-	if tool == "food":
-		var id := Game.current_food()
-		if Game.eat(id):
-			Sfx.play(Game.eat_sound(id))
-		return
 	var r := Game.mine_swing(tool, origin, facing, charge)
 	match r.result:
 		"hands_full":

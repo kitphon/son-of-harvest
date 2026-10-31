@@ -71,6 +71,10 @@
 			{"kind": "grains", "count": 5, "dur": 0.08, "hp": 1200, "lp": 4000, "grain": 0.004, "gain": 0.4},
 			{"kind": "noise", "color": "brown", "lp": 1400, "hp": 150, "dur": 0.09, "at": 0.18, "attack": 0.004, "decay": 0.03, "gain": 0.8},
 			{"kind": "grains", "count": 4, "dur": 0.08, "at": 0.18, "hp": 1200, "lp": 4000, "grain": 0.004, "gain": 0.3}]},
+		"cook": {"volume_db": -15, "pitch": [0.95, 1.05], "layers": [
+			{"kind": "noise", "hp": 2200, "lp": 7000, "dur": 0.9, "attack": 0.03, "release": 0.35, "gain": 0.5, "trem": [[13, 0.4]]},
+			{"kind": "grains", "count": 22, "dur": 0.8, "hp": 1800, "lp": 6000, "grain": 0.003, "gain": 0.6},
+			{"kind": "pluck", "freq": 880, "damping": 0.5, "dur": 0.4, "at": 0.85, "gain": 0.35}]},
 		"drink": {"volume_db": -14, "pitch": [0.95, 1.05], "layers": [
 			{"kind": "tone", "freq": 220, "freq_end": 420, "dur": 0.12, "attack": 0.01, "decay": 0.04},
 			{"kind": "tone", "freq": 200, "freq_end": 400, "dur": 0.12, "at": 0.25, "attack": 0.01, "decay": 0.04, "gain": 0.8},

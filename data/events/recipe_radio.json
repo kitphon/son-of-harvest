@@ -1,0 +1,9 @@
+{
+	"_note": "The farmhouse radio's Saturday cooking hour teaches the milk pudding (data/recipes.json); sets recipe_milk_pudding. Format: README.md, Events.",
+	"steps": [
+		{"do": "sound", "key": "menu_move"},
+		{"do": "say", "dialogue": "recipe_lessons", "at": "radio"},
+		{"do": "sound", "key": "cook"},
+		{"do": "set", "flags": {"recipe_milk_pudding": true}}
+	]
+}

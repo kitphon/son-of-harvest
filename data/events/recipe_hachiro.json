@@ -1,0 +1,8 @@
+{
+	"_note": "Hachiro teaches a recipe when the farmer talks to them (a talk row with who and hearts in a trigger table); sets recipe_ochazuke (data/recipes.json). Format: README.md, Events.",
+	"steps": [
+		{"do": "say", "dialogue": "recipe_lessons", "at": "hachiro"},
+		{"do": "sound", "key": "cook"},
+		{"do": "set", "flags": {"recipe_ochazuke": true}}
+	]
+}

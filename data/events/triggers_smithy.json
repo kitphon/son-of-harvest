@@ -2,6 +2,7 @@
 	"_note": "Events inside the Kurogane Smithy: Hachiro's introduction the first time the farmer comes in. Hachiro's heart event, if it comes while he keeps the counter. Format: README.md, Events.",
 	"rows": [
 		{"event": "heart_hachiro", "on": "talk", "who": "hachiro", "hearts": {"hachiro": [3, 6]}},
-		{"event": "smithy_intro", "on": "enter"}
+		{"event": "smithy_intro", "on": "enter"},
+		{"event": "recipe_hachiro", "on": "talk", "who": "hachiro", "hearts": {"hachiro": [1, 6]}, "not_flags": ["recipe_ochazuke"]}
 	]
 }

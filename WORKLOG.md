@@ -253,6 +253,67 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   entries yet (only lines); the result line after the opening needs a key press, so frames
   show the opening. The other stalls at Lantern Night are still only looks.
 
+## 2026-10-31 — Cooking at the kitchen corner; raw farm goods as food
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: raw food: `data/foods.json` got a `raw` table (every crop, the three egg and milk
+  grades, `fish:*` for any fish; DESIGN's "about +3 / -1": vegetables 2-5 stamina / -1 fatigue,
+  eggs 4-8, milk 8-14 and drunk, fish 3). `Game.food_info` / `edible` / `eat_item(item,
+  places)` eat any of them (`eat(id)` is now a wrapper; same rules: kept when it would do
+  nothing). Eaten from the rucksack with the new `eat` action (F, Esc → Settings → Controls;
+  `InventoryMenu.eat`, not out of the chest) or overhead: with the food slot in hand the tool
+  button eats an edible held item instead of setting it down (`FarmActions.eat_held`). The food
+  slot now works on every map (it used to be the farm and the mine only). `Game.item_name`
+  names `food:<id>` items. Q with the food slot cycles the stand's foods plus any food
+  carried, so kitchen dishes and specials only show up while you have some.
+  Cooking: new `Cooking` (scripts/cooking/cooking.gd, pure rules) and `data/recipes.json`.
+  A recipe's id is its dish, a food in foods.json (`shop: false`), so dishes eat, show and
+  cycle like any food. Needs are items or groups (pickling vegetable, soup vegetable, egg,
+  milk in grade order; any fish by prefix); they come out of the rucksack, the hand, then the
+  storage chest, tried on a copy first so a missing ingredient or a full rucksack changes
+  nothing (a slot the ingredients free counts). The pantry (rice, miso, soy) is not tracked.
+  Nine dishes of our own: onigiri x2 (a pickle vegetable; the stand's food), miso soup,
+  grilled fish, tamagoyaki (2 eggs) known from the start; turnip stew (2 turnips + carrot,
+  Tome), potato stew (2 potatoes + onion, Sayo), ochazuke (fish + green tea, Hachiro),
+  pumpkin nimono x2 (Kota) and milk pudding (milk + egg, the farmhouse radio's Saturday
+  cooking hour). No daikon or rice crop exists yet, so turnip stands in for daikon.
+  Numbers: a dish is worth more stamina than its ingredients eaten raw and roughly what the
+  stand charges per stamina (onigiri 15 for 60 G): miso soup 20 / -3, grilled fish 28 / -2,
+  tamagoyaki 35 / -3, turnip stew 50 / -5, potato stew 55 / -4, ochazuke 35 / -6 (the tea),
+  pumpkin nimono 32 / -3 each, milk pudding 42 / -5. The kitchen's kamado and mizuya props
+  have `use: cook` (house.json, plus a `kitchen` spawn); E calls `Game.open_cooking()` →
+  `cooking_requested` → `CookingScreen` (both views): the known recipes with icons, ready /
+  missing, the about line, "Needs 2 any egg (3)", Enter cooks once (a new `cook` sizzle in
+  data/sfx.json). New icon shapes bowl, plate, fish_plate in PlaceholderArt.
+  Learning: a recipe is known when `start` or when the flag `recipe_<id>` is set; flags are
+  already saved, so the save format and `SaveGame.VERSION` did not change. Lessons are events
+  `data/events/recipe_{tome,sayo,hachiro,kota,radio}.json` (lines in
+  `data/dialogue/recipe_lessons.json`) played by one trigger row each: `talk` with `who`,
+  `hearts` [1, 6] and `not_flags` in triggers_town (Tome, Kota), triggers_store (Sayo, also at
+  the counter: the lesson plays instead of the shop that once), triggers_smithy (Hachiro);
+  `examine` on the radio with `weekday: sat` in triggers_house. `-- --cook` stands at the stove
+  with the screen open (`--demo` adds eggs, a fish, a carrot, an onion and the turnip stew).
+- Checked: new `tests/test_cooking.gd` (data, font and icons, kitchen needed, known / unknown,
+  makes 2, rucksack + chest, group order, any fish, the hand, a failed cooking changes
+  nothing, full rucksack and a freed slot, flags through to_dict / from_dict, CookingMenu
+  rows / needs text / choose / wrap / mouse, every taught recipe has an event and a trigger
+  row, Tome's talk row and the radio by weekday, E at both kitchen props in the real Game, the
+  screen opening / cooking / closing) and the extended `tests/test_food.gd` (raw data, raw
+  eating, drink sound for milk, fish:*, inedible things, the hand, the rucksack's eat key,
+  the new Q cycle, eating indoors, eating the held tomato, not the held wool) print OK; all 21
+  tests in AGENTS.md print `OK (0 failed)`. Headless smoke runs (title, `--demo`, `--map=town`,
+  `--mine=3`, `--map=house --built=kitchen,chest,room`, `--demo --cook`, `main.tscn`,
+  `main_2d.tscn --demo --cook`) printed no errors or warnings. Movie Maker frame `--demo --cook`
+  (frame 19): the farmhouse with the "Kitchen  5 of 9 known" box, onigiri x2, miso soup,
+  grilled fish, tamagoyaki, turnip stew all "ready" in vermilion with their icons, "A rolled
+  omelette, a little sweet." / "Needs 2 any egg (2)" (the highlight followed the real
+  window's mouse).
+- Left / next: not played by hand in a real window; the sizzle was not heard. No daikon or
+  rice crop (recipes would take them once they exist); dishes can't be sold or given yet
+  (gift lists don't name them); no cooking tools (pot, knife) or failed dishes. Merge note:
+  shared touches are Game (food / cooking section, `--cook`), FarmActions (eat_held, food
+  before the farm check), data/controls.json (`eat`), foods.json (`raw`, dishes), house.json,
+  four trigger tables (one row each) and sfx.json (`cook`).
+
 ## 2026-10-31 — Merged six branches: talking, opening event, shop extras, barn, mine, festivals
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each, in this order:

@@ -34,10 +34,11 @@ Save / load, the title menu, weather, dialogue and events: the same with `res://
 | Space / J | use the tool on the cell in front; hold to charge (pips over the farmer), let go for a bigger area; tools level up with use (pips in the item box). With an item overhead on the farm: set it down on the cell in front |
 | E / K | interact: harvest (the crop goes up overhead, into the hand slot), pick up an item lying in front, ship the rucksack's crops at the bin (with nothing to ship: read the note on it), buy seeds at the stand, open the storage chest right of the house, go through doors (walking into one works too), sleep at the futon in the house. With an item overhead on the farm: throw it up to 2 cells ahead; into the bin it's shipped, into the pond it's gone |
 | E / Space / Enter, click | in a text box: show the whole line, then go on; arrows / W / S or the mouse pick a choice |
-| 1-8 / Tab | pick a tool slot (at the start: hoe, watering can, sickle, hammer, axe, seeds, food, fishing rod; Space / J eats or drinks the food in hand) |
+| 1-8 / Tab | pick a tool slot (at the start: hoe, watering can, sickle, hammer, axe, seeds, food, fishing rod; Space / J eats or drinks the food in hand, on any map; with a crop, egg, milk, fish or dish overhead it eats that instead) |
 | Space / J with the rod | cast at water up to 2 cells ahead (the farm pond, the village pond); wait for the "!" and a plip, then Space / J / E in time to land the fish (it goes up overhead: throw it in the bin to ship it, or put it in the rucksack). Pressing before a bite reels in empty. Fish per place / season / hour / weather: `data/fish.json` |
-| I | rucksack: arrows / WASD move, Enter / Space pick up and put down (stack, swap), E takes it in hand (tool slot = tool in hand, an item = the item hand), Esc / I close; mouse: left click pick / put, right click hold. The chest screen works the same. The clock stops while it is open |
+| I | rucksack: arrows / WASD move, Enter / Space pick up and put down (stack, swap), E takes it in hand (tool slot = tool in hand, an item = the item hand), Esc / I close; mouse: left click pick / put, right click hold, F eats or drinks the thing under the cursor (food, crops, eggs, milk, fish; not out of the chest). The chest screen works the same. The clock stops while it is open |
 | Q | next seed type, or next food with the food slot (for eating and for buying) |
+| E at the kitchen stove / cupboard | (kitchen corner built) the cooking screen: up / down pick a recipe, Enter / Space / E cook it once, Esc / I leave (README → Cooking) |
 | E at a shop counter | opens the shop (village store and smithy, inside their doors, while open): up / down pick, left / right how many, Enter / Space / E buy, sell or hand a tool in / pick it up, Tab / Q next tab, Esc / I leave; the mouse points and clicks |
 
 These are the default keys. Esc → Settings → Controls rebinds them: pick an action, left / right
@@ -275,6 +276,25 @@ in its seasons: a colder light, frost on part of the floor (only a look) and blo
 the hole; deeper floors stay warm. `-- --season=winter` starts on day 1 of winter (e.g.
 `-- --demo --season=winter --mine=3`). Map files may say `sheltered: true` (no weather; buildings
 are sheltered by default) apart from `indoor` (the clock stops).
+
+## Cooking
+The kitchen corner (house extension `kitchen`, ordered at the store) puts a stove (kamado) and a
+cupboard (mizuya) in the farmhouse; both are props with `use: cook`, and E at either calls
+`Game.open_cooking()`, which emits `cooking_requested` for the `CookingScreen` (both views).
+Recipes are `data/recipes.json`: a recipe's id is the dish it makes, a food in
+`data/foods.json` (so a dish eats, cycles in the food slot and shows its icon like any food),
+`needs` are `{item, n}` or `{group, n}` (groups: a list of items used up in order, or a
+`prefix` such as `fish:`), `makes` how many. `Cooking` (`scripts/cooking/cooking.gd`, pure
+rules) takes the needs out of the rucksack, the hand and then the storage chest and puts the
+dishes in the rucksack, all or nothing (tried on a copy first). The pantry (rice, miso, soy)
+is never counted. A recipe is known from the start (`start: true`) or once the flag
+`recipe_<id>` is set; lessons are events (`data/events/recipe_<who>.json`, lines in
+`data/dialogue/recipe_lessons.json`) played by `talk` rows with `hearts` and `not_flags` in
+the trigger tables (Tome and Kota in the village, Sayo at the store, Hachiro at the smithy)
+and an `examine` row on the farmhouse radio on Saturdays. Flags are saved, so the save format
+did not change. Raw farm goods are edible too: `data/foods.json` `raw` (crops, eggs, milk,
+`fish:*`), through `Game.eat_item(item, places)`. `-- --demo --cook` stands at the stove with
+the screen open (the kitchen built, a few ingredients, one recipe learned).
 
 ## Dialogue
 Dialogue lives in `data/dialogue/<id>.json`, opened with `Game.talk(id)` (or `-- --dialogue=<id>`

@@ -12,6 +12,7 @@
 		{"id": "next_tool", "label": "Next tool", "keys": ["Tab"]},
 		{"id": "next_seed", "label": "Next seed / food", "keys": ["Q"]},
 		{"id": "rucksack", "label": "Rucksack", "keys": ["I"], "pad": ["back"]},
+		{"id": "eat", "label": "Eat (rucksack)", "keys": ["F"]},
 		{"id": "pause", "label": "Pause", "keys": [], "fixed": ["Escape"], "pad": ["start"]},
 		{"id": "quick_save", "label": "Quick save", "keys": ["F5"]},
 		{"id": "quick_load", "label": "Quick load", "keys": ["F9"]}
