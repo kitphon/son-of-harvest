@@ -17,6 +17,10 @@ static func _make(key: String) -> Image:
 	match parts[0]:
 		"player":   # player:<front|back>:<idle|walk|run>:<frame>
 			return _player(parts[1] == "back", parts[2], int(parts[3]))
+		"target":   # corner brackets laid on the cell the tool will hit
+			var c := Color(1, 1, 1, 0.85)
+			return _draw(16, 16, [[0, 0, 5, 1, c], [0, 0, 1, 5, c], [11, 0, 5, 1, c], [15, 0, 1, 5, c],
+				[0, 15, 5, 1, c], [0, 11, 1, 5, c], [11, 15, 5, 1, c], [15, 11, 1, 5, c]])
 		"rock", "branch", "weed", "stump":
 			return _obstacle(parts[0])
 		"crop":     # crop:<id>:<growth 0..3>:<ripe|growing>
@@ -55,55 +59,60 @@ static func _draw(w: int, h: int, rects: Array) -> Image:
 
 
 ## Farmer frames, 16 x 24: head and torso from a pixel map, legs and hands placed per frame.
+## The camera looks along a diagonal, so every walking direction is a screen diagonal: the
+## front view is turned three-quarters towards the lower left (Down), the back view towards
+## the upper left (Left); mirrored they serve Right and Up. Steps go sideways on screen.
 const _FARMER_COLORS := {
 	"o": "2a1e1e", "h": "c8452c", "H": "8e2c1c", "s": "f2c79b", "S": "d29a6e", "e": "2a2a3a",
 	"r": "6b4423", "R": "4e3018", "b": "3b6fd1", "B": "2a50a0", "d": "34426a", "y": "d9b45a",
 	"k": "5e3d1e",
 }
 const _FARMER_FRONT := [
-	"....oooooooo....",
-	"...ohhhhhhhho...",
-	"..ohhhhhhhhhho..",
-	".oHHHHHHHHHHHHo.",
-	".oorrsssssssroo.",
-	"..orssssssssro..",
-	"..ossessssesso..",
-	"..ossessssesso..",
-	"...oSssssssSo...",
-	"....ooSSSSoo....",
+	".....oooooooo...",
+	"....ohhhhhhhho..",
+	"...ohhhhhhhhhho.",
+	".ooHHHHHHHHHHHo.",
+	"..osssssrrrrrro.",
+	"..osssssssrrrro.",
+	"..osessessSrro..",
+	"..osessessSrro..",
+	"...oSssssSSoo...",
+	".....oSSSoo.....",
+	"....obbbbbbo....",
 	"...obbbbbbbbo...",
-	"..obbbbbbbbbbo..",
-	"..obbdbbbbdbbo..",
-	"..obbddddddbbo..",
-	"..oBbddddddbBo..",
-	"...oddddddddo...",
-	"...oddddddddo...",
+	"...obdbbbbdbo...",
+	"...obddddddbo...",
+	"...oBddddddBo...",
+	"....oddddddo....",
+	"....oddddddo....",
 ]
 const _FARMER_BACK := [
-	"....oooooooo....",
-	"...ohhhhhhhho...",
-	"..ohhhhhhhhhho..",
-	".oHHHHHHHHHHHHo.",
-	".oorrrrrrrrrroo.",
-	"..orrrrrrrrrro..",
-	"..orrrrrrrrrro..",
+	".....oooooooo...",
+	"....ohhhhhhhho..",
+	"...ohhhhhhhhhho.",
+	".ooHHHHHHHHHHHo.",
+	"..oSrrrrrrrrro..",
+	"..oSrrrrrrrrro..",
+	"..osrrrrrrrrro..",
 	"..oRrrrrrrrrRo..",
-	"...oSssssssSo...",
-	"....ooSSSSoo....",
+	"...oSRrrrrrRo...",
+	".....oSSSoo.....",
+	"....obbbbbbo....",
 	"...obbbbbbbbo...",
-	"..obbbbbbbbbbo..",
-	"..obbdbbbbdbbo..",
-	"..obbbdbbdbbbo..",
-	"..oBbbbddbbbBo..",
-	"...oddddddddo...",
-	"...oddddddddo...",
+	"...obbdbbdbbo...",
+	"...obbbddbbbo...",
+	"...oBbbddbbBo...",
+	"....oddddddo....",
+	"....oddddddo....",
 ]
-## Per pose, per frame: [body drop, left leg lift, right leg lift, left hand y, right hand y,
-## leg spread]. Walk / run cycles go contact, left step, contact, right step.
+## Per pose, per frame: [body drop, near leg x shift, near leg lift, far leg x shift,
+## far leg lift, near hand x shift, far hand x shift]. Negative x = the way the view faces.
+## Walk / run cycles go contact, pass, contact, pass: on contact the legs are spread with the
+## opposite arm forward and the body 1 px lower; on a pass one foot is lifted under the body.
 const _FARMER_POSES := {
-	"idle": [[0, 0, 0, 14, 14, 0]],
-	"walk": [[1, 0, 0, 14, 14, 0], [0, 2, 0, 15, 13, 0], [1, 0, 0, 14, 14, 0], [0, 0, 2, 13, 15, 0]],
-	"run": [[1, 0, 0, 13, 13, 1], [0, 3, 0, 15, 12, 0], [1, 0, 0, 13, 13, 1], [0, 0, 3, 12, 15, 0]],
+	"idle": [[0, 0, 0, 0, 0, 0, 0]],
+	"walk": [[1, -2, 0, 2, 0, 2, -2], [0, 0, 0, 0, 2, 0, 0], [1, 2, 0, -2, 0, -2, 2], [0, 0, 2, 0, 0, 0, 0]],
+	"run": [[1, -3, 0, 3, 0, 3, -3], [0, 0, 0, 0, 3, 0, 0], [1, 3, 0, -3, 0, -3, 3], [0, 0, 3, 0, 0, 0, 0]],
 }
 
 
@@ -111,20 +120,20 @@ static func farmer_frames(pose: String) -> int:
 	return _FARMER_POSES[pose].size()
 
 
-## The bag hangs on the farmer's left, so it shows on the right of the front view and on the
-## left of the back view, and moves sides when the sprite is mirrored.
+## Draw order back to front: far hand, far leg, near leg, body, bag, near hand. The bag hangs
+## at the farmer's back on the front view and at the front on the back view.
 static func _player(back: bool, pose: String, frame: int) -> Image:
 	var p: Array = _FARMER_POSES[pose][frame % farmer_frames(pose)]
 	var img := Image.create_empty(16, 24, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
-	_leg(img, 4 - p[5], p[1])
-	_leg(img, 9 + p[5], p[2])
+	_hand(img, 11 + p[6], 14 + p[0])
+	_leg(img, 8 + p[3], p[4])
+	_leg(img, 5 + p[1], p[2])
 	_map(img, _FARMER_BACK if back else _FARMER_FRONT, p[0])
-	var bag_x := 0 if back else 12
-	img.fill_rect(Rect2i(bag_x, 15 + p[0], 4, 5), Color(_FARMER_COLORS.o))
-	img.fill_rect(Rect2i(bag_x + 1, 16 + p[0], 2, 3), Color(_FARMER_COLORS.y))
-	_hand(img, 2, p[3] + p[0])
-	_hand(img, 12, p[4] + p[0])
+	var bag_x := 1 if back else 11
+	img.fill_rect(Rect2i(bag_x, 14 + p[0], 4, 5), Color(_FARMER_COLORS.o))
+	img.fill_rect(Rect2i(bag_x + 1, 15 + p[0], 2, 3), Color(_FARMER_COLORS.y))
+	_hand(img, 4 + p[5], 14 + p[0])
 	return img
 
 

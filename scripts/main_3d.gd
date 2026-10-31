@@ -49,7 +49,11 @@ func _ready() -> void:
 	var quad := PlaneMesh.new()
 	quad.size = Vector2(1, 1)
 	target_mark.mesh = quad
-	target_mark.material_override = FarmWorld.flat_material(Color(1, 1, 1, 0.3))
+	# Brackets on the cell in front, where the tool lands (not the cell the farmer stands on).
+	var mark_mat := FarmWorld.flat_material(Color(1, 1, 1, 0.99))
+	mark_mat.albedo_texture = PlaceholderArt.tex("target")
+	mark_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	target_mark.material_override = mark_mat
 	add_child(target_mark)
 
 	cam = Camera3D.new()

@@ -21,7 +21,7 @@ fence instead of four long boxes. Then rain / snow particles.
    - [x] HUD, 2D view, 3D view with the HM field camera (yaw 45°, pitch 26.6°, FOV 13.7°)
    - [ ] Clock pauses indoors / in menus (no indoors yet)
 2. **Look and feel**
-   - [x] Farmer placeholder frames (front / back x idle / walk / run) + animation timing
+   - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)
    - [x] Field object and crop placeholders (per crop look in `data/crops.json`, 4 growth looks + ripe)
    - [ ] Field object and crop real art (same keys: `crop:<id>:<growth>:<ripe|growing>`)

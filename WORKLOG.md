@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Farmer in three-quarter views, target brackets
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: after playing, the user found the walk odd (only a flat front and back, no side)
+  and the white cell highlight not under the farmer. Measured with
+  `Camera3D.unproject_position` while walking: Right goes to the lower right of the screen,
+  Down lower left, Left upper left, Up upper right, so every direction is a screen diagonal.
+  The farmer is now drawn three-quarters: the front view turned to the lower left, the back
+  view to the upper left (mirrored for Right / Up as before). Steps go sideways on screen:
+  contact frames spread the legs with the opposite arm forward, pass frames lift one foot.
+  The highlight is the tool's target (the cell in front), by design; it is now corner
+  brackets instead of a filled square so it reads as a target, with a comment saying so.
+- Checked: `test_farm: OK (0 failed)`; headless `--quit-after 300` printed no errors or
+  warnings; a temporary SceneTree script pressed each direction (walk, then run) under Movie
+  Maker, and the frames show the farmer facing the way they move in all 8 cases, with the
+  brackets on the cell in front. The script was deleted afterwards.
+- Left / next: no tool-swing animation yet (milestone 3).
+
 ## 2026-10-31 — Ground tiles
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: PlaceholderArt draws 16 x 16 ground tiles: grass and path in 4 variants each (picked
