@@ -19,7 +19,7 @@ var close_hour := 24
 var days_off: Array[String] = []
 var keeper := ""                    # the villager at the counter; "" = the counter works alone
 var stock_by_season: Dictionary = {}   # season, "any" or "supplies" -> [{item, price?, name?, to?, full?}]
-var buys: Dictionary = {}           # kind (crop, food; stone, ore, gem from the mine) -> percent of the item's value
+var buys: Dictionary = {}           # kind (crop, dish, food; stone, ore, gem from the mine) -> percent of the item's value
 var upgrade_tools: Array[String] = []
 var upgrade_levels: Dictionary = {}    # "2".."5" -> {price, days, items?}
 var tool_upgrade_levels: Dictionary = {}   # tool -> its own levels (the rod)
@@ -191,14 +191,17 @@ func _mine(item: String) -> Dictionary:
 
 
 ## What the shop pays for one `item` (0 = it doesn't buy it): a percent of a crop's sell
-## price, a food's price or a mine find's sell price (by its kind: stone, ore, gem), rounded
-## down.
+## price, a dish's sell price (a kitchen food: sell in foods.json, shop false), a food's price or a mine
+## find's sell price (by its kind: stone, ore, gem), rounded down.
 func buy_back(item: String) -> int:
 	var find := _mine(item)
 	if not find.is_empty():
 		return int(find.get("sell", 0)) * int(buys.get(str(find.get("kind", "")), 0)) / 100
 	if crops.has(item) and buys.has("crop"):
 		return int(crops[item].get("sell", 0)) * int(buys.crop) / 100
+	var dish: Dictionary = foods.get(item.trim_prefix("food:"), {}) if item.begins_with("food:") else {}
+	if int(dish.get("sell", 0)) > 0 and not dish.get("shop", false) and buys.has("dish"):
+		return int(dish.sell) * int(buys.dish) / 100
 	if item.begins_with("food:") and buys.has("food"):
 		return base_price(item) * int(buys.food) / 100
 	return 0

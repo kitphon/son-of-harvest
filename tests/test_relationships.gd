@@ -2,7 +2,8 @@ extends SceneTree
 ## Headless checks for relationships: the heart band on the text box's name tag, birthdays
 ## (villager files, the calendar, gifts counting x5, the birthday lines), the small nightly
 ## loss for villagers left alone, the heart events (one per villager at band 3 and one at band
-## 5), birthday day plans, fair weather and the HUD tag on a birthday, mine finds as gifts. Run:
+## 5), birthday day plans, fair weather and the HUD tag on a birthday, mine finds and cooked dishes as
+## gifts. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_relationships.gd
 
 var failures := 0
@@ -17,6 +18,7 @@ func _init() -> void:
 	_heart_event_rows()
 	_birthday_plans()
 	_mine_gifts()
+	_dish_gifts()
 
 
 func _process(_delta: float) -> bool:
@@ -24,6 +26,7 @@ func _process(_delta: float) -> bool:
 	if _frame == 1:
 		_hearts_in_text_box()
 		_birthday_talk()
+		_dish_gift_in_game()
 		_neglect_in_game()
 		_heart_events_play()
 		_birthday_weather()
@@ -208,6 +211,39 @@ func _mine_gifts() -> void:
 	check(Villagers.reaction("kota", "mine:suisho") == "love", "Kota loves a crystal")
 
 
+## Dishes in the gift lists are real foods; every villager loves a cooked dish and dislikes
+## another, and every cooked dish (a food with a sell, from the kitchen) is welcome somewhere.
+func _dish_gifts() -> void:
+	var foods: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/foods.json")).foods
+	var welcome := {}
+	for id in Villagers.all():
+		var loves := 0
+		var dislikes := 0
+		for r in Villagers.all()[id].gifts:
+			for item in Villagers.all()[id].gifts[r]:
+				if not item.begins_with("food:"):
+					continue
+				var f: Dictionary = foods.get(item.trim_prefix("food:"), {})
+				check(not f.is_empty(), "%s's %s %s is a food" % [id, r, item])
+				if f.get("shop", true) or int(f.get("sell", 0)) <= 0:
+					continue
+				loves += 1 if r == "love" else 0
+				dislikes += 1 if r in ["dislike", "hate"] else 0
+				if r in ["love", "like"]:
+					welcome[item] = true
+		check(loves > 0 and dislikes > 0, "%s loves a dish and dislikes one (%d, %d)" % [id, loves, dislikes])
+	for f in foods:
+		if not foods[f].get("shop", true) and int(foods[f].get("sell", 0)) > 0:
+			check(welcome.has("food:" + f), "someone likes %s" % f)
+	check(Villagers.reaction("tome", "food:furofuki_daikon") == "love" and Villagers.reaction("tome", "food:milk_pudding") == "dislike", "Tome: old-style simmering, no milk pudding")
+	check(Villagers.reaction("hachiro", "food:grilled_fish") == "love" and Villagers.reaction("hachiro", "food:kinako_mochi") == "dislike", "Hachiro: fish, no sweets")
+	check(Villagers.reaction("kota", "food:milk_pudding") == "love" and Villagers.reaction("sayo", "food:tamagoyaki") == "love", "Kota and Sayo love egg and milk dishes")
+	check(Villagers.reaction("sayo", "food:miso_soup") == "neutral", "an unlisted dish is neutral")
+	var a := Affection.new()
+	var g := a.give("hachiro", "food:daikon_fish", 3, true)
+	check(g.ok and g.reaction == "love" and g.change == int(Affection.rules().gift.love) * int(Affection.rules().birthday_times), "a loved dish counts x5 on a birthday too")
+
+
 # --- on the real Game -------------------------------------------------------
 
 func _game() -> Node:
@@ -265,6 +301,27 @@ func _birthday_talk() -> void:
 	g.held = "carrot"
 	g.talk_to("kota", Vector2i.DOWN)
 	check(said.back() == ["talk_kota", "gift_hate"], "a hated birthday gift isn't thanked %s" % [said.back()])
+
+
+## A dish carried overhead (cooked dishes come several to a stack) is a gift: one of the
+## stack goes, on a birthday x5 with the birthday answer; a disliked dish answers as it is.
+func _dish_gift_in_game() -> void:
+	var g := _game()
+	var said := []
+	g.dialogue_requested.connect(func(id, at): said.append([id, at]))
+	var b: Dictionary = Villagers.all().hachiro.birthday
+	g.season = g.SEASONS.find(b.season)
+	g.day = int(b.day)
+	g.weather_today = "sunny"
+	g.hour = 9
+	g.inventory.slots.hand[0] = {"id": "food:grilled_fish", "n": 2}
+	check(g.talk_to("hachiro", Vector2i.DOWN) == "gift" and said.back() == ["talk_hachiro", "gift_birthday"], "grilled fish on his birthday %s" % [said.back()])
+	check(g.affection.of("hachiro") == int(Affection.rules().gift.love) * int(Affection.rules().birthday_times), "counts x5 (%d)" % g.affection.of("hachiro"))
+	check(g.held == "food:grilled_fish" and g.inventory.count("food:grilled_fish", ["hand"]) == 1, "one of the two is given, one stays overhead")
+	g.day = int(b.day) % 30 + 1
+	g.talk_to("sayo", Vector2i.DOWN)
+	check(said.back() == ["talk_sayo", "gift_dislike"] and not g.holding(), "Sayo takes the fish dish, without joy %s" % [said.back()])
+	check(g.affection.of("sayo") == maxi(int(Affection.rules().gift.dislike), 0), "and likes the farmer no more for it")
 
 
 ## Game.end_day runs the nightly loss, before the date moves (a talk that day keeps it).

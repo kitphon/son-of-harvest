@@ -36,6 +36,7 @@ func _init() -> void:
 	_rod()
 	_extras_save()
 	_ores_and_finds()
+	_dishes_sold()
 
 
 # The real Game autoload and a screen need the tree, so they wait for the first frame.
@@ -121,7 +122,6 @@ func _data() -> void:
 	check(store.price("seeds:rice", "summer") > 0 and store.price("seeds:rice", "fall") > 0 and store.price("seeds:daikon", "summer") == -1,
 		"data: rice seeds in summer and fall, daikon only in fall")
 	check(store.buy_back("daikon") == int(crops.daikon.sell) * int(store.buys.crop) / 100 and store.buy_back("rice") > 0, "data: the store buys daikon and rice")
-	check(store.buy_back("food:kinako_mochi") == 0, "data: the store doesn't buy dishes (the bin does)")
 	check(Shop.make("nowhere", crops, foods) == null, "data: unknown shop")
 
 
@@ -644,6 +644,37 @@ func _ores_and_finds() -> void:
 	money = g.money
 	r = g.shop_sell("general", "mine:meno", 1)
 	check(r.ok and g.money == money + store.buy_back("mine:meno"), "agate sold at the store: %s" % r.note)
+	g.free()
+
+
+## The store buys every cooked dish (a food with a sell, not on a shelf) for less than the bin
+## pays, and no food it sells itself (onigiri); the sell tab lists a dish carried.
+func _dishes_sold() -> void:
+	var store := Shop.make("general", crops, foods)
+	var pct := int(store.buys.get("dish", 0))
+	check(pct > 0 and pct < 100, "data: the store buys dishes below the bin's price (%d%%)" % pct)
+	for id in foods:
+		var sell := int(foods[id].get("sell", 0))
+		if sell > 0 and not foods[id].get("shop", false):
+			check(store.buy_back("food:" + id) == sell * pct / 100 and store.buy_back("food:" + id) > 0, "data: the store buys %s for %d" % [id, store.buy_back("food:" + id)])
+		else:
+			check(store.buy_back("food:" + id) == 0, "data: the store doesn't buy %s back (no sell, or on a shelf)" % id)
+	check(Shop.make("smithy", crops, foods).buy_back("food:potato_stew") == 0, "the smithy buys no dishes")
+	check(foods.onigiri.shop and int(foods.onigiri.sell) > 0 and store.buy_back("food:onigiri") == 0, "a cooked onigiri isn't bought: the store sells them")
+	var g := _new_game()
+	g.inventory.add("food:potato_stew", 2)
+	g.inventory.add("food:dango", 1)
+	var m := ShopMenu.new(g, "general")
+	m.next_tab()
+	var rows: Array = m.rows()
+	check(m.tab_id() == "sell" and rows.size() == 1 and rows[0].item == "food:potato_stew" and rows[0].have == 2
+		and rows[0].price == store.buy_back("food:potato_stew"), "the sell tab lists the stew, not the dango %s" % [rows])
+	var money: int = g.money
+	var r: Dictionary = g.shop_sell("general", "food:potato_stew", 2)
+	check(r.ok and g.money == money + 2 * store.buy_back("food:potato_stew") and g.count("food:potato_stew") == 0, "stew sold: %s" % r.note)
+	g.held = "food:tamagoyaki"
+	r = g.shop_sell("general", "food:tamagoyaki", 1)
+	check(r.ok and g.held == "", "a dish overhead sells too: %s" % r.note)
 	g.free()
 
 

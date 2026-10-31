@@ -325,6 +325,9 @@ did not change. Raw farm goods are edible too: `data/foods.json` `raw` (crops, e
 the screen open (the kitchen built, a few ingredients, one recipe learned).
 Dishes ship: `sell` in foods.json is what one fetches in the bin (`Game.sell_price`). E at
 the bin takes dishes only from the hand (the rucksack's are lunch); throwing one in works too.
+The Yorozu Store buys the kitchen's dishes from the rucksack or the hand (`buys` kind `dish`,
+80% of `sell`; not the foods it stocks itself), and a dish overhead is a gift like any item
+(`food:<id>` in a villager's `gifts`; one of a stack in hand goes).
 Rice (`holds_water` in crops.json) keeps its watered cell wet night after night, like a paddy,
 until it is picked. `-- --demo --season=fall` (or `summer`) sows that season's crops in the
 demo field: ripe daikon (fall), ripe rice (summer).
