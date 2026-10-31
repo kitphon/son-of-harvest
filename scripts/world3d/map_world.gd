@@ -78,6 +78,10 @@ func _make_prop(p: Dictionary) -> void:
 		"low_table": _low_table(mid)
 		"tansu": _tansu(mid)
 		"andon": _andon(mid)
+		"kamado": _kamado(mid)
+		"mizuya": _mizuya(mid)
+		"nagamochi": _nagamochi(mid)
+		"kotatsu": _kotatsu(mid)
 		"village_house": _village_house(r, int(p.get("door", 1)), bool(p.get("noren", false)))
 		"torii": _torii(mid, r)
 		"hokora": _hokora(mid)
@@ -143,6 +147,51 @@ func _andon(mid: Vector3) -> void:
 		for z in [-0.15, 0.15]:
 			_box(Vector3(0.04, 0.66, 0.04), mid + Vector3(x, 0.33, z), frame)
 	_box(Vector3(0.34, 0.04, 0.34), mid + Vector3(0, 0.64, 0), frame)
+
+
+## A clay cooking stove (kamado, kitchen extension): a pale clay block, a dark fire mouth in
+## front, an iron pot on top.
+func _kamado(mid: Vector3) -> void:
+	_box(Vector3(0.8, 0.55, 0.7), mid + Vector3(0, 0.275, -0.05), flat_material(Color("c8b498")))
+	_box(Vector3(0.3, 0.2, 0.04), mid + Vector3(0, 0.16, 0.31), flat_material(Color("2a1a10")))
+	_box(Vector3(0.22, 0.06, 0.03), mid + Vector3(0, 0.12, 0.33), flat_material(Color("e8742a")))   # embers
+	var pot := CylinderMesh.new()
+	pot.top_radius = 0.2
+	pot.bottom_radius = 0.16
+	pot.height = 0.2
+	pot.radial_segments = 12
+	var mi := MeshInstance3D.new()
+	mi.mesh = pot
+	mi.material_override = flat_material(Color("2e2a28"))
+	mi.position = mid + Vector3(0, 0.65, -0.05)
+	add_child(mi)
+
+
+## A kitchen cupboard (mizuya): dark wood below, sliding paper doors above, a bowl on the ledge.
+func _mizuya(mid: Vector3) -> void:
+	var at := mid + Vector3(0, 0, -0.15)
+	_box(Vector3(0.9, 0.5, 0.55), at + Vector3(0, 0.25, 0), surface_material("build:planks_dark"))
+	_box(Vector3(0.9, 0.6, 0.45), at + Vector3(0, 0.8, -0.05), flat_material(Color("efe6cc")))
+	_box(Vector3(0.04, 0.6, 0.47), at + Vector3(0, 0.8, -0.05), flat_material(Color("2e221a")))
+	_box(Vector3(0.96, 0.05, 0.58), at + Vector3(0, 1.12, 0), flat_material(Color("2e221a")))
+	_box(Vector3(0.2, 0.08, 0.2), at + Vector3(0.2, 0.54, 0.12), flat_material(Color("3a5a8c")))
+
+
+## A long lidded chest (nagamochi, bigger chest extension): planks with iron corners.
+func _nagamochi(mid: Vector3) -> void:
+	_box(Vector3(0.92, 0.5, 0.55), mid + Vector3(0, 0.25, -0.1), surface_material("build:planks"))
+	_box(Vector3(0.96, 0.06, 0.6), mid + Vector3(0, 0.53, -0.1), flat_material(Color("4a3424")))
+	var iron := flat_material(Color("1e1a18"))
+	for x in [-0.42, 0.42]:
+		_box(Vector3(0.08, 0.5, 0.04), mid + Vector3(x, 0.25, 0.19), iron)
+	_box(Vector3(0.1, 0.1, 0.03), mid + Vector3(0, 0.38, 0.19), iron)
+
+
+## A kotatsu (second room): a low table under a quilt that falls to the floor.
+func _kotatsu(mid: Vector3) -> void:
+	_box(Vector3(0.9, 0.3, 0.9), mid + Vector3(0, 0.15, 0), surface_material("build:quilt"))
+	_box(Vector3(0.8, 0.05, 0.8), mid + Vector3(0, 0.33, 0), surface_material("build:planks"))
+	_box(Vector3(0.14, 0.1, 0.14), mid + Vector3(-0.15, 0.4, 0.1), flat_material(Color("e8a23a")))   # a mikan
 
 
 ## A village house over its footprint: board skirting, plaster walls, a kawara gable roof

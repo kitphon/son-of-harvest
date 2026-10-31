@@ -1,7 +1,8 @@
 class_name MapManager
 extends RefCounted
 ## Which map the farmer is on and where they stand (player pixels, 16 per cell, and facing).
-## Map files are read from data/maps/<id>.json once and shared. Game owns one of these
+## Map files are read from data/maps/<id>.json once and shared, with the house extensions
+## that are built applied (a file's "extensions"; Game sets `built`). Game owns one of these
 ## (Game.maps), changes it through Game.go_to_map() and saves it; the views read it.
 
 const DIR := "res://data/maps/"
@@ -10,6 +11,7 @@ const HOME := "house"           # where the farmer wakes up (its "home" spawn)
 const T := 16
 
 static var _cache: Dictionary = {}   # id -> MapData (null when the file is missing or broken)
+static var built: Array[String] = []  # extensions in effect (data/shops.json builds; Game.house_built)
 
 var id := FARM
 var pos := cell_pos(Vector2i(4, 4))  # the farmer's feet; the Player writes it as it walks
@@ -26,20 +28,52 @@ static func data(map_id: String) -> MapData:
 	return _cache[map_id]
 
 
+## Puts these extensions in effect; the maps are read again when it changes something.
+static func set_built(list: Array) -> void:
+	var want: Array[String] = []
+	want.assign(list)
+	if want != built:
+		built = want
+		_cache.clear()
+
+
 ## Is there a map file with this id?
 static func has(map_id: String) -> bool:
 	return map_id != "" and FileAccess.file_exists(DIR + map_id + ".json")
 
 
-## [error, MapData] read from data/maps/<id>.json, without the cache (for checks).
-static func load_map(map_id: String) -> Array:
+## [error, MapData] read from data/maps/<id>.json, without the cache (for checks), with the
+## extensions `ext` (default: the ones in effect) applied.
+static func load_map(map_id: String, ext: Variant = null) -> Array:
 	var path := DIR + map_id + ".json"
 	if map_id == "" or not FileAccess.file_exists(path):
 		return ["no file " + path, null]
-	var r := MapData.parse(JSON.parse_string(FileAccess.get_file_as_string(path)))
+	var raw = JSON.parse_string(FileAccess.get_file_as_string(path))
+	var r := MapData.parse(with_extensions(raw, built if ext == null else ext))
 	if r[0] == "" and r[1].id != map_id:
 		return ["the file's id is " + r[1].id, null]
 	return r
+
+
+## A map file's data with the extensions in `ext` applied, in the file's order: their props
+## are added, any other key replaces the map's own. The "extensions" key itself goes.
+static func with_extensions(raw: Variant, ext: Array) -> Variant:
+	if not raw is Dictionary or not raw.get("extensions") is Dictionary:
+		return raw
+	var out: Dictionary = raw.duplicate(true)
+	out.erase("extensions")
+	for key in raw.extensions:
+		var patch = raw.extensions[key]
+		if not key in ext or not patch is Dictionary:
+			continue
+		for k in patch:
+			if k == "props":
+				var props: Array = out.get("props", []).duplicate()
+				props.append_array(patch.props.duplicate(true))
+				out.props = props
+			else:
+				out[k] = patch[k].duplicate(true) if patch[k] is Array or patch[k] is Dictionary else patch[k]
+	return out
 
 
 ## Every map id with a file in data/maps.
@@ -91,12 +125,15 @@ func to_dict() -> Dictionary:
 	return {"id": id, "x": roundi(pos.x), "y": roundi(pos.y), "facing": [facing.x, facing.y]}
 
 
-## [error, {id, pos, facing}] checked from saved data, nothing changed yet.
-static func check_saved(v: Variant) -> Array:
+## [error, {id, pos, facing}] checked from saved data, nothing changed yet. `ext`: the
+## extensions the save has built (default: the ones in effect).
+static func check_saved(v: Variant, ext: Variant = null) -> Array:
 	if not v is Dictionary:
 		return ["Saved map is broken", null]
 	var known: bool = v.get("id") is String and has(v.id)
-	var m := data(v.id) if known else null
+	var m: MapData = null
+	if known:
+		m = data(v.id) if ext == null else load_map(v.id, ext)[1]
 	if m == null:
 		return ["Saved map is unknown", null]
 	var x = SaveGame.whole(v.get("x"), 0, m.w * T - 1)

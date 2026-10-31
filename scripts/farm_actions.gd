@@ -118,6 +118,8 @@ static func interact(c: Vector2i) -> void:
 				Game.sleep()
 			"shop":
 				Game.open_shop(str(prop.get("shop", "")))
+			"storage":   # the house's chest lid (bigger chest extension): the same storage
+				Game.open_inventory("storage")
 		return
 	var farm := Game.farm
 	match farm.fixed_at(c):

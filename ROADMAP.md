@@ -64,15 +64,19 @@ bump delay, their own house maps (`away` until then), talking / gifts / affectio
 Shops are in (data/shops.json): the Yorozu Store and the Kurogane Smithy in the village, with
 opening hours and days off, a buy / sell screen and tool upgrades over days (saved). A
 shopkeeper only has to stand at the map's `keeper` spawn and call `Game.open_shop(id)`.
-Later for shops: house extensions and the rucksack upgrade for sale.
+The store also sells chickens (only with room in the coop), feed, Animal Medicine and two
+bigger rucksacks, and takes orders for house extensions (bigger chest, kitchen corner, second
+room) that Hachiro builds over days; the smithy improves the rod (bite factor per level in
+data/fish.json). Later for shops: cooking in the kitchen corner, Hachiro seen at work while
+building, cows / sheep in the supplies once the barn exists.
 Chickens are in (milestone 7): the thatched coop right of the stand is a map (feed box,
 nests, incubator, hen hatch); rules in `Animals`, numbers in `data/animals.json`, saved
 (save version 2). The shop sells chickens through `Game.add_animal("chicken")`, feed through
-`Game.animals.add_feed(n)` and Animal Medicine as the rucksack item `medicine` (not sold yet).
+`Game.animals.add_feed(n)` and Animal Medicine as the rucksack item `medicine` (all sold at the store).
 Fishing is in (milestone 9): the rod is the 8th tool slot, a cast waits for a bite ("!" and a
 plip), a press in time lands a fish overhead (ship it in the bin or keep it in the rucksack);
 fish, odds, bite timing and the pity rule are in `data/fish.json`. Later for fishing: a river,
-better rods from the blacksmith (a bite-chance factor per rod level), fish as food / gifts, and
+fish as food / gifts, and
 the 2D view's action hookup (main_2d.gd doesn't connect the Player's actions yet).
 Next: milestone 5, **talking, gifts, affection** for the villagers, with the shopkeepers at
 their counters (`Villagers.is_on` tells whether a keeper is out, `Game.open_shop(id)` opens
@@ -129,7 +133,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [ ] Cows / sheep (barn, milk / wool, brushing), dog
 8. **Shops and economy**
    - [x] Shops with prices from data, tool upgrades (data/shops.json; store and smithy in the village)
-   - [ ] House extensions, rucksack upgrade for sale
+   - [x] House extensions, rucksack upgrade for sale (store: chickens, feed, medicine; smithy: the rod)
    - [ ] Balance pass (income per season, seed costs)
 9. **Festivals, mining / fishing, relationships, endings**
    - [x] Fishing: rod (8th tool slot), cast at the farm / village pond, bite cue, fish per place / season / hour / weather (data/fish.json)

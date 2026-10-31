@@ -4,11 +4,14 @@ extends SceneTree
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_shops.gd
 
 const TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe", "seeds", "food"]
+const TOOLS_ALL: Array[String] = ["hoe", "can", "sickle", "hammer", "axe", "seeds", "food", "rod"]
 
 var failures := 0
 var crops: Dictionary
 var foods: Dictionary
 var tools_data: Dictionary
+var fish_rules: Dictionary
+var animal_rules: Dictionary
 var _frame := 0
 
 
@@ -16,6 +19,8 @@ func _init() -> void:
 	crops = JSON.parse_string(FileAccess.get_file_as_string("res://data/crops.json"))
 	foods = JSON.parse_string(FileAccess.get_file_as_string("res://data/foods.json")).foods
 	tools_data = JSON.parse_string(FileAccess.get_file_as_string("res://data/tools.json"))
+	fish_rules = JSON.parse_string(FileAccess.get_file_as_string("res://data/fish.json"))
+	animal_rules = Animals.data()
 	_data()
 	_hours()
 	_stock_and_deals()
@@ -24,6 +29,11 @@ func _init() -> void:
 	_game()
 	_menu()
 	_save()
+	_rucksack()
+	_animal_goods()
+	_builds()
+	_rod()
+	_extras_save()
 
 
 # The real Game autoload and a screen need the tree, so they wait for the first frame.
@@ -62,12 +72,42 @@ func _data() -> void:
 				var crop: String = e.item.trim_prefix("seeds:")
 				if e.item.begins_with("seeds:"):
 					check(crops.has(crop) and season in crops[crop].seasons, "data: %s seeds %s in their season %s" % [id, crop, season])
+				elif e.to == "animal":
+					check(animal_rules.kinds.has(e.item.trim_prefix("animal:")), "data: %s sells the animal %s" % [id, e.item])
+				elif e.to == "feed":
+					check(e.item == "feed", "data: %s sells feed" % id)
+				elif animal_rules.get("items", {}).has(e.item):
+					check(s.item_name(e.item) == animal_rules.items[e.item].name, "data: %s calls %s by its name" % [id, e.item])
 				else:
 					check(e.item.begins_with("food:") and foods.has(e.item.trim_prefix("food:")), "data: %s food %s exists" % [id, e.item])
 		for tool in s.upgrade_tools:
-			check(tool in TOOLS and tools_data.tools.has(tool), "data: %s upgrades the tool %s" % [id, tool])
-			for lv in s.upgrade_levels:
-				check(int(lv) >= 2 and int(lv) <= tools_data.tools[tool].max_charge.size(), "data: %s level %s exists for %s" % [id, lv, tool])
+			var top: int = fish_rules.rod.bite_factor.size() if tool == "rod" else tools_data.tools.get(tool, {}).get("max_charge", []).size()
+			check(tool in TOOLS_ALL and top > 1, "data: %s upgrades the tool %s" % [id, tool])
+			for lv in s.tool_upgrade_levels.get(tool, s.upgrade_levels):
+				check(int(lv) >= 2 and int(lv) <= top, "data: %s level %s exists for %s" % [id, lv, tool])
+		var last := 0
+		for e in s.rucksack_levels:
+			check(int(e.slots) > last and int(e.price) > 0, "data: %s rucksack levels grow" % id)
+			last = int(e.slots)
+		for b in s.builds:
+			check(s.build_map == MapManager.HOME and int(s.builds[b].price) > 0 and int(s.builds[b].days) >= 1, "data: %s builds %s" % [id, b])
+			var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/maps/house.json"))
+			check(raw.extensions.has(b), "data: house.json has the %s extension" % b)
+	# Every mix of extensions makes a house that still has its futon, door and spawns free.
+	var ext: Array = Shop.make("general", crops, foods).builds.keys()
+	for mask in 1 << ext.size():
+		var on := []
+		for i in ext.size():
+			if mask & (1 << i):
+				on.append(ext[i])
+		var r := MapManager.load_map("house", on)
+		check(r[0] == "", "house with %s parses: %s" % [on, r[0]])
+		if r[0] == "":
+			var m: MapData = r[1]
+			check(m.door_at(Vector2i(4, 6)).to == "farm" and m.prop_at(Vector2i(1, 1)).get("use", "") == "sleep", "house with %s: door and futon" % [on])
+			for sp in m.spawns:
+				check(not m.is_solid(m.spawns[sp][0]), "house with %s: spawn %s is free" % [on, sp])
+			check(not m.is_solid(Vector2i(4, 5)), "house with %s: the way in is free" % [on])
 	var store := Shop.make("general", crops, foods)
 	check(store.price("seeds:turnip", "spring") == int(crops.turnip.seed_price), "data: seed price from crops.json")
 	check(store.price("food:milk", "summer") == 100, "data: a price set in shops.json wins")
@@ -217,13 +257,16 @@ func _game() -> void:
 func _menu() -> void:
 	var g := _new_game()
 	var m := ShopMenu.new(g, "general")
-	check(m.tabs == ["buy", "sell"], "store tabs %s" % [m.tabs])
+	check(m.tabs == ["buy", "sell", "build"], "store tabs %s" % [m.tabs])
 	check(ShopMenu.new(g, "smithy").tabs == ["tools"], "smithy tab")
 	var rows := m.rows()
-	check(rows.size() == 9 and rows[0].item == "seeds:turnip", "spring stock: 4 for spring + 5 any")
+	check(rows.size() == 13 and rows[0].item == "rucksack" and rows[1].item == "animal:chicken" and rows[4].item == "seeds:turnip",
+		"spring stock: the rucksack, 3 supplies, 4 for spring, 5 any")
 	m.move(-1)
-	check(m.cursor == 8, "the cursor wraps up")
+	check(m.cursor == 12, "the cursor wraps up")
 	m.move(1)
+	check(m.most() == 1, "one rucksack at a time")
+	m.point(4)
 	g.money = 300
 	m.change_count(1)
 	check(m.count == 2 and m.total() == 240, "two turnip bags cost 240")
@@ -242,7 +285,7 @@ func _menu() -> void:
 	m.choose()
 	check(g.count("potato") == 0 and m.rows().is_empty() and m.cursor == 0, "sold them all, list empty")
 	var t := ShopMenu.new(g, "smithy")
-	check(t.rows().size() == 5 and t.current().state == "offer" and t.current().price == 1000, "smithy offers")
+	check(t.rows().size() == 6 and t.current().state == "offer" and t.current().price == 1000, "smithy offers")
 	g.money = 999
 	check(not t.choose().is_empty() and not t.last_ok and g.shop_jobs.is_empty(), "not enough money for the smith")
 	g.money = 2000
@@ -281,6 +324,184 @@ func _save() -> void:
 	b.free()
 
 
+## Bigger rucksacks: bought once per level, in order, the bag keeps what is in it.
+func _rucksack() -> void:
+	var s := Shop.make("general", crops, foods)
+	check(s.rucksack_offer(8) == {"item": "rucksack", "level": 2, "slots": 12, "price": 2000, "to": "rucksack"}, "first bigger rucksack")
+	check(s.rucksack_offer(12).slots == 16 and s.rucksack_offer(12).price == 6000, "then the biggest")
+	check(s.rucksack_offer(16).is_empty() and Shop.make("smithy", crops, foods).rucksack_offer(8).is_empty(), "none past the top, none at the smithy")
+	var g := _new_game()
+	g.inventory.add("turnip", 3)
+	g.money = 1999
+	var r: Dictionary = g.shop_buy("general", "rucksack")
+	check(not r.ok and g.money == 1999 and g.inventory.size("bag") == 8 and r.note == "Not enough money (2000 G)", "rucksack: no money")
+	g.money = 9000
+	r = g.shop_buy("general", "rucksack")
+	check(r.ok and g.money == 7000 and g.inventory.size("bag") == 12 and g.count("turnip") == 3, "rucksack level 2: %s" % r.note)
+	var m := ShopMenu.new(g, "general")
+	check(m.rows()[0].item == "rucksack" and m.rows()[0].slots == 16, "the menu offers the next one")
+	check(m.choose().begins_with("Your rucksack has 16") and g.money == 1000 and g.inventory.size("bag") == 16, "rucksack level 3 through the menu")
+	check(m.rows()[0].item != "rucksack", "no rucksack row at the top level")
+	g.money = 99999
+	r = g.shop_buy("general", "rucksack")
+	check(not r.ok and g.money == 99999 and g.inventory.size("bag") == 16 and r.note == "That's the biggest rucksack there is", "rucksack: max level")
+	g.free()
+
+
+## Chickens (only with room in the coop), feed into the coop's sack, Animal Medicine.
+func _animal_goods() -> void:
+	var g := _new_game()
+	var room: int = g.animals.room("coop")
+	check(room == 4 and g.shop_room("general", "animal:chicken") == 4, "the coop has room for 4 more")
+	g.money = 1499
+	var r: Dictionary = g.shop_buy("general", "animal:chicken")
+	check(not r.ok and g.money == 1499 and g.animals.list.size() == 2, "chicken: no money")
+	g.money = 99999
+	r = g.shop_buy("general", "animal:chicken", 5)
+	check(not r.ok and g.money == 99999 and g.animals.list.size() == 2 and r.note == "The coop is full", "five don't fit: none bought")
+	r = g.shop_buy("general", "animal:chicken", 4)
+	check(r.ok and g.money == 99999 - 4 * 1500 and g.animals.list.size() == 6 and g.animals.is_adult(g.animals.list[5]), "4 grown hens: %s" % r.note)
+	r = g.shop_buy("general", "animal:chicken")
+	check(not r.ok and g.animals.list.size() == 6 and r.note == "The coop is full", "chicken: coop full")
+	var m := ShopMenu.new(g, "general")
+	m.point(1)
+	check(m.current().item == "animal:chicken" and m.most() == 1 and not m.choose().begins_with("Bought") and not m.last_ok, "the menu refuses a hen for a full coop")
+	var feed: int = g.animals.feed_stock
+	g.money = 199
+	check(not g.shop_buy("general", "feed", 20).ok and g.animals.feed_stock == feed, "feed: no money")
+	g.money = 200
+	r = g.shop_buy("general", "feed", 20)
+	check(r.ok and g.money == 0 and g.animals.feed_stock == feed + 20 and g.count("feed") == 0, "20 feed into the sack: %s" % r.note)
+	g.money = 600
+	r = g.shop_buy("general", "medicine", 2)
+	check(r.ok and g.money == 0 and g.count("medicine") == 2 and r.note == "Bought 2 Animal Medicine for 600 G", "medicine: %s" % r.note)
+	check(not g.shop_buy("general", "medicine").ok, "medicine: no money")
+	# A kind the game doesn't know (cows before the barn) has no room; the shop refuses.
+	var fx := {"shops": {"t": {"name": "T", "map": "store", "stock": {"any": [{"item": "animal:cow", "price": 10, "to": "animal"}]}}}}
+	var t := Shop.make("t", crops, foods, fx)
+	check(not t.buy(g.inventory, 100, "animal:cow", 1, "spring", 0).ok and t.buy(g.inventory, 100, "animal:cow", 1, "spring", 1).to == "animal",
+		"no room: refused; room: the caller delivers")
+	g.free()
+
+
+## House extensions: ordered and paid at the store, one at a time, finished overnight on the
+## ready day; the house map and the chest follow.
+func _builds() -> void:
+	var g := _new_game()
+	var said := []
+	g.message.connect(func(t): said.append(t))
+	g.money = 4999
+	var r: Dictionary = g.shop_build("general", "kitchen")
+	check(not r.ok and g.money == 4999 and g.house_job.is_empty() and r.note == "Not enough money (5000 G)", "build: no money")
+	g.money = 30000
+	r = g.shop_build("general", "kitchen")
+	check(r.ok and g.money == 25000 and g.house_job == {"build": "kitchen", "ready": 3, "shop": "general"}, "kitchen ordered: %s" % r.note)
+	check(r.note == "Ordered the kitchen corner for 5000 G. Done in 3 days.", "order note: %s" % r.note)
+	check(not g.shop_build("general", "kitchen").ok and not g.shop_build("general", "room").ok and g.money == 25000, "one job at a time")
+	check(not g.shop_build("general", "nowhere").ok and not g.shop_build("smithy", "kitchen").ok, "unknown builds refused")
+	var m := ShopMenu.new(g, "general")
+	m.next_tab(2)
+	var states := []
+	for row in m.rows():
+		states.append(row.state)
+	check(m.tab_id() == "build" and states == ["busy", "building", "busy"], "build rows: %s" % [states])
+	g.end_day()
+	g.end_day()
+	check(not g.has_built("kitchen") and MapManager.data("house").prop_at(Vector2i(1, 5)).is_empty(), "not done before the ready day")
+	g.end_day()
+	check(g.has_built("kitchen") and g.house_job.is_empty() and g.day_number() == 3, "done on day 3")
+	check(MapManager.data("house").prop_at(Vector2i(1, 5)).get("kind", "") == "kamado", "the house map has the stove now")
+	check(g.maps.id == "house" and "Hachiro the carpenter has finished the kitchen corner." in said, "the morning message")
+	r = g.shop_build("general", "kitchen")
+	check(not r.ok and r.note == "The kitchen corner is already built" and g.money == 25000, "build: already built")
+	r = g.shop_build("general", "chest")
+	check(r.ok and m.rows()[0].state == "building" and m.rows()[1].state == "done", "chest ordered, kitchen done")
+	g.end_day()
+	g.end_day()
+	check(g.has_built("chest") and g.inventory.size("chest") == 48, "the chest has 48 slots")
+	check(MapManager.data("house").prop_at(Vector2i(4, 1)).get("use", "") == "storage", "a chest lid in the house")
+	r = g.shop_build("general", "room")
+	for i in 5:
+		g.end_day()
+	var house := MapManager.data("house")
+	check(g.has_built("room") and house.w == 12 and house.prop_at(Vector2i(9, 2)).get("kind", "") == "kotatsu", "the second room")
+	check(not house.is_solid(Vector2i(7, 3)) and house.is_solid(Vector2i(7, 2)) and house.prop_at(Vector2i(1, 5)).kind == "kamado",
+		"an opening into the room, the stove still there")
+	check(g.house_built == ["kitchen", "chest", "room"], "all three built")
+	g.new_game()
+	check(MapManager.built.is_empty() and MapManager.data("house").w == 8, "a new game has the plain house")
+	g.free()
+
+
+## The rod at the smithy: levels from data/fish.json, a bite factor per level.
+func _rod() -> void:
+	var g := _new_game()
+	check(g.tool_max_level("rod") == 4 and g.tool_level("rod") == 1 and is_equal_approx(g.rod_bite_factor(), 1.0), "the rod starts at level 1")
+	check(g.max_charge("rod") == 0, "the rod still doesn't charge")
+	var s: Shop = g.shop("smithy")
+	check(s.upgrade_offer("rod", 1) == {"level": 2, "price": 800, "days": 2, "items": {}}, "rod level 2 offer")
+	check(s.upgrade_offer("rod", 4).is_empty(), "no rod level 5")
+	g.money = 799
+	check(not g.shop_upgrade("smithy", "rod").ok and g.inventory.count("rod", ["tools"]) == 1, "rod: no money")
+	g.money = 800
+	var r: Dictionary = g.shop_upgrade("smithy", "rod")
+	check(r.ok and g.money == 0 and g.inventory.count("rod", ["tools"]) == 0, "rod handed in: %s" % r.note)
+	g.end_day()
+	g.end_day()
+	r = g.shop_collect("smithy")
+	check(r.ok and g.tool_level("rod") == 2 and is_equal_approx(g.rod_bite_factor(), 1.2) and g.inventory.count("rod", ["tools"]) == 1, "rod level 2: %s" % r.note)
+	g.tool_levels.rod = 4
+	var t := ShopMenu.new(g, "smithy")
+	check(t.rows()[5].item == "rod" and t.rows()[5].state == "top" and is_equal_approx(g.rod_bite_factor(), 1.6), "rod at the top level")
+	g.money = 99999
+	check(not g.shop_upgrade("smithy", "rod").ok and g.money == 99999, "rod: max level refused")
+	g.free()
+
+
+## Saving: built extensions, the job underway, the rod's level; older saves and broken ones.
+func _extras_save() -> void:
+	var a := _new_game()
+	a.money = 99999
+	a.shop_build("general", "room")
+	for i in 5:
+		a.end_day()
+	a.shop_build("general", "chest")
+	a.tool_levels.rod = 3
+	a.go_to_map("house", Vector2i(9, 3), Vector2i.UP)   # in the second room
+	var saved: Dictionary = a.to_dict()
+	check(saved.house == {"built": ["room"], "job": {"build": "chest", "ready": 7, "shop": "general"}}, "saved house %s" % saved.house)
+	check(saved.tool_levels.rod == 3, "the rod's level is saved")
+	var b := _new_game()
+	check(b.from_dict(JSON.parse_string(JSON.stringify(saved))) == "", "loads")
+	check(b.to_dict() == saved and b.has_built("room") and MapManager.data("house").w == 12 and b.maps.id == "house", "the house comes back")
+	b.end_day()
+	b.end_day()
+	check(b.has_built("chest") and b.inventory.size("chest") == 48, "the saved job finishes")
+	var old := saved.duplicate(true)
+	old.erase("house")
+	old.map = {"id": "house", "x": 72, "y": 58, "facing": [0, -1]}
+	old.tool_levels.erase("rod")
+	check(b.from_dict(old) == "" and b.house_built.is_empty() and b.house_job.is_empty() and MapManager.data("house").w == 8 and b.tool_level("rod") == 1,
+		"a save from before extensions and rod levels")
+	var in_room := saved.duplicate(true)
+	in_room.house.built = []
+	check(b.from_dict(in_room) != "", "standing in a room that isn't built is refused")
+	for bad in [[], {"built": ["attic"], "job": {}}, {"built": ["room", "room"], "job": {}}, {"built": "room", "job": {}},
+			{"built": ["room"], "job": {"build": "room", "ready": 1, "shop": "general"}},
+			{"built": ["room"], "job": {"build": "chest", "ready": -1, "shop": "general"}},
+			{"built": ["room"], "job": {"build": "chest", "ready": 1, "shop": "smithy"}},
+			{"built": ["room"], "job": {"build": "chest", "ready": 1}}]:
+		var d := saved.duplicate(true)
+		d.house = bad
+		check(b.from_dict(d) != "", "refused house %s" % str(bad))
+	var d2 := saved.duplicate(true)
+	d2.tool_levels.rod = 5
+	check(b.from_dict(d2) != "", "a rod past its top level is refused")
+	a.free()
+	b.free()
+	MapManager.set_built([])
+
+
 ## On the real Game: E at the counter opens the screen (paused), Esc closes it.
 func _counter_and_screen() -> void:
 	var g: Node = root.get_node("Game")
@@ -309,6 +530,7 @@ func _new_game() -> Node:
 	g.crops = crops
 	g.tools_data = tools_data
 	g.set_food_data(JSON.parse_string(FileAccess.get_file_as_string("res://data/foods.json")))
+	g.fish_data = fish_rules
 	g.rng.seed = 5
 	g.new_game()
 	return g

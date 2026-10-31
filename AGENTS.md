@@ -74,8 +74,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   storage chest; `--demo` puts a few crops in both), `--hold` to start with a turnip overhead
   and a potato on the ground in front of the bin, `--time=H:MM` (after `--demo`) to set the
   clock (villagers stand where their plans say then; `--demo --map=town` at 10:00 shows Kota
-  and Tome by the start spawn), `--shop=<id>` (general, smithy) to stand at that shop's
-  counter with its screen open (hours ignored), `--map=coop` to look inside the chicken
+  and Tome by the start spawn), `--shop=<id>` (general, smithy; `general@build` opens a tab) to stand at that shop's
+  counter with its screen open (hours ignored), `--built=kitchen,chest,room` to have those house
+  extensions built (with `--map=house` to see them), `--map=coop` to look inside the chicken
   coop (`--demo` adds a chick, two eggs and a filled feed box), `--hens-out` (with
   `--map=farm@coop`) to have the hens out in the yard, `--fishing` (or `--fishing=wait`) to start at
   the farm pond with the line out and a fish biting (or still waiting). Create `shots/` first. Look at the last frame. Delete
