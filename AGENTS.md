@@ -49,7 +49,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   cursor, chest): `res://tests/test_inventory.gd` must print `test_inventory: OK (0 failed)`.
   Food and drink (eating, specials, the stand, the food slot): `res://tests/test_food.gd` must
   print `test_food: OK (0 failed)`. Cooking (data/recipes.json, cooking rules, the cooking menu,
-  recipe lessons, the kitchen stove): `res://tests/test_cooking.gd` must print
+  recipe lessons and cards, dishes shipped, the kitchen stove): `res://tests/test_cooking.gd` must print
   `test_cooking: OK (0 failed)`.
   Holding and throwing (items on the ground, throws, poses, item art): `res://tests/test_hold.gd`
   must print `test_hold: OK (0 failed)`.
@@ -112,7 +112,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `--quit-after 120`; `--shop=stall:blossom_day` stands at the festival stall with it open), `--ending` to open the village record
   (README → Ending; `--map=house --event=ending` plays the scene), `--mine=N` to stand at the
   ladder of a fresh mine floor N (darker deeper; `--map=mine` is the entrance, `--map=mine_floor` floor 1),
-  `--season=<id>` to start on day 1 of a season (`--season=winter --mine=3`: a frozen floor). Create `shots/` first. Look at the last frame. Delete
+  `--season=<id>` to start on day 1 of a season (`--season=winter --mine=3`: a frozen floor; with `--demo` the field has that season's crops: `--season=fall` ripe daikon, `--season=summer` ripe rice). Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
 - Audio (sound and music data, synthesis, keys used in code, ambient and music pickers): `res://tests/test_audio.gd`
   must print `test_audio: OK (0 failed)`. Headless runs and Movie Maker runs start no sound

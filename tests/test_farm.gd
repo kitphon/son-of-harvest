@@ -53,6 +53,32 @@ func _init() -> void:
 	check(g.cell(k).crop == "", "spring crop withers in summer")
 	check(g.sow(k, "turnip", "summer") == 0, "turnip not sown in summer")
 
+	# Daikon: a fall root; rice: summer into fall, and its plot holds water like a paddy.
+	check("fall" in crops.daikon.seasons and not crops.daikon.has("regrow_stage"), "daikon: a fall crop, picked once")
+	check(crops.rice.seasons == ["summer", "fall"] and crops.rice.get("holds_water", false), "rice: summer and fall, holds water")
+	var p := FarmGrid.new(crops)
+	var pc := Vector2i(12, 12)
+	p.till(pc)
+	check(p.sow(pc, "rice", "summer") == 1 and p.sow(Vector2i(4, 4), "rice", "spring") == 0, "rice sown in summer, not in spring")
+	p.day_end("summer", "sunny", rng)
+	check(not p.cell(pc).wet and p.cell(pc).stage == 0, "a dry paddy doesn't grow and stays dry")
+	p.water_cell(pc)
+	var rice_days := 0
+	while not p.is_ripe(pc) and rice_days < 40:
+		check(p.cell(pc).wet, "the paddy is still wet on night %d" % rice_days)
+		p.day_end("summer" if rice_days < 10 else "fall", "sunny", rng)
+		rice_days += 1
+	check(rice_days == _grow_days("rice"), "rice ripe after %d nights from one watering, across the season change (got %d)" % [_grow_days("rice"), rice_days])
+	check(p.harvest(pc) == "rice" and p.cell(pc).crop == "", "rice picked once")
+	p.day_end("fall", "sunny", rng)
+	check(not p.cell(pc).wet, "an empty plot dries out again")
+	p.sow(pc, "daikon", "fall")
+	p.water_cell(pc)
+	p.day_end("fall", "sunny", rng)
+	check(not p.cell(pc).wet and p.cell(pc).stage == 0 and p.cell(pc).days == 1, "daikon dries like any crop")
+	p.day_end("winter", "sunny", rng)
+	check(p.cell(pc).crop == "", "daikon withers in winter")
+
 	# Obstacles: the right tool, the right number of hits.
 	var h := FarmGrid.new(crops)
 	var s := Vector2i(3, 12)

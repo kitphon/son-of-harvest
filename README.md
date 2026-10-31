@@ -286,8 +286,10 @@ Recipes are `data/recipes.json`: a recipe's id is the dish it makes, a food in
 `needs` are `{item, n}` or `{group, n}` (groups: a list of items used up in order, or a
 `prefix` such as `fish:`), `makes` how many. `Cooking` (`scripts/cooking/cooking.gd`, pure
 rules) takes the needs out of the rucksack, the hand and then the storage chest and puts the
-dishes in the rucksack, all or nothing (tried on a copy first). The pantry (rice, miso, soy)
-is never counted. A recipe is known from the start (`start: true`) or once the flag
+dishes in the rucksack, all or nothing (tried on a copy first). The pantry (cooked rice, miso,
+soy) is never counted; the rice crop is a real ingredient. A recipe is known from the start
+(`start: true`), by a recipe card (`card: <crop>`: the first of that crop shipped, by the bin
+or thrown in, sets the flags of its cards, `Cooking.cards`) or once the flag
 `recipe_<id>` is set; lessons are events (`data/events/recipe_<who>.json`, lines in
 `data/dialogue/recipe_lessons.json`) played by `talk` rows with `hearts` and `not_flags` in
 the trigger tables (Tome and Kota in the village, Sayo at the store, Hachiro at the smithy)
@@ -295,6 +297,11 @@ and an `examine` row on the farmhouse radio on Saturdays. Flags are saved, so th
 did not change. Raw farm goods are edible too: `data/foods.json` `raw` (crops, eggs, milk,
 `fish:*`), through `Game.eat_item(item, places)`. `-- --demo --cook` stands at the stove with
 the screen open (the kitchen built, a few ingredients, one recipe learned).
+Dishes ship: `sell` in foods.json is what one fetches in the bin (`Game.sell_price`). E at
+the bin takes dishes only from the hand (the rucksack's are lunch); throwing one in works too.
+Rice (`holds_water` in crops.json) keeps its watered cell wet night after night, like a paddy,
+until it is picked. `-- --demo --season=fall` (or `summer`) sows that season's crops in the
+demo field: ripe daikon (fall), ripe rice (summer).
 
 ## Dialogue
 Dialogue lives in `data/dialogue/<id>.json`, opened with `Game.talk(id)` (or `-- --dialogue=<id>`

@@ -261,7 +261,13 @@ func new_game() -> void:
 		maps.mine_floor = new_mine_floor(1)
 
 
-## `-- --demo`: 10:00 with a few sown, growing and ripe plots by the house, for screenshots.
+## The demo field's three crops per season (winter, with no field crops, shows spring's).
+const DEMO_CROPS := {"spring": ["turnip", "potato", "cucumber"], "summer": ["tomato", "corn", "rice"],
+	"fall": ["pumpkin", "rice", "daikon"], "winter": ["turnip", "potato", "cucumber"]}
+
+
+## `-- --demo`: 10:00 with a few sown, growing and ripe plots by the house, for screenshots
+## (`--season=fall` sows that season's crops; the third, ripe, is rice in summer and daikon in fall).
 func _demo_field() -> void:
 	hour = 10
 	for y in range(5, 8):
@@ -269,13 +275,13 @@ func _demo_field() -> void:
 			var c := Vector2i(x, y)
 			farm.cell(c).obj = FarmGrid.Obj.NONE
 			farm.till(c)
-	farm.sow(Vector2i(3, 6), "turnip", "spring")
-	farm.sow(Vector2i(6, 6), "potato", "spring")
-	farm.sow(Vector2i(9, 6), "cucumber", "spring")
+	var sown: Array = DEMO_CROPS[season_name()]
+	for i in 3:
+		farm.sow(Vector2i(3 + i * 3, 6), sown[i], crops[sown[i]].seasons[0])
 	for y in range(5, 8):
 		for x in range(2, 11):
 			var d := farm.cell(Vector2i(x, y))
-			d.stage = (x - 2) / 3 + 1
+			d.stage = mini((x - 2) / 3 + 1, farm.ripe_stage(d.crop))
 			d.wet = x % 2 == 0
 	farm.cell(Vector2i(5, 8)).obj = FarmGrid.Obj.ROCK
 	farm.cell(Vector2i(7, 8)).obj = FarmGrid.Obj.STUMP
@@ -649,18 +655,34 @@ func pay_bin() -> void:
 
 
 ## Puts every crop the farmer carries (rucksack and hand) into the shipping bin; returns
-## the value added.
+## the value added. Dishes go in only from the hand: the ones in the rucksack are lunch.
 func ship_produce() -> int:
 	var total := 0
 	var carried := inventory.totals()
 	for id in carried:
-		if sell_price(id) > 0:
-			total += sell_price(id) * int(carried[id])
-			shipped[id] = int(shipped.get(id, 0)) + int(carried[id])
-			inventory.take(id, int(carried[id]))
+		var places: Array = ["hand"] if id.begins_with("food:") else Inventory.CARRIED
+		var n := inventory.count(id, places)
+		if sell_price(id) > 0 and n > 0:
+			total += sell_price(id) * n
+			inventory.take(id, n, places)
+			_note_shipped(id, n)
 	bin_total += total
 	changed.emit()
 	return total
+
+
+## Counts `n` of `id` as shipped. The first of a kind may bring the buyer's recipe cards
+## (data/recipes.json card): those recipes are learned.
+func _note_shipped(id: String, n: int) -> void:
+	var first := not shipped.has(id)
+	shipped[id] = int(shipped.get(id, 0)) + n
+	if not first:
+		return
+	for r in Cooking.cards(id):
+		if not Cooking.known(r, flags):
+			flags[Cooking.flag(r)] = true
+			# Deferred, so it shows after the bin's own "Put ... G" line.
+			message.emit.call_deferred("A recipe card in the bin lid: %s!" % String(foods.get(r, {}).get("name", r)))
 
 
 # --- animals (data/animals.json) -------------------------------------------
@@ -685,12 +707,15 @@ func held_key() -> String:
 	return "animal:dog:held:0" if animals.dog.held else PlaceholderArt.world_item_key(held)
 
 
-## What one of `id` fetches in the bin (0 = can't be shipped). Fish are "fish:<id>".
+## What one of `id` fetches in the bin (0 = can't be shipped). Fish are "fish:<id>", dishes
+## "food:<id>" (foods.json sell).
 func sell_price(id: String) -> int:
 	if id.begins_with("fish:"):
 		return int(fish_data.get("fish", {}).get(id.trim_prefix("fish:"), {}).get("sell", 0))
 	if id.begins_with("mine:"):
 		return int(mine_item(id).get("sell", 0))
+	if id.begins_with("food:"):
+		return int(foods.get(id.trim_prefix("food:"), {}).get("sell", 0))
 	return int(crops[id].get("sell", 0)) if crops.has(id) else animals.sell_price(id)
 
 
@@ -736,7 +761,7 @@ func throw_held(origin: Vector2i, facing: Vector2i) -> Dictionary:
 			return t
 		"ship":
 			bin_total += value
-			shipped[item] = int(shipped.get(item, 0)) + 1
+			_note_shipped(item, 1)
 			t.value = value
 		"land":
 			farm.place_item(t.cell, item)

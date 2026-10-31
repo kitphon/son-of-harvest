@@ -27,6 +27,8 @@ func _init() -> void:
 		var img := PlaceholderArt.tex("ui:food:" + id).get_image()
 		check(img.get_size() == Vector2i(14, 14) and img.get_used_rect().has_area(), "ui:food:%s drawn" % id)
 		check(PixelFont.width(String(f.name)) + 12 + PixelFont.width("x99") <= HudLayout.BOXES.item.size.x, "%s fits the item box" % id)
+		if f.has("sell"):
+			check(int(f.sell) > 0 and int(f.sell) < int(f.price) or int(f.price) == 0, "%s ships for less than the stand asks (%d)" % [id, int(f.sell)])
 	check(on_sale >= 5, "the stand sells a few foods (%d)" % on_sale)
 	check(g.eat_sound("green_tea") == "drink" and g.eat_sound("onigiri") == "eat", "drinks sound different")
 	check(g.TOOLS.has("food") and g.count("food:onigiri") == 1, "food slot and an onigiri at the start")
@@ -134,6 +136,8 @@ func _raw(data: Dictionary) -> void:
 	for id in raw:
 		check(crops.has(id) or products.has(id) or id == "fish:*", "raw %s is a real item" % id)
 		check(int(raw[id].get("stamina", 0)) > 0 and int(raw[id].get("fatigue", 0)) <= 0, "raw %s gives a little" % id)
+	for id in crops:
+		check(raw.has(id), "every crop eats raw (%s)" % id)
 	for id in crops:
 		check(raw.has(id), "every crop can be eaten raw (%s)" % id)
 	var g := _game()
