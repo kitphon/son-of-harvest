@@ -34,8 +34,11 @@ DialogueRunner, TextBox) and the pause menu (Esc: resume, save, settings, back t
 settings in `data/settings.json` / `user://settings.json`, so a volume setting is one data
 entry).
 Next: milestone 3, **eating / drinking** (food items with stamina / fatigue effects in data;
-`Game.add_fatigue()` takes a negative amount). After that milestone 6, **event scripts +
-trigger tables per map**, built on the dialogue format.
+`Game.add_fatigue()` takes a negative amount). Event scripts and trigger tables per map are
+done (data/events, EventRunner / EventTriggers / EventPlayer; README → Events); the opening
+event and first shop visits follow once there are maps to walk to (map switching calls
+`EventPlayer.enter_map(id)`). Later for events: an "examine" cause (E on a spot) and
+villagers as actors in scripts.
 Sound effects, ambient loops and music are in (milestone 10), with Music / Sounds / Ambient
 volume sliders in Esc → Settings. Later for audio: more tracks (festivals, shops, events)
 are new scores and rules in `data/music.json`; the music has not been heard by a person yet.
@@ -82,7 +85,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [ ] Talking, gifts, affection, shop opening hours
 6. **Events and dialogue**
    - [x] Text box (typewriter, portraits, choices, flags); our own, data/dialogue
-   - [ ] Event scripts + trigger tables per map
+   - [x] Event scripts + trigger tables per map (data/events; three small farm events)
    - [ ] Opening event, first visits to the shops
 7. **Animals**
    - [ ] Chickens, cows / sheep, dog: feeding, happiness, produce grades, sickness

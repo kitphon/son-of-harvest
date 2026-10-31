@@ -42,7 +42,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Dialogue (runner, data, text box layout): `res://tests/test_dialogue.gd` must print
   `test_dialogue: OK (0 failed)`. Pause menu / settings: `res://tests/test_menu.gd` must print
   `test_menu: OK (0 failed)`. Fatigue (tired states, oversleeping, collapse):
-  `res://tests/test_body.gd` must print `test_body: OK (0 failed)`.
+  `res://tests/test_body.gd` must print `test_body: OK (0 failed)`. Events (runner, trigger
+  tables, event data): `res://tests/test_events.gd` must print `test_events: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field).
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
@@ -51,7 +52,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   add `--weather=rain` (storm, snow, blizzard) to force the weather, `--no-flashes` to turn
   lightning off, `--dialogue=<id>` (or `<id>@<line id>`) to open a text box from
   `data/dialogue`, `--pause` (or `--pause=settings`) to open the pause menu, `--tired` to start
-  exhausted (tired pose, slow walk). Create `shots/` first. Look at the last frame. Delete
+  exhausted (tired pose, slow walk), `--event=<id>` to play an event from `data/events`
+  (`--demo` turns the trigger tables off, so plain demo frames have no events; to see a
+  trigger fire, run `res://scenes/main.tscn` as the scene argument without `--demo`). Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
 - Audio (sound and music data, synthesis, keys used in code, ambient and music pickers): `res://tests/test_audio.gd`
   must print `test_audio: OK (0 failed)`. Headless runs and Movie Maker runs start no sound
@@ -72,7 +75,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   pure logic, tested headless) and `scripts/autoload/game.gd` (Game: clock, calendar, weather,
   money, bag, stamina, light). Views only read them and redraw on signals (`cells_changed`,
   `changed`, `minute_passed`, `day_started`).
-- **Data-driven.** Crops and weather odds are in `data/*.json`, dialogue in `data/dialogue/`. Put new content (crops, items,
+- **Data-driven.** Crops and weather odds are in `data/*.json`, dialogue in `data/dialogue/`, events and trigger tables in `data/events/`. Put new content (crops, items,
   villagers, schedules, events) in data files, not in code.
 - `scripts/farm_actions.gd` maps the player's actions to rules. Both views share it.
 - The 3D view (`scripts/main_3d.gd`, `scripts/world3d/farm_world.gd`) hides the 2D Player

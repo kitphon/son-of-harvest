@@ -1,0 +1,8 @@
+{
+	"_note": "The first rainy morning: a short thought at the door about rain and tiredness.",
+	"steps": [
+		{"do": "face", "dir": "down"},
+		{"do": "wait", "seconds": 0.5},
+		{"do": "say", "dialogue": "rainy_day"}
+	]
+}

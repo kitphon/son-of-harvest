@@ -1,0 +1,218 @@
+extends SceneTree
+## Headless event checks (EventRunner, EventTriggers, the event data, Game's weekday and
+## event pause). Run:
+##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_events.gd
+
+var failures := 0
+var talked: Array = []   # dialogues the runner asked for, as "id@line"
+
+
+func _init() -> void:
+	var g := _game()
+	g.dialogue_requested.connect(func(id, at):
+		talked.append(id + "@" + at)
+		g.dialogue_open = true)   # the text box opened; the test closes it
+
+	# Every event and every trigger table in data/events loads.
+	for file in DirAccess.get_files_at(EventRunner.DIR):
+		if not file.ends_with(".json"):
+			continue
+		if file.begins_with("triggers_"):
+			var t := EventTriggers.open(file.get_basename().trim_prefix("triggers_"))
+			check(t.error == "" and not t.rows.is_empty(), "data/events/%s loads (%s)" % [file, t.error])
+		else:
+			var r := EventRunner.open(file.get_basename(), g)
+			check(r.error == "" and not r.done(), "data/events/%s loads (%s)" % [file, r.error])
+	check(EventRunner.open("no_such_event", g).error == "No event no_such_event", "a missing event is refused")
+	check(EventRunner.open("triggers_farm", g).error != "", "a trigger table isn't an event")
+	check(EventTriggers.open("no_such_map").error == "" and EventTriggers.open("no_such_map").rows.is_empty(), "a map without a table has no events")
+
+	# The sample first morning, step by step.
+	var start := Vector2(4 * 16 + 8, 4 * 16 + 10)
+	var bag_before: int = g.count("seeds:turnip")
+	var sounds: Array = []
+	var r := EventRunner.open("first_morning", g)
+	r.sound.connect(func(k): sounds.append(k))
+	r.start(start, Vector2i.RIGHT)
+	r.update(0.0)
+	check(r.fade == 1.0 and r.facing == Vector2i.DOWN and r.step().do == "wait", "starts black, faces down, waits")
+	r.update(0.3)
+	check(r.step().do == "wait" and sounds.is_empty(), "0.3 s of 0.6: still waiting")
+	r.update(0.3)
+	check(sounds == ["chime_morning"] and r.step().do == "fade", "after the wait: the chime, then the fade")
+	r.update(0.6)
+	check(is_equal_approx(r.fade, 0.5), "half way through the fade (%.2f)" % r.fade)
+	r.update(0.6)
+	check(r.fade == 0.0 and talked == ["first_morning@"] and r.step().do == "say", "faded in, the text box opens")
+	r.update(1.0)
+	check(r.step().do == "say", "the event waits while the text box is open")
+	g.dialogue_open = false
+	r.update(0.0)   # time left over from a step isn't carried on, so the walk starts next
+	r.update(0.25)
+	check(r.walking and r.facing == Vector2i.DOWN and r.pos.y > start.y, "the box closed: walking down")
+	r.update(1.0)
+	check(r.pos == Vector2(72, 6 * 16 + 8) and not r.walking, "two cells down, on the cell's middle (%s)" % r.pos)
+	r.update(0.3)
+	r.update(0.4)
+	check(r.facing == Vector2i.UP and sounds.back() == "pick", "turns back to the door, picks up the sack")
+	check(g.count("seeds:turnip") == bag_before + 3 and talked.back() == "first_morning@sack", "three seed bags given, then the sack lines")
+	g.dialogue_open = false
+	r.update(0.0)
+	check(r.done() and g.flags.get("got_tsuru_seeds") == true and r.fade == 0.0, "flag set and the event is over")
+	r.update(1.0)
+	check(r.done(), "a finished event stays finished")
+
+	# Branches, jumps, flags, money and walking with `to`, from a script written here.
+	g.flags = {"met": 1}
+	g.money = 100
+	r = EventRunner.new({"steps": [
+		{"if": "met", "then": "known"},
+		{"do": "money", "amount": 999, "next": "end"},
+		{"id": "known", "unless": "rich", "then": "poor"},
+		{"do": "clear", "flags": ["rich"]},
+		{"id": "poor", "do": "money", "amount": -150},
+		{"do": "set", "flags": {"rich": false, "visits": 2.0, "mood": "glad"}},
+		{"do": "clear", "flags": ["met"]},
+		{"do": "walk", "to": [2, 4], "run": true},
+		{"do": "face", "dir": "right"},
+	]}, g)
+	check(r.error == "", "an inline script loads (%s)" % r.error)
+	r.start(Vector2(72, 74), Vector2i.DOWN)
+	r.update(0.0)
+	check(g.money == 0, "if met -> known; unless rich -> poor; money never below 0 (%d)" % g.money)
+	check(g.flags == {"rich": false, "visits": 2, "mood": "glad"} and typeof(g.flags.visits) == TYPE_INT, "set and clear flags %s" % g.flags)
+	check(r.running and r.facing == Vector2i.LEFT, "running left to the target column")
+	r.update(0.2)
+	check(is_equal_approx(r.pos.x, 72 - r.run_speed * 0.2), "runs at the farmer's run speed")
+	r.update(0.2)
+	check(r.facing == Vector2i.UP or r.pos == Vector2(40, 72), "then up the column")
+	r.update(1.0)
+	check(r.done() and r.pos == Vector2(40, 72) and r.facing == Vector2i.RIGHT and not r.running, "arrives, faces right, done")
+
+	# A loop with no wait in it can't hang the game: one update stops after MAX_STEPS.
+	g.flags = {"x": true}
+	r = EventRunner.new({"steps": [{"id": "a", "if": "x", "then": "a"}]}, g)
+	r.update(0.0)
+	check(not r.done(), "an endless instant loop returns")
+
+	# Bad scripts are refused and say why.
+	for bad in [null, [], {"steps": []}, {"steps": [1]}, {"steps": [{"do": "dance"}]},
+			{"steps": [{"do": "wait"}]}, {"steps": [{"do": "wait", "seconds": 61}]},
+			{"steps": [{"do": "wait", "seconds": 1, "speed": 2}]},
+			{"steps": [{"do": "say", "dialogue": "nope"}]}, {"steps": [{"do": "say", "dialogue": "bin_note", "at": "nope"}]},
+			{"steps": [{"do": "face", "dir": "north"}]}, {"steps": [{"do": "walk"}]},
+			{"steps": [{"do": "walk", "to": [1, 2], "by": [0, 1]}]}, {"steps": [{"do": "walk", "by": [0.5, 1]}]},
+			{"steps": [{"do": "walk", "by": [0, 1], "run": "yes"}]},
+			{"steps": [{"do": "set", "flags": {"x": [1]}}]}, {"steps": [{"do": "set", "flags": {}}]},
+			{"steps": [{"do": "clear", "flags": "x"}]}, {"steps": [{"do": "give", "item": "gold"}]},
+			{"steps": [{"do": "give", "item": "seeds:turnip", "count": 0}]}, {"steps": [{"do": "money", "amount": 0}]},
+			{"steps": [{"do": "money", "amount": 1.5}]}, {"steps": [{"do": "fade", "to": "white"}]},
+			{"steps": [{"do": "sound", "key": "trumpet"}]}, {"steps": [{"do": "wait", "seconds": 1, "next": "x"}]},
+			{"steps": [{"if": "x", "then": "end"}]}, {"steps": [{"if": "x", "unless": "y", "then": "a", "id": "a"}]},
+			{"steps": [{"id": "a", "do": "wait", "seconds": 1}, {"id": "a", "do": "wait", "seconds": 1}]}]:
+		r = EventRunner.new(bad, g)
+		check(r.error != "" and r.done(), "refused %s (%s)" % [JSON.stringify(bad), r.error])
+
+	# Trigger rows: the first match in table order wins; conditions narrow it down.
+	var s: Dictionary = {"year": 1, "season": "spring", "day": 1, "weekday": "mon", "time": 6 * 60,
+		"weather": "sunny", "flags": {}, "seen": {}, "cell": Vector2i(4, 4)}
+	var t := EventTriggers.new({"rows": [
+		{"event": "rainy_day", "on": "day_start", "weather": ["rain"]},
+		{"event": "first_morning", "on": ["enter", "day_start"], "days": [1, 3], "time": ["6:00", "9:00"]},
+		{"event": "pond_first", "on": ["enter", "day_start"], "once": false},
+	]})
+	check(t.error == "", "inline table loads (%s)" % t.error)
+	check(t.pick("day_start", s) == "first_morning", "sunny: the rain row is skipped, the next one matches")
+	check(t.pick("minute", s) == "", "no row listens to minutes")
+	s.weather = "rain"
+	check(t.pick("day_start", s) == "rainy_day" and t.pick("enter", s) == "first_morning", "rain on day start: the first row wins")
+	s.weather = "sunny"
+	s.time = 9 * 60
+	check(t.pick("enter", s) == "pond_first", "9:00 is past the window [6:00, 9:00)")
+	s.time = 8 * 60 + 59
+	s.seen = {"first_morning": true}
+	check(t.pick("enter", s) == "pond_first", "a seen event doesn't play again")
+	s.seen = {"pond_first": true, "first_morning": true}
+	check(t.pick("enter", s) == "pond_first", "once: false plays again")
+	var row := {"event": "pond_first", "on": "step", "season": ["spring", "fall"], "weekday": ["mon"],
+		"year": [1, 2], "flags": ["a"], "not_flags": ["b"], "seen": ["first_morning"],
+		"not_seen": ["rainy_day"], "area": [3, 4, 2, 1]}
+	s = {"year": 2, "season": "fall", "day": 9, "weekday": "mon", "time": 600, "weather": "snow",
+		"flags": {"a": "yes", "b": 0}, "seen": {"first_morning": true}, "cell": Vector2i(4, 4)}
+	check(EventTriggers.check_row(row) == "" and EventTriggers.matches(row, "step", s), "every condition holds")
+	for change in [["season", "winter"], ["weekday", "tue"], ["year", 3], ["flags", {"a": true, "b": true}],
+			["flags", {}], ["seen", {}], ["seen", {"first_morning": true, "rainy_day": true, "pond_first": false}],
+			["cell", Vector2i(5, 5)], ["cell", Vector2i(2, 4)]]:
+		var s2 := s.duplicate()
+		s2[change[0]] = change[1]
+		check(not EventTriggers.matches(row, "step", s2), "no match when %s is %s" % change)
+	check(EventTriggers.matches(row, "step", s.merged({"cell": Vector2i(3, 4)}, true)), "the area's corner cell counts")
+	check(EventTriggers.clock("6:00") == 360 and EventTriggers.clock("24:00") == 1440 and EventTriggers.clock("6:60") == -1
+		and EventTriggers.clock("6") == -1 and EventTriggers.clock("6:5") == -1, "clock times")
+	for bad in [1, {"on": "step"}, {"event": "nope", "on": "step"}, {"event": "pond_first"},
+			{"event": "pond_first", "on": "talk"}, {"event": "pond_first", "on": []},
+			{"event": "pond_first", "on": "step", "colour": "red"}, {"event": "pond_first", "on": "step", "once": 1},
+			{"event": "pond_first", "on": "step", "days": [5, 2]}, {"event": "pond_first", "on": "step", "year": [0, 1]},
+			{"event": "pond_first", "on": "step", "season": ["monsoon"]}, {"event": "pond_first", "on": "step", "weekday": ["monday"]},
+			{"event": "pond_first", "on": "step", "weather": ["fog"]}, {"event": "pond_first", "on": "step", "time": ["9:00", "6:00"]},
+			{"event": "pond_first", "on": "step", "time": ["6:00"]}, {"event": "pond_first", "on": "step", "flags": "a"},
+			{"event": "pond_first", "on": "step", "not_seen": [""]}, {"event": "pond_first", "on": "step", "area": [1, 1, 0, 1]},
+			{"event": "pond_first", "on": "step", "area": [1, 1, 1]}]:
+		check(EventTriggers.check_row(bad) != "", "refused row %s" % JSON.stringify(bad))
+	check(EventTriggers.new({"rows": [{"event": "nope", "on": "step"}]}).rows.is_empty(), "a table with a bad row has no rows")
+
+	# The farm's table with a new game: the first morning on entering, once.
+	g.free()
+	g = _game()
+	var farm := EventTriggers.open("farm")
+	check(farm.pick("enter", g.trigger_state(Vector2i(4, 4))) == "first_morning", "new game: the first morning plays on entering")
+	g.events_seen.first_morning = true
+	check(farm.pick("enter", g.trigger_state(Vector2i(4, 4))) == "", "seen: nothing more on the first morning")
+	g.day = 2
+	g.weather_today = "rain"
+	check(farm.pick("day_start", g.trigger_state(Vector2i(4, 4))) == "rainy_day", "the first rainy morning")
+	g.events_seen.rainy_day = true
+	check(farm.pick("day_start", g.trigger_state(Vector2i(4, 4))) == "", "and only the first")
+	check(farm.pick("step", g.trigger_state(Vector2i(24, 3))) == "pond_first", "stepping up to the pond")
+	check(farm.pick("step", g.trigger_state(Vector2i(20, 3))) == "", "not further away")
+
+	# Weekdays: spring 1 of year 1 is a Monday and the week runs on across seasons and years
+	# (a year is 120 days, so year 2 starts on a Tuesday).
+	g.free()
+	g = _game()
+	var days := []
+	for d in [[1, 0, 1], [1, 0, 7], [1, 0, 8], [1, 1, 1], [2, 0, 1]]:
+		g.year = d[0]
+		g.season = d[1]
+		g.day = d[2]
+		days.append(g.weekday())
+	check(days == ["mon", "sun", "mon", "wed", "tue"], "weekdays %s" % [days])
+
+	# A running event holds the clock, like a text box; a new game clears it and the seen list.
+	g.event_running = true
+	check(g.paused() and not g.ticking(), "an event pauses the clock")
+	g.events_seen = {"x": true}
+	g.new_game()
+	check(not g.event_running and g.events_seen.is_empty(), "a new game: no event running, none seen")
+	g.add_money(-99999)
+	check(g.money == 0, "add_money never goes below 0")
+
+	g.free()
+	print("test_events: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
+	quit(1 if failures else 0)
+
+
+func _game() -> Node:
+	var g: Node = (load("res://scripts/autoload/game.gd") as GDScript).new()
+	g.crops = JSON.parse_string(FileAccess.get_file_as_string("res://data/crops.json"))
+	g.tools_data = JSON.parse_string(FileAccess.get_file_as_string("res://data/tools.json"))
+	g.body = JSON.parse_string(FileAccess.get_file_as_string("res://data/body.json"))
+	g.rng.seed = 5
+	g.new_game()
+	return g
+
+
+func check(ok: bool, what: String) -> void:
+	if not ok:
+		failures += 1
+		print("FAIL: " + what)

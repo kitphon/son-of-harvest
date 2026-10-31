@@ -10,6 +10,49 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Event scripts and trigger tables per map
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: events are data in `data/events/<id>.json`, a list of steps: say (a dialogue from
+  data/dialogue, from a line id, waits for the box to close), wait, face, walk (to / by cells,
+  across then up or down, walk or run speed), set / clear flags, give item, money, fade to
+  black / clear, sound; branch steps `if` / `unless` a flag, and `id` / `next` jumps like
+  dialogue. `EventRunner` (pure logic) checks a file and refuses it with a reason, runs the
+  steps on `update(delta)` and keeps the scripted farmer position / facing / walking and the
+  fade amount; a loop with no wait stops after 1000 steps per update. Trigger tables per map,
+  `data/events/triggers_<map id>.json`: rows with `on` (enter, day_start, minute, step) and
+  optional year, season, days, weekday, time window, weather, flags / not_flags, seen /
+  not_seen and area; the first matching row in table order wins (DESIGN: the table order is
+  the priority) and a row plays once unless `"once": false`. `EventTriggers` is pure logic on
+  `Game.trigger_state(cell)`. `EventPlayer` (in both views, after the Player) checks the map's
+  table on map entry, day start (deferred, after the wake hour is set), each clock minute and
+  each new cell, plays events, copies the runner onto the Player, draws the fade (layer 9:
+  over the HUD, under the text box) and takes keys between dialogue steps. `enter_map(id)` is
+  the hook for map switching. Game: `event_running` (in `paused()`, so the clock, the farmer,
+  F5 / F9 and Esc wait), `events_seen` (saved as a sorted list, new_game clears it),
+  `play_event(id)` / `event_requested`, `weekday()` (spring 1 of year 1 is a Monday, the week
+  runs on; DESIGN lists weekdays in the calendar), `add_money()` (not below 0). Pause screen
+  doesn't open during an event. Our sample events with our own text: `first_morning` (new
+  game, spring 1, 6:00-9:00: up from black with the morning chime, a look over the farm, two
+  steps out, back to the door, Tsuru's sack of three turnip seed bags), `rainy_day` (the first
+  rainy morning: rain waters the field, but wet work tires), `pond_first` (the first step next
+  to the pond). `-- --event=<id>` plays one; `-- --demo` turns the triggers off so field
+  screenshots stay free of events.
+- Checked: new `test_events: OK (0 failed)` (all data loads; first_morning step by step: fade,
+  chime, the box holding the event, the walk path and speed, seeds and flag; branches, money
+  floor, flags, run speed, the endless-loop guard, 28 bad scripts and 19 bad rows refused,
+  first-match order, once / once false, every condition, the farm table with a new game,
+  weekdays, the event pause), `test_save: OK (0 failed)` (events_seen round trip, 4 bad
+  values refused, a save without it loads with none seen), and `test_audio`, `test_body`,
+  `test_dialogue`, `test_farm`, `test_menu`, `test_title`, `test_weather` all `OK (0 failed)`.
+  Headless `--quit-after 300` (title, `-- --demo`) and `--quit-after 400 -- --demo
+  --event=first_morning` printed no errors. Movie Maker run of `res://scenes/main.tscn` (no
+  demo, so the trigger fires on entry), 150 frames: frame 30 is the field fading in from
+  black with the clock held at 06:00, frame 149 shows the farmer's first line in the text box.
+- Left / next: the walk, the sack and the rainy / pond events were checked in the tests, not
+  watched in a window (the text box needs key presses). No "examine" cause yet (E on a spot):
+  it would touch farm_actions, which another session has open. Villagers as actors come with
+  villagers. The target brackets stay visible during an event.
+
 ## 2026-10-31 — Music and volume sliders
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: music made the same way as the sounds. `data/music.json` holds our own scores: seven

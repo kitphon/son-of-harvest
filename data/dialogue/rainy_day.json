@@ -1,0 +1,7 @@
+{
+	"_note": "Lines for the event rainy_day (data/events/rainy_day.json), the first rainy morning.",
+	"lines": [
+		{"speaker": "farmer", "face": "calm", "text": "Rain drummed on the roof all night. The field gets its water for free today."},
+		{"speaker": "farmer", "face": "worried", "text": "Working in the wet wears me out faster, though. Better not stay out too long."}
+	]
+}

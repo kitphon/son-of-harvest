@@ -1,0 +1,6 @@
+{
+	"_note": "Lines for the event pond_first (data/events/pond_first.json), the first walk up to the pond.",
+	"lines": [
+		{"speaker": "farmer", "face": "smile", "text": "The pond water is clear and cold. I can fill the watering can right here."}
+	]
+}

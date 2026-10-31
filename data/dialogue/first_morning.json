@@ -1,0 +1,9 @@
+{
+	"_note": "Lines for the event first_morning (data/events/first_morning.json): the farmer's first look at the farm, then Tsuru's seed sack by the door (from line sack).",
+	"lines": [
+		{"speaker": "farmer", "face": "smile", "text": "My first morning on the farm. The air smells of wet grass and pine needles."},
+		{"speaker": "farmer", "face": "calm", "text": "Weeds, stones, old stumps... It's a mess. But it's mine now.", "next": "end"},
+		{"id": "sack", "speaker": "farmer", "face": "surprised", "text": "Hm? A little sack by the door, with a tag: 'For the new farmer. Turnips grow fast! - Tsuru'"},
+		{"speaker": "farmer", "face": "smile", "text": "Turnip seeds. Till the soil with the hoe, sow them, and water them every day. Let's get to work!"}
+	]
+}

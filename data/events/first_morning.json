@@ -1,0 +1,19 @@
+{
+	"_note": "The first morning of a new game: the screen comes up from black, the farmer looks over the farm, walks two steps out, turns back and finds Tsuru's seed sack by the door. Format: README.md, Events.",
+	"steps": [
+		{"do": "fade", "to": "black", "seconds": 0},
+		{"do": "face", "dir": "down"},
+		{"do": "wait", "seconds": 0.6},
+		{"do": "sound", "key": "chime_morning"},
+		{"do": "fade", "to": "clear", "seconds": 1.2},
+		{"do": "say", "dialogue": "first_morning"},
+		{"do": "walk", "by": [0, 2]},
+		{"do": "wait", "seconds": 0.3},
+		{"do": "face", "dir": "up"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "sound", "key": "pick"},
+		{"do": "give", "item": "seeds:turnip", "count": 3},
+		{"do": "say", "dialogue": "first_morning", "at": "sack"},
+		{"do": "set", "flags": {"got_tsuru_seeds": true}}
+	]
+}
