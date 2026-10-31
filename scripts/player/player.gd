@@ -12,16 +12,20 @@ const FEET := Vector2(5, 3)    # half size of the box that collides
 
 var farm: FarmGrid
 var facing := Vector2i.DOWN
+var moving := false     # a direction is held (also when walking into a wall)
+var running := false
 
 
 func _physics_process(delta: float) -> void:
 	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	if dir != Vector2.ZERO:
+	moving = dir != Vector2.ZERO
+	running = moving and Input.is_action_pressed("run")
+	if moving:
 		if absf(dir.x) > absf(dir.y):
 			facing = Vector2i(int(signf(dir.x)), 0)
 		else:
 			facing = Vector2i(0, int(signf(dir.y)))
-		var speed := RUN_SPEED if Input.is_action_pressed("run") else WALK_SPEED
+		var speed := RUN_SPEED if running else WALK_SPEED
 		var step := dir * speed * delta
 		_try_move(Vector2(step.x, 0))   # one axis at a time, so walls slide
 		_try_move(Vector2(0, step.y))

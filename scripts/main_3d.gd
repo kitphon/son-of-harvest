@@ -15,6 +15,7 @@ const CAM_MARGIN := Vector2(4, 3)                 # keep the view inside the fen
 
 var player: Player
 var sprite: Sprite3D
+var anim := FarmerAnim.new()
 var target_mark: MeshInstance3D
 var cam: Camera3D
 var tint: ColorRect
@@ -34,7 +35,7 @@ func _ready() -> void:
 	player.action.connect(func(kind: String, c: Vector2i): FarmActions.on_action(kind, c))
 	add_child(player)
 
-	sprite = FarmWorld.make_sprite(PlaceholderArt.tex("player:front"))
+	sprite = FarmWorld.make_sprite(PlaceholderArt.tex(anim.key(Vector2i.DOWN)))
 	add_child(sprite)
 	var shadow := MeshInstance3D.new()
 	var disc := PlaneMesh.new()
@@ -94,17 +95,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	FarmActions.handle_input(event)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	anim.step(delta, player.moving, player.running)
 	_follow()
 
 
 func _follow() -> void:
 	var feet := Vector3(player.position.x / T, 0, player.position.y / T)
 	sprite.position = feet
-	# Front image for Down / Right, back for Up / Left; Right and Up are the mirror images.
-	var f := player.facing
-	sprite.texture = PlaceholderArt.tex("player:back" if f == Vector2i.UP or f == Vector2i.LEFT else "player:front")
-	sprite.flip_h = f == Vector2i.RIGHT or f == Vector2i.UP
+	sprite.texture = PlaceholderArt.tex(anim.key(player.facing))
+	sprite.flip_h = FarmerAnim.is_mirrored(player.facing)
 	var tc := player.target_cell()
 	target_mark.position = Vector3(tc.x + 0.5, 0.02, tc.y + 0.5)
 

@@ -5,12 +5,11 @@ own code, art, story and numbers, shipped as a Windows .exe from Godot 4.7.
 Rules per system: docs/DESIGN.md. What was done and how it was checked: WORKLOG.md.
 
 ## Next up
-Milestone 1 is done as a rough loop. Next is milestone 2, step 1: **real sprites for the
-farmer** (16 x 24 or 16 x 32, 4 facings x walk / run / idle, mirrored like now). Load them
-from `art/` through PlaceholderArt's keys (or replace that class with a sprite loader). Add
-walk animation timing to the 3D sprite. Before drawing, check what reads well at the camera's
-scale (~1.1 cells tall, ~50 px on a 270-line screen) with one test frame.
-Ask the user whether they draw the art themselves or want placeholders refined first.
+The user chose to refine the placeholders first (real art later). The farmer is done
+(framed, animated). Next: milestone 2, **crop and field-object placeholders** in the same
+style as the farmer (1 px dark outline, 2-3 shades, readable at ~2 screen px per sprite px):
+one set per crop and growth stage, keyed per crop id from `data/crops.json` instead of the
+shared `crop:<growth>:<ripe>` look. Then ground tiles.
 
 ## Milestones
 
@@ -22,7 +21,8 @@ Ask the user whether they draw the art themselves or want placeholders refined f
    - [x] HUD, 2D view, 3D view with the HM field camera (yaw 45°, pitch 26.6°, FOV 13.7°)
    - [ ] Clock pauses indoors / in menus (no indoors yet)
 2. **Look and feel**
-   - [ ] Farmer sprites + walk / run animation
+   - [x] Farmer placeholder frames (front / back x idle / walk / run) + animation timing
+   - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)
    - [ ] Field object and crop sprites (one set per crop and stage)
    - [ ] Ground tiles instead of flat colours (grass, soil dry / wet / tilled, paths, water)
    - [ ] House, bin, stand, fence as models or textured boxes

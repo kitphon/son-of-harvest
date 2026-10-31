@@ -60,6 +60,27 @@ func _init() -> void:
 	check(h.hit(s, "axe") == 1 and h.hit(s, "axe") == 1 and h.hit(s, "axe") == 1, "3 axe hits")
 	check(h.hit(s, "axe") == 2 and not h.is_solid(s), "4th hit clears the stump")
 
+	# Farmer animation: idle stands still, walking cycles 4 frames at WALK_FPS, starting on a step.
+	var a := FarmerAnim.new()
+	a.step(1.0, false, false)
+	check(a.key(Vector2i.DOWN) == "player:front:idle:0", "idle frame")
+	a.step(0.0, true, false)
+	check(a.key(Vector2i.UP) == "player:back:walk:1", "walk starts on a step frame")
+	a.step(2.0 / FarmerAnim.WALK_FPS, true, false)
+	check(a.frame() == 3, "walk advances at WALK_FPS (got %d)" % a.frame())
+	a.step(1.0 / FarmerAnim.WALK_FPS, true, false)
+	check(a.frame() == 0, "walk cycle wraps")
+	a.step(0.0, true, true)
+	check(a.pose == "run" and a.frame() == 1, "run restarts the cycle")
+	a.step(0.0, false, false)
+	check(a.key(Vector2i.RIGHT) == "player:front:idle:0" and FarmerAnim.is_mirrored(Vector2i.RIGHT), "right = mirrored front")
+	check(FarmerAnim.is_back(Vector2i.LEFT) and not FarmerAnim.is_mirrored(Vector2i.LEFT), "left = back, not mirrored")
+	for pose in ["idle", "walk", "run"]:
+		for i in PlaceholderArt.farmer_frames(pose):
+			var img := PlaceholderArt.tex("player:front:%s:%d" % [pose, i]).get_image()
+			check(img.get_size() == Vector2i(16, 24) and (img.get_pixel(5, 22).a > 0 or img.get_pixel(10, 22).a > 0),
+				"%s %d: 16 x 24 with a foot on the ground" % [pose, i])
+
 	print("test_farm: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 

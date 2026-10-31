@@ -54,6 +54,7 @@ follows the player with no lag and stops a few cells inside the fence.
   FarmView also draws the 3D ground texture.
 - `scripts/player/player.gd`: movement and collision (the 3D view hides it and follows it).
 - `scripts/art/placeholder_art.gd`: pixel sprites made in code until there is real art.
+- `scripts/world3d/farmer_anim.gd`: picks the farmer's frame (pose, facing, mirror, timing).
 - `data/*.json`: crops and weather, tuned without touching code.
 
 ## Plan and handoff

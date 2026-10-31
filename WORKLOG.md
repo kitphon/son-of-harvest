@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Farmer placeholder frames and walk / run animation
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user chose to refine placeholders before real art. Scale check first: in a demo
+  frame one sprite pixel is ~2 x 2 screen pixels (shirt 8 px tall -> 16 px on screen), so the
+  16 x 24 size stays and 1 px details (outline, eyes) read. PlaceholderArt draws the farmer
+  from a pixel map (head / torso, front and back) plus legs, hands and bag placed per frame,
+  with a dark outline. Keys `player:<front|back>:<idle|walk|run>:<frame>`; idle 1 frame, walk
+  and run 4 (contact, left step, contact, right step; body drops 1 px on contact; run lifts
+  feet higher, spreads legs and swings hands more). New `FarmerAnim` picks the key: walk 8 fps
+  (two steps per 0.5 s, ~1 cell per step at 60 px/s), run 12 fps; a new pose starts on a step
+  frame so a key press shows at once. Player now exposes `moving` / `running`.
+- Checked: `test_farm: OK (0 failed)` (8 new animation / frame checks); headless
+  `--quit-after 300` printed no errors or warnings; a 6x frame sheet of all 18 frames looked
+  right after two fixes (hands needed an outline and to sit against the body); demo Movie
+  Maker frame shows the new farmer idle by the house.
+- Left / next: walking was not seen in a movie frame (needs key presses); it was checked on
+  the frame sheet and in the tests only. No real-key play yet.
+
 ## 2026-10-31 — Handoff docs
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: AGENTS.md (rules incl. clean room, how to run / test / screenshot, code layout, what
