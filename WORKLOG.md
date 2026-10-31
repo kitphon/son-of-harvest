@@ -10,6 +10,39 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Merged six branches: key remap, examine, villagers, shops, chickens, fishing
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged with `--no-ff`, one at a time, all tests after each, in this order:
+  `claude/key-remap-174d29` (a262366), `claude/examine-events-2eb476` (5abb1cb),
+  `claude/villager-schedules-7ac4c0` (c8ca779), `claude/shops-f496a9` (3f2724a),
+  `claude/chickens-c6a5f5` (3a5c7a3), `claude/fishing-72b72b` (e2026a2). WORKLOG kept every
+  branch's entry; AGENTS / README / ROADMAP kept both sides (test list, debug flags,
+  sections); "Next up" now points at talking / gifts / affection with the shopkeepers at
+  their counters. Code joins:
+  - Examine + shops: the smithy door (27, 6) had a `quiet_house` examine row; it is a shop
+    door now, so the row is gone from `data/events/triggers_town.json`.
+  - Shops + chickens + fishing in Game: new-game state, save keys (`shop_jobs`, `animals`,
+    `fishing`) and their loaders all kept side by side; `sell_price` asks fish, then crops,
+    then `animals.sell_price`; `item_name` knows animal items and fish.
+  - Key remap + fishing: the fishing branch still called `_setup_input()` before the
+    settings were read; key remap moved that call after the settings, so only the
+    `fish_data` load was kept.
+  - Shops + chickens in the map views: the store / smithy props and the coop props are
+    both in `MapView` colours and `MapWorld`'s prop match.
+  - `tests/test_villagers.gd.uid` (made by the importer) was added with the shops merge.
+- Checked on merged main: all 17 tests (`test_animals`, `test_audio`, `test_body`,
+  `test_dialogue`, `test_events`, `test_farm`, `test_fishing`, `test_food`, `test_hold`,
+  `test_inventory`, `test_maps`, `test_menu`, `test_save`, `test_shops`, `test_title`,
+  `test_villagers`, `test_weather`) print `OK (0 failed)`; headless `--quit-after 300` (title,
+  `-- --demo`, `--map=town`, `--map=coop`, `--fishing`, `--shop=smithy`, `--pause=controls`,
+  `--map=farm@coop --hens-out`) and `res://scenes/main.tscn --quit-after 400` printed no
+  errors or warnings. Movie Maker frames: `--demo --fishing` (line, bobber, "!", rod in the
+  8th slot, the coop roof by the house), `--demo --map=town` (Kota and Tome on the road).
+- Left / next: none of the six was played in a real window (rebinding, E on spots, shop
+  screens, the coop, casting), and the new sounds were not heard. Shops don't sell chickens,
+  feed or medicine yet (hooks: `Game.add_animal`, `Game.animals.add_feed`); the rod isn't in
+  the smithy's upgrade list; fishing has no 2D hookup.
+
 ## 2026-10-31 — Key remapping (Esc → Settings → Controls)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the keys moved out of `Game._setup_input` into `data/controls.json` (13 actions in
