@@ -78,24 +78,29 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	# A swing always costs stamina, even when it hits nothing.
 	if not Game.spend_stamina(int(rule.stamina)):
 		return
+	var worked := false
 	match tool:
 		"hoe":
 			for cell in cells:
-				farm.till(cell)
+				worked = farm.till(cell) or worked
 		"can":
 			# Water per cell the can pours on, nearest rows first; a short can stops early.
 			var per := int(Game.tools_data.tools.can.get("water_per_cell", 1))
 			cells.resize(mini(cells.size(), Game.water / per))
 			Game.water -= cells.size() * per
 			for cell in cells:
-				farm.water_cell(cell)
+				worked = farm.water_cell(cell) or worked
 			Game.changed.emit()
 		_:
 			var tough := false
 			for cell in cells:
-				tough = farm.hit(cell, tool, int(rule.get("hits", 1))) == 1 or tough
+				var got := farm.hit(cell, tool, int(rule.get("hits", 1)))
+				tough = got == 1 or tough
+				worked = got > 0 or worked
 			if tough:
 				Game.message.emit("It's tough. Keep hitting.")
+	# Every swing teaches the tool a little, one that did some work more.
+	Game.add_tool_exp(tool, Game.swing_exp(worked))
 
 
 ## Number keys / Tab / Q, the same in both views.

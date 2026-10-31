@@ -100,6 +100,7 @@ func _init() -> void:
 	g._accum = 0.4
 	g.snow_cover = 80
 	g.tool_levels["hoe"] = 4
+	g.tool_exp["hoe"] = 700
 	var old_farm: FarmGrid = g.farm
 	g.rng.seed = 11
 	g.new_game()

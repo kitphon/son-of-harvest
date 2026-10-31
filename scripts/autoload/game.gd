@@ -36,6 +36,7 @@ var tool_index := 0
 var seed_index := 0
 var bag: Dictionary = {}        # item id -> count; seeds are "seeds:<crop>"
 var tool_levels: Dictionary = {}   # tool -> level 1..5 (charging tools in data/tools.json)
+var tool_exp: Dictionary = {}      # tool -> experience from using it; levels up at data thresholds
 
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
@@ -301,11 +302,54 @@ func spend_stamina(n: int) -> bool:
 
 # --- tool levels and charging ----------------------------------------------
 
-## Every charging tool back to level 1 (a new game).
+## Every charging tool back to level 1 with no experience (a new game).
 func reset_tool_levels() -> void:
 	tool_levels = {}
+	tool_exp = {}
 	for tool in tools_data.get("tools", {}):
 		tool_levels[tool] = 1
+		tool_exp[tool] = 0
+
+
+## Experience one swing gives: "work" when it changed a cell, "miss" when it hit nothing.
+## A use that never swung (too tired, empty can) gives nothing and doesn't call this.
+func swing_exp(worked: bool) -> int:
+	return int(tools_data.get("exp_per_swing", {}).get("work" if worked else "miss", 0))
+
+
+## Total experience the tool needs to go from `level` to the next one (-1 at the top level).
+func exp_for_next_level(tool: String, level: int) -> int:
+	var steps: Array = tools_data.get("tools", {}).get(tool, {}).get("exp_to_level", [])
+	if level < 1 or level >= tool_max_level(tool) or level > steps.size():
+		return -1
+	return int(steps[level - 1])
+
+
+## Adds experience to a tool and raises its level at each threshold it passes. The total is
+## kept at most at the last threshold, so a level-5 tool's number stops growing.
+func add_tool_exp(tool: String, amount: int) -> void:
+	if tool_max_level(tool) == 0 or amount <= 0:
+		return
+	var steps: Array = tools_data.tools[tool].get("exp_to_level", [])
+	var top := int(steps.back()) if steps.size() > 0 else 0
+	tool_exp[tool] = mini(int(tool_exp.get(tool, 0)) + amount, top)
+	while true:
+		var need := exp_for_next_level(tool, tool_level(tool))
+		if need < 0 or tool_exp[tool] < need:
+			break
+		raise_tool_level(tool)
+
+
+## One level up for a tool (experience now; the blacksmith later calls this too).
+## Returns false when the tool is already at its top level.
+func raise_tool_level(tool: String) -> bool:
+	var lv := tool_level(tool)
+	if tool_max_level(tool) == 0 or lv >= tool_max_level(tool):
+		return false
+	tool_levels[tool] = lv + 1
+	message.emit(String(tools_data.tools[tool].get("level_up", "Tool level %d!")) % (lv + 1))
+	changed.emit()
+	return true
 
 
 ## How many levels a tool has (0 for one that doesn't charge, like the seed bag).
@@ -378,6 +422,7 @@ func to_dict() -> Dictionary:
 	d.seed = current_seed()
 	d.bag = bag.duplicate()
 	d.tool_levels = tool_levels.duplicate()
+	d.tool_exp = tool_exp.duplicate()
 	d.farm = farm.to_dict()
 	return d
 
@@ -427,6 +472,22 @@ func from_dict(data: Dictionary) -> String:
 			if lv == null:
 				return "Saved tool levels are broken"
 			n.tool_levels[tool] = lv
+	# Saves from before tool experience have none: every tool at 0.
+	n.tool_exp = {}
+	for tool in n.tool_levels:
+		n.tool_exp[tool] = 0
+	if data.has("tool_exp"):
+		var exps = data.tool_exp
+		if not exps is Dictionary:
+			return "Saved tool experience is broken"
+		for tool in exps:
+			if not n.tool_exp.has(tool):
+				return "Saved tool experience is broken"
+			var steps: Array = tools_data.tools[tool].get("exp_to_level", [])
+			var e = SaveGame.whole(exps[tool], 0, int(steps.back()) if steps.size() > 0 else 0)
+			if e == null:
+				return "Saved tool experience is broken"
+			n.tool_exp[tool] = e
 	if not data.get("farm") is Dictionary:
 		return "Saved farm is missing"
 	var err := farm.from_dict(data.farm)

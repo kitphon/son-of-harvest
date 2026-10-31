@@ -10,7 +10,49 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
-<<<<<<< HEAD
+## 2026-10-31 — Tool levels from experience
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: every swing of hoe / can / sickle / hammer / axe gives the tool experience
+  (`Game.tool_exp`, per tool). FarmActions tells `Game.add_tool_exp()` whether the swing
+  changed a cell (tilled, watered, hit or cleared something): `exp_per_swing.work` if so,
+  `.miss` if it hit nothing. A use that never swung (too tired, empty can) and filling the
+  can at the pond give nothing; the seed bag has no levels. Each tool's `exp_to_level` in
+  `data/tools.json` holds the total exp for levels 2..5; passing one calls
+  `Game.raise_tool_level()`, which adds one level, shows the tool's own `level_up` line
+  through `Game.message` ("The hoe bites into the soil more easily. Hoe level 2!") and
+  redraws. The blacksmith (milestone 8) can call the same function; a raised tool keeps its
+  exp and needs the next absolute step. Exp stops at the last step (level 5 is the cap).
+  HUD: after the tool name in the item box, the charge-pip texture shows the level (5 pips,
+  vermilion up to the level); nothing for the seed bag. Save: `tool_exp` in `to_dict()` /
+  `from_dict()` (known tools, whole 0..the tool's last step); a save without it loads at 0.
+  `reset_tool_levels()` (new game) clears exp too. README controls mention it.
+  Also removed merge markers left in AGENTS.md, ROADMAP.md and WORKLOG.md by the last merge
+  (both sides kept).
+- Balance (ours): work 3, miss 1, so aiming matters but a miss isn't worthless (design: work
+  teaches more than a miss). Hoe and can need 300 / 900 / 2100 / 4200: a day's stamina is
+  about 30-50 swings, roughly 90-150 exp, so level 2 in 2-3 days, level 3 in about a week,
+  level 4 near the end of spring, level 5 in summer, leaving room for the shop to be the
+  quicker way later. Sickle 240 / 720 / 1680 / 3360 (weeds come back slower than soil to
+  work). Hammer and axe 90 / 270 / 630 / 1260, since the farm only has so many rocks,
+  branches and stumps (a stump is 4 hits, so it alone is 12 exp).
+- Checked: `test_farm: OK (0 failed)` (data: 4 rising exp steps per tool, message takes the
+  level; on the Game autoload: tilling gives work exp, a swing on tilled soil miss exp, only
+  the used tool learns, too tired = no swing and no exp, empty can and pond fill none,
+  watering work, a stump hit that holds still counts; one exp short stays level 1, the swing
+  that reaches the step makes level 2 with one message, level 2 charges twice and a charge-2
+  hoe swing then tills its whole 5-cell area; a huge gain passes three levels with three
+  messages, stops at level 5 with exp at the cap, `raise_tool_level` refuses past 5, the
+  seed bag gets nothing; raise without exp keeps exp and the next level needs its own step;
+  the can name, 5 pips and "40/40" fit the item box). `test_save: OK (0 failed)` (exp round
+  trip; refused: not a dictionary, -1, unknown tool, 1.5, over the cap, seeds; an old save
+  without it loads at 0 and keeps its levels). `test_title: OK (0 failed)` (new game clears
+  exp), `test_weather: OK (0 failed)`. Headless `--quit-after 300` (title and `-- --demo`)
+  printed nothing. Movie Maker frame (`--demo` with a temporary hoe level 3, removed): "Hoe"
+  then 3 vermilion pips (200, 68, 44) and 2 paper ones in the item box.
+  Not checked: the level-up message in a real game window.
+- Left / next: shop upgrades (milestone 8) call `raise_tool_level`; level 5 still adds no
+  charge (it could make swings cheaper later). Next: fatigue / collapse.
+
 ## 2026-10-31 — Merged charging tools, title screen and snow / lightning
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three parallel sessions merged into main with `--no-ff`:
@@ -96,7 +138,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   Not checked: pressing keys / clicking in a real game window (no input headless).
 - Left / next: no pause menu or "back to title" yet; charging tools (other session) should
   add any new run state to the reset list in `Game.new_game()`.
-=======
+
 ## 2026-10-31 — Snow lying on the ground, lightning flashes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `Game.snow_cover` (0..100) is set each morning by `Game.next_snow_cover()` from
@@ -134,7 +176,6 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   flash frames 148-149 and 154-160, peak 121.9; with `--no-flashes` no frame above
   median + 3 (max 78.6, run at strength 0.4).
 - Left / next: the 2D view shows no snow; flashes off is a flag, not yet in a menu.
->>>>>>> refs/heads/claude/snow-lightning-b2757e
 
 ## 2026-10-31 — Merged HUD, Japanese props and save / load
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
