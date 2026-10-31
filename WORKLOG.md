@@ -188,6 +188,42 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Left / next: no villager visits the river yet (Kota or Hachiro could fish there on
   Sundays); no river ambient sound (it uses `outdoor`).
 
+## 2026-11-01 — Yearly pages of the village record, the first day beside today
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: every New Year now has a page. `Game.end_day` sets the flag `record_due` when the year
+  turns; a `day_start` row after the ending's in `triggers_house.json` (`once: false`, flag
+  `record_due`) plays the new event `year_record` (Tome comes in, greets, shows the page, says a
+  line and leaves; `data/dialogue/year_record.json`, our text), so year 3 still gets the full
+  ending and years 2 and 4+ the short page. Year 2 does get a page: the farmer's first, with its
+  own line (`record_first`, only in year 2); later years say `record_more` (more stars than the
+  last page) or a steady-year line. Event step `{"do": "ending", "page": "year"}` (EventRunner
+  checks the page). `Game.show_ending(page)` grades as before, then `Ending.compare` puts the
+  first day's number (`then`, -1 when unknown) and the gain since the latest earlier page
+  (`gain`) beside each row, adds the field rows (`field` in data/ending.json: weeds and rocks,
+  tilled soil, money from `Game.field_counts()`), and writes `Game.year_pages[year]`
+  (`Ending.page_of`: values, field, stars, rank). The look back: `new_game` keeps
+  `Game.first_day` (the record's numbers and the field counts) before `--demo` digs the field.
+  The EndingScreen is 360 px wide with columns First day / Now / Gained (Gained hidden without an
+  earlier page), the field rows under a rule with no stars, and a heading line "A page for the
+  farmer" (ending) or "The farmer's page, year N"; `-- --ending=year` opens the yearly page.
+- Save: no version bump (still 5). The run state goes in a new key `records` = {first_day,
+  pages: [page, ...]} (checked by `Ending.parse_kept`); a save without it (any older one) loads
+  with no page and the start's numbers as the first day (`Game.start_values()`, money
+  `START_MONEY`), the field's debris and tilling unknown and shown as "-".
+- Checked: all 24 test scripts print `OK (0 failed)` (test_ending: compare / gains / pages /
+  the trigger / first day / the yearly event / the screen's columns and widths; test_save: the
+  round trip, seven broken `records`, a save without them). Mutating `gain_text` and the page
+  parse made 5 test_ending and 2 test_save checks fail, then restored. Headless runs (title
+  `--quit-after 300`, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --ending`,
+  `--demo --ending=year`, `--demo --map=house --event=year_record`, `--demo --map=house
+  --event=ending`, `res://scenes/main.tscn --quit-after 400`, `main_2d.tscn -- --demo --ending`)
+  printed no errors or warnings. Screenshots `--demo --ending` and `--demo --ending=year`
+  (frame 89): both headings, First day / Now columns, the field rows (weeds and rocks 51 -> 54,
+  tilled 0 -> 27, money 500 G -> 500 G on the demo field), the box fits the 480x270 view;
+  `shots/` deleted. The Gained column was not seen on screen (no earlier page in a demo run);
+  its text and column widths are checked in test_ending.
+- Left / next: real art for the scroll; a person should read a yearly page in a played run.
+
 ## 2026-11-01 — Merged six branches: music, 2D actions, cooking tools, band 6, festival stalls, Hachiro building
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each: `claude/music-shops-events-bbe890`

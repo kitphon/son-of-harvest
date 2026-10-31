@@ -425,7 +425,7 @@ the script says, and keys go only to the text box. Each step is one of:
   heart events start with `{"do": "actor", "who": "<id>", "at": "plan", "face": "farmer"}` and
   end with `"to": "plan"` and `leave`;
 - `{"do": "ending"}`: grades the run and shows the village record (README → Ending); the
-  event waits until it is closed;
+  event waits until it is closed; `"page": "year"` shows the yearly page instead;
 - a branch: `{"if": "<flag>", "then": "<step id>"}` or `{"unless": ...}`.
 
 Any step can have an `id` and a `next` (a step id or `"end"`). `EventRunner` refuses a file with
@@ -536,6 +536,21 @@ per category, a rank and a title from `data/ending.json`; the EndingScreen shows
 (the villager liked most, from heart band 3; else Tome). The game goes on afterwards
 (`ending_seen`). DESIGN lists the ending as not studied, so every rule is ours. `-- --ending`
 opens the record at the start; `--map=house --event=ending` plays the scene.
+
+Every other New Year has a shorter yearly page: when the year turns, `Game.end_day` sets the
+flag `record_due`, and on the first morning the farmer wakes in the farmhouse Tome brings the
+page (`data/events/year_record.json`, lines in `data/dialogue/year_record.json`; a row after
+the ending's in `triggers_house.json`, so year 3 gets the full record instead). Its step is
+`{"do": "ending", "page": "year"}`: graded the same way, no visitor and no verdict;
+`record_first` (year 2, the first page) or `record_more` (more stars than the last page) pick
+Tome's words. Each page is kept in the save (`Game.year_pages`: year -> {values, field,
+stars, rank}). The look back: a new game keeps its first day (`Game.first_day`: the record's
+numbers and `Game.field_counts()`, i.e. weeds, rocks, branches and stumps, tilled cells and
+money), and the record screen shows for every row the first day, now and (with an earlier
+page) the gain since it; the field rows (`field` in `data/ending.json`) follow the categories
+without stars. Saves from before the pages load with no page and the start's numbers as the
+first day (the field's debris and tilling show "-"). `-- --ending=year` opens the yearly page
+at the start; `--map=house --event=year_record` plays its scene.
 
 ## Camera
 `scripts/main_3d.gd` uses the field camera geometry of Harvest Moon: Back to Nature, measured

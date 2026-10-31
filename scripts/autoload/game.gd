@@ -90,6 +90,8 @@ const BUILD_FLAG := "house_work"
 var fishing := Fishing.new()       # the line: cast, wait, bite (rules in data/fish.json)
 var fish_caught: Dictionary = {}   # fish id -> how many were caught this game (once-only fish)
 var mine_deepest := 0              # the deepest mine floor reached (the only mine state saved)
+var first_day: Dictionary = {"values": {}, "field": {}}   # {values, field} measured when the run began (the record's look back)
+var year_pages: Dictionary = {}    # year -> the village record's page written that New Year (Ending.page_of)
 
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
@@ -143,7 +145,7 @@ func new_game() -> void:
 	hour = 6
 	minute = 0
 	weather_today = "sunny"
-	money = 500
+	money = START_MONEY
 	bin_total = 0
 	max_stamina = 100
 	stamina = max_stamina
@@ -180,6 +182,8 @@ func new_game() -> void:
 	affection = Affection.new()
 	Villagers.reset_day()
 	mine_deepest = 0
+	year_pages = {}
+	first_day = {"values": ending_values(), "field": field_counts()}   # before --demo digs the field
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--season="):   # `-- --demo --season=winter --mine=3`: day 1 of that season
 			var s := SEASONS.find(arg.trim_prefix("--season="))
@@ -678,6 +682,7 @@ func end_day() -> void:
 		season = (season + 1) % 4
 		if season == 0:
 			year += 1
+			flags["record_due"] = true   # Tome brings this New Year's page (triggers_house.json)
 	work_fatigue_half = false
 	_count_build_day()   # before the date moves: did the builder work today?
 	animal_news.append_array(animals.day_end(weather_today, rng))
@@ -1166,6 +1171,16 @@ func cook(id: String) -> Dictionary:
 # --- the ending (data/ending.json, Ending) -----------------------------------
 
 const FIELD_TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe"]
+const START_MONEY := 500
+
+## What every new game measures before any work: nothing, and the recipes known from the start.
+func start_values() -> Dictionary:
+	var v := {}
+	for m in Ending.MEASURES:
+		v[m] = 0
+	v.recipes_known = Cooking.known_ids({}).size()
+	return v
+
 
 ## The numbers the village record grades (Ending.MEASURES), measured from this run.
 func ending_values() -> Dictionary:
@@ -1191,24 +1206,49 @@ func ending_values() -> Dictionary:
 		"recipes_known": Cooking.known_ids(flags).size()}
 
 
+## The field's numbers for the record's look back (Ending.FIELD_MEASURES).
+func field_counts() -> Dictionary:
+	var debris := 0
+	var tilled := 0
+	for d in farm.cells:
+		if int(d.obj) != FarmGrid.Obj.NONE:
+			debris += 1
+		if d.tilled:
+			tilled += 1
+	return {"debris": debris, "tilled": tilled, "money": money}
+
+
 ## The record for this run (Ending.grade).
-func ending_record() -> Dictionary:
+func ending_record(values := ending_values()) -> Dictionary:
 	var points := {}
 	for id in Villagers.all():
 		points[id] = affection.of(id)
-	return Ending.grade(ending_values(), points)
+	return Ending.grade(values, points)
 
 
-## The ending event's `ending` step: grades the run, sets the flags its closing lines branch
-## on (ending_rank_<n>, ending_friend_<id>; earlier ones cleared) and opens the EndingScreen.
+## The `ending` event step: grades the run, puts the first day and the last page beside it
+## (Ending.compare), writes this year's page (year_pages), sets the flags the lines branch on
+## (ending_rank_<n>, ending_friend_<id>, record_first for year 2's first page, record_more with
+## more stars than it; earlier ones cleared, record_due too) and opens the EndingScreen.
+## `page`: "ending" (year 3, the full record) or "year" (the yearly page).
 ## ending_open stays true until the screen is closed; with no screen it never opens.
-func show_ending() -> Dictionary:
-	var r := ending_record()
+func show_ending(page := "ending") -> Dictionary:
+	var values := ending_values()
+	var field := field_counts()
+	var r := Ending.compare(ending_record(values), first_day, Ending.last_page(year_pages, year), field)
+	r.page = page
+	r.year = year
+	year_pages[year] = Ending.page_of(year, values, field, r)
 	for k in flags.keys():
-		if String(k).begins_with("ending_rank_") or String(k).begins_with("ending_friend_"):
+		if String(k).begins_with("ending_rank_") or String(k).begins_with("ending_friend_") \
+				or k in ["record_due", "record_first", "record_more"]:
 			flags.erase(k)
 	flags["ending_rank_%d" % r.rank] = true
 	flags["ending_friend_" + r.friend] = true
+	if r.first and year <= 2:
+		flags["record_first"] = true
+	elif not r.first and r.gained_stars > 0:
+		flags["record_more"] = true
 	if not ending_requested.get_connections().is_empty():
 		ending_open = true
 		ending_requested.emit(r)
@@ -1840,6 +1880,11 @@ func to_dict() -> Dictionary:
 	d.fishing = {"caught": fish_caught.duplicate(), "dry_casts": fishing.dry_casts}
 	d.affection = affection.to_dict()
 	d.mine = {"deepest": mine_deepest}
+	var pages := []
+	for y in year_pages:
+		pages.append(year_pages[y].duplicate(true))
+	pages.sort_custom(func(a, b): return a.year < b.year)
+	d.records = {"first_day": first_day.duplicate(true), "pages": pages}
 	d.farm = farm.to_dict()
 	return d
 
@@ -2055,6 +2100,23 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	n.mine_deepest = SaveGame.whole(saved_mine.get("deepest") if saved_mine is Dictionary else null, 0, 9999)
 	if n.mine_deepest == null:
 		return "Saved mine is broken"
+	# Saves from before the yearly pages: no page written yet, and of the first day only what
+	# every new game starts with is known (the field's debris and tilling show as "-").
+	n.first_day = {"values": start_values(), "field": {"money": START_MONEY}}
+	n.year_pages = {}
+	if data.has("records"):
+		var rec = data.records
+		if not rec is Dictionary or not rec.get("pages") is Array:
+			return "Saved records are broken"
+		var kept := Ending.parse_kept(rec.get("first_day"), false)
+		if kept[0] != "":
+			return "Saved records are broken"
+		n.first_day = kept[1]
+		for p in rec.pages:
+			var pg := Ending.parse_kept(p, true)
+			if pg[0] != "" or n.year_pages.has(pg[1].year):
+				return "Saved records are broken"
+			n.year_pages[pg[1].year] = pg[1]
 	if not data.get("farm") is Dictionary:
 		return "Saved farm is missing"
 	var err := farm.from_dict(data.farm)

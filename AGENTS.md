@@ -70,7 +70,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Mine (data/mine.json, floors from a seed, rocks / soft spots / the hole, swings, the save,
   light by depth and the lantern, frozen winter floors, mine art): `res://tests/test_mine.gd` must print `test_mine: OK (0 failed)`.
   Ending (data/ending.json, grading, the values measured, the event and its trigger, the record
-  screen): `res://tests/test_ending.gd` must print `test_ending: OK (0 failed)`.
+  screen, the yearly pages and the first-day look back): `res://tests/test_ending.gd` must print `test_ending: OK (0 failed)`.
   Festivals (calendar, festival day, shops shut, fair weather, the event once a year,
   decorations and lights in both views, the HUD tag, contests and prizes, the stalls and their
   wares at all four festivals, keepsakes, ribbons and the farmhouse ribbon board, the payout held back): `res://tests/test_festivals.gd` must
@@ -122,8 +122,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `--quit-after 120`; `--shop=stall:blossom_day` (or `stall:lantern_night:eats`, `stall:lantern_night:chimes`,
   `stall:moon_night:eats`, `stall:moon_night:crafts`, `stall:years_turn:soba`, `stall:years_turn:charms`) stands at
   that festival stall with it open; `--map=house --flags=ribbons=blossom_day:1:1` shows the
-  ribbon board), `--ending` to open the village record
-  (README → Ending; `--map=house --event=ending` plays the scene), `--mine=N` to stand at the
+  ribbon board), `--ending` (or `--ending=year`) to open the village record (or the yearly page)
+  (README → Ending; `--map=house --event=ending` plays the scene, `--event=year_record` the yearly one), `--mine=N` to stand at the
   ladder of a fresh mine floor N (darker deeper; `--map=mine` is the entrance, `--map=mine_floor` floor 1),
   `--season=<id>` to start on day 1 of a season (`--season=winter --mine=3`: a frozen floor; with `--demo` the field has that season's crops: `--season=fall` ripe daikon, `--season=summer` ripe rice). Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.

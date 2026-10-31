@@ -1,0 +1,16 @@
+{
+	"_note": "The yearly page (data/events/year_record.json): Tome brings this New Year's page of the village record. greet comes before the page, after once it is closed: record_first (the farmer's first page, year 2), record_more (more stars than the last page), else a steady year. Our own lines.",
+	"lines": [
+		{"id": "greet", "speaker": "tome", "face": "smile", "text": "A happy new year! I've just come from writing in the village record, and I brought your page along."},
+		{"speaker": "tome", "face": "calm", "text": "There's the first day you came, and there's today. Have a look.", "next": "end"},
+
+		{"id": "after", "if": "record_first", "then": "first"},
+		{"if": "record_more", "then": "more"},
+		{"speaker": "tome", "face": "calm", "text": "Some years the field grows, some years the farmer does. Both go in the book.", "next": "close"},
+		{"id": "first", "speaker": "tome", "face": "smile", "text": "Your first whole year. A year ago that field was nothing but weeds and stones, you know."},
+		{"speaker": "tome", "face": "calm", "text": "The big page comes after the second year. I'll be watching!", "next": "close"},
+		{"id": "more", "speaker": "tome", "face": "surprised", "text": "More stars than last year! I had to sharpen my brush twice.", "next": "close"},
+
+		{"id": "close", "speaker": "tome", "face": "smile", "text": "Well, I've the rest of the village to visit. Look after yourself this year.", "next": "end"}
+	]
+}

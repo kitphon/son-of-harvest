@@ -21,7 +21,7 @@ const COMMANDS := {
 	"say": ["dialogue", "at"], "wait": ["seconds"], "face": ["dir"], "walk": ["to", "by", "run"],
 	"set": ["flags"], "clear": ["flags"], "give": ["item", "count"], "money": ["amount"],
 	"fade": ["to", "seconds"], "sound": ["key"], "affection": ["who", "amount"],
-	"place": ["at", "dir"], "actor": ["who", "at", "to", "face", "leave"], "ending": [],
+	"place": ["at", "dir"], "actor": ["who", "at", "to", "face", "leave"], "ending": ["page"],
 }
 
 var id := ""
@@ -183,7 +183,7 @@ func _begin(s: Dictionary) -> void:
 		"actor":
 			_begin_actor(s)
 		"ending":
-			game.show_ending()
+			game.show_ending(String(s.get("page", "ending")))
 
 
 ## An actor step: off the stage, onto cell `at` (or their plan's spot), walking to `to`, then
@@ -392,6 +392,9 @@ func _check_step(s: Dictionary) -> String:
 		"face":
 			if not DIRS.has(s.get("dir")) and not Villagers.all().has(s.get("dir")):
 				return "face needs up, down, left, right or a villager"
+		"ending":
+			if s.has("page") and not s.page in Ending.PAGES:
+				return "ending's page is ending or year"
 		"walk":
 			if s.has("to") == s.has("by") or not _pair(s.get("to", s.get("by"))):
 				return "walk needs to [x, y] or by [dx, dy]"

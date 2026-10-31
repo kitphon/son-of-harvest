@@ -1,0 +1,21 @@
+{
+	"_note": "The yearly page: on the first morning the farmer wakes in the farmhouse after the year turns (record_due, triggers_house.json; not in year 3, where the full ending plays), Tome brings the page the village record keeps for the farmer this year. Shorter than the ending: no visitor, no verdict on the rank. The ending step with page year shows it (EndingScreen) and sets record_first (no earlier page: the farmer's first year) or record_more (more stars than the last page). Format: README.md, Events.",
+	"steps": [
+		{"do": "fade", "to": "black", "seconds": 0},
+		{"do": "place", "at": [2, 2], "dir": "down"},
+		{"do": "actor", "who": "tome", "at": [4, 6], "face": "up"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "fade", "to": "clear", "seconds": 1.0},
+		{"do": "sound", "key": "door_slide"},
+		{"do": "actor", "who": "tome", "to": [4, 4]},
+		{"do": "walk", "to": [4, 3]},
+		{"do": "face", "dir": "down"},
+		{"do": "say", "dialogue": "year_record", "at": "greet"},
+		{"do": "sound", "key": "menu_ok"},
+		{"do": "ending", "page": "year"},
+		{"do": "say", "dialogue": "year_record", "at": "after"},
+		{"do": "actor", "who": "tome", "to": [4, 6]},
+		{"do": "sound", "key": "door_slide"},
+		{"do": "actor", "who": "tome", "leave": true}
+	]
+}
