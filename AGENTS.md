@@ -56,6 +56,14 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   lightning off. Create `shots/` first. Look at the last frame. Delete `shots/` afterwards.
 >>>>>>> refs/heads/claude/snow-lightning-b2757e
 - Run Python as `python -I` (numpy and Pillow are installed) for pixel checks.
+- Export (Windows): `Godot_v4.7.2-stable_win64_console.exe --headless --path . --export-release
+  "Windows Desktop" build/HarvestSon.exe` (preset in `export_presets.cfg`, .pck embedded,
+  `build/` git-ignored; run it in the background). It needs the 4.7.2 export templates in
+  `%APPDATA%\Godot\export_templates.7.2.stable`; they are not installed as of 2026-10-31, and
+  agents must not download them (README → Export has the steps for the user). Check the exe
+  with `build/HarvestSon.exe --quit-after 300`.
+- App icon: `icon.png` (project) and `icon.ico` (exe) are drawn by `tools/make_icon.gd`; change
+  the drawing there and re-run it (`--headless --path . --script res://tools/make_icon.gd`).
 
 ## How the code is built
 - **Logic is separate from drawing.** Rules live in `scripts/farm/farm_grid.gd` (FarmGrid,

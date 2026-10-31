@@ -89,7 +89,9 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 9. **Festivals, mining / fishing, relationships, endings**
 10. **Audio and release**
     - [ ] Music, sound effects
-    - [ ] Windows export (.exe), icon, settings
+    - [x] Windows export preset (`export_presets.cfg`, .pck embedded) and our app icon
+    - [ ] Build the .exe and check it starts (needs the 4.7.2 export templates; README → Export)
+    - [ ] Settings
 
 ## Tools of record
 Godot 4.7.2 (GL Compatibility), GDScript, headless tests in `tests/`, Movie Maker screenshots.
