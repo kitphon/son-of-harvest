@@ -508,7 +508,9 @@ corner, so the front walls are drawn as low sills (a cutaway) instead of moving 
   furniture.
 - `tools/make_icon.gd`: draws the app icon; `export_presets.cfg`: the Windows build.
 - `tools/balance.py` (`python -I tools/balance.py`): income and costs per season for a steady
-  year-1 plan, read from the data files; run it before and after changing prices.
+  year-1 plan, read from the data files (the smithy's ores kept back from the bin, contest
+  prizes from the odds against the rivals, each recipe's gain over its raw ingredients); run it
+  before and after changing prices.
 
 ## Plan and handoff
 - ROADMAP.md: milestones and "Next up".
