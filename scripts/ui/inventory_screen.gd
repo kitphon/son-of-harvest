@@ -157,7 +157,7 @@ func _refresh() -> void:
 			var s := inv.slot(place, i)
 			var in_hand := place == "tools" and i == menu.tool_slot
 			_slots[k].texture = PlaceholderArt.tex("ui:slot:" + ("on" if in_hand else "off"))
-			_icons[k].texture = null if s.is_empty() else PlaceholderArt.tex(PlaceholderArt.item_key(s.id, Game.current_seed()))
+			_icons[k].texture = null if s.is_empty() else PlaceholderArt.tex(PlaceholderArt.item_key(s.id, Game.current_seed(), Game.current_food()))
 			var n := "" if s.is_empty() or int(s.n) < 2 else str(s.n)
 			_counts[k].text = n
 			_counts[k].position.x = 16 - PixelFont.width(n)
@@ -169,7 +169,7 @@ func _refresh() -> void:
 	_cursor.position = at.position - Vector2(2, 2)
 	_carry.visible = not menu.carry.is_empty()
 	if _carry.visible:
-		_carry.texture = PlaceholderArt.tex(PlaceholderArt.item_key(menu.carry.id, Game.current_seed()))
+		_carry.texture = PlaceholderArt.tex(PlaceholderArt.item_key(menu.carry.id, Game.current_seed(), Game.current_food()))
 		_carry.position = at.position + Vector2(8, -7)
 		_carry_count.text = str(menu.carry.n) if int(menu.carry.n) > 1 else ""
 		_carry_count.position.x = 15 - PixelFont.width(_carry_count.text)

@@ -1,0 +1,25 @@
+{
+	"_about": "Food and drink. Eat the one in hand with the food slot (key 7, Q = next food); the seed stand sells the ones with shop true. Per food: name, price (G at the stand), stamina (+, up to the max), fatigue (+ or -, mostly -), drink (true = drunk, uses the drink sound), and optional specials: max_stamina (raises the max, up to max_stamina_cap) and work_fatigue_half (fatigue from tool swings is halved until the day ends), with special_message. look draws the placeholder icon (shape: rice_ball, round, skewer, cup, bottle; colors). A food that would do nothing (stamina full, no fatigue, no special) is not eaten. Names and numbers are ours; see WORKLOG 2026-10-31 Eating.",
+	"max_stamina_cap": 200,
+	"full_message": "You're full. Save it for later.",
+	"foods": {
+		"onigiri": {"name": "Onigiri", "price": 60, "stamina": 15, "fatigue": -1, "shop": true,
+			"look": {"shape": "rice_ball", "color": "fbf8f0", "accent": "26302a"}},
+		"green_tea": {"name": "Green tea", "price": 40, "stamina": 5, "fatigue": -5, "drink": true, "shop": true,
+			"look": {"shape": "cup", "color": "7aa848", "accent": "d8c8a8"}},
+		"dango": {"name": "Dango", "price": 70, "stamina": 18, "fatigue": -2, "shop": true,
+			"look": {"shape": "skewer", "color": "f0a8b8", "accent": "8ab858"}},
+		"milk": {"name": "Milk bottle", "price": 90, "stamina": 25, "fatigue": -2, "drink": true, "shop": true,
+			"look": {"shape": "bottle", "color": "f8f8f4", "accent": "4a78c0"}},
+		"sakura_mochi": {"name": "Sakura mochi", "price": 120, "stamina": 30, "fatigue": -3, "shop": true,
+			"look": {"shape": "round", "color": "f4b8c8", "accent": "6a9a48"}},
+		"amazake": {"name": "Amazake", "price": 220, "stamina": 50, "fatigue": -6, "drink": true, "shop": true,
+			"look": {"shape": "cup", "color": "f2ead8", "accent": "8a5a32"}},
+		"yomogi_tea": {"name": "Mugwort tea", "price": 350, "stamina": 5, "fatigue": -4, "drink": true, "shop": true,
+			"work_fatigue_half": true, "special_message": "Your body feels light. Work tires you less today.",
+			"look": {"shape": "cup", "color": "5a7a3a", "accent": "3a4a6a"}},
+		"kagami_mochi": {"name": "Kagami mochi", "price": 0, "stamina": 40, "fatigue": -10, "shop": false,
+			"max_stamina": 10, "special_message": "Strength wells up in you. Max stamina +%d!",
+			"look": {"shape": "round", "color": "fbf8f0", "accent": "e8902a"}}
+	}
+}

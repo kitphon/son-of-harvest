@@ -43,7 +43,9 @@ func _init() -> void:
 	a.fatigue = 63
 	a.tool_index = 2
 	a.seed_index = 4
-	a.bag = {"seeds:turnip": 3, "corn": 2}
+	a.food_index = 3
+	a.work_fatigue_half = true
+	a.bag = {"seeds:turnip": 3, "corn": 2, "food:milk": 4}
 	a.inventory.add("cucumber", 7, ["chest"])
 	a.inventory.add("egg", 1, ["hand"])
 	a.inventory.move("tools", 0, "chest", 4)   # the hoe put away in the chest
@@ -88,6 +90,8 @@ func _init() -> void:
 	check(not b.ticking(), "loaded indoors: the clock stands")
 	check(b.count("corn") == 2 and b.count("egg") == 1 and b.inventory.count("cucumber", ["chest"]) == 7, "rucksack, hand and chest back")
 	check(b.inventory.id_at("chest", 4) == "hoe" and b.inventory.id_at("tools", 0) == "", "tools back in their slots")
+	check(b.current_food() == a.current_food() and b.current_food() != "" and b.work_fatigue_half, "food in hand and today's half fatigue back")
+	check(b.count("food:milk") == 4, "food in the bag back")
 	# The loaded farm keeps working by the rules.
 	grid.water_cell(Vector2i(4, 10))
 	grid.day_end("spring", "sunny", rng)
@@ -100,7 +104,7 @@ func _init() -> void:
 			'{"version": 1, "game": "x"}', '{"version": 1, "game": {}}']:
 		_put(bad)
 		check(SaveGame.read(b, PATH) != "", "refused: %s" % bad)
-	for broken in [["day", 31], ["hour", "noon"], ["stamina", 500], ["tool_slot", 6], ["tool_slot", -1],
+	for broken in [["day", 31], ["hour", "noon"], ["stamina", 500], ["tool_slot", 7], ["tool_slot", -1],
 			["tool_slot", "hoe"], ["seed", "rice"], ["inventory", []], ["inventory", {"bag": "x"}],
 			["weather_today", 3], ["tool_levels", [1]],
 			["tool_levels", {"hoe": 0}], ["tool_levels", {"hoe": 6}], ["tool_levels", {"spoon": 1}],
@@ -111,7 +115,8 @@ func _init() -> void:
 			["fatigue", -1], ["fatigue", 101], ["fatigue", 2.5], ["fatigue", "lots"],
 			["events_seen", {"x": true}], ["events_seen", [1]], ["events_seen", [""]], ["events_seen", ["a", "a"]],
 			["map", "house"], ["map", {"id": "moon", "x": 8, "y": 8, "facing": [0, 1]}],
-			["map", {"id": "house", "x": -1, "y": 8, "facing": [0, 1]}], ["map", {"id": "house", "x": 8, "y": 8, "facing": [2, 0]}]]:
+			["map", {"id": "house", "x": -1, "y": 8, "facing": [0, 1]}], ["map", {"id": "house", "x": 8, "y": 8, "facing": [2, 0]}],
+			["food", "pizza"], ["food", 3], ["work_fatigue_half", 1], ["work_fatigue_half", "yes"]]:
 		var d := saved.duplicate(true)
 		d[broken[0]] = broken[1]
 		_put(JSON.stringify({"version": 1, "game": d}))
@@ -196,6 +201,13 @@ func _init() -> void:
 	err = SaveGame.read(b, PATH)
 	check(err == "" and b.maps.id == "farm" and b.maps.pos == MapManager.cell_pos(Vector2i(4, 4)) and b.maps.facing == Vector2i.DOWN,
 		"save without a map loads on the farm (%s)" % err)
+	# A save from before food (no food in hand, no half fatigue) loads with the first food.
+	old = saved.duplicate(true)
+	old.erase("food")
+	old.erase("work_fatigue_half")
+	_put(JSON.stringify({"version": 1, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.food_index == 0 and not b.work_fatigue_half, "save without food loads with the first food (%s)" % err)
 
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
 	a.free()
@@ -209,6 +221,7 @@ func _game(game_script: GDScript, crops: Dictionary, seed_value: int) -> Node:
 	g.crops = crops
 	g.tools_data = JSON.parse_string(FileAccess.get_file_as_string("res://data/tools.json"))
 	g.reset_tool_levels()
+	g.set_food_data(JSON.parse_string(FileAccess.get_file_as_string("res://data/foods.json")))
 	g.rng.seed = seed_value
 	g.farm = FarmGrid.new(crops)
 	g.farm.generate(g.rng)

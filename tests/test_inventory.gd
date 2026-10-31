@@ -3,7 +3,7 @@ extends SceneTree
 ## storage chest on the farm, the rucksack key). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_inventory.gd
 
-const TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe", "seeds"]
+const TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe", "seeds", "food"]
 
 var failures := 0
 
@@ -226,7 +226,7 @@ func _game() -> void:
 	g.rng.seed = 5
 	g.new_game()
 	check(g.current_tool() == "hoe" and g.count("seeds:turnip") == 2, "new game: hoe in hand, seed bags")
-	check(g.bag == {"seeds:turnip": 2, "seeds:potato": 1}, "bag reads the carried totals")
+	check(g.bag == {"seeds:turnip": 2, "seeds:potato": 1, "food:onigiri": 1}, "bag reads the carried totals")
 	check(g.add_item("turnip", 3) == 0 and g.count("turnip") == 3, "add_item puts it in the rucksack")
 	check(g.take_item("turnip", 2) and g.count("turnip") == 1 and not g.take_item("turnip", 2), "take_item")
 	g.bag = {"corn": 4}
@@ -267,7 +267,7 @@ func _game() -> void:
 	for ev in InputMap.action_get_events("rucksack"):
 		hit = hit or (ev is InputEventKey and ev.physical_keycode == KEY_I)
 	check(hit, "I opens the rucksack")
-	check(PlaceholderArt.item_key("turnip") == "ui:item:turnip" and PlaceholderArt.item_key("seeds:corn") == "ui:seeds:corn" and PlaceholderArt.item_key("seeds", "potato") == "ui:seeds:potato", "icon keys")
+	check(PlaceholderArt.item_key("turnip") == "ui:item:turnip" and PlaceholderArt.item_key("seeds:corn") == "ui:seeds:corn" and PlaceholderArt.item_key("seeds", "potato") == "ui:seeds:potato" and PlaceholderArt.item_key("food:mochi") == "ui:food:mochi" and PlaceholderArt.item_key("food", "", "milk") == "ui:food:milk", "icon keys")
 	for key in ["ui:item:turnip", "ui:item:rice_ball", "ui:cursor"]:
 		var img := PlaceholderArt.tex(key).get_image()
 		check(img.get_width() > 0 and not img.is_invisible(), "icon %s drawn" % key)

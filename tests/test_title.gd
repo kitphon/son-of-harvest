@@ -84,7 +84,7 @@ func _init() -> void:
 	check(fresh.money == 500 and fresh.bin_total == 0 and fresh.stamina == 100 and fresh.max_stamina == 100, "new game: money and stamina")
 	check(fresh.fatigue == 0 and g.body_state() == "fine", "new game: rested")
 	check(g.current_tool() == "hoe" and fresh.tool_slot == 0 and fresh.water == g.WATER_MAX, "new game: hoe in hand, full can")
-	check(g.bag == {"seeds:turnip": 2, "seeds:potato": 1}, "new game: starting bag")
+	check(g.bag == {"seeds:turnip": 2, "seeds:potato": 1, "food:onigiri": 1}, "new game: starting bag")
 	check(g.inventory.totals(["chest", "hand"]).is_empty(), "new game: empty chest and hand")
 	check(fresh.flags == {}, "new game: no dialogue flags")
 	check(SaveGame.read(g, PATH) == "", "loaded the save again")

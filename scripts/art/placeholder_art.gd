@@ -33,7 +33,7 @@ static func _make(key: String) -> Image:
 			return _ground(parts[1], int(parts[2]))
 		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour)
 			return _fx(parts[1])
-		"ui":       # ui:<frame|slot|weather|tool|seeds|item|cursor|coin|stamina>:<kind>, HUD pieces
+		"ui":       # ui:<frame|slot|weather|tool|seeds|food|item|cursor|coin|stamina>:<kind>, HUD pieces
 			return _ui(parts[1], parts[2] if parts.size() > 2 else "")
 		"title":    # title:bg, the title screen picture (480 x 270)
 			return _title_bg()
@@ -42,13 +42,17 @@ static func _make(key: String) -> Image:
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
 
-## The icon key for any item id in a slot: tools, seed bags ("seeds:<crop>"), crops, and a
-## wrapped cloth bundle for anything else. The seed bag tool shows the seed chosen now.
-static func item_key(id: String, seed := "") -> String:
+## The icon key for any item id in a slot: tools, seed bags ("seeds:<crop>"), food ("food:<id>"), crops, and a
+## wrapped cloth bundle for anything else. The seed bag and food tools show the one chosen now.
+static func item_key(id: String, seed := "", food := "") -> String:
 	if id == "seeds":
 		return "ui:seeds:" + seed
 	if id.begins_with("seeds:"):
 		return "ui:seeds:" + id.trim_prefix("seeds:")
+	if id == "food":
+		return "ui:food:" + food
+	if id.begins_with("food:"):
+		return "ui:food:" + id.trim_prefix("food:")
 	if id in ["hoe", "can", "sickle", "hammer", "axe"]:
 		return "ui:tool:" + id
 	return "ui:item:" + id.replace(":", "_")
@@ -227,6 +231,18 @@ static func crop_look(id: String) -> Dictionary:
 		for k in crops:
 			_looks[k] = crops[k].get("look", _DEFAULT_LOOK)
 	return _looks.get(id, _DEFAULT_LOOK)
+
+
+static var _food_looks := {}
+
+
+## A food's icon look from data/foods.json (shape, color, accent).
+static func food_look(id: String) -> Dictionary:
+	if _food_looks.is_empty():
+		var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/foods.json"))
+		for k in data.get("foods", {}):
+			_food_looks[k] = data.foods[k].get("look", {})
+	return _food_looks.get(id, {})
 
 
 static func _blank(w: int, h: int) -> Image:
@@ -756,6 +772,8 @@ static func _ui(kind: String, arg: String) -> Image:
 			var c := UI_SEAL
 			return _draw(22, 22, [[0, 0, 6, 2, c], [0, 0, 2, 6, c], [16, 0, 6, 2, c], [20, 0, 2, 6, c],
 				[0, 20, 6, 2, c], [0, 16, 2, 6, c], [16, 20, 6, 2, c], [20, 16, 2, 6, c]])
+		"food":     # food:<id>, 14 x 14, drawn from the food's look in data/foods.json
+			return _food_icon(food_look(arg))
 		"coin":     # a gold coin with a square hole
 			var img := _blank(9, 9)
 			_oval(img, 4.5, 4.5, 4.0, 4.0, Color("c8962a"))
@@ -807,6 +825,47 @@ static func _item_icon(id: String) -> Image:
 	_px(img, 6, 4, 2, 2, cloth.lightened(0.3))
 	for p in [Vector2i(4, 9), Vector2i(8, 8), Vector2i(10, 11), Vector2i(6, 11)]:
 		img.set_pixelv(p, Color("f4ecd8"))
+	return _outline(img)
+
+
+## Food shapes: a rice ball with a nori band, a round sweet on its leaf, three dumplings on
+## a stick, a cup with a saucer line, a glass bottle with a paper cap.
+static func _food_icon(look: Dictionary) -> Image:
+	var img := _blank(14, 14)
+	var c := Color(look.get("color", "fbf8f0"))
+	var a := Color(look.get("accent", "26302a"))
+	match look.get("shape", ""):
+		"rice_ball":
+			for y in 9:
+				var half := (y + 1) / 2 + 1
+				_px(img, 7 - half, y + 2, half * 2, 1, c)
+			_px(img, 5, 8, 4, 4, a)
+			img.set_pixel(4, 4, c.darkened(0.08))
+		"round":
+			_oval(img, 7, 10, 5.5, 2.0, a)
+			_oval(img, 7, 7.5, 4.5, 3.5, c)
+			_oval(img, 5.5, 6, 1.5, 1.0, c.lightened(0.4))
+		"skewer":
+			_line(img, Vector2i(2, 12), Vector2i(12, 2), Color("c8a060"))
+			_oval(img, 4.5, 9.5, 2.2, 2.2, a)
+			_oval(img, 7, 7, 2.2, 2.2, Color("fbf8f0"))
+			_oval(img, 9.5, 4.5, 2.2, 2.2, c)
+		"cup":
+			_px(img, 2, 12, 10, 1, a.darkened(0.2))
+			_px(img, 3, 5, 8, 7, a)
+			_px(img, 4, 5, 6, 2, c)
+			_px(img, 4, 7, 6, 4, a.lightened(0.15))
+			_outline(img)
+			for x in [5, 8]:   # steam, after the outline so it stays soft
+				_px(img, x, 1 + x % 2, 1, 2, Color(1, 1, 1, 0.7))
+			return img
+		"bottle":
+			_px(img, 4, 4, 6, 9, c)
+			_px(img, 5, 2, 4, 2, c)
+			_px(img, 5, 1, 4, 2, a)
+			_px(img, 4, 7, 6, 3, a.lightened(0.3))
+		_:
+			_px(img, 3, 3, 8, 8, c)
 	return _outline(img)
 
 

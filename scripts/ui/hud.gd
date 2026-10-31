@@ -150,7 +150,7 @@ func _refresh() -> void:
 	for i in _slots.size():
 		_slots[i].texture = PlaceholderArt.tex("ui:slot:" + ("on" if i == Game.tool_index else "off"))
 		var t := Game.inventory.id_at("tools", i)
-		_slot_icons[i].texture = null if t == "" else PlaceholderArt.tex(PlaceholderArt.item_key(t, Game.current_seed()))
+		_slot_icons[i].texture = null if t == "" else PlaceholderArt.tex(PlaceholderArt.item_key(t, Game.current_seed(), Game.current_food()))
 	var held := Game.inventory.id_at("hand", 0)
 	_hand_box.visible = held != ""
 	if held != "":
@@ -181,4 +181,7 @@ static func item_text(tool: String) -> Array[String]:
 	if tool == "seeds":
 		var s := Game.current_seed()
 		return ["%s seeds" % Game.crops[s].name, "x%d" % Game.count("seeds:" + s)]
+	if tool == "food":
+		var f := Game.current_food()
+		return [String(Game.foods.get(f, {}).get("name", "Food")), "x%d" % Game.count("food:" + f)]
 	return [HudLayout.TOOL_NAMES.get(tool, tool.capitalize()), ""]

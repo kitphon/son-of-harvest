@@ -34,9 +34,9 @@ Save / load, the title menu, weather, dialogue and events: the same with `res://
 | Space / J | use the tool on the cell in front; hold to charge (pips over the farmer), let go for a bigger area; tools level up with use (pips in the item box) |
 | E / K | interact: harvest, ship at the bin (with nothing to ship: read the note on it), buy seeds at the stand, open the storage chest right of the house, go through doors (walking into one works too), sleep at the futon in the house |
 | E / Space / Enter, click | in a text box: show the whole line, then go on; arrows / W / S or the mouse pick a choice |
-| 1-6 / Tab | pick a tool slot (at the start: hoe, watering can, sickle, hammer, axe, seeds) |
+| 1-7 / Tab | pick a tool slot (at the start: hoe, watering can, sickle, hammer, axe, seeds, food; Space / J eats or drinks the food in hand) |
 | I | rucksack: arrows / WASD move, Enter / Space pick up and put down (stack, swap), E takes it in hand (tool slot = tool in hand, an item = the item hand), Esc / I close; mouse: left click pick / put, right click hold. The chest screen works the same. The clock stops while it is open |
-| Q | next seed type (for sowing and for buying) |
+| Q | next seed type, or next food with the food slot (for eating and for buying) |
 
 ## What works (v0)
 - Clock: 1 game minute = 0.5 s, day starts 6:00, 4 seasons x 30 days, day/night tint.
@@ -45,7 +45,8 @@ Save / load, the title menu, weather, dialogue and events: the same with `res://
 - Farm grid 32 x 20: till, water (can refills at the pond), seed bag sows 3 x 3, crops grow
   one stage per watered night (`data/crops.json`), regrowing crops, out-of-season crops wither,
   weeds appear, rocks / branches / weeds / stumps cleared by the right tool.
-- Shipping bin pays at 18:00 (or when you sleep); the seed stand sells this season's seeds.
+- Shipping bin pays at 18:00 (or when you sleep); the seed stand sells this season's seeds,
+  and food / drink when the food slot is in hand (`data/foods.json`: stamina +, fatigue −).
 - Stamina: each swing costs stamina; sleep before midnight restores it all, after midnight
   3/4, passing out at 2:00 half.
 - Sound: every effect and ambient loop is made in code from recipes in `data/sfx.json`

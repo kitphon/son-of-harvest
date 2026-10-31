@@ -41,7 +41,7 @@ static func interact(c: Vector2i) -> void:
 		"chest":
 			Game.open_inventory("storage")
 		"stand":
-			buy_seeds()
+			buy_food() if Game.current_tool() == "food" else buy_seeds()
 		_:
 			if farm.is_ripe(c) and not Game.can_carry(farm.cell(c).crop):
 				Game.message.emit("Your rucksack is full")
@@ -69,6 +69,21 @@ static func buy_seeds() -> void:
 		Game.message.emit("Bought %s seeds for %d G" % [data.name, price])
 
 
+## With the food slot in hand the stand sells the food in hand instead of seeds.
+static func buy_food() -> void:
+	var id := Game.current_food()
+	var data: Dictionary = Game.foods.get(id, {})
+	var price := int(data.get("price", 0))
+	if not data.get("shop", false):
+		Game.message.emit("The stand doesn't sell %s" % String(data.get("name", id)).to_lower())
+	elif Game.money < price:
+		Game.message.emit("Not enough money (%d G)" % price)
+	else:
+		Game.money -= price
+		Game.add_item("food:" + id)
+		Game.message.emit("Bought %s for %d G" % [String(data.name).to_lower(), price])
+
+
 ## A tool from the farmer's cell `origin` towards `facing`. `charge` is the charge step the
 ## button was held to; it picks the area and the stamina cost from data/tools.json.
 static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
@@ -85,6 +100,11 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 		Sfx.play("pond_fill")
 		Game.message.emit("Filled the watering can")
 		Game.changed.emit()
+		return
+	if tool == "food":
+		var id := Game.current_food()
+		if Game.eat(id):
+			Sfx.play(Game.eat_sound(id))
 		return
 	if tool == "seeds":
 		var s := Game.current_seed()
@@ -135,7 +155,7 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	Game.add_tool_exp(tool, Game.swing_exp(worked))
 
 
-## Number keys / Tab / Q, the same in both views.
+## Number keys / Tab / Q (next seed, or next food with the food slot), the same in both views.
 static func handle_input(event: InputEvent) -> void:
 	for i in Game.TOOLS.size():
 		if event.is_action_pressed("tool_%d" % (i + 1)):
@@ -143,4 +163,4 @@ static func handle_input(event: InputEvent) -> void:
 	if event.is_action_pressed("next_tool"):
 		Game.select_tool(Game.tool_index + 1)
 	if event.is_action_pressed("next_seed"):
-		Game.cycle_seed()
+		Game.cycle_food() if Game.current_tool() == "food" else Game.cycle_seed()

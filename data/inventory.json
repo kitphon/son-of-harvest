@@ -1,9 +1,9 @@
 {
 	"_about": "Where the farmer's things go (Inventory). slots: how many slots each place has. tools = the rucksack's tool slots (the HUD tool bar; the marked one is the tool in hand), bag = the rucksack's item slots, hand = the item held in the other hand, chest = the storage chest by the house. A shop upgrade of the rucksack is a bigger bag number (Inventory.grow). Tools only go in tool slots and the chest, other items in the bag, the hand and the chest. Items of one kind stack up to stack_max in a slot; tools never stack. start: what a new game begins with (tools fill the tool slots in this order, items go in the bag). Numbers are ours.",
-	"slots": {"tools": 6, "bag": 8, "hand": 1, "chest": 24},
+	"slots": {"tools": 7, "bag": 8, "hand": 1, "chest": 24},
 	"stack_max": 99,
 	"start": {
-		"tools": ["hoe", "can", "sickle", "hammer", "axe", "seeds"],
-		"items": {"seeds:turnip": 2, "seeds:potato": 1}
+		"tools": ["hoe", "can", "sickle", "hammer", "axe", "seeds", "food"],
+		"items": {"seeds:turnip": 2, "seeds:potato": 1, "food:onigiri": 1}
 	}
 }

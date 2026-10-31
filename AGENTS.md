@@ -47,6 +47,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Maps (data/maps, doors, indoor clock, the fade in the real view): `res://tests/test_maps.gd`
   must print `test_maps: OK (0 failed)`. Rucksack / storage (inventory slots, move rules, menu
   cursor, chest): `res://tests/test_inventory.gd` must print `test_inventory: OK (0 failed)`.
+  Food and drink (eating, specials, the stand, the food slot): `res://tests/test_food.gd` must
+  print `test_food: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field) and `-- --demo --map=town` (the village).
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png

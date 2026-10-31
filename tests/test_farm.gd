@@ -203,7 +203,7 @@ func _init() -> void:
 	check(frame.get_pixel(1, 8) == PlaceholderArt.UI_WOOD and frame.get_pixel(8, 8) == PlaceholderArt.UI_PAPER, "paper box: wood edge, paper inside")
 	var ui_keys := ["ui:frame:wood", "ui:slot:on", "ui:slot:off", "ui:coin", "ui:stamina"]
 	for t in game_script.TOOLS:
-		ui_keys.append("ui:seeds:turnip" if t == "seeds" else "ui:tool:" + t)
+		ui_keys.append("ui:seeds:turnip" if t == "seeds" else ("ui:food:onigiri" if t == "food" else "ui:tool:" + t))
 	for w in HudLayout.WEATHER_ICONS:
 		ui_keys.append("ui:weather:" + w)
 	for key in ui_keys:
