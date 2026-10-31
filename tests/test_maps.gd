@@ -195,7 +195,7 @@ func _homes_3d() -> void:
 ## sign by its value), follows the shared flags, survives save / load, builds in both views,
 ## and the bell rings when used.
 func _story_props() -> void:
-	var where := {"door_bell": "farm", "store_sign": "town", "ume_jar": "house"}
+	var where := {"door_bell": "farm", "store_sign": "town", "ume_jar": "house", "carp_streamer": "farm"}
 	var kinds := func(id: String, f: Dictionary) -> Array:
 		var out := []
 		for p in MapManager.load_map(id, null, f)[1].props:
@@ -207,6 +207,12 @@ func _story_props() -> void:
 	check(kinds.call("farm", {"hachiro_bell": true}) == ["door_bell"], "the bell hangs once hachiro_bell is set")
 	check(kinds.call("farm", {"hachiro_bell": false}).is_empty(), "no bell while hachiro_bell is false")
 	check(kinds.call("house", {"tome_grandma": true}) == ["ume_jar"], "Tome's jar is in the house once tome_grandma is set")
+	check(kinds.call("farm", {"kota_streamer": true}) == ["carp_streamer"], "Kota's streamer flies once kota_streamer is set (band 6)")
+	check(kinds.call("farm", {"kota_streamer": true, "hachiro_bell": true}) == ["door_bell", "carp_streamer"], "the bell and the streamer together")
+	var pole: Dictionary = MapManager.load_map("farm", null, {"kota_streamer": true})[1].prop_at(Vector2i(1, 4))
+	var grid := FarmGrid.new({})
+	grid.generate(RandomNumberGenerator.new())
+	check(pole.get("kind", "") == "carp_streamer" and not grid.fixed.has(Vector2i(1, 4)), "the streamer stands on open ground at the front corner left of the house")
 	check(kinds.call("town", {"sayo_sign": "old"}) == ["store_sign:old"], "sayo_sign old: the old name repainted")
 	check(kinds.call("town", {"sayo_sign": "new"}) == ["store_sign:new"], "sayo_sign new: Sayo's own sign")
 	check(kinds.call("town", {"sayo_sign": true}).is_empty(), "sayo_sign set to true (no answer) shows no sign")
@@ -219,7 +225,7 @@ func _story_props() -> void:
 	var jar_map: MapData = MapManager.load_map("house", ["chest", "kitchen", "room"], {"tome_grandma": true})[1]
 	check(jar_map.prop_at(Vector2i(5, 1)).get("kind", "") == "ume_jar" and jar_map.is_solid(Vector2i(5, 1)),
 		"the jar stands on its own cell with every extension built")
-	for key in ["story:door_bell", "story:sign_old", "story:sign_new", "story:ume_jar"]:
+	for key in ["story:door_bell", "story:sign_old", "story:sign_new", "story:ume_jar", "story:carp_streamer"]:
 		var img := PlaceholderArt.tex(key).get_image()
 		check(img.get_width() > 8 and img.get_pixel(img.get_width() / 2, img.get_height() / 2) != Color.MAGENTA, "art %s is drawn" % key)
 

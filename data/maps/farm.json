@@ -1,5 +1,5 @@
 {
-	"_note": "The farm itself: ground, buildings and field come from FarmGrid, so this file only adds the ways out. The gate cells are fence cells left open in the drawing; walking into them goes to the village. Its props are only the story ones (StoryProps), gated by a flag: Hachiro's iron door bell by the house door once hachiro_bell is set (heart_hachiro_5); it rings when examined.",
+	"_note": "The farm itself: ground, buildings and field come from FarmGrid, so this file only adds the ways out. The gate cells are fence cells left open in the drawing; walking into them goes to the village. Its props are only the story ones (StoryProps), gated by a flag: Hachiro's iron door bell by the house door once hachiro_bell is set (heart_hachiro_5; it rings when examined) and Kota's carp streamer on its pole at the front corner left of the house once kota_streamer is set (heart_kota_6).",
 	"id": "farm",
 	"name": "Farm",
 	"farm": true,
@@ -21,6 +21,15 @@
 			"use": "examine",
 			"sound": "chime_morning",
 			"message": "Hachiro's iron bell rings out over the farm."
+		},
+		{
+			"kind": "carp_streamer",
+			"cell": [
+				1,
+				4
+			],
+			"solid": false,
+			"flag": "kota_streamer"
 		}
 	],
 	"doors": [

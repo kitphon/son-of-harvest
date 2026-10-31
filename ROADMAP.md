@@ -87,8 +87,10 @@ villager follows a `birthday` day plan, the weather is fair and the HUD tag name
 lists include mine finds. The band 5 scenes' story flags show in the world, in both views
 (map props gated by `flag` / `flag_value`, StoryProps / StoryView): Hachiro's iron bell by the
 farmhouse door (rings when used), the store's new sign on its roof (old name or Sayo's own red
-board) and Tome's jar of pickled plums in the farmhouse. Later for relationships: a band 6
-scene.
+board) and Tome's jar of pickled plums in the farmhouse. Each villager has a band 6 scene too
+(heart_<id>_6.json, after the band 5 one; Kota's carp streamer flies by the farmhouse) and
+band 6 talk lines after it. Later for relationships: actors in the heart scenes (the villager
+standing there while they talk).
 Shops are in (data/shops.json): the Yorozu Store and the Kurogane Smithy in the village, with
 opening hours and days off, a buy / sell screen and tool upgrades over days (saved). A
 shopkeeper only has to stand at the map's `keeper` spawn and call `Game.open_shop(id)`.
@@ -213,6 +215,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Relationships: hearts on the text box's name tag, birthdays (calendar, gifts x5, birthday lines), the nightly loss for villagers left alone, a heart event per villager at band 3
    - [x] Relationships 2: a second heart event per villager at band 5, birthday day plans, fair weather and the HUD tag on a birthday, mine finds in the gift lists
    - [x] Heart flags in the world: the door bell (hachiro_bell), the store's sign (sayo_sign old / new), Tome's plum jar (tome_grandma), as flag-gated map props in both views
+   - [x] Band 6 heart scenes: Tome stays in the village, Kota's carp streamer (a farm prop), Sayo's new ledger, Hachiro's sickle; band 6 talk lines
    - [x] Ending: the village record on the first morning of year 3 (data/ending.json: ten categories graded in stars, five ranks), Tome's verdict, the closest villager's word; the game goes on
    - [x] Ending steps re-set for 11 crops / 13 recipes; balance re-run with smithy ores, contest prizes, cooking, daikon and rice
 10. **Audio and release**

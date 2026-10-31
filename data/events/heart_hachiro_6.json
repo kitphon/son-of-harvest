@@ -1,0 +1,16 @@
+{
+	"_note": "Hachiro's third heart event: the first talk once his heart band reaches 6, after heart_hachiro_5, at the smithy counter or in the village (triggers_smithy.json, triggers_town.json); it plays instead of opening the shop. The farmer strikes one blow on the sickle he forges each year for his teacher's grave (hachiro_strike; a line of its own if hachiro_bell is set). Sets heart_hachiro_6. Format: README.md, Events.",
+	"steps": [
+		{"do": "sound", "key": "tool_hammer"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "sound", "key": "tool_hammer"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_6", "at": "hachiro"},
+		{"do": "wait", "seconds": 0.5},
+		{"do": "sound", "key": "tool_hammer"},
+		{"do": "wait", "seconds": 0.8},
+		{"do": "say", "dialogue": "heart_events_6", "at": "hachiro_strike"},
+		{"do": "affection", "who": "hachiro", "amount": 5},
+		{"do": "set", "flags": {"heart_hachiro_6": true, "hachiro_strike": true}}
+	]
+}

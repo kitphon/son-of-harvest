@@ -58,7 +58,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   files and picks, gifts, daily limits, affection save, shopkeepers, bump delay):
   `res://tests/test_talk.gd` must print `test_talk: OK (0 failed)`.
   Relationships (hearts on the name tag, birthdays and x5 gifts, the nightly loss, heart
-  events at bands 3 and 5, birthday day plans, fair weather and the HUD tag, mine finds as
+  events at bands 3, 5 and 6, birthday day plans, fair weather and the HUD tag, mine finds as
   gifts): `res://tests/test_relationships.gd` must print `test_relationships: OK (0 failed)`.
   Shops (data/shops.json, buying / selling, tool upgrades and their ores, mine finds sold,
   shop maps and doors, the screen):

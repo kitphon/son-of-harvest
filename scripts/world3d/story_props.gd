@@ -1,12 +1,13 @@
 class_name StoryProps
 extends RefCounted
-## What the band 5 heart events leave in the world, in 3D: map props gated by a story flag
-## (MapManager.with_flags). Hachiro's iron door bell hangs by the farmhouse door (farm map,
-## hachiro_bell), the store's new sign stands on its roof over the front (town map, sayo_sign
-## "old" / "new" as the prop's `style`) and Tome's jar of pickled plums sits in the farmhouse
-## (house map, tome_grandma). The pictures are PlaceholderArt "story:" keys, the same ones the
-## flat view draws (StoryView, which also keeps the list of kinds). Same units as MapWorld
-## (1 unit = 1 cell).
+## What the band 5 and 6 heart events leave in the world, in 3D: map props gated by a story
+## flag (MapManager.with_flags). Hachiro's iron door bell hangs by the farmhouse door (farm
+## map, hachiro_bell), the store's new sign stands on its roof over the front (town map,
+## sayo_sign "old" / "new" as the prop's `style`), Tome's jar of pickled plums sits in the
+## farmhouse (house map, tome_grandma) and Kota's carp streamer flies on its pole beside the
+## farmhouse (farm map, kota_streamer, band 6). The pictures are PlaceholderArt "story:" keys,
+## the same ones the flat view draws (StoryView, which also keeps the list of kinds). Same
+## units as MapWorld (1 unit = 1 cell).
 
 
 ## A story prop by its kind (MapWorld calls this; on the farm, FarmWorld.make_story_props).
@@ -34,6 +35,12 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 		"ume_jar":
 			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))
 			s.pixel_size = 0.04
+			s.position = Vector3(r.get_center().x, 0, r.get_center().y)
+			w.add_child(s)
+		"carp_streamer":
+			# Pole and carp are one picture, standing on its cell, the carp just over the eave.
+			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))
+			s.pixel_size = 0.05
 			s.position = Vector3(r.get_center().x, 0, r.get_center().y)
 			w.add_child(s)
 

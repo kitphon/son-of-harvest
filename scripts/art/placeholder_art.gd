@@ -49,7 +49,7 @@ static func _make(key: String) -> Image:
 			return _title_bg()
 		"face":     # face:<speaker>:<calm|smile|surprised|worried>, a 40 x 40 text box portrait
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
-		"story":    # story:<door_bell|sign_old|sign_new|ume_jar>, things the heart events leave in the world (StoryProps)
+		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer>, things the heart events leave in the world (StoryProps)
 			return _story(parts[1])
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
@@ -1893,10 +1893,11 @@ static func _face(speaker: String, expression: String) -> Image:
 	return img
 
 
-## What the band 5 heart events leave in the world (map props gated by a flag, StoryProps):
+## What the band 5 and 6 heart events leave in the world (map props gated by a flag, StoryProps):
 ## Hachiro's iron door bell (12 x 16, hanging from its bracket), the store's new sign board
-## (48 x 14; "old" = the old name freshly painted, "new" = Sayo's own red board) and Tome's
-## jar of pickled plums with a note on the lid (12 x 12).
+## (48 x 14; "old" = the old name freshly painted, "new" = Sayo's own red board), Tome's
+## jar of pickled plums with a note on the lid (12 x 12) and Kota's carp streamer on its
+## bamboo pole (26 x 40).
 static func _story(kind: String) -> Image:
 	match kind:
 		"door_bell":
@@ -1948,5 +1949,28 @@ static func _story(kind: String) -> Image:
 			_px(img, 3, 6, 3, 3, glaze.lightened(0.25))      # the glaze's shine
 			_px(img, 6, 7, 4, 3, Color("f4f0e0"))            # the note tucked under the string
 			_px(img, 7, 8, 2, 1, Color("3a2a1a"))
+			return _outline(img)
+		"carp_streamer":
+			# Kota's streamer on a bamboo pole: the old black carp with its one white spot,
+			# mouth tied to the pole, tail out in the wind; a gilt ball on the pole's top.
+			var img := _blank(26, 40)
+			var bamboo := Color("a89a5a")
+			_px(img, 2, 2, 2, 38, bamboo)
+			for y in [10, 20, 30]:
+				_px(img, 2, y, 2, 1, bamboo.darkened(0.3))   # the nodes
+			_oval(img, 3, 1.5, 1.6, 1.4, Color("e8c868"))
+			var black := Color("26262c")
+			_oval(img, 12, 8, 8, 3.6, black)                  # the body
+			_px(img, 4, 5, 2, 7, Color("c8442c"))             # the red mouth ring on the pole
+			for i in 3:                                        # the tail fins, forked
+				_px(img, 19 + i, 5 - i, 2, 2, black)
+				_px(img, 19 + i, 10 + i, 2, 2, black)
+			_px(img, 23, 3, 2, 2, black)
+			_px(img, 23, 12, 2, 2, black)
+			_px(img, 7, 7, 2, 2, Color("f4f0e0"))            # the eye
+			_px(img, 8, 8, 1, 1, black)
+			_px(img, 14, 6, 3, 2, Color("f4f0e0"))           # the one white spot
+			for x in [11, 15, 18]:
+				_px(img, x, 10, 2, 1, Color("4a4a56"))       # scales
 			return _outline(img)
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
