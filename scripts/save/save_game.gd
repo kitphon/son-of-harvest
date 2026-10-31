@@ -21,20 +21,42 @@ static func write(game, path := SLOT) -> String:
 
 ## Returns "" when loaded, else what was wrong (and the game is unchanged).
 static func read(game, path := SLOT) -> String:
+	var parsed := _parse(path)
+	if parsed[0] != "":
+		return parsed[0]
+	return game.from_dict(parsed[1])
+
+
+## Would `read` succeed? Returns "" or what is wrong, without touching `game`: the file is
+## loaded into a scratch Game that shares only the crop data, then thrown away.
+static func check(game, path := SLOT) -> String:
+	var parsed := _parse(path)
+	if parsed[0] != "":
+		return parsed[0]
+	var scratch: Node = game.get_script().new()
+	scratch.crops = game.crops
+	scratch.farm = FarmGrid.new(game.crops)
+	var err: String = scratch.from_dict(parsed[1])
+	scratch.free()
+	return err
+
+
+## [error, the saved game's dictionary] read from the file, error "" when it is usable.
+static func _parse(path: String) -> Array:
 	if not FileAccess.file_exists(path):
-		return "No saved game"
+		return ["No saved game", null]
 	var json := JSON.new()
 	if json.parse(FileAccess.get_file_as_string(path)) != OK or not json.data is Dictionary:
-		return "The save file is broken"
+		return ["The save file is broken", null]
 	var data: Dictionary = json.data
 	var version = whole(data.get("version"), 1, 1 << 30)
 	if version == null:
-		return "The save file has no version"
+		return ["The save file has no version", null]
 	if version > VERSION:
-		return "The save file is from a newer version (%d)" % version
+		return ["The save file is from a newer version (%d)" % version, null]
 	if not data.get("game") is Dictionary:
-		return "The save file is broken"
-	return game.from_dict(data.game)
+		return ["The save file is broken", null]
+	return ["", data.game]
 
 
 ## A whole number in [lo, hi] from parsed JSON (numbers come back as floats), else null.

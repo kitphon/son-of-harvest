@@ -46,6 +46,39 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   shows 3 of 4 pips over the farmer and brackets on the 3 x 3 area ahead. Not checked:
   holding the key in a real game window.
 - Left / next: tool upgrades (raise `tool_levels`, shop later); over-charge not modelled.
+## 2026-10-31 — Title screen (new game / continue)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `scenes/title.tscn` (scripts/ui/title_screen.gd) is the main scene now. "Harvest Son"
+  in our pixel font at 3x with a vermilion stroke, over a new placeholder picture
+  `title:bg` (early morning: banded sky, pale sun, two hazy ridges, a cedar hill with a small
+  torii, a thatched farm house, flooded rice paddies with seedlings). A paper box with
+  New game / Continue / Quit; arrows or W / S move (skipping items that are off, wrapping),
+  Enter / Space choose, the mouse points and clicks. The choices are `TitleMenu`
+  (scripts/ui/title_menu.gd, no drawing). Continue is greyed out unless
+  `SaveGame.check()` passes: the new check parses the slot and runs `from_dict` on a scratch
+  Game (only the crop data shared), so nothing is applied; `read` and `check` share
+  `_parse`. The cursor starts on Continue when there is a save. A save that exists but
+  can't be loaded shows why under the menu. `Game.new_game()` now resets every run value
+  (calendar, clock, weather today, money, bin, stamina / max, water, tool, seed, clock
+  remainder) besides the new farm and bag, so a new game after a played one starts clean.
+  The title stops the clock and takes all key events in `_input`, so F5 / F9 can't save a
+  blank farm over the slot from the title. `-- --demo` skips the title (straight to the
+  field), so the screenshot and smoke commands work as before. AGENTS.md / README updated.
+- Checked: new `tests/test_title.gd` prints `test_title: OK (0 failed)` (no file → Continue
+  off, cursor on New game, up / down skip it and wrap, the mouse can't point at it; empty,
+  non-JSON, cut-off, no-version, newer-version, bad-day and unknown-crop files → off; a good
+  save → on, cursor on Continue, checking left the game equal, reading it gives the saved
+  state; new game after changing year, season, clock, weather, bin, stamina, water, tool,
+  seed, bag and the farm equals a fresh new game with the same seed, with a new farm and no
+  tilled soil). `test_save: OK (0 failed)`, `test_farm: OK (0 failed)`. Headless
+  `--quit-after 300` with and without `-- --demo` printed no errors. A temporary script
+  (deleted) wrote a save, opened the title (Continue on, cursor on it, clock stopped),
+  chose Continue (field, day 9, 4321 G, clock running), went back and chose New game
+  (field, day 1, 500 G); the temporary save was removed. Movie Maker frame without
+  `--demo` shows the title picture, the name and the menu with Continue greyed out.
+  Not checked: pressing keys / clicking in a real game window (no input headless).
+- Left / next: no pause menu or "back to title" yet; charging tools (other session) should
+  add any new run state to the reset list in `Game.new_game()`.
 
 ## 2026-10-31 — Merged HUD, Japanese props and save / load
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

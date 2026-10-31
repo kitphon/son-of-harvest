@@ -54,7 +54,23 @@ func _ready() -> void:
 	new_game()
 
 
+## A fresh run: every value back to the start and a newly laid-out farm, so nothing from an
+## earlier game in the same session is left over. New run state belongs in this list too.
 func new_game() -> void:
+	year = 1
+	season = 0
+	day = 1
+	hour = 6
+	minute = 0
+	weather_today = "sunny"
+	money = 500
+	bin_total = 0
+	max_stamina = 100
+	stamina = max_stamina
+	water = WATER_MAX
+	tool_index = 0
+	seed_index = 0
+	_accum = 0.0
 	farm = FarmGrid.new(crops)
 	farm.generate(rng)
 	bag = {"seeds:turnip": 2, "seeds:potato": 1}
