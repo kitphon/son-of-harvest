@@ -1,0 +1,10 @@
+{
+	"_note": "Hachiro's heart event: the first talk once his heart band reaches 3, at the smithy counter or in the village (triggers_smithy.json, triggers_town.json); it plays instead of opening the shop. Sets heart_hachiro. Format: README.md, Events.",
+	"steps": [
+		{"do": "sound", "key": "tool_hammer"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events", "at": "hachiro"},
+		{"do": "affection", "who": "hachiro", "amount": 5},
+		{"do": "set", "flags": {"heart_hachiro": true}}
+	]
+}

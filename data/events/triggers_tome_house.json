@@ -1,0 +1,6 @@
+{
+	"_note": "Events inside Tome's home: Tome's heart event, if it comes while at home. Format: README.md, Events.",
+	"rows": [
+		{"event": "heart_tome", "on": "talk", "who": "tome", "hearts": {"tome": [3, 6]}}
+	]
+}

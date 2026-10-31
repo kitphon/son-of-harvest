@@ -2,6 +2,7 @@
 	"_note": "Kota, a boy from the house south-west of the road: plays along the road in the morning, fishes at the pond in the afternoon; in summer he hunts cicadas in the shrine pines instead. Walks a little faster than the grown-ups. At home (data/maps/kota_house.json) by his toy box before 8:00, at noon and after 17:30, all day when it is wet (with a walk to the hearth now and then); in bed (away) from 20:00, when the door shuts. Gifts: corn, sweets and anything with fins; not his vegetables. Format: README.md, Villagers.",
 	"id": "kota",
 	"name": "Kota",
+	"birthday": {"season": "spring", "day": 19},
 	"speed": 2.0,
 	"look": {"outfit": "shirt_shorts", "hair_style": "straw_hat", "hair": "2a2422", "skin": "e0a878", "top": "e8e2d0", "lower": "4a6a3a", "accent": "e0c070", "shoes": "6b4423"},
 	"rules": [

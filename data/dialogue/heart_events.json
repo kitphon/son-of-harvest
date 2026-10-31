@@ -1,0 +1,27 @@
+{
+	"_note": "The heart events (data/events/heart_<villager>.json): one short scene per villager when their heart band first reaches 3 and the farmer talks to them. One part per villager, started at its id. Our own scenes.",
+	"lines": [
+		{"id": "tome", "speaker": "tome", "face": "calm", "text": "Ah, it's you. Sit with me a minute? My knees and I have been arguing all morning."},
+		{"speaker": "tome", "face": "smile", "text": "You know, I kept a little packet back every year. Eggplant seed, from the plants by my door."},
+		{"speaker": "tome", "face": "calm", "text": "My hands are too slow for a whole row now. But a farmer who stops to talk to an old woman... you'd look after them."},
+		{"speaker": "farmer", "face": "smile", "text": "I'll give them the best corner of the field.", "next": "tome_end"},
+		{"id": "tome_end", "speaker": "tome", "face": "smile", "text": "Bring me the first one that ripens. That's all the thanks I want.", "next": "end"},
+
+		{"id": "kota", "speaker": "kota", "face": "worried", "text": "Hey... can you keep a secret? A real one, not a baby one."},
+		{"speaker": "kota", "face": "calm", "text": "There's a big carp in the pond. Old and black, with one white spot. I've seen it three times and nobody believes me."},
+		{"speaker": "kota", "face": "worried", "text": "If you catch it, don't sell it. Just look at it and let it go. Promise?",
+			"choices": [{"text": "I promise.", "next": "kota_yes", "set": {"kota_carp_promise": true}}, {"text": "No promises.", "next": "kota_no"}]},
+		{"id": "kota_yes", "speaker": "kota", "face": "smile", "text": "Pinky swear counts double. You're alright, you know that?", "next": "end"},
+		{"id": "kota_no", "speaker": "kota", "face": "surprised", "text": "Fine! Then I'll catch it first, and I won't even show you. ...Maybe I'll show you.", "next": "end"},
+
+		{"id": "sayo", "speaker": "sayo", "face": "calm", "text": "Oh, good. Could you hold this end of the ledger? The wind keeps turning the pages."},
+		{"speaker": "sayo", "face": "worried", "text": "My father kept this store for thirty years. Some days I think I'm only minding it until someone better comes."},
+		{"speaker": "sayo", "face": "calm", "text": "Then a farmer walks in every week asking for seeds, and the shelves have to be full, and I forget to worry."},
+		{"speaker": "sayo", "face": "smile", "text": "So, thank you. For being a reason. I'll stop talking before I embarrass us both.", "next": "end"},
+
+		{"id": "hachiro", "speaker": "hachiro", "face": "calm", "text": "Wait. Let me see your hands."},
+		{"speaker": "hachiro", "face": "smile", "text": "Calluses in the right places now. When you came, you held a hoe like a broom."},
+		{"speaker": "hachiro", "face": "calm", "text": "My teacher said a tool remembers who uses it well. I never believed him until I was old."},
+		{"speaker": "hachiro", "face": "calm", "text": "Bring yours by whenever the edge goes. I'll look at them first. That's not for everyone.", "next": "end"}
+	]
+}

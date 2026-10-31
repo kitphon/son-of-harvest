@@ -1,6 +1,7 @@
 {
-	"_note": "Events inside the Yorozu Store: Sayo's introduction the first time the farmer comes in. Format: README.md, Events.",
+	"_note": "Events inside the Yorozu Store: Sayo's introduction the first time the farmer comes in. Sayo's heart event, if it comes while she keeps the counter. Format: README.md, Events.",
 	"rows": [
+		{"event": "heart_sayo", "on": "talk", "who": "sayo", "hearts": {"sayo": [3, 6]}},
 		{"event": "store_intro", "on": "enter"}
 	]
 }

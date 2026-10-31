@@ -15,7 +15,7 @@ const GameRules := preload("res://scripts/autoload/game.gd")   # SEASONS, WEEKDA
 const DIR := "res://data/villagers/"
 const COMMON := DIR + "_common.json"
 const RULE_KEYS: Array[String] = ["season", "weekday", "weather", "days", "year", "flags", "not_flags", "festival"]
-const FILE_KEYS: Array[String] = ["_note", "id", "name", "speed", "look", "rules", "default", "plans", "gifts"]
+const FILE_KEYS: Array[String] = ["_note", "id", "name", "speed", "look", "rules", "default", "plans", "gifts", "birthday"]
 const REACTIONS: Array[String] = ["love", "like", "neutral", "dislike", "hate"]   # a gift's reaction, best first
 const DELAY_RESETS: Array[int] = [720, 1080]   # 12:00 and 18:00 as day minutes
 
@@ -94,6 +94,10 @@ static func check(v: Variant) -> String:
 	for r in gifts:
 		if not r in REACTIONS or r == "neutral" or not EventTriggers._names_ok(gifts[r], []):
 			return "gifts %s needs a list of items (love, like, dislike or hate)" % r
+	if v.has("birthday"):
+		var b: Variant = v.birthday
+		if not b is Dictionary or b.size() != 2 or not b.get("season") in GameRules.SEASONS 				or not EventRunner._whole(b.get("day"), 1, GameRules.DAYS_PER_SEASON):
+			return "birthday needs {season, day}"
 	if not v.get("rules", []) is Array:
 		return "rules is a list"
 	for i in v.get("rules", []).size():
@@ -294,6 +298,22 @@ static func reaction(id: String, item: String) -> String:
 			if want == item or (want.ends_with(":*") and item.begins_with(want.trim_suffix("*"))):
 				return r
 	return "neutral"
+
+
+## Is it villager `id`'s birthday (birthday in their file) on `day` of `season`?
+static func has_birthday(id: String, season: String, day: int) -> bool:
+	var b: Dictionary = all().get(id, {}).get("birthday", {})
+	return b.get("season", "") == season and int(b.get("day", 0)) == day
+
+
+## The villagers whose birthday is `day` of `season`, sorted.
+static func birthdays_on(season: String, day: int) -> Array[String]:
+	var out: Array[String] = []
+	for id in all():
+		if has_birthday(id, season, day):
+			out.append(id)
+	out.sort()
+	return out
 
 
 ## Is villager `id` on map `map_id` now? The hook for "the shop is shut while its keeper is out".

@@ -209,6 +209,11 @@ func new_game() -> void:
 		elif arg.begins_with("--built="):   # e.g. `-- --demo --map=house --built=kitchen,room`: extensions done
 			for b in arg.trim_prefix("--built=").split(","):
 				_finish_build({"build": b, "shop": _builder_shop(b), "ready": 0})
+		elif arg.begins_with("--hearts="):   # e.g. `-- --demo --hearts=4 --talk=tome`: everyone at the start of band 4
+			var bands: Array = Affection.rules().get("bands", [0])
+			var b := clampi(arg.trim_prefix("--hearts=").to_int(), 0, bands.size() - 1)
+			for id in Villagers.all():
+				affection.points[id] = int(bands[b])
 		elif arg == "--hens-out":   # e.g. `-- --demo --map=farm@coop --hens-out`: the hens in the yard
 			animals.outside = true
 		elif arg == "--barn-out":   # e.g. `-- --demo --map=farm@barn --barn-out`: cows and sheep grazing
@@ -571,6 +576,7 @@ func knock_out(kind: String) -> void:
 
 func end_day() -> void:
 	pay_bin()
+	affection.day_end(day_number(), rng)   # before the date moves: who was left alone today
 	day += 1
 	if day > DAYS_PER_SEASON:
 		day = 1
@@ -1167,17 +1173,21 @@ func talk_to(id: String, face: Vector2i) -> String:
 	var today := day_number()
 	Villagers.turn(id, face, t)
 	var file := Talk.dialogue_id(id)
+	var birthday := Villagers.has_birthday(id, season_name(), day)
 	if holding():
-		var r := affection.give(id, held, today)
+		var r := affection.give(id, held, today, birthday)
 		if r.ok:
 			held = ""
 			changed.emit()
-		talk(file, "gift_" + str(r.reaction))
+		var answer := "gift_" + str(r.reaction)
+		if birthday and r.reaction in ["love", "like", "neutral"] and Talk.has_line(id, "gift_birthday"):
+			answer = "gift_birthday"   # glad of being remembered; a bad gift still answers as it is
+		talk(file, answer)
 		return "gift"
 	var w := Villagers.where(id, t, trigger_state(Vector2i.ZERO))
 	var shop_id := Talk.keeper_shop(id, maps.id, Vector2i(w.get("pos", Vector2(-1, -1)).floor()))
 	var s := trigger_state(Vector2i.ZERO)
-	s.merge({"band": affection.band(id), "again": affection.talked_on(id, today), "day_number": today})
+	s.merge({"band": affection.band(id), "again": affection.talked_on(id, today), "day_number": today, "birthday": birthday})
 	affection.talk(id, today)
 	if shop_id != "" and open_shop(shop_id):
 		return "shop"
@@ -1185,6 +1195,12 @@ func talk_to(id: String, face: Vector2i) -> String:
 	if at != "":
 		talk(file, at)
 	return "talk"
+
+
+## The heart band (0 .. 6) the text box shows for `speaker`, or -1 when the speaker isn't a
+## villager (the farmer, narration, people without a villager file).
+func heart_band(speaker: String) -> int:
+	return affection.band(speaker) if Villagers.all().has(speaker) else -1
 
 
 ## Is a villager in the way of the farmer stepping from `from` to `to` (cell pixels)?

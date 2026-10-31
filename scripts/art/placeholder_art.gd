@@ -43,7 +43,7 @@ static func _make(key: String) -> Image:
 			return _fx(parts[1])
 		"fish_fx":  # fish_fx:<bobber|alert>, the float on the water and the "!" of a bite
 			return _fish_fx(parts[1])
-		"ui":       # ui:<frame|slot|weather|tool|seeds|food|item|cursor|coin|stamina>:<kind>, HUD pieces
+		"ui":       # ui:<frame|slot|weather|tool|seeds|food|item|cursor|coin|stamina|heart>:<kind>, HUD pieces
 			return _ui(parts[1], parts[2] if parts.size() > 2 else "")
 		"title":    # title:bg, the title screen picture (480 x 270)
 			return _title_bg()
@@ -1438,6 +1438,8 @@ static func _ui(kind: String, arg: String) -> Image:
 			_px(img, 3, 3, 3, 3, Color("c8962a"))
 			_px(img, 4, 4, 1, 1, Color(0, 0, 0, 0))
 			return img
+		"heart":    # heart:<band 0..6>, 9 x 8, on the text box's name tag (colours in data/text_box.json)
+			return _heart(int(arg))
 		"more":     # the small vermilion arrow that says a press goes on
 			var img := _blank(7, 4)
 			for y in 4:
@@ -1522,6 +1524,26 @@ static func _fish_icon(look: Dictionary) -> Image:
 
 
 ## The float and the bite mark. The bobber is red over white with a dark stem (5 x 7); the
+const HEART_ROWS: Array[String] = [".##...##.", "#oo#.#oo#", "#ooo#ooo#", "#ooooooo#",
+	".#ooooo#.", "..#ooo#..", "...#o#...", "....#...."]
+
+
+## The heart band as one small heart: filled with the band's colour, a light glint top left;
+## the last band has a gold glint instead, so a dear friend reads at a glance.
+static func _heart(band: int) -> Image:
+	var colors: Array = DialogueRunner.settings().get("hearts", ["efe3c4"])
+	var fill := Color(colors[clampi(band, 0, colors.size() - 1)])
+	var img := _blank(9, 8)
+	for y in HEART_ROWS.size():
+		for x in HEART_ROWS[y].length():
+			match HEART_ROWS[y][x]:
+				"#": img.set_pixel(x, y, Color("3a2416"))
+				"o": img.set_pixel(x, y, fill)
+	if band > 0:
+		img.set_pixel(2, 2, Color("f0c850") if band >= colors.size() - 1 else fill.lightened(0.45))
+	return img
+
+
 ## alert a vermilion "!" on a paper bubble (7 x 11).
 static func _fish_fx(kind: String) -> Image:
 	match kind:

@@ -1,7 +1,8 @@
 {
-	"_note": "What Hachiro says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gifts in data/villagers/hachiro.json). Our own lines.",
+	"_note": "What Hachiro says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday) (gifts in data/villagers/hachiro.json). Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"birthday": true}, "at": ["birthday"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet_1", "wet_2"]},
 		{"if": {"band": [4, 6]}, "at": ["close_1", "close_2"]},
 		{"if": {"band": [0, 1]}, "at": ["new_1", "new_2"]},
@@ -13,6 +14,8 @@
 		{"at": ["plain_1", "plain_2", "plain_3"]}
 	],
 	"lines": [
+		{"id": "birthday", "speaker": "hachiro", "face": "calm", "text": "Birthday? Hm. At my age you stop counting and start mending. Still. Thanks.", "next": "end"},
+		{"id": "gift_birthday", "speaker": "hachiro", "face": "smile", "text": "You came out in the cold with this, on the day. ...I won't forget it.", "next": "end"},
 		{"id": "again_1", "speaker": "hachiro", "face": "calm", "text": "Something else? Talk while I work, then.", "next": "end"},
 		{"id": "again_2", "speaker": "hachiro", "face": "smile", "text": "Ha. You like an old man's company, eh?", "next": "end"},
 		{"id": "wet_1", "speaker": "hachiro", "face": "calm", "text": "Rain on the roof, fire in the forge. Not a bad day to be a smith.", "next": "end"},

@@ -2,6 +2,7 @@
 	"_note": "Hachiro the smith and handyman: lives in the Kurogane Smithy (the north-east house): off hours he is at the anvil behind the counter (out of sight, the smithy's door is shut then) and in bed (away) from 21:00. On work days he mends the roof of Kota's family house south of the road early, keeps the smithy counter (the smithy map's keeper spot) 10:00-16:00, so talking to him there opens the shop (data/shops.json keeper), and looks at the pond in the evening. In bad weather he only works the forge; Sundays he fishes (the smithy is shut). Gifts: rice balls, eels and catfish. Format: README.md, Villagers.",
 	"id": "hachiro",
 	"name": "Hachiro",
+	"birthday": {"season": "winter", "day": 11},
 	"look": {"outfit": "happi", "hair_style": "headband", "hair": "2a2422", "skin": "d9a473", "top": "2e4a7a", "waist": "e8e2d0", "lower": "3a3430", "accent": "e8e2d0", "shoes": "8a6a48"},
 	"rules": [
 		{"if": {"weekday": ["sun"]}, "plan": "sunday"},
