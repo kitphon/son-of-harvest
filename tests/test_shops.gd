@@ -365,6 +365,9 @@ func _rucksack() -> void:
 	check(m.rows()[0].item == "rucksack" and m.rows()[0].slots == 16, "the menu offers the next one")
 	check(m.choose().begins_with("Your rucksack has 16") and g.money == 1000 and g.inventory.size("bag") == 16, "rucksack level 3 through the menu")
 	check(m.rows()[0].item != "rucksack", "no rucksack row at the top level")
+	g.house_built.append("kitchen")
+	check(m.rows()[0].item == "kitchen:knife" and m.rows()[0].price == 600, "with a kitchen, its tools head the buy tab")
+	g.house_built.erase("kitchen")
 	g.money = 99999
 	r = g.shop_buy("general", "rucksack")
 	check(not r.ok and g.money == 99999 and g.inventory.size("bag") == 16 and r.note == "That's the biggest rucksack there is", "rucksack: max level")

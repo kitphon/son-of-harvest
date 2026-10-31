@@ -10,6 +10,40 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Cooking tools
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: six kitchen tools of our own in `data/recipes.json` `tools`: kitchen knife 600 G,
+  clay pot 900, teapot 400, iron rice pot 1200, bamboo steamer 1500, mochi mallet 2000
+  (6,600 G in all, about one more kitchen corner). Recipes gain a `tools` list: the stews,
+  simmered pumpkin, furofuki daikon and fish and daikon need knife + pot, ochazuke the teapot,
+  takikomi gohan knife + rice pot, milk pudding the steamer, kinako mochi the mallet. The four
+  start recipes need none (Cooking.check refuses a start recipe with tools), so nothing that
+  cooks in a new game changes. Prices: the knife and pot first (they open five recipes), the
+  dear ones gate the dishes that sell best (mochi x3, pudding). `Game.cook` refuses with
+  "You need a clay pot for that" before touching the ingredients; the cooking screen's row
+  says "no tool" and a new line "Uses Kitchen knife, Clay pot (store)" marks what is missing.
+  The Yorozu Store (`kitchen_tools` in shops.json) lists the tools not owned at the top of
+  the buy tab, after the rucksack, once the kitchen is built; each is bought once (item
+  `kitchen:<id>`, no rucksack slot, icons `ui:kitchen:<id>`). Saved as `kitchen_tools`, save
+  version 4 -> 5: a version 4 save with the kitchen built gets the tools of the recipes it
+  already knew, so an old save's cooking keeps working. `--demo --cook` now owns the knife
+  only, to show a missing tool. README → Cooking updated.
+- Checked: new `_tools()` in `test_cooking.gd` (data and icons, the font, the about line
+  width, every tools line fits the page, bad data refused, nothing sold before the kitchen,
+  each tool once, money, the smithy sells none, the menu's state and line, cooking after
+  buying the pot, save round trip, 4 broken lists refused, a version 5 save without the key,
+  a version 4 save's migration with and without the kitchen); the stew checks now buy the
+  tools first; `test_shops.gd` checks the knife heads the buy tab with a kitchen;
+  `test_animals.gd`'s "save version 4" check now reads `>= 4`. All 23 test scripts print
+  `OK (0 failed)`. Headless runs (title `--quit-after 300`, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, `--demo --cook`, `--demo --shop=general`, `--demo --map=house
+  --built=kitchen`) printed no errors or warnings. Screenshots `--demo --cook` (turnip stew
+  "no tool", the others ready) and `--demo --built=kitchen --shop=general` (the six tools with
+  icons after the rucksack) looked right; `shots/` deleted.
+- Left / next: the balance script doesn't count tool prices in a recipe's gain; the playtest
+  of a real year should. Other branches bumping the save version will conflict on
+  `SaveGame.VERSION` at merge time.
+
 ## 2026-10-31 — The 2D view plays: the Player's actions hooked up
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `scripts/main_2d.gd` never connected `Player.action`, so in `scenes/main_2d.tscn` the

@@ -334,7 +334,17 @@ the trigger tables (Tome and Kota in the village, Sayo at the store, Hachiro at 
 and an `examine` row on the farmhouse radio on Saturdays. Flags are saved, so the save format
 did not change. Raw farm goods are edible too: `data/foods.json` `raw` (crops, eggs, milk,
 `fish:*`), through `Game.eat_item(item, places)`. `-- --demo --cook` stands at the stove with
-the screen open (the kitchen built, a few ingredients, one recipe learned).
+the screen open (the kitchen built, a few ingredients, one recipe learned, the knife but not
+the pot it also needs, so its row says "no tool").
+Kitchen tools: `tools` in recipes.json (knife, clay pot, teapot, iron rice pot, bamboo steamer,
+mochi mallet; name, price, about) and a recipe's `tools` list. A recipe cooks only with its
+tools in `Game.kitchen_tools` (`Cooking.missing_tools`; `Game.cook` says which are missing,
+the cooking screen marks the row "no tool" and its "Uses ..." line marks a missing tool
+"(store)"). The four start recipes need none. The Yorozu Store sells each tool once, at the
+top of the buy tab after the rucksack, once the kitchen is built (`kitchen_tools` in
+shops.json, `Shop.kitchen_offers` / `buy_kitchen_tool`, item `kitchen:<id>`, icons
+`ui:kitchen:<id>`); tools take no rucksack slot. Saved as `kitchen_tools` (save version 5); a
+version 4 save with a kitchen gets the tools of the recipes it already knew.
 Dishes ship: `sell` in foods.json is what one fetches in the bin (`Game.sell_price`). E at
 the bin takes dishes only from the hand (the rucksack's are lunch); throwing one in works too.
 The Yorozu Store buys the kitchen's dishes from the rucksack or the hand (`buys` kind `dish`,

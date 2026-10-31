@@ -47,7 +47,8 @@ radio (flags `recipe_<id>`; README → Cooking). Daikon (fall) and rice (summer 
 watered paddy stays wet) are crops, their seeds at the store and the stand; four more recipes
 come as recipe cards in the bin with the first daikon / rice shipped; dishes ship at their
 `sell` in foods.json (held out at the bin or thrown in), are gifts (each villager loves two
-dishes and dislikes some) and the store buys them at 80%. Later for food: cooking tools.
+dishes and dislikes some) and the store buys them at 80%. Cooking tools are in (six tools at
+the store once the kitchen is built; taught and card recipes need them, the start four don't).
 Event scripts and trigger tables per map are done (data/events, EventRunner /
 EventTriggers / EventPlayer; README → Events); EventPlayer loads a map's table on
 `Game.map_entered(map_id)`, so a new map's events are one `data/events/triggers_<map id>.json`.
@@ -146,8 +147,8 @@ The ending is in (milestone 9): on the first morning of year 3 Tome brings the v
 villager liked most says a word and the game goes on. Later for the ending: a look back at
 the first day (the field then and now), a record every New Year, real art for the scroll.
 Next: milestone 10, building the .exe once the export templates are installed (README → Export); a playtest of a real year to
-check the balance and the ending's steps (re-set for 11 crops / 13 recipes on 2026-10-31);
-cooking tools.
+check the balance and the ending's steps (re-set for 11 crops / 13 recipes on 2026-10-31;
+the playtest should include the 6,600 G of kitchen tools).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -183,7 +184,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Raw farm goods as food, cooking at the kitchen corner (data/recipes.json, recipe lessons)
    - [x] Daikon and rice crops, their recipes (recipe cards), dishes shipped at a sell price
    - [x] Dishes as gifts (villager likes), the store buying dishes
-   - [ ] Cooking tools
+   - [x] Cooking tools (data/recipes.json tools, sold at the Yorozu Store after the kitchen, saved)
    - [x] Holding and throwing items (shipping by throwing into the bin; data/hold.json)
 4. **Save / load and menus**
    - [x] Save game (Game + FarmGrid to a versioned JSON file), load; F5 / F9, saves on sleep

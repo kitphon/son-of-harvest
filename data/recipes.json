@@ -1,5 +1,13 @@
 {
-	"_about": "Home cooking at the kitchen corner (house extension kitchen): E at the stove or the cupboard opens the cooking screen (Cooking, CookingMenu, CookingScreen; README.md, Cooking). A recipe's key is the dish it makes, a food in data/foods.json (eaten like any food). needs: what one cooking uses, each {item, n} (one item id) or {group, n} (any of a group below, its items in the order they are used up). Ingredients come out of the rucksack first, then the hand, then the storage chest; cooked rice, miso, soy, salt and oil are in the kitchen's own pantry and never run out (the rice crop is the farm's own new rice, a real ingredient). makes: how many dishes one cooking gives (1 if left out), into the rucksack. start: known from the start; any other recipe is known once its flag recipe_<id> is set (a villager's lesson or the radio, data/events/recipe_*.json; or card: the shipping buyer leaves a recipe card in the bin the first time that item is shipped), and flags are saved. taught: where the lesson comes from, for people reading this file. Dishes, names and numbers are ours; see WORKLOG 2026-10-31 Cooking and Daikon and rice.",
+	"_about": "Home cooking at the kitchen corner (house extension kitchen): E at the stove or the cupboard opens the cooking screen (Cooking, CookingMenu, CookingScreen; README.md, Cooking). A recipe's key is the dish it makes, a food in data/foods.json (eaten like any food). needs: what one cooking uses, each {item, n} (one item id) or {group, n} (any of a group below, its items in the order they are used up). Ingredients come out of the rucksack first, then the hand, then the storage chest; cooked rice, miso, soy, salt and oil are in the kitchen's own pantry and never run out (the rice crop is the farm's own new rice, a real ingredient). makes: how many dishes one cooking gives (1 if left out), into the rucksack. start: known from the start; any other recipe is known once its flag recipe_<id> is set (a villager's lesson or the radio, data/events/recipe_*.json; or card: the shipping buyer leaves a recipe card in the bin the first time that item is shipped), and flags are saved. tools: the kitchen tools a recipe needs (ids in tools above, each {name, price, about}); the Yorozu Store sells them once the kitchen corner is built (shops.json kitchen_tools), and the tools owned are saved (Game.kitchen_tools); the start recipes need none. taught: where the lesson comes from, for people reading this file. Dishes, names and numbers are ours; see WORKLOG 2026-10-31 Cooking, Daikon and rice, and Cooking tools.",
+	"tools": {
+		"knife": {"name": "Kitchen knife", "price": 600, "about": "A thin steel blade for peeling and cutting."},
+		"pot": {"name": "Clay pot", "price": 900, "about": "A heavy lidded pot for slow simmering."},
+		"teapot": {"name": "Teapot", "price": 400, "about": "A small side-handled pot for green tea."},
+		"rice_pot": {"name": "Iron rice pot", "price": 1200, "about": "A thick pot with a wooden lid for rice dishes."},
+		"steamer": {"name": "Bamboo steamer", "price": 1500, "about": "Woven baskets that steam over a pan."},
+		"mallet": {"name": "Mochi mallet", "price": 2000, "about": "A wooden mortar and mallet for pounding rice."}
+	},
 	"groups": {
 		"pickle": {"name": "pickling vegetable", "items": ["cucumber", "turnip", "eggplant", "daikon"]},
 		"soup_veg": {"name": "soup vegetable", "items": ["turnip", "onion", "potato", "carrot", "eggplant", "daikon"]},
@@ -16,23 +24,23 @@
 			"about": "Salted and grilled whole over the stove."},
 		"tamagoyaki": {"start": true, "needs": [{"group": "egg", "n": 2}],
 			"about": "A rolled omelette, a little sweet."},
-		"turnip_stew": {"taught": "Tome (talk, a heart band of 1 or more)", "needs": [{"item": "turnip", "n": 2}, {"item": "carrot", "n": 1}],
+		"turnip_stew": {"tools": ["knife", "pot"], "taught": "Tome (talk, a heart band of 1 or more)", "needs": [{"item": "turnip", "n": 2}, {"item": "carrot", "n": 1}],
 			"about": "Tome's simmered turnip, soft to the middle."},
-		"potato_stew": {"taught": "Sayo (talk at the store, a heart band of 1 or more)", "needs": [{"item": "potato", "n": 2}, {"item": "onion", "n": 1}],
+		"potato_stew": {"tools": ["knife", "pot"], "taught": "Sayo (talk at the store, a heart band of 1 or more)", "needs": [{"item": "potato", "n": 2}, {"item": "onion", "n": 1}],
 			"about": "Potatoes and onion simmered sweet in soy."},
-		"ochazuke": {"taught": "Hachiro (talk at the smithy, a heart band of 1 or more)", "needs": [{"group": "fish", "n": 1}, {"item": "food:green_tea", "n": 1}],
+		"ochazuke": {"tools": ["teapot"], "taught": "Hachiro (talk at the smithy, a heart band of 1 or more)", "needs": [{"group": "fish", "n": 1}, {"item": "food:green_tea", "n": 1}],
 			"about": "Hot tea over rice and flaked fish. A smith's lunch."},
-		"simmered_pumpkin": {"taught": "Kota (talk in the village, a heart band of 1 or more)", "makes": 2, "needs": [{"item": "pumpkin", "n": 1}],
+		"simmered_pumpkin": {"tools": ["knife", "pot"], "taught": "Kota (talk in the village, a heart band of 1 or more)", "makes": 2, "needs": [{"item": "pumpkin", "n": 1}],
 			"about": "Pumpkin simmered in soy. Makes two."},
-		"milk_pudding": {"taught": "the farmhouse radio on a Saturday", "needs": [{"group": "milk", "n": 1}, {"group": "egg", "n": 1}],
+		"milk_pudding": {"tools": ["steamer"], "taught": "the farmhouse radio on a Saturday", "needs": [{"group": "milk", "n": 1}, {"group": "egg", "n": 1}],
 			"about": "Steamed milk and egg with a dark sugar top."},
-		"furofuki_daikon": {"card": "daikon", "taught": "a recipe card in the bin after the first daikon shipped", "needs": [{"item": "daikon", "n": 1}],
+		"furofuki_daikon": {"tools": ["knife", "pot"], "card": "daikon", "taught": "a recipe card in the bin after the first daikon shipped", "needs": [{"item": "daikon", "n": 1}],
 			"about": "Thick daikon rounds simmered soft, sweet miso on top."},
-		"daikon_fish": {"card": "daikon", "taught": "a recipe card in the bin after the first daikon shipped", "needs": [{"item": "daikon", "n": 1}, {"group": "fish", "n": 1}],
+		"daikon_fish": {"tools": ["knife", "pot"], "card": "daikon", "taught": "a recipe card in the bin after the first daikon shipped", "needs": [{"item": "daikon", "n": 1}, {"group": "fish", "n": 1}],
 			"about": "Fish and daikon simmered together in soy."},
-		"takikomi_gohan": {"card": "rice", "taught": "a recipe card in the bin after the first rice shipped", "makes": 2, "needs": [{"item": "rice", "n": 1}, {"item": "carrot", "n": 1}],
+		"takikomi_gohan": {"tools": ["knife", "rice_pot"], "card": "rice", "taught": "a recipe card in the bin after the first rice shipped", "makes": 2, "needs": [{"item": "rice", "n": 1}, {"item": "carrot", "n": 1}],
 			"about": "New rice cooked with carrot in one pot. Makes two."},
-		"kinako_mochi": {"card": "rice", "taught": "a recipe card in the bin after the first rice shipped", "makes": 3, "needs": [{"item": "rice", "n": 2}],
+		"kinako_mochi": {"tools": ["mallet"], "card": "rice", "taught": "a recipe card in the bin after the first rice shipped", "makes": 3, "needs": [{"item": "rice", "n": 2}],
 			"about": "New rice pounded to mochi, rolled in kinako. Makes three."}
 	}
 }

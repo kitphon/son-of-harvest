@@ -254,6 +254,8 @@ func _info_text() -> String:
 			if row.item == "rucksack":
 				return "Now %d slots. What's in it stays." % Game.inventory.size("bag")
 			match str(row.to):
+				"kitchen":
+					return "%s For the kitchen." % Cooking.tool_info(str(row.tool)).get("about", "")
 				"animal":
 					var room := Game.shop_room(menu.shop.id, row.item)
 					var home: String = Game.animals.kind_rule(Shop.animal_of(row.item).kind).get("home", "coop")

@@ -5,7 +5,9 @@ extends RefCounted
 ## it makes (a food in data/foods.json, so "food:<id>" goes into the rucksack), its needs are
 ## items or groups of items. Ingredients come out of the rucksack, the hand and then the
 ## storage chest (PLACES); the kitchen's pantry (rice, miso, soy) is never counted. A recipe is
-## known from the start or once its flag recipe_<id> is set (Game.flags, saved).
+## known from the start or once its flag recipe_<id> is set (Game.flags, saved). A recipe may
+## also need kitchen tools (its tools list; the tools in recipes.json "tools", bought at the
+## store and kept in Game.kitchen_tools, saved).
 
 const DATA := "res://data/recipes.json"
 const PLACES: Array[String] = ["bag", "hand", "chest"]
@@ -59,6 +61,45 @@ static func dish(id: String) -> String:
 
 static func makes(id: String, d := data()) -> int:
 	return maxi(int(recipe(id, d).get("makes", 1)), 1)
+
+
+## The kitchen tool ids in data order.
+static func tool_ids(d := data()) -> Array[String]:
+	var out: Array[String] = []
+	out.assign(d.get("tools", {}).keys())
+	return out
+
+
+static func tool_info(tool: String, d := data()) -> Dictionary:
+	return d.get("tools", {}).get(tool, {})
+
+
+static func tool_name(tool: String, d := data()) -> String:
+	return String(tool_info(tool, d).get("name", tool.capitalize()))
+
+
+## "a kitchen knife", "an iron rice pot".
+static func a_tool(tool: String, d := data()) -> String:
+	var n := tool_name(tool, d).to_lower()
+	return ("an " if n.left(1) in ["a", "e", "i", "o", "u"] else "a ") + n
+
+
+## The kitchen tools recipe `id` needs.
+static func tools(id: String, d := data()) -> Array[String]:
+	var out: Array[String] = []
+	out.assign(recipe(id, d).get("tools", []))
+	return out
+
+
+## The tools of `id` not among `owned` ([] = the kitchen has what it takes).
+static func missing_tools(id: String, owned: Array, d := data()) -> Array[String]:
+	return tools(id, d).filter(func(t: String) -> bool: return not t in owned)
+
+
+## Every tool some recipe in `known` needs, in tool order (an old save's kitchen gets these).
+static func tools_for(known: Array, d := data()) -> Array[String]:
+	return tool_ids(d).filter(func(t: String) -> bool:
+		return known.any(func(id): return t in tools(String(id), d)))
 
 
 ## Does `item` fill the need `need` ({item, n} or {group, n})?
@@ -135,6 +176,12 @@ static func cook(id: String, inv: Inventory, places: Array = PLACES, d := data()
 
 ## "" when `d` is usable with these foods (foods.json "foods"), else what is wrong.
 static func check(d: Dictionary, foods: Dictionary) -> String:
+	var kit = d.get("tools", {})
+	if not kit is Dictionary:
+		return "tools is a dictionary"
+	for t in kit:
+		if not kit[t] is Dictionary or String(kit[t].get("name", "")) == "" or int(kit[t].get("price", 0)) < 1:
+			return "tool %s needs a name and a price" % t
 	var groups: Dictionary = d.get("groups", {})
 	for g in groups:
 		var gd = groups[g]
@@ -154,4 +201,12 @@ static func check(d: Dictionary, foods: Dictionary) -> String:
 				return "%s: a need is {item, n} or {group, n}" % id
 			if need.has("group") and not groups.has(need.group):
 				return "%s: no group %s" % [id, need.group]
+		var needs_tools = r.get("tools", [])
+		if not needs_tools is Array:
+			return "%s: tools is a list" % id
+		for t in needs_tools:
+			if not t is String or not kit.has(t):
+				return "%s: no kitchen tool %s" % [id, t]
+		if r.get("start", false) and not needs_tools.is_empty():
+			return "%s is known from the start, so it needs no tools" % id
 	return ""
