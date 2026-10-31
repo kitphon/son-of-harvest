@@ -3,14 +3,16 @@ extends Node2D
 
 const T := 16
 
+var view: FarmView
 var player: Player
 var tint: CanvasModulate
 
 
 func _ready() -> void:
-	var view := FarmView.new()
+	view = FarmView.new()
 	view.farm = Game.farm
 	add_child(view)
+	view.show_snow(Game.snow_rules)
 
 	player = Player.new()
 	player.farm = Game.farm
@@ -32,6 +34,7 @@ func _ready() -> void:
 	Game.minute_passed.connect(_update_tint)
 	Game.day_started.connect(_on_day_started)
 	_update_tint()
+	view.set_snow(Game.snow_cover / 100.0)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -43,6 +46,7 @@ func _on_day_started() -> void:
 	player.facing = Vector2i.DOWN
 	player.cancel_charge()
 	_update_tint()
+	view.set_snow(Game.snow_cover / 100.0)
 
 
 func _update_tint() -> void:

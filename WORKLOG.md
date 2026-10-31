@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Snow in the 2D view
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: FarmView now draws in two layers, ground tiles (its own `_draw`) and sprites /
+  buildings (a child `_objects` node), so snow can go between them. `show_snow(rules)` adds
+  a Sprite2D with the SnowLayer hold mask stretched over the farm (linear filter, as the 3D
+  mask) and the new `SnowLayer.CANVAS_SHADER`: the same `snow_at` noise test as the 3D ground
+  (shared `_SNOW_AT`; canvas pixels / 16 = cells = 3D x / z), so a farm has the same snow
+  patches and blue-grey rims in both views. `set_snow(cover)` sets the shader cover and hides
+  the overlay at 0; `cells_changed` rebuilds the mask (`FarmView.snow_mask`), so tilled and
+  wet plots hold less snow as in 3D. FarmView stays free of the Game autoload: main_2d.gd
+  passes `Game.snow_rules` and calls `set_snow(Game.snow_cover / 100.0)` on start and on
+  `day_started` (as main_3d.gd). The ground-only FarmView used for the 3D ground texture is
+  unchanged (no snow, no object layer).
+- Checked: test_weather extended (overlay spans the farm, hidden at cover 0, takes the cover,
+  tilling a grass cell drops its mask value 1.0 -> 0.6): `test_weather: OK (0 failed)`,
+  `test_farm: OK (0 failed)`, `test_save: OK (0 failed)`, `test_title: OK (0 failed)`.
+  Headless `--quit-after 300` (title; `-- --demo --weather=snow`; `scenes/main_2d.tscn --
+  --demo --weather=blizzard`) printed no errors or warnings. Movie Maker frame of
+  `scenes/main_2d.tscn -- --demo --weather=snow`: ragged snow patches with rims over grass,
+  plots and crops readable on top; near-white pixels 0.412 of a grass area vs 0.156 over the
+  plots. A 3D frame with `--weather=snow` still shows snow on ground and roof after the
+  shader split. `shots/` deleted.
+- Left / next: no snow on the 2D building boxes (they are flat placeholders).
+
 ## 2026-10-31 — Windows export preset and app icon
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `export_presets.cfg` with a "Windows Desktop" preset: `build/HarvestSon.exe`

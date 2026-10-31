@@ -78,6 +78,26 @@ func _init() -> void:
 			low += 1 if noise.get_pixel(x, y).r < 0.4 else 0
 	var share := float(low) / (noise.get_width() * noise.get_height())
 	check(absf(share - 0.4) < 0.01, "equalised noise: cover 0.4 whitens 40%% of pixels (%.3f)" % share)
+
+	# The 2D view: the overlay starts hidden, follows the cover, and its mask follows the ground.
+	var view := FarmView.new()
+	view.farm = g.farm
+	view.show_snow(rules)
+	var overlay: Sprite2D = view.get_child(0)
+	var mat := overlay.material as ShaderMaterial
+	check(overlay.get_rect().size * overlay.scale == Vector2(FarmGrid.W, FarmGrid.H) * FarmView.T, "2D snow spans the farm")
+	view.set_snow(0.0)
+	check(not overlay.visible, "2D: no cover, no overlay")
+	view.set_snow(0.6)
+	check(overlay.visible and is_equal_approx(mat.get_shader_parameter("cover"), 0.6), "2D: overlay takes the cover")
+	var spot := Vector2i(13, 12)
+	g.farm.cell(spot).obj = FarmGrid.Obj.NONE
+	var before := view.snow_mask.get_pixel(spot.x * k + 1, spot.y * k + 1).r
+	g.farm.till(spot)
+	g.farm.cells_changed.emit()
+	var after := view.snow_mask.get_pixel(spot.x * k + 1, spot.y * k + 1).r
+	check(is_equal_approx(before, h_grass) and is_equal_approx(after, h_tilled), "2D: tilling thins the snow there (%s -> %s)" % [before, after])
+	view.free()
 	g.free()
 
 	# Lightning: only in a (rain) storm, never in a blizzard, short double pulse, gaps from data,
