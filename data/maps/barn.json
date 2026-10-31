@@ -1,0 +1,142 @@
+{
+	"_note": "The barn inside (Animals, data/animals.json): packed earth, six straw stalls along the back with board rails between them, a long fodder trough under the back wall, the brush, milker and shears on a board by it, a stack of hay bundles (the fodder stock) and the wide gate in the right wall the cows and sheep go out by. The clock stands still in here like in every building. Format: README.md, Maps.",
+	"id": "barn",
+	"name": "Barn",
+	"size": [
+		15,
+		8
+	],
+	"indoor": true,
+	"ambient": "indoor",
+	"light": "f2e6cc",
+	"background": "1a1410",
+	"legend": {
+		"#": {
+			"tile": "wall",
+			"solid": true
+		},
+		".": {
+			"tile": "earth",
+			"step": "soil"
+		},
+		"s": {
+			"tile": "straw",
+			"step": "soil"
+		},
+		"D": {
+			"tile": "earth",
+			"solid": true
+		}
+	},
+	"ground": [
+		"###############",
+		"#.............#",
+		"#sssssssssssss#",
+		"#.............#",
+		"#.............#",
+		"#.............#",
+		"#.............#",
+		"#######D#######"
+	],
+	"props": [
+		{
+			"kind": "fodder_box",
+			"cell": [
+				1,
+				1
+			],
+			"size": [
+				12,
+				1
+			],
+			"use": "fodder_box"
+		},
+		{
+			"kind": "tool_rack",
+			"cell": [
+				13,
+				1
+			],
+			"use": "barn_tools"
+		},
+		{
+			"kind": "stalls",
+			"cell": [
+				1,
+				2
+			],
+			"size": [
+				12,
+				1
+			],
+			"blocks": [
+				[
+					1,
+					0
+				],
+				[
+					3,
+					0
+				],
+				[
+					5,
+					0
+				],
+				[
+					7,
+					0
+				],
+				[
+					9,
+					0
+				]
+			],
+			"_blocks": "The rails between the stalls; the stall cells stay free for the animals. E on an animal is BarnActions."
+		},
+		{
+			"kind": "hay",
+			"cell": [
+				12,
+				5
+			],
+			"size": [
+				2,
+				1
+			],
+			"use": "fodder"
+		},
+		{
+			"kind": "barn_gate",
+			"cell": [
+				14,
+				3
+			],
+			"use": "barn_gate"
+		}
+	],
+	"doors": [
+		{
+			"cells": [
+				[
+					7,
+					7
+				]
+			],
+			"to": "farm",
+			"spawn": [
+				21,
+				4
+			],
+			"facing": "down"
+		}
+	],
+	"spawns": {
+		"start": [
+			[
+				7,
+				6
+			],
+			"up"
+		]
+	}
+}

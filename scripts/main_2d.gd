@@ -62,9 +62,9 @@ func _enter_map() -> void:
 		add_child(view)
 	view.add_child(VillagerView.new(m.id))
 	move_child(view, 0)
-	var animals := AnimalView.new()   # hens and eggs (the coop, or the farm yard)
+	var animals := AnimalView.new()   # the animals and eggs (coop, barn, or the farm and its dog)
 	view.add_child(animals)
-	animals.setup(m, Game.maps.on_farm())
+	animals.setup(m, Game.maps.on_farm(), player)
 	cam.limit_left = 0
 	cam.limit_top = 0
 	cam.limit_right = m.w * T

@@ -81,6 +81,11 @@ Chickens are in (milestone 7): the thatched coop right of the stand is a map (fe
 nests, incubator, hen hatch); rules in `Animals`, numbers in `data/animals.json`, saved
 (save version 2). The shop sells chickens through `Game.add_animal("chicken")`, feed through
 `Game.animals.add_feed(n)` and Animal Medicine as the rucksack item `medicine` (all sold at the store).
+Cows, sheep and the dog are in too: the tiled barn between the coop and the pond is a map
+(stalls, fodder trough, hay, tools on the wall, a gate out to the pasture), milk daily and
+wool every 3 nights graded by happiness, brushing, calves / lambs (save version 4). The barn
+starts empty; the shop sells cows / sheep through `Game.add_animal("cow" | "sheep", young)`
+and fodder through `Game.animals.add_fodder(n)`. The dog Goro follows the farmer once fond.
 Fishing is in (milestone 9): the rod is the 8th tool slot, a cast waits for a bite ("!" and a
 plip), a press in time lands a fish overhead (ship it in the bin or keep it in the rucksack);
 fish, odds, bite timing and the pity rule are in `data/fish.json`. Later for fishing: a river,
@@ -138,7 +143,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Opening event (Tome on the farm), first visits to the shops (Sayo, Hachiro); `actor` / `place` event steps
 7. **Animals**
    - [x] Chickens: coop map, feed box, happiness, egg grades, sickness / medicine, going out, incubator (data/animals.json)
-   - [ ] Cows / sheep (barn, milk / wool, brushing), dog
+   - [x] Cows / sheep (barn map, fodder, stalls, milk / wool by happiness, brushing, grazing, calves / lambs), the farm dog (data/animals.json)
 8. **Shops and economy**
    - [x] Shops with prices from data, tool upgrades (data/shops.json; store and smithy in the village)
    - [x] House extensions, rucksack upgrade for sale (store: chickens, feed, medicine; smithy: the rod)

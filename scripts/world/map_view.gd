@@ -14,6 +14,7 @@ const COLORS := {
 	"forge": Color("7a746c"), "anvil": Color("2a2a2e"), "tool_rack": Color("8a6a48"), "water_tub": Color("2a4a5a"),
 	"feed_box": Color("9a7048"), "nest": Color("d8bc78"), "incubator": Color("c8a868"),
 	"feed_sack": Color("a88a52"), "hatch": Color("4a2a14"),
+	"fodder_box": Color("8a6440"), "stalls": Color("d0b478"), "hay": Color("c8b060"), "barn_gate": Color("4a2a14"),
 }
 
 var map: MapData

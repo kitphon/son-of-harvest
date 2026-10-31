@@ -1,6 +1,6 @@
 extends SceneTree
-## Headless checks for the animals (Animals rules, data/animals.json, the coop map and its
-## actions, eggs as held items, the save, the art). Run:
+## Headless checks for the animals (Animals rules, data/animals.json, the coop and barn maps
+## and their actions, eggs / milk / wool as held items, the dog, the save, the art). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_animals.gd
 
 var failures := 0
@@ -14,12 +14,18 @@ func _init() -> void:
 	_save()
 	_game()
 	_map_and_art()
+	_barn_rules()
+	_barn_day()
+	_dog()
+	_barn_save()
+	_barn_map_and_art()
 
 
 func _process(_delta: float) -> bool:
 	_frame += 1
 	if _frame == 2:
 		_coop_actions()
+		_barn_actions()
 		print("test_animals: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -235,8 +241,15 @@ func _game() -> void:
 	var before: int = g.bin_total
 	g.ship_produce()
 	check(g.bin_total == before + 2 * g.sell_price("egg"), "eggs in the rucksack ship at the bin too")
-	# Save: version 2 keeps the animals; a version 1 save gets the starting flock and the coop.
-	check(SaveGame.VERSION >= 2, "save version 2 or later")
+	# The barn, cows and sheep through Game.
+	check(g.farm.fixed_at(FarmGrid.BARN_DOOR) == "barn_door" and g.farm.fixed_at(FarmGrid.BARN.position) == "barn", "the barn stands on the farm")
+	check(g.add_animal("sheep", true) and not g.animals.is_adult(g.animals.list.back()), "the shop hook adds a lamb")
+	check(g.sell_price("milk_best") == int(Animals.data().items.milk_best.sell) and g.item_name("wool_good") == "Soft Wool", "milk and wool have a price and a name")
+	g.held = "milk_good"
+	t = g.throw_held(Vector2i(8, 5), Vector2i.UP)
+	check(t.result == "ship" and t.value == g.sell_price("milk_good"), "milk thrown into the bin is shipped")
+	# Save: version 4 keeps the animals, barn and dog; a version 1 save gets the starting flock and the coop.
+	check(SaveGame.VERSION == 4, "save version 4")
 	var d: Dictionary = JSON.parse_string(JSON.stringify(g.to_dict()))
 	var flock: int = g.animals.list.size()
 	var laid: int = g.animals.eggs.size()
@@ -245,6 +258,11 @@ func _game() -> void:
 	var old: Dictionary = d.duplicate(true)
 	old.erase("animals")
 	check(g.from_dict(old, 2) != "", "a version 2 save must have animals")
+	var old2: Dictionary = d.duplicate(true)
+	old2.animals.erase("barn")
+	old2.animals.erase("dog")
+	check(g.from_dict(old2, 4) != "", "a version 4 save must have the barn and the dog")
+	check(g.from_dict(old2, 3) == "" and g.animals.list.size() == flock and g.animals.state.barn.stock == int(Animals.data().homes.barn.feed_start), "a version 3 save loads with the new-game fodder")
 	for s in old.farm.fixed.duplicate():
 		if s[2] in ["coop", "coop_door"]:
 			old.farm.fixed.erase(s)
@@ -333,6 +351,372 @@ func _map_and_art() -> void:
 	check(PlaceholderArt.world_item_key("eggplant") == "item:eggplant", "eggplant is still a crop")
 	check(PlaceholderArt.tex("ground:straw:0").get_size() == Vector2(16, 16) and PlaceholderArt.tex("build:thatch").get_size() == Vector2(16, 16), "straw floor and thatch")
 
+
+# --- the barn, cows and sheep, the dog ----------------------------------------
+
+func _barn_rules() -> void:
+	var d := Animals.data()
+	check(d.kinds.cow.home == "barn" and d.kinds.sheep.home == "barn" and int(d.homes.barn.capacity) >= 2, "cows and sheep live in the barn")
+	var a := Animals.new()
+	a.start()
+	check(a.in_home("barn").is_empty() and a.state.barn.stock == int(d.homes.barn.feed_start) and a.state.barn.box == 0, "a new game: empty barn, fodder in stock")
+	var hens := a.in_home("coop").size()
+	var coop_room := a.room("coop")
+	check(a.add("cow") and a.add("sheep") and a.room("barn") == int(d.homes.barn.capacity) - 2, "a cow and a sheep in the barn")
+	check(a.room("coop") == coop_room and a.in_home("coop").size() == hens, "the coop's places are its own")
+	# Spots count within each home.
+	var cow := a.list.size() - 2
+	check(a.spot(cow) == Vector2i(int(d.homes.barn.spots[0][0]), int(d.homes.barn.spots[0][1])), "the first barn animal stands in the first stall")
+	check(a.spot(1) == Vector2i(int(d.homes.coop.spots[1][0]), int(d.homes.coop.spots[1][1])), "hens keep their coop spots")
+	check(a.animal_at("barn", a.spot(cow)) == cow and a.animal_at("coop", a.spot(cow)) != cow, "animal_at asks one home")
+	check(a.home_on_map("barn") == "barn" and a.home_on_map("coop") == "coop" and a.home_on_map("farm") == "", "homes by map")
+	# Fodder: one portion per barn animal; the coop's box stays as it was.
+	var stock: int = a.state.barn.stock
+	check(a.fill_feed_box("barn") == 2 and a.state.barn.box == 2 and a.state.barn.stock == stock - 2 and a.feed_box == 0, "fodder box filled for two")
+	a.add_fodder(5)
+	check(a.state.barn.stock == stock + 3, "the shop's fodder hook")
+	while a.room("barn") > 0:
+		a.add("sheep")
+	check(not a.add("cow") and a.add("chicken") == (coop_room > 0), "a full barn takes no more, the coop still does")
+	check(a.grade_for("milk", 10) == "milk" and a.grade_for("milk", 50) == "milk_good" and a.grade_for("milk", 90) == "milk_best", "milk grades")
+	check(a.grade_for("wool", 10) == "wool" and a.grade_for("wool", 90) == "wool_best", "wool grades")
+	check(a.sell_price("milk") < a.sell_price("milk_good") and a.sell_price("milk_good") < a.sell_price("milk_best"), "better milk fetches more")
+	check(a.sell_price("wool") < a.sell_price("wool_good") and a.sell_price("wool_good") < a.sell_price("wool_best"), "better wool fetches more")
+
+
+func _barn_day() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 3
+	var h: Dictionary = Animals.data().happiness
+	# Milking: ready after one fed night, doesn't pile up, graded by happiness.
+	var a := _herd(["cow"])
+	check(not a.product_ready(a.list[0]) and a.take_product(0) == "", "a new cow has no milk yet")
+	a.fill_feed_box("barn")
+	a.day_end("sunny", rng)
+	check(a.product_ready(a.list[0]) and a.state.barn.box == 0, "a fed night gives milk")
+	a.fill_feed_box("barn")
+	a.day_end("sunny", rng)
+	check(int(a.list[0].prod_days) == 1, "unmilked milk doesn't pile up")
+	check(a.take_product(0) == "milk" and not a.product_ready(a.list[0]) and a.take_product(0) == "", "milked once: plain milk at %d" % a.list[0].happy)
+	a.day_end("sunny", rng)
+	check(not a.product_ready(a.list[0]), "an unfed night gives no milk")
+	a.list[0].happy = 90
+	a.fill_feed_box("barn")
+	a.day_end("sunny", rng)
+	check(a.take_product(0) == "milk_best", "a happy cow gives the best milk")
+	# Shearing: wool grows back over `every` fed nights; the sheep looks shorn until then.
+	a = _herd(["sheep"])
+	var every := int(Animals.data().kinds.sheep.gives.every)
+	check(every > 1 and a.look(a.list[0]) == "sheep_shorn", "a sheep starts shorn, wool every %d nights" % every)
+	for i in every - 1:
+		a.fill_feed_box("barn")
+		a.day_end("sunny", rng)
+	check(not a.product_ready(a.list[0]), "wool not grown yet")
+	a.fill_feed_box("barn")
+	a.day_end("sunny", rng)
+	check(a.product_ready(a.list[0]) and a.look(a.list[0]) == "sheep", "full wool after %d nights" % every)
+	check(a.take_product(0).begins_with("wool") and a.look(a.list[0]) == "sheep_shorn", "sheared")
+	# Brushing: once a day, happiness at night; hens can't be brushed.
+	a = _herd(["cow"])
+	a.add("chicken")
+	check(a.brush(0) and not a.brush(0) and not a.brush(1), "brush once a day, not the hens")
+	a.fill_feed_box("barn")
+	a.day_end("sunny", rng)
+	check(a.list[0].happy == 30 + int(h.fed) + int(h.brushed) and not a.list[0].brushed, "brushing adds happiness, reset at night")
+	a.pet(0)
+	a.brush(0)
+	a.fill_feed_box("barn")
+	a.day_end("sunny", rng)
+	check(a.list[0].happy == 30 + 2 * int(h.fed) + 2 * int(h.brushed) + int(h.petted), "talking and brushing add up")
+	# Going out: the barn gate is its own door; grazing feeds them.
+	a = _herd(["cow", "sheep"])
+	a.add("chicken")
+	check(a.toggle_out("rain", 10, "barn") == "weather" and a.toggle_out("sunny", 20, "barn") == "time", "not out in rain or at night")
+	check(a.toggle_out("sunny", 10, "barn") == "" and a.is_out("barn") and not a.outside, "the barn animals go out, the hens stay in")
+	check(a.out_list("barn").size() == 2 and a.out_list("coop").is_empty() and a.animal_at("barn", a.spot(0)) == -1, "out on the farm")
+	for i in int(h.grazing_hours):
+		a.hour_passed("sunny")
+	check(a.list[0].out_hours == int(h.grazing_hours) and a.list[2].out_hours == 0, "grazing hours only for those out")
+	a.toggle_out("sunny", 15, "barn")
+	a.day_end("sunny", rng)
+	check(a.list[0].happy == 30 + int(h.fed) + int(h.sun) and a.product_ready(a.list[0]), "grazing is a meal: milk by morning")
+	check(a.list[2].happy == 30 + int(h.unfed), "the unfed hen")
+	a.toggle_out("sunny", 10, "barn")
+	var news := a.day_end("sunny", rng)
+	check(not a.is_out("barn") and String(Animals.data().homes.barn.out_news) in news, "left out: news, back in %s" % [news])
+	# Sickness: no milk while sick, medicine or time cures.
+	var r: Dictionary = Animals.data().duplicate(true)
+	r.sickness.chance = 1.0
+	a = Animals.new(r)
+	a.add_fodder(99)
+	a.add("cow")
+	a.list[0].happy = 0
+	news = a.day_end("sunny", rng)
+	check(a.list[0].sick and ("%s looks sick" % a.list[0].name) in news, "an unhappy cow falls sick")
+	a.fill_feed_box("barn")
+	a.day_end("sunny", rng)
+	check(not a.product_ready(a.list[0]) and a.take_product(0) == "", "a sick cow gives no milk")
+	check(a.cure(0) and not a.list[0].sick, "medicine cures her")
+	# A calf grows into a cow and only then gives milk.
+	a = Animals.new()
+	a.add_fodder(99)
+	check(a.add("cow", true) and a.look(a.list[0]) == "calf" and "(calf)" in a.label(a.list[0]), "a young calf")
+	var grow := int(Animals.data().kinds.cow.adult_days)
+	for i in grow - 1:
+		a.fill_feed_box("barn")
+		a.day_end("sunny", rng)
+	check(not a.is_adult(a.list[0]) and not a.product_ready(a.list[0]), "calves give no milk")
+	a.fill_feed_box("barn")
+	news = a.day_end("sunny", rng)
+	check(a.is_adult(a.list[0]) and a.look(a.list[0]) == "cow" and ("%s has grown up" % a.list[0].name) in news, "grown up after %d nights" % grow)
+	a.fill_feed_box("barn")
+	a.day_end("sunny", rng)
+	check(a.product_ready(a.list[0]), "and gives milk")
+	check(Animals.new().add("sheep", true) and Animals.new().look({"kind": "sheep", "age": 0, "sick": false, "prod_days": 0}) == "lamb", "lambs")
+
+
+func _dog() -> void:
+	var r: Dictionary = Animals.data().dog
+	var home := Vector2i(int(r.home[0]), int(r.home[1]))
+	var a := Animals.new()
+	a.start()
+	check(a.dog.cell == home and a.dog.affection == int(r.affection_start) and not a.dog.held, "the dog starts at home")
+	check(a.dog_pet() and not a.dog_pet() and a.dog.affection == int(r.affection_start) + int(r.petted), "petted once a day")
+	check(a.dog_lift() and a.dog.held and not a.dog_lift(), "picked up")
+	a.dog_put(home + Vector2i(2, 0))
+	check(not a.dog.held and a.dog.cell == home + Vector2i(2, 0), "set down in front")
+	a.dog_lift()
+	a.dog_put(home)
+	var aff := int(r.affection_start) + int(r.petted) + int(r.lifted)
+	check(a.dog.affection == aff, "picking up counts once a day (%d)" % a.dog.affection)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4
+	a.dog_lift()
+	a.dog_put(home + Vector2i(3, 3))
+	a.day_end("sunny", rng)
+	check(a.dog.affection == aff and a.dog.cell == home and not a.dog.held and not a.dog.petted, "a night: home again, nothing lost")
+	a.day_end("sunny", rng)
+	check(a.dog.affection == aff + int(r.ignored), "a day without a pat loses affection")
+	a.dog_lift()
+	a.day_end("sunny", rng)
+	check(not a.dog.held, "the night puts it down")
+	# Steps: following once fond, wandering near home otherwise, never into walls or the farmer.
+	var free := func(c: Vector2i) -> bool: return c.x > 0 and c.y > 0 and c.x < FarmGrid.W - 1 and c.y < FarmGrid.H - 1
+	a.dog.affection = int(r.follow_affection) - 1
+	var far := home + Vector2i(int(r.follow_range) - 1, 0)
+	var moved := 0
+	for i in 300:
+		moved += 1 if a.dog_step(far, free, rng) else 0
+		var off: Vector2i = a.dog.cell - home
+		if absi(off.x) + absi(off.y) > int(r.wander_range):
+			check(false, "wandered too far: %s" % a.dog.cell)
+			break
+	check(moved > 30 and moved < 270, "a shy dog wanders now and then (%d steps of 300)" % moved)
+	a.dog.cell = home
+	a.dog.affection = int(r.follow_affection)
+	check(a.dog_follows() and a.dog_step(far, free, rng) and a.dog.cell == home + Vector2i.RIGHT and a.dog.facing == Vector2i.RIGHT, "a fond dog follows")
+	for i in 40:
+		a.dog_step(far, free, rng)
+		check(a.dog.cell != far, "never onto the farmer")
+	var gap: Vector2i = far - a.dog.cell
+	check(absi(gap.x) + absi(gap.y) == int(r.follow_from), "stops %d cells off" % int(r.follow_from))
+	a.dog.cell = home
+	check(not a.dog_step(far, func(_c): return false, rng) and a.dog.cell == home, "walls stop it")
+	a.dog_lift()
+	check(not a.dog_step(far, free, rng), "doesn't walk while held")
+	a.dog_put(home)
+	a.dog_walk(float(r.step_seconds) * 3.5, far, free, rng)
+	check(a.dog.cell == home + Vector2i(3, 0), "dog_walk steps every %ss" % r.step_seconds)
+
+
+func _barn_save() -> void:
+	var a := _herd(["cow", "sheep"])
+	a.add("cow", true)
+	a.add("chicken")
+	a.list[0].prod_days = 1
+	a.list[1].brushed = true
+	a.list[1].sick = true
+	a.fill_feed_box("barn")
+	a.toggle_out("sunny", 10, "barn")
+	a.hour_passed("sunny")
+	a.dog_pet()
+	a.dog.cell = Vector2i(14, 9)
+	a.dog.affection = 33
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(a.to_dict()))
+	var r := Animals.parse(saved)
+	check(r[0] == "" and r[1].to_dict() == a.to_dict(), "barn and dog round trip %s" % r[0])
+	check(r[0] == "" and r[1].dog.cell == Vector2i(14, 9) and r[1].is_out("barn") and r[1].state.barn.box == 3, "dog cell, gate and fodder kept")
+	var bad := {
+		"no barn": func(d): d.erase("barn"),
+		"barn gate as text": func(d): d.barn.out = "open",
+		"fodder below 0": func(d): d.barn.stock = -1,
+		"no dog": func(d): d.erase("dog"),
+		"dog on the fence": func(d): d.dog.cell = [0, 5],
+		"dog off the farm": func(d): d.dog.cell = [40, 5],
+		"dog too fond": func(d): d.dog.affection = 999,
+		"dog without a name": func(d): d.dog.erase("name"),
+		"brushed as text": func(d): d.animals[0].brushed = "yes",
+		"product days below 0": func(d): d.animals[0].prod_days = -2,
+		"too many in the barn": func(d): for i in 6: d.animals.append(d.animals[0].duplicate()),
+	}
+	for key in bad:
+		var d: Dictionary = saved.duplicate(true)
+		bad[key].call(d)
+		check(Animals.parse(d)[0] != "", "broken save refused: " + key)
+	# A version 2 save: no barn, no dog, hens without the new fields.
+	var old: Dictionary = _flock(2).to_dict()
+	old.erase("barn")
+	old.erase("dog")
+	for h in old.animals:
+		h.erase("brushed")
+		h.erase("prod_days")
+	old = JSON.parse_string(JSON.stringify(old))
+	r = Animals.parse(old, Animals.data(), 2)
+	check(r[0] == "" and r[1].list.size() == 2 and r[1].state.barn.stock == int(Animals.data().homes.barn.feed_start), "a version 2 save gets the new-game fodder %s" % r[0])
+	check(r[0] == "" and r[1].dog.affection == int(Animals.data().dog.affection_start) and r[1].list[0].prod_days == 0, "and the new dog")
+	check(Animals.parse(old, Animals.data(), 3)[0] == "", "a version 3 save gets them too")
+	check(Animals.parse(old, Animals.data(), 4)[0] != "", "a version 4 save must have the barn and the dog")
+
+
+func _herd(kinds: Array) -> Animals:
+	var a := Animals.new()
+	a.add_fodder(99)
+	for k in kinds:
+		a.add(k)
+	return a
+
+
+## The barn and the dog with the real Game autoload (fodder, tools on the animals, the gate,
+## medicine; petting / lifting / putting down the dog through FarmActions).
+func _barn_actions() -> void:
+	var g: Node = root.get_node("Game")
+	var BarnActions: GDScript = load("res://scripts/animals/barn_actions.gd")
+	var FarmActions: GDScript = load("res://scripts/farm_actions.gd")
+	var said: Array[String] = []
+	g.message.connect(func(t): said.append(t))
+	g.new_game()
+	g.events_seen = {"first_morning": true, "rainy_day": true}
+	var a: Animals = g.animals
+	check(g.add_animal("cow") and g.add_animal("sheep"), "the shop hook adds a cow and a sheep")
+	var cow := a.in_home("barn")[0]
+	var sheep := a.in_home("barn")[1]
+	a.list[cow].prod_days = 1
+	a.list[sheep].prod_days = int(a.gives(a.list[sheep]).every)
+	var spot: Array = MapManager.data("barn").spawns.start
+	check(g.go_to_map("barn", spot[0], spot[1]) and BarnActions.in_barn() and g.indoors(), "into the barn (clock stops)")
+	FarmActions.interact(_barn_prop("fodder_box"))
+	check(a.state.barn.box == 2, "fodder into the box")
+	FarmActions.interact(_barn_prop("fodder"))
+	check(said.back().begins_with("The fodder box is full"), "the hay tells the box is full: %s" % said.back())
+	var at_cow := a.spot(cow)
+	FarmActions.on_action("interact", at_cow + Vector2i.DOWN, Vector2i.UP)
+	check(g.held == "milk" and not a.product_ready(a.list[cow]), "E on the cow milks her: %s" % g.held)
+	FarmActions.on_action("interact", at_cow + Vector2i.DOWN, Vector2i.UP)
+	check(a.list[cow].brushed and g.held == "milk", "E again brushes")
+	FarmActions.on_action("interact", at_cow + Vector2i.DOWN, Vector2i.UP)
+	check(a.list[cow].petted, "and then talks")
+	var at_sheep := a.spot(sheep)
+	FarmActions.interact(at_sheep)
+	FarmActions.interact(at_sheep)
+	FarmActions.interact(at_sheep)
+	check(a.product_ready(a.list[sheep]) and said.back() == "Your hands are full", "hands full: no shearing (%s)" % said.back())
+	g.held = ""
+	FarmActions.interact(at_sheep)
+	check(g.held.begins_with("wool") and a.look(a.list[sheep]) == "sheep_shorn", "sheared: %s overhead" % g.held)
+	FarmActions.interact(_barn_prop("barn_tools"))
+	check(said.back().begins_with("The brush"), "the tools on the wall")
+	g.weather_today = "sunny"
+	g.hour = 10
+	FarmActions.interact(_barn_prop("barn_gate"))
+	check(a.is_out("barn") and a.animal_at("barn", at_cow) == -1 and not a.outside, "the gate lets them out to graze")
+	FarmActions.interact(_barn_prop("barn_gate"))
+	check(not a.is_out("barn"), "and calls them back")
+	a.list[cow].sick = true
+	g.add_item("medicine")
+	FarmActions.interact(at_cow)
+	check(not a.list[cow].sick and g.count("medicine") == 0, "medicine cures the cow")
+	var door: Dictionary = MapManager.data("barn").doors[0]
+	g.held = ""
+	check(g.go_to_map(door.to, door.spawn, door.facing) and g.maps.on_farm(), "back out on the farm")
+	# The dog.
+	var dog: Vector2i = a.dog.cell
+	var aff: int = a.dog.affection
+	FarmActions.on_action("interact", dog + Vector2i.DOWN, Vector2i.UP)
+	check(a.dog.petted and a.dog.affection > aff and not a.dog.held, "E pets the dog")
+	FarmActions.on_action("interact", dog + Vector2i.DOWN, Vector2i.UP)
+	check(a.dog.held and g.holding() and g.held == "" and g.held_key() == "animal:dog:held:0", "E again picks it up")
+	FarmActions.on_action("enter", dog + Vector2i.DOWN, Vector2i.UP)
+	check(a.dog.held and said.back().begins_with("Put"), "no doors with the dog in the arms")
+	FarmActions.on_action("tool", dog + Vector2i.DOWN, Vector2i.RIGHT)
+	check(not a.dog.held and a.dog.cell == dog + Vector2i(1, 1) and not g.holding(), "set down in front")
+	g.new_game()
+
+
+func _barn_prop(use: String) -> Vector2i:
+	for p in MapManager.data("barn").props:
+		if p.get("use", "") == use:
+			return p.cell
+	return Vector2i(-1, -1)
+
+
+func _barn_map_and_art() -> void:
+	var r := MapManager.load_map("barn")
+	check(r[0] == "", "barn map loads (%s)" % r[0])
+	var m: MapData = r[1]
+	check(m.indoor, "the barn is a building (clock stops)")
+	var uses := []
+	for p in m.props:
+		uses.append(p.get("use", ""))
+	for want in ["fodder_box", "fodder", "barn_tools", "barn_gate"]:
+		check(want in uses, "barn has a %s" % want)
+	var spots: Array = Animals.data().homes.barn.spots
+	check(spots.size() >= int(Animals.data().homes.barn.capacity), "a stall for every place")
+	for s in spots:
+		var c := Vector2i(int(s[0]), int(s[1]))
+		check(not m.is_solid(c) and m.door_at(c).is_empty() and m.prop_at(c).get("use", "") == "", "stall %s is free floor" % c)
+		check(not m.is_solid(c + Vector2i.DOWN), "stall %s can be reached from the front" % c)
+	check(not m.is_solid(_barn_prop("fodder_box") + Vector2i(11, 1)), "the fodder box can be reached by the last stall")
+	var farm_door: Dictionary = MapManager.data("farm").door_at(FarmGrid.BARN_DOOR)
+	check(farm_door.get("to") == "barn", "the farm's barn door leads in")
+	check(m.doors[0].to == "farm" and m.doors[0].spawn == FarmGrid.BARN_DOOR + Vector2i.DOWN, "the barn door leads back out in front of it")
+	# On the farm: its own spot, the pasture and the dog's home are open ground.
+	var crops := _json("res://data/crops.json")
+	var f := FarmGrid.new(crops)
+	f.generate(RandomNumberGenerator.new())
+	for y in range(FarmGrid.BARN.position.y, FarmGrid.BARN.end.y):
+		for x in range(FarmGrid.BARN.position.x, FarmGrid.BARN.end.x):
+			check(f.fixed_at(Vector2i(x, y)) in ["barn", "barn_door"], "barn cell %d, %d" % [x, y])
+	check(not FarmGrid.BARN.intersects(FarmGrid.COOP) and FarmGrid.BARN.end.x <= 25, "the barn is clear of the coop and the pond")
+	var yard: Array = Animals.data().homes.barn.yard
+	for y in range(yard[1], yard[1] + yard[3]):
+		for x in range(yard[0], yard[0] + yard[2]):
+			check(f.fixed_at(Vector2i(x, y)) == "" and y < 7, "pasture %d, %d is open grass" % [x, y])
+	var home: Array = Animals.data().dog.home
+	check(f.fixed_at(Vector2i(int(home[0]), int(home[1]))) == "", "the dog's home cell is open")
+	for c in f.fixed.keys():
+		if f.fixed[c] in ["barn", "barn_door"]:
+			f.fixed.erase(c)
+	f.till(Vector2i(20, 2))
+	f.add_missing_fixed()
+	check(f.fixed_at(Vector2i(20, 2)) == "barn" and not f.cell(Vector2i(20, 2)).tilled and f.fixed_at(FarmGrid.BARN_DOOR) == "barn_door", "barn added to an older farm")
+	# Art.
+	var sizes := {"cow": Vector2(24, 16), "calf": Vector2(16, 12), "sheep": Vector2(18, 14), "sheep_shorn": Vector2(18, 14),
+		"lamb": Vector2(12, 10), "dog": Vector2(14, 11)}
+	for kind in sizes:
+		for pose in ["idle", "peck", "walk", "sick"]:
+			for frame in 2:
+				var key := "animal:%s:%s:%d" % [kind, pose, frame]
+				check(PlaceholderArt.tex(key).get_size() == sizes[kind], key + " size")
+	for pose in ["sit", "held"]:
+		check(PlaceholderArt.tex("animal:dog:%s:0" % pose).get_size() == sizes.dog, "dog " + pose)
+	var data_of := func(k): return PlaceholderArt.tex(k).get_image().get_data()
+	check(data_of.call("animal:sheep:idle:0") != data_of.call("animal:sheep_shorn:idle:0"), "a shorn sheep looks different")
+	check(data_of.call("animal:cow:idle:0") != data_of.call("animal:cow:sick:0"), "a sick cow looks different")
+	check(data_of.call("animal:cow:walk:0") != data_of.call("animal:cow:walk:1"), "the cow walks")
+	for id in ["milk", "milk_good", "milk_best", "wool", "wool_good", "wool_best"]:
+		check(PlaceholderArt.world_item_key(id) == "item:" + id and PlaceholderArt.tex("item:" + id).get_size() == Vector2(12, 12), id + " world sprite")
+		check(PlaceholderArt.tex(PlaceholderArt.item_key(id)).get_size() == Vector2(14, 14), id + " slot icon")
+	check(data_of.call("item:milk") != data_of.call("item:milk_best") and data_of.call("item:wool") != data_of.call("item:wool_good"), "grades look different")
 
 func _prop_cell(use: String) -> Vector2i:
 	for p in MapManager.data("coop").props:

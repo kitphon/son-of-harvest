@@ -271,7 +271,7 @@ func _save_round_trip() -> void:
 	g.affection.talk("tome", g.day_number())
 	g.affection.give("sayo", "tomato", g.day_number())
 	var d: Dictionary = JSON.parse_string(JSON.stringify(g.to_dict()))
-	check(SaveGame.VERSION == 3 and d.has("affection"), "save version 3 writes affection")
+	check(SaveGame.VERSION >= 3 and d.has("affection"), "save version 3 or later writes affection")
 	g.new_game()
 	check(g.affection.of("kota") == 0, "a new game forgets it")
 	check(g.from_dict(d) == "" and g.affection.of("kota") == 33 and g.affection.talked_on("tome", g.day_number())

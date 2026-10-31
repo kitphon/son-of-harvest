@@ -1,9 +1,11 @@
 {
-	"_about": "Farm animals (Animals, scripts/animals/animals.gd). Every number here is ours (WORKLOG 2026-10-31 Chickens). Happiness runs 0..happy_max; it moves once a night (Animals.day_end) and an hour at a time while the animals are outside (hour_passed).",
+	"_about": "Farm animals and the dog (Animals, scripts/animals/animals.gd). Every number here is ours (WORKLOG 2026-10-31 Chickens, and Barn animals and the dog). Happiness runs 0..happy_max; it moves once a night (Animals.day_end) and an hour at a time while the animals are outside (hour_passed).",
 	"kinds": {
 		"chicken": {
 			"name": "Chicken",
-			"chick_name": "Chick",
+			"young_name": "Chick",
+			"young_sprite": "chick",
+			"voice": "hen_cluck",
 			"home": "coop",
 			"happy_start": 30,
 			"_happy_start": "A bought or newly hatched chicken.",
@@ -12,6 +14,44 @@
 			"lays": "egg",
 			"price": 1500,
 			"_price": "For the shop (another session): Game.add_animal(\"chicken\") once paid."
+		},
+		"cow": {
+			"name": "Cow",
+			"young_name": "Calf",
+			"young_sprite": "calf",
+			"voice": "cow_moo",
+			"home": "barn",
+			"happy_start": 30,
+			"adult_days": 14,
+			"_adult_days": "A calf (Game.add_animal(\"cow\", true)) grows up after this many nights; only grown cows give milk.",
+			"gives": {
+				"product": "milk",
+				"every": 1,
+				"tool": "milker"
+			},
+			"_gives": "Product every N fed, healthy nights (prod_days). It waits until taken and doesn't pile up. The tool hangs in the barn: E on the animal uses it.",
+			"brush": true,
+			"price": 5000,
+			"_price": "For the shop: Game.add_animal(\"cow\"). A cow pays 100-220 G a day, so she pays back in about a month."
+		},
+		"sheep": {
+			"name": "Sheep",
+			"young_name": "Lamb",
+			"young_sprite": "lamb",
+			"shorn_sprite": "sheep_shorn",
+			"voice": "sheep_baa",
+			"home": "barn",
+			"happy_start": 30,
+			"adult_days": 10,
+			"gives": {
+				"product": "wool",
+				"every": 3,
+				"tool": "shears"
+			},
+			"_gives": "Wool grows back over 3 fed, healthy nights; the sheep looks shorn until then.",
+			"brush": true,
+			"price": 3000,
+			"_price": "Cheaper than a cow: 120-320 G every 3 days (40-107 G a day) for the same fodder."
 		}
 	},
 	"homes": {
@@ -24,7 +64,22 @@
 			"spots": [[3, 2], [5, 2], [2, 3], [4, 3], [3, 4], [5, 4]],
 			"_spots": "Coop cells where animal 0, 1, ... stand inside (the coop map); one per place.",
 			"yard": [12, 4, 8, 3],
-			"_yard": "Farm cells x, y, w, h where the hens peck about when they are out (not solid)."
+			"_yard": "Farm cells x, y, w, h where the hens peck about when they are out (not solid).",
+			"feed_name": "chicken feed",
+			"out_news": "The hens were out all night"
+		},
+		"barn": {
+			"map": "barn",
+			"capacity": 6,
+			"_capacity": "Cows and sheep together; one stall and one fodder box place each.",
+			"feed_start": 20,
+			"_feed_start": "Bundles of hay fodder in the loft on a new game (Game.animals.add_fodder adds more).",
+			"feed_name": "fodder",
+			"spots": [[1, 2], [3, 2], [5, 2], [7, 2], [9, 2], [11, 2]],
+			"_spots": "Stall cells in the barn map, one per place.",
+			"yard": [19, 5, 10, 2],
+			"_yard": "Farm cells in front of the barn where the cows and sheep graze when out (clear of the pond and the gate path).",
+			"out_news": "The barn animals were out all night"
 		}
 	},
 	"happiness": {
@@ -42,12 +97,14 @@
 		"_left_out_night": "Still outside when the day ends; they come back in by themselves.",
 		"petted": 2,
 		"_petted": "Once a day, by talking to / stroking the animal.",
-		"sick_day": -3
+		"sick_day": -3,
+		"brushed": 3,
+		"_brushed": "Once a day with the barn brush (cows and sheep)."
 	},
 	"good_weather": ["sunny"],
-	"_good_weather": "Weather in which the hens may go out (Animals.can_go_out).",
+	"_good_weather": "Weather in which the animals may go out (Animals.can_go_out).",
 	"out_hours": [6, 17],
-	"_out_hours": "The hatch opens from the first hour to the last (inclusive).",
+	"_out_hours": "The hatch and the barn gate open from the first hour to the last (inclusive).",
 	"sickness": {
 		"below": 5,
 		"_below": "At or under this happiness a night may make an animal sick.",
@@ -71,16 +128,60 @@
 				{"below": 101, "item": "egg_best"}
 			],
 			"_grades": "The egg laid is the first grade whose 'below' is over the hen's happiness."
+		},
+		"milk": {
+			"grades": [
+				{"below": 40, "item": "milk"},
+				{"below": 75, "item": "milk_good"},
+				{"below": 101, "item": "milk_best"}
+			]
+		},
+		"wool": {
+			"grades": [
+				{"below": 40, "item": "wool"},
+				{"below": 75, "item": "wool_good"},
+				{"below": 101, "item": "wool_best"}
+			]
 		}
 	},
 	"items": {
 		"egg": {"name": "Egg", "sell": 50},
 		"egg_good": {"name": "Good Egg", "sell": 75},
 		"egg_best": {"name": "Golden Yolk Egg", "sell": 110},
+		"milk": {"name": "Milk", "sell": 100},
+		"milk_good": {"name": "Rich Milk", "sell": 150},
+		"milk_best": {"name": "Hillside Cream Milk", "sell": 220},
+		"wool": {"name": "Wool", "sell": 120},
+		"wool_good": {"name": "Soft Wool", "sell": 200},
+		"wool_best": {"name": "Cloud Wool", "sell": 320},
 		"medicine": {"name": "Animal Medicine", "sell": 0}
 	},
-	"names": ["Kome", "Mochi", "Azuki", "Kinako", "Goma", "Yuzu", "Sumi", "Hana", "Tama", "Ume", "Kiku", "Nori"],
+	"names": ["Kome", "Mochi", "Azuki", "Kinako", "Goma", "Yuzu", "Sumi", "Hana", "Tama", "Ume", "Kiku", "Nori", "Momo", "Kaede", "Haru", "Yuki", "Tsuki", "Sora"],
 	"_names": "Given in turn to new animals.",
 	"start": ["chicken", "chicken"],
-	"_start": "Animals a new game (or a save from before animals) begins with."
+	"_start": "Animals a new game (or a save from before animals) begins with.",
+	"dog": {
+		"name": "Goro",
+		"_about": "The farm dog: always on the farm, follows the farmer once fond enough, else wanders near home.",
+		"home": [11, 5],
+		"_home": "Farm cell the dog wakes up on each morning, right of the stand.",
+		"affection_start": 10,
+		"max": 100,
+		"petted": 2,
+		"_petted": "Once a day, E facing the dog.",
+		"lifted": 1,
+		"_lifted": "Once a day, picking it up (E again after petting).",
+		"ignored": -1,
+		"_ignored": "A night without petting or picking it up.",
+		"follow_affection": 20,
+		"_follow_affection": "From this affection on the dog follows the farmer (about a week of petting).",
+		"follow_from": 2,
+		"follow_range": 9,
+		"_follow": "Follows when the farmer is more than follow_from and at most follow_range cells away (steps along the grid).",
+		"wander_chance": 0.3,
+		"wander_range": 4,
+		"_wander": "Otherwise a step this often, staying this many cells from home.",
+		"step_seconds": 0.3,
+		"_step_seconds": "Real seconds between steps (the view slides between cells)."
+	}
 }

@@ -1,22 +1,33 @@
 class_name AnimalLayer
 extends Node3D
-## The animals in 3D, over a FarmWorld or the coop's MapWorld: hens pecking about near their
-## spots in the coop (or in the farm yard while they are out), eggs in the nests, the feed in
-## the feed box and an egg in the incubator. Reads Game.animals and rebuilds on its `changed`;
-## the wandering is only for the eye (the rules don't move animals).
+## The animals in 3D, over a FarmWorld or a home's MapWorld (the coop, the barn): animals
+## about their spots inside (or in their yard on the farm while they are out), eggs in the
+## nests, the feed in the feed box / the hay in the fodder trough, an egg in the incubator,
+## and on the farm the dog. Reads Game.animals and rebuilds on its `changed`; the wandering is
+## only for the eye (the rules don't move animals). The dog's steps are the rules' (dog_walk,
+## called from here with the farmer's cell); the sprite slides between the cells.
 
-const SPEED := 0.6        # cells a second while a hen walks
+const SPEED := {"chicken": 0.6, "chick": 0.6}   # cells a second while walking; others DEFAULT_SPEED
+const DEFAULT_SPEED := 0.35
 const WALK_FPS := 6.0
+## Shadow sizes per sprite kind (others: SHADOW_DEFAULT).
+const SHADOW := {"chicken": Vector2(0.45, 0.3), "chick": Vector2(0.3, 0.2), "cow": Vector2(1.2, 0.5),
+	"calf": Vector2(0.8, 0.35), "sheep": Vector2(0.9, 0.45), "sheep_shorn": Vector2(0.8, 0.4),
+	"lamb": Vector2(0.6, 0.3), "dog": Vector2(0.6, 0.3)}
+const SHADOW_DEFAULT := Vector2(0.5, 0.3)
 
 var on_farm := false
-var map: MapData            # the coop map when inside
-var _hens: Array[Dictionary] = []   # {sprite, kind, sick, home: Rect2, pos, target, wait, pose, time}
+var map: MapData            # the home's map when inside
+var farmer: Node2D          # the (hidden) 2D Player, for the dog to follow on the farm
+var _beasts: Array[Dictionary] = []   # {sprite, kind, sick, home: Rect2, pos, target, wait, pose, time}
+var _dog := {}                        # {sprite, pos, pose, time, still} on the farm while not held
 var _rng := RandomNumberGenerator.new()
 
 
-func setup(m: MapData, farm: bool) -> void:
+func setup(m: MapData, farm: bool, player: Node2D = null) -> void:
 	map = m
 	on_farm = farm
+	farmer = player
 	_rng.seed = 11
 	Game.animals.changed.connect(_rebuild)
 	_rebuild()
@@ -25,47 +36,68 @@ func setup(m: MapData, farm: bool) -> void:
 func _rebuild() -> void:
 	for child in get_children():
 		child.queue_free()
-	_hens.clear()
+	_beasts.clear()
+	_dog = {}
 	var a := Game.animals
 	if on_farm:
-		if not a.outside:
-			return
-		var yard: Array = a.home_rule("coop").get("yard", [12, 4, 8, 3])
-		var area := Rect2(yard[0], yard[1], yard[2], yard[3])
-		for i in a.list.size():
-			var start := area.position + Vector2(_rng.randf(), _rng.randf()) * area.size
-			_add_hen(a.list[i], area, start)
+		for home in a.state:
+			if not a.is_out(home):
+				continue
+			var yard: Array = a.home_rule(home).get("yard", [12, 4, 8, 3])
+			var area := Rect2(yard[0], yard[1], yard[2], yard[3])
+			for i in a.in_home(home):
+				var start := area.position + Vector2(_rng.randf(), _rng.randf()) * area.size
+				_add_beast(a.list[i], area, start)
+		_add_dog()
 		return
-	if map == null or map.id != CoopActions.map_id():
+	var home := a.home_on_map(map.id) if map != null else ""
+	if home == "":
 		return
-	if not a.outside:
-		for i in a.list.size():
-			var c := CoopActions.spot(i)
+	if not a.is_out(home):
+		var roam := 1.6 if home == "coop" else 0.3   # hens peck about, the barn animals stay in their stalls
+		for i in a.in_home(home):
+			var c := a.spot(i)
 			if c.x < 0:
 				continue
-			_add_hen(a.list[i], Rect2(Vector2(c) - Vector2(0.3, 0.3), Vector2(1.6, 1.6)), Vector2(c) + Vector2(0.5, 0.5))
-	_eggs_and_feed()
+			var mid := Vector2(c) + Vector2(0.5, 0.5)
+			_add_beast(a.list[i], Rect2(mid - Vector2(roam, roam) / 2, Vector2(roam, roam)), mid)
+	_eggs_and_feed(home)
 
 
-func _add_hen(hen: Dictionary, area: Rect2, start: Vector2) -> void:
-	var kind := "chicken" if Game.animals.is_adult(hen) else "chick"
-	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:%s:idle:0" % kind))
-	add_child(s)
+func _shadow(s: Sprite3D, kind: String) -> void:
 	var shadow := MeshInstance3D.new()
 	var disc := PlaneMesh.new()
-	disc.size = Vector2(0.45, 0.3) if kind == "chicken" else Vector2(0.3, 0.2)
+	disc.size = SHADOW.get(kind, SHADOW_DEFAULT)
 	shadow.mesh = disc
 	shadow.material_override = FarmWorld.flat_material(Color(0, 0, 0, 0.25))
 	shadow.position = Vector3(0, 0.01, 0)
 	s.add_child(shadow)
-	_hens.append({"sprite": s, "kind": kind, "sick": bool(hen.sick), "home": area, "pos": start,
+
+
+func _add_beast(beast: Dictionary, area: Rect2, start: Vector2) -> void:
+	var kind := Game.animals.look(beast)
+	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:%s:idle:0" % kind))
+	add_child(s)
+	_shadow(s, kind)
+	_beasts.append({"sprite": s, "kind": kind, "sick": bool(beast.sick), "home": area, "pos": start,
 		"target": start, "wait": _rng.randf_range(0.0, 2.0), "pose": "idle", "time": _rng.randf() * 3.0})
-	_place(_hens.back())
+	_place(_beasts.back())
 
 
-## The eggs lie in the nest cells in order, the feed box shows a mound a portion, the
-## incubator its egg.
-func _eggs_and_feed() -> void:
+func _add_dog() -> void:
+	var dog: Dictionary = Game.animals.dog
+	if dog.held:
+		return
+	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:dog:idle:0"))
+	add_child(s)
+	_shadow(s, "dog")
+	_dog = {"sprite": s, "pos": Vector2(dog.cell) + Vector2(0.5, 0.5), "pose": "idle", "time": 0.0, "still": 0.0}
+	_place_dog(0.0)
+
+
+## The eggs lie in the nest cells in order, the feed box / fodder trough shows a mound a
+## portion, the incubator its egg.
+func _eggs_and_feed(home: String) -> void:
 	var a := Game.animals
 	var nests: Array[Vector3] = []
 	var box := Rect2()
@@ -75,37 +107,39 @@ func _eggs_and_feed() -> void:
 			"nest":
 				for i in p.size.y:
 					nests.append(Vector3(p.cell.x + 0.42, 0.34, p.cell.y + i + 0.5))
-			"feed_box":
+			"feed_box", "fodder_box":
 				box = Rect2(Vector2(p.cell), Vector2(p.size))
 			"incubator":
 				incubator = Vector3(p.cell.x + 0.45, 0.48, p.cell.y + 0.4)
-	for i in mini(a.eggs.size(), nests.size()):
-		var e := FarmWorld.make_sprite(PlaceholderArt.tex(PlaceholderArt.world_item_key(a.eggs[i])))
-		e.pixel_size = FarmWorld.PX * 0.8
-		e.position = nests[i]
-		add_child(e)
-	if a.incubator.size() > 0 and incubator.x >= 0:
-		var e := FarmWorld.make_sprite(PlaceholderArt.tex(PlaceholderArt.world_item_key(a.incubator.item)))
-		e.pixel_size = FarmWorld.PX * 0.8
-		e.position = incubator
-		add_child(e)
+	if home == "coop":
+		for i in mini(a.eggs.size(), nests.size()):
+			var e := FarmWorld.make_sprite(PlaceholderArt.tex(PlaceholderArt.world_item_key(a.eggs[i])))
+			e.pixel_size = FarmWorld.PX * 0.8
+			e.position = nests[i]
+			add_child(e)
+		if a.incubator.size() > 0 and incubator.x >= 0:
+			var e := FarmWorld.make_sprite(PlaceholderArt.tex(PlaceholderArt.world_item_key(a.incubator.item)))
+			e.pixel_size = FarmWorld.PX * 0.8
+			e.position = incubator
+			add_child(e)
 	if box.has_area():
-		var grain := FarmWorld.flat_material(Color("c8a050"))
-		var places := maxi(int(a.home_rule("coop").get("capacity", 6)), 1)
+		var barn := home != "coop"
+		var feed := FarmWorld.flat_material(Color("c8b060") if barn else Color("c8a050"))
+		var places := maxi(int(a.home_rule(home).get("capacity", 6)), 1)
 		var step := (box.size.x - 0.3) / places
-		for i in mini(a.feed_box, places):
+		for i in mini(int(a.state[home].box), places):
 			var mesh := SphereMesh.new()
-			mesh.radius = minf(step * 0.45, 0.2)
+			mesh.radius = minf(step * 0.45, 0.32 if barn else 0.2)
 			mesh.height = mesh.radius * 0.9
 			var mi := MeshInstance3D.new()
 			mi.mesh = mesh
-			mi.material_override = grain
-			mi.position = Vector3(box.position.x + 0.15 + step * (i + 0.5), 0.12, box.get_center().y - 0.1)
+			mi.material_override = feed
+			mi.position = Vector3(box.position.x + 0.15 + step * (i + 0.5), 0.22 if barn else 0.12, box.get_center().y + (0.05 if barn else -0.1))
 			add_child(mi)
 
 
 func _process(delta: float) -> void:
-	for h in _hens:
+	for h in _beasts:
 		h.time += delta
 		if h.sick:
 			h.pose = "sick"
@@ -120,12 +154,37 @@ func _process(delta: float) -> void:
 				h.target = area.position + Vector2(_rng.randf(), _rng.randf()) * area.size
 			else:
 				h.pose = "walk"
-				h.pos += to.limit_length(SPEED * delta)
+				h.pos += to.limit_length(SPEED.get(h.kind, DEFAULT_SPEED) * delta)
 				h.sprite.flip_h = to.x - to.y > 0.0   # screen right is +x / -z from this camera
 		_place(h)
+	if on_farm and farmer != null and not Game.paused():
+		Game.animals.dog_walk(delta, Player.cell_of(farmer.position), func(c: Vector2i) -> bool: return not Game.farm.is_solid(c), _rng)
+	if not _dog.is_empty():
+		_place_dog(delta)
 
 
 func _place(h: Dictionary) -> void:
 	var frame := int(h.time * (WALK_FPS if h.pose == "walk" else 1.5)) % 2
 	h.sprite.texture = PlaceholderArt.tex("animal:%s:%s:%d" % [h.kind, h.pose, frame])
 	h.sprite.position = Vector3(h.pos.x, 0, h.pos.y)
+
+
+## The dog slides towards its cell (a little faster than it steps), sits after a while still.
+func _place_dog(delta: float) -> void:
+	var dog: Dictionary = Game.animals.dog
+	var goal := Vector2(dog.cell) + Vector2(0.5, 0.5)
+	var to: Vector2 = goal - _dog.pos
+	var speed := 1.3 / maxf(float(Game.animals.dog_rule().get("step_seconds", 0.3)), 0.05)
+	_dog.time += delta
+	if to.length() > 0.02:
+		_dog.pos += to.limit_length(speed * delta)
+		_dog.pose = "walk"
+		_dog.still = 0.0
+		if absf(to.x - to.y) > 0.01:
+			_dog.sprite.flip_h = to.x - to.y > 0.0
+	else:
+		_dog.still += delta
+		_dog.pose = "sit" if _dog.still > 2.5 else "idle"
+	var frame := int(_dog.time * (WALK_FPS * 1.5 if _dog.pose == "walk" else 1.5)) % 2
+	_dog.sprite.texture = PlaceholderArt.tex("animal:dog:%s:%d" % [_dog.pose, frame])
+	_dog.sprite.position = Vector3(_dog.pos.x, 0, _dog.pos.y)

@@ -35,6 +35,27 @@
 		"feed_pour": {"volume_db": -14, "pitch": [0.95, 1.05], "layers": [
 			{"kind": "grains", "count": 26, "dur": 0.45, "hp": 1500, "lp": 6000, "grain": 0.003, "gain": 0.5},
 			{"kind": "noise", "color": "brown", "lp": 1100, "dur": 0.4, "attack": 0.03, "decay": 0.12, "gain": 0.35}]},
+		"cow_moo": {"volume_db": -14, "pitch": [0.9, 1.08], "layers": [
+			{"kind": "tone", "freq": 150, "freq_end": 118, "partials": [[1, 1], [2, 0.6], [3, 0.35], [4, 0.15]], "dur": 0.9, "attack": 0.18, "decay": 0.35, "trem": [[5, 0.15]]},
+			{"kind": "noise", "color": "brown", "lp": 700, "dur": 0.8, "attack": 0.2, "decay": 0.3, "gain": 0.15}]},
+		"sheep_baa": {"volume_db": -15, "pitch": [0.9, 1.12], "layers": [
+			{"kind": "tone", "freq": 430, "freq_end": 380, "partials": [[1, 1], [2, 0.5], [3, 0.3]], "dur": 0.5, "attack": 0.04, "decay": 0.2, "trem": [[17, 0.6]]}]},
+		"dog_bark": {"volume_db": -15, "pitch": [0.92, 1.1], "layers": [
+			{"kind": "tone", "freq": 620, "freq_end": 360, "partials": [[1, 1], [2, 0.5], [3, 0.25]], "dur": 0.09, "attack": 0.004, "decay": 0.04},
+			{"kind": "noise", "color": "brown", "lp": 2200, "hp": 300, "dur": 0.07, "attack": 0.003, "decay": 0.03, "gain": 0.4},
+			{"kind": "tone", "freq": 660, "freq_end": 380, "partials": [[1, 1], [2, 0.5], [3, 0.25]], "dur": 0.08, "at": 0.16, "attack": 0.004, "decay": 0.035, "gain": 0.8}]},
+		"brush_stroke": {"volume_db": -16, "pitch": [0.95, 1.05], "layers": [
+			{"kind": "noise", "hp": 1800, "lp": 7000, "dur": 0.22, "attack": 0.05, "decay": 0.1},
+			{"kind": "noise", "hp": 1800, "lp": 7000, "dur": 0.22, "at": 0.28, "attack": 0.05, "decay": 0.1, "gain": 0.8}]},
+		"milk_squirt": {"volume_db": -15, "pitch": [0.95, 1.08], "layers": [
+			{"kind": "noise", "hp": 1200, "lp": 5000, "dur": 0.12, "attack": 0.01, "decay": 0.06},
+			{"kind": "noise", "hp": 1200, "lp": 5000, "dur": 0.12, "at": 0.2, "attack": 0.01, "decay": 0.06, "gain": 0.9},
+			{"kind": "tone", "freq": 520, "freq_end": 760, "dur": 0.25, "at": 0.35, "attack": 0.02, "decay": 0.1, "gain": 0.3}]},
+		"shear_snip": {"volume_db": -15, "pitch": [0.95, 1.08], "layers": [
+			{"kind": "tone", "freq": 2600, "freq_end": 2200, "dur": 0.03, "attack": 0.002, "decay": 0.01, "gain": 0.5},
+			{"kind": "noise", "hp": 2500, "lp": 8000, "dur": 0.04, "attack": 0.002, "decay": 0.015},
+			{"kind": "tone", "freq": 2500, "freq_end": 2100, "dur": 0.03, "at": 0.15, "attack": 0.002, "decay": 0.01, "gain": 0.5},
+			{"kind": "noise", "hp": 2500, "lp": 8000, "dur": 0.04, "at": 0.15, "attack": 0.002, "decay": 0.015}]},
 		"eat": {"volume_db": -14, "pitch": [0.9, 1.1], "layers": [
 			{"kind": "noise", "color": "brown", "lp": 1600, "hp": 150, "dur": 0.09, "attack": 0.004, "decay": 0.03},
 			{"kind": "grains", "count": 5, "dur": 0.08, "hp": 1200, "lp": 4000, "grain": 0.004, "gain": 0.4},

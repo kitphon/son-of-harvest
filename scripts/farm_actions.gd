@@ -9,11 +9,14 @@ const HOME := Vector2(4 * T + 8, 4 * T + 10)   # in front of the door, in player
 
 ## kind "enter" = the farmer walked into a door cell `origin + facing`. Interact facing a
 ## villager talks to them (or gives them the item overhead). With an item overhead on the
-## farm the hands are full: interact throws it, the tool button sets it down. Otherwise
-## interact first asks the map's trigger table about the spot faced (examine).
+## farm the hands are full: interact throws it, the tool button sets it down. With the dog in
+## the arms either button sets it down (DogActions). Otherwise interact first asks the map's
+## trigger table about the spot faced (examine).
 static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	if Game.fishing.active():   # the line is out: either button reels in
 		reel()
+	elif Game.animals.dog.held:
+		DogActions.held_action(kind, origin + facing)
 	elif kind == "enter":
 		interact(origin + facing)
 	elif kind == "interact" and talk_to(origin, facing):
@@ -129,6 +132,8 @@ static func interact(c: Vector2i) -> void:
 		return
 	if CoopActions.interact(c):   # the hens, feed box, nests, incubator and hatch
 		return
+	if BarnActions.interact(c):   # the cows and sheep, fodder, tools and gate
+		return
 	if not Game.maps.on_farm():
 		var prop := Game.maps.current().prop_at(c)
 		match str(prop.get("use", "")):
@@ -138,6 +143,8 @@ static func interact(c: Vector2i) -> void:
 				Game.open_shop(str(prop.get("shop", "")))
 			"storage":   # the house's chest lid (bigger chest extension): the same storage
 				Game.open_inventory("storage")
+		return
+	if DogActions.interact(c):
 		return
 	var farm := Game.farm
 	match farm.fixed_at(c):

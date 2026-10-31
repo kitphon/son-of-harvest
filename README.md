@@ -78,6 +78,19 @@ Pad buttons (Start = pause, Back = rucksack) are not remappable yet.
   Egg, Golden Yolk Egg). Unhappy or hungry hens can fall sick; they get well with medicine
   or by themselves after 5 nights. A new game starts with two hens; `Game.add_animal(kind)`
   is the shop's hook. Overnight news is told when you next walk into the coop.
+- Cows and sheep (same `Animals` rules): the barn with the tiled roof between the coop and
+  the pond is a map. Inside: six straw stalls, the fodder trough (E on it or on the hay
+  bundles fills it, one bundle an animal), the brush / milker / shears on the wall and the
+  wide gate in the right wall (out to graze in front of the barn on a sunny day). E on a cow
+  or a sheep does what is due: milk it / shear it when ready (overhead, ship it like an egg),
+  else brush it, else talk to it. A fed, healthy cow has milk every morning (Milk, Rich Milk,
+  Hillside Cream Milk by happiness), a sheep's wool grows back in 3 nights (Wool, Soft Wool,
+  Cloud Wool; it looks shorn until then). Calves / lambs grow up in 14 / 10 nights. The
+  barn starts empty: `Game.add_animal("cow" | "sheep", young)` and `Game.animals.add_fodder(n)`
+  are the shop's hooks.
+- The dog (Goro): wanders near its spot right of the stand, and once fond enough (about a
+  week of pats) follows the farmer about the farm. E pets it (once a day counts), E again
+  picks it up; either button sets it down in front. A day without either costs affection.
 - Fatigue (hidden, data/body.json): rises with work in the rain or late at night, with staying
   up past 22:00 and with working on an empty stamina bar; only sleep lowers it, more the
   earlier you go to bed. Tired: the farmer slumps and sweats; exhausted: slower and can't run.
@@ -123,7 +136,8 @@ DESIGN asks for every building), `ambient` (which `places` of the ambient rules 
   using it, goes through. Cells just off the edge make a walk-off exit; on the farm
   `gate: true` leaves those fence cells open in the drawing;
 - the coop (`coop`) uses props with `use` `feed_box`, `nest`, `incubator`, `feed_sack` and
-  `hatch` (CoopActions), their 3D looks in `scripts/world3d/coop_props.gd`;
+  `hatch` (CoopActions), their 3D looks in `scripts/world3d/coop_props.gd`; the barn (`barn`)
+  `fodder_box`, `fodder`, `barn_tools`, `barn_gate` (BarnActions), looks in `barn_props.gd`;
 - `spawns`: named `[cell, facing]`, `start` needed (`--map=<id>@<spawn>`), the house has
   `home` (where a new day starts).
 
@@ -319,9 +333,11 @@ corner, so the front walls are drawn as low sills (a cutaway) instead of moving 
 - `scripts/autoload/sfx.gd` (Sfx): plays sounds by key and the music, SFX / Ambient / Music
   busses with `set_volume(bus, 0..1)` (set from the volume settings);
   `scripts/audio/ambient_picker.gd` picks the ambient loops, `music_picker.gd` the track.
-- `scripts/animals/animals.gd` (Animals, pure logic) + `coop_actions.gd` (the farmer's coop
-  actions); `scripts/world3d/animal_layer.gd` / `scripts/world/animal_view.gd` draw the hens,
-  eggs and feed; `scripts/world3d/coop_props.gd` the coop building and furniture.
+- `scripts/animals/animals.gd` (Animals, pure logic: homes, products, the dog) +
+  `coop_actions.gd` / `barn_actions.gd` / `dog_actions.gd` (the farmer's actions);
+  `scripts/world3d/animal_layer.gd` / `scripts/world/animal_view.gd` draw the animals, eggs,
+  feed and the dog (and step the dog); `coop_props.gd` / `barn_props.gd` the buildings and
+  furniture.
 - `tools/make_icon.gd`: draws the app icon; `export_presets.cfg`: the Windows build.
 
 ## Plan and handoff

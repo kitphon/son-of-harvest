@@ -21,6 +21,8 @@ const CLEAR_RULES := {
 const CHEST := Vector2i(7, 3)   # the storage chest, right of the house
 const COOP := Rect2i(13, 1, 5, 3)    # the chicken coop's footprint, its door in the front middle
 const COOP_DOOR := Vector2i(15, 3)
+const BARN := Rect2i(19, 1, 5, 3)    # the barn's footprint, between the coop and the pond
+const BARN_DOOR := Vector2i(21, 3)
 const WEED_CHANCE := 0.01   # per empty cell per night, not in winter
 const STORM_LOSS := 1.0 / 16.0
 
@@ -56,6 +58,7 @@ func generate(rng: RandomNumberGenerator) -> void:
 	fixed[Vector2i(8, 3)] = "bin"
 	fixed[Vector2i(10, 3)] = "stand"
 	_place_coop()
+	_place_barn()
 	for y in range(2, 5):
 		for x in range(25, 29):
 			fixed[Vector2i(x, y)] = "pond"
@@ -82,6 +85,9 @@ func add_missing_fixed() -> void:
 	if not "coop" in fixed.values():
 		_place_coop()
 		cells_changed.emit()
+	if not "barn" in fixed.values():
+		_place_barn()
+		cells_changed.emit()
 	if "chest" in fixed.values() or fixed_at(CHEST) != "":
 		return
 	cells[CHEST.y * W + CHEST.x] = _empty_cell()
@@ -98,6 +104,17 @@ func _place_coop() -> void:
 			items.erase(c)
 			fixed[c] = "coop"
 	fixed[COOP_DOOR] = "coop_door"
+
+
+## The barn for the cows and sheep (cleared ground, then its cells; older saves get it too).
+func _place_barn() -> void:
+	for y in range(BARN.position.y, BARN.end.y):
+		for x in range(BARN.position.x, BARN.end.x):
+			var c := Vector2i(x, y)
+			cells[y * W + x] = _empty_cell()
+			items.erase(c)
+			fixed[c] = "barn"
+	fixed[BARN_DOOR] = "barn_door"
 
 
 func in_bounds(c: Vector2i) -> bool:
