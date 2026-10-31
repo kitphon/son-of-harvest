@@ -4,7 +4,7 @@ extends CanvasLayer
 ## slots per place in our pixel font. I (or a pad's Back) opens the rucksack; facing the chest
 ## by the house and pressing E opens the storage screen (Game.inventory_requested). Arrows or
 ## W A S D move the cursor, Enter / Space pick up and put down, E takes the thing under the
-## cursor in hand, Esc / I close; the mouse points, left click picks / puts, right click holds.
+## cursor in hand, F eats it (food, crops, eggs, milk, fish), Esc / I close; the mouse points, left click picks / puts, right click holds.
 ## While it is open Game is paused, like the pause menu. The rules are InventoryMenu and
 ## Inventory. `-- --rucksack` (or `--rucksack=storage`) opens it at the start, for screenshots.
 
@@ -13,7 +13,7 @@ const LABEL_W := 46         # the place names left of the rows
 const TOP := 17             # the heading strip on the wood
 const LINE := 11
 const PAPER := Color("f6ead0")
-const HINT := "Enter: pick / put  E: hold  Esc: close"
+const HINT := "Enter: pick / put  E: hold  F: eat  Esc: close"
 
 var menu: InventoryMenu
 var _open := false
@@ -247,6 +247,10 @@ func _input(event: InputEvent) -> void:
 		_do(menu.choose())
 	elif event.is_action_pressed("interact"):
 		_do(menu.hold())
+	elif event.is_action_pressed("eat"):
+		var item := menu.id_here()
+		_note.text = menu.eat(Game)
+		Sfx.play(Game.item_sound(item) if menu.last_ok else "menu_ok")
 	else:
 		return
 	if step != Vector2i.ZERO:

@@ -38,8 +38,13 @@ settings in `data/settings.json` / `user://settings.json`, so a volume setting i
 entry).
 Eating / drinking is done: food and drink in `data/foods.json` (stamina +, fatigue −, specials
 for max stamina and half swing fatigue for a day), eaten from the 7th tool slot (Q = next
-food) and sold at the seed stand while that slot is in hand. Later for food: raw crops as
-food (DESIGN: about +3 / −1), cooking, a real shop with opening hours (milestone 5 / 8).
+food) and sold at the seed stand while that slot is in hand. Raw crops, eggs, milk and fish
+are food too (`raw` in foods.json; F in the rucksack, or the food slot with one overhead), and
+cooking is in: the kitchen corner's stove opens a cooking screen, recipes in
+`data/recipes.json` take ingredients from the rucksack and the chest, the dishes are foods;
+four recipes are known at the start, five are taught by Tome, Sayo, Hachiro, Kota and the
+radio (flags `recipe_<id>`; README → Cooking). Later for food: daikon and rice crops for the
+recipes, dishes as gifts / sold, cooking tools.
 Event scripts and trigger tables per map are done (data/events, EventRunner /
 EventTriggers / EventPlayer; README → Events); EventPlayer loads a map's table on
 `Game.map_entered(map_id)`, so a new map's events are one `data/events/triggers_<map id>.json`.
@@ -75,7 +80,7 @@ shopkeeper only has to stand at the map's `keeper` spawn and call `Game.open_sho
 The store also sells chickens (only with room in the coop), feed, Animal Medicine and two
 bigger rucksacks, and takes orders for house extensions (bigger chest, kitchen corner, second
 room) that Hachiro builds over days; the smithy improves the rod (bite factor per level in
-data/fish.json). Later for shops: cooking in the kitchen corner, Hachiro seen at work while
+data/fish.json). Later for shops: Hachiro seen at work while
 building, cows / sheep in the supplies once the barn exists.
 Chickens are in (milestone 7): the thatched coop right of the stand is a map (feed box,
 nests, incubator, hen hatch); rules in `Animals`, numbers in `data/animals.json`, saved
@@ -139,6 +144,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Tool levels and upgrades (experience from use; shop upgrades with milestone 8)
    - [x] Fatigue, tired animations, oversleeping, collapse (data/body.json)
    - [x] Eating / drinking, food items (data/foods.json, food slot, sold at the stand)
+   - [x] Raw farm goods as food, cooking at the kitchen corner (data/recipes.json, recipe lessons)
    - [x] Holding and throwing items (shipping by throwing into the bin; data/hold.json)
 4. **Save / load and menus**
    - [x] Save game (Game + FarmGrid to a versioned JSON file), load; F5 / F9, saves on sleep

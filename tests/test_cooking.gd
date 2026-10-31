@@ -1,0 +1,248 @@
+extends SceneTree
+## Headless checks for cooking (Cooking + data/recipes.json, Game.cook, CookingMenu, the recipe
+## lessons, the kitchen corner's stove in the real Game). Run:
+##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_cooking.gd
+
+var failures := 0
+
+
+func _init() -> void:
+	_data()
+	_cooking()
+	_menu()
+	_lessons()
+
+
+## The data: every recipe makes a kitchen-only food, every need is a real item or group, every
+## dish has an icon; a few recipes are known at the start, the rest are taught somewhere.
+func _data() -> void:
+	var d := Cooking.data()
+	var foods: Dictionary = _json("res://data/foods.json").foods
+	var crops: Dictionary = _json("res://data/crops.json")
+	var products: Dictionary = _json("res://data/animals.json").items
+	check(Cooking.check(d, foods) == "", "data/recipes.json passes: %s" % Cooking.check(d, foods))
+	var starters := 0
+	for id in Cooking.ids():
+		var r := Cooking.recipe(id)
+		starters += 1 if r.get("start", false) else 0
+		check(foods.has(id) and (id == "onigiri" or not foods[id].get("shop", false)), "%s is a kitchen dish in foods.json" % id)
+		check(String(r.get("about", "")) != "" and PixelFont.width(String(r.about)) <= 300 - 12, "%s has a short about line" % id)
+		check(PixelFont.missing(String(r.about) + String(foods[id].name)) == "", "the pixel font has %s's text" % id)
+		var img := PlaceholderArt.tex(PlaceholderArt.item_key(Cooking.dish(id))).get_image()
+		check(img.get_size() == Vector2i(14, 14) and img.get_used_rect().has_area(), "%s has an icon" % id)
+		for need in r.needs:
+			if need.has("item"):
+				var it := String(need.item)
+				check(crops.has(it) or products.has(it) or (it.begins_with("food:") and foods.has(it.trim_prefix("food:"))), "%s needs a real item (%s)" % [id, it])
+	for g in d.groups:
+		for it in d.groups[g].get("items", []):
+			check(crops.has(it) or products.has(it), "group %s: %s is a real item" % [g, it])
+	check(starters >= 3 and starters < Cooking.ids().size(), "a few recipes known at the start (%d of %d)" % [starters, Cooking.ids().size()])
+	check(Cooking.check({"recipes": {"pizza": {"needs": [{"item": "turnip", "n": 1}]}}}, foods) != "", "a recipe for a food that doesn't exist is refused")
+	check(Cooking.check({"recipes": {"miso_soup": {"needs": [{"group": "nope", "n": 1}]}}}, foods) != "", "an unknown group is refused")
+	check(Cooking.check({"recipes": {"miso_soup": {"needs": [{"item": "turnip", "n": 0}]}}}, foods) != "", "a need of 0 is refused")
+	check(Cooking.check({"recipes": {"miso_soup": {"needs": []}}}, foods) != "", "a recipe without needs is refused")
+
+
+## Game.cook: the kitchen, known recipes, ingredients from the rucksack, the hand and the chest,
+## the dish into the rucksack, nothing changes when it can't be done.
+func _cooking() -> void:
+	var g := _game()
+	_empty_bag(g)
+	g.inventory.add("cucumber", 1)
+	var r: Dictionary = g.cook("onigiri")
+	check(not r.ok and r.note == "There's no kitchen here yet", "no kitchen, no cooking (%s)" % r.note)
+	g.house_built.append("kitchen")
+	var start: Array[String] = []
+	for id in Cooking.ids():
+		if Cooking.recipe(id).get("start", false):
+			start.append(id)
+	check(Cooking.known_ids(g.flags) == start, "a new game knows the start recipes %s" % [Cooking.known_ids(g.flags)])
+	r = g.cook("turnip_stew")
+	check(not r.ok and r.note.begins_with("You don't know"), "an unknown recipe can't be cooked")
+	check(not g.cook("pizza").ok, "no such recipe")
+
+	# Onigiri: one pickle vegetable, makes two.
+	r = g.cook("onigiri")
+	check(r.ok and r.note == "Made onigiri x2", "onigiri cooked (%s)" % r.note)
+	check(g.count("cucumber") == 0 and g.count("food:onigiri") == 2, "the cucumber went into two onigiri")
+	var before: Dictionary = g.inventory.to_dict()
+	r = g.cook("onigiri")
+	check(not r.ok and r.note == "Not enough to make onigiri", "nothing to pickle: not cooked (%s)" % r.note)
+	check(g.inventory.to_dict() == before, "a failed cooking changes nothing")
+
+	# A learned recipe, its needs split between the rucksack and the chest.
+	g.flags[Cooking.flag("turnip_stew")] = true
+	check(Cooking.known("turnip_stew", g.flags), "the flag teaches the recipe")
+	g.inventory.add("turnip", 1)
+	g.inventory.add("turnip", 2, ["chest"])
+	g.inventory.add("carrot", 1, ["chest"])
+	check(g.cook("turnip_stew").ok, "turnip stew from the rucksack and the chest")
+	check(g.inventory.count("turnip", ["bag", "chest"]) == 1 and g.inventory.count("turnip", ["bag"]) == 0, "the rucksack's turnip is used first")
+	check(g.inventory.count("carrot", ["chest"]) == 0 and g.count("food:turnip_stew") == 1, "the chest's carrot used, the stew in the rucksack")
+
+	# Groups: plain eggs before better ones; any fish; the hand counts too.
+	g.inventory.add("egg_best", 1)
+	g.inventory.add("egg_good", 1)
+	g.inventory.add("egg", 1, ["chest"])
+	var need := {"group": "egg", "n": 2}
+	check(Cooking.candidates(need, g.inventory) == (["egg", "egg_good", "egg_best"] as Array[String]), "eggs in the group's order")
+	check(Cooking.have(need, g.inventory) == 3, "three eggs to cook with")
+	check(g.cook("tamagoyaki").ok and g.count("egg_best") == 1 and g.inventory.count("egg", ["chest"]) == 0 and g.count("egg_good") == 0,
+		"tamagoyaki takes the plain and the good egg, keeps the golden one")
+	g.held = "fish:koi"
+	check(Cooking.fits({"group": "fish"}, "fish:koi") and not Cooking.fits({"group": "fish"}, "koi"), "any fish by its prefix")
+	check(g.cook("grilled_fish").ok and g.held == "" and g.count("food:grilled_fish") == 1, "the fish overhead is grilled")
+	check(g.eat("grilled_fish") or g.stamina == g.max_stamina, "a dish eats like any food")
+
+	# The rucksack full: the dish has nowhere to go, unless the cooking frees a slot.
+	_empty_bag(g)
+	for i in g.inventory.size("chest"):
+		g.inventory.slots.chest[i] = {}
+	for i in g.inventory.size("bag"):
+		g.inventory.slots.bag[i] = {"id": "seeds:turnip" if i == 0 else "junk_%d" % i, "n": 1}
+	g.inventory.add("eggplant", 1, ["chest"])
+	before = g.inventory.to_dict()
+	r = g.cook("miso_soup")
+	check(not r.ok and r.note == "No room in the rucksack for it" and g.inventory.to_dict() == before, "a full rucksack: nothing cooked, nothing used")
+	g.inventory.slots.bag[1] = {"id": "onion", "n": 1}
+	check(g.cook("miso_soup").ok and g.count("onion") == 0 and g.inventory.count("eggplant", ["chest"]) == 1 and g.count("food:miso_soup") == 1,
+		"the onion's slot takes the soup (the group's order: onion before eggplant)")
+
+	# Learned recipes are flags, so they are saved.
+	_empty_bag(g)
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(g.to_dict()))
+	g.new_game()
+	check(not Cooking.known("turnip_stew", g.flags), "a new game forgets the lesson")
+	check(g.from_dict(saved) == "", "the save loads")
+	check(Cooking.known("turnip_stew", g.flags), "the learned recipe survives a save")
+	saved.flags = {}
+	check(g.from_dict(saved) == "" and Cooking.known_ids(g.flags) == start, "a save without lessons knows the start recipes")
+	g.free()
+
+
+## CookingMenu: the known recipes, ready or not, what they need, cooking the cursor's.
+func _menu() -> void:
+	var g := _game()
+	g.house_built.append("kitchen")
+	_empty_bag(g)
+	var m := CookingMenu.new(g)
+	var rows := m.rows()
+	check(rows.size() == Cooking.known_ids(g.flags).size() and rows[0].id == Cooking.known_ids(g.flags)[0], "one row per known recipe")
+	check(rows.all(func(r): return not r.ready), "nothing to cook with: none ready")
+	m.cursor = Cooking.known_ids(g.flags).find("tamagoyaki")
+	check(m.needs_text() == "2 any egg (0)", "what tamagoyaki needs (%s)" % m.needs_text())
+	g.inventory.add("egg", 2)
+	check(m.current().ready and m.needs_text() == "2 any egg (2)", "two eggs: ready")
+	check(m.choose() == "Made tamagoyaki" and m.last_ok and g.count("food:tamagoyaki") == 1, "Enter cooks it")
+	check(m.choose() == "Not enough to make tamagoyaki" and not m.last_ok, "again: not enough")
+	m.move(-1)
+	check(m.current().id == Cooking.known_ids(g.flags)[maxi(Cooking.known_ids(g.flags).find("tamagoyaki") - 1, 0)], "up moves")
+	m.cursor = 0
+	m.move(-1)
+	check(m.cursor == rows.size() - 1, "up from the top wraps")
+	check(m.point(1) and m.cursor == 1 and not m.point(99), "the mouse points at rows")
+	g.flags[Cooking.flag("ochazuke")] = true
+	m.cursor = m.rows().map(func(r): return r.id).find("ochazuke")
+	check(m.needs_text() == "1 any fish (0), 1 Green tea (%d)" % g.count("food:green_tea"), "ochazuke needs (%s)" % m.needs_text())
+	check(m.rows().size() == rows.size() + 1, "a lesson adds a row")
+	g.free()
+
+
+## The lessons: one event per taught recipe sets its flag, and a trigger row plays it.
+func _lessons() -> void:
+	var taught := {}
+	var dir := DirAccess.open("res://data/events")
+	for f in dir.get_files():
+		if f.begins_with("recipe_") and f.ends_with(".json"):
+			var ev: Dictionary = _json("res://data/events/" + f)
+			check(EventRunner.open(f.trim_suffix(".json"), null).error == "", "%s is a good event" % f)
+			for s in ev.steps:
+				if s.get("do", "") == "set":
+					for k in s.flags:
+						taught[k] = f.trim_suffix(".json")
+	var rows := {}
+	for f in dir.get_files():
+		if f.begins_with("triggers_"):
+			for row in _json("res://data/events/" + f).rows:
+				rows[row.event] = row
+	for id in Cooking.ids():
+		if Cooking.recipe(id).get("start", false):
+			continue
+		var ev := String(taught.get(Cooking.flag(id), ""))
+		check(ev != "", "%s is taught by an event" % id)
+		check(rows.has(ev) and Cooking.flag(id) in rows[ev].get("not_flags", []), "%s plays from a trigger row until it is learned" % ev)
+	var s := {"year": 1, "season": "spring", "day": 1, "weekday": "mon", "time": 600, "weather": "sunny",
+		"flags": {}, "seen": {}, "cell": Vector2i.ZERO, "who": "tome", "hearts": {"tome": 1}}
+	var town := EventTriggers.open("town")
+	check(town.error == "" and town.pick("talk", s) == "recipe_tome", "a friendly talk with Tome teaches the stew")
+	check(town.pick("talk", s.merged({"hearts": {"tome": 0}}, true)) == "", "not to a stranger")
+	check(town.pick("talk", s.merged({"flags": {Cooking.flag("turnip_stew"): true}}, true)) == "", "not twice")
+	var house := EventTriggers.open("house")
+	var radio := s.merged({"spot": Vector2i(6, 1), "weekday": "sat"}, true)
+	check(house.pick("examine", radio) == "recipe_radio", "the radio's Saturday cooking hour")
+	check(house.pick("examine", radio.merged({"weekday": "fri"}, true)) == "house_radio", "on other days only static")
+
+
+## The stove and the cupboard in the real Game: E opens the cooking screen once the kitchen is
+## built; the cooking screen in the 3D view opens and cooks.
+func _process(_delta: float) -> bool:
+	var g: Node = root.get_node("Game")
+	var actions: GDScript = load("res://scripts/farm_actions.gd")
+	var opened := [0]
+	g.cooking_requested.connect(func(): opened[0] += 1)
+	g.maps.place("house", Vector2i(2, 5), Vector2i.LEFT)
+	actions.interact(Vector2i(1, 5))
+	check(opened[0] == 0, "no kitchen: the corner is bare (%s, %s)" % [g.house_built, g.maps.current().prop_at(Vector2i(1, 5))])
+	g.house_built.append("kitchen")
+	MapManager.set_built(g.house_built)
+	g.maps.place("house", Vector2i(2, 5), Vector2i.LEFT)
+	var cook_props: Array = g.maps.current().props.filter(func(p): return p.get("use", "") == "cook")
+	check(cook_props.size() == 2, "the kitchen's stove and cupboard cook")
+	check(MapManager.data("house").spawns.has("kitchen"), "a kitchen spawn by the stove")
+	for p in cook_props:
+		actions.interact(p.cell)
+	check(opened[0] == 2, "E at the stove or the cupboard opens the cooking screen (%d)" % opened[0])
+	var screen: CanvasLayer = load("res://scripts/ui/cooking_screen.gd").new()
+	root.add_child(screen)
+	g.open_cooking()
+	check(screen.is_open() and g.paused(), "the screen opens and pauses the game")
+	g.inventory.add("cucumber", 1)
+	screen.menu.cursor = 0
+	screen._cook()
+	check(g.count("food:onigiri") >= 2 and screen._note.text == "Made onigiri x2", "cooking from the screen (%s)" % screen._note.text)
+	screen.close()
+	check(not screen.is_open() and not g.paused(), "closed again")
+	g.house_built.erase("kitchen")
+	MapManager.set_built(g.house_built)
+	print("test_cooking: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
+	quit(1 if failures else 0)
+	return true
+
+
+func _game() -> Node:
+	var g: Node = (load("res://scripts/autoload/game.gd") as GDScript).new()
+	g.crops = _json("res://data/crops.json")
+	g.tools_data = _json("res://data/tools.json")
+	g.snow_rules = _json("res://data/snow_cover.json")
+	g.body = _json("res://data/body.json")
+	g.fish_data = _json("res://data/fish.json")
+	g.set_food_data(_json("res://data/foods.json"))
+	g.rng.seed = 4
+	g.new_game()
+	return g
+
+
+func _empty_bag(g: Node) -> void:
+	for i in g.inventory.size("bag"):
+		g.inventory.slots.bag[i] = {}
+
+
+func _json(path: String) -> Dictionary:
+	return JSON.parse_string(FileAccess.get_file_as_string(path))
+
+
+func check(ok: bool, what: String) -> void:
+	if not ok:
+		failures += 1
+		print("FAIL: " + what)

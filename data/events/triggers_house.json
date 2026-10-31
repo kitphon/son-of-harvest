@@ -5,6 +5,7 @@
 		{"event": "calendar_summer", "on": "examine", "spot": [3, 0], "once": false, "season": ["summer"]},
 		{"event": "calendar_fall", "on": "examine", "spot": [3, 0], "once": false, "season": ["fall"]},
 		{"event": "calendar_winter", "on": "examine", "spot": [3, 0], "once": false, "season": ["winter"]},
+		{"event": "recipe_radio", "on": "examine", "spot": [6, 1], "weekday": ["sat"], "not_flags": ["recipe_milk_pudding"]},
 		{"event": "house_radio", "on": "examine", "spot": [6, 1], "once": false}
 	]
 }

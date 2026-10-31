@@ -1,5 +1,5 @@
 {
-	"_about": "Food and drink. Eat the one in hand with the food slot (key 7, Q = next food); the seed stand sells the ones with shop true. Per food: name, price (G at the stand), stamina (+, up to the max), fatigue (+ or -, mostly -), drink (true = drunk, uses the drink sound), and optional specials: max_stamina (raises the max, up to max_stamina_cap) and work_fatigue_half (fatigue from tool swings is halved until the day ends), with special_message. look draws the placeholder icon (shape: rice_ball, round, skewer, cup, bottle; colors). A food that would do nothing (stamina full, no fatigue, no special) is not eaten. Names and numbers are ours; see WORKLOG 2026-10-31 Eating.",
+	"_about": "Food and drink. Eat the one in hand with the food slot (key 7, Q = next food); the seed stand sells the ones with shop true. Per food: name, price (G at the stand), stamina (+, up to the max), fatigue (+ or -, mostly -), drink (true = drunk, uses the drink sound), and optional specials: max_stamina (raises the max, up to max_stamina_cap) and work_fatigue_half (fatigue from tool swings is halved until the day ends), with special_message. look draws the placeholder icon (shape: rice_ball, round, skewer, cup, bottle, bowl, plate, fish_plate; colors). Dishes with shop false come from the kitchen (data/recipes.json). raw: farm goods eaten as they are (from the rucksack with the eat key, or held overhead with the food slot in hand), keyed by item id, fish:* for any fish; stamina, fatigue, drink as above. A food that would do nothing (stamina full, no fatigue, no special) is not eaten. Names and numbers are ours; see WORKLOG 2026-10-31 Eating and Cooking.",
 	"max_stamina_cap": 200,
 	"full_message": "You're full. Save it for later.",
 	"foods": {
@@ -20,6 +20,40 @@
 			"look": {"shape": "cup", "color": "5a7a3a", "accent": "3a4a6a"}},
 		"kagami_mochi": {"name": "Kagami mochi", "price": 0, "stamina": 40, "fatigue": -10, "shop": false,
 			"max_stamina": 10, "special_message": "Strength wells up in you. Max stamina +%d!",
-			"look": {"shape": "round", "color": "fbf8f0", "accent": "e8902a"}}
+			"look": {"shape": "round", "color": "fbf8f0", "accent": "e8902a"}},
+		"miso_soup": {"name": "Miso soup", "price": 0, "stamina": 20, "fatigue": -3, "shop": false,
+			"look": {"shape": "bowl", "color": "c89a58", "accent": "7a2e22"}},
+		"grilled_fish": {"name": "Grilled fish", "price": 0, "stamina": 28, "fatigue": -2, "shop": false,
+			"look": {"shape": "fish_plate", "color": "b88a50", "accent": "e8e4dc"}},
+		"tamagoyaki": {"name": "Tamagoyaki", "price": 0, "stamina": 35, "fatigue": -3, "shop": false,
+			"look": {"shape": "plate", "color": "f2c848", "accent": "3a5a8a"}},
+		"turnip_stew": {"name": "Turnip stew", "price": 0, "stamina": 50, "fatigue": -5, "shop": false,
+			"look": {"shape": "bowl", "color": "eee4c8", "accent": "4a3424"}},
+		"potato_stew": {"name": "Potato stew", "price": 0, "stamina": 55, "fatigue": -4, "shop": false,
+			"look": {"shape": "bowl", "color": "c8964a", "accent": "2e4a6a"}},
+		"ochazuke": {"name": "Ochazuke", "price": 0, "stamina": 35, "fatigue": -6, "shop": false,
+			"look": {"shape": "bowl", "color": "a8b860", "accent": "e8e4dc"}},
+		"simmered_pumpkin": {"name": "Pumpkin nimono", "price": 0, "stamina": 32, "fatigue": -3, "shop": false,
+			"look": {"shape": "bowl", "color": "e8902a", "accent": "26302a"}},
+		"milk_pudding": {"name": "Milk pudding", "price": 0, "stamina": 42, "fatigue": -5, "shop": false,
+			"look": {"shape": "round", "color": "f4e0a0", "accent": "8a4a20"}}
+	},
+	"raw": {
+		"turnip": {"stamina": 3, "fatigue": -1},
+		"potato": {"stamina": 3, "fatigue": -1},
+		"cucumber": {"stamina": 4, "fatigue": -1},
+		"tomato": {"stamina": 4, "fatigue": -1},
+		"onion": {"stamina": 2, "fatigue": -1},
+		"corn": {"stamina": 3, "fatigue": -1},
+		"carrot": {"stamina": 3, "fatigue": -1},
+		"eggplant": {"stamina": 2, "fatigue": -1},
+		"pumpkin": {"stamina": 5, "fatigue": -1},
+		"egg": {"stamina": 4, "fatigue": -1},
+		"egg_good": {"stamina": 6, "fatigue": -1},
+		"egg_best": {"stamina": 8, "fatigue": -2},
+		"milk": {"stamina": 8, "fatigue": -1, "drink": true},
+		"milk_good": {"stamina": 10, "fatigue": -1, "drink": true},
+		"milk_best": {"stamina": 14, "fatigue": -2, "drink": true},
+		"fish:*": {"stamina": 3, "fatigue": -1}
 	}
 }

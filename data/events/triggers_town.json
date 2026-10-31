@@ -9,6 +9,8 @@
 		{"event": "lantern_day", "on": "examine", "spot": [16, 3], "once": false},
 		{"event": "lantern_day", "on": "examine", "spot": [21, 3], "once": false},
 		{"event": "quiet_house", "on": "examine", "spot": [5, 6], "once": false},
-		{"event": "quiet_house", "on": "examine", "spot": [8, 15], "once": false}
+		{"event": "quiet_house", "on": "examine", "spot": [8, 15], "once": false},
+		{"event": "recipe_tome", "on": "talk", "who": "tome", "hearts": {"tome": [1, 6]}, "not_flags": ["recipe_turnip_stew"]},
+		{"event": "recipe_kota", "on": "talk", "who": "kota", "hearts": {"kota": [1, 6]}, "not_flags": ["recipe_simmered_pumpkin"]}
 	]
 }

@@ -48,7 +48,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   must print `test_maps: OK (0 failed)`. Rucksack / storage (inventory slots, move rules, menu
   cursor, chest): `res://tests/test_inventory.gd` must print `test_inventory: OK (0 failed)`.
   Food and drink (eating, specials, the stand, the food slot): `res://tests/test_food.gd` must
-  print `test_food: OK (0 failed)`.
+  print `test_food: OK (0 failed)`. Cooking (data/recipes.json, cooking rules, the cooking menu,
+  recipe lessons, the kitchen stove): `res://tests/test_cooking.gd` must print
+  `test_cooking: OK (0 failed)`.
   Holding and throwing (items on the ground, throws, poses, item art): `res://tests/test_hold.gd`
   must print `test_hold: OK (0 failed)`.
   Villagers (rule lists, day plans, catch-up, paths, sprites in both views):
@@ -87,7 +89,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   counter with its screen open (hours ignored), `--talk=<villager>` (with `--map` / `--time`
   where they are, e.g. `--map=town --time=14:30 --talk=tome`) to stand below them and talk,
   `--built=kitchen,chest,room` to have those house extensions built (with `--map=house` to see
-  them), `--map=coop` to look inside the chicken
+  them), `--cook` to stand at the kitchen stove with the cooking screen open (builds the kitchen;
+  `--demo` adds eggs, a fish, a carrot and one learned recipe), `--map=coop` to look inside the chicken
   coop (`--demo` adds a chick, two eggs and a filled feed box), `--hens-out` (with
   `--map=farm@coop`) to have the hens out in the yard, `--map=barn` for the barn (`--demo`
   adds a cow with milk, a sheep in full wool and a calf; the dog follows the farmer),

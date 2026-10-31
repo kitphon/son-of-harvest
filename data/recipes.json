@@ -1,0 +1,30 @@
+{
+	"_about": "Home cooking at the kitchen corner (house extension kitchen): E at the stove or the cupboard opens the cooking screen (Cooking, CookingMenu, CookingScreen; README.md, Cooking). A recipe's key is the dish it makes, a food in data/foods.json (eaten like any food). needs: what one cooking uses, each {item, n} (one item id) or {group, n} (any of a group below, its items in the order they are used up). Ingredients come out of the rucksack first, then the hand, then the storage chest; rice, miso, soy, salt and oil are in the kitchen's own pantry and never run out. makes: how many dishes one cooking gives (1 if left out), into the rucksack. start: known from the start; any other recipe is known once its flag recipe_<id> is set (a villager's lesson or the radio, data/events/recipe_*.json), and flags are saved. taught: where the lesson comes from, for people reading this file. Dishes, names and numbers are ours; see WORKLOG 2026-10-31 Cooking.",
+	"groups": {
+		"pickle": {"name": "pickling vegetable", "items": ["cucumber", "turnip", "eggplant"]},
+		"soup_veg": {"name": "soup vegetable", "items": ["turnip", "onion", "potato", "carrot", "eggplant"]},
+		"egg": {"name": "egg", "items": ["egg", "egg_good", "egg_best"]},
+		"milk": {"name": "milk", "items": ["milk", "milk_good", "milk_best"]},
+		"fish": {"name": "fish", "prefix": "fish:"}
+	},
+	"recipes": {
+		"onigiri": {"start": true, "makes": 2, "needs": [{"group": "pickle", "n": 1}],
+			"about": "Pantry rice round a quick pickle. Makes two."},
+		"miso_soup": {"start": true, "needs": [{"group": "soup_veg", "n": 1}],
+			"about": "Miso and whatever vegetable is at hand."},
+		"grilled_fish": {"start": true, "needs": [{"group": "fish", "n": 1}],
+			"about": "Salted and grilled whole over the stove."},
+		"tamagoyaki": {"start": true, "needs": [{"group": "egg", "n": 2}],
+			"about": "A rolled omelette, a little sweet."},
+		"turnip_stew": {"taught": "Tome (talk, a heart band of 1 or more)", "needs": [{"item": "turnip", "n": 2}, {"item": "carrot", "n": 1}],
+			"about": "Tome's simmered turnip, soft to the middle."},
+		"potato_stew": {"taught": "Sayo (talk at the store, a heart band of 1 or more)", "needs": [{"item": "potato", "n": 2}, {"item": "onion", "n": 1}],
+			"about": "Potatoes and onion simmered sweet in soy."},
+		"ochazuke": {"taught": "Hachiro (talk at the smithy, a heart band of 1 or more)", "needs": [{"group": "fish", "n": 1}, {"item": "food:green_tea", "n": 1}],
+			"about": "Hot tea over rice and flaked fish. A smith's lunch."},
+		"simmered_pumpkin": {"taught": "Kota (talk in the village, a heart band of 1 or more)", "makes": 2, "needs": [{"item": "pumpkin", "n": 1}],
+			"about": "Pumpkin simmered in soy. Makes two."},
+		"milk_pudding": {"taught": "the farmhouse radio on a Saturday", "needs": [{"group": "milk", "n": 1}, {"group": "egg", "n": 1}],
+			"about": "Steamed milk and egg with a dark sugar top."}
+	}
+}

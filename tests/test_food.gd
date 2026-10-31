@@ -1,5 +1,6 @@
 extends SceneTree
-## Headless checks for food and drink (Game.eat + data/foods.json, the stand, the food slot). Run:
+## Headless checks for food and drink (Game.eat + data/foods.json, raw farm goods, eating from
+## the rucksack and overhead, the stand, the food slot). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_food.gd
 
 var failures := 0
@@ -22,7 +23,7 @@ func _init() -> void:
 			on_sale += 1
 			check(int(f.get("price", 0)) > 0, "%s on sale has a price" % id)
 		check(sounds.has(g.eat_sound(id)), "%s plays a sound in data/sfx.json (%s)" % [id, g.eat_sound(id)])
-		check(f.get("look", {}).get("shape", "") in ["rice_ball", "round", "skewer", "cup", "bottle"], "%s has a known icon shape" % id)
+		check(f.get("look", {}).get("shape", "") in ["rice_ball", "round", "skewer", "cup", "bottle", "bowl", "plate", "fish_plate"], "%s has a known icon shape" % id)
 		var img := PlaceholderArt.tex("ui:food:" + id).get_image()
 		check(img.get_size() == Vector2i(14, 14) and img.get_used_rect().has_area(), "ui:food:%s drawn" % id)
 		check(PixelFont.width(String(f.name)) + 12 + PixelFont.width("x99") <= HudLayout.BOXES.item.size.x, "%s fits the item box" % id)
@@ -108,12 +109,76 @@ func _init() -> void:
 	g.new_game()
 	check(not g.work_fatigue_half and g.food_index == 0, "new game: no food effect, first food")
 
-	# The food in hand cycles through every food.
+	# The food in hand cycles through the foods on sale and the ones carried (dishes, specials).
+	var on_offer := foods.keys().filter(func(id): return foods[id].get("shop", false))
 	var seen := {}
+	for i in on_offer.size():
+		seen[g.current_food()] = true
+		g.cycle_food()
+	check(seen.keys() == on_offer and g.food_index == 0, "Q cycles the stand's foods and back (%s)" % [seen.keys()])
+	g.add_item("food:miso_soup", 1)
+	seen = {}
 	for i in foods.size():
 		seen[g.current_food()] = true
 		g.cycle_food()
-	check(seen.size() == foods.size() and g.food_index == 0, "Q cycles every food and back")
+	check(seen.has("miso_soup") and seen.size() == on_offer.size() + 1, "a dish in the rucksack joins the cycle")
+	g.free()
+	_raw(data)
+
+
+## Raw farm goods: crops, eggs, milk and any fish eat from foods.json "raw"; other things don't.
+func _raw(data: Dictionary) -> void:
+	var raw: Dictionary = data.raw
+	var crops: Dictionary = _json("res://data/crops.json")
+	var products: Dictionary = _json("res://data/animals.json").items
+	for id in raw:
+		check(crops.has(id) or products.has(id) or id == "fish:*", "raw %s is a real item" % id)
+		check(int(raw[id].get("stamina", 0)) > 0 and int(raw[id].get("fatigue", 0)) <= 0, "raw %s gives a little" % id)
+	for id in crops:
+		check(raw.has(id), "every crop can be eaten raw (%s)" % id)
+	var g := _game()
+	g.fish_data = _json("res://data/fish.json")
+	var said: Array[String] = []
+	g.message.connect(func(t: String): said.append(t))
+	for i in g.inventory.size("bag"):
+		g.inventory.slots.bag[i] = {}
+	g.stamina = 50
+	g.fatigue = 10
+	g.add_item("turnip", 2)
+	check(g.edible("turnip") and g.eat_item("turnip").ok, "a raw turnip is eaten")
+	check(g.stamina == 50 + int(raw.turnip.stamina) and g.fatigue == 10 + int(raw.turnip.fatigue) and g.count("turnip") == 1,
+		"turnip: +%d / %d, one gone" % [int(raw.turnip.stamina), int(raw.turnip.fatigue)])
+	check(said.back() == "You ate the turnip.", "raw eat message (%s)" % said.back())
+	g.add_item("milk", 1)
+	check(g.item_sound("milk") == "drink" and g.eat_item("milk").ok and said.back() == "You drank the milk.", "fresh milk is drunk")
+	g.add_item("fish:koi", 1)
+	check(g.edible("fish:koi") and g.food_info("fish:koi").stamina == raw["fish:*"].stamina and g.food_info("fish:koi").name == "Carp", "any fish by fish:*")
+	check(g.eat_item("fish:koi").ok and g.count("fish:koi") == 0, "the carp is eaten")
+	for id in ["seeds:turnip", "wool", "mine:stone", "hoe", ""]:
+		check(not g.edible(id), "%s can't be eaten" % id)
+	g.add_item("wool", 1)
+	check(not g.eat_item("wool").ok and g.count("wool") == 1, "wool stays in the rucksack")
+	g.stamina = g.max_stamina
+	g.fatigue = 0
+	check(not g.eat_item("turnip").ok and g.count("turnip") == 1, "full and rested: the turnip is kept")
+	g.fatigue = 10
+	check(not g.eat_item("turnip", ["hand"]).ok and said.back() == "No turnip left", "eating from the hand needs it in hand")
+	g.held = "potato"
+	check(g.eat_item("potato", ["hand"]).ok and g.held == "", "the potato overhead is eaten")
+
+	# The rucksack screen's eat key (InventoryMenu.eat): the slot under the cursor.
+	var m := InventoryMenu.new(g.inventory, "storage")
+	g.inventory.add("egg", 1, ["chest"])
+	m.point("chest", g.inventory.slots.chest.find_custom(func(sl): return sl.get("id", "") == "egg"))
+	check(m.eat(g) == "Take it out of the chest first" and not m.last_ok and g.inventory.count("egg", ["chest"]) == 1, "not out of the chest")
+	m.point("bag", g.inventory.slots.bag.find_custom(func(sl): return sl.get("id", "") == "turnip"))
+	g.stamina = 10
+	check(m.eat(g) == "You ate the turnip." and m.last_ok and g.count("turnip") == 0, "F eats the turnip under the cursor")
+	m.point("bag", g.inventory.slots.bag.find_custom(func(sl): return sl.get("id", "") == "wool"))
+	check(m.eat(g) == "You can't eat that" and not m.last_ok, "F on wool: nothing")
+	m.choose()
+	check(m.eat(g) == "Put it down first", "not while carrying a stack")
+	m.close()
 	g.free()
 
 
@@ -146,6 +211,23 @@ func _process(_delta: float) -> bool:
 	g.stamina = 20
 	actions.use_tool(Vector2i(8, 8), Vector2i.DOWN, 0)
 	check(g.count("food:milk") == had and g.stamina == 20 + int(g.foods.milk.stamina), "use with the food slot drinks the milk")
+	# The food slot works on any map; with an edible item overhead the tool button eats it.
+	g.maps.place("house", Vector2i(4, 5), Vector2i.UP)
+	g.stamina = 20
+	g.add_item("food:onigiri", 1)
+	g.food_index = g.foods.keys().find("onigiri")
+	var rice: int = g.count("food:onigiri")
+	actions.use_tool(Vector2i(4, 5), Vector2i.UP, 0)
+	check(g.count("food:onigiri") == rice - 1, "eating indoors")
+	g.held = "tomato"
+	g.stamina = 20
+	actions.on_action("use_tool", Vector2i(4, 5), Vector2i.UP, 0)
+	check(g.held == "" and g.stamina == 20 + int(g.food_data.raw.tomato.stamina), "the tomato overhead is eaten")
+	g.held = "wool"
+	actions.on_action("use_tool", Vector2i(4, 5), Vector2i.UP, 0)
+	check(g.held == "wool", "wool overhead isn't eaten")
+	g.held = ""
+	g.maps.place("farm", Vector2i(4, 4), Vector2i.DOWN)
 	g.select_tool(g.TOOLS.find("seeds"))
 	print("test_food: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)

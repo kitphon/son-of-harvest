@@ -1521,7 +1521,8 @@ static func _fish_fx(kind: String) -> Image:
 
 
 ## Food shapes: a rice ball with a nori band, a round sweet on its leaf, three dumplings on
-## a stick, a cup with a saucer line, a glass bottle with a paper cap.
+## a stick, a cup with a saucer line, a glass bottle with a paper cap, a full bowl, a slice on
+## a plate, a grilled fish on a plate.
 static func _food_icon(look: Dictionary) -> Image:
 	var img := _blank(14, 14)
 	var c := Color(look.get("color", "fbf8f0"))
@@ -1556,6 +1557,25 @@ static func _food_icon(look: Dictionary) -> Image:
 			_px(img, 5, 2, 4, 2, c)
 			_px(img, 5, 1, 4, 2, a)
 			_px(img, 4, 7, 6, 3, a.lightened(0.3))
+		"bowl":   # a lacquer or pottery bowl (accent) full to the rim (color)
+			_oval(img, 7, 6, 6.0, 2.5, c)
+			_px(img, 1, 6, 13, 3, a)
+			_oval(img, 7, 9, 5.5, 3.0, a)
+			_px(img, 5, 12, 5, 1, a.darkened(0.25))
+			_px(img, 3, 7, 4, 1, a.lightened(0.25))
+			_oval(img, 7, 5.5, 4.5, 1.5, c.lightened(0.15))
+		"plate":   # a long plate (accent) with a slice of something on it (color)
+			_oval(img, 7, 9.5, 6.5, 3.0, a)
+			_oval(img, 7, 9, 5.0, 2.0, a.lightened(0.35))
+			_px(img, 3, 5, 8, 4, c)
+			_px(img, 3, 5, 8, 1, c.lightened(0.25))
+			_px(img, 6, 5, 1, 4, c.darkened(0.15))
+		"fish_plate":   # a whole grilled fish (color) on a long plate (accent)
+			_oval(img, 7, 10, 6.5, 2.5, a)
+			_oval(img, 6, 7, 4.5, 2.0, c)
+			_px(img, 10, 5, 2, 5, c.darkened(0.15))
+			_px(img, 3, 6, 1, 1, Color("1e1e1e"))
+			_px(img, 5, 6, 4, 1, c.darkened(0.35))
 		_:
 			_px(img, 3, 3, 8, 8, c)
 	return _outline(img)

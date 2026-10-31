@@ -4,8 +4,8 @@ extends RefCounted
 ## (InventoryScreen draws it, headless tests check it). The slots are laid out in rows of
 ## COLS per place: the rucksack shows the tool slots, the rucksack's item slots and the hand;
 ## the storage screen puts the chest on top of those. choose() picks a stack up, puts it down,
-## stacks it or swaps it; hold() takes the thing under the cursor in hand; close() puts a
-## carried stack back first. Each returns a note for the screen ("" when there is none).
+## stacks it or swaps it; hold() takes the thing under the cursor in hand; eat() eats it;
+## close() puts a carried stack back first. Each returns a note for the screen ("" when there is none).
 
 const COLS := 8
 const PLACES := {"rucksack": ["tools", "bag", "hand"], "storage": ["chest", "tools", "bag", "hand"]}
@@ -19,6 +19,7 @@ var row := 0
 var col := 0
 var carry := {}             # the stack on the cursor, {} when none
 var tool_slot := 0          # the tool slot in hand (Game.tool_index)
+var last_ok := false        # did the last eat() go through
 var _from := ["", -1]       # where the carried stack was picked up
 
 
@@ -112,6 +113,24 @@ func hold() -> String:
 	if inv.is_tool(id):
 		return "" if inv.move(place(), index(), "tools", tool_slot) else "No room for the tool"
 	return "" if inv.move(place(), index(), "hand", 0) else "Can't hold that"
+
+
+## F (eat): eats the item under the cursor through the game `g` (Game.eat_item), from the
+## rucksack or the hand, not out of the chest. Returns the note; last_ok says if it was eaten.
+func eat(g) -> String:
+	last_ok = false
+	var id := id_here()
+	if not carry.is_empty():
+		return "Put it down first"
+	if id == "":
+		return ""
+	if not g.edible(id):
+		return "You can't eat that"
+	if not place() in Inventory.CARRIED:
+		return "Take it out of the chest first"
+	var r: Dictionary = g.eat_item(id, [place()])
+	last_ok = r.ok
+	return r.note
 
 
 ## Esc / I: a carried stack goes back where it came from (or anywhere it fits on this screen)
