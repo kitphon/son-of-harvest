@@ -10,6 +10,17 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Merged HUD, Japanese props and save / load
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three parallel sessions worked on their own branches; merged into main with
+  `--no-ff`: `claude/hud-clock-box-3f2c0e` (f39b130), `claude/japanese-props-2cc38b`
+  (a070ba6), `claude/save-load-310e1b` (9b09560). Only WORKLOG.md conflicted (both entries
+  kept, newest first); code and ROADMAP merged on their own.
+- Checked on merged main: `test_farm: OK (0 failed)`, `test_save: OK (0 failed)`; headless
+  `--quit-after 300` printed no errors or warnings; Movie Maker frame with
+  `--demo --weather=rain` shows the new HUD boxes, bamboo fence, cedar bin and rain together.
+- Left / next: F5 / F9 not yet pressed in a real game window; ROADMAP → charging tools.
+
 ## 2026-10-31 — Save game and load
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `SaveGame` (scripts/save/save_game.gd) writes `user://save1.json` as
