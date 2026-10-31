@@ -1,5 +1,5 @@
 {
-	"_about": "Shops (Shop, ShopMenu, ShopScreen; README.md, Shops). Per shop: name, map (its inside, data/maps), open [first hour, closing hour) and days_off (mon..sun): outside those the door and the counter only say closed_message (%s = the shop name, then the hours and the days off). keeper: the villager who stands at the counter (\"\" = nobody; the counter works without one); with a keeper the shop also sells only while their day plan has them on the shop's map, and talking to them at the map's keeper spot opens it. stock: what it sells, per season plus \"any\" (every season) and \"supplies\" (every season, listed first), each {item, price?, name?, to?, full?}: without a price the item's own one is used (seed_price in crops.json for seeds:<crop>, price in foods.json for food:<id>). to says where a purchase goes: \"rucksack\" (default), \"animal\" (animal:<kind>, Game.add_animal, refused with full when its home has no room) or \"feed\" (portions into the coop's feed sack). rucksack: bigger rucksacks for sale, each level {slots (the bag's new size), price}, bought once each in order. builds: house extensions the builder (a villager) makes, per id {name, about, price, days, chest_slots?}; done is the morning message (%s = its name); one at a time, paid when ordered, finished overnight on the ready day; the map changes come from the \"extensions\" of that map's file (data/maps/house.json). buys: what it buys from the farmer, kind -> percent of the item's value (crop = its sell price, food = its price). upgrades: tools it improves, per target level {price, days, items?} (tool_levels: other levels for one tool, e.g. the rod, whose levels are in data/fish.json); the tool is handed in, comes back that many days later (collect it while the shop is open). Names, prices and hours are ours; see WORKLOG 2026-10-31 Shops.",
+	"_about": "Shops (Shop, ShopMenu, ShopScreen; README.md, Shops). Per shop: name, map (its inside, data/maps), open [first hour, closing hour) and days_off (mon..sun): outside those the door and the counter only say closed_message (%s = the shop name, then the hours and the days off). keeper: the villager who stands at the counter (\"\" = nobody; the counter works without one); with a keeper the shop also sells only while their day plan has them on the shop's map, and talking to them at the map's keeper spot opens it. stock: what it sells, per season plus \"any\" (every season) and \"supplies\" (every season, listed first), each {item, price?, name?, to?, full?}: without a price the item's own one is used (seed_price in crops.json for seeds:<crop>, price in foods.json for food:<id>). to says where a purchase goes: \"rucksack\" (default), \"animal\" (animal:<kind>, Game.add_animal, refused with full when its home has no room) \"feed\" (portions into the coop's feed sack) or \"fodder\" (bundles into the barn's loft); animal:<kind>:young is a calf / lamb (grows up in the barn). rucksack: bigger rucksacks for sale, each level {slots (the bag's new size), price}, bought once each in order. builds: house extensions the builder (a villager) makes, per id {name, about, price, days, chest_slots?}; done is the morning message (%s = its name); one at a time, paid when ordered, finished overnight on the ready day; the map changes come from the \"extensions\" of that map's file (data/maps/house.json). buys: what it buys from the farmer, kind -> percent of the item's value (crop = its sell price, food = its price). upgrades: tools it improves, per target level {price, days, items?} (tool_levels: other levels for one tool, e.g. the rod, whose levels are in data/fish.json); the tool is handed in, comes back that many days later (collect it while the shop is open). Names, prices and hours are ours; see WORKLOG 2026-10-31 Shops.",
 	"closed_message": "%s is closed. Open %s, %s.",
 	"shops": {
 		"general": {
@@ -9,9 +9,14 @@
 			"days_off": ["sun"],
 			"keeper": "sayo",
 			"stock": {
-				"supplies": [{"item": "animal:chicken", "price": 1500, "name": "Chicken", "to": "animal", "full": "The coop is full"},
-					{"item": "feed", "price": 10, "name": "Chicken feed", "to": "feed"},
-					{"item": "medicine", "price": 300, "name": "Animal Medicine"}],
+				"supplies": [{"item": "animal:chicken", "price": 1400, "name": "Chicken", "to": "animal", "full": "The coop is full"},
+					{"item": "animal:cow", "price": 6000, "name": "Cow", "to": "animal", "full": "The barn is full"},
+					{"item": "animal:cow:young", "price": 3200, "name": "Calf", "to": "animal", "full": "The barn is full"},
+					{"item": "animal:sheep", "price": 3600, "name": "Sheep", "to": "animal", "full": "The barn is full"},
+					{"item": "animal:sheep:young", "price": 1900, "name": "Lamb", "to": "animal", "full": "The barn is full"},
+					{"item": "feed", "price": 12, "name": "Chicken feed", "to": "feed"},
+					{"item": "fodder", "price": 25, "name": "Fodder", "to": "fodder"},
+					{"item": "medicine", "price": 250, "name": "Animal Medicine"}],
 				"spring": [{"item": "seeds:turnip"}, {"item": "seeds:potato"}, {"item": "seeds:cucumber"},
 					{"item": "food:sakura_mochi"}],
 				"summer": [{"item": "seeds:tomato"}, {"item": "seeds:onion"}, {"item": "seeds:corn"}],
@@ -21,7 +26,7 @@
 					{"item": "food:milk", "price": 100}, {"item": "food:yomogi_tea"}]
 			},
 			"buys": {"crop": 80},
-			"rucksack": {"name": "Bigger rucksack", "levels": [{"slots": 12, "price": 2000}, {"slots": 16, "price": 6000}]},
+			"rucksack": {"name": "Bigger rucksack", "levels": [{"slots": 12, "price": 2000}, {"slots": 16, "price": 6500}]},
 			"builds": {
 				"builder": "hachiro",
 				"map": "house",
@@ -30,9 +35,9 @@
 					"chest": {"name": "Bigger storage chest", "about": "48 slots, with a second lid in the house.",
 						"price": 3000, "days": 2, "chest_slots": 48},
 					"kitchen": {"name": "Kitchen corner", "about": "A clay stove and a cupboard by the door.",
-						"price": 5000, "days": 3},
+						"price": 6500, "days": 3},
 					"room": {"name": "Second room", "about": "A tatami room east of the first, with a kotatsu.",
-						"price": 15000, "days": 5}
+						"price": 18000, "days": 5}
 				}
 			}
 		},

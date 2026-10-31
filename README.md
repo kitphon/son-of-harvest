@@ -205,9 +205,10 @@ and `upgrades` (`tools` and per target level `{price, days, items?}`). The rules
 `ShopMenu` (tabs, rows, cursor, count) and `ShopScreen` (paper / wood) are the screen.
 
 The store also sells `supplies` (every season, listed first): a stock entry's `to` sends it
-to the coop (`"animal"`: `animal:<kind>` through `Game.add_animal`, refused with `full` when
-the home has no room; a kind the game doesn't know has none) or the feed sack (`"feed"`), and
-`name` names it. `rucksack.levels` are bigger bags (`slots`, `price`), bought once each in
+to the animal's home (`"animal"`: `animal:<kind>` through `Game.add_animal`,
+`animal:<kind>:young` for a calf / lamb, refused with `full` when the home has no room; a kind
+the game doesn't know has none), the coop's feed sack (`"feed"`) or the barn's loft
+(`"fodder"`), and `name` names it. `rucksack.levels` are bigger bags (`slots`, `price`), bought once each in
 order (the bag's size is the level, so nothing extra is saved). `builds.jobs` are house
 extensions built by `builds.builder`: ordered and paid at the counter (Build tab), one at a
 time, finished overnight on the ready day (`Game.end_day`), saved as `house` {built, job}.
@@ -378,6 +379,8 @@ corner, so the front walls are drawn as low sills (a cutaway) instead of moving 
   feed and the dog (and step the dog); `coop_props.gd` / `barn_props.gd` the buildings and
   furniture.
 - `tools/make_icon.gd`: draws the app icon; `export_presets.cfg`: the Windows build.
+- `tools/balance.py` (`python -I tools/balance.py`): income and costs per season for a steady
+  year-1 plan, read from the data files; run it before and after changing prices.
 
 ## Plan and handoff
 - ROADMAP.md: milestones and "Next up".

@@ -10,6 +10,83 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Balance pass: income per season; cows, sheep and fodder at the store
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit · Branch: claude/balance-pass-73de78
+- Done: milestone 8's balance pass, numbers in data files only.
+  - `tools/balance.py` (`python -I tools/balance.py`) reads crops, animals, fish, mine and
+    shops and plays a steady year-1 plan (our guess, constants at the top of the script):
+    5 / 8 / 10 seed bags kept planted in spring / summer / fall with a crop mix per season,
+    2 more hens on Spring 20 and Summer 10, a cow on Summer 15, a sheep on Fall 10 and a
+    second cow on Fall 25, grades 25 / 55 / 20 % low / middle / top, grazing 40 % of days
+    (no feed), fishing 8 days a season (16 in winter) x 6 fish, mine trips 2 / 3 / 3 / 12 from
+    floor 1 down to floor 3 / 5 / 7 / 10 breaking 40 % of the rocks, 60 G of snacks a day, one
+    medicine a season; the season goals (rucksacks, extensions, tool upgrades) are bought in
+    order as soon as the money is there.
+  - Before (old data; the store had no cows, sheep or fodder):
+
+    | season | crops | eggs | milk | wool | fish | mine | income | seeds | feed | animals | other | net |
+    |---|---|---|---|---|---|---|---|---|---|---|---|---|
+    | spring | 19800 | 6212 | 0 | 0 | 2797 | 259 | 29068 | 3560 | 492 | 3000 | 2100 | 19916 |
+    | summer | 30384 | 12272 | 0 | 0 | 3501 | 1218 | 47374 | 3120 | 972 | 3000 | 2100 | 38182 |
+    | fall | 48060 | 13635 | 0 | 0 | 3442 | 2062 | 67199 | 8160 | 1080 | 0 | 2100 | 55859 |
+    | winter | 0 | 13635 | 0 | 0 | 4161 | 22715 | 40512 | 0 | 1800 | 0 | 1200 | 37512 |
+
+    Every spring goal was bought by mid-spring with 13 416 G over, the second room in early
+    fall, 106 969 G at the end of the year: nothing to save up for. The crop table was also
+    too close to the source game's prices, so it is redone from scratch.
+  - After:
+
+    | season | crops | eggs | milk | wool | fish | mine | income | seeds | feed | animals | other | net |
+    |---|---|---|---|---|---|---|---|---|---|---|---|---|
+    | spring | 10260 | 3792 | 0 | 0 | 2797 | 259 | 17109 | 2380 | 590 | 2800 | 2050 | 9288 |
+    | summer | 19332 | 7492 | 2616 | 0 | 3501 | 1218 | 34159 | 2784 | 1406 | 8800 | 2050 | 19119 |
+    | fall | 31005 | 8325 | 5886 | 1981 | 3442 | 2062 | 52701 | 6920 | 2151 | 9600 | 2050 | 31980 |
+    | winter | 0 | 8325 | 9810 | 2830 | 4161 | 22715 | 47842 | 0 | 4410 | 0 | 1150 | 42282 |
+
+    Goals: spring buys the first rucksack, the bigger chest and the can / hoe to level 2 with
+    2 788 G left; summer the kitchen corner, sickle 2, can 3 (11 907 left); fall the big
+    rucksack and the second room (19 387 left); winter hoe 3, can 4, hammer 2 (53 169 left
+    for year 2's level 4 / 5 tools and more animals). Crops carry spring (60 % of its
+    income); animals are 22 % of the income outside the mine in spring, 32 % in fall and
+    83 % in winter, where the mine is the other half.
+  - Crops (`data/crops.json`, sell per item / seed bag / days to ripe, regrow): turnip
+    35 / 80 / 4; potato 55 / 130 / 6; cucumber 30 / 220 / 9, every 3; tomato 35 / 240 / 9,
+    every 3; onion 75 / 150 / 8; corn 70 / 320 / 11, every 4; carrot 85 / 200 / 7; eggplant
+    45 / 200 / 9, every 3; pumpkin 190 / 520 / 13. Reasoning, in G a cell a day after seeds
+    (regrowers sown on day 1): spring 6.2-6.8, summer 7.3 (corn 10.5), fall 9.0-10.2, so each
+    season pays a bit more than the last; turnips are the cheap start (500 G buys 6 bags),
+    slow crops pay about the same per day as fast ones for less replanting.
+  - Animals (`data/animals.json`): eggs 30 / 45 / 70 (a hen ~40 G a day after feed, pays back
+    in ~5 weeks), milk 110 / 160 / 240 (a cow ~150 a day after fodder, ~6 weeks), wool
+    180 / 280 / 420 every 3 days (a sheep ~80 a day, ~6 weeks); the kinds' `price` notes match
+    the store.
+  - Store (`data/shops.json`): chicken 1400, cow 6000, calf 3200, sheep 3600, lamb 1900,
+    chicken feed 12, fodder 25 a bundle, medicine 250; rucksacks 2000 / 6500; chest 3000,
+    kitchen corner 6500, second room 18000. Smithy upgrade prices untouched (another session
+    adds ore costs there); `data/mine.json` and `data/fish.json` untouched: fish is a steady
+    side income (~3-4k a season) and the mine pays by going deep (floor 8+ ~400 G a floor),
+    which makes it winter's big earner; once the smithy wants ores, part of that goes into
+    upgrades instead of the bin.
+  - Barn goods: new stock entries `animal:cow`, `animal:cow:young` (calf), `animal:sheep`,
+    `animal:sheep:young` (lamb) with `to: "animal"` and `full: "The barn is full"`, and
+    `fodder` with the new `to: "fodder"`. `Shop.animal_of(item)` -> {kind, young};
+    `Game.shop_buy` calls `add_animal(kind, young)` / `animals.add_fodder(n)`, `shop_room`
+    checks the kind's home; `Animals.stock_of(home)`; the shop screen's info line names the
+    coop or the barn and shows the loft's fodder. README → Shops says so.
+  - Tests: `test_shops` `_barn_goods` (prices all year, a calf / lamb cheaper, room 6 in an
+    empty barn, no money refused, grown cows, cows don't use the coop's room, a calf and a lamb
+    young, too many refused whole, full barn refused in Game and the menu, fodder into the loft
+    and not the rucksack); the old checks read prices from the data now (turnip bags, hens,
+    feed, medicine, kitchen, rucksack 2). `test_farm` reads the turnip / cucumber growth days
+    from crops.json.
+- Checked: all 20 tests print `OK (0 failed)`; headless `--quit-after 300` (title, `-- --demo`,
+  `--map=town`, `--mine=3`, `--shop=general`, `--map=barn`) and `res://scenes/main.tscn
+  --quit-after 400` printed no errors or warnings.
+- Left / next: the plan is a model, not play: a real year should be played to check it (how
+  many bags a person really waters, how deep the mine goes in winter). The shop screen's new
+  info lines (barn room, fodder) were not looked at in a frame. Re-run the script when the
+  smithy asks for ores and when cooking / contests add income.
+
 ## 2026-10-31 — Merged six branches: talking, opening event, shop extras, barn, mine, festivals
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each, in this order:

@@ -1227,28 +1227,32 @@ func festival_today() -> String:
 
 
 ## Buys `n` of `item` at shop `id`: the next rucksack ("rucksack"), goods into the rucksack,
-## animals into their home (add_animal), feed into the coop's sack.
+## animals into their home (add_animal; "animal:<kind>:young" = a chick / calf / lamb), feed
+## into the coop's sack, fodder into the barn's loft.
 func shop_buy(id: String, item: String, n := 1) -> Dictionary:
 	var s := shop(id)
 	if item == "rucksack":
 		return _shop_paid(s.buy_rucksack(inventory, money))
 	var r := s.buy(inventory, money, item, n, season_name(), shop_room(id, item))
 	if r.ok and r.to == "animal":
+		var a := Shop.animal_of(item)
 		for i in n:
-			add_animal(item.trim_prefix("animal:"))
+			add_animal(a.kind, a.young)
 	elif r.ok and r.to == "feed":
 		animals.add_feed(n)
+	elif r.ok and r.to == "fodder":
+		animals.add_fodder(n)
 	return _shop_paid(r)
 
 
 ## How many of `item` from shop `id` there is room for: in the rucksack, in the animal's home
-## (0 for a kind the game doesn't know), any amount of feed.
+## (0 for a kind the game doesn't know), any amount of feed or fodder.
 func shop_room(id: String, item: String) -> int:
 	match str(shop(id).entry(item).get("to", "rucksack")):
 		"animal":
-			var kind := animals.kind_rule(item.trim_prefix("animal:"))
+			var kind := animals.kind_rule(Shop.animal_of(item).kind)
 			return maxi(animals.room(kind.get("home", "")), 0) if not kind.is_empty() else 0
-		"feed":
+		"feed", "fodder":
 			return ShopMenu.MOST
 	return inventory.room_for(item)
 

@@ -3,14 +3,16 @@ extends SceneTree
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_farm.gd
 
 var failures := 0
+var crop_data: Dictionary
 
 
 func _init() -> void:
 	var crops: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/crops.json"))
+	crop_data = crops
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1
 
-	# Turnip: stages 1 + 2 watered days -> ripe on day 3, gone after picking.
+	# Turnip: ripe after its stage days watered, gone after picking.
 	var f := FarmGrid.new(crops)
 	var c := Vector2i(10, 10)
 	check(f.till(c), "till")
@@ -24,7 +26,7 @@ func _init() -> void:
 		f.water_cell(c)
 		f.day_end("spring", "sunny", rng)
 		days += 1
-	check(days == 3, "turnip ripe after 3 watered days (got %d)" % days)
+	check(days == _grow_days("turnip"), "turnip ripe after %d watered days (got %d)" % [_grow_days("turnip"), days])
 	check(f.harvest(c) == "turnip", "harvest turnip")
 	check(f.cell(c).crop == "", "turnip gone after picking")
 
@@ -40,10 +42,10 @@ func _init() -> void:
 	var k := Vector2i(5, 10)
 	g.till(k)
 	g.sow(k, "cucumber", "spring")
-	for i in 8:
+	for i in _grow_days("cucumber"):
 		g.water_cell(k)
 		g.day_end("spring", "sunny", rng)
-	check(g.harvest(k) == "cucumber", "cucumber ripe after 8 days")
+	check(g.harvest(k) == "cucumber", "cucumber ripe after %d days" % _grow_days("cucumber"))
 	check(g.cell(k).stage == 2, "cucumber back to stage 2")
 
 	# Out of season crops wither; wrong season refuses seeds.
@@ -454,6 +456,14 @@ func _mean_luma(img: Image) -> float:
 		for x in img.get_width():
 			sum += img.get_pixel(x, y).get_luminance()
 	return sum / (img.get_width() * img.get_height())
+
+
+## Watered days from sowing until `crop` is ripe (its stage days in data/crops.json).
+func _grow_days(crop: String) -> int:
+	var n := 0
+	for d in crop_data[crop].stage_days:
+		n += int(d)
+	return n
 
 
 func check(ok: bool, what: String) -> void:

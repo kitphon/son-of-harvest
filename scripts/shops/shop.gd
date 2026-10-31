@@ -136,7 +136,7 @@ func base_price(item: String) -> int:
 
 
 ## What is for sale in `season`: [{item, price, to}], the supplies first, then that season's
-## goods, then "any". `to` is where it goes: "rucksack", "animal" or "feed".
+## goods, then "any". `to` is where it goes: "rucksack", "animal", "feed" or "fodder".
 func stock(season: String) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for key in ["supplies", season, "any"]:
@@ -145,6 +145,13 @@ func stock(season: String) -> Array[Dictionary]:
 			if p > 0:
 				out.append({"item": str(e.item), "price": p, "to": str(e.get("to", "rucksack"))})
 	return out
+
+
+## The animal an "animal:<kind>" item brings: {kind, young}; "animal:<kind>:young" is a young
+## one (a chick, calf or lamb).
+static func animal_of(item: String) -> Dictionary:
+	var parts := item.trim_prefix("animal:").split(":")
+	return {"kind": parts[0], "young": parts.size() > 1 and parts[1] == "young"}
 
 
 ## The stock entry for `item` as in the data ({} when there is none).
@@ -175,7 +182,7 @@ func buy_back(item: String) -> int:
 
 
 ## Buys `n` of `item`: it must be in stock this season, paid in full and fit (all or
-## nothing). Rucksack goods go into `inv`; others (to "animal" / "feed") need `room` for that
+## nothing). Rucksack goods go into `inv`; others (to "animal" / "feed" / "fodder") need `room` for that
 ## many, and the caller delivers them when the result is ok (the result's `to`).
 func buy(inv: Inventory, money: int, item: String, n: int, season: String, room := 0) -> Dictionary:
 	var p := price(item, season)

@@ -201,6 +201,11 @@ func add_fodder(n: int) -> void:
 	add_feed(n, "barn")
 
 
+## Portions left in a home's feed stock (the coop's sack, the barn's loft).
+func stock_of(home := "coop") -> int:
+	return int(_st(home).stock)
+
+
 # --- the day ----------------------------------------------------------------
 
 func good_weather(weather: String) -> bool:
