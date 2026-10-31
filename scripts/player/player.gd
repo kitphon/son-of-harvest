@@ -20,9 +20,23 @@ var charging := false   # the use button is held with a charging tool
 var charge := 0         # charge steps reached so far
 var _charge_time := 0.0
 var _charge_tool := ""
+var _after_menu := false   # keys held from a menu do nothing until let go
 
 
 func _physics_process(delta: float) -> void:
+	# A menu is open: stand still, and opening it drops a charge (as walking away would).
+	if Game.paused():
+		if charging:
+			cancel_charge()
+		moving = false
+		running = false
+		_after_menu = true
+		return
+	if _after_menu:
+		# The Enter / Space that closed the menu must not swing the tool too.
+		if Input.is_action_pressed("use_tool") or Input.is_action_pressed("interact"):
+			return
+		_after_menu = false
 	if charging:
 		_charge_step(delta)
 		return

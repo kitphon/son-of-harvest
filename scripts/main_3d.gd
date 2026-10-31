@@ -112,9 +112,11 @@ func _ready() -> void:
 	layer.add_child(flash)
 	add_child(layer)
 	add_child(Hud.new())
+	add_child(PauseScreen.new())
 
 	Game.minute_passed.connect(_update_tint)
 	Game.day_started.connect(_on_day_started)
+	Game.settings_changed.connect(func(): lightning.reset(Game.lightning_style()))
 	_update_tint()
 	_follow()
 
@@ -179,7 +181,7 @@ func _on_day_started() -> void:
 
 
 func _update_flash(delta: float) -> void:
-	var b := lightning.step(delta) if Game.clock_running else 0.0
+	var b := lightning.step(delta) if Game.ticking() else 0.0
 	var style := Game.lightning_style()
 	var sky := Color(style.get("sky", "ffffff")) * float(style.get("strength", 0.0)) * b
 	flash.color = Color(sky.r, sky.g, sky.b, 1.0)

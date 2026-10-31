@@ -28,6 +28,7 @@ func _ready() -> void:
 	tint = CanvasModulate.new()
 	add_child(tint)
 	add_child(Hud.new())
+	add_child(PauseScreen.new())
 
 	Game.minute_passed.connect(_update_tint)
 	Game.day_started.connect(_on_day_started)

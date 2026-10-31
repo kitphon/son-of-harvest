@@ -10,6 +10,44 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Pause menu, settings, clock stops in menus
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: Esc (or a pad's Start, new `pause` action) opens `PauseScreen`
+  (scripts/ui/pause_screen.gd) in both views: the field dims, a wood box with a paper page
+  in our pixel font, pages Paused (Resume / Save / Settings / Back to title), Settings and
+  "Save first?" (Save, then go / Go without saving / Cancel). Arrows or W / S move,
+  Enter / Space choose, left / right change a setting, Esc goes back a page or closes; the
+  mouse points and clicks. Page logic is `PauseMenu` (no drawing); the cursor and skipping
+  moved from TitleMenu into a shared `MenuList` that both menus use. Pause rule in Game:
+  `pause()` / `unpause()` count open menus (nested menus work, never below 0), `paused()`,
+  `ticking()` = clock running and no menu; the clock, lightning and F5 / F9 respect it.
+  The farmer stands still in a menu, a charge is dropped (DESIGN: opening a menu resets the
+  charge), and the Enter / Space that closed the menu doesn't swing the tool until let go.
+  Particles keep falling. Settings: `Settings` (scripts/save/settings.gd) with the list in
+  `data/settings.json` (kinds bool / choice / range, so the sound session's volume is one
+  entry: a `range` with min / max / step), saved to `user://settings.json` with a version,
+  apart from the game save. A broken file (not JSON, no or newer version, a wrong value) is
+  refused whole and every setting stays at its default; a missing setting takes its default,
+  an unknown one is skipped. `Game.apply_settings()` sets `flashes_enabled` (`--no-flashes`
+  wins over the file) and the window (2x / 3x / 4x of 480 x 270, or full screen; skipped
+  headless); `settings_changed` resets the 3D lightning. `-- --pause` / `--pause=settings`
+  open the menu at the start for screenshots.
+- Checked: new `tests/test_menu.gd` prints `test_menu: OK (0 failed)` (pause rule on a scratch
+  Game: no minutes pass while paused, nesting, an extra close; flashes from settings and
+  `--no-flashes` winning; settings defaults, flip / wrap / stop at the ends, round trip,
+  9 broken files refused with nothing changed, older / newer keys, a range setting;
+  PauseMenu pages, labels, cursor after back / cancel; MenuList skipping; on the Game
+  autoload a Player in a menu: no walking, charge dropped, the closing key doesn't swing,
+  walks again after). `test_farm`, `test_save`, `test_title`, `test_weather` all
+  `OK (0 failed)`. Headless `--quit-after 300` (title, `--demo --weather=storm`,
+  `--demo --pause`) and the 2D scene printed no errors. Movie Maker `--demo --weather=snow
+  --pause` (60 frames): the box is centred, clock still 10:00 after 2 s, snow falling;
+  `--pause=settings` shows "Lightning: On / Window: 3x / Back"; the dim takes the sky from
+  (143, 198, 232) to (90, 117, 132). Not checked: real key presses, mouse clicks, the pad
+  button and the window resize in a game window (no input headless).
+- Left / next: volume (sound session, data entry + reading it); key remapping; the clock
+  pause indoors comes with map switching.
+
 ## 2026-10-31 — Fix conflict markers left in the docs
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the snow / lightning merge (139faab) committed `<<<<<<<` / `>>>>>>>` blocks in

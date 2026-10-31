@@ -28,9 +28,11 @@ objects, ground tiles, buildings, weather particles and the paper / wood HUD wit
 font are done. Charging tools are done (levels in data/tools.json, all at level 1). Next:
 milestone 3, **tool levels and upgrades** (a way to raise `Game.tool_levels`; the shop comes
 with milestone 8, so for now e.g. tool experience or a blacksmith stub). Weather is done for now
-(snow lies on the ground and roofs in winter, lightning flashes in storms; turn flashes off with
-`-- --no-flashes` until the settings menu has it).
-Later for menus: a pause menu (save, back to the title screen).
+(snow lies on the ground and roofs in winter, lightning flashes in storms; flashes can be turned
+off in Esc → Settings or with `-- --no-flashes`). The pause menu (Esc: resume, save, settings,
+back to title) is done; settings live in `data/settings.json` / `user://settings.json`, so a
+volume setting is one data entry.
+Later for menus: rucksack / storage, key remapping.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -43,7 +45,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Farm grid, hoe / can / sickle / hammer / axe, seed bag 3 x 3, growth, regrowth, withering, weeds
    - [x] Shipping bin (paid 18:00 or on sleep), seed stand, sleep / pass out, stamina
    - [x] HUD, 2D view, 3D view with the HM field camera (yaw 45°, pitch 26.6°, FOV 13.7°)
-   - [ ] Clock pauses indoors / in menus (no indoors yet)
+   - [x] Clock pauses in menus (`Game.pause()` / `unpause()`)
+   - [ ] Clock pauses indoors (no indoors yet)
 2. **Look and feel**
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)
@@ -63,7 +66,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 4. **Save / load and menus**
    - [x] Save game (Game + FarmGrid to a versioned JSON file), load; F5 / F9, saves on sleep
    - [x] Title screen (new game / continue / quit), Continue only for a save that loads
-   - [ ] Rucksack / storage menus, settings (incl. lightning flashes on / off), key remapping
+   - [x] Pause menu (resume / save / settings / back to title), settings file (flashes, window)
+   - [ ] Rucksack / storage menus, key remapping
 5. **Town and villagers**
    - [ ] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause
    - [ ] Villagers with daily schedules from data (rule list → day plan), catch-up on map entry
