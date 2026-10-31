@@ -38,6 +38,9 @@ var weather_today := "sunny"
 var weather_tomorrow := "sunny"
 var snow_cover := 0             # snow lying on the ground, 0 (none) .. 100 (all white)
 var flashes_enabled := true     # lightning flashes in storms; off for photosensitive players
+var text_speed := 1.0           # the text box's speed from the settings (x letters per second; 0 = at once)
+var always_run := false         # settings: the farmer runs unless the run key is held
+var hud_visible := true         # settings: the HUD is drawn
 var clock_running := true      # off on the title screen
 var dialogue_open := false      # a text box is up: the clock and the farmer wait (counts as paused)
 var event_running := false      # an event script plays: the clock waits, the script moves the farmer
@@ -433,33 +436,56 @@ func go_home() -> void:
 
 # --- settings ---------------------------------------------------------------
 
-## Puts the settings into effect. `-- --no-flashes` always wins over the file.
+## Puts the settings into effect (on start and the moment one changes in the menu); views
+## that draw something a setting changes listen to settings_changed. `-- --no-flashes`
+## always wins over the file.
 func apply_settings(args := OS.get_cmdline_user_args()) -> void:
 	if settings == null:
 		return
 	flashes_enabled = bool(settings.value("flashes")) and not "--no-flashes" in args
-	_apply_window(str(settings.value("window")))
+	text_speed = float(settings.option_value("text_speed"))
+	always_run = bool(settings.value("always_run"))
+	hud_visible = bool(settings.value("hud"))
+	_apply_window(str(settings.value("display")), str(settings.value("window")))
+	if DisplayServer.get_name() != "headless":
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if settings.value("vsync") else DisplayServer.VSYNC_DISABLED)
 	settings_changed.emit()
 
 
-## Window size as a whole multiple of the 480 x 270 picture, or full screen.
-func _apply_window(mode: String) -> void:
+const DISPLAY_MODES := {
+	"fullscreen": DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN,
+	"borderless": DisplayServer.WINDOW_MODE_FULLSCREEN,   # Godot's "full screen" is a borderless window
+}
+
+
+## Full screen, a borderless window over the screen, or a window sized as a whole multiple
+## of the 480 x 270 picture (the biggest that fits on the screen, at least 1x).
+func _apply_window(display: String, scale: String) -> void:
 	if DisplayServer.get_name() == "headless":
 		return
-	if mode == "full":
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	if DISPLAY_MODES.has(display):
+		if DisplayServer.window_get_mode() != DISPLAY_MODES[display]:
+			DisplayServer.window_set_mode(DISPLAY_MODES[display])
 		return
-	var n := maxi(mode.trim_suffix("x").to_int(), 1)
+	var screen := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
 	var base := Vector2i(ProjectSettings.get_setting("display/window/size/viewport_width"),
 		ProjectSettings.get_setting("display/window/size/viewport_height"))
+	var n := window_scale(scale.trim_suffix("x").to_int(), base, screen.size)
 	if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_WINDOWED:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 	var size := base * n
 	if DisplayServer.window_get_size() == size:
 		return
-	var screen := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
 	DisplayServer.window_set_size(size)
 	DisplayServer.window_set_position(screen.position + (screen.size - size) / 2)
+
+
+## The window scale to use: `wanted`, less while base x scale is bigger than the screen.
+static func window_scale(wanted: int, base: Vector2i, screen: Vector2i) -> int:
+	var n := maxi(wanted, 1)
+	while n > 1 and (base.x * n > screen.x or base.y * n > screen.y):
+		n -= 1
+	return n
 
 
 # --- calendar and weather ---------------------------------------------------

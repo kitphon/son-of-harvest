@@ -1,8 +1,10 @@
 extends SceneTree
-## Headless pause menu checks (Game's pause rule, Settings, PauseMenu, MenuList). Run:
+## Headless pause menu checks (Game's pause rule, Settings, PauseMenu, MenuList, Controls
+## with the pad buttons, settings in effect: text speed, HUD, always run). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_menu.gd
 
 const PATH := "user://test_settings.json"
+const ALL := ["display", "window", "vsync", "flashes", "text_speed", "always_run", "hud", "music", "sfx", "ambient"]
 
 var failures := 0
 var _frame := 0
@@ -17,6 +19,9 @@ func _init() -> void:
 	_pause_menu()
 	_controls()
 	_controls_menu()
+	_pad()
+	_pad_menu()
+	_text_speed()
 
 
 # The farmer is checked on the Game autoload, which is in the tree from the first frame,
@@ -25,6 +30,7 @@ func _process(_delta: float) -> bool:
 	_frame += 1
 	if _frame == 1:
 		_volumes_in_effect()
+		_settings_in_effect()
 	if _frame < 4:
 		_farmer_in_menu(_frame)
 		return false
@@ -76,20 +82,41 @@ func _pause_rule() -> void:
 	g.settings.values.flashes = true
 	g.apply_settings(["--demo", "--no-flashes"])
 	check(not g.flashes_enabled, "--no-flashes wins over the settings")
+	check(g.text_speed == 1.0 and not g.always_run and g.hud_visible, "text speed, always run, HUD: defaults")
+	g.settings.values.text_speed = "instant"
+	g.settings.values.always_run = true
+	g.settings.values.hud = false
+	g.apply_settings([])
+	check(g.text_speed == 0.0 and g.always_run and not g.hud_visible, "text speed, always run, HUD from the settings")
 	g.free()
+	# The window scale drops to the biggest that fits on the screen.
+	var base := Vector2i(480, 270)
+	check(game_script.window_scale(3, base, Vector2i(1920, 1040)) == 3, "3x fits a 1080p screen")
+	check(game_script.window_scale(4, base, Vector2i(1920, 1040)) == 3, "4x on a 1080p screen (less the taskbar): 3x")
+	check(game_script.window_scale(4, base, Vector2i(2560, 1400)) == 4, "4x on a bigger screen")
+	check(game_script.window_scale(2, base, Vector2i(800, 600)) == 1 and game_script.window_scale(0, base, Vector2i(9999, 9999)) == 1, "never below 1x")
 
 
 ## Settings: defaults from data, changing them, a round trip, and refusing broken files.
 func _settings() -> void:
 	var s := Settings.make()
-	check(s.keys() == (["flashes", "window", "music", "sfx", "ambient"] as Array[String]), "settings in data order (%s)" % [s.keys()])
-	check(s.value("flashes") == true and s.value("window") == "3x", "defaults")
-	check(s.value_text("flashes") == "On" and s.value_text("window") == "3x", "value text")
+	check(s.keys() == (ALL as Array[String]), "settings in data order (%s)" % [s.keys()])
+	check(s.value("flashes") == true and s.value("window") == "3x" and s.value("display") == "windowed", "defaults")
+	check(s.value("vsync") == true and s.value("text_speed") == "normal" and s.value("always_run") == false and s.value("hud") == true, "defaults of the new settings")
+	check(s.value_text("flashes") == "On" and s.value_text("window") == "3x" and s.value_text("display") == "Window", "value text")
+	check(s.value_text("text_speed") == "Normal" and s.option_value("text_speed") == 1.0, "text speed: label and value")
+	check(s.option_value("window") == "3x", "a choice without values stands for itself")
 	check(s.adjust("flashes", 1) and s.value("flashes") == false and s.value_text("flashes") == "Off", "flashes flip")
 	check(s.adjust("window", 1) and s.value("window") == "4x", "window: next size")
-	check(s.adjust("window", 1) and s.value_text("window") == "Full screen", "window: full screen")
 	check(s.adjust("window", 1) and s.value("window") == "2x", "window wraps round")
 	check(not s.adjust("window", -1, false) and s.value("window") == "2x", "no wrap: stops at the first")
+	check(s.adjust("display", 1) and s.value_text("display") == "Full screen", "display: full screen")
+	check(s.adjust("display", 1) and s.value_text("display") == "Borderless", "display: borderless")
+	check(s.adjust("display", 1) and s.value("display") == "windowed", "display wraps round")
+	for want in [["fast", 2.0], ["instant", 0.0], ["slow", 0.5]]:
+		s.adjust("text_speed", 1)
+		check(s.value("text_speed") == want[0] and s.option_value("text_speed") == want[1], "text speed %s = %s" % want)
+	check(s.adjust("vsync", 1) and s.adjust("hud", 1) and s.adjust("always_run", 1), "the on / off settings flip")
 
 	_remove()
 	check(s.read(PATH) == "" and s.value("flashes") == false, "no file: nothing changes")
@@ -97,13 +124,18 @@ func _settings() -> void:
 	var t := Settings.make()
 	check(t.read(PATH) == "" and t.values == s.values, "round trip (%s)" % [t.values])
 
-	var good := {"version": 1, "settings": {"flashes": false, "window": "full"}}
+	var good := {"version": 2, "settings": {"flashes": false, "display": "fullscreen"}}
 	var broken := {
 		"empty": "",
 		"not json": "{ flashes: off",
 		"a list": "[1, 2]",
 		"no version": JSON.stringify({"settings": good.settings}),
-		"newer version": JSON.stringify({"version": 2, "settings": good.settings}),
+		"newer version": JSON.stringify({"version": 3, "settings": good.settings}),
+		"full as a window size": JSON.stringify({"version": 2, "settings": {"window": "full"}}),
+		"unknown display": JSON.stringify({"version": 2, "settings": {"display": "tiny"}}),
+		"text speed as a number": JSON.stringify({"version": 2, "settings": {"text_speed": 2}}),
+		"vsync as text": JSON.stringify({"version": 2, "settings": {"vsync": "on"}}),
+		"hud as a number": JSON.stringify({"version": 2, "settings": {"hud": 0}}),
 		"no settings": JSON.stringify({"version": 1}),
 		"flashes as text": JSON.stringify({"version": 1, "settings": {"flashes": "yes"}}),
 		"unknown window": JSON.stringify({"version": 1, "settings": {"window": "8x"}}),
@@ -126,6 +158,15 @@ func _settings() -> void:
 	var want_older := Settings.make().values
 	want_older.window = "2x"
 	check(older.read(PATH) == "" and older.values == want_older, "missing setting = default, unknown one skipped")
+	# A version 1 file: its full-screen window is the borderless display now.
+	_put(JSON.stringify({"version": 1, "settings": {"window": "full", "flashes": false}}))
+	var v1 := Settings.make()
+	check(v1.read(PATH) == "" and v1.value("display") == "borderless" and v1.value("window") == "3x" and v1.value("flashes") == false, "version 1: full = borderless (%s)" % [v1.values])
+	_put(JSON.stringify({"version": 1, "settings": {"window": "2x"}}))
+	check(v1.read(PATH) == "" and v1.value("display") == "windowed" and v1.value("window") == "2x", "version 1: a window size stays")
+	s.reset()
+	check(s.values == Settings.make().values, "reset: every setting back to its default")
+	check(s.write(PATH) == "" and JSON.parse_string(FileAccess.get_file_as_string(PATH)).version == 2.0, "written as version 2")
 
 	# A whole-number range (the kind a volume setting would use).
 	var r := Settings.make()
@@ -173,17 +214,30 @@ func _pause_menu() -> void:
 	check(m.choose() == "save" and m.page == "main", "save stays on the page")
 	m.list.move(1)
 	check(m.choose() == "" and m.page == "settings", "settings opens its page")
-	check(m.list.items == (["flashes", "window", "music", "sfx", "ambient", "controls", "back"] as Array[String]), "settings rows from data, then controls and back")
+	var rows: Array[String] = []
+	rows.assign(ALL + ["reset", "controls", "back"])
+	check(m.list.items == rows, "settings rows from data, then reset, controls and back (%s)" % [m.list.items])
 	check(m.slider("flashes") == Vector2i.ZERO and m.slider("back") == Vector2i.ZERO, "no slider on on / off rows")
-	check(m.label("flashes") == "Lightning: On" and m.label("window") == "Window: 3x", "rows show values")
+	check(m.label("flashes") == "Lightning: On" and m.label("window") == "Window size: 3x", "rows show values")
+	check(m.label("display") == "Display: Window" and m.label("vsync") == "V-sync: On" and m.label("text_speed") == "Text speed: Normal", "the new rows (%s)" % m.label("display"))
+	check(m.label("always_run") == "Always run: Off" and m.label("hud") == "Show HUD: On" and m.label("reset") == "Reset to defaults", "toggles and reset rows")
+	var shown := []
+	for item in m.list.items:
+		shown.append(m.label(item))
+	check(PixelFont.missing("".join(shown)) == "", "the pixel font has every settings row (%s)" % PixelFont.missing("".join(shown)))
+	check(m.list.current() == "display" and m.adjust(1) == "setting" and m.label("display") == "Display: Full screen", "right: full screen")
+	check(m.adjust(1) == "setting" and m.adjust(1) == "" and s.value("display") == "borderless", "borderless, then the end")
+	m.list.point("flashes")
 	check(m.choose() == "setting" and s.value("flashes") == false and m.label("flashes") == "Lightning: Off", "enter flips flashes")
 	check(m.adjust(1) == "setting" and s.value("flashes") == true, "right flips it back")
-	m.list.move(1)
+	m.list.point("window")
 	check(m.adjust(1) == "setting" and s.value("window") == "4x", "right: bigger window")
-	check(m.adjust(1) == "setting" and m.label("window") == "Window: Full screen", "right: full screen")
-	check(m.adjust(1) == "" and s.value("window") == "full", "right at the end does nothing")
-	check(m.adjust(-1) == "setting" and s.value("window") == "4x", "left: back a size")
-	m.list.move(1)
+	check(m.adjust(1) == "" and s.value("window") == "4x", "right at the end does nothing")
+	check(m.adjust(-1) == "setting" and s.value("window") == "3x", "left: back a size")
+	m.list.point("text_speed")
+	check(m.adjust(1) == "setting" and m.label("text_speed") == "Text speed: Fast", "right: faster text")
+	check(m.adjust(1) == "setting" and m.adjust(1) == "" and m.label("text_speed") == "Text speed: Instant", "instant, then the end")
+	m.list.point("music")
 	check(m.label("music") == "Music: 70%" and m.slider("music") == Vector2i(7, 10), "music row: value and slider")
 	check(m.adjust(1) == "setting" and s.value("music") == 80 and m.slider("music") == Vector2i(8, 10), "right: louder music")
 	check(m.adjust(-1) == "setting" and m.adjust(-1) == "setting" and s.value("music") == 60, "left: softer")
@@ -199,7 +253,14 @@ func _pause_menu() -> void:
 	check(m.choose() == "setting" and s.value("ambient") == 10, "enter on a slider steps it up")
 	s.values.ambient = 100
 	check(m.choose() == "setting" and s.value("ambient") == 0, "enter at the top wraps to 0")
-	m.list.move(2)
+	m.list.move(1)
+	check(m.list.current() == "reset" and m.adjust(1) == "" and m.label("reset") == "Reset to defaults", "left / right on reset do nothing")
+	s.controls.bind("run", 1, KEY_C)
+	check(m.choose() == "setting" and s.values == Settings.make().values and m.note == "Settings back to the defaults", "reset: settings back to the defaults")
+	check(s.controls.keys("run") == [KEY_SHIFT, KEY_C], "reset on the settings page keeps the keys")
+	m.list.point("hud")
+	check(m.choose() == "setting" and m.note == "", "the next change clears the note")
+	m.list.point("back")
 	check(m.adjust(1) == "" and m.choose() == "" and m.page == "main", "back returns to the main page")
 	check(m.list.current() == "settings", "cursor back on settings")
 	m.open("settings")
@@ -350,7 +411,9 @@ func _controls_menu() -> void:
 	m.adjust(1)
 	check(m.slot == 0, "no slot change while listening")
 	check(m.press(KEY_ESCAPE) == "" and m.listening == "" and s.controls.keys("move_up")[0] == KEY_W, "Esc cancels")
-	check(m.adjust(1) == "" and m.slot == 1 and m.adjust(1) == "" and m.slot == 1, "right: second slot, stops there")
+	check(m.adjust(1) == "" and m.slot == 1 and m.adjust(1) == "" and m.slot == 2 and m.adjust(1) == "" and m.slot == 2, "right: second key slot, the pad slot, stops there")
+	check(m.slot_count() == 3 and m.is_pad_slot() and m.slot_text("move_up", 2) == "D-up", "the third slot is the pad button")
+	m.adjust(-1)
 	m.choose()
 	check(m.press(KEY_I) == "controls" and s.controls.keys("move_up") == [KEY_W, KEY_I] and s.controls.keys("rucksack") == [KEY_UP, KEY_NONE], "a taken key swaps")
 	check(m.note == "I was on Rucksack: swapped" and m.hint() == m.note, "says what was swapped (%s)" % m.note)
@@ -371,7 +434,7 @@ func _controls_menu() -> void:
 	m.slot = 0
 	check(m.clear() == "" and m.note == "Tool / put down needs a key", "never the last key")
 	m.list.point("reset")
-	check(m.choose() == "controls" and s.controls.bound == Controls.make().bound and m.note == "Keys back to the defaults", "reset to defaults")
+	check(m.choose() == "controls" and s.controls.bound == Controls.make().bound and m.note == "Keys and buttons back to the defaults", "reset to defaults")
 	m.list.point("back")
 	check(m.choose() == "" and m.page == "settings" and m.list.current() == "controls", "back: settings, cursor on controls")
 	m.open("controls")
@@ -461,3 +524,145 @@ func check(ok: bool, what: String) -> void:
 	if not ok:
 		failures += 1
 		print("FAIL: " + what)
+
+
+## Pad buttons: defaults from data, binding with swaps, Start kept on Pause, clearing, the
+## InputMap (buttons and the left stick) and the settings file.
+func _pad() -> void:
+	var c := Controls.make()
+	check(c.pad_button("use_tool") == JOY_BUTTON_A and c.pad_button("interact") == JOY_BUTTON_B and c.pad_button("move_up") == JOY_BUTTON_DPAD_UP, "default pad buttons")
+	check(c.pad_button("rucksack") == JOY_BUTTON_BACK and c.pad_button("pause") == Controls.NO_BUTTON and c.pad_button("quick_save") == Controls.NO_BUTTON, "rucksack on Back; pause has only its fixed Start")
+	check(c.pad_name(JOY_BUTTON_A) == "A" and c.pad_name(JOY_BUTTON_RIGHT_SHOULDER) == "RB" and c.pad_name(Controls.NO_BUTTON) == "-", "pad names from data")
+	var names := []
+	for b in c.pad_names:
+		names.append(c.pad_name(b))
+	check(PixelFont.missing("".join(names)) == "", "the pixel font has every pad name (%s)" % PixelFont.missing("".join(names)))
+	var seen := {}
+	var dupes := 0
+	for a in c.actions():
+		var b := c.pad_button(a)
+		if b != Controls.NO_BUTTON:
+			dupes += int(seen.has(b))
+			seen[b] = a
+	check(dupes == 0 and not seen.has(JOY_BUTTON_START), "no default button on two actions, Start free of them")
+
+	var r := c.bind_pad("quick_save", JOY_BUTTON_LEFT_STICK)
+	check(r.done and r.other == "" and c.pad_button("quick_save") == JOY_BUTTON_LEFT_STICK, "a free button goes in")
+	r = c.bind_pad("run", JOY_BUTTON_A)
+	check(r.done and r.other == "use_tool" and c.pad_button("run") == JOY_BUTTON_A and c.pad_button("use_tool") == JOY_BUTTON_X, "a taken button swaps")
+	r = c.bind_pad("quick_load", JOY_BUTTON_B)
+	check(r.done and r.other == "interact" and c.pad_button("interact") == Controls.NO_BUTTON, "a swap with an empty slot leaves the other one empty")
+	r = c.bind_pad("run", JOY_BUTTON_START)
+	check(not r.done and r.reason == "reserved" and r.other == "pause" and c.pad_button("run") == JOY_BUTTON_A, "Start stays on Pause")
+	check(not c.bind_pad("run", 99).done, "an unknown button is refused")
+	check(c.clear_pad("run") == "" and c.pad_button("run") == Controls.NO_BUTTON and c.clear_pad("run") == "empty", "clearing a pad slot")
+	c.apply()
+	check(_has_button("quick_save", JOY_BUTTON_LEFT_STICK) and _has_button("use_tool", JOY_BUTTON_X) and not _has_button("use_tool", JOY_BUTTON_A), "pad buttons in the input map")
+	check(_has_button("pause", JOY_BUTTON_START) and not _has_button("run", JOY_BUTTON_A), "Start pauses, a cleared button is gone")
+	# (event_is_action matches an axis either way, so look at the events themselves.)
+	var sticks := []
+	for action in ["move_up", "move_down", "move_left", "move_right", "run"]:
+		for ev in InputMap.action_get_events(action):
+			if ev is InputEventJoypadMotion:
+				sticks.append([action, ev.axis, int(ev.axis_value)])
+	check(sticks == [["move_up", JOY_AXIS_LEFT_Y, -1], ["move_down", JOY_AXIS_LEFT_Y, 1], ["move_left", JOY_AXIS_LEFT_X, -1], ["move_right", JOY_AXIS_LEFT_X, 1]], "the left stick moves (%s)" % [sticks])
+
+	_remove()
+	var s := Settings.make()
+	s.controls.pad_bound = c.pad_bound.duplicate()
+	check(s.write(PATH) == "", "wrote the pad buttons")
+	var saved = JSON.parse_string(FileAccess.get_file_as_string(PATH))
+	check(saved.pad.quick_save == "left_stick" and saved.pad.run == "" and saved.pad.use_tool == "x", "pad buttons by id in the file (%s)" % [saved.pad.use_tool])
+	var t := Settings.make()
+	check(t.read(PATH) == "" and t.controls.pad_bound == c.pad_bound, "pad buttons round trip")
+	var broken := {
+		"not a dict": [1],
+		"a number": {"run": 2},
+		"unknown button": {"run": "z"},
+		"Start taken": {"run": "start"},
+		"shared button": {"run": "a", "use_tool": "a"},
+	}
+	for what in broken:
+		_put(JSON.stringify({"version": 2, "settings": {"hud": false}, "pad": broken[what]}))
+		var b := Settings.make()
+		b.controls.bind_pad("eat", JOY_BUTTON_GUIDE)
+		var kept: Dictionary = b.controls.pad_bound.duplicate()
+		var err := b.read(PATH)
+		check(err != "" and b.controls.pad_bound == kept and b.value("hud") == true, "broken pad buttons (%s) refused, nothing changed: %s" % [what, err])
+	_put(JSON.stringify({"version": 2, "settings": {}, "pad": {"run": "a", "later": "b"}}))
+	var part := Settings.make()
+	check(part.read(PATH) == "" and part.controls.pad_button("run") == JOY_BUTTON_A and part.controls.pad_button("use_tool") == Controls.NO_BUTTON and part.controls.pad_button("interact") == JOY_BUTTON_B, "missing action: default less buttons taken, unknown skipped")
+	_put(JSON.stringify({"version": 1, "settings": {}}))
+	check(part.read(PATH) == "" and part.controls.pad_bound == Controls.make().pad_bound, "a file from before the pad: default buttons")
+	_remove()
+	c.reset()
+	check(c.pad_bound == Controls.make().pad_bound, "reset: pad buttons back too")
+	c.apply()
+
+
+## The pad slot on the controls page: listening for a button, keys ignored, Start refused,
+## Esc cancels, Delete clears.
+func _pad_menu() -> void:
+	var s := Settings.make()
+	var m := PauseMenu.new(s)
+	m.open("controls")
+	m.list.point("use_tool")
+	m.slot = 2
+	check(m.choose() == "" and m.listening_pad() and m.slot_text("use_tool", 2) == "...", "enter on the pad slot: listening")
+	check(m.hint().begins_with("Press a pad button for Tool / put down"), "asks for a button (%s)" % m.hint())
+	check(m.press(KEY_X) == "" and m.listening_pad(), "a key doesn't go into the pad slot")
+	check(m.press_pad(JOY_BUTTON_B) == "controls" and s.controls.pad_button("use_tool") == JOY_BUTTON_B and s.controls.pad_button("interact") == JOY_BUTTON_A, "a pad button goes in, swapped")
+	check(m.note == "B was on Talk / throw: swapped" and not m.listening_pad(), "says what was swapped (%s)" % m.note)
+	check(m.press_pad(JOY_BUTTON_Y) == "", "a button without listening does nothing")
+	m.choose()
+	check(m.press_pad(JOY_BUTTON_START) == "" and m.note == "Start stays on Pause" and m.listening == "", "Start is refused and ends the listening")
+	m.choose()
+	check(m.press(KEY_ESCAPE) == "" and m.listening == "" and s.controls.pad_button("use_tool") == JOY_BUTTON_B, "Esc cancels")
+	check(m.clear() == "controls" and s.controls.pad_button("use_tool") == Controls.NO_BUTTON and m.slot_text("use_tool", 2) == "-", "delete clears the pad slot")
+	check(m.clear() == "", "an empty pad slot: nothing to clear")
+	m.slot = 0
+	m.choose()
+	check(m.press_pad(JOY_BUTTON_A) == "" and m.listening == "use_tool", "a key slot doesn't take a pad button")
+	m.press(KEY_ESCAPE)
+
+
+## The text speed setting on the text box's runner: x letters per second, 0 = whole lines.
+func _text_speed() -> void:
+	var counts := []
+	for f in [1.0, 2.0, 0.5]:
+		var r := DialogueRunner.open("bin_note", {})
+		r.set_speed(f)
+		r.update(0.1)
+		counts.append(r.shown)
+	check(counts == [4, 8, 2], "letters in 0.1 s at normal, fast, slow (%s)" % [counts])
+	var r := DialogueRunner.open("bin_note", {})
+	r.set_speed(0.0)
+	check(r.revealed(), "instant: the line is whole at once")
+	r.press()
+	check(r.done() or r.revealed(), "instant: the next line is whole too")
+	r.set_speed(1.0)
+	check(not r.instant and r.chars_per_second == 40.0, "back to normal")
+
+
+## The settings in effect on the real Game: the HUD hides, the farmer runs.
+func _settings_in_effect() -> void:
+	var g: Node = root.get_node("Game")
+	var kept: Dictionary = g.settings.values.duplicate()
+	var hud: CanvasLayer = load("res://scripts/ui/hud.gd").new()   # by path: Hud names the Game autoload
+	root.add_child(hud)
+	g.settings.values.hud = true
+	g.apply_settings([])
+	check(hud.visible, "HUD shown")
+	g.settings.values.hud = false
+	g.settings.values.always_run = true
+	g.apply_settings([])
+	check(not hud.visible and g.always_run, "HUD hidden at once, always run on")
+	g.settings.values = kept
+	g.apply_settings([])
+	hud.queue_free()
+
+
+func _has_button(action: String, button: int) -> bool:
+	var ev := InputEventJoypadButton.new()
+	ev.button_index = button
+	return InputMap.event_is_action(ev, action, true)

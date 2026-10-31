@@ -61,7 +61,9 @@ The rucksack and the storage chest are done (I opens the rucksack, the chest sta
 the house; slot counts in data/inventory.json, so a shop's rucksack upgrade is one number via
 `Inventory.grow("bag", n)`). The item held overhead is the rucksack's hand slot. Keys can be
 rebound in Esc → Settings → Controls (defaults in data/controls.json, saved in the settings
-file). Later for menus: remapping pad buttons.
+file); pad buttons too (a third column, saved under `pad`). Esc → Settings also has display
+mode, window size, v-sync, text speed, always run, show HUD and reset to defaults (README →
+Settings).
 Villagers with daily schedules are in (data/villagers: Tome, Hachiro, Sayo, Kota; rule
 list → day plan, positions follow the clock, so entering the village shows everyone where
 their plan puts them; README → Villagers). Talking, gifts and affection are in: E facing a
@@ -133,8 +135,7 @@ The ending is in (milestone 9): on the first morning of year 3 Tome brings the v
 (stars per category, a rank and a title from data/ending.json; README → Ending), then the
 villager liked most says a word and the game goes on. Later for the ending: a look back at
 the first day (the field then and now), a record every New Year, real art for the scroll.
-Next: milestone 10, **Settings** (what the settings screen still lacks) and building the .exe
-once the export templates are installed (README → Export); a playtest of a real year to
+Next: milestone 10, building the .exe once the export templates are installed (README → Export); a playtest of a real year to
 check the balance and the ending's steps.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
@@ -204,7 +205,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
     - [x] Music; volume sliders in the settings screen (`Sfx.set_volume`)
     - [x] Windows export preset (`export_presets.cfg`, .pck embedded) and our app icon
     - [ ] Build the .exe and check it starts (needs the 4.7.2 export templates; README → Export)
-    - [ ] Settings
+    - [x] Settings: display mode, window size, v-sync, text speed, always run, show HUD, reset to defaults, pad remapping
 
 ## Tools of record
 Godot 4.7.2 (GL Compatibility), GDScript, headless tests in `tests/`, Movie Maker screenshots.

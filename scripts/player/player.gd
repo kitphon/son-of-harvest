@@ -54,7 +54,7 @@ func _physics_process(delta: float) -> void:
 		return
 	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	moving = dir != Vector2.ZERO
-	running = moving and Input.is_action_pressed("run") and Game.can_run()
+	running = moving and Input.is_action_pressed("run") != Game.always_run and Game.can_run()
 	if moving:
 		if absf(dir.x) > absf(dir.y):
 			facing = Vector2i(int(signf(dir.x)), 0)

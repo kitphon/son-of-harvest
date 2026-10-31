@@ -40,7 +40,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `res://tests/test_title.gd` must print `test_title: OK (0 failed)`. Weather (snow cover,
   lightning): `res://tests/test_weather.gd` must print `test_weather: OK (0 failed)`.
   Dialogue (runner, data, text box layout): `res://tests/test_dialogue.gd` must print
-  `test_dialogue: OK (0 failed)`. Pause menu / settings / key remapping: `res://tests/test_menu.gd` must print
+  `test_dialogue: OK (0 failed)`. Pause menu / settings (display, text speed, HUD, reset) / key and pad remapping: `res://tests/test_menu.gd` must print
   `test_menu: OK (0 failed)`. Fatigue (tired states, oversleeping, collapse):
   `res://tests/test_body.gd` must print `test_body: OK (0 failed)`. Events (runner, trigger
   tables, event data): `res://tests/test_events.gd` must print `test_events: OK (0 failed)`.

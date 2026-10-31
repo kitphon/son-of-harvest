@@ -4,7 +4,7 @@ extends CanvasLayer
 ## (top right) with today's festival under it, the tool bar (the rucksack's tool slots) with the tool in hand and its level
 ## pips and, when there is one, the item held in the other hand (bottom left), money, shipping bin and a
 ## stamina bar (bottom right), and a message line (top left). Reads Game and redraws on its
-## signals.
+## signals; hidden while the "Show HUD" setting is off.
 
 const INK := Color("3b2a1a")
 const INK_SOFT := Color("7a6040")
@@ -43,6 +43,8 @@ func _ready() -> void:
 	_msg_box.visible = false
 	Game.changed.connect(_refresh)
 	Game.message.connect(_show)
+	Game.settings_changed.connect(_on_settings)
+	_on_settings()
 	_refresh()
 
 
@@ -134,6 +136,11 @@ func _process(delta: float) -> void:
 		_msg_time -= delta
 		if _msg_time <= 0.0:
 			_msg_box.visible = false
+
+
+## Esc -> Settings -> Show HUD hides all of it (messages too).
+func _on_settings() -> void:
+	visible = Game.hud_visible
 
 
 func _show(text: String) -> void:

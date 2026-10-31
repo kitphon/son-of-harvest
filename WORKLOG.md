@@ -10,6 +10,38 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Settings: display, v-sync, text speed, HUD / run toggles, reset, pad remapping
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `data/settings.json` now has Display (window / full screen / borderless), Window size
+  (2x-4x; the old "full" option moved to Display), V-sync, Lightning, Text speed (slow /
+  normal / fast / instant, `values` x0.5 / x1 / x2 / 0), Always run, Show HUD and the three
+  volumes. `Settings` file version 2 (a v1 "full" window reads as borderless),
+  `option_value()` for a choice's `values`. `Game.apply_settings()` sets the window mode
+  (exclusive full screen / Godot's borderless full screen / a window, scaled down by
+  `Game.window_scale()` when it doesn't fit the screen), v-sync, `text_speed`, `always_run`,
+  `hud_visible`; the Hud hides on `settings_changed`, the text box calls
+  `DialogueRunner.set_speed()` (0 = whole lines), the player's run key inverts with Always
+  run. The settings page ends with "Reset to defaults" (settings only; keys keep their own
+  reset) and a note line. Pad remapping: every action has one pad slot (defaults in
+  data/controls.json: D-pad + left stick walk, A tool, B talk, X run, RB / LB next tool / seed,
+  Back rucksack, Y eat; Start stays on Pause, the stick is fixed), `Controls.bind_pad` swaps like
+  keys, `clear_pad`, saved under `pad` in user://settings.json, names in `pad_names`. The
+  controls page has a third column (300 px wide); Enter on it waits for a pad button, Esc or
+  Start cancels. Reasoning: borderless by default for the old "full" because that is what it
+  was (Godot's WINDOW_MODE_FULLSCREEN); text speeds are round factors of the 40 letters/s.
+- Checked: `tests/test_menu.gd` prints `test_menu: OK (0 failed)` with new checks (new
+  defaults, value text, option values, v1 migration, broken files, reset, window scale fit,
+  Game fields from the settings, the HUD hiding live, text speed on the runner, pad defaults /
+  swaps / Start reserved / clear / input map incl. the stick / file round trip and broken
+  files, the pad slot in the menu); all 24 tests print OK. Headless `--quit-after 300` (title,
+  `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --pause=settings`,
+  `--demo --dialogue=bin_note`) and `res://scenes/main.tscn --quit-after 400` printed no
+  errors or warnings. Movie Maker frames
+  `--demo --pause=settings` (13 rows fit, sliders aligned) and `--pause=controls` (three
+  columns, pad names) looked at.
+- Left / next: no right-stick or trigger binding (triggers are axes); a "Window size" above
+  what fits shows 4x while the window is 3x; no FPS limit or UI scale setting.
+
 ## 2026-10-31 — The ending: the village record on the first morning of year 3
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: DESIGN lists the ending as not studied, so the rules are ours. New `Ending`
