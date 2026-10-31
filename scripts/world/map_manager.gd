@@ -2,7 +2,9 @@ class_name MapManager
 extends RefCounted
 ## Which map the farmer is on and where they stand (player pixels, 16 per cell, and facing).
 ## Map files are read from data/maps/<id>.json once and shared, with the house extensions
-## that are built applied (a file's "extensions"; Game sets `built`). Game owns one of these
+## that are built applied (a file's "extensions"; Game sets `built`) and the props gated by a
+## story flag kept or left out (a prop's "flag", optional "flag_value"; Game sets `flags`, and
+## a map is read again when one of its flags changes). Game owns one of these
 ## (Game.maps), changes it through Game.go_to_map() and saves it; the views read it.
 
 const DIR := "res://data/maps/"
@@ -12,6 +14,9 @@ const T := 16
 
 static var _cache: Dictionary = {}   # id -> MapData (null when the file is missing or broken)
 static var built: Array[String] = []  # extensions in effect (data/shops.json builds; Game.house_built)
+static var flags: Dictionary = {}     # the story flags props are gated by (Game.flags, shared)
+static var _gates: Dictionary = {}    # id -> the flag names its file's props test
+static var _read_with: Dictionary = {}   # id -> those flags' values when the cached map was read
 
 var id := FARM
 var pos := cell_pos(Vector2i(4, 4))  # the farmer's feet; the Player writes it as it walks
@@ -23,12 +28,26 @@ var mine_floor: MineFloor = null
 
 ## The map with this id, or null (with an error printed) when there is no usable file.
 static func data(map_id: String) -> MapData:
-	if not _cache.has(map_id):
+	if not _cache.has(map_id) or _read_with.get(map_id) != _gate_values(map_id):
 		var r := load_map(map_id)
 		if r[0] != "":
 			push_error("Map %s: %s" % [map_id, r[0]])
 		_cache[map_id] = r[1]
+		_read_with[map_id] = _gate_values(map_id)
 	return _cache[map_id]
+
+
+## Shares these story flags (Game.flags) with the maps; gated props follow them from now on.
+static func set_flags(shared: Dictionary) -> void:
+	flags = shared
+
+
+## The values of the flags a map's props are gated by, as they are now.
+static func _gate_values(map_id: String) -> Array:
+	var out := []
+	for f in _gates.get(map_id, []):
+		out.append(flags.get(f))
+	return out
 
 
 ## Puts these extensions in effect; the maps are read again when it changes something.
@@ -46,13 +65,15 @@ static func has(map_id: String) -> bool:
 
 
 ## [error, MapData] read from data/maps/<id>.json, without the cache (for checks), with the
-## extensions `ext` (default: the ones in effect) applied.
-static func load_map(map_id: String, ext: Variant = null) -> Array:
+## extensions `ext` (default: the ones in effect) applied and the props gated by the flags
+## `f` (default: the shared ones) kept or left out.
+static func load_map(map_id: String, ext: Variant = null, f: Variant = null) -> Array:
 	var path := DIR + map_id + ".json"
 	if map_id == "" or not FileAccess.file_exists(path):
 		return ["no file " + path, null]
-	var raw = JSON.parse_string(FileAccess.get_file_as_string(path))
-	var r := MapData.parse(with_extensions(raw, built if ext == null else ext))
+	var raw = with_extensions(JSON.parse_string(FileAccess.get_file_as_string(path)), built if ext == null else ext)
+	_gates[map_id] = gate_flags(raw)
+	var r := MapData.parse(with_flags(raw, flags if f == null else f))
 	if r[0] == "" and r[1].id != map_id:
 		return ["the file's id is " + r[1].id, null]
 	return r
@@ -77,6 +98,36 @@ static func with_extensions(raw: Variant, ext: Array) -> Variant:
 			else:
 				out[k] = patch[k].duplicate(true) if patch[k] is Array or patch[k] is Dictionary else patch[k]
 	return out
+
+
+## The flag names the props of a map file's data are gated by.
+static func gate_flags(raw: Variant) -> Array[String]:
+	var out: Array[String] = []
+	if raw is Dictionary and raw.get("props") is Array:
+		for p in raw.props:
+			if p is Dictionary and p.get("flag") is String and not p.flag in out:
+				out.append(p.flag)
+	return out
+
+
+## A map file's data without the props whose flag test fails with these flags: a prop with
+## "flag" shows while that flag is set (EventRunner.is_set), or, with "flag_value" too, while
+## the flag has that value (sayo_sign "old" / "new").
+static func with_flags(raw: Variant, f: Dictionary) -> Variant:
+	if not raw is Dictionary or gate_flags(raw).is_empty():
+		return raw
+	var out: Dictionary = raw.duplicate()
+	out.props = raw.props.filter(func(p): return shows(p, f))
+	return out
+
+
+## Does this prop (from a map file) show with these flags?
+static func shows(p: Variant, f: Dictionary) -> bool:
+	if not p is Dictionary or not p.get("flag") is String:
+		return true
+	if p.has("flag_value"):
+		return f.get(p.flag) == DialogueRunner.flag_value(p.flag_value)
+	return EventRunner.is_set(f, p.flag)
 
 
 ## Every map id with a file in data/maps.

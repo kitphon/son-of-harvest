@@ -32,6 +32,13 @@ func setup(f: FarmGrid, open_cells: Array[Vector2i] = []) -> void:
 	set_snow(Game.snow_cover / 100.0)
 
 
+## The farm map's story props (Hachiro's door bell), shown while their flags are set.
+func make_story_props(m: MapData) -> void:
+	for p in m.props:
+		if p.kind in StoryView.KINDS:
+			StoryProps.prop(self, p)
+
+
 ## Snow on the ground and roofs, 0 (none) .. 1 (all white where the ground holds it).
 func set_snow(cover: float) -> void:
 	for m in _snow_mats:

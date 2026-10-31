@@ -147,6 +147,8 @@ static func interact(c: Vector2i) -> void:
 			return
 	if festival_spot(c):
 		return
+	if examine_prop(c):
+		return
 	if not Game.maps.on_farm():
 		var prop := Game.maps.current().prop_at(c)
 		match str(prop.get("use", "")):
@@ -180,6 +182,19 @@ static func interact(c: Vector2i) -> void:
 			if id != "":
 				Sfx.play("pick")
 				Game.message.emit("Picked up a %s" % item_name(id))
+
+
+## A map prop with use "examine" (on any map, the farm too: Hachiro's door bell): plays
+## its `sound` (data/sfx.json) and shows its `message`.
+static func examine_prop(c: Vector2i) -> bool:
+	var prop := Game.maps.current().prop_at(c)
+	if prop.get("use", "") != "examine":
+		return false
+	if prop.has("sound"):
+		Sfx.play(str(prop.sound))
+	if str(prop.get("message", "")) != "":
+		Game.message.emit(str(prop.message))
+	return true
 
 
 ## Today's festival, while it is on: its judges' table (enter the contest with the item

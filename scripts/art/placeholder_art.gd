@@ -49,6 +49,8 @@ static func _make(key: String) -> Image:
 			return _title_bg()
 		"face":     # face:<speaker>:<calm|smile|surprised|worried>, a 40 x 40 text box portrait
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
+		"story":    # story:<door_bell|sign_old|sign_new|ume_jar>, things the heart events leave in the world (StoryProps)
+			return _story(parts[1])
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
 
@@ -1889,3 +1891,62 @@ static func _face(speaker: String, expression: String) -> Image:
 				_px(img, x, eye_y, 2, 2, ink)
 			_px(img, 18, 27, 4, 1, ink)
 	return img
+
+
+## What the band 5 heart events leave in the world (map props gated by a flag, StoryProps):
+## Hachiro's iron door bell (12 x 16, hanging from its bracket), the store's new sign board
+## (48 x 14; "old" = the old name freshly painted, "new" = Sayo's own red board) and Tome's
+## jar of pickled plums with a note on the lid (12 x 12).
+static func _story(kind: String) -> Image:
+	match kind:
+		"door_bell":
+			var img := _blank(12, 16)
+			var iron := Color("3a3a40")
+			var iron_light := Color("6a6e78")
+			_px(img, 1, 0, 10, 2, iron)           # the bracket off the eave post
+			_px(img, 1, 0, 10, 1, iron_light)
+			_px(img, 5, 2, 2, 3, Color("8a6a3a")) # the cord
+			_px(img, 4, 5, 4, 2, iron)            # the bell's crown
+			_px(img, 3, 7, 6, 3, iron)
+			_px(img, 2, 10, 8, 2, iron)
+			_px(img, 1, 12, 10, 1, iron)
+			_px(img, 4, 6, 1, 5, iron_light)      # the shine down one side
+			_px(img, 5, 13, 2, 1, Color("2a2a2e"))   # the clapper
+			_px(img, 5, 14, 2, 2, Color("c8442c"))   # a red tassel under it
+			return _outline(img)
+		"sign_old", "sign_new":
+			var img := _blank(48, 14)
+			var fresh := kind == "sign_new"
+			var board := Color("b8322a") if fresh else Color("4a3424")
+			var ink := Color("f4ecd8") if fresh else Color("e8c868")
+			_px(img, 0, 0, 48, 14, Color("2e221a"))   # the frame
+			_px(img, 1, 1, 46, 12, board)
+			_px(img, 1, 1, 46, 1, board.lightened(0.2))
+			if fresh:
+				# Sayo's brushwork: three loose, flowing marks.
+				for i in 3:
+					var x := 6 + i * 14
+					_line(img, Vector2i(x, 4), Vector2i(x + 6, 3), ink)
+					_line(img, Vector2i(x + 3, 3), Vector2i(x + 1, 10), ink)
+					_line(img, Vector2i(x + 1, 10), Vector2i(x + 7, 8), ink)
+					_px(img, x + 6, 6, 2, 1, ink)
+			else:
+				# The old name repainted: three square, heavy marks like the father's lettering.
+				for i in 3:
+					var x := 6 + i * 14
+					_px(img, x, 3, 8, 2, ink)
+					_px(img, x + 3, 3, 2, 8, ink)
+					_px(img, x, 7, 8, 1, ink)
+					_px(img, x + (0 if i % 2 == 0 else 6), 9, 2, 2, ink)
+			return img
+		"ume_jar":
+			var img := _blank(12, 12)
+			var glaze := Color("8a5030")
+			_oval(img, 6, 7.5, 5, 4.2, glaze)                # the jar
+			_px(img, 3, 3, 6, 2, Color("e8dcc0"))            # cloth over the mouth
+			_px(img, 2, 4, 8, 1, Color("c8442c"))            # tied with red string
+			_px(img, 3, 6, 3, 3, glaze.lightened(0.25))      # the glaze's shine
+			_px(img, 6, 7, 4, 3, Color("f4f0e0"))            # the note tucked under the string
+			_px(img, 7, 8, 2, 1, Color("3a2a1a"))
+			return _outline(img)
+	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])

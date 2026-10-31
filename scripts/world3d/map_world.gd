@@ -118,6 +118,7 @@ func _make_prop(p: Dictionary) -> void:
 		"fodder_box", "stalls", "hay", "barn_gate": BarnProps.prop(self, p, mid, r)
 		"irori", "tokonoma", "butsudan", "zabuton", "byobu", "toy_box", "mizugame": HomeProps.prop(self, p, mid, r)
 		"cave_mouth": _cave_mouth(mid, r)
+		"door_bell", "store_sign", "ume_jar": StoryProps.prop(self, p)
 		"ladder": _ladder(mid)
 		_:
 			push_warning("MapWorld: no look for prop '%s'" % p.kind)

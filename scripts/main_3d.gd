@@ -183,6 +183,7 @@ func _enter_map() -> void:
 	if Game.maps.on_farm():
 		world = FarmWorld.new()
 		world.setup(Game.farm, m.gate_cells())
+		world.make_story_props(m)   # the door bell, once Hachiro has given it
 	else:
 		world = MapWorld.new()
 		(world as MapWorld).build(m)

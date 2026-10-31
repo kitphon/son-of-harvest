@@ -163,6 +163,13 @@ DESIGN asks for every building), `ambient` (which `places` of the ambient rules 
   `byobu`, `toy_box` and `mizugame`, their 3D looks in `scripts/world3d/home_props.gd`; a
   `village_house` prop's `side_door` (cells from the left) draws a second, plain door (Sayo's
   rooms behind the store);
+- a prop with `flag` (a story flag name) only shows while that flag is set, or with
+  `flag_value` too only while the flag has that value (MapManager.with_flags; a map is read
+  again when one of its flags changes, and the views pick it up on the next map change). The
+  band 5 heart events' story props use it (StoryProps, art `story:<kind>` in both views):
+  `door_bell` on the farm (`hachiro_bell`), `store_sign` with `style` old / new in the village
+  (`sayo_sign`) and `ume_jar` in the farmhouse (`tome_grandma`). A prop with `use: "examine"`
+  plays its `sound` (data/sfx.json) and shows its `message` when used, on any map;
 - `spawns`: named `[cell, facing]`, `start` needed (`--map=<id>@<spawn>`), the house has
   `home` (where a new day starts); the villagers' homes have `home` where their owner sits.
 

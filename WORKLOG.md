@@ -10,6 +10,37 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Heart flags in the world: the door bell, the store's sign, Tome's plum jar
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: map props can be gated by a story flag: `"flag"` (shows while set, EventRunner.is_set)
+  and optional `"flag_value"` (shows while the flag has that value). MapManager filters them
+  (`with_flags`, `gate_flags`, `shows`) after the extensions; it shares Game.flags
+  (`set_flags`, called by Game at new game and load) and reads a cached map again when one of
+  its gate flags changes, so the event's `set` step is enough (the views show it from the next
+  map change). New props: `door_bell` on the farm at (5, 3) by the house door (hachiro_bell;
+  `use: "examine"` plays `chime_morning` and says a line), two `store_sign` props on the store
+  in the village (sayo_sign old / new: the old name repainted in gold on dark wood, or Sayo's
+  own lacquer-red board), `ume_jar` in the farmhouse at (5, 1) (tome_grandma: Tome's pickled
+  plums, her note read when examined). Art: PlaceholderArt `story:door_bell`, `story:sign_old`,
+  `story:sign_new`, `story:ume_jar`. 3D: StoryProps (the bell a hanging sprite on an iron arm
+  by the door post, the sign a picture on posts over the roof's front slope, the jar a sprite);
+  FarmWorld.make_story_props draws the farm's. 2D: StoryView draws the same pictures (MapView
+  skips those kinds). A prop with `use: "examine"` (any map, the farm too) plays its `sound` and
+  shows its `message` (FarmActions.examine_prop). `--flags=a,b=c` sets flags for screenshots.
+  README → Maps and AGENTS document it.
+- Checked: test_maps has new checks (no story prop without its flag, each with it, the sign by
+  value, gate flags, the jar's cell with every extension, art drawn, the cached maps follow
+  Game.flags, a new game clears them, the bell and sign come back from a save, 3D town has the
+  sign picture, 3D farm the bell sprite, the 2D view gets one sign, using the bell rings it).
+  All 23 test scripts print `OK (0 failed)`; headless runs (title `--quit-after 300`, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`, `--demo --flags=hachiro_bell,sayo_sign=old,tome_grandma
+  --map=town`, `main_2d.tscn -- --demo --flags=hachiro_bell`) printed no errors or warnings.
+  Movie Maker frames looked at: the bell by the farmhouse door (moved down from under the eave
+  after the first frame hid it), the new and the old sign on the store roof, the jar by the
+  chest (made bigger after the first frame), and the bell, sign and jar in the 2D view.
+- Left / next: the props appear on the next map change, not while standing on the map where
+  the event plays; a band 6 scene.
+
 ## 2026-10-31 — play.bat / play_demo.bat: double-click to play
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `play.bat` starts `Godot_v4.7.2-stable_win64.exe --path .` from its own folder (full

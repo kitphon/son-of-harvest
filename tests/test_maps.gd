@@ -24,6 +24,7 @@ func _process(delta: float) -> bool:
 		_homes_3d()
 		_game_maps()
 		_bed_and_doors()
+		_story_props()
 		_start_view()
 	elif _frame == 3:
 		var g: Node = root.get_node("Game")
@@ -188,6 +189,93 @@ func _homes_3d() -> void:
 					stand_in += 1
 		check(stand_in == 0 and meshes > 60, "%s builds in 3D (%d meshes, %d stand-ins)" % [id, meshes, stand_in])
 		w.free()
+
+
+## The props the band 5 heart events leave (StoryProps): each shows only with its flag (the
+## sign by its value), follows the shared flags, survives save / load, builds in both views,
+## and the bell rings when used.
+func _story_props() -> void:
+	var where := {"door_bell": "farm", "store_sign": "town", "ume_jar": "house"}
+	var kinds := func(id: String, f: Dictionary) -> Array:
+		var out := []
+		for p in MapManager.load_map(id, null, f)[1].props:
+			if p.kind in StoryView.KINDS:
+				out.append(p.kind + ("" if not p.has("style") else ":" + p.style))
+		return out
+	for kind in where:
+		check(kinds.call(where[kind], {}).is_empty(), "no %s without its flag" % kind)
+	check(kinds.call("farm", {"hachiro_bell": true}) == ["door_bell"], "the bell hangs once hachiro_bell is set")
+	check(kinds.call("farm", {"hachiro_bell": false}).is_empty(), "no bell while hachiro_bell is false")
+	check(kinds.call("house", {"tome_grandma": true}) == ["ume_jar"], "Tome's jar is in the house once tome_grandma is set")
+	check(kinds.call("town", {"sayo_sign": "old"}) == ["store_sign:old"], "sayo_sign old: the old name repainted")
+	check(kinds.call("town", {"sayo_sign": "new"}) == ["store_sign:new"], "sayo_sign new: Sayo's own sign")
+	check(kinds.call("town", {"hachiro_bell": true, "tome_grandma": true}).is_empty(), "other flags show no sign")
+	check(MapManager.gate_flags(JSON.parse_string(FileAccess.get_file_as_string("res://data/maps/town.json"))) == ["sayo_sign"],
+		"the village is gated by sayo_sign only")
+	var bell: Dictionary = MapManager.load_map("farm", null, {"hachiro_bell": true})[1].prop_at(Vector2i(5, 3))
+	check(bell.get("use", "") == "examine" and root.get_node("Sfx").sounds.has(bell.get("sound", "")) and str(bell.get("message", "")) != "",
+		"the bell rings with a known sound and a message")
+	var jar_map: MapData = MapManager.load_map("house", ["chest", "kitchen", "room"], {"tome_grandma": true})[1]
+	check(jar_map.prop_at(Vector2i(5, 1)).get("kind", "") == "ume_jar" and jar_map.is_solid(Vector2i(5, 1)),
+		"the jar stands on its own cell with every extension built")
+	for key in ["story:door_bell", "story:sign_old", "story:sign_new", "story:ume_jar"]:
+		var img := PlaceholderArt.tex(key).get_image()
+		check(img.get_width() > 8 and img.get_pixel(img.get_width() / 2, img.get_height() / 2) != Color.MAGENTA, "art %s is drawn" % key)
+
+	# The shared flags (Game.flags): the cached map follows them, and they come back with a save.
+	var game_script: GDScript = load("res://scripts/autoload/game.gd")
+	var a: Node = game_script.new()
+	a.crops = JSON.parse_string(FileAccess.get_file_as_string("res://data/crops.json"))
+	a.new_game()
+	var on := func(id: String, kind: String) -> bool:
+		return MapManager.data(id).props.any(func(p): return p.kind == kind)
+	check(not on.call("farm", "door_bell") and not on.call("town", "store_sign"), "a new game has no story props")
+	a.flags["hachiro_bell"] = true   # as the event's "set" step writes it
+	a.flags["sayo_sign"] = "new"
+	check(on.call("farm", "door_bell") and on.call("town", "store_sign") and not on.call("house", "ume_jar"),
+		"setting the flags puts the bell and the sign in the cached maps")
+	var saved: Dictionary = a.to_dict()
+	a.new_game()
+	check(not on.call("farm", "door_bell"), "a new game takes the bell away again")
+	var b: Node = game_script.new()
+	b.crops = a.crops
+	b.new_game()
+	check(b.from_dict(JSON.parse_string(JSON.stringify(saved))) == "", "the save loads")
+	var sign: Array = MapManager.data("town").props.filter(func(p): return p.kind == "store_sign")
+	check(on.call("farm", "door_bell") and sign.size() == 1 and sign[0].style == "new" and not on.call("house", "ume_jar"),
+		"the bell and Sayo's sign come back with the save")
+
+	# Both views draw them from the story art.
+	var town_3d: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	town_3d.build(MapManager.data("town"))
+	var sign_tex := PlaceholderArt.tex("story:sign_new")
+	check(town_3d.get_children().any(func(n): return n is MeshInstance3D and n.material_override is StandardMaterial3D 		and n.material_override.albedo_texture == sign_tex), "the village in 3D has Sayo's sign")
+	town_3d.free()
+	var farm_3d: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	farm_3d.make_story_props(MapManager.data("farm"))
+	var bell_tex := PlaceholderArt.tex("story:door_bell")
+	check(farm_3d.get_children().any(func(n): return n is Sprite3D and n.texture == bell_tex), "the farm in 3D has the bell")
+	farm_3d.free()
+	var town_2d := MapView.new()
+	town_2d.map = MapManager.data("town")
+	var story_2d := StoryView.new(town_2d.map)
+	check(story_2d.map.props.filter(func(p): return p.kind in StoryView.KINDS).size() == 1, "the flat view gets the one sign")
+	town_2d.free()
+	story_2d.free()
+
+	# Using the bell on the farm (the real Game autoload, as the views call it).
+	var g: Node = root.get_node("Game")
+	g.new_game()
+	g.flags["hachiro_bell"] = true
+	g.maps.place("farm", Vector2i(5, 4), Vector2i.UP)
+	var said := []
+	var hear := func(t): said.append(t)
+	g.message.connect(hear)
+	load("res://scripts/farm_actions.gd").interact(Vector2i(5, 3))
+	g.message.disconnect(hear)
+	check(said == [bell.message], "using the bell rings it %s" % [said])
+	for n in [a, b]:
+		n.free()
 
 
 ## Game: the clock stops indoors, map signals, day end puts the farmer home, the saved part.
