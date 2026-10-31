@@ -10,6 +10,33 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Pixel font, paper / wood HUD boxes
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: our own bitmap font in `data/font_pixel.json` (glyph rows of `#` / `.`, 7 px above
+  the baseline + 2 px descenders, variable width, 1 px spacing; A-Z, a-z, 0-9 and the
+  punctuation the game uses). `PixelFont` (scripts/ui/pixel_font.gd) packs it into a
+  FontFile at start, keyed by code point, so kana / kanji can be added to the data later.
+  The HUD (scripts/ui/hud.gd) is now nine-patch boxes of wood with a paper inside
+  (PlaceholderArt `ui:` keys): a clock box top right (date, the time drawn at 2x, today's
+  and tomorrow's weather icons; a winter storm shows the blizzard icon), a wooden tool bar
+  bottom left (six slots with tool icons, the seed slot shows a seed bag in the current
+  crop's colour, the tool in hand framed in vermilion) under a paper box with the item name
+  and its count (water 32/40, seeds x2), a status box bottom right (coin + money, shipping
+  bin, a rice-ball icon + stamina bar: green, yellow at 50%, red at 25%), and the message
+  line in a paper strip top left that fits its text and hides after 3 s. Box positions and
+  tool names live in `HudLayout` (scripts/ui/hud_layout.gd) so headless tests can read
+  them without the Game autoload.
+- Checked: `test_farm: OK (0 failed)` (new: the font has every glyph of the dates, tool
+  and seed names and of every `message.emit` string in game.gd / farm_actions.gd, FontFile
+  widths match `PixelFont.width`, line height 9, glyph rows even, the `ui:` pieces are
+  drawn, boxes on screen and apart, the longest date fits the clock box). Putting a `€`
+  into the checked text made it print `FAIL: font has the HUD's glyphs (missing '€')`.
+  Headless `--quit-after 300` printed no errors or warnings. Movie Maker frames with
+  `--demo` and `--demo --weather=rain` show the new boxes (one run, with a throwaway
+  autoload since removed, showed the seed slot, a long message and a half stamina bar).
+- Left / next: no Japanese glyphs yet; tool slots have no key numbers; the turnip seed
+  bag's label is pale on the bag.
+
 ## 2026-10-31 — Rain / snow particles and weather tint
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `WeatherFX` (scripts/world3d/weather_fx.gd) puts CPUParticles3D around the camera
