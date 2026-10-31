@@ -27,9 +27,9 @@ static func _make(key: String) -> Image:
 			return _obstacle(parts[0])
 		"crop":     # crop:<id>:<growth 0..3>:<ripe|growing>
 			return _crop(parts[1], int(parts[2]), parts[3] == "ripe")
-		"build":    # build:<plaster|board|kawara|planks|planks_dark|sugi|bamboo|noren|shoji_door|shoji>
+		"build":    # build:<plaster|board|kawara|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
-		"ground":   # ground:<grass|tilled|wet|path>:<variant> or ground:water:<land sides mask>
+		"ground":   # ground:<grass|tilled|wet|path|tatami|floor|earth|gravel|wall>:<variant> or ground:water:<land sides mask>
 			return _ground(parts[1], int(parts[2]))
 		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour)
 			return _fx(parts[1])
@@ -468,6 +468,49 @@ static func _ground(kind: String, n: int) -> Image:
 				var y := rng.randi_range(0, 14)
 				_px(img, x, y, 2, 1, Color("a89068"))
 				_px(img, x, y + 1, 2, 1, Color("8f7a58") if i % 2 == 0 else Color("d6c29a"))
+		"tatami":
+			# Half a mat per cell: pale straw rush in fine weave lines, a dark cloth edge (heri)
+			# along the long sides; variants alternate the way the mats lie.
+			var across := n % 2 == 0
+			img.fill(Color("c8c088"))
+			for i in 8:
+				var t := i * 2 + 1
+				if across:
+					_px(img, 0, t, 16, 1, Color("b8b078"))
+				else:
+					_px(img, t, 0, 1, 16, Color("b8b078"))
+			for i in 5:
+				_px(img, rng.randi_range(0, 15), rng.randi_range(0, 15), 1, 1, Color("d6d09c"))
+			if across:
+				_px(img, 0, 0, 1, 16, Color("2e3a2a"))
+				_px(img, 15, 0, 1, 16, Color("2e3a2a"))
+			else:
+				_px(img, 0, 0, 16, 1, Color("2e3a2a"))
+				_px(img, 0, 15, 16, 1, Color("2e3a2a"))
+		"floor":
+			# Polished wooden floor boards running across, 4 px wide.
+			img.fill(Color("8a603c"))
+			for row in 4:
+				_px(img, 0, row * 4 + 3, 16, 1, Color("5e3e26"))
+				_px(img, 0, row * 4, 16, 1, Color("a07450"))
+				_px(img, (row * 5 + n * 3) % 16, row * 4, 1, 3, Color("5e3e26"))
+		"earth":
+			# Packed earth of the entry (doma): grey-brown with small pebbles.
+			img.fill(Color("8c7a62"))
+			for i in 9:
+				var x := rng.randi_range(0, 14)
+				var y := rng.randi_range(0, 14)
+				_px(img, x, y, 1, 1, Color("7a6a54"))
+				_px(img, x + 1, y, 1, 1, Color("a0907a") if i % 2 == 0 else Color("6e604c"))
+		"gravel":
+			# Raked shrine gravel: light grey stones on a paler ground.
+			img.fill(Color("c8c4b8"))
+			for i in 16:
+				var x := rng.randi_range(0, 14)
+				var y := rng.randi_range(0, 15)
+				_px(img, x, y, 2, 1, Color("a8a498") if i % 2 == 0 else Color("dedad0"))
+		"wall":
+			img.fill(Color("3e3028"))
 		"water":
 			img.fill(Color("3d7fc4"))
 			for i in 4:
@@ -562,6 +605,16 @@ static func _building(kind: String) -> Image:
 			for y in [5, 13]:
 				_px(img, 0, y, 16, 1, Color("6a6a3a"))
 				_px(img, 0, y + 1, 16, 1, Color("bcb87c"))
+			return img
+		"quilt":
+			# Indigo futon cover with a small white cross-and-dot weave, 16 x 16.
+			var img := _blank(16, 16)
+			img.fill(Color("34467a"))
+			for y in [2, 10]:
+				for x in [2, 10]:
+					_px(img, x + 1, y, 1, 3, Color("d8dcea"))
+					_px(img, x, y + 1, 3, 1, Color("d8dcea"))
+					_px(img, x + 5, y + 5, 1, 1, Color("8a98c4"))
 			return img
 		"noren":
 			# 21 x 8 shop curtain: indigo cloth in three panels (dark slits), a white sprout

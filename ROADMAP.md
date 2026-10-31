@@ -35,10 +35,14 @@ settings in `data/settings.json` / `user://settings.json`, so a volume setting i
 entry).
 Next: milestone 3, **eating / drinking** (food items with stamina / fatigue effects in data;
 `Game.add_fatigue()` takes a negative amount). Event scripts and trigger tables per map are
-done (data/events, EventRunner / EventTriggers / EventPlayer; README → Events); the opening
-event and first shop visits follow once there are maps to walk to (map switching calls
-`EventPlayer.enter_map(id)`). Later for events: an "examine" cause (E on a spot) and
-villagers as actors in scripts.
+done (data/events, EventRunner / EventTriggers / EventPlayer; README → Events); EventPlayer
+loads a map's table on `Game.map_entered(map_id)`, so a new map's events are one
+`data/events/triggers_<map id>.json`. The opening event and first shop visits come next with
+the village. Later for events: an "examine" cause (E on a spot) and villagers as actors.
+Maps are in (data/maps: farm, farmhouse inside with the futon, a first village with a
+shrine; doors, a fade, clock stopped indoors). Villagers (milestone 5, next item) get their
+own map props / doors from the same files; the village houses' doors only show a message
+until then.
 Sound effects, ambient loops and music are in (milestone 10), with Music / Sounds / Ambient
 volume sliders in Esc → Settings. Later for audio: more tracks (festivals, shops, events)
 are new scores and rules in `data/music.json`; the music has not been heard by a person yet.
@@ -56,7 +60,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Shipping bin (paid 18:00 or on sleep), seed stand, sleep / pass out, stamina
    - [x] HUD, 2D view, 3D view with the HM field camera (yaw 45°, pitch 26.6°, FOV 13.7°)
    - [x] Clock pauses in menus (`Game.pause()` / `unpause()`)
-   - [ ] Clock pauses indoors (no indoors yet)
+   - [x] Clock pauses indoors (`Game.ticking()` is false on a map with `indoor: true`)
 2. **Look and feel**
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)
@@ -80,7 +84,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Pause menu (resume / save / settings / back to title), settings file (flashes, window)
    - [ ] Rucksack / storage menus, key remapping
 5. **Town and villagers**
-   - [ ] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause
+   - [x] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause (data/maps, MapManager, fade)
    - [ ] Villagers with daily schedules from data (rule list → day plan), catch-up on map entry
    - [ ] Talking, gifts, affection, shop opening hours
 6. **Events and dialogue**

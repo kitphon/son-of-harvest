@@ -10,6 +10,54 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Map switching: farmhouse inside, first village, doors, indoor clock pause
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: maps are data, `data/maps/<id>.json` (format in README → Maps): `farm` (only doors and
+  spawns; ground and buildings stay FarmGrid's), `house` (8 x 7: packed-earth entry, wooden
+  step, tatami room, futon, low round table, tansu chest, andon lantern) and `town` (36 x 22:
+  east-west road from the farm gate, a gravel shrine yard with a hokora, stone lanterns and a
+  vermilion torii over the path, four kawara-roof houses, one with a noren, pines, a pond).
+  `MapData` (parse and check a file: cells, solids, props with `blocks`, doors, spawns) and
+  `MapManager` (`Game.maps`: map id, the farmer's pixels and facing, cached map files).
+  Game: `map_changed` / `map_entered(map_id)` signals, `go_to_map()`, `use_door()`,
+  `map_arrived()` (the view calls it after the fade; the hook for event triggers),
+  `go_home()`, `indoors()`. Clock: `ticking()` is false indoors (DESIGN: time stops in
+  buildings); `paused()` is not, so the farmer still walks. A door is a solid cell (or cells
+  just off the edge): walking into it or using it goes through; doors without a target show
+  a message (the village houses, nobody lives there yet). The farm house door now leads in;
+  sleeping moved to the futon; every new day (sleep, pass out, collapse) starts in the house
+  by the futon. The farm's right fence has a two-cell gate to the village (fence cells left
+  open in both views, FarmGrid and old saves unchanged). Arriving on a farm cell where a weed
+  grew pushes it aside. Player: collision through `Game.maps.is_solid`, writes its position
+  to `Game.maps`, sends "enter" when pushing into a door; tools do nothing off the farm.
+  Views: main_3d / main_2d rebuild the world (FarmWorld, or the new MapWorld / MapView) on
+  `map_changed` behind `MapFade` (0.25 s each way, holds a Game pause, lets go if the scene
+  is left mid-fade). Indoors: fixed warm room light, no weather particles or lightning, dark
+  background, camera centred on a small room; front walls drawn as low sills (cutaway) so the
+  fixed camera needs no change. Sound: ambient rules take `places` (missing = outdoor), with
+  muffled rain / storm wind indoors; new sounds `step_floor` (tatami / boards) and
+  `door_slide`. New placeholder tiles `ground:tatami|floor|earth|gravel|wall` and
+  `build:quilt`. Save: `map` {id, x, y, facing} checked on load; a save without it loads on
+  the farm at the house door. Debug flag `-- --map=<id>` or `<id>@<spawn>` (`town@shrine`,
+  `farm@gate`).
+- Checked: `test_farm`, `test_save` (map round trip, load emits `map_changed`, loaded indoors
+  the clock stands, refused broken map entries, old save loads on the farm), `test_title`,
+  `test_weather`, `test_dialogue`, `test_menu`, `test_body`, `test_audio` and the new
+  `test_maps` (every map file loads, doors lead to known maps onto free cells and have a way
+  back, broken maps refused, house / town cells and torii posts, pond banks, ambient by place,
+  clock stops indoors and runs outside, locked doors, day end at home, futon sleeps, no tools
+  indoors, walking into the door, and the real 3D scene: fade holds the pause, rebuilds as the
+  house, `map_entered` after the fade, no pause left) all print `OK (0 failed)`. Headless
+  `--quit-after 300`: title, `-- --demo`, `-- --demo --map=town`, `-- --demo --map=house`,
+  `-- --demo --weather=storm --map=town`, and main_2d with house / town / farm printed no
+  errors. Movie Maker frames: `--map=house` (tatami room, futon, table, chest, lantern, cut
+  walls), `--map=town` and `town@shrine` (road, houses, torii, gravel yard, pine),
+  `farm@gate` (the gap in the right fence).
+- Left / next: no snow lying in the village or on its roofs yet (SnowLayer is farm-only); the
+  village ground is open grass with no fence at its edges; the fade and walking through doors
+  were checked headless and in code, not played in a window. Village doors open once
+  villagers and shops exist (milestone 5).
+
 ## 2026-10-31 — Event scripts and trigger tables per map
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: events are data in `data/events/<id>.json`, a list of steps: say (a dialogue from

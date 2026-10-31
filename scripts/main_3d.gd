@@ -1,6 +1,7 @@
 extends Node3D
 ## The main view: a 3D farm seen through a fixed, diagonal, narrow camera that follows the
-## player, with the farmer and field objects as camera-facing sprites.
+## player, with the farmer and field objects as camera-facing sprites. Other maps (the house,
+## the village) are MapWorlds; a change of map fades out, rebuilds the world and fades in.
 ##
 ## Camera geometry is Harvest Moon: Back to Nature's field camera, measured in the RE project
 ## (REA-Harvest_moon_ps1 NOTES.md "Ground truth: ePSXe save state" / "Camera"): rotation yaw 45°,
@@ -23,20 +24,17 @@ var cam: Camera3D
 var tint: ColorRect
 var weather: WeatherFX
 var world: FarmWorld
+var env: Environment
 var flash: ColorRect
+var fade: MapFade
 var lightning := Lightning.new()
 
 
 func _ready() -> void:
-	world = FarmWorld.new()
-	add_child(world)
-	world.setup(Game.farm)
-
 	# The player's movement / collision is the 2D Player (in cell pixels), kept invisible;
 	# the 3D sprite follows it.
 	player = Player.new()
 	player.farm = Game.farm
-	player.position = FarmActions.HOME
 	player.visible = false
 	player.action.connect(FarmActions.on_action)
 	add_child(player)
@@ -72,7 +70,7 @@ func _ready() -> void:
 	add_child(cam)
 	cam.make_current()
 
-	var env := Environment.new()
+	env = Environment.new()
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color("8fc6e8")
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
@@ -112,15 +110,49 @@ func _ready() -> void:
 	layer.add_child(flash)
 	add_child(layer)
 	add_child(Hud.new())
+	fade = MapFade.new()
+	add_child(fade)
 	add_child(TextBox.new())
 	add_child(PauseScreen.new())
 	add_child(EventPlayer.new(player))   # after the Player: moves it during events
 
 	Game.minute_passed.connect(_update_tint)
 	Game.day_started.connect(_on_day_started)
+	Game.map_changed.connect(func(_id): fade.run(_enter_map))
 	Game.settings_changed.connect(func(): lightning.reset(Game.lightning_style()))
+	_enter_map()
+	Game.map_arrived()
+
+
+## Builds the world for Game.maps and puts the farmer where it says.
+func _enter_map() -> void:
+	if world != null:
+		world.queue_free()
+	var m := Game.maps.current()
+	if Game.maps.on_farm():
+		world = FarmWorld.new()
+		world.setup(Game.farm, m.gate_cells())
+	else:
+		world = MapWorld.new()
+		(world as MapWorld).build(m)
+	add_child(world)
+	move_child(world, 0)
+	player.farm = Game.farm
+	player.position = Game.maps.pos
+	player.facing = Game.maps.facing
+	player.cancel_charge()
+	env.background_color = m.background
+	target_mark.visible = Game.maps.on_farm()
+	_show_weather()
 	_update_tint()
 	_follow()
+
+
+## Weather falls outdoors only; the farm ground shows the snow lying.
+func _show_weather() -> void:
+	weather.show_weather({} if Game.indoors() else Game.weather_style())
+	lightning.reset({} if Game.indoors() else Game.lightning_style())
+	world.set_snow(Game.snow_cover / 100.0)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -140,14 +172,21 @@ func _follow() -> void:
 	sprite.flip_h = FarmerAnim.is_mirrored(player.facing)
 	var tc := player.target_cell()
 	target_mark.position = Vector3(tc.x + 0.5, 0.02, tc.y + 0.5)
-	_show_charge()
+	if Game.maps.on_farm():
+		_show_charge()
 
-	var target := Vector3(
-		clampf(feet.x, CAM_MARGIN.x, FarmGrid.W - CAM_MARGIN.x), 0,
-		clampf(feet.z, CAM_MARGIN.y, FarmGrid.H - CAM_MARGIN.y))
+	var m := Game.maps.current()
+	var target := Vector3(_clamp_view(feet.x, CAM_MARGIN.x, m.w), 0, _clamp_view(feet.z, CAM_MARGIN.y, m.h))
 	cam.position = target + CAM_BACK * CAM_DIST
 	cam.look_at(target, Vector3.UP)
 	weather.follow(target)
+
+
+## The camera target kept `margin` inside a map side of `size`; a small room stays centred.
+static func _clamp_view(v: float, margin: float, size: int) -> float:
+	if size <= margin * 2:
+		return size / 2.0
+	return clampf(v, margin, size - margin)
 
 
 ## While a tool charges: the brackets cover the whole area and pips count the steps.
@@ -172,13 +211,10 @@ func _show_charge() -> void:
 			PlaceholderArt.charge_key(player.charge, Game.max_charge(Game.current_tool())))
 
 
+## The farmer is put home by the map change (Game.go_home) that comes with the new day.
 func _on_day_started() -> void:
-	player.position = FarmActions.HOME
-	player.facing = Vector2i.DOWN
 	player.cancel_charge()
-	weather.show_weather(Game.weather_style())
-	lightning.reset(Game.lightning_style())
-	world.set_snow(Game.snow_cover / 100.0)
+	_show_weather()
 	_update_tint()
 
 
@@ -190,5 +226,7 @@ func _update_flash(delta: float) -> void:
 	flash.color = Color(sky.r, sky.g, sky.b, 1.0)
 
 
+## Day / night light outdoors; a room has its own steady lamp light.
 func _update_tint() -> void:
-	tint.color = Game.light_color()
+	var m := Game.maps.current()
+	tint.color = m.light if m.light != null else Game.light_color()

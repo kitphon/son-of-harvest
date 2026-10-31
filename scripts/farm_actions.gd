@@ -7,14 +7,28 @@ const T := 16
 const HOME := Vector2(4 * T + 8, 4 * T + 10)   # in front of the door, in player pixels
 
 
+## kind "enter" = the farmer walked into a door cell `origin + facing`.
 static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge := 0) -> void:
-	if kind == "interact":
+	if kind == "interact" or kind == "enter":
 		interact(origin + facing)
 	else:
 		use_tool(origin, facing, charge)
 
 
+## Using what is in front: a door first (on any map), then the map's props, or on the farm
+## the bin, the seed stand and ripe crops.
 static func interact(c: Vector2i) -> void:
+	var door := Game.maps.door_at(c)
+	if not door.is_empty():
+		if door.to != "":
+			Sfx.play("door_slide")
+		Game.use_door(door)
+		return
+	if not Game.maps.on_farm():
+		match str(Game.maps.current().prop_at(c).get("use", "")):
+			"sleep":
+				Game.sleep()
+		return
 	var farm := Game.farm
 	match farm.fixed_at(c):
 		"bin":
@@ -24,8 +38,6 @@ static func interact(c: Vector2i) -> void:
 				Game.message.emit("Put %d G of crops in the bin" % got)
 			else:
 				Game.talk("bin_note")   # nothing to ship: read the note on the lid
-		"door":
-			Game.sleep()
 		"stand":
 			buy_seeds()
 		_:
@@ -53,6 +65,8 @@ static func buy_seeds() -> void:
 ## A tool from the farmer's cell `origin` towards `facing`. `charge` is the charge step the
 ## button was held to; it picks the area and the stamina cost from data/tools.json.
 static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
+	if not Game.maps.on_farm():
+		return   # tools only work on the farm for now
 	var farm := Game.farm
 	var tool := Game.current_tool()
 	var c := origin + facing

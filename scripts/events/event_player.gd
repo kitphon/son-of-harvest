@@ -32,16 +32,17 @@ func _ready() -> void:
 	Game.event_requested.connect(play)
 	Game.day_started.connect(func(): check.call_deferred("day_start"))
 	Game.minute_passed.connect(func(): check("minute"))
+	Game.map_entered.connect(enter_map)   # after each map change's fade (and the view's start)
 	var args := OS.get_cmdline_user_args()
 	_auto = not "--demo" in args
-	enter_map(map_id)
+	map_id = Game.maps.id
+	table = EventTriggers.open(map_id)
 	for arg in args:
 		if arg.begins_with("--event="):   # e.g. `-- --demo --event=first_morning`
 			play.call_deferred(arg.trim_prefix("--event="))
 
 
-## The farmer arrived on map `id`: its trigger table, then the "enter" check. Map switching
-## calls this with the new map's id.
+## The farmer arrived on map `id` (Game.map_entered): its trigger table, then the "enter" check.
 func enter_map(id: String) -> void:
 	map_id = id
 	table = EventTriggers.open(id)

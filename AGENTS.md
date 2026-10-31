@@ -44,8 +44,10 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `test_menu: OK (0 failed)`. Fatigue (tired states, oversleeping, collapse):
   `res://tests/test_body.gd` must print `test_body: OK (0 failed)`. Events (runner, trigger
   tables, event data): `res://tests/test_events.gd` must print `test_events: OK (0 failed)`.
+  Maps (data/maps, doors, indoor clock, the fade in the real view): `res://tests/test_maps.gd`
+  must print `test_maps: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
-  the same with `-- --demo` (the field).
+  the same with `-- --demo` (the field) and `-- --demo --map=town` (the village).
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
   --fixed-fps 30 --quit-after 20 -- --demo` writes `shots/frameNNNNNNNN.png` (git-ignored). `--demo`
   starts at 10:00 with planted plots (without `--demo` the frame shows the title screen);
@@ -54,7 +56,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `data/dialogue`, `--pause` (or `--pause=settings`) to open the pause menu, `--tired` to start
   exhausted (tired pose, slow walk), `--event=<id>` to play an event from `data/events`
   (`--demo` turns the trigger tables off, so plain demo frames have no events; to see a
-  trigger fire, run `res://scenes/main.tscn` as the scene argument without `--demo`). Create `shots/` first. Look at the last frame. Delete
+  trigger fire, run `res://scenes/main.tscn` as the scene argument without `--demo`),
+  `--map=<id>` (or `<id>@<spawn>`, e.g. `town@shrine`, `farm@gate`) to start on another map
+  from `data/maps`. Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
 - Audio (sound and music data, synthesis, keys used in code, ambient and music pickers): `res://tests/test_audio.gd`
   must print `test_audio: OK (0 failed)`. Headless runs and Movie Maker runs start no sound

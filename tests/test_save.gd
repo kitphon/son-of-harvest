@@ -50,13 +50,15 @@ func _init() -> void:
 	a.tool_exp.hoe = 950
 	a.tool_exp.axe = 12
 	a.events_seen = {"first_morning": true, "pond_first": true}
+	a.maps.place("house", Vector2i(3, 2), Vector2i.LEFT)
 	var saved: Dictionary = a.to_dict()
 	check(SaveGame.write(a, PATH) == "", "write save")
 
 	# Load into a different new game; the same FarmGrid object is filled in place.
 	var b: Node = _game(game_script, crops, 99)
 	var grid: FarmGrid = b.farm
-	var seen := {"cells": 0, "day": 0, "changed": 0}
+	var seen := {"cells": 0, "day": 0, "changed": 0, "map": []}
+	b.map_changed.connect(func(id): seen.map.append(id))
 	grid.cells_changed.connect(func(): seen.cells += 1)
 	b.day_started.connect(func(): seen.day += 1)
 	b.changed.connect(func(): seen.changed += 1)
@@ -78,6 +80,9 @@ func _init() -> void:
 	check(b.flags == a.flags and typeof(b.flags.times_asked) == TYPE_INT, "dialogue flags back %s" % b.flags)
 	check(b.fatigue == 63, "fatigue back")
 	check(b.events_seen == a.events_seen and saved.events_seen == ["first_morning", "pond_first"], "seen events back %s" % b.events_seen)
+	check(b.maps.id == "house" and b.maps.pos == MapManager.cell_pos(Vector2i(3, 2)) and b.maps.facing == Vector2i.LEFT, "map and position back")
+	check(seen.map == ["house"], "load moves the views to the saved map %s" % [seen.map])
+	check(not b.ticking(), "loaded indoors: the clock stands")
 	# The loaded farm keeps working by the rules.
 	grid.water_cell(Vector2i(4, 10))
 	grid.day_end("spring", "sunny", rng)
@@ -98,7 +103,9 @@ func _init() -> void:
 			["tool_exp", {"hoe": 1 << 40}], ["tool_exp", {"seeds": 1}], ["snow_cover", 101], ["snow_cover", "deep"],
 			["flags", [1]], ["flags", {"x": 2.5}], ["flags", {"x": [true]}], ["flags", {"": true}], ["flags", {"x": null}],
 			["fatigue", -1], ["fatigue", 101], ["fatigue", 2.5], ["fatigue", "lots"],
-			["events_seen", {"x": true}], ["events_seen", [1]], ["events_seen", [""]], ["events_seen", ["a", "a"]]]:
+			["events_seen", {"x": true}], ["events_seen", [1]], ["events_seen", [""]], ["events_seen", ["a", "a"]],
+			["map", "house"], ["map", {"id": "moon", "x": 8, "y": 8, "facing": [0, 1]}],
+			["map", {"id": "house", "x": -1, "y": 8, "facing": [0, 1]}], ["map", {"id": "house", "x": 8, "y": 8, "facing": [2, 0]}]]:
 		var d := saved.duplicate(true)
 		d[broken[0]] = broken[1]
 		_put(JSON.stringify({"version": 1, "game": d}))
@@ -157,6 +164,13 @@ func _init() -> void:
 	_put(JSON.stringify({"version": 1, "game": old}))
 	err = SaveGame.read(b, PATH)
 	check(err == "" and b.events_seen == {}, "save without events_seen loads with none (%s)" % err)
+	# A save from before maps loads on the farm, in front of the house door.
+	old = saved.duplicate(true)
+	old.erase("map")
+	_put(JSON.stringify({"version": 1, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.maps.id == "farm" and b.maps.pos == MapManager.cell_pos(Vector2i(4, 4)) and b.maps.facing == Vector2i.DOWN,
+		"save without a map loads on the farm (%s)" % err)
 
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
 	a.free()

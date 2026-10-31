@@ -32,7 +32,7 @@ Save / load, the title menu, weather, dialogue and events: the same with `res://
 | --- | --- |
 | WASD / arrows | walk along the field's axes (Up = diagonally away from the camera); Shift = run |
 | Space / J | use the tool on the cell in front; hold to charge (pips over the farmer), let go for a bigger area; tools level up with use (pips in the item box) |
-| E / K | interact: harvest, ship at the bin (with nothing to ship: read the note on it), buy seeds at the stand, sleep at the door |
+| E / K | interact: harvest, ship at the bin (with nothing to ship: read the note on it), buy seeds at the stand, go through doors (walking into one works too), sleep at the futon in the house |
 | E / Space / Enter, click | in a text box: show the whole line, then go on; arrows / W / S or the mouse pick a choice |
 | 1-6 / Tab | pick a tool: hoe, watering can, sickle, hammer, axe, seeds |
 | Q | next seed type (for sowing and for buying) |
@@ -82,6 +82,28 @@ The icon is drawn in code by `tools/make_icon.gd` (a sprout over field rows, 16 
 scaled up); it writes `icon.png` (project icon) and `icon.ico` (16 to 256 px, for the exe):
 
     Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tools/make_icon.gd
+
+## Maps
+Maps live in `data/maps/<id>.json`: the farm (`farm`, its ground and buildings stay
+FarmGrid's, so the file only adds doors and spawns), the farmhouse inside (`house`) and the
+village (`town`). A file has `id`, `size` [w, h], `indoor` (the clock stands still inside, as
+DESIGN asks for every building), `ambient` (which `places` of the ambient rules in
+`data/sfx.json` apply), optional `light` (a fixed room light instead of day / night) and
+`background`, then:
+- `legend` + `ground`: one row of characters per map row; each character is
+  `{tile, solid?, step?}` (tile = a `ground:<kind>` placeholder, step = footstep sound kind);
+- `props`: `{kind, cell, size?, solid? (default true), blocks? (only these cell offsets
+  block), use?}`; `use: "sleep"` is the futon. Their 3D looks are in `scripts/world3d/map_world.gd`;
+- `doors`: `{cells, to, spawn, facing}`, or `{cells, message}` for a door that only says
+  something (village houses, no villagers yet). Door cells are solid; walking into one, or
+  using it, goes through. Cells just off the edge make a walk-off exit; on the farm
+  `gate: true` leaves those fence cells open in the drawing;
+- `spawns`: named `[cell, facing]`, `start` needed (`--map=<id>@<spawn>`), the house has
+  `home` (where a new day starts).
+
+`Game.maps` (MapManager) holds the map, the farmer's position and facing (saved);
+`Game.go_to_map()` changes it and emits `map_changed` (the views fade, rebuild, place the
+farmer), and once the picture is back `map_entered(map_id)`, the hook for event triggers.
 
 ## Dialogue
 Dialogue lives in `data/dialogue/<id>.json`, opened with `Game.talk(id)` (or `-- --dialogue=<id>`
@@ -142,7 +164,9 @@ map's id.
 `scripts/main_3d.gd` uses the field camera geometry of Harvest Moon: Back to Nature, measured
 in the reverse-engineering project: yaw 45°, pitch 26.6°, the player 25.2 cells from the eye,
 vertical FOV 13.7° (a long, narrow lens, so the view looks nearly isometric). The camera
-follows the player with no lag and stops a few cells inside the fence.
+follows the player with no lag and stops a few cells inside the fence (or the map edge;
+a room smaller than that stays centred). Inside, the same camera looks in from the front
+corner, so the front walls are drawn as low sills (a cutaway) instead of moving the camera.
 
 ## Layout
 - `scripts/autoload/game.gd`: global state (clock, calendar, weather, money, bag, stamina, light).
@@ -151,6 +175,9 @@ follows the player with no lag and stops a few cells inside the fence.
 - `scripts/main_3d.gd` + `scripts/world3d/farm_world.gd`: the 3D view (ground texture, sprites,
   building boxes, camera). `scripts/main_2d.gd` + `scripts/farm/farm_view.gd`: the 2D view;
   FarmView also draws the 3D ground texture.
+- `scripts/world/map_data.gd` + `map_manager.gd`: maps from `data/maps` (cells, props, doors)
+  and where the farmer is; `scripts/world/map_view.gd` / `scripts/world3d/map_world.gd` draw
+  maps other than the farm; `scripts/ui/map_fade.gd`: the fade between maps.
 - `scripts/player/player.gd`: movement and collision (the 3D view hides it and follows it).
 - `scripts/art/placeholder_art.gd`: pixel sprites made in code until there is real art.
 - `scripts/world3d/farmer_anim.gd`: picks the farmer's frame (pose, facing, mirror, timing).

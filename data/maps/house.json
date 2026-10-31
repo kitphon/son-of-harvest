@@ -1,0 +1,111 @@
+{
+	"_note": "The farmhouse inside: a packed-earth entry (doma) by the door, a step of wooden floor, then the tatami room with the futon, a low table, a chest and a paper lantern. The clock stands still in here. Format: README.md, Maps.",
+	"id": "house",
+	"name": "Farmhouse",
+	"size": [
+		8,
+		7
+	],
+	"indoor": true,
+	"ambient": "indoor",
+	"light": "fff0dc",
+	"background": "1a1410",
+	"legend": {
+		"#": {
+			"tile": "wall",
+			"solid": true
+		},
+		".": {
+			"tile": "tatami",
+			"step": "floor"
+		},
+		"w": {
+			"tile": "floor",
+			"step": "floor"
+		},
+		"e": {
+			"tile": "earth",
+			"step": "soil"
+		},
+		"D": {
+			"tile": "earth",
+			"solid": true
+		}
+	},
+	"ground": [
+		"########",
+		"#......#",
+		"#......#",
+		"#......#",
+		"#wwwwww#",
+		"#eeeeee#",
+		"####D###"
+	],
+	"props": [
+		{
+			"kind": "futon",
+			"cell": [
+				1,
+				1
+			],
+			"size": [
+				1,
+				2
+			],
+			"use": "sleep"
+		},
+		{
+			"kind": "low_table",
+			"cell": [
+				3,
+				2
+			]
+		},
+		{
+			"kind": "tansu",
+			"cell": [
+				6,
+				1
+			]
+		},
+		{
+			"kind": "andon",
+			"cell": [
+				6,
+				3
+			]
+		}
+	],
+	"doors": [
+		{
+			"cells": [
+				[
+					4,
+					6
+				]
+			],
+			"to": "farm",
+			"spawn": [
+				4,
+				4
+			],
+			"facing": "down"
+		}
+	],
+	"spawns": {
+		"start": [
+			[
+				4,
+				5
+			],
+			"up"
+		],
+		"home": [
+			[
+				2,
+				2
+			],
+			"down"
+		]
+	}
+}

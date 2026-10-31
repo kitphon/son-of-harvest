@@ -50,10 +50,19 @@ func _physics_process(delta: float) -> void:
 			facing = Vector2i(0, int(signf(dir.y)))
 		var speed := (RUN_SPEED if running else WALK_SPEED) * Game.speed_factor()
 		var step := dir * speed * delta
-		_try_move(Vector2(step.x, 0))   # one axis at a time, so walls slide
-		_try_move(Vector2(0, step.y))
-		Sfx.walk(step.length(), farm, cell_of(position))
+		var moved_x := _try_move(Vector2(step.x, 0))   # one axis at a time, so walls slide
+		var moved_y := _try_move(Vector2(0, step.y))
+		Game.maps.pos = position
+		Game.maps.facing = facing
+		var cell := cell_of(position)
+		Sfx.walk(step.length(), farm if Game.maps.on_farm() else null, cell, Game.maps.step_at(cell))
 		queue_redraw()
+		# Walking into a door (or off the map at an exit) goes through it.
+		var pushed := not moved_x if facing.x != 0 else not moved_y
+		var ahead := cell_of(position + Vector2(facing) * (FEET + Vector2.ONE))
+		if pushed and not Game.maps.door_at(ahead).is_empty():
+			action.emit("enter", ahead - facing, facing, 0)
+			return
 	if Input.is_action_just_pressed("use_tool"):
 		if Game.max_charge(Game.current_tool()) > 0:
 			charging = true
@@ -108,18 +117,20 @@ func target_cell() -> Vector2i:
 	return cell_of(position) + facing
 
 
-func _try_move(d: Vector2) -> void:
+## Moves by `d` unless a corner of the feet would end on a solid cell; false when blocked.
+func _try_move(d: Vector2) -> bool:
 	var np := position + d
 	for corner in [Vector2(-FEET.x, -FEET.y), Vector2(FEET.x, -FEET.y),
 			Vector2(-FEET.x, FEET.y), Vector2(FEET.x, FEET.y)]:
-		if farm.is_solid(cell_of(np + corner)):
-			return
+		if Game.maps.is_solid(cell_of(np + corner), farm):
+			return false
 	position = np
+	return true
 
 
 func _draw() -> void:
-	# Target cell outline; while charging, every cell of the charge's area and the pips.
-	for tc in area_preview() if charging else [target_cell()]:
+	# Target cell outline (on the farm); while charging, every cell of the charge's area and the pips.
+	for tc in (area_preview() if charging else [target_cell()]) if Game.maps.on_farm() else []:
 		draw_rect(Rect2(Vector2(tc * T) - position, Vector2(T, T)), Color(1, 1, 1, 0.6), false, 1.0)
 	if charging:
 		var pips := PlaceholderArt.tex(PlaceholderArt.charge_key(charge, Game.max_charge(_charge_tool)))

@@ -1,13 +1,17 @@
 class_name AmbientPicker
 extends RefCounted
-## Which ambient loops play and how loud (0..1), from today's weather look, the season and
-## the hour. Pure rules from data/sfx.json → "ambient"; the Sfx autoload cross-fades to them.
+## Which ambient loops play and how loud (0..1), from today's weather look, the season, the
+## hour and the kind of place (the map's "ambient": outdoor, indoor). Pure rules from
+## data/sfx.json → "ambient"; the Sfx autoload cross-fades to them.
 
 
 ## loop key -> level for the loops that should sound now (silent loops are left out).
-static func pick(rules: Array, look: String, season_id: String, hour: int) -> Dictionary:
+## A rule without "places" is for outdoors only.
+static func pick(rules: Array, look: String, season_id: String, hour: int, place := "outdoor") -> Dictionary:
 	var levels := {}
 	for r in rules:
+		if not (place in r.get("places", ["outdoor"])):
+			continue
 		if r.has("looks") and not (look in r.looks):
 			continue
 		if r.has("seasons") and not (season_id in r.seasons):

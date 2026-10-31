@@ -54,6 +54,12 @@
 		"step_snow": {"volume_db": -19, "pitch": [0.85, 1.15], "layers": [
 			{"kind": "noise", "lp": 1400, "hp": 250, "dur": 0.16, "attack": 0.02, "decay": 0.05, "gain": 0.5},
 			{"kind": "grains", "count": 14, "dur": 0.13, "hp": 900, "lp": 3500, "grain": 0.004}]},
+		"step_floor": {"volume_db": -19, "pitch": [0.85, 1.15], "layers": [
+			{"kind": "tone", "freq": 140, "partials": [[1, 1], [2.3, 0.3]], "dur": 0.12, "attack": 0.002, "decay": 0.03},
+			{"kind": "noise", "hp": 300, "lp": 1800, "dur": 0.06, "attack": 0.003, "decay": 0.015, "gain": 0.4}]},
+		"door_slide": {"volume_db": -14, "pitch": [0.95, 1.05], "layers": [
+			{"kind": "noise", "hp": 500, "lp": 2600, "dur": 0.32, "attack": 0.08, "decay": 0.08, "gain": 0.6},
+			{"kind": "tone", "freq": 190, "partials": [[1, 1], [2.7, 0.3]], "dur": 0.2, "at": 0.3, "attack": 0.002, "decay": 0.04, "gain": 0.7}]},
 		"thunder": {"volume_db": -9, "pitch": [0.8, 1.1], "delay": [1.5, 4.0], "layers": [
 			{"kind": "noise", "color": "brown", "lp": 160, "dur": 4.5, "attack": 0.35, "decay": 1.2, "trem": [[2.5, 0.5]]},
 			{"kind": "noise", "color": "brown", "lp": 300, "dur": 3.0, "at": 0.2, "attack": 0.1, "decay": 0.6, "gain": 0.6, "trem": [[4.0, 0.6]]}]},
@@ -74,7 +80,7 @@
 			{"kind": "tone", "freq": 4550, "dur": 4.0, "gate": [1.0, 0.12, 0.65], "trem": [[40, 1.0]], "gain": 0.4}]}
 	},
 	"ambient": {
-		"_about": "Which loops play, by weather look, season and hour. A rule matches when the look, the season and the hour [from, to) all fit (a missing list = any, from > to wraps past midnight); a loop's level is the highest matching rule. fade_seconds is the cross-fade.",
+		"_about": "Which loops play, by place (the map's ambient: outdoor / indoor; a missing places list = outdoor only), weather look, season and hour. A rule matches when the place, the look, the season and the hour [from, to) all fit (a missing list = any, from > to wraps past midnight); a loop's level is the highest matching rule. fade_seconds is the cross-fade.",
 		"fade_seconds": 4.0,
 		"rules": [
 			{"loop": "amb_rain", "looks": ["rain"], "level": 0.7},
@@ -83,7 +89,10 @@
 			{"loop": "amb_wind", "looks": ["snow"], "level": 0.3},
 			{"loop": "amb_cicadas", "looks": ["sunny"], "seasons": ["summer"], "hours": [7, 18], "level": 1.0},
 			{"loop": "amb_crickets", "looks": ["sunny"], "seasons": ["summer", "fall"], "hours": [19, 4], "level": 1.0},
-			{"loop": "amb_crickets", "looks": ["sunny"], "seasons": ["spring"], "hours": [20, 3], "level": 0.4}
+			{"loop": "amb_crickets", "looks": ["sunny"], "seasons": ["spring"], "hours": [20, 3], "level": 0.4},
+			{"loop": "amb_rain", "places": ["indoor"], "looks": ["rain"], "level": 0.3},
+			{"loop": "amb_rain", "places": ["indoor"], "looks": ["storm"], "level": 0.5},
+			{"loop": "amb_wind", "places": ["indoor"], "looks": ["storm", "blizzard"], "level": 0.4}
 		]
 	}
 }
