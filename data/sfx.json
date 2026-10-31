@@ -1,6 +1,6 @@
 {
 	"_about": "Our own sounds, made from these recipes at run time by scripts/audio/sfx_synth.gd. Per key: bus (SFX / Ambient), volume_db, pitch [min, max] (random per play), loop seconds for ambient loops, and layers mixed into one sound. Layer kinds: noise, tone, pluck, grains (see sfx_synth.gd). Every sound is normalized to the same peak, so volume_db sets the loudness.",
-	"buses": {"SFX": 0.8, "Ambient": 0.6},
+	"buses": {"SFX": 0.8, "Ambient": 0.6, "Music": 0.7},
 	"sounds": {
 		"tool_hoe": {"volume_db": -8, "pitch": [0.9, 1.1], "layers": [
 			{"kind": "noise", "color": "brown", "lp": 900, "dur": 0.2, "attack": 0.004, "decay": 0.06},

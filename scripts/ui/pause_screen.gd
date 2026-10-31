@@ -12,6 +12,7 @@ const WIDTH := 150
 const ROW_H := 13
 const TOP := 17             # the heading strip on the wood
 const PAPER := Color("f6ead0")
+const NOTCH := Vector2(3, 5)   # one slider step, px; a pixel apart
 
 var menu: PauseMenu
 var _open := false
@@ -20,6 +21,7 @@ var _wood: NinePatchRect
 var _paper: NinePatchRect
 var _heading: Label
 var _rows: Array[Label] = []
+var _notches: Dictionary = {}   # setting -> its slider's ColorRects
 var _mark: Label
 var _note: Label
 
@@ -82,6 +84,7 @@ func _build() -> void:
 	for r in _rows:
 		r.queue_free()
 	_rows.clear()
+	_notches.clear()
 	_heading.text = menu.heading()
 	for i in menu.list.items.size():
 		var item: String = menu.list.items[i]
@@ -91,6 +94,17 @@ func _build() -> void:
 		row.mouse_entered.connect(func(): if menu.list.point(item): _refresh())
 		row.gui_input.connect(_on_row_input.bind(item))
 		_rows.append(row)
+		var steps := menu.slider(item).y
+		if steps > 0:
+			var notches: Array[ColorRect] = []
+			for k in steps:
+				var c := ColorRect.new()
+				c.size = NOTCH
+				c.position = Vector2(row.size.x - 3 - (steps - k) * (NOTCH.x + 1), 3).floor()
+				c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				row.add_child(c)
+				notches.append(c)
+			_notches[item] = notches
 	var n := menu.list.items.size()
 	_paper.size = Vector2(WIDTH - 8, 8 + n * ROW_H + ROW_H)   # one line kept for the note
 	_note.position.y = 5 + n * ROW_H + 1
@@ -103,6 +117,10 @@ func _build() -> void:
 func _refresh() -> void:
 	for i in _rows.size():
 		_rows[i].text = menu.label(menu.list.items[i])
+	for item in _notches:
+		var filled := menu.slider(item).x
+		for k in _notches[item].size():
+			_notches[item][k].color = Hud.INK if k < filled else Color(Hud.INK_SOFT, 0.3)
 	_mark.position.y = 5 + menu.list.cursor * ROW_H
 
 

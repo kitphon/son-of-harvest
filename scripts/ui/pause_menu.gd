@@ -2,7 +2,8 @@ class_name PauseMenu
 extends RefCounted
 ## The pause menu's pages and choices, without any drawing (PauseScreen draws it, headless
 ## tests check it). Pages: "main" (Resume / Save / Settings / Back to title), "settings"
-## (one row per setting in data/settings.json, then Back) and "confirm" (save before going
+## (one row per setting in data/settings.json, then Back; ranges such as the volumes get a
+## slider) and "confirm" (save before going
 ## back to the title?). choose(), back() and adjust() change pages and settings themselves
 ## and return what the screen must do: "resume", "save", "setting" (a setting changed: apply
 ## and write it), "title", "save_title" (save, then the title), or "" for nothing.
@@ -52,6 +53,15 @@ func label(item: String) -> String:
 	if page == "confirm" and item == "title":
 		return "Go without saving"
 	return LABELS.get(item, item)
+
+
+## A range setting's slider: (steps filled, steps in all); (0, 0) for rows without one.
+func slider(item: String) -> Vector2i:
+	if page != "settings" or settings.spec.get(item, {}).get("kind") != "range":
+		return Vector2i.ZERO
+	var s: Dictionary = settings.spec[item]
+	var step := maxi(int(s.get("step", 1)), 1)
+	return Vector2i((int(settings.value(item)) - int(s.min)) / step, (int(s.max) - int(s.min)) / step)
 
 
 ## Enter / click on the row under the cursor.

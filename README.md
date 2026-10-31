@@ -50,6 +50,10 @@ Save / load, the title menu, weather and dialogue: the same with `res://tests/te
   (`scripts/audio/sfx_synth.gd`, no sound files). Tools, footsteps by ground, bin lid,
   payday coins, menu, a chime at 6:00; rain, storm wind and thunder after lightning,
   cicadas on summer days, crickets at night, cross-faded by weather / season / hour.
+- Music: our own short loops written as notes in `data/music.json` (five-note scales, koto /
+  shakuhachi / sho-like voices made by `scripts/audio/music_synth.gd`): a title theme, one
+  per season, night and rain, cross-faded by scene / weather / hour. Esc → Settings has
+  Music / Sounds / Ambient volume sliders.
 - Fatigue (hidden, data/body.json): rises with work in the rain or late at night, with staying
   up past 22:00 and with working on an empty stamina bar; only sleep lowers it, more the
   earlier you go to bed. Tired: the farmer slumps and sweats; exhausted: slower and can't run.
@@ -115,8 +119,9 @@ follows the player with no lag and stops a few cells inside the fence.
 - `scripts/dialogue/dialogue_runner.gd` + `scripts/ui/text_box.gd`: dialogue stepping (pure
   logic) and the text box that draws it.
 - `data/*.json`: crops and weather, tuned without touching code; `data/dialogue/`: dialogue.
-- `scripts/autoload/sfx.gd` (Sfx): plays sounds by key, SFX / Ambient busses with
-  `set_volume(bus, 0..1)`; `scripts/audio/ambient_picker.gd` picks the ambient loops.
+- `scripts/autoload/sfx.gd` (Sfx): plays sounds by key and the music, SFX / Ambient / Music
+  busses with `set_volume(bus, 0..1)` (set from the volume settings);
+  `scripts/audio/ambient_picker.gd` picks the ambient loops, `music_picker.gd` the track.
 - `tools/make_icon.gd`: draws the app icon; `export_presets.cfg`: the Windows build.
 
 ## Plan and handoff

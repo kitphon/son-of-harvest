@@ -1,6 +1,6 @@
 class_name Settings
 extends RefCounted
-## The player's settings (lightning flashes, window size, later volume), kept in their own
+## The player's settings (lightning flashes, window size, volumes), kept in their own
 ## file apart from the game save. Which settings there are, their kind and default come from
 ## data/settings.json, so a new one is only a data entry. Reading checks the whole file
 ## first: a broken file is refused and every setting stays at its default.
@@ -9,7 +9,7 @@ const VERSION := 1
 const PATH := "user://settings.json"
 const DATA := "res://data/settings.json"
 
-var spec: Dictionary = {}     # setting -> {label, kind, default, options | min, max, step}
+var spec: Dictionary = {}     # setting -> {label, kind, default, options | min, max, step, unit}
 var values: Dictionary = {}   # setting -> its value now
 
 
@@ -46,13 +46,13 @@ func value(key: String) -> Variant:
 	return values.get(key, default_value(key))
 
 
-## The value as the menu shows it: "On" / "Off", the option, or the number.
+## The value as the menu shows it: "On" / "Off", the option, or the number (with its unit).
 func value_text(key: String) -> String:
 	var v = value(key)
 	if v is bool:
 		return "On" if v else "Off"
-	if v is float:
-		return str(int(v))
+	if v is float or v is int:
+		return str(int(v)) + str(spec.get(key, {}).get("unit", ""))
 	return str(spec.get(key, {}).get("option_labels", {}).get(v, v))
 
 
@@ -93,6 +93,17 @@ func adjust(key: String, step: int, wrap := true) -> bool:
 			v = clampi(v, lo, hi)
 	values[key] = v
 	return v != old
+
+
+## Bus volumes 0..1 (for Sfx.set_volume): every range setting with a "bus", scaled by its range.
+func bus_volumes() -> Dictionary:
+	var out := {}
+	for key in spec:
+		var s: Dictionary = spec[key]
+		if s.has("bus") and s.get("kind") == "range":
+			var lo := float(s.min)
+			out[s.bus] = clampf((float(value(key)) - lo) / maxf(float(s.max) - lo, 1.0), 0.0, 1.0)
+	return out
 
 
 func to_dict() -> Dictionary:
