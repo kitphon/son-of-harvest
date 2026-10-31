@@ -6,10 +6,16 @@ extends RefCounted
 ## Each action has a few key slots. Binding a key that another action has swaps the two
 ## (that action gets the old key back), so no key ever starts two actions. apply() puts the
 ## keys into the InputMap. Keys are physical keys, so a layout change doesn't move them.
+## Each action also has one pad button slot (default "pad" in data), rebound the same way
+## (bind_pad swaps with the action that had the button); "pad_fixed" buttons (Start on
+## Pause) and the left stick's direction on the move actions always stay where data puts them.
 
 const DATA := "res://data/controls.json"
 const CANCEL := KEY_ESCAPE   # always cancels a rebind, never bound to anything else
 const SHORT_NAMES := {KEY_ESCAPE: "Esc", KEY_NONE: "-"}
+const NO_BUTTON := JOY_BUTTON_INVALID   # an empty pad slot
+const STICK := {"up": Vector2i(JOY_AXIS_LEFT_Y, -1), "down": Vector2i(JOY_AXIS_LEFT_Y, 1),
+	"left": Vector2i(JOY_AXIS_LEFT_X, -1), "right": Vector2i(JOY_AXIS_LEFT_X, 1)}
 const PAD_BUTTONS := {
 	"a": JOY_BUTTON_A, "b": JOY_BUTTON_B, "x": JOY_BUTTON_X, "y": JOY_BUTTON_Y,
 	"back": JOY_BUTTON_BACK, "guide": JOY_BUTTON_GUIDE, "start": JOY_BUTTON_START,
@@ -21,8 +27,10 @@ const PAD_BUTTONS := {
 
 var slots := 2
 var order: Array[String] = []   # actions in menu order
-var spec: Dictionary = {}       # action -> {label, keys (default key codes), fixed (key codes), pad}
+var spec: Dictionary = {}       # action -> {label, keys (default key codes), fixed (key codes), pad, pad_fixed, stick}
 var bound: Dictionary = {}      # action -> key code per slot (KEY_NONE = empty slot)
+var pad_bound: Dictionary = {}  # action -> its pad button (NO_BUTTON = none)
+var pad_names: Dictionary = {}  # pad button -> how the menu shows it
 
 
 ## `tools` are the tool ids for the "pick tool N" actions; empty = Game.TOOLS.
@@ -35,18 +43,21 @@ static func make(path := DATA, tools: Array = []) -> Controls:
 	c.slots = maxi(int(data.get("slots", 2)), 1)
 	for a in data.get("actions", []):
 		if a is Dictionary and a.has("id"):
-			c._add(str(a.id), str(a.get("label", a.id)), a.get("keys", []), a.get("fixed", []), a.get("pad", []))
+			c._add(str(a.id), str(a.get("label", a.id)), a.get("keys", []), a.get("fixed", []),
+				str(a.get("pad", "")), a.get("pad_fixed", []), str(a.get("stick", "")))
 	if tools.is_empty():
 		tools = load("res://scripts/autoload/game.gd").get_script_constant_map().get("TOOLS", [])
 	var tool_keys: Array = data.get("tool_keys", [])
 	for i in tools.size():
 		var label: String = str(data.get("tool_label", "Tool %d: %s")) % [i + 1, str(tools[i]).capitalize()]
-		c._add("tool_%d" % (i + 1), label, [tool_keys[i]] if i < tool_keys.size() else [], [], [])
+		c._add("tool_%d" % (i + 1), label, [tool_keys[i]] if i < tool_keys.size() else [], [], "", [], "")
+	for id in PAD_BUTTONS:
+		c.pad_names[PAD_BUTTONS[id]] = str(data.get("pad_names", {}).get(id, id))
 	c.reset()
 	return c
 
 
-func _add(action: String, label: String, keys: Array, fixed: Array, pad: Array) -> void:
+func _add(action: String, label: String, keys: Array, fixed: Array, pad: String, pad_fixed: Array, stick: String) -> void:
 	var codes := []
 	for k in keys.slice(0, slots):
 		codes.append(key_code(str(k)))
@@ -54,16 +65,27 @@ func _add(action: String, label: String, keys: Array, fixed: Array, pad: Array) 
 	for k in fixed:
 		fixed_codes.append(key_code(str(k)))
 	var buttons := []
-	for b in pad:
+	for b in pad_fixed:
 		if PAD_BUTTONS.has(b):
 			buttons.append(PAD_BUTTONS[b])
 	order.append(action)
-	spec[action] = {"label": label, "keys": codes, "fixed": fixed_codes, "pad": buttons}
+	spec[action] = {"label": label, "keys": codes, "fixed": fixed_codes, "pad": button_of(pad),
+		"pad_fixed": buttons, "stick": STICK.get(stick)}
 
 
 ## A key name ("W", "Shift", "F5") as its key code; KEY_NONE for "" or an unknown name.
 static func key_code(name: String) -> int:
 	return OS.find_keycode_from_string(name) if name != "" else KEY_NONE
+
+
+## A pad button's id in data ("a", "dpad_up") as its button; NO_BUTTON for "" or an unknown id.
+static func button_of(id: String) -> int:
+	return PAD_BUTTONS.get(id, NO_BUTTON)
+
+
+## The pad button as the menu shows it ("-" for an empty slot).
+func pad_name(button: int) -> String:
+	return pad_names.get(button, "-")
 
 
 ## The key as the menu shows it ("-" for an empty slot).
@@ -91,8 +113,10 @@ func keys(action: String) -> Array:
 
 func reset() -> void:
 	bound = {}
+	pad_bound = {}
 	for action in order:
 		bound[action] = _defaults(action)
+		pad_bound[action] = spec[action].pad
 
 
 func _defaults(action: String) -> Array:
@@ -169,7 +193,95 @@ func clear(action: String, slot: int) -> String:
 	return ""
 
 
-## Puts the keys (and the pad buttons from data) into the InputMap, replacing what was there.
+# --- pad buttons ----------------------------------------------------------------
+
+func pad_button(action: String) -> int:
+	return pad_bound.get(action, NO_BUTTON)
+
+
+## A button that can't be bound: none, or one data keeps on an action (Start on Pause).
+func is_pad_reserved(button: int) -> bool:
+	if button == NO_BUTTON or not pad_names.has(button):
+		return true
+	for action in order:
+		if spec[action].pad_fixed.has(button):
+			return true
+	return false
+
+
+## The action that has this pad button, or "".
+func pad_owner(button: int) -> String:
+	for action in order:
+		if spec[action].pad_fixed.has(button) or (button != NO_BUTTON and pad_bound[action] == button):
+			return action
+	return ""
+
+
+## Puts the pad button on the action. Returns {done, other, reason} like bind(): another
+## action that had it gets this one's old button (or none); a reserved button is refused.
+## A pad slot may be empty (the keys still work), so there is no "last_key" here.
+func bind_pad(action: String, button: int) -> Dictionary:
+	var out := {"done": false, "other": "", "reason": ""}
+	if not pad_bound.has(action):
+		out.reason = "unknown"
+		return out
+	if is_pad_reserved(button):
+		out.reason = "reserved"
+		out.other = pad_owner(button)
+		return out
+	var other := pad_owner(button)
+	if other != "" and other != action:
+		pad_bound[other] = pad_bound[action]
+		out.other = other
+	pad_bound[action] = button
+	out.done = true
+	return out
+
+
+## Empties the action's pad slot. Returns "" when done, "empty" when there was nothing.
+func clear_pad(action: String) -> String:
+	if pad_button(action) == NO_BUTTON:
+		return "empty"
+	pad_bound[action] = NO_BUTTON
+	return ""
+
+
+## For the settings file: action -> pad button id ("" = none).
+func pad_to_dict() -> Dictionary:
+	var out := {}
+	for action in order:
+		out[action] = PAD_BUTTONS.find_key(pad_bound[action]) if pad_bound[action] != NO_BUTTON else ""
+	return out
+
+
+## Takes the pad buttons from the settings file. Returns "" or what was wrong; on a problem
+## nothing changes. Like from_dict: a missing action keeps its default unless the file gave
+## that button to another action; an unknown action is skipped.
+func pad_from_dict(saved: Variant) -> String:
+	if not saved is Dictionary:
+		return "The saved pad buttons are broken"
+	var n := {}
+	var taken := {}
+	for action in order:
+		if not saved.has(action):
+			continue
+		var id = saved[action]
+		var button: int = button_of(id) if id is String else NO_BUTTON
+		if not id is String or (id != "" and is_pad_reserved(button)):
+			return "The pad button for %s is broken" % action
+		if button != NO_BUTTON:
+			if taken.has(button):
+				return "Two actions share the pad button %s" % pad_name(button)
+			taken[button] = action
+		n[action] = button
+	for action in order:
+		if not n.has(action):
+			n[action] = NO_BUTTON if taken.has(spec[action].pad) else spec[action].pad
+	pad_bound = n
+	return ""
+
+
+## Puts the keys and pad buttons into the InputMap, replacing what was there.
 func apply() -> void:
 	for action in order:
 		if not InputMap.has_action(action):
@@ -180,9 +292,15 @@ func apply() -> void:
 				var ev := InputEventKey.new()
 				ev.physical_keycode = k
 				InputMap.action_add_event(action, ev)
-		for b in spec[action].pad:
-			var ev := InputEventJoypadButton.new()
-			ev.button_index = b
+		for b in spec[action].pad_fixed + [pad_bound[action]]:
+			if b != NO_BUTTON:
+				var ev := InputEventJoypadButton.new()
+				ev.button_index = b
+				InputMap.action_add_event(action, ev)
+		if spec[action].stick != null:
+			var ev := InputEventJoypadMotion.new()
+			ev.axis = spec[action].stick.x
+			ev.axis_value = spec[action].stick.y
 			InputMap.action_add_event(action, ev)
 
 

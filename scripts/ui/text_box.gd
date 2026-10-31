@@ -70,6 +70,7 @@ func open(id: String, at := "") -> void:
 		return
 	if r.done():
 		return
+	r.set_speed(Game.text_speed)
 	runner = r
 	Game.dialogue_open = true
 	_catch.visible = true

@@ -1,12 +1,15 @@
 class_name Settings
 extends RefCounted
-## The player's settings (lightning flashes, window size, volumes), kept in their own
+## The player's settings (display, window size, v-sync, flashes, text speed, volumes...), kept in their own
 ## file apart from the game save. Which settings there are, their kind and default come from
 ## data/settings.json, so a new one is only a data entry. Reading checks the whole file
 ## first: a broken file is refused and every setting stays at its default. The player's keys
-## (Controls, data/controls.json) are kept in the same file under "controls".
+## (Controls, data/controls.json) are kept in the same file under "controls", the pad
+## buttons under "pad".
+## Version 2 split the old "window" ("2x" .. "4x" or "full") into "display" and "window";
+## a version 1 file is read with "full" as the borderless display.
 
-const VERSION := 1
+const VERSION := 2
 const PATH := "user://settings.json"
 const DATA := "res://data/settings.json"
 
@@ -57,6 +60,12 @@ func value_text(key: String) -> String:
 	if v is float or v is int:
 		return str(int(v)) + str(spec.get(key, {}).get("unit", ""))
 	return str(spec.get(key, {}).get("option_labels", {}).get(v, v))
+
+
+## What a choice's option stands for (its "values" entry in data), else the value itself.
+func option_value(key: String) -> Variant:
+	var v = value(key)
+	return spec.get(key, {}).get("values", {}).get(v, v)
 
 
 ## The value checked against the setting's kind, or null when it doesn't fit.
@@ -110,13 +119,14 @@ func bus_volumes() -> Dictionary:
 
 
 func to_dict() -> Dictionary:
-	return {"version": VERSION, "settings": values.duplicate(), "controls": controls.to_dict()}
+	return {"version": VERSION, "settings": values.duplicate(), "controls": controls.to_dict(),
+		"pad": controls.pad_to_dict()}
 
 
 ## Takes the settings from saved data. Returns "" or what was wrong; on a problem nothing
 ## changes. A setting missing from the file keeps its default (an older file); a setting
 ## this build doesn't know is skipped (a newer file). A file without "controls" keeps the
-## default keys.
+## default keys (and one without "pad" the default pad buttons).
 func from_dict(data: Variant) -> String:
 	if not data is Dictionary:
 		return "The settings file is broken"
@@ -128,6 +138,11 @@ func from_dict(data: Variant) -> String:
 	var saved = data.get("settings")
 	if not saved is Dictionary:
 		return "The settings file is broken"
+	if version == 1 and saved.get("window") is String and saved.window == "full":
+		saved = saved.duplicate()
+		saved.erase("window")
+		if not saved.has("display"):
+			saved.display = "borderless"   # what "full" was: a window over the whole screen
 	var n := {}
 	for key in spec:
 		n[key] = default_value(key)
@@ -140,8 +155,13 @@ func from_dict(data: Variant) -> String:
 		var err := keys.from_dict(data.controls)
 		if err != "":
 			return err
+	if data.has("pad"):
+		var err := keys.pad_from_dict(data.pad)
+		if err != "":
+			return err
 	values = n
 	controls.bound = keys.bound
+	controls.pad_bound = keys.pad_bound
 	return ""
 
 

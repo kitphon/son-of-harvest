@@ -21,9 +21,11 @@ var shown := 0              # letters of the line revealed so far
 var choice := 0             # choice under the cursor
 var flags: Dictionary
 var chars_per_second := 40.0
+var instant := false        # every line shown whole at once (set_speed(0))
 var pauses: Dictionary = {}   # character -> extra seconds after it
 var _ids: Dictionary = {}     # line id -> index
 var _wait := 0.0
+var _base_speed := 40.0       # chars_per_second from the data, before the player's speed
 
 static var _speakers: Dictionary
 static var _settings: Dictionary
@@ -59,6 +61,7 @@ static func settings() -> Dictionary:
 func _init(data: Variant, who: Dictionary, shared_flags: Dictionary, look := {}, at := "") -> void:
 	flags = shared_flags
 	chars_per_second = maxf(float(look.get("chars_per_second", 40)), 1.0)
+	_base_speed = chars_per_second
 	pauses = look.get("pause_seconds", {})
 	error = _check(data, who)
 	if error == "" and at != "" and not _ids.has(at):
@@ -92,12 +95,25 @@ func choices() -> Array:
 	return line().get("choices", []) if revealed() else []
 
 
+## The player's text speed (Game.text_speed): `factor` x the letters per second from
+## data/text_box.json; 0 (or less) shows every line whole at once.
+func set_speed(factor: float) -> void:
+	instant = factor <= 0.0
+	chars_per_second = maxf(_base_speed * maxf(factor, 0.0), 1.0)
+	if instant and not done():
+		shown = text().length()
+
+
 ## Time passes: reveals letters at chars_per_second, waiting longer after punctuation.
 func update(delta: float) -> void:
 	if done():
 		return
 	_wait += delta
 	var t := text()
+	if instant:
+		shown = t.length()
+		_wait = 0.0
+		return
 	while shown < t.length():
 		var cost := 1.0 / chars_per_second
 		if shown > 0:
@@ -149,7 +165,7 @@ func _go(target: String, fallback := 0) -> void:
 		var l: Dictionary = lines[i]
 		if not l.has("if"):
 			index = i
-			shown = 0
+			shown = text().length() if instant else 0
 			choice = 0
 			_wait = 0.0
 			_set_flags(l.get("set", {}))

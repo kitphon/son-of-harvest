@@ -2,16 +2,17 @@ class_name PauseMenu
 extends RefCounted
 ## The pause menu's pages and choices, without any drawing (PauseScreen draws it, headless
 ## tests check it). Pages: "main" (Resume / Save / Settings / Back to title), "settings"
-## (one row per setting in data/settings.json, then Controls and Back; ranges such as the
-## volumes get a slider), "controls" (one row per game action with its key slots, then Reset
-## to defaults and Back) and "confirm" (save before going back to the title?). choose(),
+## (one row per setting in data/settings.json, then Reset to defaults, Controls and Back;
+## ranges such as the volumes get a slider), "controls" (one row per game action with its key
+## slots and its pad button, then Reset to defaults and Back) and "confirm" (save before going back to the title?). choose(),
 ## back(), adjust(), press() and clear() change pages and settings themselves and return what
 ## the screen must do: "resume", "save", "setting" (a setting changed: apply and write it),
 ## "controls" (the keys changed: apply and write them), "title", "save_title" (save, then the
 ## title), or "" for nothing.
-## On the controls page left / right pick a key slot, Enter starts listening, the next key
-## pressed goes into the slot (press()); a key another action has is swapped over. Esc
-## cancels listening, Delete / Backspace empties the slot.
+## On the controls page left / right pick a key slot or the pad slot (the last one), Enter
+## starts listening, the next key pressed goes into a key slot (press()), the next pad button
+## into the pad slot (press_pad()); one another action has is swapped over. Esc cancels
+## listening, Delete / Backspace empties the slot.
 
 const PAGES := {
 	"main": ["resume", "save", "settings", "title"],
@@ -23,14 +24,15 @@ const LABELS := {
 	"save_title": "Save, then go", "cancel": "Cancel", "back": "Back",
 	"controls": "Controls", "reset": "Reset to defaults",
 }
-const HINT := "Enter: new key   Del: clear"
+const HINT := "Enter: new key / button   Del: clear"
+const SETTINGS_ROWS: Array[String] = ["reset", "controls", "back"]   # after the settings
 
 var settings: Settings
 var page := "main"
 var list: MenuList
-var slot := 0          # the key slot picked on the controls page
+var slot := 0          # the slot picked on the controls page (the last one is the pad's)
 var listening := ""    # the action waiting for a key, or ""
-var note := ""         # what the last change on the controls page did
+var note := ""         # what the last change on the settings / controls page did
 
 
 func _init(s: Settings) -> void:
@@ -47,7 +49,7 @@ func open(p: String, on := "") -> void:
 	var items: Array[String] = []
 	if p == "settings":
 		items = settings.keys()
-		items.append_array(["controls", "back"])
+		items.append_array(SETTINGS_ROWS)
 	elif p == "controls":
 		items = settings.controls.actions()
 		items.append_array(["reset", "back"])
@@ -66,7 +68,7 @@ func heading() -> String:
 func label(item: String) -> String:
 	if page == "controls" and is_action(item):
 		return settings.controls.label(item)
-	if page == "settings" and item not in ["controls", "back"]:
+	if page == "settings" and item not in SETTINGS_ROWS:
 		return "%s: %s" % [settings.spec[item].get("label", item), settings.value_text(item)]
 	if page == "confirm" and item == "title":
 		return "Go without saving"
@@ -77,17 +79,35 @@ func is_action(item: String) -> bool:
 	return page == "controls" and settings.controls.bound.has(item)
 
 
-## A key slot's text on the controls page ("..." while it waits for a key); "" off that page.
+## Slots per action row: the key slots, then the pad button.
+func slot_count() -> int:
+	return settings.controls.slots + 1
+
+
+func is_pad_slot(k := -1) -> bool:
+	return (slot if k < 0 else k) == settings.controls.slots
+
+
+## Waiting for a pad button (Enter on a pad slot).
+func listening_pad() -> bool:
+	return listening != "" and is_pad_slot()
+
+
+## A slot's text on the controls page ("..." while it waits); "" off that page.
 func slot_text(item: String, k: int) -> String:
 	if not is_action(item):
 		return ""
 	if listening == item and slot == k:
 		return "..."
+	if is_pad_slot(k):
+		return settings.controls.pad_name(settings.controls.pad_button(item))
 	return Controls.key_name(settings.controls.keys(item)[k])
 
 
 ## The line under the controls page: what to press, or what the last change did.
 func hint() -> String:
+	if listening_pad():
+		return "Press a pad button for %s  (Esc: cancel)" % settings.controls.spec[listening].label
 	if listening != "":
 		return "Press a key for %s  (Esc: cancel)" % settings.controls.spec[listening].label
 	return note if note != "" else HINT
@@ -115,10 +135,15 @@ func choose() -> String:
 				"title":
 					open("confirm", "save_title")
 		"settings":
+			note = ""
 			if item == "back":
 				open("main", "settings")
 			elif item == "controls":
 				open("controls")
+			elif item == "reset":
+				settings.reset()
+				note = "Settings back to the defaults"
+				return "setting"
 			elif item != "":
 				settings.adjust(item, 1)
 				return "setting"
@@ -127,7 +152,7 @@ func choose() -> String:
 				open("settings", "controls")
 			elif item == "reset":
 				settings.controls.reset()
-				note = "Keys back to the defaults"
+				note = "Keys and buttons back to the defaults"
 				return "controls"
 			elif is_action(item):
 				listening = item
@@ -140,8 +165,9 @@ func choose() -> String:
 
 
 ## A key pressed while listening goes into the slot; Esc (Controls.CANCEL) stops listening.
+## While a pad slot listens, keys other than Esc are ignored.
 func press(code: int) -> String:
-	if listening == "":
+	if listening == "" or (listening_pad() and code != Controls.CANCEL):
 		return ""
 	var action := listening
 	listening = ""
@@ -162,12 +188,34 @@ func press(code: int) -> String:
 	return ""
 
 
+## A pad button pressed while a pad slot listens goes into it; one data keeps on an action
+## (Start on Pause) is refused and ends the listening, so Start also cancels.
+func press_pad(button: int) -> String:
+	if not listening_pad():
+		return ""
+	var action := listening
+	listening = ""
+	note = ""
+	var c := settings.controls
+	var r := c.bind_pad(action, button)
+	var name := c.pad_name(button)
+	if r.done:
+		if r.other != "":
+			note = "%s was on %s: swapped" % [name, c.spec[r.other].label]
+		return "controls"
+	if r.reason == "reserved" and r.other != "":
+		note = "%s stays on %s" % [name, c.spec[r.other].label]
+	return ""
+
+
 ## Delete / Backspace on an action row empties the slot under the cursor.
 func clear() -> String:
 	var item := list.current()
 	if not is_action(item) or listening != "":
 		return ""
 	note = ""
+	if is_pad_slot():
+		return "controls" if settings.controls.clear_pad(item) == "" else ""
 	match settings.controls.clear(item, slot):
 		"":
 			return "controls"
@@ -199,8 +247,9 @@ func adjust(step: int) -> String:
 	var item := list.current()
 	if is_action(item):
 		if listening == "":
-			slot = clampi(slot + step, 0, settings.controls.slots - 1)
+			slot = clampi(slot + step, 0, slot_count() - 1)
 		return ""
-	if page != "settings" or item in ["controls", "back"]:
+	if page != "settings" or item in SETTINGS_ROWS:
 		return ""
+	note = ""
 	return "setting" if settings.adjust(item, step, false) else ""

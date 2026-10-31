@@ -5,7 +5,8 @@ extends CanvasLayer
 ## change a setting, Esc goes back; the mouse points and clicks. While it is open Game is
 ## paused (no time passes, the farmer stands still); weather particles keep falling.
 ## The pages and choices are PauseMenu. The controls page is wider, shows each action's key
-## slots in two columns and scrolls; while it waits for a key every key goes to it.
+## slots in two columns and its pad button in a third, and scrolls; while it waits for a key
+## every key goes to it (while it waits for a pad button, every pad button).
 ## `-- --pause` (or `--pause=settings`, `--pause=controls`) opens it at the start, for
 ## screenshots.
 
@@ -15,7 +16,7 @@ const ROW_H := 13
 const TOP := 17             # the heading strip on the wood
 const PAPER := Color("f6ead0")
 const NOTCH := Vector2(3, 5)   # one slider step, px; a pixel apart
-const CONTROLS_WIDTH := 250
+const CONTROLS_WIDTH := 300
 const SLOT_X := 118         # the first key column on the controls page, px from the paper's left
 const SLOT_STEP := 58       # from one key column to the next
 const VISIBLE := 14         # rows shown at once; a longer page scrolls
@@ -113,7 +114,7 @@ func _build() -> void:
 		_rows.append(row)
 		if menu.page == "controls":
 			var keys: Array[Label] = []
-			for k in menu.settings.controls.slots:
+			for k in menu.slot_count():
 				var key := _label(row, Vector2i(SLOT_X - 15 + k * SLOT_STEP, 0))
 				key.size = Vector2(SLOT_STEP - 4, ROW_H)
 				key.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -210,6 +211,13 @@ func _input(event: InputEvent) -> void:
 	if not _open or not (event is InputEventKey or event is InputEventJoypadButton):
 		return
 	get_viewport().set_input_as_handled()
+	if menu.listening_pad():
+		# Every pad button goes into the slot; of the keys only Esc counts (it cancels).
+		if event is InputEventJoypadButton and event.pressed:
+			_do(menu.press_pad(event.button_index))
+		elif event is InputEventKey and event.pressed and not event.echo:
+			_do(menu.press(event.physical_keycode if event.physical_keycode != KEY_NONE else event.keycode))
+		return
 	if menu.listening != "":
 		# Every key goes into the slot (Esc cancels); of the pad only its back button counts.
 		if event is InputEventKey and event.pressed and not event.echo:
@@ -266,7 +274,7 @@ func _do(command: String) -> void:
 		"setting":
 			Game.apply_settings()
 			var err := Game.settings.write()
-			_say(err)
+			_say(err if err != "" else menu.note)
 		"controls":
 			Game.settings.controls.apply()
 			var err := Game.settings.write()
