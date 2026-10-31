@@ -44,6 +44,9 @@ func _init() -> void:
 	a.tool_index = 2
 	a.seed_index = 4
 	a.bag = {"seeds:turnip": 3, "corn": 2}
+	a.inventory.add("cucumber", 7, ["chest"])
+	a.inventory.add("egg", 1, ["hand"])
+	a.inventory.move("tools", 0, "chest", 4)   # the hoe put away in the chest
 	a.tool_levels.hoe = 3
 	a.tool_levels.can = 5
 	a.flags = {"bin_note_read": true, "times_asked": 3, "answer": "later"}
@@ -83,6 +86,8 @@ func _init() -> void:
 	check(b.maps.id == "house" and b.maps.pos == MapManager.cell_pos(Vector2i(3, 2)) and b.maps.facing == Vector2i.LEFT, "map and position back")
 	check(seen.map == ["house"], "load moves the views to the saved map %s" % [seen.map])
 	check(not b.ticking(), "loaded indoors: the clock stands")
+	check(b.count("corn") == 2 and b.count("egg") == 1 and b.inventory.count("cucumber", ["chest"]) == 7, "rucksack, hand and chest back")
+	check(b.inventory.id_at("chest", 4) == "hoe" and b.inventory.id_at("tools", 0) == "", "tools back in their slots")
 	# The loaded farm keeps working by the rules.
 	grid.water_cell(Vector2i(4, 10))
 	grid.day_end("spring", "sunny", rng)
@@ -95,8 +100,9 @@ func _init() -> void:
 			'{"version": 1, "game": "x"}', '{"version": 1, "game": {}}']:
 		_put(bad)
 		check(SaveGame.read(b, PATH) != "", "refused: %s" % bad)
-	for broken in [["day", 31], ["hour", "noon"], ["stamina", 500], ["tool", "spoon"], ["seed", "rice"],
-			["bag", {"corn": -1}], ["weather_today", 3], ["tool_levels", [1]],
+	for broken in [["day", 31], ["hour", "noon"], ["stamina", 500], ["tool_slot", 6], ["tool_slot", -1],
+			["tool_slot", "hoe"], ["seed", "rice"], ["inventory", []], ["inventory", {"bag": "x"}],
+			["weather_today", 3], ["tool_levels", [1]],
 			["tool_levels", {"hoe": 0}], ["tool_levels", {"hoe": 6}], ["tool_levels", {"spoon": 1}],
 			["tool_levels", {"hoe": 2.5}],
 			["tool_exp", [1]], ["tool_exp", {"hoe": -1}], ["tool_exp", {"spoon": 3}], ["tool_exp", {"hoe": 1.5}],
@@ -123,8 +129,27 @@ func _init() -> void:
 		check(SaveGame.read(b, PATH) != "", "refused broken farm (%s)" % farm_break)
 	check(b.to_dict() == before, "failed loads changed nothing")
 
-	# A save from before charging tools (no tool_levels) loads with every tool at level 1.
+	# A save from before slots (a bag of counts, the tool by name, no chest on the farm) loads
+	# with the tools in their starting slots and the bag's things in the rucksack.
 	var old := saved.duplicate(true)
+	old.erase("inventory")
+	old.erase("tool_slot")
+	old.tool = "sickle"
+	old.bag = {"seeds:turnip": 3, "corn": 2}
+	old.farm.fixed = old.farm.fixed.filter(func(s): return s[2] != "chest")
+	_put(JSON.stringify({"version": 1, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "", "save from before slots loads (%s)" % err)
+	check(b.current_tool() == "sickle" and b.tool_index == 2 and b.inventory.id_at("tools", 0) == "hoe", "old save: tool in hand by name")
+	check(b.bag == {"seeds:turnip": 3, "corn": 2} and b.inventory.totals(["chest"]).is_empty(), "old save: bag into the rucksack")
+	check(b.farm.fixed_at(FarmGrid.CHEST) == "chest", "old save: the farm gets the chest")
+	for bad_old in [["tool", "spoon"], ["bag", {"corn": -1}], ["bag", {"hoe": 1}], ["bag", [1]]]:
+		var d := old.duplicate(true)
+		d[bad_old[0]] = bad_old[1]
+		_put(JSON.stringify({"version": 1, "game": d}))
+		check(SaveGame.read(b, PATH) != "", "old save: refused bad %s" % bad_old[0])
+	# A save from before charging tools (no tool_levels) loads with every tool at level 1.
+	old = saved.duplicate(true)
 	old.erase("tool_levels")
 	_put(JSON.stringify({"version": 1, "game": old}))
 	check(SaveGame.read(b, PATH) == "", "old save without tool levels loads")

@@ -7,7 +7,7 @@ extends Node2D
 const T := 16
 const COLORS := {
 	"fence": Color("b08a5a"), "house": Color("a0522d"), "door": Color("4a2a14"),
-	"bin": Color("7a6a50"), "stand": Color("d9b45a"),
+	"bin": Color("7a6a50"), "stand": Color("d9b45a"), "chest": Color("8a5a32"),
 }
 
 ## Ground only (soil, water, building footprints): the 3D view uses this as the ground

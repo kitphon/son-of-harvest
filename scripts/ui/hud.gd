@@ -1,7 +1,8 @@
 class_name Hud
 extends CanvasLayer
 ## Paper-and-wood HUD in our pixel font: date, clock and the weather for today and tomorrow
-## (top right), the tool bar with the item in hand and its level pips (bottom left), money, shipping bin and a
+## (top right), the tool bar (the rucksack's tool slots) with the tool in hand and its level
+## pips and, when there is one, the item held in the other hand (bottom left), money, shipping bin and a
 ## stamina bar (bottom right), and a message line (top left). Reads Game and redraws on its
 ## signals.
 
@@ -19,6 +20,8 @@ var _slot_icons: Array[TextureRect] = []
 var _item_name: Label
 var _item_count: Label
 var _item_level: TextureRect   # one pip per tool level after the name, filled up to the level
+var _hand_box: NinePatchRect
+var _hand_icon: TextureRect
 var _money: Label
 var _bin: Label
 var _stamina_fill: ColorRect
@@ -61,10 +64,13 @@ func _build_tools(r: Rect2i, item_r: Rect2i) -> void:
 	_item_count = _label(item, Vector2i(6, 6), INK_SOFT)
 	_item_level = _icon(item, Vector2i(6, 7))
 	var bar := _box(r, "wood")
-	for i in Game.TOOLS.size():
+	for i in Game.inventory.size("tools"):
 		var slot := _icon(bar, Vector2i(5 + i * (HudLayout.SLOT + HudLayout.SLOT_GAP), 5))
 		_slots.append(slot)
 		_slot_icons.append(_icon(slot, Vector2i(2, 2)))
+	_hand_box = _box(HudLayout.BOXES.hand, "wood")
+	_icon(_hand_box, Vector2i(5, 5)).texture = PlaceholderArt.tex("ui:slot:off")
+	_hand_icon = _icon(_hand_box, Vector2i(7, 7))
 
 
 func _build_status(r: Rect2i) -> void:
@@ -143,8 +149,12 @@ func _refresh() -> void:
 	var tool := Game.current_tool()
 	for i in _slots.size():
 		_slots[i].texture = PlaceholderArt.tex("ui:slot:" + ("on" if i == Game.tool_index else "off"))
-		var t: String = Game.TOOLS[i]
-		_slot_icons[i].texture = PlaceholderArt.tex("ui:seeds:" + Game.current_seed() if t == "seeds" else "ui:tool:" + t)
+		var t := Game.inventory.id_at("tools", i)
+		_slot_icons[i].texture = null if t == "" else PlaceholderArt.tex(PlaceholderArt.item_key(t, Game.current_seed()))
+	var held := Game.inventory.id_at("hand", 0)
+	_hand_box.visible = held != ""
+	if held != "":
+		_hand_icon.texture = PlaceholderArt.tex(PlaceholderArt.item_key(held))
 	var item := item_text(tool)
 	_item_name.text = item[0]
 	_item_count.text = item[1]
@@ -164,6 +174,8 @@ func _refresh() -> void:
 
 ## [name, count] for the item box.
 static func item_text(tool: String) -> Array[String]:
+	if tool == "":
+		return ["No tool", ""]
 	if tool == "can":
 		return [HudLayout.TOOL_NAMES.can, "%d/%d" % [Game.water, Game.WATER_MAX]]
 	if tool == "seeds":

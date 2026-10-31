@@ -46,7 +46,9 @@ until then.
 Sound effects, ambient loops and music are in (milestone 10), with Music / Sounds / Ambient
 volume sliders in Esc → Settings. Later for audio: more tracks (festivals, shops, events)
 are new scores and rules in `data/music.json`; the music has not been heard by a person yet.
-Later for menus: rucksack / storage, key remapping.
+The rucksack and the storage chest are done (I opens the rucksack, the chest stands right of
+the house; slot counts in data/inventory.json, so a shop's rucksack upgrade is one number via
+`Inventory.grow("bag", n)`). Later for menus: key remapping.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -82,7 +84,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Save game (Game + FarmGrid to a versioned JSON file), load; F5 / F9, saves on sleep
    - [x] Title screen (new game / continue / quit), Continue only for a save that loads
    - [x] Pause menu (resume / save / settings / back to title), settings file (flashes, window)
-   - [ ] Rucksack / storage menus, key remapping
+   - [x] Rucksack / storage menus (Inventory, InventoryMenu / InventoryScreen, chest by the house)
+   - [ ] Key remapping
 5. **Town and villagers**
    - [x] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause (data/maps, MapManager, fade)
    - [ ] Villagers with daily schedules from data (rule list → day plan), catch-up on map entry

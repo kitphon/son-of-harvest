@@ -38,9 +38,14 @@ static func interact(c: Vector2i) -> void:
 				Game.message.emit("Put %d G of crops in the bin" % got)
 			else:
 				Game.talk("bin_note")   # nothing to ship: read the note on the lid
+		"chest":
+			Game.open_inventory("storage")
 		"stand":
 			buy_seeds()
 		_:
+			if farm.is_ripe(c) and not Game.can_carry(farm.cell(c).crop):
+				Game.message.emit("Your rucksack is full")
+				return
 			var id := farm.harvest(c)
 			if id != "":
 				Game.add_item(id)
@@ -56,6 +61,8 @@ static func buy_seeds() -> void:
 		Game.message.emit("%s seeds are not sold in %s" % [data.name, Game.season_name()])
 	elif Game.money < price:
 		Game.message.emit("Not enough money (%d G)" % price)
+	elif not Game.can_carry("seeds:" + s):
+		Game.message.emit("Your rucksack is full")
 	else:
 		Game.money -= price
 		Game.add_item("seeds:" + s)
@@ -70,6 +77,9 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	var farm := Game.farm
 	var tool := Game.current_tool()
 	var c := origin + facing
+	if tool == "":
+		Game.message.emit("No tool in hand (I = rucksack)")
+		return
 	if tool == "can" and farm.fixed_at(c) == "pond":
 		Game.water = Game.WATER_MAX
 		Sfx.play("pond_fill")

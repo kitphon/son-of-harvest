@@ -26,6 +26,7 @@ func _ready() -> void:
 	add_child(fade)
 	add_child(TextBox.new())
 	add_child(PauseScreen.new())
+	add_child(InventoryScreen.new())
 	add_child(EventPlayer.new(player))   # after the Player: moves it during events
 
 	Game.minute_passed.connect(_update_tint)

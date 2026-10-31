@@ -122,6 +122,7 @@ func _picture(key: String, size: Vector2, center: Vector3, normal_yaw := 0.0) ->
 ## so doors and windows go on those faces.
 func _make_buildings() -> void:
 	_make_house()
+	_make_chest()
 	_make_bin()
 	_make_stand()
 	_make_fence()
@@ -142,6 +143,24 @@ func _make_bin() -> void:
 	for x in [8.22, 8.78]:
 		_box(Vector3(0.08, 0.05, 0.86), Vector3(x, 0.685, 3.5), timber)
 	_snow_top(Vector3(0.86, 0.04, 0.76), Vector3(8.5, 0.68, 3.5))
+
+
+## Storage chest (cell 7, 3, FarmGrid.CHEST), by the house wall: a low cedar tansu on a dark
+## plinth, two drawer fronts with black iron pulls and corner plates on the faces the camera
+## sees, and a plank lid.
+func _make_chest() -> void:
+	var timber := flat_material(Color("2e221a"))
+	var iron := flat_material(Color("1e1c1c"))
+	_box(Vector3(0.78, 0.08, 0.56), Vector3(7.52, 0.04, 3.5), timber)
+	_box(Vector3(0.74, 0.46, 0.52), Vector3(7.52, 0.31, 3.5), surface_material("build:sugi"))
+	for y in [0.2, 0.42]:   # drawer fronts on the +z face, a pull in each
+		_box(Vector3(0.64, 0.18, 0.02), Vector3(7.52, y, 3.77), surface_material("build:planks"))
+		_box(Vector3(0.14, 0.03, 0.03), Vector3(7.52, y, 3.79), iron)
+	for x in [7.16, 7.88]:  # corner plates down the front edges
+		_box(Vector3(0.05, 0.46, 0.05), Vector3(x, 0.31, 3.76), iron)
+	_box(Vector3(0.02, 0.1, 0.1), Vector3(7.9, 0.31, 3.5), iron)   # side handle
+	_box(Vector3(0.8, 0.06, 0.58), Vector3(7.52, 0.57, 3.5), surface_material("build:planks_dark"))
+	_snow_top(Vector3(0.74, 0.03, 0.52), Vector3(7.52, 0.61, 3.5))
 
 
 ## Seed stand (cell 10, 3): a roadside stall with a small board gable roof on four posts, an

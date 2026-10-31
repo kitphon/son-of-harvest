@@ -33,13 +33,25 @@ static func _make(key: String) -> Image:
 			return _ground(parts[1], int(parts[2]))
 		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour)
 			return _fx(parts[1])
-		"ui":       # ui:<frame|slot|weather|tool|seeds|coin|stamina>:<kind>, HUD pieces
+		"ui":       # ui:<frame|slot|weather|tool|seeds|item|cursor|coin|stamina>:<kind>, HUD pieces
 			return _ui(parts[1], parts[2] if parts.size() > 2 else "")
 		"title":    # title:bg, the title screen picture (480 x 270)
 			return _title_bg()
 		"face":     # face:<speaker>:<calm|smile|surprised|worried>, a 40 x 40 text box portrait
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
+
+
+## The icon key for any item id in a slot: tools, seed bags ("seeds:<crop>"), crops, and a
+## wrapped cloth bundle for anything else. The seed bag tool shows the seed chosen now.
+static func item_key(id: String, seed := "") -> String:
+	if id == "seeds":
+		return "ui:seeds:" + seed
+	if id.begins_with("seeds:"):
+		return "ui:seeds:" + id.trim_prefix("seeds:")
+	if id in ["hoe", "can", "sickle", "hammer", "axe"]:
+		return "ui:tool:" + id
+	return "ui:item:" + id.replace(":", "_")
 
 
 static func charge_key(steps: int, most: int) -> String:
@@ -738,6 +750,12 @@ static func _ui(kind: String, arg: String) -> Image:
 			_oval(img, 7, 8.5, 2.5, 2.5, Color(look.get("fruit", "c0a060")))
 			_px(img, 6, 6, 2, 1, Color(look.get("leaf", "5fa83a")))
 			return _outline(img)
+		"item":     # item:<id>, 14 x 14: a crop as its fruit, anything else a wrapped bundle
+			return _item_icon(arg)
+		"cursor":   # vermilion corner brackets round the slot under the menu cursor, 22 x 22
+			var c := UI_SEAL
+			return _draw(22, 22, [[0, 0, 6, 2, c], [0, 0, 2, 6, c], [16, 0, 6, 2, c], [20, 0, 2, 6, c],
+				[0, 20, 6, 2, c], [0, 16, 2, 6, c], [16, 20, 6, 2, c], [20, 16, 2, 6, c]])
 		"coin":     # a gold coin with a square hole
 			var img := _blank(9, 9)
 			_oval(img, 4.5, 4.5, 4.0, 4.0, Color("c8962a"))
@@ -758,6 +776,38 @@ static func _ui(kind: String, arg: String) -> Image:
 			_px(img, 3, 6, 3, 2, Color("26302a"))
 			return _outline(img)
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
+
+
+## A crop (data/crops.json) as its fruit with a leaf tuft, in the crop's own colours; any
+## other id as a furoshiki bundle, the cloth colour picked from the id so items differ.
+static func _item_icon(id: String) -> Image:
+	var img := _blank(14, 14)
+	var look := crop_look(id)
+	if _looks.has(id):
+		var fruit := Color(look.get("fruit", "e8a23a"))
+		var leaf := Color(look.get("leaf", "5fa83a"))
+		var long: bool = look.get("shape", "") in ["vine", "stalk"]
+		var rx := 2.5 if long else 4.0
+		var ry := 5.0 if long else 4.0
+		_oval(img, 7, 8.5, rx, ry, fruit.darkened(0.25))
+		_oval(img, 6.5, 8, rx - 0.7, ry - 0.7, fruit)
+		_px(img, 5, 6, 2, 1, fruit.lightened(0.35))
+		if look.has("fruit_top"):
+			_px(img, 4, 5, 6, 2, Color(look.fruit_top))
+		_px(img, 6, 1, 2, 4, leaf)
+		_px(img, 4, 2, 2, 2, leaf)
+		_px(img, 8, 2, 2, 2, leaf.darkened(0.2))
+		return _outline(img)
+	var cloths := [Color("3a5a8c"), Color("a8433a"), Color("5a8a4a"), Color("c8963a"), Color("7a4a8a")]
+	var cloth: Color = cloths[posmod(hash(id), cloths.size())]
+	_oval(img, 7, 9, 5.5, 4.0, cloth)
+	_px(img, 5, 3, 4, 3, cloth)
+	_px(img, 3, 2, 3, 2, cloth.darkened(0.2))   # the knot's ears
+	_px(img, 8, 2, 3, 2, cloth.darkened(0.2))
+	_px(img, 6, 4, 2, 2, cloth.lightened(0.3))
+	for p in [Vector2i(4, 9), Vector2i(8, 8), Vector2i(10, 11), Vector2i(6, 11)]:
+		img.set_pixelv(p, Color("f4ecd8"))
+	return _outline(img)
 
 
 static func _weather_icon(kind: String) -> Image:

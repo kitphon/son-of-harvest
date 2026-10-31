@@ -1,5 +1,5 @@
 extends Node
-## Global game state: clock, calendar, weather, money, stamina, tools, the bag and story state.
+## Global game state: clock, calendar, weather, money, stamina, tools, the inventory and story state.
 ## Rules follow the design doc; every number here is ours to tune.
 
 signal minute_passed
@@ -8,6 +8,7 @@ signal changed                  # anything the HUD shows
 signal message(text: String)
 signal dialogue_requested(id: String, at: String)   # a TextBox opens it
 signal event_requested(id: String)                  # an EventPlayer plays it
+signal inventory_requested(mode: String)   # an InventoryScreen opens: "rucksack" or "storage"
 signal settings_changed
 signal map_changed(map_id: String)   # the views fade out, rebuild for Game.maps and fade in
 signal map_entered(map_id: String)   # the farmer stands on the new map (after the fade); event triggers key on this
@@ -20,7 +21,7 @@ const WEEKDAYS: Array[String] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"
 const PAYOUT_HOUR := 18
 const PASS_OUT_HOUR := 2
 const WATER_MAX := 40
-const TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe", "seeds"]
+const TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe", "seeds"]   # every tool id
 const SEED_COST := 1            # stamina per seed bag; the other tools cost by charge (data/tools.json)
 
 var year := 1
@@ -43,9 +44,17 @@ var bin_total := 0
 var stamina := 100
 var max_stamina := 100
 var water := WATER_MAX
-var tool_index := 0
+var tool_index := 0             # the tool slot in hand (inventory "tools")
 var seed_index := 0
-var bag: Dictionary = {}        # item id -> count; seeds are "seeds:<crop>"
+## Rucksack tool / item slots, the item hand and the storage chest (data/inventory.json).
+var inventory: Inventory = Inventory.starting(TOOLS)
+## What the farmer carries as item id -> count (seeds are "seeds:<crop>"). Setting it puts
+## the counts in the bag (the rest in the chest); kept for callers from before slots.
+var bag: Dictionary:
+	get:
+		return inventory.totals()
+	set(value):
+		inventory.set_carried(value)
 var tool_levels: Dictionary = {}   # tool -> level 1..5 (charging tools in data/tools.json)
 var flags: Dictionary = {}      # story flags set by dialogue (bool, whole number or word)
 var tool_exp: Dictionary = {}      # tool -> experience from using it; levels up at data thresholds
@@ -104,7 +113,7 @@ func new_game() -> void:
 	_accum = 0.0
 	farm = FarmGrid.new(crops)
 	farm.generate(rng)
-	bag = {"seeds:turnip": 2, "seeds:potato": 1}
+	inventory = Inventory.starting(TOOLS)
 	reset_tool_levels()
 	flags = {}
 	events_seen = {}
@@ -150,6 +159,12 @@ func _demo_field() -> void:
 	farm.cell(Vector2i(7, 8)).obj = FarmGrid.Obj.STUMP
 	farm.cell(Vector2i(9, 8)).obj = FarmGrid.Obj.WEED
 	farm.cells_changed.emit()
+	# Something to see in the rucksack and the chest (`-- --demo --rucksack`).
+	inventory.add("turnip", 6)
+	inventory.add("potato", 3)
+	inventory.add("seeds:cucumber", 4)
+	inventory.add("cucumber", 12, ["chest"])
+	inventory.add("seeds:turnip", 5, ["chest"])
 
 
 func _process(delta: float) -> void:
@@ -426,25 +441,35 @@ func pay_bin() -> void:
 	changed.emit()
 
 
-## Puts every crop in the bag into the shipping bin; returns the value added.
+## Puts every crop the farmer carries (rucksack and hand) into the shipping bin; returns
+## the value added.
 func ship_produce() -> int:
 	var total := 0
-	for id in bag.keys():
+	var carried := inventory.totals()
+	for id in carried:
 		if crops.has(id):
-			total += int(crops[id].sell) * int(bag[id])
-			bag.erase(id)
+			total += int(crops[id].sell) * int(carried[id])
+			inventory.take(id, int(carried[id]))
 	bin_total += total
 	changed.emit()
 	return total
 
 
+## How many of `id` the farmer carries (rucksack items and the hand).
 func count(id: String) -> int:
-	return int(bag.get(id, 0))
+	return inventory.count(id)
 
 
-func add_item(id: String, n := 1) -> void:
-	bag[id] = count(id) + n
+## Is there room in the rucksack for `n` more of `id`?
+func can_carry(id: String, n := 1) -> bool:
+	return inventory.room_for(id) >= n
+
+
+## Puts `n` of `id` in the rucksack; returns how many did not fit (0 = all went in).
+func add_item(id: String, n := 1) -> int:
+	var left := inventory.add(id, n)
 	changed.emit()
+	return left
 
 
 ## Money from an event or a gift (negative: paid); never below 0 G.
@@ -454,13 +479,21 @@ func add_money(n: int) -> void:
 
 
 func take_item(id: String, n := 1) -> bool:
-	if count(id) < n:
+	if not inventory.take(id, n):
 		return false
-	bag[id] = count(id) - n
-	if bag[id] == 0:
-		bag.erase(id)
 	changed.emit()
 	return true
+
+
+## A name to show for any item id: tools, crops, seed bags; anything else from its id.
+func item_name(id: String) -> String:
+	if id in TOOLS:
+		return HudLayout.TOOL_NAMES.get(id, id.capitalize())
+	if crops.has(id):
+		return String(crops[id].name)
+	if id.begins_with("seeds:") and crops.has(id.trim_prefix("seeds:")):
+		return "%s seeds" % crops[id.trim_prefix("seeds:")].name
+	return id.replace(":", " ").replace("_", " ").capitalize()
 
 
 ## A swing costs stamina and adds work fatigue. Without enough stamina the farmer still
@@ -626,8 +659,9 @@ func charge_rule(tool: String, charge: int) -> Dictionary:
 	return tools_data.tools[tool].charges[clampi(charge, 0, max_charge(tool))]
 
 
+## The tool in hand: the marked tool slot's tool, "" when that slot is empty.
 func current_tool() -> String:
-	return TOOLS[tool_index]
+	return inventory.id_at("tools", tool_index)
 
 
 func current_seed() -> String:
@@ -640,8 +674,13 @@ func cycle_seed() -> void:
 
 
 func select_tool(i: int) -> void:
-	tool_index = posmod(i, TOOLS.size())
+	tool_index = posmod(i, inventory.size("tools"))
 	changed.emit()
+
+
+## Opens the rucksack ("rucksack") or the storage chest ("storage") in the view's screen.
+func open_inventory(mode := "rucksack") -> void:
+	inventory_requested.emit(mode)
 
 
 ## Opens dialogue `id` (data/dialogue/<id>.json) in the view's text box, at line `at`.
@@ -675,7 +714,8 @@ const SAVED_DEFAULTS := {"snow_cover": 0, "fatigue": 0}
 
 
 ## The run's state as plain data, the farm included (SaveGame writes it).
-## Tool and seed are saved by name, so reordering data files doesn't change them.
+## The seed is saved by name, so reordering data files doesn't change it; the tool in hand is
+## a tool slot.
 func to_dict() -> Dictionary:
 	var d := {}
 	for key in SAVED_NUMBERS:
@@ -683,9 +723,9 @@ func to_dict() -> Dictionary:
 	d.stamina = stamina
 	d.weather_today = weather_today
 	d.weather_tomorrow = weather_tomorrow
-	d.tool = current_tool()
+	d.tool_slot = tool_index
 	d.seed = current_seed()
-	d.bag = bag.duplicate()
+	d.inventory = inventory.to_dict()
 	d.tool_levels = tool_levels.duplicate()
 	d.flags = flags.duplicate()
 	d.tool_exp = tool_exp.duplicate()
@@ -712,21 +752,37 @@ func from_dict(data: Dictionary) -> String:
 		if not data.get(key) is String or data[key] == "":
 			return "Saved %s is broken" % key
 		n[key] = data[key]
-	n.tool_index = TOOLS.find(data.get("tool", ""))
-	if n.tool_index < 0:
-		return "Saved tool is broken"
 	n.seed_index = crops.keys().find(data.get("seed", ""))
 	if n.seed_index < 0:
 		return "Saved seed is broken"
-	var saved_bag = data.get("bag")
-	if not saved_bag is Dictionary:
-		return "Saved bag is broken"
-	n.bag = {}
-	for id in saved_bag:
-		var c = SaveGame.whole(saved_bag[id], 1, 999999)
-		if not id is String or c == null:
+	if data.has("inventory"):
+		var parsed := Inventory.parse(data.inventory, TOOLS)
+		if parsed[0] != "":
+			return parsed[0]
+		n.inventory = parsed[1]
+		n.tool_index = SaveGame.whole(data.get("tool_slot"), 0, n.inventory.size("tools") - 1)
+		if n.tool_index == null:
+			return "Saved tool slot is broken"
+	else:
+		# Saves from before slots: a bag of counts and the tool by name. The tools go in
+		# their starting slots, the bag's things in the rucksack (the rest in the chest).
+		var saved_bag = data.get("bag")
+		if not saved_bag is Dictionary:
 			return "Saved bag is broken"
-		n.bag[id] = c
+		var counts := {}
+		for id in saved_bag:
+			var c = SaveGame.whole(saved_bag[id], 1, 999999)
+			if not id is String or id == "" or id in TOOLS or c == null:
+				return "Saved bag is broken"
+			counts[id] = c
+		n.inventory = Inventory.starting(TOOLS)
+		n.inventory.set_carried(counts)
+		n.tool_index = -1
+		for i in n.inventory.size("tools"):
+			if n.inventory.id_at("tools", i) == data.get("tool", ""):
+				n.tool_index = i
+		if n.tool_index < 0:
+			return "Saved tool is broken"
 	# Saves from before charging tools have no levels: every tool at level 1.
 	n.tool_levels = {}
 	for tool in tools_data.get("tools", {}):
@@ -789,6 +845,7 @@ func from_dict(data: Dictionary) -> String:
 	var err := farm.from_dict(data.farm)
 	if err != "":
 		return err
+	farm.add_missing_fixed()   # saves from before the storage chest get it by the house
 	for key in n:
 		set(key, n[key])
 	maps = MapManager.new()
@@ -837,10 +894,10 @@ func _setup_input() -> void:
 		"move_up": [KEY_W, KEY_UP], "move_down": [KEY_S, KEY_DOWN],
 		"move_left": [KEY_A, KEY_LEFT], "move_right": [KEY_D, KEY_RIGHT],
 		"run": [KEY_SHIFT], "use_tool": [KEY_SPACE, KEY_J], "interact": [KEY_E, KEY_K],
-		"next_tool": [KEY_TAB], "next_seed": [KEY_Q],
+		"next_tool": [KEY_TAB], "next_seed": [KEY_Q], "rucksack": [KEY_I],
 		"quick_save": [KEY_F5], "quick_load": [KEY_F9], "pause": [KEY_ESCAPE],
 	}
-	var pad := {"pause": [JOY_BUTTON_START]}
+	var pad := {"pause": [JOY_BUTTON_START], "rucksack": [JOY_BUTTON_BACK]}
 	for i in TOOLS.size():
 		keys["tool_%d" % (i + 1)] = [KEY_1 + i]
 	for action in keys:

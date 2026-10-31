@@ -45,7 +45,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `res://tests/test_body.gd` must print `test_body: OK (0 failed)`. Events (runner, trigger
   tables, event data): `res://tests/test_events.gd` must print `test_events: OK (0 failed)`.
   Maps (data/maps, doors, indoor clock, the fade in the real view): `res://tests/test_maps.gd`
-  must print `test_maps: OK (0 failed)`.
+  must print `test_maps: OK (0 failed)`. Rucksack / storage (inventory slots, move rules, menu
+  cursor, chest): `res://tests/test_inventory.gd` must print `test_inventory: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field) and `-- --demo --map=town` (the village).
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
@@ -58,7 +59,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   (`--demo` turns the trigger tables off, so plain demo frames have no events; to see a
   trigger fire, run `res://scenes/main.tscn` as the scene argument without `--demo`),
   `--map=<id>` (or `<id>@<spawn>`, e.g. `town@shrine`, `farm@gate`) to start on another map
-  from `data/maps`. Create `shots/` first. Look at the last frame. Delete
+  from `data/maps`, `--rucksack` (or `--rucksack=storage`) to open the rucksack (or the
+  storage chest; `--demo` puts a few crops in both). Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
 - Audio (sound and music data, synthesis, keys used in code, ambient and music pickers): `res://tests/test_audio.gd`
   must print `test_audio: OK (0 failed)`. Headless runs and Movie Maker runs start no sound
