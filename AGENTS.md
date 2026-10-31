@@ -58,8 +58,11 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Animals (chickens, the coop, eggs, sickness, incubator, the save): `res://tests/test_animals.gd`
   must print `test_animals: OK (0 failed)`. Fishing (bites, fish tables, the catch, save, poses,
   fish art): `res://tests/test_fishing.gd` must print `test_fishing: OK (0 failed)`.
+  Mine (data/mine.json, floors from a seed, rocks / soft spots / the hole, swings, the save,
+  mine art): `res://tests/test_mine.gd` must print `test_mine: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
-  the same with `-- --demo` (the field) and `-- --demo --map=town` (the village).
+  the same with `-- --demo` (the field), `-- --demo --map=town` (the village) and
+  `-- --demo --mine=3` (a mine floor).
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
   --fixed-fps 30 --quit-after 20 -- --demo` writes `shots/frameNNNNNNNN.png` (git-ignored). `--demo`
   starts at 10:00 with planted plots (without `--demo` the frame shows the title screen);
@@ -78,7 +81,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   counter with its screen open (hours ignored), `--map=coop` to look inside the chicken
   coop (`--demo` adds a chick, two eggs and a filled feed box), `--hens-out` (with
   `--map=farm@coop`) to have the hens out in the yard, `--fishing` (or `--fishing=wait`) to start at
-  the farm pond with the line out and a fish biting (or still waiting). Create `shots/` first. Look at the last frame. Delete
+  the farm pond with the line out and a fish biting (or still waiting), `--mine=N` to stand at the
+  ladder of a fresh mine floor N (`--map=mine` is the entrance, `--map=mine_floor` floor 1). Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
 - Audio (sound and music data, synthesis, keys used in code, ambient and music pickers): `res://tests/test_audio.gd`
   must print `test_audio: OK (0 failed)`. Headless runs and Movie Maker runs start no sound

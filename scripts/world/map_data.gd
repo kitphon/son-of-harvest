@@ -18,6 +18,7 @@ var w := 0
 var h := 0
 var farm := false          # ground, solids and objects come from FarmGrid
 var indoor := false        # the clock stands still in here (DESIGN: time stops in buildings)
+var sheltered := false     # under a roof of rock (the mine): no weather, but the clock runs
 var ambient := "outdoor"   # which ambient rules apply (data/sfx.json "places")
 var light = null           # a fixed Color for the room, or null for the day / night light
 var background := Color("8fc6e8")
@@ -48,6 +49,7 @@ func _read(d: Variant) -> String:
 	h = int(size[1])
 	farm = bool(d.get("farm", false))
 	indoor = bool(d.get("indoor", false))
+	sheltered = bool(d.get("sheltered", indoor))
 	ambient = str(d.get("ambient", "indoor" if indoor else "outdoor"))
 	if d.has("light"):
 		light = Color(str(d.light))

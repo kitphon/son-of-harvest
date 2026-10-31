@@ -61,6 +61,8 @@ func _enter_map() -> void:
 		view = mv
 		add_child(view)
 	view.add_child(VillagerView.new(m.id))
+	if Game.maps.mine_floor != null:   # rocks, soft spots and the hole down
+		view.add_child(MineView.new(Game.maps.mine_floor))
 	move_child(view, 0)
 	var animals := AnimalView.new()   # hens and eggs (the coop, or the farm yard)
 	view.add_child(animals)

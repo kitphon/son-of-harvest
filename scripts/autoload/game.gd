@@ -76,6 +76,7 @@ var shipped: Dictionary = {}    # item id -> how many were ever shipped
 var shop_jobs: Dictionary = {}  # shop id -> {tool, level, ready (day number), slot}: a tool left for an upgrade
 var fishing := Fishing.new()       # the line: cast, wait, bite (rules in data/fish.json)
 var fish_caught: Dictionary = {}   # fish id -> how many were caught this game (once-only fish)
+var mine_deepest := 0              # the deepest mine floor reached (the only mine state saved)
 
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
@@ -87,6 +88,7 @@ var food_data: Dictionary = {}     # data/foods.json: food and drink, the stand'
 var foods: Dictionary = {}         # food id -> {name, price, stamina, fatigue, ...}
 var hold_rules: Dictionary = {}    # throw reach, flight, what the bin and the pond do (data/hold.json)
 var fish_data: Dictionary = {}     # data/fish.json: bites, fish per place / season / hour / weather
+var mine_data: Dictionary = {}     # data/mine.json: floors, finds per depth / season, mine items
 var rng := RandomNumberGenerator.new()
 var farm: FarmGrid
 var maps := MapManager.new()       # the map the farmer is on and where (saved)
@@ -107,6 +109,7 @@ func _ready() -> void:
 	set_food_data(_load_json("res://data/foods.json"))
 	hold_rules = _load_json("res://data/hold.json")
 	fish_data = _load_json("res://data/fish.json")
+	mine_data = _load_json("res://data/mine.json")
 	settings = Settings.make()
 	var err := settings.read()
 	if err != "":
@@ -153,6 +156,7 @@ func new_game() -> void:
 	animal_news = []
 	fishing = Fishing.new(fish_data)
 	fish_caught = {}
+	mine_deepest = 0
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--demo":
@@ -199,6 +203,13 @@ func new_game() -> void:
 			if arg != "--fishing=wait":
 				fishing.state = "bite"
 				fishing.time = -60.0   # the bite waits for the screenshot
+		elif arg.begins_with("--mine="):   # `-- --demo --mine=5`: at the ladder of a fresh floor 5
+			var m := MapManager.data(mine_map("floor_map"))
+			maps.place(m.id, m.spawns.start[0], m.spawns.start[1])
+			maps.mine_floor = new_mine_floor(maxi(arg.trim_prefix("--mine=").to_int(), 1))
+	# `--map=mine_floor` alone: the first floor.
+	if maps.id == mine_map("floor_map") and maps.mine_floor == null:
+		maps.mine_floor = new_mine_floor(1)
 
 
 ## `-- --demo`: 10:00 with a few sown, growing and ripe plots by the house, for screenshots.
@@ -295,12 +306,23 @@ func indoors() -> bool:
 	return m != null and m.indoor
 
 
+## Under a roof (a building, the mine): no rain or snow falls here.
+func sheltered() -> bool:
+	var m := maps.current()
+	return m != null and m.sheltered
+
+
 ## Moves the farmer to `map_id` at `cell` facing `face`; the views fade and rebuild, then
 ## call map_arrived(). An obstacle that grew on a farm arrival cell is pushed aside.
 func go_to_map(map_id: String, cell: Vector2i, face: Vector2i) -> bool:
 	if not MapManager.has(map_id) or MapManager.data(map_id) == null:
 		return false
+	# Down the mine: the cave mouth leads to floor 1, a floor's hole to the next one, fresh each time.
+	var depth := 0
+	if map_id == mine_map("floor_map"):
+		depth = maps.mine_floor.depth + 1 if maps.mine_floor != null else 1
 	maps.place(map_id, cell, face)
+	maps.mine_floor = new_mine_floor(depth) if depth > 0 else null
 	fishing.stop()
 	if maps.on_farm() and farm.in_bounds(cell) and farm.cell(cell).obj != FarmGrid.Obj.NONE:
 		farm.cell(cell).obj = FarmGrid.Obj.NONE
@@ -325,6 +347,8 @@ func use_door(door: Dictionary) -> void:
 ## The view finished the change: the farmer is on the map and can see it.
 func map_arrived() -> void:
 	map_entered.emit(maps.id)
+	if maps.mine_floor != null:
+		message.emit("Mine floor %d" % maps.mine_floor.depth)
 	# The night's animal news waits for the farmer to look in on them.
 	if maps.id == animals.home_rule("coop").get("map", "coop") and not animal_news.is_empty():
 		message.emit(". ".join(animal_news))
@@ -579,6 +603,8 @@ func holding() -> bool:
 func sell_price(id: String) -> int:
 	if id.begins_with("fish:"):
 		return int(fish_data.get("fish", {}).get(id.trim_prefix("fish:"), {}).get("sell", 0))
+	if id.begins_with("mine:"):
+		return int(mine_item(id).get("sell", 0))
 	return int(crops[id].get("sell", 0)) if crops.has(id) else animals.sell_price(id)
 
 
@@ -676,6 +702,8 @@ func item_name(id: String) -> String:
 		return String(animals.item_info(id).name)
 	if id.begins_with("fish:") and fish_data.get("fish", {}).has(id.trim_prefix("fish:")):
 		return String(fish_data.fish[id.trim_prefix("fish:")].name)
+	if mine_item(id).has("name"):
+		return String(mine_item(id).name)
 	return id.replace(":", " ").replace("_", " ").capitalize()
 
 
@@ -743,6 +771,90 @@ func reel_in() -> Dictionary:
 			held = out.fish
 	changed.emit()
 	return out
+
+
+# --- the mine (data/mine.json, MineFloor) ----------------------------------
+
+const MINE_MAPS := {"entrance_map": "mine", "entrance_spawn": "cave", "floor_map": "mine_floor"}
+
+
+## A name from data/mine.json: entrance_map, entrance_spawn or floor_map.
+func mine_map(key: String) -> String:
+	return str(mine_data.get(key, MINE_MAPS[key]))
+
+
+## A mine find's data ({} for anything that isn't "mine:<id>").
+func mine_item(id: String) -> Dictionary:
+	return mine_data.get("items", {}).get(id.trim_prefix("mine:"), {}) if id.begins_with("mine:") else {}
+
+
+## A fresh floor at `depth`, laid out from a new seed for today's season; the deepest floor
+## reached goes up with it.
+func new_mine_floor(depth: int) -> MineFloor:
+	mine_deepest = maxi(mine_deepest, depth)
+	return MineFloor.make(mine_data, MapManager.data(mine_map("floor_map")), depth, season_name(), rng.randi())
+
+
+## A swing down the mine with `tool` from `origin` towards `facing` at charge step `charge`
+## (data/tools.json): the hammer breaks rocks, the hoe digs soft spots, and like field work
+## every swing costs stamina and fatigue and teaches the tool. Finds go into the rucksack,
+## else up overhead, else they stay lying on their cell. Returns {result: "swung",
+## "hands_full" or "wrong_tool"; worked, tough, hole (the way down opened), finds: [{item, to:
+## "bag" / "hand" / "floor"}]}.
+func mine_swing(tool: String, origin: Vector2i, facing: Vector2i, charge := 0) -> Dictionary:
+	var out := {"result": "swung", "worked": false, "tough": false, "hole": false, "finds": []}
+	var f := maps.mine_floor
+	if f == null or not tool in ["hammer", "hoe"]:
+		out.result = "wrong_tool"
+		return out
+	if holding():
+		out.result = "hands_full"
+		return out
+	var rule := charge_rule(tool, charge)
+	spend_stamina(int(rule.stamina))
+	for c in f.area_cells(origin, facing, rule.area):
+		var r: Dictionary = f.hit(c, int(rule.get("hits", 1))) if tool == "hammer" else f.dig(c)
+		out.tough = out.tough or r.result == "tough"
+		if r.result == "none" or r.result == "tough":
+			continue
+		out.worked = true
+		if r.find == "stairs":
+			out.hole = true
+		elif r.find != "":
+			var id := MineFloor.item_id(r.find)
+			out.finds.append({"item": id, "to": _keep_find(id, c)})
+	add_tool_exp(tool, swing_exp(out.worked or out.tough))
+	changed.emit()
+	return out
+
+
+func _keep_find(id: String, c: Vector2i) -> String:
+	if can_carry(id):
+		add_item(id)
+		return "bag"
+	if not holding():
+		held = id
+		return "hand"
+	maps.mine_floor.leave(c, id)
+	return "floor"
+
+
+## Hands free: a find lying on `c` down the mine goes up overhead. Returns its id or "".
+func mine_pick_up(c: Vector2i) -> String:
+	if holding() or maps.mine_floor == null:
+		return ""
+	var id := maps.mine_floor.take(c)
+	if id != "":
+		held = id
+		changed.emit()
+	return id
+
+
+## Where a save made down the mine puts the farmer: at the cave mouth (floors are never kept).
+func _mine_exit() -> Dictionary:
+	var m := MapManager.data(mine_map("entrance_map"))
+	var spot: Array = m.spawns[mine_map("entrance_spawn")]
+	return {"id": m.id, "pos": MapManager.cell_pos(spot[0]), "facing": spot[1]}
 
 
 # --- food and drink (data/foods.json) --------------------------------------
@@ -1089,10 +1201,14 @@ func to_dict() -> Dictionary:
 	seen.sort()
 	d.events_seen = seen
 	d.map = maps.to_dict()
+	if maps.id == mine_map("floor_map"):
+		var out := _mine_exit()
+		d.map = {"id": out.id, "x": roundi(out.pos.x), "y": roundi(out.pos.y), "facing": [out.facing.x, out.facing.y]}
 	d.shipped = shipped.duplicate()
 	d.shop_jobs = shop_jobs.duplicate(true)
 	d.animals = animals.to_dict()
 	d.fishing = {"caught": fish_caught.duplicate(), "dry_casts": fishing.dry_casts}
+	d.mine = {"deepest": mine_deepest}
 	d.farm = farm.to_dict()
 	return d
 
@@ -1209,6 +1325,8 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 		if r[0] != "":
 			return r[0]
 		place = r[1]
+		if place.id == mine_map("floor_map"):
+			place = _mine_exit()
 	# Saves from before holding: nothing shipped yet (the held item is the inventory's hand).
 	var saved_shipped = data.get("shipped", {})
 	if not saved_shipped is Dictionary:
@@ -1260,6 +1378,11 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 		return "Saved fishing is broken"
 	if not data.has("fishing") and n.inventory.count("rod", ["tools", "chest"]) == 0:
 		n.inventory.add("rod", 1, ["tools", "chest"])
+	# Saves from before the mine: no floor reached yet.
+	var saved_mine = data.get("mine", {"deepest": 0})
+	n.mine_deepest = SaveGame.whole(saved_mine.get("deepest") if saved_mine is Dictionary else null, 0, 9999)
+	if n.mine_deepest == null:
+		return "Saved mine is broken"
 	if not data.get("farm") is Dictionary:
 		return "Saved farm is missing"
 	var err := farm.from_dict(data.farm)

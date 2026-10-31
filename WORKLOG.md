@@ -10,6 +10,70 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Mining: the mine entrance and floors made fresh from a seed
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit · Branch: claude/mining-cf98d9
+- Done: milestone 9's mining part, our own design (DESIGN has no mine rules).
+  - Maps: the village road's east end (new walk-off door on `town.json` cells (36, 10-11),
+    the only change to a shared map) leads to `mine` (a hollow under a cliff, a timber-framed
+    adit with a shimenawa rope, two stone lanterns, pines). Its cave mouth goes down to
+    `mine_floor`, one 18 x 14 cave every floor is laid out on (rock walls, a pillar, the
+    ladder up in the back wall). New map key `sheltered` (no weather; buildings by default):
+    the cave isn't `indoor`, so the clock runs down there, with its own light.
+  - Rules: `MineFloor` (scripts/mine/mine_floor.gd, pure) lays a floor out from a seed, the
+    depth and the season: rocks / big rocks / soft spots by the floor band's counts, never on
+    walls, doors or next to the ladder, each with its find rolled up front; one hole down under
+    a soft spot (30 %) or a rock, at least 5 cells from the ladder. `hit` (hits per rock kind
+    and band), `dig`, `area_cells` (walls cut a charged hoe), finds left lying (`leave` /
+    `take`). The open hole is a door (`down: true`) to the next floor.
+  - Game: `Game.maps.mine_floor` (MapManager: rocks solid, the hole a door); `go_to_map` makes
+    floor 1 from the cave mouth and depth + 1 from a hole, each with a new seed; the ladder goes
+    straight back up. `mine_swing(tool, origin, facing, charge)`: hammer / hoe only, the charge
+    rule's stamina and the usual work fatigue (rain, late, overwork), tool experience; finds go
+    to the rucksack, else overhead, else stay on the ground (`mine_pick_up`, E). "Mine floor N"
+    on arrival. `sell_price` / `item_name` know `mine:<id>`, so finds ship and show names.
+  - Data (`data/mine.json`): four bands (floors 1, 4, 8, 13+) with counts, hits and finds per
+    source; season factors (spring clay x1.5, summer amber x1.5, fall agate x1.5, winter rock
+    crystal x2); 11 items: Grey stone 2 G, Potter's clay 6, Iron sand 10, Akagane ore 18,
+    Shirogane ore 40, Kogane ore 90, Hoshigane ore 400, Agate 60, Rock crystal 120, Amber 150,
+    Jade 300. Balance reasoning: a floor-1 rock is worth about 4 G on average against 2
+    stamina a tap, less than a crop day, so the mine pays by going deeper (floor 8+ rocks take
+    2 taps but average ~24 G); ores keep their sell prices low because the smithy is meant to
+    want them for upgrades. The smithy can name `mine:akagane` .. `mine:hoshigane` in
+    `upgrades.items`; data/shops.json is untouched (another branch).
+  - Save: only `mine: {deepest}` (0..9999; older saves: 0). A save made down the mine (F5)
+    writes the cave mouth as the position; a save that says `mine_floor` also loads there.
+  - Views and art: `MineLayer` (3D: rocks as sprites, soft spots / the hole as flat quads,
+    loose finds) and `MineView` (2D); `MapWorld` draws `rock_wall` cells as stone blocks (tall
+    where nothing open lies behind them from the camera, else a low rubble ridge), the
+    `cave_mouth` and `ladder` props; the target brackets and charge marks show down the mine.
+    PlaceholderArt: `mine:<rock|big_rock|soft|hole>`, ground `cave`, `rock_wall`, `scree`,
+    item icons `ui:mine:<id>` from the looks in data (stone, lump, sand, ore with a vein, cut
+    gem, amber drop, crystal cluster). Sounds `rock_break`, `mine_find`, `mine_down` in
+    data/sfx.json.
+  - Flags: `-- --demo --mine=N` (a fresh floor N at the ladder), `--map=mine`, `--map=mine_floor`.
+- Checked: new `tests/test_mine.gd` (data, bands, season factors, 2000-floor find shares
+  within 2 % of the weights, same seed = same floor, 1200 floors keep the layout rules and
+  have one hole, hole under soft ground ~30 %, hits / dig / hole as a door, area cut by walls,
+  the doors between village / entrance / cave, going down and back up on Game, stamina per
+  charge, rain fatigue, big rock after 4 taps, hoe finds, wrong tool / full hands cost
+  nothing, full rucksack -> overhead -> ground -> E, prices and names, the save (deepest,
+  position, old saves, 5 broken ones), the art) prints `test_mine: OK (0 failed)`; all 17
+  other tests print `OK (0 failed)` (test_save once failed in the full run on its
+  `user://test_save.json`, which the parallel sessions' tests share; it passed alone 4 times).
+  Headless `--quit-after 300` (title, `-- --demo`, `--demo --map=town`, `--demo --map=mine`,
+  `--demo --map=mine_floor`, `--demo --mine=9`, `--demo --weather=storm --mine=2`,
+  `res://scenes/main_2d.tscn -- --demo --mine=3`) and `res://scenes/main.tscn --quit-after 400`
+  (also `-- --map=mine`) printed no errors or warnings. Movie Maker frames: `--demo --mine=3` and
+  `--demo --mine=9` (cave floor, rock walls, the ladder behind the farmer, rocks, soft spots,
+  "Mine floor N" in the message box), `--demo --map=mine@cave` (the adit with its timber frame
+  and shimenawa, scree, lanterns).
+- Left / next: not played in a real window (swinging, the hole, the 2D view only ran
+  headless); the new sounds were not heard. The smithy doesn't ask for ores yet and shops
+  don't buy mine items (shops branch). No winter variant (optional; a frozen pond or snow cave
+  could be a second cave map picked by season in data/mine.json). Finds left on the ground
+  are lost when leaving the floor. The parallel sessions share `user://`, so their tests can
+  collide on the same file.
+
 ## 2026-10-31 — Merged six branches: key remap, examine, villagers, shops, chickens, fishing
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each, in this order:

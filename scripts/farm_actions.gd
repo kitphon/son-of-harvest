@@ -105,12 +105,20 @@ static func _after_flight(sound: Callable) -> void:
 static func interact(c: Vector2i) -> void:
 	var door := Game.maps.door_at(c)
 	if not door.is_empty():
-		if door.to != "":
+		if door.get("down", false):
+			Sfx.play("mine_down")   # the hole to the next mine floor
+		elif door.to != "":
 			Sfx.play("door_slide")
 		Game.use_door(door)
 		return
 	if CoopActions.interact(c):   # the hens, feed box, nests, incubator and hatch
 		return
+	if Game.maps.mine_floor != null:   # a find left lying down the mine
+		var found := Game.mine_pick_up(c)
+		if found != "":
+			Sfx.play("pick")
+			Game.message.emit("Picked up the %s" % item_name(found))
+			return
 	if not Game.maps.on_farm():
 		var prop := Game.maps.current().prop_at(c)
 		match str(prop.get("use", "")):
@@ -176,6 +184,9 @@ static func buy_food() -> void:
 static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	if Game.current_tool() == "rod":
 		cast(origin, facing)
+		return
+	if Game.maps.mine_floor != null:
+		mine(origin, facing, charge)
 		return
 	if not Game.maps.on_farm():
 		return   # tools only work on the farm for now
@@ -243,6 +254,39 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 				Game.message.emit("It's tough. Keep hitting.")
 	# Every swing teaches the tool a little, one that did some work more.
 	Game.add_tool_exp(tool, Game.swing_exp(worked))
+
+
+## Down the mine the hammer breaks rocks and the hoe digs soft spots (Game.mine_swing); food
+## still works, the other tools do nothing here.
+static func mine(origin: Vector2i, facing: Vector2i, charge: int) -> void:
+	var tool := Game.current_tool()
+	if tool == "food":
+		var id := Game.current_food()
+		if Game.eat(id):
+			Sfx.play(Game.eat_sound(id))
+		return
+	var r := Game.mine_swing(tool, origin, facing, charge)
+	match r.result:
+		"hands_full":
+			Game.message.emit("Your hands are full (I = rucksack)")
+			return
+		"wrong_tool":
+			Game.message.emit("Use the hammer on rocks and the hoe on soft ground" if tool != "" else "No tool in hand (I = rucksack)")
+			return
+	Sfx.play("tool_" + tool)
+	if r.worked and tool == "hammer":
+		Sfx.play("rock_break")
+	var said: Array[String] = []
+	for f in r.finds:
+		said.append("Found %s%s" % [item_name(f.item), {"bag": "", "hand": " (rucksack full)", "floor": " (left it on the ground)"}[f.to]])
+	if not r.finds.is_empty():
+		Sfx.play("mine_find")
+	if r.hole:
+		said.append("A hole leads further down!")
+	elif r.tough:
+		said.append("It's tough. Keep hitting.")
+	if not said.is_empty():
+		Game.message.emit(". ".join(said))
 
 
 ## Number keys / Tab / Q (next seed, or next food with the food slot), the same in both views.

@@ -1,0 +1,40 @@
+{
+	"_note": "One mine floor: the cave every floor is laid out on. Its rocks, soft spots and the hole down are not in this file; MineFloor makes them fresh on each entry from a seed (data/mine.json). The ladder at the top goes straight back up to the entrance. Not indoors: the clock runs down here, but no weather falls (sheltered) and the light is the cave's own. Format: README.md, Maps.",
+	"id": "mine_floor",
+	"name": "Mine",
+	"size": [18, 14],
+	"indoor": false,
+	"sheltered": true,
+	"ambient": "cave",
+	"light": "b8aa98",
+	"background": "100c0a",
+	"legend": {
+		"#": {"tile": "rock_wall", "solid": true},
+		".": {"tile": "cave", "step": "soil"}
+	},
+	"ground": [
+		"##################",
+		"###.............##",
+		"##...............#",
+		"#................#",
+		"#......##........#",
+		"#.....####.......#",
+		"#......##........#",
+		"#................#",
+		"##...............#",
+		"#.............####",
+		"#....##..........#",
+		"#....##..........#",
+		"##..............##",
+		"##################"
+	],
+	"props": [
+		{"kind": "ladder", "cell": [8, 0]}
+	],
+	"doors": [
+		{"cells": [[8, 0]], "to": "mine", "spawn": [7, 3], "facing": "down"}
+	],
+	"spawns": {
+		"start": [[8, 1], "down"]
+	}
+}

@@ -1,0 +1,53 @@
+{
+	"_about": "The mine (scripts/mine/mine_floor.gd, Game.mine_swing). The cave mouth on the `entrance_map` leads down to `floor_map`, a cave whose rocks, soft spots and way down are laid out fresh on every entry from a seed (MineFloor.make). The hammer breaks rocks (hits per rock kind, with the hammer's charge hits from data/tools.json), the hoe digs soft spots; each one hides a find picked when the floor is made, or the hole down. A floor band is the last one whose `from` depth is at or above the floor: counts are [fewest, most], finds are weights (\"none\" = nothing), per source (rock, big_rock, soft). Season factors multiply a find's weight. Swings cost stamina and fatigue like field work. Only the deepest floor reached is saved. Names and numbers are ours; see WORKLOG 2026-10-31 Mining.",
+	"entrance_map": "mine",
+	"entrance_spawn": "cave",
+	"floor_map": "mine_floor",
+	"safe_radius": 1,
+	"_safe_radius": "No rock or soft spot this close (in cells, either way) to where the ladder lets the farmer down.",
+	"stairs": {"under_soft": 0.3, "min_distance": 5},
+	"_stairs": "The hole down hides under one soft spot (that share of floors) or one rock, at least min_distance cells (x + y) from the ladder.",
+	"floors": [
+		{"from": 1, "rocks": [14, 18], "big_rocks": [0, 1], "soft": [4, 6], "hits": {"rock": 1, "big_rock": 4},
+			"finds": {
+				"rock": {"none": 40, "stone": 34, "satetsu": 16, "akagane": 10},
+				"big_rock": {"stone": 40, "akagane": 40, "meno": 20},
+				"soft": {"none": 45, "clay": 35, "satetsu": 15, "meno": 5}}},
+		{"from": 4, "rocks": [16, 22], "big_rocks": [1, 2], "soft": [4, 6], "hits": {"rock": 1, "big_rock": 5},
+			"finds": {
+				"rock": {"none": 34, "stone": 26, "satetsu": 14, "akagane": 18, "shirogane": 6, "meno": 2},
+				"big_rock": {"akagane": 40, "shirogane": 35, "meno": 15, "suisho": 10},
+				"soft": {"none": 40, "clay": 30, "satetsu": 15, "meno": 8, "kohaku": 7}}},
+		{"from": 8, "rocks": [18, 24], "big_rocks": [2, 3], "soft": [3, 5], "hits": {"rock": 2, "big_rock": 6},
+			"finds": {
+				"rock": {"none": 30, "stone": 18, "akagane": 16, "shirogane": 18, "kogane": 8, "suisho": 4},
+				"big_rock": {"shirogane": 35, "kogane": 35, "suisho": 20, "hisui": 10},
+				"soft": {"none": 40, "clay": 22, "satetsu": 12, "kohaku": 16, "suisho": 10}}},
+		{"from": 13, "rocks": [20, 26], "big_rocks": [3, 4], "soft": [3, 4], "hits": {"rock": 2, "big_rock": 8},
+			"finds": {
+				"rock": {"none": 28, "stone": 12, "shirogane": 20, "kogane": 22, "suisho": 8, "hoshigane": 3},
+				"big_rock": {"kogane": 40, "hisui": 25, "suisho": 20, "hoshigane": 15},
+				"soft": {"none": 40, "clay": 15, "kohaku": 25, "hisui": 12, "suisho": 8}}}
+	],
+	"seasons": {
+		"spring": {"clay": 1.5},
+		"summer": {"kohaku": 1.5},
+		"fall": {"meno": 1.5},
+		"winter": {"suisho": 2.0}
+	},
+	"_seasons": "Spring melt leaves the soft spots wet and full of clay; summer heat sweats amber out of old seams; fall is when agate turns up in the dry rubble; in winter frost opens the cracks where rock crystal grows.",
+	"_items": "Mine finds are rucksack items \"mine:<id>\": name, kind (stone / ore / gem), sell (G in the bin), look (icon shape and colours for PlaceholderArt). Ores are for the smithy's tool upgrades later.",
+	"items": {
+		"stone": {"name": "Grey stone", "kind": "stone", "sell": 2, "look": {"shape": "stone", "body": "8e8a84", "shine": "b8b4ac"}},
+		"clay": {"name": "Potter's clay", "kind": "stone", "sell": 6, "look": {"shape": "lump", "body": "b88a62", "shine": "d8b08a"}},
+		"satetsu": {"name": "Iron sand", "kind": "ore", "sell": 10, "look": {"shape": "sand", "body": "3a3836", "shine": "8a8a90"}},
+		"akagane": {"name": "Akagane ore", "kind": "ore", "sell": 18, "look": {"shape": "ore", "body": "6e625a", "vein": "c8643a"}},
+		"shirogane": {"name": "Shirogane ore", "kind": "ore", "sell": 40, "look": {"shape": "ore", "body": "5e5c60", "vein": "dcdce4"}},
+		"kogane": {"name": "Kogane ore", "kind": "ore", "sell": 90, "look": {"shape": "ore", "body": "5a5448", "vein": "f0c840"}},
+		"hoshigane": {"name": "Hoshigane ore", "kind": "ore", "sell": 400, "look": {"shape": "ore", "body": "2a2a3a", "vein": "8ab0f0"}},
+		"meno": {"name": "Agate", "kind": "gem", "sell": 60, "look": {"shape": "gem", "body": "c86a4a", "shine": "f0b098"}},
+		"kohaku": {"name": "Amber", "kind": "gem", "sell": 150, "look": {"shape": "drop", "body": "d89030", "shine": "f8d070"}},
+		"suisho": {"name": "Rock crystal", "kind": "gem", "sell": 120, "look": {"shape": "crystal", "body": "c8e0ec", "shine": "ffffff"}},
+		"hisui": {"name": "Jade", "kind": "gem", "sell": 300, "look": {"shape": "gem", "body": "4a9a6a", "shine": "a0e0b0"}}
+	}
+}

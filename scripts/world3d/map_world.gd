@@ -22,6 +22,8 @@ func build(m: MapData) -> void:
 			var c := Vector2i(x, y)
 			if map.tile(c) == "wall":
 				_wall(c)
+			elif map.tile(c) == "rock_wall":
+				_rock_wall(c)
 			elif map.is_solid(c) and not map.door_at(c).is_empty() and map.prop_at(c).is_empty() and map.indoor:
 				_box(Vector3(1, 0.06, 0.9), Vector3(x + 0.5, 0.03, y + 0.5), flat_material(Color("4a3424")))   # threshold
 	for p in map.props:
@@ -70,6 +72,24 @@ func _wall(c: Vector2i) -> void:
 		_picture("build:shoji", Vector2(0.8, 0.6), at + room * 1.01 + Vector3(0, 1.15, 0), yaw)
 
 
+## Bare rock (the mine, the cliff over its mouth). The camera looks in from +x / +z, so rock
+## with open ground behind it (above or to the left in the map) would hide that ground: it is
+## only a low ridge of rubble; the rest stands as tall, uneven blocks of stone.
+func _rock_wall(c: Vector2i) -> void:
+	var at := Vector3(c.x + 0.5, 0, c.y + 0.5)
+	var low := false
+	for o in [Vector2i.UP, Vector2i.LEFT, Vector2i(-1, -1)]:
+		var b: Vector2i = c + o
+		low = low or (map.in_bounds(b) and map.tile(b) != "rock_wall")
+	var rock := surface_material("ground:rock_wall:%d" % posmod(c.x * 5 + c.y * 3, PlaceholderArt.GROUND_VARIANTS))
+	if low:
+		var h := 0.25 + 0.08 * posmod(c.x + c.y * 2, 3)
+		_box(Vector3(1, h, 1), at + Vector3(0, h / 2, 0), rock)
+		return
+	var tall := 1.3 + 0.12 * posmod(c.x * 3 + c.y * 7, 4)
+	_box(Vector3(1.02, tall, 1.02), at + Vector3(0, tall / 2, 0), rock)
+
+
 func _make_prop(p: Dictionary) -> void:
 	var r := Rect2(Vector2(p.cell), Vector2(p.size))
 	var mid := Vector3(r.get_center().x, 0, r.get_center().y)
@@ -91,6 +111,8 @@ func _make_prop(p: Dictionary) -> void:
 		"tool_rack": _tool_rack(mid, r)
 		"water_tub": _water_tub(mid)
 		"feed_box", "nest", "incubator", "feed_sack", "hatch": CoopProps.prop(self, p, mid, r)
+		"cave_mouth": _cave_mouth(mid, r)
+		"ladder": _ladder(mid)
 		_:
 			push_warning("MapWorld: no look for prop '%s'" % p.kind)
 			_box(Vector3(r.size.x, 0.5, r.size.y) * 0.9, mid + Vector3(0, 0.25, 0), flat_material(Color.MAGENTA))
@@ -263,6 +285,36 @@ func _pine(mid: Vector3) -> void:
 		mi.material_override = m
 		mi.position = mid + Vector3(0, 0.9 + i * 0.42, 0)
 		add_child(mi)
+
+
+# --- the mine (data/maps/mine.json, mine_floor.json) ---------------------------
+
+## The adit in the cliff: a black opening framed by two timber posts and a lintel, a straw
+## rope (shimenawa) with paper streamers hung across it, as at a mountain shrine.
+func _cave_mouth(mid: Vector3, r: Rect2) -> void:
+	var front := r.end.y + 0.02
+	var wide := r.size.x - 0.3
+	_box(Vector3(wide, 1.3, 0.04), Vector3(mid.x, 0.65, front), flat_material(Color("0c0a08")))
+	var timber := surface_material("build:sugi")
+	for x in [mid.x - wide / 2, mid.x + wide / 2]:
+		_box(Vector3(0.16, 1.45, 0.16), Vector3(x, 0.72, front + 0.06), timber)
+	_box(Vector3(wide + 0.4, 0.16, 0.2), Vector3(mid.x, 1.5, front + 0.06), timber)
+	_box(Vector3(wide + 0.1, 0.07, 0.07), Vector3(mid.x, 1.36, front + 0.17), flat_material(Color("c8b070")))
+	for i in 4:
+		var x := mid.x - wide / 2 + 0.3 + i * (wide - 0.6) / 3.0
+		_box(Vector3(0.08, 0.22, 0.01), Vector3(x, 1.2, front + 0.2), flat_material(Color("f4f0e6")))
+	_box(Vector3(0.5, 0.05, 0.3), Vector3(mid.x, 0.025, front + 0.35), flat_material(Color("8a8680")))   # a step stone
+
+
+## The ladder back up, leaning on the rock in the floor's back wall, a little light from above.
+func _ladder(mid: Vector3) -> void:
+	var at := mid + Vector3(0, 0, 0.58)   # just in front of the rock face
+	var wood := flat_material(Color("8a6a3a"))
+	for x in [-0.25, 0.25]:
+		_box(Vector3(0.07, 1.6, 0.07), at + Vector3(x, 0.8, 0.06), wood, Vector3(-0.12, 0, 0))
+	for i in 5:
+		_box(Vector3(0.5, 0.05, 0.05), at + Vector3(0, 0.2 + i * 0.3, 0.12 - 0.036 * i), flat_material(Color("c89c5a")))
+	_box(Vector3(0.9, 0.02, 0.6), mid + Vector3(0, 0.015, 0.9), flat_material(Color(1.0, 0.95, 0.8, 0.25)))
 
 
 # --- shop insides (data/maps/store.json, smithy.json) --------------------------

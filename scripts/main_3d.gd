@@ -169,21 +169,30 @@ func _enter_map() -> void:
 	var animals := AnimalLayer.new()   # hens, eggs and feed (the coop, or the farm yard)
 	world.add_child(animals)
 	animals.setup(m, Game.maps.on_farm())
+	if Game.maps.mine_floor != null:   # rocks, soft spots and the hole down
+		var rocks := MineLayer.new()
+		world.add_child(rocks)
+		rocks.setup(Game.maps.mine_floor)
 	player.farm = Game.farm
 	player.position = Game.maps.pos
 	player.facing = Game.maps.facing
 	player.cancel_charge()
 	env.background_color = m.background
-	target_mark.visible = Game.maps.on_farm()
+	target_mark.visible = _tools_work()
 	_show_weather()
 	_update_tint()
 	_follow()
 
 
-## Weather falls outdoors only; the farm ground shows the snow lying.
+## Do the tools work here (the farm, a mine floor)? Then the target brackets show.
+func _tools_work() -> bool:
+	return Game.maps.on_farm() or Game.maps.mine_floor != null
+
+
+## Weather falls outdoors only (not in buildings or the mine); the farm ground shows the snow lying.
 func _show_weather() -> void:
-	weather.show_weather({} if Game.indoors() else Game.weather_style())
-	lightning.reset({} if Game.indoors() else Game.lightning_style())
+	weather.show_weather({} if Game.sheltered() else Game.weather_style())
+	lightning.reset({} if Game.sheltered() else Game.lightning_style())
 	world.set_snow(Game.snow_cover / 100.0)
 
 
@@ -206,7 +215,7 @@ func _follow() -> void:
 	sprite.flip_h = FarmerAnim.is_mirrored(player.facing)
 	var tc := player.target_cell()
 	target_mark.position = Vector3(tc.x + 0.5, 0.02, tc.y + 0.5)
-	if Game.maps.on_farm():
+	if _tools_work():
 		_show_charge()
 	_show_held()
 

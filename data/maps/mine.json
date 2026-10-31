@@ -1,0 +1,45 @@
+{
+	"_note": "The mine entrance: a grassy hollow under a cliff east of the village, with a timber-framed adit in the rock face. The cave mouth (door) goes down to the first mine floor (mine_floor.json, laid out fresh each time: data/mine.json). The west edge leads back to the village road. Format: README.md, Maps.",
+	"id": "mine",
+	"name": "Mine entrance",
+	"size": [16, 12],
+	"indoor": false,
+	"ambient": "outdoor",
+	"legend": {
+		"#": {"tile": "rock_wall", "solid": true},
+		"g": {"tile": "grass"},
+		"r": {"tile": "path"},
+		"s": {"tile": "scree", "step": "soil"}
+	},
+	"ground": [
+		"################",
+		"################",
+		"################",
+		"ggg#gsssssg#gggg",
+		"gggggsssssgggggg",
+		"ggggggrrrggggggg",
+		"gggggrrggggggggg",
+		"rrrrrrgggggggggg",
+		"rrrrrggggggggggg",
+		"gggggggggggggggg",
+		"gggggggggggggggg",
+		"gggggggggggggggg"
+	],
+	"props": [
+		{"kind": "cave_mouth", "cell": [7, 2], "size": [2, 1]},
+		{"kind": "pine", "cell": [1, 4]},
+		{"kind": "pine", "cell": [14, 5]},
+		{"kind": "pine", "cell": [13, 9]},
+		{"kind": "pine", "cell": [3, 10]},
+		{"kind": "stone_lantern", "cell": [5, 3]},
+		{"kind": "stone_lantern", "cell": [10, 3]}
+	],
+	"doors": [
+		{"cells": [[7, 2], [8, 2]], "to": "mine_floor", "spawn": [8, 1], "facing": "down"},
+		{"cells": [[-1, 7], [-1, 8]], "to": "town", "spawn": [34, 10], "facing": "left"}
+	],
+	"spawns": {
+		"start": [[1, 7], "right"],
+		"cave": [[7, 3], "down"]
+	}
+}

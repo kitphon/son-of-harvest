@@ -27,6 +27,8 @@ static func _make(key: String) -> Image:
 			return _charge(int(parts[1]), int(parts[2]))
 		"rock", "branch", "weed", "stump":
 			return _obstacle(parts[0])
+		"mine":     # mine:<rock|big_rock|soft|hole>, what lies on a mine floor (MineFloor)
+			return _mine(parts[1])
 		"crop":     # crop:<id>:<growth 0..3>:<ripe|growing>
 			return _crop(parts[1], int(parts[2]), parts[3] == "ripe")
 		"item":     # item:<id>, a picked crop held overhead or lying on the ground (12 x 12)
@@ -35,7 +37,7 @@ static func _make(key: String) -> Image:
 			return _animal(parts[1], parts[2], int(parts[3]))
 		"build":    # build:<plaster|board|kawara|thatch|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
-		"ground":   # ground:<grass|tilled|wet|path|tatami|floor|earth|gravel|wall>:<variant> or ground:water:<land sides mask>
+		"ground":   # ground:<grass|tilled|wet|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree>:<variant> or ground:water:<land sides mask>
 			return _ground(parts[1], int(parts[2]))
 		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour)
 			return _fx(parts[1])
@@ -63,6 +65,8 @@ static func item_key(id: String, seed := "", food := "") -> String:
 		return "ui:food:" + id.trim_prefix("food:")
 	if id.begins_with("fish:"):
 		return "ui:fish:" + id.trim_prefix("fish:")
+	if id.begins_with("mine:"):
+		return "ui:mine:" + id.trim_prefix("mine:")
 	if id in ["hoe", "can", "sickle", "hammer", "axe", "rod"]:
 		return "ui:tool:" + id
 	return "ui:item:" + id.replace(":", "_")
@@ -536,6 +540,7 @@ static func crop_look(id: String) -> Dictionary:
 
 static var _food_looks := {}
 static var _fish_looks := {}
+static var _mine_looks := {}
 
 
 ## A fish's icon look from data/fish.json (body, belly, fin colours and a shape).
@@ -545,6 +550,15 @@ static func fish_look(id: String) -> Dictionary:
 		for k in data.get("fish", {}):
 			_fish_looks[k] = data.fish[k].get("look", {})
 	return _fish_looks.get(id, {})
+
+
+## A mine find's icon look from data/mine.json (shape, body, shine / vein colours).
+static func mine_look(id: String) -> Dictionary:
+	if _mine_looks.is_empty():
+		var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/mine.json"))
+		for k in data.get("items", {}):
+			_mine_looks[k] = data.items[k].get("look", {})
+	return _mine_looks.get(id, {})
 
 
 ## A food's icon look from data/foods.json (shape, color, accent).
@@ -626,6 +640,103 @@ static func _obstacle(kind: String) -> Image:
 			_px(img, 12, 13, 3, 1, Color("5e3d1e"))
 			_oval(img, 8, 7, 5, 2, Color("c49a64"))
 			_oval(img, 8, 7, 2.5, 1, Color("a07a4a"))
+	return _outline(img)
+
+
+## A mine floor's pieces. Rocks stand up as sprites: a rock is 16 x 16 (dark cave stone
+## with a pale chip), a big rock 24 x 20 (a split boulder with a seam). The soft spot and the
+## hole lie flat on the ground (16 x 16): a mound of loose dark earth with cracks, and a black
+## pit with the top of a ladder in it.
+static func _mine(kind: String) -> Image:
+	match kind:
+		"rock":
+			var img := _blank(16, 16)
+			_oval(img, 8, 10.5, 6.5, 4.5, Color("4e463e"))
+			_oval(img, 7.5, 9.5, 5.5, 3.6, Color("6e655a"))
+			_px(img, 5, 7, 3, 1, Color("9a9084"))
+			_px(img, 10, 10, 1, 2, Color("3a342e"))
+			_px(img, 8, 12, 2, 1, Color("3a342e"))
+			return _outline(img)
+		"big_rock":
+			var img := _blank(24, 20)
+			_oval(img, 12, 12.5, 10.5, 7.0, Color("463e38"))
+			_oval(img, 11.5, 11.5, 9.0, 6.0, Color("665c52"))
+			_oval(img, 8.5, 9.5, 4.0, 2.4, Color("7a7064"))
+			_line(img, Vector2i(13, 6), Vector2i(15, 17), Color("2e2824"))   # the seam
+			_line(img, Vector2i(14, 11), Vector2i(19, 13), Color("2e2824"))
+			_px(img, 6, 8, 4, 1, Color("a09484"))
+			return _outline(img)
+		"soft":
+			var img := _blank(16, 16)
+			_oval(img, 8, 8.5, 6.5, 5.5, Color("3e3028"))
+			_oval(img, 8, 8, 5.5, 4.5, Color("6a5440"))
+			for p in [Vector2i(5, 6), Vector2i(9, 5), Vector2i(11, 9), Vector2i(6, 10), Vector2i(8, 8)]:
+				_px(img, p.x, p.y, 2, 1, Color("806650"))
+			_line(img, Vector2i(4, 8), Vector2i(7, 9), Color("3a2c22"))
+			_line(img, Vector2i(9, 10), Vector2i(12, 7), Color("3a2c22"))
+			return img
+		"hole":
+			var img := _blank(16, 16)
+			_oval(img, 8, 8, 7.0, 6.5, Color("2a221c"))
+			_oval(img, 8, 8.5, 5.8, 5.2, Color("0c0a08"))
+			for x in [5, 10]:   # the ladder's rails and rungs going down
+				_px(img, x, 4, 1, 9, Color("8a6a3a"))
+			for y in [5, 8, 11]:
+				_px(img, 5, y, 6, 1, Color("a8844a"))
+			return img
+	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
+
+
+## A mine find as a 14 x 14 icon from its look: a rounded stone, a lump of clay, a heap of
+## black sand, a lump of rock with a bright vein of ore, a cut gem, an amber drop, a crystal.
+static func _mine_icon(look: Dictionary) -> Image:
+	var img := _blank(14, 14)
+	var body := Color(look.get("body", "8e8a84"))
+	var shine := Color(look.get("shine", body.lightened(0.4).to_html()))
+	match look.get("shape", "stone"):
+		"stone":
+			_oval(img, 7, 8, 5.5, 4.2, body)
+			_px(img, 4, 6, 3, 1, shine)
+			_px(img, 9, 10, 2, 1, body.darkened(0.25))
+		"lump":
+			_oval(img, 7, 8.5, 5.0, 3.8, body)
+			_oval(img, 6, 6.5, 3.0, 2.0, body.lightened(0.08))
+			_px(img, 4, 6, 2, 1, shine)
+			_line(img, Vector2i(5, 10), Vector2i(9, 9), body.darkened(0.25))   # a thumb mark
+		"sand":
+			for y in range(5, 12):
+				var half := (y - 4) + 1
+				_px(img, 7 - half, y, half * 2, 1, body)
+			for p in [Vector2i(6, 6), Vector2i(4, 9), Vector2i(8, 8), Vector2i(10, 10), Vector2i(7, 10)]:
+				img.set_pixelv(p, shine)
+		"ore":
+			var vein := Color(look.get("vein", "c8643a"))
+			_oval(img, 7, 8, 5.8, 4.5, body)
+			_oval(img, 6, 7, 3.5, 2.5, body.lightened(0.12))
+			_line(img, Vector2i(3, 9), Vector2i(10, 5), vein)
+			_line(img, Vector2i(6, 11), Vector2i(10, 9), vein)
+			_px(img, 8, 6, 1, 1, vein.lightened(0.4))
+		"gem":
+			for y in 4:   # the crown widening, then the point
+				_px(img, 4 - y, 3 + y, 6 + y * 2, 1, body.lightened(0.15))
+			for y in 5:
+				_px(img, 1 + y, 7 + y, 12 - y * 2, 1, body)
+			_px(img, 4, 4, 2, 1, shine)
+			_px(img, 2, 7, 10, 1, body.darkened(0.2))
+		"drop":
+			_oval(img, 7, 8.5, 4.2, 4.0, body)
+			for y in 3:
+				_px(img, 6 - y / 2, 3 + y, 2 + y, 1, body)
+			_px(img, 5, 7, 2, 2, shine)
+			_px(img, 8, 10, 1, 1, body.darkened(0.25))   # something old caught inside
+		"crystal":
+			for i in 3:   # three points from a cluster
+				var x := 3 + i * 3
+				var tall := 8 - absi(i - 1) * 2
+				_px(img, x, 12 - tall, 3, tall, body)
+				_px(img, x + 1, 11 - tall, 1, 1, body)
+				_px(img, x, 12 - tall, 1, tall, shine)
+			_px(img, 2, 11, 10, 2, Color("6a625a"))   # the rock it grows from
 	return _outline(img)
 
 
@@ -861,6 +972,30 @@ static func _ground(kind: String, n: int) -> Image:
 				_px(img, x, y, 2, 1, Color("a8a498") if i % 2 == 0 else Color("dedad0"))
 		"wall":
 			img.fill(Color("3e3028"))
+		"cave":
+			# The mine floor: trodden dark earth with grit and a flat stone here and there.
+			img.fill(Color("5a4c40"))
+			for i in 12:
+				var x := rng.randi_range(0, 15)
+				var y := rng.randi_range(0, 15)
+				_px(img, x, y, 1, 1, Color("4a3e34") if i % 2 == 0 else Color("6e6052"))
+			if n % 2 == 0:
+				_px(img, rng.randi_range(2, 10), rng.randi_range(2, 11), 3, 2, Color("6a625a"))
+		"rock_wall":
+			# Bare rock: dark grey-brown blocks split by black cracks, lit on their top edges.
+			img.fill(Color("4e4640"))
+			for i in 5:
+				var x := rng.randi_range(0, 12)
+				var y := rng.randi_range(0, 12)
+				_px(img, x, y, rng.randi_range(3, 6), 1, Color("6a625a"))
+				_px(img, x, y + 1, 1, rng.randi_range(2, 4), Color("2e2824"))
+		"scree":
+			# Loose grey rubble under the cliff.
+			img.fill(Color("9a9086"))
+			for i in 14:
+				var x := rng.randi_range(0, 14)
+				var y := rng.randi_range(0, 15)
+				_px(img, x, y, 2, 1, Color("7a7068") if i % 2 == 0 else Color("b8b0a4"))
 		"water":
 			img.fill(Color("3d7fc4"))
 			for i in 4:
@@ -1110,6 +1245,8 @@ static func _ui(kind: String, arg: String) -> Image:
 			return _food_icon(food_look(arg))
 		"fish":     # fish:<id>, 14 x 14, drawn from the fish's look in data/fish.json
 			return _fish_icon(fish_look(arg))
+		"mine":     # mine:<id>, 14 x 14, a stone, ore or gem from its look in data/mine.json
+			return _mine_icon(mine_look(arg))
 		"coin":     # a gold coin with a square hole
 			var img := _blank(9, 9)
 			_oval(img, 4.5, 4.5, 4.0, 4.0, Color("c8962a"))
