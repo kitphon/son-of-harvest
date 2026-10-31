@@ -1,0 +1,49 @@
+{
+	"_note": "The river south of the village: the lane behind Kota's house (the village's south edge) comes down a grassy slope to a gravel shore; the river runs across the whole map from edge to edge (water at the map's side edges keeps flowing in the drawing, MapView.ground_key), with stepping rocks out in the current and pines on the far bank, which the farmer can't reach. Fish here use place `river` in data/fish.json (its own table: dace, chub, sculpin, the fall salmon run, and the stream fish that also come down into the village pond). A map of its own, not more water in the village: the village has no room for a river without moving houses that events and day plans use, and a map id is what the fish tables already key on. Format: README.md, Maps.",
+	"id": "river",
+	"name": "River",
+	"size": [20, 14],
+	"indoor": false,
+	"ambient": "outdoor",
+	"legend": {
+		"g": {"tile": "grass"},
+		"r": {"tile": "path"},
+		"s": {"tile": "gravel"},
+		"w": {"tile": "water", "solid": true}
+	},
+	"ground": [
+		"ggggrrgggggggggggggg",
+		"ggggrrgggggggggggggg",
+		"gggggrrggggggggggggg",
+		"ggggggrrrrgggggggggg",
+		"gggssssrrssssssggggg",
+		"ssssssssssssssssssss",
+		"wwwwwwwwwwwwwwwwwwww",
+		"wwwwwwwwwwwwwwwwwwww",
+		"wwwwwwwwwwwwwwwwwwww",
+		"wwwwwwwwwwwwwwwwwwww",
+		"ssssssssssssssssssss",
+		"gggggggggggggggggggg",
+		"gggggggggggggggggggg",
+		"gggggggggggggggggggg"
+	],
+	"props": [
+		{"kind": "river_rock", "cell": [3, 7]},
+		{"kind": "river_rock", "cell": [12, 8]},
+		{"kind": "river_rock", "cell": [16, 6]},
+		{"kind": "pine", "cell": [1, 1]},
+		{"kind": "pine", "cell": [12, 1]},
+		{"kind": "pine", "cell": [17, 2]},
+		{"kind": "pine", "cell": [2, 12]},
+		{"kind": "pine", "cell": [8, 11]},
+		{"kind": "pine", "cell": [14, 12]},
+		{"kind": "pine", "cell": [18, 11]}
+	],
+	"doors": [
+		{"cells": [[3, -1], [4, -1], [5, -1], [6, -1]], "to": "town", "spawn": [4, 20], "facing": "up"}
+	],
+	"spawns": {
+		"start": [[4, 1], "down"],
+		"shore": [[8, 5], "down"]
+	}
+}

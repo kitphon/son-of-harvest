@@ -256,13 +256,19 @@ func new_game() -> void:
 		elif arg == "--hold":   # e.g. `-- --demo --hold`: a turnip overhead, a potato in front of the bin
 			held = "turnip"
 			farm.place_item(Vector2i(8, 4), "potato")
-		elif arg.begins_with("--fishing"):   # `-- --demo --fishing` (or =wait): the line in the farm pond, a fish biting
-			maps.place(MapManager.FARM, Vector2i(24, 3), Vector2i.RIGHT)
+		elif arg.begins_with("--fishing"):   # `-- --demo --fishing` (or =wait, =river, =river:wait): the line in the farm pond (or the river), a fish biting
+			var opts := arg.trim_prefix("--fishing").trim_prefix("=").split(":")
+			if "river" in opts:
+				var m := MapManager.data("river")
+				maps.place(m.id, m.spawns.shore[0], m.spawns.shore[1])
+				fishing.cast(m.id, m.spawns.shore[0] + m.spawns.shore[1])
+			else:
+				maps.place(MapManager.FARM, Vector2i(24, 3), Vector2i.RIGHT)
+				fishing.cast(MapManager.FARM, Vector2i(25, 3))
 			for i in inventory.size("tools"):
 				if inventory.id_at("tools", i) == "rod":
 					tool_index = i
-			fishing.cast(MapManager.FARM, Vector2i(25, 3))
-			if arg != "--fishing=wait":
+			if not "wait" in opts:
 				fishing.state = "bite"
 				fishing.time = -60.0   # the bite waits for the screenshot
 		elif arg.begins_with("--contest="):   # `-- --demo --festival=blossom_day --contest=potato`: at the judges' table with it

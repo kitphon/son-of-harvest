@@ -1,5 +1,5 @@
 {
-	"_note": "Kota, a boy from the house south-west of the road: plays along the road in the morning, fishes at the pond in the afternoon; on his birthday he is out at the pond from early morning to evening after the old carp; in summer he hunts cicadas in the shrine pines instead. Walks a little faster than the grown-ups. At home (data/maps/kota_house.json) by his toy box before 8:00, at noon and after 17:30, all day when it is wet (with a walk to the hearth now and then); in bed (away) from 20:00, when the door shuts. Gifts: corn, sweets, anything with fins and shiny mine finds (crystal best); not his vegetables. Dishes: sweet ones (milk pudding, kinako mochi best), eggs, fish and rice balls; tea rice and plain daikon are grown-up food. Format: README.md, Villagers.",
+	"_note": "Kota, a boy from the house south-west of the road: plays along the road in the morning, fishes at the pond in the afternoon; on his birthday he is out at the pond from early morning to evening after the old carp; in summer he hunts cicadas in the shrine pines instead. Walks a little faster than the grown-ups. At home (data/maps/kota_house.json) by his toy box before 8:00, at noon and after 17:30, all day when it is wet (with a walk to the hearth now and then); in bed (away) from 20:00, when the door shuts. Gifts: corn, sweets, anything with fins (the two legends, the moonlit koi and the river elder, best) and shiny mine finds (crystal best); not his vegetables. Dishes: sweet ones (milk pudding, kinako mochi best), eggs, fish and rice balls; tea rice and plain daikon are grown-up food. Format: README.md, Villagers.",
 	"id": "kota",
 	"name": "Kota",
 	"birthday": {"season": "spring", "day": 19},
@@ -13,7 +13,7 @@
 	],
 	"default": "usual",
 	"gifts": {
-		"love": ["corn", "fish:moon_koi", "food:dango", "mine:suisho", "food:milk_pudding", "food:kinako_mochi"],
+		"love": ["corn", "fish:moon_koi", "fish:nushi", "food:dango", "mine:suisho", "food:milk_pudding", "food:kinako_mochi"],
 		"like": ["fish:*", "tomato", "pumpkin", "food:sakura_mochi", "mine:kohaku", "mine:hyoseki",
 			"food:tamagoyaki", "food:grilled_fish", "food:onigiri", "food:potato_stew"],
 		"dislike": ["eggplant", "onion", "food:green_tea", "food:ochazuke", "food:furofuki_daikon"],

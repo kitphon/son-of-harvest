@@ -114,6 +114,7 @@ func _make_prop(p: Dictionary) -> void:
 		"anvil": _anvil(mid)
 		"tool_rack": _tool_rack(mid, r)
 		"water_tub": _water_tub(mid)
+		"river_rock": _river_rock(mid)
 		"feed_box", "nest", "incubator", "feed_sack", "hatch": CoopProps.prop(self, p, mid, r)
 		"fodder_box", "stalls", "hay", "barn_gate": BarnProps.prop(self, p, mid, r)
 		"irori", "tokonoma", "butsudan", "zabuton", "byobu", "toy_box", "mizugame": HomeProps.prop(self, p, mid, r)
@@ -467,6 +468,15 @@ func _tool_rack(mid: Vector3, r: Rect2) -> void:
 		var x := -(r.size.x - 0.6) / 2 + k * (r.size.x - 0.6) / maxf(n - 1, 1)
 		_box(Vector3(0.05, 0.6, 0.05), at + Vector3(x, 0.95, 0.06), wood)
 		_box(Vector3(0.16 if k % 2 == 0 else 0.06, 0.1 if k % 2 == 0 else 0.2, 0.05), at + Vector3(x, 1.3, 0.07), iron)
+
+
+## A stepping rock out in the river: a wide low boulder with a smaller one leaning on it,
+## a pale wet line where the current breaks round them.
+func _river_rock(mid: Vector3) -> void:
+	var stone := flat_material(Color("6e6a62"))
+	_box(Vector3(0.82, 0.26, 0.7), mid + Vector3(0, 0.13, 0), stone)
+	_box(Vector3(0.46, 0.2, 0.4), mid + Vector3(0.16, 0.34, -0.08), flat_material(Color("85817a")))
+	_box(Vector3(0.94, 0.03, 0.82), mid + Vector3(0, 0.02, 0), flat_material(Color("c8dce0")))
 
 
 ## A wooden quench tub with dark water.
