@@ -5,11 +5,19 @@
 	"speed": 2.0,
 	"look": {"outfit": "shirt_shorts", "hair_style": "straw_hat", "hair": "2a2422", "skin": "e0a878", "top": "e8e2d0", "lower": "4a6a3a", "accent": "e0c070", "shoes": "6b4423"},
 	"rules": [
+		{"if": {"festival": ["blossom_day", "lantern_night", "moon_night", "years_turn"]}, "plan": "festival"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "stays_in"},
 		{"if": {"season": ["summer"]}, "plan": "summer"}
 	],
 	"default": "usual",
 	"plans": {
+		"festival": [
+			{"at": "06:00", "map": "away"},
+			{"at": "09:30", "map": "town", "from": [8, 16], "route": [{"to": [4, 16]}, {"to": [4, 11]}, {"to": [21, 11]}, {"to": [21, 8]}],
+				"loop": [{"face": "up"}, {"wait": 8}, {"to": [16, 8]}, {"face": "down"}, {"wait": 6}, {"to": [21, 8]}]},
+			{"at": "23:30", "map": "town", "route": [{"to": [21, 11]}, {"to": [4, 11]}, {"to": [4, 16]}, {"to": [8, 16]}, {"face": "up"}]},
+			{"at": "23:55", "map": "away"}
+		],
 		"usual": [
 			{"at": "06:00", "map": "away"},
 			{"at": "08:00", "map": "town", "from": [8, 16], "route": [{"to": [4, 16]}, {"to": [4, 11]}],

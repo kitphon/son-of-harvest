@@ -138,7 +138,8 @@ straw_hat, colours `hair`, `skin`, `top`, `waist`, `lower`, `accent`, `shoes`; d
 `PlaceholderArt` as `villager:<id>:<front|back>:<idle|walk>:<frame>`), then:
 - `rules`: `[{"if": {conditions}, "plan": "<name>"}]`, the first that holds picks the day's
   plan, else `default`. Conditions: `season`, `weekday`, `weather` (lists), `days`, `year`
-  (`[first, last]`), `flags` / `not_flags` (story flags set / not set);
+  (`[first, last]`), `flags` / `not_flags` (story flags set / not set), `festival` (festival
+  ids from `data/festivals.json`: today is one of them);
 - `plans`: name -> entries `{"at": "H:MM", "map": "<map id>" or "away", "from": [x, y],
   "route": [steps], "loop": [steps]}`. The first entry is at 06:00, times after midnight
   belong to the same day. `away` = indoors somewhere we don't draw yet. An entry onto a map
@@ -240,6 +241,27 @@ starts it. Spots now: the shrine's offering box, the stone lanterns and the empt
 doors in the village (`triggers_town.json`), the name plate by the farmhouse door and the
 board by the gate (`triggers_farm.json`), the calendar and the radio in the farmhouse
 (`triggers_house.json`).
+
+## Festivals
+`data/festivals.json` holds the village festivals, one per season and all our own: Blossom
+Day (spring 8, cherry trees and picnic mats), Lantern Night (summer 20, lantern strings,
+stalls, a drum stage and fireworks), Moon Night (fall 15, pampas grass and a dango offering at
+the shrine) and Year's Turn (winter 30, New Year bamboo and a bonfire at the shrine). Each has
+`name`, `season`, `day`, `hours` (from, until), `map`, `place` (the cell it gathers round),
+`event`, `closes` (shop ids shut all day), `props` (`{kind, cell, size?, cloth?}`, never solid)
+and optional `fireworks` (from, until). `Festivals` (scripts/festivals/festivals.gd, pure
+logic) answers the date lookup, the hours, the shops and the props; `Game.festival_today()`
+gives today's id, also as `festival` in `Game.trigger_state` (villager rules use it).
+
+On the day the HUD shows the name under the clock (in red while it is on), the farmhouse
+calendar notes the date, the shops it closes say so at their door and counter, and the
+weather is fair (the roll for it is replaced the evening before, DESIGN). During the hours
+the map shows its decorations: `FestivalProps` (3D, added to the map's world) and
+`FestivalView` (2D boxes). `FestivalGlow`, in main_3d's tint layer, draws the lanterns' and
+fire's glow over the night tint and the fireworks (screen-space bursts, a pure function of
+time). The festival's event plays once a year (`events_seen` key `festival:<id>:<year>`) when
+the farmer walks onto the map in the hours, or is there when they start (EventPlayer).
+`-- --demo --festival=<id>` starts on that day half an hour in, at its place.
 
 ## Camera
 `scripts/main_3d.gd` uses the field camera geometry of Harvest Moon: Back to Nature, measured

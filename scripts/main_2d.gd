@@ -60,6 +60,7 @@ func _enter_map() -> void:
 		mv.map = m
 		view = mv
 		add_child(view)
+	view.add_child(FestivalView.new(m.id))   # today's festival decorations, in its hours
 	view.add_child(VillagerView.new(m.id))
 	move_child(view, 0)
 	var animals := AnimalView.new()   # hens and eggs (the coop, or the farm yard)

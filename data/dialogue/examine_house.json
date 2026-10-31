@@ -1,10 +1,14 @@
 {
 	"_note": "Lines for the farmhouse examine events: the paper calendar on the north wall (one part per season) and the radio on the chest of drawers.",
 	"lines": [
-		{"id": "spring", "text": "The calendar shows spring. A note in the corner: 'Sow turnips early. Cabbage takes its time.'", "next": "end"},
-		{"id": "summer", "text": "The calendar shows summer. Morning glories are printed along the edge. 'Water twice when it's hot.'", "next": "end"},
-		{"id": "fall", "text": "The calendar shows autumn, with a picture of rice drying on poles. 'Harvest before the first frost.'", "next": "end"},
-		{"id": "winter", "text": "The calendar shows winter. Nothing grows outside now. 'Mend the tools. Rest.'", "next": "end"},
+		{"id": "spring", "text": "The calendar shows spring. A note in the corner: 'Sow turnips early. Cabbage takes its time.'", "next": "spring_festival"},
+		{"id": "spring_festival", "text": "The 8th is circled in pink: 'Blossom Day, under the cherry trees in the village.'", "next": "end"},
+		{"id": "summer", "text": "The calendar shows summer. Morning glories are printed along the edge. 'Water twice when it's hot.'", "next": "summer_festival"},
+		{"id": "summer_festival", "text": "The 20th is circled in red: 'Lantern Night in the village. Fireworks!'", "next": "end"},
+		{"id": "fall", "text": "The calendar shows autumn, with a picture of rice drying on poles. 'Harvest before the first frost.'", "next": "fall_festival"},
+		{"id": "fall_festival", "text": "The 15th has a little moon drawn on it: 'Moon Night at the shrine.'", "next": "end"},
+		{"id": "winter", "text": "The calendar shows winter. Nothing grows outside now. 'Mend the tools. Rest.'", "next": "winter_festival"},
+		{"id": "winter_festival", "text": "The 30th is circled twice: 'Year's Turn. A fire at the shrine, all evening.'", "next": "end"},
 		{"id": "radio", "speaker": "farmer", "face": "calm", "text": "An old valve radio. I turn the knob... static, then a faint song about planting rice, then static again.", "next": "end"}
 	]
 }

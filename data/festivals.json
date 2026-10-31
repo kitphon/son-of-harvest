@@ -1,0 +1,85 @@
+{
+	"_about": "The village festivals (Festivals, scripts/festivals/festivals.gd; README.md, Festivals). One per season, all our own: names, dates, hours and looks were made up for Harvest Son. Per festival: name (HUD tag and calendar), season, day, hours [\"H:MM\", \"H:MM\") on the map where it is held, place (the cell it gathers round, [x, y]; `--festival=<id>` starts the farmer there facing up), event (data/events, plays once a year when the farmer is on the map in the hours), closes (shop ids from data/shops.json that stay shut all day), props (decorations on the map during the hours: {kind, cell, size?}; not solid, so they never block a walk; looks in FestivalProps / FestivalView), optional fireworks [\"H:MM\", \"H:MM\") (bursts over the 3D view in those hours). DESIGN: a festival day is always sunny (the weather rolled for it is replaced the evening before).",
+	"festivals": {
+		"blossom_day": {
+			"name": "Blossom Day",
+			"season": "spring",
+			"day": 8,
+			"hours": ["10:00", "16:00"],
+			"map": "town",
+			"place": [18, 8],
+			"event": "festival_blossom",
+			"closes": ["smithy"],
+			"props": [
+				{"kind": "sakura", "cell": [12, 7]},
+				{"kind": "sakura", "cell": [15, 8]},
+				{"kind": "sakura", "cell": [22, 8]},
+				{"kind": "sakura", "cell": [25, 8]},
+				{"kind": "sakura", "cell": [13, 13]},
+				{"kind": "sakura", "cell": [19, 14]},
+				{"kind": "picnic_mat", "cell": [14, 12], "size": [2, 2]},
+				{"kind": "picnic_mat", "cell": [17, 12], "size": [2, 1]},
+				{"kind": "stall", "cell": [9, 7], "size": [2, 1], "cloth": "e89ab0"}
+			]
+		},
+		"lantern_night": {
+			"name": "Lantern Night",
+			"season": "summer",
+			"day": 20,
+			"hours": ["17:00", "22:00"],
+			"map": "town",
+			"place": [18, 9],
+			"event": "festival_lanterns",
+			"closes": ["general", "smithy"],
+			"fireworks": ["19:30", "22:00"],
+			"props": [
+				{"kind": "lantern_line", "cell": [7, 9], "size": [10, 1]},
+				{"kind": "lantern_line", "cell": [20, 9], "size": [7, 1]},
+				{"kind": "lantern_line", "cell": [8, 12], "size": [10, 1]},
+				{"kind": "lantern_line", "cell": [20, 12], "size": [9, 1]},
+				{"kind": "stall", "cell": [9, 7], "size": [2, 1], "cloth": "c8442c"},
+				{"kind": "stall", "cell": [13, 7], "size": [2, 1], "cloth": "2c4a8a"},
+				{"kind": "stall", "cell": [22, 7], "size": [2, 1], "cloth": "e0a838"},
+				{"kind": "stall", "cell": [12, 13], "size": [2, 1], "cloth": "3a7a4a"},
+				{"kind": "drum_stage", "cell": [14, 14], "size": [2, 2]}
+			]
+		},
+		"moon_night": {
+			"name": "Moon Night",
+			"season": "fall",
+			"day": 15,
+			"hours": ["18:00", "23:00"],
+			"map": "town",
+			"place": [18, 5],
+			"event": "festival_moon",
+			"closes": ["smithy"],
+			"props": [
+				{"kind": "moon_table", "cell": [19, 4]},
+				{"kind": "pampas", "cell": [17, 4]},
+				{"kind": "pampas", "cell": [20, 4]},
+				{"kind": "red_mat", "cell": [14, 4], "size": [2, 1]},
+				{"kind": "red_mat", "cell": [22, 4], "size": [2, 1]},
+				{"kind": "paper_lantern", "cell": [15, 2]},
+				{"kind": "paper_lantern", "cell": [22, 2]}
+			]
+		},
+		"years_turn": {
+			"name": "Year's Turn",
+			"season": "winter",
+			"day": 30,
+			"hours": ["19:00", "24:00"],
+			"map": "town",
+			"place": [18, 5],
+			"event": "festival_year",
+			"closes": ["general", "smithy"],
+			"props": [
+				{"kind": "kadomatsu", "cell": [16, 6]},
+				{"kind": "kadomatsu", "cell": [21, 6]},
+				{"kind": "bonfire", "cell": [22, 4]},
+				{"kind": "stall", "cell": [14, 2], "size": [2, 1], "cloth": "e8e2d0"},
+				{"kind": "paper_lantern", "cell": [16, 5]},
+				{"kind": "paper_lantern", "cell": [21, 5]}
+			]
+		}
+	}
+}

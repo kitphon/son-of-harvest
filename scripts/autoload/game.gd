@@ -155,6 +155,8 @@ func new_game() -> void:
 	fish_caught = {}
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--festival="):   # `-- --demo --festival=lantern_night`: its day, hours and place
+			Festivals.start_at(self, arg.trim_prefix("--festival="))
 		if arg == "--demo":
 			_demo_field()
 		elif arg.begins_with("--map="):   # `-- --demo --map=town` (or town@shrine): start on that spawn
@@ -316,8 +318,7 @@ func use_door(door: Dictionary) -> void:
 		message.emit(door.message)
 		return
 	var s := shop(door.get("shop", ""))
-	if s != null and not s.is_open(hour, weekday()):
-		message.emit(s.closed_text())
+	if s != null and _shop_shut(s):
 		return
 	go_to_map(door.to, door.spawn, door.facing)
 
@@ -523,6 +524,8 @@ func end_day() -> void:
 	fishing.stop()
 	weather_today = weather_tomorrow
 	weather_tomorrow = roll_weather(_tomorrow_season())
+	if Festivals.tomorrow(season, day) != "":
+		weather_tomorrow = "sunny"   # DESIGN: a festival day is always fair
 	snow_cover = next_snow_cover(snow_cover, weather_look(weather_today, season_name()), season_name(), snow_rules)
 	farm.day_end(season_name(), weather_today, rng)
 	hour = 6
@@ -997,11 +1000,27 @@ func open_shop(id: String, force := false) -> bool:
 	var s := shop(id)
 	if s == null:
 		return false
-	if not force and not s.is_open(hour, weekday()):
-		message.emit(s.closed_text())
+	if not force and _shop_shut(s):
 		return false
 	shop_requested.emit(id)
 	return true
+
+
+## Is shop `s` shut now (its hours, its day off, or a festival that closes it)? Says why.
+func _shop_shut(s: Shop) -> bool:
+	var fest := festival_today()
+	if Festivals.closes(fest, s.id):
+		message.emit("%s is closed today for %s." % [s.name, Festivals.name_of(fest)])
+		return true
+	if not s.is_open(hour, weekday()):
+		message.emit(s.closed_text())
+		return true
+	return false
+
+
+## Today's festival id (data/festivals.json), or "".
+func festival_today() -> String:
+	return Festivals.on_date(season_name(), day)
 
 
 func shop_buy(id: String, item: String, n := 1) -> Dictionary:
@@ -1049,7 +1068,7 @@ func _shop_paid(r: Dictionary) -> Dictionary:
 func trigger_state(cell: Vector2i) -> Dictionary:
 	return {"year": year, "season": season_name(), "day": day, "weekday": weekday(),
 		"time": hour * 60 + minute, "weather": weather_today, "flags": flags,
-		"seen": events_seen, "cell": cell}
+		"seen": events_seen, "cell": cell, "festival": festival_today()}
 
 
 # --- save / load ------------------------------------------------------------

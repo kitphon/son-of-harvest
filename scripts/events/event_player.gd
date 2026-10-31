@@ -59,7 +59,15 @@ func enter_map(id: String) -> void:
 func check(cause: String) -> void:
 	if not _auto or runner != null or Game.paused() or not Game.clock_running:
 		return
-	var id := table.pick(cause, Game.trigger_state(Player.cell_of(player.position)))
+	var s := Game.trigger_state(Player.cell_of(player.position))
+	# A festival on this map plays its event once a year: on walking in during its hours, or
+	# when the hours start with the farmer already there (data/festivals.json).
+	var fest := Festivals.due_event(map_id, s) if cause in ["enter", "minute"] else ""
+	if fest != "":
+		Game.events_seen[Festivals.seen_key(s.festival, s.year)] = true
+		play(fest)
+		return
+	var id := table.pick(cause, s)
 	if id != "":
 		play(id)
 

@@ -1,7 +1,7 @@
 class_name Hud
 extends CanvasLayer
 ## Paper-and-wood HUD in our pixel font: date, clock and the weather for today and tomorrow
-## (top right), the tool bar (the rucksack's tool slots) with the tool in hand and its level
+## (top right) with today's festival under it, the tool bar (the rucksack's tool slots) with the tool in hand and its level
 ## pips and, when there is one, the item held in the other hand (bottom left), money, shipping bin and a
 ## stamina bar (bottom right), and a message line (top left). Reads Game and redraws on its
 ## signals.
@@ -15,6 +15,8 @@ var _date: Label
 var _time: Label
 var _today: TextureRect
 var _tomorrow: TextureRect
+var _fest_box: NinePatchRect
+var _fest: Label
 var _slots: Array[TextureRect] = []
 var _slot_icons: Array[TextureRect] = []
 var _item_name: Label
@@ -32,6 +34,8 @@ var _msg_time := 0.0
 
 func _ready() -> void:
 	_build_clock(HudLayout.BOXES.clock)
+	_fest_box = _box(HudLayout.BOXES.festival, "paper")
+	_fest = _label(_fest_box, Vector2i(6, 5))
 	_build_tools(HudLayout.BOXES.tools, HudLayout.BOXES.item)
 	_build_status(HudLayout.BOXES.status)
 	_msg_box = _box(HudLayout.BOXES.message, "paper")
@@ -145,6 +149,11 @@ func _refresh() -> void:
 	_today.texture = PlaceholderArt.tex("ui:weather:" + HudLayout.weather_icon(Game.weather_look(Game.weather_today, Game.season_name())))
 	var next_season := Game.season if Game.day < Game.DAYS_PER_SEASON else (Game.season + 1) % Game.SEASONS.size()
 	_tomorrow.texture = PlaceholderArt.tex("ui:weather:" + HudLayout.weather_icon(Game.weather_look(Game.weather_tomorrow, Game.SEASONS[next_season])))
+	# The festival's name all day, in the seal red while it is on.
+	var fest := Game.festival_today()
+	_fest_box.visible = fest != ""
+	_fest.text = Festivals.name_of(fest)
+	_fest.add_theme_color_override("font_color", PlaceholderArt.UI_SEAL if Festivals.in_hours(fest, Game.hour * 60 + Game.minute) else INK)
 
 	var tool := Game.current_tool()
 	for i in _slots.size():

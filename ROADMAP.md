@@ -74,6 +74,12 @@ plip), a press in time lands a fish overhead (ship it in the bin or keep it in t
 fish, odds, bite timing and the pity rule are in `data/fish.json`. Later for fishing: a river,
 better rods from the blacksmith (a bite-chance factor per rod level), fish as food / gifts, and
 the 2D view's action hookup (main_2d.gd doesn't connect the Player's actions yet).
+Festivals are in (milestone 9): `data/festivals.json` (date, hours, map, place, event, shops
+shut, decorations, fireworks), the HUD tag under the clock, the calendar notes, fair weather
+on the day, Kota and Tome out all day. Later for festivals: contests and prizes (DESIGN asks
+what each festival judges), festival music (a `festival` condition in the music rules),
+holding back the shipping payout on a festival day (DESIGN), stalls that sell, more villagers
+gathering once they talk.
 Next: milestone 5, **talking, gifts, affection** for the villagers, with the shopkeepers at
 their counters (`Villagers.is_on` tells whether a keeper is out, `Game.open_shop(id)` opens
 the screen), then the opening event and first shop visits (milestone 6) on the event
@@ -133,7 +139,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [ ] Balance pass (income per season, seed costs)
 9. **Festivals, mining / fishing, relationships, endings**
    - [x] Fishing: rod (8th tool slot), cast at the farm / village pond, bite cue, fish per place / season / hour / weather (data/fish.json)
-   - [ ] Festivals, mining, relationships, endings
+   - [x] Festivals: one per season in data/festivals.json (Blossom Day, Lantern Night with fireworks, Moon Night, Year's Turn), HUD tag, shops shut, decorations in both views, an event once a year, villagers gather
+   - [ ] Mining, relationships, endings
 10. **Audio and release**
     - [x] Sound effects and ambient loops (synthesized from data/sfx.json, SFX / Ambient busses)
     - [x] Music; volume sliders in the settings screen (`Sfx.set_volume`)

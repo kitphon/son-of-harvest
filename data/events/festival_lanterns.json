@@ -1,0 +1,20 @@
+{
+	"_note": "Lantern Night (data/festivals.json): the farmer walks into the village while it is on. Plays once a year (Festivals.seen_key), from wherever the farmer stands.",
+	"steps": [
+		{
+			"do": "wait",
+			"seconds": 0.4
+		},
+		{
+			"do": "say",
+			"dialogue": "festivals",
+			"at": "lanterns"
+		},
+		{
+			"do": "set",
+			"flags": {
+				"went_lantern_night": true
+			}
+		}
+	]
+}

@@ -58,6 +58,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Animals (chickens, the coop, eggs, sickness, incubator, the save): `res://tests/test_animals.gd`
   must print `test_animals: OK (0 failed)`. Fishing (bites, fish tables, the catch, save, poses,
   fish art): `res://tests/test_fishing.gd` must print `test_fishing: OK (0 failed)`.
+  Festivals (calendar, festival day, shops shut, fair weather, the event once a year,
+  decorations and lights in both views, the HUD tag): `res://tests/test_festivals.gd` must
+  print `test_festivals: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field) and `-- --demo --map=town` (the village).
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
@@ -78,7 +81,10 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   counter with its screen open (hours ignored), `--map=coop` to look inside the chicken
   coop (`--demo` adds a chick, two eggs and a filled feed box), `--hens-out` (with
   `--map=farm@coop`) to have the hens out in the yard, `--fishing` (or `--fishing=wait`) to start at
-  the farm pond with the line out and a fish biting (or still waiting). Create `shots/` first. Look at the last frame. Delete
+  the farm pond with the line out and a fish biting (or still waiting), `--festival=<id>`
+  (blossom_day, lantern_night, moon_night, years_turn; ids in `data/festivals.json`) to stand
+  in the village on that festival's day half an hour into it (Lantern Night: into the
+  fireworks); without `--demo`, with `res://scenes/main.tscn`, its event plays. Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
 - Audio (sound and music data, synthesis, keys used in code, ambient and music pickers): `res://tests/test_audio.gd`
   must print `test_audio: OK (0 failed)`. Headless runs and Movie Maker runs start no sound
