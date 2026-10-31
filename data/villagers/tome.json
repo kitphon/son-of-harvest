@@ -4,6 +4,7 @@
 	"name": "Tome",
 	"look": {"outfit": "kimono", "hair_style": "bun", "hair": "e4e0d8", "skin": "eec39a", "top": "6a4a7a", "waist": "c8a050", "shoes": "6b4423"},
 	"rules": [
+		{"if": {"festival": ["blossom_day", "lantern_night", "moon_night", "years_turn"]}, "plan": "festival"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "stays_in"},
 		{"if": {"season": ["winter"]}, "plan": "winter"},
 		{"if": {"weekday": ["sun"]}, "plan": "sunday"}
@@ -16,6 +17,12 @@
 		"hate": ["medicine"]
 	},
 	"plans": {
+		"festival": [
+			{"at": "06:00", "map": "away"},
+			{"at": "09:30", "map": "town", "from": [5, 7], "route": [{"to": [5, 10]}, {"to": [17, 10]}, {"to": [17, 8]}, {"face": "right"}]},
+			{"at": "23:30", "map": "town", "route": [{"to": [17, 10]}, {"to": [5, 10]}, {"to": [5, 7]}, {"face": "up"}]},
+			{"at": "23:55", "map": "away"}
+		],
 		"usual": [
 			{"at": "06:00", "map": "away"},
 			{"at": "07:00", "map": "town", "from": [5, 7], "route": [{"to": [5, 10]}, {"to": [18, 10]}, {"to": [18, 8]}, {"face": "up"}]},

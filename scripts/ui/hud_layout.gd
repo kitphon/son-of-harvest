@@ -7,6 +7,7 @@ extends RefCounted
 ## its text.
 const BOXES := {
 	"clock": Rect2i(384, 4, 92, 42),
+	"festival": Rect2i(384, 48, 92, 17),   # today's festival, only on a festival day
 	"item": Rect2i(4, 214, 168, 21),
 	"tools": Rect2i(4, 238, 168, 28),
 	"hand": Rect2i(176, 238, 28, 28),    # the item in the other hand, only while there is one

@@ -1,0 +1,65 @@
+{
+	"_note": "Lines for the festival events (data/events/festival_*.json, data/festivals.json): one part per festival, from its id. All our own.",
+	"lines": [
+		{
+			"id": "blossom",
+			"text": "Pink petals drift over the road. Mats are spread under the cherry trees, and a stall is selling sweet dango."
+		},
+		{
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "You came! Blossom Day only lasts as long as the petals do. Sit down, eat something, rest your hands."
+		},
+		{
+			"speaker": "farmer",
+			"face": "smile",
+			"text": "The whole village is out under the trees today.",
+			"next": "end"
+		},
+		{
+			"id": "lanterns",
+			"text": "Red lanterns hang along the road, glowing in the dusk. A drum thumps from the little stage."
+		},
+		{
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "Lantern Night! Try the stalls, and when it's fully dark, look up. The fireworks start after half past seven."
+		},
+		{
+			"speaker": "farmer",
+			"face": "surprised",
+			"text": "Fireworks, out here? I'll stay for those.",
+			"next": "end"
+		},
+		{
+			"id": "moon",
+			"text": "Pampas grass stands in tall vases by the shrine, and a little pile of white dango waits for the moon."
+		},
+		{
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "On Moon Night we only sit and look up. A good harvest has earned a quiet evening."
+		},
+		{
+			"speaker": "farmer",
+			"face": "calm",
+			"text": "It's so bright tonight. I can see every roof tile.",
+			"next": "end"
+		},
+		{
+			"id": "year",
+			"text": "A fire crackles in the shrine yard. Bamboo and pine stand by the torii, ready for the new year."
+		},
+		{
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "One more year done. Make a wish at the shrine, then come and warm your hands by the fire."
+		},
+		{
+			"speaker": "farmer",
+			"face": "smile",
+			"text": "My first year here... it went by fast.",
+			"next": "end"
+		}
+	]
+}

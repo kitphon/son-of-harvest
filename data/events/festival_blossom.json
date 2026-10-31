@@ -1,0 +1,20 @@
+{
+	"_note": "Blossom Day (data/festivals.json): the farmer walks into the village while it is on. Plays once a year (Festivals.seen_key), from wherever the farmer stands.",
+	"steps": [
+		{
+			"do": "wait",
+			"seconds": 0.4
+		},
+		{
+			"do": "say",
+			"dialogue": "festivals",
+			"at": "blossom"
+		},
+		{
+			"do": "set",
+			"flags": {
+				"went_blossom_day": true
+			}
+		}
+	]
+}

@@ -101,6 +101,14 @@ on soft spots, a hole down under one of them, ores / stones / gems into the ruck
 deepest floor saved. Later for the mine: the smithy asking for ores (`mine:akagane` ..
 `mine:hoshigane`) in its upgrades, a winter variant (a frozen pond or snow cave), the shops
 buying stones and gems, a lantern or light that changes with depth.
+Festivals are in (milestone 9): `data/festivals.json` (date, hours, map, place, event, shops
+shut, decorations, fireworks), the HUD tag under the clock, the calendar notes, fair weather
+on the day, Kota and Tome out all day. Later for festivals: contests and prizes (DESIGN asks
+what each festival judges), festival music (a `festival` condition in the music rules),
+holding back the shipping payout on a festival day (DESIGN), stalls that sell, more villagers
+gathering once they talk.
+Next: milestone 8, the **balance pass** (income per season, seed, animal and extension costs)
+now that the shops, animals, mine and fish all pay; then relationships and endings (milestone 9).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -157,7 +165,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 9. **Festivals, mining / fishing, relationships, endings**
    - [x] Fishing: rod (8th tool slot), cast at the farm / village pond, bite cue, fish per place / season / hour / weather (data/fish.json)
    - [x] Mining: entrance east of the village, floors laid out fresh from a seed, rocks / soft spots / hole down, ores and gems per depth and season (data/mine.json)
-   - [ ] Festivals, relationships, endings
+   - [x] Festivals: one per season in data/festivals.json (Blossom Day, Lantern Night with fireworks, Moon Night, Year's Turn), HUD tag, shops shut, decorations in both views, an event once a year, villagers gather
+   - [ ] Relationships, endings
 10. **Audio and release**
     - [x] Sound effects and ambient loops (synthesized from data/sfx.json, SFX / Ambient busses)
     - [x] Music; volume sliders in the settings screen (`Sfx.set_volume`)

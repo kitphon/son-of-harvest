@@ -60,6 +60,7 @@ func _enter_map() -> void:
 		mv.map = m
 		view = mv
 		add_child(view)
+	view.add_child(FestivalView.new(m.id))   # today's festival decorations, in its hours
 	view.add_child(VillagerView.new(m.id))
 	if Game.maps.mine_floor != null:   # rocks, soft spots and the hole down
 		view.add_child(MineView.new(Game.maps.mine_floor))

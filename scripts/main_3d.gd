@@ -132,6 +132,7 @@ func _ready() -> void:
 	flash.material = add
 	flash.color = Color.BLACK
 	layer.add_child(flash)
+	layer.add_child(FestivalGlow.new())   # festival lanterns and fireworks, over the night tint
 	add_child(layer)
 	add_child(Hud.new())
 	fade = MapFade.new()
@@ -180,6 +181,7 @@ func _enter_map() -> void:
 	else:
 		world = MapWorld.new()
 		(world as MapWorld).build(m)
+	world.add_child(FestivalProps.new(m.id))   # today's festival decorations, in its hours
 	world.add_child(VillagerSprites.new(m.id))
 	add_child(world)
 	move_child(world, 0)

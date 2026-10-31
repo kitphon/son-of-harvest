@@ -332,6 +332,51 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit · Branch: claude/mi
   could be a second cave map picked by season in data/mine.json). Finds left on the ground
   are lost when leaving the floor. The parallel sessions share `user://`, so their tests can
   collide on the same file.
+## 2026-10-31 — Festivals: one per season, decorations, lights, an event once a year
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit (branch `claude/festivals-a062df`)
+- Done: `data/festivals.json` with four festivals of our own, all in the village: Blossom Day
+  (spring 8, 10:00-16:00, cherry trees, picnic mats, a dango stall; smithy shut), Lantern Night
+  (summer 20, 17:00-22:00, four lantern strings, four stalls, a drum stage, fireworks
+  19:30-22:00; both shops shut), Moon Night (fall 15, 18:00-23:00, pampas grass, a dango
+  offering, red mats and paper lanterns at the shrine; smithy shut), Year's Turn (winter 30,
+  19:00-24:00, New Year bamboo at the torii, a bonfire, an amazake stall; both shops shut).
+  New `Festivals` (scripts/festivals/festivals.gd, pure logic, checks the file: dates unique,
+  maps / place / events / shops exist, props on the map). Game: `festival_today()`,
+  `festival` in `trigger_state`, shops closed for a festival say so at door and counter
+  (`_shop_shut`), the weather rolled for a festival day is replaced with sunny the evening
+  before (DESIGN), `--festival=<id>`. EventPlayer plays the festival's event on "enter" /
+  "minute" in its hours, once a year (`events_seen` key `festival:<id>:<year>`, saved like any
+  seen event); events `festival_*` + `data/dialogue/festivals.json` (narration, Tsuru, the
+  farmer). HUD: a paper tag under the clock with the name (seal red while on). The farmhouse
+  calendar notes each season's festival. Villagers: new rule condition `festival`; Kota and
+  Tome get one `festival` plan (out 9:30-23:55 by the torii). Views: `FestivalProps` (3D, built
+  with the map's world, shown in the hours) and `FestivalView` (2D boxes); `FestivalGlow` in
+  main_3d's tint layer draws the lantern / fire glow over the night tint (strength by
+  darkness) and screen-space fireworks (a launch every 1.1 s, a pure function of time).
+  Balance / choices: dates spread mid-season (8, 20, 15) and the year's last evening; shops
+  shut where the keepers would be at the festival; props are never solid so they can't trap
+  the farmer or break villager routes.
+- Checked: new `test_festivals` (data and 11 broken festivals, calendar / tomorrow, hours,
+  props on / off, due event per year, villager plans, fireworks bursts and darkness, Game's
+  day, the fair-weather roll through `end_day`, smithy / store shut with the message, the
+  door shut, the EventPlayer playing the event when the hours start and not again that year
+  but again in year 2, both views showing / hiding the props, 1 glow for Blossom Day and 41
+  for Lantern Night, the HUD tag) and the 17 other tests all print `OK (0 failed)`. Headless
+  `--quit-after 300` (title, `-- --demo`, `--demo --map=town`, `--demo --festival=lantern_night`,
+  `--festival=blossom_day`, `--demo --festival=years_turn --map=farm`) and
+  `res://scenes/main.tscn --quit-after 400` printed no errors or warnings. Movie Maker frames:
+  each festival with `--demo --festival=<id>` (lanterns glowing and a burst over the road at
+  20:01, cherry trees at 10:30, the offering and pampas at 18:30, the bonfire and bamboo at
+  19:30; the HUD tag under the clock), and `res://scenes/main.tscn -- --festival=blossom_day`
+  (the Blossom Day text box typing).
+- Left / next: not played in a real window (event timing, how the glow reads on a real
+  screen); no festival music (needs a `festival` condition in the music rules and the
+  picker's call in Sfx); no contests / prizes (DESIGN's open question); the shipping payout
+  isn't held back on a festival day yet; the speakers file has no villagers, so festival
+  lines are narration, Tsuru and the farmer (the talking branch can add villager lines); the
+  2D view has no glow or fireworks. Shared files touched (small): game.gd (+ ~25 lines),
+  villagers.gd (condition), kota / tome (one rule + one plan each), event_player.gd, hud.gd,
+  main_3d / main_2d (one line each), examine_house.json (calendar lines).
 
 ## 2026-10-31 — Merged six branches: key remap, examine, villagers, shops, chickens, fishing
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

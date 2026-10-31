@@ -14,7 +14,7 @@ extends RefCounted
 const GameRules := preload("res://scripts/autoload/game.gd")   # SEASONS, WEEKDAYS
 const DIR := "res://data/villagers/"
 const COMMON := DIR + "_common.json"
-const RULE_KEYS: Array[String] = ["season", "weekday", "weather", "days", "year", "flags", "not_flags"]
+const RULE_KEYS: Array[String] = ["season", "weekday", "weather", "days", "year", "flags", "not_flags", "festival"]
 const FILE_KEYS: Array[String] = ["_note", "id", "name", "speed", "look", "rules", "default", "plans", "gifts"]
 const REACTIONS: Array[String] = ["love", "like", "neutral", "dislike", "hate"]   # a gift's reaction, best first
 const DELAY_RESETS: Array[int] = [720, 1080]   # 12:00 and 18:00 as day minutes
@@ -122,6 +122,8 @@ static func check_conditions(c: Dictionary) -> String:
 	for k in ["flags", "not_flags"]:
 		if c.has(k) and not EventTriggers._names_ok(c[k], []):
 			return "%s needs a list of names" % k
+	if c.has("festival") and not EventTriggers._names_ok(c.festival, Festivals.all().keys()):
+		return "festival needs a list of festival ids (data/festivals.json)"
 	return ""
 
 
@@ -136,6 +138,8 @@ static func conditions_hold(c: Dictionary, s: Dictionary) -> bool:
 	if c.has("days") and not EventTriggers._within(s.day, c.days):
 		return false
 	if c.has("year") and not EventTriggers._within(s.year, c.year):
+		return false
+	if c.has("festival") and not s.get("festival", "") in c.festival:
 		return false
 	for f in c.get("flags", []):
 		if not EventRunner.is_set(s.flags, f):
