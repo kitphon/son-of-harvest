@@ -1,5 +1,5 @@
 {
-	"_note": "The farm itself: ground, buildings and field come from FarmGrid, so this file only adds the ways out. The gate cells are fence cells left open in the drawing; walking into them goes to the village. Its props are only the story ones (StoryProps), gated by a flag: Hachiro's iron door bell by the house door once hachiro_bell is set (heart_hachiro_5); it rings when examined. Hachiro's lumber left of the house's front, by the fence, while a house extension is under way (house_work, Game.BUILD_FLAG); he hammers at the wall from the cell right of its top end and fetches boards from its side (data/villagers/hachiro.json building). Kota's carp streamer stands on its pole at the corner left of the house, beside its side wall, once kota_streamer is set (heart_kota_6).",
+	"_note": "The farm itself: ground, buildings and field come from FarmGrid, so this file only adds the ways out. The gate cells are fence cells left open in the drawing; walking into them goes to the village. Its props are only the story ones (StoryProps), gated by a flag: Hachiro's iron door bell by the house door once hachiro_bell is set (heart_hachiro_5); it rings when examined. Hachiro's lumber left of the house's front, by the fence, while a house extension is under way (house_work, Game.BUILD_FLAG); he hammers at the wall from the cell right of its top end and fetches boards from its side (data/villagers/hachiro.json building). Kota's carp streamer stands on its pole at the front left of the house by the fence, below the lumber's place, once kota_streamer is set (heart_kota_6).",
 	"id": "farm",
 	"name": "Farm",
 	"farm": true,
@@ -41,7 +41,7 @@
 			"kind": "carp_streamer",
 			"cell": [
 				1,
-				2
+				6
 			],
 			"solid": false,
 			"flag": "kota_streamer"

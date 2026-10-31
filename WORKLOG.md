@@ -10,8 +10,33 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
-## 2026-10-31 — Hachiro seen at work while building
+## 2026-11-01 — Merged six branches: music, 2D actions, cooking tools, band 6, festival stalls, Hachiro building
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged with `--no-ff`, one at a time, all tests after each: `claude/music-shops-events-bbe890`
+  (d6289eb, clean), `claude/view2d-actions-d5c8d6` (c62eb4b), `claude/cooking-tools-7e74bb` (33b28aa),
+  `claude/heart-band6-9d88b6` (6479d92), `claude/festival-stalls-4ae036` (22082ca),
+  `claude/hachiro-building-e4bbf1` (de398ee); WORKLOG conflicted each time (entries kept, their
+  "this commit" now name the hashes). Fixes the branches needed together: the heart music rule in
+  `data/music.json` now lists the four `heart_<id>_6` events (test_audio checks every heart event
+  file and failed 4 checks after the band 6 merge); the story prop kinds (StoryView.KINDS,
+  MapWorld, StoryProps, PlaceholderArt `story:` keys) keep the carp streamer, the ribbon board and
+  the lumber; `game.gd` keeps `kitchen_tools` and `BUILD_FLAG`; the store's `_about` keeps both
+  notes. Kota's carp streamer and Hachiro's lumber were both on farm cell [1, 4]; the lumber stays
+  (Hachiro's building day plan works beside it) and the streamer moved to [1, 6], the front left by
+  the fence (tried [1, 2] first: the house hides it from the camera); test_maps follows.
+- Checked on merged main: all 24 test scripts print `OK (0 failed)`; headless runs (title
+  `--quit-after 300`, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --cook`,
+  `--demo --festival=lantern_night`, `--demo --building=kitchen`, `--demo --event=heart_kota_6`,
+  `--demo --shop=smithy`, `--demo --flags=kota_streamer`, `main_2d.tscn -- --demo`,
+  `res://scenes/main.tscn --quit-after 400`) printed no errors or warnings. Screenshot `--demo
+  --building=kitchen --flags=kota_streamer,hachiro_bell --time=9:00`: Hachiro by the lumber at the
+  house front, the bell by the door, the streamer at the front left corner, all in view; `shots/`
+  deleted.
+- Left / next: a person has to listen to the new music; the playtest of a real year (with the
+  kitchen tools' cost); the .exe once the export templates are installed.
+
+## 2026-10-31 — Hachiro seen at work while building
+Agent: Claude Code (claude-opus-5-5) · Commit: de398ee
 - Done: while a house extension is under way the story flag `house_work` holds its id
   (`Game.BUILD_FLAG`, set by `Game.sync_build_flag` at day start, on load and when a job
   finishes; from the morning after the order to the ready day, so ordering at the store never
@@ -97,7 +122,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   stalls at Moon Night and Year's Turn. Not played in a real window.
 
 ## 2026-10-31 — Band 6 heart scenes
-Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+Agent: Claude Code (claude-opus-5-5) · Commit: 6479d92
 - Done: a third heart event per villager, `data/events/heart_<id>_6.json` with lines in
   `data/dialogue/heart_events_6.json` (our own story, following on from bands 3 and 5).
   Tome: her son asks her to move to the city, she stays (a line of its own with
@@ -134,7 +159,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   speaks over an empty spot); a later pass could add `actor` steps.
 
 ## 2026-10-31 — Cooking tools
-Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+Agent: Claude Code (claude-opus-5-5) · Commit: 33b28aa
 - Done: six kitchen tools of our own in `data/recipes.json` `tools`: kitchen knife 600 G,
   clay pot 900, teapot 400, iron rice pot 1200, bamboo steamer 1500, mochi mallet 2000
   (6,600 G in all, about one more kitchen corner). Recipes gain a `tools` list: the stews,
@@ -168,7 +193,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   `SaveGame.VERSION` at merge time.
 
 ## 2026-10-31 — The 2D view plays: the Player's actions hooked up
-Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+Agent: Claude Code (claude-opus-5-5) · Commit: c62eb4b
 - Done: `scripts/main_2d.gd` never connected `Player.action`, so in `scenes/main_2d.tscn` the
   farmer walked but no tool, door, talk, throw, cast or counter did anything. The hookup is now
   shared: `FarmActions.connect_view(player)` connects the action signal and runs the `--talk=`
@@ -197,7 +222,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   (drawing only, the 3D ones are 3D nodes).
 
 ## 2026-10-31 — Shop and event music: the store, the smithy, heart events, the opening
-Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+Agent: Claude Code (claude-opus-5-5) · Commit: d6289eb
 - Done: four new scores of our own in `data/music.json`, all in the yo scale except the
   smithy: `store` (C, 100 bpm: a koto tune over a new `shamisen` pluck instrument chugging
   off the beat, a woodblock and sho chords; easy to stand in while shopping), `smithy` (D in
