@@ -488,9 +488,13 @@ with id `stall:<festival>` (or `stall:<festival>:<stall id>`): Blossom Day's Han
 sells dango, sakura mochi and green tea; at Lantern Night the red Night Eats Stall sells
 yakisoba, shaved ice and marble soda (foods with `shop` false and a price: only at a stall)
 and the yellow Wind Chime Stall sells keepsakes, a wind chime and a paper fan (prices in the
-stock rows); the blue and green stalls are only looks. A selling stall sets its stock out on
-the counter in both views. `--shop=stall:<id>` (e.g. `stall:lantern_night:chimes`, with
-`--festival=<id>`) stands at it with the screen open.
+stock rows); the blue and green stalls are only looks. At Moon Night the navy Moon Craft Stall
+(`crafts`) sells a clay rabbit and a moon lantern, and the amber Chestnut Roaster (`eats`) roast
+chestnuts and baked sweet potatoes; at Year's Turn the white Year-End Soba Stall (`soba`) sells
+year-end soba and hot yuzu tea, and the red Lucky Charm Stall (`charms`) a daruma and an
+omamori charm. A selling stall sets its stock out on the counter in both views.
+`--shop=stall:<id>` (e.g. `stall:lantern_night:chimes`, `stall:moon_night:crafts`,
+`stall:years_turn:charms`, with `--festival=<id>`) stands at it with the screen open.
 
 **Keepsakes and ribbons** (`data/keepsakes.json`, `Keepsakes`). Keepsakes (`keep:<id>`) and
 ribbons (`ribbon:<festival>:<place>`) sit in the rucksack and are never eaten, shipped or sold.
@@ -500,6 +504,9 @@ rosettes on the judges' table) on top of the prize, and notes it in the story fl
 full. While that flag is set, a ribbon board hangs on the farmhouse's back wall (house map prop
 `ribbon_board`, a story prop in both views) with one rosette per ribbon (the last 12); E on it
 counts them. `--map=house --flags=ribbons=blossom_day:1:1` shows it.
+A keepsake held overhead is a gift like any item: each villager loves one (Kota the clay
+rabbit, Tome the omamori, Sayo the wind chime, Hachiro the daruma) and the lists in
+`data/villagers/*.json` name the others they like or dislike; a ribbon is neutral to everyone.
 
 **Music and payout.** A music rule with `festivals: [ids]` fits only while one of them is on
 around the farmer (`Game.festival_now()`), so each festival plays its own score (`fest_*` in

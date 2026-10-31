@@ -10,6 +10,50 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Stalls at Moon Night and Year's Turn; keepsakes as gifts
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: Moon Night gets two stalls on the same spots as Lantern Night's first two ([9, 7] navy,
+  [13, 7] amber; clear of the moon offering and the judges' table): Moon Craft Stall
+  (`stall:moon_night:crafts`: clay rabbit 240 G, moon lantern 160 G) and Chestnut Roaster
+  (`stall:moon_night:eats`: roast chestnuts 90 G, baked sweet potato 130 G). Year's Turn's white
+  stall at [14, 2], until now only a look, becomes Year-End Soba Stall (`stall:years_turn:soba`:
+  year-end soba 160 G, hot yuzu tea 70 G), and a new red stall at [22, 2] by the bonfire is the
+  Lucky Charm Stall (`stall:years_turn:charms`: daruma 280 G, omamori charm 150 G). Four
+  stall-only foods (data/foods.json, `shop` false with a price) and four keepsakes
+  (data/keepsakes.json), all names ours. The stand already sells amazake, so the soba stall pours
+  yuzu tea instead. New icon shapes in PlaceholderArt: foods `bag` (a paper bag of chestnuts)
+  and `imo` (a split sweet potato); keepsakes `rabbit`, `lantern`, `daruma`, `charm`.
+  Keepsakes as gifts: they could already be held and given, so this is data: each villager loves
+  one keepsake (Kota the clay rabbit, Tome the omamori, Sayo the wind chime, Hachiro the
+  daruma), likes a few, and two dislike one (Hachiro the tinkling chime at his forge, Sayo the
+  daruma, Kota the omamori: he wants a toy). Some stall foods are liked too (Kota chestnuts and
+  sweet potato, Tome yuzu tea and sweet potato, Sayo yuzu tea, Hachiro soba and chestnuts).
+  Ribbons stay off the lists (neutral).
+- Balance reasoning: stall food is priced like Lantern Night's: the price buys about as much
+  stamina per G as the stand's food or a little less (it is a treat, bought on the night):
+  chestnuts 15 stamina for 90 G (a snack, like shaved ice), sweet potato 30 for 130 G and soba 35
+  for 160 G (meals, like yakisoba at 35 for 150 G), yuzu tea 8 for 70 G with a bigger fatigue
+  drop (-6, a warm drink on a cold night, like marble soda). Keepsakes cost 150-280 G, between the
+  paper fan (120) and the wind chime (300); a loved keepsake (+8) costs more than a loved dish
+  the farmer cooks, but can be had without a kitchen, once a year at the festival.
+- Tests: test_festivals `_fall_winter_stalls` (both festivals' stalls, hours, prices, E in front
+  of each, shut outside the hours, a keepsake bought to keep, every keepsake icon drawn and
+  different, the new food shapes); test_relationships `_keepsake_gifts` (the listed keepsakes
+  exist, every villager loves exactly one, every keepsake is liked somewhere, a ribbon is
+  neutral) and `_keepsake_gift_in_game` (a wind chime overhead given to Sayo: gift_love, +8,
+  gone from the hands); test_food knows the two new icon shapes.
+- Checked: all 24 test scripts print `OK (0 failed)` (test_food failed 2 checks, "has a known
+  icon shape", until its shape list had `bag` and `imo`). Headless `--quit-after 300` runs (title,
+  `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --festival=moon_night`, `--demo
+  --festival=years_turn --time=21:00`, `main_2d.tscn -- --demo --festival=moon_night`) printed no
+  errors or warnings. Screenshots `--demo --festival=moon_night --shop=stall:moon_night:crafts`
+  and `--festival=years_turn --shop=stall:years_turn:charms`: the screens list "Clay rabbit 240 G
+  / Moon lantern 160 G" and "Daruma 280 G / Omamori charm 150 G" with their icons, "Open
+  18:00-23:00, Moon Night only" / "Open 19:00-24:00, Year's Turn only"; a Moon Night scene frame
+  at 19:00 shows the stalls lit by the shrine; `shots/` deleted.
+- Left / next: villagers' own talk lines about a keepsake given (they answer with the plain gift
+  lines); the keepsakes are not seen in the world after they are given.
+
 ## 2026-11-01 — Merged six branches: music, 2D actions, cooking tools, band 6, festival stalls, Hachiro building
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each: `claude/music-shops-events-bbe890`

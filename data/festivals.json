@@ -128,6 +128,8 @@
 				{"kind": "red_mat", "cell": [22, 4], "size": [2, 1]},
 				{"kind": "paper_lantern", "cell": [15, 2]},
 				{"kind": "paper_lantern", "cell": [22, 2]},
+				{"kind": "stall", "cell": [9, 7], "size": [2, 1], "cloth": "2a3460"},
+				{"kind": "stall", "cell": [13, 7], "size": [2, 1], "cloth": "b8742c"},
 				{"kind": "judge_table", "cell": [22, 8], "size": [2, 1]}
 			],
 			"contest": {
@@ -146,7 +148,27 @@
 					{"money": 100}
 				],
 				"event": "contest_moon"
-			}
+			},
+			"stall": [
+				{
+					"id": "eats",
+					"name": "Chestnut Roaster",
+					"cell": [13, 7],
+					"stock": [
+						{"item": "food:roast_chestnuts"},
+						{"item": "food:baked_imo"}
+					]
+				},
+				{
+					"id": "crafts",
+					"name": "Moon Craft Stall",
+					"cell": [9, 7],
+					"stock": [
+						{"item": "keep:clay_rabbit", "price": 240},
+						{"item": "keep:moon_lantern", "price": 160}
+					]
+				}
+			]
 		},
 		"years_turn": {
 			"name": "Year's Turn",
@@ -162,6 +184,7 @@
 				{"kind": "kadomatsu", "cell": [21, 6]},
 				{"kind": "bonfire", "cell": [22, 4]},
 				{"kind": "stall", "cell": [14, 2], "size": [2, 1], "cloth": "e8e2d0"},
+				{"kind": "stall", "cell": [22, 2], "size": [2, 1], "cloth": "a8282c"},
 				{"kind": "paper_lantern", "cell": [16, 5]},
 				{"kind": "paper_lantern", "cell": [21, 5]},
 				{"kind": "judge_table", "cell": [14, 4], "size": [2, 1]}
@@ -182,7 +205,27 @@
 					{"money": 100}
 				],
 				"event": "contest_year"
-			}
+			},
+			"stall": [
+				{
+					"id": "soba",
+					"name": "Year-End Soba Stall",
+					"cell": [14, 2],
+					"stock": [
+						{"item": "food:year_soba"},
+						{"item": "food:yuzu_tea"}
+					]
+				},
+				{
+					"id": "charms",
+					"name": "Lucky Charm Stall",
+					"cell": [22, 2],
+					"stock": [
+						{"item": "keep:daruma", "price": 280},
+						{"item": "keep:omamori", "price": 150}
+					]
+				}
+			]
 		}
 	}
 }

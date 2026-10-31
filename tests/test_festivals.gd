@@ -32,6 +32,7 @@ func _process(_delta: float) -> bool:
 		_contest_game()
 		_stall()
 		_night_stalls()
+		_fall_winter_stalls()
 		_ribbons()
 		_payout()
 		_start_views("spring", 8, 10, 30)
@@ -465,6 +466,58 @@ func _night_stalls() -> void:
 		var img := PlaceholderArt.tex(key).get_image()
 		check(img.get_size() == Vector2i(14, 14) and img.get_used_rect().has_area(), "%s drawn" % key)
 	check(PlaceholderArt.tex("ui:ribbon:1").get_image().get_pixel(10, 5) != PlaceholderArt.tex("ui:ribbon:3").get_image().get_pixel(10, 5), "ribbons differ by place")
+	g.shop_requested.disconnect(shop_open)
+
+
+## Moon Night's and Year's Turn's stalls: a food stall and a keepsake stall each, open only in
+## their festival's hours, opened with E in front of them; every keepsake has its own icon.
+func _fall_winter_stalls() -> void:
+	var g := _game()
+	g.new_game()
+	var opened: Array = []
+	var shop_open := func(id): opened.append(id)
+	g.shop_requested.connect(shop_open)
+	check(Festivals.stalls("moon_night").size() == 2 and Festivals.stalls("years_turn").size() == 2, "Moon Night and Year's Turn have two stalls each")
+	var chestnuts: Shop = g.shop("stall:moon_night:eats")
+	var crafts: Shop = g.shop("stall:moon_night:crafts")
+	var soba: Shop = g.shop("stall:years_turn:soba")
+	var charms: Shop = g.shop("stall:years_turn:charms")
+	check(chestnuts != null and chestnuts.name == "Chestnut Roaster" and chestnuts.open_hour == 18 and chestnuts.close_hour == 23
+		and chestnuts.price("food:roast_chestnuts", "fall") == int(g.foods.roast_chestnuts.price), "the chestnut roaster in Moon Night's hours")
+	check(crafts != null and crafts.price("keep:clay_rabbit", "fall") == 240 and crafts.price("keep:moon_lantern", "fall") == 160
+		and crafts.item_name("keep:clay_rabbit") == "Clay rabbit", "the moon craft stall's keepsakes")
+	check(soba != null and soba.name == "Year-End Soba Stall" and soba.open_hour == 19 and soba.stock("winter").size() == 2
+		and charms != null and charms.price("keep:daruma", "winter") == 280 and charms.price("keep:omamori", "winter") == 150, "Year's Turn's soba and charm stalls")
+	check(g.foods.amazake.get("shop", false) and not g.foods.yuzu_tea.get("shop", true), "the stand's amazake stays, the stall pours yuzu tea")
+	var FarmActions: GDScript = load("res://scripts/farm_actions.gd")
+	_set_day(g, "fall", 15, 17, 0)
+	g.maps.place("town", Vector2i(13, 8), Vector2i.UP)
+	check(not FarmActions.festival_spot(Vector2i(13, 7)) and opened.is_empty(), "the Moon Night stalls are shut before 18:00")
+	g.hour = 19
+	check(FarmActions.festival_spot(Vector2i(14, 7)) and opened == ["stall:moon_night:eats"], "E at the chestnut roaster opens it")
+	check(FarmActions.festival_spot(Vector2i(9, 7)) and opened.back() == "stall:moon_night:crafts", "E at the craft stall opens that one")
+	check(not g.open_stall("stall:years_turn:charms"), "the charm stall isn't out on Moon Night")
+	var money: int = g.money
+	var r: Dictionary = g.shop_buy("stall:moon_night:crafts", "keep:clay_rabbit")
+	check(r.ok and g.money == money - 240 and g.count("keep:clay_rabbit") == 1 and g.sell_price("keep:clay_rabbit") == 0 and not g.edible("keep:clay_rabbit"),
+		"a clay rabbit bought, to keep (%s)" % [r])
+	r = g.shop_buy("stall:moon_night:eats", "food:baked_imo")
+	check(r.ok and g.edible("food:baked_imo") and g.sell_price("food:baked_imo") == 0, "a baked sweet potato to eat, not to ship")
+	_set_day(g, "winter", 30, 23, 30)
+	g.maps.place("town", Vector2i(14, 3), Vector2i.UP)
+	check(FarmActions.festival_spot(Vector2i(14, 2)) and opened.back() == "stall:years_turn:soba", "E at the soba stall at 23:30")
+	check(FarmActions.festival_spot(Vector2i(23, 2)) and opened.back() == "stall:years_turn:charms", "E at the charm stall")
+	check(FarmActions.festival_spot(Vector2i(14, 4)) and opened.back() == "stall:years_turn:charms", "the judges' table is no stall")
+	var seen := {}
+	for id in Keepsakes.data().keepsakes:
+		var img := PlaceholderArt.tex("ui:keep:" + id).get_image()
+		check(img.get_size() == Vector2i(14, 14) and img.get_used_rect().has_area(), "keep:%s drawn" % id)
+		var key := Marshalls.raw_to_base64(img.get_data())
+		check(not seen.has(key), "keep:%s has its own look" % id)
+		seen[key] = true
+	for id in ["roast_chestnuts", "baked_imo"]:   # the two new food shapes
+		var img := PlaceholderArt.tex(PlaceholderArt.item_key("food:" + id)).get_image()
+		check(img.get_used_rect().size.x >= 10 and img.get_pixel(7, 7).a > 0, "food:%s drawn as its own shape" % id)
 	g.shop_requested.disconnect(shop_open)
 
 
