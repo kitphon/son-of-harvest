@@ -25,14 +25,16 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 ## Next up
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
-font are done. Charging tools are done (levels in data/tools.json, all at level 1), weather
-is done for now (snow lies in winter, lightning flashes in storms; `-- --no-flashes` until the
-settings menu has it), and the text box is done (data/dialogue, DialogueRunner, TextBox).
+font are done. Charging tools are done (levels in data/tools.json), weather is done for now
+(snow lies in winter, lightning flashes in storms; flashes can be turned off in Esc → Settings
+or with `-- --no-flashes`), the text box is done (data/dialogue, DialogueRunner, TextBox) and
+the pause menu (Esc: resume, save, settings, back to title; settings in `data/settings.json` /
+`user://settings.json`, so a volume setting is one data entry).
 Next: milestone 6, **event scripts + trigger tables per map**, built on the dialogue format
-(lines become one command among moves, waits, flags and map changes). Parallel sessions are
-on tool upgrades, fatigue, the pause menu, sound effects and the Windows export.
+(lines become one command among moves, waits, flags and map changes).
 Sound effects and ambient loops are in (milestone 10, first step); later for audio: music,
 and the settings screen's volume sliders call `Sfx.set_volume("SFX" / "Ambient", 0..1)`.
+Later for menus: rucksack / storage, key remapping.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -45,7 +47,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Farm grid, hoe / can / sickle / hammer / axe, seed bag 3 x 3, growth, regrowth, withering, weeds
    - [x] Shipping bin (paid 18:00 or on sleep), seed stand, sleep / pass out, stamina
    - [x] HUD, 2D view, 3D view with the HM field camera (yaw 45°, pitch 26.6°, FOV 13.7°)
-   - [ ] Clock pauses indoors / in menus (no indoors yet)
+   - [x] Clock pauses in menus (`Game.pause()` / `unpause()`)
+   - [ ] Clock pauses indoors (no indoors yet)
 2. **Look and feel**
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)
@@ -66,7 +69,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 4. **Save / load and menus**
    - [x] Save game (Game + FarmGrid to a versioned JSON file), load; F5 / F9, saves on sleep
    - [x] Title screen (new game / continue / quit), Continue only for a save that loads
-   - [ ] Rucksack / storage menus, settings (incl. lightning flashes on / off), key remapping
+   - [x] Pause menu (resume / save / settings / back to title), settings file (flashes, window)
+   - [ ] Rucksack / storage menus, key remapping
 5. **Town and villagers**
    - [ ] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause
    - [ ] Villagers with daily schedules from data (rule list → day plan), catch-up on map entry

@@ -40,7 +40,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `res://tests/test_title.gd` must print `test_title: OK (0 failed)`. Weather (snow cover,
   lightning): `res://tests/test_weather.gd` must print `test_weather: OK (0 failed)`.
   Dialogue (runner, data, text box layout): `res://tests/test_dialogue.gd` must print
-  `test_dialogue: OK (0 failed)`.
+  `test_dialogue: OK (0 failed)`. Pause menu / settings: `res://tests/test_menu.gd` must print
+  `test_menu: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field).
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
@@ -48,7 +49,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   starts at 10:00 with planted plots (without `--demo` the frame shows the title screen);
   add `--weather=rain` (storm, snow, blizzard) to force the weather, `--no-flashes` to turn
   lightning off, `--dialogue=<id>` (or `<id>@<line id>`) to open a text box from
-  `data/dialogue`. Create `shots/` first. Look at the last frame. Delete `shots/` afterwards.
+  `data/dialogue`, `--pause` (or `--pause=settings`) to open the pause menu. Create `shots/`
+  first. Look at the last frame. Delete `shots/` afterwards.
 - Audio (sound data, synthesis, keys used in code, ambient picker): `res://tests/test_audio.gd`
   must print `test_audio: OK (0 failed)`. Headless runs and Movie Maker runs start no sound
   (`Sfx.silent`); add `-- --movie-audio` to a Movie Maker run to record the mix as

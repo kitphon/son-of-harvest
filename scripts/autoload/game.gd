@@ -7,6 +7,7 @@ signal day_started
 signal changed                  # anything the HUD shows
 signal message(text: String)
 signal dialogue_requested(id: String, at: String)   # a TextBox opens it
+signal settings_changed
 
 const SECONDS_PER_MINUTE := 0.5
 const DAYS_PER_SEASON := 30
@@ -26,8 +27,10 @@ var weather_today := "sunny"
 var weather_tomorrow := "sunny"
 var snow_cover := 0             # snow lying on the ground, 0 (none) .. 100 (all white)
 var flashes_enabled := true     # lightning flashes in storms; off for photosensitive players
-var clock_running := true
-var dialogue_open := false      # a text box is up: the clock and the farmer wait
+var clock_running := true      # off on the title screen
+var dialogue_open := false      # a text box is up: the clock and the farmer wait (counts as paused)
+var settings: Settings          # the player's settings (user://settings.json), not saved with the run
+var _pauses := 0                # open menus; while any is open time stands still
 
 var money := 500
 var bin_total := 0
@@ -58,6 +61,11 @@ func _ready() -> void:
 	tools_data = _load_json("res://data/tools.json")
 	snow_rules = _load_json("res://data/snow_cover.json")
 	_setup_input()
+	settings = Settings.make()
+	var err := settings.read()
+	if err != "":
+		push_warning(err + "; using the default settings")
+	apply_settings()
 	new_game()
 
 
@@ -91,8 +99,6 @@ func new_game() -> void:
 		elif arg.begins_with("--weather="):   # e.g. `-- --demo --weather=storm` for screenshots
 			weather_today = arg.trim_prefix("--weather=")
 			snow_cover = next_snow_cover(0, weather_look(weather_today, season_name()), season_name(), snow_rules)
-		elif arg == "--no-flashes":
-			flashes_enabled = false
 
 
 ## `-- --demo`: 10:00 with a few sown, growing and ripe plots by the house, for screenshots.
@@ -118,7 +124,7 @@ func _demo_field() -> void:
 
 
 func _process(delta: float) -> void:
-	if not clock_running or dialogue_open:
+	if not ticking():
 		return
 	_accum += delta
 	while _accum >= SECONDS_PER_MINUTE:
@@ -137,6 +143,58 @@ func _tick_minute() -> void:
 			pass_out()
 	minute_passed.emit()
 	changed.emit()
+
+
+# --- pausing ----------------------------------------------------------------
+
+## A menu opens: the clock stops and the farmer stands still until every menu is closed.
+## Menus nest (a menu on top of another), so each open is one count and each close one less.
+func pause() -> void:
+	_pauses += 1
+
+
+func unpause() -> void:
+	_pauses = maxi(_pauses - 1, 0)
+
+
+func paused() -> bool:
+	return _pauses > 0 or dialogue_open
+
+
+## Does time pass now (not on the title screen, no menu open)?
+func ticking() -> bool:
+	return clock_running and not paused()
+
+
+# --- settings ---------------------------------------------------------------
+
+## Puts the settings into effect. `-- --no-flashes` always wins over the file.
+func apply_settings(args := OS.get_cmdline_user_args()) -> void:
+	if settings == null:
+		return
+	flashes_enabled = bool(settings.value("flashes")) and not "--no-flashes" in args
+	_apply_window(str(settings.value("window")))
+	settings_changed.emit()
+
+
+## Window size as a whole multiple of the 480 x 270 picture, or full screen.
+func _apply_window(mode: String) -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	if mode == "full":
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		return
+	var n := maxi(mode.trim_suffix("x").to_int(), 1)
+	var base := Vector2i(ProjectSettings.get_setting("display/window/size/viewport_width"),
+		ProjectSettings.get_setting("display/window/size/viewport_height"))
+	if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_WINDOWED:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	var size := base * n
+	if DisplayServer.window_get_size() == size:
+		return
+	var screen := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
+	DisplayServer.window_set_size(size)
+	DisplayServer.window_set_position(screen.position + (screen.size - size) / 2)
 
 
 # --- calendar and weather ---------------------------------------------------
@@ -471,6 +529,8 @@ func quick_load() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if paused():
+		return
 	if event.is_action_pressed("quick_save"):
 		quick_save()
 	elif event.is_action_pressed("quick_load"):
@@ -493,8 +553,9 @@ func _setup_input() -> void:
 		"move_left": [KEY_A, KEY_LEFT], "move_right": [KEY_D, KEY_RIGHT],
 		"run": [KEY_SHIFT], "use_tool": [KEY_SPACE, KEY_J], "interact": [KEY_E, KEY_K],
 		"next_tool": [KEY_TAB], "next_seed": [KEY_Q],
-		"quick_save": [KEY_F5], "quick_load": [KEY_F9],
+		"quick_save": [KEY_F5], "quick_load": [KEY_F9], "pause": [KEY_ESCAPE],
 	}
+	var pad := {"pause": [JOY_BUTTON_START]}
 	for i in TOOLS.size():
 		keys["tool_%d" % (i + 1)] = [KEY_1 + i]
 	for action in keys:
@@ -504,4 +565,8 @@ func _setup_input() -> void:
 		for k in keys[action]:
 			var ev := InputEventKey.new()
 			ev.physical_keycode = k
+			InputMap.action_add_event(action, ev)
+		for b in pad.get(action, []):
+			var ev := InputEventJoypadButton.new()
+			ev.button_index = b
 			InputMap.action_add_event(action, ev)
