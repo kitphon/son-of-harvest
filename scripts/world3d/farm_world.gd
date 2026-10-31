@@ -2,13 +2,16 @@ class_name FarmWorld
 extends Node3D
 ## The farm in 3D: 1 unit = 1 cell, x = column, z = row, y up.
 ## Ground = the 2D FarmView (ground only) rendered into a texture; obstacles and crops
-## stand up as camera-facing sprites; buildings are textured boxes.
+## stand up as camera-facing sprites; buildings are textured boxes. Snow lying on the ground
+## and roofs (Game.snow_cover) is drawn by SnowLayer shaders.
 
 const T := 16
 const PX := 0.045              # world units per sprite pixel (a 24 px farmer ~ 1.1 cells tall)
 
 var farm: FarmGrid
 var _objects: Node3D
+var _snow_mask: ImageTexture
+var _snow_mats: Array[ShaderMaterial] = []
 
 
 func setup(f: FarmGrid) -> void:
@@ -19,6 +22,13 @@ func setup(f: FarmGrid) -> void:
 	add_child(_objects)
 	farm.cells_changed.connect(_rebuild_objects)
 	_rebuild_objects()
+	set_snow(Game.snow_cover / 100.0)
+
+
+## Snow on the ground and roofs, 0 (none) .. 1 (all white where the ground holds it).
+func set_snow(cover: float) -> void:
+	for m in _snow_mats:
+		m.set_shader_parameter("cover", cover)
 
 
 static func make_sprite(tex: Texture2D) -> Sprite3D:
@@ -52,9 +62,9 @@ func _make_ground() -> void:
 	vp.add_child(view)
 	add_child(vp)
 
-	var mat := flat_material(Color.WHITE)
-	mat.albedo_texture = vp.get_texture()
-	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	_snow_mask = ImageTexture.create_from_image(SnowLayer.mask_image(farm, Game.snow_rules))
+	var mat := SnowLayer.ground_material(vp.get_texture(), _snow_mask)
+	_snow_mats.append(mat)
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(FarmGrid.W, FarmGrid.H)
 	var ground := MeshInstance3D.new()
@@ -129,6 +139,7 @@ func _make_bin() -> void:
 	_box(Vector3(0.94, 0.08, 0.84), Vector3(8.5, 0.62, 3.5), surface_material("build:planks"))
 	for x in [8.22, 8.78]:
 		_box(Vector3(0.08, 0.05, 0.86), Vector3(x, 0.685, 3.5), timber)
+	_snow_top(Vector3(0.86, 0.04, 0.76), Vector3(8.5, 0.68, 3.5))
 
 
 ## Seed stand (cell 10, 3): a roadside stall with a small board gable roof on four posts, an
@@ -149,6 +160,8 @@ func _make_stand() -> void:
 	for side in [1, -1]:
 		var center := Vector3(10.5, 1.32 + rise / 2 + 0.03, 3.65 + side * half / 2)
 		_box(Vector3(1.12, 0.05, length), center, dark, Vector3(slope * side, 0, 0))
+		var up := Vector3(0, cos(slope), sin(slope) * side)
+		_snow_top(Vector3(1.04, 0.03, length - 0.08), center + up * 0.04, Vector3(slope * side, 0, 0))
 	_box(Vector3(1.16, 0.06, 0.08), Vector3(10.5, 1.32 + rise + 0.05, 3.65), timber)
 	_picture("build:noren", Vector2(0.84, 0.32), Vector3(10.5, 1.1, 4.0))
 	var sacks := [Color("e8d8a8"), Color("c9a26b"), Color("b8c890")]
@@ -203,6 +216,7 @@ func _make_house() -> void:
 		var up := Vector3(0, cos(slope), sin(slope) * side)
 		var center := ridge + down * (length / 2 - 0.05) + up * 0.06
 		_box(Vector3(5.7, 0.1, length), center, kawara, Vector3(slope * side, 0, 0))
+		_snow_top(Vector3(5.5, 0.05, length - 0.12), center + up * 0.07 + down * 0.02, Vector3(slope * side, 0, 0))
 	_box(Vector3(5.9, 0.18, 0.26), ridge + Vector3(0, 0.12, 0), flat_material(Color("3a424c")))
 	for x in [1.62, 7.38]:
 		_box(Vector3(0.16, 0.3, 0.32), Vector3(x, ridge.y + 0.16, mid), flat_material(Color("3a424c")))
@@ -294,7 +308,17 @@ func _rail(length: float, center: Vector3, rot: Vector3, mat: Material) -> void:
 	add_child(mi)
 
 
+## A snow top over a roof slab or lid: a thin slab just above it, a little smaller, so the
+## eaves keep a dark rim.
+func _snow_top(size: Vector3, center: Vector3, rot := Vector3.ZERO) -> void:
+	var m := SnowLayer.top_material()
+	_snow_mats.append(m)
+	var top := _box(size, center, m, rot)
+	top.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
 func _rebuild_objects() -> void:
+	_snow_mask.update(SnowLayer.mask_image(farm, Game.snow_rules))
 	for child in _objects.get_children():
 		child.queue_free()
 	for y in FarmGrid.H:

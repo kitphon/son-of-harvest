@@ -98,6 +98,8 @@ func _init() -> void:
 	g.seed_index = 2
 	g.bag["turnip"] = 5
 	g._accum = 0.4
+	g.snow_cover = 80
+	g.tool_levels["hoe"] = 4
 	var old_farm: FarmGrid = g.farm
 	g.rng.seed = 11
 	g.new_game()

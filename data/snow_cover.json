@@ -1,0 +1,6 @@
+{
+	"fall": {"snow": 50, "blizzard": 100},
+	"melt_per_day": {"spring": 100, "summer": 100, "fall": 100, "winter": 20},
+	"rain_melt": 60,
+	"ground": {"grass": 1.0, "path": 0.85, "tilled": 0.6, "wet": 0.3, "water": 0.0}
+}

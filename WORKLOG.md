@@ -10,6 +10,7 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+<<<<<<< HEAD
 ## 2026-10-31 — Charging tools
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: hold the use button with hoe / can / sickle / hammer / axe to charge; the charge goes
@@ -79,6 +80,45 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   Not checked: pressing keys / clicking in a real game window (no input headless).
 - Left / next: no pause menu or "back to title" yet; charging tools (other session) should
   add any new run state to the reset list in `Game.new_game()`.
+=======
+## 2026-10-31 — Snow lying on the ground, lightning flashes
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `Game.snow_cover` (0..100) is set each morning by `Game.next_snow_cover()` from
+  today's look and `data/snow_cover.json`: a snow day adds 50, a blizzard 100 (cap 100);
+  any other day melts 20 in winter and 100 in the other seasons, rain / storm 60 more. So
+  snow lies from the first snowfall through winter, a full cover lasts 5 clear winter days,
+  rain washes it off sooner, and spring 1 is always clear of it. Saved in `to_dict()`
+  (0..100, checked); an older save without it loads with no snow. The 3D view reads it:
+  `SnowLayer` (scripts/world3d/snow_layer.gd) puts a shader on the ground plane that
+  whitens a share of the pixels on the 16-per-cell grid, picked by an equalised seamless
+  noise (cover 0.4 = 40 % of pixels), with a pale blue-grey rim round each patch so there
+  are no hard edges. A per-cell mask (4 px a cell, linear) says how much each ground holds
+  (data: grass 1.0, path 0.85, tilled 0.6, wet 0.3, water 0), so plots and watered soil stay
+  readable; crops are sprites and stay as they are. The house roof, stall roof and bin lid
+  get thin lit snow tops with the same pattern (bare spots cut away, eaves keep a dark rim).
+  Lightning: `Lightning` (scripts/weather/lightning.gd, pure timing) gives a brightness per
+  frame from `weather_fx.json` storm → `lightning`: first flash after 1.5-5 s, then every
+  6-16 s, each flash a bright 0.08 s pulse and a softer 0.25 s one 0.2 s later, both fading.
+  The 3D view adds that much pale sky blue (`dce4ff` x 0.3) over the picture with an
+  additive ColorRect above the day / weather tint. Only rain storms flash (not blizzards),
+  nothing while the clock is stopped. `Game.flashes_enabled` turns it off (for now with
+  `-- --no-flashes`; the settings menu should show it). Strength first tried at 0.4: the
+  peak frame doubled the picture's mean brightness and washed it out, so 0.3.
+- Checked: new `tests/test_weather.gd` prints `test_weather: OK (0 failed)` (cover rule:
+  build-up, blizzard, cap, thinning, 3-10 clear days to melt, rain melts more, gone outside
+  winter; through `Game.end_day()`: winter storm morning 100, winter 30 thins, spring 1 0;
+  ground hold grass > tilled > wet > 0 and the mask; equalised noise 40 % below 0.4;
+  lightning only in storms, short, first flash in range, gaps >= 6 s over 10 simulated
+  minutes, <= 3 pulses a second, none without a style, none with flashes off, none in a
+  winter storm). `test_save: OK (0 failed)` (snow cover round trip, 101 / "deep" refused,
+  old save without it loads), `test_farm: OK (0 failed)`; headless `--quit-after 300` (plain
+  and `--demo --weather=storm`) printed no errors. Movie Maker `--demo --weather=snow` and
+  `--weather=blizzard`: ragged white patches on grass, plots mostly soil, white roof and lid
+  tops. `--weather=storm`, 200 frames, mean brightness of the field area: median 78.0,
+  flash frames 148-149 and 154-160, peak 121.9; with `--no-flashes` no frame above
+  median + 3 (max 78.6, run at strength 0.4).
+- Left / next: the 2D view shows no snow; flashes off is a flag, not yet in a menu.
+>>>>>>> refs/heads/claude/snow-lightning-b2757e
 
 ## 2026-10-31 — Merged HUD, Japanese props and save / load
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
