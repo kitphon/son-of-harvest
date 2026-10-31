@@ -1,5 +1,6 @@
 extends Node2D
 ## The flat top-down view (scenes/main_2d.tscn). The main scene is the 3D one (main_3d.gd).
+## Same game as the 3D view: the Player's actions go to FarmActions (connect_view).
 ## The farm is a FarmView, other maps a MapView; a change of map fades and swaps them.
 
 const T := 16
@@ -10,6 +11,8 @@ var cam: Camera2D
 var tint: CanvasModulate
 var mine_light: ColorRect   # down the mine: the floor's light and the lantern (MineLight), over the view
 var fade: MapFade
+var flying: Sprite2D   # a thrown item on its way
+var _flight := {}      # from, to, time, seconds, height (while flying)
 
 
 func _ready() -> void:
@@ -40,13 +43,18 @@ func _ready() -> void:
 	add_child(CookingScreen.new())
 	add_child(EndingScreen.new())
 	add_child(EventPlayer.new(player))   # after the Player: moves it during events
+	flying = Sprite2D.new()
+	flying.visible = false
+	add_child(flying)   # after the Player: over the farmer
 
 	Game.minute_passed.connect(_update_tint)
 	Game.day_started.connect(_on_day_started)
 	Game.map_changed.connect(func(_id): fade.run(_enter_map))
 	Game.fishing_event.connect(func(kind): FarmActions.on_fishing_event(kind))
+	Game.thrown.connect(_on_thrown)
 	_enter_map()
 	Game.map_arrived()
+	FarmActions.connect_view(player)   # tools, doors, talking, fishing ... and the --talk flag
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -109,8 +117,40 @@ func _update_tint() -> void:
 	_aim_lantern()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	_aim_lantern()
+	_fly(delta)
+
+
+## A throw: the item flies in an arc from over the head to the cell it ends up on (the bin,
+## the pond, the ground); one that lands shows on its cell only when it gets there.
+func _on_thrown(item: String, _from: Vector2i, to: Vector2i, result: String) -> void:
+	flying.texture = PlaceholderArt.tex(PlaceholderArt.world_item_key(item))
+	flying.visible = true
+	var h := flying.texture.get_height()
+	_flight = {
+		"from": player.position + Vector2(0, -19 - h / 2.0), "to": Vector2(to * T) + Vector2(T / 2.0, T / 2.0),
+		"time": 0.0, "seconds": float(Game.hold_rules.get("flight_seconds", 0.35)),
+		"height": float(Game.hold_rules.get("arc_height", 1.2)) * T,
+	}
+	if view is FarmView:
+		view.hidden_item = to if result == "land" else Vector2i(-1, -1)
+	_fly(0.0)
+
+
+func _fly(delta: float) -> void:
+	if _flight.is_empty():
+		return
+	_flight.time += delta
+	var t := clampf(_flight.time / maxf(_flight.seconds, 0.01), 0.0, 1.0)
+	var p: Vector2 = _flight.from.lerp(_flight.to, t)
+	p.y -= _flight.height * 4.0 * t * (1.0 - t)
+	flying.position = p
+	if t >= 1.0:
+		flying.visible = false
+		_flight = {}
+		if view is FarmView:
+			view.hidden_item = Vector2i(-1, -1)
 
 
 ## Down the mine the light rectangle covers what the camera sees; the lantern is on the farmer.

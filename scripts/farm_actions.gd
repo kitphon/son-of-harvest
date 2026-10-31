@@ -7,6 +7,29 @@ const T := 16
 const HOME := Vector2(4 * T + 8, 4 * T + 10)   # in front of the door, in player pixels
 
 
+## A view's Player hooked to the actions, and the view-side start flag `--talk=<villager>`.
+## Both views call this once their map is built.
+static func connect_view(player: Player) -> void:
+	player.action.connect(on_action)
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--talk="):   # `-- --demo --map=town --time=14:30 --talk=tome`: E facing her
+			talk_flag.call_deferred(player, arg.trim_prefix("--talk="))
+
+
+## The `--talk=<villager>` screenshot flag: the farmer stands below them, facing up, and talks.
+static func talk_flag(player: Player, id: String) -> void:
+	var w := Villagers.where(id, Game.day_minutes(), Game.trigger_state(Vector2i.ZERO))
+	if w.get("map", "") != Game.maps.id:
+		push_warning("--talk: %s is not on this map now" % id)
+		return
+	var c := Vector2i(w.pos.floor()) + Vector2i.DOWN
+	player.position = Vector2(c * T) + Vector2(T / 2.0, T / 2.0)
+	player.facing = Vector2i.UP
+	Game.maps.pos = player.position
+	Game.maps.facing = player.facing
+	on_action("interact", c, Vector2i.UP)
+
+
 ## kind "enter" = the farmer walked into a door cell `origin + facing`. Interact facing a
 ## villager talks to them (or gives them the item overhead). With an item overhead on the
 ## farm the hands are full: interact throws it, the tool button sets it down. With the dog in

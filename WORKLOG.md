@@ -10,6 +10,35 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — The 2D view plays: the Player's actions hooked up
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `scripts/main_2d.gd` never connected `Player.action`, so in `scenes/main_2d.tscn` the
+  farmer walked but no tool, door, talk, throw, cast or counter did anything. The hookup is now
+  shared: `FarmActions.connect_view(player)` connects the action signal and runs the `--talk=`
+  start flag (`FarmActions.talk_flag`, moved out of main_3d.gd), and both views call it after
+  building their first map. Everything else the 3D view reaches already went through Game
+  signals (text box, rucksack / storage, shops, cooking, ending, events, map fades), which the
+  2D scene already had screens for. Drawing only in the 2D view: a thrown item now flies in an
+  arc (`Game.thrown`, a Sprite2D, the same flight_seconds / arc_height as 3D) and FarmView
+  hides it on its landing cell until it arrives (`hidden_item`, as FarmWorld). The Player
+  already draws the held item, the rod, line, bobber and "!" and the charge pips in 2D.
+- Checked: new `tests/test_view2d.gd` builds main_2d.tscn on a new game and sends actions
+  through the Player's signal: the hoe tills and costs stamina, the can waters, the tool
+  button puts an item down and E picks it up, E throws (lands, flies, hidden then shown), the
+  empty bin's note, the food slot eats a turnip overhead, the rod casts and lands a fish on a
+  bite, walking into the farmhouse door swaps to the house MapView at the spawn, talking to
+  Tome at 14:30 opens her lines and counts the talk, the Yorozu counter opens the store
+  screen at 11:00, the hammer breaks a rock on a mine floor (with MineView). With
+  `connect_view` taken out of main_2d.gd it printed 16 FAILs. All 24 test scripts print
+  `OK (0 failed)`; headless `--quit-after 300` runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, `--demo --map=town --time=14:30 --talk=tome`, and main_2d.tscn with
+  `--demo`, `--demo --fishing`, `--demo --mine=3`, `--demo --hold`, `--demo --map=town
+  --time=14:30 --talk=tome`) printed no errors or warnings. 2D frames looked at: the talk run
+  shows Tome's text box over the village, the fishing run the line, bobber and "!" at the
+  pond; `shots/` deleted.
+- Left / next: the 2D view has no rain / snow particles, lightning flash or festival glow
+  (drawing only, the 3D ones are 3D nodes).
+
 ## 2026-10-31 — Merged three branches: dish gifts, ending / balance, heart flags in the world
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each:

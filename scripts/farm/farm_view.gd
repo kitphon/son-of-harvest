@@ -28,6 +28,12 @@ var snow_mask: Image
 var _snow: Sprite2D          # snow_mask stretched over the farm, drawn by the snow shader
 var _snow_rules: Dictionary
 var _objects: Node2D         # sprites and buildings, above the snow
+## A thrown item's landing cell while it is still in the air (main_2d), not drawn yet.
+var hidden_item := Vector2i(-1, -1):
+	set(value):
+		hidden_item = value
+		if _objects != null:
+			_objects.queue_redraw()
 
 
 func _ready() -> void:
@@ -97,6 +103,6 @@ func _draw_cell(c: Vector2i) -> void:
 	if key != "":
 		var tex := PlaceholderArt.tex(key)
 		_objects.draw_texture(tex, r.position + Vector2(0, T - tex.get_height()))
-	if farm.item_at(c) != "":   # put down or thrown: lying in the middle of the cell
+	if farm.item_at(c) != "" and c != hidden_item:   # put down or thrown: lying in the middle of the cell
 		var it := PlaceholderArt.tex(PlaceholderArt.world_item_key(farm.item_at(c)))
 		_objects.draw_texture(it, r.position + (Vector2(T, T) - it.get_size()) / 2.0 + Vector2(0, 2))
