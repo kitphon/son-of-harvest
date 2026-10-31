@@ -182,6 +182,68 @@ func hit(c: Vector2i, tool: String) -> int:
 	return 2
 
 
+## Everything the farm holds as plain JSON-safe data (SaveGame writes it).
+## The fixed cells are saved too, so later changes to the layout (extensions) keep.
+func to_dict() -> Dictionary:
+	var rows := []
+	for d in cells:
+		rows.append(d.duplicate())
+	var spots := []
+	for c in fixed:
+		spots.append([c.x, c.y, fixed[c]])
+	return {"w": W, "h": H, "cells": rows, "fixed": spots}
+
+
+## Puts a saved farm back in place (views keep their reference to this grid).
+## Returns "" or what was wrong; on a problem nothing changes.
+func from_dict(data: Dictionary) -> String:
+	if SaveGame.whole(data.get("w"), W, W) == null or SaveGame.whole(data.get("h"), H, H) == null:
+		return "The saved farm has another size"
+	var rows = data.get("cells")
+	if not rows is Array or rows.size() != W * H:
+		return "The saved farm cells are missing"
+	var new_cells := []
+	for i in rows.size():
+		var d = _cell_from(rows[i])
+		if d == null:
+			return "Saved farm cell %d,%d is broken" % [i % W, i / W]
+		new_cells.append(d)
+	var spots = data.get("fixed")
+	if not spots is Array:
+		return "The saved farm buildings are missing"
+	var new_fixed := {}
+	for s in spots:
+		if not s is Array or s.size() != 3 or not s[2] is String or s[2] == "":
+			return "A saved farm building is broken"
+		var x = SaveGame.whole(s[0], 0, W - 1)
+		var y = SaveGame.whole(s[1], 0, H - 1)
+		if x == null or y == null:
+			return "A saved farm building is broken"
+		new_fixed[Vector2i(x, y)] = s[2]
+	cells = new_cells
+	fixed = new_fixed
+	cells_changed.emit()
+	return ""
+
+
+func _cell_from(v: Variant) -> Variant:
+	if not v is Dictionary or not v.get("tilled") is bool or not v.get("wet") is bool:
+		return null
+	var crop = v.get("crop")
+	if not crop is String or (crop != "" and not crops.has(crop)):
+		return null
+	var d := {
+		"tilled": v.tilled, "wet": v.wet, "crop": crop,
+		"obj": SaveGame.whole(v.get("obj"), 0, Obj.size() - 1),
+		"stage": SaveGame.whole(v.get("stage"), 0, ripe_stage(crop) if crop != "" else 0),
+		"days": SaveGame.whole(v.get("days"), 0, 999),
+		"hits": SaveGame.whole(v.get("hits"), 0, 99),
+	}
+	if null in d.values():
+		return null
+	return d
+
+
 ## The night: growth on watered cells, out-of-season crops wither, weeds, storm damage,
 ## then today's rain waters the field.
 func day_end(season: String, weather: String, rng: RandomNumberGenerator) -> void:

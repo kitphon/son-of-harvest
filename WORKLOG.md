@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Save game and load
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `SaveGame` (scripts/save/save_game.gd) writes `user://save1.json` as
+  `{"version": 1, "game": {...}}` and reads it back. The state itself comes from
+  `Game.to_dict()` / `from_dict()` (calendar, clock, weather today / tomorrow, money, bin,
+  stamina / max, water, tool and seed by name, bag) and `FarmGrid.to_dict()` /
+  `from_dict()` (every cell: tilled, wet, obj, crop, stage, days, hits; plus the fixed
+  cells, so a later layout change keeps). Loading checks everything first (types, ranges,
+  known crop ids, stage within the crop's stages, grid size) and only then applies, so a
+  missing, broken, newer-version or tampered file changes nothing and returns a message.
+  The FarmGrid is filled in place (views keep their reference); it emits `cells_changed`,
+  then Game emits `day_started` (views put the farmer home, redo weather and light) and
+  `changed`. Sleeping saves the game ("Good morning! Game saved."); F5 quick save,
+  F9 quick load, both report through `Game.message`. Tool / seed are saved by name so
+  reordering `data/crops.json` doesn't change the selection.
+- Checked: new `tests/test_save.gd` prints `test_save: OK (0 failed)` (round trip of a farm
+  with a sown, watered potato, tilled / wet soil, a half-hit stump, a rock and a changed
+  Game state: loaded `to_dict()` equals the saved one, ints stay ints, the same FarmGrid
+  object, signals fired once, the crop keeps growing; refused: missing file, empty /
+  non-JSON / wrong-shape / newer-version files, bad day, hour, stamina, tool, seed, bag,
+  weather, farm size, cell count, crop id, stage, obj, building cell; failed loads left the
+  state equal). `test_farm: OK (0 failed)`; headless `--quit-after 300` (with and without
+  `--demo`) printed no errors. Not checked: pressing F5 / F9 in a game window (no input
+  can be sent headless).
+- Left / next: title screen with new game / continue; the game still starts a new farm.
+
 ## 2026-10-31 — Rain / snow particles and weather tint
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `WeatherFX` (scripts/world3d/weather_fx.gd) puts CPUParticles3D around the camera
