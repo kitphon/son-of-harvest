@@ -146,6 +146,7 @@ func _enter_map() -> void:
 	else:
 		world = MapWorld.new()
 		(world as MapWorld).build(m)
+	world.add_child(VillagerSprites.new(m.id))
 	add_child(world)
 	move_child(world, 0)
 	player.farm = Game.farm

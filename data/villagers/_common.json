@@ -1,0 +1,5 @@
+{
+	"_note": "Shared numbers for every villager (data/villagers/<id>.json; files starting with _ are not villagers). walk_speed is in cells per game minute (a minute is 0.5 s, so 1.5 = 3 cells a second, a bit slower than the farmer's 3.75); a villager's own speed wins. stride: cells walked per walk frame (4 frames = two steps). Ours, picked by eye.",
+	"walk_speed": 1.5,
+	"stride": 0.5
+}

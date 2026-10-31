@@ -10,6 +10,50 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Villagers with daily schedules from data
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: DESIGN "ชาวบ้าน" (a daily plan chosen each morning by the first matching rule,
+  catch-up on map entry), our own version:
+  - `data/villagers/<id>.json`: four made-up villagers for the village map: Grandma Tome
+    (west house; shrine every morning, pond in the afternoon; in on wet days, late in
+    winter, sweeps the shrine on Sundays), Hachiro the carpenter (east house; mends the empty
+    house south of the road on work days, lunch at home, pond in the evening, fishes on
+    Sundays), Sayo (keeps the noren shop: sweeps before 9:00, at the door 9:00-17:00, shrine
+    in the evening, Wednesdays off visiting Tome), Kota (a boy: plays along the road, fishes
+    in the afternoon, hunts cicadas at the shrine in summer). Rules: season / weekday /
+    weather / days / year / flags / not_flags, first match wins, else `default`.
+  - `DayPlan` (pure logic): entries {at, map or "away", from, route, loop} with steps to /
+    wait / face become timed legs; `where(minute)` gives map, position, facing, moving and
+    distance walked. Plans are checked when loaded (first entry 06:00, times in order, a
+    from when coming onto a map, a route that arrives before the next entry, a loop that
+    takes time). Times are minutes of the game day from 6:00 (`DayPlan.day_minute`, after
+    midnight = past 24:00).
+  - `Villagers`: loads the files, picks today's plans from `Game.trigger_state`, answers
+    `on_map`, `where`, `is_on` (hook for shop hours), `sprite_key`. Positions are a pure
+    function of `Game.day_minutes()` (new: the clock with the part-minute), so the catch-up
+    comes for free and nothing needs saving.
+  - Views: `VillagerSprites` (3D billboards with shadows) / `VillagerView` (2D sprites) added
+    to every map world; one line each in main_3d / main_2d.
+  - Art: `villager:<id>:<front|back>:<idle|walk>:<frame>`, 16 x 24 like the farmer, a hair
+    style (bun, short, headband, long, straw hat) over a shared face and an outfit (kimono to
+    the ankles with sandals, happi with trousers, shirt and shorts), colours from the look.
+  - Numbers (ours): walk 1.5 cells per game minute (3 cells / s, below the farmer's 3.75),
+    Kota 2.0; a walk frame per half cell.
+  - `--time=H:MM` debug flag (after `--demo`) sets the clock for screenshots.
+- Checked: `test_villagers: OK (0 failed)` (plan timing and loops, carry-on, refused plans,
+  rule order, files, no walk crosses a solid cell, today's village, sprites, both views at
+  14:20 placing everyone where the plan says); the thirteen other tests all print
+  OK (0 failed); headless `--quit-after 300` (title, `--demo`, `--demo --map=town`,
+  `--demo --map=town --time=14:30`), `res://scenes/main_2d.tscn -- --demo --map=town` and
+  `res://scenes/main.tscn --quit-after 400` printed no errors or warnings. Movie Maker frames:
+  `--demo --map=town` (10:00: Kota in his straw hat and Tome in her purple kimono near the
+  start spawn), `--demo --map=town@shrine --time=12:10` (Hachiro walking home along the road,
+  hidden behind the south house roof where he passes it).
+- Left / next: villagers don't block the farmer yet (so no bump delay); `away` stands for
+  their houses until those maps exist (the village doors still only give a message); indoors
+  the clock stops, so a villager on an indoor map would stand still; talking, gifts,
+  affection and shop hours are next. Not seen in a real window yet.
+
 ## 2026-10-31 — Merged six branches: music, events, maps, rucksack, food, hold / throw
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, tests after each, in this order:

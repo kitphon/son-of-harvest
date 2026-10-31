@@ -55,9 +55,13 @@ The rucksack and the storage chest are done (I opens the rucksack, the chest sta
 the house; slot counts in data/inventory.json, so a shop's rucksack upgrade is one number via
 `Inventory.grow("bag", n)`). The item held overhead is the rucksack's hand slot. Later for
 menus: key remapping.
-Next: milestone 5, **villagers with daily schedules from data** (rule list → day plan,
-catch-up on map entry) in the village, then the opening event and first shop visits
-(milestone 6) on the event trigger tables.
+Villagers with daily schedules are in (data/villagers: Tome, Hachiro, Sayo, Kota; rule
+list → day plan, positions follow the clock, so entering the village shows everyone where
+their plan puts them; README → Villagers). Later for villagers: blocking the farmer and the
+bump delay, their own house maps (`away` until then), talking / gifts / affection.
+Next: milestone 5, **talking, gifts, affection, shop opening hours** (`Villagers.is_on` tells
+whether a keeper is out), then the opening event and first shop visits (milestone 6) on the
+event trigger tables.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -97,7 +101,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [ ] Key remapping
 5. **Town and villagers**
    - [x] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause (data/maps, MapManager, fade)
-   - [ ] Villagers with daily schedules from data (rule list → day plan), catch-up on map entry
+   - [x] Villagers with daily schedules from data (rule list → day plan), catch-up on map entry
    - [ ] Talking, gifts, affection, shop opening hours
 6. **Events and dialogue**
    - [x] Text box (typewriter, portraits, choices, flags); our own, data/dialogue
