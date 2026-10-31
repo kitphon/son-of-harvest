@@ -110,22 +110,51 @@ func _picture(key: String, size: Vector2, center: Vector3, normal_yaw := 0.0) ->
 ## so doors and windows go on those faces.
 func _make_buildings() -> void:
 	_make_house()
-	var planks := surface_material("build:planks")
+	_make_bin()
+	_make_stand()
+	_make_fence()
+
+
+## Shipping bin (cell 8, 3): a lidded cedar box on two runners, dark corner battens, a straw
+## rope tied round its middle and two battens across the lid.
+func _make_bin() -> void:
+	var timber := flat_material(Color("2e221a"))
+	for z in [3.2, 3.8]:
+		_box(Vector3(0.9, 0.08, 0.12), Vector3(8.5, 0.04, z), timber)
+	_box(Vector3(0.84, 0.5, 0.74), Vector3(8.5, 0.33, 3.5), surface_material("build:sugi"))
+	for x in [8.08, 8.92]:
+		for z in [3.13, 3.87]:
+			_box(Vector3(0.06, 0.5, 0.06), Vector3(x, 0.33, z), timber)
+	_box(Vector3(0.87, 0.05, 0.77), Vector3(8.5, 0.36, 3.5), flat_material(Color("c8b078")))   # rope
+	_box(Vector3(0.94, 0.08, 0.84), Vector3(8.5, 0.62, 3.5), surface_material("build:planks"))
+	for x in [8.22, 8.78]:
+		_box(Vector3(0.08, 0.05, 0.86), Vector3(x, 0.685, 3.5), timber)
+
+
+## Seed stand (cell 10, 3): a roadside stall with a small board gable roof on four posts, an
+## indigo noren under the front eave, the seed sacks and a little honesty box on the counter.
+func _make_stand() -> void:
+	var timber := flat_material(Color("2e221a"))
+	_box(Vector3(0.9, 0.6, 0.6), Vector3(10.5, 0.3, 3.65), surface_material("build:planks"))
+	for x in [10.08, 10.92]:
+		for z in [3.32, 3.98]:
+			_box(Vector3(0.07, 1.32, 0.07), Vector3(x, 0.66, z), timber)
+	_box(Vector3(0.92, 0.06, 0.06), Vector3(10.5, 1.29, 3.98), timber)   # noren beam
+	# Gable roof, ridge along x at z 3.65; the eaves end at 1.32 high, z 3.2 / 4.1.
 	var dark := surface_material("build:planks_dark")
-	# Shipping bin (cell 8, 3): a dark crate with a lid and a band.
-	_box(Vector3(0.9, 0.55, 0.8), Vector3(8.5, 0.275, 3.5), dark)
-	_box(Vector3(1.0, 0.1, 0.9), Vector3(8.5, 0.6, 3.5), planks)
-	_box(Vector3(0.92, 0.08, 0.82), Vector3(8.5, 0.35, 3.5), flat_material(Color("4a4440")))
-	# Seed stand (cell 10, 3): counter, two posts, a striped awning, seed sacks on top.
-	_box(Vector3(0.9, 0.6, 0.6), Vector3(10.5, 0.3, 3.65), planks)
-	for x in [10.12, 10.88]:
-		_box(Vector3(0.08, 1.3, 0.08), Vector3(x, 0.65, 3.3), dark)
-	_box(Vector3(1.1, 0.05, 0.75), Vector3(10.5, 1.3, 3.55), surface_material("build:awning"),
-		Vector3(deg_to_rad(18), 0, 0))
+	var half := 0.45
+	var rise := 0.2
+	var slope := atan2(rise, half)
+	var length := Vector2(half, rise).length() + 0.06
+	for side in [1, -1]:
+		var center := Vector3(10.5, 1.32 + rise / 2 + 0.03, 3.65 + side * half / 2)
+		_box(Vector3(1.12, 0.05, length), center, dark, Vector3(slope * side, 0, 0))
+	_box(Vector3(1.16, 0.06, 0.08), Vector3(10.5, 1.32 + rise + 0.05, 3.65), timber)
+	_picture("build:noren", Vector2(0.84, 0.32), Vector3(10.5, 1.1, 4.0))
 	var sacks := [Color("e8d8a8"), Color("c9a26b"), Color("b8c890")]
 	for i in 3:
-		_box(Vector3(0.22, 0.14, 0.22), Vector3(10.22 + i * 0.28, 0.67, 3.7), flat_material(sacks[i]))
-	_make_fence(dark)
+		_box(Vector3(0.22, 0.14, 0.22), Vector3(10.22 + i * 0.28, 0.67, 3.62), flat_material(sacks[i]))
+	_box(Vector3(0.14, 0.12, 0.1), Vector3(10.78, 0.66, 3.88), surface_material("build:sugi"))
 
 
 ## A small Japanese farmhouse on cells x 2..6, z 1..3: dark board skirting under white
@@ -184,34 +213,85 @@ func _make_house() -> void:
 	_picture("build:shoji", Vector2(0.8, 0.6), Vector3(7.005, 1.2, mid), 90)
 
 
-## Post and rail fence along the border cells: a post per cell (one MultiMesh), two rails a side.
-func _make_fence(mat: Material) -> void:
-	var w := float(FarmGrid.W)
-	var h := float(FarmGrid.H)
-	var spots: Array[Vector3] = []
-	for x in FarmGrid.W:
-		spots.append(Vector3(x + 0.5, 0.3, 0.5))
-		spots.append(Vector3(x + 0.5, 0.3, h - 0.5))
-	for z in range(1, FarmGrid.H - 1):
-		spots.append(Vector3(0.5, 0.3, z + 0.5))
-		spots.append(Vector3(w - 0.5, 0.3, z + 0.5))
-	var post := BoxMesh.new()
-	post.size = Vector3(0.14, 0.6, 0.14)
+## Many copies of one mesh in a single MultiMesh.
+func _multi(mesh: Mesh, transforms: Array[Transform3D], mat: Material) -> void:
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.mesh = post
-	mm.instance_count = spots.size()
-	for i in spots.size():
-		mm.set_instance_transform(i, Transform3D(Basis(), spots[i]))
-	var posts := MultiMeshInstance3D.new()
-	posts.multimesh = mm
-	posts.material_override = mat
-	add_child(posts)
-	for y in [0.22, 0.46]:
-		_box(Vector3(w - 1, 0.07, 0.05), Vector3(w / 2, y, 0.5), mat)
-		_box(Vector3(w - 1, 0.07, 0.05), Vector3(w / 2, y, h - 0.5), mat)
-		_box(Vector3(0.05, 0.07, h - 1), Vector3(0.5, y, h / 2), mat)
-		_box(Vector3(0.05, 0.07, h - 1), Vector3(w - 0.5, y, h / 2), mat)
+	mm.mesh = mesh
+	mm.instance_count = transforms.size()
+	for i in transforms.size():
+		mm.set_instance_transform(i, transforms[i])
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = mm
+	mmi.material_override = mat
+	add_child(mmi)
+
+
+## A low bamboo lattice fence (yotsume-gaki look) along the border cells: a thick bamboo post
+## per cell, thin canes standing between the posts, two cross canes a side, and dark rope ties
+## where the cross canes meet the posts. Its line runs through the border cells' middles.
+func _make_fence() -> void:
+	var w := float(FarmGrid.W)
+	var h := float(FarmGrid.H)
+	var bamboo := surface_material("build:bamboo")
+	var line: Array[Vector2] = []      # (x, z) of every post
+	for x in FarmGrid.W:
+		line.append(Vector2(x + 0.5, 0.5))
+		line.append(Vector2(x + 0.5, h - 0.5))
+	for z in range(1, FarmGrid.H - 1):
+		line.append(Vector2(0.5, z + 0.5))
+		line.append(Vector2(w - 0.5, z + 0.5))
+	var posts: Array[Transform3D] = []
+	var ties: Array[Transform3D] = []
+	for p in line:
+		posts.append(Transform3D(Basis(), Vector3(p.x, 0.32, p.y)))
+		for y in [0.2, 0.44]:
+			ties.append(Transform3D(Basis(), Vector3(p.x, y, p.y)))
+	# Thin canes a third of a cell apart along each side, skipping the post spots.
+	var canes: Array[Transform3D] = []
+	for i in range(1, (FarmGrid.W - 1) * 3):
+		if i % 3 != 0:
+			for z in [0.5, h - 0.5]:
+				canes.append(Transform3D(Basis(), Vector3(0.5 + i / 3.0, 0.26, z)))
+	for i in range(1, (FarmGrid.H - 1) * 3):
+		if i % 3 != 0:
+			for x in [0.5, w - 0.5]:
+				canes.append(Transform3D(Basis(), Vector3(x, 0.26, 0.5 + i / 3.0)))
+	var post := CylinderMesh.new()
+	post.top_radius = 0.06
+	post.bottom_radius = 0.06
+	post.height = 0.64
+	post.radial_segments = 8
+	_multi(post, posts, bamboo)
+	var cane := CylinderMesh.new()
+	cane.top_radius = 0.045
+	cane.bottom_radius = 0.045
+	cane.height = 0.52
+	cane.radial_segments = 6
+	_multi(cane, canes, bamboo)
+	var tie := BoxMesh.new()
+	tie.size = Vector3(0.15, 0.06, 0.15)
+	_multi(tie, ties, flat_material(Color("2a2420")))
+	# Cross canes: cylinders lying along x (front / back) and along z (left / right).
+	for y in [0.2, 0.44]:
+		for z in [0.5, h - 0.5]:
+			_rail(w - 1, Vector3(w / 2, y, z), Vector3(0, 0, PI / 2), bamboo)
+		for x in [0.5, w - 0.5]:
+			_rail(h - 1, Vector3(x, y, h / 2), Vector3(PI / 2, 0, 0), bamboo)
+
+
+func _rail(length: float, center: Vector3, rot: Vector3, mat: Material) -> void:
+	var m := CylinderMesh.new()
+	m.top_radius = 0.035
+	m.bottom_radius = 0.035
+	m.height = length
+	m.radial_segments = 6
+	var mi := MeshInstance3D.new()
+	mi.mesh = m
+	mi.material_override = mat
+	mi.position = center
+	mi.rotation = rot
+	add_child(mi)
 
 
 func _rebuild_objects() -> void:

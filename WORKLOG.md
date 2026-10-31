@@ -10,6 +10,25 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Japanese fence, seed stall and shipping bin
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the last western farm pieces follow ROADMAP "Mood and tone". Fence: a low bamboo
+  lattice (yotsume-gaki look, our own layout) on the same border cells: a bamboo post per
+  cell, thin canes a third of a cell apart, two cross canes a side and dark rope ties at the
+  posts (posts, canes and ties are one MultiMesh each). Seed stand (cell 10, 3): a roadside
+  stall with four posts, a small board gable roof (eaves 1.32 high) and an indigo noren with
+  a white sprout mark under the front eave; the three seed sacks stay and a small cedar
+  honesty box sits on the counter. Shipping bin (cell 8, 3): a lidded cedar box on two dark
+  runners with corner battens, a straw rope round the middle and two battens on the lid.
+  All stay inside their cells; FarmGrid cells and collision are unchanged. New surfaces
+  `build:sugi`, `build:bamboo`, `build:noren`; removed `build:awning` and the unused
+  `build:stone`. Canes at radius 0.03 nearly vanished at 480 x 270, so they are 0.045.
+- Checked: `test_farm: OK (0 failed)` (building-surface check lists the new surfaces);
+  headless `--quit-after 300` printed no errors or warnings; Movie Maker frames with `--demo`
+  (plus a temporary script, deleted, that ran the farmer right for 48 frames) show the
+  bamboo fence, the stall with roof and noren, and the cedar bin.
+- Left / next: nothing open for these props.
+
 ## 2026-10-31 — Rain / snow particles and weather tint
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `WeatherFX` (scripts/world3d/weather_fx.gd) puts CPUParticles3D around the camera
