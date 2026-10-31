@@ -121,6 +121,15 @@ func _process(_delta: float) -> bool:
 		check(sfx._loops.amb_rain.playing, "rain loop started")
 		check(sfx.music_targets() == {"rain": 0.6}, "Sfx picks the soft rain music in a storm (%s)" % sfx.music_targets())
 		var g: Node = root.get_node("Game")
+		g.maps.id = "store"
+	if frames == 4:
+		var sfx: Node = root.get_node("Sfx")
+		check(sfx.music_targets() == {"store": 1.0}, "Sfx picks the store music inside the store (%s)" % sfx.music_targets())
+		var g: Node = root.get_node("Game")
+		g.maps.id = "farm"
+		g.event_running = true
+		check(sfx.event_playing() == "", "no event player in the view: no event id")
+		g.event_running = false
 		g.clock_running = false
 	if frames == 5:
 		check(root.get_node("Sfx").music_targets() == {"title": 1.0}, "title music while the clock stands")
@@ -275,6 +284,49 @@ func _music() -> void:
 	for id in Festivals.all():
 		check(MusicPicker.tracks(music.rules).any(func(t): return fest.call(id, Festivals.get_festival(id).season, 12).has(t) and t.begins_with("fest_")),
 			"%s has a festival score" % id)
+	# Shops: inside the store and the smithy their own music, over weather, night and season;
+	# every other map keeps the old picks (the rules without maps / events give the same).
+	var shop := func(map_id: String, look: String, hour: int) -> Dictionary:
+		return MusicPicker.pick(music.rules, "field", look, "summer", hour, "", map_id)
+	check(shop.call("store", "sunny", 10) == {"store": 1.0}, "the Yorozu Store has its own music")
+	check(shop.call("store", "storm", 20) == {"store": 1.0}, "store music over storm and night")
+	check(shop.call("smithy", "rain", 9) == {"smithy": 1.0}, "the Kurogane Smithy has its own music")
+	check(shop.call("town", "sunny", 10) == {"summer": 1.0} and shop.call("house", "rain", 10) == {"rain": 1.0},
+		"other maps: the old picks")
+	check(MusicPicker.pick(music.rules, "title", "sunny", "spring", 10, "", "store") == {"title": 1.0}, "title screen over the map")
+	# Events: the heart events play the gentle score, the opening of a new game the bright one.
+	var ev := func(event_id: String, map_id: String, festival := "") -> Dictionary:
+		return MusicPicker.pick(music.rules, "field", "rain", "spring", 21, festival, map_id, event_id)
+	for f in DirAccess.get_files_at("res://data/events"):
+		if f.begins_with("heart_"):
+			check(ev.call(f.get_basename(), "town") == {"heart": 1.0}, "%s plays the heart music" % f.get_basename())
+	check(ev.call("heart_sayo_5", "store") == {"heart": 1.0}, "a heart event at the store counter: heart music")
+	check(ev.call("heart_tome", "town", "blossom_day") == {"heart": 1.0}, "a heart event on a festival: heart music")
+	check(ev.call("opening", "farm") == {"morning": 1.0} and ev.call("first_morning", "farm") == {"morning": 1.0},
+		"the opening events play the morning music")
+	check(ev.call("store_intro", "store") == {"store": 1.0} and ev.call("smithy_intro", "smithy") == {"smithy": 1.0},
+		"a shop's first visit keeps the shop music")
+	check(ev.call("pond_first", "farm") == {"rain": 1.0}, "other events keep the music around them")
+	check(ev.call("festival_blossom", "town", "blossom_day") == {"fest_blossom": 1.0}, "festival events keep the festival music")
+	for id in ["heart", "morning"]:
+		var r: Dictionary = music.rules.filter(func(x): return x.track == id)[0]
+		for e in r.events:
+			check(FileAccess.file_exists("res://data/events/%s.json" % e), "music rule event %s exists" % e)
+	for r in music.rules:
+		for m in r.get("maps", []):
+			check(FileAccess.file_exists("res://data/maps/%s.json" % m), "music rule map %s exists" % m)
+	var old_rules: Array = music.rules.filter(func(x): return not x.has("maps") and not x.has("events"))
+	var same := true
+	for scene in ["title", "field"]:
+		for look in ["sunny", "rain", "storm", "snow", "blizzard"]:
+			for season_id in ["spring", "summer", "fall", "winter"]:
+				for hour in [2, 6, 10, 18, 19, 23]:
+					for festival in ["", "blossom_day", "lantern_night", "moon_night", "years_turn"]:
+						var was := MusicPicker.pick(old_rules, scene, look, season_id, hour, festival)
+						for map_id in ["", "farm", "town", "house", "mine_floor"]:
+							for event_id in ["", "pond_first", "festival_blossom"]:
+								same = same and MusicPicker.pick(music.rules, scene, look, season_id, hour, festival, map_id, event_id) == was
+	check(same, "off the shop maps and outside those events every pick is as before")
 	check(MusicPicker.pick([], "field", "sunny", "spring", 10).is_empty(), "no rules: silence")
 	check(MusicPicker.pick([{"track": ""}], "field", "sunny", "spring", 10).is_empty(), "an empty track is silence")
 

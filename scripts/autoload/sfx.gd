@@ -100,7 +100,7 @@ func _process(delta: float) -> void:
 func _music_step(delta: float) -> void:
 	var look := Game.weather_look(Game.weather_today, Game.season_name())
 	_song_target = MusicPicker.pick(music.rules, "field" if Game.clock_running else "title",
-			look, Game.season_name(), Game.hour, Game.festival_now())
+			look, Game.season_name(), Game.hour, Game.festival_now(), Game.maps.id, event_playing())
 	var fade := float(music.get("fade_seconds", 3.0))
 	for key in _songs:
 		var p: AudioStreamPlayer = _songs[key]
@@ -116,6 +116,14 @@ func _music_step(delta: float) -> void:
 		p.volume_linear = _song_level[key] * db_to_linear(float(music.tracks[key].get("volume_db", 0.0)))
 		if p.playing and _song_level[key] <= 0.0 and to <= 0.0:
 			p.stop()
+
+
+## The id of the event script playing in the view, or "" (for the music rules' `events`).
+func event_playing() -> String:
+	if not Game.event_running:
+		return ""
+	var ep := get_tree().get_first_node_in_group(EventPlayer.GROUP) as EventPlayer
+	return ep.runner.id if ep != null and ep.runner != null else ""
 
 
 ## The loop for a track, or null while it is still being made. Made on a worker thread so
