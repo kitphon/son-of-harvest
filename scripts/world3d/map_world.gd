@@ -83,6 +83,13 @@ func _make_prop(p: Dictionary) -> void:
 		"hokora": _hokora(mid)
 		"stone_lantern": _stone_lantern(mid)
 		"pine": _pine(mid)
+		"counter": _counter(mid, r)
+		"shelf": _shelf(mid, r)
+		"rice_sacks": _rice_sacks(mid)
+		"forge": _forge(mid, r)
+		"anvil": _anvil(mid)
+		"tool_rack": _tool_rack(mid, r)
+		"water_tub": _water_tub(mid)
 		_:
 			push_warning("MapWorld: no look for prop '%s'" % p.kind)
 			_box(Vector3(r.size.x, 0.5, r.size.y) * 0.9, mid + Vector3(0, 0.25, 0), flat_material(Color.MAGENTA))
@@ -255,3 +262,114 @@ func _pine(mid: Vector3) -> void:
 		mi.material_override = m
 		mi.position = mid + Vector3(0, 0.9 + i * 0.42, 0)
 		add_child(mi)
+
+
+# --- shop insides (data/maps/store.json, smithy.json) --------------------------
+
+## A shop counter along its cells: a dark board front, a light plank top that overhangs on
+## the customer's side, and a small brass bell at the left end.
+func _counter(mid: Vector3, r: Rect2) -> void:
+	var long := Vector3(r.size.x - 0.08, 0, r.size.y - 0.2)
+	_box(Vector3(long.x, 0.72, long.z), mid + Vector3(0, 0.36, 0), surface_material("build:planks_dark"))
+	_box(Vector3(long.x + 0.06, 0.06, long.z + 0.16), mid + Vector3(0, 0.75, 0.04), surface_material("build:planks"))
+	_box(Vector3(long.x, 0.05, 0.03), mid + Vector3(0, 0.12, long.z / 2 + 0.01), flat_material(Color("2e221a")))
+	_box(Vector3(0.12, 0.1, 0.12), Vector3(r.position.x + 0.35, 0.83, mid.z), flat_material(Color("c8a040")))
+
+
+## Goods shelves against the back wall: a dark frame with three boards, each full of little
+## boxes, jars and seed packets in a row of colours.
+func _shelf(mid: Vector3, r: Rect2) -> void:
+	var at := mid + Vector3(0, 0, -0.22)
+	var wide := r.size.x - 0.1
+	var frame := surface_material("build:planks_dark")
+	for x in [-wide / 2 + 0.04, wide / 2 - 0.04]:
+		_box(Vector3(0.08, 1.4, 0.42), at + Vector3(x, 0.7, 0), frame)
+	_box(Vector3(wide, 1.4, 0.04), at + Vector3(0, 0.7, -0.2), frame)
+	var goods := [Color("c8442c"), Color("e8d8a0"), Color("4a78c0"), Color("7aa848"), Color("f0a8b8"), Color("c9a26b")]
+	for i in 3:
+		var y := 0.25 + i * 0.42
+		_box(Vector3(wide, 0.04, 0.42), at + Vector3(0, y, 0), surface_material("build:planks"))
+		var n := int(wide / 0.24)
+		for k in n:
+			var h := 0.14 + 0.06 * ((k + i) % 3)
+			var x := -wide / 2 + 0.18 + k * (wide - 0.36) / maxf(n - 1, 1)
+			_box(Vector3(0.16, h, 0.2), at + Vector3(x, y + 0.02 + h / 2, 0.04), flat_material(goods[(k * 2 + i) % goods.size()]))
+
+
+## Two straw rice sacks (tawara) on their sides, tied with rope.
+func _rice_sacks(mid: Vector3) -> void:
+	var straw := flat_material(Color("d8c088"))
+	var rope := flat_material(Color("8a6a3a"))
+	for i in 2:
+		var bale := CylinderMesh.new()
+		bale.top_radius = 0.2
+		bale.bottom_radius = 0.2
+		bale.height = 0.6
+		bale.radial_segments = 10
+		var mi := MeshInstance3D.new()
+		mi.mesh = bale
+		mi.material_override = straw
+		mi.position = mid + Vector3(0, 0.2 + i * 0.36, 0.1 - i * 0.1)
+		mi.rotation_degrees = Vector3(0, 0, 90)
+		add_child(mi)
+		for x in [-0.18, 0.18]:
+			_box(Vector3(0.04, 0.42, 0.42), mi.position + Vector3(x, 0, 0), rope)
+
+
+## The forge in the back corner: a stone hearth with a glowing fire bed, a hood and a
+## chimney up through the beam, a pair of bellows at the side.
+func _forge(mid: Vector3, r: Rect2) -> void:
+	var stone := flat_material(Color("7a746c"))
+	var at := mid + Vector3(-0.05, 0, -0.1)
+	_box(Vector3(r.size.x - 0.3, 0.6, r.size.y - 0.4), at + Vector3(0, 0.3, 0), stone)
+	_box(Vector3(r.size.x - 0.8, 0.04, r.size.y - 0.9), at + Vector3(0, 0.61, 0.05), flat_material(Color("ff8a30")))
+	_box(Vector3(0.5, 0.05, 0.4), at + Vector3(0.05, 0.64, 0.05), flat_material(Color("ffd060")))
+	_box(Vector3(r.size.x - 0.5, 0.35, r.size.y - 0.7), at + Vector3(0, 1.35, -0.1), stone)
+	_box(Vector3(0.5, 0.6, 0.5), at + Vector3(0, 1.8, -0.2), stone)
+	_box(Vector3(0.36, 0.28, 0.5), at + Vector3(r.size.x / 2 - 0.05, 0.3, 0.2), flat_material(Color("6a4a30")))
+
+
+## An anvil on a tree stump.
+func _anvil(mid: Vector3) -> void:
+	var stump := CylinderMesh.new()
+	stump.top_radius = 0.24
+	stump.bottom_radius = 0.28
+	stump.height = 0.4
+	stump.radial_segments = 10
+	var mi := MeshInstance3D.new()
+	mi.mesh = stump
+	mi.material_override = flat_material(Color("6a4a30"))
+	mi.position = mid + Vector3(0, 0.2, 0)
+	add_child(mi)
+	var iron := flat_material(Color("2a2a2e"))
+	_box(Vector3(0.22, 0.14, 0.2), mid + Vector3(0, 0.47, 0), iron)
+	_box(Vector3(0.5, 0.1, 0.22), mid + Vector3(0.04, 0.59, 0), iron)
+	_box(Vector3(0.14, 0.06, 0.12), mid + Vector3(-0.27, 0.6, 0), iron)   # the horn
+
+
+## Finished tools hung on a board against the back wall: handles of wood, heads of iron.
+func _tool_rack(mid: Vector3, r: Rect2) -> void:
+	var at := mid + Vector3(0, 0, -0.38)
+	_box(Vector3(r.size.x - 0.2, 0.9, 0.06), at + Vector3(0, 1.0, 0), surface_material("build:board"))
+	var wood := flat_material(Color("a8743f"))
+	var iron := flat_material(Color("8a9096"))
+	var n := int(r.size.x) * 2 - 1
+	for k in n:
+		var x := -(r.size.x - 0.6) / 2 + k * (r.size.x - 0.6) / maxf(n - 1, 1)
+		_box(Vector3(0.05, 0.6, 0.05), at + Vector3(x, 0.95, 0.06), wood)
+		_box(Vector3(0.16 if k % 2 == 0 else 0.06, 0.1 if k % 2 == 0 else 0.2, 0.05), at + Vector3(x, 1.3, 0.07), iron)
+
+
+## A wooden quench tub with dark water.
+func _water_tub(mid: Vector3) -> void:
+	var tub := CylinderMesh.new()
+	tub.top_radius = 0.3
+	tub.bottom_radius = 0.26
+	tub.height = 0.42
+	tub.radial_segments = 12
+	var mi := MeshInstance3D.new()
+	mi.mesh = tub
+	mi.material_override = surface_material("build:sugi")
+	mi.position = mid + Vector3(0, 0.21, 0)
+	add_child(mi)
+	_box(Vector3(0.44, 0.02, 0.44), mid + Vector3(0, 0.4, 0), flat_material(Color("2a4a5a")))

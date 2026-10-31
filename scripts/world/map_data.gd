@@ -7,7 +7,8 @@ extends RefCounted
 ##
 ## A door is a list of cells (solid ones, or cells just off the map edge for a walk-off exit).
 ## Walking into one, or using it, goes to `to` at `spawn` facing `facing`; a door without `to`
-## only shows its `message` (a locked house).
+## only shows its `message` (a locked house). A door with `shop` (data/shops.json) is shut
+## outside that shop's hours.
 
 const FACINGS := {"up": Vector2i.UP, "down": Vector2i.DOWN, "left": Vector2i.LEFT, "right": Vector2i.RIGHT}
 
@@ -24,7 +25,7 @@ var tiles: Array[String] = []          # w * h ground kinds, row by row
 var steps: Array[String] = []          # w * h footstep kinds ("" = by the ground)
 var _solid: Array[bool] = []
 var props: Array[Dictionary] = []      # {kind, cell, size, use, ...the rest from the file}
-var doors: Array[Dictionary] = []      # {cells: Array[Vector2i], to, spawn, facing, message, gate}
+var doors: Array[Dictionary] = []      # {cells: Array[Vector2i], to, spawn, facing, message, gate, shop}
 var spawns: Dictionary = {}            # name -> [cell, facing]
 
 
@@ -91,7 +92,7 @@ func _read(d: Variant) -> String:
 		if cells.is_empty():
 			return "a door has no cells"
 		var out := {"cells": cells, "to": str(door.get("to", "")), "message": str(door.get("message", "")),
-			"gate": bool(door.get("gate", false))}
+			"gate": bool(door.get("gate", false)), "shop": str(door.get("shop", ""))}
 		if out.to != "":
 			out.spawn = _cell(door.get("spawn"))
 			out.facing = FACINGS.get(door.get("facing", "down"))

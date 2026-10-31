@@ -1,0 +1,123 @@
+{
+	"_note": "The general store inside (shop general in data/shops.json): shelves of goods on the back wall, a long counter across the room with a gap at the right for the keeper, a packed-earth floor for customers. Facing the counter and pressing E opens the shop; the keeper spawn is where a shopkeeper will stand. Format: README.md, Maps.",
+	"id": "store",
+	"name": "Yorozu Store",
+	"size": [
+		9,
+		7
+	],
+	"indoor": true,
+	"ambient": "indoor",
+	"light": "fff0dc",
+	"background": "1a1410",
+	"legend": {
+		"#": {
+			"tile": "wall",
+			"solid": true
+		},
+		"w": {
+			"tile": "floor",
+			"step": "floor"
+		},
+		"e": {
+			"tile": "earth",
+			"step": "soil"
+		},
+		"D": {
+			"tile": "earth",
+			"solid": true
+		}
+	},
+	"ground": [
+		"#########",
+		"#wwwwwww#",
+		"#wwwwwww#",
+		"#eeeeeee#",
+		"#eeeeeee#",
+		"#eeeeeee#",
+		"####D####"
+	],
+	"props": [
+		{
+			"kind": "shelf",
+			"cell": [
+				1,
+				1
+			],
+			"size": [
+				3,
+				1
+			]
+		},
+		{
+			"kind": "shelf",
+			"cell": [
+				5,
+				1
+			],
+			"size": [
+				3,
+				1
+			]
+		},
+		{
+			"kind": "counter",
+			"cell": [
+				1,
+				3
+			],
+			"size": [
+				6,
+				1
+			],
+			"use": "shop",
+			"shop": "general"
+		},
+		{
+			"kind": "rice_sacks",
+			"cell": [
+				7,
+				5
+			]
+		}
+	],
+	"doors": [
+		{
+			"cells": [
+				[
+					4,
+					6
+				]
+			],
+			"to": "town",
+			"spawn": [
+				23,
+				16
+			],
+			"facing": "down"
+		}
+	],
+	"spawns": {
+		"start": [
+			[
+				4,
+				5
+			],
+			"up"
+		],
+		"counter": [
+			[
+				3,
+				4
+			],
+			"up"
+		],
+		"keeper": [
+			[
+				3,
+				2
+			],
+			"down"
+		]
+	}
+}

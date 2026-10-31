@@ -13,6 +13,7 @@ signal settings_changed
 signal map_changed(map_id: String)   # the views fade out, rebuild for Game.maps and fade in
 signal map_entered(map_id: String)   # the farmer stands on the new map (after the fade); event triggers key on this
 signal thrown(item: String, from: Vector2i, to: Vector2i, result: String)   # views draw the flight
+signal shop_requested(id: String)    # a ShopScreen opens that shop (data/shops.json)
 
 const SECONDS_PER_MINUTE := 0.5
 const DAYS_PER_SEASON := 30
@@ -71,6 +72,7 @@ var held: String:
 	set(value):
 		inventory.slots.hand[0] = {} if value == "" else {"id": value, "n": 1}
 var shipped: Dictionary = {}    # item id -> how many were ever shipped
+var shop_jobs: Dictionary = {}  # shop id -> {tool, level, ready (day number), slot}: a tool left for an upgrade
 
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
@@ -138,6 +140,7 @@ func new_game() -> void:
 	event_running = false
 	maps = MapManager.new()   # on the farm, in front of the house door
 	shipped = {}
+	shop_jobs = {}
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--demo":
@@ -163,6 +166,13 @@ func new_game() -> void:
 		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
 			fatigue = int(body.get("states", {}).get("exhausted", {}).get("fatigue", 80))
 			_shown_state = body_state()
+		elif arg.begins_with("--shop="):   # `-- --demo --shop=general`: at the counter (ShopScreen opens it)
+			var s := shop(arg.trim_prefix("--shop="))
+			var m := MapManager.data(s.map) if s != null and MapManager.has(s.map) else null
+			if m == null or not m.spawns.has("counter"):
+				push_warning("No shop counter for " + arg)
+			else:
+				maps.place(m.id, m.spawns.counter[0], m.spawns.counter[1])
 		elif arg == "--hold":   # e.g. `-- --demo --hold`: a turnip overhead, a potato in front of the bin
 			held = "turnip"
 			farm.place_item(Vector2i(8, 4), "potato")
@@ -266,10 +276,15 @@ func go_to_map(map_id: String, cell: Vector2i, face: Vector2i) -> bool:
 	return true
 
 
-## Through a door: to its map, or only its message when it leads nowhere yet.
+## Through a door: to its map, or only its message when it leads nowhere yet. A shop's door
+## stays shut outside its hours and says so.
 func use_door(door: Dictionary) -> void:
 	if door.get("to", "") == "":
 		message.emit(door.message)
+		return
+	var s := shop(door.get("shop", ""))
+	if s != null and not s.is_open(hour, weekday()):
+		message.emit(s.closed_text())
 		return
 	go_to_map(door.to, door.spawn, door.facing)
 
@@ -338,8 +353,19 @@ func day_minutes() -> float:
 
 ## Today's weekday ("mon" .. "sun").
 func weekday() -> String:
-	var days := ((year - 1) * SEASONS.size() + season) * DAYS_PER_SEASON + day - 1
-	return WEEKDAYS[days % WEEKDAYS.size()]
+	return WEEKDAYS[day_number() % WEEKDAYS.size()]
+
+
+## Days since the first morning (0 on spring 1, year 1); shop jobs count in these.
+func day_number() -> int:
+	return ((year - 1) * SEASONS.size() + season) * DAYS_PER_SEASON + day - 1
+
+
+## The date of a day number, as date_text() writes it.
+func date_of(n: int) -> String:
+	var d := posmod(n, DAYS_PER_SEASON) + 1
+	var s := posmod(n / DAYS_PER_SEASON, SEASONS.size())
+	return "%s %d, Year %d" % [SEASONS[s].capitalize(), d, n / (DAYS_PER_SEASON * SEASONS.size()) + 1]
 
 
 ## Day / night light: minute of the day -> colour, linear in between, times the weather tint.
@@ -848,6 +874,67 @@ func play_event(id: String) -> void:
 	event_requested.emit(id)
 
 
+# --- shops (data/shops.json; rules in Shop) ----------------------------------
+
+## The shop `id` with this game's crop and food data, or null.
+func shop(id: String) -> Shop:
+	return Shop.make(id, crops, foods) if id != "" else null
+
+
+## The counter (and later its keeper's talk) opens the shop's screen, or says it is closed.
+## `force` skips the hours (the `--shop=<id>` screenshot flag). Returns true when it opened.
+func open_shop(id: String, force := false) -> bool:
+	var s := shop(id)
+	if s == null:
+		return false
+	if not force and not s.is_open(hour, weekday()):
+		message.emit(s.closed_text())
+		return false
+	shop_requested.emit(id)
+	return true
+
+
+func shop_buy(id: String, item: String, n := 1) -> Dictionary:
+	return _shop_paid(shop(id).buy(inventory, money, item, n, season_name()))
+
+
+func shop_sell(id: String, item: String, n := 1) -> Dictionary:
+	return _shop_paid(shop(id).sell(inventory, money, item, n))
+
+
+## Hands the tool in at shop `id` for its next level (Shop.start_upgrade); the job is saved.
+func shop_upgrade(id: String, tool: String) -> Dictionary:
+	var r := shop(id).start_upgrade(inventory, money, tool, tool_level(tool), day_number(), shop_jobs.has(id))
+	if r.ok:
+		shop_jobs[id] = r.job
+	return _shop_paid(r)
+
+
+## Takes a finished tool back from shop `id`, one level up (raise_tool_level), its experience
+## lifted to that level's start so the bar reads right.
+func shop_collect(id: String) -> Dictionary:
+	var job: Dictionary = shop_jobs.get(id, {})
+	if job.is_empty():
+		return {"ok": false, "money": money, "note": "Nothing is waiting for you here"}
+	if not Shop.job_ready(job, day_number()):
+		return {"ok": false, "money": money, "note": "Not ready yet. Come back on %s." % date_of(int(job.ready))}
+	var where := Shop.give_back(inventory, job)
+	while tool_level(job.tool) < int(job.level) and raise_tool_level(job.tool):
+		pass
+	var start := exp_for_next_level(job.tool, int(job.level) - 1)
+	tool_exp[job.tool] = maxi(int(tool_exp.get(job.tool, 0)), start)
+	shop_jobs.erase(id)
+	var note := "Your %s is back, now level %d" % [item_name(job.tool).to_lower(), tool_level(job.tool)]
+	changed.emit()
+	return {"ok": true, "money": money, "note": note + (" (in the chest)" if where == "chest" else "")}
+
+
+func _shop_paid(r: Dictionary) -> Dictionary:
+	money = int(r.money)
+	changed.emit()
+	return r
+
+
 ## What trigger tables check (EventTriggers.matches), with the farmer on `cell`.
 func trigger_state(cell: Vector2i) -> Dictionary:
 	return {"year": year, "season": season_name(), "day": day, "weekday": weekday(),
@@ -893,6 +980,7 @@ func to_dict() -> Dictionary:
 	d.events_seen = seen
 	d.map = maps.to_dict()
 	d.shipped = shipped.duplicate()
+	d.shop_jobs = shop_jobs.duplicate(true)
 	d.farm = farm.to_dict()
 	return d
 
@@ -1019,6 +1107,21 @@ func from_dict(data: Dictionary) -> String:
 		if not id is String or id == "" or c == null:
 			return "Saved shipping counts are broken"
 		n.shipped[id] = c
+	# Saves from before shops have no tools at the smithy.
+	var saved_jobs = data.get("shop_jobs", {})
+	if not saved_jobs is Dictionary:
+		return "Saved shop jobs are broken"
+	n.shop_jobs = {}
+	for sid in saved_jobs:
+		var s := shop(sid) if sid is String else null
+		var j = saved_jobs[sid]
+		if s == null or not j is Dictionary or not j.get("tool") is String or not j.tool in s.upgrade_tools:
+			return "Saved shop jobs are broken"
+		var job := {"tool": j.tool, "level": SaveGame.whole(j.get("level"), 2, tool_max_level(j.tool)),
+			"ready": SaveGame.whole(j.get("ready"), 0, 1 << 40), "slot": SaveGame.whole(j.get("slot"), 0, 998)}
+		if null in job.values():
+			return "Saved shop jobs are broken"
+		n.shop_jobs[sid] = job
 	if not data.get("farm") is Dictionary:
 		return "Saved farm is missing"
 	var err := farm.from_dict(data.farm)

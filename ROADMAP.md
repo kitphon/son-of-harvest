@@ -61,9 +61,14 @@ Villagers with daily schedules are in (data/villagers: Tome, Hachiro, Sayo, Kota
 list → day plan, positions follow the clock, so entering the village shows everyone where
 their plan puts them; README → Villagers). Later for villagers: blocking the farmer and the
 bump delay, their own house maps (`away` until then), talking / gifts / affection.
-Next: milestone 5, **talking, gifts, affection, shop opening hours** (`Villagers.is_on` tells
-whether a keeper is out), then the opening event and first shop visits (milestone 6) on the
-event trigger tables.
+Shops are in (data/shops.json): the Yorozu Store and the Kurogane Smithy in the village, with
+opening hours and days off, a buy / sell screen and tool upgrades over days (saved). A
+shopkeeper only has to stand at the map's `keeper` spawn and call `Game.open_shop(id)`.
+Later for shops: house extensions and the rucksack upgrade for sale.
+Next: milestone 5, **talking, gifts, affection** for the villagers, with the shopkeepers at
+their counters (`Villagers.is_on` tells whether a keeper is out, `Game.open_shop(id)` opens
+the screen), then the opening event and first shop visits (milestone 6) on the event
+trigger tables.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -113,7 +118,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 7. **Animals**
    - [ ] Chickens, cows / sheep, dog: feeding, happiness, produce grades, sickness
 8. **Shops and economy**
-   - [ ] Shops with prices from data, house extensions, tool upgrades
+   - [x] Shops with prices from data, tool upgrades (data/shops.json; store and smithy in the village)
+   - [ ] House extensions, rucksack upgrade for sale
    - [ ] Balance pass (income per season, seed costs)
 9. **Festivals, mining / fishing, relationships, endings**
 10. **Audio and release**
