@@ -127,9 +127,9 @@ func _init() -> void:
 			and not img.detect_alpha(), "%s: full opaque 16 x 16" % key)
 
 	# Building surfaces: repeating ones are one world unit (16 x 16), all opaque, none missing.
-	for kind in ["wall", "roof", "stone", "planks", "planks_dark", "awning", "door", "window"]:
+	for kind in ["plaster", "board", "kawara", "stone", "planks", "planks_dark", "awning", "shoji_door", "shoji"]:
 		var img := PlaceholderArt.tex("build:" + kind).get_image()
-		var tiled: bool = kind != "door" and kind != "window"
+		var tiled: bool = not kind.begins_with("shoji")
 		check(not img.detect_alpha() and img.get_pixel(0, 0) != Color("ff00ff")
 			and (img.get_size() == Vector2i(16, 16) or not tiled), "build:%s drawn" % kind)
 

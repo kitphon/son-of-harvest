@@ -128,33 +128,60 @@ func _make_buildings() -> void:
 	_make_fence(dark)
 
 
+## A small Japanese farmhouse on cells x 2..6, z 1..3: dark board skirting under white
+## plaster between dark timbers, a grey tiled gable roof with a heavy ridge, and an engawa
+## (veranda) along the front under the eaves, with a shoji door and windows on the faces the
+## camera sees (+z, +x).
 func _make_house() -> void:
-	# Walls: cells x 2..6, z 1..3 (5 x 3), 1.8 high.
-	_box(Vector3(5, 1.8, 3), Vector3(4.5, 0.9, 2.5), surface_material("build:wall"))
-	# Gable under the roof, ridge along x.
+	var timber := flat_material(Color("2e221a"))
+	var front := 3.6                     # wall face; the engawa fills z 3.6 .. 4.0
+	var depth := front - 1.0
+	var mid := 1.0 + depth / 2
+	_box(Vector3(5, 0.6, depth), Vector3(4.5, 0.3, mid), surface_material("build:board"))
+	_box(Vector3(5, 1.2, depth), Vector3(4.5, 1.2, mid), surface_material("build:plaster"))
+	# Timber frame standing a little proud of the walls: posts, a sill beam and a top beam.
+	for x in [2.0, 3.6, 5.4, 7.0]:
+		_box(Vector3(0.12, 1.8, 0.08), Vector3(x, 0.9, front + 0.02), timber)
+	for z in [1.0, mid, front]:
+		_box(Vector3(0.08, 1.8, 0.12), Vector3(7.02, 0.9, z), timber)
+	for y in [0.62, 1.76]:
+		_box(Vector3(5.1, 0.08, 0.06), Vector3(4.5, y, front + 0.03), timber)
+		_box(Vector3(0.06, 0.08, depth + 0.1), Vector3(7.03, y, mid), timber)
+	# Engawa: a plank deck on a dark base, two eave posts at its front corners.
+	_box(Vector3(5, 0.24, 0.38), Vector3(4.5, 0.12, front + 0.2), timber)
+	_box(Vector3(5.1, 0.08, 0.42), Vector3(4.5, 0.28, front + 0.2), surface_material("build:planks"))
+	for x in [2.08, 6.92]:
+		_box(Vector3(0.1, 1.5, 0.1), Vector3(x, 0.75, front + 0.36), timber)
+	_box(Vector3(0.6, 0.06, 0.3), Vector3(4.5, 0.03, front + 0.55), flat_material(Color("8a8680")))   # step stone
+	# Gable over the walls, ridge along x over the walls' middle.
+	var rise := 1.0
+	var ridge := Vector3(4.5, 1.8 + rise, mid)
 	var gable := MeshInstance3D.new()
 	var prism := PrismMesh.new()
-	prism.size = Vector3(3, 1.3, 5)
+	prism.size = Vector3(depth, rise, 5)
 	gable.mesh = prism
-	gable.material_override = surface_material("build:wall")
-	gable.position = Vector3(4.5, 1.8 + 0.65, 2.5)
+	gable.material_override = surface_material("build:plaster")
+	gable.position = Vector3(4.5, 1.8 + rise / 2, mid)
 	gable.rotation_degrees.y = 90
 	add_child(gable)
-	# Two roof slabs with a little overhang, from the ridge down past the walls.
-	var roof := surface_material("build:roof")
-	var slope := atan2(1.3, 1.5)
-	var length := Vector2(1.5, 1.3).length() + 0.4
+	# Roof slabs from the ridge to just past the engawa (eave ~1.45 high at z ~4.05, above the
+	# farmer's head on the cell in front), then the ridge cap.
+	var kawara := surface_material("build:kawara")
+	var slope := atan2(rise, depth / 2)
+	var length := (4.05 - mid) / cos(slope)
 	for side in [1, -1]:
 		var down := Vector3(0, -sin(slope), cos(slope) * side)
 		var up := Vector3(0, cos(slope), sin(slope) * side)
-		var center := Vector3(4.5, 3.1, 2.5) + down * (length / 2 - 0.05) + up * 0.06
-		_box(Vector3(5.6, 0.12, length), center, roof, Vector3(slope * side, 0, 0))
-	_box(Vector3(0.4, 1.0, 0.4), Vector3(6.0, 3.0, 1.9), surface_material("build:stone"))   # chimney
-	# Door on the front face (z = 4), over the door cell (4, 3); windows either side and on +x.
-	_picture("build:door", Vector2(0.8, 1.2), Vector3(4.5, 0.6, 4.005))
-	_picture("build:window", Vector2(0.72, 0.6), Vector3(3.0, 1.1, 4.005))
-	_picture("build:window", Vector2(0.72, 0.6), Vector3(6.0, 1.1, 4.005))
-	_picture("build:window", Vector2(0.72, 0.6), Vector3(7.005, 1.1, 2.5), 90)
+		var center := ridge + down * (length / 2 - 0.05) + up * 0.06
+		_box(Vector3(5.7, 0.1, length), center, kawara, Vector3(slope * side, 0, 0))
+	_box(Vector3(5.9, 0.18, 0.26), ridge + Vector3(0, 0.12, 0), flat_material(Color("3a424c")))
+	for x in [1.62, 7.38]:
+		_box(Vector3(0.16, 0.3, 0.32), Vector3(x, ridge.y + 0.16, mid), flat_material(Color("3a424c")))
+	# Shoji door over the door cell (4, 3), shoji windows beside it and on the +x face.
+	_picture("build:shoji_door", Vector2(0.9, 1.3), Vector3(4.5, 0.32 + 0.65, front + 0.005))
+	_picture("build:shoji", Vector2(0.8, 0.6), Vector3(2.8, 1.2, front + 0.005))
+	_picture("build:shoji", Vector2(0.8, 0.6), Vector3(6.2, 1.2, front + 0.005))
+	_picture("build:shoji", Vector2(0.8, 0.6), Vector3(7.005, 1.2, mid), 90)
 
 
 ## Post and rail fence along the border cells: a post per cell (one MultiMesh), two rails a side.

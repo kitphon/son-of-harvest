@@ -18,8 +18,9 @@ and feel choice from here on, always with our own designs:
 - Music and sound: soft, acoustic, with Japanese instruments (shakuhachi, koto, shamisen)
   and nature sounds.
 - UI: warm paper and wood textures; a pixel font that can show Japanese text later.
-Already-built placeholders (western-style house and fence) should move towards this when
-they are next touched.
+The house is done in this style. Still western and to move towards it when next touched:
+the post-and-rail fence (bamboo or woven fence instead), the red / white awning on the
+seed stand (a noren or a wooden roof), and the shipping bin.
 
 ## Next up
 The user chose to refine the placeholders first (real art later). Farmer, crops, field

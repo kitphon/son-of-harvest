@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Japanese farmhouse
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the house follows ROADMAP "Mood and tone" now: dark charred-board skirting, white
+  plaster between dark timber posts and beams, a grey-blue kawara tile roof (rows of
+  rounded tiles running down the slope) with a heavy ridge cap and raised ends, an engawa
+  plank veranda along the front under the eaves (walls moved back to z 3.6 inside the
+  same footprint, so collision is unchanged), two eave posts, a step stone, a shoji sliding
+  door over the door cell and shoji windows. The western chimney, board wall, shingle
+  roof, plank door and glass window surfaces were removed. The eave ends at about z 4.05,
+  1.45 high, so it stays above the farmer on the cell in front of the door.
+- Checked: `test_farm: OK (0 failed)` (the building-surface check now lists the new
+  surfaces); headless `--quit-after 300` printed no errors or warnings; Movie Maker frame
+  with `--demo` shows the new house with the farmer in front of the engawa.
+- Left / next: fence, seed-stand awning and bin are still western (listed in ROADMAP).
+
 ## 2026-10-31 — Mood and tone: Japanese countryside
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: at the user's request, ROADMAP got a "Mood and tone" section: the game should feel

@@ -25,7 +25,7 @@ static func _make(key: String) -> Image:
 			return _obstacle(parts[0])
 		"crop":     # crop:<id>:<growth 0..3>:<ripe|growing>
 			return _crop(parts[1], int(parts[2]), parts[3] == "ripe")
-		"build":    # build:<wall|roof|stone|planks|planks_dark|awning|door|window>
+		"build":    # build:<plaster|board|kawara|stone|planks|planks_dark|awning|shoji_door|shoji>
 			return _building(parts[1])
 		"ground":   # ground:<grass|tilled|wet|path>:<variant> or ground:water:<land sides mask>
 			return _ground(parts[1], int(parts[2]))
@@ -459,15 +459,33 @@ static func _ground(kind: String, n: int) -> Image:
 	return img
 
 
-## Building surfaces. The repeating ones (wall, roof, stone, planks, awning) are 16 x 16 =
-## one world unit, laid on boxes with triplanar mapping; door and window are single pictures.
+## Building surfaces, in the Japanese countryside look (see ROADMAP "Mood and tone"). The
+## repeating ones are 16 x 16 = one world unit, laid on boxes with triplanar mapping; the
+## shoji door and window are single pictures.
 static func _building(kind: String) -> Image:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(kind)
 	match kind:
-		"wall", "planks", "planks_dark":
+		"plaster":
+			# White lime plaster with faint trowel marks.
+			var img := _blank(16, 16)
+			img.fill(Color("eee8da"))
+			for i in 8:
+				_px(img, rng.randi_range(0, 13), rng.randi_range(0, 15), rng.randi_range(2, 3), 1, Color("e2dacb"))
+			return img
+		"board":
+			# Charred dark cedar boards standing upright, 4 px wide, with lit edges.
+			var img := _blank(16, 16)
+			img.fill(Color("3e3028"))
+			for col in 4:
+				_px(img, col * 4 + 3, 0, 1, 16, Color("261c16"))
+				_px(img, col * 4, 0, 1, 16, Color("54443a"))
+				for i in 2:
+					_px(img, col * 4 + rng.randi_range(1, 2), rng.randi_range(0, 14), 1, 2, Color("32261e"))
+			return img
+		"planks", "planks_dark":
 			# Horizontal boards, 4 px tall, with a dark seam and staggered board ends.
-			var base := {"wall": Color("d8c8a8"), "planks": Color("9a7048"), "planks_dark": Color("6a5038")}[kind] as Color
+			var base := {"planks": Color("9a7048"), "planks_dark": Color("6a5038")}[kind] as Color
 			var img := _blank(16, 16)
 			img.fill(base)
 			for row in 4:
@@ -477,16 +495,17 @@ static func _building(kind: String) -> Image:
 				for i in 2:
 					_px(img, rng.randi_range(0, 15), row * 4 + rng.randi_range(1, 2), 2, 1, base.darkened(0.08))
 			return img
-		"roof":
-			# Shingles in 4 px courses, joints staggered by half a shingle.
-			var base := Color("a0522d")
+		"kawara":
+			# Grey-blue clay roof tiles: rounded rows running down the slope (texture v), each
+			# 4 px wide with a lit crown and dark troughs, tile ends every 4 px.
 			var img := _blank(16, 16)
-			img.fill(base)
+			img.fill(Color("5a6470"))
+			for col in 4:
+				_px(img, col * 4, 0, 1, 16, Color("3a424c"))
+				_px(img, col * 4 + 1, 0, 1, 16, Color("7a8692"))
+				_px(img, col * 4 + 2, 0, 1, 16, Color("68737f"))
 			for row in 4:
-				_px(img, 0, row * 4 + 3, 16, 1, base.darkened(0.35))
-				_px(img, 0, row * 4, 16, 1, base.lightened(0.12))
-				for x in range(2 * (row % 2), 16, 4):
-					_px(img, x, row * 4, 1, 3, base.darkened(0.2))
+				_px(img, 0, row * 4 + 3, 16, 1, Color("444c56"))
 			return img
 		"stone":
 			var img := _blank(16, 16)
@@ -501,25 +520,25 @@ static func _building(kind: String) -> Image:
 			for x in range(0, 16, 8):
 				_px(img, x, 0, 4, 16, Color("c8452c"))
 			return img
-		"door":
-			# 16 x 24: frame, vertical planks, a cross brace and a brass knob.
+		"shoji_door":
+			# 16 x 24 sliding door: wooden frame, paper panes in a lattice, wooden kick panel.
 			var img := _blank(16, 24)
-			img.fill(OUTLINE)
-			_px(img, 1, 1, 14, 23, Color("7a4a24"))
-			for x in [4, 8, 12]:
-				_px(img, x, 1, 1, 23, Color("5e3818"))
-			_px(img, 1, 6, 14, 2, Color("5e3818"))
-			_px(img, 1, 17, 14, 2, Color("5e3818"))
-			_px(img, 11, 12, 2, 2, Color("e8c860"))
+			img.fill(Color("6a4a30"))
+			_px(img, 1, 1, 14, 17, Color("f4efe2"))
+			for x in [4, 8, 11]:
+				_px(img, x, 1, 1, 17, Color("8a6a48"))
+			for y in [5, 9, 13]:
+				_px(img, 1, y, 14, 1, Color("8a6a48"))
+			_px(img, 1, 19, 14, 4, Color("8a6a48"))
+			_px(img, 12, 10, 1, 3, Color("3e3028"))   # finger pull
 			return img
-		"window":
-			# 12 x 10: cream frame, two panes each way, a glint.
+		"shoji":
+			# 12 x 10 window: dark frame, paper panes in a 3 x 2 lattice.
 			var img := _blank(12, 10)
-			img.fill(Color("f2ece0"))
-			_px(img, 1, 1, 10, 8, Color("5d8ec8"))
-			_px(img, 1, 5, 10, 1, Color("f2ece0"))
-			_px(img, 6, 1, 1, 8, Color("f2ece0"))
-			_px(img, 2, 2, 2, 1, Color("bfe0f8"))
-			_px(img, 7, 6, 2, 1, Color("bfe0f8"))
+			img.fill(Color("4a3424"))
+			_px(img, 1, 1, 10, 8, Color("f4efe2"))
+			for x in [4, 7]:
+				_px(img, x, 1, 1, 8, Color("8a6a48"))
+			_px(img, 1, 5, 10, 1, Color("8a6a48"))
 			return img
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
