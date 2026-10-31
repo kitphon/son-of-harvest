@@ -135,6 +135,66 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   `sayo` and `gen` (an actor overrides the plan by id). The opening was not played in a
   real window with key presses (tests close the boxes), and the actors' walk speed is the
   farmer's, not the villager speed in `_common.json`.
+## 2026-10-31 — Store extras: rucksacks, house extensions, chickens / feed / medicine; the rod at the smithy
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: milestone 8's open item and the loose ends of the last merge.
+  - Store `supplies` (every season, listed first in Buy): Chicken (`animal:chicken`, `to:
+    "animal"` → `Game.add_animal`, all or nothing within the coop's room, "The coop is full"),
+    Chicken feed (`to: "feed"` → `animals.add_feed(n)`), Animal Medicine (`medicine` into the
+    rucksack). A stock entry's `name` names it; an animal kind the game doesn't know has no
+    room, so a cow row would refuse until the barn branch lands (no cow / sheep stock added).
+  - Rucksack: `rucksack.levels` in the store's data (12 slots, then 16), shown as the first
+    Buy row while a bigger one exists; `Shop.buy_rucksack` grows the bag (`Inventory.grow`).
+    The bag's size is the level, so nothing new is saved for it.
+  - House extensions: `builds` in the store's data (builder Hachiro, the carpenter villager,
+    so no new map or door): Bigger storage chest (chest 24 → 48 slots, a nagamochi lid in
+    the house with `use: "storage"` opening the same chest), Kitchen corner (kamado and
+    mizuya on the earth floor; `Game.has_built("kitchen")` is the hook for cooking), Second
+    room (house 8 → 12 wide, a tatami room east through an opening, kotatsu / tansu / andon).
+    A Build tab orders one at a time, paid now; `Game.end_day` finishes it going into the
+    ready day with a morning message. The map changes are data: `extensions` in
+    data/maps/house.json (props added, size / ground replaced), applied by
+    `MapManager.with_extensions` for the list in `MapManager.built` (`set_built` drops the map
+    cache). Saved as `house` {built, job}; older saves load with none; the saved position is
+    checked against the house the save has built.
+  - Rod: the smithy's tool list has the rod with its own price list (`upgrades.tool_levels`);
+    data/fish.json `rod.bite_factor` [1.0, 1.2, 1.4, 1.6] gives its levels, the bite chance per
+    check is multiplied by it. `Game.leveled_tools()` (charging tools + rod) feeds new games
+    and the save (older saves: rod level 1); the rod gets no experience and still doesn't charge.
+  - New 3D props (kamado, mizuya, nagamochi, kotatsu) and flat colours; screen rows / info
+    lines for the new goods (room in the coop, feed in the sack, bag slots, build state and
+    finish day); `--shop=<id>@<tab>` and `--built=a,b` debug flags.
+- Balance (ours): Chicken 1500 G (a plain egg 50 G less 10 G feed pays it back in about five
+  weeks, a happy hen's 110 G egg in about two); feed 10 G a portion (a fifth of a plain egg,
+  and grazing saves it); medicine 300 G (sickness costs up to 5 nights of eggs, so it pays
+  but is no reflex buy). Rucksack 2000 G (12 slots, about the first smithy upgrade) and
+  6000 G (16). Extensions: chest 3000 G / 2 days, kitchen 5000 G / 3 days, second room
+  15000 G / 5 days (the room is comfort, priced near a level-4 tool). Rod 800 / 2000 / 4500 G
+  for levels 2-4 (2 / 2 / 3 days): cheaper than tools since it only speeds bites (+20% each).
+- Checked: `test_shops: OK (0 failed)` with new checks: data (supplies, rod levels, every mix
+  of extensions parses with door / futon / spawns free), rucksack (offers, no money, two
+  levels through Game and the menu, max level), chickens (no money, too many for the room,
+  4 grown hens, coop full, the menu's refusal, unknown kind), feed and medicine (bought / no
+  money), builds (no money, order note, one at a time, unknown builds, the Build rows, not
+  done before the ready day, done on it with the stove on the map and the morning message,
+  already built, chest 48 slots and the storage lid, the second room, new game resets),
+  the rod (offer, no money, hand in / collect at level 2 with factor 1.2, top level refused),
+  saving (house and rod level round trip, the job finishing after load, a save from before,
+  standing in an unbuilt room refused, 8 broken house values, a rod past its top). A planted
+  wrong value in three of them was reported, then removed. All 17 tests in AGENTS.md print
+  `OK (0 failed)`. Headless `--quit-after 300` (title, `--demo`, `--demo --map=town`,
+  `--shop=general`, `--shop=general@build`, `--shop=smithy`, `--map=house
+  --built=kitchen,chest,room`), `res://scenes/main.tscn --quit-after 400` and the 2D scene
+  with `--map=house --built=room` printed no errors or warnings. Movie Maker frames:
+  `--demo --shop=general` (Bigger rucksack (12 slots) 2000 G, Chicken 1500 G, Chicken feed
+  10 G, Animal Medicine 300 G above the spring seeds; the rows over 500 G in the soft ink,
+  pixel (122, 96, 64) against (59, 42, 26)), `--shop=general@build` (three extensions with
+  prices and "48 slots, with a second lid in the house. 2 days."), `--map=house
+  --built=kitchen,chest,room` (pot on the kamado, the nagamochi by the tansu, the second
+  room with kotatsu and tansu to the right).
+- Left / next: not played in a real window. The new goods use the furoshiki fallback icon.
+  The kitchen does nothing yet (cooking later); Hachiro's schedule doesn't show him building;
+  the rod has no look per level. Cow / sheep rows go in `supplies` once the barn branch merges.
 
 ## 2026-10-31 — Merged six branches: key remap, examine, villagers, shops, chickens, fishing
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

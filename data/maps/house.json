@@ -1,5 +1,5 @@
 {
-	"_note": "The farmhouse inside: a packed-earth entry (doma) by the door, a step of wooden floor, then the tatami room with the futon, a low table, a chest and a paper lantern. The clock stands still in here. Format: README.md, Maps.",
+	"_note": "The farmhouse inside: a packed-earth entry (doma) by the door, a step of wooden floor, then the tatami room with the futon, a low table, a chest and a paper lantern. The clock stands still in here. Format: README.md, Maps. extensions: what the house extensions (data/shops.json builds) change once built, in this order: props are added, any other key (size, ground) replaces the map's own.",
 	"id": "house",
 	"name": "Farmhouse",
 	"size": [
@@ -107,5 +107,75 @@
 			],
 			"down"
 		]
+	},
+	"extensions": {
+		"chest": {
+			"props": [
+				{
+					"kind": "nagamochi",
+					"cell": [
+						4,
+						1
+					],
+					"use": "storage"
+				}
+			]
+		},
+		"kitchen": {
+			"props": [
+				{
+					"kind": "kamado",
+					"cell": [
+						1,
+						5
+					]
+				},
+				{
+					"kind": "mizuya",
+					"cell": [
+						6,
+						5
+					]
+				}
+			]
+		},
+		"room": {
+			"size": [
+				12,
+				7
+			],
+			"ground": [
+				"############",
+				"#......#...#",
+				"#......#...#",
+				"#..........#",
+				"#wwwwww#...#",
+				"#eeeeee#####",
+				"####D#######"
+			],
+			"props": [
+				{
+					"kind": "kotatsu",
+					"cell": [
+						9,
+						2
+					]
+				},
+				{
+					"kind": "andon",
+					"cell": [
+						10,
+						4
+					]
+				},
+				{
+					"kind": "tansu",
+					"cell": [
+						8,
+						1
+					]
+				}
+			]
+		}
 	}
 }

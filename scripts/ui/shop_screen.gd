@@ -17,6 +17,7 @@ const HINTS := {
 	"buy": "Enter: buy  Left/Right: how many  Esc: leave",
 	"sell": "Enter: sell  Left/Right: how many  Esc: leave",
 	"tools": "Enter: hand in / pick up  Esc: leave",
+	"build": "Enter: order  Esc: leave",
 }
 
 var menu: ShopMenu
@@ -71,8 +72,13 @@ func is_open() -> bool:
 	return _open
 
 
-func _open_forced(id: String) -> void:
-	Game.open_shop(id, true)
+## `--shop=<id>` or `--shop=<id>@<tab>` (e.g. general@build).
+func _open_forced(arg: String) -> void:
+	var want := arg.split("@")
+	Game.open_shop(want[0], true)
+	if _open and want.size() > 1 and want[1] in menu.tabs:
+		menu.next_tab(menu.tabs.find(want[1]) - menu.tab)
+		_refresh()
 
 
 ## Opens shop `id`; not over another menu or a text box.
@@ -171,8 +177,9 @@ func _refresh() -> void:
 		_names[i].text = _row_name(row)
 		_prices[i].text = _row_price(row, k == menu.cursor)
 		_prices[i].position.x = W - 8 - PixelFont.width(_prices[i].text)
-		var soft: bool = menu.tab_id() == "tools" and row.state in ["top", "missing", "busy"]
-		soft = soft or (menu.tab_id() == "buy" and int(row.price) > Game.money)
+		var soft: bool = menu.tab_id() in ["tools", "build"] and row.state in ["top", "missing", "busy", "done"]
+		soft = soft or (menu.tab_id() in ["buy", "build"] and row.get("state", "offer") == "offer" and int(row.price) > Game.money)
+		soft = soft or (menu.tab_id() == "buy" and row.to == "animal" and Game.shop_room(menu.shop.id, row.item) <= 0)
 		_names[i].add_theme_color_override("font_color", Hud.INK_SOFT if soft else Hud.INK)
 		_prices[i].add_theme_color_override("font_color", Hud.INK_SOFT if soft else Hud.INK)
 	_bar.visible = not rows.is_empty()
@@ -190,6 +197,15 @@ func _refresh() -> void:
 func _row_name(row: Dictionary) -> String:
 	var name := menu.shop.item_name(row.item)
 	match menu.tab_id():
+		"buy":
+			if row.item == "rucksack":
+				return "%s (%d slots)" % [name, int(row.slots)]
+		"build":
+			match str(row.state):
+				"done":
+					return "%s  built" % name
+				"building":
+					return "%s  being built" % name
 		"sell":
 			return "%s (%d)" % [name, int(row.have)]
 		"tools":
@@ -215,6 +231,13 @@ func _row_price(row: Dictionary, here: bool) -> String:
 			"away":
 				return Game.date_of(int(row.ready)).get_slice(",", 0)
 		return ""
+	if menu.tab_id() == "build":
+		match str(row.state):
+			"done":
+				return ""
+			"building":
+				return Game.date_of(int(row.ready)).get_slice(",", 0)
+		return "%d G" % int(row.price)
 	if here and menu.count > 1:
 		return "x%d  %d G" % [menu.count, menu.total()]
 	return "%d G" % int(row.price)
@@ -226,7 +249,25 @@ func _info_text() -> String:
 		return ""
 	match menu.tab_id():
 		"buy":
+			if row.item == "rucksack":
+				return "Now %d slots. What's in it stays." % Game.inventory.size("bag")
+			match str(row.to):
+				"animal":
+					var room := Game.shop_room(menu.shop.id, row.item)
+					return "Room in the coop: %d" % room if room > 0 else "The coop is full."
+				"feed":
+					return "Feed in the coop's sack: %d" % Game.animals.feed_stock
 			return "In your rucksack: %d" % Game.count(str(row.item))
+		"build":
+			var b: Dictionary = menu.shop.builds.get(row.item, {})
+			match str(row.state):
+				"offer":
+					return "%s %d %s." % [b.get("about", ""), int(row.days), "day" if int(row.days) == 1 else "days"]
+				"busy":
+					return "Another job is underway."
+				"building":
+					return "Done on %s." % Game.date_of(int(row.ready))
+			return str(b.get("about", ""))
 		"sell":
 			return "%d G each" % int(row.price)
 		"tools":

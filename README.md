@@ -57,7 +57,8 @@ Pad buttons (Start = pause, Back = rucksack) are not remappable yet.
 - Shipping bin pays at 18:00 (or when you sleep); the seed stand sells this season's seeds,
   and food / drink when the food slot is in hand (`data/foods.json`: stamina +, fatigue −).
 - Shops (`data/shops.json`, README → Shops): the village store sells seeds by season and food
-  and buys crops; the smithy upgrades tools for money over a few days.
+  and buys crops, sells chickens, feed, medicine and bigger rucksacks, and takes orders for
+  house extensions; the smithy upgrades tools and the rod for money over a few days.
 - Stamina: each swing costs stamina; sleep before midnight restores it all, after midnight
   3/4, passing out at 2:00 half.
 - Sound: every effect and ambient loop is made in code from recipes in `data/sfx.json`
@@ -187,6 +188,19 @@ and `upgrades` (`tools` and per target level `{price, days, items?}`). The rules
 (`open_shop`, `shop_buy`, `shop_sell`, `shop_upgrade`, `shop_collect`) and saves
 `shop_jobs` (a tool left at the smithy: tool, new level, ready day, its old slot).
 `ShopMenu` (tabs, rows, cursor, count) and `ShopScreen` (paper / wood) are the screen.
+
+The store also sells `supplies` (every season, listed first): a stock entry's `to` sends it
+to the coop (`"animal"`: `animal:<kind>` through `Game.add_animal`, refused with `full` when
+the home has no room; a kind the game doesn't know has none) or the feed sack (`"feed"`), and
+`name` names it. `rucksack.levels` are bigger bags (`slots`, `price`), bought once each in
+order (the bag's size is the level, so nothing extra is saved). `builds.jobs` are house
+extensions built by `builds.builder`: ordered and paid at the counter (Build tab), one at a
+time, finished overnight on the ready day (`Game.end_day`), saved as `house` {built, job}.
+What they change is data too: `chest_slots` grows the storage chest, and the map file's
+`extensions` (data/maps/house.json) add props or replace `size` / `ground`
+(`MapManager.set_built`, `with_extensions`). A prop with `use: "storage"` opens the chest.
+The smithy's `upgrades.tool_levels` gives one tool its own price list (the rod, whose levels
+are `rod.bite_factor` in data/fish.json: the bite chance per check is multiplied by it).
 
 A map prop with `use: "shop"` and `shop: "<id>"` is a counter: E on it calls
 `Game.open_shop(id)`, which says the closed message (or "Nobody is at the counter" while the

@@ -74,6 +74,8 @@ var held: String:
 		inventory.slots.hand[0] = {} if value == "" else {"id": value, "n": 1}
 var shipped: Dictionary = {}    # item id -> how many were ever shipped
 var shop_jobs: Dictionary = {}  # shop id -> {tool, level, ready (day number), slot}: a tool left for an upgrade
+var house_built: Array[String] = []   # house extensions done (data/shops.json builds; the maps follow)
+var house_job: Dictionary = {}        # the one being built: {build, shop, ready (day number)}
 var fishing := Fishing.new()       # the line: cast, wait, bite (rules in data/fish.json)
 var fish_caught: Dictionary = {}   # fish id -> how many were caught this game (once-only fish)
 
@@ -149,6 +151,9 @@ func new_game() -> void:
 	maps = MapManager.new()   # on the farm, in front of the house door
 	shipped = {}
 	shop_jobs = {}
+	house_built = []
+	house_job = {}
+	MapManager.set_built(house_built)
 	animals = Animals.new()
 	animals.start()
 	animal_news = []
@@ -181,13 +186,16 @@ func new_game() -> void:
 		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
 			fatigue = int(body.get("states", {}).get("exhausted", {}).get("fatigue", 80))
 			_shown_state = body_state()
-		elif arg.begins_with("--shop="):   # `-- --demo --shop=general`: at the counter (ShopScreen opens it)
-			var s := shop(arg.trim_prefix("--shop="))
+		elif arg.begins_with("--shop="):   # `-- --demo --shop=general` (or general@build): at the counter (ShopScreen opens it)
+			var s := shop(arg.trim_prefix("--shop=").get_slice("@", 0))
 			var m := MapManager.data(s.map) if s != null and MapManager.has(s.map) else null
 			if m == null or not m.spawns.has("counter"):
 				push_warning("No shop counter for " + arg)
 			else:
 				maps.place(m.id, m.spawns.counter[0], m.spawns.counter[1])
+		elif arg.begins_with("--built="):   # e.g. `-- --demo --map=house --built=kitchen,room`: extensions done
+			for b in arg.trim_prefix("--built=").split(","):
+				_finish_build({"build": b, "shop": _builder_shop(b), "ready": 0})
 		elif arg == "--hens-out":   # e.g. `-- --demo --map=farm@coop --hens-out`: the hens in the yard
 			animals.outside = true
 		elif arg == "--hold":   # e.g. `-- --demo --hold`: a turnip overhead, a potato in front of the bin
@@ -240,7 +248,8 @@ func _demo_field() -> void:
 
 func _process(delta: float) -> void:
 	if fishing.active() and not paused():
-		var ev := fishing.step(delta, Fishing.bite_chance(fish_data, hour, weather_look(weather_today, season_name())), rng)
+		var chance := Fishing.bite_chance(fish_data, hour, weather_look(weather_today, season_name())) * rod_bite_factor()
+		var ev := fishing.step(delta, chance, rng)
 		if ev != "":
 			fishing_event.emit(ev)
 	if not ticking():
@@ -532,6 +541,8 @@ func end_day() -> void:
 	hour = 6
 	minute = 0
 	_accum = 0.0
+	if Shop.job_ready(house_job, day_number()):
+		_finish_build(house_job)
 	go_home()
 	day_started.emit()
 	changed.emit()
@@ -877,13 +888,33 @@ func check_body() -> void:
 
 # --- tool levels and charging ----------------------------------------------
 
-## Every charging tool back to level 1 with no experience (a new game).
+## Every tool with levels back to level 1 with no experience (a new game).
 func reset_tool_levels() -> void:
 	tool_levels = {}
 	tool_exp = {}
-	for tool in tools_data.get("tools", {}):
+	for tool in leveled_tools():
 		tool_levels[tool] = 1
 		tool_exp[tool] = 0
+
+
+## The tools that have levels: the charging tools (data/tools.json), then the rod, whose
+## levels are bite factors in data/fish.json (raised only by the smithy, no experience).
+func leveled_tools() -> Array[String]:
+	var out: Array[String] = []
+	out.assign(tools_data.get("tools", {}).keys())
+	if not rod_rule().get("bite_factor", []).is_empty():
+		out.append("rod")
+	return out
+
+
+func rod_rule() -> Dictionary:
+	return fish_data.get("rod", {})
+
+
+## How much the rod's level multiplies the bite chance (1 without levels).
+func rod_bite_factor() -> float:
+	var f: Array = rod_rule().get("bite_factor", [])
+	return float(f[tool_level("rod") - 1]) if f.size() > 0 else 1.0
 
 
 ## Experience one swing gives: "work" when it changed a cell, "miss" when it hit nothing.
@@ -903,7 +934,7 @@ func exp_for_next_level(tool: String, level: int) -> int:
 ## Adds experience to a tool and raises its level at each threshold it passes. The total is
 ## kept at most at the last threshold, so a level-5 tool's number stops growing.
 func add_tool_exp(tool: String, amount: int) -> void:
-	if tool_max_level(tool) == 0 or amount <= 0:
+	if not tools_data.get("tools", {}).has(tool) or tool_max_level(tool) == 0 or amount <= 0:
 		return
 	var steps: Array = tools_data.tools[tool].get("exp_to_level", [])
 	var top := int(steps.back()) if steps.size() > 0 else 0
@@ -922,13 +953,16 @@ func raise_tool_level(tool: String) -> bool:
 	if tool_max_level(tool) == 0 or lv >= tool_max_level(tool):
 		return false
 	tool_levels[tool] = lv + 1
-	message.emit(String(tools_data.tools[tool].get("level_up", "Tool level %d!")) % (lv + 1))
+	var rule: Dictionary = tools_data.tools.get(tool, rod_rule() if tool == "rod" else {})
+	message.emit(String(rule.get("level_up", "Tool level %d!")) % (lv + 1))
 	changed.emit()
 	return true
 
 
-## How many levels a tool has (0 for one that doesn't charge, like the seed bag).
+## How many levels a tool has (0 for one without levels, like the seed bag).
 func tool_max_level(tool: String) -> int:
+	if tool == "rod":
+		return rod_rule().get("bite_factor", []).size()
 	return tools_data.get("tools", {}).get(tool, {}).get("max_charge", []).size()
 
 
@@ -938,7 +972,7 @@ func tool_level(tool: String) -> int:
 
 ## The highest charge step the tool's level allows (0 = taps only).
 func max_charge(tool: String) -> int:
-	if tool_max_level(tool) == 0:
+	if not tools_data.get("tools", {}).has(tool) or tool_max_level(tool) == 0:
 		return 0
 	return int(tools_data.tools[tool].max_charge[tool_level(tool) - 1])
 
@@ -1045,8 +1079,70 @@ func open_shop(id: String, force := false) -> bool:
 	return true
 
 
+## Buys `n` of `item` at shop `id`: the next rucksack ("rucksack"), goods into the rucksack,
+## animals into their home (add_animal), feed into the coop's sack.
 func shop_buy(id: String, item: String, n := 1) -> Dictionary:
-	return _shop_paid(shop(id).buy(inventory, money, item, n, season_name()))
+	var s := shop(id)
+	if item == "rucksack":
+		return _shop_paid(s.buy_rucksack(inventory, money))
+	var r := s.buy(inventory, money, item, n, season_name(), shop_room(id, item))
+	if r.ok and r.to == "animal":
+		for i in n:
+			add_animal(item.trim_prefix("animal:"))
+	elif r.ok and r.to == "feed":
+		animals.add_feed(n)
+	return _shop_paid(r)
+
+
+## How many of `item` from shop `id` there is room for: in the rucksack, in the animal's home
+## (0 for a kind the game doesn't know), any amount of feed.
+func shop_room(id: String, item: String) -> int:
+	match str(shop(id).entry(item).get("to", "rucksack")):
+		"animal":
+			var kind := animals.kind_rule(item.trim_prefix("animal:"))
+			return maxi(animals.room(kind.get("home", "")), 0) if not kind.is_empty() else 0
+		"feed":
+			return ShopMenu.MOST
+	return inventory.room_for(item)
+
+
+## Orders house extension `build` at shop `id` (Shop.start_build); one at a time, saved.
+func shop_build(id: String, build: String) -> Dictionary:
+	var r := shop(id).start_build(money, build, house_built, house_job, day_number())
+	if r.ok:
+		house_job = r.job
+		house_job.shop = id
+	return _shop_paid(r)
+
+
+func has_built(build: String) -> bool:
+	return build in house_built
+
+
+## The shop that builds extension `build` ("" when none does).
+func _builder_shop(build: String) -> String:
+	for sid in Shop.ids():
+		if shop(sid).builds.has(build):
+			return sid
+	return ""
+
+
+## An extension is done: it counts as built, its extras come in (a bigger chest), the maps
+## change (MapManager.built); the views see it on the next map change (waking up at home).
+func _finish_build(job: Dictionary) -> void:
+	var s := shop(str(job.get("shop", "")))
+	if s == null or not s.builds.has(job.build):
+		return
+	if not job.build in house_built:
+		house_built.append(job.build)
+	var b: Dictionary = s.builds[job.build]
+	if b.has("chest_slots"):
+		inventory.grow("chest", int(b.chest_slots))
+	if house_job.get("build", "") == job.build:
+		house_job = {}
+	MapManager.set_built(house_built)
+	message.emit(s.build_done % s.item_name(job.build).to_lower())
+	changed.emit()
 
 
 func shop_sell(id: String, item: String, n := 1) -> Dictionary:
@@ -1132,6 +1228,7 @@ func to_dict() -> Dictionary:
 	d.map = maps.to_dict()
 	d.shipped = shipped.duplicate()
 	d.shop_jobs = shop_jobs.duplicate(true)
+	d.house = {"built": house_built.duplicate(), "job": house_job.duplicate()}
 	d.animals = animals.to_dict()
 	d.fishing = {"caught": fish_caught.duplicate(), "dry_casts": fishing.dry_casts}
 	d.affection = affection.to_dict()
@@ -1196,7 +1293,7 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 			return "Saved tool is broken"
 	# Saves from before charging tools have no levels: every tool at level 1.
 	n.tool_levels = {}
-	for tool in tools_data.get("tools", {}):
+	for tool in leveled_tools():   # saves from before rod levels: the rod at level 1
 		n.tool_levels[tool] = 1
 	if data.has("tool_levels"):
 		var levels = data.tool_levels
@@ -1230,7 +1327,7 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 		for tool in exps:
 			if not n.tool_exp.has(tool):
 				return "Saved tool experience is broken"
-			var steps: Array = tools_data.tools[tool].get("exp_to_level", [])
+			var steps: Array = tools_data.tools.get(tool, {}).get("exp_to_level", [])
 			var e = SaveGame.whole(exps[tool], 0, int(steps.back()) if steps.size() > 0 else 0)
 			if e == null:
 				return "Saved tool experience is broken"
@@ -1244,10 +1341,27 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 		if not e is String or e == "" or n.events_seen.has(e):
 			return "Saved events are broken"
 		n.events_seen[e] = true
+	# Saves from before house extensions have none built and none ordered.
+	var saved_house = data.get("house", {"built": [], "job": {}})
+	if not saved_house is Dictionary or not saved_house.get("built") is Array or not saved_house.get("job") is Dictionary:
+		return "Saved house is broken"
+	n.house_built = [] as Array[String]
+	for b in saved_house.built:
+		if not b is String or _builder_shop(b) == "" or b in n.house_built:
+			return "Saved house is broken"
+		n.house_built.append(b)
+	n.house_job = {}
+	var hj: Dictionary = saved_house.job
+	if not hj.is_empty():
+		var hs := shop(hj.get("shop")) if hj.get("shop") is String else null
+		var ready = SaveGame.whole(hj.get("ready"), 0, 1 << 40)
+		if hs == null or not hj.get("build") is String or not hs.builds.has(hj.build) or hj.build in n.house_built or ready == null:
+			return "Saved house is broken"
+		n.house_job = {"build": hj.build, "shop": hj.shop, "ready": ready}
 	# Saves from before maps load on the farm, in front of the house door.
 	var place := {"id": MapManager.FARM, "pos": MapManager.new().pos, "facing": Vector2i.DOWN}
 	if data.has("map"):
-		var r := MapManager.check_saved(data.map)
+		var r := MapManager.check_saved(data.map, n.house_built)
 		if r[0] != "":
 			return r[0]
 		place = r[1]
@@ -1318,6 +1432,7 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	farm.add_missing_fixed()   # saves from before the storage chest / the coop get them
 	for key in n:
 		set(key, n[key])
+	MapManager.set_built(house_built)
 	fishing = Fishing.new(fish_data)
 	fishing.dry_casts = dry
 	maps = MapManager.new()

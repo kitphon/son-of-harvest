@@ -7,6 +7,7 @@ const T := 16
 const COLORS := {
 	"wall": Color("6a5a48"), "door": Color("4a2a14"), "futon": Color("e8e2d0"),
 	"low_table": Color("5a3a24"), "tansu": Color("3e3028"), "andon": Color("ffe6a8"),
+	"kamado": Color("c8b498"), "mizuya": Color("4a3424"), "nagamochi": Color("8a6a48"), "kotatsu": Color("3a4a7a"),
 	"village_house": Color("a0522d"), "torii": Color("c8442c"), "hokora": Color("8a6a48"),
 	"stone_lantern": Color("9a968e"), "pine": Color("2f5a34"),
 	"counter": Color("4a3424"), "shelf": Color("6a4a30"), "rice_sacks": Color("d8c088"),
