@@ -7,7 +7,9 @@ https://claude.ai/artifact/32gupMu1YQVJULs9n6nPEk).
 All code, art, names and numbers are our own. Nothing is taken from any other game's files.
 
 ## Run
-Open the folder in Godot 4.7 (`Godot_v4.7.2-stable_win64.exe`, kept next to the project but
+Double-click `play.bat` (title screen) or `play_demo.bat` (straight to the field, `--demo`);
+both start `Godot_v4.7.2-stable_win64.exe` next to them and pass on any extra arguments.
+Or open the folder in Godot 4.7 (`Godot_v4.7.2-stable_win64.exe`, kept next to the project but
 not in git) and press F5. From a shell:
 
     Godot_v4.7.2-stable_win64_console.exe --path .

@@ -10,6 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — play.bat / play_demo.bat: double-click to play
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `play.bat` starts `Godot_v4.7.2-stable_win64.exe --path .` from its own folder (full
+  `%~dp0` paths, since this machine sets NoDefaultCurrentDirectoryInExePath and cmd would not
+  find files in the current folder), says so and waits if the binary is missing, and passes on
+  extra arguments. `play_demo.bat` calls it with `-- --demo` last. `.gitattributes` keeps
+  `*.bat` in CRLF. README → Run mentions both.
+- Checked: `cmd /c play.bat --quit-after 200` and `cmd /c play_demo.bat --quit-after 200` each
+  started the game (command lines `--path . --quit-after 200` and `--path . --quit-after 200
+  -- --demo`) and it quit on its own.
+- Left / next: the real .exe still needs the export templates (README → Export).
+
 ## 2026-10-31 — Merged three branches: settings, relationships 2, daikon and rice
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each, in this order:
