@@ -78,7 +78,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: de398ee
   or not he worked (a storm day).
 
 ## 2026-10-31 — Lantern Night stalls that sell, contest ribbons and the ribbon board
-Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+Agent: Claude Code (claude-opus-5-5) · Commit: 22082ca
 - Done: a festival's `stall` may be a list of stalls, each with an `id`; the shop id is
   `stall:<festival>:<stall id>` (`stall:<festival>` for a lone stall without an id, so Blossom
   Day is unchanged). `Festivals.stalls / stall_of / stall_at / stall_of_prop`, the data check
@@ -265,7 +265,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: d6289eb
   floors and villagers' homes still use the season / night music.
 
 ## 2026-10-31 — Merged three branches: dish gifts, ending / balance, heart flags in the world
-Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+Agent: Claude Code (claude-opus-5-5) · Commit: 0585a07
 - Done: merged with `--no-ff`, one at a time, all tests after each:
   `claude/dish-gifts-4909dc` (73c84fe, clean), `claude/ending-balance-4cc810` (df904b6;
   WORKLOG and ROADMAP conflicted, both entries kept, the ROADMAP food / next lines joined),
