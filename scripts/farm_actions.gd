@@ -11,7 +11,9 @@ const HOME := Vector2(4 * T + 8, 4 * T + 10)   # in front of the door, in player
 ## overhead on the farm the hands are full: interact throws it, the tool button sets it down.
 ## Otherwise interact first asks the map's trigger table about the spot faced (examine).
 static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge := 0) -> void:
-	if kind == "enter":
+	if Game.fishing.active():   # the line is out: either button reels in
+		reel()
+	elif kind == "enter":
 		interact(origin + facing)
 	elif Game.holding() and Game.maps.on_farm():
 		if kind == "interact":
@@ -44,7 +46,7 @@ static func throw(origin: Vector2i, facing: Vector2i) -> void:
 			Game.message.emit("Shipped a %s (%d G)" % [name, t.value])
 		"lost":
 			_after_flight(func(): Sfx.play("hold_splash"))
-			Game.message.emit("The %s sank in the pond" % name)
+			Game.message.emit(("The %s swam away" if t.item.begins_with("fish:") else "The %s sank in the pond") % name)
 		_:
 			_after_flight(func(): Sfx.play("hold_land"))
 
@@ -57,7 +59,40 @@ static func put_down(c: Vector2i) -> void:
 
 
 static func item_name(id: String) -> String:
-	return Game.crops[id].name if Game.crops.has(id) else id
+	return Game.item_name(id)
+
+
+## The rod: a tap casts at the water in front (farm pond or a village pond).
+static func cast(origin: Vector2i, facing: Vector2i) -> void:
+	match Game.cast_line(origin, facing):
+		"cast":
+			Sfx.play("tool_rod")
+		"hands_full":
+			Game.message.emit("Your hands are full")
+		"no_water":
+			Game.message.emit("Cast the rod at water")
+
+
+static func reel() -> void:
+	var r := Game.reel_in()
+	match r.result:
+		"catch":
+			Sfx.play("fish_catch")
+			Game.message.emit("Caught a %s!" % item_name(r.fish))
+		"none":
+			Game.message.emit("Nothing on the hook")
+		_:
+			Game.message.emit("Reeled in the line")
+
+
+## Cues from the line while it waits (Game.fishing_event); both views connect this.
+static func on_fishing_event(kind: String) -> void:
+	match kind:
+		"bite":
+			Sfx.play("fish_bite")
+		"escaped":
+			Sfx.play("fish_escape")
+			Game.message.emit("It got away...")
 
 
 ## The landing sound waits for the item to come down (data/hold.json flight_seconds).
@@ -139,6 +174,9 @@ static func buy_food() -> void:
 ## A tool from the farmer's cell `origin` towards `facing`. `charge` is the charge step the
 ## button was held to; it picks the area and the stamina cost from data/tools.json.
 static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
+	if Game.current_tool() == "rod":
+		cast(origin, facing)
+		return
 	if not Game.maps.on_farm():
 		return   # tools only work on the farm for now
 	var farm := Game.farm

@@ -44,6 +44,14 @@ func _physics_process(delta: float) -> void:
 	if charging:
 		_charge_step(delta)
 		return
+	if Game.fishing.active():
+		# The line is out: stand still; either button reels in.
+		moving = false
+		running = false
+		queue_redraw()
+		if Input.is_action_just_pressed("use_tool") or Input.is_action_just_pressed("interact"):
+			action.emit("tool", cell_of(position), facing, 0)
+		return
 	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	moving = dir != Vector2.ZERO
 	running = moving and Input.is_action_pressed("run") and Game.can_run()
@@ -146,6 +154,16 @@ func _draw() -> void:
 	draw_circle(Vector2(0, -13), 4.5, Color("f2c79b"))
 	draw_rect(Rect2(-5, -18, 10, 3), Color("c8452c"))   # cap
 	draw_circle(Vector2(facing) * 5 + Vector2(0, -6), 1.5, Color.WHITE)
+	if Game.fishing.active():   # rod, line and bobber; a "!" over the head on a bite
+		var bob := Vector2(Game.fishing.spot * T) + Vector2(8, 8) - position
+		var bite := Game.fishing.state == "bite"
+		var tip := Vector2(facing) * 10 + Vector2(0, -16)
+		draw_line(Vector2(0, -6), tip, Color("6b4a2a"), 1.0)
+		draw_line(tip, bob, Color(1, 1, 1, 0.7), 1.0)
+		draw_circle(bob + Vector2(0, 1.5 if bite else sin(Game.fishing.time * 3.0)), 2.0, Color("d8402a"))
+		if bite:
+			var mark := PlaceholderArt.tex("fish_fx:alert")
+			draw_texture(mark, Vector2(-mark.get_width() / 2.0, -22 - mark.get_height()))
 	if Game.holding():   # carried overhead, arms up
 		draw_rect(Rect2(-7, -19, 3, 9), Color("3b6fd1"))
 		draw_rect(Rect2(4, -19, 3, 9), Color("3b6fd1"))

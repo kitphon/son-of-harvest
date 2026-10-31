@@ -69,6 +69,11 @@ Chickens are in (milestone 7): the thatched coop right of the stand is a map (fe
 nests, incubator, hen hatch); rules in `Animals`, numbers in `data/animals.json`, saved
 (save version 2). The shop sells chickens through `Game.add_animal("chicken")`, feed through
 `Game.animals.add_feed(n)` and Animal Medicine as the rucksack item `medicine` (not sold yet).
+Fishing is in (milestone 9): the rod is the 8th tool slot, a cast waits for a bite ("!" and a
+plip), a press in time lands a fish overhead (ship it in the bin or keep it in the rucksack);
+fish, odds, bite timing and the pity rule are in `data/fish.json`. Later for fishing: a river,
+better rods from the blacksmith (a bite-chance factor per rod level), fish as food / gifts, and
+the 2D view's action hookup (main_2d.gd doesn't connect the Player's actions yet).
 Next: milestone 5, **talking, gifts, affection** for the villagers, with the shopkeepers at
 their counters (`Villagers.is_on` tells whether a keeper is out, `Game.open_shop(id)` opens
 the screen), then the opening event and first shop visits (milestone 6) on the event
@@ -127,6 +132,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [ ] House extensions, rucksack upgrade for sale
    - [ ] Balance pass (income per season, seed costs)
 9. **Festivals, mining / fishing, relationships, endings**
+   - [x] Fishing: rod (8th tool slot), cast at the farm / village pond, bite cue, fish per place / season / hour / weather (data/fish.json)
+   - [ ] Festivals, mining, relationships, endings
 10. **Audio and release**
     - [x] Sound effects and ambient loops (synthesized from data/sfx.json, SFX / Ambient busses)
     - [x] Music; volume sliders in the settings screen (`Sfx.set_volume`)

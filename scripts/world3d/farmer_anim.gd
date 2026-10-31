@@ -17,9 +17,12 @@ var fast := false   # running: a hold walk steps at the run rate
 ## shows a lifted foot at once. `tired` (Game.body_state() not "fine") swaps idle / walk for
 ## the tired poses; a tired farmer who can still run runs normally. `holding` (an item
 ## overhead) wins over both: hold_idle / hold_walk, the walk stepping faster when running.
-func step(delta: float, moving: bool, running: bool, tired := false, holding := false) -> void:
+## `fishing` (Fishing.state while the line is out: "wait" / "bite") wins over everything.
+func step(delta: float, moving: bool, running: bool, tired := false, holding := false, fishing := "") -> void:
 	var p := "idle" if not moving else ("run" if running else "walk")
-	if holding:
+	if fishing != "" and fishing != "idle":
+		p = "fish_" + fishing
+	elif holding:
 		p = "hold_walk" if moving else "hold_idle"
 	elif tired and p != "run":
 		p = "tired_" + p
@@ -32,7 +35,7 @@ func step(delta: float, moving: bool, running: bool, tired := false, holding := 
 
 
 func frame() -> int:
-	if pose == "idle" or pose == "hold_idle":
+	if pose == "idle" or pose == "hold_idle" or pose == "fish_wait":
 		return 0
 	return int(time * _fps()) % PlaceholderArt.farmer_frames(pose)
 

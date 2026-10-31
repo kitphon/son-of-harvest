@@ -2,6 +2,7 @@
 	"_about": "Charging tools. Hold the use button: the charge goes up one step every charge_seconds, up to max_charge[tool level - 1]. Each charge step has an area drawn with the farmer facing down: '@' is the farmer's cell, '#' a cell the tool works on, rows below '@' are ahead. Hammer and axe hit one cell harder instead (hits). Using a tool gives experience (exp_per_swing: work = the swing changed a cell, miss = it hit nothing; a use that never swung gives none). exp_to_level[i] is the total a tool needs to go from level i+1 to i+2; level_up is the message (%d = the new level). Numbers are ours.",
 	"exp_per_swing": {"work": 3, "miss": 1},
 	"charge_seconds": 0.6,
+	"rod": {"stamina": 2, "reach": 2, "_about": "The fishing rod doesn't charge: a tap casts it (stamina per cast) at the first water cell up to reach cells ahead. Bites and fish: data/fish.json."},
 	"tools": {
 		"hoe": {
 			"exp_to_level": [300, 900, 2100, 4200],

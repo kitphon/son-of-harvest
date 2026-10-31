@@ -15,7 +15,7 @@ static func tex(key: String) -> Texture2D:
 static func _make(key: String) -> Image:
 	var parts := key.split(":")
 	match parts[0]:
-		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk>:<frame>
+		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk|fish_wait|fish_bite>:<frame>
 			return _player(parts[1] == "back", parts[2], int(parts[3]))
 		"villager": # villager:<id>:<front|back>:<idle|walk>:<frame>, from the look in data/villagers/<id>.json
 			return _villager(Villagers.look(parts[1]), parts[2] == "back", parts[3], int(parts[4]))
@@ -39,6 +39,8 @@ static func _make(key: String) -> Image:
 			return _ground(parts[1], int(parts[2]))
 		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour)
 			return _fx(parts[1])
+		"fish_fx":  # fish_fx:<bobber|alert>, the float on the water and the "!" of a bite
+			return _fish_fx(parts[1])
 		"ui":       # ui:<frame|slot|weather|tool|seeds|food|item|cursor|coin|stamina>:<kind>, HUD pieces
 			return _ui(parts[1], parts[2] if parts.size() > 2 else "")
 		"title":    # title:bg, the title screen picture (480 x 270)
@@ -48,7 +50,7 @@ static func _make(key: String) -> Image:
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
 
-## The icon key for any item id in a slot: tools, seed bags ("seeds:<crop>"), food ("food:<id>"), crops, and a
+## The icon key for any item id in a slot: tools, seed bags ("seeds:<crop>"), food ("food:<id>"), fish ("fish:<id>"), crops, and a
 ## wrapped cloth bundle for anything else. The seed bag and food tools show the one chosen now.
 static func item_key(id: String, seed := "", food := "") -> String:
 	if id == "seeds":
@@ -59,7 +61,9 @@ static func item_key(id: String, seed := "", food := "") -> String:
 		return "ui:food:" + food
 	if id.begins_with("food:"):
 		return "ui:food:" + id.trim_prefix("food:")
-	if id in ["hoe", "can", "sickle", "hammer", "axe"]:
+	if id.begins_with("fish:"):
+		return "ui:fish:" + id.trim_prefix("fish:")
+	if id in ["hoe", "can", "sickle", "hammer", "axe", "rod"]:
 		return "ui:tool:" + id
 	return "ui:item:" + id.replace(":", "_")
 
@@ -312,12 +316,26 @@ const _FARMER_POSES := {
 	# unused); shorter, careful steps, and the load bobs with the body.
 	"hold_idle": [[0, 0, 0, 0, 0, 0, 0]],
 	"hold_walk": [[1, -2, 0, 2, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0], [1, 2, 0, -2, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0]],
+	# Fishing: both hands together in front on the rod butt (hand shifts towards the water);
+	# waiting the rod stands up still, on a bite the farmer leans in and the tip jerks down.
+	"fish_wait": [[0, 0, 0, 0, 0, -1, -5]],
+	"fish_bite": [[1, -1, 0, 1, 0, -1, -5], [1, -1, 0, 1, 0, -1, -5]],
 }
+## The rod's tip per fishing pose frame, in sprite pixels (the line starts here).
+const _ROD_TIPS := {"fish_wait": [Vector2i(0, 1)], "fish_bite": [Vector2i(0, 8), Vector2i(0, 6)]}
+const _ROD := Color("c8a85a")
+const _ROD_NODE := Color("8a6a32")
 const _SWEAT := Color("9fd8f2")
 
 
 static func farmer_frames(pose: String) -> int:
 	return _FARMER_POSES[pose].size()
+
+
+## Where the rod tip is in a fishing frame (sprite pixels, front view facing left).
+static func rod_tip(pose: String, frame: int) -> Vector2i:
+	var tips: Array = _ROD_TIPS.get(pose, [Vector2i(0, 1)])
+	return tips[frame % tips.size()]
 
 
 ## How many pixels a frame drops the body (and what the raised hands hold) below its rest.
@@ -347,6 +365,13 @@ static func _player(back: bool, pose: String, frame: int) -> Image:
 		_raised_arm(img, 13, p[0])
 	else:
 		_hand(img, 4 + p[5], 14 + arms)
+	if _ROD_TIPS.has(pose):   # the bamboo rod from the hands up to its tip, a node every few px
+		var tip := rod_tip(pose, frame)
+		var butt := Vector2i(4 + p[5], 15 + arms)
+		_line(img, butt, tip, _ROD)
+		for t in [0.3, 0.6]:
+			var q := Vector2(butt).lerp(Vector2(tip), t).round()
+			_px(img, int(q.x), int(q.y), 1, 1, _ROD_NODE)
 	if tired:   # a drop of sweat by the brow: in front of the face, or behind the head seen from the back
 		var sx := 14 if back else 1
 		img.fill_rect(Rect2i(sx, 4 + p[0], 1, 1), Color.WHITE)
@@ -510,6 +535,16 @@ static func crop_look(id: String) -> Dictionary:
 
 
 static var _food_looks := {}
+static var _fish_looks := {}
+
+
+## A fish's icon look from data/fish.json (body, belly, fin colours and a shape).
+static func fish_look(id: String) -> Dictionary:
+	if _fish_looks.is_empty():
+		var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/fish.json"))
+		for k in data.get("fish", {}):
+			_fish_looks[k] = data.fish[k].get("look", {})
+	return _fish_looks.get(id, {})
 
 
 ## A food's icon look from data/foods.json (shape, color, accent).
@@ -1073,6 +1108,8 @@ static func _ui(kind: String, arg: String) -> Image:
 				[0, 20, 6, 2, c], [0, 16, 2, 6, c], [16, 20, 6, 2, c], [20, 16, 2, 6, c]])
 		"food":     # food:<id>, 14 x 14, drawn from the food's look in data/foods.json
 			return _food_icon(food_look(arg))
+		"fish":     # fish:<id>, 14 x 14, drawn from the fish's look in data/fish.json
+			return _fish_icon(fish_look(arg))
 		"coin":     # a gold coin with a square hole
 			var img := _blank(9, 9)
 			_oval(img, 4.5, 4.5, 4.0, 4.0, Color("c8962a"))
@@ -1127,6 +1164,64 @@ static func _item_icon(id: String) -> Image:
 	for p in [Vector2i(4, 9), Vector2i(8, 8), Vector2i(10, 11), Vector2i(6, 11)]:
 		img.set_pixelv(p, Color("f4ecd8"))
 	return _outline(img)
+
+
+## A fish seen from the side, head left: a body shape (deep, long, slim, trout, eel,
+## catfish) in its body colour with a pale belly, a forked tail and a fin, an eye.
+static func _fish_icon(look: Dictionary) -> Image:
+	var img := _blank(14, 14)
+	var body := Color(look.get("body", "8a8a6a"))
+	var belly := Color(look.get("belly", "d8d0a8"))
+	var fin := Color(look.get("fin", "5a5a3a"))
+	var shape: String = look.get("shape", "long")
+	var ry: float = {"deep": 3.6, "long": 2.8, "slim": 2.0, "trout": 2.6, "eel": 1.3, "catfish": 2.6}.get(shape, 2.6)
+	var rx := 5.5 if shape == "eel" else 4.5
+	var cy := 7.0
+	if shape == "eel":   # a long wavy body over the whole icon
+		for x in range(1, 13):
+			var y := cy + sin(x * 0.7) * 1.2
+			_px(img, x, roundi(y - ry), 1, 2, body)
+			_px(img, x, roundi(y - ry) + 2, 1, 1, belly)
+	else:
+		_oval(img, 6.0, cy, rx, ry, body)
+		_oval(img, 6.0, cy + ry * 0.45, rx - 1.0, ry * 0.45, belly)
+		for i in 3:   # the forked tail
+			_px(img, 10 + i, int(cy) - 1 - i, 1, 1 + i, fin)
+			_px(img, 10 + i, int(cy) + 1, 1, 1 + i, fin)
+		_px(img, 5, int(cy - ry) - 1, 3, 1, fin)   # back fin
+		if shape == "trout":
+			for p in [Vector2i(4, 6), Vector2i(7, 5), Vector2i(8, 7)]:
+				img.set_pixelv(p, fin)
+	if shape == "catfish":
+		_line(img, Vector2i(2, int(cy)), Vector2i(0, int(cy) + 3), fin)   # whiskers
+		_line(img, Vector2i(2, int(cy) - 1), Vector2i(0, int(cy) - 3), fin)
+	_outline(img)
+	img.set_pixel(3 if shape != "eel" else 1, int(cy) - 1, Color("1a1a1a"))
+	return img
+
+
+## The float and the bite mark. The bobber is red over white with a dark stem (5 x 7); the
+## alert a vermilion "!" on a paper bubble (7 x 11).
+static func _fish_fx(kind: String) -> Image:
+	match kind:
+		"bobber":
+			var img := _blank(5, 7)
+			_px(img, 2, 0, 1, 1, Color("2a1e1e"))
+			_oval(img, 2.5, 3.0, 2.0, 1.6, Color("d8402a"))
+			_oval(img, 2.5, 5.0, 2.0, 1.4, Color("f4ecd8"))
+			_px(img, 1, 2, 1, 1, Color("f08a6a"))
+			return img
+		"alert":
+			var img := _blank(7, 11)
+			_px(img, 0, 0, 7, 11, OUTLINE)
+			_px(img, 1, 1, 5, 9, UI_PAPER)
+			_px(img, 3, 2, 1, 4, UI_SEAL)
+			_px(img, 2, 2, 3, 3, UI_SEAL)
+			_px(img, 3, 7, 1, 2, UI_SEAL)
+			for p in [Vector2i(0, 0), Vector2i(6, 0), Vector2i(0, 10), Vector2i(6, 10)]:
+				img.set_pixelv(p, Color(0, 0, 0, 0))
+			return img
+	return _draw(4, 4, [[0, 0, 4, 4, "ff00ff"]])
 
 
 ## Food shapes: a rice ball with a nori band, a round sweet on its leaf, three dumplings on
@@ -1243,6 +1338,16 @@ static func _tool_icon(kind: String) -> Image:
 			_line(img, Vector2i(4, 12), Vector2i(10, 2), wood)
 			_px(img, 8, 1, 4, 5, steel)
 			_px(img, 11, 1, 1, 5, steel_light)
+		"rod":   # a bamboo rod, its line hanging to a red float
+			_line(img, Vector2i(1, 12), Vector2i(10, 1), _ROD)
+			_line(img, Vector2i(2, 12), Vector2i(4, 10), _ROD_NODE)
+			for p in [Vector2i(4, 9), Vector2i(7, 5)]:
+				img.set_pixelv(p, _ROD_NODE)
+			_outline(img)
+			_line(img, Vector2i(11, 2), Vector2i(11, 9), Color("e8e8e8"))   # line, no outline
+			_px(img, 10, 10, 3, 2, Color("d8402a"))
+			_px(img, 10, 12, 3, 1, Color("f4ecd8"))
+			return img
 		_:
 			return _draw(14, 14, [[0, 0, 14, 14, "ff00ff"]])
 	return _outline(img)
