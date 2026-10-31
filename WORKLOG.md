@@ -10,6 +10,38 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Dishes as gifts, the store buys dishes
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: every villager file lists kitchen dishes in `gifts` (`food:<id>`): Tome loves
+  furofuki daikon and pumpkin nimono, likes miso soup, ochazuke, turnip stew, takikomi gohan
+  and kinako mochi, dislikes milk pudding; Hachiro loves grilled fish, fish and daikon and
+  potato stew, likes miso soup, tamagoyaki, turnip stew and takikomi gohan, dislikes milk
+  pudding and kinako mochi (no sweets, as with dango); Sayo loves tamagoyaki and milk pudding
+  (eggs and milk, as her egg_best), likes kinako mochi, pumpkin nimono, takikomi gohan and
+  ochazuke, dislikes grilled fish and fish and daikon (no river fish); Kota loves milk pudding
+  and kinako mochi (sweets), likes tamagoyaki, grilled fish, onigiri and potato stew,
+  dislikes ochazuke and furofuki daikon (tea and plain daikon are grown-up food). Point
+  values: the existing reaction scale in `_common.json` (love 8, like 3, ...), birthday x5
+  included; a dish isn't worth more than a loved crop, since one gift a day already caps
+  gifts and a bigger dish score would make the crop and mine likes pointless. Fix in
+  `Game.talk_to`: a gift takes one of the stack in hand (dishes come several at a time;
+  before, a stack of 3 overhead vanished with one gift). The Yorozu Store `buys` kind
+  `dish`: 80% of a dish's `sell` (`Shop.buy_back`), only foods with a sell and `shop` false,
+  so the store never buys back what its own shelf sells (onigiri). 80% because it matches
+  its cut on crops: cash at once and from the rucksack (the bin takes dishes only from the
+  hand) for a fifth less than the bin pays at 18:00.
+- Checked: new checks in `test_relationships.gd` (dish gift lists are real foods, each
+  villager loves and dislikes a dish, every kitchen dish is liked by someone, a loved dish x5
+  on a birthday; on the real Game a stack of 2 grilled fish on Hachiro's birthday: the
+  birthday answer, x5, one left overhead; Sayo answers gift_dislike) and `test_shops.gd`
+  (every dish bought at sell x 80%, foods without sell or on a shelf not bought, the smithy
+  buys none, the sell tab lists a stew and not a dango, selling from the rucksack and the
+  hand); the old "the store doesn't buy dishes" check is gone. All 23 test scripts print
+  `OK (0 failed)`; headless runs (title `--quit-after 300`, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, `--demo --map=town --time=14:30 --talk=tome`, `--demo --shop=general`)
+  printed no errors or warnings.
+- Left / next: cooking tools; no dish-specific gift lines (the usual gift_<reaction> answers).
+
 ## 2026-10-31 — play.bat / play_demo.bat: double-click to play
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `play.bat` starts `Godot_v4.7.2-stable_win64.exe --path .` from its own folder (full

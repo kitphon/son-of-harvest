@@ -1,5 +1,5 @@
 {
-	"_note": "Hachiro the smith and handyman: lives in the Kurogane Smithy (the north-east house): off hours he is at the anvil behind the counter (out of sight, the smithy's door is shut then) and in bed (away) from 21:00. On work days he mends the roof of Kota's family house south of the road early, keeps the smithy counter (the smithy map's keeper spot) 10:00-16:00, so talking to him there opens the shop (data/shops.json keeper), and looks at the pond in the evening. In bad weather he only works the forge; Sundays he fishes (the smithy is shut); on his birthday the smithy stays shut too: the shrine in the morning, the pond until 16:00. Gifts: rice balls, eels, catfish and good ore (hoshigane best); a plain grey stone is an insult. Format: README.md, Villagers.",
+	"_note": "Hachiro the smith and handyman: lives in the Kurogane Smithy (the north-east house): off hours he is at the anvil behind the counter (out of sight, the smithy's door is shut then) and in bed (away) from 21:00. On work days he mends the roof of Kota's family house south of the road early, keeps the smithy counter (the smithy map's keeper spot) 10:00-16:00, so talking to him there opens the shop (data/shops.json keeper), and looks at the pond in the evening. In bad weather he only works the forge; Sundays he fishes (the smithy is shut); on his birthday the smithy stays shut too: the shrine in the morning, the pond until 16:00. Gifts: rice balls, eels, catfish and good ore (hoshigane best); a plain grey stone is an insult. Of the kitchen's dishes, hearty ones (grilled fish, fish and daikon, potato stew best); no sweets. Format: README.md, Villagers.",
 	"id": "hachiro",
 	"name": "Hachiro",
 	"birthday": {"season": "winter", "day": 11},
@@ -11,9 +11,11 @@
 	],
 	"default": "work",
 	"gifts": {
-		"love": ["food:onigiri", "fish:unagi", "fish:namazu", "mine:hoshigane"],
-		"like": ["fish:*", "corn", "onion", "egg_best", "mine:akagane", "mine:shirogane", "mine:kogane"],
-		"dislike": ["food:sakura_mochi", "food:dango", "mine:stone"],
+		"love": ["food:onigiri", "fish:unagi", "fish:namazu", "mine:hoshigane",
+			"food:grilled_fish", "food:daikon_fish", "food:potato_stew"],
+		"like": ["fish:*", "corn", "onion", "egg_best", "mine:akagane", "mine:shirogane", "mine:kogane",
+			"food:miso_soup", "food:tamagoyaki", "food:turnip_stew", "food:takikomi_gohan"],
+		"dislike": ["food:sakura_mochi", "food:dango", "mine:stone", "food:milk_pudding", "food:kinako_mochi"],
 		"hate": ["cucumber"]
 	},
 	"plans": {

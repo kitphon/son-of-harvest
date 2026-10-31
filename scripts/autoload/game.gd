@@ -1396,7 +1396,7 @@ func talk_to(id: String, face: Vector2i) -> String:
 	if holding():
 		var r := affection.give(id, held, today, birthday)
 		if r.ok:
-			held = ""
+			inventory.take(held, 1, ["hand"])   # one of a stack in hand (dishes come several at a time)
 			changed.emit()
 		var answer := "gift_" + str(r.reaction)
 		if birthday and r.reaction in ["love", "like", "neutral"] and Talk.has_line(id, "gift_birthday"):
