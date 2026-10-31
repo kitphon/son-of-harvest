@@ -76,7 +76,7 @@ better rods from the blacksmith (a bite-chance factor per rod level), fish as fo
 the 2D view's action hookup (main_2d.gd doesn't connect the Player's actions yet).
 Next: milestone 5, **talking, gifts, affection** for the villagers, with the shopkeepers at
 their counters (`Villagers.is_on` tells whether a keeper is out, `Game.open_shop(id)` opens
-the screen; the keepers are `sayo` (store) and `gen` (smithy, data/villagers/gen.json)).
+the screen; the keepers are `sayo` (store) and `hachiro` (smithy)).
 The opening event and the first shop visits are done (data/events/opening.json,
 store_intro, smithy_intro; villagers act in events with the `actor` step).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
@@ -124,7 +124,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Text box (typewriter, portraits, choices, flags); our own, data/dialogue
    - [x] Event scripts + trigger tables per map (data/events; three small farm events)
    - [x] "Examine" trigger cause: E facing a spot plays an event (village, farm, farmhouse)
-   - [x] Opening event (Tome on the farm), first visits to the shops (Sayo, Gen); `actor` / `place` event steps
+   - [x] Opening event (Tome on the farm), first visits to the shops (Sayo, Hachiro); `actor` / `place` event steps
 7. **Animals**
    - [x] Chickens: coop map, feed box, happiness, egg grades, sickness / medicine, going out, incubator (data/animals.json)
    - [ ] Cows / sheep (barn, milk / wool, brushing), dog

@@ -9,7 +9,7 @@
 		{"id": "bin", "speaker": "tome", "face": "smile", "text": "By the house is the shipping bin. Whatever you put in it by six in the evening, the cart takes, and you get paid."},
 		{"speaker": "tome", "face": "calm", "text": "The little stand beside it sells seeds and a bite to eat. Handy when the village shops are shut.", "next": "end"},
 		{"id": "road", "speaker": "tome", "face": "smile", "text": "Out through the gate, the road runs east to the village. The shrine, the Yorozu Store, the Kurogane Smithy..."},
-		{"speaker": "tome", "face": "calm", "text": "Sayo keeps the store, Gen beats iron at the smithy. Pop in and say hello. They won't bite.", "next": "end"},
+		{"speaker": "tome", "face": "calm", "text": "Sayo keeps the store. Hachiro mends roofs in the morning and minds the forge after. Pop in and say hello.", "next": "end"},
 		{"id": "gift", "speaker": "tome", "face": "smile", "text": "Oh, and these. Seed potatoes from my own garden. They like a sunny spot. Don't let them dry out!", "next": "end"},
 		{"id": "bye", "speaker": "tome", "face": "smile", "text": "Well, my knees want their cushion. Come and see me at the shrine in the mornings. Welcome home, dear.", "next": "end"},
 		{"id": "alone", "speaker": "farmer", "face": "smile", "text": "Welcome home... Right. Clear a corner, plant, water. Let's get to work!"}

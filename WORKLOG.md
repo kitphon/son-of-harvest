@@ -10,6 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Shop intros: Hachiro keeps the smithy (matches the talking branch)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the talking branch (`claude/talk-gifts-9356cc`) made Hachiro the smith (his house
+  door has been the smithy since the shops merge) and Sayo the store keeper, standing on the
+  shop maps at the keeper spot (3, 2) in opening hours. To merge cleanly: `gen.json` is
+  gone; `smithy_intro` now has Hachiro turn from the forge to the keeper spot (flag
+  `met_hachiro`, lines rewritten for him; "shut on Sundays", their new day off); both
+  intros leave the keeper standing at (3, 2) facing down, where their plans put them after
+  the event (no walking off any more); the opening's road line names Hachiro.
+  `data/dialogue/speakers.json` is now the same as on the talking branch (tome, hachiro,
+  sayo, kota with their colours), so it merges without a conflict. The actor override
+  moved into `Villagers.where` and `on_map` asks `where`, the same shape as on that branch.
+  This replaces the Gen parts of the entry below.
+- Checked: all 17 tests in AGENTS.md print `OK (0 failed)` (`test_events` now checks the
+  smithy intro with `hachiro` and `met_hachiro`); headless `--quit-after 300` (title,
+  `--demo`, `--demo --map=town`, `--demo --map=store`, `--demo --event=opening`,
+  `--demo --event=smithy_intro --map=smithy`) and `res://scenes/main.tscn --quit-after 900`
+  printed no errors or warnings. Movie Maker: smithy intro frame 149 shows Hachiro (headband)
+  behind the counter with his portrait and name tag; `res://scenes/main.tscn` frame 159
+  still shows the opening's text box with Tome by the pond.
+- Left / next: on this branch alone the keepers still vanish after their intro (their plans
+  here don't stand them in the shops); after the merge Game.open_shop needs the keeper on
+  the shop map, which the plans give in opening hours, and the intro plays only then (the
+  door is shut outside the hours).
+
 ## 2026-10-31 — Opening event and first visits to the shops
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a new game now opens with `opening` (data/events/opening.json, lines in

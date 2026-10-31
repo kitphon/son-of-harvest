@@ -272,7 +272,7 @@ func _init() -> void:
 		check(r.error != "" and r.done(), "refused %s (%s)" % [JSON.stringify(bad), r.error])
 
 	# The shops: each intro on the first entering only; the keeper stands behind the counter.
-	for shop in [["store", "store_intro", "sayo"], ["smithy", "smithy_intro", "gen"]]:
+	for shop in [["store", "store_intro", "sayo"], ["smithy", "smithy_intro", "hachiro"]]:
 		var tbl := EventTriggers.open(shop[0])
 		check(tbl.error == "" and tbl.pick("enter", g.trigger_state(Vector2i(4, 5))) == shop[1], "first time in the %s: %s" % [shop[0], shop[1]])
 		g.events_seen[shop[1]] = true

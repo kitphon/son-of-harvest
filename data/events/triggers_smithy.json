@@ -1,5 +1,5 @@
 {
-	"_note": "Events inside the Kurogane Smithy: Gen's introduction the first time the farmer comes in. Format: README.md, Events.",
+	"_note": "Events inside the Kurogane Smithy: Hachiro's introduction the first time the farmer comes in. Format: README.md, Events.",
 	"rows": [
 		{"event": "smithy_intro", "on": "enter"}
 	]

@@ -172,17 +172,19 @@ static func today(s: Dictionary) -> Dictionary:
 ## Where villager `id` is at minute `t` of the game day (DayPlan.where), {} for no such villager.
 static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 	var plans := today(s)
-	return plans[id].where(t) if plans.has(id) else {}
+	if not plans.has(id):
+		return {}
+	if actors.has(id):   # acting in an event: its place, not the plan's
+		return actors[id].duplicate()
+	return plans[id].where(t)
 
 
 ## Everyone on map `map_id` at minute `t`: [{id, pos, facing, moving, walked}], by id.
 static func on_map(map_id: String, t: float, s: Dictionary) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	var plans := today(s)
-	for id in plans:
-		var w: Dictionary = plans[id].where(t) if not actors.has(id) else actors[id]
+	for id in today(s):
+		var w := where(id, t, s)
 		if w.map == map_id:
-			w = w.duplicate()
 			w.id = id
 			out.append(w)
 	return out
