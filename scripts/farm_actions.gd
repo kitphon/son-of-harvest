@@ -121,8 +121,8 @@ static func _after_flight(sound: Callable) -> void:
 	Game.get_tree().create_timer(float(Game.hold_rules.get("flight_seconds", 0.35))).timeout.connect(sound)
 
 
-## Using what is in front: a door first (on any map), then the map's props (the futon, a
-## shop counter), or on the farm the bin, the seed stand and ripe crops.
+## Using what is in front: a door first (on any map), then a festival's judges' table or
+## stall, the map's props (the futon, a shop counter), or on the farm the bin, the seed stand and ripe crops.
 static func interact(c: Vector2i) -> void:
 	var door := Game.maps.door_at(c)
 	if not door.is_empty():
@@ -142,6 +142,8 @@ static func interact(c: Vector2i) -> void:
 			Sfx.play("pick")
 			Game.message.emit("Picked up the %s" % item_name(found))
 			return
+	if festival_spot(c):
+		return
 	if not Game.maps.on_farm():
 		var prop := Game.maps.current().prop_at(c)
 		match str(prop.get("use", "")):
@@ -173,6 +175,20 @@ static func interact(c: Vector2i) -> void:
 			if id != "":
 				Sfx.play("pick")
 				Game.message.emit("Picked up a %s" % item_name(id))
+
+
+## Today's festival, while it is on: its judges' table (enter the contest with the item
+## overhead, or hear what it takes) or its stall (opens it like a shop).
+static func festival_spot(c: Vector2i) -> bool:
+	var fid := Game.festival_now()
+	if fid == "":
+		return false
+	if Festivals.at_table(fid, c):
+		var r := Game.enter_contest()
+		if r.ok:
+			Sfx.play("pick")
+		return true
+	return Festivals.at_stall(fid, c) and Game.open_stall()
 
 
 static func buy_seeds() -> void:

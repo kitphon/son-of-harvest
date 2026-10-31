@@ -50,7 +50,7 @@ shrine; doors, a fade, clock stopped indoors). The villagers' homes are in: Tome
 houses and Sayo's rooms behind the store (irori, tokonoma, altar, screens), doors open by their
 `hours` and shut at night with a message.
 Sound effects, ambient loops and music are in (milestone 10), with Music / Sounds / Ambient
-volume sliders in Esc → Settings. Later for audio: more tracks (festivals, shops, events)
+volume sliders in Esc → Settings. The four festivals have their own scores. Later for audio: more tracks (shops, events)
 are new scores and rules in `data/music.json`; the music has not been heard by a person yet.
 The rucksack and the storage chest are done (I opens the rucksack, the chest stands right of
 the house; slot counts in data/inventory.json, so a shop's rucksack upgrade is one number via
@@ -113,10 +113,13 @@ ice blocks hiding frost stone, a cold light; `winter` in data/mine.json). Later 
 mine finds in the villagers' gift lists, real art for the ice and the lantern.
 Festivals are in (milestone 9): `data/festivals.json` (date, hours, map, place, event, shops
 shut, decorations, fireworks), the HUD tag under the clock, the calendar notes, fair weather
-on the day, Kota and Tome out all day. Later for festivals: contests and prizes (DESIGN asks
-what each festival judges), festival music (a `festival` condition in the music rules),
-holding back the shipping payout on a festival day (DESIGN), stalls that sell, more villagers
-gathering once they talk.
+on the day, Kota and Tome out all day. Each festival has a contest at a judges' table (best
+spring crop, biggest fish, best egg / milk / wool, brightest mine stone; villager rivals rolled
+per year, prizes by place, a result event), its own music (`festivals` in the music rules) and
+the shipping payout waits for the next day; Blossom Day has a dango stall that sells (README →
+Festivals). Later for festivals: rivals walking up to the table with their entries, a ribbon
+item to keep, a contest that is played (a mochi-pounding rhythm, a fishing race), stalls at
+Lantern Night that sell, more villagers gathering once they talk.
 The balance pass is done (milestone 8): our own crop, product, animal and extension prices,
 `python -I tools/balance.py` prints income per season for a steady year-1 plan (WORKLOG has
 the before / after table). Later for balance: re-run it when the smithy asks for ores (ores
@@ -182,6 +185,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Mining: entrance east of the village, floors laid out fresh from a seed, rocks / soft spots / hole down, ores and gems per depth and season (data/mine.json)
    - [x] Mine extras: ores for the smithy's upgrades, shops buying stones / ores / gems, light by depth with a lantern (both views), frozen floors in winter
    - [x] Festivals: one per season in data/festivals.json (Blossom Day, Lantern Night with fireworks, Moon Night, Year's Turn), HUD tag, shops shut, decorations in both views, an event once a year, villagers gather
+   - [x] Festival contests with prizes and result events, festival music, payout held on the day, Blossom Day's stall
    - [x] Relationships: hearts on the text box's name tag, birthdays (calendar, gifts x5, birthday lines), the nightly loss for villagers left alone, a heart event per villager at band 3
    - [ ] Endings (what the year-end / final evaluation looks at; DESIGN lists it as not studied yet)
 10. **Audio and release**

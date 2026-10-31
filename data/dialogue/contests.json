@@ -1,0 +1,377 @@
+{
+	"_note": "The festival contests (data/festivals.json contest): per festival <id>_ask (the judges' table, empty-handed) and <id>_result (the result event; branches on contest_place_<n> and contest_won_<rival>). All our own.",
+	"lines": [
+		{
+			"id": "blossom_day_ask",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "The Crop Show is on at this table! Bring one crop you grew yourself, held up high, and the judges will look it over."
+		},
+		{
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "A crop of the spring shows best today. One entry each, mind. Results right away!",
+			"next": "end"
+		},
+		{
+			"id": "blossom_day_result",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "The judges have weighed and tasted every crop on the table. Here are this year's results!"
+		},
+		{
+			"if": "contest_place_1",
+			"then": "blossom_day_1"
+		},
+		{
+			"if": "contest_won_kota",
+			"then": "blossom_day_kota"
+		},
+		{
+			"if": "contest_won_tome",
+			"then": "blossom_day_tome"
+		},
+		{
+			"id": "blossom_day_sayo",
+			"next": "blossom_day_place",
+			"speaker": "sayo",
+			"face": "surprised",
+			"text": "Me? First? I only grew those in pots behind the store!"
+		},
+		{
+			"id": "blossom_day_kota",
+			"next": "blossom_day_place",
+			"speaker": "kota",
+			"face": "smile",
+			"text": "Ha! My cucumbers took the ribbon. Grandpa's seeds never lose!"
+		},
+		{
+			"id": "blossom_day_tome",
+			"next": "blossom_day_place",
+			"speaker": "tome",
+			"face": "smile",
+			"text": "Forty springs I've grown turnips. They still come out the best, it seems."
+		},
+		{
+			"id": "blossom_day_place",
+			"if": "contest_place_2",
+			"then": "blossom_day_2"
+		},
+		{
+			"if": "contest_place_3",
+			"then": "blossom_day_3"
+		},
+		{
+			"id": "blossom_day_out",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "No ribbon for you this year, but the judges liked it. Grow a bigger one for next spring!"
+		},
+		{
+			"id": "blossom_day_2",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "Second place goes to you. A fine crop, only a hair behind the best one."
+		},
+		{
+			"id": "blossom_day_3",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "Third place for you. Not bad at all for a field that was all weeds a while ago."
+		},
+		{
+			"id": "blossom_day_1",
+			"speaker": "tsuru",
+			"face": "surprised",
+			"text": "First prize goes to the new farmer! Look at the shine on that. The ribbon is yours."
+		},
+		{
+			"speaker": "farmer",
+			"face": "smile",
+			"text": "My first ribbon... I'll pin it up by the door.",
+			"next": "end"
+		},
+		{
+			"id": "lantern_night_ask",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "Tonight we judge the biggest catch! Bring one fish to this table, held up so we can see it."
+		},
+		{
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "Any fish from any water. One entry each, and we judge it on the spot.",
+			"next": "end"
+		},
+		{
+			"id": "lantern_night_result",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "The fish are all laid out under the lanterns. The judges have made up their minds!"
+		},
+		{
+			"if": "contest_place_1",
+			"then": "lantern_night_1"
+		},
+		{
+			"if": "contest_won_hachiro",
+			"then": "lantern_night_hachiro"
+		},
+		{
+			"if": "contest_won_kota",
+			"then": "lantern_night_kota"
+		},
+		{
+			"id": "lantern_night_tome",
+			"next": "lantern_night_place",
+			"speaker": "tome",
+			"face": "smile",
+			"text": "This old rod still knows every bend of the river. That's my prize."
+		},
+		{
+			"id": "lantern_night_hachiro",
+			"next": "lantern_night_place",
+			"speaker": "hachiro",
+			"face": "smile",
+			"text": "Sunday mornings at the river pay off. Sorry, farmer, this one's mine."
+		},
+		{
+			"id": "lantern_night_kota",
+			"next": "lantern_night_place",
+			"speaker": "kota",
+			"face": "surprised",
+			"text": "I won? I caught it with a stick and a bit of string!"
+		},
+		{
+			"id": "lantern_night_place",
+			"if": "contest_place_2",
+			"then": "lantern_night_2"
+		},
+		{
+			"if": "contest_place_3",
+			"then": "lantern_night_3"
+		},
+		{
+			"id": "lantern_night_out",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "Not a prize tonight. The river keeps its big ones for the patient. Try again next summer!"
+		},
+		{
+			"id": "lantern_night_2",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "Second place for your fish. It only lost by a fin."
+		},
+		{
+			"id": "lantern_night_3",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "Third place for you. A good catch for a farmer!"
+		},
+		{
+			"id": "lantern_night_1",
+			"speaker": "tsuru",
+			"face": "surprised",
+			"text": "The best catch tonight is the farmer's! Everyone, come and look at this one."
+		},
+		{
+			"speaker": "farmer",
+			"face": "smile",
+			"text": "It nearly pulled me into the pond.",
+			"next": "end"
+		},
+		{
+			"id": "moon_night_ask",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "For the Moon Offering we set out the best of the year's animals: an egg, milk or wool. Bring one here."
+		},
+		{
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "The finest one goes before the moon tonight. One offering each.",
+			"next": "end"
+		},
+		{
+			"id": "moon_night_result",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "The offerings are set out in the moonlight. The judges have chosen."
+		},
+		{
+			"if": "contest_place_1",
+			"then": "moon_night_1"
+		},
+		{
+			"if": "contest_won_sayo",
+			"then": "moon_night_sayo"
+		},
+		{
+			"if": "contest_won_tome",
+			"then": "moon_night_tome"
+		},
+		{
+			"id": "moon_night_kota",
+			"next": "moon_night_place",
+			"speaker": "kota",
+			"face": "surprised",
+			"text": "I combed that wool all week! I won? Really?"
+		},
+		{
+			"id": "moon_night_sayo",
+			"next": "moon_night_place",
+			"speaker": "sayo",
+			"face": "smile",
+			"text": "The store's own hens did it! I brought them up from chicks."
+		},
+		{
+			"id": "moon_night_tome",
+			"next": "moon_night_place",
+			"speaker": "tome",
+			"face": "smile",
+			"text": "Milk from my neighbour's cow, cream on top. I only carried it here!"
+		},
+		{
+			"id": "moon_night_place",
+			"if": "contest_place_2",
+			"then": "moon_night_2"
+		},
+		{
+			"if": "contest_place_3",
+			"then": "moon_night_3"
+		},
+		{
+			"id": "moon_night_out",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "No prize this time. Brush them, feed them, talk to them. Next fall it may be yours."
+		},
+		{
+			"id": "moon_night_2",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "Second place for your offering. The moon will see it from the next seat."
+		},
+		{
+			"id": "moon_night_3",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "Third place for you. Your animals are doing well."
+		},
+		{
+			"id": "moon_night_1",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "Your offering goes before the moon tonight! Your animals must be well loved."
+		},
+		{
+			"speaker": "farmer",
+			"face": "smile",
+			"text": "I'll tell them tomorrow. With extra feed.",
+			"next": "end"
+		},
+		{
+			"id": "years_turn_ask",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "Before the year turns, we lay the year's best stone at the shrine. Bring one from the mine, held up."
+		},
+		{
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "Ore or gem, the brightest one wins. One stone each.",
+			"next": "end"
+		},
+		{
+			"id": "years_turn_result",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "The stones sit by the fire, all shining. The judges have chosen the first stone of the year."
+		},
+		{
+			"if": "contest_place_1",
+			"then": "years_turn_1"
+		},
+		{
+			"if": "contest_won_hachiro",
+			"then": "years_turn_hachiro"
+		},
+		{
+			"if": "contest_won_kota",
+			"then": "years_turn_kota"
+		},
+		{
+			"id": "years_turn_sayo",
+			"next": "years_turn_place",
+			"speaker": "sayo",
+			"face": "smile",
+			"text": "A customer paid me with this stone in spring. I knew it was lucky."
+		},
+		{
+			"id": "years_turn_hachiro",
+			"next": "years_turn_place",
+			"speaker": "hachiro",
+			"face": "smile",
+			"text": "I keep the best ore back from the forge for tonight. Every year."
+		},
+		{
+			"id": "years_turn_kota",
+			"next": "years_turn_place",
+			"speaker": "kota",
+			"face": "surprised",
+			"text": "My shiny pebble from the river won? Really?"
+		},
+		{
+			"id": "years_turn_place",
+			"if": "contest_place_2",
+			"then": "years_turn_2"
+		},
+		{
+			"if": "contest_place_3",
+			"then": "years_turn_3"
+		},
+		{
+			"id": "years_turn_out",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "No prize this year, but the shrine thanks you all the same. Dig deeper next winter!"
+		},
+		{
+			"id": "years_turn_2",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "Second place for your stone. A fine shine on it."
+		},
+		{
+			"id": "years_turn_3",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "Third place for you. The mountain has been kind to you."
+		},
+		{
+			"id": "years_turn_1",
+			"speaker": "tsuru",
+			"face": "surprised",
+			"text": "Your stone goes on the shrine step this year! It will bring the whole village luck."
+		},
+		{
+			"speaker": "farmer",
+			"face": "smile",
+			"text": "All that digging was worth it.",
+			"next": "end"
+		}
+	]
+}

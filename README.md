@@ -374,6 +374,31 @@ time). The festival's event plays once a year (`events_seen` key `festival:<id>:
 the farmer walks onto the map in the hours, or is there when they start (EventPlayer).
 `-- --demo --festival=<id>` starts on that day half an hour in, at its place.
 
+**Contests.** Each festival has a `contest`: the Blossom Crop Show (a crop; one that grows in
+spring counts `in_season` 1.5 times), the Lantern Night Catch (a fish), the Moon Offering (an
+egg, milk or wool) and the First Stone of the Year (an ore or stone from the mine). Its
+`table` is a cell of a `judge_table` prop (white cloth, red and white curtain, a name board).
+E there empty-handed: the judge says the `ask` line of `data/dialogue/contests.json`. E with
+an entry of the right kind (`Game.item_kind`) overhead hands it in; it scores its shipping
+value, the `rivals` (villagers) roll their scores from `[lowest, highest]` with a seed of
+festival and year, the farmer wins ties (`Festivals.judge`). The prize for the place
+(`prizes`, `{money, item?, count?}`) is paid at once, flags `contest_place_<n>`,
+`contest_won_<rival>` and `contest_prize` are set (the result lines branch on them;
+`contest_wins` counts first prizes) and the contest's `event` (`data/events/contest_*.json`)
+plays. One entry a year (`events_seen` key `contest:<id>:<year>`). `-- --demo
+--festival=<id> --contest=<item>` stands at the table with the item and enters it.
+
+**Stall.** A festival may have a `stall` (`{name, cell, stock}`; the cell is a `stall` prop's):
+E at it in the hours opens it as a shop with id `stall:<festival>` (Blossom Day's Hanami Dango
+Stall sells dango, sakura mochi and green tea at their own prices). `--shop=stall:<id>` (with
+`--festival=<id>`) stands at it with the screen open.
+
+**Music and payout.** A music rule with `festivals: [ids]` fits only while one of them is on
+around the farmer (`Game.festival_now()`), so each festival plays its own score (`fest_*` in
+`data/music.json`, with a taiko and a small kane bell), over night and season. On a festival
+day the shipping bin is not paid (DESIGN): neither at 18:00 nor overnight; it is paid with
+the next day's shipping (`Game.payout_held()`).
+
 ## Camera
 `scripts/main_3d.gd` uses the field camera geometry of Harvest Moon: Back to Nature, measured
 in the reverse-engineering project: yaw 45°, pitch 26.6°, the player 25.2 cells from the eye,

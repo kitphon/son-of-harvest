@@ -2,7 +2,7 @@ class_name FestivalProps
 extends FarmWorld
 ## Today's festival decorations on one map in 3D (data/festivals.json → props): cherry trees
 ## and picnic mats, lantern strings and stalls, the moon offering, New Year bamboo and a
-## bonfire. Built with the map's world when a festival falls on today and is held here, shown
+## bonfire, the contest's judges' table. Built with the map's world when a festival falls on today and is held here, shown
 ## only during its hours. Lights (lanterns, the fire) are listed in `glows` for FestivalGlow,
 ## which draws their glow over the night tint. Placeholder looks like MapWorld's props.
 
@@ -52,6 +52,7 @@ func _make(p: Dictionary) -> void:
 		"picnic_mat": _mat(mid, r, Color("3a6ab0"))
 		"red_mat": _mat(mid, r, Color("b02a24"))
 		"stall": _stall(mid, r, cloth)
+		"judge_table": _judge_table(mid, r)
 		"lantern_line": _lantern_line(r)
 		"drum_stage": _drum_stage(mid)
 		"moon_table": _moon_table(mid)
@@ -136,6 +137,28 @@ func _stall(mid: Vector3, r: Rect2, cloth: Color) -> void:
 	_box(Vector3(w, 0.26, 0.02), mid + Vector3(0, 1.32, 0.36), flat_material(cloth.lerp(Color.WHITE, 0.25)))
 	var lamp := mid + Vector3(w / 2, 1.2, 0.36)
 	_lantern(lamp, LANTERN_RED)
+
+
+## The contest's judges' table: a long low table under a white cloth, a red and white
+## curtain along its front, a name board on two posts behind it and three ribbon rosettes
+## (red, white, blue) waiting for the winners.
+func _judge_table(mid: Vector3, r: Rect2) -> void:
+	var w := r.size.x - 0.15
+	var wood := flat_material(Color("6a4a30"))
+	_box(Vector3(w, 0.5, 0.55), mid + Vector3(0, 0.25, -0.05), wood)
+	_box(Vector3(w + 0.04, 0.04, 0.6), mid + Vector3(0, 0.52, -0.05), flat_material(Color("f4f0e6")))
+	var stripes := int(w / 0.25)
+	for i in stripes:
+		var c := LANTERN_RED if i % 2 == 0 else Color("f4f0e6")
+		_box(Vector3(w / stripes, 0.42, 0.02), mid + Vector3(-w / 2 + (i + 0.5) * w / stripes, 0.27, 0.24), flat_material(c))
+	for x in [-w / 2 + 0.1, w / 2 - 0.1]:
+		_box(Vector3(0.05, 1.3, 0.05), mid + Vector3(x, 0.65, -0.35), wood)
+	_box(Vector3(w - 0.1, 0.3, 0.04), mid + Vector3(0, 1.15, -0.35), flat_material(Color("e8dcc0")))
+	_box(Vector3(w - 0.4, 0.05, 0.05), mid + Vector3(0, 1.15, -0.32), flat_material(Color("2a2420")))   # the brushed name
+	for i in 3:
+		var at := mid + Vector3((i - 1) * 0.3, 0.6, -0.05)
+		var rosette := _cylinder(0.07, 0.07, 0.02, at, flat_material([LANTERN_RED, Color("f4f0e6"), Color("2c4a8a")][i]), 10)
+		rosette.rotation_degrees = Vector3(70, 0, 0)
 
 
 ## One hanging paper lantern: a round body, dark caps top and bottom.

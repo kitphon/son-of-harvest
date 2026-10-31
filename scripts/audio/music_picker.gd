@@ -1,14 +1,18 @@
 class_name MusicPicker
 extends RefCounted
 ## Which music track plays and how loud (0..1), from the scene ("title" / "field"), today's
-## weather look, the season and the hour. Pure rules from data/music.json → "rules": the first
-## rule that fits wins (a missing list = any, hours as in AmbientPicker). The Sfx autoload
+## weather look, the season, the hour and the festival going on around the farmer
+## (Game.festival_now). Pure rules from data/music.json → "rules": the first rule that fits
+## wins (a missing list = any, hours as in AmbientPicker; a rule with `festivals` fits only
+## while one of those festivals is on). The Sfx autoload
 ## cross-fades to it.
 
 
 ## {track: level} for the track that should play now, or {} for silence.
-static func pick(rules: Array, scene: String, look: String, season_id: String, hour: int) -> Dictionary:
+static func pick(rules: Array, scene: String, look: String, season_id: String, hour: int, festival := "") -> Dictionary:
 	for r in rules:
+		if r.has("festivals") and not (festival in r.festivals):
+			continue
 		if r.has("scenes") and not (scene in r.scenes):
 			continue
 		if r.has("looks") and not (look in r.looks):

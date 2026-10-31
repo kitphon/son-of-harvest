@@ -1,5 +1,5 @@
 {
-	"_about": "Our own music: every melody here was written for Harvest Son, in five-note scales (yo [0,2,5,7,9], in [0,1,5,7,8], minyo [0,3,5,7,10], ritsu [0,2,5,7,10]). Played by scripts/audio/music_synth.gd (score format at its top) on the Music bus. rules pick the track (first fit wins, see music_picker.gd); fade_seconds is the cross-fade between tracks, start_fade the fade-in from silence.",
+	"_about": "Our own music: every melody here was written for Harvest Son, in five-note scales (yo [0,2,5,7,9], in [0,1,5,7,8], minyo [0,3,5,7,10], ritsu [0,2,5,7,10]). Played by scripts/audio/music_synth.gd (score format at its top) on the Music bus. rules pick the track (first fit wins, see music_picker.gd; festivals = while one of those festivals is on around the farmer, data/festivals.json; the four fest_ scores play then); fade_seconds is the cross-fade between tracks, start_fade the fade-in from silence.",
 	"fade_seconds": 3.0,
 	"start_fade": 1.0,
 	"instruments": {
@@ -7,7 +7,9 @@
 		"rin": {"kind": "pluck", "partials": [[1, 1], [2.76, 0.45], [5.4, 0.2], [8.9, 0.08]], "decay": 1.6, "damp": 0.3, "ring": 4.0, "click": 0.05, "gain": 0.45},
 		"wood": {"kind": "pluck", "partials": [[1, 1], [2.4, 0.5]], "decay": 0.03, "damp": 0.5, "ring": 0.2, "click": 0.8, "gain": 0.35},
 		"shakuhachi": {"kind": "flute", "partials": [[1, 1], [2, 0.18], [3, 0.05]], "attack": 0.09, "release": 0.2, "vibrato": [5.2, 0.009, 0.35], "breath": 0.25, "scoop": 0.03, "gain": 0.7},
-		"sho": {"kind": "pad", "attack": 0.9, "release": 1.2, "detune": 0.0025, "upper": 0.25, "gain": 0.28}
+		"sho": {"kind": "pad", "attack": 0.9, "release": 1.2, "detune": 0.0025, "upper": 0.25, "gain": 0.28},
+		"taiko": {"kind": "pluck", "partials": [[1, 1], [1.58, 0.4], [2.3, 0.15]], "decay": 0.22, "damp": 0.8, "ring": 0.6, "click": 0.9, "gain": 0.8},
+		"kane": {"kind": "pluck", "partials": [[1, 1], [2.92, 0.6], [4.1, 0.4], [6.3, 0.2]], "decay": 0.12, "damp": 0.4, "ring": 0.4, "click": 0.4, "gain": 0.22}
 	},
 	"tracks": {
 		"title": {"bpm": 76, "steps_per_beat": 2, "steps_per_bar": 8, "bars": 8, "root": 62, "scale": [0, 2, 5, 7, 9], "volume_db": -4,
@@ -83,10 +85,49 @@
 				{"instrument": "koto", "gain": 0.7, "bars": [
 					"0 . 3 . 2 . 3 .", "-2 . 1 . 0 . 1 .", "-1 . 2 . 1 . 2 .", "-3 . 0 . -1 . 0 ."]},
 				{"instrument": "sho", "octave": -1, "bars": [
-					"0+3 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "-2+1 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ ."]}]}
+					"0+3 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "-2+1 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ ."]}]},
+		"fest_blossom": {"bpm": 104, "steps_per_beat": 2, "steps_per_bar": 8, "bars": 8, "root": 62, "scale": [0, 2, 5, 7, 9], "volume_db": -4,
+			"voices": [
+				{"instrument": "shakuhachi", "octave": 1, "bars": [
+					"0 _ 2 _ 3 _ 4 _", "5 _ _ 4 3 _ . .", "4 _ 3 _ 2 _ 3 _", "2 _ _ _ _ _ . .",
+					"3 _ 4 _ 5 _ 6 _", "7 _ 6 _ 5 _ 4 _", "3 _ 2 _ 1 _ 2 _", "0 _ _ _ _ _ . ."]},
+				{"instrument": "koto", "gain": 0.8, "bars": [
+					"0 2 4 2 0 2 4 2", "-2 0 3 0 -2 0 3 0", "-1 1 3 1 -1 1 3 1", "-3 0 2 0 -3 0 2 0"]},
+				{"instrument": "wood", "octave": 2, "bars": ["0 . 0 . 0 0 0 ."]},
+				{"instrument": "taiko", "octave": -1, "bars": ["0 . . . 0 . . 0", "0 . . . 0 . 0 ."]}]},
+		"fest_lanterns": {"bpm": 128, "steps_per_beat": 2, "steps_per_bar": 8, "bars": 8, "root": 62, "scale": [0, 3, 5, 7, 10], "volume_db": -5,
+			"voices": [
+				{"instrument": "shakuhachi", "octave": 1, "gain": 0.8, "bars": [
+					"5 _ 6 _ 7 _ 6 5", "4 _ 5 _ 4 3 2 _", "3 _ 4 _ 5 _ 4 3", "2 _ _ _ 0 _ _ _",
+					"5 _ 7 _ 8 _ 7 _", "6 _ 5 _ 4 _ 5 _", "4 3 2 _ 3 _ 1 _", "0 _ _ _ _ _ . ."]},
+				{"instrument": "koto", "octave": -1, "gain": 0.7, "bars": ["0 . 2 . 0 . 3 .", "-1 . 2 . -1 . 1 ."]},
+				{"instrument": "taiko", "octave": -1, "bars": ["0 . 0 0 . 0 0 .", "0 . 0 0 . 0 . 0"]},
+				{"instrument": "kane", "octave": 2, "bars": ["0 . 0 0 0 . 0 0"]}]},
+		"fest_moon": {"bpm": 58, "steps_per_beat": 2, "steps_per_bar": 6, "bars": 8, "root": 60, "scale": [0, 2, 5, 7, 10], "volume_db": -5,
+			"voices": [
+				{"instrument": "shakuhachi", "octave": 1, "bars": [
+					"2 _ _ _ 3 _", "4 _ _ _ _ _", "5 _ 4 _ 3 _", "2 _ _ _ _ _",
+					"1 _ _ _ 2 _", "3 _ _ _ 2 _", "1 _ 0 _ -1 _", "0 _ _ _ . ."]},
+				{"instrument": "koto", "gain": 0.8, "bars": ["0 . 2 . 4 .", "-1 . 1 . 3 .", "-3 . 0 . 2 .", "-2 . 0 . 1 ."]},
+				{"instrument": "rin", "octave": 1, "bars": ["0 . . . . .", ". . . . . .", "2 . . . . .", ". . . . . ."]},
+				{"instrument": "sho", "octave": -1, "bars": ["0+2 _ _ _ _ _", "_ _ _ _ _ .", "-1+1 _ _ _ _ _", "_ _ _ _ _ ."]}]},
+		"fest_year": {"bpm": 66, "steps_per_beat": 2, "steps_per_bar": 8, "bars": 8, "root": 62, "scale": [0, 2, 5, 7, 9], "volume_db": -5,
+			"voices": [
+				{"instrument": "shakuhachi", "octave": 1, "gain": 0.8, "bars": [
+					"4 _ _ _ _ _ 3 _", "2 _ _ _ _ _ . .", "3 _ _ _ 4 _ 5 _", "4 _ _ _ _ _ . .",
+					"5 _ _ _ 6 _ 5 _", "4 _ _ _ 3 _ . .", "2 _ _ 3 2 _ 1 _", "0 _ _ _ _ _ . ."]},
+				{"instrument": "sho", "octave": -1, "bars": [
+					"0+2+4 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "-1+1+3 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .",
+					"-2+0+3 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "-1+2+4 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ ."]},
+				{"instrument": "rin", "octave": 1, "bars": ["0 . . . . . . .", ". . . . . . . .", ". . . . 2 . . .", ". . . . . . . ."]},
+				{"instrument": "taiko", "octave": -1, "gain": 0.6, "bars": ["0 . . . . . . .", ". . . . 0 . . .", "0 . . . . . . .", ". . . . 0 . 0 ."]}]}
 	},
 	"rules": [
 		{"track": "title", "scenes": ["title"]},
+		{"track": "fest_blossom", "festivals": ["blossom_day"]},
+		{"track": "fest_lanterns", "festivals": ["lantern_night"]},
+		{"track": "fest_moon", "festivals": ["moon_night"]},
+		{"track": "fest_year", "festivals": ["years_turn"]},
 		{"track": "rain", "looks": ["storm"], "level": 0.6},
 		{"track": "rain", "looks": ["rain"]},
 		{"track": "night", "hours": [19, 6]},

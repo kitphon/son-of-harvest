@@ -9,7 +9,7 @@ const COLORS := {
 	"sakura": Color("f4b8c8"), "picnic_mat": Color("3a6ab0"), "red_mat": Color("b02a24"),
 	"stall": Color("8a6a48"), "lantern_line": Color("d8402c"), "drum_stage": Color("5a3a24"),
 	"moon_table": Color("f8f4ea"), "pampas": Color("e4dcc4"), "paper_lantern": Color("f0e6c8"),
-	"kadomatsu": Color("5a9a48"), "bonfire": Color("ffb040"),
+	"kadomatsu": Color("5a9a48"), "bonfire": Color("ffb040"), "judge_table": Color("f4f0e6"),
 }
 
 var map_id := ""

@@ -1,7 +1,8 @@
 extends SceneTree
 ## Headless checks for festivals (data/festivals.json, Festivals, Game's festival day, shops
 ## shut for it, the fair weather, villagers gathering, the event once a year, the decorations
-## and lights in both views, the HUD tag). Run:
+## and lights in both views, the HUD tag, the contests and their result lines, the stall, the
+## shipping payout held back on the day). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_festivals.gd
 
 var failures := 0
@@ -15,6 +16,9 @@ func _init() -> void:
 	_calendar()
 	_hours()
 	_villagers()
+	_contest_data()
+	_judging()
+	_result_lines()
 
 
 func _process(_delta: float) -> bool:
@@ -25,6 +29,9 @@ func _process(_delta: float) -> bool:
 		_weather()
 		_shops()
 		_event()
+		_contest_game()
+		_stall()
+		_payout()
 		_start_views("spring", 8, 10, 30)
 	elif _frame == 3:
 		_check_views()
@@ -80,7 +87,7 @@ func _hours() -> void:
 		and Festivals.in_hours("blossom_day", 959) and not Festivals.in_hours("blossom_day", 960), "Blossom Day 10:00-16:00")
 	check(Festivals.in_hours("years_turn", 1439) and not Festivals.in_hours("years_turn", 1139), "Year's Turn runs to midnight")
 	check(Festivals.on_now("blossom_day", "town", 700) and not Festivals.on_now("blossom_day", "farm", 700), "on in the village only")
-	check(Festivals.props_now("blossom_day", "town", 700).size() == 9 and Festivals.props_now("blossom_day", "town", 1000).is_empty()
+	check(Festivals.props_now("blossom_day", "town", 700).size() == 10 and Festivals.props_now("blossom_day", "town", 1000).is_empty()
 		and Festivals.props_now("blossom_day", "store", 700).is_empty(), "props in the hours, on its map")
 	var s := {"festival": "blossom_day", "time": 700, "year": 1, "seen": {}}
 	check(Festivals.due_event("town", s) == "festival_blossom", "the event is due in the hours")
@@ -213,6 +220,196 @@ func _event() -> void:
 	ep.free()
 	player.free()
 	g.event_running = false
+
+
+## Every festival has a contest, and its data is checked.
+func _contest_data() -> void:
+	for id in Festivals.all():
+		var f := Festivals.get_festival(id)
+		var c := Festivals.contest(id)
+		check(not c.is_empty() and c.takes in Festivals.KINDS, "%s has a contest (%s)" % [id, c.get("takes")])
+		check(Festivals.at_table(id, Vector2i(int(c.table[0]), int(c.table[1])))
+			and not Festivals.at_table(id, Vector2i(int(f.place[0]), int(f.place[1]))), "%s: the judges' table stands away from the gathering place" % id)
+		check(EventRunner.open(c.event, null).error == "", "%s: the result event %s runs" % [id, c.event])
+	check(Festivals.at_table("blossom_day", Vector2i(21, 8)) and not Festivals.at_table("blossom_day", Vector2i(22, 8)), "the whole table, not the cherry next to it")
+	check(Festivals.at_stall("blossom_day", Vector2i(10, 7)) and not Festivals.at_stall("lantern_night", Vector2i(9, 7)),
+		"Blossom Day has the stall, Lantern Night's stalls are only looks")
+	var f: Dictionary = Festivals.get_festival("blossom_day").duplicate(true)
+	check(Festivals.check({"festivals": {"a": f}}) == "", "Blossom Day's data passes on its own")
+	var bad := {
+		"takes": {"takes": "food"}, "table": {"table": [9, 7]},   # that is the stall, not a judge_table
+		"rival": {"rivals": [{"who": "nobody", "score": [1, 2]}]}, "score": {"rivals": [{"who": "kota", "score": [9, 2]}]},
+		"prizes": {"prizes": [{"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}]},
+		"prize": {"prizes": [{"gold": 5}]}, "ask": {"ask": "no_such_line"}, "event": {"event": "no_such_event"},
+		"key": {"judge": "tsuru"},
+	}
+	for what in bad:
+		var g := f.duplicate(true)
+		g.contest.merge(bad[what], true)
+		check(Festivals.check({"festivals": {"a": g}}) != "", "a contest with a bad %s is refused" % what)
+	var g := f.duplicate(true)
+	g.stall.cell = [20, 8]
+	check(Festivals.check({"festivals": {"a": g}}) != "", "a stall must stand on a stall prop")
+	g.stall = {"name": "x", "cell": [9, 7], "stock": []}
+	check(Festivals.check({"festivals": {"a": g}}) != "", "a stall without stock is refused")
+
+
+## The judging: rivals rolled per festival and year, the farmer's place, ties and prizes.
+func _judging() -> void:
+	var r := Festivals.judge("blossom_day", 1, 0)
+	check(r.place == 4 and r.winner == r.rivals[0].who and r.prize.is_empty(), "a worthless entry comes last with no prize %s" % [r])
+	check(r.rivals.size() == 3 and r.rivals[0].score >= r.rivals[1].score and r.rivals[1].score >= r.rivals[2].score, "rivals best first")
+	check(Festivals.judge("blossom_day", 1, 0).rivals == r.rivals, "the same festival and year judge the same")
+	var other := false
+	for y in range(2, 8):
+		other = other or Festivals.judge("blossom_day", y, 0).rivals != r.rivals
+	check(other, "other years roll other rivals")
+	for c in Festivals.contest("blossom_day").rivals:
+		var got: Array = r.rivals.filter(func(x): return x.who == c.who)
+		check(got.size() == 1 and got[0].score >= c.score[0] and got[0].score <= c.score[1], "%s scores in their range" % c.who)
+	var top: int = r.rivals[0].score
+	var win := Festivals.judge("blossom_day", 1, top)
+	check(win.place == 1 and win.winner == "farmer" and win.prize.money == 500 and win.prize.item == "food:sakura_mochi",
+		"a tie with the best wins first prize %s" % [win.prize])
+	var second := Festivals.judge("blossom_day", 1, top - 1)
+	var above: int = r.rivals.filter(func(x): return x.score > top - 1).size()
+	check(second.place == 1 + above and second.winner == r.rivals[0].who and (above > 1 or (second.prize.keys() == ["money"] and int(second.prize.money) == 200)),
+		"one point less than the best rival is behind them %s" % [r.rivals])
+	check(Festivals.entry_score("blossom_day", ["spring"], 80) == 120 and Festivals.entry_score("blossom_day", ["fall"], 250) == 250,
+		"a spring crop counts half again at Blossom Day")
+	check(Festivals.entry_score("lantern_night", [], 200) == 200, "a fish counts its value")
+
+
+## The result lines for every place and winner end on the right line.
+func _result_lines() -> void:
+	for id in Festivals.all():
+		var c := Festivals.contest(id)
+		for place in range(1, c.rivals.size() + 2):
+			for rival in c.rivals:
+				var flags := {"contest_place_%d" % place: true}
+				if place > 1:
+					flags["contest_won_" + rival.who] = true
+				var d := DialogueRunner.open(Festivals.DIALOGUE, flags, id + "_result")
+				var who: Array = []
+				var ids: Array = []
+				for i in 20:
+					if d.done():
+						break
+					who.append(d.line().get("speaker", ""))
+					ids.append(d.line().get("id", ""))
+					d.press()
+					d.press()
+				var want: String = id + ("_%d" % place if place <= 3 else "_out")
+				check(d.error == "" and d.done() and want in ids and (place == 1) != (rival.who in who),
+					"%s, place %d, %s first: %s %s" % [id, place, rival.who, who, ids])
+		check(DialogueRunner.open(Festivals.DIALOGUE, {}, c.ask).error == "", "%s: the judge's ask line" % id)
+
+
+## Entering in the game: the table, the kind, one entry a year, the prize, flags, the event.
+func _contest_game() -> void:
+	var g := _game()
+	g.new_game()
+	var said: Array = []
+	var hear := func(t): said.append(t)
+	g.message.connect(hear)
+	var talks: Array = []
+	var talk := func(d, at): talks.append([d, at])
+	g.dialogue_requested.connect(talk)
+	var events: Array = []
+	var ev := func(id): events.append(id)
+	g.event_requested.connect(ev)
+	check(g.item_kind("potato") == "crop" and g.item_kind("fish:koi") == "fish" and g.item_kind("mine:hisui") == "mine"
+		and g.item_kind("milk_good") == "animal" and g.item_kind("food:dango") == "" and g.item_kind("seeds:potato") == "", "entry kinds")
+	_set_day(g, "spring", 8, 11, 0)
+	g.maps.place("farm", Vector2i(4, 4), Vector2i.DOWN)
+	check(g.festival_now() == "" and g.enter_contest().why == "none", "no contest from the farm")
+	g.maps.place("town", Vector2i(20, 9), Vector2i.UP)
+	check(g.festival_now() == "blossom_day", "the festival is on around the farmer")
+	check(g.enter_contest().why == "ask" and talks.back() == ["contests", "blossom_day_ask"], "empty-handed, the judge says what to bring")
+	g.held = "fish:koi"
+	check(g.enter_contest().why == "kind" and said.back() == "The Blossom Crop Show only takes crops." and g.held == "fish:koi",
+		"a fish is turned away and stays in hand")
+	g.held = "potato"
+	var money: int = g.money
+	var potato := Festivals.entry_score("blossom_day", ["spring"], int(g.crops.potato.sell))
+	var want := Festivals.judge("blossom_day", 1, potato)
+	var r: Dictionary = g.enter_contest()
+	check(r.ok and r.score == potato and r.place == want.place and r.item == "potato" and g.held == "", "the potato is handed in and scores %d (%s)" % [potato, r])
+	check(g.money == money + int(want.prize.get("money", 0)), "the prize money is paid (%d)" % (g.money - money))
+	check(g.flags.get("contest_place_%d" % r.place) == true and (r.place == 1) != g.flags.has("contest_won_" + str(want.rivals[0].who)),
+		"the place and winner flags are set %s" % [g.flags])
+	check(events == ["contest_blossom"] and g.events_seen.has("contest:blossom_day:1"), "the result event plays, the entry is marked")
+	g.held = "turnip"
+	check(g.enter_contest().why == "entered" and g.held == "turnip", "one entry a year")
+	# Year 2 with a crop that beats the best rival: last year's flags go, first prize comes in.
+	g.year = 2
+	var best: int = Festivals.judge("blossom_day", 2, 0).rivals[0].score
+	var item := "pumpkin"
+	for id in ["turnip", "potato", "cucumber"]:
+		if Festivals.entry_score("blossom_day", g.crops[id].seasons, g.sell_price(id)) >= best:
+			item = id
+			break
+	g.held = item
+	var mochi: int = g.count("food:sakura_mochi")
+	var wins := int(g.flags.get("contest_wins", 0))
+	r = g.enter_contest()
+	check(r.ok and r.place == 1 and g.flags.get("contest_place_1") == true and (want.place == 1 or not g.flags.has("contest_place_%d" % want.place))
+		and not g.flags.keys().any(func(k): return k.begins_with("contest_won_")), "year 2: first place with the %s, last year's flags cleared" % item)
+	check(g.count("food:sakura_mochi") == mochi + 2 and g.flags.get("contest_prize") == true and int(g.flags.get("contest_wins", 0)) == wins + 1
+		and said.back() == "Prize: 500 G and 2 x Sakura mochi", "first prize: money and two sakura mochi (%s)" % said.back())
+	g.hour = 16
+	check(g.festival_now() == "" and g.enter_contest().why == "none", "after the hours the table is gone")
+	g.message.disconnect(hear)
+	g.dialogue_requested.disconnect(talk)
+	g.event_requested.disconnect(ev)
+
+
+## Blossom Day's dango stall: a shop of its own, open only in the festival's hours.
+func _stall() -> void:
+	var g := _game()
+	g.new_game()
+	var opened: Array = []
+	var shop_open := func(id): opened.append(id)
+	g.shop_requested.connect(shop_open)
+	var s: Shop = g.shop("stall:blossom_day")
+	check(s != null and s.name == "Hanami Dango Stall" and s.stock("spring").size() == 3 and s.open_hour == 10 and s.close_hour == 16,
+		"the stall sells its stock in the festival hours")
+	var menu := ShopMenu.new(g, "stall:blossom_day")
+	check(menu.tabs == ["buy"], "the stall only sells %s" % [menu.tabs])
+	_set_day(g, "spring", 8, 9, 0)
+	g.maps.place("town", Vector2i(9, 8), Vector2i.UP)
+	check(not g.open_stall() and opened.is_empty(), "shut before the festival")
+	g.hour = 12
+	check(g.open_stall() and opened == ["stall:blossom_day"], "open during it")
+	var money: int = g.money
+	var r: Dictionary = g.shop_buy("stall:blossom_day", "food:dango", 2)
+	check(r.ok and g.money == money - 2 * int(g.foods.dango.price) and g.count("food:dango") == 2, "two dango bought (%s)" % [r])
+	_set_day(g, "summer", 20, 18, 0)
+	check(not g.open_stall(), "Lantern Night has no stall to open")
+	g.shop_requested.disconnect(shop_open)
+
+
+## DESIGN: no shipping payout on a festival day; the bin pays with the next day's.
+func _payout() -> void:
+	var g := _game()
+	g.new_game()
+	_set_day(g, "spring", 8, 17, 59)
+	g.bin_total = 300
+	var money: int = g.money
+	g._tick_minute()
+	check(g.hour == 18 and g.money == money and g.bin_total == 300, "18:00 on Blossom Day pays nothing")
+	g.end_day()
+	check(g.day == 9 and g.money == money and g.bin_total == 300, "nor does the night after it")
+	g.bin_total += 50
+	g.hour = 17
+	g.minute = 59
+	g._tick_minute()
+	check(g.money == money + 350 and g.bin_total == 0, "the next day's 18:00 pays both days (%d)" % (g.money - money))
+	check(not g.payout_held(), "a plain day holds nothing")
+	_set_day(g, "winter", 30, 20, 0)
+	g.bin_total = 100
+	g.end_day()
+	check(g.year == 2 and g.season == 0 and g.day == 1 and g.bin_total == 100, "Year's Turn holds it over the new year")
 
 
 ## Both views on the village on a festival day.
