@@ -25,16 +25,12 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 ## Next up
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
-<<<<<<< HEAD
 font are done. Charging tools are done (levels in data/tools.json, all at level 1). Next:
 milestone 3, **tool levels and upgrades** (a way to raise `Game.tool_levels`; the shop comes
-with milestone 8, so for now e.g. tool experience or a blacksmith stub). Later for weather: snow lying on the ground in winter, lightning flashes in storms.
+with milestone 8, so for now e.g. tool experience or a blacksmith stub). Weather is done for now
+(snow lies on the ground and roofs in winter, lightning flashes in storms; turn flashes off with
+`-- --no-flashes` until the settings menu has it).
 Later for menus: a pause menu (save, back to the title screen).
-=======
-font are done. Next: milestone 3, **charging tools** (hold to cover more cells, per tool
-level). Weather is done for now (snow lies on the ground and roofs in winter, lightning
-flashes in storms; turn flashes off with `-- --no-flashes` until the settings menu has it).
->>>>>>> refs/heads/claude/snow-lightning-b2757e
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -66,13 +62,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [ ] Holding and throwing items (shipping by throwing into the bin)
 4. **Save / load and menus**
    - [x] Save game (Game + FarmGrid to a versioned JSON file), load; F5 / F9, saves on sleep
-<<<<<<< HEAD
    - [x] Title screen (new game / continue / quit), Continue only for a save that loads
-   - [ ] Rucksack / storage menus, settings, key remapping
-=======
-   - [ ] Title screen (new game / continue)
    - [ ] Rucksack / storage menus, settings (incl. lightning flashes on / off), key remapping
->>>>>>> refs/heads/claude/snow-lightning-b2757e
 5. **Town and villagers**
    - [ ] Map switching (farm ↔ town ↔ houses), doors, indoor clock pause
    - [ ] Villagers with daily schedules from data (rule list → day plan), catch-up on map entry

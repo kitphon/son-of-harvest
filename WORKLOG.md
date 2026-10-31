@@ -10,7 +10,17 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
-<<<<<<< HEAD
+## 2026-10-31 — Fix conflict markers left in the docs
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the snow / lightning merge (139faab) committed `<<<<<<<` / `>>>>>>>` blocks in
+  AGENTS.md, ROADMAP.md and WORKLOG.md (the resolve script stopped early and that went
+  unnoticed; the code files were fine). Resolved them by keeping both sides: AGENTS lists
+  test_title and test_weather, the title-screen smoke run and `--no-flashes`; ROADMAP "Next
+  up" names tool upgrades, weather done and the pause menu; WORKLOG keeps all three entries.
+- Checked: `git grep` finds no conflict markers on main.
+- Left / next: the six branches started from 992327f still carry the markers; resolve them
+  at merge time.
+
 ## 2026-10-31 — Merged charging tools, title screen and snow / lightning
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three parallel sessions merged into main with `--no-ff`:
@@ -63,6 +73,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   shows 3 of 4 pips over the farmer and brackets on the 3 x 3 area ahead. Not checked:
   holding the key in a real game window.
 - Left / next: tool upgrades (raise `tool_levels`, shop later); over-charge not modelled.
+
 ## 2026-10-31 — Title screen (new game / continue)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `scenes/title.tscn` (scripts/ui/title_screen.gd) is the main scene now. "Harvest Son"
@@ -96,7 +107,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   Not checked: pressing keys / clicking in a real game window (no input headless).
 - Left / next: no pause menu or "back to title" yet; charging tools (other session) should
   add any new run state to the reset list in `Game.new_game()`.
-=======
+
 ## 2026-10-31 — Snow lying on the ground, lightning flashes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `Game.snow_cover` (0..100) is set each morning by `Game.next_snow_cover()` from
@@ -134,7 +145,6 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   flash frames 148-149 and 154-160, peak 121.9; with `--no-flashes` no frame above
   median + 3 (max 78.6, run at strength 0.4).
 - Left / next: the 2D view shows no snow; flashes off is a flag, not yet in a menu.
->>>>>>> refs/heads/claude/snow-lightning-b2757e
 
 ## 2026-10-31 — Merged HUD, Japanese props and save / load
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
