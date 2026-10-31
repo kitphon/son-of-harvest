@@ -38,7 +38,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300`
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
   --fixed-fps 30 --quit-after 20 -- --demo` writes `shots/frameNNNNNNNN.png` (git-ignored). `--demo`
-  starts at 10:00 with planted plots. Look at the last frame. Delete `shots/` afterwards.
+  starts at 10:00 with planted plots;
+  add `--weather=rain` (storm, snow, blizzard) to force the weather. Create `shots/` first. Look at the last frame. Delete `shots/` afterwards.
 - Run Python as `python -I` (numpy and Pillow are installed) for pixel checks.
 
 ## How the code is built

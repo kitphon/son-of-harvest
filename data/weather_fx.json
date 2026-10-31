@@ -1,0 +1,7 @@
+{
+	"sunny":    {"tint": "ffffff", "fall": ""},
+	"rain":     {"tint": "c4cfe0", "fall": "rain", "amount": 1500, "speed": 13.0, "wind": 0.8},
+	"storm":    {"tint": "97a2b8", "fall": "rain", "amount": 3000, "speed": 17.0, "wind": 4.0},
+	"snow":     {"tint": "e4eaf5", "fall": "snow", "amount": 800,  "speed": 1.1,  "wind": 0.3},
+	"blizzard": {"tint": "a9b3c6", "fall": "snow", "amount": 2600, "speed": 2.6,  "wind": 4.0}
+}

@@ -29,6 +29,8 @@ static func _make(key: String) -> Image:
 			return _building(parts[1])
 		"ground":   # ground:<grass|tilled|wet|path>:<variant> or ground:water:<land sides mask>
 			return _ground(parts[1], int(parts[2]))
+		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour)
+			return _fx(parts[1])
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
 
@@ -542,3 +544,32 @@ static func _building(kind: String) -> Image:
 			_px(img, 1, 5, 10, 1, Color("8a6a48"))
 			return img
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
+
+
+## Weather particles: a rain streak (thin, brighter at the head), a soft snow flake and a
+## splash ring laid flat on the ground.
+static func _fx(kind: String) -> Image:
+	match kind:
+		"rain":
+			var img := _blank(1, 8)
+			for y in 8:
+				img.set_pixel(0, y, Color(0.85, 0.9, 1.0, 0.3 + 0.6 * y / 7.0))
+			return img
+		"snow":
+			var img := _blank(4, 4)
+			_px(img, 1, 0, 2, 4, Color.WHITE)
+			_px(img, 0, 1, 4, 2, Color.WHITE)
+			for p in [Vector2i(0, 0), Vector2i(3, 0), Vector2i(0, 3), Vector2i(3, 3)]:
+				img.set_pixelv(p, Color(1, 1, 1, 0.35))
+			return img
+		"splash":
+			var img := _blank(8, 8)
+			var c := Color(0.85, 0.92, 1.0, 0.8)
+			_px(img, 2, 0, 4, 1, c)
+			_px(img, 2, 7, 4, 1, c)
+			_px(img, 0, 2, 1, 4, c)
+			_px(img, 7, 2, 1, 4, c)
+			for p in [Vector2i(1, 1), Vector2i(6, 1), Vector2i(1, 6), Vector2i(6, 6)]:
+				img.set_pixelv(p, c)
+			return img
+	return _draw(4, 4, [[0, 0, 4, 4, "ff00ff"]])

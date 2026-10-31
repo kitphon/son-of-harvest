@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Rain / snow particles and weather tint
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `WeatherFX` (scripts/world3d/weather_fx.gd) puts CPUParticles3D around the camera
+  target: rain as 1 x 8 streaks aligned to their velocity with splash rings on the ground,
+  snow as 4 x 4 flakes (billboards) that drift. Particles live in world space and fade in /
+  out, the volume is shifted towards the camera because high particles show farther away.
+  The look per weather is data (`data/weather_fx.json`: tint, amount, fall speed, wind);
+  a storm in winter uses the "blizzard" look (`Game.weather_look`). The old rain darkening
+  (x 0.8) is now the data tint times the day light, so the 2D view gets it too. Numbers:
+  rain tint c4cfe0 (cool grey-blue), storm 97a2b8 (heavier, wind 4 so the rain slants),
+  snow e4eaf5 (barely cooler), blizzard a9b3c6. `-- --weather=<kind>` forces today's weather.
+  Rain particle sprites come from PlaceholderArt (`fx:rain|snow|splash`).
+- Checked: `test_farm: OK (0 failed)` (new: every weather in weather.json has a look,
+  winter storm = blizzard, rainy noon light = rain tint, storm darker, fx sprites drawn);
+  headless `--quit-after 300` printed no errors or warnings; Movie Maker frames with
+  `--demo --weather=` rain, storm, snow and blizzard show streaks + splash rings, slanted
+  storm rain, flakes, and the tints. Thinner streaks (0.025) broke up at 480 x 270, so
+  they are 0.05 wide.
+- Left / next: no snow lying on the ground, no lightning; pixel font / HUD box next.
+
 ## 2026-10-31 — Japanese farmhouse
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the house follows ROADMAP "Mood and tone" now: dark charred-board skirting, white

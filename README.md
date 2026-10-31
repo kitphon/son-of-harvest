@@ -13,7 +13,8 @@ not in git) and press F5. From a shell:
     Godot_v4.7.2-stable_win64_console.exe --path .
 
 The flat top-down view is still there as `scenes/main_2d.tscn` (F6 on that scene).
-Add `-- --demo` to start at 10:00 with a few planted plots (for screenshots).
+Add `-- --demo` to start at 10:00 with a few planted plots (for screenshots), and
+`--weather=<sunny|rain|storm|snow|blizzard>` after it to force today's weather.
 
 Tests (farm rules, headless):
 

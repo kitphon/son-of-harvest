@@ -24,10 +24,10 @@ seed stand (a noren or a wooden roof), and the shipping bin.
 
 ## Next up
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
-objects, ground tiles and buildings are done. Next: milestone 2, **rain / snow particles and
-a weather tint** (GPUParticles3D or CPUParticles3D around the camera target; rain streaks,
-snow flakes, a grey-blue multiply on rainy days through the existing tint). Then the pixel
-font / HUD clock box.
+objects, ground tiles, buildings and weather particles are done. Next: milestone 2, **the
+pixel font and HUD clock box** (a warm paper / wood box for date, time and weather, a pixel
+font that can show Japanese later, a proper tool / item display). Later for weather: snow
+lying on the ground in winter, lightning flashes in storms.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 
@@ -47,7 +47,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [ ] Field object and crop real art (same keys: `crop:<id>:<growth>:<ripe|growing>`)
    - [x] Ground tiles instead of flat colours (grass, soil dry / wet / tilled, paths, water)
    - [x] House, bin, stand, fence as models or textured boxes
-   - [ ] Rain / snow particles, weather tint
+   - [x] Rain / snow particles, weather tint
    - [ ] Pixel font for the HUD, clock box, a proper item / tool display
 3. **Tools and the body**
    - [ ] Charging tools (hold to cover more cells, per tool level)

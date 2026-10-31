@@ -133,6 +133,30 @@ func _init() -> void:
 		check(not img.detect_alpha() and img.get_pixel(0, 0) != Color("ff00ff")
 			and (img.get_size() == Vector2i(16, 16) or not tiled), "build:%s drawn" % kind)
 
+	# Weather looks: every weather that can be rolled has one, a winter storm is a blizzard,
+	# the tint multiplies the day light, and the particle sprites are drawn.
+	var fx: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/weather_fx.json"))
+	var odds: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/weather.json"))
+	var game_script: GDScript = load("res://scripts/autoload/game.gd")
+	for season_id in odds:
+		for kind in odds[season_id].keys() + ["sunny"]:
+			var look: String = game_script.weather_look(kind, season_id)
+			check(fx.has(look) and fx[look].get("fall", "") in ["", "rain", "snow"], "%s in %s has a look" % [kind, season_id])
+	check(game_script.weather_look("storm", "winter") == "blizzard", "winter storm = blizzard")
+	check(game_script.weather_look("storm", "summer") == "storm", "summer storm = rain storm")
+	var gm: Node = game_script.new()
+	gm.weather_fx = fx
+	gm.hour = 12
+	var sunny_l: float = gm.light_color().get_luminance()
+	gm.weather_today = "rain"
+	check(gm.light_color().is_equal_approx(Color(fx.rain.tint)), "rainy noon = rain tint")
+	gm.weather_today = "storm"
+	check(gm.light_color().get_luminance() < Color(fx.rain.tint).get_luminance() and sunny_l == 1.0, "storm darker than rain, sun untinted")
+	gm.free()
+	for key in ["fx:rain", "fx:snow", "fx:splash"]:
+		var img := PlaceholderArt.tex(key).get_image()
+		check(img.get_pixel(0, 0) != Color("ff00ff") and img.get_used_rect().has_area(), "%s drawn" % key)
+
 	print("test_farm: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 

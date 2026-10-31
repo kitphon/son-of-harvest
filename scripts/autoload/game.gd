@@ -36,6 +36,7 @@ var bag: Dictionary = {}        # item id -> count; seeds are "seeds:<crop>"
 
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
+var weather_fx: Dictionary = {}    # look per weather: tint, falling particles
 var rng := RandomNumberGenerator.new()
 var farm: FarmGrid
 var _accum := 0.0
@@ -45,6 +46,7 @@ func _ready() -> void:
 	rng.randomize()
 	crops = _load_json("res://data/crops.json")
 	weather_chances = _load_json("res://data/weather.json")
+	weather_fx = _load_json("res://data/weather_fx.json")
 	_setup_input()
 	new_game()
 
@@ -54,8 +56,11 @@ func new_game() -> void:
 	farm.generate(rng)
 	bag = {"seeds:turnip": 2, "seeds:potato": 1}
 	weather_tomorrow = roll_weather(_tomorrow_season())
-	if "--demo" in OS.get_cmdline_user_args():
-		_demo_field()
+	for arg in OS.get_cmdline_user_args():
+		if arg == "--demo":
+			_demo_field()
+		elif arg.begins_with("--weather="):   # e.g. `-- --demo --weather=storm` for screenshots
+			weather_today = arg.trim_prefix("--weather=")
 
 
 ## `-- --demo`: 10:00 with a few sown, growing and ripe plots by the house, for screenshots.
@@ -116,7 +121,7 @@ func time_text() -> String:
 	return "%02d:%02d" % [hour, minute]
 
 
-## Day / night light: minute of the day -> colour, linear in between; rain darkens it.
+## Day / night light: minute of the day -> colour, linear in between, times the weather tint.
 const LIGHT := [
 	[0, Color(0.42, 0.45, 0.72)], [300, Color(0.42, 0.45, 0.72)], [420, Color.WHITE],
 	[960, Color.WHITE], [1080, Color(1.0, 0.8, 0.65)], [1200, Color(0.42, 0.45, 0.72)],
@@ -133,9 +138,16 @@ func light_color() -> Color:
 			var b: Array = LIGHT[i]
 			c = a[1].lerp(b[1], float(m - a[0]) / float(b[0] - a[0]))
 			break
-	if weather_today in ["rain", "storm"]:
-		c = c.darkened(0.2)
-	return c
+	return c * Color(weather_style().get("tint", "ffffff"))
+
+
+## Which look today's weather has: a storm in winter is a blizzard (snow, not rain).
+static func weather_look(weather: String, season_id: String) -> String:
+	return "blizzard" if weather == "storm" and season_id == "winter" else weather
+
+
+func weather_style() -> Dictionary:
+	return weather_fx.get(weather_look(weather_today, season_name()), {})
 
 
 func _tomorrow_season() -> int:

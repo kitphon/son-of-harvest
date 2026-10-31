@@ -19,6 +19,7 @@ var anim := FarmerAnim.new()
 var target_mark: MeshInstance3D
 var cam: Camera3D
 var tint: ColorRect
+var weather: WeatherFX
 
 
 func _ready() -> void:
@@ -76,7 +77,11 @@ func _ready() -> void:
 	sun.light_energy = 0.7
 	add_child(sun)
 
-	# Day / night: multiply the whole 3D picture, under the HUD.
+	weather = WeatherFX.new()
+	add_child(weather)
+	weather.show_weather(Game.weather_style())
+
+	# Day / night and the weather tint: multiply the whole 3D picture, under the HUD.
 	var layer := CanvasLayer.new()
 	layer.layer = 0
 	tint = ColorRect.new()
@@ -117,11 +122,13 @@ func _follow() -> void:
 		clampf(feet.z, CAM_MARGIN.y, FarmGrid.H - CAM_MARGIN.y))
 	cam.position = target + CAM_BACK * CAM_DIST
 	cam.look_at(target, Vector3.UP)
+	weather.follow(target)
 
 
 func _on_day_started() -> void:
 	player.position = FarmActions.HOME
 	player.facing = Vector2i.DOWN
+	weather.show_weather(Game.weather_style())
 	_update_tint()
 
 
