@@ -171,9 +171,10 @@ DESIGN asks for every building), `ambient` (which `places` of the ambient rules 
 - a prop with `flag` (a story flag name) only shows while that flag is set, or with
   `flag_value` too only while the flag has that value (MapManager.with_flags; a map is read
   again when one of its flags changes, and the views pick it up on the next map change). The
-  band 5 heart events' story props use it (StoryProps, art `story:<kind>` in both views):
-  `door_bell` on the farm (`hachiro_bell`), `store_sign` with `style` old / new in the village
-  (`sayo_sign`) and `ume_jar` in the farmhouse (`tome_grandma`). A prop with `use: "examine"`
+  band 5 and 6 heart events' story props use it (StoryProps, art `story:<kind>` in both
+  views): `door_bell` on the farm (`hachiro_bell`), `store_sign` with `style` old / new in the
+  village (`sayo_sign`), `ume_jar` in the farmhouse (`tome_grandma`) and `carp_streamer` on the
+  farm (`kota_streamer`, band 6). A prop with `use: "examine"`
   plays its `sound` (data/sfx.json) and shows its `message` when used, on any map;
 - `spawns`: named `[cell, facing]`, `start` needed (`--map=<id>@<spawn>`), the house has
   `home` (where a new day starts); the villagers' homes have `home` where their owner sits.
@@ -246,7 +247,12 @@ maps' tables) plays `data/events/heart_<id>.json` once (lines in
 `data/dialogue/heart_events.json`; each sets the flag `heart_<id>`). The second one, a row
 right after it with `{"<id>": [5, 6]}` and `seen: ["heart_<id>"]`, plays
 `data/events/heart_<id>_5.json` (lines in `data/dialogue/heart_events_5.json`; flag
-`heart_<id>_5`, plus `tome_grandma`, `sayo_sign` old / new or `hachiro_bell` from the scene). `-- --demo --hearts=N` starts everyone at the start of band N.
+`heart_<id>_5`, plus `tome_grandma`, `sayo_sign` old / new or `hachiro_bell` from the scene).
+The third, a row after that with `{"<id>": [6, 6]}` and `seen: ["heart_<id>_5"]`, plays
+`data/events/heart_<id>_6.json` (lines in `data/dialogue/heart_events_6.json`, each with a
+line of its own when the band 5 flag is set; flag `heart_<id>_6`, plus `kota_streamer`,
+`sayo_ledger` or `hachiro_strike`); after it, the talk files' `dear_` lines (band 6 and the
+flag) come before the band 4 .. 6 ones. `-- --demo --hearts=N` starts everyone at the start of band N.
 A villager stands `talk_turn_minutes` after a talk, and one walking into the farmer waits
 (`bump_reach`); that time is their delay, the whole plan runs later, at most `delay_max`
 minutes, cleared at 12:00 and 18:00. The farmer can't step within `block_reach` of anyone.

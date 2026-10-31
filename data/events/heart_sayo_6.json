@@ -1,0 +1,10 @@
+{
+	"_note": "Sayo's third heart event: the first talk once her heart band reaches 6, after heart_sayo_5, at the store counter, at home or in the village (triggers_store.json, triggers_sayo_house.json, triggers_town.json); it plays instead of opening the shop. She found her father's note in his last ledger (a line of its own once sayo_sign is set) and writes the farmer's name first in her own new one (sayo_ledger). Sets heart_sayo_6. Format: README.md, Events.",
+	"steps": [
+		{"do": "sound", "key": "coins"},
+		{"do": "wait", "seconds": 0.3},
+		{"do": "say", "dialogue": "heart_events_6", "at": "sayo"},
+		{"do": "affection", "who": "sayo", "amount": 5},
+		{"do": "set", "flags": {"heart_sayo_6": true, "sayo_ledger": true}}
+	]
+}

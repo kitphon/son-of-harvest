@@ -10,6 +10,43 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Band 6 heart scenes
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a third heart event per villager, `data/events/heart_<id>_6.json` with lines in
+  `data/dialogue/heart_events_6.json` (our own story, following on from bands 3 and 5).
+  Tome: her son asks her to move to the city, she stays (a line of its own with
+  `tome_grandma`); Kota: gives the farmer a carp streamer of the old black carp (a line of
+  its own with `kota_carp_promise`), sets `kota_streamer`; Sayo: her father's note on the last
+  page of his ledger (a line of its own once `sayo_sign` is set), she starts her own ledger
+  with the farmer's name first, sets `sayo_ledger`; Hachiro: the farmer strikes one blow on
+  the sickle he forges each year for his teacher's grave (a hammer sound between two parts; a
+  line of its own with `hachiro_bell`), sets `hachiro_strike`. Each also sets
+  `heart_<id>_6` and adds 5 affection, as the earlier ones. Trigger rows right after the band
+  5 ones in every table that has those (town, the three homes, store, smithy): `hearts`
+  `[6, 6]`, `seen: ["heart_<id>_5"]`, once. Talk files: a `dear_1..3` pick at band 6 with the
+  flag `heart_<id>_6`, before the band 4 .. 6 lines. Kota's streamer shows in the world: a
+  new story prop `carp_streamer` on the farm map at (1, 4), the front corner left of the
+  house, gated by `kota_streamer` (art `story:carp_streamer`, 26 x 40, pole and carp in one
+  picture; 3D as a standing sprite at 0.05 px so the carp sits just over the eave; the 2D
+  view draws it through StoryView). (1, 2) was tried first and hid behind the roof. Sayo's
+  ledger and Hachiro's sickle get no prop: neither is something that would be seen.
+  The font has no double quote, so Sayo reads her father's note in single quotes.
+- Checked: `test_relationships.gd` (band 6 plays at band 6 only, only after band 5 was
+  seen, band 5 comes first at band 6, each plays once, on every map; each band 6 event runs
+  on the real Game with and without the band 5 flag, sets its flags; both branches of every
+  look-back line; the band 6 talk lines only after the scene and at band 6, taking turns) and
+  `test_maps.gd` (the streamer shows only with its flag, beside the bell, on a free cell, its
+  art drawn). All 23 test scripts print `OK (0 failed)`; headless runs (title, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`, `--demo --flags=kota_streamer,hachiro_bell`,
+  `--demo --event=heart_hachiro_6 --hearts=6 --map=smithy`, `main_2d.tscn -- --demo
+  --flags=kota_streamer`) printed no errors or warnings. Screenshots: `--demo --map=town
+  --time=14:30 --event=heart_kota_6 --hearts=6` frame 59 shows Kota's first line with the
+  band 6 heart on the tag; `--demo --flags=kota_streamer,hachiro_bell` shows the streamer
+  left of the house (carp, white spot, red ring, gold ball) and the bell, in 3D and 2D.
+  `shots/` deleted.
+- Left / next: the villagers aren't placed as actors in any heart scene (the text box
+  speaks over an empty spot); a later pass could add `actor` steps.
+
 ## 2026-10-31 — Cooking tools
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: six kitchen tools of our own in `data/recipes.json` `tools`: kitchen knife 600 G,

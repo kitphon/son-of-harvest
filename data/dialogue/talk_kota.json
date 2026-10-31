@@ -3,6 +3,7 @@
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
+		{"if": {"band": [6, 6], "flags": ["heart_kota_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"band": [4, 6]}, "at": ["close_1", "close_2"]},
 		{"if": {"band": [0, 1]}, "at": ["new_1", "new_2"]},
 		{"if": {"time": ["14:00", "18:00"], "season": ["spring", "fall", "winter"]}, "at": ["pond_1", "pond_2"]},
@@ -16,6 +17,9 @@
 		{"id": "gift_birthday", "speaker": "kota", "face": "surprised", "text": "A birthday present? For me?! I'm keeping this forever. Well, until I eat it.", "next": "end"},
 		{"id": "again_1", "speaker": "kota", "face": "surprised", "text": "What? I'm busy! ...Okay, I'm not busy.", "next": "end"},
 		{"id": "again_2", "speaker": "kota", "face": "smile", "text": "You keep coming back. Are you lonely up on that farm?", "next": "end"},
+		{"id": "dear_1", "speaker": "kota", "face": "smile", "text": "I saw the streamer from the pond path! It was flapping like it was swimming upstream.", "next": "end"},
+		{"id": "dear_2", "speaker": "kota", "face": "surprised", "text": "Mum says I talk about your farm more than about school. That's because school is boring.", "next": "end"},
+		{"id": "dear_3", "speaker": "kota", "face": "calm", "text": "When the wind drops, the carp streamer looks sleepy. Like the real one under the willow.", "next": "end"},
 		{"id": "close_1", "speaker": "kota", "face": "smile", "text": "When I grow up I'm gonna have a farm too. Bigger than yours!"},
 		{"speaker": "kota", "face": "calm", "text": "...Can I help with the watering sometime?", "next": "end"},
 		{"id": "close_2", "speaker": "kota", "face": "smile", "text": "I'll show you my secret fishing spot. Don't tell Hachiro.", "next": "end"},

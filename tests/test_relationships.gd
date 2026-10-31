@@ -1,8 +1,8 @@
 extends SceneTree
 ## Headless checks for relationships: the heart band on the text box's name tag, birthdays
 ## (villager files, the calendar, gifts counting x5, the birthday lines), the small nightly
-## loss for villagers left alone, the heart events (one per villager at band 3 and one at band
-## 5), birthday day plans, fair weather and the HUD tag on a birthday, mine finds and cooked dishes as
+## loss for villagers left alone, the heart events (one per villager at bands 3, 5 and 6, and
+## the band 6 talk lines), birthday day plans, fair weather and the HUD tag on a birthday, mine finds and cooked dishes as
 ## gifts. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_relationships.gd
 
@@ -16,6 +16,7 @@ func _init() -> void:
 	_birthday_gifts()
 	_neglect()
 	_heart_event_rows()
+	_band6_talk()
 	_birthday_plans()
 	_mine_gifts()
 	_dish_gifts()
@@ -137,7 +138,7 @@ func _neglect() -> void:
 
 
 ## Every villager has a heart event at band 3: a talk row in each map's table where they can
-## be talked to, played once.
+## be talked to, played once; then one at band 5 and one at band 6, each after the last.
 func _heart_event_rows() -> void:
 	var maps := {"tome": ["town", "tome_house"], "kota": ["town", "kota_house"],
 		"sayo": ["town", "store", "sayo_house"], "hachiro": ["town", "smithy"]}
@@ -161,7 +162,13 @@ func _heart_event_rows() -> void:
 			check(t.pick("talk", s.merged({"hearts": {id: 6}, "seen": after}, true)) == five, "on %s, still at band 6 if missed" % m)
 			check(t.pick("talk", s.merged({"hearts": {id: 4}, "seen": after}, true)) != five, "on %s, not at band 4" % m)
 			check(t.pick("talk", s.merged({"hearts": {id: 5}}, true)) == "heart_" + id, "on %s, band 3's comes first" % m)
-			check(not t.pick("talk", s.merged({"hearts": {id: 6}, "seen": after.merged({five: true})}, true)) in ["heart_" + id, five],
+			# The third one at band 6 only, only after the one at 5 was seen, and once.
+			var six := "heart_%s_6" % id
+			var after5 := after.merged({five: true})
+			check(t.pick("talk", s.merged({"hearts": {id: 6}, "seen": after5}, true)) == six, "on %s, band 6 plays %s" % [m, six])
+			check(t.pick("talk", s.merged({"hearts": {id: 5}, "seen": after5}, true)) != six, "on %s, not at band 5" % m)
+			check(t.pick("talk", s.merged({"hearts": {id: 6}, "seen": after}, true)) == five, "on %s, band 5's comes before %s" % [m, six])
+			check(not t.pick("talk", s.merged({"hearts": {id: 6}, "seen": after5.merged({six: true})}, true)) in ["heart_" + id, five, six],
 				"on %s, each plays once" % m)
 
 
@@ -338,17 +345,21 @@ func _neglect_in_game() -> void:
 	check(g.affection.of("kota") > 120, "Kota, talked to every day, lost nothing")
 
 
-## Each heart event (bands 3 and 5) runs to the end on the real Game: flag set, affection up.
-## Kota's second one reads both ways, with and without his carp promise.
+## Each heart event (bands 3, 5 and 6) runs to the end on the real Game: flag set, affection
+## up, and band 6's own story flag. Kota's second and third read both ways, with and without
+## his carp promise; band 6 also with and without the band 5 flags its lines look back on.
+const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike"}
+const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell"}
+
 func _heart_events_play() -> void:
 	for id in Villagers.all():
-		for band in [3, 5]:
-			for promise in ([false, true] if id == "kota" and band == 5 else [false]):
-				var ev: String = "heart_" + id + ("_5" if band == 5 else "")
+		for band in [3, 5, 6]:
+			for promise in ([false, true] if (id == "kota" and band == 5) or band == 6 else [false]):
+				var ev: String = "heart_" + id + ({3: "", 5: "_5", 6: "_6"}[band])
 				var g := _game()
 				g.affection.add(id, int(Affection.rules().bands[band]))
 				if promise:
-					g.flags["kota_carp_promise"] = true
+					g.flags[FIVE_FLAGS[id] if band == 6 else "kota_carp_promise"] = "new" if id == "sayo" else true
 				var before: int = g.affection.of(id)
 				var r := EventRunner.open(ev, g)
 				check(r.error == "", "%s runs: %s" % [ev, r.error])
@@ -362,12 +373,49 @@ func _heart_events_play() -> void:
 				check(r.done(), "%s ends" % ev)
 				check(EventRunner.is_set(g.flags, ev), "%s sets its flag" % ev)
 				check(g.affection.of(id) > before, "%s likes the farmer more after %s" % [id, ev])
+				if band == 6 and SIX_FLAGS[id] != "":
+					check(EventRunner.is_set(g.flags, SIX_FLAGS[id]), "%s sets %s" % [ev, SIX_FLAGS[id]])
+				if band == 6:
+					check(g.heart_band(id) == 6, "%s: still band 6 after it" % ev)
 	var d := DialogueRunner.open("heart_events_5", {"kota_carp_promise": true}, "kota")
 	_next_line(d)
 	check("You promised" in d.text(), "with the promise Kota keeps it too: %s" % d.text())
 	d = DialogueRunner.open("heart_events_5", {}, "kota")
 	_next_line(d)
 	check("didn't" in d.text(), "without it he let the carp be anyway: %s" % d.text())
+	# Band 6's lines look back on band 5: each branch shows its own line.
+	var looks := {"tome": ["grandchild", "nag it"], "kota": ["promise", "Nobody else"],
+		"sayo": ["new sign", "minding his store"]}
+	for id in looks:
+		d = DialogueRunner.open("heart_events_6", {FIVE_FLAGS[id]: true}, id)
+		_next_line(d)
+		_next_line(d)
+		var with_flag := d.text()
+		d = DialogueRunner.open("heart_events_6", {}, id)
+		_next_line(d)
+		_next_line(d)
+		check(looks[id][0] in with_flag and looks[id][1] in d.text(), "%s's band 6 scene: %s / %s" % [id, with_flag, d.text()])
+	d = DialogueRunner.open("heart_events_6", {"hachiro_bell": true}, "hachiro_strike")
+	_next_line(d)
+	check("bell" in d.text(), "Hachiro asks after the bell: %s" % d.text())
+	d = DialogueRunner.open("heart_events_6", {}, "hachiro_strike")
+	_next_line(d)
+	check("remembers" in d.text(), "without it, the blade remembers: %s" % d.text())
+
+
+## Band 6's talk lines: after the band 6 scene, at band 6 only (the band 4 .. 6 lines before).
+func _band6_talk() -> void:
+	for id in Villagers.all():
+		var st := {"year": 1, "season": "spring", "day": 3, "weekday": "wed", "time": 600, "weather": "sunny",
+			"flags": {"heart_%s_6" % id: true}, "festival": "", "band": 6, "again": false, "birthday": false, "day_number": 0}
+		var dear := ["dear_1", "dear_2", "dear_3"]
+		check(Talk.pick(id, st) in dear, "%s at band 6 after the scene: %s" % [id, Talk.pick(id, st)])
+		check(not Talk.pick(id, st.merged({"flags": {}}, true)) in dear, "%s at band 6 before the scene keeps the old lines" % id)
+		check(not Talk.pick(id, st.merged({"band": 5}, true)) in dear, "%s at band 5: not the band 6 lines" % id)
+		var seen := {}
+		for n in 3:
+			seen[Talk.pick(id, st.merged({"day_number": n}, true))] = true
+		check(seen.size() == 3, "%s's three band 6 lines take turns" % id)
 
 
 func _next_line(d: DialogueRunner) -> void:

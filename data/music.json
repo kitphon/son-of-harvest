@@ -161,7 +161,7 @@
 	},
 	"rules": [
 		{"track": "title", "scenes": ["title"]},
-		{"track": "heart", "events": ["heart_hachiro", "heart_hachiro_5", "heart_kota", "heart_kota_5", "heart_sayo", "heart_sayo_5", "heart_tome", "heart_tome_5"]},
+		{"track": "heart", "events": ["heart_hachiro", "heart_hachiro_5", "heart_hachiro_6", "heart_kota", "heart_kota_5", "heart_kota_6", "heart_sayo", "heart_sayo_5", "heart_sayo_6", "heart_tome", "heart_tome_5", "heart_tome_6"]},
 		{"track": "morning", "events": ["opening", "first_morning"]},
 		{"track": "fest_blossom", "festivals": ["blossom_day"]},
 		{"track": "fest_lanterns", "festivals": ["lantern_night"]},

@@ -1,0 +1,9 @@
+{
+	"_note": "Tome's third heart event: the first talk once her heart band reaches 6, after heart_tome_5 (trigger rows in triggers_town.json, triggers_tome_house.json). Her son asks her to move to the city; she stays (a line of its own if tome_grandma is set). Sets heart_tome_6. Format: README.md, Events.",
+	"steps": [
+		{"do": "sound", "key": "chime_morning"},
+		{"do": "say", "dialogue": "heart_events_6", "at": "tome"},
+		{"do": "affection", "who": "tome", "amount": 5},
+		{"do": "set", "flags": {"heart_tome_6": true}}
+	]
+}

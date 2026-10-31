@@ -3,6 +3,7 @@
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
+		{"if": {"band": [6, 6], "flags": ["heart_tome_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"band": [4, 6]}, "at": ["close_1", "close_2", "close_3"]},
 		{"if": {"season": ["winter"]}, "at": ["winter_1", "winter_2"]},
 		{"if": {"band": [0, 1], "time": ["06:00", "11:00"]}, "at": ["new_morning"]},
@@ -18,6 +19,9 @@
 		{"id": "gift_birthday", "speaker": "tome", "face": "smile", "text": "A present, on my birthday? You'll make an old woman cry in the street.", "next": "end"},
 		{"id": "again_1", "speaker": "tome", "face": "smile", "text": "Still here? Don't mind me, I'm only resting my knees.", "next": "end"},
 		{"id": "again_2", "speaker": "tome", "face": "calm", "text": "Go on, the field won't hoe itself. I'll be here.", "next": "end"},
+		{"id": "dear_1", "speaker": "tome", "face": "smile", "text": "I put you in my last letter again. My son wrote back that he'd like to meet you, come New Year.", "next": "end"},
+		{"id": "dear_2", "speaker": "tome", "face": "calm", "text": "The persimmon by the shrine has more buds than last year. I counted them, twice.", "next": "end"},
+		{"id": "dear_3", "speaker": "tome", "face": "smile", "text": "Come in for tea whenever the lamp's lit. You needn't knock. Family doesn't knock.", "next": "end"},
 		{"id": "close_1", "speaker": "tome", "face": "smile", "text": "When you walk by, the morning feels a little longer. In a good way."},
 		{"speaker": "tome", "face": "calm", "text": "My husband used to keep that field, you know. He'd be glad to see it green.", "next": "end"},
 		{"id": "close_2", "speaker": "tome", "face": "smile", "text": "I made too much pickled radish again. Come by the house when you're hungry.", "next": "end"},
