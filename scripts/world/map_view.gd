@@ -9,6 +9,8 @@ const COLORS := {
 	"low_table": Color("5a3a24"), "tansu": Color("3e3028"), "andon": Color("ffe6a8"),
 	"village_house": Color("a0522d"), "torii": Color("c8442c"), "hokora": Color("8a6a48"),
 	"stone_lantern": Color("9a968e"), "pine": Color("2f5a34"),
+	"feed_box": Color("9a7048"), "nest": Color("d8bc78"), "incubator": Color("c8a868"),
+	"feed_sack": Color("a88a52"), "hatch": Color("4a2a14"),
 }
 
 var map: MapData

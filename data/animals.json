@@ -1,0 +1,86 @@
+{
+	"_about": "Farm animals (Animals, scripts/animals/animals.gd). Every number here is ours (WORKLOG 2026-10-31 Chickens). Happiness runs 0..happy_max; it moves once a night (Animals.day_end) and an hour at a time while the animals are outside (hour_passed).",
+	"kinds": {
+		"chicken": {
+			"name": "Chicken",
+			"chick_name": "Chick",
+			"home": "coop",
+			"happy_start": 30,
+			"_happy_start": "A bought or newly hatched chicken.",
+			"adult_days": 7,
+			"_adult_days": "A hatched chick grows up after this many nights; only adults lay.",
+			"lays": "egg",
+			"price": 1500,
+			"_price": "For the shop (another session): Game.add_animal(\"chicken\") once paid."
+		}
+	},
+	"homes": {
+		"coop": {
+			"map": "coop",
+			"capacity": 6,
+			"_capacity": "Chickens (and eggs in the incubator) the coop holds; one feed box place each.",
+			"feed_start": 40,
+			"_feed_start": "Portions of chicken feed in the sack on a new game (Game.animals.add_feed adds more).",
+			"spots": [[3, 2], [5, 2], [2, 3], [4, 3], [3, 4], [5, 4]],
+			"_spots": "Coop cells where animal 0, 1, ... stand inside (the coop map); one per place.",
+			"yard": [12, 4, 8, 3],
+			"_yard": "Farm cells x, y, w, h where the hens peck about when they are out (not solid)."
+		}
+	},
+	"happiness": {
+		"max": 100,
+		"fed": 3,
+		"_fed": "Ate from the feed box, or grazed outside long enough.",
+		"unfed": -8,
+		"grazing_hours": 4,
+		"_grazing_hours": "Hours outside in good weather that count as a meal (no feed taken).",
+		"sun": 2,
+		"_sun": "Extra for a day with at least grazing_hours outside in good weather.",
+		"bad_weather_hour": -3,
+		"_bad_weather_hour": "Per hour outside while it rains, storms or snows.",
+		"left_out_night": -10,
+		"_left_out_night": "Still outside when the day ends; they come back in by themselves.",
+		"petted": 2,
+		"_petted": "Once a day, by talking to / stroking the animal.",
+		"sick_day": -3
+	},
+	"good_weather": ["sunny"],
+	"_good_weather": "Weather in which the hens may go out (Animals.can_go_out).",
+	"out_hours": [6, 17],
+	"_out_hours": "The hatch opens from the first hour to the last (inclusive).",
+	"sickness": {
+		"below": 5,
+		"_below": "At or under this happiness a night may make an animal sick.",
+		"chance": 0.35,
+		"unfed_chance": 0.1,
+		"_unfed_chance": "Extra chance for a night without food.",
+		"recover_days": 5,
+		"_recover_days": "Without medicine an animal gets well by itself after this many nights (DESIGN: risks must be recoverable).",
+		"medicine": "medicine",
+		"_medicine": "The rucksack item that cures at once (sold by a shop later)."
+	},
+	"incubator": {
+		"hatch_days": 3,
+		"_hatch_days": "Nights until an egg in the incubator hatches into a chick."
+	},
+	"products": {
+		"egg": {
+			"grades": [
+				{"below": 40, "item": "egg"},
+				{"below": 75, "item": "egg_good"},
+				{"below": 101, "item": "egg_best"}
+			],
+			"_grades": "The egg laid is the first grade whose 'below' is over the hen's happiness."
+		}
+	},
+	"items": {
+		"egg": {"name": "Egg", "sell": 50},
+		"egg_good": {"name": "Good Egg", "sell": 75},
+		"egg_best": {"name": "Golden Yolk Egg", "sell": 110},
+		"medicine": {"name": "Animal Medicine", "sell": 0}
+	},
+	"names": ["Kome", "Mochi", "Azuki", "Kinako", "Goma", "Yuzu", "Sumi", "Hana", "Tama", "Ume", "Kiku", "Nori"],
+	"_names": "Given in turn to new animals.",
+	"start": ["chicken", "chicken"],
+	"_start": "Animals a new game (or a save from before animals) begins with."
+}

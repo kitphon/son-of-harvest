@@ -29,7 +29,9 @@ static func _make(key: String) -> Image:
 			return _crop(parts[1], int(parts[2]), parts[3] == "ripe")
 		"item":     # item:<id>, a picked crop held overhead or lying on the ground (12 x 12)
 			return _item(parts[1])
-		"build":    # build:<plaster|board|kawara|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
+		"animal":   # animal:<chicken|chick>:<idle|peck|walk|sick>:<frame>, a farm animal (side view, facing left)
+			return _animal(parts[1], parts[2], int(parts[3]))
+		"build":    # build:<plaster|board|kawara|thatch|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
 		"ground":   # ground:<grass|tilled|wet|path|tatami|floor|earth|gravel|wall>:<variant> or ground:water:<land sides mask>
 			return _ground(parts[1], int(parts[2]))
@@ -97,6 +99,8 @@ static func cell_key(farm: FarmGrid, d: Dictionary) -> String:
 ## The key for an item in the world (held overhead, flying, lying on the ground): a crop as
 ## its produce sprite, anything else (seeds, food, ...) as its slot icon.
 static func world_item_key(id: String) -> String:
+	if EGG_SHELLS.has(id):
+		return "item:" + id
 	crop_look(id)   # fills _looks
 	return "item:" + id if _looks.has(id) else item_key(id)
 
@@ -104,6 +108,8 @@ static func world_item_key(id: String) -> String:
 ## One piece of produce in the crop's fruit colour, shaped by its look: a root with its leaf
 ## tuft, a long or round fruit with a calyx, a tuber, a cob in its husk, a ribbed squash.
 static func _item(id: String) -> Image:
+	if EGG_SHELLS.has(id):
+		return _egg(id, 12)
 	var look := crop_look(id)
 	var img := _blank(12, 12)
 	var leaf := Color(look.get("leaf", "5f9e3a"))
@@ -147,6 +153,89 @@ static func _item(id: String) -> Image:
 		_px(img, 4, 3, 4, 1, leaf)                          # calyx and stem
 		_px(img, 6, 2, 1, 1, leaf.darkened(0.2))
 		_px(img, 4, 5, 1, 2, shine)
+	return _outline(img)
+
+
+## Egg shells per grade (data/animals.json items): plain white, a warm brown one, and the best
+## with a golden blush and a sparkle.
+const EGG_SHELLS := {"egg": Color("f2ecdc"), "egg_good": Color("d8b088"), "egg_best": Color("eccb7a")}
+const _HEN_WHITE := Color("f4f0e6")
+const _HEN_SHADE := Color("d8d0c0")
+const _COMB := Color("c8442c")
+const _BEAK := Color("e8a23a")
+const _CHICK := Color("f2d25a")
+
+
+## An egg standing on its round end, `size` square (12 in the world, 14 as a slot icon).
+static func _egg(id: String, size: int) -> Image:
+	var img := _blank(size, size)
+	var shell: Color = EGG_SHELLS.get(id, EGG_SHELLS.egg)
+	var cx := size / 2.0
+	_oval(img, cx, size * 0.58, size * 0.27, size * 0.36, shell.darkened(0.18))
+	_oval(img, cx - 0.4, size * 0.56, size * 0.23, size * 0.32, shell)
+	_px(img, int(cx) - 2, int(size * 0.38), 1, 2, shell.lightened(0.5))
+	if id == "egg_best":
+		_px(img, size - 3, 1, 1, 3, Color("fff6c0"))
+		_px(img, size - 4, 2, 3, 1, Color("fff6c0"))
+	return _outline(img)
+
+
+## A hen (14 x 12) or a chick (9 x 8) seen from the side, facing left (mirrored for right):
+## idle (frame 1 turns the head), peck (head down to the ground), walk (two steps), sick
+## (grey, fluffed up, head sunk, eyes shut).
+static func _animal(kind: String, pose: String, frame: int) -> Image:
+	if kind == "chick":
+		return _chick(pose, frame)
+	var img := _blank(14, 12)
+	var sick := pose == "sick"
+	var white := _HEN_WHITE.darkened(0.15) if sick else _HEN_WHITE
+	var shade := _HEN_SHADE.darkened(0.15) if sick else _HEN_SHADE
+	var legs := 0 if pose != "walk" else frame % 2 + 1
+	# Legs and feet.
+	for x in [6 + (1 if legs == 1 else 0), 9 - (1 if legs == 2 else 0)]:
+		_px(img, x, 9, 1, 2, _BEAK)
+		_px(img, x - 1, 11, 2, 1, _BEAK)
+	# Tail feathers up behind, the body, a folded wing.
+	_px(img, 11, 2, 2, 4, shade)
+	_px(img, 12, 1, 1, 2, shade)
+	_oval(img, 8, 6.8 if not sick else 7.2, 5.2 if not sick else 5.6, 3.4, white)
+	_oval(img, 8.5, 8.4, 4.0, 1.4, shade)
+	_line(img, Vector2i(7, 6), Vector2i(10, 7), shade)
+	# The head: up and alert, turned, pecking low, or sunk into the shoulders.
+	var head := Vector2(3.5, 3.5)
+	if pose == "peck":
+		head = Vector2(2.5, 7.0 + frame % 2)
+	elif sick:
+		head = Vector2(4.0, 5.0)
+	_oval(img, head.x, head.y, 2.3, 2.2, white)
+	var hx := int(head.x)
+	var hy := int(head.y)
+	_px(img, hx - 1, hy - 3, 3, 1, _COMB)            # comb
+	_px(img, hx, hy - 4, 1, 1, _COMB)
+	if not (pose == "idle" and frame % 2 == 1):
+		_px(img, hx - 3, hy, 2, 1, _BEAK)            # beak, out in front
+		_px(img, hx - 2, hy + 1, 1, 2, _COMB)        # wattle
+		_px(img, hx - 1, hy - 1, 1, 1, OUTLINE if not sick else shade.darkened(0.4))
+	else:
+		_px(img, hx - 2, hy, 1, 1, _BEAK)            # head turned: beak towards us
+		_px(img, hx - 1, hy + 1, 1, 1, _COMB)
+		_px(img, hx, hy - 1, 1, 1, OUTLINE)
+	return _outline(img)
+
+
+static func _chick(pose: String, frame: int) -> Image:
+	var img := _blank(9, 8)
+	var body := _CHICK.darkened(0.2) if pose == "sick" else _CHICK
+	var low := pose == "peck"
+	var step := frame % 2 if pose == "walk" else 0
+	_px(img, 4 - step, 6, 1, 2, _BEAK)
+	_px(img, 6 + step, 6, 1, 2, _BEAK)
+	_oval(img, 5, 4.5, 3.4, 2.4, body)
+	_oval(img, 2.5 if not low else 2.0, 2.5 if not low else 4.5, 1.8, 1.8, body)
+	var hy := 2 if not low else 4
+	_px(img, 0, hy + 1, 1, 1, _BEAK)
+	_px(img, 2, hy, 1, 1, OUTLINE)
+	_px(img, 5, 4, 2, 1, body.darkened(0.15))         # little wing
 	return _outline(img)
 
 
@@ -612,6 +701,17 @@ static func _ground(kind: String, n: int) -> Image:
 				var y := rng.randi_range(0, 14)
 				_px(img, x, y, 1, 1, Color("7a6a54"))
 				_px(img, x + 1, y, 1, 1, Color("a0907a") if i % 2 == 0 else Color("6e604c"))
+		"straw":
+			# Rice straw spread on the coop's earth floor: pale gold stalks lying every way.
+			img.fill(Color("8c7a62"))
+			for i in 22:
+				var x := rng.randi_range(0, 13)
+				var y := rng.randi_range(0, 15)
+				var c := Color("d8bc78") if i % 3 else Color("b89a5a")
+				if i % 2 == 0:
+					_px(img, x, y, 3, 1, c)
+				else:
+					_line(img, Vector2i(x, y), Vector2i(x + 2, y - 2), c)
 		"gravel":
 			# Raked shrine gravel: light grey stones on a paler ground.
 			img.fill(Color("c8c4b8"))
@@ -694,6 +794,18 @@ static func _building(kind: String) -> Image:
 				_px(img, col * 4 + 2, 0, 1, 16, Color("68737f"))
 			for row in 4:
 				_px(img, 0, row * 4 + 3, 16, 1, Color("444c56"))
+			return img
+		"thatch":
+			# A thick thatched roof of grass (kaya): straw-gold strands running down the slope
+			# (texture v), darker weathered ones between, a cut edge line every 8 px.
+			var img := _blank(16, 16)
+			img.fill(Color("a88a52"))
+			for i in 24:
+				var x := rng.randi_range(0, 15)
+				var y := rng.randi_range(0, 13)
+				_px(img, x, y, 1, rng.randi_range(2, 4), Color("c4a868") if i % 2 else Color("806838"))
+			for row in 2:
+				_px(img, 0, row * 8 + 7, 16, 1, Color("6a5430"))
 			return img
 		"sugi":
 			# Light cedar boards standing upright, 4 px wide, with a straight reddish grain.
@@ -881,6 +993,8 @@ static func _ui(kind: String, arg: String) -> Image:
 ## A crop (data/crops.json) as its fruit with a leaf tuft, in the crop's own colours; any
 ## other id as a furoshiki bundle, the cloth colour picked from the id so items differ.
 static func _item_icon(id: String) -> Image:
+	if EGG_SHELLS.has(id):
+		return _egg(id, 14)
 	var img := _blank(14, 14)
 	var look := crop_look(id)
 	if _looks.has(id):

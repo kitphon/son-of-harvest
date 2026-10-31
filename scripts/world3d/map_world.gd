@@ -83,6 +83,7 @@ func _make_prop(p: Dictionary) -> void:
 		"hokora": _hokora(mid)
 		"stone_lantern": _stone_lantern(mid)
 		"pine": _pine(mid)
+		"feed_box", "nest", "incubator", "feed_sack", "hatch": CoopProps.prop(self, p, mid, r)
 		_:
 			push_warning("MapWorld: no look for prop '%s'" % p.kind)
 			_box(Vector3(r.size.x, 0.5, r.size.y) * 0.9, mid + Vector3(0, 0.25, 0), flat_material(Color.MAGENTA))

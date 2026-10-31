@@ -42,6 +42,20 @@
 			],
 			"facing": "right",
 			"gate": true
+		},
+		{
+			"cells": [
+				[
+					15,
+					3
+				]
+			],
+			"to": "coop",
+			"spawn": [
+				4,
+				5
+			],
+			"facing": "up"
 		}
 	],
 	"spawns": {
@@ -58,6 +72,13 @@
 				6
 			],
 			"right"
+		],
+		"coop": [
+			[
+				15,
+				4
+			],
+			"down"
 		]
 	}
 }

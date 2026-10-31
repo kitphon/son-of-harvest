@@ -55,6 +55,10 @@ The rucksack and the storage chest are done (I opens the rucksack, the chest sta
 the house; slot counts in data/inventory.json, so a shop's rucksack upgrade is one number via
 `Inventory.grow("bag", n)`). The item held overhead is the rucksack's hand slot. Later for
 menus: key remapping.
+Chickens are in (milestone 7): the thatched coop right of the stand is a map (feed box,
+nests, incubator, hen hatch); rules in `Animals`, numbers in `data/animals.json`, saved
+(save version 2). The shop sells chickens through `Game.add_animal("chicken")`, feed through
+`Game.animals.add_feed(n)` and Animal Medicine as the rucksack item `medicine` (not sold yet).
 Next: milestone 5, **villagers with daily schedules from data** (rule list → day plan,
 catch-up on map entry) in the village, then the opening event and first shop visits
 (milestone 6) on the event trigger tables.
@@ -104,7 +108,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Event scripts + trigger tables per map (data/events; three small farm events)
    - [ ] Opening event, first visits to the shops
 7. **Animals**
-   - [ ] Chickens, cows / sheep, dog: feeding, happiness, produce grades, sickness
+   - [x] Chickens: coop map, feed box, happiness, egg grades, sickness / medicine, going out, incubator (data/animals.json)
+   - [ ] Cows / sheep (barn, milk / wool, brushing), dog
 8. **Shops and economy**
    - [ ] Shops with prices from data, house extensions, tool upgrades
    - [ ] Balance pass (income per season, seed costs)

@@ -130,6 +130,7 @@ func _make_buildings() -> void:
 	_make_chest()
 	_make_bin()
 	_make_stand()
+	CoopProps.coop(self)
 	_make_fence()
 
 

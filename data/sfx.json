@@ -28,6 +28,13 @@
 		"pick": {"volume_db": -14, "pitch": [0.95, 1.1], "layers": [
 			{"kind": "tone", "freq": 380, "freq_end": 640, "dur": 0.1, "attack": 0.003, "decay": 0.035},
 			{"kind": "noise", "color": "brown", "lp": 1200, "dur": 0.08, "attack": 0.002, "decay": 0.02, "gain": 0.5}]},
+		"hen_cluck": {"volume_db": -16, "pitch": [0.9, 1.15], "layers": [
+			{"kind": "tone", "freq": 820, "freq_end": 560, "partials": [[1, 1], [2, 0.4], [3, 0.2]], "dur": 0.07, "attack": 0.003, "decay": 0.02},
+			{"kind": "tone", "freq": 900, "freq_end": 600, "partials": [[1, 1], [2, 0.4], [3, 0.2]], "dur": 0.08, "at": 0.11, "attack": 0.003, "decay": 0.025, "gain": 0.8},
+			{"kind": "noise", "color": "brown", "lp": 2500, "hp": 400, "dur": 0.05, "attack": 0.002, "decay": 0.015, "gain": 0.25}]},
+		"feed_pour": {"volume_db": -14, "pitch": [0.95, 1.05], "layers": [
+			{"kind": "grains", "count": 26, "dur": 0.45, "hp": 1500, "lp": 6000, "grain": 0.003, "gain": 0.5},
+			{"kind": "noise", "color": "brown", "lp": 1100, "dur": 0.4, "attack": 0.03, "decay": 0.12, "gain": 0.35}]},
 		"eat": {"volume_db": -14, "pitch": [0.9, 1.1], "layers": [
 			{"kind": "noise", "color": "brown", "lp": 1600, "hp": 150, "dur": 0.09, "attack": 0.004, "decay": 0.03},
 			{"kind": "grains", "count": 5, "dur": 0.08, "hp": 1200, "lp": 4000, "grain": 0.004, "gain": 0.4},

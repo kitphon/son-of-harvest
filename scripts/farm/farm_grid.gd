@@ -19,6 +19,8 @@ const CLEAR_RULES := {
 }
 
 const CHEST := Vector2i(7, 3)   # the storage chest, right of the house
+const COOP := Rect2i(13, 1, 5, 3)    # the chicken coop's footprint, its door in the front middle
+const COOP_DOOR := Vector2i(15, 3)
 const WEED_CHANCE := 0.01   # per empty cell per night, not in winter
 const STORM_LOSS := 1.0 / 16.0
 
@@ -53,6 +55,7 @@ func generate(rng: RandomNumberGenerator) -> void:
 	fixed[CHEST] = "chest"
 	fixed[Vector2i(8, 3)] = "bin"
 	fixed[Vector2i(10, 3)] = "stand"
+	_place_coop()
 	for y in range(2, 5):
 		for x in range(25, 29):
 			fixed[Vector2i(x, y)] = "pond"
@@ -76,11 +79,25 @@ func generate(rng: RandomNumberGenerator) -> void:
 ## Fixed spots added after the first saves (the storage chest by the house): a farm loaded
 ## from an older save gets them, on a cleared cell, when their cell is free.
 func add_missing_fixed() -> void:
+	if not "coop" in fixed.values():
+		_place_coop()
+		cells_changed.emit()
 	if "chest" in fixed.values() or fixed_at(CHEST) != "":
 		return
 	cells[CHEST.y * W + CHEST.x] = _empty_cell()
 	fixed[CHEST] = "chest"
 	cells_changed.emit()
+
+
+## The chicken coop (cleared ground, then its cells; saves from before animals get it too).
+func _place_coop() -> void:
+	for y in range(COOP.position.y, COOP.end.y):
+		for x in range(COOP.position.x, COOP.end.x):
+			var c := Vector2i(x, y)
+			cells[y * W + x] = _empty_cell()
+			items.erase(c)
+			fixed[c] = "coop"
+	fixed[COOP_DOOR] = "coop_door"
 
 
 func in_bounds(c: Vector2i) -> bool:
