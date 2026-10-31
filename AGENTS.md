@@ -55,6 +55,10 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   add `--weather=rain` (storm, snow, blizzard) to force the weather, `--no-flashes` to turn
   lightning off. Create `shots/` first. Look at the last frame. Delete `shots/` afterwards.
 >>>>>>> refs/heads/claude/snow-lightning-b2757e
+- Audio (sound data, synthesis, keys used in code, ambient picker): `res://tests/test_audio.gd`
+  must print `test_audio: OK (0 failed)`. Headless runs and Movie Maker runs start no sound
+  (`Sfx.silent`); add `-- --movie-audio` to a Movie Maker run to record the mix as
+  `shots/frame.wav`.
 - Run Python as `python -I` (numpy and Pillow are installed) for pixel checks.
 
 ## How the code is built

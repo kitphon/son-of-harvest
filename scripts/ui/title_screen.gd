@@ -101,9 +101,11 @@ func _input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 	if event.is_action_pressed("ui_up") or event.is_action_pressed("move_up"):
 		menu.move(-1)
+		Sfx.play("menu_move")
 		_refresh()
 	elif event.is_action_pressed("ui_down") or event.is_action_pressed("move_down"):
 		menu.move(1)
+		Sfx.play("menu_move")
 		_refresh()
 	elif event.is_action_pressed("ui_accept"):
 		_do(menu.choose())
@@ -117,6 +119,7 @@ func _on_row_input(event: InputEvent, item: String) -> void:
 
 
 func _do(item: String) -> void:
+	Sfx.play("menu_ok")
 	match item:
 		"new":
 			Game.new_game()

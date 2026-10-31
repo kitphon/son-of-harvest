@@ -180,6 +180,7 @@ func _on_day_started() -> void:
 
 func _update_flash(delta: float) -> void:
 	var b := lightning.step(delta) if Game.clock_running else 0.0
+	if lightning.started: Sfx.thunder_after_flash()
 	var style := Game.lightning_style()
 	var sky := Color(style.get("sky", "ffffff")) * float(style.get("strength", 0.0)) * b
 	flash.color = Color(sky.r, sky.g, sky.b, 1.0)

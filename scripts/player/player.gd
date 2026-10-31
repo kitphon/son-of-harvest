@@ -38,6 +38,7 @@ func _physics_process(delta: float) -> void:
 		var step := dir * speed * delta
 		_try_move(Vector2(step.x, 0))   # one axis at a time, so walls slide
 		_try_move(Vector2(0, step.y))
+		Sfx.walk(step.length(), farm, cell_of(position))
 		queue_redraw()
 	if Input.is_action_just_pressed("use_tool"):
 		if Game.max_charge(Game.current_tool()) > 0:

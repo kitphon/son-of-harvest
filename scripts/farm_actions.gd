@@ -18,6 +18,7 @@ static func interact(c: Vector2i) -> void:
 	var farm := Game.farm
 	match farm.fixed_at(c):
 		"bin":
+			Sfx.play("bin_lid")
 			var got := Game.ship_produce()
 			Game.message.emit("Put %d G of crops in the bin" % got if got > 0 else "Nothing to ship")
 		"door":
@@ -28,6 +29,7 @@ static func interact(c: Vector2i) -> void:
 			var id := farm.harvest(c)
 			if id != "":
 				Game.add_item(id)
+				Sfx.play("pick")
 				Game.message.emit("Picked a %s" % Game.crops[id].name)
 
 
@@ -53,6 +55,7 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	var c := origin + facing
 	if tool == "can" and farm.fixed_at(c) == "pond":
 		Game.water = Game.WATER_MAX
+		Sfx.play("pond_fill")
 		Game.message.emit("Filled the watering can")
 		Game.changed.emit()
 		return
@@ -66,6 +69,7 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 		var n := farm.sow(c, s, Game.season_name())
 		if n > 0:
 			Game.take_item("seeds:" + s)
+			Sfx.play("tool_seeds")
 			Game.message.emit("Sowed %d cells" % n)
 		elif not (Game.season_name() in Game.crops[s].seasons):
 			Game.message.emit("%s won't grow in %s" % [Game.crops[s].name, Game.season_name()])
@@ -78,6 +82,7 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	# A swing always costs stamina, even when it hits nothing.
 	if not Game.spend_stamina(int(rule.stamina)):
 		return
+	Sfx.play("tool_" + tool)
 	match tool:
 		"hoe":
 			for cell in cells:

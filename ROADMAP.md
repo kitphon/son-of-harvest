@@ -35,6 +35,8 @@ font are done. Next: milestone 3, **charging tools** (hold to cover more cells, 
 level). Weather is done for now (snow lies on the ground and roofs in winter, lightning
 flashes in storms; turn flashes off with `-- --no-flashes` until the settings menu has it).
 >>>>>>> refs/heads/claude/snow-lightning-b2757e
+Sound effects and ambient loops are in (milestone 10, first step); later for audio: music,
+and the settings screen's volume sliders call `Sfx.set_volume("SFX" / "Ambient", 0..1)`.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -88,7 +90,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [ ] Balance pass (income per season, seed costs)
 9. **Festivals, mining / fishing, relationships, endings**
 10. **Audio and release**
-    - [ ] Music, sound effects
+    - [x] Sound effects and ambient loops (synthesized from data/sfx.json, SFX / Ambient busses)
+    - [ ] Music; volume sliders in the settings screen (`Sfx.set_volume`)
     - [ ] Windows export (.exe), icon, settings
 
 ## Tools of record

@@ -45,6 +45,10 @@ Save / load and the title menu: the same with `res://tests/test_save.gd` and
 - Shipping bin pays at 18:00 (or when you sleep); the seed stand sells this season's seeds.
 - Stamina: each swing costs stamina; sleep before midnight restores it all, after midnight
   3/4, passing out at 2:00 half.
+- Sound: every effect and ambient loop is made in code from recipes in `data/sfx.json`
+  (`scripts/audio/sfx_synth.gd`, no sound files). Tools, footsteps by ground, bin lid,
+  payday coins, menu, a chime at 6:00; rain, storm wind and thunder after lightning,
+  cicadas on summer days, crickets at night, cross-faded by weather / season / hour.
 
 ## Camera
 `scripts/main_3d.gd` uses the field camera geometry of Harvest Moon: Back to Nature, measured
@@ -62,6 +66,8 @@ follows the player with no lag and stops a few cells inside the fence.
 - `scripts/player/player.gd`: movement and collision (the 3D view hides it and follows it).
 - `scripts/art/placeholder_art.gd`: pixel sprites made in code until there is real art.
 - `scripts/world3d/farmer_anim.gd`: picks the farmer's frame (pose, facing, mirror, timing).
+- `scripts/autoload/sfx.gd` (Sfx): plays sounds by key, SFX / Ambient busses with
+  `set_volume(bus, 0..1)`; `scripts/audio/ambient_picker.gd` picks the ambient loops.
 - `data/*.json`: crops and weather, tuned without touching code.
 
 ## Plan and handoff
