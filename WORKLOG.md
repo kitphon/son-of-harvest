@@ -10,6 +10,15 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Mood and tone: Japanese countryside
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: at the user's request, ROADMAP got a "Mood and tone" section: the game should feel
+  like rural Japan (satoyama village, Japanese buildings, nature, festivals, food, music
+  and UI), with our own designs. The current western-style house and fence should move
+  that way when next touched.
+- Checked: docs only.
+- Left / next: ROADMAP → Next up (rain / snow particles and weather tint).
+
 ## 2026-10-31 — Textured house, shipping bin, seed stand and fence
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user said the farmer still looks a bit odd but asked to set it aside and move

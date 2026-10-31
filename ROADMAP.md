@@ -4,6 +4,23 @@ Goal: a cozy farming life-sim with Back-to-Nature-style camera and feel, made en
 own code, art, story and numbers, shipped as a Windows .exe from Godot 4.7.
 Rules per system: docs/DESIGN.md. What was done and how it was checked: WORKLOG.md.
 
+## Mood and tone
+The game should feel Japanese: a quiet countryside village in the spirit of rural Japan
+(satoyama), cozy and nostalgic rather than generic western farm. Let it guide every look
+and feel choice from here on, always with our own designs:
+- Buildings: wooden houses with tiled or thatched roofs, engawa porches, sliding doors,
+  noren curtains on shops, stone lanterns, a small shrine with a torii.
+- Nature: rice paddies, bamboo, cherry blossoms in spring, cicadas and fireflies in summer,
+  red maples in fall, quiet snow in winter.
+- Festivals and seasons follow Japanese customs (hanami, summer matsuri with lanterns and
+  fireworks, moon viewing, New Year).
+- Food, crops and items lean Japanese (rice, daikon, eggplant, green tea, mochi, onigiri).
+- Music and sound: soft, acoustic, with Japanese instruments (shakuhachi, koto, shamisen)
+  and nature sounds.
+- UI: warm paper and wood textures; a pixel font that can show Japanese text later.
+Already-built placeholders (western-style house and fence) should move towards this when
+they are next touched.
+
 ## Next up
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
 objects, ground tiles and buildings are done. Next: milestone 2, **rain / snow particles and
