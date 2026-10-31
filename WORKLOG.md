@@ -10,6 +10,43 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Charging tools
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: hold the use button with hoe / can / sickle / hammer / axe to charge; the charge goes
+  up one step every 0.6 s (the farmer stands still), letting go swings the tool at that step.
+  New `data/tools.json`: per tool `max_charge` per level (5 levels: 1, 2, 3, 4, 4) and per
+  charge step an `area` drawn as text facing down (`@` farmer, `#` cell), `stamina`, and for
+  hammer / axe `hits` (one cell, harder) instead of a bigger area; the can has
+  `water_per_cell`. FarmGrid: `area_offsets()` reads a drawing, `turn()` turns it to the
+  facing, `area_cells()` drops cells off the grid and on buildings / pond / fence;
+  `hit(c, tool, power)` adds several hits at once. Game: `tool_levels` (all 1 in a new game),
+  `max_charge()`, `charge_after(seconds)`, `charge_rule()` (a charge above the level is cut to
+  it); `TOOL_COST` became `SEED_COST` (the seed bag doesn't charge). FarmActions works from the
+  farmer's cell and facing: hoe tills / sickle cuts every area cell, the can pours one water
+  per area cell nearest rows first and stops early when short, the pond fills it at any charge.
+  The Player signal is now `action(kind, origin, facing, charge)`. Marker: while charging the
+  target brackets cover the whole area and pips (vermilion = reached, paper = still to come)
+  float over the farmer (3D Sprite3D, 2D drawn); no HUD change. Save: `tool_levels` in
+  `Game.to_dict()` / `from_dict()` (known tools, whole 1..levels); a save without it loads
+  with every tool at level 1. README controls updated.
+- Balance (ours): areas hoe 1 / line 3 / line 5 / 3 x 3 / 3 x 5, can 1 / 3 / 3 x 2 / 3 x 3 /
+  5 x 3, sickle 1 / 3 / 5 (sides too) / 8 around / 24 around; stamina hoe 2-3-5-7-10,
+  can and sickle 1-2-3-4-6, hammer and axe 2-3-5-7-9 with hits 1-2-4-6-8. A charge always
+  costs less than tapping each cell, so charging pays; level 1 already has one charge so the
+  mechanic is there from day one. Level 5 adds no charge yet (left for upgrades to give
+  something else, e.g. cheaper swings).
+- Checked: `test_farm: OK (0 failed)` (area drawings, the four facings, every charge step has
+  an area and costs more than the last, edge cells: fence, off the grid, house, pond; power
+  hits; levels and charge timing; pips texture; FarmActions on the Game autoload: charged hoe
+  line, stamina, a charge past the level, can 6 cells for 6 water, a 2-water can, pond fill,
+  sickle 3 across, axe two hits, too tired). `test_save: OK (0 failed)` (levels round trip;
+  refused: not a dictionary, 0, 6, unknown tool, 2.5; an old save without levels loads at 1).
+  Headless `--quit-after 300` (with and without `--demo`) and the 2D scene printed no errors.
+  Movie Maker frame (`--demo`, a temporary press of the use button on a level-4 hoe, removed)
+  shows 3 of 4 pips over the farmer and brackets on the 3 x 3 area ahead. Not checked:
+  holding the key in a real game window.
+- Left / next: tool upgrades (raise `tool_levels`, shop later); over-charge not modelled.
+
 ## 2026-10-31 — Merged HUD, Japanese props and save / load
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three parallel sessions worked on their own branches; merged into main with

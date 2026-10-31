@@ -42,6 +42,8 @@ func _init() -> void:
 	a.tool_index = 2
 	a.seed_index = 4
 	a.bag = {"seeds:turnip": 3, "corn": 2}
+	a.tool_levels.hoe = 3
+	a.tool_levels.can = 5
 	var saved: Dictionary = a.to_dict()
 	check(SaveGame.write(a, PATH) == "", "write save")
 
@@ -64,6 +66,7 @@ func _init() -> void:
 	check(grid.fixed == f.fixed and grid.fixed_at(Vector2i(4, 3)) == "door", "buildings back")
 	check(typeof(grid.cell(Vector2i(4, 10)).stage) == TYPE_INT and typeof(b.money) == TYPE_INT, "numbers come back as ints")
 	check(b.current_tool() == "sickle" and b.hour == 14 and b.weather_tomorrow == "storm", "game fields back")
+	check(b.tool_level("hoe") == 3 and b.tool_level("can") == 5 and b.max_charge("hoe") == 3, "tool levels back")
 	# The loaded farm keeps working by the rules.
 	grid.water_cell(Vector2i(4, 10))
 	grid.day_end("spring", "sunny", rng)
@@ -77,7 +80,9 @@ func _init() -> void:
 		_put(bad)
 		check(SaveGame.read(b, PATH) != "", "refused: %s" % bad)
 	for broken in [["day", 31], ["hour", "noon"], ["stamina", 500], ["tool", "spoon"], ["seed", "rice"],
-			["bag", {"corn": -1}], ["weather_today", 3]]:
+			["bag", {"corn": -1}], ["weather_today", 3], ["tool_levels", [1]],
+			["tool_levels", {"hoe": 0}], ["tool_levels", {"hoe": 6}], ["tool_levels", {"spoon": 1}],
+			["tool_levels", {"hoe": 2.5}]]:
 		var d := saved.duplicate(true)
 		d[broken[0]] = broken[1]
 		_put(JSON.stringify({"version": 1, "game": d}))
@@ -95,6 +100,13 @@ func _init() -> void:
 		check(SaveGame.read(b, PATH) != "", "refused broken farm (%s)" % farm_break)
 	check(b.to_dict() == before, "failed loads changed nothing")
 
+	# A save from before charging tools (no tool_levels) loads with every tool at level 1.
+	var old := saved.duplicate(true)
+	old.erase("tool_levels")
+	_put(JSON.stringify({"version": 1, "game": old}))
+	check(SaveGame.read(b, PATH) == "", "old save without tool levels loads")
+	check(b.tool_level("hoe") == 1 and b.tool_level("can") == 1, "old save: tools at level 1")
+
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
 	a.free()
 	b.free()
@@ -105,6 +117,8 @@ func _init() -> void:
 func _game(game_script: GDScript, crops: Dictionary, seed_value: int) -> Node:
 	var g: Node = game_script.new()
 	g.crops = crops
+	g.tools_data = JSON.parse_string(FileAccess.get_file_as_string("res://data/tools.json"))
+	g.reset_tool_levels()
 	g.rng.seed = seed_value
 	g.farm = FarmGrid.new(crops)
 	g.farm.generate(g.rng)

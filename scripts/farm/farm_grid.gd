@@ -163,8 +163,9 @@ func harvest(c: Vector2i) -> String:
 	return id
 
 
-## A swing of sickle / hammer / axe. Returns 0 nothing, 1 a hit, 2 cleared.
-func hit(c: Vector2i, tool: String) -> int:
+## A swing of sickle / hammer / axe; `power` hits at once (a charged swing).
+## Returns 0 nothing, 1 a hit, 2 cleared.
+func hit(c: Vector2i, tool: String, power := 1) -> int:
 	if not can_farm(c):
 		return 0
 	var d := cell(c)
@@ -173,13 +174,49 @@ func hit(c: Vector2i, tool: String) -> int:
 	var rule: Dictionary = CLEAR_RULES[d.obj]
 	if rule.tool != tool:
 		return 0
-	d.hits += 1
+	d.hits += maxi(power, 1)
 	if d.hits < rule.hits:
 		return 1
 	d.obj = Obj.NONE
 	d.hits = 0
 	cells_changed.emit()
 	return 2
+
+
+## A tool area from data/tools.json (rows of text, drawn facing down: '@' the farmer, '#' a
+## cell, rows below '@' ahead) as offsets Vector2i(side, ahead), in the order written.
+static func area_offsets(rows: Array) -> Array[Vector2i]:
+	var me := Vector2i(-1, -1)
+	for y in rows.size():
+		var x := String(rows[y]).find("@")
+		if x >= 0:
+			me = Vector2i(x, y)
+	var out: Array[Vector2i] = []
+	if me.x < 0:
+		return out
+	for y in rows.size():
+		var row := String(rows[y])
+		for x in row.length():
+			if row[x] == "#":
+				out.append(Vector2i(x, y) - me)
+	return out
+
+
+## An offset from area_offsets turned to the way the farmer faces: "ahead" goes along
+## `facing`, "side" along facing turned a quarter (so facing down keeps the drawing as is).
+static func turn(offset: Vector2i, facing: Vector2i) -> Vector2i:
+	return facing * offset.y + Vector2i(facing.y, -facing.x) * offset.x
+
+
+## The farm cells a tool area covers from the farmer's cell; cells off the grid and on
+## buildings / the pond / the fence are left out.
+func area_cells(origin: Vector2i, facing: Vector2i, rows: Array) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for o in area_offsets(rows):
+		var c := origin + turn(o, facing)
+		if can_farm(c):
+			out.append(c)
+	return out
 
 
 ## Everything the farm holds as plain JSON-safe data (SaveGame writes it).

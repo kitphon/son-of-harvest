@@ -1,17 +1,17 @@
 class_name FarmActions
 extends RefCounted
-## Turns the player's actions (tool / interact on a cell) into farm rules.
-## Shared by the 2D and the 3D view.
+## Turns the player's actions (tool / interact from the farmer's cell and facing) into farm
+## rules. Shared by the 2D and the 3D view.
 
 const T := 16
 const HOME := Vector2(4 * T + 8, 4 * T + 10)   # in front of the door, in player pixels
 
 
-static func on_action(kind: String, c: Vector2i) -> void:
+static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	if kind == "interact":
-		interact(c)
+		interact(origin + facing)
 	else:
-		use_tool(c)
+		use_tool(origin, facing, charge)
 
 
 static func interact(c: Vector2i) -> void:
@@ -45,9 +45,12 @@ static func buy_seeds() -> void:
 		Game.message.emit("Bought %s seeds for %d G" % [data.name, price])
 
 
-static func use_tool(c: Vector2i) -> void:
+## A tool from the farmer's cell `origin` towards `facing`. `charge` is the charge step the
+## button was held to; it picks the area and the stamina cost from data/tools.json.
+static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	var farm := Game.farm
 	var tool := Game.current_tool()
+	var c := origin + facing
 	if tool == "can" and farm.fixed_at(c) == "pond":
 		Game.water = Game.WATER_MAX
 		Game.message.emit("Filled the watering can")
@@ -58,7 +61,7 @@ static func use_tool(c: Vector2i) -> void:
 		if Game.count("seeds:" + s) == 0:
 			Game.message.emit("No %s seeds (Q = next seed)" % Game.crops[s].name)
 			return
-		if not Game.spend_stamina(Game.TOOL_COST.seeds):
+		if not Game.spend_stamina(Game.SEED_COST):
 			return
 		var n := farm.sow(c, s, Game.season_name())
 		if n > 0:
@@ -70,18 +73,28 @@ static func use_tool(c: Vector2i) -> void:
 	if tool == "can" and Game.water == 0:
 		Game.message.emit("The can is empty. Fill it at the pond.")
 		return
+	var rule := Game.charge_rule(tool, charge)
+	var cells := farm.area_cells(origin, facing, rule.area)
 	# A swing always costs stamina, even when it hits nothing.
-	if not Game.spend_stamina(Game.TOOL_COST[tool]):
+	if not Game.spend_stamina(int(rule.stamina)):
 		return
 	match tool:
 		"hoe":
-			farm.till(c)
+			for cell in cells:
+				farm.till(cell)
 		"can":
-			Game.water -= 1
-			farm.water_cell(c)
+			# Water per cell the can pours on, nearest rows first; a short can stops early.
+			var per := int(Game.tools_data.tools.can.get("water_per_cell", 1))
+			cells.resize(mini(cells.size(), Game.water / per))
+			Game.water -= cells.size() * per
+			for cell in cells:
+				farm.water_cell(cell)
 			Game.changed.emit()
 		_:
-			if farm.hit(c, tool) == 1:
+			var tough := false
+			for cell in cells:
+				tough = farm.hit(cell, tool, int(rule.get("hits", 1))) == 1 or tough
+			if tough:
 				Game.message.emit("It's tough. Keep hitting.")
 
 

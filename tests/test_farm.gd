@@ -207,8 +207,137 @@ func _init() -> void:
 	var clock_w := 6 + PixelFont.width("Winter 30, Year 99") + 4
 	check(clock_w <= HudLayout.BOXES.clock.size.x, "longest date fits the clock box")
 
+	_charge_rules(crops, game_script)
+	# FarmActions works on the Game autoload, which is in the tree from the first frame.
+
+
+func _process(_delta: float) -> bool:
+	_charge_actions()
 	print("test_farm: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
+	return true
+
+
+## Charging tools: area patterns turned by facing, edge cells, levels and charge timing.
+func _charge_rules(crops: Dictionary, game_script: GDScript) -> void:
+	var tools: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/tools.json"))
+	check(FarmGrid.area_offsets(["@", "#", "#"]) == ([Vector2i(0, 1), Vector2i(0, 2)] as Array[Vector2i]), "line area offsets")
+	check(FarmGrid.area_offsets([".@.", "###"]) == ([Vector2i(-1, 1), Vector2i(0, 1), Vector2i(1, 1)] as Array[Vector2i]), "row area offsets")
+	check(FarmGrid.area_offsets(["##"]).is_empty(), "area without a farmer is empty")
+	# One cell ahead and one to the drawing's right, for each facing.
+	var turned := {}
+	for f in [Vector2i.DOWN, Vector2i.UP, Vector2i.LEFT, Vector2i.RIGHT]:
+		turned[f] = [FarmGrid.turn(Vector2i(0, 1), f), FarmGrid.turn(Vector2i(1, 1), f)]
+	check(turned[Vector2i.DOWN] == [Vector2i(0, 1), Vector2i(1, 1)], "facing down keeps the drawing")
+	check(turned[Vector2i.UP] == [Vector2i(0, -1), Vector2i(-1, -1)], "facing up turns it round")
+	check(turned[Vector2i.RIGHT] == [Vector2i(1, 0), Vector2i(1, -1)], "facing right")
+	check(turned[Vector2i.LEFT] == [Vector2i(-1, 0), Vector2i(-1, 1)], "facing left")
+	for tool in tools.tools:
+		var t: Dictionary = tools.tools[tool]
+		check(t.max_charge.size() == 5 and t.max_charge.max() < t.charges.size(), "%s: 5 levels within its charges" % tool)
+		var last := 0
+		for i in t.charges.size():
+			var ch: Dictionary = t.charges[i]
+			var cells := FarmGrid.area_offsets(ch.area).size()
+			check(cells >= 1 and int(ch.stamina) > last, "%s charge %d: an area and more stamina" % [tool, i])
+			last = int(ch.stamina)
+	var ff := FarmGrid.new(crops)
+	var frng := RandomNumberGenerator.new()
+	frng.seed = 3
+	ff.generate(frng)
+	var hoe5: Array = tools.tools.hoe.charges[2].area
+	check(ff.area_cells(Vector2i(10, 10), Vector2i.DOWN, hoe5).size() == 5, "hoe charge 2 covers 5 cells in the open")
+	check(ff.area_cells(Vector2i(10, FarmGrid.H - 3), Vector2i.DOWN, hoe5) == ([Vector2i(10, FarmGrid.H - 2)] as Array[Vector2i]), "area stops at the fence")
+	check(ff.area_cells(Vector2i(0, 5), Vector2i.LEFT, hoe5).is_empty(), "area off the grid is empty")
+	check(ff.area_cells(Vector2i(4, 4), Vector2i.UP, hoe5).is_empty(), "area leaves out the house")
+	var can6: Array = tools.tools.can.charges[2].area
+	var by_pond := ff.area_cells(Vector2i(24, 4), Vector2i.RIGHT, can6)
+	check(by_pond == ([Vector2i(25, 5), Vector2i(26, 5)] as Array[Vector2i]), "can area leaves out the pond (%s)" % [by_pond])
+	# A charged swing hits harder: 2 hits on a 4-hit stump, then a 4-hit swing clears it.
+	var st := Vector2i(12, 12)
+	ff.cell(st).obj = FarmGrid.Obj.STUMP
+	check(ff.hit(st, "axe", 2) == 1 and ff.cell(st).hits == 2, "power 2 = two hits")
+	check(ff.hit(st, "axe", 4) == 2 and ff.cell(st).obj == FarmGrid.Obj.NONE, "power 4 clears the stump")
+	# Levels: level 1 charges once, level 3 three times; holding counts up every charge_seconds.
+	var gm: Node = game_script.new()
+	gm.tools_data = tools
+	gm.reset_tool_levels()
+	var step := float(tools.charge_seconds)
+	check(gm.tool_level("hoe") == 1 and gm.max_charge("hoe") == 1, "hoe starts at level 1, one charge")
+	check(gm.max_charge("seeds") == 0 and gm.tool_max_level("seeds") == 0, "seed bag doesn't charge")
+	check(gm.charge_after("hoe", step * 0.9) == 0 and gm.charge_after("hoe", step) == 1, "charge after one step")
+	check(gm.charge_after("hoe", step * 10) == 1, "level 1 hoe stops at charge 1")
+	check(gm.charge_rule("hoe", 4) == tools.tools.hoe.charges[1], "a charge past the level is cut to it")
+	gm.tool_levels.hoe = 3
+	check(gm.max_charge("hoe") == 3 and gm.charge_after("hoe", step * 3.5) == 3, "level 3 hoe charges three times")
+	gm.tool_levels.hoe = 99
+	check(gm.tool_level("hoe") == 5, "level kept within the tool's levels")
+	var pips := PlaceholderArt.tex(PlaceholderArt.charge_key(1, 2)).get_image()
+	check(pips.get_pixel(2, 2) == PlaceholderArt.UI_SEAL and pips.get_pixel(7, 2) == PlaceholderArt.UI_PAPER, "charge pips: reached filled, next empty")
+	gm.free()
+
+
+## FarmActions with charges on the real Game: area work, stamina and water per cell.
+func _charge_actions() -> void:
+	var g: Node = root.get_node("Game")
+	# Loaded here, not named: FarmActions uses the Game autoload, unknown when this file compiles.
+	var actions: GDScript = load("res://scripts/farm_actions.gd")
+	var crops: Dictionary = g.crops
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5
+	g.farm = FarmGrid.new(crops)
+	g.farm.generate(rng)
+	for y in range(5, FarmGrid.H - 1):
+		for x in range(1, FarmGrid.W - 1):
+			g.farm.cell(Vector2i(x, y)).obj = FarmGrid.Obj.NONE
+	g.reset_tool_levels()
+	g.stamina = 100
+	var tools: Dictionary = g.tools_data.tools
+	g.select_tool(g.TOOLS.find("hoe"))
+	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 1)
+	var tilled := []
+	for y in range(9, 13):
+		tilled.append(g.farm.cell(Vector2i(10, y)).tilled)
+	check(tilled == [true, true, true, false], "charged hoe tills 3 in a line %s" % [tilled])
+	check(g.stamina == 100 - int(tools.hoe.charges[1].stamina), "charged hoe costs its stamina")
+	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 4)
+	check(g.stamina == 100 - 2 * int(tools.hoe.charges[1].stamina), "charge past the level costs the level's top charge")
+	# Watering can: level 2 waters 3 across ahead, one water per cell; a short can stops early.
+	g.tool_levels.can = 2
+	for x in range(9, 12):
+		g.farm.till(Vector2i(x, 9))
+		g.farm.till(Vector2i(x, 10))
+	g.select_tool(g.TOOLS.find("can"))
+	g.water = 40
+	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 2)
+	var wet := 0
+	for y in range(9, 11):
+		for x in range(9, 12):
+			wet += int(g.farm.cell(Vector2i(x, y)).wet)
+	check(wet == 6 and g.water == 34, "can charge 2 waters 6 cells for 6 water (%d wet, %d left)" % [wet, g.water])
+	g.farm.day_end("spring", "sunny", rng)
+	g.water = 2
+	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 2)
+	check(g.water == 0 and g.farm.cell(Vector2i(9, 9)).wet and g.farm.cell(Vector2i(10, 9)).wet 		and not g.farm.cell(Vector2i(11, 9)).wet, "a can with 2 water waters the first 2 cells")
+	g.water = 5
+	actions.use_tool(Vector2i(24, 3), Vector2i.RIGHT, 2)
+	check(g.water == g.WATER_MAX, "the pond fills the can whatever the charge")
+	# Sickle charge 1 cuts the three weeds ahead; hammer charge 1 = two hits.
+	for x in range(14, 17):
+		g.farm.cell(Vector2i(x, 13)).obj = FarmGrid.Obj.WEED
+	g.select_tool(g.TOOLS.find("sickle"))
+	actions.use_tool(Vector2i(15, 12), Vector2i.DOWN, 1)
+	var cut := true
+	for x in range(14, 17):
+		cut = cut and g.farm.cell(Vector2i(x, 13)).obj == FarmGrid.Obj.NONE
+	check(cut, "charged sickle cuts 3 across")
+	g.farm.cell(Vector2i(20, 13)).obj = FarmGrid.Obj.STUMP
+	g.select_tool(g.TOOLS.find("axe"))
+	actions.use_tool(Vector2i(20, 12), Vector2i.DOWN, 1)
+	check(g.farm.cell(Vector2i(20, 13)).hits == 2, "charged axe hits twice")
+	g.stamina = 1
+	actions.use_tool(Vector2i(20, 12), Vector2i.DOWN, 1)
+	check(g.farm.cell(Vector2i(20, 13)).hits == 2 and g.stamina == 1, "too tired: no swing")
 
 
 func _mean_luma(img: Image) -> float:

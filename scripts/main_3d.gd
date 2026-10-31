@@ -17,6 +17,8 @@ var player: Player
 var sprite: Sprite3D
 var anim := FarmerAnim.new()
 var target_mark: MeshInstance3D
+var area_marks: Array[MeshInstance3D] = []   # brackets on every cell of a charging tool's area
+var charge_pips: Sprite3D
 var cam: Camera3D
 var tint: ColorRect
 var weather: WeatherFX
@@ -33,7 +35,7 @@ func _ready() -> void:
 	player.farm = Game.farm
 	player.position = FarmActions.HOME
 	player.visible = false
-	player.action.connect(func(kind: String, c: Vector2i): FarmActions.on_action(kind, c))
+	player.action.connect(FarmActions.on_action)
 	add_child(player)
 
 	sprite = FarmWorld.make_sprite(PlaceholderArt.tex(anim.key(Vector2i.DOWN)))
@@ -56,6 +58,10 @@ func _ready() -> void:
 	mark_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	target_mark.material_override = mark_mat
 	add_child(target_mark)
+	charge_pips = FarmWorld.make_sprite(PlaceholderArt.tex(PlaceholderArt.charge_key(0, 1)))
+	charge_pips.position = Vector3(0, 1.3, 0)   # over the farmer's head
+	charge_pips.visible = false
+	sprite.add_child(charge_pips)
 
 	cam = Camera3D.new()
 	cam.fov = CAM_FOV
@@ -116,6 +122,7 @@ func _follow() -> void:
 	sprite.flip_h = FarmerAnim.is_mirrored(player.facing)
 	var tc := player.target_cell()
 	target_mark.position = Vector3(tc.x + 0.5, 0.02, tc.y + 0.5)
+	_show_charge()
 
 	var target := Vector3(
 		clampf(feet.x, CAM_MARGIN.x, FarmGrid.W - CAM_MARGIN.x), 0,
@@ -125,9 +132,32 @@ func _follow() -> void:
 	weather.follow(target)
 
 
+## While a tool charges: the brackets cover the whole area and pips count the steps.
+func _show_charge() -> void:
+	var cells: Array[Vector2i] = []
+	if player.charging:
+		cells = player.area_preview()
+	target_mark.visible = not player.charging
+	while area_marks.size() < cells.size():
+		var m := MeshInstance3D.new()
+		m.mesh = target_mark.mesh
+		m.material_override = target_mark.material_override
+		add_child(m)
+		area_marks.append(m)
+	for i in area_marks.size():
+		area_marks[i].visible = i < cells.size()
+		if i < cells.size():
+			area_marks[i].position = Vector3(cells[i].x + 0.5, 0.02, cells[i].y + 0.5)
+	charge_pips.visible = player.charging
+	if player.charging:
+		charge_pips.texture = PlaceholderArt.tex(
+			PlaceholderArt.charge_key(player.charge, Game.max_charge(Game.current_tool())))
+
+
 func _on_day_started() -> void:
 	player.position = FarmActions.HOME
 	player.facing = Vector2i.DOWN
+	player.cancel_charge()
 	weather.show_weather(Game.weather_style())
 	_update_tint()
 

@@ -14,7 +14,7 @@ const PAYOUT_HOUR := 18
 const PASS_OUT_HOUR := 2
 const WATER_MAX := 40
 const TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe", "seeds"]
-const TOOL_COST := {"hoe": 2, "can": 1, "sickle": 1, "hammer": 2, "axe": 2, "seeds": 1}
+const SEED_COST := 1            # stamina per seed bag; the other tools cost by charge (data/tools.json)
 
 var year := 1
 var season := 0
@@ -33,10 +33,12 @@ var water := WATER_MAX
 var tool_index := 0
 var seed_index := 0
 var bag: Dictionary = {}        # item id -> count; seeds are "seeds:<crop>"
+var tool_levels: Dictionary = {}   # tool -> level 1..5 (charging tools in data/tools.json)
 
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
 var weather_fx: Dictionary = {}    # look per weather: tint, falling particles
+var tools_data: Dictionary = {}    # data/tools.json: charge steps per tool
 var rng := RandomNumberGenerator.new()
 var farm: FarmGrid
 var _accum := 0.0
@@ -47,6 +49,7 @@ func _ready() -> void:
 	crops = _load_json("res://data/crops.json")
 	weather_chances = _load_json("res://data/weather.json")
 	weather_fx = _load_json("res://data/weather_fx.json")
+	tools_data = _load_json("res://data/tools.json")
 	_setup_input()
 	new_game()
 
@@ -55,6 +58,7 @@ func new_game() -> void:
 	farm = FarmGrid.new(crops)
 	farm.generate(rng)
 	bag = {"seeds:turnip": 2, "seeds:potato": 1}
+	reset_tool_levels()
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--demo":
@@ -252,6 +256,42 @@ func spend_stamina(n: int) -> bool:
 	return true
 
 
+# --- tool levels and charging ----------------------------------------------
+
+## Every charging tool back to level 1 (a new game).
+func reset_tool_levels() -> void:
+	tool_levels = {}
+	for tool in tools_data.get("tools", {}):
+		tool_levels[tool] = 1
+
+
+## How many levels a tool has (0 for one that doesn't charge, like the seed bag).
+func tool_max_level(tool: String) -> int:
+	return tools_data.get("tools", {}).get(tool, {}).get("max_charge", []).size()
+
+
+func tool_level(tool: String) -> int:
+	return clampi(int(tool_levels.get(tool, 1)), 1, maxi(tool_max_level(tool), 1))
+
+
+## The highest charge step the tool's level allows (0 = taps only).
+func max_charge(tool: String) -> int:
+	if tool_max_level(tool) == 0:
+		return 0
+	return int(tools_data.tools[tool].max_charge[tool_level(tool) - 1])
+
+
+## Charge steps reached after holding the button for `seconds`.
+func charge_after(tool: String, seconds: float) -> int:
+	var step := float(tools_data.get("charge_seconds", 0.6))
+	return mini(int(seconds / step), max_charge(tool))
+
+
+## One charge step's rule: {area, stamina, hits?}. The charge is kept within the tool level.
+func charge_rule(tool: String, charge: int) -> Dictionary:
+	return tools_data.tools[tool].charges[clampi(charge, 0, max_charge(tool))]
+
+
 func current_tool() -> String:
 	return TOOLS[tool_index]
 
@@ -292,6 +332,7 @@ func to_dict() -> Dictionary:
 	d.tool = current_tool()
 	d.seed = current_seed()
 	d.bag = bag.duplicate()
+	d.tool_levels = tool_levels.duplicate()
 	d.farm = farm.to_dict()
 	return d
 
@@ -326,6 +367,21 @@ func from_dict(data: Dictionary) -> String:
 		if not id is String or c == null:
 			return "Saved bag is broken"
 		n.bag[id] = c
+	# Saves from before charging tools have no levels: every tool at level 1.
+	n.tool_levels = {}
+	for tool in tools_data.get("tools", {}):
+		n.tool_levels[tool] = 1
+	if data.has("tool_levels"):
+		var levels = data.tool_levels
+		if not levels is Dictionary:
+			return "Saved tool levels are broken"
+		for tool in levels:
+			if not n.tool_levels.has(tool):
+				return "Saved tool levels are broken"
+			var lv = SaveGame.whole(levels[tool], 1, tool_max_level(tool))
+			if lv == null:
+				return "Saved tool levels are broken"
+			n.tool_levels[tool] = lv
 	if not data.get("farm") is Dictionary:
 		return "Saved farm is missing"
 	var err := farm.from_dict(data.farm)
