@@ -1,7 +1,8 @@
 class_name TextBox
 extends CanvasLayer
 ## The dialogue text box: a paper box across the bottom of the screen with the speaker's
-## portrait in a wooden frame, a wooden name tag, the line written out letter by letter and,
+## portrait in a wooden frame, a wooden name tag (with a villager's heart band after the
+## name), the line written out letter by letter and,
 ## when the line asks, a list of choices above the box. E / Space / Enter (or a click) shows
 ## the whole line, then goes on; arrows or W / S and the mouse pick a choice. While it is open
 ## Game.dialogue_open holds the clock and the farmer. The stepping is DialogueRunner's; this
@@ -14,6 +15,7 @@ var _portrait: NinePatchRect
 var _face: TextureRect
 var _name_tag: NinePatchRect
 var _name: Label
+var _heart: TextureRect      # on the name tag after a villager's name: their heart band
 var _text: Label
 var _more: TextureRect
 var _choice_box: NinePatchRect
@@ -39,6 +41,9 @@ func _ready() -> void:
 	_portrait.add_child(_face)
 	_name_tag = _frame(_catch, Rect2i(r.position + Vector2i(TextBoxLayout.TEXT_POS.x - 6, -TextBoxLayout.NAME_H + 4), Vector2i(40, TextBoxLayout.NAME_H)), "wood")
 	_name = _label(_name_tag, Vector2i(6, 4), PlaceholderArt.UI_PAPER)
+	_heart = TextureRect.new()
+	_heart.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_name_tag.add_child(_heart)
 	_text = _label(_box, TextBoxLayout.TEXT_POS)
 	_more = TextureRect.new()
 	_more.texture = PlaceholderArt.tex("ui:more")
@@ -146,6 +151,12 @@ func _show_line() -> void:
 	_name_tag.visible = speaker != ""
 	_name.text = DialogueRunner.speakers().get(speaker, {}).get("name", "")
 	_name_tag.size.x = PixelFont.width(_name.text) + 12
+	var band := Game.heart_band(speaker)
+	_heart.visible = band >= 0
+	if band >= 0:
+		_heart.texture = PlaceholderArt.tex("ui:heart:%d" % band)
+		_heart.position = Vector2(_name_tag.size.x - 3, TextBoxLayout.HEART_Y)
+		_name_tag.size.x += TextBoxLayout.HEART_W
 	# Without a portrait (narration) the text starts at the left of the box.
 	var x := TextBoxLayout.TEXT_POS.x if speaker != "" else TextBoxLayout.PORTRAIT.position.x + 2
 	_text.position.x = x

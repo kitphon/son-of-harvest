@@ -2,6 +2,7 @@
 	"_note": "Sayo keeps the Yorozu Store (the house with the noren south-east of the road): sweeps in front before opening, stands at the counter (the store map's keeper spot) 9:00-17:00, so talking to her there opens the shop (data/shops.json keeper), and takes an offering to the shrine in the evening. Sundays the store is shut and she visits Grandma Tome. Rain or shine the shop opens. Gifts: fresh summer things and sweets. Format: README.md, Villagers.",
 	"id": "sayo",
 	"name": "Sayo",
+	"birthday": {"season": "summer", "day": 6},
 	"look": {"outfit": "kimono", "hair_style": "long", "hair": "3a2420", "skin": "f2c79b", "top": "c85a6a", "waist": "2e4a7a", "accent": "e8c050", "shoes": "6b4423"},
 	"rules": [
 		{"if": {"weekday": ["sun"]}, "plan": "day_off"}

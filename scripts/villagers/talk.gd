@@ -6,12 +6,14 @@ extends RefCounted
 ## {if: {conditions}, at: [line ids]}; the first row whose conditions all hold names the lines,
 ## one of them by the day, so a villager says the same thing all day and something else
 ## tomorrow. The last row has no `if`. Gift answers are the lines gift_<reaction> (love, like,
-## neutral, dislike, hate) and gift_again (one gift a day). Format: README.md, Villagers.
+## neutral, dislike, hate) and gift_again (one gift a day); gift_birthday, if there, answers a
+## gift that isn't disliked on their birthday. Format: README.md, Villagers.
 
 const DIR := "res://data/dialogue/"
 ## Conditions a pick row may use besides the day-plan rule ones (Villagers.RULE_KEYS): the
-## clock ["H:MM", "H:MM"], the heart band [lowest, highest] and whether they already talked today.
-const PICK_KEYS: Array[String] = ["time", "band", "again"]
+## clock ["H:MM", "H:MM"], the heart band [lowest, highest], whether they already talked today
+## and whether it is their birthday (birthday in the villager file).
+const PICK_KEYS: Array[String] = ["time", "band", "again", "birthday"]
 const GIFT_LINES: Array[String] = ["gift_love", "gift_like", "gift_neutral", "gift_dislike", "gift_hate", "gift_again"]
 
 static var _files := {}   # villager id -> the talk file's data
@@ -78,9 +80,15 @@ static func _check_if(c: Variant) -> String:
 		var b: Variant = c.band
 		if not b is Array or b.size() != 2 or not EventRunner._whole(b[0], 0, 6) or not EventRunner._whole(b[1], 0, 6) or b[0] > b[1]:
 			return "band needs [lowest, highest] in 0 .. 6"
-	if c.has("again") and not c.again is bool:
-		return "again is true or false"
+	for k in ["again", "birthday"]:
+		if c.has(k) and not c[k] is bool:
+			return "%s is true or false" % k
 	return ""
+
+
+## Does villager `id`'s talk file have line `at`? (gift_birthday is optional.)
+static func has_line(id: String, at: String) -> bool:
+	return data(id).get("lines", []).any(func(l): return l is Dictionary and l.get("id") == at)
 
 
 ## The line villager `id` opens with in state `s`: Game.trigger_state plus band (their heart
@@ -99,6 +107,8 @@ static func holds(c: Dictionary, s: Dictionary) -> bool:
 	if c.has("time") and not (s.time >= EventTriggers.clock(c.time[0]) and s.time < EventTriggers.clock(c.time[1])):
 		return false
 	if c.has("band") and not (s.band >= int(c.band[0]) and s.band <= int(c.band[1])):
+		return false
+	if c.has("birthday") and c.birthday != s.get("birthday", false):
 		return false
 	return not c.has("again") or c.again == s.again
 

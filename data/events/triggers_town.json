@@ -1,6 +1,10 @@
 {
-	"_note": "Events in the village. examine rows play when the farmer presses interact facing their spot ([x, y] or [x, y, width, height]); the first matching row wins, so special cases go first. The shop doors (store 23, 15; smithy 27, 6) are left to the shops. Format: README.md, Events.",
+	"_note": "Events in the village. examine rows play when the farmer presses interact facing their spot ([x, y] or [x, y, width, height]); the first matching row wins, so special cases go first. The shop doors (store 23, 15; smithy 27, 6) are left to the shops. The heart events come first: the first talk with a villager once their heart band is 3 or more. Format: README.md, Events.",
 	"rows": [
+		{"event": "heart_tome", "on": "talk", "who": "tome", "hearts": {"tome": [3, 6]}},
+		{"event": "heart_kota", "on": "talk", "who": "kota", "hearts": {"kota": [3, 6]}},
+		{"event": "heart_sayo", "on": "talk", "who": "sayo", "hearts": {"sayo": [3, 6]}},
+		{"event": "heart_hachiro", "on": "talk", "who": "hachiro", "hearts": {"hachiro": [3, 6]}},
 		{"event": "shrine_offering", "on": "examine", "spot": [18, 1, 2, 2], "once": false},
 		{"event": "lantern_snow", "on": "examine", "spot": [16, 3], "once": false, "weather": ["snow"]},
 		{"event": "lantern_snow", "on": "examine", "spot": [21, 3], "once": false, "weather": ["snow"]},

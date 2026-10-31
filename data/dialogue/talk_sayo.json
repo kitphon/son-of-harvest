@@ -1,7 +1,8 @@
 {
-	"_note": "What Sayo says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gifts in data/villagers/sayo.json). Our own lines.",
+	"_note": "What Sayo says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday) (gifts in data/villagers/sayo.json). Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"birthday": true}, "at": ["birthday"]},
 		{"if": {"weather": ["rain", "storm"]}, "at": ["rain"]},
 		{"if": {"weather": ["snow"]}, "at": ["snow"]},
 		{"if": {"band": [4, 6]}, "at": ["close_1", "close_2"]},
@@ -16,6 +17,8 @@
 		{"at": ["plain"]}
 	],
 	"lines": [
+		{"id": "birthday", "speaker": "sayo", "face": "smile", "text": "You remembered? It's silly, but nobody says it at the counter. Thank you.", "next": "end"},
+		{"id": "gift_birthday", "speaker": "sayo", "face": "surprised", "text": "On my birthday too... I'll put it by the window so I see it every morning.", "next": "end"},
 		{"id": "again_1", "speaker": "sayo", "face": "smile", "text": "Did you forget something? Take your time.", "next": "end"},
 		{"id": "again_2", "speaker": "sayo", "face": "smile", "text": "Ah, you again. I like a customer who comes back.", "next": "end"},
 		{"id": "rain", "speaker": "sayo", "face": "calm", "text": "Rain keeps people home. It's just me and the shelves today.", "next": "end"},

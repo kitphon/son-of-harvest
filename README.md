@@ -150,7 +150,8 @@ Each villager is a file `data/villagers/<id>.json` (shared numbers in `_common.j
 speed in cells per game minute, cells per walk frame): `id`, `name`, optional `speed`, `look`
 (`outfit` kimono / happi / shirt_shorts, `hair_style` bun / short / headband / long /
 straw_hat, colours `hair`, `skin`, `top`, `waist`, `lower`, `accent`, `shoes`; drawn by
-`PlaceholderArt` as `villager:<id>:<front|back>:<idle|walk>:<frame>`), then:
+`PlaceholderArt` as `villager:<id>:<front|back>:<idle|walk>:<frame>`), `birthday`
+(`{"season": "fall", "day": 24}`, optional; the farmhouse calendar names it), then:
 - `rules`: `[{"if": {conditions}, "plan": "<name>"}]`, the first that holds picks the day's
   plan, else `default`. Conditions: `season`, `weekday`, `weather` (lists), `days`, `year`
   (`[first, last]`), `flags` / `not_flags` (story flags set / not set), `festival` (festival
@@ -181,12 +182,22 @@ turns them to the farmer (`Villagers.turn`) and calls `Game.talk_to(id, face)`:
 - anyone else opens their lines, `data/dialogue/talk_<id>.json`: an ordinary dialogue plus
   `picks`, `[{"if": {conditions}, "at": [line ids]}]`, the last row without `if`. Conditions
   are the rule ones above plus `time` (`["H:MM", "H:MM"]`), `band` (heart band `[low, high]`,
-  0..6) and `again` (already talked today); the day picks one of the row's lines. Gift
-  answers are the lines `gift_love` .. `gift_hate` and `gift_again`.
+  0..6), `again` (already talked today) and `birthday` (true on their birthday); the day picks
+  one of the row's lines. Gift answers are the lines `gift_love` .. `gift_hate` and
+  `gift_again`; an optional `gift_birthday` answers a gift that isn't disliked on their birthday.
 The first talk of a day adds `affection.talk`. `Affection` (scripts/villagers/affection.gd,
 `Game.affection`, saved since save version 3) keeps the points (0..`max`), the 7 heart
 `bands` and the last talk / gift day per villager; `Game.affection.add(id, n)` is the hook,
 and events use the `affection` step and the `talk` / `hearts` trigger keys (Events).
+On a villager's birthday a gift counts `affection.birthday_times` over (5, good or bad). Each
+night a villager the farmer has met (affection above 0) who got neither a talk nor a gift that
+day loses `affection.neglect.loss` with odds `neglect.chance` (`Affection.day_end`, from
+`Game.end_day`). The text box shows the band as a heart after the speaker's name on the name
+tag whenever a villager speaks (`Game.heart_band`, colours `hearts` in `data/text_box.json`,
+`ui:heart:<band>` in PlaceholderArt). Heart events: a `talk` row with `hearts`
+`{"<id>": [3, 6]}` in `triggers_town.json` (and the keepers' shop tables) plays
+`data/events/heart_<id>.json` once (lines in `data/dialogue/heart_events.json`; each sets the
+flag `heart_<id>`). `-- --demo --hearts=N` starts everyone at the start of band N.
 A villager stands `talk_turn_minutes` after a talk, and one walking into the farmer waits
 (`bump_reach`); that time is their delay, the whole plan runs later, at most `delay_max`
 minutes, cleared at 12:00 and 18:00. The farmer can't step within `block_reach` of anyone.

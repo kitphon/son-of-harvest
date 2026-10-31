@@ -10,6 +10,48 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Relationships: hearts in the text box, birthdays, the nightly loss, heart events
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: (1) Hearts: whenever a villager speaks, the wooden name tag grows a 9 x 8 heart after
+  the name in the colour of their heart band (`Game.heart_band(speaker)`, -1 for the farmer,
+  narration and anyone without a villager file; colours `hearts` in `data/text_box.json`: an
+  empty paper heart for band 0, warmer reds up to the seal vermilion, a dark crimson with a
+  gold glint for band 6; `ui:heart:<band>` in PlaceholderArt). TextBox is shared, so both
+  views have it. (2) Birthdays: `birthday` `{season, day}` in each villager file (Kota spring
+  19, Sayo summer 6, Tome fall 24, Hachiro winter 11; one per season, none on a festival),
+  checked by `Villagers.check`; `Villagers.has_birthday` / `birthdays_on`. The farmhouse
+  calendar gets a birthday part per season after the festival. A gift on the day counts
+  `birthday_times` (5) over, good or bad (DESIGN); a pick condition `birthday` and a
+  `birthday` line in each talk file, plus an optional `gift_birthday` answer for a gift that
+  isn't disliked. (3) The nightly loss: `Affection.day_end` from `Game.end_day` (before the
+  date moves): a villager the farmer has met (affection above 0) who got neither a talk nor a
+  gift that day loses `neglect.loss` 1 with odds `neglect.chance` 1/8. Reasoning: DESIGN's
+  rule is 1 in 10 for 1; ours is a touch stronger so a forgotten friend shows it, but a whole
+  season (30 nights) away costs about 4 points, a fifth of band 1 and nothing near a band of a
+  close friend, so a busy week never undoes a year; strangers (0) don't change. (4) Heart
+  events, our own short scenes, one per villager at band 3: `heart_tome` (her eggplant seed,
+  gives `seeds:eggplant`), `heart_kota` (the old carp in the pond, a promise choice that sets
+  `kota_carp_promise`), `heart_sayo` (her father's ledger), `heart_hachiro` (the farmer's
+  hands). Each adds 5 affection and sets `heart_<id>`; lines in
+  `data/dialogue/heart_events.json`. Trigger rows `talk` + `who` + `hearts {id: [3, 6]}` first
+  in `triggers_town.json`, and Sayo's / Hachiro's also in `triggers_store` / `triggers_smithy`
+  so they play at the counter instead of the shop. Debug flag `--hearts=N` (all villagers at
+  the start of band N). No new saved state, so `SaveGame.VERSION` stays 4 and older saves
+  load as before (test_save / test_talk version checks unchanged).
+- Checked: new `tests/test_relationships.gd` (heart art per band, the name tag and heart in a
+  real TextBox, birthdays in data and calendar, x5 gifts and lines on the real Game, the
+  nightly loss over 400 nights and through `end_day`, the heart event rows on every map and
+  each event run to its end) prints `test_relationships: OK (0 failed)`; all 22 tests print
+  `OK (0 failed)`; headless `--quit-after 300` (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, `--demo --map=house`) and `res://scenes/main.tscn --quit-after 400` printed
+  no errors or warnings. Movie Maker frames: `--demo --map=town --time=14:30 --hearts=4
+  --talk=tome` (3D: "Tome" with a red heart on the tag, her close_1 line) and
+  `res://scenes/main_2d.tscn ... --demo --hearts=6 --dialogue=talk_kota@new_1` (2D: the band 6
+  crimson heart with its gold glint).
+- Left / next: endings (milestone 9). Not played in a real window; the heart events were run
+  headless only, not watched. Later for relationships: events at higher bands, the birthday as
+  a day-plan condition and fair weather on it (DESIGN), heart events in the villagers' houses.
+
 ## 2026-10-31 — Merged six branches: talking, opening event, shop extras, barn, mine, festivals
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each, in this order:

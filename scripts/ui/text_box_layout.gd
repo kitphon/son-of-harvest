@@ -11,6 +11,8 @@ const TEXT_POS := Vector2i(60, 8)          # in the box
 const TEXT_W := 402
 const ROWS := 4                            # text rows per line of dialogue
 const NAME_H := 15                         # the wooden name tag over the box's top edge
+const HEART_W := 12                        # the tag grows this much for a villager's heart (9 px + gaps)
+const HEART_Y := 4                         # the heart's top in the tag
 const CHOICE_TEXT_W := 160
 const CHOICE_ROW := 12
 

@@ -1,0 +1,8 @@
+{
+	"_note": "Kota's heart event: the first talk once his heart band reaches 3 (triggers_town.json). He tells the farmer about the old carp in the pond and asks for a promise (kota_carp_promise). Sets heart_kota. Format: README.md, Events.",
+	"steps": [
+		{"do": "say", "dialogue": "heart_events", "at": "kota"},
+		{"do": "affection", "who": "kota", "amount": 5},
+		{"do": "set", "flags": {"heart_kota": true}}
+	]
+}

@@ -7,12 +7,14 @@
 	"delay_max": 30,
 	"bump_reach": 0.9,
 	"block_reach": 0.7,
-	"_affection": "How much each villager likes the farmer: 0 .. max, starting at start. A talk counts once a day (talk), a gift once a day by the villager's reaction (gift; lists in each villager's gifts). bands: the affection where each of the 7 heart colours starts, 0 = a stranger, 6 = a dear friend; dialogue picks and event rows use the band, not the number. Our numbers: a daily talk alone reaches band 3 by the end of the first year, a loved gift a day gets there in about a season.",
+	"_affection": "How much each villager likes the farmer: 0 .. max, starting at start. A talk counts once a day (talk), a gift once a day by the villager's reaction (gift; lists in each villager's gifts). bands: the affection where each of the 7 heart colours starts, 0 = a stranger, 6 = a dear friend; dialogue picks and event rows use the band, not the number. Our numbers: a daily talk alone reaches band 3 by the end of the first year, a loved gift a day gets there in about a season. birthday_times: a gift on the villager's birthday (birthday in their file) counts that many times, good or bad (DESIGN: x5). neglect: each night, a villager the farmer has met (affection above 0) who got neither a talk nor a gift that day loses loss with odds chance (DESIGN: 1 in 10 for 1); ours is 1 in 8, so a whole season away costs about 4 points, a fifth of the first band: forgetting someone shows, but never undoes a year.",
 	"affection": {
 		"max": 255,
 		"start": 0,
 		"talk": 1,
 		"gift": {"love": 8, "like": 3, "neutral": 1, "dislike": -3, "hate": -8},
-		"bands": [0, 20, 50, 90, 140, 190, 235]
+		"bands": [0, 20, 50, 90, 140, 190, 235],
+		"birthday_times": 5,
+		"neglect": {"chance": 0.125, "loss": 1}
 	}
 }

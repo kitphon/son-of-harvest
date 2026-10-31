@@ -55,6 +55,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `res://tests/test_villagers.gd` must print `test_villagers: OK (0 failed)`. Talking (talk
   files and picks, gifts, daily limits, affection save, shopkeepers, bump delay):
   `res://tests/test_talk.gd` must print `test_talk: OK (0 failed)`.
+  Relationships (hearts on the name tag, birthdays and x5 gifts, the nightly loss, heart
+  events): `res://tests/test_relationships.gd` must print `test_relationships: OK (0 failed)`.
   Shops (data/shops.json, buying / selling, tool upgrades, shop maps and doors, the screen):
   `res://tests/test_shops.gd` must print `test_shops: OK (0 failed)`.
   Animals (chickens, cows, sheep, the coop and barn, products, brushing, sickness, the dog,
@@ -85,7 +87,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   clock (villagers stand where their plans say then; `--demo --map=town` at 10:00 shows Kota
   and Tome by the start spawn), `--shop=<id>` (general, smithy; `general@build` opens a tab) to stand at that shop's
   counter with its screen open (hours ignored), `--talk=<villager>` (with `--map` / `--time`
-  where they are, e.g. `--map=town --time=14:30 --talk=tome`) to stand below them and talk,
+  where they are, e.g. `--map=town --time=14:30 --talk=tome`) to stand below them and talk
+  (add `--hearts=N` to start every villager at heart band N, e.g. to see the heart colours),
   `--built=kitchen,chest,room` to have those house extensions built (with `--map=house` to see
   them), `--map=coop` to look inside the chicken
   coop (`--demo` adds a chick, two eggs and a filled feed box), `--hens-out` (with

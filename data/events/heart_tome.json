@@ -1,0 +1,10 @@
+{
+	"_note": "Tome's heart event: the first talk once her heart band reaches 3 (trigger rows in triggers_town.json). She gives the farmer a packet of her own eggplant seed. Sets heart_tome. Format: README.md, Events.",
+	"steps": [
+		{"do": "sound", "key": "chime_morning"},
+		{"do": "say", "dialogue": "heart_events", "at": "tome"},
+		{"do": "give", "item": "seeds:eggplant", "count": 1},
+		{"do": "affection", "who": "tome", "amount": 5},
+		{"do": "set", "flags": {"heart_tome": true}}
+	]
+}

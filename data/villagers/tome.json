@@ -2,6 +2,7 @@
 	"_note": "Grandma Tome: lives in the west house, visits the shrine every morning, strolls to the pond in the afternoon. Stays in on wet days and until late on winter mornings. Gifts: tea, spring sweets and old-fashioned vegetables. Format: README.md, Villagers.",
 	"id": "tome",
 	"name": "Tome",
+	"birthday": {"season": "fall", "day": 24},
 	"look": {"outfit": "kimono", "hair_style": "bun", "hair": "e4e0d8", "skin": "eec39a", "top": "6a4a7a", "waist": "c8a050", "shoes": "6b4423"},
 	"rules": [
 		{"if": {"festival": ["blossom_day", "lantern_night", "moon_night", "years_turn"]}, "plan": "festival"},

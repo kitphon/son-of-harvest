@@ -1,5 +1,7 @@
 {
 	"_note": "How the text box writes: letters per second, and a short extra wait after punctuation so sentences breathe. A press shows the rest of the line at once.",
 	"chars_per_second": 40,
-	"pause_seconds": {".": 0.2, "!": 0.2, "?": 0.2, ",": 0.08}
+	"pause_seconds": {".": 0.2, "!": 0.2, "?": 0.2, ",": 0.08},
+	"_hearts": "The heart on the name tag when a villager speaks (Game.heart_band, bands in data/villagers/_common.json): one fill colour per band, 0 = an empty paper heart, then warmer and deeper reds up to the seal's vermilion and a dark crimson with a gold glint for band 6. Ours, picked to sit on the wooden tag.",
+	"hearts": ["efe3c4", "e8cdb8", "e8a8a0", "e07a72", "d8524a", "c8442c", "a02234"]
 }

@@ -1,7 +1,8 @@
 {
-	"_note": "What Kota says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gifts in data/villagers/kota.json). Our own lines.",
+	"_note": "What Kota says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday) (gifts in data/villagers/kota.json). Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"birthday": true}, "at": ["birthday"]},
 		{"if": {"band": [4, 6]}, "at": ["close_1", "close_2"]},
 		{"if": {"band": [0, 1]}, "at": ["new_1", "new_2"]},
 		{"if": {"time": ["14:00", "18:00"], "season": ["spring", "fall", "winter"]}, "at": ["pond_1", "pond_2"]},
@@ -10,6 +11,9 @@
 		{"at": ["plain_1", "plain_2", "plain_3"]}
 	],
 	"lines": [
+		{"id": "birthday", "speaker": "kota", "face": "smile", "text": "Guess what! I'm a whole year older today. Mum made red rice and everything."},
+		{"speaker": "kota", "face": "surprised", "text": "Wait, did you know already? Did Sayo tell you?", "next": "end"},
+		{"id": "gift_birthday", "speaker": "kota", "face": "surprised", "text": "A birthday present? For me?! I'm keeping this forever. Well, until I eat it.", "next": "end"},
 		{"id": "again_1", "speaker": "kota", "face": "surprised", "text": "What? I'm busy! ...Okay, I'm not busy.", "next": "end"},
 		{"id": "again_2", "speaker": "kota", "face": "smile", "text": "You keep coming back. Are you lonely up on that farm?", "next": "end"},
 		{"id": "close_1", "speaker": "kota", "face": "smile", "text": "When I grow up I'm gonna have a farm too. Bigger than yours!"},

@@ -70,14 +70,31 @@ func talk(id: String, day: int) -> int:
 
 
 ## Villager `id` is offered `item` on day `day`: {ok, reaction, change}. One gift a day; a
-## second one is refused (reaction "again") and the farmer keeps the item.
-func give(id: String, item: String, day: int) -> Dictionary:
+## second one is refused (reaction "again") and the farmer keeps the item. On their birthday
+## the gift counts birthday_times over, good or bad.
+func give(id: String, item: String, day: int, birthday := false) -> Dictionary:
 	if gifted_on(id, day):
 		return {"ok": false, "reaction": "again", "change": 0}
 	gifted[id] = day
 	var r := Villagers.reaction(id, item)
 	var was := of(id)
-	return {"ok": true, "reaction": r, "change": add(id, int(rules().get("gift", {}).get(r, 0))) - was}
+	var times := int(rules().get("birthday_times", 1)) if birthday else 1
+	return {"ok": true, "reaction": r, "change": add(id, int(rules().get("gift", {}).get(r, 0)) * times) - was}
+
+
+## The night after day `day`: each villager the farmer has met (affection above 0) who got
+## neither a talk nor a gift that day may lose a little (neglect: chance, loss). Returns the
+## ids that lost some.
+func day_end(day: int, rng: RandomNumberGenerator) -> Array[String]:
+	var n: Dictionary = rules().get("neglect", {})
+	var out: Array[String] = []
+	for id in Villagers.all():
+		if of(id) <= 0 or talked_on(id, day) or gifted_on(id, day):
+			continue
+		if rng.randf() < float(n.get("chance", 0.0)):
+			add(id, -int(n.get("loss", 0)))
+			out.append(id)
+	return out
 
 
 func to_dict() -> Dictionary:

@@ -1,7 +1,8 @@
 {
-	"_note": "What Grandma Tome says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gifts in data/villagers/tome.json). Our own lines.",
+	"_note": "What Grandma Tome says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday) (gifts in data/villagers/tome.json). Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"birthday": true}, "at": ["birthday"]},
 		{"if": {"band": [4, 6]}, "at": ["close_1", "close_2", "close_3"]},
 		{"if": {"season": ["winter"]}, "at": ["winter_1", "winter_2"]},
 		{"if": {"band": [0, 1], "time": ["06:00", "11:00"]}, "at": ["new_morning"]},
@@ -13,6 +14,8 @@
 		{"at": ["plain_1", "plain_2"]}
 	],
 	"lines": [
+		{"id": "birthday", "speaker": "tome", "face": "smile", "text": "Eighty-one autumns today, and still the persimmons ripen on time. Thank you, child.", "next": "end"},
+		{"id": "gift_birthday", "speaker": "tome", "face": "smile", "text": "A present, on my birthday? You'll make an old woman cry in the street.", "next": "end"},
 		{"id": "again_1", "speaker": "tome", "face": "smile", "text": "Still here? Don't mind me, I'm only resting my knees.", "next": "end"},
 		{"id": "again_2", "speaker": "tome", "face": "calm", "text": "Go on, the field won't hoe itself. I'll be here.", "next": "end"},
 		{"id": "close_1", "speaker": "tome", "face": "smile", "text": "When you walk by, the morning feels a little longer. In a good way."},

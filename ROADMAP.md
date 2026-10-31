@@ -66,9 +66,14 @@ villager file, one a day); a daily talk adds a little; `Game.affection` is saved
 with an `affection` event step and `talk` / `hearts` trigger keys. Sayo keeps the store and
 Hachiro the smithy: talking to them at the counter opens the shop, which sells only while
 they are in. Villagers block the farmer and wait when they bump into the farmer (delay, at most 30
-minutes). Later for villagers: their own house maps (`away` until then), hearts shown in the
-text box, birthdays (gifts x5), the small daily affection loss when nobody talks to them,
-whistling, real portraits.
+minutes). Later for villagers: their own house maps (`away` until then), whistling, real
+portraits.
+Relationships are in (milestone 9): the heart band shows as a coloured heart on the text
+box's name tag, each villager has a birthday (on the farmhouse calendar; gifts x5, a birthday
+line), villagers left alone may lose a point at night, and each has a heart event at band 3
+(data/events/heart_<id>.json). Later for relationships: heart events at higher bands, the
+birthday as a day-plan condition and always-fair weather on it (DESIGN), the birthday on the
+HUD tag, heart events in the villagers' own houses once those maps exist.
 Shops are in (data/shops.json): the Yorozu Store and the Kurogane Smithy in the village, with
 opening hours and days off, a buy / sell screen and tool upgrades over days (saved). A
 shopkeeper only has to stand at the map's `keeper` spawn and call `Game.open_shop(id)`.
@@ -108,7 +113,8 @@ what each festival judges), festival music (a `festival` condition in the music 
 holding back the shipping payout on a festival day (DESIGN), stalls that sell, more villagers
 gathering once they talk.
 Next: milestone 8, the **balance pass** (income per season, seed, animal and extension costs)
-now that the shops, animals, mine and fish all pay; then relationships and endings (milestone 9).
+now that the shops, animals, mine and fish all pay; then **endings** (milestone 9; relationships
+are done, so an ending can read `Game.affection` bands and the `heart_<id>` flags).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -166,7 +172,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Fishing: rod (8th tool slot), cast at the farm / village pond, bite cue, fish per place / season / hour / weather (data/fish.json)
    - [x] Mining: entrance east of the village, floors laid out fresh from a seed, rocks / soft spots / hole down, ores and gems per depth and season (data/mine.json)
    - [x] Festivals: one per season in data/festivals.json (Blossom Day, Lantern Night with fireworks, Moon Night, Year's Turn), HUD tag, shops shut, decorations in both views, an event once a year, villagers gather
-   - [ ] Relationships, endings
+   - [x] Relationships: hearts on the text box's name tag, birthdays (calendar, gifts x5, birthday lines), the nightly loss for villagers left alone, a heart event per villager at band 3
+   - [ ] Endings (what the year-end / final evaluation looks at; DESIGN lists it as not studied yet)
 10. **Audio and release**
     - [x] Sound effects and ambient loops (synthesized from data/sfx.json, SFX / Ambient busses)
     - [x] Music; volume sliders in the settings screen (`Sfx.set_volume`)
