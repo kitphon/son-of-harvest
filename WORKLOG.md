@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Textured house, shipping bin, seed stand and fence
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user said the farmer still looks a bit odd but asked to set it aside and move
+  on (noted in ROADMAP). PlaceholderArt draws building surfaces (`build:<kind>`): board
+  walls, shingle roof, stone, light / dark planks, a striped awning (16 x 16 = 1 unit,
+  repeated with mesh-space triplanar mapping), a door (16 x 24) and a window (12 x 10). The
+  house is walls + a wall-textured gable prism + two shingled roof slabs with overhang, a
+  stone chimney, the door over the door cell and windows on the +z / +x faces the camera
+  sees. The bin is a dark crate with a lid and a band; the stand has a counter, posts, a
+  tilted striped awning and three seed sacks. The fence is a post per border cell (one
+  MultiMesh) with two rails per side.
+- Checked: `test_farm: OK (0 failed)` (new: every building surface is drawn, opaque, and
+  the repeating ones are 16 x 16); headless `--quit-after 300` printed no errors or
+  warnings; Movie Maker frames with `--demo`: one at the start (house, door, windows, roof,
+  chimney, fence) and one after a temporary script walked the farmer right for 40 frames
+  (bin, stand with awning and sacks, fence); the script was deleted afterwards.
+- Left / next: the house back and west faces are never seen, so they have no windows.
+
 ## 2026-10-31 — Farmer in three-quarter views, target brackets
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: after playing, the user found the walk odd (only a flat front and back, no side)

@@ -126,6 +126,13 @@ func _init() -> void:
 		check(img.get_size() == Vector2i(16, 16) and img.get_used_rect().size == Vector2i(16, 16) \
 			and not img.detect_alpha(), "%s: full opaque 16 x 16" % key)
 
+	# Building surfaces: repeating ones are one world unit (16 x 16), all opaque, none missing.
+	for kind in ["wall", "roof", "stone", "planks", "planks_dark", "awning", "door", "window"]:
+		var img := PlaceholderArt.tex("build:" + kind).get_image()
+		var tiled: bool = kind != "door" and kind != "window"
+		check(not img.detect_alpha() and img.get_pixel(0, 0) != Color("ff00ff")
+			and (img.get_size() == Vector2i(16, 16) or not tiled), "build:%s drawn" % kind)
+
 	print("test_farm: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 

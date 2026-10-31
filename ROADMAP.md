@@ -6,10 +6,12 @@ Rules per system: docs/DESIGN.md. What was done and how it was checked: WORKLOG.
 
 ## Next up
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
-objects and ground tiles are done. Next: milestone 2, **house / shipping bin / seed stand /
-fence** as textured boxes (or simple meshes) in the same palette: plank and roof textures
-made in code, a door and window on the house, a lid on the bin, posts and rails for the
-fence instead of four long boxes. Then rain / snow particles.
+objects, ground tiles and buildings are done. Next: milestone 2, **rain / snow particles and
+a weather tint** (GPUParticles3D or CPUParticles3D around the camera target; rain streaks,
+snow flakes, a grey-blue multiply on rainy days through the existing tint). Then the pixel
+font / HUD clock box.
+Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
+aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 
 ## Milestones
 
@@ -26,7 +28,7 @@ fence instead of four long boxes. Then rain / snow particles.
    - [x] Field object and crop placeholders (per crop look in `data/crops.json`, 4 growth looks + ripe)
    - [ ] Field object and crop real art (same keys: `crop:<id>:<growth>:<ripe|growing>`)
    - [x] Ground tiles instead of flat colours (grass, soil dry / wet / tilled, paths, water)
-   - [ ] House, bin, stand, fence as models or textured boxes
+   - [x] House, bin, stand, fence as models or textured boxes
    - [ ] Rain / snow particles, weather tint
    - [ ] Pixel font for the HUD, clock box, a proper item / tool display
 3. **Tools and the body**

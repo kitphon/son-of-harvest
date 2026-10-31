@@ -25,6 +25,8 @@ static func _make(key: String) -> Image:
 			return _obstacle(parts[0])
 		"crop":     # crop:<id>:<growth 0..3>:<ripe|growing>
 			return _crop(parts[1], int(parts[2]), parts[3] == "ripe")
+		"build":    # build:<wall|roof|stone|planks|planks_dark|awning|door|window>
+			return _building(parts[1])
 		"ground":   # ground:<grass|tilled|wet|path>:<variant> or ground:water:<land sides mask>
 			return _ground(parts[1], int(parts[2]))
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
@@ -455,3 +457,69 @@ static func _ground(kind: String, n: int) -> Image:
 			if n & WATER_S:
 				_px(img, 0, 14, 16, 2, bank)
 	return img
+
+
+## Building surfaces. The repeating ones (wall, roof, stone, planks, awning) are 16 x 16 =
+## one world unit, laid on boxes with triplanar mapping; door and window are single pictures.
+static func _building(kind: String) -> Image:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(kind)
+	match kind:
+		"wall", "planks", "planks_dark":
+			# Horizontal boards, 4 px tall, with a dark seam and staggered board ends.
+			var base := {"wall": Color("d8c8a8"), "planks": Color("9a7048"), "planks_dark": Color("6a5038")}[kind] as Color
+			var img := _blank(16, 16)
+			img.fill(base)
+			for row in 4:
+				_px(img, 0, row * 4 + 3, 16, 1, base.darkened(0.25))
+				_px(img, 0, row * 4, 16, 1, base.lightened(0.1))
+				_px(img, (row * 7 + 3) % 16, row * 4, 1, 3, base.darkened(0.25))
+				for i in 2:
+					_px(img, rng.randi_range(0, 15), row * 4 + rng.randi_range(1, 2), 2, 1, base.darkened(0.08))
+			return img
+		"roof":
+			# Shingles in 4 px courses, joints staggered by half a shingle.
+			var base := Color("a0522d")
+			var img := _blank(16, 16)
+			img.fill(base)
+			for row in 4:
+				_px(img, 0, row * 4 + 3, 16, 1, base.darkened(0.35))
+				_px(img, 0, row * 4, 16, 1, base.lightened(0.12))
+				for x in range(2 * (row % 2), 16, 4):
+					_px(img, x, row * 4, 1, 3, base.darkened(0.2))
+			return img
+		"stone":
+			var img := _blank(16, 16)
+			img.fill(Color("5a5450"))
+			for row in 4:
+				for x in range(-4 * (row % 2), 16, 8):
+					_px(img, x + 1, row * 4 + 1, 7, 3, Color("8a827a").darkened(rng.randf() * 0.15))
+			return img
+		"awning":
+			var img := _blank(16, 16)
+			img.fill(Color("f2ece0"))
+			for x in range(0, 16, 8):
+				_px(img, x, 0, 4, 16, Color("c8452c"))
+			return img
+		"door":
+			# 16 x 24: frame, vertical planks, a cross brace and a brass knob.
+			var img := _blank(16, 24)
+			img.fill(OUTLINE)
+			_px(img, 1, 1, 14, 23, Color("7a4a24"))
+			for x in [4, 8, 12]:
+				_px(img, x, 1, 1, 23, Color("5e3818"))
+			_px(img, 1, 6, 14, 2, Color("5e3818"))
+			_px(img, 1, 17, 14, 2, Color("5e3818"))
+			_px(img, 11, 12, 2, 2, Color("e8c860"))
+			return img
+		"window":
+			# 12 x 10: cream frame, two panes each way, a glint.
+			var img := _blank(12, 10)
+			img.fill(Color("f2ece0"))
+			_px(img, 1, 1, 10, 8, Color("5d8ec8"))
+			_px(img, 1, 5, 10, 1, Color("f2ece0"))
+			_px(img, 6, 1, 1, 8, Color("f2ece0"))
+			_px(img, 2, 2, 2, 1, Color("bfe0f8"))
+			_px(img, 7, 6, 2, 1, Color("bfe0f8"))
+			return img
+	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
