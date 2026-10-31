@@ -28,6 +28,15 @@
 		"pick": {"volume_db": -14, "pitch": [0.95, 1.1], "layers": [
 			{"kind": "tone", "freq": 380, "freq_end": 640, "dur": 0.1, "attack": 0.003, "decay": 0.035},
 			{"kind": "noise", "color": "brown", "lp": 1200, "dur": 0.08, "attack": 0.002, "decay": 0.02, "gain": 0.5}]},
+		"eat": {"volume_db": -14, "pitch": [0.9, 1.1], "layers": [
+			{"kind": "noise", "color": "brown", "lp": 1600, "hp": 150, "dur": 0.09, "attack": 0.004, "decay": 0.03},
+			{"kind": "grains", "count": 5, "dur": 0.08, "hp": 1200, "lp": 4000, "grain": 0.004, "gain": 0.4},
+			{"kind": "noise", "color": "brown", "lp": 1400, "hp": 150, "dur": 0.09, "at": 0.18, "attack": 0.004, "decay": 0.03, "gain": 0.8},
+			{"kind": "grains", "count": 4, "dur": 0.08, "at": 0.18, "hp": 1200, "lp": 4000, "grain": 0.004, "gain": 0.3}]},
+		"drink": {"volume_db": -14, "pitch": [0.95, 1.05], "layers": [
+			{"kind": "tone", "freq": 220, "freq_end": 420, "dur": 0.12, "attack": 0.01, "decay": 0.04},
+			{"kind": "tone", "freq": 200, "freq_end": 400, "dur": 0.12, "at": 0.25, "attack": 0.01, "decay": 0.04, "gain": 0.8},
+			{"kind": "noise", "lp": 900, "dur": 0.4, "attack": 0.05, "release": 0.15, "gain": 0.2, "trem": [[8, 0.6]]}]},
 		"bin_lid": {"volume_db": -10, "pitch": [0.95, 1.05], "layers": [
 			{"kind": "tone", "freq": 175, "partials": [[1, 1], [2.6, 0.35], [4.1, 0.1]], "dur": 0.3, "attack": 0.002, "decay": 0.06},
 			{"kind": "noise", "lp": 2000, "dur": 0.06, "attack": 0.001, "decay": 0.015, "gain": 0.6},

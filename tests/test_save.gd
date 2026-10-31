@@ -43,7 +43,9 @@ func _init() -> void:
 	a.fatigue = 63
 	a.tool_index = 2
 	a.seed_index = 4
-	a.bag = {"seeds:turnip": 3, "corn": 2}
+	a.food_index = 3
+	a.work_fatigue_half = true
+	a.bag = {"seeds:turnip": 3, "corn": 2, "food:milk": 4}
 	a.tool_levels.hoe = 3
 	a.tool_levels.can = 5
 	a.flags = {"bin_note_read": true, "times_asked": 3, "answer": "later"}
@@ -76,6 +78,8 @@ func _init() -> void:
 	check(b.snow_cover == 70, "snow cover back")
 	check(b.flags == a.flags and typeof(b.flags.times_asked) == TYPE_INT, "dialogue flags back %s" % b.flags)
 	check(b.fatigue == 63, "fatigue back")
+	check(b.current_food() == a.current_food() and b.current_food() != "" and b.work_fatigue_half, "food in hand and today's half fatigue back")
+	check(b.count("food:milk") == 4, "food in the bag back")
 	# The loaded farm keeps working by the rules.
 	grid.water_cell(Vector2i(4, 10))
 	grid.day_end("spring", "sunny", rng)
@@ -95,7 +99,8 @@ func _init() -> void:
 			["tool_exp", [1]], ["tool_exp", {"hoe": -1}], ["tool_exp", {"spoon": 3}], ["tool_exp", {"hoe": 1.5}],
 			["tool_exp", {"hoe": 1 << 40}], ["tool_exp", {"seeds": 1}], ["snow_cover", 101], ["snow_cover", "deep"],
 			["flags", [1]], ["flags", {"x": 2.5}], ["flags", {"x": [true]}], ["flags", {"": true}], ["flags", {"x": null}],
-			["fatigue", -1], ["fatigue", 101], ["fatigue", 2.5], ["fatigue", "lots"]]:
+			["fatigue", -1], ["fatigue", 101], ["fatigue", 2.5], ["fatigue", "lots"],
+			["food", "pizza"], ["food", 3], ["work_fatigue_half", 1], ["work_fatigue_half", "yes"]]:
 		var d := saved.duplicate(true)
 		d[broken[0]] = broken[1]
 		_put(JSON.stringify({"version": 1, "game": d}))
@@ -148,6 +153,14 @@ func _init() -> void:
 	err = SaveGame.read(b, PATH)
 	check(err == "" and b.fatigue == 0, "save without fatigue loads with none (%s)" % err)
 
+	# A save from before food (no food in hand, no half fatigue) loads with the first food.
+	old = saved.duplicate(true)
+	old.erase("food")
+	old.erase("work_fatigue_half")
+	_put(JSON.stringify({"version": 1, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.food_index == 0 and not b.work_fatigue_half, "save without food loads with the first food (%s)" % err)
+
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
 	a.free()
 	b.free()
@@ -160,6 +173,7 @@ func _game(game_script: GDScript, crops: Dictionary, seed_value: int) -> Node:
 	g.crops = crops
 	g.tools_data = JSON.parse_string(FileAccess.get_file_as_string("res://data/tools.json"))
 	g.reset_tool_levels()
+	g.set_food_data(JSON.parse_string(FileAccess.get_file_as_string("res://data/foods.json")))
 	g.rng.seed = seed_value
 	g.farm = FarmGrid.new(crops)
 	g.farm.generate(g.rng)

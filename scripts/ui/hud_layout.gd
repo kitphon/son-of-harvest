@@ -7,15 +7,15 @@ extends RefCounted
 ## its text.
 const BOXES := {
 	"clock": Rect2i(384, 4, 92, 42),
-	"item": Rect2i(4, 214, 128, 21),
-	"tools": Rect2i(4, 238, 128, 28),
+	"item": Rect2i(4, 214, 148, 21),
+	"tools": Rect2i(4, 238, 148, 28),
 	"status": Rect2i(384, 226, 92, 40),
 	"message": Rect2i(4, 4, 0, 19),
 }
 const SLOT := 18
 const SLOT_GAP := 2
 const TOOL_NAMES := {"hoe": "Hoe", "can": "Watering can", "sickle": "Sickle",
-	"hammer": "Hammer", "axe": "Axe", "seeds": "Seeds"}
+	"hammer": "Hammer", "axe": "Axe", "seeds": "Seeds", "food": "Food"}
 const WEATHER_ICONS: Array[String] = ["sunny", "rain", "storm", "snow", "blizzard"]
 
 

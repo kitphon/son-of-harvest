@@ -10,6 +10,40 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Eating / drinking, food items
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: food and drink as data in the new `data/foods.json`: onigiri, green tea, dango, milk
+  bottle, sakura mochi, amazake, mugwort tea (sold) and kagami mochi (not sold; for a later
+  event / festival). Each has price, stamina +, fatigue (negative), `drink`, an icon look,
+  and optional specials from DESIGN's eating rule: `max_stamina` (raises the max, cap 200)
+  and `work_fatigue_half` (swing fatigue halved until the day ends, `Game.work_fatigue_half`,
+  cleared in `end_day()` / `new_game()`). `Game.eat(id)` uses one `food:<id>` from the bag,
+  adds stamina up to the max, lowers fatigue, applies specials, says "You ate / drank the ..."
+  and resets the told tired state so a later one is told again. Rule of ours: a food that
+  would do nothing (stamina full, no fatigue, no special) is kept ("You're full...").
+  Selection: a 7th slot "food" in `Game.TOOLS` (key 7), `Game.food_index`, Q cycles foods
+  while it is in hand (seeds otherwise); Space eats. The stand sells the food in hand while
+  the food slot is picked (`FarmActions.buy_food`), seeds otherwise. HUD: tool bar and item
+  box 20 px wider (148) for the 7th slot; the slot shows the food in hand, the item box its
+  name and count (`Hud.slot_icon`). Sounds `eat` (two soft crunches) and `drink` (two gulps)
+  in `data/sfx.json`. Icons `ui:food:<id>` (rice ball, round sweet, skewer, cup with steam,
+  bottle) in `placeholder_art.gd`. New games start with one onigiri; `--demo` adds two
+  onigiri and a green tea. Save: `food` (by name) and `work_fatigue_half` (bool); older saves
+  load with the first food and no effect.
+- Balance (ours): cheap snacks 40–90 G for +5..+25 stamina; tea is the fatigue drink (−5 for
+  40 G); amazake is the big one (+50 / −6 for 220 G, near a day's crop money early on);
+  mugwort tea 350 G for the half-fatigue day, so it pays only on a long rainy or late day.
+- Checked: new `tests/test_food.gd` (data, eating, full rule, specials, cap, half fatigue,
+  stand buying, the food slot through FarmActions) and extended `test_save` (food fields,
+  bad values, old saves), `test_title` (starting bag), `test_farm` (7 slots fit, food icon),
+  `test_audio` (food slot has no tool sound). All of `test_audio`, `test_body`,
+  `test_dialogue`, `test_farm`, `test_food`, `test_menu`, `test_save`, `test_title`,
+  `test_weather` print `OK (0 failed)`. Headless `--quit-after 300` (title and `-- --demo`)
+  printed nothing. Movie Maker `--demo` frame: 7 slots on the bar, the onigiri in the last
+  one. An 8x icon sheet of every food was looked at (steam drawn after the outline).
+- Left / next: eating hasn't been tried in a real game window. No eating animation yet
+  (the farmer just stands). Raw crops aren't edible yet; no cooking.
+
 ## 2026-10-31 — Merged six branches: export, text box, sound, pause, tool exp, fatigue
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, in this order: `claude/win-export-659b37`

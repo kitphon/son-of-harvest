@@ -1,5 +1,5 @@
 extends Node
-## Global game state: clock, calendar, weather, money, stamina, tools and the bag.
+## Global game state: clock, calendar, weather, money, stamina, tools, the bag and food.
 ## Rules follow the design doc; every number here is ours to tune.
 
 signal minute_passed
@@ -15,7 +15,7 @@ const SEASONS: Array[String] = ["spring", "summer", "fall", "winter"]
 const PAYOUT_HOUR := 18
 const PASS_OUT_HOUR := 2
 const WATER_MAX := 40
-const TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe", "seeds"]
+const TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe", "seeds", "food"]
 const SEED_COST := 1            # stamina per seed bag; the other tools cost by charge (data/tools.json)
 
 var year := 1
@@ -39,11 +39,13 @@ var max_stamina := 100
 var water := WATER_MAX
 var tool_index := 0
 var seed_index := 0
-var bag: Dictionary = {}        # item id -> count; seeds are "seeds:<crop>"
+var food_index := 0             # the food in hand when the food slot is picked (data/foods.json order)
+var bag: Dictionary = {}        # item id -> count; seeds are "seeds:<crop>", food "food:<id>"
 var tool_levels: Dictionary = {}   # tool -> level 1..5 (charging tools in data/tools.json)
 var flags: Dictionary = {}      # story flags set by dialogue (bool, whole number or word)
 var tool_exp: Dictionary = {}      # tool -> experience from using it; levels up at data thresholds
-var fatigue := 0                # 0..FATIGUE_MAX, rises with work and late nights, only sleep lowers it
+var fatigue := 0                # 0..FATIGUE_MAX, rises with work and late nights; sleep and food lower it
+var work_fatigue_half := false  # a food halves swing fatigue until the day ends
 
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
@@ -51,6 +53,8 @@ var weather_fx: Dictionary = {}    # look per weather: tint, falling particles, 
 var tools_data: Dictionary = {}    # data/tools.json: charge steps per tool
 var snow_rules: Dictionary = {}    # how snow builds up and melts (data/snow_cover.json)
 var body: Dictionary = {}          # fatigue, tired states, oversleeping, collapse (data/body.json)
+var food_data: Dictionary = {}     # data/foods.json: food and drink, the stand's food stock
+var foods: Dictionary = {}         # food id -> {name, price, stamina, fatigue, ...}
 var rng := RandomNumberGenerator.new()
 var farm: FarmGrid
 var _accum := 0.0
@@ -65,6 +69,7 @@ func _ready() -> void:
 	tools_data = _load_json("res://data/tools.json")
 	snow_rules = _load_json("res://data/snow_cover.json")
 	body = _load_json("res://data/body.json")
+	set_food_data(_load_json("res://data/foods.json"))
 	_setup_input()
 	settings = Settings.make()
 	var err := settings.read()
@@ -88,15 +93,17 @@ func new_game() -> void:
 	max_stamina = 100
 	stamina = max_stamina
 	fatigue = 0
+	work_fatigue_half = false
 	_shown_state = "fine"
 	water = WATER_MAX
 	snow_cover = 0
 	tool_index = 0
 	seed_index = 0
+	food_index = 0
 	_accum = 0.0
 	farm = FarmGrid.new(crops)
 	farm.generate(rng)
-	bag = {"seeds:turnip": 2, "seeds:potato": 1}
+	bag = {"seeds:turnip": 2, "seeds:potato": 1, "food:onigiri": 1}
 	reset_tool_levels()
 	flags = {}
 	weather_tomorrow = roll_weather(_tomorrow_season())
@@ -130,6 +137,8 @@ func _demo_field() -> void:
 	farm.cell(Vector2i(5, 8)).obj = FarmGrid.Obj.ROCK
 	farm.cell(Vector2i(7, 8)).obj = FarmGrid.Obj.STUMP
 	farm.cell(Vector2i(9, 8)).obj = FarmGrid.Obj.WEED
+	add_item("food:onigiri", 2)
+	add_item("food:green_tea", 1)
 	farm.cells_changed.emit()
 
 
@@ -337,6 +346,7 @@ func end_day() -> void:
 		season = (season + 1) % 4
 		if season == 0:
 			year += 1
+	work_fatigue_half = false
 	weather_today = weather_tomorrow
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	snow_cover = next_snow_cover(snow_cover, weather_look(weather_today, season_name()), season_name(), snow_rules)
@@ -395,9 +405,62 @@ func take_item(id: String, n := 1) -> bool:
 func spend_stamina(n: int) -> bool:
 	var missing := maxi(n - stamina, 0)
 	stamina -= n - missing
-	add_fatigue(work_fatigue() + missing * int(body.get("work", {}).get("overwork_per_stamina", 1)))
+	var tired := work_fatigue() + missing * int(body.get("work", {}).get("overwork_per_stamina", 1))
+	add_fatigue(tired / 2 if work_fatigue_half else tired)
 	changed.emit()
 	return true
+
+
+# --- food and drink (data/foods.json) --------------------------------------
+
+func set_food_data(data: Dictionary) -> void:
+	food_data = data
+	foods = data.get("foods", {})
+
+
+## The food in hand ("" when there is no food data).
+func current_food() -> String:
+	return foods.keys()[food_index] if food_index < foods.size() else ""
+
+
+func cycle_food() -> void:
+	if foods.size() > 0:
+		food_index = (food_index + 1) % foods.size()
+	changed.emit()
+
+
+## Eats (or drinks) one `id` from the bag: stamina up to the max, fatigue down, and the
+## specials (a higher max stamina, half swing fatigue for the day). A food that would do
+## nothing is kept. Returns true when it was eaten; says what happened either way.
+func eat(id: String) -> bool:
+	var f: Dictionary = foods.get(id, {})
+	if f.is_empty() or count("food:" + id) == 0:
+		message.emit("No %s left" % String(f.get("name", id)).to_lower())
+		return false
+	var grow := mini(int(f.get("max_stamina", 0)), maxi(int(food_data.get("max_stamina_cap", 200)) - max_stamina, 0))
+	var half := bool(f.get("work_fatigue_half", false)) and not work_fatigue_half
+	var lowers := int(f.get("fatigue", 0)) < 0 and fatigue > 0
+	if stamina >= max_stamina and not lowers and grow == 0 and not half:
+		message.emit(String(food_data.get("full_message", "You're full.")))
+		return false
+	take_item("food:" + id)
+	max_stamina += grow
+	stamina = clampi(stamina + int(f.get("stamina", 0)), 0, max_stamina)
+	add_fatigue(int(f.get("fatigue", 0)))
+	work_fatigue_half = work_fatigue_half or half
+	_shown_state = body_state()   # feeling better: a later tired state is told again
+	var text := "You %s the %s." % ["drank" if f.get("drink", false) else "ate", String(f.name).to_lower()]
+	var special := String(f.get("special_message", ""))
+	if special != "" and (grow > 0 or half):
+		text += " " + (special % grow if "%d" in special else special)
+	message.emit(text)
+	changed.emit()
+	return true
+
+
+## Sound key for eating `id`: "drink" or "eat" (both in data/sfx.json).
+func eat_sound(id: String) -> String:
+	return "drink" if foods.get(id, {}).get("drink", false) else "eat"
 
 
 # --- fatigue and tired states (data/body.json) -----------------------------
@@ -587,6 +650,7 @@ const SAVED_NUMBERS := {
 }
 ## Numbers added after the first saves went out: an older save without them gets these.
 const SAVED_DEFAULTS := {"snow_cover": 0, "fatigue": 0}
+const SAVED_FLAGS: Array[String] = ["work_fatigue_half"]   # true / false; older saves: false
 
 
 ## The run's state as plain data, the farm included (SaveGame writes it).
@@ -600,6 +664,9 @@ func to_dict() -> Dictionary:
 	d.weather_tomorrow = weather_tomorrow
 	d.tool = current_tool()
 	d.seed = current_seed()
+	d.food = current_food()
+	for key in SAVED_FLAGS:
+		d[key] = get(key)
 	d.bag = bag.duplicate()
 	d.tool_levels = tool_levels.duplicate()
 	d.flags = flags.duplicate()
@@ -629,6 +696,15 @@ func from_dict(data: Dictionary) -> String:
 	n.seed_index = crops.keys().find(data.get("seed", ""))
 	if n.seed_index < 0:
 		return "Saved seed is broken"
+	# Saves from before food have none in hand: the first one.
+	var food = data.get("food", "")
+	n.food_index = (foods.keys().find(food) if food != "" else 0) if food is String else -1
+	if n.food_index < 0:
+		return "Saved food is broken"
+	for key in SAVED_FLAGS:
+		if not data.get(key, false) is bool:
+			return "Saved %s is broken" % key
+		n[key] = data.get(key, false)
 	var saved_bag = data.get("bag")
 	if not saved_bag is Dictionary:
 		return "Saved bag is broken"

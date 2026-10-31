@@ -144,7 +144,7 @@ func _refresh() -> void:
 	for i in _slots.size():
 		_slots[i].texture = PlaceholderArt.tex("ui:slot:" + ("on" if i == Game.tool_index else "off"))
 		var t: String = Game.TOOLS[i]
-		_slot_icons[i].texture = PlaceholderArt.tex("ui:seeds:" + Game.current_seed() if t == "seeds" else "ui:tool:" + t)
+		_slot_icons[i].texture = PlaceholderArt.tex(slot_icon(t))
 	var item := item_text(tool)
 	_item_name.text = item[0]
 	_item_count.text = item[1]
@@ -162,6 +162,15 @@ func _refresh() -> void:
 	_stamina_fill.color = Color("6aa84f") if f > 0.5 else (Color("e0a838") if f > 0.25 else PlaceholderArt.UI_SEAL)
 
 
+## Icon key for a tool bar slot: the seed bag or food in hand for those slots.
+static func slot_icon(tool: String) -> String:
+	if tool == "seeds":
+		return "ui:seeds:" + Game.current_seed()
+	if tool == "food":
+		return "ui:food:" + Game.current_food()
+	return "ui:tool:" + tool
+
+
 ## [name, count] for the item box.
 static func item_text(tool: String) -> Array[String]:
 	if tool == "can":
@@ -169,4 +178,7 @@ static func item_text(tool: String) -> Array[String]:
 	if tool == "seeds":
 		var s := Game.current_seed()
 		return ["%s seeds" % Game.crops[s].name, "x%d" % Game.count("seeds:" + s)]
+	if tool == "food":
+		var f := Game.current_food()
+		return [String(Game.foods.get(f, {}).get("name", "Food")), "x%d" % Game.count("food:" + f)]
 	return [HudLayout.TOOL_NAMES.get(tool, tool.capitalize()), ""]

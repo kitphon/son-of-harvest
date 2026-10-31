@@ -33,9 +33,12 @@ turned off in Esc → Settings or with `-- --no-flashes`), the text box is done 
 DialogueRunner, TextBox) and the pause menu (Esc: resume, save, settings, back to title;
 settings in `data/settings.json` / `user://settings.json`, so a volume setting is one data
 entry).
-Next: milestone 3, **eating / drinking** (food items with stamina / fatigue effects in data;
-`Game.add_fatigue()` takes a negative amount). After that milestone 6, **event scripts +
-trigger tables per map**, built on the dialogue format.
+Eating / drinking is done: food and drink in `data/foods.json` (stamina +, fatigue −, specials
+for max stamina and half swing fatigue for a day), eaten from the 7th tool slot (Q = next
+food) and sold at the seed stand while that slot is in hand.
+Next: milestone 6, **event scripts + trigger tables per map**, built on the dialogue format.
+Later for food: raw crops as food (DESIGN: about +3 / −1), cooking, a real shop with opening
+hours (milestone 5 / 8) instead of the stand.
 Sound effects and ambient loops are in (milestone 10, first step); later for audio: music,
 and the settings screen's volume sliders call `Sfx.set_volume("SFX" / "Ambient", 0..1)`.
 Later for menus: rucksack / storage, key remapping.
@@ -68,7 +71,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Charging tools (hold to cover more cells, per tool level; data/tools.json)
    - [x] Tool levels and upgrades (experience from use; shop upgrades with milestone 8)
    - [x] Fatigue, tired animations, oversleeping, collapse (data/body.json)
-   - [ ] Eating / drinking, food items
+   - [x] Eating / drinking, food items (data/foods.json, food slot, sold at the stand)
    - [ ] Holding and throwing items (shipping by throwing into the bin)
 4. **Save / load and menus**
    - [x] Save game (Game + FarmGrid to a versioned JSON file), load; F5 / F9, saves on sleep

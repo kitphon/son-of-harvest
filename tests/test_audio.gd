@@ -53,7 +53,8 @@ func _init() -> void:
 	check(used.size() >= 9, "found the play calls in code (%d)" % used.size())
 	var game_script: GDScript = load("res://scripts/autoload/game.gd")
 	for t in game_script.TOOLS:
-		used["tool_" + t] = "farm_actions.gd"
+		if t != "food":   # eating plays the food's own eat / drink sound (tests/test_food.gd)
+			used["tool_" + t] = "farm_actions.gd"
 	for g in ["grass", "soil", "snow"]:
 		used["step_" + g] = "sfx.gd walk"
 	used["thunder"] = "sfx.gd thunder_after_flash"

@@ -33,8 +33,8 @@ Save / load, the title menu, weather and dialogue: the same with `res://tests/te
 | Space / J | use the tool on the cell in front; hold to charge (pips over the farmer), let go for a bigger area; tools level up with use (pips in the item box) |
 | E / K | interact: harvest, ship at the bin (with nothing to ship: read the note on it), buy seeds at the stand, sleep at the door |
 | E / Space / Enter, click | in a text box: show the whole line, then go on; arrows / W / S or the mouse pick a choice |
-| 1-6 / Tab | pick a tool: hoe, watering can, sickle, hammer, axe, seeds |
-| Q | next seed type (for sowing and for buying) |
+| 1-7 / Tab | pick a tool: hoe, watering can, sickle, hammer, axe, seeds, food (Space / J eats or drinks the food in hand) |
+| Q | next seed type, or next food with the food slot (for eating and for buying) |
 
 ## What works (v0)
 - Clock: 1 game minute = 0.5 s, day starts 6:00, 4 seasons x 30 days, day/night tint.
@@ -43,7 +43,8 @@ Save / load, the title menu, weather and dialogue: the same with `res://tests/te
 - Farm grid 32 x 20: till, water (can refills at the pond), seed bag sows 3 x 3, crops grow
   one stage per watered night (`data/crops.json`), regrowing crops, out-of-season crops wither,
   weeds appear, rocks / branches / weeds / stumps cleared by the right tool.
-- Shipping bin pays at 18:00 (or when you sleep); the seed stand sells this season's seeds.
+- Shipping bin pays at 18:00 (or when you sleep); the seed stand sells this season's seeds,
+  and food / drink when the food slot is in hand (`data/foods.json`: stamina +, fatigue −).
 - Stamina: each swing costs stamina; sleep before midnight restores it all, after midnight
   3/4, passing out at 2:00 half.
 - Sound: every effect and ambient loop is made in code from recipes in `data/sfx.json`

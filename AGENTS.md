@@ -42,7 +42,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Dialogue (runner, data, text box layout): `res://tests/test_dialogue.gd` must print
   `test_dialogue: OK (0 failed)`. Pause menu / settings: `res://tests/test_menu.gd` must print
   `test_menu: OK (0 failed)`. Fatigue (tired states, oversleeping, collapse):
-  `res://tests/test_body.gd` must print `test_body: OK (0 failed)`.
+  `res://tests/test_body.gd` must print `test_body: OK (0 failed)`. Food and drink (eating,
+  specials, the stand, the food slot): `res://tests/test_food.gd` must print
+  `test_food: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field).
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
