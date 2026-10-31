@@ -11,6 +11,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 ```
 
 <<<<<<< HEAD
+## 2026-10-31 — Merged charging tools, title screen and snow / lightning
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three parallel sessions merged into main with `--no-ff`:
+  `claude/charging-tools-1fea05` (df973c1), `claude/title-screen-ee5824` (a9b71e4),
+  `claude/snow-lightning-b2757e` (4328c29). Conflicts in `game.gd` (tools_data / snow_rules),
+  `tests/test_save.gd` (tool levels and snow cover checks), AGENTS.md (test and flag lists),
+  ROADMAP.md and WORKLOG.md were resolved by keeping both sides. `Game.new_game()` did not
+  reset `snow_cover` (the title screen's "nothing left over" rule), so it does now, and
+  `tests/test_title.gd` sets snow cover and a tool level before the reset check.
+- Checked on merged main: `test_farm: OK (0 failed)`, `test_save: OK (0 failed)`,
+  `test_title: OK (0 failed)`, `test_weather: OK (0 failed)`; headless `--quit-after 300`
+  (title screen, and `-- --demo --weather=storm`) printed no errors or warnings; Movie Maker
+  frame `--demo --weather=snow` shows snow on the ground and roof with the HUD intact.
+- Left / next: charging, the title menu and F5 / F9 still need real key presses in a game
+  window; snow is not shown in the 2D view. ROADMAP → tool levels and upgrades.
+
 ## 2026-10-31 — Charging tools
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: hold the use button with hoe / can / sickle / hammer / axe to charge; the charge goes
