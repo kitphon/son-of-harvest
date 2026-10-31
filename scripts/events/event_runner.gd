@@ -15,6 +15,7 @@ const CROPS := "res://data/crops.json"
 const T := 16
 const MAX_STEPS := 1000     # instant steps in one update, so a loop without a wait can't hang
 const DIRS := {"up": Vector2i.UP, "down": Vector2i.DOWN, "left": Vector2i.LEFT, "right": Vector2i.RIGHT}
+const COME_IN := 4          # cells beside the farmer an actor comes in from when their plan has them elsewhere
 ## Keys each command takes besides `do`, `id` and `next`.
 const COMMANDS := {
 	"say": ["dialogue", "at"], "wait": ["seconds"], "face": ["dir"], "walk": ["to", "by", "run"],
@@ -38,6 +39,12 @@ var run_speed := 100.0
 ## Villagers acting in the event: id -> {pos (cells, feet; a cell's middle is +0.5), facing,
 ## moving, walked}, the shape Villagers.on_map gives. Gone again when the event ends.
 var actors: Dictionary = {}
+## Villagers standing on the event's map as it starts (EventPlayer, from Villagers.on_map):
+## id -> {pos, facing}. `"at": "plan"` starts an actor there, so a scene played by a talk
+## keeps the villager where the farmer found them.
+var on_stage: Dictionary = {}
+var _plan_spots: Dictionary = {}   # id -> where `"at": "plan"` put the actor, for `"to": "plan"`
+var _actor_face := ""       # the walking actor's `face`, turned to on arrival
 var _ids: Dictionary = {}   # step id -> index
 var _active := false        # the step at `index` has begun
 var _timer := 0.0
@@ -140,7 +147,10 @@ func _begin(s: Dictionary) -> void:
 		"wait":
 			_timer = float(s.seconds)
 		"face":
-			facing = DIRS[s.dir]
+			if DIRS.has(s.dir):
+				facing = DIRS[s.dir]
+			elif actors.has(s.dir):   # a villager acting in it: turn to them
+				facing = _toward(pos / T, actors[s.dir].pos, facing)
 		"walk":
 			var cell := Vector2i(floori(pos.x / T), floori(pos.y / T))
 			var goal := cell + _vec(s.by) if s.has("by") else _vec(s.to)
@@ -176,22 +186,73 @@ func _begin(s: Dictionary) -> void:
 			game.show_ending()
 
 
-## An actor step: off the stage, onto cell `at`, turned to `face`, then walking to `to`.
+## An actor step: off the stage, onto cell `at` (or their plan's spot), walking to `to`, then
+## turned to `face`. An actor put at "plan" whose plan has them on another map comes in from
+## beside the farmer and walks up to them.
 func _begin_actor(s: Dictionary) -> void:
 	_actor = ""
+	_actor_face = ""
 	if s.has("leave"):
 		actors.erase(s.who)
 		return
-	if s.has("at") or not actors.has(s.who):
-		var c: Vector2i = _vec(s.get("at", s.get("to")))
-		actors[s.who] = {"pos": Vector2(c) + Vector2(0.5, 0.5), "facing": Vector2i.DOWN, "moving": false, "walked": 0.0}
+	var to: Variant = s.get("to")
+	if s.get("at") is String:   # "plan"
+		var spot := _plan_spot(s.who)
+		_plan_spots[s.who] = spot.pos
+		actors[s.who] = {"pos": spot.pos, "facing": spot.facing, "moving": false, "walked": 0.0}
+		if not on_stage.has(s.who) and to == null:
+			to = "farmer"
+	elif s.has("at") or not actors.has(s.who):
+		var start := _actor_goal(s.who, s.get("at", to))
+		actors[s.who] = {"pos": start, "facing": Vector2i.DOWN, "moving": false, "walked": 0.0}
 	var a: Dictionary = actors[s.who]
-	if s.has("face"):
-		a.facing = DIRS[s.face]
-	if s.has("to"):
-		var end := Vector2(_vec(s.to)) + Vector2(0.5, 0.5)
-		_path = [Vector2(end.x, a.pos.y), end]   # across first, then up or down, like the farmer
+	if to != null:
+		var end := _actor_goal(s.who, to)
+		var corner := Vector2(end.x, a.pos.y)   # across first, then up or down, like the farmer,
+		if Vector2i(corner.floor()) == _farmer_cell():   # unless that turns on the farmer's cell
+			corner = Vector2(a.pos.x, end.y)
+		_path = [corner, end]
 		_actor = s.who
+		_actor_face = s.get("face", "")
+	elif s.has("face"):
+		_face_actor(a, s.face)
+
+
+## Where an actor step's `at` or `to` is, in cells (a cell's middle): [x, y]; "farmer", the
+## cell in front of the farmer; "plan", back where `"at": "plan"` put them.
+func _actor_goal(who: String, v: Variant) -> Vector2:
+	if v is Array:
+		return Vector2(_vec(v)) + Vector2(0.5, 0.5)
+	if v == "farmer":
+		return Vector2(_farmer_cell() + facing) + Vector2(0.5, 0.5)
+	return _plan_spots.get(who, _plan_spot(who).pos)
+
+
+## Where villager `who` stands for `"at": "plan"`: on the stage if they are, else COME_IN
+## cells beside the cell in front of the farmer, on the side away from the farmer.
+func _plan_spot(who: String) -> Dictionary:
+	if on_stage.has(who):
+		return {"pos": Vector2(on_stage[who].pos), "facing": Vector2i(on_stage[who].facing)}
+	var front := _farmer_cell() + facing
+	var side := 1 if front.x >= _farmer_cell().x else -1
+	return {"pos": Vector2(front + Vector2i(side * COME_IN, 0)) + Vector2(0.5, 0.5), "facing": Vector2i(-side, 0)}
+
+
+func _farmer_cell() -> Vector2i:
+	return Vector2i(floori(pos.x / T), floori(pos.y / T))
+
+
+## Actor `a` turns `face`: a direction, or "farmer" (toward them).
+func _face_actor(a: Dictionary, face: String) -> void:
+	a.facing = _toward(a.pos, pos / T, a.facing) if face == "farmer" else DIRS[face]
+
+
+## The way from `from` to `to` (cells) along the longer axis; `same` when they meet.
+static func _toward(from: Vector2, to: Vector2, same: Vector2i) -> Vector2i:
+	var d := to - from
+	if d.length() < 0.0001:
+		return same
+	return Vector2i(int(signf(d.x)), 0) if absf(d.x) > absf(d.y) else Vector2i(0, int(signf(d.y)))
 
 
 ## True while step `s` still goes on after `delta` more seconds.
@@ -237,6 +298,8 @@ func _going(s: Dictionary, delta: float) -> bool:
 				a.walked += d.length()
 				a.pos = _path.pop_front()
 			a.moving = false
+			if _actor_face != "":
+				_face_actor(a, _actor_face)
 			return false
 		"fade":
 			_fade_time += delta
@@ -265,6 +328,7 @@ func _advance(s: Dictionary) -> void:
 		walking = false
 		running = false
 		actors.clear()
+		_plan_spots.clear()
 
 
 static func _vec(a: Array) -> Vector2i:
@@ -326,8 +390,8 @@ func _check_step(s: Dictionary) -> String:
 			if not _number(s.get("seconds"), 0.0, 60.0):
 				return "wait needs 0 to 60 seconds"
 		"face":
-			if not DIRS.has(s.get("dir")):
-				return "face needs up, down, left or right"
+			if not DIRS.has(s.get("dir")) and not Villagers.all().has(s.get("dir")):
+				return "face needs up, down, left, right or a villager"
 		"walk":
 			if s.has("to") == s.has("by") or not _pair(s.get("to", s.get("by"))):
 				return "walk needs to [x, y] or by [dx, dy]"
@@ -378,11 +442,12 @@ func _check_step(s: Dictionary) -> String:
 				return ""
 			if not (s.has("at") or s.has("to") or s.has("face")):
 				return "an actor step needs at, to, face or leave"
-			for k in ["at", "to"]:
-				if s.has(k) and not _pair(s[k]):
-					return "%s needs [x, y]" % k
-			if s.has("face") and not DIRS.has(s.face):
-				return "face is up, down, left or right"
+			if s.has("at") and not (_pair(s.at) or s.at == "plan"):
+				return "at needs [x, y] or \"plan\""
+			if s.has("to") and not (_pair(s.to) or s.to in ["farmer", "plan"]):
+				return "to needs [x, y], \"farmer\" or \"plan\""
+			if s.has("face") and not (DIRS.has(s.face) or s.face == "farmer"):
+				return "face is up, down, left, right or farmer"
 	return ""
 
 

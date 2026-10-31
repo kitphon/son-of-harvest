@@ -114,6 +114,9 @@ func play(id: String) -> void:
 	runner.run_speed = Player.RUN_SPEED
 	runner.sound.connect(Sfx.play)
 	runner.start(player.position, player.facing)
+	var cell := Player.cell_of(player.position)
+	for w in Villagers.on_map(map_id, Game.day_minutes(), Game.trigger_state(cell)):
+		runner.on_stage[w.id] = {"pos": w.pos, "facing": w.facing}   # `"at": "plan"` starts them there
 	Game.events_seen[id] = true
 	Game.event_running = true
 	player.cancel_charge()

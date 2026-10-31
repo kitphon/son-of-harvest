@@ -263,11 +263,77 @@ func _init() -> void:
 	check(g.count("seeds:potato") == potatoes + 2 and EventRunner.is_set(g.flags, "met_tome"), "two seed potato bags and the met_tome flag")
 	check(r.pos == Vector2(12 * 16 + 8, 5 * 16 + 8) and r.facing == Vector2i.RIGHT, "the farmer ends by the stand, looking after Tome (%s)" % r.pos)
 
+	# A heart scene played by a talk: Kota stays where his plan has him, turns to the farmer
+	# and stands there for his lines; the farmer turns to him; at the end he is back in his plan.
+	talked.clear()
+	r = EventRunner.open("heart_kota_6", g)
+	r.start(Vector2(10 * 16 + 8, 5 * 16 + 8), Vector2i.UP)
+	r.on_stage = {"kota": {"pos": Vector2(10.5, 4.5), "facing": Vector2i.LEFT}}
+	r.update(0.0)
+	check(r.actors.has("kota") and r.actors.kota.pos == Vector2(10.5, 4.5) and r.actors.kota.facing == Vector2i.DOWN
+		and r.facing == Vector2i.UP, "talked to: Kota stays put and faces the farmer %s" % [r.actors])
+	var kota_moved := false
+	var kota_in_lines := false
+	for i in 100:
+		r.update(0.1)
+		if g.dialogue_open:
+			kota_in_lines = r.actors.has("kota") and r.actors.kota.facing == Vector2i.DOWN
+		g.dialogue_open = false
+		kota_moved = kota_moved or r.actors.get("kota", {}).get("moving", false)
+		if r.done():
+			break
+	check(r.done() and kota_in_lines and not kota_moved and talked == ["heart_events_6@kota"], "he stands facing the farmer through his lines, never walking")
+	check(r.actors.is_empty() and r.pos == Vector2(10 * 16 + 8, 5 * 16 + 8), "the scene ends, Kota back to his plan")
+
+	# Played where his plan has him elsewhere: he comes in from beside the farmer (on the side
+	# away from them), walks up to the cell in front, faces them, and walks back off at the end.
+	talked.clear()
+	r = EventRunner.open("heart_kota_6", g)
+	r.start(Vector2(10 * 16 + 8, 5 * 16 + 8), Vector2i.LEFT)
+	r.update(0.0)
+	check(r.actors.has("kota") and r.actors.kota.pos == Vector2(9.5 - EventRunner.COME_IN, 5.5) and r.actors.kota.facing == Vector2i.RIGHT,
+		"off stage: Kota comes in from the left %s" % [r.actors])
+	r.update(0.5)
+	check(r.actors.kota.moving and r.actors.kota.pos.x > 5.5 and talked.is_empty(), "walking up, no lines yet")
+	for i in 40:
+		r.update(0.1)
+		if g.dialogue_open:
+			break
+	check(r.actors.kota.pos == Vector2(9.5, 5.5) and r.actors.kota.facing == Vector2i.RIGHT and not r.actors.kota.moving
+		and r.facing == Vector2i.LEFT and talked == ["heart_events_6@kota"], "in front of the farmer, facing each other, then his lines %s" % [r.actors])
+	g.dialogue_open = false
+	var went_back := false
+	for i in 100:
+		r.update(0.1)
+		g.dialogue_open = false
+		if r.actors.has("kota") and r.actors.kota.moving:
+			went_back = went_back or r.actors.kota.facing == Vector2i.LEFT
+		if r.done():
+			break
+	check(r.done() and went_back and r.actors.is_empty(), "he walks back off the way he came, then is gone")
+
+	# Coming in from the right while the farmer faces down, the walk turns the corner below
+	# the farmer, not on the farmer's cell; `face` with a villager turns the farmer to them.
+	r = EventRunner.new({"steps": [{"do": "actor", "who": "tome", "at": [14, 5], "to": "farmer", "face": "farmer"},
+			{"do": "face", "dir": "tome"}, {"do": "wait", "seconds": 1}]}, g)
+	r.start(Vector2(10 * 16 + 8, 5 * 16 + 8), Vector2i.DOWN)
+	var on_farmer := false
+	for i in 60:
+		r.update(0.1)
+		if r.actors.has("tome") and Vector2i(r.actors.tome.pos.floor()) == Vector2i(10, 5):
+			on_farmer = true
+		if r.step().do == "wait":
+			break
+	check(not on_farmer and r.actors.tome.pos == Vector2(10.5, 6.5) and r.actors.tome.facing == Vector2i.UP and r.facing == Vector2i.DOWN,
+		"Tome walks round the farmer to the cell in front, faces up %s" % [r.actors])
+
 	# Actor and place steps that are wrong are refused.
 	for bad in [{"do": "actor", "who": "nobody", "at": [1, 1]}, {"do": "actor", "who": "tome"},
 			{"do": "actor", "who": "tome", "to": [1]}, {"do": "actor", "who": "tome", "face": "north"},
 			{"do": "actor", "who": "tome", "leave": false}, {"do": "actor", "who": "tome", "leave": true, "at": [1, 1]},
-			{"do": "actor", "who": "tome", "at": [1, 1], "speed": 2}, {"do": "place"}, {"do": "place", "at": [1, 1], "dir": "in"}]:
+			{"do": "actor", "who": "tome", "at": [1, 1], "speed": 2}, {"do": "actor", "who": "tome", "at": "farmer"},
+			{"do": "actor", "who": "tome", "to": "home"}, {"do": "actor", "who": "tome", "at": "plan", "face": "kota"},
+			{"do": "face", "dir": "nobody"}, {"do": "place"},{"do": "place", "at": [1, 1], "dir": "in"}]:
 		r = EventRunner.new({"steps": [bad]}, g)
 		check(r.error != "" and r.done(), "refused %s (%s)" % [JSON.stringify(bad), r.error])
 

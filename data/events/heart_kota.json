@@ -1,8 +1,12 @@
 {
-	"_note": "Kota's heart event: the first talk once his heart band reaches 3 (triggers_town.json). He tells the farmer about the old carp in the pond and asks for a promise (kota_carp_promise). Sets heart_kota. Format: README.md, Events.",
+	"_note": "Kota's heart event: the first talk once his heart band reaches 3 (triggers_town.json). He tells the farmer about the old carp in the pond and asks for a promise (kota_carp_promise). Sets heart_kota. Kota acts in it from where the talk found them (an actor step at plan; played where their plan has them elsewhere, they walk up to the farmer), faces the farmer through the lines and goes back to their day plan. Format: README.md, Events.",
 	"steps": [
+		{"do": "actor", "who": "kota", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "kota"},
 		{"do": "say", "dialogue": "heart_events", "at": "kota"},
 		{"do": "affection", "who": "kota", "amount": 5},
-		{"do": "set", "flags": {"heart_kota": true}}
+		{"do": "set", "flags": {"heart_kota": true}},
+		{"do": "actor", "who": "kota", "to": "plan"},
+		{"do": "actor", "who": "kota", "leave": true}
 	]
 }

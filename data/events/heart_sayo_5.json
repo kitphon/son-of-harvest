@@ -1,10 +1,14 @@
 {
-	"_note": "Sayo's second heart event: the first talk once her heart band reaches 5, after heart_sayo, at the store counter, at home or in the village (triggers_store.json, triggers_sayo_house.json, triggers_town.json); it plays instead of opening the shop. She asks what goes on the new sign (sayo_sign: old or new). Sets heart_sayo_5. Format: README.md, Events.",
+	"_note": "Sayo's second heart event: the first talk once her heart band reaches 5, after heart_sayo, at the store counter, at home or in the village (triggers_store.json, triggers_sayo_house.json, triggers_town.json); it plays instead of opening the shop. She asks what goes on the new sign (sayo_sign: old or new). Sets heart_sayo_5. Sayo acts in it from where the talk found them (an actor step at plan; played where their plan has them elsewhere, they walk up to the farmer), faces the farmer through the lines and goes back to their day plan. Format: README.md, Events.",
 	"steps": [
+		{"do": "actor", "who": "sayo", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "sayo"},
 		{"do": "sound", "key": "coins"},
 		{"do": "wait", "seconds": 0.3},
 		{"do": "say", "dialogue": "heart_events_5", "at": "sayo"},
 		{"do": "affection", "who": "sayo", "amount": 5},
-		{"do": "set", "flags": {"heart_sayo_5": true}}
+		{"do": "set", "flags": {"heart_sayo_5": true}},
+		{"do": "actor", "who": "sayo", "to": "plan"},
+		{"do": "actor", "who": "sayo", "leave": true}
 	]
 }
