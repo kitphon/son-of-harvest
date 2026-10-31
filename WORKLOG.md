@@ -10,6 +10,41 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Merged six branches: balance, mine extras, homes, relationships, contests, cooking
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged with `--no-ff`, one at a time, all tests after each, in this order:
+  `claude/balance-pass-73de78` (5cacb8f), `claude/mine-extras-68e7bd` (4903e47),
+  `claude/villager-homes-fbc926` (3d032b5), `claude/relationships-b9b5eb` (02f8e7a),
+  `claude/festival-contests-43ab9f` (98ddaac), `claude/cooking-0acc52` (2c0989d). WORKLOG kept
+  every branch's entry; AGENTS / ROADMAP kept both sides (test list, debug flags, sections);
+  "Next up" points at endings (milestone 9). Joins:
+  - `data/shops.json`: the balance prices (big rucksack 6500) with the mine's `buys`
+    (store: gems 120 %) and ore `items` on upgrades; `_about` describes fodder, young animals,
+    stone / ore / gem buys and upgrade items.
+  - Heart events and recipe talks: the villagers are now at home part of the day, so the heart
+    rows (and the cooking branch's recipe rows) are also in new `triggers_tome_house.json`,
+    `triggers_kota_house.json`, `triggers_sayo_house.json`; `test_relationships` checks the
+    house maps too. The cooking branch's `quiet_house` examine rows on Tome's / Kota's doors
+    were dropped (the doors open now).
+  - Festival contests score an entry's shipping value, and the balance pass lowered spring
+    crops (potato 80 -> 55, turnip 60 -> 35, cucumber 60 -> 30), so Blossom Day's rivals were
+    scaled down to match (Kota 40-75, Tome 45-85, Sayo 30-65; a good in-season potato scores
+    83). `test_festivals` now works the potato's score out from `crops.json`. The other
+    contests were left: fish and mine prices didn't change, milk / wool rose a little and eggs
+    fell.
+  - `Game.new_game` keeps both `--hearts=` and `--cook`. Save version stays 4.
+- Checked on merged main: all 22 tests (the 20 before plus `test_cooking`,
+  `test_relationships`) print `OK (0 failed)`; headless `--quit-after 300` (title, `--demo`,
+  `--map=town`, `--mine=3`, `--season=winter --mine=3`, `--map=tome_house`, `kota_house`,
+  `sayo_house`, `--festival=blossom_day`, `--contest=potato`, `--shop=stall:blossom_day`,
+  `--cook`, `--hearts=4 --map=town --time=14:30 --talk=tome`, `--shop=smithy`,
+  `--shop=general`, `--map=barn`, `--fishing`) and `res://scenes/main.tscn --quit-after 400`
+  printed no errors or warnings. Movie Maker frames: `--demo --map=tome_house` (irori, tatami,
+  tokonoma), `--demo --festival=blossom_day --contest=potato` (judges' table, results box).
+- Left / next: none of it was played in a real window and the festival music wasn't heard.
+  `tools/balance.py` doesn't count contest prizes, cooking or ores going to the smithy yet;
+  re-run the balance with those in.
+
 ## 2026-10-31 — Balance pass: income per season; cows, sheep and fodder at the store
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit · Branch: claude/balance-pass-73de78
 - Done: milestone 8's balance pass, numbers in data files only.

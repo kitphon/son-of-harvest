@@ -126,8 +126,9 @@ item to keep, a contest that is played (a mochi-pounding rhythm, a fishing race)
 Lantern Night that sell, more villagers gathering once they talk.
 The balance pass is done (milestone 8): our own crop, product, animal and extension prices,
 `python -I tools/balance.py` prints income per season for a steady year-1 plan (WORKLOG has
-the before / after table). Later for balance: re-run it when the smithy asks for ores (ores
-then go to upgrades, not the bin) and when cooking or contests add income; play a real year.
+the before / after table). Later for balance: the smithy now asks for ores (they go to
+upgrades, not the bin) and cooking and contests add income, so re-run it with those in; play a
+real year.
 Next: **endings** (milestone 9; relationships are done, so an ending can read
 `Game.affection` bands and the `heart_<id>` flags).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
