@@ -24,7 +24,7 @@ Tests (farm rules, headless):
 | Key | Action |
 | --- | --- |
 | WASD / arrows | walk along the field's axes (Up = diagonally away from the camera); Shift = run |
-| Space / J | use the tool on the cell in front |
+| Space / J | use the tool on the cell in front; hold to charge (pips over the farmer), let go for a bigger area |
 | E / K | interact: harvest, ship at the bin, buy seeds at the stand, sleep at the door |
 | 1-6 / Tab | pick a tool: hoe, watering can, sickle, hammer, axe, seeds |
 | Q | next seed type (for sowing and for buying) |

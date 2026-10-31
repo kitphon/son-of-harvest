@@ -15,7 +15,7 @@ func _ready() -> void:
 	player = Player.new()
 	player.farm = Game.farm
 	player.position = FarmActions.HOME
-	player.action.connect(func(kind: String, c: Vector2i): FarmActions.on_action(kind, c))
+	player.action.connect(FarmActions.on_action)
 	add_child(player)
 
 	var cam := Camera2D.new()
@@ -41,7 +41,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _on_day_started() -> void:
 	player.position = FarmActions.HOME
 	player.facing = Vector2i.DOWN
-	player.queue_redraw()
+	player.cancel_charge()
 	_update_tint()
 
 

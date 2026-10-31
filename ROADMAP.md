@@ -25,8 +25,9 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 ## Next up
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
-font are done. Next: milestone 3, **charging tools** (hold to cover more cells, per tool
-level). Later for weather: snow lying on the ground in winter, lightning flashes in storms.
+font are done. Charging tools are done (levels in data/tools.json, all at level 1). Next:
+milestone 3, **tool levels and upgrades** (a way to raise `Game.tool_levels`; the shop comes
+with milestone 8, so for now e.g. tool experience or a blacksmith stub). Later for weather: snow lying on the ground in winter, lightning flashes in storms.
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
@@ -50,7 +51,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Rain / snow particles, weather tint
    - [x] Pixel font for the HUD, clock box, a proper item / tool display (Japanese glyphs later)
 3. **Tools and the body**
-   - [ ] Charging tools (hold to cover more cells, per tool level)
+   - [x] Charging tools (hold to cover more cells, per tool level; data/tools.json)
    - [ ] Tool levels and upgrades
    - [ ] Fatigue, tired animations, oversleeping, collapse
    - [ ] Eating / drinking, food items

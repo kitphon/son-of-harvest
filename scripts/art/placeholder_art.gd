@@ -21,6 +21,8 @@ static func _make(key: String) -> Image:
 			var c := Color(1, 1, 1, 0.85)
 			return _draw(16, 16, [[0, 0, 5, 1, c], [0, 0, 1, 5, c], [11, 0, 5, 1, c], [15, 0, 1, 5, c],
 				[0, 15, 5, 1, c], [0, 11, 1, 5, c], [11, 15, 5, 1, c], [15, 11, 1, 5, c]])
+		"charge":   # charge:<steps>:<max>, pips over the farmer while a tool charges
+			return _charge(int(parts[1]), int(parts[2]))
 		"rock", "branch", "weed", "stump":
 			return _obstacle(parts[0])
 		"crop":     # crop:<id>:<growth 0..3>:<ripe|growing>
@@ -34,6 +36,21 @@ static func _make(key: String) -> Image:
 		"ui":       # ui:<frame|slot|weather|tool|seeds|coin|stamina>:<kind>, HUD pieces
 			return _ui(parts[1], parts[2] if parts.size() > 2 else "")
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
+
+
+static func charge_key(steps: int, most: int) -> String:
+	return "charge:%d:%d" % [steps, most]
+
+
+## One 4 x 4 pip per charge step past the tap, filled vermilion once reached, paper while not
+## yet; dark outlined so it reads on grass, soil and snow.
+static func _charge(steps: int, most: int) -> Image:
+	var n := maxi(most, 1)
+	var img := _blank(n * 5 + 1, 6)
+	for i in n:
+		_px(img, i * 5, 0, 6, 6, Color("2a1a10"))
+		_px(img, i * 5 + 1, 1, 4, 4, UI_SEAL if i < steps else UI_PAPER)
+	return img
 
 
 ## The sprite key for what stands on a field cell ("" for nothing). Growth is drawn in four

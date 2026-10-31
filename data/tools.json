@@ -1,0 +1,57 @@
+{
+	"_about": "Charging tools. Hold the use button: the charge goes up one step every charge_seconds, up to max_charge[tool level - 1]. Each charge step has an area drawn with the farmer facing down: '@' is the farmer's cell, '#' a cell the tool works on, rows below '@' are ahead. Hammer and axe hit one cell harder instead (hits). Numbers are ours.",
+	"charge_seconds": 0.6,
+	"tools": {
+		"hoe": {
+			"max_charge": [1, 2, 3, 4, 4],
+			"charges": [
+				{"area": ["@", "#"], "stamina": 2},
+				{"area": ["@", "#", "#", "#"], "stamina": 3},
+				{"area": ["@", "#", "#", "#", "#", "#"], "stamina": 5},
+				{"area": [".@.", "###", "###", "###"], "stamina": 7},
+				{"area": [".@.", "###", "###", "###", "###", "###"], "stamina": 10}
+			]
+		},
+		"can": {
+			"max_charge": [1, 2, 3, 4, 4],
+			"water_per_cell": 1,
+			"charges": [
+				{"area": ["@", "#"], "stamina": 1},
+				{"area": [".@.", "###"], "stamina": 2},
+				{"area": [".@.", "###", "###"], "stamina": 3},
+				{"area": [".@.", "###", "###", "###"], "stamina": 4},
+				{"area": ["..@..", "#####", "#####", "#####"], "stamina": 6}
+			]
+		},
+		"sickle": {
+			"max_charge": [1, 2, 3, 4, 4],
+			"charges": [
+				{"area": ["@", "#"], "stamina": 1},
+				{"area": [".@.", "###"], "stamina": 2},
+				{"area": ["#@#", "###"], "stamina": 3},
+				{"area": ["###", "#@#", "###"], "stamina": 4},
+				{"area": ["#####", "#####", "##@##", "#####", "#####"], "stamina": 6}
+			]
+		},
+		"hammer": {
+			"max_charge": [1, 2, 3, 4, 4],
+			"charges": [
+				{"area": ["@", "#"], "hits": 1, "stamina": 2},
+				{"area": ["@", "#"], "hits": 2, "stamina": 3},
+				{"area": ["@", "#"], "hits": 4, "stamina": 5},
+				{"area": ["@", "#"], "hits": 6, "stamina": 7},
+				{"area": ["@", "#"], "hits": 8, "stamina": 9}
+			]
+		},
+		"axe": {
+			"max_charge": [1, 2, 3, 4, 4],
+			"charges": [
+				{"area": ["@", "#"], "hits": 1, "stamina": 2},
+				{"area": ["@", "#"], "hits": 2, "stamina": 3},
+				{"area": ["@", "#"], "hits": 4, "stamina": 5},
+				{"area": ["@", "#"], "hits": 6, "stamina": 7},
+				{"area": ["@", "#"], "hits": 8, "stamina": 9}
+			]
+		}
+	}
+}
