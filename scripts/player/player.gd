@@ -167,5 +167,5 @@ func _draw() -> void:
 	if Game.holding():   # carried overhead, arms up
 		draw_rect(Rect2(-7, -19, 3, 9), Color("3b6fd1"))
 		draw_rect(Rect2(4, -19, 3, 9), Color("3b6fd1"))
-		var item := PlaceholderArt.tex(PlaceholderArt.world_item_key(Game.held))
+		var item := PlaceholderArt.tex(Game.held_key())
 		draw_texture(item, Vector2(-item.get_width() / 2.0, -19 - item.get_height()))

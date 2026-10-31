@@ -31,7 +31,7 @@ static func _make(key: String) -> Image:
 			return _crop(parts[1], int(parts[2]), parts[3] == "ripe")
 		"item":     # item:<id>, a picked crop held overhead or lying on the ground (12 x 12)
 			return _item(parts[1])
-		"animal":   # animal:<chicken|chick>:<idle|peck|walk|sick>:<frame>, a farm animal (side view, facing left)
+		"animal":   # animal:<chicken|chick|cow|calf|sheep|sheep_shorn|lamb|dog>:<idle|peck|walk|sick, dog: sit|held>:<frame>, side view facing left
 			return _animal(parts[1], parts[2], int(parts[3]))
 		"build":    # build:<plaster|board|kawara|thatch|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
@@ -105,7 +105,7 @@ static func cell_key(farm: FarmGrid, d: Dictionary) -> String:
 ## The key for an item in the world (held overhead, flying, lying on the ground): a crop as
 ## its produce sprite, anything else (seeds, food, ...) as its slot icon.
 static func world_item_key(id: String) -> String:
-	if EGG_SHELLS.has(id):
+	if is_animal_good(id):
 		return "item:" + id
 	crop_look(id)   # fills _looks
 	return "item:" + id if _looks.has(id) else item_key(id)
@@ -114,8 +114,8 @@ static func world_item_key(id: String) -> String:
 ## One piece of produce in the crop's fruit colour, shaped by its look: a root with its leaf
 ## tuft, a long or round fruit with a calyx, a tuber, a cob in its husk, a ribbed squash.
 static func _item(id: String) -> Image:
-	if EGG_SHELLS.has(id):
-		return _egg(id, 12)
+	if is_animal_good(id):
+		return _animal_good(id, 12)
 	var look := crop_look(id)
 	var img := _blank(12, 12)
 	var leaf := Color(look.get("leaf", "5f9e3a"))
@@ -192,6 +192,8 @@ static func _egg(id: String, size: int) -> Image:
 static func _animal(kind: String, pose: String, frame: int) -> Image:
 	if kind == "chick":
 		return _chick(pose, frame)
+	if BEASTS.has(kind):
+		return _beast(kind, pose, frame)
 	var img := _blank(14, 12)
 	var sick := pose == "sick"
 	var white := _HEN_WHITE.darkened(0.15) if sick else _HEN_WHITE
@@ -244,6 +246,163 @@ static func _chick(pose: String, frame: int) -> Image:
 	_px(img, 5, 4, 2, 1, body.darkened(0.15))         # little wing
 	return _outline(img)
 
+
+## Four-legged animals, side view facing left like the hens: sizes and colours per kind.
+## Japanese Black cattle (near-black with a pale muzzle), cream-wool sheep with dark faces
+## (thin and pinkish grey once shorn), a red-tan shiba-like dog with a cream chest and a tail
+## curled over its back. Keys "animal:<kind>:<pose>:<frame>"; the dog also sits and has a
+## "held" pose (sitting up in the arms).
+const BEASTS := {
+	"cow": {"w": 24, "h": 16, "body": Color("2e2824"), "head": Color("2e2824"), "muzzle": Color("b8a898"),
+		"leg": Color("2a2420"), "hoof": Color("504840"), "b": [13.5, 7.5, 8.0, 4.2], "hd": [4.5, 6.0, 3.0],
+		"legs": [7, 10, 16, 19], "leg_y": 10, "leg_len": 5, "tail": "rope", "horns": Color("e0d8c0")},
+	"calf": {"w": 16, "h": 12, "body": Color("3a322c"), "head": Color("3a322c"), "muzzle": Color("c0b0a0"),
+		"leg": Color("342c26"), "hoof": Color("605850"), "b": [9.0, 5.5, 5.2, 2.8], "hd": [3.5, 4.5, 2.3],
+		"legs": [5, 7, 10, 12], "leg_y": 7, "leg_len": 4, "tail": "rope"},
+	"sheep": {"w": 18, "h": 14, "body": Color("f0e8d4"), "head": Color("3a302c"), "muzzle": Color("4a403a"),
+		"leg": Color("3a302c"), "hoof": Color("2a2220"), "b": [10.0, 6.5, 6.6, 4.2], "hd": [3.5, 5.0, 2.3],
+		"legs": [6, 8, 12, 14], "leg_y": 9, "leg_len": 4, "tail": "stub", "fleece": true},
+	"sheep_shorn": {"w": 18, "h": 14, "body": Color("d8c8c0"), "head": Color("3a302c"), "muzzle": Color("4a403a"),
+		"leg": Color("3a302c"), "hoof": Color("2a2220"), "b": [10.0, 7.2, 5.4, 2.9], "hd": [3.5, 5.2, 2.2],
+		"legs": [6, 8, 12, 14], "leg_y": 9, "leg_len": 4, "tail": "stub"},
+	"lamb": {"w": 12, "h": 10, "body": Color("f6f0e2"), "head": Color("4a403a"), "muzzle": Color("5a504a"),
+		"leg": Color("4a403a"), "hoof": Color("2a2220"), "b": [6.8, 4.8, 4.2, 2.6], "hd": [2.6, 3.6, 1.8],
+		"legs": [4, 6, 8, 9], "leg_y": 6, "leg_len": 3, "tail": "stub", "fleece": true},
+	"dog": {"w": 14, "h": 11, "body": Color("c8783c"), "head": Color("c8783c"), "muzzle": Color("f2e2c8"),
+		"leg": Color("c8783c"), "hoof": Color("f2e2c8"), "b": [7.5, 5.5, 4.2, 2.3], "hd": [3.0, 3.6, 2.2],
+		"legs": [4, 6, 9, 11], "leg_y": 7, "leg_len": 3, "tail": "curl", "ears": true},
+}
+
+
+## idle (frame 1 lifts the head a little), peck (head down: grazing, eating), walk (legs
+## swing), sick (lying down, dull, eyes shut); the dog also sit (on its haunches) and held.
+static func _beast(kind: String, pose: String, frame: int) -> Image:
+	var s: Dictionary = BEASTS[kind]
+	var img := _blank(s.w, s.h)
+	var sick := pose == "sick"
+	var sit := pose == "sit" or pose == "held"
+	var body: Color = s.body.darkened(0.15) if sick else s.body
+	var shade: Color = body.darkened(0.12) if s.has("fleece") else body.darkened(0.22)
+	var head_c: Color = s.head.darkened(0.15) if sick else s.head
+	var b: Array = s.b
+	var bx: float = b[0] + (1.0 if sit else 0.0)
+	var by: float = b[1] + (float(s.leg_len) - 1.0 if sick else (1.0 if sit else 0.0))
+	var thick := 2 if s.w > 14 else 1
+	# Legs: four, swinging in pairs on a walk; folded away when lying, only the front pair sitting.
+	if not sick:
+		var swing := frame % 2 * 2 - 1 if pose == "walk" else 0
+		for k in s.legs.size():
+			if sit and k >= 2:
+				continue
+			var x: int = s.legs[k] + (swing if k % 3 == 0 else -swing)
+			var top: int = s.leg_y - (1 if sit else 0)
+			var long: int = s.leg_len + (1 if sit else 0)
+			_px(img, x, top, thick, long, s.leg)
+			_px(img, x, top + long - 1, thick, 1, s.hoof)
+	# The tail, then the body over it.
+	var tail_x := int(bx + b[2]) - 1
+	match s.tail:
+		"rope":
+			_line(img, Vector2i(tail_x, int(by - b[3] * 0.5)), Vector2i(tail_x + 1, int(by + b[3] * 0.8)), shade)
+			_px(img, tail_x + 1, int(by + b[3] * 0.8), 1, 2, Color("1a1614"))
+		"stub":
+			_px(img, tail_x, int(by - 1), 2, 2, body.darkened(0.08))
+		"curl":
+			_oval(img, tail_x - 0.5, by - b[3] - 0.2, 1.6, 1.5, body)
+			_px(img, int(tail_x - 0.5), int(by - b[3]), 1, 1, s.muzzle)
+	if sit:
+		_oval(img, bx + 0.5, by + 0.5, b[2] * 0.8, b[3] * 1.05, body)   # haunch down, chest up
+		_oval(img, bx - b[2] * 0.45, by - 0.5, b[2] * 0.45, b[3] * 1.1, body)
+	else:
+		_oval(img, bx, by, b[2], b[3], body)
+	_oval(img, bx + 0.5, by + b[3] * 0.55, b[2] * 0.72, b[3] * 0.38, s.muzzle if kind == "dog" else shade)
+	if s.has("fleece"):   # curls on the wool
+		for p in [Vector2(-0.5, -0.4), Vector2(0.2, -0.6), Vector2(0.55, -0.1), Vector2(-0.2, 0.1), Vector2(0.3, 0.3)]:
+			_px(img, int(bx + p.x * b[2]), int(by + p.y * b[3]), 1, 1, body.lightened(0.5))
+	if kind == "cow":
+		_px(img, int(bx) + 2, int(by + b[3]) - 1, 2, 1, Color("c8a8a0"))   # udder
+	# The head: up, a little raised, down to the grass, sunk while lying, up when sitting.
+	var hd: Array = s.hd
+	var head := Vector2(hd[0], hd[1])
+	if pose == "peck":
+		head = Vector2(hd[0] - 0.5, s.h - hd[2] - 1.0)
+	elif pose == "idle" and frame % 2 == 1:
+		head.y -= 1.0
+	elif sick:
+		head = Vector2(hd[0] + 0.5, by)
+	elif sit:
+		head = Vector2(hd[0] + 0.5, hd[1] - 0.5)
+	var r: float = hd[2]
+	if s.has("fleece"):
+		_oval(img, head.x + r * 0.6, head.y - r * 0.4, r * 0.9, r * 0.8, body)   # wool cap
+	_oval(img, head.x, head.y, r * 1.1, r, head_c)
+	_oval(img, head.x - r * 0.75, head.y + r * 0.35, r * 0.55, r * 0.5, s.muzzle)
+	var eye := Vector2i(int(head.x - r * 0.15), int(head.y - r * 0.35))
+	if sick:
+		_px(img, eye.x - 1, eye.y + 1, 2, 1, head_c.darkened(0.5))
+	else:
+		_px(img, eye.x, eye.y, 1, 1, Color("e8e0d0") if kind in ["cow", "calf"] else OUTLINE)
+	if s.has("ears"):   # pricked shiba ears
+		_px(img, int(head.x), int(head.y - r) - 1, 1, 2, head_c.darkened(0.15))
+		_px(img, int(head.x + r * 0.7), int(head.y - r) - 1, 1, 2, head_c.darkened(0.15))
+	else:
+		_px(img, int(head.x + r * 0.8), int(head.y - r * 0.5), 2, 1, head_c.darkened(0.2))   # ear out sideways
+	if s.has("horns"):
+		_px(img, int(head.x), int(head.y - r) - 1, 1, 2, s.horns)
+	if kind == "dog" and not sick:
+		_px(img, int(head.x - r * 1.3), int(head.y + r * 0.1), 1, 1, OUTLINE)   # nose
+	return _outline(img)
+
+
+## Animal goods as items (data/animals.json): eggs, milk, wool. Grades differ by colour.
+static func is_animal_good(id: String) -> bool:
+	return EGG_SHELLS.has(id) or MILK_CAPS.has(id) or WOOL_TINTS.has(id)
+
+
+static func _animal_good(id: String, size: int) -> Image:
+	if MILK_CAPS.has(id):
+		return _milk(id, size)
+	if WOOL_TINTS.has(id):
+		return _wool(id, size)
+	return _egg(id, size)
+
+
+## Milk in a squat glass bottle with a paper cap: plain, green-banded, and a red-sealed best
+## one with a sparkle.
+const MILK_CAPS := {"milk": Color("e8e4dc"), "milk_good": Color("6aa05a"), "milk_best": Color("c8442c")}
+
+
+static func _milk(id: String, size: int) -> Image:
+	var img := _blank(size, size)
+	var o := (size - 12) / 2
+	_px(img, o + 3, o + 4, 6, 7, Color("f6f4ee"))       # the milk through the glass
+	_px(img, o + 4, o + 2, 4, 2, Color("e6eef0"))       # neck
+	_px(img, o + 4, o + 1, 4, 1, MILK_CAPS[id])         # cap
+	_px(img, o + 3, o + 6, 6, 1, MILK_CAPS[id].lightened(0.2))   # label band
+	_px(img, o + 4, o + 5, 1, 4, Color(1, 1, 1))        # shine
+	if id == "milk_best":
+		_px(img, o + 10, o + 1, 1, 3, Color("fff6c0"))
+		_px(img, o + 9, o + 2, 3, 1, Color("fff6c0"))
+	return _outline(img)
+
+
+## A rolled bundle of fleece: plain cream, soft white, and a cloud-white one with a sparkle.
+const WOOL_TINTS := {"wool": Color("e8dcc0"), "wool_good": Color("f6f0e2"), "wool_best": Color("ffffff")}
+
+
+static func _wool(id: String, size: int) -> Image:
+	var img := _blank(size, size)
+	var c: Color = WOOL_TINTS[id]
+	var m := size / 2.0
+	_oval(img, m - 1.5, m + 1, size * 0.28, size * 0.25, c.darkened(0.1))
+	_oval(img, m + 1.5, m + 1.5, size * 0.28, size * 0.24, c.darkened(0.05))
+	_oval(img, m, m - 0.5, size * 0.3, size * 0.26, c)
+	for p in [Vector2i(-2, -1), Vector2i(1, 0), Vector2i(-1, 2), Vector2i(2, 2)]:
+		_px(img, int(m) + p.x, int(m) + p.y, 1, 1, c.darkened(0.15))
+	if id == "wool_best":
+		_px(img, size - 3, 1, 1, 3, Color("fff6c0"))
+		_px(img, size - 4, 2, 3, 1, Color("fff6c0"))
+	return _outline(img)
 
 ## rects = [[x, y, w, h, "rrggbb"], ...] on a transparent w x h image.
 static func _draw(w: int, h: int, rects: Array) -> Image:
@@ -1135,8 +1294,8 @@ static func _ui(kind: String, arg: String) -> Image:
 ## A crop (data/crops.json) as its fruit with a leaf tuft, in the crop's own colours; any
 ## other id as a furoshiki bundle, the cloth colour picked from the id so items differ.
 static func _item_icon(id: String) -> Image:
-	if EGG_SHELLS.has(id):
-		return _egg(id, 14)
+	if is_animal_good(id):
+		return _animal_good(id, 14)
 	var img := _blank(14, 14)
 	var look := crop_look(id)
 	if _looks.has(id):

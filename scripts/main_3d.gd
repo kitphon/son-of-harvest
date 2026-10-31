@@ -166,9 +166,9 @@ func _enter_map() -> void:
 	world.add_child(VillagerSprites.new(m.id))
 	add_child(world)
 	move_child(world, 0)
-	var animals := AnimalLayer.new()   # hens, eggs and feed (the coop, or the farm yard)
+	var animals := AnimalLayer.new()   # the animals, eggs and feed (coop, barn, or the farm and its dog)
 	world.add_child(animals)
-	animals.setup(m, Game.maps.on_farm())
+	animals.setup(m, Game.maps.on_farm(), player)
 	player.farm = Game.farm
 	player.position = Game.maps.pos
 	player.facing = Game.maps.facing
@@ -250,7 +250,7 @@ func _show_charge() -> void:
 func _show_held() -> void:
 	held_sprite.visible = Game.holding()
 	if Game.holding():
-		held_sprite.texture = PlaceholderArt.tex(PlaceholderArt.world_item_key(Game.held))
+		held_sprite.texture = PlaceholderArt.tex(Game.held_key())
 		var top := 24 - PlaceholderArt.farmer_drop(anim.pose, anim.frame()) - 1
 		held_sprite.position = Vector3(0, top * FarmWorld.PX, 0)
 

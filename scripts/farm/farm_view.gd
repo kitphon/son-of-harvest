@@ -9,6 +9,7 @@ const COLORS := {
 	"fence": Color("b08a5a"), "house": Color("a0522d"), "door": Color("4a2a14"),
 	"bin": Color("7a6a50"), "stand": Color("d9b45a"), "chest": Color("8a5a32"),
 	"coop": Color("8a6a48"), "coop_door": Color("4a2a14"),
+	"barn": Color("6a4a30"), "barn_door": Color("3a2010"),
 }
 
 ## Ground only (soil, water, building footprints): the 3D view uses this as the ground

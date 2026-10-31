@@ -38,22 +38,17 @@ static func interact(c: Vector2i) -> bool:
 	return true
 
 
-## Where animal `i` stands in the coop (homes.coop.spots), or (-1, -1).
+## Where animal `i` stands in the coop (homes.coop.spots), or (-1, -1) (also for barn animals).
 static func spot(i: int) -> Vector2i:
-	var spots: Array = Game.animals.home_rule("coop").get("spots", [])
-	if i < 0 or i >= spots.size():
+	var a := Game.animals
+	if i < 0 or i >= a.list.size() or a.home_of(a.list[i]) != "coop":
 		return Vector2i(-1, -1)
-	return Vector2i(int(spots[i][0]), int(spots[i][1]))
+	return a.spot(i)
 
 
 ## The animal standing on `c` inside the coop (none while they are out), else -1.
 static func animal_at(c: Vector2i) -> int:
-	if Game.animals.outside:
-		return -1
-	for i in Game.animals.list.size():
-		if spot(i) == c:
-			return i
-	return -1
+	return Game.animals.animal_at("coop", c)
 
 
 static func fill_feed_box() -> void:
@@ -62,7 +57,7 @@ static func fill_feed_box() -> void:
 	if n > 0:
 		Sfx.play("feed_pour")
 		Game.message.emit("Put %d feed in the box (%d left)" % [n, a.feed_stock])
-	elif a.feed_box < a.list.size():
+	elif a.feed_box < a.in_home("coop").size():
 		Game.message.emit("The feed sack is empty")
 	else:
 		Game.message.emit("The feed box is full")

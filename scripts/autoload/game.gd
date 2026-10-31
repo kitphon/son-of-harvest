@@ -90,7 +90,7 @@ var fish_data: Dictionary = {}     # data/fish.json: bites, fish per place / sea
 var rng := RandomNumberGenerator.new()
 var farm: FarmGrid
 var maps := MapManager.new()       # the map the farmer is on and where (saved)
-var animals := Animals.new()       # the chickens and their coop (data/animals.json, saved)
+var animals := Animals.new()       # the coop, the barn and the dog (data/animals.json, saved)
 var animal_news: Array[String] = []   # what happened to the animals overnight, told in the coop
 var _accum := 0.0
 var _shown_state := "fine"      # the tired state last told to the player
@@ -187,6 +187,8 @@ func new_game() -> void:
 				maps.place(m.id, m.spawns.counter[0], m.spawns.counter[1])
 		elif arg == "--hens-out":   # e.g. `-- --demo --map=farm@coop --hens-out`: the hens in the yard
 			animals.outside = true
+		elif arg == "--barn-out":   # e.g. `-- --demo --map=farm@barn --barn-out`: cows and sheep grazing
+			animals.state.barn.out = true
 		elif arg == "--hold":   # e.g. `-- --demo --hold`: a turnip overhead, a potato in front of the bin
 			held = "turnip"
 			farm.place_item(Vector2i(8, 4), "potato")
@@ -233,6 +235,14 @@ func _demo_field() -> void:
 	animals.add("chicken", true)
 	animals.eggs.assign(["egg", "egg_good"])
 	animals.fill_feed_box()
+	# The barn with a cow ready to milk, a calf and a sheep in full wool (`-- --demo --map=barn`).
+	for kind in ["cow", "sheep"]:
+		animals.add(kind)
+		animals.list.back().prod_days = int(animals.gives(animals.list.back()).every)
+		animals.list.back().happy = 60
+	animals.add("cow", true)
+	animals.fill_feed_box("barn")
+	animals.dog.affection = int(animals.dog_rule().get("follow_affection", 0))   # follows the farmer
 
 
 func _process(delta: float) -> void:
@@ -326,7 +336,7 @@ func use_door(door: Dictionary) -> void:
 func map_arrived() -> void:
 	map_entered.emit(maps.id)
 	# The night's animal news waits for the farmer to look in on them.
-	if maps.id == animals.home_rule("coop").get("map", "coop") and not animal_news.is_empty():
+	if animals.home_on_map(maps.id) != "" and not animal_news.is_empty():
 		message.emit(". ".join(animal_news))
 		animal_news.clear()
 
@@ -561,10 +571,11 @@ func ship_produce() -> int:
 
 # --- animals (data/animals.json) -------------------------------------------
 
-## The shop's hook: one more grown animal of `kind` (e.g. "chicken") into its home. False
-## when the home is full or the kind unknown (the shop then keeps the money).
-func add_animal(kind: String) -> bool:
-	var ok := animals.add(kind)
+## The shop's hook: one more animal of `kind` ("chicken", "cow", "sheep") into its home,
+## grown unless `young` (a calf / lamb). False when the home is full or the kind unknown (the
+## shop then keeps the money). Fodder for the barn: animals.add_fodder(n).
+func add_animal(kind: String, young := false) -> bool:
+	var ok := animals.add(kind, young)
 	changed.emit()
 	return ok
 
@@ -572,7 +583,12 @@ func add_animal(kind: String) -> bool:
 # --- holding and throwing ---------------------------------------------------
 
 func holding() -> bool:
-	return held != ""
+	return held != "" or animals.dog.held
+
+
+## The sprite key for what is carried overhead: the held item, or the dog in the arms.
+func held_key() -> String:
+	return "animal:dog:held:0" if animals.dog.held else PlaceholderArt.world_item_key(held)
 
 
 ## What one of `id` fetches in the bin (0 = can't be shipped). Fish are "fish:<id>".
@@ -1237,7 +1253,7 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	# Version 2 added the animals; older saves start with the new-game flock.
 	var flock := Animals.new()
 	if version >= 2 or data.has("animals"):
-		var parsed_animals := Animals.parse(data.get("animals"))
+		var parsed_animals := Animals.parse(data.get("animals"), Animals.data(), version)
 		if parsed_animals[0] != "":
 			return parsed_animals[0]
 		flock = parsed_animals[1]
@@ -1265,7 +1281,7 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	var err := farm.from_dict(data.farm)
 	if err != "":
 		return err
-	farm.add_missing_fixed()   # saves from before the storage chest / the coop get them
+	farm.add_missing_fixed()   # saves from before the storage chest / the coop / the barn get them
 	for key in n:
 		set(key, n[key])
 	fishing = Fishing.new(fish_data)

@@ -10,6 +10,81 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-10-31 — Cows, sheep and the barn; the farm dog
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: milestone 7's second item (DESIGN "สัตว์"; ideas only, our numbers and code).
+  - `Animals` now keeps a state per home (`state[home] = {out, stock, box}`; `outside`,
+    `feed_stock`, `feed_box` stay as the coop's names, so the chicken code is unchanged).
+    Helpers `home_of`, `in_home`, `home_on_map`, `spot(i)` / `animal_at(home, c)` count spots
+    within each home (the coop spots no longer shift when barn animals join the list).
+    `fill_feed_box` / `toggle_out` / `why_not_out` / `out_list` / `add_feed` take a home,
+    default "coop". An animal also has `brushed` and `prod_days`.
+  - Cows and sheep (`data/animals.json` kinds, home `barn`, capacity 6): fed from the barn's
+    fodder box (20 bundles on a new game), grazing outside counts as a meal like the hens,
+    brushing (+3 a night, once a day) next to petting (+2), the same sickness / medicine /
+    recovery rules. `gives: {product, every, tool}`: a grown, fed, healthy night adds one to
+    `prod_days` (capped at `every`, so unmilked milk doesn't pile up); `take_product` returns
+    the grade by happiness (below 40 / 75 / else, like eggs). Numbers and why: a cow gives
+    Milk 100 / Rich Milk 150 / Hillside Cream Milk 220 G every morning and costs 5000 G, so
+    about a month pays her back, slower than crops at first but steady; a sheep costs 3000 G
+    and gives Wool 120 / Soft Wool 200 / Cloud Wool 320 G every 3 nights (40-107 G a day),
+    cheaper to start, less a day, same fodder. Calves grow up in 14 nights, lambs in 10
+    (`Game.add_animal(kind, true)`). The barn starts empty (buying is the shop branch's).
+  - The barn on the farm: `FarmGrid.BARN` x 19..23, y 1..3, door `BARN_DOOR` (21, 3), between
+    the coop (13..17) and the pond (25..28), on ground that starts clear; older farms get it
+    through `add_missing_fixed`. Pasture (`homes.barn.yard`) x 19..28, y 5..6, clear of the
+    pond and the field. Map `data/maps/barn.json` (15 x 8, indoor): straw stall row with
+    board rails between the six stalls (prop `stalls` with `blocks`), the long fodder trough
+    along the back wall, the tool board, a hay stack (the fodder stock) and the gate in the
+    right wall. `BarnActions`: E on the trough or the hay tops the box up and tells what's
+    left, the tools tell how they're used, the gate lets them out / in; E on a cow or sheep
+    does what is due: take the product overhead when ready and the hands are free (the
+    tools hang in the barn, so no new tool slots), else brush, else talk, then the mood.
+    Products ship like eggs (thrown into the bin, or from the rucksack). Night news is told
+    in the coop or the barn.
+  - The dog (`dog` in the data, saved): Goro, affection 0..100 from 10, +2 petted and +1
+    picked up (once a day each), -1 for a day with neither. Pure steps in `Animals.dog_step`
+    (towards the farmer once affection >= 20 and the farmer is 3..9 cells off, stopping 2
+    off; else a step 30% of the time within 4 cells of its spot (11, 5); never into solid
+    cells or onto the farmer); `dog_walk(delta, ...)` paces them (0.3 s), called by
+    AnimalLayer / AnimalView with the Player's cell. `DogActions`: E pets, E again picks it up
+    (`Game.holding()` is true and `Game.held_key()` draws it overhead in both views), either
+    button sets it down in front, doors say to put it down first. The night puts it home.
+  - Art (`placeholder_art.gd`): `animal:<cow|calf|sheep|sheep_shorn|lamb|dog>:<idle|peck|walk|sick>:<f>`
+    (dog also `sit`, `held`) from one side-view quadruped drawer: Japanese Black cattle,
+    cream sheep with dark faces (thin and grey once shorn), a red-tan shiba-like dog with a
+    curled tail. Milk bottles and wool bundles per grade (world and slot icons). 3D:
+    `BarnProps` (board barn on a plaster band, kawara gable roof, two-leaf door, slatted
+    windows, loft hatch; trough, stall rails, hay bundles, gate) and the hay mounds in the
+    trough; 2D: MapView / FarmView colours. Sounds `cow_moo`, `sheep_baa`, `dog_bark`,
+    `brush_stroke`, `milk_squirt`, `shear_snip`.
+  - Save version 3 (`SaveGame.VERSION`): `animals.barn` and `animals.dog`; a version 3 save
+    without them is refused, a version 2 save gets the new-game fodder and dog, animals
+    without `brushed` / `prod_days` get false / 0.
+  - Debug: `-- --demo --map=barn` (a cow with milk, a sheep in wool, a calf, a full trough;
+    `--demo` also makes the dog fond enough to follow), `--barn-out` with `--map=farm@barn`.
+- Checked: `test_animals: OK (0 failed)` (380 checks; new: barn data and places, spots per
+  home, fodder, milking cycle and grades, shearing cycle and the shorn look, brushing,
+  grazing, left out, sick cow, calf growing, the dog's pet / lift / put / night / follow /
+  wander / walls / pacing, barn + dog round trip and 11 broken saves, version 2 / 3 loads,
+  Game hooks / prices / milk into the bin, BarnActions and DogActions through FarmActions
+  with the real autoload, the barn map, the barn on old farms, pasture open, art sizes).
+  All 17 test scripts print `OK (0 failed)`. (One run of `test_save` failed 7 checks with
+  "The save file is broken" while other sessions ran tests: every worktree shares the same
+  `user://` folder; run alone twice it printed `test_save: OK (0 failed)` both times.)
+  Headless `--quit-after 300` (title, `-- --demo`, `--demo --map=town`, `--demo --map=barn`,
+  `--demo --map=coop`, `--demo --map=farm@barn --barn-out`), `res://scenes/main.tscn
+  --quit-after 400` and `res://scenes/main_2d.tscn` (`--demo --map=barn`, `--demo
+  --barn-out`) printed no errors or warnings. Movie Maker frames: `--demo --map=barn` (black
+  cow, sheep and calf in the straw stalls, hay in the trough, rails, hay bundles),
+  `--demo --map=farm@barn --barn-out` (the tiled barn between the coop and the pond, a
+  sheep and the cow grazing), `--demo` at frame 90 (Goro has followed the farmer from the
+  stand and sits two cells off).
+- Left / next: not played in a real window (keys, the dog's pace, carrying it). No shop sells
+  cows, sheep, fodder or medicine yet (shops branch; hooks above). Barn animals out on the
+  farm can't be tended; the dog can't be called or taught tricks; no festivals for animals
+  yet. Main's merge: other branches may also raise `SaveGame.VERSION` to 3.
+
 ## 2026-10-31 — Merged six branches: key remap, examine, villagers, shops, chickens, fishing
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each, in this order:

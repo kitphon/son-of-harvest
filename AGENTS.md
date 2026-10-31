@@ -55,7 +55,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `res://tests/test_villagers.gd` must print `test_villagers: OK (0 failed)`.
   Shops (data/shops.json, buying / selling, tool upgrades, shop maps and doors, the screen):
   `res://tests/test_shops.gd` must print `test_shops: OK (0 failed)`.
-  Animals (chickens, the coop, eggs, sickness, incubator, the save): `res://tests/test_animals.gd`
+  Animals (chickens, cows, sheep, the coop and barn, products, brushing, sickness, the dog,
+  the save): `res://tests/test_animals.gd`
   must print `test_animals: OK (0 failed)`. Fishing (bites, fish tables, the catch, save, poses,
   fish art): `res://tests/test_fishing.gd` must print `test_fishing: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
@@ -77,7 +78,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   and Tome by the start spawn), `--shop=<id>` (general, smithy) to stand at that shop's
   counter with its screen open (hours ignored), `--map=coop` to look inside the chicken
   coop (`--demo` adds a chick, two eggs and a filled feed box), `--hens-out` (with
-  `--map=farm@coop`) to have the hens out in the yard, `--fishing` (or `--fishing=wait`) to start at
+  `--map=farm@coop`) to have the hens out in the yard, `--map=barn` for the barn (`--demo`
+  adds a cow with milk, a sheep in full wool and a calf; the dog follows the farmer),
+  `--barn-out` (with `--map=farm@barn`) for the cows and sheep out grazing, `--fishing` (or `--fishing=wait`) to start at
   the farm pond with the line out and a fish biting (or still waiting). Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
 - Audio (sound and music data, synthesis, keys used in code, ambient and music pickers): `res://tests/test_audio.gd`

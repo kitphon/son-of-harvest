@@ -1,30 +1,54 @@
 class_name Animals
 extends RefCounted
-## The farm's animals and their homes (only the chicken coop so far). Pure rules, no drawing:
-## Game owns one (Game.animals), calls hour_passed / day_end from the clock and saves it;
-## the coop map and the farm view only read it and redraw on `changed`.
+## The farm's animals, their homes (the chicken coop and the barn) and the farm dog. Pure
+## rules, no drawing: Game owns one (Game.animals), calls hour_passed / day_end from the clock
+## and saves it; the coop / barn maps and the farm view only read it and redraw on `changed`.
 ## Every number is in data/animals.json. DESIGN "สัตว์": happiness, feeding, grazing outside,
-## produce grades by happiness, sickness and medicine; our numbers, and no deaths (DESIGN's
-## advice: risks must be recoverable).
+## produce grades by happiness, brushing, sickness and medicine; our numbers, and no deaths
+## (DESIGN's advice: risks must be recoverable).
 ##
-## An animal is {kind, name, happy, age, sick, sick_days, petted, out_hours}. Adults (age >=
-## the kind's adult_days) lay. The feed box holds portions put in from the sack; each animal
-## eats one at night unless it grazed outside long enough. Eggs lie in the nests until taken.
+## An animal is {kind, name, happy, age, sick, sick_days, petted, out_hours, brushed,
+## prod_days}. Adults (age >= the kind's adult_days) lay (hens) or give a product every few
+## fed, healthy nights (cows: milk, sheep: wool; prod_days counts towards it). Each home has a
+## feed box with portions put in from its stock (chicken feed / hay fodder) and a door to go
+## out by; each animal eats one portion at night unless it grazed outside long enough. Eggs
+## lie in the coop's nests until taken.
+##
+## The dog is {name, affection, petted, lifted, held, cell, facing}: always on the farm,
+## stepped by dog_walk (the views call it), petted and picked up once a day each.
 
 signal changed
 
 const PATH := "res://data/animals.json"
+const DIRS: Array[Vector2i] = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
 
 static var _data := {}
 
 var rules: Dictionary
 var list: Array[Dictionary] = []
-var outside := false          # the hens are out on the farm (the hatch is open)
-var feed_stock := 0           # portions in the feed sack
-var feed_box := 0             # portions in the feed box
+var state := {}               # home id -> {out, stock, box}: the door open, feed in stock, in the box
 var eggs: Array[String] = []  # egg items lying in the nests, oldest first
 var incubator := {}           # {} or {item, days}: an egg warming towards a chick
 var named := 0                # how many names were given (the next one is names[named])
+var dog := {}                 # the farm dog (see above)
+var _dog_time := 0.0
+
+## The coop's door, stock and box under their first names (the chickens came first).
+var outside: bool:            # the hens are out on the farm (the hatch is open)
+	get:
+		return _st("coop").out
+	set(v):
+		_st("coop").out = v
+var feed_stock: int:          # portions in the chicken feed sack
+	get:
+		return _st("coop").stock
+	set(v):
+		_st("coop").stock = v
+var feed_box: int:            # portions in the coop's feed box
+	get:
+		return _st("coop").box
+	set(v):
+		_st("coop").box = v
 
 
 ## data/animals.json, read once.
@@ -37,17 +61,27 @@ static func data() -> Dictionary:
 
 func _init(r := data()) -> void:
 	rules = r
+	for home in rules.get("homes", {}):
+		_st(home)
+	dog = new_dog()
 
 
-## A new game: the starting animals and a full feed sack.
+func _st(home: String) -> Dictionary:
+	if not state.has(home):
+		state[home] = {"out": false, "stock": 0, "box": 0}
+	return state[home]
+
+
+## A new game: the starting animals, full feed stocks and the dog at home.
 func start() -> void:
 	list.clear()
 	eggs.clear()
 	incubator = {}
-	outside = false
-	feed_box = 0
 	named = 0
-	feed_stock = int(home_rule("coop").get("feed_start", 0))
+	state = {}
+	for home in rules.get("homes", {}):
+		_st(home).stock = int(home_rule(home).get("feed_start", 0))
+	dog = new_dog()
 	for kind in rules.get("start", []):
 		add(kind)
 
@@ -58,6 +92,31 @@ func kind_rule(kind: String) -> Dictionary:
 
 func home_rule(home: String) -> Dictionary:
 	return rules.get("homes", {}).get(home, {})
+
+
+func home_of(a: Dictionary) -> String:
+	return String(kind_rule(a.kind).get("home", ""))
+
+
+## Indices in `list` of the animals living in `home`, in the order they came.
+func in_home(home: String) -> Array[int]:
+	var out: Array[int] = []
+	for i in list.size():
+		if home_of(list[i]) == home:
+			out.append(i)
+	return out
+
+
+## The home whose map is `map_id` ("" when none).
+func home_on_map(map_id: String) -> String:
+	for home in rules.get("homes", {}):
+		if String(home_rule(home).get("map", home)) == map_id:
+			return home
+	return ""
+
+
+func is_out(home: String) -> bool:
+	return _st(home).out
 
 
 func _h(key: String) -> int:
@@ -72,18 +131,47 @@ func is_adult(a: Dictionary) -> bool:
 	return int(a.age) >= int(kind_rule(a.kind).get("adult_days", 0))
 
 
-## A name for showing: a chick is "Mochi (chick)".
+## A name for showing: a chick is "Mochi (chick)", a calf "Momo (calf)".
 func label(a: Dictionary) -> String:
-	return a.name if is_adult(a) else "%s (%s)" % [a.name, String(kind_rule(a.kind).get("chick_name", "young")).to_lower()]
+	return a.name if is_adult(a) else "%s (%s)" % [a.name, String(kind_rule(a.kind).get("young_name", "young")).to_lower()]
+
+
+## The sprite kind for an animal: the young one's, a shorn sheep's, or the kind itself.
+func look(a: Dictionary) -> String:
+	var k := kind_rule(a.kind)
+	if not is_adult(a):
+		return String(k.get("young_sprite", a.kind))
+	if k.has("shorn_sprite") and not product_ready(a):
+		return String(k.shorn_sprite)
+	return a.kind
+
+
+## Where animal `i` stands in its home (the home's spots, in the order they came), or (-1, -1).
+func spot(i: int) -> Vector2i:
+	if i < 0 or i >= list.size():
+		return Vector2i(-1, -1)
+	var home := home_of(list[i])
+	var spots: Array = home_rule(home).get("spots", [])
+	var n := in_home(home).find(i)
+	if n < 0 or n >= spots.size():
+		return Vector2i(-1, -1)
+	return Vector2i(int(spots[n][0]), int(spots[n][1]))
+
+
+## The animal standing on `c` inside `home` (none while they are out), else -1.
+func animal_at(home: String, c: Vector2i) -> int:
+	if is_out(home):
+		return -1
+	for i in in_home(home):
+		if spot(i) == c:
+			return i
+	return -1
 
 
 ## Places left in a home: its capacity less the animals there and an egg in the incubator.
 func room(home := "coop") -> int:
 	var used := 1 if incubator.size() > 0 and home == "coop" else 0
-	for a in list:
-		if kind_rule(a.kind).get("home", "") == home:
-			used += 1
-	return int(home_rule(home).get("capacity", 0)) - used
+	return int(home_rule(home).get("capacity", 0)) - used - in_home(home).size()
 
 
 ## The shop's hook (and the starting flock): one more animal of `kind`, grown up unless
@@ -97,15 +185,20 @@ func add(kind: String, young := false) -> bool:
 	named += 1
 	list.append({"kind": kind, "name": name, "happy": int(k.get("happy_start", 0)),
 		"age": 0 if young else int(k.get("adult_days", 0)), "sick": false, "sick_days": 0,
-		"petted": false, "out_hours": 0})
+		"petted": false, "out_hours": 0, "brushed": false, "prod_days": 0})
 	changed.emit()
 	return true
 
 
-## More portions in the feed sack (a shop sells them later).
-func add_feed(n: int) -> void:
-	feed_stock += maxi(n, 0)
+## More portions in a home's feed stock (a shop sells them): chicken feed for the coop.
+func add_feed(n: int, home := "coop") -> void:
+	_st(home).stock = int(_st(home).stock) + maxi(n, 0)
 	changed.emit()
+
+
+## The shop's fodder hook: hay bundles for the barn.
+func add_fodder(n: int) -> void:
+	add_feed(n, "barn")
 
 
 # --- the day ----------------------------------------------------------------
@@ -114,10 +207,10 @@ func good_weather(weather: String) -> bool:
 	return weather in rules.get("good_weather", ["sunny"])
 
 
-## "" when the hens may go out now, else why not ("weather", "time", "none").
-func why_not_out(weather: String, hour: int) -> String:
+## "" when the animals of `home` may go out now, else why not ("weather", "time", "none").
+func why_not_out(weather: String, hour: int, home := "coop") -> String:
 	var hours: Array = rules.get("out_hours", [6, 17])
-	if list.is_empty():
+	if in_home(home).is_empty():
 		return "none"
 	if not good_weather(weather):
 		return "weather"
@@ -126,57 +219,76 @@ func why_not_out(weather: String, hour: int) -> String:
 	return ""
 
 
-## The hatch: opens (the hens go out) when why_not_out is "", or closes. Returns the reason
-## it stayed shut ("" when it opened or closed).
-func toggle_out(weather: String, hour: int) -> String:
-	if outside:
-		outside = false
+## The hatch / the barn gate: opens (the animals go out) when why_not_out is "", or closes.
+## Returns the reason it stayed shut ("" when it opened or closed).
+func toggle_out(weather: String, hour: int, home := "coop") -> String:
+	if is_out(home):
+		_st(home).out = false
 		changed.emit()
 		return ""
-	var why := why_not_out(weather, hour)
+	var why := why_not_out(weather, hour, home)
 	if why == "":
-		outside = true
+		_st(home).out = true
 		changed.emit()
 	return why
 
 
-## Animals that are out on the farm now.
-func out_list() -> Array[Dictionary]:
+## Animals of `home` that are out on the farm now.
+func out_list(home := "coop") -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	if outside:
-		out.assign(list)
+	if is_out(home):
+		for i in in_home(home):
+			out.append(list[i])
 	return out
 
 
 ## An hour went by on the clock. Outside, good weather counts towards grazing; bad weather
 ## hurts every hour they are left out in it.
 func hour_passed(weather: String) -> void:
-	if not outside:
-		return
+	var any := false
 	for a in list:
+		if not is_out(home_of(a)):
+			continue
+		any = true
 		if good_weather(weather):
 			a.out_hours = int(a.out_hours) + 1
 		else:
 			a.happy = clampi(int(a.happy) + _h("bad_weather_hour"), 0, happy_max())
-	changed.emit()
+	if any:
+		changed.emit()
 
 
-## Tops the feed box up from the sack: one portion per animal that hasn't one there yet.
-## Returns how many portions went in (0: full already, or the sack is empty).
-func fill_feed_box() -> int:
-	var n := mini(maxi(list.size() - feed_box, 0), feed_stock)
-	feed_stock -= n
-	feed_box += n
+## Tops a home's feed box up from its stock: one portion per animal there that hasn't one in
+## the box yet. Returns how many portions went in (0: full already, or the stock is empty).
+func fill_feed_box(home := "coop") -> int:
+	var st := _st(home)
+	var n := mini(maxi(in_home(home).size() - int(st.box), 0), int(st.stock))
+	st.stock = int(st.stock) - n
+	st.box = int(st.box) + n
 	if n > 0:
 		changed.emit()
 	return n
 
 
-## Strokes animal `i` (once a day counts). False when already petted today.
+## Strokes / talks to animal `i` (once a day counts). False when already petted today.
 func pet(i: int) -> bool:
 	if i < 0 or i >= list.size() or list[i].petted:
 		return false
 	list[i].petted = true
+	changed.emit()
+	return true
+
+
+func can_brush(a: Dictionary) -> bool:
+	return bool(kind_rule(a.kind).get("brush", false))
+
+
+## Brushes animal `i` (cows and sheep; once a day counts). False when it can't be brushed or
+## was brushed today.
+func brush(i: int) -> bool:
+	if i < 0 or i >= list.size() or not can_brush(list[i]) or list[i].brushed:
+		return false
+	list[i].brushed = true
 	changed.emit()
 	return true
 
@@ -189,6 +301,27 @@ func cure(i: int) -> bool:
 	list[i].sick_days = 0
 	changed.emit()
 	return true
+
+
+## {product, every, tool} of an animal that gives something (cows, sheep), else {}.
+func gives(a: Dictionary) -> Dictionary:
+	return kind_rule(a.kind).get("gives", {})
+
+
+## Milk to take / wool to shear: grown, well, and enough fed nights since the last time.
+func product_ready(a: Dictionary) -> bool:
+	var g := gives(a)
+	return not g.is_empty() and is_adult(a) and not a.sick and int(a.prod_days) >= maxi(int(g.get("every", 1)), 1)
+
+
+## Milks / shears animal `i`: the product graded by its happiness now ("" when not ready).
+func take_product(i: int) -> String:
+	if i < 0 or i >= list.size() or not product_ready(list[i]):
+		return ""
+	var a: Dictionary = list[i]
+	a.prod_days = 0
+	changed.emit()
+	return grade_for(String(gives(a).product), int(a.happy))
 
 
 ## Takes the oldest egg from the nests ("" when there is none).
@@ -226,26 +359,30 @@ func grade_for(product: String, happy: int) -> String:
 	return grades.back().item if grades.size() > 0 else ""
 
 
-## The night: every animal eats (grazed outside or from the box), happiness moves, adults
-## that ate and aren't sick lay, sickness comes or passes, everyone ages a day, the
-## incubator warms. Returns news to tell the player ("Mochi is sick", "A chick hatched").
+## The night: every animal eats (grazed outside or from its home's box), happiness moves,
+## adults that ate and aren't sick lay or grow their product, sickness comes or passes,
+## everyone ages a day, the incubator warms, the dog goes home. Returns news to tell the
+## player ("Mochi is sick", "A chick hatched").
 func day_end(weather: String, rng: RandomNumberGenerator) -> Array[String]:
 	var news: Array[String] = []
 	var sick_rule: Dictionary = rules.get("sickness", {})
 	var grazing := maxi(_h("grazing_hours"), 1)
 	var nests := int(home_rule("coop").get("capacity", 0))
 	for a in list:
+		var st := _st(home_of(a))
 		var grazed := int(a.out_hours) >= grazing   # out_hours only grow outside in good weather
 		var ate := grazed
-		if not ate and feed_box > 0:
-			feed_box -= 1
+		if not ate and int(st.box) > 0:
+			st.box = int(st.box) - 1
 			ate = true
 		var d := _h("fed") if ate else _h("unfed")
 		if grazed:
 			d += _h("sun")
 		if a.petted:
 			d += _h("petted")
-		if outside:
+		if a.brushed:
+			d += _h("brushed")
+		if st.out:
 			d += _h("left_out_night")
 		if a.sick:
 			d += _h("sick_day")
@@ -253,6 +390,9 @@ func day_end(weather: String, rng: RandomNumberGenerator) -> Array[String]:
 		var lays := String(kind_rule(a.kind).get("lays", ""))
 		if lays != "" and is_adult(a) and ate and not a.sick and eggs.size() < nests:
 			eggs.append(grade_for(lays, a.happy))
+		var g := gives(a)
+		if not g.is_empty() and is_adult(a) and ate and not a.sick:
+			a.prod_days = mini(int(a.prod_days) + 1, maxi(int(g.get("every", 1)), 1))
 		if a.sick:
 			a.sick_days = int(a.sick_days) + 1
 			if a.sick_days >= int(sick_rule.get("recover_days", 5)):
@@ -274,23 +414,128 @@ func day_end(weather: String, rng: RandomNumberGenerator) -> Array[String]:
 		if not was_adult and is_adult(a):
 			news.append("%s has grown up" % a.name)
 		a.petted = false
+		a.brushed = false
 		a.out_hours = 0
-	if outside:
-		news.append("The hens were out all night")
-	outside = false
+	for home in state:
+		if state[home].out:
+			news.append(String(home_rule(home).get("out_news", "The animals were out all night")))
+		state[home].out = false
 	if incubator.size() > 0:
 		incubator.days = int(incubator.days) + 1
 		if incubator.days >= int(rules.get("incubator", {}).get("hatch_days", 3)):
 			incubator = {}
 			if add("chicken", true):
 				news.append("A chick hatched: %s" % list.back().name)
+	_dog_night()
 	changed.emit()
 	return news
 
 
+# --- the dog ----------------------------------------------------------------
+
+func dog_rule() -> Dictionary:
+	return rules.get("dog", {})
+
+
+func _dog_home() -> Vector2i:
+	var h: Array = dog_rule().get("home", [1, 5])
+	return Vector2i(int(h[0]), int(h[1]))
+
+
+func new_dog() -> Dictionary:
+	var r := dog_rule()
+	return {"name": String(r.get("name", "Dog")), "affection": int(r.get("affection_start", 0)),
+		"petted": false, "lifted": false, "held": false, "cell": _dog_home(), "facing": Vector2i.DOWN}
+
+
+func _dog_add(key: String) -> void:
+	dog.affection = clampi(int(dog.affection) + int(dog_rule().get(key, 0)), 0, maxi(int(dog_rule().get("max", 100)), 1))
+
+
+## Petting the dog (once a day counts). False when already petted today.
+func dog_pet() -> bool:
+	if dog.petted:
+		return false
+	dog.petted = true
+	_dog_add("petted")
+	changed.emit()
+	return true
+
+
+## Picks the dog up (held overhead); once a day it counts for affection. False when held.
+func dog_lift() -> bool:
+	if dog.held:
+		return false
+	dog.held = true
+	if not dog.lifted:
+		dog.lifted = true
+		_dog_add("lifted")
+	changed.emit()
+	return true
+
+
+## Sets the dog down on `c`.
+func dog_put(c: Vector2i) -> void:
+	dog.held = false
+	dog.cell = c
+	changed.emit()
+
+
+func dog_follows() -> bool:
+	return int(dog.affection) >= int(dog_rule().get("follow_affection", 0))
+
+
+## One step for the dog: towards the farmer on `farmer` once fond enough and not too far
+## (stopping a little way off), else now and then a step about its home. `free` says whether
+## a farm cell can be walked on. Returns whether it moved.
+func dog_step(farmer: Vector2i, free: Callable, rng: RandomNumberGenerator) -> bool:
+	if dog.held:
+		return false
+	var r := dog_rule()
+	var at: Vector2i = dog.cell
+	var d := farmer - at
+	var dist := absi(d.x) + absi(d.y)
+	var tries: Array[Vector2i] = []
+	if dog_follows() and dist > int(r.get("follow_from", 2)) and dist <= int(r.get("follow_range", 8)):
+		tries = [Vector2i(signi(d.x), 0), Vector2i(0, signi(d.y))]
+		if absi(d.y) > absi(d.x):
+			tries.reverse()
+	elif rng.randf() < float(r.get("wander_chance", 0.3)):
+		var dir := DIRS[rng.randi() % DIRS.size()]
+		var home := _dog_home()
+		var off := at + dir - home
+		if absi(off.x) + absi(off.y) <= int(r.get("wander_range", 4)) or absi(off.x) + absi(off.y) < absi(at.x - home.x) + absi(at.y - home.y):
+			tries = [dir]
+	for s in tries:
+		if s != Vector2i.ZERO and at + s != farmer and free.call(at + s):
+			dog.cell = at + s
+			dog.facing = s
+			return true
+	return false
+
+
+## The view's clock for the dog: steps every step_seconds while the farmer is on the farm.
+func dog_walk(delta: float, farmer: Vector2i, free: Callable, rng: RandomNumberGenerator) -> void:
+	_dog_time += delta
+	var every := maxf(float(dog_rule().get("step_seconds", 0.3)), 0.05)
+	while _dog_time >= every:
+		_dog_time -= every
+		dog_step(farmer, free, rng)
+
+
+func _dog_night() -> void:
+	if not dog.petted and not dog.lifted:
+		_dog_add("ignored")
+	dog.petted = false
+	dog.lifted = false
+	dog.held = false
+	dog.cell = _dog_home()
+	dog.facing = Vector2i.DOWN
+
+
 # --- items ------------------------------------------------------------------
 
-## Products and animal goods (eggs, medicine): {name, sell}, {} for anything else.
+## Products and animal goods (eggs, milk, wool, medicine): {name, sell}, {} for anything else.
 func item_info(id: String) -> Dictionary:
 	return rules.get("items", {}).get(id, {})
 
@@ -305,12 +550,17 @@ func to_dict() -> Dictionary:
 	var animals := []
 	for a in list:
 		animals.append(a.duplicate())
+	var barn := _st("barn")
 	return {"animals": animals, "outside": outside, "feed_stock": feed_stock, "feed_box": feed_box,
-		"eggs": eggs.duplicate(), "incubator": incubator.duplicate(), "named": named}
+		"eggs": eggs.duplicate(), "incubator": incubator.duplicate(), "named": named,
+		"barn": {"out": barn.out, "stock": barn.stock, "box": barn.box},
+		"dog": {"name": dog.name, "affection": dog.affection, "petted": dog.petted, "lifted": dog.lifted,
+			"cell": [dog.cell.x, dog.cell.y]}}
 
 
-## [error, Animals] checked from saved data; nothing else changes.
-static func parse(v: Variant, r := data()) -> Array:
+## [error, Animals] checked from saved data; nothing else changes. Saves from before version 3
+## (the barn and the dog) get the new-game fodder and dog.
+static func parse(v: Variant, r := data(), version := SaveGame.VERSION) -> Array:
 	var out := Animals.new(r)
 	if not v is Dictionary or not v.get("animals") is Array or not v.get("eggs") is Array \
 			or not v.get("outside") is bool or not v.get("incubator") is Dictionary:
@@ -324,15 +574,27 @@ static func parse(v: Variant, r := data()) -> Array:
 	out.feed_stock = stock
 	out.feed_box = box
 	out.named = named_n
+	var new_barn := {"out": false, "stock": int(out.home_rule("barn").get("feed_start", 0)), "box": 0}
+	var barn = v.get("barn", new_barn if version < 3 else null)
+	if not barn is Dictionary or not barn.get("out") is bool:
+		return ["The saved barn is broken", null]
+	var barn_stock = SaveGame.whole(barn.get("stock"), 0, 1 << 30)
+	var barn_box = SaveGame.whole(barn.get("box"), 0, 1 << 30)
+	if barn_stock == null or barn_box == null:
+		return ["Saved barn fodder is broken", null]
+	out.state["barn"] = {"out": barn.out, "stock": barn_stock, "box": barn_box}
 	for s in v.animals:
 		if not s is Dictionary or not s.get("kind") is String or out.kind_rule(s.kind).is_empty() \
-				or not s.get("name") is String or not s.get("sick") is bool or not s.get("petted") is bool:
+				or not s.get("name") is String or not s.get("sick") is bool or not s.get("petted") is bool \
+				or not s.get("brushed", false) is bool:
 			return ["A saved animal is broken", null]
 		var a := {"kind": s.kind, "name": s.name, "sick": s.sick, "petted": s.petted,
+			"brushed": s.get("brushed", false),
 			"happy": SaveGame.whole(s.get("happy"), 0, out.happy_max()),
 			"age": SaveGame.whole(s.get("age"), 0, 1 << 30),
 			"sick_days": SaveGame.whole(s.get("sick_days"), 0, 1 << 30),
-			"out_hours": SaveGame.whole(s.get("out_hours"), 0, 24)}
+			"out_hours": SaveGame.whole(s.get("out_hours"), 0, 24),
+			"prod_days": SaveGame.whole(s.get("prod_days", 0), 0, 1 << 30)}
 		if null in a.values():
 			return ["A saved animal is broken", null]
 		out.list.append(a)
@@ -345,6 +607,20 @@ static func parse(v: Variant, r := data()) -> Array:
 		if not out.is_egg(str(v.incubator.get("item", ""))) or days == null:
 			return ["The saved incubator is broken", null]
 		out.incubator = {"item": v.incubator.item, "days": days}
-	if out.room("coop") < 0:
-		return ["Too many saved animals for the coop", null]
+	for home in out.rules.get("homes", {}):
+		if out.room(home) < 0:
+			return ["Too many saved animals for the %s" % home, null]
+	var sd = v.get("dog", out.dog.duplicate() if version < 3 else null)
+	if version < 3 and not v.has("dog"):
+		sd.cell = [out.dog.cell.x, out.dog.cell.y]
+	if not sd is Dictionary or not sd.get("name") is String or not sd.get("petted") is bool \
+			or not sd.get("lifted") is bool or not sd.get("cell") is Array or sd.cell.size() != 2:
+		return ["The saved dog is broken", null]
+	var aff = SaveGame.whole(sd.get("affection"), 0, maxi(int(out.dog_rule().get("max", 100)), 1))
+	var cx = SaveGame.whole(sd.cell[0], 1, FarmGrid.W - 2)
+	var cy = SaveGame.whole(sd.cell[1], 1, FarmGrid.H - 2)
+	if aff == null or cx == null or cy == null:
+		return ["The saved dog is broken", null]
+	out.dog = {"name": sd.name, "affection": aff, "petted": sd.petted, "lifted": sd.lifted,
+		"held": false, "cell": Vector2i(cx, cy), "facing": Vector2i.DOWN}
 	return ["", out]
