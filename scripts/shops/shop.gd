@@ -4,7 +4,8 @@ extends RefCounted
 ## show it, Game applies the results, headless tests check it): opening hours and days off,
 ## the stock per season with prices, buying into and selling from an Inventory (or for the
 ## coop: animals, feed), bigger rucksacks, tool upgrades that take a tool away for some days
-## (and the ores they need), and house extensions built over some days. Every action gets the inventory and the
+## (and the ores they need), house extensions built over some days, and kitchen tools for
+## cooking once the kitchen is built. Every action gets the inventory and the
 ## money it may change and returns {ok, money, note}; nothing here touches Game.
 
 const DATA := "res://data/shops.json"
@@ -25,6 +26,8 @@ var upgrade_levels: Dictionary = {}    # "2".."5" -> {price, days, items?}
 var tool_upgrade_levels: Dictionary = {}   # tool -> its own levels (the rod)
 var rucksack_name := ""
 var rucksack_levels: Array = []        # [{slots, price}] in order
+var kitchen_tools: Array[String] = []  # cooking tools sold (data/recipes.json tools), each bought once
+var kitchen_needs := ""                # the house extension they wait for ("kitchen")
 var builder := ""                      # the villager who builds (data/villagers)
 var build_map := ""                    # the map the extensions change
 var builds: Dictionary = {}            # id -> {name, about, price, days, chest_slots?}
@@ -81,6 +84,8 @@ static func make(shop_id: String, crop_data: Dictionary, food_data: Dictionary, 
 	shop.tool_upgrade_levels = s.get("upgrades", {}).get("tool_levels", {})
 	shop.rucksack_name = str(s.get("rucksack", {}).get("name", "Bigger rucksack"))
 	shop.rucksack_levels = s.get("rucksack", {}).get("levels", [])
+	shop.kitchen_tools.assign(s.get("kitchen_tools", {}).get("items", []))
+	shop.kitchen_needs = str(s.get("kitchen_tools", {}).get("needs", ""))
 	shop.builder = str(s.get("builds", {}).get("builder", ""))
 	shop.build_map = str(s.get("builds", {}).get("map", ""))
 	shop.builds = s.get("builds", {}).get("jobs", {})
@@ -125,6 +130,8 @@ func item_name(item: String) -> String:
 		return str(entry(item).name)
 	if item == "rucksack":
 		return rucksack_name
+	if item.begins_with("kitchen:"):
+		return Cooking.tool_name(item.trim_prefix("kitchen:"))
 	if builds.has(item):
 		return str(builds[item].get("name", item))
 	if item.begins_with("seeds:") and crops.has(item.trim_prefix("seeds:")):
@@ -249,6 +256,37 @@ func buy_rucksack(inv: Inventory, money: int) -> Dictionary:
 	inv.grow("bag", offer.slots)
 	return {"ok": true, "money": money - offer.price,
 		"note": "Your rucksack has %d slots now (%d G)" % [offer.slots, offer.price]}
+
+
+# --- kitchen tools ---------------------------------------------------------------
+
+## The kitchen tools for sale now: [{item "kitchen:<id>", tool, price, to "kitchen"}], the ones
+## not in `owned`; none until `kitchen_needs` is among `built`.
+func kitchen_offers(owned: Array, built: Array) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if kitchen_needs != "" and not kitchen_needs in built:
+		return out
+	for t in kitchen_tools:
+		var p := int(Cooking.tool_info(t).get("price", 0))
+		if p > 0 and not t in owned:
+			out.append({"item": "kitchen:" + t, "tool": t, "price": p, "to": "kitchen"})
+	return out
+
+
+## Buys kitchen tool `tool` (once; the caller adds the result's tool to what is owned).
+func buy_kitchen_tool(money: int, tool: String, owned: Array, built: Array) -> Dictionary:
+	if tool in owned:
+		return _no(money, "You already have %s" % Cooking.a_tool(tool))
+	var offer: Dictionary = {}
+	for o in kitchen_offers(owned, built):
+		if o.tool == tool:
+			offer = o
+	if offer.is_empty():
+		return _no(money, "There's no kitchen to put it in yet" if tool in kitchen_tools else "That isn't sold here")
+	if money < offer.price:
+		return _no(money, "Not enough money (%d G)" % offer.price)
+	return {"ok": true, "money": money - offer.price, "tool": tool,
+		"note": "Bought %s for %d G" % [Cooking.a_tool(tool), offer.price]}
 
 
 ## Sells `n` of `item` from what the farmer carries (rucksack and hand).

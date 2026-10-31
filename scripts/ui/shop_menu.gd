@@ -2,7 +2,7 @@ class_name ShopMenu
 extends RefCounted
 ## The shop screen's tabs, list and cursor, without any drawing (ShopScreen draws it,
 ## headless tests check it). The tabs come from what the shop does: "buy" (its stock this
-## season, and the next bigger rucksack first), "tools" (upgrades), "sell" (carried things it
+## season, the next bigger rucksack and the kitchen tools not owned first), "tools" (upgrades), "sell" (carried things it
 ## buys) and "build" (house extensions). Up / down pick a row, left / right how many,
 ## choose() makes the deal through the game `g` (Game's shop_buy, shop_sell, shop_upgrade,
 ## shop_collect, shop_build) and returns its note.
@@ -48,6 +48,7 @@ func rows() -> Array[Dictionary]:
 			var bag := shop.rucksack_offer(g.inventory.size("bag"))
 			if not bag.is_empty():
 				out.append(bag)
+			out.append_array(shop.kitchen_offers(g.kitchen_tools, g.house_built))
 			out.append_array(shop.stock(g.season_name()))
 			return out
 		"build":
@@ -88,12 +89,13 @@ func current() -> Dictionary:
 
 
 ## How many the cursor's row can go up to: what the money and the room (rucksack, coop)
-## allow when buying, what is carried when selling; 1 for the rucksack, tools and builds.
+## allow when buying, what is carried when selling; 1 for the rucksack, kitchen tools, tools
+## and builds.
 func most() -> int:
 	var row := current()
 	match tab_id():
 		"buy":
-			if row.get("item", "") == "rucksack":
+			if row.get("item", "") == "rucksack" or row.get("to", "") == "kitchen":
 				return 1
 			var by_money: int = g.money / maxi(int(row.get("price", 1)), 1)
 			return clampi(mini(by_money, g.shop_room(shop.id, str(row.get("item", "")))), 1, MOST)

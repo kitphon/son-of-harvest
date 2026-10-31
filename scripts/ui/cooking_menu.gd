@@ -2,7 +2,7 @@ class_name CookingMenu
 extends RefCounted
 ## The cooking screen's list and cursor, without any drawing (CookingScreen draws it,
 ## headless tests check it). The rows are the recipes the farmer knows (Cooking.known_ids),
-## in data order; up / down pick one, choose() cooks it once through the game `g` (Game.cook)
+## in data order, ready or not (ingredients and kitchen tools); up / down pick one, choose() cooks it once through the game `g` (Game.cook)
 ## and returns its note.
 
 var g                       # the Game (the autoload, or a test's)
@@ -14,12 +14,15 @@ func _init(game) -> void:
 	g = game
 
 
-## {id, dish (rucksack item), makes, ready (everything is there), missing (needs not met)}.
+## {id, dish (rucksack item), makes, ready (everything is there), missing (needs not met),
+## no_tools (kitchen tools not owned)}.
 func rows() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for id in Cooking.known_ids(g.flags):
 		var miss := Cooking.missing(id, g.inventory)
-		out.append({"id": id, "dish": Cooking.dish(id), "makes": Cooking.makes(id), "ready": miss.is_empty(), "missing": miss})
+		var kit := Cooking.missing_tools(id, g.kitchen_tools)
+		out.append({"id": id, "dish": Cooking.dish(id), "makes": Cooking.makes(id), "ready": miss.is_empty() and kit.is_empty(),
+			"missing": miss, "no_tools": kit})
 	return out
 
 
@@ -51,6 +54,18 @@ func needs_text() -> String:
 	for need in Cooking.recipe(row.id).get("needs", []):
 		parts.append("%d %s (%d)" % [int(need.n), need_name(need), Cooking.have(need, g.inventory)])
 	return ", ".join(parts)
+
+
+## The cursor's recipe's kitchen tools: "" when it needs none, else "Uses Kitchen knife, Clay
+## pot", each one not owned marked "(store)" (the Yorozu Store sells it).
+func tools_text() -> String:
+	var row := current()
+	if row.is_empty() or Cooking.tools(row.id).is_empty():
+		return ""
+	var names: Array[String] = []
+	for t in Cooking.tools(row.id):
+		names.append(Cooking.tool_name(t) + (" (store)" if t in row.no_tools else ""))
+	return "Uses " + ", ".join(names)
 
 
 ## A need's name: the item's own, or the group's (any fish, any egg).

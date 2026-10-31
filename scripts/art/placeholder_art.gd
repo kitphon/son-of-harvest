@@ -69,6 +69,8 @@ static func item_key(id: String, seed := "", food := "") -> String:
 		return "ui:fish:" + id.trim_prefix("fish:")
 	if id.begins_with("mine:"):
 		return "ui:mine:" + id.trim_prefix("mine:")
+	if id.begins_with("kitchen:"):
+		return "ui:kitchen:" + id.trim_prefix("kitchen:")
 	if id in ["hoe", "can", "sickle", "hammer", "axe", "rod"]:
 		return "ui:tool:" + id
 	return "ui:item:" + id.replace(":", "_")
@@ -875,6 +877,52 @@ static func _mine(kind: String) -> Image:
 
 ## A mine find as a 14 x 14 icon from its look: a rounded stone, a lump of clay, a heap of
 ## black sand, a lump of rock with a bright vein of ore, a cut gem, an amber drop, a crystal.
+## The kitchen tools in the store and on the cooking screen, 14 x 14: knife, clay pot,
+## teapot, iron rice pot, bamboo steamer, mochi mallet; outlined like the other item icons.
+static func _kitchen_icon(id: String) -> Image:
+	var img := _blank(14, 14)
+	var steel := Color("b8c0c8")
+	var wood := Color("9a6a3a")
+	var clay := Color("a8583a")
+	var iron := Color("4a4848")
+	var bamboo := Color("c8b070")
+	match id:
+		"knife":
+			_line(img, Vector2i(2, 11), Vector2i(5, 8), wood)   # the handle
+			_line(img, Vector2i(3, 11), Vector2i(6, 8), wood)
+			for i in 6:   # the blade, widest at the heel
+				_px(img, 6 + i, 7 - i, 2, 2 if i < 4 else 1, steel)
+			_line(img, Vector2i(7, 8), Vector2i(12, 3), steel.lightened(0.3))
+		"pot":
+			_oval(img, 7, 8.5, 5.5, 3.5, clay)
+			_px(img, 2, 5, 10, 2, clay.darkened(0.2))   # the lid's rim
+			_px(img, 6, 3, 2, 2, clay.darkened(0.3))    # its knob
+			_px(img, 4, 8, 3, 1, clay.lightened(0.25))
+		"teapot":
+			_oval(img, 6.5, 8, 4, 3.5, Color("5a7a5a"))
+			_px(img, 5, 4, 3, 1, Color("4a6a4a"))
+			_line(img, Vector2i(10, 8), Vector2i(12, 6), Color("5a7a5a"))   # the spout
+			_line(img, Vector2i(1, 6), Vector2i(3, 8), wood)   # the side handle
+		"rice_pot":
+			_px(img, 2, 6, 10, 6, iron)
+			_px(img, 1, 8, 12, 1, iron.lightened(0.15))   # the flange
+			_px(img, 2, 4, 10, 2, wood)   # the wooden lid
+			_px(img, 6, 3, 2, 1, wood.darkened(0.25))
+		"steamer":
+			_px(img, 2, 4, 10, 4, bamboo)
+			_px(img, 2, 8, 10, 4, bamboo.darkened(0.12))
+			_px(img, 2, 7, 10, 1, bamboo.darkened(0.35))   # the two baskets' seam
+			_px(img, 3, 3, 8, 1, bamboo.lightened(0.2))
+		"mallet":
+			_px(img, 7, 2, 2, 7, wood)   # the handle
+			_px(img, 3, 1, 6, 3, wood.darkened(0.15))   # the head
+			_px(img, 2, 9, 10, 4, wood.darkened(0.3))   # the mortar
+			_px(img, 3, 9, 8, 1, Color("f0ece0"))   # the rice in it
+		_:
+			_oval(img, 7, 7, 5, 5, steel)
+	return _outline(img)
+
+
 static func _mine_icon(look: Dictionary) -> Image:
 	var img := _blank(14, 14)
 	var body := Color(look.get("body", "8e8a84"))
@@ -1454,6 +1502,8 @@ static func _ui(kind: String, arg: String) -> Image:
 			return _fish_icon(fish_look(arg))
 		"mine":     # mine:<id>, 14 x 14, a stone, ore or gem from its look in data/mine.json
 			return _mine_icon(mine_look(arg))
+		"kitchen":  # kitchen:<id>, 14 x 14, a cooking tool (data/recipes.json tools)
+			return _kitchen_icon(arg)
 		"coin":     # a gold coin with a square hole
 			var img := _blank(9, 9)
 			_oval(img, 4.5, 4.5, 4.0, 4.0, Color("c8962a"))

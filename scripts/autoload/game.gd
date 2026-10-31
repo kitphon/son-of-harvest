@@ -82,6 +82,7 @@ var shipped: Dictionary = {}    # item id -> how many were ever shipped
 var shop_jobs: Dictionary = {}  # shop id -> {tool, level, ready (day number), slot}: a tool left for an upgrade
 var house_built: Array[String] = []   # house extensions done (data/shops.json builds; the maps follow)
 var house_job: Dictionary = {}        # the one being built: {build, shop, ready (day number)}
+var kitchen_tools: Array[String] = [] # cooking tools owned (data/recipes.json tools; bought at the store)
 var fishing := Fishing.new()       # the line: cast, wait, bite (rules in data/fish.json)
 var fish_caught: Dictionary = {}   # fish id -> how many were caught this game (once-only fish)
 var mine_deepest := 0              # the deepest mine floor reached (the only mine state saved)
@@ -163,6 +164,7 @@ func new_game() -> void:
 	shop_jobs = {}
 	house_built = []
 	house_job = {}
+	kitchen_tools = []
 	MapManager.set_built(house_built)
 	MapManager.set_flags(flags)   # props gated by story flags (the bell, the store's sign)
 	animals = Animals.new()
@@ -317,11 +319,13 @@ func _demo_field() -> void:
 
 
 ## `-- --demo --cook`: eggs, a fish and vegetables to cook with (the chest when the rucksack is
-## full), one recipe learned.
+## full), one recipe learned and one of its two tools (so the screen shows a tool missing).
 func _demo_kitchen() -> void:
 	for id in ["egg", "egg", "fish:funa", "carrot", "onion"]:
 		inventory.add(id, 1, ["bag", "chest"])
 	flags[Cooking.flag("turnip_stew")] = true
+	if not "knife" in kitchen_tools:
+		kitchen_tools.append("knife")
 
 
 func _process(delta: float) -> void:
@@ -1109,7 +1113,8 @@ func open_cooking() -> bool:
 	return true
 
 
-## Cooks recipe `id` once (Cooking.cook): needs the kitchen and the recipe known; the
+## Cooks recipe `id` once (Cooking.cook): needs the kitchen, the recipe known and its kitchen
+## tools owned (kitchen_tools); the
 ## ingredients come from the rucksack, the hand and the chest, the dishes go into the
 ## rucksack. Returns {ok, note}.
 func cook(id: String) -> Dictionary:
@@ -1118,6 +1123,10 @@ func cook(id: String) -> Dictionary:
 		return {"ok": false, "note": "There's no kitchen here yet"}
 	if not Cooking.known(id, flags):
 		return {"ok": false, "note": "You don't know how to make that yet"}
+	var lack := Cooking.missing_tools(id, kitchen_tools)
+	if not lack.is_empty():
+		var names := lack.map(func(t: String) -> String: return Cooking.a_tool(t))
+		return {"ok": false, "note": "You need %s for that" % " and ".join(names)}
 	var r := Cooking.cook(id, inventory)
 	changed.emit()
 	match r.result:
@@ -1582,6 +1591,11 @@ func shop_buy(id: String, item: String, n := 1) -> Dictionary:
 	var s := shop(id)
 	if item == "rucksack":
 		return _shop_paid(s.buy_rucksack(inventory, money))
+	if item.begins_with("kitchen:"):
+		var k := s.buy_kitchen_tool(money, item.trim_prefix("kitchen:"), kitchen_tools, house_built)
+		if k.ok:
+			kitchen_tools.append(k.tool)
+		return _shop_paid(k)
 	var r := s.buy(inventory, money, item, n, season_name(), shop_room(id, item))
 	if r.ok and r.to == "animal":
 		var a := Shop.animal_of(item)
@@ -1733,6 +1747,7 @@ func to_dict() -> Dictionary:
 	d.shipped = shipped.duplicate()
 	d.shop_jobs = shop_jobs.duplicate(true)
 	d.house = {"built": house_built.duplicate(), "job": house_job.duplicate()}
+	d.kitchen_tools = kitchen_tools.duplicate()
 	d.animals = animals.to_dict()
 	d.fishing = {"caught": fish_caught.duplicate(), "dry_casts": fishing.dry_casts}
 	d.affection = affection.to_dict()
@@ -1863,6 +1878,19 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 		if hs == null or not hj.get("build") is String or not hs.builds.has(hj.build) or hj.build in n.house_built or ready == null:
 			return "Saved house is broken"
 		n.house_job = {"build": hj.build, "shop": hj.shop, "ready": ready}
+	# Version 5 added kitchen tools; an older kitchen gets the tools of the recipes it knows, so
+	# whatever it cooked before still cooks.
+	n.kitchen_tools = [] as Array[String]
+	if version >= 5 or data.has("kitchen_tools"):
+		var saved_kit = data.get("kitchen_tools", [])
+		if not saved_kit is Array:
+			return "Saved kitchen tools are broken"
+		for t in saved_kit:
+			if not t is String or Cooking.tool_info(t).is_empty() or t in n.kitchen_tools:
+				return "Saved kitchen tools are broken"
+			n.kitchen_tools.append(t)
+	elif "kitchen" in n.house_built:
+		n.kitchen_tools = Cooking.tools_for(Cooking.known_ids(n.flags))
 	# Saves from before maps load on the farm, in front of the house door.
 	var place := {"id": MapManager.FARM, "pos": MapManager.new().pos, "facing": Vector2i.DOWN}
 	if data.has("map"):

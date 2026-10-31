@@ -2,8 +2,8 @@ class_name CookingScreen
 extends CanvasLayer
 ## The kitchen corner's cooking screen over the room: a wood box with "Kitchen" and how many
 ## recipes are known, a paper page listing the known recipes with their dish icons, what the
-## one under the cursor needs (and how many of each the rucksack and the chest hold) and what
-## cooking said. Opens on Game.cooking_requested (E at the stove or the cupboard). Up / down
+## one under the cursor needs (and how many of each the rucksack and the chest hold), the
+## kitchen tools it uses (and which are missing) and what cooking said. Opens on Game.cooking_requested (E at the stove or the cupboard). Up / down
 ## pick, Enter / Space / E cook once, Esc / I leave; the mouse points, a click cooks. Game is
 ## paused while it is open. Rules: CookingMenu and Cooking. `-- --cook` opens it at the start
 ## (with `--demo`: a few things to cook with), for screenshots.
@@ -33,6 +33,7 @@ var _more_up: Label
 var _more_down: Label
 var _about: Label
 var _needs: Label
+var _tools: Label
 var _note: Label
 
 
@@ -121,10 +122,11 @@ func _build() -> void:
 	_more_down = _label(_paper, Vector2i(W - 70, y + 4), Hud.INK_SOFT)
 	_about = _label(_paper, Vector2i(6, y + 4))
 	_needs = _label(_paper, Vector2i(6, y + 4 + LINE))
-	_note = _label(_paper, Vector2i(6, y + 4 + LINE * 2), PlaceholderArt.UI_SEAL)
-	var hint := _label(_paper, Vector2i(6, y + 4 + LINE * 3), Hud.INK_SOFT)
+	_tools = _label(_paper, Vector2i(6, y + 4 + LINE * 2))
+	_note = _label(_paper, Vector2i(6, y + 4 + LINE * 3), PlaceholderArt.UI_SEAL)
+	var hint := _label(_paper, Vector2i(6, y + 4 + LINE * 4), Hud.INK_SOFT)
 	hint.text = HINT
-	_paper.size = Vector2(W, y + 4 + LINE * 4 + 3)
+	_paper.size = Vector2(W, y + 4 + LINE * 5 + 3)
 	_wood.size = Vector2(W + 8, TOP + _paper.size.y + 4)
 	var screen := Vector2(ProjectSettings.get_setting("display/window/size/viewport_width"),
 		ProjectSettings.get_setting("display/window/size/viewport_height"))
@@ -149,7 +151,7 @@ func _refresh() -> void:
 		_names[i].text = String(Game.foods.get(row.id, {}).get("name", row.id))
 		if int(row.makes) > 1:
 			_names[i].text += " x%d" % int(row.makes)
-		_states[i].text = "ready" if row.ready else "missing"
+		_states[i].text = "ready" if row.ready else ("no tool" if not row.no_tools.is_empty() else "missing")
 		_states[i].position.x = W - 8 - PixelFont.width(_states[i].text)
 		var ink := Hud.INK if row.ready else Hud.INK_SOFT
 		_names[i].add_theme_color_override("font_color", ink)
@@ -161,6 +163,8 @@ func _refresh() -> void:
 	var row := menu.current()
 	_about.text = String(Cooking.recipe(row.id).get("about", "")) if not row.is_empty() else ""
 	_needs.text = "Needs " + menu.needs_text() if not row.is_empty() else ""
+	_tools.text = menu.tools_text()
+	_tools.add_theme_color_override("font_color", Hud.INK if row.is_empty() or row.no_tools.is_empty() else PlaceholderArt.UI_SEAL)
 	if rows.is_empty():
 		_names[0].visible = true
 		_names[0].text = "You don't know any recipes yet."

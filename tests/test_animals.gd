@@ -248,8 +248,8 @@ func _game() -> void:
 	g.held = "milk_good"
 	t = g.throw_held(Vector2i(8, 5), Vector2i.UP)
 	check(t.result == "ship" and t.value == g.sell_price("milk_good"), "milk thrown into the bin is shipped")
-	# Save: version 4 keeps the animals, barn and dog; a version 1 save gets the starting flock and the coop.
-	check(SaveGame.VERSION == 4, "save version 4")
+	# Save: version 4 (and later) keeps the animals, barn and dog; a version 1 save gets the starting flock and the coop.
+	check(SaveGame.VERSION >= 4, "save version 4 or later")
 	var d: Dictionary = JSON.parse_string(JSON.stringify(g.to_dict()))
 	var flock: int = g.animals.list.size()
 	var laid: int = g.animals.eggs.size()

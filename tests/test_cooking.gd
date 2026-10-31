@@ -1,6 +1,7 @@
 extends SceneTree
 ## Headless checks for cooking (Cooking + data/recipes.json, Game.cook, CookingMenu, the recipe
-## lessons, the kitchen corner's stove in the real Game). Run:
+## lessons, kitchen tools bought at the store and saved, the kitchen corner's stove in the real
+## Game). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_cooking.gd
 
 var failures := 0
@@ -12,6 +13,7 @@ func _init() -> void:
 	_menu()
 	_lessons()
 	_cards()
+	_tools()
 
 
 ## The data: every recipe makes a kitchen-only food, every need is a real item or group, every
@@ -81,6 +83,14 @@ func _cooking() -> void:
 	g.inventory.add("turnip", 1)
 	g.inventory.add("turnip", 2, ["chest"])
 	g.inventory.add("carrot", 1, ["chest"])
+	before = g.inventory.to_dict()
+	r = g.cook("turnip_stew")
+	check(not r.ok and r.note == "You need a kitchen knife and a clay pot for that" and g.inventory.to_dict() == before,
+		"no tools: the stew isn't cooked, nothing used (%s)" % r.note)
+	g.kitchen_tools.append("knife")
+	r = g.cook("turnip_stew")
+	check(not r.ok and r.note == "You need a clay pot for that", "the knife alone isn't enough (%s)" % r.note)
+	g.kitchen_tools.append("pot")
 	check(g.cook("turnip_stew").ok, "turnip stew from the rucksack and the chest")
 	check(g.inventory.count("turnip", ["bag", "chest"]) == 1 and g.inventory.count("turnip", ["bag"]) == 0, "the rucksack's turnip is used first")
 	check(g.inventory.count("carrot", ["chest"]) == 0 and g.count("food:turnip_stew") == 1, "the chest's carrot used, the stew in the rucksack")
@@ -210,6 +220,7 @@ func _cards() -> void:
 	check(t.result == "ship" and rice.all(func(id): return Cooking.known(id, g.flags)), "rice thrown in the bin brings the rice cards (%s)" % t.result)
 	g.inventory.add("rice", 2)
 	g.inventory.add("carrot", 1)
+	g.kitchen_tools.assign(Cooking.tool_ids())
 	check(g.cook("kinako_mochi").ok and g.count("food:kinako_mochi") == 3 and g.count("rice") == 0, "kinako mochi from two rice, three of them")
 	g.inventory.add("daikon", 1)
 	g.inventory.add("fish:funa", 1)
@@ -231,6 +242,117 @@ func _cards() -> void:
 	check(g.inventory.count("food:kinako_mochi", ["hand"]) == 3, "three mochi in hand")
 	check(g.ship_produce() == 3 * sell and g.count("food:kinako_mochi") == 0, "held out at the bin: shipped (%d G)" % g.bin_total)
 	check(int(g.shipped.get("food:kinako_mochi", 0)) == 3 and g.ending_values().shipped_value >= 3 * sell, "dishes count as shipped for the record")
+	g.free()
+
+
+## Kitchen tools: the data, the start recipes need none, the store sells each once after the
+## kitchen is built, the cooking menu says what is missing, the save keeps them and an old
+## save's kitchen gets the tools of the recipes it already knew.
+func _tools() -> void:
+	var d := Cooking.data()
+	var foods: Dictionary = _json("res://data/foods.json").foods
+	var used := {}
+	for id in Cooking.ids():
+		for t in Cooking.tools(id):
+			used[t] = true
+		if Cooking.recipe(id).get("start", false):
+			check(Cooking.tools(id).is_empty(), "%s (a start recipe) cooks with no tools" % id)
+	for t in Cooking.tool_ids():
+		var info := Cooking.tool_info(t)
+		check(used.has(t), "some recipe uses the %s" % t)
+		check(PixelFont.missing(String(info.name) + String(info.get("about", ""))) == "", "the pixel font has the %s's text" % t)
+		check(PixelFont.width(String(info.get("about", "")) + " For the kitchen.") <= 300 - 12, "the %s's about line fits the shop" % t)
+		var img := PlaceholderArt.tex(PlaceholderArt.item_key("kitchen:" + t)).get_image()
+		check(img.get_size() == Vector2i(14, 14) and img.get_used_rect().has_area(), "the %s has an icon" % t)
+	check(Cooking.missing_tools("turnip_stew", ["knife"]) == (["pot"] as Array[String]), "the stew still lacks the pot")
+	check(Cooking.tools_for(["onigiri", "ochazuke", "turnip_stew"]) == (["knife", "pot", "teapot"] as Array[String]), "tools for known recipes, in tool order")
+	var bad := d.duplicate(true)
+	bad.recipes.turnip_stew.tools = ["wok"]
+	check(Cooking.check(bad, foods) != "", "an unknown tool is refused")
+	bad = d.duplicate(true)
+	bad.recipes.onigiri.tools = ["knife"]
+	check(Cooking.check(bad, foods) != "", "a start recipe that needs a tool is refused")
+	bad = d.duplicate(true)
+	bad.tools.knife.price = 0
+	check(Cooking.check(bad, foods) != "", "a tool without a price is refused")
+
+	# The store: nothing before the kitchen, each tool once after it.
+	var g := _game()
+	_empty_bag(g)
+	g.money = 5000
+	var s: Shop = g.shop("general")
+	check(s.kitchen_offers(g.kitchen_tools, g.house_built).is_empty(), "no kitchen tools for sale before the kitchen")
+	var r: Dictionary = g.shop_buy("general", "kitchen:knife")
+	check(not r.ok and r.note == "There's no kitchen to put it in yet" and g.money == 5000 and g.kitchen_tools.is_empty(), "no kitchen: not sold (%s)" % r.note)
+	var m := ShopMenu.new(g, "general")
+	check(not m.rows().any(func(row): return String(row.item).begins_with("kitchen:")), "no kitchen rows in the buy tab yet")
+	g.house_built.append("kitchen")
+	var offers := s.kitchen_offers(g.kitchen_tools, g.house_built)
+	check(offers.size() == Cooking.tool_ids().size() and offers[0] == {"item": "kitchen:knife", "tool": "knife", "price": 600, "to": "kitchen"},
+		"after the kitchen: every tool for sale (%s)" % [offers.slice(0, 1)])
+	var rows := m.rows()
+	check(rows[1].item == "kitchen:knife" and rows[0].item == "rucksack", "the buy tab: the rucksack, then the kitchen tools")
+	m.cursor = 1
+	check(m.most() == 1 and s.item_name("kitchen:knife") == "Kitchen knife", "one knife at a time, by its name")
+	check(m.choose() == "Bought a kitchen knife for 600 G" and m.last_ok and g.money == 4400 and g.kitchen_tools == (["knife"] as Array[String]),
+		"the knife bought through the menu")
+	check(not m.rows().any(func(row): return row.item == "kitchen:knife"), "the knife's row is gone")
+	r = g.shop_buy("general", "kitchen:knife")
+	check(not r.ok and r.note == "You already have a kitchen knife" and g.money == 4400, "not twice")
+	check(g.inventory.count("kitchen:knife", ["bag", "hand", "chest"]) == 0, "a kitchen tool doesn't take a rucksack slot")
+	g.money = 100
+	r = g.shop_buy("general", "kitchen:mallet")
+	check(not r.ok and r.note == "Not enough money (2000 G)" and not "mallet" in g.kitchen_tools, "no money, no mallet")
+	r = g.shop_buy("smithy", "kitchen:pot")
+	check(not r.ok and not "pot" in g.kitchen_tools, "the smithy sells no pots")
+
+	# The cooking menu: a known recipe without its tools is not ready and says what is missing.
+	g.flags[Cooking.flag("potato_stew")] = true
+	g.inventory.add("potato", 2)
+	g.inventory.add("onion", 1)
+	var cm := CookingMenu.new(g)
+	cm.cursor = cm.rows().map(func(row): return row.id).find("potato_stew")
+	check(not cm.current().ready and cm.current().missing.is_empty() and cm.current().no_tools == (["pot"] as Array[String]),
+		"the stew has its ingredients but no pot")
+	check(cm.tools_text() == "Uses Kitchen knife, Clay pot (store)", "the tools line (%s)" % cm.tools_text())
+	var kept: Array = g.kitchen_tools.duplicate()
+	g.kitchen_tools.clear()
+	for id in Cooking.ids():
+		g.flags[Cooking.flag(id)] = true
+	for i in cm.rows().size():
+		cm.cursor = i
+		check(PixelFont.width(cm.tools_text()) <= 300 - 12, "%s's tools line fits the page (%s)" % [cm.current().id, cm.tools_text()])
+	g.kitchen_tools.assign(kept)
+	for id in Cooking.ids():
+		if not id in ["potato_stew", "turnip_stew"] and not Cooking.recipe(id).get("start", false):
+			g.flags.erase(Cooking.flag(id))
+	cm.cursor = cm.rows().map(func(row): return row.id).find("potato_stew")
+	check(cm.choose() == "You need a clay pot for that" and not cm.last_ok and g.count("potato") == 2, "Enter says what's missing")
+	g.money = 900
+	check(g.shop_buy("general", "kitchen:pot").ok and cm.current().ready and cm.tools_text() == "Uses Kitchen knife, Clay pot", "with the pot: ready")
+	check(cm.choose() == "Made potato stew" and g.count("food:potato_stew") == 1, "potato stew cooked")
+	cm.cursor = cm.rows().map(func(row): return row.id).find("onigiri")
+	check(cm.tools_text() == "", "onigiri needs no tools")
+
+	# The save keeps the tools; broken lists are refused; old saves get what they knew.
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(g.to_dict()))
+	check(saved.kitchen_tools == ["knife", "pot"], "the tools are saved (%s)" % [saved.kitchen_tools])
+	g.new_game()
+	check(g.kitchen_tools.is_empty(), "a new game has no kitchen tools")
+	check(g.from_dict(saved) == "" and g.kitchen_tools == (["knife", "pot"] as Array[String]), "the tools load back")
+	for broken in [{"x": 1}, ["wok"], ["knife", "knife"], [3]]:
+		var b := saved.duplicate(true)
+		b.kitchen_tools = broken
+		check(g.from_dict(b) == "Saved kitchen tools are broken" and g.kitchen_tools == (["knife", "pot"] as Array[String]), "refused %s" % [broken])
+	var old := saved.duplicate(true)
+	old.erase("kitchen_tools")
+	check(g.from_dict(old) == "" and g.kitchen_tools.is_empty(), "a version 5 save without the key has none")
+	old.flags[Cooking.flag("ochazuke")] = true
+	check(g.from_dict(old, 4) == "" and g.kitchen_tools == (["knife", "pot", "teapot"] as Array[String]),
+		"a version 4 save's kitchen gets the tools of the recipes it knew (%s)" % [g.kitchen_tools])
+	check(g.cook("ochazuke").note.begins_with("Not enough"), "so its ochazuke only waits for fish and tea")
+	old.house.built = []
+	check(g.from_dict(old, 4) == "" and g.kitchen_tools.is_empty(), "no kitchen in the old save: no tools")
 	g.free()
 
 
