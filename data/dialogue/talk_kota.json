@@ -3,6 +3,10 @@
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
+		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
+		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
+		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
+		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"band": [6, 6], "flags": ["heart_kota_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"map": ["river"]}, "at": ["river_1", "river_2", "river_3"]},
 		{"if": {"band": [4, 6]}, "at": ["close_1", "close_2"]},
@@ -69,6 +73,10 @@
 		{"id": "gift_dish_love", "speaker": "kota", "mood": "surprised", "text": "You cooked this for me? It's my favourite!", "next": "end"},
 		{"id": "gift_dish_like", "speaker": "kota", "mood": "happy", "text": "You cooked this? Smells really good. Thanks!", "next": "end"},
 		{"id": "gift_dish_neutral", "speaker": "kota", "mood": "neutral", "text": "Food? Okay. I'll eat it if I get hungry.", "next": "end"},
-		{"id": "gift_dish_dislike", "speaker": "kota", "mood": "sad", "text": "Ugh, that's grown-up food... Do I have to eat all of it?", "next": "end"}
+		{"id": "gift_dish_dislike", "speaker": "kota", "mood": "sad", "text": "Ugh, that's grown-up food... Do I have to eat all of it?", "next": "end"},
+		{"id": "festival_blossom_day", "speaker": "kota", "mood": "happy", "text": "I'm entering my cucumber! It's crooked, but it's the biggest one I ever grew.", "next": "end"},
+		{"id": "festival_lantern_night", "speaker": "kota", "mood": "surprised", "text": "Did you see that firework? It went bang right in my chest!", "next": "end"},
+		{"id": "festival_moon_night", "speaker": "kota", "mood": "happy", "text": "Grandma says a rabbit lives on the moon making rice cakes. I'm looking for its ears.", "next": "end"},
+		{"id": "festival_years_turn", "speaker": "kota", "mood": "happy", "text": "I'm staying up till the year turns over. I'm not even a bit sleepy. Not even...", "next": "end"}
 	]
 }

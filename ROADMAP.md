@@ -159,8 +159,9 @@ the shipping payout waits for the next day; Blossom Day has a dango stall and La
 night-eats stall and a wind chime stall that sell, and a placing gives a ribbon to keep, shown
 on a board in the farmhouse (README → Festivals); at the results the rivals walk up to the
 table with their entries overhead and go back to their plans after. Later for festivals: a
-contest that is played (a mochi-pounding rhythm, a fishing race),
-more villagers gathering once they talk. Done: stalls at Moon Night and Year's Turn (a food
+contest that is played (a mochi-pounding rhythm, a fishing race). Done: the whole village
+gathers (Hachiro and Sayo have festival day plans too, all four have a line for each festival,
+Sayo leaves a note on the store counter on Blossom Day), stalls at Moon Night and Year's Turn (a food
 stall and a keepsake stall each), keepsakes as gifts (each villager loves one), the villagers'
 own lines for keepsakes and dishes, and a loved keepsake shown in its owner's home.
 The balance pass is done (milestone 8): our own crop, product, animal and extension prices,

@@ -1,6 +1,6 @@
 extends SceneTree
 ## Headless checks for festivals (data/festivals.json, Festivals, Game's festival day, shops
-## shut for it, the fair weather, villagers gathering, the event once a year, the decorations
+## shut for it, the fair weather, villagers gathering (all four, with festival lines), the event once a year, the decorations
 ## and lights in both views, the HUD tag, the contests and their result lines, the stalls and
 ## their wares, ribbons and the farmhouse board, the shipping payout held back on the day). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_festivals.gd
@@ -16,6 +16,7 @@ func _init() -> void:
 	_calendar()
 	_hours()
 	_villagers()
+	_crowd()
 	_contest_data()
 	_judging()
 	_result_lines()
@@ -30,6 +31,7 @@ func _process(_delta: float) -> bool:
 		_shops()
 		_event()
 		_contest_game()
+		_store_note()
 		_rivals()
 		_stall()
 		_night_stalls()
@@ -112,6 +114,32 @@ func _villagers() -> void:
 	check(Villagers.where("tome", 660.0, plain).pos != Vector2(17.5, 8.5) and Villagers.where("kota", 1300.0, plain).map == "away", "a plain day has the usual plans")
 	check(Villagers.check_conditions({"festival": ["no_such_festival"]}) != "" and Villagers.check_conditions({"festival": ["moon_night"]}) == "",
 		"a festival rule must name a festival")
+
+
+## Everyone is out at every festival: Hachiro and Sayo too, by their own festival plans, in
+## the festival's hours, and each has a line for it. The rivals of each contest are there.
+func _crowd() -> void:
+	var mid := {"blossom_day": 840, "lantern_night": 1200, "moon_night": 1230, "years_turn": 1290}
+	for fid in Festivals.all():
+		var f := Festivals.get_festival(fid)
+		var s := {"year": 1, "season": f.season, "day": int(f.day), "weekday": "tue", "weather": "sunny", "flags": {}, "festival": fid}
+		for who in ["hachiro", "sayo", "kota", "tome"]:
+			var w := Villagers.where(who, float(mid[fid]), s)
+			check(w.map == f.map, "%s is out at %s at %d (%s)" % [who, fid, mid[fid], w])
+			var line := Talk.pick(who, {"band": 2, "again": false, "day_number": 0, "time": mid[fid]}.merged(s))
+			check(line == "festival_" + fid and Talk.has_line(who, line), "%s says %s at %s (%s)" % [who, "festival_" + fid, fid, line])
+			check(Talk.pick(who, {"band": 2, "again": false, "day_number": 0, "time": 400}.merged(s)) != "festival_" + fid,
+				"%s's festival line only in its hours" % who)
+		for r in Festivals.contest(fid).rivals:
+			check(Villagers.where(r.who, float(mid[fid]), s).map == f.map, "rival %s is at %s" % [r.who, fid])
+	var blossom := {"year": 1, "season": "spring", "day": 8, "weekday": "mon", "weather": "sunny", "flags": {}, "festival": "blossom_day"}
+	check(Villagers.where("sayo", 660.0, blossom).map == "store" and Villagers.where("sayo", 1000.0, blossom).map == "store",
+		"on Blossom Day Sayo keeps the store in the morning and after 15:45")
+	check(Villagers.where("hachiro", 660.0, blossom).map == "town", "the smithy is shut: Hachiro is at the blossoms in the morning")
+	var plain := blossom.merged({"festival": "", "day": 9, "weekday": "tue"}, true)
+	check(Villagers.where("hachiro", 840.0, plain).map == "smithy" and Villagers.where("sayo", 840.0, plain).map == "store", "a plain day: both at work")
+	var building := blossom.merged({"flags": {"house_work": true}}, true)
+	check(Villagers.where("hachiro", 600.0, building).map == "farm", "a house job under way still comes first for Hachiro")
 
 
 func _fireworks() -> void:
@@ -453,6 +481,21 @@ func _rivals() -> void:
 					back[rival.who] = r.actors.has(rival.who) and r.actors[rival.who].pos == r._plan_spots.get(rival.who) and not r.actors[rival.who].moving
 		check(back.size() == c.rivals.size() and back.values().all(func(v): return v), "%s: the rivals are back at their plans' spots (%s)" % [fid, back])
 		check(r.done() and r.actors.is_empty(), "%s: then off the stage, back on their festival plans" % fid)
+
+
+## On Blossom Day Sayo leaves a note on the store counter while she is under the blossoms.
+func _store_note() -> void:
+	var g := _game()
+	g.new_game()
+	var said: Array = []
+	var hear := func(t): said.append(t)
+	g.message.connect(hear)
+	_set_day(g, "spring", 8, 14, 0)
+	check(not g.open_shop("general") and said.back() == "A note on the counter: \"At the Blossom Day picnic for a while. Back before four! -Sayo\"",
+		"Sayo's note at 14:00 on Blossom Day (%s)" % [said])
+	g.hour = 16
+	check(g.open_shop("general"), "back at the counter at 16:00")
+	g.message.disconnect(hear)
 
 
 ## Blossom Day's dango stall: a shop of its own, open only in the festival's hours.

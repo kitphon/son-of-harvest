@@ -1648,7 +1648,8 @@ func open_shop(id: String, force := false) -> bool:
 
 
 ## What the counter of shop `s` says while its keeper is out: the builder's note while they
-## are at work on the farm (data/shops.json builds away), else that nobody is there.
+## are at work on the farm (data/shops.json builds away), the keeper's note on a festival day
+## (festival_away), else that nobody is there.
 func keeper_away_text(s: Shop) -> String:
 	var b := shop(str(house_job.get("shop", ""))) if flags.has(BUILD_FLAG) else null
 	if b != null and b.builder == s.keeper and b.builds.has(house_job.build):
@@ -1656,6 +1657,8 @@ func keeper_away_text(s: Shop) -> String:
 		if int(house_job.get("late", 0)) > 0:
 			return b.build_away_late % [what, date_of(int(house_job.ready)).get_slice(",", 0)]
 		return b.build_away % what
+	if s.festival_away != "" and festival_today() != "":
+		return s.festival_away % Festivals.name_of(festival_today())
 	return "Nobody is at the counter"
 
 

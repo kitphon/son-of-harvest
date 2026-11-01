@@ -541,6 +541,15 @@ with their own entries overhead (`holds`), stand in front of the table beside th
 while the results are read, then walk back and go on with their plans. One entry a year (`events_seen` key `contest:<id>:<year>`). `-- --demo
 --festival=<id> --contest=<item>` stands at the table with the item and enters it.
 
+**The crowd.** All four villagers go to every festival by festival day plans (rules with
+`festival` in `data/villagers/<id>.json`): Kota and Tome from the morning; Hachiro (the
+smithy is shut) at the picnic mats, the drum stage, the shrine's gravel and the bonfire; Sayo
+under the blossoms from 13:00 to 15:45 on Blossom Day (the store stays open, her counter has
+`festival_away`'s note in `data/shops.json`), at the night food stall, by the moon table after
+closing, and between the shrine and the bonfire at Year's Turn. In a festival's hours each
+says a `festival_<id>` line (`data/dialogue/talk_<id>.json`). A house job under way keeps
+Hachiro building.
+
 **Stalls.** A festival may have a `stall` (`{id?, name, cell, stock}`; the cell is a `stall`
 prop's), or a list of them, each with its own `id`. E at one in the hours opens it as a shop
 with id `stall:<festival>` (or `stall:<festival>:<stall id>`): Blossom Day's Hanami Dango Stall

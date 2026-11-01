@@ -163,6 +163,10 @@ func _picks() -> void:
 	check(Talk.pick("sayo", _state({"band": 2, "weather": "rain"})) == "rain", "Sayo on a wet day")
 	check(Talk.pick("hachiro", _state({"band": 2, "time": 480})) in ["morning_1", "morning_2"], "Hachiro before the smithy opens")
 	check(Talk.pick("kota", _state({"band": 2, "season": "summer", "time": 900})) in ["cicada_1", "cicada_2"], "Kota's summer afternoons")
+	check(Talk.pick("sayo", _state({"band": 6, "flags": {"heart_sayo_6": true}, "season": "fall", "day": 15, "festival": "moon_night", "time": 1200}))
+		== "festival_moon_night", "a festival line comes before the heart lines")
+	check(Talk.pick("hachiro", _state({"band": 2, "season": "summer", "day": 20, "festival": "lantern_night", "time": 900})) != "festival_lantern_night",
+		"but only in the festival's hours")
 	check(Talk.pick("nobody", _state()) == "", "no talk file, no line")
 	# At the river (a fair Sunday) both fishers have lines for it, whatever the band.
 	var river := _state({"weekday": "sun", "map": "river", "time": 900})

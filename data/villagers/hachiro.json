@@ -7,6 +7,10 @@
 	"rules": [
 		{"if": {"birthday": true}, "plan": "birthday"},
 		{"if": {"flags": ["house_work"], "weather": ["sunny", "rain", "snow"]}, "plan": "building"},
+		{"if": {"festival": ["blossom_day"]}, "plan": "festival_blossom"},
+		{"if": {"festival": ["lantern_night"]}, "plan": "festival_lanterns"},
+		{"if": {"festival": ["moon_night"]}, "plan": "festival_moon"},
+		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
 		{"if": {"weekday": ["sun"], "weather": ["sunny"]}, "plan": "sunday"},
 		{"if": {"weekday": ["sun"]}, "plan": "sunday_in"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "forge"}
@@ -70,6 +74,32 @@
 			{"at": "17:30", "map": "town", "from": [0, 10], "route": [{"to": [27, 10]}, {"to": [27, 7]}, {"face": "up"}]},
 			{"at": "18:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "21:00", "map": "away"}
+		],
+		"festival_blossom": [
+			{"at": "06:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "09:40", "map": "town", "from": [27, 7], "route": [{"to": [27, 11]}, {"to": [19, 11]}, {"to": [19, 12]}],
+				"loop": [{"face": "left"}, {"wait": 20}, {"to": [23, 12]}, {"face": "up"}, {"wait": 10}, {"to": [19, 12]}]},
+			{"at": "16:20", "map": "town", "route": [{"to": [19, 11]}, {"to": [27, 11]}, {"to": [27, 7]}, {"face": "up"}]},
+			{"at": "16:40", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"festival_lanterns": [
+			{"at": "06:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "16:40", "map": "town", "from": [27, 7], "route": [{"to": [27, 11]}, {"to": [19, 11]}, {"to": [19, 13]}, {"face": "left"}]},
+			{"at": "22:20", "map": "town", "route": [{"to": [19, 11]}, {"to": [27, 11]}, {"to": [27, 7]}, {"face": "up"}]},
+			{"at": "22:40", "map": "away"}
+		],
+		"festival_moon": [
+			{"at": "06:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "17:40", "map": "town", "from": [27, 7], "route": [{"to": [27, 9]}, {"to": [24, 9]}, {"to": [24, 5]}, {"to": [23, 5]}, {"face": "left"}]},
+			{"at": "23:20", "map": "town", "route": [{"to": [24, 5]}, {"to": [24, 9]}, {"to": [27, 9]}, {"to": [27, 7]}, {"face": "up"}]},
+			{"at": "23:40", "map": "away"}
+		],
+		"festival_year": [
+			{"at": "06:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "18:40", "map": "town", "from": [27, 7], "route": [{"to": [27, 9]}, {"to": [24, 9]}, {"to": [24, 5]}, {"to": [22, 5]}, {"face": "up"}]},
+			{"at": "23:30", "map": "town", "route": [{"to": [24, 5]}, {"to": [24, 9]}, {"to": [27, 9]}, {"to": [27, 7]}, {"face": "up"}]},
+			{"at": "23:50", "map": "away"}
 		],
 		"forge": [
 			{"at": "06:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},

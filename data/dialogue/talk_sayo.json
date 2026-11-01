@@ -3,6 +3,10 @@
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
+		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
+		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
+		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
+		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"weather": ["rain", "storm"]}, "at": ["rain"]},
 		{"if": {"weather": ["snow"]}, "at": ["snow"]},
 		{"if": {"band": [6, 6], "flags": ["heart_sayo_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
@@ -75,6 +79,10 @@
 		{"id": "gift_dish_love", "speaker": "sayo", "mood": "surprised", "text": "You cooked this? It looks almost too good to eat!", "next": "end"},
 		{"id": "gift_dish_like", "speaker": "sayo", "mood": "happy", "text": "Something you cooked? I'll have it for lunch behind the counter. Thank you!", "next": "end"},
 		{"id": "gift_dish_neutral", "speaker": "sayo", "mood": "neutral", "text": "Home cooking! That's kind. I'll eat it this evening.", "next": "end"},
-		{"id": "gift_dish_dislike", "speaker": "sayo", "mood": "sad", "text": "Oh... fish. I'm sorry, I've never managed to like it. Thank you anyway.", "next": "end"}
+		{"id": "gift_dish_dislike", "speaker": "sayo", "mood": "sad", "text": "Oh... fish. I'm sorry, I've never managed to like it. Thank you anyway.", "next": "end"},
+		{"id": "festival_blossom_day", "speaker": "sayo", "mood": "happy", "text": "I left a note on the counter. One afternoon under the blossoms won't ruin the store.", "next": "end"},
+		{"id": "festival_lantern_night", "speaker": "sayo", "mood": "happy", "text": "The yakisoba stall beats my cooking, and I'm only a little jealous.", "next": "end"},
+		{"id": "festival_moon_night", "speaker": "sayo", "mood": "neutral", "text": "I shut early tonight. Grandma Tome says the moon is rude to keep waiting.", "next": "end"},
+		{"id": "festival_years_turn", "speaker": "sayo", "mood": "happy", "text": "Another year of ledgers closed. Thank you for every turnip you bought from me.", "next": "end"}
 	]
 }

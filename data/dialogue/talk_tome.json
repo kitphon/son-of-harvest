@@ -3,6 +3,10 @@
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
+		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
+		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
+		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
+		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"band": [6, 6], "flags": ["heart_tome_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"band": [4, 6]}, "at": ["close_1", "close_2", "close_3"]},
 		{"if": {"season": ["winter"]}, "at": ["winter_1", "winter_2"]},
@@ -71,6 +75,10 @@
 		{"id": "gift_dish_love", "speaker": "tome", "mood": "surprised", "text": "Did you cook this? It tastes of the old days, and I haven't even opened it yet.", "next": "end"},
 		{"id": "gift_dish_like", "speaker": "tome", "mood": "happy", "text": "You cooked this? Such a careful hand. I'll have it with my supper.", "next": "end"},
 		{"id": "gift_dish_neutral", "speaker": "tome", "mood": "neutral", "text": "Home cooking from a young farmer. Thank you, I'll eat it later.", "next": "end"},
-		{"id": "gift_dish_dislike", "speaker": "tome", "mood": "sad", "text": "Thank you for cooking, child... but it's a bit rich for an old stomach.", "next": "end"}
+		{"id": "gift_dish_dislike", "speaker": "tome", "mood": "sad", "text": "Thank you for cooking, child... but it's a bit rich for an old stomach.", "next": "end"},
+		{"id": "festival_blossom_day", "speaker": "tome", "mood": "happy", "text": "Sit a while. At my age you count the springs, and this one is worth counting.", "next": "end"},
+		{"id": "festival_lantern_night", "speaker": "tome", "mood": "neutral", "text": "Lanterns for the ones who've gone ahead. I hung one for my husband by the road.", "next": "end"},
+		{"id": "festival_moon_night", "speaker": "tome", "mood": "neutral", "text": "Set a dumpling out for the moon and it watches over the harvest. So they always said.", "next": "end"},
+		{"id": "festival_years_turn", "speaker": "tome", "mood": "happy", "text": "Another year closes. You did well, child. The old farm knows it, too.", "next": "end"}
 	]
 }
