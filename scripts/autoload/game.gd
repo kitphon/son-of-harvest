@@ -1544,7 +1544,8 @@ func talk(id: String, at := "") -> void:
 
 ## E facing villager `id` (Talk.facing_villager) from the farmer's side `face` (the way the
 ## villager turns): an item overhead is a gift, a keeper at their counter opens the shop,
-## anyone else says a line picked for now (Talk.pick). Returns "gift", "shop" or "talk".
+## anyone else says a line picked for now (Talk.pick). A keepsake they love, once given, is
+## kept in their home (story flag Keepsakes.given_flag). Returns "gift", "shop" or "talk".
 func talk_to(id: String, face: Vector2i) -> String:
 	var t := day_minutes()
 	var today := day_number()
@@ -1552,11 +1553,15 @@ func talk_to(id: String, face: Vector2i) -> String:
 	var file := Talk.dialogue_id(id)
 	var birthday := Villagers.has_birthday(id, season_name(), day)
 	if holding():
-		var r := affection.give(id, held, today, birthday)
+		var item := held
+		var r := affection.give(id, item, today, birthday)
 		if r.ok:
-			inventory.take(held, 1, ["hand"])   # one of a stack in hand (dishes come several at a time)
+			inventory.take(item, 1, ["hand"])   # one of a stack in hand (dishes come several at a time)
+			if r.reaction == "love" and not Keepsakes.keepsake(item).is_empty():
+				flags[Keepsakes.given_flag(id, item)] = true   # now kept in their home (a map prop)
 			changed.emit()
-		var answer := "gift_" + str(r.reaction)
+		# Their own line for a keepsake or dish (Talk.gift_line), else gift_<reaction>.
+		var answer := Talk.gift_line(id, item, r.reaction) if r.ok else "gift_again"
 		if birthday and r.reaction in ["love", "like", "neutral"] and Talk.has_line(id, "gift_birthday"):
 			answer = "gift_birthday"   # glad of being remembered; a bad gift still answers as it is
 		talk(file, answer)

@@ -3,7 +3,8 @@ extends SceneTree
 ## (villager files, the calendar, gifts counting x5, the birthday lines), the small nightly
 ## loss for villagers left alone, the heart events (one per villager at bands 3, 5 and 6, and
 ## the band 6 talk lines), birthday day plans, fair weather and the HUD tag on a birthday, mine finds and cooked dishes as
-## gifts. Run:
+## gifts, the villagers' own lines for keepsakes and dishes, and a loved keepsake kept in its
+## new owner's home. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_relationships.gd
 
 var failures := 0
@@ -30,6 +31,8 @@ func _process(_delta: float) -> bool:
 		_birthday_talk()
 		_dish_gift_in_game()
 		_keepsake_gift_in_game()
+		_keepsake_homes()   # builds the 3D view, which needs the Game autoload
+		_keepsake_kept_in_game()
 		_neglect_in_game()
 		_heart_events_play()
 		_birthday_weather()
@@ -286,11 +289,65 @@ func _keepsake_gift_in_game() -> void:
 	g.weather_today = "sunny"
 	g.hour = 9
 	g.inventory.slots.hand[0] = {"id": "keep:wind_chime", "n": 1}
-	check(g.talk_to("sayo", Vector2i.DOWN) == "gift" and said.back() == ["talk_sayo", "gift_love"], "Sayo loves the wind chime %s" % [said.back()])
+	check(g.talk_to("sayo", Vector2i.DOWN) == "gift" and said.back() == ["talk_sayo", "gift_wind_chime"], "Sayo loves the wind chime, and says so her own way %s" % [said.back()])
 	check(g.affection.of("sayo") == int(Affection.rules().gift.love) and not g.holding() and g.count("keep:wind_chime") == 0, "it counts as a loved gift and is given away")
 
 
+## Each villager's loved keepsake has a place in their home: a keepsake prop gated by
+## Keepsakes.given_flag, there only with that flag, drawn in both views from the item's icon.
+func _keepsake_homes() -> void:
+	var homes := {"tome": "tome_house", "kota": "kota_house", "sayo": "sayo_house", "hachiro": "smithy"}
+	for id in homes:
+		var loved: Array = Villagers.all()[id].gifts.love.filter(func(i): return i.begins_with("keep:"))
+		var flag := Keepsakes.given_flag(id, loved[0])
+		var kept := func(f: Dictionary) -> Array:
+			return MapManager.load_map(homes[id], null, f)[1].props.filter(func(p): return p.kind == "keepsake")
+		check(kept.call({}).is_empty(), "nothing of %s's on show before it is given" % loved[0])
+		var on: Array = kept.call({flag: true})
+		check(on.size() == 1 and on[0].item == loved[0], "%s keeps %s at home once %s is set" % [id, loved[0], flag])
+		check(kept.call({Keepsakes.given_flag(id, "keep:paper_fan"): true}).is_empty(), "another keepsake's flag shows nothing in %s" % homes[id])
+		var m: MapData = MapManager.load_map(homes[id], null, {flag: true})[1]
+		for sp in m.spawns:
+			check(not m.is_solid(m.spawns[sp][0]), "%s spawn %s isn't under the keepsake" % [homes[id], sp])
+		var key := StoryView.art_key(on[0])
+		check(key == "ui:keep:" + loved[0].trim_prefix("keep:"), "its picture is the keepsake's icon (%s)" % key)
+		var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+		w.build(m)
+		var tex := PlaceholderArt.tex(key)
+		check(w.find_children("*", "Sprite3D", true, false).any(func(n): return n.texture == tex), "%s in 3D shows %s" % [homes[id], loved[0]])
+		w.free()
+		var v2: StoryView = StoryView.new(m)
+		check(v2.map.props.filter(func(p): return p.kind in StoryView.KINDS).size() == 1, "the flat view of %s draws it" % homes[id])
+		v2.free()
+
+
 # --- on the real Game -------------------------------------------------------
+
+## Giving a keepsake the villager loves sets its flag, so it shows in their home (the cached
+## map follows Game.flags) and stays after a save; a keepsake only liked sets nothing.
+func _keepsake_kept_in_game() -> void:
+	var g := _game()
+	g.season = g.SEASONS.find("summer")
+	g.day = 3
+	g.weather_today = "sunny"
+	g.hour = 9
+	var shown := func(map_id: String) -> bool:
+		return MapManager.data(map_id).props.any(func(p): return p.kind == "keepsake")
+	check(not shown.call("kota_house"), "a new game has no rabbit at Kota's")
+	g.inventory.slots.hand[0] = {"id": "keep:paper_fan", "n": 1}
+	g.talk_to("kota", Vector2i.DOWN)
+	check(not g.flags.has(Keepsakes.given_flag("kota", "keep:paper_fan")) and not shown.call("kota_house"), "a fan he only likes isn't put on show")
+	g.day = 4
+	g.inventory.slots.hand[0] = {"id": "keep:clay_rabbit", "n": 1}
+	g.talk_to("kota", Vector2i.DOWN)
+	check(g.flags.get("kept_kota_clay_rabbit", false) == true, "the rabbit he loves sets kept_kota_clay_rabbit")
+	check(shown.call("kota_house"), "and now stands in his house")
+	var saved: Dictionary = g.to_dict()
+	g.new_game()
+	check(not shown.call("kota_house"), "a new game takes it away")
+	check(g.from_dict(JSON.parse_string(JSON.stringify(saved))) == "" and shown.call("kota_house"), "it comes back with the save")
+	g.new_game()
+
 
 func _game() -> Node:
 	var g: Node = root.get_node("Game")
@@ -366,7 +423,7 @@ func _dish_gift_in_game() -> void:
 	check(g.held == "food:grilled_fish" and g.inventory.count("food:grilled_fish", ["hand"]) == 1, "one of the two is given, one stays overhead")
 	g.day = int(b.day) % 30 + 1
 	g.talk_to("sayo", Vector2i.DOWN)
-	check(said.back() == ["talk_sayo", "gift_dislike"] and not g.holding(), "Sayo takes the fish dish, without joy %s" % [said.back()])
+	check(said.back() == ["talk_sayo", "gift_dish_dislike"] and not g.holding(), "Sayo takes the fish dish, without joy, in her own words %s" % [said.back()])
 	check(g.affection.of("sayo") == maxi(int(Affection.rules().gift.dislike), 0), "and likes the farmer no more for it")
 
 

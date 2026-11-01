@@ -10,6 +10,45 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Gift lines of their own; a loved keepsake kept at home
+Agent: Claude Code (claude-opus-5-5) · Commit: 272bf26
+- Done: (1) Villagers answer keepsakes and dishes in their own words. Each talk file
+  (data/dialogue/talk_<id>.json) has an optional `gift_items` table: `keep:<id>` or
+  `food:<recipe id>` names a line for that item, `dish:<reaction>` / `keepsake:<reaction>` a
+  line for any dish (a food with a recipe in data/recipes.json; bought sweets aren't dishes) or
+  keepsake met that way. `Talk.gift_line(id, item, reaction)` picks item, then kind+reaction,
+  then the old `gift_<reaction>`; `Talk.check` refuses keys that aren't keepsakes, dishes or a
+  known reaction, and lines that don't exist. `Game.talk_to` uses it (gift_again and
+  gift_birthday stay first, so a birthday gift still gets the birthday answer). 41 entries, 51 lines,
+  all written for this game: each villager answers the keepsake they love in two lines, the
+  others they like / dislike in one, plus `keepsake:neutral`, `dish:love` .. `dish:dislike`
+  and their two favourite dishes by name. (2) Giving a villager the keepsake they love sets
+  the story flag `kept_<villager>_<keepsake>` (`Keepsakes.given_flag`), and a new story prop
+  kind `keepsake` (`item`, optional `hang`) gated by it shows it in their home: Tome's omamori
+  on a stand by her altar (tome_house [6,1]), Kota's clay rabbit beside the alcove (kota_house
+  [5,1]), Sayo's wind chime hung by her window (sayo_house [4,1], not solid) and Hachiro's
+  daruma between forge and tool rack (smithy [4,1]). StoryView draws the keepsake's own icon
+  on a small stand (or hung) in the flat view; StoryProps builds a wooden stand with the icon
+  sprite on it (or hangs it from a short cord) in 3D. A keepsake only liked sets nothing.
+  README (Villagers, Keepsakes) explains both.
+- Checked: test_talk (gift_items format errors refused, Talk.gift_line picks and fallbacks,
+  every named line opens, each villager has a line for their loved keepsake and the four dish
+  reactions) and test_relationships (the two answers that changed: Sayo's wind chime now
+  `gift_wind_chime`, her fish dish `gift_dish_dislike`; each home has its keepsake only with
+  its flag, spawns stay free, the icon key, built in 3D and listed for the flat view; on the
+  real Game a liked fan sets no flag, the loved rabbit sets `kept_kota_clay_rabbit`, shows in
+  the cached map and comes back with a save). All 24 test scripts print `OK (0 failed)` (the
+  worktree's class cache needed `--import` first: WeatherView from the last merge was missing,
+  which hung test_view2d once). Headless runs (title `--quit-after 300`, `--demo`, `--demo
+  --map=town`, `--demo --mine=3`, `--demo --map=smithy --flags=kept_hachiro_daruma`, `--demo
+  --map=sayo_house --flags=kept_sayo_wind_chime`) printed no errors or warnings. Screenshots:
+  `--demo --map=tome_house --flags=kept_tome_omamori` (the green charm on its stand between
+  altar and chest), `--map=sayo_house --flags=kept_sayo_wind_chime` (the chime hanging by the
+  window) and the flat view `main_2d.tscn -- --demo --map=kota_house
+  --flags=kept_kota_clay_rabbit` (the rabbit on its stand); `shots/` deleted.
+- Left / next: festival ribbons still answer with the plain lines (neutral to all); a
+  keepsake given before this change sets no flag (no save has one yet).
+
 ## 2026-11-01 — Villagers at the river: Hachiro and Kota fish it on fair Sundays
 Agent: Claude Code (claude-opus-5-5) · Commit: 0b9b3ee
 - Done: Hachiro's Sunday moved from the village pond to the river: a fair Sunday (rule

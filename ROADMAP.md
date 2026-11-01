@@ -156,7 +156,8 @@ on a board in the farmhouse (README → Festivals); at the results the rivals wa
 table with their entries overhead and go back to their plans after. Later for festivals: a
 contest that is played (a mochi-pounding rhythm, a fishing race),
 more villagers gathering once they talk. Done: stalls at Moon Night and Year's Turn (a food
-stall and a keepsake stall each), keepsakes as gifts (each villager loves one).
+stall and a keepsake stall each), keepsakes as gifts (each villager loves one), the villagers'
+own lines for keepsakes and dishes, and a loved keepsake shown in its owner's home.
 The balance pass is done (milestone 8): our own crop, product, animal and extension prices,
 `python -I tools/balance.py` prints income per season for a steady year-1 plan (WORKLOG has
 the before / after table); it also keeps the smithy's ores back from the bin (an upgrade
@@ -252,6 +253,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Relationships: hearts on the text box's name tag, birthdays (calendar, gifts x5, birthday lines), the nightly loss for villagers left alone, a heart event per villager at band 3
    - [x] Relationships 2: a second heart event per villager at band 5, birthday day plans, fair weather and the HUD tag on a birthday, mine finds in the gift lists
    - [x] Heart flags in the world: the door bell (hachiro_bell), the store's sign (sayo_sign old / new), Tome's plum jar (tome_grandma), as flag-gated map props in both views
+   - [x] Gift lines of their own: villagers answer keepsakes and dishes in their own words (`gift_items` in the talk files, fallback to gift_<reaction>); a loved keepsake, once given, stands in their home (kept_<villager>_<keepsake>, both views)
    - [x] Band 6 heart scenes: Tome stays in the village, Kota's carp streamer (a farm prop), Sayo's new ledger, Hachiro's sickle; band 6 talk lines
    - [x] Actors in the heart scenes: the villager stands facing the farmer through their lines in both views, then goes back to their day plan
    - [x] Ending: the village record on the first morning of year 3 (data/ending.json: ten categories graded in stars, five ranks), Tome's verdict, the closest villager's word; the game goes on

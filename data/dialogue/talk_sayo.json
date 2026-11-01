@@ -1,5 +1,5 @@
 {
-	"_note": "What Sayo says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday) (gifts in data/villagers/sayo.json). Our own lines.",
+	"_note": "What Sayo says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday); gift_items names their own answer to a keepsake or a dish (Talk.gift_line), by item or by dish: / keepsake:<reaction> (gifts in data/villagers/sayo.json). Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
@@ -17,6 +17,20 @@
 		{"if": {"season": ["winter"]}, "at": ["winter"]},
 		{"at": ["plain"]}
 	],
+	"gift_items": {
+		"keep:wind_chime": "gift_wind_chime",
+		"keep:moon_lantern": "gift_moon_lantern",
+		"keep:clay_rabbit": "gift_clay_rabbit",
+		"keep:paper_fan": "gift_paper_fan",
+		"keep:daruma": "gift_daruma",
+		"keepsake:neutral": "gift_keepsake",
+		"food:tamagoyaki": "gift_tamagoyaki",
+		"food:milk_pudding": "gift_milk_pudding",
+		"dish:love": "gift_dish_love",
+		"dish:like": "gift_dish_like",
+		"dish:neutral": "gift_dish_neutral",
+		"dish:dislike": "gift_dish_dislike"
+	},
 	"lines": [
 		{"id": "birthday", "speaker": "sayo", "face": "smile", "text": "You remembered? It's silly, but nobody says it at the counter. Thank you.", "next": "end"},
 		{"id": "gift_birthday", "speaker": "sayo", "face": "surprised", "text": "On my birthday too... I'll put it by the window so I see it every morning.", "next": "end"},
@@ -47,6 +61,20 @@
 		{"id": "gift_neutral", "speaker": "sayo", "face": "calm", "text": "A present? Thank you. I'll find a use for it.", "next": "end"},
 		{"id": "gift_dislike", "speaker": "sayo", "face": "worried", "text": "Oh... um, thank you. It's the thought that counts.", "next": "end"},
 		{"id": "gift_hate", "speaker": "sayo", "face": "worried", "text": "I... I'm sorry, I really can't take this one.", "next": "end"},
-		{"id": "gift_again", "speaker": "sayo", "face": "smile", "text": "One present a day is plenty. Save the rest for tomorrow!", "next": "end"}
+		{"id": "gift_again", "speaker": "sayo", "face": "smile", "text": "One present a day is plenty. Save the rest for tomorrow!", "next": "end"},
+		{"id": "gift_wind_chime", "speaker": "sayo", "face": "surprised", "text": "A wind chime... listen to it ring!"},
+		{"speaker": "sayo", "face": "smile", "text": "I'll hang it in my window at home. Every time it rings, I'll think of today.", "next": "end"},
+		{"id": "gift_moon_lantern", "speaker": "sayo", "face": "smile", "text": "A moon lantern! I'll light it on my windowsill at night.", "next": "end"},
+		{"id": "gift_clay_rabbit", "speaker": "sayo", "face": "smile", "text": "What a sweet little rabbit. It can mind the counter with me.", "next": "end"},
+		{"id": "gift_paper_fan", "speaker": "sayo", "face": "smile", "text": "A paper fan! The shop gets so stuffy in summer. Thank you!", "next": "end"},
+		{"id": "gift_daruma", "speaker": "sayo", "face": "worried", "text": "A daruma... its eyes always seem to follow me around. Thank you, though.", "next": "end"},
+		{"id": "gift_keepsake", "speaker": "sayo", "face": "calm", "text": "How nice. I'll find a spot for it somewhere.", "next": "end"},
+		{"id": "gift_tamagoyaki", "speaker": "sayo", "face": "surprised", "text": "Tamagoyaki, rolled so neatly!"},
+		{"speaker": "sayo", "face": "smile", "text": "Mine always come apart in the pan. You'll have to show me how.", "next": "end"},
+		{"id": "gift_milk_pudding", "speaker": "sayo", "face": "surprised", "text": "Milk pudding! You made a sweet just for me?", "next": "end"},
+		{"id": "gift_dish_love", "speaker": "sayo", "face": "surprised", "text": "You cooked this? It looks almost too good to eat!", "next": "end"},
+		{"id": "gift_dish_like", "speaker": "sayo", "face": "smile", "text": "Something you cooked? I'll have it for lunch behind the counter. Thank you!", "next": "end"},
+		{"id": "gift_dish_neutral", "speaker": "sayo", "face": "calm", "text": "Home cooking! That's kind. I'll eat it this evening.", "next": "end"},
+		{"id": "gift_dish_dislike", "speaker": "sayo", "face": "worried", "text": "Oh... fish. I'm sorry, I've never managed to like it. Thank you anyway.", "next": "end"}
 	]
 }

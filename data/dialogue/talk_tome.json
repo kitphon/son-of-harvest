@@ -1,5 +1,5 @@
 {
-	"_note": "What Grandma Tome says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday) (gifts in data/villagers/tome.json). Our own lines.",
+	"_note": "What Grandma Tome says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday); gift_items names their own answer to a keepsake or a dish (Talk.gift_line), by item or by dish: / keepsake:<reaction> (gifts in data/villagers/tome.json). Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
@@ -14,6 +14,18 @@
 		{"if": {"season": ["fall"]}, "at": ["fall_1", "fall_2"]},
 		{"at": ["plain_1", "plain_2"]}
 	],
+	"gift_items": {
+		"keep:omamori": "gift_omamori",
+		"keep:wind_chime": "gift_wind_chime",
+		"keep:moon_lantern": "gift_moon_lantern",
+		"keepsake:neutral": "gift_keepsake",
+		"food:furofuki_daikon": "gift_furofuki_daikon",
+		"food:simmered_pumpkin": "gift_simmered_pumpkin",
+		"dish:love": "gift_dish_love",
+		"dish:like": "gift_dish_like",
+		"dish:neutral": "gift_dish_neutral",
+		"dish:dislike": "gift_dish_dislike"
+	},
 	"lines": [
 		{"id": "birthday", "speaker": "tome", "face": "smile", "text": "Eighty-one autumns today, and still the persimmons ripen on time. Thank you, child.", "next": "end"},
 		{"id": "gift_birthday", "speaker": "tome", "face": "smile", "text": "A present, on my birthday? You'll make an old woman cry in the street.", "next": "end"},
@@ -47,6 +59,18 @@
 		{"id": "gift_neutral", "speaker": "tome", "face": "calm", "text": "Oh, thank you. You needn't bring an old woman anything.", "next": "end"},
 		{"id": "gift_dislike", "speaker": "tome", "face": "worried", "text": "Hm. Thank you... but my teeth and I don't get on with this.", "next": "end"},
 		{"id": "gift_hate", "speaker": "tome", "face": "worried", "text": "Oh dear. I'd rather not have that, if it's all the same to you.", "next": "end"},
-		{"id": "gift_again", "speaker": "tome", "face": "calm", "text": "You already gave me something today. Keep that for yourself.", "next": "end"}
+		{"id": "gift_again", "speaker": "tome", "face": "calm", "text": "You already gave me something today. Keep that for yourself.", "next": "end"},
+		{"id": "gift_omamori", "speaker": "tome", "face": "surprised", "text": "An omamori from the shrine... for these old bones?"},
+		{"speaker": "tome", "face": "smile", "text": "I'll keep it by the altar, next to my husband's picture. He'd have liked you.", "next": "end"},
+		{"id": "gift_wind_chime", "speaker": "tome", "face": "smile", "text": "A wind chime. I'll hang it where the evening breeze comes in.", "next": "end"},
+		{"id": "gift_moon_lantern", "speaker": "tome", "face": "smile", "text": "A little moon lantern. It'll keep me company on the long nights.", "next": "end"},
+		{"id": "gift_keepsake", "speaker": "tome", "face": "calm", "text": "What a pretty thing. My grandchildren would have fought over it.", "next": "end"},
+		{"id": "gift_furofuki_daikon", "speaker": "tome", "face": "surprised", "text": "Furofuki daikon, soft enough for my teeth!"},
+		{"speaker": "tome", "face": "smile", "text": "My mother made it just so, every winter. You cooked this yourself?", "next": "end"},
+		{"id": "gift_simmered_pumpkin", "speaker": "tome", "face": "surprised", "text": "Simmered pumpkin, sweet and soft... you remembered what I like?", "next": "end"},
+		{"id": "gift_dish_love", "speaker": "tome", "face": "surprised", "text": "Did you cook this? It tastes of the old days, and I haven't even opened it yet.", "next": "end"},
+		{"id": "gift_dish_like", "speaker": "tome", "face": "smile", "text": "You cooked this? Such a careful hand. I'll have it with my supper.", "next": "end"},
+		{"id": "gift_dish_neutral", "speaker": "tome", "face": "calm", "text": "Home cooking from a young farmer. Thank you, I'll eat it later.", "next": "end"},
+		{"id": "gift_dish_dislike", "speaker": "tome", "face": "worried", "text": "Thank you for cooking, child... but it's a bit rich for an old stomach.", "next": "end"}
 	]
 }

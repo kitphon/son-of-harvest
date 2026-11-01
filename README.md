@@ -247,6 +247,10 @@ turns them to the farmer (`Villagers.turn`) and calls `Game.talk_to(id, face)`:
   the map the villager stands on, e.g. Kota's and Hachiro's river lines); the day picks
   one of the row's lines. Gift answers are the lines `gift_love` .. `gift_hate` and
   `gift_again`; an optional `gift_birthday` answers a gift that isn't disliked on their birthday.
+  An optional `gift_items` table gives a villager their own answer to keepsakes and dishes
+  (`Talk.gift_line`): `{"keep:<id>" | "food:<recipe id>": line id}` for one item, or
+  `"dish:<reaction>"` / `"keepsake:<reaction>"` for any dish (a food with a recipe in
+  `data/recipes.json`) or keepsake met that way; anything else answers with `gift_<reaction>`.
 The first talk of a day adds `affection.talk`. `Affection` (scripts/villagers/affection.gd,
 `Game.affection`, saved since save version 3) keeps the points (0..`max`), the 7 heart
 `bands` and the last talk / gift day per villager; `Game.affection.add(id, n)` is the hook,
@@ -538,6 +542,12 @@ counts them. `--map=house --flags=ribbons=blossom_day:1:1` shows it.
 A keepsake held overhead is a gift like any item: each villager loves one (Kota the clay
 rabbit, Tome the omamori, Sayo the wind chime, Hachiro the daruma) and the lists in
 `data/villagers/*.json` name the others they like or dislike; a ribbon is neutral to everyone.
+Giving a villager the keepsake they love sets the story flag `kept_<villager>_<keepsake id>`
+(`Keepsakes.given_flag`), and from then on it is on show in their home: a `keepsake` story prop
+(`item`: the keepsake, drawn from its icon; on a little stand, or hung with `hang`) gated by
+that flag in `data/maps/tome_house.json`, `kota_house.json`, `sayo_house.json` and
+`smithy.json`. `--map=tome_house --flags=kept_tome_omamori` (or `--map=sayo_house
+--flags=kept_sayo_wind_chime`) shows it.
 
 **Music and payout.** A music rule with `festivals: [ids]` fits only while one of them is on
 around the farmer (`Game.festival_now()`), so each festival plays its own score (`fest_*` in

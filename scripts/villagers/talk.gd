@@ -7,7 +7,8 @@ extends RefCounted
 ## one of them by the day, so a villager says the same thing all day and something else
 ## tomorrow. The last row has no `if`. Gift answers are the lines gift_<reaction> (love, like,
 ## neutral, dislike, hate) and gift_again (one gift a day); gift_birthday, if there, answers a
-## gift that isn't disliked on their birthday. Format: README.md, Villagers.
+## gift that isn't disliked on their birthday. An optional `gift_items` table names lines of
+## their own for keepsakes and dishes (gift_line). Format: README.md, Villagers.
 
 const DIR := "res://data/dialogue/"
 ## Conditions a pick row may use besides the day-plan rule ones (Villagers.RULE_KEYS): the
@@ -60,7 +61,41 @@ static func check(d: Variant) -> String:
 		var err := _check_if(row.get("if", {}))
 		if err != "":
 			return "pick %d: %s" % [i, err]
+	var items: Variant = d.get("gift_items", {})
+	if not items is Dictionary:
+		return "gift_items is {item: line id}"
+	for k in items:
+		if not _gift_key_ok(str(k)):
+			return "gift_items: %s is not a keepsake, a dish or dish: / keepsake:<reaction>" % k
+		if not items[k] is String or not ids.has(items[k]):
+			return "gift_items: %s needs a line id" % k
 	return ""
+
+
+## A gift_items key: a keepsake (keep:<id>), a dish (food:<recipe>), or "dish:<reaction>" /
+## "keepsake:<reaction>" for any dish or keepsake met that way.
+static func _gift_key_ok(k: String) -> bool:
+	if k.begins_with("dish:") or k.begins_with("keepsake:"):
+		return k.get_slice(":", 1) in Villagers.REACTIONS
+	return not Keepsakes.keepsake(k).is_empty() or is_dish(k)
+
+
+## Is `item` a cooked dish (food:<id> with a recipe in data/recipes.json)?
+static func is_dish(item: String) -> bool:
+	return item.begins_with("food:") and not Cooking.recipe(item.trim_prefix("food:")).is_empty()
+
+
+## The line villager `id` answers gift `item` with when it meets reaction `r` (one of
+## Villagers.REACTIONS): their own line for that item (gift_items), else their line for any
+## dish / keepsake with that reaction ("dish:<r>", "keepsake:<r>"), else gift_<r>.
+static func gift_line(id: String, item: String, r: String) -> String:
+	var items: Dictionary = data(id).get("gift_items", {})
+	if items.has(item):
+		return items[item]
+	var kind := "dish" if is_dish(item) else ("keepsake" if not Keepsakes.keepsake(item).is_empty() else "")
+	if kind != "" and items.has(kind + ":" + r):
+		return items[kind + ":" + r]
+	return "gift_" + r
 
 
 static func _check_if(c: Variant) -> String:
