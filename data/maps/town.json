@@ -1,5 +1,5 @@
 {
-	"_note": "The first village map (widened to 56 x 36 on 2026-11-01: the old 36 x 22 part kept its place top left, so every coordinate in the data stays; rice paddies, a solid `paddy` tile, fill the new ground east and south, with a farm track down the east side, a track along the south paddies, the road on east to the mine and a lane north at x 45-46 for the hill): an east-west road from the farm gate (west edge), a shrine with a torii up the north path, four houses and a pond; the lane behind Kota's house runs off the south edge down to the river (river.json). The noren house south of the road is the Yorozu Store, with Sayo's rooms behind its plain side door; the one north-east is the Kurogane Smithy (data/shops.json), where Hachiro also lives, and the small one east of it the Hinata Clinic (Dr. Yae; a collapse wakes the farmer there). The west house is Grandma Tome's, the one south-west Kota's family's; their doors (and Sayo's) are open by their `hours` and say `closed` otherwise. Format: README.md, Maps. The two store_sign props are the store's new sign on its roof, one for each answer Sayo got (flag sayo_sign, flag_value old / new, heart_sayo_5).",
+	"_note": "The first village map (widened to 56 x 36 on 2026-11-01: the old 36 x 22 part kept its place top left, so every coordinate in the data stays; rice paddies, a solid `paddy` tile, fill the new ground east and south, with a farm track down the east side, a track along the south paddies, the road on east to the mine and a lane north at x 45-46 up to the bamboo hill, hill.json): an east-west road from the farm gate (west edge), a shrine with a torii up the north path, four houses and a pond; the lane behind Kota's house runs off the south edge down to the river (river.json). The noren house south of the road is the Yorozu Store, with Sayo's rooms behind its plain side door; the one north-east is the Kurogane Smithy (data/shops.json), where Hachiro also lives, and the small one east of it the Hinata Clinic (Dr. Yae; a collapse wakes the farmer there). The west house is Grandma Tome's, the one south-west Kota's family's; their doors (and Sayo's) are open by their `hours` and say `closed` otherwise. Format: README.md, Maps. The two store_sign props are the store's new sign on its roof, one for each answer Sayo got (flag sayo_sign, flag_value old / new, heart_sayo_5).",
 	"id": "town",
 	"name": "Village",
 	"size": [
@@ -562,6 +562,24 @@
 				1
 			],
 			"facing": "down"
+		},
+		{
+			"cells": [
+				[
+					45,
+					-1
+				],
+				[
+					46,
+					-1
+				]
+			],
+			"to": "hill",
+			"spawn": [
+				19,
+				28
+			],
+			"facing": "up"
 		}
 	],
 	"spawns": {
@@ -625,6 +643,13 @@
 			[
 				25,
 				16
+			],
+			"down"
+		],
+		"hill": [
+			[
+				45,
+				1
 			],
 			"down"
 		]

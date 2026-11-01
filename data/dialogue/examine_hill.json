@@ -1,0 +1,9 @@
+{
+	"_note": "Lines for the bamboo hill's events (data/events/triggers_hill.json): the mountain shrine, the view from the lookout (and in winter), the first climb. Each part ends with next: end.",
+	"lines": [
+		{"id": "shrine", "speaker": "farmer", "face": "calm", "text": "A shrine no bigger than a birdhouse, tucked against the rock. Someone has left a fresh sprig of green in its little vase.", "next": "end"},
+		{"id": "view", "speaker": "farmer", "face": "smile", "text": "From up here the whole valley shows: the paddies shining, roofs along the road, and far off, my own field.", "next": "end"},
+		{"id": "view_snow", "speaker": "farmer", "face": "calm", "text": "The valley lies white and quiet. Smoke climbs straight up from the chimneys along the road.", "next": "end"},
+		{"id": "first", "speaker": "farmer", "face": "smile", "text": "Phew, what a climb. The bamboo whispers all the way up, and the air smells green.", "next": "end"}
+	]
+}

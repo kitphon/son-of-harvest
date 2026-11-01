@@ -126,6 +126,7 @@ func _make_prop(p: Dictionary) -> void:
 		"hokora": _hokora(mid)
 		"stone_lantern": _stone_lantern(mid)
 		"pine": _pine(mid)
+		"bamboo": _bamboo(mid, Vector2i(p.cell))
 		"counter": _counter(mid, r)
 		"shelf": _shelf(mid, r)
 		"rice_sacks": _rice_sacks(mid)
@@ -366,6 +367,39 @@ func _pine(mid: Vector3) -> void:
 		mi.material_override = m
 		mi.position = mid + Vector3(0, 0.9 + i * 0.42, 0)
 		add_child(mi)
+
+
+## A clump of bamboo: three or four tall green stalks leaning a little apart, a pale node
+## ring every half unit, and leaf sprays near their tops. The clump's spot picks its look.
+func _bamboo(mid: Vector3, c: Vector2i) -> void:
+	var seed := posmod(c.x * 7 + c.y * 13, 16)
+	var stalk_mat := flat_material(Color("6e9c42") if seed % 3 else Color("7aa84c"))
+	var node_mat := flat_material(Color("a8c878"))
+	var leaf_mat := flat_material(Color("4e8a3a"))
+	var n := 3 + seed % 2
+	for i in n:
+		var angle := TAU * (i + seed * 0.13) / n
+		var foot := mid + Vector3(cos(angle), 0, sin(angle)) * 0.2
+		var tall := 2.2 + 0.25 * ((seed + i * 5) % 4)
+		var lean := Vector3(cos(angle), 0, sin(angle)) * 0.06
+		var stalk := CylinderMesh.new()
+		stalk.top_radius = 0.035
+		stalk.bottom_radius = 0.045
+		stalk.height = tall
+		stalk.radial_segments = 6
+		var s := MeshInstance3D.new()
+		s.mesh = stalk
+		s.material_override = stalk_mat
+		s.position = foot + Vector3(0, tall / 2, 0)
+		s.rotation = Vector3(lean.z, 0, -lean.x)
+		add_child(s)
+		var y := 0.5
+		while y < tall - 0.3:
+			_box(Vector3(0.1, 0.03, 0.1), foot + Vector3(lean.x * y, y, lean.z * y), node_mat)
+			y += 0.5
+		var top := foot + Vector3(lean.x * tall, tall, lean.z * tall)
+		_box(Vector3(0.55, 0.06, 0.18), top + Vector3(0.12, -0.15, 0), leaf_mat, Vector3(0, angle, 0.35))
+		_box(Vector3(0.45, 0.06, 0.16), top + Vector3(-0.1, -0.45, 0.05), leaf_mat, Vector3(0, angle + 1.4, -0.3))
 
 
 # --- the mine (data/maps/mine.json, mine_floor.json) ---------------------------

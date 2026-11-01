@@ -1,0 +1,10 @@
+{
+	"_note": "The first time the farmer reaches the lookout: a breath and a look back.",
+	"steps": [
+		{
+			"do": "say",
+			"dialogue": "examine_hill",
+			"at": "first"
+		}
+	]
+}

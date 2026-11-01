@@ -1,0 +1,10 @@
+{
+	"_note": "Looking out from the lookout in winter.",
+	"steps": [
+		{
+			"do": "say",
+			"dialogue": "examine_hill",
+			"at": "view_snow"
+		}
+	]
+}

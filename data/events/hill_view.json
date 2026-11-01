@@ -1,0 +1,10 @@
+{
+	"_note": "Looking out from the lookout on the bamboo hill.",
+	"steps": [
+		{
+			"do": "say",
+			"dialogue": "examine_hill",
+			"at": "view"
+		}
+	]
+}

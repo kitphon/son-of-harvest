@@ -1,0 +1,964 @@
+{
+	"_note": "The bamboo hill north of the village, up the lane at its x 45-46 (added 2026-11-01 when the world was widened): a path switching back and forth up the slope through bamboo groves (the `bamboo` prop, solid, 1 x 1; scattered once by a seeded script and kept here as data) to a lookout of raked gravel under the cliff, with a little mountain shrine (hokora) and two stone lanterns. Examine the shrine and the view (data/events/triggers_hill.json). Format: README.md, Maps.",
+	"id": "hill",
+	"name": "Bamboo Hill",
+	"size": [
+		40,
+		30
+	],
+	"indoor": false,
+	"ambient": "outdoor",
+	"legend": {
+		"g": {
+			"tile": "grass"
+		},
+		"r": {
+			"tile": "path"
+		},
+		"s": {
+			"tile": "gravel"
+		},
+		"c": {
+			"tile": "rock_wall",
+			"solid": true
+		},
+		"d": {
+			"tile": "scree"
+		}
+	},
+	"ground": [
+		"cccccccccccccccccccccccccccccccccccccccc",
+		"ccccccccccccggggggggggggggggcccccccccccc",
+		"dddddddddggggggssssssssssggggggddddddddd",
+		"gggggggggggggggssssssssssggggggggggggggg",
+		"gggggggggggggggssssssssssggggggggggggggg",
+		"gggggggggggggggssssrrssssggggggggggggggg",
+		"gggggggggggggggggggrrrrrrrrrrrgggggggggg",
+		"gggggggggggggggggggrrrrrrrrrrrgggggggggg",
+		"ggggggggggggggggggggggggggggrrgggggggggg",
+		"ggggggggggggggggggggggggggggrrgggggggggg",
+		"ggggggggggggggggggggggggggggrrgggggggggg",
+		"ggggggggggggggggggggggggggggrrgggggggggg",
+		"ggggggggggggggggggggggggggggrrgggggggggg",
+		"ggggggggggggggggggggggggggggrrgggggggggg",
+		"gggggggggrrrrrrrrrrrrrrrrrrrrrgggggggggg",
+		"gggggggggrrrrrrrrrrrrrrrrrrrrrgggggggggg",
+		"gggggggggrrggggggggggggggggggggggggggggg",
+		"gggggggggrrggggggggggggggggggggggggggggg",
+		"gggggggggrrggggggggggggggggggggggggggggg",
+		"gggggggggrrggggggggggggggggggggggggggggg",
+		"gggggggggrrggggggggggggggggggggggggggggg",
+		"gggggggggrrggggggggggggggggggggggggggggg",
+		"gggggggggrrrrrrrrrrrrggggggggggggggggggg",
+		"gggggggggrrrrrrrrrrrrggggggggggggggggggg",
+		"gggggggggggggggggggrrggggggggggggggggggg",
+		"gggggggggggggggggggrrggggggggggggggggggg",
+		"gggggggggggggggggggrrggggggggggggggggggg",
+		"gggggggggggggggggggrrggggggggggggggggggg",
+		"gggggggggggggggggggrrggggggggggggggggggg",
+		"gggggggggggggggggggrrggggggggggggggggggg"
+	],
+	"props": [
+		{
+			"kind": "hokora",
+			"cell": [
+				19,
+				1
+			],
+			"size": [
+				2,
+				2
+			]
+		},
+		{
+			"kind": "stone_lantern",
+			"cell": [
+				16,
+				3
+			]
+		},
+		{
+			"kind": "stone_lantern",
+			"cell": [
+				23,
+				3
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				3,
+				5
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				7,
+				5
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				3,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				7,
+				7
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				4,
+				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				5,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				6,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				7,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				5,
+				11
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				5,
+				12
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				16,
+				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				16,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				21,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				22,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				23,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				24,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				13,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				17,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				19,
+				11
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				20,
+				11
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				21,
+				11
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				14,
+				12
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				24,
+				12
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				31,
+				5
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				32,
+				5
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				34,
+				5
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				31,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				32,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				35,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				37,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				36,
+				7
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				36,
+				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				37,
+				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				35,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				37,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				31,
+				11
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				32,
+				11
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				34,
+				11
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				31,
+				12
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				36,
+				12
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				33,
+				13
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				2,
+				16
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				4,
+				16
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				6,
+				16
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				4,
+				17
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				7,
+				17
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				5,
+				18
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				3,
+				19
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				6,
+				19
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				6,
+				20
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				4,
+				21
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				7,
+				22
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				4,
+				23
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				1,
+				24
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				2,
+				24
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				3,
+				24
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				5,
+				24
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				6,
+				24
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				1,
+				25
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				5,
+				25
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				1,
+				26
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				3,
+				26
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				5,
+				26
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				6,
+				26
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				4,
+				27
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				5,
+				27
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				6,
+				27
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				7,
+				27
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				16,
+				18
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				17,
+				20
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				24,
+				17
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				27,
+				17
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				35,
+				17
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				23,
+				18
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				24,
+				18
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				28,
+				18
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				32,
+				18
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				34,
+				18
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				35,
+				18
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				27,
+				19
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				28,
+				19
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				29,
+				19
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				30,
+				19
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				32,
+				19
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				27,
+				20
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				32,
+				20
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				29,
+				21
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				32,
+				21
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				25,
+				24
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				27,
+				24
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				35,
+				24
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				24,
+				25
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				27,
+				25
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				28,
+				25
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				23,
+				26
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				25,
+				26
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				28,
+				26
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				29,
+				26
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				32,
+				26
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				33,
+				26
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				23,
+				27
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				25,
+				27
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				33,
+				27
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				35,
+				27
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				23,
+				28
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				28,
+				28
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				31,
+				28
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				32,
+				28
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				34,
+				28
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				13,
+				26
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				13,
+				27
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				15,
+				27
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				13,
+				28
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				13,
+				4
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				26,
+				4
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				4,
+				14
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				35,
+				16
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				22,
+				26
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				2,
+				4
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				37,
+				25
+			]
+		}
+	],
+	"doors": [
+		{
+			"cells": [
+				[
+					19,
+					30
+				],
+				[
+					20,
+					30
+				]
+			],
+			"to": "town",
+			"spawn": [
+				45,
+				1
+			],
+			"facing": "down"
+		}
+	],
+	"spawns": {
+		"start": [
+			[
+				19,
+				28
+			],
+			"up"
+		],
+		"top": [
+			[
+				20,
+				5
+			],
+			"up"
+		]
+	}
+}

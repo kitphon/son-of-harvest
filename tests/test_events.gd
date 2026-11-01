@@ -222,6 +222,11 @@ func _init() -> void:
 	check(at.call(town, Vector2i(18, 1)) == "shrine_offering", "examine rows play every time")
 	check(at.call(town, Vector2i(17, 3)) == "" and town.pick("step", g.trigger_state(Vector2i(19, 2))) == "", "nothing beside the spots or on stepping")
 	check(at.call(farm, Vector2i(5, 3)) == "farm_nameplate" and at.call(farm, Vector2i(30, 0)) == "farm_sign", "the farm's name plate and gate board")
+	var hill := EventTriggers.open("hill")
+	check(at.call(hill, Vector2i(20, 2)) == "hill_shrine" and at.call(hill, Vector2i(17, 2)) == "hill_view"
+		and at.call(hill, Vector2i(17, 2), {"season": "winter"}) == "hill_view_snow", "the hill's shrine and its view (in winter too)")
+	check(hill.pick("step", g.trigger_state(Vector2i(20, 4))) == "hill_first" and hill.pick("step", g.trigger_state(Vector2i(20, 20))) == "",
+		"the first climb plays at the lookout, not on the way up")
 	var house := EventTriggers.open("house")
 	check(at.call(house, Vector2i(3, 0)) == "calendar_spring" and at.call(house, Vector2i(3, 0), {"season": "winter"}) == "calendar_winter"
 		and at.call(house, Vector2i(6, 1)) == "house_radio", "the farmhouse calendar per season and the radio")

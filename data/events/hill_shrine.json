@@ -1,0 +1,14 @@
+{
+	"_note": "Examining the little mountain shrine at the top of the bamboo hill.",
+	"steps": [
+		{
+			"do": "face",
+			"dir": "up"
+		},
+		{
+			"do": "say",
+			"dialogue": "examine_hill",
+			"at": "shrine"
+		}
+	]
+}

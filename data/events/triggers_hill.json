@@ -1,0 +1,9 @@
+{
+	"_note": "Events on the bamboo hill (data/maps/hill.json): examine the little mountain shrine and the view from the lookout under the cliff's edge. Format: README.md, Events.",
+	"rows": [
+		{"event": "hill_shrine", "on": "examine", "spot": [19, 1, 2, 2], "once": false},
+		{"event": "hill_view_snow", "on": "examine", "spot": [15, 2, 10, 1], "once": false, "season": ["winter"]},
+		{"event": "hill_view", "on": "examine", "spot": [15, 2, 10, 1], "once": false},
+		{"event": "hill_first", "on": "step", "area": [15, 3, 10, 3]}
+	]
+}

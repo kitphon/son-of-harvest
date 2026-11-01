@@ -145,6 +145,24 @@ func _map_rules() -> void:
 		and not t.is_solid(Vector2i(50, 10)), "the tracks, the hill lane and the road east are open")
 	check(MapManager.data("mine").door_at(Vector2i(-1, 7)).spawn == Vector2i(54, 10) and rv.door_at(Vector2i(4, -1)).spawn == Vector2i(4, 34),
 		"the mine and the river come back to the new road ends")
+	# The bamboo hill up the village's north lane: doors both ways, the clumps solid, the path
+	# open from the foot to the lookout, the cliff along the top.
+	var hl := MapManager.data("hill")
+	check(t.door_at(Vector2i(45, -1)).get("to", "") == "hill" and hl.door_at(Vector2i(19, 30)).get("to", "") == "town"
+		and hl.door_at(Vector2i(19, 30)).spawn == t.spawns.hill[0], "the village lane and the hill path join up")
+	var clumps := hl.props.filter(func(p): return p.kind == "bamboo")
+	check(clumps.size() > 50 and clumps.all(func(p): return hl.is_solid(Vector2i(p.cell)) and hl.tile(Vector2i(p.cell)) == "grass"), "bamboo clumps stand solid on grass")
+	var seen := {hl.spawns.start[0]: true}
+	var todo: Array = [hl.spawns.start[0]]
+	while not todo.is_empty():
+		var c: Vector2i = todo.pop_back()
+		for o in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+			var n: Vector2i = c + o
+			if hl.in_bounds(n) and not seen.has(n) and not hl.is_solid(n):
+				seen[n] = true
+				todo.append(n)
+	check(seen.has(hl.spawns.top[0]), "the lookout can be walked to from the foot")
+	check(hl.is_solid(Vector2i(5, 0)) and hl.tile(Vector2i(5, 0)) == "rock_wall", "the cliff along the top")
 	check(rv.tile(Vector2i(0, 7)) == "water" and rv.is_solid(Vector2i(10, 7)) and not rv.is_solid(rv.spawns.shore[0]), "the river is solid, the shore is not")
 	check(MapView.ground_key(rv, Vector2i(0, 6)) == "ground:water:%d" % PlaceholderArt.WATER_N, "no bank at the map's edge, one at the shore")
 	check(MapView.ground_key(rv, Vector2i(19, 9)) == "ground:water:%d" % PlaceholderArt.WATER_S, "the far shore's bank")

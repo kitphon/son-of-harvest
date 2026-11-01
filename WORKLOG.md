@@ -10,6 +10,25 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — The bamboo hill (a new map up the village's north lane)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `data/maps/hill.json` (40 x 30, outdoor): a two-cell path switching back and forth up
+  the slope from the foot (door at its bottom edge, x 19-20, back to the village lane's top
+  at (45, 1)) to a lookout of raked gravel under a cliff (`rock_wall` along the top, scree in the
+  corners) with a little mountain shrine (hokora) and two stone lanterns. 113 `bamboo` clumps
+  (a new prop: three or four leaning stalks, pale node rings, leaf sprays, the spot picks the
+  look; a flat colour in the 2D view) stand in groves off the path, scattered once with a seeded
+  script (odds 0.3, never next to the path) and kept as data, plus seven pines. Village: the lane
+  at x 45-46 ends in a door to the hill, spawn `hill`. Events (`triggers_hill.json`,
+  `data/dialogue/examine_hill.json`, our own lines): examine the shrine, the view (a winter
+  line too), and a line on first stepping onto the lookout.
+- Checked: test_maps (doors both ways, clumps solid on grass, the lookout reachable from the
+  foot by a flood fill, the cliff) and test_events (shrine, view, winter view, first climb only
+  at the lookout); all 24 test scripts print `OK (0 failed)`; smoke runs print no errors;
+  screenshots of `--map=hill` (path and groves) and `--map=hill@top` (shrine, lanterns, cliff).
+- Left / next: the hill has nothing to gather yet: forage (bamboo shoots in spring, mushrooms
+  in fall) would give it a reason to climb; villagers could walk up it too.
+
 ## 2026-11-01 — The village widened to 56 x 36 (rice paddies, longer roads)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: data/maps/town.json 36 x 22 → 56 x 36. As on the farm, the old part keeps its place
