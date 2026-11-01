@@ -10,6 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Merged two branches: fishing race, villager whistling
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged with `--no-ff`, one at a time: `claude/fishing-race-7c15bf` (c68610e, clean
+  merge, merge 357991e) then `claude/whistling-7063b0` (c79ea15, merge 9262266).
+  Only WORKLOG.md conflicted (both added a top entry); both entries were kept, whistling above
+  the fishing race, and their "this commit" became the branch commit hashes.
+- Checked on merged main: the importer ran; all 24 test scripts print `OK (0 failed)` after each
+  merge; headless smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo
+  --festival=moon_night --contest=fishing:auto`) printed no errors or warnings.
+- Left / next: the year-bot session (river fishing, mine food) is still running on its own
+  branch; the race's rival numbers and the whistles need a person to play / hear them.
+
 ## 2026-11-01 — Villagers whistle as they walk (data/whistles.json, Whistles, note puff)
 Agent: Claude Code (claude-opus-5-5) · Commit: c79ea15
 - Done: `data/whistles.json` holds the rules and one short tune per villager (our own motifs,
