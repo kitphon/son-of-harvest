@@ -1,7 +1,7 @@
 class_name FestivalProps
 extends FarmWorld
 ## Today's festival decorations on one map in 3D (data/festivals.json → props): cherry trees
-## and picnic mats, lantern strings and stalls, the moon offering, New Year bamboo, a mochi mortar and a
+## and picnic mats, lantern strings and stalls, the moon offering, New Year bamboo, a mochi mortar, the fishing race's flag and a
 ## bonfire, the contest's judges' table. Built with the map's world when a festival falls on today and is held here, shown
 ## only during its hours. Lights (lanterns, the fire) are listed in `glows` for FestivalGlow,
 ## which draws their glow over the night tint. Placeholder looks like MapWorld's props.
@@ -64,6 +64,7 @@ func _make(p: Dictionary) -> void:
 		"kadomatsu": _kadomatsu(mid)
 		"bonfire": _bonfire(mid)
 		"mochi_usu": _mochi_usu(mid)
+		"race_flag": _race_flag(mid)
 		_:
 			push_warning("FestivalProps: no look for prop '%s'" % p.kind)
 			_box(Vector3(r.size.x, 0.5, r.size.y) * 0.9, mid + Vector3(0, 0.25, 0), flat_material(Color.MAGENTA))
@@ -287,6 +288,20 @@ func _mochi_usu(mid: Vector3) -> void:
 	head.rotation_degrees = Vector3(0, 0, 90)
 	_cylinder(0.12, 0.1, 0.18, mid + Vector3(-0.45, 0.09, 0.15), flat_material(Color("8a7a5a")), 10)   # the pail
 	_cylinder(0.1, 0.1, 0.01, mid + Vector3(-0.45, 0.17, 0.15), flat_material(Color("6aa0c8")), 10)
+
+
+## The fishing race's start (a festival game's prop): a bamboo pole with a tall indigo banner
+## hung from a crossbar, a white fish on it, and the race's creel at its foot.
+func _race_flag(mid: Vector3) -> void:
+	var pole := flat_material(Color("b89a5a"))
+	var at := mid + Vector3(-0.25, 0, 0)
+	_cylinder(0.03, 0.035, 1.7, at + Vector3(0, 0.85, 0), pole)
+	_box(Vector3(0.5, 0.03, 0.03), at + Vector3(0.25, 1.62, 0), pole)
+	_box(Vector3(0.44, 1.05, 0.02), at + Vector3(0.25, 1.08, 0), flat_material(PlaceholderArt.RACE_CLOTH))
+	_box(Vector3(0.14, 0.32, 0.03), at + Vector3(0.25, 1.18, 0), flat_material(PlaceholderArt.RACE_MARK))   # the fish
+	_box(Vector3(0.22, 0.05, 0.03), at + Vector3(0.25, 0.98, 0), flat_material(PlaceholderArt.RACE_MARK))   # its tail
+	_cylinder(0.16, 0.13, 0.26, mid + Vector3(0.2, 0.13, 0.15), flat_material(PlaceholderArt.RACE_CREEL), 10)
+	_cylinder(0.165, 0.165, 0.03, mid + Vector3(0.2, 0.2, 0.15), flat_material(PlaceholderArt.RACE_CREEL.darkened(0.25)), 10)
 
 
 ## The lights a festival's decorations give on a map (as in `glows`), without keeping the

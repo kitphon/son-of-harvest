@@ -3,7 +3,8 @@ extends SceneTree
 ## shut for it, the fair weather, villagers gathering (all four, with festival lines), the event once a year, the decorations
 ## and lights in both views, the HUD tag, the contests and their result lines, the stalls and
 ## their wares, ribbons and the farmhouse board, the shipping payout held back on the day, the
-## mochi pounding: its data, timing, ranking, prizes, ribbon, save and screen). Run:
+## mochi pounding: its data, timing, ranking, prizes, ribbon, save and screen; the Moon Night
+## fishing race: its data, clock, creel, ranking, prizes, ribbon, save and screen). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_festivals.gd
 
 var failures := 0
@@ -25,6 +26,9 @@ func _init() -> void:
 	_mochi_timing()
 	_game_judging()
 	_game_result_lines()
+	_race_data()
+	_race_timing()
+	_race_result_lines()
 
 
 func _process(_delta: float) -> bool:
@@ -39,6 +43,7 @@ func _process(_delta: float) -> bool:
 		_store_note()
 		_rivals()
 		_game_play()
+		_race_play()
 		_stall()
 		_night_stalls()
 		_fall_winter_stalls()
@@ -771,6 +776,30 @@ func _check_views() -> void:
 		mochi3[0]._exit_tree()
 		check(g._pauses == pauses and g.game_partner == "", "leaving the view mid-game lets the clock go")
 		mochi3[0]._open = false
+		mochi3[0].open("moon_night", "")
+		check(not mochi3[0].is_open() and g._pauses == pauses, "the mochi screen leaves a fishing race alone")
+	var race3: Array = _scene3.get_children().filter(func(n): return _script_is(n, "race_screen.gd"))
+	var race2: Array = _scene2.get_children().filter(func(n): return _script_is(n, "race_screen.gd"))
+	check(race3.size() == 1 and race2.size() == 1, "both views have the fishing race box")
+	if race3.size() == 1 and race2.size() == 1:
+		check(not race3[0].is_shown() and not race2[0].is_shown(), "no race, no box")
+		g.race = FishingRace.new(Festivals.game("moon_night"))
+		g.race.time = 0.5
+		race3[0]._refresh()
+		check(race3[0].is_shown() and race3[0]._call.text == "Ready... 3" and race3[0]._count.text == "0 fish", "the count-in shows (%s)" % race3[0]._call.text)
+		g.race.time = 14.0
+		g.race.land("fish:funa")
+		g.race.land("fish:koi")
+		race3[0]._refresh()
+		race2[0]._refresh()
+		check(race2[0].is_shown() and race3[0]._clock.visible and race3[0]._clock.text == "0:49" and race3[0]._count.text == "2 fish"
+			and race3[0]._icons[1].texture != null and race3[0]._icons[2].texture == null, "the time left, the count and two fish in the creel (%s)" % race3[0]._clock.text)
+		g.race.time = 64.0
+		race3[0]._refresh()
+		check(race3[0]._call.text == "Time!" and race3[0]._bar.size.x == 0.0, "time is called")
+		g.race = null
+		race3[0]._refresh()
+		check(not race3[0].is_shown(), "the box goes with the race")
 	g.hour = 16
 	g.minute = 0
 	p[0].refresh()
@@ -1063,3 +1092,189 @@ func _flat_art() -> void:
 					lit += 1
 					break
 		check(lit == lights.size(), "%s: every light sits on its lamp in the flat view (%d / %d)" % [id, lit, lights.size()])
+
+
+## The fishing race's data: the game at Moon Night, its flag by the village pond, the checks.
+func _race_data() -> void:
+	var g := Festivals.game("moon_night")
+	check(g.get("kind") == "fishing" and g.id == "fishing" and Festivals.festival_of_game("fishing") == "moon_night",
+		"Moon Night has the fishing race")
+	check(Festivals.at_game("moon_night", Vector2i(30, 13)) and not Festivals.at_game("moon_night", Vector2i(30, 14))
+		and not Festivals.at_table("moon_night", Vector2i(30, 13)), "the race starts at its flag, apart from the judges' table")
+	check(Festivals.partner_for("moon_night", func(_id): return 0) == "", "a race has no partner")
+	check(Festivals.ribbon_label("fishing") == "Moon Pond Race", "the race's ribbon key names it")
+	for place in [1, 2, 3]:
+		var n := Keepsakes.name_of(Keepsakes.ribbon_id("fishing", place))
+		check(n != "" and PixelFont.width(n) + 12 + PixelFont.width("x99") <= HudLayout.BOXES.item.size.x, "%s fits the item box" % n)
+	check(EventRunner.open(g.event, null).error == "", "the race's result event runs")
+	var f: Dictionary = Festivals.get_festival("moon_night").duplicate(true)
+	check(Festivals.check({"festivals": {"a": f}}) == "", "Moon Night with its race passes on its own")
+	var bad := {
+		"seconds": {"seconds": 5}, "lead": {"lead": 20}, "partners": {"partners": ["tome"]},
+		"rounds": {"rounds": [{"beats": 4, "beat": 1.0}]}, "cell": {"cell": [22, 8]},
+		"prizes": {"prizes": [{"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}]},
+	}
+	for what in bad:
+		var h := f.duplicate(true)
+		h.game.merge(bad[what], true)
+		check(Festivals.check({"festivals": {"a": h}}) != "", "a race with a bad %s is refused" % what)
+	var h := f.duplicate(true)
+	h.game.erase("seconds")
+	check(Festivals.check({"festivals": {"a": h}}) != "", "a race needs its seconds")
+	var m: Dictionary = Festivals.get_festival("years_turn").duplicate(true)
+	m.game.seconds = 60
+	check(Festivals.check({"festivals": {"a": m}}) != "", "only a race has seconds")
+	h = f.duplicate(true)
+	h.game.prizes.append({"money": 1})
+	h.game.prizes.append({"money": 1})
+	check(Festivals.check({"festivals": {"a": h}}) == "", "four rivals and the farmer: five places, no one sits out")
+
+
+## The race's clock and creel: the count-in, the race, the call, what counts, the save.
+func _race_timing() -> void:
+	var r := FishingRace.new({"lead": 1.0, "seconds": 5})
+	check(not r.running() and not r.over() and r.left() == 5.0 and r.to_go() == 1.0 and r.score() == 0, "a fresh race waits for the call")
+	check(not r.land("fish:funa") and r.score() == 0, "a fish before the call doesn't count")
+	check(r.advance(1.0) == ["go"] and r.running() and r.to_go() == 0.0, "the call after the count-in")
+	check(r.land("fish:funa") and r.land("fish:koi") and r.score() == 2 and r.fish == ["fish:funa", "fish:koi"], "fish go in the creel")
+	check(r.advance(2.0).is_empty() and is_equal_approx(r.left(), 3.0), "the time runs down")
+	check(r.advance(3.0) == ["time"] and r.over() and not r.running() and r.left() == 0.0, "time is called")
+	check(not r.land("fish:funa") and r.score() == 2, "a fish after the call doesn't count")
+	check(r.advance(FishingRace.SHOW_RESULT) == ["done"] and r.advance(1.0).is_empty(), "then the results, once")
+	var all := FishingRace.new({"seconds": 2})
+	check(all.advance(10.0) == ["go", "time", "done"], "no lead: a long step passes everything in order")
+	var back := FishingRace.parse({"lead": 1.0, "seconds": 5}, JSON.parse_string(JSON.stringify({"time": 2.5, "fish": ["fish:funa"]})))
+	check(back != null and back.time == 2.5 and back.fish == ["fish:funa"] and back.running(), "a race reads back from a save")
+	for broken in [null, {"time": "x", "fish": []}, {"time": 1, "fish": [3]}, {"fish": []}]:
+		check(FishingRace.parse({"seconds": 5}, broken) == null, "a broken saved race is refused (%s)" % [broken])
+
+
+## The result lines for every place and winner end on the right lines.
+func _race_result_lines() -> void:
+	var g := Festivals.game("moon_night")
+	for place in range(1, g.rivals.size() + 2):
+		for rival in g.rivals:
+			var flags := {"contest_place_%d" % place: true}
+			if place > 1:
+				flags["contest_won_" + rival.who] = true
+			var d := DialogueRunner.open(Festivals.DIALOGUE, flags, str(g.id) + "_result")
+			var who: Array = []
+			var ids: Array = []
+			for i in 20:
+				if d.done():
+					break
+				who.append(d.line().get("speaker", ""))
+				ids.append(d.line().get("id", ""))
+				d.press()
+				d.press()
+			var want: String = "fishing" + ("_%d" % place if place <= 3 else "_out")
+			check(d.error == "" and d.done() and want in ids and (place == 1) != (rival.who in who),
+				"fishing race, place %d, %s first: %s %s" % [place, rival.who, who, ids])
+
+
+## Racing: the flag, the rod, the count-in, casting at the pond, fish into the creel (never a
+## once-only fish), the clock holding, the save in the middle, time, the result, one go a year,
+## and leaving the map mid-race.
+func _race_play() -> void:
+	var g := _game()
+	g.new_game()
+	var said: Array = []
+	var hear := func(t): said.append(t)
+	g.message.connect(hear)
+	var asked: Array = []
+	var ask := func(f, p): asked.append([f, p])
+	g.game_requested.connect(ask)
+	var events: Array = []
+	var ev := func(id): events.append(id)
+	g.event_requested.connect(ev)
+	var cues: Array = []
+	var cue := func(w): cues.append(w)
+	g.race_changed.connect(cue)
+	_set_day(g, "fall", 15, 18, 30)
+	g.maps.place("farm", Vector2i(4, 4), Vector2i.DOWN)
+	check(g.start_game().why == "none", "no race from the farm")
+	var origin := Vector2i(30, 14)
+	g.maps.place("town", origin, Vector2i.RIGHT)
+	check(g.water_ahead(origin, Vector2i.RIGHT) == Vector2i(31, 14), "below the flag the village pond is right in front")
+	g.held = "potato"
+	check(g.start_game().why == "held" and said.back() == "The rod takes both hands. Put the Potato down first." and asked.is_empty(), "the rod needs empty hands")
+	g.held = ""
+	g.inventory.take("rod", 1, ["tools"])
+	g.inventory.add("rod", 1, ["chest"])
+	check(g.start_game().why == "rod" and g.race == null, "no rod in the tool slots, no race")
+	g.inventory.take("rod", 1, ["chest"])
+	g.inventory.add("rod", 1, ["tools"])
+	g.tool_index = 0
+	var s: Dictionary = g.start_game()
+	check(s.ok and s.partner == "" and asked == [["moon_night", ""]] and g.race != null and g.current_tool() == "rod" and cues == ["start"],
+		"the race starts with the rod in hand")
+	check(g.start_game().why == "busy" and asked.size() == 1, "not twice at once")
+	check(not g.ticking(), "the clock holds through the race")
+	check(g.cast_line(origin, Vector2i.RIGHT) == "race_wait" and not g.fishing.active(), "no casting in the count-in")
+	g._race_step(3.0)
+	check(cues.back() == "go" and g.race.running(), "the call")
+	check(g.cast_line(origin, Vector2i.RIGHT) == "cast" and g.fishing.place == "town", "the line goes into the village pond")
+	g.fishing.state = "bite"
+	var r: Dictionary = g.reel_in()
+	check(r.result == "catch" and r.get("race", false) and g.held == "" and g.race.score() == 1 and g.race.fish[0] == r.fish and cues.back() == "fish",
+		"a landed fish goes in the creel, not overhead (%s)" % [r])
+	check(int(g.fish_caught.get(r.fish.trim_prefix("fish:"), 0)) == 1, "and counts as caught")
+	g.hour = 22   # the moonlit koi's hour (a once-only fish of the village pond)
+	for i in 40:
+		g.fishing.cast("town", Vector2i(31, 14))
+		g.fishing.state = "bite"
+		g.reel_in()
+	check(g.race.score() == 41 and not "fish:moon_koi" in g.race.fish and not g.fish_caught.has("moon_koi"), "once-only fish don't bite in a race")
+	g.hour = 18
+	# Saved in the middle and read back: the race goes on.
+	g.race.fish = g.race.fish.slice(0, 3)
+	g.race.time = 20.0
+	var d: Dictionary = g.to_dict()
+	g.new_game()
+	check(g.from_dict(JSON.parse_string(JSON.stringify(d))) == "" and g.race != null and g.race.score() == 3 and g.race.time == 20.0 and g.race.running(),
+		"a race saved in the middle goes on after loading")
+	var broken: Dictionary = JSON.parse_string(JSON.stringify(d))
+	broken.fishing.race = {"time": 1}
+	check(g.from_dict(broken) == "Saved fishing race is broken" and g.race.score() == 3, "a broken saved race is refused")
+	broken.fishing.race = {"time": 1, "fish": []}
+	broken.day = 16
+	check(g.from_dict(broken) == "Saved fishing race is broken", "a race saved on a day without one is refused")
+	# Time: the line comes in, the count is judged.
+	var top: int = Festivals.judge_game("moon_night", 1, 0).rivals[0].score
+	g.race.fish.clear()
+	for i in top:
+		g.race.fish.append("fish:funa")
+	g.cast_line(origin, Vector2i.RIGHT)
+	var money: int = g.money
+	cues.clear()
+	g._race_step(60.0)
+	check(cues == ["time", "done"] and not g.fishing.active() and g.race == null, "time is called, the line comes in, the race ends (%s)" % [cues])
+	check(events == ["contest_fishing"] and g.events_seen.has("game:moon_night:1") and g.money == money + 400 and g.count("food:grilled_fish") == 2
+		and g.count("ribbon:fishing:1") == 1 and int(g.flags.get("game_best_fishing", 0)) == top and g.flags.get("contest_place_1") == true
+		and not g.flags.keys().any(func(k): return k.begins_with("contest_partner_")), "a tie with the best: first prize, the ribbon, the result event")
+	check(Keepsakes.record(g.flags).back() == {"festival": "fishing", "place": 1, "year": 1} and said.has("You got a Moon Pond Race ribbon (1st)!"),
+		"the ribbon goes on the board's record")
+	check(g.ticking(), "the clock runs again")
+	check(g.start_game().why == "played" and said.back() == "You already took a turn at the Moon Pond Race this year.", "one go a year")
+	# Year 2: walking off mid-race ends it with the creel as it is (one fish: last, no ribbon).
+	g.year = 2
+	g.maps.place("town", origin, Vector2i.RIGHT)
+	check(load("res://scripts/farm_actions.gd").festival_spot(Vector2i(30, 13)) and g.race != null, "E at the flag starts the race")
+	g._race_step(3.0)
+	g.race.land("fish:funa")
+	g.go_to_map("farm", Vector2i(4, 4), Vector2i.DOWN)
+	check(g.race == null and events.back() == "contest_fishing" and g.events_seen.has("game:moon_night:2") and g.flags.get("contest_place_5") == true
+		and Keepsakes.record(g.flags).back().year == 1 and int(g.flags.get("game_best_fishing", 0)) == top,
+		"leaving the village ends the race and judges its one fish")
+	g.message.disconnect(hear)
+	g.game_requested.disconnect(ask)
+	g.event_requested.disconnect(ev)
+	g.race_changed.disconnect(cue)
+	# The flag in 3D: a mesh of its own, not the magenta stand-in.
+	var props: Node = load("res://scripts/world3d/festival_props.gd").new("town")
+	root.add_child(props)
+	var before := props.get_child_count()
+	props._make({"kind": "race_flag", "cell": [30, 13]})
+	check(props.get_child_count() - before >= 6, "the pole, the banner, its fish and the creel in 3D (%d)" % (props.get_child_count() - before))
+	props.free()
+	g.new_game()

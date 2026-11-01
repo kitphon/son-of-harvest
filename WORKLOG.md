@@ -10,6 +10,49 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Fishing race: Moon Night's Moon Pond Race (a second played contest)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: Moon Night (fall 15, 18:00-23:00, town) gets a festival `game` of the new kind `fishing`:
+  the Moon Pond Race at a `race_flag` prop (bamboo pole, indigo banner with a white fish, a
+  creel) at [30, 13] by the village pond. Moon Night was picked because it had no played game
+  (Lantern Night already has the judged fish contest) and the village pond is on its map.
+  `FishingRace` (scripts/festivals/fishing_race.gd, pure): a `lead` count-in, `seconds` of
+  racing, then the "Time!" call; the creel; to_dict / parse. Game: `start_game` for a race needs
+  empty hands and the rod in a tool slot (it goes in hand), `race` is stepped in `_process`,
+  `cast_line` refuses outside the race time (`race_wait`), `reel_in` puts a race catch in the
+  creel instead of overhead (still counted in fish_caught; once-only fish are left out of a
+  race's candidates), the clock holds while a race runs (`ticking()`), time stops the line,
+  `_end_race` hands the count to `finish_game` (no partner, so no contest_partner flag), and
+  leaving the map ends the race with the creel as it is. The race is saved in `fishing.race`
+  ({time, fish}; refused when broken or on a day without one). Festivals: `GAMES` has fishing ->
+  race_flag, `seconds` is a game key, `_check_game` checks a race (lead 0-10, seconds 10-600, no
+  mochi keys) and refuses `seconds` on a mochi game. `RaceScreen` (scripts/ui/race_screen.gd) in
+  both views: a wood box under the message line with the name, the fish count, the time left
+  (red in the last 10 s), a bar, the last 8 fish pictures, "Ready... 3" / "Go!" / "Time!", and
+  the cues (`mochi_count` clicks, `chime_morning`). MochiScreen now opens only for kind mochi.
+  The 3D flag (FestivalProps) and the flat picture (`festival:race_flag`), the `contest_fishing`
+  event and `fishing_result` lines (Tsuru, a line for each rival who wins, the places).
+  `--contest=fishing` (stands below the flag facing the pond, race on) and `fishing:auto`
+  (casts, reels 0.25 s into each bite). README → Festivals, AGENTS.md.
+- Balance (ours): 60 s, lead 3 s. At 18:30 the bite chance is 0.32 a check after 2.5 s, so a fish
+  takes about 5 s; the auto bot (perfect reactions, first rod) landed 12 in a headless run
+  (`--fixed-fps 30 --quit-after 2100`, read with a temporary print, since removed). A person who
+  reacts and recasts a little slower should get 7-10. Rivals: Hachiro 6-11, Tome 4-9, Kota 3-8,
+  Sayo 2-7. Prizes 400 G + 2 grilled fish, 150 G + 1, 80 G (like the mochi pounding: once a
+  year). The creel is let go, so the race adds no shipping money.
+- Checked: all 24 test scripts print `OK (0 failed)`. test_festivals adds: the race data and bad
+  data, the clock, the result lines for every place / winner, and playing it in Game (the rod,
+  the count-in, casting at the pond, the creel, no moonlit koi in 40 catches at 22:00, a save
+  mid-race, first prize and ribbon, one go a year, leaving mid-race), the 3D flag, the box in
+  both views, the mochi screen leaving a race alone; `_flat_art` checks the new picture.
+  Headless runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo
+  --festival=moon_night --contest=fishing[:auto]`, `--demo --festival=years_turn
+  --contest=mochi:auto`, `res://scenes/main.tscn --quit-after 400`) printed no errors.
+  Screenshots at frame 689 of `--contest=fishing:auto`: the 3D view (0:41, 4 fish, the banner by
+  the pond) and the flat view (0:41, 5 fish, "A Crucian carp! 5 in the creel"); `shots/` deleted.
+- Left / next: a person should play the race (and the mochi pounding) to tune the rivals; the
+  year bot (tools/play_year.gd, another session's) does not play the race yet.
+
 ## 2026-11-01 — Merged six branches: scroll, mine art, portraits, festival crowd, mochi contest, year bot
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each, onto the main that already had

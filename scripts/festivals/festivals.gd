@@ -3,7 +3,7 @@ extends RefCounted
 ## The festival calendar (data/festivals.json): which festival falls on a date, whether it is
 ## on at a minute of the day, which shops it shuts, which decorations stand on a map and
 ## whether its event is due, its contest (what it takes, how it is judged, the prizes), its
-## played game (the mochi pounding; MochiPound keeps the time) and its stall. Pure logic like Villagers: the date and clock come in as arguments (or
+## played game (the mochi pounding, MochiPound; the fishing race, FishingRace) and its stall. Pure logic like Villagers: the date and clock come in as arguments (or
 ## Game.trigger_state), so tests run it headless. Format: README.md, Festivals.
 
 const GameRules := preload("res://scripts/autoload/game.gd")   # SEASONS, DAYS_PER_SEASON
@@ -14,9 +14,9 @@ const PROP_KEYS: Array[String] = ["kind", "cell", "size", "cloth"]
 const CONTEST_KEYS: Array[String] = ["_note", "name", "takes", "table", "ask", "in_season", "rivals",
 	"prizes", "event"]
 const GAME_KEYS: Array[String] = ["_note", "id", "name", "kind", "cell", "partners", "lead", "gap", "rounds",
-	"windows", "points", "rivals", "prizes", "event"]
+	"windows", "points", "seconds", "rivals", "prizes", "event"]
 ## What a played game can be, and the prop it is played at.
-const GAMES := {"mochi": "mochi_usu"}
+const GAMES := {"mochi": "mochi_usu", "fishing": "race_flag"}
 const STALL_KEYS: Array[String] = ["_note", "id", "name", "cell", "stock"]
 ## What a contest can take: Game.item_kind of the entry.
 const KINDS: Array[String] = ["crop", "fish", "animal", "mine"]
@@ -184,7 +184,7 @@ static func _rank(c: Dictionary, key: String, score: int, skip := "") -> Diction
 		"prize": prizes[place - 1] if place <= prizes.size() else {}}
 
 
-# --- the played game (mochi pounding) --------------------------------------------
+# --- the played game (mochi pounding, fishing race) --------------------------------------------
 
 ## Festival `id`'s played game ({} for none).
 static func game(id: String) -> Dictionary:
@@ -459,6 +459,17 @@ static func _check_game(g: Variant, f: Dictionary) -> String:
 		return "kind is one of %s" % [GAMES.keys()]
 	if not _prop_under(f, g.get("cell"), GAMES[g.kind]):
 		return "cell needs a cell [x, y] of a %s prop" % GAMES[g.kind]
+	if g.kind == "fishing":
+		for k in g:
+			if k in ["partners", "gap", "rounds", "windows", "points"]:
+				return "a fishing race has no " + k
+		if not EventRunner._number(g.get("lead", 0.0), 0.0, 10.0):
+			return "lead is 0 to 10 seconds"
+		if not EventRunner._number(g.get("seconds"), 10.0, 600.0):
+			return "seconds is 10 to 600"
+		return _check_rivals(g, 1)
+	if g.has("seconds"):
+		return "only a fishing race has seconds"
 	var partners: Variant = g.get("partners")
 	if not partners is Array or partners.is_empty() or partners.any(func(p): return not p in Villagers.file_ids()):
 		return "partners is a list of villagers"

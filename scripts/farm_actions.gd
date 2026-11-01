@@ -118,6 +118,8 @@ static func cast(origin: Vector2i, facing: Vector2i) -> void:
 			Game.message.emit("Your hands are full")
 		"no_water":
 			Game.message.emit("Cast the rod at water")
+		"race_wait":
+			Game.message.emit("Wait for the call!" if not Game.race.over() else "Time is up!")
 
 
 static func reel() -> void:
@@ -125,7 +127,10 @@ static func reel() -> void:
 	match r.result:
 		"catch":
 			Sfx.play("fish_catch")
-			Game.message.emit("Caught a %s!" % item_name(r.fish))
+			if r.get("race", false):
+				Game.message.emit("A %s! %d in the creel" % [item_name(r.fish), Game.race.score()])
+			else:
+				Game.message.emit("Caught a %s!" % item_name(r.fish))
 		"none":
 			Game.message.emit("Nothing on the hook")
 		_:
@@ -224,7 +229,7 @@ static func examine_prop(c: Vector2i) -> bool:
 
 ## Today's festival, while it is on: its judges' table (enter the contest with the item
 ## overhead, or hear what it takes), the prop of its game (the mortar: start the mochi
-## pounding) or its stall (opens it like a shop).
+## pounding; the race flag: start the fishing race) or its stall (opens it like a shop).
 static func festival_spot(c: Vector2i) -> bool:
 	var fid := Game.festival_now()
 	if fid == "":
