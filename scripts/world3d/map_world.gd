@@ -6,6 +6,10 @@ extends FarmWorld
 ##
 ## Indoors the camera looks in from +x / +z (the same fixed field camera), so only the back
 ## walls (top row, left column) stand full height; the front ones are cut down to a sill.
+##
+## Outdoors snow lies as on the farm (SnowLayer: the ground by tile kind, snow tops on the
+## roofs, the shrine, the lantern caps and the rock); under a roof (rooms, the mine floors)
+## there is none, whatever Game.snow_cover says.
 
 const WALL_HIGH := 1.7
 const WALL_LOW := 0.22
@@ -38,9 +42,16 @@ func _make_tile_ground() -> void:
 			var tile := PlaceholderArt.tex(MapView.ground_key(map, Vector2i(x, y))).get_image()
 			tile.convert(Image.FORMAT_RGBA8)
 			img.blit_rect(tile, Rect2i(0, 0, T, T), Vector2i(x * T, y * T))
-	var mat := flat_material(Color.WHITE)
-	mat.albedo_texture = ImageTexture.create_from_image(img)
-	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	var mat: Material
+	if SnowLayer.map_has_snow(map):
+		var snow := ImageTexture.create_from_image(SnowLayer.map_mask_image(map, Game.snow_rules))
+		mat = SnowLayer.ground_material(ImageTexture.create_from_image(img), snow)
+		_snow_mats.append(mat)
+	else:
+		var flat := flat_material(Color.WHITE)
+		flat.albedo_texture = ImageTexture.create_from_image(img)
+		flat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		mat = flat
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(map.w, map.h)
 	var ground := MeshInstance3D.new()
@@ -85,9 +96,17 @@ func _rock_wall(c: Vector2i) -> void:
 	if low:
 		var h := 0.25 + 0.08 * posmod(c.x + c.y * 2, 3)
 		_box(Vector3(1, h, 1), at + Vector3(0, h / 2, 0), rock)
+		_snow_top(Vector3(0.94, 0.03, 0.94), at + Vector3(0, h + 0.015, 0))
 		return
 	var tall := 1.3 + 0.12 * posmod(c.x * 3 + c.y * 7, 4)
 	_box(Vector3(1.02, tall, 1.02), at + Vector3(0, tall / 2, 0), rock)
+	_snow_top(Vector3(0.96, 0.03, 0.96), at + Vector3(0, tall + 0.015, 0))
+
+
+## Snow tops only where snow lies (outdoors).
+func _snow_top(size: Vector3, center: Vector3, rot := Vector3.ZERO) -> void:
+	if SnowLayer.map_has_snow(map):
+		super._snow_top(size, center, rot)
 
 
 func _make_prop(p: Dictionary) -> void:
@@ -252,8 +271,9 @@ func _village_house(r: Rect2, door: int, noren: bool, side_door := -1) -> void:
 	for side in [1, -1]:
 		var down := Vector3(0, -sin(slope), cos(slope) * side)
 		var up := Vector3(0, cos(slope), sin(slope) * side)
-		_box(Vector3(wide + 0.5, 0.09, length), ridge + down * (length / 2 - 0.05) + up * 0.05, kawara,
-			Vector3(slope * side, 0, 0))
+		var center := ridge + down * (length / 2 - 0.05) + up * 0.05
+		_box(Vector3(wide + 0.5, 0.09, length), center, kawara, Vector3(slope * side, 0, 0))
+		_snow_top(Vector3(wide + 0.4, 0.04, length - 0.1), center + up * 0.065, Vector3(slope * side, 0, 0))
 	_box(Vector3(wide + 0.7, 0.16, 0.22), ridge + Vector3(0, 0.1, 0), flat_material(Color("3a424c")))
 	var dx := r.position.x + door + 0.5
 	_picture("build:shoji_door", Vector2(0.85, 1.05), Vector3(dx, 0.55, front + 0.005))
@@ -288,6 +308,7 @@ func _torii(mid: Vector3, r: Rect2) -> void:
 	_box(Vector3(span + 0.5, 0.12, 0.16), Vector3(mid.x, 1.62, mid.z), red)                       # nuki
 	_box(Vector3(span + 1.1, 0.16, 0.24), Vector3(mid.x, 2.1, mid.z), red)                        # shimaki
 	_box(Vector3(span + 1.3, 0.1, 0.28), Vector3(mid.x, 2.22, mid.z), flat_material(Color("2a2420")))   # kasagi
+	_snow_top(Vector3(span + 1.2, 0.03, 0.24), Vector3(mid.x, 2.285, mid.z))
 	_box(Vector3(0.1, 0.36, 0.1), Vector3(mid.x, 1.86, mid.z), red)                               # the strut
 
 
@@ -299,7 +320,9 @@ func _hokora(mid: Vector3) -> void:
 	_box(Vector3(0.4, 0.5, 0.02), mid + Vector3(0, 0.62, 0.41), flat_material(VERMILION))
 	var slope := atan2(0.35, 0.55)
 	for side in [1, -1]:
-		_box(Vector3(1.4, 0.06, 0.7), mid + Vector3(0, 1.28, 0.27 * side), surface_material("build:planks_dark"),
+		var center := mid + Vector3(0, 1.28, 0.27 * side)
+		_box(Vector3(1.4, 0.06, 0.7), center, surface_material("build:planks_dark"), Vector3(slope * side, 0, 0))
+		_snow_top(Vector3(1.32, 0.03, 0.62), center + Vector3(0, cos(slope), sin(slope) * side) * 0.04,
 			Vector3(slope * side, 0, 0))
 	_box(Vector3(1.5, 0.08, 0.1), mid + Vector3(0, 1.46, 0), flat_material(Color("2e221a")))
 
@@ -313,6 +336,7 @@ func _stone_lantern(mid: Vector3) -> void:
 	_box(Vector3(0.3, 0.26, 0.3), mid + Vector3(0, 0.87, 0), stone)
 	_box(Vector3(0.16, 0.14, 0.02), mid + Vector3(0, 0.88, 0.152), flat_material(Color("ffd890")))
 	_box(Vector3(0.56, 0.1, 0.56), mid + Vector3(0, 1.05, 0), stone)
+	_snow_top(Vector3(0.5, 0.03, 0.5), mid + Vector3(0, 1.115, 0))
 	_box(Vector3(0.12, 0.1, 0.12), mid + Vector3(0, 1.15, 0), stone)
 
 

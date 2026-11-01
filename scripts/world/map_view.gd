@@ -1,7 +1,9 @@
 class_name MapView
 extends Node2D
 ## Draws a map other than the farm in the flat view: its ground tiles, then walls, props and
-## doors as flat boxes (like FarmView marks the farm buildings).
+## doors as flat boxes (like FarmView marks the farm buildings). Outdoors, snow lying
+## (show_snow / set_snow) goes over the ground under the props, as on the farm, and a second
+## overlay whitens the roofs seen from above.
 
 const T := 16
 const COLORS := {
@@ -21,6 +23,11 @@ const COLORS := {
 }
 
 var map: MapData
+## How much snow each cell holds (SnowLayer.map_mask_image), set by show_snow.
+var snow_mask: Image
+var _snow: Sprite2D          # on the ground, under the props
+var _roof_snow: Sprite2D     # on the roofs, over the props
+var _objects: Node2D         # props and doors, above the ground snow
 
 
 ## The ground key for a cell: water gets banks where it meets land, others a variant by spot.
@@ -38,6 +45,44 @@ static func ground_key(m: MapData, c: Vector2i) -> String:
 	return "ground:%s:%d" % [kind, posmod(c.x * 7 + c.y * 13 + (c.x * c.y) % 5, PlaceholderArt.GROUND_VARIANTS)]
 
 
+func _ready() -> void:
+	_objects = Node2D.new()
+	_objects.draw.connect(_draw_objects)
+	add_child(_objects)
+
+
+## Lays snow over an outdoor map by `rules` (data/snow_cover.json); nothing under a roof.
+## Call once, then set_snow.
+func show_snow(rules: Dictionary) -> void:
+	if not SnowLayer.map_has_snow(map):
+		return
+	snow_mask = SnowLayer.map_mask_image(map, rules)
+	_snow = _snow_sprite(snow_mask)
+	add_child(_snow)
+	move_child(_snow, _objects.get_index())
+	_roof_snow = _snow_sprite(SnowLayer.roof_mask_image(map, rules))
+	add_child(_roof_snow)
+	move_child(_roof_snow, _objects.get_index() + 1)
+
+
+## Snow on the ground and roofs, 0 (none) .. 1 (all white where the ground holds it).
+func set_snow(cover: float) -> void:
+	for s in [_snow, _roof_snow]:
+		if s != null:
+			(s.material as ShaderMaterial).set_shader_parameter("cover", cover)
+			s.visible = cover > 0.0
+
+
+func _snow_sprite(mask: Image) -> Sprite2D:
+	var s := Sprite2D.new()
+	s.centered = false
+	s.scale = Vector2.ONE * float(T) / SnowLayer.MASK_PER_CELL
+	s.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	s.texture = ImageTexture.create_from_image(mask)
+	s.material = SnowLayer.canvas_material()
+	return s
+
+
 func _draw() -> void:
 	for y in map.h:
 		for x in map.w:
@@ -45,12 +90,15 @@ func _draw() -> void:
 			draw_texture(PlaceholderArt.tex(ground_key(map, c)), Vector2(c * T))
 			if map.tile(c) == "wall":
 				draw_rect(Rect2(Vector2(c * T), Vector2(T, T)), COLORS.wall)
+
+
+func _draw_objects() -> void:
 	for p in map.props:
 		if p.kind in StoryView.KINDS:   # drawn as pictures by StoryView
 			continue
 		var r := Rect2(Vector2(p.cell * T), Vector2(p.size * T))
-		draw_rect(r.grow(-1), COLORS.get(p.kind, Color.MAGENTA))
+		_objects.draw_rect(r.grow(-1), COLORS.get(p.kind, Color.MAGENTA))
 	for door in map.doors:
 		for c in door.cells:
 			if map.in_bounds(c):
-				draw_rect(Rect2(Vector2(c * T), Vector2(T, T)).grow(-2), COLORS.door)
+				_objects.draw_rect(Rect2(Vector2(c * T), Vector2(T, T)).grow(-2), COLORS.door)

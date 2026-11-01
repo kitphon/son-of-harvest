@@ -1,6 +1,6 @@
 class_name SnowLayer
 extends RefCounted
-## Snow lying on the farm: the 3D ground shader that lays it over the ground picture, the
+## Snow lying on the farm and the outdoor maps: the 3D ground shader that lays it over the ground picture, the
 ## shader for snow tops on roofs and lids, the 2D view's overlay (the same pattern), and the
 ## per-cell mask of how much snow each kind of ground holds (data/snow_cover.json "ground":
 ## tilled and wet soil hold less, so plots stay readable). The amount itself is Game.snow_cover; this only draws it.
@@ -73,12 +73,45 @@ static func hold(farm: FarmGrid, c: Vector2i, rules: Dictionary) -> float:
 	return clampf(float(rules.get("ground", {}).get(kind, 1.0)), 0.0, 1.0)
 
 
+## How much snow a map cell holds, 0..1, by its tile kind; none under a roof (sheltered).
+static func map_hold(m: MapData, c: Vector2i, rules: Dictionary) -> float:
+	if m.sheltered:
+		return 0.0
+	return clampf(float(rules.get("ground", {}).get(m.tile(c), 1.0)), 0.0, 1.0)
+
+
+## Does snow lie on this map at all (outdoors, not the farm's own ground)?
+static func map_has_snow(m: MapData) -> bool:
+	return not m.sheltered and not m.farm
+
+
 ## The per-cell hold as an image (MASK_PER_CELL pixels a cell, laid out like the ground).
 static func mask_image(farm: FarmGrid, rules: Dictionary) -> Image:
-	var img := Image.create_empty(FarmGrid.W * MASK_PER_CELL, FarmGrid.H * MASK_PER_CELL, false, Image.FORMAT_L8)
-	for y in FarmGrid.H:
-		for x in FarmGrid.W:
-			var v := hold(farm, Vector2i(x, y), rules)
+	return _mask(FarmGrid.W, FarmGrid.H, func(c: Vector2i) -> float: return hold(farm, c, rules))
+
+
+## The same for a map from data/maps.
+static func map_mask_image(m: MapData, rules: Dictionary) -> Image:
+	return _mask(m.w, m.h, func(c: Vector2i) -> float: return map_hold(m, c, rules))
+
+
+## A map's roofs as the flat view sees them from above (data/snow_cover.json "roofs": the
+## prop kinds with a roof and how much snow they hold): over their footprints but the front
+## row, so the house front and its door stay plain to see.
+static func roof_mask_image(m: MapData, rules: Dictionary) -> Image:
+	var roofs: Dictionary = rules.get("roofs", {})
+	return _mask(m.w, m.h, func(c: Vector2i) -> float:
+		var p := m.prop_at(c)
+		if not map_has_snow(m) or not roofs.has(str(p.get("kind", ""))) or c.y == p.cell.y + p.size.y - 1:
+			return 0.0
+		return clampf(float(roofs[p.kind]), 0.0, 1.0))
+
+
+static func _mask(w: int, h: int, hold_at: Callable) -> Image:
+	var img := Image.create_empty(w * MASK_PER_CELL, h * MASK_PER_CELL, false, Image.FORMAT_L8)
+	for y in h:
+		for x in w:
+			var v: float = hold_at.call(Vector2i(x, y))
 			img.fill_rect(Rect2i(x * MASK_PER_CELL, y * MASK_PER_CELL, MASK_PER_CELL, MASK_PER_CELL), Color(v, v, v))
 	return img
 

@@ -212,6 +212,8 @@ func new_game() -> void:
 		elif arg.begins_with("--weather="):   # e.g. `-- --demo --weather=storm` for screenshots
 			weather_today = arg.trim_prefix("--weather=")
 			snow_cover = next_snow_cover(0, weather_look(weather_today, season_name()), season_name(), snow_rules)
+		elif arg.begins_with("--snow="):   # e.g. `-- --demo --season=winter --map=town --snow=80`: snow lying, 0..100
+			snow_cover = clampi(int(arg.trim_prefix("--snow=")), 0, 100)
 		elif arg.begins_with("--time="):   # e.g. `-- --demo --map=town --time=14:30` (villagers by their plans)
 			var t := EventTriggers.clock(arg.trim_prefix("--time="))
 			if t < 0 or t >= 24 * 60:

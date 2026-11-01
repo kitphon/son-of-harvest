@@ -10,6 +10,37 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Snow lies in the village too (outdoor maps and their roofs, both views)
+Agent: Claude Code (claude-opus-5-5) · Commit: 130b5c9
+- Done: Game.snow_cover now whitens every outdoor map from data/maps, not only the farm.
+  SnowLayer gets `map_hold` / `map_mask_image` (a map cell holds snow by its tile kind from
+  data/snow_cover.json "ground"; new kinds gravel 0.75, scree 0.7, rock_wall 0.5; water 0) and
+  `map_has_snow` (false for sheltered maps: rooms, coop, barn, shops and the mine floors, and
+  for the farm, which keeps its own mask). 3D: MapWorld lays the tile picture through the
+  snow ground shader on outdoor maps and adds snow tops on the village house roofs, the
+  hokora roof, the torii's top beam, the stone lantern caps and the rock (the mine
+  entrance); its `_snow_top` does nothing under a roof. 2D: MapView draws its props and doors
+  on an `_objects` child so `show_snow` can put the ground snow between the tiles and the
+  props (as FarmView does), plus a second overlay over the props for the roofs seen from
+  above (`SnowLayer.roof_mask_image`, data/snow_cover.json "roofs": village_house and hokora
+  hold 0.7, so the brown shows through; the front row of each house stays bare, so its wall
+  and door read). main_2d calls show_snow / set_snow for map views too (and on the new day).
+  New launch flag `--snow=N` (0..100) sets the snow lying for screenshots (AGENTS.md).
+- Checked: new `_map_snow` checks in tests/test_maps.gd (hold values for grass / path /
+  gravel / pond, which maps get snow and which don't, room mask empty, mask size, roof mask
+  over houses but not their front row or the road, the 2D sprites' order and cover, no snow
+  sprites indoors, the 3D village's shader materials take the cover, none in the mine floor
+  or the house). All 24 test scripts printed `OK (0 failed)` (before the last roof-mask tweak
+  and `--snow` flag; test_maps, test_weather and test_view2d were re-run after it: `OK (0
+  failed)`). Headless smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`,
+  `--demo --season=winter` on town / river / mine / house, the flat view on town and house
+  with `--snow=80`) printed no errors or warnings. Screenshots: 3D `--demo --season=winter
+  --map=town --snow=80` (white ground with path showing through, snow on the roofs), the flat
+  view `--map=town@sayo --snow=60` (snowy roofs, brown house fronts and doors, the pond bare),
+  3D `--map=mine --snow=70` (snow on the rock tops and lantern cap); `shots/` deleted.
+- Left / next: pines and festival props take no snow; on day 1 of winter (`--season=winter`
+  alone) the cover is still 0 until it snows, as on the farm.
+
 ## 2026-11-01 — Festival decorations drawn in the flat view
 Agent: Claude Code (claude-opus-5-5) · Commit: c827518
 - Done: `scenes/main_2d.tscn`'s festival decorations were flat boxes; now each is a pixel
