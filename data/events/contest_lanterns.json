@@ -1,9 +1,46 @@
 {
-	"_note": "The results of the lantern_night contest (data/festivals.json contest; Game.enter_contest sets contest_place_<n>, contest_won_<rival> and contest_prize just before it plays).",
+	"_note": "The results of the lantern_night contest (data/festivals.json contest; Game.enter_contest sets contest_place_<n>, contest_won_<rival> and contest_prize just before it plays). The rivals walk up from their festival plans with their entries overhead, stand by the farmer at the judges' table while the results are read, then go back.",
 	"steps": [
 		{
+			"do": "actor",
+			"who": "hachiro",
+			"at": "plan",
+			"holds": "fish:namazu",
+			"to": [
+				14,
+				8
+			],
+			"face": "up",
+			"meanwhile": true
+		},
+		{
+			"do": "actor",
+			"who": "kota",
+			"at": "plan",
+			"holds": "fish:ayu",
+			"to": [
+				16,
+				8
+			],
+			"face": "up",
+			"meanwhile": true
+		},
+		{
+			"do": "actor",
+			"who": "tome",
+			"at": "plan",
+			"holds": "fish:funa",
+			"to": [
+				17,
+				8
+			],
+			"face": "up",
+			"meanwhile": true
+		},
+		{
 			"do": "wait",
-			"seconds": 0.3
+			"seconds": 0.3,
+			"walkers": true
 		},
 		{
 			"do": "sound",
@@ -26,6 +63,48 @@
 			"id": "done",
 			"do": "wait",
 			"seconds": 0.2
+		},
+		{
+			"do": "actor",
+			"who": "hachiro",
+			"to": "plan",
+			"meanwhile": true
+		},
+		{
+			"do": "actor",
+			"who": "kota",
+			"to": "plan",
+			"meanwhile": true
+		},
+		{
+			"do": "actor",
+			"who": "tome",
+			"to": "plan",
+			"meanwhile": true
+		},
+		{
+			"do": "wait",
+			"seconds": 0.3,
+			"walkers": true
+		},
+		{
+			"do": "wait",
+			"seconds": 0.2
+		},
+		{
+			"do": "actor",
+			"who": "hachiro",
+			"leave": true
+		},
+		{
+			"do": "actor",
+			"who": "kota",
+			"leave": true
+		},
+		{
+			"do": "actor",
+			"who": "tome",
+			"leave": true
 		}
 	]
 }

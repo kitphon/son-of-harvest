@@ -365,9 +365,11 @@ static func _check_contest(c: Variant, f: Dictionary) -> String:
 			return "a prize item is an item id"
 		if p.has("count") and not EventRunner._whole(p.count, 1, 99):
 			return "a prize count is 1 to 99"
-	var ev := EventRunner.open(str(c.get("event", "")), null)
-	if ev.error != "":
-		return "event: " + ev.error
+	# Only that the event is there: its actor steps name villagers, and checking those reads the
+	# villagers' rules, which ask for the festivals being checked here. tests/test_festivals.gd
+	# reads every contest's event in full.
+	if not EventRunner.read(str(c.get("event", ""))) is Dictionary:
+		return "event: no event %s" % str(c.get("event", ""))
 	return ""
 
 

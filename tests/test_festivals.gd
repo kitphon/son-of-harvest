@@ -30,6 +30,7 @@ func _process(_delta: float) -> bool:
 		_shops()
 		_event()
 		_contest_game()
+		_rivals()
 		_stall()
 		_night_stalls()
 		_fall_winter_stalls()
@@ -388,6 +389,72 @@ func _contest_game() -> void:
 	g.event_requested.disconnect(ev)
 
 
+## Stands in for Game in the contest result events: the result line opens a box that stays
+## open until the test closes it.
+class Judge:
+	var flags := {}
+	var dialogue_open := false
+	var lines: Array = []
+
+	func talk(_dialogue: String, at: String) -> void:
+		lines.append(at)
+		dialogue_open = true
+
+
+## The contest result events: every rival comes from their festival plan with an entry of the
+## contest's kind overhead, stands in front of the judges' table beside the farmer while the
+## results are read, then walks back to their plan and leaves the stage.
+func _rivals() -> void:
+	var g := _game()
+	g.new_game()
+	var bad := {"steps": [{"do": "actor", "who": "kota", "at": [1, 1], "holds": "no_such_thing"}]}
+	check(EventRunner.new(bad, Judge.new()).error != "", "an actor can't carry an unknown item")
+	bad = {"steps": [{"do": "actor", "who": "kota", "at": [1, 1], "meanwhile": true}]}
+	check(EventRunner.new(bad, Judge.new()).error != "", "meanwhile needs a walk")
+	for fid in Festivals.all():
+		var f := Festivals.get_festival(fid)
+		var c := Festivals.contest(fid)
+		var open: PackedStringArray = String(f.hours[0]).split(":")
+		_set_day(g, f.season, int(f.day), int(open[0]), int(open[1]) + 30)
+		var front := Vector2i(int(c.table[0]), int(c.table[1]) + 1)
+		g.maps.place(f.map, front, Vector2i.UP)
+		var judge := Judge.new()
+		var r := EventRunner.open(c.event, judge)
+		check(r.error == "", "%s: %s reads (%s)" % [fid, c.event, r.error])
+		r.start(Vector2(front * 16) + Vector2(8, 8), Vector2i.UP)
+		for w in Villagers.on_map(f.map, g.day_minutes(), g.trigger_state(front)):
+			r.on_stage[w.id] = {"pos": w.pos, "facing": w.facing}
+		for _i in 100:
+			if judge.dialogue_open or r.done():
+				break
+			r.update(0.1)
+		check(judge.lines == [fid + "_result"], "%s: the results are read (%s)" % [fid, judge.lines])
+		var cells := {front: true}
+		for rival in c.rivals:
+			var a: Dictionary = r.actors.get(rival.who, {})
+			if a.is_empty():
+				check(false, "%s: %s stands at the table" % [fid, rival.who])
+				continue
+			var cell := Vector2i(a.pos.floor())
+			check(not a.moving and a.pos == Vector2(cell) + Vector2(0.5, 0.5) and a.facing == Vector2i.UP and cell.y == front.y
+				and absi(cell.x - front.x) <= 3 and not cells.has(cell) and Festivals._prop_rect(fid, cell).size == Vector2i.ZERO,
+				"%s: %s stands in front of the judges' table, facing it (%s)" % [fid, rival.who, a])
+			cells[cell] = true
+			var entry := String(a.get("holds", ""))
+			check(g.item_kind(entry) == c.takes and g.sell_price(entry) > 0, "%s: %s holds up an entry of the kind (%s)" % [fid, rival.who, entry])
+		judge.dialogue_open = false
+		var back := {}
+		for _i in 200:
+			if r.done():
+				break
+			r.update(0.1)
+			if r.step().get("do") == "wait" and r.index + 1 < r.steps.size() and r.steps[r.index + 1].get("leave", false):
+				for rival in c.rivals:
+					back[rival.who] = r.actors.has(rival.who) and r.actors[rival.who].pos == r._plan_spots.get(rival.who) and not r.actors[rival.who].moving
+		check(back.size() == c.rivals.size() and back.values().all(func(v): return v), "%s: the rivals are back at their plans' spots (%s)" % [fid, back])
+		check(r.done() and r.actors.is_empty(), "%s: then off the stage, back on their festival plans" % fid)
+
+
 ## Blossom Day's dango stall: a shop of its own, open only in the festival's hours.
 func _stall() -> void:
 	var g := _game()
@@ -625,6 +692,20 @@ func _check_views() -> void:
 	check(p[0].festival == "blossom_day" and p[0].shown() and p[1].shown(), "Blossom Day decorations stand at 10:30 in both views")
 	check(p[0].glows.size() == 1, "the stall's lantern is the one light (%d)" % p[0].glows.size())
 	check(p[0].wares == 3, "the dango stall sets out its three wares (%d)" % p[0].wares)
+	var v3: Array = _scene3.world.find_children("*", "Node3D", true, false).filter(func(n): return _script_is(n, "villager_sprites.gd"))
+	var v2: Array = _scene2.view.find_children("*", "Node2D", true, false).filter(func(n): return _script_is(n, "villager_view.gd"))
+	if v3.size() == 1 and v2.size() == 1:
+		Villagers.actors = {"kota": {"map": "town", "pos": Vector2(19.5, 9.5), "facing": Vector2i.UP, "moving": false, "walked": 0.0, "holds": "potato"}}
+		v3[0].refresh()
+		v2[0].refresh()
+		check(v3[0].held("kota") == "potato" and v2[0].held("kota") == "potato" and v3[0].held("tome") == "" and v2[0].held("tome") == "",
+			"an actor's entry shows over their head in both views")
+		Villagers.actors = {}
+		v3[0].refresh()
+		v2[0].refresh()
+		check(v3[0].held("kota") == "" and v2[0].held("kota") == "", "and goes with the event")
+	else:
+		check(false, "both views have a villager layer (%d, %d)" % [v3.size(), v2.size()])
 	var huds: Array = _scene3.get_children().filter(func(n): return _script_is(n, "hud.gd"))
 	check(huds.size() == 1 and huds[0]._fest_box.visible and huds[0]._fest.text == "Blossom Day", "the HUD shows the festival")
 	g.hour = 16

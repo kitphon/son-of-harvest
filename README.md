@@ -406,7 +406,8 @@ the script says, and keys go only to the text box. Each step is one of:
 - `{"do": "say", "dialogue": "<id>", "at": "<line id>"}`: opens a dialogue from
   `data/dialogue` and waits until the box closes (`at` is optional; a dialogue line with
   `"next": "end"` stops it, so one file can hold several parts of an event);
-- `{"do": "wait", "seconds": 0.5}` (0 to 60);
+- `{"do": "wait", "seconds": 0.5}` (0 to 60); with `"walkers": true` it also lasts until
+  every actor walking `meanwhile` has arrived;
 - `{"do": "face", "dir": "up|down|left|right"}`, or `"dir": "<villager id>"` to turn to that
   actor;
 - `{"do": "walk", "to": [x, y]}` or `"by": [dx, dy]` (cells; the farmer walks across first,
@@ -435,7 +436,10 @@ the script says, and keys go only to the text box. Each step is one of:
   `{"do": "actor", "who": "...", "leave": true}` takes them off. While acting, a villager's day
   plan is set aside (`Villagers.actors`); when the event ends every actor is gone again. The
   heart events start with `{"do": "actor", "who": "<id>", "at": "plan", "face": "farmer"}` and
-  end with `"to": "plan"` and `leave`;
+  end with `"to": "plan"` and `leave`. `"holds": "<item>"` gives the actor an item to carry
+  overhead in both views (a crop, `fish:<id>`, `mine:<id>`, an egg, milk or wool; `""` puts
+  it away). `"meanwhile": true` (with `to`) lets the walk go on while the next steps play, so
+  several actors walk at once;
 - `{"do": "ending"}`: grades the run and shows the village record (README → Ending); the
   event waits until it is closed; `"page": "year"` shows the yearly page instead;
 - a branch: `{"if": "<flag>", "then": "<step id>"}` or `{"unless": ...}`.
@@ -501,7 +505,9 @@ festival and year, the farmer wins ties (`Festivals.judge`). The prize for the p
 (`prizes`, `{money, item?, count?}`) is paid at once, flags `contest_place_<n>`,
 `contest_won_<rival>` and `contest_prize` are set (the result lines branch on them;
 `contest_wins` counts first prizes) and the contest's `event` (`data/events/contest_*.json`)
-plays. One entry a year (`events_seen` key `contest:<id>:<year>`). `-- --demo
+plays: the rivals walk up together from their festival plans (`"at": "plan"`, `meanwhile`)
+with their own entries overhead (`holds`), stand in front of the table beside the farmer
+while the results are read, then walk back and go on with their plans. One entry a year (`events_seen` key `contest:<id>:<year>`). `-- --demo
 --festival=<id> --contest=<item>` stands at the table with the item and enters it.
 
 **Stalls.** A festival may have a `stall` (`{id?, name, cell, stock}`; the cell is a `stall`

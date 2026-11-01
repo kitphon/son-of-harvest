@@ -10,6 +10,39 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Contest rivals walk up to the judges' table
+Agent: Claude Code (claude-opus-5-5) · Commit: 574de93
+- Done: the four contest result events (`data/events/contest_*.json`) now bring the rolled
+  rivals on stage: each starts where their festival plan has them (`"at": "plan"`; one whose
+  plan is elsewhere comes in beside the farmer), walks to a cell in front of the judges' table
+  beside the farmer with an entry of the contest's kind overhead, faces the table, stands there
+  while the result line is read, then walks back to their plan's spot and leaves the stage (the
+  plan takes over again). Entries (ours): Blossom Day Kota cucumber, Tome turnip, Sayo potato;
+  Lantern Night Hachiro namazu, Kota ayu, Tome funa; Moon Night Sayo milk_good, Tome egg_best,
+  Kota wool; Year's Turn Hachiro kogane, Kota suisho, Sayo meno. Three small EventRunner
+  additions: actor `holds` (an item carried overhead, kept in the actor's dict so
+  Villagers.actors passes it to the views; "" puts it away), actor `meanwhile` (with `to`: the
+  walk goes on in the background while the next steps play, so the rivals walk together) and
+  wait `walkers` (also waits until those walks have arrived; some festival plans are 10+ cells
+  from the table). VillagerSprites (3D) and VillagerView (2D) draw `holds` on top of the head
+  with the item art the farmer uses (`PlaceholderArt.world_item_key`). Festivals' data check
+  now only checks that a contest's event file exists: reading it in full checks its actor
+  villagers, whose rules ask for the festivals being loaded (a load cycle that gave "unknown
+  villager"); test_festivals reads every contest event in full instead.
+- Checked: test_festivals `_rivals` plays each contest event with the real festival plans at
+  opening + 30 min: all three rivals stand still on distinct non-prop cells in the farmer's row
+  facing up when the result line opens, each holds an item of the contest's kind with a sell
+  price, they are back on their plan spots before leaving, and the stage is empty at the end;
+  bad `holds` / `meanwhile` without `to` are refused; both views show an actor's entry and drop
+  it after the event. All 24 test scripts print
+  `OK (0 failed)`; headless runs (title `--quit-after 300`, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, `--demo --festival=blossom_day --contest=potato`, `--demo
+  --festival=years_turn --contest=mine:hisui`) printed no errors or warnings. Screenshot `--demo --festival=blossom_day
+  --contest=potato --quit-after 120`: Kota with the cucumber, the farmer, Tome with the turnip
+  and Sayo with the potato in front of the table, the results box open; `shots/` deleted.
+- Left / next: the entries are not set down on the table; the rivals walk through props on
+  the way (scripted walks don't collide).
+
 ## 2026-11-01 — Eat / drink pose
 Agent: Claude Code (claude-opus-5-5) · Commit: 8df7399
 - Done: anything eaten (the food slot, F in the rucksack, a raw item overhead) starts a short
