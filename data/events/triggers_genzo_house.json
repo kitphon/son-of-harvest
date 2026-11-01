@@ -1,0 +1,6 @@
+{
+	"_note": "Events in Genzo's house: his mushroom soup lesson, as in Kaminoda. Format: README.md, Events.",
+	"rows": [
+		{"event": "recipe_genzo", "on": "talk", "who": "genzo", "hearts": {"genzo": [1, 6]}, "not_flags": ["recipe_kinoko_jiru"]}
+	]
+}

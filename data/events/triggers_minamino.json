@@ -1,0 +1,6 @@
+{
+	"_note": "Events in Minamino (data/maps/minamino.json): Kiku teaches her mugwort mochi once she knows the farmer. Format: README.md, Events.",
+	"rows": [
+		{"event": "recipe_kiku", "on": "talk", "who": "kiku", "hearts": {"kiku": [1, 6]}, "not_flags": ["recipe_kusa_mochi"]}
+	]
+}

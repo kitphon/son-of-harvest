@@ -24,7 +24,7 @@
 	"default": "usual",
 	"gifts": {
 		"love": ["rice", "food:onigiri", "food:takikomi_gohan", "food:miso_soup", "keep:daruma"],
-		"like": ["wild:bamboo_shoot", "wild:matsutake", "daikon", "turnip", "potato", "egg", "fish:dojo", "fish:unagi", "food:green_tea", "food:ochazuke", "food:grilled_fish", "mine:kogane"],
+		"like": ["food:kinoko_jiru", "wild:bamboo_shoot", "wild:matsutake", "daikon", "turnip", "potato", "egg", "fish:dojo", "fish:unagi", "food:green_tea", "food:ochazuke", "food:grilled_fish", "mine:kogane"],
 		"dislike": [
 			"food:milk_pudding",
 			"food:dango",

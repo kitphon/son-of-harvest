@@ -82,6 +82,7 @@ mine = load("mine.json")
 shops = load("shops.json")
 foods = load("foods.json")
 recipes = load("recipes.json")
+forage = load("forage.json")
 festivals = load("festivals.json")["festivals"]
 store = shops["shops"]["general"]
 smithy = shops["shops"]["smithy"]
@@ -195,14 +196,21 @@ def need_value(need, season):
         elif need["group"] in ("egg", "milk"):
             each = product_value(need["group"])
         else:
-            each = min(crops[i]["sell"] for i in g["items"])
+            each = min(item_value(i) for i in g["items"])
     elif need["item"].startswith("food:"):
         each = foods["foods"][need["item"][5:]]["price"]
-    elif need["item"] in crops:
-        each = crops[need["item"]]["sell"]
     else:
-        each = animals["items"][need["item"]]["sell"]
+        each = item_value(need["item"])
     return each * need["n"]
+
+
+def item_value(item):
+    """Shipping value of one crop, animal product or wild thing (wild:<id>, data/forage.json)."""
+    if item.startswith("wild:"):
+        return forage["items"][item[5:]]["sell"]
+    if item in crops:
+        return crops[item]["sell"]
+    return animals["items"][item]["sell"]
 
 
 def kitchen_tools_bought():

@@ -1,0 +1,8 @@
+{
+	"_note": "Genzo teaches a recipe when the farmer, known to them (band 1 or more), talks to them (a talk row with who and hearts in a trigger table); sets recipe_kinoko_jiru (data/recipes.json). Format: README.md, Events.",
+	"steps": [
+		{"do": "say", "dialogue": "recipe_lessons", "at": "genzo"},
+		{"do": "sound", "key": "cook"},
+		{"do": "set", "flags": {"recipe_kinoko_jiru": true}}
+	]
+}

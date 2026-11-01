@@ -20,7 +20,7 @@
 		"love": ["food:onigiri", "fish:unagi", "fish:namazu", "fish:sake", "mine:hoshigane",
 			"food:grilled_fish", "food:daikon_fish", "food:potato_stew",
 			"keep:daruma"],
-		"like": ["fish:*", "corn", "onion", "egg_best", "mine:akagane", "mine:shirogane", "mine:kogane",
+		"like": ["food:dobin_mushi", "fish:*", "corn", "onion", "egg_best", "mine:akagane", "mine:shirogane", "mine:kogane",
 			"food:miso_soup", "food:tamagoyaki", "food:turnip_stew", "food:takikomi_gohan",
 			"keep:omamori", "food:year_soba", "food:roast_chestnuts"],
 		"dislike": ["food:sakura_mochi", "food:dango", "mine:stone", "food:milk_pudding", "food:kinako_mochi",

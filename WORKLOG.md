@@ -10,6 +10,38 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-02 — Wild things in recipes
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: six kitchen recipes of wild things (data/recipes.json, dishes in foods.json, our names
+  and looks): sansai tempura (2 wild greens, pot), kinoko jiru (a mushroom and a soup
+  vegetable, knife and pot), kusa mochi (2 rice and mugwort, mallet, makes 3), takenoko gohan
+  (rice and a bamboo shoot, makes 2), kuri gohan (rice and chestnuts, makes 2), dobin mushi
+  (matsutake and a fish, teapot). New groups `sansai` (horsetail, mugwort, bracken, dropwort,
+  wild garlic, butterbur, myoga: cheapest first) and `kinoko` (oyster, nameko, enoki, matsutake
+  last). Haru, Genzo and Kiku teach the first three once known to band 1 (recipe_<who> events,
+  lines in recipe_lessons.json; new trigger tables for kaminoda, minamino and their three
+  houses, and a row on the hill for Haru's afternoons). The first bamboo shoot, chestnuts or
+  matsutake shipped brings a card for the other three (cards now take wild items; no code
+  change). Each dish is liked by one villager (Genzo, Haru, Kiku, Tome, Hachiro, Ichiro).
+  The village record's recipe steps moved from 6 / 8 / 10 / 13 to 7 / 10 / 14 / 19.
+  tools/balance.py values wild ingredients from forage.json.
+- Balance (ours): gain over shipping the ingredients raw (balance.py, cheapest of a group):
+  tempura 54, kinoko jiru 40, kusa mochi 72, takenoko gohan 50, kuri gohan 55, dobin mushi
+  57-87; in line with the old recipes (40-67). Dobin mushi pays its teapot back in 5 cookings
+  but needs the hill's single matsutake spot.
+- Checked: test_cooking's new `_wild` (cards for the three wild things, shipped and thrown;
+  the cheapest greens used and the butterbur bud kept; the nameko used before the matsutake;
+  each lesson picked in its maps, not to a stranger, not twice, not by the wrong person); its
+  data checks now accept wild items. First full run: test_ending failed ("the top recipes
+  step is every recipe (19)"), fixed by the new steps. All 25 test scripts print `OK (0
+  failed)`; smoke runs (title, `--demo`, town, mine 3, kaminoda, minamino; and main.tscn on
+  kaminoda, minamino, hill, kiku_house with their trigger tables) print no errors;
+  `play_year.gd -- --years=2` learned recipe_genzo, recipe_haru and recipe_kiku in play and
+  printed `Recipes          16  3 / 4 stars`, `30 / 43 stars: rank 3, "Keeper of the
+  Satoyama"` and `play_year: OK (no problems seen)`; screenshots: the cooking screen lists the
+  new dishes with icons ("11 of 19 known"), Genzo's lesson in Kaminoda with his portrait.
+- Left / next: a talk line or two about foraging from the villagers with hearts.
+
 ## 2026-11-01 — Forage in Kaminoda, Sakurazaka and Minamino
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: data/forage.json has spots in the three outer parts (28 in all, on grass next to

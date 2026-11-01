@@ -1,0 +1,6 @@
+{
+	"_note": "Events in Haru's house: her tempura lesson, as in Kaminoda. Format: README.md, Events.",
+	"rows": [
+		{"event": "recipe_haru", "on": "talk", "who": "haru", "hearts": {"haru": [1, 6]}, "not_flags": ["recipe_sansai_tempura"]}
+	]
+}

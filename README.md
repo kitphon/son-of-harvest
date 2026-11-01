@@ -400,7 +400,8 @@ garlic, mulberries, ginkgo nuts by the water shrine, yam bulbils). E
 facing a spot picks it: overhead with free hands, into the rucksack while the hands are full.
 A picked spot is bare until the next morning (`Game.forage_picked`, map id -> cells, saved,
 cleared in `end_day`). Wild things ship like crops, a few are eaten raw (foods.json `raw`),
-some villagers like them as gifts. The rules are `Forage` (`scripts/items/forage.gd`); Game
+some villagers like them as gifts and they cook (README → Cooking: wild greens and mushrooms
+are recipe groups, three lessons and three cards). The rules are `Forage` (`scripts/items/forage.gd`); Game
 has `forage_here()` / `forage_pick(c)`; `ForageLayer` (3D) and `ForageView` (flat) draw what
 grows and redraw on `Game.forage_changed`. A new area's spots are one more list in the file.
 
@@ -415,14 +416,18 @@ Recipes are `data/recipes.json`: a recipe's id is the dish it makes, a food in
 rules) takes the needs out of the rucksack, the hand and then the storage chest and puts the
 dishes in the rucksack, all or nothing (tried on a copy first). The pantry (cooked rice, miso,
 soy) is never counted; the rice crop is a real ingredient. A recipe is known from the start
-(`start: true`), by a recipe card (`card: <crop>`: the first of that crop shipped, by the bin
+(`start: true`), by a recipe card (`card: <item>`, a crop or a wild thing: the first shipped, by the bin
 or thrown in, sets the flags of its cards, `Cooking.cards`) or once the flag
 `recipe_<id>` is set; lessons are events (`data/events/recipe_<who>.json`, lines in
 `data/dialogue/recipe_lessons.json`) played by `talk` rows with `hearts` and `not_flags` in
-the trigger tables (Tome and Kota in the village, Sayo at the store, Hachiro at the smithy)
-and an `examine` row on the farmhouse radio on Saturdays. Flags are saved, so the save format
+the trigger tables (Tome and Kota in the village, Sayo at the store, Hachiro at the smithy;
+Haru and Genzo in Kaminoda, Haru on the hill too, Kiku in Minamino, and each in their house,
+once known to band 1) and an `examine` row on the farmhouse radio on Saturdays. Flags are saved, so the save format
 did not change. Raw farm goods are edible too: `data/foods.json` `raw` (crops, eggs, milk,
-`fish:*`), through `Game.eat_item(item, places)`. `-- --demo --cook` stands at the stove with
+`fish:*`), through `Game.eat_item(item, places)`. Wild things cook too: the groups `sansai`
+(wild greens, cheapest first) and `kinoko` (mushrooms, the matsutake last) and six recipes
+(sansai tempura from Haru, kinoko jiru from Genzo, kusa mochi from Kiku; takenoko gohan, kuri
+gohan and dobin mushi by the cards of the first bamboo shoot, chestnuts and matsutake). `-- --demo --cook` stands at the stove with
 the screen open (the kitchen built, a few ingredients, one recipe learned, the knife but not
 the pot it also needs, so its row says "no tool").
 Kitchen tools: `tools` in recipes.json (knife, clay pot, teapot, iron rice pot, bamboo steamer,

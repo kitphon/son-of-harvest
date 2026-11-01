@@ -14,6 +14,15 @@
 		{"speaker": "kota", "face": "smile", "text": "She cuts it in chunks and cooks it with soy and sugar till it's all soft. It tastes like a sweet! Don't tell her I said that."},
 		{"speaker": "farmer", "face": "smile", "text": "Learned a recipe: Pumpkin nimono.", "next": "end"},
 		{"id": "radio", "speaker": "farmer", "face": "calm", "text": "The radio crackles into a cooking hour. A warm voice talks through a milk pudding: milk and an egg, steamed gently, dark sugar on top."},
-		{"speaker": "farmer", "face": "smile", "text": "Learned a recipe: Milk pudding.", "next": "end"}
+		{"speaker": "farmer", "face": "smile", "text": "Learned a recipe: Milk pudding.", "next": "end"},
+		{"id": "haru", "speaker": "haru", "mood": "happy", "text": "Have you been picking greens on the hill? Bracken, butterbur, the little horsetails by the paddies?"},
+		{"speaker": "haru", "mood": "neutral", "text": "Two handfuls, a batter thin as paper, and very hot oil. Don't crowd the pan, or they go soggy."},
+		{"speaker": "farmer", "face": "smile", "text": "Learned a recipe: Sansai tempura.", "next": "end"},
+		{"id": "genzo", "speaker": "genzo", "mood": "neutral", "text": "Mushrooms come up under the pines after rain. I fill my hat with them on the way home."},
+		{"speaker": "genzo", "mood": "happy", "text": "A handful in the miso with a turnip or whatever's about. Warms you right down to the toes."},
+		{"speaker": "farmer", "face": "smile", "text": "Learned a recipe: Kinoko jiru.", "next": "end"},
+		{"id": "kiku", "speaker": "kiku", "mood": "happy", "text": "When I was a girl we picked mugwort along the lanes every spring. The smell of it still makes me young."},
+		{"speaker": "kiku", "mood": "neutral", "text": "Pound it into the rice with the mochi, and it comes out green as a new leaf. Two of rice, one of mugwort."},
+		{"speaker": "farmer", "face": "smile", "text": "Learned a recipe: Kusa mochi.", "next": "end"}
 	]
 }

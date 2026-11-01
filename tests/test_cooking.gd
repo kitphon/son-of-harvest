@@ -13,6 +13,7 @@ func _init() -> void:
 	_menu()
 	_lessons()
 	_cards()
+	_wild()
 	_tools()
 
 
@@ -23,6 +24,9 @@ func _data() -> void:
 	var foods: Dictionary = _json("res://data/foods.json").foods
 	var crops: Dictionary = _json("res://data/crops.json")
 	var products: Dictionary = _json("res://data/animals.json").items
+	var wild: Dictionary = _json("res://data/forage.json").items
+	var real := func(it: String) -> bool:
+		return crops.has(it) or products.has(it) or (it.begins_with("wild:") and wild.has(it.trim_prefix("wild:")))
 	check(Cooking.check(d, foods) == "", "data/recipes.json passes: %s" % Cooking.check(d, foods))
 	var starters := 0
 	for id in Cooking.ids():
@@ -36,13 +40,13 @@ func _data() -> void:
 		for need in r.needs:
 			if need.has("item"):
 				var it := String(need.item)
-				check(crops.has(it) or products.has(it) or (it.begins_with("food:") and foods.has(it.trim_prefix("food:"))), "%s needs a real item (%s)" % [id, it])
+				check(real.call(it) or (it.begins_with("food:") and foods.has(it.trim_prefix("food:"))), "%s needs a real item (%s)" % [id, it])
 		if r.has("card"):
-			check(crops.has(String(r.card)) and not r.get("start", false), "%s's card comes with a real crop (%s)" % [id, r.card])
+			check(real.call(String(r.card)) and not products.has(String(r.card)) and not r.get("start", false), "%s's card comes with a real crop or wild thing (%s)" % [id, r.card])
 		check(int(foods[id].get("sell", 0)) > 0, "%s can be shipped (sell %d)" % [id, int(foods[id].get("sell", 0))])
 	for g in d.groups:
 		for it in d.groups[g].get("items", []):
-			check(crops.has(it) or products.has(it), "group %s: %s is a real item" % [g, it])
+			check(real.call(it), "group %s: %s is a real item" % [g, it])
 	check(starters >= 3 and starters < Cooking.ids().size(), "a few recipes known at the start (%d of %d)" % [starters, Cooking.ids().size()])
 	check(Cooking.check({"recipes": {"pizza": {"needs": [{"item": "turnip", "n": 1}]}}}, foods) != "", "a recipe for a food that doesn't exist is refused")
 	check(Cooking.check({"recipes": {"miso_soup": {"needs": [{"group": "nope", "n": 1}]}}}, foods) != "", "an unknown group is refused")
@@ -243,6 +247,56 @@ func _cards() -> void:
 	check(g.ship_produce() == 3 * sell and g.count("food:kinako_mochi") == 0, "held out at the bin: shipped (%d G)" % g.bin_total)
 	check(int(g.shipped.get("food:kinako_mochi", 0)) == 3 and g.ending_values().shipped_value >= 3 * sell, "dishes count as shipped for the record")
 	g.free()
+
+
+## Wild things in recipes (data/forage.json): the greens and mushrooms groups use the cheapest
+## first, Haru, Genzo and Kiku teach in their parts once they know the farmer, and the first
+## bamboo shoot, chestnuts or matsutake shipped brings a card.
+func _wild() -> void:
+	var g := _game()
+	_empty_bag(g)
+	g.house_built.append("kitchen")
+	g.kitchen_tools.assign(Cooking.tool_ids())
+	check(Cooking.cards("wild:bamboo_shoot") == (["takenoko_gohan"] as Array[String]) and Cooking.cards("wild:chestnut") == (["kuri_gohan"] as Array[String])
+		and Cooking.cards("wild:matsutake") == (["dobin_mushi"] as Array[String]), "cards with bamboo shoots, chestnuts and matsutake")
+	g.inventory.add("wild:bamboo_shoot", 2)
+	check(g.ship_produce() == 2 * g.sell_price("wild:bamboo_shoot") and g.sell_price("wild:bamboo_shoot") > 0, "bamboo shoots shipped")
+	check(Cooking.known("takenoko_gohan", g.flags) and not Cooking.known("kuri_gohan", g.flags), "the first bamboo shoot brings its card, only that one")
+	g.held = "wild:matsutake"
+	var t: Dictionary = g.throw_held(Vector2i(8, 5), Vector2i.UP)
+	check(t.result == "ship" and Cooking.known("dobin_mushi", g.flags), "a matsutake thrown in brings dobin mushi (%s)" % t.result)
+	# The greens: the cheapest go first, a dear butterbur bud is kept back while there's enough.
+	for f in ["sansai_tempura", "kinoko_jiru", "kusa_mochi"]:
+		g.flags[Cooking.flag(f)] = true
+	g.inventory.add("wild:fukinoto", 1)
+	g.inventory.add("wild:tsukushi", 1)
+	g.inventory.add("wild:warabi", 1)
+	var r: Dictionary = g.cook("sansai_tempura")
+	check(r.ok and g.count("food:sansai_tempura") == 1 and g.count("wild:fukinoto") == 1 and g.count("wild:tsukushi") == 0 and g.count("wild:warabi") == 0,
+		"tempura from horsetail and bracken, the butterbur bud kept (%s)" % r.note)
+	check(not g.cook("sansai_tempura").ok, "one green is not enough")
+	g.inventory.add("wild:matsutake", 1)
+	g.inventory.add("wild:nameko", 1)
+	g.inventory.add("turnip", 1)
+	check(g.cook("kinoko_jiru").ok and g.count("wild:nameko") == 0 and g.count("wild:matsutake") == 1, "mushroom soup takes the nameko, not the matsutake")
+	g.inventory.add("rice", 2)
+	g.inventory.add("wild:yomogi", 1)
+	check(g.cook("kusa_mochi").ok and g.count("food:kusa_mochi") == 3 and g.count("rice") == 0, "kusa mochi from two rice and mugwort, three of them")
+	g.inventory.add("fish:funa", 1)
+	check(g.cook("dobin_mushi").ok and g.count("wild:matsutake") == 0, "dobin mushi from the matsutake and a fish")
+	g.free()
+	# The lessons: in their parts and homes (and Haru on the hill), once known to band 1, once.
+	var s := {"year": 1, "season": "spring", "day": 3, "weekday": "wed", "time": 600, "weather": "sunny",
+		"flags": {}, "seen": {}, "cell": Vector2i.ZERO, "who": "haru", "hearts": {"haru": 1, "genzo": 1, "kiku": 1}}
+	for m in [["kaminoda", "haru"], ["kaminoda", "genzo"], ["hill", "haru"], ["haru_house", "haru"], ["genzo_house", "genzo"], ["minamino", "kiku"], ["kiku_house", "kiku"]]:
+		var table := EventTriggers.open(m[0])
+		check(table.error == "" and table.pick("talk", s.merged({"who": m[1]}, true)) == "recipe_" + m[1], "%s teaches in %s" % [m[1], m[0]])
+		check(table.pick("talk", s.merged({"who": m[1], "hearts": {m[1]: 0}}, true)) == "", "%s: not to a stranger" % m[1])
+	var lesson := {"haru": "sansai_tempura", "genzo": "kinoko_jiru", "kiku": "kusa_mochi"}
+	for who in lesson:
+		var learned := s.merged({"who": who, "flags": {Cooking.flag(lesson[who]): true}}, true)
+		check(EventTriggers.open("kaminoda" if who != "kiku" else "minamino").pick("talk", learned) == "", "%s: not twice" % who)
+	check(EventTriggers.open("kaminoda").pick("talk", s.merged({"who": "kiku"}, true)) == "", "Kiku doesn't teach in Kaminoda")
 
 
 ## Kitchen tools: the data, the start recipes need none, the store sells each once after the

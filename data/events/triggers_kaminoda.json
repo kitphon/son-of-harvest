@@ -1,0 +1,7 @@
+{
+	"_note": "Events in Kaminoda (data/maps/kaminoda.json): Haru and Genzo teach a recipe of wild things once they know the farmer. Format: README.md, Events.",
+	"rows": [
+		{"event": "recipe_haru", "on": "talk", "who": "haru", "hearts": {"haru": [1, 6]}, "not_flags": ["recipe_sansai_tempura"]},
+		{"event": "recipe_genzo", "on": "talk", "who": "genzo", "hearts": {"genzo": [1, 6]}, "not_flags": ["recipe_kinoko_jiru"]}
+	]
+}

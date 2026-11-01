@@ -1,0 +1,8 @@
+{
+	"_note": "Haru teaches a recipe when the farmer, known to them (band 1 or more), talks to them (a talk row with who and hearts in a trigger table); sets recipe_sansai_tempura (data/recipes.json). Format: README.md, Events.",
+	"steps": [
+		{"do": "say", "dialogue": "recipe_lessons", "at": "haru"},
+		{"do": "sound", "key": "cook"},
+		{"do": "set", "flags": {"recipe_sansai_tempura": true}}
+	]
+}
