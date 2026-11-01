@@ -573,6 +573,28 @@ it. Placing gives a ribbon keyed by the game's id (`ribbon:mochi:<place>`, "Moch
 ribbon"). `-- --demo --festival=years_turn --contest=mochi` stands at the mortar with the game
 on; `--contest=mochi:auto` swings by itself for screenshots.
 
+**A second played contest: the fishing race.** Moon Night's `game` is the Moon Pond Race
+(kind `fishing`, `FishingRace`), at a `race_flag` prop (a bamboo pole with an indigo banner
+and the race's creel) at [30, 13], just north-west of the village pond. E there with empty
+hands and the rod in a tool slot starts it: the rod goes in hand, a `lead` of 3 seconds counts
+in (`mochi_count` clicks, `chime_morning` for the start), and for `seconds` (60) the farmer
+fishes the pond with the real rod and bite rules (`data/fish.json`; casts cost stamina as
+always). A fish landed goes into the race's creel instead of overhead (it still counts as
+caught; once-only fish like the moonlit koi don't bite in a race), and the creel is let go at
+the end. The clock holds while the race runs, so all its bites come at the hour it started. A
+small wood box under the message line in both views (`RaceScreen`) shows the time left, a bar
+running down, the fish count and the last eight fish landed; "Time!" is called (the line comes
+in empty), and after two seconds the count is ranked like the mochi score (`judge_game`, the
+game's four rivals rolled per year, no partner), the prize paid, `fishing_result` lines in
+`contests.json`, `contest_fishing` plays, the best count kept in `game_best_fishing`, and a
+ribbon `ribbon:fishing:<place>` ("Moon Pond Race ribbon"). Walking off the map mid-race ends
+it with the creel as it is. A race in progress is saved (`fishing.race`: time and fish) and
+goes on after loading. Balance: about 5 seconds a fish at dusk with the first rod, so a quick
+player lands 9-11, a steady one 7-9; Hachiro rolls 6-11, Tome 4-9, Kota 3-8, Sayo 2-7.
+`-- --demo --festival=moon_night --contest=fishing` stands below the flag facing the pond with
+the race counting in; `--contest=fishing:auto` casts and reels by itself (about 20 s in is
+mid-race, `--quit-after 690` with `--fixed-fps 30`).
+
 **Stalls.** A festival may have a `stall` (`{id?, name, cell, stock}`; the cell is a `stall`
 prop's), or a list of them, each with its own `id`. E at one in the hours opens it as a shop
 with id `stall:<festival>` (or `stall:<festival>:<stall id>`): Blossom Day's Hanami Dango Stall

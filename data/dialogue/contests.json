@@ -482,6 +482,98 @@
 			"speaker": "kota",
 			"face": "smile",
 			"text": "We did it together! My hands only got scared twice."
+		},
+		{
+			"id": "fishing_result",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "Lines up, everyone! The creels have been counted and the fish are back in the pond. Here are the results!"
+		},
+		{
+			"if": "contest_place_1",
+			"then": "fishing_1"
+		},
+		{
+			"if": "contest_won_tome",
+			"then": "fishing_tome"
+		},
+		{
+			"if": "contest_won_kota",
+			"then": "fishing_kota"
+		},
+		{
+			"if": "contest_won_sayo",
+			"then": "fishing_sayo"
+		},
+		{
+			"id": "fishing_hachiro",
+			"next": "fishing_place",
+			"speaker": "hachiro",
+			"face": "smile",
+			"text": "A quiet wrist and a patient eye. Same as at the anvil."
+		},
+		{
+			"id": "fishing_tome",
+			"next": "fishing_place",
+			"speaker": "tome",
+			"face": "smile",
+			"text": "The pond knows me, dear. I have fed its carp crusts for fifty years."
+		},
+		{
+			"id": "fishing_kota",
+			"next": "fishing_place",
+			"speaker": "kota",
+			"face": "smile",
+			"text": "I won? Mr. Hachiro showed me how to wait for the second tug!"
+		},
+		{
+			"id": "fishing_sayo",
+			"next": "fishing_place",
+			"speaker": "sayo",
+			"face": "surprised",
+			"text": "I only came to sell bait... and then they kept biting!"
+		},
+		{
+			"id": "fishing_place",
+			"if": "contest_place_2",
+			"then": "fishing_2"
+		},
+		{
+			"if": "contest_place_3",
+			"then": "fishing_3"
+		},
+		{
+			"id": "fishing_out",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "No ribbon this time. The fish were shy under such a bright moon. Try again next fall!"
+		},
+		{
+			"id": "fishing_2",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "Second place for the farmer! A creel to be proud of."
+		},
+		{
+			"id": "fishing_3",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "Third place for the farmer. A good night's fishing all the same."
+		},
+		{
+			"id": "fishing_1",
+			"speaker": "tsuru",
+			"face": "surprised",
+			"text": "First place goes to the farmer! The most fish in the pond race. The ribbon is yours."
+		},
+		{
+			"speaker": "farmer",
+			"face": "smile",
+			"text": "My line hardly had time to get wet.",
+			"next": "end"
 		}
 	]
 }

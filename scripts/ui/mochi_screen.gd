@@ -98,7 +98,7 @@ func is_open() -> bool:
 
 ## Starts festival `fid`'s game with `who` turning the dough.
 func open(fid: String, who: String) -> void:
-	if _open:
+	if _open or Festivals.game(fid).get("kind") != "mochi":   # a fishing race has RaceScreen
 		return
 	festival = fid
 	partner = who

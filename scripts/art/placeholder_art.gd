@@ -2498,6 +2498,9 @@ const FEST_PAPER := Color("f0e6c8")
 const FEST_INK := Color("2a2420")
 const FEST_WHITE := Color("f4f0e6")
 const FEST_WOOD := Color("6a4a30")
+const RACE_CLOTH := Color("2a3a6a")    # the fishing race's banner (FestivalView, FestivalProps)
+const RACE_MARK := Color("f0ead8")
+const RACE_CREEL := Color("b8985a")
 
 
 ## The picture's size for a decoration kind over w x h cells.
@@ -2515,6 +2518,7 @@ static func festival_size(kind: String, w: int, h: int) -> Vector2i:
 		"kadomatsu": return Vector2i(18, 28)
 		"bonfire": return Vector2i(22, 24)
 		"mochi_usu": return Vector2i(32, 24)
+		"race_flag": return Vector2i(18, 40)
 	return Vector2i(w * 16, h * 16)
 
 
@@ -2533,6 +2537,7 @@ static func festival_anchor(kind: String, w: int, h: int) -> Vector2i:
 		"kadomatsu": return Vector2i(9, 25)
 		"bonfire": return Vector2i(11, 15)
 		"mochi_usu": return Vector2i(16, 20)
+		"race_flag": return Vector2i(6, 37)
 	return size / 2
 
 
@@ -2690,6 +2695,27 @@ static func _festival(kind: String, w: int, h: int, cloth: Color) -> Image:
 			_px(img, a.x - 2, a.y - 7, 4, 1, Color("6a7a8a"))
 			_px(img, a.x - 2, a.y - 6, 5, 6, Color("4a5a6a"))
 			_px(img, a.x - 1, a.y - 5, 1, 4, Color("6a7a8a"))
+			_outline(img)
+			return img
+		"race_flag":
+			# The fishing race's start: a bamboo pole with a tall indigo banner (a white fish on
+			# it) hung from a crossbar, and the race's creel at its foot.
+			var pole := Color("b89a5a")
+			_px(img, a.x - 1, a.y - 34, 2, 35, pole)
+			_px(img, a.x - 1, a.y - 34, 1, 35, pole.lightened(0.2))
+			_px(img, a.x, a.y - 33, 11, 1, pole)
+			_px(img, a.x - 3, a.y, 6, 1, pole.darkened(0.35))
+			_px(img, a.x + 1, a.y - 32, 9, 22, RACE_CLOTH)
+			_px(img, a.x + 1, a.y - 32, 9, 2, RACE_CLOTH.lightened(0.25))   # the hem at the top
+			_px(img, a.x + 9, a.y - 30, 1, 20, RACE_CLOTH.darkened(0.25))
+			_oval(img, a.x + 5.5, a.y - 21.5, 2.2, 4.5, RACE_MARK)          # the fish, nose up
+			_px(img, a.x + 4, a.y - 16, 3, 1, RACE_MARK)                     # its tail
+			_px(img, a.x + 3, a.y - 15, 1, 1, RACE_MARK)
+			_px(img, a.x + 7, a.y - 15, 1, 1, RACE_MARK)
+			_px(img, a.x + 4, a.y - 6, 7, 6, RACE_CREEL)                     # the creel
+			_px(img, a.x + 4, a.y - 6, 7, 1, RACE_CREEL.lightened(0.2))
+			for y in [a.y - 4, a.y - 2]:
+				_px(img, a.x + 4, y, 7, 1, RACE_CREEL.darkened(0.25))       # its weave
 			_outline(img)
 			return img
 		"paper_lantern":

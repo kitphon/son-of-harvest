@@ -160,8 +160,11 @@ night-eats stall and a wind chime stall that sell, and a placing gives a ribbon 
 on a board in the farmhouse (README → Festivals); at the results the rivals walk up to the
 table with their entries overhead and go back to their plans after. Year's Turn also has a contest that is
 played, the mochi pounding (a festival `game`: swing on the beat while Tome or Kota turns the dough,
-ranked against rolled rivals, prizes and a ribbon). Later for festivals: a second played contest
-(a fishing race). Done: the whole village
+ranked against rolled rivals, prizes and a ribbon). Moon Night has a second played contest, the
+Moon Pond Race (a festival `game` of kind fishing: 60 seconds at the village pond with the real
+rod and bites, one point a fish, against four rolled rivals; prizes, a ribbon, a result event, a
+race in progress is saved; a small box with the time and the creel in both views). Later for
+festivals: a person should play both games to tune their numbers. Done: the whole village
 gathers (Hachiro and Sayo have festival day plans too, all four have a line for each festival,
 Sayo leaves a note on the store counter on Blossom Day), stalls at Moon Night and Year's Turn (a food
 stall and a keepsake stall each), keepsakes as gifts (each villager loves one), the villagers'
@@ -263,6 +266,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Festival contests with prizes and result events, festival music, payout held on the day, Blossom Day's stall
    - [x] Lantern Night's stalls (night eats, wind chimes and keepsakes), contest ribbons and the farmhouse ribbon board
    - [x] A played contest: the mochi pounding at Year's Turn (rhythm game with a partner, rolled rivals, prizes, ribbon)
+   - [x] A second played contest: the Moon Pond Race at Moon Night (60 s of real fishing at the village pond, rolled rivals, prizes, ribbon, save)
    - [x] Relationships: hearts on the text box's name tag, birthdays (calendar, gifts x5, birthday lines), the nightly loss for villagers left alone, a heart event per villager at band 3
    - [x] Relationships 2: a second heart event per villager at band 5, birthday day plans, fair weather and the HUD tag on a birthday, mine finds in the gift lists
    - [x] Heart flags in the world: the door bell (hachiro_bell), the store's sign (sayo_sign old / new), Tome's plum jar (tome_grandma), as flag-gated map props in both views

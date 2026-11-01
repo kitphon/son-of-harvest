@@ -16,7 +16,8 @@ signal thrown(item: String, from: Vector2i, to: Vector2i, result: String)   # vi
 signal shop_requested(id: String)    # a ShopScreen opens that shop (data/shops.json)
 signal cooking_requested             # a CookingScreen opens (the kitchen corner, data/recipes.json)
 signal ending_requested(record: Dictionary)   # an EndingScreen shows the village record (Ending.grade)
-signal game_requested(festival: String, partner: String)   # a MochiScreen plays that festival's game
+signal game_requested(festival: String, partner: String)   # a MochiScreen plays that festival's game (a mochi pounding)
+signal race_changed(what: String)    # the fishing race: "start", "go", "fish", "time", "done" (RaceScreen plays the cues)
 signal fishing_event(kind: String)   # "bite" / "escaped" while the line is out (FarmActions plays the cue)
 
 const SECONDS_PER_MINUTE := 0.5
@@ -50,6 +51,7 @@ var dialogue_mood := ""         # the portrait mood talk() passes to the next te
 var event_running := false      # an event script plays: the clock waits, the script moves the farmer
 var ending_open := false        # the village record is on screen (the ending event waits for it)
 var game_partner := ""          # who turns the dough in the festival game going on now ("" for none)
+var race: FishingRace = null    # the festival's fishing race going on now (null for none; saved)
 var settings: Settings          # the player's settings (user://settings.json), not saved with the run
 var _pauses := 0                # open menus; while any is open time stands still
 
@@ -151,6 +153,7 @@ func _ready() -> void:
 func new_game() -> void:
 	ending_open = false
 	game_partner = ""
+	race = null
 	year = 1
 	season = 0
 	day = 1
@@ -304,7 +307,9 @@ func new_game() -> void:
 			var what := arg.trim_prefix("--contest=").get_slice(":", 0)
 			var g := Festivals.game(fid)
 			if not g.is_empty() and what == g.id:   # `--festival=years_turn --contest=mochi`: at the mortar, the game on
-				maps.place(Festivals.get_festival(fid).map, Vector2i(int(g.cell[0]), int(g.cell[1]) + 1), Vector2i.UP)
+				# A fishing race starts below its flag facing the water to the right (`--contest=fishing`).
+				maps.place(Festivals.get_festival(fid).map, Vector2i(int(g.cell[0]), int(g.cell[1]) + 1),
+					Vector2i.RIGHT if g.kind == "fishing" else Vector2i.UP)
 			elif c.is_empty():
 				push_warning("No contest today for " + arg)
 			else:
@@ -380,6 +385,8 @@ func _demo_kitchen() -> void:
 func _process(delta: float) -> void:
 	if eating() and not paused():
 		_eat_step(delta)
+	if race != null and not paused():
+		_race_step(delta)
 	if fishing.active() and not paused():
 		var chance := Fishing.bite_chance(fish_data, hour, weather_look(weather_today, season_name())) * rod_bite_factor()
 		var ev := fishing.step(delta, chance, rng)
@@ -429,8 +436,9 @@ func paused() -> bool:
 
 ## Does time pass now (not on the title screen, no menu open, not inside a building)?
 ## Indoors only the clock stands; the farmer still walks (paused() is for menus).
+## The clock also holds through a fishing race, so all its bites come at the same hour.
 func ticking() -> bool:
-	return clock_running and not paused() and not indoors()
+	return clock_running and not paused() and not indoors() and race == null
 
 
 # --- maps -------------------------------------------------------------------
@@ -459,6 +467,8 @@ func go_to_map(map_id: String, cell: Vector2i, face: Vector2i) -> bool:
 	maps.place(map_id, cell, face)
 	maps.mine_floor = new_mine_floor(depth) if depth > 0 else null
 	fishing.stop()
+	if race != null:   # walked off in the middle: the race ends with the creel as it is
+		_end_race()
 	if maps.on_farm() and farm.in_bounds(cell) and farm.cell(cell).obj != FarmGrid.Obj.NONE:
 		farm.cell(cell).obj = FarmGrid.Obj.NONE
 		farm.cells_changed.emit()
@@ -1000,6 +1010,8 @@ func water_ahead(origin: Vector2i, facing: Vector2i) -> Vector2i:
 func cast_line(origin: Vector2i, facing: Vector2i) -> String:
 	if holding():
 		return "hands_full"
+	if race != null and not race.running():
+		return "race_wait"   # the count-in, or time is up
 	var spot := water_ahead(origin, facing)
 	if spot == Vector2i(-1, -1):
 		return "no_water"
@@ -1010,21 +1022,34 @@ func cast_line(origin: Vector2i, facing: Vector2i) -> String:
 
 
 ## The button while the line is out. A bite hooks a fish from what fits the place, season,
-## hour and weather (Fishing.candidates); it goes up overhead like a harvest. Returns
-## {result: "catch" / "early" / "none", fish: "fish:<id>" or ""}.
+## hour and weather (Fishing.candidates); it goes up overhead like a harvest, or during a
+## fishing race into the race's creel (once-only fish don't bite in a race). Returns
+## {result: "catch" / "early" / "none", fish: "fish:<id>" or "", race: true for a fish counted}.
 func reel_in() -> Dictionary:
 	var at := fishing.place
 	var r := fishing.reel()
 	var out := {"result": r, "fish": ""}
 	if r == "catch":
 		var look := weather_look(weather_today, season_name())
-		var id := Fishing.pick(Fishing.candidates(fish_data, at, season_name(), hour, look, fish_caught), rng.randf())
+		var racing := race != null and race.running()
+		var caught := fish_caught
+		if racing:
+			caught = fish_caught.duplicate()
+			for f in fish_data.get("fish", {}):
+				if fish_data.fish[f].get("once", false):
+					caught[f] = 1
+		var id := Fishing.pick(Fishing.candidates(fish_data, at, season_name(), hour, look, caught), rng.randf())
 		if id == "":
 			out.result = "none"
 		else:
 			fish_caught[id] = int(fish_caught.get(id, 0)) + 1
 			out.fish = "fish:" + id
-			held = out.fish
+			if racing:
+				race.land(out.fish)
+				out.race = true
+				race_changed.emit("fish")
+			else:
+				held = out.fish
 	changed.emit()
 	return out
 
@@ -1759,11 +1784,13 @@ func start_game() -> Dictionary:
 	var g := Festivals.game(fid)
 	if g.is_empty():
 		return {"ok": false, "why": "none"}
-	if game_partner != "":
+	if game_partner != "" or race != null:
 		return {"ok": false, "why": "busy"}
 	if events_seen.has(Festivals.played_key(fid, year)):
 		message.emit("You already took a turn at the %s this year." % g.name)
 		return {"ok": false, "why": "played"}
+	if g.kind == "fishing":
+		return _start_race(fid, g)
 	if held != "":
 		message.emit("The mallet takes both hands. Put the %s down first." % item_name(held))
 		return {"ok": false, "why": "held"}
@@ -1788,7 +1815,8 @@ func finish_game(score: int) -> Dictionary:
 	r.partner = partner
 	events_seen[Festivals.played_key(fid, year)] = true
 	_result_flags(r)
-	flags["contest_partner_" + partner] = true
+	if partner != "":
+		flags["contest_partner_" + partner] = true
 	var best := "game_best_" + str(g.id)
 	flags[best] = maxi(int(flags.get(best, 0)), score)
 	_pay_prize(r.prize)
@@ -1796,6 +1824,53 @@ func finish_game(score: int) -> Dictionary:
 	changed.emit()
 	play_event(g.event)
 	return r
+
+
+## The fishing race (a game of kind fishing): the rod in hand, the count-in on. The farmer
+## then fishes as usual; landed fish go in the race's creel (reel_in) while the clock holds,
+## and when time is up finish_game ranks the count.
+func _start_race(fid: String, g: Dictionary) -> Dictionary:
+	if held != "":
+		message.emit("The rod takes both hands. Put the %s down first." % item_name(held))
+		return {"ok": false, "why": "held"}
+	var slot := -1
+	for i in inventory.size("tools"):
+		if inventory.id_at("tools", i) == "rod":
+			slot = i
+	if slot < 0:
+		message.emit("Bring your fishing rod to race. It has to be in your tool slots.")
+		return {"ok": false, "why": "rod"}
+	tool_index = slot
+	fishing.stop()
+	race = FishingRace.new(g)
+	message.emit("%s: land all the fish you can in %d seconds!" % [g.name, int(g.seconds)])
+	race_changed.emit("start")
+	game_requested.emit(fid, "")
+	changed.emit()
+	return {"ok": true, "partner": ""}
+
+
+func _race_step(delta: float) -> void:
+	for e in race.advance(delta):
+		match e:
+			"go":
+				race_changed.emit("go")
+			"time":
+				if fishing.active():
+					fishing.stop()   # the line comes in empty when time is called
+				race_changed.emit("time")
+			"done":
+				_end_race()
+				return
+
+
+## The race is over (time, or the farmer left the map): its fish are let go and the count is
+## judged (finish_game).
+func _end_race() -> void:
+	var n := race.score()
+	race = null
+	race_changed.emit("done")
+	finish_game(n)
 
 
 ## The flags a result event branches on: contest_place_<n>, contest_won_<rival> (earlier ones
@@ -2076,6 +2151,8 @@ func to_dict() -> Dictionary:
 	d.kitchen_tools = kitchen_tools.duplicate()
 	d.animals = animals.to_dict()
 	d.fishing = {"caught": fish_caught.duplicate(), "dry_casts": fishing.dry_casts}
+	if race != null:
+		d.fishing.race = race.to_dict()
 	d.affection = affection.to_dict()
 	d.mine = {"deepest": mine_deepest}
 	var pages := []
@@ -2283,6 +2360,13 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	var dry = SaveGame.whole(saved_fishing.get("dry_casts"), 0, 9999)
 	if dry == null:
 		return "Saved fishing is broken"
+	# A fishing race saved in the middle goes on from there (if the saved day still has one).
+	n.race = null
+	if saved_fishing.has("race"):
+		var rg := Festivals.game(Festivals.on_date(SEASONS[n.season], n.day))
+		n.race = FishingRace.parse(rg, saved_fishing.race) if rg.get("kind") == "fishing" else null
+		if n.race == null:
+			return "Saved fishing race is broken"
 	if not data.has("fishing") and n.inventory.count("rod", ["tools", "chest"]) == 0:
 		n.inventory.add("rod", 1, ["tools", "chest"])
 	# Version 3 added affection; older saves start with everyone a stranger.
