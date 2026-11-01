@@ -1,7 +1,8 @@
 class_name Keepsakes
 extends RefCounted
 ## Things to keep (data/keepsakes.json): keepsakes bought at a festival stall ("keep:<id>")
-## and contest ribbons ("ribbon:<festival>:<place>"). They sit in the rucksack and are never
+## and contest ribbons ("ribbon:<festival>:<place>", or "ribbon:<game id>:<place>" for a festival game
+## like the mochi pounding). They sit in the rucksack and are never
 ## eaten, shipped or sold (Game.sell_price and Shop.buy_back give them 0). Every ribbon won
 ## is also written into the story flag RECORD ("<festival>:<place>:<year>", comma between),
 ## which the farmhouse's ribbon board shows (a map prop gated by that flag; StoryView /
@@ -61,9 +62,10 @@ static func name_of(id: String) -> String:
 	if id.begins_with("keep:"):
 		return str(keepsake(id).get("name", ""))
 	var place := ribbon_place(id)
-	if place == 0 or Festivals.name_of(id.get_slice(":", 1)) == "":
+	var label := Festivals.ribbon_label(id.get_slice(":", 1))   # a festival, or a festival's game
+	if place == 0 or label == "":
 		return ""
-	return str(data().ribbons.get("name", "%s ribbon (%s)")) % [Festivals.name_of(id.get_slice(":", 1)), places()[place - 1].name]
+	return str(data().ribbons.get("name", "%s ribbon (%s)")) % [label, places()[place - 1].name]
 
 
 ## The colour of the ribbon for `place` (1 = first).

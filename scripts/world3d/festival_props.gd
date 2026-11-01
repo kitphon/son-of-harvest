@@ -1,7 +1,7 @@
 class_name FestivalProps
 extends FarmWorld
 ## Today's festival decorations on one map in 3D (data/festivals.json → props): cherry trees
-## and picnic mats, lantern strings and stalls, the moon offering, New Year bamboo and a
+## and picnic mats, lantern strings and stalls, the moon offering, New Year bamboo, a mochi mortar and a
 ## bonfire, the contest's judges' table. Built with the map's world when a festival falls on today and is held here, shown
 ## only during its hours. Lights (lanterns, the fire) are listed in `glows` for FestivalGlow,
 ## which draws their glow over the night tint. Placeholder looks like MapWorld's props.
@@ -63,6 +63,7 @@ func _make(p: Dictionary) -> void:
 		"paper_lantern": _paper_lantern(mid)
 		"kadomatsu": _kadomatsu(mid)
 		"bonfire": _bonfire(mid)
+		"mochi_usu": _mochi_usu(mid)
 		_:
 			push_warning("FestivalProps: no look for prop '%s'" % p.kind)
 			_box(Vector3(r.size.x, 0.5, r.size.y) * 0.9, mid + Vector3(0, 0.25, 0), flat_material(Color.MAGENTA))
@@ -269,6 +270,23 @@ func _bonfire(mid: Vector3) -> void:
 	_cylinder(0.0, 0.22, 0.55, mid + Vector3(0, 0.38, 0), flat_material(FLAME))
 	_cylinder(0.0, 0.11, 0.35, mid + Vector3(0, 0.32, 0), flat_material(Color("fff0a0")))
 	_glow(mid + Vector3(0, 0.4, 0), FLAME, 3.0)
+
+
+## The mochi pounding's mortar (a festival game's prop): a hooped log hollowed on top with
+## the white dough in it, the mallet leaning on its side and a pail of water for the hands.
+func _mochi_usu(mid: Vector3) -> void:
+	var wood := flat_material(PlaceholderArt.MOCHI_WOOD)
+	_cylinder(0.3, 0.33, 0.5, mid + Vector3(0, 0.25, 0), wood, 12)
+	for y in [0.12, 0.4]:
+		_cylinder(0.335, 0.335, 0.04, mid + Vector3(0, y, 0), flat_material(PlaceholderArt.MOCHI_HOOP), 12)
+	_cylinder(0.22, 0.22, 0.02, mid + Vector3(0, 0.505, 0), flat_material(PlaceholderArt.MOCHI_WOOD_DARK), 12)
+	_cylinder(0.12, 0.18, 0.1, mid + Vector3(0, 0.55, 0), flat_material(PlaceholderArt.MOCHI_DOUGH), 12)   # the dough mound
+	var handle := flat_material(Color("c8a06a"))
+	_box(Vector3(0.05, 0.9, 0.05), mid + Vector3(0.42, 0.45, 0.05), handle, Vector3(0, 0, 0.25))
+	var head := _cylinder(0.09, 0.09, 0.3, mid + Vector3(0.53, 0.88, 0.05), wood, 10)
+	head.rotation_degrees = Vector3(0, 0, 90)
+	_cylinder(0.12, 0.1, 0.18, mid + Vector3(-0.45, 0.09, 0.15), flat_material(Color("8a7a5a")), 10)   # the pail
+	_cylinder(0.1, 0.1, 0.01, mid + Vector3(-0.45, 0.17, 0.15), flat_material(Color("6aa0c8")), 10)
 
 
 ## The lights a festival's decorations give on a map (as in `glows`), without keeping the

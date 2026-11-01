@@ -550,6 +550,29 @@ closing, and between the shrine and the bonfire at Year's Turn. In a festival's 
 says a `festival_<id>` line (`data/dialogue/talk_<id>.json`). A house job under way keeps
 Hachiro building.
 
+**A played contest: the mochi pounding.** A festival may also have a `game`, a contest that is
+played rather than judged. Year's Turn has the Mochi Pounding at a `mochi_usu` prop (a hooped
+mortar with the dough, the mallet leaning on it and a pail, right of the shrine path at
+[20, 4]). E there with empty hands starts it (`Game.start_game`): of the game's `partners`
+(Tome, Kota) the villager the farmer is closest to turns the dough (Tome on a tie) and the
+MochiScreen opens over either view: the farmer with the mallet on the left, the mortar in the
+middle, the partner on the right, and a ring that closes on the dough for each strike. E
+(Enter / Space, a click) as it meets the mark: within `windows.great` seconds of the beat is
+great, within `windows.good` good, otherwise a miss (the partner's hands are in the bowl), and a
+beat let pass is a miss too (`points` great 3, good 1, miss -1; never below 0). The `rounds`
+(8, 10 and 12 strikes, a beat of 1.0, 0.8 and 0.65 s, `gap` seconds between, `lead` before the
+first; 90 points at best) get faster; the dough goes from rice to a round mochi as strikes
+land. The timing is `MochiPound` (pure logic); the sounds are `mochi_count` (the count-in and
+each new round), `mochi_pound`, `mochi_miss` (the mallet on the rim) and `mochi_turn` (the
+partner folding the dough). The score is ranked like a contest (`Festivals.judge_game`: the
+game's own `rivals` rolled per year, the partner sitting out), the prize paid, the place,
+winner and `contest_partner_<id>` flags set for `mochi_result` in `data/dialogue/contests.json`,
+the best score kept in the flag `game_best_<game id>`, and `contest_mochi` plays. One go a
+year (`events_seen` key `game:<festival>:<year>`); the First Stone contest stays open beside
+it. Placing gives a ribbon keyed by the game's id (`ribbon:mochi:<place>`, "Mochi Pounding
+ribbon"). `-- --demo --festival=years_turn --contest=mochi` stands at the mortar with the game
+on; `--contest=mochi:auto` swings by itself for screenshots.
+
 **Stalls.** A festival may have a `stall` (`{id?, name, cell, stock}`; the cell is a `stall`
 prop's), or a list of them, each with its own `id`. E at one in the hours opens it as a shop
 with id `stall:<festival>` (or `stall:<festival>:<stall id>`): Blossom Day's Hanami Dango Stall
@@ -565,7 +588,7 @@ omamori charm. A selling stall sets its stock out on the counter in both views.
 `stall:years_turn:charms`, with `--festival=<id>`) stands at it with the screen open.
 
 **Keepsakes and ribbons** (`data/keepsakes.json`, `Keepsakes`). Keepsakes (`keep:<id>`) and
-ribbons (`ribbon:<festival>:<place>`) sit in the rucksack and are never eaten, shipped or sold.
+ribbons (`ribbon:<festival>:<place>`, or `ribbon:<game id>:<place>`) sit in the rucksack and are never eaten, shipped or sold.
 Placing 1st, 2nd or 3rd in a contest gives a ribbon of that place (red, white, blue, like the
 rosettes on the judges' table) on top of the prize, and notes it in the story flag `ribbons`
 (`<festival>:<place>:<year>`, comma between; saved with the flags), even when the rucksack is
