@@ -325,7 +325,7 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	var rule := Game.charge_rule(tool, charge)
 	var cells := farm.area_cells(origin, facing, rule.area)
 	# A swing always costs stamina, even when it hits nothing.
-	if not Game.spend_stamina(int(rule.stamina)):
+	if not Game.spend_stamina(Game.swing_stamina(tool, charge)):
 		return
 	Sfx.play("tool_" + tool)
 	var worked := false

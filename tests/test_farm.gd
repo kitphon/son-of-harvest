@@ -323,6 +323,22 @@ func _charge_rules(crops: Dictionary, game_script: GDScript) -> void:
 	check(gm.max_charge("hoe") == 3 and gm.charge_after("hoe", step * 3.5) == 3, "level 3 hoe charges three times")
 	gm.tool_levels.hoe = 99
 	check(gm.tool_level("hoe") == 5, "level kept within the tool's levels")
+	# Level 5 adds no charge step; the master's perk is a lighter swing (data/tools.json master).
+	var pct := int(tools.master.stamina_pct)
+	check(int(tools.master.level) == 5 and pct > 0 and pct < 100, "master: level 5, a cut stamina %s" % tools.master)
+	check(gm.is_master("hoe") and gm.swing_stamina("hoe", 4) == ceili(int(tools.tools.hoe.charges[4].stamina) * pct / 100.0)
+		and gm.swing_stamina("hoe", 4) < int(tools.tools.hoe.charges[4].stamina), "a level 5 hoe's top swing costs less: %d" % gm.swing_stamina("hoe", 4))
+	gm.tool_levels.sickle = 5
+	check(gm.swing_stamina("sickle", 0) == 1, "a 1-stamina swing stays 1 at level 5")
+	gm.tool_levels.hoe = 4
+	check(not gm.is_master("hoe") and gm.swing_stamina("hoe", 4) == int(tools.tools.hoe.charges[4].stamina), "level 4: full stamina")
+	check(not gm.is_master("rod") and not gm.is_master("seeds"), "only charging tools have the perk")
+	var said := []
+	gm.message.connect(func(t): said.append(t))
+	gm.raise_tool_level("hoe")
+	check(said.back() == (String(tools.tools.hoe.level_up) % 5) + String(tools.master.level_up), "level 5 says the perk: %s" % said.back())
+	gm.raise_tool_level("axe")
+	check(said.back() == String(tools.tools.axe.level_up) % 2, "level 2 says nothing more: %s" % said.back())
 	var pips := PlaceholderArt.tex(PlaceholderArt.charge_key(1, 2)).get_image()
 	check(pips.get_pixel(2, 2) == PlaceholderArt.UI_SEAL and pips.get_pixel(7, 2) == PlaceholderArt.UI_PAPER, "charge pips: reached filled, next empty")
 	gm.free()
@@ -353,6 +369,13 @@ func _charge_actions() -> void:
 	check(g.stamina == 100 - int(tools.hoe.charges[1].stamina), "charged hoe costs its stamina")
 	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 4)
 	check(g.stamina == 100 - 2 * int(tools.hoe.charges[1].stamina), "charge past the level costs the level's top charge")
+	g.tool_levels.hoe = 5
+	g.stamina = 100
+	actions.use_tool(Vector2i(14, 8), Vector2i.DOWN, 4)
+	check(g.stamina == 100 - g.swing_stamina("hoe", 4) and g.swing_stamina("hoe", 4) < int(tools.hoe.charges[4].stamina),
+		"a level 5 hoe's swing costs the master's stamina (%d)" % (100 - g.stamina))
+	g.tool_levels.hoe = 1
+	g.stamina = 100 - 2 * int(tools.hoe.charges[1].stamina)
 	# Watering can: level 2 waters 3 across ahead, one water per cell; a short can stops early.
 	g.tool_levels.can = 2
 	for x in range(9, 12):

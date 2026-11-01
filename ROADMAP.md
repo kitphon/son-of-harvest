@@ -27,7 +27,7 @@ The user chose to refine the placeholders first (real art later). Farmer, crops,
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
 font are done. Charging tools are done, and tools level up with use (tool experience,
 thresholds in data/tools.json; `Game.raise_tool_level()` is the hook for the blacksmith in
-milestone 8). Fatigue, tired poses, oversleeping and collapse are done (data/body.json).
+milestone 8); a charging tool at level 5 swings for 60% of the stamina (tools.json `master`). Fatigue, tired poses, oversleeping and collapse are done (data/body.json).
 Holding and throwing is done: a harvest goes up overhead, E throws it (into the bin = shipped,
 into the pond = gone), Space sets it down, items lie on the field and are saved
 (data/hold.json).
@@ -106,7 +106,8 @@ and fodder. While an extension is under way Hachiro builds on the farm (his `bui
 plan from the morning after the order: hammering at the farmhouse wall by a stack of lumber,
 a knock per blow, his own lines; the smithy counter has a note instead of him). The lumber
 is solid (farm map props with `solid` block in FarmGrid), and a day he doesn't build (a storm)
-doesn't count: the job is due a day later and the note and the build tab say so.
+doesn't count: the job is due a day later and the note and the build tab say so; that
+morning the farmer hears it on stepping out of the house (shops.json builds `off_day`).
 Chickens are in (milestone 7): the thatched coop right of the stand is a map (feed box,
 nests, incubator, hen hatch); rules in `Animals`, numbers in `data/animals.json`, saved
 (save version 2). The shop sells chickens through `Game.add_animal("chicken")`, feed through
@@ -152,7 +153,8 @@ The balance pass is done (milestone 8): our own crop, product, animal and extens
 `python -I tools/balance.py` prints income per season for a steady year-1 plan (WORKLOG has
 the before / after table); it also keeps the smithy's ores back from the bin (an upgrade
 waits while they are short), counts contest prizes from the odds against the rivals, and prints
-each recipe's gain over its raw ingredients. Later for balance: play a real year; the smithy's
+each recipe's gain over its raw ingredients, its kitchen tools and the cookings that pay them
+back (the plan buys the tools as a one-off cost in the season it first needs them). Later for balance: play a real year; the smithy's
 level 2 ores (3 akagane) are short for a spring with two mine trips (WORKLOG note).
 The ending is in (milestone 9): on the first morning of year 3 Tome brings the village record
 (stars per category, a rank and a title from data/ending.json; README → Ending), then the
@@ -226,6 +228,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Hachiro seen at work while building (day plan on the house_work flag, work pose and knock, lumber prop, talk lines, smithy note)
    - [x] Building fixes: solid story props on the farm (the lumber, the streamer pole; `solid` read by FarmGrid.prop_blocks), a day Hachiro doesn't build (storm) pushes the due day (note and build tab say so)
    - [x] Balance pass (income per season, seed, animal and extension costs; `tools/balance.py`); the store sells cows, sheep, calves, lambs and fodder
+   - [x] Leftovers: a level 5 perk for the charging tools (lighter swings), the morning word when a storm keeps Hachiro off the job, kitchen tool prices in `tools/balance.py`
 9. **Festivals, mining / fishing, relationships, endings**
    - [x] Fishing: rod (8th tool slot), cast at the farm / village pond, bite cue, fish per place / season / hour / weather (data/fish.json)
    - [x] The river: a map off the village's south lane, its own fish (dace, chub, sculpin, fall salmon, the once-only river elder), river fish on gift lists

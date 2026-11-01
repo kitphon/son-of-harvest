@@ -9,7 +9,9 @@ money left after buying them in order. A tool upgrade also needs the smithy's or
 out of the mine finds (kept back instead of shipped, so the mine column is what reached the
 bin), and an upgrade waits while the ores are short. Festival contests: the odds of each place
 for the plan's best entry against the rivals' rolls (data/festivals.json), and the prize money
-expected. Last, every recipe's gain over its ingredients shipped raw, per season.
+expected. Last, every recipe's gain over its ingredients shipped raw, per season, with the
+kitchen tools it needs and how many cookings pay them back. The plan buys a kitchen tool (a
+one-off cost, column "tools") in the first season it cooks a recipe that needs it.
 
 Not a game rule: the plan below is our guess at how a calm player spends year 1. Run it before
 and after changing prices to compare (WORKLOG has the tables).
@@ -203,6 +205,16 @@ def need_value(need, season):
     return each * need["n"]
 
 
+def kitchen_tools_bought():
+    """{season: G} the plan spends on kitchen tools: each one the first season COOKED needs it."""
+    owned, out = set(), {}
+    for s in SEASONS:
+        new = {t for rid in COOKED.get(s, {}) for t in recipes["recipes"][rid].get("tools", [])} - owned
+        out[s] = sum(recipes["tools"][t]["price"] for t in new)
+        owned |= new
+    return out
+
+
 def cook_season(season):
     """G the season's dishes fetch over their ingredients shipped raw."""
     gain = 0.0
@@ -293,11 +305,13 @@ def main():
     fodder_price = stock_price("fodder")
     sells_barn = stock_price("animal:cow") is not None and fodder_price is not None
     rows = {}
+    kitchen = kitchen_tools_bought()
     for s in SEASONS:
         r = {"crops": 0, "cook": 0, "eggs": 0, "milk": 0, "wool": 0, "fish": 0, "mine": 0, "prize": 0,
-             "seeds": 0, "feed": 0, "animals": 0, "medicine": 0, "food": 0}
+             "seeds": 0, "feed": 0, "animals": 0, "medicine": 0, "food": 0, "tools": 0}
         r["seeds"], r["crops"] = crop_season(s)
         r["cook"] = cook_season(s)
+        r["tools"] = kitchen[s]
         for day in range(1, DAYS + 1):
             for (bs, bd, n) in HENS_BOUGHT:
                 if (bs, bd) == (s, day) and chicken_price:
@@ -354,16 +368,17 @@ def main():
         r["goals"] = (bought, money, short)
 
     print("Income and running costs per season (G), steady year-1 plan")
-    head = ["season", "crops", "cook", "eggs", "milk", "wool", "fish", "mine", "prize", "income", "seeds", "feed", "animals", "other", "net"]
+    head = ["season", "crops", "cook", "eggs", "milk", "wool", "fish", "mine", "prize", "income", "seeds", "feed", "animals", "tools", "other", "net"]
     print(" | ".join(f"{h:>7}" for h in head))
     year = 0
     for s in SEASONS:
         r = rows[s]
         year += season_net(r)
         cells = [s, r["crops"], r["cook"], r["eggs"], r["milk"], r["wool"], r["fish"], r["mine"], r["prize"],
-                 sum(r[k] for k in INCOME), r["seeds"], r["feed"], r["animals"], r["medicine"] + r["food"], season_net(r)]
+                 sum(r[k] for k in INCOME), r["seeds"], r["feed"], r["animals"], r["tools"], r["medicine"] + r["food"], season_net(r)]
         print(" | ".join(f"{c:>7}" if isinstance(c, str) else f"{round(c):>7}" for c in cells))
-    print(f"year net {round(year)} G (mine: finds shipped, less the ores kept for the smithy)")
+    print(f"year net {round(year)} G (mine: finds shipped, less the ores kept for the smithy;"
+          " tools: kitchen tools, once)")
     print()
     for s in SEASONS:
         bought, left, short = rows[s]["goals"]
@@ -389,19 +404,24 @@ def main():
     print(f"   wins expected a year: {wins:.1f}")
 
     print()
-    print("Recipes: G one cooking fetches over its ingredients shipped raw (dish sell x makes - ingredients)")
-    print(f"{'recipe':>17} | " + " | ".join(f"{s:>6}" for s in SEASONS))
+    print("Recipes: G one cooking fetches over its ingredients shipped raw (dish sell x makes - ingredients);")
+    print("   tools: G of the kitchen tools it needs (shared tools counted in full); pays: cookings at its")
+    print("   best season's gain to earn them back")
+    print(f"{'recipe':>17} | " + " | ".join(f"{s:>6}" for s in SEASONS) + f" | {'tools':>6} | {'pays':>5}")
     for rid, rec in recipes["recipes"].items():
         dish = foods["foods"][rid]["sell"] * rec.get("makes", 1)
         cells = [round(dish - sum(need_value(n, s) for n in rec["needs"])) for s in SEASONS]
-        print(f"{rid:>17} | " + " | ".join(f"{c:>6}" for c in cells))
+        tools = sum(recipes["tools"][t]["price"] for t in rec.get("tools", []))
+        best = max(cells)
+        pays = "-" if tools == 0 else (f"{-(-tools // best):>5}" if best > 0 else "never")
+        print(f"{rid:>17} | " + " | ".join(f"{c:>6}" for c in cells) + f" | {tools:>6} | {pays:>5}")
 
 
 INCOME = ("crops", "cook", "eggs", "milk", "wool", "fish", "mine", "prize")
 
 
 def season_net(r):
-    return sum(r[k] for k in INCOME) - r["seeds"] - r["feed"] - r["animals"] - r["medicine"] - r["food"]
+    return sum(r[k] for k in INCOME) - r["seeds"] - r["feed"] - r["animals"] - r["tools"] - r["medicine"] - r["food"]
 
 
 def goal_items(goal):

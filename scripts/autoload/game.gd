@@ -109,6 +109,7 @@ var farm: FarmGrid
 var maps := MapManager.new()       # the map the farmer is on and where (saved)
 var animals := Animals.new()       # the coop, the barn and the dog (data/animals.json, saved)
 var animal_news: Array[String] = []   # what happened to the animals overnight, told in the coop
+var build_news := ""                  # the builder stays away today (a storm), told outside
 var affection := Affection.new()   # how much each villager likes the farmer (saved)
 var _accum := 0.0
 var _shown_state := "fine"      # the tired state last told to the player
@@ -177,6 +178,7 @@ func new_game() -> void:
 	animals = Animals.new()
 	animals.start()
 	animal_news = []
+	build_news = ""
 	fishing = Fishing.new(fish_data)
 	fish_caught = {}
 	affection = Affection.new()
@@ -463,6 +465,9 @@ func map_arrived() -> void:
 	if animals.home_on_map(maps.id) != "" and not animal_news.is_empty():
 		message.emit(". ".join(animal_news))
 		animal_news.clear()
+	if build_news != "" and maps.id != MapManager.HOME:
+		message.emit(build_news)
+		build_news = ""
 
 
 ## A new day starts at home: in the house, by the futon.
@@ -699,6 +704,7 @@ func end_day() -> void:
 	if Shop.job_ready(house_job, day_number()):
 		_finish_build(house_job)
 	sync_build_flag()
+	build_news = _build_off_news()
 	go_home()
 	day_started.emit()
 	changed.emit()
@@ -994,7 +1000,7 @@ func mine_swing(tool: String, origin: Vector2i, facing: Vector2i, charge := 0) -
 		out.result = "hands_full"
 		return out
 	var rule := charge_rule(tool, charge)
-	spend_stamina(int(rule.stamina))
+	spend_stamina(swing_stamina(tool, charge))
 	for c in f.area_cells(origin, facing, rule.area):
 		var r: Dictionary = f.hit(c, int(rule.get("hits", 1))) if tool == "hammer" else f.dig(c)
 		out.tough = out.tough or r.result == "tough"
@@ -1397,7 +1403,7 @@ func raise_tool_level(tool: String) -> bool:
 		return false
 	tool_levels[tool] = lv + 1
 	var rule: Dictionary = tools_data.tools.get(tool, rod_rule() if tool == "rod" else {})
-	message.emit(String(rule.get("level_up", "Tool level %d!")) % (lv + 1))
+	message.emit(String(rule.get("level_up", "Tool level %d!")) % (lv + 1) + (str(_master().get("level_up", "")) if is_master(tool) else ""))
 	changed.emit()
 	return true
 
@@ -1429,6 +1435,22 @@ func charge_after(tool: String, seconds: float) -> int:
 ## One charge step's rule: {area, stamina, hits?}. The charge is kept within the tool level.
 func charge_rule(tool: String, charge: int) -> Dictionary:
 	return tools_data.tools[tool].charges[clampi(charge, 0, max_charge(tool))]
+
+
+## Stamina a swing at `charge` costs: the charge step's, cut for a tool at the master level
+## (data/tools.json master: stamina_pct, rounded up, at least 1).
+func swing_stamina(tool: String, charge: int) -> int:
+	var n := int(charge_rule(tool, charge).stamina)
+	return ceili(n * int(_master().get("stamina_pct", 100)) / 100.0) if is_master(tool) and n > 0 else n
+
+
+## Has a charging tool reached the master level (data/tools.json master.level)?
+func is_master(tool: String) -> bool:
+	return tools_data.get("tools", {}).has(tool) and not _master().is_empty() and tool_level(tool) >= int(_master().get("level", 99))
+
+
+func _master() -> Dictionary:
+	return tools_data.get("master", {})
 
 
 ## The tool in hand: the marked tool slot's tool, "" when that slot is empty.
@@ -1746,14 +1768,34 @@ func farm_prop_blocks(c: Vector2i) -> bool:
 ## birthday. Such a day doesn't count: the job is due a day later and `late` counts the lost
 ## days (saved; the counter's note and the build tab say so).
 func _count_build_day() -> void:
-	if not flags.has(BUILD_FLAG) or house_job.is_empty():
-		return
-	var s := shop(str(house_job.get("shop", "")))
-	var v: Dictionary = Villagers.all().get(s.builder, {}) if s != null else {}
-	if v.is_empty() or s.build_plan == "" or Villagers.pick_plan(v, trigger_state(Vector2i.ZERO)) == s.build_plan:
+	if _builder_off_plan() == "":
 		return
 	house_job.ready = int(house_job.ready) + 1
 	house_job.late = int(house_job.get("late", 0)) + 1
+
+
+## The builder's day plan today while a job is under way (BUILD_FLAG set) and that plan is not
+## his building one, else "".
+func _builder_off_plan() -> String:
+	if not flags.has(BUILD_FLAG) or house_job.is_empty():
+		return ""
+	var s := shop(str(house_job.get("shop", "")))
+	var v: Dictionary = Villagers.all().get(s.builder, {}) if s != null else {}
+	if v.is_empty() or s.build_plan == "":
+		return ""
+	var plan := Villagers.pick_plan(v, trigger_state(Vector2i.ZERO))
+	return "" if plan == s.build_plan else plan
+
+
+## The morning's word when the builder won't come today (data/shops.json builds off_day, by
+## the plan that keeps him; "" for none); map_arrived tells it once the farmer steps out.
+func _build_off_news() -> String:
+	var plan := _builder_off_plan()
+	if plan == "":
+		return ""
+	var s := shop(str(house_job.get("shop", "")))
+	var text := str(s.build_off_day.get(plan, ""))
+	return text % s.item_name(house_job.build).to_lower() if text != "" else ""
 
 
 func has_built(build: String) -> bool:

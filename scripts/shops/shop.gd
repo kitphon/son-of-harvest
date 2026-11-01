@@ -36,6 +36,7 @@ var build_away := ""                   # at the builder's own counter while they
 var build_away_late := ""              # the same once a day was lost (%s = its name, then the new due date)
 var build_late := ""                   # the build tab's line for a job a day was lost on (%s = the due date)
 var build_plan := ""                   # the builder's day plan while building: other days don't count
+var build_off_day: Dictionary = {}     # the builder's other day plan -> the morning's word that he won't build (%s = its name)
 var crops: Dictionary = {}
 var foods: Dictionary = {}
 var mine_items: Dictionary = {}       # data/mine.json "items": names, kinds and sell prices of finds
@@ -98,6 +99,7 @@ static func make(shop_id: String, crop_data: Dictionary, food_data: Dictionary, 
 	shop.build_away_late = str(s.get("builds", {}).get("away_late", shop.build_away))
 	shop.build_late = str(s.get("builds", {}).get("late", "Done on %s."))
 	shop.build_plan = str(s.get("builds", {}).get("plan", ""))
+	shop.build_off_day = s.get("builds", {}).get("off_day", {})
 	shop.crops = crop_data
 	shop.foods = food_data
 	shop.mine_items = mine_data()
