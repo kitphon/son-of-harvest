@@ -31,7 +31,8 @@
 				"rivals": [
 					{"who": "kota", "score": [40, 75]},
 					{"who": "tome", "score": [45, 85]},
-					{"who": "sayo", "score": [30, 65]}
+					{"who": "sayo", "score": [30, 65]},
+					{"who": "shige", "score": [45, 80]}
 				],
 				"prizes": [
 					{"money": 500, "item": "food:sakura_mochi", "count": 2},
@@ -80,7 +81,8 @@
 				"rivals": [
 					{"who": "hachiro", "score": [90, 190]},
 					{"who": "kota", "score": [30, 120]},
-					{"who": "tome", "score": [40, 110]}
+					{"who": "tome", "score": [40, 110]},
+					{"who": "genzo", "score": [40, 130]}
 				],
 				"prizes": [
 					{"money": 500, "item": "food:yomogi_tea"},
@@ -144,7 +146,8 @@
 					{"who": "hachiro", "score": [6, 11]},
 					{"who": "tome", "score": [4, 9]},
 					{"who": "kota", "score": [3, 8]},
-					{"who": "sayo", "score": [2, 7]}
+					{"who": "sayo", "score": [2, 7]},
+					{"who": "nana", "score": [2, 7]}
 				],
 				"prizes": [
 					{"money": 400, "item": "food:grilled_fish", "count": 2},
@@ -161,7 +164,8 @@
 				"rivals": [
 					{"who": "sayo", "score": [80, 170]},
 					{"who": "tome", "score": [60, 150]},
-					{"who": "kota", "score": [40, 120]}
+					{"who": "kota", "score": [40, 120]},
+					{"who": "haru", "score": [50, 135]}
 				],
 				"prizes": [
 					{"money": 500, "item": "food:dango", "count": 3},
@@ -230,7 +234,8 @@
 					{"who": "hachiro", "score": [48, 80]},
 					{"who": "sayo", "score": [24, 62]},
 					{"who": "kota", "score": [18, 58]},
-					{"who": "tome", "score": [30, 70]}
+					{"who": "tome", "score": [30, 70]},
+					{"who": "ichiro", "score": [36, 72]}
 				],
 				"prizes": [
 					{"money": 400, "item": "food:kinako_mochi", "count": 3},
@@ -247,7 +252,8 @@
 				"rivals": [
 					{"who": "hachiro", "score": [120, 320]},
 					{"who": "kota", "score": [40, 160]},
-					{"who": "sayo", "score": [20, 120]}
+					{"who": "sayo", "score": [20, 120]},
+					{"who": "ichiro", "score": [80, 240]}
 				],
 				"prizes": [
 					{"money": 500, "item": "food:kagami_mochi"},

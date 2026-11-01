@@ -32,6 +32,10 @@
 			"then": "blossom_day_tome"
 		},
 		{
+			"if": "contest_won_shige",
+			"then": "blossom_day_shige"
+		},
+		{
 			"id": "blossom_day_sayo",
 			"next": "blossom_day_place",
 			"speaker": "sayo",
@@ -51,6 +55,13 @@
 			"speaker": "tome",
 			"face": "smile",
 			"text": "Forty springs I've grown turnips. They still come out the best, it seems."
+		},
+		{
+			"id": "blossom_day_shige",
+			"next": "blossom_day_place",
+			"speaker": "shige",
+			"face": "smile",
+			"text": "Potatoes from the south gardens. Dig deep and leave them be, that's all there is to it."
 		},
 		{
 			"id": "blossom_day_place",
@@ -125,6 +136,10 @@
 			"then": "lantern_night_kota"
 		},
 		{
+			"if": "contest_won_genzo",
+			"then": "lantern_night_genzo"
+		},
+		{
 			"id": "lantern_night_tome",
 			"next": "lantern_night_place",
 			"speaker": "tome",
@@ -144,6 +159,13 @@
 			"speaker": "kota",
 			"face": "surprised",
 			"text": "I won? I caught it with a stick and a bit of string!"
+		},
+		{
+			"id": "lantern_night_genzo",
+			"next": "lantern_night_place",
+			"speaker": "genzo",
+			"face": "smile",
+			"text": "A loach from my own paddy. Sixty summers I've watched them in the mud. Tonight one paid me back."
 		},
 		{
 			"id": "lantern_night_place",
@@ -218,6 +240,10 @@
 			"then": "moon_night_tome"
 		},
 		{
+			"if": "contest_won_haru",
+			"then": "moon_night_haru"
+		},
+		{
 			"id": "moon_night_kota",
 			"next": "moon_night_place",
 			"speaker": "kota",
@@ -237,6 +263,13 @@
 			"speaker": "tome",
 			"face": "smile",
 			"text": "Milk from my neighbour's cow, cream on top. I only carried it here!"
+		},
+		{
+			"id": "moon_night_haru",
+			"next": "moon_night_place",
+			"speaker": "haru",
+			"face": "surprised",
+			"text": "My hens? They live under the straw shed and lay where they please. I only picked the best one!"
 		},
 		{
 			"id": "moon_night_place",
@@ -311,6 +344,10 @@
 			"then": "years_turn_kota"
 		},
 		{
+			"if": "contest_won_ichiro",
+			"then": "years_turn_ichiro"
+		},
+		{
 			"id": "years_turn_sayo",
 			"next": "years_turn_place",
 			"speaker": "sayo",
@@ -330,6 +367,13 @@
 			"speaker": "kota",
 			"face": "surprised",
 			"text": "My shiny pebble from the river won? Really?"
+		},
+		{
+			"id": "years_turn_ichiro",
+			"next": "years_turn_place",
+			"speaker": "ichiro",
+			"face": "calm",
+			"text": "Amber. Found it in the roots of a pine I cut for the kiln. Thought the shrine should have it."
 		},
 		{
 			"id": "years_turn_place",
@@ -396,6 +440,10 @@
 			"then": "mochi_kota"
 		},
 		{
+			"if": "contest_won_ichiro",
+			"then": "mochi_ichiro"
+		},
+		{
 			"id": "mochi_tome",
 			"next": "mochi_place",
 			"speaker": "tome",
@@ -422,6 +470,13 @@
 			"speaker": "kota",
 			"face": "smile",
 			"text": "Dad turned and I pounded! He says I swing like a real farmer now."
+		},
+		{
+			"id": "mochi_ichiro",
+			"next": "mochi_place",
+			"speaker": "ichiro",
+			"face": "smile",
+			"text": "I swing an axe from dawn. A mallet is lighter. Still, good dough, whoever turned it."
 		},
 		{
 			"id": "mochi_place",
@@ -506,6 +561,10 @@
 			"then": "fishing_sayo"
 		},
 		{
+			"if": "contest_won_nana",
+			"then": "fishing_nana"
+		},
+		{
 			"id": "fishing_hachiro",
 			"next": "fishing_place",
 			"speaker": "hachiro",
@@ -532,6 +591,13 @@
 			"speaker": "sayo",
 			"face": "surprised",
 			"text": "I only came to sell bait... and then they kept biting!"
+		},
+		{
+			"id": "fishing_nana",
+			"next": "fishing_place",
+			"speaker": "nana",
+			"face": "surprised",
+			"text": "Kota said to keep the line still and not talk. I didn't talk at all! Not once!"
 		},
 		{
 			"id": "fishing_place",

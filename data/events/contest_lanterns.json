@@ -38,6 +38,18 @@
 			"meanwhile": true
 		},
 		{
+			"do": "actor",
+			"who": "genzo",
+			"at": "plan",
+			"holds": "fish:dojo",
+			"to": [
+				13,
+				8
+			],
+			"face": "up",
+			"meanwhile": true
+		},
+		{
 			"do": "wait",
 			"seconds": 0.3,
 			"walkers": true
@@ -83,6 +95,12 @@
 			"meanwhile": true
 		},
 		{
+			"do": "actor",
+			"who": "genzo",
+			"to": "plan",
+			"meanwhile": true
+		},
+		{
 			"do": "wait",
 			"seconds": 0.3,
 			"walkers": true
@@ -104,6 +122,11 @@
 		{
 			"do": "actor",
 			"who": "tome",
+			"leave": true
+		},
+		{
+			"do": "actor",
+			"who": "genzo",
 			"leave": true
 		}
 	]

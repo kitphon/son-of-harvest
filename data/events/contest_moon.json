@@ -38,6 +38,18 @@
 			"meanwhile": true
 		},
 		{
+			"do": "actor",
+			"who": "haru",
+			"at": "plan",
+			"holds": "egg_good",
+			"to": [
+				20,
+				9
+			],
+			"face": "up",
+			"meanwhile": true
+		},
+		{
 			"do": "wait",
 			"seconds": 0.3,
 			"walkers": true
@@ -83,6 +95,12 @@
 			"meanwhile": true
 		},
 		{
+			"do": "actor",
+			"who": "haru",
+			"to": "plan",
+			"meanwhile": true
+		},
+		{
 			"do": "wait",
 			"seconds": 0.3,
 			"walkers": true
@@ -104,6 +122,11 @@
 		{
 			"do": "actor",
 			"who": "kota",
+			"leave": true
+		},
+		{
+			"do": "actor",
+			"who": "haru",
 			"leave": true
 		}
 	]

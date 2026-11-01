@@ -38,6 +38,18 @@
 			"meanwhile": true
 		},
 		{
+			"do": "actor",
+			"who": "ichiro",
+			"at": "plan",
+			"holds": "mine:kohaku",
+			"to": [
+				11,
+				5
+			],
+			"face": "up",
+			"meanwhile": true
+		},
+		{
 			"do": "wait",
 			"seconds": 0.3,
 			"walkers": true
@@ -83,6 +95,12 @@
 			"meanwhile": true
 		},
 		{
+			"do": "actor",
+			"who": "ichiro",
+			"to": "plan",
+			"meanwhile": true
+		},
+		{
 			"do": "wait",
 			"seconds": 0.3,
 			"walkers": true
@@ -104,6 +122,11 @@
 		{
 			"do": "actor",
 			"who": "sayo",
+			"leave": true
+		},
+		{
+			"do": "actor",
+			"who": "ichiro",
 			"leave": true
 		}
 	]

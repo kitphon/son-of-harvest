@@ -314,7 +314,7 @@ func _contest_data() -> void:
 	var bad := {
 		"takes": {"takes": "food"}, "table": {"table": [9, 7]},   # that is the stall, not a judge_table
 		"rival": {"rivals": [{"who": "nobody", "score": [1, 2]}]}, "score": {"rivals": [{"who": "kota", "score": [9, 2]}]},
-		"prizes": {"prizes": [{"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}]},
+		"prizes": {"prizes": [{"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}]},
 		"prize": {"prizes": [{"gold": 5}]}, "ask": {"ask": "no_such_line"}, "event": {"event": "no_such_event"},
 		"key": {"judge": "tsuru"},
 	}
@@ -332,8 +332,8 @@ func _contest_data() -> void:
 ## The judging: rivals rolled per festival and year, the farmer's place, ties and prizes.
 func _judging() -> void:
 	var r := Festivals.judge("blossom_day", 1, 0)
-	check(r.place == 4 and r.winner == r.rivals[0].who and r.prize.is_empty(), "a worthless entry comes last with no prize %s" % [r])
-	check(r.rivals.size() == 3 and r.rivals[0].score >= r.rivals[1].score and r.rivals[1].score >= r.rivals[2].score, "rivals best first")
+	check(r.place == r.rivals.size() + 1 and r.winner == r.rivals[0].who and r.prize.is_empty(), "a worthless entry comes last with no prize %s" % [r])
+	check(r.rivals.size() == 4 and r.rivals[0].score >= r.rivals[1].score and r.rivals[1].score >= r.rivals[2].score, "rivals best first")
 	check(Festivals.judge("blossom_day", 1, 0).rivals == r.rivals, "the same festival and year judge the same")
 	var other := false
 	for y in range(2, 8):
@@ -679,7 +679,7 @@ func _ribbons() -> void:
 	g.new_game()
 	check(not MapManager.data("house").props.any(func(p): return p.kind == "ribbon_board"), "no ribbon board before the first ribbon")
 	check(Keepsakes.board_text(g.flags) == "An empty board for contest ribbons.", "an empty record")
-	# A fourth place: no ribbon. A full rucksack: the ribbon is noted on the board anyway.
+	# Last place: no ribbon. A full rucksack: the ribbon is noted on the board anyway.
 	_set_day(g, "fall", 15, 19, 0)
 	g.maps.place("town", Vector2i(22, 9), Vector2i.UP)
 	var said: Array = []
@@ -687,8 +687,8 @@ func _ribbons() -> void:
 	g.message.connect(hear)
 	g.held = "egg"
 	var r: Dictionary = g.enter_contest()
-	check(r.ok and r.place == 4 and Keepsakes.record(g.flags).is_empty() and not g.flags.has(Keepsakes.RECORD) and g.count("ribbon:moon_night:4") == 0,
-		"an egg comes fourth at the Moon Offering: no ribbon (%s)" % [r])
+	check(r.ok and r.place == 5 and Keepsakes.record(g.flags).is_empty() and not g.flags.has(Keepsakes.RECORD) and g.count("ribbon:moon_night:5") == 0,
+		"an egg comes last at the Moon Offering: no ribbon (%s)" % [r])
 	g._give_ribbon("moon_night", 3)
 	check(g.count("ribbon:moon_night:3") == 1 and said.back() == "You got a Moon Night ribbon (3rd)!", "a third-place ribbon")
 	while g.add_item("mine:stone", 99) == 0:
@@ -880,7 +880,7 @@ func _game_data() -> void:
 		"rounds": {"rounds": []}, "beat": {"rounds": [{"beats": 4, "beat": 0.1}]},
 		"good window": {"windows": {"great": 0.07, "good": 0.4}}, "great window": {"windows": {"great": 0.12, "good": 0.1}},
 		"miss points": {"points": {"great": 3, "good": 1, "miss": 1}}, "good points": {"points": {"great": 1, "good": 3, "miss": 0}},
-		"prizes": {"prizes": [{"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}]},
+		"prizes": {"prizes": [{"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}]},
 		"rival": {"rivals": [{"who": "nobody", "score": [1, 2]}]}, "event": {"event": "no_such_event"},
 		"key": {"music": "taiko"}, "id": {"id": "a b"}, "lead": {"lead": 30},
 	}
@@ -929,8 +929,8 @@ func _mochi_timing() -> void:
 ## The ranking: rivals rolled per year, the partner sitting out, prizes by place.
 func _game_judging() -> void:
 	var r := Festivals.judge_game("years_turn", 1, 0, "tome")
-	check(r.rivals.size() == 3 and not r.rivals.any(func(x): return x.who == "tome") and r.place == 4 and r.prize.is_empty(),
-		"with Tome turning, three rivals; 0 points comes last with no prize")
+	check(r.rivals.size() == 4 and not r.rivals.any(func(x): return x.who == "tome") and r.place == 5 and r.prize.is_empty(),
+		"with Tome turning, four rivals; 0 points comes last with no prize")
 	var k := Festivals.judge_game("years_turn", 1, 0, "kota")
 	var hachiro := func(res): return res.rivals.filter(func(x): return x.who == "hachiro")[0].score
 	check(not k.rivals.any(func(x): return x.who == "kota") and hachiro.call(k) == hachiro.call(r), "the partner changes who rivals, not their scores")
@@ -1036,8 +1036,8 @@ func _game_play() -> void:
 	var count: int = g.count("food:kinako_mochi")
 	money = g.money
 	r = g.finish_game(0)
-	check(r.place == 4 and r.prize.is_empty() and g.money == money and g.count("food:kinako_mochi") == count and g.count("ribbon:mochi:4") == 0
-		and g.flags.get("contest_place_4") == true and g.flags.get("contest_won_" + str(r.rivals[0].who)) == true and g.flags.get("contest_partner_kota") == true
+	check(r.place == 5 and r.prize.is_empty() and g.money == money and g.count("food:kinako_mochi") == count and g.count("ribbon:mochi:5") == 0
+		and g.flags.get("contest_place_5") == true and g.flags.get("contest_won_" + str(r.rivals[0].who)) == true and g.flags.get("contest_partner_kota") == true
 		and not g.flags.has("contest_partner_tome") and not g.flags.has("contest_prize") and int(g.flags.get("game_best_mochi", 0)) == top,
 		"year 2: last place, no prize or ribbon, the best score kept (%s)" % [r])
 	g.hour = 0   # midnight: Year's Turn is over (its hours end at 24:00)
@@ -1133,7 +1133,7 @@ func _race_data() -> void:
 	var bad := {
 		"seconds": {"seconds": 5}, "lead": {"lead": 20}, "partners": {"partners": ["tome"]},
 		"rounds": {"rounds": [{"beats": 4, "beat": 1.0}]}, "cell": {"cell": [22, 8]},
-		"prizes": {"prizes": [{"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}]},
+		"prizes": {"prizes": [{"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}]},
 	}
 	for what in bad:
 		var h := f.duplicate(true)
@@ -1284,7 +1284,7 @@ func _race_play() -> void:
 	g._race_step(3.0)
 	g.race.land("fish:funa")
 	g.go_to_map("farm", Vector2i(4, 4), Vector2i.DOWN)
-	check(g.race == null and events.back() == "contest_fishing" and g.events_seen.has("game:moon_night:2") and g.flags.get("contest_place_5") == true
+	check(g.race == null and events.back() == "contest_fishing" and g.events_seen.has("game:moon_night:2") and g.flags.get("contest_place_6") == true
 		and Keepsakes.record(g.flags).back().year == 1 and int(g.flags.get("game_best_fishing", 0)) == top,
 		"leaving the village ends the race and judges its one fish")
 	g.message.disconnect(hear)

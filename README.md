@@ -576,7 +576,10 @@ festival and year, the farmer wins ties (`Festivals.judge`). The prize for the p
 `contest_wins` counts first prizes) and the contest's `event` (`data/events/contest_*.json`)
 plays: the rivals walk up together from their festival plans (`"at": "plan"`, `meanwhile`)
 with their own entries overhead (`holds`), stand in front of the table beside the farmer
-while the results are read, then walk back and go on with their plans. One entry a year (`events_seen` key `contest:<id>:<year>`). `-- --demo
+while the results are read, then walk back and go on with their plans. Each contest and game has
+one of the outer parts' villagers among its rivals: Shige (crops, a potato), Genzo (fish, a
+loach from his paddy), Haru (the Moon Offering, an egg from her hens), Ichiro (the First Stone,
+amber from a pine's roots; and the mochi pounding) and Nana (the pond race). One entry a year (`events_seen` key `contest:<id>:<year>`). `-- --demo
 --festival=<id> --contest=<item>` stands at the table with the item and enters it.
 
 **The crowd.** All four villagers go to every festival by festival day plans (rules with
@@ -628,7 +631,7 @@ the end. The clock holds while the race runs, so all its bites come at the hour 
 small wood box under the message line in both views (`RaceScreen`) shows the time left, a bar
 running down, the fish count and the last eight fish landed; "Time!" is called (the line comes
 in empty), and after two seconds the count is ranked like the mochi score (`judge_game`, the
-game's four rivals rolled per year, no partner), the prize paid, `fishing_result` lines in
+game's five rivals rolled per year, no partner), the prize paid, `fishing_result` lines in
 `contests.json`, `contest_fishing` plays, the best count kept in `game_best_fishing`, and a
 ribbon `ribbon:fishing:<place>` ("Moon Pond Race ribbon"). Walking off the map mid-race ends
 it with the creel as it is. A race in progress is saved (`fishing.race`: time and fish) and

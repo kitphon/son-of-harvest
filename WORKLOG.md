@@ -10,6 +10,28 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — The new villagers as contest rivals
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: one villager from the outer parts joins the rivals of every contest and game
+  (data/festivals.json): Shige at the Blossom Crop Show ([45, 80], a potato), Genzo at the
+  Lantern Night Catch ([40, 130], a loach from his paddy), Haru at the Moon Offering ([50, 135],
+  an egg from her hens), Ichiro at the First Stone ([80, 240], amber from a pine's roots) and at
+  the mochi pounding ([36, 72]), Nana in the Moon Pond Race ([2, 7], like Sayo). In the four
+  result events they walk up from their festival plans with their entries overhead and stand
+  at the end of the line (Shige [18, 9], Genzo [13, 8], Haru [20, 9], Ichiro [11, 5]), then go
+  back. Each has a winner's line in data/dialogue/contests.json (six new, our own).
+- Balance (ours): the new ranges sit inside the old rivals' spread, never above the best one,
+  so a good entry still wins; one more rival only thins the lower places a little.
+  `tools/balance.py` before / after: Lantern Night 32 / 68 / 0 % → 26 / 67 / 7 % (first /
+  second / third), the others within two points; contest prizes 29 G less over the year
+  (year net 99674 → 99645 G).
+- Checked: test_festivals' rival checks now cover the new rivals (at the table, entries of the
+  kind, back to their plans, every place and winner's line); its fixed counts moved (four
+  rivals, last place 5 / 6, six bad prizes); all 25 test scripts print `OK (0 failed)`; smoke
+  runs (title, `--demo`, town, mine 3, Blossom Day) print no errors; a screenshot of
+  `--festival=blossom_day --contest=potato` shows Shige holding a potato at the left of the line.
+- Left / next: forage in the other parts; wild things in recipes.
+
 ## 2026-11-01 — The new villagers in the village record
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a Neighbours row on the village record and the yearly pages (data/ending.json
