@@ -6,7 +6,7 @@
 		{"event": "pond_first", "on": "step", "area": [23, 1, 7, 5]},
 		{"event": "farm_nameplate", "on": "examine", "spot": [3, 3], "once": false},
 		{"event": "farm_nameplate", "on": "examine", "spot": [5, 3], "once": false},
-		{"event": "farm_sign", "on": "examine", "spot": [30, 0], "once": false},
-		{"event": "farm_sign", "on": "examine", "spot": [33, 0], "once": false}
+		{"event": "farm_sign", "on": "examine", "spot": [31, 4], "once": false},
+		{"event": "farm_sign", "on": "examine", "spot": [31, 7], "once": false}
 	]
 }

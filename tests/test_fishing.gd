@@ -156,7 +156,7 @@ func _init() -> void:
 	g.held = ""
 
 	# The river: down the lane off the village's south edge, a cast from the shore, a river fish.
-	var lane: Dictionary = MapManager.data("town").door_at(Vector2i(4, 36))
+	var lane: Dictionary = MapManager.data("town").door_at(Vector2i(4, 22))
 	check(lane.get("to", "") == "river", "the village's south lane goes to the river")
 	g.use_door(lane)
 	check(g.maps.id == "river" and not g.indoors(), "at the river")

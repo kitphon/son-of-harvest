@@ -9,3 +9,6 @@
 
 # Screenshots / movie frames from test runs
 /shots/
+
+# Godot export templates downloaded next to the project (installed from here, not part of it)
+*.tpz

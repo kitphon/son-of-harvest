@@ -221,7 +221,7 @@ func _init() -> void:
 	g.events_seen.shrine_offering = true
 	check(at.call(town, Vector2i(18, 1)) == "shrine_offering", "examine rows play every time")
 	check(at.call(town, Vector2i(17, 3)) == "" and town.pick("step", g.trigger_state(Vector2i(19, 2))) == "", "nothing beside the spots or on stepping")
-	check(at.call(farm, Vector2i(5, 3)) == "farm_nameplate" and at.call(farm, Vector2i(30, 0)) == "farm_sign", "the farm's name plate and gate board")
+	check(at.call(farm, Vector2i(5, 3)) == "farm_nameplate" and at.call(farm, Vector2i(31, 4)) == "farm_sign", "the farm's name plate and gate board")
 	var hill := EventTriggers.open("hill")
 	check(at.call(hill, Vector2i(20, 2)) == "hill_shrine" and at.call(hill, Vector2i(17, 2)) == "hill_view"
 		and at.call(hill, Vector2i(17, 2), {"season": "winter"}) == "hill_view_snow", "the hill's shrine and its view (in winter too)")

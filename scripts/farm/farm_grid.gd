@@ -5,11 +5,12 @@ extends RefCounted
 
 signal cells_changed
 
-const W := 64
-const H := 48
-## The farm before it was widened (2026-11-01): saves of this size grow into the new one.
-const OLD_W := 32
-const OLD_H := 20
+const W := 32
+const H := 20
+## The farm was 64 x 48 for a day (2026-11-01) before it went back to this size: a save of
+## that size loads cut back to W x H, the yard and the field near it kept.
+const WIDE_W := 64
+const WIDE_H := 48
 
 enum Obj { NONE, ROCK, BRANCH, WEED, STUMP }
 
@@ -26,8 +27,6 @@ const COOP := Rect2i(13, 1, 5, 3)    # the chicken coop's footprint, its door in
 const COOP_DOOR := Vector2i(15, 3)
 const BARN := Rect2i(19, 1, 5, 3)    # the barn's footprint, between the coop and the pond
 const BARN_DOOR := Vector2i(21, 3)
-## The woodlot in the far corner: thick with stumps and branches for the axe.
-const WOODLOT := Rect2i(48, 32, 15, 15)
 const WEED_CHANCE := 0.01   # per empty cell per night, not in winter
 const STORM_LOSS := 1.0 / 16.0
 
@@ -73,52 +72,18 @@ func generate(rng: RandomNumberGenerator) -> void:
 
 	for y in range(7, H - 1):
 		for x in range(1, W - 1):
-			_scatter(Vector2i(x, y), rng)
+			if rng.randf() >= 0.15:
+				continue
+			var r := rng.randf()
+			var obj := Obj.WEED
+			if r > 0.95:
+				obj = Obj.STUMP
+			elif r > 0.75:
+				obj = Obj.BRANCH
+			elif r > 0.5:
+				obj = Obj.ROCK
+			cell(Vector2i(x, y)).obj = obj
 	cells_changed.emit()
-
-
-## New-game debris on one field cell: weeds, rocks, branches and stumps, the woodlot thicker
-## and woodier.
-func _scatter(c: Vector2i, rng: RandomNumberGenerator) -> void:
-	var wood := WOODLOT.has_point(c)
-	if rng.randf() >= (0.45 if wood else 0.15):
-		return
-	var r := rng.randf()
-	var obj := Obj.WEED
-	if r > (0.7 if wood else 0.95):
-		obj = Obj.STUMP
-	elif r > (0.3 if wood else 0.75):
-		obj = Obj.BRANCH
-	elif r > (0.15 if wood else 0.5):
-		obj = Obj.ROCK
-	cell(c).obj = obj
-
-
-## A farm saved before it was widened (OLD_W x OLD_H) laid into the new size: its cells and
-## buildings stay where they were, its old right and bottom fences become field, the new
-## ground gets debris like a new game's (a fixed seed, so a load is always the same) and the
-## fence runs round the new border.
-func _widen(old_cells: Array) -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 20261101
-	cells = []
-	for i in W * H:
-		cells.append(_empty_cell())
-	for c in fixed.keys():
-		if fixed[c] == "fence":
-			fixed.erase(c)
-	for y in range(1, H - 1):
-		for x in range(1, W - 1):
-			if x < OLD_W - 1 and y < OLD_H - 1:
-				cells[y * W + x] = old_cells[y * OLD_W + x]
-			elif y >= 7:
-				_scatter(Vector2i(x, y), rng)
-	for x in W:
-		fixed[Vector2i(x, 0)] = "fence"
-		fixed[Vector2i(x, H - 1)] = "fence"
-	for y in H:
-		fixed[Vector2i(0, y)] = "fence"
-		fixed[Vector2i(W - 1, y)] = "fence"
 
 
 ## Fixed spots added after the first saves (the storage chest by the house): a farm loaded
@@ -383,11 +348,11 @@ func to_dict() -> Dictionary:
 ## Puts a saved farm back in place (views keep their reference to this grid).
 ## Returns "" or what was wrong; on a problem nothing changes.
 func from_dict(data: Dictionary) -> String:
-	var old: bool = SaveGame.whole(data.get("w"), OLD_W, OLD_W) != null and SaveGame.whole(data.get("h"), OLD_H, OLD_H) != null
-	if not old and (SaveGame.whole(data.get("w"), W, W) == null or SaveGame.whole(data.get("h"), H, H) == null):
+	var wide: bool = SaveGame.whole(data.get("w"), WIDE_W, WIDE_W) != null and SaveGame.whole(data.get("h"), WIDE_H, WIDE_H) != null
+	if not wide and (SaveGame.whole(data.get("w"), W, W) == null or SaveGame.whole(data.get("h"), H, H) == null):
 		return "The saved farm has another size"
-	var sw := OLD_W if old else W
-	var sh := OLD_H if old else H
+	var sw := WIDE_W if wide else W
+	var sh := WIDE_H if wide else H
 	var rows = data.get("cells")
 	if not rows is Array or rows.size() != sw * sh:
 		return "The saved farm cells are missing"
@@ -422,13 +387,39 @@ func from_dict(data: Dictionary) -> String:
 		if x == null or y == null or new_items.has(Vector2i(x, y)):
 			return "A saved item on the ground is broken"
 		new_items[Vector2i(x, y)] = s[2]
+	if wide:
+		_cut_back(new_cells, new_fixed, new_items)
+		cells_changed.emit()
+		return ""
 	cells = new_cells
 	fixed = new_fixed
 	items = new_items
-	if old:
-		_widen(new_cells)
 	cells_changed.emit()
 	return ""
+
+
+## A WIDE_W x WIDE_H farm cut back to W x H: the cells, buildings and items inside the fence
+## line kept where they were, the rest dropped, the fence round the border again.
+func _cut_back(wide_cells: Array, wide_fixed: Dictionary, wide_items: Dictionary) -> void:
+	var inside := Rect2i(1, 1, W - 2, H - 2)
+	cells = []
+	for y in H:
+		for x in W:
+			cells.append(wide_cells[y * WIDE_W + x] if inside.has_point(Vector2i(x, y)) else _empty_cell())
+	fixed = {}
+	for c in wide_fixed:
+		if inside.has_point(c) and wide_fixed[c] != "fence":
+			fixed[c] = wide_fixed[c]
+	for x in W:
+		fixed[Vector2i(x, 0)] = "fence"
+		fixed[Vector2i(x, H - 1)] = "fence"
+	for y in H:
+		fixed[Vector2i(0, y)] = "fence"
+		fixed[Vector2i(W - 1, y)] = "fence"
+	items = {}
+	for c in wide_items:
+		if inside.has_point(c):
+			items[c] = wide_items[c]
 
 
 func _cell_from(v: Variant) -> Variant:

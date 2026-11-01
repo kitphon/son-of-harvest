@@ -186,10 +186,12 @@ and the gain since the last page. The record is drawn as a paper scroll that unr
 The year playtest is done: `tools/play_year.gd` plays two years through the real rules and
 prints a report per season and the village record (WORKLOG 2026-11-01); gifts were made slower
 and the ending's mine steps lower from it. Later for it: river fishing, food for the mine.
-Bigger world (the user found the maps small, 2026-11-01): the farm is 64 x 48 now (woodlot,
-gate in the top fence) and the village 56 x 36 (rice paddies east and south, the roads to the
-mine and the river longer), with a bamboo hill up its north lane (a lookout and a small shrine).
-Later for it: forage on the hill (bamboo shoots, mushrooms), villagers walking up.
+Bigger world (the user found the maps small, 2026-11-01): widening the farm and village made
+the walks long and dull, so they are back to their old sizes; the world grows by areas instead.
+Done: the bamboo hill (a lookout and a small shrine), reached by the village's north lane for
+now. Next: countryside props (well, jizo, persimmon, rice drying racks), then the village's
+north, east and south parts (between the village and the hill, the mine and the river), each
+with its own houses and character, and new villagers living there.
 After that: milestone 10, building the .exe once the export templates are installed (README → Export).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
@@ -205,9 +207,10 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] HUD, 2D view, 3D view with the HM field camera (yaw 45°, pitch 26.6°, FOV 13.7°)
    - [x] Clock pauses in menus (`Game.pause()` / `unpause()`)
    - [x] Clock pauses indoors (`Game.ticking()` is false on a map with `indoor: true`)
-   - [x] A wider farm: 64 x 48 with a woodlot, the gate in the top fence, old saves grow into it
-   - [x] A wider village: 56 x 36, rice paddies (`paddy` tile) east and south, tracks between them
    - [x] A new area off the village: the bamboo hill (`hill`, bamboo clumps, a lookout shrine, examine events)
+   - [ ] Countryside props: well, jizo, persimmon tree, rice drying rack
+   - [ ] The village's north part (to the hill), east part (to the mine), south part (to the river)
+   - [ ] New villagers living in the new parts
 2. **Look and feel**
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)

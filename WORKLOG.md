@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Back to the old farm and village sizes (more areas instead)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user played the wide maps: the walks were too long and dull, the village had no
+  character of its own, the new ground too empty and not rural Japanese enough. They want the
+  old maps kept and more areas added instead (north, south and east parts of the village), more
+  houses and more villagers. So 33269f7 (farm 64 x 48) and 67571eb (village 56 x 36) are undone
+  by hand: the farm is 32 x 20 with its gate on the right fence again, the village 36 x 22, the
+  river and mine doors, the Sunday river walks, Hachiro's farm route and the tests as before.
+  Kept: the 3D farm view's cheaper redraw (unchanged sprites kept, snow mask only while snow
+  lies), the `paddy` tile (for the new areas) and the bamboo hill. A save made while the farm was
+  64 x 48 loads cut back to 32 x 20 (`FarmGrid.WIDE_W / WIDE_H`, `_cut_back`: what was inside the
+  fence line stays). The village gets a lane north at x 10-11 (spawn `north`) that leads to the
+  hill for now; the north part of the village will sit between them.
+- Found: 33269f7 also committed `Godot_v4.7.2-stable_export_templates.tpz` (1.28 GB), which
+  had been put in the project folder during the session; the revert took it off the disk, so it
+  was written back from git (same size) and is untracked now, `*.tpz` in .gitignore. It stays
+  in the history of 33269f7 until that history is rewritten (asked the user).
+- Checked: test_farm's `_wide_save` (a 64 x 48 save loads cut back, inside kept, border fenced),
+  test_maps (north lane ↔ hill); all 24 test scripts print `OK (0 failed)`.
+- Left / next: countryside props, the north / east / south parts of the village, new villagers.
+
 ## 2026-11-01 — The bamboo hill (a new map up the village's north lane)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `data/maps/hill.json` (40 x 30, outdoor): a two-cell path switching back and forth up

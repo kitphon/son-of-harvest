@@ -82,9 +82,7 @@ effect the moment it changes and saved to `user://settings.json` (version 2; a v
 - Clock: 1 game minute = 0.5 s, day starts 6:00, 4 seasons x 30 days, day/night tint.
 - Weather rolled a day ahead per season (`data/weather.json`); rain waters the field, storms
   can destroy crops.
-- Farm grid 64 x 48 (the yard top left, the village gate in the top fence right of the pond,
-  a woodlot thick with stumps and branches in the far corner; a save of the old 32 x 20 farm
-  grows into it with everything in place): till, water (can refills at the pond), seed bag sows 3 x 3, crops grow
+- Farm grid 32 x 20: till, water (can refills at the pond), seed bag sows 3 x 3, crops grow
   one stage per watered night (`data/crops.json`), regrowing crops, out-of-season crops wither,
   weeds appear, rocks / branches / weeds / stumps cleared by the right tool.
 - Shipping bin pays at 18:00 (or when you sleep); the seed stand sells this season's seeds,
@@ -167,8 +165,8 @@ FarmGrid's, so the file only adds doors and spawns), the farmhouse inside (`hous
 village (`town`), the river south of it (`river`, its own fish table: place `river` in
 `data/fish.json`; water at a map's side edge draws no bank, so the river flows on), the
 bamboo hill up the village's north lane (`hill`: a switchback path through `bamboo` clumps to a
-lookout with a little shrine; its view and shrine can be examined). The village's new ground
-is rice paddies (the solid `paddy` tile). A file has `id`, `size` [w, h], `indoor` (the clock stands still inside, as
+lookout with a little shrine; its view and shrine can be examined). Ground tiles include the
+solid `paddy` (a flooded rice paddy). A file has `id`, `size` [w, h], `indoor` (the clock stands still inside, as
 DESIGN asks for every building), `ambient` (which `places` of the ambient rules in
 `data/sfx.json` apply), optional `light` (a fixed room light instead of day / night) and
 `background`, then:

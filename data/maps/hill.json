@@ -939,7 +939,7 @@
 			],
 			"to": "town",
 			"spawn": [
-				45,
+				10,
 				1
 			],
 			"facing": "down"
