@@ -1,0 +1,6 @@
+{
+	"_note": "Events inside the Hinata Clinic: Dr. Yae's word at the bed after a collapse (the flag clinic_wake, set by Game.knock_out and cleared by the event, so it plays after every collapse). Format: README.md, Events.",
+	"rows": [
+		{"event": "clinic_wake", "on": "enter", "flags": ["clinic_wake"], "once": false}
+	]
+}

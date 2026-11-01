@@ -118,8 +118,12 @@ effect the moment it changes and saved to `user://settings.json` (version 2; a v
 - Fatigue (hidden, data/body.json): rises with work in the rain or late at night, with staying
   up past 22:00 and with working on an empty stamina bar; only sleep lowers it, more the
   earlier you go to bed. Tired: the farmer slumps and sweats; exhausted: slower and can't run.
-  Going to bed tired or after midnight means oversleeping; full fatigue is a collapse (wake at
-  12:00 next day, a doctor's fee).
+  Going to bed tired or after midnight means oversleeping; full fatigue is a collapse: wherever
+  it happens the farmer wakes at 12:00 next day in the village clinic's bed (body.json collapse
+  `wake_map` / `wake_spawn`) and Dr. Yae says her piece (triggers_clinic.json, flags
+  `clinic_wake` / `clinic_free`); the first visit is free, later ones cost `fee` (the flag
+  `clinic_visits` counts them). Still up at 2:00 is a pass-out: wake at home, no fee. The
+  clinic (east of the smithy, open 9-17 every day) sells a herb tonic (fatigue -15).
 
 ## Export (Windows .exe)
 The preset "Windows Desktop" in `export_presets.cfg` builds `build/HarvestSon.exe` (git-ignored)
@@ -177,6 +181,8 @@ DESIGN asks for every building), `ambient` (which `places` of the ambient rules 
   village (`sayo_sign`), `ume_jar` in the farmhouse (`tome_grandma`) and `carp_streamer` on the
   farm (`kota_streamer`, band 6). A prop with `use: "examine"`
   plays its `sound` (data/sfx.json) and shows its `message` when used, on any map;
+- the village clinic (`clinic`, door east of the smithy, shop `clinic`) has a `bed` spawn by
+  its futon (a futon prop without `use` is only a bed), where a collapse wakes the farmer;
 - `spawns`: named `[cell, facing]`, `start` needed (`--map=<id>@<spawn>`), the house has
   `home` (where a new day starts); the villagers' homes have `home` where their owner sits.
 
@@ -190,7 +196,10 @@ speed in cells per game minute, cells per walk frame): `id`, `name`, optional `s
 (`outfit` kimono / happi / shirt_shorts, `hair_style` bun / short / headband / long /
 straw_hat, colours `hair`, `skin`, `top`, `waist`, `lower`, `accent`, `shoes`; drawn by
 `PlaceholderArt` as `villager:<id>:<front|back>:<idle|walk>:<frame>`), `birthday`
-(`{"season": "fall", "day": 24}`, optional; the farmhouse calendar names it), then:
+(`{"season": "fall", "day": 24}`, optional; the farmhouse calendar names it), optional
+`hearts` (false: a villager the farmer can't grow close to, like Dr. Yae at the clinic: no
+birthday, heart events or place in the village record; `Villagers.friends()` is everyone
+else, and the heart checks in test_relationships loop over it), then:
 - `rules`: `[{"if": {conditions}, "plan": "<name>"}]`, the first that holds picks the day's
   plan, else `default`. Conditions: `season`, `weekday`, `weather` (lists), `days`, `year`
   (`[first, last]`), `flags` / `not_flags` (story flags set / not set), `festival` (festival
@@ -262,7 +271,8 @@ minutes, cleared at 12:00 and 18:00. The farmer can't step within `block_reach` 
 `-- --demo --map=town --time=14:30 --talk=tome` puts the farmer below Tome and talks.
 
 ## Shops
-Shops live in `data/shops.json`: per shop a `name`, its inside `map`, `open` [first hour,
+Shops live in `data/shops.json` (the Yorozu Store, the Kurogane Smithy and Dr. Yae's Hinata
+Clinic, which sells only the herb tonic): per shop a `name`, its inside `map`, `open` [first hour,
 closing hour), `days_off`, `keeper` (the villager at the counter: Sayo at the store, Hachiro
 at the smithy; the counter sells only while their plan has them on the shop's map), `stock` per
 season plus `any` (`{item, price?}`; without a price a seed bag costs its crop's `seed_price`,

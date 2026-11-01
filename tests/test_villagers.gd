@@ -21,6 +21,7 @@ func _init() -> void:
 	_files()
 	_paths_stay_clear()
 	_building_day()
+	_doctor()
 
 
 func _process(_delta: float) -> bool:
@@ -247,6 +248,31 @@ func _building_day() -> void:
 
 func _state(extra := {}) -> Dictionary:
 	return {"year": 1, "season": "spring", "day": 1, "weekday": "mon", "weather": "sunny", "flags": {}}.merged(extra, true)
+
+
+## Dr. Yae: a villager without hearts (not among the friends, no birthday), at the clinic's
+## keeper spot through the clinic's hours but for a dry day's walk to the shrine after lunch,
+## at her counter at noon when a collapsed farmer wakes, in her room early and late.
+func _doctor() -> void:
+	var v: Dictionary = Villagers.all().get("yae", {})
+	check(not v.is_empty() and v.get("hearts") == false, "Dr. Yae is a villager without hearts")
+	check(not Villagers.friends().has("yae") and Villagers.friends().size() == Villagers.all().size() - 1 and Villagers.friends().has("tome"),
+		"friends() leaves her out, keeps the others")
+	check(not v.has("birthday") and Villagers.check(v.merged({"hearts": "no"}, true)) != "", "no birthday; hearts must be true or false")
+	var shop: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/shops.json")).shops.clinic
+	check(shop.keeper == "yae" and shop.map == "clinic", "she keeps the clinic's counter")
+	var keeper: Vector2i = MapManager.data("clinic").spawns.keeper[0]
+	for weather in ["sunny", "rain", "snow"]:
+		var s := _state({"weather": weather})
+		check(Villagers.where("yae", 720.0, s).map == "clinic" and Villagers.where("yae", 720.0, s).pos == Vector2(keeper) + Vector2(0.5, 0.5),
+			"at noon (%s) she is at the clinic's keeper spot %s" % [weather, Villagers.where("yae", 720.0, s)])
+		check(Villagers.where("yae", 420.0, s).map == DayPlan.AWAY and Villagers.where("yae", 1140.0, s).map == DayPlan.AWAY, "away at 7:00 and 19:00 (%s)" % weather)
+		var t0 := int(shop.open[0]) * 60.0
+		var t1 := int(shop.open[1]) * 60.0 - 1.0
+		check(Villagers.is_on("yae", "clinic", t0, s) and Villagers.is_on("yae", "clinic", t1, s), "in at opening and closing (%s)" % weather)
+	var walk := Villagers.where("yae", 800.0, _state())
+	check(walk.map == "town" and walk.pos == Vector2(19.5, 8.5) and walk.facing == Vector2i.UP, "on a dry day she stands at the torii at 13:20 %s" % [walk])
+	check(Villagers.where("yae", 800.0, _state({"weather": "rain"})).map == "clinic", "and stays in when it rains")
 
 
 ## The real data on a spring Monday and other days: who is in the village when.

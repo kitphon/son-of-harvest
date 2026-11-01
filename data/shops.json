@@ -77,6 +77,17 @@
 				}
 			},
 			"buys": {"stone": 150, "ore": 120}
+		},
+		"clinic": {
+			"_note": "Dr. Yae's Hinata Clinic (data/maps/clinic.json): open every day, since people fall ill on Sundays too; it sells only the herb tonic, the one food that takes a big bite out of fatigue. 400 G is ours: more than amazake (stamina) and mugwort tea (half swing fatigue), so it is a remedy, not a snack; about the price of a collapse's fee plus a lost morning's work.",
+			"name": "Hinata Clinic",
+			"map": "clinic",
+			"open": [9, 17],
+			"days_off": [],
+			"keeper": "yae",
+			"stock": {
+				"any": [{"item": "food:herb_tonic", "price": 400}]
+			}
 		}
 	}
 }

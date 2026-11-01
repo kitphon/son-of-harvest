@@ -27,7 +27,9 @@ The user chose to refine the placeholders first (real art later). Farmer, crops,
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
 font are done. Charging tools are done, and tools level up with use (tool experience,
 thresholds in data/tools.json; `Game.raise_tool_level()` is the hook for the blacksmith in
-milestone 8). Fatigue, tired poses, oversleeping and collapse are done (data/body.json).
+milestone 8). Fatigue, tired poses, oversleeping and collapse are done (data/body.json); a
+collapse wakes the farmer in the village clinic (data/maps/clinic.json, Dr. Yae, the first
+visit free, then a fee; the clinic sells a herb tonic).
 Holding and throwing is done: a harvest goes up overhead, E throws it (into the bin = shipped,
 into the pond = gone), Space sets it down, items lie on the field and are saved
 (data/hold.json).
@@ -195,6 +197,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Charging tools (hold to cover more cells, per tool level; data/tools.json)
    - [x] Tool levels and upgrades (experience from use; shop upgrades with milestone 8)
    - [x] Fatigue, tired animations, oversleeping, collapse (data/body.json)
+   - [x] The village clinic: Dr. Yae (a villager without hearts), a collapse wakes there, fee, herb tonic
    - [x] Eating / drinking, food items (data/foods.json, food slot, sold at the stand)
    - [x] Raw farm goods as food, cooking at the kitchen corner (data/recipes.json, recipe lessons)
    - [x] Daikon and rice crops, their recipes (recipe cards), dishes shipped at a sell price

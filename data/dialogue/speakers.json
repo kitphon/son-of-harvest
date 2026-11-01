@@ -5,5 +5,6 @@
 	"tome": {"name": "Tome", "face": {"bg": "c8c0d8", "skin": "eec39a", "hair": "e4e0d8", "style": "bun", "hat": "c8a050", "clothes": "6a4a7a"}},
 	"hachiro": {"name": "Hachiro", "face": {"bg": "c8b8a0", "skin": "d9a473", "hair": "2a2422", "style": "cap", "hat": "e8e2d0", "clothes": "2e4a7a"}},
 	"sayo": {"name": "Sayo", "face": {"bg": "e8d0c0", "skin": "f2c79b", "hair": "3a2420", "style": "bun", "hat": "e8c050", "clothes": "c85a6a"}},
-	"kota": {"name": "Kota", "face": {"bg": "b8d8a8", "skin": "e0a878", "hair": "2a2422", "style": "cap", "hat": "e0c070", "clothes": "e8e2d0"}}
+	"kota": {"name": "Kota", "face": {"bg": "b8d8a8", "skin": "e0a878", "hair": "2a2422", "style": "cap", "hat": "e0c070", "clothes": "e8e2d0"}},
+	"yae": {"name": "Dr. Yae", "face": {"bg": "c0d8d8", "skin": "e8b88e", "hair": "2a2a30", "style": "bun", "hat": "4a8a8a", "clothes": "eeeee6"}}
 }
