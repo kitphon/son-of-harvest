@@ -223,11 +223,15 @@ static func examine_prop(c: Vector2i) -> bool:
 
 
 ## Today's festival, while it is on: its judges' table (enter the contest with the item
-## overhead, or hear what it takes) or its stall (opens it like a shop).
+## overhead, or hear what it takes), the prop of its game (the mortar: start the mochi
+## pounding) or its stall (opens it like a shop).
 static func festival_spot(c: Vector2i) -> bool:
 	var fid := Game.festival_now()
 	if fid == "":
 		return false
+	if Festivals.at_game(fid, c):
+		Game.start_game()
+		return true
 	if Festivals.at_table(fid, c):
 		var r := Game.enter_contest()
 		if r.ok:

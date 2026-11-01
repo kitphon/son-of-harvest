@@ -1,5 +1,5 @@
 {
-	"_about": "The village festivals (Festivals, scripts/festivals/festivals.gd; README.md, Festivals). One per season, all our own: names, dates, hours and looks were made up for Harvest Son. Per festival: name (HUD tag and calendar), season, day, hours [\"H:MM\", \"H:MM\") on the map where it is held, place (the cell it gathers round, [x, y]; `--festival=<id>` starts the farmer there facing up), event (data/events, plays once a year when the farmer is on the map in the hours), closes (shop ids from data/shops.json that stay shut all day), props (decorations on the map during the hours: {kind, cell, size?}; not solid, so they never block a walk; looks in FestivalProps / FestivalView), optional fireworks [\"H:MM\", \"H:MM\") (bursts over the 3D view in those hours). DESIGN: a festival day is always sunny (the weather rolled for it is replaced the evening before). Optional contest: {name, takes (the kind of entry: crop, fish, animal for eggs / milk / wool, mine for the mine's ores and stones), table (a cell of a judge_table prop; E there with an entry overhead enters it, empty-handed the judge says the `ask` line of data/dialogue/contests.json), in_season (score factor for an entry that grows in the festival's season), rivals [{who (a villager), score [lowest, highest]}] rolled once per festival and year, prizes by place [{money, item?, count?}], event (data/events, the results; flags contest_place_<n> and contest_won_<rival> are set for its lines)}. An entry scores its shipping value; one entry a year; the farmer wins ties. Optional stall: {id?, name, cell (a cell of a stall prop), stock [{item, price?}]}, or a list of them (each with its own id), a shop (id stall:<festival>, or stall:<festival>:<stall id>) that sells only in the festival's hours; its stock is set out on the stall's counter in both views, and the other stall props are only looks. Placing in a contest also gives a ribbon (data/keepsakes.json). Prize money is kept small: a first prize is about a good day's shipping.",
+	"_about": "The village festivals (Festivals, scripts/festivals/festivals.gd; README.md, Festivals). One per season, all our own: names, dates, hours and looks were made up for Harvest Son. Per festival: name (HUD tag and calendar), season, day, hours [\"H:MM\", \"H:MM\") on the map where it is held, place (the cell it gathers round, [x, y]; `--festival=<id>` starts the farmer there facing up), event (data/events, plays once a year when the farmer is on the map in the hours), closes (shop ids from data/shops.json that stay shut all day), props (decorations on the map during the hours: {kind, cell, size?}; not solid, so they never block a walk; looks in FestivalProps / FestivalView), optional fireworks [\"H:MM\", \"H:MM\") (bursts over the 3D view in those hours). DESIGN: a festival day is always sunny (the weather rolled for it is replaced the evening before). Optional contest: {name, takes (the kind of entry: crop, fish, animal for eggs / milk / wool, mine for the mine's ores and stones), table (a cell of a judge_table prop; E there with an entry overhead enters it, empty-handed the judge says the `ask` line of data/dialogue/contests.json), in_season (score factor for an entry that grows in the festival's season), rivals [{who (a villager), score [lowest, highest]}] rolled once per festival and year, prizes by place [{money, item?, count?}], event (data/events, the results; flags contest_place_<n> and contest_won_<rival> are set for its lines)}. An entry scores its shipping value; one entry a year; the farmer wins ties. Optional stall: {id?, name, cell (a cell of a stall prop), stock [{item, price?}]}, or a list of them (each with its own id), a shop (id stall:<festival>, or stall:<festival>:<stall id>) that sells only in the festival's hours; its stock is set out on the stall's counter in both views, and the other stall props are only looks. Placing in a contest also gives a ribbon (data/keepsakes.json). Prize money is kept small: a first prize is about a good day's shipping. Optional game: a contest that is played instead of judged, {id (its ribbon key and `--contest=<id>`), name, kind (mochi: pounding in time with a partner who turns the dough; MochiPound), cell (a cell of a mochi_usu prop; E there with empty hands starts it), partners (villagers who turn the dough; the one the farmer is closest to takes the job, the first on a tie, and sits out as a rival), lead (seconds before the first beat), gap (seconds between rounds), rounds [{beats, beat (seconds between strikes)}], windows {great, good} (seconds either side of a beat; good under half the fastest beat), points {great, good, miss} (a miss is a press off the beat or a beat let pass; the score never drops below 0), rivals, prizes and event as for a contest}. Balance: three rounds of 8, 10 and 12 strikes, faster each time, 90 points at best; a steady player who lands most strikes as good or great gets 45-65, about where the rivals roll.",
 	"festivals": {
 		"blossom_day": {
 			"name": "Blossom Day",
@@ -187,8 +187,37 @@
 				{"kind": "stall", "cell": [22, 2], "size": [2, 1], "cloth": "a8282c"},
 				{"kind": "paper_lantern", "cell": [16, 5]},
 				{"kind": "paper_lantern", "cell": [21, 5]},
-				{"kind": "judge_table", "cell": [14, 4], "size": [2, 1]}
+				{"kind": "judge_table", "cell": [14, 4], "size": [2, 1]},
+				{"kind": "mochi_usu", "cell": [20, 4]}
 			],
+			"game": {
+				"id": "mochi",
+				"name": "Mochi Pounding",
+				"kind": "mochi",
+				"cell": [20, 4],
+				"partners": ["tome", "kota"],
+				"lead": 2.0,
+				"gap": 1.6,
+				"rounds": [
+					{"beats": 8, "beat": 1.0},
+					{"beats": 10, "beat": 0.8},
+					{"beats": 12, "beat": 0.65}
+				],
+				"windows": {"great": 0.07, "good": 0.16},
+				"points": {"great": 3, "good": 1, "miss": -1},
+				"rivals": [
+					{"who": "hachiro", "score": [48, 80]},
+					{"who": "sayo", "score": [24, 62]},
+					{"who": "kota", "score": [18, 58]},
+					{"who": "tome", "score": [30, 70]}
+				],
+				"prizes": [
+					{"money": 400, "item": "food:kinako_mochi", "count": 3},
+					{"money": 150, "item": "food:kinako_mochi"},
+					{"money": 80}
+				],
+				"event": "contest_mochi"
+			},
 			"contest": {
 				"name": "First Stone of the Year",
 				"takes": "mine",

@@ -2,17 +2,21 @@ class_name Festivals
 extends RefCounted
 ## The festival calendar (data/festivals.json): which festival falls on a date, whether it is
 ## on at a minute of the day, which shops it shuts, which decorations stand on a map and
-## whether its event is due, its contest (what it takes, how it is judged, the prizes) and its
-## stall. Pure logic like Villagers: the date and clock come in as arguments (or
+## whether its event is due, its contest (what it takes, how it is judged, the prizes), its
+## played game (the mochi pounding; MochiPound keeps the time) and its stall. Pure logic like Villagers: the date and clock come in as arguments (or
 ## Game.trigger_state), so tests run it headless. Format: README.md, Festivals.
 
 const GameRules := preload("res://scripts/autoload/game.gd")   # SEASONS, DAYS_PER_SEASON
 const PATH := "res://data/festivals.json"
 const KEYS: Array[String] = ["_note", "name", "season", "day", "hours", "map", "place", "event",
-	"closes", "props", "fireworks", "contest", "stall"]
+	"closes", "props", "fireworks", "contest", "game", "stall"]
 const PROP_KEYS: Array[String] = ["kind", "cell", "size", "cloth"]
 const CONTEST_KEYS: Array[String] = ["_note", "name", "takes", "table", "ask", "in_season", "rivals",
 	"prizes", "event"]
+const GAME_KEYS: Array[String] = ["_note", "id", "name", "kind", "cell", "partners", "lead", "gap", "rounds",
+	"windows", "points", "rivals", "prizes", "event"]
+## What a played game can be, and the prop it is played at.
+const GAMES := {"mochi": "mochi_usu"}
 const STALL_KEYS: Array[String] = ["_note", "id", "name", "cell", "stock"]
 ## What a contest can take: Game.item_kind of the entry.
 const KINDS: Array[String] = ["crop", "fish", "animal", "mine"]
@@ -155,13 +159,21 @@ static func entry_score(id: String, item_seasons: Array, value: int) -> int:
 ## rivals: [{who, score}] best first, winner ("farmer" or a rival's id), prize ({} or
 ## {money, item?, count?})}.
 static func judge(id: String, year: int, score: int) -> Dictionary:
-	var c := contest(id)
+	return _rank(contest(id), "%s:%d" % [id, year], score)
+
+
+## Ranks a farmer scoring `score` against the rivals of contest or game `c`, rolled with seed
+## `key`. Rival `skip` (the game's partner) is rolled but sits out, so the others' scores
+## stay the same whoever the partner is.
+static func _rank(c: Dictionary, key: String, score: int, skip := "") -> Dictionary:
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash("%s:%d" % [id, year])
+	rng.seed = hash(key)
 	var rivals: Array = []
 	var place := 1
 	for r in c.get("rivals", []):
 		var s := rng.randi_range(int(r.score[0]), int(r.score[1]))
+		if r.who == skip:
+			continue
 		rivals.append({"who": r.who, "score": s})
 		if s > score:
 			place += 1
@@ -170,6 +182,56 @@ static func judge(id: String, year: int, score: int) -> Dictionary:
 	return {"place": place, "score": score, "rivals": rivals,
 		"winner": "farmer" if place == 1 else rivals[0].who,
 		"prize": prizes[place - 1] if place <= prizes.size() else {}}
+
+
+# --- the played game (mochi pounding) --------------------------------------------
+
+## Festival `id`'s played game ({} for none).
+static func game(id: String) -> Dictionary:
+	return get_festival(id).get("game", {})
+
+
+## The festival whose game has id `game_id` ("" for none).
+static func festival_of_game(game_id: String) -> String:
+	for id in all():
+		if str(game(id).get("id", "")) == game_id:
+			return id
+	return ""
+
+
+## The events_seen key that marks the farmer's go at festival `id`'s game in `year` (one a year).
+static func played_key(id: String, year: int) -> String:
+	return "game:%s:%d" % [id, year]
+
+
+## Is `cell` part of the prop festival `id`'s game is played at?
+static func at_game(id: String, cell: Vector2i) -> bool:
+	var g := game(id)
+	return not g.is_empty() and _prop_rect(id, _cell(g.cell)).has_point(cell)
+
+
+## Who turns the dough for the farmer at festival `id`'s game: of its partners, the one
+## `points` (a Callable: villager id -> affection) is highest for, the first on a tie.
+static func partner_for(id: String, points: Callable) -> String:
+	var best := ""
+	for who in game(id).get("partners", []):
+		if best == "" or int(points.call(who)) > int(points.call(best)):
+			best = who
+	return best
+
+
+## Judges festival `id`'s game in `year` like a contest (judge): the farmer scored `score`
+## with `partner` turning the dough, who is then no rival.
+static func judge_game(id: String, year: int, score: int, partner := "") -> Dictionary:
+	return _rank(game(id), "%s:game:%d" % [id, year], score, partner)
+
+
+## The name a ribbon key stands for: a festival's, or a festival game's ("" for neither).
+static func ribbon_label(key: String) -> String:
+	if all().has(key):
+		return name_of(key)
+	var fid := festival_of_game(key)
+	return str(game(fid).name) if fid != "" else ""
 
 
 # --- the stalls -----------------------------------------------------------------
@@ -316,6 +378,10 @@ static func check_festival(f: Variant) -> String:
 		var err := _check_contest(f.contest, f)
 		if err != "":
 			return "contest: " + err
+	if f.has("game"):
+		var err := _check_game(f.game, f)
+		if err != "":
+			return "game: " + err
 	if f.has("stall"):
 		var ids := {}
 		for st in (f.stall if f.stall is Array else [f.stall]):
@@ -344,6 +410,12 @@ static func _check_contest(c: Variant, f: Dictionary) -> String:
 		return "in_season is a factor from 1 to 10"
 	if not c.get("ask") is String or DialogueRunner.open(DIALOGUE, {}, c.ask).error != "":
 		return "ask needs a line of data/dialogue/%s.json" % DIALOGUE
+	return _check_rivals(c, 1)
+
+
+## The rivals, prizes and result event of contest or game `c`; the farmer makes `places`
+## more places than there are rivals.
+static func _check_rivals(c: Dictionary, places: int) -> String:
 	var rivals: Variant = c.get("rivals")
 	if not rivals is Array or rivals.is_empty():
 		return "needs rivals"
@@ -353,8 +425,8 @@ static func _check_contest(c: Variant, f: Dictionary) -> String:
 				or not EventRunner._whole(r.score[1], int(r.score[0]), 99999):
 			return "a rival needs who (a villager) and score [lowest, highest]"
 	var prizes: Variant = c.get("prizes")
-	if not prizes is Array or prizes.is_empty() or prizes.size() > rivals.size() + 1:
-		return "prizes is a list by place, at most one more than the rivals"
+	if not prizes is Array or prizes.is_empty() or prizes.size() > rivals.size() + places:
+		return "prizes is a list by place, at most one per place"
 	for p in prizes:
 		if not p is Dictionary or not EventRunner._whole(p.get("money", 0), 0, 99999):
 			return "a prize is {money, item?, count?}"
@@ -369,6 +441,48 @@ static func _check_contest(c: Variant, f: Dictionary) -> String:
 	if ev.error != "":
 		return "event: " + ev.error
 	return ""
+
+
+static func _check_game(g: Variant, f: Dictionary) -> String:
+	if not g is Dictionary:
+		return "not an object"
+	for k in g:
+		if not k in GAME_KEYS:
+			return "unknown key " + k
+	if not g.get("id") is String or not g.id.is_valid_identifier():
+		return "an id is a short name of letters, digits and _"
+	if not g.get("name") is String or g.name == "":
+		return "needs a name"
+	if not g.get("kind") in GAMES:
+		return "kind is one of %s" % [GAMES.keys()]
+	if not _prop_under(f, g.get("cell"), GAMES[g.kind]):
+		return "cell needs a cell [x, y] of a %s prop" % GAMES[g.kind]
+	var partners: Variant = g.get("partners")
+	if not partners is Array or partners.is_empty() or partners.any(func(p): return not p in Villagers.file_ids()):
+		return "partners is a list of villagers"
+	for k in ["lead", "gap"]:
+		if not EventRunner._number(g.get(k), 0.0, 10.0):
+			return "%s is 0 to 10 seconds" % k
+	var rounds: Variant = g.get("rounds")
+	if not rounds is Array or rounds.is_empty():
+		return "needs rounds"
+	var fastest := 99.0
+	for r in rounds:
+		if not r is Dictionary or not EventRunner._whole(r.get("beats"), 1, 99) or not EventRunner._number(r.get("beat"), 0.2, 5.0):
+			return "a round is {beats (1 to 99), beat (0.2 to 5 seconds)}"
+		fastest = minf(fastest, float(r.beat))
+	var w: Variant = g.get("windows")
+	if not w is Dictionary or not EventRunner._number(w.get("great"), 0.01, 1.0) \
+			or not EventRunner._number(w.get("good"), float(w.great), 1.0) or float(w.good) >= fastest / 2.0:
+		return "windows is {great, good} in seconds, great <= good < half the fastest beat"
+	var pts: Variant = g.get("points")
+	if not pts is Dictionary or not EventRunner._whole(pts.get("great"), 0, 99) \
+			or not EventRunner._whole(pts.get("good"), 0, int(pts.great)) or not EventRunner._whole(pts.get("miss"), -99, 0):
+		return "points is {great, good, miss}, great >= good >= 0 >= miss"
+	# A partner who is also a rival sits out, so there is one place fewer.
+	var rivals: Array = g.get("rivals") if g.get("rivals") is Array else []
+	var sits_out := rivals.any(func(r): return r is Dictionary and r.get("who") in partners)
+	return _check_rivals(g, 0 if sits_out else 1)
 
 
 static func _check_stall(s: Variant, f: Dictionary) -> String:

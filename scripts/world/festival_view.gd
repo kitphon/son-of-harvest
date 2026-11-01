@@ -12,6 +12,7 @@ const COLORS := {
 	"stall": Color("8a6a48"), "lantern_line": Color("d8402c"), "drum_stage": Color("5a3a24"),
 	"moon_table": Color("f8f4ea"), "pampas": Color("e4dcc4"), "paper_lantern": Color("f0e6c8"),
 	"kadomatsu": Color("5a9a48"), "bonfire": Color("ffb040"), "judge_table": Color("f4f0e6"),
+	"mochi_usu": Color("9a6a3a"),
 }
 
 var map_id := ""
@@ -52,6 +53,9 @@ func _draw() -> void:
 		var c: Color = COLORS.get(p.kind, Color.MAGENTA)
 		if p.has("cloth"):
 			c = Color(str(p.cloth))
+		if p.kind == "mochi_usu":   # the mortar of the mochi pounding, its own picture
+			draw_texture_rect(PlaceholderArt.tex("mochi:usu:2"), Rect2(r.position + Vector2(0, T - 12), Vector2(T, 12)), false)
+			continue
 		if p.kind == "lantern_line":   # a lantern every cell along the string
 			for i in int(size[0]):
 				draw_circle(r.position + Vector2(i * T + T / 2.0, T / 2.0), 4.0, c if i % 2 == 0 else COLORS.paper_lantern)

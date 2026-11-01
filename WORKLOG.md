@@ -10,6 +10,48 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — A played contest: the mochi pounding at Year's Turn
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a festival can have a `game` beside its `contest` (data/festivals.json; checked by
+  `Festivals._check_game`). Year's Turn has the Mochi Pounding at a new `mochi_usu` prop
+  ([20, 4], right of the shrine path): E there with empty hands (`Game.start_game`, from
+  `FarmActions.festival_spot`) picks the partner (`Festivals.partner_for`: of Tome and Kota the
+  one with more affection, Tome on a tie) and opens the new MochiScreen over either view (wood
+  box with name / round / score, a paper stage: the farmer swinging the mallet, the mortar,
+  the partner turning the dough, a ring closing on the dough per strike, a dot per strike).
+  `MochiPound` (pure logic) keeps the time: rounds of 8 / 10 / 12 strikes at 1.0 / 0.8 /
+  0.65 s, 1.6 s gaps, a 2 s lead with a count-in; within 0.07 s great (3), within 0.16 s good
+  (1), off the beat or a beat let pass a miss (-1), never below 0; 90 at best. The score is
+  ranked by `Festivals.judge_game` (the judging is now shared with contests in `_rank`; the
+  partner is rolled but sits out, so the others' scores don't depend on who turns), then
+  `Game.finish_game` pays the prize (400 G and 3 kinako mochi / 150 G and 1 / 80 G), sets the
+  contest flags (shared `_result_flags`, plus `contest_partner_<id>`), keeps the best score in
+  flag `game_best_mochi`, gives a ribbon keyed by the game id (`ribbon:mochi:<place>`;
+  `Festivals.ribbon_label` names it "Mochi Pounding ribbon") and plays `contest_mochi` (lines
+  `mochi_*` in data/dialogue/contests.json: each rival's win, the place, the partner's last
+  word). One go a year (`game:<festival>:<year>`); the First Stone contest is unchanged and
+  still open the same night. Art: `mochi:usu:<dough 0..3>` (the dough goes from rice to a
+  round mochi as strikes land) and `mochi:kine` (swung round its grip); the mortar in 3D
+  (hooped log, dough, leaning mallet, a pail) and in the flat view (its picture). Sounds:
+  `mochi_count`, `mochi_pound`, `mochi_miss`, `mochi_turn`. Debug: `--festival=years_turn
+  --contest=mochi` (and `:auto`, which swings by itself). README → Festivals, AGENTS.md.
+- Balance: rivals Hachiro 48-80, Tome 30-70, Sayo 24-62, Kota 18-58 (out of 90); a player
+  landing most strikes as good or great makes 45-65, so first place wants mostly greats.
+- Checked: new checks in test_festivals (game data and bad data refused, the timing with a
+  hand-made two-round game, a perfect Year's Turn game = 90, the ranking with each partner,
+  ties, prizes, the result lines for every place / winner / partner, the game in Game: empty
+  hands, busy, one go a year, prize, ribbon, flags, save and load, year 2 with Kota, the screen
+  in both views, the 3D mortar, the art). All 24 test scripts print `OK (0 failed)`. Headless
+  smoke runs (title, `--demo`, `--map=town`, `--mine=3`, `--festival=years_turn`,
+  `--festival=blossom_day --contest=potato`, `res://scenes/main.tscn`) and full auto-played
+  games in both views (`--fixed-fps 30 --quit-after 1100 -- --demo --festival=years_turn
+  --contest=mochi:auto`, main and main_2d) printed no errors. Screenshots: 3D mid round 1
+  (ring on the dough, mallet down, "Great!", 13 pts), the flat view mid round 1, and 3D at
+  ~33 s with Tsuru's result line; `shots/` deleted.
+- Left / next: a person has to play it for feel (the windows and the rival ranges are a first
+  guess); the partner only stands on the screen, not by the mortar in the world; a fishing race
+  would be a second `game` kind.
+
 ## 2026-11-01 — Merged six branches: building fixes, 2D weather, heart actors, stalls, river, yearly record
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each: `claude/building-fixes-32aab9`

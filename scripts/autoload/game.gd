@@ -16,6 +16,7 @@ signal thrown(item: String, from: Vector2i, to: Vector2i, result: String)   # vi
 signal shop_requested(id: String)    # a ShopScreen opens that shop (data/shops.json)
 signal cooking_requested             # a CookingScreen opens (the kitchen corner, data/recipes.json)
 signal ending_requested(record: Dictionary)   # an EndingScreen shows the village record (Ending.grade)
+signal game_requested(festival: String, partner: String)   # a MochiScreen plays that festival's game
 signal fishing_event(kind: String)   # "bite" / "escaped" while the line is out (FarmActions plays the cue)
 
 const SECONDS_PER_MINUTE := 0.5
@@ -45,6 +46,7 @@ var clock_running := true      # off on the title screen
 var dialogue_open := false      # a text box is up: the clock and the farmer wait (counts as paused)
 var event_running := false      # an event script plays: the clock waits, the script moves the farmer
 var ending_open := false        # the village record is on screen (the ending event waits for it)
+var game_partner := ""          # who turns the dough in the festival game going on now ("" for none)
 var settings: Settings          # the player's settings (user://settings.json), not saved with the run
 var _pauses := 0                # open menus; while any is open time stands still
 
@@ -139,6 +141,7 @@ func _ready() -> void:
 ## earlier game in the same session is left over. New run state belongs in this list too.
 func new_game() -> void:
 	ending_open = false
+	game_partner = ""
 	year = 1
 	season = 0
 	day = 1
@@ -279,10 +282,14 @@ func new_game() -> void:
 		elif arg.begins_with("--contest="):   # `-- --demo --festival=blossom_day --contest=potato`: at the judges' table with it
 			var fid := festival_today()
 			var c := Festivals.contest(fid)
-			if c.is_empty():
+			var what := arg.trim_prefix("--contest=").get_slice(":", 0)
+			var g := Festivals.game(fid)
+			if not g.is_empty() and what == g.id:   # `--festival=years_turn --contest=mochi`: at the mortar, the game on
+				maps.place(Festivals.get_festival(fid).map, Vector2i(int(g.cell[0]), int(g.cell[1]) + 1), Vector2i.UP)
+			elif c.is_empty():
 				push_warning("No contest today for " + arg)
 			else:
-				held = arg.trim_prefix("--contest=")
+				held = what
 				maps.place(Festivals.get_festival(fid).map, Vector2i(int(c.table[0]), int(c.table[1]) + 1), Vector2i.UP)
 		elif arg.begins_with("--mine="):   # `-- --demo --mine=5`: at the ladder of a fresh floor 5
 			var m := MapManager.data(mine_map("floor_map"))
@@ -1618,19 +1625,73 @@ func enter_contest() -> Dictionary:
 	r.item = item
 	held = ""
 	events_seen[Festivals.entered_key(fid, year)] = true
+	_result_flags(r)
+	_pay_prize(r.prize)
+	_give_ribbon(fid, r.place)
+	changed.emit()
+	play_event(c.event)
+	return r
+
+
+## E at the prop of today's festival game (Festivals.at_game) during the festival, empty-handed:
+## the partner (Festivals.partner_for, by affection) is picked and a MochiScreen plays it
+## (game_requested); finish_game ranks the score. One go a year. Returns {ok, partner} or
+## {ok: false, why: "none" | "played" | "held" | "busy"}.
+func start_game() -> Dictionary:
+	var fid := festival_now()
+	var g := Festivals.game(fid)
+	if g.is_empty():
+		return {"ok": false, "why": "none"}
+	if game_partner != "":
+		return {"ok": false, "why": "busy"}
+	if events_seen.has(Festivals.played_key(fid, year)):
+		message.emit("You already took a turn at the %s this year." % g.name)
+		return {"ok": false, "why": "played"}
+	if held != "":
+		message.emit("The mallet takes both hands. Put the %s down first." % item_name(held))
+		return {"ok": false, "why": "held"}
+	game_partner = Festivals.partner_for(fid, affection.of)
+	game_requested.emit(fid, game_partner)
+	return {"ok": true, "partner": game_partner}
+
+
+## The festival game ended with `score` (MochiPound.score): judged against the rivals
+## (Festivals.judge_game, the partner sitting out), the prize paid, a ribbon given (keyed by
+## the game's id) and the result event played, as for a contest; contest_partner_<id> is set
+## too and the best score kept (story flag game_best_<game id>). Returns judge_game's result.
+func finish_game(score: int) -> Dictionary:
+	var fid := festival_today()
+	var g := Festivals.game(fid)
+	if g.is_empty():
+		game_partner = ""
+		return {}
+	var partner := game_partner if game_partner != "" else Festivals.partner_for(fid, affection.of)
+	game_partner = ""
+	var r := Festivals.judge_game(fid, year, score, partner)
+	r.partner = partner
+	events_seen[Festivals.played_key(fid, year)] = true
+	_result_flags(r)
+	flags["contest_partner_" + partner] = true
+	var best := "game_best_" + str(g.id)
+	flags[best] = maxi(int(flags.get(best, 0)), score)
+	_pay_prize(r.prize)
+	_give_ribbon(str(g.id), r.place)
+	changed.emit()
+	play_event(g.event)
+	return r
+
+
+## The flags a result event branches on: contest_place_<n>, contest_won_<rival> (earlier ones
+## cleared, contest_prize and contest_partner_<id> too), and one more contest win for a first.
+func _result_flags(r: Dictionary) -> void:
 	for k in flags.keys():
-		if k.begins_with("contest_place_") or k.begins_with("contest_won_") or k == "contest_prize":
+		if k.begins_with("contest_place_") or k.begins_with("contest_won_") or k.begins_with("contest_partner_") or k == "contest_prize":
 			flags.erase(k)
 	flags["contest_place_%d" % r.place] = true
 	if r.winner != "farmer":
 		flags["contest_won_" + r.winner] = true
 	if r.place == 1:
 		flags["contest_wins"] = int(flags.get("contest_wins", 0)) + 1
-	_pay_prize(r.prize)
-	_give_ribbon(fid, r.place)
-	changed.emit()
-	play_event(c.event)
-	return r
 
 
 ## A ribbon for placing (Keepsakes.ribbon_id; none below the last place) into the rucksack,

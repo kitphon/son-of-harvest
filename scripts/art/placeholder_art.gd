@@ -51,6 +51,8 @@ static func _make(key: String) -> Image:
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
 		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|lumber|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
+		"mochi":    # mochi:<usu:<dough 0..3>|kine>, the mochi pounding's mortar and mallet (MochiScreen, FestivalView)
+			return _usu(int(parts[2]) if parts.size() > 2 else 0) if parts[1] == "usu" else _kine()
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
 
@@ -2168,3 +2170,54 @@ static func _story(kind: String) -> Image:
 				_px(img, x, 10, 2, 1, Color("4a4a56"))       # scales
 			return _outline(img)
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
+
+
+# --- the mochi pounding (MochiScreen; the mortar also stands in FestivalView) -------
+
+const MOCHI_WOOD := Color("9a6a3a")
+const MOCHI_WOOD_DARK := Color("6a4428")
+const MOCHI_HOOP := Color("3e2c20")
+const MOCHI_DOUGH := Color("f8f4ea")
+const MOCHI_DOUGH_SHADE := Color("e2d8c4")
+
+
+## The usu (32 x 24): a stout cut log, hollowed on top, two dark hoops round it, with the
+## dough in the bowl. `dough` 0 is steamed rice (lumpy, grains showing), 3 a smooth shiny mound.
+static func _usu(dough: int) -> Image:
+	var img := _blank(32, 24)
+	_px(img, 3, 7, 26, 15, MOCHI_WOOD)
+	_px(img, 5, 12, 22, 6, MOCHI_WOOD.darkened(0.08))   # the waist, a shade darker
+	_oval(img, 16, 21.5, 13, 2.5, MOCHI_WOOD_DARK)        # the foot
+	for y in [9, 18]:
+		_px(img, 3, y, 26, 2, MOCHI_HOOP)
+	for x in [8, 15, 23]:
+		_px(img, x, 12, 1, 5, MOCHI_WOOD_DARK)             # grain lines
+	_oval(img, 16, 6, 14, 4.5, MOCHI_WOOD.lightened(0.15))   # the cut top
+	_oval(img, 16, 6, 11, 3.2, MOCHI_WOOD_DARK)            # the bowl
+	var d := clampi(dough, 0, 3)
+	var rise: float = [0.0, 0.5, 1.2, 2.2][d]
+	_oval(img, 16, 6 - rise * 0.5, 9 - (1 if d == 0 else 0), 2.4 + rise, MOCHI_DOUGH_SHADE)
+	_oval(img, 16, 5.5 - rise * 0.6, 8 - (1 if d == 0 else 0), 1.8 + rise * 0.8, MOCHI_DOUGH)
+	if d == 0:   # grains of rice still showing
+		for g in [Vector2i(10, 5), Vector2i(13, 6), Vector2i(17, 4), Vector2i(20, 6), Vector2i(15, 7), Vector2i(22, 5)]:
+			_px(img, g.x, g.y, 1, 1, MOCHI_DOUGH_SHADE)
+	elif d == 3:   # the shine of finished mochi
+		_px(img, 12, int(4 - rise * 0.6), 3, 1, Color.WHITE)
+	return _outline(img)
+
+
+## The kine (16 x 28): a wooden mallet standing up, a barrel head on a long handle whose end
+## (the hands, KINE_GRIP) is at the bottom. MochiScreen swings it round that end.
+const KINE_GRIP := Vector2(8, 27)
+
+
+static func _kine() -> Image:
+	var img := _blank(16, 28)
+	_px(img, 7, 8, 2, 20, Color("c8a06a"))
+	_px(img, 7, 8, 1, 20, Color("dab47c"))
+	_px(img, 1, 1, 14, 8, MOCHI_WOOD)
+	_px(img, 1, 1, 14, 1, MOCHI_WOOD.lightened(0.2))
+	_px(img, 1, 1, 2, 8, MOCHI_WOOD_DARK)    # the end grain at either side
+	_px(img, 13, 1, 2, 8, MOCHI_WOOD_DARK)
+	_px(img, 1, 4, 14, 1, MOCHI_HOOP)
+	return _outline(img)

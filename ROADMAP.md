@@ -144,9 +144,11 @@ spring crop, biggest fish, best egg / milk / wool, brightest mine stone; village
 per year, prizes by place, a result event), its own music (`festivals` in the music rules) and
 the shipping payout waits for the next day; Blossom Day has a dango stall and Lantern Night a
 night-eats stall and a wind chime stall that sell, and a placing gives a ribbon to keep, shown
-on a board in the farmhouse (README → Festivals). Later for festivals: rivals walking up to the
-table with their entries, a contest that is played (a mochi-pounding rhythm, a fishing race),
-more villagers gathering once they talk. Done: stalls at Moon Night and Year's Turn (a food
+on a board in the farmhouse (README → Festivals). Year's Turn also has a contest that is played,
+the mochi pounding (a festival `game`: swing on the beat while Tome or Kota turns the dough,
+ranked against rolled rivals, prizes and a ribbon). Later for festivals: rivals walking up to the
+table with their entries, a second played contest (a fishing race), more villagers gathering
+once they talk. Done: stalls at Moon Night and Year's Turn (a food
 stall and a keepsake stall each), keepsakes as gifts (each villager loves one).
 The balance pass is done (milestone 8): our own crop, product, animal and extension prices,
 `python -I tools/balance.py` prints income per season for a steady year-1 plan (WORKLOG has
@@ -234,6 +236,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Festivals: one per season in data/festivals.json (Blossom Day, Lantern Night with fireworks, Moon Night, Year's Turn), HUD tag, shops shut, decorations in both views, an event once a year, villagers gather
    - [x] Festival contests with prizes and result events, festival music, payout held on the day, Blossom Day's stall
    - [x] Lantern Night's stalls (night eats, wind chimes and keepsakes), contest ribbons and the farmhouse ribbon board
+   - [x] A played contest: the mochi pounding at Year's Turn (rhythm game with a partner, rolled rivals, prizes, ribbon)
    - [x] Relationships: hearts on the text box's name tag, birthdays (calendar, gifts x5, birthday lines), the nightly loss for villagers left alone, a heart event per villager at band 3
    - [x] Relationships 2: a second heart event per villager at band 5, birthday day plans, fair weather and the HUD tag on a birthday, mine finds in the gift lists
    - [x] Heart flags in the world: the door bell (hachiro_bell), the store's sign (sayo_sign old / new), Tome's plum jar (tome_grandma), as flag-gated map props in both views

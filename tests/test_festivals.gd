@@ -2,7 +2,8 @@ extends SceneTree
 ## Headless checks for festivals (data/festivals.json, Festivals, Game's festival day, shops
 ## shut for it, the fair weather, villagers gathering, the event once a year, the decorations
 ## and lights in both views, the HUD tag, the contests and their result lines, the stalls and
-## their wares, ribbons and the farmhouse board, the shipping payout held back on the day). Run:
+## their wares, ribbons and the farmhouse board, the shipping payout held back on the day, the
+## mochi pounding: its data, timing, ranking, prizes, ribbon, save and screen). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_festivals.gd
 
 var failures := 0
@@ -19,6 +20,10 @@ func _init() -> void:
 	_contest_data()
 	_judging()
 	_result_lines()
+	_game_data()
+	_mochi_timing()
+	_game_judging()
+	_game_result_lines()
 
 
 func _process(_delta: float) -> bool:
@@ -30,6 +35,7 @@ func _process(_delta: float) -> bool:
 		_shops()
 		_event()
 		_contest_game()
+		_game_play()
 		_stall()
 		_night_stalls()
 		_fall_winter_stalls()
@@ -626,6 +632,20 @@ func _check_views() -> void:
 	check(p[0].wares == 3, "the dango stall sets out its three wares (%d)" % p[0].wares)
 	var huds: Array = _scene3.get_children().filter(func(n): return _script_is(n, "hud.gd"))
 	check(huds.size() == 1 and huds[0]._fest_box.visible and huds[0]._fest.text == "Blossom Day", "the HUD shows the festival")
+	var mochi3: Array = _scene3.get_children().filter(func(n): return _script_is(n, "mochi_screen.gd"))
+	var mochi2: Array = _scene2.get_children().filter(func(n): return _script_is(n, "mochi_screen.gd"))
+	check(mochi3.size() == 1 and mochi2.size() == 1, "both views have the mochi pounding screen")
+	if mochi3.size() == 1:
+		var pauses: int = g._pauses
+		mochi3[0].open("years_turn", "kota")
+		check(mochi3[0].is_open() and mochi3[0].game != null and mochi3[0].game.beats.size() == 30 and g._pauses == pauses + 1,
+			"the screen opens a game of 30 strikes and holds the clock")
+		mochi3[0].game.advance(mochi3[0].game.beats[0])
+		mochi3[0].swing()
+		check(mochi3[0].game.score == 3 and mochi3[0].game.marks[0] == "great", "a swing right on the first beat lands great")
+		mochi3[0]._exit_tree()
+		check(g._pauses == pauses and g.game_partner == "", "leaving the view mid-game lets the clock go")
+		mochi3[0]._open = false
 	g.hour = 16
 	g.minute = 0
 	p[0].refresh()
@@ -661,6 +681,209 @@ func _check_night() -> void:
 	_scene3.free()
 	_scene2.free()
 	g.unpause()
+
+
+## The mochi pounding's data: the game at Year's Turn, its mortar, the checks on bad data.
+func _game_data() -> void:
+	var g := Festivals.game("years_turn")
+	check(g.get("kind") == "mochi" and g.id == "mochi" and Festivals.festival_of_game("mochi") == "years_turn"
+		and Festivals.festival_of_game("nope") == "", "Year's Turn has the mochi pounding")
+	check(Festivals.at_game("years_turn", Vector2i(20, 4)) and not Festivals.at_game("years_turn", Vector2i(20, 5))
+		and not Festivals.at_table("years_turn", Vector2i(20, 4)) and not Festivals.at_game("blossom_day", Vector2i(20, 4)),
+		"the game is played at the mortar, apart from the judges' table")
+	check(Festivals.ribbon_label("mochi") == "Mochi Pounding" and Festivals.ribbon_label("years_turn") == "Year's Turn"
+		and Festivals.ribbon_label("nope") == "", "ribbon keys name a festival or a festival's game")
+	for place in [1, 2, 3]:
+		var n := Keepsakes.name_of(Keepsakes.ribbon_id("mochi", place))
+		check(n != "" and PixelFont.width(n) + 12 + PixelFont.width("x99") <= HudLayout.BOXES.item.size.x, "%s fits the item box" % n)
+	check(Keepsakes.name_of("ribbon:mochi:1") == "Mochi Pounding ribbon (1st)", "the mochi ribbon's name")
+	check(EventRunner.open(g.event, null).error == "", "the game's result event runs")
+	var f: Dictionary = Festivals.get_festival("years_turn").duplicate(true)
+	check(Festivals.check({"festivals": {"a": f}}) == "", "Year's Turn with its game passes on its own")
+	var bad := {
+		"kind": {"kind": "sumo"}, "cell": {"cell": [14, 4]}, "partners": {"partners": ["nobody"]},
+		"rounds": {"rounds": []}, "beat": {"rounds": [{"beats": 4, "beat": 0.1}]},
+		"good window": {"windows": {"great": 0.07, "good": 0.4}}, "great window": {"windows": {"great": 0.12, "good": 0.1}},
+		"miss points": {"points": {"great": 3, "good": 1, "miss": 1}}, "good points": {"points": {"great": 1, "good": 3, "miss": 0}},
+		"prizes": {"prizes": [{"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}]},
+		"rival": {"rivals": [{"who": "nobody", "score": [1, 2]}]}, "event": {"event": "no_such_event"},
+		"key": {"music": "taiko"}, "id": {"id": "a b"}, "lead": {"lead": 30},
+	}
+	for what in bad:
+		var h := f.duplicate(true)
+		h.game.merge(bad[what], true)
+		check(Festivals.check({"festivals": {"a": h}}) != "", "a game with a bad %s is refused" % what)
+	var h := f.duplicate(true)
+	h.game.rivals = [{"who": "hachiro", "score": [1, 2]}]
+	h.game.prizes = [{"money": 1}, {"money": 1}]
+	check(Festivals.check({"festivals": {"a": h}}) == "", "with no partner among the rivals the farmer makes one more place")
+	h.game.rivals.append({"who": "tome", "score": [1, 2]})
+	h.game.prizes.append({"money": 1})
+	check(Festivals.check({"festivals": {"a": h}}) != "", "a partner among the rivals sits out: one place fewer")
+
+
+## The timing: strikes and turns from the rounds, the windows, misses either way, the score.
+func _mochi_timing() -> void:
+	var data := {"lead": 1.0, "gap": 1.0, "rounds": [{"beats": 3, "beat": 1.0}, {"beats": 2, "beat": 0.5}],
+		"windows": {"great": 0.05, "good": 0.15}, "points": {"great": 3, "good": 1, "miss": -1}}
+	var m := MochiPound.new(data)
+	check(m.beats == [1.0, 2.0, 3.0, 5.0, 5.5] and m.round_of == [0, 0, 0, 1, 1] and m.turns == [1.5, 2.5, 5.25],
+		"strikes a beat apart, the gap between rounds, a turn halfway between strikes (%s %s)" % [m.beats, m.turns])
+	check(m.best() == 15 and m.rounds == 2 and m.round_now() == 0 and not m.done() and m.dough(4) == 0, "a fresh go")
+	check(m.advance(0.97).is_empty() and m.press() == "great" and m.score == 3 and m.marks[0] == "great", "0.03 s early is great")
+	check(m.advance(0.9) == ["turn"] and m.press() == "good" and m.score == 4, "the partner turns, then 0.13 s early is good")
+	m.advance(0.4)
+	check(m.press() == "miss" and m.score == 3 and m.marks[2] == "", "a swing between beats misses and the beat stays open")
+	check(m.advance(1.0) == ["turn", "miss"] and m.marks[2] == "miss" and m.score == 2, "a beat let pass is a miss too")
+	check(m.round_now() == 1 and m.to_next() > 1.0, "on to the faster round")
+	m.advance(5.0 - m.time)
+	check(m.press() == "great" and m.press() == "miss", "a second swing on the same beat misses (hands in the way)")
+	m.advance(1.0)
+	check(m.done() and m.score == 3 and m.counts == {"great": 2, "good": 1, "miss": 4} and m.press() == "", "done: 6 - 3 = 3 points (%s)" % [m.counts])
+	var idle := MochiPound.new(data)
+	idle.advance(20.0)
+	check(idle.done() and idle.score == 0 and idle.counts.miss == 5, "never swinging scores 0, not below")
+	var perfect := MochiPound.new(Festivals.game("years_turn"))
+	for b in perfect.beats:
+		perfect.advance(b - perfect.time)
+		perfect.press()
+	check(perfect.done() and perfect.score == perfect.best() and perfect.best() == 90 and perfect.dough(4) == 3,
+		"every Year's Turn strike great: 90 points and round mochi")
+
+
+## The ranking: rivals rolled per year, the partner sitting out, prizes by place.
+func _game_judging() -> void:
+	var r := Festivals.judge_game("years_turn", 1, 0, "tome")
+	check(r.rivals.size() == 3 and not r.rivals.any(func(x): return x.who == "tome") and r.place == 4 and r.prize.is_empty(),
+		"with Tome turning, three rivals; 0 points comes last with no prize")
+	var k := Festivals.judge_game("years_turn", 1, 0, "kota")
+	var hachiro := func(res): return res.rivals.filter(func(x): return x.who == "hachiro")[0].score
+	check(not k.rivals.any(func(x): return x.who == "kota") and hachiro.call(k) == hachiro.call(r), "the partner changes who rivals, not their scores")
+	check(Festivals.judge_game("years_turn", 1, 0, "tome").rivals == r.rivals, "the same year ranks the same")
+	for c in Festivals.game("years_turn").rivals:
+		for x in k.rivals + r.rivals:
+			if x.who == c.who:
+				check(x.score >= c.score[0] and x.score <= c.score[1], "%s scores in their range" % c.who)
+	var top: int = r.rivals[0].score
+	var win := Festivals.judge_game("years_turn", 1, top, "tome")
+	check(win.place == 1 and win.winner == "farmer" and win.prize.money == 400 and win.prize.item == "food:kinako_mochi" and win.prize.count == 3,
+		"a tie with the best wins first prize")
+	var third := Festivals.judge_game("years_turn", 1, r.rivals[1].score - 1, "tome") if r.rivals[1].score > r.rivals[2].score else {}
+	if not third.is_empty():
+		check(third.place == 3 and third.prize.size() == 1 and int(third.prize.money) == 80, "behind two rivals: third and 80 G")
+	var points := {"tome": 0, "kota": 0}
+	var of := func(id): return points.get(id, 0)
+	check(Festivals.partner_for("years_turn", of) == "tome", "on a tie Tome turns the dough")
+	points.kota = 40
+	check(Festivals.partner_for("years_turn", of) == "kota", "Kota turns it once the farmer is closer to him")
+	check(Festivals.partner_for("blossom_day", of) == "", "no game, no partner")
+
+
+## The result lines for every place, winner and partner end on the right lines.
+func _game_result_lines() -> void:
+	var g := Festivals.game("years_turn")
+	for partner in g.partners:
+		var rivals: Array = g.rivals.filter(func(r): return r.who != partner)
+		for place in range(1, rivals.size() + 2):
+			for rival in rivals:
+				var flags := {"contest_place_%d" % place: true, "contest_partner_" + partner: true}
+				if place > 1:
+					flags["contest_won_" + rival.who] = true
+				var d := DialogueRunner.open(Festivals.DIALOGUE, flags, str(g.id) + "_result")
+				var who: Array = []
+				var ids: Array = []
+				for i in 20:
+					if d.done():
+						break
+					who.append(d.line().get("speaker", ""))
+					ids.append(d.line().get("id", ""))
+					d.press()
+					d.press()
+				var want: String = "mochi" + ("_%d" % place if place <= 3 else "_out")
+				check(d.error == "" and d.done() and want in ids and (place == 1) != (rival.who in who.slice(0, -1)) and who.back() == partner,
+					"mochi, place %d, %s first, %s turning: %s %s" % [place, rival.who, partner, who, ids])
+
+
+## Playing in the game: the mortar, empty hands, the partner, one go a year, the prize, the
+## ribbon, the flags, the save, and the judged contest still beside it.
+func _game_play() -> void:
+	var g := _game()
+	g.new_game()
+	var said: Array = []
+	var hear := func(t): said.append(t)
+	g.message.connect(hear)
+	var asked: Array = []
+	var ask := func(f, p): asked.append([f, p])
+	g.game_requested.connect(ask)
+	var events: Array = []
+	var ev := func(id): events.append(id)
+	g.event_requested.connect(ev)
+	_set_day(g, "winter", 30, 19, 30)
+	g.maps.place("farm", Vector2i(4, 4), Vector2i.DOWN)
+	check(g.start_game().why == "none", "no game from the farm")
+	g.maps.place("town", Vector2i(20, 5), Vector2i.UP)
+	g.held = "potato"
+	check(g.start_game().why == "held" and said.back() == "The mallet takes both hands. Put the Potato down first." and asked.is_empty(),
+		"the mallet needs empty hands (%s)" % [said.back()])
+	g.held = ""
+	var s: Dictionary = g.start_game()
+	check(s.ok and s.partner == "tome" and asked == [["years_turn", "tome"]] and g.game_partner == "tome", "the game starts with Tome turning")
+	check(g.start_game().why == "busy" and asked.size() == 1, "not twice at once")
+	var top: int = Festivals.judge_game("years_turn", 1, 0, "tome").rivals[0].score
+	var money: int = g.money
+	var wins := int(g.flags.get("contest_wins", 0))
+	var r: Dictionary = g.finish_game(top)
+	check(r.place == 1 and r.partner == "tome" and g.money == money + 400 and g.count("food:kinako_mochi") == 3 and g.count("ribbon:mochi:1") == 1,
+		"first place: 400 G, three kinako mochi and the ribbon (%s)" % [r])
+	check(g.flags.get("contest_place_1") == true and g.flags.get("contest_partner_tome") == true and g.flags.get("contest_prize") == true
+		and int(g.flags.get("game_best_mochi", 0)) == top and int(g.flags.get("contest_wins", 0)) == wins + 1, "the flags for the lines, the best score, a win")
+	check(events == ["contest_mochi"] and g.events_seen.has("game:years_turn:1") and g.game_partner == "", "the result event plays, the go is marked")
+	check(Keepsakes.record(g.flags).back() == {"festival": "mochi", "place": 1, "year": 1} and said.has("You got a Mochi Pounding ribbon (1st)!"),
+		"the ribbon goes on the board's record")
+	check(g.start_game().why == "played" and said.back() == "You already took a turn at the Mochi Pounding this year." and asked.size() == 1, "one go a year")
+	# The judged contest beside it goes on as before.
+	g.maps.place("town", Vector2i(14, 5), Vector2i.UP)
+	g.held = "mine:stone"
+	var c: Dictionary = g.enter_contest()
+	check(c.ok and g.events_seen.has("contest:years_turn:1") and events.back() == "contest_year" and not g.flags.has("contest_partner_tome"),
+		"the First Stone contest still takes its entry the same night")
+	# Saved and read back.
+	var d: Dictionary = g.to_dict()
+	var record := str(g.flags.get(Keepsakes.RECORD))
+	g.new_game()
+	check(g.from_dict(JSON.parse_string(JSON.stringify(d))) == "" and g.events_seen.has("game:years_turn:1") and int(g.flags.get("game_best_mochi", 0)) == top
+		and g.count("ribbon:mochi:1") == 1 and str(g.flags.get(Keepsakes.RECORD)) == record and g.game_partner == "", "the go, the best score and the ribbon survive a save")
+	# Year 2, closer to Kota: he turns, and a bad go comes last with nothing.
+	g.year = 2
+	g.affection.add("kota", 50)
+	g.maps.place("town", Vector2i(20, 5), Vector2i.UP)
+	check(load("res://scripts/farm_actions.gd").festival_spot(Vector2i(20, 4)) and asked.back() == ["years_turn", "kota"], "E at the mortar starts the game; Kota turns now")
+	var count: int = g.count("food:kinako_mochi")
+	money = g.money
+	r = g.finish_game(0)
+	check(r.place == 4 and r.prize.is_empty() and g.money == money and g.count("food:kinako_mochi") == count and g.count("ribbon:mochi:4") == 0
+		and g.flags.get("contest_place_4") == true and g.flags.get("contest_won_" + str(r.rivals[0].who)) == true and g.flags.get("contest_partner_kota") == true
+		and not g.flags.has("contest_partner_tome") and not g.flags.has("contest_prize") and int(g.flags.get("game_best_mochi", 0)) == top,
+		"year 2: last place, no prize or ribbon, the best score kept (%s)" % [r])
+	g.hour = 0   # midnight: Year's Turn is over (its hours end at 24:00)
+	check(g.start_game().why == "none", "after the hours the mortar is gone")
+	g.message.disconnect(hear)
+	g.game_requested.disconnect(ask)
+	g.event_requested.disconnect(ev)
+	# The mortar in 3D: a mesh of its own, not the magenta stand-in.
+	_set_day(g, "winter", 30, 19, 30)
+	var props: Node = load("res://scripts/world3d/festival_props.gd").new("town")
+	root.add_child(props)
+	var before := props.get_child_count()
+	props._make({"kind": "mochi_usu", "cell": [20, 4]})
+	check(props.get_child_count() - before >= 8, "the mortar, its hoops, the dough, the mallet and the pail in 3D (%d)" % (props.get_child_count() - before))
+	props.free()
+	var usu := PlaceholderArt.tex("mochi:usu:3").get_image()
+	var kine := PlaceholderArt.tex("mochi:kine").get_image()
+	check(usu.get_size() == Vector2i(32, 24) and kine.get_size() == Vector2i(16, 28) and usu.get_pixel(16, 18).is_equal_approx(PlaceholderArt.MOCHI_HOOP),
+		"the mortar and mallet pictures")
+	check(PlaceholderArt.tex("mochi:usu:0").get_image().get_data() != usu.get_data(), "the dough changes as it is pounded")
+	g.new_game()
 
 
 ## Views are checked by script path: in a --script run the autoload isn't known when this

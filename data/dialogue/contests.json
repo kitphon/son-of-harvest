@@ -1,5 +1,5 @@
 {
-	"_note": "The festival contests (data/festivals.json contest): per festival <id>_ask (the judges' table, empty-handed) and <id>_result (the result event; branches on contest_place_<n> and contest_won_<rival>). All our own.",
+	"_note": "The festival contests (data/festivals.json contest): per festival <id>_ask (the judges' table, empty-handed) and <id>_result (the result event; branches on contest_place_<n> and contest_won_<rival>). The played games (data/festivals.json game): <game id>_result, branching the same way and then on contest_partner_<id> for the partner's last word. All our own.",
 	"lines": [
 		{
 			"id": "blossom_day_ask",
@@ -372,6 +372,116 @@
 			"face": "smile",
 			"text": "All that digging was worth it.",
 			"next": "end"
+		},
+		{
+			"id": "mochi_result",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "The last strike is in and the mochi is rolled. The judges counted every beat. Here are the results!"
+		},
+		{
+			"if": "contest_place_1",
+			"then": "mochi_1"
+		},
+		{
+			"if": "contest_won_hachiro",
+			"then": "mochi_hachiro"
+		},
+		{
+			"if": "contest_won_sayo",
+			"then": "mochi_sayo"
+		},
+		{
+			"if": "contest_won_kota",
+			"then": "mochi_kota"
+		},
+		{
+			"id": "mochi_tome",
+			"next": "mochi_place",
+			"speaker": "tome",
+			"face": "smile",
+			"text": "My husband and I won this every winter. Seems my arms still remember the beat."
+		},
+		{
+			"id": "mochi_hachiro",
+			"next": "mochi_place",
+			"speaker": "hachiro",
+			"face": "smile",
+			"text": "A mallet is only a big hammer. I swing one all day long."
+		},
+		{
+			"id": "mochi_sayo",
+			"next": "mochi_place",
+			"speaker": "sayo",
+			"face": "surprised",
+			"text": "We won? I counted the beats out loud the whole time. Don't tell anyone!"
+		},
+		{
+			"id": "mochi_kota",
+			"next": "mochi_place",
+			"speaker": "kota",
+			"face": "smile",
+			"text": "Dad turned and I pounded! He says I swing like a real farmer now."
+		},
+		{
+			"id": "mochi_place",
+			"if": "contest_place_2",
+			"then": "mochi_2"
+		},
+		{
+			"if": "contest_place_3",
+			"then": "mochi_3"
+		},
+		{
+			"id": "mochi_out",
+			"next": "mochi_partner",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "No ribbon this year, but the mochi tastes just as sweet. Keep the beat next winter!"
+		},
+		{
+			"id": "mochi_2",
+			"next": "mochi_partner",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "Second place for you! A strong, steady swing."
+		},
+		{
+			"id": "mochi_3",
+			"next": "mochi_partner",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "Third place for you. The dough came out smooth all the same."
+		},
+		{
+			"id": "mochi_1",
+			"speaker": "tsuru",
+			"face": "surprised",
+			"text": "First place goes to the farmer! Hardly a beat dropped all night. The ribbon is yours."
+		},
+		{
+			"speaker": "farmer",
+			"face": "smile",
+			"text": "My arms are shaking. It was worth it."
+		},
+		{
+			"id": "mochi_partner",
+			"if": "contest_partner_kota",
+			"then": "mochi_partner_kota"
+		},
+		{
+			"id": "mochi_partner_tome",
+			"next": "end",
+			"speaker": "tome",
+			"face": "smile",
+			"text": "You kept good time with an old woman. And my fingers are all still here!"
+		},
+		{
+			"id": "mochi_partner_kota",
+			"next": "end",
+			"speaker": "kota",
+			"face": "smile",
+			"text": "We did it together! My hands only got scared twice."
 		}
 	]
 }

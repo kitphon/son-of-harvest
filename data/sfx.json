@@ -19,6 +19,19 @@
 			{"kind": "tone", "freq": 1450, "partials": [[1, 1], [2.76, 0.5], [5.4, 0.25]], "dur": 0.4, "attack": 0.001, "decay": 0.07},
 			{"kind": "noise", "hp": 1200, "lp": 6000, "dur": 0.05, "attack": 0.001, "decay": 0.012, "gain": 0.9},
 			{"kind": "grains", "count": 5, "dur": 0.2, "at": 0.02, "hp": 2500, "lp": 7000, "grain": 0.003, "gain": 0.25}]},
+		"mochi_pound": {"volume_db": -8, "pitch": [0.92, 1.06], "layers": [
+			{"kind": "tone", "freq": 120, "freq_end": 62, "dur": 0.22, "attack": 0.002, "decay": 0.06},
+			{"kind": "noise", "color": "brown", "lp": 700, "dur": 0.16, "attack": 0.002, "decay": 0.04, "gain": 0.8},
+			{"kind": "noise", "lp": 2400, "hp": 600, "dur": 0.08, "at": 0.01, "attack": 0.003, "decay": 0.02, "gain": 0.35}]},
+		"mochi_turn": {"volume_db": -18, "pitch": [0.9, 1.15], "layers": [
+			{"kind": "noise", "lp": 1800, "hp": 250, "dur": 0.12, "attack": 0.01, "decay": 0.03},
+			{"kind": "grains", "count": 3, "dur": 0.08, "hp": 800, "lp": 2500, "grain": 0.006, "gain": 0.4}]},
+		"mochi_miss": {"volume_db": -12, "pitch": [0.95, 1.05], "layers": [
+			{"kind": "tone", "freq": 690, "freq_end": 610, "partials": [[1, 1], [2.3, 0.4], [3.9, 0.15]], "dur": 0.18, "attack": 0.001, "decay": 0.035},
+			{"kind": "noise", "lp": 4000, "hp": 500, "dur": 0.04, "attack": 0.001, "decay": 0.01, "gain": 0.6}]},
+		"mochi_count": {"volume_db": -14, "pitch": [1.0, 1.0], "layers": [
+			{"kind": "tone", "freq": 180, "freq_end": 150, "partials": [[1, 1], [1.6, 0.3]], "dur": 0.3, "attack": 0.002, "decay": 0.08},
+			{"kind": "noise", "lp": 3000, "hp": 1200, "dur": 0.03, "attack": 0.001, "decay": 0.008, "gain": 0.5}]},
 		"build_knock": {"volume_db": -14, "pitch": [0.92, 1.08], "layers": [
 			{"kind": "tone", "freq": 520, "freq_end": 430, "partials": [[1, 1], [2.1, 0.35], [3.3, 0.12]], "dur": 0.16, "attack": 0.001, "decay": 0.03},
 			{"kind": "noise", "lp": 3200, "hp": 300, "dur": 0.04, "attack": 0.001, "decay": 0.01, "gain": 0.7}]},
