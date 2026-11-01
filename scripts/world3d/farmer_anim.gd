@@ -7,6 +7,8 @@ const WALK_FPS := 8.0     # 4 frames = 0.5 s per two steps; at 60 px/s a step is
 const RUN_FPS := 12.0     # 0.33 s per two steps at 100 px/s
 const TIRED_WALK_FPS := 6.0   # slower, dragging steps (the exhausted farmer is slower too)
 const TIRED_IDLE_FPS := 1.5   # one slow breath in, one out
+const EAT_FPS := 5.0     # bite, chew, bite...: 1.2 s of eating (foods.json pose) = three bites
+const DRINK_FPS := 2.0   # cup at the lips, tipped up: one sip a second
 
 var pose := "idle"
 var time := 0.0
@@ -18,12 +20,15 @@ var fast := false   # running: a hold walk steps at the run rate
 ## the tired poses; a tired farmer who can still run runs normally. `holding` (an item
 ## overhead) wins over both: hold_idle / hold_walk, the walk stepping faster when running.
 ## `fishing` (Fishing.state while the line is out: "wait" / "bite") wins over everything.
-func step(delta: float, moving: bool, running: bool, tired := false, holding := false, fishing := "") -> void:
+## `eating` (Game.eat_pose: "eat" / "drink") wins over the tired poses; the farmer stands.
+func step(delta: float, moving: bool, running: bool, tired := false, holding := false, fishing := "", eating := "") -> void:
 	var p := "idle" if not moving else ("run" if running else "walk")
 	if fishing != "" and fishing != "idle":
 		p = "fish_" + fishing
 	elif holding:
 		p = "hold_walk" if moving else "hold_idle"
+	elif eating != "":
+		p = eating
 	elif tired and p != "run":
 		p = "tired_" + p
 	fast = running
@@ -62,4 +67,8 @@ func _fps() -> float:
 			return TIRED_WALK_FPS
 		"tired_idle":
 			return TIRED_IDLE_FPS
+		"eat":
+			return EAT_FPS
+		"drink":
+			return DRINK_FPS
 	return WALK_FPS

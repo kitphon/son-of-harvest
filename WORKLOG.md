@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Eat / drink pose
+Agent: Claude Code (claude-opus-5-5) · Commit: 8df7399
+- Done: anything eaten (the food slot, F in the rucksack, a raw item overhead) starts a short
+  pose in `Game.eat_item`: `Game.eat_pose` ("eat" / "drink") and `eat_left` seconds from the
+  new data/foods.json `pose` (eat 1.2 s = three bites at FarmerAnim.EAT_FPS 5, drink 1.0 s =
+  one sip a second at DRINK_FPS 2; chosen to feel like a quick snack, not a wait). It counts
+  down in `Game._process` only while no menu / text box / event is open, so F in the rucksack
+  plays it once the rucksack closes; not saved, cleared by new_game. Player stands still with
+  no tool / interact while `Game.eating()` (both views use Player). FarmerAnim takes
+  `eating` (after fishing and holding, before tired). Placeholder frames `player:<front|back>:
+  eat:<0|1>` (bite: a morsel at the lips; chew: the hand lower, body dipped a pixel) and
+  `drink:<0|1>` (cup at the lips, tipped up), from `_MOUTH_HANDS` in placeholder_art.gd; the
+  back view hides what's in the hand. The flat view draws a hand and a morsel / cup at the face,
+  bobbing at the same rates. The existing eat / drink sounds play as before (no new sfx key).
+  New CLI flag `--eat` / `--eat=drink` (pose kept going, for screenshots), in AGENTS.md.
+- Checked: test_food gained the pose checks (starts with its length, nothing eaten = no pose,
+  waits while a text box is open, ends after its time, the Player neither steps nor emits an
+  action during it and does both after, FarmerAnim keys and priorities, the frames drawn and
+  distinct from idle). All 24 test scripts print `OK (0 failed)` (after `--import`: this
+  worktree's class cache lacked WeatherView, which first made main_2d fail to parse in the
+  festivals / view2d runs). Smoke runs (title, `--demo`, `--demo --map=town`, `--demo
+  --mine=3`, `--demo --eat=drink`) printed no errors. Screenshots `--demo --eat` (frames 16 bite
+  / 19 chew), `--demo --eat=drink` and `main_2d.tscn -- --demo --eat` looked at zoomed in;
+  `shots/` deleted.
+- Left / next: real art for the poses; the cup is pale against light walls.
+
 ## 2026-11-01 — Snow lies in the village too (outdoor maps and their roofs, both views)
 Agent: Claude Code (claude-opus-5-5) · Commit: 130b5c9
 - Done: Game.snow_cover now whitens every outdoor map from data/maps, not only the farm.

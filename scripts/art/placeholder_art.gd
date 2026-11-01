@@ -15,7 +15,7 @@ static func tex(key: String) -> Texture2D:
 static func _make(key: String) -> Image:
 	var parts := key.split(":")
 	match parts[0]:
-		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk|fish_wait|fish_bite>:<frame>
+		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk|fish_wait|fish_bite|eat|drink>:<frame>
 			return _player(parts[1] == "back", parts[2], int(parts[3]))
 		"villager": # villager:<id>:<front|back>:<idle|walk|work>:<frame>, from the look in data/villagers/<id>.json
 			return _villager(Villagers.look(parts[1]), parts[2] == "back", parts[3], int(parts[4]))
@@ -501,7 +501,21 @@ const _FARMER_POSES := {
 	# waiting the rod stands up still, on a bite the farmer leans in and the tip jerks down.
 	"fish_wait": [[0, 0, 0, 0, 0, -1, -5]],
 	"fish_bite": [[1, -1, 0, 1, 0, -1, -5], [1, -1, 0, 1, 0, -1, -5]],
+	# Eating / drinking: standing, the near hand up at the mouth (_MOUTH_HANDS); eating
+	# bites, then chews with the hand lowered a little; drinking tips the cup up on the sip.
+	"eat": [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0]],
+	"drink": [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]],
 }
+## Per eat / drink frame: [near hand x, hand y, what it holds: "bite" (a morsel at the lips),
+## "chew" (the bitten rest), "cup" (upright at the lips), "tip" (tipped up)]. Front view facing
+## left; seen from the back the face hides what is in the hand.
+const _MOUTH_HANDS := {
+	"eat": [[3, 8, "bite"], [3, 11, "chew"]],
+	"drink": [[2, 10, "cup"], [2, 8, "tip"]],
+}
+const _MORSEL := Color("f4ecd8")
+const _CUP := Color("d8c8a8")
+const _CUP_TEA := Color("7aa848")
 ## The rod's tip per fishing pose frame, in sprite pixels (the line starts here).
 const _ROD_TIPS := {"fish_wait": [Vector2i(0, 1)], "fish_bite": [Vector2i(0, 8), Vector2i(0, 6)]}
 const _ROD := Color("c8a85a")
@@ -531,6 +545,7 @@ static func _player(back: bool, pose: String, frame: int) -> Image:
 	var tired := pose.begins_with("tired")
 	var arms: int = p[0] + int(tired)   # tired arms hang a pixel lower
 	var hold := pose.begins_with("hold")
+	var mouth: Array = _MOUTH_HANDS[pose][frame % farmer_frames(pose)] if _MOUTH_HANDS.has(pose) else []
 	var img := Image.create_empty(16, 24, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
 	if not hold:
@@ -544,6 +559,10 @@ static func _player(back: bool, pose: String, frame: int) -> Image:
 	if hold:
 		_raised_arm(img, 1, p[0])
 		_raised_arm(img, 13, p[0])
+	elif not mouth.is_empty():
+		if not back:
+			_in_hand(img, mouth[0], mouth[1] + p[0], mouth[2])
+		_hand(img, mouth[0], mouth[1] + p[0])
 	else:
 		_hand(img, 4 + p[5], 14 + arms)
 	if _ROD_TIPS.has(pose):   # the bamboo rod from the hands up to its tip, a node every few px
@@ -567,6 +586,27 @@ static func _raised_arm(img: Image, x: int, dy: int) -> void:
 	img.fill_rect(Rect2i(x, 3 + dy, 2, 8), Color(_FARMER_COLORS.b))
 	img.fill_rect(Rect2i(x, 10 + dy, 2, 1), Color(_FARMER_COLORS.B))
 	img.fill_rect(Rect2i(x, dy, 2, 2), Color(_FARMER_COLORS.s))
+
+
+## What the hand at the mouth (`x`, `y`, as _hand) holds, drawn before the hand so the
+## fingers close over it: a morsel or its bitten rest, a cup upright or tipped to the lips.
+static func _in_hand(img: Image, x: int, y: int, what: String) -> void:
+	var o := Color(_FARMER_COLORS.o)
+	match what:
+		"bite":
+			_px(img, x - 2, y - 2, 4, 4, o)
+			_px(img, x - 1, y - 1, 2, 2, _MORSEL)
+		"chew":
+			_px(img, x - 2, y - 1, 3, 3, o)
+			_px(img, x - 1, y, 1, 1, _MORSEL)
+		"cup":
+			_px(img, x - 3, y - 3, 4, 5, o)
+			_px(img, x - 2, y - 3, 2, 1, _CUP_TEA)
+			_px(img, x - 2, y - 2, 2, 3, _CUP)
+		"tip":
+			_px(img, x - 3, y - 2, 5, 4, o)
+			_px(img, x - 2, y - 1, 3, 2, _CUP)
+			_px(img, x + 1, y - 1, 1, 1, _CUP_TEA)
 
 
 ## A 2 x 2 hand under the sleeve, outlined on the sides and below.
