@@ -396,7 +396,7 @@ class Judge:
 	var dialogue_open := false
 	var lines: Array = []
 
-	func talk(_dialogue: String, at: String) -> void:
+	func talk(_dialogue: String, at: String, _mood := "") -> void:
 		lines.append(at)
 		dialogue_open = true
 

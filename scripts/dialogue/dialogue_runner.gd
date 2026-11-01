@@ -10,8 +10,12 @@ const DIR := "res://data/dialogue/"
 const SPEAKERS := "res://data/dialogue/speakers.json"
 const SETTINGS := "res://data/text_box.json"
 const EXPRESSIONS: Array[String] = ["calm", "smile", "surprised", "worried"]
+## A villager's portrait moods (portrait:<villager>:<mood> in PlaceholderArt). A mood the
+## art doesn't have (yet) shows as neutral. `face`, the older key, names one of them.
+const MOODS: Array[String] = ["neutral", "happy", "sad", "surprised", "angry"]
+const FACE_MOODS := {"calm": "neutral", "smile": "happy", "worried": "sad", "surprised": "surprised"}
 const MAX_CHOICES := 4
-const LINE_KEYS: Array[String] = ["id", "speaker", "face", "text", "next", "choices", "set", "if", "then"]
+const LINE_KEYS: Array[String] = ["id", "speaker", "face", "mood", "text", "next", "choices", "set", "if", "then"]
 
 var id := ""
 var error := ""             # "" or why the dialogue was refused
@@ -21,6 +25,7 @@ var shown := 0              # letters of the line revealed so far
 var choice := 0             # choice under the cursor
 var flags: Dictionary
 var chars_per_second := 40.0
+var mood := ""              # the mood of lines that name none (an event's say step), "" = neutral
 var instant := false        # every line shown whole at once (set_speed(0))
 var pauses: Dictionary = {}   # character -> extra seconds after it
 var _ids: Dictionary = {}     # line id -> index
@@ -84,6 +89,31 @@ func line() -> Dictionary:
 
 func text() -> String:
 	return line().get("text", "")
+
+
+## The portrait key for the line on screen, "" for none.
+func portrait() -> String:
+	return portrait_key(line(), mood)
+
+
+## The mood line `l` is said in: its `mood`, else its `face` as a mood, else `default`; one
+## that isn't in MOODS falls back to neutral.
+static func mood_of(l: Dictionary, default := "") -> String:
+	var m: Variant = l.get("mood", FACE_MOODS.get(l.get("face", ""), default))
+	return m if m in MOODS else "neutral"
+
+
+## Only villagers (data/villagers) have portraits; narration and anyone else show none.
+static func has_portrait(speaker: String) -> bool:
+	return speaker != "" and Villagers.all().has(speaker)
+
+
+## "portrait:<speaker>:<mood>" for line `l`, or "" when it shows no portrait.
+static func portrait_key(l: Dictionary, default := "") -> String:
+	var speaker: Variant = l.get("speaker", "")
+	if not speaker is String or not has_portrait(speaker):
+		return ""
+	return "portrait:%s:%s" % [speaker, mood_of(l, default)]
 
 
 func revealed() -> bool:
@@ -255,6 +285,11 @@ func _check_line(l: Dictionary, who: Dictionary) -> String:
 			return "unknown speaker %s" % str(l.speaker)
 	if l.has("face") and (not l.has("speaker") or not l.face in EXPRESSIONS):
 		return "bad face %s" % str(l.face)
+	if l.has("mood"):
+		if not l.has("speaker") or not l.mood is String or l.mood == "":
+			return "bad mood %s" % str(l.mood)
+		if l.has("face"):
+			return "a line has a face or a mood, not both"
 	if l.has("next") and not _target_ok(l.next):
 		return "next goes nowhere"
 	if l.has("set") and not _flags_ok(l.set):

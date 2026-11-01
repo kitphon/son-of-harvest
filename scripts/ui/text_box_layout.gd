@@ -17,6 +17,27 @@ const CHOICE_TEXT_W := 160
 const CHOICE_ROW := 12
 
 
+## Where the text starts in the box: right of the portrait, or at the box's left edge on
+## a line without one (narration, the farmer, anyone who isn't a villager).
+static func text_x(portrait: bool) -> int:
+	return TEXT_POS.x if portrait else PORTRAIT.position.x + 2
+
+
+## How wide the text may run; it ends at the same place either way.
+static func text_w(portrait: bool) -> int:
+	return TEXT_W + TEXT_POS.x - text_x(portrait)
+
+
+## The text's rows (all ROWS of them), in the box.
+static func text_rect(portrait: bool) -> Rect2i:
+	return Rect2i(text_x(portrait), TEXT_POS.y, text_w(portrait), ROWS * row_h())
+
+
+## The name tag's left edge, in the box: over the start of the text.
+static func name_x(portrait: bool) -> int:
+	return text_x(portrait) - 6
+
+
 ## Pixels from one text row to the next.
 static func row_h() -> int:
 	return PixelFont.size() + int(PixelFont.data().line_gap)

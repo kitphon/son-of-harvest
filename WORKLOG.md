@@ -10,6 +10,46 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Villager portraits by mood
+Agent: Claude Code (claude-opus-5-5) · Commit: da7eb7f
+- Done: the ROADMAP "real portraits" item. Each villager (data/villagers) gets their own 40 x 40
+  text box portrait, `portrait:<id>:<mood>` in PlaceholderArt (`_portrait`, `_portrait_body`,
+  `_portrait_hair`, `_portrait_mood`, new functions; the generic `face:` key is left as it
+  was): their colours from the villager's look, shaped by hair style (Tome's grey bun and
+  hairpin, Hachiro's spiky hair under a tenugui headband, Sayo's long hair, fringe and
+  kanzashi, Kota's straw hat) and outfit (kimono collar, happi bands, a boy's shirt), with the
+  background and marks (wrinkles, stubble, mole, child, plaster) from speakers.json. Moods
+  (`DialogueRunner.MOODS`): neutral, happy, sad (brows up, a tear), surprised, angry (brows
+  down, gritted teeth, a cross mark); one the art lacks draws neutral. Dialogue lines take an
+  optional `mood`; the older `face` still works and names one (calm, smile, worried,
+  surprised = neutral, happy, sad, surprised); a line can't have both, and a mood needs a
+  speaker. An event's say step takes an optional `mood` for its lines that name none
+  (`Game.talk(id, at, mood)` keeps it in `Game.dialogue_mood`, which the text box hands to its
+  runner; the signal is unchanged). `DialogueRunner.portrait()` / `portrait_key()` give the
+  key, "" for narration and any speaker who isn't a villager (the farmer, Tsuru), and the text
+  box then shows no frame and starts the text and the name tag at the box's left edge
+  (`TextBoxLayout.text_x`, `text_w`, `text_rect`, `name_x`; lines are still checked at the
+  narrower width, so they fit both ways). Data: the four talk files and the three heart event
+  dialogues now use `mood` (mapped from their faces); Hachiro's and Kota's hated gifts and
+  Kota's "Fine!" in his first heart event are angry. Other dialogue files keep `face` (fewer
+  merge conflicts with the sessions working on festivals and contests). README → Dialogue
+  and Events describe it.
+- Checked: all test scripts print `OK (0 failed)` (test_dialogue: mood parsing, the face
+  alias, the say default, unknown moods fall back, no frame for narration / farmer / Tsuru,
+  every mood in the data known and used, 5 different moods x 4 different villagers, layout
+  with and without a portrait inside box and screen, text clear of the frame; test_talk: every
+  talk line has the villager's portrait and a mood, loved gifts pleased, disliked / hated ones
+  sad or angry; test_events: a say step's mood checked and passed on). Headless runs (title
+  `--quit-after 300`, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --map=town
+  --time=14:30 --talk=tome`, `--demo --event=heart_kota`, `--demo --dialogue=bin_note`, the
+  flat view with `--talk=tome`) printed no errors or warnings. Screenshots: `--demo --map=town
+  --time=14:30 --talk=tome` (Tome's portrait in the frame, name tag with heart), `--demo
+  --dialogue=bin_note` (the farmer's line: no frame, tag and text at the left edge) and the
+  flat view `--talk=kota --hearts=3` (Kota under his straw hat); a contact sheet of all 20
+  portraits looked right; `shots/` deleted.
+- Left / next: real drawn portraits can replace the `portrait:` keys one by one; the other
+  dialogue files can move from `face` to `mood` after the merges.
+
 ## 2026-11-01 — Mine art: ice, frost, frost stone, a soft flickering lantern in hand
 Agent: Claude Code (claude-opus-5-5) · Commit: 0c1f08c
 - Done: better pixel placeholders for the winter mine and the lantern, no rule changes, same
