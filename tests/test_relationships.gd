@@ -65,7 +65,7 @@ func _heart_art() -> void:
 func _birthday_data() -> void:
 	var taken := {}
 	var calendar := FileAccess.get_file_as_string("res://data/dialogue/examine_house.json")
-	for id in Villagers.all():
+	for id in Villagers.friends():
 		var b: Dictionary = Villagers.all()[id].get("birthday", {})
 		check(not b.is_empty(), "%s has a birthday" % id)
 		if b.is_empty():
@@ -147,7 +147,7 @@ func _neglect() -> void:
 func _heart_event_rows() -> void:
 	var maps := {"tome": ["town", "tome_house"], "kota": ["town", "kota_house"],
 		"sayo": ["town", "store", "sayo_house"], "hachiro": ["town", "smithy"]}
-	for id in Villagers.all():
+	for id in Villagers.friends():
 		check(maps.has(id), "%s has a heart event" % id)
 		for m in maps.get(id, []):
 			var t := EventTriggers.open(m)
@@ -181,7 +181,7 @@ func _heart_event_rows() -> void:
 ## not the day after or on someone else's, and differing from their usual day.
 func _birthday_plans() -> void:
 	check(Villagers.check_conditions({"birthday": true}) == "" and Villagers.check_conditions({"birthday": "yes"}) != "", "birthday is a rule condition, true or false")
-	for id in Villagers.all():
+	for id in Villagers.friends():
 		var v: Dictionary = Villagers.all()[id]
 		var b: Dictionary = v.birthday
 		check(v.plans.has("birthday"), "%s has a birthday plan" % id)
@@ -448,7 +448,7 @@ const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", 
 const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell"}
 
 func _heart_events_play() -> void:
-	for id in Villagers.all():
+	for id in Villagers.friends():
 		for band in [3, 5, 6]:
 			for promise in ([false, true] if (id == "kota" and band == 5) or band == 6 else [false]):
 				var ev: String = "heart_" + id + ({3: "", 5: "_5", 6: "_6"}[band])
@@ -517,7 +517,7 @@ func _heart_events_play() -> void:
 
 ## Band 6's talk lines: after the band 6 scene, at band 6 only (the band 4 .. 6 lines before).
 func _band6_talk() -> void:
-	for id in Villagers.all():
+	for id in Villagers.friends():
 		var st := {"year": 1, "season": "spring", "day": 3, "weekday": "wed", "time": 600, "weather": "sunny",
 			"flags": {"heart_%s_6" % id: true}, "festival": "", "band": 6, "again": false, "birthday": false, "day_number": 0}
 		var dear := ["dear_1", "dear_2", "dear_3"]
@@ -544,7 +544,7 @@ func _birthday_weather() -> void:
 	g.weather_chances = {}
 	for s in g.SEASONS:
 		g.weather_chances[s] = {"rain": 1.0}
-	for id in Villagers.all():
+	for id in Villagers.friends():
 		var b: Dictionary = Villagers.all()[id].birthday
 		var at: int = g.SEASONS.find(b.season) * g.DAYS_PER_SEASON + int(b.day) - 1 - 2   # two days before
 		at = posmod(at, 4 * g.DAYS_PER_SEASON)
@@ -564,7 +564,7 @@ func _birthday_weather() -> void:
 ## The HUD tag under the clock names a birthday as it names a festival; it fits the box.
 func _birthday_tag() -> void:
 	check(HudLayout.day_tag([]) == "" and HudLayout.day_tag(["tome"]) == "Tome's birthday", "the tag reads Tome's birthday")
-	for id in Villagers.all():
+	for id in Villagers.friends():
 		var tag := HudLayout.day_tag([id])
 		check(PixelFont.width(tag) + 12 <= HudLayout.BOXES.festival.size.x, "%s fits the HUD tag" % tag)
 	var g := _game()

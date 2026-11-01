@@ -91,21 +91,46 @@ func _init() -> void:
 	g.sleep()
 	check(g.hour == 6 and g.fatigue == 0 and said[-1].begins_with("Good morning"), "rested sleep: 6:00")
 
-	# Collapse at full fatigue: next day, late, the fee, stamina and fatigue from data.
+	# Collapse at full fatigue (here in the field): next day, late, in the clinic bed; the first
+	# visit is free, later ones cost the fee; stamina and fatigue from data.
+	var c: Dictionary = body.collapse
+	check(c.wake_map == "clinic" and MapManager.data("clinic").spawns.has(c.wake_spawn), "collapse wakes on the clinic's %s spawn" % c.wake_spawn)
+	check(int(c.fee) > 0 and int(c.free_visits) == 1 and "%d" in String(c.message) and not "%d" in String(c.free_message), "a fee, the first visit free")
 	g.money = 500
 	g.day = 10
 	g.hour = 15
+	g.go_to_map("farm", Vector2i(10, 10), Vector2i.DOWN)
 	g.fatigue = g.FATIGUE_MAX - 1
 	g.spend_stamina(2)   # a rainless afternoon swing: no work fatigue, so add one directly
 	g.add_fatigue(5)
 	check(g.fatigue == g.FATIGUE_MAX, "fatigue stops at the top")
 	g.check_body()
-	var c: Dictionary = body.collapse
 	check(g.day == 11 and g.hour == int(c.wake) and g.minute == 0, "collapse: wake next day at %d:00" % g.hour)
-	check(g.money == 500 - int(c.fee), "collapse: the doctor's fee (%d G left)" % g.money)
+	var bed: Array = MapManager.data("clinic").spawns[c.wake_spawn]
+	check(g.maps.id == "clinic" and g.maps.pos == MapManager.cell_pos(bed[0]) and g.maps.facing == bed[1], "collapse: in the clinic bed (%s %s)" % [g.maps.id, g.maps.pos])
+	check(g.money == 500, "the first collapse: no fee (%d G)" % g.money)
+	check(said[-1] == String(c.free_message), "first collapse message: %s" % said[-1])
+	check(g.flags.get("clinic_visits") == 1 and EventRunner.is_set(g.flags, "clinic_wake") and EventRunner.is_set(g.flags, "clinic_free"),
+		"the wake and free flags for the doctor's line %s" % [g.flags])
 	check(g.stamina == g.max_stamina * int(c.stamina_pct) / 100, "collapse: stamina %d" % g.stamina)
 	check(g.fatigue == g.FATIGUE_MAX + int(c.fatigue_change), "collapse: fatigue %d" % g.fatigue)
+	# The doctor's line plays on entering the clinic while the flag is set, every time.
+	var t := EventTriggers.open("clinic")
+	var st := {"year": 1, "season": "spring", "day": 11, "weekday": "thu", "time": 720, "weather": "sunny", "flags": g.flags,
+		"seen": {"clinic_wake": true}, "cell": Vector2i(bed[0])}
+	check(t.error == "" and t.pick("enter", st) == "clinic_wake", "triggers_clinic: the doctor's line on waking (%s)" % t.error)
+	check(t.pick("enter", st.merged({"flags": {}}, true)) == "", "no line on an ordinary visit")
+	var r := EventRunner.open("clinic_wake", g)
+	check(r.error == "", "clinic_wake runs: %s" % r.error)
+	check(DialogueRunner.open("clinic", {}, "wake_free").error == "" and DialogueRunner.open("clinic", {}, "wake_fee").error == "", "the doctor's two wake lines open")
+	# The next one in the mine costs the fee.
+	g.flags.erase("clinic_wake")
+	g.go_to_map("mine", MapManager.data("mine").spawns.start[0], Vector2i.UP)
+	g.fatigue = g.FATIGUE_MAX
+	g.check_body()
+	check(g.maps.id == "clinic" and g.money == 500 - int(c.fee), "a collapse in the mine: the clinic and the doctor's fee (%d G left)" % g.money)
 	check(said[-1] == String(c.message) % int(c.fee), "collapse message: %s" % said[-1])
+	check(g.flags.get("clinic_visits") == 2 and EventRunner.is_set(g.flags, "clinic_wake") and not EventRunner.is_set(g.flags, "clinic_free"), "a paid visit")
 	g.money = 7
 	g.fatigue = g.FATIGUE_MAX
 	g.check_body()
@@ -127,6 +152,7 @@ func _init() -> void:
 	g._tick_minute()
 	check(g.day == day_before + 1 and g.hour == int(p.wake), "pass out: wake at %d:00" % g.hour)
 	check(g.fatigue == 20 + int(p.fatigue_change) and g.stamina == g.max_stamina * int(p.stamina_pct) / 100, "pass out: fatigue and stamina")
+	check(g.maps.id == MapManager.HOME and g.money == 0, "pass out: at home, no fee")
 
 	# Every number in the rules is in the data file.
 	for key in ["work", "awake_late", "sleep", "oversleep", "states", "pass_out", "collapse"]:

@@ -10,6 +10,56 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Clinic: a collapse wakes the farmer in Dr. Yae's clinic
+Agent: Claude Code (claude-opus-5-5) · Commit: 5b9bcbf
+- Done: a village clinic (DESIGN: a collapse wakes in the clinic at 12:00 next day with a fee).
+  `data/maps/clinic.json` (Hinata Clinic, 9 x 7: tatami sick room with a futon that is only a
+  bed, a byobu and an andon; medicine shelves, the doctor's counter, a water jar; spawns
+  `start`, `bed`, `counter`, `keeper`), a 4 x 3 `village_house` east of the smithy in
+  `town.json` at [31, 4] with its door at [33, 6] (`shop: clinic`), a path down to the road
+  (x 33, rows 7-9) and the spawn `clinic`; far from the river lane (x 4) and clear of
+  Hachiro's walk (x 30). Dr. Yae (`data/villagers/yae.json`, our own: white coat, teal sash,
+  dark bun) keeps the counter 8:30-18:00, walks to the torii 13:00-13:50 on dry days, stays in
+  on wet ones, and is away before and after; talk file `talk_yae.json`, speakers.json "Dr.
+  Yae" with portrait colours, gifts (daikon, miso soup, mugwort tea, the omamori; no sweets,
+  no stones). She is a villager with `"hearts": false` (new optional key, `Villagers.check`
+  wants a bool): no birthday, heart events or place in the village record.
+  `Villagers.friends()` is everyone else; `Game.ending_values` / `ending_record` and the
+  heart-only loops of test_relationships (birthdays, birthday plans and weather, heart event
+  rows and scenes, band 6 lines, the HUD tag) use it; the gift checks (mine find, dish, one
+  keepsake loved) still cover her. Collapse: `body.json` collapse has `wake_map` "clinic",
+  `wake_spawn` "bed"; `Game.knock_out` passes them to `end_day(wake_map, wake_spawn)` (which
+  now ends with `go_to_spawn` instead of `go_home`; pass-out still wakes at home), counts the
+  flag `clinic_visits` and sets `clinic_wake` (+ `clinic_free`); `triggers_clinic.json` plays
+  `clinic_wake` on entering while that flag is set (`once: false`): Yae walks from her counter
+  to the bed, says `wake_free` or `wake_fee` (`dialogue/clinic.json`), the flags are cleared,
+  she goes back. The shop `clinic` (open 9-17 every day, keeper yae) sells the herb tonic
+  (foods.json `herb_tonic`: stamina +20, fatigue -15, drink; price 0 there and `shop: false`
+  so neither the stand nor the festival-stall rule picks it up, 400 G in shops.json).
+- Balance (ours): the first collapse is free (`free_visits` 1: a warning, with Yae's line
+  saying the next one is billed), every later one costs 80 G (`fee`, was a flat 30 G at home;
+  DESIGN's source has 10 G), never more than the money in hand: about two turnips' worth on
+  top of a lost morning, so it stings without wrecking a week. Wake at 12:00, half stamina and
+  fatigue -40 stay as they were. The tonic at 400 G is dearer than amazake (220, stamina) and
+  mugwort tea (350, half swing fatigue), as the one food that takes a big bite out of fatigue:
+  a remedy for a hard week, roughly a collapse's fee plus a lost morning.
+- Checked: all 24 test scripts print `OK (0 failed)` (new checks: test_body collapse in the
+  field and in the mine wakes on the clinic bed spawn, free then paid, the flags, the trigger
+  row, the event and its lines, pass-out still at home with no fee; test_maps the clinic door,
+  house, path, spawns, bed without sleep, the door shut at 20:00 and open at 10:00;
+  test_villagers Yae has no hearts, friends() leaves her out, keeper spot at noon in sun /
+  rain / snow, away at 7:00 / 19:00, in at opening and closing, at the torii at 13:20 on a dry
+  day). Headless runs (title `--quit-after 300`, `--demo`, `--demo --map=town`, `--demo
+  --mine=3`, `--demo --map=clinic`, `--demo --map=town@clinic --time=13:10`,
+  `res://scenes/main.tscn --quit-after 400`) printed no errors or warnings. Screenshots:
+  `--demo --map=clinic --time=12:00` (bed, screen, lamp, shelves, Yae behind the counter),
+  `--map=town@clinic --time=13:02` (the clinic house, Yae setting off) and `--map=clinic@bed
+  --flags=clinic_wake,clinic_free --event=clinic_wake` (Yae at the bedside, the free line in
+  the box); `shots/` deleted.
+- Left / next: Yae shows a heart on her name tag like everyone (affection still counts for
+  her); a real collapse in a play session not watched by a person; the merge with the
+  villager / town.json branches will conflict in town.json and test_relationships.
+
 ## 2026-11-01 — Gift lines of their own; a loved keepsake kept at home
 Agent: Claude Code (claude-opus-5-5) · Commit: 272bf26
 - Done: (1) Villagers answer keepsakes and dishes in their own words. Each talk file

@@ -16,7 +16,7 @@ const GameRules := preload("res://scripts/autoload/game.gd")   # SEASONS, WEEKDA
 const DIR := "res://data/villagers/"
 const COMMON := DIR + "_common.json"
 const RULE_KEYS: Array[String] = ["season", "weekday", "weather", "days", "year", "flags", "not_flags", "festival", "birthday"]
-const FILE_KEYS: Array[String] = ["_note", "id", "name", "speed", "look", "rules", "default", "plans", "gifts", "birthday"]
+const FILE_KEYS: Array[String] = ["_note", "id", "name", "speed", "look", "rules", "default", "plans", "gifts", "birthday", "hearts"]
 const REACTIONS: Array[String] = ["love", "like", "neutral", "dislike", "hate"]   # a gift's reaction, best first
 const DELAY_RESETS: Array[int] = [720, 1080]   # 12:00 and 18:00 as day minutes
 
@@ -43,6 +43,16 @@ static func all() -> Dictionary:
 			else:
 				_people[id] = r[1]
 	return _people
+
+
+## The villagers the farmer can become close to, id -> data: everyone but those with
+## `"hearts": false` (the doctor), who have no birthday, heart events or place in the record.
+static func friends() -> Dictionary:
+	var out := {}
+	for id in all():
+		if all()[id].get("hearts", true):
+			out[id] = all()[id]
+	return out
 
 
 ## The ids of every villager file in data/villagers (files starting with _ are shared data).
@@ -99,6 +109,8 @@ static func check(v: Variant) -> String:
 		var b: Variant = v.birthday
 		if not b is Dictionary or b.size() != 2 or not b.get("season") in GameRules.SEASONS 				or not EventRunner._whole(b.get("day"), 1, GameRules.DAYS_PER_SEASON):
 			return "birthday needs {season, day}"
+	if v.has("hearts") and not v.hearts is bool:
+		return "hearts is true or false"
 	if not v.get("rules", []) is Array:
 		return "rules is a list"
 	for i in v.get("rules", []).size():

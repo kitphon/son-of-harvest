@@ -8,6 +8,7 @@ var failures := 0
 func _init() -> void:
 	_map_files()
 	_map_rules()
+	_clinic()
 
 
 var _frame := 0
@@ -24,6 +25,7 @@ func _process(delta: float) -> bool:
 		_homes_3d()
 		_game_maps()
 		_bed_and_doors()
+		_clinic_doors()
 		_story_props()
 		_map_snow()
 		_start_view()
@@ -498,6 +500,49 @@ func _bed_and_doors() -> void:
 		f.close()
 	else:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SaveGame.SLOT))
+	g.new_game()
+
+
+## The village clinic: a small house east of the smithy, its door clear of the river lane, a
+## path down to the road; inside a bed (no sleeping), the doctor's counter and the way out.
+func _clinic() -> void:
+	var t := MapManager.data("town")
+	var d := t.door_at(Vector2i(33, 6))
+	check(d.get("to", "") == "clinic" and d.get("shop", "") == "clinic", "the small house east of the smithy is the clinic")
+	var house: Dictionary = t.prop_at(Vector2i(32, 5))
+	check(house.get("kind", "") == "village_house" and Vector2i(house.cell).x + int(house.door) == 33, "the clinic house draws its door at the door cell")
+	for y in [7, 8, 9]:
+		check(t.tile(Vector2i(33, y)) == "path" and not t.is_solid(Vector2i(33, y)), "a path from the clinic door to the road (33, %d)" % y)
+	check(Vector2i(t.spawns.clinic[0]) == Vector2i(33, 7) and t.spawns.clinic[1] == Vector2i.DOWN, "the town's clinic spawn is outside its door")
+	check(Vector2i(house.cell).x > 10, "the clinic is far from the river lane on the west side")
+	var c := MapManager.data("clinic")
+	check(c.indoor and c.door_at(Vector2i(4, 6)).to == "town" and Vector2i(c.door_at(Vector2i(4, 6)).spawn) == Vector2i(33, 7), "clinic: indoors, door back to the village by its door")
+	var bed: Vector2i = c.spawns.bed[0]
+	check(not c.is_solid(bed) and c.prop_at(bed + Vector2i.LEFT).get("kind", "") == "futon" and c.prop_at(bed + Vector2i.LEFT).get("use", "") == "",
+		"the bed spawn stands by the clinic bed, which doesn't sleep")
+	check(not c.is_solid(c.spawns.keeper[0]) and not c.is_solid(c.spawns.counter[0]), "the doctor's spot and the counter spot are free")
+
+
+## Through the clinic door while it is open, shut after hours; its bed is not the farmer's futon.
+func _clinic_doors() -> void:
+	var g: Node = root.get_node("Game")
+	var actions: GDScript = load("res://scripts/farm_actions.gd")
+	g.new_game()
+	var said := []
+	var note := func(t): said.append(t)
+	g.message.connect(note)
+	var door := MapManager.data("town").door_at(Vector2i(33, 6))
+	g.go_to_map("town", Vector2i(33, 7), Vector2i.UP)
+	g.hour = 20
+	g.use_door(door)
+	check(g.maps.id == "town" and said.size() > 0 and said.back().begins_with("Hinata Clinic is closed"), "the clinic is shut at 20:00 (%s)" % [said])
+	g.hour = 10
+	g.use_door(door)
+	check(g.maps.id == "clinic", "an open clinic's door leads in")
+	var day: int = g.day
+	actions.interact(Vector2i(1, 2))
+	check(g.day == day and g.maps.id == "clinic", "the clinic bed doesn't sleep")
+	g.message.disconnect(note)
 	g.new_game()
 
 

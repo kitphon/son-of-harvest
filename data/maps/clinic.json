@@ -1,0 +1,148 @@
+{
+	"_note": "The village clinic inside (shop clinic in data/shops.json): a tatami sick room on the left with a bed (a futon that is only a bed, no sleeping in it), a folding screen and a lamp, the doctor's medicine shelves and her counter on the right, a water jar by the door. Dr. Yae (data/villagers/yae.json) stands at the keeper spot; a collapse wakes the farmer at the bed spawn (data/body.json collapse). Format: README.md, Maps.",
+	"id": "clinic",
+	"name": "Hinata Clinic",
+	"size": [
+		9,
+		7
+	],
+	"indoor": true,
+	"ambient": "indoor",
+	"light": "f4f4ec",
+	"background": "14181a",
+	"legend": {
+		"#": {
+			"tile": "wall",
+			"solid": true
+		},
+		".": {
+			"tile": "tatami",
+			"step": "floor"
+		},
+		"w": {
+			"tile": "floor",
+			"step": "floor"
+		},
+		"e": {
+			"tile": "earth",
+			"step": "soil"
+		},
+		"D": {
+			"tile": "earth",
+			"solid": true
+		}
+	},
+	"ground": [
+		"#########",
+		"#...wwww#",
+		"#...wwww#",
+		"#...wwww#",
+		"#eeeeeee#",
+		"#eeeeeee#",
+		"####D####"
+	],
+	"props": [
+		{
+			"kind": "futon",
+			"cell": [
+				1,
+				1
+			],
+			"size": [
+				1,
+				2
+			]
+		},
+		{
+			"kind": "byobu",
+			"cell": [
+				3,
+				1
+			]
+		},
+		{
+			"kind": "andon",
+			"cell": [
+				1,
+				3
+			]
+		},
+		{
+			"kind": "shelf",
+			"cell": [
+				5,
+				1
+			],
+			"size": [
+				3,
+				1
+			]
+		},
+		{
+			"kind": "counter",
+			"cell": [
+				4,
+				3
+			],
+			"size": [
+				4,
+				1
+			],
+			"use": "shop",
+			"shop": "clinic"
+		},
+		{
+			"kind": "mizugame",
+			"cell": [
+				7,
+				5
+			]
+		}
+	],
+	"doors": [
+		{
+			"cells": [
+				[
+					4,
+					6
+				]
+			],
+			"to": "town",
+			"spawn": [
+				33,
+				7
+			],
+			"facing": "down"
+		}
+	],
+	"spawns": {
+		"start": [
+			[
+				4,
+				5
+			],
+			"up"
+		],
+		"bed": [
+			[
+				2,
+				2
+			],
+			"down"
+		],
+		"counter": [
+			[
+				5,
+				4
+			],
+			"up"
+		],
+		"keeper": [
+			[
+				5,
+				2
+			],
+			"down"
+		]
+	}
+}

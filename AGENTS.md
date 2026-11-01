@@ -41,7 +41,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   lightning): `res://tests/test_weather.gd` must print `test_weather: OK (0 failed)`.
   Dialogue (runner, data, text box layout): `res://tests/test_dialogue.gd` must print
   `test_dialogue: OK (0 failed)`. Pause menu / settings (display, text speed, HUD, reset) / key and pad remapping: `res://tests/test_menu.gd` must print
-  `test_menu: OK (0 failed)`. Fatigue (tired states, oversleeping, collapse):
+  `test_menu: OK (0 failed)`. Fatigue (tired states, oversleeping, collapse, waking in the clinic and the doctor's fee):
   `res://tests/test_body.gd` must print `test_body: OK (0 failed)`. Events (runner, trigger
   tables, event data): `res://tests/test_events.gd` must print `test_events: OK (0 failed)`.
   Maps (data/maps, doors, indoor clock, story props gated by flags, the fade in the real view): `res://tests/test_maps.gd`
@@ -95,7 +95,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   trigger fire, run `res://scenes/main.tscn` as the scene argument without `--demo`),
   `--map=<id>` (or `<id>@<spawn>`, e.g. `town@shrine`, `farm@gate`) to start on another map
   from `data/maps` (the villagers' homes: `--map=tome_house --time=6:30` shows Tome by her
-  hearth; `kota_house`, `sayo_house`; `town@sayo` stands at Sayo's side door of the store), `--rucksack` (or `--rucksack=storage`) to open the rucksack (or the
+  hearth; `kota_house`, `sayo_house`; `town@sayo` stands at Sayo's side door of the store;
+  `--map=clinic --time=12:00` shows the village clinic with Dr. Yae at her counter, `town@clinic` its door), `--rucksack` (or `--rucksack=storage`) to open the rucksack (or the
   storage chest; `--demo` puts a few crops in both), `--hold` to start with a turnip overhead
   and a potato on the ground in front of the bin, `--time=H:MM` (after `--demo`) to set the
   clock (villagers stand where their plans say then; `--demo --map=town` at 10:00 shows Kota

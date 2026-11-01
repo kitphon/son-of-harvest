@@ -91,6 +91,9 @@ var kitchen_tools: Array[String] = [] # cooking tools owned (data/recipes.json t
 ## morning after the order until it is done; sync_build_flag). Day plans (data/villagers),
 ## talk picks and map props (the lumber by the farmhouse) read it like any flag.
 const BUILD_FLAG := "house_work"
+const CLINIC_VISITS := "clinic_visits"   # flag: how many times a knock-out woke the farmer away from home
+const WAKE_FLAG := "clinic_wake"         # flag: just woke up there (triggers_clinic.json plays the doctor's line)
+const FREE_FLAG := "clinic_free"         # flag: and the doctor let the fee go
 var fishing := Fishing.new()       # the line: cast, wait, bite (rules in data/fish.json)
 var fish_caught: Dictionary = {}   # fish id -> how many were caught this game (once-only fish)
 var mine_deepest := 0              # the deepest mine floor reached (the only mine state saved)
@@ -487,8 +490,14 @@ func map_arrived() -> void:
 
 ## A new day starts at home: in the house, by the futon.
 func go_home() -> void:
-	var spot: Array = MapManager.data(MapManager.HOME).spawns.home
-	go_to_map(MapManager.HOME, spot[0], spot[1])
+	go_to_spawn(MapManager.HOME, "home")
+
+
+## To spawn `spawn` of map `map_id` (its `start` when it has no such spawn).
+func go_to_spawn(map_id: String, spawn: String) -> void:
+	var spawns: Dictionary = MapManager.data(map_id).spawns
+	var spot: Array = spawns.get(spawn, spawns.start)
+	go_to_map(map_id, spot[0], spot[1])
 
 
 # --- settings ---------------------------------------------------------------
@@ -698,23 +707,37 @@ func collapse() -> void:
 	knock_out("collapse")
 
 
-## Shared by pass_out and collapse: the day ends with no rest; wake hour, fee, stamina and the
-## fatigue change come from data/body.json.
+## Shared by pass_out and collapse: the day ends with no rest; where the farmer wakes
+## (`wake_map` / `wake_spawn`, else at home), the wake hour, fee, stamina and the fatigue
+## change come from data/body.json. The first `free_visits` knock-outs of a kind with a fee
+## cost nothing (counted in the flag CLINIC_VISITS); waking somewhere else sets WAKE_FLAG
+## (and FREE_FLAG for a free one) for that map's trigger table (the doctor's line).
 func knock_out(kind: String) -> void:
 	var r: Dictionary = body.get(kind, {})
-	end_day()
+	var wake_map := String(r.get("wake_map", MapManager.HOME))
+	if not MapManager.has(wake_map):
+		wake_map = MapManager.HOME
+	end_day(wake_map, String(r.get("wake_spawn", "home")))
 	hour = int(r.get("wake", 6))
-	var fee := mini(int(r.get("fee", 0)), money)
+	var visits := int(flags.get(CLINIC_VISITS, 0))
+	var free := int(r.get("fee", 0)) > 0 and visits < int(r.get("free_visits", 0))
+	var fee := 0 if free else mini(int(r.get("fee", 0)), money)
 	money -= fee
+	if wake_map != MapManager.HOME:
+		flags[CLINIC_VISITS] = visits + 1
+		flags[WAKE_FLAG] = true
+		flags[FREE_FLAG] = free
 	stamina = max_stamina * int(r.get("stamina_pct", 50)) / 100
 	fatigue = clampi(fatigue + int(r.get("fatigue_change", 0)), 0, FATIGUE_MAX)
 	_shown_state = body_state()
-	var text := String(r.get("message", "You passed out..."))
+	var text := String(r.get("free_message" if free else "message", r.get("message", "You passed out...")))
 	message.emit(text % fee if "%d" in text else text)
 	changed.emit()
 
 
-func end_day() -> void:
+## Ends the day and starts the next one; the farmer wakes on map `wake_map` at its spawn
+## `wake_spawn` (at home by the futon unless a knock-out says otherwise).
+func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 	pay_bin()
 	affection.day_end(day_number(), rng)   # before the date moves: who was left alone today
 	day += 1
@@ -741,7 +764,7 @@ func end_day() -> void:
 		_finish_build(house_job)
 	sync_build_flag()
 	build_news = _build_off_news()
-	go_home()
+	go_to_spawn(wake_map, wake_spawn)
 	day_started.emit()
 	changed.emit()
 
@@ -1261,7 +1284,7 @@ func ending_values() -> Dictionary:
 		if int(a.happy) * 2 >= animals.happy_max():
 			cared += 1
 	var hearts := 0
-	for id in Villagers.all():
+	for id in Villagers.friends():
 		hearts += affection.band(id)
 	var levels := 0
 	for t in FIELD_TOOLS:
@@ -1287,7 +1310,7 @@ func field_counts() -> Dictionary:
 ## The record for this run (Ending.grade).
 func ending_record(values := ending_values()) -> Dictionary:
 	var points := {}
-	for id in Villagers.all():
+	for id in Villagers.friends():
 		points[id] = affection.of(id)
 	return Ending.grade(values, points)
 

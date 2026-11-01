@@ -39,11 +39,15 @@
 		"message": "You fell asleep outside and woke up at home..."
 	},
 	"collapse": {
-		"_comment": "Fatigue reached 100: a neighbour carries the farmer home and calls the doctor; half the morning is lost.",
+		"_comment": "Fatigue reached 100 (in the field, the mine, anywhere): a neighbour carries the farmer to the village clinic (wake_map, its wake_spawn by the bed), where Dr. Yae keeps them overnight; half the next morning is lost (DESIGN: wake at 12:00). The fee is ours: the first free_visits are free (a warning), every later one costs fee, never more than the money in hand. See WORKLOG 2026-11-01 Clinic.",
 		"wake": 12,
-		"fee": 30,
+		"wake_map": "clinic",
+		"wake_spawn": "bed",
+		"fee": 80,
+		"free_visits": 1,
 		"stamina_pct": 50,
 		"fatigue_change": -40,
-		"message": "You collapsed! A neighbour carried you home. The doctor's visit cost %d G."
+		"message": "You collapsed! You woke up in the village clinic. Dr. Yae's fee: %d G.",
+		"free_message": "You collapsed! You woke up in the village clinic. Dr. Yae let the fee go, this once."
 	}
 }

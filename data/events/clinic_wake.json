@@ -1,0 +1,15 @@
+{
+	"_note": "The noon after a collapse, in the clinic's sick room (Game.knock_out sets clinic_wake, and clinic_free when the fee was let go; triggers_clinic.json plays this on entering): Dr. Yae comes from her counter to the bed, says her piece, and goes back. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "yae", "at": "plan", "face": "farmer"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "actor", "who": "yae", "to": "farmer", "face": "farmer"},
+		{"do": "face", "dir": "yae"},
+		{"if": "clinic_free", "then": "free"},
+		{"do": "say", "dialogue": "clinic", "at": "wake_fee", "next": "done"},
+		{"id": "free", "do": "say", "dialogue": "clinic", "at": "wake_free"},
+		{"id": "done", "do": "clear", "flags": ["clinic_wake", "clinic_free"]},
+		{"do": "actor", "who": "yae", "to": "plan"},
+		{"do": "actor", "who": "yae", "leave": true}
+	]
+}
