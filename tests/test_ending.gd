@@ -44,6 +44,11 @@ func _data() -> void:
 	for r in d.ranks:
 		check(PixelFont.missing(String(r.title)) == "" and PixelFont.width("Written as: " + String(r.title)) <= S.W - 12, "the title %s fits" % r.title)
 	check(d.ranks.size() >= 3, "a few ranks")
+	# Every mine trip starts at floor 1 (the year playtest reached floor 6 mining every winter day),
+	# so the deepest step must be a floor one day's trip can reach.
+	for c in d.categories:
+		if c.measure == "mine_deepest":
+			check(int(c.steps.back()) <= 20, "the deepest mine step is one day's trip (%d)" % int(c.steps.back()))
 	check(Ending.check({"categories": [{"id": "a", "name": "A", "measure": "luck", "steps": [1]}], "ranks": [{"min": 0, "title": "T"}]}) != "",
 		"an unknown measure is refused")
 	check(Ending.check({"categories": [{"id": "a", "name": "A", "measure": "mine_deepest", "steps": [5, 5]}], "ranks": [{"min": 0, "title": "T"}]}) != "",

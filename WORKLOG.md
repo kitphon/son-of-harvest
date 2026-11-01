@@ -10,6 +10,60 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Year playtest bot (tools/play_year.gd); gifts slower, mine steps lower
+Agent: Claude Code (claude-opus-5-5) · Commit: 4621641 (the bot's first version: 553b859)
+- Done: `tools/play_year.gd` (`--headless --path . --script res://tools/play_year.gd`, `-- --years=2
+  --seed=N`): a bot that plays through the real rules (Game's clock, stamina, fatigue, sleep;
+  FarmActions.use_tool / buy_seeds; the shops with their hours, days off and keepers; Animals; the
+  mine; fishing; cooking; talks and gifts; contests; the maps' trigger tables through a small
+  headless EventPlayer, so heart events, lessons, the radio, the year page and the ending play).
+  It keeps the save slot as it was and checks a save round trip each season. Its plan: 3 x 3 plots
+  by the can's level with a mix of the season's crops, the coop and the barn, the mine on rain days
+  and in winter (down as soon as the hole is found), a daily village round with a talk and the best
+  gift carried, the goals of balance.py plus the kitchen tools, the four contests. Since 553b859:
+  the smithy is visited after 10:00 (no time passes in the store), the crop mix, deeper mining.
+- Balance, from the report: (1) Gifts were far too strong: with 8 / 3 every villager was at band
+  5-6 by the end of summer (Sayo 232 in spring), against `_common.json`'s own note. Now love 4,
+  like 2 (talk 1): a liked gift a day reaches band 3 in 30 days, a loved one in 18, band 6 in about
+  47 days of loved gifts. The daily-gifting bot still has everyone at band 6 by the end of fall;
+  that is the most a player can do, so it stays. (2) The ending's mine steps 12 / 20 / 30 couldn't
+  be reached: every trip starts at floor 1, a floor costs ~20 stamina to find its hole, and the bot
+  mining every winter day got to floor 6. Now 5 / 10 / 15 / 20 (20 = a whole day's trip with food).
+  Not changed: the hammer reaches level 4-5 from mine swings alone (exp 90 / 270) while the hoe,
+  sickle and axe stay low; the mine is where hammer work is, so it is left as it is.
+- Report (seed 1, `-- --years=2`, after both changes, quoted from the run; the record was graded
+  with the old mine steps, and floor 6 earns 1 star with either):
+  ```
+  == Year 1 spring: income 15102 G, costs 12100 G, money 500 -> 3502 G
+     bought: can 2, hoe 2, rucksack, 2 chicken, chest
+  == Year 1 summer: income 29309 G, costs 29310 G, money 3502 -> 3501 G
+     bought: sickle 2, can 3, kitchen, kitchen tools, 1 cow, 2 chicken
+  == Year 1 fall: income 49538 G, costs 45060 G, money 3501 -> 7979 G
+     bought: 1 sheep, hammer 2, rucksack, 1 cow, room
+  == Year 1 winter: income 42046 G, costs 7990 G, money 7979 -> 41345 G
+     bought: can 4, hoe 3, axe 2, hammer 3, rod 2
+  == Year 2 spring: income 50042 G ... money 41345 -> 83237 G
+  == Year 2 summer: income 58937 G ... money 83237 -> 132784 G
+  == Year 2 fall: income 61682 G ... money 132784 -> 182716 G
+  == Year 2 winter: income 40516 G ... money 182716 -> 218132 G
+  == Spring 1, Year 3: the village record (the ending played)
+     Shipped 344472 3/4, Crops 11 4/4, Happy animals 9 3/4, Friendships 24 4/4, Deepest floor 6 1/4,
+     Fish kinds 4 2/4, House built 3 3/3, Tool levels 13 3/4, Contests won 4 3/4, Recipes 13 4/4
+     30 / 39 stars: rank 3, "Keeper of the Satoyama"; closest: hachiro
+     goals not reached: none
+  play_year: OK (no problems seen)
+  ```
+  No collapses or passing out in two years; no ores short (each upgrade was bought the first time
+  it was due, the smithy's 3 akagane included). Year 1 income: balance.py 155387 G, the bot 135995 G
+  (crops 77k vs 60k, animals 50k vs 51k, mine 18k vs 26k, fish 9k vs 14k). The steady plan landing
+  in Keeper of the Satoyama is what data/ending.json aims at. No game bugs were found (the save
+  round trip held every season).
+- Checked: all 24 test scripts print `OK (0 failed)` (test_relationships checks the gift pace,
+  test_ending that the deepest mine step is at most 20); headless runs (title `--quit-after 300`,
+  `--demo`, `--demo --map=town`, `--demo --mine=3`) printed no errors or warnings.
+- Left / next: the bot fishes only at the farm pond (4 kinds) and doesn't buy food for the mine;
+  a run takes about 8 minutes a year.
+
 ## 2026-11-01 — A played contest: the mochi pounding at Year's Turn
 Agent: Claude Code (claude-opus-5-5) · Commit: 7e363ae
 - Done: a festival can have a `game` beside its `contest` (data/festivals.json; checked by

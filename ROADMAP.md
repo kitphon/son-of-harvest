@@ -171,17 +171,17 @@ The balance pass is done (milestone 8): our own crop, product, animal and extens
 the before / after table); it also keeps the smithy's ores back from the bin (an upgrade
 waits while they are short), counts contest prizes from the odds against the rivals, and prints
 each recipe's gain over its raw ingredients, its kitchen tools and the cookings that pay them
-back (the plan buys the tools as a one-off cost in the season it first needs them). Later for balance: play a real year; the smithy's
-level 2 ores (3 akagane) are short for a spring with two mine trips (WORKLOG note).
+back (the plan buys the tools as a one-off cost in the season it first needs them). Later for balance: the hammer levels up from mining alone (the playtest: level 4 in spring).
 The ending is in (milestone 9): on the first morning of year 3 Tome brings the village record
 (stars per category, a rank and a title from data/ending.json; README → Ending), then the
 villager liked most says a word and the game goes on. Every other New Year Tome brings a
 shorter yearly page, and every page shows the first day's numbers and field beside today's
 and the gain since the last page. The record is drawn as a paper scroll that unrolls on open
 (rollers, washi, ink-stamp stars, a red seal by the title).
-Next: milestone 10, building the .exe once the export templates are installed (README → Export); a playtest of a real year to
-check the balance and the ending's steps (re-set for 11 crops / 13 recipes on 2026-10-31;
-the playtest should include the 6,600 G of kitchen tools).
+The year playtest is done: `tools/play_year.gd` plays two years through the real rules and
+prints a report per season and the village record (WORKLOG 2026-11-01); gifts were made slower
+and the ending's mine steps lower from it. Later for it: river fishing, food for the mine.
+Next: milestone 10, building the .exe once the export templates are installed (README → Export).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
 aside on 2026-10-31); ask what bothers them when coming back to the farmer.
