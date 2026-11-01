@@ -10,6 +10,39 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Merged six branches: scroll, mine art, portraits, festival crowd, mochi contest, year bot
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged with `--no-ff`, one at a time, all tests after each, onto the main that already had
+  the ten merges above: `claude/ending-scroll-702690` (5c16326), `claude/mine-art-72ed93`
+  (0c1f08c), `claude/portraits-ce4710` (da7eb7f), `claude/festival-crowd-26fd41` (00682e8),
+  `claude/mochi-contest-73fb06` (7e363ae), `claude/year-bot-d873b4` (553b859, 4621641).
+  WORKLOG was rebuilt each time from main's file with the branch's new entry on top (mine-art's
+  file had mixed line endings, year-bot's an empty line after every line). The scroll keeps the UI
+  size setting (`UiScale.apply_layer` on the scroll's rect). Portraits: the moods were moved onto
+  main's talk files line by line; main's newer lines (gift, river, Yae's) had `face`, now `mood`
+  (calm → neutral, smile → happy, worried → sad), since test_talk wants a mood on every villager
+  line; Yae gets a portrait from her speakers.json colours; the rivals test's Judge stub takes the
+  new `mood` argument. Festival crowd: main already had the rivals walking up (contest-rivals,
+  574de93: `holds`, `meanwhile`, `walkers`), so main's contest events, EventRunner, villager views
+  and event tests were kept and the branch's own version (`hold`, `"wait": false`, `walks`) was
+  not taken; what came in is the gathering: Hachiro's and Sayo's festival day plans (Hachiro's
+  festival rules go before main's river Sundays), the festival talk picks and lines (as moods),
+  Sayo's Blossom Day counter note, `_crowd` / `_store_note` checks, README "The crowd". Mochi: the
+  flat view now draws decorations as pictures (flat-decor), so the mortar became a
+  `festival:mochi_usu` picture (the 32 x 24 usu, half pounded) instead of the branch's special
+  case. The importer had to run for the new `MochiPound` / `MochiScreen` class names.
+- Checked on merged main: all 24 test scripts print `OK (0 failed)`; headless runs (title,
+  `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --season=winter --mine=3`, `--demo
+  --ending`, `--demo --ending=year`, `--demo --festival=years_turn --contest=mochi:auto`, `--demo
+  --festival=blossom_day --contest=potato`, `--demo --map=town --time=14:30 --talk=tome`, `--demo
+  --map=clinic`, `res://scenes/main.tscn --quit-after 400`, `main_2d.tscn -- --demo
+  --festival=years_turn`) printed no errors or warnings. `tools/play_year.gd` on merged main:
+  `play_year: OK (no problems seen)`, 27 / 39 stars, rank 3; every villager, Yae too, reaches
+  band 6 in year 1 even with the slower gifts. Screenshots: Yae's text box (her portrait) and the
+  flat view at Year's Turn (the mortar by the shrine path); `shots/` deleted.
+- Left / next: the mochi timing needs a person to play it; friendships may still fill too fast
+  (all band 6 in year 1 in the bot); the .exe once the export templates are installed.
+
 ## 2026-11-01 — Year playtest bot (tools/play_year.gd); gifts slower, mine steps lower
 Agent: Claude Code (claude-opus-5-5) · Commit: 4621641 (the bot's first version: 553b859)
 - Done: `tools/play_year.gd` (`--headless --path . --script res://tools/play_year.gd`, `-- --years=2
