@@ -4,6 +4,8 @@
 	"stride": 0.5,
 	"_work": "A {\"work\": minutes} step in a day plan (Hachiro building on the farm) shows the work pose: hammer up, then the blow, work_strokes_per_minute blows a game minute (2 = one every 0.25 s, a steady carpenter's beat; ours, by eye). Each blow knocks (Sfx build_knock) when the farmer is on that map.",
 	"work_strokes_per_minute": 2,
+	"_fish": "A {\"fish\": minutes} step (Kota and Hachiro at the river on a fair Sunday) shows the fish pose: a rod held out, the line down from its tip; the tip dips for one game minute in every fish_bob_minutes (a nibble now and then; ours, by eye).",
+	"fish_bob_minutes": 6,
 	"_delay": "A talk turns the villager to the farmer and they stand talk_turn_minutes after it closes; walking into the farmer (within bump_reach cells, heading their way) makes them wait. Both push their plan back, at most delay_max minutes, cleared at 12:00 and 18:00 (DESIGN: villagers). The farmer can't step closer than block_reach cells to anyone. Ours.",
 	"talk_turn_minutes": 2,
 	"delay_max": 30,

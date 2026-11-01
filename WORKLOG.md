@@ -10,6 +10,37 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Villagers at the river: Hachiro and Kota fish it on fair Sundays
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: Hachiro's Sunday moved from the village pond to the river: a fair Sunday (rule
+  `weekday sun, weather sunny`) he walks the road west and down the lane behind Kota's house
+  (town [4,21]), is on the river map from 9:30 at [10,5] facing the water, rod out (45 min,
+  a 5 min stretch, a step to [11,5], 30 min, back), and leaves at 15:00 along the row above
+  (so he doesn't walk through Kota), smithy by 15:45; a wet Sunday is a new `sunday_in` plan
+  at the anvil (the smithy is shut Sundays, so he isn't at the counter spot). Kota has a
+  `river` plan on Sundays that aren't wet (after his festival / birthday / stays_in rules, so
+  summer Sundays too): the usual morning, then 14:10-17:00 on the shore at [6,5] / [7,5],
+  home by 17:30. New day plan step `{"fish": minutes}` (DayPlan legs carry `fish`, `where`
+  gives `fishing` / `fished`; a talk sets `fishing` false); `Villagers.sprite_key` gives pose
+  `fish`, frame by `fish_frame` (the tip dips one minute in every `fish_bob_minutes`, 6, in
+  _common.json; ours, by eye); PlaceholderArt draws `villager:<id>:<side>:fish:<0|1>`: a thin
+  rod from the hand out to the sprite's right edge, the line hanging from the tip (both views
+  use the same key). Talk picks have a new `map` condition (map ids; `Game.talk_to` passes
+  the map the villager stands on): Hachiro and Kota each have three `river_` lines, picked at
+  the river before their band lines (after `again` / `birthday` / dear). Game takes
+  `--day=N` (day of the season; 7 = the first Sunday). Gift lists and keepsakes untouched.
+- Checked: test_villagers (fish step, the river Sunday times and places, no walking into
+  each other, wet / Monday / summer, the fish frames, both views on the river at 14:30 showing
+  both in place with the fish pose) and test_talk (the `map` condition refused for an unknown
+  map, river picks, E at the river opens a river line) print `OK (0 failed)`, as do all 24
+  test scripts. Headless runs (title `--quit-after 300`, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, `--demo --day=7 --map=river --time=10:00`) printed no errors or warnings.
+  Screenshot `--demo --day=7 --weather=sunny --map=river@shore --time=14:45`: Kota (straw hat)
+  and Hachiro (headband) on the gravel shore, rods and lines visible; `shots/` deleted.
+- Left / next: the rod is small inside the 16 px sprite (the line ends on the gravel, not in
+  the water); a wider fish frame would read better once real art comes. Tome and Sayo have no
+  river visits.
+
 ## 2026-11-01 — Merged six branches: building fixes, 2D weather, heart actors, stalls, river, yearly record
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each: `claude/building-fixes-32aab9`

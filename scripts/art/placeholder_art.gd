@@ -17,7 +17,7 @@ static func _make(key: String) -> Image:
 	match parts[0]:
 		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk|fish_wait|fish_bite>:<frame>
 			return _player(parts[1] == "back", parts[2], int(parts[3]))
-		"villager": # villager:<id>:<front|back>:<idle|walk|work>:<frame>, from the look in data/villagers/<id>.json
+		"villager": # villager:<id>:<front|back>:<idle|walk|work|fish>:<frame>, from the look in data/villagers/<id>.json
 			return _villager(Villagers.look(parts[1]), parts[2] == "back", parts[3], int(parts[4]))
 		"target":   # corner brackets laid on the cell the tool will hit
 			var c := Color(1, 1, 1, 0.85)
@@ -650,7 +650,8 @@ const _VILLAGER_BODIES := {
 
 ## The villager's picture for a pose and frame; `walk` frames step like the farmer's walk;
 ## `work` swings a carpenter's hammer (0 = raised over the shoulder, 1 = the blow, the body
-## dipping a pixel into it).
+## dipping a pixel into it); `fish` holds a rod out to the right, the line hanging from its tip
+## (0 = the tip up, 1 = dipped by a bite or the current).
 static func _villager(look: Dictionary, back: bool, pose: String, frame: int) -> Image:
 	var p: Array = _FARMER_POSES["walk" if pose == "walk" else "idle"][frame % farmer_frames("walk" if pose == "walk" else "idle")]
 	if pose == "work":
@@ -662,7 +663,7 @@ static func _villager(look: Dictionary, back: bool, pose: String, frame: int) ->
 	var hand := func(x: int, y: int) -> void:
 		_px(img, x - 1, y, 4, 3, c.o)
 		_px(img, x, y, 2, 2, c.s)
-	if pose != "work":
+	if pose != "work" and pose != "fish":
 		hand.call(11 + p[6], 14 + p[0])
 	if outfit == "kimono":   # short steps under the robe: only the sandals show
 		for f in [[8 + p[3], p[4]], [5 + p[1], p[2]]]:
@@ -698,6 +699,15 @@ static func _villager(look: Dictionary, back: bool, pose: String, frame: int) ->
 			_px(img, 13, 11, 3, 7, c.o)
 			_px(img, 14, 12, 1, 5, iron)
 			hand.call(12, 14)
+	elif pose == "fish":
+		var rod := Color("7a5a32")
+		var line := Color(0.92, 0.92, 0.86, 0.85)
+		var tip := 2 if frame % 2 == 0 else 4
+		for y in range(tip, 14):   # a thin pole from the hand up and out to the sprite's edge
+			img.set_pixel(12 + roundi(3.0 * float(13 - y) / float(13 - tip)), y, rod)
+		for y in range(tip + 1, 23):
+			img.set_pixel(15, y, line)
+		hand.call(12, 13)
 	return img
 
 

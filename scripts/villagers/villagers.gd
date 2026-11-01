@@ -212,6 +212,7 @@ static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 		w.facing = turn.facing
 		w.moving = false
 		w.working = false   # puts the hammer down to talk
+		w.fishing = false   # and reels the line in
 	return w
 
 
@@ -330,15 +331,18 @@ static func is_on(id: String, map_id: String, t: float, s: Dictionary) -> bool:
 
 ## The sprite key for a villager as on_map gives them (PlaceholderArt "villager:..."): walk
 ## frames go by the distance walked, so steps match the ground at any speed; work frames
-## (hammer up, 0, and down, 1) by the minutes worked.
+## (hammer up, 0, and down, 1) by the minutes worked; fish frames (the rod tip up, 0, and
+## dipped, 1) by the minutes the rod has been out.
 static func sprite_key(w: Dictionary) -> String:
 	var back := FarmerAnim.is_back(w.facing)
-	var pose := "walk" if w.moving else ("work" if w.get("working", false) else "idle")
+	var pose := "walk" if w.moving else ("work" if w.get("working", false) else ("fish" if w.get("fishing", false) else "idle"))
 	var frame := 0
 	if pose == "walk":
 		frame = int(w.walked / stride()) % 4
 	elif pose == "work":
 		frame = work_frame(w.worked)
+	elif pose == "fish":
+		frame = fish_frame(w.fished)
 	return "villager:%s:%s:%s:%d" % [w.id, "back" if back else "front", pose, frame]
 
 
@@ -346,6 +350,13 @@ static func sprite_key(w: Dictionary) -> String:
 ## (work_strokes_per_minute in _common.json; one blow per stroke).
 static func work_frame(worked: float) -> int:
 	return int(worked * float(common().get("work_strokes_per_minute", 2.0)) * 2.0) % 2
+
+
+## The fish frame after `fished` minutes with the rod out: the tip bobs down (1) for one
+## minute in every fish_bob_minutes (_common.json).
+static func fish_frame(fished: float) -> int:
+	var every := maxf(float(common().get("fish_bob_minutes", 6.0)), 1.0)
+	return 1 if fmod(fished, every) >= every - 1.0 else 0
 
 
 static func look(id: String) -> Dictionary:

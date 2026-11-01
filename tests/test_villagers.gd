@@ -17,10 +17,12 @@ func _init() -> void:
 	_plan_loops_and_carry_on()
 	_plan_errors()
 	_work_step()
+	_fish_step()
 	_rules()
 	_files()
 	_paths_stay_clear()
 	_building_day()
+	_river_sunday()
 
 
 func _process(_delta: float) -> bool:
@@ -34,6 +36,9 @@ func _process(_delta: float) -> bool:
 		_start_farm_views()
 	elif _frame == 5:
 		_check_farm_views()
+		_start_river_views()
+	elif _frame == 7:
+		_check_river_views()
 		print("test_villagers: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -129,6 +134,25 @@ func _work_step() -> void:
 	check(Villagers.sprite_key(w).begins_with("villager:hachiro:back:work:"), "the work pose key %s" % Villagers.sprite_key(w))
 	w.working = false
 	check(Villagers.sprite_key(w) == "villager:hachiro:back:idle:0", "standing, not at work")
+
+
+## A fish step stands like a wait with a rod out: the sprite's fish pose, the tip bobbing now and then.
+func _fish_step() -> void:
+	var p := _plan([
+		{"at": "06:00", "map": "river", "from": [6, 5], "route": [{"face": "down"}], "loop": [{"fish": 20}, {"wait": 2}]},
+	])
+	var w := p.where(365.0)
+	check(w.fishing and is_equal_approx(w.fished, 5.0) and not w.working and not w.moving and w.facing == Vector2i.DOWN,
+		"fishing 5 minutes in %s" % [w])
+	check(not p.where(381.0).fishing and p.where(381.0).fished == 0.0, "the wait after it is not fishing")
+	check(p.where(383.0).fishing, "the loop casts again")
+	var every := float(Villagers.common().get("fish_bob_minutes", 0))
+	check(every > 1.0, "fish_bob_minutes in _common.json")
+	check(Villagers.fish_frame(0.0) == 0 and Villagers.fish_frame(every - 0.5) == 1 and Villagers.fish_frame(every + 0.5) == 0,
+		"the tip still, a bob, still again")
+	w = p.where(362.0).merged({"id": "kota"})
+	check(Villagers.sprite_key(w) == "villager:kota:front:fish:0", "the fish pose key %s" % Villagers.sprite_key(w))
+	check(DayPlan.build([{"at": "06:00", "map": "river", "from": [6, 5], "route": [{"fish": 0}]}], 1.5)[0] != "", "refused: a fish of 0 minutes")
 
 
 ## The first rule that holds picks the plan; flags, days, years and the default.
@@ -245,6 +269,46 @@ func _building_day() -> void:
 				break
 
 
+## A fair Sunday: Hachiro down the lane behind Kota's house to the river by 9:30, rod out on
+## the shore until 15:00; Kota beside him 14:10-17:00. A wet Sunday they stay in.
+func _river_sunday() -> void:
+	var sun := _state({"day": 7, "weekday": "sun"})
+	var on := func(t: float, st: Dictionary) -> Array:
+		return Villagers.on_map("river", t, st).map(func(w): return w.id)
+	check(on.call(560.0, sun).is_empty(), "nobody at the river at 9:20")
+	var w := Villagers.where("hachiro", 555.0, sun)
+	check(w.map == "town" and w.moving, "Hachiro walks down through the village at 9:15 %s" % [w])
+	w = Villagers.where("hachiro", 600.0, sun)
+	check(w.map == "river" and w.pos == Vector2(10.5, 5.5) and w.facing == Vector2i.DOWN and w.fishing, "Hachiro's rod is out at 10:00 %s" % [w])
+	check(on.call(780.0, sun) == ["hachiro"], "alone at the river at 13:00")
+	check(on.call(870.0, sun) == ["hachiro", "kota"], "Kota joins him in the afternoon %s" % [on.call(870.0, sun)])
+	w = Villagers.where("kota", 870.0, sun)
+	check(w.pos.y == 5.5 and w.facing == Vector2i.DOWN and w.pos.x < 8.0, "Kota on the shore left of Hachiro %s" % [w])
+	var fishing := 0
+	for t in range(860, 1020):
+		var k := Villagers.where("kota", float(t), sun)
+		fishing += 1 if k.fishing else 0
+		var h := Villagers.where("hachiro", float(t), sun)
+		if k.map == "river" and h.map == "river" and k.pos.distance_to(h.pos) < 1.0:
+			check(false, "Kota and Hachiro walk into each other at %d" % t)
+			break
+	check(fishing > 100, "Kota is mostly fishing (%d of 160 minutes)" % fishing)
+	check(on.call(930.0, sun) == ["kota"] and Villagers.where("hachiro", 960.0, sun).map == "smithy", "Hachiro home by 16:00, Kota stays on")
+	check(on.call(1030.0, sun).is_empty() and Villagers.where("kota", 1080.0, sun).map == "kota_house", "Kota home by 18:00")
+	check(on.call(870.0, _state({"day": 7, "weekday": "sun", "season": "summer"})) == ["hachiro", "kota"], "summer Sundays at the river too")
+	var wet := sun.merged({"weather": "rain"}, true)
+	check(on.call(870.0, wet).is_empty() and Villagers.where("hachiro", 870.0, wet).map == "smithy"
+		and Villagers.where("kota", 870.0, wet).map == "kota_house", "a wet Sunday: both stay in")
+	check(on.call(870.0, _state()).is_empty(), "no river on a Monday")
+	# The fish pose: a rod (and its line) that the idle frame doesn't have; the tip bobs.
+	for id in ["hachiro", "kota"]:
+		var idle := PlaceholderArt.tex("villager:%s:front:idle:0" % id).get_image()
+		var up := PlaceholderArt.tex("villager:%s:front:fish:0" % id).get_image()
+		var dip := PlaceholderArt.tex("villager:%s:front:fish:1" % id).get_image()
+		check(up.get_size() == Vector2i(16, 24) and _has_colour(up, Color("7a5a32")) and not _has_colour(idle, Color("7a5a32"))
+			and up.get_data() != dip.get_data(), "%s's fish frames: the rod out, then the tip dipped" % id)
+
+
 func _state(extra := {}) -> Dictionary:
 	return {"year": 1, "season": "spring", "day": 1, "weekday": "mon", "weather": "sunny", "flags": {}}.merged(extra, true)
 
@@ -274,7 +338,7 @@ func _town_today() -> void:
 	check(Villagers.where("sayo", 525.0, s).map == "town", "and sweeps in front before opening")
 	check(Villagers.where("sayo", 720.0, _state({"day": 7, "weekday": "sun"})).pos == Vector2(6.5, 8.5), "on Sunday she is off visiting Tome")
 	check(Villagers.where("hachiro", 720.0, _state({"weather": "rain"})).map == "smithy", "Hachiro works the forge in the rain")
-	check(Villagers.where("hachiro", 600.0, _state({"day": 7, "weekday": "sun"})).pos == Vector2(30.5, 16.5), "Hachiro fishes on Sunday")
+	check(Villagers.where("hachiro", 600.0, _state({"day": 7, "weekday": "sun"})).map == "river", "Hachiro fishes the river on Sunday")
 	check(Villagers.where("nobody", 600.0, s).is_empty() and not Villagers.is_on("nobody", "town", 600.0, s), "an unknown villager is nowhere")
 	_homes()
 
@@ -445,6 +509,48 @@ func _check_farm_views() -> void:
 	check(not g.farm.is_solid(Vector2i(1, 4)), "the lumber's cells are open once it is gone")
 	check(g.has_built("kitchen") and not g.flags.has(g.BUILD_FLAG) and not MapManager.data("farm").props.any(func(p): return p.kind == "lumber"),
 		"built: the flag and the lumber are gone")
+
+
+## Both views on the river at 14:30 on a fair Sunday: the farmer walks in and both fishers
+## stand where the plan has them, in the fish pose.
+func _start_river_views() -> void:
+	var g: Node = root.get_node("Game")
+	g.year = 1
+	g.season = 0
+	g.day = 7
+	g.weather_today = "sunny"
+	g.flags.erase(g.BUILD_FLAG)
+	g.hour = 14
+	g.minute = 30
+	g.maps.place("river", Vector2i(8, 3), Vector2i.DOWN)
+	g.pause()
+	_scene3 = load("res://scenes/main.tscn").instantiate()
+	root.add_child(_scene3)
+	_scene2 = load("res://scenes/main_2d.tscn").instantiate()
+	root.add_child(_scene2)
+
+
+func _check_river_views() -> void:
+	var g: Node = root.get_node("Game")
+	var want := Villagers.on_map("river", g.day_minutes(), g.trigger_state(Vector2i.ZERO))
+	check(g.weekday() == "sun" and want.map(func(w): return w.id) == ["hachiro", "kota"], "both at the river at 14:30 %s" % [want])
+	var layers3: Array = _scene3.world.get_children().filter(func(n): return _script_is(n, "villager_sprites.gd"))
+	var layers2: Array = _scene2.view.get_children().filter(func(n): return _script_is(n, "villager_view.gd"))
+	if layers3.size() == 1 and layers2.size() == 1:
+		for w in want:
+			var key := Villagers.sprite_key(w)
+			var s3: Sprite3D = layers3[0]._sprites.get(w.id)
+			var s2: Node2D = layers2[0]._sprites.get(w.id)
+			check(s3 != null and s3.visible and Vector2(s3.position.x, s3.position.z).distance_to(w.pos) < 0.05, "%s on the shore in 3D" % w.id)
+			check(s2 != null and s2.visible and s2.position.distance_to(w.pos * 16) < 1.0, "%s on the shore in 2D" % w.id)
+			check(not w.fishing or (":fish:" in key and s3.texture == PlaceholderArt.tex(key) and s2.texture == PlaceholderArt.tex(key)),
+				"%s in the fish pose in both views %s" % [w.id, key])
+		check(want.any(func(w): return w.fishing), "someone has a rod out at 14:30")
+	else:
+		check(false, "the river views have their villager layers")
+	_scene3.free()
+	_scene2.free()
+	g.unpause()
 
 
 ## Views are checked by script path: in a --script run the autoload isn't known when this

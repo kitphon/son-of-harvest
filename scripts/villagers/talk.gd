@@ -11,9 +11,10 @@ extends RefCounted
 
 const DIR := "res://data/dialogue/"
 ## Conditions a pick row may use besides the day-plan rule ones (Villagers.RULE_KEYS): the
-## clock ["H:MM", "H:MM"], the heart band [lowest, highest], whether they already talked today
-## and whether it is their birthday (birthday in the villager file).
-const PICK_KEYS: Array[String] = ["time", "band", "again", "birthday"]
+## clock ["H:MM", "H:MM"], the heart band [lowest, highest], whether they already talked today,
+## whether it is their birthday (birthday in the villager file) and the maps they may stand on
+## (a list of map ids: lines for the river only there).
+const PICK_KEYS: Array[String] = ["time", "band", "again", "birthday", "map"]
 const GIFT_LINES: Array[String] = ["gift_love", "gift_like", "gift_neutral", "gift_dislike", "gift_hate", "gift_again"]
 
 static var _files := {}   # villager id -> the talk file's data
@@ -80,6 +81,8 @@ static func _check_if(c: Variant) -> String:
 		var b: Variant = c.band
 		if not b is Array or b.size() != 2 or not EventRunner._whole(b[0], 0, 6) or not EventRunner._whole(b[1], 0, 6) or b[0] > b[1]:
 			return "band needs [lowest, highest] in 0 .. 6"
+	if c.has("map") and not EventTriggers._names_ok(c.map, MapManager.ids()):
+		return "map needs a list of map ids (data/maps)"
 	for k in ["again", "birthday"]:
 		if c.has(k) and not c[k] is bool:
 			return "%s is true or false" % k
@@ -92,7 +95,7 @@ static func has_line(id: String, at: String) -> bool:
 
 
 ## The line villager `id` opens with in state `s`: Game.trigger_state plus band (their heart
-## band), again (already talked today) and day_number. "" when they have no talk file.
+## band), again (already talked today), day_number and map (the map they stand on). "" when they have no talk file.
 static func pick(id: String, s: Dictionary) -> String:
 	for row in data(id).get("picks", []):
 		if holds(row.get("if", {}), s):
@@ -109,6 +112,8 @@ static func holds(c: Dictionary, s: Dictionary) -> bool:
 	if c.has("band") and not (s.band >= int(c.band[0]) and s.band <= int(c.band[1])):
 		return false
 	if c.has("birthday") and c.birthday != s.get("birthday", false):
+		return false
+	if c.has("map") and not s.get("map", "") in c.map:
 		return false
 	return not c.has("again") or c.again == s.again
 

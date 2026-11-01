@@ -53,7 +53,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `test_cooking: OK (0 failed)`.
   Holding and throwing (items on the ground, throws, poses, item art): `res://tests/test_hold.gd`
   must print `test_hold: OK (0 failed)`.
-  Villagers (rule lists, day plans, catch-up, paths, sprites in both views, Hachiro building):
+  Villagers (rule lists, day plans, catch-up, paths, sprites in both views, Hachiro building,
+  the Sunday river visit and the fish pose):
   `res://tests/test_villagers.gd` must print `test_villagers: OK (0 failed)`. Talking (talk
   files and picks, gifts, daily limits, affection save, shopkeepers, bump delay):
   `res://tests/test_talk.gd` must print `test_talk: OK (0 failed)`.
@@ -125,6 +126,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   ribbon board), `--ending` (or `--ending=year`) to open the village record (or the yearly page)
   (README → Ending; `--map=house --event=ending` plays the scene, `--event=year_record` the yearly one), `--mine=N` to stand at the
   ladder of a fresh mine floor N (darker deeper; `--map=mine` is the entrance, `--map=mine_floor` floor 1),
+  `--day=N` to start on day N of the season (`--day=7` is the first Sunday: `--demo --day=7
+  --weather=sunny --map=river@shore --time=14:45` shows Hachiro and Kota fishing the river),
   `--season=<id>` to start on day 1 of a season (`--season=winter --mine=3`: a frozen floor; with `--demo` the field has that season's crops: `--season=fall` ripe daikon, `--season=summer` ripe rice). Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
 - Audio (sound and music data, synthesis, keys used in code, ambient and music pickers): `res://tests/test_audio.gd`
