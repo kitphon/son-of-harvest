@@ -1,0 +1,43 @@
+{
+	"_note": "Kiku's house in Minamino: an old tatami room with a sunken hearth, a lamp and a chest, strings of persimmons drying under the eaves (not drawn yet), the stove and the water jar in the earth entry. Format: README.md, Maps.",
+	"id": "kiku_house",
+	"name": "Kiku's House",
+	"size": [9, 7],
+	"indoor": true,
+	"ambient": "indoor",
+	"light": "fff0dc",
+	"background": "1a1410",
+	"legend": {
+		"#": {"tile": "wall", "solid": true},
+		".": {"tile": "tatami", "step": "floor"},
+		"w": {"tile": "floor", "step": "floor"},
+		"e": {"tile": "earth", "step": "soil"},
+		"D": {"tile": "earth", "solid": true}
+	},
+	"ground": [
+		"#########",
+		"#.......#",
+		"#.......#",
+		"#.......#",
+		"#wwwwwww#",
+		"#eeeeeee#",
+		"####D####"
+	],
+	"props": [
+		{"kind": "tokonoma", "cell": [1, 1], "size": [2, 1]},
+		{"kind": "tansu", "cell": [7, 1]},
+		{"kind": "irori", "cell": [4, 2], "size": [2, 2]},
+		{"kind": "zabuton", "cell": [3, 3], "solid": false, "color": "6a4a7a"},
+		{"kind": "andon", "cell": [7, 3]},
+		{"kind": "mizugame", "cell": [1, 5]},
+		{"kind": "kamado", "cell": [7, 5]},
+		{"kind": "keepsake", "cell": [3, 1], "item": "keep:daruma", "flag": "kept_kiku_daruma"}
+	],
+	"doors": [
+		{"cells": [[4, 6]], "to": "minamino", "spawn": [22, 15], "facing": "down"}
+	],
+	"spawns": {
+		"start": [[4, 5], "up"],
+		"home": [[3, 2], "down"]
+	}
+}

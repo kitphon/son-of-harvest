@@ -1,0 +1,44 @@
+{
+	"_note": "What Nana, Shige's daughter in Minamino, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items her own answers to a keepsake and to dishes. She has no hearts; by the village pond she has her own lines (map condition). Our own lines.",
+	"picks": [
+		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"map": ["town"]}, "at": ["pond_1", "pond_2"]},
+		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
+		{"if": {"season": ["summer"]}, "at": ["summer"]},
+		{"if": {"season": ["winter"]}, "at": ["winter"]},
+		{"at": ["plain_1", "plain_2", "plain_3"]}
+	],
+	"gift_items": {
+		"keep:clay_rabbit": "gift_clay_rabbit",
+		"dish:love": "gift_dish_love",
+		"dish:like": "gift_dish_like",
+		"dish:neutral": "gift_dish_neutral",
+		"dish:dislike": "gift_dish_dislike"
+	},
+	"lines": [
+		{"id": "again_1", "speaker": "nana", "mood": "surprised", "text": "You again! Are you following me? ...That's okay, you can.", "next": "end"},
+		{"id": "again_2", "speaker": "nana", "mood": "happy", "text": "I'm busy! Very busy. This is important worm business.", "next": "end"},
+		{"id": "new_1", "speaker": "nana", "mood": "happy", "text": "Hi! I'm Nana! I live down in Minamino with my dad. He grows vegetables and talks to the dirt."},
+		{"speaker": "nana", "mood": "surprised", "text": "Do you have a cow? Kota says you might get a cow. Can I name it?", "next": "end"},
+		{"id": "pond_1", "speaker": "nana", "mood": "happy", "text": "Kota says there's a fish in here as big as a dog. I'm going to see it first.", "next": "end"},
+		{"id": "pond_2", "speaker": "nana", "mood": "angry", "text": "Kota caught three and I caught zero. It's not fair. The fish like him better.", "next": "end"},
+		{"id": "wet", "speaker": "nana", "mood": "sad", "text": "Dad says no running to the pond in the rain. So I'm building a castle out of cushions.", "next": "end"},
+		{"id": "summer", "speaker": "nana", "mood": "happy", "text": "I caught a cicada this morning! I let it go. It was very loud about it.", "next": "end"},
+		{"id": "winter", "speaker": "nana", "mood": "happy", "text": "I made a snow jizo by the lane! Granny Kiku gave it a red scarf.", "next": "end"},
+		{"id": "plain_1", "speaker": "nana", "mood": "happy", "text": "I pull weeds for Dad in the morning. One weed, one copper. I'm going to be rich.", "next": "end"},
+		{"id": "plain_2", "speaker": "nana", "mood": "neutral", "text": "Granny Kiku lets me pick persimmons, but only the ones she says. The others are for drying.", "next": "end"},
+		{"id": "plain_3", "speaker": "nana", "mood": "surprised", "text": "Did you know the jizo by the lane watches over kids? So I'm extra safe down there.", "next": "end"},
+		{"id": "gift_love", "speaker": "nana", "mood": "happy", "text": "For ME? Wow! This is the best thing anybody ever gave me. Ever!", "next": "end"},
+		{"id": "gift_like", "speaker": "nana", "mood": "happy", "text": "Ooh, thank you! I'm gonna show Kota.", "next": "end"},
+		{"id": "gift_neutral", "speaker": "nana", "mood": "neutral", "text": "Um. Thanks. What is it?", "next": "end"},
+		{"id": "gift_dislike", "speaker": "nana", "mood": "sad", "text": "Bleh. That's a grown-up thing. Dad can have it.", "next": "end"},
+		{"id": "gift_hate", "speaker": "nana", "mood": "angry", "text": "That's just a rock! I have a whole pile of rocks already!", "next": "end"},
+		{"id": "gift_again", "speaker": "nana", "mood": "surprised", "text": "Another one? Dad says I can only take one present a day. Rules are rules.", "next": "end"},
+		{"id": "gift_clay_rabbit", "speaker": "nana", "mood": "happy", "text": "A clay rabbit! It goes right next to my bed. Its name is Mochi. It just decided.", "next": "end"},
+		{"id": "gift_dish_love", "speaker": "nana", "mood": "happy", "text": "Sweet! Can I eat it now? Before supper? Don't tell Dad.", "next": "end"},
+		{"id": "gift_dish_like", "speaker": "nana", "mood": "happy", "text": "Yum! You cook better than Dad. Don't tell him that either.", "next": "end"},
+		{"id": "gift_dish_neutral", "speaker": "nana", "mood": "neutral", "text": "Okay! I'll share it with Dad.", "next": "end"},
+		{"id": "gift_dish_dislike", "speaker": "nana", "mood": "sad", "text": "It's got the bitter white stuff in it. I'll give it to Dad.", "next": "end"}
+	]
+}

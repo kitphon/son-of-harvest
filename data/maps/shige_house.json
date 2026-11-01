@@ -1,0 +1,47 @@
+{
+	"_note": "Shige and Nana's house in Minamino: baskets of vegetables in the earth entry by the stove and the water jar, a tatami room with a low table, Nana's box of toys, the family altar and a chest. Format: README.md, Maps.",
+	"id": "shige_house",
+	"name": "Shige's House",
+	"size": [9, 7],
+	"indoor": true,
+	"ambient": "indoor",
+	"light": "fff0dc",
+	"background": "1a1410",
+	"legend": {
+		"#": {"tile": "wall", "solid": true},
+		".": {"tile": "tatami", "step": "floor"},
+		"w": {"tile": "floor", "step": "floor"},
+		"e": {"tile": "earth", "step": "soil"},
+		"D": {"tile": "earth", "solid": true}
+	},
+	"ground": [
+		"#########",
+		"#.......#",
+		"#.......#",
+		"#.......#",
+		"#wwwwwww#",
+		"#eeeeeee#",
+		"####D####"
+	],
+	"props": [
+		{"kind": "butsudan", "cell": [1, 1]},
+		{"kind": "toy_box", "cell": [2, 1]},
+		{"kind": "tansu", "cell": [7, 1]},
+		{"kind": "low_table", "cell": [3, 2], "size": [2, 1]},
+		{"kind": "zabuton", "cell": [3, 3], "solid": false, "color": "4a6a3a"},
+		{"kind": "zabuton", "cell": [4, 3], "solid": false, "color": "c85a6a"},
+		{"kind": "andon", "cell": [7, 3]},
+		{"kind": "rice_sacks", "cell": [1, 5]},
+		{"kind": "mizugame", "cell": [6, 5]},
+		{"kind": "kamado", "cell": [7, 5]},
+		{"kind": "keepsake", "cell": [6, 1], "item": "keep:moon_lantern", "flag": "kept_shige_moon_lantern"},
+		{"kind": "keepsake", "cell": [5, 1], "item": "keep:clay_rabbit", "flag": "kept_nana_clay_rabbit"}
+	],
+	"doors": [
+		{"cells": [[4, 6]], "to": "minamino", "spawn": [11, 7], "facing": "down"}
+	],
+	"spawns": {
+		"start": [[4, 5], "up"],
+		"home": [[5, 2], "down"]
+	}
+}

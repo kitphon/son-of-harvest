@@ -10,5 +10,8 @@
 	"genzo": {"name": "Genzo", "face": {"bg": "c8c0a8", "skin": "d49a6a", "hair": "c8c4bc", "style": "cap", "hat": "e8e2d0", "clothes": "5a5048", "marks": ["wrinkles"]}},
 	"haru": {"name": "Haru", "face": {"bg": "c8dcc0", "skin": "f0c49a", "hair": "2a1e1a", "style": "bun", "hat": "e8c870", "clothes": "4a7a5a"}},
 	"fumi": {"name": "Fumi", "face": {"bg": "e0c8d8", "skin": "f0c8a0", "hair": "3a2a24", "style": "bun", "hat": "c8442c", "clothes": "8a5a8a"}},
-	"ichiro": {"name": "Ichiro", "face": {"bg": "b8b0a8", "skin": "c8905e", "hair": "1e1a18", "style": "cap", "hat": "3a3a3e", "clothes": "3a3a3e", "marks": ["stubble"]}}
+	"ichiro": {"name": "Ichiro", "face": {"bg": "b8b0a8", "skin": "c8905e", "hair": "1e1a18", "style": "cap", "hat": "3a3a3e", "clothes": "3a3a3e", "marks": ["stubble"]}},
+	"shige": {"name": "Shige", "face": {"bg": "c8d8b0", "skin": "d8a070", "hair": "2a2422", "style": "cap", "hat": "d8c088", "clothes": "4a6a3a", "marks": ["stubble"]}},
+	"nana": {"name": "Nana", "face": {"bg": "f0d0d8", "skin": "eab88a", "hair": "3a2420", "style": "bun", "hat": "e87a8a", "clothes": "e87a8a", "marks": ["child"]}},
+	"kiku": {"name": "Kiku", "face": {"bg": "d0c8c0", "skin": "e8bc96", "hair": "dcd8d0", "style": "bun", "hat": "c8a050", "clothes": "5a6a7a", "marks": ["wrinkles"]}}
 }

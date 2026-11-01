@@ -190,8 +190,10 @@ Bigger world (the user found the maps small, 2026-11-01): widening the farm and 
 the walks long and dull, so they are back to their old sizes; the world grows by areas instead.
 Done: Kaminoda, the hamlet up the village's north lane (paddies, drying racks, a well, jizo;
 Genzo and Haru and their houses) with the bamboo hill above it, and countryside props. Sakurazaka
-on the way to the mine (cherry road, creek, teahouse; Fumi and Ichiro). Next: the village's
-south part (between the village and the river) with its own houses, character and people.
+on the way to the mine (cherry road, creek, teahouse; Fumi and Ichiro). Minamino on the
+way to the river (gardens, persimmon orchard, a water shrine; Shige, Nana and Kiku). Seven new
+villagers in all, without hearts. Later: forage on the hill, the new villagers at the
+festivals and in the village record, a shop at the teahouse.
 After that: milestone 10, building the .exe once the export templates are installed (README → Export).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
@@ -211,7 +213,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Countryside props: well, jizo, persimmon, cherry, rice drying rack, woodpile, garden, board fence
    - [x] The village's north part: Kaminoda (to the hill), with Genzo and Haru
    - [x] The village's east part: Sakurazaka (to the mine), with Fumi and Ichiro
-   - [ ] The village's south part (to the river), with its people
+   - [x] The village's south part: Minamino (to the river), with Shige, Nana and Kiku
 2. **Look and feel**
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)

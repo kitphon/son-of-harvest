@@ -1,0 +1,44 @@
+{
+	"_note": "Kiku, an old woman of Minamino who keeps the persimmon orchard round her house and dries the fruit on her rack in fall. Mornings in her orchard (7:30-11:00), lunch and a nap at home; at 14:00 she walks the track and the lane up to the roadside shrine by Minamino's lane, bows a while, back by 15:30 and in the orchard until 17:30, asleep from 19:00. Wet days she stays by her hearth. A villager without hearts (hearts false). Gifts: soft sweet things, tea, warm dishes; she dislikes anything hard to chew. Format: README.md, Villagers.",
+	"id": "kiku",
+	"name": "Kiku",
+	"hearts": false,
+	"speed": 1.0,
+	"look": {
+		"outfit": "kimono",
+		"hair_style": "bun",
+		"hair": "dcd8d0",
+		"skin": "e8bc96",
+		"top": "5a6a7a",
+		"waist": "c8a050",
+		"accent": "c8a050",
+		"shoes": "6b4423"
+	},
+	"rules": [
+		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
+	],
+	"default": "usual",
+	"gifts": {
+		"love": ["food:kinako_mochi", "food:yomogi_tea", "pumpkin", "keep:daruma"],
+		"like": ["food:green_tea", "food:simmered_pumpkin", "food:furofuki_daikon", "food:turnip_stew", "egg", "milk", "daikon", "mine:hisui"],
+		"dislike": ["corn", "food:roast_chestnuts", "food:grilled_fish", "mine:clay"],
+		"hate": ["mine:stone"]
+	},
+	"plans": {
+		"usual": [
+			{"at": "06:00", "map": "kiku_house", "from": [3, 2], "route": [{"face": "right"}]},
+			{"at": "07:30", "map": "minamino", "from": [22, 15], "route": [{"to": [26, 15]}, {"to": [26, 12]}, {"face": "right"}], "loop": [{"wait": 20}, {"to": [26, 15]}, {"face": "left"}, {"wait": 20}, {"to": [26, 16]}, {"face": "down"}, {"wait": 20}, {"to": [26, 12]}, {"face": "right"}]},
+			{"at": "11:00", "map": "minamino", "route": [{"to": [26, 15]}, {"to": [22, 15]}, {"face": "up"}]},
+			{"at": "11:15", "map": "kiku_house", "from": [3, 2], "route": [{"face": "right"}]},
+			{"at": "14:00", "map": "minamino", "from": [22, 15], "route": [{"to": [19, 15]}, {"to": [19, 9]}, {"to": [2, 9]}, {"face": "up"}, {"wait": 15}]},
+			{"at": "15:00", "map": "minamino", "route": [{"to": [19, 9]}, {"to": [19, 15]}, {"to": [26, 15]}, {"to": [26, 12]}, {"face": "right"}]},
+			{"at": "17:30", "map": "minamino", "route": [{"to": [26, 15]}, {"to": [22, 15]}, {"face": "up"}]},
+			{"at": "17:45", "map": "kiku_house", "from": [3, 2], "route": [{"face": "right"}]},
+			{"at": "19:00", "map": "away"}
+		],
+		"wet": [
+			{"at": "06:00", "map": "kiku_house", "from": [3, 2], "route": [{"face": "right"}]},
+			{"at": "19:00", "map": "away"}
+		]
+	}
+}

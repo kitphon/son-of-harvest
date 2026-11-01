@@ -1,0 +1,45 @@
+{
+	"_note": "Nana, Shige's daughter, a girl of Kota's age who lives in Minamino. Mornings she helps her father in the gardens (8:00-11:30), lunch at home; in the afternoon she runs up the lane to the village pond to play by Kota (14:00-17:00, the pond's north-west corner beside his spot), home by 17:40, asleep from 20:00. Wet days she stays in with her toys. A villager without hearts (hearts false). Gifts: sweets, eggs, fish to look at, pretty stones; she dislikes bitter things. Format: README.md, Villagers.",
+	"id": "nana",
+	"name": "Nana",
+	"hearts": false,
+	"speed": 2.0,
+	"look": {
+		"outfit": "shirt_shorts",
+		"hair_style": "short",
+		"hair": "3a2420",
+		"skin": "eab88a",
+		"top": "e87a8a",
+		"lower": "3a4a7a",
+		"accent": "e8e2d0",
+		"shoes": "c8442c"
+	},
+	"rules": [
+		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
+	],
+	"default": "usual",
+	"gifts": {
+		"love": ["food:dango", "food:milk_pudding", "tomato", "keep:clay_rabbit"],
+		"like": ["egg", "milk", "corn", "cucumber", "fish:*", "food:tamagoyaki", "food:kinako_mochi", "mine:suisho", "mine:kohaku"],
+		"dislike": ["onion", "food:green_tea", "food:furofuki_daikon", "mine:clay"],
+		"hate": ["mine:stone"]
+	},
+	"plans": {
+		"usual": [
+			{"at": "06:00", "map": "shige_house", "from": [2, 2], "route": [{"face": "down"}]},
+			{"at": "08:00", "map": "minamino", "from": [11, 7], "route": [{"to": [11, 8]}, {"to": [12, 8]}, {"to": [12, 10]}, {"face": "down"}], "loop": [{"wait": 10}, {"to": [14, 10]}, {"face": "down"}, {"wait": 10}, {"to": [12, 10]}, {"face": "down"}]},
+			{"at": "11:30", "map": "minamino", "route": [{"to": [12, 8]}, {"to": [11, 8]}, {"to": [11, 7]}, {"face": "up"}]},
+			{"at": "11:40", "map": "shige_house", "from": [2, 2], "route": [{"face": "down"}]},
+			{"at": "13:30", "map": "minamino", "from": [11, 7], "route": [{"to": [11, 9]}, {"to": [4, 9]}, {"to": [4, 0]}, {"face": "up"}]},
+			{"at": "13:40", "map": "town", "from": [4, 21], "route": [{"to": [4, 16]}, {"to": [29, 16]}, {"to": [30, 16]}, {"face": "right"}]},
+			{"at": "17:00", "map": "town", "route": [{"to": [29, 16]}, {"to": [4, 16]}, {"to": [4, 21]}, {"face": "down"}]},
+			{"at": "17:20", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 9]}, {"to": [11, 9]}, {"to": [11, 7]}, {"face": "up"}]},
+			{"at": "17:40", "map": "shige_house", "from": [2, 2], "route": [{"face": "down"}]},
+			{"at": "20:00", "map": "away"}
+		],
+		"wet": [
+			{"at": "06:00", "map": "shige_house", "from": [2, 2], "route": [{"face": "down"}]},
+			{"at": "20:00", "map": "away"}
+		]
+	}
+}

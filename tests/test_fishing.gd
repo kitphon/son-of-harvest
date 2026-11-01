@@ -156,9 +156,13 @@ func _init() -> void:
 	check(rules.fish[town_fish].places.has("town"), "a village fish (%s)" % town_fish)
 	g.held = ""
 
-	# The river: down the lane off the village's south edge, a cast from the shore, a river fish.
+	# The river: down the lane off the village's south edge and through Minamino, a cast from the
+	# shore, a river fish.
 	var lane: Dictionary = MapManager.data("town").door_at(Vector2i(4, 22))
-	check(lane.get("to", "") == "river", "the village's south lane goes to the river")
+	check(lane.get("to", "") == "minamino", "the village's south lane goes to Minamino")
+	g.use_door(lane)
+	lane = MapManager.data("minamino").door_at(Vector2i(4, 20))
+	check(g.maps.id == "minamino" and lane.get("to", "") == "river", "Minamino's lane goes on to the river")
 	g.use_door(lane)
 	check(g.maps.id == "river" and not g.indoors(), "at the river")
 	var shore: Array = MapManager.data("river").spawns.shore

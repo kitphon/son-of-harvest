@@ -1,0 +1,43 @@
+{
+	"_note": "What Kiku, the old woman of the persimmon orchard in Minamino, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items her own answers to a keepsake and to dishes. She has no hearts. Our own lines.",
+	"picks": [
+		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"time": ["14:00", "15:00"]}, "at": ["shrine"]},
+		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
+		{"if": {"season": ["fall"]}, "at": ["fall_1", "fall_2"]},
+		{"if": {"season": ["winter"]}, "at": ["winter"]},
+		{"at": ["plain_1", "plain_2"]}
+	],
+	"gift_items": {
+		"keep:daruma": "gift_daruma",
+		"dish:love": "gift_dish_love",
+		"dish:like": "gift_dish_like",
+		"dish:neutral": "gift_dish_neutral",
+		"dish:dislike": "gift_dish_dislike"
+	},
+	"lines": [
+		{"id": "again_1", "speaker": "kiku", "mood": "happy", "text": "My, you do like an old woman's chatter. Stay as long as you like.", "next": "end"},
+		{"id": "again_2", "speaker": "kiku", "mood": "neutral", "text": "Go on, dear. The day is short for the young and long for the old.", "next": "end"},
+		{"id": "new_1", "speaker": "kiku", "mood": "happy", "text": "Oh, the young farmer. Tome told me about you. I'm Kiku. These persimmon trees are older than I am."},
+		{"speaker": "kiku", "mood": "neutral", "text": "Mind you don't eat one straight off the branch in fall. Those are the bitter ones, for drying.", "next": "end"},
+		{"id": "shrine", "speaker": "kiku", "mood": "neutral", "text": "I bow here every afternoon. The water spirit keeps the river kind to us. Will you bow too?", "next": "end"},
+		{"id": "wet", "speaker": "kiku", "mood": "happy", "text": "Rain on the orchard. The trees drink and I nap. Everyone is happy.", "next": "end"},
+		{"id": "fall_1", "speaker": "kiku", "mood": "happy", "text": "Peel them, string them, hang them under the eaves. In a month they're sweet as honey.", "next": "end"},
+		{"id": "fall_2", "speaker": "kiku", "mood": "neutral", "text": "Leave the last persimmon on the tree for the birds. Greedy farmers get thin harvests.", "next": "end"},
+		{"id": "winter", "speaker": "kiku", "mood": "happy", "text": "Dried persimmons with green tea by the hearth. That's what winter is for.", "next": "end"},
+		{"id": "plain_1", "speaker": "kiku", "mood": "happy", "text": "Nana comes to help me pick. She eats one for every three she puts in the basket.", "next": "end"},
+		{"id": "plain_2", "speaker": "kiku", "mood": "neutral", "text": "Tome and I were girls together. She was the brave one. I was the one who got caught.", "next": "end"},
+		{"id": "gift_love", "speaker": "kiku", "mood": "happy", "text": "Oh, my. You remembered what an old woman likes. Thank you, dear.", "next": "end"},
+		{"id": "gift_like", "speaker": "kiku", "mood": "happy", "text": "How thoughtful. I'll have it with my afternoon tea.", "next": "end"},
+		{"id": "gift_neutral", "speaker": "kiku", "mood": "neutral", "text": "Thank you, dear.", "next": "end"},
+		{"id": "gift_dislike", "speaker": "kiku", "mood": "sad", "text": "Ah... my teeth aren't what they were, dear. Give it to Shige.", "next": "end"},
+		{"id": "gift_hate", "speaker": "kiku", "mood": "angry", "text": "A pebble? Are you teasing an old woman?", "next": "end"},
+		{"id": "gift_again", "speaker": "kiku", "mood": "neutral", "text": "One kindness a day is enough, dear. More and I'll get spoiled.", "next": "end"},
+		{"id": "gift_daruma", "speaker": "kiku", "mood": "happy", "text": "A daruma! I'll set it in my alcove and paint an eye for Nana's good health.", "next": "end"},
+		{"id": "gift_dish_love", "speaker": "kiku", "mood": "happy", "text": "Soft and warm, just right for me. Did someone teach you, or are you just kind?", "next": "end"},
+		{"id": "gift_dish_like", "speaker": "kiku", "mood": "happy", "text": "Home cooking. It's been a while since anyone cooked for me. Thank you.", "next": "end"},
+		{"id": "gift_dish_neutral", "speaker": "kiku", "mood": "neutral", "text": "A dish for me? Thank you, dear.", "next": "end"},
+		{"id": "gift_dish_dislike", "speaker": "kiku", "mood": "sad", "text": "Too much for my old jaw, I'm afraid. Nana will enjoy it.", "next": "end"}
+	]
+}

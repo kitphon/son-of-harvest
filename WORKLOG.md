@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Minamino: the village's south part, Shige, Nana and Kiku
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `data/maps/minamino.json` (30 x 20) between the village's south lane and the river
+  (village → Minamino → river, both ways). The lane runs on down to the river, a cart track
+  east; vegetable gardens behind a low board fence and by Shige's house, a well, a little
+  roadside water shrine with a stone lantern and gravel, a jizo by the way down, bamboo in a
+  corner, Kiku's house in her persimmon orchard with a drying rack. Rooms: `shige_house` (Shige
+  and Nana; toy box, altar, keepsake spots for both) and `kiku_house` (hearth, alcove). Three
+  villagers without hearts: Shige the vegetable grower (gardens at work pose, the well at five,
+  mends tools when wet), Nana his daughter (helps in the morning, runs up to the village pond
+  to play by Kota 14:00-17:00, so the village has three out then) and Kiku of the persimmon
+  orchard (orchard, the roadside shrine at two); looks, faces, whistles, gifts, own lines.
+  The Sunday river walks pass through Minamino now: Hachiro leaves the smithy at 8:40 (was
+  9:00) and is back at 15:55 (was 15:45); Kota reaches the river at 14:20 (was 14:10) and is
+  home at 17:30 as before.
+- Checked: test_maps (village ↔ Minamino ↔ river; doors and rooms of Minamino), test_fishing
+  walks through Minamino to the river, test_villagers (Hachiro in Minamino at 9:15, whistlers
+  any villager, Kota, Nana and Tome in the village at 14:20); all 24 test scripts print `OK (0
+  failed)` (first run: Kiku's whistle 4.55 s, over the 4 s cap: faster tune); smoke runs (title,
+  `--demo`, town, mine 3, Minamino 14:30, the river, a Sunday 9:10 in Minamino) print no errors;
+  screenshots of Shige and Nana at the gardens and Kiku at the shrine in fall.
+- Left / next: the user should walk the new parts. Ideas: forage on the hill, the new
+  villagers at the festivals, a shop at the teahouse.
+
 ## 2026-11-01 — Sakurazaka: the village's east part, the teahouse, Fumi and Ichiro
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `data/maps/sakurazaka.json` (30 x 20) between the village road's east end and the mine

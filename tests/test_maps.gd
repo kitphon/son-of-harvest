@@ -135,7 +135,10 @@ func _map_rules() -> void:
 	# The river: down the lane off the village's south edge and back; water across the map with
 	# banks only at the shores (none at the map's side edges, it flows on), rocks in the current.
 	var rv := MapManager.data("river")
-	check(t.door_at(Vector2i(4, 22)).get("to", "") == "river" and rv.door_at(Vector2i(4, -1)).get("to", "") == "town", "the village lane and the river path join up")
+	var mn := MapManager.data("minamino")
+	check(t.door_at(Vector2i(4, 22)).get("to", "") == "minamino" and mn.door_at(Vector2i(4, -1)).get("to", "") == "town"
+		and mn.door_at(Vector2i(4, 20)).get("to", "") == "river" and rv.door_at(Vector2i(4, -1)).get("to", "") == "minamino",
+		"the village lane, Minamino and the river path join up")
 	check(not t.is_solid(Vector2i(4, 21)) and t.tile(Vector2i(4, 21)) == "path", "the lane runs to the village's south edge")
 	# The bamboo hill up the village's north lane: doors both ways, the clumps solid, the path
 	# open from the foot to the lookout, the cliff along the top.
@@ -160,7 +163,7 @@ func _map_rules() -> void:
 	check(hl.is_solid(Vector2i(5, 0)) and hl.tile(Vector2i(5, 0)) == "rock_wall", "the cliff along the top")
 	# The village's outer parts: every door of each can be walked to from its way in, and every
 	# house door leads to a room whose way out comes back in front of it.
-	for id in ["kaminoda", "sakurazaka"]:
+	for id in ["kaminoda", "sakurazaka", "minamino"]:
 		var m := MapManager.data(id)
 		var reach := _walkable(m, m.spawns.start[0])
 		for door in m.doors:

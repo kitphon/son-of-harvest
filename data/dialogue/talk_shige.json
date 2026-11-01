@@ -1,0 +1,46 @@
+{
+	"_note": "What Shige, the vegetable grower of Minamino, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items his own answers to a keepsake and to dishes. He has no hearts. Our own lines.",
+	"picks": [
+		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
+		{"if": {"season": ["spring"]}, "at": ["spring"]},
+		{"if": {"season": ["summer"]}, "at": ["summer_1", "summer_2"]},
+		{"if": {"season": ["fall"]}, "at": ["fall"]},
+		{"if": {"season": ["winter"]}, "at": ["winter"]},
+		{"at": ["plain_1", "plain_2", "plain_3"]}
+	],
+	"gift_items": {
+		"keep:moon_lantern": "gift_moon_lantern",
+		"dish:love": "gift_dish_love",
+		"dish:like": "gift_dish_like",
+		"dish:neutral": "gift_dish_neutral",
+		"dish:dislike": "gift_dish_dislike"
+	},
+	"lines": [
+		{"id": "again_1", "speaker": "shige", "mood": "happy", "text": "Back for more advice? Water at dawn, not at noon. That's all I've got.", "next": "end"},
+		{"id": "again_2", "speaker": "shige", "mood": "neutral", "text": "If you see Nana by the pond, tell her supper's at six. She never hears me.", "next": "end"},
+		{"id": "new_1", "speaker": "shige", "mood": "happy", "text": "You're the one who took over the old farm! Shige. I grow greens down here, for the store and the teahouse."},
+		{"speaker": "shige", "mood": "neutral", "text": "Fellow grower, eh? If your leaves yellow, come ask. Soil talks, if you know how to listen.", "next": "end"},
+		{"id": "wet", "speaker": "shige", "mood": "happy", "text": "Rain! Saves me forty trips to the well. I'm fixing hoe handles today.", "next": "end"},
+		{"id": "spring", "speaker": "shige", "mood": "happy", "text": "Turnips first, always. Quick to grow, quick to sell, and the slugs like them less.", "next": "end"},
+		{"id": "summer_1", "speaker": "shige", "mood": "neutral", "text": "Cucumbers want water morning and night in this heat. And a stick to climb.", "next": "end"},
+		{"id": "summer_2", "speaker": "shige", "mood": "sad", "text": "Crows got my tomatoes again. Nana says we should make a scarecrow that looks like me.", "next": "end"},
+		{"id": "fall", "speaker": "shige", "mood": "happy", "text": "Daikon's in. Kiku will want some for her pickles. She always does.", "next": "end"},
+		{"id": "winter", "speaker": "shige", "mood": "neutral", "text": "Nothing grows now but plans. I spend the evenings deciding next year's rows.", "next": "end"},
+		{"id": "plain_1", "speaker": "shige", "mood": "neutral", "text": "My wife planted those gardens. I just keep them the way she liked. Nana helps.", "next": "end"},
+		{"id": "plain_2", "speaker": "shige", "mood": "happy", "text": "Sayo buys my greens every morning. Says they're the only ones that don't wilt by noon.", "next": "end"},
+		{"id": "plain_3", "speaker": "shige", "mood": "neutral", "text": "The little shrine by the lane is for the water. Kiku keeps it. Good to bow when you pass.", "next": "end"},
+		{"id": "gift_love", "speaker": "shige", "mood": "happy", "text": "Now that's a fine one! I can't grow these as well as you. Teach me sometime.", "next": "end"},
+		{"id": "gift_like", "speaker": "shige", "mood": "happy", "text": "Thanks! This'll go in tonight's pot.", "next": "end"},
+		{"id": "gift_neutral", "speaker": "shige", "mood": "neutral", "text": "Oh, for me? Thank you.", "next": "end"},
+		{"id": "gift_dislike", "speaker": "shige", "mood": "sad", "text": "Ah, that's more Nana's sort of thing. I'll pass it on.", "next": "end"},
+		{"id": "gift_hate", "speaker": "shige", "mood": "angry", "text": "A stone? I dig hundreds of those out of the beds each spring. No thank you.", "next": "end"},
+		{"id": "gift_again", "speaker": "shige", "mood": "neutral", "text": "One's plenty for today. Don't spoil us.", "next": "end"},
+		{"id": "gift_moon_lantern", "speaker": "shige", "mood": "happy", "text": "A moon lantern! Nana's mother used to hang one every fall. ...Thank you. Truly.", "next": "end"},
+		{"id": "gift_dish_love", "speaker": "shige", "mood": "happy", "text": "Hearty and hot! Nana and I will fight over this one.", "next": "end"},
+		{"id": "gift_dish_like", "speaker": "shige", "mood": "happy", "text": "A cooked dish! Saves me burning supper again. Thanks.", "next": "end"},
+		{"id": "gift_dish_neutral", "speaker": "shige", "mood": "neutral", "text": "Oh, a dish. Thanks, we'll have it tonight.", "next": "end"},
+		{"id": "gift_dish_dislike", "speaker": "shige", "mood": "sad", "text": "Too sweet for me. Nana will be thrilled, though.", "next": "end"}
+	]
+}
