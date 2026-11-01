@@ -16,7 +16,7 @@
 	"gifts": {
 		"love": ["corn", "fish:moon_koi", "fish:nushi", "food:dango", "mine:suisho", "food:milk_pudding", "food:kinako_mochi",
 			"keep:clay_rabbit"],
-		"like": ["fish:*", "tomato", "pumpkin", "food:sakura_mochi", "food:warabi_mochi", "mine:kohaku", "mine:hyoseki",
+		"like": ["fish:*", "tomato", "pumpkin", "food:sakura_mochi", "food:warabi_mochi", "wild:kiichigo", "wild:akebi", "mine:kohaku", "mine:hyoseki",
 			"food:tamagoyaki", "food:grilled_fish", "food:onigiri", "food:potato_stew",
 			"keep:daruma", "keep:paper_fan", "food:roast_chestnuts", "food:baked_imo"],
 		"dislike": ["eggplant", "onion", "food:green_tea", "food:ochazuke", "food:furofuki_daikon",

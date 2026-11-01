@@ -193,8 +193,11 @@ Genzo and Haru and their houses) with the bamboo hill above it, and countryside 
 on the way to the mine (cherry road, creek, teahouse; Fumi and Ichiro). Minamino on the
 way to the river (gardens, persimmon orchard, a water shrine; Shige, Nana and Kiku). Seven new
 villagers in all, without hearts. The Hanami teahouse is a shop (Fumi's: tea, whipped matcha
-and a sweet of the season sold nowhere else, while she is behind her counter). Later: forage on
-the hill, the new villagers at the festivals and in the village record.
+and a sweet of the season sold nowhere else, while she is behind her counter). Forage is in
+(data/forage.json: fifteen spots on the bamboo hill, what grows changes by the season, a picked
+spot grows back overnight; README → Forage). Later: the new villagers at the festivals and in
+the village record; forage spots in the other areas (Kaminoda, Sakurazaka, Minamino);
+wild things in recipes.
 After that: milestone 10, building the .exe once the export templates are installed (README → Export).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
@@ -216,6 +219,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] The village's east part: Sakurazaka (to the mine), with Fumi and Ichiro
    - [x] The village's south part: Minamino (to the river), with Shige, Nana and Kiku
    - [x] The Hanami teahouse sells tea, matcha and seasonal sweets (shop `teahouse`, Fumi)
+   - [x] Forage on the bamboo hill: fixed spots, seasonal wild things, back the next morning
 2. **Look and feel**
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)

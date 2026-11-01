@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Forage on the bamboo hill
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: DESIGN's forage rule (fixed spots per area, the kind changes with the season, a picked
+  spot is back after a night). `data/forage.json`: ten wild items (`wild:<id>`: bamboo shoot,
+  bracken, butterbur bud, wild raspberry, myoga ginger, chestnuts, akebi, oyster mushroom,
+  matsutake, wild enoki; names, bin prices, looks) and fifteen spots on the hill by bamboo
+  clumps and pines (10 in spring, 9 in summer, 11 in fall, 3 in winter). `Forage`
+  (scripts/items/forage.gd) is the rules; Game keeps `forage_picked` (saved under `forage`,
+  cleared in end_day, old saves load with nothing picked), `forage_here()` and
+  `forage_pick(c)` (overhead with free hands, else into the rucksack, else "No room");
+  FarmActions.interact picks a spot on any map. Wild things ship (sell_price), have names,
+  icons (PlaceholderArt `ui:wild:<id>`, seven shapes) and stand on their cells in both views
+  (ForageLayer, ForageView; redrawn on `Game.forage_changed`). Raspberries and akebi are eaten
+  raw; Genzo, Haru, Tome and Kota like some as gifts.
+- Balance (ours): bin prices 12-30 G (matsutake 80), so a full round of the hill is about
+  210 G a day in spring, 160 in summer, 275 in fall and 75 in winter. That is roughly one turnip
+  bag's harvest a day in the first spring (a real help while the field is small) and a small
+  share once the farm runs; the cost is the walk (the hill is two maps from the village) and no
+  stamina, as foraging is a walker's income.
+- Checked: new tests/test_forage.gd prints `test_forage: OK (0 failed)` (first runs: the views
+  must be loaded at run time in a --script test, the hand's item ships with the rucksack, saved
+  cells come back as floats); test_food's raw check accepts wild items; all 25 test scripts
+  print `OK (0 failed)`; smoke runs (title, `--demo`, town, mine 3, the hill in fall) print no
+  errors; screenshots of the hill's foot in spring (a bamboo shoot, a butterbur bud, bracken)
+  and its top in fall (akebi).
+- Left / next: forage in Kaminoda / Sakurazaka / Minamino, wild things in recipes, the new
+  villagers at the festivals.
+
 ## 2026-11-01 — The Hanami teahouse is a shop
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: shop `teahouse` in data/shops.json (Fumi keeper, open 9:00-18:00 every day like its

@@ -387,6 +387,19 @@ the hole; deeper floors stay warm. `-- --season=winter` starts on day 1 of winte
 `-- --demo --season=winter --mine=3`). Map files may say `sheltered: true` (no weather; buildings
 are sheltered by default) apart from `indoor` (the clock stops).
 
+## Forage
+Wild things grow on fixed spots (`data/forage.json`): per map id a list of `{cell, spring?,
+summer?, fall?, winter?}`, each season naming an item of `items` (`wild:<id>`: `name`, `sell`
+in the bin, `look` for the placeholder icon) or nothing. The bamboo hill has fifteen spots:
+bamboo shoots, bracken and butterbur buds in spring, wild raspberries and myoga in summer,
+chestnuts, akebi and mushrooms (one matsutake spot) in fall, a few wild enoki in winter. E
+facing a spot picks it: overhead with free hands, into the rucksack while the hands are full.
+A picked spot is bare until the next morning (`Game.forage_picked`, map id -> cells, saved,
+cleared in `end_day`). Wild things ship like crops, a few are eaten raw (foods.json `raw`),
+some villagers like them as gifts. The rules are `Forage` (`scripts/items/forage.gd`); Game
+has `forage_here()` / `forage_pick(c)`; `ForageLayer` (3D) and `ForageView` (flat) draw what
+grows and redraw on `Game.forage_changed`. A new area's spots are one more list in the file.
+
 ## Cooking
 The kitchen corner (house extension `kitchen`, ordered at the store) puts a stove (kamado) and a
 cupboard (mizuya) in the farmhouse; both are props with `use: cook`, and E at either calls

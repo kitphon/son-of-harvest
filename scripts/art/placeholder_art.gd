@@ -76,6 +76,8 @@ static func item_key(id: String, seed := "", food := "") -> String:
 		return "ui:fish:" + id.trim_prefix("fish:")
 	if id.begins_with("mine:"):
 		return "ui:mine:" + id.trim_prefix("mine:")
+	if id.begins_with(Forage.PREFIX):
+		return "ui:wild:" + id.trim_prefix(Forage.PREFIX)
 	if id.begins_with("kitchen:"):
 		return "ui:kitchen:" + id.trim_prefix("kitchen:")
 	if id in ["hoe", "can", "sickle", "hammer", "axe", "rod"]:
@@ -1059,6 +1061,57 @@ static func _kitchen_icon(id: String) -> Image:
 	return _outline(img)
 
 
+## A wild thing (data/forage.json look): a bamboo shoot in its husk, a curled bracken frond, a
+## round bud in its scales, a cluster of berries on a leaf, a chestnut burr split open, an
+## akebi pod open on its pulp, or a mushroom (cap colour, stem accent).
+static func _wild_icon(look: Dictionary) -> Image:
+	var img := _blank(14, 14)
+	var c := Color(look.get("color", "8a6a3a"))
+	var a := Color(look.get("accent", "f0e2b0"))
+	match look.get("shape", ""):
+		"shoot":
+			for y in 10:
+				var half := (y + 2) / 3 + 1
+				_px(img, 7 - half, y + 2, half * 2, 1, c if y % 3 else c.darkened(0.2))
+			_px(img, 6, 1, 2, 2, c.darkened(0.25))
+			_px(img, 5, 10, 4, 2, a)
+		"fern":
+			_line(img, Vector2i(7, 13), Vector2i(7, 5), c.darkened(0.2))
+			_oval(img, 7, 4, 2.5, 2.5, c)
+			_oval(img, 7.5, 4, 1.0, 1.0, c.darkened(0.3))
+			_line(img, Vector2i(3, 9), Vector2i(11, 7), c)
+			_px(img, 6, 12, 3, 2, a)
+		"bud":
+			_oval(img, 7, 8, 4.0, 4.5, c)
+			_oval(img, 7, 6, 2.0, 2.5, a)
+			_line(img, Vector2i(4, 9), Vector2i(7, 12), c.darkened(0.25))
+			_line(img, Vector2i(10, 9), Vector2i(7, 12), c.darkened(0.25))
+		"berries":
+			_oval(img, 7, 10, 5.0, 2.5, a)
+			for p in [[5, 6], [8.5, 6], [6.5, 8.5], [9.5, 9], [4.5, 9]]:
+				_oval(img, p[0], p[1], 1.8, 1.8, c)
+				img.set_pixel(int(p[0]) - 1, int(p[1]) - 1, c.lightened(0.4))
+		"nut":
+			_oval(img, 7, 8, 5.5, 4.5, a)
+			for x in [2, 5, 9, 12]:
+				_px(img, x, 3 + x % 3, 1, 1, a.darkened(0.25))
+			_oval(img, 5.5, 8.5, 2.2, 2.5, c)
+			_oval(img, 8.5, 8.5, 2.2, 2.5, c.lightened(0.1))
+			_px(img, 5, 7, 1, 1, c.lightened(0.4))
+		"pod":
+			_oval(img, 7, 7, 3.5, 5.5, c)
+			_oval(img, 7, 7, 1.5, 4.0, a)
+			_px(img, 6, 6, 1, 1, Color("1e1e1e"))
+			_px(img, 8, 9, 1, 1, Color("1e1e1e"))
+			_px(img, 7, 1, 1, 2, Color("6a4a2a"))
+		"mushroom":
+			_px(img, 6, 7, 3, 6, a)
+			_oval(img, 7, 6, 5.5, 3.0, c)
+			_px(img, 2, 7, 11, 1, c.darkened(0.25))
+			_px(img, 5, 4, 2, 1, c.lightened(0.35))
+	return _outline(img)
+
+
 static func _mine_icon(look: Dictionary) -> Image:
 	var img := _blank(14, 14)
 	var body := Color(look.get("body", "8e8a84"))
@@ -1690,6 +1743,8 @@ static func _ui(kind: String, arg: String) -> Image:
 			return _fish_icon(fish_look(arg))
 		"mine":     # mine:<id>, 14 x 14, a stone, ore or gem from its look in data/mine.json
 			return _mine_icon(mine_look(arg))
+		"wild":     # wild:<id>, 14 x 14, a wild thing picked on the hill from its look in data/forage.json
+			return _wild_icon(Forage.item(Forage.PREFIX + arg).get("look", {}))
 		"kitchen":  # kitchen:<id>, 14 x 14, a cooking tool (data/recipes.json tools)
 			return _kitchen_icon(arg)
 		"keep":     # keep:<id>, 14 x 14, a keepsake from its look in data/keepsakes.json

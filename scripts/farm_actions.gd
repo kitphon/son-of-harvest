@@ -173,6 +173,8 @@ static func interact(c: Vector2i) -> void:
 			Sfx.play("pick")
 			Game.message.emit("Picked up the %s" % item_name(found))
 			return
+	if forage(c):
+		return
 	if festival_spot(c):
 		return
 	if examine_prop(c):
@@ -212,6 +214,24 @@ static func interact(c: Vector2i) -> void:
 			if id != "":
 				Sfx.play("pick")
 				Game.message.emit("Picked up a %s" % item_name(id))
+
+
+## Something growing wild on `c` (data/forage.json) is picked: overhead, or into the rucksack
+## while the hands are full. Returns whether a wild spot was there.
+static func forage(c: Vector2i) -> bool:
+	var r := Game.forage_pick(c)
+	if r.id == "":
+		return false
+	match r.to:
+		"hand":
+			Sfx.play("pick")
+			Game.message.emit("Picked the %s" % item_name(r.id).to_lower())
+		"rucksack":
+			Sfx.play("pick")
+			Game.message.emit("Put the %s in the rucksack" % item_name(r.id).to_lower())
+		_:
+			Game.message.emit("No room for the %s" % item_name(r.id).to_lower())
+	return true
 
 
 ## A map prop with use "examine" (on any map, the farm too: Hachiro's door bell): plays

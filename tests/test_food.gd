@@ -134,13 +134,13 @@ func _init() -> void:
 	_raw(data)
 
 
-## Raw farm goods: crops, eggs, milk and any fish eat from foods.json "raw"; other things don't.
+## Raw farm goods: crops, eggs, milk, any fish and some wild things eat from foods.json "raw"; other things don't.
 func _raw(data: Dictionary) -> void:
 	var raw: Dictionary = data.raw
 	var crops: Dictionary = _json("res://data/crops.json")
 	var products: Dictionary = _json("res://data/animals.json").items
 	for id in raw:
-		check(crops.has(id) or products.has(id) or id == "fish:*", "raw %s is a real item" % id)
+		check(crops.has(id) or products.has(id) or id == "fish:*" or not Forage.item(id).is_empty(), "raw %s is a real item" % id)
 		check(int(raw[id].get("stamina", 0)) > 0 and int(raw[id].get("fatigue", 0)) <= 0, "raw %s gives a little" % id)
 	for id in crops:
 		check(raw.has(id), "every crop eats raw (%s)" % id)

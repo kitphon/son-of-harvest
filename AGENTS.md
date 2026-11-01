@@ -68,6 +68,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   the save): `res://tests/test_animals.gd`
   must print `test_animals: OK (0 failed)`. Fishing (bites, fish tables, the river, the catch, save, poses,
   fish art): `res://tests/test_fishing.gd` must print `test_fishing: OK (0 failed)`.
+  Forage (data/forage.json, the hill's spots by season, picking, the morning regrowth, the save,
+  shipping and eating, the views, the art): `res://tests/test_forage.gd` must print `test_forage: OK (0 failed)`.
   Mine (data/mine.json, floors from a seed, rocks / soft spots / the hole, swings, the save,
   light by depth and the lantern, frozen winter floors, mine art): `res://tests/test_mine.gd` must print `test_mine: OK (0 failed)`.
   Ending (data/ending.json, grading, the values measured, the event and its trigger, the record
@@ -107,7 +109,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   (add `--hearts=N` to start every villager at heart band N, e.g. to see the heart colours),
   `--flags=a,b=c` to set story flags (`--flags=hachiro_bell` the bell by the farmhouse door,
   `--map=town@sayo --flags=sayo_sign=new` the store's new sign, `--map=house
-  --flags=tome_grandma` Tome's plum jar; `--map=hill` the foot of the bamboo hill, `hill@top` its
+  --flags=tome_grandma` Tome's plum jar; `--map=hill` the foot of the bamboo hill (its forage spots by `--season`), `hill@top` its
   lookout; `--map=kaminoda@well --time=8:30` the hamlet north of the village, Genzo and Haru out;
   `--map=sakurazaka@bridge --time=12:10` the cherry road east, Ichiro at lunch by the teahouse;
   `--map=minamino@shige --time=9:00` the gardens south, Shige and Nana at work),

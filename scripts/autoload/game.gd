@@ -19,6 +19,7 @@ signal ending_requested(record: Dictionary)   # an EndingScreen shows the villag
 signal game_requested(festival: String, partner: String)   # a MochiScreen plays that festival's game (a mochi pounding)
 signal race_changed(what: String)    # the fishing race: "start", "go", "fish", "time", "done" (RaceScreen plays the cues)
 signal fishing_event(kind: String)   # "bite" / "escaped" while the line is out (FarmActions plays the cue)
+signal forage_changed            # a wild spot was picked, or they grew back (ForageLayer / ForageView redraw)
 
 const SECONDS_PER_MINUTE := 0.5
 const DAYS_PER_SEASON := 30
@@ -102,6 +103,7 @@ const FREE_FLAG := "clinic_free"         # flag: and the doctor let the fee go
 var fishing := Fishing.new()       # the line: cast, wait, bite (rules in data/fish.json)
 var fish_caught: Dictionary = {}   # fish id -> how many were caught this game (once-only fish)
 var mine_deepest := 0              # the deepest mine floor reached (the only mine state saved)
+var forage_picked: Dictionary = {}   # map id -> {cell: true}, the wild spots picked today (data/forage.json)
 var first_day: Dictionary = {"values": {}, "field": {}}   # {values, field} measured when the run began (the record's look back)
 var year_pages: Dictionary = {}    # year -> the village record's page written that New Year (Ending.page_of)
 
@@ -197,6 +199,7 @@ func new_game() -> void:
 	build_news = ""
 	fishing = Fishing.new(fish_data)
 	fish_caught = {}
+	forage_picked = {}
 	affection = Affection.new()
 	Villagers.reset_day()
 	Whistles.reset()
@@ -776,6 +779,8 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 		weather_tomorrow = "sunny"   # DESIGN: a festival day and a villager's birthday are always fair
 	snow_cover = next_snow_cover(snow_cover, weather_look(weather_today, season_name()), season_name(), snow_rules)
 	farm.day_end(season_name(), weather_today, rng)
+	forage_picked = {}   # DESIGN: a picked wild spot grows again after one night
+	forage_changed.emit()
 	hour = 6
 	minute = 0
 	_accum = 0.0
@@ -864,6 +869,8 @@ func sell_price(id: String) -> int:
 		return int(fish_data.get("fish", {}).get(id.trim_prefix("fish:"), {}).get("sell", 0))
 	if id.begins_with("mine:"):
 		return int(mine_item(id).get("sell", 0))
+	if id.begins_with(Forage.PREFIX):
+		return int(Forage.item(id).get("sell", 0))
 	if id.begins_with("food:"):
 		return int(foods.get(id.trim_prefix("food:"), {}).get("sell", 0))
 	return int(crops[id].get("sell", 0)) if crops.has(id) else animals.sell_price(id)
@@ -967,6 +974,8 @@ func item_name(id: String) -> String:
 		return String(fish_data.fish[id.trim_prefix("fish:")].name)
 	if mine_item(id).has("name"):
 		return String(mine_item(id).name)
+	if Forage.item(id).has("name"):
+		return String(Forage.item(id).name)
 	if Keepsakes.name_of(id) != "":
 		return Keepsakes.name_of(id)
 	if id.begins_with("food:") and foods.has(id.trim_prefix("food:")):
@@ -1130,6 +1139,36 @@ func mine_pick_up(c: Vector2i) -> String:
 		held = id
 		changed.emit()
 	return id
+
+
+# --- forage (data/forage.json, Forage) ---------------------------------------
+
+## What grows wild on the current map now, not yet picked today: cell -> "wild:<id>".
+func forage_here() -> Dictionary:
+	return Forage.growing(maps.id, season_name(), forage_picked.get(maps.id, {}))
+
+
+## Picks the wild thing on `c` of the current map: overhead with free hands, else into the
+## rucksack if there is room. Returns {id ("" when nothing grows there), to ("hand",
+## "rucksack" or "" when it didn't fit)}.
+func forage_pick(c: Vector2i) -> Dictionary:
+	var id: String = forage_here().get(c, "")
+	if id == "":
+		return {"id": "", "to": ""}
+	var to := ""
+	if not holding():
+		held = id
+		to = "hand"
+	elif can_carry(id):
+		inventory.add(id, 1)
+		to = "rucksack"
+	if to != "":
+		if not forage_picked.has(maps.id):
+			forage_picked[maps.id] = {}
+		forage_picked[maps.id][c] = true
+		forage_changed.emit()
+		changed.emit()
+	return {"id": id, "to": to}
 
 
 ## Where a save made down the mine puts the farmer: at the cave mouth (floors are never kept).
@@ -2156,6 +2195,12 @@ func to_dict() -> Dictionary:
 		d.fishing.race = race.to_dict()
 	d.affection = affection.to_dict()
 	d.mine = {"deepest": mine_deepest}
+	var picked := {}
+	for m in forage_picked:
+		picked[m] = []
+		for c in forage_picked[m]:
+			picked[m].append([c.x, c.y])
+	d.forage = {"picked": picked}
 	var pages := []
 	for y in year_pages:
 		pages.append(year_pages[y].duplicate(true))
@@ -2383,6 +2428,21 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	n.mine_deepest = SaveGame.whole(saved_mine.get("deepest") if saved_mine is Dictionary else null, 0, 9999)
 	if n.mine_deepest == null:
 		return "Saved mine is broken"
+	# Saves from before forage: nothing picked today.
+	var saved_forage = data.get("forage", {"picked": {}})
+	if not saved_forage is Dictionary or not saved_forage.get("picked") is Dictionary:
+		return "Saved forage is broken"
+	n.forage_picked = {}
+	for m in saved_forage.picked:
+		if not m is String or not saved_forage.picked[m] is Array:
+			return "Saved forage is broken"
+		n.forage_picked[m] = {}
+		for c in saved_forage.picked[m]:
+			var x = SaveGame.whole(c[0], 0, 9999) if c is Array and c.size() == 2 else null
+			var y = SaveGame.whole(c[1], 0, 9999) if c is Array and c.size() == 2 else null
+			if x == null or y == null:
+				return "Saved forage is broken"
+			n.forage_picked[m][Vector2i(x, y)] = true
 	# Saves from before the yearly pages: no page written yet, and of the first day only what
 	# every new game starts with is known (the field's debris and tilling show as "-").
 	n.first_day = {"values": start_values(), "field": {"money": START_MONEY}}
@@ -2420,6 +2480,7 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	_accum = 0.0
 	_shown_state = body_state()
 	day_started.emit()   # the views redo weather and light
+	forage_changed.emit()
 	map_changed.emit(maps.id)   # and put the farmer where the save says
 	changed.emit()
 	return ""

@@ -1,0 +1,34 @@
+{
+	"_about": "Wild things to pick (Forage, scripts/items/forage.gd; README.md, Forage). DESIGN: fixed spots per area, what grows there changes with the season, and a picked spot grows again after one night. items: per id (the item is wild:<id>) a name, sell (G in the shipping bin; thrown in or held out like a crop) and look (the placeholder icon: shape shoot, fern, bud, berries, pod, nut or mushroom; color, accent). Some are eaten raw (data/foods.json raw, keyed wild:<id>). spots: per map id a list of {cell [x, y], spring?, summer?, fall?, winter?: an item id}; a season left out has nothing there. E on a spot with free hands lifts it overhead (with the hands full it goes in the rucksack, if there is room). Balance (ours): a full round of the bamboo hill is about 200 G a day in spring and summer, 275 in fall (one matsutake spot), 75 in winter; the walk from the farm up and back is the cost (no stamina). Early on that is about a turnip bag's harvest a day, later a small share of the farm's income. See WORKLOG 2026-11-01 Forage.",
+	"items": {
+		"bamboo_shoot": {"name": "Bamboo shoot", "sell": 30, "look": {"shape": "shoot", "color": "c89a52", "accent": "f0e2b0"}},
+		"warabi": {"name": "Bracken", "sell": 12, "look": {"shape": "fern", "color": "6a9a3a", "accent": "8a6a3a"}},
+		"fukinoto": {"name": "Butterbur bud", "sell": 18, "look": {"shape": "bud", "color": "9ac84a", "accent": "e8e2a0"}},
+		"kiichigo": {"name": "Wild raspberry", "sell": 15, "look": {"shape": "berries", "color": "e8782a", "accent": "4a8a3a"}},
+		"myoga": {"name": "Myoga ginger", "sell": 22, "look": {"shape": "bud", "color": "d87a8a", "accent": "f4e8d8"}},
+		"chestnut": {"name": "Chestnuts", "sell": 15, "look": {"shape": "nut", "color": "7a4a2a", "accent": "8ab040"}},
+		"akebi": {"name": "Akebi", "sell": 25, "look": {"shape": "pod", "color": "8a5aa8", "accent": "f4f0e8"}},
+		"hiratake": {"name": "Oyster mushroom", "sell": 20, "look": {"shape": "mushroom", "color": "b8b0a0", "accent": "f0ece0"}},
+		"matsutake": {"name": "Matsutake", "sell": 80, "look": {"shape": "mushroom", "color": "8a5a3a", "accent": "f0e2c8"}},
+		"enoki": {"name": "Wild enoki", "sell": 25, "look": {"shape": "mushroom", "color": "e8a040", "accent": "f4ecd8"}}
+	},
+	"spots": {
+		"hill": [
+			{"cell": [6, 25], "spring": "bamboo_shoot", "fall": "hiratake"},
+			{"cell": [3, 25], "spring": "warabi", "summer": "kiichigo"},
+			{"cell": [14, 26], "spring": "fukinoto", "summer": "kiichigo"},
+			{"cell": [24, 27], "spring": "bamboo_shoot", "fall": "akebi"},
+			{"cell": [36, 24], "summer": "myoga", "fall": "chestnut", "winter": "enoki"},
+			{"cell": [28, 20], "summer": "kiichigo", "fall": "hiratake"},
+			{"cell": [16, 19], "spring": "warabi", "summer": "myoga"},
+			{"cell": [3, 20], "spring": "fukinoto", "winter": "enoki"},
+			{"cell": [5, 10], "spring": "bamboo_shoot", "fall": "hiratake"},
+			{"cell": [27, 4], "spring": "fukinoto", "fall": "matsutake"},
+			{"cell": [18, 10], "spring": "warabi", "summer": "kiichigo", "fall": "akebi"},
+			{"cell": [25, 12], "summer": "myoga", "fall": "chestnut", "winter": "enoki"},
+			{"cell": [33, 12], "spring": "bamboo_shoot", "summer": "kiichigo", "fall": "chestnut"},
+			{"cell": [36, 9], "summer": "myoga", "fall": "akebi"},
+			{"cell": [5, 14], "fall": "chestnut"}
+		]
+	}
+}

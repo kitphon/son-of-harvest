@@ -179,6 +179,7 @@ func _enter_map() -> void:
 		(world as MapWorld).build(m)
 	world.add_child(FestivalProps.new(m.id))   # today's festival decorations, in its hours
 	world.add_child(VillagerSprites.new(m.id))
+	world.add_child(ForageLayer.new(m.id))   # what grows wild there today (data/forage.json)
 	add_child(world)
 	move_child(world, 0)
 	var animals := AnimalLayer.new()   # the animals, eggs and feed (coop, barn, or the farm and its dog)
