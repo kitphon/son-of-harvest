@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — The farm widened to 64 x 48 (woodlot, top gate, old saves grow)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user found the maps small next to other farming games; the plan is farm, then
+  village, then a new area. `FarmGrid.W / H` 32 x 20 → 64 x 48 (data/maps/farm.json `size`).
+  The yard (house, chest, bin, stand, coop, barn, pond) stays where it was, so every farm
+  coordinate in the data and tests still holds; the field fills the new ground. The village gate
+  moved from the right fence (31, 5-6) to the top fence (31-32, 0) right of the pond, so the
+  walk to the village is no longer than before (a right-edge gate would have been 60 cells,
+  about 20 game minutes, from the house); the town's farm door spawns there facing down, the
+  gate board's examine spots are either side of it, and Hachiro's building route comes in by it.
+  `FarmGrid.WOODLOT` (48..62, 32..46): debris odds 0.45 instead of 0.15, mostly stumps and
+  branches, as a place for the axe. A save of the old size (`OLD_W` x `OLD_H`, read from its
+  `w` / `h`) grows on load (`_widen`): cells, buildings and items in place, the old right and
+  bottom fences opened up, new ground scattered from a fixed seed (the same every load), the
+  fence round the new border; no save version bump needed. The 3D view's object sprites were
+  rebuilt from scratch on every field change: 35 ms a change at the new size (6 ms at the old);
+  now bare cells are skipped first, a sprite whose art key is unchanged is kept, and the snow
+  mask is drawn only while snow lies (or when it starts): 5.4 ms (10 redraws in 54 ms, headless).
+- Checked: test_farm's new `_wide_farm` (woodlot denser and woodier, the old save's cells /
+  buildings / items in place, old fence lines open, new border fenced, same ground every load,
+  a wide save loads as it is, another size refused); two checks moved (dog off the farm at x 70,
+  the gate board at (30, 0)); all 24 test scripts print `OK (0 failed)`; smoke runs (title,
+  `--demo`, `--map=town`, `--mine=3`) print no errors; screenshots of `--demo`, `--map=farm@gate`
+  (the gap in the top fence behind the farmer) and `--season=winter --snow=80` (snow drawn).
+- Left / next: the village to about 56 x 36, then a new area off the village (bamboo hill).
+
 ## 2026-11-01 — Merged two branches: fishing race, villager whistling
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time: `claude/fishing-race-7c15bf` (c68610e, clean

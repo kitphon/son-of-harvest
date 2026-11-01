@@ -82,7 +82,9 @@ effect the moment it changes and saved to `user://settings.json` (version 2; a v
 - Clock: 1 game minute = 0.5 s, day starts 6:00, 4 seasons x 30 days, day/night tint.
 - Weather rolled a day ahead per season (`data/weather.json`); rain waters the field, storms
   can destroy crops.
-- Farm grid 32 x 20: till, water (can refills at the pond), seed bag sows 3 x 3, crops grow
+- Farm grid 64 x 48 (the yard top left, the village gate in the top fence right of the pond,
+  a woodlot thick with stumps and branches in the far corner; a save of the old 32 x 20 farm
+  grows into it with everything in place): till, water (can refills at the pond), seed bag sows 3 x 3, crops grow
   one stage per watered night (`data/crops.json`), regrowing crops, out-of-season crops wither,
   weeds appear, rocks / branches / weeds / stumps cleared by the right tool.
 - Shipping bin pays at 18:00 (or when you sleep); the seed stand sells this season's seeds,

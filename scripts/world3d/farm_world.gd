@@ -11,7 +11,9 @@ const PX := 0.045              # world units per sprite pixel (a 24 px farmer ~ 
 var farm: FarmGrid
 var gaps: Array[Vector2i] = []   # fence cells left open (the gate to the village)
 var _objects: Node3D
+var _sprites: Dictionary = {}   # Vector2i -> [art key, Sprite3D] standing on that cell
 var _snow_mask: ImageTexture
+var _mask_dirty := false   # the field changed since the snow mask was last drawn
 var _snow_mats: Array[ShaderMaterial] = []
 ## A thrown item still in the air: its cell's sprite waits until the flight lands.
 var hidden_item := Vector2i(-1, -1):
@@ -41,6 +43,8 @@ func make_story_props(m: MapData) -> void:
 
 ## Snow on the ground and roofs, 0 (none) .. 1 (all white where the ground holds it).
 func set_snow(cover: float) -> void:
+	if cover > 0.0 and _mask_dirty:
+		_update_mask()
 	for m in _snow_mats:
 		m.set_shader_parameter("cover", cover)
 
@@ -386,22 +390,45 @@ func _snow_top(size: Vector3, center: Vector3, rot := Vector3.ZERO) -> void:
 	top.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 
-func _rebuild_objects() -> void:
+func _update_mask() -> void:
 	_snow_mask.update(SnowLayer.mask_image(farm, Game.snow_rules))
-	for child in _objects.get_children():
-		child.queue_free()
-	for y in FarmGrid.H:
-		for x in FarmGrid.W:
-			var c := Vector2i(x, y)
-			if not farm.can_farm(c):
-				continue
-			var key := PlaceholderArt.cell_key(farm, farm.cell(c))
-			if farm.item_at(c) != "":
-				key = PlaceholderArt.world_item_key(farm.item_at(c))   # items only lie on empty cells
-			if key == "":
-				continue
-			var s := make_sprite(PlaceholderArt.tex(key))
-			s.position = Vector3(x + 0.5, 0, y + 0.5)
+	_mask_dirty = false
+
+
+func _rebuild_objects() -> void:
+	# The snow mask only matters while snow lies; otherwise it waits for set_snow.
+	_mask_dirty = true
+	if Game.snow_cover > 0:
+		_update_mask()
+	# Only cells whose picture changed get a new sprite, and bare cells are skipped first (the
+	# wide farm has 3000 cells; a full rebuild per tool swing was a visible hitch).
+	var seen := {}
+	for i in farm.cells.size():
+		var d: Dictionary = farm.cells[i]
+		var c := Vector2i(i % FarmGrid.W, i / FarmGrid.W)
+		if d.obj == FarmGrid.Obj.NONE and d.crop == "" and not farm.items.has(c):
+			continue
+		if not farm.can_farm(c):
+			continue
+		var key := PlaceholderArt.cell_key(farm, d)
+		if farm.item_at(c) != "":
+			key = PlaceholderArt.world_item_key(farm.item_at(c))   # items only lie on empty cells
+		if key == "":
+			continue
+		seen[c] = true
+		var old: Array = _sprites.get(c, [])
+		var s: Sprite3D
+		if not old.is_empty() and old[0] == key:
+			s = old[1]
+		else:
+			if not old.is_empty():
+				old[1].queue_free()
+			s = make_sprite(PlaceholderArt.tex(key))
+			s.position = Vector3(c.x + 0.5, 0, c.y + 0.5)
 			_objects.add_child(s)
-			if c == hidden_item:
-				s.visible = false
+			_sprites[c] = [key, s]
+		s.visible = c != hidden_item
+	for c in _sprites.keys():
+		if not seen.has(c):
+			_sprites[c][1].queue_free()
+			_sprites.erase(c)

@@ -552,7 +552,7 @@ func _barn_save() -> void:
 		"fodder below 0": func(d): d.barn.stock = -1,
 		"no dog": func(d): d.erase("dog"),
 		"dog on the fence": func(d): d.dog.cell = [0, 5],
-		"dog off the farm": func(d): d.dog.cell = [40, 5],
+		"dog off the farm": func(d): d.dog.cell = [70, 5],
 		"dog too fond": func(d): d.dog.affection = 999,
 		"dog without a name": func(d): d.dog.erase("name"),
 		"brushed as text": func(d): d.animals[0].brushed = "yes",

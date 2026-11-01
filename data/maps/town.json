@@ -279,10 +279,10 @@
 			],
 			"to": "farm",
 			"spawn": [
-				30,
-				6
+				31,
+				1
 			],
-			"facing": "left"
+			"facing": "down"
 		},
 		{
 			"cells": [

@@ -252,6 +252,7 @@ func _init() -> void:
 	check(can_end + 4 <= HudLayout.BOXES.item.size.x - 6 - PixelFont.width("40/40"), "can name, level pips and water fit the item box")
 
 	_charge_rules(crops, game_script)
+	_wide_farm(crops)
 	# FarmActions works on the Game autoload, which is in the tree from the first frame.
 
 
@@ -498,6 +499,55 @@ func _tool_exp() -> void:
 	check(g.tool_level("sickle") == 2, "after a raise the next level needs the level-3 step")
 	g.message.disconnect(listen)
 	g.reset_tool_levels()
+
+## The farm widened to W x H: the woodlot is thicker and woodier than the open field, and a
+## save of the old 32 x 20 farm grows into the new size with its cells and buildings in place.
+func _wide_farm(crops: Dictionary) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var f := FarmGrid.new(crops)
+	f.generate(rng)
+	check(f.fixed_at(Vector2i(FarmGrid.W - 1, 20)) == "fence" and f.fixed_at(Vector2i(30, FarmGrid.H - 1)) == "fence"
+		and f.fixed_at(Vector2i(31, 5)) == "", "the fence runs round the wide farm, the old right fence is gone")
+	var wood := {"n": 0, "debris": 0, "woody": 0}
+	var field := {"n": 0, "debris": 0, "woody": 0}
+	for y in range(7, FarmGrid.H - 1):
+		for x in range(1, FarmGrid.W - 1):
+			var c := Vector2i(x, y)
+			var tally: Dictionary = wood if FarmGrid.WOODLOT.has_point(c) else field
+			var obj: int = f.cell(c).obj
+			tally.n += 1
+			if obj != FarmGrid.Obj.NONE:
+				tally.debris += 1
+			if obj == FarmGrid.Obj.STUMP or obj == FarmGrid.Obj.BRANCH:
+				tally.woody += 1
+	check(float(wood.debris) / wood.n > 2.0 * field.debris / field.n, "the woodlot is thicker than the field")
+	check(float(wood.woody) / wood.debris > 0.5 and float(field.woody) / field.debris < 0.5, "the woodlot is mostly stumps and branches")
+
+	# An old-size save: a turnip at (10, 10), a chest, the old right fence and an item on the ground.
+	var old_cells := []
+	for i in FarmGrid.OLD_W * FarmGrid.OLD_H:
+		old_cells.append({"tilled": false, "wet": false, "obj": 0, "crop": "", "stage": 0, "days": 0, "hits": 0})
+	old_cells[10 * FarmGrid.OLD_W + 10] = {"tilled": true, "wet": true, "obj": 0, "crop": "turnip", "stage": 2, "days": 0, "hits": 0}
+	var old := {"w": FarmGrid.OLD_W, "h": FarmGrid.OLD_H, "cells": old_cells,
+		"fixed": [[7, 3, "chest"], [31, 5, "fence"], [10, 19, "fence"], [4, 3, "door"]], "items": [[12, 12, "potato"]]}
+	var g := FarmGrid.new(crops)
+	check(g.from_dict(JSON.parse_string(JSON.stringify(old))) == "", "an old 32 x 20 save loads")
+	check(g.cells.size() == FarmGrid.W * FarmGrid.H and g.cell(Vector2i(10, 10)).crop == "turnip" and g.cell(Vector2i(10, 10)).stage == 2,
+		"the old cells keep their place in the wide farm")
+	check(g.fixed_at(Vector2i(7, 3)) == "chest" and g.fixed_at(Vector2i(4, 3)) == "door" and g.item_at(Vector2i(12, 12)) == "potato",
+		"the old buildings and items stay")
+	check(g.fixed_at(Vector2i(31, 5)) == "" and g.fixed_at(Vector2i(10, 19)) == "" and g.fixed_at(Vector2i(FarmGrid.W - 1, 5)) == "fence"
+		and g.fixed_at(Vector2i(10, FarmGrid.H - 1)) == "fence", "the old fence lines open up, the new border is fenced")
+	var h := FarmGrid.new(crops)
+	h.from_dict(JSON.parse_string(JSON.stringify(old)))
+	check(JSON.stringify(h.to_dict()) == JSON.stringify(g.to_dict()), "the widened ground is the same on every load")
+	var again := FarmGrid.new(crops)
+	check(again.from_dict(JSON.parse_string(JSON.stringify(g.to_dict()))) == "" and again.to_dict().w == FarmGrid.W, "a wide save loads as it is")
+	var odd := old.duplicate()
+	odd.w = 40
+	check(FarmGrid.new(crops).from_dict(odd) != "", "a save of another size is refused")
+
 
 func _mean_luma(img: Image) -> float:
 	var sum := 0.0
