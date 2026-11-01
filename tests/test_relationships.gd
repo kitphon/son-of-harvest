@@ -14,6 +14,7 @@ func _init() -> void:
 	_heart_art()
 	_birthday_data()
 	_birthday_gifts()
+	_gift_pace()
 	_neglect()
 	_heart_event_rows()
 	_band6_talk()
@@ -104,6 +105,26 @@ func _birthday_gifts() -> void:
 	var plain := Affection.new()
 	plain.give("tome", "eggplant", 10)
 	check(plain.of("tome") == int(r.gift.love), "on other days it counts once")
+
+
+## The pace of a gift and a talk every day (the year playtest found 8 / 3 put everyone at
+## band 6 by summer): a liked gift reaches band 3 in about a season, a loved one in two to
+## four weeks, and band 6 takes more than a season of loved gifts.
+func _gift_pace() -> void:
+	var days_to := func(item: String, band: int) -> int:
+		var a := Affection.new()
+		for d in range(1, 400):
+			a.give("tome", item, d)
+			a.talk("tome", d)
+			if a.band("tome") >= band:
+				return d
+		return 999
+	var liked: int = days_to.call("turnip", 3)
+	var loved: int = days_to.call("eggplant", 3)
+	var loved6: int = days_to.call("eggplant", 6)
+	check(liked >= 25 and liked <= 40, "a liked gift a day: band 3 in about a season (%d days)" % liked)
+	check(loved >= 14 and loved <= 28, "a loved gift a day: band 3 in two to four weeks (%d days)" % loved)
+	check(loved6 > 30, "band 6 takes more than a season of loved gifts (%d days)" % loved6)
 
 
 func _change(id: String, item: String) -> int:

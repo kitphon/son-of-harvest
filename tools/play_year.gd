@@ -427,7 +427,7 @@ func _field(late: bool) -> void:
 			continue
 		if season == "winter" or used >= want:
 			continue
-		var crop := _crop_to_sow()
+		var crop := _crop_to_sow(used)
 		if crop == "":
 			continue
 		if tilled and not late:
@@ -442,16 +442,18 @@ func _field(late: bool) -> void:
 	_ship_at_bin()
 
 
-## The best crop of the season that still ripens before the season ends.
-func _crop_to_sow() -> String:
+## A crop of the season that still ripens before the season ends: the `k`-th plot gets the
+## k-th of them (a mix, so more kinds are shipped).
+func _crop_to_sow(k: int) -> String:
+	var ok: Array[String] = []
 	for id in CROPS.get(g.season_name(), []):
 		var c: Dictionary = g.crops[id]
 		var days := 0
 		for n in c.stage_days:
 			days += int(n)
 		if g.day + days <= GameRules.DAYS_PER_SEASON:
-			return id
-	return ""
+			ok.append(id)
+	return ok[k % ok.size()] if not ok.is_empty() else ""
 
 
 func _harvest(cells: Array[Vector2i]) -> void:
@@ -1027,8 +1029,8 @@ func _nearest_find(f: MineFloor) -> Vector2i:
 		if d < best_d:
 			best_d = d
 			best = c
-	# On deep enough floors only the way down is worth the stamina once the hole is found.
-	if f.open and g.stamina < 40:
+	# Once the hole is found the bot goes down: deeper floors have the better ores.
+	if f.open:
 		return Vector2i(-1, -1)
 	return best
 
