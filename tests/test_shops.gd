@@ -578,8 +578,24 @@ func _build_storm_day() -> void:
 	g.money = 30000
 	check(g.shop_build("general", "kitchen").ok and int(g.house_job.ready) == 3, "kitchen ordered on day 0, due on day 3")
 	g.weather_today = "storm"
+	g.weather_tomorrow = "storm"
 	g.end_day()
 	check(int(g.house_job.ready) == 3 and not g.house_job.has("late"), "a storm on the order day costs nothing (no work yet)")
+	# That stormy morning the farmer hears it once outside, and only once.
+	var off := "Word from the smithy: \"Too wild out to raise beams. No building today; the kitchen corner will be a day late. -Hachiro\""
+	check(g.build_news == off, "the storm morning's word waits: %s" % g.build_news)
+	var heard := said.size()
+	g.map_arrived()
+	check(said.size() == heard, "not told in the house")
+	g.go_to_map("farm", Vector2i(4, 5), Vector2i.DOWN)
+	g.map_arrived()
+	check(said.size() == heard + 1 and said.back() == off and g.build_news == "", "told on stepping out: %s" % said.back())
+	g.go_to_map("town", Vector2i(23, 16), Vector2i.UP)
+	g.map_arrived()
+	check(said.size() == heard + 1, "told once")
+	var sm: Shop = g.shop("general")
+	for plan in sm.build_off_day:
+		check(Villagers.all()[sm.builder].plans.has(plan) and "%s" in str(sm.build_off_day[plan]), "off_day %s names a day plan of the builder" % plan)
 	g.weather_today = "storm"
 	g.end_day()
 	check(int(g.house_job.ready) == 4 and int(g.house_job.late) == 1 and g.flags.get(g.BUILD_FLAG) == "kitchen",
@@ -604,8 +620,10 @@ func _build_storm_day() -> void:
 		broken.house.job.late = bad
 		check(b.from_dict(broken) != "", "a broken lost-day count is refused: %s" % [bad])
 	g.weather_today = "sunny"
+	g.weather_tomorrow = "sunny"
 	g.end_day()
 	check(not g.has_built("kitchen") and g.flags.get(g.BUILD_FLAG) == "kitchen" and g.day_number() == 3, "day 3, the old due day: still at it")
+	check(g.build_news == "", "a fair morning: no word")
 	g.weather_today = "sunny"
 	g.end_day()
 	check(g.has_built("kitchen") and g.day_number() == 4 and not g.flags.has(g.BUILD_FLAG), "done on day 4 instead of 3")

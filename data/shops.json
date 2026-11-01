@@ -37,6 +37,10 @@
 				"away_late": "A note on the counter: \"Out at the farm, building the %s. The storm cost me a day; done on %s. -Hachiro\"",
 				"late": "Done on %s, a day late: a storm kept Hachiro at the forge.",
 				"plan": "building",
+				"off_day": {
+					"forge": "Word from the smithy: \"Too wild out to raise beams. No building today; the %s will be a day late. -Hachiro\"",
+					"birthday": "Word from the smithy: \"My birthday, so the hammer rests today. The %s will be a day late. -Hachiro\""
+				},
 				"jobs": {
 					"chest": {"name": "Bigger storage chest", "about": "48 slots, with a second lid in the house.",
 						"price": 3000, "days": 2, "chest_slots": 48},

@@ -10,6 +10,62 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Leftovers: tool level 5 perk, the storm morning's word, kitchen tools in balance.py
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: (1) Level 5 of a charging tool added no charge step (max_charge ends 4, 4). Now it is
+  the master level: data/tools.json `master` {level 5, stamina_pct 60, level_up text} makes a
+  swing cost 60% of its charge step's stamina, rounded up, at least 1 (`Game.swing_stamina`,
+  `Game.is_master`; used by FarmActions.use_tool and Game.mine_swing). Work fatigue per swing
+  stays; the overwork fatigue from missing stamina drops with the cost. The level 5 level-up
+  message adds " It hardly tires you any more." Why 60%: the top hoe swing (10) becomes 6, the
+  level 4 cost of a smaller area, so the full 3x5 area is worth using all day; a 1-stamina
+  swing stays 1. The rod keeps its own levels (bite factor), no perk. (2) The morning a job is
+  under way and Hachiro's day plan isn't `building`, end_day sets `Game.build_news` from
+  data/shops.json builds `off_day` (by the plan that keeps him: `forge` = the storm text,
+  `birthday` = his birthday text; our wording, e.g. "Word from the smithy: \"Too wild out to
+  raise beams. No building today; the kitchen corner will be a day late. -Hachiro\""). It is
+  told once, in `map_arrived` on the first map that isn't the house (the wake-up message would
+  cover it at once in the house); not saved. `_count_build_day` and the news share
+  `_builder_off_plan()`. (3) tools/balance.py: the plan buys each kitchen tool (data/recipes.json
+  tools) in the first season COOKED needs it, a one-off "tools" cost column in the season
+  table; the recipe table has each recipe's tool cost and "pays" (cookings at its best
+  season's gain to earn the tools back; shared tools counted in full).
+- Checked: test_farm (master stamina in the rules and on the real Game's hoe, level 4 full
+  cost, 1 stays 1, rod / seeds no perk, the level 5 message), test_shops (the storm morning:
+  word waiting, not told in the house, told on the farm, told once; a fair morning has none;
+  every off_day key is a plan of the builder). All 24 test scripts print `OK (0 failed)`;
+  headless `--quit-after 300` title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo
+  --building=kitchen --weather=storm --map=farm`: no errors or warnings. `python -I
+  tools/balance.py` (before: summer net 19007, fall 33523, year net 105874 G):
+  ```
+   season |   crops |    cook |    eggs |    milk |    wool |    fish |    mine |   prize |  income |   seeds |    feed | animals |   tools |   other |     net
+   spring |   10260 |       0 |    3792 |       0 |       0 |    2797 |     205 |     476 |   17531 |    2380 |     590 |    2800 |       0 |    2050 |    9711
+   summer |   18828 |     576 |    7492 |    2616 |       0 |    3501 |     970 |     295 |   34279 |    3016 |    1406 |    8800 |    1500 |    2050 |   17507
+     fall |   30758 |    1525 |    8325 |    5886 |    1981 |    3442 |    2062 |     406 |   54384 |    7060 |    2151 |    9600 |    4700 |    2050 |   28823
+   winter |       0 |    1382 |    8325 |    9810 |    2830 |    4161 |   22221 |     464 |   49193 |       0 |    4410 |       0 |       0 |    1150 |   43633
+  year net 99674 G (mine: finds shipped, less the ores kept for the smithy; tools: kitchen tools, once)
+
+   summer: bought upgrade hoe 2 (1000), kitchen (6500), upgrade sickle 2 (1000), upgrade can 3 (2500); 10717 G left; ores kept 248 G
+     fall: bought rucksack 2 (6500), room (18000); 15040 G left
+   winter: bought upgrade hoe 3 (2500), upgrade can 4 (5000), upgrade hammer 2 (1000); 50174 G left; ores kept 494 G
+
+             recipe | spring | summer |   fall | winter |  tools |  pays
+        turnip_stew |     45 |     45 |     45 |     45 |   1500 |    34
+        potato_stew |     55 |     55 |     55 |     55 |   1500 |    28
+           ochazuke |     32 |     17 |     18 |     47 |    400 |     9
+   simmered_pumpkin |     60 |     60 |     60 |     60 |   1500 |    25
+       milk_pudding |     60 |     60 |     60 |     60 |   1500 |    25
+    furofuki_daikon |     30 |     30 |     30 |     30 |   1500 |    50
+        daikon_fish |     52 |     37 |     38 |     67 |   1500 |    23
+     takikomi_gohan |     65 |     65 |     65 |     65 |   1800 |    28
+       kinako_mochi |     65 |     65 |     65 |     65 |   2000 |    31
+  ```
+  (start recipes need no tools: "-"; spring line and the contest table unchanged.)
+- Left / next: in year 1 the plan's cooking (3483 G over raw) doesn't pay back its 6200 G of
+  tools; they pay off in year 2, or cheaper tools / dearer dishes if a playtest finds cooking
+  not worth it. No screenshot of the storm word (it needs a real night; `--building` starts the
+  job without one).
+
 ## 2026-11-01 — Merged six branches: building fixes, 2D weather, heart actors, stalls, river, yearly record
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each: `claude/building-fixes-32aab9`
