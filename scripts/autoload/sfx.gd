@@ -9,7 +9,8 @@ extends Node
 ## audio device, and Movie Maker screenshots drive the mixer frame by frame: in both every
 ## step runs except starting the players (`silent`), since a sound still playing when the
 ## engine quits there is reported as a leak. `-- --movie-audio` keeps sound in a movie run
-## (it is written next to the frames as frame.wav).
+## (it is written next to the frames as frame.wav). Villagers walking in view whistle now and
+## then (Whistles, data/whistles.json), softer the farther off they are.
 
 const DATA := "res://data/sfx.json"
 const MUSIC := "res://data/music.json"
@@ -70,6 +71,9 @@ func _ready() -> void:
 		add_child(p)
 		_songs[key] = p
 		_song_level[key] = 0.0
+	if not silent:   # the tunes are made early, off the main thread
+		for id in Whistles.data().tunes:
+			song_stream("whistle:" + id)
 	apply_settings()
 	Game.settings_changed.connect(apply_settings)
 	Game.day_started.connect(play.bind("chime_morning"))
@@ -96,6 +100,7 @@ func _process(delta: float) -> void:
 		if p.playing and level <= 0.0 and to <= 0.0:
 			p.stop()
 	_music_step(delta)
+	_whistle_step()
 
 
 ## Cross-fades the music to the track MusicPicker wants. A track starts once its loop is made;
@@ -119,6 +124,35 @@ func _music_step(delta: float) -> void:
 		p.volume_linear = _song_level[key] * db_to_linear(float(music.tracks[key].get("volume_db", 0.0)))
 		if p.playing and _song_level[key] <= 0.0 and to <= 0.0:
 			p.stop()
+
+
+## Starts the tunes of villagers who whistle now on the farmer's map (Whistles.step).
+func _whistle_step() -> void:
+	if not Game.clock_running:
+		return
+	var m := Game.maps.current()
+	for w in Whistles.step(Game.maps.id, Game.day_minutes(), Game.trigger_state(Vector2i.ZERO),
+			Game.weather_look(Game.weather_today, Game.season_name()), Game.hour,
+			m.ambient if m != null else "outdoor", Game.maps.pos / MapManager.T):
+		whistle(w.id, w.level)
+
+
+## Plays villager `id`'s tune at `level` (0..1, by distance) on the SFX bus. Nothing while its
+## sound is still being made (the note puff shows all the same).
+func whistle(id: String, level: float) -> void:
+	if level <= 0.0:
+		return
+	var s := song_stream("whistle:" + id)
+	if s == null:
+		return
+	var p := _voices[_next_voice]
+	_next_voice = (_next_voice + 1) % VOICES
+	p.stream = s
+	p.bus = "SFX"
+	p.volume_db = float(Whistles.data().get("volume_db", -14.0)) + linear_to_db(level)
+	p.pitch_scale = 1.0
+	if not silent:
+		p.play()
 
 
 ## The id of the event script playing in the view, or "" (for the music rules' `events`).
@@ -150,7 +184,10 @@ func song_stream(key: String) -> AudioStreamWAV:
 	return _song_streams[key]
 
 
+## A music track's loop, or (key "whistle:<id>") a villager's tune, played once.
 func make_song(key: String) -> AudioStreamWAV:
+	if key.begins_with("whistle:"):
+		return SfxSynth.to_stream(Whistles.render(key.trim_prefix("whistle:")), false)
 	return SfxSynth.to_stream(MusicSynth.render(music.tracks[key], music.instruments, hash(key)), true)
 
 

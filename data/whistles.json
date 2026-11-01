@@ -1,0 +1,23 @@
+{
+	"_about": "Villagers whistling as they walk their day plan (scripts/villagers/whistles.gd). Every tune here is our own, a few notes written for Harvest Son in a five-note scale, played by scripts/audio/music_synth.gd on the `whistle` instrument (a flute voice that is almost a pure sine, a little breath and a scoop up into each note). A tune: bpm (two steps a beat), root (MIDI note), scale (semitones) and notes, one token a step as in data/music.json (a scale degree, _ holds, . rests; end on rests so the last note dies away). Each villager's tune matches them: Kota quick and high, Tome slow and low-ish, Hachiro sturdy, Sayo lilting, Yae a careful little figure. A villager without a tune never whistles.",
+	"_rules": "Once a game minute, each villager on the farmer's map whose pose is in poses (walk = walking their plan; not while acting in an event or turned to talk), on a day whose weather look is in looks (no rain, storm, snow or blizzard: lips shut against the weather), within hours [from, to) (so not in the early morning or after dark), on a map whose ambient is in places (outdoor: no whistling indoors or in the mine), starts their tune with odds chance, but not within gap_minutes of starting the last one. With chance 0.06 and a 40 minute gap a villager walking in view whistles about once in an hour of walking (a game hour is 30 s): now and then, not a radio. The level is 1 within hear_full cells of the farmer and falls to 0 at hear_reach cells (squared, so it fades away softly); volume_db is the level at 1, on the SFX bus. Ours, by ear on paper: not yet heard by a person.",
+	"rules": {
+		"poses": ["walk"],
+		"looks": ["sunny"],
+		"hours": [7, 19],
+		"places": ["outdoor"],
+		"chance": 0.06,
+		"gap_minutes": 40,
+		"hear_full": 3,
+		"hear_reach": 14
+	},
+	"volume_db": -14,
+	"instrument": {"kind": "flute", "partials": [[1, 1], [2, 0.03]], "attack": 0.03, "release": 0.08, "vibrato": [6.0, 0.012, 0.12], "breath": 0.08, "scoop": 0.05, "gain": 1.0},
+	"tunes": {
+		"kota": {"bpm": 150, "root": 81, "scale": [0, 2, 5, 7, 9], "notes": "0 2 3 _ 2 3 5 _ _ . ."},
+		"tome": {"bpm": 90, "root": 76, "scale": [0, 2, 5, 7, 10], "notes": "2 _ 1 0 _ 1 _ _ ."},
+		"hachiro": {"bpm": 110, "root": 74, "scale": [0, 3, 5, 7, 10], "notes": "0 _ 0 2 3 _ 2 0 _ _ ."},
+		"sayo": {"bpm": 132, "root": 83, "scale": [0, 2, 5, 7, 9], "notes": "4 3 4 _ 2 _ 3 1 2 _ _ . ."},
+		"yae": {"bpm": 100, "root": 79, "scale": [0, 1, 5, 7, 8], "notes": "3 _ 4 3 1 _ 2 _ _ ."}
+	}
+}

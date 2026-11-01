@@ -42,6 +42,7 @@ func refresh() -> void:
 		s.texture = PlaceholderArt.tex(key)
 		s.flip_h = FarmerAnim.is_mirrored(w.facing)
 		_show_held(s, w)
+		_show_note(s, w)
 	for id in _sprites:
 		if not seen.has(id):
 			_sprites[id].visible = false
@@ -65,6 +66,32 @@ func _show_held(s: Sprite2D, w: Dictionary) -> void:
 	held.offset = Vector2(0, -held.texture.get_height() / 2.0)
 	held.set_meta("item", item)
 	held.visible = true
+
+
+## A music note rising over the head while the villager whistles (Whistles.puff_look).
+func _show_note(s: Sprite2D, w: Dictionary) -> void:
+	var p := Whistles.puff(w.id, Game.day_minutes())
+	var note: Sprite2D = s.get_node_or_null("Note")
+	if p < 0.0:
+		if note != null:
+			note.visible = false
+		return
+	if note == null:
+		note = Sprite2D.new()
+		note.name = "Note"
+		note.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		s.add_child(note)
+	var look := Whistles.puff_look(p)
+	note.texture = PlaceholderArt.tex(look.key)
+	note.position = Vector2(4.0 + look.sway, -24.0 - look.rise).round()
+	note.modulate.a = look.alpha
+	note.visible = true
+
+
+## Is a note puff showing over villager `id` now? (for tests)
+func whistling(id: String) -> bool:
+	var n: Node = _sprites[id].get_node_or_null("Note") if _sprites.has(id) and _sprites[id].visible else null
+	return n != null and n.visible
 
 
 ## The item villager `id` carries overhead now ("" for none; for tests).
