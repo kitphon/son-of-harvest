@@ -25,6 +25,7 @@ func _process(_delta: float) -> bool:
 		_event_plays()
 		_year_event_plays()
 		_screen()
+		_scroll()
 		print("test_ending: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -324,6 +325,80 @@ func _screen() -> void:
 	sc.advance()
 	check(not sc.is_open(), "it closes the same way")
 	sc.queue_free()
+
+
+## The scroll: unrolls on open and ends open; every word, stamp and the seal stay on the paper,
+## the scroll stays on the screen, for every title and for big numbers.
+func _scroll() -> void:
+	var g := _game()
+	var sc: CanvasLayer = load("res://scripts/ui/ending_screen.gd").new()
+	root.add_child(sc)
+	var S: Dictionary = sc.get_script().get_script_constant_map()
+	var screen: Vector2 = sc.screen_size()
+	check(Rect2(Vector2.ZERO, screen).encloses(Rect2(sc._scroll.position, sc._scroll.size)), "the scroll fits the screen (%s)" % sc._scroll.size)
+	var r: Dictionary = g.show_ending()
+	check(not sc.unrolled() and sc._paper.size.y < sc.full_h * 0.2, "it opens rolled up (%d of %d)" % [sc._paper.size.y, sc.full_h])
+	var frames := 0
+	var last := -1.0
+	var grows := true
+	while not sc.unrolled() and frames < 100:
+		sc._process(1.0 / 30.0)
+		frames += 1
+		grows = grows and sc._paper.size.y >= last
+		last = sc._paper.size.y
+	check(sc.unrolled() and frames <= int(S.UNROLL * 30) + 1 and grows, "it unrolls in %d frames, never shrinking" % frames)
+	check(sc._paper.size.y == sc.full_h and sc._bottom.position.y == sc._paper.position.y + sc.full_h - S.TUCK, "it ends open, the bottom roller under the paper")
+	check(not sc._names[0].visible, "the rows wait for the scroll to open")
+	for i in 200:
+		sc._process(1.0 / 30.0)
+	var count: int = r.rows.size() + r.field.size()
+	check(sc._names[count - 1].visible and sc._seal.visible and sc._title.text != "", "then the rows, the title and the seal come up")
+	check(sc._paper.size.y == sc.full_h, "and it stays open")
+	_on_paper(sc, S, "the real record")
+	for rank in Ending.data().ranks:
+		sc.record.title = String(rank.title)
+		sc._refresh()
+		check(sc._seal.position.x + S.SEAL + 4 <= sc._hint.position.x, "the seal clears the hint for \"%s\"" % rank.title)
+		_on_paper(sc, S, rank.title)
+	var big: Dictionary = sc.record.duplicate(true)
+	for row in big.rows + big.field:   # money in the millions; counts (crops, hearts, floors) in the hundreds
+		var most := 9999999 if row.get("unit", "") == "G" else 999
+		row.then = most
+		row.value = most
+		row.gain = -most
+		row.stars = row.get("max", 0)
+	big.first = false
+	sc.record = big
+	sc._refresh()
+	_on_paper(sc, S, "big numbers")
+	for i in count:
+		check(sc._thens[i].position.x >= S.MARGIN + S.NAME_W and sc._values[i].position.x > S.THEN_R 			and sc._gains[i].position.x > S.NOW_R, "row %d's columns stay apart with big numbers" % i)
+		if not sc._stars[i].is_empty():
+			check(sc._gains[i].position.x + PixelFont.width(sc._gains[i].text) < sc._stars[i][0].position.x, "row %d's gain clears its stars" % i)
+	sc.advance()
+	check(not sc.is_open(), "it closes")
+	sc.queue_free()
+
+
+## Every shown label and picture lies inside the paper's margins.
+func _on_paper(sc: CanvasLayer, S: Dictionary, what: String) -> void:
+	var inside := Rect2(S.MARGIN - 1, S.TUCK, S.W - (S.MARGIN - 1) * 2, sc.full_h - S.TUCK * 2)
+	var bad := []
+	for n in sc._paper.get_children():
+		if not n.visible:
+			continue
+		var rect := Rect2()
+		if n is Label:
+			if n.text == "":
+				continue
+			rect = Rect2(n.position, Vector2(PixelFont.width(n.text), PixelFont.size()))
+		elif n is TextureRect and n.stretch_mode != TextureRect.STRETCH_TILE:
+			rect = Rect2(n.position, n.size)
+		else:
+			continue
+		if not inside.encloses(rect):
+			bad.append(n.text if n is Label else str(rect))
+	check(bad.is_empty(), "nothing outside the paper (%s): %s" % [what, bad])
 
 
 func check(ok: bool, what: String) -> void:

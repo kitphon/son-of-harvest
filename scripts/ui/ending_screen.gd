@@ -1,44 +1,58 @@
 class_name EndingScreen
 extends CanvasLayer
-## The village record over the room: a wood box with "Village Record" and the stars in all,
-## a paper page with one row per category of data/ending.json (its name, the number on the
-## first day, the number now, the gain since the last page and its stars), then the field
-## rows (then and now, no stars), revealed one row at a time, and the title the farmer earned.
+## The village record over the room, as a paper scroll: a wooden roller top and bottom, washi
+## between them. On open the scroll unrolls downwards (UNROLL seconds), then the rows come up
+## one at a time: per category of data/ending.json its name, the number on the first day, an
+## arrow, the number now, the gain since the last page and its ink-stamp stars; then the field
+## rows (then and now, no stars); last the title the farmer earned with a red seal beside it.
 ## The year 3 ending and the yearly pages share it; the heading line says which. Opens on
 ## Game.ending_requested (the `ending` event step) and clears Game.ending_open when closed,
-## so the event goes on. Enter / Space / E shows every row at once, then closes; a click
-## does the same. `-- --ending` (or `--ending=year`) opens it at the start (with `--demo`:
-## a demo run's numbers, against the untouched first-day field), for screenshots. Rules: Ending.
+## so the event goes on. Enter / Space / E unrolls it and shows every row at once, then
+## closes; a click does the same. `-- --ending` (or `--ending=year`) opens it at the start
+## (with `--demo`: a demo run's numbers, against the untouched first-day field), for
+## screenshots. Rules: Ending. Art: PlaceholderArt "ui:scroll:*".
 
 const W := 360              # the paper's width
+const KNOB := 6             # a roller's knob sticks out this far past the paper
+const ROLLER := 10          # a roller's height
+const TUCK := 3             # the paper runs this far under each roller
+const MARGIN := 8           # text keeps this far from the paper's sides
 const NAME_W := 100         # a row's name fits in this
 const THEN_R := 176         # right edges of the first day, now and gain columns
 const NOW_R := 240
 const GAIN_R := 294
-const TOP := 17             # the heading strip on the wood
 const ROW := 12
 const LINE := 11
-const STAR := 7             # one star box, square
+const STAR := 7             # one star stamp, square
+const SEAL := 14            # the seal by the title, square
+const ROLLED := 5           # paper showing between the rollers while rolled up
+const UNROLL := 0.5         # seconds to unroll
 const REVEAL := 0.18        # seconds between rows
-const PAPER := Color("f6ead0")
 const HINT := "Enter: close"
 
 var record: Dictionary = {}
+var full_h := 0             # the paper's height unrolled
 var _open := false
+var _unroll := 1.0          # 0 rolled up .. 1 open
 var _shown := 0             # rows revealed
 var _time := 0.0
 var _dim: ColorRect
-var _wood: NinePatchRect
-var _paper: NinePatchRect
+var _scroll: Control        # the rollers and the paper
+var _paper: Control         # clips its contents to the unrolled part
+var _top: TextureRect
+var _bottom: TextureRect
 var _total: Label
 var _heading: Label
 var _gain_head: Label
 var _names: Array[Label] = []   # per row: the categories, then the field rows
 var _thens: Array[Label] = []
+var _arrows: Array[TextureRect] = []
 var _values: Array[Label] = []
 var _gains: Array[Label] = []
-var _stars: Array[Array] = []   # per row: its star boxes (none on field rows)
+var _bands: Array[ColorRect] = []   # a faint wash behind every other row
+var _stars: Array[Array] = []   # per row: its star stamps (none on field rows)
 var _title: Label
+var _seal: TextureRect
 var _hint: Label
 
 
@@ -50,13 +64,21 @@ func _ready() -> void:
 	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	_dim.gui_input.connect(_on_click)
 	add_child(_dim)
-	_wood = _box(_dim, "wood")
-	var heading := _label(_wood, Vector2i(9, 5), PAPER)
-	heading.text = "Village Record"
-	_total = _label(_wood, Vector2i(0, 5), PAPER)
-	_paper = _box(_wood, "paper")
-	_paper.position = Vector2(4, TOP)
+	_scroll = Control.new()
+	_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dim.add_child(_scroll)
+	_paper = Control.new()
+	_paper.clip_contents = true
+	_paper.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_paper.position = Vector2(KNOB, ROLLER - TUCK)
+	_scroll.add_child(_paper)
 	_build()
+	var roller := PlaceholderArt.tex("ui:scroll:roller_%d" % W)
+	_top = _texture(_scroll, roller, Vector2.ZERO)
+	_bottom = _texture(_scroll, roller, Vector2.ZERO)
+	_scroll.size = Vector2(W + KNOB * 2, ROLLER * 2 - TUCK * 2 + full_h)
+	_scroll.position = ((screen_size() - _scroll.size) / 2).floor()
+	_roll()
 	_dim.visible = false
 	Game.ending_requested.connect(open)
 	for arg in OS.get_cmdline_user_args():
@@ -71,8 +93,18 @@ func _exit_tree() -> void:
 		Game.unpause()
 
 
+## The game's base screen; the window scales it by whole steps, so the scroll is laid out once.
+static func screen_size() -> Vector2:
+	return Vector2(ProjectSettings.get_setting("display/window/size/viewport_width"),
+		ProjectSettings.get_setting("display/window/size/viewport_height"))
+
+
 func is_open() -> bool:
 	return _open
+
+
+func unrolled() -> bool:
+	return _unroll >= 1.0
 
 
 func open(r: Dictionary) -> void:
@@ -80,10 +112,12 @@ func open(r: Dictionary) -> void:
 		return
 	record = r
 	_open = true
+	_unroll = 0.0
 	_shown = 0
 	_time = 0.0
 	Game.pause()
 	_dim.visible = true
+	_roll()
 	_refresh()
 
 
@@ -102,10 +136,12 @@ func all_rows() -> Array:
 	return record.get("rows", []) + record.get("field", [])
 
 
-## Every row at once, or (all shown) close.
+## Unrolled with every row at once, or (all shown) close.
 func advance() -> void:
 	var rows := all_rows()
-	if _shown < rows.size():
+	if not unrolled() or _shown < rows.size():
+		_unroll = 1.0
+		_roll()
 		_shown = rows.size()
 		_refresh()
 		Sfx.play("menu_ok")
@@ -114,8 +150,14 @@ func advance() -> void:
 
 
 func _process(delta: float) -> void:
+	if not _open:
+		return
+	if not unrolled():
+		_unroll = minf(_unroll + delta / UNROLL, 1.0)
+		_roll()
+		return
 	var count := all_rows().size()
-	if not _open or _shown >= count:
+	if _shown >= count:
 		return
 	_time += delta
 	if _time >= REVEAL:
@@ -127,72 +169,97 @@ func _process(delta: float) -> void:
 
 # --- drawing ------------------------------------------------------------------
 
+## The paper's height for how far it is unrolled (eased: fast, then settling), the bottom
+## roller just under it. The top roller stays put.
+func _roll() -> void:
+	var t := 1.0 - pow(1.0 - _unroll, 2.0)
+	var h := ROLLED + roundi((full_h - ROLLED) * t)
+	_paper.size = Vector2(W, h)
+	_bottom.position = Vector2(0, _paper.position.y + h - TUCK)
+
+
 func _build() -> void:
 	var cats: Array = Ending.data().get("categories", [])
 	var count: int = cats.size()
 	var most := 0
 	for c in cats:
 		most = maxi(most, c.steps.size())
-	_heading = _label(_paper, Vector2i(6, 5))
-	_rule(16)
-	var y := 20
+	var washi := _texture(_paper, PlaceholderArt.tex("ui:scroll:washi"), Vector2.ZERO)
+	washi.stretch_mode = TextureRect.STRETCH_TILE
+	var heading := _label(_paper, Vector2i(MARGIN, TUCK + 2))
+	heading.text = "Village Record"
+	_total = _label(_paper, Vector2i(0, TUCK + 2), PlaceholderArt.UI_SEAL)
+	_heading = _label(_paper, Vector2i(MARGIN, TUCK + 2 + LINE), Hud.INK_SOFT)
+	_rule(TUCK + 4 + LINE * 2)
+	var y := TUCK + 7 + LINE * 2
 	for head in [["First day", THEN_R], ["Now", NOW_R], ["Gained", GAIN_R]]:
 		var l := _label(_paper, Vector2i(head[1] - PixelFont.width(head[0]), y), Hud.INK_SOFT)
 		l.text = head[0]
 		_gain_head = l
 	y += LINE
+	var arrow := PlaceholderArt.tex("ui:scroll:arrow")
+	var stamp := PlaceholderArt.tex("ui:scroll:star_off")
 	for i in count + Ending.data().get("field", []).size():
 		if i == count:
 			_rule(y + 2)
 			y += 4
-		_names.append(_label(_paper, Vector2i(8, y + 2)))
+		var band := _rect(_paper, Vector2(MARGIN - 3, y + 1), Vector2(W - (MARGIN - 3) * 2, ROW),
+			Color(0.78, 0.64, 0.4, 0.14))
+		_bands.append(band)
+		_names.append(_label(_paper, Vector2i(MARGIN, y + 2)))
 		_thens.append(_label(_paper, Vector2i(0, y + 2), Hud.INK_SOFT))
+		_arrows.append(_texture(_paper, arrow, Vector2(0, y + 4)))
 		_values.append(_label(_paper, Vector2i(0, y + 2)))
 		_gains.append(_label(_paper, Vector2i(0, y + 2), PlaceholderArt.UI_SEAL))
-		var boxes: Array[ColorRect] = []
+		var boxes: Array[TextureRect] = []
 		for k in (most if i < count else 0):
-			var b := ColorRect.new()
-			b.size = Vector2(STAR, STAR)
-			b.position = Vector2(W - 8 - (most - k) * (STAR + 2), y + 3)
-			b.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			_paper.add_child(b)
-			boxes.append(b)
+			boxes.append(_texture(_paper, stamp, Vector2(W - MARGIN - (most - k) * (STAR + 2) + 2, y + 3)))
 		_stars.append(boxes)
 		y += ROW
 	_rule(y + 2)
-	_title = _label(_paper, Vector2i(6, y + 6), PlaceholderArt.UI_SEAL)
-	_hint = _label(_paper, Vector2i(6, y + 6 + LINE), Hud.INK_SOFT)
+	_seal = _texture(_paper, PlaceholderArt.tex("ui:scroll:seal"), Vector2(0, y + 5))
+	_title = _label(_paper, Vector2i(MARGIN, y + 7), PlaceholderArt.UI_SEAL)
+	_hint = _label(_paper, Vector2i(W - MARGIN - PixelFont.width(HINT), y + 7), Hud.INK_SOFT)
 	_hint.text = HINT
-	_paper.size = Vector2(W, y + 6 + LINE * 2 + 3)
-	_wood.size = Vector2(W + 8, TOP + _paper.size.y + 4)
-	var screen := Vector2(ProjectSettings.get_setting("display/window/size/viewport_width"),
-		ProjectSettings.get_setting("display/window/size/viewport_height"))
-	_wood.position = ((screen - _wood.size) / 2).floor()
+	full_h = y + 5 + SEAL + 2 + TUCK
+	washi.size = Vector2(W, full_h)
+	for x in [0, W - 1]:   # the paper's cut edges, a shade darker
+		_rect(_paper, Vector2(x, 0), Vector2(1, full_h), Color("dcc89c"))
+	_rect(_paper, Vector2(0, TUCK), Vector2(W, 2), Color(0.35, 0.22, 0.1, 0.22))   # the top roller's shadow
 
 
 func _refresh() -> void:
 	var rows := all_rows()
 	var all := _shown >= rows.size()
 	_total.text = "%d of %d stars" % [record.get("stars", 0), record.get("max", 0)] if all else ""
-	_total.position.x = _wood.size.x - 9 - PixelFont.width(_total.text)
+	_total.position.x = W - MARGIN - PixelFont.width(_total.text)
 	_heading.text = "A page for the farmer" if record.get("page", "ending") == "ending" \
 		else "The farmer's page, year %d" % int(record.get("year", 0))
 	_gain_head.visible = not record.get("first", true)
+	var on_tex := PlaceholderArt.tex("ui:scroll:star_on")
+	var off_tex := PlaceholderArt.tex("ui:scroll:star_off")
 	for i in _names.size():
 		var on := i < rows.size() and i < _shown
 		for l in [_names[i], _thens[i], _values[i], _gains[i]]:
 			l.visible = on
+		_bands[i].visible = on and i % 2 == 1
+		_arrows[i].visible = false
 		var row: Dictionary = rows[i] if i < rows.size() else {}
 		if on:
 			_names[i].text = String(row.name)
 			_put(_thens[i], Ending.then_text(row), THEN_R)
 			_put(_values[i], Ending.value_text(row), NOW_R)
 			_put(_gains[i], Ending.gain_text(row), GAIN_R)
+			var gap := int(_values[i].position.x) - THEN_R   # the arrow sits midway when there is room
+			_arrows[i].position.x = THEN_R + (gap - 3) / 2
+			_arrows[i].visible = gap >= 7
 		for k in _stars[i].size():
-			var b: ColorRect = _stars[i][k]
+			var b: TextureRect = _stars[i][k]
 			b.visible = on and k < int(row.get("max", 0))
-			b.color = PlaceholderArt.UI_SEAL if k < int(row.get("stars", 0)) else Hud.RULE
+			b.texture = on_tex if k < int(row.get("stars", 0)) else off_tex
 	_title.text = "Written as: " + String(record.get("title", "")) if all else ""
+	_seal.position.x = MARGIN + PixelFont.width(_title.text) + 5
+	_seal.visible = all
 	_hint.visible = all
 
 
@@ -202,11 +269,17 @@ func _put(l: Label, text: String, right: int) -> void:
 
 
 func _rule(y: int) -> void:
-	var rule := ColorRect.new()
-	rule.color = Hud.RULE
-	rule.position = Vector2(5, y)
-	rule.size = Vector2(W - 10, 1)
-	_paper.add_child(rule)
+	_rect(_paper, Vector2(MARGIN - 3, y), Vector2(W - (MARGIN - 3) * 2, 1), Hud.RULE)
+
+
+func _rect(parent: Control, pos: Vector2, size: Vector2, color: Color) -> ColorRect:
+	var r := ColorRect.new()
+	r.color = color
+	r.position = pos
+	r.size = size
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(r)
+	return r
 
 
 func _label(parent: Control, pos: Vector2i, color := Hud.INK) -> Label:
@@ -220,16 +293,14 @@ func _label(parent: Control, pos: Vector2i, color := Hud.INK) -> Label:
 	return l
 
 
-func _box(parent: Control, kind: String) -> NinePatchRect:
-	var b := NinePatchRect.new()
-	b.texture = PlaceholderArt.tex("ui:frame:" + kind)
-	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
-		b.set_patch_margin(side, Hud.NINE_MARGIN)
-	b.axis_stretch_horizontal = NinePatchRect.AXIS_STRETCH_MODE_TILE
-	b.axis_stretch_vertical = NinePatchRect.AXIS_STRETCH_MODE_TILE
-	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	parent.add_child(b)
-	return b
+func _texture(parent: Control, tex: Texture2D, pos: Vector2) -> TextureRect:
+	var t := TextureRect.new()
+	t.texture = tex
+	t.position = pos
+	t.size = tex.get_size()
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(t)
+	return t
 
 
 # --- input --------------------------------------------------------------------

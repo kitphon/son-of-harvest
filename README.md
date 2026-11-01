@@ -550,7 +550,10 @@ money), and the record screen shows for every row the first day, now and (with a
 page) the gain since it; the field rows (`field` in `data/ending.json`) follow the categories
 without stars. Saves from before the pages load with no page and the start's numbers as the
 first day (the field's debris and tilling show "-"). `-- --ending=year` opens the yearly page
-at the start; `--map=house --event=year_record` plays its scene.
+at the start; `--map=house --event=year_record` plays its scene. The screen is a paper scroll
+(`EndingScreen`, art `ui:scroll:*` in `PlaceholderArt`): wooden rollers top and bottom, washi
+between them; it unrolls in half a second, then the rows come up; stars are ink stamps and a
+red seal sits after the title. Enter shows it all at once.
 
 ## Camera
 `scripts/main_3d.gd` uses the field camera geometry of Harvest Moon: Back to Nature, measured
