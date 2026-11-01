@@ -27,7 +27,7 @@ static func _make(key: String) -> Image:
 			return _charge(int(parts[1]), int(parts[2]))
 		"rock", "branch", "weed", "stump":
 			return _obstacle(parts[0])
-		"mine":     # mine:<rock|big_rock|ice|soft|hole|frost>, what lies on a mine floor (MineFloor)
+		"mine":     # mine:<rock|big_rock|ice|soft|hole|frost>, what lies on a mine floor (MineFloor); mine:lantern, the farmer's
 			return _mine(parts[1])
 		"crop":     # crop:<id>:<growth 0..3>:<ripe|growing>
 			return _crop(parts[1], int(parts[2]), parts[3] == "ripe")
@@ -521,6 +521,16 @@ static func farmer_drop(pose: String, frame: int) -> int:
 	return _FARMER_POSES[pose][frame % farmer_frames(pose)][0]
 
 
+## Where the mine lantern (mine:lantern, 7 x 11) goes on a farmer frame: its top-left pixel.
+## Its loop is in the near hand and it swings with the hand; with the arms up holding something, or
+## both hands on the rod, it hangs at the hip instead.
+static func lantern_at(pose: String, frame: int) -> Vector2i:
+	var p: Array = _FARMER_POSES[pose][frame % farmer_frames(pose)]
+	if pose.begins_with("hold") or _ROD_TIPS.has(pose):
+		return Vector2i(1, 11 + p[0])
+	return Vector2i(2 + p[5], 13 + p[0] + int(pose.begins_with("tired")))
+
+
 ## Draw order back to front: far hand, far leg, near leg, body, bag, near hand. The bag hangs
 ## at the farmer's back on the front view and at the front on the back view.
 static func _player(back: bool, pose: String, frame: int) -> Image:
@@ -841,8 +851,9 @@ static func _obstacle(kind: String) -> Image:
 ## with a pale chip), a big rock 24 x 20 (a split boulder with a seam). The soft spot and the
 ## hole lie flat on the ground (16 x 16): a mound of loose dark earth with cracks, and a black
 ## pit with the top of a ladder in it. On a frozen floor a block of ice stands up (16 x 16,
-## pale blue with a white edge and a crack) and frost lies flat (16 x 16, white specks and
-## a thin sheet, mostly see-through).
+## a jagged chunk with a lit top, a crack and the frost stone dark inside) and frost lies
+## flat (16 x 16, a see-through sheet with rime feathers). The farmer's lantern down the mine is
+## 7 x 11 (lantern_at says where it hangs on the farmer's frame).
 static func _mine(kind: String) -> Image:
 	match kind:
 		"rock":
@@ -863,21 +874,65 @@ static func _mine(kind: String) -> Image:
 			_px(img, 6, 8, 4, 1, Color("a09484"))
 			return _outline(img)
 		"ice":
+			# A chunk of ice with a jagged top: the lit top face, a clear blue front lit from
+			# the left with trapped air in it, a crack, frost round its foot, and the dark
+			# splinter of the frost stone it hides frozen inside.
 			var img := _blank(16, 16)
-			_px(img, 3, 4, 10, 10, Color("6a9ec0"))       # the front face
-			_px(img, 3, 3, 10, 2, Color("cfeaf8"))        # the frosted top
-			_px(img, 4, 5, 8, 8, Color("8cc2e0"))
-			_px(img, 5, 6, 2, 5, Color("d8f2fc"))         # the shine down the face
-			_line(img, Vector2i(9, 5), Vector2i(11, 9), Color("4a7c9c"))   # a crack
-			_line(img, Vector2i(11, 9), Vector2i(9, 12), Color("4a7c9c"))
+			_px(img, 2, 6, 12, 9, Color("4f86ad"))        # the body, its shaded right side
+			_px(img, 3, 7, 9, 7, Color("78b4d8"))
+			_px(img, 3, 7, 1, 7, Color("a8d8f0"))         # the lit left edge
+			var tops := [5, 3, 4, 2, 4, 3, 1, 3, 4, 2, 4, 5]
+			for i in tops.size():   # the top face, broken into points
+				_px(img, 2 + i, tops[i], 1, 7 - tops[i], Color("bfe6f8"))
+				_px(img, 2 + i, tops[i], 1, 1, Color("eaf8ff"))
+			for p in [Vector2i(8, 8), Vector2i(8, 9), Vector2i(9, 9), Vector2i(9, 10), Vector2i(10, 10), Vector2i(9, 11)]:
+				img.set_pixelv(p, Color("2e5878"))        # the frost stone inside
+			img.set_pixelv(Vector2i(8, 9), Color("9ccce8"))
+			for p in [Vector2i(5, 9), Vector2i(6, 12), Vector2i(11, 8)]:
+				img.set_pixelv(p, Color("cdeefc"))        # air caught in the ice
+			_line(img, Vector2i(12, 6), Vector2i(11, 9), Color("3e7298"))   # a crack
+			_line(img, Vector2i(11, 9), Vector2i(12, 12), Color("3e7298"))
+			for x in range(2, 14):   # rime round the foot
+				img.set_pixel(x, 14, Color("eaf8ff") if x % 3 == 0 else Color("a8d8f0"))
+			img.set_pixel(5, 3, Color.WHITE)               # a glint
 			return _outline(img)
 		"frost":
+			# Hoarfrost on the earth: a thin see-through sheet with three feathers of rime
+			# (a diagonal stem, barbs every other pixel) and loose glints between them.
 			var img := _blank(16, 16)
-			_oval(img, 8, 8, 6.5, 5.0, Color(0.9, 0.96, 1.0, 0.28))
-			for p in [Vector2i(3, 5), Vector2i(7, 3), Vector2i(12, 6), Vector2i(5, 10), Vector2i(10, 11), Vector2i(8, 7), Vector2i(13, 10), Vector2i(2, 9)]:
+			var sheet := Color(0.86, 0.94, 1.0, 0.22)
+			_oval(img, 7, 8, 6.0, 4.5, sheet)
+			_oval(img, 10.5, 9.5, 4.0, 3.5, sheet)
+			var rime := Color(0.92, 0.97, 1.0, 0.75)
+			var barb := Color(0.9, 0.96, 1.0, 0.45)
+			for f in [[Vector2i(3, 9), Vector2i(1, -1)], [Vector2i(8, 6), Vector2i(1, 1)], [Vector2i(9, 12), Vector2i(1, -1)]]:
+				var at: Vector2i = f[0]
+				var d: Vector2i = f[1]
+				for k in 5:   # a crooked stem with a barb either side every other pixel
+					var q := at + d * k
+					img.set_pixelv(q, rime if k < 4 else barb)
+					if k % 2 == 1:
+						img.set_pixelv(q + Vector2i(d.x, 0), barb)
+						img.set_pixelv(q + Vector2i(0, d.y), barb)
+				img.set_pixelv(at, Color(1, 1, 1, 0.95))
+			for p in [Vector2i(2, 10), Vector2i(13, 6), Vector2i(7, 12), Vector2i(3, 4), Vector2i(14, 12)]:
 				img.set_pixelv(p, Color(1, 1, 1, 0.85))
-			_px(img, 6, 8, 3, 1, Color(0.95, 0.98, 1.0, 0.6))
 			return img
+		"lantern":
+			# The farmer's lantern, 7 x 11: an iron loop, a dark cap, glowing paper panes
+			# between iron posts with the flame bright in the middle, a dark foot.
+			var img := _blank(7, 11)
+			var iron := Color("3a3430")
+			_px(img, 2, 1, 3, 1, iron)                    # the loop
+			_px(img, 1, 2, 1, 1, iron)
+			_px(img, 5, 2, 1, 1, iron)
+			_px(img, 1, 3, 5, 1, Color("5a4632"))         # the cap
+			_px(img, 1, 4, 5, 5, iron)                    # the posts
+			_px(img, 2, 4, 3, 5, Color("e8a040"))         # the panes
+			_px(img, 2, 5, 3, 3, Color("ffd070"))
+			_px(img, 3, 6, 1, 1, Color("fff4d0"))         # the flame
+			_px(img, 1, 9, 5, 1, Color("5a4632"))         # the foot
+			return _outline(img)
 		"soft":
 			var img := _blank(16, 16)
 			_oval(img, 8, 8.5, 6.5, 5.5, Color("3e3028"))
@@ -996,12 +1051,19 @@ static func _mine_icon(look: Dictionary) -> Image:
 				_px(img, x, 12 - tall, 1, tall, shine)
 			_px(img, 2, 11, 10, 2, Color("6a625a"))   # the rock it grows from
 		"shard":
-			for y in 10:   # one long splinter leaning right, widest in the middle
-				var w := 4 - absi(y - 5) / 2
-				_px(img, 4 + y / 2, 2 + y, w, 1, body)
-			_px(img, 5, 4, 1, 4, shine)
-			_px(img, 8, 9, 1, 2, body.darkened(0.25))
-			_px(img, 2, 12, 9, 1, Color("6a625a"))
+			# Two splinters of ice rising apart from a frosted rock, each split down the middle
+			# into a lit facet and a shaded one, a glint near each tip.
+			for sp in [[5, 1, 2], [10, 5, 2]]:   # tip x, tip y, half width at the widest
+				for y in range(sp[1], 11):
+					var half := mini((y - sp[1]) / 2 + 1, sp[2])
+					_px(img, sp[0] - half, y, half, 1, body.lerp(shine, 0.5))
+					_px(img, sp[0], y, half, 1, body)
+					_px(img, sp[0] + half - 1, y, 1, 1, body.darkened(0.25))
+				img.set_pixel(sp[0] - 1, sp[1] + 2, shine)
+			img.set_pixel(4, 1, shine)
+			_px(img, 2, 11, 10, 2, Color("6a625a"))   # the rock they grow from
+			for x in [3, 6, 9, 11]:
+				img.set_pixel(x, 11, Color("dcecf4"))   # frost on it
 	return _outline(img)
 
 

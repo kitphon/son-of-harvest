@@ -10,6 +10,37 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Mine art: ice, frost, frost stone, a soft flickering lantern in hand
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: better pixel placeholders for the winter mine and the lantern, no rule changes, same
+  keys. `mine:ice` is a chunk with a jagged lit top, a clear blue front lit from the left, air
+  caught in it, a crack, rime round its foot and the frost stone's dark splinter frozen inside;
+  `mine:frost` a see-through sheet with three rime feathers and glints; the frost stone icon
+  (`shard` look) two faceted splinters rising apart from a frosted rock. `MineLight`'s lantern
+  is no longer four hard rings: the falloff is cut into eight steps through a 4 x 4 ordered
+  dither (a soft speckled edge that stays pixel art), the rim runs amber towards the middle's
+  lantern colour, three unrelated waves flicker reach and brightness, and on a frozen floor
+  (`cold`, set by `aim` from `MineFloor.frozen`) about 0.7 % of 3 x 3 px spots in the dark
+  twinkle pale blue. Both views use the one shader on the one clock, so they match. The farmer
+  carries the lantern down the mine: new key `mine:lantern` (7 x 11: iron loop, cap, glowing
+  panes, flame), `PlaceholderArt.lantern_at(pose, frame)` puts its loop in the near hand (it
+  swings with the walk; at the hip while holding something overhead or fishing); main_3d hangs
+  a child Sprite3D there along the camera's axes like the rod tip, the flat view's Player draws
+  it beside the body.
+- Checked: all 24 test scripts print `OK (0 failed)` (test_mine has new checks: the lantern key's
+  size, the stone dark inside the ice, frost mostly see-through, a bright warm flame, the
+  lantern on the frame in every pose and swinging, the dithered shader, `cold` on a frozen floor
+  only). Headless runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo
+  --season=winter --mine=3`, and main_2d.tscn with the last) printed no errors or warnings.
+  Screenshots of `--demo --season=winter --mine=3` and `--demo --mine=8` in both views before /
+  after: the ring edges are gone, the lantern shows in the farmer's hand in both views, ice
+  reads as ice. Pixel check (`python -I`, MineLight over plain white in a throwaway scene,
+  radius 3.2 cells x 32 px, angular mean per 1 px of radius): the old shader's biggest step
+  between neighbouring radii was 48.1 grey levels with 5 distinct greys in the edge band, the
+  new one 5.1 with 9; centre (249, 224, 175) unchanged, rim warmer (150, 126, 94).
+- Left / next: the lantern only lights the floor's multiply (it doesn't light rocks from one
+  side); real art later replaces these keys.
+
 ## 2026-11-01 — Merged six branches: building fixes, 2D weather, heart actors, stalls, river, yearly record
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each: `claude/building-fixes-32aab9`

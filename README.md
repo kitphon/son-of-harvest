@@ -323,7 +323,10 @@ there. The smithy buys stones and ores, the store gems, a bit above the bin's pr
 Light: `light.depths` in data/mine.json are [floor, colour] blended in between, so each
 floor is darker than the one above; `MineLight` (`scripts/mine/mine_light.gd`) is a multiply
 shader over the picture in both views with the farmer's lantern (`light.lantern`: radius in
-cells, soft edge, colour) in four rings round them. Winter: `winter` freezes floors 1 to `to`
+cells, soft edge, colour): a warm pool round them that fades out through a 4 x 4 dither, its
+rim amber, flickering on one clock in both views; the farmer carries the lantern (`mine:lantern`,
+hung on the frame at `PlaceholderArt.lantern_at`). On a frozen floor a few pixels of the dark
+glint pale blue. Winter: `winter` freezes floors 1 to `to`
 in its seasons: a colder light, frost on part of the floor (only a look) and blocks of ice
 (`kind: "ice"` in `MineFloor.rocks`, `hits` blows) hiding frost stone or rock crystal, never
 the hole; deeper floors stay warm. `-- --season=winter` starts on day 1 of winter (e.g.
