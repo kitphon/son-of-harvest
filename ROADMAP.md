@@ -80,7 +80,9 @@ Hachiro the smithy: talking to them at the counter opens the shop, which sells o
 they are in. Villagers block the farmer and wait when they bump into the farmer (delay, at most 30
 minutes). They are at home (house maps; Hachiro in the smithy) in the early morning, at noon,
 in the evening and on wet days, `away` in bed after their door shuts; Sayo has tea at Tome's
-on Sunday afternoons. Later for villagers: whistling, real portraits.
+on Sunday afternoons. Villager portraits are in: the text box frames a villager's own face
+(`portrait:<id>:<mood>`, neutral / happy / sad / surprised / angry; a `mood` on dialogue lines and
+event say steps; narration and other speakers have no frame). Later for villagers: whistling.
 Relationships are in (milestone 9): the heart band shows as a coloured heart on the text
 box's name tag, each villager has a birthday (on the farmhouse calendar; gifts x5, a birthday
 line), villagers left alone may lose a point at night, and each has a heart event at band 3
@@ -214,6 +216,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Villagers' homes: Tome's / Kota's houses, Sayo's rooms (data/maps, HomeProps), door hours, home schedules
 6. **Events and dialogue**
    - [x] Text box (typewriter, portraits, choices, flags); our own, data/dialogue
+   - [x] Villager portraits by mood (`portrait:<id>:<mood>`, `mood` on lines and say steps)
    - [x] Event scripts + trigger tables per map (data/events; three small farm events)
    - [x] "Examine" trigger cause: E facing a spot plays an event (village, farm, farmhouse)
    - [x] Opening event (Tome on the farm), first visits to the shops (Sayo, Hachiro); `actor` / `place` event steps

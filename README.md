@@ -373,8 +373,10 @@ demo field: ripe daikon (fall), ripe rice (summer).
 Dialogue lives in `data/dialogue/<id>.json`, opened with `Game.talk(id)` (or `-- --dialogue=<id>`
 / `<id>@<line id>`). A file is `{"lines": [...]}`; each line is one of:
 - a text line: `text` (our pixel font only, at most 4 rows in the box), optional `speaker`
-  (a key of `data/dialogue/speakers.json`: name tag and portrait colours; no speaker =
-  narration), `face` (calm, smile, surprised, worried), `id` (to jump to), `next` (a line id
+  (a key of `data/dialogue/speakers.json`: the name tag; no speaker = narration), `mood`
+  (neutral, happy, sad, surprised, angry: the villager's portrait; one the art lacks shows
+  neutral) or the older `face` (calm, smile, worried, surprised = neutral, happy, sad,
+  surprised), `id` (to jump to), `next` (a line id
   or `"end"`; without it the following line, and after the last line the dialogue ends),
   `set` (flags to set when the line shows) and `choices`: 1-4 of `{text, next, set}` (a line
   with choices has no `next`);
@@ -384,7 +386,15 @@ Dialogue lives in `data/dialogue/<id>.json`, opened with `Game.talk(id)` (or `--
 Flags are `Game.flags` (true / false, whole numbers or words), saved with the game. Typing
 speed and punctuation pauses are in `data/text_box.json`. `DialogueRunner` refuses a file
 with anything wrong (unknown keys or speakers, jumps to nowhere, letters the font lacks, text
-too long) and says why; `tests/test_dialogue.gd` loads every file in the folder.
+too long) and says why; `tests/test_dialogue.gd` loads every file in the folder (and wants
+every mood in the data to be one of `DialogueRunner.MOODS`).
+
+**Portraits**: a line whose speaker is a villager (data/villagers) shows their portrait in a
+wooden frame left of the text, `portrait:<villager>:<mood>` in PlaceholderArt (their colours
+from the villager's look, background and marks from speakers.json); narration, the farmer and
+anyone else get no frame, and their text and name tag start at the box's left edge
+(`TextBoxLayout.text_x` / `text_w` / `name_x`). Every line is checked to fit the narrower
+width beside a portrait.
 
 ## Events
 An event is a small script in `data/events/<id>.json`: `{"steps": [...]}`, played by
@@ -393,7 +403,8 @@ An event is a small script in `data/events/<id>.json`: `{"steps": [...]}`, playe
 the script says, and keys go only to the text box. Each step is one of:
 - `{"do": "say", "dialogue": "<id>", "at": "<line id>"}`: opens a dialogue from
   `data/dialogue` and waits until the box closes (`at` is optional; a dialogue line with
-  `"next": "end"` stops it, so one file can hold several parts of an event);
+  `"next": "end"` stops it, so one file can hold several parts of an event); an optional
+  `"mood"` is the portrait mood of its lines that name none (`Game.talk(id, at, mood)`);
 - `{"do": "wait", "seconds": 0.5}` (0 to 60);
 - `{"do": "face", "dir": "up|down|left|right"}`, or `"dir": "<villager id>"` to turn to that
   actor;

@@ -1,12 +1,13 @@
 class_name TextBox
 extends CanvasLayer
-## The dialogue text box: a paper box across the bottom of the screen with the speaker's
-## portrait in a wooden frame, a wooden name tag (with a villager's heart band after the
-## name), the line written out letter by letter and,
-## when the line asks, a list of choices above the box. E / Space / Enter (or a click) shows
-## the whole line, then goes on; arrows or W / S and the mouse pick a choice. While it is open
-## Game.dialogue_open holds the clock and the farmer. The stepping is DialogueRunner's; this
-## only draws it. `-- --dialogue=<id>` (or `<id>@<line id>`) opens one at the start.
+## The dialogue text box: a paper box across the bottom of the screen with a villager's
+## portrait in a wooden frame (DialogueRunner.portrait: portrait:<id>:<mood>; no frame for
+## narration or anyone else), a wooden name tag (with a villager's heart band after the
+## name), the line written out letter by letter and, when the line asks, a list of choices
+## above the box. E / Space / Enter (or a click) shows the whole line, then goes on; arrows or
+## W / S and the mouse pick a choice. While it is open Game.dialogue_open holds the clock and
+## the farmer. The stepping is DialogueRunner's; this only draws it. `-- --dialogue=<id>`
+## (or `<id>@<line id>`) opens one at the start.
 
 var runner: DialogueRunner
 var _catch: Control          # takes clicks anywhere on screen while the box is open
@@ -71,6 +72,8 @@ func open(id: String, at := "") -> void:
 	if r.done():
 		return
 	r.set_speed(Game.text_speed)
+	r.mood = Game.dialogue_mood   # an event's say step: the mood of lines that name none
+	Game.dialogue_mood = ""
 	runner = r
 	Game.dialogue_open = true
 	_catch.visible = true
@@ -147,9 +150,12 @@ func _advance(i: int) -> void:
 func _show_line() -> void:
 	var l := runner.line()
 	var speaker: String = l.get("speaker", "")
-	_portrait.visible = speaker != ""
-	_face.texture = PlaceholderArt.tex("face:%s:%s" % [speaker, l.get("face", "calm")]) if speaker != "" else null
+	var key := runner.portrait()
+	var framed := key != ""
+	_portrait.visible = framed
+	_face.texture = PlaceholderArt.tex(key) if framed else null
 	_name_tag.visible = speaker != ""
+	_name_tag.position.x = TextBoxLayout.BOX.position.x + TextBoxLayout.name_x(framed)
 	_name.text = DialogueRunner.speakers().get(speaker, {}).get("name", "")
 	_name_tag.size.x = PixelFont.width(_name.text) + 12
 	var band := Game.heart_band(speaker)
@@ -158,10 +164,9 @@ func _show_line() -> void:
 		_heart.texture = PlaceholderArt.tex("ui:heart:%d" % band)
 		_heart.position = Vector2(_name_tag.size.x - 3, TextBoxLayout.HEART_Y)
 		_name_tag.size.x += TextBoxLayout.HEART_W
-	# Without a portrait (narration) the text starts at the left of the box.
-	var x := TextBoxLayout.TEXT_POS.x if speaker != "" else TextBoxLayout.PORTRAIT.position.x + 2
-	_text.position.x = x
-	_wrapped = TextBoxLayout.wrapped(runner.text(), TextBoxLayout.TEXT_W + TextBoxLayout.TEXT_POS.x - x)
+	# Without a portrait (narration, the farmer) the text and the tag start at the box's left.
+	_text.position.x = TextBoxLayout.text_x(framed)
+	_wrapped = TextBoxLayout.wrapped(runner.text(), TextBoxLayout.text_w(framed))
 	_blink = 0.0
 	_refresh_text()
 

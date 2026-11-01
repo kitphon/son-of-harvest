@@ -110,6 +110,10 @@ func _init() -> void:
 		"unknown speaker": {"lines": [{"speaker": "stranger", "text": "Hello."}]},
 		"bad face": {"lines": [line.merged({"face": "angry"})]},
 		"face, no speaker": {"lines": [{"face": "smile", "text": "Hello."}]},
+		"mood, no speaker": {"lines": [{"mood": "happy", "text": "Hello."}]},
+		"mood not a word": {"lines": [line.merged({"mood": 3})]},
+		"empty mood": {"lines": [line.merged({"mood": ""})]},
+		"face and mood": {"lines": [line.merged({"face": "smile", "mood": "happy"})]},
 		"next nowhere": {"lines": [line.merged({"next": "b"})]},
 		"bad flags": {"lines": [line.merged({"set": {"x": [1]}})]},
 		"fraction flag": {"lines": [line.merged({"set": {"x": 2.5}})]},
@@ -161,12 +165,19 @@ func _init() -> void:
 		check(seen.size() == DialogueRunner.EXPRESSIONS.size(), "%s: every expression looks different" % speaker)
 		check(who[speaker].get("name", "") != "" and PixelFont.missing(who[speaker].name) == "", "%s has a name the font can draw" % speaker)
 
+	_portraits()
+
 	# The Game side: talk() asks the view, and an open text box holds the clock.
 	var game: Node = load("res://scripts/autoload/game.gd").new()
 	var asked := []
 	game.dialogue_requested.connect(func(id, at): asked.append([id, at]))
 	game.talk("bin_note", "ask")
 	check(asked == [["bin_note", "ask"]], "talk() asks for the dialogue %s" % [asked])
+	check(game.dialogue_mood == "", "no mood unless one is given")
+	game.talk("heart_events", "tome", "sad")
+	check(asked.back() == ["heart_events", "tome"] and game.dialogue_mood == "sad", "a say step's mood waits for the text box")
+	game.talk("bin_note")
+	check(game.dialogue_mood == "", "and the next talk() without one clears it")
 	game.hour = 8
 	game.minute = 0
 	game.dialogue_open = true
@@ -179,6 +190,93 @@ func _init() -> void:
 
 	print("test_dialogue: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
+
+
+## Villager portraits: the moods, who gets a frame, the art and the layout with and without one.
+func _portraits() -> void:
+	var who := DialogueRunner.speakers()
+	# Moods: the line's own, the older face key, the say step's default; unknown -> neutral.
+	check(DialogueRunner.mood_of({"mood": "sad"}) == "sad", "a line's mood")
+	check(DialogueRunner.mood_of({"face": "smile"}) == "happy" and DialogueRunner.mood_of({"face": "worried"}) == "sad"
+		and DialogueRunner.mood_of({"face": "calm"}) == "neutral" and DialogueRunner.mood_of({"face": "surprised"}) == "surprised",
+		"face names a mood")
+	check(DialogueRunner.mood_of({}) == "neutral" and DialogueRunner.mood_of({}, "angry") == "angry", "no mood: the default, else neutral")
+	check(DialogueRunner.mood_of({"mood": "happy"}, "sad") == "happy", "a line's mood beats the say step's")
+	check(DialogueRunner.mood_of({"mood": "sleepy"}) == "neutral" and DialogueRunner.mood_of({}, "grumpy") == "neutral",
+		"an unknown mood falls back to neutral")
+	for face in DialogueRunner.FACE_MOODS:
+		check(DialogueRunner.FACE_MOODS[face] in DialogueRunner.MOODS, "face %s is a mood" % face)
+	# Who gets a frame: villagers only.
+	check(DialogueRunner.portrait_key({"speaker": "tome", "text": "Hi."}) == "portrait:tome:neutral", "a villager's portrait")
+	check(DialogueRunner.portrait_key({"speaker": "kota", "mood": "angry"}) == "portrait:kota:angry", "in their mood")
+	check(DialogueRunner.portrait_key({"speaker": "sayo", "mood": "sleepy"}) == "portrait:sayo:neutral", "an unknown mood shows neutral")
+	check(DialogueRunner.portrait_key({"text": "The wind."}) == "", "narration has no portrait")
+	check(DialogueRunner.portrait_key({"speaker": "farmer"}) == "" and DialogueRunner.portrait_key({"speaker": "tsuru"}) == "",
+		"the farmer and Tsuru (not villagers) have none")
+	var r := DialogueRunner.new({"lines": [{"speaker": "hachiro", "text": "Hm."}, {"speaker": "hachiro", "mood": "happy", "text": "Good."},
+		{"speaker": "farmer", "text": "Thanks."}, {"text": "The forge hisses."}]}, who, {})
+	r.mood = "surprised"
+	check(r.error == "" and r.portrait() == "portrait:hachiro:surprised", "the runner's mood fills a line without one")
+	r.set_speed(0.0)
+	r.press()
+	check(r.portrait() == "portrait:hachiro:happy", "a line with a mood keeps it")
+	r.press()
+	check(r.portrait() == "", "the farmer's line: no frame")
+	r.press()
+	check(r.portrait() == "" and not r.done(), "narration: no frame")
+	# Every mood written in the data is one the art draws (the fallback is for safety, not typos).
+	var moods_seen := {}
+	for file in DirAccess.get_files_at(DialogueRunner.DIR):
+		if not file.ends_with(".json") or file == "speakers.json":
+			continue
+		var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(DialogueRunner.DIR + file))
+		for l in d.lines:
+			if l.has("mood"):
+				moods_seen[l.mood] = true
+				check(l.mood in DialogueRunner.MOODS, "%s: mood %s is one of MOODS" % [file, l.mood])
+	for file in DirAccess.get_files_at("res://data/events/"):
+		var e: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/events/" + file))
+		if e is Dictionary and e.get("steps") is Array:
+			for s in e.steps:
+				if s is Dictionary and s.has("mood"):
+					check(s.mood in DialogueRunner.MOODS, "%s: say mood %s is one of MOODS" % [file, s.mood])
+	check(moods_seen.size() == DialogueRunner.MOODS.size(), "the data uses every mood %s" % [moods_seen.keys()])
+	# The art: a 40 x 40 portrait per villager and mood, each mood different, each villager different.
+	var neutral := {}
+	for id in Villagers.all():
+		var seen := {}
+		for m in DialogueRunner.MOODS:
+			var img := PlaceholderArt.tex("portrait:%s:%s" % [id, m]).get_image()
+			check(img.get_size() == Vector2i(40, 40), "portrait %s %s is 40 x 40" % [id, m])
+			seen[img.get_data()] = true
+		check(seen.size() == DialogueRunner.MOODS.size(), "%s: every mood looks different" % id)
+		var plain := PlaceholderArt.tex("portrait:%s:neutral" % id).get_image().get_data()
+		neutral[plain] = true
+		check(PlaceholderArt.tex("portrait:%s:sleepy" % id).get_image().get_data() == plain, "%s: an unknown mood draws neutral" % id)
+		check(who.has(id), "%s has a name tag in speakers.json" % id)
+	check(neutral.size() == Villagers.all().size() and neutral.size() >= 4, "every villager has a face of their own")
+	# The layout, with and without a portrait: everything inside the box and the screen, the
+	# text clear of the frame, the tag over the box's top edge above the text.
+	var box := Rect2i(Vector2i.ZERO, TextBoxLayout.BOX.size)
+	check(Rect2i(0, 0, 480, 270).encloses(TextBoxLayout.BOX), "the box is on screen")
+	check(box.encloses(TextBoxLayout.PORTRAIT), "the portrait frame is in the box")
+	check(TextBoxLayout.PORTRAIT.size - Vector2i(4, 4) == Vector2i(40, 40), "the frame holds a 40 x 40 portrait")
+	for framed in [true, false]:
+		var t := TextBoxLayout.text_rect(framed)
+		var what := "with a portrait" if framed else "without"
+		check(box.encloses(t), "%s: the text rows are in the box %s" % [what, t])
+		check(t.end.x == TextBoxLayout.TEXT_POS.x + TextBoxLayout.TEXT_W, "%s: the text ends where it always does" % what)
+		var tag := TextBoxLayout.BOX.position.x + TextBoxLayout.name_x(framed)
+		check(tag >= 0 and tag < TextBoxLayout.BOX.position.x + t.position.x, "%s: the name tag starts on screen, over the text" % what)
+		check(TextBoxLayout.BOX.position.y - TextBoxLayout.NAME_H + 4 >= 0, "%s: the tag is on screen" % what)
+	check(not TextBoxLayout.text_rect(true).intersects(TextBoxLayout.PORTRAIT), "beside a portrait the text clears the frame")
+	check(TextBoxLayout.text_rect(false).position.x < TextBoxLayout.PORTRAIT.end.x, "without one the text uses its room")
+	check(TextBoxLayout.text_w(false) > TextBoxLayout.text_w(true), "so its rows are wider")
+	# A line checked at the narrow width (DialogueRunner does) fits the wide one too.
+	var text := "My teacher said a tool remembers who uses it well. I never believed him until I was old, and now I do."
+	var narrow := TextBoxLayout.wrap_rows(text, TextBoxLayout.text_w(true)).size()
+	check(narrow <= TextBoxLayout.ROWS and TextBoxLayout.wrap_rows(text, TextBoxLayout.text_w(false)).size() <= narrow,
+		"a line that fits beside a portrait fits without one")
 
 
 func check(ok: bool, what: String) -> void:

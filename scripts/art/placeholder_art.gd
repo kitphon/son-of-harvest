@@ -49,6 +49,8 @@ static func _make(key: String) -> Image:
 			return _title_bg()
 		"face":     # face:<speaker>:<calm|smile|surprised|worried>, a 40 x 40 text box portrait
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
+		"portrait": # portrait:<villager>:<neutral|happy|sad|surprised|angry>, a villager's 40 x 40 text box portrait
+			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
 		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|lumber|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
@@ -1984,6 +1986,204 @@ static func _face(speaker: String, expression: String) -> Image:
 				_px(img, x, eye_y, 2, 2, ink)
 			_px(img, 18, 27, 4, 1, ink)
 	return img
+
+
+# --- villager portraits ------------------------------------------------------
+
+## A villager's head and shoulders for the text box (40 x 40): colours from their look in
+## data/villagers, the background and marks (wrinkles, stubble, child, plaster, mole) from
+## their face in data/dialogue/speakers.json. The hair style and outfit shape them; `mood`
+## (DialogueRunner.MOODS; any other draws neutral) sets the eyes, brows and mouth.
+static func _portrait(id: String, mood: String) -> Image:
+	var look := Villagers.look(id)
+	var face: Dictionary = DialogueRunner.speakers().get(id, {}).get("face", {})
+	var marks: Array = face.get("marks", [])
+	var skin := Color(look.get("skin", "f2c79b"))
+	var hair := Color(look.get("hair", "4a3020"))
+	var child := "child" in marks
+	var img := _blank(40, 40)
+	var bg := Color(face.get("bg", "c8d8c0"))
+	_px(img, 0, 0, 40, 40, bg)
+	for y in 12:                                                   # light from above
+		_px(img, 0, y, 40, 1, bg.lightened(0.14 * (1.0 - y / 12.0)))
+	var cx := 20.0
+	var cy := 22.0 if child else 20.0
+	var rx := 9.0 if child else 9.5
+	var ry := 9.5 if child else 10.5
+	if look.get("hair_style", "") == "long":                       # hair down the back, behind it all
+		_px(img, 8, int(cy) - 6, 24, 22, OUTLINE)
+		_px(img, 9, int(cy) - 6, 22, 21, hair)
+	_portrait_body(img, look, child)
+	_px(img, 18 if child else 17, int(cy) + 7, 4 if child else 6, 6, skin.darkened(0.18))   # neck
+	for side in [-1.0, 1.0]:                                       # ears
+		_oval(img, cx + side * (rx + 0.5), cy + 2, 2.2, 3.0, OUTLINE)
+		_oval(img, cx + side * (rx + 0.5), cy + 2, 1.4, 2.2, skin.darkened(0.08))
+	_oval(img, cx, cy, rx + 1, ry + 1, OUTLINE)
+	_oval(img, cx, cy, rx, ry, skin)
+	_px(img, 26 if child else 27, int(cy) - 2, 2, 9, skin.darkened(0.06))   # the shaded side
+	var ey := int(cy) + 2                                          # eye row
+	var my := ey + (5 if child else 6)                             # mouth row
+	_px(img, 20, ey + 2, 1, 2, skin.darkened(0.2))                 # nose
+	_portrait_hair(img, look, cy)
+	if "wrinkles" in marks:
+		for x in [13, 26]:
+			_px(img, x, ey - 1, 1, 1, skin.darkened(0.2))
+			_px(img, x, ey + 1, 1, 1, skin.darkened(0.2))
+		_px(img, 16, my - 2, 1, 2, skin.darkened(0.14))
+		_px(img, 23, my - 2, 1, 2, skin.darkened(0.14))
+	if "stubble" in marks:
+		for y in range(my - 1, int(cy + ry)):
+			for x in range(12, 28):
+				if (x + y) % 2 == 0 and img.get_pixel(x, y).is_equal_approx(skin):
+					img.set_pixel(x, y, skin.darkened(0.16))
+	if "plaster" in marks:                                         # a sticking plaster on the cheek
+		_px(img, 24, ey + 3, 4, 2, Color("f4dcb0"))
+		_px(img, 25, ey + 3, 2, 2, Color("dcbc90"))
+	if "mole" in marks:
+		img.set_pixel(24, my - 1, skin.darkened(0.45))
+	var brow := hair.darkened(0.35) if hair.v > 0.3 else hair
+	_portrait_mood(img, mood, ey, my, brow, 2 if "stubble" in marks else 1, child or "wrinkles" in marks)
+	return img
+
+
+## Shoulders and collar by outfit: a kimono's crossed white collar, a happi coat's open
+## front with its bands, or a boy's round-necked shirt.
+static func _portrait_body(img: Image, look: Dictionary, child: bool) -> void:
+	var top := Color(look.get("top", "3b6fd1"))
+	var accent := Color(look.get("accent", look.get("waist", "e8e2d0")))
+	var w := 13.0 if child else (18.0 if look.get("outfit", "") == "happi" else 16.0)
+	_oval(img, 20, 45, w + 1, 12, OUTLINE)
+	_oval(img, 20, 45, w, 11, top)
+	match look.get("outfit", ""):
+		"kimono":
+			var collar := Color("f4efe4")
+			for d in [0, 1]:
+				_line(img, Vector2i(15 + d, 34), Vector2i(19 + d, 40), collar)
+				_line(img, Vector2i(24 - d, 34), Vector2i(20 - d, 40), collar)
+			_line(img, Vector2i(14, 34), Vector2i(18, 40), top.darkened(0.25))
+		"happi":
+			_px(img, 17, 35, 6, 5, Color(look.get("lower", "3a3430")))      # the undershirt
+			for d in [0, 1]:
+				_line(img, Vector2i(15 + d, 34), Vector2i(17 + d, 40), accent)
+				_line(img, Vector2i(24 - d, 34), Vector2i(22 - d, 40), accent)
+		_:
+			_oval(img, 20, 35, 4.5, 1.6, top.darkened(0.18))                 # a round neckline
+			_px(img, 11, 38, 2, 2, top.darkened(0.12))                       # a fold at the sleeve
+
+
+## Hair by style: a grey bun with a hairpin, short hair under a smith's headband, long hair
+## with a fringe and a hair ornament, or tufts under a straw hat.
+static func _portrait_hair(img: Image, look: Dictionary, cy: float) -> void:
+	var hair := Color(look.get("hair", "4a3020"))
+	var accent := Color(look.get("accent", look.get("waist", "c8a050")))
+	var y := int(cy)
+	match look.get("hair_style", ""):
+		"bun":
+			_oval(img, 20, cy - 14, 4.5, 3.5, OUTLINE)
+			_oval(img, 20, cy - 14, 3.5, 2.5, hair)
+			_oval(img, 20, cy - 9, 10.5, 4.6, hair)
+			_px(img, 10, y - 8, 2, 9, hair)
+			_px(img, 28, y - 8, 2, 9, hair)
+			for x in [14, 18, 23]:                                    # combed lines
+				_px(img, x, y - 11, 1, 3, hair.darkened(0.12))
+			var pin := Color(look.get("waist", "c8a050"))
+			_px(img, 22, y - 15, 6, 1, pin)
+			_px(img, 27, y - 16, 2, 2, pin.lightened(0.2))
+		"headband":
+			_oval(img, 20, cy - 9, 10.5, 4.6, hair)
+			for x in [12, 17, 22, 26]:                                # spiky on top
+				_px(img, x, y - 15, 2, 3, hair)
+			_px(img, 10, y - 6, 2, 5, hair)
+			_px(img, 28, y - 6, 2, 5, hair)
+			_px(img, 9, y - 7, 22, 3, accent)                         # the tenugui headband
+			_px(img, 9, y - 5, 22, 1, accent.darkened(0.2))
+			_px(img, 29, y - 9, 3, 3, accent)                         # its knot and tails
+			_px(img, 31, y - 6, 2, 4, accent.darkened(0.1))
+			_px(img, 33, y - 5, 1, 3, accent.darkened(0.1))
+		"long":
+			_oval(img, 20, cy - 9, 10.8, 4.8, hair)
+			_px(img, 10, y - 7, 3, 16, hair)                          # locks framing the face
+			_px(img, 27, y - 7, 3, 16, hair)
+			_px(img, 12, y - 5, 16, 2, hair)                          # the fringe...
+			for x in [15, 20, 24]:
+				img.set_pixel(x, y - 3, hair)                         # ...cut a little uneven
+			_px(img, 18, y - 13, 1, 3, hair.lightened(0.15))          # a shine
+			_oval(img, 27, cy - 11, 1.8, 1.8, accent)                 # a flower kanzashi
+			_px(img, 28, y - 9, 1, 3, accent.darkened(0.2))
+		"straw_hat":
+			_px(img, 10, y - 7, 3, 5, hair)                           # tufts under the brim
+			_px(img, 27, y - 7, 3, 5, hair)
+			_px(img, 14, y - 6, 3, 2, hair)
+			_px(img, 21, y - 6, 4, 2, hair)
+			_oval(img, 20, cy - 8, 16, 3.6, OUTLINE)
+			_oval(img, 20, cy - 8, 15, 2.8, accent)                   # the brim
+			_oval(img, 20, cy - 12, 8.5, 5.5, OUTLINE)
+			_oval(img, 20, cy - 12, 7.5, 4.8, accent)                 # the crown
+			_px(img, 13, y - 11, 14, 2, Color("5a6a3a"))              # a cord band
+			for x in range(14, 27, 3):                                # the weave
+				_px(img, x, y - 14, 1, 1, accent.darkened(0.18))
+				_px(img, x - 1, y - 8, 1, 1, accent.darkened(0.18))
+		_:
+			_oval(img, 20, cy - 9, 10.5, 4.6, hair)
+
+
+## The eyes, brows and mouth for `mood`. `ey` / `my` are the eye and mouth rows, `brow_h`
+## the brows' thickness; `soft` eyes (an old woman's, a boy's) are drawn rounder.
+static func _portrait_mood(img: Image, mood: String, ey: int, my: int, brow: Color, brow_h: int, soft: bool) -> void:
+	var ink := OUTLINE
+	var white := Color("f8f4ec")
+	var eyes := [15, 23]                                          # each eye's left pixel
+	match mood:
+		"happy":
+			for x in eyes:                                        # closed, smiling eyes
+				_px(img, x - 1, ey, 1, 1, ink)
+				_px(img, x, ey - 1, 2, 1, ink)
+				_px(img, x + 2, ey, 1, 1, ink)
+				_px(img, x - 1, ey - 4, 4, brow_h, brow)
+			_px(img, 16, my - 1, 1, 1, ink)                       # an open smile
+			_px(img, 23, my - 1, 1, 1, ink)
+			_px(img, 17, my, 6, 1, ink)
+			_px(img, 18, my + 1, 4, 1, Color("b84a4a"))
+			_px(img, 12, ey + 3, 3, 1, Color("e89a8a"))           # blush
+			_px(img, 25, ey + 3, 3, 1, Color("e89a8a"))
+		"sad":
+			for x in eyes:
+				_px(img, x, ey + 1, 2, 2 if soft else 1, ink)
+			for i in brow_h:                                      # brows up in the middle
+				_line(img, Vector2i(13, ey - 2 + i), Vector2i(16, ey - 4 + i), brow)
+				_line(img, Vector2i(26, ey - 2 + i), Vector2i(23, ey - 4 + i), brow)
+			_px(img, 18, my, 4, 1, ink)                           # a frown
+			_px(img, 17, my + 1, 1, 1, ink)
+			_px(img, 22, my + 1, 1, 1, ink)
+			_px(img, 15, ey + 3, 1, 2, Color("8ac8f0"))           # a tear
+		"surprised":
+			for x in eyes:
+				_px(img, x - 1, ey - 2, 4, 5, white)
+				_px(img, x, ey - 1, 2, 3, ink)
+				_px(img, x - 1, ey - 5, 1, brow_h, brow)          # brows up high, arched
+				_px(img, x, ey - 6, 2, brow_h, brow)
+				_px(img, x + 2, ey - 5, 1, brow_h, brow)
+			_px(img, 19, my - 1, 2, 3, ink)                       # an O
+			_px(img, 19, my, 2, 1, Color("b84a4a"))
+		"angry":
+			for x in eyes:
+				_px(img, x, ey, 2, 2, ink)
+			for i in brow_h + 1:                                  # brows down in the middle
+				_line(img, Vector2i(13, ey - 4 + i), Vector2i(16, ey - 2 + i), brow)
+				_line(img, Vector2i(26, ey - 4 + i), Vector2i(23, ey - 2 + i), brow)
+			_px(img, 17, my - 1, 6, 3, ink)                       # gritted teeth
+			_px(img, 18, my, 4, 1, white)
+			var red := Color("d8342c")                            # a cross mark of temper
+			for p in [Vector2i(32, 4), Vector2i(35, 4), Vector2i(32, 8), Vector2i(35, 8)]:
+				_px(img, p.x, p.y, 1, 2, red)
+			_px(img, 33, 6, 2, 2, red)
+		_:   # neutral
+			for x in eyes:
+				_px(img, x, ey - (1 if soft else 0), 2, 3 if soft else 2, ink)
+				if soft:
+					img.set_pixel(x, ey - 1, white)
+				_px(img, x - 1, ey - 3 - (1 if soft else 0), 4, brow_h, brow)
+			_px(img, 18, my, 4, 1, ink)
 
 
 ## A keepsake: a glass wind chime (bell, clapper, paper strip), a round paper fan on a

@@ -112,6 +112,17 @@ func _init() -> void:
 			{"steps": [{"id": "a", "do": "wait", "seconds": 1}, {"id": "a", "do": "wait", "seconds": 1}]}]:
 		r = EventRunner.new(bad, g)
 		check(r.error != "" and r.done(), "refused %s (%s)" % [JSON.stringify(bad), r.error])
+	for bad_mood in [3, ""]:
+		r = EventRunner.new({"steps": [{"do": "say", "dialogue": "bin_note", "mood": bad_mood}]}, g)
+		check(r.error != "", "refused a say step's mood %s" % [bad_mood])
+	# A say step's mood goes with the dialogue to the text box (its lines without one).
+	r = EventRunner.new({"steps": [{"do": "say", "dialogue": "heart_events", "at": "tome", "mood": "sad"}]}, g)
+	r.start(start, Vector2i.DOWN)
+	r.update(0.0)
+	check(r.error == "" and talked.back() == "heart_events@tome" and g.dialogue_mood == "sad", "say passes its mood %s" % g.dialogue_mood)
+	g.dialogue_open = false
+	r.update(0.0)
+	g.dialogue_mood = ""
 
 	# Trigger rows: the first match in table order wins; conditions narrow it down.
 	var s: Dictionary = {"year": 1, "season": "spring", "day": 1, "weekday": "mon", "time": 6 * 60,

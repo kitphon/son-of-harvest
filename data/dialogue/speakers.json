@@ -1,9 +1,9 @@
 {
-	"_note": "Who can speak in a dialogue: the name on the name tag and the colours of the placeholder portrait (face:<speaker>:<expression> in PlaceholderArt; real art replaces those keys). Expressions: calm, smile, surprised, worried. The villagers' colours follow their looks in data/villagers (a headband or a straw hat is drawn as the cap for now). hair: cap (a cap over short hair) or bun (hair tied up).",
+	"_note": "Who can speak in a dialogue: the name on the name tag and, for the villagers, the background and marks of their text box portrait (portrait:<villager>:<mood> in PlaceholderArt, drawn in their colours from data/villagers; marks: wrinkles, stubble, mole, child, plaster; real art replaces those keys). Moods: DialogueRunner.MOODS. Only villagers have a portrait. The face colours below also draw the older generic face:<speaker>:<expression> key. The villagers' colours follow their looks in data/villagers (a headband or a straw hat is drawn as the cap for now). hair: cap (a cap over short hair) or bun (hair tied up).",
 	"farmer": {"name": "Farmer", "face": {"bg": "a9c8d8", "skin": "f2c79b", "hair": "4a3020", "style": "cap", "hat": "c8452c", "clothes": "3b6fd1"}},
 	"tsuru": {"name": "Tsuru", "face": {"bg": "b5c9a0", "skin": "e8c09a", "hair": "d6d2ca", "style": "bun", "hat": "c8442c", "clothes": "6a5a8a"}},
-	"tome": {"name": "Tome", "face": {"bg": "c8c0d8", "skin": "eec39a", "hair": "e4e0d8", "style": "bun", "hat": "c8a050", "clothes": "6a4a7a"}},
-	"hachiro": {"name": "Hachiro", "face": {"bg": "c8b8a0", "skin": "d9a473", "hair": "2a2422", "style": "cap", "hat": "e8e2d0", "clothes": "2e4a7a"}},
-	"sayo": {"name": "Sayo", "face": {"bg": "e8d0c0", "skin": "f2c79b", "hair": "3a2420", "style": "bun", "hat": "e8c050", "clothes": "c85a6a"}},
-	"kota": {"name": "Kota", "face": {"bg": "b8d8a8", "skin": "e0a878", "hair": "2a2422", "style": "cap", "hat": "e0c070", "clothes": "e8e2d0"}}
+	"tome": {"name": "Tome", "face": {"bg": "c8c0d8", "skin": "eec39a", "hair": "e4e0d8", "style": "bun", "hat": "c8a050", "clothes": "6a4a7a", "marks": ["wrinkles"]}},
+	"hachiro": {"name": "Hachiro", "face": {"bg": "c8b8a0", "skin": "d9a473", "hair": "2a2422", "style": "cap", "hat": "e8e2d0", "clothes": "2e4a7a", "marks": ["stubble"]}},
+	"sayo": {"name": "Sayo", "face": {"bg": "e8d0c0", "skin": "f2c79b", "hair": "3a2420", "style": "bun", "hat": "e8c050", "clothes": "c85a6a", "marks": ["mole"]}},
+	"kota": {"name": "Kota", "face": {"bg": "b8d8a8", "skin": "e0a878", "hair": "2a2422", "style": "cap", "hat": "e0c070", "clothes": "e8e2d0", "marks": ["child", "plaster"]}}
 }

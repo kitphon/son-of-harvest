@@ -45,6 +45,28 @@ func _talk_files() -> void:
 			for at in row.at:
 				check(DialogueRunner.open(Talk.dialogue_id(id), {}, at).error == "", "%s line %s opens" % [id, at])
 		check(not Villagers.all()[id].get("gifts", {}).is_empty(), "%s likes and dislikes something" % id)
+		_portraits(id)
+
+
+## Every line in a villager's talk file shows their own portrait, in a mood of its own; a loved
+## gift lights the face up and a disliked or hated one doesn't.
+func _portraits(id: String) -> void:
+	var lines := {}
+	for l in DialogueRunner.open(Talk.dialogue_id(id), {}).lines:
+		if l.has("id"):
+			lines[l.id] = l
+		if l.has("text"):
+			check(l.get("speaker", "") == id and l.has("mood") and not l.has("face"),
+				"%s says %s with a mood" % [id, l.get("id", l.text)])
+			check(DialogueRunner.portrait_key(l) == "portrait:%s:%s" % [id, l.get("mood", "")], "%s line %s: their portrait" % [id, l.get("id", "")])
+	check(DialogueRunner.mood_of(lines.gift_love) in ["happy", "surprised"], "%s: a loved gift looks pleased" % id)
+	check(DialogueRunner.mood_of(lines.gift_like) == "happy", "%s: a liked gift, a smile" % id)
+	for at in ["gift_dislike", "gift_hate"]:
+		check(DialogueRunner.mood_of(lines[at]) in ["sad", "angry"], "%s: %s doesn't smile" % [id, at])
+	var moods := {}
+	for at in lines:
+		moods[DialogueRunner.mood_of(lines[at])] = true
+	check(moods.size() >= 4, "%s shows at least four moods %s" % [id, moods.keys()])
 
 
 func _file_errors() -> void:

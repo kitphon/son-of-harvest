@@ -43,6 +43,7 @@ var always_run := false         # settings: the farmer runs unless the run key i
 var hud_visible := true         # settings: the HUD is drawn
 var clock_running := true      # off on the title screen
 var dialogue_open := false      # a text box is up: the clock and the farmer wait (counts as paused)
+var dialogue_mood := ""         # the portrait mood talk() passes to the next text box (an event's say step)
 var event_running := false      # an event script plays: the clock waits, the script moves the farmer
 var ending_open := false        # the village record is on screen (the ending event waits for it)
 var settings: Settings          # the player's settings (user://settings.json), not saved with the run
@@ -1455,8 +1456,10 @@ func open_inventory(mode := "rucksack") -> void:
 	inventory_requested.emit(mode)
 
 
-## Opens dialogue `id` (data/dialogue/<id>.json) in the view's text box, at line `at`.
-func talk(id: String, at := "") -> void:
+## Opens dialogue `id` (data/dialogue/<id>.json) in the view's text box, at line `at`;
+## `mood` is the portrait mood of its lines that name none (an event's say step).
+func talk(id: String, at := "", mood := "") -> void:
+	dialogue_mood = mood
 	dialogue_requested.emit(id, at)
 
 

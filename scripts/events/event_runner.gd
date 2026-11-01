@@ -18,7 +18,7 @@ const DIRS := {"up": Vector2i.UP, "down": Vector2i.DOWN, "left": Vector2i.LEFT, 
 const COME_IN := 4          # cells beside the farmer an actor comes in from when their plan has them elsewhere
 ## Keys each command takes besides `do`, `id` and `next`.
 const COMMANDS := {
-	"say": ["dialogue", "at"], "wait": ["seconds"], "face": ["dir"], "walk": ["to", "by", "run"],
+	"say": ["dialogue", "at", "mood"], "wait": ["seconds"], "face": ["dir"], "walk": ["to", "by", "run"],
 	"set": ["flags"], "clear": ["flags"], "give": ["item", "count"], "money": ["amount"],
 	"fade": ["to", "seconds"], "sound": ["key"], "affection": ["who", "amount"],
 	"place": ["at", "dir"], "actor": ["who", "at", "to", "face", "leave"], "ending": ["page"],
@@ -143,7 +143,7 @@ func update(delta: float) -> void:
 func _begin(s: Dictionary) -> void:
 	match s.get("do", ""):
 		"say":
-			game.talk(s.dialogue, s.get("at", ""))
+			game.talk(s.dialogue, s.get("at", ""), s.get("mood", ""))
 		"wait":
 			_timer = float(s.seconds)
 		"face":
@@ -383,6 +383,8 @@ func _check_step(s: Dictionary) -> String:
 		"say":
 			if not s.get("dialogue") is String or (s.has("at") and not s.at is String):
 				return "say needs a dialogue id"
+			if s.has("mood") and (not s.mood is String or s.mood == ""):
+				return "say's mood is a word"
 			var r := DialogueRunner.open(s.dialogue, {}, s.get("at", ""))
 			if r.error != "":
 				return "dialogue %s: %s" % [s.dialogue, r.error]
