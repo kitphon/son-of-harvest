@@ -85,7 +85,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   --fixed-fps 30 --quit-after 20 -- --demo` writes `shots/frameNNNNNNNN.png` (git-ignored). `--demo`
   starts at 10:00 with planted plots (without `--demo` the frame shows the title screen);
   add `--weather=rain` (storm, snow, blizzard) to force the weather, `--no-flashes` to turn
-  lightning off, `--dialogue=<id>` (or `<id>@<line id>`) to open a text box from
+  lightning off, `--snow=N` (0..100) for that much snow lying (on the farm and the outdoor
+  maps: `--season=winter --map=town --snow=80`), `--dialogue=<id>` (or `<id>@<line id>`) to open a text box from
   `data/dialogue`, `--pause` (or `--pause=settings`, `--pause=controls`) to open the pause menu, `--tired` to start
   exhausted (tired pose, slow walk), `--event=<id>` to play an event from `data/events`
   (`--demo` turns the trigger tables off, so plain demo frames have no events; to see a

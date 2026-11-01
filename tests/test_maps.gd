@@ -25,6 +25,7 @@ func _process(delta: float) -> bool:
 		_game_maps()
 		_bed_and_doors()
 		_story_props()
+		_map_snow()
 		_start_view()
 	elif _frame == 3:
 		var g: Node = root.get_node("Game")
@@ -180,6 +181,79 @@ func _homes(t: MapData) -> void:
 	check(MapData.parse({"id": "x", "size": [2, 1], "legend": {"a": {"tile": "grass"}}, "ground": ["aa"], "spawns": {"start": [[0, 0], "up"]},
 		"doors": [{"cells": [[1, 0]], "to": "town", "spawn": [5, 7], "facing": "down", "hours": ["06:00", "20:00"]}]})[0] != "",
 		"door hours without a closed message are refused")
+
+
+## Winter snow off the farm: outdoor maps hold it by tile kind (paths a little less, water
+## none) and on their roofs, in both views; rooms and the mine floors stay bare.
+func _map_snow() -> void:
+	var rules: Dictionary = root.get_node("Game").snow_rules
+	var town := MapManager.data("town")
+	var k := SnowLayer.MASK_PER_CELL
+	var grass := SnowLayer.map_hold(town, Vector2i(0, 0), rules)
+	var path := SnowLayer.map_hold(town, Vector2i(0, 10), rules)
+	var gravel := SnowLayer.map_hold(town, Vector2i(15, 2), rules)
+	var pond := SnowLayer.map_hold(town, Vector2i(32, 15), rules)
+	check(grass == 1.0 and path < grass and gravel < grass and gravel > 0.0 and pond == 0.0,
+		"village snow: grass %s, path %s, gravel %s, pond %s" % [grass, path, gravel, pond])
+	for kind in ["gravel", "scree", "rock_wall"]:
+		check(rules.ground.has(kind), "snow hold for %s ground" % kind)
+	for id in ["town", "river", "mine"]:
+		check(SnowLayer.map_has_snow(MapManager.data(id)), "snow lies on %s" % id)
+	for id in ["house", "store", "smithy", "coop", "barn", "tome_house", "mine_floor", "farm"]:
+		check(not SnowLayer.map_has_snow(MapManager.data(id)), "no map snow on %s" % id)
+	var room := SnowLayer.map_mask_image(MapManager.data("house"), rules)
+	var room_white := 0.0
+	for y in room.get_height():
+		for x in room.get_width():
+			room_white = maxf(room_white, room.get_pixel(x, y).r)
+	check(room_white == 0.0, "a room's mask holds no snow")
+	var mask := SnowLayer.map_mask_image(town, rules)
+	check(mask.get_size() == Vector2i(town.w * k, town.h * k) and absf(mask.get_pixel(1, 10 * k + 1).r - path) < 0.01,
+		"the village mask spans the map and holds the path value")
+	var roofs := SnowLayer.roof_mask_image(town, rules)
+	var door: Vector2i = town.doors[1].cells[0]   # Tome's door, on her house front
+	check(roofs.get_pixel(4 * k + 1, 4 * k + 1).r > 0.5 and roofs.get_pixel(door.x * k + 1, door.y * k + 1).r == 0.0
+		and roofs.get_pixel(4 * k + 1, door.y * k + 1).r == 0.0 and roofs.get_pixel(1, 10 * k + 1).r == 0.0,
+		"2D roof snow over the houses, not on their front row or the road")
+
+	# The flat view: ground snow under the props, roof snow over them, hidden without cover.
+	var v2 := MapView.new()
+	v2.map = town
+	root.add_child(v2)
+	v2.show_snow(rules)
+	var sprites: Array = v2.get_children().filter(func(n): return n is Sprite2D)
+	var objects: Node = v2.get_children().filter(func(n): return not n is Sprite2D)[0]
+	check(sprites.size() == 2 and sprites[0].get_index() < objects.get_index() and sprites[1].get_index() > objects.get_index(),
+		"2D village: snow under the props and on the roofs")
+	v2.set_snow(0.0)
+	check(not sprites[0].visible and not sprites[1].visible, "2D village: no cover, no snow")
+	v2.set_snow(0.7)
+	check(sprites.all(func(s): return s.visible and is_equal_approx(s.material.get_shader_parameter("cover"), 0.7)),
+		"2D village: the snow takes the cover")
+	v2.free()
+	var room_2d := MapView.new()
+	room_2d.map = MapManager.data("house")
+	root.add_child(room_2d)
+	room_2d.show_snow(rules)
+	check(room_2d.get_children().all(func(n): return not n is Sprite2D) and room_2d.snow_mask == null, "2D: no snow indoors")
+	room_2d.set_snow(1.0)
+	room_2d.free()
+
+	# 3D: the village ground and roofs take the cover; the mine floor has nothing to whiten.
+	var tops := func(w: Node3D) -> Array:
+		return w.get_children().filter(func(n): return n is MeshInstance3D and n.material_override is ShaderMaterial)
+	var v3: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	v3.build(town)
+	v3.set_snow(0.5)
+	var snowy: Array = tops.call(v3)
+	check(snowy.size() > 10 and snowy.all(func(n): return is_equal_approx(n.material_override.get_shader_parameter("cover"), 0.5)),
+		"3D village: ground and roof tops take the cover (%d)" % snowy.size())
+	v3.free()
+	for id in ["mine_floor", "house"]:
+		var w3: Node3D = load("res://scripts/world3d/map_world.gd").new()
+		w3.build(MapManager.data(id))
+		check(tops.call(w3).is_empty(), "3D %s: no snow" % id)
+		w3.free()
 
 
 ## The homes build in 3D without the magenta stand-in box (MapWorld needs the autoloads, so

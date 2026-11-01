@@ -197,7 +197,7 @@ func _tools_work() -> bool:
 	return Game.maps.on_farm() or Game.maps.mine_floor != null
 
 
-## Weather falls outdoors only (not in buildings or the mine); the farm ground shows the snow lying.
+## Weather falls outdoors only (not in buildings or the mine); the ground outdoors shows the snow lying.
 func _show_weather() -> void:
 	weather.show_weather({} if Game.sheltered() else Game.weather_style())
 	lightning.reset({} if Game.sheltered() else Game.lightning_style())

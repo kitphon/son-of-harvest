@@ -31,7 +31,7 @@ milestone 8). Fatigue, tired poses, oversleeping and collapse are done (data/bod
 Holding and throwing is done: a harvest goes up overhead, E throws it (into the bin = shipped,
 into the pond = gone), Space sets it down, items lie on the field and are saved
 (data/hold.json).
-Weather is done for now (snow lies in winter, lightning flashes in storms; flashes can be
+Weather is done for now (snow lies in winter on the farm and the outdoor maps, lightning flashes in storms; flashes can be
 turned off in Esc → Settings or with `-- --no-flashes`), the text box is done (data/dialogue,
 DialogueRunner, TextBox) and the pause menu (Esc: resume, save, settings, back to title;
 settings in `data/settings.json` / `user://settings.json`, so a volume setting is one data
@@ -186,6 +186,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Rain / snow particles, weather tint
    - [x] Snow lying on the ground and roofs (cover rule in Game + data), lightning flashes
    - [x] Snow on the ground in the 2D view too (same pattern as 3D, under the sprites)
+   - [x] Snow on the outdoor maps too (village, river path, mine entrance) and their roofs,
+     in both views; rooms and the mine floors stay bare (`-- --snow=N` for screenshots)
    - [x] The 2D view plays the same game: its Player's actions go through FarmActions
      (`connect_view`), thrown items fly in an arc
    - [x] The 2D view's weather and festival lights: rain / snow (WeatherView), lightning flashes

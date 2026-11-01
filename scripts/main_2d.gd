@@ -102,6 +102,8 @@ func _enter_map() -> void:
 		mv.map = m
 		view = mv
 		add_child(view)
+		mv.show_snow(Game.snow_rules)   # outdoors only
+		mv.set_snow(Game.snow_cover / 100.0)
 	view.add_child(StoryView.new(m))   # what the heart events left (the bell, the store's sign)
 	view.add_child(FestivalView.new(m.id))   # today's festival decorations, in its hours
 	view.add_child(VillagerView.new(m.id))
@@ -135,8 +137,7 @@ func _on_day_started() -> void:
 	player.cancel_charge()
 	_show_weather()
 	_update_tint()
-	if view is FarmView:
-		view.set_snow(Game.snow_cover / 100.0)
+	view.set_snow(Game.snow_cover / 100.0)
 
 
 func _update_tint() -> void:
