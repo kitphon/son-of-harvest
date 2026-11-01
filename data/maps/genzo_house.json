@@ -14,7 +14,15 @@
 		"e": {"tile": "earth", "step": "soil"},
 		"D": {"tile": "earth", "solid": true}
 	},
-	"ground": ["#########", "#.......#", "#.......#", "#.......#", "#wwwwwww#", "#eeeeeee#", "####D####"],
+	"ground": [
+		"#########",
+		"#.......#",
+		"#.......#",
+		"#.......#",
+		"#wwwwwww#",
+		"#eeeeeee#",
+		"####D####"
+	],
 	"props": [
 		{"kind": "butsudan", "cell": [1, 1]},
 		{"kind": "tansu", "cell": [7, 1]},
@@ -30,13 +38,7 @@
 		{"cells": [[4, 6]], "to": "kaminoda", "spawn": [15, 7], "facing": "down"}
 	],
 	"spawns": {
-		"start": [
-			[4, 5],
-			"up"
-		],
-		"home": [
-			[5, 2],
-			"down"
-		]
+		"start": [[4, 5], "up"],
+		"home": [[5, 2], "down"]
 	}
 }

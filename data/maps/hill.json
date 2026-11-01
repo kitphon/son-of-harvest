@@ -12,7 +12,38 @@
 		"c": {"tile": "rock_wall", "solid": true},
 		"d": {"tile": "scree"}
 	},
-	"ground": ["cccccccccccccccccccccccccccccccccccccccc", "ccccccccccccggggggggggggggggcccccccccccc", "dddddddddggggggssssssssssggggggddddddddd", "gggggggggggggggssssssssssggggggggggggggg", "gggggggggggggggssssssssssggggggggggggggg", "gggggggggggggggssssrrssssggggggggggggggg", "gggggggggggggggggggrrrrrrrrrrrgggggggggg", "gggggggggggggggggggrrrrrrrrrrrgggggggggg", "ggggggggggggggggggggggggggggrrgggggggggg", "ggggggggggggggggggggggggggggrrgggggggggg", "ggggggggggggggggggggggggggggrrgggggggggg", "ggggggggggggggggggggggggggggrrgggggggggg", "ggggggggggggggggggggggggggggrrgggggggggg", "ggggggggggggggggggggggggggggrrgggggggggg", "gggggggggrrrrrrrrrrrrrrrrrrrrrgggggggggg", "gggggggggrrrrrrrrrrrrrrrrrrrrrgggggggggg", "gggggggggrrggggggggggggggggggggggggggggg", "gggggggggrrggggggggggggggggggggggggggggg", "gggggggggrrggggggggggggggggggggggggggggg", "gggggggggrrggggggggggggggggggggggggggggg", "gggggggggrrggggggggggggggggggggggggggggg", "gggggggggrrggggggggggggggggggggggggggggg", "gggggggggrrrrrrrrrrrrggggggggggggggggggg", "gggggggggrrrrrrrrrrrrggggggggggggggggggg", "gggggggggggggggggggrrggggggggggggggggggg", "gggggggggggggggggggrrggggggggggggggggggg", "gggggggggggggggggggrrggggggggggggggggggg", "gggggggggggggggggggrrggggggggggggggggggg", "gggggggggggggggggggrrggggggggggggggggggg", "gggggggggggggggggggrrggggggggggggggggggg"],
+	"ground": [
+		"cccccccccccccccccccccccccccccccccccccccc",
+		"ccccccccccccggggggggggggggggcccccccccccc",
+		"dddddddddggggggssssssssssggggggddddddddd",
+		"gggggggggggggggssssssssssggggggggggggggg",
+		"gggggggggggggggssssssssssggggggggggggggg",
+		"gggggggggggggggssssrrssssggggggggggggggg",
+		"gggggggggggggggggggrrrrrrrrrrrgggggggggg",
+		"gggggggggggggggggggrrrrrrrrrrrgggggggggg",
+		"ggggggggggggggggggggggggggggrrgggggggggg",
+		"ggggggggggggggggggggggggggggrrgggggggggg",
+		"ggggggggggggggggggggggggggggrrgggggggggg",
+		"ggggggggggggggggggggggggggggrrgggggggggg",
+		"ggggggggggggggggggggggggggggrrgggggggggg",
+		"ggggggggggggggggggggggggggggrrgggggggggg",
+		"gggggggggrrrrrrrrrrrrrrrrrrrrrgggggggggg",
+		"gggggggggrrrrrrrrrrrrrrrrrrrrrgggggggggg",
+		"gggggggggrrggggggggggggggggggggggggggggg",
+		"gggggggggrrggggggggggggggggggggggggggggg",
+		"gggggggggrrggggggggggggggggggggggggggggg",
+		"gggggggggrrggggggggggggggggggggggggggggg",
+		"gggggggggrrggggggggggggggggggggggggggggg",
+		"gggggggggrrggggggggggggggggggggggggggggg",
+		"gggggggggrrrrrrrrrrrrggggggggggggggggggg",
+		"gggggggggrrrrrrrrrrrrggggggggggggggggggg",
+		"gggggggggggggggggggrrggggggggggggggggggg",
+		"gggggggggggggggggggrrggggggggggggggggggg",
+		"gggggggggggggggggggrrggggggggggggggggggg",
+		"gggggggggggggggggggrrggggggggggggggggggg",
+		"gggggggggggggggggggrrggggggggggggggggggg",
+		"gggggggggggggggggggrrggggggggggggggggggg"
+	],
 	"props": [
 		{"kind": "hokora", "cell": [19, 1], "size": [2, 2]},
 		{"kind": "stone_lantern", "cell": [16, 3]},
@@ -142,13 +173,7 @@
 		{"cells": [[19, 30], [20, 30]], "to": "kaminoda", "spawn": [22, 1], "facing": "down"}
 	],
 	"spawns": {
-		"start": [
-			[19, 28],
-			"up"
-		],
-		"top": [
-			[20, 5],
-			"up"
-		]
+		"start": [[19, 28], "up"],
+		"top": [[20, 5], "up"]
 	}
 }

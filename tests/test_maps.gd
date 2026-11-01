@@ -160,7 +160,7 @@ func _map_rules() -> void:
 	check(hl.is_solid(Vector2i(5, 0)) and hl.tile(Vector2i(5, 0)) == "rock_wall", "the cliff along the top")
 	# The village's outer parts: every door of each can be walked to from its way in, and every
 	# house door leads to a room whose way out comes back in front of it.
-	for id in ["kaminoda"]:
+	for id in ["kaminoda", "sakurazaka"]:
 		var m := MapManager.data(id)
 		var reach := _walkable(m, m.spawns.start[0])
 		for door in m.doors:

@@ -1,0 +1,44 @@
+{
+	"_note": "What Ichiro, the charcoal burner of Sakurazaka, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items his own answers to a keepsake and to dishes. He has no hearts. A man of few words. Our own lines.",
+	"picks": [
+		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
+		{"if": {"time": ["06:00", "11:40"]}, "at": ["woods_1", "woods_2"]},
+		{"if": {"time": ["11:40", "12:45"]}, "at": ["lunch"]},
+		{"if": {"season": ["winter"]}, "at": ["winter"]},
+		{"at": ["plain_1", "plain_2", "plain_3"]}
+	],
+	"gift_items": {
+		"keep:omamori": "gift_omamori",
+		"dish:love": "gift_dish_love",
+		"dish:like": "gift_dish_like",
+		"dish:neutral": "gift_dish_neutral",
+		"dish:dislike": "gift_dish_dislike"
+	},
+	"lines": [
+		{"id": "again_1", "speaker": "ichiro", "mood": "neutral", "text": "...Still here.", "next": "end"},
+		{"id": "again_2", "speaker": "ichiro", "mood": "neutral", "text": "Talk's done. Wood isn't.", "next": "end"},
+		{"id": "new_1", "speaker": "ichiro", "mood": "neutral", "text": "Ichiro. I burn charcoal. The village's fires, the smithy's forge. Mine, mostly."},
+		{"speaker": "ichiro", "mood": "neutral", "text": "Don't walk in the grove when I'm felling. Shout first.", "next": "end"},
+		{"id": "wet", "speaker": "ichiro", "mood": "sad", "text": "Wet wood smokes and won't burn clean. I split indoors on days like this.", "next": "end"},
+		{"id": "woods_1", "speaker": "ichiro", "mood": "neutral", "text": "Oak makes the best charcoal. Bamboo's for the quick fires. Hachiro wants oak.", "next": "end"},
+		{"id": "woods_2", "speaker": "ichiro", "mood": "neutral", "text": "Take one tree, leave the stump. It comes back in fifteen years. My father's trees are mine now.", "next": "end"},
+		{"id": "lunch", "speaker": "ichiro", "mood": "happy", "text": "Fumi's rice balls. Best part of the day. Don't tell her I said so.", "next": "end"},
+		{"id": "winter", "speaker": "ichiro", "mood": "happy", "text": "Winter's my busy time. Every house wants charcoal for the kotatsu. Good.", "next": "end"},
+		{"id": "plain_1", "speaker": "ichiro", "mood": "neutral", "text": "The kiln's past the grove, up the hill. Too hot to visit. Too far, too.", "next": "end"},
+		{"id": "plain_2", "speaker": "ichiro", "mood": "neutral", "text": "You farm. I burn. Both of us work with fire and dirt. Hm.", "next": "end"},
+		{"id": "plain_3", "speaker": "ichiro", "mood": "happy", "text": "Miners come back black as me. Fumi makes them wash before tea.", "next": "end"},
+		{"id": "gift_love", "speaker": "ichiro", "mood": "happy", "text": "...That's good. Thank you. Really.", "next": "end"},
+		{"id": "gift_like", "speaker": "ichiro", "mood": "happy", "text": "Hm. Thanks.", "next": "end"},
+		{"id": "gift_neutral", "speaker": "ichiro", "mood": "neutral", "text": "I'll take it.", "next": "end"},
+		{"id": "gift_dislike", "speaker": "ichiro", "mood": "sad", "text": "Too sweet. Give it to Fumi.", "next": "end"},
+		{"id": "gift_hate", "speaker": "ichiro", "mood": "angry", "text": "Clay? Clay cracks the kiln. Get it away from me.", "next": "end"},
+		{"id": "gift_again", "speaker": "ichiro", "mood": "neutral", "text": "One's enough.", "next": "end"},
+		{"id": "gift_omamori", "speaker": "ichiro", "mood": "happy", "text": "A charm for safety. ...I'll hang it by the kiln door. Thank you.", "next": "end"},
+		{"id": "gift_dish_love", "speaker": "ichiro", "mood": "happy", "text": "Hot and heavy. That's a meal. I'll eat it now, standing.", "next": "end"},
+		{"id": "gift_dish_like", "speaker": "ichiro", "mood": "neutral", "text": "Cooked food. Better than mine. Thanks.", "next": "end"},
+		{"id": "gift_dish_neutral", "speaker": "ichiro", "mood": "neutral", "text": "Food is food.", "next": "end"},
+		{"id": "gift_dish_dislike", "speaker": "ichiro", "mood": "sad", "text": "Too soft. Too sweet. ...Fumi might like it.", "next": "end"}
+	]
+}

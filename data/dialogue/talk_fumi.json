@@ -1,0 +1,45 @@
+{
+	"_note": "What Fumi, who keeps the Hanami teahouse in Sakurazaka, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items her own answers to a keepsake and to dishes. She has no hearts. Our own lines.",
+	"picks": [
+		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
+		{"if": {"season": ["spring"]}, "at": ["spring_1", "spring_2"]},
+		{"if": {"season": ["summer"]}, "at": ["summer"]},
+		{"if": {"season": ["fall"]}, "at": ["fall"]},
+		{"if": {"season": ["winter"]}, "at": ["winter"]},
+		{"at": ["plain_1", "plain_2"]}
+	],
+	"gift_items": {
+		"keep:wind_chime": "gift_wind_chime",
+		"dish:love": "gift_dish_love",
+		"dish:like": "gift_dish_like",
+		"dish:neutral": "gift_dish_neutral",
+		"dish:dislike": "gift_dish_dislike"
+	},
+	"lines": [
+		{"id": "again_1", "speaker": "fumi", "mood": "happy", "text": "Back again? Sit, sit. The second cup is always the better one.", "next": "end"},
+		{"id": "again_2", "speaker": "fumi", "mood": "neutral", "text": "I'm only watching the kettle. It never boils while I talk, you know.", "next": "end"},
+		{"id": "new_1", "speaker": "fumi", "mood": "happy", "text": "Welcome to the Hanami teahouse. I'm Fumi. My mother poured tea here, and her mother before."},
+		{"speaker": "fumi", "mood": "neutral", "text": "Miners stop on the way up, Ichiro on the way back. Everyone tells me everything. Funny, that.", "next": "end"},
+		{"id": "wet", "speaker": "fumi", "mood": "neutral", "text": "Rain on the cherry trees, steam off the cups. A slow day, but I like the sound of it.", "next": "end"},
+		{"id": "spring_1", "speaker": "fumi", "mood": "happy", "text": "The cherries along the road! People walk up from the village just to stand under them.", "next": "end"},
+		{"id": "spring_2", "speaker": "fumi", "mood": "happy", "text": "When a petal lands in your cup, you have to drink it. That's the rule here.", "next": "end"},
+		{"id": "summer", "speaker": "fumi", "mood": "neutral", "text": "Cold barley tea in summer. The creek keeps the jug cool better than any icebox.", "next": "end"},
+		{"id": "fall", "speaker": "fumi", "mood": "happy", "text": "The leaves go red all the way up to the mine. Ichiro says the woods smell like smoke and apples.", "next": "end"},
+		{"id": "winter", "speaker": "fumi", "mood": "neutral", "text": "Snow on the bridge. Walk the middle of the planks, the edges are ice.", "next": "end"},
+		{"id": "plain_1", "speaker": "fumi", "mood": "happy", "text": "The stone lanterns by the bridge? My grandfather set them, so nobody walks into the creek at night.", "next": "end"},
+		{"id": "plain_2", "speaker": "fumi", "mood": "neutral", "text": "Ichiro eats lunch on my gravel every day and never once sits on the bench. Stubborn man.", "next": "end"},
+		{"id": "gift_love", "speaker": "fumi", "mood": "happy", "text": "Oh, how lovely! This goes on the counter for everyone to see. Well, after I've had some.", "next": "end"},
+		{"id": "gift_like", "speaker": "fumi", "mood": "happy", "text": "For me? You're kind. I'll have it with my afternoon cup.", "next": "end"},
+		{"id": "gift_neutral", "speaker": "fumi", "mood": "neutral", "text": "Thank you. I'll find a place for it.", "next": "end"},
+		{"id": "gift_dislike", "speaker": "fumi", "mood": "sad", "text": "Fish, in a teahouse? The cups will smell of it for a week.", "next": "end"},
+		{"id": "gift_hate", "speaker": "fumi", "mood": "angry", "text": "A rock. In my teahouse. Please take it outside.", "next": "end"},
+		{"id": "gift_again", "speaker": "fumi", "mood": "neutral", "text": "No more today, or I'll have to give you free tea forever.", "next": "end"},
+		{"id": "gift_wind_chime", "speaker": "fumi", "mood": "happy", "text": "A wind chime! I'll hang it over the counter. Every breeze will tell me someone's coming.", "next": "end"},
+		{"id": "gift_dish_love", "speaker": "fumi", "mood": "happy", "text": "This would sell out by noon if I put it on my menu. May I copy it?", "next": "end"},
+		{"id": "gift_dish_like", "speaker": "fumi", "mood": "happy", "text": "Home cooking! A teahouse keeper never gets anyone's but her own. Thank you.", "next": "end"},
+		{"id": "gift_dish_neutral", "speaker": "fumi", "mood": "neutral", "text": "Oh, a dish. I'll have it for supper, thank you.", "next": "end"},
+		{"id": "gift_dish_dislike", "speaker": "fumi", "mood": "sad", "text": "Ah... a fish dish. I'm sure Ichiro will love it.", "next": "end"}
+	]
+}

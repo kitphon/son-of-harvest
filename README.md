@@ -166,7 +166,11 @@ village (`town`), the river south of it (`river`, its own fish table: place `riv
 `data/fish.json`; water at a map's side edge draws no bank, so the river flows on), Kaminoda up
 the village's north lane (`kaminoda`: a farming hamlet of terraced paddies, a drying rack, a
 well, jizo and a persimmon orchard; Genzo's and Haru's houses, `genzo_house` / `haru_house`),
-the bamboo hill above it (`hill`: a switchback path through `bamboo` clumps to a lookout with a
+Sakurazaka on the
+village road's east end, on the way to the mine (`sakurazaka`: cherry trees along the road, a
+creek under a plank bridge with its own stream fish, place `sakurazaka` in `data/fish.json`;
+Fumi's Hanami teahouse, `teahouse`, and Ichiro the charcoal burner's house, `ichiro_house`),
+the bamboo hill above Kaminoda (`hill`: a switchback path through `bamboo` clumps to a lookout with a
 little shrine; its view and shrine can be examined). Countryside props (CountryProps, both
 views): `well`, `jizo`, `persimmon` and `sakura` (their leaves follow the season), `hasa` (a
 rice drying rack, sheaves hung in fall), `woodpile`, `garden`, `wood_fence`. Ground tiles include the

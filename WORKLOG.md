@@ -10,6 +10,28 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Sakurazaka: the village's east part, the teahouse, Fumi and Ichiro
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `data/maps/sakurazaka.json` (30 x 20) between the village road's east end and the mine
+  (both doors re-pointed: village → Sakurazaka → mine, the mine's way back comes out at its
+  east end). The road climbs east under cherry trees, crosses a creek on a plank bridge (floor
+  tiles over the water, four stone lanterns), a bamboo grove north-east of the creek, a jizo, a
+  kitchen garden. North of the road Fumi's Hanami teahouse (noren, raked gravel; `teahouse`, a
+  room with a counter, shelves, low tables and cushions; open 9:00-18:00); south of it Ichiro's
+  house (`ichiro_house`: a big earth entry with his tool rack and charcoal sacks) with firewood
+  stacked by it. The creek is a fishing place (`sakurazaka` in data/fish.json: dace, masu trout,
+  char, sculpin, lighter weights than the river). Two villagers without hearts: Fumi (her
+  counter, sweeping the gravel after lunch, a stroll to the bridge) and Ichiro (cutting wood in
+  the grove at work pose, lunch on the teahouse gravel, stacking firewood; works indoors when
+  wet), each with looks, a face, a whistle, gifts, own lines and keepsake spots.
+- Checked: test_maps' door / room checks run for Sakurazaka too; test_mine follows the new
+  chain; test_fishing's "only the river" check allows the creek for the stream fish; all 24
+  test scripts print `OK (0 failed)` (first run found plan walks through furniture, a whistle
+  note too low and a gift line's mood: fixed); smoke runs (title, `--demo`, town, mine entrance,
+  mine 3, Sakurazaka at 12:30) print no errors; screenshots of the bridge with cherries and
+  lanterns (Ichiro at lunch by the teahouse) and Fumi in her teahouse.
+- Left / next: the south part between the village and the river, its people.
+
 ## 2026-11-01 — Kaminoda: the village's north part, countryside props, Genzo and Haru
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the first of the village's outer parts (the user asked for north / south / east parts,

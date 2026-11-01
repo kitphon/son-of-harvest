@@ -108,7 +108,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `--flags=a,b=c` to set story flags (`--flags=hachiro_bell` the bell by the farmhouse door,
   `--map=town@sayo --flags=sayo_sign=new` the store's new sign, `--map=house
   --flags=tome_grandma` Tome's plum jar; `--map=hill` the foot of the bamboo hill, `hill@top` its
-  lookout; `--map=kaminoda@well --time=8:30` the hamlet north of the village, Genzo and Haru out),
+  lookout; `--map=kaminoda@well --time=8:30` the hamlet north of the village, Genzo and Haru out;
+  `--map=sakurazaka@bridge --time=12:10` the cherry road east, Ichiro at lunch by the teahouse),
   `--built=kitchen,chest,room` to have those house extensions built (with `--map=house` to see
   them), `--building=<id>` (kitchen, chest, room) to have that extension under way since
   yesterday (`--time=10:00`: Hachiro hammering at the farmhouse wall by his lumber; the smithy

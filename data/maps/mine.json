@@ -36,7 +36,7 @@
 	],
 	"doors": [
 		{"cells": [[7, 2], [8, 2]], "to": "mine_floor", "spawn": [8, 1], "facing": "down"},
-		{"cells": [[-1, 7], [-1, 8]], "to": "town", "spawn": [34, 10], "facing": "left"}
+		{"cells": [[-1, 7], [-1, 8]], "to": "sakurazaka", "spawn": [28, 10], "facing": "left"}
 	],
 	"spawns": {
 		"start": [[1, 7], "right"],

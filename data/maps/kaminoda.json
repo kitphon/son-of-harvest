@@ -10,7 +10,28 @@
 		"r": {"tile": "path"},
 		"p": {"tile": "paddy", "solid": true}
 	},
-	"ground": ["ggggggggggggggggggggggrrgggggggg", "gppppppppgggggggggggggrrgggggggg", "gppppppppgggggggggggggrrgggggggg", "gppppppppgggggggggggggrrgggggggg", "ggggggggggggggggggggggrrgggggggg", "gppppppppgggggggggggggrrgggggggg", "gppppppppgggggggggggggrrgggggggg", "gppppppppggggggrggggggrrgggrgggg", "gggggggggggggggrggggggrrgggrgggg", "gggggggggggggggrggggggrrgggrgggg", "ggrrrrrrrrrrrrrrrrrrrrrrrrrrrrgg", "ggrrrrrrrrrrrrrrrrrrrrrrrrrrrrgg", "ggggggggggrrgggggggggggggggggggg", "ggggggggggrrggppppppppppppppppgg", "ggggggggggrrggppppppppppppppppgg", "ggggggggggrrggppppppppppppppppgg", "ggggggggggrrgggggggggggggggggggg", "ggggggggggrrggppppppppppppppppgg", "ggggggggggrrggppppppppppppppppgg", "ggggggggggrrgggggggggggggggggggg"],
+	"ground": [
+		"ggggggggggggggggggggggrrgggggggg",
+		"gppppppppgggggggggggggrrgggggggg",
+		"gppppppppgggggggggggggrrgggggggg",
+		"gppppppppgggggggggggggrrgggggggg",
+		"ggggggggggggggggggggggrrgggggggg",
+		"gppppppppgggggggggggggrrgggggggg",
+		"gppppppppgggggggggggggrrgggggggg",
+		"gppppppppggggggrggggggrrgggrgggg",
+		"gggggggggggggggrggggggrrgggrgggg",
+		"gggggggggggggggrggggggrrgggrgggg",
+		"ggrrrrrrrrrrrrrrrrrrrrrrrrrrrrgg",
+		"ggrrrrrrrrrrrrrrrrrrrrrrrrrrrrgg",
+		"ggggggggggrrgggggggggggggggggggg",
+		"ggggggggggrrggppppppppppppppppgg",
+		"ggggggggggrrggppppppppppppppppgg",
+		"ggggggggggrrggppppppppppppppppgg",
+		"ggggggggggrrgggggggggggggggggggg",
+		"ggggggggggrrggppppppppppppppppgg",
+		"ggggggggggrrggppppppppppppppppgg",
+		"ggggggggggrrgggggggggggggggggggg"
+	],
 	"props": [
 		{"kind": "village_house", "cell": [13, 4], "size": [5, 3], "door": 2},
 		{"kind": "village_house", "cell": [25, 4], "size": [5, 3], "door": 2},
@@ -45,25 +66,10 @@
 		{"cells": [[27, 6]], "to": "haru_house", "spawn": [4, 5], "facing": "up", "hours": ["06:00", "21:00"], "closed": "Haru's lamp is out. She must be asleep."}
 	],
 	"spawns": {
-		"start": [
-			[10, 18],
-			"up"
-		],
-		"hill": [
-			[22, 1],
-			"down"
-		],
-		"genzo": [
-			[15, 7],
-			"down"
-		],
-		"haru": [
-			[27, 7],
-			"down"
-		],
-		"well": [
-			[19, 9],
-			"up"
-		]
+		"start": [[10, 18], "up"],
+		"hill": [[22, 1], "down"],
+		"genzo": [[15, 7], "down"],
+		"haru": [[27, 7], "down"],
+		"well": [[19, 9], "up"]
 	}
 }

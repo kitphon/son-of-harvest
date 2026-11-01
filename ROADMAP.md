@@ -189,9 +189,9 @@ and the ending's mine steps lower from it. Later for it: river fishing, food for
 Bigger world (the user found the maps small, 2026-11-01): widening the farm and village made
 the walks long and dull, so they are back to their old sizes; the world grows by areas instead.
 Done: Kaminoda, the hamlet up the village's north lane (paddies, drying racks, a well, jizo;
-Genzo and Haru and their houses) with the bamboo hill above it, and countryside props. Next:
-the village's east part (between the village and the mine) and south part (between the village
-and the river), each with its own houses, character and people.
+Genzo and Haru and their houses) with the bamboo hill above it, and countryside props. Sakurazaka
+on the way to the mine (cherry road, creek, teahouse; Fumi and Ichiro). Next: the village's
+south part (between the village and the river) with its own houses, character and people.
 After that: milestone 10, building the .exe once the export templates are installed (README → Export).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
@@ -210,7 +210,8 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] A new area off the village: the bamboo hill (`hill`, bamboo clumps, a lookout shrine, examine events)
    - [x] Countryside props: well, jizo, persimmon, cherry, rice drying rack, woodpile, garden, board fence
    - [x] The village's north part: Kaminoda (to the hill), with Genzo and Haru
-   - [ ] The village's east part (to the mine) and south part (to the river), with their people
+   - [x] The village's east part: Sakurazaka (to the mine), with Fumi and Ichiro
+   - [ ] The village's south part (to the river), with its people
 2. **Look and feel**
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)

@@ -63,7 +63,8 @@ func _init() -> void:
 				for id in Fishing.candidates(rules, "river", s, hour, wx):
 					river_kinds[id] = true
 	for id in ["ugui", "oikawa", "kajika", "sake", "nushi"]:
-		check(fish.has(id) and fish[id].places.keys() == ["river"], "%s lives only in the river" % id)
+		check(fish.has(id) and fish[id].places.has("river") and fish[id].places.keys().all(func(p): return p in ["river", "sakurazaka"]),
+			"%s lives only in running water (the river, Sakurazaka's creek)" % id)
 		check(river_kinds.has(id), "%s can bite in the river" % id)
 	for id in ["funa", "dojo", "wakasagi"]:
 		check(not river_kinds.has(id), "no pond fish %s in the river" % id)

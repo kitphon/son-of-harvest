@@ -22,7 +22,11 @@
 	"gifts": {
 		"love": ["rice", "food:onigiri", "food:takikomi_gohan", "food:miso_soup", "keep:daruma"],
 		"like": ["daikon", "turnip", "potato", "egg", "fish:dojo", "fish:unagi", "food:green_tea", "food:ochazuke", "food:grilled_fish", "mine:kogane"],
-		"dislike": ["food:milk_pudding", "food:dango", "mine:clay"],
+		"dislike": [
+			"food:milk_pudding",
+			"food:dango",
+			"mine:clay"
+		],
 		"hate": ["mine:stone"]
 	},
 	"plans": {

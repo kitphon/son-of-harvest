@@ -1,5 +1,5 @@
 {
-	"_note": "The first village map (its north lane at x 10-11 leads to Kaminoda, kaminoda.json): an east-west road from the farm gate (west edge), a shrine with a torii up the north path, four houses and a pond; the lane behind Kota's house runs off the south edge down to the river (river.json). The noren house south of the road is the Yorozu Store, with Sayo's rooms behind its plain side door; the one north-east is the Kurogane Smithy (data/shops.json), where Hachiro also lives, and the small one east of it the Hinata Clinic (Dr. Yae; a collapse wakes the farmer there). The west house is Grandma Tome's, the one south-west Kota's family's; their doors (and Sayo's) are open by their `hours` and say `closed` otherwise. Format: README.md, Maps. The two store_sign props are the store's new sign on its roof, one for each answer Sayo got (flag sayo_sign, flag_value old / new, heart_sayo_5).",
+	"_note": "The first village map (its north lane at x 10-11 leads to Kaminoda, kaminoda.json; the road's east end to Sakurazaka, sakurazaka.json, and on to the mine): an east-west road from the farm gate (west edge), a shrine with a torii up the north path, four houses and a pond; the lane behind Kota's house runs off the south edge down to the river (river.json). The noren house south of the road is the Yorozu Store, with Sayo's rooms behind its plain side door; the one north-east is the Kurogane Smithy (data/shops.json), where Hachiro also lives, and the small one east of it the Hinata Clinic (Dr. Yae; a collapse wakes the farmer there). The west house is Grandma Tome's, the one south-west Kota's family's; their doors (and Sayo's) are open by their `hours` and say `closed` otherwise. Format: README.md, Maps. The two store_sign props are the store's new sign on its roof, one for each answer Sayo got (flag sayo_sign, flag_value old / new, heart_sayo_5).",
 	"id": "town",
 	"name": "Village",
 	"size": [
@@ -397,10 +397,10 @@
 					11
 				]
 			],
-			"to": "mine",
+			"to": "sakurazaka",
 			"spawn": [
 				1,
-				7
+				10
 			],
 			"facing": "right"
 		},
@@ -515,6 +515,13 @@
 				1
 			],
 			"down"
+		],
+		"east": [
+			[
+				34,
+				10
+			],
+			"left"
 		]
 	}
 }

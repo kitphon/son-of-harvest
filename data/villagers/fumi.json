@@ -1,0 +1,47 @@
+{
+	"_note": "Fumi keeps the Hanami teahouse in Sakurazaka (the village's east part) and lives at its back. She opens at 9:00 and pours tea behind her counter until noon, sweeps the gravel in front after lunch (13:00-14:00), takes a walk over the bridge and back, then the counter again until 17:30; asleep from 21:00. Wet days she stays at her counter all day. A villager without hearts (hearts false). Gifts: tea and sweets (dango, sakura mochi), flowers of the season; no fish. Format: README.md, Villagers.",
+	"id": "fumi",
+	"name": "Fumi",
+	"hearts": false,
+	"speed": 1.4,
+	"look": {
+		"outfit": "kimono",
+		"hair_style": "bun",
+		"hair": "3a2a24",
+		"skin": "f0c8a0",
+		"top": "8a5a8a",
+		"waist": "e8e2d0",
+		"accent": "c8442c",
+		"shoes": "6b4423"
+	},
+	"rules": [
+		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
+	],
+	"default": "usual",
+	"gifts": {
+		"love": [
+			"food:green_tea",
+			"food:sakura_mochi",
+			"food:kinako_mochi",
+			"keep:wind_chime"
+		],
+		"like": ["food:dango", "food:yomogi_tea", "food:yuzu_tea", "egg", "milk", "pumpkin", "food:tamagoyaki", "mine:kohaku"],
+		"dislike": ["fish:*", "food:grilled_fish", "mine:clay"],
+		"hate": ["mine:stone"]
+	},
+	"plans": {
+		"usual": [
+			{"at": "06:00", "map": "teahouse", "from": [5, 1], "route": [{"face": "down"}]},
+			{"at": "12:00", "map": "teahouse", "from": [5, 1], "route": [{"to": [5, 5]}, {"to": [4, 5]}, {"face": "down"}]},
+			{"at": "13:00", "map": "sakurazaka", "from": [7, 8], "route": [{"to": [7, 9]}, {"to": [5, 9]}, {"face": "down"}], "loop": [{"wait": 10}, {"to": [9, 9]}, {"face": "down"}, {"wait": 10}, {"to": [5, 9]}, {"face": "down"}]},
+			{"at": "14:00", "map": "sakurazaka", "route": [{"to": [7, 9]}, {"to": [7, 10]}, {"to": [17, 10]}, {"face": "right"}, {"wait": 20}]},
+			{"at": "14:40", "map": "sakurazaka", "route": [{"to": [7, 10]}, {"to": [7, 8]}, {"face": "up"}]},
+			{"at": "15:00", "map": "teahouse", "from": [5, 1], "route": [{"face": "down"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"wet": [
+			{"at": "06:00", "map": "teahouse", "from": [5, 1], "route": [{"face": "down"}]},
+			{"at": "21:00", "map": "away"}
+		]
+	}
+}
