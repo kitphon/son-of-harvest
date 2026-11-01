@@ -1,5 +1,5 @@
 {
-	"_comment": "Game actions in menu order (Esc -> Settings -> Controls). keys: the default keys, up to 'slots' per action, by Godot key name (OS.find_keycode_from_string), matched as physical keys. fixed: keys that always stay on the action and can't be bound elsewhere (Esc also cancels a rebind). pad: the default pad button (one per action, rebindable; names in pad_names), pad_fixed: pad buttons that always stay on the action, stick: the left stick's direction for a move action (not rebindable). The player's own keys are saved under 'controls' in user://settings.json, the pad buttons under 'pad'.",
+	"_comment": "Game actions in menu order (Esc -> Settings -> Controls). keys: the default keys, up to 'slots' per action, by Godot key name (OS.find_keycode_from_string), matched as physical keys. fixed: keys that always stay on the action and can't be bound elsewhere (Esc also cancels a rebind). pad: the default pad button (one per action, rebindable; names in pad_names), pad_fixed: pad buttons that always stay on the action, stick: the left stick's direction for a move action (not rebindable). The player's own keys are saved under 'controls' in user://settings.json, the pad buttons under 'pad'. A pad slot also takes a trigger or a right-stick direction (left_trigger, right_trigger, rs_up, rs_down, rs_left, rs_right); none is on an action by default.",
 	"slots": 2,
 	"actions": [
 		{"id": "move_up", "label": "Move up", "keys": ["W", "Up"], "pad": "dpad_up", "stick": "up"},
@@ -20,8 +20,9 @@
 	"_tools": "One 'pick tool N' action per tool in Game.TOOLS, after the actions above; tool_label gets the slot number and the tool's name, tool_keys gives the defaults in slot order.",
 	"tool_label": "Tool %d: %s",
 	"tool_keys": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-	"_pad_names": "Pad buttons by their id here (the ids Controls knows) and how the menu shows them, Xbox style.",
+	"_pad_names": "Pad buttons and axes by their id here (the ids Controls knows) and how the menu shows them, Xbox style.",
 	"pad_names": {"a": "A", "b": "B", "x": "X", "y": "Y", "back": "Back", "guide": "Guide", "start": "Start",
 		"left_stick": "L3", "right_stick": "R3", "left_shoulder": "LB", "right_shoulder": "RB",
-		"dpad_up": "D-up", "dpad_down": "D-down", "dpad_left": "D-left", "dpad_right": "D-right"}
+		"dpad_up": "D-up", "dpad_down": "D-down", "dpad_left": "D-left", "dpad_right": "D-right",
+		"left_trigger": "LT", "right_trigger": "RT", "rs_up": "RS-up", "rs_down": "RS-down", "rs_left": "RS-left", "rs_right": "RS-right"}
 }

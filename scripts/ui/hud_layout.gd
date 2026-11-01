@@ -14,6 +14,11 @@ const BOXES := {
 	"status": Rect2i(384, 226, 92, 40),
 	"message": Rect2i(4, 4, 0, 19),
 }
+## Boxes that grow together with the UI size setting (UiScale), one group per corner, so the
+## boxes in a corner keep their gaps.
+const GROUPS := {"clock": "top_right", "festival": "top_right", "item": "bottom_left",
+	"tools": "bottom_left", "hand": "bottom_left", "status": "bottom_right", "message": "top_left"}
+const SCREEN := Vector2(480, 270)
 const SLOT := 18
 const SLOT_GAP := 2
 const TOOL_NAMES := {"hoe": "Hoe", "can": "Watering can", "sickle": "Sickle",
@@ -32,3 +37,28 @@ static func day_tag(ids: Array[String]) -> String:
 	if ids.is_empty():
 		return ""
 	return "%s's birthday" % Villagers.all()[ids[0]].name
+
+
+## A corner group's boxes as one rect (UiScale grows it about its pivot).
+static func group_rect(group: String) -> Rect2:
+	var out := Rect2()
+	var first := true
+	for key in GROUPS:
+		if GROUPS[key] == group:
+			out = Rect2(BOXES[key]) if first else out.merge(Rect2(BOXES[key]))
+			first = false
+	return out
+
+
+## Where box `key` sits (its rect, in viewport pixels) at UI size `wanted`: its group grown
+## as far as the group still fits on the screen.
+static func scaled_box(key: String, wanted: float) -> Rect2:
+	var g := group_rect(GROUPS[key])
+	var s := group_scale(key, wanted)
+	var r := Rect2(BOXES[key])
+	return Rect2(UiScale.offset(g, s, SCREEN) + r.position * s, r.size * s)
+
+
+## The scale box `key`'s group gets at UI size `wanted`.
+static func group_scale(key: String, wanted: float) -> float:
+	return UiScale.fit(wanted, group_rect(GROUPS[key]).size, SCREEN)

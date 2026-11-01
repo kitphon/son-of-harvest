@@ -1,10 +1,11 @@
 extends SceneTree
 ## Headless pause menu checks (Game's pause rule, Settings, PauseMenu, MenuList, Controls
-## with the pad buttons, settings in effect: text speed, HUD, always run). Run:
+## with the pad buttons and axes, settings in effect: text speed, HUD, always run, FPS limit,
+## UI size, window sizes that don't fit). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_menu.gd
 
 const PATH := "user://test_settings.json"
-const ALL := ["display", "window", "vsync", "flashes", "text_speed", "always_run", "hud", "music", "sfx", "ambient"]
+const ALL := ["display", "window", "vsync", "fps", "ui_scale", "flashes", "text_speed", "always_run", "hud", "music", "sfx", "ambient"]
 
 var failures := 0
 var _frame := 0
@@ -21,7 +22,10 @@ func _init() -> void:
 	_controls_menu()
 	_pad()
 	_pad_menu()
+	_pad_axes()
 	_text_speed()
+	_window_fit()
+	_ui_scale()
 
 
 # The farmer is checked on the Game autoload, which is in the tree from the first frame,
@@ -88,6 +92,14 @@ func _pause_rule() -> void:
 	g.settings.values.hud = false
 	g.apply_settings([])
 	check(g.text_speed == 0.0 and g.always_run and not g.hud_visible, "text speed, always run, HUD from the settings")
+	check(g.max_fps == 0 and Engine.max_fps == 0 and g.ui_scale == 1.0, "FPS limit off, UI size 100%: defaults")
+	g.settings.values.fps = "60"
+	g.settings.values.ui_scale = "150%"
+	g.apply_settings([])
+	check(g.max_fps == 60 and Engine.max_fps == 60 and g.ui_scale == 1.5, "FPS limit 60 and UI size 150%% from the settings (%d, %s)" % [Engine.max_fps, g.ui_scale])
+	g.settings.reset()
+	g.apply_settings([])
+	check(Engine.max_fps == 0, "reset: no FPS limit again")
 	g.free()
 	# The window scale drops to the biggest that fits on the screen.
 	var base := Vector2i(480, 270)
@@ -117,6 +129,13 @@ func _settings() -> void:
 		s.adjust("text_speed", 1)
 		check(s.value("text_speed") == want[0] and s.option_value("text_speed") == want[1], "text speed %s = %s" % want)
 	check(s.adjust("vsync", 1) and s.adjust("hud", 1) and s.adjust("always_run", 1), "the on / off settings flip")
+	check(s.value("fps") == "off" and s.value_text("fps") == "Off" and s.option_value("fps") == 0, "FPS limit: off by default")
+	for want in [["30", 30], ["60", 60], ["120", 120], ["144", 144], ["off", 0]]:
+		s.adjust("fps", 1)
+		check(s.value("fps") == want[0] and s.value_text("fps") == want[0].replace("off", "Off") and s.option_value("fps") == want[1], "FPS limit %s = %s" % want)
+	check(s.value("ui_scale") == "100%" and s.option_value("ui_scale") == 1.0, "UI size 100% by default")
+	check(s.adjust("ui_scale", 1) and s.value_text("ui_scale") == "125%" and s.option_value("ui_scale") == 1.25, "UI size 125%")
+	check(s.adjust("ui_scale", 1) and s.option_value("ui_scale") == 1.5 and not s.adjust("ui_scale", 1, false), "UI size 150%, the biggest")
 
 	_remove()
 	check(s.read(PATH) == "" and s.value("flashes") == false, "no file: nothing changes")
@@ -144,6 +163,9 @@ func _settings() -> void:
 		"sfx below 0": JSON.stringify({"version": 1, "settings": {"sfx": -10}}),
 		"ambient as text": JSON.stringify({"version": 1, "settings": {"ambient": "loud"}}),
 		"music in pieces": JSON.stringify({"version": 1, "settings": {"music": 45.5}}),
+		"fps as a number": JSON.stringify({"version": 2, "settings": {"fps": 60}}),
+		"unknown fps": JSON.stringify({"version": 2, "settings": {"fps": "75"}}),
+		"unknown UI size": JSON.stringify({"version": 2, "settings": {"ui_scale": "300%"}}),
 	}
 	for what in broken:
 		_put(broken[what])
@@ -165,7 +187,7 @@ func _settings() -> void:
 	_put(JSON.stringify({"version": 1, "settings": {"window": "2x"}}))
 	check(v1.read(PATH) == "" and v1.value("display") == "windowed" and v1.value("window") == "2x", "version 1: a window size stays")
 	s.reset()
-	check(s.values == Settings.make().values, "reset: every setting back to its default")
+	check(s.values == Settings.make().values and s.value("fps") == "off" and s.value("ui_scale") == "100%", "reset: every setting back to its default")
 	check(s.write(PATH) == "" and JSON.parse_string(FileAccess.get_file_as_string(PATH)).version == 2.0, "written as version 2")
 
 	# A whole-number range (the kind a volume setting would use).
@@ -657,12 +679,146 @@ func _settings_in_effect() -> void:
 	g.settings.values.always_run = true
 	g.apply_settings([])
 	check(not hud.visible and g.always_run, "HUD hidden at once, always run on")
+	# The UI size: the HUD's corners grow at once, each box where HudLayout puts it.
+	g.settings.values.ui_scale = "150%"
+	g.apply_settings([])
+	var grown := 0
+	for key in hud._placed:
+		var box: Control = hud._placed[key]
+		grown += int(box.scale == Vector2(1.5, 1.5) and box.position == HudLayout.scaled_box(key, 1.5).position)
+	check(grown == HudLayout.BOXES.size(), "UI size 150%%: every HUD box grown and placed (%d of %d)" % [grown, HudLayout.BOXES.size()])
+	g.settings.values.ui_scale = "100%"
+	g.apply_settings([])
+	var back := 0
+	for key in hud._placed:
+		var box: Control = hud._placed[key]
+		back += int(box.scale == Vector2.ONE and box.position == Vector2(HudLayout.BOXES[key].position))
+	check(back == HudLayout.BOXES.size(), "UI size 100%%: the HUD as it was (%d of %d)" % [back, HudLayout.BOXES.size()])
 	g.settings.values = kept
 	g.apply_settings([])
 	hud.queue_free()
+	# The pause menu shows fewer rows at a bigger UI size, so the box still fits (by path:
+	# PauseScreen names the Game autoload too).
+	var pause: GDScript = load("res://scripts/ui/pause_screen.gd")
+	var k: Dictionary = pause.get_script_constant_map()
+	var rows := []
+	for wanted in [1.0, 1.25, 1.5]:
+		var n: int = pause.visible_rows(wanted, 270)
+		var h: float = (k.TOP + 8 + n * k.ROW_H + k.ROW_H + 4) * wanted
+		check(h <= 270 and UiScale.fit(wanted, Vector2(k.CONTROLS_WIDTH, h / wanted), Vector2(480, 270)) == wanted, "pause menu at %d%%: %d rows fit (%d px)" % [int(wanted * 100), n, h])
+		rows.append(n)
+	check(rows[0] == k.VISIBLE and rows[2] < rows[1] and rows[1] < rows[0], "bigger UI, fewer rows (%s)" % [rows])
 
 
 func _has_button(action: String, button: int) -> bool:
 	var ev := InputEventJoypadButton.new()
 	ev.button_index = button
 	return InputMap.event_is_action(ev, action, true)
+
+
+## Triggers and the right stick in a pad slot: names, binding, the input map, the file,
+## the menu taking an axis push; the left stick stays the move actions'.
+func _pad_axes() -> void:
+	var c := Controls.make()
+	var rt := Controls.button_of("right_trigger")
+	var rs_up := Controls.button_of("rs_up")
+	check(Controls.is_axis(rt) and Controls.is_axis(rs_up) and rt != rs_up, "triggers and right-stick directions have pad codes")
+	check(c.pad_name(rt) == "RT" and c.pad_name(Controls.button_of("left_trigger")) == "LT" and c.pad_name(rs_up) == "RS-up", "axis names from data")
+	var on_axes := c.actions().filter(func(a): return Controls.is_axis(c.pad_button(a)))
+	check(on_axes.is_empty(), "no axis on an action by default (%s)" % [on_axes])
+	var r := c.bind_pad("quick_save", rt)
+	check(r.done and c.pad_button("quick_save") == rt, "the right trigger goes into a pad slot")
+	r = c.bind_pad("next_tool", rt)
+	check(r.done and r.other == "quick_save" and c.pad_button("quick_save") == JOY_BUTTON_RIGHT_SHOULDER, "an axis swaps like a button")
+	check(c.bind_pad("eat", rs_up).done and c.pad_button("eat") == rs_up, "a right-stick direction goes in")
+	var ls := Controls.axis_code(JOY_AXIS_LEFT_Y, -1)
+	check(not c.bind_pad("run", ls).done and c.pad_button("run") == JOY_BUTTON_X, "the left stick can't be bound")
+	check(Controls.motion_code(JOY_AXIS_RIGHT_Y, -0.9) == rs_up and Controls.motion_code(JOY_AXIS_TRIGGER_RIGHT, 1.0) == rt, "a full push is the axis' code")
+	check(Controls.motion_code(JOY_AXIS_RIGHT_Y, -0.3) == Controls.NO_BUTTON, "a nudge is nothing")
+	c.apply()
+	var axes := []
+	for action in ["next_tool", "eat"]:
+		for ev in InputMap.action_get_events(action):
+			if ev is InputEventJoypadMotion:
+				axes.append([action, ev.axis, int(ev.axis_value)])
+	check(axes == [["next_tool", JOY_AXIS_TRIGGER_RIGHT, 1], ["eat", JOY_AXIS_RIGHT_Y, -1]], "axes in the input map (%s)" % [axes])
+	var pull := InputEventJoypadMotion.new()
+	pull.axis = JOY_AXIS_TRIGGER_RIGHT
+	pull.axis_value = 1.0
+	check(InputMap.event_is_action(pull, "next_tool") and not _has_button("next_tool", JOY_BUTTON_RIGHT_SHOULDER), "pulling RT is Next tool, RB no longer")
+
+	_remove()
+	var s := Settings.make()
+	s.controls.pad_bound = c.pad_bound.duplicate()
+	check(s.write(PATH) == "", "wrote the axes")
+	var saved = JSON.parse_string(FileAccess.get_file_as_string(PATH))
+	check(saved.pad.next_tool == "right_trigger" and saved.pad.eat == "rs_up" and saved.pad.quick_save == "right_shoulder", "axes by id under pad (%s)" % [saved.pad])
+	var t := Settings.make()
+	check(t.read(PATH) == "" and t.controls.pad_bound == c.pad_bound, "axes round trip")
+	_put(JSON.stringify({"version": 2, "settings": {}, "pad": {"run": "ls_up"}}))
+	check(Settings.make().read(PATH) != "", "an unknown axis id is refused")
+	_remove()
+
+	# The menu: Enter on the pad slot, then a trigger pull.
+	var m := PauseMenu.new(Settings.make())
+	m.open("controls")
+	m.list.point("run")
+	m.slot = 2
+	m.choose()
+	var lt := Controls.motion_code(JOY_AXIS_TRIGGER_LEFT, 0.8)
+	check(m.press_pad(lt) == "controls" and m.settings.controls.pad_button("run") == lt and m.slot_text("run", 2) == "LT", "a trigger pull goes into the listening slot")
+	c.reset()
+	c.apply()
+
+
+## Window sizes bigger than the screen are left out of the menu; a saved one shows (and is
+## used as) the biggest that fits, and stays saved for a bigger screen.
+func _window_fit() -> void:
+	var game_script: GDScript = load("res://scripts/autoload/game.gd")
+	var options := ["2x", "3x", "4x"]
+	var base := Vector2i(480, 270)
+	check(game_script.too_big_windows(options, base, Vector2i(1920, 1040)) == ["4x"], "1080p: 4x doesn't fit")
+	check(game_script.too_big_windows(options, base, Vector2i(2560, 1400)).is_empty(), "1440p: all fit")
+	check(game_script.too_big_windows(options, base, Vector2i(800, 600)) == ["3x", "4x"], "a tiny screen: the smallest option stays")
+	var s := Settings.make()
+	s.hidden.window = ["4x"]
+	s.values.window = "4x"
+	check(s.value_text("window") == "3x" and s.option_value("window") == "3x", "a saved 4x shows the real 3x")
+	check(not s.adjust("window", 1, false) and s.value("window") == "4x", "right at the biggest that fits: nothing changes")
+	check(s.adjust("window", -1, false) and s.value("window") == "2x", "left from the real 3x: 2x")
+	check(s.adjust("window", 1) and s.value("window") == "3x" and s.adjust("window", 1) and s.value("window") == "2x", "4x is stepped over")
+	s.values.window = "4x"
+	var m := PauseMenu.new(s)
+	m.open("settings")
+	check(m.label("window") == "Window size: 3x", "the menu row (%s)" % m.label("window"))
+	s.hidden = {}
+	check(s.value_text("window") == "4x", "a bigger screen: 4x again")
+
+
+## UiScale: pivots keep a box where it was, sizes stop where a piece stops fitting, the HUD's
+## corners don't run into each other, the pause menu shows fewer rows to fit.
+func _ui_scale() -> void:
+	var screen := Vector2(480, 270)
+	check(UiScale.pivot(Rect2(165, 85, 150, 100), screen) == Vector2(240, 135), "a box in the middle grows from the middle")
+	var placed := UiScale.placed(Rect2(165, 85, 150, 100), 1.5, screen)
+	check(placed.size == Vector2(225, 150) and placed.get_center().distance_to(Vector2(240, 135)) < 1.0, "a centred box stays centred (%s)" % [placed])
+	check(UiScale.fit(1.5, Vector2(472, 62), screen) == 1.0, "the full-width text box has no room to grow")
+	check(UiScale.fit(1.5, Vector2(300, 200), screen) == 1.25 and UiScale.fit(1.25, Vector2(150, 94), screen) == 1.25, "a size that doesn't fit drops a step")
+	check(UiScale.fit(0.5, Vector2(10, 10), screen) == 1.0, "never below 100%")
+	for wanted in [1.0, 1.25, 1.5]:
+		var rects := {}
+		var inside := true
+		for key in HudLayout.BOXES:
+			if key == "message":
+				continue   # it grows with its text; checked below by its corner
+			rects[key] = HudLayout.scaled_box(key, wanted)
+			inside = inside and Rect2(Vector2.ZERO, screen).encloses(rects[key])
+		var clash := []
+		for a in rects:
+			for b in rects:
+				if a < b and HudLayout.GROUPS[a] != HudLayout.GROUPS[b] and rects[a].intersects(rects[b]):
+					clash.append([a, b])
+		check(inside and clash.is_empty(), "HUD at %d%%: on screen, corners apart (%s)" % [int(wanted * 100), clash])
+		var msg := HudLayout.scaled_box("message", wanted)
+		check(msg.position.x >= 0 and msg.position.y >= 0 and msg.position.x < 8 and msg.position.y < 8, "the message box keeps its corner at %d%%" % int(wanted * 100))
+	check(HudLayout.scaled_box("clock", 1.0) == Rect2(HudLayout.BOXES.clock), "100%: the HUD as laid out")

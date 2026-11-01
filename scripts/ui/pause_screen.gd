@@ -6,7 +6,8 @@ extends CanvasLayer
 ## paused (no time passes, the farmer stands still); weather particles keep falling.
 ## The pages and choices are PauseMenu. The controls page is wider, shows each action's key
 ## slots in two columns and its pad button in a third, and scrolls; while it waits for a key
-## every key goes to it (while it waits for a pad button, every pad button).
+## every key goes to it (while it waits for a pad button, every pad button, trigger and
+## right-stick push).
 ## `-- --pause` (or `--pause=settings`, `--pause=controls`) opens it at the start, for
 ## screenshots.
 
@@ -19,7 +20,7 @@ const NOTCH := Vector2(3, 5)   # one slider step, px; a pixel apart
 const CONTROLS_WIDTH := 300
 const SLOT_X := 118         # the first key column on the controls page, px from the paper's left
 const SLOT_STEP := 58       # from one key column to the next
-const VISIBLE := 14         # rows shown at once; a longer page scrolls
+const VISIBLE := 15         # rows shown at once; a longer page scrolls
 
 var menu: PauseMenu
 var _open := false
@@ -103,7 +104,8 @@ func _build() -> void:
 	_top = 0
 	_heading.text = menu.heading()
 	var width := CONTROLS_WIDTH if menu.page == "controls" else WIDTH
-	var n := mini(menu.list.items.size(), VISIBLE)
+	var screen := get_viewport().get_visible_rect().size
+	var n := mini(menu.list.items.size(), visible_rows(Game.ui_scale, screen.y))
 	for i in n:
 		var item: String = menu.list.items[i]
 		var row := _label(_paper, Vector2i(15, 5 + i * ROW_H))
@@ -138,9 +140,16 @@ func _build() -> void:
 	_wood.size = Vector2(width, TOP + _paper.size.y + 4)
 	_bar.visible = menu.list.items.size() > n
 	_bar.position.x = _paper.size.x - 6
-	var screen := get_viewport().get_visible_rect().size
 	_wood.position = ((screen - _wood.size) / 2).floor()
+	UiScale.apply_layer(self, Rect2(_wood.position, _wood.size), Game.ui_scale, screen)
 	_refresh()
+
+
+## Rows shown at once at UI size `ui_scale` on a screen `screen_h` high: VISIBLE, fewer when
+## the box grown by the UI size would not fit (a long page then scrolls).
+static func visible_rows(ui_scale: float, screen_h: float) -> int:
+	var room := floori((screen_h / maxf(ui_scale, 1.0) - TOP - 4 - 8 - ROW_H) / ROW_H)
+	return clampi(room, 1, VISIBLE)
 
 
 func _refresh() -> void:
@@ -208,11 +217,19 @@ func _unhandled_input(event: InputEvent) -> void:
 
 # While open, every key and pad button is taken here, so nothing reaches the farm or F5 / F9.
 func _input(event: InputEvent) -> void:
-	if not _open or not (event is InputEventKey or event is InputEventJoypadButton):
+	if not _open:
+		return
+	if event is InputEventJoypadMotion:
+		# A trigger or the right stick pushed far enough goes into a listening pad slot.
+		if menu.listening_pad() and Controls.motion_code(event.axis, event.axis_value) != Controls.NO_BUTTON:
+			get_viewport().set_input_as_handled()
+			_do(menu.press_pad(Controls.motion_code(event.axis, event.axis_value)))
+		return
+	if not (event is InputEventKey or event is InputEventJoypadButton):
 		return
 	get_viewport().set_input_as_handled()
 	if menu.listening_pad():
-		# Every pad button goes into the slot; of the keys only Esc counts (it cancels).
+		# Every pad button (or axis, above) goes into the slot; of the keys only Esc counts (it cancels).
 		if event is InputEventJoypadButton and event.pressed:
 			_do(menu.press_pad(event.button_index))
 		elif event is InputEventKey and event.pressed and not event.echo:
@@ -272,8 +289,14 @@ func _do(command: String) -> void:
 			var err := SaveGame.write(Game)
 			_say("Game saved" if err == "" else err)
 		"setting":
+			var ui := Game.ui_scale
 			Game.apply_settings()
 			var err := Game.settings.write()
+			if Game.ui_scale != ui:   # the UI size changed: the box grows or shrinks at once
+				var cursor := menu.list.cursor
+				_build()
+				menu.list.cursor = cursor
+				_refresh()
 			_say(err if err != "" else menu.note)
 		"controls":
 			Game.settings.controls.apply()

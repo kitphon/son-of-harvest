@@ -66,9 +66,10 @@ The rucksack and the storage chest are done (I opens the rucksack, the chest sta
 the house; slot counts in data/inventory.json, so a shop's rucksack upgrade is one number via
 `Inventory.grow("bag", n)`). The item held overhead is the rucksack's hand slot. Keys can be
 rebound in Esc → Settings → Controls (defaults in data/controls.json, saved in the settings
-file); pad buttons too (a third column, saved under `pad`). Esc → Settings also has display
-mode, window size, v-sync, text speed, always run, show HUD and reset to defaults (README →
-Settings).
+file); pad buttons, triggers and right-stick directions too (a third column, saved under
+`pad`). Esc → Settings also has display mode, window size (sizes too big for the screen left
+out), v-sync, an FPS limit, UI size (100-150%, each piece as far as it fits), text speed,
+always run, show HUD and reset to defaults (README → Settings).
 Villagers with daily schedules are in (data/villagers: Tome, Hachiro, Sayo, Kota; rule
 list → day plan, positions follow the clock, so entering the village shows everyone where
 their plan puts them; README → Villagers). Talking, gifts and affection are in: E facing a
@@ -249,6 +250,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
     - [x] Windows export preset (`export_presets.cfg`, .pck embedded) and our app icon
     - [ ] Build the .exe and check it starts (needs the 4.7.2 export templates; README → Export)
     - [x] Settings: display mode, window size, v-sync, text speed, always run, show HUD, reset to defaults, pad remapping
+    - [x] Settings 2: FPS limit, UI size, window sizes that fit the screen, triggers / right stick in pad slots
 
 ## Tools of record
 Godot 4.7.2 (GL Compatibility), GDScript, headless tests in `tests/`, Movie Maker screenshots.
