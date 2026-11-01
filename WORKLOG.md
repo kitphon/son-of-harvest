@@ -10,6 +10,39 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Merged ten branches: settings, water sounds, flat decorations, village snow, eat pose, rivals, river visits, gift lines, clinic, tool perk
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged with `--no-ff`, one at a time, all tests after each: `claude/tool-l5-build-msg-a89fb6`
+  (9461b44), `claude/settings-more-d823c2` (75c7f1b), `claude/river-ambient-b92ea4` (ac9d30c),
+  `claude/flat-decor-34b3f5` (c827518), `claude/village-snow-cf3215` (130b5c9),
+  `claude/eat-pose-612e16` (8df7399), `claude/contest-rivals-28449d` (574de93),
+  `claude/river-visits-b88717` (0b9b3ee), `claude/gift-lines-c06e56` (272bf26),
+  `claude/clinic-e95f60` (5b9bcbf). Six of the branches (settings-more, flat-decor,
+  village-snow, eat-pose, contest-rivals, clinic) had WORKLOG.md with an empty line after every
+  line (about 5,800 lines instead of 2,960); their WORKLOG was not taken: each merge kept
+  main's file and put the branch's own entry on top with the extra empty lines dropped, and
+  "this commit" in it became the branch hash. AGENTS.md conflicted twice on the screenshot
+  flags (`--ui`, `--snow`, `--eat` all kept). The clinic merge conflicted in ROADMAP (the tool
+  perk sentence and the clinic sentence both kept), data/foods.json `_about` (the herb tonic
+  note and the eat `pose` note both kept), `Game.end_day` (`build_news` is set, then the farmer
+  wakes at `go_to_spawn(wake_map, wake_spawn)`, the clinic's replacement for `go_home()`) and
+  tests/test_villagers.gd (`_river_sunday()` and `_doctor()` both run). After it test_talk
+  failed 5 checks: the gift-lines branch wants every villager to answer their loved keepsake
+  and dishes in their own words, and the clinic's Dr. Yae had none; data/dialogue/talk_yae.json
+  now has `gift_items` (keep:omamori, dish:love / like / neutral / dislike) and six lines of
+  our own.
+- Checked on merged main: all 24 test scripts print `OK (0 failed)`; headless runs (title
+  `--quit-after 300`, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --map=clinic`,
+  `--demo --season=winter --map=town`, `--demo --map=river --time=10:00`,
+  `res://scenes/main.tscn --quit-after 400`, `main_2d.tscn -- --demo --festival=moon_night`)
+  printed no errors or warnings. Screenshots: `--demo --season=winter --map=town --snow=80`
+  (snow on the village ground and both roofs, Kota and Tome by the spawn) and `--demo
+  --festival=blossom_day --contest=potato --quit-after 120` (the rivals at the judges' table
+  with their entries overhead, Tsuru's results box open); `shots/` deleted.
+- Left / next: giving Yae the omamori sets `kept_yae_omamori` but the clinic map has no prop
+  for it yet; why six worktrees wrote doubled WORKLOG lines is not known (all other files were
+  fine); a person still has to listen to the water sounds and play a real year.
+
 ## 2026-11-01 — Clinic: a collapse wakes the farmer in Dr. Yae's clinic
 Agent: Claude Code (claude-opus-5-5) · Commit: 5b9bcbf
 - Done: a village clinic (DESIGN: a collapse wakes in the clinic at 12:00 next day with a fee).

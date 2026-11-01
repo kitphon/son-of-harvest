@@ -1,5 +1,5 @@
 {
-	"_note": "What Dr. Yae says when the farmer talks to her away from her counter (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gifts in data/villagers/yae.json). She has no hearts, so no band rows past the first meeting. Our own lines.",
+	"_note": "What Dr. Yae says when the farmer talks to her away from her counter (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction; gift_items names her own answer to a keepsake or a dish (Talk.gift_line), by item or by dish:<reaction> (gifts in data/villagers/yae.json). She has no hearts, so no band rows past the first meeting. Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"flags": ["clinic_visits"], "band": [0, 1]}, "at": ["patient"]},
@@ -10,6 +10,13 @@
 		{"if": {"season": ["winter"]}, "at": ["winter"]},
 		{"at": ["plain_1", "plain_2", "plain_3"]}
 	],
+	"gift_items": {
+		"keep:omamori": "gift_omamori",
+		"dish:love": "gift_dish_love",
+		"dish:like": "gift_dish_like",
+		"dish:neutral": "gift_dish_neutral",
+		"dish:dislike": "gift_dish_dislike"
+	},
 	"lines": [
 		{"id": "again_1", "speaker": "yae", "face": "calm", "text": "Still here? Then sit a moment. Sitting is free.", "next": "end"},
 		{"id": "again_2", "speaker": "yae", "face": "smile", "text": "If you're looking for something to do, the shrine steps need nobody's help. Rest.", "next": "end"},
@@ -30,6 +37,12 @@
 		{"id": "gift_neutral", "speaker": "yae", "face": "calm", "text": "For me? That's kind. Thank you.", "next": "end"},
 		{"id": "gift_dislike", "speaker": "yae", "face": "worried", "text": "Sweets... I tell half the village to eat fewer of these. Thank you, though.", "next": "end"},
 		{"id": "gift_hate", "speaker": "yae", "face": "worried", "text": "A rock? I already have patients who dig in the mine. I don't need the souvenir.", "next": "end"},
+		{"id": "gift_omamori", "speaker": "yae", "face": "surprised", "text": "A health charm, for the doctor? Somebody at the shrine is laughing."},
+		{"speaker": "yae", "face": "smile", "text": "I'll hang it over the sick bed. Every little bit of help counts in there.", "next": "end"},
+		{"id": "gift_dish_love", "speaker": "yae", "face": "smile", "text": "Cooked at home, still warm. Better than any tonic on my shelf. Thank you.", "next": "end"},
+		{"id": "gift_dish_like", "speaker": "yae", "face": "smile", "text": "A proper meal. I'll eat it sitting down, for once.", "next": "end"},
+		{"id": "gift_dish_neutral", "speaker": "yae", "face": "calm", "text": "You cooked this? Then you're eating properly too. Good. Thank you.", "next": "end"},
+		{"id": "gift_dish_dislike", "speaker": "yae", "face": "worried", "text": "That much sugar in one bowl... I'll share it with the waiting room. Thank you.", "next": "end"},
 		{"id": "gift_again", "speaker": "yae", "face": "calm", "text": "One gift a day is plenty. Doctor's orders.", "next": "end"}
 	]
 }
