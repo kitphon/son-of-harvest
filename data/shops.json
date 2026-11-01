@@ -95,12 +95,13 @@
 			}
 		},
 		"teahouse": {
-			"_note": "Fumi's Hanami Teahouse in Sakurazaka (data/maps/teahouse.json): open every day 9:00-18:00 like its door, but only while Fumi is in (she sweeps the gravel and walks to the bridge 13:00-15:00; her note says so). Tea and one sweet the year round, a sweet of the season, and whipped matcha, which only she makes: the strongest fatigue cure short of the clinic's tonic (-8 for 150 G, against mugwort tea's half swing fatigue at 350 and the tonic's -15 at 400). The seasonal sweets sit between dango and amazake for stamina per G; they are a treat on the way to the mine, not a cheaper store. Names and prices are ours.",
+			"_note": "Fumi's Hanami Teahouse in Sakurazaka (data/maps/teahouse.json): open every day 9:00-18:00 like its door, but only while Fumi is in (she sweeps the gravel and walks to the bridge 13:00-15:00; her note says so; on a festival day she goes down to the village and her festival note says where). Tea and one sweet the year round, a sweet of the season, and whipped matcha, which only she makes: the strongest fatigue cure short of the clinic's tonic (-8 for 150 G, against mugwort tea's half swing fatigue at 350 and the tonic's -15 at 400). The seasonal sweets sit between dango and amazake for stamina per G; they are a treat on the way to the mine, not a cheaper store. Names and prices are ours.",
 			"name": "Hanami Teahouse",
 			"map": "teahouse",
 			"open": [9, 18],
 			"days_off": [],
 			"keeper": "fumi",
+			"festival_away": "A note by the teapot: \"Off to the %s! -Fumi\"",
 			"away": "A note by the teapot: \"Out front for a breath of air. Back at three. -Fumi\"",
 			"stock": {
 				"spring": [{"item": "food:sakura_mochi"}],

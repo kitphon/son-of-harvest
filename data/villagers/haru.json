@@ -15,6 +15,9 @@
 		"shoes": "6b4423"
 	},
 	"rules": [
+		{"if": {"festival": ["blossom_day"]}, "plan": "festival_day"},
+		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
+		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
 	],
 	"default": "usual",
@@ -25,6 +28,31 @@
 		"hate": ["mine:stone"]
 	},
 	"plans": {
+		"festival_day": [
+			{"at": "06:00", "map": "haru_house", "from": [5, 2], "route": [{"face": "down"}]},
+			{"at": "09:35", "map": "kaminoda", "from": [27, 7], "route": [{"to": [27, 10]}, {"to": [11, 10]}, {"to": [11, 19]}]},
+			{"at": "10:00", "map": "town", "from": [11, 0], "route": [{"to": [11, 11]}, {"to": [14, 11]}, {"to": [14, 12]}, {"face": "right"}]},
+			{"at": "15:45", "map": "town", "route": [{"to": [14, 11]}, {"to": [11, 11]}, {"to": [11, 0]}]},
+			{"at": "16:00", "map": "kaminoda", "from": [11, 19], "route": [{"to": [11, 10]}, {"to": [27, 10]}, {"to": [27, 7]}, {"face": "up"}]},
+			{"at": "16:25", "map": "haru_house", "from": [5, 2], "route": [{"face": "down"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"festival_night": [
+			{"at": "06:00", "map": "haru_house", "from": [5, 2], "route": [{"face": "down"}]},
+			{"at": "17:25", "map": "kaminoda", "from": [27, 7], "route": [{"to": [27, 10]}, {"to": [11, 10]}, {"to": [11, 19]}]},
+			{"at": "17:50", "map": "town", "from": [11, 0], "route": [{"to": [11, 11]}, {"to": [25, 11]}, {"to": [25, 9]}, {"face": "left"}]},
+			{"at": "21:40", "map": "town", "route": [{"to": [25, 11]}, {"to": [11, 11]}, {"to": [11, 0]}]},
+			{"at": "22:00", "map": "kaminoda", "from": [11, 19], "route": [{"to": [11, 10]}, {"to": [27, 10]}, {"to": [27, 7]}, {"face": "up"}]},
+			{"at": "22:25", "map": "away"}
+		],
+		"festival_year": [
+			{"at": "06:00", "map": "haru_house", "from": [5, 2], "route": [{"face": "down"}]},
+			{"at": "18:25", "map": "kaminoda", "from": [27, 7], "route": [{"to": [27, 10]}, {"to": [11, 10]}, {"to": [11, 19]}]},
+			{"at": "18:50", "map": "town", "from": [11, 0], "route": [{"to": [11, 11]}, {"to": [19, 11]}, {"to": [19, 5]}, {"to": [17, 5]}, {"face": "up"}]},
+			{"at": "23:00", "map": "town", "route": [{"to": [19, 5]}, {"to": [19, 11]}, {"to": [11, 11]}, {"to": [11, 0]}]},
+			{"at": "23:20", "map": "kaminoda", "from": [11, 19], "route": [{"to": [11, 10]}, {"to": [27, 10]}, {"to": [27, 7]}, {"face": "up"}]},
+			{"at": "23:45", "map": "away"}
+		],
 		"usual": [
 			{"at": "06:00", "map": "haru_house", "from": [5, 2], "route": [{"face": "down"}]},
 			{"at": "08:00", "map": "kaminoda", "from": [27, 7], "route": [{"to": [27, 9]}, {"to": [28, 9]}, {"face": "up"}], "loop": [{"wait": 15}, {"to": [30, 9]}, {"face": "up"}, {"wait": 15}, {"to": [28, 9]}, {"face": "up"}]},

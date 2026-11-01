@@ -586,7 +586,12 @@ under the blossoms from 13:00 to 15:45 on Blossom Day (the store stays open, her
 `festival_away`'s note in `data/shops.json`), at the night food stall, by the moon table after
 closing, and between the shrine and the bonfire at Year's Turn. In a festival's hours each
 says a `festival_<id>` line (`data/dialogue/talk_<id>.json`). A house job under way keeps
-Hachiro building.
+Hachiro building. The people of the outer parts come too, by three plans each
+(`festival_day` for Blossom Day, `festival_night` for Lantern and Moon Night, `festival_year`):
+a holiday at home (Fumi pours tea at her counter until she goes; her note is the teahouse's
+`festival_away`), then down their lane into the village (Kaminoda from the north, Sakurazaka
+from the east, Minamino from the south) to a spot of their own by the stalls, the mats or the
+shrine, and back home after the hours. Dr. Yae stays by the clinic.
 
 **A played contest: the mochi pounding.** A festival may also have a `game`, a contest that is
 played rather than judged. Year's Turn has the Mochi Pounding at a `mochi_usu` prop (a hooped

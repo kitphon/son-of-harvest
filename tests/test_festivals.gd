@@ -1,6 +1,6 @@
 extends SceneTree
 ## Headless checks for festivals (data/festivals.json, Festivals, Game's festival day, shops
-## shut for it, the fair weather, villagers gathering (all four, with festival lines), the event once a year, the decorations
+## shut for it, the fair weather, villagers gathering (everyone but the doctor, with festival lines), the event once a year, the decorations
 ## and lights in both views, the HUD tag, the contests and their result lines, the stalls and
 ## their wares, ribbons and the farmhouse board, the shipping payout held back on the day, the
 ## mochi pounding: its data, timing, ranking, prizes, ribbon, save and screen; the Moon Night
@@ -127,16 +127,25 @@ func _villagers() -> void:
 		"a festival rule must name a festival")
 
 
-## Everyone is out at every festival: Hachiro and Sayo too, by their own festival plans, in
-## the festival's hours, and each has a line for it. The rivals of each contest are there.
+## Everyone is out at every festival: Hachiro and Sayo too, by their own festival plans, and
+## the people of Kaminoda, Sakurazaka and Minamino (all but Dr. Yae, who stays by the clinic), in
+## the festival's hours, each with a line for it, no two on one cell. The rivals of each
+## contest are there.
 func _crowd() -> void:
 	var mid := {"blossom_day": 840, "lantern_night": 1200, "moon_night": 1230, "years_turn": 1290}
 	for fid in Festivals.all():
 		var f := Festivals.get_festival(fid)
 		var s := {"year": 1, "season": f.season, "day": int(f.day), "weekday": "tue", "weather": "sunny", "flags": {}, "festival": fid}
-		for who in ["hachiro", "sayo", "kota", "tome"]:
+		var cells := {}
+		for who in Villagers.all():
+			if who == "yae":
+				check(Villagers.where(who, float(mid[fid]), s).map != f.map, "Dr. Yae stays by the clinic at %s" % fid)
+				continue
 			var w := Villagers.where(who, float(mid[fid]), s)
 			check(w.map == f.map, "%s is out at %s at %d (%s)" % [who, fid, mid[fid], w])
+			var c := Vector2i(w.pos.floor())
+			check(not cells.has(c), "%s and %s on one cell %s at %s" % [who, cells.get(c, ""), c, fid])
+			cells[c] = who
 			var line := Talk.pick(who, {"band": 2, "again": false, "day_number": 0, "time": mid[fid]}.merged(s))
 			check(line == "festival_" + fid and Talk.has_line(who, line), "%s says %s at %s (%s)" % [who, "festival_" + fid, fid, line])
 			check(Talk.pick(who, {"band": 2, "again": false, "day_number": 0, "time": 400}.merged(s)) != "festival_" + fid,
@@ -147,6 +156,13 @@ func _crowd() -> void:
 	check(Villagers.where("sayo", 660.0, blossom).map == "store" and Villagers.where("sayo", 1000.0, blossom).map == "store",
 		"on Blossom Day Sayo keeps the store in the morning and after 15:45")
 	check(Villagers.where("hachiro", 660.0, blossom).map == "town", "the smithy is shut: Hachiro is at the blossoms in the morning")
+	# The outer parts come down the lanes: home in the morning, back after the hours.
+	for who in ["genzo", "haru", "fumi", "ichiro", "shige", "nana", "kiku"]:
+		check(Villagers.where(who, 420.0, blossom).map != "town" and Villagers.where(who, 1050.0, blossom).map != "town",
+			"%s is in the village only for Blossom Day's hours" % who)
+	var lantern := {"year": 1, "season": "summer", "day": 20, "weekday": "mon", "weather": "sunny", "flags": {}, "festival": "lantern_night"}
+	check(Villagers.where("fumi", 600.0, lantern).map == "teahouse" and Villagers.where("fumi", 1110.0, lantern).map == "town",
+		"Lantern Night: Fumi pours tea by day, is in the village by 18:30")
 	var plain := blossom.merged({"festival": "", "day": 9, "weekday": "tue"}, true)
 	check(Villagers.where("hachiro", 840.0, plain).map == "smithy" and Villagers.where("sayo", 840.0, plain).map == "store", "a plain day: both at work")
 	var building := blossom.merged({"flags": {"house_work": true}}, true)

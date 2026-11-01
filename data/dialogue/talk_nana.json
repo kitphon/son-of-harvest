@@ -3,6 +3,10 @@
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
+		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
+		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
+		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"map": ["town"]}, "at": ["pond_1", "pond_2"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
 		{"if": {"season": ["summer"]}, "at": ["summer"]},
@@ -17,6 +21,10 @@
 		"dish:dislike": "gift_dish_dislike"
 	},
 	"lines": [
+		{"id": "festival_blossom_day", "speaker": "nana", "mood": "happy", "text": "I counted the petals on the mat. I got to forty and then a big wind came!", "next": "end"},
+		{"id": "festival_lantern_night", "speaker": "nana", "mood": "surprised", "text": "The drum goes BOM and my tummy goes BOM too! Does yours?", "next": "end"},
+		{"id": "festival_moon_night", "speaker": "nana", "mood": "neutral", "text": "Is there really a rabbit up there making mochi? Kota says yes. Papa says ask the moon.", "next": "end"},
+		{"id": "festival_years_turn", "speaker": "nana", "mood": "happy", "text": "I'm staying up till midnight. I am! ...What time is it now?", "next": "end"},
 		{"id": "again_1", "speaker": "nana", "mood": "surprised", "text": "You again! Are you following me? ...That's okay, you can.", "next": "end"},
 		{"id": "again_2", "speaker": "nana", "mood": "happy", "text": "I'm busy! Very busy. This is important worm business.", "next": "end"},
 		{"id": "new_1", "speaker": "nana", "mood": "happy", "text": "Hi! I'm Nana! I live down in Minamino with my dad. He grows vegetables and talks to the dirt."},

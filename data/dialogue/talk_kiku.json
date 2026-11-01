@@ -3,6 +3,10 @@
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
+		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
+		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
+		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"time": ["14:00", "15:00"]}, "at": ["shrine"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
 		{"if": {"season": ["fall"]}, "at": ["fall_1", "fall_2"]},
@@ -17,6 +21,10 @@
 		"dish:dislike": "gift_dish_dislike"
 	},
 	"lines": [
+		{"id": "festival_blossom_day", "speaker": "kiku", "mood": "happy", "text": "Seventy-odd springs and these blossoms still make me hold my breath.", "next": "end"},
+		{"id": "festival_lantern_night", "speaker": "kiku", "mood": "neutral", "text": "Lanterns are for walking old women home. That's what they're for, if you ask me.", "next": "end"},
+		{"id": "festival_moon_night", "speaker": "kiku", "mood": "happy", "text": "My persimmons hang drying under this same moon. They'll be sweet by winter.", "next": "end"},
+		{"id": "festival_years_turn", "speaker": "kiku", "mood": "sad", "text": "Another year turned. I ring my little bell once for each person I miss. It takes a while now.", "next": "end"},
 		{"id": "again_1", "speaker": "kiku", "mood": "happy", "text": "My, you do like an old woman's chatter. Stay as long as you like.", "next": "end"},
 		{"id": "again_2", "speaker": "kiku", "mood": "neutral", "text": "Go on, dear. The day is short for the young and long for the old.", "next": "end"},
 		{"id": "new_1", "speaker": "kiku", "mood": "happy", "text": "Oh, the young farmer. Tome told me about you. I'm Kiku. These persimmon trees are older than I am."},

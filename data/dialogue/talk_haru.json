@@ -3,6 +3,10 @@
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
+		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
+		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
+		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"map": ["hill"]}, "at": ["hill_1", "hill_2"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
 		{"if": {"time": ["06:00", "10:30"]}, "at": ["garden_1", "garden_2"]},
@@ -11,6 +15,10 @@
 		{"at": ["plain_1", "plain_2", "plain_3"]}
 	],
 	"lines": [
+		{"id": "festival_blossom_day", "speaker": "haru", "mood": "happy", "text": "Genzo says he comes for the dango. He comes for the blossoms. Don't tell him I said so.", "next": "end"},
+		{"id": "festival_lantern_night", "speaker": "haru", "mood": "surprised", "text": "All these lanterns! Up in Kaminoda the only lights at night are the fireflies.", "next": "end"},
+		{"id": "festival_moon_night", "speaker": "haru", "mood": "happy", "text": "I brought a sprig of pampas from our dike for the moon table. It's the tall one.", "next": "end"},
+		{"id": "festival_years_turn", "speaker": "haru", "mood": "neutral", "text": "I wrote my wish for the year on a slip of paper. If I tell you, it won't come true.", "next": "end"},
 		{"id": "again_1", "speaker": "haru", "mood": "happy", "text": "Twice in a day! Careful, people will say you've taken a liking to Kaminoda.", "next": "end"},
 		{"id": "again_2", "speaker": "haru", "mood": "neutral", "text": "I'm mid-braid, so I'll talk with my hands busy. Go on.", "next": "end"},
 		{"id": "new_1", "speaker": "haru", "mood": "surprised", "text": "Oh! A new face up here. I'm Haru. I weave straw: sandals, mats, rope, whatever's needed."},

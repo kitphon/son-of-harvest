@@ -3,6 +3,10 @@
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
+		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
+		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
+		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
 		{"if": {"time": ["06:00", "11:40"]}, "at": ["woods_1", "woods_2"]},
 		{"if": {"time": ["11:40", "12:45"]}, "at": ["lunch"]},
@@ -17,6 +21,10 @@
 		"dish:dislike": "gift_dish_dislike"
 	},
 	"lines": [
+		{"id": "festival_blossom_day", "speaker": "ichiro", "mood": "neutral", "text": "I took the day off from the axe. The grove gets one quiet day a year too.", "next": "end"},
+		{"id": "festival_lantern_night", "speaker": "ichiro", "mood": "happy", "text": "Hot work by that yakisoba griddle. Still cooler than my kiln.", "next": "end"},
+		{"id": "festival_moon_night", "speaker": "ichiro", "mood": "happy", "text": "Roast chestnuts smell like the end of a good burn. Smells like home to me.", "next": "end"},
+		{"id": "festival_years_turn", "speaker": "ichiro", "mood": "neutral", "text": "That bonfire's good cedar. I split half of it myself, if anyone asks.", "next": "end"},
 		{"id": "again_1", "speaker": "ichiro", "mood": "neutral", "text": "...Still here.", "next": "end"},
 		{"id": "again_2", "speaker": "ichiro", "mood": "neutral", "text": "Talk's done. Wood isn't.", "next": "end"},
 		{"id": "new_1", "speaker": "ichiro", "mood": "neutral", "text": "Ichiro. I burn charcoal. The village's fires, the smithy's forge. Mine, mostly."},

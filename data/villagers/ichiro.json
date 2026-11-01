@@ -16,6 +16,9 @@
 		"shoes": "4a3a30"
 	},
 	"rules": [
+		{"if": {"festival": ["blossom_day"]}, "plan": "festival_day"},
+		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
+		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
 	],
 	"default": "usual",
@@ -31,6 +34,31 @@
 		"hate": ["mine:clay"]
 	},
 	"plans": {
+		"festival_day": [
+			{"at": "06:00", "map": "ichiro_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "09:35", "map": "sakurazaka", "from": [22, 16], "route": [{"to": [19, 16]}, {"to": [19, 10]}, {"to": [0, 10]}]},
+			{"at": "10:00", "map": "town", "from": [35, 10], "route": [{"to": [24, 10]}, {"to": [24, 9]}, {"face": "up"}]},
+			{"at": "15:45", "map": "town", "route": [{"to": [24, 10]}, {"to": [35, 10]}]},
+			{"at": "16:00", "map": "sakurazaka", "from": [0, 10], "route": [{"to": [19, 10]}, {"to": [19, 16]}, {"to": [22, 16]}, {"face": "up"}]},
+			{"at": "16:25", "map": "ichiro_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "20:00", "map": "away"}
+		],
+		"festival_night": [
+			{"at": "06:00", "map": "ichiro_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "17:20", "map": "sakurazaka", "from": [22, 16], "route": [{"to": [19, 16]}, {"to": [19, 10]}, {"to": [0, 10]}]},
+			{"at": "17:45", "map": "town", "from": [35, 10], "route": [{"to": [9, 10]}, {"to": [9, 9]}, {"face": "up"}]},
+			{"at": "21:40", "map": "town", "route": [{"to": [9, 10]}, {"to": [35, 10]}]},
+			{"at": "22:05", "map": "sakurazaka", "from": [0, 10], "route": [{"to": [19, 10]}, {"to": [19, 16]}, {"to": [22, 16]}, {"face": "up"}]},
+			{"at": "22:30", "map": "away"}
+		],
+		"festival_year": [
+			{"at": "06:00", "map": "ichiro_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "18:20", "map": "sakurazaka", "from": [22, 16], "route": [{"to": [19, 16]}, {"to": [19, 10]}, {"to": [0, 10]}]},
+			{"at": "18:45", "map": "town", "from": [35, 10], "route": [{"to": [19, 10]}, {"to": [19, 5]}, {"to": [23, 5]}, {"to": [23, 4]}, {"face": "left"}]},
+			{"at": "23:00", "map": "town", "route": [{"to": [23, 5]}, {"to": [19, 5]}, {"to": [19, 10]}, {"to": [35, 10]}]},
+			{"at": "23:25", "map": "sakurazaka", "from": [0, 10], "route": [{"to": [19, 10]}, {"to": [19, 16]}, {"to": [22, 16]}, {"face": "up"}]},
+			{"at": "23:50", "map": "away"}
+		],
 		"usual": [
 			{"at": "06:00", "map": "ichiro_house", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "06:30", "map": "sakurazaka", "from": [22, 16], "route": [{"to": [19, 16]}, {"to": [19, 10]}, {"to": [21, 10]}, {"to": [21, 6]}, {"face": "up"}], "loop": [{"work": 20}, {"to": [23, 6]}, {"face": "up"}, {"work": 20}, {"to": [21, 6]}, {"face": "up"}]},

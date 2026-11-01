@@ -3,6 +3,10 @@
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
+		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
+		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
+		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
 		{"if": {"season": ["spring"]}, "at": ["spring_1", "spring_2"]},
 		{"if": {"season": ["summer"]}, "at": ["summer"]},
@@ -18,6 +22,10 @@
 		"dish:dislike": "gift_dish_dislike"
 	},
 	"lines": [
+		{"id": "festival_blossom_day", "speaker": "fumi", "mood": "happy", "text": "I shut the teahouse for this. Someone else's dango, for once, and I just sit and eat it.", "next": "end"},
+		{"id": "festival_lantern_night", "speaker": "fumi", "mood": "happy", "text": "Shaved ice! At home I'd never let myself. Tonight doesn't count.", "next": "end"},
+		{"id": "festival_moon_night", "speaker": "fumi", "mood": "neutral", "text": "The moon looks the same from the teahouse, but it's better with company.", "next": "end"},
+		{"id": "festival_years_turn", "speaker": "fumi", "mood": "neutral", "text": "Before anyone's awake tomorrow I'll rake the gravel. A clean start, my mother called it.", "next": "end"},
 		{"id": "again_1", "speaker": "fumi", "mood": "happy", "text": "Back again? Sit, sit. The second cup is always the better one.", "next": "end"},
 		{"id": "again_2", "speaker": "fumi", "mood": "neutral", "text": "I'm only watching the kettle. It never boils while I talk, you know.", "next": "end"},
 		{"id": "new_1", "speaker": "fumi", "mood": "happy", "text": "Welcome to the Hanami teahouse. I'm Fumi. My mother poured tea here, and her mother before."},

@@ -15,6 +15,9 @@
 		"shoes": "6b4423"
 	},
 	"rules": [
+		{"if": {"festival": ["blossom_day"]}, "plan": "festival_day"},
+		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
+		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
 	],
 	"default": "usual",
@@ -30,6 +33,31 @@
 		"hate": ["mine:stone"]
 	},
 	"plans": {
+		"festival_day": [
+			{"at": "06:00", "map": "teahouse", "from": [4, 1], "route": [{"face": "down"}]},
+			{"at": "09:40", "map": "sakurazaka", "from": [7, 8], "route": [{"to": [7, 10]}, {"to": [0, 10]}]},
+			{"at": "09:50", "map": "town", "from": [35, 10], "route": [{"to": [11, 10]}, {"to": [11, 8]}, {"face": "left"}]},
+			{"at": "15:45", "map": "town", "route": [{"to": [11, 10]}, {"to": [35, 10]}]},
+			{"at": "16:10", "map": "sakurazaka", "from": [0, 10], "route": [{"to": [7, 10]}, {"to": [7, 8]}, {"face": "up"}]},
+			{"at": "16:20", "map": "teahouse", "from": [4, 1], "route": [{"face": "down"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"festival_night": [
+			{"at": "06:00", "map": "teahouse", "from": [4, 1], "route": [{"face": "down"}]},
+			{"at": "17:40", "map": "sakurazaka", "from": [7, 8], "route": [{"to": [7, 10]}, {"to": [0, 10]}]},
+			{"at": "17:50", "map": "town", "from": [35, 10], "route": [{"to": [14, 10]}, {"to": [14, 9]}, {"face": "up"}]},
+			{"at": "21:40", "map": "town", "route": [{"to": [14, 10]}, {"to": [35, 10]}]},
+			{"at": "22:00", "map": "sakurazaka", "from": [0, 10], "route": [{"to": [7, 10]}, {"to": [7, 8]}, {"face": "up"}]},
+			{"at": "22:10", "map": "away"}
+		],
+		"festival_year": [
+			{"at": "06:00", "map": "teahouse", "from": [4, 1], "route": [{"face": "down"}]},
+			{"at": "18:35", "map": "sakurazaka", "from": [7, 8], "route": [{"to": [7, 10]}, {"to": [0, 10]}]},
+			{"at": "18:45", "map": "town", "from": [35, 10], "route": [{"to": [19, 10]}, {"to": [19, 5]}, {"to": [15, 5]}, {"to": [15, 3]}, {"face": "up"}]},
+			{"at": "23:00", "map": "town", "route": [{"to": [15, 5]}, {"to": [19, 5]}, {"to": [19, 10]}, {"to": [35, 10]}]},
+			{"at": "23:25", "map": "sakurazaka", "from": [0, 10], "route": [{"to": [7, 10]}, {"to": [7, 8]}, {"face": "up"}]},
+			{"at": "23:35", "map": "away"}
+		],
 		"usual": [
 			{"at": "06:00", "map": "teahouse", "from": [4, 1], "route": [{"face": "down"}]},
 			{"at": "12:00", "map": "teahouse", "from": [4, 1], "route": [{"to": [5, 1]}, {"to": [5, 5]}, {"to": [4, 5]}, {"face": "down"}]},

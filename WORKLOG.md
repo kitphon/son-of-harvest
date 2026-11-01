@@ -10,6 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — The new villagers at the festivals
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: Genzo, Haru, Fumi, Ichiro, Shige, Nana and Kiku each have three festival plans and
+  rules for them (first in their rule lists, before the wet-day one): `festival_day` (Blossom
+  Day), `festival_night` (Lantern Night and Moon Night) and `festival_year` (Year's Turn). The
+  day is a holiday at home (Fumi at her teahouse counter until she leaves), then the walk down
+  their lane, through the village door of their part, to a spot of their own: Genzo and Haru on
+  a picnic mat, Fumi by the dango stall, Kiku under a cherry, Shige by the small mat, Ichiro by
+  the east cherries, Nana running along the south lane on Blossom Day; by the stalls and on the
+  road at the night festivals; on the shrine gravel (Fumi at the soba stall, Ichiro by the
+  bonfire) at Year's Turn, Nana running by the torii. They arrive in the first quarter hour
+  and leave at 15:45 / 21:40 / 23:00 (Kiku, the oldest and slowest, at 21:00 and 22:30), home
+  and to bed after. Leg times were worked out from each one's walk speed with a few minutes
+  spare (a generator script, not kept). Each has a `festival_<id>` line for all four
+  festivals (28 new lines, our own). The teahouse has a `festival_away` note. Dr. Yae stays
+  by the clinic.
+- Checked: test_festivals' crowd check now covers every villager but Yae (in the village in
+  the hours, the festival line, no two on one cell), plus the outer parts only in Blossom
+  Day's hours and Fumi's Lantern Night; first run of test_villagers found Nana's Blossom loop
+  walking through a fence at (12, 14): moved east. All 25 test scripts print `OK (0 failed)`;
+  smoke runs (title, `--demo`, town, mine 3, `--festival=years_turn`) print no errors;
+  screenshots of Blossom Day at 10:31 and Year's Turn at 19:31 show the bigger crowd.
+- Left / next: the new villagers in the village record and as contest rivals; forage in the
+  other parts.
+
 ## 2026-11-01 — Forage on the bamboo hill
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: DESIGN's forage rule (fixed spots per area, the kind changes with the season, a picked

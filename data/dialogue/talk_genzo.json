@@ -3,6 +3,10 @@
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
+		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
+		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
+		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
 		{"if": {"season": ["spring"]}, "at": ["spring_1", "spring_2"]},
 		{"if": {"season": ["summer"]}, "at": ["summer"]},
@@ -11,6 +15,10 @@
 		{"at": ["plain_1", "plain_2"]}
 	],
 	"lines": [
+		{"id": "festival_blossom_day", "speaker": "genzo", "mood": "happy", "text": "Petals on the shrine steps. My wife used to sweep them into a heap, then never had the heart to burn it.", "next": "end"},
+		{"id": "festival_lantern_night", "speaker": "genzo", "mood": "happy", "text": "I come down for the drums. My ears are old, but they still know a good drum.", "next": "end"},
+		{"id": "festival_moon_night", "speaker": "genzo", "mood": "neutral", "text": "A full moon over drained paddies. The best mirror there is, and nobody owns it.", "next": "end"},
+		{"id": "festival_years_turn", "speaker": "genzo", "mood": "happy", "text": "Another year of rice in the storehouse. That's all a farmer asks. Well, that and a bowl of soba.", "next": "end"},
 		{"id": "again_1", "speaker": "genzo", "mood": "neutral", "text": "Hm? Still here. The paddies won't talk back, so I don't mind.", "next": "end"},
 		{"id": "again_2", "speaker": "genzo", "mood": "happy", "text": "Go on, go on. A farmer standing still is a farmer losing light.", "next": "end"},
 		{"id": "new_1", "speaker": "genzo", "mood": "neutral", "text": "The new one from the old farm below? I'm Genzo. These terraces were cut by my grandfather's grandfather."},

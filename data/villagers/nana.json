@@ -15,6 +15,9 @@
 		"shoes": "c8442c"
 	},
 	"rules": [
+		{"if": {"festival": ["blossom_day"]}, "plan": "festival_day"},
+		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
+		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
 	],
 	"default": "usual",
@@ -25,6 +28,31 @@
 		"hate": ["mine:stone"]
 	},
 	"plans": {
+		"festival_day": [
+			{"at": "06:00", "map": "shige_house", "from": [2, 2], "route": [{"face": "down"}]},
+			{"at": "09:40", "map": "minamino", "from": [11, 7], "route": [{"to": [11, 9]}, {"to": [4, 9]}, {"to": [4, 0]}]},
+			{"at": "09:55", "map": "town", "from": [4, 21], "route": [{"to": [4, 11]}, {"to": [17, 11]}, {"to": [17, 16]}, {"face": "down"}], "loop": [{"wait": 8}, {"to": [22, 16]}, {"face": "down"}, {"wait": 8}, {"to": [17, 16]}, {"face": "down"}]},
+			{"at": "15:45", "map": "town", "route": [{"to": [17, 16]}, {"to": [17, 11]}, {"to": [4, 11]}, {"to": [4, 21]}]},
+			{"at": "16:05", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 9]}, {"to": [11, 9]}, {"to": [11, 7]}, {"face": "up"}]},
+			{"at": "16:20", "map": "shige_house", "from": [2, 2], "route": [{"face": "down"}]},
+			{"at": "20:00", "map": "away"}
+		],
+		"festival_night": [
+			{"at": "06:00", "map": "shige_house", "from": [2, 2], "route": [{"face": "down"}]},
+			{"at": "17:35", "map": "minamino", "from": [11, 7], "route": [{"to": [11, 9]}, {"to": [4, 9]}, {"to": [4, 0]}]},
+			{"at": "17:50", "map": "town", "from": [4, 21], "route": [{"to": [4, 11]}, {"to": [23, 11]}, {"to": [23, 12]}, {"face": "down"}], "loop": [{"wait": 8}, {"to": [27, 12]}, {"face": "down"}, {"wait": 8}, {"to": [23, 12]}, {"face": "down"}]},
+			{"at": "21:40", "map": "town", "route": [{"to": [23, 12]}, {"to": [23, 11]}, {"to": [4, 11]}, {"to": [4, 21]}]},
+			{"at": "22:00", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 9]}, {"to": [11, 9]}, {"to": [11, 7]}, {"face": "up"}]},
+			{"at": "22:15", "map": "away"}
+		],
+		"festival_year": [
+			{"at": "06:00", "map": "shige_house", "from": [2, 2], "route": [{"face": "down"}]},
+			{"at": "18:40", "map": "minamino", "from": [11, 7], "route": [{"to": [11, 9]}, {"to": [4, 9]}, {"to": [4, 0]}]},
+			{"at": "18:55", "map": "town", "from": [4, 21], "route": [{"to": [4, 11]}, {"to": [12, 11]}, {"to": [12, 8]}, {"face": "down"}], "loop": [{"wait": 8}, {"to": [15, 8]}, {"face": "down"}, {"wait": 8}, {"to": [12, 8]}, {"face": "down"}]},
+			{"at": "23:00", "map": "town", "route": [{"to": [12, 8]}, {"to": [12, 11]}, {"to": [4, 11]}, {"to": [4, 21]}]},
+			{"at": "23:15", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 9]}, {"to": [11, 9]}, {"to": [11, 7]}, {"face": "up"}]},
+			{"at": "23:30", "map": "away"}
+		],
 		"usual": [
 			{"at": "06:00", "map": "shige_house", "from": [2, 2], "route": [{"face": "down"}]},
 			{"at": "08:00", "map": "minamino", "from": [11, 7], "route": [{"to": [11, 8]}, {"to": [12, 8]}, {"to": [12, 10]}, {"face": "down"}], "loop": [{"wait": 10}, {"to": [14, 10]}, {"face": "down"}, {"wait": 10}, {"to": [12, 10]}, {"face": "down"}]},

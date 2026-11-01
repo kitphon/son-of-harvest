@@ -3,6 +3,10 @@
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
+		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
+		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
+		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
 		{"if": {"season": ["spring"]}, "at": ["spring"]},
 		{"if": {"season": ["summer"]}, "at": ["summer_1", "summer_2"]},
@@ -18,6 +22,10 @@
 		"dish:dislike": "gift_dish_dislike"
 	},
 	"lines": [
+		{"id": "festival_blossom_day", "speaker": "shige", "mood": "happy", "text": "A day without weeding! The radishes can mind themselves until tomorrow.", "next": "end"},
+		{"id": "festival_lantern_night", "speaker": "shige", "mood": "neutral", "text": "Nana wants something from every stall. I said one thing. We'll see who wins.", "next": "end"},
+		{"id": "festival_moon_night", "speaker": "shige", "mood": "happy", "text": "I put the first sweet potatoes of the year on the moon table. A grower's thank-you.", "next": "end"},
+		{"id": "festival_years_turn", "speaker": "shige", "mood": "happy", "text": "Good soil, kind rain, and a girl who grows faster than my cucumbers. A fine year.", "next": "end"},
 		{"id": "again_1", "speaker": "shige", "mood": "happy", "text": "Back for more advice? Water at dawn, not at noon. That's all I've got.", "next": "end"},
 		{"id": "again_2", "speaker": "shige", "mood": "neutral", "text": "If you see Nana by the pond, tell her supper's at six. She never hears me.", "next": "end"},
 		{"id": "new_1", "speaker": "shige", "mood": "happy", "text": "You're the one who took over the old farm! Shige. I grow greens down here, for the store and the teahouse."},
