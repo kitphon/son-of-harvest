@@ -44,6 +44,12 @@ func _physics_process(delta: float) -> void:
 	if charging:
 		_charge_step(delta)
 		return
+	if Game.eating():
+		# Eating or drinking (Game.eat_pose): stand still, no tool, no interact until it ends.
+		moving = false
+		running = false
+		queue_redraw()
+		return
 	if Game.fishing.active():
 		# The line is out: stand still; either button reels in.
 		moving = false
@@ -170,6 +176,12 @@ func _draw() -> void:
 		if bite:
 			var mark := PlaceholderArt.tex("fish_fx:alert")
 			draw_texture(mark, Vector2(-mark.get_width() / 2.0, -22 - mark.get_height()))
+	if Game.eating():   # a hand at the mouth with a morsel (bite, chew) or a cup (sip, tipped up)
+		var drink := Game.eat_pose == "drink"
+		var up := int(Game.eat_left * (FarmerAnim.DRINK_FPS if drink else FarmerAnim.EAT_FPS)) % 2 == 0
+		var at := Vector2(facing) * 4 + Vector2(0, -12 if up else -9)
+		draw_rect(Rect2(at + Vector2(-1.5, -2 if drink and up else -1), Vector2(3, 3)), Color("d8c8a8") if drink else Color("f4ecd8"))
+		draw_circle(at + Vector2(0, 1.5), 1.5, Color("f2c79b"))
 	if Game.holding():   # carried overhead, arms up
 		draw_rect(Rect2(-7, -19, 3, 9), Color("3b6fd1"))
 		draw_rect(Rect2(4, -19, 3, 9), Color("3b6fd1"))

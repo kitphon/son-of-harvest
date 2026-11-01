@@ -43,11 +43,17 @@ func _init() -> void:
 	check(g.fatigue == 30 + int(foods.onigiri.fatigue), "onigiri: fatigue %d" % int(foods.onigiri.fatigue))
 	check(g.count("food:onigiri") == 0 and not g.bag.has("food:onigiri"), "the onigiri is gone from the bag")
 	check(said.back() == "You ate the onigiri.", "eat message (%s)" % said.back())
-	check(not g.eat("onigiri") and said.back().begins_with("No "), "none left: nothing eaten")
+	check(g.eating() and g.eat_pose == "eat" and g.eat_left == float(data.pose.eat), "eating starts the eat pose (%s, %.2f s)" % [g.eat_pose, g.eat_left])
+	g.eat_left = 0.0
+	g.eat_pose = ""
+	check(not g.eat("onigiri") and not g.eating(), "nothing eaten: no pose")
+	check(float(data.pose.eat) > 0.0 and float(data.pose.drink) > 0.0 and float(data.pose.eat) <= 3.0 and float(data.pose.drink) <= 3.0, "pose lengths are short")
+	check(said.back().begins_with("No "), "none left: nothing eaten")
 	g.add_item("food:amazake", 1)
 	g.stamina = g.max_stamina - 3
 	check(g.eat("amazake") and g.stamina == g.max_stamina, "stamina stops at the max")
 	check(said.back() == "You drank the amazake.", "drink message (%s)" % said.back())
+	check(g.eat_pose == "drink" and g.eat_left == float(data.pose.drink), "a drink starts the drink pose (%s, %.2f s)" % [g.eat_pose, g.eat_left])
 	g.fatigue = 3
 	g.add_item("food:green_tea", 1)
 	check(g.eat("green_tea") and g.fatigue == 0, "fatigue stops at 0")
@@ -215,6 +221,7 @@ func _process(_delta: float) -> bool:
 	g.stamina = 20
 	actions.use_tool(Vector2i(8, 8), Vector2i.DOWN, 0)
 	check(g.count("food:milk") == had and g.stamina == 20 + int(g.foods.milk.stamina), "use with the food slot drinks the milk")
+	_pose(g)
 	# The food slot works on any map; with an edible item overhead the tool button eats it.
 	g.maps.place("house", Vector2i(4, 5), Vector2i.UP)
 	g.stamina = 20
@@ -236,6 +243,72 @@ func _process(_delta: float) -> bool:
 	print("test_food: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 	return true
+
+
+## The eat / drink pose on the real Game: it lasts foods.json pose seconds, stands still while
+## a menu is open, the Player neither moves nor acts during it, then the farmer is idle again;
+## FarmerAnim and the placeholder frames in both views.
+func _pose(g: Node) -> void:
+	var pose: Dictionary = g.food_data.pose
+	check(g.eat_pose == "drink" and is_equal_approx(g.eat_left, float(pose.drink)), "the milk starts the drink pose")
+	var player: Node2D = (load("res://scripts/player/player.gd") as GDScript).new()
+	player.farm = g.farm
+	player.position = Vector2(8 * 16 + 8, 8 * 16 + 8)
+	root.add_child(player)
+	var acted: Array = []
+	player.action.connect(func(kind, _o, _f, _c): acted.append(kind))
+	var at: Vector2 = player.position
+	Input.action_press("use_tool")
+	Input.action_press("interact")
+	Input.action_press("move_right")
+	player._physics_process(0.1)
+	check(acted.is_empty() and not player.moving and player.position == at, "no tool, no interact, no step while drinking %s" % [acted])
+	Input.action_release("use_tool")
+	Input.action_release("interact")
+	Input.action_release("move_right")
+	g.dialogue_open = true
+	g._process(5.0)
+	check(g.eating() and is_equal_approx(g.eat_left, float(pose.drink)), "a text box open: the pose waits")
+	g.dialogue_open = false
+	g._process(float(pose.drink) / 2.0)
+	check(g.eating() and is_equal_approx(g.eat_left, float(pose.drink) / 2.0), "half way through the sip")
+	g._process(float(pose.drink) / 2.0 + 0.01)
+	check(not g.eating() and g.eat_pose == "" and g.eat_left == 0.0, "the drink pose ends after %.2f s" % float(pose.drink))
+	Input.action_press("use_tool")
+	Input.action_press("move_right")
+	player._physics_process(0.1)
+	# Same frame as the presses above, so those still count as just pressed: look for the tool.
+	check(acted.has("tool") and player.moving, "after the pose the tool button and walking work again %s" % [acted])
+	Input.action_release("use_tool")
+	Input.action_release("move_right")
+	player.queue_free()
+	g.start_eat_pose(false)
+	check(g.eat_pose == "eat" and is_equal_approx(g.eat_left, float(pose.eat)), "start_eat_pose(false): eat for %.2f s" % float(pose.eat))
+	g._process(float(pose.eat) + 0.01)
+	check(not g.eating(), "the eat pose ends")
+
+	# FarmerAnim: eat / drink win over the tired poses (not over holding), the frames run at their rates.
+	var anim := FarmerAnim.new()
+	anim.step(0.0, false, false, true, false, "", "eat")
+	check(anim.key(Vector2i.DOWN) == "player:front:eat:0", "eat starts on the bite (%s)" % anim.key(Vector2i.DOWN))
+	anim.step(1.0 / FarmerAnim.EAT_FPS + 0.01, false, false, true, false, "", "eat")
+	check(anim.key(Vector2i.UP) == "player:back:eat:1", "then the chew (%s)" % anim.key(Vector2i.UP))
+	anim.step(0.0, false, false, false, false, "", "drink")
+	check(anim.key(Vector2i.LEFT) == "player:back:drink:0", "drink starts at the lips (%s)" % anim.key(Vector2i.LEFT))
+	anim.step(0.0, false, false, false, true, "", "drink")
+	check(anim.pose == "hold_idle", "hands full overhead: the hold pose stays")
+	anim.step(0.0, false, false, true, false, "", "")
+	check(anim.pose == "tired_idle", "after the pose: idle again (tired here)")
+	var idle := PlaceholderArt.tex("player:front:idle:0").get_image()
+	for pose_name in ["eat", "drink"]:
+		var frames: Array = []
+		for f in PlaceholderArt.farmer_frames(pose_name):
+			for side in ["front", "back"]:
+				var img := PlaceholderArt.tex("player:%s:%s:%d" % [side, pose_name, f]).get_image()
+				check(img.get_size() == Vector2i(16, 24) and img.get_used_rect().has_area(), "player:%s:%s:%d drawn" % [side, pose_name, f])
+			frames.append(PlaceholderArt.tex("player:front:%s:%d" % [pose_name, f]).get_image().get_data())
+		check(PlaceholderArt.farmer_frames(pose_name) == 2 and frames[0] != frames[1], "%s has two different frames" % pose_name)
+		check(frames[0] != idle.get_data(), "%s doesn't look like standing idle" % pose_name)
 
 
 func _game() -> Node:

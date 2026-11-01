@@ -39,7 +39,8 @@ entry).
 Eating / drinking is done: food and drink in `data/foods.json` (stamina +, fatigue −, specials
 for max stamina and half swing fatigue for a day), eaten from the 7th tool slot (Q = next
 food) and sold at the seed stand while that slot is in hand. Raw crops, eggs, milk and fish
-are food too (`raw` in foods.json; F in the rucksack, or the food slot with one overhead), and
+are food too (`raw` in foods.json; F in the rucksack, or the food slot with one overhead); the
+farmer stands through a short eat / drink pose afterwards (foods.json `pose`, both views), and
 cooking is in: the kitchen corner's stove opens a cooking screen, recipes in
 `data/recipes.json` take ingredients from the rucksack and the chest, the dishes are foods;
 four recipes are known at the start, five are taught by Tome, Sayo, Hachiro, Kota and the

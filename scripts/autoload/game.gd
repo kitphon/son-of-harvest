@@ -71,6 +71,8 @@ var tool_exp: Dictionary = {}      # tool -> experience from using it; levels up
 var events_seen: Dictionary = {}   # event id -> true once it has played (once-only triggers)
 var fatigue := 0                # 0..FATIGUE_MAX, rises with work and late nights; sleep and food lower it
 var work_fatigue_half := false  # a food halves swing fatigue until the day ends
+var eat_pose := ""   # "eat" / "drink" while the farmer eats or drinks (FarmerAnim pose), else ""
+var eat_left := 0.0  # seconds of that pose still to play (foods.json pose); not saved
 ## The item carried overhead in the holding hand ("" = hands free). It is the rucksack's
 ## hand slot (Inventory "hand"): what the rucksack menu takes in hand is held up the same way.
 var held: String:
@@ -151,6 +153,8 @@ func new_game() -> void:
 	stamina = max_stamina
 	fatigue = 0
 	work_fatigue_half = false
+	eat_pose = ""
+	eat_left = 0.0
 	_shown_state = "fine"
 	water = WATER_MAX
 	snow_cover = 0
@@ -215,6 +219,9 @@ func new_game() -> void:
 			else:
 				hour = t / 60
 				minute = t % 60
+		elif arg == "--eat" or arg == "--eat=drink":   # `-- --demo --eat`: mid-bite (or mid-sip), the pose kept going
+			start_eat_pose(arg == "--eat=drink")
+			eat_left = 1000.0
 		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
 			fatigue = int(body.get("states", {}).get("exhausted", {}).get("fatigue", 80))
 			_shown_state = body_state()
@@ -352,6 +359,8 @@ func _demo_kitchen() -> void:
 
 
 func _process(delta: float) -> void:
+	if eating() and not paused():
+		_eat_step(delta)
 	if fishing.active() and not paused():
 		var chance := Fishing.bite_chance(fish_data, hour, weather_look(weather_today, season_name())) * rod_bite_factor()
 		var ev := fishing.step(delta, chance, rng)
@@ -1111,8 +1120,32 @@ func eat_item(item: String, places: Array = Inventory.CARRIED) -> Dictionary:
 	var special := String(f.get("special_message", ""))
 	if special != "" and (grow > 0 or half):
 		text += " " + (special % grow if "%d" in special else special)
+	start_eat_pose(bool(f.get("drink", false)))
 	changed.emit()
 	return _ate(true, text)
+
+
+## The short eat (or drink) pose after something is eaten, its length from foods.json pose.
+## It plays once no menu is open (F in the rucksack: when the rucksack closes); the farmer
+## can't move or act until it ends (Player).
+func start_eat_pose(drink: bool) -> void:
+	eat_pose = "drink" if drink else "eat"
+	eat_left = float(food_data.get("pose", {}).get(eat_pose, 0.0))
+	if eat_left <= 0.0:
+		eat_pose = ""
+
+
+## Is the eat / drink pose playing?
+func eating() -> bool:
+	return eat_pose != ""
+
+
+## Plays `delta` seconds of the eat pose; it ends at 0.
+func _eat_step(delta: float) -> void:
+	eat_left -= delta
+	if eat_left <= 0.0:
+		eat_left = 0.0
+		eat_pose = ""
 
 
 func _ate(ok: bool, note: String) -> Dictionary:
