@@ -15,7 +15,7 @@
 	"gifts": {
 		"love": ["food:sakura_mochi", "food:yomogi_tea", "eggplant", "food:furofuki_daikon", "food:simmered_pumpkin",
 			"keep:omamori"],
-		"like": ["turnip", "potato", "pumpkin", "fish:sake", "fish:ayu", "food:green_tea", "egg", "egg_good", "egg_best", "mine:hisui", "mine:meno",
+		"like": ["turnip", "potato", "pumpkin", "fish:sake", "fish:ayu", "food:green_tea", "food:zenzai", "egg", "egg_good", "egg_best", "mine:hisui", "mine:meno",
 			"food:miso_soup", "food:ochazuke", "food:turnip_stew", "food:takikomi_gohan", "food:kinako_mochi",
 			"keep:wind_chime", "keep:moon_lantern", "food:yuzu_tea", "food:baked_imo"],
 		"dislike": ["corn", "fish:dojo", "food:milk_pudding"],

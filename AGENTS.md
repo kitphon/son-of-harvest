@@ -62,7 +62,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   events at bands 3, 5 and 6, birthday day plans, fair weather and the HUD tag, mine finds, dishes and
   keepsakes as gifts): `res://tests/test_relationships.gd` must print `test_relationships: OK (0 failed)`.
   Shops (data/shops.json, buying / selling, tool upgrades and their ores, mine finds sold, the smithy while Hachiro builds,
-  shop maps and doors, the screen):
+  shop maps and doors, the screen, Fumi's teahouse):
   `res://tests/test_shops.gd` must print `test_shops: OK (0 failed)`.
   Animals (chickens, cows, sheep, the coop and barn, products, brushing, sickness, the dog,
   the save): `res://tests/test_animals.gd`
@@ -101,7 +101,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   and a potato on the ground in front of the bin, `--time=H:MM` (after `--demo`) to set the
   clock (villagers stand where their plans say then; `--demo --map=town` at 10:00 shows Kota
   and Tome by the start spawn; add `--whistle` (or `--whistle=<id>`) and every walker whistles at
-  once, a note puff over their head), `--shop=<id>` (general, smithy; `general@build` opens a tab) to stand at that shop's
+  once, a note puff over their head), `--shop=<id>` (general, smithy, clinic, teahouse; `general@build` opens a tab) to stand at that shop's
   counter with its screen open (hours ignored), `--talk=<villager>` (with `--map` / `--time`
   where they are, e.g. `--map=town --time=14:30 --talk=tome`) to stand below them and talk
   (add `--hearts=N` to start every villager at heart band N, e.g. to see the heart colours),

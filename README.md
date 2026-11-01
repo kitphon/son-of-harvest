@@ -314,8 +314,9 @@ lasts. `-- --demo --map=town --time=10:00 --whistle` (or `--whistle=<id>`) has e
 whistle at once.
 
 ## Shops
-Shops live in `data/shops.json` (the Yorozu Store, the Kurogane Smithy and Dr. Yae's Hinata
-Clinic, which sells only the herb tonic): per shop a `name`, its inside `map`, `open` [first hour,
+Shops live in `data/shops.json` (the Yorozu Store, the Kurogane Smithy, Dr. Yae's Hinata
+Clinic, which sells only the herb tonic, and Fumi's Hanami Teahouse in Sakurazaka: tea, whipped
+matcha and a sweet of the season, the matcha and the sweets sold nowhere else): per shop a `name`, its inside `map`, `open` [first hour,
 closing hour), `days_off`, `keeper` (the villager at the counter: Sayo at the store, Hachiro
 at the smithy; the counter sells only while their plan has them on the shop's map), `stock` per
 season plus `any` (`{item, price?}`; without a price a seed bag costs its crop's `seed_price`,
@@ -348,8 +349,8 @@ The smithy's `upgrades.tool_levels` gives one tool its own price list (the rod, 
 are `rod.bite_factor` in data/fish.json: the bite chance per check is multiplied by it).
 
 A map prop with `use: "shop"` and `shop: "<id>"` is a counter: E on it calls
-`Game.open_shop(id)`, which says the closed message (or "Nobody is at the counter" while the
-keeper is out) or emits `shop_requested(id)`. Talking to the keeper calls the same function
+`Game.open_shop(id)`, which says the closed message (or the shop's `away` note, by default
+"Nobody is at the counter", while the keeper is out) or emits `shop_requested(id)`. Talking to the keeper calls the same function
 (Villagers); each shop map has a `keeper` spawn
 behind the counter and a `counter` spawn in front of it (`-- --demo --shop=<id>` starts there
 with the screen open, hours ignored). The smithy takes the tool out of its slot; once the

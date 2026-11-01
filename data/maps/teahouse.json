@@ -1,5 +1,5 @@
 {
-	"_note": "The Hanami teahouse in Sakurazaka, Fumi's: a wooden floor with a long counter at the back where she pours tea, shelves of cups and tea tins, cushions at low tables, a lamp; she lives in the back. Format: README.md, Maps.",
+	"_note": "The Hanami teahouse in Sakurazaka, Fumi's: a wooden floor with a long counter at the back where she pours tea, shelves of cups and tea tins, cushions at low tables, a lamp; she lives in the back. The counter is the shop teahouse (data/shops.json): Fumi pours at the keeper spot behind its right end, the farmer orders from the counter spot below it. Format: README.md, Maps.",
 	"id": "teahouse",
 	"name": "Hanami Teahouse",
 	"size": [9, 7],
@@ -25,7 +25,7 @@
 	],
 	"props": [
 		{"kind": "shelf", "cell": [1, 1], "size": [3, 1]},
-		{"kind": "counter", "cell": [1, 2], "size": [4, 1]},
+		{"kind": "counter", "cell": [1, 2], "size": [4, 1], "use": "shop", "shop": "teahouse"},
 		{"kind": "kamado", "cell": [7, 1]},
 		{"kind": "low_table", "cell": [2, 3], "size": [2, 1]},
 		{"kind": "zabuton", "cell": [2, 4], "solid": false, "color": "c8442c"},
@@ -42,6 +42,8 @@
 	],
 	"spawns": {
 		"start": [[4, 5], "up"],
-		"home": [[5, 1], "down"]
+		"home": [[4, 1], "down"],
+		"keeper": [[4, 1], "down"],
+		"counter": [[4, 3], "up"]
 	}
 }

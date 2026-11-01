@@ -16,7 +16,7 @@
 	"gifts": {
 		"love": ["tomato", "food:dango", "egg_best", "food:tamagoyaki", "food:milk_pudding",
 			"keep:wind_chime"],
-		"like": ["cucumber", "carrot", "onion", "food:green_tea", "egg", "egg_good", "mine:kohaku", "mine:suisho",
+		"like": ["cucumber", "carrot", "onion", "food:green_tea", "food:kuri_yokan", "egg", "egg_good", "mine:kohaku", "mine:suisho",
 			"food:kinako_mochi", "food:simmered_pumpkin", "food:takikomi_gohan", "food:ochazuke",
 			"keep:moon_lantern", "keep:clay_rabbit", "keep:paper_fan", "food:yuzu_tea"],
 		"dislike": ["fish:dojo", "fish:funa", "fish:ugui", "mine:clay", "food:grilled_fish", "food:daikon_fish",

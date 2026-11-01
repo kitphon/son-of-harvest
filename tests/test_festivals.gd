@@ -549,7 +549,7 @@ func _night_stalls() -> void:
 	check(chimes != null and chimes.price("keep:wind_chime", "summer") == 300 and chimes.price("keep:paper_fan", "summer") == 120
 		and chimes.item_name("keep:wind_chime") == "Wind chime" and ShopMenu.new(g, "stall:lantern_night:chimes").tabs == ["buy"], "the chime stall's keepsakes and their prices")
 	check(g.shop("stall:lantern_night") == null, "no stall without its id")
-	# Every stall-only food (shop false with a price) is on some stall, and no stall sells a kitchen dish.
+	# Every stall-only food (shop false with a price) is on some stall, and no stall sells a kitchen dish
 	var sold := {}
 	for fid in Festivals.all():
 		for st in Festivals.stalls(fid):
@@ -559,9 +559,14 @@ func _night_stalls() -> void:
 				var n: String = g.item_name(e.item)
 				check(n != str(e.item).replace(":", " ").replace("_", " ").capitalize() and PixelFont.width(n) + 12 + PixelFont.width("x99") <= HudLayout.BOXES.item.size.x,
 					"%s has a name that fits the item box" % e.item)
+	# (or at a shop of its own, e.g. the teahouse's sweets)
+	for sid in Shop.ids():
+		for season in ["spring", "summer", "fall", "winter"]:
+			for e in g.shop(sid).stock(season):
+				sold[e.item] = true
 	for id in g.foods:
 		if not g.foods[id].get("shop", false) and int(g.foods[id].get("price", 0)) > 0:
-			check(sold.has("food:" + id), "%s is sold at a festival stall" % id)
+			check(sold.has("food:" + id), "%s is sold at a festival stall or a shop" % id)
 	var FarmActions: GDScript = load("res://scripts/farm_actions.gd")
 	_set_day(g, "summer", 20, 16, 0)
 	g.maps.place("town", Vector2i(22, 8), Vector2i.UP)

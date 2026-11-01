@@ -10,6 +10,28 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — The Hanami teahouse is a shop
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: shop `teahouse` in data/shops.json (Fumi keeper, open 9:00-18:00 every day like its
+  door): green tea (45 G), dango and whipped matcha the year round, and a sweet per season:
+  sakura mochi, warabi mochi, chestnut yokan, zenzai. Four new foods in data/foods.json (shop
+  false, sold only here; looks cup / plate / plate / bowl). Balance: matcha 150 G for fatigue
+  -8 sits between tea (-5, 40 G) and the clinic's tonic (-15, 400 G); the sweets give 20-36
+  stamina for 100-160 G, about amazake's rate per G, a treat on the way to the mine rather than
+  a cheaper store. The teahouse counter is a shop counter now, with `keeper` [4, 1] behind its
+  right end (Fumi's plan steps start there) and `counter` [4, 3] in front. A shop may have an
+  `away` note for while its keeper is out (Shop.away, used by Game.keeper_away_text; default
+  "Nobody is at the counter"): Fumi's says she is out front, back at three (she sweeps and
+  walks 13:00-15:00). The new sweets are on a few gift lists (Tome zenzai, Kota warabi mochi,
+  Sayo chestnut yokan, Fumi matcha); Fumi's summer line mentions the warabi mochi.
+  test_festivals' "every stall-only food is on a stall" check now also accepts a shop's stock.
+- Checked: test_shops `_teahouse` (stock per season, the foods only here, keeper spot,
+  Talk.keeper_shop, open at 10:00, her note at 13:30, open on a wet day, closed at 18:00, a
+  matcha bought); all 24 test scripts print `OK (0 failed)`; smoke runs (title, `--demo`, town,
+  mine 3, the teahouse at 10:00) print no errors; screenshots of `--season=summer
+  --shop=teahouse` (the four rows with their icons) and Fumi behind the counter at 10:00.
+- Left / next: forage on the hill, the new villagers at the festivals and in the record.
+
 ## 2026-11-01 — The export templates archive taken out of the history
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: on the user's word, the 1.28 GB `Godot_v4.7.2-stable_export_templates.tpz` committed by

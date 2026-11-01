@@ -39,6 +39,7 @@ func _init() -> void:
 	_extras_save()
 	_ores_and_finds()
 	_dishes_sold()
+	_teahouse()
 
 
 # The real Game autoload and a screen need the tree, so they wait for the first frame.
@@ -793,6 +794,54 @@ func _dishes_sold() -> void:
 	g.held = "food:tamagoyaki"
 	r = g.shop_sell("general", "food:tamagoyaki", 1)
 	check(r.ok and g.held == "", "a dish overhead sells too: %s" % r.note)
+	g.free()
+
+
+## Fumi's Hanami Teahouse in Sakurazaka: a sweet per season, tea and matcha the year round,
+## only while Fumi is in (her note while she is out front), and her talk at the counter opens it.
+func _teahouse() -> void:
+	var tea := Shop.make("teahouse", crops, foods)
+	check(tea != null and tea.keeper == "fumi" and tea.map == "teahouse", "data: the teahouse is Fumi's")
+	var sweets := {"spring": "food:sakura_mochi", "summer": "food:warabi_mochi", "fall": "food:kuri_yokan", "winter": "food:zenzai"}
+	for season in sweets:
+		var items := []
+		for e in tea.stock(season):
+			items.append(e.item)
+		check(sweets[season] in items and "food:matcha" in items and "food:green_tea" in items and items.size() == 4,
+			"data: the teahouse in %s sells %s" % [season, items])
+		check(tea.price(sweets[season], season) == int(foods[sweets[season].trim_prefix("food:")].price), "data: %s at its own price" % sweets[season])
+	for id in ["matcha", "warabi_mochi", "kuri_yokan", "zenzai"]:
+		check(not foods[id].shop and int(foods[id].price) > 0 and not foods[id].has("sell"), "data: %s is the teahouse's alone" % id)
+		check(Shop.make("general", crops, foods).price("food:" + id, "winter") == -1, "data: the store has no %s" % id)
+	check(float(foods.matcha.fatigue) < float(foods.green_tea.fatigue) and float(foods.matcha.fatigue) > float(foods.herb_tonic.fatigue),
+		"data: matcha cures more fatigue than tea, less than the tonic")
+	var m := MapManager.data("teahouse")
+	check(m.spawns.keeper[0] == Vector2i(4, 1) and not m.is_solid(m.spawns.keeper[0]), "the keeper spot behind the counter is free")
+	check(m.prop_at(Vector2i(4, 2)).get("shop", "") == "teahouse" and m.prop_at(m.spawns.keeper[0] + Vector2i.DOWN).get("shop", "") == "teahouse",
+		"Fumi faces the counter from her spot")
+	check(Talk.keeper_shop("fumi", "teahouse", Vector2i(4, 1)) == "teahouse" and Talk.keeper_shop("fumi", "teahouse", Vector2i(5, 1)) == "",
+		"talking to Fumi at her spot opens the teahouse")
+	var g := _new_game()
+	var seen := {"opened": [], "said": []}
+	g.shop_requested.connect(func(id): seen.opened.append(id))
+	g.message.connect(func(t): seen.said.append(t))
+	g.weather_today = "sunny"
+	g.hour = 10
+	check(g.open_shop("teahouse") and seen.opened == ["teahouse"], "10:00: Fumi pours tea")
+	g.hour = 13
+	g.minute = 30
+	check(not g.open_shop("teahouse") and seen.said.back() == tea.away and tea.away.contains("-Fumi"), "13:30: her note (%s)" % seen.said.back())
+	g.weather_today = "rain"
+	check(g.open_shop("teahouse"), "a wet day: she stays at her counter")
+	g.weather_today = "sunny"
+	g.hour = 18
+	g.minute = 0
+	check(not g.open_shop("teahouse") and seen.said.back().begins_with("Hanami Teahouse is closed"), "18:00: closed")
+	g.hour = 16
+	var money: int = g.money
+	var r: Dictionary = g.shop_buy("teahouse", "food:matcha", 1)
+	check(r.ok and g.money == money - int(foods.matcha.price) and g.count("food:matcha") == 1, "a matcha bought: %s" % r.note)
+	check(g.shop("general").away == "Nobody is at the counter", "a shop without a note says nobody is there")
 	g.free()
 
 

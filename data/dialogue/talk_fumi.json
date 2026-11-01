@@ -25,7 +25,7 @@
 		{"id": "wet", "speaker": "fumi", "mood": "neutral", "text": "Rain on the cherry trees, steam off the cups. A slow day, but I like the sound of it.", "next": "end"},
 		{"id": "spring_1", "speaker": "fumi", "mood": "happy", "text": "The cherries along the road! People walk up from the village just to stand under them.", "next": "end"},
 		{"id": "spring_2", "speaker": "fumi", "mood": "happy", "text": "When a petal lands in your cup, you have to drink it. That's the rule here.", "next": "end"},
-		{"id": "summer", "speaker": "fumi", "mood": "neutral", "text": "Cold barley tea in summer. The creek keeps the jug cool better than any icebox.", "next": "end"},
+		{"id": "summer", "speaker": "fumi", "mood": "neutral", "text": "Warabi mochi and cold barley tea in summer. The creek keeps them cooler than any icebox.", "next": "end"},
 		{"id": "fall", "speaker": "fumi", "mood": "happy", "text": "The leaves go red all the way up to the mine. Ichiro says the woods smell like smoke and apples.", "next": "end"},
 		{"id": "winter", "speaker": "fumi", "mood": "neutral", "text": "Snow on the bridge. Walk the middle of the planks, the edges are ice.", "next": "end"},
 		{"id": "plain_1", "speaker": "fumi", "mood": "happy", "text": "The stone lanterns by the bridge? My grandfather set them, so nobody walks into the creek at night.", "next": "end"},
