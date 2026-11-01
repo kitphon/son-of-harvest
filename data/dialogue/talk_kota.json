@@ -1,8 +1,12 @@
 {
-	"_note": "What Kota says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday) (gifts in data/villagers/kota.json). Our own lines.",
+	"_note": "What Kota says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday) (gifts in data/villagers/kota.json). On a festival day, in its hours, the festival_<id> line. Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
+		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
+		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
+		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
+		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"band": [6, 6], "flags": ["heart_kota_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"band": [4, 6]}, "at": ["close_1", "close_2"]},
 		{"if": {"band": [0, 1]}, "at": ["new_1", "new_2"]},
@@ -39,6 +43,10 @@
 		{"id": "gift_neutral", "speaker": "kota", "face": "calm", "text": "Huh. Okay. Thanks, I guess.", "next": "end"},
 		{"id": "gift_dislike", "speaker": "kota", "face": "worried", "text": "Yuck... do I have to? ...Thanks.", "next": "end"},
 		{"id": "gift_hate", "speaker": "kota", "face": "worried", "text": "Bleh! Mum makes me eat those. No way!", "next": "end"},
-		{"id": "gift_again", "speaker": "kota", "face": "calm", "text": "You already gave me stuff today. Grandma says don't be greedy.", "next": "end"}
+		{"id": "gift_again", "speaker": "kota", "face": "calm", "text": "You already gave me stuff today. Grandma says don't be greedy.", "next": "end"},
+		{"id": "festival_blossom_day", "speaker": "kota", "face": "smile", "text": "I'm entering my cucumber! It's crooked, but it's the biggest one I ever grew.", "next": "end"},
+		{"id": "festival_lantern_night", "speaker": "kota", "face": "surprised", "text": "Did you see that firework? It went bang right in my chest!", "next": "end"},
+		{"id": "festival_moon_night", "speaker": "kota", "face": "smile", "text": "Grandma says a rabbit lives on the moon making rice cakes. I'm looking for its ears.", "next": "end"},
+		{"id": "festival_years_turn", "speaker": "kota", "face": "smile", "text": "I'm staying up till the year turns over. I'm not even a bit sleepy. Not even...", "next": "end"}
 	]
 }

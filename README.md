@@ -394,7 +394,8 @@ the script says, and keys go only to the text box. Each step is one of:
 - `{"do": "say", "dialogue": "<id>", "at": "<line id>"}`: opens a dialogue from
   `data/dialogue` and waits until the box closes (`at` is optional; a dialogue line with
   `"next": "end"` stops it, so one file can hold several parts of an event);
-- `{"do": "wait", "seconds": 0.5}` (0 to 60);
+- `{"do": "wait", "seconds": 0.5}` (0 to 60); with `"walks": true` it also waits until every
+  actor walking has arrived (`seconds` may then be left out);
 - `{"do": "face", "dir": "up|down|left|right"}`, or `"dir": "<villager id>"` to turn to that
   actor;
 - `{"do": "walk", "to": [x, y]}` or `"by": [dx, dy]` (cells; the farmer walks across first,
@@ -423,7 +424,11 @@ the script says, and keys go only to the text box. Each step is one of:
   `{"do": "actor", "who": "...", "leave": true}` takes them off. While acting, a villager's day
   plan is set aside (`Villagers.actors`); when the event ends every actor is gone again. The
   heart events start with `{"do": "actor", "who": "<id>", "at": "plan", "face": "farmer"}` and
-  end with `"to": "plan"` and `leave`;
+  end with `"to": "plan"` and `leave`. `"hold": "<item>"` has them carry an item overhead (a
+  crop, an egg, milk or wool, or a `fish:` / `mine:` / `food:` / `keep:` id; `""` puts it
+  down; both views draw it on their head). `"wait": false` (with `to`) starts the walk and
+  goes straight on to the next step, so several actors walk at once; a wait with `walks` waits
+  for them;
 - `{"do": "ending"}`: grades the run and shows the village record (README → Ending); the
   event waits until it is closed; `"page": "year"` shows the yearly page instead;
 - a branch: `{"if": "<flag>", "then": "<step id>"}` or `{"unless": ...}`.
@@ -490,7 +495,19 @@ festival and year, the farmer wins ties (`Festivals.judge`). The prize for the p
 `contest_won_<rival>` and `contest_prize` are set (the result lines branch on them;
 `contest_wins` counts first prizes) and the contest's `event` (`data/events/contest_*.json`)
 plays. One entry a year (`events_seen` key `contest:<id>:<year>`). `-- --demo
---festival=<id> --contest=<item>` stands at the table with the item and enters it.
+--festival=<id> --contest=<item>` stands at the table with the item and enters it. In the
+result event the rivals walk up to the table together from where their day plans have them
+(or in from beside the farmer), each with their entry overhead (Kota's crooked cucumber,
+Hachiro's catfish...), wait for the results by the table and take their entries back.
+
+**The crowd.** All four villagers go to every festival by festival day plans (rules with
+`festival` in `data/villagers/<id>.json`): Kota and Tome from the morning; Hachiro (the
+smithy is shut) at the picnic mats, the drum stage, the shrine's gravel and the bonfire; Sayo
+under the blossoms from 13:00 to 15:45 on Blossom Day (the store stays open, her counter has
+`festival_away`'s note in `data/shops.json`), at the night food stall, by the moon table after
+closing, and between the shrine and the bonfire at Year's Turn. In a festival's hours each
+says a `festival_<id>` line (`data/dialogue/talk_<id>.json`). A house job under way keeps
+Hachiro building.
 
 **Stalls.** A festival may have a `stall` (`{id?, name, cell, stock}`; the cell is a `stall`
 prop's), or a list of them, each with its own `id`. E at one in the hours opens it as a shop

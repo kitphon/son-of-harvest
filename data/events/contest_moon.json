@@ -1,9 +1,50 @@
 {
-	"_note": "The results of the moon_night contest (data/festivals.json contest; Game.enter_contest sets contest_place_<n>, contest_won_<rival> and contest_prize just before it plays).",
+	"_note": "The results of the moon_night contest (data/festivals.json contest; Game.enter_contest sets contest_place_<n>, contest_won_<rival> and contest_prize just before it plays). The rivals walk up to the judges' table together from where their festival day plans have them (or in from beside the farmer), their entries held overhead; the event waits until they all stand there (a wait with walks). After the results they take their entries back to their places.",
 	"steps": [
 		{
 			"do": "wait",
 			"seconds": 0.3
+		},
+		{
+			"do": "actor",
+			"who": "tome",
+			"at": "plan",
+			"to": [
+				20,
+				9
+			],
+			"face": "right",
+			"hold": "egg_good",
+			"wait": false
+		},
+		{
+			"do": "actor",
+			"who": "kota",
+			"at": "plan",
+			"to": [
+				21,
+				8
+			],
+			"face": "right",
+			"hold": "wool",
+			"wait": false
+		},
+		{
+			"do": "actor",
+			"who": "sayo",
+			"at": "plan",
+			"to": [
+				24,
+				8
+			],
+			"face": "left",
+			"hold": "milk_good",
+			"wait": false
+		},
+		{
+			"do": "wait",
+			"seconds": 0.4,
+			"walks": true
 		},
 		{
 			"do": "sound",
@@ -24,8 +65,42 @@
 		},
 		{
 			"id": "done",
+			"do": "actor",
+			"who": "tome",
+			"to": "plan",
+			"wait": false
+		},
+		{
+			"do": "actor",
+			"who": "kota",
+			"to": "plan",
+			"wait": false
+		},
+		{
+			"do": "actor",
+			"who": "sayo",
+			"to": "plan",
+			"wait": false
+		},
+		{
 			"do": "wait",
-			"seconds": 0.2
+			"seconds": 0.2,
+			"walks": true
+		},
+		{
+			"do": "actor",
+			"who": "tome",
+			"leave": true
+		},
+		{
+			"do": "actor",
+			"who": "kota",
+			"leave": true
+		},
+		{
+			"do": "actor",
+			"who": "sayo",
+			"leave": true
 		}
 	]
 }

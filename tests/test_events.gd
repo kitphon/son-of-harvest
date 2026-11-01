@@ -327,12 +327,40 @@ func _init() -> void:
 	check(not on_farmer and r.actors.tome.pos == Vector2(10.5, 6.5) and r.actors.tome.facing == Vector2i.UP and r.facing == Vector2i.DOWN,
 		"Tome walks round the farmer to the cell in front, faces up %s" % [r.actors])
 
+	# "wait": false: two actors walk at once; an actor holds an item until it is put down.
+	r = EventRunner.new({"steps": [{"do": "actor", "who": "tome", "at": [2, 2], "to": [6, 2], "hold": "turnip", "wait": false},
+			{"do": "actor", "who": "kota", "at": [2, 4], "to": [6, 4], "face": "up"},
+			{"do": "actor", "who": "tome", "hold": ""}, {"do": "wait", "seconds": 1}]}, g)
+	r.start(Vector2(10 * 16 + 8, 8 * 16 + 8), Vector2i.UP)
+	r.update(0.1)   # both steps begin; walks move from the next update on
+	r.update(0.4)
+	check(r.actors.tome.moving and r.actors.kota.moving and r.actors.tome.hold == "turnip" and r.actors.kota.hold == ""
+		and r.step().who == "kota", "Tome and Kota walk side by side, Tome with a turnip overhead %s" % [r.actors])
+	for i in 30:
+		r.update(0.1)
+		if r.step().get("do") == "wait":
+			break
+	check(r.actors.tome.pos == Vector2(6.5, 2.5) and r.actors.kota.pos == Vector2(6.5, 4.5) and r.actors.kota.facing == Vector2i.UP
+		and r.actors.tome.hold == "", "both arrive; then Tome puts the turnip down %s" % [r.actors])
+	r = EventRunner.new({"steps": [{"do": "actor", "who": "tome", "at": [2, 2], "to": [6, 2], "wait": false}, {"do": "wait", "walks": true}]}, g)
+	r.start(Vector2(10 * 16 + 8, 8 * 16 + 8), Vector2i.UP)
+	r.update(0.1)
+	r.update(0.5)
+	check(r.step().get("walks") == true and r.actors.tome.moving, "a wait with walks waits while an actor walks")
+	for i in 20:
+		r.update(0.1)
+	check(r.done(), "and ends once they arrive")
+	check(EventRunner.holdable("fish:ayu") and EventRunner.holdable("egg_good") and EventRunner.holdable("potato")
+		and not EventRunner.holdable("seeds:potato") and not EventRunner.holdable("fish:") and not EventRunner.holdable("rock"), "what an actor can hold")
+
 	# Actor and place steps that are wrong are refused.
 	for bad in [{"do": "actor", "who": "nobody", "at": [1, 1]}, {"do": "actor", "who": "tome"},
 			{"do": "actor", "who": "tome", "to": [1]}, {"do": "actor", "who": "tome", "face": "north"},
 			{"do": "actor", "who": "tome", "leave": false}, {"do": "actor", "who": "tome", "leave": true, "at": [1, 1]},
 			{"do": "actor", "who": "tome", "at": [1, 1], "speed": 2}, {"do": "actor", "who": "tome", "at": "farmer"},
 			{"do": "actor", "who": "tome", "to": "home"}, {"do": "actor", "who": "tome", "at": "plan", "face": "kota"},
+			{"do": "actor", "who": "tome", "at": [1, 1], "hold": "rock"}, {"do": "actor", "who": "tome", "at": [1, 1], "wait": false},
+			{"do": "actor", "who": "tome", "to": [1, 1], "wait": "no"}, {"do": "wait", "walks": 1}, {"do": "wait", "walks": false}, {"do": "actor", "who": "tome", "leave": true, "hold": ""},
 			{"do": "face", "dir": "nobody"}, {"do": "place"},{"do": "place", "at": [1, 1], "dir": "in"}]:
 		r = EventRunner.new({"steps": [bad]}, g)
 		check(r.error != "" and r.done(), "refused %s (%s)" % [JSON.stringify(bad), r.error])

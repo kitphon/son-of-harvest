@@ -1,9 +1,50 @@
 {
-	"_note": "The results of the years_turn contest (data/festivals.json contest; Game.enter_contest sets contest_place_<n>, contest_won_<rival> and contest_prize just before it plays).",
+	"_note": "The results of the years_turn contest (data/festivals.json contest; Game.enter_contest sets contest_place_<n>, contest_won_<rival> and contest_prize just before it plays). The rivals walk up to the judges' table together from where their festival day plans have them (or in from beside the farmer), their entries held overhead; the event waits until they all stand there (a wait with walks). After the results they take their entries back to their places.",
 	"steps": [
 		{
 			"do": "wait",
 			"seconds": 0.3
+		},
+		{
+			"do": "actor",
+			"who": "sayo",
+			"at": "plan",
+			"to": [
+				16,
+				4
+			],
+			"face": "left",
+			"hold": "mine:kohaku",
+			"wait": false
+		},
+		{
+			"do": "actor",
+			"who": "hachiro",
+			"at": "plan",
+			"to": [
+				17,
+				4
+			],
+			"face": "left",
+			"hold": "mine:kogane",
+			"wait": false
+		},
+		{
+			"do": "actor",
+			"who": "kota",
+			"at": "plan",
+			"to": [
+				13,
+				5
+			],
+			"face": "right",
+			"hold": "mine:suisho",
+			"wait": false
+		},
+		{
+			"do": "wait",
+			"seconds": 0.4,
+			"walks": true
 		},
 		{
 			"do": "sound",
@@ -24,8 +65,42 @@
 		},
 		{
 			"id": "done",
+			"do": "actor",
+			"who": "sayo",
+			"to": "plan",
+			"wait": false
+		},
+		{
+			"do": "actor",
+			"who": "hachiro",
+			"to": "plan",
+			"wait": false
+		},
+		{
+			"do": "actor",
+			"who": "kota",
+			"to": "plan",
+			"wait": false
+		},
+		{
 			"do": "wait",
-			"seconds": 0.2
+			"seconds": 0.2,
+			"walks": true
+		},
+		{
+			"do": "actor",
+			"who": "sayo",
+			"leave": true
+		},
+		{
+			"do": "actor",
+			"who": "hachiro",
+			"leave": true
+		},
+		{
+			"do": "actor",
+			"who": "kota",
+			"leave": true
 		}
 	]
 }

@@ -34,6 +34,7 @@ var builds: Dictionary = {}            # id -> {name, about, price, days, chest_
 var build_done := ""                   # the morning message when one is finished (%s = its name)
 var build_away := ""                   # at the builder's own counter while they build (%s = its name)
 var build_away_late := ""              # the same once a day was lost (%s = its name, then the new due date)
+var festival_away := ""                # the keeper's note while they are out at a festival (%s = its name)
 var build_late := ""                   # the build tab's line for a job a day was lost on (%s = the due date)
 var build_plan := ""                   # the builder's day plan while building: other days don't count
 var crops: Dictionary = {}
@@ -97,6 +98,7 @@ static func make(shop_id: String, crop_data: Dictionary, food_data: Dictionary, 
 	shop.build_away = str(s.get("builds", {}).get("away", "Nobody is at the counter"))
 	shop.build_away_late = str(s.get("builds", {}).get("away_late", shop.build_away))
 	shop.build_late = str(s.get("builds", {}).get("late", "Done on %s."))
+	shop.festival_away = str(s.get("festival_away", ""))
 	shop.build_plan = str(s.get("builds", {}).get("plan", ""))
 	shop.crops = crop_data
 	shop.foods = food_data

@@ -1,8 +1,12 @@
 {
-	"_note": "What Grandma Tome says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday) (gifts in data/villagers/tome.json). Our own lines.",
+	"_note": "What Grandma Tome says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday) (gifts in data/villagers/tome.json). On a festival day, in its hours, the festival_<id> line. Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
+		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
+		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
+		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
+		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"band": [6, 6], "flags": ["heart_tome_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"band": [4, 6]}, "at": ["close_1", "close_2", "close_3"]},
 		{"if": {"season": ["winter"]}, "at": ["winter_1", "winter_2"]},
@@ -47,6 +51,10 @@
 		{"id": "gift_neutral", "speaker": "tome", "face": "calm", "text": "Oh, thank you. You needn't bring an old woman anything.", "next": "end"},
 		{"id": "gift_dislike", "speaker": "tome", "face": "worried", "text": "Hm. Thank you... but my teeth and I don't get on with this.", "next": "end"},
 		{"id": "gift_hate", "speaker": "tome", "face": "worried", "text": "Oh dear. I'd rather not have that, if it's all the same to you.", "next": "end"},
-		{"id": "gift_again", "speaker": "tome", "face": "calm", "text": "You already gave me something today. Keep that for yourself.", "next": "end"}
+		{"id": "gift_again", "speaker": "tome", "face": "calm", "text": "You already gave me something today. Keep that for yourself.", "next": "end"},
+		{"id": "festival_blossom_day", "speaker": "tome", "face": "smile", "text": "Sit a while. At my age you count the springs, and this one is worth counting.", "next": "end"},
+		{"id": "festival_lantern_night", "speaker": "tome", "face": "calm", "text": "Lanterns for the ones who've gone ahead. I hung one for my husband by the road.", "next": "end"},
+		{"id": "festival_moon_night", "speaker": "tome", "face": "calm", "text": "Set a dumpling out for the moon and it watches over the harvest. So they always said.", "next": "end"},
+		{"id": "festival_years_turn", "speaker": "tome", "face": "smile", "text": "Another year closes. You did well, child. The old farm knows it, too.", "next": "end"}
 	]
 }

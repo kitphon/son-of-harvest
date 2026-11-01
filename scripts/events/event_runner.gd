@@ -18,10 +18,10 @@ const DIRS := {"up": Vector2i.UP, "down": Vector2i.DOWN, "left": Vector2i.LEFT, 
 const COME_IN := 4          # cells beside the farmer an actor comes in from when their plan has them elsewhere
 ## Keys each command takes besides `do`, `id` and `next`.
 const COMMANDS := {
-	"say": ["dialogue", "at"], "wait": ["seconds"], "face": ["dir"], "walk": ["to", "by", "run"],
+	"say": ["dialogue", "at"], "wait": ["seconds", "walks"], "face": ["dir"], "walk": ["to", "by", "run"],
 	"set": ["flags"], "clear": ["flags"], "give": ["item", "count"], "money": ["amount"],
 	"fade": ["to", "seconds"], "sound": ["key"], "affection": ["who", "amount"],
-	"place": ["at", "dir"], "actor": ["who", "at", "to", "face", "leave"], "ending": ["page"],
+	"place": ["at", "dir"], "actor": ["who", "at", "to", "face", "leave", "hold", "wait"], "ending": ["page"],
 }
 
 var id := ""
@@ -37,19 +37,20 @@ var fade := 0.0             # 0 clear .. 1 black
 var walk_speed := 60.0      # pixels a second; EventPlayer sets the Player's walk and run speeds
 var run_speed := 100.0
 ## Villagers acting in the event: id -> {pos (cells, feet; a cell's middle is +0.5), facing,
-## moving, walked}, the shape Villagers.on_map gives. Gone again when the event ends.
+## moving, walked, hold (an item overhead, "" for none)}, the shape Villagers.on_map gives.
+## Gone again when the event ends.
 var actors: Dictionary = {}
 ## Villagers standing on the event's map as it starts (EventPlayer, from Villagers.on_map):
 ## id -> {pos, facing}. `"at": "plan"` starts an actor there, so a scene played by a talk
 ## keeps the villager where the farmer found them.
 var on_stage: Dictionary = {}
 var _plan_spots: Dictionary = {}   # id -> where `"at": "plan"` put the actor, for `"to": "plan"`
-var _actor_face := ""       # the walking actor's `face`, turned to on arrival
 var _ids: Dictionary = {}   # step id -> index
 var _active := false        # the step at `index` has begun
 var _timer := 0.0
 var _path: Array[Vector2] = []
-var _actor := ""            # the actor walking in an actor step with `to`
+var _actor := ""            # the actor the step going on waits for ("" when it doesn't wait)
+var _walks: Dictionary = {} # id -> {path: [cells], face}: actors walking, the step's own and any started with "wait": false
 var _fade_from := 0.0
 var _fade_to := 0.0
 var _fade_len := 0.0
@@ -91,6 +92,15 @@ static func item_known(item: String) -> bool:
 	return _crops.has(item.trim_prefix("seeds:"))
 
 
+## Items an actor may hold overhead: crops, animal goods and the kinds with their own
+## art (fish:, mine:, food:, keep:).
+static func holdable(item: String) -> bool:
+	for kind in ["fish:", "mine:", "food:", "keep:"]:
+		if item.begins_with(kind) and item.length() > kind.length():
+			return true
+	return PlaceholderArt.is_animal_good(item) or (item_known(item) and not item.begins_with("seeds:"))
+
+
 ## Is `flag` set in `flags`: true, a number other than 0 or a word other than "" (as dialogue).
 static func is_set(flags: Dictionary, flag: String) -> bool:
 	var v: Variant = flags.get(flag, false)
@@ -126,6 +136,9 @@ func step() -> Dictionary:
 ## (flags, items, facing...) all happen in the same update; time left over from a step that
 ## ends is not carried into the next one.
 func update(delta: float) -> void:
+	for who in _walks.keys():   # walks the event doesn't wait for go on beside the steps
+		if who != _actor:
+			_walk_actor(who, delta)
 	for _n in MAX_STEPS:
 		if done():
 			return
@@ -145,7 +158,7 @@ func _begin(s: Dictionary) -> void:
 		"say":
 			game.talk(s.dialogue, s.get("at", ""))
 		"wait":
-			_timer = float(s.seconds)
+			_timer = float(s.get("seconds", 0.0))
 		"face":
 			if DIRS.has(s.dir):
 				facing = DIRS[s.dir]
@@ -191,29 +204,31 @@ func _begin(s: Dictionary) -> void:
 ## beside the farmer and walks up to them.
 func _begin_actor(s: Dictionary) -> void:
 	_actor = ""
-	_actor_face = ""
 	if s.has("leave"):
 		actors.erase(s.who)
+		_walks.erase(s.who)
 		return
 	var to: Variant = s.get("to")
 	if s.get("at") is String:   # "plan"
 		var spot := _plan_spot(s.who)
 		_plan_spots[s.who] = spot.pos
-		actors[s.who] = {"pos": spot.pos, "facing": spot.facing, "moving": false, "walked": 0.0}
+		actors[s.who] = {"pos": spot.pos, "facing": spot.facing, "moving": false, "walked": 0.0, "hold": ""}
 		if not on_stage.has(s.who) and to == null:
 			to = "farmer"
 	elif s.has("at") or not actors.has(s.who):
 		var start := _actor_goal(s.who, s.get("at", to))
-		actors[s.who] = {"pos": start, "facing": Vector2i.DOWN, "moving": false, "walked": 0.0}
+		actors[s.who] = {"pos": start, "facing": Vector2i.DOWN, "moving": false, "walked": 0.0, "hold": ""}
 	var a: Dictionary = actors[s.who]
+	if s.has("hold"):
+		a.hold = s.hold
 	if to != null:
 		var end := _actor_goal(s.who, to)
 		var corner := Vector2(end.x, a.pos.y)   # across first, then up or down, like the farmer,
 		if Vector2i(corner.floor()) == _farmer_cell():   # unless that turns on the farmer's cell
 			corner = Vector2(a.pos.x, end.y)
-		_path = [corner, end]
-		_actor = s.who
-		_actor_face = s.get("face", "")
+		_walks[s.who] = {"path": [corner, end], "face": s.get("face", "")}
+		if s.get("wait", true):
+			_actor = s.who
 	elif s.has("face"):
 		_face_actor(a, s.face)
 
@@ -255,6 +270,31 @@ static func _toward(from: Vector2, to: Vector2, same: Vector2i) -> Vector2i:
 	return Vector2i(int(signf(d.x)), 0) if absf(d.x) > absf(d.y) else Vector2i(0, int(signf(d.y)))
 
 
+## Actor `who` walks on along their path for `delta` seconds, at the farmer's walking pace;
+## on arrival they turn to the walk's `face`. True while they are still on the way.
+func _walk_actor(who: String, delta: float) -> bool:
+	var a: Dictionary = actors[who]
+	var w: Dictionary = _walks[who]
+	var left := walk_speed / T * delta   # cells
+	while not w.path.is_empty():
+		var d: Vector2 = w.path[0] - a.pos
+		if d.length() > 0.0001:
+			a.facing = Vector2i(int(signf(d.x)), 0) if absf(d.x) > absf(d.y) else Vector2i(0, int(signf(d.y)))
+		if d.length() > left:
+			a.pos += d.normalized() * left
+			a.walked += left
+			a.moving = true
+			return true
+		left -= d.length()
+		a.walked += d.length()
+		a.pos = w.path.pop_front()
+	a.moving = false
+	if w.face != "":
+		_face_actor(a, w.face)
+	_walks.erase(who)
+	return false
+
+
 ## True while step `s` still goes on after `delta` more seconds.
 func _going(s: Dictionary, delta: float) -> bool:
 	match s.get("do", ""):
@@ -264,7 +304,8 @@ func _going(s: Dictionary, delta: float) -> bool:
 			return bool(game.ending_open)
 		"wait":
 			_timer -= delta
-			return _timer > 0.000001   # float sums: 0.3 s is three 0.1 s frames
+			# float sums: 0.3 s is three 0.1 s frames; "walks" also waits for every actor walking
+			return _timer > 0.000001 or (bool(s.get("walks", false)) and not _walks.is_empty())
 		"walk":
 			var left := (run_speed if running else walk_speed) * delta
 			while not _path.is_empty():
@@ -283,23 +324,9 @@ func _going(s: Dictionary, delta: float) -> bool:
 		"actor":
 			if _actor == "":
 				return false
-			var a: Dictionary = actors[_actor]
-			var left := walk_speed / T * delta   # cells, at the farmer's walking pace
-			while not _path.is_empty():
-				var d: Vector2 = _path[0] - a.pos
-				if d.length() > 0.0001:
-					a.facing = Vector2i(int(signf(d.x)), 0) if absf(d.x) > absf(d.y) else Vector2i(0, int(signf(d.y)))
-				if d.length() > left:
-					a.pos += d.normalized() * left
-					a.walked += left
-					a.moving = true
-					return true
-				left -= d.length()
-				a.walked += d.length()
-				a.pos = _path.pop_front()
-			a.moving = false
-			if _actor_face != "":
-				_face_actor(a, _actor_face)
+			if _walk_actor(_actor, delta):
+				return true
+			_actor = ""
 			return false
 		"fade":
 			_fade_time += delta
@@ -329,6 +356,8 @@ func _advance(s: Dictionary) -> void:
 		running = false
 		actors.clear()
 		_plan_spots.clear()
+		_walks.clear()
+		_actor = ""
 
 
 static func _vec(a: Array) -> Vector2i:
@@ -387,10 +416,12 @@ func _check_step(s: Dictionary) -> String:
 			if r.error != "":
 				return "dialogue %s: %s" % [s.dialogue, r.error]
 		"wait":
-			if not _number(s.get("seconds"), 0.0, 60.0):
-				return "wait needs 0 to 60 seconds"
+			if s.has("walks") and not s.walks is bool:
+				return "walks is true or false"
+			if not _number(s.get("seconds", 0.0 if s.get("walks", false) else null), 0.0, 60.0):
+				return "wait needs 0 to 60 seconds (or walks)"
 		"face":
-			if not DIRS.has(s.get("dir")) and not Villagers.all().has(s.get("dir")):
+			if not DIRS.has(s.get("dir")) and not s.get("dir") in Villagers.file_ids():
 				return "face needs up, down, left, right or a villager"
 		"ending":
 			if s.has("page") and not s.page in Ending.PAGES:
@@ -437,14 +468,19 @@ func _check_step(s: Dictionary) -> String:
 			if s.has("dir") and not DIRS.has(s.dir):
 				return "dir is up, down, left or right"
 		"actor":
-			if not s.get("who") is String or not Villagers.all().has(s.who):
+			# The files, not Villagers.all(): its check reads festivals, whose contest events are checked here.
+			if not s.get("who") is String or not s.who in Villagers.file_ids():
 				return "unknown villager %s" % str(s.get("who"))
 			if s.has("leave"):
-				if not (s.leave is bool and s.leave) or s.has("at") or s.has("to") or s.has("face"):
+				if not (s.leave is bool and s.leave) or s.has("at") or s.has("to") or s.has("face") or s.has("hold") or s.has("wait"):
 					return "leave is true, with nothing else"
 				return ""
-			if not (s.has("at") or s.has("to") or s.has("face")):
-				return "an actor step needs at, to, face or leave"
+			if not (s.has("at") or s.has("to") or s.has("face") or s.has("hold")):
+				return "an actor step needs at, to, face, hold or leave"
+			if s.has("hold") and not (s.hold is String and (s.hold == "" or holdable(s.hold))):
+				return "hold needs an item id (or \"\" to put it down)"
+			if s.has("wait") and not (s.wait is bool and s.has("to")):
+				return "wait is true or false, with a to"
 			if s.has("at") and not (_pair(s.at) or s.at == "plan"):
 				return "at needs [x, y] or \"plan\""
 			if s.has("to") and not (_pair(s.to) or s.to in ["farmer", "plan"]):

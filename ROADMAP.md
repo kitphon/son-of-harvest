@@ -144,10 +144,13 @@ spring crop, biggest fish, best egg / milk / wool, brightest mine stone; village
 per year, prizes by place, a result event), its own music (`festivals` in the music rules) and
 the shipping payout waits for the next day; Blossom Day has a dango stall and Lantern Night a
 night-eats stall and a wind chime stall that sell, and a placing gives a ribbon to keep, shown
-on a board in the farmhouse (README → Festivals). Later for festivals: rivals walking up to the
-table with their entries, a contest that is played (a mochi-pounding rhythm, a fishing race),
-more villagers gathering once they talk. Done: stalls at Moon Night and Year's Turn (a food
-stall and a keepsake stall each), keepsakes as gifts (each villager loves one).
+on a board in the farmhouse (README → Festivals). Later for festivals: a contest that is
+played (a mochi-pounding rhythm, a fishing race). Done: stalls at Moon Night and Year's Turn (a
+food stall and a keepsake stall each), keepsakes as gifts (each villager loves one), the rivals
+walking up to the judges' table together with their entries overhead and back (actor `hold`,
+`"wait": false`, a wait for `walks`), and the whole village gathering: Hachiro and Sayo have
+festival day plans too, and all four have a line for each festival (README → Festivals, The
+crowd).
 The balance pass is done (milestone 8): our own crop, product, animal and extension prices,
 `python -I tools/balance.py` prints income per season for a steady year-1 plan (WORKLOG has
 the before / after table); it also keeps the smithy's ores back from the bin (an upgrade

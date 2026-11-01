@@ -45,9 +45,36 @@ func refresh() -> void:
 		s.set_meta("key", key)
 		s.texture = PlaceholderArt.tex(key)
 		s.flip_h = FarmerAnim.is_mirrored(w.facing)
+		_show_hold(s, str(w.get("hold", "")))
 	for id in _sprites:
 		if not seen.has(id):
 			_sprites[id].visible = false
+
+
+## An item an event has the villager hold (a contest entry) rests on top of their head.
+func _show_hold(s: Sprite3D, item: String) -> void:
+	var h: Sprite3D = s.get_node_or_null("Hold")
+	if item == "":
+		if h != null:
+			h.visible = false
+		return
+	var tex := PlaceholderArt.tex(PlaceholderArt.world_item_key(item))
+	if h == null:
+		h = FarmWorld.make_sprite(tex)
+		h.name = "Hold"
+		s.add_child(h)
+	h.texture = tex
+	h.set_meta("item", item)
+	h.offset = Vector2(0, tex.get_height() / 2.0)
+	h.position = Vector3(0, (s.texture.get_height() - 1) * FarmWorld.PX, 0)
+	h.visible = true
+
+
+## The item villager `id` holds overhead now ("" for none; for tests).
+func held_by(id: String) -> String:
+	var s: Sprite3D = _sprites.get(id)
+	var h: Sprite3D = s.get_node_or_null("Hold") if s != null and s.visible else null
+	return str(h.get_meta("item", "")) if h != null and h.visible else ""
 
 
 ## Ids of the villagers shown now (for tests).

@@ -10,6 +10,50 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Festival crowd: rivals walk up with their entries, Hachiro and Sayo come too
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the two "people" items of "Later for festivals". (1) Rivals at the table: EventRunner's
+  actor step takes `hold` (an item carried overhead, `""` puts it down; `EventRunner.holdable`:
+  crops, animal goods, `fish:` / `mine:` / `food:` / `keep:` ids) and `"wait": false` (the walk
+  starts and the next step begins; walks go on in `_walks`, moved at the start of each update),
+  and `{"do": "wait", "walks": true}` waits until every walker has arrived. The four result
+  events (data/events/contest_*.json) bring their three rivals from where their plans have them
+  (`"at": "plan"`, or in from beside the farmer) to cells round the judges' table, entries held
+  (Blossom: Tome's turnip, Kota's cucumber, Sayo's potato; Lantern: ayu, crucian carp, Hachiro's
+  catfish; Moon: a good egg, wool, good milk; Year's Turn: amber, gold ore, crystal), then the
+  results, then all walk back and leave. VillagerSprites / VillagerView draw the held item on
+  the head (`held_by` for tests). The actor checks use `Villagers.file_ids()` now: Villagers'
+  own check reads the festivals, whose contest events are checked here, so `all()` was empty
+  mid-load. (2) The crowd: Hachiro and Sayo have one festival plan per festival (rules after
+  Hachiro's building rule, so a house job still comes first). Hachiro (smithy shut): picnic
+  mats 9:40-16:20, the drum stage from 16:40, the shrine gravel by the moon table from 17:40,
+  the bonfire from 18:40. Sayo: Blossom Day keeps the store open but she is under the blossoms
+  13:00-15:45 and the counter says the new `festival_away` note (data/shops.json, `Shop.festival_away`,
+  `Game.keeper_away_text`); the night food stall from 16:50 (store shut); the moon table after
+  closing (17:50); the shrine by the bonfire at Year's Turn (18:40). After a late festival both go
+  straight to bed (away) at their doors, since their homes' doors shut at 21:00. All four
+  villagers got four `festival_<id>` talk lines, picked in the festival's hours right after the
+  birthday row. Positions are ours, picked on the town map so the "across, then up or down"
+  walks don't cross the tables.
+- Checked: test_festivals (every villager on the festival map mid-festival and saying its line,
+  not before the hours; every rival present; Sayo at the store in the morning and after 15:45,
+  Hachiro building first; each contest event: the results open in under 3.8 s with every rival
+  standing round the table, not on the farmer's cell, holding an entry of the contest's kind,
+  walking back afterwards, no actors left; Sayo's note at 14:00, the store open at 16:00; the
+  held entry drawn in both views and gone after), test_events (two actors walk at once, hold and
+  put down, a wait for walks, the new bad steps refused), test_talk (a festival line before the
+  heart lines, only in the hours). All 24 test scripts print `OK (0 failed)`; smoke runs
+  (title `--quit-after 300`, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo
+  --festival=moon_night`, `--demo --festival=years_turn`, `--demo --festival=lantern_night
+  --contest=fish:ayu`, `res://scenes/main.tscn --quit-after 400 -- --festival=blossom_day`,
+  `main_2d.tscn -- --demo --festival=blossom_day --contest=potato`) printed no errors or
+  warnings. Screenshot `--demo --festival=blossom_day --contest=potato --quit-after 120`:
+  the result box opens by frame 60, Tome with her turnip left of the farmer, Kota with the
+  cucumber and Sayo with the potato right of the judges' table; `shots/` deleted.
+- Left / next: the played contest (another session's mochi pounding at Year's Turn; it may touch
+  contest_year.json too, merge both); Kota and Tome still use one festival plan for all four
+  (standing at the Blossom Day spots); rivals don't set their entries down on the table.
+
 ## 2026-11-01 — Merged six branches: building fixes, 2D weather, heart actors, stalls, river, yearly record
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each: `claude/building-fixes-32aab9`

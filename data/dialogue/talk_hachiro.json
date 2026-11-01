@@ -1,8 +1,12 @@
 {
-	"_note": "What Hachiro says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday) (gifts in data/villagers/hachiro.json). Our own lines.",
+	"_note": "What Hachiro says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday) (gifts in data/villagers/hachiro.json). On a festival day, in its hours, the festival_<id> line. Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
+		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
+		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
+		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
+		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"flags": ["house_work"], "weather": ["sunny", "rain", "snow"], "time": ["08:00", "17:00"]}, "at": ["build_1", "build_2", "build_3"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet_1", "wet_2"]},
 		{"if": {"band": [6, 6], "flags": ["heart_hachiro_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
@@ -49,6 +53,10 @@
 		{"id": "gift_neutral", "speaker": "hachiro", "face": "calm", "text": "For me? Well. Thank you.", "next": "end"},
 		{"id": "gift_dislike", "speaker": "hachiro", "face": "worried", "text": "Ah... sweet things aren't for me. Still, thank you.", "next": "end"},
 		{"id": "gift_hate", "speaker": "hachiro", "face": "worried", "text": "Ugh. Can't stand the smell of it. Take it back, will you.", "next": "end"},
-		{"id": "gift_again", "speaker": "hachiro", "face": "calm", "text": "One's enough for today. Don't spoil me.", "next": "end"}
+		{"id": "gift_again", "speaker": "hachiro", "face": "calm", "text": "One's enough for today. Don't spoil me.", "next": "end"},
+		{"id": "festival_blossom_day", "speaker": "hachiro", "face": "smile", "text": "Smithy's shut, so I'm off duty. Petals in my tea and no sparks in my hair. That's a holiday.", "next": "end"},
+		{"id": "festival_lantern_night", "speaker": "hachiro", "face": "smile", "text": "Listen to that drum. My father played it every summer. I only ever hit anvils.", "next": "end"},
+		{"id": "festival_moon_night", "speaker": "hachiro", "face": "calm", "text": "A full moon like a fresh-poured ingot. Don't tell anyone I said something so soft.", "next": "end"},
+		{"id": "festival_years_turn", "speaker": "hachiro", "face": "calm", "text": "Warm your hands at the fire. The first stone of the year shines best by its light.", "next": "end"}
 	]
 }
