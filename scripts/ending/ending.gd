@@ -9,7 +9,7 @@ extends RefCounted
 
 const PATH := "res://data/ending.json"
 const MEASURES: Array[String] = ["shipped_value", "crop_kinds", "animal_care", "heart_bands",
-	"mine_deepest", "fish_kinds", "house_built", "tool_levels", "contest_wins", "recipes_known"]
+	"neighbours_known", "mine_deepest", "fish_kinds", "house_built", "tool_levels", "contest_wins", "recipes_known"]
 ## The field's numbers, kept the first day and on every page (Game.field_counts()).
 const FIELD_MEASURES: Array[String] = ["debris", "tilled", "money"]
 const PAGES: Array[String] = ["ending", "year"]

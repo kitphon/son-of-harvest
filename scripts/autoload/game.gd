@@ -1359,11 +1359,16 @@ func ending_values() -> Dictionary:
 	var hearts := 0
 	for id in Villagers.friends():
 		hearts += affection.band(id)
+	# The villagers without hearts the farmer has come to know (ending.json neighbour_band).
+	var known := 0
+	for id in Villagers.all():
+		if not Villagers.friends().has(id) and affection.band(id) >= int(Ending.data().get("neighbour_band", 1)):
+			known += 1
 	var levels := 0
 	for t in FIELD_TOOLS:
 		levels += maxi(int(tool_levels.get(t, 1)) - 1, 0)
 	return {"shipped_value": value, "crop_kinds": kinds, "animal_care": cared, "heart_bands": hearts,
-		"mine_deepest": mine_deepest, "fish_kinds": fish_caught.size(), "house_built": house_built.size(),
+		"neighbours_known": known, "mine_deepest": mine_deepest, "fish_kinds": fish_caught.size(), "house_built": house_built.size(),
 		"tool_levels": levels, "contest_wins": int(flags.get("contest_wins", 0)),
 		"recipes_known": Cooking.known_ids(flags).size()}
 

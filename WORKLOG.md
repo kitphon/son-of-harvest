@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — The new villagers in the village record
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a Neighbours row on the village record and the yearly pages (data/ending.json
+  category `neighbours`, measure `neighbours_known`, steps 2 / 4 / 6 / 8): the villagers
+  without hearts (Genzo, Haru, Fumi, Ichiro, Shige, Nana, Kiku and Dr. Yae) whose hidden
+  affection, which talks and gifts already raise for them, reached `neighbour_band` (1, i.e. 20
+  points: about twenty days of talk or ten of talk and a liked gift). Game.ending_values
+  measures it; Ending.MEASURES has it (old saved pages without it still load). The record now
+  has 43 stars, so the rank steps moved from 8 / 16 / 24 / 33 to 9 / 18 / 27 / 36, keeping
+  each rank at about the same share. The closing visitor is still the friend liked most (the
+  people with hearts).
+- Checked: test_ending (no neighbours at the start; Genzo and Dr. Yae known at band 1, Fumi
+  one point short not; friends don't count there; the top step is everyone without hearts);
+  `tools/play_year.gd -- --years=2` printed `Neighbours 7 3 / 4 stars`, `31 / 43 stars: rank
+  3, "Keeper of the Satoyama"` and `play_year: OK (no problems seen)` (Fumi stays at band 0:
+  the bot rarely finds her inside the teahouse); all 25 test scripts print `OK (0 failed)`;
+  smoke runs (title, `--demo`, town, mine 3, `--ending=year`) print no errors; a screenshot
+  of `--ending` shows the 11 rows and 3 field rows fitting on the scroll.
+- Left / next: the new villagers as contest rivals; forage in the other parts.
+
 ## 2026-11-01 — The new villagers at the festivals
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: Genzo, Haru, Fumi, Ichiro, Shige, Nana and Kiku each have three festival plans and

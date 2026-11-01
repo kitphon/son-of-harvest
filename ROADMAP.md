@@ -195,8 +195,9 @@ way to the river (gardens, persimmon orchard, a water shrine; Shige, Nana and Ki
 villagers in all, without hearts; they come to all four festivals too (a spot each, a line each). The Hanami teahouse is a shop (Fumi's: tea, whipped matcha
 and a sweet of the season sold nowhere else, while she is behind her counter). Forage is in
 (data/forage.json: fifteen spots on the bamboo hill, what grows changes by the season, a picked
-spot grows back overnight; README → Forage). Later: the new villagers in the village record
-(and as contest rivals); forage spots in the other areas (Kaminoda, Sakurazaka, Minamino);
+spot grows back overnight; README → Forage). The village record has a Neighbours
+row (the villagers without hearts known to band 1). Later: the new villagers as contest
+rivals; forage spots in the other areas (Kaminoda, Sakurazaka, Minamino);
 wild things in recipes.
 After that: milestone 10, building the .exe once the export templates are installed (README → Export).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
@@ -221,6 +222,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] The Hanami teahouse sells tea, matcha and seasonal sweets (shop `teahouse`, Fumi)
    - [x] Forage on the bamboo hill: fixed spots, seasonal wild things, back the next morning
    - [x] The outer parts' villagers come to every festival, with a line for each
+   - [x] The village record counts the neighbours known (a Neighbours row, ranks moved up)
 2. **Look and feel**
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)

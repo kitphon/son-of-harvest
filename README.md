@@ -681,7 +681,9 @@ On the first morning the farmer wakes in the farmhouse in year 3 or later (a `da
 in `data/events/triggers_house.json`, once), Tome comes in with the village record
 (`data/events/ending.json`, lines in `data/dialogue/ending.json`). Its `ending` step calls
 `Game.show_ending()`: `Game.ending_values()` measures the run (shipped value at today's prices,
-crop kinds shipped, happy animals, heart bands, the deepest mine floor, fish kinds, house
+crop kinds shipped, happy animals, heart bands, neighbours known (the villagers without hearts,
+the outer parts' people and Dr. Yae, whose hidden affection from talks and gifts reached
+`neighbour_band`), the deepest mine floor, fish kinds, house
 extensions, tool levels, contests won, recipes known) and `Ending.grade` turns it into stars
 per category, a rank and a title from `data/ending.json`; the EndingScreen shows it. The flags
 `ending_rank_<n>` and `ending_friend_<id>` pick Tome's verdict and who comes in to close it

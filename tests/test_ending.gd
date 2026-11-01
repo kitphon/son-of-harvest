@@ -187,6 +187,17 @@ func _values() -> void:
 	check(v.mine_deepest == 14 and v.fish_kinds == 2 and v.house_built == 1 and v.contest_wins == 2, "mine, fish, house, contests")
 	check(v.tool_levels == 3, "tool levels above 1 added up (%d)" % v.tool_levels)
 	check(v.heart_bands == 3, "heart bands added up (%d)" % v.heart_bands)
+	# Neighbours: villagers without hearts known to neighbour_band; friends don't count here.
+	check(v.neighbours_known == 0, "no neighbours known yet")
+	var near := int(Affection.rules().bands[int(Ending.data().neighbour_band)])
+	g.affection.add("genzo", near)
+	g.affection.add("fumi", near - 1)
+	g.affection.add("yae", near + 30)
+	check(g.ending_values().neighbours_known == 2 and g.ending_values().heart_bands == 3, "Genzo and Dr. Yae known, Fumi not quite")
+	var neighbours := 0
+	for id in Villagers.all():
+		neighbours += 0 if Villagers.friends().has(id) else 1
+	check(int(steps.neighbours_known.back()) == neighbours, "the top neighbours step is everyone without hearts (%d)" % neighbours)
 	check(v.recipes_known == Cooking.known_ids(g.flags).size(), "recipes known")
 	g.animals.add("chicken")
 	var cared: int = g.ending_values().animal_care
