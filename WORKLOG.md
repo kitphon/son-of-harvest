@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — The export templates archive taken out of the history
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: on the user's word, the 1.28 GB `Godot_v4.7.2-stable_export_templates.tpz` committed by
+  mistake with the wide farm is gone from git: `git filter-branch --index-filter 'git rm
+  --cached --ignore-unmatch ...' -- 0c5c6a8..main` rewrote the seven commits after 0c5c6a8
+  (no other branch held them; no remote), then refs/original was deleted, the reflogs expired
+  and `git gc --prune=now` run. New hashes: b5b9d65 (wide farm), 22b8191 (wide village),
+  0ea1c5e (bamboo hill), ef4efa3 (back to the old sizes), 12fa5b3 (Kaminoda), 6eec48e
+  (Sakurazaka), 2567c6b (Minamino); the WORKLOG's old hashes are updated. The archive itself
+  stays on the disk for installing the templates (README → Export), ignored by `*.tpz`.
+- Checked: `git diff --stat 9299ad2 2567c6b` printed nothing (the last tree is unchanged);
+  `git log --all -- Godot_v4.7.2-stable_export_templates.tpz` prints nothing; `git count-objects
+  -vH` size-pack 1.86 MiB (was 1.22 GiB loose); the archive on disk is 1281349702 bytes.
+
 ## 2026-11-01 — Minamino: the village's south part, Shige, Nana and Kiku
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `data/maps/minamino.json` (30 x 20) between the village's south lane and the river
@@ -88,7 +102,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user played the wide maps: the walks were too long and dull, the village had no
   character of its own, the new ground too empty and not rural Japanese enough. They want the
   old maps kept and more areas added instead (north, south and east parts of the village), more
-  houses and more villagers. So 33269f7 (farm 64 x 48) and 67571eb (village 56 x 36) are undone
+  houses and more villagers. So b5b9d65 (farm 64 x 48) and 22b8191 (village 56 x 36) are undone
   by hand: the farm is 32 x 20 with its gate on the right fence again, the village 36 x 22, the
   river and mine doors, the Sunday river walks, Hachiro's farm route and the tests as before.
   Kept: the 3D farm view's cheaper redraw (unchanged sprites kept, snow mask only while snow
@@ -96,10 +110,10 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   64 x 48 loads cut back to 32 x 20 (`FarmGrid.WIDE_W / WIDE_H`, `_cut_back`: what was inside the
   fence line stays). The village gets a lane north at x 10-11 (spawn `north`) that leads to the
   hill for now; the north part of the village will sit between them.
-- Found: 33269f7 also committed `Godot_v4.7.2-stable_export_templates.tpz` (1.28 GB), which
-  had been put in the project folder during the session; the revert took it off the disk, so it
-  was written back from git (same size) and is untracked now, `*.tpz` in .gitignore. It stays
-  in the history of 33269f7 until that history is rewritten (asked the user).
+- Found: the farm commit also committed `Godot_v4.7.2-stable_export_templates.tpz` (1.28 GB),
+  which had been put in the project folder during the session; the revert took it off the disk,
+  so it was written back from git (same size) and is untracked now, `*.tpz` in .gitignore. The
+  history was rewritten afterwards to drop it (see the entry above).
 - Checked: test_farm's `_wide_save` (a 64 x 48 save loads cut back, inside kept, border fenced),
   test_maps (north lane ↔ hill); all 24 test scripts print `OK (0 failed)`.
 - Left / next: countryside props, the north / east / south parts of the village, new villagers.
