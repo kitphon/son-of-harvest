@@ -218,7 +218,9 @@ straw_hat, colours `hair`, `skin`, `top`, `waist`, `lower`, `accent`, `shoes`; d
   needs `from` unless the entry before was on the same map (then it walks on from there).
   Steps: `{"to": [x, y]}` (walk straight there), `{"wait": minutes}`, `{"work": minutes}`
   (stands like a wait in the work pose, a hammer up and down, `work_strokes_per_minute` in
-  _common.json; each blow knocks, Sfx `build_knock`), `{"face": "up"}`. The
+  _common.json; each blow knocks, Sfx `build_knock`), `{"fish": minutes}` (stands with a rod
+  out, the line down from its tip; the tip dips one minute in every `fish_bob_minutes`; Kota and
+  Hachiro at the river on a fair Sunday), `{"face": "up"}`. The
   route is walked once, then the loop over and over until the next entry. A route must
   arrive before the next entry starts, and test_villagers checks no walk crosses a solid cell.
 
@@ -241,7 +243,8 @@ turns them to the farmer (`Villagers.turn`) and calls `Game.talk_to(id, face)`:
 - anyone else opens their lines, `data/dialogue/talk_<id>.json`: an ordinary dialogue plus
   `picks`, `[{"if": {conditions}, "at": [line ids]}]`, the last row without `if`. Conditions
   are the rule ones above plus `time` (`["H:MM", "H:MM"]`), `band` (heart band `[low, high]`,
-  0..6), `again` (already talked today) and `birthday` (true on their birthday); the day picks
+  0..6), `again` (already talked today), `birthday` (true on their birthday) and `map` (map ids:
+  the map the villager stands on, e.g. Kota's and Hachiro's river lines); the day picks
   one of the row's lines. Gift answers are the lines `gift_love` .. `gift_hate` and
   `gift_again`; an optional `gift_birthday` answers a gift that isn't disliked on their birthday.
 The first talk of a day adds `affection.talk`. `Affection` (scripts/villagers/affection.gd,

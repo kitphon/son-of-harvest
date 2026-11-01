@@ -84,7 +84,9 @@ Hachiro the smithy: talking to them at the counter opens the shop, which sells o
 they are in. Villagers block the farmer and wait when they bump into the farmer (delay, at most 30
 minutes). They are at home (house maps; Hachiro in the smithy) in the early morning, at noon,
 in the evening and on wet days, `away` in bed after their door shuts; Sayo has tea at Tome's
-on Sunday afternoons. Later for villagers: whistling, real portraits.
+on Sunday afternoons. On a fair Sunday Hachiro fishes the river (9:30-15:00) and Kota joins
+him in the afternoon (a `fish` day plan step: the villager's rod pose in both views; river talk
+lines picked by the `map` condition). Later for villagers: whistling, real portraits.
 Relationships are in (milestone 9): the heart band shows as a coloured heart on the text
 box's name tag, each villager has a birthday (on the farmhouse calendar; gifts x5, a birthday
 line), villagers left alone may lose a point at night, and each has a heart event at band 3
@@ -223,6 +225,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Villagers with daily schedules from data (rule list → day plan), catch-up on map entry
    - [x] Talking, gifts, affection, shopkeepers at their counters (data/dialogue/talk_<id>.json, Affection)
    - [x] Villagers' homes: Tome's / Kota's houses, Sayo's rooms (data/maps, HomeProps), door hours, home schedules
+   - [x] Villagers at the river: Hachiro and Kota fish it on fair Sundays (`fish` step and rod pose, `map` talk condition, river lines, `--day=N`)
 6. **Events and dialogue**
    - [x] Text box (typewriter, portraits, choices, flags); our own, data/dialogue
    - [x] Event scripts + trigger tables per map (data/events; three small farm events)

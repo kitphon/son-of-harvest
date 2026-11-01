@@ -27,6 +27,7 @@ func _process(_delta: float) -> bool:
 		_save_round_trip()
 		_event_hook()
 		_delay_and_bump()
+		_talk_at_river()
 		print("test_talk: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -62,6 +63,7 @@ func _file_errors() -> void:
 		["a backwards time", func(d): d.picks[0].if = {"time": ["12:00", "09:00"]}],
 		["again not true / false", func(d): d.picks[0].if = {"again": 1}],
 		["a bad season", func(d): d.picks[0].if = {"season": ["monsoon"]}],
+		["a map with no file", func(d): d.picks[0].if = {"map": ["moon"]}],
 		["no gift answer", func(d): d.lines.pop_back()],
 	]
 	for b in bad:
@@ -99,6 +101,13 @@ func _picks() -> void:
 	check(Talk.pick("hachiro", _state({"band": 2, "time": 480})) in ["morning_1", "morning_2"], "Hachiro before the smithy opens")
 	check(Talk.pick("kota", _state({"band": 2, "season": "summer", "time": 900})) in ["cicada_1", "cicada_2"], "Kota's summer afternoons")
 	check(Talk.pick("nobody", _state()) == "", "no talk file, no line")
+	# At the river (a fair Sunday) both fishers have lines for it, whatever the band.
+	var river := _state({"weekday": "sun", "map": "river", "time": 900})
+	for id in ["hachiro", "kota"]:
+		check(Talk.pick(id, river.merged({"band": 2}, true)).begins_with("river_"), "%s talks about the river there" % id)
+		check(Talk.pick(id, river.merged({"band": 5}, true)).begins_with("river_"), "%s's river lines come before the close ones" % id)
+		check(not Talk.pick(id, river.merged({"band": 2, "map": "town"}, true)).begins_with("river_"), "%s has no river line in the village" % id)
+	check(Talk.pick("kota", river.merged({"again": true}, true)) in ["again_1", "again_2"], "a second talk at the river is still the again line")
 
 
 func _reactions() -> void:
@@ -207,6 +216,25 @@ func _talk_in_town() -> void:
 	check(is_equal_approx(Villagers.delay_of("tome", t + stand + 1.0), stand), "the talk joined her delay")
 	g.end_day()
 	check(not g.affection.talked_on("tome", g.day_number()) and g.affection.of("tome") == int(Affection.rules().talk), "a new day, a new talk")
+
+
+## On a fair Sunday at 14:30 Hachiro and Kota fish the river; E facing Hachiro there opens a
+## river line (Game.talk_to passes the map he stands on to the pick).
+func _talk_at_river() -> void:
+	var g := _game()
+	var seen := _listen(g)
+	g.day = 7   # spring 7, the first Sunday
+	g.weather_today = "sunny"
+	g.hour = 14
+	g.minute = 30
+	g.go_to_map("river", Vector2i(10, 4), Vector2i.DOWN)
+	var s: Dictionary = g.trigger_state(Vector2i.ZERO)
+	var w: Dictionary = Talk.facing_villager(g.maps.current(), Vector2i(10, 4), Vector2i.DOWN, g.day_minutes(), s)
+	check(g.weekday() == "sun" and w.get("id", "") == "hachiro", "the farmer on the shore above Hachiro faces him %s" % [w])
+	check(g.talk_to("hachiro", Vector2i.UP) == "talk" and seen.said.size() == 1 and seen.said[0][0] == "talk_hachiro"
+		and seen.said[0][1].begins_with("river_"), "Hachiro talks about the river %s" % [seen.said])
+	check(not Villagers.where("hachiro", g.day_minutes(), s).fishing, "he reels in to talk")
+	check(g.talk_to("kota", Vector2i.UP) == "talk" and seen.said[1][1].begins_with("river_"), "and so does Kota %s" % [seen.said])
 
 
 ## E with an item overhead gives it away; one gift a day, a second one stays in hand.

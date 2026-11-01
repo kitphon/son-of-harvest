@@ -199,6 +199,8 @@ func new_game() -> void:
 				push_warning("No season " + arg)
 			else:
 				season = s
+		elif arg.begins_with("--day="):   # `-- --demo --day=7 --map=river`: that day of the season (7: the first Sunday)
+			day = clampi(arg.trim_prefix("--day=").to_int(), 1, DAYS_PER_SEASON)
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--festival="):   # `-- --demo --festival=lantern_night`: its day, hours and place
@@ -1562,7 +1564,8 @@ func talk_to(id: String, face: Vector2i) -> String:
 	var w := Villagers.where(id, t, trigger_state(Vector2i.ZERO))
 	var shop_id := Talk.keeper_shop(id, maps.id, Vector2i(w.get("pos", Vector2(-1, -1)).floor()))
 	var s := trigger_state(Vector2i.ZERO)
-	s.merge({"band": affection.band(id), "again": affection.talked_on(id, today), "day_number": today, "birthday": birthday})
+	s.merge({"band": affection.band(id), "again": affection.talked_on(id, today), "day_number": today, "birthday": birthday,
+		"map": str(w.get("map", maps.id))})
 	affection.talk(id, today)
 	if shop_id != "" and open_shop(shop_id):
 		return "shop"
