@@ -18,10 +18,10 @@ const DIRS := {"up": Vector2i.UP, "down": Vector2i.DOWN, "left": Vector2i.LEFT, 
 const COME_IN := 4          # cells beside the farmer an actor comes in from when their plan has them elsewhere
 ## Keys each command takes besides `do`, `id` and `next`.
 const COMMANDS := {
-	"say": ["dialogue", "at"], "wait": ["seconds"], "face": ["dir"], "walk": ["to", "by", "run"],
+	"say": ["dialogue", "at"], "wait": ["seconds", "walkers"], "face": ["dir"], "walk": ["to", "by", "run"],
 	"set": ["flags"], "clear": ["flags"], "give": ["item", "count"], "money": ["amount"],
 	"fade": ["to", "seconds"], "sound": ["key"], "affection": ["who", "amount"],
-	"place": ["at", "dir"], "actor": ["who", "at", "to", "face", "leave"], "ending": ["page"],
+	"place": ["at", "dir"], "actor": ["who", "at", "to", "face", "leave", "holds", "meanwhile"], "ending": ["page"],
 }
 
 var id := ""
@@ -37,7 +37,8 @@ var fade := 0.0             # 0 clear .. 1 black
 var walk_speed := 60.0      # pixels a second; EventPlayer sets the Player's walk and run speeds
 var run_speed := 100.0
 ## Villagers acting in the event: id -> {pos (cells, feet; a cell's middle is +0.5), facing,
-## moving, walked}, the shape Villagers.on_map gives. Gone again when the event ends.
+## moving, walked, holds?}, the shape Villagers.on_map gives, with `holds` the item carried
+## overhead. Gone again when the event ends.
 var actors: Dictionary = {}
 ## Villagers standing on the event's map as it starts (EventPlayer, from Villagers.on_map):
 ## id -> {pos, facing}. `"at": "plan"` starts an actor there, so a scene played by a talk
@@ -45,6 +46,7 @@ var actors: Dictionary = {}
 var on_stage: Dictionary = {}
 var _plan_spots: Dictionary = {}   # id -> where `"at": "plan"` put the actor, for `"to": "plan"`
 var _actor_face := ""       # the walking actor's `face`, turned to on arrival
+var _walkers: Dictionary = {}   # id -> {path, face}: actors walking on while the event goes on (`meanwhile`)
 var _ids: Dictionary = {}   # step id -> index
 var _active := false        # the step at `index` has begun
 var _timer := 0.0
@@ -126,6 +128,11 @@ func step() -> Dictionary:
 ## (flags, items, facing...) all happen in the same update; time left over from a step that
 ## ends is not carried into the next one.
 func update(delta: float) -> void:
+	for who in _walkers.keys():
+		if not _walk(actors[who], _walkers[who].path, delta):
+			if _walkers[who].face != "":
+				_face_actor(actors[who], _walkers[who].face)
+			_walkers.erase(who)
 	for _n in MAX_STEPS:
 		if done():
 			return
@@ -188,10 +195,12 @@ func _begin(s: Dictionary) -> void:
 
 ## An actor step: off the stage, onto cell `at` (or their plan's spot), walking to `to`, then
 ## turned to `face`. An actor put at "plan" whose plan has them on another map comes in from
-## beside the farmer and walks up to them.
+## beside the farmer and walks up to them. `holds` gives them an item to carry overhead ("" puts
+## it away); with `meanwhile` the walk goes on while the next steps play.
 func _begin_actor(s: Dictionary) -> void:
 	_actor = ""
 	_actor_face = ""
+	_walkers.erase(s.who)
 	if s.has("leave"):
 		actors.erase(s.who)
 		return
@@ -206,11 +215,16 @@ func _begin_actor(s: Dictionary) -> void:
 		var start := _actor_goal(s.who, s.get("at", to))
 		actors[s.who] = {"pos": start, "facing": Vector2i.DOWN, "moving": false, "walked": 0.0}
 	var a: Dictionary = actors[s.who]
+	if s.has("holds"):
+		a.holds = s.holds
 	if to != null:
 		var end := _actor_goal(s.who, to)
 		var corner := Vector2(end.x, a.pos.y)   # across first, then up or down, like the farmer,
 		if Vector2i(corner.floor()) == _farmer_cell():   # unless that turns on the farmer's cell
 			corner = Vector2(a.pos.x, end.y)
+		if s.get("meanwhile", false):
+			_walkers[s.who] = {"path": [corner, end], "face": s.get("face", "")}
+			return
 		_path = [corner, end]
 		_actor = s.who
 		_actor_face = s.get("face", "")
@@ -264,7 +278,8 @@ func _going(s: Dictionary, delta: float) -> bool:
 			return bool(game.ending_open)
 		"wait":
 			_timer -= delta
-			return _timer > 0.000001   # float sums: 0.3 s is three 0.1 s frames
+			# float sums: 0.3 s is three 0.1 s frames; `walkers` also waits for the meanwhile walks
+			return _timer > 0.000001 or (s.get("walkers", false) and not _walkers.is_empty())
 		"walk":
 			var left := (run_speed if running else walk_speed) * delta
 			while not _path.is_empty():
@@ -284,20 +299,8 @@ func _going(s: Dictionary, delta: float) -> bool:
 			if _actor == "":
 				return false
 			var a: Dictionary = actors[_actor]
-			var left := walk_speed / T * delta   # cells, at the farmer's walking pace
-			while not _path.is_empty():
-				var d: Vector2 = _path[0] - a.pos
-				if d.length() > 0.0001:
-					a.facing = Vector2i(int(signf(d.x)), 0) if absf(d.x) > absf(d.y) else Vector2i(0, int(signf(d.y)))
-				if d.length() > left:
-					a.pos += d.normalized() * left
-					a.walked += left
-					a.moving = true
-					return true
-				left -= d.length()
-				a.walked += d.length()
-				a.pos = _path.pop_front()
-			a.moving = false
+			if _walk(a, _path, delta):
+				return true
 			if _actor_face != "":
 				_face_actor(a, _actor_face)
 			return false
@@ -306,6 +309,26 @@ func _going(s: Dictionary, delta: float) -> bool:
 			var t := 1.0 if _fade_len <= 0.0 else clampf(_fade_time / _fade_len, 0.0, 1.0)
 			fade = lerpf(_fade_from, _fade_to, t)
 			return t < 1.0
+	return false
+
+
+## Actor `a` walks `delta` seconds along `path` (cells; points are taken off as they are
+## reached) at the farmer's walking pace. True while there is still some way to go.
+func _walk(a: Dictionary, path: Array, delta: float) -> bool:
+	var left := walk_speed / T * delta
+	while not path.is_empty():
+		var d: Vector2 = path[0] - a.pos
+		if d.length() > 0.0001:
+			a.facing = Vector2i(int(signf(d.x)), 0) if absf(d.x) > absf(d.y) else Vector2i(0, int(signf(d.y)))
+		if d.length() > left:
+			a.pos += d.normalized() * left
+			a.walked += left
+			a.moving = true
+			return true
+		left -= d.length()
+		a.walked += d.length()
+		a.pos = path.pop_front()
+	a.moving = false
 	return false
 
 
@@ -328,6 +351,7 @@ func _advance(s: Dictionary) -> void:
 		walking = false
 		running = false
 		actors.clear()
+		_walkers.clear()
 		_plan_spots.clear()
 
 
@@ -389,6 +413,8 @@ func _check_step(s: Dictionary) -> String:
 		"wait":
 			if not _number(s.get("seconds"), 0.0, 60.0):
 				return "wait needs 0 to 60 seconds"
+			if s.has("walkers") and not (s.walkers is bool and s.walkers):
+				return "walkers is true"
 		"face":
 			if not DIRS.has(s.get("dir")) and not Villagers.all().has(s.get("dir")):
 				return "face needs up, down, left, right or a villager"
@@ -451,7 +477,19 @@ func _check_step(s: Dictionary) -> String:
 				return "to needs [x, y], \"farmer\" or \"plan\""
 			if s.has("face") and not (DIRS.has(s.face) or s.face == "farmer"):
 				return "face is up, down, left, right or farmer"
+			if s.has("holds") and not (s.holds is String and (s.holds == "" or _holdable(s.holds))):
+				return "holds needs an item: a crop, fish:<id>, mine:<id>, an egg, milk or wool"
+			if s.has("meanwhile") and not (s.meanwhile is bool and s.meanwhile and s.has("to")):
+				return "meanwhile is true, with a to"
 	return ""
+
+
+## Can an actor carry `item` overhead: a crop, a fish or a mine find by its prefix, an animal good.
+static func _holdable(item: String) -> bool:
+	for p in ["fish:", "mine:"]:
+		if item.begins_with(p):
+			return item.length() > p.length()
+	return item_known(item) and not item.begins_with("seeds:") or PlaceholderArt.is_animal_good(item)
 
 
 func _target_ok(t: Variant) -> bool:

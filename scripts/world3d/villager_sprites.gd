@@ -45,9 +45,34 @@ func refresh() -> void:
 		s.set_meta("key", key)
 		s.texture = PlaceholderArt.tex(key)
 		s.flip_h = FarmerAnim.is_mirrored(w.facing)
+		_show_held(s, w)
 	for id in _sprites:
 		if not seen.has(id):
 			_sprites[id].visible = false
+
+
+## What an event actor carries (`holds`) rests on top of their head; nothing, no sprite.
+func _show_held(s: Sprite3D, w: Dictionary) -> void:
+	var item := String(w.get("holds", ""))
+	var held: Sprite3D = s.get_node_or_null("Held")
+	if item == "":
+		if held != null:
+			held.visible = false
+		return
+	if held == null:
+		held = FarmWorld.make_sprite(PlaceholderArt.tex(PlaceholderArt.world_item_key(item)))
+		held.name = "Held"
+		held.position = Vector3(0, 23 * FarmWorld.PX, 0)
+		s.add_child(held)
+	held.texture = PlaceholderArt.tex(PlaceholderArt.world_item_key(item))
+	held.set_meta("item", item)
+	held.visible = true
+
+
+## The item villager `id` carries overhead now ("" for none; for tests).
+func held(id: String) -> String:
+	var h: Node = _sprites[id].get_node_or_null("Held") if _sprites.has(id) and _sprites[id].visible else null
+	return h.get_meta("item", "") if h != null and h.visible else ""
 
 
 ## Ids of the villagers shown now (for tests).
