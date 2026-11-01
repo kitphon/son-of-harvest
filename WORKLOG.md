@@ -10,6 +10,36 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — The village record as a paper scroll
+Agent: Claude Code (claude-opus-5-5) · Commit: 5c16326
+- Done: ROADMAP "real art for the scroll". `EndingScreen` (village record and yearly page) is
+  now a hanging scroll instead of the wood box: a wooden roller top and bottom (brass collars,
+  lacquered knobs), washi paper between them (a seamless 32 x 32 fibre tile), cut edges a
+  shade darker and the top roller's shadow. On open the paper unrolls downwards in 0.5 s
+  (eased; the top roller stays, the bottom one rides under the paper, the paper clips its
+  contents), then the rows come up as before; Enter / click during the unroll opens it fully
+  with every row. "Village Record" and "N of M stars" moved onto the paper's top line, the
+  heading under it. Stars are 7 x 7 ink stamps (vermilion with thin spots; unearned ones a
+  faint unstamped star), a 14 x 14 red seal (a sprout carved in a square, our own mark) sits
+  after "Written as: <title>" with the hint on the same line, every other row has a faint wash
+  and a small arrow points from the first-day number to today's (hidden if there is no room).
+  Art: `ui:scroll:<washi|roller_<w>|star_on|star_off|seal|arrow>` in PlaceholderArt
+  (`_scroll_art`, `_scroll_roller`). The scroll is 372 x 241 on the 480 x 270 base screen, which
+  the window scales by whole steps, so it fits every window size. No rule changes. README ->
+  Ending describes the look.
+- Checked: test_ending gains `_scroll`: the scroll fits the screen, opens rolled up, unrolls in
+  <= 16 frames at 30 fps without shrinking, ends open with the bottom roller under the paper,
+  rows wait for it, then rows / title / seal show and it stays open; every visible label and
+  picture lies inside the paper's margins for the real record, every rank title (the seal
+  clears the hint) and big numbers (9,999,999 G, 999 for counts), columns stay apart and gains
+  clear the stars. All 24 test scripts print `OK (0 failed)`; headless runs (title, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`, `--demo --ending`, `--demo --ending=year`, `--demo
+  --map=house --event=ending`) printed no errors or warnings. Screenshots of `--demo --ending`
+  and `--demo --ending=year` (frame 119, plus frames 3 / 8 mid-unroll) and zoomed crops of the
+  rollers, stars and seal checked; `shots/` deleted.
+- Left / next: real art can replace the `ui:scroll:*` keys; a person could judge the unroll
+  speed in play (no sound of its own; it keeps the row and coin sounds).
+
 ## 2026-11-01 — Merged ten branches: settings, water sounds, flat decorations, village snow, eat pose, rivals, river visits, gift lines, clinic, tool perk
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each: `claude/tool-l5-build-msg-a89fb6`

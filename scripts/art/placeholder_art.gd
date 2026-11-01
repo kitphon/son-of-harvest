@@ -1601,6 +1601,8 @@ static func _ui(kind: String, arg: String) -> Image:
 			for y in 4:
 				_px(img, y, y, 7 - y * 2, 1, UI_SEAL)
 			return img
+		"scroll":   # scroll:<washi|roller_<w>|star_on|star_off|seal|arrow>, the village record (EndingScreen)
+			return _scroll_art(arg)
 		"stamina":  # a rice ball: what keeps the farmer going
 			var img := _blank(9, 9)
 			for y in 7:
@@ -2481,3 +2483,98 @@ static func _lamp(img: Image, at: Vector2i, color: Color, half: int) -> void:
 	_px(img, at.x - half + 1, at.y - half, 1, half * 2, color.lightened(0.3))
 	_px(img, at.x - half + 1, at.y - half - 2, half * 2 - 1, 1, FEST_INK)
 	_px(img, at.x - half + 1, at.y + half + 2, half * 2 - 1, 1, FEST_INK)
+
+
+# --- the village record scroll (EndingScreen) ----------------------------------------------
+
+const SCROLL_WASHI := Color("f6ead0")
+const SCROLL_STAR := ["...X...", "..XXX..", "XXXXXXX", ".XXXXX.", "..XXX..", ".XX.XX.", ".X...X."]
+
+
+## The record's paper scroll: a 32 x 32 washi tile (seamless, long pale fibres and specks), a
+## roller (roller_<w>: a rod <w> px long with a knob each end, 10 px tall, w + 12 wide),
+## the 7 x 7 ink-stamp star (on: vermilion with thin ink spots; off: a faint unstamped star),
+## the 14 x 14 red seal (a sprout carved out of a square, our own mark) and a 3 x 5 arrow
+## that points from the first day's number to today's.
+static func _scroll_art(kind: String) -> Image:
+	if kind.begins_with("roller_"):
+		return _scroll_roller(int(kind.trim_prefix("roller_")))
+	match kind:
+		"washi":
+			var img := _blank(32, 32)
+			img.fill(SCROLL_WASHI)
+			var rng := RandomNumberGenerator.new()
+			rng.seed = 7
+			for i in 16:   # fibres: short wavy strands, wrapped so the tile repeats
+				var c := Color("fcf5e4") if i % 2 == 0 else Color("eee2c4")
+				var x := rng.randi_range(0, 31)
+				var y := rng.randi_range(0, 31)
+				for k in rng.randi_range(3, 7):
+					img.set_pixel(posmod(x + k, 32), posmod(y, 32), c)
+					if rng.randf() < 0.3:
+						y += 1 if rng.randf() < 0.5 else -1
+			for i in 10:   # specks of bark in the pulp
+				img.set_pixel(rng.randi_range(0, 31), rng.randi_range(0, 31), Color("e2d1aa"))
+			return img
+		"star_on", "star_off":
+			var img := _blank(7, 7)
+			var on := kind == "star_on"
+			for y in 7:
+				for x in 7:
+					if SCROLL_STAR[y][x] == "X":
+						img.set_pixel(x, y, UI_SEAL if on else Color("e2d0a4"))
+			if on:   # the stamp took the ink unevenly
+				for p in [Vector2i(3, 2), Vector2i(4, 3), Vector2i(1, 2)]:
+					img.set_pixelv(p, Color("dc6a4c"))
+			return img
+		"seal":
+			var img := _blank(14, 14)
+			var light := Color("f6dccc")
+			_px(img, 0, 0, 14, 14, UI_SEAL)
+			for p in [Vector2i(0, 0), Vector2i(13, 0), Vector2i(0, 13), Vector2i(13, 13)]:
+				img.set_pixelv(p, Color(0, 0, 0, 0))
+			for r in [[2, 2, 10, 1], [2, 11, 10, 1], [2, 2, 1, 10], [11, 2, 1, 10]]:
+				_px(img, r[0], r[1], r[2], r[3], light)   # the carved border
+			_px(img, 6, 5, 1, 5, light)                   # the sprout's stem
+			for p in [Vector2i(4, 4), Vector2i(5, 4), Vector2i(4, 5), Vector2i(5, 6),
+					Vector2i(8, 4), Vector2i(9, 4), Vector2i(9, 5), Vector2i(7, 6), Vector2i(8, 5)]:
+				img.set_pixelv(p, light)                  # its two leaves
+			_px(img, 4, 9, 6, 1, light)                   # the ground
+			for p in [Vector2i(2, 6), Vector2i(11, 9), Vector2i(7, 11), Vector2i(1, 12)]:
+				img.set_pixelv(p, Color("d86a50"))        # worn spots where the ink was thin
+			return img
+		"arrow":
+			var img := _blank(3, 5)
+			for p in [Vector2i(0, 0), Vector2i(1, 1), Vector2i(2, 2), Vector2i(1, 3), Vector2i(0, 4)]:
+				img.set_pixelv(p, Color("a08a68"))
+			return img
+	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
+
+
+## A wooden roller: the rod (lit from above, a few grain dashes), brass collars and a dark
+## lacquered knob at each end.
+static func _scroll_roller(rod: int) -> Image:
+	var w := rod + 12
+	var img := _blank(w, 10)
+	var edge := Color("3a2416")
+	_px(img, 6, 1, rod, 8, edge)
+	_px(img, 6, 2, rod, 1, Color("c89058"))
+	_px(img, 6, 3, rod, 2, UI_WOOD_LIGHT)
+	_px(img, 6, 5, rod, 2, UI_WOOD)
+	_px(img, 6, 7, rod, 1, UI_WOOD_DARK)
+	for x in range(14, rod, 23):
+		_px(img, 6 + x, 4, 4, 1, UI_WOOD)
+		_px(img, 6 + x + 9, 6, 3, 1, UI_WOOD_DARK)
+	for x0 in [0, w - 6]:
+		_px(img, x0, 0, 6, 10, edge)
+		_px(img, x0 + 1, 1, 4, 8, Color("4a2414"))
+		_px(img, x0 + 1, 1, 4, 1, Color("8a4a2a"))
+		_px(img, x0 + 2, 2, 1, 2, Color("b06a40"))
+		for p in [Vector2i(x0, 0), Vector2i(x0 + 5, 0), Vector2i(x0, 9), Vector2i(x0 + 5, 9)]:
+			img.set_pixelv(p, Color(0, 0, 0, 0))
+	for x in [6, w - 8]:
+		_px(img, x, 1, 2, 8, Color("c8962a"))
+		_px(img, x, 2, 2, 1, Color("e8c050"))
+		_px(img, x, 1, 2, 1, edge)
+		_px(img, x, 8, 2, 1, edge)
+	return img
