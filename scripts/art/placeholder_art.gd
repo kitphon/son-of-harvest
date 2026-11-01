@@ -51,6 +51,9 @@ static func _make(key: String) -> Image:
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
 		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|lumber|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
+		"festival": # festival:<kind>:<w>x<h>[:<cloth hex>], a festival decoration in the flat view (FestivalView)
+			var wh := parts[2].split("x") if parts.size() > 2 else PackedStringArray(["1", "1"])
+			return _festival(parts[1], int(wh[0]), int(wh[1]), Color(parts[3]) if parts.size() > 3 else Color("c8442c"))
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
 
@@ -2168,3 +2171,263 @@ static func _story(kind: String) -> Image:
 				_px(img, x, 10, 2, 1, Color("4a4a56"))       # scales
 			return _outline(img)
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
+
+
+## Festival decorations in the flat view (FestivalView), drawn front-on like the 3D props
+## (FestivalProps) seen from the south: a point (x, y up, z) of the prop, in cells from the
+## middle of its ground, lands at anchor + (x, z - y) * 16 in the picture. So a lantern hung
+## 1.6 high sits 26 px above the cell's middle, where FestivalView puts its glow.
+const FEST_RED := Color("d8402c")
+const FEST_PAPER := Color("f0e6c8")
+const FEST_INK := Color("2a2420")
+const FEST_WHITE := Color("f4f0e6")
+const FEST_WOOD := Color("6a4a30")
+
+
+## The picture's size for a decoration kind over w x h cells.
+static func festival_size(kind: String, w: int, h: int) -> Vector2i:
+	match kind:
+		"sakura": return Vector2i(34, 44)
+		"picnic_mat", "red_mat": return Vector2i(w * 16 - 2, h * 16 - 2)
+		"stall": return Vector2i(w * 16 + 8, 44)
+		"judge_table": return Vector2i(w * 16 + 8, 40)
+		"lantern_line": return Vector2i(w * 16, 36)
+		"drum_stage": return Vector2i(w * 16 + 10, 48)
+		"moon_table": return Vector2i(18, 22)
+		"pampas": return Vector2i(18, 32)
+		"paper_lantern": return Vector2i(14, 30)
+		"kadomatsu": return Vector2i(18, 28)
+		"bonfire": return Vector2i(22, 24)
+	return Vector2i(w * 16, h * 16)
+
+
+## The pixel in the picture that stands on the middle of the prop's cells.
+static func festival_anchor(kind: String, w: int, h: int) -> Vector2i:
+	var size := festival_size(kind, w, h)
+	match kind:
+		"sakura": return Vector2i(17, 36)
+		"stall": return Vector2i(size.x / 2, 36)
+		"judge_table": return Vector2i(size.x / 2, 32)
+		"lantern_line": return Vector2i(size.x / 2, 33)
+		"drum_stage": return Vector2i(size.x / 2, 32)
+		"moon_table": return Vector2i(9, 15)
+		"pampas": return Vector2i(9, 28)
+		"paper_lantern": return Vector2i(7, 27)
+		"kadomatsu": return Vector2i(9, 25)
+		"bonfire": return Vector2i(11, 15)
+	return size / 2
+
+
+static func _festival(kind: String, w: int, h: int, cloth: Color) -> Image:
+	var size := festival_size(kind, w, h)
+	var a := festival_anchor(kind, w, h)
+	var img := _blank(size.x, size.y)
+	match kind:
+		"sakura":
+			# A leaning dark trunk, a cloud of pink puffs (lit from the top left), petals below.
+			var bark := Color("4a3028")
+			for i in 17:
+				_px(img, a.x - 1 + i / 8, a.y - i - 1, 3, 1, bark)
+			_px(img, a.x - 3, a.y - 1, 7, 1, bark)
+			var pinks := [Color("f4b8c8"), Color("eca0b6"), Color("f8d0dc")]
+			var puffs := [[0.0, -1.45, 7.0], [0.35, -1.2, 6.5], [-0.32, -1.37, 6.5], [0.1, -1.0, 6.5], [-0.05, -1.8, 5.5]]
+			for i in puffs.size():
+				var c := Vector2(a.x + puffs[i][0] * 16, a.y + puffs[i][1] * 16)
+				_oval(img, c.x, c.y, puffs[i][2], puffs[i][2] * 0.9, (pinks[i % 3] as Color).darkened(0.08))
+			for i in puffs.size():
+				var c := Vector2(a.x + puffs[i][0] * 16 - 1.5, a.y + puffs[i][1] * 16 - 1.5)
+				_oval(img, c.x, c.y, puffs[i][2] * 0.6, puffs[i][2] * 0.5, pinks[i % 3])
+			for i in 9:   # blossom spots on the cloud
+				_px(img, a.x - 9 + (i * 7) % 19, a.y - 28 + (i * 5) % 15, 1, 1, Color("fff0f4"))
+			_outline(img)
+			var petal := Color("f6c4d2")
+			for i in 12:   # petals on the grass round the trunk (after the outline: no dark edge)
+				var ang := i * 2.4
+				var d := (0.25 + (i % 4) * 0.17) * 16
+				_px(img, int(a.x + cos(ang) * d), int(a.y + sin(ang) * d * 0.4), 1, 1, petal)
+			return img
+		"picnic_mat", "red_mat":
+			# A woven mat, a darker hem, a lunch box with a lid and two teacups.
+			var mat := Color("3a6ab0") if kind == "picnic_mat" else Color("b02a24")
+			img.fill(mat)
+			for y in range(1, size.y, 3):
+				_px(img, 0, y, size.x, 1, mat.lightened(0.12))
+			_px(img, 0, 0, size.x, 1, mat.darkened(0.3))
+			_px(img, 0, size.y - 1, size.x, 1, mat.darkened(0.3))
+			_px(img, 0, 0, 1, size.y, mat.darkened(0.3))
+			_px(img, size.x - 1, 0, 1, size.y, mat.darkened(0.3))
+			var box := Vector2i(a.x - 5, a.y - 2)
+			_px(img, box.x - 1, box.y - 1, 8, 7, OUTLINE)
+			_px(img, box.x, box.y + 3, 6, 2, Color("2a1a14"))
+			_px(img, box.x, box.y, 6, 3, Color("b02a24") if kind == "picnic_mat" else Color("2a1a14"))
+			_px(img, box.x + 1, box.y, 4, 1, Color("e8c050"))
+			for x in [a.x + 3, a.x + 6]:
+				_px(img, x, a.y + 1, 2, 2, Color("e8e0cc"))
+				_px(img, x, a.y + 1, 2, 1, Color("6a8a5a"))   # green tea
+			return img
+		"stall":
+			# A plank counter on four posts, a sloping roof and a short curtain in its cloth,
+			# a red lantern at the front corner (the 3D stall's lamp).
+			var ww := roundi((w - 0.2) * 16)
+			var x0 := a.x - ww / 2
+			for x in [x0, x0 + ww - 1]:
+				_px(img, x, a.y - 30, 1, 24, FEST_WOOD.darkened(0.2))   # back posts
+				_px(img, x, a.y - 19, 1, 24, FEST_WOOD)                 # front posts
+			var planks := Color("9a7048")
+			_px(img, x0, a.y - 18, ww, 10, planks.lightened(0.1))      # the counter top
+			for y in [a.y - 15, a.y - 11]:
+				_px(img, x0, y, ww, 1, planks.darkened(0.1))
+			_px(img, x0 - 1, a.y - 8, ww + 2, 1, Color("8a6a48"))
+			_px(img, x0, a.y - 7, ww, 10, planks)                       # its front, boards
+			for y in [a.y - 4, a.y]:
+				_px(img, x0, y, ww, 1, planks.darkened(0.25))
+			_px(img, x0 + 7, a.y - 7, 1, 10, planks.darkened(0.25))
+			_px(img, x0 + ww - 9, a.y - 7, 1, 10, planks.darkened(0.25))
+			# The roof, lower at the front: its slope in bands, the eave darker.
+			for i in 14:
+				var c := cloth.lightened(0.15) if i < 5 else (cloth if i < 11 else cloth.darkened(0.2))
+				_px(img, x0 - 3, a.y - 33 + i, ww + 6, 1, c)
+			for x in range(x0, x0 + ww, 6):
+				_px(img, x, a.y - 33, 1, 11, cloth.darkened(0.12))
+			var curtain := cloth.lerp(Color.WHITE, 0.25)
+			_px(img, x0, a.y - 19, ww, 5, curtain)
+			for x in range(x0 + 4, x0 + ww - 1, 5):
+				_px(img, x, a.y - 17, 1, 3, curtain.darkened(0.25))   # the slits
+			_outline(img)
+			_lamp(img, Vector2i(a.x + roundi((w - 0.2) * 8), a.y - 13), FEST_RED, 2)
+			return img
+		"judge_table":
+			# A low table under a white cloth, a red and white curtain along the front, the name
+			# board on two posts behind it and three ribbon rosettes waiting for the winners.
+			var ww := roundi((w - 0.15) * 16)
+			var x0 := a.x - ww / 2
+			for x in [x0 + 1, x0 + ww - 2]:
+				_px(img, x, a.y - 26, 1, 22, FEST_WOOD)
+			_px(img, x0 + 1, a.y - 26, ww - 2, 5, Color("e8dcc0"))
+			_px(img, x0 + 4, a.y - 24, ww - 8, 1, FEST_INK)             # the brushed name
+			_px(img, x0 + 4, a.y - 23, 3, 1, FEST_INK)
+			_px(img, x0 + ww - 9, a.y - 23, 4, 1, FEST_INK)
+			_px(img, x0, a.y - 14, ww, 9, FEST_WHITE)                   # the cloth on top
+			_px(img, x0, a.y - 14, ww, 1, Color.WHITE)
+			var n := ww / 4
+			for i in n:                                                 # the striped curtain
+				_px(img, x0 + i * ww / n, a.y - 5, ww / n + 1, 9, FEST_RED if i % 2 == 0 else FEST_WHITE.darkened(0.05))
+			_outline(img)
+			for i in 3:
+				_rosette(img, a.x + (i - 1) * 7, a.y - 11, [FEST_RED, FEST_WHITE, Color("2c4a8a")][i], true)
+			return img
+		"lantern_line":
+			# A pole at each end, a sagging rope and a lantern every cell, red and white in turn.
+			var pole := Color("5a4030")
+			_px(img, 1, a.y - 30, 2, 31, pole)
+			_px(img, size.x - 3, a.y - 30, 2, 31, pole)
+			for x in range(2, size.x - 2):
+				var sag := roundi(sin(PI * fposmod(x - 8.0, 16.0) / 16.0))
+				_px(img, x, a.y - 29 + sag, 1, 1, FEST_INK)
+			_outline(img)
+			for i in w:
+				_lamp(img, Vector2i(i * 16 + 8, a.y - 26), FEST_RED if i % 2 == 0 else FEST_PAPER, 3)
+			return img
+		"drum_stage":
+			# A plank platform on legs with red and white cloth round it, a big drum on top.
+			var hw := 14
+			for x in [a.x - 13, a.x + 11]:
+				_px(img, x, a.y + 6, 2, 8, Color("5a3a24"))
+			var deck := Color("9a7048")
+			_px(img, a.x - hw, a.y - 30, hw * 2, 30, deck)
+			for y in range(a.y - 27, a.y, 4):
+				_px(img, a.x - hw, y, hw * 2, 1, deck.darkened(0.2))
+			for i in 6:
+				_px(img, a.x - hw + i * hw * 2 / 6, a.y, hw * 2 / 6 + 1, 7, FEST_RED if i % 2 == 0 else FEST_WHITE)
+			var drum := Vector2i(a.x, a.y - 21)
+			_px(img, drum.x - 7, drum.y + 5, 14, 2, Color("3a2418"))    # its stand
+			_oval(img, drum.x, drum.y, 7, 6, Color("8a4a2a"))           # the body, lying on its side
+			_oval(img, drum.x + 3, drum.y - 1, 4, 5, Color("e8dcc0"))   # the head, turned to the corner
+			for i in 5:
+				_px(img, drum.x - 5 + i * 2, drum.y - 5 + (i % 2), 1, 1, Color("e8c050"))   # tacks
+			_outline(img)
+			return img
+		"moon_table":
+			# A small white wooden stand with a pyramid of round dango.
+			_px(img, a.x - 5, a.y - 10, 10, 10, Color("e8dcc0"))
+			_px(img, a.x - 4, a.y, 8, 4, Color("d8c8a0"))
+			_px(img, a.x - 4, a.y + 1, 8, 1, Color("c0b088"))
+			var dango := Color("f8f4ea")
+			for row in 3:
+				var n := 3 - row
+				for i in n:
+					_oval(img, a.x - (n - 1) * 1.6 + i * 3.2, a.y - 6 - row * 2.6, 1.6, 1.6, dango)
+			_outline(img)
+			return img
+		"pampas":
+			# Pampas grass in a tall blue-grey vase: grey stalks, pale silver plumes.
+			for i in 5:
+				_line(img, Vector2i(a.x, a.y - 7), Vector2i(a.x + (i - 2) * 3, a.y - 19 + absi(i - 2)), Color("8a8a6a"))
+			for i in 5:
+				var tip := Vector2(a.x + (i - 2) * 3.6, a.y - 22 + absi(i - 2))
+				_oval(img, tip.x, tip.y, 1.4, 3.2, Color("e4dcc4"))
+				_px(img, int(tip.x), int(tip.y) - 2, 1, 2, Color("f8f4ea"))
+			_px(img, a.x - 2, a.y - 7, 4, 1, Color("6a7a8a"))
+			_px(img, a.x - 2, a.y - 6, 5, 6, Color("4a5a6a"))
+			_px(img, a.x - 1, a.y - 5, 1, 4, Color("6a7a8a"))
+			_outline(img)
+			return img
+		"paper_lantern":
+			# A standing paper lantern on a short pole.
+			_px(img, a.x - 1, a.y - 17, 2, 18, FEST_INK)
+			_px(img, a.x - 2, a.y, 4, 1, FEST_INK)
+			_outline(img)
+			_lamp(img, Vector2i(a.x, a.y - 20), FEST_PAPER, 4)
+			return img
+		"kadomatsu":
+			# Three cut bamboo stalks in a straw-bound base, pine sprigs round them.
+			var bamboo := Color("5a9a48")
+			for s in [[-1, 22], [-3, 16], [2, 13]]:
+				var x: int = a.x + s[0]
+				var top: int = a.y - s[1]
+				_px(img, x, top, 2, s[1] - 4, bamboo)
+				_px(img, x, top, 1, s[1] - 4, bamboo.lightened(0.2))
+				_px(img, x, top, 2, 1, Color("d8e8b0"))       # the slanted cut
+				_px(img, x + 1, top - 1, 1, 1, Color("d8e8b0"))
+				_px(img, x, top + 6, 2, 1, bamboo.darkened(0.25))   # a node
+			var pine := Color("2f5a34")
+			for dx in [-6, 4]:
+				for k in 3:
+					_px(img, a.x + dx + k % 2, a.y - 9 + k, 4 - k, 1, pine)
+			_px(img, a.x - 4, a.y - 7, 8, 7, Color("c8a868"))           # the straw base
+			for y in [a.y - 5, a.y - 2]:
+				_px(img, a.x - 4, y, 8, 1, Color("6a4a2a"))              # its rope bands
+			_outline(img)
+			return img
+		"bonfire":
+			# A ring of stones, crossed logs and the flame.
+			var stone := Color("7a766e")
+			for i in 8:
+				var ang := i * TAU / 8
+				_px(img, roundi(a.x + cos(ang) * 6) - 1, roundi(a.y + sin(ang) * 5) - 1, 3, 2, stone if i % 2 == 0 else stone.darkened(0.15))
+			_line(img, Vector2i(a.x - 5, a.y + 2), Vector2i(a.x + 5, a.y - 2), Color("4a3020"))
+			_line(img, Vector2i(a.x - 5, a.y - 2), Vector2i(a.x + 5, a.y + 2), Color("4a3020"))
+			for y in 10:   # the flame, a cone narrowing upwards
+				var half := 3.5 * (1.0 - y / 10.0)
+				_px(img, roundi(a.x - half), a.y - 1 - y, maxi(1, roundi(half * 2)), 1, Color("ffb040"))
+			for y in 6:
+				var half := 1.8 * (1.0 - y / 6.0)
+				_px(img, roundi(a.x - half), a.y - 1 - y, maxi(1, roundi(half * 2)), 1, Color("fff0a0"))
+			_outline(img)
+			return img
+	img.fill(Color.MAGENTA)
+	return img
+
+
+## One paper lantern hung with its middle at `at`: a round ribbed body, dark caps, outlined.
+## `half` is half its width.
+static func _lamp(img: Image, at: Vector2i, color: Color, half: int) -> void:
+	_px(img, at.x - half - 1, at.y - half - 2, half * 2 + 3, half * 2 + 5, OUTLINE)
+	_px(img, at.x - half, at.y - half, half * 2 + 1, half * 2 + 1, color)
+	_px(img, at.x - half + 1, at.y - half - 1, half * 2 - 1, 1, color)
+	_px(img, at.x - half + 1, at.y + half + 1, half * 2 - 1, 1, color)
+	for y in range(at.y - half + 1, at.y + half, 2):
+		_px(img, at.x - half, y, half * 2 + 1, 1, color.darkened(0.12))   # the ribs
+	_px(img, at.x - half + 1, at.y - half, 1, half * 2, color.lightened(0.3))
+	_px(img, at.x - half + 1, at.y - half - 2, half * 2 - 1, 1, FEST_INK)
+	_px(img, at.x - half + 1, at.y + half + 2, half * 2 - 1, 1, FEST_INK)

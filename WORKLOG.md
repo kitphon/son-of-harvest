@@ -10,6 +10,35 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Festival decorations drawn in the flat view
+Agent: Claude Code (claude-opus-5-5) · Commit: c827518
+- Done: `scenes/main_2d.tscn`'s festival decorations were flat boxes; now each is a pixel
+  picture of the 3D prop. PlaceholderArt has `festival:<kind>:<w>x<h>[:<cloth>]` keys for all
+  twelve kinds of data/festivals.json (sakura, picnic / red mat, stall, judges' table, lantern
+  string, drum stage, moon offering, pampas, paper lantern, kadomatsu, bonfire), drawn front-on
+  from the 3D shapes in FestivalProps: a prop point (x, y up, z) lands at anchor + (x, z - y) * 16
+  px (`festival_size` / `festival_anchor`). A stall's roof and curtain take its `cloth`. FestivalView
+  (`art_key`, `ground_mid`, `art_origin`) stands each picture on the middle of its cells,
+  sorted so nearer ones overlap farther ones; the stalls' wares sit on the counter, clear of the
+  corner lantern. The lights for FestivalGlow move with the same projection (`glow_pos`: x,
+  z - y), so each glow sits on its drawn lantern / drum / fire instead of on the ground.
+  3D props and festival rules are unchanged.
+- Checked: test_festivals `_flat_art` (every prop of the four festivals has its own key and
+  picture size, no magenta, stands on its ground row, its anchor lands on the 3D prop's middle,
+  and every 3D light lands on an opaque non-outline pixel of a picture: 1 / 41 / 4 / 5 lights);
+  with `glow_pos` put back on the ground as a test of the test, that check failed for all four
+  (0 / 1, 3 / 41, 2 / 4, 3 / 5). test_view2d: Lantern Night's glows equal `glow_pos` of the
+  3D lights and sit above their cells, the art keys are the festival keys. All 24 test scripts
+  print `OK (0 failed)`; headless runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`,
+  `main_2d.tscn -- --demo --festival=<each of the four>`) printed no errors or warnings.
+  Screenshots of the flat view at each festival: cherry trees with petals and picnic mats,
+  lantern strings on poles glowing at night over the cloth-roofed stalls and the drum stage,
+  the moon offering between pampas vases and two paper lanterns, the kadomatsu, the bonfire
+  and the white / red Year's Turn stalls; glows on the lamps. `shots/` deleted.
+- Left / next: the pictures are drawn under the characters (like StoryView's props), so the
+  farmer walking behind a tall stall is drawn over it; y-sorting with the sprites would be a
+  separate change.
+
 ## 2026-11-01 — River and pond water ambient
 Agent: Claude Code (claude-opus-5-5) · Commit: ac9d30c
 - Done: two new synthesized loops in data/sfx.json: `amb_river` (6 s: a band of white noise

@@ -127,7 +127,8 @@ village (map `river`) has its own fish table; fish are food (foods.json `fish:*`
 villagers' gift lists. The 2D view's action hookup is done (`FarmActions.connect_view`, checked
 by tests/test_view2d.gd), and it has the 3D view's weather and festival lights too (rain /
 snow particles with splashes, the weather tint, lightning flashes, the lanterns' glow and the
-fireworks).
+fireworks), and its festival decorations are pixel pictures of the 3D props
+(PlaceholderArt `festival:` keys), each light hung where its lamp is drawn.
 Talking, gifts and affection are in (a `talk` row with `who` in a trigger table plays an
 event when the farmer talks to a villager); the keepers are `sayo` (store) and `hachiro`
 (smithy). The opening event and the first shop visits are done (data/events/opening.json,
@@ -195,6 +196,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
      (`connect_view`), thrown items fly in an arc
    - [x] The 2D view's weather and festival lights: rain / snow (WeatherView), lightning flashes
      (respecting the flashes setting), the lanterns' glow and fireworks (FestivalGlow)
+   - [x] The 2D view's festival decorations as pixel pictures (`festival:` art keys, all four festivals)
    - [x] Pixel font for the HUD, clock box, a proper item / tool display (Japanese glyphs later)
 3. **Tools and the body**
    - [x] Charging tools (hold to cover more cells, per tool level; data/tools.json)

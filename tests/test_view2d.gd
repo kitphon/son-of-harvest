@@ -241,6 +241,16 @@ func _weather_and_festival() -> void:
 	if fv != null:
 		var n3d: int = props3d.glows_of("lantern_night", "town").size()
 		check(fv.glows.size() == n3d and n3d > 0, "its lights are the 3D props' lights (%d / %d)" % [fv.glows.size(), n3d])
+		var lights: Array = props3d.glows_of("lantern_night", "town")
+		var hung := n3d > 0
+		for i in mini(n3d, fv.glows.size()):
+			hung = hung and fv.glows[i].pos == fv.glow_pos(lights[i].pos) and fv.glows[i].pos.y < lights[i].pos.z * 16
+		check(hung, "each light shows where its lantern hangs in the picture, above its cell's middle")
+		var keys := {}
+		for p in Festivals.get_festival("lantern_night").props:
+			keys[fv.art_key(p)] = true
+		check(keys.has("festival:lantern_line:10x1") and keys.has("festival:stall:2x1:c8442c") and keys.has("festival:drum_stage:2x2"),
+			"the decorations are drawn from festival art keys (%s)" % ", ".join(keys.keys()))
 		check(fv.is_in_group(fv.GROUP), "FestivalGlow finds it")
 	check(scene.glow.is_inside_tree() and glow.fireworks_on() and glow.darkness(g.light_color()) > 0.5, "the glow layer is up, fireworks on, dark enough to shine")
 	g.weather_today = "sunny"

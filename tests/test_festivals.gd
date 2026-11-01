@@ -35,6 +35,7 @@ func _process(_delta: float) -> bool:
 		_fall_winter_stalls()
 		_ribbons()
 		_payout()
+		_flat_art()
 		_start_views("spring", 8, 10, 30)
 	elif _frame == 3:
 		_check_views()
@@ -673,3 +674,45 @@ func check(ok: bool, what: String) -> void:
 	if not ok:
 		failures += 1
 		print("FAIL: " + what)
+
+
+## The flat view's pictures (FestivalView / PlaceholderArt "festival:" keys): every decoration
+## of the four festivals has its own art standing on the middle of its cells, where the 3D
+## prop stands, and every 3D light lands on a lit part of a picture (a lantern, the drum, the fire).
+func _flat_art() -> void:
+	var view: GDScript = load("res://scripts/world/festival_view.gd")   # they name the Game autoload
+	var props3d: GDScript = load("res://scripts/world3d/festival_props.gd")
+	for id in Festivals.all():
+		var fest: Dictionary = Festivals.get_festival(id)
+		var pics: Array = []   # [origin, image]
+		for p in fest.get("props", []):
+			var key: String = view.art_key(p)
+			var img: Image = PlaceholderArt.tex(key).get_image()
+			var size: Array = p.get("size", [1, 1])
+			var anchor := PlaceholderArt.festival_anchor(str(p.kind), int(size[0]), int(size[1]))
+			check(key.begins_with("festival:%s:" % p.kind) and img.get_size() == PlaceholderArt.festival_size(str(p.kind), int(size[0]), int(size[1])),
+				"%s: the %s has its own picture (%s)" % [id, p.kind, key])
+			var magenta := false
+			var low := -1   # the lowest opaque row
+			for y in img.get_height():
+				for x in img.get_width():
+					var c := img.get_pixel(x, y)
+					if c.a > 0:
+						low = y
+						magenta = magenta or c.is_equal_approx(Color.MAGENTA)
+			check(not magenta and low >= 0, "%s: the %s picture is drawn, not the magenta fallback" % [id, p.kind])
+			check(low >= anchor.y - 1, "%s: the %s stands on its ground (lowest row %d, ground %d)" % [id, p.kind, low, anchor.y])
+			var mid := Vector2(p.cell[0] + size[0] / 2.0, p.cell[1] + size[1] / 2.0) * 16
+			check(view.ground_mid(p) == mid and view.art_origin(p) + Vector2(anchor) == mid, "%s: the %s stands where the 3D prop does" % [id, p.kind])
+			pics.append([view.art_origin(p), img])
+		var lights: Array = props3d.glows_of(id, str(fest.get("map", "")))
+		var lit := 0
+		for g in lights:
+			var at: Vector2 = view.glow_pos(g.pos)
+			for pic in pics:
+				var q := Vector2i((at - pic[0]).floor())
+				var img: Image = pic[1]
+				if Rect2i(Vector2i.ZERO, img.get_size()).has_point(q) and img.get_pixelv(q).a > 0 and img.get_pixelv(q) != PlaceholderArt.OUTLINE:
+					lit += 1
+					break
+		check(lit == lights.size(), "%s: every light sits on its lamp in the flat view (%d / %d)" % [id, lit, lights.size()])
