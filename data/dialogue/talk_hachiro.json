@@ -1,5 +1,5 @@
 {
-	"_note": "What Hachiro says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday) (gifts in data/villagers/hachiro.json). Our own lines.",
+	"_note": "What Hachiro says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday); gift_items names their own answer to a keepsake or a dish (Talk.gift_line), by item or by dish: / keepsake:<reaction> (gifts in data/villagers/hachiro.json). Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
@@ -15,6 +15,18 @@
 		{"if": {"season": ["fall"]}, "at": ["fall"]},
 		{"at": ["plain_1", "plain_2", "plain_3"]}
 	],
+	"gift_items": {
+		"keep:daruma": "gift_daruma",
+		"keep:omamori": "gift_omamori",
+		"keep:wind_chime": "gift_wind_chime",
+		"keepsake:neutral": "gift_keepsake",
+		"food:onigiri": "gift_onigiri",
+		"food:grilled_fish": "gift_grilled_fish",
+		"dish:love": "gift_dish_love",
+		"dish:like": "gift_dish_like",
+		"dish:neutral": "gift_dish_neutral",
+		"dish:dislike": "gift_dish_dislike"
+	},
 	"lines": [
 		{"id": "birthday", "speaker": "hachiro", "face": "calm", "text": "Birthday? Hm. At my age you stop counting and start mending. Still. Thanks.", "next": "end"},
 		{"id": "gift_birthday", "speaker": "hachiro", "face": "smile", "text": "You came out in the cold with this, on the day. ...I won't forget it.", "next": "end"},
@@ -49,6 +61,18 @@
 		{"id": "gift_neutral", "speaker": "hachiro", "face": "calm", "text": "For me? Well. Thank you.", "next": "end"},
 		{"id": "gift_dislike", "speaker": "hachiro", "face": "worried", "text": "Ah... sweet things aren't for me. Still, thank you.", "next": "end"},
 		{"id": "gift_hate", "speaker": "hachiro", "face": "worried", "text": "Ugh. Can't stand the smell of it. Take it back, will you.", "next": "end"},
-		{"id": "gift_again", "speaker": "hachiro", "face": "calm", "text": "One's enough for today. Don't spoil me.", "next": "end"}
+		{"id": "gift_again", "speaker": "hachiro", "face": "calm", "text": "One's enough for today. Don't spoil me.", "next": "end"},
+		{"id": "gift_daruma", "speaker": "hachiro", "face": "surprised", "text": "A daruma? Heh... a red face that won't stay down."},
+		{"speaker": "hachiro", "face": "smile", "text": "I'll stand it by the forge. Knocked over seven times, up eight. Suits a smith.", "next": "end"},
+		{"id": "gift_omamori", "speaker": "hachiro", "face": "smile", "text": "A charm for safe work, eh. Fire and iron could use one. Thanks.", "next": "end"},
+		{"id": "gift_wind_chime", "speaker": "hachiro", "face": "worried", "text": "A chime... I'd never hear it over the hammer. Still, thanks.", "next": "end"},
+		{"id": "gift_keepsake", "speaker": "hachiro", "face": "calm", "text": "A trinket. Hm. I'll find a nail for it.", "next": "end"},
+		{"id": "gift_onigiri", "speaker": "hachiro", "face": "surprised", "text": "Rice balls! Just the thing at the anvil."},
+		{"speaker": "hachiro", "face": "smile", "text": "Salted right, too. Best lunch a smith could ask for.", "next": "end"},
+		{"id": "gift_grilled_fish", "speaker": "hachiro", "face": "surprised", "text": "Grilled fish, still smelling of the coals. Now you're talking.", "next": "end"},
+		{"id": "gift_dish_love", "speaker": "hachiro", "face": "surprised", "text": "You cooked this? ...That's a real meal. Thank you.", "next": "end"},
+		{"id": "gift_dish_like", "speaker": "hachiro", "face": "smile", "text": "Home cooking. Better than what I make, that's for sure.", "next": "end"},
+		{"id": "gift_dish_neutral", "speaker": "hachiro", "face": "calm", "text": "Food's food. Thank you, I'll have it at noon.", "next": "end"},
+		{"id": "gift_dish_dislike", "speaker": "hachiro", "face": "worried", "text": "Sweets again... You cooked it, so I'll try. No promises.", "next": "end"}
 	]
 }

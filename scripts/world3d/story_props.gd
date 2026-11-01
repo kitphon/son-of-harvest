@@ -8,7 +8,8 @@ extends RefCounted
 ## farmhouse (farm map, kota_streamer, band 6); the farmhouse's ribbon board hangs on its back
 ## wall once a contest ribbon is won (house map, ribbons: Keepsakes). While a house extension
 ## is being built (Game.BUILD_FLAG) the builder's lumber lies on the farm left of the farmhouse
-## front. The pictures are PlaceholderArt "story:" keys, the same ones the flat view draws
+## front. A keepsake a villager loves, once given (Keepsakes.given_flag), sits on a little stand
+## in their home, or hangs (`hang`, the wind chime). The pictures are PlaceholderArt "story:" keys, the same ones the flat view draws
 ## (StoryView, which also keeps the list of kinds). Same units as MapWorld (1 unit = 1 cell).
 
 
@@ -60,6 +61,22 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 			s.pixel_size = 0.04
 			s.position = Vector3(r.get_center().x, 0, r.get_center().y)
 			w.add_child(s)
+		"keepsake":
+			# A low wooden stand against the back of its cell, the keepsake's icon on it; or,
+			# with `hang`, hung from the lintel over the cell (a chime by the window).
+			var tex := PlaceholderArt.tex(StoryView.art_key(p))
+			var at := Vector3(r.get_center().x, 0.0, r.position.y + 0.35)
+			if p.get("hang", false):
+				var s := _hung(tex, 0.035)
+				s.position = at + Vector3(0, 1.45, 0)
+				w.add_child(s)
+				w._box(Vector3(0.02, 0.2, 0.02), at + Vector3(0, 1.55, 0), iron)
+			else:
+				w._box(Vector3(0.5, 0.32, 0.36), at + Vector3(0, 0.16, 0), FarmWorld.flat_material(Color("6a4a2a")))
+				var s := FarmWorld.make_sprite(tex)
+				s.pixel_size = 0.035
+				s.position = at + Vector3(0, 0.32, 0)
+				w.add_child(s)
 		"carp_streamer":
 			# Pole and carp are one picture, standing on its cell, the carp just over the eave.
 			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))

@@ -1,5 +1,5 @@
 {
-	"_note": "Grandma Tome's house (the west house in the village): a packed-earth entry with the stove and the water jar, a step of floor, then the tatami room round a sunken hearth (irori) with its kettle, the alcove (tokonoma) with a scroll and a branch in a vase, the family altar and a chest. She sits on the cushion right of the hearth (`home`); a guest sits left of it (`guest`). The door in the village is open 6:00-19:00. Format: README.md, Maps.",
+	"_note": "Grandma Tome's house (the west house in the village): a packed-earth entry with the stove and the water jar, a step of floor, then the tatami room round a sunken hearth (irori) with its kettle, the alcove (tokonoma) with a scroll and a branch in a vase, the family altar and a chest. She sits on the cushion right of the hearth (`home`); a guest sits left of it (`guest`). The door in the village is open 6:00-19:00. The keepsake by the altar is the omamori charm the farmer gave her, there once kept_tome_omamori is set (Keepsakes.given_flag). Format: README.md, Maps.",
 	"id": "tome_house",
 	"name": "Tome's House",
 	"size": [
@@ -116,6 +116,15 @@
 				7,
 				5
 			]
+		},
+		{
+			"kind": "keepsake",
+			"cell": [
+				6,
+				1
+			],
+			"item": "keep:omamori",
+			"flag": "kept_tome_omamori"
 		}
 	],
 	"doors": [

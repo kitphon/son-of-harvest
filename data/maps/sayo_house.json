@@ -1,5 +1,5 @@
 {
-	"_note": "Sayo's rooms behind the Yorozu Store, through the plain side door right of the shop's noren: a narrow earth kitchen, then one tatami room with a low table, a chest, a folding screen, the alcove and a lantern. She has her tea by the table (`home`). The side door is open 6:00-21:00. Format: README.md, Maps.",
+	"_note": "Sayo's rooms behind the Yorozu Store, through the plain side door right of the shop's noren: a narrow earth kitchen, then one tatami room with a low table, a chest, a folding screen, the alcove and a lantern. She has her tea by the table (`home`). The side door is open 6:00-21:00. The keepsake hung from the lintel is the wind chime the farmer gave her, there once kept_sayo_wind_chime is set (Keepsakes.given_flag). Format: README.md, Maps.",
 	"id": "sayo_house",
 	"name": "Sayo's Rooms",
 	"size": [
@@ -109,6 +109,17 @@
 				6,
 				4
 			]
+		},
+		{
+			"kind": "keepsake",
+			"cell": [
+				4,
+				1
+			],
+			"item": "keep:wind_chime",
+			"flag": "kept_sayo_wind_chime",
+			"hang": true,
+			"solid": false
 		}
 	],
 	"doors": [

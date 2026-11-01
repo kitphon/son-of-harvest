@@ -5,7 +5,8 @@ extends RefCounted
 ## eaten, shipped or sold (Game.sell_price and Shop.buy_back give them 0). Every ribbon won
 ## is also written into the story flag RECORD ("<festival>:<place>:<year>", comma between),
 ## which the farmhouse's ribbon board shows (a map prop gated by that flag; StoryView /
-## StoryProps draw one ribbon per entry). Format: README.md, Festivals.
+## StoryProps draw one ribbon per entry). A keepsake a villager loves, once given, sets
+## given_flag and is seen in their home. Format: README.md, Festivals.
 
 const PATH := "res://data/keepsakes.json"
 const RECORD := "ribbons"   # the story flag that lists the ribbons won
@@ -32,6 +33,12 @@ static func is_keepsake(id: String) -> bool:
 ## A bought keepsake's data ({} for anything else).
 static func keepsake(id: String) -> Dictionary:
 	return data().get("keepsakes", {}).get(id.trim_prefix("keep:"), {}) if id.begins_with("keep:") else {}
+
+
+## The story flag set when villager `villager` is given keepsake `item` (keep:<id>) they love:
+## a prop of kind "keepsake" in their home map, gated by it, shows the keepsake there.
+static func given_flag(villager: String, item: String) -> String:
+	return "kept_%s_%s" % [villager, item.trim_prefix("keep:")]
 
 
 ## The ribbon places, 1st first: [{name, color}].

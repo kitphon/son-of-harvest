@@ -1,5 +1,5 @@
 {
-	"_note": "The blacksmith inside (shop smithy in data/shops.json): the forge in the back corner, an anvil on a stump, a rack of finished tools, and the counter where tools are handed in and picked up. The keeper spawn is where the smith will stand. Format: README.md, Maps.",
+	"_note": "The blacksmith inside (shop smithy in data/shops.json): the forge in the back corner, an anvil on a stump, a rack of finished tools, and the counter where tools are handed in and picked up. The keeper spawn is where the smith will stand. The keepsake between the forge and the rack is the daruma the farmer gave him, there once kept_hachiro_daruma is set (Keepsakes.given_flag). Format: README.md, Maps.",
 	"id": "smithy",
 	"name": "Kurogane Smithy",
 	"size": [
@@ -82,6 +82,15 @@
 				7,
 				5
 			]
+		},
+		{
+			"kind": "keepsake",
+			"cell": [
+				4,
+				1
+			],
+			"item": "keep:daruma",
+			"flag": "kept_hachiro_daruma"
 		}
 	],
 	"doors": [

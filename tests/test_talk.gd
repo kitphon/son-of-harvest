@@ -12,6 +12,7 @@ func _init() -> void:
 	_talk_files()
 	_file_errors()
 	_picks()
+	_gift_lines()
 	_reactions()
 	_affection()
 	_affection_save_data()
@@ -53,6 +54,9 @@ func _file_errors() -> void:
 	for g in Talk.GIFT_LINES:
 		good.lines.append({"id": g, "text": "Thanks."})
 	check(Talk.check(good) == "", "a small talk file passes: %s" % Talk.check(good))
+	var with_items: Dictionary = good.duplicate(true)
+	with_items.gift_items = {"keep:daruma": "a", "food:onigiri": "a", "dish:like": "a", "keepsake:neutral": "a"}
+	check(Talk.check(with_items) == "", "gift_items for a keepsake, a dish and by reaction pass: %s" % Talk.check(with_items))
 	var bad := [
 		["no last plain pick", func(d): d.picks.pop_back()],
 		["a plain pick before the end", func(d): d.picks[0].erase("if")],
@@ -63,6 +67,12 @@ func _file_errors() -> void:
 		["again not true / false", func(d): d.picks[0].if = {"again": 1}],
 		["a bad season", func(d): d.picks[0].if = {"season": ["monsoon"]}],
 		["no gift answer", func(d): d.lines.pop_back()],
+		["gift_items not a table", func(d): d.gift_items = ["a"]],
+		["a gift line for a crop", func(d): d.gift_items = {"turnip": "a"}],
+		["a gift line for an unknown keepsake", func(d): d.gift_items = {"keep:kite": "a"}],
+		["a gift line for a bought food", func(d): d.gift_items = {"food:sakura_mochi": "a"}],
+		["a dish reaction that isn't one", func(d): d.gift_items = {"dish:adore": "a"}],
+		["a gift line that is missing", func(d): d.gift_items = {"keep:daruma": "zz"}],
 	]
 	for b in bad:
 		var d: Dictionary = good.duplicate(true)
@@ -75,6 +85,37 @@ func _file_errors() -> void:
 	check(Villagers.check(v) != "", "neutral is everything not listed, not a list")
 	v.gifts = {"like": []}
 	check(Villagers.check(v) != "", "an empty gift list is refused")
+
+
+## Keepsakes and dishes get the villager's own answer (gift_items): by the item first, then
+## by kind and reaction, else the plain gift_<reaction>; every line named opens.
+func _gift_lines() -> void:
+	check(Talk.is_dish("food:onigiri") and not Talk.is_dish("food:sakura_mochi") and not Talk.is_dish("onigiri"),
+		"a dish is a food with a recipe; a bought sweet isn't")
+	check(Talk.gift_line("tome", "keep:omamori", "love") == "gift_omamori", "Tome's own line for the charm she loves")
+	check(Talk.gift_line("kota", "keep:omamori", "dislike") == "gift_omamori", "and Kota's own, glum one")
+	check(Talk.gift_line("tome", "keep:daruma", "neutral") == "gift_keepsake", "a keepsake with no line of its own: by its reaction")
+	check(Talk.gift_line("sayo", "food:tamagoyaki", "love") == "gift_tamagoyaki", "Sayo's own line for tamagoyaki")
+	check(Talk.gift_line("sayo", "food:grilled_fish", "dislike") == "gift_dish_dislike", "a fish dish she doesn't like: the dish line")
+	check(Talk.gift_line("hachiro", "food:miso_soup", "like") == "gift_dish_like", "a dish he likes")
+	check(Talk.gift_line("tome", "food:sakura_mochi", "love") == "gift_love", "a bought sweet isn't a dish: the plain line")
+	check(Talk.gift_line("kota", "corn", "love") == "gift_love" and Talk.gift_line("kota", "carrot", "hate") == "gift_hate", "crops answer as before")
+	check(Talk.gift_line("tome", "ribbon:moon_night:1", "neutral") == "gift_neutral", "a ribbon isn't a keepsake to answer")
+	check(Talk.gift_line("kota", "food:milk_pudding", "hate") == "gift_milk_pudding", "an item's own line wins over any reaction")
+	check(Talk.gift_line("hachiro", "keep:paper_fan", "dislike") == "gift_dislike", "no keepsake:dislike line: the plain one")
+	check(Talk.gift_line("nobody", "keep:daruma", "like") == "gift_like", "no talk file: the plain line")
+	var named := 0
+	for id in Villagers.all():
+		var items: Dictionary = Talk.data(id).get("gift_items", {})
+		for k in items:
+			named += 1
+			check(DialogueRunner.open(Talk.dialogue_id(id), {}, items[k]).error == "", "%s's line %s for %s opens" % [id, items[k], k])
+		for item in Villagers.all()[id].gifts.get("love", []):
+			if item.begins_with("keep:"):
+				check(items.has(item), "%s answers the keepsake they love (%s) in their own words" % [id, item])
+		for r in ["love", "like", "neutral", "dislike"]:
+			check(items.has("dish:" + r), "%s has a dish:%s line" % [id, r])
+	check(named >= 40, "the four villagers have their own gift lines (%d)" % named)
 
 
 func _state(extra := {}) -> Dictionary:
