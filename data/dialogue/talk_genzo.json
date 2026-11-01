@@ -1,0 +1,46 @@
+{
+	"_note": "What Genzo, the old rice farmer of Kaminoda, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction. He has no hearts. Our own lines.",
+	"picks": [
+		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
+		{"if": {"season": ["spring"]}, "at": ["spring_1", "spring_2"]},
+		{"if": {"season": ["summer"]}, "at": ["summer"]},
+		{"if": {"season": ["fall"]}, "at": ["fall_1", "fall_2"]},
+		{"if": {"season": ["winter"]}, "at": ["winter"]},
+		{"at": ["plain_1", "plain_2"]}
+	],
+	"lines": [
+		{"id": "again_1", "speaker": "genzo", "mood": "neutral", "text": "Hm? Still here. The paddies won't talk back, so I don't mind.", "next": "end"},
+		{"id": "again_2", "speaker": "genzo", "mood": "happy", "text": "Go on, go on. A farmer standing still is a farmer losing light.", "next": "end"},
+		{"id": "new_1", "speaker": "genzo", "mood": "neutral", "text": "The new one from the old farm below? I'm Genzo. These terraces were cut by my grandfather's grandfather."},
+		{"speaker": "genzo", "mood": "happy", "text": "Mind the dikes when you walk them. A broken dike is a whole summer's work.", "next": "end"},
+		{"id": "wet", "speaker": "genzo", "mood": "happy", "text": "Rain's the only hand I don't have to pay. Sit by the hearth a while, if you like.", "next": "end"},
+		{"id": "spring_1", "speaker": "genzo", "mood": "neutral", "text": "Flooding the paddies this week. Listen at night: the frogs come back the same evening.", "next": "end"},
+		{"id": "spring_2", "speaker": "genzo", "mood": "happy", "text": "Seedlings go in a hand's width apart. My back says closer, my grandfather says no.", "next": "end"},
+		{"id": "summer", "speaker": "genzo", "mood": "sad", "text": "Weeds grow faster than rice in this heat. I pull them at dawn, before the sun's awake.", "next": "end"},
+		{"id": "fall_1", "speaker": "genzo", "mood": "happy", "text": "Heads are heavy and bowing. That's how you know rice is good: it gets humble.", "next": "end"},
+		{"id": "fall_2", "speaker": "genzo", "mood": "neutral", "text": "Haru hangs the sheaves on the rack. Two weeks in the wind and they taste of it.", "next": "end"},
+		{"id": "winter", "speaker": "genzo", "mood": "neutral", "text": "Paddies sleep in winter. So should I, but the straw won't braid itself.", "next": "end"},
+		{"id": "plain_1", "speaker": "genzo", "mood": "neutral", "text": "The well water here is cold all year. Drink some before you walk back down.", "next": "end"},
+		{"id": "plain_2", "speaker": "genzo", "mood": "happy", "text": "The jizo by the lane? My wife sewed their bibs. I keep them red for her.", "next": "end"},
+		{"id": "gift_love", "speaker": "genzo", "mood": "happy", "text": "Now that's proper food. You were raised right, whoever raised you.", "next": "end"},
+		{"id": "gift_like", "speaker": "genzo", "mood": "happy", "text": "For me? Hm. Thank you. I'll have it tonight.", "next": "end"},
+		{"id": "gift_neutral", "speaker": "genzo", "mood": "neutral", "text": "I'll find a use for it.", "next": "end"},
+		{"id": "gift_dislike", "speaker": "genzo", "mood": "sad", "text": "Sweet things and soft things... my teeth and I are too old for those.", "next": "end"},
+		{"id": "gift_hate", "speaker": "genzo", "mood": "angry", "text": "A stone. I pull those out of my paddies every spring. Take it back.", "next": "end"},
+		{"id": "gift_again", "speaker": "genzo", "mood": "neutral", "text": "One gift a day is plenty. Keep the rest for your own table.", "next": "end"},
+		{"id": "gift_dish_love", "speaker": "genzo", "mood": "happy", "text": "Cooked it yourself? This is how my mother made it. Well. Nearly.", "next": "end"},
+		{"id": "gift_dish_like", "speaker": "genzo", "mood": "happy", "text": "A hot dish carried all the way up here. I won't let it go cold.", "next": "end"},
+		{"id": "gift_dish_neutral", "speaker": "genzo", "mood": "neutral", "text": "Hm. City cooking. I'll try it.", "next": "end"},
+		{"id": "gift_dish_dislike", "speaker": "genzo", "mood": "sad", "text": "Too fancy for an old stomach. Thank you anyway.", "next": "end"},
+		{"id": "gift_daruma", "speaker": "genzo", "mood": "happy", "text": "A daruma. I'll paint in the first eye tonight and wish for a good harvest.", "next": "end"}
+	],
+	"gift_items": {
+		"keep:daruma": "gift_daruma",
+		"dish:love": "gift_dish_love",
+		"dish:like": "gift_dish_like",
+		"dish:neutral": "gift_dish_neutral",
+		"dish:dislike": "gift_dish_dislike"
+	}
+}

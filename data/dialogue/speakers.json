@@ -6,5 +6,7 @@
 	"hachiro": {"name": "Hachiro", "face": {"bg": "c8b8a0", "skin": "d9a473", "hair": "2a2422", "style": "cap", "hat": "e8e2d0", "clothes": "2e4a7a", "marks": ["stubble"]}},
 	"sayo": {"name": "Sayo", "face": {"bg": "e8d0c0", "skin": "f2c79b", "hair": "3a2420", "style": "bun", "hat": "e8c050", "clothes": "c85a6a", "marks": ["mole"]}},
 	"kota": {"name": "Kota", "face": {"bg": "b8d8a8", "skin": "e0a878", "hair": "2a2422", "style": "cap", "hat": "e0c070", "clothes": "e8e2d0", "marks": ["child", "plaster"]}},
-	"yae": {"name": "Dr. Yae", "face": {"bg": "c0d8d8", "skin": "e8b88e", "hair": "2a2a30", "style": "bun", "hat": "4a8a8a", "clothes": "eeeee6"}}
+	"yae": {"name": "Dr. Yae", "face": {"bg": "c0d8d8", "skin": "e8b88e", "hair": "2a2a30", "style": "bun", "hat": "4a8a8a", "clothes": "eeeee6"}},
+	"genzo": {"name": "Genzo", "face": {"bg": "c8c0a8", "skin": "d49a6a", "hair": "c8c4bc", "style": "cap", "hat": "e8e2d0", "clothes": "5a5048", "marks": ["wrinkles"]}},
+	"haru": {"name": "Haru", "face": {"bg": "c8dcc0", "skin": "f0c49a", "hair": "2a1e1a", "style": "bun", "hat": "e8c870", "clothes": "4a7a5a"}}
 }

@@ -1,0 +1,47 @@
+{
+	"_note": "What Haru, the straw weaver of Kaminoda, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction. She has no hearts; on the bamboo hill she has her own lines (map condition). Our own lines.",
+	"picks": [
+		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"map": ["hill"]}, "at": ["hill_1", "hill_2"]},
+		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
+		{"if": {"time": ["06:00", "10:30"]}, "at": ["garden_1", "garden_2"]},
+		{"if": {"season": ["fall"]}, "at": ["fall"]},
+		{"if": {"season": ["winter"]}, "at": ["winter"]},
+		{"at": ["plain_1", "plain_2", "plain_3"]}
+	],
+	"lines": [
+		{"id": "again_1", "speaker": "haru", "mood": "happy", "text": "Twice in a day! Careful, people will say you've taken a liking to Kaminoda.", "next": "end"},
+		{"id": "again_2", "speaker": "haru", "mood": "neutral", "text": "I'm mid-braid, so I'll talk with my hands busy. Go on.", "next": "end"},
+		{"id": "new_1", "speaker": "haru", "mood": "surprised", "text": "Oh! A new face up here. I'm Haru. I weave straw: sandals, mats, rope, whatever's needed."},
+		{"speaker": "haru", "mood": "happy", "text": "If your sandals wear through, come see me before you buy some in the village.", "next": "end"},
+		{"id": "hill_1", "speaker": "haru", "mood": "happy", "text": "You found my spot. On a clear day you can count every roof in the valley from here.", "next": "end"},
+		{"id": "hill_2", "speaker": "haru", "mood": "neutral", "text": "The bamboo creaks when the wind turns. Grandma said it's the hill talking in its sleep.", "next": "end"},
+		{"id": "wet", "speaker": "haru", "mood": "neutral", "text": "Rain's good for straw work: damp straw doesn't snap. My fingers say otherwise.", "next": "end"},
+		{"id": "garden_1", "speaker": "haru", "mood": "happy", "text": "The eggplants are coming along. I talk to them. Don't laugh, it works.", "next": "end"},
+		{"id": "garden_2", "speaker": "haru", "mood": "neutral", "text": "Morning's for the garden, before the slugs wake up and have their breakfast.", "next": "end"},
+		{"id": "fall", "speaker": "haru", "mood": "happy", "text": "The rack's full of sheaves! The whole lane smells of sun and straw.", "next": "end"},
+		{"id": "winter", "speaker": "haru", "mood": "neutral", "text": "Winter's for weaving. Snow boots, straw capes. The whole hamlet walks in my work.", "next": "end"},
+		{"id": "plain_1", "speaker": "haru", "mood": "happy", "text": "Genzo pretends he doesn't need help with the rack. Then he lets me do all of it.", "next": "end"},
+		{"id": "plain_2", "speaker": "haru", "mood": "neutral", "text": "I go up the hill most afternoons. Thinking's easier with the wind in your ears.", "next": "end"},
+		{"id": "plain_3", "speaker": "haru", "mood": "happy", "text": "The persimmons in the orchard turn orange in fall. Dried, they're the best thing in winter.", "next": "end"},
+		{"id": "gift_love", "speaker": "haru", "mood": "happy", "text": "For me? Oh, this is lovely! I'll think of you every time I have one.", "next": "end"},
+		{"id": "gift_like", "speaker": "haru", "mood": "happy", "text": "Thank you! That's kind of you.", "next": "end"},
+		{"id": "gift_neutral", "speaker": "haru", "mood": "neutral", "text": "Oh, thanks. I'm sure it'll be useful.", "next": "end"},
+		{"id": "gift_dislike", "speaker": "haru", "mood": "sad", "text": "Ah... I'm not one for fish, I'm afraid. The eyes look at me.", "next": "end"},
+		{"id": "gift_hate", "speaker": "haru", "mood": "angry", "text": "A rock? Is this a joke? I have plenty, thank you.", "next": "end"},
+		{"id": "gift_again", "speaker": "haru", "mood": "happy", "text": "Another one? No, no, one's enough for today. Save it for yourself.", "next": "end"},
+		{"id": "gift_paper_fan", "speaker": "haru", "mood": "happy", "text": "A paper fan! I'll keep it on my workbench. Straw dust and summer heat, beware.", "next": "end"},
+		{"id": "gift_dish_love", "speaker": "haru", "mood": "happy", "text": "You made this? It's wonderful. Can you teach me sometime?", "next": "end"},
+		{"id": "gift_dish_like", "speaker": "haru", "mood": "happy", "text": "Still warm! I'll eat it on the hill this afternoon.", "next": "end"},
+		{"id": "gift_dish_neutral", "speaker": "haru", "mood": "neutral", "text": "Oh, a dish. Thank you, I'll have it for supper.", "next": "end"},
+		{"id": "gift_dish_dislike", "speaker": "haru", "mood": "sad", "text": "Fish again... You're kind, but I'll pass this to Genzo.", "next": "end"}
+	],
+	"gift_items": {
+		"keep:paper_fan": "gift_paper_fan",
+		"dish:love": "gift_dish_love",
+		"dish:like": "gift_dish_like",
+		"dish:neutral": "gift_dish_neutral",
+		"dish:dislike": "gift_dish_dislike"
+	}
+}

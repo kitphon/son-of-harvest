@@ -409,8 +409,9 @@ func _whistles() -> void:
 func _doctor() -> void:
 	var v: Dictionary = Villagers.all().get("yae", {})
 	check(not v.is_empty() and v.get("hearts") == false, "Dr. Yae is a villager without hearts")
-	check(not Villagers.friends().has("yae") and Villagers.friends().size() == Villagers.all().size() - 1 and Villagers.friends().has("tome"),
-		"friends() leaves her out, keeps the others")
+	var heartless := Villagers.all().keys().filter(func(id): return Villagers.all()[id].get("hearts", true) == false)
+	check(not Villagers.friends().has("yae") and Villagers.friends().size() == Villagers.all().size() - heartless.size() and Villagers.friends().has("tome"),
+		"friends() leaves her (and the other villagers without hearts) out, keeps the others")
 	check(not v.has("birthday") and Villagers.check(v.merged({"hearts": "no"}, true)) != "", "no birthday; hearts must be true or false")
 	var shop: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/shops.json")).shops.clinic
 	check(shop.keeper == "yae" and shop.map == "clinic", "she keeps the clinic's counter")

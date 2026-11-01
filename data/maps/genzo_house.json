@@ -1,0 +1,42 @@
+{
+	"_note": "Genzo's farmhouse in Kaminoda: the earth entry with the stove, the water jar and his rice sacks, the tatami room with a sunken hearth, the family altar and an old chest. Format: README.md, Maps. The daruma the farmer gives Genzo stands in the room once given (kept_genzo_daruma).",
+	"id": "genzo_house",
+	"name": "Genzo's House",
+	"size": [9, 7],
+	"indoor": true,
+	"ambient": "indoor",
+	"light": "fff0dc",
+	"background": "1a1410",
+	"legend": {
+		"#": {"tile": "wall", "solid": true},
+		".": {"tile": "tatami", "step": "floor"},
+		"w": {"tile": "floor", "step": "floor"},
+		"e": {"tile": "earth", "step": "soil"},
+		"D": {"tile": "earth", "solid": true}
+	},
+	"ground": ["#########", "#.......#", "#.......#", "#.......#", "#wwwwwww#", "#eeeeeee#", "####D####"],
+	"props": [
+		{"kind": "butsudan", "cell": [1, 1]},
+		{"kind": "tansu", "cell": [7, 1]},
+		{"kind": "irori", "cell": [3, 2], "size": [2, 2]},
+		{"kind": "zabuton", "cell": [5, 3], "solid": false, "color": "5a4a3a"},
+		{"kind": "andon", "cell": [7, 3]},
+		{"kind": "rice_sacks", "cell": [1, 5]},
+		{"kind": "kamado", "cell": [7, 5]},
+		{"kind": "mizugame", "cell": [6, 5]},
+		{"kind": "keepsake", "cell": [6, 1], "item": "keep:daruma", "flag": "kept_genzo_daruma"}
+	],
+	"doors": [
+		{"cells": [[4, 6]], "to": "kaminoda", "spawn": [15, 7], "facing": "down"}
+	],
+	"spawns": {
+		"start": [
+			[4, 5],
+			"up"
+		],
+		"home": [
+			[5, 2],
+			"down"
+		]
+	}
+}

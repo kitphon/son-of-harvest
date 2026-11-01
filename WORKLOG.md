@@ -10,6 +10,33 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Kaminoda: the village's north part, countryside props, Genzo and Haru
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the first of the village's outer parts (the user asked for north / south / east parts,
+  more houses and more people, more rural Japanese). `data/maps/kaminoda.json` (32 x 20), up the
+  village's north lane (which led straight to the hill before): a farming hamlet with terraced
+  paddies, lower paddies along a dike, two rice drying racks, a well at the crossroads, a pair of
+  jizo by the way in, a persimmon orchard, two cherry trees, a woodpile and a kitchen garden
+  behind a low fence; its lane north climbs to the bamboo hill (its door now comes back here).
+  Two houses with rooms (`genzo_house`, `haru_house`, 9 x 7 like the village homes; door hours,
+  a closed message, a keepsake spot each). New prop kinds in `scripts/world3d/country_props.gd`
+  (CountryProps, flat colours in MapView): well, jizo, persimmon and sakura (leaves by season,
+  bare in winter, persimmons hang in fall and winter), hasa (sheaves in fall), woodpile, garden,
+  wood_fence. Two villagers without hearts: Genzo, an old rice farmer (walks his terraces, the
+  dike after lunch, the well at five; home on wet days) and Haru, a straw weaver (her garden, the
+  drying rack, the hill lookout in the afternoon; weaves at home when wet), each with looks, a
+  face, a whistle, gifts (a loved dish and keepsake each, a mine find), our own talk lines
+  (season, weather, the hill, gift and dish answers).
+- Checked: test_maps' new checks (village ↔ Kaminoda ↔ hill doors; every Kaminoda door can be
+  walked to and each room's way out comes back in front of it); test_villagers' doctor check
+  now counts every villager without hearts; all 24 test scripts print `OK (0 failed)`; smoke
+  runs (title, `--demo`, town, mine 3, Kaminoda and the hill at 14:30) print no errors;
+  screenshots of Kaminoda in spring (well, woodpile, racks, paddies) and fall (sheaves on the
+  racks) and Genzo by his hearth at 6:30. One test_villagers run failed the lumber check once
+  ("the cell he fetches from stays open"); the two runs after passed: it may be flaky.
+- Left / next: the east part (between the village and the mine), the south part (between the
+  village and the river), their people.
+
 ## 2026-11-01 — Back to the old farm and village sizes (more areas instead)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user played the wide maps: the walks were too long and dull, the village had no

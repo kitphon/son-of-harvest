@@ -1,0 +1,47 @@
+{
+	"_note": "Haru, a young woman of Kaminoda who weaves straw (sandals, rice bags, the drying rack's sheaves in fall) and keeps a kitchen garden behind her house. Mornings in her garden, then at the drying rack below the lane; after lunch she takes the lane north up the bamboo hill to the lookout (about 14:00-16:00, the hill map), back at her garden until dusk. Wet days she weaves at home. A villager without hearts (hearts false). Gifts: vegetables from the field and the gardens, tea; she dislikes fish. Format: README.md, Villagers.",
+	"id": "haru",
+	"name": "Haru",
+	"hearts": false,
+	"speed": 1.6,
+	"look": {
+		"outfit": "kimono",
+		"hair_style": "long",
+		"hair": "2a1e1a",
+		"skin": "f0c49a",
+		"top": "4a7a5a",
+		"waist": "e8c870",
+		"accent": "e8c870",
+		"shoes": "6b4423"
+	},
+	"rules": [
+		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
+	],
+	"default": "usual",
+	"gifts": {
+		"love": ["eggplant", "cucumber", "food:green_tea", "food:sakura_mochi", "keep:paper_fan", "food:simmered_pumpkin"],
+		"like": ["tomato", "carrot", "onion", "pumpkin", "corn", "food:yuzu_tea", "food:tamagoyaki", "mine:hisui"],
+		"dislike": ["fish:*", "food:grilled_fish", "mine:clay"],
+		"hate": ["mine:stone"]
+	},
+	"plans": {
+		"usual": [
+			{"at": "06:00", "map": "haru_house", "from": [5, 2], "route": [{"face": "down"}]},
+			{"at": "08:00", "map": "kaminoda", "from": [27, 7], "route": [{"to": [27, 9]}, {"to": [28, 9]}, {"face": "up"}], "loop": [{"wait": 15}, {"to": [30, 9]}, {"face": "up"}, {"wait": 15}, {"to": [28, 9]}, {"face": "up"}]},
+			{"at": "10:30", "map": "kaminoda", "route": [{"to": [28, 11]}, {"to": [18, 11]}, {"face": "down"}], "loop": [{"wait": 20}, {"to": [16, 11]}, {"face": "down"}, {"wait": 20}, {"to": [18, 11]}, {"face": "down"}]},
+			{"at": "12:00", "map": "kaminoda", "route": [{"to": [27, 11]}, {"to": [27, 7]}, {"face": "up"}]},
+			{"at": "12:20", "map": "haru_house", "from": [5, 2], "route": [{"face": "down"}]},
+			{"at": "13:30", "map": "kaminoda", "from": [27, 7], "route": [{"to": [27, 9]}, {"to": [23, 9]}, {"to": [23, 0]}, {"face": "up"}]},
+			{"at": "13:50", "map": "hill", "from": [19, 28], "route": [{"to": [19, 22]}, {"to": [10, 22]}, {"to": [10, 14]}, {"to": [28, 14]}, {"to": [28, 6]}, {"to": [21, 6]}, {"to": [21, 4]}, {"face": "up"}]},
+			{"at": "16:00", "map": "hill", "route": [{"to": [21, 6]}, {"to": [28, 6]}, {"to": [28, 14]}, {"to": [10, 14]}, {"to": [10, 22]}, {"to": [19, 22]}, {"to": [19, 29]}, {"face": "down"}]},
+			{"at": "17:00", "map": "kaminoda", "from": [22, 1], "route": [{"to": [22, 9]}, {"to": [28, 9]}, {"face": "up"}], "loop": [{"wait": 15}, {"to": [30, 9]}, {"face": "up"}, {"wait": 15}, {"to": [28, 9]}, {"face": "up"}]},
+			{"at": "18:30", "map": "kaminoda", "route": [{"to": [27, 9]}, {"to": [27, 7]}, {"face": "up"}]},
+			{"at": "18:40", "map": "haru_house", "from": [5, 2], "route": [{"face": "down"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"wet": [
+			{"at": "06:00", "map": "haru_house", "from": [3, 3], "route": [{"face": "up"}]},
+			{"at": "21:00", "map": "away"}
+		]
+	}
+}

@@ -188,10 +188,10 @@ prints a report per season and the village record (WORKLOG 2026-11-01); gifts we
 and the ending's mine steps lower from it. Later for it: river fishing, food for the mine.
 Bigger world (the user found the maps small, 2026-11-01): widening the farm and village made
 the walks long and dull, so they are back to their old sizes; the world grows by areas instead.
-Done: the bamboo hill (a lookout and a small shrine), reached by the village's north lane for
-now. Next: countryside props (well, jizo, persimmon, rice drying racks), then the village's
-north, east and south parts (between the village and the hill, the mine and the river), each
-with its own houses and character, and new villagers living there.
+Done: Kaminoda, the hamlet up the village's north lane (paddies, drying racks, a well, jizo;
+Genzo and Haru and their houses) with the bamboo hill above it, and countryside props. Next:
+the village's east part (between the village and the mine) and south part (between the village
+and the river), each with its own houses, character and people.
 After that: milestone 10, building the .exe once the export templates are installed (README → Export).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
@@ -208,9 +208,9 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Clock pauses in menus (`Game.pause()` / `unpause()`)
    - [x] Clock pauses indoors (`Game.ticking()` is false on a map with `indoor: true`)
    - [x] A new area off the village: the bamboo hill (`hill`, bamboo clumps, a lookout shrine, examine events)
-   - [ ] Countryside props: well, jizo, persimmon tree, rice drying rack
-   - [ ] The village's north part (to the hill), east part (to the mine), south part (to the river)
-   - [ ] New villagers living in the new parts
+   - [x] Countryside props: well, jizo, persimmon, cherry, rice drying rack, woodpile, garden, board fence
+   - [x] The village's north part: Kaminoda (to the hill), with Genzo and Haru
+   - [ ] The village's east part (to the mine) and south part (to the river), with their people
 2. **Look and feel**
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)

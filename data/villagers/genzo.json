@@ -1,0 +1,46 @@
+{
+	"_note": "Genzo, an old rice farmer of Kaminoda (the hamlet north of the village), who has worked its terraces all his life. Up at six in his house; from 7:00 he walks his paddies (the terraces top left, then after lunch the lower ones, along the dike between them), lunch at home, a drink of water at the well at 17:00, home at 17:30, asleep from 20:00. Wet days he stays in by his hearth. A villager without hearts (hearts false). Gifts: rice and rice dishes, plain hot food; no sweets; a daruma for luck and a bit of gold ore please him. Format: README.md, Villagers.",
+	"id": "genzo",
+	"name": "Genzo",
+	"hearts": false,
+	"speed": 1.2,
+	"look": {
+		"outfit": "happi",
+		"hair_style": "headband",
+		"hair": "c8c4bc",
+		"skin": "d49a6a",
+		"top": "5a5048",
+		"waist": "c8b488",
+		"lower": "3a3430",
+		"accent": "e8e2d0",
+		"shoes": "8a6a48"
+	},
+	"rules": [
+		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
+	],
+	"default": "usual",
+	"gifts": {
+		"love": ["rice", "food:onigiri", "food:takikomi_gohan", "food:miso_soup", "keep:daruma"],
+		"like": ["daikon", "turnip", "potato", "egg", "fish:dojo", "fish:unagi", "food:green_tea", "food:ochazuke", "food:grilled_fish", "mine:kogane"],
+		"dislike": ["food:milk_pudding", "food:dango", "mine:clay"],
+		"hate": ["mine:stone"]
+	},
+	"plans": {
+		"usual": [
+			{"at": "06:00", "map": "genzo_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "07:00", "map": "kaminoda", "from": [15, 7], "route": [{"to": [15, 9]}, {"to": [9, 9]}, {"to": [9, 4]}, {"face": "left"}], "loop": [{"wait": 20}, {"to": [9, 8]}, {"face": "left"}, {"wait": 20}, {"to": [9, 4]}, {"face": "left"}]},
+			{"at": "11:30", "map": "kaminoda", "route": [{"to": [9, 9]}, {"to": [15, 9]}, {"to": [15, 7]}, {"face": "up"}]},
+			{"at": "12:00", "map": "genzo_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "13:00", "map": "kaminoda", "from": [15, 7], "route": [{"to": [15, 9]}, {"to": [14, 9]}, {"to": [14, 11]}, {"to": [13, 11]}, {"to": [13, 16]}, {"to": [16, 16]}, {"face": "up"}], "loop": [{"wait": 25}, {"to": [24, 16]}, {"face": "down"}, {"wait": 25}, {"to": [16, 16]}, {"face": "up"}]},
+			{"at": "16:40", "map": "kaminoda", "route": [{"to": [13, 16]}, {"to": [13, 11]}, {"face": "up"}]},
+			{"at": "17:00", "map": "kaminoda", "route": [{"to": [13, 11]}, {"to": [19, 11]}, {"to": [19, 9]}, {"face": "up"}, {"wait": 10}]},
+			{"at": "17:20", "map": "kaminoda", "route": [{"to": [15, 9]}, {"to": [15, 7]}, {"face": "up"}]},
+			{"at": "17:30", "map": "genzo_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "20:00", "map": "away"}
+		],
+		"wet": [
+			{"at": "06:00", "map": "genzo_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "20:00", "map": "away"}
+		]
+	}
+}

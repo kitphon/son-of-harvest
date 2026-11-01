@@ -140,8 +140,11 @@ func _map_rules() -> void:
 	# The bamboo hill up the village's north lane: doors both ways, the clumps solid, the path
 	# open from the foot to the lookout, the cliff along the top.
 	var hl := MapManager.data("hill")
-	check(t.door_at(Vector2i(10, -1)).get("to", "") == "hill" and hl.door_at(Vector2i(19, 30)).get("to", "") == "town"
-		and hl.door_at(Vector2i(19, 30)).spawn == t.spawns.north[0], "the village's north lane and the hill path join up")
+	var kn := MapManager.data("kaminoda")
+	check(t.door_at(Vector2i(10, -1)).get("to", "") == "kaminoda" and kn.door_at(Vector2i(10, 20)).get("to", "") == "town"
+		and kn.door_at(Vector2i(10, 20)).spawn == t.spawns.north[0], "the village's north lane and Kaminoda join up")
+	check(kn.door_at(Vector2i(22, -1)).get("to", "") == "hill" and hl.door_at(Vector2i(19, 30)).get("to", "") == "kaminoda"
+		and hl.door_at(Vector2i(19, 30)).spawn == kn.spawns.hill[0], "Kaminoda's lane north and the hill path join up")
 	var clumps := hl.props.filter(func(p): return p.kind == "bamboo")
 	check(clumps.size() > 50 and clumps.all(func(p): return hl.is_solid(Vector2i(p.cell)) and hl.tile(Vector2i(p.cell)) == "grass"), "bamboo clumps stand solid on grass")
 	var seen := {hl.spawns.start[0]: true}
@@ -155,6 +158,20 @@ func _map_rules() -> void:
 				todo.append(n)
 	check(seen.has(hl.spawns.top[0]), "the lookout can be walked to from the foot")
 	check(hl.is_solid(Vector2i(5, 0)) and hl.tile(Vector2i(5, 0)) == "rock_wall", "the cliff along the top")
+	# The village's outer parts: every door of each can be walked to from its way in, and every
+	# house door leads to a room whose way out comes back in front of it.
+	for id in ["kaminoda"]:
+		var m := MapManager.data(id)
+		var reach := _walkable(m, m.spawns.start[0])
+		for door in m.doors:
+			var near: bool = door.cells.any(func(c: Vector2i):
+				return [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT].any(func(o): return reach.has(c + o)))
+			check(near, "%s: the door to %s can be walked to" % [id, door.to])
+			var room := MapManager.data(door.to)
+			if room.indoor:
+				var out: Dictionary = room.doors[0]
+				check(out.to == id and reach.has(out.spawn) and room.door_at(room.spawns.start[0] + Vector2i.DOWN) == out,
+					"%s: %s's door comes back out in front of it" % [id, door.to])
 	check(rv.tile(Vector2i(0, 7)) == "water" and rv.is_solid(Vector2i(10, 7)) and not rv.is_solid(rv.spawns.shore[0]), "the river is solid, the shore is not")
 	check(MapView.ground_key(rv, Vector2i(0, 6)) == "ground:water:%d" % PlaceholderArt.WATER_N, "no bank at the map's edge, one at the shore")
 	check(MapView.ground_key(rv, Vector2i(19, 9)) == "ground:water:%d" % PlaceholderArt.WATER_S, "the far shore's bank")
@@ -562,6 +579,20 @@ func _clinic_doors() -> void:
 	check(g.day == day and g.maps.id == "clinic", "the clinic bed doesn't sleep")
 	g.message.disconnect(note)
 	g.new_game()
+
+
+## The cells reachable on foot from `from` (not solid, inside the map).
+func _walkable(m: MapData, from: Vector2i) -> Dictionary:
+	var seen := {from: true}
+	var todo: Array = [from]
+	while not todo.is_empty():
+		var c: Vector2i = todo.pop_back()
+		for o in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+			var n: Vector2i = c + o
+			if m.in_bounds(n) and not seen.has(n) and not m.is_solid(n):
+				seen[n] = true
+				todo.append(n)
+	return seen
 
 
 func check(ok: bool, what: String) -> void:
