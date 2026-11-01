@@ -10,6 +10,41 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — River and pond water ambient
+Agent: Claude Code (claude-opus-5-5) · Commit: ac9d30c
+- Done: two new synthesized loops in data/sfx.json: `amb_river` (6 s: a band of white noise
+  250-2200 Hz swelling slowly, a brown-noise rumble, 240 small filtered clicks for the
+  bubbling, 30 deeper ones, a faint high sparkle; -15 dB) and `amb_pond` (6 s: slow brown and
+  mid-band swells at 0.5 Hz like small waves on a bank, a few soft plops; -22 dB). Two new
+  optional keys on the ambient rules, read by `AmbientPicker.pick` (now also given the map id
+  and the farmer's distance to water): `maps` (map ids the rule is for) and `near` (cells: full
+  level up to a cell from water, falling to 0 at `near` cells, `AmbientPicker.near_level`).
+  `Sfx.water_distance()` measures from `Game.maps.pos` to the nearest edge of a water cell (the
+  farm's pond cells in FarmGrid, `water` tiles on other maps; cached per map id; -1 with none).
+  Rules: river on `river` at 0.8 in sunny / snow, 0.6 in rain (under the rain loop); pond on
+  `farm` and `town`, near 6, 0.6, sunny / snow. Neither plays in a storm or blizzard (the rain
+  and wind loops cover them) nor indoors (no `places`, so outdoor only). The river is still
+  `ambient: outdoor` in its map file, so birds / rain / crickets rules work there as before;
+  no map file changed. Levels are ours: the river about as loud as the rain, the pond a
+  background layer you notice only by the bank. Rain / storm rules unchanged.
+- Checked: test_audio has 20 new checks (river on its map in sunny / snow / rain, softer under
+  rain, gone in storm and blizzard, not indoors / in the village / on the farm / without a map;
+  the pond by the water, fainter at 4 cells, gone at 8 and without water, the village pond,
+  not in a storm / indoors; near_level; Sfx.water_distance beside the pond, at the house, on
+  the river shore, none in the store). All 24 test scripts print `OK (0 failed)` (the worktree
+  needed `--import` first: its class cache predated the WeatherView merge). Headless smoke runs
+  (title, `--demo`, `--map=town`, `--mine=3`, `--map=river`, `--map=river --weather=storm`,
+  `--fishing`, `--map=house`) print no errors or warnings. Recorded `--demo --map=river
+  --weather=sunny --movie-audio` (10 s, 48 kHz stereo 32-bit) and the same on the farm; a
+  python -I numpy check: river rms 0.0993 / 0.0843 / 0.1078 at 2 / 4 / 6 s, and the river
+  minus the farm recording (same music, sample-aligned) rms 0.0022 in the first second,
+  0.0112 / 0.0143 / 0.0124 / 0.0141 at 2 / 4 / 6 / 8 s, i.e. the river loop fading in over
+  its 4 s and then steady about 17 dB under the music. These Movie Maker runs print
+  `WARNING: N ObjectDB instances were leaked at exit` (4 at the river, 2 on the farm); the old
+  code prints the same (2 on the river map, 4 on the farm in rain), so it comes from loops
+  still playing when a `--movie-audio` run quits, not from this change. `shots/` deleted.
+- Left / next: a person still has to listen to both loops (and the levels against the music).
+
 ## 2026-11-01 — Settings 2: FPS limit, UI size, window sizes that fit, triggers / right stick
 Agent: Claude Code (claude-opus-5-5) · Commit: 75c7f1b
 - Done: the open points of "Settings: display, v-sync...". (1) FPS limit (Off / 30 / 60 / 120 /

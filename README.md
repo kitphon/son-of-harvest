@@ -95,7 +95,9 @@ effect the moment it changes and saved to `user://settings.json` (version 2; a v
 - Sound: every effect and ambient loop is made in code from recipes in `data/sfx.json`
   (`scripts/audio/sfx_synth.gd`, no sound files). Tools, footsteps by ground, bin lid,
   payday coins, menu, a chime at 6:00; rain, storm wind and thunder after lightning,
-  cicadas on summer days, crickets at night, cross-faded by weather / season / hour.
+  cicadas on summer days, crickets at night, running water on the river map and a soft
+  lapping within a few cells of the farm and village ponds (not in a storm or blizzard),
+  cross-faded by weather / season / hour / map / nearness to water.
 - Music: our own short loops written as notes in `data/music.json` (five-note scales, koto /
   shakuhachi / sho-like voices made by `scripts/audio/music_synth.gd`): a title theme, one
   per season, night and rain, cross-faded by scene / weather / hour; inside the Yorozu Store
