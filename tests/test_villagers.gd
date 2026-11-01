@@ -24,6 +24,7 @@ func _init() -> void:
 	_building_day()
 	_river_sunday()
 	_doctor()
+	_whistles()
 
 
 func _process(_delta: float) -> bool:
@@ -314,6 +315,94 @@ func _state(extra := {}) -> Dictionary:
 	return {"year": 1, "season": "spring", "day": 1, "weekday": "mon", "weather": "sunny", "flags": {}}.merged(extra, true)
 
 
+## Whistling (data/whistles.json, Whistles): who may whistle when, the odds and the gap, the
+## level by distance, how long the puff lasts, and a whole fair day in the village.
+func _whistles() -> void:
+	var r := Whistles.rules()
+	var tunes: Dictionary = Whistles.data().tunes
+	for id in tunes:
+		check(Villagers.all().has(id), "whistle tune %s is for a villager" % id)
+	for id in Villagers.all():
+		check(Whistles.has_tune(id), "%s has a whistle tune" % id)
+	var walker := {"id": "kota", "pos": Vector2(5, 5), "facing": Vector2i.RIGHT, "moving": true, "walked": 1.0}
+	check(Whistles.allowed(r, walker, "sunny", 10, "outdoor"), "walking outdoors on a fair morning: may whistle")
+	for look in ["rain", "storm", "snow", "blizzard"]:
+		check(not Whistles.allowed(r, walker, look, 10, "outdoor"), "no whistling in %s" % look)
+	check(not Whistles.allowed(r, walker, "sunny", 6, "outdoor") and not Whistles.allowed(r, walker, "sunny", 19, "outdoor")
+		and not Whistles.allowed(r, walker, "sunny", 23, "outdoor") and Whistles.allowed(r, walker, "sunny", 18, "outdoor"),
+		"not at dawn or after dark (7:00..18:59 only)")
+	check(not Whistles.allowed(r, walker, "sunny", 10, "indoor") and not Whistles.allowed(r, walker, "sunny", 10, "cave"),
+		"not indoors or in the mine")
+	check(not Whistles.allowed(r, walker.merged({"moving": false}, true), "sunny", 10, "outdoor")
+		and not Whistles.allowed(r, walker.merged({"moving": false, "working": true}, true), "sunny", 10, "outdoor")
+		and not Whistles.allowed(r, walker.merged({"moving": false, "fishing": true}, true), "sunny", 10, "outdoor"),
+		"only while walking: not standing, hammering or fishing")
+	check(not Whistles.allowed(r, walker.merged({"id": "nobody"}, true), "sunny", 10, "outdoor"), "no tune, no whistling")
+	Villagers.actors["kota"] = {"map": "town", "pos": Vector2(5, 5), "facing": Vector2i.DOWN, "moving": true, "walked": 0.0}
+	check(not Whistles.allowed(r, walker, "sunny", 10, "outdoor"), "not while acting in an event")
+	Villagers.actors.erase("kota")
+	# The level falls off with distance.
+	check(Whistles.level(r, 0.0) == 1.0 and Whistles.level(r, float(r.hear_full)) == 1.0, "full level close by")
+	var mid := Whistles.level(r, 8.0)
+	check(mid > 0.0 and mid < 1.0 and Whistles.level(r, 6.0) > mid and Whistles.level(r, 10.0) < mid, "softer farther off (8 cells: %.2f)" % mid)
+	check(Whistles.level(r, float(r.hear_reach)) == 0.0 and Whistles.level(r, 40.0) == 0.0, "silent beyond hear_reach")
+	# The roll: the same each time, near its odds.
+	check(Whistles.rolls("tome", "1/spring/3", 500, 0.5) == Whistles.rolls("tome", "1/spring/3", 500, 0.5), "a roll is the same each time")
+	var hits := 0
+	for m in 20000:
+		hits += int(Whistles.rolls("sayo", "1/summer/%d" % (m / 1000), m, float(r.chance)))
+	check(absf(hits / 20000.0 - float(r.chance)) < 0.01, "rolls hit at about the chance (%.3f)" % (hits / 20000.0))
+	check(not Whistles.rolls("sayo", "x", 1, 0.0) and Whistles.rolls("sayo", "x", 1, 1.0), "odds 0 never, 1 always")
+	# A fair spring Monday in the village, the farmer at the road's middle: every tune starts
+	# on a walker, at least gap_minutes apart, and lasts its tune's length.
+	var s := _state()
+	var farmer := Vector2(12, 11)
+	var starts := {}
+	Whistles.reset()
+	for t in range(360, 1260):
+		for w in Whistles.step("town", float(t), s, "sunny", t / 60, "outdoor", farmer):
+			var at := Villagers.where(w.id, float(t), s)
+			check(at.map == "town" and at.moving and t >= 420 and t < 1140, "%s whistles walking in the village by day (%d)" % [w.id, t])
+			check(is_equal_approx(w.level, Whistles.level(r, farmer.distance_to(at.pos))), "%s's level by the distance" % w.id)
+			check(Whistles.puff(w.id, float(t)) == 0.0 and Whistles.playing(w.id, t + 0.5), "%s's puff starts" % w.id)
+			if starts.has(w.id):
+				check(t - int(starts[w.id][-1]) >= int(r.gap_minutes), "%s waits the gap (%d after %d)" % [w.id, t, starts[w.id][-1]])
+			starts.get_or_add(w.id, []).append(t)
+	check(starts.size() >= 1 and starts.keys().all(func(id): return id in ["kota", "tome", "sayo", "hachiro", "yae"]),
+		"someone whistles over a fair day in the village %s" % [starts])
+	var a_tune: String = starts.keys()[0] if not starts.is_empty() else "kota"
+	var mins := Whistles.minutes(a_tune)
+	check(mins > 2.0 and mins < 10.0, "%s's tune lasts %.1f game minutes (a few seconds)" % [a_tune, mins])
+	Whistles.reset()
+	Whistles._day = "1/spring/1"
+	Whistles._started["kota"] = 600.0
+	mins = Whistles.minutes("kota")
+	check(Whistles.puff("kota", 600.0 + mins / 2.0) > 0.45 and Whistles.puff("kota", 600.0 + mins / 2.0) < 0.55
+		and Whistles.puff("kota", 600.0 + mins + 0.01) < 0.0 and Whistles.puff("kota", 599.0) < 0.0 and Whistles.puff("tome", 600.0) < 0.0,
+		"the puff runs 0..1 over the tune, -1 outside it")
+	var a := Whistles.puff_look(0.0)
+	var b := Whistles.puff_look(0.5)
+	check(a.key == "fx:note" and b.key == "fx:notes" and Whistles.puff_look(0.9).key == "fx:note" and b.rise > a.rise
+		and a.alpha == 0.0 and b.alpha == 1.0 and Whistles.puff_look(0.95).alpha < 0.5, "the puff: a note, two, one, rising, fading in and out")
+	for key in ["fx:note", "fx:notes"]:
+		var img := PlaceholderArt.tex(key).get_image()
+		check(_has_colour(img, Color("2e2420")) and _has_colour(img, Color("f4ecd8")), "%s: dark ink with a pale rim" % key)
+	# No tunes on a wet day, indoors or at night; forced, every walker at once.
+	for case in [["rain", "outdoor", 0], ["sunny", "indoor", 0], ["sunny", "outdoor", 19]]:
+		Whistles.reset()
+		var n := 0
+		for t in range(420, 1260):
+			n += Whistles.step("town", float(t), _state({"weather": case[0]}), case[0], maxi(t / 60, case[2]), case[1], farmer).size()
+		check(n == 0, "no tunes (%s, %s, from %d:00): %d" % [case[0], case[1], case[2], n])
+	Whistles.reset()
+	Whistles.forced = "*"
+	var all_now := Whistles.step("town", 600.0, s, "sunny", 10, "outdoor", farmer).map(func(w): return w.id)
+	var walking := Villagers.on_map("town", 600.0, s).filter(func(w): return w.moving).map(func(w): return w.id)
+	check(all_now == walking, "--whistle: every walker whistles at once %s %s" % [all_now, walking])
+	Whistles.forced = ""
+	Whistles.reset()
+
+
 ## Dr. Yae: a villager without hearts (not among the friends, no birthday), at the clinic's
 ## keeper spot through the clinic's hours but for a dry day's walk to the shrine after lunch,
 ## at her counter at noon when a collapsed farmer wakes, in her room early and late.
@@ -454,6 +543,11 @@ func _start_views() -> void:
 	g.maps.place("town", Vector2i(2, 10), Vector2i.RIGHT)
 	g.pause()   # the clock holds, so the sprites and the check read the same minute
 	check(is_equal_approx(g.day_minutes(), 860.0), "Game.day_minutes at 14:20 is %s" % g.day_minutes())
+	var st: Dictionary = g.trigger_state(Vector2i.ZERO)
+	Whistles.reset()
+	Whistles._day = "%d/%s/%d" % [st.year, st.season, st.day]
+	Whistles._rolled = 860
+	Whistles._started["tome"] = 859.5   # half a minute into her tune
 	_scene3 = load("res://scenes/main.tscn").instantiate()
 	root.add_child(_scene3)
 	_scene2 = load("res://scenes/main_2d.tscn").instantiate()
@@ -481,6 +575,8 @@ func _check_views() -> void:
 		check(Vector2(s3.position.x, s3.position.z).distance_to(w.pos) < 0.05, "%s stands where the plan says in 3D" % w.id)
 		var s2: Node2D = layers2[0]._sprites[w.id]
 		check(s2.position.distance_to(w.pos * 16) < 1.0, "%s stands where the plan says in 2D" % w.id)
+	check(layers3[0].whistling("tome") and layers2[0].whistling("tome") and not layers3[0].whistling("kota") and not layers2[0].whistling("kota"),
+		"both views show a note puff over Tome, who whistles, and none over Kota")
 	var kota := Villagers.where("kota", g.day_minutes(), g.trigger_state(Vector2i.ZERO))
 	check(kota.pos == Vector2(30.5, 17.5) and kota.facing == Vector2i.RIGHT and not kota.moving, "Kota is fishing at the pond by 14:20 %s" % [kota])
 	_scene3.free()

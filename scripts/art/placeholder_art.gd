@@ -39,7 +39,7 @@ static func _make(key: String) -> Image:
 			return _building(parts[1])
 		"ground":   # ground:<grass|tilled|wet|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree>:<variant> or ground:water:<land sides mask>
 			return _ground(parts[1], int(parts[2]))
-		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour)
+		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour); fx:<note|notes>, a whistler's note puff
 			return _fx(parts[1])
 		"fish_fx":  # fish_fx:<bobber|alert>, the float on the water and the "!" of a bite
 			return _fish_fx(parts[1])
@@ -1574,7 +1574,39 @@ static func _fx(kind: String) -> Image:
 			for p in [Vector2i(1, 1), Vector2i(6, 1), Vector2i(1, 6), Vector2i(6, 6)]:
 				img.set_pixelv(p, c)
 			return img
+		"note", "notes":
+			return _note_puff(kind == "notes")
 	return _draw(4, 4, [[0, 0, 4, 4, "ff00ff"]])
+
+
+## A music note in dark ink with a pale rim, so it reads on grass, path and snow: one eighth
+## note (8 x 12) or two beamed together (11 x 12). Over a villager who whistles (Whistles).
+static func _note_puff(pair: bool) -> Image:
+	var ink := _blank(11 if pair else 8, 12)
+	var c := Color("2e2420")
+	var heads := [1, 6] if pair else [1]
+	for x in heads:
+		_px(ink, x, 8, 3, 2, c)        # the head, a squat oval
+		_px(ink, x + 1, 7, 2, 1, c)
+		_px(ink, x + 2, 1, 1, 7, c)    # the stem
+	if pair:
+		_px(ink, 3, 1, 6, 2, c)        # the beam
+	else:
+		_px(ink, 4, 2, 1, 2, c)        # the flag
+		_px(ink, 5, 3, 1, 3, c)
+	var img := _blank(ink.get_width(), ink.get_height())
+	var rim := Color("f4ecd8")
+	for y in img.get_height():
+		for x in img.get_width():
+			if ink.get_pixel(x, y).a > 0.0:
+				img.set_pixel(x, y, c)
+				continue
+			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var q: Vector2i = Vector2i(x, y) + d
+				if Rect2i(Vector2i.ZERO, ink.get_size()).has_point(q) and ink.get_pixelv(q).a > 0.0:
+					img.set_pixel(x, y, rim)
+					break
+	return img
 
 
 ## HUD pieces in warm paper and wood. Frames are 16 x 16 nine-patches with a 4 px border

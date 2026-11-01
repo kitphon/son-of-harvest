@@ -90,7 +90,9 @@ on Sunday afternoons. On a fair Sunday Hachiro fishes the river (9:30-15:00) and
 him in the afternoon (a `fish` day plan step: the villager's rod pose in both views; river talk
 lines picked by the `map` condition). Villager portraits are in: the text box frames a villager's own face
 (`portrait:<id>:<mood>`, neutral / happy / sad / surprised / angry; a `mood` on dialogue lines and
-event say steps; narration and other speakers have no frame). Later for villagers: whistling.
+event say steps; narration and other speakers have no frame). Villagers whistle now and then
+as they walk their plan outdoors on a fair day: a short tune of their own (data/whistles.json),
+softer the farther off, with a note puff over them in both views.
 Relationships are in (milestone 9): the heart band shows as a coloured heart on the text
 box's name tag, each villager has a birthday (on the farmhouse calendar; gifts x5, a birthday
 line), villagers left alone may lose a point at night, and each has a heart event at band 3

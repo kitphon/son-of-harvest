@@ -10,6 +10,36 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Villagers whistle as they walk (data/whistles.json, Whistles, note puff)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `data/whistles.json` holds the rules and one short tune per villager (our own motifs,
+  4-9 notes in a five-note scale: Kota quick and high, Tome slow, Hachiro sturdy, Sayo lilting,
+  Yae a careful little figure), played by MusicSynth on a `whistle` flute voice that is nearly a
+  pure sine. `scripts/villagers/whistles.gd` (Whistles, pure logic): once a game minute each
+  villager on the farmer's map who is walking (`Villagers.pose`, new, also used by sprite_key),
+  on a sunny look, 7:00-18:59, on an outdoor map, not acting in an event, starts their tune with
+  odds 0.06, at least 40 minutes after the last; the roll is seeded from a hash of villager, day
+  and minute (a plain string hash was too even from minute to minute: no hits at all), so it is
+  frame-rate free and a day replays the same. Level 1 within 3 cells of the farmer, falling
+  (squared) to 0 at 14. `Sfx._whistle_step` / `Sfx.whistle` play it on the SFX bus at -14 dB +
+  the level; the tunes are made on worker threads at start (`song_stream("whistle:<id>")`, in
+  Movie Maker at once). Both views draw `fx:note` / `fx:notes` (dark ink, pale rim) rising and
+  swaying over the whistler (`Whistles.puff_look`). `-- --whistle` (or `=<id>`) makes every walker
+  whistle at once, for screenshots. Balance reasoning: 0.06 a walking minute with a 40 minute
+  gap is about one tune per game hour (30 s) of a villager walking in view, so it is an
+  occasional touch, not a radio.
+- Checked: all 24 test scripts print `OK (0 failed)` (test_villagers: new `_whistles` checks for
+  the rules, odds, gap, level, puff, a fair day in the village, wet / indoor / night days with no
+  tunes, `--whistle`, and the puff in both views; test_audio: every tune renders normalized, its
+  length, quiet ends, not cut off, notes 500-2500 Hz, each tune different, `Sfx.whistle` at its
+  dB and nothing out of hearing). Headless smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, `--demo --map=town --whistle`) printed no errors or warnings. Screenshots
+  `--demo --map=town --time=10:00 --whistle` in the 3D view (a single note over Kota, zoomed
+  in to check) and in `main_2d.tscn` (the beamed pair over Kota); `shots/` deleted.
+- Left / next: **the whistling has not been heard by a person** (headless and Movie Maker runs
+  are silent): the tunes' pitch, loudness (-14 dB) and how often they come need a listen in a
+  real run.
+
 ## 2026-11-01 — Merged six branches: scroll, mine art, portraits, festival crowd, mochi contest, year bot
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged with `--no-ff`, one at a time, all tests after each, onto the main that already had

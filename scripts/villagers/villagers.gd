@@ -347,15 +347,20 @@ static func is_on(id: String, map_id: String, t: float, s: Dictionary) -> bool:
 ## dipped, 1) by the minutes the rod has been out.
 static func sprite_key(w: Dictionary) -> String:
 	var back := FarmerAnim.is_back(w.facing)
-	var pose := "walk" if w.moving else ("work" if w.get("working", false) else ("fish" if w.get("fishing", false) else "idle"))
+	var p := pose(w)
 	var frame := 0
-	if pose == "walk":
+	if p == "walk":
 		frame = int(w.walked / stride()) % 4
-	elif pose == "work":
+	elif p == "work":
 		frame = work_frame(w.worked)
-	elif pose == "fish":
+	elif p == "fish":
 		frame = fish_frame(w.fished)
-	return "villager:%s:%s:%s:%d" % [w.id, "back" if back else "front", pose, frame]
+	return "villager:%s:%s:%s:%d" % [w.id, "back" if back else "front", p, frame]
+
+
+## What villager `w` (as on_map gives them) is doing: walk, work, fish or idle.
+static func pose(w: Dictionary) -> String:
+	return "walk" if w.moving else ("work" if w.get("working", false) else ("fish" if w.get("fishing", false) else "idle"))
 
 
 ## The work frame after `worked` minutes at it: 0 = hammer raised, 1 = the blow

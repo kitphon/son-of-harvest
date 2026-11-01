@@ -67,6 +67,8 @@ func _init() -> void:
 	for key in ["menu_move", "menu_ok", "bin_lid", "pond_fill", "pick", "chime_morning", "coins"]:
 		check(used.has(key), "%s is played somewhere" % key)
 
+	_whistles()
+
 	# The ambient picker: weather look / season / hour -> loops.
 	var at := func(look: String, season_id: String, hour: int) -> Dictionary:
 		return AmbientPicker.pick(rules, look, season_id, hour)
@@ -205,6 +207,16 @@ func _autoload_checks() -> void:
 	for key in sfx.sounds:
 		if not sfx.sounds[key].has("loop"):
 			sfx.play(key)   # must not error without an audio device
+	var tune: AudioStreamWAV = sfx.make_song("whistle:tome")
+	check(tune != null and tune.loop_mode == AudioStreamWAV.LOOP_DISABLED and tune.get_length() > 1.0, "Sfx makes Tome's whistle, played once")
+	sfx._song_streams["whistle:tome"] = tune
+	sfx.whistle("tome", 0.5)   # must not error without an audio device
+	var voice: AudioStreamPlayer = sfx._voices[(sfx._next_voice + sfx.VOICES - 1) % sfx.VOICES]
+	check(voice.stream == tune and absf(voice.volume_db - (float(Whistles.data().volume_db) + linear_to_db(0.5))) < 0.01,
+		"the whistle plays at its level by distance (%.1f dB)" % voice.volume_db)
+	var before: int = sfx._next_voice
+	sfx.whistle("tome", 0.0)
+	check(sfx._next_voice == before, "out of hearing: no voice used")
 	var g: Node = root.get_node("Game")
 	var farm: FarmGrid = g.farm
 	var c := Vector2i(12, 10)
@@ -220,6 +232,40 @@ func _autoload_checks() -> void:
 	g.season = 1
 	g.hour = 12
 	g.clock_running = true
+
+
+## Whistling (data/whistles.json): every villager's tune renders a short sound that isn't
+## silent, has its tune's length, starts and ends quiet, sits in a whistle's range and differs
+## from the others; the rules a whistle needs are there. (Who whistles when: test_villagers.)
+func _whistles() -> void:
+	var w: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/whistles.json"))
+	check(w.has_all(["rules", "tunes", "instrument", "volume_db"]) and float(w.volume_db) <= 0.0, "whistle data loads")
+	check(w.instrument.kind == "flute", "the whistle is a flute voice")
+	var r: Dictionary = w.rules
+	check(r.has_all(["poses", "looks", "hours", "places", "chance", "gap_minutes", "hear_full", "hear_reach"]), "whistle rules complete")
+	check(not "rain" in r.looks and not "snow" in r.looks and not "indoor" in r.places and float(r.chance) > 0.0
+		and float(r.chance) < 0.5 and float(r.hear_reach) > float(r.hear_full), "whistle rules: dry, outdoors, now and then, fading out")
+	var seen := {}
+	for id in w.tunes:
+		var track := Whistles.track(id)
+		var wav := Whistles.render(id)
+		var secs := wav.size() / float(SfxSynth.RATE)
+		check(absf(SfxSynth.peak(wav) - SfxSynth.PEAK) < 0.001, "%s's whistle normalized" % id)
+		check(absf(secs - MusicSynth.loop_seconds(track)) < 0.01 and secs > 1.0 and secs < 4.0, "%s's whistle lasts %.2f s" % [id, secs])
+		check(absf(wav[0]) < 0.01 and absf(wav[wav.size() - 1]) < 0.01, "%s's whistle starts and ends quiet" % id)
+		var tail := 0.0   # the last 30 ms: the last note has died away (the tune ends on rests)
+		for i in range(wav.size() - int(0.03 * SfxSynth.RATE), wav.size()):
+			tail = maxf(tail, absf(wav[i]))
+		check(tail < 0.02, "%s's whistle is not cut off (%.3f at the end)" % [id, tail])
+		var notes := MusicSynth.notes(track, track.voices[0])
+		check(notes.size() >= 4 and notes.size() <= 10, "%s's whistle is a short motif (%d notes)" % [id, notes.size()])
+		for n in notes:
+			var f := MusicSynth.freq(n.midi)
+			check(f > 500.0 and f < 2500.0, "%s's whistle note at %d Hz, in a whistle's range" % [id, f])
+		var shape := str(notes.map(func(n): return n.midi - notes[0].midi)) + str(track.bpm)
+		check(not seen.has(shape), "%s's tune is its own (not %s's)" % [id, seen.get(shape, "")])
+		seen[shape] = id
+	check(Whistles.render("kota") == Whistles.render("kota"), "a whistle renders the same each time")
 
 
 ## Music: the scores are well formed, every track renders a loop that isn't silent, and

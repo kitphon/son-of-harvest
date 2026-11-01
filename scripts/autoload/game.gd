@@ -196,6 +196,7 @@ func new_game() -> void:
 	fish_caught = {}
 	affection = Affection.new()
 	Villagers.reset_day()
+	Whistles.reset()
 	mine_deepest = 0
 	year_pages = {}
 	first_day = {"values": ending_values(), "field": field_counts()}   # before --demo digs the field

@@ -54,7 +54,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Holding and throwing (items on the ground, throws, poses, item art): `res://tests/test_hold.gd`
   must print `test_hold: OK (0 failed)`.
   Villagers (rule lists, day plans, catch-up, paths, sprites in both views, Hachiro building,
-  the Sunday river visit and the fish pose):
+  the Sunday river visit and the fish pose, whistling: who may whistle when, the note puff):
   `res://tests/test_villagers.gd` must print `test_villagers: OK (0 failed)`. Talking (talk
   files and picks, gifts, daily limits, affection save, shopkeepers, bump delay):
   `res://tests/test_talk.gd` must print `test_talk: OK (0 failed)`.
@@ -100,7 +100,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   storage chest; `--demo` puts a few crops in both), `--hold` to start with a turnip overhead
   and a potato on the ground in front of the bin, `--time=H:MM` (after `--demo`) to set the
   clock (villagers stand where their plans say then; `--demo --map=town` at 10:00 shows Kota
-  and Tome by the start spawn), `--shop=<id>` (general, smithy; `general@build` opens a tab) to stand at that shop's
+  and Tome by the start spawn; add `--whistle` (or `--whistle=<id>`) and every walker whistles at
+  once, a note puff over their head), `--shop=<id>` (general, smithy; `general@build` opens a tab) to stand at that shop's
   counter with its screen open (hours ignored), `--talk=<villager>` (with `--map` / `--time`
   where they are, e.g. `--map=town --time=14:30 --talk=tome`) to stand below them and talk
   (add `--hearts=N` to start every villager at heart band N, e.g. to see the heart colours),
@@ -134,7 +135,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   --weather=sunny --map=river@shore --time=14:45` shows Hachiro and Kota fishing the river),
   `--season=<id>` to start on day 1 of a season (`--season=winter --mine=3`: a frozen floor; with `--demo` the field has that season's crops: `--season=fall` ripe daikon, `--season=summer` ripe rice). Create `shots/` first. Look at the last frame. Delete
   `shots/` afterwards.
-- Audio (sound and music data, synthesis, keys used in code, ambient and music pickers): `res://tests/test_audio.gd`
+- Audio (sound and music data, synthesis, keys used in code, ambient and music pickers, the villagers' whistled tunes): `res://tests/test_audio.gd`
   must print `test_audio: OK (0 failed)`. Headless runs and Movie Maker runs start no sound
   (`Sfx.silent`); add `-- --movie-audio` to a Movie Maker run to record the mix as
   `shots/frame.wav`.

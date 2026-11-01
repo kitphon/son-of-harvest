@@ -288,6 +288,16 @@ A villager stands `talk_turn_minutes` after a talk, and one walking into the far
 (`bump_reach`); that time is their delay, the whole plan runs later, at most `delay_max`
 minutes, cleared at 12:00 and 18:00. The farmer can't step within `block_reach` of anyone.
 `-- --demo --map=town --time=14:30 --talk=tome` puts the farmer below Tome and talks.
+Whistling (`data/whistles.json`, `Whistles`): once a game minute each villager walking their
+plan on the farmer's map may start their own short tune (`tunes`, a few notes in a five-note
+scale, played by MusicSynth on a near-pure flute voice) with odds `rules.chance`, at least
+`gap_minutes` after the last one, only on a fair day (`looks`), by day (`hours`) and outdoors
+(`places`, the map's `ambient`); not while acting in an event or turned to talk. The roll is a
+hash of the villager, day and minute, so a day plays the same. `Sfx` plays the tune on the SFX
+bus at `volume_db`, full within `hear_full` cells of the farmer and fading to nothing at
+`hear_reach`; both views draw a rising note (`fx:note` / `fx:notes`) over the whistler while it
+lasts. `-- --demo --map=town --time=10:00 --whistle` (or `--whistle=<id>`) has every walker
+whistle at once.
 
 ## Shops
 Shops live in `data/shops.json` (the Yorozu Store, the Kurogane Smithy and Dr. Yae's Hinata
