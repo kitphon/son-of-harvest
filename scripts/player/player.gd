@@ -166,6 +166,8 @@ func _draw() -> void:
 	draw_circle(Vector2(0, -13), 4.5, Color("f2c79b"))
 	draw_rect(Rect2(-5, -18, 10, 3), Color("c8452c"))   # cap
 	draw_circle(Vector2(facing) * 5 + Vector2(0, -6), 1.5, Color.WHITE)
+	if Game.maps.mine_floor != null:   # the lantern in hand down the mine, on the side away from the facing
+		draw_texture(PlaceholderArt.tex("mine:lantern"), Vector2(4 if facing.x < 0 else -11, -6))
 	if Game.fishing.active():   # rod, line and bobber; a "!" over the head on a bite
 		var bob := Vector2(Game.fishing.spot * T) + Vector2(8, 8) - position
 		var bite := Game.fishing.state == "bite"

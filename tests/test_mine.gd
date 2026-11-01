@@ -347,10 +347,27 @@ func _save(rules: Dictionary) -> void:
 func _art(rules: Dictionary) -> void:
 	var magenta := PlaceholderArt.tex("unknown:x").get_image().get_data()
 	var sizes := {"mine:rock": Vector2i(16, 16), "mine:big_rock": Vector2i(24, 20), "mine:soft": Vector2i(16, 16), "mine:hole": Vector2i(16, 16),
-		"mine:ice": Vector2i(16, 16), "mine:frost": Vector2i(16, 16)}
+		"mine:ice": Vector2i(16, 16), "mine:frost": Vector2i(16, 16), "mine:lantern": Vector2i(7, 11)}
 	for key in sizes:
 		var img := PlaceholderArt.tex(key).get_image()
 		check(img.get_size() == sizes[key] and img.get_data() != magenta, "%s drawn" % key)
+	var ice := PlaceholderArt.tex("mine:ice").get_image()
+	check(ice.get_pixel(9, 10).get_luminance() < ice.get_pixel(5, 10).get_luminance() * 0.6, "the frost stone shows dark inside the ice")
+	var frost := PlaceholderArt.tex("mine:frost").get_image()
+	var clear := 0
+	for y in 16:
+		for x in 16:
+			clear += int(frost.get_pixel(x, y).a < 0.5)
+	check(clear >= 200, "frost is mostly see-through (%d of 256 px)" % clear)
+	var lamp := PlaceholderArt.tex("mine:lantern").get_image()
+	check(lamp.get_pixel(3, 6).get_luminance() > 0.85 and lamp.get_pixel(3, 6).r > lamp.get_pixel(3, 6).b, "the lantern's flame is bright and warm")
+	var hangs := true
+	for pose in ["idle", "walk", "run", "tired_idle", "tired_walk", "hold_idle", "hold_walk", "fish_wait"]:
+		for fr in PlaceholderArt.farmer_frames(pose):
+			var at := PlaceholderArt.lantern_at(pose, fr)
+			hangs = hangs and at.x >= -1 and at.x + 7 <= 16 and at.y >= 10 and at.y + 11 <= 28
+	check(hangs, "the lantern hangs on the farmer's frame in every pose")
+	check(PlaceholderArt.lantern_at("walk", 0) != PlaceholderArt.lantern_at("walk", 2), "the lantern swings with the hand")
 	for kind in ["cave", "rock_wall", "scree"]:
 		var img := PlaceholderArt.tex("ground:%s:0" % kind).get_image()
 		check(img.get_size() == Vector2i(16, 16) and img.get_pixel(8, 8).a == 1.0 and img.get_data() != magenta, "ground %s" % kind)
@@ -395,6 +412,10 @@ func _light(rules: Dictionary) -> void:
 	MineLight.aim(m, f, Vector2(240, 135), 20.0, Vector2(480, 270))
 	check(is_equal_approx(m.get_shader_parameter("radius"), float(f.lantern.radius) * 20.0) and m.get_shader_parameter("center") == Vector2(240, 135),
 		"the lantern is aimed at the farmer, in screen pixels")
+	check(m.shader.code.contains("BAYER") and not m.shader.code.contains("ceil(k * 4.0)"), "the lantern's edge is dithered, not cut into rings")
+	check(m.shader.code.contains("TIME") and is_zero_approx(m.get_shader_parameter("cold")), "the lantern flickers; a warm floor has no ice glints")
+	MineLight.aim(m, MineFloor.make(rules, MapManager.data(rules.floor_map), 2, "winter", 5), Vector2(240, 135), 20.0, Vector2(480, 270))
+	check(is_equal_approx(m.get_shader_parameter("cold"), 1.0), "a frozen floor's dark glints with ice")
 
 
 ## Winter: floors down to `to` are frozen (ice blocks with their own finds, frost, a cold light);

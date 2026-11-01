@@ -31,6 +31,7 @@ var flash: ColorRect
 var fade: MapFade
 var lightning := Lightning.new()
 var held_sprite: Sprite3D        # the item carried overhead
+var lantern_sprite: Sprite3D     # the lantern in the farmer's hand down the mine
 var flying: Sprite3D             # a thrown item on its way
 var _flight := {}                # from, to, time, seconds, height, cell (while flying)
 var bobber: Sprite3D             # the float on the water while the line is out
@@ -74,6 +75,10 @@ func _ready() -> void:
 	held_sprite = FarmWorld.make_sprite(PlaceholderArt.tex("item:turnip"))
 	held_sprite.visible = false
 	sprite.add_child(held_sprite)
+	lantern_sprite = FarmWorld.make_sprite(PlaceholderArt.tex("mine:lantern"))
+	lantern_sprite.offset.y = -lantern_sprite.texture.get_height() / 2.0   # hangs from its top
+	lantern_sprite.visible = false
+	sprite.add_child(lantern_sprite)
 	flying = FarmWorld.make_sprite(PlaceholderArt.tex("item:turnip"))
 	flying.visible = false
 	add_child(flying)
@@ -227,6 +232,7 @@ func _follow() -> void:
 	if _tools_work():
 		_show_charge()
 	_show_held()
+	_show_lantern()
 
 	var m := Game.maps.current()
 	var target := Vector3(_clamp_view(feet.x, CAM_MARGIN.x, m.w), 0, _clamp_view(feet.z, CAM_MARGIN.y, m.h))
@@ -271,6 +277,19 @@ func _show_held() -> void:
 		held_sprite.texture = PlaceholderArt.tex(Game.held_key())
 		var top := 24 - PlaceholderArt.farmer_drop(anim.pose, anim.frame()) - 1
 		held_sprite.position = Vector3(0, top * FarmWorld.PX, 0)
+
+
+## Down the mine the lantern hangs at its pixel on the farmer's frame (PlaceholderArt.lantern_at),
+## placed along the camera's right and up like the rod tip, a hair towards the camera so it
+## shows in front of the body.
+func _show_lantern() -> void:
+	lantern_sprite.visible = Game.maps.mine_floor != null
+	if not lantern_sprite.visible:
+		return
+	var at := PlaceholderArt.lantern_at(anim.pose, anim.frame())
+	var axes := cam.global_transform.basis
+	var side := (at.x + 3.5 - 8.0) * (-1.0 if sprite.flip_h else 1.0)
+	lantern_sprite.position = axes.x * side * FarmWorld.PX + axes.y * (24.0 - at.y) * FarmWorld.PX + axes.z * 0.02
 
 
 ## While the line is out: the bobber rocks on its cell (on a bite it dips under and shakes),

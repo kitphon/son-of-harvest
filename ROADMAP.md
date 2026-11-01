@@ -145,8 +145,9 @@ deepest floor saved. Mine extras are in too: the Kurogane Smithy asks for ores i
 upgrades (`items` on the upgrade levels in data/shops.json), the smithy buys stones and ores
 and the store buys gems (`buys` by kind), each floor is darker than the one above with a
 lantern circle round the farmer (both views), and in winter floors 1-9 are frozen (frost,
-ice blocks hiding frost stone, a cold light; `winter` in data/mine.json). Later for the mine:
-real art for the ice and the lantern (mine finds are in the gift lists now).
+ice blocks hiding frost stone, a cold light; `winter` in data/mine.json). The ice, frost,
+frost stone and lantern have better pixel placeholders: a dithered, flickering warm lantern pool
+in both views, the lantern in the farmer's hand, ice glints in a frozen floor's dark.
 Festivals are in (milestone 9): `data/festivals.json` (date, hours, map, place, event, shops
 shut, decorations, fireworks), the HUD tag under the clock, the calendar notes, fair weather
 on the day, Kota and Tome out all day. Each festival has a contest at a judges' table (best
@@ -251,6 +252,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] The river: a map off the village's south lane, its own fish (dace, chub, sculpin, fall salmon, the once-only river elder), river fish on gift lists
    - [x] Mining: entrance east of the village, floors laid out fresh from a seed, rocks / soft spots / hole down, ores and gems per depth and season (data/mine.json)
    - [x] Mine extras: ores for the smithy's upgrades, shops buying stones / ores / gems, light by depth with a lantern (both views), frozen floors in winter
+   - [x] Mine art: ice blocks, frost, frost stone, a soft flickering lantern pool (both views), the farmer's lantern in hand
    - [x] Festivals: one per season in data/festivals.json (Blossom Day, Lantern Night with fireworks, Moon Night, Year's Turn), HUD tag, shops shut, decorations in both views, an event once a year, villagers gather
    - [x] Festival contests with prizes and result events, festival music, payout held on the day, Blossom Day's stall
    - [x] Lantern Night's stalls (night eats, wind chimes and keepsakes), contest ribbons and the farmhouse ribbon board
