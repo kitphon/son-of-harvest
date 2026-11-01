@@ -168,6 +168,7 @@ func _build() -> void:
 	var screen := Vector2(ProjectSettings.get_setting("display/window/size/viewport_width"),
 		ProjectSettings.get_setting("display/window/size/viewport_height"))
 	_wood.position = ((screen - _wood.size) / 2).floor()
+	UiScale.apply_layer(self, Rect2(_wood.position, _wood.size), Game.ui_scale, screen)   # the UI size setting
 
 
 func _refresh() -> void:

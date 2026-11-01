@@ -10,6 +10,50 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Settings 2: FPS limit, UI size, window sizes that fit, triggers / right stick
+Agent: Claude Code (claude-opus-5-5) · Commit: 75c7f1b
+- Done: the open points of "Settings: display, v-sync...". (1) FPS limit (Off / 30 / 60 / 120 /
+  144, `values` in data/settings.json) → `Game.max_fps` and `Engine.max_fps`. (2) UI size
+  (100% / 125% / 150%) → `Game.ui_scale`; new `UiScale` (scripts/ui/ui_scale.gd) grows a
+  piece about the pivot that splits the screen the way its free space is split (a centred box
+  grows from its middle, one by an edge keeps hugging it), only as far as it fits, in 25%
+  steps. The HUD grows per corner group (`HudLayout.GROUPS`, `scaled_box`, live on
+  settings_changed); the pause menu shows fewer rows (`PauseScreen.visible_rows`: 15 / 13 /
+  10) and rebuilds the moment the size changes; the rucksack, shop, cooking and record screens
+  scale their CanvasLayer; the text box goes through the same rule but at 472 px wide it has
+  no room, so it stays 100% (said in README). `-- --ui=150%` overrides it for one run
+  (screenshots), not saved. VISIBLE went from 14 to 15 so the settings page (now 15 rows)
+  still fits at 100% without scrolling. (3) Window size: `Game.too_big_windows()` lists the
+  sizes that don't fit the screen; `Settings.hidden` keeps them out of the row (adjust steps
+  over them), `Settings.shown()` / `value_text` / `option_value` give the biggest size that
+  fits for a saved one that doesn't (it stays saved, so a bigger screen gets it back); the
+  first option always stays. (4) Pad slots take axes: `Controls.PAD_AXES` (left_trigger,
+  right_trigger, rs_up / down / left / right) as codes from `AXIS_BASE` (1000 + axis * 2 + side),
+  names LT / RT / RS-up... in data/controls.json `pad_names`, saved by id under `pad`, put in
+  the InputMap as InputEventJoypadMotion; the left stick can't be bound. The controls page
+  takes a trigger pull or right-stick push past 0.6 (`Controls.motion_code`) while a pad
+  slot listens. None is on an action by default. Reset to defaults covers all of it.
+  Reasoning: 144 for the common fast screens; 150% is the most the HUD corners take without
+  meeting on 480 x 270; 0.6 so a resting or drifting stick doesn't bind.
+- Checked: `tests/test_menu.gd` prints `test_menu: OK (0 failed)` with new checks (FPS and UI
+  size defaults, steps, values, broken files, reset, Game fields and Engine.max_fps; hidden
+  window sizes for 1080p / 1440p / a tiny screen, the shown size, stepping over, the menu row;
+  UiScale pivot / fit / steps, HUD corners on screen and apart at every size, the live HUD
+  boxes at 150% and back, pause rows fit; axis codes, names, binding and swaps, the left stick
+  refused, motion codes, the input map, the file round trip, an unknown id refused, the menu
+  taking a trigger). All 24 test scripts printed `OK (0 failed)`, except test_villagers once
+  printed `test_villagers: FAILED (1 failed)` in the full run; five reruns printed `OK (0
+  failed)` (a random roll, nothing it touches changed here). Headless `--quit-after 300`
+  (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --pause=settings`,
+  `--demo --pause=controls --ui=150%`, `--demo --ui=150% --dialogue=bin_note`) and
+  `res://scenes/main.tscn --quit-after 400` printed no errors or warnings. Movie Maker frames
+  looked at: `--demo --pause=settings` (all 15 rows, no scroll bar), the same at `--ui=150%`
+  (bigger box, scroll bar), `--pause=controls --ui=150%` (fills the picture, three columns),
+  `--demo --ui=150% --hold` (HUD corners grown, hand box beside the tools); `shots/` deleted.
+- Left / next: the text box can't grow on a 480 px picture (it would need a narrower layout
+  or the UI drawn at window resolution); triggers / right stick not tried on a real pad;
+  the window-size hiding not seen on a screen smaller than 4x.
+
 ## 2026-11-01 — Leftovers: tool level 5 perk, the storm morning's word, kitchen tools in balance.py
 Agent: Claude Code (claude-opus-5-5) · Commit: 9461b44
 - Done: (1) Level 5 of a charging tool added no charge step (max_charge ends 4, 4). Now it is

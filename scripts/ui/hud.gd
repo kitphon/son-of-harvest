@@ -4,7 +4,8 @@ extends CanvasLayer
 ## (top right) with today's festival (or a villager's birthday) under it, the tool bar (the rucksack's tool slots) with the tool in hand and its level
 ## pips and, when there is one, the item held in the other hand (bottom left), money, shipping bin and a
 ## stamina bar (bottom right), and a message line (top left). Reads Game and redraws on its
-## signals; hidden while the "Show HUD" setting is off.
+## signals; hidden while the "Show HUD" setting is off, its corners grown by the "UI size"
+## setting (HudLayout.scaled_box).
 
 const INK := Color("3b2a1a")
 const INK_SOFT := Color("7a6040")
@@ -30,15 +31,16 @@ var _stamina_fill: ColorRect
 var _msg_box: NinePatchRect
 var _msg: Label
 var _msg_time := 0.0
+var _placed: Dictionary = {}   # box key in HudLayout.BOXES -> its box, placed by the UI size
 
 
 func _ready() -> void:
 	_build_clock(HudLayout.BOXES.clock)
-	_fest_box = _box(HudLayout.BOXES.festival, "paper")
+	_fest_box = _box(HudLayout.BOXES.festival, "paper", "festival")
 	_fest = _label(_fest_box, Vector2i(6, 5))
 	_build_tools(HudLayout.BOXES.tools, HudLayout.BOXES.item)
 	_build_status(HudLayout.BOXES.status)
-	_msg_box = _box(HudLayout.BOXES.message, "paper")
+	_msg_box = _box(HudLayout.BOXES.message, "paper", "message")
 	_msg = _label(_msg_box, Vector2i(6, 5))
 	_msg_box.visible = false
 	Game.changed.connect(_refresh)
@@ -49,7 +51,7 @@ func _ready() -> void:
 
 
 func _build_clock(r: Rect2i) -> void:
-	var box := _box(r, "paper")
+	var box := _box(r, "paper", "clock")
 	_date = _label(box, Vector2i(6, 5))
 	var rule := ColorRect.new()
 	rule.color = RULE
@@ -65,22 +67,22 @@ func _build_clock(r: Rect2i) -> void:
 
 
 func _build_tools(r: Rect2i, item_r: Rect2i) -> void:
-	var item := _box(item_r, "paper")
+	var item := _box(item_r, "paper", "item")
 	_item_name = _label(item, Vector2i(6, 6))
 	_item_count = _label(item, Vector2i(6, 6), INK_SOFT)
 	_item_level = _icon(item, Vector2i(6, 7))
-	var bar := _box(r, "wood")
+	var bar := _box(r, "wood", "tools")
 	for i in Game.inventory.size("tools"):
 		var slot := _icon(bar, Vector2i(5 + i * (HudLayout.SLOT + HudLayout.SLOT_GAP), 5))
 		_slots.append(slot)
 		_slot_icons.append(_icon(slot, Vector2i(2, 2)))
-	_hand_box = _box(HudLayout.BOXES.hand, "wood")
+	_hand_box = _box(HudLayout.BOXES.hand, "wood", "hand")
 	_icon(_hand_box, Vector2i(5, 5)).texture = PlaceholderArt.tex("ui:slot:off")
 	_hand_icon = _icon(_hand_box, Vector2i(7, 7))
 
 
 func _build_status(r: Rect2i) -> void:
-	var box := _box(r, "paper")
+	var box := _box(r, "paper", "status")
 	_icon(box, Vector2i(6, 6)).texture = PlaceholderArt.tex("ui:coin")
 	_money = _label(box, Vector2i(18, 6))
 	_bin = _label(box, Vector2i(18, 16), INK_SOFT)
@@ -96,7 +98,7 @@ func _build_status(r: Rect2i) -> void:
 	back.add_child(_stamina_fill)
 
 
-func _box(r: Rect2i, kind: String) -> NinePatchRect:
+func _box(r: Rect2i, kind: String, key: String) -> NinePatchRect:
 	var b := NinePatchRect.new()
 	b.texture = PlaceholderArt.tex("ui:frame:" + kind)
 	b.patch_margin_left = NINE_MARGIN
@@ -109,6 +111,7 @@ func _box(r: Rect2i, kind: String) -> NinePatchRect:
 	b.size = r.size
 	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(b)
+	_placed[key] = b
 	return b
 
 
@@ -141,6 +144,10 @@ func _process(delta: float) -> void:
 ## Esc -> Settings -> Show HUD hides all of it (messages too).
 func _on_settings() -> void:
 	visible = Game.hud_visible
+	for key in _placed:
+		var r := HudLayout.scaled_box(key, Game.ui_scale)
+		_placed[key].position = r.position
+		_placed[key].scale = Vector2.ONE * HudLayout.group_scale(key, Game.ui_scale)
 
 
 func _show(text: String) -> void:

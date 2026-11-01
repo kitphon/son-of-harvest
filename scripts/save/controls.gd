@@ -9,6 +9,8 @@ extends RefCounted
 ## Each action also has one pad button slot (default "pad" in data), rebound the same way
 ## (bind_pad swaps with the action that had the button); "pad_fixed" buttons (Start on
 ## Pause) and the left stick's direction on the move actions always stay where data puts them.
+## A pad slot can also hold an axis: a trigger or a right-stick direction (PAD_AXES), kept as
+## a code from AXIS_BASE up so one int names any pad input; the left stick can't be bound.
 
 const DATA := "res://data/controls.json"
 const CANCEL := KEY_ESCAPE   # always cancels a rebind, never bound to anything else
@@ -24,6 +26,13 @@ const PAD_BUTTONS := {
 	"dpad_up": JOY_BUTTON_DPAD_UP, "dpad_down": JOY_BUTTON_DPAD_DOWN,
 	"dpad_left": JOY_BUTTON_DPAD_LEFT, "dpad_right": JOY_BUTTON_DPAD_RIGHT,
 }
+const AXIS_BASE := 1000   # pad codes from here are axes: AXIS_BASE + axis * 2 + (1 for the + side)
+const PAD_AXES := {
+	"left_trigger": Vector2i(JOY_AXIS_TRIGGER_LEFT, 1), "right_trigger": Vector2i(JOY_AXIS_TRIGGER_RIGHT, 1),
+	"rs_up": Vector2i(JOY_AXIS_RIGHT_Y, -1), "rs_down": Vector2i(JOY_AXIS_RIGHT_Y, 1),
+	"rs_left": Vector2i(JOY_AXIS_RIGHT_X, -1), "rs_right": Vector2i(JOY_AXIS_RIGHT_X, 1),
+}
+const AXIS_PRESS := 0.6   # how far an axis must go to count when the menu waits for one
 
 var slots := 2
 var order: Array[String] = []   # actions in menu order
@@ -53,6 +62,8 @@ static func make(path := DATA, tools: Array = []) -> Controls:
 		c._add("tool_%d" % (i + 1), label, [tool_keys[i]] if i < tool_keys.size() else [], [], "", [], "")
 	for id in PAD_BUTTONS:
 		c.pad_names[PAD_BUTTONS[id]] = str(data.get("pad_names", {}).get(id, id))
+	for id in PAD_AXES:
+		c.pad_names[axis_code(PAD_AXES[id].x, PAD_AXES[id].y)] = str(data.get("pad_names", {}).get(id, id))
 	c.reset()
 	return c
 
@@ -66,8 +77,8 @@ func _add(action: String, label: String, keys: Array, fixed: Array, pad: String,
 		fixed_codes.append(key_code(str(k)))
 	var buttons := []
 	for b in pad_fixed:
-		if PAD_BUTTONS.has(b):
-			buttons.append(PAD_BUTTONS[b])
+		if button_of(b) != NO_BUTTON:
+			buttons.append(button_of(b))
 	order.append(action)
 	spec[action] = {"label": label, "keys": codes, "fixed": fixed_codes, "pad": button_of(pad),
 		"pad_fixed": buttons, "stick": STICK.get(stick)}
@@ -78,9 +89,35 @@ static func key_code(name: String) -> int:
 	return OS.find_keycode_from_string(name) if name != "" else KEY_NONE
 
 
-## A pad button's id in data ("a", "dpad_up") as its button; NO_BUTTON for "" or an unknown id.
+## A pad input's id in data ("a", "dpad_up", "right_trigger") as its code; NO_BUTTON for "" or an unknown id.
 static func button_of(id: String) -> int:
+	if PAD_AXES.has(id):
+		return axis_code(PAD_AXES[id].x, PAD_AXES[id].y)
 	return PAD_BUTTONS.get(id, NO_BUTTON)
+
+
+## The id in data for a pad code ("" for none or an unknown one).
+static func pad_id(code: int) -> String:
+	for id in PAD_AXES:
+		if axis_code(PAD_AXES[id].x, PAD_AXES[id].y) == code:
+			return id
+	var id = PAD_BUTTONS.find_key(code)
+	return id if id != null else ""
+
+
+## The pad code of an axis pushed to one side (`dir` < 0: the - side).
+static func axis_code(axis: int, dir: float) -> int:
+	return AXIS_BASE + axis * 2 + (1 if dir > 0 else 0)
+
+
+static func is_axis(code: int) -> bool:
+	return code >= AXIS_BASE
+
+
+## The pad code a motion event stands for while the menu waits for one: an axis pushed past
+## AXIS_PRESS, else NO_BUTTON (a stick resting, or only nudged).
+static func motion_code(axis: int, value: float) -> int:
+	return axis_code(axis, value) if absf(value) >= AXIS_PRESS else NO_BUTTON
 
 
 ## The pad button as the menu shows it ("-" for an empty slot).
@@ -250,7 +287,7 @@ func clear_pad(action: String) -> String:
 func pad_to_dict() -> Dictionary:
 	var out := {}
 	for action in order:
-		out[action] = PAD_BUTTONS.find_key(pad_bound[action]) if pad_bound[action] != NO_BUTTON else ""
+		out[action] = pad_id(pad_bound[action])
 	return out
 
 
@@ -293,7 +330,12 @@ func apply() -> void:
 				ev.physical_keycode = k
 				InputMap.action_add_event(action, ev)
 		for b in spec[action].pad_fixed + [pad_bound[action]]:
-			if b != NO_BUTTON:
+			if b != NO_BUTTON and is_axis(b):
+				var ev := InputEventJoypadMotion.new()
+				ev.axis = (b - AXIS_BASE) / 2
+				ev.axis_value = 1.0 if (b - AXIS_BASE) % 2 == 1 else -1.0
+				InputMap.action_add_event(action, ev)
+			elif b != NO_BUTTON:
 				var ev := InputEventJoypadButton.new()
 				ev.button_index = b
 				InputMap.action_add_event(action, ev)

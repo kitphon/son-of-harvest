@@ -71,6 +71,9 @@ func open(id: String, at := "") -> void:
 	if r.done():
 		return
 	r.set_speed(Game.text_speed)
+	# The UI size setting: the box spans the 480 px picture, so today it has no room to grow.
+	var box := Rect2(TextBoxLayout.BOX).grow_side(SIDE_TOP, TextBoxLayout.NAME_H - 4)
+	UiScale.apply_layer(self, box, Game.ui_scale, get_viewport().get_visible_rect().size)
 	runner = r
 	Game.dialogue_open = true
 	_catch.visible = true

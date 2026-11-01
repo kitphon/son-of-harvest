@@ -41,6 +41,8 @@ var flashes_enabled := true     # lightning flashes in storms; off for photosens
 var text_speed := 1.0           # the text box's speed from the settings (x letters per second; 0 = at once)
 var always_run := false         # settings: the farmer runs unless the run key is held
 var hud_visible := true         # settings: the HUD is drawn
+var ui_scale := 1.0             # settings: how big the HUD, menus and text box are (UiScale fits it to the screen)
+var max_fps := 0                # settings: the frame cap (0 = none), also Engine.max_fps
 var clock_running := true      # off on the title screen
 var dialogue_open := false      # a text box is up: the clock and the farmer wait (counts as paused)
 var event_running := false      # an event script plays: the clock waits, the script moves the farmer
@@ -480,7 +482,7 @@ func go_home() -> void:
 
 ## Puts the settings into effect (on start and the moment one changes in the menu); views
 ## that draw something a setting changes listen to settings_changed. `-- --no-flashes`
-## always wins over the file.
+## always wins over the file, and `-- --ui=<size>` over the UI size.
 func apply_settings(args := OS.get_cmdline_user_args()) -> void:
 	if settings == null:
 		return
@@ -488,7 +490,13 @@ func apply_settings(args := OS.get_cmdline_user_args()) -> void:
 	text_speed = float(settings.option_value("text_speed"))
 	always_run = bool(settings.value("always_run"))
 	hud_visible = bool(settings.value("hud"))
-	_apply_window(str(settings.value("display")), str(settings.value("window")))
+	ui_scale = float(settings.option_value("ui_scale"))
+	for arg in args:   # `-- --ui=150%`: a UI size for this run (screenshots), not saved
+		if arg.begins_with("--ui="):
+			ui_scale = float(settings.spec.ui_scale.get("values", {}).get(arg.trim_prefix("--ui="), ui_scale))
+	max_fps = int(settings.option_value("fps"))
+	Engine.max_fps = max_fps
+	_apply_window(str(settings.value("display")), str(settings.option_value("window")))
 	if DisplayServer.get_name() != "headless":
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if settings.value("vsync") else DisplayServer.VSYNC_DISABLED)
 	settings_changed.emit()
@@ -505,13 +513,17 @@ const DISPLAY_MODES := {
 func _apply_window(display: String, scale: String) -> void:
 	if DisplayServer.get_name() == "headless":
 		return
+	var screen := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
+	var base := Vector2i(ProjectSettings.get_setting("display/window/size/viewport_width"),
+		ProjectSettings.get_setting("display/window/size/viewport_height"))
+	var hide := too_big_windows(settings.spec.get("window", {}).get("options", []), base, screen.size)
+	if hide != settings.hidden.get("window", []):
+		settings.hidden["window"] = hide
+		scale = str(settings.option_value("window"))   # a saved size that no longer fits: the biggest that does
 	if DISPLAY_MODES.has(display):
 		if DisplayServer.window_get_mode() != DISPLAY_MODES[display]:
 			DisplayServer.window_set_mode(DISPLAY_MODES[display])
 		return
-	var screen := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
-	var base := Vector2i(ProjectSettings.get_setting("display/window/size/viewport_width"),
-		ProjectSettings.get_setting("display/window/size/viewport_height"))
 	var n := window_scale(scale.trim_suffix("x").to_int(), base, screen.size)
 	if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_WINDOWED:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
@@ -520,6 +532,17 @@ func _apply_window(display: String, scale: String) -> void:
 		return
 	DisplayServer.window_set_size(size)
 	DisplayServer.window_set_position(screen.position + (screen.size - size) / 2)
+
+
+## The window size options ("2x", "3x", ...) that don't fit on `screen`: the menu leaves them
+## out. 1x always fits, so at least the smallest option stays.
+static func too_big_windows(options: Array, base: Vector2i, screen: Vector2i) -> Array:
+	var out := []
+	for o in options:
+		var n := str(o).trim_suffix("x").to_int()
+		if n > 1 and window_scale(n, base, screen) < n and o != options[0]:
+			out.append(o)
+	return out
 
 
 ## The window scale to use: `wanted`, less while base x scale is bigger than the screen.

@@ -47,21 +47,31 @@ Save / load, the title menu, weather, dialogue and events: the same with `res://
 
 These are the default keys. Esc → Settings → Controls rebinds them: pick an action, left / right
 pick its first or second key or its pad button (the third column), Enter, then press the new
-key or pad button (Esc cancels; one another action has is swapped over, never leaving an
+key or pad button, or pull a trigger (LT / RT) or push the right stick (RS-up / -down / -left /
+-right) (Esc cancels; one another action has is swapped over, never leaving an
 action without a key). Delete / Backspace empties a slot, "Reset to defaults" puts keys and
 buttons back. Esc and the pad's Start always pause. Default pad: D-pad and the left stick
 walk, A tool, B talk / throw, X run, RB / LB next tool / seed, Back rucksack, Y eat. The
 defaults are in `data/controls.json`, the player's keys are saved under `controls` in
-`user://settings.json`, the pad buttons under `pad`.
+`user://settings.json`, the pad buttons (triggers and right-stick directions too, by id:
+`right_trigger`, `rs_up`...) under `pad`. The triggers and the right stick are free by default;
+the left stick always walks.
 
 ## Settings
 Esc → Settings, rows from `data/settings.json` (a new setting is one entry there), each in
 effect the moment it changes and saved to `user://settings.json` (version 2; a version 1 file's
 "full" window is read as Borderless):
 - Display: Window, Full screen (exclusive) or Borderless (a window over the whole screen).
-- Window size: 2x / 3x / 4x the 480 x 270 picture, while the display is a window; a size bigger
-  than the screen drops to the biggest that fits.
-- V-sync on / off; Lightning flashes on / off (`-- --no-flashes` wins).
+- Window size: 2x / 3x / 4x the 480 x 270 picture, while the display is a window. Sizes bigger
+  than the screen are left out of the row; a saved size that doesn't fit shows (and is) the
+  biggest that does, and comes back on a bigger screen.
+- V-sync on / off; FPS limit Off / 30 / 60 / 120 / 144 (with v-sync on the screen's rate caps
+  it too); Lightning flashes on / off (`-- --no-flashes` wins).
+- UI size 100% / 125% / 150%: the HUD (each corner grows from its corner), the pause menu (it
+  shows fewer rows and scrolls), the rucksack, shop, cooking and record screens and the text
+  box, each grown only as far as it still fits on the 480 x 270 picture (the full-width text
+  box has no room, so it stays at 100%; a menu too big for 150% gets 125%). Not whole sizes, so
+  some pixels draw a little wider. `-- --ui=150%` tries a size for one run without saving it.
 - Text speed: Slow / Normal / Fast (x0.5 / x1 / x2 the letters per second in
   `data/text_box.json`) or Instant (whole lines at once).
 - Always run: the farmer runs, the run key walks. Show HUD: off hides the whole HUD.

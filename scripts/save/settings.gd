@@ -16,6 +16,7 @@ const DATA := "res://data/settings.json"
 var spec: Dictionary = {}     # setting -> {label, kind, default, options | min, max, step, unit}
 var values: Dictionary = {}   # setting -> its value now
 var controls: Controls        # the player's keys
+var hidden: Dictionary = {}   # choice setting -> options left out of the menu now (window sizes too big for the screen)
 
 
 static func make(spec_path := DATA) -> Settings:
@@ -59,12 +60,28 @@ func value_text(key: String) -> String:
 		return "On" if v else "Off"
 	if v is float or v is int:
 		return str(int(v)) + str(spec.get(key, {}).get("unit", ""))
+	v = shown(key)
 	return str(spec.get(key, {}).get("option_labels", {}).get(v, v))
 
 
-## What a choice's option stands for (its "values" entry in data), else the value itself.
-func option_value(key: String) -> Variant:
+## The option in effect: the value, or for a hidden one the nearest option below it that
+## isn't (a saved 4x window on a screen where 3x is the most: 3x). The value itself stays, so
+## a bigger screen gets it back.
+func shown(key: String) -> Variant:
 	var v = value(key)
+	var off: Array = hidden.get(key, [])
+	if not off.has(v):
+		return v
+	var options: Array = spec.get(key, {}).get("options", [])
+	for i in range(options.find(v), -1, -1):
+		if not off.has(options[i]):
+			return options[i]
+	return v
+
+
+## What a choice's option in effect stands for (its "values" entry in data), else the option itself.
+func option_value(key: String) -> Variant:
+	var v = shown(key)
 	return spec.get(key, {}).get("values", {}).get(v, v)
 
 
@@ -82,7 +99,8 @@ func valid(key: String, v: Variant) -> Variant:
 
 
 ## The next value (step +1) or the one before (-1): on / off flips, options and ranges wrap
-## round when `wrap`, else stop at the ends. Returns whether the value changed.
+## round when `wrap`, else stop at the ends; options in `hidden` are skipped. Returns whether
+## the value (as shown) changed.
 func adjust(key: String, step: int, wrap := true) -> bool:
 	var s: Dictionary = spec.get(key, {})
 	var old = value(key)
@@ -91,9 +109,14 @@ func adjust(key: String, step: int, wrap := true) -> bool:
 		"bool":
 			v = not old
 		"choice":
-			var i: int = s.options.find(old) + step
-			i = posmod(i, s.options.size()) if wrap else clampi(i, 0, s.options.size() - 1)
-			v = s.options[i]
+			# Hidden options are stepped over; from a hidden value the step starts at the shown one.
+			var options: Array = s.options.filter(func(o): return not hidden.get(key, []).has(o))
+			if options.is_empty():
+				return false
+			old = shown(key)
+			var i: int = options.find(old) + step
+			i = posmod(i, options.size()) if wrap else clampi(i, 0, options.size() - 1)
+			v = options[i]
 		"range":
 			var lo := int(s.min)
 			var hi := int(s.max)
@@ -103,8 +126,10 @@ func adjust(key: String, step: int, wrap := true) -> bool:
 			elif wrap and v < lo:
 				v = hi
 			v = clampi(v, lo, hi)
+	if v == old:
+		return false
 	values[key] = v
-	return v != old
+	return true
 
 
 ## Bus volumes 0..1 (for Sfx.set_volume): every range setting with a "bus", scaled by its range.

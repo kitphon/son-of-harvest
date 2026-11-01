@@ -144,6 +144,7 @@ func _build() -> void:
 	_wood.size = Vector2(_paper.size.x + 8, TOP + _paper.size.y + 4)
 	var screen := get_viewport().get_visible_rect().size
 	_wood.position = ((screen - _wood.size) / 2).floor()
+	UiScale.apply_layer(self, Rect2(_wood.position, _wood.size), Game.ui_scale, screen)   # the UI size setting
 	_refresh()
 
 
