@@ -1,10 +1,10 @@
 {
-	"_note": "The first village map: an east-west road from the farm gate (west edge), a shrine with a torii up the north path, four houses and a pond; the lane behind Kota's house runs off the south edge down to the river (river.json). The noren house south of the road is the Yorozu Store, with Sayo's rooms behind its plain side door; the one north-east is the Kurogane Smithy (data/shops.json), where Hachiro also lives, and the small one east of it the Hinata Clinic (Dr. Yae; a collapse wakes the farmer there). The west house is Grandma Tome's, the one south-west Kota's family's; their doors (and Sayo's) are open by their `hours` and say `closed` otherwise. Format: README.md, Maps. The two store_sign props are the store's new sign on its roof, one for each answer Sayo got (flag sayo_sign, flag_value old / new, heart_sayo_5).",
+	"_note": "The first village map (widened to 56 x 36 on 2026-11-01: the old 36 x 22 part kept its place top left, so every coordinate in the data stays; rice paddies, a solid `paddy` tile, fill the new ground east and south, with a farm track down the east side, a track along the south paddies, the road on east to the mine and a lane north at x 45-46 for the hill): an east-west road from the farm gate (west edge), a shrine with a torii up the north path, four houses and a pond; the lane behind Kota's house runs off the south edge down to the river (river.json). The noren house south of the road is the Yorozu Store, with Sayo's rooms behind its plain side door; the one north-east is the Kurogane Smithy (data/shops.json), where Hachiro also lives, and the small one east of it the Hinata Clinic (Dr. Yae; a collapse wakes the farmer there). The west house is Grandma Tome's, the one south-west Kota's family's; their doors (and Sayo's) are open by their `hours` and say `closed` otherwise. Format: README.md, Maps. The two store_sign props are the store's new sign on its roof, one for each answer Sayo got (flag sayo_sign, flag_value old / new, heart_sayo_5).",
 	"id": "town",
 	"name": "Village",
 	"size": [
-		36,
-		22
+		56,
+		36
 	],
 	"indoor": false,
 	"ambient": "outdoor",
@@ -21,31 +21,49 @@
 		"w": {
 			"tile": "water",
 			"solid": true
+		},
+		"p": {
+			"tile": "paddy",
+			"solid": true
 		}
 	},
 	"ground": [
-		"gggggggggggggggggggggggggggggggggggg",
-		"ggggggggggggggssssssssssgggggggggggg",
-		"ggggggggggggggssssssssssgggggggggggg",
-		"ggggggggggggggssssssssssgggggggggggg",
-		"ggggggggggggggssssssssssgggggggggggg",
-		"ggggggggggggggssssssssssgggggggggggg",
-		"ggggggggggggggggggrrgggggggggggggggg",
-		"gggggrggggggggggggrrgggggggrgggggrgg",
-		"gggggrggggggggggggrrgggggggrgggggrgg",
-		"gggggrggggggggggggrrgggggggrgggggrgg",
-		"rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
-		"rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
-		"ggggrggggggggggggggggggggggggrgggggg",
-		"ggggrggggggggggggggggggggggggrgggggg",
-		"ggggrggggggggggggggggggggggggrgwwwwg",
-		"ggggrggggggggggggggggggggggggrgwwwwg",
-		"ggggrrrrrggggggggggggggrrrrrrrgwwwwg",
-		"ggggrggggggggggggggggggggggggggwwwwg",
-		"ggggrggggggggggggggggggggggggggggggg",
-		"ggggrggggggggggggggggggggggggggggggg",
-		"ggggrggggggggggggggggggggggggggggggg",
-		"ggggrggggggggggggggggggggggggggggggg"
+		"gggggggggggggggggggggggggggggggggggggggggggggrrggggggggg",
+		"ggggggggggggggssssssssssgggggggggggggpppppppgrrgpppppppg",
+		"ggggggggggggggssssssssssgggggggggggggpppppppgrrgpppppppg",
+		"ggggggggggggggssssssssssgggggggggggggpppppppgrrgpppppppg",
+		"ggggggggggggggssssssssssgggggggggggggpppppppgrrgpppppppg",
+		"ggggggggggggggssssssssssgggggggggggggggggggggrrggggggggg",
+		"ggggggggggggggggggrrgggggggggggggggggpppppppgrrgpppppppg",
+		"gggggrggggggggggggrrgggggggrgggggrgggpppppppgrrgpppppppg",
+		"gggggrggggggggggggrrgggggggrgggggrgggpppppppgrrgpppppppg",
+		"gggggrggggggggggggrrgggggggrgggggrgggggggggggrrggggggggg",
+		"rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+		"rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+		"ggggrggggggggggggggggggggggggrgggggggggggggggrrggggggggg",
+		"ggggrggggggggggggggggggggggggrgggggggpppppppgrrgpppppppg",
+		"ggggrggggggggggggggggggggggggrgwwwwggpppppppgrrgpppppppg",
+		"ggggrggggggggggggggggggggggggrgwwwwggpppppppgrrgpppppppg",
+		"ggggrrrrrggggggggggggggrrrrrrrgwwwwggpppppppgrrgpppppppg",
+		"ggggrggggggggggggggggggggggggggwwwwggpppppppgrrgpppppppg",
+		"ggggrggggggggggggggggggggggggggggggggggggggggrrggggggggg",
+		"ggggrggggggggggggggggggggggggggggggggpppppppgrrgpppppppg",
+		"ggggrggggggggggggggggggggggggggggggggpppppppgrrgpppppppg",
+		"ggggrggggggggggggggggggggggggggggggggpppppppgrrgpppppppg",
+		"ggggrggggggggggggggggggggggggggggggggggggggggrrggggggggg",
+		"ggggrggpppppppppggpppppppppggpppppppppggppppgrrgpppppppg",
+		"ggggrggpppppppppggpppppppppggpppppppppggppppgrrgpppppppg",
+		"ggggrggpppppppppggpppppppppggpppppppppggppppgrrgpppppppg",
+		"ggggrggpppppppppggpppppppppggpppppppppggppppgrrgpppppppg",
+		"ggggrggggggggggggggggggggggggggggggggggggggggrrggggggggg",
+		"ggggrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrggggggggg",
+		"ggggrggggggggggggggggggggggggggggggggggggggggggggggggggg",
+		"ggggrggpppppppppggpppppppppggpppppppppggppppggggpppppppg",
+		"ggggrggpppppppppggpppppppppggpppppppppggppppggggpppppppg",
+		"ggggrggpppppppppggpppppppppggpppppppppggppppggggpppppppg",
+		"ggggrggpppppppppggpppppppppggpppppppppggppppggggpppppppg",
+		"ggggrggggggggggggggggggggggggggggggggggggggggggggggggggg",
+		"ggggrggggggggggggggggggggggggggggggggggggggggggggggggggg"
 	],
 	"props": [
 		{
@@ -263,6 +281,125 @@
 			"flag": "sayo_sign",
 			"flag_value": "new",
 			"style": "new"
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				36,
+				1
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				44,
+				0
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				47,
+				0
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				55,
+				2
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				55,
+				8
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				36,
+				20
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				44,
+				22
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				47,
+				22
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				55,
+				15
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				1,
+				24
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				1,
+				33
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				16,
+				35
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				27,
+				35
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				38,
+				35
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				55,
+				30
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				55,
+				26
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				2,
+				29
+			]
 		}
 	],
 	"doors": [
@@ -389,11 +526,11 @@
 		{
 			"cells": [
 				[
-					36,
+					56,
 					10
 				],
 				[
-					36,
+					56,
 					11
 				]
 			],
@@ -405,14 +542,36 @@
 			"facing": "right"
 		},
 		{
-			"cells": [[3, 22], [4, 22], [5, 22]],
+			"cells": [
+				[
+					3,
+					36
+				],
+				[
+					4,
+					36
+				],
+				[
+					5,
+					36
+				]
+			],
 			"to": "river",
-			"spawn": [5, 1],
+			"spawn": [
+				5,
+				1
+			],
 			"facing": "down"
 		}
 	],
 	"spawns": {
-		"river": [[4, 20], "up"],
+		"river": [
+			[
+				4,
+				34
+			],
+			"up"
+		],
 		"start": [
 			[
 				2,

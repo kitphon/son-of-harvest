@@ -3,6 +3,6 @@
 	"melt_per_day": {"spring": 100, "summer": 100, "fall": 100, "winter": 20},
 	"rain_melt": 60,
 	"ground": {"grass": 1.0, "path": 0.85, "tilled": 0.6, "wet": 0.3, "water": 0.0,
-		"gravel": 0.75, "scree": 0.7, "rock_wall": 0.5},
+		"gravel": 0.75, "scree": 0.7, "rock_wall": 0.5, "paddy": 0.5},
 	"roofs": {"village_house": 0.7, "hokora": 0.7}
 }

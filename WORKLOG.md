@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — The village widened to 56 x 36 (rice paddies, longer roads)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: data/maps/town.json 36 x 22 → 56 x 36. As on the farm, the old part keeps its place
+  (top left), so the villagers' plans, festival places, events and examine spots all still
+  hold. The new ground east and south is rice paddies: a new `paddy` ground tile (solid, legend
+  `p`; PlaceholderArt `ground:paddy:<n>`: still water catching the sky, rows of rice tufts;
+  snow holds 0.5 on it), in blocks with grass dikes between. The road runs on east to the mine
+  (door at x 56, the mine's way back spawns at (54, 10)), a farm track goes down the east side
+  (x 45-46) to a track along the south paddies (y 28), a lane runs north at x 45-46 to the top
+  edge for the hill (next task), the river lane is 14 cells longer (door at y 36; the river's
+  way back spawns at (4, 34)), and 17 pines dot the new edges. The longer lane moves the
+  Sunday river walks (1.5 cells a game minute): Hachiro leaves the smithy at 8:50 (was 9:00)
+  and is back at 15:55 (was 15:45), Kota leaves home at 13:50 (was 14:00).
+- Checked: test_maps' new checks (size, paddy solid and drawn as paddy, tracks / hill lane /
+  east road open, the mine and river return spawns), river / mine door checks moved to the new
+  edges, the festival test's off-map stall moved to x 55; all 24 test scripts print `OK (0
+  failed)`; smoke runs (title, `--demo`, `--map=town`, `--mine=3`, a Sunday 9:10 in the village)
+  print no errors; screenshots of `--map=town@river` in spring and under snow (paddies read as
+  water with rice rows, snow lies patchy on them).
+- Left / next: the bamboo hill off the lane north (x 45-46, y 0).
+
 ## 2026-11-01 — The farm widened to 64 x 48 (woodlot, top gate, old saves grow)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user found the maps small next to other farming games; the plan is farm, then

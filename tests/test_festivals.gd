@@ -78,7 +78,7 @@ func _data() -> void:
 		"season": {"season": "monsoon"}, "day": {"day": 31}, "hours": {"hours": ["12:00", "9:00"]},
 		"map": {"map": "moon"}, "place": {"place": [17, 6]},   # the torii's left post is solid
 		"event": {"event": "no_such_event"}, "closes": {"closes": ["bakery"]}, "key": {"music": "drums"},
-		"prop": {"props": [{"kind": "stall", "cell": [35, 5], "size": [2, 1]}]},
+		"prop": {"props": [{"kind": "stall", "cell": [55, 5], "size": [2, 1]}]},
 		"fireworks": {"fireworks": ["20:00"]},
 	}
 	for what in bad:

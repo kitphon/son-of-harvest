@@ -37,7 +37,7 @@ static func _make(key: String) -> Image:
 			return _animal(parts[1], parts[2], int(parts[3]))
 		"build":    # build:<plaster|board|kawara|thatch|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
-		"ground":   # ground:<grass|tilled|wet|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree>:<variant> or ground:water:<land sides mask>
+		"ground":   # ground:<grass|tilled|wet|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>
 			return _ground(parts[1], int(parts[2]))
 		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour); fx:<note|notes>, a whistler's note puff
 			return _fx(parts[1])
@@ -1368,6 +1368,19 @@ static func _ground(kind: String, n: int) -> Image:
 				var x := rng.randi_range(0, 14)
 				var y := rng.randi_range(0, 15)
 				_px(img, x, y, 2, 1, Color("a8a498") if i % 2 == 0 else Color("dedad0"))
+		"paddy":
+			# A flooded rice paddy: still water catching the sky over mud, rows of rice tufts.
+			img.fill(Color("6a94a0"))
+			for i in 3:
+				_px(img, rng.randi_range(0, 11), rng.randi_range(1, 14), rng.randi_range(3, 5), 1, Color("8cb4bc"))
+			for row in 4:
+				for col in 4:
+					var x := col * 4 + 1 + (row + n) % 2
+					var y := row * 4 + 1
+					_px(img, x, y + 1, 1, 2, Color("4e7e34"))
+					_px(img, x + 1, y, 1, 3, Color("62983e"))
+					_px(img, x + 1, y, 1, 1, Color("94c464"))
+					_px(img, x, y + 3, 2, 1, Color("587e88"))   # the tuft's shadow on the water
 		"wall":
 			img.fill(Color("3e3028"))
 		"cave":

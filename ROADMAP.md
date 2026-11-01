@@ -187,7 +187,8 @@ The year playtest is done: `tools/play_year.gd` plays two years through the real
 prints a report per season and the village record (WORKLOG 2026-11-01); gifts were made slower
 and the ending's mine steps lower from it. Later for it: river fishing, food for the mine.
 Bigger world (the user found the maps small, 2026-11-01): the farm is 64 x 48 now (woodlot,
-gate in the top fence); next the village to about 56 x 36, then a bamboo hill off the village.
+gate in the top fence) and the village 56 x 36 (rice paddies east and south, the roads to the
+mine and the river longer); next a bamboo hill up the village's north lane (x 45-46).
 After that: milestone 10, building the .exe once the export templates are installed (README → Export).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
@@ -204,7 +205,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Clock pauses in menus (`Game.pause()` / `unpause()`)
    - [x] Clock pauses indoors (`Game.ticking()` is false on a map with `indoor: true`)
    - [x] A wider farm: 64 x 48 with a woodlot, the gate in the top fence, old saves grow into it
-   - [ ] A wider village (about 56 x 36: lanes, a square, paddies round it)
+   - [x] A wider village: 56 x 36, rice paddies (`paddy` tile) east and south, tracks between them
    - [ ] A new area off the village (a bamboo hill)
 2. **Look and feel**
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing

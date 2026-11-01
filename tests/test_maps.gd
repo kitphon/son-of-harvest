@@ -135,8 +135,16 @@ func _map_rules() -> void:
 	# The river: down the lane off the village's south edge and back; water across the map with
 	# banks only at the shores (none at the map's side edges, it flows on), rocks in the current.
 	var rv := MapManager.data("river")
-	check(t.door_at(Vector2i(4, 22)).get("to", "") == "river" and rv.door_at(Vector2i(4, -1)).get("to", "") == "town", "the village lane and the river path join up")
-	check(not t.is_solid(Vector2i(4, 21)) and t.tile(Vector2i(4, 21)) == "path", "the lane runs to the village's south edge")
+	check(t.door_at(Vector2i(4, 36)).get("to", "") == "river" and rv.door_at(Vector2i(4, -1)).get("to", "") == "town", "the village lane and the river path join up")
+	check(not t.is_solid(Vector2i(4, 35)) and t.tile(Vector2i(4, 35)) == "path", "the lane runs to the village's south edge")
+	# The widened village: 56 x 36, paddies solid with their own tile, the tracks between them
+	# open, the road on to the mine and the lane north for the hill.
+	check(t.w == 56 and t.h == 36, "the village is 56 x 36")
+	check(t.tile(Vector2i(40, 3)) == "paddy" and t.is_solid(Vector2i(40, 3)) and MapView.ground_key(t, Vector2i(40, 3)).begins_with("ground:paddy:"), "a paddy is solid, drawn as paddy")
+	check(not t.is_solid(Vector2i(45, 20)) and not t.is_solid(Vector2i(20, 28)) and not t.is_solid(Vector2i(45, 0))
+		and not t.is_solid(Vector2i(50, 10)), "the tracks, the hill lane and the road east are open")
+	check(MapManager.data("mine").door_at(Vector2i(-1, 7)).spawn == Vector2i(54, 10) and rv.door_at(Vector2i(4, -1)).spawn == Vector2i(4, 34),
+		"the mine and the river come back to the new road ends")
 	check(rv.tile(Vector2i(0, 7)) == "water" and rv.is_solid(Vector2i(10, 7)) and not rv.is_solid(rv.spawns.shore[0]), "the river is solid, the shore is not")
 	check(MapView.ground_key(rv, Vector2i(0, 6)) == "ground:water:%d" % PlaceholderArt.WATER_N, "no bank at the map's edge, one at the shore")
 	check(MapView.ground_key(rv, Vector2i(19, 9)) == "ground:water:%d" % PlaceholderArt.WATER_S, "the far shore's bank")

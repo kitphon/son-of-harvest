@@ -195,7 +195,7 @@ func _maps() -> void:
 	var town := MapManager.data("town")
 	var entrance := MapManager.data("mine")
 	var cave := MapManager.data("mine_floor")
-	check(town.door_at(Vector2i(36, 10)).to == "mine" and town.door_at(Vector2i(36, 11)).to == "mine", "the village road's east end leads to the mine")
+	check(town.door_at(Vector2i(56, 10)).to == "mine" and town.door_at(Vector2i(56, 11)).to == "mine", "the village road's east end leads to the mine")
 	check(entrance.door_at(Vector2i(-1, 7)).to == "town", "the entrance leads back to the village")
 	check(entrance.door_at(Vector2i(7, 2)).to == "mine_floor" and entrance.prop_at(Vector2i(8, 2)).kind == "cave_mouth", "the cave mouth goes down")
 	check(cave.door_at(Vector2i(8, 0)).to == "mine" and cave.prop_at(Vector2i(8, 0)).kind == "ladder", "the ladder goes back up")
@@ -226,7 +226,7 @@ func _game_mine(rules: Dictionary) -> void:
 	check(g.maps.id == "mine" and g.maps.mine_floor == null and g.mine_deepest == 2, "the ladder goes straight back up; the deepest floor stays")
 	g.use_door(MapManager.data("mine").door_at(Vector2i(7, 2)))
 	check(g.maps.mine_floor.depth == 1 and g.mine_deepest == 2, "the next visit starts at floor 1 again")
-	g.go_to_map("town", Vector2i(34, 10), Vector2i.LEFT)
+	g.go_to_map("town", Vector2i(54, 10), Vector2i.LEFT)
 	check(g.maps.mine_floor == null, "no floor outside the mine")
 
 	# A hammer swing on a rock: stamina by charge (data/tools.json), the find in the rucksack.

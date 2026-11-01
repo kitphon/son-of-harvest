@@ -42,12 +42,12 @@
 		],
 		"sunday": [
 			{"at": "06:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
-			{"at": "09:00", "map": "town", "from": [27, 7], "route": [{"to": [27, 10]}, {"to": [4, 10]}, {"to": [4, 21]}, {"face": "down"}]},
+			{"at": "08:50", "map": "town", "from": [27, 7], "route": [{"to": [27, 10]}, {"to": [4, 10]}, {"to": [4, 35]}, {"face": "down"}]},
 			{"at": "09:30", "map": "river", "from": [4, 0], "route": [{"to": [4, 5]}, {"to": [10, 5]}, {"face": "down"}],
 				"loop": [{"fish": 45}, {"wait": 5}, {"to": [11, 5]}, {"face": "down"}, {"fish": 30}, {"to": [10, 5]}, {"face": "down"}]},
 			{"at": "15:00", "map": "river", "route": [{"to": [10, 4]}, {"to": [4, 4]}, {"to": [4, 0]}, {"face": "up"}]},
-			{"at": "15:15", "map": "town", "from": [4, 21], "route": [{"to": [4, 10]}, {"to": [27, 10]}, {"to": [27, 7]}, {"face": "up"}]},
-			{"at": "15:45", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "15:15", "map": "town", "from": [4, 35], "route": [{"to": [4, 10]}, {"to": [27, 10]}, {"to": [27, 7]}, {"face": "up"}]},
+			{"at": "15:55", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "21:00", "map": "away"}
 		],
 		"sunday_in": [
