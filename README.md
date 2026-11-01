@@ -392,7 +392,11 @@ Wild things grow on fixed spots (`data/forage.json`): per map id a list of `{cel
 summer?, fall?, winter?}`, each season naming an item of `items` (`wild:<id>`: `name`, `sell`
 in the bin, `look` for the placeholder icon) or nothing. The bamboo hill has fifteen spots:
 bamboo shoots, bracken and butterbur buds in spring, wild raspberries and myoga in summer,
-chestnuts, akebi and mushrooms (one matsutake spot) in fall, a few wild enoki in winter. E
+chestnuts, akebi and mushrooms (one matsutake spot) in fall, a few wild enoki in winter. The
+village's three outer parts have smaller rounds with things of their own: Kaminoda (nine spots:
+water dropwort by the paddies, horsetail, bamboo shoots, yam bulbils), Sakurazaka (ten: sansho
+pepper and nameko in the woods, bracken, bamboo shoots, chestnuts) and Minamino (nine: wild
+garlic, mulberries, ginkgo nuts by the water shrine, yam bulbils). E
 facing a spot picks it: overhead with free hands, into the rucksack while the hands are full.
 A picked spot is bare until the next morning (`Game.forage_picked`, map id -> cells, saved,
 cleared in `end_day`). Wild things ship like crops, a few are eaten raw (foods.json `raw`),

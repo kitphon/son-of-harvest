@@ -23,8 +23,8 @@
 	"default": "usual",
 	"gifts": {
 		"love": ["food:dango", "food:milk_pudding", "tomato", "keep:clay_rabbit"],
-		"like": ["egg", "milk", "corn", "cucumber", "fish:*", "food:tamagoyaki", "food:kinako_mochi", "mine:suisho", "mine:kohaku"],
-		"dislike": ["onion", "food:green_tea", "food:furofuki_daikon", "mine:clay"],
+		"like": ["wild:kuwa", "egg", "milk", "corn", "cucumber", "fish:*", "food:tamagoyaki", "food:kinako_mochi", "mine:suisho", "mine:kohaku"],
+		"dislike": ["onion", "wild:sansho", "food:green_tea", "food:furofuki_daikon", "mine:clay"],
 		"hate": ["mine:stone"]
 	},
 	"plans": {

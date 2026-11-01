@@ -1,5 +1,5 @@
 {
-	"_about": "Wild things to pick (Forage, scripts/items/forage.gd; README.md, Forage). DESIGN: fixed spots per area, what grows there changes with the season, and a picked spot grows again after one night. items: per id (the item is wild:<id>) a name, sell (G in the shipping bin; thrown in or held out like a crop) and look (the placeholder icon: shape shoot, fern, bud, berries, pod, nut or mushroom; color, accent). Some are eaten raw (data/foods.json raw, keyed wild:<id>). spots: per map id a list of {cell [x, y], spring?, summer?, fall?, winter?: an item id}; a season left out has nothing there. E on a spot with free hands lifts it overhead (with the hands full it goes in the rucksack, if there is room). Balance (ours): a full round of the bamboo hill is about 200 G a day in spring and summer, 275 in fall (one matsutake spot), 75 in winter; the walk from the farm up and back is the cost (no stamina). Early on that is about a turnip bag's harvest a day, later a small share of the farm's income. See WORKLOG 2026-11-01 Forage.",
+	"_about": "Wild things to pick (Forage, scripts/items/forage.gd; README.md, Forage). DESIGN: fixed spots per area, what grows there changes with the season, and a picked spot grows again after one night. items: per id (the item is wild:<id>) a name, sell (G in the shipping bin; thrown in or held out like a crop) and look (the placeholder icon: shape shoot, fern, bud, berries, pod, nut or mushroom; color, accent). Some are eaten raw (data/foods.json raw, keyed wild:<id>). spots: per map id a list of {cell [x, y], spring?, summer?, fall?, winter?: an item id}; a season left out has nothing there. E on a spot with free hands lifts it overhead (with the hands full it goes in the rucksack, if there is room). Balance (ours): a full round of the bamboo hill is about 200 G a day in spring and summer, 275 in fall (one matsutake spot), 75 in winter; the walk from the farm up and back is the cost (no stamina). Early on that is about a turnip bag's harvest a day, later a small share of the farm's income. Kaminoda, Sakurazaka and Minamino have smaller rounds (about 50-130 G a day each in spring, summer and fall, 25-50 in winter) of things of their own: water dropwort and horsetail by the paddies, sansho and nameko in the charcoal burner's woods, mulberries and ginkgo nuts round the gardens and the water shrine. They lie on the ways to the hill, the mine and the river, so they are picked in passing; a round of all four areas takes most of a day's walking. See WORKLOG 2026-11-01 Forage.",
 	"items": {
 		"bamboo_shoot": {"name": "Bamboo shoot", "sell": 30, "look": {"shape": "shoot", "color": "c89a52", "accent": "f0e2b0"}},
 		"warabi": {"name": "Bracken", "sell": 12, "look": {"shape": "fern", "color": "6a9a3a", "accent": "8a6a3a"}},
@@ -10,7 +10,16 @@
 		"akebi": {"name": "Akebi", "sell": 25, "look": {"shape": "pod", "color": "8a5aa8", "accent": "f4f0e8"}},
 		"hiratake": {"name": "Oyster mushroom", "sell": 20, "look": {"shape": "mushroom", "color": "b8b0a0", "accent": "f0ece0"}},
 		"matsutake": {"name": "Matsutake", "sell": 80, "look": {"shape": "mushroom", "color": "8a5a3a", "accent": "f0e2c8"}},
-		"enoki": {"name": "Wild enoki", "sell": 25, "look": {"shape": "mushroom", "color": "e8a040", "accent": "f4ecd8"}}
+		"enoki": {"name": "Wild enoki", "sell": 25, "look": {"shape": "mushroom", "color": "e8a040", "accent": "f4ecd8"}},
+		"seri": {"name": "Water dropwort", "sell": 12, "look": {"shape": "fern", "color": "5aa83a", "accent": "e8f0d0"}},
+		"tsukushi": {"name": "Horsetail", "sell": 8, "look": {"shape": "shoot", "color": "b8946a", "accent": "6a8a3a"}},
+		"nobiru": {"name": "Wild garlic", "sell": 12, "look": {"shape": "bud", "color": "ece8d0", "accent": "6a9a3a"}},
+		"yomogi": {"name": "Mugwort", "sell": 8, "look": {"shape": "fern", "color": "7a9a6a", "accent": "d0d8c0"}},
+		"sansho": {"name": "Sansho pepper", "sell": 24, "look": {"shape": "berries", "color": "6aa040", "accent": "3a6a2a"}},
+		"kuwa": {"name": "Mulberries", "sell": 16, "look": {"shape": "berries", "color": "4a2448", "accent": "6a9a3a"}},
+		"ginnan": {"name": "Ginkgo nuts", "sell": 20, "look": {"shape": "nut", "color": "e8c860", "accent": "a89040"}},
+		"mukago": {"name": "Yam bulbils", "sell": 10, "look": {"shape": "nut", "color": "6a4a32", "accent": "8ab040"}},
+		"nameko": {"name": "Nameko", "sell": 22, "look": {"shape": "mushroom", "color": "c0682a", "accent": "f0dcb8"}}
 	},
 	"spots": {
 		"hill": [
@@ -29,6 +38,40 @@
 			{"cell": [33, 12], "spring": "bamboo_shoot", "summer": "kiichigo", "fall": "chestnut"},
 			{"cell": [36, 9], "summer": "myoga", "fall": "akebi"},
 			{"cell": [5, 14], "fall": "chestnut"}
+		],
+		"kaminoda": [
+			{"cell": [9, 2], "spring": "seri", "winter": "seri"},
+			{"cell": [9, 6], "summer": "yomogi"},
+			{"cell": [11, 1], "summer": "kiichigo", "fall": "hiratake"},
+			{"cell": [20, 1], "spring": "bamboo_shoot", "fall": "mukago"},
+			{"cell": [27, 1], "spring": "bamboo_shoot", "fall": "hiratake"},
+			{"cell": [18, 4], "fall": "nameko", "winter": "enoki"},
+			{"cell": [13, 14], "spring": "seri", "summer": "yomogi", "winter": "seri"},
+			{"cell": [3, 16], "fall": "mukago"},
+			{"cell": [31, 12], "spring": "nobiru", "summer": "kiichigo", "fall": "chestnut"}
+		],
+		"sakurazaka": [
+			{"cell": [13, 3], "spring": "fukinoto", "summer": "myoga"},
+			{"cell": [16, 4], "spring": "fukinoto", "summer": "sansho"},
+			{"cell": [19, 1], "spring": "bamboo_shoot", "fall": "hiratake"},
+			{"cell": [23, 3], "spring": "bamboo_shoot", "summer": "kiichigo"},
+			{"cell": [27, 3], "summer": "sansho", "fall": "nameko", "winter": "enoki"},
+			{"cell": [12, 2], "fall": "chestnut"},
+			{"cell": [2, 3], "summer": "kiichigo", "fall": "chestnut"},
+			{"cell": [13, 17], "summer": "yomogi"},
+			{"cell": [18, 17], "fall": "nameko"},
+			{"cell": [28, 17], "spring": "warabi", "summer": "sansho", "fall": "akebi"}
+		],
+		"minamino": [
+			{"cell": [2, 13], "spring": "tsukushi", "summer": "yomogi"},
+			{"cell": [1, 15], "spring": "tsukushi", "fall": "mukago"},
+			{"cell": [3, 17], "summer": "yomogi"},
+			{"cell": [3, 5], "spring": "nobiru", "fall": "ginnan"},
+			{"cell": [19, 2], "summer": "kuwa", "fall": "mukago"},
+			{"cell": [17, 18], "fall": "nameko", "winter": "enoki"},
+			{"cell": [28, 4], "summer": "kuwa", "fall": "ginnan"},
+			{"cell": [29, 7], "spring": "nobiru", "summer": "kuwa"},
+			{"cell": [28, 19], "spring": "tsukushi", "fall": "nameko"}
 		]
 	}
 }

@@ -23,7 +23,7 @@
 	"default": "usual",
 	"gifts": {
 		"love": ["eggplant", "cucumber", "food:green_tea", "food:sakura_mochi", "keep:paper_fan", "food:simmered_pumpkin"],
-		"like": ["wild:warabi", "wild:myoga", "tomato", "carrot", "onion", "pumpkin", "corn", "food:yuzu_tea", "food:tamagoyaki", "mine:hisui"],
+		"like": ["wild:warabi", "wild:myoga", "wild:seri", "wild:nobiru", "tomato", "carrot", "onion", "pumpkin", "corn", "food:yuzu_tea", "food:tamagoyaki", "mine:hisui"],
 		"dislike": ["fish:*", "food:grilled_fish", "mine:clay"],
 		"hate": ["mine:stone"]
 	},

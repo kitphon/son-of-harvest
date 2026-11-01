@@ -10,6 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-01 — Forage in Kaminoda, Sakurazaka and Minamino
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: data/forage.json has spots in the three outer parts (28 in all, on grass next to
+  paddies, bamboo, pines, the creek and the water shrine, off the lanes) and nine new wild
+  things of their own (our names and looks): water dropwort, horsetail, wild garlic, mugwort,
+  sansho pepper, mulberries, ginkgo nuts, yam bulbils, nameko. Each part has one found nowhere
+  else (Kaminoda water dropwort, Sakurazaka sansho, Minamino mulberries and ginkgo nuts).
+  Mulberries are eaten raw (foods.json). A few gift likes: Kiku and Nana mulberries, Ichiro
+  ginkgo nuts and nameko, Haru dropwort and wild garlic, Shige yam bulbils; Nana dislikes sansho.
+  No code changed: the rules, views and save already worked per map.
+- Balance (ours): a part's round is about 50-130 G a day in spring to fall, 25-50 in winter
+  (Kaminoda 96 / 46 / 97 / 49, Sakurazaka 108 / 132 / 119 / 25, Minamino 48 / 64 / 104 / 25),
+  under the hill's 210 / 163 / 275 / 75. Common greens are cheap (8-12 G). The parts lie on the
+  ways to the hill, the mine and the river, so most of it is picked in passing; all four areas
+  in one spring day come to about 460 G, but that takes most of the day's walking. A first
+  draft gave the parts 120 G each in spring; spring spots and the greens' prices were cut.
+- Checked: test_forage now also checks no spot is on a lane, each part has 4+ spots in spring,
+  summer and fall and one in winter, and a thing of its own; a pick in Kaminoda (water
+  dropwort, kept apart from the hill's picks); Minamino's 3D layer; mulberries edible; the
+  icons of all 19 wild things drawn (first run: dropwort was also in Sakurazaka, moved). All 25
+  test scripts print `OK (0 failed)`; smoke runs (title, `--demo`, town, mine 3, the three
+  parts) print no errors; screenshots: bamboo shoots in Kaminoda in spring, ginkgo nuts by
+  Minamino's shrine in fall (that spot moved from the map's edge, out of frame, to [3, 5]).
+- Left / next: wild things in recipes; a talk line or two about foraging.
+
 ## 2026-11-01 — The new villagers as contest rivals
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: one villager from the outer parts joins the rivals of every contest and game

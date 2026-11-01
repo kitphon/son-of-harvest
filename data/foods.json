@@ -83,6 +83,7 @@
 		"milk_good": {"stamina": 10, "fatigue": -1, "drink": true},
 		"milk_best": {"stamina": 14, "fatigue": -2, "drink": true},
 		"fish:*": {"stamina": 3, "fatigue": -1},
-		"wild:kiichigo": {"stamina": 3, "fatigue": -1}, "wild:akebi": {"stamina": 4, "fatigue": -1}
+		"wild:kiichigo": {"stamina": 3, "fatigue": -1}, "wild:akebi": {"stamina": 4, "fatigue": -1},
+		"wild:kuwa": {"stamina": 3, "fatigue": -1}
 	}
 }

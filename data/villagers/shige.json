@@ -24,7 +24,7 @@
 	"default": "usual",
 	"gifts": {
 		"love": ["corn", "pumpkin", "food:potato_stew", "keep:moon_lantern"],
-		"like": ["rice", "potato", "fish:*", "food:onigiri", "food:miso_soup", "food:simmered_pumpkin", "mine:akagane", "egg"],
+		"like": ["wild:mukago", "rice", "potato", "fish:*", "food:onigiri", "food:miso_soup", "food:simmered_pumpkin", "mine:akagane", "egg"],
 		"dislike": [
 			"food:milk_pudding",
 			"food:kinako_mochi",

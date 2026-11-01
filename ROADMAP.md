@@ -197,8 +197,9 @@ and a sweet of the season sold nowhere else, while she is behind her counter). F
 (data/forage.json: fifteen spots on the bamboo hill, what grows changes by the season, a picked
 spot grows back overnight; README → Forage). The village record has a Neighbours
 row (the villagers without hearts known to band 1). Shige, Genzo, Haru, Ichiro and Nana are
-contest rivals (one in every contest and game). Later: forage spots in the other areas
-(Kaminoda, Sakurazaka, Minamino); wild things in recipes.
+contest rivals (one in every contest and game). Forage spots are in the three outer parts too
+(their own wild things: water dropwort, sansho, mulberries, ginkgo nuts and more). Later: wild
+things in recipes.
 After that: milestone 10, building the .exe once the export templates are installed (README → Export).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
@@ -224,6 +225,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] The outer parts' villagers come to every festival, with a line for each
    - [x] The village record counts the neighbours known (a Neighbours row, ranks moved up)
    - [x] The outer parts' villagers as contest rivals (one in every contest and game, a winner's line each)
+   - [x] Forage in Kaminoda, Sakurazaka and Minamino (28 spots, nine new wild things)
 2. **Look and feel**
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)
