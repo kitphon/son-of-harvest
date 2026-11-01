@@ -158,10 +158,20 @@
 		"amb_crickets": {"bus": "Ambient", "volume_db": -24, "loop": 4.0, "layers": [
 			{"kind": "tone", "freq": 4200, "dur": 4.0, "gate": [0.5, 0.16], "trem": [[30, 1.0]]},
 			{"kind": "tone", "freq": 3850, "dur": 4.0, "gate": [0.8, 0.22, 0.3], "trem": [[25, 1.0]], "gain": 0.6},
-			{"kind": "tone", "freq": 4550, "dur": 4.0, "gate": [1.0, 0.12, 0.65], "trem": [[40, 1.0]], "gain": 0.4}]}
+			{"kind": "tone", "freq": 4550, "dur": 4.0, "gate": [1.0, 0.12, 0.65], "trem": [[40, 1.0]], "gain": 0.4}]},
+		"amb_river": {"bus": "Ambient", "volume_db": -15, "loop": 6.0, "layers": [
+			{"kind": "noise", "hp": 250, "lp": 2200, "dur": 6.0, "trem": [[0.33, 0.3], [0.17, 0.25]]},
+			{"kind": "noise", "color": "brown", "lp": 300, "dur": 6.0, "gain": 0.5, "trem": [[0.5, 0.3]]},
+			{"kind": "grains", "count": 240, "dur": 6.0, "hp": 700, "lp": 3200, "grain": 0.006, "gain": 0.45},
+			{"kind": "grains", "count": 30, "dur": 6.0, "hp": 200, "lp": 900, "grain": 0.015, "gain": 0.5},
+			{"kind": "noise", "hp": 2800, "lp": 6500, "dur": 6.0, "gain": 0.12, "trem": [[0.67, 0.6]]}]},
+		"amb_pond": {"bus": "Ambient", "volume_db": -22, "loop": 6.0, "layers": [
+			{"kind": "noise", "color": "brown", "lp": 450, "dur": 6.0, "trem": [[0.5, 0.85], [0.17, 0.4]]},
+			{"kind": "noise", "hp": 350, "lp": 1400, "dur": 6.0, "gain": 0.35, "trem": [[0.5, 0.9], [0.33, 0.5]]},
+			{"kind": "grains", "count": 10, "dur": 6.0, "hp": 250, "lp": 1100, "grain": 0.012, "gain": 0.5}]}
 	},
 	"ambient": {
-		"_about": "Which loops play, by place (the map's ambient: outdoor / indoor; a missing places list = outdoor only), weather look, season and hour. A rule matches when the place, the look, the season and the hour [from, to) all fit (a missing list = any, from > to wraps past midnight); a loop's level is the highest matching rule. fade_seconds is the cross-fade.",
+		"_about": "Which loops play, by place (the map's ambient: outdoor / indoor; a missing places list = outdoor only), map id, weather look, season, hour and nearness to water. A rule matches when the place, the map, the look, the season and the hour [from, to) all fit (a missing list = any, from > to wraps past midnight); near (cells) also needs water on the map: full level up to a cell from it, fading to nothing at near cells away. A loop's level is the highest matching rule. The river runs on its own map and the pond laps by the farm and village ponds, but not in a storm or blizzard, whose rain and wind cover them. fade_seconds is the cross-fade.",
 		"fade_seconds": 4.0,
 		"rules": [
 			{"loop": "amb_rain", "looks": ["rain"], "level": 0.7},
@@ -171,6 +181,9 @@
 			{"loop": "amb_cicadas", "looks": ["sunny"], "seasons": ["summer"], "hours": [7, 18], "level": 1.0},
 			{"loop": "amb_crickets", "looks": ["sunny"], "seasons": ["summer", "fall"], "hours": [19, 4], "level": 1.0},
 			{"loop": "amb_crickets", "looks": ["sunny"], "seasons": ["spring"], "hours": [20, 3], "level": 0.4},
+			{"loop": "amb_river", "maps": ["river"], "looks": ["sunny", "snow"], "level": 0.8},
+			{"loop": "amb_river", "maps": ["river"], "looks": ["rain"], "level": 0.6},
+			{"loop": "amb_pond", "maps": ["farm", "town"], "near": 6, "looks": ["sunny", "snow"], "level": 0.6},
 			{"loop": "amb_rain", "places": ["indoor"], "looks": ["rain"], "level": 0.3},
 			{"loop": "amb_rain", "places": ["indoor"], "looks": ["storm"], "level": 0.5},
 			{"loop": "amb_wind", "places": ["indoor"], "looks": ["storm", "blizzard"], "level": 0.4}

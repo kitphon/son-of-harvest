@@ -3,7 +3,7 @@ extends Node
 ## SfxSynth on first use) and music tracks from data/music.json (made by MusicSynth on a
 ## worker thread when first wanted), on three busses, SFX, Ambient and Music, each with a
 ## volume 0..1 set from the settings (Game.settings, the entries with a "bus"). The ambient
-## loops follow the weather, season, hour and map (AmbientPicker) and fade out while the clock
+## loops follow the weather, season, hour, map and nearness to water (AmbientPicker) and fade out while the clock
 ## stands (title screen, menus); the music follows the scene, weather, season and hour
 ## (MusicPicker) and cross-fades from track to track. Headless runs (tests, smoke runs) have no
 ## audio device, and Movie Maker screenshots drive the mixer frame by frame: in both every
@@ -36,6 +36,8 @@ var _song_fade: Dictionary = {}    # track key -> s its fade-in takes
 var _song_streams: Dictionary = {} # track key -> AudioStreamWAV, once made
 var _song_jobs: Dictionary = {}    # track key -> [WorkerThreadPool task, {stream}] being made
 var _walked := 0.0
+var _water_map := ""               # the map _water_cells are for
+var _water_cells: Array[Vector2i] = []
 var _last_bin := 0
 var _last_money := 0
 
@@ -79,7 +81,8 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	var m := Game.maps.current()
 	_target = AmbientPicker.pick(ambient_rules, Game.weather_look(Game.weather_today, Game.season_name()),
-			Game.season_name(), Game.hour, m.ambient if m != null else "outdoor") if Game.clock_running else {}
+			Game.season_name(), Game.hour, m.ambient if m != null else "outdoor", Game.maps.id,
+			water_distance()) if Game.clock_running else {}
 	var step := delta / maxf(_fade_seconds, 0.01)
 	for key in _loops:
 		var p: AudioStreamPlayer = _loops[key]
@@ -226,6 +229,31 @@ func stream(key: String) -> AudioStreamWAV:
 		var s: Dictionary = sounds[key]
 		_streams[key] = SfxSynth.to_stream(SfxSynth.render(s, hash(key)), s.has("loop"))
 	return _streams[key]
+
+
+## Cells from the farmer's feet (Game.maps.pos) to the nearest water on this map (the farm
+## pond, water tiles elsewhere), or -1 when the map has none. For the "near" ambient rules.
+func water_distance() -> float:
+	if _water_map != Game.maps.id:
+		_water_map = Game.maps.id
+		_water_cells.clear()
+		var m := Game.maps.current()
+		if Game.maps.on_farm():
+			for c in Game.farm.fixed:
+				if Game.farm.fixed[c] == "pond":
+					_water_cells.append(c)
+		elif m != null:
+			for y in m.h:
+				for x in m.w:
+					if m.tile(Vector2i(x, y)) == "water":
+						_water_cells.append(Vector2i(x, y))
+	if _water_cells.is_empty():
+		return -1.0
+	var feet: Vector2 = Game.maps.pos / MapManager.T
+	var best := INF
+	for c in _water_cells:
+		best = minf(best, feet.distance_to(feet.clamp(Vector2(c), Vector2(c) + Vector2.ONE)))   # to its nearest edge
+	return best
 
 
 ## Ambient loops wanted right now (loop key -> level), for checks.

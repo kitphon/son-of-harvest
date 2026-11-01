@@ -88,6 +88,34 @@ func _init() -> void:
 	check(AmbientPicker.in_hours(3, 19, 4) and not AmbientPicker.in_hours(4, 19, 4), "hours wrap past midnight")
 	check(AmbientPicker.in_hours(7, 7, 18) and not AmbientPicker.in_hours(18, 7, 18), "hours from .. to (not incl.)")
 
+	# Water: the river on its own map, the pond lapping close to the farm (and village) ponds.
+	var on := func(look: String, place: String, map_id: String, water: float) -> Dictionary:
+		return AmbientPicker.pick(rules, look, "spring", 12, place, map_id, water)
+	check(on.call("sunny", "outdoor", "river", 3.0).keys() == ["amb_river"], "river: running water")
+	check(on.call("snow", "outdoor", "river", 3.0).has("amb_river"), "the river runs in winter snow")
+	var river_rain: Dictionary = on.call("rain", "outdoor", "river", 3.0)
+	check(river_rain.has("amb_rain") and river_rain.get("amb_river", 0.0) > 0.0
+			and river_rain.amb_river < on.call("sunny", "outdoor", "river", 3.0).amb_river, "river in rain: rain over a softer river")
+	var river_storm: Dictionary = on.call("storm", "outdoor", "river", 3.0)
+	check(not river_storm.has("amb_river") and river_storm.has("amb_rain") and river_storm.has("amb_wind"),
+			"river in a storm: the storm covers it (%s)" % river_storm)
+	check(not on.call("blizzard", "outdoor", "river", 3.0).has("amb_river"), "river in a blizzard: covered")
+	check(not on.call("sunny", "indoor", "river", 3.0).has("amb_river"), "no river indoors")
+	check(not on.call("sunny", "outdoor", "town", 3.0).has("amb_river"), "no river in the village")
+	check(not on.call("sunny", "outdoor", "farm", 3.0).has("amb_river"), "no river on the farm")
+	check(not at.call("sunny", "spring", 12).has("amb_river"), "no map id: no river")
+	var by_pond: float = on.call("sunny", "outdoor", "farm", 0.5).get("amb_pond", 0.0)
+	var off_pond: float = on.call("sunny", "outdoor", "farm", 4.0).get("amb_pond", 0.0)
+	check(by_pond > 0.0 and by_pond < on.call("sunny", "outdoor", "river", 3.0).amb_river, "by the pond: a quieter lapping (%s)" % by_pond)
+	check(off_pond > 0.0 and off_pond < by_pond, "fainter further off (%s)" % off_pond)
+	check(not on.call("sunny", "outdoor", "farm", 8.0).has("amb_pond"), "far from the pond: none")
+	check(not on.call("sunny", "outdoor", "farm", -1.0).has("amb_pond"), "no water on the map: no pond")
+	check(on.call("sunny", "outdoor", "town", 0.5).has("amb_pond"), "the village pond laps too")
+	check(not on.call("storm", "outdoor", "farm", 0.5).has("amb_pond"), "no pond in a storm")
+	check(not on.call("sunny", "indoor", "farm", 0.5).has("amb_pond"), "no pond indoors")
+	check(AmbientPicker.near_level(1.0, 6.0) == 1.0 and AmbientPicker.near_level(6.0, 6.0) == 0.0
+			and AmbientPicker.near_level(-1.0, 6.0) == 0.0, "near: full up to a cell, none at the radius or without water")
+
 	_music()
 
 	# Lightning tells the view once per flash that it started (thunder follows).
@@ -164,6 +192,16 @@ func _autoload_checks() -> void:
 	check(AudioServer.is_bus_mute(AudioServer.get_bus_index("Ambient")), "volume 0 mutes")
 	sfx.set_volume("Ambient", 0.6)
 	check(not AudioServer.is_bus_mute(AudioServer.get_bus_index("Ambient")), "unmuted again")
+	var g0: Node = root.get_node("Game")
+	g0.maps.place("farm", Vector2i(24, 3), Vector2i.LEFT)   # beside the pond (x 25..28, y 2..4)
+	check(sfx.water_distance() < 1.0, "Sfx: the farmer beside the pond (%s cells)" % sfx.water_distance())
+	g0.maps.place("farm", Vector2i(4, 4), Vector2i.DOWN)
+	check(sfx.water_distance() > 15.0, "Sfx: far from the pond at the house (%s cells)" % sfx.water_distance())
+	g0.maps.place("river", Vector2i(5, 5), Vector2i.DOWN)
+	check(sfx.water_distance() < 1.0, "Sfx: the river's water by the shore (%s cells)" % sfx.water_distance())
+	g0.maps.place("store", Vector2i(2, 2), Vector2i.DOWN)
+	check(sfx.water_distance() < 0.0, "Sfx: no water in the store")
+	g0.maps.place("farm", Vector2i(4, 4), Vector2i.DOWN)
 	for key in sfx.sounds:
 		if not sfx.sounds[key].has("loop"):
 			sfx.play(key)   # must not error without an audio device

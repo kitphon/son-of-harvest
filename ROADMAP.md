@@ -61,7 +61,9 @@ houses and Sayo's rooms behind the store (irori, tokonoma, altar, screens), door
 Sound effects, ambient loops and music are in (milestone 10), with Music / Sounds / Ambient
 volume sliders in Esc → Settings. The four festivals have their own scores, the store and the smithy theirs (`maps` rules),
 the heart events and the opening theirs (`events` rules). Later for audio: more tracks are
-new scores and rules in `data/music.json`; the music has not been heard by a person yet.
+new scores and rules in `data/music.json`; the music has not been heard by a person yet. The
+river map has its own running-water loop and the ponds a quieter lapping by the water
+(`maps` / `near` ambient rules in data/sfx.json); not heard by a person yet either.
 The rucksack and the storage chest are done (I opens the rucksack, the chest stands right of
 the house; slot counts in data/inventory.json, so a shop's rucksack upgrade is one number via
 `Inventory.grow("bag", n)`). The item held overhead is the rucksack's hand slot. Keys can be
@@ -245,6 +247,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
 10. **Audio and release**
     - [x] Sound effects and ambient loops (synthesized from data/sfx.json, SFX / Ambient busses)
     - [x] Music; volume sliders in the settings screen (`Sfx.set_volume`)
+    - [x] Water ambient: running water on the river map, lapping near the farm / village ponds (`maps` / `near` rules)
     - [x] Shop and event music: the Yorozu Store, the Kurogane Smithy, heart events, the opening (`maps` / `events` music rules)
     - [x] Windows export preset (`export_presets.cfg`, .pck embedded) and our app icon
     - [ ] Build the .exe and check it starts (needs the 4.7.2 export templates; README → Export)
