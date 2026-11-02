@@ -177,6 +177,18 @@ func _picks() -> void:
 			check(Talk.pick(id, day.merged({"band": 5}, true)) == "forage_" + s, "%s's forage line before the close ones" % id)
 			check(Talk.pick(id, day.merged({"band": 1}, true)) != "forage_" + s, "%s keeps it from a stranger" % id)
 			check(Talk.pick(id, day.merged({"band": 2, "weekday": "mon"}, true)) != "forage_" + s, "%s only on their day" % id)
+	# The outer parts' villagers (no hearts) tell a neighbour (band 1 on) about their part's wild
+	# things on a weekday of their own; a wet day keeps its own line.
+	var outer_days := {"genzo": "mon", "shige": "tue", "ichiro": "wed", "haru": "thu", "kiku": "fri", "fumi": "sat", "nana": "sun"}
+	for id in outer_days:
+		var other := "tue" if outer_days[id] == "mon" else "mon"
+		for s in ["spring", "summer", "fall", "winter"]:
+			var day := _state({"weekday": outer_days[id], "season": s, "time": 780})
+			check(Talk.pick(id, day.merged({"band": 1}, true)) == "forage_" + s, "%s's forage line in %s" % [id, s])
+			check(Talk.pick(id, day.merged({"band": 6}, true)) == "forage_" + s, "%s's forage line at any band from 1" % id)
+			check(Talk.pick(id, day) != "forage_" + s, "%s keeps it from a stranger" % id)
+			check(Talk.pick(id, day.merged({"band": 1, "weekday": other}, true)) != "forage_" + s, "%s only on their day" % id)
+			check(Talk.pick(id, day.merged({"band": 1, "weather": "rain"}, true)) == "wet", "%s on a wet day" % id)
 	# At the river (a fair Sunday) both fishers have lines for it, whatever the band.
 	var river := _state({"weekday": "sun", "map": "river", "time": 900})
 	for id in ["hachiro", "kota"]:

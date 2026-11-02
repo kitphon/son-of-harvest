@@ -10,6 +10,36 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-02 — Forage talk from the outer parts' villagers
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the seven villagers without hearts each have a forage line per season in their talk
+  files (`forage_<season>`), about what grows in their own part per data/forage.json: Genzo
+  (Kaminoda) the dropwort at the paddy edges in spring and winter, mugwort on the terrace dikes,
+  nameko by his woodpile; Haru bamboo shoots by the hill lane and wild garlic past the lower
+  paddies, raspberries, yam bulbils and chestnuts, winter enoki by Genzo's woodpile; Fumi
+  (Sakurazaka) butterbur buds and myoga on the creek banks above the bridge, chestnuts by the
+  pines behind the teahouse, enoki by the far pine; Ichiro bamboo shoots in his grove, sansho,
+  nameko and akebi by his house and woodpiles, winter enoki; Shige (Minamino) horsetail along the
+  river lane, mulberries at the track's east end, nameko by the south pines, enoki and
+  Kaminoda's winter dropwort; Nana wild garlic by the shrine, mulberries by the top beds, yam
+  bulbils, "snow mushrooms"; Kiku horsetail below her orchard, mugwort for kusa mochi, the
+  ginkgo nuts by the water shrine, winter enoki. Every place was checked against the spots'
+  cells and the maps' props. Data only, no code change.
+- Rules (ours): one weekday each, spread so the people of one part differ (Genzo mon, Shige tue,
+  Ichiro wed, Haru thu, Kiku fri, Fumi sat, Nana sun), gated at band 1..6: these villagers have
+  no hearts, only a hidden affection whose band 1 means "known" (the recipe lessons and the
+  record's Neighbours use the same mark), and a stranger (band 0) gets new_1 first anyway. The
+  rows sit right after the wet-day row, so rain keeps its line and festivals, Haru on the hill,
+  Kiku's shrine hour and Nana at the pond keep theirs; on the weekday the line takes over the
+  time and season lines (Ichiro's woods and lunch lines included). The rest of the week is
+  unchanged.
+- Checked: test_talk's `_picks` checks each of the seven in every season on their weekday at
+  band 1 and 6, none at band 0, none on another weekday, the wet line on a rainy day; the file
+  checks open every new line and its portrait. All 25 test scripts print `OK (0 failed)`; smoke
+  runs (title, `--demo`, town, mine 3, kaminoda, minamino, sakurazaka) print no errors or
+  warnings.
+- Left / next: milestone 10, the .exe build once the export templates are installed.
+
 ## 2026-11-02 — Forage talk from the villagers with hearts
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: Tome, Hachiro, Sayo and Kota each have a forage line per season in their talk files
