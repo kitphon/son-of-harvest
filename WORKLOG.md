@@ -10,6 +10,102 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-03 — Year bot: river fishing, food for the mine, forage, the new areas; rod and hammer
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `tools/play_year.gd` on the new main. It walks the new areas instead of jumping: the
+  village → Sakurazaka → the mine, the village → Minamino → the river, the village → Kaminoda →
+  the hill (houses of any area are left through their own door). Forage: every area walked
+  through is picked clean (`Game.forage_pick`, nearest spot first), and on dry days the mine
+  doesn't take (before 14:00) it does a round of Kaminoda and the hill; wild things count as
+  their own income source. River: the evening's fishing (now until 20:00, stamina allowing)
+  goes to the river's shore when a bite there is worth more on average than at the farm pond
+  (`Fishing.candidates` for the season, hour and weather, fish caught once left out); the report
+  counts fish and G per place. Mine: before a trip it ships what it carries (room for finds),
+  takes the kept dishes (3 of each with 40+ stamina stay in the chest) and buys the stand's
+  food with the most stamina per G (dango) up to 150 stamina, RESERVE kept; down there it eats
+  the most filling one that fits under the max when stamina drops below 20, and goes up at
+  17:00, at fatigue 75, or when a swing can't happen (the first version hung on a rain day with
+  the hands and the rucksack full: no time passed). Stand foods are no longer shipped.
+- Balance, from the first run on the new main (seed 1, before the two changes below):
+  ```
+     income: crops 10710, dishes 0, animals 2280, fish 31070, forage 7632, mine 1846, prizes 500
+     fishing: river 695 fish, 35740 G, pond 0 fish, 0 G; mine: 5 trips, deepest trip floor 9, food eaten there 450 stamina
+     income: crops 22040, dishes 5460, animals 7450, fish 43480, forage 4746, mine 358, prizes 500
+     fishing: river 775 fish, 48525 G, pond 0 fish, 0 G; mine: 2 trips, deepest trip floor 5, food eaten there 0 stamina
+  ```
+  (1) Fish out-earned crops about three to one in year 1 (105445 G vs 55865 G): a cast cost 2
+  stamina, so the river (dace 40 G and chub 55 G at every hour) was fished from mid-afternoon to
+  20:00 every day for about 25 fish. data/tools.json rod stamina 2 → 4: still about 12 G a
+  stamina point (the stand sells stamina at about 4 G), but spare stamina now limits it.
+  (2) The hammer (axe's numbers, 90 / 270 / 630 / 1260) was at level 4 after the first spring and
+  5 in fall of year 1 from mine swings, so the smithy's hammer upgrades never did anything. Now
+  the sickle's 240 / 720 / 1680 / 3360. Not changed: the mine steps 5 / 10 / 15 / 20. Floor 10
+  (2 stars) is what the bot gets with a 150-stamina pack after its village round; the trips end
+  when the pack is eaten (about 147 stamina a winter trip), so 15 and 20 are for a player who
+  goes down early with more food, which is what data/ending.json says they should take.
+- Report (seed 1, `-- --years=2`, after both changes, quoted from the run):
+  ```
+  == Year 1 spring: income 35939 G, costs 13980 G, money 500 -> 22459 G
+     income: crops 11285, dishes 0, animals 2210, fish 12860, forage 7170, mine 1914, prizes 500
+     tools: hoe 2, can 2, sickle 1, hammer 3, axe 1, rod 1
+     fishing: river 361 fish, 17810 G, pond 0 fish, 0 G; mine: 8 trips, deepest trip floor 8, food eaten there 350 stamina
+  == Year 1 summer: income 60187 G, costs 30210 G, money 22459 -> 52436 G
+     income: crops 16830, dishes 4860, animals 8040, fish 23115, forage 4772, mine 2070, prizes 500
+     tools: hoe 2, can 3, sickle 2, hammer 4, axe 1, rod 1
+     fishing: river 363 fish, 26865 G, pond 0 fish, 0 G; mine: 7 trips, deepest trip floor 5, food eaten there 200 stamina
+  == Year 1 fall: income 73974 G, costs 46970 G, money 52436 -> 79440 G
+     income: crops 21855, dishes 835, animals 21480, fish 18485, forage 8499, mine 2320, prizes 500
+     tools: hoe 2, can 3, sickle 2, hammer 4, axe 1, rod 1
+     fishing: river 392 fish, 30245 G, pond 0 fish, 0 G; mine: 4 trips, deepest trip floor 9, food eaten there 325 stamina
+  == Year 1 winter: income 84921 G, costs 27450 G, money 79440 -> 135731 G
+     income: crops 0, dishes 0, animals 26440, fish 160, forage 675, mine 57146, prizes 500
+     tools: hoe 4, can 4, sickle 2, hammer 5, axe 2, rod 2
+     fishing: river 10 fish, 400 G, pond 0 fish, 0 G; mine: 29 trips, deepest trip floor 10, food eaten there 4255 stamina
+  == Year 2 spring: income 72718 G, costs 11830 G, money 135731 -> 197799 G
+     income: crops 18175, dishes 14695, animals 28540, fish 830, forage 4410, mine 5568, prizes 500
+     tools: hoe 4, can 4, sickle 2, hammer 5, axe 2, rod 2
+     fishing: river 93 fish, 4460 G, pond 0 fish, 0 G; mine: 6 trips, deepest trip floor 9, food eaten there 590 stamina
+  == Year 2 summer: income 72393 G, costs 10030 G, money 197799 -> 260162 G
+     income: crops 25585, dishes 6030, animals 28540, fish 5320, forage 4038, mine 2680, prizes 200
+     tools: hoe 4, can 4, sickle 2, hammer 5, axe 2, rod 2
+     fishing: river 110 fish, 8160 G, pond 0 fish, 0 G; mine: 4 trips, deepest trip floor 7, food eaten there 345 stamina
+  == Year 2 fall: income 88846 G, costs 16470 G, money 260162 -> 332538 G
+     income: crops 34425, dishes 4750, animals 28610, fish 7845, forage 8758, mine 3958, prizes 500
+     tools: hoe 4, can 5, sickle 2, hammer 5, axe 2, rod 2
+     fishing: river 186 fish, 17205 G, pond 0 fish, 0 G; mine: 8 trips, deepest trip floor 7, food eaten there 405 stamina
+  == Year 2 winter: income 87853 G, costs 18900 G, money 332538 -> 400381 G
+     income: crops 0, dishes 0, animals 25950, fish 0, forage 675, mine 61128, prizes 100
+     tools: hoe 5, can 5, sickle 2, hammer 5, axe 2, rod 2
+     fishing: river 0 fish, 0 G, pond 0 fish, 0 G; mine: 29 trips, deepest trip floor 10, food eaten there 4260 stamina
+  == Spring 1, Year 3: the village record (the ending played)
+     Shipped      573531  4 / 4 stars
+     Crops grown       11  4 / 4 stars
+     Happy animals        9  3 / 4 stars
+     Friendships       24  4 / 4 stars
+     Neighbours        7  3 / 4 stars
+     Deepest floor       10  2 / 4 stars
+     Fish kinds        6  2 / 4 stars
+     House built        3  3 / 3 stars
+     Tool levels       14  3 / 4 stars
+     Contests won        6  4 / 4 stars
+     Recipes          19  4 / 4 stars
+     36 / 43 stars: rank 4, "Heart of the Village"; closest: hachiro
+     goals not reached: none
+  play_year: OK (no problems seen)
+  ```
+  Against 2026-11-01: deepest floor 6 → 10 (steps 5 / 10 / 15 / 20: 1 → 2 stars); year-1 mine
+  income 18k → 63450 G (winter 57146 G, with 14490 G of food bought for it); the hammer now
+  reaches 3 / 4 / 4 / 5 by season in year 1 (was 4-5 by fall); year-1 fish shipped 9k at the
+  pond → 54620 G at the river (year 2: 13995 G, when the bigger field takes the stamina);
+  forage 21116 G in year 1. Rank 4, "Heart of the Village" (was rank 3, 30 / 39 before the new
+  areas added Neighbours and recipes). No collapses in year 1, none in year 2.
+- Checked: all 25 test scripts print `OK (0 failed)` (with the new rod and hammer numbers);
+  the bot prints `play_year: OK (no problems seen)`.
+- Left / next: fish still out-earn crops in each season of year 1 (the small year-1 field
+  leaves stamina over; lower common river fish prices if a player finds it too strong); the
+  smithy's hammer 2 / 3 still come after the bot's mining has levelled it; floors 15 / 20 need a
+  longer trip than the bot's plan.
+
 ## 2026-11-02 — Forage talk from the villagers with hearts
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: Tome, Hachiro, Sayo and Kota each have a forage line per season in their talk files
