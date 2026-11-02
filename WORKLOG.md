@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-02 — Forage talk from the villagers with hearts
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: Tome, Hachiro, Sayo and Kota each have a forage line per season in their talk files
+  (`forage_<season>`), each pointing at what really grows where in data/forage.json: Tome the
+  hill's butterbur, raspberries, chestnuts and the matsutake near the top, winter enoki;
+  Hachiro bamboo shoots, Sakurazaka's sansho, a warning about mushrooms, the mine in winter;
+  Sayo Minamino's horsetail, mulberries and ginkgo nuts, Kaminoda's winter dropwort; Kota old
+  bamboo shoots, raspberries, akebi, mushrooms. Data only, no code change.
+- Rules (ours): a forage row per season, picked on one weekday per villager (Tome thu,
+  Hachiro tue, Sayo wed, Kota fri) at band 2..5, placed right before the close (band 4..6)
+  lines, so a friend hears it one day a week and the rest of the week is unchanged; strangers
+  (band 0..1) and band 6 with the dear lines never hear it.
+- Checked: test_talk's `_picks` checks each villager's line in every season at band 2 and
+  5, none at band 1 and none on another weekday; the file checks open every new line and its
+  portrait mood. All 25 test scripts print `OK (0 failed)`; smoke runs (title, `--demo`,
+  town, mine 3) print no errors or warnings.
+- Left / next: milestone 10, the .exe build once the export templates are installed.
+
 ## 2026-11-02 — Wild things in recipes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: six kitchen recipes of wild things (data/recipes.json, dishes in foods.json, our names

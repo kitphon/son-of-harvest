@@ -168,6 +168,15 @@ func _picks() -> void:
 	check(Talk.pick("hachiro", _state({"band": 2, "season": "summer", "day": 20, "festival": "lantern_night", "time": 900})) != "festival_lantern_night",
 		"but only in the festival's hours")
 	check(Talk.pick("nobody", _state()) == "", "no talk file, no line")
+	# Each villager with hearts talks about forage on a weekday of their own, from band 2 on.
+	var forage_days := {"tome": "thu", "hachiro": "tue", "sayo": "wed", "kota": "fri"}
+	for id in forage_days:
+		for s in ["spring", "summer", "fall", "winter"]:
+			var day := _state({"weekday": forage_days[id], "season": s, "time": 780})
+			check(Talk.pick(id, day.merged({"band": 2}, true)) == "forage_" + s, "%s's forage line in %s" % [id, s])
+			check(Talk.pick(id, day.merged({"band": 5}, true)) == "forage_" + s, "%s's forage line before the close ones" % id)
+			check(Talk.pick(id, day.merged({"band": 1}, true)) != "forage_" + s, "%s keeps it from a stranger" % id)
+			check(Talk.pick(id, day.merged({"band": 2, "weekday": "mon"}, true)) != "forage_" + s, "%s only on their day" % id)
 	# At the river (a fair Sunday) both fishers have lines for it, whatever the band.
 	var river := _state({"weekday": "sun", "map": "river", "time": 900})
 	for id in ["hachiro", "kota"]:

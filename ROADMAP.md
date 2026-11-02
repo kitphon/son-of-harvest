@@ -201,7 +201,8 @@ contest rivals (one in every contest and game). Forage spots are in the three ou
 (their own wild things: water dropwort, sansho, mulberries, ginkgo nuts and more). Wild things
 cook: six recipes of wild greens, mushrooms, bamboo shoots, chestnuts and matsutake (Haru, Genzo
 and Kiku teach three once they know the farmer; the first bamboo shoot, chestnuts or matsutake
-shipped brings a card). Later: a talk line or two about foraging from the villagers with hearts.
+shipped brings a card). Tome, Hachiro, Sayo and Kota talk about forage too (a line per season,
+one weekday each, from band 2).
 After that: milestone 10, building the .exe once the export templates are installed (README → Export).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
@@ -229,6 +230,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] The outer parts' villagers as contest rivals (one in every contest and game, a winner's line each)
    - [x] Forage in Kaminoda, Sakurazaka and Minamino (28 spots, nine new wild things)
    - [x] Wild things in recipes (six dishes: three lessons from Haru, Genzo and Kiku, three bin cards)
+   - [x] Forage talk: a line per season from Tome, Hachiro, Sayo and Kota (one weekday each, band 2..5)
 2. **Look and feel**
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)
