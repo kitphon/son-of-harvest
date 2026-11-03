@@ -24,6 +24,7 @@ This file is for any coding agent. Claude Code also reads CLAUDE.md, which impor
 1. Read the top entries of WORKLOG.md (the last work, its results, anything **In progress**).
 2. Read ROADMAP.md → "Next up" for the task to take.
 3. Read docs/DESIGN.md (Thai) for the rules of the system you are touching.
+4. For anything about the look (art, models, light, camera), read docs/ART_DIRECTION.md.
 
 ## Run and check
 The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the project folder

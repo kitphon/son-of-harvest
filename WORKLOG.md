@@ -39,6 +39,18 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   winter when the field is empty; a winter living from the mine is fine, but if it should be
   smaller, the next step is the deep band's `none` weight or the food the stand sells.
 
+## 2026-11-03 — Style roadmap kept in docs/ART_DIRECTION.md
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the art direction work written down so it can be continued later (the user asked):
+  the look chosen (Japanese satoyama, HD-2D lite, the medium lens), the steps done with their
+  commits, the rules for making pieces (scale, meshes in code, materials, snow, see-through,
+  checking, light numbers), the limits (Compatibility renderer, 480 x 270, tint for night),
+  a five-part roadmap with checkboxes (scenery, nature, light, characters, finish) and how to
+  continue. ROADMAP "Next up" and AGENTS "Before doing anything" point to it.
+  Nothing in the game changed.
+- Checked: docs only; no tests needed. Commit hashes in the file checked with `git log`.
+- Left / next: the user picks the next item (scenery or character sprites).
+
 ## 2026-11-03 — Modelled sample: the farmhouse gets a thatched kayabuki roof
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the first scenery piece built as a real mesh, to set the bar for the HD-2D lite look.
