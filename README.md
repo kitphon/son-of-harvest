@@ -742,7 +742,7 @@ between them; it unrolls in half a second, then the rows come up; stars are ink 
 red seal sits after the title. Enter shows it all at once.
 
 ## Camera
-`scripts/main_3d.gd` uses the field camera geometry of Harvest Moon: Back to Nature, measured
+`scripts/main_3d.gd` was built on the field camera geometry of Harvest Moon: Back to Nature, measured
 in the reverse-engineering project: yaw 45°, pitch 26.6°, the player 25.2 cells from the eye,
 vertical FOV 13.7° (a long, narrow lens, so the view looks nearly isometric). The camera
 follows the player with no lag and stops a few cells inside the fence (or the map edge;
@@ -756,10 +756,11 @@ the coop and barn, trees, the torii: anything over 1 unit high) turn see-through
 hide the farmer or the ground within about a cell of them (`scripts/world3d/occluders.gd`:
 rays from the feet towards the camera; the materials' alpha, since the Compatibility renderer
 draws nothing for `GeometryInstance3D.transparency`).
-That camera is the "ps1" lens in `data/camera.json` (`scripts/world3d/camera_lens.gd`). The file
-holds wider lenses too ("medium": fov 28°, pitch 30°; "wide": fov 40°, pitch 36°); each stands
-the eye back so the picture at the farmer's feet is the same height, so a wider lens only adds
-depth. `"use"` picks the game's lens; `-- --lens=<id>` tries another for one run.
+That camera is the "ps1" lens in `data/camera.json` (`scripts/world3d/camera_lens.gd`). Since
+2026-11-03 the game uses our own "medium" lens instead (fov 28°, pitch 30°, the user's pick for
+an HD-2D lite look: a little depth, near things larger, far things smaller); "wide" (fov 40°,
+pitch 36°) is kept to try. Each lens stands the eye back so the picture at the farmer's feet is
+the same height. `"use"` picks the game's lens; `-- --lens=<id>` tries another for one run.
 
 ## Light
 The 3D view has a warm sun from the upper left of the screen over a cool sky light

@@ -39,6 +39,16 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   winter when the field is empty; a winter living from the mine is fine, but if it should be
   smaller, the next step is the deep band's `none` weight or the food the stand sells.
 
+## 2026-11-03 — The game uses the "medium" lens
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user picked lens B from the screenshots; `data/camera.json` "use" is "medium"
+  (fov 28°, pitch 30°, eye 12.1 away). README → Camera, AGENTS and Main3D's header say so.
+  CAM_MARGIN is unchanged: the framing at the feet is the same as before.
+- Checked: frames with the new lens at the farm gate, by the barn, the village's river edge,
+  the hill top, Kaminoda, mine floor 3, inside the coop and the river shore: no empty sky or
+  map edge shows anywhere. All test scripts `OK (0 failed)`; the four smoke runs print no errors.
+- Left / next: the modelled farmhouse sample (thatched, built in code, exportable as .glb).
+
 ## 2026-11-03 — Camera lenses to choose from (data/camera.json)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the 3D camera's lens is data now. `CameraLens` (`scripts/world3d/camera_lens.gd`)

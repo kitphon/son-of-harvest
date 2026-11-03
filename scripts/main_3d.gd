@@ -7,7 +7,7 @@ extends Node3D
 ## (REA-Harvest_moon_ps1 NOTES.md "Ground truth: ePSXe save state" / "Camera"): rotation yaw 45°,
 ## pitch 26.6°, the player's feet 10087 units in front of the eye, projection H = 1000 on a
 ## 240-line screen. One cell there is 400 units, here 1 unit. That is the "ps1" lens in
-## data/camera.json (CameraLens); the file holds wider ones too and says which is used.
+## data/camera.json (CameraLens); the game now uses its wider "medium" lens (the file says which).
 
 const T := 16
 const CAM_MARGIN := Vector2(4, 3)                 # keep the view inside the fence

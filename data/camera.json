@@ -1,6 +1,6 @@
 {
 	"_note": "Lenses for the 3D view's follow camera (scripts/world3d/camera_lens.gd). yaw is fixed at 45°. pitch: degrees the eye looks down at the farmer; fov: vertical field of view in degrees. The eye's distance is worked out so the picture at the farmer's feet is half_height world units from the centre to the top edge, the same for every lens; a wider lens then shows more far away and has more depth. `use` is the lens the game uses; `-- --lens=<id>` picks another for one run (screenshots for choosing).",
-	"use": "ps1",
+	"use": "medium",
 	"half_height": 3.025,
 	"lenses": {
 		"ps1": {"pitch": 26.6, "fov": 13.69,
