@@ -189,7 +189,9 @@ and the ending's mine steps lower from it. Since 2026-11-03 it walks the new are
 the mine, Minamino to the river), picks forage on the way and on a Kaminoda / hill round, fishes
 the river when a bite pays more there, and carries food down the mine; the rod's cast now costs
 4 stamina and the hammer levels slower (WORKLOG). Later for it: fish still out-earn crops in
-year 1 (spare stamina); floors 15 / 20 need longer trips than its 150-stamina pack.
+year 1 (spare stamina). The deep floors are reachable now: floors 5, 10 and 15 are rope lift
+landings, and once reached a trip can start there from the cave mouth (README → Mine); the bot
+doesn't ride the lift yet (tools/play_year.gd: pick the deepest landing at the cave mouth).
 Bigger world (the user found the maps small, 2026-11-01): widening the farm and village made
 the walks long and dull, so they are back to their old sizes; the world grows by areas instead.
 Done: Kaminoda, the hamlet up the village's north lane (paddies, drying racks, a well, jizo;
@@ -298,6 +300,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Mining: entrance east of the village, floors laid out fresh from a seed, rocks / soft spots / hole down, ores and gems per depth and season (data/mine.json)
    - [x] Mine extras: ores for the smithy's upgrades, shops buying stones / ores / gems, light by depth with a lantern (both views), frozen floors in winter
    - [x] Mine art: ice blocks, frost, frost stone, a soft flickering lantern pool (both views), the farmer's lantern in hand
+   - [x] Mine landings: rope lifts on floors 5 / 10 / 15, a trip can start at one reached (choice at the cave mouth), saved (version 6)
    - [x] Festivals: one per season in data/festivals.json (Blossom Day, Lantern Night with fireworks, Moon Night, Year's Turn), HUD tag, shops shut, decorations in both views, an event once a year, villagers gather
    - [x] Festival contests with prizes and result events, festival music, payout held on the day, Blossom Day's stall
    - [x] Lantern Night's stalls (night eats, wind chimes and keepsakes), contest ribbons and the farmhouse ribbon board

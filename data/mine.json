@@ -36,6 +36,12 @@
 		"winter": {"suisho": 2.0}
 	},
 	"_seasons": "Spring melt leaves the soft spots wet and full of clay; summer heat sweats amber out of old seams; fall is when agate turns up in the dry rubble; in winter frost opens the cracks where rock crystal grows.",
+	"landings": {"floors": [5, 10, 15], "cell": [9, 1], "flag": "mine_lift",
+		"found": "A rope lift hangs by the ladder. From now on it can take you down to floor %d from the mine entrance.",
+		"ask": "The cave mouth, and the rope lift beside it. How far down?",
+		"ladder": "The ladder: floor 1",
+		"ride": "The lift: floor %d"},
+	"_landings": "Every trip used to start again at floor 1, so the deep floors (15 and 20 for the ending's mine steps) took more food than a day can carry. Each floor in `floors` is a landing: a rope lift stands at `cell` beside the ladder (inside the ladder's safe square, so it never changes a layout; solid). Reaching a landing floor keeps it (saved in mine.landings, save version 6) and sets the story flag `flag`, which shows the lift's winch at the cave mouth. From then on walking into the cave mouth asks how far down: the ladder (floor 1) or the lift to any landing reached (the deepest three, a text box holds four choices). Starting at a landing never raises the deepest floor reached past what was walked, since only landings already reached are offered. Every fifth floor because a 150-stamina pack (the year bot's) goes about five floors in the mid-mine bands; 5, 10, 15 leave floor 20 one pack below the last landing. The texts are `found` (once, on reaching it), `ask`, `ladder` and `ride` (%d = the floor).",
 	"light": {"depths": [[1, "b8aa98"], [5, "8c8078"], [10, "5c566a"], [16, "36324a"], [24, "24202e"]],
 		"lantern": {"radius": 3.2, "soft": 0.55, "color": "f4dcac"}},
 	"_light": "Down the mine the picture is multiplied by the floor's light: depths are [floor, colour], blended in between (the last one holds below it), so each floor is a little darker than the one above. The farmer's lantern lights a circle `radius` cells across (`soft` = the share of it that fades out) in its own warm colour, the same on every floor, so it stands out more the deeper it is.",

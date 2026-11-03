@@ -102,7 +102,11 @@ const WAKE_FLAG := "clinic_wake"         # flag: just woke up there (triggers_cl
 const FREE_FLAG := "clinic_free"         # flag: and the doctor let the fee go
 var fishing := Fishing.new()       # the line: cast, wait, bite (rules in data/fish.json)
 var fish_caught: Dictionary = {}   # fish id -> how many were caught this game (once-only fish)
-var mine_deepest := 0              # the deepest mine floor reached (the only mine state saved)
+var mine_deepest := 0              # the deepest mine floor reached (saved)
+var mine_landings: Array[int] = [] # the landing floors reached, shallowest first (saved; data/mine.json "landings")
+var mine_news := ""                # said on arriving at a landing reached for the first time
+var dialogue_made: Dictionary = {} # dialogue id -> lines built in code (the rope lift's choice), for the TextBox
+var _mine_start := 0               # the floor the next trip down starts at (the rope lift), 0 = floor 1
 var forage_picked: Dictionary = {}   # map id -> {cell: true}, the wild spots picked today (data/forage.json)
 var first_day: Dictionary = {"values": {}, "field": {}}   # {values, field} measured when the run began (the record's look back)
 var year_pages: Dictionary = {}    # year -> the village record's page written that New Year (Ending.page_of)
@@ -204,6 +208,9 @@ func new_game() -> void:
 	Villagers.reset_day()
 	Whistles.reset()
 	mine_deepest = 0
+	mine_landings = []
+	mine_news = ""
+	_mine_start = 0
 	year_pages = {}
 	first_day = {"values": ending_values(), "field": field_counts()}   # before --demo digs the field
 	for arg in OS.get_cmdline_user_args():
@@ -319,6 +326,11 @@ func new_game() -> void:
 			else:
 				held = what
 				maps.place(Festivals.get_festival(fid).map, Vector2i(int(c.table[0]), int(c.table[1]) + 1), Vector2i.UP)
+		elif arg.begins_with("--landings="):   # `-- --demo --map=mine@cave --landings=5,10 --lift`: those landings reached
+			for d in arg.trim_prefix("--landings=").split(",", false):
+				_reach_landing(d.to_int())
+				mine_deepest = maxi(mine_deepest, d.to_int())
+			mine_news = ""
 		elif arg.begins_with("--mine="):   # `-- --demo --mine=5`: at the ladder of a fresh floor 5
 			var m := MapManager.data(mine_map("floor_map"))
 			maps.place(m.id, m.spawns.start[0], m.spawns.start[1])
@@ -464,10 +476,12 @@ func sheltered() -> bool:
 func go_to_map(map_id: String, cell: Vector2i, face: Vector2i) -> bool:
 	if not MapManager.has(map_id) or MapManager.data(map_id) == null:
 		return false
-	# Down the mine: the cave mouth leads to floor 1, a floor's hole to the next one, fresh each time.
+	# Down the mine: the cave mouth leads to floor 1 (or the rope lift's landing, mine_go_down),
+	# a floor's hole to the next one, fresh each time.
 	var depth := 0
 	if map_id == mine_map("floor_map"):
-		depth = maps.mine_floor.depth + 1 if maps.mine_floor != null else 1
+		depth = maps.mine_floor.depth + 1 if maps.mine_floor != null else maxi(_mine_start, 1)
+	_mine_start = 0
 	maps.place(map_id, cell, face)
 	maps.mine_floor = new_mine_floor(depth) if depth > 0 else null
 	fishing.stop()
@@ -492,6 +506,10 @@ func use_door(door: Dictionary) -> void:
 	if not MapData.door_open(door, day_minutes()):
 		message.emit(door.closed)
 		return
+	# The cave mouth, once a landing is reached: the ladder or the rope lift (a text box asks).
+	if door.to == mine_map("floor_map") and maps.id == mine_map("entrance_map") and not mine_landings.is_empty():
+		ask_mine_lift()
+		return
 	go_to_map(door.to, door.spawn, door.facing)
 
 
@@ -501,6 +519,9 @@ func map_arrived() -> void:
 	if maps.mine_floor != null:
 		var frozen := ", %s" % str(mine_data.get("winter", {}).get("name", "frozen")) if maps.mine_floor.frozen else ""
 		message.emit("Mine floor %d%s" % [maps.mine_floor.depth, frozen])
+		if mine_news != "":
+			message.emit(mine_news)
+			mine_news = ""
 	# The night's animal news waits for the farmer to look in on them.
 	if animals.home_on_map(maps.id) != "" and not animal_news.is_empty():
 		message.emit(". ".join(animal_news))
@@ -1080,10 +1101,67 @@ func mine_item(id: String) -> Dictionary:
 
 
 ## A fresh floor at `depth`, laid out from a new seed for today's season; the deepest floor
-## reached goes up with it.
+## reached goes up with it, and a landing floor is kept as reached.
 func new_mine_floor(depth: int) -> MineFloor:
 	mine_deepest = maxi(mine_deepest, depth)
+	_reach_landing(depth)
 	return MineFloor.make(mine_data, MapManager.data(mine_map("floor_map")), depth, season_name(), rng.randi())
+
+
+const MINE_LIFT_DIALOGUE := "mine_lift"   # the choice at the cave mouth (built in code: dialogue_made)
+const MINE_START_FLAG := "mine_start"     # the floor picked there (a flag only until the text box closes)
+
+
+## Floor `depth` reached: a landing's first visit is kept, sets the lift's story flag (the winch
+## at the cave mouth shows) and leaves the news for map_arrived.
+func _reach_landing(depth: int) -> void:
+	if not MineFloor.is_landing(mine_data, depth) or depth in mine_landings:
+		return
+	mine_landings.append(depth)
+	mine_landings.sort()
+	var land: Dictionary = mine_data.get("landings", {})
+	flags[str(land.get("flag", "mine_lift"))] = true
+	var found := str(land.get("found", ""))
+	mine_news = found % depth if "%d" in found else found
+
+
+## The floors a trip can start at from the cave mouth: 1 (the ladder) and the landings reached,
+## the deepest three of them (a text box holds four choices).
+func mine_start_floors() -> Array[int]:
+	var out: Array[int] = [1]
+	out.append_array(mine_landings.slice(maxi(mine_landings.size() - 3, 0)))
+	return out
+
+
+## Down the mine from the cave mouth to floor `depth`: 1 by the ladder, or a landing already
+## reached by the rope lift (anything else is refused). The farmer stands at the floor's ladder.
+func mine_go_down(depth: int) -> bool:
+	if depth != 1 and not depth in mine_landings:
+		return false
+	var m := MapManager.data(mine_map("floor_map"))
+	_mine_start = depth
+	return go_to_map(m.id, m.spawns.start[0], m.spawns.start[1])
+
+
+## The choice at the cave mouth as a text box: the ladder or the lift to each landing reached.
+## Picking sets MINE_START_FLAG; dialogue_closed takes the farmer down.
+func ask_mine_lift() -> void:
+	var land: Dictionary = mine_data.get("landings", {})
+	var choices := []
+	for d in mine_start_floors():
+		var text := str(land.get("ladder", "Floor 1")) if d == 1 else str(land.get("ride", "Floor %d")) % d
+		choices.append({"text": text, "next": "end", "set": {MINE_START_FLAG: d}})
+	dialogue_made[MINE_LIFT_DIALOGUE] = {"lines": [{"text": str(land.get("ask", "How far down?")), "choices": choices}]}
+	talk(MINE_LIFT_DIALOGUE)
+
+
+## The view's text box closed dialogue `id`: after the cave mouth's choice, down the mine.
+func dialogue_closed(id: String) -> void:
+	dialogue_made.erase(id)
+	if id == MINE_LIFT_DIALOGUE and flags.has(MINE_START_FLAG):
+		var depth := int(flags[MINE_START_FLAG])
+		flags.erase(MINE_START_FLAG)
+		mine_go_down(depth)
 
 
 ## A swing down the mine with `tool` from `origin` towards `facing` at charge step `charge`
@@ -2199,7 +2277,7 @@ func to_dict() -> Dictionary:
 	if race != null:
 		d.fishing.race = race.to_dict()
 	d.affection = affection.to_dict()
-	d.mine = {"deepest": mine_deepest}
+	d.mine = {"deepest": mine_deepest, "landings": mine_landings.duplicate()}
 	var picked := {}
 	for m in forage_picked:
 		picked[m] = []
@@ -2429,10 +2507,30 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 		friends = parsed_friends[1]
 	n.affection = friends
 	# Saves from before the mine: no floor reached yet.
-	var saved_mine = data.get("mine", {"deepest": 0})
+	var saved_mine = data.get("mine", {"deepest": 0, "landings": []})
 	n.mine_deepest = SaveGame.whole(saved_mine.get("deepest") if saved_mine is Dictionary else null, 0, 9999)
 	if n.mine_deepest == null:
 		return "Saved mine is broken"
+	# Saves from before the rope lifts (version 6): every trip began at floor 1, so each landing
+	# down to the deepest floor reached was walked through.
+	var lands: Array[int] = []
+	if version >= 6 or (saved_mine is Dictionary and saved_mine.has("landings")):
+		if not saved_mine is Dictionary or not saved_mine.get("landings") is Array:
+			return "Saved mine is broken"
+		for v in saved_mine.landings:
+			var d = SaveGame.whole(v, 2, n.mine_deepest)
+			if d == null or not MineFloor.is_landing(mine_data, d):
+				return "Saved mine is broken"
+			if not d in lands:
+				lands.append(d)
+	else:
+		for d in MineFloor.landings(mine_data):
+			if d <= n.mine_deepest:
+				lands.append(d)
+	lands.sort()
+	n.mine_landings = lands
+	if not lands.is_empty():   # the winch at the cave mouth (older saves never set it)
+		n.flags[str(mine_data.get("landings", {}).get("flag", "mine_lift"))] = true
 	# Saves from before forage: nothing picked today.
 	var saved_forage = data.get("forage", {"picked": {}})
 	if not saved_forage is Dictionary or not saved_forage.get("picked") is Dictionary:

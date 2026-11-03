@@ -2,12 +2,13 @@ class_name StoryView
 extends Node2D
 ## The story props of a map (KINDS: the door bell, the store's sign, Tome's jar, Kota's carp
 ## streamer, the ribbon board, the builder's lumber by the farmhouse while a house extension is
-## under way, a keepsake given to a villager who loves it, in their home) in the flat
+## under way, a keepsake given to a villager who loves it, in their home, the mine's rope lift winch at the cave mouth once a landing
+## is reached) in the flat
 ## view, drawn from the same PlaceholderArt "story:" keys as in 3D (StoryProps): centred in
 ## their cells, standing on the bottom edge. MapView leaves them out of its boxes.
 
 const T := 16
-const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake"]
+const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift"]
 
 var map: MapData
 
