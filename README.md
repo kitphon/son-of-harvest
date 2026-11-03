@@ -438,6 +438,24 @@ are recipe groups, three lessons and three cards). The rules are `Forage` (`scri
 has `forage_here()` / `forage_pick(c)`; `ForageLayer` (3D) and `ForageView` (flat) draw what
 grows and redraw on `Game.forage_changed`. A new area's spots are one more list in the file.
 
+## Goals
+Tome's first-week list (`data/goals.json`) gives a new farm small goals with a reward each:
+plant 9 plots (+150 G), say hello to 3 people (3 rice balls), pick 4 wild plants (cucumber
+seeds), catch a fish (+120 G), ship 5 crops (2 bags of seed potatoes), earn 1000 G from the
+cart (a chick in the coop, or 700 G if the coop is full). Tome hands it over in the opening.
+Each goal is `{id, text, stat, count, reward, say}`; the stats are counted by
+`Game.goal_stats()` (`planted`, `talked`, `fish`, `crops_shipped` from the run's own state,
+`forage` and `earned` counted in `Goals.counts`). Every goal counts from the first morning;
+the HUD shows the first one not done under the clock ("Goal Plant 9 plots 4/9", in the festival
+tag's place on a plain day) and hides once the list is done. A goal reached is paid at once
+(`Game.check_goals`, a few times a second while a view listens and nothing holds the screen),
+the message line says what it gave, and its note (`data/dialogue/goals.json`, the farmer ticks
+the line and reads the thank-you a villager wrote under it) opens in the text box. Rewards:
+`money`, `items` (into the rucksack, else the chest), `animal` (`young` for a chick). Saved as
+`goals: {done, counts}`; a save from before the list has all of it done. Plain `--demo` runs
+turn the list off; `-- --demo --goals` turns it on (`--goals=plant,hello` marks those done).
+The texts (goal names, the HUD and message templates in `messages`) are all in the data file.
+
 ## Cooking
 The kitchen corner (house extension `kitchen`, ordered at the store) puts a stove (kamado) and a
 cupboard (mizuya) in the farmhouse; both are props with `use: cook`, and E at either calls

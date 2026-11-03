@@ -1,0 +1,18 @@
+{
+	"_note": "Tome's first-week list (data/goals.json, Goals): when a goal is done the farmer ticks its line and reads the thank-you note a villager wrote under it (the reward is already in hand). Parts start at the goal ids plant, hello, forage, fish, ship and earn; each ends with next: end. Our own lines.",
+	"lines": [
+		{"id": "plant", "speaker": "farmer", "face": "smile", "text": "Nine plots sown. That's the first line on Tome's list ticked off. There's a note under it."},
+		{"speaker": "tome", "face": "smile", "text": "Well begun, dear! A little something for more seeds. Water them every morning, mind. - Tome", "next": "end"},
+		{"id": "hello", "speaker": "farmer", "face": "smile", "text": "Three new faces said hello. Next on Tome's list... someone else wrote this note."},
+		{"speaker": "sayo", "face": "smile", "text": "Tome told me you'd be hungry. Three rice balls from the store, on the house! - Sayo", "next": "end"},
+		{"id": "forage", "speaker": "farmer", "face": "surprised", "text": "Four wild plants, free for the picking! Tome's note says:"},
+		{"speaker": "tome", "face": "calm", "text": "The hills feed anyone who looks. These cucumber seeds climb a stake and keep giving all spring. - Tome", "next": "end"},
+		{"id": "fish", "speaker": "farmer", "face": "smile", "text": "My first fish! There's a scrawl on Tome's list in a child's hand."},
+		{"speaker": "kota", "face": "smile", "text": "Hachiro says the first fish is the hardest. Here's my pocket money, I don't need it! - Kota", "next": "end"},
+		{"id": "ship", "speaker": "farmer", "face": "smile", "text": "Five crops in the bin. A neat note under that line, signed with a seal."},
+		{"speaker": "tsuru", "face": "smile", "text": "The village welcomes its new farmer's first harvest. Seed potatoes from the meeting hall's store. - Tsuru", "next": "end"},
+		{"id": "earn", "speaker": "farmer", "face": "surprised", "text": "A thousand gold from the cart! That's the last line on Tome's list. And... is something peeping?"},
+		{"speaker": "tome", "face": "smile", "text": "One of my hens hatched more chicks than I can keep. She's in your coop now. Feed her and she'll lay for you."},
+		{"speaker": "tome", "face": "calm", "text": "That's my whole list done. From here on the farm is yours to plan. I'm proud of you, dear. - Tome", "next": "end"}
+	]
+}

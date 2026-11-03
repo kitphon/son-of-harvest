@@ -82,6 +82,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   The flat view (main_2d.tscn builds, its Player's actions reach FarmActions: tools, holding
   and throwing, the bin, eating, fishing, doors, talking, the shop counter, the mine; the
   throw's flight; rain / snow, lightning and the festival glow): `res://tests/test_view2d.gd` must print `test_view2d: OK (0 failed)`.
+  Goals (Tome's first-week list: data/goals.json, what is counted, rewards paid once, the notes, the save, the HUD tag):
+  `res://tests/test_goals.gd` must print `test_goals: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field), `-- --demo --map=town` (the village) and
   `-- --demo --mine=3` (a mine floor).
@@ -91,7 +93,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   add `--weather=rain` (storm, snow, blizzard) to force the weather, `--no-flashes` to turn
   lightning off, `--snow=N` (0..100) for that much snow lying (on the farm and the outdoor
   maps: `--season=winter --map=town --snow=80`), `--dialogue=<id>` (or `<id>@<line id>`) to open a text box from
-  `data/dialogue`, `--pause` (or `--pause=settings`, `--pause=controls`) to open the pause menu, `--ui=150%` (125%) for a UI size this run only, `--lang=th` for the Thai text this run only (with `--dialogue=opening@field` a Thai text box), `--lens=<id>` (ps1, wide; data/camera.json, the game uses medium) for another camera lens, `--tired` to start
+  `data/dialogue`, `--pause` (or `--pause=settings`, `--pause=controls`) to open the pause menu, `--ui=150%` (125%) for a UI size this run only, `--lang=th` for the Thai text this run only (with `--dialogue=opening@field` a Thai text box), `--lens=<id>` (ps1, wide; data/camera.json, the game uses medium) for another camera lens, `--goals` to turn Tome's first-week list on in a `--demo` run (plain demo runs have it off; `--goals=plant,hello` marks those done, so the HUD tag shows the next), `--tired` to start
   exhausted (tired pose, slow walk), `--eat` (or `--eat=drink`) to stand mid-bite (or mid-sip)
   with the eat pose kept going, `--event=<id>` to play an event from `data/events`
   (`--demo` turns the trigger tables off, so plain demo frames have no events; to see a

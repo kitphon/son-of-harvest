@@ -14,11 +14,6 @@ commit hash.
 
 ## Open
 
-### 2. A slow start, no small goal in week one (15–20)
-The farm starts with 500 G, a chicken costs 1,400 G and a cow 6,000 G, so the first days are
-only "water and wait". Wants a small goal that can be reached by day 2–3 (and a few more
-through week one).
-
 ### 3. Love has no end point (15–20)
 No marriage in data/ or ROADMAP.md; heart events stop at band 6. Players this age want to
 know what courting leads to.
@@ -50,7 +45,7 @@ reproduce; if it is real, fix it, else make the load safe against a half-written
 
 ## Order to fix
 1. ~~Item 1 (Thai text): keeps the 15–20 players.~~ Fixed.
-2. Items 2 and 3 (week-one goal, where love leads).
+2. ~~Item 2 (week-one goal)~~ Fixed. Item 3 (where love leads).
 3. Items 4 and 5 (mine winter income, grilled fish price).
 4. Item 6 (night), then 7 and 8.
 
@@ -62,7 +57,11 @@ reproduce; if it is real, fix it, else make the load safe against a half-written
   lessons, the year record); anything missing stays English. Thai glyphs drawn for our pixel
   font. Plainer English: the onigiri reads "A rice ball with a quick pickle inside", and a
   recipe without its tool says which one ("needs Clay pot", "Clay pot (buy at store)").
-  Still English: the villagers' daily talk, heart events and contest lines. Commit: this commit.
+  Still English: the villagers' daily talk, heart events and contest lines. Commit c3dce89.
+- A slow start, no small goal in week one: Tome's first-week list (data/goals.json): plant 9
+  plots, say hello to 3 people, pick 4 wild plants, catch a fish (all day 1–3), ship 5 crops
+  and earn 1000 G (week one), each with a reward (money, rice balls, seed bags, a chick) and a
+  villager's thank-you note; the HUD shows the goal now under the clock. Commit e3ad897.
 - Roofs in front of the farmer hid the screen (village, festival square, snow): buildings,
   trees and the torii turn see-through when they stand between the camera and the farmer.
   Commit 67cbaed.

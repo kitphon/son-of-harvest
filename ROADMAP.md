@@ -37,7 +37,8 @@ Next: the seed stand, chest and bin by the farmhouse (`farm_world.gd _make_stand
 means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our
-pixel font). Next: items 2 and 3 (a week-one goal, where love leads); Thai for the villagers'
+pixel font). [x] Item 2, a goal for week one: Tome's first-week
+list (data/goals.json, README → Goals, the HUD's goal tag). Next: item 3 (where love leads); Thai for the villagers'
 daily talk, heart events and contests is still to write (data/lang/th/dialogue.json).
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel

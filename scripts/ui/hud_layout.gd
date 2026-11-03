@@ -8,6 +8,7 @@ extends RefCounted
 const BOXES := {
 	"clock": Rect2i(384, 4, 92, 42),
 	"festival": Rect2i(384, 48, 92, 17),   # today's festival, or a villager's birthday; hidden on other days
+	"goal": Rect2i(276, 67, 200, 17),   # the first-week list's goal now (Goals), right-aligned; moves up into the festival's place on other days
 	"item": Rect2i(4, 214, 168, 21),
 	"tools": Rect2i(4, 238, 168, 28),
 	"hand": Rect2i(176, 238, 28, 28),    # the item in the other hand, only while there is one
@@ -17,7 +18,7 @@ const BOXES := {
 }
 ## Boxes that grow together with the UI size setting (UiScale), one group per corner, so the
 ## boxes in a corner keep their gaps.
-const GROUPS := {"clock": "top_right", "festival": "top_right", "item": "bottom_left",
+const GROUPS := {"clock": "top_right", "festival": "top_right", "goal": "top_right", "item": "bottom_left",
 	"tools": "bottom_left", "hand": "bottom_left", "hint": "bottom_left", "status": "bottom_right", "message": "top_left"}
 const SCREEN := Vector2(480, 270)
 const SLOT := 18
@@ -38,6 +39,11 @@ static func day_tag(ids: Array[String]) -> String:
 	if ids.is_empty():
 		return ""
 	return "%s's birthday" % Villagers.all()[ids[0]].name
+
+
+## How wide the goal tag's box is for its tag ("Goal") and text (Goals.hud_text).
+static func goal_width(tag: String, text: String) -> int:
+	return 6 + PixelFont.width(tag) + 5 + PixelFont.width(text) + 6
 
 
 ## A corner group's boxes as one rect (UiScale grows it about its pivot).
