@@ -11,7 +11,7 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 ```
 
 ## 2026-11-03 — Year bot: river fishing, food for the mine, forage, the new areas; rod and hammer
-Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+Agent: Claude Code (claude-opus-5-5) · Commit: 688bc4c (merged in d0581e3)
 - Done: `tools/play_year.gd` on the new main. It walks the new areas instead of jumping: the
   village → Sakurazaka → the mine, the village → Minamino → the river, the village → Kaminoda →
   the hill (houses of any area are left through their own door). Forage: every area walked
