@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-03 — Camera lenses to choose from (data/camera.json)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the 3D camera's lens is data now. `CameraLens` (`scripts/world3d/camera_lens.gd`)
+  reads `data/camera.json`: yaw 45° fixed, `pitch` and `fov` per lens, and the eye's distance
+  = half_height / tan(fov / 2), so every lens frames the farmer's feet the same (half_height
+  3.025 = the measured camera's). Lenses: "ps1" (the measured one, still used), "medium"
+  (fov 28°, pitch 30°, eye 12.1 away), "wide" (fov 40°, pitch 36°, eye 8.3 away). These two
+  numbers are ours, picked to give the user a clear choice. `-- --lens=<id>` for one run.
+  Main3D's CAM_BACK / CAM_DIST / CAM_FOV are gone; the occluders get the lens's direction.
+- Checked: test_maps gets 5 checks (ps1 = 25.2 away at yaw 45 / pitch 26.6 within 0.005, the
+  old constant's rounding; every lens frames the feet alike; no flag = "use"). All test
+  scripts `OK (0 failed)`; the smoke runs (plus `--lens=wide`) print no errors. Screenshots of the
+  farm, village, shrine and house with each lens looked at: no empty sky or map edge shows
+  with the wider lenses; the wide lens shows fewer field cells near the bottom edge.
+- Left / next: the user picks a lens; set "use" to it (and retune CAM_MARGIN if the edges
+  show). Then the modelled farmhouse sample.
+
 ## 2026-11-03 — Light pass: sun shadows on the ground, warm sun / cool shade
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: first step of the "HD-2D lite" art direction the user chose (Japanese countryside,

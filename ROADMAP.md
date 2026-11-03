@@ -25,8 +25,8 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 ## Next up
 Art direction (2026-11-03): the user wants an "HD-2D lite" look, Japanese countryside: pixel
 sprites in a lit 3D world. [x] Light pass (sun shadows on the ground, warm sun / cool shade,
-glow; README → Light). Next: try two or three camera lenses (wider FOV, a little lower) and
-let the user pick from screenshots; then a modelled sample (a thatched farmhouse built in code,
+glow; README → Light). [x] Camera lenses to choose from (data/camera.json: ps1, medium,
+wide; `--lens`); waiting for the user's pick, then set "use". Then a modelled sample (a thatched farmhouse built in code,
 exportable as .glb) to set the bar for the scenery.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"; item 1, Thai text, first).

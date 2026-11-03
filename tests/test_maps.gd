@@ -9,6 +9,19 @@ func _init() -> void:
 	_map_files()
 	_map_rules()
 	_clinic()
+	_lenses()
+
+
+## Camera lenses (data/camera.json): ps1 is the measured camera, every lens frames the feet alike.
+func _lenses() -> void:
+	var cam_data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/camera.json"))
+	var ps1 := CameraLens.pick(cam_data, "ps1")
+	check(absf(ps1.dist - 10087.0 / 400.0) < 0.05, "ps1 lens: the eye 25.2 cells away (%.2f)" % ps1.dist)
+	check(ps1.back.distance_to(Vector3(0.634, 0.448, 0.634)) < 0.005, "ps1 lens: yaw 45, pitch 26.6")
+	for lid in cam_data.lenses:
+		var l := CameraLens.pick(cam_data, lid)
+		check(is_equal_approx(l.dist * tan(deg_to_rad(l.fov) / 2.0), float(cam_data.half_height)), "lens %s frames the feet alike" % lid)
+	check(CameraLens.pick(cam_data).id == cam_data.use, "no --lens: the lens camera.json uses")
 
 
 var _frame := 0

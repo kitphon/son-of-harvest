@@ -6,12 +6,10 @@ extends Node3D
 ## Camera geometry is Harvest Moon: Back to Nature's field camera, measured in the RE project
 ## (REA-Harvest_moon_ps1 NOTES.md "Ground truth: ePSXe save state" / "Camera"): rotation yaw 45°,
 ## pitch 26.6°, the player's feet 10087 units in front of the eye, projection H = 1000 on a
-## 240-line screen. One cell there is 400 units, here 1 unit.
+## 240-line screen. One cell there is 400 units, here 1 unit. That is the "ps1" lens in
+## data/camera.json (CameraLens); the file holds wider ones too and says which is used.
 
 const T := 16
-const CAM_BACK := Vector3(0.634, 0.448, 0.634)   # from the target towards the eye (unit)
-const CAM_DIST := 10087.0 / 400.0                 # 25.2 cells
-const CAM_FOV := 13.69                            # vertical, 2 * atan(120 / 1000)
 const CAM_MARGIN := Vector2(4, 3)                 # keep the view inside the fence
 ## The light: a warm sun over a cool sky light, so shade is a little blue. Ambient + sun on
 ## flat ground add up to about white (the ground shader scales the sun to SnowLayer.SUN_SHARE),
@@ -28,6 +26,7 @@ var target_mark: MeshInstance3D
 var area_marks: Array[MeshInstance3D] = []   # brackets on every cell of a charging tool's area
 var charge_pips: Sprite3D
 var cam: Camera3D
+var lens := CameraLens.current()
 var tint: ColorRect
 var _mul: CanvasItemMaterial       # the tint's plain multiply
 var _lantern: ShaderMaterial       # the tint down the mine: the floor's light and the lantern
@@ -103,7 +102,7 @@ func _ready() -> void:
 	add_child(fish_line)
 
 	cam = Camera3D.new()
-	cam.fov = CAM_FOV
+	cam.fov = lens.fov
 	cam.far = 200.0
 	add_child(cam)
 	cam.make_current()
@@ -236,7 +235,7 @@ func _process(delta: float) -> void:
 	anim.step(delta, player.moving, player.running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose)
 	_update_flash(delta)
 	_follow()
-	world.occluders.update(sprite.position, CAM_BACK.normalized(), delta)
+	world.occluders.update(sprite.position, lens.back, delta)
 	_aim_lantern()
 	_fly(delta)
 	_show_fishing()
@@ -256,7 +255,7 @@ func _follow() -> void:
 
 	var m := Game.maps.current()
 	var target := Vector3(_clamp_view(feet.x, CAM_MARGIN.x, m.w), 0, _clamp_view(feet.z, CAM_MARGIN.y, m.h))
-	cam.position = target + CAM_BACK * CAM_DIST
+	cam.position = target + lens.back * lens.dist
 	cam.look_at(target, Vector3.UP)
 	weather.follow(target)
 

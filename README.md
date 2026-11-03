@@ -756,6 +756,10 @@ the coop and barn, trees, the torii: anything over 1 unit high) turn see-through
 hide the farmer or the ground within about a cell of them (`scripts/world3d/occluders.gd`:
 rays from the feet towards the camera; the materials' alpha, since the Compatibility renderer
 draws nothing for `GeometryInstance3D.transparency`).
+That camera is the "ps1" lens in `data/camera.json` (`scripts/world3d/camera_lens.gd`). The file
+holds wider lenses too ("medium": fov 28°, pitch 30°; "wide": fov 40°, pitch 36°); each stands
+the eye back so the picture at the farmer's feet is the same height, so a wider lens only adds
+depth. `"use"` picks the game's lens; `-- --lens=<id>` tries another for one run.
 
 ## Light
 The 3D view has a warm sun from the upper left of the screen over a cool sky light
