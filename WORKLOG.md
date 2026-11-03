@@ -11,7 +11,7 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 ```
 
 ## 2026-11-03 — Hearts for Fumi and Ichiro
-Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+Agent: Claude Code (claude-opus-5-5) · Commit: ca99103
 - Done: Fumi (the Hanami teahouse) and Ichiro (the charcoal burner) of Sakurazaka are villagers
   with hearts: `"hearts": false` gone from their files, so `Villagers.friends()` (the name tag's
   heart, the nightly loss, birthdays, the record's Friendships row, the ending's closing word)
@@ -48,7 +48,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Left / next: band 6 scenes for Fumi and Ichiro; the other outer villagers stay without hearts.
 
 ## 2026-11-03 — Mine landings: rope lifts on floors 5, 10 and 15
-Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+Agent: Claude Code (claude-opus-5-5) · Commit: b754692 (merged in ecb27b6)
 - Done: every trip down the mine began at floor 1, so floors 15 and 20 (the ending's mine steps)
   took more food than a day's pack. `landings` in data/mine.json makes floors 5, 10 and 15
   landings: a rope lift's cage stands by the ladder (`MineFloor.landing` / `lift`, solid, at
@@ -76,6 +76,84 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   floor 10's lift and its news (3D), floor 5's lift (flat view).
 - Left / next: tools/play_year.gd doesn't ride the lift yet (not touched here; another agent
   works on it), so its report's deepest trip floor is still from floor 1.
+
+## 2026-11-03 — Fish prices: crops and animals lead year 1, fishing a side income
+Agent: Claude Code (claude-opus-5-5) · Commit: b8b2d80 (merged in this commit)
+- Done: data/fish.json prices only (no code). The fish that bite at every hour go to about
+  20 G: crucian carp 30 → 20, pond loach 25 → 18, dace 40 → 18, pale chub 55 → 26; carp
+  80 → 60, river sculpin 90 → 60; sweetfish 120 → 90 and a morning fish now (hours 5-18 →
+  5-12); the salmon run keeps its 450 G but is rarer in the river (weight 10 → 6). Masu trout,
+  char, catfish, eel and the two once-only fish are unchanged. A `_prices` note in the file.
+- Why (ours): the year-1 field is capped by the can's level, not by stamina, so every point
+  of stamina left after the field went into the evening's fishing, and the bot's catch was
+  worth what a bite pays times the spare stamina / 4. The river paid 47-102 G a bite in the
+  afternoon and evening (dace and chub at every hour, sweetfish until 18:00, the salmon run
+  until 17:00): 12-25 G a stamina point, against about 4 G a point for the stand's food. Now an
+  evening bite pays 22-32 G (spring and summer at the farm pond, 28 G; fall's river with the
+  salmon until 17:00, 59 G), about 5-8 G a stamina point: still more than the food it costs,
+  so fishing pays, but the money is in the fish of their hour (dawn trout and char, the summer
+  morning's sweetfish, the salmon, night catfish and eel). The average bite by hour came from
+  the table (a small script, sunny, once-only fish left out): river spring 6:00 58 G, 16:00
+  22 G; summer 6:00 48 G, 16:00 22 G; fall 6:00 102 G, 16:00 59 G, 18:00 22 G.
+- Before (seed 1, `-- --years=2`, data as of 40ca5ed, quoted from the run; same as the last
+  entry's report):
+  ```
+  == Year 1 spring: income 35939 G, costs 13980 G, money 500 -> 22459 G
+     income: crops 11285, dishes 0, animals 2210, fish 12860, forage 7170, mine 1914, prizes 500
+     fishing: river 361 fish, 17810 G, pond 0 fish, 0 G; mine: 8 trips, deepest trip floor 8, food eaten there 350 stamina
+  == Year 1 summer: income 60187 G, costs 30210 G, money 22459 -> 52436 G
+     income: crops 16830, dishes 4860, animals 8040, fish 23115, forage 4772, mine 2070, prizes 500
+     fishing: river 363 fish, 26865 G, pond 0 fish, 0 G; mine: 7 trips, deepest trip floor 5, food eaten there 200 stamina
+  == Year 1 fall: income 73974 G, costs 46970 G, money 52436 -> 79440 G
+     income: crops 21855, dishes 835, animals 21480, fish 18485, forage 8499, mine 2320, prizes 500
+     fishing: river 392 fish, 30245 G, pond 0 fish, 0 G; mine: 4 trips, deepest trip floor 9, food eaten there 325 stamina
+  == Year 1 winter: income 84921 G, costs 27450 G, money 79440 -> 135731 G
+     income: crops 0, dishes 0, animals 26440, fish 160, forage 675, mine 57146, prizes 500
+     fishing: river 10 fish, 400 G, pond 0 fish, 0 G; mine: 29 trips, deepest trip floor 10, food eaten there 4255 stamina
+  ```
+- After (same run, new prices):
+  ```
+  == Year 1 spring: income 29176 G, costs 14200 G, money 500 -> 15476 G
+     income: crops 9880, dishes 0, animals 2280, fish 7314, forage 6756, mine 2446, prizes 500
+     fishing: river 0 fish, 0 G, pond 360 fish, 10088 G; mine: 6 trips, deepest trip floor 8, food eaten there 400 stamina
+  == Year 1 summer: income 54773 G, costs 30480 G, money 15476 -> 39769 G
+     income: crops 20425, dishes 17130, animals 7690, fish 4570, forage 3616, mine 1342, prizes 0
+     fishing: river 0 fish, 0 G, pond 379 fish, 11430 G; mine: 5 trips, deepest trip floor 5, food eaten there 150 stamina
+  == Year 1 fall: income 70356 G, costs 47140 G, money 39769 -> 62985 G
+     income: crops 22445, dishes 4160, animals 21620, fish 6858, forage 10141, mine 4632, prizes 500
+     fishing: river 372 fish, 13608 G, pond 0 fish, 0 G; mine: 6 trips, deepest trip floor 9, food eaten there 600 stamina
+  == Year 1 winter: income 79689 G, costs 25220 G, money 62985 -> 118619 G
+     income: crops 0, dishes 560, animals 26720, fish 95, forage 600, mine 51214, prizes 500
+     fishing: river 0 fish, 0 G, pond 16 fish, 410 G; mine: 29 trips, deepest trip floor 10, food eaten there 4285 stamina
+  == Year 2 spring: income 64023 G, costs 10760 G, money 118619 -> 172642 G
+     income: crops 15910, dishes 11295, animals 28820, fish 276, forage 4290, mine 3432, prizes 0
+  == Year 2 summer: income 67939 G, costs 11890 G, money 172642 -> 228691 G
+     income: crops 23655, dishes 8700, animals 28470, fish 598, forage 3154, mine 3362, prizes 0
+  == Year 2 fall: income 91847 G, costs 16920 G, money 228691 -> 303618 G
+     income: crops 33860, dishes 7425, animals 28540, fish 6926, forage 7834, mine 6762, prizes 500
+  == Year 2 winter: income 88953 G, costs 19890 G, money 303618 -> 371991 G
+     income: crops 0, dishes 0, animals 25950, fish 0, forage 625, mine 62178, prizes 200
+     Fish kinds        8  3 / 4 stars
+     Contests won        4  3 / 4 stars
+     36 / 43 stars: rank 4, "Heart of the Village"; closest: hachiro
+  play_year: OK (no problems seen)
+  ```
+  Year 1 shipped: crops 49970 → 52750 G, animals 58170 → 58310 G, fish 54620 → 18837 G (the
+  catch at the bin's prices 75320 → 35536 G; the rest of the catch was gifted or cooked).
+  Fish were 1.09x the crops and are now 0.36x; crops + animals are 111060 G against 18837 G of
+  fish. The bot now fishes the farm pond in spring and summer (the river pays less there in
+  the evening) and the river in fall (the salmon), 350-380 fish a season as before. Year-1
+  money at the end of winter 135731 → 118619 G; the record keeps 36 / 43, rank 4 (Fish kinds
+  6 → 8 with the pond fished again, 3 stars; Contests won 6 → 4, 3 stars: a fish entry scores
+  its price). No collapses.
+- Checked: test_fishing, test_farm, test_festivals, test_shops, test_cooking, test_food,
+  test_talk, test_relationships, test_ending, test_view2d, test_hold and test_forage each print
+  `OK (0 failed)`; the smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`,
+  `--demo --fishing=river`) print no error lines.
+- Left / next: year-1 summer dishes 4860 → 17130 G: the bot cooks the cheap fish into grilled
+  fish (data/foods.json sells it at 80 G, a fish in, no other ingredient), so some of the old
+  fish money comes back through the kitchen. Look at grilled fish's price (foods.json, not
+  changed here) if that turns out to be the new shortcut.
 
 ## 2026-11-03 — Year bot: river fishing, food for the mine, forage, the new areas; rod and hammer
 Agent: Claude Code (claude-opus-5-5) · Commit: 688bc4c (merged in d0581e3)

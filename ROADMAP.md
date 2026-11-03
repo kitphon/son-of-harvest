@@ -188,10 +188,13 @@ prints a report per season and the village record (WORKLOG 2026-11-01); gifts we
 and the ending's mine steps lower from it. Since 2026-11-03 it walks the new areas (Sakurazaka to
 the mine, Minamino to the river), picks forage on the way and on a Kaminoda / hill round, fishes
 the river when a bite pays more there, and carries food down the mine; the rod's cast now costs
-4 stamina and the hammer levels slower (WORKLOG). Later for it: fish still out-earn crops in
-year 1 (spare stamina). The deep floors are reachable now: floors 5, 10 and 15 are rope lift
-landings, and once reached a trip can start there from the cave mouth (README → Mine); the bot
-doesn't ride the lift yet (tools/play_year.gd: pick the deepest landing at the cave mouth).
+4 stamina and the hammer levels slower (WORKLOG). [x] Fish no longer out-earn crops in year 1:
+the everyday fish sell for about 20 G, the money is in the fish of their hour (year-1 fish
+54620 → 18837 G against 111060 G of crops and animals; WORKLOG 2026-11-03 Fish prices).
+The deep floors are reachable now: floors 5, 10 and 15 are rope lift landings, and once reached
+a trip can start there from the cave mouth (README → Mine). Later for it: grilled fish (80 G
+from one cheap fish) may be the next shortcut; the bot doesn't ride the lift yet
+(tools/play_year.gd: pick the deepest landing at the cave mouth).
 Bigger world (the user found the maps small, 2026-11-01): widening the farm and village made
 the walks long and dull, so they are back to their old sizes; the world grows by areas instead.
 Done: Kaminoda, the hamlet up the village's north lane (paddies, drying racks, a well, jizo;
