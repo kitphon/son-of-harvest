@@ -37,6 +37,7 @@ func _process(delta: float) -> bool:
 		_since_door += delta
 	if _frame == 1:
 		_homes_3d()
+		_minka()
 		_game_maps()
 		_bed_and_doors()
 		_clinic_doors()
@@ -381,6 +382,33 @@ func _map_snow() -> void:
 
 ## The homes build in 3D without the magenta stand-in box (MapWorld needs the autoloads, so
 ## this runs on the first frame).
+## The farmhouse's thatched roof (Minka): every face turned the way its normal says (Godot
+## draws clockwise fronts), the soffit at the front eave above the farmer's head, the ridge
+## where the pitch puts it.
+func _minka() -> void:
+	var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	var crest: float = load("res://scripts/world3d/minka.gd").roof(w, Rect2(1.45, 0.55, 6.1, 3.5), 1.45, 1.25, 0.5)
+	check(is_equal_approx(crest, 1.45 + 1.75 * 1.25 + 0.5 + 0.4), "Minka ridge height (%.2f)" % crest)
+	var faces := 0
+	var wrong := 0
+	var low := 99.0
+	for n in w.get_children():
+		if n is MeshInstance3D and n.mesh is ArrayMesh and n.mesh.get_surface_count() > 0:
+			var arr: Array = n.mesh.surface_get_arrays(0)
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+			for i in range(0, v.size(), 3):
+				faces += 1
+				if (v[i + 1] - v[i]).cross(v[i + 2] - v[i]).dot(nm[i]) >= 0.0:
+					wrong += 1
+				for k in 3:
+					if v[i + k].z > 4.0:
+						low = minf(low, v[i + k].y)
+	check(faces >= 26 and wrong == 0, "Minka faces turned outwards (%d of %d wrong)" % [wrong, faces])
+	check(low >= 1.4, "Minka front eave above the farmer's head (%.2f)" % low)
+	w.free()
+
+
 func _homes_3d() -> void:
 	for id in ["tome_house", "kota_house", "sayo_house"]:
 		var w: Node3D = load("res://scripts/world3d/map_world.gd").new()

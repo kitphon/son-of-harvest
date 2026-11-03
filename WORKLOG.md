@@ -39,6 +39,31 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   winter when the field is empty; a winter living from the mine is fine, but if it should be
   smaller, the next step is the deep band's `none` weight or the food the stand sells.
 
+## 2026-11-03 — Modelled sample: the farmhouse gets a thatched kayabuki roof
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the first scenery piece built as a real mesh, to set the bar for the HD-2D lite look.
+  `scripts/world3d/minka.gd` (Minka.roof) builds a thick thatched hip roof with SurfaceTool:
+  four slopes, the trimmed eave band all round, the soffit, a snow layer (SnowLayer's top
+  shader, no shadow), UVs in world units (u along the eave, v down the slope) so the straw runs
+  down every face; a dark ridge beam with pairs of crossed riders. Triangles are turned to
+  face their normals (Godot's clockwise fronts) whatever order the corners come in. The
+  farmhouse uses it in place of the kawara slabs, gable and ridge cap: eaves 1.45 at the front
+  (z 4.05, as before), pitch 1.25 (about 51°, steeper than the first try at 45°, which looked
+  flat for kaya), half a unit thick (0.35 hid the eave band), ridge top 4.53. A timber band
+  under the roof fills the gap between the 1.8 walls and the soffit. New textures `build:kaya`
+  (grey-brown weathered straw, one soft course shadow a unit, moss flecks) and
+  `build:kaya_edge` (the cut straw ends, dark under the slope, pale at the bottom).
+  `tools/house_model.gd`: the house alone from four sides (`--shots`) and as a .glb (`--glb`);
+  `models/farmhouse.glb` written (31500 bytes: 38 meshes, 13 materials, 7 images embedded, no
+  required glTF extensions), `models/.gdignore` keeps Godot from importing it.
+- Checked: test_maps gets 3 checks (ridge height, all 26 roof triangles face out, front eave
+  at 1.45 or more). The house's four views and the game at 10:00, 17:00, 20:00, rain, winter
+  snow 90 and from the coop looked at: the thatch reads as kaya, snow whitens the roof, the
+  eave clears the farmer. All test scripts `OK (0 failed)`; the four smoke runs print no errors.
+- Left / next: the user picks the next scenery step. In the game the camera shows mostly the
+  front eave (the house stands at the farm's top edge); the whole roof shows in the tool's
+  views. The flat view draws the house as a plain rect, unchanged.
+
 ## 2026-11-03 — The game uses the "medium" lens
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user picked lens B from the screenshots; `data/camera.json` "use" is "medium"

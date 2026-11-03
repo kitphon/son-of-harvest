@@ -762,6 +762,16 @@ an HD-2D lite look: a little depth, near things larger, far things smaller); "wi
 pitch 36°) is kept to try. Each lens stands the eye back so the picture at the farmer's feet is
 the same height. `"use"` picks the game's lens; `-- --lens=<id>` tries another for one run.
 
+## Farmhouse model
+The farmhouse's roof is a real mesh, not boxes: `scripts/world3d/minka.gd` builds a thick
+thatched hip roof (kayabuki) with SurfaceTool — the slopes, the trimmed eave edge, the soffit
+and a snow layer — with UVs in world units (u along the eave, v down the slope, textures
+`build:kaya` / `build:kaya_edge`), and a dark ridge with crossed riders. It is the sample that
+sets the bar for the scenery. `tools/house_model.gd` shows the house on its own from four sides
+(`--script res://tools/house_model.gd -- --shots=shots`, with a window) and writes it as a .glb
+(`--headless ... -- --glb=models/farmhouse.glb`; `models/` has a `.gdignore`) to open in Blender.
+The game builds the house from code; the .glb is a copy to look at or start real art from.
+
 ## Light
 The 3D view has a warm sun from the upper left of the screen over a cool sky light
 (`scripts/main_3d.gd` SUN_* / SKY_*), so the walls turned down-left are sunlit and shade is a

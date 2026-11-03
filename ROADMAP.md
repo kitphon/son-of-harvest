@@ -18,7 +18,7 @@ and feel choice from here on, always with our own designs:
 - Music and sound: soft, acoustic, with Japanese instruments (shakuhachi, koto, shamisen)
   and nature sounds.
 - UI: warm paper and wood textures; a pixel font that can show Japanese text later.
-The farm pieces are done in this style: the house (kawara roof, plaster and timber, engawa,
+The farm pieces are done in this style: the house (a thick thatched kayabuki roof since 2026-11-03, plaster and timber, engawa,
 shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside stall with
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
@@ -26,8 +26,10 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 Art direction (2026-11-03): the user wants an "HD-2D lite" look, Japanese countryside: pixel
 sprites in a lit 3D world. [x] Light pass (sun shadows on the ground, warm sun / cool shade,
 glow; README → Light). [x] Camera lenses (data/camera.json: ps1, medium, wide; `--lens`);
-the user picked "medium", now the game's lens. Next: a modelled sample (a thatched farmhouse built in code,
-exportable as .glb) to set the bar for the scenery.
+the user picked "medium", now the game's lens. [x] Modelled sample: the farmhouse's thatched
+kayabuki roof (scripts/world3d/minka.gd, README → Farmhouse model, models/farmhouse.glb).
+Next (the user's pick): more scenery to that bar (the village houses, the coop and barn), or
+character sprites; ask before starting.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"; item 1, Thai text, first).
 The user chose to refine the placeholders first (real art later). Farmer, crops, field

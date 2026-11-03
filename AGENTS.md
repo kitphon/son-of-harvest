@@ -152,6 +152,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `%APPDATA%\Godot\export_templates.7.2.stable`; they are not installed as of 2026-10-31, and
   agents must not download them (README → Export has the steps for the user). Check the exe
   with `build/HarvestSon.exe --quit-after 300`.
+- Farmhouse model: `--path . --script res://tools/house_model.gd -- --shots=shots` (with a
+  window) writes `shots/house_<front|left|back|above>.png`; `--headless ... -- --glb=models/farmhouse.glb`
+  rewrites the Blender copy (re-run it after changing the house; README → Farmhouse model).
 - App icon: `icon.png` (project) and `icon.ico` (exe) are drawn by `tools/make_icon.gd`; change
   the drawing there and re-run it (`--headless --path . --script res://tools/make_icon.gd`).
 

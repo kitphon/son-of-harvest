@@ -232,7 +232,7 @@ func _make_stand() -> void:
 
 
 ## A small Japanese farmhouse on cells x 2..6, z 1..3: dark board skirting under white
-## plaster between dark timbers, a grey tiled gable roof with a heavy ridge, and an engawa
+## plaster between dark timbers, a thick thatched hip roof (Minka) with a crossed ridge, and an engawa
 ## (veranda) along the front under the eaves, with a shoji door and windows on the faces the
 ## camera sees (+z, +x).
 func _make_house() -> void:
@@ -256,31 +256,12 @@ func _make_house() -> void:
 	for x in [2.08, 6.92]:
 		_box(Vector3(0.1, 1.5, 0.1), Vector3(x, 0.75, front + 0.36), timber)
 	_box(Vector3(0.6, 0.06, 0.3), Vector3(4.5, 0.03, front + 0.55), flat_material(Color("8a8680")))   # step stone
-	# Gable over the walls, ridge along x over the walls' middle.
-	var rise := 1.0
-	var ridge := Vector3(4.5, 1.8 + rise, mid)
-	var gable := MeshInstance3D.new()
-	var prism := PrismMesh.new()
-	prism.size = Vector3(depth, rise, 5)
-	gable.mesh = prism
-	gable.material_override = surface_material("build:plaster")
-	gable.position = Vector3(4.5, 1.8 + rise / 2, mid)
-	gable.rotation_degrees.y = 90
-	add_child(gable)
-	# Roof slabs from the ridge to just past the engawa (eave ~1.45 high at z ~4.05, above the
-	# farmer's head on the cell in front), then the ridge cap.
-	var kawara := surface_material("build:kawara")
-	var slope := atan2(rise, depth / 2)
-	var length := (4.05 - mid) / cos(slope)
-	for side in [1, -1]:
-		var down := Vector3(0, -sin(slope), cos(slope) * side)
-		var up := Vector3(0, cos(slope), sin(slope) * side)
-		var center := ridge + down * (length / 2 - 0.05) + up * 0.06
-		_box(Vector3(5.7, 0.1, length), center, kawara, Vector3(slope * side, 0, 0))
-		_snow_top(Vector3(5.5, 0.05, length - 0.12), center + up * 0.07 + down * 0.02, Vector3(slope * side, 0, 0))
-	_box(Vector3(5.9, 0.18, 0.26), ridge + Vector3(0, 0.12, 0), flat_material(Color("3a424c")))
-	for x in [1.62, 7.38]:
-		_box(Vector3(0.16, 0.3, 0.32), Vector3(x, ridge.y + 0.16, mid), flat_material(Color("3a424c")))
+	# A thick thatched hip roof (Minka) over walls raised to meet it: steep slopes (rise 1.25
+	# per run, about 51°) from a soffit 1.45 high at the front eave (z 4.05, above the farmer's
+	# head on the cell in front) to a ridge along x, the eaves half a cell past the walls all
+	# round, half a unit of straw thick.
+	_box(Vector3(5, 0.34, depth), Vector3(4.5, 1.93, mid), timber)   # under the roof, fills the gap to the soffit
+	Minka.roof(self, Rect2(1.45, 0.55, 6.1, 3.5), 1.45, 1.25, 0.5)
 	# Shoji door over the door cell (4, 3), shoji windows beside it and on the +x face.
 	_picture("build:shoji_door", Vector2(0.9, 1.3), Vector3(4.5, 0.32 + 0.65, front + 0.005))
 	_picture("build:shoji", Vector2(0.8, 0.6), Vector3(2.8, 1.2, front + 0.005))

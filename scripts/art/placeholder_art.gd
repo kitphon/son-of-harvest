@@ -35,7 +35,7 @@ static func _make(key: String) -> Image:
 			return _item(parts[1])
 		"animal":   # animal:<chicken|chick|cow|calf|sheep|sheep_shorn|lamb|dog>:<idle|peck|walk|sick, dog: sit|held>:<frame>, side view facing left
 			return _animal(parts[1], parts[2], int(parts[3]))
-		"build":    # build:<plaster|board|kawara|thatch|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
+		"build":    # build:<plaster|board|kawara|thatch|kaya|kaya_edge|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
 		"ground":   # ground:<grass|tilled|wet|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>
 			return _ground(parts[1], int(parts[2]))
@@ -1578,6 +1578,40 @@ static func _building(kind: String) -> Image:
 				_px(img, x, y, 1, rng.randi_range(2, 4), Color("c4a868") if i % 2 else Color("806838"))
 			for row in 2:
 				_px(img, 0, row * 8 + 7, 16, 1, Color("6a5430"))
+			return img
+		"kaya":
+			# The farmhouse's old grass thatch (Minka): grey-brown and weathered, the strands
+			# running down the slope (texture v) in long streaks of lighter and darker straw,
+			# one soft shadow a unit where a course laps over the next, a few flecks of moss.
+			var img := _blank(16, 16)
+			img.fill(Color("85714e"))
+			for x in 16:
+				var tone := rng.randi_range(0, 4)
+				var top := rng.randi_range(0, 15)
+				var c := Color("76633f") if tone < 2 else (Color("94805a") if tone == 4 else Color("85714e"))
+				_px(img, x, top, 1, 16 - top, c)
+				_px(img, x, 0, 1, top, c.lerp(Color("85714e"), 0.5))
+			for i in 14:
+				_px(img, rng.randi_range(0, 15), rng.randi_range(0, 12), 1, rng.randi_range(3, 5), Color("a08c64") if i % 2 else Color("625236"))
+			for x in 16:
+				_px(img, x, 14 + (1 if x % 3 == 0 else 0), 1, 1, Color("6a5a3c"))
+			for i in 4:
+				_px(img, rng.randi_range(0, 14), rng.randi_range(0, 13), 2, 1, Color("6a7444"))
+			return img
+		"kaya_edge":
+			# The thatch's trimmed eave edge, half a unit deep: the cut ends of the straw in tight
+			# layers, dark in the shade under the slope, pale gold at the fresh-cut bottom
+			# (texture v down = down the edge).
+			var img := _blank(16, 16)
+			for y in 16:
+				_px(img, 0, y, 16, 1, Color("5e4e32").lerp(Color("bea26a"), clampf((y - 1) / 6.0, 0.0, 1.0)))
+			for i in 48:
+				var x := rng.randi_range(0, 15)
+				var y := rng.randi_range(0, 8)
+				_px(img, x, y, 1, 1, Color("dcc48c") if y > 3 and i % 3 else Color("4a3c26"))
+			for y in [3, 6]:
+				for x in range(0, 16, 2):
+					_px(img, x + (y % 2), y, 1, 1, Color("6a5838"))
 			return img
 		"sugi":
 			# Light cedar boards standing upright, 4 px wide, with a straight reddish grain.
