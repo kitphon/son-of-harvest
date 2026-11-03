@@ -1,8 +1,9 @@
 extends SceneTree
-## The farmhouse on its own (FarmWorld._make_house: walls, engawa, the thatched Minka roof):
-## pictures of it from round about, and a .glb of it to open in Blender. Run:
+## A farm building on its own: the farmhouse (FarmWorld._make_house: walls, engawa, the
+## thatched Minka roof), or with `--what=coop` / `--what=barn` the coop or the barn (their
+## Minka.gable roofs): pictures of it from round about, and a .glb of it to open in Blender. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --path . --script res://tools/house_model.gd -- --shots=shots
-## (writes shots/house_<view>.png; needs a window, so not --headless), or
+## (writes shots/<what>_<view>.png; needs a window, so not --headless), or
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tools/house_model.gd -- --glb=models/farmhouse.glb
 ## (models/ has a .gdignore, so Godot leaves the file alone). The game itself builds the house
 ## from code; the .glb is a copy to look at or start real art from, not something it loads.
@@ -13,10 +14,15 @@ const VIEWS := {   # name: [yaw, pitch, distance] round the house's middle, degr
 	"back": [215.0, 30.0, 14.0],
 	"above": [45.0, 60.0, 14.0],
 }
-const CENTER := Vector3(4.5, 1.6, 2.3)
+const CENTERS := {   # each building's middle, where the views look
+	"house": Vector3(4.5, 1.6, 2.3),
+	"coop": Vector3(15.5, 1.3, 2.5),
+	"barn": Vector3(21.5, 1.3, 2.5),
+}
 
 var _house: Node3D   # a FarmWorld; loaded once the autoloads are in (it uses Game)
 var _glb := ""
+var _what := "house"
 var _cam: Camera3D
 var _shots := ""
 var _views: Array = VIEWS.keys()
@@ -27,13 +33,18 @@ func _init() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--shots="):
 			_shots = "res://" + arg.trim_prefix("--shots=")
+		elif arg.begins_with("--what="):
+			_what = arg.trim_prefix("--what=")
 		elif arg.begins_with("--glb="):
 			_glb = "res://" + arg.trim_prefix("--glb=")
 
 
 func _start() -> void:
 	_house = load("res://scripts/world3d/farm_world.gd").new()
-	_house._make_house()
+	match _what:   # loaded, not named: the class names need the autoloads in first
+		"coop": load("res://scripts/world3d/coop_props.gd").coop(_house)
+		"barn": load("res://scripts/world3d/barn_props.gd").barn(_house)
+		_: _house._make_house()
 	root.add_child(_house)
 	if _glb != "":
 		_export(_glb)
@@ -50,7 +61,7 @@ func _stage() -> void:
 	ground.mesh = plane
 	ground.material_override = StandardMaterial3D.new()
 	ground.material_override.albedo_color = Color("6fae4a")
-	ground.position = Vector3(4.5, 0, 2.3)
+	ground.position = CENTERS[_what] * Vector3(1, 0, 1)
 	root.add_child(ground)
 	var main: GDScript = load("res://scripts/main_3d.gd")
 	var env := Environment.new()
@@ -80,8 +91,9 @@ func _aim(view: String) -> void:
 	var yaw := deg_to_rad(v[0])
 	var pitch := deg_to_rad(v[1])
 	var back := Vector3(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw))
-	_cam.position = CENTER + back * float(v[2])
-	_cam.look_at(CENTER, Vector3.UP)
+	var center: Vector3 = CENTERS[_what]
+	_cam.position = center + back * float(v[2])
+	_cam.look_at(center, Vector3.UP)
 
 
 func _process(_delta: float) -> bool:
@@ -93,8 +105,8 @@ func _process(_delta: float) -> bool:
 	if _frame % 8 == 0:   # a few frames for each view to settle (shadows), then save it
 		var view: String = _views.pop_front()
 		var img := root.get_texture().get_image()
-		img.save_png(_shots.path_join("house_%s.png" % view))
-		print("house_model: wrote house_%s.png" % view)
+		img.save_png(_shots.path_join("%s_%s.png" % [_what, view]))
+		print("house_model: wrote %s_%s.png" % [_what, view])
 		if _views.is_empty():
 			return true
 		_aim(_views[0])

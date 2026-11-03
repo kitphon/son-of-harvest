@@ -771,6 +771,11 @@ sets the bar for the scenery. `tools/house_model.gd` shows the house on its own 
 (`--script res://tools/house_model.gd -- --shots=shots`, with a window) and writes it as a .glb
 (`--headless ... -- --glb=models/farmhouse.glb`; `models/` has a `.gdignore`) to open in Blender.
 The game builds the house from code; the .glb is a copy to look at or start real art from.
+The coop and barn have gable roofs from the same file (`Minka.gable`: two slopes, the eave
+bands, the verges at the gable ends, the soffit, snow; with `rolls` the slopes carry raised
+round-tile rolls, used for the barn's kawara with the tile ends in `build:kawara_edge`), and
+`Minka.gable_wall` fills the gable ends. Add `--what=coop` or `--what=barn` to the tool to see
+them (`shots/<what>_<view>.png`).
 
 ## Light
 The 3D view has a warm sun from the upper left of the screen over a cool sky light

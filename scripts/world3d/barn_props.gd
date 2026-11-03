@@ -9,7 +9,7 @@ const HAY := Color("c8b060")
 
 
 ## A cow shed in the satoyama way: dark cedar boards on a plastered band and a stone-grey
-## skirting, a tiled (kawara) gable roof, a wide two-leaf board door on the front (+z) over
+## skirting, a tiled (kawara) gable roof built as a mesh (Minka.gable) with real tile rolls, a wide two-leaf board door on the front (+z) over
 ## FarmGrid.BARN_DOOR, slatted windows and a hay-loft hatch under the gable on the +x face.
 static func barn(w: FarmWorld) -> void:
 	var r := Rect2(FarmGrid.BARN)
@@ -20,7 +20,7 @@ static func barn(w: FarmWorld) -> void:
 	var mid_z := back + depth / 2
 	var cx := r.get_center().x
 	var wide := r.size.x - 0.16
-	var wall := 1.6
+	var wall := 1.45 + 0.4 * 0.55   # up to the soffit over the wall line (the roof below)
 	w._box(Vector3(wide, 0.3, depth), Vector3(cx, 0.15, mid_z), FarmWorld.flat_material(Color("8a8680")))
 	w._box(Vector3(wide - 0.02, 0.35, depth - 0.02), Vector3(cx, 0.3 + 0.175, mid_z), FarmWorld.surface_material("build:plaster"))
 	w._box(Vector3(wide, wall - 0.65, depth), Vector3(cx, 0.65 + (wall - 0.65) / 2, mid_z), FarmWorld.surface_material("build:sugi"))
@@ -30,27 +30,27 @@ static func barn(w: FarmWorld) -> void:
 		w._box(Vector3(0.1, wall, 0.12), Vector3(r.end.x - 0.06, wall / 2, z), timber)
 	w._box(Vector3(wide + 0.06, 0.08, 0.08), Vector3(cx, wall - 0.04, front + 0.03), timber)
 	w._box(Vector3(wide + 0.06, 0.06, 0.06), Vector3(cx, 0.65, front + 0.03), timber)
-	# Gable end in boards, then the tiled roof slabs from the ridge out past the walls.
-	var rise := 1.0
-	var gable := MeshInstance3D.new()
-	var prism := PrismMesh.new()
-	prism.size = Vector3(depth, rise, wide)
-	gable.mesh = prism
-	gable.material_override = FarmWorld.surface_material("build:sugi")
-	gable.position = Vector3(cx, wall + rise / 2, mid_z)
-	gable.rotation_degrees.y = 90
-	w.add_child(gable)
-	var ridge := Vector3(cx, wall + rise, mid_z)
-	var slope := atan2(rise, depth / 2)
-	var length := (depth / 2 + 0.45) / cos(slope)
-	var tiles := FarmWorld.surface_material("build:kawara")
-	for side in [1, -1]:
-		var down := Vector3(0, -sin(slope), cos(slope) * side)
-		var up := Vector3(0, cos(slope), sin(slope) * side)
-		var center := ridge + down * (length / 2 - 0.05) + up * 0.06
-		w._box(Vector3(wide + 0.5, 0.1, length), center, tiles, Vector3(slope * side, 0, 0))
-		w._snow_top(Vector3(wide + 0.4, 0.05, length - 0.12), center + up * 0.07, Vector3(slope * side, 0, 0))
-	w._box(Vector3(wide + 0.6, 0.16, 0.22), ridge + Vector3(0, 0.08, 0), FarmWorld.flat_material(Color("3a3a40")))
+	# The tiled gable roof (Minka.gable with kawara rolls every quarter unit, as the tile
+	# texture's rows): eaves 0.4 past the long walls and 0.3 past the gable ends, the soffit
+	# 1.45 high at the front eave, rising 0.55 a unit (about 29°, a tile roof's gentle slope).
+	# The gable ends are boards up to the roof; on the ridge a stack of ridge tiles with a
+	# raised end tile (onigawara) at each end.
+	var overhang := 0.4
+	var eave := Rect2(cx - wide / 2 - 0.3, back - overhang, wide + 0.6, depth + overhang * 2)
+	var crest := Minka.gable(w, eave, 1.45, 0.55, 0.15, "build:kawara", "build:kawara_edge", 0.25)
+	var apex := 1.45 + eave.size.y / 2 * 0.55
+	for x in [cx - wide / 2 - 0.002, cx + wide / 2 + 0.002]:
+		Minka.gable_wall(w, x, back, front, wall, apex, "build:sugi", signf(x - cx))
+	var ridge := Vector3(cx, crest - 0.04, mid_z)
+	var dark := FarmWorld.flat_material(Color("3a3a40"))
+	var light := FarmWorld.flat_material(Color("5a6470"))
+	w._box(Vector3(eave.size.x - 0.1, 0.16, 0.36), ridge + Vector3(0, 0.08, 0), dark)
+	w._box(Vector3(eave.size.x - 0.14, 0.04, 0.38), ridge + Vector3(0, 0.12, 0), light)
+	w._box(Vector3(eave.size.x - 0.1, 0.1, 0.22), ridge + Vector3(0, 0.21, 0), dark)
+	for end in [-1.0, 1.0]:
+		var at := ridge + Vector3(end * (eave.size.x / 2 - 0.08), 0, 0)
+		w._box(Vector3(0.14, 0.36, 0.42), at + Vector3(0, 0.18, 0), dark)
+		w._box(Vector3(0.16, 0.1, 0.3), at + Vector3(end * 0.03, 0.4, 0), dark, Vector3(0, 0, -0.35 * end))
 	# The hay-loft hatch high on the +x gable, a little door of planks.
 	w._box(Vector3(0.03, 0.4, 0.5), Vector3(r.end.x - 0.04, wall + 0.3, mid_z), FarmWorld.surface_material("build:planks_dark"))
 	# Two board door leaves over the door cell (one slid a little open), a dark gap, a step stone.

@@ -28,9 +28,11 @@ sprites in a lit 3D world. [x] Light pass (sun shadows on the ground, warm sun /
 glow; README → Light). [x] Camera lenses (data/camera.json: ps1, medium, wide; `--lens`);
 the user picked "medium", now the game's lens. [x] Modelled sample: the farmhouse's thatched
 kayabuki roof (scripts/world3d/minka.gd, README → Farmhouse model, models/farmhouse.glb).
+[x] The coop (thatch) and barn (kawara with tile rolls) roofs as meshes (`Minka.gable`).
 The full style roadmap, the rules for making pieces and how to continue: docs/ART_DIRECTION.md.
-Next (the user's pick): more scenery to that bar (the village houses, the coop and barn), or
-character sprites; ask before starting.
+Next: the village houses' kawara roofs as meshes (curved ridge ends, real tile rows;
+`map_world.gd _village_house`), then the shrine pieces. "ทำ art direction ต่อ" from the user
+means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"; item 1, Thai text, first).
 The user chose to refine the placeholders first (real art later). Farmer, crops, field

@@ -35,7 +35,7 @@ static func _make(key: String) -> Image:
 			return _item(parts[1])
 		"animal":   # animal:<chicken|chick|cow|calf|sheep|sheep_shorn|lamb|dog>:<idle|peck|walk|sick, dog: sit|held>:<frame>, side view facing left
 			return _animal(parts[1], parts[2], int(parts[3]))
-		"build":    # build:<plaster|board|kawara|thatch|kaya|kaya_edge|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
+		"build":    # build:<plaster|board|kawara|kawara_edge|thatch|kaya|kaya_edge|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
 		"ground":   # ground:<grass|tilled|wet|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>
 			return _ground(parts[1], int(parts[2]))
@@ -1566,6 +1566,21 @@ static func _building(kind: String) -> Image:
 				_px(img, col * 4 + 2, 0, 1, 16, Color("68737f"))
 			for row in 4:
 				_px(img, 0, row * 4 + 3, 16, 1, Color("444c56"))
+			return img
+		"kawara_edge":
+			# The tiled roof's eave and verge, a sixth of a unit deep at the top of the texture:
+			# a row of round tile ends (one each 4 px, under the rolls) on the dark lip of the
+			# flat tiles; the rest is the plain grey of the verge's clay.
+			var img := _blank(16, 16)
+			img.fill(Color("4c5560"))
+			for col in 4:
+				var x := col * 4
+				_px(img, x, 0, 4, 3, Color("2e343c"))
+				_px(img, x + 1, 0, 2, 3, Color("7a8692"))
+				_px(img, x + 1, 1, 1, 1, Color("9aa6b0"))
+			_px(img, 0, 3, 16, 1, Color("2a3038"))
+			for row in 3:
+				_px(img, 0, 6 + row * 4, 16, 1, Color("3e4650"))
 			return img
 		"thatch":
 			# A thick thatched roof of grass (kaya): straw-gold strands running down the slope

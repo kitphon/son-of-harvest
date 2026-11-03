@@ -10,6 +10,37 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-03 — Coop and barn roofs as meshes (Minka.gable), the farmhouse eave band turned out
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: art direction roadmap 1, first item. `Minka.gable` builds a thick gable roof (ridge
+  along x): two slopes, the eave bands front and back, the verges closing both gable ends
+  (the roof's cross section, as thick as the roof), the soffit, a snow layer; with `rolls` the
+  slopes carry raised round-tile rolls (two leaning faces each and an end at the eave).
+  `Minka.gable_wall` fills a gable end with a board triangle up to the soffit. The coop: thatch
+  (`build:thatch` slopes, `build:kaya_edge` edges), 0.4 thick, pitch 0.75 (about 37°, lower
+  than the house: a shed), eaves 0.35 past the long walls, 0.3 past the ends, its old ridge
+  bundle and crossed sticks on the new crest (3.14). The barn: kawara, 0.15 thick, pitch 0.55
+  (about 29°), 21 tile rolls a side every 0.25 (one per tile row of `build:kawara`), new
+  texture `build:kawara_edge` (round tile ends lined up with the rolls), a ridge stack with a
+  raised onigawara block at each end. Both soffits are 1.45 high at the front eave; the walls
+  go up to the soffit over the wall line (coop 1.3 → 1.71, barn 1.6 → 1.67). The old prism
+  gables and box slabs are gone.
+  Bug found on the way: `Minka.roof`'s eave band normals pointed into the house (the "out"
+  vector was turned the wrong way), so `_tri` made the band face inwards and it was culled
+  from outside; it now faces out, so the farmhouse shows its straw edge. Shared as
+  `Minka._eave_band`. `tools/house_model.gd` takes `--what=coop|barn`; models/farmhouse.glb
+  re-written.
+- Checked: test_maps gets checks for both gable kinds (crest height, every face turned to its
+  normal, the face count 24 / 234, the front eave at 1.45 or more) and that upright faces
+  (bands, verges, roll ends) point away from the building, for the farmhouse roof too (the
+  old code printed band normal (0, 0, -1) on the front side). All 25 test scripts `OK (0
+  failed)`; the four smoke runs print no error or warning lines. Looked at: the three
+  buildings from four sides (house_model), the game by the coop and barn at 10:00, 17:00,
+  20:00, rain and winter snow 90: the straw edge and verge read, the tile rolls catch the sun,
+  snow covers both roofs with the eave rim showing.
+- Left / next: the village houses' kawara roofs (`map_world.gd _village_house`) can use
+  `Minka.gable` with rolls; curved ridge ends are still to do. The flat view is unchanged.
+
 ## 2026-11-03 — Deep mine finds tuned for the rope lift
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: with the lift a trip starts at floor 15 every day, and a winter of that out-earned

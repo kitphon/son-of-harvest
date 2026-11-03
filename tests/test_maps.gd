@@ -406,7 +406,54 @@ func _minka() -> void:
 						low = minf(low, v[i + k].y)
 	check(faces >= 26 and wrong == 0, "Minka faces turned outwards (%d of %d wrong)" % [wrong, faces])
 	check(low >= 1.4, "Minka front eave above the farmer's head (%.2f)" % low)
+	check(_walls_facing_in(w, Vector2(4.5, 2.3)) == 0, "Minka's eave band faces away from the house")
 	w.free()
+	# The gable roofs of the coop (thatch) and the barn (kawara with tile rolls).
+	var minka: GDScript = load("res://scripts/world3d/minka.gd")
+	for rolls in [0.0, 0.25]:
+		w = load("res://scripts/world3d/farm_world.gd").new()
+		var eave := Rect2(18.78, 0.68, 5.44, 3.6)
+		crest = minka.gable(w, eave, 1.45, 0.55, 0.15, "build:kawara", "build:kawara_edge", rolls)
+		var want := 1.45 + 1.8 * 0.55 + 0.15 + (0.06 if rolls > 0.0 else 0.0)
+		check(is_equal_approx(crest, want), "gable ridge height %.3f (rolls %.2f)" % [crest, rolls])
+		faces = 0
+		wrong = 0
+		low = 99.0
+		for n in w.get_children():
+			if n is MeshInstance3D and n.mesh is ArrayMesh and n.mesh.get_surface_count() > 0:
+				var arr: Array = n.mesh.surface_get_arrays(0)
+				var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+				var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+				for i in range(0, v.size(), 3):
+					faces += 1
+					if (v[i + 1] - v[i]).cross(v[i + 2] - v[i]).dot(nm[i]) >= 0.0:
+						wrong += 1
+					for k in 3:
+						if v[i + k].z > 4.2:
+							low = minf(low, v[i + k].y)
+		var expect := 24 + (21 * 2 * 5 if rolls > 0.0 else 0)   # slopes, soffit, bands, verges, snow; 21 rolls a side
+		check(faces == expect and wrong == 0, "gable faces turned outwards (%d of %d wrong, %d expected)" % [wrong, faces, expect])
+		check(low >= 1.45, "gable front eave above the farmer's head (%.2f)" % low)
+		check(_walls_facing_in(w, eave.get_center()) == 0, "gable eave bands and verges face outwards (rolls %.2f)" % rolls)
+		w.free()
+
+
+## Upright faces (eave bands, verges, roll ends) of the meshes in `w` whose normal points
+## back towards `mid` (x, z) instead of away from it.
+func _walls_facing_in(w: Node3D, mid: Vector2) -> int:
+	var bad := 0
+	for n in w.get_children():
+		if n is MeshInstance3D and n.mesh is ArrayMesh and n.mesh.get_surface_count() > 0:
+			var arr: Array = n.mesh.surface_get_arrays(0)
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+			for i in range(0, v.size(), 3):
+				if absf(nm[i].y) > 0.1:
+					continue
+				var c := (v[i] + v[i + 1] + v[i + 2]) / 3.0
+				if Vector2(nm[i].x, nm[i].z).dot(Vector2(c.x, c.z) - mid) <= 0.0:
+					bad += 1
+	return bad
 
 
 func _homes_3d() -> void:

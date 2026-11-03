@@ -9,9 +9,9 @@ const STRAW := Color("d8bc78")
 
 
 ## A small coop of upright cedar boards on a charred-board skirting, under a thick thatched
-## gable roof with a dark ridge bundle; a board sliding door on the front (+z) over
-## FarmGrid.COOP_DOOR, a bamboo-barred window beside it and a hen hatch with a little ramp
-## on the +x face.
+## gable roof built as a mesh (Minka.gable) with a dark ridge bundle; a board sliding door on
+## the front (+z) over FarmGrid.COOP_DOOR, a bamboo-barred window beside it and a hen hatch
+## with a little ramp on the +x face.
 static func coop(w: FarmWorld) -> void:
 	var r := Rect2(FarmGrid.COOP)
 	var timber := FarmWorld.flat_material(TIMBER)
@@ -21,7 +21,7 @@ static func coop(w: FarmWorld) -> void:
 	var mid_z := back + depth / 2
 	var cx := r.get_center().x
 	var wide := r.size.x - 0.2
-	var wall := 1.3
+	var wall := 1.45 + 0.35 * 0.75   # up to the soffit over the wall line (the roof below)
 	w._box(Vector3(wide, 0.4, depth), Vector3(cx, 0.2, mid_z), FarmWorld.surface_material("build:board"))
 	w._box(Vector3(wide, wall - 0.4, depth), Vector3(cx, 0.4 + (wall - 0.4) / 2, mid_z), FarmWorld.surface_material("build:sugi"))
 	for x in [r.position.x + 0.1, cx - 1.0, cx + 1.0, r.end.x - 0.1]:
@@ -29,30 +29,21 @@ static func coop(w: FarmWorld) -> void:
 	for z in [back, mid_z, front]:
 		w._box(Vector3(0.08, wall, 0.1), Vector3(r.end.x - 0.08, wall / 2, z), timber)
 	w._box(Vector3(wide + 0.06, 0.07, 0.06), Vector3(cx, wall - 0.03, front + 0.03), timber)
-	# Gable end and the thatch: thick slabs from the ridge well past the walls.
-	var rise := 0.9
-	var gable := MeshInstance3D.new()
-	var prism := PrismMesh.new()
-	prism.size = Vector3(depth, rise, wide)
-	gable.mesh = prism
-	gable.material_override = FarmWorld.surface_material("build:sugi")
-	gable.position = Vector3(cx, wall + rise / 2, mid_z)
-	gable.rotation_degrees.y = 90
-	w.add_child(gable)
-	var ridge := Vector3(cx, wall + rise, mid_z)
-	var slope := atan2(rise, depth / 2)
-	var length := (depth / 2 + 0.4) / cos(slope)
-	var thatch := FarmWorld.surface_material("build:thatch")
-	for side in [1, -1]:
-		var down := Vector3(0, -sin(slope), cos(slope) * side)
-		var up := Vector3(0, cos(slope), sin(slope) * side)
-		var center := ridge + down * (length / 2 - 0.05) + up * 0.1
-		w._box(Vector3(wide + 0.5, 0.2, length), center, thatch, Vector3(slope * side, 0, 0))
-		w._snow_top(Vector3(wide + 0.4, 0.05, length - 0.12), center + up * 0.11, Vector3(slope * side, 0, 0))
-	w._box(Vector3(wide + 0.6, 0.18, 0.3), ridge + Vector3(0, 0.14, 0), FarmWorld.flat_material(Color("5a4a30")))
+	# The thatched gable roof (Minka.gable): eaves 0.35 past the long walls and 0.3 past the
+	# gable ends, the soffit 1.45 high at the front eave (above the farmer at the door), rising
+	# 0.75 a unit (about 37°, lower than the farmhouse's: a shed, not a home), 0.4 of straw thick.
+	# The walls go up to meet the soffit, the gable ends are boards up to the roof.
+	var overhang := 0.35
+	var eave := Rect2(cx - wide / 2 - 0.3, back - overhang, wide + 0.6, depth + overhang * 2)
+	var crest := Minka.gable(w, eave, 1.45, 0.75, 0.4, "build:thatch", "build:kaya_edge")
+	var apex := 1.45 + eave.size.y / 2 * 0.75
+	for x in [cx - wide / 2 - 0.002, cx + wide / 2 + 0.002]:
+		Minka.gable_wall(w, x, back, front, wall, apex, "build:sugi", signf(x - cx))
+	var ridge := Vector3(cx, crest, mid_z)
+	w._box(Vector3(eave.size.x + 0.1, 0.2, 0.34), ridge + Vector3(0, 0.06, 0), FarmWorld.flat_material(Color("5a4a30")))
 	for x in [cx - 1.6, cx - 0.5, cx + 0.6, cx + 1.7]:   # crossed sticks holding the ridge down
-		w._box(Vector3(0.05, 0.42, 0.05), ridge + Vector3(x - cx, 0.3, 0), timber, Vector3(0.6, 0, 0))
-		w._box(Vector3(0.05, 0.42, 0.05), ridge + Vector3(x - cx, 0.3, 0), timber, Vector3(-0.6, 0, 0))
+		w._box(Vector3(0.05, 0.42, 0.05), ridge + Vector3(x - cx, 0.24, 0), timber, Vector3(0.6, 0, 0))
+		w._box(Vector3(0.05, 0.42, 0.05), ridge + Vector3(x - cx, 0.24, 0), timber, Vector3(-0.6, 0, 0))
 	# Board door on the door cell, with a dark frame; a step stone in front.
 	var dx := FarmGrid.COOP_DOOR.x + 0.5
 	w._box(Vector3(0.8, 1.0, 0.04), Vector3(dx, 0.5, front + 0.03), FarmWorld.surface_material("build:planks_dark"))
