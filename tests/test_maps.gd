@@ -38,6 +38,7 @@ func _process(delta: float) -> bool:
 	if _frame == 1:
 		_homes_3d()
 		_minka()
+		_shrine()
 		_game_maps()
 		_bed_and_doors()
 		_clinic_doors()
@@ -370,7 +371,8 @@ func _map_snow() -> void:
 	v3.build(town)
 	v3.set_snow(0.5)
 	var snowy: Array = tops.call(v3)
-	check(snowy.size() > 10 and snowy.all(func(n): return is_equal_approx(n.material_override.get_shader_parameter("cover"), 0.5)),
+	# The ground, five house roofs, the torii, the hokora roof and two lanterns: one cover each.
+	check(snowy.size() >= 10 and snowy.all(func(n): return is_equal_approx(n.material_override.get_shader_parameter("cover"), 0.5)),
 		"3D village: ground and roof tops take the cover (%d)" % snowy.size())
 	v3.free()
 	for id in ["mine_floor", "house"]:
@@ -459,6 +461,56 @@ func _minka() -> void:
 	var level: float = tops.get(0.8, 0.0)   # where the curl starts (sweep 0.8); one span between
 	check(is_equal_approx(level, tops.get(4.2, -1.0)) and tops.get(0.0, 0.0) > level + 0.1
 		and tops.get(5.0, 0.0) > level + 0.1, "the ridge curls up at both ends (%s)" % [tops])
+	w.free()
+
+
+## The shrine pieces (Shrine): every mesh face turned to its normal, the lantern's facets
+## facing away from its axis, the torii's kasagi rising to its ends.
+func _shrine() -> void:
+	var shrine: GDScript = load("res://scripts/world3d/shrine.gd")
+	var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	shrine.stone_lantern(w, Vector3(3.5, 0, 3.5))
+	var faces := 0
+	var wrong := 0
+	var inward := 0
+	for n in w.get_children():
+		if n is MeshInstance3D and n.mesh is ArrayMesh and n.mesh.get_surface_count() > 0:
+			var arr: Array = n.mesh.surface_get_arrays(0)
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+			for i in range(0, v.size(), 3):
+				faces += 1
+				if (v[i + 1] - v[i]).cross(v[i + 2] - v[i]).dot(nm[i]) >= 0.0:
+					wrong += 1
+				var c := (v[i] + v[i + 1] + v[i + 2]) / 3.0
+				if Vector2(nm[i].x, nm[i].z).dot(Vector2(c.x - 3.5, c.z - 3.5)) < -0.0001:
+					inward += 1
+	check(faces > 100 and wrong == 0 and inward == 0, "stone lantern facets turned outwards (%d wrong, %d inward of %d)" % [wrong, inward, faces])
+	w.free()
+	w = load("res://scripts/world3d/farm_world.gd").new()
+	shrine.torii(w, Vector3(19, 0, 6.5), Rect2(17, 6, 4, 1))
+	shrine.hokora(w, Vector3(19, 0, 2))
+	faces = 0
+	wrong = 0
+	var ends := -1.0
+	var middle := -1.0
+	for n in w.get_children():
+		if n is MeshInstance3D and n.mesh is ArrayMesh and n.mesh.get_surface_count() > 0:
+			var arr: Array = n.mesh.surface_get_arrays(0)
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+			for i in range(0, v.size(), 3):
+				faces += 1
+				if (v[i + 1] - v[i]).cross(v[i + 2] - v[i]).dot(nm[i]) >= 0.0:
+					wrong += 1
+			if n.material_override is StandardMaterial3D and n.material_override.albedo_color == shrine.BLACK:
+				for p in v:
+					if is_equal_approx(p.x, 19.0):
+						middle = maxf(middle, p.y)
+					elif absf(p.x - 19.0) > 2.1:
+						ends = maxf(ends, p.y)
+	check(faces > 0 and wrong == 0, "torii and hokora faces turned outwards (%d of %d wrong)" % [wrong, faces])
+	check(middle > 2.0 and ends > middle + 0.12, "the kasagi rises to its ends (middle %.2f, ends %.2f)" % [middle, ends])
 	w.free()
 
 

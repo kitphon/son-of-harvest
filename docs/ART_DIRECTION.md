@@ -28,7 +28,8 @@ Light and Farmhouse model hold the technical detail of what is built.
 | Lens choice | f7ab692 | The game uses "medium". |
 | Modelled sample | 1b59453 | The farmhouse's thick thatched kayabuki roof (`Minka.roof`), textures `build:kaya` / `build:kaya_edge`, `tools/house_model.gd`, `models/farmhouse.glb`. |
 | Coop and barn roofs | a60c0e1 | `Minka.gable` (thick gable roof: slopes, eave bands, verges, soffit, snow; optional kawara tile rolls) and `Minka.gable_wall`; the coop thatched (0.4 thick, about 37°), the barn kawara with rolls every 0.25 and a ridge stack with onigawara ends (about 29°); walls raised to the soffit; `build:kawara_edge`. The farmhouse's eave band faced inwards (culled) and now faces out. `house_model.gd --what=coop/barn`. |
-| Village house roofs | (this commit) | Every `village_house` (town, Kaminoda, Minamino, Sakurazaka) has a `Minka.gable` kawara roof with tile rolls (pitch 0.5, about 27°), plaster gable ends, walls up to the soffit, and `Minka.ridge`: a ridge-tile stack and grey cap curving up over the last 0.8 to an onigawara at each end (the barn too). `house_model.gd --what=village`. |
+| Village house roofs | 4395016 | Every `village_house` (town, Kaminoda, Minamino, Sakurazaka) has a `Minka.gable` kawara roof with tile rolls (pitch 0.5, about 27°), plaster gable ends, walls up to the soffit, and `Minka.ridge`: a ridge-tile stack and grey cap curving up over the last 0.8 to an onigawara at each end (the barn too). `house_model.gd --what=village`. |
+| Shrine pieces | (this commit) | `scripts/world3d/shrine.gd` (Shrine): the torii with tapered posts on black footings, a plaque, and the shimaki and black kasagi as beams sweeping up 0.16 to their ends; the hokora on a two-step stone base under a `Minka.gable` board roof with chigi and katsuogi, vermilion doors, a shimenawa with paper streamers; a six-sided Kasuga-style stone lantern turned with `Shrine.lathe` (flat facets), lit windows on the two faces the camera sees, corners turned up. Minka's mesh helpers (`quad`, `tri`, `beam`, `plain`, `add_mesh`) are public for this. `house_model.gd --what=shrine`. |
 
 ## How the pieces are made (keep to these)
 - **Scale.** 1 cell = 1 world unit; textures are 16 px a unit, nearest filtering. A 24 px
@@ -36,8 +37,9 @@ Light and Farmhouse model hold the technical detail of what is built.
   or more).
 - **Meshes in code.** Build with SurfaceTool as in `scripts/world3d/minka.gd` (`roof` for a
   hip roof, `gable` for a gable roof, thatch or kawara with tile rolls, `ridge` for a tiled
-  ridge with curled ends): flat normals
-  per face, triangles turned to their normal with `_tri` (Godot draws clockwise fronts), UVs
+  ridge with curled ends, `beam` for any beam along a curve; `Shrine.lathe` for round or
+  many-sided things): flat normals
+  per face, triangles turned to their normal with `Minka.tri` (Godot draws clockwise fronts), UVs
   in world units laid along the surface (u along an edge, v down a slope) so stripes and
   courses line up. Boxes (`FarmWorld._box`) are still fine for small parts.
 - **Materials.** Lit `StandardMaterial3D` with a PlaceholderArt texture for surfaces the sun
@@ -48,8 +50,8 @@ Light and Farmhouse model hold the technical detail of what is built.
 - **See-through.** Build a tall thing inside `occlude(...)` so it fades when it hides the
   farmer; keep its materials StandardMaterial3D (the occluder fades their alpha).
 - **Checking.** `tools/house_model.gd` shows the farmhouse alone from four sides
-  (`--what=coop` / `--what=barn` / `--what=village` for those; add a `CENTERS` entry and a builder for more).
-  Check that upright faces point outwards (test_maps `_walls_facing_in`): `_tri` turns a face
+  (`--what=coop` / `--what=barn` / `--what=village` / `--what=shrine` for those; add a `CENTERS` entry and a builder for more).
+  Check that upright faces point outwards (test_maps `_walls_facing_in`): `Minka.tri` turns a face
   to the normal it is given, so a wrong normal makes a face that is culled from outside. Look at the game at 10:00,
   17:00, 20:00, rain and winter snow, and inside the see-through fade, before committing.
   Tests: geometry rules go in test_maps (see `_minka`).
@@ -71,11 +73,11 @@ Light and Farmhouse model hold the technical detail of what is built.
 - [x] The coop and barn (`coop_props.gd`, `barn_props.gd`): gable roofs as meshes
       (`Minka.gable`), thatch on the coop, kawara with tile rolls on the barn. (a60c0e1)
 - [x] Village houses (`map_world.gd _village_house`): kawara roofs as meshes with curved
-      ridge ends (`Minka.ridge`) and real tile rows. (this commit) Still open: more variety
+      ridge ends (`Minka.ridge`) and real tile rows. (4395016) Still open: more variety
       (a hip roof on some, a second storey, a different wall), and the roof snow shows the
       top shader's patch holes (as before; the snow shader, not the roof).
-- [ ] Shrine pieces: torii with curved kasagi and real cross section, the hokora, stone
-      lanterns (`_torii`, `_hokora`, `_stone_lantern`).
+- [x] Shrine pieces: torii with curved kasagi and real cross section, the hokora, stone
+      lanterns (`shrine.gd`: `Shrine.torii`, `hokora`, `stone_lantern`). (this commit)
 - [ ] The seed stand, chest and bin by the farmhouse.
 - [ ] Interiors (house, homes, shops, clinic): wall and floor meshes in the same manner.
 

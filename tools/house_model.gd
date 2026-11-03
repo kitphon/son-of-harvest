@@ -1,7 +1,8 @@
 extends SceneTree
 ## A farm building on its own: the farmhouse (FarmWorld._make_house: walls, engawa, the
 ## thatched Minka roof), or with `--what=coop` / `--what=barn` / `--what=village` the coop,
-## the barn or a village shop (their Minka.gable roofs): pictures of it from round about, and a .glb of it to open in Blender. Run:
+## the barn or a village shop (their Minka.gable roofs), `--what=shrine` the town's shrine
+## (Shrine: torii, hokora, stone lanterns): pictures of it from round about, and a .glb of it to open in Blender. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --path . --script res://tools/house_model.gd -- --shots=shots
 ## (writes shots/<what>_<view>.png; needs a window, so not --headless), or
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tools/house_model.gd -- --glb=models/farmhouse.glb
@@ -19,7 +20,14 @@ const CENTERS := {   # each building's middle, where the views look
 	"coop": Vector3(15.5, 1.3, 2.5),
 	"barn": Vector3(21.5, 1.3, 2.5),
 	"village": Vector3(3.0, 1.2, 1.5),
+	"shrine": Vector3(19.0, 1.0, 4.0),
 }
+const SHRINE := [   # the town's shrine props (data/maps/town.json)
+	{"kind": "hokora", "cell": Vector2i(18, 1), "size": Vector2i(2, 2)},
+	{"kind": "torii", "cell": Vector2i(17, 6), "size": Vector2i(4, 1)},
+	{"kind": "stone_lantern", "cell": Vector2i(16, 3), "size": Vector2i(1, 1)},
+	{"kind": "stone_lantern", "cell": Vector2i(21, 3), "size": Vector2i(1, 1)},
+]
 
 var _house: Node3D   # a FarmWorld; loaded once the autoloads are in (it uses Game)
 var _glb := ""
@@ -41,12 +49,15 @@ func _init() -> void:
 
 
 func _start() -> void:
-	var world := "map_world" if _what == "village" else "farm_world"
+	var world := "map_world" if _what in ["village", "shrine"] else "farm_world"
 	_house = load("res://scripts/world3d/%s.gd" % world).new()
 	match _what:   # loaded, not named: the class names need the autoloads in first
 		"coop": load("res://scripts/world3d/coop_props.gd").coop(_house)
 		"barn": load("res://scripts/world3d/barn_props.gd").barn(_house)
 		"village": _house._village_house(Rect2(0, 0, 6, 3), 2, true, 4)   # like Sayo's store
+		"shrine":
+			for p in SHRINE:
+				_house._make_prop(p)
 		_: _house._make_house()
 	root.add_child(_house)
 	if _glb != "":

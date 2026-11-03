@@ -43,15 +43,15 @@ static func roof(w: FarmWorld, eave: Rect2, low: float, pitch: float, thick: flo
 		var c := Vector3(rx1, r, zm)
 		var d := Vector3(rx0, r, zm)
 		var uv_f := func(p: Vector3) -> Vector2: return Vector2(p.x, (p.z - zm) * run)
-		_quad(st, a, b, c, d, n_front, uv_f)
+		quad(st, a, b, c, d, n_front, uv_f)
 		var a2 := Vector3(x1, e, z0)
 		var b2 := Vector3(x0, e, z0)
 		var uv_b := func(p: Vector3) -> Vector2: return Vector2(-p.x, (zm - p.z) * run)
-		_quad(st, a2, b2, d, c, n_back, uv_b)
+		quad(st, a2, b2, d, c, n_back, uv_b)
 		var uv_l := func(p: Vector3) -> Vector2: return Vector2(-p.z, (rx0 - p.x) * run)
-		_tri(st, Vector3(x0, e, z0), Vector3(x0, e, z1), d, n_left, uv_l)
+		tri(st, Vector3(x0, e, z0), Vector3(x0, e, z1), d, n_left, uv_l)
 		var uv_r := func(p: Vector3) -> Vector2: return Vector2(p.z, (p.x - rx1) * run)
-		_tri(st, Vector3(x1, e, z1), Vector3(x1, e, z0), c, n_right, uv_r)
+		tri(st, Vector3(x1, e, z1), Vector3(x1, e, z0), c, n_right, uv_r)
 	slopes.call(outer, thick, 1.0)
 	slopes.call(under, 0.0, -1.0)
 	slopes.call(snow, thick + 0.03, 1.0)
@@ -62,10 +62,10 @@ static func roof(w: FarmWorld, eave: Rect2, low: float, pitch: float, thick: flo
 		_eave_band(band, corners[i], corners[(i + 1) % 4], low, thick, float(i) * 7.0)
 
 	for pair in [[outer, straw], [under, straw], [band, edge]]:
-		_add_mesh(w, pair[0], pair[1])
+		add_mesh(w, pair[0], pair[1])
 	var snow_mat := SnowLayer.top_material()
 	w._snow_mats.append(snow_mat)
-	_add_mesh(w, snow, snow_mat).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_mesh(w, snow, snow_mat).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 	# The ridge: a dark straw-bound beam a little past the ridge ends, riders crossed over it.
 	var crest := top + thick
@@ -109,10 +109,10 @@ static func gable(w: FarmWorld, eave: Rect2, low: float, pitch: float, thick: fl
 	var slopes := func(st: SurfaceTool, lift: float, sign: float) -> void:
 		var e := low + lift
 		var r := top + lift
-		_quad(st, Vector3(x0, e, z1), Vector3(x1, e, z1), Vector3(x1, r, zm), Vector3(x0, r, zm),
+		quad(st, Vector3(x0, e, z1), Vector3(x1, e, z1), Vector3(x1, r, zm), Vector3(x0, r, zm),
 			Vector3(0, 1, pitch).normalized() * sign,
 			func(p: Vector3) -> Vector2: return Vector2(p.x - x0, (p.z - zm) * run))
-		_quad(st, Vector3(x1, e, z0), Vector3(x0, e, z0), Vector3(x0, r, zm), Vector3(x1, r, zm),
+		quad(st, Vector3(x1, e, z0), Vector3(x0, e, z0), Vector3(x0, r, zm), Vector3(x1, r, zm),
 			Vector3(0, 1, -pitch).normalized() * sign,
 			func(p: Vector3) -> Vector2: return Vector2(x1 - p.x, (zm - p.z) * run))
 	slopes.call(outer, thick, 1.0)
@@ -132,7 +132,7 @@ static func gable(w: FarmWorld, eave: Rect2, low: float, pitch: float, thick: fl
 			var d := absf(p.z - zm)
 			return Vector2(-d * run, low + thick + (half - d) * pitch - p.y)
 		for z: float in [z0, z1]:
-			_quad(band, Vector3(x, low, z), Vector3(x, top, zm), Vector3(x, top + thick, zm),
+			quad(band, Vector3(x, low, z), Vector3(x, top, zm), Vector3(x, top + thick, zm),
 				Vector3(x, low + thick, z), n, uv)
 
 	# Tile rolls: a low ridge of round tiles every `rolls` along x, each a pair of faces
@@ -156,20 +156,20 @@ static func gable(w: FarmWorld, eave: Rect2, low: float, pitch: float, thick: fl
 					var n := (crown_r - crown_e).cross(foot_e - crown_e).normalized()
 					if n.y < 0.0:
 						n = -n
-					_quad(outer, foot_e, crown_e, crown_r, foot_r, n,
+					quad(outer, foot_e, crown_e, crown_r, foot_r, n,
 						func(p: Vector3) -> Vector2: return Vector2(p.x - x0, (p.z - zm) * side * run))
 				var face := Vector3(0, 0, side)
-				_tri(band, lift.call(x - wide / 2, ze, 0.0), lift.call(x + wide / 2, ze, 0.0),
+				tri(band, lift.call(x - wide / 2, ze, 0.0), lift.call(x + wide / 2, ze, 0.0),
 					lift.call(x, ze, high), face,
 					func(p: Vector3) -> Vector2: return Vector2(p.x - x0 - shift, (low + thick + high - p.y) * 3.0))
 		crest += high
 	slopes.call(snow, thick + (0.09 if rolls > 0.0 else 0.03), 1.0)
 
 	for pair in [[outer, _material(roof_key)], [under, _material(roof_key)], [band, _material(edge_key)]]:
-		_add_mesh(w, pair[0], pair[1])
+		add_mesh(w, pair[0], pair[1])
 	var snow_mat := SnowLayer.top_material()
 	w._snow_mats.append(snow_mat)
-	_add_mesh(w, snow, snow_mat).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_mesh(w, snow, snow_mat).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return crest
 
 
@@ -190,21 +190,21 @@ static func ridge(w: FarmWorld, x0: float, x1: float, y: float, z: float, curl :
 	var cap := SurfaceTool.new()
 	for st in [stack, cap]:
 		st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	_beam(stack, xs, lift, y, z, 0.17, 0.0, 0.17)
-	_beam(cap, xs, lift, y, z, 0.1, 0.15, 0.1)
-	_add_mesh(w, stack, _plain(Color("3a3e46")))
-	_add_mesh(w, cap, _plain(Color("5e6874")))
+	beam(stack, xs, lift, y, z, 0.17, 0.0, 0.17)
+	beam(cap, xs, lift, y, z, 0.1, 0.15, 0.1)
+	add_mesh(w, stack, plain(Color("3a3e46")))
+	add_mesh(w, cap, plain(Color("5e6874")))
 	var lean := atan(2.0 * curl / sweep)   # the curve's slope at the very end
 	for end: float in [-1.0, 1.0]:
 		var x := x0 + 0.06 if end < 0.0 else x1 - 0.06
 		var at := Vector3(x, y + curl + 0.2, z)
-		w._box(Vector3(0.12, 0.42, 0.42), at, _plain(Color("3a3e46")), Vector3(0, 0, -end * lean * 0.7))
-		w._box(Vector3(0.14, 0.1, 0.3), at + Vector3(end * 0.08, 0.22, 0), _plain(Color("5e6874")), Vector3(0, 0, -end * lean))
+		w._box(Vector3(0.12, 0.42, 0.42), at, plain(Color("3a3e46")), Vector3(0, 0, -end * lean * 0.7))
+		w._box(Vector3(0.14, 0.1, 0.3), at + Vector3(end * 0.08, 0.22, 0), plain(Color("5e6874")), Vector3(0, 0, -end * lean))
 
 
 ## A beam along the points `xs` (x, rising by `lift`), its cross section `half` deep either
 ## side of z and `high` tall from `base` above `y`: top, front, back and the two ends.
-static func _beam(st: SurfaceTool, xs: Array[float], lift: Callable, y: float, z: float,
+static func beam(st: SurfaceTool, xs: Array[float], lift: Callable, y: float, z: float,
 		half: float, base: float, high: float) -> void:
 	var none := func(_p: Vector3) -> Vector2: return Vector2.ZERO
 	var at := func(x: float, up: float, dz: float) -> Vector3:
@@ -217,14 +217,14 @@ static func _beam(st: SurfaceTool, xs: Array[float], lift: Callable, y: float, z
 		var ta: Vector3 = at.call(a, high, 0.0)
 		var tb: Vector3 = at.call(b, high, 0.0)
 		var d := tb - ta
-		_quad(st, at.call(a, high, -half), at.call(b, high, -half), at.call(b, high, half),
+		quad(st, at.call(a, high, -half), at.call(b, high, -half), at.call(b, high, half),
 			at.call(a, high, half), Vector3(-d.y, d.x, 0).normalized(), none)
 		for side: float in [-1.0, 1.0]:
-			_quad(st, at.call(a, 0.0, half * side), at.call(b, 0.0, half * side),
+			quad(st, at.call(a, 0.0, half * side), at.call(b, 0.0, half * side),
 				at.call(b, high, half * side), at.call(a, high, half * side), Vector3(0, 0, side), none)
 	for end: float in [-1.0, 1.0]:
 		var x: float = xs[0] if end < 0.0 else xs[xs.size() - 1]
-		_quad(st, at.call(x, 0.0, -half), at.call(x, 0.0, half), at.call(x, high, half),
+		quad(st, at.call(x, 0.0, -half), at.call(x, 0.0, half), at.call(x, high, half),
 			at.call(x, high, -half), Vector3(end, 0, 0), none)
 
 
@@ -235,9 +235,9 @@ static func gable_wall(w: FarmWorld, x: float, z0: float, z1: float, base: float
 		key: String, facing: float) -> void:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	_tri(st, Vector3(x, base, z0), Vector3(x, base, z1), Vector3(x, apex, (z0 + z1) / 2.0),
+	tri(st, Vector3(x, base, z0), Vector3(x, base, z1), Vector3(x, apex, (z0 + z1) / 2.0),
 		Vector3(facing, 0, 0), func(p: Vector3) -> Vector2: return Vector2(p.z * facing, -p.y))
-	_add_mesh(w, st, _material(key))
+	add_mesh(w, st, _material(key))
 
 
 ## The roof's trimmed edge on one side, p -> q along the eave line (y ignored), from the soffit
@@ -248,7 +248,7 @@ static func _eave_band(st: SurfaceTool, p: Vector3, q: Vector3, low: float, thic
 	var out := Vector3(-along.z, 0, along.x)
 	var uv := func(v: Vector3) -> Vector2:
 		return Vector2(start + (v - p).dot(along), low + thick - v.y)
-	_quad(st, p + Vector3(0, low, 0), q + Vector3(0, low, 0),
+	quad(st, p + Vector3(0, low, 0), q + Vector3(0, low, 0),
 		q + Vector3(0, low + thick, 0), p + Vector3(0, low + thick, 0), out, uv)
 
 
@@ -261,13 +261,13 @@ static func _material(key: String) -> StandardMaterial3D:
 
 
 ## A lit plain colour (ridge tiles): the sun shapes the curve, unlike FarmWorld.flat_material.
-static func _plain(color: Color) -> StandardMaterial3D:
+static func plain(color: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = color
 	return m
 
 
-static func _add_mesh(w: FarmWorld, st: SurfaceTool, mat: Material) -> MeshInstance3D:
+static func add_mesh(w: FarmWorld, st: SurfaceTool, mat: Material) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	mi.mesh = st.commit()
 	mi.material_override = mat
@@ -277,14 +277,14 @@ static func _add_mesh(w: FarmWorld, st: SurfaceTool, mat: Material) -> MeshInsta
 
 ## A quad a-b-c-d (in order round its edge) facing `n`; `uv` maps a world point to its UV
 ## (world units, so one texture per unit).
-static func _quad(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3, n: Vector3, uv: Callable) -> void:
-	_tri(st, a, b, c, n, uv)
-	_tri(st, a, c, d, n, uv)
+static func quad(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3, n: Vector3, uv: Callable) -> void:
+	tri(st, a, b, c, n, uv)
+	tri(st, a, c, d, n, uv)
 
 
 ## Godot draws a triangle's front where its corners run clockwise, so the order is turned to
 ## face `n` whichever way the corners came.
-static func _tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, n: Vector3, uv: Callable) -> void:
+static func tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, n: Vector3, uv: Callable) -> void:
 	if (b - a).cross(c - a).dot(n) > 0.0:
 		var t := b
 		b = c

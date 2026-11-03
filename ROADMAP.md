@@ -30,9 +30,10 @@ the user picked "medium", now the game's lens. [x] Modelled sample: the farmhous
 kayabuki roof (scripts/world3d/minka.gd, README → Farmhouse model, models/farmhouse.glb).
 [x] The coop (thatch) and barn (kawara with tile rolls) roofs as meshes (`Minka.gable`).
 [x] The village houses' kawara roofs as meshes, ridges curling up to onigawara (`Minka.ridge`).
+[x] The shrine pieces as meshes (scripts/world3d/shrine.gd: torii, hokora, stone lanterns).
 The full style roadmap, the rules for making pieces and how to continue: docs/ART_DIRECTION.md.
-Next: the shrine pieces (torii with a curved kasagi and real cross section, the hokora,
-stone lanterns: `map_world.gd _torii`, `_hokora`, `_stone_lantern`). "ทำ art direction ต่อ" from the user
+Next: the seed stand, chest and bin by the farmhouse (`farm_world.gd _make_stand`,
+`_make_chest`, `_make_bin`) to the same bar. "ทำ art direction ต่อ" from the user
 means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"; item 1, Thai text, first).

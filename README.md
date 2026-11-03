@@ -777,7 +777,9 @@ round-tile rolls, used for the barn's kawara with the tile ends in `build:kawara
 `Minka.gable_wall` fills the gable ends. The village houses use the kawara gable too, and
 `Minka.ridge` lays a ridge-tile stack that curls up at both ends to an onigawara (village houses
 and the barn). Add `--what=coop`, `--what=barn` or `--what=village` (a shop like Sayo's) to the
-tool to see them (`shots/<what>_<view>.png`).
+tool to see them (`shots/<what>_<view>.png`). The shrine pieces are meshes too
+(`scripts/world3d/shrine.gd`: the torii's curved kasagi, the hokora, the six-sided stone
+lanterns turned by `Shrine.lathe`); `--what=shrine` shows the town's shrine.
 
 ## Light
 The 3D view has a warm sun from the upper left of the screen over a cool sky light

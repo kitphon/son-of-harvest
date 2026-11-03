@@ -10,6 +10,33 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-04 — Shrine pieces as meshes: torii, hokora, stone lanterns
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: art direction roadmap 1, third item. New `scripts/world3d/shrine.gd` (Shrine) replaces
+  MapWorld's `_torii`, `_hokora` and `_stone_lantern` (the town, the hill, Minamino,
+  Sakurazaka, the mine entrance). The torii: tapered vermilion posts on black footings, the
+  nuki with wedges, the strut with a plaque, the shimaki and the black kasagi as real beams
+  (`Minka.beam`) rising 0.16 from the middle to the ends with the square of the way out, a
+  snow strip on top. The hokora: a two-step stone base, a cedar body under a `Minka.gable` board
+  roof (pitch 0.65) with plank gable ends, crossed chigi at both ridge ends and two katsuogi,
+  two vermilion doors with gold rings, a straw shimenawa with zigzag paper streamers. The
+  stone lantern: six-sided Kasuga style turned by `Shrine.lathe` (profiles of radius / height,
+  flat facets, one face straight at +z): footing, round post, deck, fire box with warm
+  windows on the two faces the camera sees, a wide cap with its corners turned up, the
+  jewel; a snow cone on the cap. Pieces are lit (`Minka.plain`) where the old ones were
+  unshaded, so the sun shapes them. Minka's helpers are now public (`quad`, `tri`, `beam`,
+  `plain`, `add_mesh`). `tools/house_model.gd --what=shrine` shows the town's shrine.
+- Checked: test_maps `_shrine`: the lantern's faces turned to their normals and away from its
+  axis, the torii's and hokora's faces turned right, the kasagi's ends over 0.12 above its
+  middle. The village snow check counted "more than 10" covers; with one snow mesh for the
+  hokora roof (was two slabs) the town has exactly 10 (ground, five roofs, torii, hokora, two
+  lanterns), so the check is now ">= 10" with that list in a comment. All 25 test scripts
+  `OK (0 failed)`; the four smoke runs print no error or warning lines. Looked at: the shrine
+  from four sides; town@shrine at 10:00, 20:00, winter snow 90; hill@top; sakurazaka@bridge;
+  minamino@shige.
+- Left / next: the seed stand, chest and bin by the farmhouse. Lanterns still do not light
+  their surroundings at night (roadmap 3).
+
 ## 2026-11-03 — Village house roofs as kawara meshes, ridges curling up to onigawara
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: art direction roadmap 1, second item. `MapWorld._village_house` (every village house:

@@ -126,9 +126,9 @@ func _make_prop(p: Dictionary) -> void:
 		"nagamochi": _nagamochi(mid)
 		"kotatsu": _kotatsu(mid)
 		"village_house": _village_house(r, int(p.get("door", 1)), bool(p.get("noren", false)), int(p.get("side_door", -1)))
-		"torii": _torii(mid, r)
-		"hokora": _hokora(mid)
-		"stone_lantern": _stone_lantern(mid)
+		"torii": Shrine.torii(self, mid, r)
+		"hokora": Shrine.hokora(self, mid)
+		"stone_lantern": Shrine.stone_lantern(self, mid)
 		"pine": _pine(mid)
 		"bamboo": _bamboo(mid, Vector2i(p.cell))
 		"counter": _counter(mid, r)
@@ -286,58 +286,6 @@ func _village_house(r: Rect2, door: int, noren: bool, side_door := -1) -> void:
 		if absf(x + 0.5 - dx) > 1.2 and absf(x + 0.5 - sx) > 0.9 and (x - int(r.position.x)) % 2 == 1:
 			_picture("build:shoji", Vector2(0.7, 0.5), Vector3(x + 0.5, 1.1, front + 0.005))
 	_picture("build:shoji", Vector2(0.7, 0.5), Vector3(r.end.x - 0.1 + 0.005, 1.1, mid_z), 90)
-
-
-## A vermilion torii over the shrine path: two round posts on the end cells, the black-capped
-## top beam (kasagi) curving past them and the tie beam (nuki) below it.
-func _torii(mid: Vector3, r: Rect2) -> void:
-	var red := flat_material(VERMILION)
-	var span := r.size.x - 1.0
-	for x in [r.position.x + 0.5, r.end.x - 0.5]:
-		var post := CylinderMesh.new()
-		post.top_radius = 0.09
-		post.bottom_radius = 0.11
-		post.height = 2.1
-		post.radial_segments = 10
-		var mi := MeshInstance3D.new()
-		mi.mesh = post
-		mi.material_override = red
-		mi.position = Vector3(x, 1.05, mid.z)
-		add_child(mi)
-		_box(Vector3(0.3, 0.12, 0.3), Vector3(x, 0.06, mid.z), flat_material(Color("2a2420")))
-	_box(Vector3(span + 0.5, 0.12, 0.16), Vector3(mid.x, 1.62, mid.z), red)                       # nuki
-	_box(Vector3(span + 1.1, 0.16, 0.24), Vector3(mid.x, 2.1, mid.z), red)                        # shimaki
-	_box(Vector3(span + 1.3, 0.1, 0.28), Vector3(mid.x, 2.22, mid.z), flat_material(Color("2a2420")))   # kasagi
-	_snow_top(Vector3(span + 1.2, 0.03, 0.24), Vector3(mid.x, 2.285, mid.z))
-	_box(Vector3(0.1, 0.36, 0.1), Vector3(mid.x, 1.86, mid.z), red)                               # the strut
-
-
-## A small wooden shrine (hokora) on a stone base, with a gable roof and a vermilion door.
-func _hokora(mid: Vector3) -> void:
-	var stone := flat_material(Color("8a8680"))
-	_box(Vector3(1.6, 0.3, 1.4), mid + Vector3(0, 0.15, 0), stone)
-	_box(Vector3(1.0, 0.8, 0.8), mid + Vector3(0, 0.7, 0), surface_material("build:sugi"))
-	_box(Vector3(0.4, 0.5, 0.02), mid + Vector3(0, 0.62, 0.41), flat_material(VERMILION))
-	var slope := atan2(0.35, 0.55)
-	for side in [1, -1]:
-		var center := mid + Vector3(0, 1.28, 0.27 * side)
-		_box(Vector3(1.4, 0.06, 0.7), center, surface_material("build:planks_dark"), Vector3(slope * side, 0, 0))
-		_snow_top(Vector3(1.32, 0.03, 0.62), center + Vector3(0, cos(slope), sin(slope) * side) * 0.04,
-			Vector3(slope * side, 0, 0))
-	_box(Vector3(1.5, 0.08, 0.1), mid + Vector3(0, 1.46, 0), flat_material(Color("2e221a")))
-
-
-## A stone lantern (toro): base, post, the light box with a warm window, a wide cap.
-func _stone_lantern(mid: Vector3) -> void:
-	var stone := flat_material(Color("9a968e"))
-	_box(Vector3(0.5, 0.12, 0.5), mid + Vector3(0, 0.06, 0), stone)
-	_box(Vector3(0.18, 0.55, 0.18), mid + Vector3(0, 0.39, 0), stone)
-	_box(Vector3(0.4, 0.08, 0.4), mid + Vector3(0, 0.7, 0), stone)
-	_box(Vector3(0.3, 0.26, 0.3), mid + Vector3(0, 0.87, 0), stone)
-	_box(Vector3(0.16, 0.14, 0.02), mid + Vector3(0, 0.88, 0.152), flat_material(Color("ffd890")))
-	_box(Vector3(0.56, 0.1, 0.56), mid + Vector3(0, 1.05, 0), stone)
-	_snow_top(Vector3(0.5, 0.03, 0.5), mid + Vector3(0, 1.115, 0))
-	_box(Vector3(0.12, 0.1, 0.12), mid + Vector3(0, 1.15, 0), stone)
 
 
 ## A pine: a dark trunk and three layered cones of needles.
