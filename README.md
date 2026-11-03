@@ -316,9 +316,32 @@ right after it with `{"<id>": [5, 6]}` and `seen: ["heart_<id>"]`, plays
 `heart_<id>_5`, plus `tome_grandma`, `sayo_sign` old / new or `hachiro_bell` from the scene).
 The third, a row after that with `{"<id>": [6, 6]}` and `seen: ["heart_<id>_5"]`, plays
 `data/events/heart_<id>_6.json` (lines in `data/dialogue/heart_events_6.json`, each with a
-line of its own when the band 5 flag is set; flag `heart_<id>_6`, plus `kota_streamer`,
-`sayo_ledger` or `hachiro_strike`); after it, the talk files' `dear_` lines (band 6 and the
+line of its own when the band 5 flag is set (Fumi's when her band 3 `fumi_honest` is); flag `heart_<id>_6`, plus `kota_streamer`,
+`sayo_ledger`, `hachiro_strike` or `fumi_kettle`); after it, the talk files' `dear_` lines (band 6 and the
 flag) come before the band 4 .. 6 ones. `-- --demo --hearts=N` starts everyone at the start of band N.
+
+**Marriage** (`data/marriage.json`, `Marriage` in scripts/villagers/marriage.gd): courting ends
+at the shrine. The candidates are Sayo and Fumi. The proposal item is the **mizuhiki knot**
+(`keep:mizuhiki`, a keepsake, 1500 G at the general store, any season). Held overhead and
+taken to a candidate (`Game.talk_to` → `Game.propose`) it is a proposal, not a gift: yes when
+their band is 6, their band 6 scene (`heart_<id>_6`) was seen, the house's second room is
+built (`built: "room"`) and the farmer isn't married or promised to someone else. Then the knot
+is taken, the flags `engaged` = id, `engaged_<id>`, `wedding_day` (the day number,
+`wedding_after_days` = 3 on, moved past festival days, `Game.festival_on_day`) are set and
+`propose_<id>` plays. Otherwise they answer with `marriage.json`'s line `<id>_married`,
+`_taken`, `_waiting`, `_band` or `_room` and the knot stays in hand; anyone else leaves it
+in hand with a message. From the wedding day's morning (`Game.end_day` → `Marriage.day_start`)
+the flag `wedding_due` is set (with a morning message and the HUD tag "Wedding day") until
+`wedding_<id>` has played: a row in `triggers_town.json` from 10:00, on entering the village or
+a minute later. The wedding stands the farmer before the shrine beside the bride, Tome in
+front, the guests at the sides, sets `spouse` = id and `married_<id>` and clears the rest.
+Married, the spouse's rules (`married_<id>` in their villager file) have them live at the
+farmhouse (by the kotatsu in the second room, `house` [9, 3]) mornings and evenings and keep
+their own work by day; their talk files have `engaged_`, `wed_morning_` / `wed_evening_` (at
+home) and `wed_out_` lines, and Tome mentions the knot on Fridays once a candidate's band 6
+scene is seen. All of it is story flags, so it is saved with them. The view:
+`-- --demo --map=town@shrine --time=10:00 --event=wedding_sayo`; married at home:
+`-- --demo --map=house --built=room --flags=married_sayo,spouse=sayo --time=19:00`.
 A villager stands `talk_turn_minutes` after a talk, and one walking into the farmer waits
 (`bump_reach`); that time is their delay, the whole plan runs later, at most `delay_max`
 minutes, cleared at 12:00 and 18:00. The farmer can't step within `block_reach` of anyone.

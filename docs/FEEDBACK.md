@@ -14,10 +14,6 @@ commit hash.
 
 ## Open
 
-### 3. Love has no end point (15–20)
-No marriage in data/ or ROADMAP.md; heart events stop at band 6. Players this age want to
-know what courting leads to.
-
 ### 4. Winter mining beats the whole farm (21–30)
 At the playtest the bot's year 1 winter had 51,214 G of 79,689 G from the mine. Since the bot
 rides the lift (WORKLOG 2026-11-03) it is worse: 171,766 G of 199,601 G. Min-maxers will
@@ -45,7 +41,7 @@ reproduce; if it is real, fix it, else make the load safe against a half-written
 
 ## Order to fix
 1. ~~Item 1 (Thai text): keeps the 15–20 players.~~ Fixed.
-2. ~~Item 2 (week-one goal)~~ Fixed. Item 3 (where love leads).
+2. ~~Items 2 and 3 (week-one goal, where love leads).~~ Fixed.
 3. Items 4 and 5 (mine winter income, grilled fish price).
 4. Item 6 (night), then 7 and 8.
 
@@ -62,6 +58,11 @@ reproduce; if it is real, fix it, else make the load safe against a half-written
   plots, say hello to 3 people, pick 4 wild plants, catch a fish (all day 1–3), ship 5 crops
   and earn 1000 G (week one), each with a reward (money, rice balls, seed bags, a chick) and a
   villager's thank-you note; the HUD shows the goal now under the clock. Commit e3ad897.
+- Love had no end point (item 3): courting now ends in marriage. Sayo or Fumi can be asked
+  with a mizuhiki knot (1500 G at the store) at band 6, after their band 6 scene (Fumi got
+  one) and with the second room built; anyone not ready says why and the knot stays in hand.
+  The wedding is at the shrine three days later, then the spouse lives at the farmhouse and
+  has married lines; Tome mentions the knot on Fridays. data/marriage.json. Commit be3a2bb.
 - Roofs in front of the farmer hid the screen (village, festival square, snow): buildings,
   trees and the torii turn see-through when they stand between the camera and the farmer.
   Commit 67cbaed.

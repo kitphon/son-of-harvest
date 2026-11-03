@@ -8,7 +8,12 @@
 		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
 		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
 		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
+		{"if": {"flags": ["engaged_fumi"]}, "at": ["engaged_1", "engaged_2"]},
+		{"if": {"flags": ["married_fumi"], "map": ["house"], "time": ["06:00", "12:00"]}, "at": ["wed_morning_1", "wed_morning_2", "wed_morning_3"]},
+		{"if": {"flags": ["married_fumi"], "map": ["house"]}, "at": ["wed_evening_1", "wed_evening_2", "wed_evening_3"]},
+		{"if": {"flags": ["married_fumi"]}, "at": ["wed_out_1", "wed_out_2"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
+		{"if": {"band": [6, 6], "flags": ["heart_fumi_6"], "not_flags": ["engaged_fumi", "married_fumi"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"band": [5, 6], "flags": ["heart_fumi_5"]}, "at": ["after_tea_1", "after_tea_2"]},
 		{"if": {"weekday": ["sat"], "band": [2, 5], "season": ["spring"]}, "at": ["forage_spring"]},
 		{"if": {"weekday": ["sat"], "band": [2, 5], "season": ["summer"]}, "at": ["forage_summer"]},
@@ -66,6 +71,21 @@
 		{"id": "gift_dish_love", "speaker": "fumi", "mood": "happy", "text": "This would sell out by noon if I put it on my menu. May I copy it?", "next": "end"},
 		{"id": "gift_dish_like", "speaker": "fumi", "mood": "happy", "text": "Home cooking! A teahouse keeper never gets anyone's but her own. Thank you.", "next": "end"},
 		{"id": "gift_dish_neutral", "speaker": "fumi", "mood": "neutral", "text": "Oh, a dish. I'll have it for supper, thank you.", "next": "end"},
-		{"id": "gift_dish_dislike", "speaker": "fumi", "mood": "sad", "text": "Ah... a fish dish. I'm sure Ichiro will love it.", "next": "end"}
+		{"id": "gift_dish_dislike", "speaker": "fumi", "mood": "sad", "text": "Ah... a fish dish. I'm sure Ichiro will love it.", "next": "end"},
+
+		{"id": "dear_1", "speaker": "fumi", "mood": "happy", "text": "Mother's kettle pours slower than mine, but sweeter. Come and taste the difference.", "next": "end"},
+		{"id": "dear_2", "speaker": "fumi", "mood": "neutral", "text": "I've kept you a cup on the back shelf. Nobody else drinks from it. Don't tell anyone.", "next": "end"},
+		{"id": "dear_3", "speaker": "fumi", "mood": "happy", "text": "The road looks different on days you come by. Brighter. That's not the tea talking.", "next": "end"},
+
+		{"id": "engaged_1", "speaker": "fumi", "mood": "happy", "text": "Tome has me sewing cushions for the shrine. Three days, she says, and not a minute more.", "next": "end"},
+		{"id": "engaged_2", "speaker": "fumi", "mood": "neutral", "text": "The tea merchant sent a letter. I wrote back that I'm getting married. He hasn't answered.", "next": "end"},
+		{"id": "wed_morning_1", "speaker": "fumi", "mood": "happy", "text": "Good morning. The first cup is on the kotatsu. Mother's kettle, as promised.", "next": "end"},
+		{"id": "wed_morning_2", "speaker": "fumi", "mood": "neutral", "text": "Take a rice ball for the field. You forget to eat when the weather's good.", "next": "end"},
+		{"id": "wed_morning_3", "speaker": "fumi", "mood": "happy", "text": "I can hear the hens from here. They wake earlier than any teahouse keeper.", "next": "end"},
+		{"id": "wed_evening_1", "speaker": "fumi", "mood": "happy", "text": "Welcome home. Last cup of the day. Sit, before it goes cold.", "next": "end"},
+		{"id": "wed_evening_2", "speaker": "fumi", "mood": "neutral", "text": "Ichiro asked if I'd still pour his lunch. As if I'd let anyone else do it badly.", "next": "end"},
+		{"id": "wed_evening_3", "speaker": "fumi", "mood": "happy", "text": "The farm is quieter than the road at night. I like it. I can hear the kettle think.", "next": "end"},
+		{"id": "wed_out_1", "speaker": "fumi", "mood": "happy", "text": "Customers ask how married life is. I tell them the tea tastes the same and the walk home is better.", "next": "end"},
+		{"id": "wed_out_2", "speaker": "fumi", "mood": "neutral", "text": "Sit for one cup? You don't have to pay any more. That's the only drawback of marrying me.", "next": "end"}
 	]
 }

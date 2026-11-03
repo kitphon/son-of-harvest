@@ -38,7 +38,8 @@ means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our
 pixel font). [x] Item 2, a goal for week one: Tome's first-week
-list (data/goals.json, README → Goals, the HUD's goal tag). Next: item 3 (where love leads); Thai for the villagers'
+list (data/goals.json, README → Goals, the HUD's goal tag). [x] Item 3, where love leads: marriage
+(data/marriage.json, README → Villagers → Marriage). Next: items 4 and 5; Thai for the villagers'
 daily talk, heart events and contests is still to write (data/lang/th/dialogue.json).
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
@@ -124,6 +125,11 @@ band 6 talk lines after it. The villager acts in every heart scene: they stay wh
 found them (or walk up to the farmer when played elsewhere), face the farmer through their
 lines and go back to their day plan (actor steps `"at": "plan"`, `"to": "farmer" / "plan"`,
 `"face": "farmer"`).
+Courting ends in marriage (data/marriage.json, README → Villagers → Marriage): Sayo or Fumi,
+asked with a mizuhiki knot from the store once at band 6 after their band 6 scene and with
+the second room built; the wedding is at the shrine three days later, then the spouse lives
+at the farmhouse. Later for marriage: a word in the village record, the spouse helping on the
+farm, a child.
 Shops are in (data/shops.json): the Yorozu Store and the Kurogane Smithy in the village, with
 opening hours and days off, a buy / sell screen and tool upgrades over days (saved). A
 shopkeeper only has to stand at the map's `keeper` spawn and call `Game.open_shop(id)`.
@@ -225,7 +231,7 @@ and a sweet of the season sold nowhere else, while she is behind her counter). F
 (data/forage.json: fifteen spots on the bamboo hill, what grows changes by the season, a picked
 spot grows back overnight; README → Forage). The village record has a Neighbours
 row (the villagers without hearts known to band 1; six of them since Fumi and Ichiro got hearts).
-Later for hearts: band 6 scenes for Fumi and Ichiro; hearts for Genzo, Haru, Shige, Nana or Kiku the same way (README → Villagers says what a friend needs). Shige, Genzo, Haru, Ichiro and Nana are
+Later for hearts: a band 6 scene for Ichiro (Fumi has hers since the marriage work); hearts for Genzo, Haru, Shige, Nana or Kiku the same way (README → Villagers says what a friend needs). Shige, Genzo, Haru, Ichiro and Nana are
 contest rivals (one in every contest and game). Forage spots are in the three outer parts too
 (their own wild things: water dropwort, sansho, mulberries, ginkgo nuts and more). Wild things
 cook: six recipes of wild greens, mushrooms, bamboo shoots, chestnuts and matsutake (Haru, Genzo
@@ -341,6 +347,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Band 6 heart scenes: Tome stays in the village, Kota's carp streamer (a farm prop), Sayo's new ledger, Hachiro's sickle; band 6 talk lines
    - [x] Hearts for Fumi and Ichiro (Sakurazaka): birthdays with day plans, close lines, heart events at bands 3 and 5, a part in the ending; the record's Friendships / Neighbours steps rescaled
    - [x] Actors in the heart scenes: the villager stands facing the farmer through their lines in both views, then goes back to their day plan
+   - [x] Marriage (docs/FEEDBACK.md item 3): Fumi's band 6 scene, the mizuhiki knot (the store), the proposal rules (band 6, the band 6 scene, the second room), the answers, the proposal and the wedding at the shrine, the spouse living at the farmhouse with married lines (data/marriage.json)
    - [x] Ending: the village record on the first morning of year 3 (data/ending.json: ten categories graded in stars, five ranks), Tome's verdict, the closest villager's word; the game goes on
    - [x] Ending steps re-set for 11 crops / 13 recipes; balance re-run with smithy ores, contest prizes, cooking, daikon and rice
    - [x] Yearly pages: a shorter village record every New Year (year 2, year 4 on), the first day kept in the save and shown beside today's numbers, the gain since the last page

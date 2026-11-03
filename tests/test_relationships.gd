@@ -3,8 +3,10 @@ extends SceneTree
 ## (villager files, the calendar, gifts counting x5, the birthday lines), the small nightly
 ## loss for villagers left alone, the heart events (one per villager at bands 3, 5 and 6, and
 ## the band 6 talk lines), birthday day plans, fair weather and the HUD tag on a birthday, mine finds and cooked dishes as
-## gifts, the villagers' own lines for keepsakes and dishes, and a loved keepsake kept in its
-## new owner's home. Run:
+## gifts, the villagers' own lines for keepsakes and dishes, a loved keepsake kept in its
+## new owner's home, and marriage (data/marriage.json: the rules for the mizuhiki knot, the
+## answers, the proposal, the wedding day and its trigger, the spouse's day plan and lines,
+## the save). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_relationships.gd
 
 var failures := 0
@@ -24,6 +26,8 @@ func _init() -> void:
 	_dish_gifts()
 	_keepsake_gifts()
 	_sakurazaka_friends()
+	_marriage_rules()
+	_married_plans_and_lines()
 
 
 func _process(_delta: float) -> bool:
@@ -39,6 +43,7 @@ func _process(_delta: float) -> bool:
 		_heart_events_play()
 		_birthday_weather()
 		_birthday_tag()
+		_marriage_in_game()
 		print("test_relationships: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -172,7 +177,7 @@ func _heart_event_rows() -> void:
 	var maps := {"tome": ["town", "tome_house"], "kota": ["town", "kota_house"],
 		"sayo": ["town", "store", "sayo_house"], "hachiro": ["town", "smithy"],
 		"fumi": ["town", "teahouse", "sakurazaka"], "ichiro": ["town", "sakurazaka", "ichiro_house"]}
-	for id in ["tome", "kota", "sayo", "hachiro"]:
+	for id in ["tome", "kota", "sayo", "hachiro", "fumi"]:
 		check(_has_event("heart_%s_5" % id) and _has_event("heart_%s_6" % id), "%s has heart events at 5 and 6" % id)
 	for id in Villagers.friends():
 		check(maps.has(id) and _has_event("heart_" + id), "%s has a heart event" % id)
@@ -303,6 +308,9 @@ func _keepsake_gifts() -> void:
 						welcome[item] = true
 		check(loves == 1, "%s loves one keepsake (%d)" % [id, loves])
 	for k in kept:
+		if "keep:" + k == Marriage.item():   # the mizuhiki knot is a proposal, not a present
+			check(not welcome.has("keep:" + k), "nobody takes the mizuhiki knot as a gift")
+			continue
 		check(welcome.has("keep:" + k), "someone likes keep:%s" % k)
 	check(Villagers.reaction("kota", "keep:clay_rabbit") == "love" and Villagers.reaction("hachiro", "keep:wind_chime") == "dislike"
 		and Villagers.reaction("tome", "keep:omamori") == "love" and Villagers.reaction("sayo", "keep:daruma") == "dislike",
@@ -476,8 +484,9 @@ func _neglect_in_game() -> void:
 ## Each heart event (bands 3, 5 and 6) runs to the end on the real Game: flag set, affection
 ## up, and band 6's own story flag. Kota's second and third read both ways, with and without
 ## his carp promise; band 6 also with and without the band 5 flags its lines look back on.
-const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike"}
-const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell"}
+const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle"}
+## The flag each band 6 scene looks back on (Fumi's comes from her band 3 scene).
+const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest"}
 
 func _heart_events_play() -> void:
 	for id in Villagers.friends():
@@ -529,7 +538,7 @@ func _heart_events_play() -> void:
 	check("didn't" in d.text(), "without it he let the carp be anyway: %s" % d.text())
 	# Band 6's lines look back on band 5: each branch shows its own line.
 	var looks := {"tome": ["grandchild", "nag it"], "kota": ["promise", "Nobody else"],
-		"sayo": ["new sign", "minding his store"]}
+		"sayo": ["new sign", "minding his store"], "fumi": ["bean paste", "owed to her"]}
 	for id in looks:
 		d = DialogueRunner.open("heart_events_6", {FIVE_FLAGS[id]: true}, id)
 		_next_line(d)
@@ -672,3 +681,200 @@ func check(ok: bool, what: String) -> void:
 	if not ok:
 		failures += 1
 		print("FAIL: " + what)
+
+
+# --- marriage (data/marriage.json, Marriage) ----------------------------------------
+
+## The data, the rules for the knot in their order, the wedding day past festivals, the
+## morning it is due and the trigger rows that play the wedding in the village.
+func _marriage_rules() -> void:
+	check(Marriage.check() == "", "marriage data: %s" % Marriage.check())
+	check(Marriage.candidates() == ["sayo", "fumi"] and Marriage.item() == "keep:mizuhiki", "Sayo and Fumi can marry; the knot is %s" % Marriage.item())
+	check(Keepsakes.name_of(Marriage.item()) == "Mizuhiki knot" and Keepsakes.keepsake(Marriage.item()).look.shape == "knot", "the knot is a keepsake of its own look")
+	var art := PlaceholderArt.tex(PlaceholderArt.item_key(Marriage.item()))
+	check(art != null and art.get_width() == 14, "the knot has its icon")
+	var seen := {"heart_sayo_6": true}
+	var room := ["room"]
+	check(Marriage.answer("tome", 6, {}, seen, room) == "not_candidate" and Marriage.answer("kota", 6, {}, seen, room) == "not_candidate", "Tome and Kota can't be asked")
+	check(Marriage.answer("sayo", 5, {}, seen, room) == "band", "band 5: not yet")
+	check(Marriage.answer("sayo", 6, {}, {}, room) == "band", "band 6 without her band 6 scene: not yet")
+	check(Marriage.answer("sayo", 6, {}, seen, ["kitchen"]) == "room", "no second room: ask again once it's built")
+	check(Marriage.answer("sayo", 6, {}, seen, room) == "", "band 6, her scene seen, the room built: yes")
+	check(Marriage.answer("sayo", 6, {"engaged": "sayo"}, seen, room) == "waiting", "already promised to her: wait for the shrine")
+	check(Marriage.answer("sayo", 6, {"engaged": "fumi"}, seen, room) == "taken", "promised to Fumi: Sayo says no")
+	check(Marriage.answer("sayo", 6, {"spouse": "sayo"}, seen, room) == "married", "married to her: one promise is plenty")
+	check(Marriage.answer("fumi", 6, {"spouse": "sayo"}, {"heart_fumi_6": true}, room) == "taken", "married to Sayo: Fumi says no")
+	check(Marriage.answer("sayo", 2, {"spouse": "fumi"}, {}, []) == "taken", "being married is the first answer, before the band")
+	# Three days on, past festival days.
+	var none := func(_n: int) -> bool: return false
+	check(Marriage.wedding_day(10, none) == 13, "the wedding three days after the proposal (%d)" % Marriage.wedding_day(10, none))
+	check(Marriage.wedding_day(10, func(n: int) -> bool: return n == 13 or n == 14) == 15, "moved past festival days")
+	# The morning it is due, and every morning after until the wedding has played.
+	var f := {}
+	Marriage.engage(f, "sayo", 10, none)
+	check(f.engaged == "sayo" and f.engaged_sayo == true and f.wedding_day == 13, "engaged flags %s" % [f])
+	check(not Marriage.day_start(f, 12) and not f.has(Marriage.DUE) and Marriage.day_tag(f) == "", "not due the day before")
+	check(Marriage.day_start(f, 13) and f.wedding_due == true and Marriage.day_tag(f) == "Wedding day", "due on the day, with the HUD tag")
+	check(Marriage.day_start(f, 14), "still due the day after if missed")
+	check(not Marriage.day_start({"spouse": "sayo"}, 20), "nothing due once married")
+	# The village plays it from 10:00 on a day it is due, the bride's own one.
+	var t := EventTriggers.open("town")
+	check(t.error == "", "triggers_town: %s" % t.error)
+	var s := {"year": 1, "season": "spring", "day": 14, "weekday": "sun", "time": 600, "weather": "sunny",
+		"flags": {"wedding_due": true, "engaged": "sayo", "engaged_sayo": true}, "seen": {}, "cell": Vector2i(2, 10), "hearts": {}}
+	check(t.pick("enter", s) == "wedding_sayo" and t.pick("minute", s) == "wedding_sayo", "walking in at 10:00 plays Sayo's wedding")
+	check(t.pick("enter", s.merged({"time": 9 * 60 + 59}, true)) == "", "not before 10:00")
+	check(t.pick("enter", s.merged({"flags": {"engaged": "sayo", "engaged_sayo": true}}, true)) == "", "not before the day")
+	check(t.pick("enter", s.merged({"seen": {"wedding_sayo": true}}, true)) == "", "once")
+	check(t.pick("enter", s.merged({"flags": {"wedding_due": true, "engaged": "fumi", "engaged_fumi": true}}, true)) == "wedding_fumi", "Fumi's for Fumi")
+	# Every candidate's scenes run and set what they say.
+	for id in Marriage.candidates():
+		for kind in ["propose", "wedding"]:
+			check(EventRunner.open(Marriage.event(kind, id), null).error == "", "%s runs" % Marriage.event(kind, id))
+	var tables := {"fumi": ["town", "teahouse", "sakurazaka"]}
+	for m in tables.fumi:
+		check("heart_fumi_6" in FileAccess.get_file_as_string(EventRunner.DIR + "triggers_%s.json" % m), "Fumi's band 6 scene on %s" % m)
+
+
+## The spouse's married day plans (at the farmhouse mornings and evenings, their own work in
+## between) and lines (engaged, at home, out), and Tome's word about the knot.
+func _married_plans_and_lines() -> void:
+	var day := {"year": 1, "season": "summer", "day": 3, "weekday": "wed", "weather": "sunny", "flags": {"married_sayo": true}, "festival": ""}
+	Villagers.reset_day()
+	check(Villagers.where("sayo", 7 * 60, day).map == "house" and Vector2i(Villagers.where("sayo", 7 * 60, day).pos.floor()) == Vector2i(9, 3),
+		"married, Sayo wakes at the farmhouse, by the kotatsu (%s)" % [Villagers.where("sayo", 7 * 60, day)])
+	check(Villagers.is_on("sayo", "store", 12 * 60, day) and Villagers.is_on("sayo", "house", 19 * 60, day) and Villagers.where("sayo", 22 * 60, day).map == "away",
+		"keeps the store by day, home at the farmhouse in the evening, in bed by 21:00")
+	check(Talk.keeper_shop("sayo", "house", Vector2i(9, 3)) == "", "at the farmhouse she is not keeping the store")
+	var sun := day.merged({"weekday": "sun"}, true)
+	Villagers.reset_day()
+	check(Villagers.is_on("sayo", "house", 10 * 60, sun) and Villagers.is_on("sayo", "tome_house", 13 * 60, sun), "a Sunday at home, tea at Tome's")
+	var fest := day.merged({"season": "spring", "day": Festivals.get_festival("blossom_day").get("day", 1), "festival": "blossom_day"}, true)
+	Villagers.reset_day()
+	check(Villagers.where("sayo", 14 * 60, fest).map == "town", "a festival still takes her to the village")
+	var single := day.merged({"flags": {}}, true)
+	Villagers.reset_day()
+	check(Villagers.where("sayo", 7 * 60, single).map == "sayo_house", "single, Sayo wakes in her own rooms")
+	var fday := day.merged({"flags": {"married_fumi": true}}, true)
+	Villagers.reset_day()
+	check(Villagers.is_on("fumi", "house", 7 * 60, fday) and Villagers.is_on("fumi", "teahouse", 10 * 60, fday) and Villagers.is_on("fumi", "house", 19 * 60, fday),
+		"married, Fumi pours at the teahouse by day and comes home to the farmhouse")
+	Villagers.reset_day()
+	check(Villagers.is_on("fumi", "teahouse", 14 * 60, fday.merged({"weather": "rain"}, true)) and Villagers.is_on("fumi", "house", 7 * 60, fday.merged({"weather": "rain"}, true)),
+		"a wet day at the counter, from the farmhouse")
+	Villagers.reset_day()
+	# Their lines: engaged, then married at home (morning, evening) and out.
+	var st := {"year": 1, "season": "summer", "day": 3, "weekday": "wed", "time": 7 * 60, "weather": "sunny",
+		"festival": "", "band": 6, "again": false, "birthday": false, "day_number": 0, "map": "house"}
+	for id in Marriage.candidates():
+		var wed := {"married_" + id: true, "spouse": id, "heart_%s_6" % id: true}
+		check(Talk.pick(id, st.merged({"flags": wed}, true)).begins_with("wed_morning"), "%s at home in the morning" % id)
+		check(Talk.pick(id, st.merged({"flags": wed, "time": 20 * 60}, true)).begins_with("wed_evening"), "%s at home in the evening" % id)
+		check(Talk.pick(id, st.merged({"flags": wed, "time": 15 * 60 + 30, "map": "sakurazaka"}, true)).begins_with("wed_out"), "%s out of the house" % id)
+		check(Talk.pick(id, st.merged({"flags": {"engaged_" + id: true, "heart_%s_6" % id: true}, "map": "town"}, true)).begins_with("engaged"), "%s engaged" % id)
+		check(not Talk.pick(id, st.merged({"flags": {"married_" + id: true}, "again": true}, true)).begins_with("wed"), "%s: talked twice, the again lines" % id)
+		var seen := {}
+		for n in 3:
+			seen[Talk.pick(id, st.merged({"flags": wed, "day_number": n}, true))] = true
+		check(seen.size() == 3, "%s's married morning lines take turns" % id)
+		for why in Marriage.REASONS:
+			check(DialogueRunner.open(Marriage.dialogue(), {}, "%s_%s" % [id, why]).error == "", "%s answers %s" % [id, why])
+	var fri := st.merged({"weekday": "fri", "map": "town", "time": 10 * 60, "band": 3}, true)
+	check(Talk.pick("tome", fri.merged({"flags": {"heart_sayo_6": true}}, true)) == "knot_hint", "Tome tells of the knot on a Friday once Sayo's band 6 scene is seen")
+	check(Talk.pick("tome", fri.merged({"flags": {"heart_fumi_6": true}}, true)) == "knot_hint", "or Fumi's")
+	check(Talk.pick("tome", fri.merged({"flags": {"heart_sayo_6": true, "engaged": "sayo"}}, true)) != "knot_hint", "not once engaged")
+	check(Talk.pick("tome", fri.merged({"flags": {"spouse": "sayo"}}, true)) == "newlyweds", "a word for the newly married")
+	check(Talk.pick("tome", fri.merged({"flags": {}}, true)) != "knot_hint", "nothing about it before")
+
+
+## In the game: buy the knot, the answers with the knot kept, the proposal with it given,
+## the wedding three mornings on, the spouse flags, and the save.
+func _marriage_in_game() -> void:
+	var g := _game()
+	var said := []
+	var played := []
+	var messages := []
+	g.dialogue_requested.connect(func(id, at): said.append([id, at]))
+	g.event_requested.connect(func(id): played.append(id))
+	g.message.connect(func(t): messages.append(t))
+	g.season = g.SEASONS.find("summer")
+	g.day = 10
+	g.weather_today = "sunny"
+	g.hour = 10
+	g.money = 5000
+	var blossom := -1
+	for n in 120:
+		if g.festival_on_day(n) == "blossom_day":
+			blossom = n
+			break
+	check(blossom >= 0 and Festivals.on_date("spring", blossom + 1) == "blossom_day", "Game.festival_on_day finds Blossom Day on day number %d" % blossom)
+	check(Marriage.wedding_day(blossom - 3, func(n: int) -> bool: return g.festival_on_day(n) != "") == blossom + 1, "never on Blossom Day")
+	var r: Dictionary = g.shop_buy("general", Marriage.item())
+	check(r.get("ok", false) and g.count(Marriage.item()) == 1 and g.money == 3500, "the store sells the knot for 1500 G %s" % [r])
+	g.inventory.take(Marriage.item(), 1)
+	g.inventory.slots.hand[0] = {"id": Marriage.item(), "n": 1}
+	# Not yet: band 5, then band 6 without the room.
+	g.affection.add("sayo", int(Affection.rules().bands[5]))
+	check(g.talk_to("sayo", Vector2i.DOWN) == "kept" and said.back() == ["marriage", "sayo_band"] and g.holding(), "band 5: not yet, the knot stays in hand %s" % [said.back()])
+	g.affection.add("sayo", int(Affection.rules().bands[6]))
+	g.events_seen["heart_sayo_6"] = true
+	check(g.talk_to("sayo", Vector2i.DOWN) == "kept" and said.back() == ["marriage", "sayo_room"] and g.holding(), "no second room: ask again %s" % [said.back()])
+	check(g.talk_to("tome", Vector2i.DOWN) == "kept" and messages.back() == Marriage.text("not_candidate") and g.holding(), "Tome leaves the knot in hand")
+	var talks: int = said.size()
+	var before: int = g.affection.of("sayo")
+	g.house_built.append("room")
+	check(g.talk_to("sayo", Vector2i.DOWN) == "propose" and played.back() == "propose_sayo" and not g.holding() and g.count(Marriage.item()) == 0,
+		"with the room: the knot is given and the proposal plays %s" % [played])
+	check(said.size() == talks and g.affection.of("sayo") == before, "a proposal is not a gift: no gift line, no gift points")
+	var today: int = g.day_number()
+	check(g.flags.engaged == "sayo" and g.flags.engaged_sayo and g.flags.wedding_day == today + 3, "engaged, the wedding on day %s" % [g.flags.get("wedding_day")])
+	var ev := EventRunner.open("propose_sayo", g)
+	ev.start(Vector2(8, 8), Vector2i.UP)
+	ev.on_stage = {"sayo": {"pos": Vector2(0.5, -0.5), "facing": Vector2i.LEFT}}
+	for i in 200:
+		if ev.done():
+			break
+		ev.update(0.5)
+	check(ev.done() and said.back() == ["marriage", "sayo_yes"] and ev.actors.is_empty(), "the proposal scene plays out, Sayo back to her plan")
+	g.inventory.slots.hand[0] = {"id": Marriage.item(), "n": 1}
+	g.talk_to("sayo", Vector2i.DOWN)
+	check(said.back() == ["marriage", "sayo_waiting"], "a second knot: she said yes already")
+	g.affection.add("fumi", int(Affection.rules().bands[6]))
+	g.events_seen["heart_fumi_6"] = true
+	g.talk_to("fumi", Vector2i.DOWN)
+	check(said.back() == ["marriage", "fumi_taken"] and g.holding(), "promised to Sayo, Fumi says no")
+	g.inventory.slots.hand[0] = {}
+	# The mornings: due on the third.
+	for n in 2:
+		g.end_day()
+		check(not EventRunner.is_set(g.flags, Marriage.DUE), "not due on the morning %d after" % (n + 1))
+	messages.clear()
+	g.end_day()
+	check(EventRunner.is_set(g.flags, Marriage.DUE) and Marriage.text("due") in messages and Marriage.day_tag(g.flags) != "", "the wedding is due on the third morning, and the game says so")
+	# The wedding at the shrine.
+	ev = EventRunner.open("wedding_sayo", g)
+	ev.start(Vector2(2.5, 10.5) * 16, Vector2i.RIGHT)
+	var cast := {}
+	for i in 400:
+		if ev.done():
+			break
+		ev.update(0.5)
+		for id in ev.actors:
+			cast[id] = true
+	check(ev.done() and said.back() == ["marriage", "sayo_wedding"], "the wedding plays out")
+	check(cast.has("sayo") and cast.has("tome") and cast.size() >= 6, "Sayo, Tome and the guests are there (%s)" % [cast.keys()])
+	check(Vector2i((ev.pos / 16.0).floor()) == Vector2i(18, 5), "the farmer stands before the shrine (%s)" % [ev.pos / 16.0])
+	check(Marriage.spouse(g.flags) == "sayo" and EventRunner.is_set(g.flags, "married_sayo"), "married to Sayo")
+	check(Marriage.engaged(g.flags) == "" and not EventRunner.is_set(g.flags, "engaged_sayo") and not EventRunner.is_set(g.flags, Marriage.DUE)
+		and not EventRunner.is_set(g.flags, Marriage.DAY), "the engaged flags are cleared")
+	messages.clear()
+	g.end_day()
+	check(not Marriage.text("due") in messages and Marriage.day_tag(g.flags) == "", "nothing due the next morning")
+	# Saved and loaded.
+	var path := "user://test_marriage.json"
+	check(SaveGame.write(g, path) == "", "write the save")
+	var h := _game()
+	check(Marriage.spouse(h.flags) == "", "a new game is single")
+	check(SaveGame.read(h, path) == "" and Marriage.spouse(h.flags) == "sayo" and EventRunner.is_set(h.flags, "married_sayo"), "married after loading")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	h.new_game()

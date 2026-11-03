@@ -847,6 +847,8 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 		_finish_build(house_job)
 	sync_build_flag()
 	build_news = _build_off_news()
+	if Marriage.day_start(flags, day_number()):   # the wedding day (or a later one): the shrine waits
+		message.emit(Marriage.text("due"))
 	go_to_spawn(wake_map, wake_spawn)
 	day_started.emit()
 	changed.emit()
@@ -1773,6 +1775,8 @@ func talk_to(id: String, face: Vector2i) -> String:
 	Villagers.turn(id, face, t)
 	var file := Talk.dialogue_id(id)
 	var birthday := Villagers.has_birthday(id, season_name(), day)
+	if holding() and held == Marriage.item():
+		return propose(id)
 	if holding():
 		var item := held
 		var r := affection.give(id, item, today, birthday)
@@ -1865,6 +1869,29 @@ func _give_goal_reward(r: Dictionary) -> Array[String]:
 		given.push_front(Goals.message("money") % cash)
 	changed.emit()
 	return given
+
+
+## The farmer holds the proposal item (data/marriage.json) out to villager `id`: "propose"
+## when they say yes (the knot is taken, the engaged flags set, the proposal event plays),
+## "kept" when they answer why not, or for anyone who can't marry (the knot stays in hand).
+func propose(id: String) -> String:
+	var why := Marriage.answer(id, affection.band(id), flags, events_seen, house_built)
+	if why == "not_candidate":
+		message.emit(Marriage.text("not_candidate"))
+		return "kept"
+	if why != "":
+		talk(Marriage.dialogue(), "%s_%s" % [id, why])
+		return "kept"
+	inventory.take(held, 1, ["hand"])
+	Marriage.engage(flags, id, day_number(), func(n: int) -> bool: return festival_on_day(n) != "")
+	changed.emit()
+	play_event(Marriage.event("propose", id))
+	return "propose"
+
+
+## The festival on day number `n` (day_number()), or "".
+func festival_on_day(n: int) -> String:
+	return Festivals.on_date(SEASONS[posmod(n / DAYS_PER_SEASON, SEASONS.size())], posmod(n, DAYS_PER_SEASON) + 1)
 
 
 ## The heart band (0 .. 6) the text box shows for `speaker`, or -1 when the speaker isn't a

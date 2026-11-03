@@ -1,5 +1,5 @@
 {
-	"_about": "Our own music: every melody here was written for Harvest Son, in five-note scales (yo [0,2,5,7,9], in [0,1,5,7,8], minyo [0,3,5,7,10], ritsu [0,2,5,7,10]). Played by scripts/audio/music_synth.gd (score format at its top) on the Music bus. rules pick the track (first fit wins, see music_picker.gd; festivals = while one of those festivals is on around the farmer, data/festivals.json; the four fest_ scores play then; maps = on those maps, data/maps: store and smithy have their own; events = while one of those event scripts plays, data/events: heart for the heart events, morning for the opening of a new game); fade_seconds is the cross-fade between tracks, start_fade the fade-in from silence.",
+	"_about": "Our own music: every melody here was written for Harvest Son, in five-note scales (yo [0,2,5,7,9], in [0,1,5,7,8], minyo [0,3,5,7,10], ritsu [0,2,5,7,10]). Played by scripts/audio/music_synth.gd (score format at its top) on the Music bus. rules pick the track (first fit wins, see music_picker.gd; festivals = while one of those festivals is on around the farmer, data/festivals.json; the four fest_ scores play then; maps = on those maps, data/maps: store and smithy have their own; events = while one of those event scripts plays, data/events: heart for the heart events, the proposals and the weddings, morning for the opening of a new game); fade_seconds is the cross-fade between tracks, start_fade the fade-in from silence.",
 	"fade_seconds": 3.0,
 	"start_fade": 1.0,
 	"instruments": {
@@ -161,7 +161,7 @@
 	},
 	"rules": [
 		{"track": "title", "scenes": ["title"]},
-		{"track": "heart", "events": ["heart_fumi", "heart_fumi_5", "heart_hachiro", "heart_hachiro_5", "heart_hachiro_6", "heart_ichiro", "heart_ichiro_5", "heart_kota", "heart_kota_5", "heart_kota_6", "heart_sayo", "heart_sayo_5", "heart_sayo_6", "heart_tome", "heart_tome_5", "heart_tome_6"]},
+		{"track": "heart", "events": ["heart_fumi", "heart_fumi_5", "heart_fumi_6", "heart_hachiro", "heart_hachiro_5", "heart_hachiro_6", "heart_ichiro", "heart_ichiro_5", "heart_kota", "heart_kota_5", "heart_kota_6", "heart_sayo", "heart_sayo_5", "heart_sayo_6", "heart_tome", "heart_tome_5", "heart_tome_6", "propose_sayo", "propose_fumi", "wedding_sayo", "wedding_fumi"]},
 		{"track": "morning", "events": ["opening", "first_morning"]},
 		{"track": "fest_blossom", "festivals": ["blossom_day"]},
 		{"track": "fest_lanterns", "festivals": ["lantern_night"]},

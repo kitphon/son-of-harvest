@@ -1,0 +1,52 @@
+{
+	"_note": "Courting's end (data/marriage.json, README.md, Villagers → Marriage): a candidate's answer to the mizuhiki knot held out (<id>_married, _taken, _waiting, _band, _room; the knot stays in hand), the proposal scene (<id>_yes, data/events/propose_<id>.json) and the wedding at the shrine (<id>_wedding, data/events/wedding_<id>.json). Each part ends with next end. Our own scenes.",
+	"lines": [
+		{"id": "sayo_married", "speaker": "sayo", "mood": "happy", "text": "Another one? I already have yours, tied to the ledger. One promise is plenty, thank you.", "next": "end"},
+		{"id": "sayo_taken", "speaker": "sayo", "mood": "sad", "text": "...Put that away. That knot is a promise, and yours is already made to somebody else.", "next": "end"},
+		{"id": "sayo_waiting", "speaker": "sayo", "mood": "happy", "text": "Yes, yes, I said yes already. Save it for the shrine. And don't be late.", "next": "end"},
+		{"id": "sayo_band", "speaker": "sayo", "mood": "surprised", "text": "A mizuhiki knot? For me? ...Don't. Not yet. We don't know each other that well."},
+		{"speaker": "sayo", "mood": "neutral", "text": "Keep coming by the counter. Then we'll see.", "next": "end"},
+		{"id": "sayo_room", "speaker": "sayo", "mood": "surprised", "text": "Is that... a mizuhiki knot? Oh. Oh, I see."},
+		{"speaker": "sayo", "mood": "neutral", "text": "I'd like to say yes. But your farmhouse is one room and a futon. Where would I keep my ledgers?"},
+		{"speaker": "sayo", "mood": "happy", "text": "Have Hachiro build a second room. Then ask me again. I'll be at the counter.", "next": "end"},
+
+		{"id": "sayo_yes", "speaker": "sayo", "mood": "surprised", "text": "That's a mizuhiki knot. Red and white. You know what it means when you hand one over, don't you?"},
+		{"speaker": "farmer", "mood": "neutral", "text": "I do. Will you marry me?"},
+		{"speaker": "sayo", "mood": "sad", "text": "...Father used to say I'd marry the store. I think I half believed him."},
+		{"speaker": "sayo", "mood": "happy", "text": "Yes. Yes! I'll keep the store and you'll keep the farm, and we'll keep each other. Deal?"},
+		{"speaker": "sayo", "mood": "neutral", "text": "Grandma Tome will want to ready the shrine. Give her three days. And wear something clean.", "next": "end"},
+
+		{"id": "sayo_wedding", "speaker": "tome", "mood": "happy", "text": "Well. The whole village up at the shrine, and not even a festival. Settle down, all of you."},
+		{"speaker": "tome", "mood": "neutral", "text": "Sayo, your father would have counted every guest and charged them for the tea. He'd be proud."},
+		{"speaker": "tome", "mood": "neutral", "text": "Now take each other's hands and tie the knot round them both. Tight. A loose knot is a loose promise."},
+		{"speaker": "sayo", "mood": "happy", "text": "I'll keep your field in my ledger and you'll keep my shelves in yours. From today, one book."},
+		{"speaker": "farmer", "mood": "happy", "text": "One book. I promise."},
+		{"speaker": "kota", "mood": "surprised", "text": "Does this mean the store gives us sweets for free now?"},
+		{"speaker": "hachiro", "mood": "happy", "text": "Hah. It means you'll pay twice, boy. Congratulations, you two."},
+		{"speaker": "tome", "mood": "happy", "text": "There. Done and tied. Off home with you both, and be good to each other.", "next": "end"},
+
+		{"id": "fumi_married", "speaker": "fumi", "mood": "happy", "text": "You're giving me another? I've only one wrist, and the first one is already on it.", "next": "end"},
+		{"id": "fumi_taken", "speaker": "fumi", "mood": "sad", "text": "Oh, don't. Your promise is already made to somebody else. Keep that one for them.", "next": "end"},
+		{"id": "fumi_waiting", "speaker": "fumi", "mood": "happy", "text": "I haven't changed my mind, if that's what you're asking. Three days. I'm counting.", "next": "end"},
+		{"id": "fumi_band", "speaker": "fumi", "mood": "surprised", "text": "Is that a mizuhiki knot? Put it away before someone sees! ...We've barely shared a pot of tea."},
+		{"speaker": "fumi", "mood": "neutral", "text": "Sit with me a while longer first. A good brew takes its time.", "next": "end"},
+		{"id": "fumi_room", "speaker": "fumi", "mood": "surprised", "text": "Oh. A knot, red and white. For me?"},
+		{"speaker": "fumi", "mood": "neutral", "text": "I'd say yes in a heartbeat. But your house is one room, and where would my mother's kettle go?"},
+		{"speaker": "fumi", "mood": "happy", "text": "Ask Hachiro for a second room. Then come back and ask me properly.", "next": "end"},
+
+		{"id": "fumi_yes", "speaker": "fumi", "mood": "surprised", "text": "...That's a mizuhiki knot. Red and white. You do know what that means?"},
+		{"speaker": "farmer", "mood": "neutral", "text": "I do. Will you marry me?"},
+		{"speaker": "fumi", "mood": "sad", "text": "I told the tea merchant I'd never leave this road. And now somebody asks me to walk down it."},
+		{"speaker": "fumi", "mood": "happy", "text": "Yes. I'll pour here by day and come home to the hill at night. The kettle comes with me."},
+		{"speaker": "fumi", "mood": "neutral", "text": "Grandma Tome will want three days to ready the shrine. Don't you dare get a cold before then.", "next": "end"},
+
+		{"id": "fumi_wedding", "speaker": "tome", "mood": "happy", "text": "Well. The whole village up at the shrine, and not even a festival. Settle down, all of you."},
+		{"speaker": "tome", "mood": "neutral", "text": "Fumi, your mother poured my tea on that road for forty years. She would weep to see you today."},
+		{"speaker": "tome", "mood": "neutral", "text": "Now take each other's hands and tie the knot round them both. Tight. A loose knot is a loose promise."},
+		{"speaker": "fumi", "mood": "happy", "text": "Every morning, the first cup is yours. Every evening, the last. That's my promise."},
+		{"speaker": "farmer", "mood": "happy", "text": "And the field's first harvest is yours. I promise."},
+		{"speaker": "ichiro", "mood": "neutral", "text": "...Hm. Good. Now who pours my tea at lunch?"},
+		{"speaker": "fumi", "mood": "happy", "text": "I do, as always. I'm getting married, Ichiro, not moving to the moon."},
+		{"speaker": "tome", "mood": "happy", "text": "There. Done and tied. Off home with you both, and be good to each other.", "next": "end"}
+	]
+}

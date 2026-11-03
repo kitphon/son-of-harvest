@@ -205,7 +205,10 @@ func _files() -> void:
 
 
 ## No straight walk in any plan crosses a solid cell (walls, water, houses, posts, trees).
+## The maps are read with every house extension built: a spouse lives in the farmhouse's
+## second room, which a proposal needs (data/marriage.json).
 func _paths_stay_clear() -> void:
+	MapManager.set_built(["kitchen", "chest", "room"])
 	for id in Villagers.all():
 		var v: Dictionary = Villagers.all()[id]
 		for name in v.plans:
@@ -223,6 +226,7 @@ func _paths_stay_clear() -> void:
 					if m.is_solid(c):
 						check(false, "%s plan %s walks %s -> %s through solid %s" % [id, name, walk[1], walk[2], c])
 						break
+	MapManager.set_built([])
 
 
 ## While a house extension is under way (Game.BUILD_FLAG) Hachiro builds on the farm: west

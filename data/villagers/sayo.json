@@ -1,5 +1,5 @@
 {
-	"_note": "Sayo keeps the Yorozu Store (the house with the noren south-east of the road): sweeps in front before opening, stands at the counter (the store map's keeper spot) 9:00-17:00, so talking to her there opens the shop (data/shops.json keeper), and takes an offering to the shrine in the evening. She lives in the rooms behind the store (data/maps/sayo_house.json, the side door), where she is before opening, 17:00-18:30 and after the shrine until 21:00, when she goes to bed (away). Sundays the store is shut: she walks over to Grandma Tome's, waits by the house and has tea with her inside after lunch. On her birthday (unless a Sunday) she shuts the store at 12:30, has lunch at Tome's, and spends the afternoon in her rooms before the shrine. Rain or shine the shop opens. Festival days: on Blossom Day the store opens as usual, but she leaves a note on the counter from 13:00 to 15:45 (data/shops.json festival_away) and sits by the picnic mats under the blossoms; on Lantern Night (the store shut) she browses the night food stall from 16:50; on Moon Night she closes at 17:00 and watches the moon from the shrine's gravel from 17:50; at Year's Turn (shut) she stands between the shrine and the bonfire from 18:40. Gifts: fresh summer things, sweets and pretty mine gems; not muddy clay or the bony fish (loach, crucian carp, dace). Dishes: egg and milk ones (tamagoyaki, milk pudding best) and light rice dishes; no river fish on a plate either. Format: README.md, Villagers.",
+	"_note": "Sayo keeps the Yorozu Store (the house with the noren south-east of the road): sweeps in front before opening, stands at the counter (the store map's keeper spot) 9:00-17:00, so talking to her there opens the shop (data/shops.json keeper), and takes an offering to the shrine in the evening. She lives in the rooms behind the store (data/maps/sayo_house.json, the side door), where she is before opening, 17:00-18:30 and after the shrine until 21:00, when she goes to bed (away). Sundays the store is shut: she walks over to Grandma Tome's, waits by the house and has tea with her inside after lunch. On her birthday (unless a Sunday) she shuts the store at 12:30, has lunch at Tome's, and spends the afternoon in her rooms before the shrine. Rain or shine the shop opens. Married to the farmer (married_sayo, data/marriage.json) she lives at the farmhouse: by the kotatsu in the second room before 8:30 and from 17:00, the store as before in between, and on a Sunday tea at Tome's 12:40-15:00. Festival days: on Blossom Day the store opens as usual, but she leaves a note on the counter from 13:00 to 15:45 (data/shops.json festival_away) and sits by the picnic mats under the blossoms; on Lantern Night (the store shut) she browses the night food stall from 16:50; on Moon Night she closes at 17:00 and watches the moon from the shrine's gravel from 17:50; at Year's Turn (shut) she stands between the shrine and the bonfire from 18:40. Gifts: fresh summer things, sweets and pretty mine gems; not muddy clay or the bony fish (loach, crucian carp, dace). Dishes: egg and milk ones (tamagoyaki, milk pudding best) and light rice dishes; no river fish on a plate either. Format: README.md, Villagers.",
 	"id": "sayo",
 	"name": "Sayo",
 	"birthday": {"season": "summer", "day": 6},
@@ -9,6 +9,8 @@
 		{"if": {"festival": ["lantern_night"]}, "plan": "festival_lanterns"},
 		{"if": {"festival": ["moon_night"]}, "plan": "festival_moon"},
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
+		{"if": {"flags": ["married_sayo"], "weekday": ["sun"]}, "plan": "married_day_off"},
+		{"if": {"flags": ["married_sayo"]}, "plan": "married"},
 		{"if": {"weekday": ["sun"]}, "plan": "day_off"},
 		{"if": {"birthday": true}, "plan": "birthday"}
 	],
@@ -24,6 +26,21 @@
 		"hate": ["medicine"]
 	},
 	"plans": {
+		"married": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "08:30", "map": "town", "from": [25, 16],
+				"loop": [{"to": [22, 16]}, {"face": "left"}, {"wait": 6}, {"to": [26, 16]}, {"face": "right"}, {"wait": 6}]},
+			{"at": "08:58", "map": "town", "route": [{"to": [23, 16]}, {"face": "up"}]},
+			{"at": "09:00", "map": "store", "from": [3, 2], "route": [{"face": "down"}]},
+			{"at": "17:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"married_day_off": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "12:40", "map": "tome_house", "from": [3, 3], "route": [{"face": "right"}]},
+			{"at": "15:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "21:00", "map": "away"}
+		],
 		"shop": [
 			{"at": "06:00", "map": "sayo_house", "from": [4, 2], "route": [{"face": "left"}]},
 			{"at": "08:30", "map": "town", "from": [25, 16],
