@@ -46,6 +46,7 @@ func _ready() -> void:
 	_heart.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_name_tag.add_child(_heart)
 	_text = _label(_box, TextBoxLayout.TEXT_POS)
+	_text.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED   # runner.text() is in the player's language already
 	_more = TextureRect.new()
 	_more.texture = PlaceholderArt.tex("ui:more")
 	_more.position = Vector2(r.size.x - 13, r.size.y - 10)
@@ -170,7 +171,7 @@ func _show_line() -> void:
 	_name_tag.visible = speaker != ""
 	_name_tag.position.x = TextBoxLayout.BOX.position.x + TextBoxLayout.name_x(framed)
 	_name.text = DialogueRunner.speakers().get(speaker, {}).get("name", "")
-	_name_tag.size.x = PixelFont.width(_name.text) + 12
+	_name_tag.size.x = PixelFont.shown_width(_name.text) + 12
 	var band := Game.heart_band(speaker)
 	_heart.visible = band >= 0
 	if band >= 0:
@@ -206,7 +207,7 @@ func _refresh_choices() -> void:
 		_choice_rows.append(row)
 	var w := 0
 	for c in list:
-		w = maxi(w, PixelFont.width(c.text))
+		w = maxi(w, PixelFont.shown_width(c.text))
 	for i in _choice_rows.size():
 		_choice_rows[i].visible = i < list.size()
 		if i < list.size():

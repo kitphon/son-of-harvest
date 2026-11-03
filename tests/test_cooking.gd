@@ -368,7 +368,8 @@ func _tools() -> void:
 	cm.cursor = cm.rows().map(func(row): return row.id).find("potato_stew")
 	check(not cm.current().ready and cm.current().missing.is_empty() and cm.current().no_tools == (["pot"] as Array[String]),
 		"the stew has its ingredients but no pot")
-	check(cm.tools_text() == "Uses Kitchen knife, Clay pot (store)", "the tools line (%s)" % cm.tools_text())
+	check(cm.tools_text() == "Uses Kitchen knife, Clay pot (buy at store)", "the tools line (%s)" % cm.tools_text())
+	check(CookingMenu.state_text(cm.current()) == "needs Clay pot", "the row says which tool is missing (%s)" % CookingMenu.state_text(cm.current()))
 	var kept: Array = g.kitchen_tools.duplicate()
 	g.kitchen_tools.clear()
 	for id in Cooking.ids():

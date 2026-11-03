@@ -1,5 +1,8 @@
 {
 	"_comment": "Player settings, in menu order (Esc -> Settings; then Reset to defaults, Controls, Back). kind: bool (on / off), choice (one of options; option_labels for the menu, values for what the option stands for), range (whole numbers min..max in steps, shown with an optional unit). A new setting only needs an entry here and someone who reads Game.settings. Game.apply_settings() puts them into effect the moment they change.",
+	"_language": "The language of the text on screen. English is how the game is written; another language is the tables in data/lang/<id>/ (Lang). Its own name is shown in that language so a player can find it.",
+	"language": {"label": "Language", "kind": "choice", "default": "en", "options": ["en", "th"],
+		"option_labels": {"en": "English", "th": "ไทย"}},
 	"display": {"label": "Display", "kind": "choice", "default": "windowed", "options": ["windowed", "fullscreen", "borderless"],
 		"option_labels": {"windowed": "Window", "fullscreen": "Full screen", "borderless": "Borderless"}},
 	"_window": "The window as a whole multiple of the 480 x 270 picture (only while the display is a window); sizes bigger than the screen are left out of the menu, and a saved one shows (and is) the biggest that fits.",

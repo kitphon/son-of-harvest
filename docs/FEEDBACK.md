@@ -14,12 +14,6 @@ commit hash.
 
 ## Open
 
-### 1. Everything is in English (15–20)
-The biggest wall for young Thai players. Some lines are hard even for good English readers:
-the kitchen's "Pantry rice round a quick pickle", or "no tool" without saying which tool is
-missing. Needs a Thai text set (and a language setting), plus plainer English where it's vague.
-The key hints added in 7ca5b91 are English too.
-
 ### 2. A slow start, no small goal in week one (15–20)
 The farm starts with 500 G, a chicken costs 1,400 G and a cow 6,000 G, so the first days are
 only "water and wait". Wants a small goal that can be reached by day 2–3 (and a few more
@@ -55,12 +49,20 @@ reproduce; if it is real, fix it, else make the load safe against a half-written
 (write to a temp file and rename).
 
 ## Order to fix
-1. Item 1 (Thai text): keeps the 15–20 players.
+1. ~~Item 1 (Thai text): keeps the 15–20 players.~~ Fixed.
 2. Items 2 and 3 (week-one goal, where love leads).
 3. Items 4 and 5 (mine winter income, grilled fish price).
 4. Item 6 (night), then 7 and 8.
 
 ## Fixed
+- Item 1, everything in English: Esc → Settings → Language: English / ไทย. Thai tables in
+  data/lang/th (menus, settings, HUD, key hints, rucksack, shops, kitchen, festival games, the
+  record, the messages, names of items, places and people, and the first dialogue: opening,
+  first morning, shop greetings, bin note, clinic, look-at lines, festival greetings, recipe
+  lessons, the year record); anything missing stays English. Thai glyphs drawn for our pixel
+  font. Plainer English: the onigiri reads "A rice ball with a quick pickle inside", and a
+  recipe without its tool says which one ("needs Clay pot", "Clay pot (buy at store)").
+  Still English: the villagers' daily talk, heart events and contest lines. Commit: this commit.
 - Roofs in front of the farmer hid the screen (village, festival square, snow): buildings,
   trees and the torii turn see-through when they stand between the camera and the farmer.
   Commit 67cbaed.

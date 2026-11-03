@@ -194,7 +194,7 @@ func _build() -> void:
 	_rule(TUCK + 4 + LINE * 2)
 	var y := TUCK + 7 + LINE * 2
 	for head in [["First day", THEN_R], ["Now", NOW_R], ["Gained", GAIN_R]]:
-		var l := _label(_paper, Vector2i(head[1] - PixelFont.width(head[0]), y), Hud.INK_SOFT)
+		var l := _label(_paper, Vector2i(head[1] - PixelFont.shown_width(head[0]), y), Hud.INK_SOFT)
 		l.text = head[0]
 		_gain_head = l
 	y += LINE
@@ -220,7 +220,7 @@ func _build() -> void:
 	_rule(y + 2)
 	_seal = _texture(_paper, PlaceholderArt.tex("ui:scroll:seal"), Vector2(0, y + 5))
 	_title = _label(_paper, Vector2i(MARGIN, y + 7), PlaceholderArt.UI_SEAL)
-	_hint = _label(_paper, Vector2i(W - MARGIN - PixelFont.width(HINT), y + 7), Hud.INK_SOFT)
+	_hint = _label(_paper, Vector2i(W - MARGIN - PixelFont.shown_width(HINT), y + 7), Hud.INK_SOFT)
 	_hint.text = HINT
 	full_h = y + 5 + SEAL + 2 + TUCK
 	washi.size = Vector2(W, full_h)
@@ -233,7 +233,7 @@ func _refresh() -> void:
 	var rows := all_rows()
 	var all := _shown >= rows.size()
 	_total.text = "%d of %d stars" % [record.get("stars", 0), record.get("max", 0)] if all else ""
-	_total.position.x = W - MARGIN - PixelFont.width(_total.text)
+	_total.position.x = W - MARGIN - PixelFont.shown_width(_total.text)
 	_heading.text = "A page for the farmer" if record.get("page", "ending") == "ending" \
 		else "The farmer's page, year %d" % int(record.get("year", 0))
 	_gain_head.visible = not record.get("first", true)
@@ -259,14 +259,14 @@ func _refresh() -> void:
 			b.visible = on and k < int(row.get("max", 0))
 			b.texture = on_tex if k < int(row.get("stars", 0)) else off_tex
 	_title.text = "Written as: " + String(record.get("title", "")) if all else ""
-	_seal.position.x = MARGIN + PixelFont.width(_title.text) + 5
+	_seal.position.x = MARGIN + PixelFont.shown_width(_title.text) + 5
 	_seal.visible = all
 	_hint.visible = all
 
 
 func _put(l: Label, text: String, right: int) -> void:
 	l.text = text
-	l.position.x = right - PixelFont.width(text)
+	l.position.x = right - PixelFont.shown_width(text)
 
 
 func _rule(y: int) -> void:

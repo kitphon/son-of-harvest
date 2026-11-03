@@ -134,6 +134,11 @@ var _accum := 0.0
 var _shown_state := "fine"      # the tired state last told to the player
 
 
+## The language's translation leaves the TranslationServer before the scripts go (Lang.release).
+func _exit_tree() -> void:
+	Lang.release()
+
+
 func _ready() -> void:
 	rng.randomize()
 	crops = _load_json("res://data/crops.json")
@@ -561,6 +566,11 @@ func apply_settings(args := OS.get_cmdline_user_args()) -> void:
 	for arg in args:   # `-- --ui=150%`: a UI size for this run (screenshots), not saved
 		if arg.begins_with("--ui="):
 			ui_scale = float(settings.spec.ui_scale.get("values", {}).get(arg.trim_prefix("--ui="), ui_scale))
+	var lang := str(settings.value("language"))
+	for arg in args:   # `-- --lang=th`: a language for this run (screenshots), not saved
+		if arg.begins_with("--lang="):
+			lang = arg.trim_prefix("--lang=")
+	Lang.set_language(lang)
 	max_fps = int(settings.option_value("fps"))
 	Engine.max_fps = max_fps
 	_apply_window(str(settings.value("display")), str(settings.option_value("window")))

@@ -112,7 +112,7 @@ func _refresh() -> void:
 		return
 	_name.text = str(Festivals.game(Game.festival_today()).get("name", "Fishing race"))
 	_count.text = "%d fish" % r.score()
-	_count.position.x = BOX.size.x - 7 - PixelFont.width(_count.text)
+	_count.position.x = BOX.size.x - 7 - PixelFont.shown_width(_count.text)
 	var call := ""
 	if not r.running() and not r.over():
 		call = "Ready... %d" % ceili(r.to_go()) if r.to_go() > 0.5 else "Ready..."

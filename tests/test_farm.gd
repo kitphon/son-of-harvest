@@ -220,7 +220,7 @@ func _init() -> void:
 		check(int(fw) == PixelFont.width(txt) + int(PixelFont.data().spacing), "font width of '%s' (%d vs %d)" % [txt, fw, PixelFont.width(txt)])
 	check(font.get_height(PixelFont.size()) == PixelFont.size(), "font line height")
 	var glyph_a := PixelFont.atlas()
-	check(glyph_a.get_height() == PixelFont.size() and glyph_a.get_used_rect().has_area(), "font atlas drawn")
+	check(glyph_a.get_height() >= PixelFont.size() and glyph_a.get_used_rect().has_area(), "font atlas drawn")
 	for ch in PixelFont.data().glyphs:
 		var rows: Array = PixelFont.data().glyphs[ch]
 		var ok := rows.size() <= PixelFont.size()

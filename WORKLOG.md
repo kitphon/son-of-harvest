@@ -10,6 +10,47 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-04 — Thai text: a language setting, data/lang/th, Thai glyphs in our pixel font
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: docs/FEEDBACK.md item 1. Esc → Settings → Language (first row): English / ไทย
+  (data/settings.json `language`, saved in user://settings.json like the rest; `-- --lang=th`
+  for one run). `Lang` (scripts/ui/lang.gd) reads data/lang/<id>/*.json, keyed by the English
+  text: plain entries, patterns with %s / %d (the %s parts looked up again, {1} {2} to
+  reorder), multi-line text line by line, a name lowered in a sentence still found; no entry =
+  English. `LangTranslation` hands Godot's auto-translation to Lang, so every Label on screen
+  switches at once without touching each `.text =`; the text box (DialogueRunner.text()),
+  the cooking lists, the shop tabs and the widths (`PixelFont.shown_width`) ask Lang
+  themselves. Game releases the translation on quit (the TranslationServer outlives scripts).
+  Thai tables: ui.json (title, pause menu, settings, controls, HUD, key hints, rucksack,
+  shops, kitchen, mochi / fishing race, village record, every message over the field, save
+  errors), items.json (crops, animals, fish, food and dishes, forage, mine finds, keepsakes,
+  kitchen tools, recipe notes, shops, maps, festivals, people, record rows, prop and door
+  messages), dialogue.json (opening, first morning, shop greetings, pond, bin note, rainy day,
+  clinic, farm / house / village / hill look-at lines, festival greetings, year record, recipe
+  lessons: 103 entries, choices included). Written plainly for 15–20; Japanese dishes keep names Thai players use.
+  Font: no system font and nothing downloaded: 47 Thai glyphs (39 consonants, 8 vowels and
+  signs) drawn in data/font_pixel.json (5 rows at the lowercase height, ascenders for ป ฝ ฟ, descenders for ญ ฐ ฎ ฏ ฤ ภ) and 14
+  marks in `marks`; PixelFont builds four placed copies of each mark in the Private Use Area
+  (low, high over a vowel above, left over ป ฝ ฟ, both) and `PixelFont.shape` picks them and
+  splits ำ into its ring and า. Not drawn yet: ฃ ฅ ฌ ฑ ฒ ฬ ฦ ๅ ฯ and Thai digits (the tables
+  avoid them; the test fails if one is used).
+  Plainer English: the onigiri note is "A rice ball with a quick pickle inside. Makes two."; a
+  recipe whose kitchen tool is missing says which ("needs Clay pot", "needs 2 tools") and the
+  tools line says "Clay pot (buy at store)" instead of "(store)".
+- Checked: test_menu `_language`: the setting, the row text, Thai on / off through the
+  TranslationServer, patterns, reorder, line by line, the English fallback, mark placement
+  (ที่, ป้า, น้ำ), every Thai entry drawable with its parts, every Thai dialogue key still a line in
+  data/dialogue and fitting the box (choices in their width). test_cooking: the row names the
+  missing tool. All 25 test scripts print `OK (0 failed)`. Smoke runs (title, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`, plus `--demo --lang=th --map=town` and `--lang=th`):
+  exit 0, no error or warning lines. Looked at (`--lang=th`): the settings page, the title
+  menu, the HUD with the key hint, the rucksack, the Yorozu Store, the cooking screen and Tome's
+  text box (`--dialogue=opening@field`): Thai draws, marks sit over their letters.
+- Left / next: Thai for the villagers' daily talk (talk_*.json), heart events, contests and
+  the ending scene; a native Thai reader should look over the glyphs (5 px high, some letters
+  are close: ค ถ ศ, บ ข ช ซ). The flat view's labels translate the same way but were not
+  looked at.
+
 ## 2026-11-03 — Coop and barn roofs as meshes (Minka.gable), the farmhouse eave band turned out
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: art direction roadmap 1, first item. `Minka.gable` builds a thick gable roof (ridge

@@ -5,7 +5,7 @@ extends SceneTree
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_menu.gd
 
 const PATH := "user://test_settings.json"
-const ALL := ["display", "window", "vsync", "fps", "ui_scale", "flashes", "text_speed", "always_run", "hud", "hints", "music", "sfx", "ambient"]
+const ALL := ["language", "display", "window", "vsync", "fps", "ui_scale", "flashes", "text_speed", "always_run", "hud", "hints", "music", "sfx", "ambient"]
 
 var failures := 0
 var _frame := 0
@@ -26,6 +26,7 @@ func _init() -> void:
 	_text_speed()
 	_window_fit()
 	_ui_scale()
+	_language()
 
 
 # The farmer is checked on the Game autoload, which is in the tree from the first frame,
@@ -248,6 +249,8 @@ func _pause_menu() -> void:
 	for item in m.list.items:
 		shown.append(m.label(item))
 	check(PixelFont.missing("".join(shown)) == "", "the pixel font has every settings row (%s)" % PixelFont.missing("".join(shown)))
+	check(m.list.current() == "language", "the cursor starts on the language")
+	m.list.move(1)
 	check(m.list.current() == "display" and m.adjust(1) == "setting" and m.label("display") == "Display: Full screen", "right: full screen")
 	check(m.adjust(1) == "setting" and m.adjust(1) == "" and s.value("display") == "borderless", "borderless, then the end")
 	m.list.point("flashes")
@@ -874,3 +877,79 @@ func _ui_scale() -> void:
 		var msg := HudLayout.scaled_box("message", wanted)
 		check(msg.position.x >= 0 and msg.position.y >= 0 and msg.position.x < 8 and msg.position.y < 8, "the message box keeps its corner at %d%%" % int(wanted * 100))
 	check(HudLayout.scaled_box("clock", 1.0) == Rect2(HudLayout.BOXES.clock), "100%: the HUD as laid out")
+
+
+## The language setting (data/settings.json) and the Thai tables (data/lang/th): text on
+## screen switches with it, missing text stays English, every Thai line can be drawn and
+## every dialogue line still fits the text box.
+func _language() -> void:
+	var s := Settings.make()
+	check(s.value("language") == "en" and s.spec.language.options == ["en", "th"], "language: English by default, Thai offered")
+	check(s.adjust("language", 1) and s.value("language") == "th" and s.value_text("language") == "ไทย", "language: Thai, shown in Thai")
+	var m := PauseMenu.new(s)
+	m.open("settings")
+	check(m.label("language") == "Language: ไทย", "the language row (%s)" % m.label("language"))
+	check(Lang.languages().has("th"), "data/lang/th is a language")
+	check(Lang.t("Settings") == "Settings", "English: text as it is")
+	Lang.set_language("th")
+	check(Lang.current == "th" and TranslationServer.get_locale() == "th", "Thai is on (%s)" % TranslationServer.get_locale())
+	check(Lang.t("Settings") == PixelFont.shape("ตั้งค่า"), "a word in Thai (%s)" % Lang.t("Settings"))
+	check(TranslationServer.translate("Settings") == Lang.t("Settings"), "Labels get the same Thai through the TranslationServer")
+	check(Lang.t("Language: ไทย") == PixelFont.shape("ภาษา: ไทย"), "a settings row by its pattern (%s)" % Lang.t("Language: ไทย"))
+	check(Lang.t("Bought Turnip seeds for 40 G") == PixelFont.shape("ซื้อเมล็ดเทอร์นิป ราคา 40 G"), "a message: pattern, a name in it, the number kept (%s)" % Lang.t("Bought Turnip seeds for 40 G"))
+	check(Lang.t("Spring 3, Year 2") == PixelFont.shape("ใบไม้ผลิ 3 ปี 2"), "the date, parts put back by number (%s)" % Lang.t("Spring 3, Year 2"))
+	check(Lang.t("Made grilled fish x2") == PixelFont.shape("ทำ ปลาย่าง เสร็จแล้ว x2"), "a name lowered in a sentence is still found (%s)" % Lang.t("Made grilled fish x2"))
+	check(Lang.t("Resume\nBack") == PixelFont.shape("เล่นต่อ\nกลับ"), "lines looked up one by one")
+	check(Lang.t("Nothing in the tables says this") == "Nothing in the tables says this", "missing text stays English")
+	check(PixelFont.shown_width("Settings") == PixelFont.width(PixelFont.shape("ตั้งค่า")), "widths measure the Thai")
+	# Thai marks: tone marks over a vowel above sit higher; over ป they move left; ำ splits.
+	var shaped := PixelFont.shape("ที่ ป้า น้ำ")
+	check(shaped.unicode_at(2) == PixelFont.mark_point("่", 1), "a tone mark over ี goes high")
+	check(shaped.unicode_at(5) == PixelFont.mark_point("้", 2), "a tone mark over ป moves left")
+	check(shaped.unicode_at(9) == PixelFont.mark_point("้", 1) and shaped.unicode_at(10) == PixelFont.mark_point("ํ", 0) and shaped.substr(11) == "า", "น้ำ: the tone goes over the ring, ำ becomes ring and า (%s)" % [shaped.to_utf32_buffer()])
+	check(PixelFont.shape(shaped) == shaped and PixelFont.width("ที่") == PixelFont.width("ท"), "shaping twice changes nothing; marks take no room")
+	# Every Thai entry: placeholders kept, drawable; dialogue lines fit the box and exist.
+	var table := Lang.table("th")
+	var bad := []
+	var holes := RegEx.create_from_string("%0?\\d?[sd]|\\{\\d\\}")
+	for k in table:
+		var v := String(table[k])
+		if PixelFont.missing(v.replace("{1}", "").replace("{2}", "").replace("{3}", "")) != "":
+			bad.append("%s: can't draw %s" % [k, PixelFont.missing(v)])
+		if holes.search_all(String(k)).size() != holes.search_all(v).size():
+			bad.append("%s: parts don't match" % k)
+	check(bad.is_empty(), "every Thai entry has its parts and every glyph (%s)" % [bad])
+	var lines := {}
+	for file in DirAccess.get_files_at("res://data/dialogue/"):
+		var d: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue/" + file))
+		if d is Dictionary and d.get("lines") is Array:
+			for l in d.lines:
+				if l is Dictionary and l.has("text"):
+					lines[l.text] = "line"
+					for c in l.get("choices", []):
+						lines[c.text] = "choice"
+	var dlg: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/lang/th/dialogue.json")).text
+	var stale := []
+	var long := []
+	var done := 0
+	for k in dlg:
+		if k.begins_with("_") or "%" in k:
+			continue
+		if not lines.has(k):
+			stale.append(k)
+			continue
+		done += 1
+		var th := Lang.t(k)
+		if lines[k] == "choice" and PixelFont.width(th) > TextBoxLayout.CHOICE_TEXT_W:
+			long.append(k)
+		if lines[k] == "line" and TextBoxLayout.wrap_rows(th, TextBoxLayout.text_w(true)).size() > TextBoxLayout.ROWS:
+			long.append(k)
+	check(stale.is_empty(), "every Thai dialogue key is a line in data/dialogue (%s)" % [stale])
+	check(long.is_empty() and done > 50, "%d Thai dialogue lines fit the text box (%s)" % [done, long])
+	var settings_text := []
+	for key in s.spec:
+		settings_text.append(s.spec[key].label)
+	for label in settings_text:
+		check(Lang.has(label), "the setting %s has its Thai" % label)
+	Lang.set_language("en")
+	check(Lang.t("Settings") == "Settings" and TranslationServer.get_locale() == "en", "back to English")

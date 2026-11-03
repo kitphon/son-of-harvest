@@ -41,7 +41,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `res://tests/test_title.gd` must print `test_title: OK (0 failed)`. Weather (snow cover,
   lightning): `res://tests/test_weather.gd` must print `test_weather: OK (0 failed)`.
   Dialogue (runner, data, text box layout): `res://tests/test_dialogue.gd` must print
-  `test_dialogue: OK (0 failed)`. Pause menu / settings (display, text speed, HUD, key hints, reset) / key and pad remapping: `res://tests/test_menu.gd` must print
+  `test_dialogue: OK (0 failed)`. Pause menu / settings (language and the Thai tables, display, text speed, HUD, key hints, reset) / key and pad remapping: `res://tests/test_menu.gd` must print
   `test_menu: OK (0 failed)`. Fatigue (tired states, oversleeping, collapse, waking in the clinic and the doctor's fee):
   `res://tests/test_body.gd` must print `test_body: OK (0 failed)`. Events (runner, trigger
   tables, event data): `res://tests/test_events.gd` must print `test_events: OK (0 failed)`.
@@ -91,7 +91,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   add `--weather=rain` (storm, snow, blizzard) to force the weather, `--no-flashes` to turn
   lightning off, `--snow=N` (0..100) for that much snow lying (on the farm and the outdoor
   maps: `--season=winter --map=town --snow=80`), `--dialogue=<id>` (or `<id>@<line id>`) to open a text box from
-  `data/dialogue`, `--pause` (or `--pause=settings`, `--pause=controls`) to open the pause menu, `--ui=150%` (125%) for a UI size this run only, `--lens=<id>` (ps1, wide; data/camera.json, the game uses medium) for another camera lens, `--tired` to start
+  `data/dialogue`, `--pause` (or `--pause=settings`, `--pause=controls`) to open the pause menu, `--ui=150%` (125%) for a UI size this run only, `--lang=th` for the Thai text this run only (with `--dialogue=opening@field` a Thai text box), `--lens=<id>` (ps1, wide; data/camera.json, the game uses medium) for another camera lens, `--tired` to start
   exhausted (tired pose, slow walk), `--eat` (or `--eat=drink`) to stand mid-bite (or mid-sip)
   with the eat pose kept going, `--event=<id>` to play an event from `data/events`
   (`--demo` turns the trigger tables off, so plain demo frames have no events; to see a

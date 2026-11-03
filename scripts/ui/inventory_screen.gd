@@ -140,7 +140,7 @@ func _build() -> void:
 	var cols := 0
 	for r in menu.rows:
 		cols = maxi(cols, r[2])
-	_paper.size = Vector2(maxi(6 + LABEL_W + cols * PITCH + 4, PixelFont.width(HINT) + 12), y + 3 + LINE * 3 + 3)
+	_paper.size = Vector2(maxi(6 + LABEL_W + cols * PITCH + 4, PixelFont.shown_width(HINT) + 12), y + 3 + LINE * 3 + 3)
 	_wood.size = Vector2(_paper.size.x + 8, TOP + _paper.size.y + 4)
 	var screen := get_viewport().get_visible_rect().size
 	_wood.position = ((screen - _wood.size) / 2).floor()
