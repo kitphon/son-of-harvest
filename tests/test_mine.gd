@@ -1,6 +1,7 @@
 extends SceneTree
 ## Headless checks for the mine (data/mine.json, MineFloor, Game.mine_swing / go_to_map down
-## the mine, the maps and their doors, stamina, the save, the light, winter floors, the art). Run:
+## the mine, the maps and their doors, stamina, the save, the light, winter floors, the rope lift
+## landings, the art). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_mine.gd
 
 var failures := 0
@@ -18,6 +19,9 @@ func _init() -> void:
 	_light(rules)
 	_winter(rules)
 	_game_winter(rules)
+	_landings(rules)
+	_landing_game(rules)
+	_landing_save(rules)
 	_art(rules)
 	print("test_mine: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -322,7 +326,7 @@ func _save(rules: Dictionary) -> void:
 	g.use_door(g.maps.door_at(g.maps.mine_floor.stairs))
 	check(g.mine_deepest == 3, "three floors down")
 	var d: Dictionary = g.to_dict()
-	check(d.mine == {"deepest": 3}, "the deepest floor is saved")
+	check(d.mine == {"deepest": 3, "landings": []}, "the deepest floor is saved (no landing yet)")
 	var spot: Array = MapManager.data(rules.entrance_map).spawns[rules.entrance_spawn]
 	check(d.map.id == "mine" and Vector2(d.map.x, d.map.y) == MapManager.cell_pos(spot[0]), "a save down the mine puts the farmer at the cave mouth")
 	check(not JSON.stringify(d).contains("rocks"), "no floor layout in the save")
@@ -349,7 +353,8 @@ func _save(rules: Dictionary) -> void:
 func _art(rules: Dictionary) -> void:
 	var magenta := PlaceholderArt.tex("unknown:x").get_image().get_data()
 	var sizes := {"mine:rock": Vector2i(16, 16), "mine:big_rock": Vector2i(24, 20), "mine:soft": Vector2i(16, 16), "mine:hole": Vector2i(16, 16),
-		"mine:ice": Vector2i(16, 16), "mine:frost": Vector2i(16, 16), "mine:lantern": Vector2i(7, 11)}
+		"mine:ice": Vector2i(16, 16), "mine:frost": Vector2i(16, 16), "mine:lantern": Vector2i(7, 11),
+		"mine:landing": Vector2i(16, 26), "story:rope_lift": Vector2i(20, 28)}
 	for key in sizes:
 		var img := PlaceholderArt.tex(key).get_image()
 		check(img.get_size() == sizes[key] and img.get_data() != magenta, "%s drawn" % key)
@@ -505,6 +510,111 @@ func _game_winter(rules: Dictionary) -> void:
 	g.use_door(MapManager.data("mine").door_at(Vector2i(7, 2)))
 	check(not g.maps.mine_floor.frozen, "spring: the cave has thawed")
 	g.free()
+
+
+## The rope lift landings in data/mine.json: every fifth floor down to 15; the lift stands by
+## the ladder inside its safe square, so a landing floor's layout is the same as without it.
+func _landings(rules: Dictionary) -> void:
+	var land: Dictionary = rules.landings
+	check(MineFloor.landings(rules) == [5, 10, 15], "landings at floors 5, 10 and 15")
+	check(MineFloor.is_landing(rules, 10) and not MineFloor.is_landing(rules, 1) and not MineFloor.is_landing(rules, 20), "floor 10 is one, 1 and 20 aren't")
+	var cave := MapManager.data(rules.floor_map)
+	var lift := Vector2i(int(land.cell[0]), int(land.cell[1]))
+	var start: Vector2i = cave.spawns.start[0]
+	check(not cave.is_solid(lift) and cave.door_at(lift).is_empty(), "the lift stands on open cave floor")
+	check(absi(lift.x - start.x) <= int(rules.safe_radius) and absi(lift.y - start.y) <= int(rules.safe_radius), "inside the ladder's safe square")
+	for t in ["found", "ask", "ladder", "ride"]:
+		check(land.get(t) is String and land[t] != "", "landing text %s" % t)
+	check(TextBoxLayout.wrap_rows(land.ask, TextBoxLayout.TEXT_W).size() <= TextBoxLayout.ROWS, "the question fits in the text box")
+	var f := MineFloor.make(rules, cave, 10, "spring", 99)
+	check(f.landing and f.lift == lift and f.is_solid(lift), "floor 10: the rope lift stands there and blocks the way")
+	check(not f.rocks.has(lift) and not f.soft.has(lift) and f.stairs != lift, "nothing laid on the lift's cell")
+	var plain := MineFloor.make(rules, cave, 11, "spring", 99)
+	check(not plain.landing and not plain.is_solid(lift), "floor 11 has no lift")
+	var no_lift := rules.duplicate(true)
+	no_lift.erase("landings")
+	var same := MineFloor.make(no_lift, cave, 10, "spring", 99)
+	check(same.rocks.keys() == f.rocks.keys() and same.soft == f.soft and same.stairs == f.stairs, "the lift doesn't change the floor's layout")
+
+
+## Game: reaching a landing keeps it and shows the winch; the cave mouth then asks how far down
+## and the lift starts the trip at a landing; the deepest floor counts only what was walked.
+func _landing_game(rules: Dictionary) -> void:
+	var g := _game(rules)
+	var mouth := MapManager.data("mine").door_at(Vector2i(7, 2))
+	check(g.mine_landings.is_empty() and g.mine_start_floors() == [1], "a new game: only the ladder")
+	check(not g.mine_go_down(5) and g.maps.id != "mine_floor", "no lift to a landing not reached")
+	g.use_door(mouth)
+	check(g.maps.mine_floor.depth == 1 and not g.dialogue_made.has(g.MINE_LIFT_DIALOGUE), "no landing yet: the cave mouth goes straight to floor 1")
+	for i in 4:   # down to floor 5
+		g.maps.mine_floor.open = true
+		g.use_door(g.maps.door_at(g.maps.mine_floor.stairs))
+	check(g.maps.mine_floor.depth == 5 and g.maps.mine_floor.landing, "floor 5 is a landing")
+	check(g.mine_landings == [5] and g.flags.get(rules.landings.flag) == true, "landing 5 kept, the winch's flag set")
+	check(g.mine_news.contains("5"), "the news waits for the arrival")
+	g.map_arrived()
+	check(g.mine_news == "", "and is said once")
+	check(MapManager.data("mine").prop_at(Vector2i(9, 3)).get("kind", "") == "rope_lift", "the winch shows at the cave mouth")
+	g.go_to_map("mine", Vector2i(7, 3), Vector2i.DOWN)
+	check(g.mine_start_floors() == [1, 5], "the ladder or the lift to 5")
+	g.use_door(mouth)
+	check(g.maps.id == "mine" and g.dialogue_made.has(g.MINE_LIFT_DIALOGUE), "now the cave mouth asks first")
+	var r := DialogueRunner.new(g.dialogue_made[g.MINE_LIFT_DIALOGUE], DialogueRunner.speakers(), g.flags, DialogueRunner.settings())
+	check(r.error == "", "the question is a dialogue that runs (%s)" % r.error)
+	r.set_speed(0)
+	check(r.choices().size() == 2 and str(r.choices()[1].text).contains("5"), "two choices: the ladder, the lift to 5")
+	r.pick(1)
+	check(r.done() and g.flags.get(g.MINE_START_FLAG) == 5, "picking the lift sets the floor")
+	g.dialogue_closed(g.MINE_LIFT_DIALOGUE)
+	check(g.maps.id == "mine_floor" and g.maps.mine_floor.depth == 5 and not g.flags.has(g.MINE_START_FLAG), "the lift goes down to floor 5; the pick is forgotten")
+	check(g.mine_deepest == 5, "the deepest floor stays what was walked")
+	g.maps.mine_floor.open = true
+	g.use_door(g.maps.door_at(g.maps.mine_floor.stairs))
+	check(g.maps.mine_floor.depth == 6 and g.mine_deepest == 6, "and on down from there")
+	g.go_to_map("mine", Vector2i(7, 3), Vector2i.DOWN)
+	g.use_door(mouth)
+	r = DialogueRunner.new(g.dialogue_made[g.MINE_LIFT_DIALOGUE], DialogueRunner.speakers(), g.flags, DialogueRunner.settings())
+	r.set_speed(0)
+	r.pick(0)
+	g.dialogue_closed(g.MINE_LIFT_DIALOGUE)
+	check(g.maps.mine_floor.depth == 1 and g.mine_deepest == 6, "the ladder still starts at floor 1")
+	g.go_to_map("mine", Vector2i(7, 3), Vector2i.DOWN)
+	g.dialogue_closed("bin_note")
+	check(g.maps.id == "mine", "another text box closing goes nowhere")
+	g.mine_landings.assign([5, 10, 15])
+	check(g.mine_start_floors() == [1, 5, 10, 15], "four choices with every landing")
+	g.mine_landings.assign([5, 10, 15, 20])
+	check(g.mine_start_floors() == [1, 10, 15, 20], "never more than four: the deepest three landings")
+	g.free()
+
+
+## Saved as mine.landings (save version 6); older saves get every landing down to the deepest
+## floor (every trip began at floor 1, so they were walked through); bad lists are refused.
+func _landing_save(rules: Dictionary) -> void:
+	check(SaveGame.VERSION == 6, "save version 6")
+	var g := _game(rules)
+	g.mine_deepest = 12
+	g.mine_landings.assign([5, 10])
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(g.to_dict()))
+	check(saved.mine.landings == [5.0, 10.0], "the landings are saved")
+	var h := _game(rules)
+	check(h.from_dict(saved) == "" and h.mine_landings == [5, 10] and h.mine_deepest == 12, "and load")
+	var old: Dictionary = saved.duplicate(true)
+	old.mine = {"deepest": 17}
+	old.flags.erase(rules.landings.flag)
+	check(h.from_dict(old, 5) == "" and h.mine_landings == [5, 10, 15] and h.flags.get(rules.landings.flag) == true,
+		"a version 5 save at floor 17: landings 5, 10, 15 and the winch")
+	old.mine = {"deepest": 4}
+	check(h.from_dict(old, 5) == "" and h.mine_landings.is_empty() and not h.flags.has(rules.landings.flag), "one at floor 4: none")
+	check(h.from_dict(old, 6) != "", "a version 6 save must have its landings")
+	for bad in [[7], [15], ["x"], [5.5], "x", [0]]:
+		var broken: Dictionary = saved.duplicate(true)
+		broken.mine.landings = bad
+		check(h.from_dict(broken) != "", "refused landings %s (deepest 12)" % JSON.stringify(bad))
+	g.new_game()
+	check(g.mine_landings.is_empty() and g.mine_start_floors() == [1], "a new game forgets the landings")
+	g.free()
+	h.free()
 
 
 func _rock(f: MineFloor, kind: String) -> Vector2i:

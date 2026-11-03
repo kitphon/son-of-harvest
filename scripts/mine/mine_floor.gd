@@ -6,7 +6,8 @@ extends RefCounted
 ## floor. Nothing here is saved: leaving goes back up, and the next visit is a new floor.
 ## MapManager asks it about solid cells and the hole (a door); the views draw it and redraw
 ## on `changed`, and light it with `light` and the farmer's `lantern`. In winter the shallow
-## floors are frozen: frost on the ground, blocks of ice to break. Numbers and finds come
+## floors are frozen: frost on the ground, blocks of ice to break. Every landing floor has a
+## rope lift by the ladder (`landing`, `lift`). Numbers and finds come
 ## from data/mine.json.
 
 signal changed
@@ -24,6 +25,8 @@ var frozen := false            # a winter floor (data/mine.json "winter")
 var frost: Array[Vector2i] = []   # cells lying white with frost on a frozen floor (only a look)
 var light := Color.WHITE       # the floor's light: the picture is multiplied by it
 var lantern := {}              # the farmer's lantern: {radius (cells), soft, color}
+var landing := false           # a landing floor: the rope lift stands at `lift` (data/mine.json "landings")
+var lift := Vector2i(-1, -1)
 
 
 ## A new floor at `depth` on the cave `cave_map` in `season_id`, laid out from `floor_seed`.
@@ -38,8 +41,27 @@ static func make(rules: Dictionary, cave_map: MapData, floor_depth: int, season_
 	var l: Dictionary = rules.get("light", {}).get("lantern", {})
 	f.lantern = {"radius": float(l.get("radius", 0.0)), "soft": float(l.get("soft", 0.5)),
 		"color": Color(str(l.get("color", "ffffff")))}
+	if is_landing(rules, f.depth):
+		f.landing = true
+		var at: Array = rules.landings.get("cell", [0, 0])
+		f.lift = Vector2i(int(at[0]), int(at[1]))
 	f._lay_out(rules)
 	return f
+
+
+## The landing floors from data/mine.json, shallowest first.
+static func landings(rules: Dictionary) -> Array[int]:
+	var out: Array[int] = []
+	for d in rules.get("landings", {}).get("floors", []):
+		if int(d) > 1 and not int(d) in out:
+			out.append(int(d))
+	out.sort()
+	return out
+
+
+## Is floor `floor_depth` a landing (a rope lift stands there)?
+static func is_landing(rules: Dictionary, floor_depth: int) -> bool:
+	return floor_depth in landings(rules)
 
 
 ## Is floor `floor_depth` frozen in `season_id`? Winter reaches down to the "winter" `to` floor.
@@ -104,7 +126,7 @@ func _lay_out(rules: Dictionary) -> void:
 	for y in map.h:
 		for x in map.w:
 			var c := Vector2i(x, y)
-			if map.is_solid(c) or not map.door_at(c).is_empty():
+			if map.is_solid(c) or not map.door_at(c).is_empty() or c == lift:
 				continue
 			if absi(c.x - start.x) <= safe and absi(c.y - start.y) <= safe:
 				continue
@@ -171,9 +193,10 @@ static func _roll(weights: Dictionary, rng: RandomNumberGenerator) -> String:
 	return "" if id == "none" else id
 
 
-## Rocks block the way, and so does the open hole (walking into it goes down, like a door).
+## Rocks block the way, and so do the open hole (walking into it goes down, like a door) and
+## a landing's rope lift.
 func is_solid(c: Vector2i) -> bool:
-	return rocks.has(c) or (open and c == stairs)
+	return rocks.has(c) or (open and c == stairs) or (landing and c == lift)
 
 
 ## The open hole as a door down to the next floor, at the same ladder spot; {} elsewhere.

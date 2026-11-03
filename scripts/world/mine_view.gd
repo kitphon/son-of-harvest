@@ -1,7 +1,7 @@
 class_name MineView
 extends Node2D
 ## A mine floor in the flat view, over the cave's MapView: frost, soft spots and the open hole
-## on the ground, then rocks (and ice) and finds left lying. Reads a MineFloor and redraws on `changed`.
+## on the ground, then rocks (and ice), a landing's rope lift and finds left lying. Reads a MineFloor and redraws on `changed`.
 
 const T := 16
 
@@ -24,6 +24,9 @@ func _draw() -> void:
 		var tex := PlaceholderArt.tex("mine:" + str(floor_.rocks[c].kind))
 		# Bottom-centred on the cell, so a big rock spills over its edges like a boulder.
 		draw_texture(tex, Vector2(c * T) + Vector2((T - tex.get_width()) / 2.0, T - tex.get_height()))
+	if floor_.landing:   # the rope lift's cage by the ladder, standing on its cell's foot
+		var lift := PlaceholderArt.tex("mine:landing")
+		draw_texture(lift, Vector2(floor_.lift * T) + Vector2((T - lift.get_width()) / 2.0, T - lift.get_height()))
 	for c in floor_.loose:
 		var tex := PlaceholderArt.tex(PlaceholderArt.world_item_key(floor_.loose[c]))
 		draw_texture(tex, Vector2(c * T) + (Vector2(T, T) - tex.get_size()) / 2.0)

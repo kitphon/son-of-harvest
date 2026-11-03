@@ -47,6 +47,36 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   Fumi on the gravel, her name tag with the heart, her spring line.
 - Left / next: band 6 scenes for Fumi and Ichiro; the other outer villagers stay without hearts.
 
+## 2026-11-03 — Mine landings: rope lifts on floors 5, 10 and 15
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: every trip down the mine began at floor 1, so floors 15 and 20 (the ending's mine steps)
+  took more food than a day's pack. `landings` in data/mine.json makes floors 5, 10 and 15
+  landings: a rope lift's cage stands by the ladder (`MineFloor.landing` / `lift`, solid, at
+  [9, 1] inside the ladder's safe square, so no floor's layout changes; `mine:landing` art, a
+  rope down to a timber cage with a lit lantern, in both views). Reaching one keeps it
+  (`Game.mine_landings`, news said once on arrival) and sets the story flag `mine_lift`, which
+  shows the winch beside the cave mouth (`rope_lift` story prop on data/maps/mine.json,
+  `story:rope_lift`, both views; E on it says what it is). From then on the cave mouth opens a
+  text box: the ladder to floor 1 or the lift to each landing reached (the deepest three; the
+  box holds four choices). The text box can now show lines built in code (`Game.dialogue_made`)
+  and tells Game when it closes (`Game.dialogue_closed`), which takes the farmer down
+  (`Game.mine_go_down`, refusing a landing not reached). Save version 6: `mine.landings`;
+  a version 5 or older save gets every landing down to its deepest floor (every trip began at
+  floor 1 then, so they were walked through) and the winch's flag. `mine_deepest`, the ending's
+  measure, still only counts floors reached on foot: the lift only goes where the farmer has
+  been. Debug: `-- --demo --map=mine@cave --landings=5,10 --lift` opens the choice.
+- Balance: every fifth floor, because a 150-stamina pack (the year bot's) went about five to
+  nine floors a trip; from landing 15 floor 20 is one pack down. Not changed: the ending's steps.
+- Checked: `test_mine: OK (0 failed)` (new: landing data and layout unchanged by the lift, the
+  game flow at the cave mouth, the choice as a running dialogue, deepest kept honest, the save,
+  the version 5 migration, bad lists refused, the art sizes); test_save, test_view2d,
+  test_ending and every other test print OK (0 failed). Smoke runs (title, `--demo`, `--map=town`,
+  `--mine=3`, `--map=mine`, `--mine=10`, the lift choice, the flat view at `--mine=5`) print no
+  errors or warnings. Screenshots: the cave mouth with the winch and the three choices (3D),
+  floor 10's lift and its news (3D), floor 5's lift (flat view).
+- Left / next: tools/play_year.gd doesn't ride the lift yet (not touched here; another agent
+  works on it), so its report's deepest trip floor is still from floor 1.
+
 ## 2026-11-03 — Year bot: river fishing, food for the mine, forage, the new areas; rod and hammer
 Agent: Claude Code (claude-opus-5-5) · Commit: 688bc4c (merged in d0581e3)
 - Done: `tools/play_year.gd` on the new main. It walks the new areas instead of jumping: the

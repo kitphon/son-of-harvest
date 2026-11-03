@@ -6,9 +6,10 @@ extends RefCounted
 ## so a missing or broken file leaves the game as it was.
 
 ## 2: animals (Game.animals); 3: affection (Game.affection); 4: the barn and the dog; 5: kitchen
-## tools (Game.kitchen_tools). Older saves load with defaults (the starting flock, everyone a
-## stranger, the new-game fodder and dog, the tools of the recipes already known).
-const VERSION := 5
+## tools (Game.kitchen_tools); 6: the mine's rope lift landings (Game.mine_landings). Older
+## saves load with defaults (the starting flock, everyone a stranger, the new-game fodder and
+## dog, the tools of the recipes already known, every landing down to the deepest floor).
+const VERSION := 6
 const SLOT := "user://save1.json"
 
 

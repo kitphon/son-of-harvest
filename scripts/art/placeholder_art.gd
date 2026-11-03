@@ -27,7 +27,7 @@ static func _make(key: String) -> Image:
 			return _charge(int(parts[1]), int(parts[2]))
 		"rock", "branch", "weed", "stump":
 			return _obstacle(parts[0])
-		"mine":     # mine:<rock|big_rock|ice|soft|hole|frost>, what lies on a mine floor (MineFloor); mine:lantern, the farmer's
+		"mine":     # mine:<rock|big_rock|ice|soft|hole|frost|landing>, what lies on a mine floor (MineFloor; landing: the rope lift's cage); mine:lantern, the farmer's
 			return _mine(parts[1])
 		"crop":     # crop:<id>:<growth 0..3>:<ripe|growing>
 			return _crop(parts[1], int(parts[2]), parts[3] == "ripe")
@@ -51,7 +51,7 @@ static func _make(key: String) -> Image:
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
 		"portrait": # portrait:<villager>:<neutral|happy|sad|surprised|angry>, a villager's 40 x 40 text box portrait
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
-		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|lumber|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
+		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|lumber|rope_lift|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
 		"festival": # festival:<kind>:<w>x<h>[:<cloth hex>], a festival decoration in the flat view (FestivalView)
 			var wh := parts[2].split("x") if parts.size() > 2 else PackedStringArray(["1", "1"])
@@ -1010,7 +1010,40 @@ static func _mine(kind: String) -> Image:
 			for y in [5, 8, 11]:
 				_px(img, 5, y, 6, 1, Color("a8844a"))
 			return img
+		"landing":
+			return _lift_cage()
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
+
+
+## A landing's rope lift down the mine (mine:landing, 16 x 26): the rope comes down out of the
+## dark above to a timber cage (two posts, a top bar with the rope's iron ring, a rail half way,
+## a plank floor), a lit lantern hung on its left post so the landing shows from the ladder.
+static func _lift_cage() -> Image:
+	var img := _blank(16, 26)
+	var timber := Color("6a4a2a")
+	var timber_light := Color("8e6a3e")
+	var rope := Color("c8a868")
+	_px(img, 7, 0, 2, 10, rope)                  # the rope, up into the dark
+	_px(img, 7, 0, 1, 10, rope.lightened(0.2))
+	for y in [2, 5, 8]:                          # its twist
+		_px(img, 8, y, 1, 1, rope.darkened(0.3))
+	_px(img, 6, 9, 4, 2, Color("3a3430"))        # the iron ring
+	_px(img, 2, 11, 12, 2, timber)               # the top bar
+	_px(img, 2, 11, 12, 1, timber_light)
+	_px(img, 2, 11, 2, 13, timber)               # the posts
+	_px(img, 12, 11, 2, 13, timber)
+	_px(img, 2, 11, 1, 13, timber_light)
+	_px(img, 4, 17, 8, 1, timber_light)          # the rail
+	_px(img, 1, 22, 14, 3, Color("8a6a3a"))      # the plank floor, its board ends
+	_px(img, 1, 22, 14, 1, Color("b08a58"))
+	for x in [4, 8, 12]:
+		_px(img, x, 23, 1, 2, Color("5a3d22"))
+	_px(img, 0, 13, 2, 1, Color("3a3430"))       # the lantern's hook off the left post
+	_px(img, 0, 14, 3, 1, Color("3a3430"))       # its cap
+	_px(img, 0, 15, 3, 3, Color("e8a040"))       # its glowing panes
+	_px(img, 1, 16, 1, 1, Color("fff4d0"))       # the flame
+	_px(img, 0, 18, 3, 1, Color("3a3430"))
+	return _outline(img)
 
 
 ## A mine find as a 14 x 14 icon from its look: a rounded stone, a lump of clay, a heap of
@@ -2500,6 +2533,35 @@ static func _ribbon_board(places: String) -> Image:
 ## a 1 x 2 cell stack seen from the front).
 static func _story(kind: String) -> Image:
 	match kind:
+		"rope_lift":
+			# The rope lift's winch at the cave mouth (20 x 28), once a landing is reached: a
+			# timber gantry over a stone-lipped shaft, a drum wound with rope between its posts,
+			# a crank on the right, the rope running down into the dark and a lantern hung lit
+			# off the beam.
+			var img := _blank(20, 28)
+			var timber := Color("6a4a2a")
+			var timber_light := Color("8e6a3e")
+			var rope := Color("c8a868")
+			_oval(img, 10, 24.5, 8.5, 3.0, Color("6e655a"))   # the shaft's stone lip
+			_oval(img, 10, 24.5, 6.5, 2.0, Color("0c0a08"))   # the dark down it
+			_px(img, 2, 3, 16, 2, timber)                # the beam
+			_px(img, 2, 3, 16, 1, timber_light)
+			_px(img, 2, 5, 2, 21, timber)                # the posts
+			_px(img, 16, 5, 2, 21, timber)
+			_px(img, 2, 5, 1, 21, timber_light)
+			_px(img, 4, 9, 12, 4, Color("5a3d22"))       # the drum
+			for x in range(5, 15, 2):                    # rope wound round it
+				_px(img, x, 9, 1, 4, rope)
+			_px(img, 4, 9, 12, 1, Color("8a6a3a"))
+			_px(img, 18, 10, 2, 1, Color("3a3430"))      # the crank's arm and grip
+			_px(img, 19, 10, 1, 4, Color("3a3430"))
+			_px(img, 9, 13, 2, 11, rope)                 # the rope down the shaft
+			_px(img, 9, 13, 1, 11, rope.lightened(0.2))
+			_px(img, 6, 5, 1, 1, Color("3a3430"))        # the lantern off the beam: its hook,
+			_px(img, 5, 6, 3, 1, Color("3a3430"))        # cap,
+			_px(img, 5, 7, 3, 2, Color("e8a040"))        # glowing panes
+			_px(img, 6, 7, 1, 1, Color("fff4d0"))        # and flame
+			return _outline(img)
 		"lumber":
 			var img := _blank(16, 28)
 			var board := Color("d8b07a")

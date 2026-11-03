@@ -372,8 +372,8 @@ items (`mine:<id>`: name, kind stone / ore / gem, sell, icon look) are in `data/
 `Game.go_to_map` makes the floor (`Game.maps.mine_floor`: its rocks are solid, its open hole
 is a door to the next floor); `Game.mine_swing` costs stamina and fatigue like field work and
 puts finds in the rucksack, else overhead, else on the ground (E picks them up). The ladder
-goes straight back up. Only `mine.deepest` is saved; a save made down the mine loads at the
-cave mouth. The views add a `MineLayer` (3D) / `MineView` (2D). Ores are rucksack items: the
+goes straight back up. Only `mine.deepest` and `mine.landings` are saved; a save made down the
+mine loads at the cave mouth. The views add a `MineLayer` (3D) / `MineView` (2D). Ores are rucksack items: the
 Kurogane Smithy asks for them on its upgrade levels (akagane for level 2, then shirogane,
 kogane and hoshigane for 5, some iron sand on the way; the rod has its own), taken from the
 rucksack when the tool is handed in; its Tools tab says "Still needs ..." until they are
@@ -388,7 +388,19 @@ glint pale blue. Winter: `winter` freezes floors 1 to `to`
 in its seasons: a colder light, frost on part of the floor (only a look) and blocks of ice
 (`kind: "ice"` in `MineFloor.rocks`, `hits` blows) hiding frost stone or rock crystal, never
 the hole; deeper floors stay warm. `-- --season=winter` starts on day 1 of winter (e.g.
-`-- --demo --season=winter --mine=3`). Map files may say `sheltered: true` (no weather; buildings
+`-- --demo --season=winter --mine=3`).
+Landings: every trip used to start at floor 1, so `landings` in data/mine.json makes floors 5,
+10 and 15 landings. Each has a rope lift's cage by the ladder (`MineFloor.landing` / `lift`, solid,
+inside the ladder's safe square so the layout is unchanged; `mine:landing` in both views).
+Reaching one keeps it (`Game.mine_landings`, saved as `mine.landings` since save version 6;
+older saves get every landing down to their deepest floor, since every trip then began at floor 1)
+and sets the story flag `mine_lift`, which shows the winch beside the cave mouth (`rope_lift`, a
+story prop, `story:rope_lift`). From then on the cave mouth asks in a text box (built in code:
+`Game.ask_mine_lift`, `dialogue_made`): the ladder to floor 1 or the lift to a landing reached (the
+deepest three). `Game.mine_go_down(depth)` refuses a landing not reached, so `mine_deepest`, the
+ending's mine measure, still only counts floors walked to. `-- --demo --map=mine@cave
+--landings=5,10 --lift` opens the choice; `-- --demo --mine=10` stands by a landing's lift.
+Map files may say `sheltered: true` (no weather; buildings
 are sheltered by default) apart from `indoor` (the clock stops).
 
 ## Forage
