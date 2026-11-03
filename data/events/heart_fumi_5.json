@@ -1,0 +1,14 @@
+{
+	"_note": "Fumi's second heart event: the first talk once her heart band reaches 5, after heart_fumi, at the teahouse counter, in Sakurazaka or in the village (same tables); it plays instead of opening the shop. A city tea merchant wants the teahouse and she asks the farmer what to do (a line of its own with fumi_honest). Sets heart_fumi_5. Fumi acts in it from where the talk found them (an actor step at plan; played where their plan has them elsewhere, they walk up to the farmer), faces the farmer through the lines and goes back to their day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "fumi", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "fumi"},
+		{"do": "sound", "key": "drink"},
+		{"do": "wait", "seconds": 0.3},
+		{"do": "say", "dialogue": "heart_events_5", "at": "fumi"},
+		{"do": "affection", "who": "fumi", "amount": 5},
+		{"do": "set", "flags": {"heart_fumi_5": true}},
+		{"do": "actor", "who": "fumi", "to": "plan"},
+		{"do": "actor", "who": "fumi", "leave": true}
+	]
+}

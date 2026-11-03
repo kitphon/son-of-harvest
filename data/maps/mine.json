@@ -1,5 +1,5 @@
 {
-	"_note": "The mine entrance: a grassy hollow under a cliff east of the village, with a timber-framed adit in the rock face. The cave mouth (door) goes down to the first mine floor (mine_floor.json, laid out fresh each time: data/mine.json). The west edge leads back to the village road. Format: README.md, Maps.",
+	"_note": "The mine entrance: a grassy hollow under a cliff east of the village, with a timber-framed adit in the rock face. The cave mouth (door) goes down to the first mine floor, or, once a landing is reached, asks: the ladder or the rope lift (its winch beside the mouth shows with the flag mine_lift; data/mine.json landings) (mine_floor.json, laid out fresh each time: data/mine.json). The west edge leads back to the village road. Format: README.md, Maps.",
 	"id": "mine",
 	"name": "Mine entrance",
 	"size": [16, 12],
@@ -32,7 +32,9 @@
 		{"kind": "pine", "cell": [13, 9]},
 		{"kind": "pine", "cell": [3, 10]},
 		{"kind": "stone_lantern", "cell": [5, 3]},
-		{"kind": "stone_lantern", "cell": [10, 3]}
+		{"kind": "stone_lantern", "cell": [10, 3]},
+		{"kind": "rope_lift", "cell": [9, 3], "flag": "mine_lift", "use": "examine",
+			"message": "The rope lift's winch. Walk into the cave mouth to ride it down to a landing."}
 	],
 	"doors": [
 		{"cells": [[7, 2], [8, 2]], "to": "mine_floor", "spawn": [8, 1], "facing": "down"},

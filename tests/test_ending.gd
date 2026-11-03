@@ -191,9 +191,10 @@ func _values() -> void:
 	check(v.neighbours_known == 0, "no neighbours known yet")
 	var near := int(Affection.rules().bands[int(Ending.data().neighbour_band)])
 	g.affection.add("genzo", near)
-	g.affection.add("fumi", near - 1)
+	g.affection.add("shige", near - 1)
 	g.affection.add("yae", near + 30)
-	check(g.ending_values().neighbours_known == 2 and g.ending_values().heart_bands == 3, "Genzo and Dr. Yae known, Fumi not quite")
+	g.affection.add("fumi", near)
+	check(g.ending_values().neighbours_known == 2 and g.ending_values().heart_bands == 4, "Genzo and Dr. Yae known, Shige not quite; Fumi counts as a friend (%s)" % [g.ending_values()])
 	var neighbours := 0
 	for id in Villagers.all():
 		neighbours += 0 if Villagers.friends().has(id) else 1
@@ -256,7 +257,7 @@ func _pages() -> void:
 ## The ending event runs to the end on the real Game (no screen: the record step goes straight
 ## on), sets the rank and friend flags and ending_seen.
 func _event_plays() -> void:
-	for who in ["tome", "kota", "sayo", "hachiro"]:
+	for who in Villagers.friends():
 		var g := _game()
 		if who != "tome":
 			g.affection.add(who, int(Affection.rules().bands[4]))

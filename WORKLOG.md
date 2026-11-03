@@ -10,6 +10,297 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-03 — Merge: forage talk from the outer parts' villagers
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged main into the forage talk branch (92fb776, entry below dated 2026-11-02).
+  Main had given Fumi and Ichiro hearts in the meantime (ca99103), so their talk files clashed:
+  their forage rows now follow the rule of the villagers with hearts (band 2..5, after the band
+  5 flag lines, before the close lines), so a stranger and a dear friend don't hear them; the
+  other five keep band 1..6. test_talk moves Fumi and Ichiro to the hearted forage checks.
+- Not merged (main already had the same work, 688bc4c): the year bot's river fishing and mine
+  food (branch worktree-agent-a188e6fd5ff01e5a5, 86c11fc) and a slower hammer with less
+  experience per mine blow (worktree-agent-a4531e61007890ca2, 5fc9390; main set the hammer's
+  steps to 240 / 720 / 1680 / 3360 instead). Both branches were deleted.
+- Checked: all 25 test scripts print `OK (0 failed)` after the merge. The first run failed one
+  check, test_relationships' "ichiro at band 4: forage_summer": it talked to him on a
+  Wednesday, his forage day, where the forage line rightly comes before the close lines; the
+  check now uses a Monday. Smoke runs (title, `--demo`, town, mine 3, sakurazaka) print no
+  error or warning lines.
+- Left / next: milestone 10, the .exe build once the export templates are installed.
+
+## 2026-11-03 — Playtest fixes: land past the map edges, see-through buildings in the way
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Why: a playtest (screenshots of 19 scenes, read as players aged 15-20 and 21-30) found two
+  things both groups see in the first hour: near a map's edge the 3D view looked off the world
+  into empty sky (the village's north-west corner, the farm past its fence), and roofs in front
+  of the farmer (the village, the festival square, winter) filled the lower half of the screen
+  and hid the ground and villagers behind them. The user picked these two to fix first.
+- Done: `Surroundings` (scripts/world3d/surroundings.gd): on every outdoor map (not sheltered:
+  the farm, village, the three outer parts, hill, river, mine mouth) an apron of ground 14 cells
+  round the map, each cell the nearest edge cell's kind (roads, the river and paddies run on;
+  water banks drawn where kinds meet), snow on it as on the map; and a pine wood where a tree
+  stands behind every map cell of its screen column (the north and west sides), never on or
+  next to a road or water running out. `Occluders` (scripts/world3d/occluders.gd): every map
+  prop, and the farm's house, stand, coop and barn, is one group of meshes with a box; anything
+  over 1 unit high fades to 40 % while it stands nearer the camera than the farmer and a ray from
+  the farmer (feet, waist, head) or from a ring 1.25 cells round the feet towards the camera hits
+  its box. The fade is the materials' alpha (each group gets its own copies; snow tops hide,
+  sprites use modulate): `GeometryInstance3D.transparency` drew nothing in the project's
+  Compatibility renderer (the fade's data was right, the frame unchanged).
+- Checked: test_maps (new: the village's apron, the west road running on, pines only behind
+  the map and off the road, behind / in front of a village house, `hides` both ways, no apron
+  in a room, the farm view's apron and four fading buildings) and every other test print
+  `OK (0 failed)`; smoke runs (title, `--demo`, `--map=town`, `--mine=3`, `--map=river`,
+  `--map=hill`) print no error or warning lines. Screenshots (3D): the village start, winter
+  village with snow 80, farm gate, river, hill top, Kaminoda, the mine mouth, Blossom Day.
+  Pixels of the empty-sky colour 8fc6e8 in the village frame: 22710 before, 0 after; 0 in all
+  the other outdoor frames. The roof in front of the village start spawn and the festival
+  square's roof show see-through, with the road / pond and villagers behind them visible.
+- Left / next: the 2D view needs neither. Other playtest notes still open: on-screen key hints,
+  Thai text, an early goal in week 1, the mine's share of winter money, night lights.
+  tools/play_year.gd has another agent's uncommitted change, so it is left out of this commit.
+
+## 2026-11-03 — Hearts for Fumi and Ichiro
+Agent: Claude Code (claude-opus-5-5) · Commit: ca99103
+- Done: Fumi (the Hanami teahouse) and Ichiro (the charcoal burner) of Sakurazaka are villagers
+  with hearts: `"hearts": false` gone from their files, so `Villagers.friends()` (the name tag's
+  heart, the nightly loss, birthdays, the record's Friendships row, the ending's closing word)
+  takes them in with no code change. Birthdays: Fumi spring 26 (the last cherries; she shuts the
+  counter 11:00-16:00 and stands under the trees by the bridge), Ichiro fall 9 (the burning
+  season; no axe, a long sit on the teahouse gravel 10:00-14:00); both on the farmhouse calendar,
+  birthday and gift_birthday lines. Talk: close lines from band 4, their own lines after the band
+  5 scene (Fumi's letter in the stove, Ichiro's kiln). Their gift lists (a loved dish and a loved
+  keepsake each, kept at home) were already there. Heart events, our own scenes: band 3 Fumi asks
+  the farmer to taste her mother's bean paste and tell her true (`fumi_honest`), Ichiro knocks
+  charcoal to hear it ring; band 5 a city tea merchant wants Fumi's teahouse (her line looks back
+  on `fumi_honest`), Ichiro's father's kiln cracks and he asks for help (`ichiro_kiln`). New
+  trigger tables `triggers_teahouse.json`, `triggers_sakurazaka.json`, `triggers_ichiro_house.json`
+  and rows in `triggers_town.json` (festival days); heart music for them (data/music.json); an
+  ending part each. No band 6 scenes for them yet.
+- Balance: data/ending.json Friendships steps 4 / 8 / 14 / 20 (of 24, four villagers) →
+  5 / 11 / 19 / 28 (of 36, six): about the same share. Neighbours 2 / 4 / 6 / 8 (of 8) → 2 / 3 / 5 / 6
+  (of 6). tools/play_year.gd not run (another agent works on it), so the bot's star count with
+  the new steps is not measured.
+- Tests: test_relationships loops over the friends as before; the band 5 / 6 checks run where
+  the event file is there (the first four must have both), keepsake homes for the two, and a new
+  `_sakurazaka_friends` (birthday plans, close / after-scene lines, Fumi's band 5 branch, the
+  ending part). test_ending: Shige is the neighbour not quite known, Fumi counts as a friend, the
+  ending event plays for every friend.
+- Checked: `test_relationships: OK (0 failed)`, `test_talk: OK (0 failed)`, `test_villagers: OK (0 failed)`,
+  `test_events: OK (0 failed)`, `test_ending: OK (0 failed)`, `test_festivals: OK (0 failed)`,
+  `test_save: OK (0 failed)`, `test_audio: OK (0 failed)` and every other test script OK.
+  test_villagers failed once (`FAIL: the lumber blocks the farmer (both views' Player asks
+  Game.maps), the cell he fetches from stays open`) and passed on the next two runs; that check is
+  about Hachiro's building job, not these files. Smoke runs (title, `--demo`, `--map=town`,
+  `--mine=3`, Sakurazaka at 13:20, Fumi's birthday, `--event=heart_fumi`, `--event=heart_ichiro_5`)
+  printed no errors. Screenshot `--demo --map=sakurazaka --time=13:20 --talk=fumi --hearts=3`:
+  Fumi on the gravel, her name tag with the heart, her spring line.
+- Left / next: band 6 scenes for Fumi and Ichiro; the other outer villagers stay without hearts.
+
+## 2026-11-03 — Mine landings: rope lifts on floors 5, 10 and 15
+Agent: Claude Code (claude-opus-5-5) · Commit: b754692 (merged in ecb27b6)
+- Done: every trip down the mine began at floor 1, so floors 15 and 20 (the ending's mine steps)
+  took more food than a day's pack. `landings` in data/mine.json makes floors 5, 10 and 15
+  landings: a rope lift's cage stands by the ladder (`MineFloor.landing` / `lift`, solid, at
+  [9, 1] inside the ladder's safe square, so no floor's layout changes; `mine:landing` art, a
+  rope down to a timber cage with a lit lantern, in both views). Reaching one keeps it
+  (`Game.mine_landings`, news said once on arrival) and sets the story flag `mine_lift`, which
+  shows the winch beside the cave mouth (`rope_lift` story prop on data/maps/mine.json,
+  `story:rope_lift`, both views; E on it says what it is). From then on the cave mouth opens a
+  text box: the ladder to floor 1 or the lift to each landing reached (the deepest three; the
+  box holds four choices). The text box can now show lines built in code (`Game.dialogue_made`)
+  and tells Game when it closes (`Game.dialogue_closed`), which takes the farmer down
+  (`Game.mine_go_down`, refusing a landing not reached). Save version 6: `mine.landings`;
+  a version 5 or older save gets every landing down to its deepest floor (every trip began at
+  floor 1 then, so they were walked through) and the winch's flag. `mine_deepest`, the ending's
+  measure, still only counts floors reached on foot: the lift only goes where the farmer has
+  been. Debug: `-- --demo --map=mine@cave --landings=5,10 --lift` opens the choice.
+- Balance: every fifth floor, because a 150-stamina pack (the year bot's) went about five to
+  nine floors a trip; from landing 15 floor 20 is one pack down. Not changed: the ending's steps.
+- Checked: `test_mine: OK (0 failed)` (new: landing data and layout unchanged by the lift, the
+  game flow at the cave mouth, the choice as a running dialogue, deepest kept honest, the save,
+  the version 5 migration, bad lists refused, the art sizes); test_save, test_view2d,
+  test_ending and every other test print OK (0 failed). Smoke runs (title, `--demo`, `--map=town`,
+  `--mine=3`, `--map=mine`, `--mine=10`, the lift choice, the flat view at `--mine=5`) print no
+  errors or warnings. Screenshots: the cave mouth with the winch and the three choices (3D),
+  floor 10's lift and its news (3D), floor 5's lift (flat view).
+- Left / next: tools/play_year.gd doesn't ride the lift yet (not touched here; another agent
+  works on it), so its report's deepest trip floor is still from floor 1.
+
+## 2026-11-03 — Fish prices: crops and animals lead year 1, fishing a side income
+Agent: Claude Code (claude-opus-5-5) · Commit: b8b2d80 (merged in this commit)
+- Done: data/fish.json prices only (no code). The fish that bite at every hour go to about
+  20 G: crucian carp 30 → 20, pond loach 25 → 18, dace 40 → 18, pale chub 55 → 26; carp
+  80 → 60, river sculpin 90 → 60; sweetfish 120 → 90 and a morning fish now (hours 5-18 →
+  5-12); the salmon run keeps its 450 G but is rarer in the river (weight 10 → 6). Masu trout,
+  char, catfish, eel and the two once-only fish are unchanged. A `_prices` note in the file.
+- Why (ours): the year-1 field is capped by the can's level, not by stamina, so every point
+  of stamina left after the field went into the evening's fishing, and the bot's catch was
+  worth what a bite pays times the spare stamina / 4. The river paid 47-102 G a bite in the
+  afternoon and evening (dace and chub at every hour, sweetfish until 18:00, the salmon run
+  until 17:00): 12-25 G a stamina point, against about 4 G a point for the stand's food. Now an
+  evening bite pays 22-32 G (spring and summer at the farm pond, 28 G; fall's river with the
+  salmon until 17:00, 59 G), about 5-8 G a stamina point: still more than the food it costs,
+  so fishing pays, but the money is in the fish of their hour (dawn trout and char, the summer
+  morning's sweetfish, the salmon, night catfish and eel). The average bite by hour came from
+  the table (a small script, sunny, once-only fish left out): river spring 6:00 58 G, 16:00
+  22 G; summer 6:00 48 G, 16:00 22 G; fall 6:00 102 G, 16:00 59 G, 18:00 22 G.
+- Before (seed 1, `-- --years=2`, data as of 40ca5ed, quoted from the run; same as the last
+  entry's report):
+  ```
+  == Year 1 spring: income 35939 G, costs 13980 G, money 500 -> 22459 G
+     income: crops 11285, dishes 0, animals 2210, fish 12860, forage 7170, mine 1914, prizes 500
+     fishing: river 361 fish, 17810 G, pond 0 fish, 0 G; mine: 8 trips, deepest trip floor 8, food eaten there 350 stamina
+  == Year 1 summer: income 60187 G, costs 30210 G, money 22459 -> 52436 G
+     income: crops 16830, dishes 4860, animals 8040, fish 23115, forage 4772, mine 2070, prizes 500
+     fishing: river 363 fish, 26865 G, pond 0 fish, 0 G; mine: 7 trips, deepest trip floor 5, food eaten there 200 stamina
+  == Year 1 fall: income 73974 G, costs 46970 G, money 52436 -> 79440 G
+     income: crops 21855, dishes 835, animals 21480, fish 18485, forage 8499, mine 2320, prizes 500
+     fishing: river 392 fish, 30245 G, pond 0 fish, 0 G; mine: 4 trips, deepest trip floor 9, food eaten there 325 stamina
+  == Year 1 winter: income 84921 G, costs 27450 G, money 79440 -> 135731 G
+     income: crops 0, dishes 0, animals 26440, fish 160, forage 675, mine 57146, prizes 500
+     fishing: river 10 fish, 400 G, pond 0 fish, 0 G; mine: 29 trips, deepest trip floor 10, food eaten there 4255 stamina
+  ```
+- After (same run, new prices):
+  ```
+  == Year 1 spring: income 29176 G, costs 14200 G, money 500 -> 15476 G
+     income: crops 9880, dishes 0, animals 2280, fish 7314, forage 6756, mine 2446, prizes 500
+     fishing: river 0 fish, 0 G, pond 360 fish, 10088 G; mine: 6 trips, deepest trip floor 8, food eaten there 400 stamina
+  == Year 1 summer: income 54773 G, costs 30480 G, money 15476 -> 39769 G
+     income: crops 20425, dishes 17130, animals 7690, fish 4570, forage 3616, mine 1342, prizes 0
+     fishing: river 0 fish, 0 G, pond 379 fish, 11430 G; mine: 5 trips, deepest trip floor 5, food eaten there 150 stamina
+  == Year 1 fall: income 70356 G, costs 47140 G, money 39769 -> 62985 G
+     income: crops 22445, dishes 4160, animals 21620, fish 6858, forage 10141, mine 4632, prizes 500
+     fishing: river 372 fish, 13608 G, pond 0 fish, 0 G; mine: 6 trips, deepest trip floor 9, food eaten there 600 stamina
+  == Year 1 winter: income 79689 G, costs 25220 G, money 62985 -> 118619 G
+     income: crops 0, dishes 560, animals 26720, fish 95, forage 600, mine 51214, prizes 500
+     fishing: river 0 fish, 0 G, pond 16 fish, 410 G; mine: 29 trips, deepest trip floor 10, food eaten there 4285 stamina
+  == Year 2 spring: income 64023 G, costs 10760 G, money 118619 -> 172642 G
+     income: crops 15910, dishes 11295, animals 28820, fish 276, forage 4290, mine 3432, prizes 0
+  == Year 2 summer: income 67939 G, costs 11890 G, money 172642 -> 228691 G
+     income: crops 23655, dishes 8700, animals 28470, fish 598, forage 3154, mine 3362, prizes 0
+  == Year 2 fall: income 91847 G, costs 16920 G, money 228691 -> 303618 G
+     income: crops 33860, dishes 7425, animals 28540, fish 6926, forage 7834, mine 6762, prizes 500
+  == Year 2 winter: income 88953 G, costs 19890 G, money 303618 -> 371991 G
+     income: crops 0, dishes 0, animals 25950, fish 0, forage 625, mine 62178, prizes 200
+     Fish kinds        8  3 / 4 stars
+     Contests won        4  3 / 4 stars
+     36 / 43 stars: rank 4, "Heart of the Village"; closest: hachiro
+  play_year: OK (no problems seen)
+  ```
+  Year 1 shipped: crops 49970 → 52750 G, animals 58170 → 58310 G, fish 54620 → 18837 G (the
+  catch at the bin's prices 75320 → 35536 G; the rest of the catch was gifted or cooked).
+  Fish were 1.09x the crops and are now 0.36x; crops + animals are 111060 G against 18837 G of
+  fish. The bot now fishes the farm pond in spring and summer (the river pays less there in
+  the evening) and the river in fall (the salmon), 350-380 fish a season as before. Year-1
+  money at the end of winter 135731 → 118619 G; the record keeps 36 / 43, rank 4 (Fish kinds
+  6 → 8 with the pond fished again, 3 stars; Contests won 6 → 4, 3 stars: a fish entry scores
+  its price). No collapses.
+- Checked: test_fishing, test_farm, test_festivals, test_shops, test_cooking, test_food,
+  test_talk, test_relationships, test_ending, test_view2d, test_hold and test_forage each print
+  `OK (0 failed)`; the smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`,
+  `--demo --fishing=river`) print no error lines.
+- Left / next: year-1 summer dishes 4860 → 17130 G: the bot cooks the cheap fish into grilled
+  fish (data/foods.json sells it at 80 G, a fish in, no other ingredient), so some of the old
+  fish money comes back through the kitchen. Look at grilled fish's price (foods.json, not
+  changed here) if that turns out to be the new shortcut.
+
+## 2026-11-03 — Year bot: river fishing, food for the mine, forage, the new areas; rod and hammer
+Agent: Claude Code (claude-opus-5-5) · Commit: 688bc4c (merged in d0581e3)
+- Done: `tools/play_year.gd` on the new main. It walks the new areas instead of jumping: the
+  village → Sakurazaka → the mine, the village → Minamino → the river, the village → Kaminoda →
+  the hill (houses of any area are left through their own door). Forage: every area walked
+  through is picked clean (`Game.forage_pick`, nearest spot first), and on dry days the mine
+  doesn't take (before 14:00) it does a round of Kaminoda and the hill; wild things count as
+  their own income source. River: the evening's fishing (now until 20:00, stamina allowing)
+  goes to the river's shore when a bite there is worth more on average than at the farm pond
+  (`Fishing.candidates` for the season, hour and weather, fish caught once left out); the report
+  counts fish and G per place. Mine: before a trip it ships what it carries (room for finds),
+  takes the kept dishes (3 of each with 40+ stamina stay in the chest) and buys the stand's
+  food with the most stamina per G (dango) up to 150 stamina, RESERVE kept; down there it eats
+  the most filling one that fits under the max when stamina drops below 20, and goes up at
+  17:00, at fatigue 75, or when a swing can't happen (the first version hung on a rain day with
+  the hands and the rucksack full: no time passed). Stand foods are no longer shipped.
+- Balance, from the first run on the new main (seed 1, before the two changes below):
+  ```
+     income: crops 10710, dishes 0, animals 2280, fish 31070, forage 7632, mine 1846, prizes 500
+     fishing: river 695 fish, 35740 G, pond 0 fish, 0 G; mine: 5 trips, deepest trip floor 9, food eaten there 450 stamina
+     income: crops 22040, dishes 5460, animals 7450, fish 43480, forage 4746, mine 358, prizes 500
+     fishing: river 775 fish, 48525 G, pond 0 fish, 0 G; mine: 2 trips, deepest trip floor 5, food eaten there 0 stamina
+  ```
+  (1) Fish out-earned crops about three to one in year 1 (105445 G vs 55865 G): a cast cost 2
+  stamina, so the river (dace 40 G and chub 55 G at every hour) was fished from mid-afternoon to
+  20:00 every day for about 25 fish. data/tools.json rod stamina 2 → 4: still about 12 G a
+  stamina point (the stand sells stamina at about 4 G), but spare stamina now limits it.
+  (2) The hammer (axe's numbers, 90 / 270 / 630 / 1260) was at level 4 after the first spring and
+  5 in fall of year 1 from mine swings, so the smithy's hammer upgrades never did anything. Now
+  the sickle's 240 / 720 / 1680 / 3360. Not changed: the mine steps 5 / 10 / 15 / 20. Floor 10
+  (2 stars) is what the bot gets with a 150-stamina pack after its village round; the trips end
+  when the pack is eaten (about 147 stamina a winter trip), so 15 and 20 are for a player who
+  goes down early with more food, which is what data/ending.json says they should take.
+- Report (seed 1, `-- --years=2`, after both changes, quoted from the run):
+  ```
+  == Year 1 spring: income 35939 G, costs 13980 G, money 500 -> 22459 G
+     income: crops 11285, dishes 0, animals 2210, fish 12860, forage 7170, mine 1914, prizes 500
+     tools: hoe 2, can 2, sickle 1, hammer 3, axe 1, rod 1
+     fishing: river 361 fish, 17810 G, pond 0 fish, 0 G; mine: 8 trips, deepest trip floor 8, food eaten there 350 stamina
+  == Year 1 summer: income 60187 G, costs 30210 G, money 22459 -> 52436 G
+     income: crops 16830, dishes 4860, animals 8040, fish 23115, forage 4772, mine 2070, prizes 500
+     tools: hoe 2, can 3, sickle 2, hammer 4, axe 1, rod 1
+     fishing: river 363 fish, 26865 G, pond 0 fish, 0 G; mine: 7 trips, deepest trip floor 5, food eaten there 200 stamina
+  == Year 1 fall: income 73974 G, costs 46970 G, money 52436 -> 79440 G
+     income: crops 21855, dishes 835, animals 21480, fish 18485, forage 8499, mine 2320, prizes 500
+     tools: hoe 2, can 3, sickle 2, hammer 4, axe 1, rod 1
+     fishing: river 392 fish, 30245 G, pond 0 fish, 0 G; mine: 4 trips, deepest trip floor 9, food eaten there 325 stamina
+  == Year 1 winter: income 84921 G, costs 27450 G, money 79440 -> 135731 G
+     income: crops 0, dishes 0, animals 26440, fish 160, forage 675, mine 57146, prizes 500
+     tools: hoe 4, can 4, sickle 2, hammer 5, axe 2, rod 2
+     fishing: river 10 fish, 400 G, pond 0 fish, 0 G; mine: 29 trips, deepest trip floor 10, food eaten there 4255 stamina
+  == Year 2 spring: income 72718 G, costs 11830 G, money 135731 -> 197799 G
+     income: crops 18175, dishes 14695, animals 28540, fish 830, forage 4410, mine 5568, prizes 500
+     tools: hoe 4, can 4, sickle 2, hammer 5, axe 2, rod 2
+     fishing: river 93 fish, 4460 G, pond 0 fish, 0 G; mine: 6 trips, deepest trip floor 9, food eaten there 590 stamina
+  == Year 2 summer: income 72393 G, costs 10030 G, money 197799 -> 260162 G
+     income: crops 25585, dishes 6030, animals 28540, fish 5320, forage 4038, mine 2680, prizes 200
+     tools: hoe 4, can 4, sickle 2, hammer 5, axe 2, rod 2
+     fishing: river 110 fish, 8160 G, pond 0 fish, 0 G; mine: 4 trips, deepest trip floor 7, food eaten there 345 stamina
+  == Year 2 fall: income 88846 G, costs 16470 G, money 260162 -> 332538 G
+     income: crops 34425, dishes 4750, animals 28610, fish 7845, forage 8758, mine 3958, prizes 500
+     tools: hoe 4, can 5, sickle 2, hammer 5, axe 2, rod 2
+     fishing: river 186 fish, 17205 G, pond 0 fish, 0 G; mine: 8 trips, deepest trip floor 7, food eaten there 405 stamina
+  == Year 2 winter: income 87853 G, costs 18900 G, money 332538 -> 400381 G
+     income: crops 0, dishes 0, animals 25950, fish 0, forage 675, mine 61128, prizes 100
+     tools: hoe 5, can 5, sickle 2, hammer 5, axe 2, rod 2
+     fishing: river 0 fish, 0 G, pond 0 fish, 0 G; mine: 29 trips, deepest trip floor 10, food eaten there 4260 stamina
+  == Spring 1, Year 3: the village record (the ending played)
+     Shipped      573531  4 / 4 stars
+     Crops grown       11  4 / 4 stars
+     Happy animals        9  3 / 4 stars
+     Friendships       24  4 / 4 stars
+     Neighbours        7  3 / 4 stars
+     Deepest floor       10  2 / 4 stars
+     Fish kinds        6  2 / 4 stars
+     House built        3  3 / 3 stars
+     Tool levels       14  3 / 4 stars
+     Contests won        6  4 / 4 stars
+     Recipes          19  4 / 4 stars
+     36 / 43 stars: rank 4, "Heart of the Village"; closest: hachiro
+     goals not reached: none
+  play_year: OK (no problems seen)
+  ```
+  Against 2026-11-01: deepest floor 6 → 10 (steps 5 / 10 / 15 / 20: 1 → 2 stars); year-1 mine
+  income 18k → 63450 G (winter 57146 G, with 14490 G of food bought for it); the hammer now
+  reaches 3 / 4 / 4 / 5 by season in year 1 (was 4-5 by fall); year-1 fish shipped 9k at the
+  pond → 54620 G at the river (year 2: 13995 G, when the bigger field takes the stamina);
+  forage 21116 G in year 1. Rank 4, "Heart of the Village" (was rank 3, 30 / 39 before the new
+  areas added Neighbours and recipes). No collapses in year 1, none in year 2.
+- Checked: all 25 test scripts print `OK (0 failed)` (with the new rod and hammer numbers);
+  the bot prints `play_year: OK (no problems seen)`.
+- Left / next: fish still out-earn crops in each season of year 1 (the small year-1 field
+  leaves stamina over; lower common river fish prices if a player finds it too strong); the
+  smithy's hammer 2 / 3 still come after the bot's mining has levelled it; floors 15 / 20 need a
+  longer trip than the bot's plan.
+
 ## 2026-11-02 — Forage talk from the outer parts' villagers
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the seven villagers without hearts each have a forage line per season in their talk
@@ -39,6 +330,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   runs (title, `--demo`, town, mine 3, kaminoda, minamino, sakurazaka) print no errors or
   warnings.
 - Left / next: milestone 10, the .exe build once the export templates are installed.
+
 
 ## 2026-11-02 — Forage talk from the villagers with hearts
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

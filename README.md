@@ -225,7 +225,11 @@ straw_hat, colours `hair`, `skin`, `top`, `waist`, `lower`, `accent`, `shoes`; d
 (`{"season": "fall", "day": 24}`, optional; the farmhouse calendar names it), optional
 `hearts` (false: a villager the farmer can't grow close to, like Dr. Yae at the clinic: no
 birthday, heart events or place in the village record; `Villagers.friends()` is everyone
-else, and the heart checks in test_relationships loop over it), then:
+else (Tome, Hachiro, Sayo and Kota, and from Sakurazaka Fumi and Ichiro), and the heart checks
+in test_relationships loop over it; a friend needs a birthday with its lines and day plan, a
+`heart_<id>` event at band 3 in the trigger table of every map they can be talked on, and a
+part in the ending (`data/events/ending.json`); `heart_<id>_5` / `_6` are optional, checked
+when the file is there), then:
 - `rules`: `[{"if": {conditions}, "plan": "<name>"}]`, the first that holds picks the day's
   plan, else `default`. Conditions: `season`, `weekday`, `weather` (lists), `days`, `year`
   (`[first, last]`), `flags` / `not_flags` (story flags set / not set), `festival` (festival
@@ -368,8 +372,8 @@ items (`mine:<id>`: name, kind stone / ore / gem, sell, icon look) are in `data/
 `Game.go_to_map` makes the floor (`Game.maps.mine_floor`: its rocks are solid, its open hole
 is a door to the next floor); `Game.mine_swing` costs stamina and fatigue like field work and
 puts finds in the rucksack, else overhead, else on the ground (E picks them up). The ladder
-goes straight back up. Only `mine.deepest` is saved; a save made down the mine loads at the
-cave mouth. The views add a `MineLayer` (3D) / `MineView` (2D). Ores are rucksack items: the
+goes straight back up. Only `mine.deepest` and `mine.landings` are saved; a save made down the
+mine loads at the cave mouth. The views add a `MineLayer` (3D) / `MineView` (2D). Ores are rucksack items: the
 Kurogane Smithy asks for them on its upgrade levels (akagane for level 2, then shirogane,
 kogane and hoshigane for 5, some iron sand on the way; the rod has its own), taken from the
 rucksack when the tool is handed in; its Tools tab says "Still needs ..." until they are
@@ -384,7 +388,19 @@ glint pale blue. Winter: `winter` freezes floors 1 to `to`
 in its seasons: a colder light, frost on part of the floor (only a look) and blocks of ice
 (`kind: "ice"` in `MineFloor.rocks`, `hits` blows) hiding frost stone or rock crystal, never
 the hole; deeper floors stay warm. `-- --season=winter` starts on day 1 of winter (e.g.
-`-- --demo --season=winter --mine=3`). Map files may say `sheltered: true` (no weather; buildings
+`-- --demo --season=winter --mine=3`).
+Landings: every trip used to start at floor 1, so `landings` in data/mine.json makes floors 5,
+10 and 15 landings. Each has a rope lift's cage by the ladder (`MineFloor.landing` / `lift`, solid,
+inside the ladder's safe square so the layout is unchanged; `mine:landing` in both views).
+Reaching one keeps it (`Game.mine_landings`, saved as `mine.landings` since save version 6;
+older saves get every landing down to their deepest floor, since every trip then began at floor 1)
+and sets the story flag `mine_lift`, which shows the winch beside the cave mouth (`rope_lift`, a
+story prop, `story:rope_lift`). From then on the cave mouth asks in a text box (built in code:
+`Game.ask_mine_lift`, `dialogue_made`): the ladder to floor 1 or the lift to a landing reached (the
+deepest three). `Game.mine_go_down(depth)` refuses a landing not reached, so `mine_deepest`, the
+ending's mine measure, still only counts floors walked to. `-- --demo --map=mine@cave
+--landings=5,10 --lift` opens the choice; `-- --demo --mine=10` stands by a landing's lift.
+Map files may say `sheltered: true` (no weather; buildings
 are sheltered by default) apart from `indoor` (the clock stops).
 
 ## Forage
@@ -694,7 +710,7 @@ in `data/events/triggers_house.json`, once), Tome comes in with the village reco
 (`data/events/ending.json`, lines in `data/dialogue/ending.json`). Its `ending` step calls
 `Game.show_ending()`: `Game.ending_values()` measures the run (shipped value at today's prices,
 crop kinds shipped, happy animals, heart bands, neighbours known (the villagers without hearts,
-the outer parts' people and Dr. Yae, whose hidden affection from talks and gifts reached
+the outer parts' people but Fumi and Ichiro, and Dr. Yae, whose hidden affection from talks and gifts reached
 `neighbour_band`), the deepest mine floor, fish kinds, house
 extensions, tool levels, contests won, recipes known) and `Ending.grade` turns it into stars
 per category, a rank and a title from `data/ending.json`; the EndingScreen shows it. The flags
@@ -728,6 +744,14 @@ vertical FOV 13.7° (a long, narrow lens, so the view looks nearly isometric). T
 follows the player with no lag and stops a few cells inside the fence (or the map edge;
 a room smaller than that stays centred). Inside, the same camera looks in from the front
 corner, so the front walls are drawn as low sills (a cutaway) instead of moving the camera.
+Outdoors, the land goes on past the map's edge (`scripts/world3d/surroundings.gd`): an apron
+of ground whose cells repeat the nearest edge cell (roads, the river and paddies run on out of
+sight), with a pine wood only where it stands behind the whole map on screen (the north and
+west sides), so the view never shows empty sky. Tall things in front of the farmer (houses,
+the coop and barn, trees, the torii: anything over 1 unit high) turn see-through while they
+hide the farmer or the ground within about a cell of them (`scripts/world3d/occluders.gd`:
+rays from the feet towards the camera; the materials' alpha, since the Compatibility renderer
+draws nothing for `GeometryInstance3D.transparency`).
 
 ## Layout
 - `scripts/autoload/game.gd`: global state (clock, calendar, weather, money, bag, stamina, light).

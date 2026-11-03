@@ -31,7 +31,11 @@ func build(m: MapData) -> void:
 			elif map.is_solid(c) and not map.door_at(c).is_empty() and map.prop_at(c).is_empty() and map.indoor:
 				_box(Vector3(1, 0.06, 0.9), Vector3(x + 0.5, 0.03, y + 0.5), flat_material(Color("4a3424")))   # threshold
 	for p in map.props:
-		_make_prop(p)
+		occlude(_make_prop.bind(p))
+	if not map.sheltered:
+		var rules: Dictionary = Game.snow_rules
+		add_surroundings(map.w, map.h, func(c: Vector2i) -> String: return map.tile(c),
+			func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, rules))
 
 
 ## The tiles as one picture under the whole map (unshaded, like the farm ground).
@@ -140,7 +144,7 @@ func _make_prop(p: Dictionary) -> void:
 		"irori", "tokonoma", "butsudan", "zabuton", "byobu", "toy_box", "mizugame": HomeProps.prop(self, p, mid, r)
 		"well", "jizo", "persimmon", "sakura", "hasa", "woodpile", "garden", "wood_fence": CountryProps.prop(self, p, mid, r, Game.season_name())
 		"cave_mouth": _cave_mouth(mid, r)
-		"door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "keepsake": StoryProps.prop(self, p)
+		"door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "keepsake", "rope_lift": StoryProps.prop(self, p)
 		"ladder": _ladder(mid)
 		_:
 			push_warning("MapWorld: no look for prop '%s'" % p.kind)

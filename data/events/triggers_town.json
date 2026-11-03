@@ -1,5 +1,5 @@
 {
-	"_note": "Events in the village. examine rows play when the farmer presses interact facing their spot ([x, y] or [x, y, width, height]); the first matching row wins, so special cases go first. The doors (the shops, Tome's 5, 6, Kota's 8, 15, Sayo's 25, 15) are left to the doors. The heart events come first: the first talk with a villager once their heart band is 3 or more, again at 5 once that one was seen, and at 6 after the one at 5. Format: README.md, Events.",
+	"_note": "Events in the village. examine rows play when the farmer presses interact facing their spot ([x, y] or [x, y, width, height]); the first matching row wins, so special cases go first. The doors (the shops, Tome's 5, 6, Kota's 8, 15, Sayo's 25, 15) are left to the doors. The heart events come first: the first talk with a villager once their heart band is 3 or more, again at 5 once that one was seen, and at 6 after the one at 5 (Fumi and Ichiro, in the village on festival days, have bands 3 and 5). Format: README.md, Events.",
 	"rows": [
 		{"event": "heart_tome", "on": "talk", "who": "tome", "hearts": {"tome": [3, 6]}},
 		{"event": "heart_tome_5", "on": "talk", "who": "tome", "hearts": {"tome": [5, 6]}, "seen": ["heart_tome"]},
@@ -13,6 +13,10 @@
 		{"event": "heart_hachiro", "on": "talk", "who": "hachiro", "hearts": {"hachiro": [3, 6]}},
 		{"event": "heart_hachiro_5", "on": "talk", "who": "hachiro", "hearts": {"hachiro": [5, 6]}, "seen": ["heart_hachiro"]},
 		{"event": "heart_hachiro_6", "on": "talk", "who": "hachiro", "hearts": {"hachiro": [6, 6]}, "seen": ["heart_hachiro_5"]},
+		{"event": "heart_fumi", "on": "talk", "who": "fumi", "hearts": {"fumi": [3, 6]}},
+		{"event": "heart_fumi_5", "on": "talk", "who": "fumi", "hearts": {"fumi": [5, 6]}, "seen": ["heart_fumi"]},
+		{"event": "heart_ichiro", "on": "talk", "who": "ichiro", "hearts": {"ichiro": [3, 6]}},
+		{"event": "heart_ichiro_5", "on": "talk", "who": "ichiro", "hearts": {"ichiro": [5, 6]}, "seen": ["heart_ichiro"]},
 		{"event": "shrine_offering", "on": "examine", "spot": [18, 1, 2, 2], "once": false},
 		{"event": "lantern_snow", "on": "examine", "spot": [16, 3], "once": false, "weather": ["snow"]},
 		{"event": "lantern_snow", "on": "examine", "spot": [21, 3], "once": false, "weather": ["snow"]},

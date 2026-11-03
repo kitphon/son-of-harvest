@@ -44,7 +44,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `test_menu: OK (0 failed)`. Fatigue (tired states, oversleeping, collapse, waking in the clinic and the doctor's fee):
   `res://tests/test_body.gd` must print `test_body: OK (0 failed)`. Events (runner, trigger
   tables, event data): `res://tests/test_events.gd` must print `test_events: OK (0 failed)`.
-  Maps (data/maps, doors, indoor clock, story props gated by flags, the fade in the real view): `res://tests/test_maps.gd`
+  Maps (data/maps, doors, indoor clock, story props gated by flags, the fade in the real view, the land past outdoor edges, buildings turning see-through in front of the farmer): `res://tests/test_maps.gd`
   must print `test_maps: OK (0 failed)`. Rucksack / storage (inventory slots, move rules, menu
   cursor, chest): `res://tests/test_inventory.gd` must print `test_inventory: OK (0 failed)`.
   Food and drink (eating, specials, the stand, the food slot, the eat / drink pose): `res://tests/test_food.gd` must
@@ -71,7 +71,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Forage (data/forage.json, the hill's spots by season, picking, the morning regrowth, the save,
   shipping and eating, the views, the art): `res://tests/test_forage.gd` must print `test_forage: OK (0 failed)`.
   Mine (data/mine.json, floors from a seed, rocks / soft spots / the hole, swings, the save,
-  light by depth and the lantern, frozen winter floors, mine art): `res://tests/test_mine.gd` must print `test_mine: OK (0 failed)`.
+  light by depth and the lantern, frozen winter floors, the rope lift landings and their save, mine art): `res://tests/test_mine.gd` must print `test_mine: OK (0 failed)`.
   Ending (data/ending.json, grading, the values measured, the event and its trigger, the record
   screen, the yearly pages and the first-day look back): `res://tests/test_ending.gd` must print `test_ending: OK (0 failed)`.
   Festivals (calendar, festival day, shops shut, fair weather, the event once a year,
@@ -135,7 +135,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   that festival stall with it open; `--map=house --flags=ribbons=blossom_day:1:1` shows the
   ribbon board), `--ending` (or `--ending=year`) to open the village record (or the yearly page)
   (README → Ending; `--map=house --event=ending` plays the scene, `--event=year_record` the yearly one), `--mine=N` to stand at the
-  ladder of a fresh mine floor N (darker deeper; `--map=mine` is the entrance, `--map=mine_floor` floor 1),
+  ladder of a fresh mine floor N (darker deeper; `--map=mine` is the entrance, `--map=mine_floor` floor 1; every fifth floor down to 15 has a rope lift:
+  `--map=mine@cave --landings=5,10 --lift` opens the cave mouth's choice of the ladder or the lift),
   `--day=N` to start on day N of the season (`--day=7` is the first Sunday: `--demo --day=7
   --weather=sunny --map=river@shore --time=14:45` shows Hachiro and Kota fishing the river),
   `--season=<id>` to start on day 1 of a season (`--season=winter --mine=3`: a frozen floor; with `--demo` the field has that season's crops: `--season=fall` ripe daikon, `--season=summer` ripe rice). Create `shots/` first. Look at the last frame. Delete

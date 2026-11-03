@@ -169,7 +169,7 @@ func _picks() -> void:
 		"but only in the festival's hours")
 	check(Talk.pick("nobody", _state()) == "", "no talk file, no line")
 	# Each villager with hearts talks about forage on a weekday of their own, from band 2 on.
-	var forage_days := {"tome": "thu", "hachiro": "tue", "sayo": "wed", "kota": "fri"}
+	var forage_days := {"tome": "thu", "hachiro": "tue", "sayo": "wed", "kota": "fri", "fumi": "sat", "ichiro": "wed"}
 	for id in forage_days:
 		for s in ["spring", "summer", "fall", "winter"]:
 			var day := _state({"weekday": forage_days[id], "season": s, "time": 780})
@@ -177,9 +177,9 @@ func _picks() -> void:
 			check(Talk.pick(id, day.merged({"band": 5}, true)) == "forage_" + s, "%s's forage line before the close ones" % id)
 			check(Talk.pick(id, day.merged({"band": 1}, true)) != "forage_" + s, "%s keeps it from a stranger" % id)
 			check(Talk.pick(id, day.merged({"band": 2, "weekday": "mon"}, true)) != "forage_" + s, "%s only on their day" % id)
-	# The outer parts' villagers (no hearts) tell a neighbour (band 1 on) about their part's wild
-	# things on a weekday of their own; a wet day keeps its own line.
-	var outer_days := {"genzo": "mon", "shige": "tue", "ichiro": "wed", "haru": "thu", "kiku": "fri", "fumi": "sat", "nana": "sun"}
+	# The outer parts' villagers without hearts tell a neighbour (band 1 on) about their part's
+	# wild things on a weekday of their own; a wet day keeps its own line.
+	var outer_days := {"genzo": "mon", "shige": "tue", "haru": "thu", "kiku": "fri", "nana": "sun"}
 	for id in outer_days:
 		var other := "tue" if outer_days[id] == "mon" else "mon"
 		for s in ["spring", "summer", "fall", "winter"]:

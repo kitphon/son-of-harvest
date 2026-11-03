@@ -4,16 +4,20 @@ extends SceneTree
 ## stamina, fatigue, sleep and collapse; the field through FarmActions.use_tool (the same
 ## path as a key press) and Game.pick_up; the shops (Game.open_shop, shop_buy, shop_upgrade,
 ## shop_collect, shop_build, shop_sell, with their hours, days off and keepers); the coop and
-## the barn (Animals); the mine (Game.go_to_map, mine_swing); fishing (Fishing, cast_line,
-## reel_in); cooking (Game.cook); talks and gifts (Game.talk_to); festivals and contests
-## (Game.enter_contest); and the maps' event trigger tables, played by a small headless
+## the barn (Animals); the mine (Game.go_to_map, mine_swing, eat_item); fishing at the pond and
+## the river (Fishing, cast_line, reel_in); cooking (Game.cook); talks and gifts
+## (Game.talk_to); festivals and contests (Game.enter_contest); and the maps' event trigger tables, played by a small headless
 ## EventPlayer (heart events, recipe lessons, the radio, the contests' results, the ending).
 ##
 ## It follows a plain plan (the constants below, ours, not game rules): plots of 3 x 3 near the
 ## house, cleared, tilled, sown and watered by season as the tools allow; harvests shipped;
 ## the coop's hens fed and their eggs shipped, a cow and a sheep bought later; the mine on
 ## rest days (rain, and winter) for the smithy's ores; tool upgrades at the smithy; the
-## kitchen ordered and its tools bought, profitable dishes cooked and shipped; a daily round of
+## kitchen ordered and its tools bought, profitable dishes cooked and shipped (a few filling
+## ones kept for the mine, with the stand's food bought on top); the evening's fishing where a
+## bite pays more on average (the river or the farm pond); the wild things of the areas walked
+## through picked (data/forage.json), with a round of Kaminoda and the hill on dry days the mine
+## doesn't take; a daily round of
 ## the village with a talk and the best gift carried for everyone met; the four contests
 ## entered with the best thing kept for them. Stamina is spent only while it lasts (food when
 ## it runs low), and bedtime is 22:00. It walks without a path finder: walking time is the
@@ -28,10 +32,16 @@ extends SceneTree
 
 const GameRules := preload("res://scripts/autoload/game.gd")   # SECONDS_PER_MINUTE, DAYS_PER_SEASON, SEASONS
 const BED_HOUR := 22
+const MINE_FATIGUE := 75           # fatigue: up out of the mine (a collapse is at 100)
 const RESERVE := 400               # G kept back for seeds and food when buying goals
 const EAT_BELOW := 25              # stamina: eat something before working on
 const KEEP_STAMINA := 6            # never swing below this (a swing costs up to 10)
 const GIFT_STOCK := 3              # of each giftable item kept back from the bin
+const MINE_PACK := 150             # stamina of food carried down the mine
+const MINE_DISH_STAMINA := 40      # dishes this filling are kept for the mine...
+const MINE_DISH_KEEP := 3          # ...this many of each in the chest
+const FISH_UNTIL := 20 * 60        # the evening's fishing ends at 20:00
+const RIVER_SHORE := Vector2i(8, 5)   # data/maps/river.json "shore": the water is the row below
 const PLOT_X: Array[int] = [1, 5, 9, 13, 17, 21, 25]   # plots' left columns (3 wide, a path between)
 const PLOT_Y: Array[int] = [8, 12, 16]                 # plots' top rows (3 tall, a path above)
 ## Plots kept planted by the can's level (watering is the day's biggest stamina cost).
@@ -54,7 +64,7 @@ const GOALS := [
 	[[3, 1], "upgrade", "hoe", 3], [[3, 5], "upgrade", "can", 4], [[3, 10], "upgrade", "axe", 2],
 	[[3, 15], "upgrade", "hammer", 3], [[3, 20], "upgrade", "rod", 2],
 ]
-const SOURCES: Array[String] = ["crops", "dishes", "animals", "fish", "mine", "prizes"]
+const SOURCES: Array[String] = ["crops", "dishes", "animals", "fish", "forage", "mine", "prizes"]
 const COSTS: Array[String] = ["seeds", "food", "feed", "animals", "tools", "house", "kitchen", "medicine", "doctor"]
 
 var g: Node
@@ -154,12 +164,14 @@ func _play_day() -> void:
 		_village_round()
 		if _alive() and rest_day and g.hour < 15:
 			_mine_trip()
+		elif _alive() and g.hour < 14:
+			_hill_round()
 	if not _alive():
 		return
 	if g.season_name() != "winter":
 		_field(true)   # clearing and new plots with what stamina is left
 	if _alive() and g.hour < 19 and g.stamina > 20:
-		_fish(60)
+		_fish(FISH_UNTIL - g.hour * 60 - g.minute, _fish_place())
 	if _alive():
 		_evening()
 
@@ -249,21 +261,81 @@ func _to_town() -> void:
 		MapManager.FARM:
 			_walk(Vector2i(30, 6), Vector2i.RIGHT)
 			_go("town", Vector2i(1, 10), Vector2i.RIGHT)
+		"sakurazaka":
+			_walk(Vector2i(0, 10), Vector2i.LEFT)
+			_go("town", Vector2i(34, 10), Vector2i.LEFT)
 		"mine":
 			_walk(Vector2i(0, 7), Vector2i.LEFT)
-			_go("town", Vector2i(34, 10), Vector2i.LEFT)
+			_go("sakurazaka", Vector2i(28, 10), Vector2i.LEFT)
+			_to_town()
 		"mine_floor":
 			_go("mine", Vector2i(7, 3))
 			_to_town()
+		"minamino":
+			_walk(Vector2i(4, 0), Vector2i.UP)
+			_go("town", Vector2i(4, 20), Vector2i.UP)
+		"river":
+			_walk(Vector2i(4, 0), Vector2i.UP)
+			_go("minamino", Vector2i(4, 18), Vector2i.UP)
+			_to_town()
+		"kaminoda":
+			_walk(Vector2i(10, 19), Vector2i.DOWN)
+			_go("town", Vector2i(10, 1), Vector2i.DOWN)
+		"hill":
+			_walk(Vector2i(19, 29), Vector2i.DOWN)
+			_go("kaminoda", Vector2i(22, 1), Vector2i.DOWN)
+			_to_town()
 		_:
-			# A house or shop of the village: out through its door (spawn [4, 5] / [3, 4] inside).
+			# A house or shop: out through its door (spawn [4, 5] / [3, 4] inside), then on to
+			# the village from the area it opens onto.
 			var m: MapData = g.maps.current()
 			for door in m.doors:
-				if door.to == "town":
-					g.maps.place(m.id, door.cells[0] + Vector2i.UP, Vector2i.DOWN)
-					_door(door.cells[0])
+				g.maps.place(m.id, door.cells[0] + Vector2i.UP, Vector2i.DOWN)
+				if _door(door.cells[0]):
+					_to_town()
 					return
 			_go("town", Vector2i(2, 10))
+
+
+func _to_river() -> void:
+	if g.maps.id == "river":
+		return
+	_to_town()
+	_walk(Vector2i(4, 21), Vector2i.DOWN)
+	_go("minamino", Vector2i(4, 1))
+	_forage()
+	_walk(Vector2i(3, 19), Vector2i.DOWN)
+	_go("river", Vector2i(5, 1))
+
+
+## The bamboo hill's wild things, and Kaminoda's on the way (data/forage.json).
+func _hill_round() -> void:
+	_to_town()
+	_walk(Vector2i(10, 0), Vector2i.UP)
+	_go("kaminoda", Vector2i(10, 18), Vector2i.UP)
+	_forage()
+	_walk(Vector2i(22, 0), Vector2i.UP)
+	_go("hill", Vector2i(19, 28), Vector2i.UP)
+	_forage()
+	_to_farm()
+	_ship_at_bin()
+
+
+## Picks every wild thing growing on this map, nearest spot first, into the rucksack.
+func _forage() -> void:
+	var left: Dictionary = g.forage_here()
+	while not left.is_empty() and _alive():
+		var best: Vector2i = left.keys()[0]
+		for c in left:
+			if absi(c.x - _here().x) + absi(c.y - _here().y) < absi(best.x - _here().x) + absi(best.y - _here().y):
+				best = c
+		left.erase(best)
+		if g.held != "":
+			_to_bag()
+		_walk(best + Vector2i.DOWN, Vector2i.UP)
+		if g.forage_pick(best).to == "hand":
+			_to_bag()
+		_pass(0.3)
 
 
 func _go_home_inside() -> void:
@@ -605,6 +677,8 @@ func _stash() -> void:
 			keep = 1
 		elif _cooking_keep(id) > 0:
 			keep = _cooking_keep(id)
+		elif _mine_dish(id):
+			keep = MINE_DISH_KEEP
 		var have: int = inv.count(id, ["chest"])
 		var n := mini(inv.count(id), keep - have)
 		if n > 0 and inv.room_for(id, ["chest"]) >= n and inv.take(id, n):
@@ -619,7 +693,8 @@ func _ship_at_bin() -> void:
 	_walk(Vector2i(8, 4), Vector2i.UP)
 	# Dishes go in from the hand only: each stack up into the hand, then the bin.
 	for id in inv.totals().keys():
-		if id.begins_with("food:") and int(g.foods.get(id.trim_prefix("food:"), {}).get("sell", 0)) > 0 and not _kept_back(id):
+		var food: Dictionary = g.foods.get(id.trim_prefix("food:"), {})
+		if id.begins_with("food:") and int(food.get("sell", 0)) > 0 and not food.get("shop", false) and not _kept_back(id):
 			if g.held != "":
 				break
 			var n := inv.count(id, ["bag"])
@@ -645,6 +720,8 @@ func _count_ship(id: String, n: int) -> void:
 		src = "fish"
 	elif id.begins_with("mine:"):
 		src = "mine"
+	elif id.begins_with("wild:"):
+		src = "forage"
 	elif not g.crops.has(id):
 		src = "animals"
 	_row.income[src] = int(_row.income.get(src, 0)) + v
@@ -994,14 +1071,24 @@ func _try_goal(shop_id: String, goal: Array) -> String:
 ## Down from floor 1 as far as stamina and the clock allow, every rock and soft spot near the
 ## way broken; back up through the ladder and home.
 func _mine_trip() -> void:
+	_ship_at_bin()   # room in the rucksack for the finds
+	_pack_for_mine()
+	_row.mine_trips = int(_row.get("mine_trips", 0)) + 1
 	_to_town()
 	_walk(Vector2i(35, 10), Vector2i.RIGHT)
+	_go("sakurazaka", Vector2i(1, 10), Vector2i.RIGHT)
+	_forage()
+	_walk(Vector2i(29, 10), Vector2i.RIGHT)
 	_go("mine", Vector2i(1, 7), Vector2i.RIGHT)
 	_walk(Vector2i(7, 3), Vector2i.UP)
 	_go("mine_floor", Vector2i(8, 1))
 	while _alive():
 		var f: MineFloor = g.maps.mine_floor
-		if f == null or g.hour >= 17 or g.stamina < 20:
+		if f == null or g.hour >= 17:
+			break
+		if g.stamina < 20:
+			_eat_packed()
+		if g.stamina < 20 or g.fatigue >= MINE_FATIGUE:
 			break
 		var target := _nearest_find(f)
 		if target == Vector2i(-1, -1):
@@ -1016,8 +1103,91 @@ func _mine_trip() -> void:
 			g.use_door(door)
 			g.map_arrived()
 			continue
+		var before := [g.day_minutes(), g.stamina]
 		_break(f, target)
+		if [g.day_minutes(), g.stamina] == before:
+			break   # no swing: the hands and the rucksack are full, or too tired for it
+	if g.maps.mine_floor != null:
+		_row.mine_best = maxi(int(_row.get("mine_best", 0)), g.maps.mine_floor.depth)
 	_to_town()
+
+
+## A dish filling enough to be kept for the mine (not one the stand sells).
+func _mine_dish(id: String) -> bool:
+	var f: Dictionary = g.foods.get(id.trim_prefix("food:"), {})
+	return id.begins_with("food:") and not f.get("shop", false) and int(f.get("stamina", 0)) >= MINE_DISH_STAMINA
+
+
+func _food_stamina(id: String) -> int:
+	return int(g.food_info(id).get("stamina", 0))
+
+
+## The stamina of the food (not raw farm goods) carried now.
+func _packed_stamina() -> int:
+	var n := 0
+	for id in g.inventory.totals():
+		if id.begins_with("food:"):
+			n += _food_stamina(id) * g.inventory.count(id)
+	return n
+
+
+## Food for the trip, up to MINE_PACK stamina: the dishes kept in the chest first, then the
+## stand's food with the most stamina for its price (RESERVE kept back). On the farm.
+func _pack_for_mine() -> void:
+	var inv: Inventory = g.inventory
+	var packed := _packed_stamina()
+	for id in inv.totals(["chest"]).keys():
+		if packed >= MINE_PACK:
+			break
+		if not _mine_dish(id):
+			continue
+		var n := mini(inv.count(id, ["chest"]), ceili(float(MINE_PACK - packed) / _food_stamina(id)))
+		n = mini(n, inv.room_for(id))
+		if n > 0 and inv.take(id, n, ["chest"]):
+			inv.add(id, n)
+			packed += n * _food_stamina(id)
+	var buy := ""
+	var best := INF
+	for id in g.foods:
+		var f: Dictionary = g.foods[id]
+		if f.get("shop", false) and int(f.get("stamina", 0)) > 0 and float(f.price) / int(f.stamina) < best:
+			best = float(f.price) / int(f.stamina)
+			buy = id
+	if buy == "":
+		return
+	var price := int(g.foods[buy].price)
+	g.food_index = g.foods.keys().find(buy)
+	_walk(Vector2i(10, 4), Vector2i.UP)
+	while packed < MINE_PACK and g.money - price >= RESERVE and inv.room_for("food:" + buy) > 0:
+		var before: int = g.money
+		_actions.buy_food()
+		if g.money == before:
+			break
+		_cost("food", before - g.money)
+		packed += _food_stamina("food:" + buy)
+
+
+## In the mine with stamina low: the carried food with the most stamina that still fits under
+## the max (else the least filling one).
+func _eat_packed() -> void:
+	var pick := ""
+	var pick_n := -1
+	var least := ""
+	for id in g.inventory.totals():
+		if not id.begins_with("food:") or _food_stamina(id) <= 0:
+			continue
+		var n := _food_stamina(id)
+		if g.stamina + n <= g.max_stamina and n > pick_n:
+			pick = id
+			pick_n = n
+		if least == "" or n < _food_stamina(least):
+			least = id
+	if pick == "":
+		pick = least
+	if pick != "":
+		var before: int = g.stamina
+		if g.eat_item(pick).ok:
+			_row.mine_food = int(_row.get("mine_food", 0)) + g.stamina - before
 
 
 ## The nearest rock or soft spot (breaking all of them on the way down), or (-1, -1).
@@ -1061,12 +1231,38 @@ func _break(f: MineFloor, c: Vector2i) -> void:
 
 # --- fishing -------------------------------------------------------------------
 
-## Fishes at the farm pond for `minutes`, reeling in on every bite (the farmer's quick hands).
-func _fish(minutes: int) -> void:
-	_to_farm()
+## What a bite at `place` fetches on average now: data/fish.json's table there for this
+## season, hour and weather (fish caught once already left out).
+func _bite_value(place: String) -> float:
+	var look: String = GameRules.weather_look(g.weather_today, g.season_name())
+	var w := Fishing.candidates(g.fish_data, place, g.season_name(), g.hour, look, g.fish_caught)
+	var total := 0.0
+	var value := 0.0
+	for id in w:
+		total += float(w[id])
+		value += float(w[id]) * int(g.fish_data.fish[id].sell)
+	return value / total if total > 0.0 else 0.0
+
+
+## The river when a bite pays more there than at the farm pond (the walk is a few minutes).
+func _fish_place() -> String:
+	return "river" if _bite_value("river") > _bite_value(MapManager.FARM) else MapManager.FARM
+
+
+## Fishes at `place` (the farm pond or the river's shore) for `minutes`, reeling in on every
+## bite (the farmer's quick hands).
+func _fish(minutes: int, place: String = MapManager.FARM) -> void:
+	var spot := Vector2i(24, 3)
+	var face := Vector2i.RIGHT
+	if place == "river":
+		_to_river()
+		spot = RIVER_SHORE
+		face = Vector2i.DOWN
+	else:
+		_to_farm()
 	if g.held != "":
 		_to_bag()
-	_walk(Vector2i(24, 3), Vector2i.RIGHT)
+	_walk(spot, face)
 	_hold_tool("rod")
 	var end: int = g.hour * 60 + g.minute + minutes
 	while _alive() and g.hour * 60 + g.minute < end and g.stamina > KEEP_STAMINA + 4:
@@ -1074,7 +1270,7 @@ func _fish(minutes: int) -> void:
 			_to_bag()
 			if g.held != "":
 				break
-		if g.cast_line(Vector2i(24, 3), Vector2i.RIGHT) != "cast":
+		if g.cast_line(spot, face) != "cast":
 			break
 		while _alive() and g.fishing.state == "wait" and g.hour * 60 + g.minute < end:
 			var chance: float = Fishing.bite_chance(g.fish_data, g.hour, GameRules.weather_look(g.weather_today, g.season_name())) * g.rod_bite_factor()
@@ -1082,7 +1278,12 @@ func _fish(minutes: int) -> void:
 				g.fishing.step(GameRules.SECONDS_PER_MINUTE / 2.0, chance, g.rng)
 			_pass(1.0)
 		if g.fishing.state == "bite":
-			g.reel_in()
+			var r: Dictionary = g.reel_in()
+			if r.fish != "":
+				var at: Dictionary = _row.fish_at.get(place, {"n": 0, "g": 0})
+				at.n += 1
+				at.g += g.sell_price(r.fish)
+				_row.fish_at[place] = at
 		else:
 			g.fishing.stop()
 	g.fishing.stop()
@@ -1224,7 +1425,7 @@ func _save_round_trip() -> void:
 # --- the report ----------------------------------------------------------------
 
 func _new_row() -> void:
-	_row = {"income": {}, "costs": {}, "bought": [], "contests": [], "money_start": g.money}
+	_row = {"income": {}, "costs": {}, "bought": [], "contests": [], "money_start": g.money, "fish_at": {}}
 	_knocked = 0
 	_waits = {}
 
@@ -1266,6 +1467,11 @@ func _end_row(season: int) -> void:
 	print("   collapses / passed out: %d" % r.knocked)
 	print("   tools: " + r.tools)
 	print("   animals: %s; built: %s; kitchen tools %d; recipes known %d; deepest mine floor %d" % [r.animals, r.built, r.kitchen_tools, r.recipes, r.deepest])
+	var fished := []
+	for place in ["river", MapManager.FARM]:
+		var at: Dictionary = r.fish_at.get(place, {"n": 0, "g": 0})
+		fished.append("%s %d fish, %d G" % ["river" if place == "river" else "pond", at.n, at.g])
+	print("   fishing: %s; mine: %d trips, deepest trip floor %d, food eaten there %d stamina" % [", ".join(fished), int(r.get("mine_trips", 0)), int(r.get("mine_best", 0)), int(r.get("mine_food", 0))])
 	print("   affection: " + r.hearts)
 	if not r.contests.is_empty():
 		print("   contests: " + "; ".join(r.contests))

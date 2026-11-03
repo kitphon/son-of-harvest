@@ -15,6 +15,7 @@ var _frame := 0
 var _since_door := -1.0          # seconds since the door (the fade runs on real time)
 var _scene: Node
 var _entered: Array = []
+var _farm_world_ok := false
 
 
 func _process(delta: float) -> bool:
@@ -28,6 +29,7 @@ func _process(delta: float) -> bool:
 		_clinic_doors()
 		_story_props()
 		_map_snow()
+		_edges_and_fades()
 		_start_view()
 	elif _frame == 3:
 		var g: Node = root.get_node("Game")
@@ -51,6 +53,7 @@ func _start_view() -> void:
 	_scene = load("res://scenes/main.tscn").instantiate()
 	root.add_child(_scene)
 	check(_entered == ["farm"], "the view says the farmer entered the farm %s" % [_entered])
+	_farm_world_ok = _scene.world.surroundings != null and _scene.world.occluders.count() == 4
 
 
 func _check_view() -> void:
@@ -58,6 +61,7 @@ func _check_view() -> void:
 	check(not _scene.fade.busy() and not g.paused(), "the fade ended and let go of the pause")
 	check(_entered == ["farm", "house"], "map_entered after the fade %s" % [_entered])
 	check(_scene.world.get_script().resource_path.ends_with("map_world.gd") and _scene.world.map.id == "house", "the view rebuilt as the house")
+	check(_farm_world_ok, "the farm has land past its fence and its house, stand, coop and barn can fade")
 	check(_scene.player.position == g.maps.pos and _scene.player.facing == Vector2i.UP, "the farmer stands at the house spawn")
 	var events: Array = _scene.get_children().filter(func(n): return n.get_script() != null and n.get_script().resource_path.ends_with("event_player.gd"))
 	check(events.size() == 1 and events[0].map_id == "house" and events[0].table.map_id == "house",
@@ -221,6 +225,72 @@ func _homes(t: MapData) -> void:
 	check(MapData.parse({"id": "x", "size": [2, 1], "legend": {"a": {"tile": "grass"}}, "ground": ["aa"], "spawns": {"start": [[0, 0], "up"]},
 		"doors": [{"cells": [[1, 0]], "to": "town", "spawn": [5, 7], "facing": "down", "hours": ["06:00", "20:00"]}]})[0] != "",
 		"door hours without a closed message are refused")
+
+
+## The land past an outdoor map's edge (Surroundings) and buildings fading while in the
+## farmer's way (Occluders), in the 3D view.
+func _edges_and_fades() -> void:
+	# Loaded, not named: these scripts reach the Game autoload, which a --script test only has at run time.
+	var Surroundings: GDScript = load("res://scripts/world3d/surroundings.gd")
+	var Occluders: GDScript = load("res://scripts/world3d/occluders.gd")
+	var town := MapManager.data("town")
+	var world: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	root.add_child(world)
+	world.build(town)
+	check(world.surroundings != null and world.surroundings.material != null, "the village has land past its edge")
+	var kind := func(c: Vector2i) -> String: return town.tile(c)
+	# The road off the village's west edge (0, 10) runs on; grass stays grass.
+	check(Surroundings.ground_key(kind, town.w, town.h, Vector2i(-5, 10)).begins_with("ground:path:"),
+		"the west road runs on past the edge")
+	check(Surroundings.ground_key(kind, town.w, town.h, Vector2i(3, -4)).begins_with("ground:grass:"), "grass past the north edge")
+	check(Surroundings.edge_cell(Vector2i(-3, 40), town.w, town.h) == Vector2i(0, town.h - 1), "an apron cell takes the nearest edge cell")
+	# Pines only off the map, behind it on screen, never on the road or the near (south / east) sides.
+	var pines := 0
+	var margin: int = Surroundings.MARGIN
+	var wrong := []
+	for y in range(-margin, town.h + margin):
+		for x in range(-margin, town.w + margin):
+			var c := Vector2i(x, y)
+			if not Surroundings.pine_at(kind, town.w, town.h, c):
+				continue
+			pines += 1
+			if town.in_bounds(c) or (c.y >= 0 and c.x >= 0) and c.x - c.y <= town.w + 1 and c.x - c.y >= -town.h - 1 					or (c.x < 0 and absi(c.y - 10) <= 1):
+				wrong.append(c)
+	check(pines > 50 and wrong.is_empty(), "a wood behind the village (%d pines), none in the way %s" % [pines, wrong.slice(0, 5)])
+	check(Surroundings.behind_map(Vector2(5.5, -0.5), town.w, town.h) and Surroundings.behind_map(Vector2(-0.5, 6.5), town.w, town.h)
+		and not Surroundings.behind_map(Vector2(5.5, town.h + 0.5), town.w, town.h)
+		and not Surroundings.behind_map(Vector2(town.w + 0.5, 6.5), town.w, town.h), "behind the map: north and west yes, south and east no")
+	# Each village house is one thing that fades: behind it the farmer sees through it, in front not.
+	var house: Dictionary = {}
+	for p in town.props:
+		if p.kind == "village_house":
+			house = p
+			break
+	var occ: RefCounted = world.occluders
+	var back := Vector3(0.634, 0.448, 0.634).normalized()
+	var mid := Vector3(house.cell.x + house.size.x / 2.0, 0, 0)
+	var behind := mid + Vector3(0, 0, house.cell.y - 0.5)
+	var front := mid + Vector3(0, 0, house.cell.y + house.size.y + 1.5)
+	var it := -1   # the house's own group
+	for i in occ.count():
+		var c: Vector3 = occ.box_of(i).get_center()
+		if Rect2(Vector2(house.cell), Vector2(house.size)).has_point(Vector2(c.x, c.z)):
+			it = i
+	check(occ.count() >= 5 and it >= 0, "the village's houses and trees can fade (%d)" % occ.count())
+	occ.update(behind, back, 1.0)
+	check(it >= 0 and occ.fade_of(it) == Occluders.FADED, "behind a house it fades")
+	occ.update(front, back, 1.0)
+	check(it >= 0 and occ.fade_of(it) == 0.0, "in front of it the house is solid again")
+	check(not Occluders.hides(AABB(Vector3(0, 0, 0), Vector3(4, 2.5, 3)), Vector3(2, 0, 5), back),
+		"a house behind the farmer never fades")
+	check(Occluders.hides(AABB(Vector3(0, 0, 0), Vector3(4, 2.5, 3)), Vector3(2, 0, -0.5), back),
+		"a house in front of the farmer fades")
+	world.free()
+	var room: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	root.add_child(room)
+	room.build(MapManager.data("house"))
+	check(room.surroundings == null, "no land past a room's walls")
+	room.free()
 
 
 ## Winter snow off the farm: outdoor maps hold it by tile kind (paths a little less, water

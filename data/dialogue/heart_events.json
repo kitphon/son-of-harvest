@@ -22,6 +22,21 @@
 		{"id": "hachiro", "speaker": "hachiro", "mood": "neutral", "text": "Wait. Let me see your hands."},
 		{"speaker": "hachiro", "mood": "happy", "text": "Calluses in the right places now. When you came, you held a hoe like a broom."},
 		{"speaker": "hachiro", "mood": "neutral", "text": "My teacher said a tool remembers who uses it well. I never believed him until I was old."},
-		{"speaker": "hachiro", "mood": "neutral", "text": "Bring yours by whenever the edge goes. I'll look at them first. That's not for everyone.", "next": "end"}
+		{"speaker": "hachiro", "mood": "neutral", "text": "Bring yours by whenever the edge goes. I'll look at them first. That's not for everyone.", "next": "end"},
+
+		{"id": "fumi", "speaker": "fumi", "mood": "surprised", "text": "Oh, good timing! Hold still and open your mouth. ...I mean, please try this."},
+		{"speaker": "fumi", "mood": "neutral", "text": "My mother's sweet bean paste. I've made it every week for six years, and it has never once tasted like hers."},
+		{"speaker": "fumi", "mood": "sad", "text": "Everyone here says it's lovely. They're being kind. You came from outside, so tell me true.",
+			"choices": [{"text": "It's lovely. Truly.", "next": "fumi_kind"}, {"text": "A little too sweet.", "next": "fumi_true", "set": {"fumi_honest": true}}]},
+		{"id": "fumi_kind", "speaker": "fumi", "mood": "neutral", "text": "Hm. As polite as the rest of them. I'll take it anyway, and keep trying.", "next": "fumi_end"},
+		{"id": "fumi_true", "speaker": "fumi", "mood": "surprised", "text": "Too sweet... She used less sugar in the lean years, and never went back. Of course! Why didn't I see it?", "next": "fumi_end"},
+		{"id": "fumi_end", "speaker": "fumi", "mood": "happy", "text": "Come by again. The second cup is on the house for you. Only for you. Don't tell Ichiro.", "next": "end"},
+
+		{"id": "ichiro", "speaker": "ichiro", "mood": "neutral", "text": "...You. Come here. Listen."},
+		{"speaker": "ichiro", "mood": "neutral", "text": "Hear that? Good charcoal rings when you knock two pieces together. Bad charcoal just thuds."},
+		{"speaker": "ichiro", "mood": "sad", "text": "My father's rang every time. Mine still thuds, mostly. Thirty years at it."},
+		{"speaker": "ichiro", "mood": "neutral", "text": "You work the soil the same way. Every day, nobody watching. ...Here. One for your stove."},
+		{"speaker": "farmer", "mood": "happy", "text": "Listen. This one rings.", "next": "ichiro_end"},
+		{"id": "ichiro_end", "speaker": "ichiro", "mood": "happy", "text": "...Hm. So it does. Don't tell anyone. They'll all want one.", "next": "end"}
 	]
 }

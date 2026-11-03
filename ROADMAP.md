@@ -176,7 +176,7 @@ The balance pass is done (milestone 8): our own crop, product, animal and extens
 the before / after table); it also keeps the smithy's ores back from the bin (an upgrade
 waits while they are short), counts contest prizes from the odds against the rivals, and prints
 each recipe's gain over its raw ingredients, its kitchen tools and the cookings that pay them
-back (the plan buys the tools as a one-off cost in the season it first needs them). Later for balance: the hammer levels up from mining alone (the playtest: level 4 in spring).
+back (the plan buys the tools as a one-off cost in the season it first needs them). The hammer now levels like the sickle (it reached 4 after one spring of mining at the axe's numbers; WORKLOG 2026-11-03).
 The ending is in (milestone 9): on the first morning of year 3 Tome brings the village record
 (stars per category, a rank and a title from data/ending.json; README → Ending), then the
 villager liked most says a word and the game goes on. Every other New Year Tome brings a
@@ -185,25 +185,37 @@ and the gain since the last page. The record is drawn as a paper scroll that unr
 (rollers, washi, ink-stamp stars, a red seal by the title).
 The year playtest is done: `tools/play_year.gd` plays two years through the real rules and
 prints a report per season and the village record (WORKLOG 2026-11-01); gifts were made slower
-and the ending's mine steps lower from it. Later for it: river fishing, food for the mine.
+and the ending's mine steps lower from it. Since 2026-11-03 it walks the new areas (Sakurazaka to
+the mine, Minamino to the river), picks forage on the way and on a Kaminoda / hill round, fishes
+the river when a bite pays more there, and carries food down the mine; the rod's cast now costs
+4 stamina and the hammer levels slower (WORKLOG). [x] Fish no longer out-earn crops in year 1:
+the everyday fish sell for about 20 G, the money is in the fish of their hour (year-1 fish
+54620 → 18837 G against 111060 G of crops and animals; WORKLOG 2026-11-03 Fish prices).
+The deep floors are reachable now: floors 5, 10 and 15 are rope lift landings, and once reached
+a trip can start there from the cave mouth (README → Mine). Later for it: grilled fish (80 G
+from one cheap fish) may be the next shortcut; the bot doesn't ride the lift yet
+(tools/play_year.gd: pick the deepest landing at the cave mouth).
 Bigger world (the user found the maps small, 2026-11-01): widening the farm and village made
 the walks long and dull, so they are back to their old sizes; the world grows by areas instead.
 Done: Kaminoda, the hamlet up the village's north lane (paddies, drying racks, a well, jizo;
 Genzo and Haru and their houses) with the bamboo hill above it, and countryside props. Sakurazaka
 on the way to the mine (cherry road, creek, teahouse; Fumi and Ichiro). Minamino on the
 way to the river (gardens, persimmon orchard, a water shrine; Shige, Nana and Kiku). Seven new
-villagers in all, without hearts; they come to all four festivals too (a spot each, a line each). The Hanami teahouse is a shop (Fumi's: tea, whipped matcha
+villagers in all, without hearts at first; Fumi and Ichiro have hearts now (birthdays spring 26 /
+fall 9, close lines, heart events at bands 3 and 5, a word at the ending); they come to all four festivals too (a spot each, a line each). The Hanami teahouse is a shop (Fumi's: tea, whipped matcha
 and a sweet of the season sold nowhere else, while she is behind her counter). Forage is in
 (data/forage.json: fifteen spots on the bamboo hill, what grows changes by the season, a picked
 spot grows back overnight; README → Forage). The village record has a Neighbours
-row (the villagers without hearts known to band 1). Shige, Genzo, Haru, Ichiro and Nana are
+row (the villagers without hearts known to band 1; six of them since Fumi and Ichiro got hearts).
+Later for hearts: band 6 scenes for Fumi and Ichiro; hearts for Genzo, Haru, Shige, Nana or Kiku the same way (README → Villagers says what a friend needs). Shige, Genzo, Haru, Ichiro and Nana are
 contest rivals (one in every contest and game). Forage spots are in the three outer parts too
 (their own wild things: water dropwort, sansho, mulberries, ginkgo nuts and more). Wild things
 cook: six recipes of wild greens, mushrooms, bamboo shoots, chestnuts and matsutake (Haru, Genzo
 and Kiku teach three once they know the farmer; the first bamboo shoot, chestnuts or matsutake
 shipped brings a card). Tome, Hachiro, Sayo and Kota talk about forage too (a line per season,
-one weekday each, from band 2), and so do the seven outer parts' villagers about their own part
-(one weekday each, once they know the farmer).
+one weekday each, from band 2), and so do the outer parts' villagers about their own part
+(one weekday each; Fumi and Ichiro, who have hearts now, from band 2 like the first four, the
+other five once they know the farmer).
 After that: milestone 10, building the .exe once the export templates are installed (README → Export).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set
@@ -217,6 +229,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Farm grid, hoe / can / sickle / hammer / axe, seed bag 3 x 3, growth, regrowth, withering, weeds
    - [x] Shipping bin (paid 18:00 or on sleep), seed stand, sleep / pass out, stamina
    - [x] HUD, 2D view, 3D view with the HM field camera (yaw 45°, pitch 26.6°, FOV 13.7°)
+   - [x] The 3D view never looks off the world (land and a pine wood past outdoor map edges) and buildings / trees in front of the farmer turn see-through (playtest feedback, 2026-11-03)
    - [x] Clock pauses in menus (`Game.pause()` / `unpause()`)
    - [x] Clock pauses indoors (`Game.ticking()` is false on a map with `indoor: true`)
    - [x] A new area off the village: the bamboo hill (`hill`, bamboo clumps, a lookout shrine, examine events)
@@ -232,7 +245,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Forage in Kaminoda, Sakurazaka and Minamino (28 spots, nine new wild things)
    - [x] Wild things in recipes (six dishes: three lessons from Haru, Genzo and Kiku, three bin cards)
    - [x] Forage talk: a line per season from Tome, Hachiro, Sayo and Kota (one weekday each, band 2..5)
-   - [x] Forage talk from the outer parts' seven villagers (their part's wild things, one weekday each, band 1 on)
+   - [x] Forage talk from the outer parts' seven villagers (their part's wild things, one weekday each; band 2..5 for Fumi and Ichiro, band 1 on for the rest)
 2. **Look and feel**
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)
@@ -296,6 +309,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Mining: entrance east of the village, floors laid out fresh from a seed, rocks / soft spots / hole down, ores and gems per depth and season (data/mine.json)
    - [x] Mine extras: ores for the smithy's upgrades, shops buying stones / ores / gems, light by depth with a lantern (both views), frozen floors in winter
    - [x] Mine art: ice blocks, frost, frost stone, a soft flickering lantern pool (both views), the farmer's lantern in hand
+   - [x] Mine landings: rope lifts on floors 5 / 10 / 15, a trip can start at one reached (choice at the cave mouth), saved (version 6)
    - [x] Festivals: one per season in data/festivals.json (Blossom Day, Lantern Night with fireworks, Moon Night, Year's Turn), HUD tag, shops shut, decorations in both views, an event once a year, villagers gather
    - [x] Festival contests with prizes and result events, festival music, payout held on the day, Blossom Day's stall
    - [x] Lantern Night's stalls (night eats, wind chimes and keepsakes), contest ribbons and the farmhouse ribbon board
@@ -306,6 +320,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Heart flags in the world: the door bell (hachiro_bell), the store's sign (sayo_sign old / new), Tome's plum jar (tome_grandma), as flag-gated map props in both views
    - [x] Gift lines of their own: villagers answer keepsakes and dishes in their own words (`gift_items` in the talk files, fallback to gift_<reaction>); a loved keepsake, once given, stands in their home (kept_<villager>_<keepsake>, both views)
    - [x] Band 6 heart scenes: Tome stays in the village, Kota's carp streamer (a farm prop), Sayo's new ledger, Hachiro's sickle; band 6 talk lines
+   - [x] Hearts for Fumi and Ichiro (Sakurazaka): birthdays with day plans, close lines, heart events at bands 3 and 5, a part in the ending; the record's Friendships / Neighbours steps rescaled
    - [x] Actors in the heart scenes: the villager stands facing the farmer through their lines in both views, then goes back to their day plan
    - [x] Ending: the village record on the first morning of year 3 (data/ending.json: ten categories graded in stars, five ranks), Tome's verdict, the closest villager's word; the game goes on
    - [x] Ending steps re-set for 11 crops / 13 recipes; balance re-run with smithy ores, contest prizes, cooking, daikon and rice

@@ -7,7 +7,7 @@ extends CanvasLayer
 ## above the box. E / Space / Enter (or a click) shows the whole line, then goes on; arrows or
 ## W / S and the mouse pick a choice. While it is open Game.dialogue_open holds the clock and
 ## the farmer. The stepping is DialogueRunner's; this only draws it. `-- --dialogue=<id>`
-## (or `<id>@<line id>`) opens one at the start.
+## (or `<id>@<line id>`) opens one at the start, `-- --lift` the cave mouth's rope lift choice.
 
 var runner: DialogueRunner
 var _catch: Control          # takes clicks anywhere on screen while the box is open
@@ -60,11 +60,18 @@ func _ready() -> void:
 		if arg.begins_with("--dialogue="):   # e.g. `-- --demo --dialogue=bin_note@ask`
 			var spec := arg.trim_prefix("--dialogue=").split("@")
 			open.call_deferred(spec[0], spec[1] if spec.size() > 1 else "")
+		elif arg == "--lift":   # `-- --demo --map=mine@cave --landings=5,10 --lift`: the cave mouth's choice
+			Game.ask_mine_lift.call_deferred()
 
 
 ## Opens dialogue `id` at line `at` ("" = its first line). Bad data is reported, not shown.
 func open(id: String, at := "") -> void:
-	var r := DialogueRunner.open(id, Game.flags, at)
+	var r: DialogueRunner
+	if Game.dialogue_made.has(id):   # lines Game built in code (the rope lift's choice at the cave mouth)
+		r = DialogueRunner.new(Game.dialogue_made[id], DialogueRunner.speakers(), Game.flags, DialogueRunner.settings(), at)
+		r.id = id
+	else:
+		r = DialogueRunner.open(id, Game.flags, at)
 	if r.error != "":
 		push_error("Dialogue %s: %s" % [id, r.error])
 		Game.message.emit("Can't read dialogue %s" % id)
@@ -88,9 +95,12 @@ func is_open() -> bool:
 
 
 func _close() -> void:
+	var was := runner.id if runner != null else ""
 	runner = null
 	Game.dialogue_open = false
 	_catch.visible = false
+	if was != "":
+		Game.dialogue_closed(was)   # the cave mouth's choice takes the farmer down
 
 
 func _process(delta: float) -> void:

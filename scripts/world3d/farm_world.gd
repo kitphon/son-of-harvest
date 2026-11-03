@@ -15,6 +15,9 @@ var _sprites: Dictionary = {}   # Vector2i -> [art key, Sprite3D] standing on th
 var _snow_mask: ImageTexture
 var _mask_dirty := false   # the field changed since the snow mask was last drawn
 var _snow_mats: Array[ShaderMaterial] = []
+## Buildings and trees that fade while they stand between the camera and the farmer.
+var occluders := Occluders.new()
+var surroundings: Surroundings   # the land past the map's edge (outdoors)
 ## A thrown item still in the air: its cell's sprite waits until the flight lands.
 var hidden_item := Vector2i(-1, -1):
 	set(value):
@@ -27,6 +30,10 @@ func setup(f: FarmGrid, open_cells: Array[Vector2i] = []) -> void:
 	gaps = open_cells
 	_make_ground()
 	_make_buildings()
+	var rules: Dictionary = Game.snow_rules
+	add_surroundings(FarmGrid.W, FarmGrid.H,
+		func(c: Vector2i) -> String: return PlaceholderArt.ground_key(farm, c).get_slice(":", 1),
+		func(c: Vector2i) -> float: return SnowLayer.hold(farm, c, rules))
 	_objects = Node3D.new()
 	add_child(_objects)
 	farm.cells_changed.connect(_rebuild_objects)
@@ -137,13 +144,28 @@ func _picture(key: String, size: Vector2, center: Vector3, normal_yaw := 0.0) ->
 ## Buildings over the fixed cells laid out by FarmGrid.generate(). The camera looks from +x / +z,
 ## so doors and windows go on those faces.
 func _make_buildings() -> void:
-	_make_house()
+	occlude(_make_house)
 	_make_chest()
 	_make_bin()
-	_make_stand()
-	CoopProps.coop(self)
-	BarnProps.barn(self)
+	occlude(_make_stand)
+	occlude(func(): CoopProps.coop(self))
+	occlude(func(): BarnProps.barn(self))
 	_make_fence()
+
+
+## Runs a builder and keeps what it made as one thing that fades when in the way (if tall).
+func occlude(build: Callable) -> void:
+	var first := get_child_count()
+	build.call()
+	occluders.add_children_from(self, first)
+
+
+## The apron and the wood past a w x h map's edge (Surroundings), its snow with the rest.
+func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable) -> void:
+	surroundings = Surroundings.new()
+	add_child(surroundings)
+	surroundings.build(w, h, kind_at, hold_at)
+	_snow_mats.append(surroundings.material)
 
 
 ## Shipping bin (cell 8, 3): a lidded cedar box on two runners, dark corner battens, a straw

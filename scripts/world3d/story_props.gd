@@ -77,6 +77,12 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 				s.pixel_size = 0.035
 				s.position = at + Vector3(0, 0.32, 0)
 				w.add_child(s)
+		"rope_lift":
+			# The winch over its shaft beside the cave mouth (mine map, mine_lift: a landing
+			# reached, data/mine.json "landings"), one picture standing on its cell.
+			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))
+			s.position = Vector3(r.get_center().x, 0, r.get_center().y)
+			w.add_child(s)
 		"carp_streamer":
 			# Pole and carp are one picture, standing on its cell, the carp just over the eave.
 			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))
