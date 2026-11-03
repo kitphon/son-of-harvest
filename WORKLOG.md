@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-03 — Year bot rides the mine lift
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: `tools/play_year.gd` starts each mine trip at the deepest landing reached
+  (`Game.mine_start_floors().back()` through `Game.mine_go_down`), else by the ladder; the report
+  counts the trips that rode the lift.
+- Checked: all 25 test scripts `OK (0 failed)` on f606c5a. Report (seed 1, `-- --years=2`, quoted):
+  ```
+  == Year 1 fall: income 91299 G, costs 47520 G, money 37865 -> 81644 G
+     income: crops 20125, dishes 6125, animals 21620, fish 7468, forage 9129, mine 26332, prizes 500
+     fishing: river 334 fish, 14932 G, pond 0 fish, 0 G; mine: 7 trips (7 by the lift), deepest trip floor 19, food eaten there 1070 stamina
+  == Year 1 winter: income 199601 G, costs 28170 G, money 81644 -> 257297 G
+     income: crops 0, dishes 160, animals 26510, fish 40, forage 625, mine 171766, prizes 500
+     fishing: river 0 fish, 0 G, pond 9 fish, 195 G; mine: 29 trips (29 by the lift), deepest trip floor 23, food eaten there 4305 stamina
+  == Year 2 winter: income 221709 G, costs 19350 G, money 535103 -> 736702 G
+     income: crops 0, dishes 0, animals 26160, fish 0, forage 625, mine 194424, prizes 500
+     fishing: river 0 fish, 0 G, pond 6 fish, 195 G; mine: 29 trips (29 by the lift), deepest trip floor 25, food eaten there 4320 stamina
+     Deepest floor       25  4 / 4 stars
+     40 / 43 stars: rank 4, "Heart of the Village"; closest: hachiro
+  play_year: OK (no problems seen)
+  ```
+  The deep floors are reached now (25 by the end; 4 stars, was 9 and fewer stars), and the
+  record went 36 → 40 stars (the hearts merge and the deeper floor both count).
+- Left / next: the mine is now far the best money: in year 1 winter it brought 171766 G of
+  199601 G, one trip a day from floor 15 with the stand's food. Deep finds (or the lift's
+  depth) need tuning in data/mine.json so winter mining doesn't beat a whole farming year.
+  A first run of this bot stopped after year 1 spring with exit 0 while the test scripts ran at
+  the same time (shared user://); run the bot alone.
+
 ## 2026-11-03 — Merge: forage talk from the outer parts' villagers
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged main into the forage talk branch (92fb776, entry below dated 2026-11-02).

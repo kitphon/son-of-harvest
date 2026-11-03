@@ -1068,7 +1068,7 @@ func _try_goal(shop_id: String, goal: Array) -> String:
 
 # --- the mine ------------------------------------------------------------------
 
-## Down from floor 1 as far as stamina and the clock allow, every rock and soft spot near the
+## Down from floor 1 (or the deepest landing reached, by the lift) as far as stamina and the clock allow, every rock and soft spot near the
 ## way broken; back up through the ladder and home.
 func _mine_trip() -> void:
 	_ship_at_bin()   # room in the rucksack for the finds
@@ -1081,7 +1081,15 @@ func _mine_trip() -> void:
 	_walk(Vector2i(29, 10), Vector2i.RIGHT)
 	_go("mine", Vector2i(1, 7), Vector2i.RIGHT)
 	_walk(Vector2i(7, 3), Vector2i.UP)
-	_go("mine_floor", Vector2i(8, 1))
+	# The rope lift to the deepest landing reached (Game.mine_start_floors), else the ladder.
+	var start: int = g.mine_start_floors().back()
+	if start > 1 and g.mine_go_down(start):
+		g.map_arrived()
+		_check("enter")
+		_play_events()
+		_row.mine_lifts = int(_row.get("mine_lifts", 0)) + 1
+	else:
+		_go("mine_floor", Vector2i(8, 1))
 	while _alive():
 		var f: MineFloor = g.maps.mine_floor
 		if f == null or g.hour >= 17:
@@ -1471,7 +1479,7 @@ func _end_row(season: int) -> void:
 	for place in ["river", MapManager.FARM]:
 		var at: Dictionary = r.fish_at.get(place, {"n": 0, "g": 0})
 		fished.append("%s %d fish, %d G" % ["river" if place == "river" else "pond", at.n, at.g])
-	print("   fishing: %s; mine: %d trips, deepest trip floor %d, food eaten there %d stamina" % [", ".join(fished), int(r.get("mine_trips", 0)), int(r.get("mine_best", 0)), int(r.get("mine_food", 0))])
+	print("   fishing: %s; mine: %d trips (%d by the lift), deepest trip floor %d, food eaten there %d stamina" % [", ".join(fished), int(r.get("mine_trips", 0)), int(r.get("mine_lifts", 0)), int(r.get("mine_best", 0)), int(r.get("mine_food", 0))])
 	print("   affection: " + r.hearts)
 	if not r.contests.is_empty():
 		print("   contests: " + "; ".join(r.contests))
