@@ -10,6 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-03 — Light pass: sun shadows on the ground, warm sun / cool shade
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: first step of the "HD-2D lite" art direction the user chose (Japanese countryside,
+  pixel sprites in a lit 3D world). `scripts/main_3d.gd`: warm sun (ffeecc-ish, 0.7) from the
+  upper left of the screen (-48°, -40°) so the long fronts are sunlit and shadows fall right,
+  where they show; cool sky light (0.82, 0.88, 1.0 x 0.6); orthogonal sun shadows out to 45
+  units; a soft glow (0.4, threshold 0.9). The ground shader (`SnowLayer.GROUND_SHADER`) is
+  now lit, but only to take shadows: flat light, its picture read as sRGB, the sun scaled by
+  `SUN_SHARE` = 0.045. That number is measured, not derived: at 0.04 / 0.07 the sunlit grass
+  was (101,175,65) / (113,192,72) against (111,174,74) unshaded before; 0.045 gives
+  (104,174,71), and shade (ambient alone) is (69,124,54), about two thirds. New rule
+  `Game.sun_shadow()`: shadow strength by daylight luminance ((lum - 0.6) / 0.35) times the
+  weather's `sun` (data/weather_fx.json: 0 for rain, storm, snow, blizzard; 1 when left out).
+  Rooms and mine floors have no shadows. Sprites stay unshaded with their blob shadows.
+  A saturation boost was tried and dropped (it shifted the pixel art's colours).
+- Checked: test_weather gets 6 checks (full at 10:00, fading at 18:00, none at 22:00, none
+  in rain / storm / snow). All test scripts `OK (0 failed)`; the four smoke runs print no
+  errors. Screenshots (farm, village, coop, house, 19:30, 17:00, rain, winter snow, mine 3)
+  looked at before and after: trees, houses and the coop cast shadows on the grass; rain and
+  night have none; rooms and the mine unchanged.
+- Left / next: camera trials (wider FOV, a little lower) for the user to pick from, then a
+  modelled thatched farmhouse sample. Plaster walls in shade read a little blue; soften
+  SKY_LIGHT if the user finds it cold. `data/mine.json` / `data/festivals.json` still hold
+  another agent's uncommitted changes, left out of this commit.
+
 ## 2026-11-03 — Playtest feedback kept in docs/FEEDBACK.md
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the 15–20 / 21–30 playtest feedback written down in `docs/FEEDBACK.md`: 8 open items

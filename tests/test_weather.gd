@@ -152,6 +152,22 @@ func _init() -> void:
 	gm.flashes_enabled = true
 	gm.season = 3
 	check(gm.lightning_style().is_empty(), "winter storm (blizzard): no lightning")
+
+	# Sun shadows: full on a clear morning, fading at dusk, none at night or under cloud.
+	gm.season = 0
+	gm.weather_today = "sunny"
+	gm.hour = 10
+	gm.minute = 0
+	check(is_equal_approx(gm.sun_shadow(), 1.0), "clear morning: full shadows (%.2f)" % gm.sun_shadow())
+	gm.hour = 18
+	var dusk: float = gm.sun_shadow()
+	check(dusk > 0.0 and dusk < 1.0, "dusk: fading shadows (%.2f)" % dusk)
+	gm.hour = 22
+	check(gm.sun_shadow() == 0.0, "night: no shadows")
+	gm.hour = 10
+	for w in ["rain", "storm", "snow"]:
+		gm.weather_today = w
+		check(gm.sun_shadow() == 0.0, "%s: no shadows" % w)
 	gm.free()
 
 	print("test_weather: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])

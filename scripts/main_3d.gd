@@ -13,6 +13,13 @@ const CAM_BACK := Vector3(0.634, 0.448, 0.634)   # from the target towards the e
 const CAM_DIST := 10087.0 / 400.0                 # 25.2 cells
 const CAM_FOV := 13.69                            # vertical, 2 * atan(120 / 1000)
 const CAM_MARGIN := Vector2(4, 3)                 # keep the view inside the fence
+## The light: a warm sun over a cool sky light, so shade is a little blue. Ambient + sun on
+## flat ground add up to about white (the ground shader scales the sun to SnowLayer.SUN_SHARE),
+## so sunlit ground keeps its picture's colours and shade falls to the ambient alone.
+const SUN_COLOR := Color(1.0, 0.93, 0.8)
+const SUN_ENERGY := 0.7
+const SKY_LIGHT := Color(0.82, 0.88, 1.0)
+const SKY_ENERGY := 0.6
 
 var player: Player
 var sprite: Sprite3D
@@ -27,6 +34,7 @@ var _lantern: ShaderMaterial       # the tint down the mine: the floor's light a
 var weather: WeatherFX
 var world: FarmWorld
 var env: Environment
+var sun: DirectionalLight3D
 var flash: ColorRect
 var fade: MapFade
 var lightning := Lightning.new()
@@ -104,14 +112,22 @@ func _ready() -> void:
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color("8fc6e8")
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color.WHITE
-	env.ambient_light_energy = 0.6
+	env.ambient_light_color = SKY_LIGHT
+	env.ambient_light_energy = SKY_ENERGY
+	env.glow_enabled = true   # a soft bloom on the brightest things (snow, festival lights)
+	env.glow_intensity = 0.4
+	env.glow_hdr_threshold = 0.9
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
-	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-55, 30, 0)
-	sun.light_energy = 0.7
+	sun = DirectionalLight3D.new()
+	# From the upper left of the screen: the walls turned down-left (the long fronts) are
+	# sunlit and shadows fall to the right, where they show (not behind what casts them).
+	sun.rotation_degrees = Vector3(-48, -40, 0)
+	sun.light_color = SUN_COLOR
+	sun.light_energy = SUN_ENERGY
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+	sun.directional_shadow_max_distance = 45.0   # the eye is 25 cells away; the view is narrow
 	add_child(sun)
 
 	weather = WeatherFX.new()
@@ -372,7 +388,15 @@ func _update_tint() -> void:
 	var f := Game.maps.mine_floor
 	tint.material = _lantern if f != null else _mul
 	tint.color = f.light if f != null else (m.light if m.light != null else Game.light_color())
+	_show_shadows(m.indoor or f != null)
 	_aim_lantern()
+
+
+## Sun shadows outdoors only (Game.sun_shadow: by the daylight and the sky).
+func _show_shadows(inside: bool) -> void:
+	var strength := 0.0 if inside else Game.sun_shadow()
+	sun.shadow_enabled = strength > 0.0
+	sun.shadow_opacity = strength
 
 
 ## The lantern circle follows the farmer on screen, one cell measured across at their feet.

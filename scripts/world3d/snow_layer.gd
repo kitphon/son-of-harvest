@@ -32,13 +32,24 @@ varying vec3 world;
 void vertex() { world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 """
 
-const GROUND_SHADER := "shader_type spatial;\nrender_mode unshaded;\n" + _COMMON + """
-uniform sampler2D ground : filter_nearest;
+## The sun's share of the light on the ground: with Main3D's sky light it makes sunlit ground
+## about white, so the ground picture keeps its colours where the sun falls and darkens in shade.
+const SUN_SHARE := 0.045
+
+## Lit only to take shadows: flat light (no slope shading), the sun scaled by sun_share.
+const GROUND_SHADER := "shader_type spatial;\n" + _COMMON + """
+uniform sampler2D ground : source_color, filter_nearest;
 uniform sampler2D mask : filter_linear;
+uniform float sun_share = 0.7;
 void fragment() {
 	vec3 g = texture(ground, UV).rgb;
 	float s = snow_at(world.xz, cover * texture(mask, UV).r);
 	ALBEDO = s > 1.5 ? snow_color : (s > 0.5 ? mix(g, rim_color, 0.7) : g);
+	ROUGHNESS = 1.0;
+	SPECULAR = 0.0;
+}
+void light() {
+	DIFFUSE_LIGHT += ATTENUATION * LIGHT_COLOR * sun_share;
 }
 """
 
@@ -118,6 +129,7 @@ static func _mask(w: int, h: int, hold_at: Callable) -> Image:
 
 static func ground_material(ground: Texture2D, mask: Texture2D) -> ShaderMaterial:
 	var m := _material(GROUND_SHADER)
+	m.set_shader_parameter("sun_share", SUN_SHARE)
 	m.set_shader_parameter("ground", ground)
 	m.set_shader_parameter("mask", mask)
 	return m

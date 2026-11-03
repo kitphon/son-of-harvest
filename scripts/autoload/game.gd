@@ -677,6 +677,13 @@ func light_color() -> Color:
 	return c * Color(weather_style().get("tint", "ffffff"))
 
 
+## How strong the sun's shadows are outdoors, 0..1: full by day, fading out as the daylight
+## dims (dusk, night) and gone under a clouded sky (data/weather_fx.json "sun", 1 if left out).
+func sun_shadow() -> float:
+	var day := clampf((light_color().get_luminance() - 0.6) / 0.35, 0.0, 1.0)
+	return day * float(weather_style().get("sun", 1.0))
+
+
 ## Which look today's weather has: a storm in winter is a blizzard (snow, not rain).
 static func weather_look(weather: String, season_id: String) -> String:
 	return "blizzard" if weather == "storm" and season_id == "winter" else weather

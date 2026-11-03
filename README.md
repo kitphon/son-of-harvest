@@ -757,6 +757,16 @@ hide the farmer or the ground within about a cell of them (`scripts/world3d/occl
 rays from the feet towards the camera; the materials' alpha, since the Compatibility renderer
 draws nothing for `GeometryInstance3D.transparency`).
 
+## Light
+The 3D view has a warm sun from the upper left of the screen over a cool sky light
+(`scripts/main_3d.gd` SUN_* / SKY_*), so the walls turned down-left are sunlit and shade is a
+little blue. Outdoors the sun casts shadows; the ground is lit only to take them (flat light,
+`SnowLayer.SUN_SHARE`, measured so sunlit ground keeps its picture's colours and shade drops
+to about two thirds). Shadows fade with the daylight (dusk, night) and are gone under cloud
+(`data/weather_fx.json` "sun", `Game.sun_shadow()`); rooms and mine floors have none. A soft
+glow lifts the brightest things (snow, lights). Sprites stay unshaded, with their own blob
+shadows. Day / night itself is still the multiply tint over the picture.
+
 ## Layout
 - `scripts/autoload/game.gd`: global state (clock, calendar, weather, money, bag, stamina, light).
 - `scripts/farm/farm_grid.gd`: farm rules, pure logic (no drawing).
