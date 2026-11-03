@@ -588,8 +588,9 @@ func _sakurazaka_friends() -> void:
 	check(w.get("map", "") == "sakurazaka" and Vector2i(w.get("pos", Vector2.ZERO).floor()) == Vector2i(9, 9), "on his birthday Ichiro sits on the teahouse gravel past lunch (%s)" % [w])
 	check(Villagers.is_on("ichiro", "ichiro_house", 15 * 60, fall), "and is home by mid-afternoon")
 	Villagers.reset_day()
-	# Their talk: close lines from band 4, their own lines after the band 5 scene.
-	var st := {"year": 1, "season": "summer", "day": 3, "weekday": "wed", "time": 15 * 60 + 30, "weather": "sunny",
+	# Their talk: close lines from band 4, their own lines after the band 5 scene (on a Monday,
+	# off their forage days).
+	var st := {"year": 1, "season": "summer", "day": 3, "weekday": "mon", "time": 15 * 60 + 30, "weather": "sunny",
 		"flags": {}, "festival": "", "band": 4, "again": false, "birthday": false, "day_number": 0}
 	for id in ["fumi", "ichiro"]:
 		var after: String = {"fumi": "after_tea", "ichiro": "kiln"}[id]

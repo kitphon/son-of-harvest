@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-03 — Merge: forage talk from the outer parts' villagers
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged main into the forage talk branch (92fb776, entry below dated 2026-11-02).
+  Main had given Fumi and Ichiro hearts in the meantime (ca99103), so their talk files clashed:
+  their forage rows now follow the rule of the villagers with hearts (band 2..5, after the band
+  5 flag lines, before the close lines), so a stranger and a dear friend don't hear them; the
+  other five keep band 1..6. test_talk moves Fumi and Ichiro to the hearted forage checks.
+- Not merged (main already had the same work, 688bc4c): the year bot's river fishing and mine
+  food (branch worktree-agent-a188e6fd5ff01e5a5, 86c11fc) and a slower hammer with less
+  experience per mine blow (worktree-agent-a4531e61007890ca2, 5fc9390; main set the hammer's
+  steps to 240 / 720 / 1680 / 3360 instead). Both branches were deleted.
+- Checked: all 25 test scripts print `OK (0 failed)` after the merge. The first run failed one
+  check, test_relationships' "ichiro at band 4: forage_summer": it talked to him on a
+  Wednesday, his forage day, where the forage line rightly comes before the close lines; the
+  check now uses a Monday. Smoke runs (title, `--demo`, town, mine 3, sakurazaka) print no
+  error or warning lines.
+- Left / next: milestone 10, the .exe build once the export templates are installed.
 ## 2026-11-03 — Key hints: what E / Space do at the spot in front
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Why: the playtest's first point for players 15-20: the keys were only in the README and the
@@ -313,6 +330,37 @@ Agent: Claude Code (claude-opus-5-5) · Commit: 688bc4c (merged in d0581e3)
   leaves stamina over; lower common river fish prices if a player finds it too strong); the
   smithy's hammer 2 / 3 still come after the bot's mining has levelled it; floors 15 / 20 need a
   longer trip than the bot's plan.
+
+## 2026-11-02 — Forage talk from the outer parts' villagers
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the seven villagers without hearts each have a forage line per season in their talk
+  files (`forage_<season>`), about what grows in their own part per data/forage.json: Genzo
+  (Kaminoda) the dropwort at the paddy edges in spring and winter, mugwort on the terrace dikes,
+  nameko by his woodpile; Haru bamboo shoots by the hill lane and wild garlic past the lower
+  paddies, raspberries, yam bulbils and chestnuts, winter enoki by Genzo's woodpile; Fumi
+  (Sakurazaka) butterbur buds and myoga on the creek banks above the bridge, chestnuts by the
+  pines behind the teahouse, enoki by the far pine; Ichiro bamboo shoots in his grove, sansho,
+  nameko and akebi by his house and woodpiles, winter enoki; Shige (Minamino) horsetail along the
+  river lane, mulberries at the track's east end, nameko by the south pines, enoki and
+  Kaminoda's winter dropwort; Nana wild garlic by the shrine, mulberries by the top beds, yam
+  bulbils, "snow mushrooms"; Kiku horsetail below her orchard, mugwort for kusa mochi, the
+  ginkgo nuts by the water shrine, winter enoki. Every place was checked against the spots'
+  cells and the maps' props. Data only, no code change.
+- Rules (ours): one weekday each, spread so the people of one part differ (Genzo mon, Shige tue,
+  Ichiro wed, Haru thu, Kiku fri, Fumi sat, Nana sun), gated at band 1..6: these villagers have
+  no hearts, only a hidden affection whose band 1 means "known" (the recipe lessons and the
+  record's Neighbours use the same mark), and a stranger (band 0) gets new_1 first anyway. The
+  rows sit right after the wet-day row, so rain keeps its line and festivals, Haru on the hill,
+  Kiku's shrine hour and Nana at the pond keep theirs; on the weekday the line takes over the
+  time and season lines (Ichiro's woods and lunch lines included). The rest of the week is
+  unchanged.
+- Checked: test_talk's `_picks` checks each of the seven in every season on their weekday at
+  band 1 and 6, none at band 0, none on another weekday, the wet line on a rainy day; the file
+  checks open every new line and its portrait. All 25 test scripts print `OK (0 failed)`; smoke
+  runs (title, `--demo`, town, mine 3, kaminoda, minamino, sakurazaka) print no errors or
+  warnings.
+- Left / next: milestone 10, the .exe build once the export templates are installed.
+
 
 ## 2026-11-02 — Forage talk from the villagers with hearts
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
