@@ -744,6 +744,14 @@ vertical FOV 13.7° (a long, narrow lens, so the view looks nearly isometric). T
 follows the player with no lag and stops a few cells inside the fence (or the map edge;
 a room smaller than that stays centred). Inside, the same camera looks in from the front
 corner, so the front walls are drawn as low sills (a cutaway) instead of moving the camera.
+Outdoors, the land goes on past the map's edge (`scripts/world3d/surroundings.gd`): an apron
+of ground whose cells repeat the nearest edge cell (roads, the river and paddies run on out of
+sight), with a pine wood only where it stands behind the whole map on screen (the north and
+west sides), so the view never shows empty sky. Tall things in front of the farmer (houses,
+the coop and barn, trees, the torii: anything over 1 unit high) turn see-through while they
+hide the farmer or the ground within about a cell of them (`scripts/world3d/occluders.gd`:
+rays from the feet towards the camera; the materials' alpha, since the Compatibility renderer
+draws nothing for `GeometryInstance3D.transparency`).
 
 ## Layout
 - `scripts/autoload/game.gd`: global state (clock, calendar, weather, money, bag, stamina, light).

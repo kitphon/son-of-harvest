@@ -227,6 +227,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Farm grid, hoe / can / sickle / hammer / axe, seed bag 3 x 3, growth, regrowth, withering, weeds
    - [x] Shipping bin (paid 18:00 or on sleep), seed stand, sleep / pass out, stamina
    - [x] HUD, 2D view, 3D view with the HM field camera (yaw 45°, pitch 26.6°, FOV 13.7°)
+   - [x] The 3D view never looks off the world (land and a pine wood past outdoor map edges) and buildings / trees in front of the farmer turn see-through (playtest feedback, 2026-11-03)
    - [x] Clock pauses in menus (`Game.pause()` / `unpause()`)
    - [x] Clock pauses indoors (`Game.ticking()` is false on a map with `indoor: true`)
    - [x] A new area off the village: the bamboo hill (`hill`, bamboo clumps, a lookout shrine, examine events)

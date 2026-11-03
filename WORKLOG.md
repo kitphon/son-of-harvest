@@ -10,6 +10,38 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-03 — Playtest fixes: land past the map edges, see-through buildings in the way
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Why: a playtest (screenshots of 19 scenes, read as players aged 15-20 and 21-30) found two
+  things both groups see in the first hour: near a map's edge the 3D view looked off the world
+  into empty sky (the village's north-west corner, the farm past its fence), and roofs in front
+  of the farmer (the village, the festival square, winter) filled the lower half of the screen
+  and hid the ground and villagers behind them. The user picked these two to fix first.
+- Done: `Surroundings` (scripts/world3d/surroundings.gd): on every outdoor map (not sheltered:
+  the farm, village, the three outer parts, hill, river, mine mouth) an apron of ground 14 cells
+  round the map, each cell the nearest edge cell's kind (roads, the river and paddies run on;
+  water banks drawn where kinds meet), snow on it as on the map; and a pine wood where a tree
+  stands behind every map cell of its screen column (the north and west sides), never on or
+  next to a road or water running out. `Occluders` (scripts/world3d/occluders.gd): every map
+  prop, and the farm's house, stand, coop and barn, is one group of meshes with a box; anything
+  over 1 unit high fades to 40 % while it stands nearer the camera than the farmer and a ray from
+  the farmer (feet, waist, head) or from a ring 1.25 cells round the feet towards the camera hits
+  its box. The fade is the materials' alpha (each group gets its own copies; snow tops hide,
+  sprites use modulate): `GeometryInstance3D.transparency` drew nothing in the project's
+  Compatibility renderer (the fade's data was right, the frame unchanged).
+- Checked: test_maps (new: the village's apron, the west road running on, pines only behind
+  the map and off the road, behind / in front of a village house, `hides` both ways, no apron
+  in a room, the farm view's apron and four fading buildings) and every other test print
+  `OK (0 failed)`; smoke runs (title, `--demo`, `--map=town`, `--mine=3`, `--map=river`,
+  `--map=hill`) print no error or warning lines. Screenshots (3D): the village start, winter
+  village with snow 80, farm gate, river, hill top, Kaminoda, the mine mouth, Blossom Day.
+  Pixels of the empty-sky colour 8fc6e8 in the village frame: 22710 before, 0 after; 0 in all
+  the other outdoor frames. The roof in front of the village start spawn and the festival
+  square's roof show see-through, with the road / pond and villagers behind them visible.
+- Left / next: the 2D view needs neither. Other playtest notes still open: on-screen key hints,
+  Thai text, an early goal in week 1, the mine's share of winter money, night lights.
+  tools/play_year.gd has another agent's uncommitted change, so it is left out of this commit.
+
 ## 2026-11-03 — Hearts for Fumi and Ichiro
 Agent: Claude Code (claude-opus-5-5) · Commit: ca99103
 - Done: Fumi (the Hanami teahouse) and Ichiro (the charcoal burner) of Sakurazaka are villagers

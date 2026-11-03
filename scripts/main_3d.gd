@@ -220,6 +220,7 @@ func _process(delta: float) -> void:
 	anim.step(delta, player.moving, player.running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose)
 	_update_flash(delta)
 	_follow()
+	world.occluders.update(sprite.position, CAM_BACK.normalized(), delta)
 	_aim_lantern()
 	_fly(delta)
 	_show_fishing()
