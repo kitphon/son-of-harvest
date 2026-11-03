@@ -47,6 +47,19 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   or child; Ichiro has no band 6 scene. The farmer's own gender is never named in the lines.
   The see-through torii crosses Kota and Hachiro in the wedding frame (readable).
 
+## 2026-11-04 — Feedback items 1-3 merged into main
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged the three branches made in parallel: Thai text (c3dce89, merge 0db242a),
+  week-one goals (e3ad897, merge ff2d794) and marriage (be3a2bb, merge 379d92f). Conflicts were
+  only in WORKLOG / ROADMAP / FEEDBACK / AGENTS.md (both texts kept), tools/house_model.gd.uid
+  (main's uid kept) and game.gd (Goals and Marriage functions side by side). Adds the
+  importer's tests/test_goals.gd.uid.
+- Checked: all 26 test scripts `OK (0 failed)` on the merged tree; smoke runs (title, --demo,
+  --demo --map=town, --demo --mine=3, --demo --lang=th --goals --map=town) print no error or
+  warning lines.
+- Left / next: the goal notes and marriage lines have no Thai yet (data/lang/th); FEEDBACK
+  items 4 and 5 next.
+
 ## 2026-11-03 — Week-one goals: Tome's first-week list (feedback item 2)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: docs/FEEDBACK.md item 2 ("a slow start, no small goal in week one"). New
