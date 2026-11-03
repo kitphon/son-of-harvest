@@ -5,7 +5,7 @@ extends SceneTree
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_menu.gd
 
 const PATH := "user://test_settings.json"
-const ALL := ["display", "window", "vsync", "fps", "ui_scale", "flashes", "text_speed", "always_run", "hud", "music", "sfx", "ambient"]
+const ALL := ["display", "window", "vsync", "fps", "ui_scale", "flashes", "text_speed", "always_run", "hud", "hints", "music", "sfx", "ambient"]
 
 var failures := 0
 var _frame := 0
@@ -35,6 +35,7 @@ func _process(_delta: float) -> bool:
 	if _frame == 1:
 		_volumes_in_effect()
 		_settings_in_effect()
+		_key_hints()
 	if _frame < 4:
 		_farmer_in_menu(_frame)
 		return false
@@ -797,6 +798,57 @@ func _window_fit() -> void:
 
 ## UiScale: pivots keep a box where it was, sizes stop where a piece stops fitting, the HUD's
 ## corners don't run into each other, the pause menu shows fewer rows to fit.
+## The HUD's key hints: what E / Space would do at the spot in front (ActionHints, read-only),
+## shown with the player's keys, left out while paused or with the setting off.
+func _key_hints() -> void:
+	var g: Node = root.get_node("Game")
+	var hints: GDScript = load("res://scripts/ui/action_hints.gd")   # by path: it names the Game autoload
+	var hud_script: GDScript = load("res://scripts/ui/hud.gd")
+	check(hud_script.hint_pairs({"interact": "Talk", "use_tool": "Water"}, "E", "Space") == ["E", "Talk", "Space", "Water"]
+		and hud_script.hint_pairs({"interact": "", "use_tool": "Till"}, "E", "Space") == ["Space", "Till"]
+		and hud_script.hint_pairs({"interact": "Reel in", "use_tool": "Reel in"}, "E", "Space") == ["E/Space", "Reel in"]
+		and hud_script.hint_pairs({"interact": "Talk", "use_tool": ""}, "", "Space").is_empty(), "hint pairs: both, one, shared, no key")
+	check(hints.key_text("interact") == "E" and hints.key_text("use_tool") == "Space", "hints use the bound keys (%s, %s)" % [hints.key_text("interact"), hints.key_text("use_tool")])
+	g.new_game()
+	g.select_tool(0)   # the hoe
+	var at := func(origin: Vector2i, facing: Vector2i) -> Dictionary: return hints.pick(origin, facing)
+	var bin: Dictionary = at.call(Vector2i(8, 4), Vector2i.UP)
+	check(bin.interact == "Ship" and bin.use_tool == "Till", "facing the bin: E Ship, Space Till (%s)" % [bin])
+	g.held = "turnip"
+	var full: Dictionary = at.call(Vector2i(14, 10), Vector2i.DOWN)
+	check(full.interact == "Throw" and full.use_tool == "Put down", "hands full on the farm: throw / put down (%s)" % [full])
+	g.held = ""
+	var pond := Vector2i(-1, -1)
+	for y in FarmGrid.H:
+		for x in FarmGrid.W:
+			if pond.x < 0 and g.farm.fixed_at(Vector2i(x, y)) == "pond" and g.farm.fixed_at(Vector2i(x, y + 1)) == "":
+				pond = Vector2i(x, y + 1)
+	g.select_tool(g.TOOLS.find("rod"))
+	check(pond.x >= 0 and at.call(pond, Vector2i.UP).use_tool == "Cast" and at.call(pond, Vector2i.DOWN).use_tool == "", "the rod: Cast only at water")
+	var door: Vector2i = MapManager.data("town").doors[1].cells[0]   # Tome's door
+	g.maps.place("town", door + Vector2i.DOWN, Vector2i.UP)
+	var town: Dictionary = at.call(door + Vector2i.DOWN, Vector2i.UP)
+	check(town.interact == "Enter" and town.use_tool == "", "a door in the village: E Enter, no tool work off the farm (%s)" % [town])
+	g.maps.place("farm", Vector2i(8, 4), Vector2i.UP)
+	var hud: CanvasLayer = hud_script.new()
+	root.add_child(hud)
+	g.select_tool(0)
+	hud._show_hints()
+	check(hud._hint_box.visible and hud._hint_labels[1].text == "Ship", "the HUD shows the hints")
+	g.pause()
+	hud._show_hints()
+	check(not hud._hint_box.visible, "no hints while a menu is open")
+	g.unpause()
+	var kept: Dictionary = g.settings.values.duplicate()
+	g.settings.values.hints = false
+	g.apply_settings([])
+	hud._show_hints()
+	check(not hud._hint_box.visible and not g.key_hints, "Key hints off: none shown")
+	g.settings.values = kept
+	g.apply_settings([])
+	hud.queue_free()
+
+
 func _ui_scale() -> void:
 	var screen := Vector2(480, 270)
 	check(UiScale.pivot(Rect2(165, 85, 150, 100), screen) == Vector2(240, 135), "a box in the middle grows from the middle")

@@ -18,6 +18,7 @@
 		"values": {"slow": 0.5, "normal": 1.0, "fast": 2.0, "instant": 0.0}},
 	"always_run": {"label": "Always run", "kind": "bool", "default": false, "_note": "On: the farmer runs, the run key walks."},
 	"hud": {"label": "Show HUD", "kind": "bool", "default": true},
+	"hints": {"label": "Key hints", "kind": "bool", "default": true, "_note": "On: a line over the tool bar says what the interact and tool buttons do at the spot in front."},
 	"_volume": "Volumes: range entries with a bus are read by the Sfx autoload (Sfx.set_volume(bus, value / max)); the menu draws them as sliders.",
 	"music": {"label": "Music", "kind": "range", "default": 70, "min": 0, "max": 100, "step": 10, "unit": "%", "bus": "Music"},
 	"sfx": {"label": "Sounds", "kind": "range", "default": 80, "min": 0, "max": 100, "step": 10, "unit": "%", "bus": "SFX"},

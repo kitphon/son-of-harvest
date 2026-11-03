@@ -75,6 +75,10 @@ effect the moment it changes and saved to `user://settings.json` (version 2; a v
 - Text speed: Slow / Normal / Fast (x0.5 / x1 / x2 the letters per second in
   `data/text_box.json`) or Instant (whole lines at once).
 - Always run: the farmer runs, the run key walks. Show HUD: off hides the whole HUD.
+- Key hints (on by default): a line over the tool bar says what the interact and tool buttons
+  do at the spot in front, with the player's own keys ("E Talk  Space Water", "E Ship",
+  "Space Cast" at water, "E/Space Reel in"); hidden while a menu, text box or event is up
+  (`scripts/ui/action_hints.gd` picks the words and changes nothing).
 - Music / Sounds / Ambient volume sliders.
 - Reset to defaults (the settings above; the keys have their own reset under Controls).
 

@@ -5,7 +5,9 @@ extends CanvasLayer
 ## pips and, when there is one, the item held in the other hand (bottom left), money, shipping bin and a
 ## stamina bar (bottom right), and a message line (top left). Reads Game and redraws on its
 ## signals; hidden while the "Show HUD" setting is off, its corners grown by the "UI size"
-## setting (HudLayout.scaled_box).
+## setting (HudLayout.scaled_box). Over the tool bar, while the "Key hints" setting is on, a line
+## says what the interact and tool buttons would do at the spot in front (ActionHints), with
+## the player's own keys.
 
 const INK := Color("3b2a1a")
 const INK_SOFT := Color("7a6040")
@@ -31,6 +33,9 @@ var _stamina_fill: ColorRect
 var _msg_box: NinePatchRect
 var _msg: Label
 var _msg_time := 0.0
+var _hint_box: NinePatchRect
+var _hint_labels: Array[Label] = []   # key, word, key, word
+var _hint_time := 0.0                 # seconds to the next look
 var _placed: Dictionary = {}   # box key in HudLayout.BOXES -> its box, placed by the UI size
 
 
@@ -43,6 +48,10 @@ func _ready() -> void:
 	_msg_box = _box(HudLayout.BOXES.message, "paper", "message")
 	_msg = _label(_msg_box, Vector2i(6, 5))
 	_msg_box.visible = false
+	_hint_box = _box(HudLayout.BOXES.hint, "paper", "hint")
+	for i in 4:
+		_hint_labels.append(_label(_hint_box, Vector2i(6, 4), PlaceholderArt.UI_SEAL if i % 2 == 0 else INK))
+	_hint_box.visible = false
 	Game.changed.connect(_refresh)
 	Game.message.connect(_show)
 	Game.settings_changed.connect(_on_settings)
@@ -135,6 +144,10 @@ func _icon(parent: Control, pos: Vector2i) -> TextureRect:
 
 
 func _process(delta: float) -> void:
+	_hint_time -= delta
+	if _hint_time <= 0.0:
+		_hint_time = 0.1
+		_show_hints()
 	if _msg_time > 0.0:
 		_msg_time -= delta
 		if _msg_time <= 0.0:
@@ -148,6 +161,38 @@ func _on_settings() -> void:
 		var r := HudLayout.scaled_box(key, Game.ui_scale)
 		_placed[key].position = r.position
 		_placed[key].scale = Vector2.ONE * HudLayout.group_scale(key, Game.ui_scale)
+
+
+## The key hints for the farmer's spot now, or none while a menu, a text box or an event
+## holds the game (or the setting is off).
+func _show_hints() -> void:
+	var pairs: Array[String] = []
+	if Game.key_hints and not Game.paused():
+		var h := ActionHints.pick(Player.cell_of(Game.maps.pos), Game.maps.facing)
+		pairs = hint_pairs(h, ActionHints.key_text("interact"), ActionHints.key_text("use_tool"))
+	var x := 6
+	for i in _hint_labels.size():
+		var text := pairs[i] if i < pairs.size() else ""
+		_hint_labels[i].text = text
+		_hint_labels[i].position.x = x
+		if text != "":
+			x += PixelFont.width(text) + (4 if i % 2 == 0 else 10)
+	_hint_box.visible = not pairs.is_empty()
+	_hint_box.size.x = x - 10 + 6 if not pairs.is_empty() else HudLayout.BOXES.hint.size.x
+
+
+## [key, word, key, word] for the hints `h` (ActionHints.pick): interact first, then the tool
+## button; a button with nothing to do (or no key bound) is left out, and two buttons doing
+## the same share one hint ("E/Space Reel in").
+static func hint_pairs(h: Dictionary, interact_key: String, tool_key: String) -> Array[String]:
+	var out: Array[String] = []
+	if h.get("interact", "") != "" and h.interact == h.get("use_tool", "") and interact_key != "" and tool_key != "":
+		return ["%s/%s" % [interact_key, tool_key], h.interact]
+	if h.get("interact", "") != "" and interact_key != "":
+		out.append_array([interact_key, h.interact])
+	if h.get("use_tool", "") != "" and tool_key != "":
+		out.append_array([tool_key, h.use_tool])
+	return out
 
 
 func _show(text: String) -> void:

@@ -13,11 +13,12 @@ const BOXES := {
 	"hand": Rect2i(176, 238, 28, 28),    # the item in the other hand, only while there is one
 	"status": Rect2i(384, 226, 92, 40),
 	"message": Rect2i(4, 4, 0, 19),
+	"hint": Rect2i(4, 196, 168, 16),   # what E / Space do now (ActionHints); grows with its text, hidden when empty
 }
 ## Boxes that grow together with the UI size setting (UiScale), one group per corner, so the
 ## boxes in a corner keep their gaps.
 const GROUPS := {"clock": "top_right", "festival": "top_right", "item": "bottom_left",
-	"tools": "bottom_left", "hand": "bottom_left", "status": "bottom_right", "message": "top_left"}
+	"tools": "bottom_left", "hand": "bottom_left", "hint": "bottom_left", "status": "bottom_right", "message": "top_left"}
 const SCREEN := Vector2(480, 270)
 const SLOT := 18
 const SLOT_GAP := 2

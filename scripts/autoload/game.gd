@@ -44,6 +44,7 @@ var flashes_enabled := true     # lightning flashes in storms; off for photosens
 var text_speed := 1.0           # the text box's speed from the settings (x letters per second; 0 = at once)
 var always_run := false         # settings: the farmer runs unless the run key is held
 var hud_visible := true         # settings: the HUD is drawn
+var key_hints := true           # settings: the HUD says what the buttons do (ActionHints)
 var ui_scale := 1.0             # settings: how big the HUD, menus and text box are (UiScale fits it to the screen)
 var max_fps := 0                # settings: the frame cap (0 = none), also Engine.max_fps
 var clock_running := true      # off on the title screen
@@ -555,6 +556,7 @@ func apply_settings(args := OS.get_cmdline_user_args()) -> void:
 	text_speed = float(settings.option_value("text_speed"))
 	always_run = bool(settings.value("always_run"))
 	hud_visible = bool(settings.value("hud"))
+	key_hints = bool(settings.value("hints"))
 	ui_scale = float(settings.option_value("ui_scale"))
 	for arg in args:   # `-- --ui=150%`: a UI size for this run (screenshots), not saved
 		if arg.begins_with("--ui="):

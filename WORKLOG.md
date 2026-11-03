@@ -10,8 +10,39 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
-## 2026-11-03 — Playtest fixes: land past the map edges, see-through buildings in the way
+## 2026-11-03 — Key hints: what E / Space do at the spot in front
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Why: the playtest's first point for players 15-20: the keys were only in the README and the
+  opening only says "till the soil with the hoe"; nothing on screen said which button talks,
+  ships or casts. The user picked this next.
+- Done: `ActionHints` (scripts/ui/action_hints.gd) asks what FarmActions.on_action would do,
+  in its order, without changing anything: reel in, put the dog down, Talk / Give to the
+  villager in front, Enter / Go down / Look at a door, Tend an animal, Pick up a mine find,
+  Pick a wild thing, Play / Enter contest / Shop at a festival spot, the prop's use (Sleep,
+  Shop, Open, Cook, Feed, Take egg...), Pet the dog, Ship / Open / Buy at the bin, chest and
+  stand, Pick up / Harvest; with hands full on the farm Throw / Put down. The tool button:
+  Eat (food in hand or one held), Cast only facing water, Till / Water / Cut / Break / Chop /
+  Sow on the farm, and down the mine Break / Dig only at a rock / soft spot. The HUD draws it
+  in a paper box over the item box (HudLayout "hint", in the bottom-left group, so it grows with
+  the UI size and never meets the other corners), keys in seal red, the player's first bound
+  key for each action (Esc → Settings → Controls changes it here too); the same word on both
+  buttons is one hint ("E/Space Reel in"); hidden while Game.paused() (menus, text boxes,
+  events). New setting "Key hints" (data/settings.json `hints`, on by default, Game.key_hints)
+  for players who know the keys.
+- Checked: test_menu (new `_key_hints`: the pairs (both, one, shared, no key), the bound keys,
+  facing the bin E Ship / Space Till, hands full Throw / Put down, the rod Cast at the pond only,
+  a village door E Enter with no tool word, the HUD box shows and hides while paused and with the
+  setting off; the settings list has `hints`) and every other test print `OK (0 failed)`; smoke
+  runs (title, `--demo`, `--map=town`, `--mine=3`) print no error or warning lines.
+  Screenshots: `--demo` "Space Till", `--hold` "E Throw  Space Put down" (also at `--ui=150%`),
+  `--fishing=wait` the reel hint, `--mine=3` (before the mine fix it said "Space Dig" on bare
+  floor; now only at a soft spot), the coop / store / festival with no hint when nothing is in
+  front.
+- Left / next: the hints are English like the rest of the text (Thai text is its own task);
+  pad players see the keyboard keys, as there is no "last device used" yet.
+
+## 2026-11-03 — Playtest fixes: land past the map edges, see-through buildings in the way
+Agent: Claude Code (claude-opus-5-5) · Commit: 67cbaed
 - Why: a playtest (screenshots of 19 scenes, read as players aged 15-20 and 21-30) found two
   things both groups see in the first hour: near a map's edge the 3D view looked off the world
   into empty sky (the village's north-west corner, the farm past its fence), and roofs in front
