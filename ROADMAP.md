@@ -176,7 +176,7 @@ The balance pass is done (milestone 8): our own crop, product, animal and extens
 the before / after table); it also keeps the smithy's ores back from the bin (an upgrade
 waits while they are short), counts contest prizes from the odds against the rivals, and prints
 each recipe's gain over its raw ingredients, its kitchen tools and the cookings that pay them
-back (the plan buys the tools as a one-off cost in the season it first needs them). Later for balance: the hammer levels up from mining alone (the playtest: level 4 in spring).
+back (the plan buys the tools as a one-off cost in the season it first needs them). The hammer now levels like the sickle (it reached 4 after one spring of mining at the axe's numbers; WORKLOG 2026-11-03).
 The ending is in (milestone 9): on the first morning of year 3 Tome brings the village record
 (stars per category, a rank and a title from data/ending.json; README → Ending), then the
 villager liked most says a word and the game goes on. Every other New Year Tome brings a
@@ -185,7 +185,11 @@ and the gain since the last page. The record is drawn as a paper scroll that unr
 (rollers, washi, ink-stamp stars, a red seal by the title).
 The year playtest is done: `tools/play_year.gd` plays two years through the real rules and
 prints a report per season and the village record (WORKLOG 2026-11-01); gifts were made slower
-and the ending's mine steps lower from it. Later for it: river fishing, food for the mine.
+and the ending's mine steps lower from it. Since 2026-11-03 it walks the new areas (Sakurazaka to
+the mine, Minamino to the river), picks forage on the way and on a Kaminoda / hill round, fishes
+the river when a bite pays more there, and carries food down the mine; the rod's cast now costs
+4 stamina and the hammer levels slower (WORKLOG). Later for it: fish still out-earn crops in
+year 1 (spare stamina); floors 15 / 20 need longer trips than its 150-stamina pack.
 Bigger world (the user found the maps small, 2026-11-01): widening the farm and village made
 the walks long and dull, so they are back to their old sizes; the world grows by areas instead.
 Done: Kaminoda, the hamlet up the village's north lane (paddies, drying racks, a well, jizo;
