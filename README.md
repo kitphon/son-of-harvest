@@ -774,8 +774,10 @@ The game builds the house from code; the .glb is a copy to look at or start real
 The coop and barn have gable roofs from the same file (`Minka.gable`: two slopes, the eave
 bands, the verges at the gable ends, the soffit, snow; with `rolls` the slopes carry raised
 round-tile rolls, used for the barn's kawara with the tile ends in `build:kawara_edge`), and
-`Minka.gable_wall` fills the gable ends. Add `--what=coop` or `--what=barn` to the tool to see
-them (`shots/<what>_<view>.png`).
+`Minka.gable_wall` fills the gable ends. The village houses use the kawara gable too, and
+`Minka.ridge` lays a ridge-tile stack that curls up at both ends to an onigawara (village houses
+and the barn). Add `--what=coop`, `--what=barn` or `--what=village` (a shop like Sayo's) to the
+tool to see them (`shots/<what>_<view>.png`).
 
 ## Light
 The 3D view has a warm sun from the upper left of the screen over a cool sky light

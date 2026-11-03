@@ -10,6 +10,29 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-03 — Village house roofs as kawara meshes, ridges curling up to onigawara
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: art direction roadmap 1, second item. `MapWorld._village_house` (every village house:
+  town, Kaminoda, Minamino, Sakurazaka) now uses `Minka.gable` with kawara tile rolls every
+  0.25: pitch 0.5 (about 27°), 0.14 thick, eaves 0.35 past the long walls and 0.25 past the
+  ends, soffit 1.45 at the front eave; the walls go up to the soffit over the wall line (1.6 →
+  1.625) and `Minka.gable_wall` closes the ends in plaster. New `Minka.ridge`: a dark
+  ridge-tile stack (noshi) under a grey cap, both sweeping up 0.14 over the last 0.8 at each end
+  (with the square of the way in, so the curve starts gently), a raised end tile (onigawara)
+  leaning out with the curve at both ends; lit plain colours (`Minka._plain`) so the sun shapes
+  the curve. The barn's box ridge is replaced by it too. The old prism gables and slabs are gone;
+  the doors, noren and windows stay where they were. `tools/house_model.gd --what=village`
+  shows a shop like Sayo's (6 x 3, noren, side door) from four sides.
+- Checked: test_maps gets a ridge check (faces turned to their normals, level in the middle,
+  over 0.1 higher at both ends). All 25 test scripts `OK (0 failed)`; the four smoke runs print
+  no error or warning lines. Looked at: the shop from four sides; the village at 10:00 (town,
+  town@sayo, sakurazaka@bridge), 17:00, 20:00, rain and winter snow 90; the barn; the
+  see-through fade of a house between the camera and the farmer (rolls show through, faded).
+  The roof snow has holes in a patch pattern: the same with the old roofs (checked against the
+  last commit's code), so it comes from the snow top shader, not this change.
+- Left / next: the shrine pieces (torii, hokora, stone lanterns). The houses still all share
+  one shape; a hip roof or a second storey for some would add variety later.
+
 ## 2026-11-03 — Coop and barn roofs as meshes (Minka.gable), the farmhouse eave band turned out
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: art direction roadmap 1, first item. `Minka.gable` builds a thick gable roof (ridge

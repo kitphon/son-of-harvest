@@ -246,41 +246,35 @@ func _kotatsu(mid: Vector3) -> void:
 
 
 ## A village house over its footprint: board skirting, plaster walls, a kawara gable roof
+## built as a mesh (Minka.gable with tile rolls, Minka.ridge curving up to its end tiles)
 ## with the ridge along x, a shoji door on the front (+z) face at `door` cells from the left,
 ## shoji windows, and an indigo noren over the door of a shop. `side_door` (cells from the
 ## left, -1 for none) is a second, plain door: the way into the rooms behind a shop.
 func _village_house(r: Rect2, door: int, noren: bool, side_door := -1) -> void:
 	var timber := flat_material(Color("2e221a"))
+	var back := r.position.y + 0.1
 	var front := r.end.y - 0.15
-	var depth := front - r.position.y - 0.1
-	var mid_z := r.position.y + 0.1 + depth / 2
+	var depth := front - back
+	var mid_z := back + depth / 2
 	var cx := r.get_center().x
 	var wide := r.size.x - 0.2
+	# The roof (Minka.gable, kawara with tile rolls): eaves 0.35 past the long walls and 0.25
+	# past the gable ends, the soffit 1.45 high at the front eave, rising 0.5 a unit (about
+	# 27°, a gentle tile roof); the walls go up to the soffit, the gable ends are plaster.
+	var overhang := 0.35
+	var pitch := 0.5
+	var wall := 1.45 + overhang * pitch
 	_box(Vector3(wide, 0.5, depth), Vector3(cx, 0.25, mid_z), surface_material("build:board"))
-	_box(Vector3(wide, 1.1, depth), Vector3(cx, 1.05, mid_z), surface_material("build:plaster"))
+	_box(Vector3(wide, wall - 0.5, depth), Vector3(cx, 0.5 + (wall - 0.5) / 2, mid_z), surface_material("build:plaster"))
 	for x in [r.position.x + 0.1, cx, r.end.x - 0.1]:
-		_box(Vector3(0.1, 1.6, 0.08), Vector3(x, 0.8, front + 0.02), timber)
-	_box(Vector3(wide + 0.06, 0.07, 0.06), Vector3(cx, 1.58, front + 0.03), timber)
-	var rise := 0.8
-	var gable := MeshInstance3D.new()
-	var prism := PrismMesh.new()
-	prism.size = Vector3(depth, rise, wide)
-	gable.mesh = prism
-	gable.material_override = surface_material("build:plaster")
-	gable.position = Vector3(cx, 1.6 + rise / 2, mid_z)
-	gable.rotation_degrees.y = 90
-	add_child(gable)
-	var ridge := Vector3(cx, 1.6 + rise, mid_z)
-	var slope := atan2(rise, depth / 2)
-	var length := (depth / 2 + 0.35) / cos(slope)
-	var kawara := surface_material("build:kawara")
-	for side in [1, -1]:
-		var down := Vector3(0, -sin(slope), cos(slope) * side)
-		var up := Vector3(0, cos(slope), sin(slope) * side)
-		var center := ridge + down * (length / 2 - 0.05) + up * 0.05
-		_box(Vector3(wide + 0.5, 0.09, length), center, kawara, Vector3(slope * side, 0, 0))
-		_snow_top(Vector3(wide + 0.4, 0.04, length - 0.1), center + up * 0.065, Vector3(slope * side, 0, 0))
-	_box(Vector3(wide + 0.7, 0.16, 0.22), ridge + Vector3(0, 0.1, 0), flat_material(Color("3a424c")))
+		_box(Vector3(0.1, wall, 0.08), Vector3(x, wall / 2, front + 0.02), timber)
+	_box(Vector3(wide + 0.06, 0.07, 0.06), Vector3(cx, wall - 0.03, front + 0.03), timber)
+	var eave := Rect2(cx - wide / 2 - 0.25, back - overhang, wide + 0.5, depth + overhang * 2)
+	var crest := Minka.gable(self, eave, 1.45, pitch, 0.14, "build:kawara", "build:kawara_edge", 0.25)
+	var apex := 1.45 + eave.size.y / 2 * pitch
+	for x in [cx - wide / 2 - 0.002, cx + wide / 2 + 0.002]:
+		Minka.gable_wall(self, x, back, front, wall, apex, "build:plaster", signf(x - cx))
+	Minka.ridge(self, eave.position.x + 0.05, eave.end.x - 0.05, crest - 0.04, mid_z)
 	var dx := r.position.x + door + 0.5
 	_picture("build:shoji_door", Vector2(0.85, 1.05), Vector3(dx, 0.55, front + 0.005))
 	if noren:

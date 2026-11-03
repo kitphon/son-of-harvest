@@ -173,6 +173,61 @@ static func gable(w: FarmWorld, eave: Rect2, low: float, pitch: float, thick: fl
 	return crest
 
 
+## A tiled ridge along x from `x0` to `x1`, sitting at height `y` over z = `z`: a dark stack
+## of ridge tiles (noshi) under a rounded grey cap, both sweeping up by `curl` over the last
+## `sweep` units at each end (rising with the square of the way in, so the curve starts
+## gently), and a raised end tile (onigawara) standing at each end, leaning out with the curve.
+static func ridge(w: FarmWorld, x0: float, x1: float, y: float, z: float, curl := 0.14, sweep := 0.8) -> void:
+	var lift := func(x: float) -> float:
+		var t := clampf(maxf(x0 + sweep - x, x - (x1 - sweep)) / sweep, 0.0, 1.0)
+		return curl * t * t
+	var xs: Array[float] = []
+	for i in 7:
+		xs.append(x0 + sweep * i / 6.0)
+	for i in 7:
+		xs.append(x1 - sweep + sweep * i / 6.0)
+	var stack := SurfaceTool.new()
+	var cap := SurfaceTool.new()
+	for st in [stack, cap]:
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_beam(stack, xs, lift, y, z, 0.17, 0.0, 0.17)
+	_beam(cap, xs, lift, y, z, 0.1, 0.15, 0.1)
+	_add_mesh(w, stack, _plain(Color("3a3e46")))
+	_add_mesh(w, cap, _plain(Color("5e6874")))
+	var lean := atan(2.0 * curl / sweep)   # the curve's slope at the very end
+	for end: float in [-1.0, 1.0]:
+		var x := x0 + 0.06 if end < 0.0 else x1 - 0.06
+		var at := Vector3(x, y + curl + 0.2, z)
+		w._box(Vector3(0.12, 0.42, 0.42), at, _plain(Color("3a3e46")), Vector3(0, 0, -end * lean * 0.7))
+		w._box(Vector3(0.14, 0.1, 0.3), at + Vector3(end * 0.08, 0.22, 0), _plain(Color("5e6874")), Vector3(0, 0, -end * lean))
+
+
+## A beam along the points `xs` (x, rising by `lift`), its cross section `half` deep either
+## side of z and `high` tall from `base` above `y`: top, front, back and the two ends.
+static func _beam(st: SurfaceTool, xs: Array[float], lift: Callable, y: float, z: float,
+		half: float, base: float, high: float) -> void:
+	var none := func(_p: Vector3) -> Vector2: return Vector2.ZERO
+	var at := func(x: float, up: float, dz: float) -> Vector3:
+		return Vector3(x, y + float(lift.call(x)) + base + up, z + dz)
+	for i in xs.size() - 1:
+		var a := xs[i]
+		var b := xs[i + 1]
+		if b - a < 0.001:
+			continue
+		var ta: Vector3 = at.call(a, high, 0.0)
+		var tb: Vector3 = at.call(b, high, 0.0)
+		var d := tb - ta
+		_quad(st, at.call(a, high, -half), at.call(b, high, -half), at.call(b, high, half),
+			at.call(a, high, half), Vector3(-d.y, d.x, 0).normalized(), none)
+		for side: float in [-1.0, 1.0]:
+			_quad(st, at.call(a, 0.0, half * side), at.call(b, 0.0, half * side),
+				at.call(b, high, half * side), at.call(a, high, half * side), Vector3(0, 0, side), none)
+	for end: float in [-1.0, 1.0]:
+		var x: float = xs[0] if end < 0.0 else xs[xs.size() - 1]
+		_quad(st, at.call(x, 0.0, -half), at.call(x, 0.0, half), at.call(x, high, half),
+			at.call(x, high, -half), Vector3(end, 0, 0), none)
+
+
 ## The wall filling a gable end under the roof: a triangle in the plane x = `x` from the
 ## wall top `base` at z0 / z1 up to `apex` over the middle, facing `facing` (+1 / -1 along x),
 ## textured like the wall below it (u along z, v down).
@@ -202,6 +257,13 @@ static func _material(key: String) -> StandardMaterial3D:
 	m.albedo_texture = PlaceholderArt.tex(key)
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	m.uv1_scale = Vector3(1, 1, 1)
+	return m
+
+
+## A lit plain colour (ridge tiles): the sun shapes the curve, unlike FarmWorld.flat_material.
+static func _plain(color: Color) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = color
 	return m
 
 

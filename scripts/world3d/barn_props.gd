@@ -33,24 +33,15 @@ static func barn(w: FarmWorld) -> void:
 	# The tiled gable roof (Minka.gable with kawara rolls every quarter unit, as the tile
 	# texture's rows): eaves 0.4 past the long walls and 0.3 past the gable ends, the soffit
 	# 1.45 high at the front eave, rising 0.55 a unit (about 29°, a tile roof's gentle slope).
-	# The gable ends are boards up to the roof; on the ridge a stack of ridge tiles with a
-	# raised end tile (onigawara) at each end.
+	# The gable ends are boards up to the roof; on the ridge a stack of ridge tiles curving up
+	# to a raised end tile (onigawara) at each end (Minka.ridge).
 	var overhang := 0.4
 	var eave := Rect2(cx - wide / 2 - 0.3, back - overhang, wide + 0.6, depth + overhang * 2)
 	var crest := Minka.gable(w, eave, 1.45, 0.55, 0.15, "build:kawara", "build:kawara_edge", 0.25)
 	var apex := 1.45 + eave.size.y / 2 * 0.55
 	for x in [cx - wide / 2 - 0.002, cx + wide / 2 + 0.002]:
 		Minka.gable_wall(w, x, back, front, wall, apex, "build:sugi", signf(x - cx))
-	var ridge := Vector3(cx, crest - 0.04, mid_z)
-	var dark := FarmWorld.flat_material(Color("3a3a40"))
-	var light := FarmWorld.flat_material(Color("5a6470"))
-	w._box(Vector3(eave.size.x - 0.1, 0.16, 0.36), ridge + Vector3(0, 0.08, 0), dark)
-	w._box(Vector3(eave.size.x - 0.14, 0.04, 0.38), ridge + Vector3(0, 0.12, 0), light)
-	w._box(Vector3(eave.size.x - 0.1, 0.1, 0.22), ridge + Vector3(0, 0.21, 0), dark)
-	for end in [-1.0, 1.0]:
-		var at := ridge + Vector3(end * (eave.size.x / 2 - 0.08), 0, 0)
-		w._box(Vector3(0.14, 0.36, 0.42), at + Vector3(0, 0.18, 0), dark)
-		w._box(Vector3(0.16, 0.1, 0.3), at + Vector3(end * 0.03, 0.4, 0), dark, Vector3(0, 0, -0.35 * end))
+	Minka.ridge(w, eave.position.x + 0.05, eave.end.x - 0.05, crest - 0.04, mid_z)
 	# The hay-loft hatch high on the +x gable, a little door of planks.
 	w._box(Vector3(0.03, 0.4, 0.5), Vector3(r.end.x - 0.04, wall + 0.3, mid_z), FarmWorld.surface_material("build:planks_dark"))
 	# Two board door leaves over the door cell (one slid a little open), a dark gap, a step stone.

@@ -1,7 +1,7 @@
 extends SceneTree
 ## A farm building on its own: the farmhouse (FarmWorld._make_house: walls, engawa, the
-## thatched Minka roof), or with `--what=coop` / `--what=barn` the coop or the barn (their
-## Minka.gable roofs): pictures of it from round about, and a .glb of it to open in Blender. Run:
+## thatched Minka roof), or with `--what=coop` / `--what=barn` / `--what=village` the coop,
+## the barn or a village shop (their Minka.gable roofs): pictures of it from round about, and a .glb of it to open in Blender. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --path . --script res://tools/house_model.gd -- --shots=shots
 ## (writes shots/<what>_<view>.png; needs a window, so not --headless), or
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tools/house_model.gd -- --glb=models/farmhouse.glb
@@ -18,6 +18,7 @@ const CENTERS := {   # each building's middle, where the views look
 	"house": Vector3(4.5, 1.6, 2.3),
 	"coop": Vector3(15.5, 1.3, 2.5),
 	"barn": Vector3(21.5, 1.3, 2.5),
+	"village": Vector3(3.0, 1.2, 1.5),
 }
 
 var _house: Node3D   # a FarmWorld; loaded once the autoloads are in (it uses Game)
@@ -40,10 +41,12 @@ func _init() -> void:
 
 
 func _start() -> void:
-	_house = load("res://scripts/world3d/farm_world.gd").new()
+	var world := "map_world" if _what == "village" else "farm_world"
+	_house = load("res://scripts/world3d/%s.gd" % world).new()
 	match _what:   # loaded, not named: the class names need the autoloads in first
 		"coop": load("res://scripts/world3d/coop_props.gd").coop(_house)
 		"barn": load("res://scripts/world3d/barn_props.gd").barn(_house)
+		"village": _house._village_house(Rect2(0, 0, 6, 3), 2, true, 4)   # like Sayo's store
 		_: _house._make_house()
 	root.add_child(_house)
 	if _glb != "":

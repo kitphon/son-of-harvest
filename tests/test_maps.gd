@@ -436,6 +436,30 @@ func _minka() -> void:
 		check(low >= 1.45, "gable front eave above the farmer's head (%.2f)" % low)
 		check(_walls_facing_in(w, eave.get_center()) == 0, "gable eave bands and verges face outwards (rolls %.2f)" % rolls)
 		w.free()
+	# The tiled ridge: it rises at both ends (the curl) and stays level in the middle (the
+	# onigawara are BoxMeshes, not counted here).
+	w = load("res://scripts/world3d/farm_world.gd").new()
+	minka.ridge(w, 0.0, 5.0, 2.0, 1.5)
+	var tops := {}   # x rounded to a tenth: highest y of the ridge meshes there
+	faces = 0
+	wrong = 0
+	for n in w.get_children():
+		if n is MeshInstance3D and n.mesh is ArrayMesh and n.mesh.get_surface_count() > 0:
+			var arr: Array = n.mesh.surface_get_arrays(0)
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+			for i in range(0, v.size(), 3):
+				faces += 1
+				if (v[i + 1] - v[i]).cross(v[i + 2] - v[i]).dot(nm[i]) >= 0.0:
+					wrong += 1
+				for k in 3:
+					var key := snappedf(v[i + k].x, 0.1)
+					tops[key] = maxf(tops.get(key, -1.0), v[i + k].y)
+	check(faces > 0 and wrong == 0, "ridge faces turned outwards (%d of %d wrong)" % [wrong, faces])
+	var level: float = tops.get(0.8, 0.0)   # where the curl starts (sweep 0.8); one span between
+	check(is_equal_approx(level, tops.get(4.2, -1.0)) and tops.get(0.0, 0.0) > level + 0.1
+		and tops.get(5.0, 0.0) > level + 0.1, "the ridge curls up at both ends (%s)" % [tops])
+	w.free()
 
 
 ## Upright faces (eave bands, verges, roll ends) of the meshes in `w` whose normal points
