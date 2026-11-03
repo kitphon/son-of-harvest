@@ -23,6 +23,8 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
+"แก้ feedback"; item 1, Thai text, first).
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
 font are done. Charging tools are done, and tools level up with use (tool experience,

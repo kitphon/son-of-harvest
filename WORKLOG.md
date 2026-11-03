@@ -10,6 +10,16 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-03 — Playtest feedback kept in docs/FEEDBACK.md
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the 15–20 / 21–30 playtest feedback written down in `docs/FEEDBACK.md`: 8 open items
+  (Thai text, a week-one goal, where love leads, winter mine income, the grilled fish price,
+  night light, small art things, the unconfirmed "Saved food is broken"), the order to fix them,
+  what is already fixed (67cbaed, 7ca5b91) and what the players liked. Nothing in the game changed.
+- Checked: docs only; no tests needed. The mine numbers are quoted from the entry below.
+- Left / next: the user starts the fixes by saying "แก้ feedback"; item 1 (Thai text) first.
+  `data/mine.json` / `data/festivals.json` have another agent's uncommitted changes, left out.
+
 ## 2026-11-03 — Year bot rides the mine lift
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: `tools/play_year.gd` starts each mine trip at the deepest landing reached
