@@ -25,7 +25,8 @@
 					{"item": "seeds:rice"}],
 				"winter": [{"item": "food:amazake"}],
 				"any": [{"item": "food:onigiri"}, {"item": "food:green_tea"}, {"item": "food:dango"},
-					{"item": "food:milk", "price": 100}, {"item": "food:yomogi_tea"}]
+					{"item": "food:milk", "price": 100}, {"item": "food:yomogi_tea"},
+					{"item": "keep:mizuhiki", "price": 1500}]
 			},
 			"buys": {"crop": 80, "dish": 80, "gem": 120},
 			"kitchen_tools": {"needs": "kitchen", "items": ["knife", "pot", "teapot", "rice_pot", "steamer", "mallet"]},

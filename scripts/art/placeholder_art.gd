@@ -2489,7 +2489,8 @@ static func _portrait_mood(img: Image, mood: String, ey: int, my: int, brow: Col
 
 ## A keepsake: a glass wind chime (bell, clapper, paper strip), a round paper fan on a
 ## bamboo handle, a small clay rabbit, a round paper lantern with a moon on it, a red
-## daruma with gold trim and one painted eye, or a cloth charm bag on its cord.
+## daruma with gold trim and one painted eye, a cloth charm bag on its cord, or a red and
+## white mizuhiki knot (the proposal item, data/marriage.json).
 static func _keepsake_icon(look: Dictionary) -> Image:
 	var img := _blank(14, 14)
 	var c := Color(look.get("color", "a8d4ec"))
@@ -2542,6 +2543,15 @@ static func _keepsake_icon(look: Dictionary) -> Image:
 			_px(img, 4, 3, 6, 1, c.darkened(0.2))
 			_px(img, 5, 6, 4, 5, c.lightened(0.15))       # a brocade panel with a gold mark
 			_px(img, 6, 7, 2, 3, a)
+		"knot":   # a mizuhiki knot: red and white paper cords tied in three loops, two tails below
+			for p in [[4, 4], [10, 4], [7, 8]]:           # the loops: a red ring round a white one
+				_oval(img, p[0], p[1], 3.0, 2.6, c)
+				_oval(img, p[0], p[1], 1.6, 1.3, a)
+				_oval(img, p[0], p[1], 0.6, 0.6, Color(0, 0, 0, 0))
+			_px(img, 6, 5, 3, 2, c.darkened(0.2))         # where the cords cross
+			_line(img, Vector2i(6, 10), Vector2i(4, 13), c)   # the tails
+			_line(img, Vector2i(8, 10), Vector2i(10, 13), c)
+			_line(img, Vector2i(7, 10), Vector2i(7, 13), a)
 		_:
 			_oval(img, 7, 7, 5, 5, c)
 	return _outline(img)

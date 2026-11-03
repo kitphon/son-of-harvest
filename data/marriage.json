@@ -1,0 +1,16 @@
+{
+	"_about": "Where courting ends (Marriage, scripts/villagers/marriage.gd; README.md, Villagers → Marriage). item: the proposal item, a keepsake (data/keepsakes.json) the general store sells (data/shops.json). Held overhead and given to a candidate it is a proposal, not a gift: yes when their heart band is at least band and the event after (%s = their id: their band 6 scene) was seen, the house extension built is done (a second room for two), and the farmer is neither married nor promised to someone else; then the knot is taken, the engaged flags set and events.propose plays. Otherwise the candidate answers with the line <id>_<why> of dialogue (why: married, taken, waiting, band, room) and the knot stays in hand; anyone who is not a candidate leaves it in the farmer's hand with messages.not_candidate. The wedding is wedding_after_days later, moved past festival days; from that morning (messages.due, the HUD tag messages.tag) the village waits at the shrine (triggers_town.json plays events.wedding from 10:00, on the day or any later one). Ours: two candidates, Sayo of the store and Fumi of the teahouse (the young friends with a band 6 scene); 3 days to ready the shrine; the price of the knot is in the store's stock.",
+	"item": "keep:mizuhiki",
+	"candidates": ["sayo", "fumi"],
+	"band": 6,
+	"after": "heart_%s_6",
+	"built": "room",
+	"wedding_after_days": 3,
+	"dialogue": "marriage",
+	"events": {"propose": "propose_%s", "wedding": "wedding_%s"},
+	"messages": {
+		"not_candidate": "A mizuhiki knot is a promise. Keep it for the one you mean to marry.",
+		"due": "Today is the wedding. The village gathers at the shrine from 10:00.",
+		"tag": "Wedding day"
+	}
+}

@@ -1,5 +1,5 @@
 {
-	"_note": "Fumi keeps the Hanami teahouse in Sakurazaka (the village's east part) and lives at its back. She opens at 9:00 and pours tea behind her counter (the shop teahouse, data/shops.json) until noon, sweeps the gravel in front after lunch (13:00-14:00), takes a walk over the bridge and back, then the counter again until 17:30; asleep from 21:00. Wet days she stays at her counter all day. On her birthday (spring 26, the last of the cherries) she shuts the counter at 11:00 and stands under the cherry trees by the bridge until 16:00. Her heart events: data/events/heart_fumi.json (band 3), heart_fumi_5.json (band 5). Gifts: tea and sweets (dango, sakura mochi), flowers of the season; no fish. Format: README.md, Villagers.",
+	"_note": "Fumi keeps the Hanami teahouse in Sakurazaka (the village's east part) and lives at its back. She opens at 9:00 and pours tea behind her counter (the shop teahouse, data/shops.json) until noon, sweeps the gravel in front after lunch (13:00-14:00), takes a walk over the bridge and back, then the counter again until 17:30; asleep from 21:00. Wet days she stays at her counter all day. Married to the farmer (married_fumi, data/marriage.json) she lives at the farmhouse: by the kotatsu in the second room before 8:50 and from 18:00, the teahouse as before in between. On her birthday (spring 26, the last of the cherries) she shuts the counter at 11:00 and stands under the cherry trees by the bridge until 16:00. Her heart events: data/events/heart_fumi.json (band 3), heart_fumi_5.json (band 5), heart_fumi_6.json (band 6; after it she can be asked to marry, data/marriage.json). Gifts: tea and sweets (dango, sakura mochi), flowers of the season; no fish. Format: README.md, Villagers.",
 	"id": "fumi",
 	"name": "Fumi",
 	"birthday": {"season": "spring", "day": 26},
@@ -19,7 +19,7 @@
 		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
 		{"if": {"birthday": true}, "plan": "birthday"},
-		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
+		{"if": {"flags": ["married_fumi"], "weather": ["rain", "storm", "snow"]}, "plan": "married_wet"}, {"if": {"flags": ["married_fumi"]}, "plan": "married"}, {"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
 	],
 	"default": "usual",
 	"gifts": {
@@ -34,6 +34,23 @@
 		"hate": ["mine:stone"]
 	},
 	"plans": {
+		"married": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "08:50", "map": "teahouse", "from": [4, 1], "route": [{"face": "down"}]},
+			{"at": "12:00", "map": "teahouse", "from": [4, 1], "route": [{"to": [5, 1]}, {"to": [5, 5]}, {"to": [4, 5]}, {"face": "down"}]},
+			{"at": "13:00", "map": "sakurazaka", "from": [7, 8], "route": [{"to": [7, 9]}, {"to": [5, 9]}, {"face": "down"}], "loop": [{"wait": 10}, {"to": [9, 9]}, {"face": "down"}, {"wait": 10}, {"to": [5, 9]}, {"face": "down"}]},
+			{"at": "14:00", "map": "sakurazaka", "route": [{"to": [7, 9]}, {"to": [7, 10]}, {"to": [17, 10]}, {"face": "right"}, {"wait": 20}]},
+			{"at": "14:40", "map": "sakurazaka", "route": [{"to": [7, 10]}, {"to": [7, 8]}, {"face": "up"}]},
+			{"at": "15:00", "map": "teahouse", "from": [4, 1], "route": [{"face": "down"}]},
+			{"at": "18:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"married_wet": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "08:50", "map": "teahouse", "from": [4, 1], "route": [{"face": "down"}]},
+			{"at": "18:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "21:00", "map": "away"}
+		],
 		"festival_day": [
 			{"at": "06:00", "map": "teahouse", "from": [4, 1], "route": [{"face": "down"}]},
 			{"at": "09:40", "map": "sakurazaka", "from": [7, 8], "route": [{"to": [7, 10]}, {"to": [0, 10]}]},

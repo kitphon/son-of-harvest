@@ -1,7 +1,8 @@
 {
-	"_note": "Events inside the Hanami teahouse: Fumi's heart events (bands 3 and 5), if they come while she keeps the counter; they play instead of opening the shop. Format: README.md, Events.",
+	"_note": "Events inside the Hanami teahouse: Fumi's heart events (bands 3, 5 and 6), if they come while she keeps the counter; they play instead of opening the shop. Format: README.md, Events.",
 	"rows": [
 		{"event": "heart_fumi", "on": "talk", "who": "fumi", "hearts": {"fumi": [3, 6]}},
-		{"event": "heart_fumi_5", "on": "talk", "who": "fumi", "hearts": {"fumi": [5, 6]}, "seen": ["heart_fumi"]}
+		{"event": "heart_fumi_5", "on": "talk", "who": "fumi", "hearts": {"fumi": [5, 6]}, "seen": ["heart_fumi"]},
+		{"event": "heart_fumi_6", "on": "talk", "who": "fumi", "hearts": {"fumi": [6, 6]}, "seen": ["heart_fumi_5"]}
 	]
 }

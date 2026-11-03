@@ -10,6 +10,43 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-04 — Marriage: courting ends at the shrine (FEEDBACK item 3)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: data/marriage.json + `Marriage` (scripts/villagers/marriage.gd). Candidates: Sayo and
+  Fumi (the young friends; Tome, Kota, Hachiro and Ichiro are not). The proposal item is our
+  own **mizuhiki knot** (`keep:mizuhiki`, a new keepsake with its own red / white knot icon),
+  1500 G at the Yorozu Store all year. Held out to a candidate it is a proposal, not a gift
+  (`Game.propose`): yes at band 6 after their band 6 scene and with the second room built
+  (where would two live in one room); else they say why (`<id>_band`, `_room`, `_taken`,
+  `_waiting`, `_married`) and the knot stays in hand; anyone else leaves it in hand with a
+  message. Yes: the knot is taken, the flags `engaged`, `engaged_<id>`, `wedding_day` (3 days
+  on, moved past festival days) set, and `propose_<id>` plays. From that morning
+  `wedding_due` is set (morning message, HUD tag "Wedding day") until `wedding_<id>` has played
+  (triggers_town.json from 10:00): the farmer before the shrine beside the bride, Tome ties the
+  knot, Kota, Hachiro, Yae, Ichiro and the other candidate look on; it sets `spouse` and
+  `married_<id>`. Married, Sayo / Fumi live at the farmhouse (by the kotatsu in the second
+  room mornings and evenings, the store / teahouse by day; Sayo's Sunday tea at Tome's stays),
+  with engaged lines and married lines at home (morning, evening) and out. Fumi got her band 6
+  scene (heart_fumi_6: her mother's kettle, mended by Hachiro, pours its first cup for the
+  farmer; a line of its own with `fumi_honest`; band 6 `dear_` lines) in the three tables
+  she can be talked on. Tome mentions the knot on Fridays once a band 6 scene with a candidate
+  is seen, and greets the newlyweds. The heart track plays for the new scenes. All state is
+  story flags, so it saves with them. Numbers ours: 1500 G (a week of early shipping, small
+  next to the 18000 G room it needs), 3 days to the wedding.
+- Checked: test_relationships gets the marriage checks (the data, every answer in order,
+  the wedding day past Blossom Day, due mornings, the trigger rows, the married plans and
+  lines, Tome's hint, and in game: buying the knot, the answers with the knot kept, the
+  proposal, three mornings, the wedding run to the end with the cast at the shrine, the flags
+  after, a save and load); test_shops counts the knot in the store; test_villagers reads the
+  plans with the extensions built. All 25 test scripts `OK (0 failed)`; the four smoke runs
+  plus the wedding and a married farmhouse print no error or warning lines. Looked at the
+  wedding (`--demo --map=town@shrine --time=10:00 --event=wedding_sayo`, frame 109): Tome by
+  the shrine facing the couple, the guests at the sides, her first line in the box; and
+  married Sayo in the farmhouse's second room at 19:00.
+- Left / next: no word about the spouse in the village record yet, no spouse help on the farm
+  or child; Ichiro has no band 6 scene. The farmer's own gender is never named in the lines.
+  The see-through torii crosses Kota and Hachiro in the wedding frame (readable).
+
 ## 2026-11-03 — Coop and barn roofs as meshes (Minka.gable), the farmhouse eave band turned out
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: art direction roadmap 1, first item. `Minka.gable` builds a thick gable roof (ridge

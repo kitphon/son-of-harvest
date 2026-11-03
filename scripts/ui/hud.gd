@@ -211,6 +211,8 @@ func _refresh() -> void:
 	# The festival's name all day, in the seal red while it is on; else a villager's birthday.
 	var fest := Game.festival_today()
 	_fest.text = Festivals.name_of(fest) if fest != "" else HudLayout.day_tag(Game.birthdays_today())
+	if fest == "" and Marriage.day_tag(Game.flags) != "":   # the wedding day comes before a birthday
+		_fest.text = Marriage.day_tag(Game.flags)
 	_fest_box.visible = _fest.text != ""
 	_fest.add_theme_color_override("font_color", PlaceholderArt.UI_SEAL if Festivals.in_hours(fest, Game.hour * 60 + Game.minute) else INK)
 

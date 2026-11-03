@@ -1,0 +1,14 @@
+{
+	"_note": "Fumi's third heart event: the first talk once her heart band reaches 6, after heart_fumi_5, at the teahouse counter, in Sakurazaka or in the village (triggers_teahouse.json, triggers_sakurazaka.json, triggers_town.json); it plays instead of opening the shop. Her mother's cracked kettle, mended by Hachiro, pours its first cup for the farmer (a line of its own once fumi_honest is set). Sets heart_fumi_6 and fumi_kettle; after it she can be asked to marry (data/marriage.json). Fumi acts in it from where the talk found them (an actor step at plan; played where their plan has them elsewhere, they walk up to the farmer), faces the farmer through the lines and goes back to their day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "fumi", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "fumi"},
+		{"do": "sound", "key": "drink"},
+		{"do": "wait", "seconds": 0.3},
+		{"do": "say", "dialogue": "heart_events_6", "at": "fumi"},
+		{"do": "affection", "who": "fumi", "amount": 5},
+		{"do": "set", "flags": {"heart_fumi_6": true, "fumi_kettle": true}},
+		{"do": "actor", "who": "fumi", "to": "plan"},
+		{"do": "actor", "who": "fumi", "leave": true}
+	]
+}

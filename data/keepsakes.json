@@ -1,12 +1,13 @@
 {
-	"_about": "Things to keep (Keepsakes, scripts/items/keepsakes.gd; README.md, Festivals): they go into the rucksack, cannot be eaten, shipped or sold, and stay as long as the farmer keeps them; held overhead they are gifts like any item (data/villagers/*.json gifts; a ribbon is neutral to everyone). keepsakes: bought ones, item id keep:<id>, {name, look {shape (chime, fan, rabbit, lantern, daruma, charm), color, accent}}; their prices are in the stall that sells them (data/festivals.json). ribbons: what placing in a festival contest gives besides the prize, item id ribbon:<festival>:<place>; name is filled with the festival's name and the place's name, places by place from 1st on ({name, color}; no ribbon below the last). Every ribbon won is also noted on the board in the farmhouse (the ribbons flag; house map prop ribbon_board). Names, looks and colours are ours; the colours match the rosettes on the judges' table.",
+	"_about": "Things to keep (Keepsakes, scripts/items/keepsakes.gd; README.md, Festivals): they go into the rucksack, cannot be eaten, shipped or sold, and stay as long as the farmer keeps them; held overhead they are gifts like any item (data/villagers/*.json gifts; a ribbon is neutral to everyone). keepsakes: bought ones, item id keep:<id>, {name, look {shape (chime, fan, rabbit, lantern, daruma, charm), color, accent}}; their prices are in the stall that sells them (data/festivals.json); the mizuhiki knot, a red and white cord knot, is sold at the general store (data/shops.json) and is the proposal item (data/marriage.json): held out to someone who can marry it is a proposal, not a gift. ribbons: what placing in a festival contest gives besides the prize, item id ribbon:<festival>:<place>; name is filled with the festival's name and the place's name, places by place from 1st on ({name, color}; no ribbon below the last). Every ribbon won is also noted on the board in the farmhouse (the ribbons flag; house map prop ribbon_board). Names, looks and colours are ours; the colours match the rosettes on the judges' table.",
 	"keepsakes": {
 		"wind_chime": {"name": "Wind chime", "look": {"shape": "chime", "color": "a8d4ec", "accent": "c8442c"}},
 		"paper_fan": {"name": "Paper fan", "look": {"shape": "fan", "color": "f0e6c8", "accent": "2c4a8a"}},
 		"clay_rabbit": {"name": "Clay rabbit", "look": {"shape": "rabbit", "color": "f4f0e6", "accent": "c8442c"}},
 		"moon_lantern": {"name": "Moon lantern", "look": {"shape": "lantern", "color": "f0dc98", "accent": "2a3460"}},
 		"daruma": {"name": "Daruma", "look": {"shape": "daruma", "color": "c8282c", "accent": "e8c050"}},
-		"omamori": {"name": "Omamori charm", "look": {"shape": "charm", "color": "3a6a4a", "accent": "e8c050"}}
+		"omamori": {"name": "Omamori charm", "look": {"shape": "charm", "color": "3a6a4a", "accent": "e8c050"}},
+		"mizuhiki": {"name": "Mizuhiki knot", "look": {"shape": "knot", "color": "c8282c", "accent": "f4f0e6"}}
 	},
 	"ribbons": {
 		"name": "%s ribbon (%s)",

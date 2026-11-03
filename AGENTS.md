@@ -61,7 +61,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `res://tests/test_talk.gd` must print `test_talk: OK (0 failed)`.
   Relationships (hearts on the name tag, birthdays and x5 gifts, the nightly loss, heart
   events at bands 3, 5 and 6, birthday day plans, fair weather and the HUD tag, mine finds, dishes and
-  keepsakes as gifts): `res://tests/test_relationships.gd` must print `test_relationships: OK (0 failed)`.
+  keepsakes as gifts, marriage: the mizuhiki knot's rules and answers, the proposal, the wedding day
+  and its trigger, the spouse's day plan and lines, the save): `res://tests/test_relationships.gd` must print `test_relationships: OK (0 failed)`.
   Shops (data/shops.json, buying / selling, tool upgrades and their ores, mine finds sold, the smithy while Hachiro builds,
   shop maps and doors, the screen, Fumi's teahouse):
   `res://tests/test_shops.gd` must print `test_shops: OK (0 failed)`.
@@ -107,7 +108,10 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   once, a note puff over their head), `--shop=<id>` (general, smithy, clinic, teahouse; `general@build` opens a tab) to stand at that shop's
   counter with its screen open (hours ignored), `--talk=<villager>` (with `--map` / `--time`
   where they are, e.g. `--map=town --time=14:30 --talk=tome`) to stand below them and talk
-  (add `--hearts=N` to start every villager at heart band N, e.g. to see the heart colours),
+  (add `--hearts=N` to start every villager at heart band N, e.g. to see the heart colours;
+  the wedding: `--demo --map=town@shrine --time=10:00 --event=wedding_sayo` (or `wedding_fumi`),
+  the first line at about 110 frames; married at home: `--demo --map=house --built=room
+  --flags=married_sayo,spouse=sayo --time=19:00`),
   `--flags=a,b=c` to set story flags (`--flags=hachiro_bell` the bell by the farmhouse door,
   `--map=town@sayo --flags=sayo_sign=new` the store's new sign, `--map=house
   --flags=tome_grandma` Tome's plum jar; `--map=hill` the foot of the bamboo hill (its forage spots by `--season`), `hill@top` its

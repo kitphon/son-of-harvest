@@ -1,5 +1,5 @@
 {
-	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow). Our own scenes.",
+	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow; Fumi's looks back on fumi_honest from her band 3 scene). Our own scenes.",
 	"lines": [
 		{"id": "tome", "speaker": "tome", "mood": "neutral", "text": "My son wrote back. He wants me to come and live in the city with him. A flat with a lift, he says."},
 		{"speaker": "tome", "mood": "sad", "text": "He means well. He frets about the shrine stairs, and the winters, and me alone in that house."},
@@ -39,6 +39,16 @@
 		{"if": "hachiro_bell", "then": "hachiro_rings"},
 		{"speaker": "hachiro", "mood": "neutral", "text": "A blade remembers every hand on it. This one will remember yours.", "next": "hachiro_end"},
 		{"id": "hachiro_rings", "speaker": "hachiro", "mood": "neutral", "text": "That bell by your door still rings low in the mornings? Good. Your house is learning your hours."},
-		{"id": "hachiro_end", "speaker": "hachiro", "mood": "happy", "text": "Next year you strike twice. Don't make a fuss. Go on, the field won't hoe itself.", "next": "end"}
+		{"id": "hachiro_end", "speaker": "hachiro", "mood": "happy", "text": "Next year you strike twice. Don't make a fuss. Go on, the field won't hoe itself.", "next": "end"},
+
+		{"id": "fumi", "speaker": "fumi", "mood": "neutral", "text": "Pull the shutter behind you? I want to show you something before anyone else comes in."},
+		{"speaker": "fumi", "mood": "sad", "text": "My mother's kettle. It cracked the winter she died, and it has sat in a box ever since."},
+		{"if": "fumi_honest", "then": "fumi_true"},
+		{"speaker": "fumi", "mood": "neutral", "text": "Hachiro mended it last week. He wouldn't take a coin for it. He said it was owed to her.", "next": "fumi_pour"},
+		{"id": "fumi_true", "speaker": "fumi", "mood": "happy", "text": "You told me true about the bean paste, so here's mine: I had Hachiro mend it because of you."},
+		{"id": "fumi_pour", "speaker": "fumi", "mood": "neutral", "text": "The first cup from it should go to someone who matters. I've thought about it a long while.",
+			"choices": [{"text": "I'd be honoured.", "next": "fumi_honour"}, {"text": "Shouldn't Tome have it?", "next": "fumi_tome"}]},
+		{"id": "fumi_honour", "speaker": "fumi", "mood": "happy", "text": "Then hold the cup with both hands. ...There. Now it's a kettle again, not a keepsake.", "next": "end"},
+		{"id": "fumi_tome", "speaker": "fumi", "mood": "surprised", "text": "Tome gets the second. She'll grumble, but she'd agree with me. Now drink, before I go red.", "next": "end"}
 	]
 }

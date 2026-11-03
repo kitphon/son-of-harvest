@@ -7,6 +7,9 @@
 		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
 		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
 		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
+		{"if": {"weekday": ["fri"], "flags": ["spouse"]}, "at": ["newlyweds"]},
+		{"if": {"weekday": ["fri"], "flags": ["heart_sayo_6"], "not_flags": ["spouse", "engaged"]}, "at": ["knot_hint"]},
+		{"if": {"weekday": ["fri"], "flags": ["heart_fumi_6"], "not_flags": ["spouse", "engaged"]}, "at": ["knot_hint"]},
 		{"if": {"band": [6, 6], "flags": ["heart_tome_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"weekday": ["thu"], "band": [2, 5], "season": ["spring"]}, "at": ["forage_spring"]},
 		{"if": {"weekday": ["thu"], "band": [2, 5], "season": ["summer"]}, "at": ["forage_summer"]},
@@ -87,6 +90,9 @@
 		{"id": "festival_blossom_day", "speaker": "tome", "mood": "happy", "text": "Sit a while. At my age you count the springs, and this one is worth counting.", "next": "end"},
 		{"id": "festival_lantern_night", "speaker": "tome", "mood": "neutral", "text": "Lanterns for the ones who've gone ahead. I hung one for my husband by the road.", "next": "end"},
 		{"id": "festival_moon_night", "speaker": "tome", "mood": "neutral", "text": "Set a dumpling out for the moon and it watches over the harvest. So they always said.", "next": "end"},
-		{"id": "festival_years_turn", "speaker": "tome", "mood": "happy", "text": "Another year closes. You did well, child. The old farm knows it, too.", "next": "end"}
+		{"id": "festival_years_turn", "speaker": "tome", "mood": "happy", "text": "Another year closes. You did well, child. The old farm knows it, too.", "next": "end"},
+
+		{"id": "knot_hint", "speaker": "tome", "mood": "neutral", "text": "In my day you didn't say it out loud. You held out a mizuhiki knot, red and white. Sayo's store still sells them.", "next": "end"},
+		{"id": "newlyweds", "speaker": "tome", "mood": "happy", "text": "Two at the farm on the hill now. Good. A house with one person in it is only a roof.", "next": "end"}
 	]
 }
