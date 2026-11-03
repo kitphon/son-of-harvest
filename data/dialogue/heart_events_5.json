@@ -32,6 +32,23 @@
 		{"speaker": "hachiro", "mood": "happy", "text": "My teacher hung one on this smithy the day I opened it. Said a house with a bell is a house people come back to."},
 		{"speaker": "hachiro", "mood": "neutral", "text": "I've only made three. One for my teacher's grave, one for this door. And now that one."},
 		{"speaker": "farmer", "mood": "happy", "text": "I'll hang it where I hear it every morning.", "next": "hachiro_end"},
-		{"id": "hachiro_end", "speaker": "hachiro", "mood": "happy", "text": "Good. ...Don't make a fuss. Go on, the field won't hoe itself.", "next": "end"}
+		{"id": "hachiro_end", "speaker": "hachiro", "mood": "happy", "text": "Good. ...Don't make a fuss. Go on, the field won't hoe itself.", "next": "end"},
+
+		{"id": "fumi", "speaker": "fumi", "mood": "neutral", "text": "You came. Sit for one cup? There's something I want to ask somebody, and it can't be anybody."},
+		{"speaker": "fumi", "mood": "sad", "text": "A tea merchant from the city wants to buy the teahouse. A proper shop, he says, with a sign you could read from the mine."},
+		{"if": "fumi_honest", "then": "fumi_honest"},
+		{"speaker": "fumi", "mood": "neutral", "text": "Everyone in the village says 'whatever you think best, Fumi.' Which is no help at all. What do you think?", "next": "fumi_ask"},
+		{"id": "fumi_honest", "speaker": "fumi", "mood": "neutral", "text": "You told me the truth about the bean paste. It tastes like hers now, by the way. So tell me true again."},
+		{"id": "fumi_ask", "speaker": "farmer", "mood": "neutral", "text": "Keep it. The road wouldn't be the same without your kettle on.", "next": "fumi_end"},
+		{"id": "fumi_end", "speaker": "fumi", "mood": "happy", "text": "...I told him no before he'd finished his tea. I only wanted to hear someone say it out loud."},
+		{"speaker": "fumi", "mood": "happy", "text": "Now drink up, before it goes cold. I'm not pouring you a third. Well. Maybe a third.", "next": "end"},
+
+		{"id": "ichiro", "speaker": "ichiro", "mood": "neutral", "text": "The kiln's cracked. My father built it the year I was born. It's done."},
+		{"speaker": "ichiro", "mood": "neutral", "text": "I'll build a new one this winter. Creek clay, packed by hand, sealed while it's wet. Takes two days without stopping."},
+		{"speaker": "ichiro", "mood": "sad", "text": "...Takes two pairs of hands, really. I've never asked anybody for anything. So. I'm asking.",
+			"choices": [{"text": "I'll bring a shovel.", "next": "ichiro_yes", "set": {"ichiro_kiln": true}}, {"text": "I'd only get in the way.", "next": "ichiro_no"}]},
+		{"id": "ichiro_yes", "speaker": "ichiro", "mood": "happy", "text": "...Good. The old man would laugh. He always said I'd never ask.", "next": "ichiro_end"},
+		{"id": "ichiro_no", "speaker": "ichiro", "mood": "neutral", "text": "Hm. Honest. Then come and see the first smoke. That's the best part anyway.", "next": "ichiro_end"},
+		{"id": "ichiro_end", "speaker": "ichiro", "mood": "happy", "text": "Fumi says I don't talk enough. Tell her I talked to you. That'll keep her quiet a while.", "next": "end"}
 	]
 }

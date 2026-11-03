@@ -23,6 +23,7 @@ func _init() -> void:
 	_mine_gifts()
 	_dish_gifts()
 	_keepsake_gifts()
+	_sakurazaka_friends()
 
 
 func _process(_delta: float) -> bool:
@@ -164,12 +165,17 @@ func _neglect() -> void:
 
 
 ## Every villager has a heart event at band 3: a talk row in each map's table where they can
-## be talked to, played once; then one at band 5 and one at band 6, each after the last.
+## be talked to, played once; then one at band 5 and one at band 6, each after the last
+## (the first four have all three; Fumi and Ichiro have 3 and 5, the 5 / 6 checks run where
+## the event file is there).
 func _heart_event_rows() -> void:
 	var maps := {"tome": ["town", "tome_house"], "kota": ["town", "kota_house"],
-		"sayo": ["town", "store", "sayo_house"], "hachiro": ["town", "smithy"]}
+		"sayo": ["town", "store", "sayo_house"], "hachiro": ["town", "smithy"],
+		"fumi": ["town", "teahouse", "sakurazaka"], "ichiro": ["town", "sakurazaka", "ichiro_house"]}
+	for id in ["tome", "kota", "sayo", "hachiro"]:
+		check(_has_event("heart_%s_5" % id) and _has_event("heart_%s_6" % id), "%s has heart events at 5 and 6" % id)
 	for id in Villagers.friends():
-		check(maps.has(id), "%s has a heart event" % id)
+		check(maps.has(id) and _has_event("heart_" + id), "%s has a heart event" % id)
 		for m in maps.get(id, []):
 			var t := EventTriggers.open(m)
 			check(t.error == "", "triggers_%s: %s" % [m, t.error])
@@ -184,12 +190,16 @@ func _heart_event_rows() -> void:
 			# The second one at band 5, only after the first was seen.
 			var after := {"heart_" + id: true, "store_intro": true, "smithy_intro": true}
 			var five := "heart_%s_5" % id
+			if not _has_event(five):
+				continue
 			check(t.pick("talk", s.merged({"hearts": {id: 5}, "seen": after}, true)) == five, "on %s, band 5 plays %s" % [m, five])
 			check(t.pick("talk", s.merged({"hearts": {id: 6}, "seen": after}, true)) == five, "on %s, still at band 6 if missed" % m)
 			check(t.pick("talk", s.merged({"hearts": {id: 4}, "seen": after}, true)) != five, "on %s, not at band 4" % m)
 			check(t.pick("talk", s.merged({"hearts": {id: 5}}, true)) == "heart_" + id, "on %s, band 3's comes first" % m)
 			# The third one at band 6 only, only after the one at 5 was seen, and once.
 			var six := "heart_%s_6" % id
+			if not _has_event(six):
+				continue
 			var after5 := after.merged({five: true})
 			check(t.pick("talk", s.merged({"hearts": {id: 6}, "seen": after5}, true)) == six, "on %s, band 6 plays %s" % [m, six])
 			check(t.pick("talk", s.merged({"hearts": {id: 5}, "seen": after5}, true)) != six, "on %s, not at band 5" % m)
@@ -317,7 +327,8 @@ func _keepsake_gift_in_game() -> void:
 ## Each villager's loved keepsake has a place in their home: a keepsake prop gated by
 ## Keepsakes.given_flag, there only with that flag, drawn in both views from the item's icon.
 func _keepsake_homes() -> void:
-	var homes := {"tome": "tome_house", "kota": "kota_house", "sayo": "sayo_house", "hachiro": "smithy"}
+	var homes := {"tome": "tome_house", "kota": "kota_house", "sayo": "sayo_house", "hachiro": "smithy",
+		"fumi": "teahouse", "ichiro": "ichiro_house"}
 	for id in homes:
 		var loved: Array = Villagers.all()[id].gifts.love.filter(func(i): return i.begins_with("keep:"))
 		var flag := Keepsakes.given_flag(id, loved[0])
@@ -470,7 +481,7 @@ const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo"
 
 func _heart_events_play() -> void:
 	for id in Villagers.friends():
-		for band in [3, 5, 6]:
+		for band in [3, 5, 6].filter(func(b): return b == 3 or _has_event("heart_%s_%d" % [id, b])):
 			for promise in ([false, true] if (id == "kota" and band == 5) or band == 6 else [false]):
 				var ev: String = "heart_" + id + ({3: "", 5: "_5", 6: "_6"}[band])
 				var g := _game()
@@ -539,6 +550,8 @@ func _heart_events_play() -> void:
 ## Band 6's talk lines: after the band 6 scene, at band 6 only (the band 4 .. 6 lines before).
 func _band6_talk() -> void:
 	for id in Villagers.friends():
+		if not _has_event("heart_%s_6" % id):
+			continue
 		var st := {"year": 1, "season": "spring", "day": 3, "weekday": "wed", "time": 600, "weather": "sunny",
 			"flags": {"heart_%s_6" % id: true}, "festival": "", "band": 6, "again": false, "birthday": false, "day_number": 0}
 		var dear := ["dear_1", "dear_2", "dear_3"]
@@ -549,6 +562,58 @@ func _band6_talk() -> void:
 		for n in 3:
 			seen[Talk.pick(id, st.merged({"day_number": n}, true))] = true
 		check(seen.size() == 3, "%s's three band 6 lines take turns" % id)
+
+
+func _has_event(id: String) -> bool:
+	return FileAccess.file_exists(EventRunner.DIR + id + ".json")
+
+
+## Fumi and Ichiro of Sakurazaka are friends now: hearts, birthdays and their day plans, their
+## close lines, the band 5 scenes' branches, and a place at the end of the record.
+func _sakurazaka_friends() -> void:
+	var friends := Villagers.friends()
+	check(friends.has("fumi") and friends.has("ichiro") and friends.size() == 6, "six villagers with hearts (%s)" % [friends.keys()])
+	check(Villagers.all().fumi.birthday.season == "spring" and int(Villagers.all().fumi.birthday.day) == 26 and Villagers.all().ichiro.birthday.season == "fall" and int(Villagers.all().ichiro.birthday.day) == 9,
+		"Fumi's birthday spring 26, Ichiro's fall 9")
+	var spring := {"year": 1, "season": "spring", "day": 26, "weekday": "fri", "weather": "sunny", "flags": {}, "festival": ""}
+	Villagers.reset_day()
+	check(Villagers.is_on("fumi", "teahouse", 10 * 60, spring) and Villagers.where("fumi", 13 * 60, spring).map == "sakurazaka"
+		and Villagers.is_on("fumi", "teahouse", 17 * 60, spring), "on her birthday Fumi pours in the morning, stands under the cherries after, back by evening")
+	var before := spring.merged({"day": 25}, true)
+	Villagers.reset_day()
+	check(Villagers.is_on("fumi", "teahouse", 11 * 60 + 30, before), "the day before she pours until noon")
+	var fall := spring.merged({"season": "fall", "day": 9}, true)
+	Villagers.reset_day()
+	var w := Villagers.where("ichiro", 12 * 60 + 50, fall)
+	check(w.get("map", "") == "sakurazaka" and Vector2i(w.get("pos", Vector2.ZERO).floor()) == Vector2i(9, 9), "on his birthday Ichiro sits on the teahouse gravel past lunch (%s)" % [w])
+	check(Villagers.is_on("ichiro", "ichiro_house", 15 * 60, fall), "and is home by mid-afternoon")
+	Villagers.reset_day()
+	# Their talk: close lines from band 4, their own lines after the band 5 scene.
+	var st := {"year": 1, "season": "summer", "day": 3, "weekday": "wed", "time": 15 * 60 + 30, "weather": "sunny",
+		"flags": {}, "festival": "", "band": 4, "again": false, "birthday": false, "day_number": 0}
+	for id in ["fumi", "ichiro"]:
+		var after: String = {"fumi": "after_tea", "ichiro": "kiln"}[id]
+		check(Talk.pick(id, st) in ["close_1", "close_2"], "%s at band 4: %s" % [id, Talk.pick(id, st)])
+		check(not Talk.pick(id, st.merged({"band": 3}, true)) in ["close_1", "close_2"], "%s at band 3 keeps the plain lines" % id)
+		check(Talk.pick(id, st.merged({"band": 5, "flags": {"heart_%s_5" % id: true}}, true)).begins_with(after), "%s after the band 5 scene" % id)
+		check(Talk.pick(id, st.merged({"birthday": true}, true)) == "birthday", "%s on the birthday" % id)
+	# Band 5 looks back on band 3: Fumi remembers being told the truth.
+	var d := DialogueRunner.open("heart_events_5", {"fumi_honest": true}, "fumi")
+	_next_line(d)
+	_next_line(d)
+	check("bean paste" in d.text(), "told the truth, Fumi asks again: %s" % d.text())
+	d = DialogueRunner.open("heart_events_5", {}, "fumi")
+	_next_line(d)
+	_next_line(d)
+	check("think best" in d.text(), "else the village's polite answer: %s" % d.text())
+	# The ending's closing word: whoever is liked most, Fumi or Ichiro too.
+	var bands: Array = Affection.rules().bands
+	check(Ending.friend({"fumi": int(bands[4]), "tome": int(bands[3])}) == "fumi" and Ending.friend({"ichiro": int(bands[5]), "kota": int(bands[4])}) == "ichiro",
+		"Fumi or Ichiro can close the record")
+	var ending := FileAccess.get_file_as_string(EventRunner.DIR + "ending.json")
+	for id in friends:
+		check(id == "tome" or ("ending_friend_" + id) in ending, "the ending has a part for %s" % id)
+		check(id == "tome" or DialogueRunner.open("ending", {}, id).error == "", "and lines for %s" % id)
 
 
 func _next_line(d: DialogueRunner) -> void:

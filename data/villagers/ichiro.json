@@ -1,8 +1,8 @@
 {
-	"_note": "Ichiro burns charcoal in Sakurazaka (the village's east part): a big quiet man who smells of smoke. Out early (6:30) to the bamboo grove and the woods north-east of the creek, where he cuts and hauls wood till noon; lunch at the Hanami teahouse (on its gravel, 12:00-12:45); stacking firewood by his house in the afternoon; home at 17:00, asleep from 20:00. Wet days he works in his earth-floored entry. A villager without hearts (hearts false). Gifts: hearty food, sweet potatoes, chestnuts; ores; he dislikes sweets and milk. Format: README.md, Villagers.",
+	"_note": "Ichiro burns charcoal in Sakurazaka (the village's east part): a big quiet man who smells of smoke. Out early (6:30) to the bamboo grove and the woods north-east of the creek, where he cuts and hauls wood till noon; lunch at the Hanami teahouse (on its gravel, 12:00-12:45); stacking firewood by his house in the afternoon; home at 17:00, asleep from 20:00. Wet days he works in his earth-floored entry. On his birthday (fall 9, when the burning season starts) the axe rests: home in the morning, then a long sit on the teahouse gravel 10:00-14:00, home again after. His heart events: data/events/heart_ichiro.json (band 3), heart_ichiro_5.json (band 5). Gifts: hearty food, sweet potatoes, chestnuts; ores; he dislikes sweets and milk. Format: README.md, Villagers.",
 	"id": "ichiro",
 	"name": "Ichiro",
-	"hearts": false,
+	"birthday": {"season": "fall", "day": 9},
 	"speed": 1.5,
 	"look": {
 		"outfit": "happi",
@@ -19,6 +19,7 @@
 		{"if": {"festival": ["blossom_day"]}, "plan": "festival_day"},
 		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
+		{"if": {"birthday": true}, "plan": "birthday"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
 	],
 	"default": "usual",
@@ -67,6 +68,13 @@
 			{"at": "12:45", "map": "sakurazaka", "route": [{"to": [9, 10]}, {"to": [19, 10]}, {"to": [19, 16]}, {"to": [25, 16]}, {"face": "right"}], "loop": [{"work": 15}, {"to": [25, 15]}, {"face": "right"}, {"work": 15}, {"to": [25, 16]}, {"face": "right"}]},
 			{"at": "16:45", "map": "sakurazaka", "route": [{"to": [22, 16]}, {"face": "up"}]},
 			{"at": "17:00", "map": "ichiro_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "20:00", "map": "away"}
+		],
+		"birthday": [
+			{"at": "06:00", "map": "ichiro_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "10:00", "map": "sakurazaka", "from": [22, 16], "route": [{"to": [19, 16]}, {"to": [19, 10]}, {"to": [9, 10]}, {"to": [9, 9]}, {"face": "up"}], "loop": [{"wait": 20}, {"face": "right"}, {"wait": 10}, {"face": "up"}]},
+			{"at": "14:00", "map": "sakurazaka", "route": [{"to": [9, 10]}, {"to": [19, 10]}, {"to": [19, 16]}, {"to": [22, 16]}, {"face": "up"}]},
+			{"at": "14:20", "map": "ichiro_house", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "20:00", "map": "away"}
 		],
 		"wet": [

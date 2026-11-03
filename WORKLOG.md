@@ -10,6 +10,43 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-03 — Hearts for Fumi and Ichiro
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: Fumi (the Hanami teahouse) and Ichiro (the charcoal burner) of Sakurazaka are villagers
+  with hearts: `"hearts": false` gone from their files, so `Villagers.friends()` (the name tag's
+  heart, the nightly loss, birthdays, the record's Friendships row, the ending's closing word)
+  takes them in with no code change. Birthdays: Fumi spring 26 (the last cherries; she shuts the
+  counter 11:00-16:00 and stands under the trees by the bridge), Ichiro fall 9 (the burning
+  season; no axe, a long sit on the teahouse gravel 10:00-14:00); both on the farmhouse calendar,
+  birthday and gift_birthday lines. Talk: close lines from band 4, their own lines after the band
+  5 scene (Fumi's letter in the stove, Ichiro's kiln). Their gift lists (a loved dish and a loved
+  keepsake each, kept at home) were already there. Heart events, our own scenes: band 3 Fumi asks
+  the farmer to taste her mother's bean paste and tell her true (`fumi_honest`), Ichiro knocks
+  charcoal to hear it ring; band 5 a city tea merchant wants Fumi's teahouse (her line looks back
+  on `fumi_honest`), Ichiro's father's kiln cracks and he asks for help (`ichiro_kiln`). New
+  trigger tables `triggers_teahouse.json`, `triggers_sakurazaka.json`, `triggers_ichiro_house.json`
+  and rows in `triggers_town.json` (festival days); heart music for them (data/music.json); an
+  ending part each. No band 6 scenes for them yet.
+- Balance: data/ending.json Friendships steps 4 / 8 / 14 / 20 (of 24, four villagers) →
+  5 / 11 / 19 / 28 (of 36, six): about the same share. Neighbours 2 / 4 / 6 / 8 (of 8) → 2 / 3 / 5 / 6
+  (of 6). tools/play_year.gd not run (another agent works on it), so the bot's star count with
+  the new steps is not measured.
+- Tests: test_relationships loops over the friends as before; the band 5 / 6 checks run where
+  the event file is there (the first four must have both), keepsake homes for the two, and a new
+  `_sakurazaka_friends` (birthday plans, close / after-scene lines, Fumi's band 5 branch, the
+  ending part). test_ending: Shige is the neighbour not quite known, Fumi counts as a friend, the
+  ending event plays for every friend.
+- Checked: `test_relationships: OK (0 failed)`, `test_talk: OK (0 failed)`, `test_villagers: OK (0 failed)`,
+  `test_events: OK (0 failed)`, `test_ending: OK (0 failed)`, `test_festivals: OK (0 failed)`,
+  `test_save: OK (0 failed)`, `test_audio: OK (0 failed)` and every other test script OK.
+  test_villagers failed once (`FAIL: the lumber blocks the farmer (both views' Player asks
+  Game.maps), the cell he fetches from stays open`) and passed on the next two runs; that check is
+  about Hachiro's building job, not these files. Smoke runs (title, `--demo`, `--map=town`,
+  `--mine=3`, Sakurazaka at 13:20, Fumi's birthday, `--event=heart_fumi`, `--event=heart_ichiro_5`)
+  printed no errors. Screenshot `--demo --map=sakurazaka --time=13:20 --talk=fumi --hearts=3`:
+  Fumi on the gravel, her name tag with the heart, her spring line.
+- Left / next: band 6 scenes for Fumi and Ichiro; the other outer villagers stay without hearts.
+
 ## 2026-11-03 — Year bot: river fishing, food for the mine, forage, the new areas; rod and hammer
 Agent: Claude Code (claude-opus-5-5) · Commit: 688bc4c (merged in d0581e3)
 - Done: `tools/play_year.gd` on the new main. It walks the new areas instead of jumping: the

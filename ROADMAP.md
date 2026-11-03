@@ -196,11 +196,13 @@ Done: Kaminoda, the hamlet up the village's north lane (paddies, drying racks, a
 Genzo and Haru and their houses) with the bamboo hill above it, and countryside props. Sakurazaka
 on the way to the mine (cherry road, creek, teahouse; Fumi and Ichiro). Minamino on the
 way to the river (gardens, persimmon orchard, a water shrine; Shige, Nana and Kiku). Seven new
-villagers in all, without hearts; they come to all four festivals too (a spot each, a line each). The Hanami teahouse is a shop (Fumi's: tea, whipped matcha
+villagers in all, without hearts at first; Fumi and Ichiro have hearts now (birthdays spring 26 /
+fall 9, close lines, heart events at bands 3 and 5, a word at the ending); they come to all four festivals too (a spot each, a line each). The Hanami teahouse is a shop (Fumi's: tea, whipped matcha
 and a sweet of the season sold nowhere else, while she is behind her counter). Forage is in
 (data/forage.json: fifteen spots on the bamboo hill, what grows changes by the season, a picked
 spot grows back overnight; README → Forage). The village record has a Neighbours
-row (the villagers without hearts known to band 1). Shige, Genzo, Haru, Ichiro and Nana are
+row (the villagers without hearts known to band 1; six of them since Fumi and Ichiro got hearts).
+Later for hearts: band 6 scenes for Fumi and Ichiro; hearts for Genzo, Haru, Shige, Nana or Kiku the same way (README → Villagers says what a friend needs). Shige, Genzo, Haru, Ichiro and Nana are
 contest rivals (one in every contest and game). Forage spots are in the three outer parts too
 (their own wild things: water dropwort, sansho, mulberries, ginkgo nuts and more). Wild things
 cook: six recipes of wild greens, mushrooms, bamboo shoots, chestnuts and matsutake (Haru, Genzo
@@ -308,6 +310,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Heart flags in the world: the door bell (hachiro_bell), the store's sign (sayo_sign old / new), Tome's plum jar (tome_grandma), as flag-gated map props in both views
    - [x] Gift lines of their own: villagers answer keepsakes and dishes in their own words (`gift_items` in the talk files, fallback to gift_<reaction>); a loved keepsake, once given, stands in their home (kept_<villager>_<keepsake>, both views)
    - [x] Band 6 heart scenes: Tome stays in the village, Kota's carp streamer (a farm prop), Sayo's new ledger, Hachiro's sickle; band 6 talk lines
+   - [x] Hearts for Fumi and Ichiro (Sakurazaka): birthdays with day plans, close lines, heart events at bands 3 and 5, a part in the ending; the record's Friendships / Neighbours steps rescaled
    - [x] Actors in the heart scenes: the villager stands facing the farmer through their lines in both views, then goes back to their day plan
    - [x] Ending: the village record on the first morning of year 3 (data/ending.json: ten categories graded in stars, five ranks), Tome's verdict, the closest villager's word; the game goes on
    - [x] Ending steps re-set for 11 crops / 13 recipes; balance re-run with smithy ores, contest prizes, cooking, daikon and rice

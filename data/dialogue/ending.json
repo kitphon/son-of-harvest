@@ -24,6 +24,10 @@
 		{"speaker": "sayo", "face": "smile", "text": "I only wanted to say the shelves have never been as busy as since you came. Thank you, really.", "next": "end"},
 		{"id": "hachiro", "speaker": "hachiro", "face": "calm", "text": "Hm. Came to see your face when you read it. That's all."},
 		{"speaker": "hachiro", "face": "smile", "text": "Good work, farmer. Bring me that hoe when it's dull. I'll make it sing.", "next": "end"},
+		{"id": "fumi", "speaker": "fumi", "face": "smile", "text": "I walked all the way down from Sakurazaka with a flask of tea. It's still warm, I wrapped it twice."},
+		{"speaker": "fumi", "face": "calm", "text": "Two years of you on my road. The cherries wouldn't know what to do without you now. Neither would I.", "next": "end"},
+		{"id": "ichiro", "speaker": "ichiro", "face": "calm", "text": "...Fumi said I should come. Said I should say something."},
+		{"speaker": "ichiro", "face": "smile", "text": "So. Good work. Your stove's charcoal is on me, as long as I'm burning.", "next": "end"},
 
 		{"id": "close", "speaker": "tome", "face": "smile", "text": "Well! The record is written, but the seasons don't stop for it. Spring is waiting for you out there.", "next": "end"}
 	]
