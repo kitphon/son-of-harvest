@@ -20,11 +20,6 @@ the kitchen's "Pantry rice round a quick pickle", or "no tool" without saying wh
 missing. Needs a Thai text set (and a language setting), plus plainer English where it's vague.
 The key hints added in 7ca5b91 are English too.
 
-### 2. A slow start, no small goal in week one (15–20)
-The farm starts with 500 G, a chicken costs 1,400 G and a cow 6,000 G, so the first days are
-only "water and wait". Wants a small goal that can be reached by day 2–3 (and a few more
-through week one).
-
 ### 3. Love has no end point (15–20)
 No marriage in data/ or ROADMAP.md; heart events stop at band 6. Players this age want to
 know what courting leads to.
@@ -56,11 +51,15 @@ reproduce; if it is real, fix it, else make the load safe against a half-written
 
 ## Order to fix
 1. Item 1 (Thai text): keeps the 15–20 players.
-2. Items 2 and 3 (week-one goal, where love leads).
+2. Item 3 (where love leads).
 3. Items 4 and 5 (mine winter income, grilled fish price).
 4. Item 6 (night), then 7 and 8.
 
 ## Fixed
+- A slow start, no small goal in week one: Tome's first-week list (data/goals.json): plant 9
+  plots, say hello to 3 people, pick 4 wild plants, catch a fish (all day 1–3), ship 5 crops
+  and earn 1000 G (week one), each with a reward (money, rice balls, seed bags, a chick) and a
+  villager's thank-you note; the HUD shows the goal now under the clock. This commit.
 - Roofs in front of the farmer hid the screen (village, festival square, snow): buildings,
   trees and the torii turn see-through when they stand between the camera and the farmer.
   Commit 67cbaed.

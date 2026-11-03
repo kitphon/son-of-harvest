@@ -3,7 +3,8 @@ extends CanvasLayer
 ## Paper-and-wood HUD in our pixel font: date, clock and the weather for today and tomorrow
 ## (top right) with today's festival (or a villager's birthday) under it, the tool bar (the rucksack's tool slots) with the tool in hand and its level
 ## pips and, when there is one, the item held in the other hand (bottom left), money, shipping bin and a
-## stamina bar (bottom right), and a message line (top left). Reads Game and redraws on its
+## stamina bar (bottom right), and a message line (top left). Under the clock (or under the
+## festival tag) the first-week list's goal now and how far it is (Goals), until the list is done. Reads Game and redraws on its
 ## signals; hidden while the "Show HUD" setting is off, its corners grown by the "UI size"
 ## setting (HudLayout.scaled_box). Over the tool bar, while the "Key hints" setting is on, a line
 ## says what the interact and tool buttons would do at the spot in front (ActionHints), with
@@ -20,6 +21,9 @@ var _today: TextureRect
 var _tomorrow: TextureRect
 var _fest_box: NinePatchRect
 var _fest: Label
+var _goal_box: NinePatchRect   # inside the "goal" holder, right-aligned, moved up when there is no festival tag
+var _goal_tag: Label
+var _goal: Label
 var _slots: Array[TextureRect] = []
 var _slot_icons: Array[TextureRect] = []
 var _item_name: Label
@@ -43,6 +47,7 @@ func _ready() -> void:
 	_build_clock(HudLayout.BOXES.clock)
 	_fest_box = _box(HudLayout.BOXES.festival, "paper", "festival")
 	_fest = _label(_fest_box, Vector2i(6, 5))
+	_build_goal(HudLayout.BOXES.goal)
 	_build_tools(HudLayout.BOXES.tools, HudLayout.BOXES.item)
 	_build_status(HudLayout.BOXES.status)
 	_msg_box = _box(HudLayout.BOXES.message, "paper", "message")
@@ -105,6 +110,23 @@ func _build_status(r: Rect2i) -> void:
 	_stamina_fill.position = Vector2(1, 1)
 	_stamina_fill.size = Vector2(back.size.x - 2, 3)
 	back.add_child(_stamina_fill)
+
+
+## The goal tag: a holder Control at the layout's box (placed and grown like every box) with the
+## paper box inside it, so the box can hug the right edge and take the festival tag's place.
+func _build_goal(r: Rect2i) -> void:
+	var holder := Control.new()
+	holder.position = r.position
+	holder.size = r.size
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(holder)
+	_placed["goal"] = holder
+	_goal_box = _box(Rect2i(Vector2i.ZERO, r.size), "paper", "goal_box")
+	_placed.erase("goal_box")
+	remove_child(_goal_box)
+	holder.add_child(_goal_box)
+	_goal_tag = _label(_goal_box, Vector2i(6, 5), PlaceholderArt.UI_SEAL)
+	_goal = _label(_goal_box, Vector2i(6, 5))
 
 
 func _box(r: Rect2i, kind: String, key: String) -> NinePatchRect:
@@ -214,6 +236,8 @@ func _refresh() -> void:
 	_fest_box.visible = _fest.text != ""
 	_fest.add_theme_color_override("font_color", PlaceholderArt.UI_SEAL if Festivals.in_hours(fest, Game.hour * 60 + Game.minute) else INK)
 
+	_refresh_goal()
+
 	var tool := Game.current_tool()
 	for i in _slots.size():
 		_slots[i].texture = PlaceholderArt.tex("ui:slot:" + ("on" if i == Game.tool_index else "off"))
@@ -238,6 +262,21 @@ func _refresh() -> void:
 	var f := clampf(float(Game.stamina) / maxf(Game.max_stamina, 1), 0.0, 1.0)
 	_stamina_fill.size.x = roundi((HudLayout.BOXES.status.size.x - 26) * f)
 	_stamina_fill.color = Color("6aa84f") if f > 0.5 else (Color("e0a838") if f > 0.25 else PlaceholderArt.UI_SEAL)
+
+
+## The goal now: "Goal  Plant 9 plots 4/9", right-aligned under the clock (or under the festival
+## tag on a festival day or a birthday); hidden once the list is done or while it is off.
+func _refresh_goal() -> void:
+	var g := Game.goals.current() if Game.goals_on else {}
+	_goal_box.visible = not g.is_empty()
+	if g.is_empty():
+		return
+	_goal_tag.text = Goals.message("hud_tag")
+	_goal.text = Goals.hud_text(g, Game.goal_stats())
+	_goal.position.x = 6 + PixelFont.width(_goal_tag.text) + 5
+	var w := HudLayout.goal_width(_goal_tag.text, _goal.text)
+	_goal_box.size.x = w
+	_goal_box.position = Vector2(HudLayout.BOXES.goal.size.x - w, 0 if _fest_box.visible else HudLayout.BOXES.festival.position.y - HudLayout.BOXES.goal.position.y)
 
 
 ## [name, count] for the item box.

@@ -130,6 +130,9 @@ var animals := Animals.new()       # the coop, the barn and the dog (data/animal
 var animal_news: Array[String] = []   # what happened to the animals overnight, told in the coop
 var build_news := ""                  # the builder stays away today (a storm), told outside
 var affection := Affection.new()   # how much each villager likes the farmer (saved)
+var goals := Goals.new()           # Tome's first-week list: which goals are done (data/goals.json, saved)
+var goals_on := true               # the list is checked and shown (off for plain --demo runs; `--goals` turns it on)
+var _goal_wait := 1.0              # seconds to the next look at the list
 var _accum := 0.0
 var _shown_state := "fine"      # the tired state last told to the player
 
@@ -206,6 +209,9 @@ func new_game() -> void:
 	fish_caught = {}
 	forage_picked = {}
 	affection = Affection.new()
+	goals = Goals.new()
+	goals_on = not "--demo" in OS.get_cmdline_user_args()
+	_goal_wait = 1.0   # the first look a second in, once the views are up
 	Villagers.reset_day()
 	Whistles.reset()
 	mine_deepest = 0
@@ -291,6 +297,13 @@ func new_game() -> void:
 			maps.place(m.id, m.spawns.kitchen[0], m.spawns.kitchen[1])
 			if "--demo" in OS.get_cmdline_user_args():
 				_demo_kitchen()
+		elif arg.begins_with("--goals"):   # `-- --demo --goals` (or --goals=plant,hello: those done already): the list on
+			goals_on = true
+			for id in arg.trim_prefix("--goals").trim_prefix("=").split(",", false):
+				if Goals.goal(id).is_empty():
+					push_warning("No goal " + id)
+				elif not goals.is_done(id):
+					goals.done.append(id)
 		elif arg == "--hens-out":   # e.g. `-- --demo --map=farm@coop --hens-out`: the hens in the yard
 			animals.outside = true
 		elif arg == "--barn-out":   # e.g. `-- --demo --map=farm@barn --barn-out`: cows and sheep grazing
@@ -409,6 +422,12 @@ func _process(delta: float) -> void:
 		var ev := fishing.step(delta, chance, rng)
 		if ev != "":
 			fishing_event.emit(ev)
+	# The list is looked at only while a view listens (the HUD), so a goal is never told to nobody.
+	if goals_on and clock_running and not paused() and not message.get_connections().is_empty():
+		_goal_wait -= delta
+		if _goal_wait <= 0.0:
+			_goal_wait = 0.25
+			check_goals()
 	if not ticking():
 		return
 	Villagers.bump(maps.id, day_minutes(), delta / SECONDS_PER_MINUTE, maps.pos / 16.0, trigger_state(Vector2i.ZERO))
@@ -834,6 +853,7 @@ func pay_bin() -> void:
 		message.emit("No shipping pickup on %s. Paid tomorrow." % Festivals.name_of(festival_today()))
 		return
 	money += bin_total
+	goals.add("earned", bin_total)
 	message.emit("Shipping paid %d G" % bin_total)
 	bin_total = 0
 	changed.emit()
@@ -1253,6 +1273,7 @@ func forage_pick(c: Vector2i) -> Dictionary:
 		if not forage_picked.has(maps.id):
 			forage_picked[maps.id] = {}
 		forage_picked[maps.id][c] = true
+		goals.add("forage")
 		forage_changed.emit()
 		changed.emit()
 	return {"id": id, "to": to}
@@ -1768,6 +1789,72 @@ func talk_to(id: String, face: Vector2i) -> String:
 	if at != "":
 		talk(file, at)
 	return "talk"
+
+
+# --- Tome's first-week list (data/goals.json, Goals) -----------------------
+
+## What the goals count, by stat (data/goals.json "stat").
+func goal_stats() -> Dictionary:
+	var planted := 0
+	for d in (farm.cells if farm != null else []):   # a Game made without new_game has no farm yet
+		if d.crop != "":
+			planted += 1
+	var fish := 0
+	for f in fish_caught:
+		fish += int(fish_caught[f])
+	var crops_shipped := 0
+	for id in shipped:
+		if crops.has(id):
+			crops_shipped += int(shipped[id])
+	var out := {"planted": planted, "talked": affection.talked.size(), "fish": fish, "crops_shipped": crops_shipped}
+	for k in goals.counts:
+		out[k] = goals.counts[k]
+	return out
+
+
+## Pays every goal that has just been reached (in list order) and tells it on the message
+## line; their villager lines wait in goals.waiting and the first one opens in a text box as
+## soon as nothing holds the screen (no menu, text box or event). Returns the goal ids done
+## now. Game._process calls it a few times a second while the list is on.
+func check_goals() -> Array[String]:
+	var now := goals.reached(goal_stats())
+	for id in now:
+		var g := Goals.goal(id)
+		goals.done.append(id)
+		var given := _give_goal_reward(g.get("reward", {}))
+		message.emit(Goals.done_text(g, given))
+		if g.has("say"):
+			goals.waiting.append(id)
+	if not now.is_empty():
+		changed.emit()
+	if not goals.waiting.is_empty() and not paused():
+		var say: Dictionary = Goals.goal(goals.waiting.pop_front()).get("say", {})
+		if say.has("dialogue"):
+			talk(String(say.dialogue), String(say.get("at", "")))
+	return now
+
+
+## Gives goal reward `r` (data/goals.json "reward"); returns short texts of what it gave
+## ("+150 G", "+3 Rice ball", "A chick for the coop").
+func _give_goal_reward(r: Dictionary) -> Array[String]:
+	var given: Array[String] = []
+	var cash := int(r.get("money", 0))
+	if r.has("animal"):
+		if add_animal(String(r.animal), bool(r.get("young", false))):
+			given.append(Goals.message("animal") % String(r.get("animal_name", r.animal)))
+		else:
+			cash += int(r.get("animal_money", 0))   # the home is full: its worth in money
+	for id in r.get("items", {}):
+		var n := int(r.items[id])
+		var left := inventory.add(id, n)
+		if left > 0:
+			inventory.add(id, left, ["chest"])   # no room in the rucksack: into the storage chest
+		given.append(Goals.message("item") % [n, item_name(id)])
+	if cash > 0:
+		add_money(cash)
+		given.push_front(Goals.message("money") % cash)
+	changed.emit()
+	return given
 
 
 ## The heart band (0 .. 6) the text box shows for `speaker`, or -1 when the speaker isn't a
@@ -2286,6 +2373,7 @@ func to_dict() -> Dictionary:
 	if race != null:
 		d.fishing.race = race.to_dict()
 	d.affection = affection.to_dict()
+	d.goals = goals.to_dict()
 	d.mine = {"deepest": mine_deepest, "landings": mine_landings.duplicate()}
 	var picked := {}
 	for m in forage_picked:
@@ -2515,6 +2603,11 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 			return parsed_friends[0]
 		friends = parsed_friends[1]
 	n.affection = friends
+	# Saves from before the first-week list: all of it done (Goals.all_done).
+	var g_parsed := Goals.parse(data.goals) if data.has("goals") else ["", Goals.all_done()]
+	if g_parsed[0] != "":
+		return g_parsed[0]
+	n.goals = g_parsed[1]
 	# Saves from before the mine: no floor reached yet.
 	var saved_mine = data.get("mine", {"deepest": 0, "landings": []})
 	n.mine_deepest = SaveGame.whole(saved_mine.get("deepest") if saved_mine is Dictionary else null, 0, 9999)

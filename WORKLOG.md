@@ -10,6 +10,45 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-03 — Week-one goals: Tome's first-week list (feedback item 2)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: docs/FEEDBACK.md item 2 ("a slow start, no small goal in week one"). New
+  `data/goals.json` (six goals, texts and HUD / message templates), `Goals`
+  (`scripts/items/goals.gd`: done list, counted stats, the goal now, parse / save) and
+  `data/dialogue/goals.json` (a thank-you note per goal from Tome, Sayo, Kota or Tsuru). The
+  goals: plant 9 plots (+150 G), say hello to 3 people (3 rice balls), pick 4 wild plants (a
+  bag of cucumber seeds), catch a fish (+120 G), ship 5 crops (2 bags of seed potatoes), earn
+  1000 G from the cart (a chick in the coop; 700 G if the coop is full). Every goal counts from
+  the first morning; `Game.check_goals` (a few times a second while the HUD listens and no
+  menu, text box or event holds the screen) pays a reached goal at once, says it on the message
+  line ("Goal done: Plant 9 plots! +150 G") and opens its note. `Game.goal_stats` counts
+  planted plots, villagers talked to, fish, crops shipped from the run's own state, wild
+  things picked (`forage_pick`) and the cart's pay (`pay_bin`) in `Goals.counts`. The HUD has a
+  goal tag under the clock (right-aligned; in the festival tag's place on a plain day; hidden
+  once the list is done). Tome hands the list over in the opening (one new line). Saved as
+  `goals: {done, counts}` (no save version bump; a save without it has the whole list done so
+  an old farm isn't flooded with rewards). Plain `--demo` runs have the list off; `--goals`
+  (or `--goals=plant,hello`) turns it on. README → Goals, DESIGN (economy) note, AGENTS.md.
+- Balance (ours): the 500 G start buys about six turnip bags and the first turnips are ripe on
+  day 5, so the first four goals need nothing to ripen (day 1–3: the field, the village, the
+  hill, the pond). The list is worth about 2,300 G (270 G cash, 180 G of rice balls, 480 G of
+  seed bags, the chick, a 1,400 G hen at the store): small next to a season, but it brings the
+  first new animal into week one instead of week three. Earn 1000 G is about day 7 for a player
+  who works the field and picks forage.
+- Checked: new tests/test_goals.gd (data, rules, every goal reached by playing on a scratch
+  Game and paid once, several at once, a full coop and a full rucksack, notes waiting while a
+  menu is open, the save, the HUD tag on the real Game) `test_goals: OK (0 failed)`; all 26
+  test scripts `OK (0 failed)`; the four smoke runs and a 600-frame run of
+  `res://scenes/main.tscn` (new game, opening, list on) print no error or warning lines.
+  Screenshots: `--demo --goals=plant` (the tag "Goal Say hello to 3 people 0/3" under the
+  clock), `--demo --goals` (650 G, "Goal done: Plant 9 plots! +150 G" and the farmer's line of
+  the note in the text box), `--festival=blossom_day --goals=plant,hello,forage` (the tag under
+  "Blossom Day").
+- Left / next: the goal names are English only for now (the Thai text set is another agent's
+  task; the strings are all in data/goals.json and data/dialogue/goals.json). The year bot
+  (tools/play_year.gd) was not re-run. The flat view uses the same Hud, so it has the tag too
+  (not looked at in a screenshot). A pause-menu page listing the whole list could come later.
+
 ## 2026-11-03 — Coop and barn roofs as meshes (Minka.gable), the farmhouse eave band turned out
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: art direction roadmap 1, first item. `Minka.gable` builds a thick gable roof (ridge

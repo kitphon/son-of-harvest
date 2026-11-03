@@ -1,5 +1,5 @@
 {
-	"_note": "Lines for the opening event (data/events/opening.json): the farmer comes in through the gate, Grandma Tome is waiting and shows the farm, then gives seed potatoes and goes home. Parts start at the ids greet, field, bin, road, gift, bye and alone; each ends with next: end.",
+	"_note": "Lines for the opening event (data/events/opening.json): the farmer comes in through the gate, Grandma Tome is waiting and shows the farm, then gives seed potatoes and her first-week list (data/goals.json) and goes home. Parts start at the ids greet, field, bin, road, gift, bye and alone; each ends with next: end.",
 	"lines": [
 		{"id": "arrive", "speaker": "farmer", "face": "calm", "text": "So this is the farm. The fence leans, and the grass is up to my knees...", "next": "end"},
 		{"id": "greet", "speaker": "tome", "face": "smile", "text": "Ah, there you are! You have your grandfather's ears. I'm Tome, from the village down the road."},
@@ -10,7 +10,8 @@
 		{"speaker": "tome", "face": "calm", "text": "The little stand beside it sells seeds and a bite to eat. Handy when the village shops are shut.", "next": "end"},
 		{"id": "road", "speaker": "tome", "face": "smile", "text": "Out through the gate, the road runs east to the village. The shrine, the Yorozu Store, the Kurogane Smithy..."},
 		{"speaker": "tome", "face": "calm", "text": "Sayo keeps the store. Hachiro mends roofs in the morning and minds the forge after. Pop in and say hello.", "next": "end"},
-		{"id": "gift", "speaker": "tome", "face": "smile", "text": "Oh, and these. Seed potatoes from my own garden. They like a sunny spot. Don't let them dry out!", "next": "end"},
+		{"id": "gift", "speaker": "tome", "face": "smile", "text": "Oh, and these. Seed potatoes from my own garden. They like a sunny spot. Don't let them dry out!"},
+		{"speaker": "tome", "face": "calm", "text": "And here's a little list of jobs for your first week. Each line has a thank-you from someone in the village waiting under it.", "next": "end"},
 		{"id": "bye", "speaker": "tome", "face": "smile", "text": "Well, my knees want their cushion. Come and see me at the shrine in the mornings. Welcome home, dear.", "next": "end"},
 		{"id": "alone", "speaker": "farmer", "face": "smile", "text": "Welcome home... Right. Clear a corner, plant, water. Let's get to work!"}
 	]
