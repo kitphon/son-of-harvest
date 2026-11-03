@@ -161,10 +161,10 @@ func _build() -> void:
 
 func _refresh() -> void:
 	_money.text = "%d G" % Game.money
-	_money.position.x = _wood.size.x - 9 - PixelFont.width(_money.text)
+	_money.position.x = _wood.size.x - 9 - PixelFont.shown_width(_money.text)
 	for i in menu.tabs.size():
 		_tabs[i].add_theme_color_override("font_color", Hud.INK if i == menu.tab else Hud.INK_SOFT)
-		_tabs[i].text = ("> " if i == menu.tab else "  ") + ShopMenu.TAB_NAMES[menu.tabs[i]]
+		_tabs[i].text = ("> " if i == menu.tab else "  ") + Lang.t(ShopMenu.TAB_NAMES[menu.tabs[i]])
 	var rows := menu.rows()
 	_top = clampi(_top, maxi(menu.cursor - ROWS + 1, 0), menu.cursor)
 	for i in ROWS:
@@ -179,7 +179,7 @@ func _refresh() -> void:
 		_icons[i].texture = PlaceholderArt.tex(PlaceholderArt.item_key(row.item))
 		_names[i].text = _row_name(row)
 		_prices[i].text = _row_price(row, k == menu.cursor)
-		_prices[i].position.x = W - 8 - PixelFont.width(_prices[i].text)
+		_prices[i].position.x = W - 8 - PixelFont.shown_width(_prices[i].text)
 		var soft: bool = menu.tab_id() in ["tools", "build"] and row.state in ["top", "missing", "busy", "done", "short"]
 		soft = soft or (menu.tab_id() in ["buy", "build"] and row.get("state", "offer") == "offer" and int(row.price) > Game.money)
 		soft = soft or (menu.tab_id() == "buy" and row.to == "animal" and Game.shop_room(menu.shop.id, row.item) <= 0)

@@ -138,7 +138,7 @@ func _do(item: String) -> void:
 
 func _say(text: String) -> void:
 	_note.text = text
-	_note.position.x = (PlaceholderArt.TITLE_SIZE.x - PixelFont.width(text)) / 2
+	_note.position.x = (PlaceholderArt.TITLE_SIZE.x - PixelFont.shown_width(text)) / 2
 	_note.visible = true
 	_refresh()
 

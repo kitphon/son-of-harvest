@@ -176,7 +176,7 @@ func _show_hints() -> void:
 		_hint_labels[i].text = text
 		_hint_labels[i].position.x = x
 		if text != "":
-			x += PixelFont.width(text) + (4 if i % 2 == 0 else 10)
+			x += PixelFont.shown_width(text) + (4 if i % 2 == 0 else 10)
 	_hint_box.visible = not pairs.is_empty()
 	_hint_box.size.x = x - 10 + 6 if not pairs.is_empty() else HudLayout.BOXES.hint.size.x
 
@@ -197,7 +197,7 @@ static func hint_pairs(h: Dictionary, interact_key: String, tool_key: String) ->
 
 func _show(text: String) -> void:
 	_msg.text = text
-	_msg_box.size.x = PixelFont.width(text) + 12
+	_msg_box.size.x = PixelFont.shown_width(text) + 12
 	_msg_box.visible = text != ""
 	_msg_time = 3.0
 
@@ -226,12 +226,12 @@ func _refresh() -> void:
 	var item := item_text(tool)
 	_item_name.text = item[0]
 	_item_count.text = item[1]
-	_item_count.position.x = HudLayout.BOXES.item.size.x - 6 - PixelFont.width(item[1])
+	_item_count.position.x = HudLayout.BOXES.item.size.x - 6 - PixelFont.shown_width(item[1])
 	var levels := Game.tool_max_level(tool)
 	_item_level.visible = levels > 0
 	if levels > 0:
 		_item_level.texture = PlaceholderArt.tex(PlaceholderArt.charge_key(Game.tool_level(tool), levels))
-		_item_level.position.x = 6 + PixelFont.width(item[0]) + 4
+		_item_level.position.x = 6 + PixelFont.shown_width(item[0]) + 4
 
 	_money.text = "%d G" % Game.money
 	_bin.text = "Bin %d G" % Game.bin_total

@@ -176,7 +176,7 @@ func _refresh() -> void:
 	if game == null:
 		return
 	_info.text = "Round %d of %d   %d pts" % [game.round_now() + 1, game.rounds, game.score]
-	_info.position.x = _wood.size.x - 9 - PixelFont.width(_info.text)
+	_info.position.x = _wood.size.x - 9 - PixelFont.shown_width(_info.text)
 	var call := ""
 	var color := PlaceholderArt.UI_SEAL
 	if game.done():
@@ -190,7 +190,7 @@ func _refresh() -> void:
 		call = "Ready..."
 	_call.text = call
 	_call.add_theme_color_override("font_color", color)
-	_call.position.x = (W - PixelFont.width(call)) / 2
+	_call.position.x = (W - PixelFont.shown_width(call)) / 2
 	var name := str(Villagers.all().get(partner, {}).get("name", partner))
 	_hint.text = "%s turns the dough. E: swing as the ring closes" % name if not game.done() \
 		else "Great %d   Good %d   Miss %d" % [game.counts.great, game.counts.good, game.counts.miss]

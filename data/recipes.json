@@ -19,7 +19,7 @@
 	},
 	"recipes": {
 		"onigiri": {"start": true, "makes": 2, "needs": [{"group": "pickle", "n": 1}],
-			"about": "Pantry rice round a quick pickle. Makes two."},
+			"about": "A rice ball with a quick pickle inside. Makes two."},
 		"miso_soup": {"start": true, "needs": [{"group": "soup_veg", "n": 1}],
 			"about": "Miso and whatever vegetable is at hand."},
 		"grilled_fish": {"start": true, "needs": [{"group": "fish", "n": 1}],

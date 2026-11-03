@@ -47,25 +47,45 @@ func point(i: int) -> bool:
 
 ## What one cooking of the cursor's recipe needs, with what there is: "2 Turnip (3)".
 func needs_text() -> String:
+	return ", ".join(needs_parts())
+
+
+## needs_text's parts, one per need; `tr`: in the player's language (Lang).
+func needs_parts(tr := false) -> Array[String]:
 	var row := current()
-	if row.is_empty():
-		return ""
 	var parts: Array[String] = []
+	if row.is_empty():
+		return parts
 	for need in Cooking.recipe(row.id).get("needs", []):
-		parts.append("%d %s (%d)" % [int(need.n), need_name(need), Cooking.have(need, g.inventory)])
-	return ", ".join(parts)
+		var part := "%d %s (%d)" % [int(need.n), need_name(need), Cooking.have(need, g.inventory)]
+		parts.append(Lang.t(part) if tr else part)
+	return parts
 
 
 ## The cursor's recipe's kitchen tools: "" when it needs none, else "Uses Kitchen knife, Clay
-## pot", each one not owned marked "(store)" (the Yorozu Store sells it).
-func tools_text() -> String:
+## pot", each one not owned marked "(buy at store)" (the Yorozu Store sells it).
+func tools_text(tr := false) -> String:
 	var row := current()
 	if row.is_empty() or Cooking.tools(row.id).is_empty():
 		return ""
 	var names: Array[String] = []
 	for t in Cooking.tools(row.id):
-		names.append(Cooking.tool_name(t) + (" (store)" if t in row.no_tools else ""))
-	return "Uses " + ", ".join(names)
+		var n := Cooking.tool_name(t) + (" (buy at store)" if t in row.no_tools else "")
+		names.append(Lang.t(n) if tr else n)
+	return (Lang.t("Uses %s") if tr else "Uses %s") % ", ".join(names)
+
+
+## A row's state at the right of the list: "ready", "needs Clay pot" (the kitchen tool it lacks;
+## "needs 2 tools" for more) or "missing" (not enough to cook it).
+static func state_text(row: Dictionary) -> String:
+	if row.ready:
+		return "ready"
+	var kit: Array = row.get("no_tools", [])
+	if kit.size() == 1:
+		return "needs %s" % Cooking.tool_name(kit[0])
+	if kit.size() > 1:
+		return "needs %d tools" % kit.size()
+	return "missing"
 
 
 ## A need's name: the item's own, or the group's (any fish, any egg).

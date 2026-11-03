@@ -137,7 +137,7 @@ func _build() -> void:
 func _refresh() -> void:
 	var rows := menu.rows()
 	_count.text = "%d of %d known" % [rows.size(), Cooking.ids().size()]
-	_count.position.x = _wood.size.x - 9 - PixelFont.width(_count.text)
+	_count.position.x = _wood.size.x - 9 - PixelFont.shown_width(_count.text)
 	_top = clampi(_top, maxi(menu.cursor - ROWS + 1, 0), menu.cursor)
 	for i in ROWS:
 		var k := _top + i
@@ -152,8 +152,8 @@ func _refresh() -> void:
 		_names[i].text = String(Game.foods.get(row.id, {}).get("name", row.id))
 		if int(row.makes) > 1:
 			_names[i].text += " x%d" % int(row.makes)
-		_states[i].text = "ready" if row.ready else ("no tool" if not row.no_tools.is_empty() else "missing")
-		_states[i].position.x = W - 8 - PixelFont.width(_states[i].text)
+		_states[i].text = CookingMenu.state_text(row)
+		_states[i].position.x = W - 8 - PixelFont.shown_width(_states[i].text)
 		var ink := Hud.INK if row.ready else Hud.INK_SOFT
 		_names[i].add_theme_color_override("font_color", ink)
 		_states[i].add_theme_color_override("font_color", PlaceholderArt.UI_SEAL if row.ready else Hud.INK_SOFT)
@@ -163,8 +163,8 @@ func _refresh() -> void:
 	_more_down.text = "more below" if _top + ROWS < rows.size() else ""
 	var row := menu.current()
 	_about.text = String(Cooking.recipe(row.id).get("about", "")) if not row.is_empty() else ""
-	_needs.text = "Needs " + menu.needs_text() if not row.is_empty() else ""
-	_tools.text = menu.tools_text()
+	_needs.text = Lang.t("Needs %s") % ", ".join(menu.needs_parts(true)) if not row.is_empty() else ""
+	_tools.text = menu.tools_text(true)
 	_tools.add_theme_color_override("font_color", Hud.INK if row.is_empty() or row.no_tools.is_empty() else PlaceholderArt.UI_SEAL)
 	if rows.is_empty():
 		_names[0].visible = true

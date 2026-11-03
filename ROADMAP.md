@@ -36,7 +36,9 @@ Next: the seed stand, chest and bin by the farmhouse (`farm_world.gd _make_stand
 `_make_chest`, `_make_bin`) to the same bar. "ทำ art direction ต่อ" from the user
 means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
-"แก้ feedback"; item 1, Thai text, first).
+"แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our
+pixel font). Next: items 2 and 3 (a week-one goal, where love leads); Thai for the villagers'
+daily talk, heart events and contests is still to write (data/lang/th/dialogue.json).
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
 font are done. Charging tools are done, and tools level up with use (tool experience,

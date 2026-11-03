@@ -87,8 +87,9 @@ func line() -> Dictionary:
 	return {} if done() else lines[index]
 
 
+## The line as shown, in the player's language (Lang).
 func text() -> String:
-	return line().get("text", "")
+	return Lang.t(line().get("text", ""))
 
 
 ## The portrait key for the line on screen, "" for none.

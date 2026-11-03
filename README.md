@@ -61,6 +61,19 @@ the left stick always walks.
 Esc → Settings, rows from `data/settings.json` (a new setting is one entry there), each in
 effect the moment it changes and saved to `user://settings.json` (version 2; a version 1 file's
 "full" window is read as Borderless):
+- Language: English or ไทย (Thai), first in the list and shown in its own language. The game is
+  written in English; a language is a set of tables in `data/lang/<id>/*.json` keyed by the
+  English text (`scripts/ui/lang.gd`): plain entries, patterns with `%s` / `%d` for text that
+  changes ("Bought %s for %d G"; the `%s` part is looked up again, `{1}`, `{2}` reorder the
+  parts), multi-line text line by line; anything without an entry stays English. Every Label
+  translates itself (Lang puts a `LangTranslation` into Godot's TranslationServer); the text
+  box, the cooking lists and the widths ask `Lang.t` / `PixelFont.shown_width` themselves.
+  Thai is drawn by our pixel font (`data/font_pixel.json`): consonants at the lowercase height,
+  vowels and tone marks in `marks`, placed by `PixelFont.shape` (a tone over a vowel above
+  rises, marks over ป ฝ ฟ move left, ำ is a ring and า). Thai text needs spaces between
+  phrases so the text box can wrap it. Done in Thai: all menus and screens, the HUD and key
+  hints, the messages, item / place / people names and part of the dialogue (see
+  `data/lang/th/dialogue.json`'s note). `-- --lang=th` tries a language for one run.
 - Display: Window, Full screen (exclusive) or Borderless (a window over the whole screen).
 - Window size: 2x / 3x / 4x the 480 x 270 picture, while the display is a window. Sizes bigger
   than the screen are left out of the row; a saved size that doesn't fit shows (and is) the
