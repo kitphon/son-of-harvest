@@ -250,10 +250,10 @@
 				"table": [14, 4],
 				"ask": "years_turn_ask",
 				"rivals": [
-					{"who": "hachiro", "score": [120, 320]},
-					{"who": "kota", "score": [40, 160]},
-					{"who": "sayo", "score": [20, 120]},
-					{"who": "ichiro", "score": [80, 240]}
+					{"who": "hachiro", "score": [70, 180]},
+					{"who": "kota", "score": [25, 90]},
+					{"who": "sayo", "score": [12, 65]},
+					{"who": "ichiro", "score": [45, 130]}
 				],
 				"prizes": [
 					{"money": 500, "item": "food:kagami_mochi"},

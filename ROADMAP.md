@@ -202,7 +202,7 @@ The deep floors are reachable now: floors 5, 10 and 15 are rope lift landings, a
 a trip can start there from the cave mouth (README → Mine). Later for it: grilled fish (80 G
 from one cheap fish) may be the next shortcut; the bot rides the lift
 now and reaches floor 25, but winter mining from floor 15 out-earns a farming year
-(171766 G in year 1 winter; WORKLOG 2026-11-03): tune the deep finds in data/mine.json.
+(171766 G in year 1 winter; WORKLOG 2026-11-03): the deep finds were lowered (year-1 mine 201780 → 88150 G; WORKLOG 2026-11-03 Deep mine finds).
 Bigger world (the user found the maps small, 2026-11-01): widening the farm and village made
 the walks long and dull, so they are back to their old sizes; the world grows by areas instead.
 Done: Kaminoda, the hamlet up the village's north lane (paddies, drying racks, a well, jizo;

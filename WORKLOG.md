@@ -10,6 +10,35 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-03 — Deep mine finds tuned for the rope lift
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: with the lift a trip starts at floor 15 every day, and a winter of that out-earned
+  every farming season together. data/mine.json: kogane 90 → 55, hoshigane 400 → 220, jade
+  300 → 170, amber 150 → 100, rock crystal 120 → 70 G (`_prices` note); floors 13+ take 3 / 9
+  blows (was 2 / 8) and a rock there hides nothing a little more often (none 28 → 36, stone
+  12 → 14, kogane 22 → 20). data/festivals.json: the First Stone contest's rivals scaled by the
+  same share (Hachiro 120-320 → 70-180, Kota 40-160 → 25-90, Sayo 20-120 → 12-65, Ichiro
+  80-240 → 45-130), so a hoshigane or jade still has a chance.
+- Checked: all 25 test scripts `OK (0 failed)`. Year bot (seed 1, `-- --years=2`, run alone, quoted):
+  ```
+  == Year 1 fall: income 77332 G, costs 47920 G, money 37385 -> 66797 G
+     income: crops 21315, dishes 8270, animals 21480, fish 5010, forage 8969, mine 11788, prizes 500
+  == Year 1 winter: income 100865 G, costs 28350 G, money 66797 -> 138552 G
+     income: crops 0, dishes 0, animals 26580, fish 0, forage 625, mine 73160, prizes 500
+     fishing: river 0 fish, 0 G, pond 0 fish, 0 G; mine: 29 trips (29 by the lift), deepest trip floor 20, food eaten there 4355 stamina
+     contests: years_turn: mine:hoshigane, place 1
+  == Year 2 winter: income 113385 G, costs 20070 G, money 352822 -> 445447 G
+     income: crops 0, dishes 0, animals 26020, fish 0, forage 625, mine 86240, prizes 500
+     Deepest floor       22  4 / 4 stars
+     40 / 43 stars: rank 4, "Heart of the Village"; closest: hachiro
+  play_year: OK (no problems seen)
+  ```
+  Mine income: year 1 201780 → 88150 G, year 2 298338 → 132074 G. Year 1 winter mine 171766 →
+  73160 G. The record stays 40 / 43 stars; the deepest floor 25 → 22 (still 4 stars).
+- Left / next: in year 1 the mine (88150 G) still out-earns crops (50110 G), all of it in
+  winter when the field is empty; a winter living from the mine is fine, but if it should be
+  smaller, the next step is the deep band's `none` weight or the food the stand sells.
+
 ## 2026-11-03 — Camera lenses to choose from (data/camera.json)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the 3D camera's lens is data now. `CameraLens` (`scripts/world3d/camera_lens.gd`)
