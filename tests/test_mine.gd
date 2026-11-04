@@ -11,6 +11,7 @@ func _init() -> void:
 	var rules: Dictionary = _json("res://data/mine.json")
 	_data(rules)
 	_odds(rules)
+	_worth(rules)
 	_layout(rules)
 	_break_and_dig(rules)
 	_maps()
@@ -56,6 +57,45 @@ func _data(rules: Dictionary) -> void:
 			check(items.has(f), "season %s: %s is an item" % [s, f])
 	check(MapManager.has(rules.entrance_map) and MapManager.has(rules.floor_map), "the mine maps exist")
 	check(MapManager.data(rules.entrance_map).spawns.has(rules.entrance_spawn), "the entrance has the cave spawn")
+
+
+## What a floor is worth (FEEDBACK item 4): with the rope lift a winter trip starts at floor
+## 15 every day, so the deep floors must be a good side income, not the game's best money.
+## G of every find a floor hides on average (counts at their middle, winter's odds; a trip breaks about half of them on its way to the hole): the deep
+## band's floor stays under a cap (a trip goes about five floors), deeper still pays more, and
+## a frozen floor's ice never makes the shallow floors the better trip. The First Stone
+## contest's rivals were scaled with the prices: hoshigane still beats them all.
+func _worth(rules: Dictionary) -> void:
+	var worth := func(d: int, s: String) -> float:
+		var b: Dictionary = MineFloor.band(rules, d)
+		var g := 0.0
+		for src in ["rock", "big_rock", "soft"]:
+			var n: Array = b.get({"rock": "rocks", "big_rock": "big_rocks", "soft": "soft"}[src])
+			var w := MineFloor.odds(rules, d, s, src)
+			var total := 0.0
+			var value := 0.0
+			for id in w:
+				total += w[id]
+				value += w[id] * (int(rules.items[id].sell) if rules.items.has(id) else 0)
+			g += (float(n[0]) + float(n[1])) / 2.0 * value / total
+		return g
+	var deep: float = worth.call(15, "winter")
+	check(deep <= 800.0, "a deep floor hides about %d G in winter, under 800 (1335 before FEEDBACK item 4)" % deep)
+	check(deep > worth.call(10, "winter") and worth.call(10, "winter") > worth.call(5, "winter"), "deeper floors still hide more")
+	var w: Dictionary = rules.winter
+	var ice := 0.0
+	var total := 0.0
+	for id in w.finds:
+		total += float(w.finds[id])
+		ice += float(w.finds[id]) * (int(rules.items[id].sell) if rules.items.has(id) else 0)
+	ice *= (float(w.ice[0]) + float(w.ice[1])) / 2.0 / total
+	check(worth.call(int(w.to), "winter") + ice < deep, "a frozen floor with its ice (%d G) is still worth less than a deep one" % (worth.call(int(w.to), "winter") + ice))
+	var top := 0
+	for f in _json("res://data/festivals.json").festivals.values():
+		if f.get("contest", {}).get("takes", "") == "mine":
+			for r in f.contest.rivals:
+				top = maxi(top, int(r.score[1]))
+	check(top > 0 and int(rules.items.hoshigane.sell) > top, "hoshigane (%d G) beats every First Stone rival (top %d)" % [int(rules.items.hoshigane.sell), top])
 
 
 ## Bands per depth, season factors, deeper floors hold richer ore.

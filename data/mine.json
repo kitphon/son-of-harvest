@@ -25,9 +25,9 @@
 				"soft": {"none": 40, "clay": 22, "satetsu": 12, "kohaku": 16, "suisho": 10}}},
 		{"from": 13, "rocks": [20, 26], "big_rocks": [3, 4], "soft": [3, 4], "hits": {"rock": 3, "big_rock": 9},
 			"finds": {
-				"rock": {"none": 36, "stone": 14, "shirogane": 20, "kogane": 20, "suisho": 8, "hoshigane": 3},
+				"rock": {"none": 50, "stone": 14, "shirogane": 20, "kogane": 20, "suisho": 8, "hoshigane": 3},
 				"big_rock": {"kogane": 40, "hisui": 25, "suisho": 20, "hoshigane": 15},
-				"soft": {"none": 40, "clay": 15, "kohaku": 25, "hisui": 12, "suisho": 8}}}
+				"soft": {"none": 50, "clay": 15, "kohaku": 25, "hisui": 12, "suisho": 8}}}
 	],
 	"seasons": {
 		"spring": {"clay": 1.5},
@@ -49,19 +49,19 @@
 		"ice": [3, 5], "hits": 2, "finds": {"none": 30, "hyoseki": 45, "suisho": 25}},
 	"_winter": "In winter the cold reaches down to floor `to`: those floors are frozen. Their light is multiplied by `light` (a cold blue), `frost` is the share of the open floor that lies white with frost (only a look), and `ice` [fewest, most] blocks of ice stand about. The hammer breaks ice in `hits` blows; it hides finds from `finds` (frost stone only grows in the ice). The hole down is never under the ice. Deeper floors are warm and stay as they are.",
 	"_items": "Mine finds are rucksack items \"mine:<id>\": name, kind (stone / ore / gem), sell (G in the bin), look (icon shape and colours for PlaceholderArt). The Kurogane Smithy asks for ores in its tool upgrades (data/shops.json upgrades items); the shops buy stones, ores and gems by kind (their buys).",
-	"_prices": "Deep finds were lowered once the rope lift let a trip start at floor 15 every day (WORKLOG 2026-11-03): at 90 / 400 / 300 / 150 / 120 G for kogane, hoshigane, jade, amber and rock crystal a winter of daily trips from floor 15 brought 171766 G in year 1, more than every farming season together. Now about 55-60% of that, and floors 13+ take a blow more per rock and hide nothing a little more often, so winter mining is the good winter income it should be, not the game's best money. The First Stone contest's rivals (data/festivals.json) were scaled by the same share.",
+	"_prices": "Deep finds were lowered twice once the rope lift let a trip start at floor 15 every day. First (WORKLOG 2026-11-03): kogane 90 -> 55, hoshigane 400 -> 220, jade 300 -> 170, amber 150 -> 100, rock crystal 120 -> 70 G and floors 13+ a blow more per rock: the year bot's year 1 winter mine 171766 -> 73160 G, still more than any whole season of the farm. Then (FEEDBACK item 4, WORKLOG 2026-11-04) about half again: shirogane 30, kogane 30, hoshigane 110, jade 85, amber 55, rock crystal 40, frost stone 50, and on floors 13+ a rock or soft spot hides nothing half the time. The aim: a winter of daily lift trips is a good side income next to the animals, under any farm season and far under a farm year. The ores keep their place in the smithy's upgrades (counts, not prices). The First Stone contest's rivals (data/festivals.json) were scaled by the same share both times.",
 	"items": {
 		"stone": {"name": "Grey stone", "kind": "stone", "sell": 2, "look": {"shape": "stone", "body": "8e8a84", "shine": "b8b4ac"}},
 		"clay": {"name": "Potter's clay", "kind": "stone", "sell": 6, "look": {"shape": "lump", "body": "b88a62", "shine": "d8b08a"}},
 		"satetsu": {"name": "Iron sand", "kind": "ore", "sell": 10, "look": {"shape": "sand", "body": "3a3836", "shine": "8a8a90"}},
 		"akagane": {"name": "Akagane ore", "kind": "ore", "sell": 18, "look": {"shape": "ore", "body": "6e625a", "vein": "c8643a"}},
-		"shirogane": {"name": "Shirogane ore", "kind": "ore", "sell": 40, "look": {"shape": "ore", "body": "5e5c60", "vein": "dcdce4"}},
-		"kogane": {"name": "Kogane ore", "kind": "ore", "sell": 55, "look": {"shape": "ore", "body": "5a5448", "vein": "f0c840"}},
-		"hoshigane": {"name": "Hoshigane ore", "kind": "ore", "sell": 220, "look": {"shape": "ore", "body": "2a2a3a", "vein": "8ab0f0"}},
+		"shirogane": {"name": "Shirogane ore", "kind": "ore", "sell": 30, "look": {"shape": "ore", "body": "5e5c60", "vein": "dcdce4"}},
+		"kogane": {"name": "Kogane ore", "kind": "ore", "sell": 30, "look": {"shape": "ore", "body": "5a5448", "vein": "f0c840"}},
+		"hoshigane": {"name": "Hoshigane ore", "kind": "ore", "sell": 110, "look": {"shape": "ore", "body": "2a2a3a", "vein": "8ab0f0"}},
 		"meno": {"name": "Agate", "kind": "gem", "sell": 60, "look": {"shape": "gem", "body": "c86a4a", "shine": "f0b098"}},
-		"kohaku": {"name": "Amber", "kind": "gem", "sell": 100, "look": {"shape": "drop", "body": "d89030", "shine": "f8d070"}},
-		"suisho": {"name": "Rock crystal", "kind": "gem", "sell": 70, "look": {"shape": "crystal", "body": "c8e0ec", "shine": "ffffff"}},
-		"hisui": {"name": "Jade", "kind": "gem", "sell": 170, "look": {"shape": "gem", "body": "4a9a6a", "shine": "a0e0b0"}},
-		"hyoseki": {"name": "Frost stone", "kind": "gem", "sell": 80, "look": {"shape": "shard", "body": "9ccce8", "shine": "f4fcff"}}
+		"kohaku": {"name": "Amber", "kind": "gem", "sell": 55, "look": {"shape": "drop", "body": "d89030", "shine": "f8d070"}},
+		"suisho": {"name": "Rock crystal", "kind": "gem", "sell": 40, "look": {"shape": "crystal", "body": "c8e0ec", "shine": "ffffff"}},
+		"hisui": {"name": "Jade", "kind": "gem", "sell": 85, "look": {"shape": "gem", "body": "4a9a6a", "shine": "a0e0b0"}},
+		"hyoseki": {"name": "Frost stone", "kind": "gem", "sell": 50, "look": {"shape": "shard", "body": "9ccce8", "shine": "f4fcff"}}
 	}
 }

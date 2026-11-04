@@ -10,6 +10,42 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-04 — Winter mine income halved again (FEEDBACK item 4)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: after the first cut (2026-11-03) a winter of daily lift trips from floor 15 still
+  brought 73160 G, more than any whole season of the farm. data/mine.json: shirogane 40 → 30,
+  kogane 55 → 30, hoshigane 220 → 110, jade 170 → 85, amber 100 → 55, rock crystal 70 → 40,
+  frost stone 80 → 50 G; on floors 13+ a rock or soft spot hides nothing half the time (none
+  36 → 50 and 40 → 50). Every find a deep floor hides is now worth about 695 G in winter (was
+  1335); floor 10's band 470 (was 719); a frozen floor 9 with its ice 600 (was 933), still less
+  than a deep one, so the lift stays the better trip. The landings (5, 10, 15) and the ores the
+  smithy asks for are unchanged. data/festivals.json: the First Stone contest's rivals halved
+  again (Hachiro 35-90, Kota 12-45, Sayo 6-32, Ichiro 22-65), so a hoshigane (110) still wins.
+  Reasoning: winter has no field, so mining should be the winter's work and pay about what
+  the animals do (26-27k G a winter), a good side income; it should not out-earn a farming
+  season (year 1 fall 60936 G without the mine) or come anywhere near a farm year.
+- Checked: year bot `tools/play_year.gd -- --years=2 --seed=1`, run alone, before (main with
+  item 5's dish prices not yet in) → after (both items):
+  ```
+  Year 1 winter: income 100865 → 66433 G; mine 73160 → 38378, animals 26580 → 26930
+  Year 1 mine by season: 2750 / 452 / 11788 / 73160 → 2320 / 422 / 6438 / 38378 (88150 → 47558)
+  Year 1 income without mine and prizes: 169892 → 158118 G (dishes 25410 → 4430: item 5;
+    fish 16670 → 22436, the fish are shipped raw now)
+  Year 2 mine: 14605 / 16582 / 14647 / 86240 → 14518 / 3452 / 10592 / 43852 (132074 → 72414)
+  Money at the end of year 1: 138552 → 86186 G; year 2: 445447 → 324078 G
+  Record: 40 / 43 stars, rank 4, Deepest floor 22 (4 stars), contests won 6: unchanged
+  play_year: OK (no problems seen)
+  ```
+  Year 1 now: the mine 47558 G against 158118 G from the farm; the winter mine (38378 G, less
+  15390 G of stand food for the trips) is below the year's summer (44107) and fall (60936)
+  farm income. test_mine gets `_worth`: a deep floor's finds under 800 G in winter, deeper
+  floors still worth more, a frozen floor with its ice worth less than a deep one, hoshigane
+  above every First Stone rival's top score. balance.py: year net 91587 → 87096 G, First
+  Stone odds 88% → 90% first. All 26 test scripts `OK (0 failed)`; the smoke runs print no
+  error or warning lines.
+- Left / next: the bot still goes down every winter day; with the stand's food a winter trip
+  nets about 800 G. FEEDBACK item 6 (night, lit windows) next.
+
 ## 2026-11-04 — Dish prices: a modest gain over the cheapest ingredients (FEEDBACK item 5)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a dish's price is fixed but the fish group takes any fish, so one 18 G dace made an
