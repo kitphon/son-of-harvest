@@ -69,6 +69,9 @@ func _start_view() -> void:
 	root.add_child(_scene)
 	check(_entered == ["farm"], "the view says the farmer entered the farm %s" % [_entered])
 	_farm_world_ok = _scene.world.surroundings != null and _scene.world.occluders.count() == 4
+	check(_scene.world.windows.size() == 4, "the farmhouse lights three windows and its door (%d)" % _scene.world.windows.size())
+	var lights := _scene.find_children("*", "Control", true, false).filter(func(n): return n.get_script() != null and n.get_script().resource_path.ends_with("night_lights.gd"))
+	check(lights.size() == 1, "the 3D view draws the lit windows")
 
 
 func _check_view() -> void:
@@ -300,11 +303,62 @@ func _edges_and_fades() -> void:
 		"a house behind the farmer never fades")
 	check(Occluders.hides(AABB(Vector3(0, 0, 0), Vector3(4, 2.5, 3)), Vector3(2, 0, -0.5), back),
 		"a house in front of the farmer fades")
+	_lit_windows(world, occ)
 	world.free()
 	var room: Node3D = load("res://scripts/world3d/map_world.gd").new()
 	root.add_child(room)
 	room.build(MapManager.data("house"))
 	check(room.surroundings == null, "no land past a room's walls")
+	room.free()
+
+
+## Lit windows at night (NightLights): the village's houses list theirs (shops' doors under a
+## noren stay dark), each faces the camera side and is seen from the eye unless a solid
+## building stands between; a faded one lets the light through as much as it is faded.
+func _lit_windows(world: Node3D, occ: RefCounted) -> void:
+	var NightLights: GDScript = load("res://scripts/world3d/night_lights.gd")
+	var houses := MapManager.data("town").props.filter(func(p): return p.kind == "village_house")
+	var shops := houses.filter(func(p): return p.get("noren", false))
+	check(world.windows.size() >= houses.size() * 2 and world.is_in_group(NightLights.GROUP),
+		"the village's %d houses have lit windows (%d)" % [houses.size(), world.windows.size()])
+	var facing: bool = world.windows.all(func(w): return w.normal == Vector3(0, 0, 1) or w.normal.is_equal_approx(Vector3(1, 0, 0)))
+	check(facing, "every lit window faces +z or +x (the camera side)")
+	var doors: Array = world.windows.filter(func(w): return w.key == "build:shoji_door")
+	check(doors.size() >= houses.size() - shops.size(), "homes' doors light up, shops' doors under a noren not (%d doors)" % doors.size())
+	var eye := Vector3(0.634, 0.448, 0.634).normalized() * 25.0
+	var seen := 0
+	for w in world.windows:
+		var cam_at: Vector3 = w.pos + eye
+		var k: float = NightLights.how_seen(w, cam_at, occ)
+		check(k >= 0.0 and k <= 1.0, "how_seen is 0..1")
+		if k == 1.0:
+			seen += 1
+	check(seen >= world.windows.size() / 2, "most windows are in plain view of the eye (%d of %d)" % [seen, world.windows.size()])
+	var win: Dictionary = world.windows[0]
+	var away := {"key": win.key, "pos": win.pos, "size": win.size, "normal": -win.normal}
+	check(NightLights.how_seen(away, win.pos + eye, occ) == 0.0, "a window turned from the eye stays dark")
+	# A solid box between the window and the eye hides it; faded, it lets the light through.
+	var Occluders: GDScript = load("res://scripts/world3d/occluders.gd")
+	var lone := {"key": "build:shoji", "pos": Vector3(0, 1, 0), "size": Vector2(0.7, 0.5), "normal": Vector3(0, 0, 1)}
+	var blocker: RefCounted = Occluders.new()
+	var box := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(2, 3, 1)
+	box.mesh = mesh
+	box.position = Vector3(0, 1.5, 3)
+	box.material_override = StandardMaterial3D.new()
+	blocker.add([box])
+	check(NightLights.how_seen(lone, Vector3(0, 1, 20), blocker) == 0.0, "a solid house in front hides a window")
+	blocker.update(Vector3(0, 0, 2), Vector3(0, 0, 1), 10.0)   # the farmer behind it: it fades
+	var through: float = NightLights.how_seen(lone, Vector3(0, 1, 20), blocker)
+	check(is_equal_approx(through, Occluders.FADED), "a faded house lets the window's light through (%.2f)" % through)
+	check(NightLights.how_seen(lone, Vector3(20, 1, 20), blocker) == 1.0, "seen past the house's side")
+	var c: Array = NightLights.corners(lone)
+	check(c[0].distance_to(Vector3(-0.35, 1.25, 0)) < 0.001 and c[2].distance_to(Vector3(0.35, 0.75, 0)) < 0.001, "corners: top left to bottom right")
+	box.free()
+	var room: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	room.build(MapManager.data("house"))
+	check(room.windows.is_empty(), "no lit windows inside the farmhouse (its own lamp light)")
 	room.free()
 
 

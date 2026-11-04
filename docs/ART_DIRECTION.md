@@ -65,8 +65,9 @@ Light and Farmhouse model hold the technical detail of what is built.
   only on the user's word.
 - **Resolution.** The game draws at 480 x 270 and scales up, so fine detail under about 1/16
   of a unit disappears; make shapes read at that size.
-- **Day / night** is still a multiply tint over the picture, not real lights; lanterns do not
-  light their surroundings yet.
+- **Day / night** is still a multiply tint over the picture (data/light.json), not real lights;
+  house windows glow warm over it at night (`NightLights`, a screen overlay that skips
+  windows behind solid buildings), but lanterns do not light their surroundings yet.
 
 ## Roadmap (in order; tick and add the commit as each lands)
 ### 1. Scenery to the farmhouse's bar
@@ -90,6 +91,9 @@ Light and Farmhouse model hold the technical detail of what is built.
 
 ### 3. Light and atmosphere
 - [ ] Night: real warm lights at lanterns, windows and the festival stalls, the tint lighter.
+      Done so far (FEEDBACK item 6): a darker deep blue night with a smooth dusk / dawn in
+      data/light.json, and the house windows and shoji doors glow warm (NightLights overlay).
+      Still open: light falling on the ground round lanterns and windows.
 - [ ] Morning and evening sun colour and angle following the clock.
 - [ ] Optional: a distant mountain backdrop and light haze far off.
 

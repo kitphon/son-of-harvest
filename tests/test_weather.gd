@@ -170,8 +170,64 @@ func _init() -> void:
 		check(gm.sun_shadow() == 0.0, "%s: no shadows" % w)
 	gm.free()
 
+	_night_light(game_script, fx)
+
 	print("test_weather: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
+
+
+## Day / night (data/light.json): plain daylight 7:00..16:00, a deep blue night that is still
+## readable, dusk and dawn without jumps, and house windows lit with the dark in their hours.
+func _night_light(game_script: GDScript, fx: Dictionary) -> void:
+	var light: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/light.json"))
+	var gm: Node = game_script.new()
+	gm.weather_fx = fx
+	var at := func(h: int, m: int) -> Color:
+		gm.hour = h
+		gm.minute = m
+		return gm.light_color()
+	for h in [7, 10, 12, 15, 16]:
+		check(at.call(h, 0) == Color.WHITE, "%d:00 is plain daylight" % h)
+	var night: Color = at.call(21, 0)
+	check(night.get_luminance() < 0.36 and night.get_luminance() > 0.2, "21:00 is dark but readable (luminance %.2f)" % night.get_luminance())
+	check(night.b > night.r + 0.2 and night.b > night.g + 0.2, "the night is blue %s" % night)
+	check(at.call(2, 0) == night and at.call(23, 30) == night, "the same night blue at 2:00 and 23:30")
+	var old_night := Color(0.42, 0.45, 0.72)   # the night before FEEDBACK item 6
+	check(night.get_luminance() < old_night.get_luminance() - 0.12, "night clearly darker than before (%.2f < %.2f)" % [night.get_luminance(), old_night.get_luminance()])
+	# Dusk 16:00 -> 20:30 only darkens, and smoothly (no step over 0.06 in 10 minutes); dawn 4:30 -> 7:00 only brightens.
+	var steps := {"dusk": [960, 1230, -1], "dawn": [270, 420, 1]}
+	for name in steps:
+		var s: Array = steps[name]
+		var prev: float = game_script.sky_at(s[0], light.sky).get_luminance()
+		var ok := true
+		var worst := 0.0
+		for m in range(s[0] + 10, s[1] + 1, 10):
+			var l: float = game_script.sky_at(m, light.sky).get_luminance()
+			worst = maxf(worst, absf(l - prev))
+			ok = ok and (l - prev) * s[2] >= -0.0001
+			prev = l
+		check(ok and worst < 0.06, "%s changes one way, smoothly (largest step %.3f)" % [name, worst])
+	var dusk: Color = at.call(18, 30)
+	check(dusk.get_luminance() < 0.75 and dusk.get_luminance() > night.get_luminance() + 0.15, "18:30 is dusk, between day and night (%.2f)" % dusk.get_luminance())
+	check(game_script.sky_at(600, []) == Color.WHITE, "no sky keys: plain white")
+	# Windows: dark by day, full at night, half lit at dusk, out after 0:30 until dawn.
+	var glow := func(h: int, m: int) -> float:
+		gm.hour = h
+		gm.minute = m
+		return gm.window_light()
+	check(glow.call(12, 0) == 0.0 and glow.call(16, 0) == 0.0, "no lit windows by day")
+	check(glow.call(21, 0) == 1.0 and glow.call(0, 10) == 1.0, "windows fully lit at 21:00 and 0:10")
+	var half: float = glow.call(18, 30)
+	check(half > 0.2 and half < 1.0, "windows coming on at 18:30 (%.2f)" % half)
+	check(glow.call(19, 0) >= half, "and brighter as it gets darker")
+	check(glow.call(2, 0) == 0.0, "windows out at 2:00 (the village sleeps)")
+	check(glow.call(5, 0) > 0.5 and glow.call(7, 30) == 0.0, "lit again before dawn, out by day")
+	gm.weather_today = "storm"
+	check(glow.call(12, 0) == 0.0, "a dark storm at noon lights no windows (outside their hours)")
+	check(game_script.window_glow(Color(0.3, 0.3, 0.3), 1200, {"hours": [[0, 1440]], "dark_from": 0.25, "dark_full": 0.6}) == 1.0
+		and game_script.window_glow(Color(0.9, 0.9, 0.9), 1200, {"hours": [[0, 1440]], "dark_from": 0.25, "dark_full": 0.6}) == 0.0,
+		"window_glow follows dark_from / dark_full")
+	gm.free()
 
 
 func check(ok: bool, what: String) -> void:

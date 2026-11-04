@@ -39,7 +39,8 @@ Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user star
 "แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our
 pixel font). [x] Item 2, a goal for week one: Tome's first-week
 list (data/goals.json, README → Goals, the HUD's goal tag). [x] Item 3, where love leads: marriage
-(data/marriage.json, README → Villagers → Marriage). Next: items 4 and 5; Thai for the villagers'
+(data/marriage.json, README → Villagers → Marriage). [x] Item 6, night: a deep blue night,
+smooth dusk / dawn and lit house windows (data/light.json, README → Light). Next: items 4 and 5; Thai for the villagers'
 daily talk, heart events and contests is still to write (data/lang/th/dialogue.json).
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
@@ -255,6 +256,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] HUD, 2D view, 3D view with the HM field camera (yaw 45°, pitch 26.6°, FOV 13.7°)
    - [x] The 3D view never looks off the world (land and a pine wood past outdoor map edges) and buildings / trees in front of the farmer turn see-through (playtest feedback, 2026-11-03)
    - [x] Key hints over the tool bar: what E / Space do at the spot in front, with the player's keys; Esc → Settings → Key hints (playtest feedback, 2026-11-03)
+   - [x] Night (docs/FEEDBACK.md item 6): a darker deep blue night, smooth dusk and dawn (data/light.json), farmhouse and village house windows lit warm at night in the 3D view (NightLights)
    - [x] Clock pauses in menus (`Game.pause()` / `unpause()`)
    - [x] Clock pauses indoors (`Game.ticking()` is false on a map with `indoor: true`)
    - [x] A new area off the village: the bamboo hill (`hill`, bamboo clumps, a lookout shrine, examine events)

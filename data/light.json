@@ -1,0 +1,26 @@
+{
+	"_sky": "Day / night light: [minute of the day, colour], linear in between, multiplied over the outdoor picture (then times the weather tint). 7:00..16:00 is plain daylight; dusk runs warm (17:30) through mauve (18:30) to the night blue by 20:30, and dawn back from 4:30 to 7:00. The night blue is dark but keeps the farmer, the paths and the houses readable.",
+	"sky": [
+		[0, "404c8e"],
+		[270, "404c8e"],
+		[330, "7a74a4"],
+		[390, "e8cdbd"],
+		[420, "ffffff"],
+		[960, "ffffff"],
+		[1050, "ffd4a8"],
+		[1110, "b88e9c"],
+		[1170, "625f9a"],
+		[1230, "404c8e"],
+		[1440, "404c8e"]
+	],
+	"_windows": "Lit windows of the farmhouse and the village houses (3D view, drawn over the night tint). They glow with the dark: none while 1 - luminance of the light is under dark_from, full from dark_full. They are lit only in the hours listed ([from, to) minutes): from the afternoon to half past midnight and again at dawn. pane = how strongly the paper pane is lit, halo = the soft glow round it, halo_size = its width in window widths.",
+	"windows": {
+		"color": "ffb25c",
+		"dark_from": 0.25,
+		"dark_full": 0.6,
+		"hours": [[0, 30], [300, 450], [960, 1440]],
+		"pane": 0.85,
+		"halo": 0.35,
+		"halo_size": 2.4
+	}
+}

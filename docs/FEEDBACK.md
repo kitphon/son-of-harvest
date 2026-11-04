@@ -25,9 +25,6 @@ data/festivals.json; look at what they did before tuning.
 One fish makes a dish that sells for 80 G (WORKLOG already warns about it). Check it against
 the fish's own price in data/recipes.json.
 
-### 6. Night is too bright, no lit windows (21–30)
-Night barely darkens the field, and house windows never light up.
-
 ### 7. Small things (21–30)
 - The barn floor has yellow lumps that don't fit the scene.
 - The title screen's text sits on the rice-field picture and is hard to read.
@@ -43,7 +40,7 @@ reproduce; if it is real, fix it, else make the load safe against a half-written
 1. ~~Item 1 (Thai text): keeps the 15–20 players.~~ Fixed.
 2. ~~Items 2 and 3 (week-one goal, where love leads).~~ Fixed.
 3. Items 4 and 5 (mine winter income, grilled fish price).
-4. Item 6 (night), then 7 and 8.
+4. ~~Item 6 (night)~~ Fixed; then 7 and 8.
 
 ## Fixed
 - Item 1, everything in English: Esc → Settings → Language: English / ไทย. Thai tables in
@@ -63,6 +60,12 @@ reproduce; if it is real, fix it, else make the load safe against a half-written
   one) and with the second room built; anyone not ready says why and the knot stays in hand.
   The wedding is at the shrine three days later, then the spouse lives at the farmhouse and
   has married lines; Tome mentions the knot on Fridays. data/marriage.json. Commit be3a2bb.
+- Night was too bright and no window lit up (item 6): the night is a deep blue (luminance
+  0.31, was 0.46) that still shows the farmer and the paths, with a smooth dusk (warm 17:30,
+  mauve 18:30, night by 20:30) and dawn (4:30 to 7:00); the farmhouse's and the village
+  houses' windows and shoji doors glow warm from dusk to 0:30 and before dawn (3D view;
+  the flat view only gets the darker night). data/light.json. Commit: this commit (see
+  WORKLOG 2026-11-04 "Night").
 - Roofs in front of the farmer hid the screen (village, festival square, snow): buildings,
   trees and the torii turn see-through when they stand between the camera and the farmer.
   Commit 67cbaed.

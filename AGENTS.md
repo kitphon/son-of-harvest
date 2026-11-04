@@ -39,13 +39,13 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   must print `test_farm: OK (0 failed)`. Save / load: same with `res://tests/test_save.gd`
   must print `test_save: OK (0 failed)`. Title menu / new game: same with
   `res://tests/test_title.gd` must print `test_title: OK (0 failed)`. Weather (snow cover,
-  lightning): `res://tests/test_weather.gd` must print `test_weather: OK (0 failed)`.
+  lightning, the day / night light of data/light.json, when windows light up): `res://tests/test_weather.gd` must print `test_weather: OK (0 failed)`.
   Dialogue (runner, data, text box layout): `res://tests/test_dialogue.gd` must print
   `test_dialogue: OK (0 failed)`. Pause menu / settings (language and the Thai tables, display, text speed, HUD, key hints, reset) / key and pad remapping: `res://tests/test_menu.gd` must print
   `test_menu: OK (0 failed)`. Fatigue (tired states, oversleeping, collapse, waking in the clinic and the doctor's fee):
   `res://tests/test_body.gd` must print `test_body: OK (0 failed)`. Events (runner, trigger
   tables, event data): `res://tests/test_events.gd` must print `test_events: OK (0 failed)`.
-  Maps (data/maps, doors, indoor clock, story props gated by flags, the fade in the real view, the land past outdoor edges, buildings turning see-through in front of the farmer): `res://tests/test_maps.gd`
+  Maps (data/maps, doors, indoor clock, story props gated by flags, the fade in the real view, the land past outdoor edges, buildings turning see-through in front of the farmer, the houses' lit windows at night): `res://tests/test_maps.gd`
   must print `test_maps: OK (0 failed)`. Rucksack / storage (inventory slots, move rules, menu
   cursor, chest): `res://tests/test_inventory.gd` must print `test_inventory: OK (0 failed)`.
   Food and drink (eating, specials, the stand, the food slot, the eat / drink pose): `res://tests/test_food.gd` must
