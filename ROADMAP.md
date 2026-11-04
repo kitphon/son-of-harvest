@@ -40,7 +40,9 @@ Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user star
 pixel font). [x] Item 2, a goal for week one: Tome's first-week
 list (data/goals.json, README → Goals, the HUD's goal tag). [x] Item 3, where love leads: marriage
 (data/marriage.json, README → Villagers → Marriage). [x] Item 5: dish prices a modest gain over the cheapest ingredients (data/foods.json `_dish_prices`). [x] Item 4: winter mine income about halved (data/mine.json `_prices`). [x] Item 6, night: a deep blue night,
-smooth dusk / dawn and lit house windows (data/light.json, README → Light). Next: items 7 and 8; Thai for the villagers'
+smooth dusk / dawn and lit house windows (data/light.json, README → Light). [x] Item 7: the barn's hay and straw,
+the title text's backing. [x] Item 8: the title's save check (it lacked the food table) and
+atomic saves with a backup. No feedback items are open now; Thai for the villagers'
 daily talk, heart events and contests is still to write (data/lang/th/dialogue.json).
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel

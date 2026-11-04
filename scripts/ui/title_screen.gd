@@ -15,6 +15,11 @@ var menu: TitleMenu
 var _rows: Array[Label] = []
 var _mark: Label
 var _note: Label
+var _note_box: NinePatchRect
+
+const NOTE_H := 18
+const NOTE_PAD := 7
+const WASH := Color(0.965, 0.918, 0.816, 0.6)   # the paper colour, a little see-through
 
 
 func _ready() -> void:
@@ -31,6 +36,9 @@ func _ready() -> void:
 
 	var title_w := PixelFont.width(TITLE) * TITLE_SCALE
 	var title_pos := Vector2i((PlaceholderArt.TITLE_SIZE.x - title_w) / 2, 34)
+	# A soft paper wash behind the name and its brush stroke: the sky and hills still show
+	# through, but the letters no longer sit straight on the picture (FEEDBACK item 7).
+	_wash(Rect2i(title_pos.x - 10, title_pos.y - 6, title_w + 20, 42))
 	var shadow := _label(self, title_pos + Vector2i(TITLE_SCALE, TITLE_SCALE), Color("f6ead0"))
 	shadow.text = TITLE
 	shadow.scale = Vector2.ONE * TITLE_SCALE
@@ -55,10 +63,14 @@ func _ready() -> void:
 		_rows.append(row)
 	_mark = _label(box, Vector2i(9, 5), PlaceholderArt.UI_SEAL)
 	_mark.text = ">"
-	_note = _label(self, Vector2i(0, MENU.end.y + 8), Hud.INK_SOFT)
-	_note.visible = false
+	# The note under the menu sits on the rice rows, so it gets its own paper strip.
+	_note_box = _box(Rect2i(0, MENU.end.y + 4, 16, NOTE_H))
+	_note_box.visible = false
+	_note = _label(_note_box, Vector2i(NOTE_PAD, 4), Hud.INK)
 	if menu.why_no_continue != "" and FileAccess.file_exists(SaveGame.SLOT):
 		_say("The saved game can't be loaded: " + menu.why_no_continue)
+	elif menu.enabled.continue and SaveGame.backup_note() != "":
+		_say(SaveGame.backup_note())
 	_refresh()
 
 
@@ -71,6 +83,20 @@ func _label(parent: Control, pos: Vector2i, color := Hud.INK) -> Label:
 	l.add_theme_color_override("font_color", color)
 	parent.add_child(l)
 	return l
+
+
+## A see-through paper panel with soft corners, behind text laid over the picture.
+func _wash(r: Rect2i) -> Panel:
+	var p := Panel.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = WASH
+	style.set_corner_radius_all(4)
+	p.add_theme_stylebox_override("panel", style)
+	p.position = r.position
+	p.size = r.size
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(p)
+	return p
 
 
 func _box(r: Rect2i) -> NinePatchRect:
@@ -138,8 +164,10 @@ func _do(item: String) -> void:
 
 func _say(text: String) -> void:
 	_note.text = text
-	_note.position.x = (PlaceholderArt.TITLE_SIZE.x - PixelFont.shown_width(text)) / 2
-	_note.visible = true
+	var w := PixelFont.shown_width(text) + NOTE_PAD * 2
+	_note_box.size = Vector2(w, NOTE_H)
+	_note_box.position.x = (PlaceholderArt.TITLE_SIZE.x - w) / 2
+	_note_box.visible = true
 	_refresh()
 
 

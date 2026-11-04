@@ -35,7 +35,7 @@ static func _make(key: String) -> Image:
 			return _item(parts[1])
 		"animal":   # animal:<chicken|chick|cow|calf|sheep|sheep_shorn|lamb|dog>:<idle|peck|walk|sick, dog: sit|held>:<frame>, side view facing left
 			return _animal(parts[1], parts[2], int(parts[3]))
-		"build":    # build:<plaster|board|kawara|kawara_edge|thatch|kaya|kaya_edge|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
+		"build":    # build:<plaster|board|kawara|kawara_edge|thatch|kaya|kaya_edge|hay|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
 		"ground":   # ground:<grass|tilled|wet|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>
 			return _ground(parts[1], int(parts[2]))
@@ -1437,12 +1437,14 @@ static func _ground(kind: String, n: int) -> Image:
 				_px(img, x, y, 1, 1, Color("7a6a54"))
 				_px(img, x + 1, y, 1, 1, Color("a0907a") if i % 2 == 0 else Color("6e604c"))
 		"straw":
-			# Rice straw spread on the coop's earth floor: pale gold stalks lying every way.
-			img.fill(Color("8c7a62"))
-			for i in 22:
+			# Rice straw spread on the coop's and barn's earth floor: a worn mat of dull gold
+			# stalks lying every way, close in tone to the earth so it reads as bedding (bright
+			# lone stalks looked like yellow lumps on the floor).
+			img.fill(Color("8e7c5c"))
+			for i in 30:
 				var x := rng.randi_range(0, 13)
 				var y := rng.randi_range(0, 15)
-				var c := Color("d8bc78") if i % 3 else Color("b89a5a")
+				var c: Color = [Color("a8925e"), Color("b8a06a"), Color("9a8656")][i % 3]
 				if i % 2 == 0:
 					_px(img, x, y, 3, 1, c)
 				else:
@@ -1612,6 +1614,20 @@ static func _building(kind: String) -> Image:
 				_px(img, x, 14 + (1 if x % 3 == 0 else 0), 1, 1, Color("6a5a3c"))
 			for i in 4:
 				_px(img, rng.randi_range(0, 14), rng.randi_range(0, 13), 2, 1, Color("6a7444"))
+			return img
+		"hay":
+			# Dried grass fodder (the barn's bundles and the hay in the trough): muted olive
+			# gold, short strands lying mostly one way in lighter and darker tones, a few dark
+			# gaps between them, so a bundle reads as packed grass and not a solid block.
+			var img := _blank(16, 16)
+			img.fill(Color("a08a52"))
+			for i in 40:
+				var x := rng.randi_range(0, 15)
+				var y := rng.randi_range(0, 15)
+				var c: Color = [Color("8a7444"), Color("b49c62"), Color("c2aa6e"), Color("7a663c")][i % 4]
+				_px(img, x, y, rng.randi_range(2, 4), 1, c)
+			for i in 10:
+				_px(img, rng.randi_range(0, 15), rng.randi_range(0, 15), 1, 1, Color("5e5030"))
 			return img
 		"kaya_edge":
 			# The thatch's trimmed eave edge, half a unit deep: the cut ends of the straw in tight

@@ -5,7 +5,6 @@ extends RefCounted
 ## the animals and the fodder in the trough are AnimalLayer's.
 
 const TIMBER := Color("2e221a")
-const HAY := Color("c8b060")
 
 
 ## A cow shed in the satoyama way: dark cedar boards on a plastered band and a stone-grey
@@ -83,9 +82,10 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, r: Rect2) -> void:
 				for y in [0.4, 0.8]:
 					w._box(Vector3(0.06, 0.08, 0.95), c + Vector3(0, y, 0), FarmWorld.surface_material("build:planks"))
 		"hay":
-			# Bundles of hay fodder stacked two high, tied with rope.
-			var hay := FarmWorld.flat_material(HAY)
-			var rope := FarmWorld.flat_material(Color("8a6a38"))
+			# Bundles of hay fodder stacked two high, tied with rope. Lit and textured with
+			# grass strands (a flat colour read as plain yellow lumps).
+			var hay := FarmWorld.surface_material("build:hay")
+			var rope := FarmWorld.surface_material("build:planks_dark")
 			for k in int(r.size.x) * 2:
 				var at := Vector3(r.position.x + 0.5 * k + 0.25, 0, mid.z)
 				w._box(Vector3(0.46, 0.34, 0.7), at + Vector3(0, 0.17, 0), hay)

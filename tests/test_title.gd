@@ -133,8 +133,9 @@ func _put(text: String) -> void:
 
 
 func _remove() -> void:
-	if FileAccess.file_exists(PATH):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
+	for p in [PATH, PATH + SaveGame.BACKUP, PATH + SaveGame.TEMP]:
+		if FileAccess.file_exists(p):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
 
 
 func check(ok: bool, what: String) -> void:

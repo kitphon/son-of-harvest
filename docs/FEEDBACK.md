@@ -14,28 +14,19 @@ commit hash.
 
 ## Open
 
-### 7. Small things (21–30)
-- The barn floor has yellow lumps that don't fit the scene.
-- The title screen's text sits on the rice-field picture and is hard to read.
-
-### 8. Not confirmed: "Saved food is broken" on the title
-The title once said "The saved game can't be loaded: Saved food is broken" and greyed out
-Continue. save1.json had just been rewritten (20:17) while another Godot was running; its
-`food` was `milk`, a real food, so it was most likely read mid-write. Not reproduced. Try to
-reproduce; if it is real, fix it, else make the load safe against a half-written file
-(write to a temp file and rename).
+None right now.
 
 ## Order to fix
 1. ~~Item 1 (Thai text): keeps the 15–20 players.~~ Fixed.
 2. ~~Items 2 and 3 (week-one goal, where love leads).~~ Fixed.
 3. ~~Items 4 and 5 (mine winter income, grilled fish price).~~ Fixed.
-4. ~~Item 6 (night)~~ Fixed; then 7 and 8.
+4. ~~Item 6 (night), then 7 and 8.~~ Fixed.
 
 ## Fixed
 - Winter mining beat the whole farm (item 4): deep finds about halved again (data/mine.json
   `_prices`: hoshigane 110, jade 85, kogane 30 ...) and floors 13+ hide nothing half the time;
   the First Stone rivals scaled with them. Year bot, year 1 winter mine 73160 → 38378 G, the
-  year's mine 88150 → 47558 G against 158118 G from the farm. Commit: this commit (WORKLOG
+  year's mine 88150 → 47558 G against 158118 G from the farm. Commit 31b6d7f (WORKLOG
   2026-11-04, Winter mine income halved again).
 - Grilled fish was a shortcut (item 5): one 18 G fish made an 80 G dish. A dish now sells
   for about a third more than its cheapest ingredients (data/foods.json `_dish_prices`):
@@ -64,7 +55,7 @@ reproduce; if it is real, fix it, else make the load safe against a half-written
   0.31, was 0.46) that still shows the farmer and the paths, with a smooth dusk (warm 17:30,
   mauve 18:30, night by 20:30) and dawn (4:30 to 7:00); the farmhouse's and the village
   houses' windows and shoji doors glow warm from dusk to 0:30 and before dawn (3D view;
-  the flat view only gets the darker night). data/light.json. Commit: this commit (see
+  the flat view only gets the darker night). data/light.json. Commit 3365ff1 (see
   WORKLOG 2026-11-04 "Night").
 - Roofs in front of the farmer hid the screen (village, festival square, snow): buildings,
   trees and the torii turn see-through when they stand between the camera and the farmer.
@@ -74,6 +65,20 @@ reproduce; if it is real, fix it, else make the load safe against a half-written
 - No on-screen key hints (keys were only in the README): the HUD says what E / Space do at
   the spot in front, with the player's own keys; Settings → Key hints turns it off.
   Commit 7ca5b91.
+
+- Small things (item 7): the barn's yellow lumps were the hay bundles and the hay in the
+  trough, drawn in one flat unlit yellow; they are now lit and textured with grass strands
+  (`build:hay`), and the straw bedding on the floor is a duller, denser mat close to the
+  earth's tone. The title's name sits on a see-through paper wash and the note under the menu
+  on its own paper strip, so both read over the rice field. Commit 10b0184.
+- "Saved food is broken" on the title (item 8): reproduced, and not a half-written file. The
+  title checks the save by loading it into a scratch game that had only the crop table, so
+  every save holding a food (`milk` in the playtest's save) failed and Continue went grey.
+  The scratch game now gets all of Game's data tables (`Game.DATA_TABLES`). Saving is also
+  made safe against being read mid-write: it writes `save1.json.tmp`, checks it, keeps the
+  good save it replaces as `save1.json.bak`, then renames the temp over the slot; a slot that
+  is cut off or missing loads the backup (the title says so), and with no backup says "The
+  save file is cut off or broken" without touching the game. Commit 34393ea.
 
 ## What the players liked (keep it)
 - 15–20: the pixel sprites on the 3D field look good and match everywhere; the Japanese

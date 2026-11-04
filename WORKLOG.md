@@ -10,6 +10,61 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-04 — Feedback items 4-8 merged into main
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged the three branches made in parallel by subagents: mine / dish balance (c336ef1,
+  31b6d7f), night and lit windows (3365ff1), barn hay, title backing and safe saves (10b0184,
+  34393ea). Conflicts only in WORKLOG / ROADMAP / FEEDBACK (both texts kept); the commit
+  hashes filled in under FEEDBACK → Fixed. No feedback items are open now.
+- Checked: on the merged tree all 26 test scripts `OK (0 failed)`; smoke runs (title, --demo,
+  --demo --map=town, --demo --mine=3, --demo --time=21:00) print 0 error or warning lines.
+- Left / next: the year bot and test_body / test_maps write the shared user://save1.json, so
+  parallel Godot runs from worktrees can clobber the player's save (seen once, the file stayed
+  whole). Thai for the new goal notes, marriage lines and daily talk is still to write.
+
+## 2026-11-04 — "Saved food is broken": the title's check, atomic saves, a backup (FEEDBACK item 8)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: reproduced: the user's own save1.json (a complete file, `food` = `milk`) made the title
+  say "The saved game can't be loaded: Saved food is broken". Cause: `SaveGame.check` loaded
+  the file into a scratch Game that only had `crops`, so `foods` was empty and any saved food
+  failed (the tests' games had no food table either, so they passed). The scratch game now gets
+  every data table (`Game.DATA_TABLES`: crops, weather, tools, snow, body, foods, hold, fish,
+  mine). Saving is made atomic as asked: `SaveGame.write` writes `<slot>.tmp`, reads it back,
+  copies the slot it replaces to `<slot>.bak` when that slot is a good save, then renames the
+  temp over the slot. Loading uses the backup when the slot is missing or cut off (never for a
+  newer-version slot); the title then says "The last save is cut off; Continue loads the one
+  before it" (`SaveGame.backup_note`). With no backup a cut file says "The save file is cut off
+  or broken" and nothing changes. `SaveGame.snapshot` / `restore` keep the slot, backup and
+  temp; test_body and test_maps (which sleep and so write the real slot) use them.
+- Checked: test_save: the title's check passes a save holding milk (failed before the fix); the
+  atomic write (no temp left, backup = the replaced save, a stray temp ignored and cleared);
+  a slot cut in half loads the backup with the note; saving over a broken slot keeps the good
+  backup; cut at 0, 1, 10, 1000 and length-1 with no backup: refused, game unchanged; a
+  missing slot loads the backup; a newer slot is not swapped. The title frame with the user's
+  real save now has Continue on and the cursor on it (it was off with the message). test_body
+  and test_maps leave the real save1.json byte for byte (md5 the same before and after). All
+  26 test scripts `OK (0 failed)`; the four smoke runs print no error or warning lines.
+- Left / next: two Godots saving the same slot at once still race (last rename wins, the file
+  is always whole). The real save1.json changed at 21:18 during this work (now with a `goals`
+  key) from outside this worktree's tests; it is a whole, valid save.
+
+## 2026-11-04 — Barn hay and the title's text backing (FEEDBACK item 7)
+Agent: Claude Code (claude-opus-5-5) · Commit: 10b0184
+- Done: the barn's "yellow lumps" were the hay bundles (barn_props.gd "hay") and the hay mounds
+  in the trough (animal_layer.gd), both one flat unlit yellow (c8b060). They now use a lit
+  material with a new `build:hay` texture (muted olive-gold grass strands, dark gaps), the
+  bundles' rope bands `build:planks_dark`. The floor's `ground:straw` (coop and barn) is a
+  denser, duller mat (30 stalks in three tones near the earth's, was 22 bright d8bc78 ones).
+  Title screen: a paper-coloured wash (alpha 0.6, soft corners) behind the name and its
+  vermilion stroke, and the note under the menu ("The saved game can't be loaded: ...") in its
+  own paper frame sized to the text, instead of bare ink on the rice rows.
+- Checked: frames of `--demo --map=barn` (and a spawn by the hay, added for the shot only):
+  before, a flat yellow block in the lower right and bright straw flecks; after, stacked
+  bundles with strands and shading, the bedding reads as straw. Title frame 39: the name and
+  the note both readable, sky, hills and paddies still showing. All 26 test scripts
+  `OK (0 failed)`; the four smoke runs print no error or warning lines.
+- Left / next: the hay colour is our pick; real art may replace `build:hay`.
+
 ## 2026-11-04 — Night: a deep blue night and lit windows (FEEDBACK item 6)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the day / night table moved from game.gd to data/light.json "sky" (`Game.sky_at`,

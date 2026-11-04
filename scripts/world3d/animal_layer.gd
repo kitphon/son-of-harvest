@@ -124,7 +124,8 @@ func _eggs_and_feed(home: String) -> void:
 			add_child(e)
 	if box.has_area():
 		var barn := home != "coop"
-		var feed := FarmWorld.flat_material(Color("c8b060") if barn else Color("c8a050"))
+		# Hay in the barn's trough is lit and has strands like the bundles, not a flat yellow.
+		var feed := FarmWorld.surface_material("build:hay") if barn else FarmWorld.flat_material(Color("c8a050"))
 		var places := maxi(int(a.home_rule(home).get("capacity", 6)), 1)
 		var step := (box.size.x - 0.3) / places
 		for i in mini(int(a.state[home].box), places):

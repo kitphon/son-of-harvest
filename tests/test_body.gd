@@ -8,8 +8,7 @@ var failures := 0
 
 
 func _init() -> void:
-	var had_save := FileAccess.file_exists(SAVE_PATH)
-	var old_save := FileAccess.get_file_as_string(SAVE_PATH) if had_save else ""
+	var keep_save := SaveGame.snapshot(SAVE_PATH)   # the slot, its backup and temp file
 	var body: Dictionary = _json("res://data/body.json")
 	var g := _game()
 
@@ -159,12 +158,7 @@ func _init() -> void:
 		check(body.has(key), "body.json has %s" % key)
 
 	g.free()
-	if had_save:
-		var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
-		f.store_string(old_save)
-		f.close()
-	elif FileAccess.file_exists(SAVE_PATH):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+	SaveGame.restore(keep_save)
 	print("test_body: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 
