@@ -62,7 +62,18 @@ func _init() -> void:
 	a.first_day = {"values": {"shipped_value": 0, "recipes_known": 4}, "field": {"debris": 88, "tilled": 0, "money": 500}}
 	a.year_pages = {2: {"year": 2, "values": {"mine_deepest": 5, "fish_kinds": 1}, "field": {"debris": 40, "money": 900}, "stars": 3, "rank": 0}}
 	var saved: Dictionary = a.to_dict()
+	_clear(PATH)   # no backup left from an earlier run (it would stand in for the broken files below)
 	check(SaveGame.write(a, PATH) == "", "write save")
+	check(not FileAccess.file_exists(PATH + SaveGame.TEMP), "no temp file left after saving")
+	check(not FileAccess.file_exists(PATH + SaveGame.BACKUP), "the first save has no backup")
+	# The title's check loads into a scratch game with the real data: a save holding a food
+	# (milk, as in the save the playtest's title refused) passes.
+	a.food_index = a.foods.keys().find("milk")
+	check(SaveGame.write(a, PATH) == "", "write a save holding milk")
+	check(SaveGame.check(a, PATH) == "", "the title's check passes a save holding milk (%s)" % SaveGame.check(a, PATH))
+	a.food_index = 3
+	check(SaveGame.write(a, PATH) == "", "write save again")
+	_remove_backup(PATH)
 
 	# Load into a different new game; the same FarmGrid object is filled in place.
 	var b: Node = _game(game_script, crops, 99)
@@ -245,7 +256,9 @@ func _init() -> void:
 	var back := Ending.compare(b.ending_record(), b.first_day, {}, b.field_counts())
 	check(Ending.then_text(back.field[0]) == "-" and Ending.then_text(back.field.back()) == "500 G", "the field not kept shows a dash")
 
-	DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
+	_atomic(a, b)
+
+	_clear(PATH)
 	a.free()
 	b.free()
 	print("test_save: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
@@ -262,6 +275,80 @@ func _game(game_script: GDScript, crops: Dictionary, seed_value: int) -> Node:
 	g.farm = FarmGrid.new(crops)
 	g.farm.generate(g.rng)
 	return g
+
+
+## Saving goes through a temp file renamed over the slot, keeps the good save it replaces as
+## a backup, and loading copes with a slot that is cut off (read mid-write) or missing.
+func _atomic(a: Node, b: Node) -> void:
+	const P := "user://test_save_atomic.json"
+	_clear(P)
+	a.money = 1111
+	check(SaveGame.write(a, P) == "", "atomic: first save")
+	var first := FileAccess.get_file_as_string(P)
+	check(not FileAccess.file_exists(P + SaveGame.TEMP) and not FileAccess.file_exists(P + SaveGame.BACKUP), "atomic: one file, no temp, no backup")
+	a.money = 2222
+	check(SaveGame.write(a, P) == "", "atomic: second save")
+	var second := FileAccess.get_file_as_string(P)
+	check(FileAccess.get_file_as_string(P + SaveGame.BACKUP) == first, "atomic: the save it replaced is the backup")
+	check(second != first and JSON.parse_string(second).game.money == 2222, "atomic: the slot holds the new save")
+	check(not FileAccess.file_exists(P + SaveGame.TEMP), "atomic: the temp file was renamed away")
+	check(SaveGame.backup_note(P) == "", "atomic: no note while the slot is good")
+
+	# A temp file left by a save that died half-way changes nothing; the next save replaces it.
+	_put_at(P + SaveGame.TEMP, second.substr(0, 100))
+	check(SaveGame.read(b, P) == "" and b.money == 2222, "atomic: a stray temp file is ignored")
+	check(SaveGame.write(a, P) == "" and not FileAccess.file_exists(P + SaveGame.TEMP), "atomic: the next save clears the stray temp")
+
+	# The slot cut off half-way (as a reader sees a file mid-write): Continue loads the backup.
+	_put_at(P, second.substr(0, second.length() / 2))
+	b.money = 5
+	check(SaveGame.check(b, P) == "", "truncated: the check passes on the backup (%s)" % SaveGame.check(b, P))
+	check(SaveGame.read(b, P) == "" and b.money == 2222, "truncated: loads the backup (%d)" % b.money)
+	check(SaveGame.backup_note(P).contains("cut off"), "truncated: the title says the backup is used (%s)" % SaveGame.backup_note(P))
+	# The next save over a broken slot keeps the good backup rather than the broken file.
+	a.money = 3333
+	check(SaveGame.write(a, P) == "", "truncated: saving over it works")
+	check(JSON.parse_string(FileAccess.get_file_as_string(P + SaveGame.BACKUP)).game.money == 2222, "truncated: the good backup is kept")
+
+	# Cut off with no backup: a clear message, no crash, the game unchanged.
+	_remove_backup(P)
+	_put_at(P, second.substr(0, second.length() / 3))
+	var before: Dictionary = b.to_dict()
+	var err := SaveGame.read(b, P)
+	check(err == "The save file is cut off or broken", "truncated, no backup: says so (%s)" % err)
+	check(SaveGame.check(b, P) == err and b.to_dict() == before, "truncated, no backup: check agrees, game unchanged")
+	check(SaveGame.backup_note(P) == "", "truncated, no backup: no backup note")
+	for cut in [0, 1, 10, 1000, second.length() - 1]:
+		_put_at(P, second.substr(0, cut))
+		check(SaveGame.read(b, P) != "" and b.to_dict() == before, "truncated at %d: refused, game unchanged" % cut)
+
+	# The slot gone (a crash between keeping the backup and the rename): the backup loads.
+	_put_at(P + SaveGame.BACKUP, first)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(P))
+	check(SaveGame.read(b, P) == "" and b.money == 1111, "missing slot: loads the backup")
+	check(SaveGame.backup_note(P).contains("missing"), "missing slot: the title says so")
+
+	# A save from a newer version is never swapped for the backup.
+	_put_at(P, JSON.stringify({"version": SaveGame.VERSION + 1, "game": {}}))
+	check(SaveGame.read(b, P).contains("newer version"), "newer slot: refused, no fallback")
+	_clear(P)
+
+
+func _clear(path: String) -> void:
+	for p in [path, path + SaveGame.BACKUP, path + SaveGame.TEMP]:
+		if FileAccess.file_exists(p):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
+
+
+func _remove_backup(path: String) -> void:
+	if FileAccess.file_exists(path + SaveGame.BACKUP):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path + SaveGame.BACKUP))
+
+
+func _put_at(path: String, text: String) -> void:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	file.store_string(text)
+	file.close()
 
 
 func _put(text: String) -> void:

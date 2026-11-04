@@ -876,5 +876,5 @@ func _marriage_in_game() -> void:
 	var h := _game()
 	check(Marriage.spouse(h.flags) == "", "a new game is single")
 	check(SaveGame.read(h, path) == "" and Marriage.spouse(h.flags) == "sayo" and EventRunner.is_set(h.flags, "married_sayo"), "married after loading")
-	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	SaveGame.restore({path: null, path + SaveGame.BACKUP: null, path + SaveGame.TEMP: null})
 	h.new_game()

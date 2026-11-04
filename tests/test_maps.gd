@@ -752,7 +752,7 @@ func _game_maps() -> void:
 func _bed_and_doors() -> void:
 	var g: Node = root.get_node("Game")
 	var actions: GDScript = load("res://scripts/farm_actions.gd")
-	var keep_save := FileAccess.get_file_as_string(SaveGame.SLOT) if FileAccess.file_exists(SaveGame.SLOT) else ""
+	var keep_save := SaveGame.snapshot()   # the slot, its backup and temp file
 	g.new_game()
 	actions.interact(Vector2i(4, 3))
 	check(g.maps.id == "house" and g.maps.facing == Vector2i.UP, "using the farm house door goes in")
@@ -766,12 +766,7 @@ func _bed_and_doors() -> void:
 	actions.on_action("enter", Vector2i(4, 5), Vector2i.DOWN)
 	check(g.maps.id == "farm", "walking into the house door goes out")
 	# Sleeping wrote the real save slot: put it back.
-	if keep_save != "":
-		var f := FileAccess.open(SaveGame.SLOT, FileAccess.WRITE)
-		f.store_string(keep_save)
-		f.close()
-	else:
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(SaveGame.SLOT))
+	SaveGame.restore(keep_save)
 	g.new_game()
 
 

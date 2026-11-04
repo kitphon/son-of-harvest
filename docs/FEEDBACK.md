@@ -28,18 +28,11 @@ the fish's own price in data/recipes.json.
 ### 6. Night is too bright, no lit windows (21–30)
 Night barely darkens the field, and house windows never light up.
 
-### 8. Not confirmed: "Saved food is broken" on the title
-The title once said "The saved game can't be loaded: Saved food is broken" and greyed out
-Continue. save1.json had just been rewritten (20:17) while another Godot was running; its
-`food` was `milk`, a real food, so it was most likely read mid-write. Not reproduced. Try to
-reproduce; if it is real, fix it, else make the load safe against a half-written file
-(write to a temp file and rename).
-
 ## Order to fix
 1. ~~Item 1 (Thai text): keeps the 15–20 players.~~ Fixed.
 2. ~~Items 2 and 3 (week-one goal, where love leads).~~ Fixed.
 3. Items 4 and 5 (mine winter income, grilled fish price).
-4. Item 6 (night), then 7 and 8.
+4. Item 6 (night), then ~~7 and 8~~ (fixed).
 
 ## Fixed
 - Item 1, everything in English: Esc → Settings → Language: English / ไทย. Thai tables in
@@ -72,7 +65,15 @@ reproduce; if it is real, fix it, else make the load safe against a half-written
   trough, drawn in one flat unlit yellow; they are now lit and textured with grass strands
   (`build:hay`), and the straw bedding on the floor is a duller, denser mat close to the
   earth's tone. The title's name sits on a see-through paper wash and the note under the menu
-  on its own paper strip, so both read over the rice field. Commit: item 7's commit (see WORKLOG).
+  on its own paper strip, so both read over the rice field. Commit 10b0184.
+- "Saved food is broken" on the title (item 8): reproduced, and not a half-written file. The
+  title checks the save by loading it into a scratch game that had only the crop table, so
+  every save holding a food (`milk` in the playtest's save) failed and Continue went grey.
+  The scratch game now gets all of Game's data tables (`Game.DATA_TABLES`). Saving is also
+  made safe against being read mid-write: it writes `save1.json.tmp`, checks it, keeps the
+  good save it replaces as `save1.json.bak`, then renames the temp over the slot; a slot that
+  is cut off or missing loads the backup (the title says so), and with no backup says "The
+  save file is cut off or broken" without touching the game. Commit: item 8's commit (see WORKLOG).
 
 ## What the players liked (keep it)
 - 15–20: the pixel sprites on the 3D field look good and match everywhere; the Japanese

@@ -112,6 +112,9 @@ var forage_picked: Dictionary = {}   # map id -> {cell: true}, the wild spots pi
 var first_day: Dictionary = {"values": {}, "field": {}}   # {values, field} measured when the run began (the record's look back)
 var year_pages: Dictionary = {}    # year -> the village record's page written that New Year (Ending.page_of)
 
+## The data tables loaded in _ready (not saved). SaveGame.check gives a scratch Game these.
+const DATA_TABLES := ["crops", "weather_chances", "weather_fx", "tools_data", "snow_rules", "body",
+	"food_data", "foods", "hold_rules", "fish_data", "mine_data"]
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
 var weather_fx: Dictionary = {}    # look per weather: tint, falling particles, lightning
