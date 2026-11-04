@@ -5,14 +5,13 @@ extends FarmWorld
 ## placeholder surfaces as the farm buildings. Same units as FarmWorld: 1 unit = 1 cell.
 ##
 ## Indoors the camera looks in from +x / +z (the same fixed field camera), so only the back
-## walls (top row, left column) stand full height; the front ones are cut down to a sill.
+## walls (top row, left column) stand full height; the front ones are cut down to a sill
+## (RoomWalls builds them, and the step edges of the raised floors).
 ##
 ## Outdoors snow lies as on the farm (SnowLayer: the ground by tile kind, snow tops on the
 ## roofs, the shrine, the lantern caps and the rock); under a roof (rooms, the mine floors)
 ## there is none, whatever Game.snow_cover says.
 
-const WALL_HIGH := 1.7
-const WALL_LOW := 0.22
 const VERMILION := Color("c8442c")
 
 var map: MapData
@@ -24,12 +23,11 @@ func build(m: MapData) -> void:
 	for y in map.h:
 		for x in map.w:
 			var c := Vector2i(x, y)
-			if map.tile(c) == "wall":
-				_wall(c)
-			elif map.tile(c) == "rock_wall":
+			if map.tile(c) == "rock_wall":
 				_rock_wall(c)
 			elif map.is_solid(c) and not map.door_at(c).is_empty() and map.prop_at(c).is_empty() and map.indoor:
 				_box(Vector3(1, 0.06, 0.9), Vector3(x + 0.5, 0.03, y + 0.5), flat_material(Color("4a3424")))   # threshold
+	RoomWalls.build(self, map)
 	for p in map.props:
 		occlude(_make_prop.bind(p))
 	if not map.sheltered:
@@ -46,6 +44,8 @@ func _make_tile_ground() -> void:
 			var tile := PlaceholderArt.tex(MapView.ground_key(map, Vector2i(x, y))).get_image()
 			tile.convert(Image.FORMAT_RGBA8)
 			img.blit_rect(tile, Rect2i(0, 0, T, T), Vector2i(x * T, y * T))
+	if map.indoor:
+		_shade_corners(img)
 	var mat: Material
 	if SnowLayer.map_has_snow(map):
 		var snow := ImageTexture.create_from_image(SnowLayer.map_mask_image(map, Game.snow_rules))
@@ -65,26 +65,30 @@ func _make_tile_ground() -> void:
 	add_child(ground)
 
 
-## A wall cell: dark board skirting, plaster above and a timber top beam on the back walls;
-## a low sill on the front ones, so the room stays in view.
-func _wall(c: Vector2i) -> void:
-	var at := Vector3(c.x + 0.5, 0, c.y + 0.5)
-	var timber := flat_material(Color("2e221a"))
-	if c.y > 0 and c.x > 0:
-		_box(Vector3(1, WALL_LOW, 1), at + Vector3(0, WALL_LOW / 2, 0), surface_material("build:board"))
-		_box(Vector3(1.02, 0.05, 1.02), at + Vector3(0, WALL_LOW + 0.025, 0), timber)
-		return
-	_box(Vector3(1, 0.5, 1), at + Vector3(0, 0.25, 0), surface_material("build:board"))
-	_box(Vector3(1, WALL_HIGH - 0.5, 1), at + Vector3(0, 0.5 + (WALL_HIGH - 0.5) / 2, 0), surface_material("build:plaster"))
-	_box(Vector3(1.02, 0.08, 1.02), at + Vector3(0, WALL_HIGH, 0), timber)
-	# A post every other cell and a shoji window now and then on the room side.
-	var room := Vector3(0, 0, 0.505) if c.y == 0 else Vector3(0.505, 0, 0)
-	var yaw := 0.0 if c.y == 0 else 90.0
-	var along := c.x if c.y == 0 else c.y
-	if along % 2 == 0:
-		_box(Vector3(0.1, WALL_HIGH, 0.1), at + room + Vector3(0, WALL_HIGH / 2, 0), timber)
-	elif along % 4 == 3:
-		_picture("build:shoji", Vector2(0.8, 0.6), at + room * 1.01 + Vector3(0, 1.15, 0), yaw)
+## The renderer has no ambient occlusion, so the floor darkens softly where it meets the
+## walls, more under the tall back walls than the low front sills (indoor maps only).
+func _shade_corners(img: Image) -> void:
+	const REACH := 7.0   # pixels
+	var sides := [[Vector2i.UP, 0.3], [Vector2i.LEFT, 0.3], [Vector2i.DOWN, 0.14], [Vector2i.RIGHT, 0.14]]
+	for y in map.h:
+		for x in map.w:
+			var c := Vector2i(x, y)
+			if map.tile(c) == "wall":
+				continue
+			for py in T:
+				for px in T:
+					var shade := 1.0
+					for i in sides.size():
+						var o: Vector2i = sides[i][0]
+						if not map.in_bounds(c + o) or map.tile(c + o) != "wall":
+							continue
+						var d := float([py, px, T - 1 - py, T - 1 - px][i])   # pixels from that edge
+						var k := maxf(0.0, 1.0 - (d + 0.5) / REACH)
+						shade *= 1.0 - float(sides[i][1]) * k * k
+					if shade < 1.0:
+						var at := Vector2i(x * T + px, y * T + py)
+						var col := img.get_pixelv(at)
+						img.set_pixelv(at, Color(col.r * shade, col.g * shade, col.b * shade, col.a))
 
 
 ## Bare rock (the mine, the cliff over its mouth). The camera looks in from +x / +z, so rock

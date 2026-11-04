@@ -210,7 +210,10 @@ views): `well`, `jizo`, `persimmon` and `sakura` (their leaves follow the season
 rice drying rack, sheaves hung in fall), `woodpile`, `garden`, `wood_fence`. Ground tiles include the
 solid `paddy` (a flooded rice paddy). A file has `id`, `size` [w, h], `indoor` (the clock stands still inside, as
 DESIGN asks for every building), `ambient` (which `places` of the ambient rules in
-`data/sfx.json` apply), optional `light` (a fixed room light instead of day / night) and
+`data/sfx.json` apply), optional `light` (a fixed room light instead of day / night),
+`walls` (an indoor map's wall infill in 3D, `plaster` or `board`; RoomWalls builds the "wall"
+cells as a timber frame, the back walls full height, the front ones a low sill, plus a step
+edge where boards or tatami meet the earth and a shoe stone below the door's step) and
 `background`, then:
 - `legend` + `ground`: one row of characters per map row; each character is
   `{tile, solid?, step?}` (tile = a `ground:<kind>` placeholder, step = footstep sound kind);

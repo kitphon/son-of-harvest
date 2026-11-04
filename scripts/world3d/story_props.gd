@@ -36,8 +36,8 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 				w._box(Vector3(0.07, 0.5, 0.07), Vector3(x, 1.75, front + 0.05), timber)
 			w._picture(StoryView.art_key(p), Vector2(2.4, 0.7), Vector3(cx, 1.98, front + 0.1))
 		"ribbon_board":
-			# Hung on the back wall over its cell, in front of the wall post that stands there
-			# (MapWorld._wall: a post every other cell, 0.05 out from the wall face).
+			# Hung on the back wall over its cell, in front of its posts and beams (RoomWalls:
+			# nothing stands more than 0.05 out from the wall face).
 			w._picture(StoryView.art_key(p), Vector2(1.26, 0.78), Vector3(r.get_center().x, 1.15, r.position.y + 0.08))
 		"lumber":
 			# Boards stacked on two bearers along the fence left of the house front, a saw on

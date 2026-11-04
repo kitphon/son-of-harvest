@@ -40,6 +40,7 @@ func _process(delta: float) -> bool:
 		_minka()
 		_shrine()
 		_farm_props()
+		_room_walls()
 		_game_maps()
 		_bed_and_doors()
 		_clinic_doors()
@@ -615,6 +616,61 @@ func _farm_props() -> void:
 		if what == "stand":
 			check(low_eave >= 1.45, "the seed stand's front eave clears the farmer (%.2f)" % low_eave)
 		w.free()
+
+
+## Interiors (RoomWalls): every face drawn the way its normal points, all lit; the back walls'
+## room face stays within 0.05 of the wall line (things hung on it sit 0.08 out), the front
+## sills stay low; a shoe stone below the door's step where the earth there is clear; the
+## coop's and barn's walls are boards, a house's plaster.
+func _room_walls() -> void:
+	for id in ["house", "clinic", "store", "smithy", "coop", "barn"]:
+		var m := MapManager.data(id)
+		var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+		load("res://scripts/world3d/room_walls.gd").build(w, m)
+		var wrong := 0
+		var unlit := 0
+		var proud := 0.0
+		var front_top := 0.0
+		var keys := []
+		var stones := 0
+		for n in w.get_children():
+			if not n is MeshInstance3D:
+				continue
+			var mat: Variant = n.material_override
+			if mat is StandardMaterial3D:
+				if mat.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED:
+					unlit += 1
+				if mat.albedo_texture != null:
+					keys.append(mat.albedo_texture)
+			if not n.mesh is ArrayMesh:
+				continue
+			var arr: Array = n.mesh.surface_get_arrays(0)
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+			for i in range(0, v.size(), 3):
+				if (v[i + 1] - v[i]).cross(v[i + 2] - v[i]).dot(nm[i]) >= 0.0:
+					wrong += 1
+			var is_stone: bool = mat is StandardMaterial3D and mat.albedo_color == Color("8a8680")
+			for p in v:
+				if p.y > 0.5 and p.x > 1.2 and p.z < 1.5:    # the back wall, past the corner post
+					proud = maxf(proud, p.z - 1.0)
+				if p.x > 1.2 and p.z > m.h - 1.5 and p.x < m.w - 1:   # along the front sill
+					front_top = maxf(front_top, p.y)
+				if is_stone and p.y > 0.0:
+					stones += 1
+		var free_stone := false   # the earth below the step in the door's column is clear
+		for d in m.doors:
+			for c: Vector2i in d.cells:
+				free_stone = free_stone or load("res://scripts/world3d/room_walls.gd")._shoe_stone(m, c.x) != Vector2i(-1, -1)
+		var plaster := PlaceholderArt.tex("build:plaster") in keys
+		check(wrong == 0 and unlit == 0, "%s walls: %d faces the wrong way, %d unlit" % [id, wrong, unlit])
+		check(proud <= 0.05, "%s: the back wall's face stands %.3f out (things hang at 0.08)" % [id, proud])
+		check(front_top <= 0.4, "%s: the front sill keeps the room in view (%.2f high)" % [id, front_top])
+		check(plaster == (m.walls == "plaster"), "%s: walls are %s" % [id, m.walls])
+		check((stones > 0) == free_stone, "%s: a shoe stone below the door's step (%d corners)" % [id, stones])
+		w.free()
+	var bad := MapData.parse({"id": "x", "size": [1, 1], "ground": ["."], "legend": {".": {"tile": "earth"}}, "walls": "glass"})
+	check(bad[0] != "", "a map with unknown walls is refused")
 
 
 ## Upright faces (eave bands, verges, roll ends) of the meshes in `w` whose normal points

@@ -7,6 +7,7 @@
 		8
 	],
 	"indoor": true,
+	"walls": "board",
 	"ambient": "indoor",
 	"light": "f2e6cc",
 	"background": "1a1410",

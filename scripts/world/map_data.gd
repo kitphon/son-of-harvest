@@ -23,6 +23,7 @@ var sheltered := false     # under a roof of rock (the mine): no weather, but th
 var ambient := "outdoor"   # which ambient rules apply (data/sfx.json "places")
 var light = null           # a fixed Color for the room, or null for the day / night light
 var background := Color("8fc6e8")
+var walls := "plaster"     # an indoor map's wall infill: "plaster" or "board" (RoomWalls)
 var tiles: Array[String] = []          # w * h ground kinds, row by row
 var steps: Array[String] = []          # w * h footstep kinds ("" = by the ground)
 var _solid: Array[bool] = []
@@ -56,6 +57,9 @@ func _read(d: Variant) -> String:
 		light = Color(str(d.light))
 	if d.has("background"):
 		background = Color(str(d.background))
+	walls = str(d.get("walls", "plaster"))
+	if not walls in ["plaster", "board"]:
+		return "walls must be plaster or board"
 	for i in w * h:
 		tiles.append("grass")
 		steps.append("")

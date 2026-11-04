@@ -10,6 +10,37 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-04 — Art direction: interiors, walls and floor edges as lit meshes
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the next item of docs/ART_DIRECTION.md. `scripts/world3d/room_walls.gd` (RoomWalls)
+  replaces MapWorld's per-cell wall boxes (mostly unlit) with lit meshes built from
+  `FarmProps.block`. Back walls (top row, left column): a timber frame, posts every other cell
+  and at the inner corner 0.04 proud, board skirting under a rail, recessed plaster, a
+  nageshi beam at 1.28 and a head beam at 1.7; a shoji window in a dark frame with a plank
+  sill every fourth cell, now under the nageshi. Front walls: a low board sill (0.27) on the
+  room side of the cell with post stubs, stubs each side of the door; the rest of the cell
+  shows the dark ground (the old full-cell sill read as a heavy band). Inner walls (the
+  farmhouse's added room) are a low sill down the middle of their cells. A step edge
+  (agari-kamachi) where boards or tatami meet the earth and a flat shoe stone below the
+  door's step when that earth is clear. New map key `walls` ("plaster" / "board"): the coop
+  and barn have cedar board walls and no shoji. The floor picture darkens softly along the
+  walls (`MapWorld._shade_corners`: 30% at the back walls, 14% at the sills, over 7 px),
+  standing in for the ambient occlusion the Compatibility renderer lacks. Lit, the back wall
+  (towards the sun) and the left wall (in shade) now read apart.
+- Checked: new test_maps `_room_walls` (house, clinic, store, smithy, coop, barn: every face
+  wound to its normal, nothing unlit, the back wall's face at most 0.05 out (the ribbon board
+  hangs at 0.08; the first window sill stood 0.07 out and failed it, now 0.045), front sills
+  0.4 or lower, plaster vs board by `walls`, the shoe stone where the earth is clear, a bad
+  `walls` value refused). All 27 test scripts `OK (0 failed)` (test_talk printed nothing in the
+  batch run while screenshots ran beside it; alone: `test_talk: OK (0 failed)`). Smoke runs
+  (title, --demo, --demo --map=town, --demo --mine=3, --demo --map=house, --demo --map=barn,
+  --demo --map=house --built=room) print 0 error or warning lines. Before / after frames at
+  10:00 of the house, clinic, store, Tome's house, teahouse, smithy, coop, barn and the house
+  with all extensions and the ribbon board.
+- Left / next: the furniture (futon, tansu, andon, kamado, counter, shelves, forge) is still
+  plain boxes, mostly unlit; rebuild it with `FarmProps.block` next. Rooms keep a fixed light,
+  so no night check was needed.
+
 ## 2026-11-04 — The English polished: one spelling, one way to write names and messages
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: step 2 of the language plan. Read all 1691 English texts through
