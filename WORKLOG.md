@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-04 — Barn hay and the title's text backing (FEEDBACK item 7)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the barn's "yellow lumps" were the hay bundles (barn_props.gd "hay") and the hay mounds
+  in the trough (animal_layer.gd), both one flat unlit yellow (c8b060). They now use a lit
+  material with a new `build:hay` texture (muted olive-gold grass strands, dark gaps), the
+  bundles' rope bands `build:planks_dark`. The floor's `ground:straw` (coop and barn) is a
+  denser, duller mat (30 stalks in three tones near the earth's, was 22 bright d8bc78 ones).
+  Title screen: a paper-coloured wash (alpha 0.6, soft corners) behind the name and its
+  vermilion stroke, and the note under the menu ("The saved game can't be loaded: ...") in its
+  own paper frame sized to the text, instead of bare ink on the rice rows.
+- Checked: frames of `--demo --map=barn` (and a spawn by the hay, added for the shot only):
+  before, a flat yellow block in the lower right and bright straw flecks; after, stacked
+  bundles with strands and shading, the bedding reads as straw. Title frame 39: the name and
+  the note both readable, sky, hills and paddies still showing. All 26 test scripts
+  `OK (0 failed)`; the four smoke runs print no error or warning lines.
+- Left / next: the hay colour is our pick; real art may replace `build:hay`.
+
 ## 2026-11-04 — Marriage: courting ends at the shrine (FEEDBACK item 3)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: data/marriage.json + `Marriage` (scripts/villagers/marriage.gd). Candidates: Sayo and

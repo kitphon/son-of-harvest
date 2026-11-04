@@ -28,10 +28,6 @@ the fish's own price in data/recipes.json.
 ### 6. Night is too bright, no lit windows (21–30)
 Night barely darkens the field, and house windows never light up.
 
-### 7. Small things (21–30)
-- The barn floor has yellow lumps that don't fit the scene.
-- The title screen's text sits on the rice-field picture and is hard to read.
-
 ### 8. Not confirmed: "Saved food is broken" on the title
 The title once said "The saved game can't be loaded: Saved food is broken" and greyed out
 Continue. save1.json had just been rewritten (20:17) while another Godot was running; its
@@ -71,6 +67,12 @@ reproduce; if it is real, fix it, else make the load safe against a half-written
 - No on-screen key hints (keys were only in the README): the HUD says what E / Space do at
   the spot in front, with the player's own keys; Settings → Key hints turns it off.
   Commit 7ca5b91.
+
+- Small things (item 7): the barn's yellow lumps were the hay bundles and the hay in the
+  trough, drawn in one flat unlit yellow; they are now lit and textured with grass strands
+  (`build:hay`), and the straw bedding on the floor is a duller, denser mat close to the
+  earth's tone. The title's name sits on a see-through paper wash and the note under the menu
+  on its own paper strip, so both read over the rice field. Commit: item 7's commit (see WORKLOG).
 
 ## What the players liked (keep it)
 - 15–20: the pixel sprites on the 3D field look good and match everywhere; the Japanese

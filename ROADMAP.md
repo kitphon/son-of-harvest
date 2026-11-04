@@ -39,7 +39,8 @@ Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user star
 "แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our
 pixel font). [x] Item 2, a goal for week one: Tome's first-week
 list (data/goals.json, README → Goals, the HUD's goal tag). [x] Item 3, where love leads: marriage
-(data/marriage.json, README → Villagers → Marriage). Next: items 4 and 5; Thai for the villagers'
+(data/marriage.json, README → Villagers → Marriage). [x] Item 7: the barn's hay and straw,
+the title text's backing. Next: items 4 and 5; Thai for the villagers'
 daily talk, heart events and contests is still to write (data/lang/th/dialogue.json).
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
