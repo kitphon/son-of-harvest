@@ -1688,6 +1688,20 @@ static func _building(kind: String) -> Image:
 			_px(img, 11, 2, 2, 1, Color("eeeae0"))
 			_px(img, 0, 7, 21, 1, Color("222d4a"))
 			return img
+		"stand_sign":
+			# 16 x 10 price board for the seed stand: a pale cedar board in a dark frame, three
+			# brushed marks (a sprout and two price strokes) and a vermilion seal; no real text.
+			var img := _blank(16, 10)
+			img.fill(Color("4a3424"))
+			_px(img, 1, 1, 14, 8, Color("d8bc8e"))
+			_px(img, 3, 3, 1, 5, Color("2a2018"))
+			_px(img, 2, 3, 1, 1, Color("2a2018"))
+			_px(img, 4, 2, 1, 1, Color("2a2018"))
+			for y in [3, 6]:
+				_px(img, 6, y, 5, 1, Color("2a2018"))
+			_px(img, 8, 4, 1, 2, Color("2a2018"))
+			_px(img, 12, 6, 2, 2, Color("b83a2a"))
+			return img
 		"shoji_door":
 			# 16 x 24 sliding door: wooden frame, paper panes in a lattice, wooden kick panel.
 			var img := _blank(16, 24)

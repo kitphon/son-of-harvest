@@ -2,7 +2,8 @@ extends SceneTree
 ## A farm building on its own: the farmhouse (FarmWorld._make_house: walls, engawa, the
 ## thatched Minka roof), or with `--what=coop` / `--what=barn` / `--what=village` the coop,
 ## the barn or a village shop (their Minka.gable roofs), `--what=shrine` the town's shrine
-## (Shrine: torii, hokora, stone lanterns): pictures of it from round about, and a .glb of it to open in Blender. Run:
+## (Shrine: torii, hokora, stone lanterns), `--what=props` the bin, chest and seed stand
+## (FarmProps): pictures of it from round about, and a .glb of it to open in Blender. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --path . --script res://tools/house_model.gd -- --shots=shots
 ## (writes shots/<what>_<view>.png; needs a window, so not --headless), or
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tools/house_model.gd -- --glb=models/farmhouse.glb
@@ -21,7 +22,9 @@ const CENTERS := {   # each building's middle, where the views look
 	"barn": Vector3(21.5, 1.3, 2.5),
 	"village": Vector3(3.0, 1.2, 1.5),
 	"shrine": Vector3(19.0, 1.0, 4.0),
+	"props": Vector3(9.0, 0.6, 3.5),
 }
+const ZOOM := {"props": 0.45}   # small things are looked at from nearer
 const SHRINE := [   # the town's shrine props (data/maps/town.json)
 	{"kind": "hokora", "cell": Vector2i(18, 1), "size": Vector2i(2, 2)},
 	{"kind": "torii", "cell": Vector2i(17, 6), "size": Vector2i(4, 1)},
@@ -54,6 +57,11 @@ func _start() -> void:
 	match _what:   # loaded, not named: the class names need the autoloads in first
 		"coop": load("res://scripts/world3d/coop_props.gd").coop(_house)
 		"barn": load("res://scripts/world3d/barn_props.gd").barn(_house)
+		"props":
+			var props: GDScript = load("res://scripts/world3d/farm_props.gd")
+			props.chest(_house)
+			props.bin(_house)
+			props.stand(_house)
 		"village": _house._village_house(Rect2(0, 0, 6, 3), 2, true, 4)   # like Sayo's store
 		"shrine":
 			for p in SHRINE:
@@ -106,7 +114,7 @@ func _aim(view: String) -> void:
 	var pitch := deg_to_rad(v[1])
 	var back := Vector3(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw))
 	var center: Vector3 = CENTERS[_what]
-	_cam.position = center + back * float(v[2])
+	_cam.position = center + back * float(v[2]) * float(ZOOM.get(_what, 1.0))
 	_cam.look_at(center, Vector3.UP)
 
 

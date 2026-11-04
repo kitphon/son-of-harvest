@@ -39,6 +39,7 @@ func _process(delta: float) -> bool:
 		_homes_3d()
 		_minka()
 		_shrine()
+		_farm_props()
 		_game_maps()
 		_bed_and_doors()
 		_clinic_doors()
@@ -566,6 +567,54 @@ func _shrine() -> void:
 	check(faces > 0 and wrong == 0, "torii and hokora faces turned outwards (%d of %d wrong)" % [wrong, faces])
 	check(middle > 2.0 and ends > middle + 0.12, "the kasagi rises to its ends (middle %.2f, ends %.2f)" % [middle, ends])
 	w.free()
+
+
+## The bin, chest and seed stand (FarmProps): every face drawn the way its normal points, a
+## tapered block's faces all turned out from its middle, every material lit, and the stand's
+## front eave clear of the farmer (1.45 or more over z past its posts).
+func _farm_props() -> void:
+	var props: GDScript = load("res://scripts/world3d/farm_props.gd")
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	props.block(st, Rect2(0, 0, 1, 0.8), 0.0, Rect2(0.1, 0.1, 0.8, 0.6), 0.5)
+	var arr: Array = st.commit().surface_get_arrays(0)
+	var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+	var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+	var out := 0
+	for i in range(0, v.size(), 3):
+		var c := (v[i] + v[i + 1] + v[i + 2]) / 3.0
+		if nm[i].dot(c - Vector3(0.5, 0.25, 0.4)) > 0.0 and (v[i + 1] - v[i]).cross(v[i + 2] - v[i]).dot(nm[i]) < 0.0:
+			out += 1
+	check(v.size() == 36 and out == 12, "a tapered block's 12 triangles face out (%d)" % out)
+	for what in ["bin", "chest", "stand"]:
+		var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+		props.call(what, w)
+		var faces := 0
+		var wrong := 0
+		var unlit := 0
+		var low_eave := 9.0
+		for n in w.get_children():
+			if not n is MeshInstance3D:
+				continue
+			var mat: Variant = n.material_override
+			if mat is StandardMaterial3D and mat.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED:
+				unlit += 1
+			if n.mesh is ArrayMesh and n.mesh.get_surface_count() > 0:
+				arr = n.mesh.surface_get_arrays(0)
+				v = arr[Mesh.ARRAY_VERTEX]
+				nm = arr[Mesh.ARRAY_NORMAL]
+				for i in range(0, v.size(), 3):
+					faces += 1
+					if (v[i + 1] - v[i]).cross(v[i + 2] - v[i]).dot(nm[i]) >= 0.0:
+						wrong += 1
+				for p in v:
+					if p.z > 4.06:
+						low_eave = minf(low_eave, p.y)
+		check(faces > 50 and wrong == 0 and unlit == 0,
+			"%s: %d faces, %d drawn the wrong way, %d unlit materials" % [what, faces, wrong, unlit])
+		if what == "stand":
+			check(low_eave >= 1.45, "the seed stand's front eave clears the farmer (%.2f)" % low_eave)
+		w.free()
 
 
 ## Upright faces (eave bands, verges, roll ends) of the meshes in `w` whose normal points

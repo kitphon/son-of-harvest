@@ -833,7 +833,11 @@ round-tile rolls, used for the barn's kawara with the tile ends in `build:kawara
 and the barn). Add `--what=coop`, `--what=barn` or `--what=village` (a shop like Sayo's) to the
 tool to see them (`shots/<what>_<view>.png`). The shrine pieces are meshes too
 (`scripts/world3d/shrine.gd`: the torii's curved kasagi, the hokora, the six-sided stone
-lanterns turned by `Shrine.lathe`); `--what=shrine` shows the town's shrine.
+lanterns turned by `Shrine.lathe`); `--what=shrine` shows the town's shrine. The shipping bin,
+storage chest and seed stand by the farmhouse are `scripts/world3d/farm_props.gd` (FarmProps:
+`FarmProps.block` makes tapered blocks for splayed sides and bevelled lids, the stand has a
+`Minka.gable` board roof and turned seed sacks); `--what=props` shows them from close by. In the
+game, `--demo --map=farm@bin` stands the farmer in front of them.
 
 ## Light
 The 3D view has a warm sun from the upper left of the screen over a cool sky light

@@ -158,9 +158,9 @@ func _lit_picture(key: String, size: Vector2, center: Vector3, normal_yaw := 0.0
 ## so doors and windows go on those faces.
 func _make_buildings() -> void:
 	occlude(_make_house)
-	_make_chest()
-	_make_bin()
-	occlude(_make_stand)
+	FarmProps.chest(self)
+	FarmProps.bin(self)
+	occlude(func(): FarmProps.stand(self))
 	occlude(func(): CoopProps.coop(self))
 	occlude(func(): BarnProps.barn(self))
 	_make_fence()
@@ -179,69 +179,6 @@ func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable) -> v
 	add_child(surroundings)
 	surroundings.build(w, h, kind_at, hold_at)
 	_snow_mats.append(surroundings.material)
-
-
-## Shipping bin (cell 8, 3): a lidded cedar box on two runners, dark corner battens, a straw
-## rope tied round its middle and two battens across the lid.
-func _make_bin() -> void:
-	var timber := flat_material(Color("2e221a"))
-	for z in [3.2, 3.8]:
-		_box(Vector3(0.9, 0.08, 0.12), Vector3(8.5, 0.04, z), timber)
-	_box(Vector3(0.84, 0.5, 0.74), Vector3(8.5, 0.33, 3.5), surface_material("build:sugi"))
-	for x in [8.08, 8.92]:
-		for z in [3.13, 3.87]:
-			_box(Vector3(0.06, 0.5, 0.06), Vector3(x, 0.33, z), timber)
-	_box(Vector3(0.87, 0.05, 0.77), Vector3(8.5, 0.36, 3.5), flat_material(Color("c8b078")))   # rope
-	_box(Vector3(0.94, 0.08, 0.84), Vector3(8.5, 0.62, 3.5), surface_material("build:planks"))
-	for x in [8.22, 8.78]:
-		_box(Vector3(0.08, 0.05, 0.86), Vector3(x, 0.685, 3.5), timber)
-	_snow_top(Vector3(0.86, 0.04, 0.76), Vector3(8.5, 0.68, 3.5))
-
-
-## Storage chest (cell 7, 3, FarmGrid.CHEST), by the house wall: a low cedar tansu on a dark
-## plinth, two drawer fronts with black iron pulls and corner plates on the faces the camera
-## sees, and a plank lid.
-func _make_chest() -> void:
-	var timber := flat_material(Color("2e221a"))
-	var iron := flat_material(Color("1e1c1c"))
-	_box(Vector3(0.78, 0.08, 0.56), Vector3(7.52, 0.04, 3.5), timber)
-	_box(Vector3(0.74, 0.46, 0.52), Vector3(7.52, 0.31, 3.5), surface_material("build:sugi"))
-	for y in [0.2, 0.42]:   # drawer fronts on the +z face, a pull in each
-		_box(Vector3(0.64, 0.18, 0.02), Vector3(7.52, y, 3.77), surface_material("build:planks"))
-		_box(Vector3(0.14, 0.03, 0.03), Vector3(7.52, y, 3.79), iron)
-	for x in [7.16, 7.88]:  # corner plates down the front edges
-		_box(Vector3(0.05, 0.46, 0.05), Vector3(x, 0.31, 3.76), iron)
-	_box(Vector3(0.02, 0.1, 0.1), Vector3(7.9, 0.31, 3.5), iron)   # side handle
-	_box(Vector3(0.8, 0.06, 0.58), Vector3(7.52, 0.57, 3.5), surface_material("build:planks_dark"))
-	_snow_top(Vector3(0.74, 0.03, 0.52), Vector3(7.52, 0.61, 3.5))
-
-
-## Seed stand (cell 10, 3): a roadside stall with a small board gable roof on four posts, an
-## indigo noren under the front eave, the seed sacks and a little honesty box on the counter.
-func _make_stand() -> void:
-	var timber := flat_material(Color("2e221a"))
-	_box(Vector3(0.9, 0.6, 0.6), Vector3(10.5, 0.3, 3.65), surface_material("build:planks"))
-	for x in [10.08, 10.92]:
-		for z in [3.32, 3.98]:
-			_box(Vector3(0.07, 1.32, 0.07), Vector3(x, 0.66, z), timber)
-	_box(Vector3(0.92, 0.06, 0.06), Vector3(10.5, 1.29, 3.98), timber)   # noren beam
-	# Gable roof, ridge along x at z 3.65; the eaves end at 1.32 high, z 3.2 / 4.1.
-	var dark := surface_material("build:planks_dark")
-	var half := 0.45
-	var rise := 0.2
-	var slope := atan2(rise, half)
-	var length := Vector2(half, rise).length() + 0.06
-	for side in [1, -1]:
-		var center := Vector3(10.5, 1.32 + rise / 2 + 0.03, 3.65 + side * half / 2)
-		_box(Vector3(1.12, 0.05, length), center, dark, Vector3(slope * side, 0, 0))
-		var up := Vector3(0, cos(slope), sin(slope) * side)
-		_snow_top(Vector3(1.04, 0.03, length - 0.08), center + up * 0.04, Vector3(slope * side, 0, 0))
-	_box(Vector3(1.16, 0.06, 0.08), Vector3(10.5, 1.32 + rise + 0.05, 3.65), timber)
-	_picture("build:noren", Vector2(0.84, 0.32), Vector3(10.5, 1.1, 4.0))
-	var sacks := [Color("e8d8a8"), Color("c9a26b"), Color("b8c890")]
-	for i in 3:
-		_box(Vector3(0.22, 0.14, 0.22), Vector3(10.22 + i * 0.28, 0.67, 3.62), flat_material(sacks[i]))
-	_box(Vector3(0.14, 0.12, 0.1), Vector3(10.78, 0.66, 3.88), surface_material("build:sugi"))
 
 
 ## A small Japanese farmhouse on cells x 2..6, z 1..3: dark board skirting under white

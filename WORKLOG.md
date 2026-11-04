@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-04 — Art direction: the bin, chest and seed stand as meshes
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the three props by the farmhouse moved out of FarmWorld into
+  `scripts/world3d/farm_props.gd` (FarmProps) and rebuilt from lit meshes instead of flat
+  unlit boxes. `FarmProps.block` makes a tapered box (flat normals, UVs in world units, u along
+  the edge, v down) for splayed sides and bevelled lids; `FarmProps.Parts` keeps one SurfaceTool
+  per material. Bin: splayed cedar body on runners, corner battens, straw rope with knot, ends
+  and a paper tag with a red stamp, bevelled plank lid with battens, a bevelled snow cap. Chest:
+  tansu on a plinth, drawers with pulls, iron corner plates wrapping onto the +x face, side
+  handle, bevelled lid. Stand: `Minka.gable` board roof, front eave 1.45 (was 1.32, under the
+  1.45 rule), posts, tie beams, king posts, ridge beam and ridge board, a plank counter with a
+  cedar front and side, three seed sacks turned with `Shrine.lathe` (burlap, neck cord, seeds
+  heaped), honesty box with a coin slot, the noren 0.24 tall (was 0.32; it hid the counter) and
+  a price board on the +x side (new `build:stand_sign`: brushed marks, no real text). New farm
+  spawn `bin` (8, 6) to look at them; `house_model.gd --what=props` (with a nearer camera).
+- Checked: test_maps `_farm_props` (a tapered block's 12 triangles all face out; bin, chest and
+  stand: every face drawn the way its normal points, no unlit material; the stand's front eave
+  1.45 or more). Frames of `--demo --map=farm@bin` at 10:00, 17:30, 20:30, winter snow 90 and
+  rain: the bin, chest and stand shaded by the sun, snow caps on the lids and roof, the sacks
+  visible under the noren. On a clean worktree of HEAD plus this change only (see the next
+  line): all 26 test scripts `OK (0 failed)`; smoke runs (title, --demo, --demo --map=town,
+  --demo --mine=3, --demo --map=farm@bin --season=winter --snow=80) print 0 error or warning lines.
+- Left / next: another session was editing this checkout at the same time (cooking, recipes,
+  lang, UI files; data/recipes.json mid-edit and unparsable); none of that is in this commit.
+  Next art item: interiors.
+
 ## 2026-11-04 — Feedback items 4-8 merged into main
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged the three branches made in parallel by subagents: mine / dish balance (c336ef1,

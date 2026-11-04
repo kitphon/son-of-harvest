@@ -31,9 +31,10 @@ kayabuki roof (scripts/world3d/minka.gd, README → Farmhouse model, models/farm
 [x] The coop (thatch) and barn (kawara with tile rolls) roofs as meshes (`Minka.gable`).
 [x] The village houses' kawara roofs as meshes, ridges curling up to onigawara (`Minka.ridge`).
 [x] The shrine pieces as meshes (scripts/world3d/shrine.gd: torii, hokora, stone lanterns).
+[x] The seed stand, chest and bin by the farmhouse as meshes (scripts/world3d/farm_props.gd).
 The full style roadmap, the rules for making pieces and how to continue: docs/ART_DIRECTION.md.
-Next: the seed stand, chest and bin by the farmhouse (`farm_world.gd _make_stand`,
-`_make_chest`, `_make_bin`) to the same bar. "ทำ art direction ต่อ" from the user
+Next: interiors (house, homes, shops, clinic): wall and floor meshes in the same manner
+(`map_world.gd`). "ทำ art direction ต่อ" from the user
 means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our
