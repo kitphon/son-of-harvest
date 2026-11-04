@@ -154,7 +154,8 @@ func _ready() -> void:
 	flash.material = add
 	flash.color = Color.BLACK
 	layer.add_child(flash)
-	layer.add_child(FestivalGlow.new())   # festival lanterns and fireworks, over the night tint
+	layer.add_child(NightLights.new())    # lit house windows, over the night tint
+	layer.add_child(FestivalGlow.new())  # festival lanterns and fireworks, over the night tint
 	add_child(layer)
 	add_child(Hud.new())
 	fade = MapFade.new()

@@ -10,6 +10,44 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-04 — Night: a deep blue night and lit windows (FEEDBACK item 6)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the day / night table moved from game.gd to data/light.json "sky" (`Game.sky_at`,
+  `light_data()` read lazily so tests without _ready get it). Daylight is unchanged (white
+  7:00..16:00); the night is darker, 404c8e (luminance 0.31, was 0.42 / 0.45 / 0.72 = 0.46),
+  reached at 20:30 through a warm 17:30 (ffd4a8), a mauve 18:30 (b88e9c) and 19:30 (625f9a);
+  dawn runs 4:30 night → 5:30 7a74a4 → 6:30 e8cdbd → 7:00 white. Lit windows: the farmhouse's
+  three shoji windows and its door, every village house's windows and side doors and the
+  doors of homes (a shop's door under its noren stays dark) are recorded by
+  `FarmWorld._lit_picture` in `windows`; `NightLights` (scripts/world3d/night_lights.gd, in
+  main_3d's tint layer after the tint, additive) draws each window's own shoji picture in
+  warm light (ffb25c) over its pane plus a soft halo, as bright as `Game.window_light()`
+  (data/light.json "windows": 0 under 1 - luminance 0.25, full from 0.6, lit only 16:00..0:30
+  and 5:00..7:30). A window turned from the camera or behind a solid building (an occluder box
+  crossed by the line to the eye, not its own) stays dark; behind one faded see-through it
+  shines by the fade. Numbers ours: the night blue was picked from screenshots so the farmer,
+  paths, field and houses stay readable; windows go out at 0:30 since the village sleeps.
+  The flat view gets the darker night (it reads Game.light_color) but has no windows to light.
+- Checked: test_weather `_night_light` (daylight hours white, night blue, dark but over 0.2,
+  darker than the old night by more than 0.12, dusk / dawn one-way with no 10-minute step over
+  0.06, window glow off by day, at 2:00 and in a noon storm, full at 21:00, rising at
+  18:30-19:00); test_maps `_lit_windows` (town's houses list windows, facing +z / +x, homes' doors
+  lit, shops' not, how_seen: turned away 0, behind a solid box 0, behind a faded box = its fade,
+  past it 1; corners; no lit windows in the house room) and the farm view has 4 windows and
+  one NightLights. All 26 test scripts `OK (0 failed)`; smoke runs (title, --demo, --demo
+  --map=town, --demo --mine=3, plus --demo --time=21:00 and --demo --map=town --time=21:00)
+  print no error or warning lines. Screenshots (frame 19), mean luminance of the 3D picture
+  without the HUD (crop 0,0-380,205), before → after: farm 21:00 42.9 → 34.7 (lit windows
+  included), town 21:00 49.6 → 32.9, farm 18:30 89.0 → 57.5, town 18:30 104.9 → 64.3 (the 18:30 pair measured before the doors were lit too), farm 5:30
+  71.8 → 49.8; farm 2:00 after 28.4. Noon unchanged: town 12:00 137.9 → 137.9 (the frames are
+  pixel-identical), farm 12:00 113.1 → 112.6 (two runs of the same build already differ in
+  ~1100 pixels: the farm frame is not deterministic). Looked at the frames: the farmhouse
+  windows and door glow warm at 18:30, 21:00 and 5:30 and are dark at 2:00; Sayo's store side
+  door and windows and Kaminoda's houses glow at 21:00.
+- Left / next: no light falls on the ground round windows or lanterns (still the tint); the
+  glow is a screen overlay, so a villager or the farmer standing right in front of a window
+  gets its warm light on them; the flat view's houses have no windows.
+
 ## 2026-11-04 — Winter mine income halved again (FEEDBACK item 4)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: after the first cut (2026-11-03) a winter of daily lift trips from floor 15 still

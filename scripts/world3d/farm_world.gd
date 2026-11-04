@@ -18,6 +18,9 @@ var _snow_mats: Array[ShaderMaterial] = []
 ## Buildings and trees that fade while they stand between the camera and the farmer.
 var occluders := Occluders.new()
 var surroundings: Surroundings   # the land past the map's edge (outdoors)
+## House windows and shoji doors that light up at night (NightLights draws them over the night tint):
+## {key: picture, pos: centre, size: Vector2 (w, h), normal: Vector3 out of the wall}.
+var windows: Array[Dictionary] = []
 ## A thrown item still in the air: its cell's sprite waits until the flight lands.
 var hidden_item := Vector2i(-1, -1):
 	set(value):
@@ -139,6 +142,16 @@ func _picture(key: String, size: Vector2, center: Vector3, normal_yaw := 0.0) ->
 	mi.position = center
 	mi.rotation_degrees.y = normal_yaw
 	add_child(mi)
+
+
+## A window (or a shoji door) on a house wall that glows at night: the same as `_picture`,
+## and kept in `windows` for NightLights.
+func _lit_picture(key: String, size: Vector2, center: Vector3, normal_yaw := 0.0) -> void:
+	_picture(key, size, center, normal_yaw)
+	var normal := Vector3(0, 0, 1).rotated(Vector3.UP, deg_to_rad(normal_yaw))
+	windows.append({"key": key, "pos": center, "size": size, "normal": normal})
+	if not is_in_group(NightLights.GROUP):
+		add_to_group(NightLights.GROUP)
 
 
 ## Buildings over the fixed cells laid out by FarmGrid.generate(). The camera looks from +x / +z,
@@ -263,10 +276,10 @@ func _make_house() -> void:
 	_box(Vector3(5, 0.34, depth), Vector3(4.5, 1.93, mid), timber)   # under the roof, fills the gap to the soffit
 	Minka.roof(self, Rect2(1.45, 0.55, 6.1, 3.5), 1.45, 1.25, 0.5)
 	# Shoji door over the door cell (4, 3), shoji windows beside it and on the +x face.
-	_picture("build:shoji_door", Vector2(0.9, 1.3), Vector3(4.5, 0.32 + 0.65, front + 0.005))
-	_picture("build:shoji", Vector2(0.8, 0.6), Vector3(2.8, 1.2, front + 0.005))
-	_picture("build:shoji", Vector2(0.8, 0.6), Vector3(6.2, 1.2, front + 0.005))
-	_picture("build:shoji", Vector2(0.8, 0.6), Vector3(7.005, 1.2, mid), 90)
+	_lit_picture("build:shoji_door", Vector2(0.9, 1.3), Vector3(4.5, 0.32 + 0.65, front + 0.005))
+	_lit_picture("build:shoji", Vector2(0.8, 0.6), Vector3(2.8, 1.2, front + 0.005))
+	_lit_picture("build:shoji", Vector2(0.8, 0.6), Vector3(6.2, 1.2, front + 0.005))
+	_lit_picture("build:shoji", Vector2(0.8, 0.6), Vector3(7.005, 1.2, mid), 90)
 
 
 ## Many copies of one mesh in a single MultiMesh.

@@ -115,6 +115,7 @@ var year_pages: Dictionary = {}    # year -> the village record's page written t
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
 var weather_fx: Dictionary = {}    # look per weather: tint, falling particles, lightning
+var light_rules: Dictionary = {}   # data/light.json: the day / night sky and lit windows
 var tools_data: Dictionary = {}    # data/tools.json: charge steps per tool
 var snow_rules: Dictionary = {}    # how snow builds up and melts (data/snow_cover.json)
 var body: Dictionary = {}          # fatigue, tired states, oversleeping, collapse (data/body.json)
@@ -686,24 +687,47 @@ func date_of(n: int) -> String:
 	return "%s %d, Year %d" % [SEASONS[s].capitalize(), d, n / (DAYS_PER_SEASON * SEASONS.size()) + 1]
 
 
-## Day / night light: minute of the day -> colour, linear in between, times the weather tint.
-const LIGHT := [
-	[0, Color(0.42, 0.45, 0.72)], [300, Color(0.42, 0.45, 0.72)], [420, Color.WHITE],
-	[960, Color.WHITE], [1080, Color(1.0, 0.8, 0.65)], [1200, Color(0.42, 0.45, 0.72)],
-	[1440, Color(0.42, 0.45, 0.72)],
-]
-
-
+## Day / night light (data/light.json "sky"): minute of the day -> colour, linear in between,
+## times the weather tint.
 func light_color() -> Color:
-	var m := hour * 60 + minute
-	var c := Color.WHITE
-	for i in range(1, LIGHT.size()):
-		if m <= LIGHT[i][0]:
-			var a: Array = LIGHT[i - 1]
-			var b: Array = LIGHT[i]
-			c = a[1].lerp(b[1], float(m - a[0]) / float(b[0] - a[0]))
-			break
-	return c * Color(weather_style().get("tint", "ffffff"))
+	return sky_at(hour * 60 + minute, light_data().get("sky", [])) * Color(weather_style().get("tint", "ffffff"))
+
+
+## data/light.json, read the first time it is needed (tests make a Game without _ready).
+func light_data() -> Dictionary:
+	if light_rules.is_empty():
+		light_rules = _load_json("res://data/light.json")
+	return light_rules
+
+
+## The sky's colour at minute `m` of the day from [[minute, colour], ...] keys, linear in
+## between (white with no keys).
+static func sky_at(m: int, keys: Array) -> Color:
+	for i in range(1, keys.size()):
+		if m <= int(keys[i][0]):
+			var a: Array = keys[i - 1]
+			var b: Array = keys[i]
+			var t := float(m - int(a[0])) / maxf(float(int(b[0]) - int(a[0])), 1.0)
+			return Color(str(a[1])).lerp(Color(str(b[1])), clampf(t, 0.0, 1.0))
+	return Color(str(keys[-1][1])) if not keys.is_empty() else Color.WHITE
+
+
+## How brightly lit house windows glow now, 0..1 (data/light.json "windows").
+func window_light() -> float:
+	return window_glow(light_color(), hour * 60 + minute, light_data().get("windows", {}))
+
+
+## Window glow for the outdoor `light` at minute `m`: rises with the dark (1 - luminance from
+## dark_from to dark_full), and only in the lit hours ([from, to) minutes).
+static func window_glow(light: Color, m: int, rules: Dictionary) -> float:
+	var lit := false
+	for h in rules.get("hours", []):
+		lit = lit or (m >= int(h[0]) and m < int(h[1]))
+	if not lit:
+		return 0.0
+	var from := float(rules.get("dark_from", 0.25))
+	var full := float(rules.get("dark_full", 0.6))
+	return clampf((1.0 - light.get_luminance() - from) / maxf(full - from, 0.01), 0.0, 1.0)
 
 
 ## How strong the sun's shadows are outdoors, 0..1: full by day, fading out as the daylight

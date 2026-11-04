@@ -276,16 +276,18 @@ func _village_house(r: Rect2, door: int, noren: bool, side_door := -1) -> void:
 		Minka.gable_wall(self, x, back, front, wall, apex, "build:plaster", signf(x - cx))
 	Minka.ridge(self, eave.position.x + 0.05, eave.end.x - 0.05, crest - 0.04, mid_z)
 	var dx := r.position.x + door + 0.5
-	_picture("build:shoji_door", Vector2(0.85, 1.05), Vector3(dx, 0.55, front + 0.005))
-	if noren:
+	if noren:   # a shop's door stays dark at night: its noren hangs over the paper
+		_picture("build:shoji_door", Vector2(0.85, 1.05), Vector3(dx, 0.55, front + 0.005))
 		_picture("build:noren", Vector2(0.95, 0.36), Vector3(dx, 1.0, front + 0.03))
+	else:
+		_lit_picture("build:shoji_door", Vector2(0.85, 1.05), Vector3(dx, 0.55, front + 0.005))
 	var sx := r.position.x + side_door + 0.5 if side_door >= 0 else -100.0
 	if side_door >= 0:
-		_picture("build:shoji_door", Vector2(0.75, 1.0), Vector3(sx, 0.52, front + 0.005))
+		_lit_picture("build:shoji_door", Vector2(0.75, 1.0), Vector3(sx, 0.52, front + 0.005))
 	for x in range(int(r.position.x), int(r.end.x)):
 		if absf(x + 0.5 - dx) > 1.2 and absf(x + 0.5 - sx) > 0.9 and (x - int(r.position.x)) % 2 == 1:
-			_picture("build:shoji", Vector2(0.7, 0.5), Vector3(x + 0.5, 1.1, front + 0.005))
-	_picture("build:shoji", Vector2(0.7, 0.5), Vector3(r.end.x - 0.1 + 0.005, 1.1, mid_z), 90)
+			_lit_picture("build:shoji", Vector2(0.7, 0.5), Vector3(x + 0.5, 1.1, front + 0.005))
+	_lit_picture("build:shoji", Vector2(0.7, 0.5), Vector3(r.end.x - 0.1 + 0.005, 1.1, mid_z), 90)
 
 
 ## A pine: a dark trunk and three layered cones of needles.

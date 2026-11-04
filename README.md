@@ -843,7 +843,20 @@ little blue. Outdoors the sun casts shadows; the ground is lit only to take them
 to about two thirds). Shadows fade with the daylight (dusk, night) and are gone under cloud
 (`data/weather_fx.json` "sun", `Game.sun_shadow()`); rooms and mine floors have none. A soft
 glow lifts the brightest things (snow, lights). Sprites stay unshaded, with their own blob
-shadows. Day / night itself is still the multiply tint over the picture.
+shadows. Day / night itself is still the multiply tint over the picture: `data/light.json`
+"sky" lists its colour through the day (`Game.light_color()`, `Game.sky_at`), plain white
+7:00..16:00, a warm 17:30, a mauve dusk at 18:30 and a deep blue night (404c8e) from 20:30 to
+4:30, dawn back through mauve and peach to 7:00. Both views use it.
+
+At dusk and night the farmhouse's and the village houses' windows and shoji doors light up
+warm (a shop's door under its noren stays dark): `NightLights` (scripts/world3d/night_lights.gd,
+in the tint's layer after the tint) adds each window's paper picture in warm light and a soft
+glow over the night blue, as bright as `Game.window_light()` (data/light.json "windows": with
+the dark between `dark_from` and `dark_full`, only in the lit `hours`, so they go out at 0:30
+and come on again before dawn). The houses list their windows in `FarmWorld.windows` (built
+with `_lit_picture`); a window turned from the camera or behind a solid building stays dark,
+one behind a building faded see-through shines through as much as it is faded. The flat view
+has no windows to light (its houses are flat blocks), only the darker night.
 
 ## Layout
 - `scripts/autoload/game.gd`: global state (clock, calendar, weather, money, bag, stamina, light).
@@ -863,7 +876,9 @@ shadows. Day / night itself is still the multiply tint over the picture.
   logic) and the text box that draws it.
 - `scripts/events/event_runner.gd`, `event_triggers.gd` (pure logic) and `event_player.gd`
   (the view's side: triggers, moving the farmer, the fade): event scripts.
-- `data/*.json`: crops and weather, tuned without touching code; `data/dialogue/`: dialogue;
+- `scripts/world3d/night_lights.gd`: lit house windows at night over the 3D view (README → Light).
+- `data/*.json`: crops and weather, tuned without touching code (`data/light.json`: the day /
+  night sky and the lit windows); `data/dialogue/`: dialogue;
   `data/events/`: events and trigger tables.
 - `scripts/autoload/sfx.gd` (Sfx): plays sounds by key and the music, SFX / Ambient / Music
   busses with `set_volume(bus, 0..1)` (set from the volume settings);
