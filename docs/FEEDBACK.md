@@ -21,10 +21,6 @@ only mine in winter. Tune the deep finds (or the lift's depth) in data/mine.json
 Note: at the time of writing another agent has uncommitted changes in data/mine.json and
 data/festivals.json; look at what they did before tuning.
 
-### 5. Grilled fish is still a shortcut (21–30)
-One fish makes a dish that sells for 80 G (WORKLOG already warns about it). Check it against
-the fish's own price in data/recipes.json.
-
 ### 6. Night is too bright, no lit windows (21–30)
 Night barely darkens the field, and house windows never light up.
 
@@ -46,6 +42,12 @@ reproduce; if it is real, fix it, else make the load safe against a half-written
 4. Item 6 (night), then 7 and 8.
 
 ## Fixed
+- Grilled fish was a shortcut (item 5): one 18 G fish made an 80 G dish. A dish now sells
+  for about a third more than its cheapest ingredients (data/foods.json `_dish_prices`):
+  grilled fish 25 G, ochazuke 80, fish and daikon 170, dobin mushi 135, and the same for
+  plain eggs and milk (tamagoyaki 80, milk pudding 190); a dearer fish or a better grade is
+  worth more raw. `python -I tools/balance.py` shows each recipe's gain (column cheap).
+  Commit: this commit (the dish prices, see WORKLOG 2026-11-04).
 - Item 1, everything in English: Esc → Settings → Language: English / ไทย. Thai tables in
   data/lang/th (menus, settings, HUD, key hints, rucksack, shops, kitchen, festival games, the
   record, the messages, names of items, places and people, and the first dialogue: opening,

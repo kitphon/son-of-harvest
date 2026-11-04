@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-04 — Dish prices: a modest gain over the cheapest ingredients (FEEDBACK item 5)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a dish's price is fixed but the fish group takes any fish, so one 18 G dace made an
+  80 G grilled fish (+344%). The rule now (data/foods.json `_dish_prices`): a dish sells for
+  about a third more than its cheapest ingredients shipped raw. Fish dishes: grilled fish
+  80 → 25 G (18 G fish + 39%), ochazuke 130 → 80 (fish + 40 G tea, +38%), fish and daikon
+  220 → 170 (+33%), dobin mushi 210 → 135 (+38%). The same shortcut with plain eggs and milk:
+  tamagoyaki 120 → 80 (2 plain eggs, +33%), milk pudding 270 → 190 (+36%). A carp, a smelt,
+  good eggs or good milk are now worth more raw than cooked; a dish is mostly for its stamina.
+  tools/balance.py: the recipe table gets a "cheap" column (the best season's gain with plain
+  eggs / milk and the season's cheapest fish, and that gain as a share of the raw price), and
+  the steady plan no longer cooks tamagoyaki, milk pudding or grilled fish to sell (at the
+  average grade they lose now): fall stays as it was minus tamagoyaki, winter is fish and
+  daikon and kinako mochi.
+- Checked: balance.py's recipe table, cheap column before → after: grilled fish 62 344% →
+  7 39%, tamagoyaki 60 100% → 20 33%, ochazuke 72 124% → 22 38%, milk pudding 130 93% → 50
+  36%, fish and daikon 92 72% → 42 33%, dobin mushi 112 114% → 37 38%; the rest unchanged
+  (27-44%, but sansai tempura 338% and kinoko jiru 73%, made of cheap wild greens; left).
+  balance.py year net 91503 → 91587 G. test_cooking gets `_prices`: every dish made from fish,
+  eggs or milk sells for more than its cheapest ingredients and at most 50% more; a carp or a
+  smelt is worth more raw than grilled; good eggs raw are worth a tamagoyaki (failed with the
+  old 80 G as it should, then passed). All 26 test scripts `OK (0 failed)`; smoke runs print no
+  error or warning lines. The year bot's numbers come with item 4 (next entry), run on both.
+- Left / next: sansai tempura (2 greens at 8 G → 70 G) is the one cheap-ingredient outlier
+  left; its greens are few a day, so it stays for now.
+
 ## 2026-11-04 — Marriage: courting ends at the shrine (FEEDBACK item 3)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: data/marriage.json + `Marriage` (scripts/villagers/marriage.gd). Candidates: Sayo and
