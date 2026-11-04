@@ -14,17 +14,6 @@ commit hash.
 
 ## Open
 
-### 4. Winter mining beats the whole farm (21–30)
-At the playtest the bot's year 1 winter had 51,214 G of 79,689 G from the mine. Since the bot
-rides the lift (WORKLOG 2026-11-03) it is worse: 171,766 G of 199,601 G. Min-maxers will
-only mine in winter. Tune the deep finds (or the lift's depth) in data/mine.json.
-Note: at the time of writing another agent has uncommitted changes in data/mine.json and
-data/festivals.json; look at what they did before tuning.
-
-### 5. Grilled fish is still a shortcut (21–30)
-One fish makes a dish that sells for 80 G (WORKLOG already warns about it). Check it against
-the fish's own price in data/recipes.json.
-
 ### 6. Night is too bright, no lit windows (21–30)
 Night barely darkens the field, and house windows never light up.
 
@@ -42,10 +31,21 @@ reproduce; if it is real, fix it, else make the load safe against a half-written
 ## Order to fix
 1. ~~Item 1 (Thai text): keeps the 15–20 players.~~ Fixed.
 2. ~~Items 2 and 3 (week-one goal, where love leads).~~ Fixed.
-3. Items 4 and 5 (mine winter income, grilled fish price).
+3. ~~Items 4 and 5 (mine winter income, grilled fish price).~~ Fixed.
 4. Item 6 (night), then 7 and 8.
 
 ## Fixed
+- Winter mining beat the whole farm (item 4): deep finds about halved again (data/mine.json
+  `_prices`: hoshigane 110, jade 85, kogane 30 ...) and floors 13+ hide nothing half the time;
+  the First Stone rivals scaled with them. Year bot, year 1 winter mine 73160 → 38378 G, the
+  year's mine 88150 → 47558 G against 158118 G from the farm. Commit: this commit (WORKLOG
+  2026-11-04, Winter mine income halved again).
+- Grilled fish was a shortcut (item 5): one 18 G fish made an 80 G dish. A dish now sells
+  for about a third more than its cheapest ingredients (data/foods.json `_dish_prices`):
+  grilled fish 25 G, ochazuke 80, fish and daikon 170, dobin mushi 135, and the same for
+  plain eggs and milk (tamagoyaki 80, milk pudding 190); a dearer fish or a better grade is
+  worth more raw. `python -I tools/balance.py` shows each recipe's gain (column cheap).
+  Commit c336ef1.
 - Item 1, everything in English: Esc → Settings → Language: English / ไทย. Thai tables in
   data/lang/th (menus, settings, HUD, key hints, rucksack, shops, kitchen, festival games, the
   record, the messages, names of items, places and people, and the first dialogue: opening,

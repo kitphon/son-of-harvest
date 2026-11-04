@@ -9,6 +9,7 @@ var failures := 0
 
 func _init() -> void:
 	_data()
+	_prices()
 	_cooking()
 	_menu()
 	_lessons()
@@ -52,6 +53,52 @@ func _data() -> void:
 	check(Cooking.check({"recipes": {"miso_soup": {"needs": [{"group": "nope", "n": 1}]}}}, foods) != "", "an unknown group is refused")
 	check(Cooking.check({"recipes": {"miso_soup": {"needs": [{"item": "turnip", "n": 0}]}}}, foods) != "", "a need of 0 is refused")
 	check(Cooking.check({"recipes": {"miso_soup": {"needs": []}}}, foods) != "", "a recipe without needs is refused")
+
+
+## Dish prices (FEEDBACK item 5): a dish made from fish, eggs or milk sells for a modest gain
+## over its cheapest ingredients shipped raw (the cheapest fish of the year, plain eggs and
+## milk), never the shortcut grilled fish was (one 18 G fish -> an 80 G dish), and a dearer
+## fish or a better grade is worth more raw than in the dish.
+func _prices() -> void:
+	var d := Cooking.data()
+	var foods: Dictionary = _json("res://data/foods.json").foods
+	var crops: Dictionary = _json("res://data/crops.json")
+	var products: Dictionary = _json("res://data/animals.json").items
+	var wild: Dictionary = _json("res://data/forage.json").items
+	var fish: Dictionary = _json("res://data/fish.json").fish
+	var cheap_fish := 1 << 30
+	for f in fish.values():
+		if not f.get("once", false):
+			cheap_fish = mini(cheap_fish, int(f.sell))
+	var value := func(it: String) -> int:
+		if crops.has(it):
+			return int(crops[it].sell)
+		if products.has(it):
+			return int(products[it].sell)
+		if it.begins_with("wild:"):
+			return int(wild[it.trim_prefix("wild:")].sell)
+		return int(foods[it.trim_prefix("food:")].get("price", 0))
+	for id in Cooking.ids():
+		var r := Cooking.recipe(id)
+		var raw := 0
+		var animal := false
+		for need in r.needs:
+			var each := 0
+			if need.has("item"):
+				each = value.call(String(need.item))
+			elif d.groups[need.group].has("prefix"):
+				each = cheap_fish
+				animal = true
+			else:
+				var items: Array = d.groups[need.group].items
+				each = items.map(func(it: String) -> int: return value.call(it)).min()
+				animal = animal or products.has(String(items[0]))
+			raw += each * int(need.n)
+		var dish := int(foods[id].sell) * Cooking.makes(id)
+		if animal:
+			check(dish > raw and dish * 100 <= raw * 150, "%s sells for a modest gain over its cheapest ingredients (%d G for %d G raw)" % [id, dish, raw])
+	check(int(foods.grilled_fish.sell) < int(fish.koi.sell) and int(foods.grilled_fish.sell) < int(fish.wakasagi.sell), "a carp or a smelt is worth more raw than grilled")
+	check(int(foods.tamagoyaki.sell) <= 2 * int(products.egg_good.sell), "good eggs are worth as much raw as rolled")
 
 
 ## Game.cook: the kitchen, known recipes, ingredients from the rucksack, the hand and the chest,

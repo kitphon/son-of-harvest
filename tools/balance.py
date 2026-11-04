@@ -38,12 +38,15 @@ MIX = {
     "fall": {"carrot": 0.3, "eggplant": 0.25, "pumpkin": 0.25, "daikon": 0.2},
 }
 # Dishes cooked and shipped per season once the kitchen stands (bought in summer): recipe ->
-# times cooked. The ingredients come out of the season's own harvest, eggs, milk and fish, so
-# the "cook" column is what the dishes fetch over shipping those ingredients raw.
+# times cooked. The ingredients come out of the season's own harvest (winter's from the fall's,
+# kept), eggs, milk and fish, so the "cook" column is what the dishes fetch over shipping those
+# ingredients raw. Only dishes that pay at the average grade and catch: since 2026-11-04
+# (FEEDBACK item 5) a dish is worth about a third more than its cheapest ingredients, so
+# tamagoyaki, milk pudding and grilled fish don't pay with good eggs, milk or fish.
 COOKED = {
-    "summer": {"tamagoyaki": 10, "milk_pudding": 5},
-    "fall": {"tamagoyaki": 10, "furofuki_daikon": 10, "takikomi_gohan": 5, "kinako_mochi": 5, "simmered_pumpkin": 5},
-    "winter": {"tamagoyaki": 15, "milk_pudding": 10, "grilled_fish": 10},
+    "summer": {},
+    "fall": {"furofuki_daikon": 10, "takikomi_gohan": 5, "kinako_mochi": 5, "simmered_pumpkin": 5},
+    "winter": {"daikon_fish": 10, "kinako_mochi": 10},
 }
 # Hens bought from the store: (season, day, how many). The coop holds 6.
 HENS_BOUGHT = [("spring", 20, 2), ("summer", 10, 2)]
@@ -186,13 +189,23 @@ def mine_floor_value(depth, season):
     return sum(mine["items"][k]["sell"] * n for k, n in mine_floor_finds(depth, season).items())
 
 
-def need_value(need, season):
+def cheapest_fish(season):
+    """G of the cheapest fish caught anywhere in `season` (once-only fish left out): what a
+    player who cooks to sell puts in the pan."""
+    return min(f["sell"] for f in fish["fish"].values()
+               if not f.get("once") and season in f.get("seasons", SEASONS))
+
+
+def need_value(need, season, cheapest=False):
     """Shipping value of one need of a recipe: a group uses its cheapest item (eggs and milk at
-    their average grade, fish at the season's average catch)."""
+    their average grade, fish at the season's average catch; with `cheapest`, the plain grade
+    and the season's cheapest fish)."""
     if "group" in need:
         g = recipes["groups"][need["group"]]
         if g.get("prefix") == "fish:":
-            each = fish_value(season)
+            each = cheapest_fish(season) if cheapest else fish_value(season)
+        elif need["group"] in ("egg", "milk") and cheapest:
+            each = item_value(g["items"][0])
         elif need["group"] in ("egg", "milk"):
             each = product_value(need["group"])
         else:
@@ -414,15 +427,20 @@ def main():
     print()
     print("Recipes: G one cooking fetches over its ingredients shipped raw (dish sell x makes - ingredients);")
     print("   tools: G of the kitchen tools it needs (shared tools counted in full); pays: cookings at its")
-    print("   best season's gain to earn them back")
-    print(f"{'recipe':>17} | " + " | ".join(f"{s:>6}" for s in SEASONS) + f" | {'tools':>6} | {'pays':>5}")
+    print("   best season's gain to earn them back; cheap: the best season's gain with the cheapest")
+    print("   ingredients (plain eggs and milk, the season's cheapest fish), what a min-maxer gets, and")
+    print("   that gain as a share of those ingredients' own price")
+    print(f"{'recipe':>17} | " + " | ".join(f"{s:>6}" for s in SEASONS) + f" | {'tools':>6} | {'pays':>5} | {'cheap':>11}")
     for rid, rec in recipes["recipes"].items():
         dish = foods["foods"][rid]["sell"] * rec.get("makes", 1)
         cells = [round(dish - sum(need_value(n, s) for n in rec["needs"])) for s in SEASONS]
+        raw = [sum(need_value(n, s, True) for n in rec["needs"]) for s in SEASONS]
+        cheap = max(range(len(SEASONS)), key=lambda i: dish - raw[i])
+        cheap_cell = f"{round(dish - raw[cheap]):>5} {round(100 * (dish - raw[cheap]) / raw[cheap]):>4}%"
         tools = sum(recipes["tools"][t]["price"] for t in rec.get("tools", []))
         best = max(cells)
         pays = "-" if tools == 0 else (f"{-(-tools // best):>5}" if best > 0 else "never")
-        print(f"{rid:>17} | " + " | ".join(f"{c:>6}" for c in cells) + f" | {tools:>6} | {pays:>5}")
+        print(f"{rid:>17} | " + " | ".join(f"{c:>6}" for c in cells) + f" | {tools:>6} | {pays:>5} | {cheap_cell}")
 
 
 INCOME = ("crops", "cook", "eggs", "milk", "wool", "fish", "mine", "prize")
