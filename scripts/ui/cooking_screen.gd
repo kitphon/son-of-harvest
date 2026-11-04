@@ -13,6 +13,7 @@ const TOP := 17             # the heading strip on the wood
 const ROW := 18
 const ROWS := 7             # rows shown at once; the list scrolls
 const LINE := 11
+const ABOUT_ROWS := 2
 const PAPER := Color("f6ead0")
 const HINT := "Enter: cook  Esc: leave"
 
@@ -121,6 +122,10 @@ func _build() -> void:
 	_more_up = _label(_paper, Vector2i(W - 70, 5), Hud.INK_SOFT)
 	_more_down = _label(_paper, Vector2i(W - 70, y + 4), Hud.INK_SOFT)
 	_about = _label(_paper, Vector2i(6, y + 4))
+	_about.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # wraps in a longer language
+	_about.size.x = W - 12
+	_about.max_lines_visible = ABOUT_ROWS
+	y += LINE * (ABOUT_ROWS - 1)
 	_needs = _label(_paper, Vector2i(6, y + 4 + LINE))
 	_tools = _label(_paper, Vector2i(6, y + 4 + LINE * 2))
 	_note = _label(_paper, Vector2i(6, y + 4 + LINE * 3), PlaceholderArt.UI_SEAL)
@@ -151,7 +156,7 @@ func _refresh() -> void:
 		_icons[i].texture = PlaceholderArt.tex(PlaceholderArt.item_key(row.dish))
 		_names[i].text = String(Game.foods.get(row.id, {}).get("name", row.id))
 		if int(row.makes) > 1:
-			_names[i].text += " x%d" % int(row.makes)
+			_names[i].text = "%s x%d" % [_names[i].text, int(row.makes)]
 		_states[i].text = CookingMenu.state_text(row)
 		_states[i].position.x = W - 8 - PixelFont.shown_width(_states[i].text)
 		var ink := Hud.INK if row.ready else Hud.INK_SOFT

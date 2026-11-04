@@ -70,7 +70,7 @@ func tools_text(tr := false) -> String:
 		return ""
 	var names: Array[String] = []
 	for t in Cooking.tools(row.id):
-		var n := Cooking.tool_name(t) + (" (buy at store)" if t in row.no_tools else "")
+		var n := ("%s (buy at store)" if t in row.no_tools else "%s") % Cooking.tool_name(t)
 		names.append(Lang.t(n) if tr else n)
 	return (Lang.t("Uses %s") if tr else "Uses %s") % ", ".join(names)
 
@@ -92,7 +92,7 @@ static func state_text(row: Dictionary) -> String:
 func need_name(need: Dictionary) -> String:
 	if need.has("item"):
 		return g.item_name(need.item)
-	return "any " + String(Cooking.data().get("groups", {}).get(need.group, {}).get("name", need.group))
+	return "any %s" % String(Cooking.data().get("groups", {}).get(need.group, {}).get("name", need.group))
 
 
 ## Enter: cooks the cursor's recipe once.

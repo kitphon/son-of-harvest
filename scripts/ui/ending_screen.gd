@@ -258,7 +258,7 @@ func _refresh() -> void:
 			var b: TextureRect = _stars[i][k]
 			b.visible = on and k < int(row.get("max", 0))
 			b.texture = on_tex if k < int(row.get("stars", 0)) else off_tex
-	_title.text = "Written as: " + String(record.get("title", "")) if all else ""
+	_title.text = "Written as: %s" % String(record.get("title", "")) if all else ""
 	_seal.position.x = MARGIN + PixelFont.shown_width(_title.text) + 5
 	_seal.visible = all
 	_hint.visible = all

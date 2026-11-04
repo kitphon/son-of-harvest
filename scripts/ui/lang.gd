@@ -8,12 +8,22 @@ extends RefCounted
 ## A multi-line text with no entry of its own is looked up line by line. Text with no entry
 ## stays in English (the fallback).
 ##
+## Text glued from several keys has no entry of its own, so code keeps each key whole:
+## one format per sentence ("Found %s (rucksack full)."), join() for sentences said together,
+## list() for "a, b and c". LangCatalog lists the keys; tools/lang_report.gd counts them.
+##
+## PSEUDO is a test language with no tables: every text comes out about a third wider
+## (padded with "="), to see whether a longer language still fits (`-- --lang=pseudo`).
+##
 ## Labels translate themselves: set_language() puts a LangTranslation into Godot's
 ## TranslationServer, so every Label's text goes through t() as it is drawn. Code that
 ## measures or wraps text itself (the text box, widths) calls t() / PixelFont.shown_width().
 
 const DIR := "res://data/lang/"
 const DEFAULT := "en"
+const PSEUDO := "pseudo"
+const PSEUDO_GROW := 0.3   # German runs about 30% longer than English
+const PSEUDO_PAD := "="
 
 static var current := DEFAULT
 static var _table: Dictionary = {}     # English -> translation, for `current`
@@ -32,7 +42,7 @@ static func languages() -> Array[String]:
 
 ## Switch the language (an unknown one is English). Labels on screen redraw in it at once.
 static func set_language(id: String) -> void:
-	if id != DEFAULT and not DirAccess.dir_exists_absolute(DIR + id):
+	if id != DEFAULT and id != PSEUDO and not DirAccess.dir_exists_absolute(DIR + id):
 		id = DEFAULT
 	if id != current or (_table.is_empty() and id != DEFAULT):
 		current = id
@@ -74,27 +84,31 @@ static func table(id: String) -> Dictionary:
 static func _load(id: String) -> void:
 	_cache = {}
 	_patterns = []
-	_table = {} if id == DEFAULT else table(id)
-	var placeholder := RegEx.create_from_string("%0?\\d?[sd]")
+	_table = {} if id in [DEFAULT, PSEUDO] else table(id)
 	for key in _table:
-		var k := String(key)
-		var found := placeholder.search_all(k)
-		if found.is_empty():
-			continue
-		var src := "^"
-		var kinds := []
-		var at := 0
-		for m in found:
-			src += _escape(k.substr(at, m.get_start() - at))
-			var is_num := m.get_string().ends_with("d")
-			src += "(-?\\d+)" if is_num else "(.+?)"
-			kinds.append("d" if is_num else "s")
-			at = m.get_end()
-		src += _escape(k.substr(at)) + "$"
-		var re := RegEx.create_from_string(src)
-		if re.is_valid():
-			_patterns.append([re, kinds, String(_table[key]), k.length() - found.size() * 2])
+		var p := pattern(String(key))
+		if not p.is_empty():
+			_patterns.append([p[0], p[1], String(_table[key]), String(key).length() - p[1].size() * 2])
 	_patterns.sort_custom(func(a, b): return a[3] > b[3])
+
+
+## A key with %s / %d as [RegEx matching the text it stands for, kinds "s" / "d" in order];
+## [] for a plain key.
+static func pattern(k: String) -> Array:
+	var found := RegEx.create_from_string("%0?\\d?[sd]").search_all(k)
+	if found.is_empty():
+		return []
+	var src := "^"
+	var kinds := []
+	var at := 0
+	for m in found:
+		src += _escape(k.substr(at, m.get_start() - at))
+		var is_num := m.get_string().ends_with("d")
+		src += "(-?\\d+)" if is_num else "(.+?)"
+		kinds.append("d" if is_num else "s")
+		at = m.get_end()
+	var re := RegEx.create_from_string(src + _escape(k.substr(at)) + "$")
+	return [re, kinds] if re.is_valid() else []
 
 
 static func _escape(s: String) -> String:
@@ -110,11 +124,43 @@ static func t(text: String) -> String:
 		return text
 	if _cache.has(text):
 		return _cache[text]
-	var out := PixelFont.shape(_find(text, 0))
+	var out := _stretch(text) if current == PSEUDO else PixelFont.shape(_find(text, 0))
 	if _cache.size() > 4000:
 		_cache = {}
 	_cache[text] = out
 	return out
+
+
+## Pieces said together (the sentences of one message), each looked up on its own.
+static func join(parts: Array, sep := " ") -> String:
+	var out := PackedStringArray()
+	for p in parts:
+		if str(p) != "":
+			out.append(t(str(p)))
+	return sep.join(out)
+
+
+## "a", "a and b", "a, b and c", built from the keys "%s, %s" and "%s and %s" so a table
+## words the list its own way. English out; Labels translate it as they draw.
+static func list(items: Array) -> String:
+	if items.is_empty():
+		return ""
+	var head := str(items[0])
+	for i in range(1, items.size() - 1):
+		head = "%s, %s" % [head, items[i]]
+	return head if items.size() == 1 else "%s and %s" % [head, items.back()]
+
+
+## PSEUDO: each line with letters padded to PSEUDO_GROW wider (a line padded already, e.g.
+## join()'s pieces drawn by a Label, is left as it is).
+static func _stretch(text: String) -> String:
+	var lines := PackedStringArray()
+	for line in text.split("\n"):
+		var w := PixelFont.width(line)
+		if w > 0 and not line.ends_with(PSEUDO_PAD) and RegEx.create_from_string("[A-Za-z]").search(line) != null:
+			line += PSEUDO_PAD.repeat(ceili(w * PSEUDO_GROW / maxf(PixelFont.width(PSEUDO_PAD), 1.0)))
+		lines.append(line)
+	return "\n".join(lines)
 
 
 ## Whether `text` has an entry (exact or by pattern) in the current language.
@@ -126,6 +172,31 @@ static func has(text: String) -> bool:
 	for p in _patterns:
 		if p[0].search(text) != null:
 			return true
+	return false
+
+
+## Whether `text` comes out wholly in the current language: an entry, or a pattern whose %s
+## parts are all covered too (a loose pattern like "%s, %s" alone doesn't count), or every line.
+static func covered(text: String, depth := 0) -> bool:
+	if current == DEFAULT or text == "":
+		return current == DEFAULT
+	if _table.has(text) or _table.has(text.left(1).to_upper() + text.substr(1)):
+		return true
+	if depth > 3:
+		return false
+	for p in _patterns:
+		var m: RegExMatch = p[0].search(text)
+		if m == null:
+			continue
+		for i in p[1].size():
+			if p[1][i] == "s" and not covered(m.get_string(i + 1), depth + 1):
+				return false
+		return true
+	if "\n" in text:
+		for line in text.split("\n"):
+			if not covered(line, depth):
+				return false
+		return true
 	return false
 
 

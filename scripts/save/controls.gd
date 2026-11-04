@@ -58,7 +58,7 @@ static func make(path := DATA, tools: Array = []) -> Controls:
 		tools = load("res://scripts/autoload/game.gd").get_script_constant_map().get("TOOLS", [])
 	var tool_keys: Array = data.get("tool_keys", [])
 	for i in tools.size():
-		var label: String = str(data.get("tool_label", "Tool %d: %s")) % [i + 1, str(tools[i]).capitalize()]
+		var label: String = str(data.get("tool_label", "Tool %d: %s")) % [i + 1, HudLayout.TOOL_NAMES.get(str(tools[i]), str(tools[i]).capitalize())]
 		c._add("tool_%d" % (i + 1), label, [tool_keys[i]] if i < tool_keys.size() else [], [], "", [], "")
 	for id in PAD_BUTTONS:
 		c.pad_names[PAD_BUTTONS[id]] = str(data.get("pad_names", {}).get(id, id))
@@ -140,7 +140,7 @@ func label(action: String) -> String:
 	var names: Array[String] = []
 	for k in s.get("fixed", []):
 		names.append(key_name(k))
-	return s.get("label", action) + ("" if names.is_empty() else " (%s)" % ", ".join(names))
+	return s.get("label", action) if names.is_empty() else "%s (%s)" % [s.get("label", action), ", ".join(names)]
 
 
 ## The key in each slot (KEY_NONE for an empty one).

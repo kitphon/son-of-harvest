@@ -86,23 +86,23 @@ static func tend(i: int) -> void:
 		var item := a.take_product(i)
 		Game.held = item
 		Sfx.play("shear_snip" if tool == "shears" else "milk_squirt")
-		Game.message.emit("%s %s: %s" % ["Sheared" if tool == "shears" else "Milked", beast.name, Game.item_name(item)])
+		Game.message.emit(("Sheared %s: %s" if tool == "shears" else "Milked %s: %s") % [beast.name, Game.item_name(item)])
 		Game.changed.emit()
 	elif a.brush(i):
 		Sfx.play("brush_stroke")
-		Game.message.emit("You brushed %s. %s" % [a.label(beast), mood(beast, a.happy_max())])
+		Game.message.emit(Lang.join(["You brushed %s." % a.label(beast), mood(beast, a.happy_max()) % a.label(beast)]))
 	elif a.pet(i):
-		Game.message.emit("%s %s" % [a.label(beast), mood(beast, a.happy_max())])
+		Game.message.emit(mood(beast, a.happy_max()) % a.label(beast))
 	elif a.product_ready(beast):
 		Game.message.emit("Your hands are full")
 	else:
-		Game.message.emit("%s %s" % [a.label(beast), mood(beast, a.happy_max())])
+		Game.message.emit(mood(beast, a.happy_max()) % a.label(beast))
 
 
 static func mood(beast: Dictionary, most: int) -> String:
 	var p := float(beast.happy) / most
 	if p < 0.2:
-		return "looks unhappy"
+		return "%s looks unhappy"
 	if p < 0.6:
-		return "seems content"
-	return "looks very happy"
+		return "%s seems content"
+	return "%s looks very happy"

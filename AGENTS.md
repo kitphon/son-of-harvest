@@ -85,6 +85,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   throw's flight; rain / snow, lightning and the festival glow): `res://tests/test_view2d.gd` must print `test_view2d: OK (0 failed)`.
   Goals (Tome's first-week list: data/goals.json, what is counted, rewards paid once, the notes, the save, the HUD tag):
   `res://tests/test_goals.gd` must print `test_goals: OK (0 failed)`.
+  Languages (LangCatalog finds the English, no glued pieces in the scripts, no stale table
+  entries, Lang.join / list, the pseudo language, the screens and the dialogue still fitting
+  a third longer): `res://tests/test_lang.gd` must print `test_lang: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field), `-- --demo --map=town` (the village) and
   `-- --demo --mine=3` (a mine floor).
@@ -94,7 +97,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   add `--weather=rain` (storm, snow, blizzard) to force the weather, `--no-flashes` to turn
   lightning off, `--snow=N` (0..100) for that much snow lying (on the farm and the outdoor
   maps: `--season=winter --map=town --snow=80`), `--dialogue=<id>` (or `<id>@<line id>`) to open a text box from
-  `data/dialogue`, `--pause` (or `--pause=settings`, `--pause=controls`) to open the pause menu, `--ui=150%` (125%) for a UI size this run only, `--lang=th` for the Thai text this run only (with `--dialogue=opening@field` a Thai text box), `--lens=<id>` (ps1, wide; data/camera.json, the game uses medium) for another camera lens, `--goals` to turn Tome's first-week list on in a `--demo` run (plain demo runs have it off; `--goals=plant,hello` marks those done, so the HUD tag shows the next), `--tired` to start
+  `data/dialogue`, `--pause` (or `--pause=settings`, `--pause=controls`) to open the pause menu, `--ui=150%` (125%) for a UI size this run only, `--lang=th` for the Thai text this run only (`--lang=pseudo`: every text a third longer) (with `--dialogue=opening@field` a Thai text box), `--lens=<id>` (ps1, wide; data/camera.json, the game uses medium) for another camera lens, `--goals` to turn Tome's first-week list on in a `--demo` run (plain demo runs have it off; `--goals=plant,hello` marks those done, so the HUD tag shows the next), `--tired` to start
   exhausted (tired pose, slow walk), `--eat` (or `--eat=drink`) to stand mid-bite (or mid-sip)
   with the eat pose kept going, `--event=<id>` to play an event from `data/events`
   (`--demo` turns the trigger tables off, so plain demo frames have no events; to see a
@@ -152,6 +155,10 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   must print `test_audio: OK (0 failed)`. Headless runs and Movie Maker runs start no sound
   (`Sfx.silent`); add `-- --movie-audio` to a Movie Maker run to record the mix as
   `shots/frame.wav`.
+- Translation coverage: `--headless --path . --script res://tools/lang_report.gd` (add
+  `-- --lang=th` for one language, `-- --list` for every missing line) prints what each
+  language covers and writes `build/lang/<id>_todo.json`. A screenshot with `--lang=pseudo`
+  shows every text a third longer (README → Settings → Language).
 - Run Python as `python -I` (numpy and Pillow are installed) for pixel checks.
 - Export (Windows): `Godot_v4.7.2-stable_win64_console.exe --headless --path . --export-release
   "Windows Desktop" build/HarvestSon.exe` (preset in `export_presets.cfg`, .pck embedded,

@@ -74,6 +74,19 @@ effect the moment it changes and saved to `user://settings.json` (version 2; a v
   phrases so the text box can wrap it. Done in Thai: all menus and screens, the HUD and key
   hints, the messages, item / place / people names and part of the dialogue (see
   `data/lang/th/dialogue.json`'s note). `-- --lang=th` tries a language for one run.
+  Writing text so it can be translated: one key per sentence, never glued from pieces. Use a
+  whole format for each wording (`"Found %s (rucksack full)."`, `"%s %d day."` and
+  `"%s %d days."` rather than a word put in), `Lang.join([...])` for sentences said together
+  (each looked up on its own), `Lang.list(names)` for "a, b and c" (the keys `"%s, %s"` and
+  `"%s and %s"`), a data field for wording that differs per thing (a kitchen tool's `a_name`,
+  "an iron rice pot"), and `PixelFont.shown_width` (not `width`) to measure shown text.
+  `LangCatalog` (`scripts/ui/lang_catalog.gd`) gathers every English text from the dialogue,
+  the data files and the scripts' string literals; `tools/lang_report.gd` prints how much of
+  it each language covers (by dialogue / data / code, a text counts when it comes out wholly
+  translated), lists table entries no text uses any more (stale) and pieces glued in the
+  scripts, and writes `build/lang/<id>_todo.json` with the missing lines for a translator.
+  `-- --lang=pseudo` is a test language with no tables: every text a third longer (padded
+  with `=`), to see a longer language on screen; test_lang checks the screens with it.
 - Display: Window, Full screen (exclusive) or Borderless (a window over the whole screen).
 - Window size: 2x / 3x / 4x the 480 x 270 picture, while the display is a window. Sizes bigger
   than the screen are left out of the row; a saved size that doesn't fit shows (and is) the

@@ -45,6 +45,12 @@ smooth dusk / dawn and lit house windows (data/light.json, README → Light). [x
 the title text's backing. [x] Item 8: the title's save check (it lacked the food table) and
 atomic saves with a backup. No feedback items are open now; Thai for the villagers'
 daily talk, heart events and contests is still to write (data/lang/th/dialogue.json).
+Languages (the user aims at players worldwide, 2026-11-04): [x] Step 1, ready for translation:
+LangCatalog and tools/lang_report.gd (coverage per language, stale entries, a todo file),
+no text glued from pieces in the scripts, `--lang=pseudo` and test_lang (the screens and the
+dialogue fit a third longer). Next: step 2, polish the English (the source of every
+translation); then, once the content settles, translate in one go (Latin-script languages
+first; Chinese / Japanese need a licensed CJK pixel font).
 The user chose to refine the placeholders first (real art later). Farmer, crops, field
 objects, ground tiles, buildings, weather particles and the paper / wood HUD with our pixel
 font are done. Charging tools are done, and tools level up with use (tool experience,

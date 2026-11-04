@@ -12,6 +12,7 @@ const TOP := 17             # the heading strip on the wood
 const ROW := 18
 const ROWS := 7             # rows shown at once; the list scrolls
 const LINE := 11
+const INFO_ROWS := 2        # the info line wraps (a longer language)
 const PAPER := Color("f6ead0")
 const HINTS := {
 	"buy": "Enter: buy  Left/Right: how many  Esc: leave",
@@ -148,6 +149,8 @@ func _build() -> void:
 	_more_up = _label(_paper, Vector2i(W - 70, 5), Hud.INK_SOFT)
 	_more_down = _label(_paper, Vector2i(W - 70, y + 4), Hud.INK_SOFT)
 	_info = _label(_paper, Vector2i(6, y + 4))
+	_wrap(_info, W - 12, INFO_ROWS)
+	y += LINE * (INFO_ROWS - 1)
 	_note = _label(_paper, Vector2i(6, y + 4 + LINE), PlaceholderArt.UI_SEAL)
 	_hint = _label(_paper, Vector2i(6, y + 4 + LINE * 2), Hud.INK_SOFT)
 	_hours = _label(_paper, Vector2i(6, y + 4 + LINE * 3), Hud.INK_SOFT)
@@ -270,7 +273,7 @@ func _info_text() -> String:
 			var b: Dictionary = menu.shop.builds.get(row.item, {})
 			match str(row.state):
 				"offer":
-					return "%s %d %s." % [b.get("about", ""), int(row.days), "day" if int(row.days) == 1 else "days"]
+					return ("%s %d day." if int(row.days) == 1 else "%s %d days.") % [b.get("about", ""), int(row.days)]
 				"busy":
 					return "Another job is underway."
 				"building":
@@ -284,8 +287,8 @@ func _info_text() -> String:
 			match str(row.state):
 				"offer":
 					if not row.get("items", {}).is_empty():
-						return "Needs %s. %d %s." % [menu.shop.materials_text(row.items), int(row.days), "day" if int(row.days) == 1 else "days"]
-					return "Takes %d %s. The %s stays here." % [int(row.days), "day" if int(row.days) == 1 else "days",
+						return ("Needs %s. %d day." if int(row.days) == 1 else "Needs %s. %d days.") % [menu.shop.materials_text(row.items), int(row.days)]
+					return ("Takes %d day. The %s stays here." if int(row.days) == 1 else "Takes %d days. The %s stays here.") % [int(row.days),
 						menu.shop.item_name(row.item).to_lower()]
 				"short":
 					return "Still needs %s." % menu.shop.materials_text(row.lack)
@@ -298,6 +301,13 @@ func _info_text() -> String:
 				"top":
 					return "It can't be improved any more."
 	return ""
+
+
+## `l` wraps at `width`, at most `rows` rows (words split by spaces, as Thai is written here).
+func _wrap(l: Label, width: int, rows: int) -> void:
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.size.x = width
+	l.max_lines_visible = rows
 
 
 func _label(parent: Control, pos: Vector2i, color := Hud.INK) -> Label:

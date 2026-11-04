@@ -122,13 +122,13 @@ static func tend(i: int) -> void:
 			Game.message.emit("%s looks sick. Animal medicine would help" % hen.name)
 		return
 	a.pet(i)
-	Game.message.emit("%s %s" % [a.label(hen), mood(hen, a.happy_max())])
+	Game.message.emit(mood(hen, a.happy_max()) % a.label(hen))
 
 
 static func mood(hen: Dictionary, most: int) -> String:
 	var p := float(hen.happy) / most
 	if p < 0.2:
-		return "looks unhappy"
+		return "%s looks unhappy"
 	if p < 0.6:
-		return "clucks softly"
-	return "looks very happy"
+		return "%s clucks softly"
+	return "%s looks very happy"

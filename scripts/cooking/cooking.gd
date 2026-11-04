@@ -78,10 +78,9 @@ static func tool_name(tool: String, d := data()) -> String:
 	return String(tool_info(tool, d).get("name", tool.capitalize()))
 
 
-## "a kitchen knife", "an iron rice pot".
+## "a kitchen knife", "an iron rice pot": the tool's a_name, so another language words it whole.
 static func a_tool(tool: String, d := data()) -> String:
-	var n := tool_name(tool, d).to_lower()
-	return ("an " if n.left(1) in ["a", "e", "i", "o", "u"] else "a ") + n
+	return String(tool_info(tool, d).get("a_name", tool_name(tool, d)))
 
 
 ## The kitchen tools recipe `id` needs.
@@ -180,8 +179,8 @@ static func check(d: Dictionary, foods: Dictionary) -> String:
 	if not kit is Dictionary:
 		return "tools is a dictionary"
 	for t in kit:
-		if not kit[t] is Dictionary or String(kit[t].get("name", "")) == "" or int(kit[t].get("price", 0)) < 1:
-			return "tool %s needs a name and a price" % t
+		if not kit[t] is Dictionary or String(kit[t].get("name", "")) == "" or String(kit[t].get("a_name", "")) == "" or int(kit[t].get("price", 0)) < 1:
+			return "tool %s needs a name, an a_name and a price" % t
 	var groups: Dictionary = d.get("groups", {})
 	for g in groups:
 		var gd = groups[g]

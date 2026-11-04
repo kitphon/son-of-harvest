@@ -43,7 +43,7 @@ static func day_tag(ids: Array[String]) -> String:
 
 ## How wide the goal tag's box is for its tag ("Goal") and text (Goals.hud_text).
 static func goal_width(tag: String, text: String) -> int:
-	return 6 + PixelFont.width(tag) + 5 + PixelFont.width(text) + 6
+	return 6 + PixelFont.shown_width(tag) + 5 + PixelFont.shown_width(text) + 6
 
 
 ## A corner group's boxes as one rect (UiScale grows it about its pivot).

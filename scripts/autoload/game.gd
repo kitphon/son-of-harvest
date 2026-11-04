@@ -24,6 +24,7 @@ signal forage_changed            # a wild spot was picked, or they grew back (Fo
 const SECONDS_PER_MINUTE := 0.5
 const DAYS_PER_SEASON := 30
 const SEASONS: Array[String] = ["spring", "summer", "fall", "winter"]
+const SEASON_NAMES := {"spring": "Spring", "summer": "Summer", "fall": "Fall", "winter": "Winter"}   # as shown
 ## Spring 1 of year 1 is a Monday; the week runs on across seasons and years.
 const WEEKDAYS: Array[String] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 const PAYOUT_HOUR := 18
@@ -546,8 +547,10 @@ func use_door(door: Dictionary) -> void:
 func map_arrived() -> void:
 	map_entered.emit(maps.id)
 	if maps.mine_floor != null:
-		var frozen := ", %s" % str(mine_data.get("winter", {}).get("name", "frozen")) if maps.mine_floor.frozen else ""
-		message.emit("Mine floor %d%s" % [maps.mine_floor.depth, frozen])
+		if maps.mine_floor.frozen:
+			message.emit("Mine floor %d, %s" % [maps.mine_floor.depth, str(mine_data.get("winter", {}).get("name", "frozen"))])
+		else:
+			message.emit("Mine floor %d" % maps.mine_floor.depth)
 		if mine_news != "":
 			message.emit(mine_news)
 			mine_news = ""
@@ -660,7 +663,7 @@ func season_name() -> String:
 
 
 func date_text() -> String:
-	return "%s %d, Year %d" % [season_name().capitalize(), day, year]
+	return "%s %d, Year %d" % [SEASON_NAMES[season_name()], day, year]
 
 
 func time_text() -> String:
@@ -687,7 +690,7 @@ func day_number() -> int:
 func date_of(n: int) -> String:
 	var d := posmod(n, DAYS_PER_SEASON) + 1
 	var s := posmod(n / DAYS_PER_SEASON, SEASONS.size())
-	return "%s %d, Year %d" % [SEASONS[s].capitalize(), d, n / (DAYS_PER_SEASON * SEASONS.size()) + 1]
+	return "%s %d, Year %d" % [SEASON_NAMES[SEASONS[s]], d, n / (DAYS_PER_SEASON * SEASONS.size()) + 1]
 
 
 ## Day / night light (data/light.json "sky"): minute of the day -> colour, linear in between,
@@ -801,7 +804,7 @@ func sleep() -> void:
 	# Sleeping saves the game (the morning after), like writing in a diary.
 	var err := SaveGame.write(self)
 	var hello := "Good morning!" if wake == 6 else "You overslept until %d:00." % wake
-	message.emit(hello + (" Game saved." if err == "" else " " + err))
+	message.emit(Lang.join([hello, "Game saved." if err == "" else err]))
 	changed.emit()
 
 
@@ -1392,10 +1395,10 @@ func eat_item(item: String, places: Array = Inventory.CARRIED) -> Dictionary:
 	add_fatigue(int(f.get("fatigue", 0)))
 	work_fatigue_half = work_fatigue_half or half
 	_shown_state = body_state()   # feeling better: a later tired state is told again
-	var text := "You %s the %s." % ["drank" if f.get("drink", false) else "ate", name]
+	var text := ("You drank the %s." if f.get("drink", false) else "You ate the %s.") % name
 	var special := String(f.get("special_message", ""))
 	if special != "" and (grow > 0 or half):
-		text += " " + (special % grow if "%d" in special else special)
+		text = Lang.join([text, special % grow if "%d" in special else special])
 	start_eat_pose(bool(f.get("drink", false)))
 	changed.emit()
 	return _ate(true, text)
@@ -1463,13 +1466,13 @@ func cook(id: String) -> Dictionary:
 	var lack := Cooking.missing_tools(id, kitchen_tools)
 	if not lack.is_empty():
 		var names := lack.map(func(t: String) -> String: return Cooking.a_tool(t))
-		return {"ok": false, "note": "You need %s for that" % " and ".join(names)}
+		return {"ok": false, "note": "You need %s for that" % Lang.list(names)}
 	var r := Cooking.cook(id, inventory)
 	changed.emit()
 	match r.result:
 		"cooked":
 			var n := Cooking.makes(id)
-			return {"ok": true, "note": "Made %s%s" % [name.to_lower(), " x%d" % n if n > 1 else ""]}
+			return {"ok": true, "note": "Made %s x%d" % [name.to_lower(), n] if n > 1 else "Made %s" % name.to_lower()}
 		"missing":
 			return {"ok": false, "note": "Not enough to make %s" % name.to_lower()}
 		"full":
@@ -2197,7 +2200,7 @@ func _pay_prize(prize: Dictionary) -> void:
 			got.append(("%d x %s" % [n - left, item_name(prize.item)]) if n - left > 1 else item_name(prize.item))
 		if left > 0:
 			message.emit("No room in the rucksack for the rest of the prize")
-	message.emit("Prize: " + " and ".join(got))
+	message.emit("Prize: %s" % Lang.list(got))
 
 
 ## E at one of today's festival stalls (Festivals.stall_at: its shop id; "" = the first)
@@ -2369,9 +2372,9 @@ func shop_collect(id: String) -> Dictionary:
 	var start := exp_for_next_level(job.tool, int(job.level) - 1)
 	tool_exp[job.tool] = maxi(int(tool_exp.get(job.tool, 0)), start)
 	shop_jobs.erase(id)
-	var note := "Your %s is back, now level %d" % [item_name(job.tool).to_lower(), tool_level(job.tool)]
+	var note := ("Your %s is back, now level %d (in the chest)" if where == "chest" else "Your %s is back, now level %d") % [item_name(job.tool).to_lower(), tool_level(job.tool)]
 	changed.emit()
-	return {"ok": true, "money": money, "note": note + (" (in the chest)" if where == "chest" else "")}
+	return {"ok": true, "money": money, "note": note}
 
 
 func _shop_paid(r: Dictionary) -> Dictionary:
@@ -2762,7 +2765,7 @@ func quick_save() -> void:
 
 func quick_load() -> void:
 	var err := SaveGame.read(self)
-	message.emit("Game loaded" if err == "" else "Could not load: " + err)
+	message.emit("Game loaded" if err == "" else "Could not load: %s" % err)
 
 
 func _unhandled_input(event: InputEvent) -> void:

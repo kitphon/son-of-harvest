@@ -127,7 +127,7 @@ func days_off_text() -> String:
 	var names: Array[String] = []
 	for day in days_off:
 		names.append(DAY_NAMES.get(day, day))
-	return "closed " + ", ".join(names)
+	return "closed %s" % ", ".join(names)
 
 
 ## What the door and the counter say while it is shut.
@@ -360,9 +360,7 @@ func materials_text(items: Dictionary) -> String:
 	var parts: Array[String] = []
 	for item in items:
 		parts.append("%d %s" % [int(items[item]), item_name(item)])
-	if parts.size() < 2:
-		return "".join(parts)
-	return ", ".join(parts.slice(0, -1)) + " and " + parts.back()
+	return Lang.list(parts)
 
 
 ## Hands `tool` (at `level`, in a tool slot) in for an upgrade on day `today`. One job at a

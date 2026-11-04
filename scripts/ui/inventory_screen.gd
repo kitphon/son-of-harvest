@@ -9,7 +9,7 @@ extends CanvasLayer
 ## Inventory. `-- --rucksack` (or `--rucksack=storage`) opens it at the start, for screenshots.
 
 const PITCH := 20           # slot to slot
-const LABEL_W := 46         # the place names left of the rows
+const LABEL_W := 46         # the place names left of the rows (wider for longer names)
 const TOP := 17             # the heading strip on the wood
 const LINE := 11
 const PAPER := Color("f6ead0")
@@ -102,6 +102,9 @@ func _build() -> void:
 	_plates.clear()
 	_heading.text = menu.heading()
 	var y := 5
+	var label_w := LABEL_W
+	for place in InventoryMenu.LABELS:
+		label_w = maxi(label_w, PixelFont.shown_width(InventoryMenu.LABELS[place]) + 6)
 	var last_place := ""
 	for r in menu.rows.size():
 		var place: String = menu.rows[r][0]
@@ -113,7 +116,7 @@ func _build() -> void:
 			_parts.append(name)
 			last_place = place
 		for c in menu.rows[r][2]:
-			var slot := _icon(_paper, Vector2i(6 + LABEL_W + c * PITCH, y))
+			var slot := _icon(_paper, Vector2i(6 + label_w + c * PITCH, y))
 			slot.mouse_filter = Control.MOUSE_FILTER_STOP
 			slot.gui_input.connect(_on_slot_input.bind(place, int(menu.rows[r][1]) + c))
 			_parts.append(slot)
@@ -140,7 +143,7 @@ func _build() -> void:
 	var cols := 0
 	for r in menu.rows:
 		cols = maxi(cols, r[2])
-	_paper.size = Vector2(maxi(6 + LABEL_W + cols * PITCH + 4, PixelFont.shown_width(HINT) + 12), y + 3 + LINE * 3 + 3)
+	_paper.size = Vector2(maxi(6 + label_w + cols * PITCH + 4, PixelFont.shown_width(HINT) + 12), y + 3 + LINE * 3 + 3)
 	_wood.size = Vector2(_paper.size.x + 8, TOP + _paper.size.y + 4)
 	var screen := get_viewport().get_visible_rect().size
 	_wood.position = ((screen - _wood.size) / 2).floor()
@@ -176,9 +179,9 @@ func _refresh() -> void:
 		_carry_count.position.x = 15 - PixelFont.width(_carry_count.text)
 	var id: String = menu.carry.get("id", menu.id_here())
 	var count := int(menu.carry.get("n", menu.inv.slot(menu.place(), menu.index()).get("n", 0)))
-	_info.text = "" if id == "" else Game.item_name(id) + (" x%d" % count if count > 1 else "")
+	_info.text = "" if id == "" else ("%s x%d" % [Game.item_name(id), count] if count > 1 else Game.item_name(id))
 	if id != "" and Game.TOOLS.has(id) and Game.tool_max_level(id) > 0:
-		_info.text += "  Lv %d" % Game.tool_level(id)
+		_info.text = "%s  Lv %d" % [_info.text, Game.tool_level(id)]
 
 
 func _slot_of(r: int, c: int) -> TextureRect:

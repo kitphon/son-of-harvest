@@ -15,6 +15,9 @@ const INK_SOFT := Color("7a6040")
 const RULE := Color("d2bf94")
 const NINE_MARGIN := 4
 
+var _clock_box: NinePatchRect   # inside the "clock" holder; grows left when the date is wider
+var _clock_rule: ColorRect
+var _clock_arrow: Label
 var _date: Label
 var _time: Label
 var _today: TextureRect
@@ -64,20 +67,44 @@ func _ready() -> void:
 	_refresh()
 
 
+## The clock: a holder at the layout's box (placed like every box) with the paper inside,
+## so a longer date (another language) widens it to the left.
 func _build_clock(r: Rect2i) -> void:
-	var box := _box(r, "paper", "clock")
+	var holder := Control.new()
+	holder.position = r.position
+	holder.size = r.size
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(holder)
+	_placed["clock"] = holder
+	var box := _box(Rect2i(Vector2i.ZERO, r.size), "paper", "clock_box")
+	_placed.erase("clock_box")
+	remove_child(box)
+	holder.add_child(box)
+	_clock_box = box
 	_date = _label(box, Vector2i(6, 5))
-	var rule := ColorRect.new()
-	rule.color = RULE
-	rule.position = Vector2(5, 15)
-	rule.size = Vector2(r.size.x - 10, 1)
-	box.add_child(rule)
+	_clock_rule = ColorRect.new()
+	_clock_rule.color = RULE
+	_clock_rule.position = Vector2(5, 15)
+	_clock_rule.size = Vector2(r.size.x - 10, 1)
+	box.add_child(_clock_rule)
 	_time = _label(box, Vector2i(6, 19))
 	_time.scale = Vector2(2, 2)
 	_today = _icon(box, Vector2i(54, 21))
-	var arrow := _label(box, Vector2i(68, 23), INK_SOFT)
-	arrow.text = ">"
+	_clock_arrow = _label(box, Vector2i(68, 23), INK_SOFT)
+	_clock_arrow.text = ">"
 	_tomorrow = _icon(box, Vector2i(74, 21))
+
+
+## Widens the clock to the left for a date wider than the box; the weather keeps to the right.
+func _fit_clock() -> void:
+	var r: Rect2i = HudLayout.BOXES.clock
+	var extra := maxi(6 + PixelFont.shown_width(_date.text) + 6 - r.size.x, 0)
+	_clock_box.position.x = -extra
+	_clock_box.size.x = r.size.x + extra
+	_clock_rule.size.x = _clock_box.size.x - 10
+	_today.position.x = 54 + extra
+	_clock_arrow.position.x = 68 + extra
+	_tomorrow.position.x = 74 + extra
 
 
 func _build_tools(r: Rect2i, item_r: Rect2i) -> void:
@@ -226,6 +253,7 @@ func _show(text: String) -> void:
 
 func _refresh() -> void:
 	_date.text = Game.date_text()
+	_fit_clock()
 	_time.text = Game.time_text()
 	_today.texture = PlaceholderArt.tex("ui:weather:" + HudLayout.weather_icon(Game.weather_look(Game.weather_today, Game.season_name())))
 	var next_season := Game.season if Game.day < Game.DAYS_PER_SEASON else (Game.season + 1) % Game.SEASONS.size()
@@ -275,7 +303,7 @@ func _refresh_goal() -> void:
 		return
 	_goal_tag.text = Goals.message("hud_tag")
 	_goal.text = Goals.hud_text(g, Game.goal_stats())
-	_goal.position.x = 6 + PixelFont.width(_goal_tag.text) + 5
+	_goal.position.x = 6 + PixelFont.shown_width(_goal_tag.text) + 5
 	var w := HudLayout.goal_width(_goal_tag.text, _goal.text)
 	_goal_box.size.x = w
 	_goal_box.position = Vector2(HudLayout.BOXES.goal.size.x - w, 0 if _fest_box.visible else HudLayout.BOXES.festival.position.y - HudLayout.BOXES.goal.position.y)

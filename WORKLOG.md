@@ -10,6 +10,49 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-04 — Ready for translation: the English catalogue, whole sentences, a longer-language test
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user aims at players worldwide, so step 1 of the language plan: make the game
+  ready to translate. `LangCatalog` (scripts/ui/lang_catalog.gd) gathers the English: the
+  dialogue, the words in the data files and the scripts' string literals (leaving out
+  comments, print / error lines, the data checks' messages, ids, paths, art and sound
+  scripts, NOT_SHOWN). `tools/lang_report.gd` prints per language how much is covered
+  (`Lang.covered`: wholly, each %s part too, so a loose "%s, %s" no longer counts), the
+  table entries no text uses (stale) and glued pieces, and writes build/lang/<id>_todo.json.
+  About 25 places glued a sentence from pieces or put English words in, which no table can
+  translate; each is now one whole key: the mine's "Found %s (rucksack full).", the animals'
+  moods ("%s wags its tail"), "Sheared / Milked %s: %s", "You ate / drank the %s.", "Mine
+  floor %d, %s", "Made %s x%d", "Your %s is back, now level %d (in the chest)", "closed %s",
+  "any %s", "%s (buy at store)", "Written as: %s", "Could not load: %s", the shop's day /
+  days, the season names (Game.SEASON_NAMES, they were id.capitalize()) and the tool rows'
+  names (HudLayout.TOOL_NAMES: "Tool 2: Watering can", it said "Can"). Sentences said
+  together go through `Lang.join` (each looked up alone), lists through `Lang.list` ("%s, %s",
+  "%s and %s"), and the kitchen tools got an `a_name` ("an iron rice pot") in place of code
+  picking a / an. Thai keys renamed to match (the old pieces removed); Thai got "a kitchen
+  knife" etc., "%s, %s" and "Game saved.". A pseudo language (`--lang=pseudo`, no tables,
+  every line padded a third wider with "=") finds what a longer language breaks: the HUD's
+  goal tag measured the English (`PixelFont.width`, now `shown_width`), the clock now widens
+  left for a longer date (a holder like the goal tag), the rucksack's place-name column is as
+  wide as its widest name, and the shop's info line and the kitchen's recipe line wrap to a
+  second row (both screens 11 px taller). README → Settings → Language says how to write
+  text so it translates.
+- Checked: lang_report before / after: 1691 English texts (dialogue 889, data 375, code
+  427), 0 glued pieces (were ~25), Thai 785 done (46%: dialogue 124, data 305, code 356), 0
+  stale (were 72). New test_lang `OK (0 failed)`: the catalogue's finds and leave-outs,
+  join / list in English and Thai, pseudo, and every label on the HUD, the pause menu's
+  three pages, rucksack, storage, the four shops' tabs and the kitchen inside its box and
+  clear of its neighbours at +30%; every dialogue line still fits the box at +30%. With the
+  goal-width fix undone the test fails ("Plant 9 plots 0/9===" 34 px out of its box).
+  All 27 test scripts `OK (0 failed)`; smoke runs (title, --demo, --demo --map=town, --demo
+  --mine=3, --demo --lang=pseudo, --demo --lang=th) print 0 error or warning lines. Frames of
+  `--shop=general@build` in pseudo (the info line on two rows, the clock wider to the left)
+  and in Thai (unchanged, one row) look right.
+- Left / next: step 2, polishing the English. Thai still lacks 906 texts (most of them
+  dialogue: the villagers' daily talk, heart events, contests); build/lang/th_todo.json lists
+  them. Not checked at +30%: the title, the record, the mochi and race screens, the text
+  box's choices. A lowercase one-word literal in a script ("ready") counts as text only when
+  some table has it.
+
 ## 2026-11-04 — Art direction: the bin, chest and seed stand as meshes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the three props by the farmhouse moved out of FarmWorld into

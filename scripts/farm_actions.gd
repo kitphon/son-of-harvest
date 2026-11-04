@@ -399,7 +399,7 @@ static func mine(origin: Vector2i, facing: Vector2i, charge: int) -> void:
 		Sfx.play("rock_break")
 	var said: Array[String] = []
 	for f in r.finds:
-		said.append("Found %s%s" % [item_name(f.item), {"bag": "", "hand": " (rucksack full)", "floor": " (left it on the ground)"}[f.to]])
+		said.append({"bag": "Found %s.", "hand": "Found %s (rucksack full).", "floor": "Found %s (left it on the ground)."}[f.to] % item_name(f.item))
 	if not r.finds.is_empty():
 		Sfx.play("mine_find")
 	if r.hole:
@@ -407,7 +407,7 @@ static func mine(origin: Vector2i, facing: Vector2i, charge: int) -> void:
 	elif r.tough:
 		said.append("It's tough. Keep hitting.")
 	if not said.is_empty():
-		Game.message.emit(". ".join(said))
+		Game.message.emit(Lang.join(said))
 
 
 ## Number keys / Tab / Q (next seed, or next food with the food slot), the same in both views.

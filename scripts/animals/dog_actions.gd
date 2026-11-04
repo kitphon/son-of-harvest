@@ -12,7 +12,7 @@ static func interact(c: Vector2i) -> bool:
 		return false
 	Sfx.play("dog_bark")
 	if a.dog_pet():
-		Game.message.emit("%s %s" % [a.dog.name, mood()])
+		Game.message.emit(mood() % a.dog.name)
 	else:
 		a.dog_lift()
 		Game.message.emit("You picked %s up" % a.dog.name)
@@ -38,7 +38,7 @@ static func mood() -> String:
 	var a := Game.animals
 	var p := float(a.dog.affection) / maxi(int(a.dog_rule().get("max", 100)), 1)
 	if p < 0.2:
-		return "sniffs your hand"
+		return "%s sniffs your hand"
 	if p < 0.6:
-		return "wags its tail"
-	return "jumps up, wagging all over"
+		return "%s wags its tail"
+	return "%s jumps up, wagging all over"
