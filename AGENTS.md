@@ -25,6 +25,7 @@ This file is for any coding agent. Claude Code also reads CLAUDE.md, which impor
 2. Read ROADMAP.md → "Next up" for the task to take.
 3. Read docs/DESIGN.md (Thai) for the rules of the system you are touching.
 4. For anything about the look (art, models, light, camera), read docs/ART_DIRECTION.md.
+5. For any English text the player sees, follow docs/STYLE_EN.md.
 
 ## Run and check
 The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the project folder
@@ -86,8 +87,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Goals (Tome's first-week list: data/goals.json, what is counted, rewards paid once, the notes, the save, the HUD tag):
   `res://tests/test_goals.gd` must print `test_goals: OK (0 failed)`.
   Languages (LangCatalog finds the English, no glued pieces in the scripts, no stale table
-  entries, Lang.join / list, the pseudo language, the screens and the dialogue still fitting
-  a third longer): `res://tests/test_lang.gd` must print `test_lang: OK (0 failed)`.
+  entries, the English style of docs/STYLE_EN.md, Lang.join / list, the pseudo language, the
+  screens and the dialogue still fitting a third longer): `res://tests/test_lang.gd` must print `test_lang: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field), `-- --demo --map=town` (the village) and
   `-- --demo --mine=3` (a mine floor).

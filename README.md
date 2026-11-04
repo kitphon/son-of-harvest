@@ -87,6 +87,7 @@ effect the moment it changes and saved to `user://settings.json` (version 2; a v
   scripts, and writes `build/lang/<id>_todo.json` with the missing lines for a translator.
   `-- --lang=pseudo` is a test language with no tables: every text a third longer (padded
   with `=`), to see a longer language on screen; test_lang checks the screens with it.
+  How the English itself is written (spelling, names, messages): docs/STYLE_EN.md.
 - Display: Window, Full screen (exclusive) or Borderless (a window over the whole screen).
 - Window size: 2x / 3x / 4x the 480 x 270 picture, while the display is a window. Sizes bigger
   than the screen are left out of the row; a saved size that doesn't fit shows (and is) the

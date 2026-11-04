@@ -68,7 +68,7 @@ func _ready() -> void:
 	_note_box.visible = false
 	_note = _label(_note_box, Vector2i(NOTE_PAD, 4), Hud.INK)
 	if menu.why_no_continue != "" and FileAccess.file_exists(SaveGame.SLOT):
-		_say("The saved game can't be loaded: %s" % menu.why_no_continue)
+		_say("The saved game can't be loaded: %s." % menu.why_no_continue)
 	elif menu.enabled.continue and SaveGame.backup_note() != "":
 		_say(SaveGame.backup_note())
 	_refresh()
@@ -155,7 +155,7 @@ func _do(item: String) -> void:
 			if err != "":   # the file changed since the menu was made
 				menu.enabled.continue = false
 				menu.move(1)
-				_say("Could not load: %s" % err)
+				_say("Could not load: %s." % err)
 				return
 			_start()
 		"quit":

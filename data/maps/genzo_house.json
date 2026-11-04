@@ -1,7 +1,7 @@
 {
 	"_note": "Genzo's farmhouse in Kaminoda: the earth entry with the stove, the water jar and his rice sacks, the tatami room with a sunken hearth, the family altar and an old chest. Format: README.md, Maps. The daruma the farmer gives Genzo stands in the room once given (kept_genzo_daruma).",
 	"id": "genzo_house",
-	"name": "Genzo's House",
+	"name": "Genzo's house",
 	"size": [9, 7],
 	"indoor": true,
 	"ambient": "indoor",

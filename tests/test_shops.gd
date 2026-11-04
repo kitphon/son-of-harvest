@@ -163,7 +163,7 @@ func _stock_and_deals() -> void:
 	check(not s.buy(inv, 9999, "food:milk", 1, "spring").ok, "not in stock can't be bought")
 	inv.add("potato", 10)
 	r = s.buy(inv, 99999, "food:onigiri", 1, "spring")
-	check(not r.ok and r.money == 99999 and r.note == "Your rucksack is full", "a full rucksack refuses")
+	check(not r.ok and r.money == 99999 and r.note == "Your rucksack is full.", "a full rucksack refuses")
 	r = s.buy(inv, 99999, "seeds:turnip", 7, "spring")
 	check(r.ok and inv.count("seeds:turnip") == 10, "stacking onto the same bag still fits")
 	# Selling: a percent of the value, rounded down; only what it buys, only what is carried.
@@ -186,7 +186,7 @@ func _upgrades() -> void:
 	var r := s.start_upgrade(inv, 50, "hoe", 1, 10)
 	check(not r.ok and inv.id_at("tools", 0) == "hoe", "no money: the hoe stays")
 	r = s.start_upgrade(inv, 500, "hoe", 1, 10, true)
-	check(not r.ok and r.note == "One tool at a time, please", "busy smith refuses")
+	check(not r.ok and r.note == "One tool at a time, please.", "busy smith refuses")
 	r = s.start_upgrade(inv, 500, "hoe", 1, 10)
 	check(r.ok and r.money == 400 and inv.id_at("tools", 0) == "" and inv.count("hoe", ["tools"]) == 0, "the hoe is handed in")
 	check(r.job == {"tool": "hoe", "level": 2, "ready": 12, "slot": 0}, "job %s" % r.job)
@@ -256,10 +256,10 @@ func _game() -> void:
 	# The smithy: hand in (with the ores from the rucksack), wait, collect one level up.
 	g.money = 5000
 	r = g.shop_upgrade("smithy", "hoe")
-	check(not r.ok and r.note == "Bring 3 Akagane ore" and g.money == 5000 and g.inventory.count("hoe", ["tools"]) == 1, "no ore: %s" % r.note)
+	check(not r.ok and r.note == "Bring 3 Akagane ore." and g.money == 5000 and g.inventory.count("hoe", ["tools"]) == 1, "no ore: %s" % r.note)
 	g.inventory.add("mine:akagane", 2)
 	r = g.shop_upgrade("smithy", "hoe")
-	check(not r.ok and r.note == "Bring 1 Akagane ore" and g.count("mine:akagane") == 2, "short of ore: %s" % r.note)
+	check(not r.ok and r.note == "Bring 1 Akagane ore." and g.count("mine:akagane") == 2, "short of ore: %s" % r.note)
 	g.inventory.add("mine:akagane", 2)
 	r = g.shop_upgrade("smithy", "hoe")
 	check(r.ok and g.count("mine:akagane") == 1, "three ores taken from the rucksack")
@@ -302,7 +302,7 @@ func _menu() -> void:
 	check(m.choose().begins_with("Bought 2") and m.last_ok and g.money == 60 and g.count("seeds:turnip") == before + 2, "bought through the menu")
 	check(m.count == 1, "the count drops to what is still affordable")
 	m.next_tab()
-	check(m.tab_id() == "sell" and m.rows().is_empty() and m.choose() == "Nothing to sell here", "nothing to sell")
+	check(m.tab_id() == "sell" and m.rows().is_empty() and m.choose() == "Nothing to sell here.", "nothing to sell")
 	g.inventory.add("potato", 3)
 	check(m.rows().size() == 1 and m.most() == 3, "potatoes to sell")
 	m.change_count(-1)
@@ -362,7 +362,7 @@ func _rucksack() -> void:
 	g.inventory.add("turnip", 3)
 	g.money = 1999
 	var r: Dictionary = g.shop_buy("general", "rucksack")
-	check(not r.ok and g.money == 1999 and g.inventory.size("bag") == 8 and r.note == "Not enough money (2000 G)", "rucksack: no money")
+	check(not r.ok and g.money == 1999 and g.inventory.size("bag") == 8 and r.note == "Not enough money (2000 G).", "rucksack: no money")
 	g.money = 9500
 	r = g.shop_buy("general", "rucksack")
 	check(r.ok and g.money == 7500 and g.inventory.size("bag") == 12 and g.count("turnip") == 3, "rucksack level 2: %s" % r.note)
@@ -375,7 +375,7 @@ func _rucksack() -> void:
 	g.house_built.erase("kitchen")
 	g.money = 99999
 	r = g.shop_buy("general", "rucksack")
-	check(not r.ok and g.money == 99999 and g.inventory.size("bag") == 16 and r.note == "That's the biggest rucksack there is", "rucksack: max level")
+	check(not r.ok and g.money == 99999 and g.inventory.size("bag") == 16 and r.note == "That's the biggest rucksack there is.", "rucksack: max level")
 	g.free()
 
 
@@ -390,11 +390,11 @@ func _animal_goods() -> void:
 	check(not r.ok and g.money == hen - 1 and g.animals.list.size() == 2, "chicken: no money")
 	g.money = 99999
 	r = g.shop_buy("general", "animal:chicken", 5)
-	check(not r.ok and g.money == 99999 and g.animals.list.size() == 2 and r.note == "The coop is full", "five don't fit: none bought")
+	check(not r.ok and g.money == 99999 and g.animals.list.size() == 2 and r.note == "The coop is full.", "five don't fit: none bought")
 	r = g.shop_buy("general", "animal:chicken", 4)
 	check(r.ok and g.money == 99999 - 4 * hen and g.animals.list.size() == 6 and g.animals.is_adult(g.animals.list[5]), "4 grown hens: %s" % r.note)
 	r = g.shop_buy("general", "animal:chicken")
-	check(not r.ok and g.animals.list.size() == 6 and r.note == "The coop is full", "chicken: coop full")
+	check(not r.ok and g.animals.list.size() == 6 and r.note == "The coop is full.", "chicken: coop full")
 	var m := ShopMenu.new(g, "general")
 	m.point(1)
 	check(m.current().item == "animal:chicken" and m.most() == 1 and not m.choose().begins_with("Bought") and not m.last_ok, "the menu refuses a hen for a full coop")
@@ -408,7 +408,7 @@ func _animal_goods() -> void:
 	var cure: int = g.shop("general").price("medicine", "spring")
 	g.money = 2 * cure
 	r = g.shop_buy("general", "medicine", 2)
-	check(r.ok and g.money == 0 and g.count("medicine") == 2 and r.note == "Bought 2 Animal Medicine for %d G" % (2 * cure), "medicine: %s" % r.note)
+	check(r.ok and g.money == 0 and g.count("medicine") == 2 and r.note == "Bought 2 Animal medicine for %d G." % (2 * cure), "medicine: %s" % r.note)
 	check(not g.shop_buy("general", "medicine").ok, "medicine: no money")
 	# A kind the game doesn't know (cows before the barn) has no room; the shop refuses.
 	var fx := {"shops": {"t": {"name": "T", "map": "store", "stock": {"any": [{"item": "animal:cow", "price": 10, "to": "animal"}]}}}}
@@ -450,12 +450,12 @@ func _barn_goods() -> void:
 	check(r.ok and barn[3].kind == "sheep" and not g.animals.is_adult(barn[3]), "a lamb: %s" % r.note)
 	money = g.money
 	r = g.shop_buy("general", "animal:sheep", 3)
-	check(not r.ok and g.money == money and g.animals.in_home("barn").size() == 4 and r.note == "The barn is full", "three sheep don't fit: none bought")
+	check(not r.ok and g.money == money and g.animals.in_home("barn").size() == 4 and r.note == "The barn is full.", "three sheep don't fit: none bought")
 	r = g.shop_buy("general", "animal:sheep", 2)
 	barn = _barn(g)
 	check(r.ok and barn.size() == 6 and barn[5].kind == "sheep" and g.animals.is_adult(barn[5]), "2 grown sheep: %s" % r.note)
 	r = g.shop_buy("general", "animal:cow:young")
-	check(not r.ok and r.note == "The barn is full" and g.animals.in_home("barn").size() == 6 and g.animals.list.size() == hens + 6, "barn full")
+	check(not r.ok and r.note == "The barn is full." and g.animals.in_home("barn").size() == 6 and g.animals.list.size() == hens + 6, "barn full")
 	var m := ShopMenu.new(g, "general")
 	m.point(2)
 	check(m.current().item == "animal:cow" and m.most() == 1 and not m.choose().begins_with("Bought") and not m.last_ok, "the menu refuses a cow for a full barn")
@@ -488,7 +488,7 @@ func _builds() -> void:
 	var kitchen := int(Shop.make("general", crops, foods).builds.kitchen.price)
 	g.money = kitchen - 1
 	var r: Dictionary = g.shop_build("general", "kitchen")
-	check(not r.ok and g.money == kitchen - 1 and g.house_job.is_empty() and r.note == "Not enough money (%d G)" % kitchen, "build: no money")
+	check(not r.ok and g.money == kitchen - 1 and g.house_job.is_empty() and r.note == "Not enough money (%d G)." % kitchen, "build: no money")
 	g.money = 30000
 	r = g.shop_build("general", "kitchen")
 	check(r.ok and g.money == 30000 - kitchen and g.house_job == {"build": "kitchen", "ready": 3, "shop": "general"}, "kitchen ordered: %s" % r.note)
@@ -509,7 +509,7 @@ func _builds() -> void:
 	check(MapManager.data("house").prop_at(Vector2i(1, 5)).get("kind", "") == "kamado", "the house map has the stove now")
 	check(g.maps.id == "house" and "Hachiro the carpenter has finished the kitchen corner." in said, "the morning message")
 	r = g.shop_build("general", "kitchen")
-	check(not r.ok and r.note == "The kitchen corner is already built" and g.money == 30000 - kitchen, "build: already built")
+	check(not r.ok and r.note == "The kitchen corner is already built." and g.money == 30000 - kitchen, "build: already built")
 	r = g.shop_build("general", "chest")
 	check(r.ok and m.rows()[0].state == "building" and m.rows()[1].state == "done", "chest ordered, kitchen done")
 	g.end_day()
@@ -743,7 +743,7 @@ func _ores_and_finds() -> void:
 	inv.slots.hand = [{"id": "mine:akagane", "n": 1}]
 	check(Shop.short_of(inv, {"mine:akagane": 3}) == {"mine:akagane": 1} and Shop.short_of(inv, {"mine:akagane": 2}).is_empty(), "short of: the rucksack only")
 	var r := smithy.start_upgrade(inv, 5000, "hoe", 1, 0)
-	check(not r.ok and r.note == "Bring 1 Akagane ore" and inv.count("mine:akagane") == 3, "the ore overhead doesn't count")
+	check(not r.ok and r.note == "Bring 1 Akagane ore." and inv.count("mine:akagane") == 3, "the ore overhead doesn't count")
 	# Selling finds: the smithy takes stone and ore, the store gems, each a percent of the find's sell.
 	check(smithy.buy_back("mine:stone") == int(mine.stone.sell) * int(smithy.buys.stone) / 100 and int(smithy.buys.stone) > 100, "the smithy buys stone above the bin's price")
 	check(smithy.buy_back("mine:kogane") == int(mine.kogane.sell) * int(smithy.buys.ore) / 100 and smithy.buy_back("mine:kogane") > int(mine.kogane.sell), "and ore")
@@ -843,7 +843,7 @@ func _teahouse() -> void:
 	var money: int = g.money
 	var r: Dictionary = g.shop_buy("teahouse", "food:matcha", 1)
 	check(r.ok and g.money == money - int(foods.matcha.price) and g.count("food:matcha") == 1, "a matcha bought: %s" % r.note)
-	check(g.shop("general").away == "Nobody is at the counter", "a shop without a note says nobody is there")
+	check(g.shop("general").away == "Nobody is at the counter.", "a shop without a note says nobody is there")
 	g.free()
 
 

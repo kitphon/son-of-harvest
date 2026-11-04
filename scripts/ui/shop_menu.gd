@@ -144,7 +144,7 @@ func choose() -> String:
 	var row := current()
 	last_ok = false
 	if row.is_empty():
-		return "Nothing to sell here" if tab_id() == "sell" else ""
+		return "Nothing to sell here." if tab_id() == "sell" else ""
 	var r: Dictionary
 	match tab_id():
 		"buy":
@@ -158,7 +158,7 @@ func choose() -> String:
 				"ready", "away":
 					r = g.shop_collect(shop.id)
 				"top":
-					return "The %s is as good as it gets" % shop.item_name(row.item).to_lower()
+					return "The %s is as good as it gets." % shop.item_name(row.item).to_lower()
 				_:
 					r = g.shop_upgrade(shop.id, row.item)
 	last_ok = bool(r.ok)

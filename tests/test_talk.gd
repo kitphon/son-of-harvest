@@ -371,7 +371,7 @@ func _keepers() -> void:
 	g.minute = 10
 	Villagers.add_delay("sayo", g.day_minutes(), 30.0)
 	check(not Villagers.is_on("sayo", "store", g.day_minutes(), g.trigger_state(Vector2i.ZERO)), "a late Sayo is still outside")
-	check(not g.open_shop("general") and seen.notes.back() == "Nobody is at the counter", "the counter is shut without its keeper")
+	check(not g.open_shop("general") and seen.notes.back() == "Nobody is at the counter.", "the counter is shut without its keeper")
 	check(g.open_shop("general", true), "the screenshot flag still opens it")
 	g.hour = 12
 	g.minute = 0

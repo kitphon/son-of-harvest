@@ -10,7 +10,7 @@
 		{"id": "hachiro", "speaker": "hachiro", "face": "calm", "text": "No time for lunch at the forge. I pour hot tea over rice and flake a fish on top. Done in a minute."},
 		{"speaker": "hachiro", "face": "smile", "text": "Grill the fish first, mind. Raw fish in tea is a crime."},
 		{"speaker": "farmer", "face": "smile", "text": "Learned a recipe: Ochazuke.", "next": "end"},
-		{"id": "kota", "speaker": "kota", "face": "worried", "text": "Vegetables are the worst. Except pumpkin, the way Mum does it."},
+		{"id": "kota", "speaker": "kota", "face": "worried", "text": "Vegetables are the worst. Except pumpkin, the way Mom does it."},
 		{"speaker": "kota", "face": "smile", "text": "She cuts it in chunks and cooks it with soy and sugar till it's all soft. It tastes like a sweet! Don't tell her I said that."},
 		{"speaker": "farmer", "face": "smile", "text": "Learned a recipe: Pumpkin nimono.", "next": "end"},
 		{"id": "radio", "speaker": "farmer", "face": "calm", "text": "The radio crackles into a cooking hour. A warm voice talks through a milk pudding: milk and an egg, steamed gently, dark sugar on top."},

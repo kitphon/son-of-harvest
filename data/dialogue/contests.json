@@ -262,7 +262,7 @@
 			"next": "moon_night_place",
 			"speaker": "tome",
 			"face": "smile",
-			"text": "Milk from my neighbour's cow, cream on top. I only carried it here!"
+			"text": "Milk from my neighbor's cow, cream on top. I only carried it here!"
 		},
 		{
 			"id": "moon_night_haru",
@@ -542,7 +542,7 @@
 			"id": "fishing_result",
 			"speaker": "tsuru",
 			"face": "smile",
-			"text": "Lines up, everyone! The creels have been counted and the fish are back in the pond. Here are the results!"
+			"text": "Line up, everyone! The creels have been counted and the fish are back in the pond. Here are the results!"
 		},
 		{
 			"if": "contest_place_1",

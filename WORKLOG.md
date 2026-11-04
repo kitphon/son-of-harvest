@@ -10,6 +10,35 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-04 — The English polished: one spelling, one way to write names and messages
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: step 2 of the language plan. Read all 1691 English texts through
+  (`tools/lang_report.gd -- --english` writes them to build/lang/english.txt by place) and
+  wrote the rules down in docs/STYLE_EN.md. American English throughout, since the seasons
+  already say Fall: favorite, neighbor, honored, traveler (Passing Traveler), Neighbors, Gray
+  stone, Mom (Kota), anymore, "in the mail", "an apartment with an elevator", "the calendar
+  shows fall". Articles before a name were wrong for vowels ("Caught a Eel!", "Shipped a
+  Eggplant"): now "Caught: %s!", "Caught: %s! %d in the creel.", "Shipped: %s (%d G).",
+  "Picked up: %s.", "You won the %s!" (ribbons), "You won %s!" (prizes), "%s for the coop".
+  Item and generic place names in sentence case (Golden yolk egg, Rich milk, Cloud wool,
+  Animal medicine, Genzo's house, Sayo's rooms); proper names keep their capitals. Every
+  message over the field and every shop / screen note is a sentence ending in . ! ? (about
+  120 had none; "Game saved" and "Game saved." were both in use). Two more glued spots
+  found and fixed: the animals' morning news (". ".join, now Lang.join) and the master tool's
+  level-up line (a leading space in tools.json, now joined). A typo: "Lines up, everyone!".
+  Thai keys renamed with the English (0 stale), the tests' expected messages too.
+  test_lang now checks the style: no British spellings, no "a %s", item names in sentence
+  case, every message in the scripts and the data ending like a sentence (a quoted note may
+  end with its signature). The catalogue leaves out patterns, shader code and internal keys.
+- Checked: all 27 test scripts `OK (0 failed)` (test_lang with the new style checks; 11
+  scripts' expected messages updated); smoke runs (title, --demo, --demo --map=town, --demo
+  --mine=3, --demo --lang=th) print 0 error or warning lines. lang_report: 1678 English texts
+  (noise gone), Thai 784 covered, 0 stale, 0 glued pieces.
+- Left / next: messages still name keys by their defaults ("I = rucksack", "Q = next seed",
+  "E on an animal"), so a remapped key isn't shown; noted in STYLE_EN. The villagers' voices
+  (Kota's "gonna", Tome's "child") are kept on purpose. Next language step: translate once
+  the content settles.
+
 ## 2026-11-04 — Ready for translation: the English catalogue, whole sentences, a longer-language test
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user aims at players worldwide, so step 1 of the language plan: make the game

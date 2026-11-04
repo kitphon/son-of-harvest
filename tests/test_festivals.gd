@@ -431,10 +431,10 @@ func _contest_game() -> void:
 	check(r.ok and r.place == 1 and g.flags.get("contest_place_1") == true and (want.place == 1 or not g.flags.has("contest_place_%d" % want.place))
 		and not g.flags.keys().any(func(k): return k.begins_with("contest_won_")), "year 2: first place with the %s, last year's flags cleared" % item)
 	check(g.count("food:sakura_mochi") == mochi + 2 and g.flags.get("contest_prize") == true and int(g.flags.get("contest_wins", 0)) == wins + 1
-		and "Prize: 500 G and 2 x Sakura mochi" in said, "first prize: money and two sakura mochi (%s)" % [said])
+		and "You won 500 G and 2 x Sakura mochi!" in said, "first prize: money and two sakura mochi (%s)" % [said])
 	var won: Array = [want.place] if want.place <= 3 else []
 	won.append(1)
-	check(g.count("ribbon:blossom_day:1") == (2 if want.place == 1 else 1) and said.back() == "You got a Blossom Day ribbon (1st)!"
+	check(g.count("ribbon:blossom_day:1") == (2 if want.place == 1 else 1) and said.back() == "You won the Blossom Day ribbon (1st)!"
 		and Keepsakes.record(g.flags).map(func(e): return e.place) == won and Keepsakes.record(g.flags).back() == {"festival": "blossom_day", "place": 1, "year": 2},
 		"a first-place ribbon goes into the rucksack and onto the record (%s)" % [g.flags.get("ribbons")])
 	g.hour = 16
@@ -690,7 +690,7 @@ func _ribbons() -> void:
 	check(r.ok and r.place == 5 and Keepsakes.record(g.flags).is_empty() and not g.flags.has(Keepsakes.RECORD) and g.count("ribbon:moon_night:5") == 0,
 		"an egg comes last at the Moon Offering: no ribbon (%s)" % [r])
 	g._give_ribbon("moon_night", 3)
-	check(g.count("ribbon:moon_night:3") == 1 and said.back() == "You got a Moon Night ribbon (3rd)!", "a third-place ribbon")
+	check(g.count("ribbon:moon_night:3") == 1 and said.back() == "You won the Moon Night ribbon (3rd)!", "a third-place ribbon")
 	while g.add_item("mine:stone", 99) == 0:
 		pass
 	g._give_ribbon("years_turn", 1)
@@ -1013,7 +1013,7 @@ func _game_play() -> void:
 	check(g.flags.get("contest_place_1") == true and g.flags.get("contest_partner_tome") == true and g.flags.get("contest_prize") == true
 		and int(g.flags.get("game_best_mochi", 0)) == top and int(g.flags.get("contest_wins", 0)) == wins + 1, "the flags for the lines, the best score, a win")
 	check(events == ["contest_mochi"] and g.events_seen.has("game:years_turn:1") and g.game_partner == "", "the result event plays, the go is marked")
-	check(Keepsakes.record(g.flags).back() == {"festival": "mochi", "place": 1, "year": 1} and said.has("You got a Mochi Pounding ribbon (1st)!"),
+	check(Keepsakes.record(g.flags).back() == {"festival": "mochi", "place": 1, "year": 1} and said.has("You won the Mochi Pounding ribbon (1st)!"),
 		"the ribbon goes on the board's record")
 	check(g.start_game().why == "played" and said.back() == "You already took a turn at the Mochi Pounding this year." and asked.size() == 1, "one go a year")
 	# The judged contest beside it goes on as before.
@@ -1273,7 +1273,7 @@ func _race_play() -> void:
 	check(events == ["contest_fishing"] and g.events_seen.has("game:moon_night:1") and g.money == money + 400 and g.count("food:grilled_fish") == 2
 		and g.count("ribbon:fishing:1") == 1 and int(g.flags.get("game_best_fishing", 0)) == top and g.flags.get("contest_place_1") == true
 		and not g.flags.keys().any(func(k): return k.begins_with("contest_partner_")), "a tie with the best: first prize, the ribbon, the result event")
-	check(Keepsakes.record(g.flags).back() == {"festival": "fishing", "place": 1, "year": 1} and said.has("You got a Moon Pond Race ribbon (1st)!"),
+	check(Keepsakes.record(g.flags).back() == {"festival": "fishing", "place": 1, "year": 1} and said.has("You won the Moon Pond Race ribbon (1st)!"),
 		"the ribbon goes on the board's record")
 	check(g.ticking(), "the clock runs again")
 	check(g.start_game().why == "played" and said.back() == "You already took a turn at the Moon Pond Race this year.", "one go a year")

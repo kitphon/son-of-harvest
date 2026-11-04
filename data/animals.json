@@ -66,7 +66,7 @@
 			"yard": [12, 4, 8, 3],
 			"_yard": "Farm cells x, y, w, h where the hens peck about when they are out (not solid).",
 			"feed_name": "chicken feed",
-			"out_news": "The hens were out all night"
+			"out_news": "The hens were out all night."
 		},
 		"barn": {
 			"map": "barn",
@@ -79,7 +79,7 @@
 			"_spots": "Stall cells in the barn map, one per place.",
 			"yard": [19, 5, 10, 2],
 			"_yard": "Farm cells in front of the barn where the cows and sheep graze when out (clear of the pond and the gate path).",
-			"out_news": "The barn animals were out all night"
+			"out_news": "The barn animals were out all night."
 		}
 	},
 	"happiness": {
@@ -146,15 +146,15 @@
 	},
 	"items": {
 		"egg": {"name": "Egg", "sell": 30},
-		"egg_good": {"name": "Good Egg", "sell": 45},
-		"egg_best": {"name": "Golden Yolk Egg", "sell": 70},
+		"egg_good": {"name": "Good egg", "sell": 45},
+		"egg_best": {"name": "Golden yolk egg", "sell": 70},
 		"milk": {"name": "Milk", "sell": 110},
-		"milk_good": {"name": "Rich Milk", "sell": 160},
-		"milk_best": {"name": "Hillside Cream Milk", "sell": 240},
+		"milk_good": {"name": "Rich milk", "sell": 160},
+		"milk_best": {"name": "Hillside cream milk", "sell": 240},
 		"wool": {"name": "Wool", "sell": 180},
-		"wool_good": {"name": "Soft Wool", "sell": 280},
-		"wool_best": {"name": "Cloud Wool", "sell": 420},
-		"medicine": {"name": "Animal Medicine", "sell": 0}
+		"wool_good": {"name": "Soft wool", "sell": 280},
+		"wool_best": {"name": "Cloud wool", "sell": 420},
+		"medicine": {"name": "Animal medicine", "sell": 0}
 	},
 	"names": ["Kome", "Mochi", "Azuki", "Kinako", "Goma", "Yuzu", "Sumi", "Hana", "Tama", "Ume", "Kiku", "Nori", "Momo", "Kaede", "Haru", "Yuki", "Tsuki", "Sora"],
 	"_names": "Given in turn to new animals.",

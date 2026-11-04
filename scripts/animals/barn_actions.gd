@@ -30,7 +30,7 @@ static func interact(c: Vector2i) -> bool:
 		"fodder_box", "fodder":
 			fill_fodder_box()
 		"barn_tools":
-			Game.message.emit("The brush, the milker and the shears. E on an animal uses them")
+			Game.message.emit("The brush, the milker and the shears. E on an animal uses them.")
 		"barn_gate":
 			use_gate()
 		_:
@@ -44,13 +44,13 @@ static func fill_fodder_box() -> void:
 	var st: Dictionary = a.state.barn
 	if n > 0:
 		Sfx.play("feed_pour")
-		Game.message.emit("Put %d fodder in the box (%d left)" % [n, st.stock])
+		Game.message.emit("Put %d fodder in the box (%d left)." % [n, st.stock])
 	elif a.in_home("barn").is_empty():
-		Game.message.emit("Fodder: %d left. The barn is empty" % st.stock)
+		Game.message.emit("Fodder: %d left. The barn is empty." % st.stock)
 	elif int(st.box) < a.in_home("barn").size():
-		Game.message.emit("There is no fodder left")
+		Game.message.emit("There is no fodder left.")
 	else:
-		Game.message.emit("The fodder box is full (%d left)" % st.stock)
+		Game.message.emit("The fodder box is full (%d left)." % st.stock)
 
 
 static func use_gate() -> void:
@@ -59,13 +59,13 @@ static func use_gate() -> void:
 	match a.toggle_out(Game.weather_today, Game.hour, "barn"):
 		"":
 			Sfx.play("door_slide")
-			Game.message.emit("The animals came back in" if was_out else "The animals went out to graze")
+			Game.message.emit("The animals came back in." if was_out else "The animals went out to graze.")
 		"weather":
-			Game.message.emit("It's no weather to go out")
+			Game.message.emit("It's no weather to go out.")
 		"time":
-			Game.message.emit("It's too late to go out")
+			Game.message.emit("It's too late to go out.")
 		_:
-			Game.message.emit("There are no animals in the barn")
+			Game.message.emit("There are no animals in the barn.")
 
 
 ## A cow or a sheep: medicine when sick, else the product when ready, a brushing, a talk.
@@ -77,16 +77,16 @@ static func tend(i: int) -> void:
 	if beast.sick:
 		if Game.take_item(medicine):
 			a.cure(i)
-			Game.message.emit("You gave %s the medicine. %s is well again" % [beast.name, beast.name])
+			Game.message.emit("You gave %s the medicine. %s is well again." % [beast.name, beast.name])
 		else:
-			Game.message.emit("%s looks sick. Animal medicine would help" % beast.name)
+			Game.message.emit("%s looks sick. Animal medicine would help." % beast.name)
 		return
 	if a.product_ready(beast) and not Game.holding():
 		var tool := String(a.gives(beast).get("tool", ""))
 		var item := a.take_product(i)
 		Game.held = item
 		Sfx.play("shear_snip" if tool == "shears" else "milk_squirt")
-		Game.message.emit(("Sheared %s: %s" if tool == "shears" else "Milked %s: %s") % [beast.name, Game.item_name(item)])
+		Game.message.emit(("Sheared %s: %s." if tool == "shears" else "Milked %s: %s.") % [beast.name, Game.item_name(item)])
 		Game.changed.emit()
 	elif a.brush(i):
 		Sfx.play("brush_stroke")
@@ -94,7 +94,7 @@ static func tend(i: int) -> void:
 	elif a.pet(i):
 		Game.message.emit(mood(beast, a.happy_max()) % a.label(beast))
 	elif a.product_ready(beast):
-		Game.message.emit("Your hands are full")
+		Game.message.emit("Your hands are full.")
 	else:
 		Game.message.emit(mood(beast, a.happy_max()) % a.label(beast))
 

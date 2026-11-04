@@ -102,7 +102,7 @@ func _day() -> void:
 	var news := a.day_end("rain", rng)
 	check(not a.outside and a.list[0].happy == 30 + int(h.bad_weather_hour) + int(h.unfed) + int(h.left_out_night),
 		"left out overnight: unhappy, back inside %d" % a.list[0].happy)
-	check("The hens were out all night" in news, "news of the night out %s" % [news])
+	check("The hens were out all night." in news, "news of the night out %s" % [news])
 	# Nests hold at most the coop's capacity of eggs.
 	a = _flock(2)
 	var cap := int(a.home_rule("coop").capacity)
@@ -133,7 +133,7 @@ func _sickness_and_growing() -> void:
 	a.add("chicken")
 	a.list[0].happy = int(r.sickness.below)
 	var news := a.day_end("sunny", rng)
-	check(a.list[0].sick and ("%s looks sick" % a.list[0].name) in news, "an unhappy hen falls sick %s" % [news])
+	check(a.list[0].sick and ("%s looks sick." % a.list[0].name) in news, "an unhappy hen falls sick %s" % [news])
 	a.fill_feed_box()
 	a.day_end("sunny", rng)
 	check(a.eggs.is_empty(), "a sick hen doesn't lay")
@@ -148,7 +148,7 @@ func _sickness_and_growing() -> void:
 	check(a.list[0].sick, "still sick before the recovery days")
 	a.fill_feed_box()
 	news = a.day_end("sunny", rng)
-	check(not a.list[0].sick and ("%s is well again" % a.list[0].name) in news, "well again after %d nights" % int(r.sickness.recover_days))
+	check(not a.list[0].sick and ("%s is well again." % a.list[0].name) in news, "well again after %d nights" % int(r.sickness.recover_days))
 	# A content, fed hen never falls sick, even with chance 1.
 	a.fill_feed_box()
 	a.day_end("sunny", rng)
@@ -165,7 +165,7 @@ func _sickness_and_growing() -> void:
 	check(a.eggs.is_empty() and not a.is_adult(a.list[0]), "chicks don't lay")
 	a.fill_feed_box()
 	news = a.day_end("sunny", rng)
-	check(a.is_adult(a.list[0]) and ("%s has grown up" % a.list[0].name) in news, "grown up after %d nights" % grow)
+	check(a.is_adult(a.list[0]) and ("%s has grown up." % a.list[0].name) in news, "grown up after %d nights" % grow)
 	# The incubator hatches an egg into a chick.
 	a = _flock(1)
 	check(not a.incubate("turnip"), "only eggs go in the incubator")
@@ -222,7 +222,7 @@ func _game() -> void:
 	check(g.animals.list.size() == Animals.data().start.size(), "new game has the starting flock")
 	check(g.farm.fixed_at(FarmGrid.COOP_DOOR) == "coop_door" and g.farm.fixed_at(Vector2i(13, 1)) == "coop", "the coop stands on the farm")
 	check(g.add_animal("chicken") and g.animals.list.size() == Animals.data().start.size() + 1, "the shop hook adds a hen")
-	check(g.sell_price("egg") == int(Animals.data().items.egg.sell) and g.item_name("egg_best") == "Golden Yolk Egg", "eggs have a price and a name")
+	check(g.sell_price("egg") == int(Animals.data().items.egg.sell) and g.item_name("egg_best") == "Golden yolk egg", "eggs have a price and a name")
 	# The clock: an hour outside counts; the night lays eggs.
 	g.animals.toggle_out("sunny", 10)
 	g.weather_today = "sunny"
@@ -244,7 +244,7 @@ func _game() -> void:
 	# The barn, cows and sheep through Game.
 	check(g.farm.fixed_at(FarmGrid.BARN_DOOR) == "barn_door" and g.farm.fixed_at(FarmGrid.BARN.position) == "barn", "the barn stands on the farm")
 	check(g.add_animal("sheep", true) and not g.animals.is_adult(g.animals.list.back()), "the shop hook adds a lamb")
-	check(g.sell_price("milk_best") == int(Animals.data().items.milk_best.sell) and g.item_name("wool_good") == "Soft Wool", "milk and wool have a price and a name")
+	check(g.sell_price("milk_best") == int(Animals.data().items.milk_best.sell) and g.item_name("wool_good") == "Soft wool", "milk and wool have a price and a name")
 	g.held = "milk_good"
 	t = g.throw_held(Vector2i(8, 5), Vector2i.UP)
 	check(t.result == "ship" and t.value == g.sell_price("milk_good"), "milk thrown into the bin is shipped")
@@ -452,7 +452,7 @@ func _barn_day() -> void:
 	a.add("cow")
 	a.list[0].happy = 0
 	news = a.day_end("sunny", rng)
-	check(a.list[0].sick and ("%s looks sick" % a.list[0].name) in news, "an unhappy cow falls sick")
+	check(a.list[0].sick and ("%s looks sick." % a.list[0].name) in news, "an unhappy cow falls sick")
 	a.fill_feed_box("barn")
 	a.day_end("sunny", rng)
 	check(not a.product_ready(a.list[0]) and a.take_product(0) == "", "a sick cow gives no milk")
@@ -468,7 +468,7 @@ func _barn_day() -> void:
 	check(not a.is_adult(a.list[0]) and not a.product_ready(a.list[0]), "calves give no milk")
 	a.fill_feed_box("barn")
 	news = a.day_end("sunny", rng)
-	check(a.is_adult(a.list[0]) and a.look(a.list[0]) == "cow" and ("%s has grown up" % a.list[0].name) in news, "grown up after %d nights" % grow)
+	check(a.is_adult(a.list[0]) and a.look(a.list[0]) == "cow" and ("%s has grown up." % a.list[0].name) in news, "grown up after %d nights" % grow)
 	a.fill_feed_box("barn")
 	a.day_end("sunny", rng)
 	check(a.product_ready(a.list[0]), "and gives milk")
@@ -619,7 +619,7 @@ func _barn_actions() -> void:
 	FarmActions.interact(at_sheep)
 	FarmActions.interact(at_sheep)
 	FarmActions.interact(at_sheep)
-	check(a.product_ready(a.list[sheep]) and said.back() == "Your hands are full", "hands full: no shearing (%s)" % said.back())
+	check(a.product_ready(a.list[sheep]) and said.back() == "Your hands are full.", "hands full: no shearing (%s)" % said.back())
 	g.held = ""
 	FarmActions.interact(at_sheep)
 	check(g.held.begins_with("wool") and a.look(a.list[sheep]) == "sheep_shorn", "sheared: %s overhead" % g.held)

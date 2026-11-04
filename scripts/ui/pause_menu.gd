@@ -142,7 +142,7 @@ func choose() -> String:
 				open("controls")
 			elif item == "reset":
 				settings.reset()
-				note = "Settings back to the defaults"
+				note = "Settings back to the defaults."
 				return "setting"
 			elif item != "":
 				settings.adjust(item, 1)
@@ -152,7 +152,7 @@ func choose() -> String:
 				open("settings", "controls")
 			elif item == "reset":
 				settings.controls.reset()
-				note = "Keys and buttons back to the defaults"
+				note = "Keys and buttons back to the defaults."
 				return "controls"
 			elif is_action(item):
 				listening = item
@@ -179,12 +179,12 @@ func press(code: int) -> String:
 	var key := Controls.key_name(code)
 	if r.done:
 		if r.other != "":
-			note = "%s was on %s: swapped" % [key, c.spec[r.other].label]
+			note = "%s was on %s: swapped." % [key, c.spec[r.other].label]
 		return "controls"
 	if r.reason == "reserved":
-		note = "%s stays on %s" % [key, c.spec[r.other].label] if r.other != "" else "%s can't be used" % key
+		note = "%s stays on %s." % [key, c.spec[r.other].label] if r.other != "" else "%s can't be used." % key
 	elif r.reason == "last_key":
-		note = "%s is the only key for %s" % [key, c.spec[r.other].label]
+		note = "%s is the only key for %s." % [key, c.spec[r.other].label]
 	return ""
 
 
@@ -201,10 +201,10 @@ func press_pad(button: int) -> String:
 	var name := c.pad_name(button)
 	if r.done:
 		if r.other != "":
-			note = "%s was on %s: swapped" % [name, c.spec[r.other].label]
+			note = "%s was on %s: swapped." % [name, c.spec[r.other].label]
 		return "controls"
 	if r.reason == "reserved" and r.other != "":
-		note = "%s stays on %s" % [name, c.spec[r.other].label]
+		note = "%s stays on %s." % [name, c.spec[r.other].label]
 	return ""
 
 
@@ -220,7 +220,7 @@ func clear() -> String:
 		"":
 			return "controls"
 		"last_key":
-			note = "%s needs a key" % settings.controls.spec[item].label
+			note = "%s needs a key." % settings.controls.spec[item].label
 	return ""
 
 

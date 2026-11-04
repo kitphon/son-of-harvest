@@ -64,7 +64,7 @@
 		{"id": "sweeping", "speaker": "sayo", "mood": "happy", "text": "Morning! Just sweeping the step. We open at nine.", "next": "end"},
 		{"id": "spring", "speaker": "sayo", "mood": "happy", "text": "Sakura mochi is in for spring. Only while the season lasts!", "next": "end"},
 		{"id": "summer", "speaker": "sayo", "mood": "neutral", "text": "In summer I keep the shutters half down. The cool stays in.", "next": "end"},
-		{"id": "fall", "speaker": "sayo", "mood": "happy", "text": "Fall seeds are in. Carrots, eggplant, pumpkin. My favourite season.", "next": "end"},
+		{"id": "fall", "speaker": "sayo", "mood": "happy", "text": "Fall seeds are in. Carrots, eggplant, pumpkin. My favorite season.", "next": "end"},
 		{"id": "winter", "speaker": "sayo", "mood": "neutral", "text": "Nothing grows in winter, so I sell warm drinks instead. Amazake?", "next": "end"},
 		{"id": "plain", "speaker": "sayo", "mood": "happy", "text": "Thank you for coming by. Mind the step on the way out.", "next": "end"},
 		{"id": "forage_spring", "speaker": "sayo", "mood": "happy", "text": "Horsetail is up along the paths in Minamino. No shop sells it, and that's exactly why it tastes like spring.", "next": "end"},

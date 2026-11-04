@@ -1,7 +1,7 @@
 {
 	"_note": "Ichiro the charcoal burner's house in Sakurazaka: a big earth entry with his saws and axes on a rack, sacks of charcoal, the stove; a small tatami room with a hearth and a chest. Format: README.md, Maps.",
 	"id": "ichiro_house",
-	"name": "Ichiro's House",
+	"name": "Ichiro's house",
 	"size": [9, 7],
 	"indoor": true,
 	"ambient": "indoor",

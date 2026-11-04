@@ -82,7 +82,7 @@ func choose() -> String:
 			_from = [place(), index()]
 		return ""
 	if not inv.accepts(place(), carry.id):
-		return "Only tools go here" if place() == "tools" else "Tools go in the tool slots or the chest"
+		return "Only tools go here." if place() == "tools" else "Tools go in the tool slots or the chest."
 	carry = inv.drop(place(), index(), carry)
 	if carry.is_empty():
 		_from = ["", -1]
@@ -94,7 +94,7 @@ func choose() -> String:
 ## tool in the chest swaps with the tool in hand.
 func hold() -> String:
 	if not carry.is_empty():
-		return "Put it down first"
+		return "Put it down first."
 	var id := id_here()
 	match place():
 		"tools":
@@ -106,13 +106,13 @@ func hold() -> String:
 			var rest := inv.stow(inv.lift("hand", 0), "", -1, ["bag"])
 			if not rest.is_empty():
 				inv.drop("hand", 0, rest)
-				return "No room in the rucksack"
+				return "No room in the rucksack."
 			return ""
 	if id == "":
 		return ""
 	if inv.is_tool(id):
-		return "" if inv.move(place(), index(), "tools", tool_slot) else "No room for the tool"
-	return "" if inv.move(place(), index(), "hand", 0) else "Can't hold that"
+		return "" if inv.move(place(), index(), "tools", tool_slot) else "No room for the tool."
+	return "" if inv.move(place(), index(), "hand", 0) else "Can't hold that."
 
 
 ## F (eat): eats the item under the cursor through the game `g` (Game.eat_item), from the
@@ -121,13 +121,13 @@ func eat(g) -> String:
 	last_ok = false
 	var id := id_here()
 	if not carry.is_empty():
-		return "Put it down first"
+		return "Put it down first."
 	if id == "":
 		return ""
 	if not g.edible(id):
-		return "You can't eat that"
+		return "You can't eat that."
 	if not place() in Inventory.CARRIED:
-		return "Take it out of the chest first"
+		return "Take it out of the chest first."
 	var r: Dictionary = g.eat_item(id, [place()])
 	last_ok = r.ok
 	return r.note
@@ -140,6 +140,6 @@ func close() -> String:
 		return ""
 	carry = inv.stow(carry, _from[0], _from[1], PLACES[mode])
 	if not carry.is_empty():
-		return "No room to put it down"
+		return "No room to put it down."
 	_from = ["", -1]
 	return ""

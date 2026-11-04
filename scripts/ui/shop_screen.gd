@@ -299,7 +299,7 @@ func _info_text() -> String:
 				"away":
 					return "Ready on %s." % Game.date_of(int(row.ready))
 				"top":
-					return "It can't be improved any more."
+					return "It can't be improved anymore."
 	return ""
 
 

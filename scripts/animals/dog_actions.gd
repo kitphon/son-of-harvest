@@ -15,7 +15,7 @@ static func interact(c: Vector2i) -> bool:
 		Game.message.emit(mood() % a.dog.name)
 	else:
 		a.dog_lift()
-		Game.message.emit("You picked %s up" % a.dog.name)
+		Game.message.emit("You picked %s up." % a.dog.name)
 		Game.changed.emit()
 	return true
 
@@ -25,13 +25,13 @@ static func interact(c: Vector2i) -> bool:
 static func held_action(kind: String, c: Vector2i) -> void:
 	var a := Game.animals
 	if kind == "enter":
-		Game.message.emit("Put %s down first" % a.dog.name)
+		Game.message.emit("Put %s down first." % a.dog.name)
 	elif Game.farm.in_bounds(c) and not Game.farm.is_solid(c):
 		a.dog_put(c)
 		Sfx.play("hold_land")
 		Game.changed.emit()
 	else:
-		Game.message.emit("No room to put %s down" % a.dog.name)
+		Game.message.emit("No room to put %s down." % a.dog.name)
 
 
 static func mood() -> String:

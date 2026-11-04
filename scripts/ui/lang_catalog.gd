@@ -32,6 +32,7 @@ const NOT_SHOWN := [
 	"Harvest Son Pixel",      # the font's resource name
 	"No dialogue %s", "No line %s", "Dialogue is not a dictionary", "No event %s",
 	"Event is not a dictionary", "Can't read event %s", "Can't read dialogue %s",   # broken data, for us
+	"TOOLS", "%s,", "The save file is from a newer",   # a constant's name, a saved list, a prefix compared
 ]
 
 
@@ -101,7 +102,9 @@ static func _add(out: Dictionary, text: String, at: String) -> void:
 
 ## Words, not an id, a path, a colour or a number.
 static func _words(s: String) -> bool:
-	if s.begins_with("res://") or s.begins_with("user://") or s.begins_with("--"):
+	if s.begins_with("res://") or s.begins_with("user://") or s.begins_with("--") or s.begins_with("shader_type"):
+		return false
+	if "\\" in s or "|" in s or s.begins_with("^"):   # a pattern or a key, not words
 		return false
 	return RegEx.create_from_string("[A-Za-z]").search(s) != null \
 		and RegEx.create_from_string("^[a-z0-9_:./@%*<>#-]*$").search(s) == null

@@ -177,7 +177,7 @@ func _actions_and_views() -> void:
 	check(_live(layer) == g.forage_here().size() and _live(layer) > 0, "3D: one sprite per spot (%d)" % _live(layer))
 	var actions: GDScript = load("res://scripts/farm_actions.gd")
 	actions.interact(Vector2i(18, 10))
-	check(g.held == "wild:warabi" and said.back() == "Picked the bracken", "E picks the bracken: %s" % [said])
+	check(g.held == "wild:warabi" and said.back() == "Picked the bracken.", "E picks the bracken: %s" % [said])
 	check(_live(layer) == g.forage_here().size(), "3D: the picked one is gone")
 	actions.on_action("interact", Vector2i(18, 11), Vector2i.UP)
 	check(g.held == "wild:warabi" and g.count("wild:warabi") == 1, "the bare spot gives nothing more")

@@ -556,7 +556,7 @@ func map_arrived() -> void:
 			mine_news = ""
 	# The night's animal news waits for the farmer to look in on them.
 	if animals.home_on_map(maps.id) != "" and not animal_news.is_empty():
-		message.emit(". ".join(animal_news))
+		message.emit(Lang.join(animal_news))
 		animal_news.clear()
 	if build_news != "" and maps.id != MapManager.HOME:
 		message.emit(build_news)
@@ -896,7 +896,7 @@ func pay_bin() -> void:
 		return
 	money += bin_total
 	goals.add("earned", bin_total)
-	message.emit("Shipping paid %d G" % bin_total)
+	message.emit("Shipping paid %d G." % bin_total)
 	bin_total = 0
 	changed.emit()
 
@@ -1381,9 +1381,9 @@ func eat_item(item: String, places: Array = Inventory.CARRIED) -> Dictionary:
 	var f := food_info(item)
 	var name := String(f.get("name", item_name(item))).to_lower()
 	if f.is_empty():
-		return _ate(false, "You can't eat the %s" % name)
+		return _ate(false, "You can't eat the %s." % name)
 	if inventory.count(item, places) == 0:
-		return _ate(false, "No %s left" % name)
+		return _ate(false, "No %s left." % name)
 	var grow := mini(int(f.get("max_stamina", 0)), maxi(int(food_data.get("max_stamina_cap", 200)) - max_stamina, 0))
 	var half := bool(f.get("work_fatigue_half", false)) and not work_fatigue_half
 	var lowers := int(f.get("fatigue", 0)) < 0 and fatigue > 0
@@ -1447,7 +1447,7 @@ func item_sound(item: String) -> String:
 ## E at the kitchen corner's stove or cupboard: the cooking screen, once the kitchen is built.
 func open_cooking() -> bool:
 	if not has_built("kitchen"):
-		message.emit("There's no kitchen here yet")
+		message.emit("There's no kitchen here yet.")
 		return false
 	cooking_requested.emit()
 	return true
@@ -1460,24 +1460,24 @@ func open_cooking() -> bool:
 func cook(id: String) -> Dictionary:
 	var name := String(foods.get(id, {}).get("name", id))
 	if not has_built("kitchen"):
-		return {"ok": false, "note": "There's no kitchen here yet"}
+		return {"ok": false, "note": "There's no kitchen here yet."}
 	if not Cooking.known(id, flags):
-		return {"ok": false, "note": "You don't know how to make that yet"}
+		return {"ok": false, "note": "You don't know how to make that yet."}
 	var lack := Cooking.missing_tools(id, kitchen_tools)
 	if not lack.is_empty():
 		var names := lack.map(func(t: String) -> String: return Cooking.a_tool(t))
-		return {"ok": false, "note": "You need %s for that" % Lang.list(names)}
+		return {"ok": false, "note": "You need %s for that." % Lang.list(names)}
 	var r := Cooking.cook(id, inventory)
 	changed.emit()
 	match r.result:
 		"cooked":
 			var n := Cooking.makes(id)
-			return {"ok": true, "note": "Made %s x%d" % [name.to_lower(), n] if n > 1 else "Made %s" % name.to_lower()}
+			return {"ok": true, "note": "Made %s x%d." % [name.to_lower(), n] if n > 1 else "Made %s." % name.to_lower()}
 		"missing":
-			return {"ok": false, "note": "Not enough to make %s" % name.to_lower()}
+			return {"ok": false, "note": "Not enough to make %s." % name.to_lower()}
 		"full":
-			return {"ok": false, "note": "No room in the rucksack for it"}
-	return {"ok": false, "note": "No such recipe"}
+			return {"ok": false, "note": "No room in the rucksack for it."}
+	return {"ok": false, "note": "No such recipe."}
 
 
 # --- the ending (data/ending.json, Ending) -----------------------------------
@@ -1714,7 +1714,7 @@ func raise_tool_level(tool: String) -> bool:
 		return false
 	tool_levels[tool] = lv + 1
 	var rule: Dictionary = tools_data.tools.get(tool, rod_rule() if tool == "rod" else {})
-	message.emit(String(rule.get("level_up", "Tool level %d!")) % (lv + 1) + (str(_master().get("level_up", "")) if is_master(tool) else ""))
+	message.emit(Lang.join([String(rule.get("level_up", "Tool level %d!")) % (lv + 1), str(_master().get("level_up", "")) if is_master(tool) else ""]))
 	changed.emit()
 	return true
 
@@ -2180,7 +2180,7 @@ func _give_ribbon(fid: String, place: int) -> void:
 		return
 	Keepsakes.note(flags, fid, place, year)
 	if add_item(ribbon) == 0:
-		message.emit("You got a %s!" % item_name(ribbon))
+		message.emit("You won the %s!" % item_name(ribbon))
 	else:
 		message.emit("No room in the rucksack for the ribbon. It is on the board at home.")
 
@@ -2199,8 +2199,8 @@ func _pay_prize(prize: Dictionary) -> void:
 		if left < n:
 			got.append(("%d x %s" % [n - left, item_name(prize.item)]) if n - left > 1 else item_name(prize.item))
 		if left > 0:
-			message.emit("No room in the rucksack for the rest of the prize")
-	message.emit("Prize: %s" % Lang.list(got))
+			message.emit("No room in the rucksack for the rest of the prize.")
+	message.emit("You won %s!" % Lang.list(got))
 
 
 ## E at one of today's festival stalls (Festivals.stall_at: its shop id; "" = the first)
@@ -2363,7 +2363,7 @@ func shop_upgrade(id: String, tool: String) -> Dictionary:
 func shop_collect(id: String) -> Dictionary:
 	var job: Dictionary = shop_jobs.get(id, {})
 	if job.is_empty():
-		return {"ok": false, "money": money, "note": "Nothing is waiting for you here"}
+		return {"ok": false, "money": money, "note": "Nothing is waiting for you here."}
 	if not Shop.job_ready(job, day_number()):
 		return {"ok": false, "money": money, "note": "Not ready yet. Come back on %s." % date_of(int(job.ready))}
 	var where := Shop.give_back(inventory, job)
@@ -2760,12 +2760,12 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 
 func quick_save() -> void:
 	var err := SaveGame.write(self)
-	message.emit("Game saved" if err == "" else err)
+	message.emit("Game saved." if err == "" else err)
 
 
 func quick_load() -> void:
 	var err := SaveGame.read(self)
-	message.emit("Game loaded" if err == "" else "Could not load: %s" % err)
+	message.emit("Game loaded." if err == "" else "Could not load: %s." % err)
 
 
 func _unhandled_input(event: InputEvent) -> void:

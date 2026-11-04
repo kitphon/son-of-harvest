@@ -108,7 +108,7 @@ func _cooking() -> void:
 	_empty_bag(g)
 	g.inventory.add("cucumber", 1)
 	var r: Dictionary = g.cook("onigiri")
-	check(not r.ok and r.note == "There's no kitchen here yet", "no kitchen, no cooking (%s)" % r.note)
+	check(not r.ok and r.note == "There's no kitchen here yet.", "no kitchen, no cooking (%s)" % r.note)
 	g.house_built.append("kitchen")
 	var start: Array[String] = []
 	for id in Cooking.ids():
@@ -121,11 +121,11 @@ func _cooking() -> void:
 
 	# Onigiri: one pickle vegetable, makes two.
 	r = g.cook("onigiri")
-	check(r.ok and r.note == "Made onigiri x2", "onigiri cooked (%s)" % r.note)
+	check(r.ok and r.note == "Made onigiri x2.", "onigiri cooked (%s)" % r.note)
 	check(g.count("cucumber") == 0 and g.count("food:onigiri") == 2, "the cucumber went into two onigiri")
 	var before: Dictionary = g.inventory.to_dict()
 	r = g.cook("onigiri")
-	check(not r.ok and r.note == "Not enough to make onigiri", "nothing to pickle: not cooked (%s)" % r.note)
+	check(not r.ok and r.note == "Not enough to make onigiri.", "nothing to pickle: not cooked (%s)" % r.note)
 	check(g.inventory.to_dict() == before, "a failed cooking changes nothing")
 
 	# A learned recipe, its needs split between the rucksack and the chest.
@@ -136,11 +136,11 @@ func _cooking() -> void:
 	g.inventory.add("carrot", 1, ["chest"])
 	before = g.inventory.to_dict()
 	r = g.cook("turnip_stew")
-	check(not r.ok and r.note == "You need a kitchen knife and a clay pot for that" and g.inventory.to_dict() == before,
+	check(not r.ok and r.note == "You need a kitchen knife and a clay pot for that." and g.inventory.to_dict() == before,
 		"no tools: the stew isn't cooked, nothing used (%s)" % r.note)
 	g.kitchen_tools.append("knife")
 	r = g.cook("turnip_stew")
-	check(not r.ok and r.note == "You need a clay pot for that", "the knife alone isn't enough (%s)" % r.note)
+	check(not r.ok and r.note == "You need a clay pot for that.", "the knife alone isn't enough (%s)" % r.note)
 	g.kitchen_tools.append("pot")
 	check(g.cook("turnip_stew").ok, "turnip stew from the rucksack and the chest")
 	check(g.inventory.count("turnip", ["bag", "chest"]) == 1 and g.inventory.count("turnip", ["bag"]) == 0, "the rucksack's turnip is used first")
@@ -169,7 +169,7 @@ func _cooking() -> void:
 	g.inventory.add("eggplant", 1, ["chest"])
 	before = g.inventory.to_dict()
 	r = g.cook("miso_soup")
-	check(not r.ok and r.note == "No room in the rucksack for it" and g.inventory.to_dict() == before, "a full rucksack: nothing cooked, nothing used")
+	check(not r.ok and r.note == "No room in the rucksack for it." and g.inventory.to_dict() == before, "a full rucksack: nothing cooked, nothing used")
 	g.inventory.slots.bag[1] = {"id": "onion", "n": 1}
 	check(g.cook("miso_soup").ok and g.count("onion") == 0 and g.inventory.count("eggplant", ["chest"]) == 1 and g.count("food:miso_soup") == 1,
 		"the onion's slot takes the soup (the group's order: onion before eggplant)")
@@ -199,8 +199,8 @@ func _menu() -> void:
 	check(m.needs_text() == "2 any egg (0)", "what tamagoyaki needs (%s)" % m.needs_text())
 	g.inventory.add("egg", 2)
 	check(m.current().ready and m.needs_text() == "2 any egg (2)", "two eggs: ready")
-	check(m.choose() == "Made tamagoyaki" and m.last_ok and g.count("food:tamagoyaki") == 1, "Enter cooks it")
-	check(m.choose() == "Not enough to make tamagoyaki" and not m.last_ok, "again: not enough")
+	check(m.choose() == "Made tamagoyaki." and m.last_ok and g.count("food:tamagoyaki") == 1, "Enter cooks it")
+	check(m.choose() == "Not enough to make tamagoyaki." and not m.last_ok, "again: not enough")
 	m.move(-1)
 	check(m.current().id == Cooking.known_ids(g.flags)[maxi(Cooking.known_ids(g.flags).find("tamagoyaki") - 1, 0)], "up moves")
 	m.cursor = 0
@@ -384,7 +384,7 @@ func _tools() -> void:
 	var s: Shop = g.shop("general")
 	check(s.kitchen_offers(g.kitchen_tools, g.house_built).is_empty(), "no kitchen tools for sale before the kitchen")
 	var r: Dictionary = g.shop_buy("general", "kitchen:knife")
-	check(not r.ok and r.note == "There's no kitchen to put it in yet" and g.money == 5000 and g.kitchen_tools.is_empty(), "no kitchen: not sold (%s)" % r.note)
+	check(not r.ok and r.note == "There's no kitchen to put it in yet." and g.money == 5000 and g.kitchen_tools.is_empty(), "no kitchen: not sold (%s)" % r.note)
 	var m := ShopMenu.new(g, "general")
 	check(not m.rows().any(func(row): return String(row.item).begins_with("kitchen:")), "no kitchen rows in the buy tab yet")
 	g.house_built.append("kitchen")
@@ -395,15 +395,15 @@ func _tools() -> void:
 	check(rows[1].item == "kitchen:knife" and rows[0].item == "rucksack", "the buy tab: the rucksack, then the kitchen tools")
 	m.cursor = 1
 	check(m.most() == 1 and s.item_name("kitchen:knife") == "Kitchen knife", "one knife at a time, by its name")
-	check(m.choose() == "Bought a kitchen knife for 600 G" and m.last_ok and g.money == 4400 and g.kitchen_tools == (["knife"] as Array[String]),
+	check(m.choose() == "Bought a kitchen knife for 600 G." and m.last_ok and g.money == 4400 and g.kitchen_tools == (["knife"] as Array[String]),
 		"the knife bought through the menu")
 	check(not m.rows().any(func(row): return row.item == "kitchen:knife"), "the knife's row is gone")
 	r = g.shop_buy("general", "kitchen:knife")
-	check(not r.ok and r.note == "You already have a kitchen knife" and g.money == 4400, "not twice")
+	check(not r.ok and r.note == "You already have a kitchen knife." and g.money == 4400, "not twice")
 	check(g.inventory.count("kitchen:knife", ["bag", "hand", "chest"]) == 0, "a kitchen tool doesn't take a rucksack slot")
 	g.money = 100
 	r = g.shop_buy("general", "kitchen:mallet")
-	check(not r.ok and r.note == "Not enough money (2000 G)" and not "mallet" in g.kitchen_tools, "no money, no mallet")
+	check(not r.ok and r.note == "Not enough money (2000 G)." and not "mallet" in g.kitchen_tools, "no money, no mallet")
 	r = g.shop_buy("smithy", "kitchen:pot")
 	check(not r.ok and not "pot" in g.kitchen_tools, "the smithy sells no pots")
 
@@ -429,10 +429,10 @@ func _tools() -> void:
 		if not id in ["potato_stew", "turnip_stew"] and not Cooking.recipe(id).get("start", false):
 			g.flags.erase(Cooking.flag(id))
 	cm.cursor = cm.rows().map(func(row): return row.id).find("potato_stew")
-	check(cm.choose() == "You need a clay pot for that" and not cm.last_ok and g.count("potato") == 2, "Enter says what's missing")
+	check(cm.choose() == "You need a clay pot for that." and not cm.last_ok and g.count("potato") == 2, "Enter says what's missing")
 	g.money = 900
 	check(g.shop_buy("general", "kitchen:pot").ok and cm.current().ready and cm.tools_text() == "Uses Kitchen knife, Clay pot", "with the pot: ready")
-	check(cm.choose() == "Made potato stew" and g.count("food:potato_stew") == 1, "potato stew cooked")
+	check(cm.choose() == "Made potato stew." and g.count("food:potato_stew") == 1, "potato stew cooked")
 	cm.cursor = cm.rows().map(func(row): return row.id).find("onigiri")
 	check(cm.tools_text() == "", "onigiri needs no tools")
 
@@ -484,7 +484,7 @@ func _process(_delta: float) -> bool:
 	g.inventory.add("cucumber", 1)
 	screen.menu.cursor = 0
 	screen._cook()
-	check(g.count("food:onigiri") >= 2 and screen._note.text == "Made onigiri x2", "cooking from the screen (%s)" % screen._note.text)
+	check(g.count("food:onigiri") >= 2 and screen._note.text == "Made onigiri x2.", "cooking from the screen (%s)" % screen._note.text)
 	screen.close()
 	check(not screen.is_open() and not g.paused(), "closed again")
 	g.house_built.erase("kitchen")

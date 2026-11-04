@@ -172,7 +172,7 @@ func _raw(data: Dictionary) -> void:
 	g.fatigue = 0
 	check(not g.eat_item("turnip").ok and g.count("turnip") == 1, "full and rested: the turnip is kept")
 	g.fatigue = 10
-	check(not g.eat_item("turnip", ["hand"]).ok and said.back() == "No turnip left", "eating from the hand needs it in hand")
+	check(not g.eat_item("turnip", ["hand"]).ok and said.back() == "No turnip left.", "eating from the hand needs it in hand")
 	g.held = "potato"
 	check(g.eat_item("potato", ["hand"]).ok and g.held == "", "the potato overhead is eaten")
 
@@ -180,14 +180,14 @@ func _raw(data: Dictionary) -> void:
 	var m := InventoryMenu.new(g.inventory, "storage")
 	g.inventory.add("egg", 1, ["chest"])
 	m.point("chest", g.inventory.slots.chest.find_custom(func(sl): return sl.get("id", "") == "egg"))
-	check(m.eat(g) == "Take it out of the chest first" and not m.last_ok and g.inventory.count("egg", ["chest"]) == 1, "not out of the chest")
+	check(m.eat(g) == "Take it out of the chest first." and not m.last_ok and g.inventory.count("egg", ["chest"]) == 1, "not out of the chest")
 	m.point("bag", g.inventory.slots.bag.find_custom(func(sl): return sl.get("id", "") == "turnip"))
 	g.stamina = 10
 	check(m.eat(g) == "You ate the turnip." and m.last_ok and g.count("turnip") == 0, "F eats the turnip under the cursor")
 	m.point("bag", g.inventory.slots.bag.find_custom(func(sl): return sl.get("id", "") == "wool"))
-	check(m.eat(g) == "You can't eat that" and not m.last_ok, "F on wool: nothing")
+	check(m.eat(g) == "You can't eat that." and not m.last_ok, "F on wool: nothing")
 	m.choose()
-	check(m.eat(g) == "Put it down first", "not while carrying a stack")
+	check(m.eat(g) == "Put it down first.", "not while carrying a stack")
 	m.close()
 	g.free()
 

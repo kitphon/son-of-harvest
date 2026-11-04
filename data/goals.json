@@ -6,7 +6,7 @@
 		"done": "Goal done: %s!",
 		"money": "+%d G",
 		"item": "+%d %s",
-		"animal": "A %s for the coop"
+		"animal": "%s for the coop"
 	},
 	"goals": [
 		{"id": "plant", "text": "Plant 9 plots", "stat": "planted", "count": 9,

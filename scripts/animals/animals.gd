@@ -403,7 +403,7 @@ func day_end(weather: String, rng: RandomNumberGenerator) -> Array[String]:
 			if a.sick_days >= int(sick_rule.get("recover_days", 5)):
 				a.sick = false
 				a.sick_days = 0
-				news.append("%s is well again" % a.name)
+				news.append("%s is well again." % a.name)
 		else:
 			var chance := 0.0
 			if int(a.happy) <= int(sick_rule.get("below", 0)):
@@ -413,24 +413,24 @@ func day_end(weather: String, rng: RandomNumberGenerator) -> Array[String]:
 			if chance > 0.0 and rng.randf() < chance:
 				a.sick = true
 				a.sick_days = 0
-				news.append("%s looks sick" % a.name)
+				news.append("%s looks sick." % a.name)
 		var was_adult := is_adult(a)
 		a.age = int(a.age) + 1
 		if not was_adult and is_adult(a):
-			news.append("%s has grown up" % a.name)
+			news.append("%s has grown up." % a.name)
 		a.petted = false
 		a.brushed = false
 		a.out_hours = 0
 	for home in state:
 		if state[home].out:
-			news.append(String(home_rule(home).get("out_news", "The animals were out all night")))
+			news.append(String(home_rule(home).get("out_news", "The animals were out all night.")))
 		state[home].out = false
 	if incubator.size() > 0:
 		incubator.days = int(incubator.days) + 1
 		if incubator.days >= int(rules.get("incubator", {}).get("hatch_days", 3)):
 			incubator = {}
 			if add("chicken", true):
-				news.append("A chick hatched: %s" % list.back().name)
+				news.append("A chick hatched: %s." % list.back().name)
 	_dog_night()
 	changed.emit()
 	return news

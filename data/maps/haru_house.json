@@ -1,7 +1,7 @@
 {
 	"_note": "Haru's house in Kaminoda: a bright tatami room with a folding screen, a low table for her straw work, a lamp and a chest; the stove and the water jar in the earth entry. Format: README.md, Maps. The paper fan the farmer gives Haru stands in the room once given (kept_haru_paper_fan).",
 	"id": "haru_house",
-	"name": "Haru's House",
+	"name": "Haru's house",
 	"size": [9, 7],
 	"indoor": true,
 	"ambient": "indoor",

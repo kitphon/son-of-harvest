@@ -337,7 +337,7 @@ func _charge_rules(crops: Dictionary, game_script: GDScript) -> void:
 	var said := []
 	gm.message.connect(func(t): said.append(t))
 	gm.raise_tool_level("hoe")
-	check(said.back() == (String(tools.tools.hoe.level_up) % 5) + String(tools.master.level_up), "level 5 says the perk: %s" % said.back())
+	check(said.back() == Lang.join([String(tools.tools.hoe.level_up) % 5, String(tools.master.level_up)]), "level 5 says the perk: %s" % said.back())
 	gm.raise_tool_level("axe")
 	check(said.back() == String(tools.tools.axe.level_up) % 2, "level 2 says nothing more: %s" % said.back())
 	var pips := PlaceholderArt.tex(PlaceholderArt.charge_key(1, 2)).get_image()

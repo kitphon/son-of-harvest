@@ -5,7 +5,9 @@ extends SceneTree
 ## Writes build/lang/<id>_todo.json, a table of the missing lines with empty translations, in
 ## the tables' own format, for a translator to fill in and move to data/lang/<id>/. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tools/lang_report.gd
-## `-- --lang=th` reports one language; `-- --list` prints every missing line.
+## `-- --lang=th` reports one language; `-- --list` prints every missing line; `-- --english`
+## also writes build/lang/english.txt, every English text under the place it is written (for
+## reading the source text through).
 
 const OUT := "res://build/lang/"
 
@@ -24,6 +26,8 @@ func _initialize() -> void:
 	for g in glued:
 		print("  " + g)
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
+	if "--english" in args:
+		_english(cat)
 	for id in Lang.languages():
 		if id == Lang.DEFAULT or (only != "" and id != only):
 			continue
@@ -50,3 +54,22 @@ func _initialize() -> void:
 		print("  wrote %s" % ProjectSettings.globalize_path(file))
 	Lang.release()
 	quit(0)
+
+
+func _english(cat: Dictionary) -> void:
+	var by_place := {}
+	for k in cat:
+		var place := String(cat[k][0]).get_slice(":", 0)
+		if not by_place.has(place):
+			by_place[place] = []
+		by_place[place].append(k)
+	var places := by_place.keys()
+	places.sort()
+	var f := FileAccess.open(OUT + "english.txt", FileAccess.WRITE)
+	for place in places:
+		f.store_line("== " + place)
+		for k in by_place[place]:
+			f.store_line(String(k).replace("
+", "\n"))
+	f.close()
+	print("wrote %s" % ProjectSettings.globalize_path(OUT + "english.txt"))

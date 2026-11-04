@@ -83,17 +83,17 @@ static func examine(c: Vector2i) -> bool:
 static func throw(origin: Vector2i, facing: Vector2i) -> void:
 	var t := Game.throw_held(origin, facing)
 	if t.result == "blocked":
-		Game.message.emit("No room to throw it")
+		Game.message.emit("No room to throw it.")
 		return
 	Sfx.play("hold_throw")
 	var name := item_name(t.item)
 	match t.result:
 		"ship":
 			_after_flight(func(): Sfx.play("bin_lid"))
-			Game.message.emit("Shipped a %s (%d G)" % [name, t.value])
+			Game.message.emit("Shipped: %s (%d G)." % [name, t.value])
 		"lost":
 			_after_flight(func(): Sfx.play("hold_splash"))
-			Game.message.emit(("The %s swam away" if t.item.begins_with("fish:") else "The %s sank in the pond") % name)
+			Game.message.emit(("The %s swam away." if t.item.begins_with("fish:") else "The %s sank in the pond.") % name)
 		_:
 			_after_flight(func(): Sfx.play("hold_land"))
 
@@ -102,7 +102,7 @@ static func put_down(c: Vector2i) -> void:
 	if Game.put_down(c):
 		Sfx.play("hold_land")
 	else:
-		Game.message.emit("No room to put it down")
+		Game.message.emit("No room to put it down.")
 
 
 static func item_name(id: String) -> String:
@@ -115,9 +115,9 @@ static func cast(origin: Vector2i, facing: Vector2i) -> void:
 		"cast":
 			Sfx.play("tool_rod")
 		"hands_full":
-			Game.message.emit("Your hands are full")
+			Game.message.emit("Your hands are full.")
 		"no_water":
-			Game.message.emit("Cast the rod at water")
+			Game.message.emit("Cast the rod at water.")
 		"race_wait":
 			Game.message.emit("Wait for the call!" if not Game.race.over() else "Time is up!")
 
@@ -128,13 +128,13 @@ static func reel() -> void:
 		"catch":
 			Sfx.play("fish_catch")
 			if r.get("race", false):
-				Game.message.emit("A %s! %d in the creel" % [item_name(r.fish), Game.race.score()])
+				Game.message.emit("Caught: %s! %d in the creel." % [item_name(r.fish), Game.race.score()])
 			else:
-				Game.message.emit("Caught a %s!" % item_name(r.fish))
+				Game.message.emit("Caught: %s!" % item_name(r.fish))
 		"none":
-			Game.message.emit("Nothing on the hook")
+			Game.message.emit("Nothing on the hook.")
 		_:
-			Game.message.emit("Reeled in the line")
+			Game.message.emit("Reeled in the line.")
 
 
 ## Cues from the line while it waits (Game.fishing_event); both views connect this.
@@ -171,7 +171,7 @@ static func interact(c: Vector2i) -> void:
 		var found := Game.mine_pick_up(c)
 		if found != "":
 			Sfx.play("pick")
-			Game.message.emit("Picked up the %s" % item_name(found))
+			Game.message.emit("Picked up the %s." % item_name(found))
 			return
 	if forage(c):
 		return
@@ -201,7 +201,7 @@ static func interact(c: Vector2i) -> void:
 			Sfx.play("bin_lid")
 			var got := Game.ship_produce()
 			if got > 0:
-				Game.message.emit("Put %d G of crops in the bin" % got)
+				Game.message.emit("Put %d G of crops in the bin." % got)
 			else:
 				Game.talk("bin_note")   # nothing to ship: read the note on the lid
 		"chest":
@@ -213,7 +213,7 @@ static func interact(c: Vector2i) -> void:
 			var id := Game.pick_up(c)
 			if id != "":
 				Sfx.play("pick")
-				Game.message.emit("Picked up a %s" % item_name(id))
+				Game.message.emit("Picked up: %s." % item_name(id))
 
 
 ## Something growing wild on `c` (data/forage.json) is picked: overhead, or into the rucksack
@@ -225,12 +225,12 @@ static func forage(c: Vector2i) -> bool:
 	match r.to:
 		"hand":
 			Sfx.play("pick")
-			Game.message.emit("Picked the %s" % item_name(r.id).to_lower())
+			Game.message.emit("Picked the %s." % item_name(r.id).to_lower())
 		"rucksack":
 			Sfx.play("pick")
-			Game.message.emit("Put the %s in the rucksack" % item_name(r.id).to_lower())
+			Game.message.emit("Put the %s in the rucksack." % item_name(r.id).to_lower())
 		_:
-			Game.message.emit("No room for the %s" % item_name(r.id).to_lower())
+			Game.message.emit("No room for the %s." % item_name(r.id).to_lower())
 	return true
 
 
@@ -271,15 +271,15 @@ static func buy_seeds() -> void:
 	var data: Dictionary = Game.crops[s]
 	var price := int(data.seed_price)
 	if not (Game.season_name() in data.seasons):
-		Game.message.emit("%s seeds are not sold in %s" % [data.name, Game.season_name()])
+		Game.message.emit("%s seeds are not sold in %s." % [data.name, Game.season_name()])
 	elif Game.money < price:
-		Game.message.emit("Not enough money (%d G)" % price)
+		Game.message.emit("Not enough money (%d G)." % price)
 	elif not Game.can_carry("seeds:" + s):
-		Game.message.emit("Your rucksack is full")
+		Game.message.emit("Your rucksack is full.")
 	else:
 		Game.money -= price
 		Game.add_item("seeds:" + s)
-		Game.message.emit("Bought %s seeds for %d G" % [data.name, price])
+		Game.message.emit("Bought %s seeds for %d G." % [data.name, price])
 
 
 ## With the food slot in hand the stand sells the food in hand instead of seeds.
@@ -288,13 +288,13 @@ static func buy_food() -> void:
 	var data: Dictionary = Game.foods.get(id, {})
 	var price := int(data.get("price", 0))
 	if not data.get("shop", false):
-		Game.message.emit("The stand doesn't sell %s" % String(data.get("name", id)).to_lower())
+		Game.message.emit("The stand doesn't sell %s." % String(data.get("name", id)).to_lower())
 	elif Game.money < price:
-		Game.message.emit("Not enough money (%d G)" % price)
+		Game.message.emit("Not enough money (%d G)." % price)
 	else:
 		Game.money -= price
 		Game.add_item("food:" + id)
-		Game.message.emit("Bought %s for %d G" % [String(data.name).to_lower(), price])
+		Game.message.emit("Bought %s for %d G." % [String(data.name).to_lower(), price])
 
 
 ## The item overhead, eaten with the food slot in hand.
@@ -325,18 +325,18 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	var tool := Game.current_tool()
 	var c := origin + facing
 	if tool == "":
-		Game.message.emit("No tool in hand (I = rucksack)")
+		Game.message.emit("No tool in hand (I = rucksack).")
 		return
 	if tool == "can" and farm.fixed_at(c) == "pond":
 		Game.water = Game.WATER_MAX
 		Sfx.play("pond_fill")
-		Game.message.emit("Filled the watering can")
+		Game.message.emit("Filled the watering can.")
 		Game.changed.emit()
 		return
 	if tool == "seeds":
 		var s := Game.current_seed()
 		if Game.count("seeds:" + s) == 0:
-			Game.message.emit("No %s seeds (Q = next seed)" % Game.crops[s].name)
+			Game.message.emit("No %s seeds (Q = next seed)." % Game.crops[s].name)
 			return
 		if not Game.spend_stamina(Game.SEED_COST):
 			return
@@ -344,9 +344,9 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 		if n > 0:
 			Game.take_item("seeds:" + s)
 			Sfx.play("tool_seeds")
-			Game.message.emit("Sowed %d cells" % n)
+			Game.message.emit("Sowed %d cells." % n)
 		elif not (Game.season_name() in Game.crops[s].seasons):
-			Game.message.emit("%s won't grow in %s" % [Game.crops[s].name, Game.season_name()])
+			Game.message.emit("%s won't grow in %s." % [Game.crops[s].name, Game.season_name()])
 		return
 	if tool == "can" and Game.water == 0:
 		Game.message.emit("The can is empty. Fill it at the pond.")
@@ -389,10 +389,10 @@ static func mine(origin: Vector2i, facing: Vector2i, charge: int) -> void:
 	var r := Game.mine_swing(tool, origin, facing, charge)
 	match r.result:
 		"hands_full":
-			Game.message.emit("Your hands are full (I = rucksack)")
+			Game.message.emit("Your hands are full (I = rucksack).")
 			return
 		"wrong_tool":
-			Game.message.emit("Use the hammer on rocks and the hoe on soft ground" if tool != "" else "No tool in hand (I = rucksack)")
+			Game.message.emit("Use the hammer on rocks and the hoe on soft ground." if tool != "" else "No tool in hand (I = rucksack).")
 			return
 	Sfx.play("tool_" + tool)
 	if r.worked and tool == "hammer":

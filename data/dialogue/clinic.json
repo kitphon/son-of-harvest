@@ -4,7 +4,7 @@
 		{"id": "wake_free", "speaker": "yae", "face": "worried", "text": "Ah, you're awake. Someone found you face down and ran the whole way here for me."},
 		{"speaker": "yae", "face": "calm", "text": "Nothing broken. Your body simply stopped. That's what it does when you won't."},
 		{"speaker": "yae", "face": "smile", "text": "No charge this time. Next time I'll bill you, so let there be no next time.", "next": "end"},
-		{"id": "wake_fee", "speaker": "yae", "face": "worried", "text": "Back in my spare bed again. I'm starting to think it's your favourite."},
+		{"id": "wake_fee", "speaker": "yae", "face": "worried", "text": "Back in my spare bed again. I'm starting to think it's your favorite."},
 		{"speaker": "yae", "face": "calm", "text": "The fee's taken care of. Go to bed early tonight, and eat before you work, not after.", "next": "end"}
 	]
 }

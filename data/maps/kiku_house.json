@@ -1,7 +1,7 @@
 {
 	"_note": "Kiku's house in Minamino: an old tatami room with a sunken hearth, a lamp and a chest, strings of persimmons drying under the eaves (not drawn yet), the stove and the water jar in the earth entry. Format: README.md, Maps.",
 	"id": "kiku_house",
-	"name": "Kiku's House",
+	"name": "Kiku's house",
 	"size": [9, 7],
 	"indoor": true,
 	"ambient": "indoor",

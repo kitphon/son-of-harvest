@@ -1,7 +1,7 @@
 {
 	"_note": "Kota's family house (south-west of the road): the earth entry with the water jar and the stove, the tatami room with a sunken hearth, a folding screen, the alcove and Kota's box of toys in the corner, where he plays (`home`). The door in the village is open 6:00-20:00. The keepsake beside the alcove is the clay rabbit the farmer gave him, there once kept_kota_clay_rabbit is set (Keepsakes.given_flag). Format: README.md, Maps.",
 	"id": "kota_house",
-	"name": "Kota's House",
+	"name": "Kota's house",
 	"size": [
 		9,
 		7

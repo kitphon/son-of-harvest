@@ -287,7 +287,7 @@ func _do(command: String) -> void:
 			return
 		"save":
 			var err := SaveGame.write(Game)
-			_say("Game saved" if err == "" else err)
+			_say("Game saved." if err == "" else err)
 		"setting":
 			var ui := Game.ui_scale
 			Game.apply_settings()

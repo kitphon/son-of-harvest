@@ -26,7 +26,7 @@ static func interact(c: Vector2i) -> bool:
 		"feed_box":
 			fill_feed_box()
 		"feed_sack":
-			Game.message.emit("Chicken feed: %d left in the sack" % Game.animals.feed_stock)
+			Game.message.emit("Chicken feed: %d left in the sack." % Game.animals.feed_stock)
 		"nest":
 			collect_egg()
 		"incubator":
@@ -56,23 +56,23 @@ static func fill_feed_box() -> void:
 	var n := a.fill_feed_box()
 	if n > 0:
 		Sfx.play("feed_pour")
-		Game.message.emit("Put %d feed in the box (%d left)" % [n, a.feed_stock])
+		Game.message.emit("Put %d feed in the box (%d left)." % [n, a.feed_stock])
 	elif a.feed_box < a.in_home("coop").size():
-		Game.message.emit("The feed sack is empty")
+		Game.message.emit("The feed sack is empty.")
 	else:
-		Game.message.emit("The feed box is full")
+		Game.message.emit("The feed box is full.")
 
 
 static func collect_egg() -> void:
 	if Game.animals.eggs.is_empty():
-		Game.message.emit("No eggs in the nests")
+		Game.message.emit("No eggs in the nests.")
 	elif Game.holding():
-		Game.message.emit("Your hands are full")
+		Game.message.emit("Your hands are full.")
 	else:
 		var egg := Game.animals.take_egg()
 		Game.held = egg
 		Sfx.play("pick")
-		Game.message.emit("Picked up a %s" % Game.item_name(egg))
+		Game.message.emit("Picked up: %s." % Game.item_name(egg))
 		Game.changed.emit()
 
 
@@ -81,15 +81,15 @@ static func use_incubator() -> void:
 	var a := Game.animals
 	var days := int(a.rules.get("incubator", {}).get("hatch_days", 3))
 	if a.incubator.size() > 0:
-		Game.message.emit("An egg is warming (%d days to go)" % (days - int(a.incubator.days)))
+		Game.message.emit("An egg is warming (%d days to go)." % (days - int(a.incubator.days)))
 	elif not a.is_egg(Game.held):
-		Game.message.emit("Put an egg in to hatch a chick")
+		Game.message.emit("Put an egg in to hatch a chick.")
 	elif a.room("coop") <= 0:
-		Game.message.emit("The coop is full")
+		Game.message.emit("The coop is full.")
 	elif a.incubate(Game.held):
 		Game.inventory.take(Game.held, 1, ["hand"])
 		Sfx.play("hold_land")
-		Game.message.emit("The egg is in the incubator (%d days)" % days)
+		Game.message.emit("The egg is in the incubator (%d days)." % days)
 		Game.changed.emit()
 
 
@@ -99,13 +99,13 @@ static func use_hatch() -> void:
 	match a.toggle_out(Game.weather_today, Game.hour):
 		"":
 			Sfx.play("door_slide")
-			Game.message.emit("The hens came back in" if was_out else "The hens went out to the yard")
+			Game.message.emit("The hens came back in." if was_out else "The hens went out to the yard.")
 		"weather":
-			Game.message.emit("It's no weather for the hens to go out")
+			Game.message.emit("It's no weather for the hens to go out.")
 		"time":
-			Game.message.emit("It's too late for the hens to go out")
+			Game.message.emit("It's too late for the hens to go out.")
 		_:
-			Game.message.emit("There are no hens to let out")
+			Game.message.emit("There are no hens to let out.")
 
 
 ## A hen: medicine if she is sick and there is some, else a stroke (once a day counts).
@@ -117,9 +117,9 @@ static func tend(i: int) -> void:
 	if hen.sick:
 		if Game.take_item(medicine):
 			a.cure(i)
-			Game.message.emit("You gave %s the medicine. She's well again" % hen.name)
+			Game.message.emit("You gave %s the medicine. She's well again." % hen.name)
 		else:
-			Game.message.emit("%s looks sick. Animal medicine would help" % hen.name)
+			Game.message.emit("%s looks sick. Animal medicine would help." % hen.name)
 		return
 	a.pet(i)
 	Game.message.emit(mood(hen, a.happy_max()) % a.label(hen))

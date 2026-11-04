@@ -11,7 +11,7 @@
 		{"if": "ending_rank_3", "then": "rank_3"},
 		{"if": "ending_rank_2", "then": "rank_2"},
 		{"if": "ending_rank_1", "then": "rank_1"},
-		{"speaker": "tome", "face": "calm", "text": "A traveller's page, for now. But the field remembers every row you dug. There's always next year.", "next": "end"},
+		{"speaker": "tome", "face": "calm", "text": "A traveler's page, for now. But the field remembers every row you dug. There's always next year.", "next": "end"},
 		{"id": "rank_1", "speaker": "tome", "face": "smile", "text": "A new hand on the farm, it says. Two years ago that field was all weeds. Don't let anyone tell you that's small.", "next": "end"},
 		{"id": "rank_2", "speaker": "tome", "face": "smile", "text": "Village farmer. That's what we call someone we can't picture the village without anymore.", "next": "end"},
 		{"id": "rank_3", "speaker": "tome", "face": "surprised", "text": "Keeper of the satoyama! The hills, the paddies, the people... you've looked after all of it.", "next": "end"},

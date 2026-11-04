@@ -35,7 +35,7 @@ var build_done := ""                   # the morning message when one is finishe
 var build_away := ""                   # at the builder's own counter while they build (%s = its name)
 var build_away_late := ""              # the same once a day was lost (%s = its name, then the new due date)
 var festival_away := ""                # the keeper's note while they are out at a festival (%s = its name)
-var away := "Nobody is at the counter"  # what the counter says while the keeper is out on other days
+var away := "Nobody is at the counter."  # what the counter says while the keeper is out on other days
 var build_late := ""                   # the build tab's line for a job a day was lost on (%s = the due date)
 var build_plan := ""                   # the builder's day plan while building: other days don't count
 var build_off_day: Dictionary = {}     # the builder's other day plan -> the morning's word that he won't build (%s = its name)
@@ -97,7 +97,7 @@ static func make(shop_id: String, crop_data: Dictionary, food_data: Dictionary, 
 	shop.build_map = str(s.get("builds", {}).get("map", ""))
 	shop.builds = s.get("builds", {}).get("jobs", {})
 	shop.build_done = str(s.get("builds", {}).get("done", "The %s is built."))
-	shop.build_away = str(s.get("builds", {}).get("away", "Nobody is at the counter"))
+	shop.build_away = str(s.get("builds", {}).get("away", "Nobody is at the counter."))
 	shop.build_away_late = str(s.get("builds", {}).get("away_late", shop.build_away))
 	shop.build_late = str(s.get("builds", {}).get("late", "Done on %s."))
 	shop.festival_away = str(s.get("festival_away", ""))
@@ -236,18 +236,18 @@ func buy_back(item: String) -> int:
 func buy(inv: Inventory, money: int, item: String, n: int, season: String, room := 0) -> Dictionary:
 	var p := price(item, season)
 	if p < 0 or n < 1:
-		return _no(money, "That isn't sold in %s" % season)
+		return _no(money, "That isn't sold in %s." % season)
 	if money < p * n:
-		return _no(money, "Not enough money (%d G)" % (p * n))
+		return _no(money, "Not enough money (%d G)." % (p * n))
 	var to := str(entry(item).get("to", "rucksack"))
 	if to == "rucksack" and inv.room_for(item) < n:
-		return _no(money, "Your rucksack is full")
+		return _no(money, "Your rucksack is full.")
 	if to != "rucksack" and room < n:
-		return _no(money, str(entry(item).get("full", "There's no room for that")))
+		return _no(money, str(entry(item).get("full", "There's no room for that.")))
 	if to == "rucksack":
 		inv.add(item, n)
 	var what := item_name(item) if n == 1 else "%d %s" % [n, item_name(item)]
-	return {"ok": true, "money": money - p * n, "note": "Bought %s for %d G" % [what, p * n], "to": to}
+	return {"ok": true, "money": money - p * n, "note": "Bought %s for %d G." % [what, p * n], "to": to}
 
 
 # --- the rucksack --------------------------------------------------------------
@@ -266,12 +266,12 @@ func rucksack_offer(bag_size: int) -> Dictionary:
 func buy_rucksack(inv: Inventory, money: int) -> Dictionary:
 	var offer := rucksack_offer(inv.size("bag"))
 	if offer.is_empty():
-		return _no(money, "That's the biggest rucksack there is")
+		return _no(money, "That's the biggest rucksack there is.")
 	if money < offer.price:
-		return _no(money, "Not enough money (%d G)" % offer.price)
+		return _no(money, "Not enough money (%d G)." % offer.price)
 	inv.grow("bag", offer.slots)
 	return {"ok": true, "money": money - offer.price,
-		"note": "Your rucksack has %d slots now (%d G)" % [offer.slots, offer.price]}
+		"note": "Your rucksack has %d slots now (%d G)." % [offer.slots, offer.price]}
 
 
 # --- kitchen tools ---------------------------------------------------------------
@@ -292,28 +292,28 @@ func kitchen_offers(owned: Array, built: Array) -> Array[Dictionary]:
 ## Buys kitchen tool `tool` (once; the caller adds the result's tool to what is owned).
 func buy_kitchen_tool(money: int, tool: String, owned: Array, built: Array) -> Dictionary:
 	if tool in owned:
-		return _no(money, "You already have %s" % Cooking.a_tool(tool))
+		return _no(money, "You already have %s." % Cooking.a_tool(tool))
 	var offer: Dictionary = {}
 	for o in kitchen_offers(owned, built):
 		if o.tool == tool:
 			offer = o
 	if offer.is_empty():
-		return _no(money, "There's no kitchen to put it in yet" if tool in kitchen_tools else "That isn't sold here")
+		return _no(money, "There's no kitchen to put it in yet." if tool in kitchen_tools else "That isn't sold here.")
 	if money < offer.price:
-		return _no(money, "Not enough money (%d G)" % offer.price)
+		return _no(money, "Not enough money (%d G)." % offer.price)
 	return {"ok": true, "money": money - offer.price, "tool": tool,
-		"note": "Bought %s for %d G" % [Cooking.a_tool(tool), offer.price]}
+		"note": "Bought %s for %d G." % [Cooking.a_tool(tool), offer.price]}
 
 
 ## Sells `n` of `item` from what the farmer carries (rucksack and hand).
 func sell(inv: Inventory, money: int, item: String, n: int) -> Dictionary:
 	var p := buy_back(item)
 	if p <= 0:
-		return _no(money, "%s doesn't buy that" % name)
+		return _no(money, "%s doesn't buy that." % name)
 	if n < 1 or not inv.take(item, n):
-		return _no(money, "You don't have that many")
+		return _no(money, "You don't have that many.")
 	var what := item_name(item) if n == 1 else "%d %s" % [n, item_name(item)]
-	return {"ok": true, "money": money + p * n, "note": "Sold %s for %d G" % [what, p * n]}
+	return {"ok": true, "money": money + p * n, "note": "Sold %s for %d G." % [what, p * n]}
 
 
 ## Carried items the shop buys: [{item, price, have}], in rucksack order.
@@ -369,20 +369,20 @@ func materials_text(items: Dictionary) -> String:
 func start_upgrade(inv: Inventory, money: int, tool: String, level: int, today: int, busy := false) -> Dictionary:
 	var offer := upgrade_offer(tool, level)
 	if busy:
-		return _no(money, "One tool at a time, please")
+		return _no(money, "One tool at a time, please.")
 	if offer.is_empty():
-		return _no(money, "The %s can't be improved any more" % item_name(tool).to_lower())
+		return _no(money, "The %s can't be improved anymore." % item_name(tool).to_lower())
 	if money < offer.price:
-		return _no(money, "Not enough money (%d G)" % offer.price)
+		return _no(money, "Not enough money (%d G)." % offer.price)
 	var lack := short_of(inv, offer.items)
 	if not lack.is_empty():
-		return _no(money, "Bring %s" % materials_text(lack))
+		return _no(money, "Bring %s." % materials_text(lack))
 	var slot := -1
 	for i in inv.size("tools"):
 		if inv.id_at("tools", i) == tool:
 			slot = i
 	if slot < 0:
-		return _no(money, "Bring the %s in your rucksack" % item_name(tool).to_lower())
+		return _no(money, "Bring the %s in your rucksack." % item_name(tool).to_lower())
 	for item in offer.items:
 		inv.take(item, int(offer.items[item]), ["bag"])
 	inv.lift("tools", slot)
@@ -439,16 +439,16 @@ func build_offer(id: String, built: Array, job: Dictionary) -> Dictionary:
 func start_build(money: int, id: String, built: Array, job: Dictionary, today: int) -> Dictionary:
 	var offer := build_offer(id, built, job)
 	if offer.is_empty():
-		return _no(money, "%s doesn't build that" % name)
+		return _no(money, "%s doesn't build that." % name)
 	match str(offer.state):
 		"done":
-			return _no(money, "The %s is already built" % item_name(id).to_lower())
+			return _no(money, "The %s is already built." % item_name(id).to_lower())
 		"building":
-			return _no(money, "The %s is being built" % item_name(id).to_lower())
+			return _no(money, "The %s is being built." % item_name(id).to_lower())
 		"busy":
-			return _no(money, "One job at a time, please")
+			return _no(money, "One job at a time, please.")
 	if money < offer.price:
-		return _no(money, "Not enough money (%d G)" % offer.price)
+		return _no(money, "Not enough money (%d G)." % offer.price)
 	var days := "tomorrow" if offer.days == 1 else "in %d days" % offer.days
 	return {"ok": true, "money": money - offer.price, "job": {"build": id, "ready": today + offer.days},
 		"note": "Ordered the %s for %d G. Done %s." % [item_name(id).to_lower(), offer.price, days]}

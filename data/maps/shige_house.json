@@ -1,7 +1,7 @@
 {
 	"_note": "Shige and Nana's house in Minamino: baskets of vegetables in the earth entry by the stove and the water jar, a tatami room with a low table, Nana's box of toys, the family altar and a chest. Format: README.md, Maps.",
 	"id": "shige_house",
-	"name": "Shige's House",
+	"name": "Shige's house",
 	"size": [9, 7],
 	"indoor": true,
 	"ambient": "indoor",

@@ -14,11 +14,11 @@
 		{"speaker": "kota", "mood": "neutral", "text": "I had my net and everything. And then I just... didn't. It looked too old to bother."},
 		{"speaker": "kota", "mood": "happy", "text": "Don't tell anyone I went soft. I'll catch something worse to make up for it.", "next": "kota_end"},
 		{"id": "kota_kept", "speaker": "kota", "mood": "neutral", "text": "I had my net and I didn't use it. You promised, so I thought I should keep it too. Partners, right?"},
-		{"id": "kota_end", "speaker": "kota", "mood": "sad", "text": "Hey... when I'm big, could I farm too? Mum says the field is hard work. Is it?"},
+		{"id": "kota_end", "speaker": "kota", "mood": "sad", "text": "Hey... when I'm big, could I farm too? Mom says the field is hard work. Is it?"},
 		{"speaker": "farmer", "mood": "happy", "text": "Hard, and worth it. Come help at harvest and see.", "next": "kota_last"},
 		{"id": "kota_last", "speaker": "kota", "mood": "happy", "text": "Really? I'm bringing my own basket. A big one!", "next": "end"},
 
-		{"id": "sayo", "speaker": "sayo", "mood": "happy", "text": "Look what came in the post. Paint! Real lacquer red, for the sign over the door."},
+		{"id": "sayo", "speaker": "sayo", "mood": "happy", "text": "Look what came in the mail. Paint! Real lacquer red, for the sign over the door."},
 		{"speaker": "sayo", "mood": "neutral", "text": "Father's lettering has nearly worn away. I used to think repainting it would be like rubbing him out."},
 		{"speaker": "sayo", "mood": "neutral", "text": "But a store that looks tired makes people walk past. And I'm not minding it anymore. It's mine now."},
 		{"speaker": "sayo", "mood": "sad", "text": "Which should go on the new sign, do you think?",

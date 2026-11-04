@@ -86,6 +86,6 @@
 		{"id": "wed_evening_2", "speaker": "fumi", "mood": "neutral", "text": "Ichiro asked if I'd still pour his lunch. As if I'd let anyone else do it badly.", "next": "end"},
 		{"id": "wed_evening_3", "speaker": "fumi", "mood": "happy", "text": "The farm is quieter than the road at night. I like it. I can hear the kettle think.", "next": "end"},
 		{"id": "wed_out_1", "speaker": "fumi", "mood": "happy", "text": "Customers ask how married life is. I tell them the tea tastes the same and the walk home is better.", "next": "end"},
-		{"id": "wed_out_2", "speaker": "fumi", "mood": "neutral", "text": "Sit for one cup? You don't have to pay any more. That's the only drawback of marrying me.", "next": "end"}
+		{"id": "wed_out_2", "speaker": "fumi", "mood": "neutral", "text": "Sit for one cup? You don't have to pay anymore. That's the only drawback of marrying me.", "next": "end"}
 	]
 }

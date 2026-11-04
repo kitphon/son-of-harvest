@@ -1,7 +1,7 @@
 {
 	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow; Fumi's looks back on fumi_honest from her band 3 scene). Our own scenes.",
 	"lines": [
-		{"id": "tome", "speaker": "tome", "mood": "neutral", "text": "My son wrote back. He wants me to come and live in the city with him. A flat with a lift, he says."},
+		{"id": "tome", "speaker": "tome", "mood": "neutral", "text": "My son wrote back. He wants me to come and live in the city with him. An apartment with an elevator, he says."},
 		{"speaker": "tome", "mood": "sad", "text": "He means well. He frets about the shrine stairs, and the winters, and me alone in that house."},
 		{"if": "tome_grandma", "then": "tome_gc"},
 		{"speaker": "tome", "mood": "happy", "text": "But I wrote that the village needs its old woman. And the farm on the hill needs somebody to nag it.", "next": "tome_tree"},
@@ -11,7 +11,7 @@
 		{"id": "tome_glad", "speaker": "tome", "mood": "happy", "text": "So am I, child. So am I. Now, I told him you'd add a line to my next letter. In your best hand.", "next": "end"},
 		{"id": "tome_stairs", "speaker": "tome", "mood": "surprised", "text": "Ha! I'll hold you to that, every step. ...Thank you. That's what I'll tell him.", "next": "end"},
 
-		{"id": "kota", "speaker": "kota", "mood": "surprised", "text": "Close your eyes! ...Okay, open. It's a carp streamer! I made it. Mostly. Mum did the sewing bit."},
+		{"id": "kota", "speaker": "kota", "mood": "surprised", "text": "Close your eyes! ...Okay, open. It's a carp streamer! I made it. Mostly. Mom did the sewing bit."},
 		{"speaker": "kota", "mood": "happy", "text": "See? It's black, with one white spot. You know who that is."},
 		{"if": "kota_carp_promise", "then": "kota_promise"},
 		{"speaker": "kota", "mood": "neutral", "text": "Nobody else would get it. Only you and me have seen him up close.", "next": "kota_pole"},
@@ -27,7 +27,7 @@
 		{"id": "sayo_sign_up", "speaker": "sayo", "mood": "happy", "text": "Every morning I look up at the new sign and think: he already knew. He just let me find out."},
 		{"id": "sayo_book", "speaker": "sayo", "mood": "happy", "text": "So I've started a new ledger. My own. Page one, line one."},
 		{"speaker": "sayo", "mood": "neutral", "text": "...I wrote your name first. Not for anything you owe. Just so the book starts with a friend.",
-			"choices": [{"text": "I'm honoured.", "next": "sayo_honour"}, {"text": "Better keep my tab small, then.", "next": "sayo_tab"}]},
+			"choices": [{"text": "I'm honored.", "next": "sayo_honour"}, {"text": "Better keep my tab small, then.", "next": "sayo_tab"}]},
 		{"id": "sayo_honour", "speaker": "sayo", "mood": "happy", "text": "Don't look at me like that. I'll go red, and red is for the sign.", "next": "end"},
 		{"id": "sayo_tab", "speaker": "sayo", "mood": "surprised", "text": "Ha! Too late, I've already charged you for the ink. ...I'm joking. Mostly.", "next": "end"},
 
@@ -47,7 +47,7 @@
 		{"speaker": "fumi", "mood": "neutral", "text": "Hachiro mended it last week. He wouldn't take a coin for it. He said it was owed to her.", "next": "fumi_pour"},
 		{"id": "fumi_true", "speaker": "fumi", "mood": "happy", "text": "You told me true about the bean paste, so here's mine: I had Hachiro mend it because of you."},
 		{"id": "fumi_pour", "speaker": "fumi", "mood": "neutral", "text": "The first cup from it should go to someone who matters. I've thought about it a long while.",
-			"choices": [{"text": "I'd be honoured.", "next": "fumi_honour"}, {"text": "Shouldn't Tome have it?", "next": "fumi_tome"}]},
+			"choices": [{"text": "I'd be honored.", "next": "fumi_honour"}, {"text": "Shouldn't Tome have it?", "next": "fumi_tome"}]},
 		{"id": "fumi_honour", "speaker": "fumi", "mood": "happy", "text": "Then hold the cup with both hands. ...There. Now it's a kettle again, not a keepsake.", "next": "end"},
 		{"id": "fumi_tome", "speaker": "fumi", "mood": "surprised", "text": "Tome gets the second. She'll grumble, but she'd agree with me. Now drink, before I go red.", "next": "end"}
 	]

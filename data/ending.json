@@ -5,7 +5,7 @@
 		{"id": "crops", "name": "Crops grown", "measure": "crop_kinds", "steps": [3, 6, 9, 11]},
 		{"id": "animals", "name": "Happy animals", "measure": "animal_care", "steps": [1, 3, 6, 10]},
 		{"id": "friends", "name": "Friendships", "measure": "heart_bands", "steps": [5, 11, 19, 28], "unit": "hearts"},
-		{"id": "neighbours", "name": "Neighbours", "measure": "neighbours_known", "steps": [2, 3, 5, 6]},
+		{"id": "neighbours", "name": "Neighbors", "measure": "neighbours_known", "steps": [2, 3, 5, 6]},
 		{"id": "mine", "name": "Deepest floor", "measure": "mine_deepest", "steps": [5, 10, 15, 20]},
 		{"id": "fish", "name": "Fish kinds", "measure": "fish_kinds", "steps": [2, 4, 7, 10]},
 		{"id": "home", "name": "House built", "measure": "house_built", "steps": [1, 2, 3]},
@@ -19,7 +19,7 @@
 		{"id": "money", "name": "Money", "measure": "money", "unit": "G"}
 	],
 	"ranks": [
-		{"min": 0, "title": "Passing Traveller"},
+		{"min": 0, "title": "Passing Traveler"},
 		{"min": 9, "title": "New Hand on the Farm"},
 		{"min": 18, "title": "Village Farmer"},
 		{"min": 27, "title": "Keeper of the Satoyama"},
