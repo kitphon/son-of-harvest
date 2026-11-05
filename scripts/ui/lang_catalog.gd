@@ -32,6 +32,7 @@ const NOT_SHOWN := [
 	"Pools", "Halos", "Panes", "Glows", "Figures", "Sprite3D",   # night light layers, a class name
 	"[A-Za-z]", "{%d}", "%s: \"%s\"",   # a pattern, a placeholder, the lang report's own line
 	"Harvest Son",            # the game's name stays as it is in every language
+	"ps vita",                # a word looked for in a pad's name (Controls.style_of)
 	"Esc",                    # key names stay as on the keyboard
 	"Harvest Son Pixel",      # the font's resource name
 	"No dialogue %s", "No line %s", "Dialogue is not a dictionary", "No event %s",

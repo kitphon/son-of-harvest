@@ -10,6 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-05 — Merge: pool edge, last Thai gaps, PlayStation pad names
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged the three feedback follow-ups (ff53903, 96a67e1, 219eae4), keeping both sides of
+  the WORKLOG / FEEDBACK conflicts. The PlayStation names came after the Thai pass, so 12 texts
+  were missing again: the pad names (Cross, Circle, Square, Triangle, Share, PS, Options, L1, R1,
+  L2, R2) get Thai entries equal to the English, as the Xbox names do (printed on the pad), and
+  "ps vita" (a word looked for in a pad's name) is in LangCatalog NOT_SHOWN.
+- Checked: lang_report --lang=th `th: 1683 of 1683 done (100%), 0 missing, 0 stale`; all 27
+  test scripts `OK (0 failed)` on the merged main; smoke runs (title, --demo, town, mine=3)
+  with 0 error / warning lines.
+- Left / next: none from these three; PlayStation names not tried on a real pad.
+
 ## 2026-11-05 — Flat view: the farmhouse's pool starts at the roof's edge
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: follow-up to the flat-view night entry below. The farmhouse's warm pools in front of its
