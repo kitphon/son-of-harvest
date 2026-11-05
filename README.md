@@ -836,7 +836,13 @@ sight), with a pine wood only where it stands behind the whole map on screen (th
 west sides; `Trees.pine` in MultiMeshes, snow on its tiers in winter), so the view never shows
 empty sky. Every tree is built by `scripts/world3d/trees.gd` (Trees: lumpy lit crowns that
 follow the season, tiered pines). Grass tufts sway on the grass cells, the farm's untilled ground and the
-apron (`scripts/world3d/grass_tufts.gd`: one MultiMesh each, tips by season, gone under snow). Tall things in front of the farmer (houses,
+apron (`scripts/world3d/grass_tufts.gd`: one MultiMesh each, tips by season, gone under snow).
+Rice and corn grown past the sprout stand as clusters of small pixel sprites instead of one
+sprite a cell (`scripts/world3d/crop_clusters.gd`: nine rice hills in three rows, six smaller
+ones in two rows while young, three corn stalks; one MultiMesh of camera-facing quads per
+picture `stalk:<id>:<growth>:<ripe|growing>:<variant>`, the tips swaying); the flat view keeps
+the one sprite. The village paddies (Kaminoda) grow rice by the season: young in spring, tall
+and green in summer, ripe in fall, none in winter. Tall things in front of the farmer (houses,
 the coop and barn, trees, the torii: anything over 1 unit high) turn see-through while they
 hide the farmer or the ground within about a cell of them (`scripts/world3d/occluders.gd`:
 rays from the feet towards the camera; the materials' alpha, since the Compatibility renderer

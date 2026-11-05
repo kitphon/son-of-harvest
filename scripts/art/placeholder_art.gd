@@ -31,6 +31,8 @@ static func _make(key: String) -> Image:
 			return _mine(parts[1])
 		"crop":     # crop:<id>:<growth 0..3>:<ripe|growing>
 			return _crop(parts[1], int(parts[2]), parts[3] == "ripe")
+		"stalk":    # stalk:<id>:<growth 2..3>:<ripe|growing>:<variant 0..2>, one plant of a tall crop's cluster in the 3D view (CropClusters)
+			return _stalk(parts[1], int(parts[2]), parts[3] == "ripe", int(parts[4]) if parts.size() > 4 else 0)
 		"item":     # item:<id>, a picked crop held overhead or lying on the ground (12 x 12)
 			return _item(parts[1])
 		"animal":   # animal:<chicken|chick|cow|calf|sheep|sheep_shorn|lamb|dog>:<idle|peck|walk|sick, dog: sit|held>:<frame>, side view facing left
@@ -1315,6 +1317,79 @@ static func _crop(id: String, growth: int, ripe: bool) -> Image:
 				_px(img, 5, g - 5, 1, 2, fruit.lightened(0.3))
 				_px(img, 8, g - 9, 1, 2, Color("5e7a2a"))
 	return _outline(img)
+
+
+## One plant of a tall crop's cluster (CropClusters stands several on a cell in the 3D view):
+## a grain crop (rice) as one hill of thin blades, ripe with straw stems and gold ears bowing
+## over; a stalk crop (corn) as one stalk with its leaves, the tassel when grown, the cob
+## when ripe. `variant` (0..2) leans the blades or sets the leaves another way, so a field of
+## them doesn't repeat. The rim is a deep shade of the leaf, not the black outline: a cell
+## holds many small plants, and black round each blade turned the field to noise.
+static func _stalk(id: String, growth: int, ripe: bool, variant: int) -> Image:
+	var look := crop_look(id)
+	var leaf := Color(look.get("leaf", "5f9e3a"))
+	var dark := leaf.darkened(0.25)
+	var light := leaf.lightened(0.25)
+	var fruit := Color(look.get("fruit", "e8a23a"))
+	var big := growth >= 3
+	var img: Image
+	if look.get("shape", "") == "stalk":
+		img = _blank(11, 24 if big else 15)
+		var g := img.get_height() - 2
+		var h := 19 if big else 10
+		_px(img, 5, g - h, 1, h + 1, leaf)
+		_px(img, 6, g - h + 2, 1, h - 1, dark)
+		var side := 1 if variant % 2 == 0 else -1
+		for y in range(g - 2 - variant, g - h + 2, -4):
+			var tip := Vector2i(5 + side * 5, y - 3)
+			_line(img, Vector2i(5 + side, y), tip, leaf if side < 0 else dark)
+			_px(img, tip.x, tip.y + 1, 1, 1, light if side < 0 else leaf)   # the end hangs over
+			side = -side
+		if big:
+			var tassel := Color("d9c27a")
+			_px(img, 5, g - h - 2, 1, 2, tassel)
+			_px(img, 4, g - h - 1, 1, 1, tassel)
+			_px(img, 6, g - h - 1, 1, 1, tassel.darkened(0.15))
+		if ripe:
+			var x := 7 if variant != 1 else 2
+			_oval(img, x + 1, g - 10, 1.4, 3.2, fruit)
+			_px(img, x + 1, g - 12, 1, 3, fruit.lightened(0.3))
+			_px(img, x, g - 7, 3, 2, leaf)   # the husk
+	else:   # grain: one hill of rice
+		img = _blank(9, 16 if big else 11)
+		var g := img.get_height() - 2
+		var hs := [9, 12, 14, 11, 8] if big else [5, 7, 8, 6, 4]
+		var leans: Array = [[-3, -2, 0, 1, 3], [-2, -1, 1, 2, 3], [-3, -1, 0, 2, 2]][variant % 3]
+		var stem := leaf.lerp(fruit.darkened(0.2), 0.55) if ripe else leaf
+		for i in 5:
+			var foot := Vector2i(3 + i / 2, g)
+			var top := Vector2i(4 + leans[i], g - hs[i])
+			_line(img, foot, top, stem if i % 2 == 0 else stem.darkened(0.2))
+		_line(img, Vector2i(4, g - 1), Vector2i(4 + leans[2], g - hs[2] + 2), stem.lightened(0.2))
+		if ripe:
+			for i in 5:
+				var top := Vector2i(4 + leans[i], g - hs[i])
+				var side := -1 if leans[i] < 0 else 1
+				_px(img, top.x, top.y, 1, 2, fruit)
+				_px(img, top.x + side, top.y + 1, 1, 3, fruit)
+				_px(img, top.x + side, top.y + 3, 1, 1, fruit.darkened(0.2))
+	return _rim(img, leaf.darkened(0.6))
+
+
+## Like `_outline`, in a colour of its own.
+static func _rim(img: Image, c: Color) -> Image:
+	var src := img.duplicate() as Image
+	var size := img.get_size()
+	for y in size.y:
+		for x in size.x:
+			if src.get_pixel(x, y).a > 0:
+				continue
+			for d in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+				var q: Vector2i = Vector2i(x, y) + d
+				if q.x >= 0 and q.y >= 0 and q.x < size.x and q.y < size.y and src.get_pixelv(q).a > 0:
+					img.set_pixel(x, y, c)
+					break
+	return img
 
 
 ## Leaves above the ground for root crops: broad (oval leaves), thin (upright blades) or
