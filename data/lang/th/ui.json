@@ -416,6 +416,15 @@
 		"%s ribbon (%s)": "ริบบิ้น%s (%s)",
 		"1st": "ที่ 1",
 		"2nd": "ที่ 2",
-		"3rd": "ที่ 3"
+		"3rd": "ที่ 3",
+		"Married %s on %s": "แต่งงานกับ%s เมื่อ%s",
+		"Married to %s": "แต่งงานกับ%s",
+		"Spring %d": "วันที่ %d ใบไม้ผลิ",
+		"Summer %d": "วันที่ %d หน้าร้อน",
+		"Fall %d": "วันที่ %d ใบไม้ร่วง",
+		"Winter %d": "วันที่ %d หน้าหนาว",
+		"A mizuhiki knot is a promise. Keep it for the one you mean to marry.": "ปมมิซุฮิกิคือคำสัญญา เก็บไว้ให้คนที่ตั้งใจจะแต่งงานด้วยเถอะ",
+		"Today is the wedding. The village gathers at the shrine from 10:00.": "วันนี้เป็นวันแต่งงาน คนในหมู่บ้านรวมตัวกันที่ศาลเจ้าตั้งแต่ 10:00",
+		"Wedding day": "วันแต่งงาน"
 	}
 }

@@ -38,6 +38,29 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Left / next: the glow is not hidden by buildings in front (from above nothing is); the farmhouse's
   pool begins at the engawa line, 6 px over the roof's edge. No new text, so no Thai entries.
 
+## 2026-11-05 — Thai: heart events, contests, marriage, record
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: follow-up to FEEDBACK item 1. Thai (keyed by the English line, as before) for every
+  line of data/dialogue heart_events.json, heart_events_5.json, heart_events_6.json,
+  contests.json, marriage.json, ending.json (the village record's pages), goals.json (Tome's list
+  notes) and the last opening line: 267 entries in one block at the end of
+  data/lang/th/dialogue.json. In data/lang/th/ui.json: the spouse line ("Married %s on %s" ->
+  "แต่งงานกับ%s เมื่อ%s", "Married to %s"), the mizuhiki knot refusal, the wedding-day message and
+  tag. The wedding date: `Game.short_date_of` now builds "Spring 14" from the new const
+  `Game.SHORT_DATES` ("Spring %d" ...), so each season-day is a catalogued text a table words
+  itself; Thai puts the day first ("เมื่อวันที่ 14 ใบไม้ผลิ"). English output is unchanged. Voices:
+  Tome is "ยาย" to her "หลาน", Kota a boy, Sayo and Fumi warm, Hachiro and Ichiro short and
+  gruff, Tsuru formal; names as in the Thai name tables. The _note at the top of dialogue.json
+  was left alone (another change edits the same file) and still says heart events and contests
+  are English.
+- Checked: lang_report --lang=th: before 784 of 1685 done (dialogue 124 of 889, data 305 of 377,
+  code 355 of 419); after 1060 of 1688 (dialogue 391 of 889, data 310 of 377, code 359 of 422),
+  0 stale. All 29 test scripts print OK (0 failed); smoke runs (title, --demo, --map=town,
+  --mine=3) print no error or warning lines. A `--demo --map=town --event=heart_fumi_5 --lang=th`
+  frame shows Fumi's first line in Thai in the text box.
+- Left / next: the villagers' daily talk (talk_*.json) is still English;
+  shop lines, recipes, goals names etc. are listed by `lang_report --list`.
+
 ## 2026-11-05 — Key hints: the last device used (pad buttons for pad players)
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: follow-up to "Key hints: what E / Space do at the spot in front". `Game._input` calls

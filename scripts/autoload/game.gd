@@ -27,6 +27,8 @@ const PAD_DEADZONE := 0.5       # a stick or trigger counts as pad use from this
 const DAYS_PER_SEASON := 30
 const SEASONS: Array[String] = ["spring", "summer", "fall", "winter"]
 const SEASON_NAMES := {"spring": "Spring", "summer": "Summer", "fall": "Fall", "winter": "Winter"}   # as shown
+## Season and day as the village record says a wedding (a table can word each its own way: Thai puts the day first).
+const SHORT_DATES := {"spring": "Spring %d", "summer": "Summer %d", "fall": "Fall %d", "winter": "Winter %d"}
 ## Spring 1 of year 1 is a Monday; the week runs on across seasons and years.
 const WEEKDAYS: Array[String] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 const PAYOUT_HOUR := 18
@@ -698,7 +700,7 @@ func date_of(n: int) -> String:
 func short_date_of(n: int) -> String:
 	var d := posmod(n, DAYS_PER_SEASON) + 1
 	var s := posmod(n / DAYS_PER_SEASON, SEASONS.size())
-	return "%s %d" % [SEASON_NAMES[SEASONS[s]], d]
+	return String(SHORT_DATES[SEASONS[s]]) % d
 
 
 ## Day / night light (data/light.json "sky"): minute of the day -> colour, linear in between,
