@@ -41,7 +41,11 @@ None right now.
   lessons, the year record); anything missing stays English. Thai glyphs drawn for our pixel
   font. Plainer English: the onigiri reads "A rice ball with a quick pickle inside", and a
   recipe without its tool says which one ("needs Clay pot", "Clay pot (buy at store)").
-  Still English: the villagers' daily talk, heart events and contest lines. Commit c3dce89.
+  Still English: heart events and contest lines. Commit c3dce89.
+- Item 1 follow-up, the villagers' daily talk was English in Thai: every line of the twelve
+  villagers' talk files (data/dialogue/talk_*.json, 498 lines) has Thai in
+  data/lang/th/dialogue.json, each in the villager's own voice; test_lang checks that the talk
+  is all Thai and that every Thai line fits the text box. (WORKLOG 2026-11-05, Thai daily talk.)
 - A slow start, no small goal in week one: Tome's first-week list (data/goals.json): plant 9
   plots, say hello to 3 people, pick 4 wild plants, catch a fish (all day 1–3), ship 5 crops
   and earn 1000 G (week one), each with a reward (money, rice balls, seed bags, a chick) and a

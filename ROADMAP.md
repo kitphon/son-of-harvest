@@ -49,8 +49,8 @@ list (data/goals.json, README → Goals, the HUD's goal tag). [x] Item 3, where 
 (data/marriage.json, README → Villagers → Marriage). [x] Item 5: dish prices a modest gain over the cheapest ingredients (data/foods.json `_dish_prices`). [x] Item 4: winter mine income about halved (data/mine.json `_prices`). [x] Item 6, night: a deep blue night,
 smooth dusk / dawn and lit house windows (data/light.json, README → Light), then warm pools on the ground under windows and lanterns, the glow kept off figures in front. [x] Item 7: the barn's hay and straw,
 the title text's backing. [x] Item 8: the title's save check (it lacked the food table) and
-atomic saves with a backup. No feedback items are open now; Thai for the villagers'
-daily talk, heart events and contests is still to write (data/lang/th/dialogue.json).
+atomic saves with a backup. No feedback items are open now. [x] Thai for the villagers'
+daily talk; Thai for heart events and contests is still to write (data/lang/th/dialogue.json).
 Languages (the user aims at players worldwide, 2026-11-04): [x] Step 1, ready for translation:
 LangCatalog and tools/lang_report.gd (coverage per language, stale entries, a todo file),
 no text glued from pieces in the scripts, `--lang=pseudo` and test_lang (the screens and the
