@@ -20,6 +20,7 @@ var occluders := Occluders.new()
 var surroundings: Surroundings   # the land past the map's edge (outdoors)
 var tufts: GrassTufts            # grass tufts on the grass cells (outdoors)
 var _tuft_cells: Array[Vector2i] = []
+var crops: CropClusters          # tall crops (rice, corn) as clusters of small sprites; the village paddies' rice
 ## House windows and shoji doors that light up at night (NightLights draws them over the night tint):
 ## {key: picture, pos: centre, size: Vector2 (w, h), normal: Vector3 out of the wall}.
 var windows: Array[Dictionary] = []
@@ -43,6 +44,7 @@ func setup(f: FarmGrid, open_cells: Array[Vector2i] = []) -> void:
 		func(c: Vector2i) -> String: return PlaceholderArt.ground_key(farm, c).get_slice(":", 1),
 		func(c: Vector2i) -> float: return SnowLayer.hold(farm, c, rules))
 	add_tufts()
+	add_crops()
 	_objects = Node3D.new()
 	add_child(_objects)
 	farm.cells_changed.connect(_rebuild_objects)
@@ -63,6 +65,8 @@ func set_snow(cover: float) -> void:
 		_update_mask()
 	for m in _snow_mats:
 		m.set_shader_parameter("cover", cover)
+	if crops != null:
+		crops.set_cover(cover)
 
 
 static func make_sprite(tex: Texture2D) -> Sprite3D:
@@ -206,6 +210,14 @@ func add_tufts() -> void:
 	tufts = GrassTufts.new()
 	add_child(tufts)
 	_snow_mats.append(tufts.snow_material())
+
+
+## The tall crops' clusters (CropClusters); FarmWorld plants them with the field, MapWorld
+## on the paddies.
+func add_crops() -> void:
+	crops = CropClusters.new()
+	add_child(crops)
+	crops.set_cover(Game.snow_cover / 100.0)
 
 
 ## Tufts on `cells` (only when the grass changed: a tool swing that touches no grass keeps them).
@@ -396,6 +408,7 @@ func _rebuild_objects() -> void:
 	var rules: Dictionary = Game.snow_rules
 	plant_tufts(grass, func(c: Vector2i) -> float: return SnowLayer.hold(farm, c, rules))
 	var seen := {}
+	var clusters := {}   # tall crops grown past the sprout: CropClusters, not one sprite
 	for i in farm.cells.size():
 		var d: Dictionary = farm.cells[i]
 		var c := Vector2i(i % FarmGrid.W, i / FarmGrid.W)
@@ -407,6 +420,10 @@ func _rebuild_objects() -> void:
 		if farm.item_at(c) != "":
 			key = PlaceholderArt.world_item_key(farm.item_at(c))   # items only lie on empty cells
 		if key == "":
+			continue
+		var cluster := CropClusters.key_for(key)
+		if cluster != "" and c != hidden_item:
+			clusters[c] = cluster
 			continue
 		seen[c] = true
 		var old: Array = _sprites.get(c, [])
@@ -425,3 +442,5 @@ func _rebuild_objects() -> void:
 		if not seen.has(c):
 			_sprites[c][1].queue_free()
 			_sprites.erase(c)
+	if crops != null:
+		crops.plant(clusters, func(_c: Vector2i) -> float: return 0.0)   # a crop stands in snow, as its sprite did

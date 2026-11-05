@@ -41,10 +41,27 @@ func build(m: MapData) -> void:
 		var hold_rules: Dictionary = Game.snow_rules
 		add_tufts()
 		plant_tufts(grass, func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, hold_rules) if snowy else 0.0)
+		_plant_paddies(func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, hold_rules) if snowy else 0.0)
 	if not map.sheltered:
 		var rules: Dictionary = Game.snow_rules
 		add_surroundings(map.w, map.h, func(c: Vector2i) -> String: return map.tile(c),
 			func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, rules))
+
+
+## Rice in the paddy cells with no prop, by the season (CropClusters.paddy_key; none in winter).
+func _plant_paddies(hold_at: Callable) -> void:
+	var key := CropClusters.paddy_key(Game.season_name())
+	if key == "":
+		return
+	var cells := {}
+	for y in map.h:
+		for x in map.w:
+			var c := Vector2i(x, y)
+			if map.tile(c) == "paddy" and map.prop_at(c).is_empty():
+				cells[c] = key
+	if not cells.is_empty():
+		add_crops()
+		crops.plant(cells, hold_at)
 
 
 ## The tiles as one picture under the whole map (unshaded, like the farm ground).

@@ -44,6 +44,7 @@ func _process(delta: float) -> bool:
 		_room_props()
 		_trees()
 		_grass()
+		_crop_clusters()
 		_game_maps()
 		_bed_and_doors()
 		_clinic_doors()
@@ -1001,6 +1002,112 @@ func _grass() -> void:
 	var after: Array = tuft_cells.call(fw.tufts).map(func(e): return e[0])
 	check(not target in after and on_bad.call() == 0, "tilling %s cleared its tufts" % [target])
 	fw.free()
+
+
+## Tall crops (CropClusters): only rice and corn past the sprout stand as clusters, the rest
+## (and their seeds and sprouts) stay one sprite a cell; the plants stay inside their cell,
+## the same each time, rice in nine hills (six young), corn in three stalks; the pictures are
+## small single plants, ripe rice gold-eared; on the farm a cluster cell has no sprite and a
+## harvest takes its plants away; the village paddies grow rice by the season (none in winter),
+## each plant carrying the paddy's snow hold, the cover driven by set_snow.
+func _crop_clusters() -> void:
+	var cc: GDScript = load("res://scripts/world3d/crop_clusters.gd")
+	check(cc.key_for("crop:rice:3:ripe") == "stalk:rice:3:ripe" and cc.key_for("crop:corn:2:growing") == "stalk:corn:2:growing"
+		and cc.key_for("crop:rice:1:growing") == "" and cc.key_for("crop:corn:0:growing") == ""
+		and cc.key_for("crop:tomato:3:ripe") == "" and cc.key_for("crop:turnip:3:ripe") == "" and cc.key_for("weed") == "",
+		"clusters: rice and corn from growth 2; seeds, sprouts and other crops stay sprites")
+	var cells := {}
+	for i in 30:
+		cells[Vector2i(i % 6, i / 6)] = ["stalk:rice:3:ripe", "stalk:rice:2:growing", "stalk:corn:3:ripe"][i % 3]
+	var spots: Array = cc.spots_for(cells)
+	var inside := spots.all(func(s): return Rect2(Vector2(s.cell), Vector2.ONE).grow(-0.05).has_point(Vector2(s.pos.x, s.pos.z)))
+	var per := {}
+	for s in spots:
+		per[s.key] = per.get(s.key, 0) + 1
+	check(inside and cc.spots_for(cells) == spots and per == {"stalk:rice:3:ripe": 90, "stalk:rice:2:growing": 60, "stalk:corn:3:ripe": 30},
+		"clusters: plants inside their cells, the same each time, %s" % [per])
+	var variants := {}
+	for s in spots:
+		variants[s.tex] = true
+	var ripe := PlaceholderArt.tex("stalk:rice:3:ripe:0").get_image()
+	var young := PlaceholderArt.tex("stalk:rice:2:growing:1").get_image()
+	var corn := PlaceholderArt.tex("stalk:corn:3:ripe:2").get_image()
+	var gold := 0
+	var fruit := Color(PlaceholderArt.crop_look("rice").fruit)
+	for y in ripe.get_height():
+		for x in ripe.get_width():
+			if ripe.get_pixel(x, y).is_equal_approx(fruit):
+				gold += 1
+	check(variants.size() == 9 and ripe.get_width() < 12 and young.get_height() < ripe.get_height() and corn.get_height() > ripe.get_height() and gold >= 10,
+		"clusters: %d pictures, a rice hill %dx%d (young %d high), a corn stalk %d high, %d gold ear pixels"
+		% [variants.size(), ripe.get_width(), ripe.get_height(), young.get_height(), corn.get_height(), gold])
+	# On the farm: a rice cell grown is a cluster, not a sprite; harvested, its plants go.
+	var g: Node = root.get_node("Game")
+	var crops: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/crops.json"))
+	var farm := FarmGrid.new(crops)
+	farm.generate(RandomNumberGenerator.new())
+	var fw: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	fw.setup(farm)
+	var rc := Vector2i(-1, -1)
+	var tc := Vector2i(-1, -1)
+	for i in farm.cells.size():
+		var c := Vector2i(i % FarmGrid.W, i / FarmGrid.W)
+		if farm.can_farm(c) and farm.cell(c).obj == FarmGrid.Obj.NONE and farm.fixed_at(c) == "":
+			if rc.x < 0:
+				rc = c
+			elif tc.x < 0 and c.y == rc.y and c.x > rc.x + 1:
+				tc = c
+	farm.till(rc)
+	farm.sow(rc, "rice", "summer")
+	farm.till(tc)
+	farm.sow(tc, "tomato", "summer")
+	farm.cell(rc).stage = farm.ripe_stage("rice")
+	farm.cell(tc).stage = farm.ripe_stage("tomato")
+	farm.cells_changed.emit()
+	var on_rc: Array = fw.crops.planted.filter(func(s): return s.cell == rc)
+	check(on_rc.size() == 9 and not fw._sprites.has(rc) and fw._sprites.has(tc) and fw.crops.planted.size() == 9
+		and fw.crops.layer_counts().values().reduce(func(a, b): return a + b, 0) == 9,
+		"the farm: ripe rice %s is 9 plants and no sprite, the tomato %s a sprite" % [rc, tc])
+	farm.cell(rc).stage = 1
+	farm.cells_changed.emit()
+	check(fw.crops.planted.is_empty() and fw._sprites.has(rc), "the farm: rice at its sprout is a sprite again")
+	farm.cell(rc).crop = ""
+	farm.cells_changed.emit()
+	check(fw.crops.planted.is_empty() and not fw._sprites.has(rc), "the farm: the cell cleared, nothing stands")
+	fw.free()
+	# The village paddies by season.
+	var keep: int = g.season
+	var m := MapManager.data("kaminoda")
+	var paddies := 0
+	for y in m.h:
+		for x in m.w:
+			if m.tile(Vector2i(x, y)) == "paddy" and m.prop_at(Vector2i(x, y)).is_empty():
+				paddies += 1
+	var rules: Dictionary = g.snow_rules
+	for si in 4:
+		g.season = si
+		var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+		w.build(m)
+		var want: String = cc.paddy_key(g.season_name())
+		if want == "":
+			check(w.crops == null, "kaminoda in %s: no rice in the paddies" % g.season_name())
+		else:
+			var cl: Array = w.crops.planted
+			var keys := {}
+			var bad_hold := 0
+			for s in cl:
+				keys[s.key] = true
+				if m.tile(s.cell) != "paddy" or absf(s.hold - SnowLayer.map_hold(m, s.cell, rules)) > 0.01:
+					bad_hold += 1
+			w.set_snow(0.4)
+			var driven: bool = w.crops.materials().all(func(mat): return is_equal_approx(float(mat.get_shader_parameter("cover")), 0.4))
+			check(keys.keys() == [want] and cl.size() == paddies * cc.layout(want).places.size() and bad_hold == 0 and driven,
+				"kaminoda in %s: %d paddy cells grow %s (%d plants), %d off a paddy or wrong hold, snow driven %s"
+				% [g.season_name(), paddies, want, cl.size(), bad_hold, driven])
+		w.free()
+	g.season = keep
+	check(cc.paddy_key("summer") == "stalk:rice:3:growing" and cc.paddy_key("fall") == "stalk:rice:3:ripe" and cc.paddy_key("winter") == "",
+		"paddies: tall and green in summer, ripe in fall, none in winter")
 
 
 ## Upright faces (eave bands, verges, roll ends) of the meshes in `w` whose normal points

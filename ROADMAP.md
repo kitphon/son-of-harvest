@@ -40,7 +40,9 @@ The full style roadmap, the rules for making pieces and how to continue: docs/AR
 (scripts/world3d/trees.gd).
 [x] Grass tufts on the grass cells, swaying, by season, hidden under snow
 (scripts/world3d/grass_tufts.gd).
-Next: section 2 goes on with rice and tall crops as clusters of pixel sprites. "ทำ art direction ต่อ" from the user
+[x] Rice and corn as clusters of small pixel sprites, the village paddies' rice by season
+(scripts/world3d/crop_clusters.gd).
+Next: section 2 goes on with the water (a gentle moving surface for the pond and river). "ทำ art direction ต่อ" from the user
 means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our

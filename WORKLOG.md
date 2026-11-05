@@ -10,6 +10,47 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-05 — Rice and corn as clusters of pixel sprites
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: ART_DIRECTION section 2, "Rice and tall crops as clusters of pixel sprites". New
+  `scripts/world3d/crop_clusters.gd` (CropClusters): in the 3D view, rice and corn grown past
+  the sprout (growth 2 and 3 of `PlaceholderArt.cell_key`, looks "grain" and "stalk") stand as
+  several small plants a cell instead of one Sprite3D: nine rice hills in three rows (young,
+  growth 2: six smaller hills in two rows so the ground or water shows between), three corn
+  stalks (one back, two front). Seeds, sprouts and every other crop stay single sprites, as
+  does the flat view. New PlaceholderArt key `stalk:<id>:<growth>:<ripe|growing>:<variant>`
+  (`_stalk`): one rice hill of five thin blades (9 x 16, young 9 x 11), ripe with straw stems
+  and gold ears bowing over; one corn stalk (11 x 24, young 11 x 15) with alternate leaves, the
+  tassel and, ripe, the cob in its husk; three variants each; rimmed in a deep shade of the leaf
+  (`_rim`) instead of the black outline, which made a field of blades noisy. One MultiMesh a
+  picture of quads sized FarmWorld.PX a pixel; the shader billboards each instance like a
+  Sprite3D at its own size, flips half of them, shades each 0.9..1.06, sways the tips (0.03)
+  and stays unshaded like the crop sprites. Places, nudges, sizes, flips and variants come
+  from a hash of the cell, so a cell always grows the same plants. FarmWorld puts cluster cells
+  into `crops.plant` instead of `_sprites` (replanted only when a cell's key changed). The
+  village paddies (Kaminoda's "paddy" tiles with no prop) grow rice by season
+  (`CropClusters.PADDY`; numbers ours): young in spring, tall and green in summer, ripe in
+  fall, none in winter; their plants carry the paddy's snow hold and fold away under white
+  ground (SnowLayer's noise), the cover driven by `set_snow`. A farm crop keeps hold 0 and
+  stands in snow as its sprite always did.
+- Checked: test_maps `_crop_clusters` (keys: rice and corn from growth 2 only; plants inside
+  their cells and the same each time, 90 / 60 / 30 plants for 10 cells each of ripe rice, young
+  rice, ripe corn; 9 pictures, a rice hill 9x16 (young 11 high), a corn stalk 24 high, 19 gold
+  ear pixels; on a farm ripe rice is 9 plants and no sprite while a tomato is a sprite, back to
+  a sprite at the sprout, nothing once cleared; Kaminoda 128 paddy cells: spring 768 plants of
+  `stalk:rice:2:growing`, summer and fall 1152 of `3:growing` / `3:ripe`, none in winter, every
+  plant on a paddy with the paddy's hold, snow driven). Screenshots: `--demo --season=summer`
+  shows the corn as stalk clusters and the ripe rice as a dense gold field of bowed ears (4619
+  gold-ish pixels in the lower right of the frame); `--season=fall` young green rice in rows;
+  `--map=kaminoda@well` spring (young rows, the water showing between), summer (tall green),
+  fall (ripe gold), winter `--snow=80` (no rice, snow on the paddies); `main_2d.tscn --demo
+  --season=summer` unchanged (one sprite a cell). All 27 test scripts `OK (0 failed)`; smoke
+  runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --map=kaminoda`)
+  print no error or warning line.
+- Left / next: cucumber and tomato vines (on stakes) stay one sprite; the plants don't part
+  round the farmer or bend harder in a storm; no rice stubble in winter paddies. Next in
+  ART_DIRECTION: the water (another agent is on it).
+
 ## 2026-11-05 — Merge: pool edge, last Thai gaps, PlayStation pad names
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged the three feedback follow-ups (ff53903, 96a67e1, 219eae4), keeping both sides of
