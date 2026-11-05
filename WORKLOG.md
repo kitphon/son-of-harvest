@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-05 — Water: a gentle moving surface (3D view)
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: `WaterSurface` (scripts/world3d/water_surface.gd), built by Surroundings under the farm
+  and every outdoor map: one transparent quad per water cell (pulled in 3 px from each bank so
+  the bank and foam line stay), a shader showing slow stepped bands on the 16 px grid: pale warm
+  glints (alpha .5) and a few dark-blue troughs (alpha .32), the rest see-through over the still
+  tile. Lit like the ground (SnowLayer.SUN_SHARE), so dusk and night darken it and shadows fall
+  on it; no shadow cast; water holds no snow, so winter looks the same. Covers the apron too,
+  so the river runs on past the edges moving. Balance: glints about 1 pixel in 6.
+- Checked: test_maps `_water` (farm pond fully covered and nothing on land, inset only at
+  banks, shader uses TIME, river and town covered, none indoors). Screenshots `--demo
+  --fishing=wait` (the pond: soft pale and dark bands over the blue, bobber on top) and
+  `--demo --map=river`; pixel diff of the pond between frames 30 and 59: 1578 pixels changed.
+- Left / next: no ripple ring at the bobber; flat view unchanged.
+
 ## 2026-11-05 — Merge: pool edge, last Thai gaps, PlayStation pad names
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged the three feedback follow-ups (ff53903, 96a67e1, 219eae4), keeping both sides of

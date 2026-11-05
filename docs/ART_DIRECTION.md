@@ -102,7 +102,11 @@ Light and Farmhouse model hold the technical detail of what is built.
 - [x] Grass tufts on grass cells (MultiMesh, a small wind sway in the shader). (this commit)
       Still open: the tufts don't part round the farmer or bend harder in a storm.
 - [ ] Rice and tall crops as clusters of pixel sprites (the paddies, the field in summer).
-- [ ] Water: a gentle moving surface for the pond and river.
+- [x] Water: a gentle moving surface for the pond and river (`water_surface.gd`: WaterSurface,
+      a transparent sheet over the water cells, glints and troughs drifting over the pixel grid,
+      lit like the ground). (this commit)
+      Still open: no ripple ring round the bobber or the farmer's feet; the flat view's water
+      is still the still tile; no frozen water in winter (the game has none).
 
 ### 3. Light and atmosphere
 - [ ] Night: real warm lights at lanterns, windows and the festival stalls, the tint lighter.

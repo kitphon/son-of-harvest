@@ -44,6 +44,7 @@ func _process(delta: float) -> bool:
 		_room_props()
 		_trees()
 		_grass()
+		_water()
 		_game_maps()
 		_bed_and_doors()
 		_clinic_doors()
@@ -1001,6 +1002,61 @@ func _grass() -> void:
 	var after: Array = tuft_cells.call(fw.tufts).map(func(e): return e[0])
 	check(not target in after and on_bad.call() == 0, "tilling %s cleared its tufts" % [target])
 	fw.free()
+
+
+## The moving skin on the water (WaterSurface): a sheet over the farm pond, the village pond
+## and the river, pulled in from the banks, kept inside the water.
+func _water() -> void:
+	var crops: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/crops.json"))
+	var farm := FarmGrid.new(crops)
+	farm.generate(RandomNumberGenerator.new())
+	var fw: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	fw.setup(farm)
+	var sheet = fw.surroundings.water
+	var pond := 0
+	var covered := 0
+	var stray := 0
+	var cover := {}
+	for q in sheet.quads:
+		cover[q.cell] = q.rect
+		if q.cell.x >= 0 and q.cell.y >= 0 and q.cell.x < FarmGrid.W and q.cell.y < FarmGrid.H and farm.fixed_at(q.cell) != "pond":
+			stray += 1
+	for y in FarmGrid.H:
+		for x in FarmGrid.W:
+			if farm.fixed_at(Vector2i(x, y)) == "pond":
+				pond += 1
+				covered += 1 if cover.has(Vector2i(x, y)) else 0
+	check(pond > 0 and covered == pond and stray == 0, "the farm pond: %d of %d water cells under the sheet, %d quads on land" % [covered, pond, stray])
+	var inset := 0
+	for c in cover:
+		var r: Rect2 = cover[c]
+		if r.size.x < 1.0 - 0.001 or r.size.y < 1.0 - 0.001:
+			inset += 1
+		if r.position.x < c.x - 0.001 or r.position.y < c.y - 0.001 or r.end.x > c.x + 1.001 or r.end.y > c.y + 1.001:
+			stray += 1
+	check(inset > 0 and inset < cover.size() and stray == 0, "the sheet is pulled in from the banks only (%d of %d quads) and stays in its cells" % [inset, cover.size()])
+	check(sheet.material_override is ShaderMaterial and sheet.material_override.shader.code.contains("TIME")
+		and sheet.position.y > 0.0 and sheet.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and sheet.mesh != null,
+		"the sheet moves with time, lies above the ground and casts no shadow")
+	fw.free()
+	for id in ["river", "town"]:
+		var m := MapManager.data(id)
+		var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+		w.build(m)
+		var water_cells := 0
+		for y in m.h:
+			for x in m.w:
+				if m.tile(Vector2i(x, y)) == "water":
+					water_cells += 1
+		var inside: Array = w.surroundings.water.quads.filter(func(q): return q.cell.x >= 0 and q.cell.y >= 0 and q.cell.x < m.w and q.cell.y < m.h)
+		check(water_cells > 0 and inside.size() == water_cells, "%s: %d of %d water cells under the sheet" % [id, inside.size(), water_cells])
+		if id == "river":
+			check(w.surroundings.water.quads.size() > water_cells, "the river runs on past the edges under the sheet")
+		w.free()
+	var house: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	house.build(MapManager.data("house"))
+	check(house.surroundings == null, "no water sheet indoors")
+	house.free()
 
 
 ## Upright faces (eave bands, verges, roll ends) of the meshes in `w` whose normal points
