@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-05 — Key hints: the last device used (pad buttons for pad players)
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: follow-up to "Key hints: what E / Space do at the spot in front". `Game._input` calls
+  `Game.note_input`: a pad button press or a pad axis pushed to `PAD_DEADZONE` (0.5) sets
+  `Game.pad_active`; a key press or mouse click clears it; mouse movement and drift below the
+  deadzone change nothing. `input_device_changed(pad)` fires only on a real change and the HUD
+  redraws its hints then. `ActionHints.key_text` returns the action's pad name from
+  `Controls` (data/controls.json pad_names: "A", "B", "LB", "Start"; the player's own binding)
+  while the pad is active, and the key when the action has no pad button. The controls page
+  already shows keys and pad buttons side by side, so it needed no change; no new visible text,
+  so no new Lang or Thai entries.
+- Checked: test_menu `_last_device` (button and key switch, drift and mouse movement don't, a
+  push does, one signal per change, HUD labels B / A on the pad, Y after remapping, keys again
+  after a key press); all test scripts `OK (0 failed)`; smoke runs (title, --demo, town, mine=3)
+  print no error or warning lines; `--demo` frame still shows "Space Till".
+- Left / next: only the bound buttons of the Xbox-style names are shown; no PlayStation names.
+
 ## 2026-11-05 — Art direction: grass tufts on the grass cells
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: section 2's second item. `scripts/world3d/grass_tufts.gd` (GrassTufts) is one

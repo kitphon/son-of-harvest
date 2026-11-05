@@ -63,6 +63,7 @@ func _ready() -> void:
 	Game.changed.connect(_refresh)
 	Game.message.connect(_show)
 	Game.settings_changed.connect(_on_settings)
+	Game.input_device_changed.connect(func(_pad: bool) -> void: _show_hints())   # keys <-> pad buttons
 	_on_settings()
 	_refresh()
 

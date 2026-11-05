@@ -10,6 +10,7 @@ signal dialogue_requested(id: String, at: String)   # a TextBox opens it
 signal event_requested(id: String)                  # an EventPlayer plays it
 signal inventory_requested(mode: String)   # an InventoryScreen opens: "rucksack" or "storage"
 signal settings_changed
+signal input_device_changed(pad: bool)   # the last input came from the pad (true) or the keyboard / mouse (HUD key hints redraw)
 signal map_changed(map_id: String)   # the views fade out, rebuild for Game.maps and fade in
 signal map_entered(map_id: String)   # the farmer stands on the new map (after the fade); event triggers key on this
 signal thrown(item: String, from: Vector2i, to: Vector2i, result: String)   # views draw the flight
@@ -22,6 +23,7 @@ signal fishing_event(kind: String)   # "bite" / "escaped" while the line is out 
 signal forage_changed            # a wild spot was picked, or they grew back (ForageLayer / ForageView redraw)
 
 const SECONDS_PER_MINUTE := 0.5
+const PAD_DEADZONE := 0.5       # a stick or trigger counts as pad use from this far (below it is drift)
 const DAYS_PER_SEASON := 30
 const SEASONS: Array[String] = ["spring", "summer", "fall", "winter"]
 const SEASON_NAMES := {"spring": "Spring", "summer": "Summer", "fall": "Fall", "winter": "Winter"}   # as shown
@@ -45,6 +47,7 @@ var flashes_enabled := true     # lightning flashes in storms; off for photosens
 var text_speed := 1.0           # the text box's speed from the settings (x letters per second; 0 = at once)
 var always_run := false         # settings: the farmer runs unless the run key is held
 var hud_visible := true         # settings: the HUD is drawn
+var pad_active := false         # the last input came from a joypad (key hints show pad buttons); keyboard / mouse input clears it
 var key_hints := true           # settings: the HUD says what the buttons do (ActionHints)
 var ui_scale := 1.0             # settings: how big the HUD, menus and text box are (UiScale fits it to the screen)
 var max_fps := 0                # settings: the frame cap (0 = none), also Engine.max_fps
@@ -2766,6 +2769,28 @@ func quick_save() -> void:
 func quick_load() -> void:
 	var err := SaveGame.read(self)
 	message.emit("Game loaded." if err == "" else "Could not load: %s." % err)
+
+
+func _input(event: InputEvent) -> void:
+	note_input(event)
+
+
+## Remembers which kind of device the last real input came from: a key or mouse click is the
+## keyboard / mouse, a pad button or a stick / trigger pushed past PAD_DEADZONE is the pad.
+## Mouse movement and stick drift change nothing. Emits input_device_changed only on a change.
+func note_input(event: InputEvent) -> void:
+	var pad: bool
+	if event is InputEventJoypadButton and event.pressed:
+		pad = true
+	elif event is InputEventJoypadMotion and absf(event.axis_value) >= PAD_DEADZONE:
+		pad = true
+	elif (event is InputEventKey or event is InputEventMouseButton) and event.pressed:
+		pad = false
+	else:
+		return
+	if pad != pad_active:
+		pad_active = pad
+		input_device_changed.emit(pad)
 
 
 func _unhandled_input(event: InputEvent) -> void:

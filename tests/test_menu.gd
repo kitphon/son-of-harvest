@@ -849,7 +849,60 @@ func _key_hints() -> void:
 	check(not hud._hint_box.visible and not g.key_hints, "Key hints off: none shown")
 	g.settings.values = kept
 	g.apply_settings([])
+	_last_device(g, hints, hud)
 	hud.queue_free()
+
+
+## The last device used: a pad button or a stick pushed past the deadzone switches the key hints
+## to the player's pad buttons, a key or click switches back, drift and mouse movement do not.
+func _last_device(g: Node, hints: GDScript, hud: CanvasLayer) -> void:
+	var seen: Array = []
+	var on_change := func(pad: bool) -> void: seen.append(pad)
+	g.input_device_changed.connect(on_change)
+	var btn := InputEventJoypadButton.new()
+	btn.button_index = JOY_BUTTON_X
+	btn.pressed = true
+	var key := InputEventKey.new()
+	key.keycode = KEY_E
+	key.pressed = true
+	var drift := InputEventJoypadMotion.new()
+	drift.axis = JOY_AXIS_LEFT_X
+	drift.axis_value = 0.1
+	var push := InputEventJoypadMotion.new()
+	push.axis = JOY_AXIS_LEFT_X
+	push.axis_value = 0.9
+	var move := InputEventMouseMotion.new()
+	check(not g.pad_active, "the keyboard is the device at first")
+	g.note_input(drift)
+	check(not g.pad_active and seen.is_empty(), "stick drift under the deadzone does not switch")
+	g.note_input(btn)
+	check(g.pad_active and seen == [true], "a pad button switches to the pad (%s)" % [seen])
+	g.note_input(btn)
+	check(seen == [true], "the same device again changes nothing")
+	g.note_input(move)
+	g.note_input(drift)
+	check(g.pad_active and seen == [true], "mouse movement and drift keep the pad")
+	g.note_input(key)
+	check(not g.pad_active and seen == [true, false], "a key switches back to the keyboard")
+	g.note_input(push)
+	check(g.pad_active, "a stick pushed past the deadzone switches to the pad")
+	check(hints.key_text("interact") == "B" and hints.key_text("use_tool") == "A",
+		"pad hints show the pad buttons (%s, %s)" % [hints.key_text("interact"), hints.key_text("use_tool")])
+	g.maps.place("farm", Vector2i(8, 4), Vector2i.UP)
+	g.select_tool(0)
+	hud._show_hints()
+	check(hud._hint_labels[0].text == "B" and hud._hint_labels[2].text == "A", "the HUD shows B and A for the pad (%s, %s)" % [hud._hint_labels[0].text, hud._hint_labels[2].text])
+	var c: Controls = g.settings.controls
+	check(c.bind_pad("interact", JOY_BUTTON_Y).done, "rebinding interact to Y")
+	hud._show_hints()
+	check(hud._hint_labels[0].text == "Y" and hints.key_text("interact") == "Y", "after remapping the hint shows Y (%s)" % hud._hint_labels[0].text)
+	c.clear_pad("interact")
+	check(hints.key_text("interact") == "E", "an action without a pad button shows its key")
+	g.note_input(key)
+	hud._show_hints()
+	check(hud._hint_labels[0].text == "E" and hints.key_text("use_tool") == "Space", "the keyboard shows keys again (%s)" % hud._hint_labels[0].text)
+	c.reset()
+	g.input_device_changed.disconnect(on_change)
 
 
 func _ui_scale() -> void:

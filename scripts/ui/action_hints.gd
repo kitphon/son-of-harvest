@@ -98,11 +98,15 @@ static func tool_verb(origin: Vector2i, facing: Vector2i) -> String:
 	return TOOL_VERBS.get(tool, "") if Game.maps.on_farm() else ""
 
 
-## The key (or keys) shown for an action: its first bound key ("E", "Space").
+## The button shown for an action: its first bound key ("E", "Space"), or, while the pad was the
+## last device used (Game.pad_active), the player's own pad button ("A", "LB"). An action with
+## no pad button shows its key.
 static func key_text(action: String) -> String:
 	var controls: Controls = Game.settings.controls if Game.settings != null else null
 	if controls == null:
 		return ""
+	if Game.pad_active and controls.pad_button(action) != Controls.NO_BUTTON:
+		return controls.pad_name(controls.pad_button(action))
 	for k in controls.keys(action):
 		if k != KEY_NONE:
 			return Controls.key_name(k)

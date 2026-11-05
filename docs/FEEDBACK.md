@@ -65,6 +65,10 @@ None right now.
 - No on-screen key hints (keys were only in the README): the HUD says what E / Space do at
   the spot in front, with the player's own keys; Settings → Key hints turns it off.
   Commit 7ca5b91.
+- Follow-up: pad players saw keyboard keys in the key hints. The game now remembers the last
+  device used (pad button or stick past the deadzone, or key / click) and the hints show the
+  player's own pad buttons ("A", "B", "LB") while the pad was last used. Commit on branch
+  worktree-agent-a2eabe4d6be6a6291.
 
 - Small things (item 7): the barn's yellow lumps were the hay bundles and the hay in the
   trough, drawn in one flat unlit yellow; they are now lit and textured with grass strands
