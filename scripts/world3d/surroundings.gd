@@ -10,9 +10,11 @@ extends Node3D
 const MARGIN := 14          # cells of apron round the map (the view reaches ~10 past an edge)
 const T := 16
 const TREE_SHARE := 45      # % of the allowed cells with a pine
+const PINE_SHAPES := 3      # Trees.pine shapes the wood picks from, by cell
 const TREE_KINDS: Array[String] = ["grass"]   # ground a pine stands on
 
 var material: ShaderMaterial   # the apron's ground; FarmWorld.set_snow sets its cover
+var snow_mats: Array[ShaderMaterial] = []   # the snow on the pines' pads, set with it
 
 
 ## Builds the apron for a w x h map. `kind_at(c)` gives an in-map cell's ground kind
@@ -86,10 +88,12 @@ static func pine_at(kind_at: Callable, w: int, h: int, c: Vector2i) -> bool:
 	return posmod(c.x * 92837 + c.y * 68917 + (c.x * c.y) * 31, 100) < TREE_SHARE
 
 
-## The wood: a trunk and three cones of needles per pine (as MapWorld's pine), each pine
-## nudged in its cell and a little taller or shorter, all in four MultiMeshes.
+## The wood: straight pines (Trees.pine, PINE_SHAPES shapes), each nudged in its cell,
+## turned and a little taller or shorter, one MultiMesh per shape and material.
 func _make_pines(w: int, h: int, kind_at: Callable) -> void:
-	var at: Array[Transform3D] = []
+	var at := []
+	for i in PINE_SHAPES:
+		at.append([] as Array[Transform3D])
 	for y in range(-MARGIN, h + MARGIN):
 		for x in range(-MARGIN, w + MARGIN):
 			var c := Vector2i(x, y)
@@ -98,35 +102,29 @@ func _make_pines(w: int, h: int, kind_at: Callable) -> void:
 			var r := posmod(c.x * 131 + c.y * 197, 1000) / 1000.0
 			var s := 0.85 + 0.45 * r
 			var nudge := Vector3(posmod(c.x * 37 + c.y * 11, 7) - 3, 0, posmod(c.x * 17 + c.y * 41, 7) - 3) * 0.08
-			at.append(Transform3D(Basis.from_scale(Vector3(s, s, s)), Vector3(x + 0.5, 0, y + 0.5) + nudge))
-	if at.is_empty():
-		return
-	var trunk := CylinderMesh.new()
-	trunk.top_radius = 0.07
-	trunk.bottom_radius = 0.1
-	trunk.height = 0.9
-	trunk.radial_segments = 6
-	_multi(trunk, at, Vector3(0, 0.45, 0), FarmWorld.flat_material(Color("4a3424")))
-	var needles := [Color("2f5a34"), Color("3a6a3c"), Color("467a44")]
-	for i in 3:
-		var cone := CylinderMesh.new()
-		cone.top_radius = 0.0
-		cone.bottom_radius = 0.62 - i * 0.14
-		cone.height = 0.75
-		cone.radial_segments = 8
-		var m := StandardMaterial3D.new()
-		m.albedo_color = needles[i]
-		_multi(cone, at, Vector3(0, 0.9 + i * 0.42, 0), m)
+			var basis := Basis(Vector3.UP, r * TAU).scaled(Vector3(s, s, s))
+			at[posmod(c.x * 5 + c.y * 3, PINE_SHAPES)].append(Transform3D(basis, Vector3(x + 0.5, 0, y + 0.5) + nudge))
+	for i in PINE_SHAPES:
+		if at[i].is_empty():
+			continue
+		var parts := FarmProps.Parts.new()
+		Trees.pine(parts, Vector3.ZERO, 101 + i * 37, false, true)
+		var meshes := parts.meshes()
+		for key in meshes:
+			var mmi := _multi(meshes[key], at[i], FarmProps.Parts.material(key, snow_mats))
+			if not FarmProps.Parts.casts_shadow(key):
+				mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 
-func _multi(mesh: Mesh, at: Array[Transform3D], lift: Vector3, mat: Material) -> void:
+func _multi(mesh: Mesh, at: Array[Transform3D], mat: Material) -> MultiMeshInstance3D:
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.mesh = mesh
 	mm.instance_count = at.size()
 	for i in at.size():
-		mm.set_instance_transform(i, at[i] * Transform3D(Basis(), lift))
+		mm.set_instance_transform(i, at[i])
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = mm
 	mmi.material_override = mat
 	add_child(mmi)
+	return mmi

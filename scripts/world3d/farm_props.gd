@@ -153,16 +153,28 @@ class Parts:
 
 	func commit(w: FarmWorld) -> void:
 		for key in _tools:
-			var mat: Material
-			if key is Color:
-				mat = Minka.plain(key)
-			elif key == SNOW:
-				mat = SnowLayer.top_material()
-				w._snow_mats.append(mat)
-			elif key.begins_with(GLOW):
-				mat = FarmWorld.flat_material(Color(key.substr(GLOW.length())))
-			else:
-				mat = FarmWorld.picture_material(key)
-			var mi := Minka.add_mesh(w, _tools[key], mat)
-			if key is String and (key == SNOW or key.begins_with(GLOW)):
+			var mi := Minka.add_mesh(w, _tools[key], material(key, w._snow_mats))
+			if not casts_shadow(key):
 				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+	## The meshes by key, without placing them (for a MultiMesh: the wood past the edge).
+	func meshes() -> Dictionary:
+		var out := {}
+		for key in _tools:
+			out[key] = _tools[key].commit()
+		return out
+
+	## The material for a key; a snow material goes into `snow_mats` (set_snow drives it).
+	static func material(key: Variant, snow_mats: Array[ShaderMaterial]) -> Material:
+		if key is Color:
+			return Minka.plain(key)
+		if key == SNOW:
+			var snow := SnowLayer.top_material()
+			snow_mats.append(snow)
+			return snow
+		if key.begins_with(GLOW):
+			return FarmWorld.flat_material(Color(key.substr(GLOW.length())))
+		return FarmWorld.picture_material(key)
+
+	static func casts_shadow(key: Variant) -> bool:
+		return not (key is String and (key == SNOW or key.begins_with(GLOW)))

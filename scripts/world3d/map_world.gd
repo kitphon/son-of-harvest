@@ -128,7 +128,7 @@ func _make_prop(p: Dictionary) -> void:
 		"torii": Shrine.torii(self, mid, r)
 		"hokora": Shrine.hokora(self, mid)
 		"stone_lantern": Shrine.stone_lantern(self, mid)
-		"pine": _pine(mid)
+		"pine": _pine(mid, Vector2i(p.cell))
 		"bamboo": _bamboo(mid, Vector2i(p.cell))
 		"river_rock": _river_rock(mid)
 		"feed_box", "nest", "incubator", "feed_sack", "hatch": CoopProps.prop(self, p, mid, r)
@@ -187,32 +187,12 @@ func _village_house(r: Rect2, door: int, noren: bool, side_door := -1) -> void:
 	_lit_picture("build:shoji", Vector2(0.7, 0.5), Vector3(r.end.x - 0.1 + 0.005, 1.1, mid_z), 90)
 
 
-## A pine: a dark trunk and three layered cones of needles.
-func _pine(mid: Vector3) -> void:
-	var trunk := CylinderMesh.new()
-	trunk.top_radius = 0.07
-	trunk.bottom_radius = 0.1
-	trunk.height = 0.9
-	trunk.radial_segments = 6
-	var t := MeshInstance3D.new()
-	t.mesh = trunk
-	t.material_override = flat_material(Color("4a3424"))
-	t.position = mid + Vector3(0, 0.45, 0)
-	add_child(t)
-	var needles := [Color("2f5a34"), Color("3a6a3c"), Color("467a44")]
-	for i in 3:
-		var cone := CylinderMesh.new()
-		cone.top_radius = 0.0
-		cone.bottom_radius = 0.62 - i * 0.14
-		cone.height = 0.75
-		cone.radial_segments = 8
-		var mi := MeshInstance3D.new()
-		mi.mesh = cone
-		var m := StandardMaterial3D.new()
-		m.albedo_color = needles[i]
-		mi.material_override = m
-		mi.position = mid + Vector3(0, 0.9 + i * 0.42, 0)
-		add_child(mi)
+## A village pine (Trees.pine): it leans, its pads of needles set off to alternate sides;
+## snow on the pads where snow lies.
+func _pine(mid: Vector3, c: Vector2i) -> void:
+	var parts := FarmProps.Parts.new()
+	Trees.pine(parts, mid, c.x * 31 + c.y * 17, true, SnowLayer.map_has_snow(map))
+	parts.commit(self)
 
 
 ## A clump of bamboo: three or four tall green stalks leaning a little apart, a pale node

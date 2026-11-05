@@ -10,8 +10,39 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
-## 2026-11-05 — Art direction: the rooms' furniture as lit meshes
+## 2026-11-05 — Art direction: trees as lit, seasonal meshes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: section 2's first item. `scripts/world3d/trees.gd` (Trees) builds every tree from
+  `Shrine.lathe` and `FarmProps.block` in lit materials, replacing unshaded spheres,
+  cylinders and cones. `Trees.broadleaf` (persimmon, sakura): a lathe trunk, limbs, and a
+  crown of six faceted seven-sided lumps (darker round the middle, lighter on top, turned by a
+  seed so no two trees match); leaves by season (`Trees.LEAVES`), bare in winter with five
+  limbs and twigs, persimmons in fall and still hanging on the bare twigs in winter (the fall
+  leaf went from c06a2a to a8402c, deep enough red for the orange fruit to show), petals
+  under a cherry in bloom. `Trees.pine`: four tiers of low faceted cones, darker below; the
+  village's pines (`garden`) lean, their tiers set off to alternate sides on short limbs;
+  snow lies on each tier's top where the map has snow. Used by MapWorld's `pine`,
+  CountryProps' `persimmon` / `sakura` (its `_tree` removed), FestivalProps' cherries and
+  Surroundings: the wood past the map's edge is now three pine shapes in MultiMeshes, turned
+  per cell, with snow on its tiers driven by set_snow (it had no snow before).
+  `FarmProps.Parts` grew `meshes()`, `material()` and `casts_shadow()` so a MultiMesh can use
+  its meshes. A first try at the pines as rounded pads read like umbrellas in the wood;
+  steeper overlapping cones keep the conifer outline.
+- Checked: new test_maps `_trees`: persimmon and sakura in all four seasons (two seeds) are
+  all lit ArrayMeshes, faces wound right, inside 0.95 of the trunk and under 2.3 high,
+  leaves except in winter, fruit only on persimmons in fall / winter, petals only under a
+  cherry in spring; pines (garden or not, snow or not) inside the wood's margins once scaled
+  1.3, snow only when asked; Kaminoda's wood is MultiMeshes with its snow materials in the
+  world's `_snow_mats`. All 27 test scripts `OK (0 failed)`; smoke runs (title, --demo,
+  --demo --map=town, --demo --mine=3, --demo --map=kaminoda --season=winter --snow=80, --demo
+  --festival=blossom_day, --demo --map=hill) print 0 error or warning lines. Before / after
+  frames: the farm (spring, winter at snow 80), Kaminoda in spring / fall / winter and at
+  17:00, 20:00 and in rain, the hill (spring, winter), the town, Blossom Day.
+- Left / next: the bamboo is still cylinders and boxes; bare branches carry no snow. Next in
+  section 2: grass tufts on grass cells (MultiMesh, a small wind sway).
+
+## 2026-11-05 — Art direction: the rooms' furniture as lit meshes
+Agent: Claude Code (claude-opus-5-5) · Commit: 0f662b2
 - Done: the next item of docs/ART_DIRECTION.md. `scripts/world3d/room_props.gd` (RoomProps)
   builds all 22 furniture kinds of the rooms (futon, low table, tansu, andon, kamado, mizuya,
   nagamochi, kotatsu, counter, shelf, rice sacks, forge, anvil, tool rack, water tub, irori,

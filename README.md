@@ -822,7 +822,9 @@ corner, so the front walls are drawn as low sills (a cutaway) instead of moving 
 Outdoors, the land goes on past the map's edge (`scripts/world3d/surroundings.gd`): an apron
 of ground whose cells repeat the nearest edge cell (roads, the river and paddies run on out of
 sight), with a pine wood only where it stands behind the whole map on screen (the north and
-west sides), so the view never shows empty sky. Tall things in front of the farmer (houses,
+west sides; `Trees.pine` in MultiMeshes, snow on its tiers in winter), so the view never shows
+empty sky. Every tree is built by `scripts/world3d/trees.gd` (Trees: lumpy lit crowns that
+follow the season, tiered pines). Tall things in front of the farmer (houses,
 the coop and barn, trees, the torii: anything over 1 unit high) turn see-through while they
 hide the farmer or the ground within about a cell of them (`scripts/world3d/occluders.gd`:
 rays from the feet towards the camera; the materials' alpha, since the Compatibility renderer

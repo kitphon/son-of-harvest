@@ -42,6 +42,7 @@ func _process(delta: float) -> bool:
 		_farm_props()
 		_room_walls()
 		_room_props()
+		_trees()
 		_game_maps()
 		_bed_and_doors()
 		_clinic_doors()
@@ -736,6 +737,77 @@ func _room_props() -> void:
 		check(used.has(kind) or texts.contains('"%s"' % kind), "some map has a %s" % kind)
 	for kind in ["andon", "kamado", "forge", "irori", "butsudan"]:
 		check(glowing.has(kind), "the %s gives off light (an unshaded glow)" % kind)
+
+
+## Trees (Trees): lit meshes wound to their normals, inside about 0.95 of the trunk (the
+## wood scales its pines up to 1.3, still inside 1.0) and
+## 2.3 high (the wood's margins count on it); broadleaf leaves by season, bare in winter,
+## persimmons hanging in fall and winter, petals under a cherry in bloom; snow on the pines'
+## tiers only when asked; the wood past the map's edge is MultiMeshes of the same pines with
+## its snow driven by the world's set_snow.
+func _trees() -> void:
+	var trees: GDScript = load("res://scripts/world3d/trees.gd")
+	var parts_of := func(build: Callable) -> Node3D:
+		var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+		var p = load("res://scripts/world3d/farm_props.gd").Parts.new()
+		build.call(p)
+		p.commit(w)
+		return w
+	var look := func(w: Node3D) -> Dictionary:
+		var out := {"bad": 0, "colours": [], "snow": 0, "reach": 0.0, "top": 0.0}
+		for n in w.get_children():
+			if not n is MeshInstance3D:
+				continue
+			if not n.mesh is ArrayMesh:
+				out.bad += 1
+				continue
+			var mat: Material = n.material_override
+			if mat is ShaderMaterial:
+				out.snow += 1
+			elif mat.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED:
+				out.bad += 1
+			else:
+				out.colours.append(mat.albedo_color)
+			var arr: Array = n.mesh.surface_get_arrays(0)
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+			for i in range(0, v.size(), 3):
+				var c := (v[i + 1] - v[i]).cross(v[i + 2] - v[i])
+				if c.length() > 1e-9 and c.dot(nm[i]) >= 0.0:
+					out.bad += 1
+			for q in v:
+				out.reach = maxf(out.reach, Vector2(q.x, q.z).length())
+				out.top = maxf(out.top, q.y)
+		return out
+	for kind in ["persimmon", "sakura"]:
+		for season in ["spring", "summer", "fall", "winter"]:
+			for seed in [3, 40]:
+				var w: Node3D = parts_of.call(func(p): trees.broadleaf(p, Vector3.ZERO, kind, season, seed))
+				var l: Dictionary = look.call(w)
+				var leaf: Color = trees.LEAVES[kind][season]
+				var leafy: bool = leaf in l.colours or leaf.darkened(0.14) in l.colours
+				var fruit: bool = trees.FRUIT in l.colours
+				check(l.bad == 0 and l.reach < 0.95 and l.top < 2.3, "%s in %s (seed %d): %d faults, reaches %.2f, %.2f high" % [kind, season, seed, l.bad, l.reach, l.top])
+				check(leafy == (season != "winter"), "%s in %s: leaves %s" % [kind, season, leafy])
+				check(fruit == (kind == "persimmon" and season in ["fall", "winter"]), "%s in %s: fruit %s" % [kind, season, fruit])
+				check((trees.PETAL in l.colours) == (kind == "sakura" and season == "spring"), "%s in %s: petals on the ground" % [kind, season])
+				w.free()
+	for garden in [true, false]:
+		for snow in [true, false]:
+			var w: Node3D = parts_of.call(func(p): trees.pine(p, Vector3.ZERO, 7, garden, snow))
+			var l: Dictionary = look.call(w)
+			check(l.bad == 0 and l.reach * (1.0 if garden else 1.3) < 1.0 and l.top * 1.3 < 2.6 and (l.snow > 0) == snow and trees.NEEDLES[0] in l.colours,
+				"pine (garden %s, snow %s): %d faults, reaches %.2f, %.2f high, %d snow" % [garden, snow, l.bad, l.reach, l.top, l.snow])
+			w.free()
+	var m: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	m.build(MapManager.data("kaminoda"))
+	var wood: Array = m.surroundings.get_children().filter(func(n): return n is MultiMeshInstance3D)
+	var instances := 0
+	for n in wood:
+		instances += n.multimesh.instance_count
+	var driven: bool = not m.surroundings.snow_mats.is_empty() and m.surroundings.snow_mats.all(func(s): return s in m._snow_mats)
+	check(wood.size() >= 4 and instances > 20 and driven, "the wood: %d MultiMeshes, %d pine parts, snow driven %s" % [wood.size(), instances, driven])
+	m.free()
 
 
 ## Upright faces (eave bands, verges, roll ends) of the meshes in `w` whose normal points

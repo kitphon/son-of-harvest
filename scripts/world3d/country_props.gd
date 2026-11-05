@@ -1,7 +1,7 @@
 class_name CountryProps
 extends RefCounted
 ## The countryside things of the village's outer parts in 3D: a well, a stone jizo in a red
-## bib, a persimmon and a cherry tree (their look follows the season), a rice drying rack, a
+## bib, a persimmon and a cherry tree (Trees: their look follows the season), a rice drying rack, a
 ## stack of firewood, a kitchen garden and a low board fence. Same placeholder surfaces and
 ## units as MapWorld (1 unit = 1 cell).
 
@@ -39,12 +39,10 @@ static func prop(w: MapWorld, p: Dictionary, mid: Vector3, r: Rect2, season: Str
 			_mesh(w, head, mid + Vector3(0, 0.52, 0), stone)
 			w._box(Vector3(0.2, 0.12, 0.04), mid + Vector3(0, 0.36, 0.12), FarmWorld.flat_material(Color("c8342c")))
 			w._snow_top(Vector3(0.14, 0.03, 0.14), mid + Vector3(0, 0.62, 0))
-		"persimmon":
-			_tree(w, mid, {"spring": Color("5e9a3e"), "summer": Color("4a8434"), "fall": Color("c06a2a"), "winter": Color(0, 0, 0, 0)},
-				season, Color("e8782a") if season in ["fall", "winter"] else Color(0, 0, 0, 0))
-		"sakura":
-			_tree(w, mid, {"spring": Color("f2bccb"), "summer": Color("4e8a3a"), "fall": Color("c8783a"), "winter": Color(0, 0, 0, 0)},
-				season, Color(0, 0, 0, 0))
+		"persimmon", "sakura":
+			var parts := FarmProps.Parts.new()
+			Trees.broadleaf(parts, mid, str(p.kind), season, int(p.cell[0]) * 31 + int(p.cell[1]) * 17)
+			parts.commit(w)
 		"hasa":
 			# A rice drying rack (hasa-kake) along its cells: poles, two rails; sheaves of golden
 			# straw hung over the rails in fall.
@@ -93,35 +91,6 @@ static func prop(w: MapWorld, p: Dictionary, mid: Vector3, r: Rect2, season: Str
 			for y in [0.22, 0.5]:
 				var size := Vector3(long, 0.12, 0.04) if along_x else Vector3(0.04, 0.12, long)
 				w._box(size, mid + Vector3(0, y, 0), boards)
-
-
-## A round-crowned tree: a trunk, a crown of two leaf balls coloured by the season (none in
-## winter: bare branches then), and fruit dots when `fruit` is not clear.
-static func _tree(w: MapWorld, mid: Vector3, leaves: Dictionary, season: String, fruit: Color) -> void:
-	var bark := FarmWorld.flat_material(Color("4a3428"))
-	_cyl(w, 0.08, 0.12, 1.1, mid + Vector3(0, 0.55, 0), bark, 6)
-	var leaf: Color = leaves.get(season, leaves.spring)
-	if leaf.a == 0.0:
-		for o in [Vector3(0.6, 0, 0.3), Vector3(-0.5, 0, 0.4), Vector3(0.1, 0, -0.6)]:
-			_cyl(w, 0.03, 0.05, 0.75, mid + Vector3(0, 1.25, 0) + o * 0.35, bark, 5, Vector3(o.z, 0, -o.x))
-	else:
-		var mat := FarmWorld.flat_material(leaf)
-		for b in [[Vector3(0, 1.45, 0), 0.6], [Vector3(0.25, 1.8, 0.1), 0.42]]:
-			var ball := SphereMesh.new()
-			ball.radius = b[1]
-			ball.height = b[1] * 1.7
-			ball.radial_segments = 10
-			ball.rings = 6
-			_mesh(w, ball, mid + b[0], mat)
-	if fruit.a > 0.0:
-		var f := FarmWorld.flat_material(fruit)
-		for o in [Vector3(0.45, 1.3, 0.3), Vector3(-0.4, 1.5, 0.35), Vector3(0.1, 1.15, 0.55), Vector3(0.3, 1.75, 0.35), Vector3(-0.2, 1.25, -0.4)]:
-			var dot := SphereMesh.new()
-			dot.radius = 0.07
-			dot.height = 0.13
-			dot.radial_segments = 6
-			dot.rings = 3
-			_mesh(w, dot, mid + o, f)
 
 
 static func _cyl(w: MapWorld, top: float, bottom: float, height: float, at: Vector3, mat: Material, segments: int, rot := Vector3.ZERO) -> void:

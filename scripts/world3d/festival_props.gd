@@ -102,21 +102,12 @@ func _ball(radius: float, at: Vector3, mat: Material) -> void:
 	add_child(mi)
 
 
-## A cherry tree in bloom: a leaning dark trunk, a cloud of pink blossom, petals on the ground.
+## A cherry tree in bloom (Trees.broadleaf in spring): a crown of pink lumps, petals on the
+## ground.
 func _sakura(mid: Vector3) -> void:
-	_cylinder(0.07, 0.12, 1.1, mid + Vector3(0, 0.55, 0), flat_material(Color("4a3028")))
-	var pinks := [Color("f4b8c8"), Color("eca0b6"), Color("f8d0dc")]
-	var puffs := [Vector3(0, 1.45, 0), Vector3(0.35, 1.3, 0.1), Vector3(-0.32, 1.32, -0.05),
-		Vector3(0.1, 1.35, 0.35), Vector3(-0.05, 1.7, -0.1)]
-	for i in puffs.size():
-		var m := StandardMaterial3D.new()
-		m.albedo_color = pinks[i % pinks.size()]
-		_ball(0.42 - (0.06 if i == 4 else 0.0), mid + puffs[i], m)
-	var petal := flat_material(Color("f6c4d2"))
-	for i in 12:
-		var a := i * 2.4
-		var d := 0.25 + (i % 4) * 0.17
-		_box(Vector3(0.07, 0.01, 0.07), mid + Vector3(cos(a) * d, 0.006, sin(a) * d), petal)
+	var parts := FarmProps.Parts.new()
+	Trees.broadleaf(parts, mid, "sakura", "spring", int(mid.x * 7 + mid.z * 13))
+	parts.commit(self)
 
 
 ## A mat spread on the grass with a lunch box and teacups on it.

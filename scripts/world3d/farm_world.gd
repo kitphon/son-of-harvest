@@ -179,6 +179,7 @@ func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable) -> v
 	add_child(surroundings)
 	surroundings.build(w, h, kind_at, hold_at)
 	_snow_mats.append(surroundings.material)
+	_snow_mats.append_array(surroundings.snow_mats)
 
 
 ## A small Japanese farmhouse on cells x 2..6, z 1..3: dark board skirting under white
