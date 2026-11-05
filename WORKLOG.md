@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-05 — Flat view: the farmhouse's pool starts at the roof's edge
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: follow-up to the flat-view night entry below. The farmhouse's warm pools in front of its
+  south wall (the shoji door and the two shoji) began at the wall line z 3.6, so 6.4 px of each
+  pool lay over the roof's last row (the house boxes are cells y 1..3 in FarmGrid.generate, so
+  the roof's lower edge is z 4 = 64 px). NightView (flat view only) now cuts a south-facing pool
+  at that edge: `FARM_ROOF_EDGE` (set on the farm in `setup`), `pool_shape` (the polygon and its
+  falloff UVs) and `clip_top` (Sutherland-Hodgman on the one edge, the cut points keep their
+  UVs), so the falloff keeps its shape on the part that shows. The side window's pool (it lies
+  beside the house, east of x 7) and the 3D view (NightLights.pools_from, unchanged) are not cut.
+- Checked: test_view2d `_night`, farm part: three south pools (door and two shoji), the raw pool
+  reaches above y 64, the cut ones are all at y >= 64 and have at least 3 points; the east pool
+  is not cut. Screenshot `main_2d.tscn -- --demo --time=21:00`: at x 60 the pixels from y 58 to 63
+  are the house (55,35,30) and (70,45,36) with the pane strips, y 64 is ground (28,52,41), and
+  the first pool pixels are at y 65 (64,75,53). All 27 test scripts `OK (0 failed)` (test_view2d
+  after the fix: `test_view2d: OK (0 failed)`); smoke runs (title `--quit-after 300`, `-- --demo`,
+  `-- --demo --map=town`, `-- --demo --mine=3`, and main_2d at 21:00) print no error or warning
+  line.
+- Left / next: the village houses' pools start 2.3 px above the footprint's bottom edge, and their
+  flat box is drawn 1 px inside it (`grow(-1)`), so about 1.3 px overlaps the box. Not changed:
+  the village test expects the pool on the wall line, and the overlap is a pixel. The farmhouse's
+  window halos (a square about 77 px) and the pane strips still sit over the house box, as they
+  stand on its walls; only the pools were in scope.
+
 ## 2026-11-05 — Night in the flat view: lit windows, lanterns and warm pools
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: follow-up to FEEDBACK item 6. The flat view (scenes/main_2d.tscn) now shows what the 3D

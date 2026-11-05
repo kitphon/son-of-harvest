@@ -105,6 +105,10 @@ None right now.
   the spouse line ("Married Sayo on Spring 14" reads "แต่งงานกับซาโยะ เมื่อวันที่ 14 ใบไม้ผลิ")
   and the knot / wedding-day messages. 267 dialogue lines in data/lang/th/dialogue.json, 9 in
   ui.json. Commit 60f0661 (WORKLOG 2026-11-05 "Thai: heart events, contests, marriage, record").
+- Night, flat view follow-up (item 6): the farmhouse's warm pool began 6 px over the roof's lower
+  edge. In the flat view the pools in front of its south wall are now cut at the roof's edge
+  (NightView, the 3D view unchanged); a check in test_view2d `_night`. See WORKLOG 2026-11-05
+  "Flat view: the farmhouse's pool starts at the roof's edge". Commit: this commit.
 
 ## What the players liked (keep it)
 - 15–20: the pixel sprites on the 3D field look good and match everywhere; the Japanese
