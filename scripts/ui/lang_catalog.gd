@@ -18,7 +18,8 @@ const SCRIPTS_DIR := "res://scripts/"
 const DATA_SKIP := ["lang", "font_pixel.json", "camera.json", "light.json", "sfx.json",
 	"music.json", "weather_fx.json", "snow_cover.json", "text_box.json", "whistles.json"]
 ## Data keys whose strings aren't shown.
-const KEY_SKIP := ["bus", "id", "key", "sound", "texture", "art", "look", "face", "mood"]
+## (taught: where a recipe's lesson comes from, a note for people reading data/recipes.json.)
+const KEY_SKIP := ["bus", "id", "key", "sound", "texture", "art", "look", "face", "mood", "taught"]
 ## Script folders with no shown text (pixel rows, synth keys).
 const SCRIPT_SKIP := ["art/", "audio/"]
 ## Functions whose strings are messages for us (data checks), not the player.
@@ -28,6 +29,9 @@ const CALL_SKIP := "\\b(print|prints|printerr|print_debug|push_error|push_warnin
 const NOT_SHOWN := [
 	"SFX", "Master",          # audio bus names
 	"Held", "Note",           # node names
+	"Pools", "Halos", "Panes", "Glows", "Figures", "Sprite3D",   # night light layers, a class name
+	"[A-Za-z]", "{%d}", "%s: \"%s\"",   # a pattern, a placeholder, the lang report's own line
+	"Harvest Son",            # the game's name stays as it is in every language
 	"Esc",                    # key names stay as on the keyboard
 	"Harvest Son Pixel",      # the font's resource name
 	"No dialogue %s", "No line %s", "Dialogue is not a dictionary", "No event %s",

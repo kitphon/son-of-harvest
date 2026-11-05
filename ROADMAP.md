@@ -51,6 +51,7 @@ smooth dusk / dawn and lit house windows (data/light.json, README → Light), th
 the title text's backing. [x] Item 8: the title's save check (it lacked the food table) and
 atomic saves with a backup. No feedback items are open now. [x] Thai for the villagers'
 daily talk, heart events, contests, marriage and the record (data/lang/th/dialogue.json).
+[x] The last Thai gaps (goals, level-ups, shop notes, pad names, save errors): th at 100%.
 Languages (the user aims at players worldwide, 2026-11-04): [x] Step 1, ready for translation:
 LangCatalog and tools/lang_report.gd (coverage per language, stale entries, a todo file),
 no text glued from pieces in the scripts, `--lang=pseudo` and test_lang (the screens and the

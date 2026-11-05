@@ -105,6 +105,12 @@ None right now.
   the spouse line ("Married Sayo on Spring 14" reads "แต่งงานกับซาโยะ เมื่อวันที่ 14 ใบไม้ผลิ")
   and the knot / wedding-day messages. 267 dialogue lines in data/lang/th/dialogue.json, 9 in
   ui.json. Commit 60f0661 (WORKLOG 2026-11-05 "Thai: heart events, contests, marriage, record").
+- Follow-up to item 1: the last Thai gaps closed, so lang_report shows th at 100% with 0 stale.
+  The goal list and its HUD tag, the tool and rod level-ups, the shopkeepers' away notes and
+  Hachiro's late-build notes, the rope lift, the pad button names, the chick and the mizuhiki
+  knot, the long date and every saved-game / settings error the title can show (108 entries in
+  data/lang/th/ui.json, 2 in items.json). Recipe `taught` notes, node names and a regex were
+  never on screen and are now left out of the catalog. WORKLOG 2026-11-05 "Thai: the last gaps".
 
 ## What the players liked (keep it)
 - 15–20: the pixel sprites on the 3D field look good and match everywhere; the Japanese
