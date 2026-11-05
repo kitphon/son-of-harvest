@@ -108,6 +108,11 @@ effect the moment it changes and saved to `user://settings.json` (version 2; a v
   (`scripts/ui/action_hints.gd` picks the words and changes nothing). After a pad button or a
   stick push (past half way) the hints show the player's pad buttons ("B Talk  A Water"); the
   next key or click brings the keys back.
+- Pad buttons: Auto / Xbox / PlayStation, next to Key hints. Auto reads the name and guid of the pad
+  last used (`Controls.style_of`: Sony names or the vendor id 054c): a PlayStation pad shows Cross,
+  Circle, Square, Triangle, L1 / R1, L2 / R2, Share, Options (data/controls.json `pad_names_ps`);
+  any other pad keeps A, B, X, Y, LB / RB, LT / RT, Back, Start. Xbox or PlayStation forces one
+  style for the key hints and the controls page. Saved with the settings, reset by Reset to defaults.
 - Music / Sounds / Ambient volume sliders.
 - Reset to defaults (the settings above; the keys have their own reset under Controls).
 

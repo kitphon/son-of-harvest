@@ -5,7 +5,7 @@ extends SceneTree
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_menu.gd
 
 const PATH := "user://test_settings.json"
-const ALL := ["language", "display", "window", "vsync", "fps", "ui_scale", "flashes", "text_speed", "always_run", "hud", "hints", "music", "sfx", "ambient"]
+const ALL := ["language", "display", "window", "vsync", "fps", "ui_scale", "flashes", "text_speed", "always_run", "hud", "hints", "pad_style", "music", "sfx", "ambient"]
 
 var failures := 0
 var _frame := 0
@@ -903,6 +903,84 @@ func _last_device(g: Node, hints: GDScript, hud: CanvasLayer) -> void:
 	check(hud._hint_labels[0].text == "E" and hints.key_text("use_tool") == "Space", "the keyboard shows keys again (%s)" % hud._hint_labels[0].text)
 	c.reset()
 	g.input_device_changed.disconnect(on_change)
+	_pad_style(g, hints, hud)
+
+
+## PlayStation names: detection from a pad's name / guid, Auto following the pad last used, the
+## Pad buttons setting overriding it, and the HUD label and the controls page with each style.
+func _pad_style(g: Node, hints: GDScript, hud: CanvasLayer) -> void:
+	check(Controls.style_of("PS5 Controller", "") == "playstation" and Controls.style_of("DualSense Wireless Controller", "") == "playstation"
+		and Controls.style_of("Sony DualShock 4", "") == "playstation" and Controls.style_of("PS4 Controller", "") == "playstation", "Sony pads are found by name")
+	check(Controls.style_of("Wireless Controller", "030000004c050000cc09000000000000") == "playstation", "a Sony pad is found by the vendor id in its guid")
+	check(Controls.style_of("Xbox 360 Controller", "030000005e0400008e02000000000000") == "xbox" and Controls.style_of("", "") == "xbox"
+		and Controls.style_of("Nintendo Switch Pro Controller", "03000000057e00000920000000000000") == "xbox", "other pads and no name stay Xbox style")
+	var c: Controls = g.settings.controls
+	check(c.pad_name(JOY_BUTTON_A, "playstation") == "Cross" and c.pad_name(JOY_BUTTON_B, "playstation") == "Circle"
+		and c.pad_name(JOY_BUTTON_X, "playstation") == "Square" and c.pad_name(JOY_BUTTON_Y, "playstation") == "Triangle"
+		and c.pad_name(JOY_BUTTON_LEFT_SHOULDER, "playstation") == "L1" and c.pad_name(JOY_BUTTON_RIGHT_SHOULDER, "playstation") == "R1"
+		and c.pad_name(JOY_BUTTON_START, "playstation") == "Options" and c.pad_name(Controls.button_of("left_trigger"), "playstation") == "L2"
+		and c.pad_name(Controls.button_of("right_trigger"), "playstation") == "R2", "PlayStation names from data")
+	check(c.pad_name(JOY_BUTTON_A) == "A" and c.pad_name(JOY_BUTTON_A, "xbox") == "A", "Xbox names stay the default")
+	var ok := true
+	for b in c.pad_names:
+		ok = ok and c.pad_names_ps.has(b) and c.pad_name(b, "playstation") != "-"
+	check(ok, "every pad input has a PlayStation name")
+	g.joy_lookup = func(device: int) -> Array: return ["PS5 Controller", ""] if device == 1 else ["Xbox Controller", ""]
+	var press := func(device: int) -> InputEventJoypadButton:
+		var e := InputEventJoypadButton.new()
+		e.button_index = JOY_BUTTON_X
+		e.pressed = true
+		e.device = device
+		return e
+	var key := InputEventKey.new()
+	key.keycode = KEY_E
+	key.pressed = true
+	g.settings.values.pad_style = "auto"
+	g.apply_settings()
+	g.note_input(key)
+	g.pad_device = -1
+	g.note_input(press.call(0))
+	check(g.pad_style() == "xbox" and hints.key_text("interact") == "B", "Auto: an Xbox pad shows B (%s)" % hints.key_text("interact"))
+	g.maps.place("farm", Vector2i(8, 4), Vector2i.UP)
+	g.select_tool(0)
+	g.note_input(press.call(1))
+	hud._show_hints()
+	check(g.pad_style() == "playstation" and hints.key_text("interact") == "Circle" and hints.key_text("use_tool") == "Cross",
+		"Auto: a PlayStation pad shows Circle and Cross (%s, %s)" % [hints.key_text("interact"), hints.key_text("use_tool")])
+	check(hud._hint_labels[0].text == "Circle" and hud._hint_labels[2].text == "Cross", "the HUD label says Circle and Cross (%s, %s)" % [hud._hint_labels[0].text, hud._hint_labels[2].text])
+	g.note_input(press.call(0))
+	hud._show_hints()
+	check(hud._hint_labels[0].text == "B", "switching to the Xbox pad redraws with B (%s)" % hud._hint_labels[0].text)
+	g.settings.values.pad_style = "playstation"
+	g.apply_settings()
+	hud._show_hints()
+	check(g.pad_style() == "playstation" and hud._hint_labels[0].text == "Circle", "the setting PlayStation wins over an Xbox pad (%s)" % hud._hint_labels[0].text)
+	g.note_input(press.call(1))
+	g.settings.values.pad_style = "xbox"
+	g.apply_settings()
+	hud._show_hints()
+	check(g.pad_style() == "xbox" and hud._hint_labels[0].text == "B", "the setting Xbox wins over a PlayStation pad (%s)" % hud._hint_labels[0].text)
+	g.settings.values.pad_style = "playstation"
+	g.apply_settings()
+	var menu := PauseMenu.new(g.settings)
+	menu.page = "controls"
+	var ps_ok := menu.slot_text("interact", g.settings.controls.slots) == "Circle"
+	g.settings.values.pad_style = "xbox"
+	g.apply_settings()
+	check(ps_ok and menu.slot_text("interact", g.settings.controls.slots) == "B", "the controls page names the pad slot in the chosen style")
+	g.settings.values.pad_style = "auto"
+	g.apply_settings()
+	var saved := Settings.make()
+	saved.values.pad_style = "playstation"
+	check(saved.write(PATH) == "", "settings written")
+	var loaded := Settings.make()
+	check(loaded.read(PATH) == "" and loaded.value("pad_style") == "playstation", "the Pad buttons setting is saved")
+	loaded.reset()
+	check(loaded.value("pad_style") == "auto", "reset puts the Pad buttons setting back to Auto")
+	_remove()
+	g.joy_lookup = Callable()
+	g.pad_device = -1
+	g.note_input(key)
 
 
 func _ui_scale() -> void:

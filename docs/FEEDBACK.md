@@ -105,6 +105,10 @@ None right now.
   the spouse line ("Married Sayo on Spring 14" reads "แต่งงานกับซาโยะ เมื่อวันที่ 14 ใบไม้ผลิ")
   and the knot / wedding-day messages. 267 dialogue lines in data/lang/th/dialogue.json, 9 in
   ui.json. Commit 60f0661 (WORKLOG 2026-11-05 "Thai: heart events, contests, marriage, record").
+- Key hints on a PlayStation pad (follow-up to the key hints): the HUD hints and the controls page
+  name the pad buttons Cross, Circle, L1... when the pad last used is a PlayStation pad (found by
+  its name or Sony vendor id), A, B, LB... otherwise; Esc -> Settings -> Pad buttons (Auto / Xbox /
+  PlayStation) forces a style. test_menu `_pad_style`. See WORKLOG 2026-11-05, Pad button names.
 
 ## What the players liked (keep it)
 - 15–20: the pixel sprites on the 3D field look good and match everywhere; the Japanese

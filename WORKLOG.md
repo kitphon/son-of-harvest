@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-05 — Pad button names: PlayStation style
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: follow-up to the key hints' pad buttons. data/controls.json `pad_names_ps` (Cross, Circle,
+  Square, Triangle, L1 / R1, L2 / R2, Share, PS, Options; sticks and the D-pad as before).
+  `Controls.style_of(name, guid)` calls a pad PlayStation by Sony names (PS3 / PS4 / PS5,
+  DualShock, DualSense, PlayStation, Sony) or the vendor id 054c in its SDL guid, else Xbox;
+  `Controls.pad_name(button, style)`. `Game` remembers the device of the last pad input
+  (`pad_device`), `pad_style()` (the new setting `pad_style` Auto / Xbox / PlayStation in
+  data/settings.json after Key hints, or what the last pad is) and `pad_text(button)`; a
+  change of pad while the pad is in use redraws the hints. `ActionHints.key_text` and the controls
+  page use it (the pause menu reads `Controls.style_now`, kept by Game, because it has no Game
+  to ask in tests). Thai: "Pad buttons", "Auto", "Xbox", "PlayStation" in data/lang/th/ui.json
+  (button names stay as written, like the Xbox ones). README Settings.
+- Checked: test_menu `_pad_style` (names from Sony / Xbox / Switch / guid, every input has a
+  PlayStation name, Auto with an Xbox and a PlayStation pad, the setting wins either way, the HUD
+  label and the controls page, saved and reset); all 27 test scripts `OK (0 failed)`; smoke runs
+  (title, --demo, town, mine=3) print no error or warning lines; `--demo --pause=settings` frame
+  shows the row "Pad buttons: Auto" under Key hints. Not tried with a real pad.
+- Left / next: pad names are not translated; the Nintendo layout (A / B swapped) is shown Xbox style.
+
 ## 2026-11-05 — Night in the flat view: lit windows, lanterns and warm pools
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: follow-up to FEEDBACK item 6. The flat view (scenes/main_2d.tscn) now shows what the 3D
