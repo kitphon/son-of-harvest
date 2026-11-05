@@ -10,6 +10,40 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-05 — Art direction: the rooms' furniture as lit meshes
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the next item of docs/ART_DIRECTION.md. `scripts/world3d/room_props.gd` (RoomProps)
+  builds all 22 furniture kinds of the rooms (futon, low table, tansu, andon, kamado, mizuya,
+  nagamochi, kotatsu, counter, shelf, rice sacks, forge, anvil, tool rack, water tub, irori,
+  tokonoma, butsudan, zabuton, byobu, toy box, mizugame) from `FarmProps.block` and
+  `Shrine.lathe` in lit materials, one mesh per material per piece. They replace MapWorld's
+  box / cylinder versions (mostly unshaded flat colours) and HomeProps (file removed). New
+  shapes: a two-section tansu (drawers, warabite pulls, corner plates, a sliding door, a side
+  handle), a turned chabudai with a teacup and teapot, a kamado narrowing to its lip with an
+  arched fire mouth, a flanged rice pot and two logs, a mizuya with a shoji lattice, a futon
+  with a puffy quilt and a pale collar, a counter with battens, a kickboard, a bell on a
+  cushion and an account book, shelves with boxes and turned jars, tawara lying on their
+  sides with rope bands, the forge's hood narrowing into the chimney and a box bellows, an
+  anvil waisted on a stump, the irori's turned kettle and fish catch, the butsudan's doors
+  swung open on gold, a zig-zag byobu with painted hills. A tool rack longer in z than x now
+  hangs on the left wall (Ichiro's floated mid-room before). Only light-givers stay
+  unshaded (`RoomProps.GLOWS`: the andon's paper, embers, the forge fire, a candle flame)
+  through the new `FarmProps.Parts.glow` (no shadow). `RoomProps._placed` turns a part via
+  SurfaceTool.append_from with a transform (bales on their side, open doors, screens).
+- Checked: new test_maps `_room_props`: every prop of these kinds on every map builds with
+  no primitive meshes, nothing unshaded but GLOWS, every face wound to its normal, inside
+  its footprint (+0.16), clear of the back walls by 0.035; every kind is used by a map file;
+  the andon, kamado, forge, irori and butsudan glow. It caught the counter top and the shelf
+  cap reaching 0.01-0.03 into the left wall's posts (trimmed). `_homes_3d`' mesh floor went
+  from 60 to 30 (the pieces merge per material now). All 27 test scripts `OK (0 failed)`;
+  smoke runs (title, --demo, --demo --map=town, --demo --mine=3, --demo --map=house
+  --built=kitchen,chest,room, --demo --map=smithy, --demo --map=tome_house) print 0 error or
+  warning lines. Before / after frames at 10:00 of the house with every extension, clinic,
+  store, smithy, teahouse, Tome's (6:30), Ichiro's, Kota's and Shige's houses.
+- Left / next: the coop and barn insides (nests, feed boxes, stalls, hay) and the outdoor
+  small props (well, jizo, woodpile, river rock) still use boxes; section 2, nature, is next
+  (trees first). Rooms keep a fixed light, so no night check was needed.
+
 ## 2026-11-04 — Art direction: interiors, walls and floor edges as lit meshes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the next item of docs/ART_DIRECTION.md. `scripts/world3d/room_walls.gd` (RoomWalls)

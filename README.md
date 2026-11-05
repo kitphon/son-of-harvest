@@ -230,7 +230,7 @@ edge where boards or tatami meet the earth and a shoe stone below the door's ste
   `fodder_box`, `fodder`, `barn_tools`, `barn_gate` (BarnActions), looks in `barn_props.gd`;
 - the villagers' homes (`tome_house`, `kota_house`, `sayo_house`; Hachiro lives in the
   smithy) use `irori`, `tokonoma`, `butsudan`, `zabuton` (`solid: false`, optional `color`),
-  `byobu`, `toy_box` and `mizugame`, their 3D looks in `scripts/world3d/home_props.gd`; a
+  `byobu`, `toy_box` and `mizugame`, their 3D looks in `scripts/world3d/room_props.gd` (RoomProps, with all the rooms' furniture); a
   `village_house` prop's `side_door` (cells from the left) draws a second, plain door (Sayo's
   rooms behind the store);
 - a prop with `flag` (a story flag name) only shows while that flag is set, or with

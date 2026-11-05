@@ -134,10 +134,15 @@ static func block(st: SurfaceTool, lo: Rect2, y0: float, hi: Rect2, y1: float) -
 
 
 ## One SurfaceTool per material, made into meshes at the end: a "build:<name>" key is a lit
-## PlaceholderArt surface (UVs in world units), a Color a lit plain colour, SNOW the snow top.
+## PlaceholderArt surface (UVs in world units), a Color a lit plain colour, SNOW the snow top,
+## and `glow(color)` an unshaded colour that casts no shadow (embers, flames, lit paper).
 class Parts:
 	const SNOW := "snow"
+	const GLOW := "glow:"
 	var _tools := {}
+
+	func glow(color: Color) -> SurfaceTool:
+		return st(GLOW + color.to_html(false))
 
 	func st(key: Variant) -> SurfaceTool:
 		if not _tools.has(key):
@@ -154,8 +159,10 @@ class Parts:
 			elif key == SNOW:
 				mat = SnowLayer.top_material()
 				w._snow_mats.append(mat)
+			elif key.begins_with(GLOW):
+				mat = FarmWorld.flat_material(Color(key.substr(GLOW.length())))
 			else:
 				mat = FarmWorld.picture_material(key)
 			var mi := Minka.add_mesh(w, _tools[key], mat)
-			if key is String and key == SNOW:
+			if key is String and (key == SNOW or key.begins_with(GLOW)):
 				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

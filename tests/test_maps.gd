@@ -41,6 +41,7 @@ func _process(delta: float) -> bool:
 		_shrine()
 		_farm_props()
 		_room_walls()
+		_room_props()
 		_game_maps()
 		_bed_and_doors()
 		_clinic_doors()
@@ -673,6 +674,70 @@ func _room_walls() -> void:
 	check(bad[0] != "", "a map with unknown walls is refused")
 
 
+## The rooms' furniture (RoomProps): every kind is used by some map and has a look; each
+## piece is built of lit meshes (only GLOWS colours unshaded: the lamp, embers, fire), its
+## faces wound to their normals, inside its footprint (a little overhang allowed) and clear
+## of the full-height back walls above and to the left (their posts stand 0.04 out), so
+## nothing pokes through the timber. The front walls are low sills inside their own cells.
+func _room_props() -> void:
+	var rp: GDScript = load("res://scripts/world3d/room_props.gd")
+	var used := {}
+	var glowing := {}
+	for id in MapManager.ids():
+		var m := MapManager.data(id)
+		for p in m.props:
+			if not str(p.kind) in rp.KINDS:
+				continue
+			used[p.kind] = true
+			var r := Rect2(Vector2(p.cell), Vector2(p.size))
+			var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+			rp.prop(w, p, Vector3(r.get_center().x, 0, r.get_center().y), r)
+			var shapes := 0
+			var unlit := 0
+			var wrong := 0
+			var outside := 0
+			var in_wall := 0
+			for n in w.get_children():
+				if not n is MeshInstance3D:
+					continue
+				if not n.mesh is ArrayMesh:
+					shapes += 1
+					continue
+				var mat: StandardMaterial3D = n.material_override
+				if mat.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED:
+					if mat.albedo_color in rp.GLOWS:
+						glowing[p.kind] = true
+					else:
+						unlit += 1
+				var arr: Array = n.mesh.surface_get_arrays(0)
+				var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+				var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+				var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX] if arr[Mesh.ARRAY_INDEX] != null else PackedInt32Array(range(v.size()))
+				for i in range(0, idx.size(), 3):
+					var c := (v[idx[i + 1]] - v[idx[i]]).cross(v[idx[i + 2]] - v[idx[i]])
+					if c.length() > 1e-9 and c.dot(nm[idx[i]]) >= 0.0:
+						wrong += 1
+				for q in v:
+					if not r.grow(0.16).has_point(Vector2(q.x, q.z)):
+						outside += 1
+					for o in [Vector2(-0.035, 0), Vector2(0, -0.035)]:
+						var cell := Vector2i((Vector2(q.x, q.z) + o).floor())
+						if m.in_bounds(cell) and m.tile(cell) == "wall":
+							in_wall += 1
+							break
+			check(shapes == 0 and unlit == 0 and wrong == 0 and outside == 0 and in_wall == 0,
+				"%s %s at %s: %d primitive shapes, %d unlit, %d faces the wrong way, %d corners outside, %d in a wall"
+				% [id, p.kind, p.cell, shapes, unlit, wrong, outside, in_wall])
+			w.free()
+	var texts := ""   # the house's extensions (kotatsu, nagamochi) are only in its file
+	for id in MapManager.ids():
+		texts += FileAccess.get_file_as_string("res://data/maps/%s.json" % id)
+	for kind in rp.KINDS:
+		check(used.has(kind) or texts.contains('"%s"' % kind), "some map has a %s" % kind)
+	for kind in ["andon", "kamado", "forge", "irori", "butsudan"]:
+		check(glowing.has(kind), "the %s gives off light (an unshaded glow)" % kind)
+
+
 ## Upright faces (eave bands, verges, roll ends) of the meshes in `w` whose normal points
 ## back towards `mid` (x, z) instead of away from it.
 func _walls_facing_in(w: Node3D, mid: Vector2) -> int:
@@ -703,7 +768,7 @@ func _homes_3d() -> void:
 				var mat: Variant = n.material_override
 				if mat is StandardMaterial3D and mat.albedo_color == Color.MAGENTA:
 					stand_in += 1
-		check(stand_in == 0 and meshes > 60, "%s builds in 3D (%d meshes, %d stand-ins)" % [id, meshes, stand_in])
+		check(stand_in == 0 and meshes > 30, "%s builds in 3D (%d meshes, %d stand-ins)" % [id, meshes, stand_in])
 		w.free()
 	var river: Node3D = load("res://scripts/world3d/map_world.gd").new()
 	river.build(MapManager.data("river"))

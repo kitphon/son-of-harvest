@@ -34,9 +34,9 @@ kayabuki roof (scripts/world3d/minka.gd, README → Farmhouse model, models/farm
 [x] The seed stand, chest and bin by the farmhouse as meshes (scripts/world3d/farm_props.gd).
 [x] Interiors: walls as timber frames, low front sills, step edges and a shoe stone, soft
 floor shading by the walls (scripts/world3d/room_walls.gd).
+[x] Room furniture as lit meshes, all 22 kinds (scripts/world3d/room_props.gd).
 The full style roadmap, the rules for making pieces and how to continue: docs/ART_DIRECTION.md.
-Next: the indoor furniture as lit meshes (`map_world.gd`: futon, tansu, counter, shelves,
-forge...), then section 2, nature (trees first). "ทำ art direction ต่อ" from the user
+Next: section 2, nature (trees first: round lumpy crowns, tiered pines, by season). "ทำ art direction ต่อ" from the user
 means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our
