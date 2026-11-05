@@ -76,7 +76,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Mine (data/mine.json, floors from a seed, rocks / soft spots / the hole, swings, the save,
   light by depth and the lantern, frozen winter floors, the rope lift landings and their save, mine art): `res://tests/test_mine.gd` must print `test_mine: OK (0 failed)`.
   Ending (data/ending.json, grading, the values measured, the event and its trigger, the record
-  screen, the yearly pages and the first-day look back): `res://tests/test_ending.gd` must print `test_ending: OK (0 failed)`.
+  screen, the yearly pages, the first-day look back and the married farmer's line): `res://tests/test_ending.gd` must print `test_ending: OK (0 failed)`.
   Festivals (calendar, festival day, shops shut, fair weather, the event once a year,
   decorations and lights in both views, the HUD tag, contests and prizes, the mochi pounding (timing, ranking, partner, ribbon, save, screen), the Moon Night fishing race (clock, creel, ranking, ribbon, save, box), the stalls and their
   wares at all four festivals, keepsakes, ribbons and the farmhouse ribbon board, the payout held back): `res://tests/test_festivals.gd` must

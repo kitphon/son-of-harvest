@@ -1,5 +1,5 @@
 {
-	"_note": "The wedding with Fumi at the village shrine (data/marriage.json): triggers_town.json plays it from 10:00 on the wedding day (Marriage: the flag wedding_due, set each morning from the day fixed at the proposal until it has played), from wherever the farmer walked in. Under a black fade the farmer stands before the shrine beside Fumi, Tome in front of them, the guests at the sides; Tome ties the knot. Sets spouse = fumi and married_fumi, clears the engaged flags; from then on Fumi lives at the farmhouse (the married rules in data/villagers/fumi.json). Format: README.md, Villagers, Marriage.",
+	"_note": "The wedding with Fumi at the village shrine (data/marriage.json): triggers_town.json plays it from 10:00 on the wedding day (Marriage: the flag wedding_due, set each morning from the day fixed at the proposal until it has played), from wherever the farmer walked in. Under a black fade the farmer stands before the shrine beside Fumi, Tome in front of them, the guests at the sides; Tome ties the knot. Sets spouse = fumi and married_fumi, clears the engaged flags (wedding_day stays: the village record names the date); from then on Fumi lives at the farmhouse (the married rules in data/villagers/fumi.json). Format: README.md, Villagers, Marriage.",
 	"steps": [
 		{"do": "fade", "to": "black", "seconds": 0.8},
 		{"do": "place", "at": [18, 5], "dir": "up"},
@@ -21,7 +21,7 @@
 		{"do": "wait", "seconds": 1.0},
 		{"do": "affection", "who": "fumi", "amount": 10},
 		{"do": "set", "flags": {"spouse": "fumi", "married_fumi": true}},
-		{"do": "clear", "flags": ["engaged", "engaged_fumi", "wedding_day", "wedding_due"]},
+		{"do": "clear", "flags": ["engaged", "engaged_fumi", "wedding_due"]},
 		{"do": "fade", "to": "black", "seconds": 1.0}
 	]
 }

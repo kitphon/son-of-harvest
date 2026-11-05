@@ -27,6 +27,46 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
   print no error or warning lines; `--demo` frame still shows "Space Till".
 - Left / next: only the bound buttons of the Xbox-style names are shown; no PlayStation names.
 
+## 2026-11-05 — Village record: the spouse's line
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: FEEDBACK item 3's follow-up ("no word about the spouse in the village record"). A
+  married farmer's record (the year 3 ending and the yearly pages, one `show_ending`) has one
+  line under the title: "Married Sayo on Spring 14". `Ending.spouse_line` (scripts/ending/ending.gd)
+  fills the texts from data/ending.json `spouse` ("Married %s on %s", undated "Married to %s");
+  `Game._spouse_line` gives the record `spouse` from the flag `spouse`, the name from Villagers
+  and the day from `wedding_day`. `Game.short_date_of` ("Spring 14") is the new helper; `date_of`
+  uses it. Choice: the wedding day flag is kept after the wedding (the two wedding events no
+  longer clear `wedding_day`), so the date survives; it is the day the wedding was set for, which
+  is the day it is held on unless the farmer first walks into the village a day or more later.
+  Saves married before this have no date and get "Married to Sayo". Unmarried: no line. Grading is
+  unchanged. EndingScreen (scripts/ui/ending_screen.gd) has a line under the seal for it: the
+  paper is 11 px taller for every save, married or not, because the layout is fixed at build time
+  (a blank strip, not text). The line is English only; no Thai entry yet (falls back to English).
+- Checked: test_ending gets `_spouse`: the dated, undated and empty lines, the widths for the
+  line in both forms (inside the paper, pseudo-free), a single record with no line, the married
+  record naming Sayo and Spring 14, the screen showing it after the rows, `_on_paper` for it, the
+  yearly page undated without a day, and nothing shown once single again. test_relationships'
+  wedding check now expects `wedding_day` kept (it asserted cleared). Results (scratchpad run,
+  one line each):
+  test_animals: OK (0 failed) · test_audio: OK (0 failed) · test_body: OK (0 failed) ·
+  test_cooking: OK (0 failed) · test_dialogue: OK (0 failed) · test_ending: OK (0 failed) ·
+  test_events: OK (0 failed) · test_farm: OK (0 failed) · test_festivals: OK (0 failed) ·
+  test_fishing: OK (0 failed) · test_food: OK (0 failed) · test_forage: OK (0 failed) ·
+  test_goals: OK (0 failed) · test_hold: OK (0 failed) · test_inventory: OK (0 failed) ·
+  test_lang: OK (0 failed) · test_maps: OK (0 failed) · test_menu: OK (0 failed) ·
+  test_mine: OK (0 failed) · test_relationships: OK (0 failed) · test_save: OK (0 failed) ·
+  test_shops: OK (0 failed) · test_talk: OK (0 failed) · test_title: OK (0 failed) ·
+  test_view2d: OK (0 failed) · test_villagers: OK (0 failed) · test_weather: OK (0 failed).
+  Smoke runs (title, --demo, --demo --map=town, --demo --mine=3) exit 0 with no error or
+  warning lines. Screenshot `--demo --ending --flags=married_sayo,spouse=sayo` (frame 149): the
+  line "Married to Sayo" sits under the title's seal and fits the paper; this run sets no
+  wedding day, so the undated form shows (the dated form is the same length class and is
+  checked by the width test). shots/ deleted.
+- Left / next: no Thai for the line (data/lang/th has no marriage lines yet either). The blank
+  strip under the title on single saves is a fixed layout cost; a dynamic reflow would remove it
+  if it bothers anyone. The date is the wedding's set day, not the day it was actually held when
+  the farmer was late to the village.
+
 ## 2026-11-05 — Art direction: grass tufts on the grass cells
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: section 2's second item. `scripts/world3d/grass_tufts.gd` (GrassTufts) is one

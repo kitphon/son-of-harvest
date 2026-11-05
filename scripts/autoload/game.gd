@@ -691,9 +691,14 @@ func day_number() -> int:
 
 ## The date of a day number, as date_text() writes it.
 func date_of(n: int) -> String:
+	return "%s, Year %d" % [short_date_of(n), n / (DAYS_PER_SEASON * SEASONS.size()) + 1]
+
+
+## A day number's season and day only ("Spring 14"), as the village record names a wedding.
+func short_date_of(n: int) -> String:
 	var d := posmod(n, DAYS_PER_SEASON) + 1
 	var s := posmod(n / DAYS_PER_SEASON, SEASONS.size())
-	return "%s %d, Year %d" % [SEASON_NAMES[SEASONS[s]], d, n / (DAYS_PER_SEASON * SEASONS.size()) + 1]
+	return "%s %d" % [SEASON_NAMES[SEASONS[s]], d]
 
 
 ## Day / night light (data/light.json "sky"): minute of the day -> colour, linear in between,
@@ -1558,6 +1563,7 @@ func show_ending(page := "ending") -> Dictionary:
 	var r := Ending.compare(ending_record(values), first_day, Ending.last_page(year_pages, year), field)
 	r.page = page
 	r.year = year
+	r.spouse = _spouse_line()
 	year_pages[year] = Ending.page_of(year, values, field, r)
 	for k in flags.keys():
 		if String(k).begins_with("ending_rank_") or String(k).begins_with("ending_friend_") \
@@ -1573,6 +1579,17 @@ func show_ending(page := "ending") -> Dictionary:
 		ending_open = true
 		ending_requested.emit(r)
 	return r
+
+
+## The record's line for a married farmer ("" single; Ending.spouse_line): the spouse's name
+## and the day the wedding was set for (Marriage.DAY, kept after the wedding).
+func _spouse_line() -> String:
+	var id := Marriage.spouse(flags)
+	if id == "":
+		return ""
+	var n: Variant = flags.get(Marriage.DAY)
+	var day_text := short_date_of(int(n)) if n is int or n is float else ""
+	return Ending.spouse_line(id, String(Villagers.all().get(id, {}).get("name", id)), day_text)
 
 
 # --- fatigue and tired states (data/body.json) -----------------------------

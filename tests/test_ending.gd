@@ -26,6 +26,7 @@ func _process(_delta: float) -> bool:
 		_year_event_plays()
 		_screen()
 		_scroll()
+		_spouse()
 		print("test_ending: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -394,6 +395,49 @@ func _scroll() -> void:
 			check(sc._gains[i].position.x + PixelFont.width(sc._gains[i].text) < sc._stars[i][0].position.x, "row %d's gain clears its stars" % i)
 	sc.advance()
 	check(not sc.is_open(), "it closes")
+	sc.queue_free()
+
+
+## A married farmer's record names the spouse and the wedding day (undated for a save from
+## before the day was kept); a single farmer's shows nothing. The screen and the yearly page.
+func _spouse() -> void:
+	var S: Dictionary = load("res://scripts/ui/ending_screen.gd").get_script_constant_map()
+	var dated := Ending.spouse_line("sayo", "Sayo", "Spring 14")
+	check(dated == "Married Sayo on Spring 14", "the dated line (%s)" % dated)
+	check(Ending.spouse_line("fumi", "Fumi", "") == "Married to Fumi", "the undated line")
+	check(Ending.spouse_line("", "", "Spring 14") == "", "no spouse, no line")
+	for line in [dated, Ending.spouse_line("fumi", "Fumi", "Summer 30"), Ending.spouse_line("sayo", "Sayo", "")]:
+		check(PixelFont.missing(line) == "" and PixelFont.width(line) <= S.W - S.MARGIN * 2, "the line fits the paper: %s" % line)
+	var g := _game()
+	check(g.show_ending().spouse == "", "a single farmer's record has no line")
+	g.flags["spouse"] = "sayo"
+	g.flags["married_sayo"] = true
+	g.flags[Marriage.DAY] = 13
+	check(g.short_date_of(13) == "Spring 14" and g.date_of(13) == "Spring 14, Year 1", "the short date and the full one")
+	var sc: CanvasLayer = load("res://scripts/ui/ending_screen.gd").new()   # loaded late: it uses the Game autoload
+	root.add_child(sc)
+	var r: Dictionary = g.show_ending()
+	check(r.spouse == "Married Sayo on Spring 14", "the record names Sayo and the wedding day (%s)" % r.spouse)
+	sc.advance()
+	check(sc._spouse.visible and sc._spouse.text == "Married Sayo on Spring 14", "the screen shows the line once the rows are up")
+	_on_paper(sc, S, "married")
+	sc.advance()
+	check(not sc.is_open(), "the screen closes")
+	# The yearly page has it too; a save from before the day was kept says undated.
+	g.flags.erase(Marriage.DAY)
+	r = g.show_ending("year")
+	check(r.spouse == "Married to Sayo", "undated when the day is not known (%s)" % r.spouse)
+	sc.advance()
+	check(sc._spouse.visible and sc._spouse.text == "Married to Sayo", "the yearly page shows it too")
+	sc.advance()
+	# Single again: no line, on the screen or in the record.
+	g.flags.erase("spouse")
+	g.flags.erase("married_sayo")
+	r = g.show_ending("year")
+	check(r.spouse == "", "no line once single")
+	sc.advance()
+	check(not sc._spouse.visible and sc._spouse.text == "", "unmarried: nothing shown under the title")
+	sc.advance()
 	sc.queue_free()
 
 

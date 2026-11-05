@@ -67,8 +67,7 @@ None right now.
   Commit 7ca5b91.
 - Follow-up: pad players saw keyboard keys in the key hints. The game now remembers the last
   device used (pad button or stick past the deadzone, or key / click) and the hints show the
-  player's own pad buttons ("A", "B", "LB") while the pad was last used. Commit on branch
-  worktree-agent-a2eabe4d6be6a6291.
+  player's own pad buttons ("A", "B", "LB") while the pad was last used. Commit af1995b.
 
 - Small things (item 7): the barn's yellow lumps were the hay bundles and the hay in the
   trough, drawn in one flat unlit yellow; they are now lit and textured with grass strands
@@ -83,6 +82,12 @@ None right now.
   good save it replaces as `save1.json.bak`, then renames the temp over the slot; a slot that
   is cut off or missing loads the backup (the title says so), and with no backup says "The
   save file is cut off or broken" without touching the game. Commit 34393ea.
+
+- Follow-up to item 3: the village record had no word about the spouse. A married farmer's
+  record (and the yearly page) now has one line under the title, "Married Sayo on Spring 14"
+  (the wedding day is kept after the wedding); "Married to Sayo" when that day is not known;
+  nothing when single. data/ending.json `spouse`. See WORKLOG 2026-11-05 "Village record: the
+  spouse's line". Commit 6f08235.
 
 ## What the players liked (keep it)
 - 15–20: the pixel sprites on the 3D field look good and match everywhere; the Japanese
