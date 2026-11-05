@@ -67,6 +67,55 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
   if it bothers anyone. The date is the wedding's set day, not the day it was actually held when
   the farmer was late to the village.
 
+## 2026-11-05 — Night: warm pools under windows and lanterns, the glow kept off figures
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the follow-up to FEEDBACK item 6 (WORKLOG 2026-11-04 "Night", Left / next).
+  `NightLights` (scripts/world3d/night_lights.gd) now draws three passes in the tint's layer:
+  (1) a soft warm pool on the ground (additive, a ground quad with a round falloff cut into
+  six dithered steps through a 4 x 4 Bayer, like the mine lantern) in front of every lit
+  window and shoji door, against its wall, and round the foot of every stone lantern;
+  (2) after a BackBufferCopy, the panes and halos as before, plus a small glow round each
+  stone lantern's fire box (Shrine.stone_lantern now records it with `FarmWorld.lit_lamp`,
+  kept in `FarmWorld.lamps`); (3) the figures (the farmer, villagers, animals and the dog,
+  marked with `NightLights.figure`, with their held item / note children) that stand in front
+  of a glow are drawn back from the copy over their own pixels (a screen-reading shader, the
+  sprite's alpha as the mask), so the glow behind them no longer tints them. In front means:
+  overlapping the glow on screen, out past the window's wall (for a lantern, nearer the eye),
+  and not hidden behind a solid building (`NightLights.hidden`; else the hole would show).
+  The pools sit under the copy, so someone standing in one keeps its light. Real lights were
+  not used: the night is a multiply tint over the whole picture, so any warm light in the 3D
+  scene comes out at most the tint's red (0.25); the overlay costs one quad a pool and no
+  shadow maps, cheap for the village's 40-odd windows. Numbers ours, in data/light.json
+  "pools": colour ff9a48 (a deeper orange than the panes so lit ground reads warm over the
+  blue), window pools 0.34 strong (a bigger pane, a door, up to 1.5 times), two window
+  widths across (at least 1.2 cells), 1.6 cells out; lanterns 0.42 in a 1.2-cell circle, the
+  fire box glow 0.45 over 0.7 cells (1.1 washed the whole lantern out). They scale by
+  `Game.window_light()`, so they rise and fade on the windows' dusk / dawn schedule and lit
+  hours; a pool or lantern behind a solid building is not drawn, behind a faded one by its fade.
+- Checked: test_maps `_light_pools` (the town's 2 stone lanterns in `lamps`; one pool a lit
+  window and lantern; on the ground; none at glow 0; a window's pool starts at its wall and
+  lies out in front, a lantern's a circle round its foot; at 12:00, 17:00, 18:30, 19:00,
+  21:00, 23:50, 1:00, 2:00, 5:30 and 6:40 the pools' strengths are their full strength times
+  the windows' glow, none when it is 0; a house in front hides a pool, the house that casts
+  it never does), `_glow_off_figures` (shielded: in front and overlapping yes, behind the
+  wall no, away on screen no, a side window by its +x wall, a lantern by nearness to the eye;
+  a sprite's quad corners; hidden behind a solid house, not in front, not once it fades) and
+  `_start_view` (the passes in order: pools, copy, glows, figures; the figures' shader reads
+  the screen; the farmer is a figure). With the pools' glow gate removed, test_maps fails 7
+  checks. A/B frame (`--demo --map=town@sayo --time=21:00`, the farmer beside Sayo's lit side
+  door) with the figures pass switched off: 558 farmer pixels differ, mean RGB with the pass
+  (30, 27, 49) (the night blue) against (55, 43, 57) without (warmed by the door's halo).
+  All 27 test scripts `OK (0 failed)`; smoke runs (title, --demo, --demo --map=town, --demo
+  --mine=3, --demo --time=21:00, --demo --map=town --time=21:00, --demo
+  --map=sakurazaka@bridge --time=21:00, --demo --map=barn --time=21:00) print 0 error or
+  warning lines. Frames at 21:00: the farm (warm pools under the three windows and the door,
+  the farmer before the door not tinted), the town (the pool before the house door),
+  Sakurazaka's bridge (the four lanterns' fire boxes glow, a pool round each foot).
+- Left / next: the pools are not occluded per pixel (a whole pool shows or hides by its
+  middle) and draw over a figure standing just in front of one (only the window and lantern
+  glows are kept off figures); trees and props in front of a window still get its glow; the
+  festival lanterns (FestivalGlow) still glow over figures; the flat view has no pools.
+
 ## 2026-11-05 — Art direction: grass tufts on the grass cells
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: section 2's second item. `scripts/world3d/grass_tufts.gd` (GrassTufts) is one

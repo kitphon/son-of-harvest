@@ -23,6 +23,9 @@ var _tuft_cells: Array[Vector2i] = []
 ## House windows and shoji doors that light up at night (NightLights draws them over the night tint):
 ## {key: picture, pos: centre, size: Vector2 (w, h), normal: Vector3 out of the wall}.
 var windows: Array[Dictionary] = []
+## Stone lanterns lit at night (NightLights: a glow round the fire box, a pool round the foot):
+## {pos: the fire box's centre}.
+var lamps: Array[Dictionary] = []
 ## A thrown item still in the air: its cell's sprite waits until the flight lands.
 var hidden_item := Vector2i(-1, -1):
 	set(value):
@@ -153,6 +156,13 @@ func _lit_picture(key: String, size: Vector2, center: Vector3, normal_yaw := 0.0
 	_picture(key, size, center, normal_yaw)
 	var normal := Vector3(0, 0, 1).rotated(Vector3.UP, deg_to_rad(normal_yaw))
 	windows.append({"key": key, "pos": center, "size": size, "normal": normal})
+	if not is_in_group(NightLights.GROUP):
+		add_to_group(NightLights.GROUP)
+
+
+## A stone lantern's fire box at `at` that burns at night (kept in `lamps` for NightLights).
+func lit_lamp(at: Vector3) -> void:
+	lamps.append({"pos": at})
 	if not is_in_group(NightLights.GROUP):
 		add_to_group(NightLights.GROUP)
 

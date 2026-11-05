@@ -47,7 +47,7 @@ Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user star
 pixel font). [x] Item 2, a goal for week one: Tome's first-week
 list (data/goals.json, README → Goals, the HUD's goal tag). [x] Item 3, where love leads: marriage
 (data/marriage.json, README → Villagers → Marriage). [x] Item 5: dish prices a modest gain over the cheapest ingredients (data/foods.json `_dish_prices`). [x] Item 4: winter mine income about halved (data/mine.json `_prices`). [x] Item 6, night: a deep blue night,
-smooth dusk / dawn and lit house windows (data/light.json, README → Light). [x] Item 7: the barn's hay and straw,
+smooth dusk / dawn and lit house windows (data/light.json, README → Light), then warm pools on the ground under windows and lanterns, the glow kept off figures in front. [x] Item 7: the barn's hay and straw,
 the title text's backing. [x] Item 8: the title's save check (it lacked the food table) and
 atomic saves with a backup. No feedback items are open now; Thai for the villagers'
 daily talk, heart events and contests is still to write (data/lang/th/dialogue.json).
@@ -274,6 +274,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Key hints over the tool bar: what E / Space do at the spot in front, with the player's keys; Esc → Settings → Key hints (playtest feedback, 2026-11-03)
    - [x] Key hints show the player's pad buttons while the pad was the last device used (`Game.pad_active`, `input_device_changed`)
    - [x] Night (docs/FEEDBACK.md item 6): a darker deep blue night, smooth dusk and dawn (data/light.json), farmhouse and village house windows lit warm at night in the 3D view (NightLights)
+   - [x] Night follow-up: warm pools on the ground under lit windows and round the stone lanterns, lanterns' fire boxes glow, the windows' glow kept off the farmer, villagers and animals in front (data/light.json "pools")
    - [x] Clock pauses in menus (`Game.pause()` / `unpause()`)
    - [x] Clock pauses indoors (`Game.ticking()` is false on a map with `indoor: true`)
    - [x] A new area off the village: the bamboo hill (`hill`, bamboo clumps, a lookout shrine, examine events)

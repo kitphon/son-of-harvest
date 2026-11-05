@@ -888,6 +888,15 @@ with `_lit_picture`); a window turned from the camera or behind a solid building
 one behind a building faded see-through shines through as much as it is faded. The flat view
 has no windows to light (its houses are flat blocks), only the darker night.
 
+Light also falls on the ground: NightLights first adds a soft warm pool (its edge in dithered
+steps, like the mine lantern) in front of every lit window and door and round the foot of
+every stone lantern (`FarmWorld.lamps`, from `Shrine.stone_lantern`, whose fire box also
+glows), on the same schedule as the windows (data/light.json "pools": colour, strength, size).
+Then a BackBufferCopy keeps the picture, the panes and glows are added, and last the figures
+(sprites marked with `NightLights.figure`: the farmer, villagers, animals) standing in front
+of a glow are drawn back from the copy, so a window behind someone never tints them. Someone
+standing in a pool keeps its light (the pools are under the copy).
+
 ## Layout
 - `scripts/autoload/game.gd`: global state (clock, calendar, weather, money, bag, stamina, light).
 - `scripts/farm/farm_grid.gd`: farm rules, pure logic (no drawing).
@@ -906,7 +915,7 @@ has no windows to light (its houses are flat blocks), only the darker night.
   logic) and the text box that draws it.
 - `scripts/events/event_runner.gd`, `event_triggers.gd` (pure logic) and `event_player.gd`
   (the view's side: triggers, moving the farmer, the fade): event scripts.
-- `scripts/world3d/night_lights.gd`: lit house windows at night over the 3D view (README → Light).
+- `scripts/world3d/night_lights.gd`: lit house windows, lantern glows and their warm ground pools at night over the 3D view (README → Light).
 - `data/*.json`: crops and weather, tuned without touching code (`data/light.json`: the day /
   night sky and the lit windows); `data/dialogue/`: dialogue;
   `data/events/`: events and trigger tables.

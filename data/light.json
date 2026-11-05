@@ -22,5 +22,11 @@
 		"pane": 0.85,
 		"halo": 0.35,
 		"halo_size": 2.4
+	},
+	"_pools": "Warm light on the ground at night (3D view), as bright as the windows glow (windows above, the same dusk / dawn rise and lit hours). window: a pool in front of every lit window and shoji door, against its wall, `wide` window widths across (at least min_wide cells), reaching 2 * out cells from the wall; strength is how much warm light its middle gets (a door, bigger, up to 1.5 times it). color: the pools' light, a deeper orange than the panes so the lit ground reads warm over the night blue. lamp: the stone lanterns, a pool `radius` cells round the foot, a glow round the fire box (glow = its strength, glow_size = its width in cells). The pools' edges fall off in dithered steps, like the mine lantern's.",
+	"pools": {
+		"color": "ff9a48",
+		"window": {"strength": 0.34, "wide": 2.0, "min_wide": 1.2, "out": 0.8},
+		"lamp": {"strength": 0.42, "radius": 1.2, "glow": 0.45, "glow_size": 0.7}
 	}
 }

@@ -56,6 +56,7 @@ func _ready() -> void:
 	add_child(player)
 
 	sprite = FarmWorld.make_sprite(PlaceholderArt.tex(anim.key(Vector2i.DOWN)))
+	NightLights.figure(sprite)   # lit windows behind the farmer don't glow over them
 	add_child(sprite)
 	var shadow := MeshInstance3D.new()
 	var disc := PlaneMesh.new()
