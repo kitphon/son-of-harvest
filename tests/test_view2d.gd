@@ -2,7 +2,8 @@ extends SceneTree
 ## Headless checks for the flat view (scenes/main_2d.tscn): the scene builds, its Player's
 ## actions reach FarmActions (tools, holding and throwing, the bin, eating, fishing, doors,
 ## talking, shops, the mine), the throw is drawn, and the weather and festival lights read
-## the same rules as the 3D view (rain / snow, lightning, the lanterns' glow). Run:
+## the same rules as the 3D view (rain / snow, lightning, the lanterns' glow, the lit windows
+## and the warm pools at night). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_view2d.gd
 
 var failures := 0
@@ -40,6 +41,7 @@ func _run() -> void:
 	await _talk_and_shop()
 	await _mine()
 	await _weather_and_festival()
+	await _night()
 	scene.free()
 	print("test_view2d: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -256,6 +258,82 @@ func _weather_and_festival() -> void:
 	g.weather_today = "sunny"
 	scene._show_weather()
 	check(scene.weather.fall == "" and not scene.weather._fall.emitting, "a sunny day: nothing falls")
+
+## Lit windows, lanterns and the warm pools under them at night (NightView): the 3D view's
+## spots, pools and brightness (LitSpots, NightLights.pools_from, Game.window_light), on at
+## night, off at noon, rising with the dark, drawn under the figures.
+func _night() -> void:
+	var lights: GDScript = load("res://scripts/world3d/night_lights.gd")   # they name the Game autoload
+	var rules: Dictionary = g.light_data().get("pools", {})
+	g.weather_today = "sunny"
+	g.hour = 21
+	g.minute = 0
+	await process_frame
+	var nv: Node = get_nodes_in_group("night_view")[0] if not get_nodes_in_group("night_view").is_empty() else null
+	check(nv != null and _is(nv, "night_view.gd") and nv.get_parent() == scene.view, "the village view has its NightView")
+	if nv == null:
+		return
+	var spots: Dictionary = LitSpots.of_map(g.maps.current().props)
+	check(nv.windows.size() == spots.windows.size() and nv.windows.size() > 4 and nv.lamps.size() == spots.lamps.size() and nv.lamps.size() > 0,
+		"it lights the village's windows and lanterns (%d / %d)" % [nv.windows.size(), nv.lamps.size()])
+	check(is_equal_approx(nv.glow, g.window_light()) and nv.glow == 1.0 and nv.visible, "at 21:00 the windows glow fully (%.2f)" % nv.glow)
+	var want: Array = lights.pools_from(nv.windows, nv.lamps, nv.glow, rules)
+	check(nv.pools.size() == nv.windows.size() + nv.lamps.size() and nv.pools.size() == want.size(), "a pool for every lit window and lantern (%d)" % nv.pools.size())
+	var same := true
+	for i in want.size():
+		same = same and is_equal_approx(nv.pools[i].strength, want[i].strength) and nv.pools[i].center == want[i].center
+	check(same, "the pools are the 3D view's pools")
+	var wp: Dictionary = nv.pools[0]
+	var poly: PackedVector2Array = nv.pool_polygon(wp)
+	var wall: float = nv.windows[0].pos.z * 16.0
+	check(poly.size() == 4 and absf(poly[2].y - wall) < 0.6 and poly[0].y > wall + 24.0 and poly[0].y < wall + 27.0,
+		"a window's pool lies on the ground in front of its wall (%s)" % poly)
+	var front: Dictionary = nv.windows.filter(func(w): return w.normal.z > 0.5)[0]
+	var strip: Rect2 = nv.pane_rect(front)
+	check(strip.size.y == 2.0 and absf(strip.get_center().x - front.pos.x * 16.0) < 0.01, "a window shows as a strip on its wall")
+	var side: Rect2 = nv.pane_rect(spots.windows.filter(func(w): return w.normal.x > 0.5)[0])
+	check(side.size.x == 2.0 and side.size.y > 8.0, "a side window is a strip along its wall")
+	# Under the figures: the glow is a child of the view, drawn before the villagers; the farmer is above the view.
+	var order := true
+	for n in scene.view.get_children():
+		if _is(n, "villager_view.gd") or _is(n, "animal_view.gd"):
+			order = order and n.get_index() > nv.get_index()
+	check(order and scene.player.get_index() > scene.view.get_index() and nv.z_index == 0, "the glow is drawn under the villagers, animals and farmer")
+	# The night tint is divided out of the colour, so the light is not darkened by it.
+	await process_frame
+	var mat: ShaderMaterial = nv.get_node("Pools").material
+	check(mat.get_shader_parameter("tint") == scene.tint.color, "the shader divides the night tint out")
+	# Rising with the dark, gone by day, back before dawn.
+	g.hour = 18
+	g.minute = 30
+	await process_frame
+	var dusk: float = nv.glow
+	check(dusk > 0.0 and dusk < 1.0 and is_equal_approx(dusk, g.window_light()), "at 18:30 the windows are half lit (%.2f)" % dusk)
+	check(nv.pools.size() == want.size() and is_equal_approx(nv.pools[0].strength, want[0].strength * dusk), "and the pools fade with them")
+	g.hour = 12
+	g.minute = 0
+	await process_frame
+	check(nv.glow == 0.0 and nv.pools.is_empty() and not nv.visible, "at noon: no glow, no pools")
+	g.hour = 5
+	g.minute = 30
+	await process_frame
+	check(nv.glow > 0.0 and not nv.pools.is_empty() and nv.visible, "before dawn they are lit again (%.2f)" % nv.glow)
+	g.hour = 21
+	g.minute = 0
+	# The farm: the farmhouse's windows and door, no lanterns.
+	g.go_to_map("farm", Vector2i(4, 6), Vector2i.UP)
+	await _wait_view("farm_view.gd")
+	await process_frame
+	var fn: Node = null
+	for n in scene.view.get_children():
+		if _is(n, "night_view.gd"):
+			fn = n
+	check(fn != null and fn.windows.size() == LitSpots.farmhouse().size() and fn.lamps.is_empty() and fn.glow == 1.0,
+		"the farmhouse's windows glow too")
+	g.hour = 10
+	g.minute = 0
+	await process_frame
+	check(fn != null and not fn.visible and fn.pools.is_empty(), "and not by day")
 
 
 func _is(n: Object, file: String) -> bool:

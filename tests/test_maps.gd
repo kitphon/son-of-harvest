@@ -341,6 +341,16 @@ func _lit_windows(world: Node3D, occ: RefCounted) -> void:
 	check(facing, "every lit window faces +z or +x (the camera side)")
 	var doors: Array = world.windows.filter(func(w): return w.key == "build:shoji_door")
 	check(doors.size() >= houses.size() - shops.size(), "homes' doors light up, shops' doors under a noren not (%d doors)" % doors.size())
+	# The layout is LitSpots', shared with the flat view's NightView.
+	var spots: Dictionary = LitSpots.of_map(MapManager.data("town").props)
+	var same: bool = spots.windows.size() == world.windows.size() and spots.lamps.size() == world.lamps.size()
+	for i in mini(spots.windows.size(), world.windows.size()):
+		var a: Dictionary = spots.windows[i]
+		var b: Dictionary = world.windows[i]
+		same = same and a.key == b.key and a.pos.is_equal_approx(b.pos) and a.size == b.size and a.normal.is_equal_approx(b.normal)
+	for i in mini(spots.lamps.size(), world.lamps.size()):
+		same = same and spots.lamps[i].pos.is_equal_approx(world.lamps[i].pos)
+	check(same, "the village's lit windows and lanterns are the LitSpots layout (%d / %d)" % [world.windows.size(), world.lamps.size()])
 	var eye := Vector3(0.634, 0.448, 0.634).normalized() * 25.0
 	var seen := 0
 	for w in world.windows:

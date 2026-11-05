@@ -3,7 +3,8 @@ extends Node2D
 ## Same game as the 3D view: the Player's actions go to FarmActions (connect_view).
 ## The farm is a FarmView, other maps a MapView; a change of map fades and swaps them.
 ## Weather and festival lights read the same rules as the 3D view: WeatherView for rain and
-## snow, Lightning for the flashes, FestivalGlow for the lanterns and fireworks at night.
+## snow, Lightning for the flashes, FestivalGlow for the lanterns and fireworks at night,
+## NightView for the lit windows, stone lanterns and the warm pools under them.
 
 const T := 16
 
@@ -106,6 +107,9 @@ func _enter_map() -> void:
 		add_child(view)
 		mv.show_snow(Game.snow_rules)   # outdoors only
 		mv.set_snow(Game.snow_cover / 100.0)
+	var night := NightView.new().setup(m.props, Game.maps.on_farm())
+	night.tint = tint
+	view.add_child(night)   # lit windows and lanterns, under the figures
 	view.add_child(StoryView.new(m))   # what the heart events left (the bell, the store's sign)
 	view.add_child(FestivalView.new(m.id))   # today's festival decorations, in its hours
 	view.add_child(ForageView.new(m.id))   # what grows wild there today (data/forage.json)

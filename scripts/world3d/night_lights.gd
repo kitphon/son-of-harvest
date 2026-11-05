@@ -280,12 +280,17 @@ static func corners(win: Dictionary) -> Array[Vector3]:
 ## its wall, as wide as `wide` windows (at least min_wide), reaching 2 * out from the wall, a
 ## bigger pane (a door) a little brighter; a lantern's is a circle round its foot.
 static func pools_of(world: FarmWorld, glow: float, rules: Dictionary) -> Array[Dictionary]:
+	return pools_from(world.windows, world.lamps, glow, rules)
+
+
+## The same for any lists of windows and lamps (LitSpots): the flat view's NightView uses it too.
+static func pools_from(windows: Array, lamps: Array, glow: float, rules: Dictionary) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	if glow <= 0.0:
 		return out
 	var wr: Dictionary = rules.get("window", {})
 	var lr: Dictionary = rules.get("lamp", {})
-	for win in world.windows:
+	for win in windows:
 		var n: Vector3 = win.normal
 		var right := Vector3.UP.cross(n).normalized()
 		var half := maxf(win.size.x * float(wr.get("wide", 2.0)) / 2.0, float(wr.get("min_wide", 1.2)) / 2.0)
@@ -294,7 +299,7 @@ static func pools_of(world: FarmWorld, glow: float, rules: Dictionary) -> Array[
 		var k := float(wr.get("strength", 0.3)) * clampf(sqrt(area / 0.35), 0.8, 1.5) * glow
 		out.append({"center": Vector3(win.pos.x, 0.02, win.pos.z) + n * reach, "across": right * half,
 			"out": n * reach, "strength": k, "own": win.pos + n * 0.05, "normal": n})
-	for l in world.lamps:
+	for l in lamps:
 		var r := float(lr.get("radius", 1.2))
 		out.append({"center": Vector3(l.pos.x, 0.02, l.pos.z), "across": Vector3(r, 0, 0),
 			"out": Vector3(0, 0, r), "strength": float(lr.get("strength", 0.4)) * glow, "own": l.pos,

@@ -61,6 +61,10 @@ None right now.
   warm pool on the ground (rising and fading with the windows, data/light.json "pools"), the
   lanterns' fire boxes glow, and a window's glow no longer tints the farmer or a villager
   standing in front of it. Commit 27e97f6 (WORKLOG 2026-11-05 "Night: warm pools").
+- Night, flat view: main_2d had only the darker night. It now has the lit windows (a warm strip on
+  the farmhouse and the village houses' windows and doors), the stone lanterns' fire, and the
+  dithered warm pools under them, from the same layout, pools and brightness as the 3D view and
+  under the figures (WORKLOG 2026-11-05 "Night in the flat view").
 - Roofs in front of the farmer hid the screen (village, festival square, snow): buildings,
   trees and the torii turn see-through when they stand between the camera and the farmer.
   Commit 67cbaed.

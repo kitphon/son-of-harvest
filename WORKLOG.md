@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-05 — Night in the flat view: lit windows, lanterns and warm pools
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: follow-up to FEEDBACK item 6. The flat view (scenes/main_2d.tscn) now shows what the 3D
+  view got at night. New `LitSpots` (scripts/world3d/lit_spots.gd) is the one layout of lit
+  windows and lantern fire boxes in map units (the farmhouse, the village houses with their
+  doors, side doors and the noren rule, the stone lanterns); FarmWorld and MapWorld build their
+  shoji pictures from it (positions unchanged) and `NightLights.pools_from(windows, lamps,
+  glow, rules)` (split out of `pools_of`) works the pools out for both views. New `NightView`
+  (scripts/world/night_view.gd), a child of the FarmView / MapView put in by main_2d: it reads
+  `Game.window_light()` (the same timing helper: dusk / dawn rise, lit hours) and data/light.json
+  "windows" / "pools", and draws from above a 2 px warm strip on each lit window and door, a
+  dithered round halo, a lantern's glow with a 4 px fire, and the pools as dithered steps (a Bayer
+  pattern on world pixels, so it stays pixel-art at any zoom). It lies under the villagers,
+  animals and the farmer (they are drawn after it), so nothing in front is tinted. Because the
+  scene's CanvasModulate multiplies everything after the shader, the shader divides its colour
+  by `tint` (set by main_2d), so the light lands on the night ground as in 3D.
+- Checked: test_view2d `_night` (NightView on the village and the farm, spots = LitSpots, pools =
+  NightLights.pools_from, full at 21:00, 18:30 between and the pools scale with it, none at noon,
+  lit again at 5:30, the farmhouse's four windows, draw order under the figures, tint divided out);
+  test_maps: the town's 3D windows and lanterns equal LitSpots.of_map. All 27 test scripts
+  `OK (0 failed)`; smoke runs (title, --demo, town, mine=3, and main_2d at 21:00 in the town) clean.
+  Screenshot `main_2d.tscn -- --demo --time=21:00` (frame 19): ground under the left window
+  (36..56, 62..66) averages (104.7, 84.2, 55.7) against (28.0, 52.0, 41.0) 40 px off to the left
+  (so warmer and brighter); the window strip pixel (255, 238, 136) over a wall at (129, 87, 57);
+  the farmer standing in the door keeps his own colours.
+- Left / next: the glow is not hidden by buildings in front (from above nothing is); the farmhouse's
+  pool begins at the engawa line, 6 px over the roof's edge. No new text, so no Thai entries.
+
 ## 2026-11-05 — Key hints: the last device used (pad buttons for pad players)
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: follow-up to "Key hints: what E / Space do at the spot in front". `Game._input` calls
