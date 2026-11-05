@@ -115,6 +115,10 @@ None right now.
   knot, the long date and every saved-game / settings error the title can show (108 entries in
   data/lang/th/ui.json, 2 in items.json). Recipe `taught` notes, node names and a regex were
   never on screen and are now left out of the catalog. WORKLOG 2026-11-05 "Thai: the last gaps". Commit 96a67e1.
+- Key hints on a PlayStation pad (follow-up to the key hints): the HUD hints and the controls page
+  name the pad buttons Cross, Circle, L1... when the pad last used is a PlayStation pad (found by
+  its name or Sony vendor id), A, B, LB... otherwise; Esc -> Settings -> Pad buttons (Auto / Xbox /
+  PlayStation) forces a style. test_menu `_pad_style`. See WORKLOG 2026-11-05, Pad button names. Commit 219eae4.
 
 ## What the players liked (keep it)
 - 15–20: the pixel sprites on the 3D field look good and match everywhere; the Japanese

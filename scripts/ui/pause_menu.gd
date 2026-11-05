@@ -100,7 +100,7 @@ func slot_text(item: String, k: int) -> String:
 	if listening == item and slot == k:
 		return "..."
 	if is_pad_slot(k):
-		return settings.controls.pad_name(settings.controls.pad_button(item))
+		return settings.controls.pad_name(settings.controls.pad_button(item), Controls.style_now)
 	return Controls.key_name(settings.controls.keys(item)[k])
 
 
@@ -198,7 +198,7 @@ func press_pad(button: int) -> String:
 	note = ""
 	var c := settings.controls
 	var r := c.bind_pad(action, button)
-	var name := c.pad_name(button)
+	var name := c.pad_name(button, Controls.style_now)
 	if r.done:
 		if r.other != "":
 			note = "%s was on %s: swapped." % [name, c.spec[r.other].label]

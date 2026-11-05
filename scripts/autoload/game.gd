@@ -50,6 +50,9 @@ var text_speed := 1.0           # the text box's speed from the settings (x lett
 var always_run := false         # settings: the farmer runs unless the run key is held
 var hud_visible := true         # settings: the HUD is drawn
 var pad_active := false         # the last input came from a joypad (key hints show pad buttons); keyboard / mouse input clears it
+var pad_device := -1            # the joypad the last pad input came from (-1 = none yet)
+var pad_style_setting := "auto" # settings: how pad buttons are named: auto (by the pad), xbox, playstation
+var joy_lookup := Callable()    # (device) -> [name, guid]; empty = ask Input (tests set it)
 var key_hints := true           # settings: the HUD says what the buttons do (ActionHints)
 var ui_scale := 1.0             # settings: how big the HUD, menus and text box are (UiScale fits it to the screen)
 var max_fps := 0                # settings: the frame cap (0 = none), also Engine.max_fps
@@ -593,6 +596,8 @@ func apply_settings(args := OS.get_cmdline_user_args()) -> void:
 	always_run = bool(settings.value("always_run"))
 	hud_visible = bool(settings.value("hud"))
 	key_hints = bool(settings.value("hints"))
+	pad_style_setting = str(settings.value("pad_style"))
+	Controls.style_now = pad_style()
 	ui_scale = float(settings.option_value("ui_scale"))
 	for arg in args:   # `-- --ui=150%`: a UI size for this run (screenshots), not saved
 		if arg.begins_with("--ui="):
@@ -2801,8 +2806,10 @@ func note_input(event: InputEvent) -> void:
 	var pad: bool
 	if event is InputEventJoypadButton and event.pressed:
 		pad = true
+		_note_pad_device(event.device)
 	elif event is InputEventJoypadMotion and absf(event.axis_value) >= PAD_DEADZONE:
 		pad = true
+		_note_pad_device(event.device)
 	elif (event is InputEventKey or event is InputEventMouseButton) and event.pressed:
 		pad = false
 	else:
@@ -2810,6 +2817,31 @@ func note_input(event: InputEvent) -> void:
 	if pad != pad_active:
 		pad_active = pad
 		input_device_changed.emit(pad)
+
+
+func _note_pad_device(device: int) -> void:
+	if device != pad_device:
+		var was := pad_style()
+		pad_device = device
+		Controls.style_now = pad_style()
+		if pad_style() != was and pad_active:
+			input_device_changed.emit(true)   # the hints redraw with the other names
+
+
+## The pad button style in use ("xbox" or "playstation"): the Pad buttons setting, or with
+## Auto what the last pad used says it is (Controls.style_of on its name and guid).
+func pad_style() -> String:
+	if pad_style_setting == Controls.STYLE_XBOX or pad_style_setting == Controls.STYLE_PLAYSTATION:
+		return pad_style_setting
+	if pad_device < 0:
+		return Controls.STYLE_XBOX
+	var info: Array = joy_lookup.call(pad_device) if joy_lookup.is_valid() else [Input.get_joy_name(pad_device), Input.get_joy_guid(pad_device)]
+	return Controls.style_of(str(info[0]), str(info[1]))
+
+
+## A pad button as the player's pad names it ("A" / "Cross", "LB" / "L1"...).
+func pad_text(button: int) -> String:
+	return settings.controls.pad_name(button, pad_style()) if settings != null else "-"
 
 
 func _unhandled_input(event: InputEvent) -> void:

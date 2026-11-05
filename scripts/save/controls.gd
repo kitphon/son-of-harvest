@@ -32,6 +32,9 @@ const PAD_AXES := {
 	"rs_up": Vector2i(JOY_AXIS_RIGHT_Y, -1), "rs_down": Vector2i(JOY_AXIS_RIGHT_Y, 1),
 	"rs_left": Vector2i(JOY_AXIS_RIGHT_X, -1), "rs_right": Vector2i(JOY_AXIS_RIGHT_X, 1),
 }
+const STYLE_XBOX := "xbox"
+const STYLE_PLAYSTATION := "playstation"
+static var style_now := STYLE_XBOX   # the style Game.pad_style() found last (the pause menu has no Game to ask)
 const AXIS_PRESS := 0.6   # how far an axis must go to count when the menu waits for one
 
 var slots := 2
@@ -39,7 +42,8 @@ var order: Array[String] = []   # actions in menu order
 var spec: Dictionary = {}       # action -> {label, keys (default key codes), fixed (key codes), pad, pad_fixed, stick}
 var bound: Dictionary = {}      # action -> key code per slot (KEY_NONE = empty slot)
 var pad_bound: Dictionary = {}  # action -> its pad button (NO_BUTTON = none)
-var pad_names: Dictionary = {}  # pad button -> how the menu shows it
+var pad_names: Dictionary = {}  # pad button -> how the menu shows it (Xbox style)
+var pad_names_ps: Dictionary = {}  # pad button -> how a PlayStation pad's button is shown
 
 
 ## `tools` are the tool ids for the "pick tool N" actions; empty = Game.TOOLS.
@@ -64,6 +68,11 @@ static func make(path := DATA, tools: Array = []) -> Controls:
 		c.pad_names[PAD_BUTTONS[id]] = str(data.get("pad_names", {}).get(id, id))
 	for id in PAD_AXES:
 		c.pad_names[axis_code(PAD_AXES[id].x, PAD_AXES[id].y)] = str(data.get("pad_names", {}).get(id, id))
+	for id in PAD_BUTTONS:
+		c.pad_names_ps[PAD_BUTTONS[id]] = str(data.get("pad_names_ps", {}).get(id, c.pad_names[PAD_BUTTONS[id]]))
+	for id in PAD_AXES:
+		var code := axis_code(PAD_AXES[id].x, PAD_AXES[id].y)
+		c.pad_names_ps[code] = str(data.get("pad_names_ps", {}).get(id, c.pad_names[code]))
 	c.reset()
 	return c
 
@@ -121,8 +130,22 @@ static func motion_code(axis: int, value: float) -> int:
 
 
 ## The pad button as the menu shows it ("-" for an empty slot).
-func pad_name(button: int) -> String:
-	return pad_names.get(button, "-")
+## `style` is "xbox" (A, LB...) or "playstation" (Cross, L1...).
+func pad_name(button: int, style := STYLE_XBOX) -> String:
+	return (pad_names_ps if style == STYLE_PLAYSTATION else pad_names).get(button, "-")
+
+
+## The style a pad's own name and SDL guid say it is: "playstation" for a Sony pad (DualShock,
+## DualSense, PS3 / PS4 / PS5 by name, or Sony's USB vendor id 054c in the guid), else "xbox".
+static func style_of(joy_name: String, guid: String) -> String:
+	var n := joy_name.to_lower()
+	for word in ["playstation", "dualshock", "dualsense", "sony", "ps3", "ps4", "ps5", "ps vita"]:
+		if n.contains(word):
+			return STYLE_PLAYSTATION
+	# An SDL guid holds the vendor id little-endian at hex digits 8..11: Sony = 054c -> "4c05".
+	if guid.length() >= 12 and guid.substr(8, 4).to_lower() == "4c05":
+		return STYLE_PLAYSTATION
+	return STYLE_XBOX
 
 
 ## The key as the menu shows it ("-" for an empty slot).

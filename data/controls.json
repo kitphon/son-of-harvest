@@ -24,5 +24,10 @@
 	"pad_names": {"a": "A", "b": "B", "x": "X", "y": "Y", "back": "Back", "guide": "Guide", "start": "Start",
 		"left_stick": "L3", "right_stick": "R3", "left_shoulder": "LB", "right_shoulder": "RB",
 		"dpad_up": "D-up", "dpad_down": "D-down", "dpad_left": "D-left", "dpad_right": "D-right",
-		"left_trigger": "LT", "right_trigger": "RT", "rs_up": "RS-up", "rs_down": "RS-down", "rs_left": "RS-left", "rs_right": "RS-right"}
+		"left_trigger": "LT", "right_trigger": "RT", "rs_up": "RS-up", "rs_down": "RS-down", "rs_left": "RS-left", "rs_right": "RS-right"},
+	"_pad_names_ps": "The same pad inputs as a PlayStation pad shows them (Settings -> Pad buttons: Auto picks these for a PlayStation pad; Godot's A / B / X / Y are the Cross / Circle / Square / Triangle).",
+	"pad_names_ps": {"a": "Cross", "b": "Circle", "x": "Square", "y": "Triangle", "back": "Share", "guide": "PS", "start": "Options",
+		"left_stick": "L3", "right_stick": "R3", "left_shoulder": "L1", "right_shoulder": "R1",
+		"dpad_up": "D-up", "dpad_down": "D-down", "dpad_left": "D-left", "dpad_right": "D-right",
+		"left_trigger": "L2", "right_trigger": "R2", "rs_up": "RS-up", "rs_down": "RS-down", "rs_left": "RS-left", "rs_right": "RS-right"}
 }

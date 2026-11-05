@@ -274,6 +274,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] The 3D view never looks off the world (land and a pine wood past outdoor map edges) and buildings / trees in front of the farmer turn see-through (playtest feedback, 2026-11-03)
    - [x] Key hints over the tool bar: what E / Space do at the spot in front, with the player's keys; Esc → Settings → Key hints (playtest feedback, 2026-11-03)
    - [x] Key hints show the player's pad buttons while the pad was the last device used (`Game.pad_active`, `input_device_changed`)
+   - [x] Pad button names: PlayStation names (Cross, Circle, L1...) for a PlayStation pad, Esc -> Settings -> Pad buttons: Auto / Xbox / PlayStation
    - [x] Night (docs/FEEDBACK.md item 6): a darker deep blue night, smooth dusk and dawn (data/light.json), farmhouse and village house windows lit warm at night in the 3D view (NightLights)
    - [x] Night follow-up: warm pools on the ground under lit windows and round the stone lanterns, lanterns' fire boxes glow, the windows' glow kept off the farmer, villagers and animals in front (data/light.json "pools")
    - [x] Clock pauses in menus (`Game.pause()` / `unpause()`)
