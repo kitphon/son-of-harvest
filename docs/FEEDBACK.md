@@ -57,6 +57,10 @@ None right now.
   houses' windows and shoji doors glow warm from dusk to 0:30 and before dawn (3D view;
   the flat view only gets the darker night). data/light.json. Commit 3365ff1 (see
   WORKLOG 2026-11-04 "Night").
+- Night, follow-up to item 6: lit windows, shoji doors and the stone lanterns now cast a soft
+  warm pool on the ground (rising and fading with the windows, data/light.json "pools"), the
+  lanterns' fire boxes glow, and a window's glow no longer tints the farmer or a villager
+  standing in front of it. Commit this branch (WORKLOG 2026-11-05 "Night: warm pools").
 - Roofs in front of the farmer hid the screen (village, festival square, snow): buildings,
   trees and the torii turn see-through when they stand between the camera and the farmer.
   Commit 67cbaed.

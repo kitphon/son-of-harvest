@@ -77,6 +77,17 @@ func _start_view() -> void:
 	check(_scene.world.windows.size() == 4, "the farmhouse lights three windows and its door (%d)" % _scene.world.windows.size())
 	var lights := _scene.find_children("*", "Control", true, false).filter(func(n): return n.get_script() != null and n.get_script().resource_path.ends_with("night_lights.gd"))
 	check(lights.size() == 1, "the 3D view draws the lit windows")
+	if lights.size() == 1:
+		# The glows come after a copy of the picture, and the figures in front are drawn back
+		# from that copy, so a window's glow never tints the farmer standing before it.
+		var kids: Array = lights[0].get_children()
+		var copy_at := kids.find(lights[0].copy)
+		check(copy_at >= 0 and lights[0].copy.copy_mode == BackBufferCopy.COPY_MODE_VIEWPORT
+			and copy_at < kids.find(lights[0].glows) and kids.find(lights[0].glows) < kids.find(lights[0].figures),
+			"night lights: pools, then a copy of the picture, then the glows, then the figures")
+		check(lights[0].figures.material is ShaderMaterial and "hint_screen_texture" in lights[0].figures.material.shader.code,
+			"the figures are drawn back from the copy (the screen as it was before the glows)")
+		check(_scene.sprite.is_in_group(lights[0].FIGURES), "the farmer is a figure the glows keep off")
 
 
 func _check_view() -> void:
@@ -363,8 +374,113 @@ func _lit_windows(world: Node3D, occ: RefCounted) -> void:
 	box.free()
 	var room: Node3D = load("res://scripts/world3d/map_world.gd").new()
 	room.build(MapManager.data("house"))
-	check(room.windows.is_empty(), "no lit windows inside the farmhouse (its own lamp light)")
+	check(room.windows.is_empty() and room.lamps.is_empty(), "no lit windows inside the farmhouse (its own lamp light)")
 	room.free()
+	_light_pools(world, occ)
+	_glow_off_figures()
+
+
+## Warm pools on the ground at night (NightLights.pools_of, data/light.json "pools"): one for
+## every lit window and stone lantern, none by day, as bright as the windows glow at the hour.
+func _light_pools(world: Node3D, occ: RefCounted) -> void:
+	var NightLights: GDScript = load("res://scripts/world3d/night_lights.gd")
+	var game_script: GDScript = load("res://scripts/autoload/game.gd")
+	var light: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/light.json"))
+	var pr: Dictionary = light.pools
+	var lanterns := MapManager.data("town").props.filter(func(p): return p.kind == "stone_lantern")
+	check(lanterns.size() > 0 and world.lamps.size() == lanterns.size() and world.is_in_group(NightLights.GROUP),
+		"the village's %d stone lanterns burn at night (%d)" % [lanterns.size(), world.lamps.size()])
+	var full: Array = NightLights.pools_of(world, 1.0, pr)
+	check(full.size() == world.windows.size() + world.lamps.size(), "a pool for every lit window and lantern (%d)" % full.size())
+	check(full.all(func(p): return p.strength > 0.0 and absf(p.center.y) < 0.05), "every pool lies on the ground, lit")
+	check(NightLights.pools_of(world, 0.0, pr).is_empty(), "no pools while the windows are dark")
+	# A window's pool lies in front of its wall, against it; a lantern's round its foot.
+	var win: Dictionary = world.windows[0]
+	var wp: Dictionary = full[0]
+	var near: float = (wp.center - wp.out - Vector3(win.pos.x, 0.02, win.pos.z)).length()
+	check(wp.out.dot(win.normal) > 0.0 and near < 0.01, "a window's pool starts at its wall and lies out in front")
+	var lp: Dictionary = full[world.windows.size()]
+	var foot: Vector3 = world.lamps[0].pos
+	check(Vector2(lp.center.x - foot.x, lp.center.z - foot.z).length() < 0.01 and is_equal_approx(lp.across.length(), lp.out.length()),
+		"a lantern's pool is a circle round its foot")
+	var c: Array = NightLights.pool_corners(wp)
+	check(c.size() == 4 and c.all(func(v): return absf(v.y - 0.02) < 0.001), "a pool's corners lie on the ground")
+	# They follow the windows' schedule: the same dusk / dawn rise and lit hours.
+	var rules: Dictionary = light.windows
+	var base: Array = full.map(func(p): return p.strength)
+	for m in [12 * 60, 17 * 60, 18 * 60 + 30, 19 * 60, 21 * 60, 23 * 60 + 50, 60, 2 * 60, 5 * 60 + 30, 6 * 60 + 40]:
+		var glow: float = game_script.window_glow(game_script.sky_at(m, light.sky), m, rules)
+		var ps: Array = NightLights.pools_of(world, glow, pr)
+		var same := ps.size() == (0 if glow <= 0.0 else base.size())
+		for i in ps.size():
+			same = same and is_equal_approx(ps[i].strength, base[i] * glow)
+		check(same, "the pools at %02d:%02d follow the windows' glow (%.2f)" % [m / 60, m % 60, glow])
+	check(game_script.window_glow(game_script.sky_at(720, light.sky), 720, rules) == 0.0
+		and game_script.window_glow(game_script.sky_at(1260, light.sky), 1260, rules) == 1.0
+		and game_script.window_glow(game_script.sky_at(120, light.sky), 120, rules) == 0.0,
+		"pools: off at noon and at 2:00, full at 21:00")
+	# A pool behind a solid building is not drawn; its own house never hides it.
+	var eye := Vector3(0.634, 0.448, 0.634).normalized() * 25.0
+	var seen := 0
+	for p in full:
+		var k: float = NightLights.ground_seen(p.center, p.own, p.center + eye, occ)
+		if k == 1.0:
+			seen += 1
+	check(seen >= full.size() / 2, "most pools are in plain view of the eye (%d of %d)" % [seen, full.size()])
+	var Occluders: GDScript = load("res://scripts/world3d/occluders.gd")
+	var blocker: RefCounted = Occluders.new()
+	var box := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(2, 3, 1)
+	box.mesh = mesh
+	box.position = Vector3(0, 1.5, 3)
+	box.material_override = StandardMaterial3D.new()
+	blocker.add([box])
+	check(NightLights.ground_seen(Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(0, 1, 20), blocker) == 0.0, "a house in front hides a pool")
+	check(NightLights.ground_seen(Vector3(0, 0, 1), Vector3(0, 1, 3), Vector3(0, 1, 20), blocker) == 1.0, "the house that casts a pool never hides it")
+	box.free()
+
+
+## The glow keeps off figures in front of it (NightLights.shielded, sprite_corners, hidden).
+func _glow_off_figures() -> void:
+	var NightLights: GDScript = load("res://scripts/world3d/night_lights.gd")
+	var lit := [{"rect": Rect2(100, 50, 40, 30), "pos": Vector3(4, 1.1, 3.6), "normal": Vector3(0, 0, 1)}]
+	check(NightLights.shielded(Rect2(110, 40, 16, 30), Vector3(4, 0, 4.5), lit), "a figure in front of a window and over its glow: kept off")
+	check(not NightLights.shielded(Rect2(110, 40, 16, 30), Vector3(4, 0, 2.5), lit), "a figure behind the window's wall is not (nothing to show)")
+	check(not NightLights.shielded(Rect2(200, 40, 16, 30), Vector3(4, 0, 4.5), lit), "a figure away from the glow on screen is left alone")
+	var side := [{"rect": Rect2(100, 50, 40, 30), "pos": Vector3(7, 1.1, 2), "normal": Vector3(1, 0, 0)}]
+	check(NightLights.shielded(Rect2(110, 40, 16, 30), Vector3(8, 0, 2), side) and not NightLights.shielded(Rect2(110, 40, 16, 30), Vector3(6, 0, 2), side),
+		"a side window: in front means out past its wall")
+	var lamp := [{"rect": Rect2(100, 50, 40, 30), "pos": Vector3(5, 0.86, 5), "normal": Vector3(0.7, 0, 0.7)}]
+	check(NightLights.shielded(Rect2(110, 40, 16, 30), Vector3(6, 0, 6), lamp) and not NightLights.shielded(Rect2(110, 40, 16, 30), Vector3(4, 0, 4), lamp),
+		"a lantern's glow keeps off a figure nearer the eye, not one behind it")
+	var fw: GDScript = load("res://scripts/world3d/farm_world.gd")
+	var art: GDScript = load("res://scripts/art/placeholder_art.gd")
+	var s: Sprite3D = fw.make_sprite(art.tex("item:turnip"))
+	var h: float = s.texture.get_height() * fw.PX
+	var hw: float = s.texture.get_width() * fw.PX / 2.0
+	var root3 := Node3D.new()
+	root.add_child(root3)
+	root3.add_child(s)
+	s.position = Vector3(2, 0, 3)
+	var c: Array = NightLights.sprite_corners(s, Basis.IDENTITY)
+	check(c[0].distance_to(Vector3(2 - hw, h, 3)) < 0.001 and c[2].distance_to(Vector3(2 + hw, 0, 3)) < 0.001,
+		"a figure's quad: feet on the ground, top left to bottom right")
+	var Occluders: GDScript = load("res://scripts/world3d/occluders.gd")
+	var occ: RefCounted = Occluders.new()
+	var box := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(4, 3, 2)
+	box.mesh = mesh
+	box.position = Vector3(2, 1.5, 6)
+	box.material_override = StandardMaterial3D.new()
+	occ.add([box])
+	check(NightLights.hidden(Vector3(2, 0.5, 3), Vector3(2, 5, 25), occ), "a figure behind a solid house is hidden (no glow kept off it)")
+	check(not NightLights.hidden(Vector3(2, 0.5, 9), Vector3(2, 5, 25), occ), "one in front of it is not")
+	occ.update(Vector3(2, 0, 3), Vector3(0, 0.45, 1).normalized(), 10.0)
+	check(not NightLights.hidden(Vector3(2, 0.5, 3), Vector3(2, 5, 25), occ), "behind a house faded see-through it shows again")
+	box.free()
+	root3.free()
 
 
 ## Winter snow off the farm: outdoor maps hold it by tile kind (paths a little less, water

@@ -77,6 +77,7 @@ func _shadow(s: Sprite3D, kind: String) -> void:
 func _add_beast(beast: Dictionary, area: Rect2, start: Vector2) -> void:
 	var kind := Game.animals.look(beast)
 	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:%s:idle:0" % kind))
+	NightLights.figure(s)
 	add_child(s)
 	_shadow(s, kind)
 	_beasts.append({"sprite": s, "kind": kind, "sick": bool(beast.sick), "home": area, "pos": start,
@@ -89,6 +90,7 @@ func _add_dog() -> void:
 	if dog.held:
 		return
 	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:dog:idle:0"))
+	NightLights.figure(s)
 	add_child(s)
 	_shadow(s, "dog")
 	_dog = {"sprite": s, "pos": Vector2(dog.cell) + Vector2(0.5, 0.5), "pose": "idle", "time": 0.0, "still": 0.0}

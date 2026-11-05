@@ -28,6 +28,7 @@ func refresh() -> void:
 		var s: Sprite3D = _sprites.get(w.id)
 		if s == null:
 			s = FarmWorld.make_sprite(PlaceholderArt.tex(Villagers.sprite_key(w)))
+			NightLights.figure(s)
 			var shadow := MeshInstance3D.new()
 			var disc := PlaneMesh.new()
 			disc.size = Vector2(0.55, 0.55)
