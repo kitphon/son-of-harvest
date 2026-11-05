@@ -58,8 +58,31 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
   0 stale. All 29 test scripts print OK (0 failed); smoke runs (title, --demo, --map=town,
   --mine=3) print no error or warning lines. A `--demo --map=town --event=heart_fumi_5 --lang=th`
   frame shows Fumi's first line in Thai in the text box.
-- Left / next: the villagers' daily talk (talk_*.json) is still English;
+- Left / next: the villagers' daily talk (talk_*.json) came in the parallel branch (next entry);
   shop lines, recipes, goals names etc. are listed by `lang_report --list`.
+
+## 2026-11-05 — Thai daily talk (FEEDBACK item 1 follow-up)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: Thai for every line of the villagers' daily talk: the twelve talk files
+  (data/dialogue/talk_fumi, genzo, hachiro, haru, ichiro, kiku, kota, nana, sayo, shige, tome,
+  yae; 498 lines: greetings, seasons, forage tips, gifts, festival, heart band and married
+  lines) in data/lang/th/dialogue.json, keyed by the English line like the rest, in one block at
+  the end of the table. rainy_day and pond_first already had Thai. Voices: Tome and Kiku are
+  grandmothers (ยาย, the farmer หลาน), Kota and Nana children (ผม / หนู, the farmer พี่), Hachiro,
+  Genzo, Ichiro and Shige men (ผม; Ichiro short and dry), Sayo, Fumi, Haru and Dr. Yae (ฉัน,
+  the farmer เธอ); names as in data/lang/th/items.json. Spaces split the phrases for the
+  wrap. The table's `_note` still lists the daily talk as English; left for the merge with the
+  heart event / contest Thai being written alongside.
+- Checked: test_lang `_thai_dialogue_fits` (new): every dialogue line with a Thai entry fits the
+  box's 4 rows at the width beside a portrait, no row wider than the text, and no talk_*.json
+  line left in English. tools/lang_report.gd -- --lang=th before: "th: 784 of 1685 done (46%),
+  901 missing, 0 stale", dialogue "124 of  889"; after: "th: 1282 of 1685 done (76%), 403
+  missing, 0 stale", dialogue "622 of  889". Screenshot `--demo --map=town --time=14:30
+  --talk=tome --lang=th`: Tome's box shows "หืม? อ้อ ชาวไร่คนใหม่ ทางข้างบ่อน้ำ เป็นโคลนนะ
+  ระวังลื่นล่ะ" on one row. All test scripts `OK (0 failed)` (test_menu and test_save failed
+  once in the full run while another worktree's tests ran at the same time, and passed alone
+  right after); smoke runs (title, --demo, town, mine=3) print no error or warning lines.
+- Left / next: Thai for heart events, contests, marriage, ending lines (another task).
 
 ## 2026-11-05 — Key hints: the last device used (pad buttons for pad players)
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit

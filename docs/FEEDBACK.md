@@ -41,7 +41,11 @@ None right now.
   lessons, the year record); anything missing stays English. Thai glyphs drawn for our pixel
   font. Plainer English: the onigiri reads "A rice ball with a quick pickle inside", and a
   recipe without its tool says which one ("needs Clay pot", "Clay pot (buy at store)").
-  Still English: the villagers' daily talk. Commit c3dce89.
+  Commit c3dce89. (The daily talk, heart events and contest lines followed; see below.)
+- Item 1 follow-up, the villagers' daily talk was English in Thai: every line of the twelve
+  villagers' talk files (data/dialogue/talk_*.json, 498 lines) has Thai in
+  data/lang/th/dialogue.json, each in the villager's own voice; test_lang checks that the talk
+  is all Thai and that every Thai line fits the text box. Commit b46e58c (WORKLOG 2026-11-05, Thai daily talk).
 - A slow start, no small goal in week one: Tome's first-week list (data/goals.json): plant 9
   plots, say hello to 3 people, pick 4 wild plants, catch a fish (all day 1–3), ship 5 crops
   and earn 1000 G (week one), each with a reward (money, rice balls, seed bags, a chick) and a
@@ -64,7 +68,7 @@ None right now.
 - Night, flat view: main_2d had only the darker night. It now has the lit windows (a warm strip on
   the farmhouse and the village houses' windows and doors), the stone lanterns' fire, and the
   dithered warm pools under them, from the same layout, pools and brightness as the 3D view and
-  under the figures (WORKLOG 2026-11-05 "Night in the flat view").
+  under the figures. Commit 36ecda8 (WORKLOG 2026-11-05 "Night in the flat view").
 - Roofs in front of the farmer hid the screen (village, festival square, snow): buildings,
   trees and the torii turn see-through when they stand between the camera and the farmer.
   Commit 67cbaed.
@@ -100,7 +104,7 @@ None right now.
   texts (proposal answers, the wedding), the village record's pages and Tome's list notes, plus
   the spouse line ("Married Sayo on Spring 14" reads "แต่งงานกับซาโยะ เมื่อวันที่ 14 ใบไม้ผลิ")
   and the knot / wedding-day messages. 267 dialogue lines in data/lang/th/dialogue.json, 9 in
-  ui.json. See WORKLOG 2026-11-05 "Thai: heart events, contests, marriage, record".
+  ui.json. Commit 60f0661 (WORKLOG 2026-11-05 "Thai: heart events, contests, marriage, record").
 
 ## What the players liked (keep it)
 - 15–20: the pixel sprites on the 3D field look good and match everywhere; the Japanese

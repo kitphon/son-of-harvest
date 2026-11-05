@@ -24,6 +24,7 @@ func _process(_delta: float) -> bool:
 	if _frame == 1:
 		_screens()
 		_dialogue_fits()
+		_thai_dialogue_fits()
 		Lang.set_language("en")
 		Lang.release()
 		print("test_lang: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
@@ -293,3 +294,34 @@ func _dialogue_fits() -> void:
 				if TextBoxLayout.wrap_rows(Lang.t(l.text), TextBoxLayout.text_w(true)).size() > TextBoxLayout.ROWS:
 					long.append("%s: %s" % [file, String(l.text).left(50)])
 	check(long.is_empty(), "%d of %d dialogue lines a third longer overflow the text box: %s" % [long.size(), lines, long.slice(0, 10)])
+
+
+## The Thai dialogue: every line with a Thai entry fits the box's rows (at the narrow width,
+## beside a portrait), each phrase between spaces fits a row, and the villagers' daily talk
+## (data/dialogue/talk_*.json) is Thai all through.
+func _thai_dialogue_fits() -> void:
+	Lang.set_language("th")
+	var long := []
+	var untranslated := []
+	var thai := 0
+	for file in DirAccess.get_files_at("res://data/dialogue/"):
+		var d: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue/" + file))
+		if not d is Dictionary or not d.get("lines") is Array:
+			continue
+		for l in d.lines:
+			if not (l is Dictionary and l.has("text")):
+				continue
+			if not Lang.covered(l.text):
+				if file.begins_with("talk_"):
+					untranslated.append("%s: %s" % [file, String(l.text).left(40)])
+				continue
+			thai += 1
+			var rows := TextBoxLayout.wrap_rows(Lang.t(l.text), TextBoxLayout.text_w(true))
+			var wide := false
+			for row in rows:
+				wide = wide or PixelFont.width(row) > TextBoxLayout.text_w(true)
+			if rows.size() > TextBoxLayout.ROWS or wide:
+				long.append("%s: %s" % [file, String(l.text).left(40)])
+	check(thai > 500 and long.is_empty(), "%d Thai dialogue lines, those overflowing the text box: %s" % [thai, long.slice(0, 10)])
+	check(untranslated.is_empty(), "the daily talk is all in Thai, still English: %s" % [untranslated.slice(0, 10)])
+	Lang.set_language("en")
