@@ -150,6 +150,12 @@ func _picture(key: String, size: Vector2, center: Vector3, normal_yaw := 0.0) ->
 	add_child(mi)
 
 
+## A window from LitSpots on a house wall (see `_lit_picture`).
+func _lit_spot(spot: Dictionary) -> void:
+	var n: Vector3 = spot.normal
+	_lit_picture(spot.key, spot.size, spot.pos, rad_to_deg(atan2(n.x, n.z)))
+
+
 ## A window (or a shoji door) on a house wall that glows at night: the same as `_picture`,
 ## and kept in `windows` for NightLights.
 func _lit_picture(key: String, size: Vector2, center: Vector3, normal_yaw := 0.0) -> void:
@@ -215,7 +221,7 @@ func plant_tufts(cells: Array[Vector2i], hold_at: Callable) -> void:
 ## camera sees (+z, +x).
 func _make_house() -> void:
 	var timber := flat_material(Color("2e221a"))
-	var front := 3.6                     # wall face; the engawa fills z 3.6 .. 4.0
+	var front := LitSpots.FARM_FRONT      # wall face; the engawa fills z 3.6 .. 4.0
 	var depth := front - 1.0
 	var mid := 1.0 + depth / 2
 	_box(Vector3(5, 0.6, depth), Vector3(4.5, 0.3, mid), surface_material("build:board"))
@@ -241,10 +247,8 @@ func _make_house() -> void:
 	_box(Vector3(5, 0.34, depth), Vector3(4.5, 1.93, mid), timber)   # under the roof, fills the gap to the soffit
 	Minka.roof(self, Rect2(1.45, 0.55, 6.1, 3.5), 1.45, 1.25, 0.5)
 	# Shoji door over the door cell (4, 3), shoji windows beside it and on the +x face.
-	_lit_picture("build:shoji_door", Vector2(0.9, 1.3), Vector3(4.5, 0.32 + 0.65, front + 0.005))
-	_lit_picture("build:shoji", Vector2(0.8, 0.6), Vector3(2.8, 1.2, front + 0.005))
-	_lit_picture("build:shoji", Vector2(0.8, 0.6), Vector3(6.2, 1.2, front + 0.005))
-	_lit_picture("build:shoji", Vector2(0.8, 0.6), Vector3(7.005, 1.2, mid), 90)
+	for spot in LitSpots.farmhouse():
+		_lit_spot(spot)
 
 
 ## Many copies of one mesh in a single MultiMesh.

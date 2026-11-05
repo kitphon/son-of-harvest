@@ -161,7 +161,7 @@ func _make_prop(p: Dictionary) -> void:
 func _village_house(r: Rect2, door: int, noren: bool, side_door := -1) -> void:
 	var timber := flat_material(Color("2e221a"))
 	var back := r.position.y + 0.1
-	var front := r.end.y - 0.15
+	var front := LitSpots.village_front(r)
 	var depth := front - back
 	var mid_z := back + depth / 2
 	var cx := r.get_center().x
@@ -187,15 +187,8 @@ func _village_house(r: Rect2, door: int, noren: bool, side_door := -1) -> void:
 	if noren:   # a shop's door stays dark at night: its noren hangs over the paper
 		_picture("build:shoji_door", Vector2(0.85, 1.05), Vector3(dx, 0.55, front + 0.005))
 		_picture("build:noren", Vector2(0.95, 0.36), Vector3(dx, 1.0, front + 0.03))
-	else:
-		_lit_picture("build:shoji_door", Vector2(0.85, 1.05), Vector3(dx, 0.55, front + 0.005))
-	var sx := r.position.x + side_door + 0.5 if side_door >= 0 else -100.0
-	if side_door >= 0:
-		_lit_picture("build:shoji_door", Vector2(0.75, 1.0), Vector3(sx, 0.52, front + 0.005))
-	for x in range(int(r.position.x), int(r.end.x)):
-		if absf(x + 0.5 - dx) > 1.2 and absf(x + 0.5 - sx) > 0.9 and (x - int(r.position.x)) % 2 == 1:
-			_lit_picture("build:shoji", Vector2(0.7, 0.5), Vector3(x + 0.5, 1.1, front + 0.005))
-	_lit_picture("build:shoji", Vector2(0.7, 0.5), Vector3(r.end.x - 0.1 + 0.005, 1.1, mid_z), 90)
+	for spot in LitSpots.village_house(r, door, noren, side_door):
+		_lit_spot(spot)
 
 
 ## A village pine (Trees.pine): it leans, its pads of needles set off to alternate sides;

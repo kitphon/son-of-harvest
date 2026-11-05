@@ -120,7 +120,7 @@ static func stone_lantern(w: FarmWorld, mid: Vector3) -> void:
 		var dir := Vector3(sin(deg_to_rad(angle)), 0, cos(deg_to_rad(angle)))
 		w._box(Vector3(0.1, 0.12, 0.01), mid + Vector3(0, 0.86, 0) + dir * (apothem + 0.004), glow,
 			Vector3(0, deg_to_rad(angle), 0))
-	w.lit_lamp(mid + Vector3(0, 0.86, 0))
+	w.lit_lamp(LitSpots.lantern(mid))
 	# The cap's corners turned up: a little curl of stone at each of the six.
 	for k in 6:
 		var a := TAU * (k + 0.5) / 6
