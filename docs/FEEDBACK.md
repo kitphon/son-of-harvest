@@ -41,7 +41,7 @@ None right now.
   lessons, the year record); anything missing stays English. Thai glyphs drawn for our pixel
   font. Plainer English: the onigiri reads "A rice ball with a quick pickle inside", and a
   recipe without its tool says which one ("needs Clay pot", "Clay pot (buy at store)").
-  Still English: the villagers' daily talk, heart events and contest lines. Commit c3dce89.
+  Still English: the villagers' daily talk. Commit c3dce89.
 - A slow start, no small goal in week one: Tome's first-week list (data/goals.json): plant 9
   plots, say hello to 3 people, pick 4 wild plants, catch a fish (all day 1–3), ship 5 crops
   and earn 1000 G (week one), each with a reward (money, rice balls, seed bags, a chick) and a
@@ -92,6 +92,11 @@ None right now.
   (the wedding day is kept after the wedding); "Married to Sayo" when that day is not known;
   nothing when single. data/ending.json `spouse`. See WORKLOG 2026-11-05 "Village record: the
   spouse's line". Commit 6f08235.
+- Follow-up to item 1: Thai for the heart events (bands 3, 5, 6), the contest lines, the marriage
+  texts (proposal answers, the wedding), the village record's pages and Tome's list notes, plus
+  the spouse line ("Married Sayo on Spring 14" reads "แต่งงานกับซาโยะ เมื่อวันที่ 14 ใบไม้ผลิ")
+  and the knot / wedding-day messages. 267 dialogue lines in data/lang/th/dialogue.json, 9 in
+  ui.json. See WORKLOG 2026-11-05 "Thai: heart events, contests, marriage, record".
 
 ## What the players liked (keep it)
 - 15–20: the pixel sprites on the 3D field look good and match everywhere; the Japanese
