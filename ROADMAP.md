@@ -38,7 +38,9 @@ floor shading by the walls (scripts/world3d/room_walls.gd).
 The full style roadmap, the rules for making pieces and how to continue: docs/ART_DIRECTION.md.
 [x] Trees: lumpy lit crowns by season, tiered pines with snow, the wood as MultiMeshes
 (scripts/world3d/trees.gd).
-Next: section 2 goes on with grass tufts on grass cells (MultiMesh, a small wind sway). "ทำ art direction ต่อ" from the user
+[x] Grass tufts on the grass cells, swaying, by season, hidden under snow
+(scripts/world3d/grass_tufts.gd).
+Next: section 2 goes on with rice and tall crops as clusters of pixel sprites. "ทำ art direction ต่อ" from the user
 means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our

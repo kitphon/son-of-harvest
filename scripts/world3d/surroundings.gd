@@ -42,6 +42,21 @@ func build(w: int, h: int, kind_at: Callable, hold_at: Callable) -> void:
 	ground.position = Vector3(w / 2.0, -0.02, h / 2.0)   # just under the map's ground
 	add_child(ground)
 	_make_pines(w, h, kind_at)
+	_make_tufts(w, h, kind_at, hold_at)
+
+
+## Grass tufts on the apron's grass (GrassTufts), the edge cell's snow hold under each.
+func _make_tufts(w: int, h: int, kind_at: Callable, hold_at: Callable) -> void:
+	var cells: Array[Vector2i] = []
+	for y in range(-MARGIN, h + MARGIN):
+		for x in range(-MARGIN, w + MARGIN):
+			var c := Vector2i(x, y)
+			if (x < 0 or y < 0 or x >= w or y >= h) and kind_at.call(edge_cell(c, w, h)) == "grass":
+				cells.append(c)
+	var tufts := GrassTufts.new()
+	add_child(tufts)
+	snow_mats.append(tufts.snow_material())
+	tufts.plant(cells, func(c: Vector2i) -> float: return hold_at.call(edge_cell(c, w, h)))
 
 
 ## The in-map cell nearest `c` (itself when inside).

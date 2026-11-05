@@ -30,6 +30,17 @@ func build(m: MapData) -> void:
 	RoomWalls.build(self, map)
 	for p in map.props:
 		occlude(_make_prop.bind(p))
+	if not map.sheltered and not map.indoor:
+		var grass: Array[Vector2i] = []
+		for y in map.h:
+			for x in map.w:
+				var c := Vector2i(x, y)
+				if map.tile(c) == "grass" and map.prop_at(c).is_empty() and not map.is_solid(c):
+					grass.append(c)
+		var snowy := SnowLayer.map_has_snow(map)
+		var hold_rules: Dictionary = Game.snow_rules
+		add_tufts()
+		plant_tufts(grass, func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, hold_rules) if snowy else 0.0)
 	if not map.sheltered:
 		var rules: Dictionary = Game.snow_rules
 		add_surroundings(map.w, map.h, func(c: Vector2i) -> String: return map.tile(c),

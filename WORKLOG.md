@@ -10,8 +10,38 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
-## 2026-11-05 — Art direction: trees as lit, seasonal meshes
+## 2026-11-05 — Art direction: grass tufts on the grass cells
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: section 2's second item. `scripts/world3d/grass_tufts.gd` (GrassTufts) is one
+  MultiMesh of a five-blade tuft (a triangle a blade, both faces) per world: on the farm's
+  bare untilled grass (no crop, thing or item lying there, not a fixed cell; replanted from
+  `_rebuild_objects` only when the grass cells changed, so a swing on soil costs nothing),
+  on outdoor maps' free grass cells with no prop (MapWorld), and on the apron's grass past
+  the edge (Surroundings). Up to two a cell, 70% kept; place, turn, size and shade come from
+  a hash of the cell, so tufts never move. The shader sways the tips (height share squared,
+  phase by place) and lights them as the ground: normal up on both faces, the sun only at
+  SnowLayer.SUN_SHARE. Tip colour by season (spring 92d464, summer 74b44a, fall straw
+  c4b060, winter dry a89a68), the base 80% of it. Each tuft carries its cell's snow hold in
+  its custom data and folds away where SnowLayer's noise makes the ground under its root
+  white; its material is kept with the world's snow so set_snow drives it. First frames had
+  the tufts dark olive: with culling off, the back faces turned their normals down and lost
+  the sky light; the normal is now set to world up in the fragment shader.
+- Checked: new test_maps `_grass`: tufts inside their cells, 70% of places within 10, the
+  same each time; Kaminoda's tufts only on free grass with no prop, each with its cell's snow
+  hold, the material in `_snow_mats`; the apron grows them; none in the house; on a
+  generated farm none on tilled ground, things or fixed cells, and tilling a grassy cell
+  clears its tufts. The MultiMesh's own data reads back empty under the headless renderer,
+  so GrassTufts keeps `planted` for the test. With MapWorld's "no prop, not solid" rule
+  removed the test fails ("573 tufts, 90 off free grass"). All 27 test scripts `OK (0
+  failed)`; smoke runs (title, --demo, --demo --map=town, --demo --mine=3, --demo
+  --map=kaminoda --season=winter --snow=80, --demo --map=house, --demo
+  --festival=blossom_day) print 0 error or warning lines. Frames: the farm, Kaminoda in
+  spring / summer / fall / winter at snow 50, at 20:00, the town at 10:00 and in rain.
+- Left / next: the tufts don't part round the farmer or bend harder in a storm. Next in
+  section 2: rice and tall crops as clusters of pixel sprites.
+
+## 2026-11-05 — Art direction: trees as lit, seasonal meshes
+Agent: Claude Code (claude-opus-5-5) · Commit: 578b60c
 - Done: section 2's first item. `scripts/world3d/trees.gd` (Trees) builds every tree from
   `Shrine.lathe` and `FarmProps.block` in lit materials, replacing unshaded spheres,
   cylinders and cones. `Trees.broadleaf` (persimmon, sakura): a lathe trunk, limbs, and a

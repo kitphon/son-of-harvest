@@ -18,6 +18,8 @@ var _snow_mats: Array[ShaderMaterial] = []
 ## Buildings and trees that fade while they stand between the camera and the farmer.
 var occluders := Occluders.new()
 var surroundings: Surroundings   # the land past the map's edge (outdoors)
+var tufts: GrassTufts            # grass tufts on the grass cells (outdoors)
+var _tuft_cells: Array[Vector2i] = []
 ## House windows and shoji doors that light up at night (NightLights draws them over the night tint):
 ## {key: picture, pos: centre, size: Vector2 (w, h), normal: Vector3 out of the wall}.
 var windows: Array[Dictionary] = []
@@ -37,6 +39,7 @@ func setup(f: FarmGrid, open_cells: Array[Vector2i] = []) -> void:
 	add_surroundings(FarmGrid.W, FarmGrid.H,
 		func(c: Vector2i) -> String: return PlaceholderArt.ground_key(farm, c).get_slice(":", 1),
 		func(c: Vector2i) -> float: return SnowLayer.hold(farm, c, rules))
+	add_tufts()
 	_objects = Node3D.new()
 	add_child(_objects)
 	farm.cells_changed.connect(_rebuild_objects)
@@ -180,6 +183,20 @@ func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable) -> v
 	surroundings.build(w, h, kind_at, hold_at)
 	_snow_mats.append(surroundings.material)
 	_snow_mats.append_array(surroundings.snow_mats)
+
+
+## The grass tufts (GrassTufts), their snow with the rest; `plant_tufts` grows them.
+func add_tufts() -> void:
+	tufts = GrassTufts.new()
+	add_child(tufts)
+	_snow_mats.append(tufts.snow_material())
+
+
+## Tufts on `cells` (only when the grass changed: a tool swing that touches no grass keeps them).
+func plant_tufts(cells: Array[Vector2i], hold_at: Callable) -> void:
+	if tufts != null and cells != _tuft_cells:
+		_tuft_cells = cells
+		tufts.plant(cells, hold_at)
 
 
 ## A small Japanese farmhouse on cells x 2..6, z 1..3: dark board skirting under white
@@ -356,6 +373,14 @@ func _rebuild_objects() -> void:
 		_update_mask()
 	# Only cells whose picture changed get a new sprite, and bare cells are skipped first (the
 	# wide farm has 3000 cells; a full rebuild per tool swing was a visible hitch).
+	var grass: Array[Vector2i] = []
+	for i in farm.cells.size():   # tufts on bare grass: not tilled, nothing standing or lying
+		var d: Dictionary = farm.cells[i]
+		var c := Vector2i(i % FarmGrid.W, i / FarmGrid.W)
+		if farm.fixed_at(c) == "" and not d.tilled and d.obj == FarmGrid.Obj.NONE and d.crop == "" and not farm.items.has(c):
+			grass.append(c)
+	var rules: Dictionary = Game.snow_rules
+	plant_tufts(grass, func(c: Vector2i) -> float: return SnowLayer.hold(farm, c, rules))
 	var seen := {}
 	for i in farm.cells.size():
 		var d: Dictionary = farm.cells[i]

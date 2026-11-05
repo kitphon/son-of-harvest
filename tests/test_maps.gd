@@ -43,6 +43,7 @@ func _process(delta: float) -> bool:
 		_room_walls()
 		_room_props()
 		_trees()
+		_grass()
 		_game_maps()
 		_bed_and_doors()
 		_clinic_doors()
@@ -808,6 +809,72 @@ func _trees() -> void:
 	var driven: bool = not m.surroundings.snow_mats.is_empty() and m.surroundings.snow_mats.all(func(s): return s in m._snow_mats)
 	check(wood.size() >= 4 and instances > 20 and driven, "the wood: %d MultiMeshes, %d pine parts, snow driven %s" % [wood.size(), instances, driven])
 	m.free()
+
+
+## Grass tufts (GrassTufts): the same tufts for a cell every time, inside it; on a map only
+## on free grass cells with no prop, each carrying its cell's snow hold, the material driven
+## by set_snow; the apron grows them too; none indoors; on the farm none on tilled ground,
+## things or fixed cells, and tilling a cell clears its tufts.
+func _grass() -> void:
+	var gt: GDScript = load("res://scripts/world3d/grass_tufts.gd")
+	var cells: Array[Vector2i] = []
+	for i in 200:
+		cells.append(Vector2i(i % 20, i / 20))
+	var spots: Array = gt.spots_for(cells)
+	var inside := spots.all(func(s): return Rect2(Vector2(s.cell), Vector2.ONE).grow(-0.1).has_point(Vector2(s.pos.x, s.pos.z)))
+	var share := spots.size() / float(cells.size() * gt.PER_CELL) * 100.0
+	check(inside and absf(share - gt.SHARE) < 10 and gt.spots_for(cells) == spots,
+		"tufts inside their cells, %.0f%% of the places (%d%% wanted), the same each time" % [share, gt.SHARE])
+	var tuft_cells := func(t: MultiMeshInstance3D) -> Array:
+		var out := []
+		for sp in t.planted:
+			out.append([Vector2i(int(floor(sp.pos.x)), int(floor(sp.pos.z))), sp.hold])
+		return out
+	var m := MapManager.data("kaminoda")
+	var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	w.build(m)
+	var bad := 0
+	var hold_wrong := 0
+	var rules: Dictionary = root.get_node("Game").snow_rules
+	for e in tuft_cells.call(w.tufts):
+		var c: Vector2i = e[0]
+		if m.tile(c) != "grass" or not m.prop_at(c).is_empty() or m.is_solid(c):
+			bad += 1
+		if absf(e[1] - SnowLayer.map_hold(m, c, rules)) > 0.01:
+			hold_wrong += 1
+	var apron: Array = w.surroundings.get_children().filter(func(n): return n is MultiMeshInstance3D and n.get_script() == gt)
+	check(w.tufts.multimesh.instance_count > 100 and bad == 0 and hold_wrong == 0 and w.tufts.snow_material() in w._snow_mats,
+		"kaminoda: %d tufts, %d off free grass, %d with the wrong snow hold" % [w.tufts.multimesh.instance_count, bad, hold_wrong])
+	check(apron.size() == 1 and apron[0].multimesh.instance_count > 100 and apron[0].snow_material() in w._snow_mats,
+		"the apron past kaminoda's edge grows tufts, their snow driven")
+	w.free()
+	var house: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	house.build(MapManager.data("house"))
+	check(house.tufts == null, "no grass tufts indoors")
+	house.free()
+	var crops: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/crops.json"))
+	var farm := FarmGrid.new(crops)
+	farm.generate(RandomNumberGenerator.new())
+	var fw: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	fw.setup(farm)
+	var on_bad := func() -> int:
+		var n := 0
+		for e in tuft_cells.call(fw.tufts):
+			var d: Dictionary = farm.cell(e[0])
+			if farm.fixed_at(e[0]) != "" or d.tilled or d.obj != FarmGrid.Obj.NONE or d.crop != "" or farm.items.has(e[0]):
+				n += 1
+		return n
+	var grown: Array = tuft_cells.call(fw.tufts).map(func(e): return e[0])
+	var target := Vector2i(-1, -1)
+	for c in grown:
+		if farm.can_farm(c) and farm.cell(c).obj == FarmGrid.Obj.NONE:
+			target = c
+			break
+	check(fw.tufts.multimesh.instance_count > 100 and on_bad.call() == 0, "the farm: %d tufts, %d on tilled ground or things" % [fw.tufts.multimesh.instance_count, on_bad.call()])
+	check(target != Vector2i(-1, -1) and farm.till(target), "a grassy farm cell can be tilled")
+	var after: Array = tuft_cells.call(fw.tufts).map(func(e): return e[0])
+	check(not target in after and on_bad.call() == 0, "tilling %s cleared its tufts" % [target])
+	fw.free()
 
 
 ## Upright faces (eave bands, verges, roll ends) of the meshes in `w` whose normal points
