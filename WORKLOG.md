@@ -34,6 +34,35 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
   window halos (a square about 77 px) and the pane strips still sit over the house box, as they
   stand on its walls; only the pools were in scope.
 
+## 2026-11-05 — Thai: the last gaps
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: follow-up to FEEDBACK item 1. The 133 texts lang_report listed as missing for th.
+  Translated (data/lang/th/ui.json +108, items.json +2): the chick and the mizuhiki knot, the
+  hens / barn animals out all night, Tome's goal list (the HUD tag, "Goal done: %s!", the six
+  goals, the chick reward "ได้%sมาอยู่ในเล้า"), the tool and rod level-up lines, the rope lift's
+  message and choices, Sayo's and Fumi's away notes, Hachiro's build notes (finished, away, late
+  by a storm or his birthday; signed -ฮาจิโร่), the long date "%s, Year %d"
+  ("วันที่ 15 ใบไม้ผลิ ปี 1"), "%d %s" in "Bought %s" (Thai "{2} x{1}", as "%s x%d"), and every
+  saved-game, key / pad and settings error (shown after "โหลดเซฟไม่ได้: %s" on the title), all
+  as "ข้อมูล...ในเซฟเสีย". The Thai notes have no quote marks (the pixel font has no `"`
+  glyph; test_menu's glyph check caught it), the colon after "มีโน้ตวางบนเคาน์เตอร์" sets the
+  note off. Kept as they are, on purpose: the pad button names A / B / X / Y,
+  LB / RB / LT / RT, L3 / R3, Guide, Start (printed on the pad; the D-pad and right stick
+  directions are Thai: "D-ขึ้น", "RS-ซ้าย"), "+%d G", and "English" in the language list (each
+  language is named in its own words, as "ไทย" is). Left out of LangCatalog instead of
+  translated, because the player never sees them: data/recipes.json `taught` (where a lesson
+  comes from, a note for readers; no script reads it; KEY_SKIP), the night-light layer node
+  names (Pools, Halos, Panes, Glows, Figures) and the class name Sprite3D, the regex "[A-Za-z]",
+  the "{%d}" placeholder and lang_report's own "%s: \"%s\"" (NOT_SHOWN), and the game's name
+  "Harvest Son" on the title, which stays as it is in every language.
+- Checked: lang_report --lang=th: before "th: 1558 of 1691 done (92%), 133 missing, 0 stale"
+  (dialogue 889 of 889, data 310 of 377, code 359 of 425); after "th: 1668 of 1668 done (100%),
+  0 missing, 0 stale" (dialogue 889 of 889, data 364 of 364, code 415 of 415). All test scripts
+  print OK (0 failed); smoke runs (title, --demo, --map=town, --mine=3) print no error or warning
+  lines. Screenshots with --lang=th: the smithy screen (`--building=kitchen --shop=smithy`) and the
+  controls menu (`--pause=controls`, the pad column's "D-ขึ้น" ... fit their column).
+- Left / next: none for Thai; new English text needs its Thai entry (lang_report lists it).
+
 ## 2026-11-05 — Night in the flat view: lit windows, lanterns and warm pools
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: follow-up to FEEDBACK item 6. The flat view (scenes/main_2d.tscn) now shows what the 3D
