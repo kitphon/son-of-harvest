@@ -40,8 +40,15 @@ void fragment() {
 }
 """
 
+## The farmhouse in the flat view is drawn as house boxes on cells y 1..3 (FarmGrid.generate), so
+## its lower edge is the line z = 4. A pool in front of a south wall starts at the wall (z 3.6)
+## and would be drawn over the roof's last 6 px, so on the farm such pools are cut at this line.
+## The 3D view is not touched (NightLights.pools_from keeps the full pools).
+const FARM_ROOF_EDGE := 4.0
+
 var windows: Array[Dictionary] = []   # LitSpots windows of this map
 var lamps: Array[Dictionary] = []     # LitSpots lanterns
+var roof_edge := INF                  # map units: pools facing south do not go above this line
 ## This frame's brightness (Game.window_light) and what it lights: the pools (NightLights.pools_from),
 ## all in map units.
 var glow := 0.0
@@ -58,6 +65,7 @@ var _pane_layer: Node2D
 func setup(props: Array, on_farm: bool) -> NightView:
 	if on_farm:
 		windows = LitSpots.farmhouse()
+		roof_edge = FARM_ROOF_EDGE
 	else:
 		var spots := LitSpots.of_map(props)
 		windows = spots.windows
@@ -134,10 +142,43 @@ static func pane_rect(win: Dictionary) -> Rect2:
 	return Rect2(at.x - w / 2.0, at.y - 2.0, w, 2.0)
 
 
-func _draw_pools() -> void:
+## A pool's drawn shape: [polygon, uvs] (the falloff's UVs). A south-facing pool is cut at
+## roof_edge so it stops at the roof's lower edge; the cut keeps the UVs of the cut points.
+func pool_shape(p: Dictionary) -> Array:
+	var poly := pool_polygon(p)
 	var uvs := PackedVector2Array([Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)])
+	if roof_edge < INF and p.normal.z > 0.5:
+		return clip_top(poly, uvs, roof_edge * T)
+	return [poly, uvs]
+
+
+## The polygon cut to y >= `y_min` (Sutherland-Hodgman on one edge), each point with its UV.
+static func clip_top(poly: PackedVector2Array, uvs: PackedVector2Array, y_min: float) -> Array:
+	var out_p := PackedVector2Array()
+	var out_u := PackedVector2Array()
+	var n := poly.size()
+	for i in n:
+		var a := poly[i]
+		var b := poly[(i + 1) % n]
+		var ua := uvs[i]
+		var ub := uvs[(i + 1) % n]
+		var a_in := a.y >= y_min
+		var b_in := b.y >= y_min
+		if a_in:
+			out_p.append(a)
+			out_u.append(ua)
+		if a_in != b_in:
+			var t := (y_min - a.y) / (b.y - a.y)
+			out_p.append(a.lerp(b, t))
+			out_u.append(ua.lerp(ub, t))
+	return [out_p, out_u]
+
+
+func _draw_pools() -> void:
 	for p in pools:
-		_pool_layer.draw_colored_polygon(pool_polygon(p), Color(1, 1, 1, clampf(p.strength, 0.0, 1.0)), uvs)
+		var shape := pool_shape(p)
+		if shape[0].size() >= 3:
+			_pool_layer.draw_colored_polygon(shape[0], Color(1, 1, 1, clampf(p.strength, 0.0, 1.0)), shape[1])
 
 
 func _draw_halos() -> void:

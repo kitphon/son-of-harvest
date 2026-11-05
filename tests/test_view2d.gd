@@ -330,6 +330,27 @@ func _night() -> void:
 			fn = n
 	check(fn != null and fn.windows.size() == LitSpots.farmhouse().size() and fn.lamps.is_empty() and fn.glow == 1.0,
 		"the farmhouse's windows glow too")
+	# The farmhouse's pools in front of its south wall start at the roof's lower edge (z 4 = 64 px),
+	# not over the roof: the raw pool does reach above it, the drawn shape does not.
+	var roof_y: float = fn.FARM_ROOF_EDGE * 16.0
+	var raw_over := false
+	var cut_ok := true
+	var south := 0
+	for p in fn.pools:
+		if p.normal.z < 0.5:
+			continue
+		south += 1
+		var raw: PackedVector2Array = fn.pool_polygon(p)
+		for v in raw:
+			raw_over = raw_over or v.y < roof_y - 0.5
+		var cut: PackedVector2Array = fn.pool_shape(p)[0]
+		for v in cut:
+			cut_ok = cut_ok and v.y >= roof_y - 0.01
+		cut_ok = cut_ok and cut.size() >= 3
+	check(south == 3 and raw_over and cut_ok, "the farmhouse's pools stop at the roof's edge (%d south pools, y %.1f)" % [south, roof_y])
+	var east_pool: Dictionary = fn.pools.filter(func(p): return p.normal.x > 0.5)[0]
+	check(fn.roof_edge == fn.FARM_ROOF_EDGE and fn.pool_shape(east_pool)[0] == fn.pool_polygon(east_pool),
+		"the side window's pool is not cut (it lies beside the house)")
 	g.hour = 10
 	g.minute = 0
 	await process_frame
