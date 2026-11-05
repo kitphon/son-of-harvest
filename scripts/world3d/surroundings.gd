@@ -14,6 +14,7 @@ const PINE_SHAPES := 3      # Trees.pine shapes the wood picks from, by cell
 const TREE_KINDS: Array[String] = ["grass"]   # ground a pine stands on
 
 var material: ShaderMaterial   # the apron's ground; FarmWorld.set_snow sets its cover
+var water: WaterSurface   # the moving skin on the water cells (and past the edges)
 var snow_mats: Array[ShaderMaterial] = []   # the snow on the pines' pads, set with it
 
 
@@ -41,6 +42,9 @@ func build(w: int, h: int, kind_at: Callable, hold_at: Callable) -> void:
 	ground.material_override = material
 	ground.position = Vector3(w / 2.0, -0.02, h / 2.0)   # just under the map's ground
 	add_child(ground)
+	water = WaterSurface.new()
+	add_child(water)
+	water.build(w, h, kind_at, MARGIN)
 	_make_pines(w, h, kind_at)
 	_make_tufts(w, h, kind_at, hold_at)
 

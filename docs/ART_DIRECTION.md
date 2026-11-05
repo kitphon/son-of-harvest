@@ -106,7 +106,11 @@ Light and Farmhouse model hold the technical detail of what is built.
       (this commit) Still open: the other tall crops (cucumber and tomato vines on stakes)
       stay one sprite; the paddies have no stubble or water showing in winter beyond the
       ground picture; the plants don't part round the farmer.
-- [ ] Water: a gentle moving surface for the pond and river.
+- [x] Water: a gentle moving surface for the pond and river (`water_surface.gd`: WaterSurface,
+      a transparent sheet over the water cells, glints and troughs drifting over the pixel grid,
+      lit like the ground). (this commit)
+      Still open: no ripple ring round the bobber or the farmer's feet; the flat view's water
+      is still the still tile; no frozen water in winter (the game has none).
 
 ### 3. Light and atmosphere
 - [ ] Night: real warm lights at lanterns, windows and the festival stalls, the tint lighter.

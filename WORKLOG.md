@@ -10,8 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
-## 2026-11-05 — Rice and corn as clusters of pixel sprites
+## 2026-11-05 — Merge: rice and corn clusters, moving water
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged the two art-direction branches (65bafcd rice / corn as sprite clusters,
+  5421334 the water sheet), keeping both sides of the ROADMAP / ART_DIRECTION / WORKLOG
+  conflicts and both new checks in tests/test_maps.gd (`_crop_clusters`, `_water`). The
+  mountain backdrop branch is not merged: in progress, the ridges do not reach the frame
+  with the fixed camera (its WORKLOG entry is on that branch); waiting on the user.
+- Checked: see the test run of this commit (all 27 scripts) and the smoke runs.
+- Left / next: ART_DIRECTION section 3 (morning / evening sun, night lights).
+
+## 2026-11-05 — Rice and corn as clusters of pixel sprites
+Agent: Claude Code (claude-opus-5-5) · Commit: 65bafcd
 - Done: ART_DIRECTION section 2, "Rice and tall crops as clusters of pixel sprites". New
   `scripts/world3d/crop_clusters.gd` (CropClusters): in the 3D view, rice and corn grown past
   the sprout (growth 2 and 3 of `PlaceholderArt.cell_key`, looks "grain" and "stalk") stand as
@@ -49,7 +59,22 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   print no error or warning line.
 - Left / next: cucumber and tomato vines (on stakes) stay one sprite; the plants don't part
   round the farmer or bend harder in a storm; no rice stubble in winter paddies. Next in
-  ART_DIRECTION: the water (another agent is on it).
+  ART_DIRECTION: section 3.
+
+## 2026-11-05 — Water: a gentle moving surface (3D view)
+Agent: Claude Code (claude-sonnet-5-5) · Commit: 5421334
+- Done: `WaterSurface` (scripts/world3d/water_surface.gd), built by Surroundings under the farm
+  and every outdoor map: one transparent quad per water cell (pulled in 3 px from each bank so
+  the bank and foam line stay), a shader showing slow stepped bands on the 16 px grid: pale warm
+  glints (alpha .5) and a few dark-blue troughs (alpha .32), the rest see-through over the still
+  tile. Lit like the ground (SnowLayer.SUN_SHARE), so dusk and night darken it and shadows fall
+  on it; no shadow cast; water holds no snow, so winter looks the same. Covers the apron too,
+  so the river runs on past the edges moving. Balance: glints about 1 pixel in 6.
+- Checked: test_maps `_water` (farm pond fully covered and nothing on land, inset only at
+  banks, shader uses TIME, river and town covered, none indoors). Screenshots `--demo
+  --fishing=wait` (the pond: soft pale and dark bands over the blue, bobber on top) and
+  `--demo --map=river`; pixel diff of the pond between frames 30 and 59: 1578 pixels changed.
+- Left / next: no ripple ring at the bobber; flat view unchanged.
 
 ## 2026-11-05 — Merge: pool edge, last Thai gaps, PlayStation pad names
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
