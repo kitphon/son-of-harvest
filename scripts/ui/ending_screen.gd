@@ -54,6 +54,7 @@ var _stars: Array[Array] = []   # per row: its star stamps (none on field rows)
 var _title: Label
 var _seal: TextureRect
 var _hint: Label
+var _spouse: Label          # the married farmer's line under the title (record.spouse)
 
 
 func _ready() -> void:
@@ -222,7 +223,9 @@ func _build() -> void:
 	_title = _label(_paper, Vector2i(MARGIN, y + 7), PlaceholderArt.UI_SEAL)
 	_hint = _label(_paper, Vector2i(W - MARGIN - PixelFont.shown_width(HINT), y + 7), Hud.INK_SOFT)
 	_hint.text = HINT
-	full_h = y + 5 + SEAL + 2 + TUCK
+	var spouse_y := y + 5 + SEAL + 2   # a line of its own under the seal, only when married
+	_spouse = _label(_paper, Vector2i(MARGIN, spouse_y), PlaceholderArt.UI_SEAL)
+	full_h = spouse_y + LINE + TUCK
 	washi.size = Vector2(W, full_h)
 	for x in [0, W - 1]:   # the paper's cut edges, a shade darker
 		_rect(_paper, Vector2(x, 0), Vector2(1, full_h), Color("dcc89c"))
@@ -262,6 +265,8 @@ func _refresh() -> void:
 	_seal.position.x = MARGIN + PixelFont.shown_width(_title.text) + 5
 	_seal.visible = all
 	_hint.visible = all
+	_spouse.text = String(record.get("spouse", "")) if all else ""
+	_spouse.visible = _spouse.text != ""
 
 
 func _put(l: Label, text: String, right: int) -> void:

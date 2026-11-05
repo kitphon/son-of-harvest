@@ -866,7 +866,7 @@ func _marriage_in_game() -> void:
 	check(Vector2i((ev.pos / 16.0).floor()) == Vector2i(18, 5), "the farmer stands before the shrine (%s)" % [ev.pos / 16.0])
 	check(Marriage.spouse(g.flags) == "sayo" and EventRunner.is_set(g.flags, "married_sayo"), "married to Sayo")
 	check(Marriage.engaged(g.flags) == "" and not EventRunner.is_set(g.flags, "engaged_sayo") and not EventRunner.is_set(g.flags, Marriage.DUE)
-		and not EventRunner.is_set(g.flags, Marriage.DAY), "the engaged flags are cleared")
+		and g.flags.get(Marriage.DAY) is int, "the engaged flags are cleared; the wedding day stays for the record")
 	messages.clear()
 	g.end_day()
 	check(not Marriage.text("due") in messages and Marriage.day_tag(g.flags) == "", "nothing due the next morning")

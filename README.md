@@ -351,7 +351,8 @@ in hand with a message. From the wedding day's morning (`Game.end_day` → `Marr
 the flag `wedding_due` is set (with a morning message and the HUD tag "Wedding day") until
 `wedding_<id>` has played: a row in `triggers_town.json` from 10:00, on entering the village or
 a minute later. The wedding stands the farmer before the shrine beside the bride, Tome in
-front, the guests at the sides, sets `spouse` = id and `married_<id>` and clears the rest.
+front, the guests at the sides, sets `spouse` = id and `married_<id>` and clears the rest but
+`wedding_day` (the village record's date, see Ending).
 Married, the spouse's rules (`married_<id>` in their villager file) have them live at the
 farmhouse (by the kotatsu in the second room, `house` [9, 3]) mornings and evenings and keep
 their own work by day; their talk files have `engaged_`, `wed_morning_` / `wed_evening_` (at
@@ -788,7 +789,10 @@ crop kinds shipped, happy animals, heart bands, neighbours known (the villagers 
 the outer parts' people but Fumi and Ichiro, and Dr. Yae, whose hidden affection from talks and gifts reached
 `neighbour_band`), the deepest mine floor, fish kinds, house
 extensions, tool levels, contests won, recipes known) and `Ending.grade` turns it into stars
-per category, a rank and a title from `data/ending.json`; the EndingScreen shows it. The flags
+per category, a rank and a title from `data/ending.json`; the EndingScreen shows it. A married
+farmer's record has one line under the title, "Married Sayo on Spring 14" (`Ending.spouse_line`,
+the texts in `data/ending.json` `spouse`; the wedding day is `wedding_day`, kept after the
+wedding; "Married to Sayo" when that day is not known; nothing when single). The flags
 `ending_rank_<n>` and `ending_friend_<id>` pick Tome's verdict and who comes in to close it
 (the villager liked most, from heart band 3; else Tome). The game goes on afterwards
 (`ending_seen`). DESIGN lists the ending as not studied, so every rule is ours. `-- --ending`

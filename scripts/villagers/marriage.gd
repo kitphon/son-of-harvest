@@ -10,7 +10,8 @@ extends RefCounted
 ## state is story flags only, so it is saved with them:
 ##   engaged = "<id>", engaged_<id> = true, wedding_day = day number   (between the two events)
 ##   wedding_due = true                                                  (from that morning)
-##   spouse = "<id>", married_<id> = true                                (after the wedding)
+##   spouse = "<id>", married_<id> = true                                (after the wedding;
+##       wedding_day stays, for the village record's line: Ending.spouse_line)
 ## The spouse's day plan (a married_<id> rule in their villager file) has them live at the
 ## farmhouse, and their talk file has married lines. Format: README.md, Villagers → Marriage.
 

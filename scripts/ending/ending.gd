@@ -124,6 +124,18 @@ static func last_page(pages: Dictionary, year: int) -> Dictionary:
 	return pages.get(best, {})
 
 
+## The record's line for a married farmer ("" when `spouse` is ""): the spouse's name and the
+## short date of the wedding ("Spring 14"); with no date known (a save from before the date
+## was kept), the undated line. Texts: data/ending.json spouse.
+static func spouse_line(spouse: String, name: String, day_text: String, d := data()) -> String:
+	var s: Dictionary = d.get("spouse", {})
+	if spouse == "" or s.is_empty():
+		return ""
+	if day_text == "":
+		return String(s.get("undated", "")) % name
+	return String(s.get("line", "")) % [name, day_text]
+
+
 ## A row's number as shown: thousands split with commas, then the unit.
 static func value_text(row: Dictionary) -> String:
 	return number_text(int(row.get("value", 0)), String(row.get("unit", "")))

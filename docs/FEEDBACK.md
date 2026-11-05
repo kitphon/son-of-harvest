@@ -80,6 +80,12 @@ None right now.
   is cut off or missing loads the backup (the title says so), and with no backup says "The
   save file is cut off or broken" without touching the game. Commit 34393ea.
 
+- Follow-up to item 3: the village record had no word about the spouse. A married farmer's
+  record (and the yearly page) now has one line under the title, "Married Sayo on Spring 14"
+  (the wedding day is kept after the wedding); "Married to Sayo" when that day is not known;
+  nothing when single. data/ending.json `spouse`. See WORKLOG 2026-11-05 "Village record: the
+  spouse's line".
+
 ## What the players liked (keep it)
 - 15–20: the pixel sprites on the 3D field look good and match everywhere; the Japanese
   countryside (cherry trees, the torii, tiled roofs) is worth a screenshot. The mochi pounding is
