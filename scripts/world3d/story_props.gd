@@ -9,7 +9,10 @@ extends RefCounted
 ## wall once a contest ribbon is won (house map, ribbons: Keepsakes). While a house extension
 ## is being built (Game.BUILD_FLAG) the builder's lumber lies on the farm left of the farmhouse
 ## front. A keepsake a villager loves, once given (Keepsakes.given_flag), sits on a little stand
-## in their home, or hangs (`hang`, the wind chime). The pictures are PlaceholderArt "story:" keys, the same ones the flat view draws
+## in their home, or hangs (`hang`, the wind chime). Genzo's new red bibs are tied on the
+## jizo by the Kaminoda lane (genzo_jizo, band 5) and the farmer's thumbprint is pressed in
+## the clay of Ichiro's kiln in Sakurazaka beside his and his father's (ichiro_mark, band 6):
+## both lit meshes (OutdoorProps). The pictures are PlaceholderArt "story:" keys, the same ones the flat view draws
 ## (StoryView, which also keeps the list of kinds). Same units as MapWorld (1 unit = 1 cell).
 
 
@@ -83,6 +86,13 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))
 			s.position = Vector3(r.get_center().x, 0, r.get_center().y)
 			w.add_child(s)
+		"jizo_bibs":
+			# Over the jizo's own bib on the same cell (OutdoorProps.jizo).
+			OutdoorProps.jizo_bibs(w, Vector3(r.get_center().x, 0, r.get_center().y))
+		"kiln_mark":
+			# The farmer's thumbprint beside the father's and Ichiro's, on the kiln's clay
+			# face over the mouth (same cells as the kiln: OutdoorProps.kiln_mark_at).
+			OutdoorProps.kiln_mark(w, OutdoorProps.kiln_mark_at(r, 2))
 		"carp_streamer":
 			# Pole and carp are one picture, standing on its cell, the carp just over the eave.
 			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))

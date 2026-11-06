@@ -1,5 +1,5 @@
 {
-	"_note": "Kaminoda, the farming hamlet north of the village up its north lane (added 2026-11-01: the world grows by small areas instead of bigger maps): terraced paddies top left, more paddies below the lane east of the way in with a rice drying rack along them, an orchard of persimmons bottom left, a well at the crossroads and a pair of jizo by the way in. Genzo's house (left, door 15, 6) and Haru's (right, door 27, 6, her kitchen garden behind a low fence). The lane north (x 22-23) climbs to the bamboo hill; the way in from the village is at the bottom (x 10-11). Format: README.md, Maps.",
+	"_note": "Kaminoda, the farming hamlet north of the village up its north lane (added 2026-11-01: the world grows by small areas instead of bigger maps): terraced paddies top left, more paddies below the lane east of the way in with a rice drying rack along them, an orchard of persimmons bottom left, a well at the crossroads and a pair of jizo by the way in (the jizo_bibs props on their cells are the new red bibs the farmer ties on for Genzo, there once genzo_jizo is set: heart_genzo_5). Genzo's house (left, door 15, 6) and Haru's (right, door 27, 6, her kitchen garden behind a low fence). The lane north (x 22-23) climbs to the bamboo hill; the way in from the village is at the bottom (x 10-11). Format: README.md, Maps.",
 	"id": "kaminoda",
 	"name": "Kaminoda",
 	"size": [32, 20],
@@ -36,6 +36,8 @@
 		{"kind": "village_house", "cell": [13, 4], "size": [5, 3], "door": 2},
 		{"kind": "village_house", "cell": [25, 4], "size": [5, 3], "door": 2},
 		{"kind": "well", "cell": [19, 8]},
+		{"kind": "jizo_bibs", "cell": [8, 12], "solid": false, "flag": "genzo_jizo", "use": "examine", "message": "New red bibs, tied on the way Genzo's wife tied them every autumn."},
+		{"kind": "jizo_bibs", "cell": [9, 12], "solid": false, "flag": "genzo_jizo", "use": "examine", "message": "New red bibs, tied on the way Genzo's wife tied them every autumn."},
 		{"kind": "jizo", "cell": [8, 12]},
 		{"kind": "jizo", "cell": [9, 12]},
 		{"kind": "hasa", "cell": [2, 9], "size": [5, 1]},
@@ -70,6 +72,7 @@
 		"hill": [[22, 1], "down"],
 		"genzo": [[15, 7], "down"],
 		"haru": [[27, 7], "down"],
-		"well": [[19, 9], "up"]
+		"well": [[19, 9], "up"],
+		"jizo": [[11, 13], "left"]
 	}
 }

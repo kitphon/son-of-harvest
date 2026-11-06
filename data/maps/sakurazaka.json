@@ -1,5 +1,5 @@
 {
-	"_note": "Sakurazaka, the village's east part (added 2026-11-01): the road on from the village climbs east to the mine, lined with cherry trees, over a creek on a plank bridge (floor tiles over the water, stone lanterns at its ends). North of the road the Hanami teahouse (noren, raked gravel in front), Fumi's; south of the road Ichiro the charcoal burner's house with his firewood stacked by it (its door round the front: down the path at x 19, along y 16). A bamboo grove north-east of the creek, where Ichiro cuts wood. Format: README.md, Maps.",
+	"_note": "Sakurazaka, the village's east part (added 2026-11-01): the road on from the village climbs east to the mine, lined with cherry trees, over a creek on a plank bridge (floor tiles over the water, stone lanterns at its ends). North of the road the Hanami teahouse (noren, raked gravel in front), Fumi's; south of the road Ichiro the charcoal burner's house with his firewood stacked by it (its door round the front: down the path at x 19, along y 16). Ichiro's charcoal kiln (kiln, 2 x 2) stands below his house, its mouth to the front, two thumbprints in the clay over it (his father's and his); the kiln_mark prop on the same cells is the farmer's third, there once ichiro_mark is set (heart_ichiro_6), listed first so examining the kiln then reads its message. A bamboo grove north-east of the creek, where Ichiro cuts wood. Format: README.md, Maps.",
 	"id": "sakurazaka",
 	"name": "Sakurazaka",
 	"size": [30, 20],
@@ -50,6 +50,8 @@
 		{"kind": "sakura", "cell": [6, 13]},
 		{"kind": "sakura", "cell": [10, 13]},
 		{"kind": "sakura", "cell": [26, 13]},
+		{"kind": "kiln_mark", "cell": [23, 17], "size": [2, 2], "flag": "ichiro_mark", "use": "examine", "message": "Three thumbprints over the kiln's mouth now, and the newest one is yours."},
+		{"kind": "kiln", "cell": [23, 17], "size": [2, 2], "use": "examine", "message": "Ichiro's charcoal kiln, with two thumbprints pressed in the clay over its mouth."},
 		{"kind": "woodpile", "cell": [26, 14], "size": [2, 1]},
 		{"kind": "woodpile", "cell": [26, 16], "size": [2, 1]},
 		{"kind": "jizo", "cell": [28, 13]},
@@ -79,6 +81,7 @@
 		"mine": [[28, 10], "left"],
 		"teahouse": [[7, 8], "down"],
 		"ichiro": [[22, 16], "down"],
+		"kiln": [[25, 18], "left"],
 		"bridge": [[16, 11], "left"]
 	}
 }

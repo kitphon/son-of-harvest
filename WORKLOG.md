@@ -42,6 +42,42 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
   `--demo --mine=3`, each `--quit-after 300`) print no error or warning.
 - Left / next: the chore line shows on any talk that day, the morning is not checked by time;
   the same chore line for Fumi is not seen in a live run, only in the tests.
+## 2026-11-06 — Story props for Genzo's jizo bibs and Ichiro's kiln mark
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the flags `genzo_jizo` (heart_genzo_5) and `ichiro_mark` (heart_ichiro_6) now leave
+  props, gated like the other story props (MapManager.with_flags). Sakurazaka had no kiln, so
+  a new prop kind `kiln` (2 x 2 at 23, 17, below Ichiro's house, solid, examine line) is a lit
+  mesh (OutdoorProps.kiln: a baked-clay dome, a flat clay face with a stone-framed mouth and
+  hearth stone, a chimney at the back, snow on the crown) with two thumbprints over the mouth
+  (the father's, a little broader, and Ichiro's). The story prop `kiln_mark` on the same cells
+  (flag ichiro_mark) adds the farmer's third (OutdoorProps.kiln_mark_at gives the three spots).
+  `jizo_bibs` (flag genzo_jizo, not solid) on the two Kaminoda jizo (8, 12), (9, 12) ties a
+  wider, brighter red bib (NEW_RED e23a2c) with a white hem, a small white crest and a fresh
+  collar tie over the old bib. The story props are listed before the prop they sit on, so
+  `prop_at` finds them and their examine line replaces the kiln's ("two thumbprints" ->
+  "three ... the newest one is yours"); the jizo had no line and now has one with the flag.
+  Flat view: StoryView draws `story:jizo_bibs` / `story:kiln_mark` (PlaceholderArt), MapView
+  colours the kiln. New spawns `sakurazaka@kiln` and `kaminoda@jizo` for screenshots (AGENTS.md).
+  Thai lines for the three messages in data/lang/th/items.json. README → Maps, ROADMAP,
+  ART_DIRECTION updated.
+- Checked: test_maps `_outdoor_props` builds the kiln (with and without snow: lit ArrayMeshes
+  only, inside its 2 x 2 cells, 0.95..1.1 high, two thumbprints, snow skins only with snow),
+  the three mark spots on its face, the bib inside the jizo's cell; Sakurazaka's map has no box
+  left in the kiln's cells. New `_lane_and_kiln_props`: the events set the flags, the gate
+  flags of both maps, the props only with their own flag (not in Minamino), the bibs over a
+  still-solid jizo, the kiln leaving Ichiro's path / work spot open, the art drawn, in 3D two
+  NEW_RED meshes / two -> three thumbprints with the flag, the flat view, and examining the
+  kiln and the jizo through FarmActions.interact before and after the flags. All 28 test
+  scripts print `OK (0 failed)`. Smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, plus the kiln in winter snow and the bibs) print no error or warning.
+  Screenshots: `--demo --map=sakurazaka@kiln --time=10:00` with and without
+  `--flags=ichiro_mark` show two vs three thumbprints over the kiln's mouth;
+  `--map=kaminoda@jizo --flags=genzo_jizo` the bigger red bibs with white hems against the
+  plain ones; winter `--snow=80` snow on the kiln's crown; the flat view shows the bib sprites
+  on the jizo boxes and the marks on the kiln box.
+- Left / next: the thumbprints are 2-3 screen pixels at the medium lens (readable side by
+  side, small alone); the kiln's look does not change with ichiro_kiln (the farmer helping dig
+  it); Genzo's band 6 scene is another agent's work.
 
 ## 2026-11-06 — GitHub remote
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

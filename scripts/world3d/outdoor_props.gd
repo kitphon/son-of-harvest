@@ -13,6 +13,9 @@ const STONE_DARK := Color("7e7a72")
 const STONE := Color("8e8a80")
 const STONE_LIGHT := Color("a29e94")
 const RED := Color("c8342c")
+const NEW_RED := Color("e23a2c")     # the jizo's new bibs (genzo_jizo), brighter than the old
+const KILN_CLAY := Color("9a7656")
+const KILN_FACE := 0.8               # the kiln's clay face, this far in front of its middle
 const CLUMP_LOOKS := 8   # bamboo clump shapes; a cell picks one and turns it
 
 ## Bamboo colours by season: culm, node ring, three leaf tones. Evergreen: winter only dulls.
@@ -237,6 +240,82 @@ static func jizo(w: FarmWorld, mid: Vector3, snow: bool) -> void:
 		var top := Rect2(mid.x - 0.13, mid.z - 0.11, 0.26, 0.22)
 		FarmProps.block(s, top.grow(-0.01), 0.152, top.grow(-0.035), 0.17)
 		sn.commit(w)
+
+
+## The new bib tied over the old one (StoryProps, genzo_jizo: heart_genzo_5): bright red cloth
+## wider and longer than the old bib under it, a white hem along its bottom, a small white
+## crest sewn on its front and a fresh collar tie at the neck. `mid` is the jizo's own (the middle of its cell).
+static func jizo_bibs(w: FarmWorld, mid: Vector3) -> void:
+	var p := FarmProps.Parts.new()
+	var red := p.st(NEW_RED)
+	var at := Vector3(mid.x, 0, mid.z)
+	Shrine.lathe(red, at, [Vector2(0.072, 0.418), Vector2(0.096, 0.43), Vector2(0.098, 0.468), Vector2(0.07, 0.49)], 10)   # the tie
+	FarmProps.block(red, Rect2(mid.x - 0.11, mid.z + 0.124, 0.22, 0.022), 0.2, Rect2(mid.x - 0.09, mid.z + 0.09, 0.18, 0.024), 0.47)
+	var white := p.st(Color("f2ece0"))
+	FarmProps.block(white, Rect2(mid.x - 0.112, mid.z + 0.122, 0.224, 0.028), 0.19,
+		Rect2(mid.x - 0.108, mid.z + 0.118, 0.216, 0.028), 0.235)   # the hem
+	FarmProps.block(white, Rect2(mid.x - 0.022, mid.z + 0.124, 0.044, 0.012), 0.32,
+		Rect2(mid.x - 0.022, mid.z + 0.12, 0.044, 0.012), 0.37)   # a crest sewn on
+	p.commit(w)
+
+
+# --- the charcoal kiln --------------------------------------------------------
+
+## Where the thumbprints sit on the kiln's clay face over its mouth, for the kiln on `r`:
+## 0 the father's, 1 Ichiro's, 2 the farmer's (StoryProps, ichiro_mark). The middle of each.
+static func kiln_mark_at(r: Rect2, i: int) -> Vector3:
+	var mid := r.get_center()
+	return Vector3(mid.x - 0.14 + i * 0.14, 0.6, mid.y + KILN_FACE + 0.003)
+
+
+## One thumbprint pressed into the face at `at`: a dark oval in a lighter rim, facing the front.
+## `big` is the father's broad thumb.
+static func kiln_mark(w: FarmWorld, at: Vector3, big := false) -> void:
+	var p := FarmProps.Parts.new()
+	var s := 1.12 if big else 1.0
+	_oval(p.st(KILN_CLAY.lightened(0.2)), at, 0.05 * s, 0.062 * s)
+	_oval(p.st(Color("4a2e1c")), at + Vector3(0, 0, 0.002), 0.036 * s, 0.048 * s)
+	p.commit(w)
+
+
+## Ichiro's charcoal kiln (sumigama) on `r` (2 x 2 cells): a low dome of baked clay, a flat clay
+## face at the front (+z) with a stone-framed mouth, a clay chimney at the back, and two
+## thumbprints over the mouth (the father's and Ichiro's; the farmer's is a story prop). Snow
+## on the dome's crown and the face's top.
+static func kiln(w: FarmWorld, r: Rect2, mid: Vector3, snow: bool) -> void:
+	var p := FarmProps.Parts.new()
+	var clay := p.st(KILN_CLAY)
+	var dome_at := Vector3(mid.x, 0, mid.z - 0.1)
+	Shrine.lathe(p.st(KILN_CLAY.darkened(0.15)), dome_at, [Vector2(0.84, 0.0), Vector2(0.85, 0.12)], 14)   # the soot-dark foot
+	Shrine.lathe(clay, dome_at, [Vector2(0.85, 0.12), Vector2(0.8, 0.36), Vector2(0.64, 0.58), Vector2(0.4, 0.73), Vector2(0.0, 0.8)], 14)
+	var face := mid.z + KILN_FACE
+	FarmProps.block(p.st(KILN_CLAY.lightened(0.06)), Rect2(mid.x - 0.48, face - 0.3, 0.96, 0.3), 0.0, Rect2(mid.x - 0.44, face - 0.26, 0.88, 0.26), 0.7)
+	FarmProps.block(p.st(Color("1e1612")), Rect2(mid.x - 0.15, face - 0.01, 0.3, 0.014), 0.0, Rect2(mid.x - 0.11, face - 0.01, 0.22, 0.014), 0.38)   # the mouth
+	var stone := p.st(STONE)
+	for x in [mid.x - 0.2, mid.x + 0.2]:
+		FarmProps.block(stone, Rect2(x - 0.035, face - 0.03, 0.07, 0.06), 0.0, Rect2(x - 0.03, face - 0.025, 0.06, 0.05), 0.42)
+	FarmProps.block(p.st(STONE_LIGHT), Rect2(mid.x - 0.27, face - 0.035, 0.54, 0.07), 0.42, Rect2(mid.x - 0.26, face - 0.03, 0.52, 0.06), 0.5)   # the lintel
+	FarmProps.block(p.st(STONE_DARK), Rect2(mid.x - 0.3, face, 0.6, 0.12), 0.0, Rect2(mid.x - 0.28, face + 0.01, 0.56, 0.1), 0.04)   # the hearth stone
+	Shrine.lathe(p.st(KILN_CLAY.darkened(0.3)), Vector3(mid.x + 0.3, 0, mid.z - 0.72), [Vector2(0.09, 0.3), Vector2(0.085, 0.98), Vector2(0.07, 1.02)], 8)   # the chimney
+	p.commit(w)
+	kiln_mark(w, kiln_mark_at(r, 0), true)
+	kiln_mark(w, kiln_mark_at(r, 1))
+	if snow:
+		var sn := FarmProps.Parts.new()
+		var s := sn.st(FarmProps.Parts.SNOW)
+		Shrine.lathe(s, dome_at, [Vector2(0.62, 0.6), Vector2(0.4, 0.742), Vector2(0.0, 0.812)], 14)
+		var top := Rect2(mid.x - 0.44, face - 0.26, 0.88, 0.26)
+		FarmProps.block(s, top.grow(-0.01), 0.7, top.grow(-0.03), 0.72)
+		sn.commit(w)
+
+
+## A flat oval facing +z round `at`, half-widths rx (across) and ry (up).
+static func _oval(st: SurfaceTool, at: Vector3, rx: float, ry: float) -> void:
+	const N := 12
+	for k in N:
+		var a0 := TAU * k / N
+		var a1 := TAU * (k + 1) / N
+		_tri(st, at, at + Vector3(cos(a0) * rx, sin(a0) * ry, 0), at + Vector3(cos(a1) * rx, sin(a1) * ry, 0), Vector3(0, 0, 1))
 
 
 # --- the woodpile -------------------------------------------------------------

@@ -3,12 +3,12 @@ extends Node2D
 ## The story props of a map (KINDS: the door bell, the store's sign, Tome's jar, Kota's carp
 ## streamer, the ribbon board, the builder's lumber by the farmhouse while a house extension is
 ## under way, a keepsake given to a villager who loves it, in their home, the mine's rope lift winch at the cave mouth once a landing
-## is reached) in the flat
+## is reached, the jizo's new red bibs and the three thumbprints on Ichiro's kiln) in the flat
 ## view, drawn from the same PlaceholderArt "story:" keys as in 3D (StoryProps): centred in
 ## their cells, standing on the bottom edge. MapView leaves them out of its boxes.
 
 const T := 16
-const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift"]
+const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark"]
 
 var map: MapData
 
@@ -39,4 +39,8 @@ func _draw() -> void:
 			r.end.y -= 4
 		elif p.kind == "keepsake":   # hung from the lintel: its top near the cell's top
 			r.end.y = r.position.y + tex.get_height() + 2
+		elif p.kind == "jizo_bibs":   # on the jizo's chest, the middle of its cell
+			r.end.y -= 4
+		elif p.kind == "kiln_mark":   # over the kiln's mouth, in the front cells' upper half
+			r.end.y -= T / 2 + 2
 		draw_texture(tex, Vector2(roundf(r.get_center().x - tex.get_width() / 2.0), r.end.y - tex.get_height() - 1))
