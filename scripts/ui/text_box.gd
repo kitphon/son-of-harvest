@@ -220,12 +220,7 @@ func _refresh_choices() -> void:
 
 
 func _frame(parent: Control, r: Rect2i, kind: String) -> NinePatchRect:
-	var b := NinePatchRect.new()
-	b.texture = PlaceholderArt.tex("ui:frame:" + kind)
-	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
-		b.set_patch_margin(side, Hud.NINE_MARGIN)
-	b.axis_stretch_horizontal = NinePatchRect.AXIS_STRETCH_MODE_TILE
-	b.axis_stretch_vertical = NinePatchRect.AXIS_STRETCH_MODE_TILE
+	var b := UiStyle.panel(null, kind)
 	b.position = r.position
 	b.size = r.size
 	b.mouse_filter = Control.MOUSE_FILTER_IGNORE

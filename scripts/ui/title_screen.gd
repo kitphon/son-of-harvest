@@ -9,7 +9,7 @@ const TITLE := "Harvest Son"
 const TITLE_SCALE := 3
 const MENU := Rect2i(184, 168, 112, 52)
 const ROW_H := 13
-const INK_OFF := Color("b4a27e")
+const INK_OFF := UiStyle.INK_OFF
 
 var menu: TitleMenu
 var _rows: Array[Label] = []
@@ -19,7 +19,7 @@ var _note_box: NinePatchRect
 
 const NOTE_H := 18
 const NOTE_PAD := 7
-const WASH := Color(0.965, 0.918, 0.816, 0.6)   # the paper colour, a little see-through
+const WASH := UiStyle.WASH
 
 
 func _ready() -> void:
@@ -39,7 +39,7 @@ func _ready() -> void:
 	# A soft paper wash behind the name and its brush stroke: the sky and hills still show
 	# through, but the letters no longer sit straight on the picture (FEEDBACK item 7).
 	_wash(Rect2i(title_pos.x - 10, title_pos.y - 6, title_w + 20, 42))
-	var shadow := _label(self, title_pos + Vector2i(TITLE_SCALE, TITLE_SCALE), Color("f6ead0"))
+	var shadow := _label(self, title_pos + Vector2i(TITLE_SCALE, TITLE_SCALE), UiStyle.PAPER_TEXT)
 	shadow.text = TITLE
 	shadow.scale = Vector2.ONE * TITLE_SCALE
 	var title := _label(self, title_pos, Hud.INK)
@@ -100,12 +100,7 @@ func _wash(r: Rect2i) -> Panel:
 
 
 func _box(r: Rect2i) -> NinePatchRect:
-	var b := NinePatchRect.new()
-	b.texture = PlaceholderArt.tex("ui:frame:paper")
-	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
-		b.set_patch_margin(side, Hud.NINE_MARGIN)
-	b.axis_stretch_horizontal = NinePatchRect.AXIS_STRETCH_MODE_TILE
-	b.axis_stretch_vertical = NinePatchRect.AXIS_STRETCH_MODE_TILE
+	var b := UiStyle.panel(null, "paper")
 	b.position = r.position
 	b.size = r.size
 	b.mouse_filter = Control.MOUSE_FILTER_IGNORE

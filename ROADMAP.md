@@ -35,6 +35,7 @@ kayabuki roof (scripts/world3d/minka.gd, README → Farmhouse model, models/farm
 [x] Interiors: walls as timber frames, low front sills, step edges and a shoe stone, soft
 floor shading by the walls (scripts/world3d/room_walls.gd).
 [x] Room furniture as lit meshes, all 22 kinds (scripts/world3d/room_props.gd).
+[x] UI pass: one shared look (washi paper in dark wood frames, `UiStyle`) for the HUD and every screen.
 The full style roadmap, the rules for making pieces and how to continue: docs/ART_DIRECTION.md.
 [x] Trees: lumpy lit crowns by season, tiered pines with snow, the wood as MultiMeshes
 (scripts/world3d/trees.gd).

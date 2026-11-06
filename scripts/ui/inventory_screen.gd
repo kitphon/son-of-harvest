@@ -12,7 +12,7 @@ const PITCH := 20           # slot to slot
 const LABEL_W := 46         # the place names left of the rows (wider for longer names)
 const TOP := 17             # the heading strip on the wood
 const LINE := 11
-const PAPER := Color("f6ead0")
+const PAPER := UiStyle.PAPER_TEXT
 const HINT := "Enter: pick / put  E: hold  F: eat  Esc: close"
 
 var menu: InventoryMenu
@@ -36,7 +36,7 @@ var _note: Label
 func _ready() -> void:
 	layer = 10   # over the HUD
 	_dim = ColorRect.new()
-	_dim.color = Color(0.1, 0.07, 0.04, 0.45)
+	_dim.color = UiStyle.DIM
 	_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_dim)
@@ -211,12 +211,7 @@ func _icon(parent: Control, pos: Vector2i) -> TextureRect:
 
 
 func _box(parent: Control, kind: String) -> NinePatchRect:
-	var b := NinePatchRect.new()
-	b.texture = PlaceholderArt.tex("ui:frame:" + kind)
-	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
-		b.set_patch_margin(side, Hud.NINE_MARGIN)
-	b.axis_stretch_horizontal = NinePatchRect.AXIS_STRETCH_MODE_TILE
-	b.axis_stretch_vertical = NinePatchRect.AXIS_STRETCH_MODE_TILE
+	var b := UiStyle.panel(null, kind)
 	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(b)
 	return b
