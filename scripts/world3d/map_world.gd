@@ -45,7 +45,7 @@ func build(m: MapData) -> void:
 	if not map.sheltered:
 		var rules: Dictionary = Game.snow_rules
 		add_surroundings(map.w, map.h, func(c: Vector2i) -> String: return map.tile(c),
-			func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, rules))
+			func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, rules), map.id)
 
 
 ## Rice in the paddy cells with no prop, by the season (CropClusters.paddy_key; none in winter).

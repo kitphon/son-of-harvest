@@ -6,6 +6,8 @@ extends Node3D
 ## and a wood of pines on the far sides, only where it stands behind the whole map on screen
 ## (the camera looks in from +x / +z), so it never covers a cell the farmer can reach.
 ## Snow lies on the apron as on the map (SnowLayer's ground shader, the edge cells' hold).
+## Where the far country stands (Backdrop), the land past the back (north and west) edges
+## stops after `back` cells, so the camera looks over that rim onto the far ridges.
 
 const MARGIN := 14          # cells of apron round the map (the view reaches ~10 past an edge)
 const T := 16
@@ -16,36 +18,41 @@ const TREE_KINDS: Array[String] = ["grass"]   # ground a pine stands on
 var material: ShaderMaterial   # the apron's ground; FarmWorld.set_snow sets its cover
 var water: WaterSurface   # the moving skin on the water cells (and past the edges)
 var snow_mats: Array[ShaderMaterial] = []   # the snow on the pines' pads, set with it
+var back := MARGIN   # cells of land past the north and west edges (the rim, with a backdrop)
+var share := TREE_SHARE   # % of the allowed cells with a pine (fewer on a rim, so the ridges show)
 
 
 ## Builds the apron for a w x h map. `kind_at(c)` gives an in-map cell's ground kind
-## (grass, path, water...), `hold_at(c)` how much snow it holds (0..1).
-func build(w: int, h: int, kind_at: Callable, hold_at: Callable) -> void:
-	var cw := w + MARGIN * 2
-	var ch := h + MARGIN * 2
+## (grass, path, water...), `hold_at(c)` how much snow it holds (0..1). `back_cells`: the land
+## past the north and west edges (MARGIN, or the rim before the far country).
+func build(w: int, h: int, kind_at: Callable, hold_at: Callable, back_cells := MARGIN, pine_share := TREE_SHARE) -> void:
+	back = back_cells
+	share = pine_share
+	var cw := w + MARGIN + back
+	var ch := h + MARGIN + back
 	var img := Image.create(cw * T, ch * T, false, Image.FORMAT_RGBA8)
 	var mask := Image.create_empty(cw * SnowLayer.MASK_PER_CELL, ch * SnowLayer.MASK_PER_CELL, false, Image.FORMAT_L8)
-	for y in range(-MARGIN, h + MARGIN):
-		for x in range(-MARGIN, w + MARGIN):
+	for y in range(-back, h + MARGIN):
+		for x in range(-back, w + MARGIN):
 			var c := Vector2i(x, y)   # under the map too: its edge pixels must not show a gap
 			var tile := PlaceholderArt.tex(ground_key(kind_at, w, h, c)).get_image()
 			tile.convert(Image.FORMAT_RGBA8)
-			img.blit_rect(tile, Rect2i(0, 0, T, T), Vector2i(x + MARGIN, y + MARGIN) * T)
+			img.blit_rect(tile, Rect2i(0, 0, T, T), Vector2i(x + back, y + back) * T)
 			var v: float = hold_at.call(edge_cell(c, w, h))
 			var m := SnowLayer.MASK_PER_CELL
-			mask.fill_rect(Rect2i((x + MARGIN) * m, (y + MARGIN) * m, m, m), Color(v, v, v))
+			mask.fill_rect(Rect2i((x + back) * m, (y + back) * m, m, m), Color(v, v, v))
 	material = SnowLayer.ground_material(ImageTexture.create_from_image(img), ImageTexture.create_from_image(mask))
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(cw, ch)
 	var ground := MeshInstance3D.new()
 	ground.mesh = plane
 	ground.material_override = material
-	ground.position = Vector3(w / 2.0, -0.02, h / 2.0)   # just under the map's ground
+	ground.position = Vector3((w + MARGIN - back) / 2.0, -0.02, (h + MARGIN - back) / 2.0)   # just under the map's ground
 	ground.layers = NightLamps.GROUND_LAYER
 	add_child(ground)
 	water = WaterSurface.new()
 	add_child(water)
-	water.build(w, h, kind_at, MARGIN)
+	water.build(w, h, kind_at, MARGIN, back)
 	_make_pines(w, h, kind_at)
 	_make_tufts(w, h, kind_at, hold_at)
 
@@ -53,8 +60,8 @@ func build(w: int, h: int, kind_at: Callable, hold_at: Callable) -> void:
 ## Grass tufts on the apron's grass (GrassTufts), the edge cell's snow hold under each.
 func _make_tufts(w: int, h: int, kind_at: Callable, hold_at: Callable) -> void:
 	var cells: Array[Vector2i] = []
-	for y in range(-MARGIN, h + MARGIN):
-		for x in range(-MARGIN, w + MARGIN):
+	for y in range(-back, h + MARGIN):
+		for x in range(-back, w + MARGIN):
 			var c := Vector2i(x, y)
 			if (x < 0 or y < 0 or x >= w or y >= h) and kind_at.call(edge_cell(c, w, h)) == "grass":
 				cells.append(c)
@@ -95,8 +102,8 @@ static func behind_map(p: Vector2, w: int, h: int) -> bool:
 
 
 ## A pine on apron cell `c`? Off the map, behind it, on grass all round (roads and water
-## running out stay clear), and only some cells, picked by the cell so it never changes.
-static func pine_at(kind_at: Callable, w: int, h: int, c: Vector2i) -> bool:
+## running out stay clear), and only `pct` % of the cells, picked by the cell so it never changes.
+static func pine_at(kind_at: Callable, w: int, h: int, c: Vector2i, pct := TREE_SHARE) -> bool:
 	if c.x >= 0 and c.y >= 0 and c.x < w and c.y < h:
 		return false
 	if not behind_map(Vector2(c) + Vector2(0.5, 0.5), w, h):
@@ -105,7 +112,7 @@ static func pine_at(kind_at: Callable, w: int, h: int, c: Vector2i) -> bool:
 		for ox in range(-1, 2):
 			if not kind_at.call(edge_cell(c + Vector2i(ox, oy), w, h)) in TREE_KINDS:
 				return false
-	return posmod(c.x * 92837 + c.y * 68917 + (c.x * c.y) * 31, 100) < TREE_SHARE
+	return posmod(c.x * 92837 + c.y * 68917 + (c.x * c.y) * 31, 100) < pct
 
 
 ## The wood: straight pines (Trees.pine, PINE_SHAPES shapes), each nudged in its cell,
@@ -114,10 +121,10 @@ func _make_pines(w: int, h: int, kind_at: Callable) -> void:
 	var at := []
 	for i in PINE_SHAPES:
 		at.append([] as Array[Transform3D])
-	for y in range(-MARGIN, h + MARGIN):
-		for x in range(-MARGIN, w + MARGIN):
+	for y in range(-back, h + MARGIN):
+		for x in range(-back, w + MARGIN):
 			var c := Vector2i(x, y)
-			if not pine_at(kind_at, w, h, c):
+			if not pine_at(kind_at, w, h, c, share):
 				continue
 			var r := posmod(c.x * 131 + c.y * 197, 1000) / 1000.0
 			var s := 0.85 + 0.45 * r

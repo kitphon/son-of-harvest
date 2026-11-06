@@ -58,8 +58,9 @@ tools/showcase.py (README → Showcase).
 [x] Night: real warm lights (NightLamps, at most 8 OmniLight3Ds without shadows at the lit
 windows, stone lanterns and festival lights; data/light.json "lamps"), the night blue a touch
 lighter, the festival's lights and stalls lighting the ground in both views (README → Light).
-Next: the optional mountain backdrop and haze (section 3; a branch for it waits on the user),
-then section 4 (characters, needs the user's decision on who draws). "ทำ art direction ต่อ" from the user
+[x] The far country: mountain ridges past a rim on the north and west sides of the outdoor
+maps, hazed with the sky by the clock, snow caps in winter (data/backdrop.json, README → Camera).
+Next: section 4 (characters, needs the user's decision on who draws). "ทำ art direction ต่อ" from the user
 means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our

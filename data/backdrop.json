@@ -1,0 +1,15 @@
+{
+	"_note": "The far country past the outdoor maps (scripts/world3d/backdrop.gd, the 3D view only). The fixed camera looks 16 degrees down at the top of the frame, so nothing standing on the ground more than about 10 cells past the farmer shows; mountains on the horizon never could. So past the back (north and west) edges the land stops after `rim` cells (Surroundings keeps the apron and a thin wood there) and falls away out of sight (rim_pines: % of the rim's cells with a pine, fewer than the full wood's 45 so the ridges show between them), and the ridges stand far out and low, below the rim's line of sight: over the rim the top corners of the frame look down into the far country, with the sky's colour above the peaks. maps: the maps that have it (not the rooms, the mine or the mine's cave mouth). span: cells the ridges run on past the far corners of the land. layers: far first. gap: cells from the map's edge to the ridge. low / high: the lowest and the highest peak, world units (below the map's ground; at the frame's top they show from about high - 1 down to the rim's line of sight, which sinks as the farmer nears the edge). step: cells between ridge points (the low-poly facets). seed: which peaks. bottom: where the walls stop below (lower than any line past the rim). colors: the ridge's colour by season (hex). haze: 0..1 of the sky's colour by the clock (Game.sky_color, data/light.json background) laid over the whole ridge, the far ridge more. mist: units below `low` where the ridge's foot has faded into the sky's colour. snow: the snow cap's colour; caps: how far down from `high` (0..1 of high - low) the snow lies, by season (winter full, early spring a little left).",
+	"maps": ["farm", "town", "hill", "kaminoda", "sakurazaka", "minamino", "river"],
+	"rim": 3,
+	"rim_pines": 25,
+	"span": 40,
+	"layers": [
+		{"gap": 34, "low": -12.8, "high": -8.6, "step": 3.4, "seed": 3, "bottom": -90.0, "haze": 0.55, "mist": 2.5,
+			"colors": {"spring": "7f98b4", "summer": "6f8fae", "fall": "9a8fa6", "winter": "8d9fb6"}},
+		{"gap": 18, "low": -6.4, "high": -3.6, "step": 2.3, "seed": 11, "bottom": -90.0, "haze": 0.3, "mist": 2.0,
+			"colors": {"spring": "5f8a78", "summer": "4c7a68", "fall": "8a6e58", "winter": "66778a"}}
+	],
+	"snow": "f2f6fa",
+	"caps": {"spring": 0.25, "summer": 0.0, "fall": 0.0, "winter": 0.6}
+}

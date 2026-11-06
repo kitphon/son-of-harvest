@@ -18,6 +18,7 @@ var _snow_mats: Array[ShaderMaterial] = []
 ## Buildings and trees that fade while they stand between the camera and the farmer.
 var occluders := Occluders.new()
 var surroundings: Surroundings   # the land past the map's edge (outdoors)
+var backdrop: Backdrop           # the far mountain ridges past it (data/backdrop.json maps; else null)
 var tufts: GrassTufts            # grass tufts on the grass cells (outdoors)
 var _tuft_cells: Array[Vector2i] = []
 var crops: CropClusters          # tall crops (rice, corn) as clusters of small sprites; the village paddies' rice
@@ -42,7 +43,7 @@ func setup(f: FarmGrid, open_cells: Array[Vector2i] = []) -> void:
 	var rules: Dictionary = Game.snow_rules
 	add_surroundings(FarmGrid.W, FarmGrid.H,
 		func(c: Vector2i) -> String: return PlaceholderArt.ground_key(farm, c).get_slice(":", 1),
-		func(c: Vector2i) -> float: return SnowLayer.hold(farm, c, rules))
+		func(c: Vector2i) -> float: return SnowLayer.hold(farm, c, rules), "farm")
 	add_tufts()
 	add_crops()
 	_objects = Node3D.new()
@@ -197,11 +198,20 @@ func occlude(build: Callable) -> void:
 	occluders.add_children_from(self, first)
 
 
-## The apron and the wood past a w x h map's edge (Surroundings), its snow with the rest.
-func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable) -> void:
+## The apron and the wood past a w x h map's edge (Surroundings), its snow with the rest; on
+## the maps of data/backdrop.json the land stops at the rim and the far ridges stand past it.
+func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable, map_id := "") -> void:
 	surroundings = Surroundings.new()
 	add_child(surroundings)
-	surroundings.build(w, h, kind_at, hold_at)
+	var far := Backdrop.on_map(map_id)
+	if far:
+		surroundings.build(w, h, kind_at, hold_at, Backdrop.rim(), Backdrop.rim_pines())
+	else:
+		surroundings.build(w, h, kind_at, hold_at)
+	if far:
+		backdrop = Backdrop.new()
+		add_child(backdrop)
+		backdrop.build(w, h)
 	_snow_mats.append(surroundings.material)
 	_snow_mats.append_array(surroundings.snow_mats)
 

@@ -10,6 +10,42 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — The far country: mountain ridges and haze past a rim
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: ART_DIRECTION section 3's optional backdrop, after the user's go-ahead; finishes the
+  in-progress branch c8e1ed0 (its path / samples / peak helpers kept, the rest rewritten).
+  The fix for "the ridges never reach the frame": the medium lens looks 16 degrees down at the
+  frame's top, so nothing standing on level ground more than ~10 cells past the farmer can show.
+  So on the seven outdoor maps of `data/backdrop.json` (farm, town, hill, kaminoda, sakurazaka,
+  minamino, river) Surroundings stops the land past the north and west edges after a 3-cell rim
+  (`back`; the south / east apron keeps its 14) with a thinner wood there (25 % of cells, not
+  45), and Backdrop (`scripts/world3d/backdrop.gd`) puts two ridge layers 18 and 34 cells out and
+  below the ground's level (peaks -3.6..-6.4 and -8.6..-12.8): from within a few cells of the
+  back edges the frame's top corners look over the rim down onto them, with sky above the peaks.
+  Flat (unshaded) walls with alternating facet tones, a small shader: the season's colour, hazed
+  with `Game.sky_color` (the far layer 0.55, the near 0.3; the clear background is the same colour,
+  so dawn, dusk and night carry over), the feet fading into the sky's colour like mist, a jagged
+  snow line by season (`caps`: winter 0.6, spring 0.25). Refreshed on minute_passed / day_started.
+  WaterSurface.build takes the shorter back margin. Not in rooms, the mine or its cave mouth
+  (`mine` keeps the full wood). The camera is unchanged. Numbers were picked with a projection of
+  the medium lens (the rim's line of sight at the clamp is about -6.7 at 18 cells out, -13.7 at 34).
+- Checked: test_maps `_backdrop`: the map list (and none for house, mine, mine_floor, store,
+  clinic), the town's land stops at the rim with no pine past it, the ridge points past the rim
+  and below the ground, winter caps / none in summer, season colour and sky haze, the haze equal to
+  Game.sky_color after refresh, the far layer hazier, and through CameraLens "medium" with the
+  target at Main3D's clamp on the north edge, the west edge and the corner: peaks of both layers
+  in the 480 x 270 frame over the rim's line of sight, some with sky above; none from the
+  middle of the village; the house and the mine keep their land. (Lowering the near layer to
+  -8.6..-9.4 makes it fail: "near 0 peaks".) After `--import`, all 28 tests/test_*.gd print `OK (0 failed)`. Smoke runs (title, `--demo`, `--map=town`, `--mine=3`, `--map=mine`, `--map=river --season=winter`) print no error or warning.
+  Screenshots (480 x 270 movie frames): `--demo --map=town@north` pale blue ridges with a spring
+  cap at the top right between the pines; `town@tome` at 10:00 ridges at the top left, at 17:40
+  pink with the dusk sky, at 21:00 dark under the night tint; `--season=winter --snow=80`
+  (town@north, kaminoda@hill) snow-capped grey ridges; `--demo` (farm start) and `farm@coop` show
+  none (the pines and buildings fill the top there); `hill@top` none (the hill's own wall).
+- Left / next: the ridges show only near the north and west edges (by design: the lens cannot
+  see a horizon); the cut rim reads as a crest, roads running north end there; no flat-view
+  backdrop. Section 4 (characters) next, needs the user's decision on who draws.
+
 ## 2026-11-06 — Merge: hearts for Shige, Haru's band 6 scene, the worn old kiln
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents in parallel worktrees, models picked by difficulty: c9bd5a8 hearts for

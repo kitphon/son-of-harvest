@@ -159,11 +159,16 @@ Light and Farmhouse model hold the technical detail of what is built.
       data/light.json "background", `Game.sky_color`, `Game.sky_background`, applied by
       `Main3D._update_tint`): dawn purple to peach, the day blue 8fc6e8 at noon, golden at
       17:30, mauve at dusk, deep blue at night; greyer and darker under cloud. Rooms and mines
-      keep their own background. Still open: the sky is hidden by the land and props in the
-      views we frame (the farm, the village, the hill), so the change barely shows in
-      screenshots; a visible horizon would need the optional mountain backdrop. The sprites
+      keep their own background. The sky shows only over the rim near the north and west
+      edges, above the mountain backdrop (below); in the middle of a map the land hides it. The sprites
       (unshaded) take only the tint, not the sun's colour.
-- [ ] Optional: a distant mountain backdrop and light haze far off.
+- [x] Optional: a distant mountain backdrop and light haze far off. (this commit:
+      data/backdrop.json, scripts/world3d/backdrop.gd, README → Camera) On the seven outdoor
+      maps the land past the north and west edges stops at a 3-cell rim with a thinner wood;
+      two ridge layers stand far out and below the ground's level, so the fixed medium lens
+      (16° down at the frame's top) looks over the rim onto them from near those edges, the
+      sky's colour above the peaks. Flat coloured by season, hazed with the sky by the clock
+      (the far layer more), feet fading into it, snow caps in winter. Not in rooms or the mine.
 
 ### 4. Characters (needs the user's decision on who draws)
 - [ ] Larger, more detailed farmer and villager sprites, four or eight directions.
