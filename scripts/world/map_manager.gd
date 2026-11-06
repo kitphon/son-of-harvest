@@ -107,12 +107,14 @@ static func gate_flags(raw: Variant) -> Array[String]:
 		for p in raw.props:
 			if p is Dictionary and p.get("flag") is String and not p.flag in out:
 				out.append(p.flag)
+			if p is Dictionary and p.get("unless") is String and not p.unless in out:
+				out.append(p.unless)
 	return out
 
 
 ## A map file's data without the props whose flag test fails with these flags: a prop with
 ## "flag" shows while that flag is set (EventRunner.is_set), or, with "flag_value" too, while
-## the flag has that value (sayo_sign "old" / "new").
+## the flag has that value (sayo_sign "old" / "new"); "unless" hides a prop while another flag is set.
 static func with_flags(raw: Variant, f: Dictionary) -> Variant:
 	if not raw is Dictionary or gate_flags(raw).is_empty():
 		return raw
@@ -123,6 +125,8 @@ static func with_flags(raw: Variant, f: Dictionary) -> Variant:
 
 ## Does this prop (from a map file) show with these flags?
 static func shows(p: Variant, f: Dictionary) -> bool:
+	if p is Dictionary and p.get("unless") is String and EventRunner.is_set(f, p.unless):
+		return false   # "unless": hidden while that flag is set (the kiln site once the kiln is finished)
 	if not p is Dictionary or not p.get("flag") is String:
 		return true
 	if p.has("flag_value"):

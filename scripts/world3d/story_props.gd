@@ -90,9 +90,17 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 			# Over the jizo's own bib on the same cell (OutdoorProps.jizo).
 			OutdoorProps.jizo_bibs(w, Vector3(r.get_center().x, 0, r.get_center().y))
 		"kiln_mark":
-			# The farmer's thumbprint beside the father's and Ichiro's, on the kiln's clay
-			# face over the mouth (same cells as the kiln: OutdoorProps.kiln_mark_at).
+			# The farmer's thumbprint beside Ichiro's, on the new kiln's clay face over the
+			# mouth (same cells as kiln_new: OutdoorProps.kiln_mark_at).
 			OutdoorProps.kiln_mark(w, OutdoorProps.kiln_mark_at(r, 2))
+		"kiln_site":
+			# The new kiln half built (ichiro_kiln set, ichiro_mark not yet).
+			var c := r.get_center()
+			OutdoorProps.kiln_site(w, r, Vector3(c.x, 0, c.y), w is MapWorld and SnowLayer.map_has_snow((w as MapWorld).map))
+		"kiln_new":
+			# The finished new kiln (ichiro_mark): Ichiro's print is on it, the farmer's is kiln_mark.
+			var c := r.get_center()
+			OutdoorProps.kiln(w, r, Vector3(c.x, 0, c.y), w is MapWorld and SnowLayer.map_has_snow((w as MapWorld).map), [1])
 		"carp_streamer":
 			# Pole and carp are one picture, standing on its cell, the carp just over the eave.
 			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))

@@ -248,8 +248,12 @@ edge where boards or tatami meet the earth and a shoe stone below the door's ste
   village (`sayo_sign`), `ume_jar` in the farmhouse (`tome_grandma`), `carp_streamer` on the
   farm (`kota_streamer`, band 6), `jizo_bibs` on the two jizo by the Kaminoda lane
   (`genzo_jizo`, band 5: new red bibs over the old) and `kiln_mark` on Ichiro's charcoal kiln
-  (`kiln`, 2 x 2, below his house in Sakurazaka, two thumbprints over its mouth) for the
-  farmer's third thumbprint (`ichiro_mark`, band 6). A story prop listed before the prop it
+  (`kiln`, 2 x 2, below his house in Sakurazaka, two thumbprints over its mouth), which keeps
+  standing; beside it the new kiln grows with the story: `kiln_site` (`ichiro_kiln`, band 5: a
+  half-built mound of clay bricks with a pile of bricks, a timber form and a shovel) until
+  `ichiro_mark` (band 6) is set, when `kiln_new` (the finished kiln with Ichiro's thumbprint)
+  and `kiln_mark` (the farmer's) take its place. A prop's `unless` (a flag name) hides it
+  while that flag is set. A story prop listed before the prop it
   sits on is the one `prop_at` finds, so its examine line takes over while its flag is set.
   A prop with `use: "examine"`
   plays its `sound` (data/sfx.json) and shows its `message` when used, on any map;

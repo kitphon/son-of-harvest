@@ -103,7 +103,7 @@ Light and Farmhouse model hold the technical detail of what is built.
       Still open: the stalls have no straw bedding mesh (the floor tile is the straw).
 - [x] The outdoor small props: well, jizo, woodpile and river rock as lit meshes
       (`outdoor_props.gd`: OutdoorProps). (fb9b1d8) Since 2026-11-06 also Ichiro's charcoal kiln
-      (a clay dome, a stone-framed mouth, thumbprints over it) and the jizo's new red bibs.
+      (a clay dome, a stone-framed mouth, thumbprints about 0.2 cell wide over it; the new kiln half built from courses of clay bricks, then finished) and the jizo's new red bibs.
 - [x] The rest of the countryside props and the festival decorations as lit meshes: the rice
       drying rack (lashed poles, paired rails, straw sheaves in fall), the kitchen garden (a
       planked bed with ridges and rows of greens, cabbages and spring onions, bare in winter),
