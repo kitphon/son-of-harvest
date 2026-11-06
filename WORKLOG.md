@@ -10,6 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — Merge: spouse farm help, Ichiro / Genzo hearts, sky by the clock
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three agents worked in parallel worktrees: b4d5274 the spouse helps on the farm each
+  morning (Opus), c55d7f9 Ichiro's band 6 scene and hearts for Genzo (Sonnet), 25a5613 the sky
+  behind the land follows the clock outdoors (Haiku). Merged into main; only WORKLOG
+  conflicted (both sides kept).
+- Checked: on merged main, after `--import`, all 28 test scripts print `OK (0 failed)`; smoke
+  runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print no error or warning.
+- Left / next: the sky colour only shows where no land is drawn (needs the optional mountain
+  backdrop, the user's call); Genzo has no band 6 scene yet; the kiln mark and the jizo bibs
+  have flags but no props; a spouse talk line about the morning's chore.
+
 ## 2026-11-06 — The sky behind the land follows the clock
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: the 3D view's clear colour outdoors now follows the time of day, as the sun does.
