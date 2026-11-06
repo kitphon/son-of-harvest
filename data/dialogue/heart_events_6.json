@@ -1,5 +1,5 @@
 {
-	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow; Fumi's looks back on fumi_honest from her band 3 scene). Our own scenes.",
+	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow; Fumi's looks back on fumi_honest from her band 3 scene, Ichiro's on ichiro_kiln from his band 5 one). Our own scenes.",
 	"lines": [
 		{"id": "tome", "speaker": "tome", "mood": "neutral", "text": "My son wrote back. He wants me to come and live in the city with him. An apartment with an elevator, he says."},
 		{"speaker": "tome", "mood": "sad", "text": "He means well. He frets about the shrine stairs, and the winters, and me alone in that house."},
@@ -49,6 +49,18 @@
 		{"id": "fumi_pour", "speaker": "fumi", "mood": "neutral", "text": "The first cup from it should go to someone who matters. I've thought about it a long while.",
 			"choices": [{"text": "I'd be honored.", "next": "fumi_honour"}, {"text": "Shouldn't Tome have it?", "next": "fumi_tome"}]},
 		{"id": "fumi_honour", "speaker": "fumi", "mood": "happy", "text": "Then hold the cup with both hands. ...There. Now it's a kettle again, not a keepsake.", "next": "end"},
-		{"id": "fumi_tome", "speaker": "fumi", "mood": "surprised", "text": "Tome gets the second. She'll grumble, but she'd agree with me. Now drink, before I go red.", "next": "end"}
+		{"id": "fumi_tome", "speaker": "fumi", "mood": "surprised", "text": "Tome gets the second. She'll grumble, but she'd agree with me. Now drink, before I go red.", "next": "end"},
+
+		{"id": "ichiro", "speaker": "ichiro", "mood": "neutral", "text": "...Hold out your hand. Palm up."},
+		{"speaker": "ichiro", "mood": "happy", "text": "The first piece from the new kiln. The very first. It rang before it had cooled."},
+		{"if": "ichiro_kiln", "then": "ichiro_dug"},
+		{"speaker": "ichiro", "mood": "neutral", "text": "I never said thanks for coming to see the smoke. So. First piece. That's thanks.", "next": "ichiro_mark"},
+		{"id": "ichiro_dug", "speaker": "ichiro", "mood": "happy", "text": "You dug the clay with me. My father's rule: whoever digs gets the first piece."},
+		{"id": "ichiro_mark", "speaker": "ichiro", "mood": "neutral", "text": "There's a mark in the clay by the kiln door. My father's. Mine. I left room for one more, and I never knew for whom."},
+		{"speaker": "ichiro", "mood": "sad", "text": "...Now I do. Press your thumb in, if you want. It's your kiln as much as mine.",
+			"choices": [{"text": "I'd be proud to.", "next": "ichiro_proud"}, {"text": "Only a small mark.", "next": "ichiro_small"}]},
+		{"id": "ichiro_proud", "speaker": "ichiro", "mood": "happy", "text": "Press hard, so it holds. ...It'll outlast the both of us.", "next": "ichiro_end"},
+		{"id": "ichiro_small", "speaker": "ichiro", "mood": "surprised", "text": "Ha. A small one, then. Clay doesn't care. It keeps whatever you give it.", "next": "ichiro_end"},
+		{"id": "ichiro_end", "speaker": "ichiro", "mood": "happy", "text": "Three marks on one kiln. Hm. ...That's a family. Don't tell Fumi I used the word.", "next": "end"}
 	]
 }

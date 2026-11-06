@@ -1,0 +1,15 @@
+{
+	"_note": "Genzo's heart event: the first talk once his heart band reaches 3, in Kaminoda, at home or in the village (triggers_kaminoda.json, triggers_genzo_house.json, triggers_town.json). He gives the farmer a cup of his well water to taste, as his wife did every morning, and two packets of seed rice from his last good sack. Sets heart_genzo. Genzo acts in it from where the talk found them (an actor step at plan; played where their plan has them elsewhere, they walk up to the farmer), faces the farmer through the lines and goes back to their day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "genzo", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "genzo"},
+		{"do": "sound", "key": "drink"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events", "at": "genzo"},
+		{"do": "give", "item": "seeds:rice", "count": 2},
+		{"do": "affection", "who": "genzo", "amount": 5},
+		{"do": "set", "flags": {"heart_genzo": true}},
+		{"do": "actor", "who": "genzo", "to": "plan"},
+		{"do": "actor", "who": "genzo", "leave": true}
+	]
+}

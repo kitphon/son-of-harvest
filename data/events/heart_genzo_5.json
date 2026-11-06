@@ -1,0 +1,14 @@
+{
+	"_note": "Genzo's second heart event: the first talk once his heart band reaches 5, after heart_genzo (same tables). His stiff fingers can no longer sew and tie the red bibs on the jizo by the lane, as his wife did every autumn; he asks the farmer to tie the new ones (the farmer may ask to be shown how first). Sets heart_genzo_5 and genzo_jizo. Genzo acts in it from where the talk found them (an actor step at plan; played where their plan has them elsewhere, they walk up to the farmer), faces the farmer through the lines and goes back to their day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "genzo", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "genzo"},
+		{"do": "sound", "key": "amb_wind"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_5", "at": "genzo"},
+		{"do": "affection", "who": "genzo", "amount": 5},
+		{"do": "set", "flags": {"heart_genzo_5": true, "genzo_jizo": true}},
+		{"do": "actor", "who": "genzo", "to": "plan"},
+		{"do": "actor", "who": "genzo", "leave": true}
+	]
+}

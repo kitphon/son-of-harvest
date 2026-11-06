@@ -266,7 +266,7 @@ straw_hat, colours `hair`, `skin`, `top`, `waist`, `lower`, `accent`, `shoes`; d
 (`{"season": "fall", "day": 24}`, optional; the farmhouse calendar names it), optional
 `hearts` (false: a villager the farmer can't grow close to, like Dr. Yae at the clinic: no
 birthday, heart events or place in the village record; `Villagers.friends()` is everyone
-else (Tome, Hachiro, Sayo and Kota, and from Sakurazaka Fumi and Ichiro), and the heart checks
+else (Tome, Hachiro, Sayo and Kota, and from Sakurazaka Fumi and Ichiro, and Genzo of Kaminoda), and the heart checks
 in test_relationships loop over it; a friend needs a birthday with its lines and day plan, a
 `heart_<id>` event at band 3 in the trigger table of every map they can be talked on, and a
 part in the ending (`data/events/ending.json`); `heart_<id>_5` / `_6` are optional, checked
@@ -799,7 +799,7 @@ in `data/events/triggers_house.json`, once), Tome comes in with the village reco
 (`data/events/ending.json`, lines in `data/dialogue/ending.json`). Its `ending` step calls
 `Game.show_ending()`: `Game.ending_values()` measures the run (shipped value at today's prices,
 crop kinds shipped, happy animals, heart bands, neighbours known (the villagers without hearts,
-the outer parts' people but Fumi and Ichiro, and Dr. Yae, whose hidden affection from talks and gifts reached
+the outer parts' people but Fumi, Ichiro and Genzo, and Dr. Yae, whose hidden affection from talks and gifts reached
 `neighbour_band`), the deepest mine floor, fish kinds, house
 extensions, tool levels, contests won, recipes known) and `Ending.grade` turns it into stars
 per category, a rank and a title from `data/ending.json`; the EndingScreen shows it. A married

@@ -1,5 +1,5 @@
 {
-	"_note": "What Ichiro, the charcoal burner of Sakurazaka, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items his own answers to a keepsake and to dishes; gift_birthday on his birthday (fall 9). The close lines from band 4, kiln lines once his band 5 scene is seen (heart_ichiro_5). A man of few words. Our own lines.",
+	"_note": "What Ichiro, the charcoal burner of Sakurazaka, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items his own answers to a keepsake and to dishes; gift_birthday on his birthday (fall 9). The close lines from band 4, kiln lines once his band 5 scene is seen (heart_ichiro_5), dear lines at band 6 once his band 6 scene is seen (heart_ichiro_6). A man of few words. Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
@@ -9,6 +9,7 @@
 		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
 		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
+		{"if": {"band": [6, 6], "flags": ["heart_ichiro_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"band": [5, 6], "flags": ["heart_ichiro_5"]}, "at": ["kiln_1", "kiln_2"]},
 		{"if": {"weekday": ["wed"], "band": [2, 5], "season": ["spring"]}, "at": ["forage_spring"]},
 		{"if": {"weekday": ["wed"], "band": [2, 5], "season": ["summer"]}, "at": ["forage_summer"]},
@@ -54,6 +55,9 @@
 		{"id": "close_2", "speaker": "ichiro", "mood": "neutral", "text": "You walk heavier than when you came. Good. Means you're carrying things.", "next": "end"},
 		{"id": "kiln_1", "speaker": "ichiro", "mood": "happy", "text": "The new kiln draws well. First burn rang like a bell. Three in ten, now. ...Four.", "next": "end"},
 		{"id": "kiln_2", "speaker": "ichiro", "mood": "neutral", "text": "I put a mark in the kiln's clay by the door. My father's, mine. Left room for one more.", "next": "end"},
+		{"id": "dear_1", "speaker": "ichiro", "mood": "neutral", "text": "Three marks on the kiln door. I touch them when I load it. Superstition. Don't laugh.", "next": "end"},
+		{"id": "dear_2", "speaker": "ichiro", "mood": "happy", "text": "Every sack I fill, I set the best piece aside for your stove. The others get what's left. Don't tell them.", "next": "end"},
+		{"id": "dear_3", "speaker": "ichiro", "mood": "surprised", "text": "Fumi says I smile when you walk up. I don't. ...Hm. Maybe a little.", "next": "end"},
 		{"id": "gift_love", "speaker": "ichiro", "mood": "happy", "text": "...That's good. Thank you. Really.", "next": "end"},
 		{"id": "gift_like", "speaker": "ichiro", "mood": "happy", "text": "Hm. Thanks.", "next": "end"},
 		{"id": "gift_neutral", "speaker": "ichiro", "mood": "neutral", "text": "I'll take it.", "next": "end"},

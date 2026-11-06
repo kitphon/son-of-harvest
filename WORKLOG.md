@@ -68,6 +68,30 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Left / next: a child (the last "Later for marriage" item); a spouse talk line about the
   morning's chore could follow (the talk files have wed_morning_ lines).
 
+## 2026-11-06 — Ichiro's band 6 scene and hearts for Genzo
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: ROADMAP "Later for hearts". Ichiro: heart_ichiro_6 (the first piece from the new
+  kiln, a line of its own if the farmer said yes to the digging, ichiro_kiln; the space left
+  in the kiln's clay for a third mark; sets heart_ichiro_6 and ichiro_mark), rows in the
+  Sakurazaka, house and village tables, three `dear_` talk lines at band 6, heart music.
+  Genzo of Kaminoda joins Villagers.friends(): birthday summer 13 (a "th" date; his plan: the
+  well 10:00-14:00, home before and after), birthday / close / jizo talk lines, forage talk from
+  band 2 on his Monday like the other friends, heart_genzo (band 3: well water tasted as his wife
+  did, two packets of seed rice) and heart_genzo_5 (the jizo's red bibs tied for him), rows in
+  the village, Kaminoda and his house's tables, a part in the ending (a closing word) and the
+  calendar's note. No band 6 scene for Genzo (README: optional). Record: Friendships steps
+  5 / 11 / 19 / 28 became 6 / 13 / 22 / 33 (seven friends, 42 at most, the same share as
+  before), Neighbours 2 / 3 / 5 / 6 became 2 / 3 / 4 / 5 (five left without hearts). Thai for
+  all 39 new lines and the calendar line (the old one's entry replaced).
+- Checked: tests extended in test_relationships (Genzo's rows, plan, talk, scenes, record;
+  Ichiro's band 6 branches and flags), test_talk (Genzo's forage day moved to the friends'
+  list), test_ending (Haru instead of Genzo as the neighbour). See the commit's test output
+  in the report. Screenshot `--demo --map=sakurazaka@bridge --event=heart_ichiro_6`: Ichiro's
+  first line in the text box at the bridge.
+- Left / next: a band 6 scene for Genzo; hearts for Haru, Shige, Nana or Kiku the same way.
+  The mark in Ichiro's kiln clay and Genzo's red jizo bibs have no props yet (flags
+  ichiro_mark, genzo_jizo are set for them).
+
 ## 2026-11-06 — Merge: night lights, countryside / festival meshes, showcase views
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents worked in parallel worktrees: cb0e67b night real lights, a lighter night

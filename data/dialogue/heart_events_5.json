@@ -49,6 +49,14 @@
 			"choices": [{"text": "I'll bring a shovel.", "next": "ichiro_yes", "set": {"ichiro_kiln": true}}, {"text": "I'd only get in the way.", "next": "ichiro_no"}]},
 		{"id": "ichiro_yes", "speaker": "ichiro", "mood": "happy", "text": "...Good. The old man would laugh. He always said I'd never ask.", "next": "ichiro_end"},
 		{"id": "ichiro_no", "speaker": "ichiro", "mood": "neutral", "text": "Hm. Honest. Then come and see the first smoke. That's the best part anyway.", "next": "ichiro_end"},
-		{"id": "ichiro_end", "speaker": "ichiro", "mood": "happy", "text": "Fumi says I don't talk enough. Tell her I talked to you. That'll keep her quiet a while.", "next": "end"}
+		{"id": "ichiro_end", "speaker": "ichiro", "mood": "happy", "text": "Fumi says I don't talk enough. Tell her I talked to you. That'll keep her quiet a while.", "next": "end"},
+
+		{"id": "genzo", "speaker": "genzo", "mood": "neutral", "text": "Wait there. My eyes aren't what they were, and I want a pair of young hands."},
+		{"speaker": "genzo", "mood": "sad", "text": "My wife sewed new bibs for the jizo by the lane every autumn. Red ones. I've patched the old ones since, but this autumn the needle won't stay in my fingers."},
+		{"speaker": "genzo", "mood": "neutral", "text": "The cloth is on the shelf by my door. Would you tie them on? Only the bibs. I'll watch.",
+			"choices": [{"text": "I'll tie them now.", "next": "genzo_tie"}, {"text": "Show me how she did it first.", "next": "genzo_show"}]},
+		{"id": "genzo_tie", "speaker": "genzo", "mood": "happy", "text": "Knot at the back, loose enough for a child's finger. ...Good. She'd say it's crooked, and retie it herself.", "next": "genzo_end"},
+		{"id": "genzo_show", "speaker": "genzo", "mood": "happy", "text": "Over, under, and a bow like a rabbit's ear. ...Yes. Like that. You have the hands for it.", "next": "genzo_end"},
+		{"id": "genzo_end", "speaker": "genzo", "mood": "happy", "text": "Red again. Now the lane looks lived in. Come up for tea some day. I make it badly.", "next": "end"}
 	]
 }
