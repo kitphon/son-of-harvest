@@ -171,6 +171,7 @@ func _init() -> void:
 	gm.free()
 
 	_night_light(game_script, fx)
+	_sun_by_clock(game_script, fx)
 
 	print("test_weather: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -227,6 +228,99 @@ func _night_light(game_script: GDScript, fx: Dictionary) -> void:
 	check(game_script.window_glow(Color(0.3, 0.3, 0.3), 1200, {"hours": [[0, 1440]], "dark_from": 0.25, "dark_full": 0.6}) == 1.0
 		and game_script.window_glow(Color(0.9, 0.9, 0.9), 1200, {"hours": [[0, 1440]], "dark_from": 0.25, "dark_full": 0.6}) == 0.0,
 		"window_glow follows dark_from / dark_full")
+	gm.free()
+
+
+## The sun follows the clock (data/light.json "sun"): low, golden and from the front left in
+## the morning, high and plain at midday, low and golden from the back left in the evening,
+## the plain fixed sun at night, in rooms and mines, and its plain colour under cloud.
+func _sun_by_clock(game_script: GDScript, fx: Dictionary) -> void:
+	var light: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/light.json"))
+	var rules: Dictionary = light.sun
+	var keys: Array = rules["keys"]
+	var plain: Dictionary = game_script.sun_plain(rules)
+	# Main3D's SUN_COLOR / SUN_ENERGY (main_3d.gd needs the Game autoload, so not loaded here).
+	check(plain.color.to_html(false) == Color(1.0, 0.93, 0.8).to_html(false) and is_equal_approx(plain.energy, 0.7)
+		and plain.elevation == 48.0 and plain.yaw == -40.0, "the plain sun is the measured one (Main3D SUN_COLOR / SUN_ENERGY, 48 / -40)")
+	for k in keys:
+		check(is_equal_approx(float(k[4]), plain.energy), "sun energy at %d stays plain's (the ground's SUN_SHARE was measured at it)" % int(k[0]))
+	check(int(keys[0][0]) == 0 and int(keys[-1][0]) == 1440, "the sun keys cover the whole day")
+	# Sampling: linear between keys, held past the ends, plain with no keys.
+	var two := [[100, 10.0, -10.0, "000000", 0.5], [200, 30.0, -50.0, "ffffff", 0.9]]
+	var mid: Dictionary = game_script.sun_at(150, two)
+	check(is_equal_approx(mid.elevation, 20.0) and is_equal_approx(mid.yaw, -30.0) and is_equal_approx(mid.energy, 0.7)
+		and mid.color.is_equal_approx(Color(0.5, 0.5, 0.5)), "sun_at halfway is halfway (%s)" % mid)
+	check(game_script.sun_at(50, two).elevation == 10.0 and game_script.sun_at(250, two).elevation == 30.0, "sun_at holds past the ends")
+	check(game_script.sun_at(600, [], plain).elevation == plain.elevation, "no sun keys: the plain sun")
+
+	var gm: Node = game_script.new()
+	gm.weather_fx = fx
+	gm.weather_today = "sunny"
+	var at := func(h: int, m: int) -> Dictionary:
+		gm.hour = h
+		gm.minute = m
+		return gm.sun_light()
+	# The camera looks from +x +z (yaw 45, CameraLens): screen right is (1, 0, -1), up the screen (away) is (-1, 0, -1).
+	var right := Vector3(1, 0, -1).normalized()
+	var away := Vector3(-1, 0, -1).normalized()
+	var morning: Dictionary = at.call(6, 30)
+	var noon: Dictionary = at.call(12, 0)
+	var evening: Dictionary = at.call(17, 30)
+	var dm: Vector3 = game_script.sun_direction(morning)
+	var de: Vector3 = game_script.sun_direction(evening)
+	var dn: Vector3 = game_script.sun_direction(noon)
+	check(dm.y < 0 and de.y < 0 and dn.y < 0, "the sun shines down")
+	check(dm.dot(right) > 0.3 and dm.dot(away) > 0.3, "6:30: shadows fall up the screen to the right (%s)" % dm)
+	check(de.dot(right) > 0.3 and de.dot(away) < -0.3, "17:30: shadows fall down the screen to the right (%s)" % de)
+	check(Vector3(dn.x, 0, dn.z).normalized().dot(right) > 0.9, "noon: shadows fall to the right (%s)" % dn)
+	var shadow_len := func(s: Dictionary) -> float: return 1.0 / tan(deg_to_rad(s.elevation))
+	check(shadow_len.call(morning) > 3.0 and shadow_len.call(evening) > 3.0 and shadow_len.call(noon) < 0.8,
+		"long shadows morning and evening, short at noon (%.1f %.1f %.1f)" % [shadow_len.call(morning), shadow_len.call(evening), shadow_len.call(noon)])
+	var highest := 0.0
+	for m in range(0, 1440, 10):
+		highest = maxf(highest, game_script.sun_at(m, keys).elevation)
+	check(noon.elevation >= highest and noon.elevation >= 55.0, "the sun is highest at noon (%.0f)" % noon.elevation)
+	var warmth := func(s: Dictionary) -> float: return s.color.r - s.color.b
+	check(warmth.call(morning) > 0.25 and warmth.call(evening) > 0.3, "golden morning and evening sun (%.2f %.2f)" % [warmth.call(morning), warmth.call(evening)])
+	check(noon.color.is_equal_approx(plain.color), "plain colour at noon (the measured one)")
+	check(warmth.call(at.call(10, 0)) < warmth.call(morning) and warmth.call(at.call(16, 0)) < warmth.call(evening),
+		"the lower the sun, the warmer")
+	# Night: the plain fixed sun, so the night looks as before (FEEDBACK item 6).
+	for hm in [[21, 0], [23, 30], [2, 0], [4, 0]]:
+		var s: Dictionary = at.call(hm[0], hm[1])
+		check(s.elevation == plain.elevation and s.yaw == plain.yaw and s.color.is_equal_approx(plain.color), "%d:%02d: the plain night sun" % hm)
+	# Smooth: no jump over 6 degrees or 0.12 of colour in 10 minutes; and the sun swings back to
+	# the night pose only while its shadows are off (under the dusk / dawn tint).
+	var worst := 0.0
+	var swing_lit := 0
+	var prev: Dictionary = game_script.sun_at(0, keys)
+	for m in range(10, 1441, 10):
+		var s: Dictionary = game_script.sun_at(m, keys)
+		var c: Color = s.color
+		var pc: Color = prev.color
+		worst = maxf(worst, maxf(absf(s.elevation - prev.elevation), absf(s.yaw - prev.yaw)) / 6.0)
+		worst = maxf(worst, maxf(absf(c.g - pc.g), absf(c.b - pc.b)) / 0.12)
+		gm.hour = m / 60 % 24
+		gm.minute = m % 60
+		var rising: bool = s.elevation > prev.elevation
+		if rising and (m > 1110 or m <= 330) and gm.sun_shadow() > 0.0:
+			swing_lit += 1
+		prev = s
+	check(worst <= 1.0, "the sun moves smoothly through the day (worst %.2f of the allowed step)" % worst)
+	check(swing_lit == 0, "the sun swings back to the night pose only with its shadows off (%d steps)" % swing_lit)
+	# Under cloud the colour stays plain (no golden rainy evening); the direction still follows.
+	for w in ["rain", "storm", "snow", "blizzard"]:
+		gm.weather_today = w
+		var s: Dictionary = at.call(17, 30)
+		check(s.color.is_equal_approx(plain.color) and is_equal_approx(s.elevation, evening.elevation), "%s at 17:30: plain colour, low sun" % w)
+	gm.weather_today = "sunny"
+	# Rooms and mine floors: the plain fixed sun at any hour.
+	for hm in [[6, 30], [12, 0], [17, 30], [21, 0]]:
+		gm.hour = hm[0]
+		gm.minute = hm[1]
+		var s: Dictionary = gm.sun_light(true)
+		check(s.elevation == plain.elevation and s.yaw == plain.yaw and s.color.is_equal_approx(plain.color) and s.energy == plain.energy,
+			"indoors at %d:%02d: the plain sun" % hm)
 	gm.free()
 
 

@@ -123,6 +123,8 @@ func _ready() -> void:
 	sun = DirectionalLight3D.new()
 	# From the upper left of the screen: the walls turned down-left (the long fronts) are
 	# sunlit and shadows fall to the right, where they show (not behind what casts them).
+	# This is the plain sun of rooms, mines and the night; outdoors by day _aim_sun moves it
+	# with the clock (data/light.json "sun").
 	sun.rotation_degrees = Vector3(-48, -40, 0)
 	sun.light_color = SUN_COLOR
 	sun.light_energy = SUN_ENERGY
@@ -389,8 +391,20 @@ func _update_tint() -> void:
 	var f := Game.maps.mine_floor
 	tint.material = _lantern if f != null else _mul
 	tint.color = f.light if f != null else (m.light if m.light != null else Game.light_color())
-	_show_shadows(m.indoor or f != null)
+	var inside := m.indoor or f != null or m.light != null
+	_aim_sun(inside)
+	_show_shadows(inside)
 	_aim_lantern()
+
+
+## The sun follows the clock outdoors (Game.sun_light, data/light.json "sun"): low and golden
+## in the morning and evening, high and plain at midday, back to the plain fixed sun under
+## the night tint. Rooms and mine floors keep the plain sun.
+func _aim_sun(inside: bool) -> void:
+	var s := Game.sun_light(inside)
+	sun.rotation_degrees = Vector3(-float(s.elevation), float(s.yaw), 0)
+	sun.light_color = s.color
+	sun.light_energy = s.energy
 
 
 ## Sun shadows outdoors only (Game.sun_shadow: by the daylight and the sky).

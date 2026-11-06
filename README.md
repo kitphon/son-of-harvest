@@ -889,6 +889,17 @@ shadows. Day / night itself is still the multiply tint over the picture: `data/l
 7:00..16:00, a warm 17:30, a mauve dusk at 18:30 and a deep blue night (404c8e) from 20:30 to
 4:30, dawn back through mauve and peach to 7:00. Both views use it.
 
+Outdoors the sun itself follows the clock (`data/light.json` "sun", `Game.sun_light()`, applied
+by `Main3D._aim_sun` each game minute): it rises low and orange from the lower left of the
+screen at 5:30 (long shadows up the screen to the right), climbs golden through the morning,
+stands high (60°) and plain at noon, and sinks golden to the upper left (long shadows down the
+screen to the right) until 18:30. Once the dusk tint has put its shadows out it eases back to
+the plain fixed sun (48° from the left, SUN_COLOR) by 20:30, and leaves it again from 4:00, so
+the night looks as before. Its energy stays SUN_ENERGY so the ground keeps its measured
+`SUN_SHARE` brightness; only the colour and the angle change. Under cloud (weather_fx.json
+"sun" 0) the colour stays plain. Rooms and mine floors keep the plain sun. The flat view has no
+sun.
+
 At dusk and night the farmhouse's and the village houses' windows and shoji doors light up
 warm (a shop's door under its noren stays dark): `NightLights` (scripts/world3d/night_lights.gd,
 in the tint's layer after the tint) adds each window's paper picture in warm light and a soft

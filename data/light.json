@@ -13,6 +13,25 @@
 		[1230, "404c8e"],
 		[1440, "404c8e"]
 	],
+	"_sun": "The sun of the 3D view outdoors (Game.sun_light). keys: [minute of the day, elevation (degrees above the ground), yaw (the light's rotation, degrees: -40 shines from the left of the screen, 0 from the front left (lower left), -90 from the back left (upper left)), colour, energy], linear in between. It rises low and orange from the lower left at 5:30, climbs golden through the morning, stands high and plain (the measured colour of SnowLayer.SUN_SHARE) at midday, and sinks golden to the back left, so the morning's long shadows fall up the screen to the right and the evening's down it to the right. After sunset (shadows already gone under the dusk tint) it eases back to `plain` by 20:30 and leaves it again from 4:00 to sunrise, so the night looks as it did before. plain: [elevation, yaw, colour, energy], the fixed sun of the night, the rooms and the mine (Main3D SUN_COLOR / SUN_ENERGY). The energy stays at plain's so the ground keeps its measured brightness; a clouded sky (weather_fx.json sun 0) keeps the plain colour.",
+	"sun": {
+		"plain": [48, -40, "ffedcc", 0.7],
+		"keys": [
+			[0, 48, -40, "ffedcc", 0.7],
+			[240, 48, -40, "ffedcc", 0.7],
+			[330, 8, -6, "ff9c5c", 0.7],
+			[390, 16, -12, "ffb878", 0.7],
+			[480, 30, -22, "ffd6a4", 0.7],
+			[600, 46, -34, "ffeac6", 0.7],
+			[720, 60, -44, "ffedcc", 0.7],
+			[840, 50, -54, "ffeac6", 0.7],
+			[960, 32, -64, "ffd6a4", 0.7],
+			[1050, 16, -74, "ffb070", 0.7],
+			[1110, 8, -80, "ff9858", 0.7],
+			[1230, 48, -40, "ffedcc", 0.7],
+			[1440, 48, -40, "ffedcc", 0.7]
+		]
+	},
 	"_windows": "Lit windows of the farmhouse and the village houses (3D view, drawn over the night tint). They glow with the dark: none while 1 - luminance of the light is under dark_from, full from dark_full. They are lit only in the hours listed ([from, to) minutes): from the afternoon to half past midnight and again at dawn. pane = how strongly the paper pane is lit, halo = the soft glow round it, halo_size = its width in window widths.",
 	"windows": {
 		"color": "ffb25c",

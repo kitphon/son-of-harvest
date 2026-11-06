@@ -10,6 +10,43 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — The sun follows the clock (3D view)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: ART_DIRECTION section 3, "Morning and evening sun colour and angle following the
+  clock". data/light.json "sun": `plain` (the fixed sun as before: 48°, yaw -40, ffedcc =
+  Main3D SUN_COLOR, 0.7) and `keys` [minute, elevation, yaw, colour, energy], linear in
+  between. `Game.sun_light(inside)` (with `sun_at`, `sun_plain`, `sun_direction`) gives the
+  pose; `Main3D._aim_sun` puts it on the DirectionalLight3D with the tint each game minute.
+  Rooms, mine floors and maps with their own light keep the plain sun; under cloud
+  (weather_fx.json "sun" 0) the colour goes back to plain (no golden rainy evening).
+  Balance (ours): the sun stays on the screen's left half so shadows always fall to the right
+  where they show (the light pass's rule): it rises at 5:30 from the lower left (yaw -6, 8°,
+  ff9c5c), 6:30 16° ffb878, 8:00 30°, 10:00 46° (near the old look), noon 60° plain, 14:00 50°,
+  16:00 32°, 17:30 16° ffb070, 18:30 8° ff9858 from the upper left (yaw -80). So the morning's
+  shadows run long up-right, the evening's down-right toward the viewer, noon's are short.
+  It swings back to the plain pose 18:30 -> 20:30 and away again 4:00 -> 5:30, only while
+  Game.sun_shadow() is 0 under the dusk / dawn tint, so the night picture is exactly as it was
+  (FEEDBACK item 6). The energy stays 0.7 at every key: the ground shader takes the sun at
+  SnowLayer.SUN_SHARE with no angle term, so its measured brightness holds; only the colour
+  warms the sunlit ground, walls and snow (no re-measure needed: noon is the measured colour).
+  The dawn swing was first 4:30 -> 5:30, a 6.7° step in 10 minutes; widened to 4:00.
+- Checked: test_weather `_sun_by_clock` (plain = the measured sun, energy plain's at every key,
+  keys cover the day, sun_at halfway / held past the ends / plain with no keys, 6:30 shadows
+  up-right and 17:30 down-right in camera terms, long morning / evening shadows and short at
+  noon, noon highest, golden low sun and plain noon, the lower the warmer, the plain sun at
+  21:00 / 23:30 / 2:00 / 4:00, no step over 6° or 0.12 colour in 10 minutes, the swing back only
+  with shadows off, rain / storm / snow / blizzard plain colour, indoors the plain sun at four
+  hours); test_maps: in the real view the light follows Game.sun_light on the farm and is the
+  plain sun in the house. Screenshots `--demo --weather=sunny` at 6:30, 10:00, 13:00, 17:30,
+  19:00; `--map=town` at 7:00 (tree shadows long up-right over the path) and 17:00 (long
+  down-right, the plaster wall peach); `--season=winter --map=town --snow=80 --time=16:30`
+  (snow cream in the low sun, shadows blue on it); `--weather=rain --time=17:30` (plain).
+  Farmhouse front wall mean RGB (python -I): 10:00 (165.7, 151.5, 128.3), 6:30 (183.0, 140.6,
+  105.3), 13:00 (138.7, 128.0, 110.1, the high sun grazes it), 17:30 (171.8, 118.3, 74.8).
+- Left / next: the sky background colour does not follow the sun; sprites (unshaded) take only
+  the tint; the light moves in one-minute steps (0.5 s), no per-frame easing. Next in
+  ART_DIRECTION: section 3's night item (real lights / a lighter tint, festival stalls).
+
 ## 2026-11-05 — Merge: rice and corn clusters, moving water
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged the two art-direction branches (65bafcd rice / corn as sprite clusters,
