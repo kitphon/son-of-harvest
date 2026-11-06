@@ -51,6 +51,8 @@ as lit meshes (scripts/world3d/outdoor_props.gd).
 decoration (scripts/world3d/festival_meshes.gd) as lit meshes.
 [x] The sun's colour and angle follow the clock outdoors: low and golden morning and evening,
 high and plain at noon (data/light.json "sun", README → Light).
+[x] The sky behind the land follows the clock outdoors: dawn peach, the day blue at noon, mauve
+dusk, a deep blue night, greyer and darker under cloud (data/light.json "background", README → Light).
 [x] Trailer-ready screenshots: 12 fixed views (data/showcase.json), rendered and compared by
 tools/showcase.py (README → Showcase).
 [x] Night: real warm lights (NightLamps, at most 8 OmniLight3Ds without shadows at the lit

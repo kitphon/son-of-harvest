@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — The sky behind the land follows the clock
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: the 3D view's clear colour outdoors now follows the time of day, as the sun does.
+  data/light.json has a "background" block: keys [minute, colour] (night 161f3b, dawn 6f5a86
+  and peach f0a58a, morning a9d2ea, the day blue 8fc6e8 from 10:00 to 16:00, golden f2b27e at
+  17:30, mauve c27a8c at 18:30, deep blue 5a5688 and 1e2650 by night) and "cloud_grey" 0.5.
+  Game.sky_color() reads the keys (sky_at), Game.sky_view() (static, pure) greys the colour by
+  1 - the weather's "sun" value times cloud_grey and then multiplies by the weather tint, so
+  rain and storms are greyer and darker. Game.sky_background(inside, map_background) gives rooms
+  and mine floors their own map background, as before. Main3D._update_tint sets
+  env.background_color each game minute (the old one-off set in _enter_map is gone).
+  ART_DIRECTION section 3 ticked for the sky; README → Light updated.
+- Checked: tests/test_weather.gd `_sky_by_clock` checks the noon colour (8fc6e8), the 6:00 blend
+  of the 5:30 and 6:30 keys, sky_at blending, the dark blue night at 0:00 / 2:00 / 23:30 (luminance
+  under 0.15), noon > dusk > night, a warm 17:30 and 6:30, no 10-minute luminance step over 0.1,
+  clear > rain > storm in luminance and chroma, a fully clouded grey at cloud_grey 1, and rooms
+  keeping their own background at 6:00, 12:00 and 21:00. Output: `test_weather: OK (0 failed)`.
+  Probe (headless, scene running, clear colour of the WorldEnvironment): 6:00 (0.697, 0.505,
+  0.534), 12:00 (0.561, 0.776, 0.910) = 8fc6e8, 18:30 (0.754, 0.476, 0.549), 23:00 (0.097, 0.131,
+  0.258). Screenshots `--demo --time=6:00`, `12:00`, `18:30` (before from the HEAD tree, after
+  from this worktree): the land and trees cover the whole frame, so the sky barely shows and the
+  before / after frames look the same to the eye (the mean pixel difference is small and sits in
+  the grass and trees). The village wide view and the hill lookout at dusk also show no sky.
+  All 28 test scripts print `OK (0 failed)`; smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, each `--quit-after 300`) print no error or warning.
+- Left / next: the sky shows only where no land is drawn, which none of the framed views has;
+  to see it the scene needs a horizon (the optional mountain backdrop in ART_DIRECTION section 3).
+
 ## 2026-11-06 — Merge: night lights, countryside / festival meshes, showcase views
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents worked in parallel worktrees: cb0e67b night real lights, a lighter night

@@ -714,6 +714,29 @@ func light_color() -> Color:
 	return sky_at(hour * 60 + minute, light_data().get("sky", [])) * Color(weather_style().get("tint", "ffffff"))
 
 
+## The outdoor sky behind the land now (data/light.json "background"): the clock's colour,
+## greyed under cloud and darkened by the weather tint (sky_view).
+func sky_color() -> Color:
+	return sky_view(hour * 60 + minute, light_data().get("background", {}), weather_style())
+
+
+## The 3D view's clear colour: the outdoor sky, or the room's / mine's own background indoors,
+## where the sky never shows (its map data).
+func sky_background(inside: bool, map_background: Color) -> Color:
+	return map_background if inside else sky_color()
+
+
+## The sky at minute `m` under a weather style (a weather_fx.json entry): the keys of `rules`
+## (sky_at), greyed by how clouded the style is (1 - its "sun", times "cloud_grey"), then
+## times its "tint".
+static func sky_view(m: int, rules: Dictionary, style: Dictionary) -> Color:
+	var c := sky_at(m, rules.get("keys", []))
+	var cloud := (1.0 - clampf(float(style.get("sun", 1.0)), 0.0, 1.0)) * float(rules.get("cloud_grey", 0.0))
+	var lum := c.get_luminance()
+	c = c.lerp(Color(lum, lum, lum), cloud)
+	return c * Color(str(style.get("tint", "ffffff")))
+
+
 ## data/light.json, read the first time it is needed (tests make a Game without _ready).
 func light_data() -> Dictionary:
 	if light_rules.is_empty():

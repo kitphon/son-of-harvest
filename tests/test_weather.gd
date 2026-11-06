@@ -172,6 +172,7 @@ func _init() -> void:
 
 	_night_light(game_script, fx)
 	_sun_by_clock(game_script, fx)
+	_sky_by_clock(game_script, fx)
 
 	print("test_weather: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -324,6 +325,72 @@ func _sun_by_clock(game_script: GDScript, fx: Dictionary) -> void:
 		var s: Dictionary = gm.sun_light(true)
 		check(s.elevation == plain.elevation and s.yaw == plain.yaw and s.color.is_equal_approx(plain.color) and s.energy == plain.energy,
 			"indoors at %d:%02d: the plain sun" % hm)
+	gm.free()
+
+
+## The outdoor sky behind the land (data/light.json "background"): the day blue at noon, linear
+## blends between the keys, dark blue at night, greyer and darker under cloud, and a room or a
+## mine keeps its own background (Game.sky_background).
+func _sky_by_clock(game_script: GDScript, fx: Dictionary) -> void:
+	var light: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/light.json"))
+	var rules: Dictionary = light.background
+	var keys: Array = rules.keys
+	var gm: Node = game_script.new()
+	gm.weather_fx = fx
+	gm.weather_today = "sunny"
+	var at := func(h: int, m: int) -> Color:
+		gm.hour = h
+		gm.minute = m
+		return gm.sky_color()
+	var lum := func(c: Color) -> float: return c.get_luminance()
+	var chroma := func(c: Color) -> float: return maxf(c.r, maxf(c.g, c.b)) - minf(c.r, minf(c.g, c.b))
+	check(at.call(12, 0).is_equal_approx(Color("8fc6e8")), "noon: the day blue the view had before (%s)" % at.call(12, 0))
+	check(at.call(15, 0).is_equal_approx(Color("8fc6e8")), "afternoon: still the day blue")
+	check(keys.size() >= 6 and int(keys[0][0]) == 0 and int(keys[-1][0]) == 1440, "the sky keys cover the whole day")
+	# Blend: 6:00 is halfway between the 5:30 and 6:30 keys (both checked to be those minutes).
+	check(int(keys[2][0]) == 330 and int(keys[3][0]) == 390, "the dawn keys are at 5:30 and 6:30")
+	var halfway: Color = Color(str(keys[2][1])).lerp(Color(str(keys[3][1])), 0.5)
+	check(at.call(6, 0).is_equal_approx(halfway), "6:00 blends the two dawn keys (%s)" % at.call(6, 0))
+	check(game_script.sky_at(360, keys).is_equal_approx(halfway), "sky_at blends linearly between keys")
+	check(game_script.sky_at(600, []) == Color.WHITE, "no sky keys: plain white")
+	# Night: a deep blue, dark, still blue (not black).
+	for hm in [[0, 0], [2, 0], [23, 30]]:
+		var n: Color = at.call(hm[0], hm[1])
+		check(lum.call(n) < 0.15 and n.b > n.r + 0.1 and n.b > n.g, "%d:%02d: a dark blue night (%s)" % [hm[0], hm[1], n])
+	check(lum.call(at.call(12, 0)) > lum.call(at.call(18, 30)) and lum.call(at.call(18, 30)) > lum.call(at.call(23, 0)),
+		"noon brighter than dusk, dusk brighter than night")
+	check(at.call(17, 30).r > at.call(17, 30).b and at.call(6, 30).r > at.call(6, 30).b, "the golden evening and the peach dawn are warm")
+	# Smooth: no step over 0.1 of luminance in 10 minutes anywhere in the day.
+	var worst := 0.0
+	var prev: float = lum.call(at.call(0, 0))
+	for m in range(10, 1441, 10):
+		var l: float = lum.call(at.call(m / 60 % 24, m % 60))
+		worst = maxf(worst, absf(l - prev))
+		prev = l
+	check(worst < 0.1, "the sky changes smoothly (largest 10-minute step %.3f)" % worst)
+	# Clouded: greyer and darker than the clear sky, and rain / storm darker again.
+	gm.weather_today = "rain"
+	gm.hour = 12
+	gm.minute = 0
+	var rain: Color = gm.sky_color()
+	gm.weather_today = "storm"
+	var storm: Color = gm.sky_color()
+	gm.weather_today = "sunny"
+	var clear: Color = at.call(12, 0)
+	check(lum.call(rain) < lum.call(clear) and lum.call(storm) < lum.call(rain), "noon: clear > rain > storm (%.2f %.2f %.2f)" % [lum.call(clear), lum.call(rain), lum.call(storm)])
+	check(chroma.call(storm) < chroma.call(clear) and chroma.call(rain) < chroma.call(clear), "clouded skies are greyer (chroma %.2f %.2f %.2f)" % [chroma.call(clear), chroma.call(rain), chroma.call(storm)])
+	var all_grey := rules.duplicate()
+	all_grey["cloud_grey"] = 1.0
+	var grey: Color = game_script.sky_view(720, all_grey, {"sun": 0.0})
+	check(is_equal_approx(grey.r, grey.g) and is_equal_approx(grey.g, grey.b), "fully clouded, no tint: a grey sky (%s)" % grey)
+	check(game_script.sky_view(720, rules, {}).is_equal_approx(Color("8fc6e8")), "a style without sun or tint keeps the key colour")
+	# Rooms and mine floors: their own background at any hour, outdoors the sky.
+	var room := Color("1a1410")
+	for hm in [[6, 0], [12, 0], [21, 0]]:
+		gm.hour = hm[0]
+		gm.minute = hm[1]
+		check(gm.sky_background(true, room) == room, "indoors at %d:%02d: the room's own background" % hm)
+		check(gm.sky_background(false, room).is_equal_approx(gm.sky_color()), "outdoors at %d:%02d: the sky, not the room's" % hm)
 	gm.free()
 
 

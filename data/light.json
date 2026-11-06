@@ -51,5 +51,24 @@
 	},
 	"_festival_pools": "pools.festival: the ground round a festival's lights (FestivalProps.glows) while it is on, as strong as its lights stand out (FestivalGlow.darkness), in both views. A standing lantern, the drum stage and the bonfire light a round pool `radius` times the glow's size; a string lantern hangs high, so its pool is `line` times as strong; a stall's lantern lights the ground in front of its counter instead: as wide as the stall plus 0.4, from the stall's middle `stall_front` cells forward, reaching `stall_reach` either way.",
 	"_lamps": "Real warm lights in the 3D view (NightLamps: OmniLight3D, no shadows) at the lit windows and shoji doors, the stone lanterns and the festival lights, so the lit meshes near them (walls, eaves, posts, trees, the stalls' counters) take warm light. The ground, the water and the grass are left out (their light is the drawn pools). At most `max` lights, the ones nearest the middle of the view, the farthest fading out before it is dropped (`fade` cells), so none pops. Brightness: `window` / `lamp` times Game.window_light, `festival` times FestivalGlow.darkness, a string lantern `line` times that. `color` is the light as it lands on the tinted picture: the light's own colour is divided by the tint (as NightView's shader does), at most `boost` times. A window's light hangs `out` cells in front of its pane, a stone lantern's `lamp_out` cells toward the camera from its fire box. range: cells; attenuation: the falloff's curve.",
+	"_background": "The sky behind the land in the 3D view outdoors (Main3D's clear colour, Game.sky_color; rooms and mine floors keep their own background). keys: [minute of the day, colour], linear in between: dawn purple to peach at 6:30, a morning blue, the day blue 8fc6e8 (the colour the view had before) from 10:00 to 16:00, a golden 17:30, mauve at dusk 18:30, a deep blue night from 20:30 to 4:30. Under cloud the colour is greyed by cloud_grey (times 1 - the weather's sun value, weather_fx.json) and then times the weather tint, so rain and storms look greyer and darker.",
+	"background": {
+		"keys": [
+			[0, "161f3b"],
+			[270, "1e2a52"],
+			[330, "6f5a86"],
+			[390, "f0a58a"],
+			[450, "a9d2ea"],
+			[600, "8fc6e8"],
+			[720, "8fc6e8"],
+			[960, "8fc6e8"],
+			[1050, "f2b27e"],
+			[1110, "c27a8c"],
+			[1170, "5a5688"],
+			[1260, "1e2650"],
+			[1440, "161f3b"]
+		],
+		"cloud_grey": 0.5
+	},
 	"lamps": {"color": "ffa050", "max": 8, "fade": 1.5, "range": 2.8, "attenuation": 1.2, "window": 1.1, "lamp": 1.2, "festival": 1.0, "line": 0.6, "out": 0.45, "lamp_out": 0.3, "boost": 6.0}
 }
