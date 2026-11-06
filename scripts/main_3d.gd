@@ -216,7 +216,6 @@ func _enter_map() -> void:
 	player.position = Game.maps.pos
 	player.facing = Game.maps.facing
 	player.cancel_charge()
-	env.background_color = m.background
 	target_mark.visible = _tools_work()
 	_show_weather()
 	_update_tint()
@@ -389,13 +388,15 @@ func _update_flash(delta: float) -> void:
 
 
 ## Day / night light outdoors; a room has its own steady lamp light; a mine floor its own
-## (darker deeper) with the farmer's lantern.
+## (darker deeper) with the farmer's lantern. The clear colour behind the land follows the
+## clock outdoors too (Game.sky_background; rooms and mines keep their map's background).
 func _update_tint() -> void:
 	var m := Game.maps.current()
 	var f := Game.maps.mine_floor
 	tint.material = _lantern if f != null else _mul
 	tint.color = f.light if f != null else (m.light if m.light != null else Game.light_color())
 	var inside := m.indoor or f != null or m.light != null
+	env.background_color = Game.sky_background(inside, m.background)
 	_aim_sun(inside)
 	_show_shadows(inside)
 	_aim_lantern()

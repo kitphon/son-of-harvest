@@ -889,6 +889,15 @@ shadows. Day / night itself is still the multiply tint over the picture: `data/l
 7:00..16:00, a warm 17:30, a mauve dusk at 18:30 and a deep blue night (46529a) from 20:30 to
 4:30, dawn back through mauve and peach to 7:00. Both views use it.
 
+The clear colour behind the land follows the clock outdoors as well (data/light.json
+"background": keys [minute, colour] blended like the sky; `Game.sky_color()`, `Game.sky_view()`).
+Dawn peach and purple, the day blue 8fc6e8 from 10:00 to 16:00 (the colour the view had before),
+a golden 17:30, mauve at dusk, a deep blue night. Under cloud it is greyed by "cloud_grey"
+(scaled by 1 - the weather's "sun" value) and then takes the weather tint, so rain and storms are
+greyer and darker. `Game.sky_background(inside, map_background)` gives a room or a mine floor its
+own background from its map data, as before. `Main3D._update_tint` sets the view's clear colour
+each game minute. The land covers most views, so the sky shows only where no land is drawn.
+
 Outdoors the sun itself follows the clock (`data/light.json` "sun", `Game.sun_light()`, applied
 by `Main3D._aim_sun` each game minute): it rises low and orange from the lower left of the
 screen at 5:30 (long shadows up the screen to the right), climbs golden through the morning,

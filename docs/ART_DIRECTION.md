@@ -154,7 +154,13 @@ Light and Farmhouse model hold the technical detail of what is built.
       morning, high plain noon, golden evening from the upper left, back to the plain night
       sun once the dusk tint has put the shadows out; rooms, mines and clouded days keep the
       plain colour). (this commit)
-      Still open: the sky colour behind the land (background) does not follow; the sprites
+      The sky colour behind the land follows the clock outdoors too (this commit:
+      data/light.json "background", `Game.sky_color`, `Game.sky_background`, applied by
+      `Main3D._update_tint`): dawn purple to peach, the day blue 8fc6e8 at noon, golden at
+      17:30, mauve at dusk, deep blue at night; greyer and darker under cloud. Rooms and mines
+      keep their own background. Still open: the sky is hidden by the land and props in the
+      views we frame (the farm, the village, the hill), so the change barely shows in
+      screenshots; a visible horizon would need the optional mountain backdrop. The sprites
       (unshaded) take only the tint, not the sun's colour.
 - [ ] Optional: a distant mountain backdrop and light haze far off.
 
