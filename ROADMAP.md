@@ -392,7 +392,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Marriage (docs/FEEDBACK.md item 3): Fumi's band 6 scene, the mizuhiki knot (the store), the proposal rules (band 6, the band 6 scene, the second room), the answers, the proposal and the wedding at the shrine, the spouse living at the farmhouse with married lines (data/marriage.json)
    - [x] Heart flags in the lanes: the jizo's new red bibs in Kaminoda (genzo_jizo) and the farmer's thumbprint on Ichiro's new charcoal kiln in Sakurazaka (ichiro_mark), lit meshes and flat-view art
    - [x] The spouse helps each morning: a few dry plots watered on sunny days, the coop's feed box topped up from the farmer's stock (marriage.json help), told on stepping out
-   - [x] The spouse's talk names the morning's chore (help_water / help_feed lines in talk_sayo.json and talk_fumi.json)
+   - [x] The spouse's talk names the morning's chore (help_water / help_feed lines in talk_sayo.json and talk_fumi.json), before noon only
    - [x] Ending: the village record on the first morning of year 3 (data/ending.json: ten categories graded in stars, five ranks), Tome's verdict, the closest villager's word; the game goes on
    - [x] The record names a married farmer's spouse under the title (the wedding day kept for it; undated for older saves), on the yearly page too (FEEDBACK item 3 follow-up)
    - [x] Ending steps re-set for 11 crops / 13 recipes; balance re-run with smithy ores, contest prizes, cooking, daikon and rice

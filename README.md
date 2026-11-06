@@ -374,8 +374,10 @@ scene is seen. Each morning the spouse helps on the farm (`help` in `marriage.js
 plots with an unripe crop are watered, row by row from the field's top-left, and the coop's
 feed box gets up to `feed` (3) portions from the farmer's own feed stock when it is short. The
 farmer hears it on stepping out of the house (`help.messages`, with the spouse's name; joined
-with the builder's news). The chore is also the spouse's talk that day: flags `help_water` /
-`help_feed` (cleared each night) pick the `help_water_` / `help_feed_` lines in their talk file.
+with the builder's news). The chore is also the spouse's talk that morning: flags `help_water` /
+`help_feed` (cleared each night) pick the `help_water_` / `help_feed_` lines in their talk file,
+but only before noon (`"time": ["00:00", "12:00"]` in the pick row); after noon the talk gives
+the married lines.
 The village record names the spouse under the title (Ending).
 All of it is story flags, so it is saved with them. The view:
 `-- --demo --map=town@shrine --time=10:00 --event=wedding_sayo`; married at home:

@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — The spouse's chore talk only before noon
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: the four chore pick rows (help_water / help_feed in talk_sayo.json and talk_fumi.json) now
+  have `"time": ["00:00", "12:00"]` next to their flags, so the chore line is picked only in the
+  morning. The talk picker's `time` key (talk.gd, `[start, end)`, same as the wed_morning rows) is
+  used as is. README → Villagers → Marriage and the ROADMAP line say so.
+- Checked: tests/test_relationships.gd: at 10:00 with both chore flags the pick begins with
+  help_water; at 14:00 it begins with wed_out (a married line instead), for Sayo and Fumi.
+  Output: `test_relationships: OK (0 failed)`. All 28 tests/test_*.gd print `OK (0 failed)`;
+  smoke run `--headless --path . --quit-after 300 -- --demo` shows no error or warning (exit 0).
+- Left / next: the flags still clear at the next night, so an evening talk after the morning
+  chore now gets the married lines; a live run at 14:00 is not done, only the picker test.
+
 ## 2026-11-06 — Merge: kiln mark and jizo bibs, Genzo band 6, the spouse's chore talk
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents worked in parallel worktrees, each on a model picked by difficulty:
