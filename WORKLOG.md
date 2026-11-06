@@ -46,6 +46,29 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Left / next: the sky background colour does not follow the sun; sprites (unshaded) take only
   the tint; the light moves in one-minute steps (0.5 s), no per-frame easing. Next in
   ART_DIRECTION: section 3's night item (real lights / a lighter tint, festival stalls).
+## 2026-11-06 — The coop's and barn's insides as lit meshes
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: ART_DIRECTION section 1, the open item under "Room furniture as lit meshes". Every
+  coop prop (`CoopProps.prop`: feed box, nests, incubator, feed sack, hen hatch) and barn prop
+  (`BarnProps.prop`: fodder box, stalls, hay, barn gate) is now built in one `FarmProps.Parts`
+  of SurfaceTool meshes like RoomProps: bevelled blocks (`RoomProps._cube`) in the
+  `build:planks` / `planks_dark` / `hay` textures, lathe-turned straw bowls, the basket, the
+  tawara and its ropes, tilted parts through `RoomProps._placed`. New: battens and a rope on the
+  trough, straw nests with loose stalks, a woven incubator basket and a lit lantern (the only
+  unshaded piece, RoomProps.LAMP), the spilled grain, the hatch door ajar on a slatted ramp,
+  the barn's slatted fodder rack on the back wall, capped stall posts with tether rings,
+  bundles of hay with a belly, a rope band and stalks at the ends, a leaning pitchfork, the
+  gate's braced leaves with iron straps. Cells, heights (nest straw dips to 0.31, trough floors
+  0.08 / 0.10, incubator straw 0.46) and collision are unchanged, so AnimalLayer's eggs and
+  feed sit as before. The flat view is untouched. The buildings' outsides were not changed.
+- Checked: new `_stable_props` in tests/test_maps.gd (all nine kinds are ArrayMeshes, lit,
+  wound to their normals, inside their cells plus 0.2, clear of the back walls, only the lantern
+  glows, and a vertical ray at each egg / feed spot hits a surface no higher than the sprite).
+  Screenshots `--demo --map=coop` / `--map=barn` before and after at 10:00 and 20:00 (indoor
+  light does not follow the clock, so the pairs look alike). All test scripts and the smoke runs:
+  see the results of this commit.
+- Left / next: outdoor small props (well, jizo, woodpile, river rock; another agent has the
+  bamboo and the outdoor props), the sun by the clock (another agent).
 
 ## 2026-11-05 — Merge: rice and corn clusters, moving water
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

@@ -92,9 +92,15 @@ Light and Farmhouse model hold the technical detail of what is built.
 - [x] Interiors (house, homes, shops, clinic): wall and floor meshes in the same manner
       (`room_walls.gd`: RoomWalls; `MapWorld._shade_corners`). (b6f6098)
 - [x] Room furniture as lit meshes (`room_props.gd`: RoomProps, all 22 kinds). (0f662b2)
-      Still open: the coop's and barn's insides (`coop_props.gd`, `barn_props.gd`: nests,
-      feed boxes, stalls, hay) and the outdoor small props (well, jizo, woodpile, river rock)
-      still use boxes and flat colours.
+- [x] The coop's and barn's insides as lit meshes (`coop_props.gd`, `barn_props.gd`: the feed
+      trough with battens and a rope, nests with a lathe-turned straw bowl, the incubator's
+      woven basket and lantern, the tawara feed sack, the hen hatch with its ramp; the fodder
+      trough with its slatted rack, stalls with capped posts and tether rings, hay as bulging
+      bound bundles with a pitchfork, the barn gate with braced leaves). Same places and
+      heights as before, so the eggs and the feed AnimalLayer lays on them still sit right
+      (test_maps `_stable_props`). (this commit)
+      Still open: the outdoor small props (well, jizo, woodpile, river rock) still use boxes
+      and flat colours; the stalls have no straw bedding mesh (the floor tile is the straw).
 
 ### 2. Nature
 - [x] Trees: stylized round crowns (several lumps, lit and shaded) for broadleaf trees; pines

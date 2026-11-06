@@ -42,6 +42,7 @@ func _process(delta: float) -> bool:
 		_farm_props()
 		_room_walls()
 		_room_props()
+		_stable_props()
 		_trees()
 		_grass()
 		_crop_clusters()
@@ -872,6 +873,112 @@ func _room_props() -> void:
 		check(used.has(kind) or texts.contains('"%s"' % kind), "some map has a %s" % kind)
 	for kind in ["andon", "kamado", "forge", "irori", "butsudan"]:
 		check(glowing.has(kind), "the %s gives off light (an unshaded glow)" % kind)
+
+
+## The coop's and barn's furniture (CoopProps, BarnProps): every prop is lit meshes (no
+## primitive shapes, nothing unshaded but the incubator's lantern), its faces wound to their
+## normals, standing inside its own cells (a little overhang allowed), clear of the back walls
+## (the hatch and the gate sit in the side wall on purpose), and where AnimalLayer lays things
+## on them they still show: an egg above the straw of its nest and above the incubator's straw,
+## the feed above the trough's floor.
+func _stable_props() -> void:
+	var seen := {}
+	var rp: GDScript = load("res://scripts/world3d/room_props.gd")
+	var makers := {"coop": load("res://scripts/world3d/coop_props.gd"), "barn": load("res://scripts/world3d/barn_props.gd")}
+	for id in ["coop", "barn"]:
+		var m := MapManager.data(id)
+		for p in m.props:
+			var kind := str(p.kind)
+			if not kind in ["feed_box", "nest", "incubator", "feed_sack", "hatch", "fodder_box", "stalls", "hay", "barn_gate"]:
+				continue
+			seen[kind] = true
+			var r := Rect2(Vector2(p.cell), Vector2(p.size))
+			var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+			var mid := Vector3(r.get_center().x, 0, r.get_center().y)
+			makers[id].prop(w, p, mid, r)
+			var meshes := 0
+			var shapes := 0
+			var unlit := 0
+			var wrong := 0
+			var outside := 0
+			var in_wall := 0
+			var tris := PackedVector3Array()   # three points a triangle, in the world's frame
+			for n in w.get_children():
+				if not n is MeshInstance3D:
+					continue
+				if not n.mesh is ArrayMesh:
+					shapes += 1
+					continue
+				meshes += 1
+				var mat: StandardMaterial3D = n.material_override
+				if mat.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED and not mat.albedo_color in rp.GLOWS:
+					unlit += 1
+				var arr: Array = n.mesh.surface_get_arrays(0)
+				var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+				var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+				var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX] if arr[Mesh.ARRAY_INDEX] != null else PackedInt32Array(range(v.size()))
+				for i in range(0, idx.size(), 3):
+					var c := (v[idx[i + 1]] - v[idx[i]]).cross(v[idx[i + 2]] - v[idx[i]])
+					if c.length() > 1e-9 and c.dot(nm[idx[i]]) >= 0.0:
+						wrong += 1
+				for i in idx:
+					tris.append(v[i])
+				for q in v:
+					if not r.grow(0.2).has_point(Vector2(q.x, q.z)):
+						outside += 1
+					if kind in ["hatch", "barn_gate"]:
+						continue
+					for o in [Vector2(-0.035, 0), Vector2(0, -0.035)]:
+						var cell := Vector2i((Vector2(q.x, q.z) + o).floor())
+						if m.in_bounds(cell) and m.tile(cell) == "wall":
+							in_wall += 1
+							break
+			check(meshes >= 1 and shapes == 0 and unlit == 0 and wrong == 0 and outside == 0 and in_wall == 0,
+				"%s %s at %s: %d meshes, %d primitive shapes, %d unlit, %d faces the wrong way, %d corners outside, %d in a wall"
+				% [id, kind, p.cell, meshes, shapes, unlit, wrong, outside, in_wall])
+			var glows := 0
+			for n in w.get_children():
+				if n is MeshInstance3D and n.material_override.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED:
+					glows += 1
+			check((glows > 0) == (kind == "incubator"), "%s: only the incubator's lantern gives off light (%d glows)" % [kind, glows])
+			# What AnimalLayer puts on the piece: the highest mesh point near each spot.
+			var spots: Array[Vector3] = []
+			if kind == "nest":
+				for i in int(r.size.y):
+					spots.append(Vector3(p.cell.x + 0.42, 0.34, p.cell.y + i + 0.5))
+			elif kind == "incubator":
+				spots.append(Vector3(p.cell.x + 0.45, 0.48, p.cell.y + 0.4))
+			elif kind == "feed_box":
+				spots.append(Vector3(r.get_center().x, 0.12, r.get_center().y - 0.1))
+			elif kind == "fodder_box":
+				spots.append(Vector3(r.get_center().x, 0.22, r.get_center().y + 0.05))
+			for spot in spots:
+				var top := _height_at(tris, Vector2(spot.x, spot.z))
+				check(top >= 0.0 and top <= spot.y, "%s %s: the egg / feed spot at %s stands clear of the mesh (surface at %.2f)" % [id, kind, spot, top])
+			w.free()
+	for kind in ["feed_box", "nest", "incubator", "feed_sack", "hatch", "fodder_box", "stalls", "hay", "barn_gate"]:
+		check(seen.has(kind), "the coop / barn have a %s" % kind)
+
+
+## The highest surface of `tris` (triangles, three points each) above the ground point `at`
+## (x, z), or -1.0 if there is none: a vertical ray's hit on the upward faces.
+func _height_at(tris: PackedVector3Array, at: Vector2) -> float:
+	var best := -1.0
+	for i in range(0, tris.size(), 3):
+		var a := tris[i]
+		var b := tris[i + 1]
+		var c := tris[i + 2]
+		var n := (b - a).cross(c - a)
+		if absf(n.y) < 1e-9:
+			continue
+		# barycentric in x, z
+		var d := (b.x - a.x) * (c.z - a.z) - (c.x - a.x) * (b.z - a.z)
+		var u := ((at.x - a.x) * (c.z - a.z) - (c.x - a.x) * (at.y - a.z)) / d
+		var v := ((b.x - a.x) * (at.y - a.z) - (at.x - a.x) * (b.z - a.z)) / d
+		if u < -1e-6 or v < -1e-6 or u + v > 1.0 + 1e-6:
+			continue
+		best = maxf(best, a.y + u * (b.y - a.y) + v * (c.y - a.y))
+	return best
 
 
 ## Trees (Trees): lit meshes wound to their normals, inside about 0.95 of the trunk (the
