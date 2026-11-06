@@ -1273,6 +1273,29 @@ func _outdoor_props() -> void:
 		var spot: Vector3 = op.kiln_mark_at(kr, i)
 		check(absf(spot.x - kr.get_center().x) + 0.1 < 0.47 and spot.y > 0.5 and spot.y < 0.7 and spot.z > kr.get_center().y + 0.75 and spot.z < kr.end.y,
 			"thumbprint %d sits on the kiln's face over the mouth (%s)" % [i, spot])
+	# The old kiln's wear: one lit mesh of cracks and a chip in a dark colour, flat on the face
+	# (in the footprint, facing the front); the finished new kiln has none.
+	var seam_color := Color("2e1d12")
+	var seams := func(w: Node3D) -> int:
+		return w.get_children().filter(func(n): return n is MeshInstance3D and n.material_override is StandardMaterial3D and n.material_override.albedo_color == seam_color).size()
+	var worn_pw: Node3D = new_world.call()
+	op.kiln(worn_pw, kr, Vector3(kr.get_center().x, 0, kr.get_center().y), false)
+	var wf: Dictionary = faults.call(worn_pw)
+	var slo := Vector3(1e9, 1e9, 1e9)
+	var shi := Vector3(-1e9, -1e9, -1e9)
+	for n in worn_pw.get_children():
+		if n is MeshInstance3D and n.mesh is ArrayMesh and n.material_override is StandardMaterial3D and n.material_override.albedo_color == seam_color:
+			for v in n.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+				slo = slo.min(v)
+				shi = shi.max(v)
+	check(seams.call(worn_pw) == 1 and wf.bad == 0 and wf.prim == 0 and wf.unlit == 0 and slo.x > kr.position.x and shi.x < kr.end.x
+		and slo.z > kr.get_center().y + 0.7 and shi.z < kr.end.y and slo.y > 0.2 and shi.y < 0.7,
+		"the old kiln's cracks and chip: one lit mesh of seams on the face (%s .. %s)" % [slo, shi])
+	worn_pw.free()
+	var new_pw: Node3D = new_world.call()
+	op.kiln(new_pw, kr, Vector3(kr.get_center().x, 0, kr.get_center().y), false, [1], false)
+	check(seams.call(new_pw) == 0, "the finished new kiln has no cracks")
+	new_pw.free()
 	var bw: Node3D = new_world.call()
 	op.jizo_bibs(bw, mid)
 	var bf: Dictionary = faults.call(bw)
@@ -1904,6 +1927,9 @@ func _lane_and_kiln_props() -> void:
 	var dark := Color("4a2e1c")
 	check(count.call(kiln_map, dark) == 2 and count.call(marked, dark) == 4, "in 3D the old kiln has two thumbprints; the finished new one adds Ichiro's and the farmer's")
 	check(count.call(site, dark) == 2, "in 3D the site has no thumbprints yet (only the old kiln's two)")
+	var wear: Color = Color("2e1d12")
+	check(count.call(kiln_map, wear) == 1 and count.call(site, wear) == 1 and count.call(marked, wear) == 1,
+		"in 3D the old kiln keeps its cracks while the new kiln goes up beside it")
 	var brick: Color = Color("b4553a")
 	check(count.call(kiln_map, brick) == 0 and count.call(site, brick) >= 1 and count.call(marked, brick) == 0,
 		"in 3D the clay bricks are there only while the kiln is going up")
@@ -1911,6 +1937,9 @@ func _lane_and_kiln_props() -> void:
 	var flat := StoryView.new(lane)
 	check(MapView.COLORS.has("kiln") and flat.map.props.filter(func(p): return p.kind in StoryView.KINDS).size() == 2,
 		"the flat view has the kiln's colour and the two bibs")
+	var wear_img: Image = PlaceholderArt.tex("story:kiln_worn").get_image()
+	check(wear_img.get_size() == Vector2i(32, 32) and wear_img.get_pixel(6, 6) == Color("2e1d12") and wear_img.get_pixel(0, 0).a == 0.0,
+		"the flat old kiln has its cracks as a 32 x 32 overlay (dark lines, the rest see-through)")
 	flat.free()
 
 	# Examining them in the game (the real Game, as the views call it).

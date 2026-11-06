@@ -100,7 +100,7 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 		"kiln_new":
 			# The finished new kiln (ichiro_mark): Ichiro's print is on it, the farmer's is kiln_mark.
 			var c := r.get_center()
-			OutdoorProps.kiln(w, r, Vector3(c.x, 0, c.y), w is MapWorld and SnowLayer.map_has_snow((w as MapWorld).map), [1])
+			OutdoorProps.kiln(w, r, Vector3(c.x, 0, c.y), w is MapWorld and SnowLayer.map_has_snow((w as MapWorld).map), [1], false)
 		"carp_streamer":
 			# Pole and carp are one picture, standing on its cell, the carp just over the eave.
 			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))

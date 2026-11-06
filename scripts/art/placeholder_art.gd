@@ -53,7 +53,7 @@ static func _make(key: String) -> Image:
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
 		"portrait": # portrait:<villager>:<neutral|happy|sad|surprised|angry>, a villager's 40 x 40 text box portrait
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
-		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|lumber|rope_lift|jizo_bibs|kiln_mark|kiln_site|kiln_new|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
+		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|lumber|rope_lift|jizo_bibs|kiln_mark|kiln_site|kiln_new|kiln_worn|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
 		"festival": # festival:<kind>:<w>x<h>[:<cloth hex>], a festival decoration in the flat view (FestivalView)
 			var wh := parts[2].split("x") if parts.size() > 2 else PackedStringArray(["1", "1"])
@@ -2758,6 +2758,19 @@ static func _story(kind: String) -> Image:
 			_px(img, 5, 14, 8, 4, clay.lightened(0.25))           # Ichiro's print
 			_px(img, 6, 15, 6, 2, Color("4a2e1c"))
 			return _outline(img)
+		"kiln_worn":
+			# The old kiln's wear over its 2 x 2 footing (32 x 32, see-through elsewhere): two
+			# hairline cracks in the clay, a branch off the left one, and a chip knocked out of the
+			# front-right corner with its pale broken edge. Drawn on top of the kiln's box.
+			var img := _blank(32, 32)
+			var crack := Color("2e1d12")
+			for q in [[6, 6], [6, 7], [7, 8], [7, 9], [7, 10], [6, 11], [6, 12], [7, 13], [8, 14], [8, 15], [7, 16], [8, 12], [9, 12], [10, 13]]:
+				_px(img, q[0], q[1], 1, 1, crack)
+			for q in [[25, 8], [25, 9], [24, 10], [24, 11], [23, 12], [23, 13], [24, 14], [23, 15], [22, 16]]:
+				_px(img, q[0], q[1], 1, 1, crack)
+			_px(img, 23, 22, 4, 1, Color("c9a07a"))   # the broken edge, lit
+			_px(img, 23, 23, 4, 2, crack)              # the dark hollow
+			return img
 		"rope_lift":
 			# The rope lift's winch at the cave mouth (20 x 28), once a landing is reached: a
 			# timber gantry over a stone-lipped shaft, a drum wound with rope between its posts,

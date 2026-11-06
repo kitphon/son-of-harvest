@@ -283,7 +283,7 @@ static func kiln_mark(w: FarmWorld, at: Vector3, big := false) -> void:
 ## face at the front (+z) with a stone-framed mouth, a clay chimney at the back, and two
 ## thumbprints over the mouth (the father's and Ichiro's; the farmer's is a story prop). Snow
 ## on the dome's crown and the face's top.
-static func kiln(w: FarmWorld, r: Rect2, mid: Vector3, snow: bool, prints: Array = [0, 1]) -> void:
+static func kiln(w: FarmWorld, r: Rect2, mid: Vector3, snow: bool, prints: Array = [0, 1], worn := true) -> void:
 	var p := FarmProps.Parts.new()
 	var clay := p.st(KILN_CLAY)
 	var dome_at := Vector3(mid.x, 0, mid.z - 0.1)
@@ -298,6 +298,8 @@ static func kiln(w: FarmWorld, r: Rect2, mid: Vector3, snow: bool, prints: Array
 	FarmProps.block(p.st(STONE_LIGHT), Rect2(mid.x - 0.27, face - 0.035, 0.54, 0.07), 0.42, Rect2(mid.x - 0.26, face - 0.03, 0.52, 0.06), 0.5)   # the lintel
 	FarmProps.block(p.st(STONE_DARK), Rect2(mid.x - 0.3, face, 0.6, 0.12), 0.0, Rect2(mid.x - 0.28, face + 0.01, 0.56, 0.1), 0.04)   # the hearth stone
 	Shrine.lathe(p.st(KILN_CLAY.darkened(0.3)), Vector3(mid.x + 0.3, 0, mid.z - 0.72), [Vector2(0.09, 0.3), Vector2(0.085, 0.98), Vector2(0.07, 1.02)], 8)   # the chimney
+	if worn:
+		_worn(p, mid, face)
 	p.commit(w)
 	for i in prints:   # 0 the father's, 1 Ichiro's: the old kiln has both, the new one only Ichiro's
 		kiln_mark(w, kiln_mark_at(r, i), i == 0)
@@ -308,6 +310,34 @@ static func kiln(w: FarmWorld, r: Rect2, mid: Vector3, snow: bool, prints: Array
 		var top := Rect2(mid.x - 0.44, face - 0.26, 0.88, 0.26)
 		FarmProps.block(s, top.grow(-0.01), 0.7, top.grow(-0.03), 0.72)
 		sn.commit(w)
+
+
+## The old kiln's wear (kiln, `worn`): two hairline cracks in the clay face, a short branch off
+## one, and a chipped-off piece at the face's top right with its pale broken edge. Flat quads
+## on the face (a few thousandths in front of it), in one dark colour, kept clear of the mouth
+## and the thumbprints. The new kiln is not worn.
+static func _worn(p: FarmProps.Parts, mid: Vector3, face: float) -> void:
+	var crack := p.st(Color("2e1d12"))
+	var z := face + 0.004
+	_seam(crack, Vector2(mid.x - 0.46, 0.5), Vector2(mid.x - 0.42, 0.26), z, 0.008)
+	_seam(crack, Vector2(mid.x - 0.43, 0.38), Vector2(mid.x - 0.34, 0.34), z, 0.006)   # the branch
+	_seam(crack, Vector2(mid.x + 0.44, 0.52), Vector2(mid.x + 0.38, 0.3), z, 0.007)   # clear of the prints
+	# the chip: a notch the clay broke out of, dark inside, with a pale edge along its top
+	var c := Vector2(mid.x + 0.36, 0.64)
+	_seam(crack, c, c + Vector2(0.09, 0.0), z, 0.02)
+	_seam(p.st(KILN_CLAY.lightened(0.3)), c + Vector2(0.0, 0.03), c + Vector2(0.09, 0.03), z + 0.001, 0.008)
+
+
+## One flat seam on the face from `a` to `b` (x, y), `half` wide, facing +z at depth `z`.
+static func _seam(st: SurfaceTool, a: Vector2, b: Vector2, z: float, half: float) -> void:
+	var d := (b - a).normalized()
+	var n := Vector2(-d.y, d.x) * half
+	var p0 := Vector3(a.x + n.x, a.y + n.y, z)
+	var p1 := Vector3(a.x - n.x, a.y - n.y, z)
+	var p2 := Vector3(b.x - n.x, b.y - n.y, z)
+	var p3 := Vector3(b.x + n.x, b.y + n.y, z)
+	_tri(st, p0, p1, p2, Vector3(0, 0, 1))
+	_tri(st, p0, p2, p3, Vector3(0, 0, 1))
 
 
 ## The new kiln going up beside the old one (StoryProps kiln_site; ichiro_kiln, until ichiro_mark):

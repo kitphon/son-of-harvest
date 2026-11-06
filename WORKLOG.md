@@ -26,6 +26,26 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Left / next: hearts for Shige, Nana or Kiku; `haru_wave` / `haru_tag` are only flags so far
   (nothing in the world reads them).
 
+## 2026-11-06 — The old kiln looks worn
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: Ichiro's old charcoal kiln in Sakurazaka shows its age. In 3D `OutdoorProps.kiln` takes a
+  `worn` flag (default on; the finished new kiln passes off, StoryProps kiln_new) and adds `_worn`:
+  two hairline cracks in the clay face (one with a short branch), and a chip knocked out of the
+  face's top right with a pale broken edge, all flat lit quads in colour 2e1d12 (`_seam`). They
+  keep clear of the father's and Ichiro's thumbprints and the mouth. Flat view: new art key
+  `story:kiln_worn` (32 x 32 overlay, the cracks and the chip), drawn by StoryView over the old
+  kiln's box (MapView still draws the box; `kiln` is not in StoryView.KINDS). The clay is the
+  kiln's own (the old kiln is a clay dome, so the "bricks" are a chipped piece of clay).
+- Checked: test_maps has the seams as one lit mesh on the face inside the footprint with no
+  faults; the new kiln has none; the old kiln keeps its seam mesh in the three Sakurazaka map
+  states; the flat overlay is 32 x 32 with dark lines and a see-through background. All 28
+  tests/test_*.gd print `OK (0 failed)`. Smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`) print no error or warning. Screenshots (480 x 270 movie frames, `--map=sakurazaka@kiln
+  --flags=ichiro_kiln`): the 3D frame shows the old kiln's dark cracks on its front and left face,
+  subtle; in the flat frame a dark crack shows on its box, and the HUD covers the rest of the kiln.
+- Left / next: a closer look at the chip in both views (a larger render); the flat frame's HUD
+  hides the kiln's corner at the spawn.
+
 ## 2026-11-06 — Merge: hearts for Haru, the kiln's building stage, the chore talk before noon
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents worked in parallel worktrees, each on a model picked by difficulty:
