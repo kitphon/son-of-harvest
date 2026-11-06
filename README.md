@@ -245,8 +245,13 @@ edge where boards or tatami meet the earth and a shoe stone below the door's ste
   again when one of its flags changes, and the views pick it up on the next map change). The
   band 5 and 6 heart events' story props use it (StoryProps, art `story:<kind>` in both
   views): `door_bell` on the farm (`hachiro_bell`), `store_sign` with `style` old / new in the
-  village (`sayo_sign`), `ume_jar` in the farmhouse (`tome_grandma`) and `carp_streamer` on the
-  farm (`kota_streamer`, band 6). A prop with `use: "examine"`
+  village (`sayo_sign`), `ume_jar` in the farmhouse (`tome_grandma`), `carp_streamer` on the
+  farm (`kota_streamer`, band 6), `jizo_bibs` on the two jizo by the Kaminoda lane
+  (`genzo_jizo`, band 5: new red bibs over the old) and `kiln_mark` on Ichiro's charcoal kiln
+  (`kiln`, 2 x 2, below his house in Sakurazaka, two thumbprints over its mouth) for the
+  farmer's third thumbprint (`ichiro_mark`, band 6). A story prop listed before the prop it
+  sits on is the one `prop_at` finds, so its examine line takes over while its flag is set.
+  A prop with `use: "examine"`
   plays its `sound` (data/sfx.json) and shows its `message` when used, on any map;
 - the village clinic (`clinic`, door east of the smithy, shop `clinic`) has a `bed` spawn by
   its futon (a futon prop without `use` is only a bed), where a collapse wakes the farmer;

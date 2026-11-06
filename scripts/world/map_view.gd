@@ -13,7 +13,7 @@ const COLORS := {
 	"village_house": Color("a0522d"), "torii": Color("c8442c"), "hokora": Color("8a6a48"),
 	"stone_lantern": Color("9a968e"), "pine": Color("2f5a34"), "bamboo": Color("6e9c42"),
 	"well": Color("8e8a80"), "jizo": Color("c8342c"), "persimmon": Color("e8782a"), "sakura": Color("f2bccb"),
-	"hasa": Color("d8b85a"), "woodpile": Color("8a6440"), "garden": Color("5a9a3a"), "wood_fence": Color("b08a5a"),
+	"hasa": Color("d8b85a"), "woodpile": Color("8a6440"), "garden": Color("5a9a3a"), "wood_fence": Color("b08a5a"), "kiln": Color("9a7656"),
 	"counter": Color("4a3424"), "shelf": Color("6a4a30"), "rice_sacks": Color("d8c088"),
 	"forge": Color("7a746c"), "anvil": Color("2a2a2e"), "tool_rack": Color("8a6a48"), "water_tub": Color("2a4a5a"), "river_rock": Color("6e6a62"),
 	"feed_box": Color("9a7048"), "nest": Color("d8bc78"), "incubator": Color("c8a868"),

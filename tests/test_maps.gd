@@ -54,6 +54,7 @@ func _process(delta: float) -> bool:
 		_bed_and_doors()
 		_clinic_doors()
 		_story_props()
+		_lane_and_kiln_props()
 		_map_snow()
 		_edges_and_fades()
 		_start_view()
@@ -1256,10 +1257,32 @@ func _outdoor_props() -> void:
 			check(f.prim == 0 and f.unlit == 0 and f.bad == 0 and f.tris > 200 and inside and (f.snow > 0) == snow and f.hi.y > 0.9 and f.hi.y < 1.1,
 				"woodpile %dx1 (snow %s): %d tris, %d primitives, %d facing faults, inside %s, %d snow, %.2f high" % [length, snow, f.tris, f.prim, f.bad, inside, f.snow, f.hi.y])
 			pw.free()
+	# Ichiro's kiln (2 x 2): lit meshes inside its cells, a low dome under its chimney, snow
+	# skins only where snow lies, the two thumbprints over its mouth.
+	var kr := Rect2(5, 7, 2, 2)
+	for snow in [false, true]:
+		var pw: Node3D = new_world.call()
+		op.kiln(pw, kr, Vector3(kr.get_center().x, 0, kr.get_center().y), snow)
+		var f: Dictionary = faults.call(pw)
+		var inside: bool = f.lo.x >= kr.position.x - 0.03 and f.hi.x <= kr.end.x + 0.03 and f.lo.z >= kr.position.y - 0.03 and f.hi.z <= kr.end.y + 0.03
+		var marks := pw.get_children().filter(func(n): return n is MeshInstance3D and n.material_override is StandardMaterial3D and n.material_override.albedo_color == Color("4a2e1c")).size()
+		check(f.prim == 0 and f.unlit == 0 and f.bad == 0 and f.tris > 200 and inside and (f.snow > 0) == snow and f.hi.y > 0.95 and f.hi.y < 1.1 and marks == 2,
+			"kiln (snow %s): %d tris, %d primitives, %d facing faults, inside %s, %d snow, %.2f high, %d thumbprints" % [snow, f.tris, f.prim, f.bad, inside, f.snow, f.hi.y, marks])
+		pw.free()
+	for i in 3:
+		var spot: Vector3 = op.kiln_mark_at(kr, i)
+		check(absf(spot.x - kr.get_center().x) < 0.3 and spot.y > 0.5 and spot.y < 0.7 and spot.z > kr.get_center().y + 0.75 and spot.z < kr.end.y,
+			"thumbprint %d sits on the kiln's face over the mouth (%s)" % [i, spot])
+	var bw: Node3D = new_world.call()
+	op.jizo_bibs(bw, mid)
+	var bf: Dictionary = faults.call(bw)
+	check(bf.prim == 0 and bf.unlit == 0 and bf.bad == 0 and bf.lo.x > 5.3 and bf.hi.x < 5.7 and bf.lo.z > 7.39 and bf.hi.z < 7.7
+		and bf.lo.y > 0.15 and bf.hi.y < 0.5, "the jizo's new bib and tie: lit meshes on his chest and neck (%s .. %s)" % [bf.lo, bf.hi])
+	bw.free()
 	# On the maps: no box or cylinder left in the cells of these props, and a bamboo mesh for
 	# every clump in the data.
 	var spots := {"hill": ["bamboo"], "kaminoda": ["well", "jizo", "woodpile", "bamboo"], "river": ["river_rock"],
-		"minamino": ["well", "jizo", "woodpile", "bamboo"], "sakurazaka": ["jizo", "woodpile", "bamboo"]}
+		"minamino": ["well", "jizo", "woodpile", "bamboo"], "sakurazaka": ["jizo", "woodpile", "bamboo", "kiln"]}
 	for id in spots:
 		var m: Node3D = load("res://scripts/world3d/map_world.gd").new()
 		m.build(MapManager.data(id))
@@ -1807,6 +1830,94 @@ func _story_props() -> void:
 		"gone with their flags: open ground again")
 	for n in [a, b]:
 		n.free()
+
+
+## What Genzo's and Ichiro's heart events leave out in the lanes: the jizo's new red bibs in
+## Kaminoda (genzo_jizo, heart_genzo_5) and the farmer's thumbprint on Ichiro's kiln in
+## Sakurazaka (ichiro_mark, heart_ichiro_6). Gated by the flags the events set, drawn in both
+## views, and examining the jizo or the kiln reads the line for what is there.
+func _lane_and_kiln_props() -> void:
+	var sets := func(event: String) -> Dictionary:
+		var out := {}
+		for step in JSON.parse_string(FileAccess.get_file_as_string("res://data/events/%s.json" % event)).steps:
+			if step.get("do", "") == "set":
+				out.merge(step.flags)
+		return out
+	check(sets.call("heart_genzo_5").get("genzo_jizo", false) and sets.call("heart_ichiro_6").get("ichiro_mark", false),
+		"the events set genzo_jizo and ichiro_mark")
+	var raw := func(id: String) -> Variant:
+		return JSON.parse_string(FileAccess.get_file_as_string("res://data/maps/%s.json" % id))
+	check(MapManager.gate_flags(raw.call("kaminoda")) == ["genzo_jizo"] and MapManager.gate_flags(raw.call("sakurazaka")) == ["ichiro_mark"],
+		"Kaminoda is gated by genzo_jizo, Sakurazaka by ichiro_mark")
+	var kinds := func(id: String, f: Dictionary) -> Array:
+		var out := []
+		for p in MapManager.load_map(id, null, f)[1].props:
+			if p.kind in StoryView.KINDS:
+				out.append(p.kind)
+		return out
+	check(kinds.call("kaminoda", {}).is_empty() and kinds.call("sakurazaka", {}).is_empty(), "no bibs or third mark without their flags")
+	check(kinds.call("kaminoda", {"genzo_jizo": true}) == ["jizo_bibs", "jizo_bibs"], "both jizo by the lane wear new bibs once genzo_jizo is set")
+	check(kinds.call("sakurazaka", {"ichiro_mark": true}) == ["kiln_mark"], "the third thumbprint is on the kiln once ichiro_mark is set")
+	check(kinds.call("kaminoda", {"ichiro_mark": true}).is_empty() and kinds.call("sakurazaka", {"genzo_jizo": true}).is_empty(),
+		"each flag shows only its own prop")
+	check(kinds.call("minamino", {"genzo_jizo": true}).is_empty(), "the other villages' jizo keep their old bibs")
+	var lane: MapData = MapManager.load_map("kaminoda", null, {"genzo_jizo": true})[1]
+	for c in [Vector2i(8, 12), Vector2i(9, 12)]:
+		var bib := lane.prop_at(c)
+		check(bib.get("kind", "") == "jizo_bibs" and bib.get("use", "") == "examine" and lane.is_solid(c)
+			and lane.props.any(func(p): return p.kind == "jizo" and p.cell == c), "the bib is on the jizo at %s, which still blocks" % c)
+	var plain_lane: MapData = MapManager.load_map("kaminoda", null, {})[1]
+	check(plain_lane.prop_at(Vector2i(8, 12)).get("kind", "") == "jizo", "without the flag the jizo is the prop there")
+	var kiln_map: MapData = MapManager.load_map("sakurazaka", null, {})[1]
+	var kiln := kiln_map.prop_at(Vector2i(23, 17))
+	check(kiln.get("kind", "") == "kiln" and kiln.size == Vector2i(2, 2) and kiln_map.is_solid(Vector2i(24, 18)) and str(kiln.get("message", "")) != "",
+		"the kiln stands below Ichiro's house, 2 x 2 and solid, with a line to read")
+	for c in [Vector2i(22, 16), Vector2i(25, 16), Vector2i(19, 16), Vector2i(25, 18)]:
+		check(not kiln_map.is_solid(c), "the kiln leaves %s open (Ichiro's path and work spot, the kiln spawn)" % c)
+	var marked: MapData = MapManager.load_map("sakurazaka", null, {"ichiro_mark": true})[1]
+	var mark := marked.prop_at(Vector2i(24, 18))
+	check(mark.get("kind", "") == "kiln_mark" and mark.cell == kiln.cell and mark.size == kiln.size and mark.message != kiln.message,
+		"with the flag, the kiln reads the line about three marks")
+	for key in ["story:jizo_bibs", "story:kiln_mark"]:
+		var img := PlaceholderArt.tex(key).get_image()
+		check(img.get_width() >= 6 and img.get_pixel(img.get_width() / 2, img.get_height() / 2) != Color.MAGENTA, "art %s is drawn" % key)
+
+	# 3D: the new red cloth on the jizo, a third thumbprint on the kiln.
+	var count := func(m: MapData, color: Color) -> int:
+		var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+		w.build(m)
+		var n := w.get_children().filter(func(c): return c is MeshInstance3D and c.material_override is StandardMaterial3D and c.material_override.albedo_color == color).size()
+		w.free()
+		return n
+	var new_red: Color = load("res://scripts/world3d/outdoor_props.gd").NEW_RED
+	check(count.call(plain_lane, new_red) == 0 and count.call(lane, new_red) == 2, "in 3D the new red cloth is there only with the flag (one mesh a jizo)")
+	var dark := Color("4a2e1c")
+	check(count.call(kiln_map, dark) == 2 and count.call(marked, dark) == 3, "in 3D the kiln has two thumbprints, three with the flag")
+	# Flat view: StoryView draws them, MapView has a colour for the kiln.
+	var flat := StoryView.new(lane)
+	check(MapView.COLORS.has("kiln") and flat.map.props.filter(func(p): return p.kind in StoryView.KINDS).size() == 2,
+		"the flat view has the kiln's colour and the two bibs")
+	flat.free()
+
+	# Examining them in the game (the real Game, as the views call it).
+	var g: Node = root.get_node("Game")
+	g.new_game()
+	var said := []
+	var hear := func(t): said.append(t)
+	g.message.connect(hear)
+	var fa: GDScript = load("res://scripts/farm_actions.gd")
+	g.maps.place("sakurazaka", Vector2i(25, 18), Vector2i.LEFT)
+	fa.interact(Vector2i(24, 18))
+	g.flags["ichiro_mark"] = true
+	fa.interact(Vector2i(24, 18))
+	g.maps.place("kaminoda", Vector2i(9, 13), Vector2i.UP)
+	fa.interact(Vector2i(9, 12))
+	g.flags["genzo_jizo"] = true
+	fa.interact(Vector2i(9, 12))
+	g.message.disconnect(hear)
+	check(said == [kiln.message, mark.message, lane.prop_at(Vector2i(9, 12)).message],
+		"examining: the kiln, then the three marks, then the bibs (the old jizo says nothing) %s" % [said])
+	g.new_game()
 
 
 ## Game: the clock stops indoors, map signals, day end puts the farmer home, the saved part.

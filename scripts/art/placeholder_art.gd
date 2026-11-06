@@ -53,7 +53,7 @@ static func _make(key: String) -> Image:
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
 		"portrait": # portrait:<villager>:<neutral|happy|sad|surprised|angry>, a villager's 40 x 40 text box portrait
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
-		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|lumber|rope_lift|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
+		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|lumber|rope_lift|jizo_bibs|kiln_mark|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
 		"festival": # festival:<kind>:<w>x<h>[:<cloth hex>], a festival decoration in the flat view (FestivalView)
 			var wh := parts[2].split("x") if parts.size() > 2 else PackedStringArray(["1", "1"])
@@ -2697,6 +2697,29 @@ static func _ribbon_board(places: String) -> Image:
 ## a 1 x 2 cell stack seen from the front).
 static func _story(kind: String) -> Image:
 	match kind:
+		"jizo_bibs":
+			# The new red bib Genzo asked for (heart_genzo_5), tied over the jizo's old one:
+			# bright red cloth narrowing to a rounded hem, a white sewn edge, the ties at the neck.
+			var img := _blank(8, 7)
+			var red := Color("e23a2c")
+			_px(img, 1, 0, 6, 1, red.darkened(0.25))   # the ties round the neck
+			_px(img, 1, 1, 6, 3, red)
+			_px(img, 2, 4, 4, 1, red)
+			_px(img, 2, 5, 4, 1, Color("f2ece0"))     # the white hem
+			_px(img, 2, 1, 1, 2, red.lightened(0.3))  # a fold catching the light
+			return _outline(img)
+		"kiln_mark":
+			# The three thumbprints in the clay over the kiln's mouth (heart_ichiro_6): the
+			# father's, Ichiro's and the farmer's, each a pressed dark oval with a lighter rim.
+			var img := _blank(14, 6)
+			var clay := Color("b08458")
+			_px(img, 0, 0, 14, 6, clay)
+			for i in 3:
+				var x := 1 + i * 4
+				_px(img, x, 1, 3, 4, clay.lightened(0.18))
+				_px(img, x + 1, 1, 1, 4, Color("5a3a24"))
+				_px(img, x, 2, 3, 2, Color("5a3a24"))
+			return img
 		"rope_lift":
 			# The rope lift's winch at the cave mouth (20 x 28), once a landing is reached: a
 			# timber gantry over a stone-lipped shaft, a drum wound with rope between its posts,

@@ -124,6 +124,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   --flags=tome_grandma` Tome's plum jar; `--map=hill` the foot of the bamboo hill (its forage spots by `--season`), `hill@top` its
   lookout; `--map=kaminoda@well --time=8:30` the hamlet north of the village, Genzo and Haru out;
   `--map=sakurazaka@bridge --time=12:10` the cherry road east, Ichiro at lunch by the teahouse;
+  `--map=sakurazaka@kiln --flags=ichiro_mark` Ichiro's kiln with the farmer's thumbprint;
+  `--map=kaminoda@jizo --flags=genzo_jizo` the jizo in Genzo's new red bibs;
   `--map=minamino@shige --time=9:00` the gardens south, Shige and Nana at work),
   `--built=kitchen,chest,room` to have those house extensions built (with `--map=house` to see
   them), `--building=<id>` (kitchen, chest, room) to have that extension under way since
