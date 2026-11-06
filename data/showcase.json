@@ -1,0 +1,17 @@
+{
+	"_about": "Fixed views for trailer-ready screenshots (tools/showcase.py, README.md, Showcase). Each view is a name and the command-line args of one run (AGENTS.md, Screenshot: the flags). The runner renders every view with --write-movie and keeps its last frame, so the same set can be shot before and after each step and compared. Names are unique and use a-z, 0-9 and _. tests/test_showcase.gd checks that every map, spawn, festival and lens named here exists.",
+	"views": [
+		{"name": "farm_morning", "args": ["--demo", "--weather=sunny", "--time=6:30"]},
+		{"name": "farm_noon", "args": ["--demo", "--weather=sunny", "--time=12:00"]},
+		{"name": "village_morning", "args": ["--demo", "--map=town", "--time=10:00"]},
+		{"name": "village_night", "args": ["--demo", "--map=town", "--time=21:00"]},
+		{"name": "village_wide", "args": ["--demo", "--map=town", "--lens=wide"]},
+		{"name": "winter_snow", "args": ["--demo", "--season=winter", "--map=town", "--snow=80"]},
+		{"name": "rain", "args": ["--demo", "--weather=rain"]},
+		{"name": "house_inside", "args": ["--demo", "--map=house", "--time=19:00"]},
+		{"name": "mine_floor3", "args": ["--demo", "--mine=3"]},
+		{"name": "bamboo_hill", "args": ["--demo", "--map=hill"]},
+		{"name": "lantern_night", "args": ["--demo", "--festival=lantern_night"]},
+		{"name": "river_sunday", "args": ["--demo", "--day=7", "--weather=sunny", "--map=river@shore", "--time=14:45"]}
+	]
+}

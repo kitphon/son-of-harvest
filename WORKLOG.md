@@ -10,6 +10,29 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — Trailer-ready screenshots: 12 fixed views and a runner
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: ART_DIRECTION section 5, "Trailer-ready screenshots". data/showcase.json lists 12
+  named views (farm morning and noon, village morning and night, village with the wide lens,
+  winter snow, rain, house inside, mine floor 3, bamboo hill, Lantern Night, river Sunday),
+  each a list of the existing command-line flags. tools/showcase.py renders each with
+  `--write-movie` (`--fixed-fps 30 --quit-after 30`), keeps the last frame as <out>/<name>.png,
+  takes `--only`, `--godot` (default: the project folder, then its parent) and
+  `--compare <dir>` (writes <out>/compare/<name>.png, before | after, and prints the mean
+  absolute pixel difference). tests/test_showcase.gd checks the file parses, 10 to 12 unique
+  names, every arg is a `--` flag, and every map (and its spawn), festival and lens named
+  exists. README → Showcase; AGENTS.md → Run and check lists the test.
+- Checked: `--import` ran clean. `Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_showcase.gd` printed `test_showcase: OK (0 failed)`.
+  `python -I tools/showcase.py --out shots/showcase --godot /d/Harvest-son/Godot_v4.7.2-stable_win64_console.exe` printed
+  `rendered 12 of 12 view(s) into .../shots/showcase` with exit code 0 and no error lines.
+  Viewed farm_morning.png (the farmhouse, 06:31 clock, planted plots) and lantern_night.png
+  (the festival stalls and lanterns, 20:01): real game frames, not the title screen.
+  All 28 other test scripts printed `OK (0 failed)`, among them test_lang, test_maps,
+  test_view2d and test_title.
+- Left / next: the set has no before/after pair yet; the first "before" run is this commit's
+  `shots/showcase`, to compare after the next look change with `--compare`. The views run one
+  at a time (about 10 s each on this machine), so the whole set takes a few minutes.
+
 ## 2026-11-06 — Merge: sun by the clock, coop / barn insides, bamboo and outdoor props
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents worked in parallel worktrees: 8e4cfd8 the sun follows the clock (Opus),

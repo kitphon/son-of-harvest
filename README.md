@@ -919,6 +919,23 @@ Then a BackBufferCopy keeps the picture, the panes and glows are added, and last
 of a glow are drawn back from the copy, so a window behind someone never tints them. Someone
 standing in a pool keeps its light (the pools are under the copy).
 
+## Showcase
+Fixed views for trailer shots and for comparing a look before and after a change:
+`data/showcase.json` lists 12 named views, each the command-line args of one run (the same
+flags as AGENTS.md → Screenshot). The runner renders each with `--write-movie` (30 frames at
+30 fps, `--quit-after 30`) and keeps the last frame.
+
+- Render all: `python -I tools/showcase.py --out shots/showcase` (from the project folder;
+  the Godot console binary is read from the project folder, or pass `--godot <exe>`).
+- Some views: `--only farm_morning,rain` renders just those.
+- Compare: take the "before" set first, change the look, then
+  `python -I tools/showcase.py --out shots/after --compare shots/showcase`. It writes
+  `shots/after/compare/<name>.png` (before | after side by side) and prints the mean absolute
+  pixel difference per view (0 to 255 per channel).
+- Add a view: one more `{"name", "args"}` entry in data/showcase.json. Names are unique; the
+  test `tests/test_showcase.gd` checks the names and that the maps, spawns, festivals and lenses
+  it names exist.
+
 ## Layout
 - `scripts/autoload/game.gd`: global state (clock, calendar, weather, money, bag, stamina, light).
 - `scripts/farm/farm_grid.gd`: farm rules, pure logic (no drawing).

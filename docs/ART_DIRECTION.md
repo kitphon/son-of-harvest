@@ -149,7 +149,7 @@ Light and Farmhouse model hold the technical detail of what is built.
 
 ### 5. Finish
 - [ ] UI pass in the same warm style (paper, wood) at the new look.
-- [ ] Trailer-ready screenshots: a set of fixed views to compare before and after each step.
+- [x] Trailer-ready screenshots: a set of fixed views to compare before and after each step. (this commit: data/showcase.json, tools/showcase.py, README → Showcase)
 
 ## How to continue
 1. Read this file, then the top WORKLOG entries.
