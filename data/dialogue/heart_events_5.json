@@ -65,6 +65,14 @@
 			"choices": [{"text": "Kaminoda would miss you.", "next": "haru_stay"}, {"text": "Go if it calls you. Come back often.", "next": "haru_go"}]},
 		{"id": "haru_stay", "speaker": "haru", "mood": "surprised", "text": "...Would it? Genzo would never say so. But he'd sit by the well alone, and the racks would stand empty in fall.", "next": "haru_end"},
 		{"id": "haru_go", "speaker": "haru", "mood": "happy", "text": "You'd let me go, just like that? ...That makes it easier to stay, oddly. Nobody's holding the door.", "next": "haru_end"},
-		{"id": "haru_end", "speaker": "haru", "mood": "happy", "text": "I'll stay. Sayo can sell my sandals at her store, and the city can walk down here to buy them. Thank you for listening.", "next": "end"}
+		{"id": "haru_end", "speaker": "haru", "mood": "happy", "text": "I'll stay. Sayo can sell my sandals at her store, and the city can walk down here to buy them. Thank you for listening.", "next": "end"},
+
+		{"id": "shige", "speaker": "shige", "mood": "neutral", "text": "Can I show you something? This tin was my wife's. Pumpkin seed, saved from her mother's vines, and hers before that."},
+		{"speaker": "shige", "mood": "sad", "text": "Pumpkins were her crop. After she was gone I couldn't put them in. Eight years the tin has sat on the shelf. Nana doesn't even remember the vines."},
+		{"speaker": "shige", "mood": "neutral", "text": "Seed this old may not come up at all. But it won't come up in a tin, either. I've been working up to it. So, grower to grower...",
+			"choices": [{"text": "Plant them by her fence.", "next": "shige_fence"}, {"text": "Grow some on my farm too.", "next": "shige_share"}]},
+		{"id": "shige_fence", "speaker": "shige", "mood": "happy", "text": "By the fence, where she'd look for them. ...Yes. If they come up, they should come up there.", "next": "shige_end"},
+		{"id": "shige_share", "speaker": "shige", "mood": "surprised", "text": "Half here, half with you. If one patch fails, the other won't. That's a real grower's answer. She'd have said the same.", "next": "shige_end"},
+		{"id": "shige_end", "speaker": "shige", "mood": "happy", "text": "Here, your share, in a fresh packet. Sow it thick. And when Nana cries over the first vine, pretend you didn't see.", "next": "end"}
 	]
 }

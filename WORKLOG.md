@@ -10,6 +10,36 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — Hearts for Shige of Minamino
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: Shige joins `Villagers.friends()` (hearts no longer false). Birthday winter 18 (free of
+  every other birthday and festival; the beds empty, next year's rows still only plans), with a
+  `birthday` day plan: Nana hides his hoe, so home until 9:00, by the roadside shrine under the
+  cherry 9:00-11:40, lunch at home, walking the beds by his house with empty hands 13:00-16:00,
+  home by evening; the farmhouse calendar marks it (a little hoe on the 18th). Talk:
+  birthday / gift_birthday, close lines from band 4, his forage lines now band 2 to 5 like the
+  other friends, `pumpkin_` lines after band 5. `heart_shige` (band 3: Nana's scarecrow made to
+  look like him; smile or keep her frown; two packets of tomato seed from the plants the crows
+  left alone) and `heart_shige_5` (band 5: his late wife's tin of pumpkin seed, unsown eight
+  years; sow it by her fence or share it with the farmer's field; a packet of pumpkin seed).
+  Trigger rows in triggers_minamino, the new triggers_shige_house and triggers_town; music rule;
+  his part in the ending (data/events/ending.json, dialogue/ending.json). Record steps:
+  Friendships 7 / 15 / 25 / 38 of 48 -> 8 / 17 / 28 / 43 of 54 (same share), Neighbours
+  1 / 2 / 3 / 4 -> 1 / 2 / 3 (three without hearts left: Nana, Kiku, Dr. Yae; steps must rise,
+  so the record has 42 stars now, not 43; the rank steps 9 / 18 / 27 / 36 stay). Thai for
+  every new line and the changed calendar key. README (Villagers, Ending) and ROADMAP updated.
+- Checked: test_relationships has `_shige_friend` (birthday plan, close / pumpkin / birthday /
+  forage picks, both answers of both scenes, both seeds, the calendar, the ending part, not a
+  neighbour) and Shige in the heart rows (3 maps) and keepsake homes; test_talk moves him to the
+  friends' forage days; test_ending uses Nana as the not-quite neighbour. After `--import`, all
+  28 test scripts print `OK (0 failed)`; smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, `--demo --map=minamino --event=heart_shige`, `--event=heart_shige_5`, and
+  `--map=house --event=ending --flags=ending_friend_shige`) exit 0 with no error or warning;
+  a Thai frame of heart_shige's first line fits the box. One choice ("Keep the frown...") was
+  shortened after test_relationships said it didn't fit.
+- Left / next: Shige's and Haru's band 6 scenes; hearts for Nana or Kiku; the scarecrow and the
+  pumpkin vines set no world change in Minamino yet.
+
 ## 2026-11-06 — Merge: hearts for Haru, the kiln's building stage, the chore talk before noon
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents worked in parallel worktrees, each on a model picked by difficulty:

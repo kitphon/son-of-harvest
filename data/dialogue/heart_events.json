@@ -53,6 +53,14 @@
 			"choices": [{"text": "Tight. The field is hard on them.", "next": "haru_tight"}, {"text": "Loose. Be kind to my feet.", "next": "haru_loose"}]},
 		{"id": "haru_tight", "speaker": "haru", "mood": "happy", "text": "A working pair, then. I'll twist a little rice straw from Genzo's racks into the heel. He won't miss it.", "next": "haru_end"},
 		{"id": "haru_loose", "speaker": "haru", "mood": "surprised", "text": "Ha! That's what Grandma always said. Soft feet make a soft temper. Loose it is.", "next": "haru_end"},
-		{"id": "haru_end", "speaker": "haru", "mood": "happy", "text": "They'll be ready by the end of the week. And here, cucumber seed I saved from my best vines. Grow me something to brag about.", "next": "end"}
+		{"id": "haru_end", "speaker": "haru", "mood": "happy", "text": "They'll be ready by the end of the week. And here, cucumber seed I saved from my best vines. Grow me something to brag about.", "next": "end"},
+
+		{"id": "shige", "speaker": "shige", "mood": "neutral", "text": "Ah, good timing. Hold this pole straight for me. ...There. Nana's scarecrow. Old hoe handles and my second-best hat."},
+		{"speaker": "shige", "mood": "sad", "text": "She says it's me. The crows took every tomato last summer, and she says only I scowl hard enough to scare them off."},
+		{"speaker": "shige", "mood": "neutral", "text": "She left the face for me to finish. She painted a frown, as a hint. What do you think? A second opinion settles arguments in this house.",
+			"choices": [{"text": "Give it a smile.", "next": "shige_smile"}, {"text": "Keep the frown for the crows.", "next": "shige_frown"}]},
+		{"id": "shige_smile", "speaker": "shige", "mood": "surprised", "text": "A smile... My wife used to say I glared at seedlings as if they owed me money. All right. One smiling Shige, at least.", "next": "shige_end"},
+		{"id": "shige_frown", "speaker": "shige", "mood": "happy", "text": "Ha! Nana will be furious that I agreed with her. The crows, too. Frown it is.", "next": "shige_end"},
+		{"id": "shige_end", "speaker": "shige", "mood": "happy", "text": "Here, for the help. Tomato seed from the few plants the crows left alone. Clever plants. Grow them where you can keep an eye on them.", "next": "end"}
 	]
 }
