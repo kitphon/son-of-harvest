@@ -44,6 +44,7 @@ func _process(delta: float) -> bool:
 		_room_props()
 		_stable_props()
 		_trees()
+		_outdoor_props()
 		_grass()
 		_crop_clusters()
 		_water()
@@ -1050,6 +1051,149 @@ func _trees() -> void:
 	var driven: bool = not m.surroundings.snow_mats.is_empty() and m.surroundings.snow_mats.all(func(s): return s in m._snow_mats)
 	check(wood.size() >= 4 and instances > 20 and driven, "the wood: %d MultiMeshes, %d pine parts, snow driven %s" % [wood.size(), instances, driven])
 	m.free()
+
+
+## The outdoor small props (OutdoorProps): bamboo, well, jizo, woodpile and river rock are lit
+## meshes (no boxes / cylinders left in their cells), inside their cells, the faces turned out,
+## the snow skins only where snow lies, the bamboo's colours by season, one mesh a clump
+## (shared look, own yaw) swaying about its foot without leaving its cell.
+func _outdoor_props() -> void:
+	var op: GDScript = load("res://scripts/world3d/outdoor_props.gd")
+	var g: Node = root.get_node("Game")
+	var faults := func(w: Node3D) -> Dictionary:
+		var out := {"bad": 0, "tris": 0, "lo": Vector3(1e9, 1e9, 1e9), "hi": Vector3(-1e9, -1e9, -1e9), "snow": 0, "unlit": 0, "prim": 0}
+		for n in w.get_children():
+			if not n is MeshInstance3D:
+				continue
+			if not n.mesh is ArrayMesh:
+				out.prim += 1
+				continue
+			var mat: Material = n.material_override
+			if mat is ShaderMaterial:
+				out.snow += 1
+			elif mat is StandardMaterial3D and mat.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED:
+				out.unlit += 1
+			var arr: Array = n.mesh.surface_get_arrays(0)
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+			for i in range(0, v.size(), 3):
+				out.tris += 1
+				var c := (v[i + 1] - v[i]).cross(v[i + 2] - v[i])
+				if c.length() > 1e-9 and c.dot(nm[i]) >= 0.0:
+					out.bad += 1
+			for q in v:
+				var gq: Vector3 = n.transform * q
+				out.lo = out.lo.min(gq)
+				out.hi = out.hi.max(gq)
+		return out
+	var mid := Vector3(5.5, 0, 7.5)
+	var new_world := func() -> Node3D:
+		return load("res://scripts/world3d/farm_world.gd").new()
+	# Bamboo: a clump is one lit mesh at its cell's middle, culms 2.2..3.6 high, nodes and
+	# leaves in the season's colours, snow only where it lies, tips staying near the cell.
+	var seen_culm := {}
+	for season in ["spring", "summer", "fall", "winter"]:
+		for snow in [false, true]:
+			var w: Node3D = new_world.call()
+			op.bamboo(w, mid, Vector2i(5, 7), season, snow)
+			var f: Dictionary = faults.call(w)
+			var rows: Dictionary = op.BAMBOO[season]
+			var meshes := w.get_children().filter(func(n): return n is MeshInstance3D)
+			var body: MeshInstance3D = meshes[0]
+			var cols: PackedColorArray = body.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
+			var culm := 0
+			var node := 0
+			var leaf := 0
+			for col in cols:
+				var rc: Color = rows.culm
+				culm += 1 if absf(col.r - rc.r) < 0.08 and absf(col.g - rc.g) < 0.08 and absf(col.b - rc.b) < 0.08 else 0
+				node += 1 if col.is_equal_approx(rows.node) else 0
+				leaf += 1 if rows.leaves.any(func(l): return col.is_equal_approx(l)) else 0
+			check(meshes.size() == (2 if snow else 1) and f.prim == 0 and f.unlit == 0 and f.bad == 0 and f.snow == (1 if snow else 0),
+				"bamboo (%s, snow %s): %d mesh(es), %d primitives, %d unlit, %d facing faults, %d snow" % [season, snow, meshes.size(), f.prim, f.unlit, f.bad, f.snow])
+			check(body.position == mid and body.material_override.vertex_color_use_as_albedo and node >= 40 and leaf >= 100 and culm >= 40,
+				"bamboo (%s): at its cell, %d culm / %d node ring / %d leaf vertices" % [season, culm, node, leaf])
+			check(f.hi.y > 2.2 and f.hi.y < 3.7 and f.lo.y >= -0.02 and f.lo.x > mid.x - 0.95 and f.hi.x < mid.x + 0.95 and f.lo.z > mid.z - 0.95 and f.hi.z < mid.z + 0.95,
+				"bamboo (%s): %.2f..%.2f high, x %.2f..%.2f, z %.2f..%.2f" % [season, f.lo.y, f.hi.y, f.lo.x - mid.x, f.hi.x - mid.x, f.lo.z - mid.z, f.hi.z - mid.z])
+			if snow:
+				check(meshes[1].material_override in w._snow_mats, "bamboo (%s): snow skin driven by set_snow" % season)
+			seen_culm[season] = rows.culm
+			w.free()
+	check(seen_culm["spring"] != seen_culm["summer"] and seen_culm["summer"] != seen_culm["fall"] and seen_culm["fall"] != seen_culm["winter"], "bamboo: a colour for each season")
+	# Many clumps: the same shapes shared, each its own yaw; the sway leans them about their
+	# feet and never moves a foot.
+	var w: Node3D = new_world.call()
+	for i in 6:
+		op.bamboo(w, Vector3(i + 0.5, 0, 0.5), Vector2i(i, 0), "summer", false)
+	var sway: Node = w.get_node("BambooSway")
+	var first: MeshInstance3D = w.get_children().filter(func(n): return n is MeshInstance3D)[0]
+	var shapes := {}
+	for n in w.get_children():
+		if n is MeshInstance3D:
+			shapes[n.mesh] = true
+	check(sway.count() == 6 and shapes.size() <= op.CLUMP_LOOKS and shapes.size() >= 2, "bamboo: 6 clumps, %d shared shapes, one sway" % shapes.size())
+	var before: Basis = first.basis
+	sway.pose(0.7)
+	var moved: bool = first.basis != before
+	var at := first.position
+	sway.pose(2.9)
+	check(moved and first.position == at and absf(sway.angle_of(0)) <= 0.0281, "bamboo: the sway leans a clump (%s) about its foot, at most 0.028 rad" % moved)
+	w.free()
+	# The small props alone: all lit meshes inside their cells.
+	var cell := Rect2(5, 7, 1, 1)
+	for kind in ["well", "jizo", "river_rock"]:
+		for snow in [false, true]:
+			var pw: Node3D = new_world.call()
+			match kind:
+				"well": op.well(pw, mid)
+				"jizo": op.jizo(pw, mid, snow)
+				_: op.river_rock(pw, mid, snow)
+			var f: Dictionary = faults.call(pw)
+			var inside: bool = f.lo.x >= cell.position.x - 0.03 and f.hi.x <= cell.end.x + 0.03 and f.lo.z >= cell.position.y - 0.03 and f.hi.z <= cell.end.y + 0.03
+			var want_snow: bool = snow or kind == "well"   # the well's roof always carries its snow layer
+			check(f.prim == 0 and f.unlit == 0 and f.bad == 0 and f.tris > 100 and inside and (f.snow > 0) == want_snow,
+				"%s (snow %s): %d tris, %d primitives, %d unlit, %d facing faults, inside %s, %d snow" % [kind, snow, f.tris, f.prim, f.unlit, f.bad, inside, f.snow])
+			if kind == "well":
+				check(f.hi.y > 1.4 and f.hi.y < 1.9, "well: roof at %.2f" % f.hi.y)
+			elif kind == "jizo":
+				check(f.hi.y > 0.6 and f.hi.y < 0.8, "jizo: %.2f high" % f.hi.y)
+			else:
+				check(f.hi.y > 0.2 and f.hi.y < 0.5, "river rock: %.2f high" % f.hi.y)
+			pw.free()
+	for length in [1, 2]:
+		var r := Rect2(5, 7, length, 1)
+		for snow in [false, true]:
+			var pw: Node3D = new_world.call()
+			op.woodpile(pw, r, Vector3(r.get_center().x, 0, r.get_center().y), snow)
+			var f: Dictionary = faults.call(pw)
+			var inside: bool = f.lo.x >= r.position.x - 0.03 and f.hi.x <= r.end.x + 0.03 and f.lo.z >= r.position.y - 0.03 and f.hi.z <= r.end.y + 0.03
+			check(f.prim == 0 and f.unlit == 0 and f.bad == 0 and f.tris > 200 and inside and (f.snow > 0) == snow and f.hi.y > 0.9 and f.hi.y < 1.1,
+				"woodpile %dx1 (snow %s): %d tris, %d primitives, %d facing faults, inside %s, %d snow, %.2f high" % [length, snow, f.tris, f.prim, f.bad, inside, f.snow, f.hi.y])
+			pw.free()
+	# On the maps: no box or cylinder left in the cells of these props, and a bamboo mesh for
+	# every clump in the data.
+	var spots := {"hill": ["bamboo"], "kaminoda": ["well", "jizo", "woodpile", "bamboo"], "river": ["river_rock"],
+		"minamino": ["well", "jizo", "woodpile", "bamboo"], "sakurazaka": ["jizo", "woodpile", "bamboo"]}
+	for id in spots:
+		var m: Node3D = load("res://scripts/world3d/map_world.gd").new()
+		m.build(MapManager.data(id))
+		var stray := 0
+		var clumps := 0
+		var rects: Array[Rect2] = []
+		for p in MapManager.data(id).props:
+			if str(p.kind) in spots[id]:
+				rects.append(Rect2(Vector2(p.cell), Vector2(p.get("size", [1, 1]))))
+		for n in m.get_children():
+			if n is MeshInstance3D and n.mesh is ArrayMesh and n.material_override is StandardMaterial3D and n.material_override.vertex_color_use_as_albedo:
+				clumps += 1
+			if n is MeshInstance3D and (n.mesh is BoxMesh or n.mesh is CylinderMesh or n.mesh is SphereMesh):
+				var q: Vector3 = n.position
+				for r in rects:
+					if r.has_point(Vector2(q.x, q.z)) and q.y < 1.6:
+						stray += 1
+		var want_clumps: int = MapManager.data(id).props.filter(func(p): return p.kind == "bamboo").size()
+		check(clumps == want_clumps and stray == 0, "%s: %d bamboo meshes for %d clumps, %d boxes / cylinders left in the props' cells" % [id, clumps, want_clumps, stray])
+		m.free()
 
 
 ## Grass tufts (GrassTufts): the same tufts for a cell every time, inside it; on a map only

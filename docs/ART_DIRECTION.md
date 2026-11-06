@@ -37,6 +37,7 @@ Light and Farmhouse model hold the technical detail of what is built.
 | Grass tufts | (this commit) | `scripts/world3d/grass_tufts.gd` (GrassTufts): one MultiMesh of a five-blade tuft (one triangle a blade, both faces) on the grass cells: the farm's bare untilled ground (replanted when the field changes, skipped when no grass changed), outdoor maps' free grass with no prop, and the apron past the edge. Up to two a cell, 70% kept, nudged, turned, sized and shaded by a hash of the cell so they never move. The shader sways the tips (height share squared, phase by place) and lights them as the ground (normal up on both faces, the sun only at `SUN_SHARE`); the base 80% of the tip colour, the tip by season (fresh, deep, straw, dry). Each tuft carries its cell's snow hold and folds away where the ground under its root is white (SnowLayer's noise). |
 | Rice and tall crops | (this commit) | `scripts/world3d/crop_clusters.gd` (CropClusters): rice and corn grown past the sprout (growth 2 and 3, looks "grain" and "stalk") stand as several small pixel plants a cell instead of one sprite: nine rice hills in three rows (young: six smaller ones in two rows, the ground showing between), three corn stalks. Each picture (`stalk:<id>:<growth>:<ripe|growing>:<variant>` in PlaceholderArt, three variants leaning the blades or setting the leaves another way, rimmed in a deep leaf shade instead of the black outline) is one MultiMesh of camera-facing quads (the shader billboards each instance at its own size, flips half, shades each a little, sways the tips); places, sizes, flips and variants by a hash of the cell. Ripe rice goes straw-stemmed with gold ears bowing. Unshaded like the crop sprites. The village paddies (Kaminoda) grow rice by season (`CropClusters.PADDY`): young in spring, tall and green in summer, ripe in fall, none in winter; their plants carry the paddy's snow hold and fold away under white ground. The flat view keeps one sprite a cell. |
 | Sun by the clock | (this commit) | data/light.json "sun": keys of [minute, elevation, yaw, colour, energy], read by `Game.sun_light()` (`sun_at`, `sun_plain`, `sun_direction`) and put on the DirectionalLight3D by `Main3D._aim_sun` each game minute. A low orange sun from the lower left at 5:30, golden through the morning, high (60°) and plain at noon, golden from the upper left in the evening, so long shadows fall up-right in the morning and down-right in the evening and are short at noon. It eases back to the plain fixed sun (48°, -40°, SUN_COLOR) only after the dusk tint has put the shadows out, so the night is unchanged. Energy stays SUN_ENERGY (the ground's SUN_SHARE holds); clouded weather keeps the plain colour; rooms and mines keep the plain sun. |
+| Outdoor props, bamboo | (this commit) | `scripts/world3d/outdoor_props.gd` (OutdoorProps), all lit, no boxes or cylinders. Bamboo: a clump is three or four culms (6-sided tubes bowed in two pieces, 2.2..2.9 high, tilting a little apart) with a node ring every 0.3 or so, five-leaf sprays on a twig at the upper nodes and a seven-leaf plume at each tip (long double-sided diamonds, drooping), colours by season (`OutdoorProps.BAMBOO`: fresh in spring with husked shoots at the foot, deep in summer, olive with fallen leaves in fall, dull in winter), snow skins on the upward leaves where snow lies (`Parts.SNOW`'s top shader, one material for the whole map). A clump is ONE mesh with colours on the vertices (`vertex_color_use_as_albedo`, so it still fades as one for the Occluders), built once per season / snow / look (8 looks picked by the cell) and shared; each cell turns it by its own yaw. `OutdoorProps.Sway` (a node in the world) leans each clump about its foot, two slow waves out of step, a phase by cell, 0.028 rad at most. Well: a ten-sided curb in three courses with a lighter rim and dark water, timber posts, a windlass with crank, rope and a hanging bucket, under a `Minka.gable` board roof. Jizo: a two-step block, a robed lathe body, a round head, a red cap, collar and bib. Woodpile: split logs (bark prisms with pale cut ends) in four rows under a plank lean-to sloping to the front, timber posts, snow on the roof. River rock: two faceted boulders (dark and wet low, lighter and sometimes mossy on top) in a ragged ring of foam, snow on the upward facets. |
 
 ## How the pieces are made (keep to these)
 - **Scale.** 1 cell = 1 world unit; textures are 16 px a unit, nearest filtering. A 24 px
@@ -99,14 +100,20 @@ Light and Farmhouse model hold the technical detail of what is built.
       bound bundles with a pitchfork, the barn gate with braced leaves). Same places and
       heights as before, so the eggs and the feed AnimalLayer lays on them still sit right
       (test_maps `_stable_props`). (this commit)
-      Still open: the outdoor small props (well, jizo, woodpile, river rock) still use boxes
-      and flat colours; the stalls have no straw bedding mesh (the floor tile is the straw).
+      Still open: the stalls have no straw bedding mesh (the floor tile is the straw).
+- [x] The outdoor small props: well, jizo, woodpile and river rock as lit meshes
+      (`outdoor_props.gd`: OutdoorProps). (this commit) Still open: the other countryside
+      props in `country_props.gd` (drying rack, garden, board fence) and the festival props
+      still use boxes.
 
 ### 2. Nature
 - [x] Trees: stylized round crowns (several lumps, lit and shaded) for broadleaf trees; pines
       with layered tiers; per season (blossom, green, red / gold, bare with snow). (578b60c)
-      Still open: the bamboo (`MapWorld._bamboo`) is still cylinders and flat boxes; no snow
-      on bare branches.
+      Still open: no snow on bare branches.
+- [x] Bamboo: segmented culms with node rings, leaf sprays, swaying, by season, snow on the
+      leaves (`OutdoorProps.bamboo`). (this commit) Still open: the sway is one gentle wave
+      and doesn't grow in a storm; the New Year bamboo and the farm's bamboo fence stay boxes
+      and cylinders.
 - [x] Grass tufts on grass cells (MultiMesh, a small wind sway in the shader). (this commit)
       Still open: the tufts don't part round the farmer or bend harder in a storm.
 - [x] Rice and tall crops as clusters of pixel sprites (the paddies, the field in summer).

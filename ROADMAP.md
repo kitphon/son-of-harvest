@@ -45,6 +45,8 @@ The full style roadmap, the rules for making pieces and how to continue: docs/AR
 [x] Water: a gentle moving surface on the farm pond, the village pond and the river
 (scripts/world3d/water_surface.gd).
 [x] The coop's and barn's insides as lit meshes (scripts/world3d/coop_props.gd, barn_props.gd).
+[x] Bamboo (segmented, swaying, by season, snowy) and the well, jizo, woodpile and river rock
+as lit meshes (scripts/world3d/outdoor_props.gd).
 [x] The sun's colour and angle follow the clock outdoors: low and golden morning and evening,
 high and plain at noon (data/light.json "sun", README → Light).
 Next: section 3's open night item (real lights / a lighter tint, festival stalls lighting the

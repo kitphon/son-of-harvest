@@ -216,37 +216,10 @@ func _pine(mid: Vector3, c: Vector2i) -> void:
 	parts.commit(self)
 
 
-## A clump of bamboo: three or four tall green stalks leaning a little apart, a pale node
-## ring every half unit, and leaf sprays near their tops. The clump's spot picks its look.
+## A clump of bamboo (OutdoorProps.bamboo): segmented culms, leaf sprays, swaying; the
+## clump's cell picks its look, the season its colours.
 func _bamboo(mid: Vector3, c: Vector2i) -> void:
-	var seed := posmod(c.x * 7 + c.y * 13, 16)
-	var stalk_mat := flat_material(Color("6e9c42") if seed % 3 else Color("7aa84c"))
-	var node_mat := flat_material(Color("a8c878"))
-	var leaf_mat := flat_material(Color("4e8a3a"))
-	var n := 3 + seed % 2
-	for i in n:
-		var angle := TAU * (i + seed * 0.13) / n
-		var foot := mid + Vector3(cos(angle), 0, sin(angle)) * 0.2
-		var tall := 2.2 + 0.25 * ((seed + i * 5) % 4)
-		var lean := Vector3(cos(angle), 0, sin(angle)) * 0.06
-		var stalk := CylinderMesh.new()
-		stalk.top_radius = 0.035
-		stalk.bottom_radius = 0.045
-		stalk.height = tall
-		stalk.radial_segments = 6
-		var s := MeshInstance3D.new()
-		s.mesh = stalk
-		s.material_override = stalk_mat
-		s.position = foot + Vector3(0, tall / 2, 0)
-		s.rotation = Vector3(lean.z, 0, -lean.x)
-		add_child(s)
-		var y := 0.5
-		while y < tall - 0.3:
-			_box(Vector3(0.1, 0.03, 0.1), foot + Vector3(lean.x * y, y, lean.z * y), node_mat)
-			y += 0.5
-		var top := foot + Vector3(lean.x * tall, tall, lean.z * tall)
-		_box(Vector3(0.55, 0.06, 0.18), top + Vector3(0.12, -0.15, 0), leaf_mat, Vector3(0, angle, 0.35))
-		_box(Vector3(0.45, 0.06, 0.16), top + Vector3(-0.1, -0.45, 0.05), leaf_mat, Vector3(0, angle + 1.4, -0.3))
+	OutdoorProps.bamboo(self, mid, c, Game.season_name(), SnowLayer.map_has_snow(map))
 
 
 # --- the mine (data/maps/mine.json, mine_floor.json) ---------------------------
@@ -279,10 +252,6 @@ func _ladder(mid: Vector3) -> void:
 	_box(Vector3(0.9, 0.02, 0.6), mid + Vector3(0, 0.015, 0.9), flat_material(Color(1.0, 0.95, 0.8, 0.25)))
 
 
-## A stepping rock out in the river: a wide low boulder with a smaller one leaning on it,
-## a pale wet line where the current breaks round them.
+## A stepping rock out in the river (OutdoorProps.river_rock).
 func _river_rock(mid: Vector3) -> void:
-	var stone := flat_material(Color("6e6a62"))
-	_box(Vector3(0.82, 0.26, 0.7), mid + Vector3(0, 0.13, 0), stone)
-	_box(Vector3(0.46, 0.2, 0.4), mid + Vector3(0.16, 0.34, -0.08), flat_material(Color("85817a")))
-	_box(Vector3(0.94, 0.03, 0.82), mid + Vector3(0, 0.02, 0), flat_material(Color("c8dce0")))
+	OutdoorProps.river_rock(self, mid, SnowLayer.map_has_snow(map))

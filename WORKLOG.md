@@ -69,6 +69,30 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
   see the results of this commit.
 - Left / next: outdoor small props (well, jizo, woodpile, river rock; another agent has the
   bamboo and the outdoor props), the sun by the clock (another agent).
+## 2026-11-06 — Bamboo and the outdoor small props as lit meshes
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: ART_DIRECTION section 2 (bamboo) and section 1 (outdoor props). New
+  `scripts/world3d/outdoor_props.gd` (OutdoorProps); MapWorld's `_bamboo` / `_river_rock` and
+  CountryProps' well, jizo and woodpile call it (their old boxes and cylinders are gone;
+  positions, cells, collision unchanged; the flat view untouched). Bamboo: culms of two
+  6-sided tubes with node rings, leaf sprays and tip plumes, colours by season, spring shoots,
+  fall leaf litter, snow skins on the upward leaves. A clump is one vertex-coloured lit mesh
+  (stays fadable for Occluders), built once per season / snow / look (8 looks) and shared;
+  `OutdoorProps.Sway` leans each clump about its foot (0.028 rad, own phase) like the grass
+  sways. Well with curb, posts, windlass, bucket and a Minka.gable roof; jizo with red cap,
+  collar and bib; woodpile of bark-and-cut-end logs under a lean-to; river rock as faceted
+  boulders with a foam ring; snow caps where snow lies.
+- Checked: test_maps `_outdoor_props` (each season and snow: one mesh, no primitives, no unlit,
+  no faces turned in, node / leaf / culm colours of the season, 2.2..3.7 high, within 0.95 of
+  its centre; the sway moves the basis never the foot; shared shapes; well, jizo, rock and
+  1x1 / 2x1 woodpiles inside their cells with snow skins only when snow lies; on hill,
+  kaminoda, minamino, sakurazaka and river one bamboo mesh per data clump and no box / cylinder
+  left in the props' cells). Screenshots `--demo --map=hill` (summer, winter `--snow=80`),
+  `--map=kaminoda@well`, `--map=sakurazaka@mine` (winter), `--map=river@shore`, before and
+  after read. All 27 test scripts `OK (0 failed)`; smoke runs (title, `--demo`, `--map=town`,
+  `--mine=3`, hill in winter) print no error.
+- Left / next: the sway doesn't grow in a storm; drying rack, garden, board fence and the
+  festival props still boxes; no snow on bare branches. Section 3 (sun by the clock) is next.
 
 ## 2026-11-05 — Merge: rice and corn clusters, moving water
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
