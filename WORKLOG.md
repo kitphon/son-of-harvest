@@ -10,6 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — Merge: sun by the clock, coop / barn insides, bamboo and outdoor props
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three agents worked in parallel worktrees: 8e4cfd8 the sun follows the clock (Opus),
+  e0f0389 the coop's and barn's insides as lit meshes (Sonnet), fb9b1d8 bamboo, well, jizo,
+  woodpile and river rock as lit meshes (Sonnet). Merged into main, keeping both sides of the
+  ROADMAP / ART_DIRECTION / WORKLOG conflicts; the code merged cleanly.
+- Checked: on merged main, all 27 test scripts print `OK (0 failed)`, test_maps prints no
+  SCRIPT ERROR line, and the smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`,
+  `--demo --map=hill --season=winter --snow=80`, `--demo --map=barn`) print no error or warning.
+- Left / next: ART_DIRECTION section 3's night item (real lights, festival stalls lighting the
+  ground); the mountain backdrop branch still waits on the user.
+
 ## 2026-11-06 — The sun follows the clock (3D view)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: ART_DIRECTION section 3, "Morning and evening sun colour and angle following the
