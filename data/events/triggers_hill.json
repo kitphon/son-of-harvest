@@ -1,10 +1,12 @@
 {
-	"_note": "Events on the bamboo hill (data/maps/hill.json): examine the little mountain shrine and the view from the lookout under the cliff's edge; Haru, up here in the afternoons, teaches her tempura once she knows the farmer. Format: README.md, Events.",
+	"_note": "Events on the bamboo hill (data/maps/hill.json): examine the little mountain shrine and the view from the lookout under the cliff's edge; Haru, up here in the afternoons, has her heart events (bands 3 and 5) and teaches her tempura once she knows the farmer. Format: README.md, Events.",
 	"rows": [
 		{"event": "hill_shrine", "on": "examine", "spot": [19, 1, 2, 2], "once": false},
 		{"event": "hill_view_snow", "on": "examine", "spot": [15, 2, 10, 1], "once": false, "season": ["winter"]},
 		{"event": "hill_view", "on": "examine", "spot": [15, 2, 10, 1], "once": false},
 		{"event": "hill_first", "on": "step", "area": [15, 3, 10, 3]},
+		{"event": "heart_haru", "on": "talk", "who": "haru", "hearts": {"haru": [3, 6]}},
+		{"event": "heart_haru_5", "on": "talk", "who": "haru", "hearts": {"haru": [5, 6]}, "seen": ["heart_haru"]},
 		{"event": "recipe_haru", "on": "talk", "who": "haru", "hearts": {"haru": [1, 6]}, "not_flags": ["recipe_sansai_tempura"]}
 	]
 }

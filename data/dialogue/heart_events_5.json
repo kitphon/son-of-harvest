@@ -57,6 +57,14 @@
 			"choices": [{"text": "I'll tie them now.", "next": "genzo_tie"}, {"text": "Show me how she did it first.", "next": "genzo_show"}]},
 		{"id": "genzo_tie", "speaker": "genzo", "mood": "happy", "text": "Knot at the back, loose enough for a child's finger. ...Good. She'd say it's crooked, and retie it herself.", "next": "genzo_end"},
 		{"id": "genzo_show", "speaker": "genzo", "mood": "happy", "text": "Over, under, and a bow like a rabbit's ear. ...Yes. Like that. You have the hands for it.", "next": "genzo_end"},
-		{"id": "genzo_end", "speaker": "genzo", "mood": "happy", "text": "Red again. Now the lane looks lived in. Come up for tea some day. I make it badly.", "next": "end"}
+		{"id": "genzo_end", "speaker": "genzo", "mood": "happy", "text": "Red again. Now the lane looks lived in. Come up for tea some day. I make it badly.", "next": "end"},
+
+		{"id": "haru", "speaker": "haru", "mood": "neutral", "text": "Can I tell you my New Year's wish? It's late enough now that it won't spoil."},
+		{"speaker": "haru", "mood": "sad", "text": "A craft shop in the city saw my sandals at the fair. They want me there, weaving for them all year. Good pay. A room with a window."},
+		{"speaker": "haru", "mood": "neutral", "text": "I wished to know what to do. Then I climbed the hill every afternoon, and the hill said nothing. So I'm asking you.",
+			"choices": [{"text": "Kaminoda would miss you.", "next": "haru_stay"}, {"text": "Go if it calls you. Come back often.", "next": "haru_go"}]},
+		{"id": "haru_stay", "speaker": "haru", "mood": "surprised", "text": "...Would it? Genzo would never say so. But he'd sit by the well alone, and the racks would stand empty in fall.", "next": "haru_end"},
+		{"id": "haru_go", "speaker": "haru", "mood": "happy", "text": "You'd let me go, just like that? ...That makes it easier to stay, oddly. Nobody's holding the door.", "next": "haru_end"},
+		{"id": "haru_end", "speaker": "haru", "mood": "happy", "text": "I'll stay. Sayo can sell my sandals at her store, and the city can walk down here to buy them. Thank you for listening.", "next": "end"}
 	]
 }

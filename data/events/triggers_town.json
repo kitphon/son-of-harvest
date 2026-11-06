@@ -1,5 +1,5 @@
 {
-	"_note": "Events in the village. examine rows play when the farmer presses interact facing their spot ([x, y] or [x, y, width, height]); the first matching row wins, so special cases go first. The doors (the shops, Tome's 5, 6, Kota's 8, 15, Sayo's 25, 15) are left to the doors. The weddings come first (data/marriage.json: from 10:00 on the wedding day, or any later day until one has played; the flags come from the proposal). Then the heart events: the first talk with a villager once their heart band is 3 or more, again at 5 once that one was seen, and at 6 after the one at 5 (Fumi, in the village on festival days, has bands 3, 5 and 6, Ichiro bands 3, 5 and 6, Genzo bands 3 and 5). Format: README.md, Events.",
+	"_note": "Events in the village. examine rows play when the farmer presses interact facing their spot ([x, y] or [x, y, width, height]); the first matching row wins, so special cases go first. The doors (the shops, Tome's 5, 6, Kota's 8, 15, Sayo's 25, 15) are left to the doors. The weddings come first (data/marriage.json: from 10:00 on the wedding day, or any later day until one has played; the flags come from the proposal). Then the heart events: the first talk with a villager once their heart band is 3 or more, again at 5 once that one was seen, and at 6 after the one at 5 (Fumi, in the village on festival days, has bands 3, 5 and 6, Ichiro bands 3, 5 and 6, Genzo bands 3, 5 and 6, Haru bands 3 and 5). Format: README.md, Events.",
 	"rows": [
 		{"event": "wedding_sayo", "on": ["enter", "minute"], "flags": ["wedding_due", "engaged_sayo"], "time": ["10:00", "18:00"]},
 		{"event": "wedding_fumi", "on": ["enter", "minute"], "flags": ["wedding_due", "engaged_fumi"], "time": ["10:00", "18:00"]},
@@ -24,6 +24,8 @@
 		{"event": "heart_genzo", "on": "talk", "who": "genzo", "hearts": {"genzo": [3, 6]}},
 		{"event": "heart_genzo_5", "on": "talk", "who": "genzo", "hearts": {"genzo": [5, 6]}, "seen": ["heart_genzo"]},
 		{"event": "heart_genzo_6", "on": "talk", "who": "genzo", "hearts": {"genzo": [6, 6]}, "seen": ["heart_genzo_5"]},
+		{"event": "heart_haru", "on": "talk", "who": "haru", "hearts": {"haru": [3, 6]}},
+		{"event": "heart_haru_5", "on": "talk", "who": "haru", "hearts": {"haru": [5, 6]}, "seen": ["heart_haru"]},
 		{"event": "shrine_offering", "on": "examine", "spot": [18, 1, 2, 2], "once": false},
 		{"event": "lantern_snow", "on": "examine", "spot": [16, 3], "once": false, "weather": ["snow"]},
 		{"event": "lantern_snow", "on": "examine", "spot": [21, 3], "once": false, "weather": ["snow"]},

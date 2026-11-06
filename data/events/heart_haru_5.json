@@ -1,0 +1,14 @@
+{
+	"_note": "Haru's second heart event: the first talk once her heart band reaches 5, after heart_haru (same tables). Her New Year's wish, told at last: a craft shop in the city wants her to weave there all year, and the hill gave her no answer, so she asks the farmer (stay, or go and come back often). Either way she stays in Kaminoda and Sayo will sell her sandals at the store. Sets heart_haru_5. Haru acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "haru", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "haru"},
+		{"do": "sound", "key": "amb_wind"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_5", "at": "haru"},
+		{"do": "affection", "who": "haru", "amount": 5},
+		{"do": "set", "flags": {"heart_haru_5": true}},
+		{"do": "actor", "who": "haru", "to": "plan"},
+		{"do": "actor", "who": "haru", "leave": true}
+	]
+}

@@ -1,0 +1,15 @@
+{
+	"_note": "Haru's heart event: the first talk once her heart band reaches 3, in Kaminoda, on the bamboo hill, at home or in the village (triggers_kaminoda.json, triggers_hill.json, triggers_haru_house.json, triggers_town.json). She stands the farmer on a straw mat to size a pair of sandals, as her grandmother taught her (everyone she likes gets a pair), asks for a tight or a loose weave, and gives two packets of cucumber seed saved from her best vines. Sets heart_haru. Haru acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "haru", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "haru"},
+		{"do": "sound", "key": "step_grass"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events", "at": "haru"},
+		{"do": "give", "item": "seeds:cucumber", "count": 2},
+		{"do": "affection", "who": "haru", "amount": 5},
+		{"do": "set", "flags": {"heart_haru": true}},
+		{"do": "actor", "who": "haru", "to": "plan"},
+		{"do": "actor", "who": "haru", "leave": true}
+	]
+}
