@@ -173,6 +173,24 @@ func water_cell(c: Vector2i) -> bool:
 	return true
 
 
+## Waters up to `most` dry tilled cells with a growing (unripe) crop, row by row from the
+## top-left; returns how many (the spouse's morning help, Marriage.help).
+func water_dry_crops(most: int) -> int:
+	var n := 0
+	for i in cells.size():
+		if n >= most:
+			break
+		var pos := Vector2i(i % W, i / W)
+		var d: Dictionary = cells[i]
+		if d.crop == "" or d.wet or not d.tilled or not can_farm(pos) or is_ripe(pos):
+			continue
+		d.wet = true
+		n += 1
+	if n > 0:
+		cells_changed.emit()
+	return n
+
+
 ## One seed bag sows the 3 x 3 cells around `center`; returns how many took a seed.
 func sow(center: Vector2i, crop_id: String, season: String) -> int:
 	if not (season in crops[crop_id].seasons):

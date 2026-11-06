@@ -142,6 +142,7 @@ var maps := MapManager.new()       # the map the farmer is on and where (saved)
 var animals := Animals.new()       # the coop, the barn and the dog (data/animals.json, saved)
 var animal_news: Array[String] = []   # what happened to the animals overnight, told in the coop
 var build_news := ""                  # the builder stays away today (a storm), told outside
+var help_news := ""                   # what the spouse did this morning (Marriage.help), told outside
 var affection := Affection.new()   # how much each villager likes the farmer (saved)
 var goals := Goals.new()           # Tome's first-week list: which goals are done (data/goals.json, saved)
 var goals_on := true               # the list is checked and shown (off for plain --demo runs; `--goals` turns it on)
@@ -223,6 +224,7 @@ func new_game() -> void:
 	animals.start()
 	animal_news = []
 	build_news = ""
+	help_news = ""
 	fishing = Fishing.new(fish_data)
 	fish_caught = {}
 	forage_picked = {}
@@ -566,9 +568,10 @@ func map_arrived() -> void:
 	if animals.home_on_map(maps.id) != "" and not animal_news.is_empty():
 		message.emit(Lang.join(animal_news))
 		animal_news.clear()
-	if build_news != "" and maps.id != MapManager.HOME:
-		message.emit(build_news)
+	if (build_news != "" or help_news != "") and maps.id != MapManager.HOME:
+		message.emit(Lang.join([help_news, build_news].filter(func(t): return t != "")))
 		build_news = ""
+		help_news = ""
 
 
 ## A new day starts at home: in the house, by the futon.
@@ -947,6 +950,7 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 	build_news = _build_off_news()
 	if Marriage.day_start(flags, day_number()):   # the wedding day (or a later one): the shrine waits
 		message.emit(Marriage.text("due"))
+	help_news = spouse_help()
 	go_to_spawn(wake_map, wake_spawn)
 	day_started.emit()
 	changed.emit()
@@ -1639,6 +1643,15 @@ func show_ending(page := "ending") -> Dictionary:
 		ending_open = true
 		ending_requested.emit(r)
 	return r
+
+
+## The married farmer's spouse helps this morning (Marriage.help, data/marriage.json help):
+## a few dry plots watered on a fair day, the coop's feed box topped up from the stock.
+## Returns what the farmer is told on stepping out ("" single, or nothing was done).
+func spouse_help() -> String:
+	var done := Marriage.help(flags, farm, animals, weather_today)
+	var id := Marriage.spouse(flags)
+	return Marriage.help_text(done, String(Villagers.all().get(id, {}).get("name", id)))
 
 
 ## The record's line for a married farmer ("" single; Ending.spouse_line): the spouse's name

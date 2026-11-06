@@ -364,7 +364,13 @@ Married, the spouse's rules (`married_<id>` in their villager file) have them li
 farmhouse (by the kotatsu in the second room, `house` [9, 3]) mornings and evenings and keep
 their own work by day; their talk files have `engaged_`, `wed_morning_` / `wed_evening_` (at
 home) and `wed_out_` lines, and Tome mentions the knot on Fridays once a candidate's band 6
-scene is seen. All of it is story flags, so it is saved with them. The view:
+scene is seen. Each morning the spouse helps on the farm (`help` in `marriage.json`,
+`Marriage.help` from `Game.end_day` after the night): on a sunny day up to `water` (6) dry
+plots with an unripe crop are watered, row by row from the field's top-left, and the coop's
+feed box gets up to `feed` (3) portions from the farmer's own feed stock when it is short. The
+farmer hears it on stepping out of the house (`help.messages`, with the spouse's name; joined
+with the builder's news). The village record names the spouse under the title (Ending).
+All of it is story flags, so it is saved with them. The view:
 `-- --demo --map=town@shrine --time=10:00 --event=wedding_sayo`; married at home:
 `-- --demo --map=house --built=room --flags=married_sayo,spouse=sayo --time=19:00`.
 A villager stands `talk_turn_minutes` after a talk, and one walking into the farmer waits

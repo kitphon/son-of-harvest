@@ -12,5 +12,17 @@
 		"not_candidate": "A mizuhiki knot is a promise. Keep it for the one you mean to marry.",
 		"due": "Today is the wedding. The village gathers at the shrine from 10:00.",
 		"tag": "Wedding day"
+	},
+	"_help": "The spouse's morning help once married (Marriage.help, from Game.end_day after the night): on a day whose weather is in weather, up to water dry tilled plots with an unripe crop are watered (row by row from the field's top-left); for each home in feed_homes whose feed box is short, up to feed portions go in from the farmer's own feed stock (none when the stock is empty). The farmer hears it on stepping out of the house (messages.watered / fed / both, %s = the spouse's name). Ours: 6 plots is two thirds of one seed bag's 3 x 3, so a small field gets a head start and a big one still needs the can; rain already waters, so only sunny days. 3 portions is half a full coop (6 hens), so the farmer still tops up most of a busy coop, and the feed is the farmer's, not free. The barn is left to the farmer.",
+	"help": {
+		"weather": ["sunny"],
+		"water": 6,
+		"feed_homes": ["coop"],
+		"feed": 3,
+		"messages": {
+			"watered": "%s watered some of the dry plots this morning.",
+			"fed": "%s put feed in the coop's feed box this morning.",
+			"both": "%s watered some of the dry plots and put feed in the coop's feed box this morning."
+		}
 	}
 }

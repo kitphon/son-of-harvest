@@ -12,6 +12,8 @@ extends RefCounted
 ##   wedding_due = true                                                  (from that morning)
 ##   spouse = "<id>", married_<id> = true                                (after the wedding;
 ##       wedding_day stays, for the village record's line: Ending.spouse_line)
+## Married, the spouse helps each morning (help: a few dry plots watered on fair days, the
+## coop's feed box topped up from the farmer's stock; Game.end_day, told on stepping out).
 ## The spouse's day plan (a married_<id> rule in their villager file) has them live at the
 ## farmhouse, and their talk file has married lines. Format: README.md, Villagers → Marriage.
 
@@ -121,6 +123,40 @@ static func day_start(flags: Dictionary, today: int) -> bool:
 	return true
 
 
+## The spouse's morning help (data/marriage.json help), after the night (`farm` and `animals`
+## have had their day_end; `weather` is today's): on a day whose weather is in help.weather,
+## up to help.water dry plots with an unripe crop are watered (FarmGrid.water_dry_crops), and
+## when a home in help.feed_homes is short in its feed box, up to help.feed portions go in
+## from the farmer's own feed stock (Animals.fill_feed_box). Nothing when single.
+## Returns {watered, fed}: the counts.
+static func help(flags: Dictionary, farm: FarmGrid, animals: Animals, weather: String) -> Dictionary:
+	var out := {"watered": 0, "fed": 0}
+	var id := spouse(flags)
+	if id == "" or not EventRunner.is_set(flags, "married_" + id):
+		return out
+	var h: Dictionary = data().get("help", {})
+	if farm != null and weather in h.get("weather", ["sunny"]):
+		out.watered = farm.water_dry_crops(int(h.get("water", 0)))
+	if animals != null:
+		for home in h.get("feed_homes", ["coop"]):
+			out.fed += animals.fill_feed_box(String(home), int(h.get("feed", 0)))
+	return out
+
+
+## What the farmer is told on stepping out that morning ("" when the spouse did nothing):
+## help.messages watered / fed / both, with the spouse's name.
+static func help_text(done: Dictionary, name: String) -> String:
+	var kind := ""
+	if int(done.get("watered", 0)) > 0:
+		kind = "both" if int(done.get("fed", 0)) > 0 else "watered"
+	elif int(done.get("fed", 0)) > 0:
+		kind = "fed"
+	if kind == "":
+		return ""
+	var t := str(data().get("help", {}).get("messages", {}).get(kind, ""))
+	return t % name if "%s" in t else t
+
+
 ## The HUD tag under the clock on the wedding day ("" else).
 static func day_tag(flags: Dictionary) -> String:
 	return text("tag") if EventRunner.is_set(flags, DUE) and spouse(flags) == "" else ""
@@ -147,4 +183,13 @@ static func check() -> String:
 	for k in ["not_candidate", "due", "tag"]:
 		if text(k) == "":
 			return "messages need %s" % k
+	var h: Variant = d.get("help", {})
+	if not h is Dictionary or not h.get("weather", []) is Array or not h.get("feed_homes", []) is Array:
+		return "help needs weather and feed_homes lists"
+	for k in ["water", "feed"]:
+		if not EventRunner._whole(h.get(k, 0), 0, 99):
+			return "help.%s is 0 .. 99" % k
+	for k in ["watered", "fed", "both"]:
+		if not str(h.get("messages", {}).get(k, "")).contains("%s"):
+			return "help.messages.%s needs the spouse's name" % k
 	return ""

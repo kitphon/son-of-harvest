@@ -264,10 +264,11 @@ func hour_passed(weather: String) -> void:
 
 
 ## Tops a home's feed box up from its stock: one portion per animal there that hasn't one in
-## the box yet. Returns how many portions went in (0: full already, or the stock is empty).
-func fill_feed_box(home := "coop") -> int:
+## the box yet, at most `most`. Returns how many portions went in (0: full already, or the
+## stock is empty).
+func fill_feed_box(home := "coop", most := 1 << 30) -> int:
 	var st := _st(home)
-	var n := mini(maxi(in_home(home).size() - int(st.box), 0), int(st.stock))
+	var n := mini(mini(maxi(in_home(home).size() - int(st.box), 0), int(st.stock)), maxi(most, 0))
 	st.stock = int(st.stock) - n
 	st.box = int(st.box) + n
 	if n > 0:
