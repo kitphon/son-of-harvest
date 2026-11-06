@@ -1271,7 +1271,7 @@ func _outdoor_props() -> void:
 		pw.free()
 	for i in 3:
 		var spot: Vector3 = op.kiln_mark_at(kr, i)
-		check(absf(spot.x - kr.get_center().x) < 0.3 and spot.y > 0.5 and spot.y < 0.7 and spot.z > kr.get_center().y + 0.75 and spot.z < kr.end.y,
+		check(absf(spot.x - kr.get_center().x) + 0.1 < 0.47 and spot.y > 0.5 and spot.y < 0.7 and spot.z > kr.get_center().y + 0.75 and spot.z < kr.end.y,
 			"thumbprint %d sits on the kiln's face over the mouth (%s)" % [i, spot])
 	var bw: Node3D = new_world.call()
 	op.jizo_bibs(bw, mid)
@@ -1847,8 +1847,8 @@ func _lane_and_kiln_props() -> void:
 		"the events set genzo_jizo and ichiro_mark")
 	var raw := func(id: String) -> Variant:
 		return JSON.parse_string(FileAccess.get_file_as_string("res://data/maps/%s.json" % id))
-	check(MapManager.gate_flags(raw.call("kaminoda")) == ["genzo_jizo"] and MapManager.gate_flags(raw.call("sakurazaka")) == ["ichiro_mark"],
-		"Kaminoda is gated by genzo_jizo, Sakurazaka by ichiro_mark")
+	check(MapManager.gate_flags(raw.call("kaminoda")) == ["genzo_jizo"] and MapManager.gate_flags(raw.call("sakurazaka")) == ["ichiro_mark", "ichiro_kiln"],
+		"Kaminoda is gated by genzo_jizo, Sakurazaka by ichiro_mark and ichiro_kiln")
 	var kinds := func(id: String, f: Dictionary) -> Array:
 		var out := []
 		for p in MapManager.load_map(id, null, f)[1].props:
@@ -1857,7 +1857,10 @@ func _lane_and_kiln_props() -> void:
 		return out
 	check(kinds.call("kaminoda", {}).is_empty() and kinds.call("sakurazaka", {}).is_empty(), "no bibs or third mark without their flags")
 	check(kinds.call("kaminoda", {"genzo_jizo": true}) == ["jizo_bibs", "jizo_bibs"], "both jizo by the lane wear new bibs once genzo_jizo is set")
-	check(kinds.call("sakurazaka", {"ichiro_mark": true}) == ["kiln_mark"], "the third thumbprint is on the kiln once ichiro_mark is set")
+	check(kinds.call("sakurazaka", {"ichiro_kiln": true}) == ["kiln_site"], "the new kiln is going up once ichiro_kiln is set (and nothing else)")
+	check(kinds.call("sakurazaka", {"ichiro_kiln": true, "ichiro_mark": true}) == ["kiln_mark", "kiln_new"],
+		"once ichiro_mark is set too the site gives way to the finished kiln and the farmer's thumbprint")
+	check(kinds.call("sakurazaka", {"ichiro_mark": true}) == ["kiln_mark", "kiln_new"], "ichiro_mark alone shows the finished kiln")
 	check(kinds.call("kaminoda", {"ichiro_mark": true}).is_empty() and kinds.call("sakurazaka", {"genzo_jizo": true}).is_empty(),
 		"each flag shows only its own prop")
 	check(kinds.call("minamino", {"genzo_jizo": true}).is_empty(), "the other villages' jizo keep their old bibs")
@@ -1875,10 +1878,17 @@ func _lane_and_kiln_props() -> void:
 	for c in [Vector2i(22, 16), Vector2i(25, 16), Vector2i(19, 16), Vector2i(25, 18)]:
 		check(not kiln_map.is_solid(c), "the kiln leaves %s open (Ichiro's path and work spot, the kiln spawn)" % c)
 	var marked: MapData = MapManager.load_map("sakurazaka", null, {"ichiro_mark": true})[1]
-	var mark := marked.prop_at(Vector2i(24, 18))
-	check(mark.get("kind", "") == "kiln_mark" and mark.cell == kiln.cell and mark.size == kiln.size and mark.message != kiln.message,
-		"with the flag, the kiln reads the line about three marks")
-	for key in ["story:jizo_bibs", "story:kiln_mark"]:
+	var site: MapData = MapManager.load_map("sakurazaka", null, {"ichiro_kiln": true})[1]
+	var site_prop := site.prop_at(Vector2i(21, 18))
+	check(site_prop.get("kind", "") == "kiln_site" and site_prop.size == Vector2i(2, 2) and site.is_solid(Vector2i(20, 17))
+		and site.prop_at(Vector2i(24, 18)).get("kind", "") == "kiln", "the site is a solid 2 x 2 beside the old kiln, which stays")
+	check(site.prop_at(Vector2i(24, 18)).cell == kiln.cell and not site.is_solid(Vector2i(22, 18)) and not site.is_solid(Vector2i(18, 18)),
+		"the old kiln has not moved and the cells between and the newkiln spawn stay open")
+	var mark := marked.prop_at(Vector2i(21, 18))
+	check(mark.get("kind", "") == "kiln_mark" and mark.cell == site_prop.cell and mark.size == kiln.size and mark.message != kiln.message
+		and marked.prop_at(Vector2i(24, 18)).get("kind", "") == "kiln", "with ichiro_mark, the new kiln reads the line about the farmer's print; the old kiln stays")
+	check(MapManager.data("sakurazaka").spawns.has("newkiln"), "the newkiln spawn exists (screenshots)")
+	for key in ["story:jizo_bibs", "story:kiln_mark", "story:kiln_site", "story:kiln_new"]:
 		var img := PlaceholderArt.tex(key).get_image()
 		check(img.get_width() >= 6 and img.get_pixel(img.get_width() / 2, img.get_height() / 2) != Color.MAGENTA, "art %s is drawn" % key)
 
@@ -1892,7 +1902,11 @@ func _lane_and_kiln_props() -> void:
 	var new_red: Color = load("res://scripts/world3d/outdoor_props.gd").NEW_RED
 	check(count.call(plain_lane, new_red) == 0 and count.call(lane, new_red) == 2, "in 3D the new red cloth is there only with the flag (one mesh a jizo)")
 	var dark := Color("4a2e1c")
-	check(count.call(kiln_map, dark) == 2 and count.call(marked, dark) == 3, "in 3D the kiln has two thumbprints, three with the flag")
+	check(count.call(kiln_map, dark) == 2 and count.call(marked, dark) == 4, "in 3D the old kiln has two thumbprints; the finished new one adds Ichiro's and the farmer's")
+	check(count.call(site, dark) == 2, "in 3D the site has no thumbprints yet (only the old kiln's two)")
+	var brick: Color = Color("b4553a")
+	check(count.call(kiln_map, brick) == 0 and count.call(site, brick) >= 1 and count.call(marked, brick) == 0,
+		"in 3D the clay bricks are there only while the kiln is going up")
 	# Flat view: StoryView draws them, MapView has a colour for the kiln.
 	var flat := StoryView.new(lane)
 	check(MapView.COLORS.has("kiln") and flat.map.props.filter(func(p): return p.kind in StoryView.KINDS).size() == 2,
@@ -1908,15 +1922,17 @@ func _lane_and_kiln_props() -> void:
 	var fa: GDScript = load("res://scripts/farm_actions.gd")
 	g.maps.place("sakurazaka", Vector2i(25, 18), Vector2i.LEFT)
 	fa.interact(Vector2i(24, 18))
+	g.flags["ichiro_kiln"] = true
+	fa.interact(Vector2i(21, 18))
 	g.flags["ichiro_mark"] = true
-	fa.interact(Vector2i(24, 18))
+	fa.interact(Vector2i(21, 18))
 	g.maps.place("kaminoda", Vector2i(9, 13), Vector2i.UP)
 	fa.interact(Vector2i(9, 12))
 	g.flags["genzo_jizo"] = true
 	fa.interact(Vector2i(9, 12))
 	g.message.disconnect(hear)
-	check(said == [kiln.message, mark.message, lane.prop_at(Vector2i(9, 12)).message],
-		"examining: the kiln, then the three marks, then the bibs (the old jizo says nothing) %s" % [said])
+	check(said == [kiln.message, site_prop.message, mark.message, lane.prop_at(Vector2i(9, 12)).message],
+		"examining: the old kiln, the site, the new kiln with the farmer's print, then the bibs (the old jizo says nothing) %s" % [said])
 	g.new_game()
 
 

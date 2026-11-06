@@ -265,7 +265,7 @@ static func jizo_bibs(w: FarmWorld, mid: Vector3) -> void:
 ## 0 the father's, 1 Ichiro's, 2 the farmer's (StoryProps, ichiro_mark). The middle of each.
 static func kiln_mark_at(r: Rect2, i: int) -> Vector3:
 	var mid := r.get_center()
-	return Vector3(mid.x - 0.14 + i * 0.14, 0.6, mid.y + KILN_FACE + 0.003)
+	return Vector3(mid.x - 0.3 + i * 0.3, 0.6, mid.y + KILN_FACE + 0.003)
 
 
 ## One thumbprint pressed into the face at `at`: a dark oval in a lighter rim, facing the front.
@@ -273,8 +273,9 @@ static func kiln_mark_at(r: Rect2, i: int) -> Vector3:
 static func kiln_mark(w: FarmWorld, at: Vector3, big := false) -> void:
 	var p := FarmProps.Parts.new()
 	var s := 1.12 if big else 1.0
-	_oval(p.st(KILN_CLAY.lightened(0.2)), at, 0.05 * s, 0.062 * s)
-	_oval(p.st(Color("4a2e1c")), at + Vector3(0, 0, 0.002), 0.036 * s, 0.048 * s)
+	# About 0.2 cells across: 4 px or more at the medium lens, so the print reads as a print.
+	_oval(p.st(KILN_CLAY.lightened(0.25)), at, 0.1 * s, 0.075 * s)
+	_oval(p.st(Color("4a2e1c")), at + Vector3(0, 0, 0.002), 0.07 * s, 0.054 * s)
 	p.commit(w)
 
 
@@ -282,7 +283,7 @@ static func kiln_mark(w: FarmWorld, at: Vector3, big := false) -> void:
 ## face at the front (+z) with a stone-framed mouth, a clay chimney at the back, and two
 ## thumbprints over the mouth (the father's and Ichiro's; the farmer's is a story prop). Snow
 ## on the dome's crown and the face's top.
-static func kiln(w: FarmWorld, r: Rect2, mid: Vector3, snow: bool) -> void:
+static func kiln(w: FarmWorld, r: Rect2, mid: Vector3, snow: bool, prints: Array = [0, 1]) -> void:
 	var p := FarmProps.Parts.new()
 	var clay := p.st(KILN_CLAY)
 	var dome_at := Vector3(mid.x, 0, mid.z - 0.1)
@@ -298,14 +299,59 @@ static func kiln(w: FarmWorld, r: Rect2, mid: Vector3, snow: bool) -> void:
 	FarmProps.block(p.st(STONE_DARK), Rect2(mid.x - 0.3, face, 0.6, 0.12), 0.0, Rect2(mid.x - 0.28, face + 0.01, 0.56, 0.1), 0.04)   # the hearth stone
 	Shrine.lathe(p.st(KILN_CLAY.darkened(0.3)), Vector3(mid.x + 0.3, 0, mid.z - 0.72), [Vector2(0.09, 0.3), Vector2(0.085, 0.98), Vector2(0.07, 1.02)], 8)   # the chimney
 	p.commit(w)
-	kiln_mark(w, kiln_mark_at(r, 0), true)
-	kiln_mark(w, kiln_mark_at(r, 1))
+	for i in prints:   # 0 the father's, 1 Ichiro's: the old kiln has both, the new one only Ichiro's
+		kiln_mark(w, kiln_mark_at(r, i), i == 0)
 	if snow:
 		var sn := FarmProps.Parts.new()
 		var s := sn.st(FarmProps.Parts.SNOW)
 		Shrine.lathe(s, dome_at, [Vector2(0.62, 0.6), Vector2(0.4, 0.742), Vector2(0.0, 0.812)], 14)
 		var top := Rect2(mid.x - 0.44, face - 0.26, 0.88, 0.26)
 		FarmProps.block(s, top.grow(-0.01), 0.7, top.grow(-0.03), 0.72)
+		sn.commit(w)
+
+
+## The new kiln going up beside the old one (StoryProps kiln_site; ichiro_kiln, until ichiro_mark):
+## a half-built mound of clay bricks in courses (a low ring with a gap for the mouth, a lower
+## second course), a stack of fresh bricks beside it, a wooden form for the arch and a shovel
+## stuck upright in the dirt. Snow on the mound's top.
+static func kiln_site(w: FarmWorld, r: Rect2, mid: Vector3, snow: bool) -> void:
+	var p := FarmProps.Parts.new()
+	var brick := p.st(Color("b4553a"))
+	var brick2 := p.st(Color("9a4630"))
+	var at := Vector2(mid.x, mid.z - 0.1)
+	# Two courses of bricks round the mound, each brick a little block; the front is left open.
+	for course in 2:
+		var n := 14 - course * 2
+		var rad := 0.74 - course * 0.1
+		for k in n:
+			var a := TAU * (k + 0.5 * course) / n
+			if sin(a) > 0.82:   # towards +z, the open mouth
+				continue
+			var c := at + Vector2(cos(a), sin(a)) * rad
+			var y0 := course * 0.15
+			var st := brick if (k + course) % 2 == 0 else brick2
+			FarmProps.block(st, Rect2(c.x - 0.12, c.y - 0.09, 0.24, 0.18), y0, Rect2(c.x - 0.11, c.y - 0.08, 0.22, 0.16), y0 + 0.14)
+	# the wet clay filling the inside of the ring
+	Shrine.lathe(p.st(KILN_CLAY.darkened(0.1)), Vector3(at.x, 0, at.y), [Vector2(0.62, 0.0), Vector2(0.6, 0.2), Vector2(0.36, 0.3), Vector2(0.0, 0.32)], 12)
+	# a stack of fresh bricks, three courses, in front-right
+	var sx := mid.x + 0.62
+	var sz := mid.z + 0.5
+	for row in 3:
+		for k in 3 - row:
+			var bx := sx - 0.14 * (2 - row) * 0.5 + k * 0.15 - 0.15
+			FarmProps.block(brick if (row + k) % 2 == 0 else brick2, Rect2(bx, sz, 0.14, 0.2), row * 0.07, Rect2(bx + 0.005, sz + 0.005, 0.13, 0.19), row * 0.07 + 0.065)
+	# the timber form for the arch: two posts and a crosspiece in the open mouth
+	var wood := p.st(Color("7a5a3a"))
+	for x in [mid.x - 0.28, mid.x + 0.28]:
+		FarmProps.block(wood, Rect2(x - 0.04, mid.z + 0.55, 0.08, 0.08), 0.0, Rect2(x - 0.035, mid.z + 0.555, 0.07, 0.07), 0.45)
+	FarmProps.block(wood, Rect2(mid.x - 0.3, mid.z + 0.55, 0.6, 0.08), 0.42, Rect2(mid.x - 0.3, mid.z + 0.555, 0.6, 0.07), 0.5)
+	# the shovel: a pale handle and a steel blade, stuck in the dirt left of the mound
+	FarmProps.block(p.st(Color("c9a468")), Rect2(mid.x - 0.82, mid.z + 0.4, 0.05, 0.05), 0.0, Rect2(mid.x - 0.815, mid.z + 0.405, 0.04, 0.04), 0.78)
+	FarmProps.block(p.st(Color("8a8f96")), Rect2(mid.x - 0.88, mid.z + 0.39, 0.17, 0.07), 0.0, Rect2(mid.x - 0.86, mid.z + 0.395, 0.13, 0.06), 0.24)
+	p.commit(w)
+	if snow:
+		var sn := FarmProps.Parts.new()
+		Shrine.lathe(sn.st(FarmProps.Parts.SNOW), Vector3(at.x, 0, at.y), [Vector2(0.4, 0.3), Vector2(0.2, 0.335), Vector2(0.0, 0.345)], 12)
 		sn.commit(w)
 
 

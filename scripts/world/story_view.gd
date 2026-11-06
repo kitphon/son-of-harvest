@@ -8,7 +8,7 @@ extends Node2D
 ## their cells, standing on the bottom edge. MapView leaves them out of its boxes.
 
 const T := 16
-const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark"]
+const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark", "kiln_site", "kiln_new"]
 
 var map: MapData
 
@@ -42,5 +42,8 @@ func _draw() -> void:
 		elif p.kind == "jizo_bibs":   # on the jizo's chest, the middle of its cell
 			r.end.y -= 4
 		elif p.kind == "kiln_mark":   # over the kiln's mouth, in the front cells' upper half
-			r.end.y -= T / 2 + 2
+			r.end.y -= T / 2 + 1
+			r.position.x += 12   # right of Ichiro's print, which kiln_new draws
+		elif p.kind == "kiln_site" or p.kind == "kiln_new":   # the whole 2 x 2 picture on the old kiln's footing
+			r.end.y -= 1
 		draw_texture(tex, Vector2(roundf(r.get_center().x - tex.get_width() / 2.0), r.end.y - tex.get_height() - 1))

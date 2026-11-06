@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — The new kiln goes up: a building stage and readable thumbprints
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: Sakurazaka's new kiln now follows the story in both views. `ichiro_kiln` (heart_ichiro_5) shows `kiln_site`
+  beside the old kiln (cells 20-21 x 17-18): a half-built mound of clay bricks in two courses, a pile of bricks, a timber
+  form in the open mouth and a shovel (3D lit mesh OutdoorProps.kiln_site, flat art `story:kiln_site`). `ichiro_mark`
+  (heart_ichiro_6) replaces it with `kiln_new` (the finished kiln with Ichiro's print) and `kiln_mark` (the farmer's print
+  moved from the old kiln to the new one, where the story puts it); the old kiln keeps its two prints. New map prop key
+  `unless` (a flag that hides the prop; MapManager.shows / gate_flags) lets the site give way. Thumbprints are about 2.5
+  times bigger: 0.2 x 0.15 cell ovals 0.3 apart on the face in 3D (4-5 px at the medium lens), 10 x 8 px art in the flat
+  view. New spawn `newkiln`. Thai for the three new lines, README, AGENTS.md, ROADMAP, ART_DIRECTION.
+- Checked: test_maps extended (gating of site / finished stages, solid cells, bricks only while building, prints counted,
+  examine lines in order); all tests/test_*.gd print OK (0 failed); smoke runs show no errors. Screenshots
+  `--demo --map=sakurazaka@newkiln --flags=ichiro_kiln` (brick mound, pile, shovel, form) and `...,ichiro_mark` (finished
+  clay dome, two prints over the mouth, readable when enlarged 4x).
+- Left / next: the flat view was only covered by tests, not by a screenshot; hearts for Haru, Shige, Nana or Kiku.
+
 ## 2026-11-06 — Merge: kiln mark and jizo bibs, Genzo band 6, the spouse's chore talk
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents worked in parallel worktrees, each on a model picked by difficulty:

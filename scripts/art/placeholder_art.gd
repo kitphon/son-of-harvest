@@ -53,7 +53,7 @@ static func _make(key: String) -> Image:
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
 		"portrait": # portrait:<villager>:<neutral|happy|sad|surprised|angry>, a villager's 40 x 40 text box portrait
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
-		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|lumber|rope_lift|jizo_bibs|kiln_mark|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
+		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|lumber|rope_lift|jizo_bibs|kiln_mark|kiln_site|kiln_new|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
 		"festival": # festival:<kind>:<w>x<h>[:<cloth hex>], a festival decoration in the flat view (FestivalView)
 			var wh := parts[2].split("x") if parts.size() > 2 else PackedStringArray(["1", "1"])
@@ -2711,15 +2711,53 @@ static func _story(kind: String) -> Image:
 		"kiln_mark":
 			# The three thumbprints in the clay over the kiln's mouth (heart_ichiro_6): the
 			# father's, Ichiro's and the farmer's, each a pressed dark oval with a lighter rim.
-			var img := _blank(14, 6)
+			# The farmer's print only, 10 x 8, on the new kiln beside Ichiro's: a lighter rim
+			# round a dark oval with two ridges of the thumb's skin, big enough to read.
+			var img := _blank(10, 8)
 			var clay := Color("b08458")
-			_px(img, 0, 0, 14, 6, clay)
-			for i in 3:
-				var x := 1 + i * 4
-				_px(img, x, 1, 3, 4, clay.lightened(0.18))
-				_px(img, x + 1, 1, 1, 4, Color("5a3a24"))
-				_px(img, x, 2, 3, 2, Color("5a3a24"))
+			_px(img, 1, 0, 8, 8, clay.lightened(0.2))
+			_px(img, 0, 1, 10, 6, clay.lightened(0.2))
+			_px(img, 2, 1, 6, 6, Color("4a2e1c"))
+			_px(img, 1, 2, 8, 4, Color("4a2e1c"))
+			_px(img, 3, 3, 4, 1, clay.darkened(0.1))   # ridges
+			_px(img, 3, 5, 4, 1, clay.darkened(0.1))
 			return img
+		"kiln_site":
+			# The new kiln half built (32 x 30): a ring of two courses of clay bricks round wet
+			# clay, the mouth gap in front with a timber form, a stack of bricks and a shovel.
+			var img := _blank(32, 30)
+			var b1 := Color("b4553a")
+			var b2 := Color("9a4630")
+			_px(img, 5, 12, 22, 9, Color("8a6a4a"))              # the wet clay inside
+			for row in 2:
+				for k in 6:
+					_px(img, 3 + k * 4 + (row * 2), 14 + row * 5, 4, 4, b1 if (k + row) % 2 == 0 else b2)
+			_px(img, 11, 19, 10, 6, Color("1e1612"))              # the open mouth
+			_px(img, 10, 17, 2, 9, Color("7a5a3a"))               # the form
+			_px(img, 20, 17, 2, 9, Color("7a5a3a"))
+			_px(img, 10, 16, 12, 2, Color("7a5a3a"))
+			for row in 3:
+				for k in 3 - row:
+					_px(img, 24 + k * 3 + row, 24 - row * 2, 3, 2, b1 if (row + k) % 2 == 0 else b2)
+			_px(img, 1, 14, 1, 12, Color("c9a468"))               # the shovel
+			_px(img, 0, 24, 3, 4, Color("8a8f96"))
+			return _outline(img)
+		"kiln_new":
+			# The finished new kiln (32 x 30): the same dome of baked clay as the old one, a
+			# stone-framed mouth, a chimney and Ichiro's print over the mouth.
+			var img := _blank(32, 30)
+			var clay := Color("9a7656")
+			_px(img, 21, 2, 4, 10, clay.darkened(0.3))            # the chimney
+			_px(img, 5, 10, 22, 4, clay.lightened(0.06))          # the dome's crown
+			_px(img, 2, 14, 28, 14, clay)
+			_px(img, 2, 25, 28, 3, clay.darkened(0.15))           # the soot-dark foot
+			_px(img, 10, 21, 12, 7, Color("1e1612"))              # the mouth
+			_px(img, 8, 19, 16, 2, Color("a29e94"))               # the lintel
+			_px(img, 8, 21, 2, 7, Color("8e8a80"))
+			_px(img, 22, 21, 2, 7, Color("8e8a80"))
+			_px(img, 5, 14, 8, 4, clay.lightened(0.25))           # Ichiro's print
+			_px(img, 6, 15, 6, 2, Color("4a2e1c"))
+			return _outline(img)
 		"rope_lift":
 			# The rope lift's winch at the cave mouth (20 x 28), once a landing is reached: a
 			# timber gantry over a stone-lipped shaft, a drum wound with rope between its posts,
