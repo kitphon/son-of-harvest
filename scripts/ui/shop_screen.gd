@@ -13,7 +13,7 @@ const ROW := 18
 const ROWS := 7             # rows shown at once; the list scrolls
 const LINE := 11
 const INFO_ROWS := 2        # the info line wraps (a longer language)
-const PAPER := Color("f6ead0")
+const PAPER := UiStyle.PAPER_TEXT
 const HINTS := {
 	"buy": "Enter: buy  Left/Right: how many  Esc: leave",
 	"sell": "Enter: sell  Left/Right: how many  Esc: leave",
@@ -46,7 +46,7 @@ var _hours: Label
 func _ready() -> void:
 	layer = 10   # over the HUD
 	_dim = ColorRect.new()
-	_dim.color = Color(0.1, 0.07, 0.04, 0.45)
+	_dim.color = UiStyle.DIM
 	_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_dim)
@@ -129,7 +129,7 @@ func _build() -> void:
 	rule.size = Vector2(W - 10, 1)
 	_paper.add_child(rule)
 	_bar = ColorRect.new()
-	_bar.color = Color("ead9b0")
+	_bar.color = UiStyle.BAR
 	_bar.size = Vector2(W - 10, ROW)
 	_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_paper.add_child(_bar)
@@ -330,12 +330,7 @@ func _icon(parent: Control, pos: Vector2i) -> TextureRect:
 
 
 func _box(parent: Control, kind: String) -> NinePatchRect:
-	var b := NinePatchRect.new()
-	b.texture = PlaceholderArt.tex("ui:frame:" + kind)
-	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
-		b.set_patch_margin(side, Hud.NINE_MARGIN)
-	b.axis_stretch_horizontal = NinePatchRect.AXIS_STRETCH_MODE_TILE
-	b.axis_stretch_vertical = NinePatchRect.AXIS_STRETCH_MODE_TILE
+	var b := UiStyle.panel(null, kind)
 	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(b)
 	return b

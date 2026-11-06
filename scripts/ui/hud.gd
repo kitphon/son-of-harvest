@@ -10,10 +10,10 @@ extends CanvasLayer
 ## says what the interact and tool buttons would do at the spot in front (ActionHints), with
 ## the player's own keys.
 
-const INK := Color("3b2a1a")
-const INK_SOFT := Color("7a6040")
-const RULE := Color("d2bf94")
-const NINE_MARGIN := 4
+const INK := UiStyle.INK
+const INK_SOFT := UiStyle.INK_SOFT
+const RULE := UiStyle.RULE
+const NINE_MARGIN := UiStyle.NINE_MARGIN
 
 var _clock_box: NinePatchRect   # inside the "clock" holder; grows left when the date is wider
 var _clock_rule: ColorRect
@@ -158,14 +158,7 @@ func _build_goal(r: Rect2i) -> void:
 
 
 func _box(r: Rect2i, kind: String, key: String) -> NinePatchRect:
-	var b := NinePatchRect.new()
-	b.texture = PlaceholderArt.tex("ui:frame:" + kind)
-	b.patch_margin_left = NINE_MARGIN
-	b.patch_margin_top = NINE_MARGIN
-	b.patch_margin_right = NINE_MARGIN
-	b.patch_margin_bottom = NINE_MARGIN
-	b.axis_stretch_horizontal = NinePatchRect.AXIS_STRETCH_MODE_TILE
-	b.axis_stretch_vertical = NinePatchRect.AXIS_STRETCH_MODE_TILE
+	var b := UiStyle.panel(null, kind)
 	b.position = r.position
 	b.size = r.size
 	b.mouse_filter = Control.MOUSE_FILTER_IGNORE

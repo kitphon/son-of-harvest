@@ -174,7 +174,7 @@ Light and Farmhouse model hold the technical detail of what is built.
 - [ ] Keep the blob shadows, or switch to real sprite shadows (test how billboards cast).
 
 ### 5. Finish
-- [ ] UI pass in the same warm style (paper, wood) at the new look.
+- [x] UI pass in the same warm style (paper, wood) at the new look. (this commit: `scripts/ui/ui_style.gd` (UiStyle) is the one source of panels and ink colours; the frame art `ui:frame:paper|wood` is now a 32 x 32 nine-patch with a tiling 24 x 24 centre: washi speckle and long fibres, wood grain and plank seams; checked by test_menu `_shared_style`)
 - [x] Trailer-ready screenshots: a set of fixed views to compare before and after each step. (this commit: data/showcase.json, tools/showcase.py, README → Showcase)
 
 ## How to continue

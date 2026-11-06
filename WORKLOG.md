@@ -30,6 +30,25 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Left / next: a close-up screenshot of a bare persimmon (kaminoda's or minamino's) with snow 80
   to see the sheets; the hill has no broadleaf, so a tree there would need map data.
 
+## 2026-11-06 — UI pass: one shared washi-and-wood look
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: the UI was already paper and wood, but each of nine files (HUD, text box, pause, shop,
+  rucksack, cooking, mochi, race, title) built its own NinePatchRect and kept its own colour
+  literals. New `scripts/ui/ui_style.gd` (UiStyle): `panel()` / `panel_at()` and the shared inks
+  (INK, INK_SOFT, INK_OFF, RULE, BAR, PAPER_TEXT, SEAL, WASH, DIM); every screen now builds its
+  panels through it and Hud / screen constants alias it. The frame art `ui:frame:paper|wood`
+  (`PlaceholderArt._ui_frame`) is a 32 x 32 nine-patch, border still 4 px so no layout moved, with
+  a 24 x 24 centre that tiles without seams: washi paper with speckle and long pale fibres, wood
+  with plank seams and grain; the dark wood border has a bevel and grain dashes. Fixed seeds.
+- Checked: before / after screenshots of `--pause`, `--rucksack`, `--shop=general`,
+  `--dialogue=opening@field`, `--cook`, the title, `--pause --ui=150%`, `--shop=general --lang=th`
+  (the paper now shows fibre, text fits as before). New test_menu `_shared_style` (no screen builds
+  its own panel or names frame art, panels tile with a 4 px border, shared inks, washi centre
+  stays light); test_farm's frame pixel check relaxed to lightness bands. All 28 tests/test_*.gd
+  print `OK (0 failed)`.
+- Left / next: pixel-art slots, cursor and icons are unchanged; the ending scroll and mochi stage
+  keep their own art and a few literal colours (stamina fill, trodden ground).
+
 ## 2026-11-06 — Merge: hearts for Shige, Haru's band 6 scene, the worn old kiln
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents in parallel worktrees, models picked by difficulty: c9bd5a8 hearts for

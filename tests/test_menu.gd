@@ -37,6 +37,7 @@ func _process(_delta: float) -> bool:
 		_volumes_in_effect()
 		_settings_in_effect()
 		_key_hints()
+		_shared_style()
 	if _frame < 4:
 		_farmer_in_menu(_frame)
 		return false
@@ -1013,6 +1014,41 @@ func _ui_scale() -> void:
 ## The language setting (data/settings.json) and the Thai tables (data/lang/th): text on
 ## screen switches with it, missing text stays English, every Thai line can be drawn and
 ## every dialogue line still fits the text box.
+# Every screen takes its panels and colours from UiStyle (the washi paper and dark wood look).
+func _shared_style() -> void:
+	var dir := DirAccess.open("res://scripts/ui")
+	var own := 0
+	for f in dir.get_files():
+		if not f.ends_with(".gd") or f == "ui_style.gd":
+			continue
+		var src := FileAccess.get_file_as_string("res://scripts/ui/" + f)
+		check(not src.contains("NinePatchRect.new()"), "%s builds no panel of its own" % f)
+		check(not src.contains('"ui:frame:'), "%s takes no frame art by hand" % f)
+		if src.contains("UiStyle.panel("):
+			own += 1
+	check(own >= 9, "the HUD and the screens build panels through UiStyle (%d files)" % own)
+	for kind in ["paper", "wood"]:
+		var b := UiStyle.panel(null, kind)
+		check(b.texture == PlaceholderArt.tex("ui:frame:" + kind), "%s panel uses its frame art" % kind)
+		check(b.patch_margin_left == 4 and b.patch_margin_bottom == 4, "%s panel keeps a 4 px border" % kind)
+		check(b.axis_stretch_horizontal == NinePatchRect.AXIS_STRETCH_MODE_TILE, "%s panel tiles its centre" % kind)
+		b.free()
+	var hud: GDScript = load("res://scripts/ui/hud.gd")
+	var pause: GDScript = load("res://scripts/ui/pause_screen.gd")
+	var shop: GDScript = load("res://scripts/ui/shop_screen.gd")
+	check(hud.INK == UiStyle.INK and hud.INK_SOFT == UiStyle.INK_SOFT and hud.NINE_MARGIN == UiStyle.NINE_MARGIN, "the HUD ink is the shared ink")
+	check(pause.PAPER == UiStyle.PAPER_TEXT and shop.PAPER == UiStyle.PAPER_TEXT, "screen title text is the shared paper colour")
+	# The paper tile wraps: nothing in its centre differs from the page tone by more than fibre.
+	var img := PlaceholderArt.tex("ui:frame:paper").get_image()
+	var ok := true
+	for y in range(4, 28):
+		for x in range(4, 28):
+			ok = ok and img.get_pixel(x, y).v > 0.8
+	check(ok, "the washi centre stays light and even")
+	var wood := PlaceholderArt.tex("ui:frame:wood").get_image()
+	check(wood.get_pixel(1, 16).v < 0.65 and wood.get_pixel(0, 16).v < 0.3, "the frame border is dark wood")
+
+
 func _language() -> void:
 	var s := Settings.make()
 	check(s.value("language") == "en" and s.spec.language.options == ["en", "th"], "language: English by default, Thai offered")

@@ -228,7 +228,7 @@ func _init() -> void:
 			ok = ok and String(row).length() == String(rows[0]).length()
 		check(ok, "glyph '%s' rows even and fit the line" % ch)
 	var frame := PlaceholderArt.tex("ui:frame:paper").get_image()
-	check(frame.get_pixel(1, 8) == PlaceholderArt.UI_WOOD and frame.get_pixel(8, 8) == PlaceholderArt.UI_PAPER, "paper box: wood edge, paper inside")
+	check(frame.get_pixel(0, 8).v < 0.3 and frame.get_pixel(1, 8).v < 0.65 and frame.get_pixel(8, 8).v > 0.85, "paper box: dark wood edge, light paper inside")
 	var ui_keys := ["ui:frame:wood", "ui:slot:on", "ui:slot:off", "ui:coin", "ui:stamina"]
 	for t in game_script.TOOLS:
 		ui_keys.append("ui:seeds:turnip" if t == "seeds" else ("ui:food:onigiri" if t == "food" else "ui:tool:" + t))

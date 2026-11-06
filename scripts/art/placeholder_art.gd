@@ -1872,27 +1872,68 @@ const UI_PAPER_FIBRE := Color("e3d4b0")
 const UI_SEAL := Color("c8442c")      # vermilion, like a name seal: marks the tool in hand
 
 
+## The shared panel (UiStyle): 32 x 32, a 4 px dark wood border and a 24 x 24 centre that tiles.
+## Paper = washi: a warm base with faint speckle and long pale fibres that wrap round the tile,
+## so the seams do not show. Wood = planks with grain lines. Fixed seed, so it is always the same.
+static func _ui_frame(kind: String) -> Image:
+	var n := 32
+	var m := 4
+	var c := n - m * 2   # the tiling centre
+	var img := _blank(n, n)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 20261106 if kind == "paper" else 20261107
+	_px(img, 0, 0, n, n, Color("3a2416"))
+	_px(img, 1, 1, n - 2, n - 2, UI_WOOD)
+	# Wood border: light bevel top and left, shade bottom and right, grain dashes along each side.
+	_px(img, 1, 1, n - 2, 1, UI_WOOD_LIGHT)
+	_px(img, 1, 1, 1, n - 2, Color("96653a"))
+	_px(img, 1, n - 2, n - 2, 1, Color("6a4222"))
+	_px(img, n - 2, 1, 1, n - 2, Color("6a4222"))
+	for i in 14:
+		var t := rng.randi_range(2, n - 6)
+		var l := rng.randi_range(3, 8)
+		var col := Color("7c4f2a") if i % 2 == 0 else Color("9a6a3c")
+		match i % 4:
+			0: _px(img, t, 2, l, 1, col)
+			1: _px(img, t, n - 3, l, 1, col)
+			2: _px(img, 2, t, 1, l, col)
+			3: _px(img, n - 3, t, 1, l, col)
+	_px(img, 3, 3, n - 6, n - 6, UI_WOOD_DARK)   # the dark inner line between wood and page
+	# The tiling centre.
+	var page := _blank(c, c)
+	if kind == "wood":
+		_px(page, 0, 0, c, c, Color("7a4e2a"))
+		for y in [5, 11, 17, 23]:
+			_px(page, 0, y, c, 1, Color("6c4424"))   # plank seams
+		for i in 16:
+			var l := rng.randi_range(4, 11)
+			var x := rng.randi_range(0, c - 1)
+			var y := rng.randi_range(0, c - 1)
+			if y % 6 == 5:
+				continue
+			for k in l:
+				page.set_pixel((x + k) % c, y, Color("8a5a32") if i % 2 == 0 else Color("6e4727"))
+	else:
+		_px(page, 0, 0, c, c, UI_PAPER)
+		for i in 70:   # faint speckle, two tones
+			page.set_pixel(rng.randi_range(0, c - 1), rng.randi_range(0, c - 1), UI_PAPER_FIBRE if i % 3 else Color("f4ead0"))
+		for i in 9:   # long fibres at slight angles
+			var x := rng.randi_range(0, c - 1)
+			var y := rng.randi_range(0, c - 1)
+			var dy := rng.randi_range(-1, 1)
+			for k in rng.randi_range(5, 10):
+				var fy := y + (k * dy) / 4
+				page.set_pixel((x + k) % c, posmod(fy, c), Color("dccba0") if i % 2 == 0 else Color("f8f0da"))
+	img.blit_rect(page, Rect2i(0, 0, c, c), Vector2i(m, m))
+	for p in [Vector2i(0, 0), Vector2i(n - 1, 0), Vector2i(0, n - 1), Vector2i(n - 1, n - 1)]:
+		img.set_pixelv(p, Color(0, 0, 0, 0))
+	return img
+
+
 static func _ui(kind: String, arg: String) -> Image:
 	match kind:
 		"frame":    # frame:<paper|wood>
-			var img := _blank(16, 16)
-			_px(img, 0, 0, 16, 16, Color("3a2416"))
-			_px(img, 1, 1, 14, 14, UI_WOOD)
-			_px(img, 1, 1, 14, 1, UI_WOOD_LIGHT)
-			_px(img, 1, 14, 14, 1, Color("6a4222"))
-			_px(img, 3, 3, 10, 10, UI_WOOD_DARK)
-			for p in [Vector2i(0, 0), Vector2i(15, 0), Vector2i(0, 15), Vector2i(15, 15)]:
-				img.set_pixelv(p, Color(0, 0, 0, 0))
-			if arg == "wood":
-				_px(img, 4, 4, 8, 8, Color("7a4e2a"))
-				for y in [5, 9]:
-					_px(img, 4, y, 8, 1, Color("6c4424"))
-				_px(img, 6, 7, 3, 1, Color("8a5a32"))
-			else:
-				_px(img, 4, 4, 8, 8, UI_PAPER)
-				for p in [Vector2i(5, 6), Vector2i(6, 6), Vector2i(9, 4), Vector2i(10, 9), Vector2i(11, 9), Vector2i(7, 11)]:
-					img.set_pixelv(p, UI_PAPER_FIBRE)
-			return img
+			return _ui_frame(arg)
 		"slot":     # slot:<on|off>, a recessed paper square on the wooden tool bar
 			var img := _blank(18, 18)
 			if arg == "on":
