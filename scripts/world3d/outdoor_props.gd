@@ -607,6 +607,7 @@ static func _sway(w: FarmWorld) -> Sway:
 	if s == null:
 		s = Sway.new()
 		s.name = "BambooSway"
+		s.wind = w.wind
 		w.add_child(s)
 	return s
 
@@ -615,6 +616,7 @@ static func _sway(w: FarmWorld) -> Sway:
 ## slow waves out of step, its own phase by cell. `pose(t)` sets them for a time (tests).
 class Sway extends Node3D:
 	const AMPLITUDE := 0.028   # radians: about 0.07 units at the tip of a 2.5 high culm
+	var wind := 0.0            # 0 dead calm .. 1 a gale (FarmWorld.set_wind, data/wind.json)
 	var _items: Array[Dictionary] = []
 	var _time := 0.0
 
@@ -636,8 +638,12 @@ class Sway extends Node3D:
 		for it in _items:
 			_apply(it)
 
+	## In a wind the lean grows (1 + 1.5 x wind), the wave runs faster (1 + 0.6 x wind) and comes
+	## in gusts (a slow swell on the amplitude). At wind 0 it is the calm wave it always was.
 	func _angle(phase: float) -> float:
-		return AMPLITUDE * (0.7 * sin(_time * 1.3 + phase) + 0.3 * sin(_time * 2.9 + phase * 1.7))
+		var gust := 1.0 + wind * (0.8 * sin(_time * 0.55) + 0.4 * sin(_time * 1.7))
+		var t := _time * (1.0 + 0.6 * wind)
+		return AMPLITUDE * (1.0 + 1.5 * wind) * gust * (0.7 * sin(t * 1.3 + phase) + 0.3 * sin(t * 2.9 + phase * 1.7))
 
 	func _apply(it: Dictionary) -> void:
 		var b := Basis(Vector3.BACK, _angle(float(it.phase))) * Basis(Vector3.UP, float(it.yaw))

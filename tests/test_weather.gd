@@ -173,7 +173,14 @@ func _init() -> void:
 	_night_light(game_script, fx)
 	_sun_by_clock(game_script, fx)
 	_sky_by_clock(game_script, fx)
+	_finish(game_script, fx)
 
+
+## The wind checks wait a frame: the world scripts read the Game autoload, which is on the root
+## only once the main loop runs (test_maps does its world checks in _process for the same reason).
+func _finish(game_script: GDScript, fx: Dictionary) -> void:
+	await process_frame
+	_wind_by_weather(game_script, fx)
 	print("test_weather: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 
@@ -392,6 +399,88 @@ func _sky_by_clock(game_script: GDScript, fx: Dictionary) -> void:
 		check(gm.sky_background(true, room) == room, "indoors at %d:%02d: the room's own background" % hm)
 		check(gm.sky_background(false, room).is_equal_approx(gm.sky_color()), "outdoors at %d:%02d: the sky, not the room's" % hm)
 	gm.free()
+
+
+## The wind follows the weather (data/wind.json): calm on sunny days, medium in rain, strong in a
+## storm or a blizzard. Game reads it by the look; FarmWorld.set_wind pushes it to the grass
+## tufts' shader (a uniform) and to the bamboo sway, which gets a bigger, faster, gustier wave.
+func _wind_by_weather(game_script: GDScript, fx: Dictionary) -> void:
+	var rules: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/wind.json"))
+	var strength: Dictionary = rules.get("strength", {})
+	for look in fx.keys():
+		check(strength.has(look), "%s has a wind strength in data/wind.json" % look)
+	var gm: Node = game_script.new()
+	gm.weather_fx = fx
+	gm.wind_rules = rules
+	gm.season = 0
+	var at := func(w: String) -> float:
+		gm.weather_today = w
+		return gm.wind_strength()
+	var calm: float = at.call("sunny")
+	var wet: float = at.call("rain")
+	var gale: float = at.call("storm")
+	check(calm < wet and wet < gale, "sunny < rain < storm (%.2f %.2f %.2f)" % [calm, wet, gale])
+	check(calm <= 0.2 and wet >= 0.4 and wet <= 0.6 and gale >= 0.9, "calm, medium and strong from the data (%.2f %.2f %.2f)" % [calm, wet, gale])
+	check(at.call("blizzard") > wet and at.call("snow") < wet, "a blizzard blows hard, light snow lightly")
+	gm.season = 3
+	check(is_equal_approx(at.call("storm"), float(strength.blizzard)), "a winter storm is a blizzard: its strength (%.2f)" % gm.wind_strength())
+	gm.season = 0
+	check(is_equal_approx(game_script.wind_for("hail", rules), 0.0) and is_equal_approx(game_script.wind_for("storm", rules), 1.0), "a look without a strength is calm; storm reads 1.0")
+	gm.free()
+
+	# The uniform on the grass tufts' material.
+	var tufts_script: GDScript = load("res://scripts/world3d/grass_tufts.gd")
+	var tufts = tufts_script.new()
+	tufts.set_wind(gale)
+	check(is_equal_approx(float(tufts.material_override.get_shader_parameter("wind")), gale), "the tufts' wind uniform is set (%.2f)" % gale)
+	tufts.set_wind(calm)
+	check(is_equal_approx(float(tufts.material_override.get_shader_parameter("wind")), calm), "and set back to calm (%.2f)" % calm)
+	tufts.free()
+
+	# The bamboo sway: over a minute, a storm leans further and swings more often than a calm day.
+	var outdoor: GDScript = load("res://scripts/world3d/outdoor_props.gd")
+	var sway = outdoor.Sway.new()
+	sway.add([], 0.0, 0.5)
+	sway.add([], 0.0, 2.0)
+	var reach := func(s: float) -> float:
+		sway.wind = s
+		var top := 0.0
+		for i in 600:
+			sway.pose(i * 0.1)
+			top = maxf(top, absf(sway.angle_of(0)))
+		return top
+	var turns := func(s: float) -> int:
+		sway.wind = s
+		var n := 0
+		var last := 0.0
+		for i in 600:
+			sway.pose(i * 0.1)
+			var a: float = sway.angle_of(0)
+			if i > 0 and signf(a) != signf(last):
+				n += 1
+			last = a
+		return n
+	var calm_reach: float = reach.call(calm)
+	var rain_reach: float = reach.call(wet)
+	var storm_reach: float = reach.call(gale)
+	check(calm_reach < rain_reach and rain_reach < storm_reach, "bamboo leans further in rain, further in a storm (%.4f %.4f %.4f)" % [calm_reach, rain_reach, storm_reach])
+	check(storm_reach > calm_reach * 2.5, "a storm's lean is well past a calm day's (%.1f times)" % (storm_reach / calm_reach))
+	check(turns.call(gale) > turns.call(calm), "and the wave runs faster in a storm (%d turns against %d)" % [turns.call(gale), turns.call(calm)])
+	var still: float = reach.call(0.0)
+	check(still <= outdoor.Sway.AMPLITUDE + 0.000001 and still > outdoor.Sway.AMPLITUDE * 0.9, "no wind: the old wave, at the old amplitude (%.4f)" % still)
+	sway.free()
+
+	# FarmWorld pushes the wind to both: the tufts' uniform and the world's sway (made on demand).
+	var farm_world: GDScript = load("res://scripts/world3d/farm_world.gd")
+	var world = farm_world.new()
+	world.add_tufts()
+	world.set_wind(gale)
+	check(is_equal_approx(float(world.tufts.material_override.get_shader_parameter("wind")), gale), "FarmWorld.set_wind sets the tufts' uniform")
+	var bamboo = outdoor._sway(world)
+	check(is_equal_approx(bamboo.wind, gale), "a sway made after the wind takes it (%.2f)" % bamboo.wind)
+	world.set_wind(calm)
+	check(is_equal_approx(bamboo.wind, calm) and is_equal_approx(float(world.tufts.material_override.get_shader_parameter("wind")), calm), "and the next set_wind moves both back")
+	world.free()
 
 
 func check(ok: bool, what: String) -> void:
