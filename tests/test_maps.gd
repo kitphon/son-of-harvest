@@ -1072,8 +1072,8 @@ func _height_at(tris: PackedVector3Array, at: Vector2) -> float:
 ## Trees (Trees): lit meshes wound to their normals, inside about 0.95 of the trunk (the
 ## wood scales its pines up to 1.3, still inside 1.0) and
 ## 2.3 high (the wood's margins count on it); broadleaf leaves by season, bare in winter,
-## persimmons hanging in fall and winter, petals under a cherry in bloom; snow on the pines'
-## tiers only when asked; the wood past the map's edge is MultiMeshes of the same pines with
+## persimmons hanging in fall and winter, petals under a cherry in bloom; snow on the bare
+## branches in winter and on the pines' tiers only when asked; the wood past the map's edge is MultiMeshes of the same pines with
 ## its snow driven by the world's set_snow.
 func _trees() -> void:
 	var trees: GDScript = load("res://scripts/world3d/trees.gd")
@@ -1121,6 +1121,22 @@ func _trees() -> void:
 				check(leafy == (season != "winter"), "%s in %s: leaves %s" % [kind, season, leafy])
 				check(fruit == (kind == "persimmon" and season in ["fall", "winter"]), "%s in %s: fruit %s" % [kind, season, fruit])
 				check((trees.PETAL in l.colours) == (kind == "sakura" and season == "spring"), "%s in %s: petals on the ground" % [kind, season])
+				w.free()
+	# Snow on the bare branches: a snow piece (driven by set_snow) in winter with snow, none
+	# without snow, none in a leafy season; the sheets stay in the tree's reach and the winding
+	# is right (the same look checks as above).
+	for kind in ["persimmon", "sakura"]:
+		for seed in [3, 40]:
+			for case in [["winter", true], ["winter", false], ["spring", true]]:
+				var w: Node3D = parts_of.call(func(p): trees.broadleaf(p, Vector3.ZERO, kind, case[0], seed, case[1]))
+				var l: Dictionary = look.call(w)
+				var snow_mesh: bool = false
+				for n in w.get_children():
+					if n is MeshInstance3D and n.material_override is ShaderMaterial and n.material_override in w._snow_mats:
+						snow_mesh = true
+				var want: bool = case[0] == "winter" and case[1]
+				check(l.bad == 0 and l.reach < 0.95 and l.top < 2.3 and (l.snow > 0) == want and snow_mesh == want,
+					"%s in %s (seed %d, snow %s): %d faults, reaches %.2f, %.2f high, %d snow" % [kind, case[0], seed, case[1], l.bad, l.reach, l.top, l.snow])
 				w.free()
 	for garden in [true, false]:
 		for snow in [true, false]:

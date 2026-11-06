@@ -3,7 +3,9 @@ extends RefCounted
 ## Trees as stylized low-poly meshes, lit so the sun shapes them: broadleaf trees with a crown
 ## of several faceted lumps (darker below, lighter on top) on a trunk with limbs, by season
 ## (blossom, green, red / gold, bare branches in winter, persimmons hanging on into the
-## snow), and pines of flat layered pads of needles, snow lying on the pads in winter. Built
+## snow), and pines of flat layered pads of needles, snow lying on the pads in winter. A bare
+## broadleaf takes snow on the upper side of its limbs and twigs when `snow` is asked (SnowLayer's
+## top shader shows how much, as it does on the pads). Built
 ## into a FarmProps.Parts round `at` (the foot of the trunk); `seed` varies the shape so a
 ## row of trees never repeats. 1 unit = 1 cell; a crown reaches about 0.8 round and 2.1 up.
 
@@ -23,7 +25,8 @@ const LEAVES := {
 
 ## A broadleaf tree of `kind` (LEAVES) in `season` ("" = spring). Persimmons carry fruit in
 ## fall and keep it on the bare branches in winter; a cherry in bloom drops petals round it.
-static func broadleaf(p: FarmProps.Parts, at: Vector3, kind: String, season: String, seed: int) -> void:
+## `snow` lays snow on the upper side of the bare branches (winter only).
+static func broadleaf(p: FarmProps.Parts, at: Vector3, kind: String, season: String, seed: int, snow := false) -> void:
 	var colours: Dictionary = LEAVES[kind]
 	var leaf: Color = colours.get(season, colours.spring)
 	var rng := RandomNumberGenerator.new()
@@ -32,6 +35,7 @@ static func broadleaf(p: FarmProps.Parts, at: Vector3, kind: String, season: Str
 	Shrine.lathe(bark, at, [Vector2(0.13, 0.0), Vector2(0.1, 0.12), Vector2(0.085, 0.7), Vector2(0.065, 1.2)], 6)
 	var bare := leaf.a == 0.0
 	var fruit := kind == "persimmon" and season in ["fall", "winter"]
+	var snow_st: SurfaceTool = p.st(FarmProps.Parts.SNOW) if snow and bare else null
 	var ends: Array[Vector3] = []   # where the bare twigs end (fruit hangs there in winter)
 	var limbs := 5 if bare else 3
 	var turn := rng.randf() * TAU
@@ -44,12 +48,16 @@ static func broadleaf(p: FarmProps.Parts, at: Vector3, kind: String, season: Str
 		_limb(bark, base, dir, long, 0.045)
 		if not bare:
 			continue
+		if snow_st:
+			_branch_snow(snow_st, base, dir, long, 0.045)
 		var tip := base + dir * long
 		ends.append(tip)
 		for side in [-1.0, 1.0]:   # two twigs off each limb
 			var from := base + dir * long * 0.6
 			var twig := _dir(yaw + side * 0.6, tilt - 0.25 * side + 0.1)
 			_limb(bark, from, twig, 0.3, 0.025)
+			if snow_st:
+				_branch_snow(snow_st, from, twig, 0.3, 0.025)
 			ends.append(from + twig * 0.3)
 	if bare:
 		if fruit:
@@ -133,6 +141,25 @@ static func _lump(st: SurfaceTool, c: Vector3, r: float, squash: float, sides: i
 		Vector2(r * 0.45, k * 1.55), Vector2(0.0, k * 1.7)]
 	RoomProps._placed(st, Transform3D(Basis(Vector3.UP, yaw), c - Vector3(0, k * 0.85, 0)),
 		func(t: SurfaceTool) -> void: Shrine.lathe(t, Vector3.ZERO, profile, sides))
+
+
+## Snow lying on the upper side of a bare limb or twig made by `_limb` (the same `base`, `dir`,
+## `long` and `thick`; the tip is half as thick): one thin sheet a little wider than the wood,
+## lifted just off its top, from a tenth of the way along to nearly the end. Its normal is the
+## limb's up (world up turned off the limb), so it is lit like the pads' snow.
+static func _branch_snow(st: SurfaceTool, base: Vector3, dir: Vector3, long: float, thick: float) -> void:
+	var up := Vector3.UP - dir * dir.y
+	if up.length() < 0.05:
+		return
+	up = up.normalized()
+	var side := dir.cross(up).normalized()
+	var flat := func(q: Vector3) -> Vector2: return Vector2(q.x, q.z)
+	var rows: Array = []
+	for s: float in [0.1, 0.95]:
+		var half: float = lerpf(thick, thick * 0.5, s) * 0.5   # the limb's half-width there (_limb)
+		var top: Vector3 = base + dir * long * s + up * (half + 0.008)
+		rows.append([top - side * half * 1.3, top + side * half * 1.3])
+	Minka.quad(st, rows[0][0], rows[0][1], rows[1][1], rows[1][0], up, flat)
 
 
 ## A tapering limb from `base` along `dir` (a unit vector), `long` units, `thick` across at its

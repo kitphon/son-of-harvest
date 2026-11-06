@@ -118,7 +118,10 @@ Light and Farmhouse model hold the technical detail of what is built.
 ### 2. Nature
 - [x] Trees: stylized round crowns (several lumps, lit and shaded) for broadleaf trees; pines
       with layered tiers; per season (blossom, green, red / gold, bare with snow). (578b60c)
-      Still open: no snow on bare branches.
+      (this commit) Snow on bare branches: in winter on snowy outdoor maps, a thin lit sheet lies
+      over the upper side of each limb and twig (`Trees.broadleaf(..., snow)`, `_branch_snow`),
+      its amount driven by set_snow like the pads'; none without snow. Pines and the wood unchanged.
+      Still open: the hill has only pines (no broadleaf), so the hill screenshot shows no bare tree.
 - [x] Bamboo: segmented culms with node rings, leaf sprays, swaying, by season, snow on the
       leaves (`OutdoorProps.bamboo`). (this commit) Still open: the sway is one gentle wave
       and doesn't grow in a storm; the New Year bamboo and the farm's bamboo fence stay boxes

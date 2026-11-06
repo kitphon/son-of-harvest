@@ -36,8 +36,8 @@ kayabuki roof (scripts/world3d/minka.gd, README → Farmhouse model, models/farm
 floor shading by the walls (scripts/world3d/room_walls.gd).
 [x] Room furniture as lit meshes, all 22 kinds (scripts/world3d/room_props.gd).
 The full style roadmap, the rules for making pieces and how to continue: docs/ART_DIRECTION.md.
-[x] Trees: lumpy lit crowns by season, tiered pines with snow, the wood as MultiMeshes
-(scripts/world3d/trees.gd).
+[x] Trees: lumpy lit crowns by season, tiered pines with snow, snow on bare winter branches,
+the wood as MultiMeshes (scripts/world3d/trees.gd).
 [x] Grass tufts on the grass cells, swaying, by season, hidden under snow
 (scripts/world3d/grass_tufts.gd).
 [x] Rice and corn as clusters of small pixel sprites, the village paddies' rice by season

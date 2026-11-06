@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — Snow on the bare winter branches
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: `Trees.broadleaf` takes `snow` (default off). In winter, bare persimmons and cherries get
+  a thin lit sheet over the upper side of each limb and twig (`Trees._branch_snow`, a quad with
+  its normal up off the limb, lifted 0.008 off the wood, 1.3 times the limb's width, from a tenth
+  along to 0.95). The sheet uses `Parts.SNOW`, so its amount is set by `set_snow` like the pads'
+  (SnowLayer's top shader). CountryProps passes `SnowLayer.map_has_snow(w.map)`, so the
+  outdoor maps with a persimmon or cherry get it when snow lies; the farm and rooms get none.
+  Festival cherries unchanged.
+- Checked: test_maps `_trees` adds a loop: persimmon and sakura, seeds 3 and 40, winter with snow
+  (one snow mesh driven by `w._snow_mats`), winter without snow and spring with snow (none); the
+  look checks (faults, reach, height) hold. `--import` ran clean. `test_maps: OK (0 failed)`.
+  All 28 tests/test_*.gd print `OK (0 failed)`. Smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`) print no error. Screenshots `--demo --season=winter --map=hill --snow=80` and
+  `--snow=0` show snow on the ground only: the hill has seven pines and bamboo, no broadleaf tree,
+  so the new sheets are not in those frames. `--map=kaminoda@well` (snow 80 / 0) shows the
+  village but no persimmon in frame; the branch snow is not seen in a screenshot yet.
+- Left / next: a close-up screenshot of a bare persimmon (kaminoda's or minamino's) with snow 80
+  to see the sheets; the hill has no broadleaf, so a tree there would need map data.
+
 ## 2026-11-06 — Merge: hearts for Shige, Haru's band 6 scene, the worn old kiln
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents in parallel worktrees, models picked by difficulty: c9bd5a8 hearts for

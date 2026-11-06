@@ -17,7 +17,7 @@ static func prop(w: MapWorld, p: Dictionary, mid: Vector3, r: Rect2, season: Str
 		"jizo": OutdoorProps.jizo(w, mid, SnowLayer.map_has_snow(w.map))
 		"persimmon", "sakura":
 			var parts := FarmProps.Parts.new()
-			Trees.broadleaf(parts, mid, str(p.kind), season, int(p.cell[0]) * 31 + int(p.cell[1]) * 17)
+			Trees.broadleaf(parts, mid, str(p.kind), season, int(p.cell[0]) * 31 + int(p.cell[1]) * 17, SnowLayer.map_has_snow(w.map))
 			parts.commit(w)
 		"hasa": FieldProps.hasa(w, r, mid, season, SnowLayer.map_has_snow(w.map))
 		"woodpile": OutdoorProps.woodpile(w, r, mid, SnowLayer.map_has_snow(w.map))
