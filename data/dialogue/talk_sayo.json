@@ -8,6 +8,8 @@
 		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
 		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"flags": ["engaged_sayo"]}, "at": ["engaged_1", "engaged_2"]},
+		{"if": {"flags": ["married_sayo", "help_water"]}, "at": ["help_water_1", "help_water_2"]},
+		{"if": {"flags": ["married_sayo", "help_feed"]}, "at": ["help_feed_1", "help_feed_2"]},
 		{"if": {"flags": ["married_sayo"], "map": ["house"], "time": ["06:00", "12:00"]}, "at": ["wed_morning_1", "wed_morning_2", "wed_morning_3"]},
 		{"if": {"flags": ["married_sayo"], "map": ["house"]}, "at": ["wed_evening_1", "wed_evening_2", "wed_evening_3"]},
 		{"if": {"flags": ["married_sayo"]}, "at": ["wed_out_1", "wed_out_2"]},
@@ -105,6 +107,10 @@
 		{"id": "wed_evening_1", "speaker": "sayo", "mood": "happy", "text": "Welcome home. Sit. Tell me what grew, and I'll tell you who bought what.", "next": "end"},
 		{"id": "wed_evening_2", "speaker": "sayo", "mood": "neutral", "text": "Father's ledger and mine are side by side on the shelf now. And a third one, for the farm.", "next": "end"},
 		{"id": "wed_evening_3", "speaker": "sayo", "mood": "happy", "text": "You smell of soil. Good. Shop dust and field soil, that's what this house smells of now.", "next": "end"},
+		{"id": "help_water_1", "speaker": "sayo", "mood": "neutral", "text": "I gave your dry rows a can of water this morning, before the shop opened. Don't make a fuss about it.", "next": "end"},
+		{"id": "help_water_2", "speaker": "sayo", "mood": "happy", "text": "I watered the dry rows on the farm this morning. Someone has to, and you were out early.", "next": "end"},
+		{"id": "help_feed_1", "speaker": "sayo", "mood": "surprised", "text": "I filled the coop's feed box this morning. The hens were shouting, so I didn't dawdle.", "next": "end"},
+		{"id": "help_feed_2", "speaker": "sayo", "mood": "neutral", "text": "I put feed in the coop this morning. Check the sack. I took only what the hens needed.", "next": "end"},
 		{"id": "wed_out_1", "speaker": "sayo", "mood": "happy", "text": "Customers keep asking how married life is. I tell them the accounts balance.", "next": "end"},
 		{"id": "wed_out_2", "speaker": "sayo", "mood": "neutral", "text": "Don't buy anything here today. I'll only have to carry the coins home again.", "next": "end"}
 	]

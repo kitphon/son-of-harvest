@@ -22,6 +22,10 @@ const ENGAGED := "engaged"
 const DAY := "wedding_day"
 const DUE := "wedding_due"
 const SPOUSE := "spouse"
+## The chore the spouse did this morning (set by help, cleared each night): the spouse's talk
+## lines (help_water_<n>, help_feed_<n>) pick them up through their pick rows.
+const HELP_WATER := "help_water"
+const HELP_FEED := "help_feed"
 ## Why a proposal is turned down, in the order they are asked (the dialogue line is <id>_<why>).
 const REASONS: Array[String] = ["married", "taken", "waiting", "band", "room"]
 
@@ -131,6 +135,8 @@ static func day_start(flags: Dictionary, today: int) -> bool:
 ## Returns {watered, fed}: the counts.
 static func help(flags: Dictionary, farm: FarmGrid, animals: Animals, weather: String) -> Dictionary:
 	var out := {"watered": 0, "fed": 0}
+	flags.erase(HELP_WATER)   # what the spouse did this morning, for their talk lines
+	flags.erase(HELP_FEED)
 	var id := spouse(flags)
 	if id == "" or not EventRunner.is_set(flags, "married_" + id):
 		return out
@@ -140,6 +146,10 @@ static func help(flags: Dictionary, farm: FarmGrid, animals: Animals, weather: S
 	if animals != null:
 		for home in h.get("feed_homes", ["coop"]):
 			out.fed += animals.fill_feed_box(String(home), int(h.get("feed", 0)))
+	if out.watered > 0:
+		flags[HELP_WATER] = true
+	if out.fed > 0:
+		flags[HELP_FEED] = true
 	return out
 
 

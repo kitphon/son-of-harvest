@@ -894,6 +894,35 @@ func _spouse_help_rules() -> void:
 	for d in [{"watered": 1, "fed": 0}, {"watered": 0, "fed": 1}, {"watered": 1, "fed": 1}]:
 		texts[Marriage.help_text(d, "Fumi")] = true
 	check(texts.size() == 3 and not texts.has(""), "a line each for watered, fed and both")
+	# The chore is the spouse's talk for the day: flags set by the help, cleared the next night,
+	# and the talk picker names that chore's line (one of two per chore kind, Sayo and Fumi).
+	var tk: FarmGrid = make.call()
+	var fl := Animals.new()
+	fl.start()
+	for i in 2:
+		fl.add("chicken")
+	var tf := {"married_sayo": true, "spouse": "sayo"}
+	var both := Marriage.help(tf, tk, fl, "sunny")
+	check(both.watered > 0 and both.fed > 0 and tf.get("help_water", false) and tf.get("help_feed", false),
+		"both chores set their flags for the day (%s)" % [both])
+	var wet_day := Marriage.help(tf, make.call(), fl, "rain")
+	check(wet_day.watered == 0 and not tf.has("help_water") and tf.has("help_feed") == (wet_day.fed > 0),
+		"the next night's flags follow that night's chores: no watering in the rain, the feed flag only if feed went in (%s %s)" % [wet_day, tf])
+	var dry := Marriage.help(tf, make.call(), fl, "rain")
+	check(dry.fed == 0 and not tf.has("help_feed"), "a full box and a rainy day: no chore flags at all (%s %s)" % [dry, tf])
+	for id in Marriage.candidates():
+		var st := {"year": 1, "season": "spring", "day": 3, "weekday": "wed", "time": 9 * 60, "weather": "sunny",
+			"festival": "", "band": 6, "again": false, "birthday": false, "day_number": 0, "map": "farm", "flags": {}}
+		for chore in ["help_water", "help_feed"]:
+			for n in 2:
+				check(Talk.has_line(id, "%s_%d" % [chore, n + 1]), "%s has %s_%d" % [id, chore, n + 1])
+		var both_f := {"married_" + id: true, "help_water": true, "help_feed": true}
+		check(Talk.pick(id, st.merged({"flags": both_f}, true)).begins_with("help_water"), "%s: the watering line first when both were done" % id)
+		check(Talk.pick(id, st.merged({"flags": {"married_" + id: true, "help_feed": true}}, true)).begins_with("help_feed"), "%s: the feed line when only the feed was done" % id)
+		check(Talk.pick(id, st.merged({"flags": {"married_" + id: true}}, true)).begins_with("help") == false, "%s: no chore line on a day without one" % id)
+		check(Talk.pick(id, st.merged({"flags": {"married_" + id: true, "help_water": true}, "again": true}, true)).begins_with("again"), "%s: talked twice, the again lines" % id)
+	var solo := Marriage.help({}, make.call(), fl, "sunny")
+	check(solo.watered == 0 and solo.fed == 0, "single: no chore flags")
 
 
 func _wet(f: FarmGrid) -> int:
@@ -939,6 +968,12 @@ func _spouse_help_in_game() -> void:
 	g.map_arrived()
 	check(messages.size() > 0 and "Sayo" in messages.back(), "told on stepping out (%s)" % [messages])
 	check(g.help_news == "", "told once")
+	# Talking to her that day: the line for the chore done this morning.
+	var said := []
+	g.dialogue_requested.connect(func(id, at): said.append([id, at]))
+	g.talk_to("sayo", Vector2i.DOWN)
+	check(g.flags.get("help_water", false) and not said.is_empty() and said.back()[0] == "talk_sayo" and said.back()[1] in ["help_water_1", "help_water_2"],
+		"talking to Sayo after the watering picks its line %s" % [said])
 	# Saved and loaded, married: the help goes on.
 	var path := "user://test_spouse_help.json"
 	check(SaveGame.write(g, path) == "", "write the save")

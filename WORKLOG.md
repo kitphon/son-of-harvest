@@ -10,6 +10,28 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — The spouse's talk names the morning's chore
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: Marriage.help sets the flags help_water / help_feed for the day when the spouse watered
+  plots or filled the coop's feed box, and erases both at the start of every night's help, so
+  the flags only hold the chores of the latest morning. The spouse's pick rows (talk_sayo.json,
+  talk_fumi.json) use them: after the engaged row and before the married house rows, a
+  help_water row then a help_feed row, each with two lines (help_water_1/2, help_feed_1/2).
+  Lines are English with Thai in data/lang/th/dialogue.json. The rows read plain flags, so the
+  talk picker needs no new condition key. Also a note in README → Villagers → Marriage,
+  ROADMAP, and the _help text of data/marriage.json.
+- Checked: tests/test_relationships.gd: in the pure section, both chores set the flags, a rainy
+  night erases the watering flag (and the feed flag follows whether feed went in), a full box
+  on a rainy day sets none, single sets none, all four lines exist per spouse, the watering
+  line wins when both flags are set, the feed line when only feed, no chore line without flags,
+  the again line wins on a second talk. In the game: after a married end_day with watering,
+  talking to Sayo says a help_water line (talk_sayo, recorded by dialogue_requested).
+  Output: `test_relationships: OK (0 failed)`. All 28 test scripts print `OK (0 failed)`
+  (the 28 names in tests/ each checked); smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, each `--quit-after 300`) print no error or warning.
+- Left / next: the chore line shows on any talk that day, the morning is not checked by time;
+  the same chore line for Fumi is not seen in a live run, only in the tests.
+
 ## 2026-11-06 — GitHub remote
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: added `origin` = https://github.com/kitphon/son-of-harvest.git (the user made the
