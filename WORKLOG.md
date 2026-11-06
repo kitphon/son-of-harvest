@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — Merge: hearts for Haru, the kiln's building stage, the chore talk before noon
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three agents worked in parallel worktrees, each on a model picked by difficulty:
+  e4f2c98 hearts for Haru (birthday, close lines, band 3 and 5 scenes, ending part; Opus);
+  726ec2e the new kiln's building stage for `ichiro_kiln` and readable thumbprints, the
+  farmer's print moved to the new kiln (Sonnet); e6507d2 the spouse's chore lines only before
+  noon (Haiku). Merged into main; only WORKLOG conflicted (all entries kept).
+- Checked: on merged main, after `--import`, all 28 test scripts print `OK (0 failed)`; smoke
+  runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print no error or warning.
+- Left / next: Haru's band 6 scene; hearts for Shige, Nana or Kiku; the kiln's flat view not
+  seen in a screenshot; the old kiln does not look cracked; Haru's stay / go answer sets no
+  world change; the mountain backdrop waits on the user.
+
 ## 2026-11-06 — Hearts for Haru of Kaminoda
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: Haru joins `Villagers.friends()` (hearts no longer false). Birthday summer 27 (free of
