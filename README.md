@@ -856,7 +856,17 @@ Outdoors, the land goes on past the map's edge (`scripts/world3d/surroundings.gd
 of ground whose cells repeat the nearest edge cell (roads, the river and paddies run on out of
 sight), with a pine wood only where it stands behind the whole map on screen (the north and
 west sides; `Trees.pine` in MultiMeshes, snow on its tiers in winter), so the view never shows
-empty sky. Every tree is built by `scripts/world3d/trees.gd` (Trees: lumpy lit crowns that
+empty sky. On the seven outdoor maps of `data/backdrop.json` (not the rooms, the mine or its
+cave mouth) the land past the north and west edges stops after a rim of 3 cells with a thinner
+wood, and the far country stands beyond it (`scripts/world3d/backdrop.gd`, Backdrop): two
+layers of low-poly mountain ridges, flat coloured by season, hazed with the sky's colour by
+the clock (`Game.sky_color`, the same colour as the clear background above them, so they go
+peach at dawn, mauve at dusk, dark at night), their feet fading into it like mist, snow caps
+in winter (a little left in spring). The fixed lens looks 16° down at the top of the frame,
+so nothing standing on level ground far off could show; the ridges stand far out and below
+the ground's level instead, and from within a few cells of the north or west edge the frame's
+top corners look over the rim down onto them, with sky above the peaks; farther in the rim
+hides them. test_maps checks this through the game's own lens. Every tree is built by `scripts/world3d/trees.gd` (Trees: lumpy lit crowns that
 follow the season, tiered pines). Grass tufts sway on the grass cells, the farm's untilled ground and the
 apron (`scripts/world3d/grass_tufts.gd`: one MultiMesh each, tips by season, gone under snow).
 Rice and corn grown past the sprout stand as clusters of small pixel sprites instead of one

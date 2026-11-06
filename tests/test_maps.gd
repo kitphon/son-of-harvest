@@ -57,6 +57,7 @@ func _process(delta: float) -> bool:
 		_lane_and_kiln_props()
 		_map_snow()
 		_edges_and_fades()
+		_backdrop()
 		_start_view()
 	elif _frame == 3:
 		var g: Node = root.get_node("Game")
@@ -669,6 +670,117 @@ func _map_snow() -> void:
 ## The farmhouse's thatched roof (Minka): every face turned the way its normal says (Godot
 ## draws clockwise fronts), the soffit at the front eave above the farmer's head, the ridge
 ## where the pitch puts it.
+## The far country (Backdrop, data/backdrop.json): on the listed outdoor maps only, the land
+## stopping at the rim, the ridges past it and below the ground, toned by season, hazed with the
+## sky by the clock, snow caps in winter; and, through the game's own lens with the camera held
+## at the village's north edge, peaks in the frame with sky above them, not hidden by the land.
+func _backdrop() -> void:
+	var Backdrop: GDScript = load("res://scripts/world3d/backdrop.gd")
+	var Surroundings: GDScript = load("res://scripts/world3d/surroundings.gd")
+	var cfg: Dictionary = Backdrop.config()
+	var rim: int = Backdrop.rim()
+	var listed := true
+	for id in ["farm", "town", "hill", "kaminoda", "sakurazaka", "minamino", "river"]:
+		listed = listed and Backdrop.on_map(id) and MapManager.data(id) != null
+	for id in ["house", "mine", "mine_floor", "store", "clinic"]:
+		listed = listed and not Backdrop.on_map(id)
+	check(listed, "the far country on the seven outdoor maps, not in rooms, the mine or its cave mouth")
+	check(rim > 0 and rim < Surroundings.MARGIN and Backdrop.rim_pines() < Surroundings.TREE_SHARE and cfg.layers.size() >= 2,
+		"the land stops %d cells past the back edges, a thinner wood on the rim" % rim)
+	var town := MapManager.data("town")
+	var world: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	root.add_child(world)
+	world.build(town)
+	var bd = world.backdrop
+	check(bd != null and bd.layers.size() == cfg.layers.size() and world.surroundings.back == rim,
+		"the village has the ridges and its land stops at the rim")
+	var past_rim := 0
+	var wood := 0
+	for n in world.surroundings.get_children():
+		if n is MultiMeshInstance3D:
+			for i in n.multimesh.instance_count:
+				var o: Vector3 = n.multimesh.get_instance_transform(i).origin
+				wood += 1
+				if o.x < -rim or o.z < -rim:
+					past_rim += 1
+	check(wood > 0 and past_rim == 0, "pines on the rim, none past it (%d pine parts)" % wood)
+	# The ridges: past the rim, below the ground, so they never stand in front of the land.
+	var points := []   # [layer index, Vector3 peak]
+	var bad := 0
+	for i in cfg.layers.size():
+		var layer: Dictionary = cfg.layers[i]
+		var pts: PackedVector2Array = Backdrop.samples(Backdrop.path(town.w, town.h, float(layer.gap), float(cfg.span)), float(layer.step))
+		var tops: PackedFloat32Array = Backdrop.tops_for(pts.size(), float(layer.low), float(layer.high), int(layer.seed))
+		for k in pts.size():
+			points.append([i, Vector3(pts[k].x, tops[k], pts[k].y)])
+			if (pts[k].x >= -rim and pts[k].y >= -rim) or tops[k] >= 0.0 or float(layer.bottom) > float(layer.low) - 20.0:
+				bad += 1
+	check(points.size() > 40 and bad == 0, "the ridges stand past the rim and below the ground (%d points, %d wrong)" % [points.size(), bad])
+	# Tone: the season's colour, the sky's colour as the haze, snow caps in winter only.
+	var sky := Color("e8cdbd")
+	bd.tone("winter", sky)
+	var near: ShaderMaterial = bd.layers[-1].mat
+	var winter_line: float = near.get_shader_parameter("snow_line")
+	var hazed: Color = near.get_shader_parameter("haze_color")
+	var toned: Color = near.get_shader_parameter("ridge")
+	bd.tone("summer", sky)
+	var summer_line: float = near.get_shader_parameter("snow_line")
+	check(winter_line < float(cfg.layers[-1].high) and summer_line >= Backdrop.NO_SNOW, "snow caps in winter (line %.1f), none in summer" % winter_line)
+	check(hazed.is_equal_approx(sky) and toned.is_equal_approx(Color(str(cfg.layers[-1].colors.winter)))
+		and Color(near.get_shader_parameter("ridge")).is_equal_approx(Color(str(cfg.layers[-1].colors.summer))),
+		"the ridges take the season's colour and the sky's as their haze")
+	var g: Node = root.get_node("Game")
+	bd.refresh()
+	check(Color(near.get_shader_parameter("haze_color")).is_equal_approx(g.sky_color()), "the haze follows Game.sky_color by the clock")
+	check(float(cfg.layers[0].haze) > float(cfg.layers[-1].haze), "the far ridge more hazed than the near one")
+	# Through the game's lens, the camera held at the north edge (Main3D's clamp): peaks in the
+	# frame, over the rim's line of sight, sky's room above some.
+	var lens: RefCounted = load("res://scripts/world3d/camera_lens.gd").pick(
+		JSON.parse_string(FileAccess.get_file_as_string("res://data/camera.json")))
+	var margin: Vector2 = load("res://scripts/main_3d.gd").CAM_MARGIN
+	var shown := [0, 0]
+	var open_sky := 0
+	for target in [Vector3(town.w / 2.0, 0, margin.y), Vector3(margin.x, 0, town.h / 2.0), Vector3(margin.x, 0, margin.y)]:
+		for p in points:
+			if _in_frame(lens, target, p[1], rim):
+				shown[p[0]] += 1
+				if _in_frame(lens, target, p[1] + Vector3(0, 0.6, 0), rim):
+					open_sky += 1
+	check(shown[0] >= 3 and shown[1] >= 3 and open_sky >= 3,
+		"the %s lens shows the ridges from the back edges (far %d, near %d peaks, %d with sky above)" % [lens.id, shown[0], shown[1], open_sky])
+	var mid := 0
+	for p in points:
+		if _in_frame(lens, Vector3(town.w / 2.0, 0, town.h / 2.0), p[1], rim):
+			mid += 1
+	check(mid == 0, "from the middle of the village the rim hides them (%d)" % mid)
+	world.free()
+	for id in ["house", "mine"]:
+		var other: Node3D = load("res://scripts/world3d/map_world.gd").new()
+		root.add_child(other)
+		other.build(MapManager.data(id))
+		check(other.backdrop == null and (other.surroundings == null or other.surroundings.back == Surroundings.MARGIN),
+			"no ridges at the %s, its land (if any) runs on" % id)
+		other.free()
+
+
+## Is `p` inside the 480 x 270 frame of `lens` looking at `target`, and not under the land
+## (its line of sight meets the ground past the rim, or not at all)?
+func _in_frame(lens: RefCounted, target: Vector3, p: Vector3, rim: int) -> bool:
+	var eye: Vector3 = target + lens.back * lens.dist
+	var fwd: Vector3 = -lens.back
+	var right := fwd.cross(Vector3.UP).normalized()
+	var up := right.cross(fwd)
+	var v := p - eye
+	var depth := v.dot(fwd)
+	var t := tan(deg_to_rad(lens.fov) / 2.0)
+	if depth <= 0.0 or absf(v.dot(up) / depth) > t or absf(v.dot(right) / depth) > t * 480.0 / 270.0:
+		return false
+	if p.y >= 0.0:
+		return true
+	var ground := eye + v * (eye.y / (eye.y - p.y))
+	return ground.x < -rim or ground.z < -rim
+
+
 func _minka() -> void:
 	var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
 	var crest: float = load("res://scripts/world3d/minka.gd").roof(w, Rect2(1.45, 0.55, 6.1, 3.5), 1.45, 1.25, 0.5)

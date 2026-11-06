@@ -52,11 +52,13 @@ var quads: Array[Dictionary] = []
 
 ## Lays the sheet over every water cell of a w x h map and the apron round it (cells past the
 ## edge take the nearest edge cell's kind, as Surroundings does). `kind_at(c)` is an in-map
-## cell's ground kind.
-func build(w: int, h: int, kind_at: Callable, margin: int) -> void:
+## cell's ground kind. `back`: the apron past the north and west edges when it is shorter
+## (Surroundings' rim before the far country), else `margin`.
+func build(w: int, h: int, kind_at: Callable, margin: int, back := -1) -> void:
+	var near := margin if back < 0 else back
 	var cells: Array[Vector2i] = []
-	for y in range(-margin, h + margin):
-		for x in range(-margin, w + margin):
+	for y in range(-near, h + margin):
+		for x in range(-near, w + margin):
 			var c := Vector2i(x, y)
 			if is_water(kind_at, w, h, c):
 				cells.append(c)
