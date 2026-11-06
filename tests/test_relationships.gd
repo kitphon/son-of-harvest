@@ -963,6 +963,9 @@ func _spouse_help_rules() -> void:
 		check(Talk.pick(id, st.merged({"flags": both_f}, true)).begins_with("help_water"), "%s: the watering line first when both were done" % id)
 		check(Talk.pick(id, st.merged({"flags": {"married_" + id: true, "help_feed": true}}, true)).begins_with("help_feed"), "%s: the feed line when only the feed was done" % id)
 		check(Talk.pick(id, st.merged({"flags": {"married_" + id: true}}, true)).begins_with("help") == false, "%s: no chore line on a day without one" % id)
+		# The chore lines are for the morning only (before noon): at 10:00 the chore, at 14:00 a married line.
+		check(Talk.pick(id, st.merged({"time": 10 * 60, "flags": both_f}, true)).begins_with("help_water"), "%s: at 10:00 the chore line" % id)
+		check(Talk.pick(id, st.merged({"time": 14 * 60, "flags": both_f}, true)).begins_with("wed_out"), "%s: at 14:00 no chore line, a married line instead" % id)
 		check(Talk.pick(id, st.merged({"flags": {"married_" + id: true, "help_water": true}, "again": true}, true)).begins_with("again"), "%s: talked twice, the again lines" % id)
 	var solo := Marriage.help({}, make.call(), fl, "sunny")
 	check(solo.watered == 0 and solo.fed == 0, "single: no chore flags")
