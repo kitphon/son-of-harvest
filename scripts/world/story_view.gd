@@ -5,7 +5,8 @@ extends Node2D
 ## under way, a keepsake given to a villager who loves it, in their home, the mine's rope lift winch at the cave mouth once a landing
 ## is reached, the jizo's new red bibs and the three thumbprints on Ichiro's kiln) in the flat
 ## view, drawn from the same PlaceholderArt "story:" keys as in 3D (StoryProps): centred in
-## their cells, standing on the bottom edge. MapView leaves them out of its boxes.
+## their cells, standing on the bottom edge. MapView leaves them out of its boxes. The old
+## kiln's wear (story:kiln_worn) is drawn over its box, on its own cells.
 
 const T := 16
 const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark", "kiln_site", "kiln_new"]
@@ -30,6 +31,9 @@ func _init(m: MapData) -> void:
 
 func _draw() -> void:
 	for p in map.props:
+		if p.kind == "kiln":   # the old kiln's wear, over its box (MapView draws the box)
+			draw_texture(PlaceholderArt.tex("story:kiln_worn"), Vector2(p.cell * T))
+			continue
 		if not p.kind in KINDS:
 			continue
 		var tex := PlaceholderArt.tex(art_key(p))
