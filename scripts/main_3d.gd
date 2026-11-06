@@ -46,6 +46,10 @@ var bobber: Sprite3D             # the float on the water while the line is out
 var bite_mark: Sprite3D          # the "!" over the head when a fish bites
 var fish_line: MeshInstance3D    # from the rod tip to the bobber
 var _line_mesh := ImmediateMesh.new()
+const RING_EVERY := 1.7            # seconds between the gentle rings round a waiting bobber
+const RING_BITE_EVERY := 0.4       # and between the strong ones in a bite
+var _ring_state := "idle"
+var _ring_next := 0.0
 
 
 func _ready() -> void:
@@ -322,6 +326,7 @@ func _show_lantern() -> void:
 ## the line runs from the rod tip to it, and a "!" pops up over the head on a bite.
 func _show_fishing() -> void:
 	var f := Game.fishing
+	_ring_bobber(f)
 	bobber.visible = f.active()
 	bite_mark.visible = f.state == "bite"
 	fish_line.visible = f.active()
@@ -341,6 +346,29 @@ func _show_fishing() -> void:
 	_line_mesh.surface_add_vertex(from)
 	_line_mesh.surface_add_vertex(bobber.position + Vector3(0, 5.5 * FarmWorld.PX, 0))
 	_line_mesh.surface_end()
+
+
+## Ripple rings on the water round the bobber: a strong one as it lands, a gentle one every
+## RING_EVERY seconds while it waits, and strong ones as a fish bites.
+func _ring_bobber(f: Fishing) -> void:
+	var was := _ring_state
+	_ring_state = f.state
+	if not f.active():
+		return
+	var sheet: WaterSurface = null
+	if world != null and world.surroundings != null:
+		sheet = world.surroundings.water
+	if sheet == null:
+		return
+	var at := Vector2(f.spot.x + 0.5, f.spot.y + 0.5)
+	if was == "idle" or (f.state == "bite" and was != "bite"):
+		sheet.ripple(at, true)
+		_ring_next = RING_EVERY if f.state == "wait" else RING_BITE_EVERY
+		return
+	_ring_next -= get_process_delta_time()
+	if _ring_next <= 0.0:
+		sheet.ripple(at, f.state == "bite")
+		_ring_next = RING_EVERY if f.state == "wait" else RING_BITE_EVERY
 
 
 ## A throw: the item flies in an arc from over the head to where it ends up; one that lands

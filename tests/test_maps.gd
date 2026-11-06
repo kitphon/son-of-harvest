@@ -1791,6 +1791,22 @@ func _water() -> void:
 	check(sheet.material_override is ShaderMaterial and sheet.material_override.shader.code.contains("TIME")
 		and sheet.position.y > 0.0 and sheet.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and sheet.mesh != null,
 		"the sheet moves with time, lies above the ground and casts no shadow")
+	# Ripple rings: slots, strength, life, reuse of the oldest, and the shader draws them.
+	check(sheet.material_override.shader.code.contains("ripples[8]") and sheet.ripples.size() == sheet.MAX_RIPPLES
+		and sheet.ripples_alive() == 0, "the sheet has room for %d ripple rings and none at the start" % sheet.MAX_RIPPLES)
+	sheet.ripple(Vector2(25.5, 3.5))
+	sheet.ripple(Vector2(25.5, 3.5), true)
+	check(sheet.ripples_alive() == 2 and sheet.ripples[0].w > 0.0 and sheet.ripples[1].w < 0.0
+		and absf(sheet.ripples[1].w) > absf(sheet.ripples[0].w), "a ring is gentle, a strong one lasts longer")
+	sheet.advance(sheet.RING_LIFE + 0.05)
+	check(sheet.ripples_alive() == 1, "a gentle ring fades out first")
+	sheet.advance(sheet.RING_LIFE_STRONG)
+	check(sheet.ripples_alive() == 0 and is_equal_approx(float(sheet.material_override.get_shader_parameter("clock")), sheet.clock),
+		"every ring fades out and the shader's clock follows")
+	for i in sheet.MAX_RIPPLES + 3:
+		sheet.ripple(Vector2(1, 1))
+	check(sheet.ripples_alive() == sheet.MAX_RIPPLES and sheet.ripples.size() == sheet.MAX_RIPPLES,
+		"more rings than slots reuse the oldest slot")
 	fw.free()
 	for id in ["river", "town"]:
 		var m := MapManager.data(id)
