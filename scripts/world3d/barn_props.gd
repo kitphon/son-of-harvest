@@ -61,41 +61,124 @@ static func barn(w: FarmWorld) -> void:
 			w._box(Vector3(0.06, 0.36, 0.04), at + Vector3(-0.24 + i * 0.16, 0, 0.02), FarmWorld.surface_material("build:planks"))
 
 
-## A barn prop by its kind (MapWorld calls this for the barn map's furniture).
+## A barn prop by its kind (MapWorld calls this for the barn map's furniture): lit meshes made
+## the way RoomProps makes the rooms' furniture, standing where the old boxes stood (the hay in
+## the trough is AnimalLayer's, resting at 0.22).
 static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, r: Rect2) -> void:
-	var timber := FarmWorld.flat_material(TIMBER)
+	var parts := FarmProps.Parts.new()
 	match str(p.kind):
-		"fodder_box":
-			# A long plank trough along the back wall (the hay in it is AnimalLayer's).
-			var at := mid + Vector3(0, 0, 0.05)
-			w._box(Vector3(r.size.x - 0.1, 0.1, 0.6), at + Vector3(0, 0.05, 0), timber)
-			for z in [-0.27, 0.27]:
-				w._box(Vector3(r.size.x - 0.1, 0.42, 0.06), at + Vector3(0, 0.25, z), FarmWorld.surface_material("build:planks"))
-			for x in [-1, 1]:
-				w._box(Vector3(0.06, 0.42, 0.6), at + Vector3(x * (r.size.x / 2 - 0.08), 0.25, 0), FarmWorld.surface_material("build:planks"))
-		"stalls":
-			# A post and two rails on each blocking cell, between the straw stalls.
-			for b in p.get("blocks", []):
-				var c := Vector3(r.position.x + b[0] + 0.5, 0, r.position.y + b[1] + 0.5)
-				for z in [-0.42, 0.42]:
-					w._box(Vector3(0.1, 0.9, 0.1), c + Vector3(0, 0.45, z), timber)
-				for y in [0.4, 0.8]:
-					w._box(Vector3(0.06, 0.08, 0.95), c + Vector3(0, y, 0), FarmWorld.surface_material("build:planks"))
-		"hay":
-			# Bundles of hay fodder stacked two high, tied with rope. Lit and textured with
-			# grass strands (a flat colour read as plain yellow lumps).
-			var hay := FarmWorld.surface_material("build:hay")
-			var rope := FarmWorld.surface_material("build:planks_dark")
-			for k in int(r.size.x) * 2:
-				var at := Vector3(r.position.x + 0.5 * k + 0.25, 0, mid.z)
-				w._box(Vector3(0.46, 0.34, 0.7), at + Vector3(0, 0.17, 0), hay)
-				w._box(Vector3(0.47, 0.35, 0.05), at + Vector3(0, 0.17, 0.15), rope)
-				if k % 3 != 2:
-					w._box(Vector3(0.46, 0.32, 0.66), at + Vector3(0.05, 0.51, -0.02), hay)
-		"barn_gate":
-			# The wide gate in the right wall: two board leaves under a beam, a bar across.
-			var at := Vector3(r.position.x + 0.42, 0, mid.z)
-			w._box(Vector3(0.1, 1.2, 1.0), at + Vector3(0, 0.6, 0), FarmWorld.flat_material(Color("1a1410")))
-			w._box(Vector3(0.05, 1.1, 0.46), at + Vector3(-0.06, 0.56, -0.24), FarmWorld.surface_material("build:planks"))
-			w._box(Vector3(0.05, 1.1, 0.46), at + Vector3(-0.06, 0.56, 0.24), FarmWorld.surface_material("build:planks"))
-			w._box(Vector3(0.06, 0.08, 1.0), at + Vector3(-0.1, 0.6, 0), timber)
+		"fodder_box": _fodder_box(parts, mid, r)
+		"stalls": _stalls(parts, p, r)
+		"hay": _hay(parts, mid, r)
+		"barn_gate": _gate(parts, mid, r)
+	parts.commit(w)
+
+
+## A long plank trough along the back wall: a dark floor on two runners, bevelled side planks
+## with a lighter worn lip, a post every two units, end boards, and above it against the wall a
+## rack of upright slats between two rails where the fodder is pulled from.
+static func _fodder_box(p: FarmProps.Parts, mid: Vector3, r: Rect2) -> void:
+	var at := mid + Vector3(0, 0, 0.05)
+	var length := r.size.x - 0.1
+	var half := length / 2
+	var planks := p.st("build:planks")
+	var dark := p.st("build:planks_dark")
+	var timber := p.st(TIMBER)
+	RoomProps._cube(dark, at, Vector3(length, 0.1, 0.6))
+	for z in [-0.27, 0.27]:
+		RoomProps._cube(planks, at + Vector3(0, 0.05, z), Vector3(length - 0.12, 0.4, 0.06), 0.02)
+		RoomProps._cube(p.st(Color("b08a58")), at + Vector3(0, 0.45, z), Vector3(length - 0.12, 0.012, 0.09))
+	for x in [-1.0, 1.0]:
+		RoomProps._cube(dark, at + Vector3(x * (half - 0.03), 0.0, 0), Vector3(0.06, 0.45, 0.6), 0.015)
+	var posts := int(round(length / 2.0))
+	for k in posts + 1:
+		var x := -half + 0.08 + k * (length - 0.16) / posts
+		for z in [-0.295, 0.295]:
+			RoomProps._cube(timber, at + Vector3(x, 0, z), Vector3(0.1, 0.5, 0.06), 0.015)
+	# The slatted rack on the back wall (its face is at z 1.0).
+	var rack_z := r.position.y + 0.1
+	var x0 := r.position.x + 0.15
+	var x1 := r.end.x - 0.15
+	for y in [0.62, 0.98]:
+		RoomProps._cube(timber, Vector3((x0 + x1) / 2, y, rack_z), Vector3(x1 - x0, 0.06, 0.07), 0.01)
+	var slats := int((x1 - x0) / 0.28)
+	for k in slats + 1:
+		RoomProps._cube(planks, Vector3(x0 + k * (x1 - x0) / slats, 0.62, rack_z), Vector3(0.05, 0.42, 0.045), 0.01)
+
+
+## A post and two rails on each blocking cell, between the straw stalls: round-capped posts
+## on a sill beam, bevelled rails, and an iron tether ring on the front post.
+static func _stalls(p: FarmProps.Parts, prop_data: Dictionary, r: Rect2) -> void:
+	var timber := p.st(TIMBER)
+	var planks := p.st("build:planks")
+	var iron := p.st(RoomProps.IRON)
+	for b in prop_data.get("blocks", []):
+		var c := Vector3(r.position.x + b[0] + 0.5, 0, r.position.y + b[1] + 0.5)
+		RoomProps._cube(p.st("build:planks_dark"), c, Vector3(0.1, 0.08, 0.96), 0.01)
+		for z in [-0.42, 0.42]:
+			RoomProps._cube(timber, c + Vector3(0, 0.08, z), Vector3(0.11, 0.84, 0.11), 0.02)
+			RoomProps._cube(p.st(Color("4a3a2a")), c + Vector3(0, 0.92, z), Vector3(0.14, 0.04, 0.14), 0.015)
+		for y in [0.35, 0.72]:
+			RoomProps._cube(planks, c + Vector3(0, y, 0), Vector3(0.07, 0.11, 0.84), 0.015)
+		RoomProps._cube(iron, c + Vector3(0.062, 0.55, 0.42), Vector3(0.02, 0.07, 0.07))   # the tether ring
+		RoomProps._cube(iron, c + Vector3(0.062, 0.6, 0.42), Vector3(0.02, 0.025, 0.045))
+
+
+## Bundles of hay fodder stacked two high, each three tapered blocks (a bulging belly) bound with a
+## rope band and bristling with loose stalks at the front; a pitchfork leans on the stack.
+## Lit and textured with grass strands (a flat colour read as plain yellow lumps).
+static func _hay(p: FarmProps.Parts, mid: Vector3, r: Rect2) -> void:
+	for k in int(r.size.x) * 2:
+		var at := Vector3(r.position.x + 0.5 * k + 0.25, 0, mid.z)
+		_bundle(p, at, 0.0, 0.46, 0.7)
+		if k % 3 != 2:
+			_bundle(p, at + Vector3(-0.05, 0, -0.02), 0.34, 0.46, 0.66)
+	var tines := p.st(RoomProps.IRON)
+	var lean := Transform3D(Basis(Vector3.BACK, -0.28), Vector3(r.end.x - 0.36, 0.0, mid.z + 0.3))
+	RoomProps._placed(p.st("build:planks"), lean, func(t: SurfaceTool) -> void:
+		RoomProps._cube(t, Vector3.ZERO, Vector3(0.04, 1.0, 0.04), 0.008))
+	RoomProps._placed(tines, lean, func(t: SurfaceTool) -> void:
+		RoomProps._cube(t, Vector3(0, 0.95, 0), Vector3(0.05, 0.03, 0.14))
+		for z in [-0.06, 0.0, 0.06]:
+			RoomProps._cube(t, Vector3(0, 0.98, z), Vector3(0.015, 0.14, 0.015)))
+
+
+## One bundle of hay: its bottom at `y`, `w` wide in x, `d` deep in z, 0.34 high with a belly
+## wider than its ends, tied with a rope round the middle.
+static func _bundle(p: FarmProps.Parts, at: Vector3, y: float, w: float, d: float) -> void:
+	var hay := p.st("build:hay")
+	var lo := RoomProps._rect(at, w - 0.04, d - 0.04)
+	var belly := RoomProps._rect(at, w, d)
+	var top := RoomProps._rect(at, w - 0.08, d - 0.08)
+	FarmProps.block(hay, lo, y, belly, y + 0.12)
+	FarmProps.block(hay, belly, y + 0.12, belly, y + 0.22)
+	FarmProps.block(hay, belly, y + 0.22, top, y + 0.34)
+	var band := RoomProps._rect(at + Vector3(0, 0, 0.15), w + 0.012, 0.05)
+	FarmProps.block(p.st("build:planks_dark"), band, y + 0.01, band, y + 0.33)
+	for x in [-0.1, 0.12]:   # stalks sticking out of the front
+		RoomProps._cube(hay, at + Vector3(x, y + 0.12 + x * 0.3, d / 2 - 0.02), Vector3(0.12, 0.02, 0.07))
+
+
+## The wide gate in the right wall: a dark opening between two posts under a beam, two plank
+## leaves braced with battens and a diagonal each, iron straps, and a bar across.
+static func _gate(p: FarmProps.Parts, mid: Vector3, r: Rect2) -> void:
+	var at := Vector3(r.position.x + 0.42, 0, mid.z)
+	var timber := p.st(TIMBER)
+	var planks := p.st("build:planks")
+	var iron := p.st(RoomProps.IRON)
+	RoomProps._cube(p.st(Color("1a1410")), at, Vector3(0.08, 1.2, 1.0))
+	for z in [-0.52, 0.52]:
+		RoomProps._cube(timber, at + Vector3(0, 0, z), Vector3(0.12, 1.3, 0.1), 0.015)
+	RoomProps._cube(timber, at + Vector3(0, 1.22, 0), Vector3(0.12, 0.1, 1.14), 0.015)
+	for s in [-1.0, 1.0]:
+		var leaf := at + Vector3(-0.06, 0.01, s * 0.24)
+		RoomProps._cube(planks, leaf, Vector3(0.05, 1.1, 0.46), 0.01)
+		for y in [0.1, 0.9]:
+			RoomProps._cube(timber, leaf + Vector3(-0.04, y, 0), Vector3(0.03, 0.08, 0.44))
+		RoomProps._placed(timber, Transform3D(Basis(Vector3.RIGHT, -s * 1.1), leaf + Vector3(-0.04, 0.55, 0)),
+			func(t: SurfaceTool) -> void: RoomProps._cube(t, Vector3(0, -0.04, 0), Vector3(0.03, 0.08, 0.9)))
+		for y in [0.3, 0.8]:
+			RoomProps._cube(iron, leaf + Vector3(-0.03, y, -s * 0.12), Vector3(0.015, 0.05, 0.22))
+	RoomProps._cube(timber, at + Vector3(-0.1, 0.56, 0), Vector3(0.06, 0.08, 1.0), 0.012)
+	for z in [-0.4, 0.4]:
+		RoomProps._cube(iron, at + Vector3(-0.135, 0.54, z), Vector3(0.012, 0.12, 0.08))
