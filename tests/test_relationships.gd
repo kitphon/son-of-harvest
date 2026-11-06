@@ -37,6 +37,7 @@ func _process(_delta: float) -> bool:
 		_birthday_talk()
 		_dish_gift_in_game()
 		_keepsake_gift_in_game()
+		_genzo_friend()
 		_keepsake_homes()   # builds the 3D view, which needs the Game autoload
 		_keepsake_kept_in_game()
 		_neglect_in_game()
@@ -171,14 +172,16 @@ func _neglect() -> void:
 
 ## Every villager has a heart event at band 3: a talk row in each map's table where they can
 ## be talked to, played once; then one at band 5 and one at band 6, each after the last
-## (the first four have all three; Fumi and Ichiro have 3 and 5, the 5 / 6 checks run where
+## (the first four, Fumi and Ichiro have all three; Genzo has 3 and 5, the 5 / 6 checks run where
 ## the event file is there).
 func _heart_event_rows() -> void:
 	var maps := {"tome": ["town", "tome_house"], "kota": ["town", "kota_house"],
 		"sayo": ["town", "store", "sayo_house"], "hachiro": ["town", "smithy"],
-		"fumi": ["town", "teahouse", "sakurazaka"], "ichiro": ["town", "sakurazaka", "ichiro_house"]}
-	for id in ["tome", "kota", "sayo", "hachiro", "fumi"]:
+		"fumi": ["town", "teahouse", "sakurazaka"], "ichiro": ["town", "sakurazaka", "ichiro_house"],
+		"genzo": ["town", "kaminoda", "genzo_house"]}
+	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro"]:
 		check(_has_event("heart_%s_5" % id) and _has_event("heart_%s_6" % id), "%s has heart events at 5 and 6" % id)
+	check(_has_event("heart_genzo_5") and not _has_event("heart_genzo_6"), "Genzo has heart events at 3 and 5")
 	for id in Villagers.friends():
 		check(maps.has(id) and _has_event("heart_" + id), "%s has a heart event" % id)
 		for m in maps.get(id, []):
@@ -336,7 +339,7 @@ func _keepsake_gift_in_game() -> void:
 ## Keepsakes.given_flag, there only with that flag, drawn in both views from the item's icon.
 func _keepsake_homes() -> void:
 	var homes := {"tome": "tome_house", "kota": "kota_house", "sayo": "sayo_house", "hachiro": "smithy",
-		"fumi": "teahouse", "ichiro": "ichiro_house"}
+		"fumi": "teahouse", "ichiro": "ichiro_house", "genzo": "genzo_house"}
 	for id in homes:
 		var loved: Array = Villagers.all()[id].gifts.love.filter(func(i): return i.begins_with("keep:"))
 		var flag := Keepsakes.given_flag(id, loved[0])
@@ -484,9 +487,9 @@ func _neglect_in_game() -> void:
 ## Each heart event (bands 3, 5 and 6) runs to the end on the real Game: flag set, affection
 ## up, and band 6's own story flag. Kota's second and third read both ways, with and without
 ## his carp promise; band 6 also with and without the band 5 flags its lines look back on.
-const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle"}
+const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle", "ichiro": "ichiro_mark", "genzo": ""}
 ## The flag each band 6 scene looks back on (Fumi's comes from her band 3 scene).
-const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest"}
+const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest", "ichiro": "ichiro_kiln"}
 
 func _heart_events_play() -> void:
 	for id in Villagers.friends():
@@ -538,7 +541,8 @@ func _heart_events_play() -> void:
 	check("didn't" in d.text(), "without it he let the carp be anyway: %s" % d.text())
 	# Band 6's lines look back on band 5: each branch shows its own line.
 	var looks := {"tome": ["grandchild", "nag it"], "kota": ["promise", "Nobody else"],
-		"sayo": ["new sign", "minding his store"], "fumi": ["bean paste", "owed to her"]}
+		"sayo": ["new sign", "minding his store"], "fumi": ["bean paste", "owed to her"],
+		"ichiro": ["dug the clay", "never said thanks"]}
 	for id in looks:
 		d = DialogueRunner.open("heart_events_6", {FIVE_FLAGS[id]: true}, id)
 		_next_line(d)
@@ -581,7 +585,7 @@ func _has_event(id: String) -> bool:
 ## close lines, the band 5 scenes' branches, and a place at the end of the record.
 func _sakurazaka_friends() -> void:
 	var friends := Villagers.friends()
-	check(friends.has("fumi") and friends.has("ichiro") and friends.size() == 6, "six villagers with hearts (%s)" % [friends.keys()])
+	check(friends.has("fumi") and friends.has("ichiro") and friends.size() == 7, "seven villagers with hearts (%s)" % [friends.keys()])
 	check(Villagers.all().fumi.birthday.season == "spring" and int(Villagers.all().fumi.birthday.day) == 26 and Villagers.all().ichiro.birthday.season == "fall" and int(Villagers.all().ichiro.birthday.day) == 9,
 		"Fumi's birthday spring 26, Ichiro's fall 9")
 	var spring := {"year": 1, "season": "spring", "day": 26, "weekday": "fri", "weather": "sunny", "flags": {}, "festival": ""}
@@ -624,6 +628,42 @@ func _sakurazaka_friends() -> void:
 	for id in friends:
 		check(id == "tome" or ("ending_friend_" + id) in ending, "the ending has a part for %s" % id)
 		check(id == "tome" or DialogueRunner.open("ending", {}, id).error == "", "and lines for %s" % id)
+
+
+## Genzo of Kaminoda is a friend too: a birthday and its day plan, close lines, the jizo lines
+## after his band 5 scene, the answers in his scenes, the seed rice at band 3, a place at the end
+## of the record and one Neighbours row less.
+func _genzo_friend() -> void:
+	var v: Dictionary = Villagers.all().genzo
+	check(Villagers.friends().has("genzo") and v.get("hearts", true) != false, "Genzo has hearts now")
+	check(v.birthday.season == "summer" and int(v.birthday.day) == 13, "Genzo's birthday is summer 13")
+	var summer := {"year": 1, "season": "summer", "day": 13, "weekday": "wed", "weather": "sunny", "flags": {}, "festival": ""}
+	Villagers.reset_day()
+	var w := Villagers.where("genzo", 12 * 60 + 50, summer)
+	check(w.get("map", "") == "kaminoda" and Vector2i(w.get("pos", Vector2.ZERO).floor()) == Vector2i(19, 9), "on his birthday Genzo sits by the well past noon (%s)" % [w])
+	check(Villagers.is_on("genzo", "genzo_house", 15 * 60, summer) and Villagers.is_on("genzo", "genzo_house", 8 * 60, summer), "home in the morning and again by mid-afternoon")
+	Villagers.reset_day()
+	check(Villagers.pick_plan(v, summer.merged({"weather": "rain"}, true)) == "birthday", "even a wet birthday is his birthday plan")
+	var st := {"year": 1, "season": "spring", "day": 3, "weekday": "wed", "time": 15 * 60 + 30, "weather": "sunny",
+		"flags": {}, "festival": "", "band": 4, "again": false, "birthday": false, "day_number": 0}
+	check(Talk.pick("genzo", st) in ["close_1", "close_2"] and not Talk.pick("genzo", st.merged({"band": 3}, true)) in ["close_1", "close_2"], "close lines from band 4: %s" % Talk.pick("genzo", st))
+	check(Talk.pick("genzo", st.merged({"band": 5, "flags": {"heart_genzo_5": true}}, true)).begins_with("jizo"), "the jizo lines after the band 5 scene")
+	check(Talk.pick("genzo", st.merged({"birthday": true}, true)) == "birthday" and Talk.has_line("genzo", "gift_birthday"), "birthday lines")
+	# The scenes have both answers' lines.
+	for at in ["genzo_iron", "genzo_cold"]:
+		var d := DialogueRunner.open("heart_events", {}, at)
+		check(d.error == "" and d.text() != "", "%s has its line" % at)
+	for at in ["genzo_tie", "genzo_show"]:
+		var d := DialogueRunner.open("heart_events_5", {}, at)
+		check(d.error == "" and d.text() != "", "%s has its line" % at)
+	var rice := FileAccess.get_file_as_string(EventRunner.DIR + "heart_genzo.json")
+	check("seeds:rice" in rice, "Genzo gives seed rice at band 3")
+	# The record: Genzo counts as a friend, so he no longer makes a Neighbours row.
+	check(Ending.friend({"genzo": int(Affection.rules().bands[5]), "kota": int(Affection.rules().bands[4])}) == "genzo", "Genzo can close the record")
+	check("ending_friend_genzo" in FileAccess.get_file_as_string(EventRunner.DIR + "ending.json") and DialogueRunner.open("ending", {}, "genzo").error == "", "the ending has a part and lines for Genzo")
+	var g := _game()
+	g.affection.add("genzo", int(Affection.rules().bands[int(Ending.data().neighbour_band)]))
+	check(g.ending_values().neighbours_known == 0 and g.ending_values().heart_bands >= 1, "Genzo is a friend (a heart band), not a neighbour")
 
 
 func _next_line(d: DialogueRunner) -> void:

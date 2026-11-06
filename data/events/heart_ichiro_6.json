@@ -1,0 +1,14 @@
+{
+	"_note": "Ichiro's third heart event: the first talk once his heart band reaches 6, after heart_ichiro_5 (triggers_sakurazaka.json, triggers_ichiro_house.json, triggers_town.json). He gives the farmer the first piece of charcoal from the new kiln (a line of its own if the farmer said yes to the digging, ichiro_kiln) and offers the farmer the space he left in the kiln's clay for a third mark. Sets heart_ichiro_6 and ichiro_mark. Ichiro acts in it from where the talk found them (an actor step at plan; played where their plan has them elsewhere, they walk up to the farmer), faces the farmer through the lines and goes back to their day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "ichiro", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "ichiro"},
+		{"do": "sound", "key": "tool_hammer"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_6", "at": "ichiro"},
+		{"do": "affection", "who": "ichiro", "amount": 5},
+		{"do": "set", "flags": {"heart_ichiro_6": true, "ichiro_mark": true}},
+		{"do": "actor", "who": "ichiro", "to": "plan"},
+		{"do": "actor", "who": "ichiro", "leave": true}
+	]
+}

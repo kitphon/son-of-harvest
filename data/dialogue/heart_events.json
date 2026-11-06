@@ -37,6 +37,14 @@
 		{"speaker": "ichiro", "mood": "sad", "text": "My father's rang every time. Mine still thuds, mostly. Thirty years at it."},
 		{"speaker": "ichiro", "mood": "neutral", "text": "You work the soil the same way. Every day, nobody watching. ...Here. One for your stove."},
 		{"speaker": "farmer", "mood": "happy", "text": "Listen. This one rings.", "next": "ichiro_end"},
-		{"id": "ichiro_end", "speaker": "ichiro", "mood": "happy", "text": "...Hm. So it does. Don't tell anyone. They'll all want one.", "next": "end"}
+		{"id": "ichiro_end", "speaker": "ichiro", "mood": "happy", "text": "...Hm. So it does. Don't tell anyone. They'll all want one.", "next": "end"},
+
+		{"id": "genzo", "speaker": "genzo", "mood": "neutral", "text": "Come here. Cup your hands."},
+		{"speaker": "genzo", "mood": "neutral", "text": "Well water. I told you it's cold all year. Now taste it, properly. Slowly."},
+		{"speaker": "genzo", "mood": "sad", "text": "My wife tasted the well every morning. Sweet meant the thaw was near. Iron meant a dry month. She was right more often than the radio. So. What does it say to you?",
+			"choices": [{"text": "Sweet, with a little iron.", "next": "genzo_iron"}, {"text": "Just cold, to me.", "next": "genzo_cold"}]},
+		{"id": "genzo_iron", "speaker": "genzo", "mood": "surprised", "text": "Iron and sweet... a dry month, then. I thought so. She'd have smiled at that.", "next": "genzo_end"},
+		{"id": "genzo_cold", "speaker": "genzo", "mood": "happy", "text": "Ha. Honest. It takes years to taste the rest. Keep drinking.", "next": "genzo_end"},
+		{"id": "genzo_end", "speaker": "genzo", "mood": "happy", "text": "Here. Seed rice from my last good sack. Sow it where the water stays. Don't tell Haru, he'll want some.", "next": "end"}
 	]
 }

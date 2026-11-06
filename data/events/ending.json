@@ -21,6 +21,7 @@
 		{"if": "ending_friend_hachiro", "then": "hachiro"},
 		{"if": "ending_friend_fumi", "then": "fumi"},
 		{"if": "ending_friend_ichiro", "then": "ichiro"},
+		{"if": "ending_friend_genzo", "then": "genzo"},
 		{"do": "say", "dialogue": "ending", "at": "tome_friend", "next": "close"},
 		{"id": "kota", "do": "actor", "who": "kota", "at": [4, 6], "face": "up"},
 		{"do": "sound", "key": "door_slide"},
@@ -42,6 +43,10 @@
 		{"do": "sound", "key": "door_slide"},
 		{"do": "actor", "who": "ichiro", "to": [5, 5]},
 		{"do": "say", "dialogue": "ending", "at": "ichiro", "next": "close"},
+		{"id": "genzo", "do": "actor", "who": "genzo", "at": [4, 6], "face": "up"},
+		{"do": "sound", "key": "door_slide"},
+		{"do": "actor", "who": "genzo", "to": [5, 5]},
+		{"do": "say", "dialogue": "ending", "at": "genzo", "next": "close"},
 		{"id": "close", "do": "say", "dialogue": "ending", "at": "close"},
 		{"do": "set", "flags": {"ending_seen": true}}
 	]
