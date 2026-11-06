@@ -1,8 +1,8 @@
 {
-	"_sky": "Day / night light: [minute of the day, colour], linear in between, multiplied over the outdoor picture (then times the weather tint). 7:00..16:00 is plain daylight; dusk runs warm (17:30) through mauve (18:30) to the night blue by 20:30, and dawn back from 4:30 to 7:00. The night blue is dark but keeps the farmer, the paths and the houses readable.",
+	"_sky": "Day / night light: [minute of the day, colour], linear in between, multiplied over the outdoor picture (then times the weather tint). 7:00..16:00 is plain daylight; dusk runs warm (17:30) through mauve (18:30) to the night blue by 20:30, and dawn back from 4:30 to 7:00. The night blue is dark but keeps the farmer, the paths and the houses readable. It was 404c8e (luminance 0.31) until the real lamps (\"lamps\" below) came; 46529a (0.33) is a touch lighter, as the warm light near the houses now carries more of the night picture.",
 	"sky": [
-		[0, "404c8e"],
-		[270, "404c8e"],
+		[0, "46529a"],
+		[270, "46529a"],
 		[330, "7a74a4"],
 		[390, "e8cdbd"],
 		[420, "ffffff"],
@@ -10,8 +10,8 @@
 		[1050, "ffd4a8"],
 		[1110, "b88e9c"],
 		[1170, "625f9a"],
-		[1230, "404c8e"],
-		[1440, "404c8e"]
+		[1230, "46529a"],
+		[1440, "46529a"]
 	],
 	"_sun": "The sun of the 3D view outdoors (Game.sun_light). keys: [minute of the day, elevation (degrees above the ground), yaw (the light's rotation, degrees: -40 shines from the left of the screen, 0 from the front left (lower left), -90 from the back left (upper left)), colour, energy], linear in between. It rises low and orange from the lower left at 5:30, climbs golden through the morning, stands high and plain (the measured colour of SnowLayer.SUN_SHARE) at midday, and sinks golden to the back left, so the morning's long shadows fall up the screen to the right and the evening's down it to the right. After sunset (shadows already gone under the dusk tint) it eases back to `plain` by 20:30 and leaves it again from 4:00 to sunrise, so the night looks as it did before. plain: [elevation, yaw, colour, energy], the fixed sun of the night, the rooms and the mine (Main3D SUN_COLOR / SUN_ENERGY). The energy stays at plain's so the ground keeps its measured brightness; a clouded sky (weather_fx.json sun 0) keeps the plain colour.",
 	"sun": {
@@ -46,6 +46,10 @@
 	"pools": {
 		"color": "ff9a48",
 		"window": {"strength": 0.34, "wide": 2.0, "min_wide": 1.2, "out": 0.8},
-		"lamp": {"strength": 0.42, "radius": 1.2, "glow": 0.45, "glow_size": 0.7}
-	}
+		"lamp": {"strength": 0.42, "radius": 1.2, "glow": 0.45, "glow_size": 0.7},
+		"festival": {"strength": 0.36, "radius": 0.7, "line": 0.45, "stall_front": 0.85, "stall_reach": 0.7}
+	},
+	"_festival_pools": "pools.festival: the ground round a festival's lights (FestivalProps.glows) while it is on, as strong as its lights stand out (FestivalGlow.darkness), in both views. A standing lantern, the drum stage and the bonfire light a round pool `radius` times the glow's size; a string lantern hangs high, so its pool is `line` times as strong; a stall's lantern lights the ground in front of its counter instead: as wide as the stall plus 0.4, from the stall's middle `stall_front` cells forward, reaching `stall_reach` either way.",
+	"_lamps": "Real warm lights in the 3D view (NightLamps: OmniLight3D, no shadows) at the lit windows and shoji doors, the stone lanterns and the festival lights, so the lit meshes near them (walls, eaves, posts, trees, the stalls' counters) take warm light. The ground, the water and the grass are left out (their light is the drawn pools). At most `max` lights, the ones nearest the middle of the view, the farthest fading out before it is dropped (`fade` cells), so none pops. Brightness: `window` / `lamp` times Game.window_light, `festival` times FestivalGlow.darkness, a string lantern `line` times that. `color` is the light as it lands on the tinted picture: the light's own colour is divided by the tint (as NightView's shader does), at most `boost` times. A window's light hangs `out` cells in front of its pane, a stone lantern's `lamp_out` cells toward the camera from its fire box. range: cells; attenuation: the falloff's curve.",
+	"lamps": {"color": "ffa050", "max": 8, "fade": 1.5, "range": 2.8, "attenuation": 1.2, "window": 1.1, "lamp": 1.2, "festival": 1.0, "line": 0.6, "out": 0.45, "lamp_out": 0.3, "boost": 6.0}
 }

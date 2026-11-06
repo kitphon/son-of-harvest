@@ -46,7 +46,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `test_menu: OK (0 failed)`. Fatigue (tired states, oversleeping, collapse, waking in the clinic and the doctor's fee):
   `res://tests/test_body.gd` must print `test_body: OK (0 failed)`. Events (runner, trigger
   tables, event data): `res://tests/test_events.gd` must print `test_events: OK (0 failed)`.
-  Maps (data/maps, doors, indoor clock, story props gated by flags, the fade in the real view, the land past outdoor edges, buildings turning see-through in front of the farmer, the houses' lit windows at night, the warm pools under windows and lanterns, the glow kept off figures in front, rice and corn as clusters and the paddies' rice by season): `res://tests/test_maps.gd`
+  Maps (data/maps, doors, indoor clock, story props gated by flags, the fade in the real view, the land past outdoor edges, buildings turning see-through in front of the farmer, the houses' lit windows at night, the warm pools under windows and lanterns, the glow kept off figures in front, the real night lamps (NightLamps), rice and corn as clusters and the paddies' rice by season): `res://tests/test_maps.gd`
   must print `test_maps: OK (0 failed)`. Rucksack / storage (inventory slots, move rules, menu
   cursor, chest): `res://tests/test_inventory.gd` must print `test_inventory: OK (0 failed)`.
   Food and drink (eating, specials, the stand, the food slot, the eat / drink pose): `res://tests/test_food.gd` must
@@ -79,7 +79,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   screen, the yearly pages, the first-day look back and the married farmer's line): `res://tests/test_ending.gd` must print `test_ending: OK (0 failed)`.
   Festivals (calendar, festival day, shops shut, fair weather, the event once a year,
   decorations and lights in both views, the HUD tag, contests and prizes, the mochi pounding (timing, ranking, partner, ribbon, save, screen), the Moon Night fishing race (clock, creel, ranking, ribbon, save, box), the stalls and their
-  wares at all four festivals, keepsakes, ribbons and the farmhouse ribbon board, the payout held back): `res://tests/test_festivals.gd` must
+  wares at all four festivals, keepsakes, ribbons and the farmhouse ribbon board, the payout held back, the festival lights lighting the ground and the night lamps): `res://tests/test_festivals.gd` must
   print `test_festivals: OK (0 failed)`.
   The flat view (main_2d.tscn builds, its Player's actions reach FarmActions: tools, holding
   and throwing, the bin, eating, fishing, doors, talking, the shop counter, the mine; the

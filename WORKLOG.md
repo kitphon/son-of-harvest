@@ -10,6 +10,56 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — Night: real warm lights, a lighter night, festival lights on the ground
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: ART_DIRECTION section 3, "Night: real warm lights at lanterns, windows and the festival
+  stalls, the tint lighter". New `NightLamps` (scripts/world3d/night_lamps.gd, made by main_3d):
+  data/light.json "lamps" → max (8) OmniLight3Ds, shadows off, no specular, range 2.8, at the
+  lit windows (0.45 in front of the pane), by the stone lanterns' fire boxes (0.3 toward the
+  camera) and at the festival lights; the ones nearest the point the camera looks at, the last
+  kept fading over 1.5 cells as it nears the first one dropped (no popping). Energy: window
+  1.1 / lamp 1.2 times Game.window_light, festival 1.0 (string lantern 0.6 of it) times
+  FestivalGlow.darkness, so every light is off by day. The tint multiplies the picture
+  afterwards, so the colour is ffa050 divided by the tint (normalised, the factor going into
+  the energy, at most `boost` 6), the same trick as NightView's shader: it lands as ffa050.
+  The ground (farm, maps, Surroundings), the water and the grass tufts go on
+  `NightLamps.GROUND_LAYER` (2), outside the lamps' cull mask: their light stays the drawn
+  pools (no double light, no extra ground pass in the Compatibility renderer's per-light passes).
+  The night blue is a touch lighter: 46529a (luminance 0.33) for 404c8e (0.31), still well
+  under the pre-FEEDBACK-6 night. Festival lights now light the ground in both views:
+  `NightLights.festival_pools` (data/light.json "pools" → "festival": strength 0.36, round
+  pools 0.7 x the glow's size, string lanterns 0.45 as strong, a stall's pool in front of its
+  counter, 0.85 forward, 0.7 deep, the stall's width + 0.4); `FestivalProps.glows` carry the
+  pool kind (round / line / stall, the stall's middle and width). NightLights plans them in
+  3D (before the window-glow check, hidden by the map's buildings like the rest); the flat
+  view's NightView takes the map id, reads FestivalProps.glows_of and adds them while the
+  festival is on. Balance (ours): energies chosen by eye on the farm and village at 21:00 and
+  Lantern Night; 0.6 / 0.7 first was too faint on the dark wood.
+- Checked: all 27 test scripts print `OK (0 failed)` (test_animals .. test_weather, each line
+  `test_<name>: OK (0 failed)`), and no test log has an ERROR line; smoke runs (title, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`, plus `--map=town --time=21:00`, `--festival=lantern_night`
+  and main_2d.tscn on Lantern Night) exit 0 with no error or warning line. New checks:
+  test_maps `_night_lamps` (a lamp per lit window / lantern, none at glow 0, positions and
+  energies, dimming with the glow, nearest-first with the fade at the cut and a tie dropped, the
+  tint division landing exactly warm, the boost cap, max <= 8, the ground / water / grass on
+  GROUND_LAYER) and in the real view (8 lamps, no shadows, ground left out, 4 warm lamps at
+  21:00 on the farm, all off at noon); test_festivals `_festival_lights` (a pool per festival
+  light on the ground, the 4 stalls' in front of their counters, string lanterns fainter, none
+  by day, scaling, lamp spots, the 3D view's planned pools, 7..8 lamps lit at the festival, the
+  flat NightView's festival pools = the 3D ones); test_weather (the night a touch lighter
+  than 404c8e, by 0.01..0.05); test_view2d `_night` now counts Lantern Night's pools after
+  the windows'. Screenshots before / after: `--demo --time=21:00` (the engawa, posts and lower
+  timbers warm; the chest and bin, mean RGB (93.5, 70.0, 55.4) -> (104.1, 74.7, 59.0));
+  `--map=town --time=21:00` and `town@shrine` (the stone lantern's base warm orange);
+  `--festival=lantern_night` (warm patches under the string lanterns, the torii posts warmer);
+  daytime `--map=town --time=10:00` and `--festival=blossom_day` pixel-identical, the farm at
+  10:00 differs only by its random debris.
+- Left / next: pale plaster takes little of the lamps (it is near white under the night sun
+  before the tint, so the lit picture clips); dimming the night sun under an even lighter tint
+  would free it but changes the measured ground. Unshaded pieces (sprites, the festival props'
+  flat colours, the town ground without snow) do not take the lamps. Next in ART_DIRECTION:
+  the optional mountain backdrop (its branch waits on the user), then section 4.
+
 ## 2026-11-06 — Merge: sun by the clock, coop / barn insides, bamboo and outdoor props
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents worked in parallel worktrees: 8e4cfd8 the sun follows the clock (Opus),

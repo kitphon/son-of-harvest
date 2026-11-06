@@ -278,7 +278,10 @@ func _night() -> void:
 		"it lights the village's windows and lanterns (%d / %d)" % [nv.windows.size(), nv.lamps.size()])
 	check(is_equal_approx(nv.glow, g.window_light()) and nv.glow == 1.0 and nv.visible, "at 21:00 the windows glow fully (%.2f)" % nv.glow)
 	var want: Array = lights.pools_from(nv.windows, nv.lamps, nv.glow, rules)
-	check(nv.pools.size() == nv.windows.size() + nv.lamps.size() and nv.pools.size() == want.size(), "a pool for every lit window and lantern (%d)" % nv.pools.size())
+	# Summer 20 is Lantern Night in the village (17:00..22:00): its lights' pools come after.
+	var fest: int = nv.festival_lights.size() if nv.fest_dark > 0.0 else 0
+	check(nv.festival == "lantern_night" and fest > 0, "the festival's lights light the ground too (%d)" % fest)
+	check(want.size() == nv.windows.size() + nv.lamps.size() and nv.pools.size() == want.size() + fest, "a pool for every lit window and lantern (%d)" % nv.pools.size())
 	var same := true
 	for i in want.size():
 		same = same and is_equal_approx(nv.pools[i].strength, want[i].strength) and nv.pools[i].center == want[i].center
@@ -309,7 +312,7 @@ func _night() -> void:
 	await process_frame
 	var dusk: float = nv.glow
 	check(dusk > 0.0 and dusk < 1.0 and is_equal_approx(dusk, g.window_light()), "at 18:30 the windows are half lit (%.2f)" % dusk)
-	check(nv.pools.size() == want.size() and is_equal_approx(nv.pools[0].strength, want[0].strength * dusk), "and the pools fade with them")
+	check(nv.pools.size() == want.size() + (fest if nv.fest_dark > 0.0 else 0) and is_equal_approx(nv.pools[0].strength, want[0].strength * dusk), "and the pools fade with them")
 	g.hour = 12
 	g.minute = 0
 	await process_frame

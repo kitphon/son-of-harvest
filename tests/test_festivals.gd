@@ -842,6 +842,60 @@ func _check_views() -> void:
 	g.unpause()
 
 
+## Lantern Night's lights on the ground and on the meshes: a pool for every light
+## (NightLights.festival_pools, data/light.json "pools" → "festival"): in front of each stall's
+## counter, fainter under the string lanterns, as strong as the lights stand out; the real lamps
+## (NightLamps) take the festival's lights too; both views draw the pools.
+func _festival_lights(props: Node) -> void:
+	var g := _game()
+	var NL: GDScript = load("res://scripts/world3d/night_lights.gd")
+	var NLamps: GDScript = load("res://scripts/world3d/night_lamps.gd")
+	var rules: Dictionary = g.light_data().pools
+	var fr: Dictionary = rules.festival
+	var glows: Array = props.glows
+	var pools: Array = NL.festival_pools(glows, 1.0, rules)
+	check(pools.size() == glows.size() and pools.all(func(q): return absf(q.center.y - 0.02) < 0.001 and q.strength > 0.0),
+		"a pool on the ground for every festival light (%d)" % pools.size())
+	var stalls := 0
+	var fronted := true
+	for i in glows.size():
+		if glows[i].pool == "stall":
+			stalls += 1
+			var mid: Vector3 = glows[i].mid
+			fronted = fronted and pools[i].center.z > mid.z + 0.5 and absf(pools[i].center.x - mid.x) < 0.001 \
+				and pools[i].across.x > float(glows[i].wide) / 2.0 and pools[i].center.z - pools[i].out.z > mid.z
+	check(stalls == 4 and fronted, "the 4 stalls light the ground in front of their counters (%d)" % stalls)
+	var line: Array = range(glows.size()).filter(func(i): return glows[i].pool == "line")
+	var round_at: Array = range(glows.size()).filter(func(i): return glows[i].pool == "round")
+	check(line.size() == 36 and round_at.size() == 1 and is_equal_approx(pools[line[0]].strength, float(fr.strength) * float(fr.line))
+		and is_equal_approx(pools[round_at[0]].strength, float(fr.strength)), "string lanterns light the ground more faintly than the drum stage")
+	check(NL.festival_pools(glows, 0.0, rules).is_empty(), "no festival pools by day")
+	check(is_equal_approx(NL.festival_pools(glows, 0.5, rules)[0].strength, pools[0].strength * 0.5), "they follow how much the lights stand out")
+	var lr: Dictionary = g.light_data().lamps
+	var spots: Array = NLamps.spots_of([], [props], 0.0, 1.0, lr)
+	check(spots.size() == glows.size() and spots[0].pos == glows[0].pos, "every festival light is a lamp spot (%d)" % spots.size())
+	check(NLamps.spots_of([], [props], 0.0, 0.0, lr).is_empty(), "no festival lamps by day")
+	# The real view at 20:00: NightLights plans the festival's pools, the lamps burn by the lanterns.
+	var nl: Array = _scene3.find_children("*", "Control", true, false).filter(func(n): return _script_is(n, "night_lights.gd"))
+	if nl.size() == 1:
+		nl[0]._plan()
+		check(nl[0]._pools.size() >= stalls, "the 3D view draws the festival's pools (%d)" % nl[0]._pools.size())
+	_scene3.tint.color = g.light_color()
+	_scene3.lamps._process(0.0)
+	var on: Array = _scene3.lamps.lights.filter(func(l): return l.visible)
+	# (the last may sit right at the cut, faded to nothing, when two lanterns are as near)
+	check(on.size() >= int(lr.max) - 1 and on.size() <= int(lr.max), "the view's %d lamps burn at the festival's lights (%d)" % [int(lr.max), on.size()])
+	# The flat view's NightView: the same lights, the same pools under them.
+	var nv: Array = _scene2.view.get_children().filter(func(n): return _script_is(n, "night_view.gd"))
+	check(nv.size() == 1 and nv[0].festival == "lantern_night" and nv[0].festival_lights.size() == glows.size(), "the flat view knows the festival's lights")
+	if nv.size() == 1:
+		nv[0]._refresh()
+		var want: Array = NL.festival_pools(nv[0].festival_lights, nv[0].fest_dark, rules)
+		check(nv[0].fest_dark > 0.5 and nv[0].visible and nv[0].pools.size() >= want.size() and want.size() == glows.size()
+			and nv[0].pools.slice(nv[0].pools.size() - want.size()).map(func(q): return q.center) == want.map(func(q): return q.center),
+			"its pools include the festival's, as in 3D (%d)" % want.size())
+
+
 func _check_night() -> void:
 	var g := _game()
 	var p := _props()
@@ -849,6 +903,7 @@ func _check_night() -> void:
 		check(p[0].festival == "lantern_night" and p[0].shown(), "Lantern Night decorations at 20:00")
 		check(p[0].glows.size() == 41, "36 string lanterns, 4 stall lanterns and the drum stage glow (%d)" % p[0].glows.size())
 		check(p[0].wares == 5, "the two selling stalls set out their 3 + 2 wares (%d)" % p[0].wares)
+		_festival_lights(p[0])
 	var glow: GDScript = load("res://scripts/world3d/festival_glow.gd")
 	check(glow.fireworks_on(), "fireworks over the village at 20:00")
 	g.maps.place("farm", Vector2i(4, 4), Vector2i.DOWN)

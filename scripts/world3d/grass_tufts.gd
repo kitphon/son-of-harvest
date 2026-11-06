@@ -57,6 +57,7 @@ func _init() -> void:
 	m.set_shader_parameter("tip", TIPS.get(Game.season_name(), TIPS.spring))
 	material_override = m
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	layers = NightLamps.GROUND_LAYER   # lit as the ground: the night's lamps leave it out
 
 
 ## The tufts' material (FarmWorld keeps it with its snow so set_snow drives the cover).

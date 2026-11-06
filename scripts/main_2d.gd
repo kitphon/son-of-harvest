@@ -107,7 +107,7 @@ func _enter_map() -> void:
 		add_child(view)
 		mv.show_snow(Game.snow_rules)   # outdoors only
 		mv.set_snow(Game.snow_cover / 100.0)
-	var night := NightView.new().setup(m.props, Game.maps.on_farm())
+	var night := NightView.new().setup(m.props, Game.maps.on_farm(), m.id)
 	night.tint = tint
 	view.add_child(night)   # lit windows and lanterns, under the figures
 	view.add_child(StoryView.new(m))   # what the heart events left (the bell, the store's sign)

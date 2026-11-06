@@ -13,7 +13,7 @@ const FLAME := Color("ffb040")
 
 var map_id := ""
 var festival := ""
-var glows: Array[Dictionary] = []   # {pos: Vector3, color: Color, size: cells across}
+var glows: Array[Dictionary] = []   # {pos: Vector3, color: Color, size: cells across, pool: "round" / "line" / "stall"}
 var wares := 0                      # item pictures on the selling stalls' counters
 
 
@@ -70,8 +70,11 @@ func _make(p: Dictionary) -> void:
 			_box(Vector3(r.size.x, 0.5, r.size.y) * 0.9, mid + Vector3(0, 0.25, 0), flat_material(Color.MAGENTA))
 
 
-func _glow(pos: Vector3, color: Color, size: float) -> void:
-	glows.append({"pos": pos, "color": color, "size": size})
+## A light at `pos` (FestivalGlow's glow, NightLamps' lamp) and the pool it casts on the ground
+## (NightLights.festival_pools): "round" under it, "line" a string lantern's fainter one, "stall"
+## in front of the counter of a stall `wide` cells across standing at `mid`.
+func _glow(pos: Vector3, color: Color, size: float, pool := "round", mid := Vector3.ZERO, wide := 0.0) -> void:
+	glows.append({"pos": pos, "color": color, "size": size, "pool": pool, "mid": mid, "wide": wide})
 
 
 func _cylinder(top: float, bottom: float, height: float, at: Vector3, mat: Material, segments := 8) -> MeshInstance3D:
@@ -132,7 +135,7 @@ func _stall(mid: Vector3, r: Rect2, cloth: Color) -> void:
 	_box(Vector3(w + 0.3, 0.06, 1.0), mid + Vector3(0, 1.55, -0.05), flat_material(cloth), Vector3(-0.25, 0, 0))
 	_box(Vector3(w, 0.26, 0.02), mid + Vector3(0, 1.32, 0.36), flat_material(cloth.lerp(Color.WHITE, 0.25)))
 	var lamp := mid + Vector3(w / 2, 1.2, 0.36)
-	_lantern(lamp, LANTERN_RED)
+	_lantern(lamp, LANTERN_RED, "stall", mid, w)
 
 
 ## A selling stall's stock set out along its counter, one item picture each (the same icons
@@ -171,12 +174,12 @@ func _judge_table(mid: Vector3, r: Rect2) -> void:
 
 
 ## One hanging paper lantern: a round body, dark caps top and bottom.
-func _lantern(at: Vector3, color: Color) -> void:
+func _lantern(at: Vector3, color: Color, pool := "line", mid := Vector3.ZERO, wide := 0.0) -> void:
 	_cylinder(0.11, 0.11, 0.22, at, flat_material(color), 10)
 	var cap := flat_material(Color("2a2420"))
 	_cylinder(0.07, 0.07, 0.03, at + Vector3(0, 0.12, 0), cap)
 	_cylinder(0.07, 0.07, 0.03, at - Vector3(0, 0.12, 0), cap)
-	_glow(at, color.lerp(Color("ffd890"), 0.5), 1.4)
+	_glow(at, color.lerp(Color("ffd890"), 0.5), 1.4, pool, mid, wide)
 
 
 ## A string of lanterns over the cells: a pole at each end, a rope and a lantern every cell,

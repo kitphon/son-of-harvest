@@ -127,12 +127,20 @@ Light and Farmhouse model hold the technical detail of what is built.
       is still the still tile; no frozen water in winter (the game has none).
 
 ### 3. Light and atmosphere
-- [ ] Night: real warm lights at lanterns, windows and the festival stalls, the tint lighter.
+- [x] Night: real warm lights at lanterns, windows and the festival stalls, the tint lighter.
       Done so far (FEEDBACK item 6): a darker deep blue night with a smooth dusk / dawn in
       data/light.json, and the house windows and shoji doors glow warm (NightLights overlay).
       Then warm pools on the ground under windows and round the stone lanterns, the
       lanterns' fire boxes glowing, the glow kept off figures in front.
-      Still open: real lights / a lighter tint, festival stalls lighting the ground.
+      Then real lights: NightLamps, at most 8 OmniLight3Ds without shadows at the lit windows,
+      stone lanterns and festival lights nearest the view's middle (data/light.json "lamps"),
+      their colour divided by the tint so they land warm; the ground, water and grass left to
+      the drawn pools; the night blue a touch lighter (46529a); the festival's lights and
+      stalls lighting the ground in both views (NightLights.festival_pools). (this commit)
+      Still open: pale plaster takes little of the lamps (near white under the night sun
+      before the tint; dimming the night sun under a lighter tint would free it, but changes
+      the measured ground); unshaded pieces (sprites, the festival props' flat colours) do
+      not take them.
 - [x] Morning and evening sun colour and angle following the clock (data/light.json "sun",
       `Game.sun_light`, `Main3D._aim_sun`: low orange sun from the lower left at 5:30, golden
       morning, high plain noon, golden evening from the upper left, back to the plain night
