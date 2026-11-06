@@ -1,5 +1,5 @@
 {
-	"_note": "What Haru, the straw weaver of Kaminoda, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction. On the bamboo hill she has her own lines (map condition). The birthday lines (summer 27), the close lines from band 4 and the sandal lines once her band 5 scene is seen (heart_haru_5). Our own lines.",
+	"_note": "What Haru, the straw weaver of Kaminoda, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction. On the bamboo hill she has her own lines (map condition). The birthday lines (summer 27), the close lines from band 4 and the sandal lines once her band 5 scene is seen (heart_haru_5), the dear lines at band 6 once her band 6 scene is (heart_haru_6). Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
@@ -10,6 +10,7 @@
 		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"map": ["hill"]}, "at": ["hill_1", "hill_2"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
+		{"if": {"band": [6, 6], "flags": ["heart_haru_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"band": [5, 6], "flags": ["heart_haru_5"]}, "at": ["sandals_1", "sandals_2"]},
 		{"if": {"weekday": ["thu"], "band": [2, 5], "season": ["spring"]}, "at": ["forage_spring"]},
 		{"if": {"weekday": ["thu"], "band": [2, 5], "season": ["summer"]}, "at": ["forage_summer"]},
@@ -50,6 +51,9 @@
 		{"id": "close_2", "speaker": "haru", "mood": "neutral", "text": "When I'm on the hill I can see your field from the lookout. A tiny square of brown. I wave sometimes. You never wave back.", "next": "end"},
 		{"id": "sandals_1", "speaker": "haru", "mood": "happy", "text": "Sayo sold three pairs of my sandals this week! Three! I'm going to need more straw than Genzo's paddies can grow.", "next": "end"},
 		{"id": "sandals_2", "speaker": "haru", "mood": "neutral", "text": "I still go up the hill. Not to think about leaving now. Just to look. It's a different view when you've chosen it.", "next": "end"},
+		{"id": "dear_1", "speaker": "haru", "mood": "happy", "text": "I saw you wave from the field yesterday. A whole arm! I nearly dropped my straw off the lookout.", "next": "end"},
+		{"id": "dear_2", "speaker": "haru", "mood": "neutral", "text": "The first sandals went to the city in a box with a tag. I stood at Sayo's counter and watched the box until it was out of sight. Silly.", "next": "end"},
+		{"id": "dear_3", "speaker": "haru", "mood": "happy", "text": "Genzo says my weaving got straighter this year. From Genzo that is a medal. I'm keeping it.", "next": "end"},
 		{"id": "gift_love", "speaker": "haru", "mood": "happy", "text": "For me? Oh, this is lovely! I'll think of you every time I have one.", "next": "end"},
 		{"id": "gift_like", "speaker": "haru", "mood": "happy", "text": "Thank you! That's kind of you.", "next": "end"},
 		{"id": "gift_neutral", "speaker": "haru", "mood": "neutral", "text": "Oh, thanks. I'm sure it'll be useful.", "next": "end"},

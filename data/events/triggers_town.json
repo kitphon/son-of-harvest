@@ -26,6 +26,7 @@
 		{"event": "heart_genzo_6", "on": "talk", "who": "genzo", "hearts": {"genzo": [6, 6]}, "seen": ["heart_genzo_5"]},
 		{"event": "heart_haru", "on": "talk", "who": "haru", "hearts": {"haru": [3, 6]}},
 		{"event": "heart_haru_5", "on": "talk", "who": "haru", "hearts": {"haru": [5, 6]}, "seen": ["heart_haru"]},
+		{"event": "heart_haru_6", "on": "talk", "who": "haru", "hearts": {"haru": [6, 6]}, "seen": ["heart_haru_5"]},
 		{"event": "shrine_offering", "on": "examine", "spot": [18, 1, 2, 2], "once": false},
 		{"event": "lantern_snow", "on": "examine", "spot": [16, 3], "once": false, "weather": ["snow"]},
 		{"event": "lantern_snow", "on": "examine", "spot": [21, 3], "once": false, "weather": ["snow"]},

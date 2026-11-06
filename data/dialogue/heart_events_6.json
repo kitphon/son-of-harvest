@@ -1,5 +1,5 @@
 {
-	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow; Fumi's looks back on fumi_honest from her band 3 scene, Ichiro's on ichiro_kiln from his band 5 one, Genzo's on genzo_jizo from his). Our own scenes.",
+	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow; Fumi's looks back on fumi_honest from her band 3 scene, Ichiro's on ichiro_kiln from his band 5 one, Genzo's on genzo_jizo from his, Haru's on haru_go from her band 5 answer). Our own scenes.",
 	"lines": [
 		{"id": "tome", "speaker": "tome", "mood": "neutral", "text": "My son wrote back. He wants me to come and live in the city with him. An apartment with an elevator, he says."},
 		{"speaker": "tome", "mood": "sad", "text": "He means well. He frets about the shrine stairs, and the winters, and me alone in that house."},
@@ -73,6 +73,16 @@
 			"choices": [{"text": "Let's tie it together.", "next": "genzo_together"}, {"text": "It's yours to tie. I'll hold it.", "next": "genzo_hold"}]},
 		{"id": "genzo_together", "speaker": "genzo", "mood": "happy", "text": "Over, under, pull. ...There. Your end is the straighter one. Don't tell the jizo.", "next": "genzo_end"},
 		{"id": "genzo_hold", "speaker": "genzo", "mood": "surprised", "text": "Hm. Hold it steady, then. ...Done. Not one bad knot. She would have called that a miracle.", "next": "genzo_end"},
-		{"id": "genzo_end", "speaker": "genzo", "mood": "happy", "text": "The rice grows well for you. And the lane is red and tied again. ...I think I can stop counting the years now.", "next": "end"}
+		{"id": "genzo_end", "speaker": "genzo", "mood": "happy", "text": "The rice grows well for you. And the lane is red and tied again. ...I think I can stop counting the years now.", "next": "end"},
+		{"id": "haru", "speaker": "haru", "mood": "happy", "text": "Wait, don't go yet. I want to see your face when you hear this."},
+		{"speaker": "haru", "mood": "neutral", "text": "The city shop wrote again. Not to fetch me this time. They want my sandals on their shelf, with a tag, and I would post them from Sayo's store."},
+		{"if": "haru_go", "then": "haru_door"},
+		{"speaker": "haru", "mood": "happy", "text": "You said Kaminoda would miss me. It does. Genzo has said 'Haru, the rack' eleven times this week, just to hear himself say it.", "next": "haru_tag"},
+		{"id": "haru_door", "speaker": "haru", "mood": "happy", "text": "You said to go if it called me. It called. Then I read this letter and found I could answer it from here. Funny. Nobody holding the door is what let me stay."},
+		{"id": "haru_tag", "speaker": "haru", "mood": "neutral", "text": "They asked what the tag should say. The place, or my name? I have written both on scraps and thrown both away.",
+			"choices": [{"text": "Kaminoda. Let them find the hamlet.", "next": "haru_place", "set": {"haru_tag": "place"}}, {"text": "Haru. Let them find you.", "next": "haru_name", "set": {"haru_tag": "name"}}]},
+		{"id": "haru_place", "speaker": "haru", "mood": "happy", "text": "Kaminoda, in small black ink, with the bamboo hill under it. Then they'll have to come up the lane to see where the straw grew.", "next": "haru_end"},
+		{"id": "haru_name", "speaker": "haru", "mood": "surprised", "text": "My name, on a tag, in a city shop... I'll have to braid very straight, then. Everybody will check.", "next": "haru_end"},
+		{"id": "haru_end", "speaker": "haru", "mood": "happy", "text": "One more thing. I wave from the lookout every afternoon, and you never wave back. Tomorrow, wave. Then I'll know it isn't only the wind.", "next": "end"}
 	]
 }

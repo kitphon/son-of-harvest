@@ -182,9 +182,8 @@ func _heart_event_rows() -> void:
 		"sayo": ["town", "store", "sayo_house"], "hachiro": ["town", "smithy"],
 		"fumi": ["town", "teahouse", "sakurazaka"], "ichiro": ["town", "sakurazaka", "ichiro_house"],
 		"genzo": ["town", "kaminoda", "genzo_house"], "haru": ["town", "kaminoda", "haru_house", "hill"]}
-	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro", "genzo"]:
+	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro", "genzo", "haru"]:
 		check(_has_event("heart_%s_5" % id) and _has_event("heart_%s_6" % id), "%s has heart events at 5 and 6" % id)
-	check(_has_event("heart_haru_5") and not _has_event("heart_haru_6"), "Haru has heart events at 3 and 5")
 	for id in Villagers.friends():
 		check(maps.has(id) and _has_event("heart_" + id), "%s has a heart event" % id)
 		for m in maps.get(id, []):
@@ -491,9 +490,9 @@ func _neglect_in_game() -> void:
 ## Each heart event (bands 3, 5 and 6) runs to the end on the real Game: flag set, affection
 ## up, and band 6's own story flag. Kota's second and third read both ways, with and without
 ## his carp promise; band 6 also with and without the band 5 flags its lines look back on.
-const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle", "ichiro": "ichiro_mark", "genzo": "genzo_straw"}
+const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle", "ichiro": "ichiro_mark", "genzo": "genzo_straw", "haru": "haru_wave"}
 ## The flag each band 6 scene looks back on (Fumi's comes from her band 3 scene).
-const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest", "ichiro": "ichiro_kiln", "genzo": "genzo_jizo"}
+const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest", "ichiro": "ichiro_kiln", "genzo": "genzo_jizo", "haru": "haru_go"}
 
 func _heart_events_play() -> void:
 	for id in Villagers.friends():
@@ -547,7 +546,8 @@ func _heart_events_play() -> void:
 	var looks := {"tome": ["grandchild", "nag it"], "kota": ["promise", "Nobody else"],
 		"sayo": ["new sign", "minding his store"], "fumi": ["bean paste", "owed to her"],
 		"ichiro": ["dug the clay", "never said thanks"],
-		"genzo": ["watched you tie", "let the jizo go without"]}
+		"genzo": ["watched you tie", "let the jizo go without"],
+		"haru": ["Nobody holding the door", "eleven times"]}
 	for id in looks:
 		d = DialogueRunner.open("heart_events_6", {FIVE_FLAGS[id]: true}, id)
 		_next_line(d)
@@ -701,6 +701,13 @@ func _haru_friend() -> void:
 	for at in ["haru_stay", "haru_go"]:
 		var d := DialogueRunner.open("heart_events_5", {}, at)
 		check(d.error == "" and d.text() != "", "%s has its line" % at)
+	# Band 5's answers leave a mark that band 6 looks back on; band 6 sets its flags and has both tag answers.
+	var five_text := FileAccess.get_file_as_string("res://data/dialogue/heart_events_5.json")
+	check('"set": {"haru_stay": true}' in five_text and '"set": {"haru_go": true}' in five_text, "Haru's band 5 answers set haru_stay / haru_go")
+	for at in ["haru_place", "haru_name", "haru_end"]:
+		var d := DialogueRunner.open("heart_events_6", {}, at)
+		check(d.error == "" and d.text() != "", "%s has its line" % at)
+	check("haru_wave" in FileAccess.get_file_as_string(EventRunner.DIR + "heart_haru_6.json"), "Haru's band 6 sets haru_wave")
 	check("seeds:cucumber" in FileAccess.get_file_as_string(EventRunner.DIR + "heart_haru.json"), "Haru gives cucumber seed at band 3")
 	check("Haru, she'll want some" in FileAccess.get_file_as_string("res://data/dialogue/heart_events.json"), "Genzo calls Haru she")
 	# The record: Haru counts as a friend, so she no longer makes a Neighbours row.

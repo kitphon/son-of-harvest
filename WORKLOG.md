@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — Haru's band 6 scene and her dear lines
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: `heart_haru_6` (data/events, lines in heart_events_6.json): the city shop wrote again, this
+  time to sell her sandals on its shelf with a tag, posted from Sayo's store; a line of its own
+  for the band 5 answer (`haru_go`: "nobody holding the door"; otherwise the Genzo / rack line),
+  the farmer picks the tag (place or name, `haru_tag`), and she asks the farmer to wave back from
+  the field. Sets `heart_haru_6` and `haru_wave`. Band 5's stay / go choices now set `haru_stay` /
+  `haru_go`. Rows in triggers_kaminoda, hill, haru_house and town; music rule; three `dear_` talk
+  lines at band 6 after the scene; Thai for every new line. test_relationships covers the scene,
+  rows, flags, both branches, tag lines and dear lines (Haru joins the generic band 6 loops).
+- Checked: `--import`, then all 28 tests/test_*.gd print `OK (0 failed)`; smoke runs (title,
+  `--demo`, `--map=town`, `--mine=3`, `--demo --map=kaminoda --event=heart_haru_6`) print no
+  error or warning. No screenshot taken.
+- Left / next: hearts for Shige, Nana or Kiku; `haru_wave` / `haru_tag` are only flags so far
+  (nothing in the world reads them).
+
 ## 2026-11-06 — Merge: hearts for Haru, the kiln's building stage, the chore talk before noon
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents worked in parallel worktrees, each on a model picked by difficulty:

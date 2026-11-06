@@ -269,7 +269,7 @@ and a sweet of the season sold nowhere else, while she is behind her counter). F
 (data/forage.json: fifteen spots on the bamboo hill, what grows changes by the season, a picked
 spot grows back overnight; README → Forage). The village record has a Neighbours
 row (the villagers without hearts known to band 1; four now; five before Haru got hearts, six before Genzo did, eight before Fumi and Ichiro did).
-Haru of Kaminoda has hearts now too (birthday summer 27, close lines, heart events at bands 3 and 5, a word at the ending; Neighbours four now). Later for hearts: Haru's band 6 scene; hearts for Shige, Nana or Kiku the same way (README → Villagers says what a friend needs). Shige, Genzo, Haru, Ichiro and Nana are
+Haru of Kaminoda has hearts now too (birthday summer 27, close lines, heart events at bands 3, 5 and 6, a word at the ending; Neighbours four now). Later for hearts: hearts for Shige, Nana or Kiku the same way (README → Villagers says what a friend needs). Shige, Genzo, Haru, Ichiro and Nana are
 contest rivals (one in every contest and game). Forage spots are in the three outer parts too
 (their own wild things: water dropwort, sansho, mulberries, ginkgo nuts and more). Wild things
 cook: six recipes of wild greens, mushrooms, bamboo shoots, chestnuts and matsutake (Haru, Genzo
