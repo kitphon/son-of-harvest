@@ -49,6 +49,8 @@ The full style roadmap, the rules for making pieces and how to continue: docs/AR
 as lit meshes (scripts/world3d/outdoor_props.gd).
 [x] The sun's colour and angle follow the clock outdoors: low and golden morning and evening,
 high and plain at noon (data/light.json "sun", README → Light).
+[x] Trailer-ready screenshots: 12 fixed views (data/showcase.json), rendered and compared by
+tools/showcase.py (README → Showcase).
 Next: section 3's open night item (real lights / a lighter tint, festival stalls lighting the
 ground), then the optional mountain backdrop and haze. "ทำ art direction ต่อ" from the user
 means take the next unticked item in docs/ART_DIRECTION.md.
