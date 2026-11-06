@@ -20,6 +20,7 @@ var occluders := Occluders.new()
 var surroundings: Surroundings   # the land past the map's edge (outdoors)
 var backdrop: Backdrop           # the far mountain ridges past it (data/backdrop.json maps; else null)
 var tufts: GrassTufts            # grass tufts on the grass cells (outdoors)
+var wind := 0.0                  # 0 calm .. 1 a gale (set_wind)
 var _tuft_cells: Array[Vector2i] = []
 var crops: CropClusters          # tall crops (rice, corn) as clusters of small sprites; the village paddies' rice
 ## House windows and shoji doors that light up at night (NightLights draws them over the night tint):
@@ -221,6 +222,18 @@ func add_tufts() -> void:
 	tufts = GrassTufts.new()
 	add_child(tufts)
 	_snow_mats.append(tufts.snow_material())
+	tufts.set_wind(wind)
+
+
+## The wind, 0 (calm) .. 1 (a gale), pushed to the grass tufts' shader and the bamboo sway
+## (data/wind.json through Game.wind_strength; main_3d sets it each morning and on a map change).
+func set_wind(strength: float) -> void:
+	wind = clampf(strength, 0.0, 1.0)
+	if tufts != null:
+		tufts.set_wind(wind)
+	var sway := get_node_or_null("BambooSway") as OutdoorProps.Sway
+	if sway != null:
+		sway.wind = wind
 
 
 ## The tall crops' clusters (CropClusters); FarmWorld plants them with the field, MapWorld

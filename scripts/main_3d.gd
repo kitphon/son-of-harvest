@@ -232,6 +232,7 @@ func _show_weather() -> void:
 	weather.show_weather({} if Game.sheltered() else Game.weather_style())
 	lightning.reset({} if Game.sheltered() else Game.lightning_style())
 	world.set_snow(Game.snow_cover / 100.0)
+	world.set_wind(0.0 if Game.sheltered() else Game.wind_strength())
 
 
 func _unhandled_input(event: InputEvent) -> void:

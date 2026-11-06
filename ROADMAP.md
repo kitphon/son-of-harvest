@@ -48,6 +48,8 @@ the wood as MultiMeshes (scripts/world3d/trees.gd).
 [x] The coop's and barn's insides as lit meshes (scripts/world3d/coop_props.gd, barn_props.gd).
 [x] Bamboo (segmented, swaying, by season, snowy) and the well, jizo, woodpile and river rock
 as lit meshes (scripts/world3d/outdoor_props.gd).
+[x] Wind follows the weather: data/wind.json per weather, pushed to the grass tufts and the bamboo sway
+(a calm sunny day, medium in rain, strong in a storm or blizzard; docs/ART_DIRECTION.md, the table).
 [x] The drying rack, kitchen garden and board fence (scripts/world3d/field_props.gd) and every festival
 decoration (scripts/world3d/festival_meshes.gd) as lit meshes.
 [x] The sun's colour and angle follow the clock outdoors: low and golden morning and evening,

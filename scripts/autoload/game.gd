@@ -122,11 +122,12 @@ var first_day: Dictionary = {"values": {}, "field": {}}   # {values, field} meas
 var year_pages: Dictionary = {}    # year -> the village record's page written that New Year (Ending.page_of)
 
 ## The data tables loaded in _ready (not saved). SaveGame.check gives a scratch Game these.
-const DATA_TABLES := ["crops", "weather_chances", "weather_fx", "tools_data", "snow_rules", "body",
+const DATA_TABLES := ["crops", "weather_chances", "weather_fx", "wind_rules", "tools_data", "snow_rules", "body",
 	"food_data", "foods", "hold_rules", "fish_data", "mine_data"]
 var crops: Dictionary = {}
 var weather_chances: Dictionary = {}
 var weather_fx: Dictionary = {}    # look per weather: tint, falling particles, lightning
+var wind_rules: Dictionary = {}    # data/wind.json: how strong the wind blows per weather look
 var light_rules: Dictionary = {}   # data/light.json: the day / night sky and lit windows
 var tools_data: Dictionary = {}    # data/tools.json: charge steps per tool
 var snow_rules: Dictionary = {}    # how snow builds up and melts (data/snow_cover.json)
@@ -161,6 +162,7 @@ func _ready() -> void:
 	crops = _load_json("res://data/crops.json")
 	weather_chances = _load_json("res://data/weather.json")
 	weather_fx = _load_json("res://data/weather_fx.json")
+	wind_rules = _load_json("res://data/wind.json")
 	tools_data = _load_json("res://data/tools.json")
 	snow_rules = _load_json("res://data/snow_cover.json")
 	body = _load_json("res://data/body.json")
@@ -844,6 +846,17 @@ static func weather_look(weather: String, season_id: String) -> String:
 
 func weather_style() -> Dictionary:
 	return weather_fx.get(weather_look(weather_today, season_name()), {})
+
+
+## The wind today, 0 (dead calm) .. 1 (a gale): data/wind.json by today's look. Views push it
+## to the grass tufts and the bamboo sway (FarmWorld.set_wind).
+func wind_strength() -> float:
+	return wind_for(weather_look(weather_today, season_name()), wind_rules)
+
+
+## The strength of one look in a wind table (data/wind.json "strength"), 0 when it has none.
+static func wind_for(look: String, rules: Dictionary) -> float:
+	return clampf(float((rules.get("strength", {}) as Dictionary).get(look, 0.0)), 0.0, 1.0)
 
 
 ## Lightning for today's look ({} when there is none, or flashes are turned off).

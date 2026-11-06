@@ -22,15 +22,19 @@ const SHADER := "shader_type spatial;\nrender_mode cull_disabled;\n" + SnowLayer
 uniform vec3 tip : source_color = vec3(0.55, 0.8, 0.35);
 uniform float sun_share = 0.7;
 uniform float sway = 0.035;
+uniform float wind = 0.0;   // 0 dead calm .. 1 a gale (data/wind.json, FarmWorld.set_wind)
 void vertex() {
 	vec3 root = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 	if (snow_at(root.xz, cover * INSTANCE_CUSTOM.r) > 0.5) {
 		VERTEX = vec3(0.0);   // under snow: folded away
 	} else {
 		float k = COLOR.r * COLOR.r;
-		float t = TIME * 1.6 + root.x * 0.7 + root.z * 0.45;
-		VERTEX.x += sin(t) * sway * k;
-		VERTEX.z += sin(t * 0.8 + 1.3) * sway * 0.5 * k;
+		// Gusts: a slow swell and a quicker flutter, by place; none when the air is still.
+		float gust = 1.0 + wind * (0.8 * sin(TIME * 0.55 + root.x * 0.25) + 0.4 * sin(TIME * 1.7 + root.z * 0.5));
+		float t = TIME * (1.6 + 0.9 * wind) + root.x * 0.7 + root.z * 0.45;
+		float amp = sway * (1.0 + 1.5 * wind) * gust * k;
+		VERTEX.x += sin(t) * amp + wind * 0.02 * k;   // a lean downwind
+		VERTEX.z += sin(t * 0.8 + 1.3) * amp * 0.5;
 	}
 	COLOR.rgb = mix(tip * 0.8, tip, COLOR.r) * (0.9 + 0.2 * INSTANCE_CUSTOM.g);
 }
@@ -63,6 +67,11 @@ func _init() -> void:
 ## The tufts' material (FarmWorld keeps it with its snow so set_snow drives the cover).
 func snow_material() -> ShaderMaterial:
 	return material_override
+
+
+## The wind the tufts sway in, 0..1 (Game.wind_strength via FarmWorld.set_wind): the shader's `wind`.
+func set_wind(strength: float) -> void:
+	material_override.set_shader_parameter("wind", clampf(strength, 0.0, 1.0))
 
 
 ## Grows tufts on `cells` (grass cells); `hold_at(c)` is how much snow the cell holds.

@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — The wind follows the weather (grass tufts and bamboo)
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: `data/wind.json` gives a strength 0..1 per weather look (sunny 0.15, rain 0.5, snow 0.3,
+  storm 1.0, blizzard 0.9; there is no cloudy weather in weather.json). `Game.wind_strength()`
+  reads it by today's look (`Game.wind_for`, a winter storm is a blizzard). `Main3D._show_weather`
+  pushes it each morning and on a map change (0 when sheltered) through `FarmWorld.set_wind`:
+  the grass tufts' shader gets a `wind` uniform (tips swing about 1 + 1.5 x wind times as far,
+  the wave runs faster, a slow gust swell and a flutter, a small lean downwind), and the bamboo
+  sway (`OutdoorProps.Sway.wind`) gets the same lean, speed and gusts on the CPU. Wind 0 is the
+  old motion. Water, houses and fishing files untouched.
+- Checked: test_weather `_wind_by_weather`: every weather look has a strength; sunny < rain <
+  storm; calm, medium and strong from the data; a winter storm reads the blizzard strength; the
+  tufts' uniform set and reset; over 60 s the bamboo's reach is larger in rain than calm and in a
+  storm larger again (more than 2.5 times calm), and it turns more often; no wind keeps the old
+  amplitude; FarmWorld.set_wind sets both, and a sway made after it takes the wind. The test waits
+  one frame (the world scripts need the Game autoload). `--import` ran clean. `test_weather: OK (0
+  failed)`. All 28 tests/test_*.gd print `OK (0 failed)`. Smoke runs (title, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`) print no error or warning. Screenshots
+  `--demo --map=hill --weather=storm --no-flashes` and `--weather=sunny` (last frames): storm shows
+  rain on the hill with the bamboo at the right and the grass; the still frames show no clear
+  difference in the sway, which only moves in time, so the visible change is checked by the test.
+- Left / next: a short clip (Movie Maker, a few seconds) would show the storm's sway and gusts;
+  the banners, noren and the tall vine crops do not take the wind yet.
+
 ## 2026-11-06 — Merge: mountain backdrop, shared washi-and-wood UI, snow on bare branches
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three art-direction agents in parallel worktrees, models picked by difficulty:
