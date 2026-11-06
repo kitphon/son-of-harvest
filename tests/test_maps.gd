@@ -76,6 +76,9 @@ func _start_view() -> void:
 	root.add_child(_scene)
 	check(_entered == ["farm"], "the view says the farmer entered the farm %s" % [_entered])
 	_farm_world_ok = _scene.world.surroundings != null and _scene.world.occluders.count() == 4
+	var sun_now: Dictionary = g.sun_light()
+	check(is_equal_approx(_scene.sun.rotation_degrees.x, -sun_now.elevation) and is_equal_approx(_scene.sun.rotation_degrees.y, sun_now.yaw)
+		and _scene.sun.light_color == sun_now.color, "on the farm the sun follows the clock (%s)" % _scene.sun.rotation_degrees)
 	check(_scene.world.windows.size() == 4, "the farmhouse lights three windows and its door (%d)" % _scene.world.windows.size())
 	var lights := _scene.find_children("*", "Control", true, false).filter(func(n): return n.get_script() != null and n.get_script().resource_path.ends_with("night_lights.gd"))
 	check(lights.size() == 1, "the 3D view draws the lit windows")
@@ -99,6 +102,9 @@ func _check_view() -> void:
 	check(_scene.world.get_script().resource_path.ends_with("map_world.gd") and _scene.world.map.id == "house", "the view rebuilt as the house")
 	check(_farm_world_ok, "the farm has land past its fence and its house, stand, coop and barn can fade")
 	check(_scene.player.position == g.maps.pos and _scene.player.facing == Vector2i.UP, "the farmer stands at the house spawn")
+	var plain: Dictionary = g.sun_light(true)
+	check(is_equal_approx(_scene.sun.rotation_degrees.x, -plain.elevation) and is_equal_approx(_scene.sun.rotation_degrees.y, plain.yaw)
+		and _scene.sun.light_color == plain.color, "in the house the plain fixed sun (%s)" % _scene.sun.rotation_degrees)
 	var events: Array = _scene.get_children().filter(func(n): return n.get_script() != null and n.get_script().resource_path.ends_with("event_player.gd"))
 	check(events.size() == 1 and events[0].map_id == "house" and events[0].table.map_id == "house",
 		"the event triggers follow the map")

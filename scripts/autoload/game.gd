@@ -733,6 +733,59 @@ static func sky_at(m: int, keys: Array) -> Color:
 	return Color(str(keys[-1][1])) if not keys.is_empty() else Color.WHITE
 
 
+## The sun outdoors now (data/light.json "sun"): {elevation, yaw (degrees, the light's
+## rotation), color, energy}. Under a clouded sky (weather_fx.json "sun" below 1) its colour
+## goes back to the plain one, so a rainy evening is not golden. Rooms and mine floors
+## (`inside`) keep the plain fixed sun they always had.
+func sun_light(inside := false) -> Dictionary:
+	var rules: Dictionary = light_data().get("sun", {})
+	var plain := sun_plain(rules)
+	if inside:
+		return plain
+	var s := sun_at(hour * 60 + minute, rules.get("keys", []), plain)
+	s.color = (plain.color as Color).lerp(s.color, clampf(float(weather_style().get("sun", 1.0)), 0.0, 1.0))
+	return s
+
+
+## The plain sun of rooms and mine floors, also the night's (data/light.json "sun" "plain":
+## [elevation, yaw, colour, energy]).
+static func sun_plain(rules: Dictionary) -> Dictionary:
+	var p: Array = rules.get("plain", [48.0, -40.0, "ffedcc", 0.7])
+	return {"elevation": float(p[0]), "yaw": float(p[1]), "color": Color(str(p[2])), "energy": float(p[3])}
+
+
+## The sun at minute `m` of the day from [[minute, elevation, yaw, colour, energy], ...] keys,
+## each linear in between (held past the ends); `plain` with no keys.
+static func sun_at(m: int, keys: Array, plain := {}) -> Dictionary:
+	if keys.is_empty():
+		return plain.duplicate() if not plain.is_empty() else sun_plain({})
+	var a: Array = keys[-1]
+	var b: Array = keys[-1]
+	var t := 0.0
+	if m <= int(keys[0][0]):
+		a = keys[0]
+		b = keys[0]
+	else:
+		for i in range(1, keys.size()):
+			if m <= int(keys[i][0]):
+				a = keys[i - 1]
+				b = keys[i]
+				t = clampf(float(m - int(a[0])) / maxf(float(int(b[0]) - int(a[0])), 1.0), 0.0, 1.0)
+				break
+	return {
+		"elevation": lerpf(float(a[1]), float(b[1]), t),
+		"yaw": lerpf(float(a[2]), float(b[2]), t),
+		"color": Color(str(a[3])).lerp(Color(str(b[3])), t),
+		"energy": lerpf(float(a[4]), float(b[4]), t),
+	}
+
+
+## Which way a sun_light pose shines (unit vector, world space): the DirectionalLight3D's
+## -Z turned by rotation (-elevation, yaw, 0).
+static func sun_direction(s: Dictionary) -> Vector3:
+	return Basis.from_euler(Vector3(deg_to_rad(-float(s.elevation)), deg_to_rad(float(s.yaw)), 0.0)) * Vector3.FORWARD
+
+
 ## How brightly lit house windows glow now, 0..1 (data/light.json "windows").
 func window_light() -> float:
 	return window_glow(light_color(), hour * 60 + minute, light_data().get("windows", {}))

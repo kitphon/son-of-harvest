@@ -44,7 +44,10 @@ The full style roadmap, the rules for making pieces and how to continue: docs/AR
 (scripts/world3d/crop_clusters.gd).
 [x] Water: a gentle moving surface on the farm pond, the village pond and the river
 (scripts/world3d/water_surface.gd).
-Next: section 3 goes on with the morning and evening sun following the clock. "ทำ art direction ต่อ" from the user
+[x] The sun's colour and angle follow the clock outdoors: low and golden morning and evening,
+high and plain at noon (data/light.json "sun", README → Light).
+Next: section 3's open night item (real lights / a lighter tint, festival stalls lighting the
+ground), then the optional mountain backdrop and haze. "ทำ art direction ต่อ" from the user
 means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our
