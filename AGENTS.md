@@ -14,7 +14,7 @@ This file is for any coding agent. Claude Code also reads CLAUDE.md, which impor
    its NOTES.md for how a system works, then write our own version. Measured facts like the
    camera angles are allowed; say where they came from in a comment.
 2. **One finished task = one commit.** Record it in WORKLOG.md (and ROADMAP.md), then commit.
-   Push only when a remote exists (none yet, as of 2026-10-31).
+   Push to `origin` (https://github.com/kitphon/son-of-harvest, branch `main`) after each commit.
 3. **A task is finished only when** the tests pass, the game starts with no errors, and
    `git status -sb` shows a clean tree.
 4. **Never invent output.** Quote command output exactly. If something could not be run or

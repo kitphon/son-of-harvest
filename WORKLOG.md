@@ -10,6 +10,13 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — GitHub remote
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: added `origin` = https://github.com/kitphon/son-of-harvest.git (the user made the
+  repository) and pushed `main`; AGENTS.md rule 2 now says to push after each commit.
+- Checked: `git push -u origin main` succeeded; `git status -sb` shows main tracking origin/main.
+- Left / next: nothing for the remote.
+
 ## 2026-11-06 — Merge: spouse farm help, Ichiro / Genzo hearts, sky by the clock
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents worked in parallel worktrees: b4d5274 the spouse helps on the farm each
