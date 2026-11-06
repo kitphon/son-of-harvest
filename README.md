@@ -239,7 +239,10 @@ edge where boards or tatami meet the earth and a shoe stone below the door's ste
   smithy) use `irori`, `tokonoma`, `butsudan`, `zabuton` (`solid: false`, optional `color`),
   `byobu`, `toy_box` and `mizugame`, their 3D looks in `scripts/world3d/room_props.gd` (RoomProps, with all the rooms' furniture); a
   `village_house` prop's `side_door` (cells from the left) draws a second, plain door (Sayo's
-  rooms behind the store);
+  rooms behind the store); its look: `roof` ("gable" or "hip"), `storeys` (1, or 2: a low
+  upper floor over a tiled pent roof, with lit upstairs windows) and `wall` ("plaster",
+  "yakisugi" charred boards, "timber" earthen plaster between posts), unset: gable, 1,
+  plaster (LitSpots.village_style; `tools/house_model.gd --what=village --style=roof:hip,storeys:2`);
 - a prop with `flag` (a story flag name) only shows while that flag is set, or with
   `flag_value` too only while the flag has that value (MapManager.with_flags; a map is read
   again when one of its flags changes, and the views pick it up on the next map change). The

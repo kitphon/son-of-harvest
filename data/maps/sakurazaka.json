@@ -35,8 +35,8 @@
 		"ggggggggggggggwwgggggggggggggg"
 	],
 	"props": [
-		{"kind": "village_house", "cell": [4, 5], "size": [6, 3], "door": 3, "noren": true},
-		{"kind": "village_house", "cell": [20, 13], "size": [5, 3], "door": 2},
+		{"kind": "village_house", "cell": [4, 5], "size": [6, 3], "door": 3, "noren": true, "roof": "hip", "storeys": 2},
+		{"kind": "village_house", "cell": [20, 13], "size": [5, 3], "door": 2, "wall": "timber"},
 		{"kind": "stone_lantern", "cell": [13, 9]},
 		{"kind": "stone_lantern", "cell": [16, 9]},
 		{"kind": "stone_lantern", "cell": [13, 12]},

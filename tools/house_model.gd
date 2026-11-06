@@ -1,7 +1,8 @@
 extends SceneTree
 ## A farm building on its own: the farmhouse (FarmWorld._make_house: walls, engawa, the
 ## thatched Minka roof), or with `--what=coop` / `--what=barn` / `--what=village` the coop,
-## the barn or a village shop (their Minka.gable roofs), `--what=shrine` the town's shrine
+## the barn or a village shop (their Minka.gable roofs; add `--style=roof:hip,storeys:2,wall:timber`
+## for another look, the fields of a map's village_house), `--what=shrine` the town's shrine
 ## (Shrine: torii, hokora, stone lanterns), `--what=props` the bin, chest and seed stand
 ## (FarmProps): pictures of it from round about, and a .glb of it to open in Blender. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --path . --script res://tools/house_model.gd -- --shots=shots
@@ -39,6 +40,7 @@ var _cam: Camera3D
 var _shots := ""
 var _views: Array = VIEWS.keys()
 var _frame := 0
+var _style := {}   # --what=village: the house's look (LitSpots.village_style fields)
 
 
 func _init() -> void:
@@ -49,6 +51,11 @@ func _init() -> void:
 			_what = arg.trim_prefix("--what=")
 		elif arg.begins_with("--glb="):
 			_glb = "res://" + arg.trim_prefix("--glb=")
+		elif arg.begins_with("--style="):   # e.g. --style=roof:hip,storeys:2,wall:timber
+			for pair in arg.trim_prefix("--style=").split(",", false):
+				var kv := pair.split(":")
+				if kv.size() == 2:
+					_style[kv[0]] = int(kv[1]) if kv[1].is_valid_int() else kv[1]
 
 
 func _start() -> void:
@@ -62,7 +69,7 @@ func _start() -> void:
 			props.chest(_house)
 			props.bin(_house)
 			props.stand(_house)
-		"village": _house._village_house(Rect2(0, 0, 6, 3), 2, true, 4)   # like Sayo's store
+		"village": _house._village_house(Rect2(0, 0, 6, 3), 2, true, 4, _style)   # like Sayo's store, or `--style`
 		"shrine":
 			for p in SHRINE:
 				_house._make_prop(p)

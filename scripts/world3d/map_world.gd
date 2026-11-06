@@ -153,7 +153,7 @@ func _make_prop(p: Dictionary) -> void:
 		RoomProps.prop(self, p, mid, r)
 		return
 	match str(p.kind):
-		"village_house": _village_house(r, int(p.get("door", 1)), bool(p.get("noren", false)), int(p.get("side_door", -1)))
+		"village_house": _village_house(r, int(p.get("door", 1)), bool(p.get("noren", false)), int(p.get("side_door", -1)), LitSpots.village_style(p))
 		"torii": Shrine.torii(self, mid, r)
 		"hokora": Shrine.hokora(self, mid)
 		"stone_lantern": Shrine.stone_lantern(self, mid)
@@ -171,42 +171,119 @@ func _make_prop(p: Dictionary) -> void:
 			_box(Vector3(r.size.x, 0.5, r.size.y) * 0.9, mid + Vector3(0, 0.25, 0), flat_material(Color.MAGENTA))
 
 
-## A village house over its footprint: board skirting, plaster walls, a kawara gable roof
-## built as a mesh (Minka.gable with tile rolls, Minka.ridge curving up to its end tiles)
-## with the ridge along x, a shoji door on the front (+z) face at `door` cells from the left,
-## shoji windows, and an indigo noren over the door of a shop. `side_door` (cells from the
-## left, -1 for none) is a second, plain door: the way into the rooms behind a shop.
-func _village_house(r: Rect2, door: int, noren: bool, side_door := -1) -> void:
-	var timber := flat_material(Color("2e221a"))
+## A village house over its footprint, a shoji door on the front (+z) face at `door` cells
+## from the left, shoji windows, and an indigo noren over the door of a shop. `side_door`
+## (cells from the left, -1 for none) is a second, plain door: the way into the rooms behind
+## a shop. `style` (LitSpots.village_style, from the map prop) picks its look:
+##  - `roof`: a kawara gable (Minka.gable, plaster gable ends) or hip roof (Minka.hip), tile
+##    rolls and a ridge (Minka.ridge) curving up to its end tiles, along x;
+##  - `storeys` 2: a low upper floor (zushi-nikai) standing in LitSpots.UPPER_INSET from the
+##    walls below, a tiled pent roof (a hip roof whose top hides inside it) all round at the
+##    first floor's eaves, the main roof on the upper floor;
+##  - `wall`: plaster (a dark board skirt, white plaster), yakisugi (charred boards up to a
+##    plaster band under the eaves) or timber (earthen plaster between posts and rails).
+func _village_house(r: Rect2, door: int, noren: bool, side_door := -1, style := {}) -> void:
+	var roof := str(style.get("roof", "gable"))
+	var storeys := int(style.get("storeys", 1))
+	var finish := str(style.get("wall", "plaster"))
 	var back := r.position.y + 0.1
 	var front := LitSpots.village_front(r)
 	var depth := front - back
-	var mid_z := back + depth / 2
 	var cx := r.get_center().x
 	var wide := r.size.x - 0.2
-	# The roof (Minka.gable, kawara with tile rolls): eaves 0.35 past the long walls and 0.25
-	# past the gable ends, the soffit 1.45 high at the front eave, rising 0.5 a unit (about
-	# 27°, a gentle tile roof); the walls go up to the soffit, the gable ends are plaster.
+	# Eaves 0.35 past the walls (0.25 past a gable end), the soffit 1.45 high at the front eave,
+	# rising 0.5 a unit (about 27°, a gentle tile roof); the walls go up to the soffit.
 	var overhang := 0.35
 	var pitch := 0.5
 	var wall := 1.45 + overhang * pitch
-	_box(Vector3(wide, 0.5, depth), Vector3(cx, 0.25, mid_z), surface_material("build:board"))
-	_box(Vector3(wide, wall - 0.5, depth), Vector3(cx, 0.5 + (wall - 0.5) / 2, mid_z), surface_material("build:plaster"))
-	for x in [r.position.x + 0.1, cx, r.end.x - 0.1]:
-		_box(Vector3(0.1, wall, 0.08), Vector3(x, wall / 2, front + 0.02), timber)
-	_box(Vector3(wide + 0.06, 0.07, 0.06), Vector3(cx, wall - 0.03, front + 0.03), timber)
-	var eave := Rect2(cx - wide / 2 - 0.25, back - overhang, wide + 0.5, depth + overhang * 2)
-	var crest := Minka.gable(self, eave, 1.45, pitch, 0.14, "build:kawara", "build:kawara_edge", 0.25)
-	var apex := 1.45 + eave.size.y / 2 * pitch
-	for x in [cx - wide / 2 - 0.002, cx + wide / 2 + 0.002]:
-		Minka.gable_wall(self, x, back, front, wall, apex, "build:plaster", signf(x - cx))
-	Minka.ridge(self, eave.position.x + 0.05, eave.end.x - 0.05, crest - 0.04, mid_z)
+	var body := Rect2(cx - wide / 2, back, wide, depth)
+	_house_walls(body, 0.0, wall, finish, true)
+	if storeys < 2:
+		_house_roof(body, wall, overhang, pitch, roof, _gable_key(finish))
+	else:
+		# The pent roof round the first floor, then the upper floor standing in from it.
+		Minka.hip(self, body.grow(overhang), 1.45, pitch, 0.14, "build:kawara", "build:kawara_edge", 0.25)
+		var up := body.grow(-LitSpots.UPPER_INSET)
+		_house_walls(up, wall - 0.3, LitSpots.UPPER_TOP, "upper_" + finish, false)
+		_house_roof(up, LitSpots.UPPER_TOP, overhang, pitch, roof, _gable_key(finish))
 	var dx := r.position.x + door + 0.5
 	if noren:   # a shop's door stays dark at night: its noren hangs over the paper
 		_picture("build:shoji_door", Vector2(0.85, 1.05), Vector3(dx, 0.55, front + 0.005))
 		_picture("build:noren", Vector2(0.95, 0.36), Vector3(dx, 1.0, front + 0.03))
-	for spot in LitSpots.village_house(r, door, noren, side_door):
+	for spot in LitSpots.village_house(r, door, noren, side_door, storeys):
 		_lit_spot(spot)
+
+
+## The walls of a village house (or of its upper floor) over `body` (x / z), from `base` up to
+## `top`, in the finish `finish` (see _village_house; "upper_..." for an upper floor: plaster,
+## or the earthen plaster of the timber look), with the timber posts and beam on its front
+## (+z) face. `skirt`: a ground floor (its finish reaches the ground).
+func _house_walls(body: Rect2, base: float, top: float, finish: String, skirt: bool) -> void:
+	var timber := flat_material(Color("2e221a"))
+	var cx := body.get_center().x
+	var mid_z := body.get_center().y
+	var front := body.end.y
+	var size := Vector2(body.size.x, body.size.y)
+	var layer := func(key: String, y0: float, y1: float) -> void:
+		_box(Vector3(size.x, y1 - y0, size.y), Vector3(cx, (y0 + y1) / 2, mid_z), surface_material(key))
+	# Front posts: the corners and the middle (an upper floor's middle only when it is wide
+	# enough to keep it off the window there); the timber look has one at every cell's edge.
+	# Rails stay clear of the doors (up to 1.08) and the windows (0.85 .. 1.35).
+	var posts: Array = [body.position.x, body.end.x]
+	if skirt or size.x > 4.0:
+		posts.append(cx)
+	var rail := func(y: float) -> void:
+		_box(Vector3(size.x + 0.05, 0.07, size.y + 0.05), Vector3(cx, y, mid_z), timber)
+	match finish:
+		"yakisugi":   # charred boards most of the way up, a white band under the eaves
+			layer.call("build:board", base, top - 0.22)
+			layer.call("build:plaster", top - 0.22, top)
+			rail.call(top - 0.22)
+		"timber":   # earthen plaster over a low skirt, framed by a post at every cell's edge
+			layer.call("build:board", base, 0.35)
+			layer.call("build:tsuchi", 0.35, top)
+			rail.call(1.42)
+			posts = [body.position.x, body.end.x]
+			for x in range(int(ceil(body.position.x)), int(floor(body.end.x)) + 1):
+				if x > body.position.x + 0.3 and x < body.end.x - 0.3:
+					posts.append(float(x))
+			for z in [body.position.y + 0.02, front - 0.02]:   # the +x face's corner posts
+				_box(Vector3(0.06, top - base, 0.1), Vector3(body.end.x + 0.02, (base + top) / 2, z), timber)
+		"upper_timber":
+			layer.call("build:tsuchi", base, top)
+		"upper_plaster", "upper_yakisugi":
+			layer.call("build:plaster", base, top)
+		_:   # plaster over a board skirt
+			layer.call("build:board", base, base + 0.5)
+			layer.call("build:plaster", base + 0.5, top)
+	for x: float in posts:
+		_box(Vector3(0.1, top - base, 0.08), Vector3(x, (base + top) / 2, front + 0.02), timber)
+	_box(Vector3(size.x + 0.06, 0.07, 0.06), Vector3(cx, top - 0.03, front + 0.03), timber)
+
+
+## The texture of a gable end over walls of `finish`: earthen for the timber look, else plaster.
+static func _gable_key(finish: String) -> String:
+	return "build:tsuchi" if finish == "timber" else "build:plaster"
+
+
+## The kawara roof over walls `body` whose tops are at `wall`: eaves `overhang` out, rising
+## `pitch`; "hip" (Minka.hip) or a gable (Minka.gable, the ends 0.25 out, gable walls of
+## `gable_key`).
+func _house_roof(body: Rect2, wall: float, overhang: float, pitch: float, kind: String, gable_key := "build:plaster") -> void:
+	var low := wall - overhang * pitch
+	var mid_z := body.get_center().y
+	if kind == "hip":
+		var hip_eave := body.grow(overhang)
+		var hip_crest := Minka.hip(self, hip_eave, low, pitch, 0.14, "build:kawara", "build:kawara_edge", 0.25)
+		var ends := Minka.hip_ridge_ends(hip_eave)
+		Minka.ridge(self, ends.x, ends.y, hip_crest - 0.04, mid_z, 0.1, minf(0.8, (ends.y - ends.x) * 0.4))
+		return
+	var eave := Rect2(body.position.x - 0.25, body.position.y - overhang, body.size.x + 0.5, body.size.y + overhang * 2)
+	var crest := Minka.gable(self, eave, low, pitch, 0.14, "build:kawara", "build:kawara_edge", 0.25)
+	var apex := low + eave.size.y / 2 * pitch
+	for x in [body.position.x - 0.002, body.end.x + 0.002]:
+		Minka.gable_wall(self, x, body.position.y, body.end.y, wall, apex, gable_key, signf(x - body.get_center().x))
+	Minka.ridge(self, eave.position.x + 0.05, eave.end.x - 0.05, crest - 0.04, mid_z)
 
 
 ## A village pine (Trees.pine): it leans, its pads of needles set off to alternate sides;

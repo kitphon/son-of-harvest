@@ -31,10 +31,30 @@ static func village_front(r: Rect2) -> float:
 	return r.end.y - 0.15
 
 
+## How far the upper storey of a two-storey village house stands in from the walls below
+## (its pent roof fills the gap), how high its walls start and end, and its windows' middle.
+const UPPER_INSET := 0.3
+const UPPER_FLOOR := 1.915   # where the pent roof meets the upper wall
+const UPPER_TOP := 2.9
+const UPPER_WINDOW := 2.2   # under the main eave seen from the camera, over the pent roof
+
+
+## A village house's look, from its map prop: `roof` gable or hip, `storeys` 1 or 2, `wall`
+## plaster (white over a dark board skirt), yakisugi (charred boards up to a plaster band) or
+## timber (earthen plaster between exposed posts and rails). Unset fields take the plain look.
+static func village_style(p: Dictionary) -> Dictionary:
+	return {
+		"roof": str(p.get("roof", "gable")),
+		"storeys": clampi(int(p.get("storeys", 1)), 1, 2),
+		"wall": str(p.get("wall", "plaster")),
+	}
+
+
 ## A village house over footprint `r` (door cells from its left, a shop's noren door and a plain
 ## side door `side_door` cells from the left, -1 for none): the lit door (not under a noren),
-## the side door and the windows between.
-static func village_house(r: Rect2, door: int, noren: bool, side_door := -1) -> Array[Dictionary]:
+## the side door and the windows between; with two `storeys` also the upper windows over the
+## pent roof, in front and on the +x side.
+static func village_house(r: Rect2, door: int, noren: bool, side_door := -1, storeys := 1) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var back := r.position.y + 0.1
 	var front := village_front(r)
@@ -49,6 +69,12 @@ static func village_house(r: Rect2, door: int, noren: bool, side_door := -1) -> 
 		if absf(x + 0.5 - dx) > 1.2 and absf(x + 0.5 - sx) > 0.9 and (x - int(r.position.x)) % 2 == 1:
 			out.append(spot("build:shoji", Vector2(0.7, 0.5), Vector3(x + 0.5, 1.1, front + 0.005), SOUTH))
 	out.append(spot("build:shoji", Vector2(0.7, 0.5), Vector3(r.end.x - 0.1 + 0.005, 1.1, mid_z), EAST))
+	if storeys >= 2:
+		var up_front := front - UPPER_INSET + 0.005
+		var xs := [r.get_center().x] if r.size.x < 5 else [r.position.x + 1.5, r.end.x - 1.5]
+		for x: float in xs:
+			out.append(spot("build:shoji", Vector2(0.9, 0.34), Vector3(x, UPPER_WINDOW, up_front), SOUTH))
+		out.append(spot("build:shoji", Vector2(0.6, 0.34), Vector3(r.end.x - 0.1 - UPPER_INSET + 0.005, UPPER_WINDOW, mid_z), EAST))
 	return out
 
 
@@ -65,7 +91,8 @@ static func of_map(props: Array) -> Dictionary:
 		var r := Rect2(Vector2(p.cell), Vector2(p.size))
 		match str(p.kind):
 			"village_house":
-				windows.append_array(village_house(r, int(p.get("door", 1)), bool(p.get("noren", false)), int(p.get("side_door", -1))))
+				windows.append_array(village_house(r, int(p.get("door", 1)), bool(p.get("noren", false)), int(p.get("side_door", -1)),
+					village_style(p).storeys))
 			"stone_lantern":
 				lamps.append({"pos": lantern(Vector3(r.get_center().x, 0, r.get_center().y))})
 	return {"windows": windows, "lamps": lamps}

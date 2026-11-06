@@ -37,7 +37,7 @@ static func _make(key: String) -> Image:
 			return _item(parts[1])
 		"animal":   # animal:<chicken|chick|cow|calf|sheep|sheep_shorn|lamb|dog>:<idle|peck|walk|sick, dog: sit|held>:<frame>, side view facing left
 			return _animal(parts[1], parts[2], int(parts[3]))
-		"build":    # build:<plaster|board|kawara|kawara_edge|thatch|kaya|kaya_edge|hay|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
+		"build":    # build:<plaster|tsuchi|board|kawara|kawara_edge|thatch|kaya|kaya_edge|hay|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
 		"ground":   # ground:<grass|tilled|wet|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>
 			return _ground(parts[1], int(parts[2]))
@@ -1609,6 +1609,16 @@ static func _building(kind: String) -> Image:
 			img.fill(Color("eee8da"))
 			for i in 8:
 				_px(img, rng.randi_range(0, 13), rng.randi_range(0, 15), rng.randi_range(2, 3), 1, Color("e2dacb"))
+			return img
+		"tsuchi":
+			# Earthen wall plaster (tsuchikabe), warm ochre, with darker straw flecks and a few
+			# pale trowel strokes.
+			var img := _blank(16, 16)
+			img.fill(Color("c8a878"))
+			for i in 10:
+				_px(img, rng.randi_range(0, 14), rng.randi_range(0, 15), rng.randi_range(1, 2), 1, Color("a88a5c"))
+			for i in 6:
+				_px(img, rng.randi_range(0, 13), rng.randi_range(0, 15), 3, 1, Color("d4b88a"))
 			return img
 		"board":
 			# Charred dark cedar boards standing upright, 4 px wide, with lit edges.

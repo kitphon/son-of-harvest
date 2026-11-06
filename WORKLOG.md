@@ -10,6 +10,39 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Village house variety: hip roofs, two storeys, three wall finishes
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a `village_house` prop may set `roof` (gable / hip), `storeys` (1 / 2) and `wall`
+  (plaster / yakisugi / timber); `LitSpots.village_style` reads them (unset = the old look).
+  New `Minka.hip`: a kawara hip roof (one pitch all round, eave band, soffit, snow, tile rolls
+  on all four slopes stopped at the hips, a tiled crest down each hip) and `hip_ridge_ends`.
+  Two storeys: a tiled pent roof (a Minka.hip whose top hides inside the upper floor), the
+  upper floor 0.3 in from the walls up to 2.9 with the main roof on it, upstairs shoji in
+  LitSpots (lit at night, both views). Walls: plaster over a board skirt (as before), yakisugi
+  (charred boards up to a plaster band), timber (new `build:tsuchi` earthen plaster, a post at
+  every cell edge, a rail over the windows). `_village_house` split into `_house_walls` /
+  `_house_roof`. Data: town (Tome hip / timber, smithy 2 storeys / yakisugi, clinic hip, Kota
+  yakisugi, Sayo's store unchanged as its sign stands on the roof), Kaminoda (hip / timber,
+  yakisugi), Minamino (2 storeys, hip / yakisugi), Sakurazaka (teahouse hip / 2 storeys,
+  timber). `tools/house_model.gd --what=village --style=roof:hip,storeys:2,wall:timber`.
+- Checked: test_maps `_hip_roof` (faces wound right, upright faces outwards, eave 1.45, ridge
+  height, nothing past the eave line, rolls and hips at most 0.13 off the roof, rolls on the
+  hip ends, snow) and `_village_styles` (all 12 roof / storey / wall combinations: faces,
+  front eave, windows = LitSpots with 3 upstairs for two storeys, snow per roof, one fading
+  thing as tall as the house; every map house's fields known, the mix covers every value,
+  the store stays a one-storey gable; upper windows between the pent roof and the main eave's
+  shadow line). After `--import` all 28 tests/test_*.gd print `OK (0 failed)`; smoke runs
+  (title, `--demo`, `--map=town`, `--mine=3`, `--map=sakurazaka`, `--map=minamino`,
+  `--season=winter --map=kaminoda --snow=80`) print no error or warning. Before / after
+  screenshots at town@tome / smithy / clinic / kota / sayo, kaminoda@genzo / haru,
+  minamino@shige / kiku, sakurazaka@teahouse / ichiro, 20:00 and winter snow 80: the hip roofs
+  read with their hip ends, the two-storey houses with pent roof and upstairs windows (lit at
+  night), dark yakisugi and ochre timber walls read apart from white plaster; snow lies on the
+  hip ends and pent roofs. house_model front / left / back views of hip and two-storey looks.
+- Left / next: the roof snow still shows the top shader's patch holes (as before); upstairs
+  window pools land on the ground under the pent roof; the flat view's houses are unchanged
+  (only their upstairs window glows are new).
+
 ## 2026-11-06 — Merge: mountain backdrop, shared washi-and-wood UI, snow on bare branches
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three art-direction agents in parallel worktrees, models picked by difficulty:

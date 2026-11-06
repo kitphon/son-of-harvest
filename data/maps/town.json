@@ -58,7 +58,9 @@
 				5,
 				3
 			],
-			"door": 2
+			"door": 2,
+			"roof": "hip",
+			"wall": "timber"
 		},
 		{
 			"kind": "village_house",
@@ -71,7 +73,9 @@
 				3
 			],
 			"door": 2,
-			"noren": true
+			"noren": true,
+			"storeys": 2,
+			"wall": "yakisugi"
 		},
 		{
 			"kind": "village_house",
@@ -83,7 +87,8 @@
 				4,
 				3
 			],
-			"door": 2
+			"door": 2,
+			"roof": "hip"
 		},
 		{
 			"kind": "village_house",
@@ -95,7 +100,8 @@
 				5,
 				3
 			],
-			"door": 2
+			"door": 2,
+			"wall": "yakisugi"
 		},
 		{
 			"kind": "village_house",

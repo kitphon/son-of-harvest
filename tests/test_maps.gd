@@ -856,6 +856,136 @@ func _minka() -> void:
 	check(is_equal_approx(level, tops.get(4.2, -1.0)) and tops.get(0.0, 0.0) > level + 0.1
 		and tops.get(5.0, 0.0) > level + 0.1, "the ridge curls up at both ends (%s)" % [tops])
 	w.free()
+	_hip_roof()
+	_village_styles()
+
+
+## Every ArrayMesh face of `w`: [faces, wrongly wound, lowest y of a vertex past z `front`, highest y].
+func _mesh_faces(w: Node3D, front: float) -> Array:
+	var faces := 0
+	var wrong := 0
+	var low := 99.0
+	var high := -99.0
+	for n in w.get_children():
+		if n is MeshInstance3D and n.mesh is ArrayMesh and n.mesh.get_surface_count() > 0:
+			var arr: Array = n.mesh.surface_get_arrays(0)
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+			for i in range(0, v.size(), 3):
+				faces += 1
+				if (v[i + 1] - v[i]).cross(v[i + 2] - v[i]).dot(nm[i]) >= 0.0:
+					wrong += 1
+				for k in 3:
+					high = maxf(high, v[i + k].y)
+					if v[i + k].z > front:
+						low = minf(low, v[i + k].y)
+	return [faces, wrong, low, high]
+
+
+## The tiled hip roof (Minka.hip): faces wound to their normals, the upright ones (eave bands,
+## roll ends, the hips' end faces) facing out, the eave all round at its height, the ridge
+## height, tile rolls on all four slopes that stop at the hips (nothing stands more than the
+## hip crest off the roof surface), a snow layer driven by set_snow, and the ridge ends.
+func _hip_roof() -> void:
+	var minka: GDScript = load("res://scripts/world3d/minka.gd")
+	var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	var eave := Rect2(1.0, 1.0, 5.5, 3.45)
+	var crest: float = minka.hip(w, eave, 1.45, 0.5, 0.14, "build:kawara", "build:kawara_edge", 0.25)
+	check(is_equal_approx(crest, 1.45 + 3.45 / 2.0 * 0.5 + 0.14 + 0.06), "hip ridge height %.3f" % crest)
+	var f := _mesh_faces(w, eave.end.y - 0.01)
+	check(f[0] > 200 and f[1] == 0, "hip roof faces turned outwards (%d of %d wrong)" % [f[1], f[0]])
+	check(f[2] >= 1.45 - 0.001, "hip roof's front eave above the farmer's head (%.2f)" % f[2])
+	check(_walls_facing_in(w, eave.get_center()) == 0, "hip roof's eave bands, roll ends and hip ends face outwards")
+	# Off the roof surface: the height grows with the distance to the nearest eave line.
+	var above := 0.0
+	var outside := 0
+	var end_rolls := 0
+	for n in w.get_children():
+		if n is MeshInstance3D and n.mesh is ArrayMesh and n.material_override is StandardMaterial3D:
+			var arr: Array = n.mesh.surface_get_arrays(0)
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+			for i in v.size():
+				var p := v[i]
+				if not eave.grow(0.001).has_point(Vector2(p.x, p.z)):
+					outside += 1
+				var d := maxf(0.0, minf(minf(p.z - eave.position.y, eave.end.y - p.z), minf(p.x - eave.position.x, eave.end.x - p.x)))
+				above = maxf(above, p.y - (1.45 + 0.14 + d * 0.5))
+			for i in range(0, v.size(), 3):
+				if absf(nm[i].x) > 0.99 and minf(v[i].y, minf(v[i + 1].y, v[i + 2].y)) > 1.55 and v[i].y < 1.7:
+					end_rolls += 1   # a roll's round end on a hip end's eave
+	check(outside == 0, "nothing of the hip roof past its eave line (%d)" % outside)
+	check(above <= 0.13 + 0.001, "rolls and hips keep to the roof (%.3f above it at most)" % above)
+	check(end_rolls >= 10, "the hip ends carry tile rolls too (%d roll ends)" % end_rolls)
+	var snow := w.get_children().filter(func(n): return n is MeshInstance3D and n.material_override is ShaderMaterial and n.material_override in w._snow_mats)
+	check(snow.size() == 1, "the hip roof has a snow layer driven by set_snow")
+	var ends: Vector2 = minka.hip_ridge_ends(eave)
+	check(ends.x < eave.position.x + 3.45 / 2.0 and ends.y > eave.end.x - 3.45 / 2.0 and ends.x < ends.y,
+		"the main ridge reaches a little past the hips (%.2f .. %.2f)" % [ends.x, ends.y])
+	w.free()
+
+
+## The village houses' looks (LitSpots.village_style, MapWorld._village_house): defaults, every
+## map house's fields known, a mix across the villages, and each look built: faces outwards,
+## the front eave over the farmer, windows as LitSpots lays them, the upper ones seen between the
+## pent roof and the main eave, snow on every roof, one fading thing.
+func _village_styles() -> void:
+	var plain: Dictionary = LitSpots.village_style({})
+	check(plain == {"roof": "gable", "storeys": 1, "wall": "plaster"}, "a village house's plain look (%s)" % plain)
+	var seen := {}
+	var odd: Array = []
+	for id in ["town", "kaminoda", "minamino", "sakurazaka"]:
+		for p in MapManager.data(id).props:
+			if p.kind != "village_house":
+				continue
+			var s: Dictionary = LitSpots.village_style(p)
+			if not (s.roof in ["gable", "hip"] and s.wall in ["plaster", "yakisugi", "timber"] and int(p.get("storeys", 1)) in [1, 2]):
+				odd.append("%s %s" % [id, p.cell])
+			for k in s:
+				seen["%s=%s" % [k, s[k]]] = true
+	check(odd.is_empty(), "every village house's look is a known one %s" % [odd])
+	var want := ["roof=gable", "roof=hip", "storeys=1", "storeys=2", "wall=plaster", "wall=yakisugi", "wall=timber"]
+	check(want.all(func(k): return seen.has(k)), "the villages mix every roof, storey and wall (%s)" % [seen.keys()])
+	# Sayo's store keeps its one-storey gable: the new sign stands on its front slope.
+	for p in MapManager.data("town").props:
+		if p.kind == "village_house" and p.get("side_door", -1) >= 0:
+			var s: Dictionary = LitSpots.village_style(p)
+			check(s.roof == "gable" and s.storeys == 1, "the store under its roof sign stays a one-storey gable")
+	var r := Rect2(0, 0, 5, 3)
+	var heights := {}
+	for roof in ["gable", "hip"]:
+		for storeys in [1, 2]:
+			for wall in ["plaster", "yakisugi", "timber"]:
+				var style := {"roof": roof, "storeys": storeys, "wall": wall}
+				var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+				w.map = MapManager.data("town")
+				w.occlude(func(): w._village_house(r, 2, false, -1, style))
+				var front := LitSpots.village_front(r)
+				var f := _mesh_faces(w, front + 0.05)
+				var name := "%s / %d / %s" % [roof, storeys, wall]
+				var mid := Vector2(r.get_center().x, (r.position.y + 0.1 + front) / 2.0)
+				check(f[1] == 0 and _walls_facing_in(w, mid) == 0, "%s: faces turned and facing outwards" % name)
+				check(f[2] >= 1.45 - 0.001, "%s: front eave above the farmer's head (%.2f)" % [name, f[2]])
+				heights[name] = f[3]
+				var spots: Array = LitSpots.village_house(r, 2, false, -1, storeys)
+				var same: bool = spots.size() == w.windows.size()
+				for i in mini(spots.size(), w.windows.size()):
+					same = same and spots[i].pos.is_equal_approx(w.windows[i].pos) and spots[i].normal.is_equal_approx(w.windows[i].normal)
+				var uppers: Array = w.windows.filter(func(s): return s.pos.y > 2.0)
+				check(same and uppers.size() == (3 if storeys == 2 else 0), "%s: lit windows as LitSpots lays them (%d, %d upstairs)" % [name, w.windows.size(), uppers.size()])
+				var snowy := w.get_children().filter(func(n): return n is MeshInstance3D and n.material_override is ShaderMaterial and n.material_override in w._snow_mats)
+				check(snowy.size() == storeys, "%s: snow on each roof (%d)" % [name, snowy.size()])
+				check(w.occluders.count() == 1 and w.occluders.box_of(0).end.y >= f[3] - 0.01,
+					"%s: one thing that fades, as tall as the house" % name)
+				w.free()
+	# Upstairs windows: above where the pent roof meets the wall, below the line under the main
+	# eave seen from the camera (its eye slope about 0.5 along the diagonal).
+	var hide_below := LitSpots.UPPER_TOP - 0.35 * 0.5 - 0.35 * sqrt(2.0) * 0.5
+	var up: Dictionary = LitSpots.village_house(r, 2, false, -1, 2).back()
+	check(up.pos.y - up.size.y / 2 > LitSpots.UPPER_FLOOR and up.pos.y + up.size.y / 2 < hide_below,
+		"upper windows between the pent roof (%.2f) and the main eave's shadow line (%.2f)" % [LitSpots.UPPER_FLOOR, hide_below])
+	check(heights["gable / 2 / plaster"] > heights["gable / 1 / plaster"] + 0.8 and heights["hip / 1 / plaster"] <= heights["gable / 1 / plaster"] + 0.3,
+		"two storeys stand taller; a hip roof about as tall as a gable (%s)" % [heights])
 
 
 ## The shrine pieces (Shrine): every mesh face turned to its normal, the lantern's facets

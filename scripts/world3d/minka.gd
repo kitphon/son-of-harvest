@@ -173,6 +173,152 @@ static func gable(w: FarmWorld, eave: Rect2, low: float, pitch: float, thick: fl
 	return crest
 
 
+## A hip roof (yosemune) of clay tiles over `eave` (x / z of its outer edge, wider than deep,
+## the ridge along x): four slopes of one `pitch` (so the hips run at 45 degrees seen from
+## above), the trimmed eave band all round, the soffit, a snow layer and a low tiled ridge
+## (kudari-mune) down each hip. The soffit is at `low` all round the eaves. With `rolls` > 0
+## every slope carries raised rows of round tiles that far apart, stopped at the hips. Adds its
+## meshes to `w` and returns the outer height at the ridge, where the caller lays the main
+## ridge (Minka.ridge from `hip_ridge_ends`).
+static func hip(w: FarmWorld, eave: Rect2, low: float, pitch: float, thick: float,
+		roof_key: String, edge_key: String, rolls := 0.0) -> float:
+	var x0 := eave.position.x
+	var x1 := eave.end.x
+	var z0 := eave.position.y
+	var z1 := eave.end.y
+	var half := (z1 - z0) / 2.0
+	var zm := z0 + half
+	var top := low + half * pitch
+	var rx0 := x0 + half
+	var rx1 := x1 - half
+	var run := sqrt(1.0 + pitch * pitch)
+	var outer := SurfaceTool.new()
+	var band := SurfaceTool.new()
+	var under := SurfaceTool.new()
+	var snow := SurfaceTool.new()
+	var hips := SurfaceTool.new()
+	for st in [outer, band, under, snow, hips]:
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+
+	var slopes := func(st: SurfaceTool, lift: float, sign: float) -> void:
+		var e := low + lift
+		var r := top + lift
+		var a := Vector3(x0, e, z1)
+		var b := Vector3(x1, e, z1)
+		var c := Vector3(rx1, r, zm)
+		var d := Vector3(rx0, r, zm)
+		quad(st, a, b, c, d, Vector3(0, 1, pitch).normalized() * sign,
+			func(p: Vector3) -> Vector2: return Vector2(p.x - x0, (p.z - zm) * run))
+		quad(st, Vector3(x1, e, z0), Vector3(x0, e, z0), d, c, Vector3(0, 1, -pitch).normalized() * sign,
+			func(p: Vector3) -> Vector2: return Vector2(x1 - p.x, (zm - p.z) * run))
+		tri(st, Vector3(x0, e, z0), a, d, Vector3(-pitch, 1, 0).normalized() * sign,
+			func(p: Vector3) -> Vector2: return Vector2(p.z - z0, (rx0 - p.x) * run))
+		tri(st, b, Vector3(x1, e, z0), c, Vector3(pitch, 1, 0).normalized() * sign,
+			func(p: Vector3) -> Vector2: return Vector2(z1 - p.z, (p.x - rx1) * run))
+	slopes.call(outer, thick, 1.0)
+	slopes.call(under, 0.0, -1.0)
+	var corners := [Vector3(x0, 0, z1), Vector3(x1, 0, z1), Vector3(x1, 0, z0), Vector3(x0, 0, z0)]
+	for i in 4:
+		_eave_band(band, corners[i], corners[(i + 1) % 4], low, thick, 0.0)
+
+	# A point on the outer roof `up` above it: every slope rises `pitch` a unit in from its eave,
+	# so the height goes with the distance to the nearest eave line.
+	var lift := func(x: float, z: float, up: float) -> Vector3:
+		var dist := minf(minf(z - z0, z1 - z), minf(x - x0, x1 - x))
+		return Vector3(x, low + thick + maxf(dist, 0.0) * pitch + up, z)
+	var crest := top + thick
+	if rolls > 0.0:
+		var high := 0.06
+		var wide := rolls * 0.45
+		# Front and back: rolls along z from the eave up to the ridge or the hip.
+		var count := int((x1 - x0) / rolls)
+		var shift := ((x1 - x0) - count * rolls) / 2.0
+		for side: float in [1.0, -1.0]:
+			var ze := zm + half * side
+			for i in count:
+				var x := x0 + shift + rolls / 2.0 + i * rolls
+				var reach := minf(half, minf(x - x0, x1 - x) - wide / 2.0)   # how far up before the hip
+				if reach < 0.15:
+					continue
+				var zt := ze - side * reach
+				_roll(outer, band, lift, Vector3(x, 0, ze), Vector3(x, 0, zt), Vector3(1, 0, 0), wide, high, Vector3(0, 0, side))
+		# The hip ends: rolls along x from the eave in to the hips.
+		var n_end := int((z1 - z0) / rolls)
+		var shift_z := ((z1 - z0) - n_end * rolls) / 2.0
+		for side: float in [1.0, -1.0]:
+			var xe := x1 if side > 0.0 else x0
+			for i in n_end:
+				var z := z0 + shift_z + rolls / 2.0 + i * rolls
+				var reach := minf(z - z0, z1 - z) - wide / 2.0
+				if reach < 0.15:
+					continue
+				_roll(outer, band, lift, Vector3(xe, 0, z), Vector3(xe - side * reach, 0, z), Vector3(0, 0, 1), wide, high, Vector3(side, 0, 0))
+		crest += high
+	slopes.call(snow, thick + (0.09 if rolls > 0.0 else 0.03), 1.0)
+
+	# The hip ridges: a low tiled crest from each eave corner up to the ridge end, its two faces
+	# leaning off the hip line and a little end facing out at the corner.
+	for eave_corner: Vector2 in [Vector2(x0, z1), Vector2(x1, z1), Vector2(x1, z0), Vector2(x0, z0)]:
+		var end := Vector2(rx0 if eave_corner.x < (x0 + x1) / 2.0 else rx1, zm)
+		var along := (end - eave_corner).normalized()
+		var corner := eave_corner + along * 0.13   # in from the corner, so its sides stay on the roof
+		var side := Vector2(-along.y, along.x) * 0.09
+		var steps := 6
+		for k in steps:
+			var p := corner.lerp(end, float(k) / steps)
+			var q := corner.lerp(end, float(k + 1) / steps)
+			var pc: Vector3 = lift.call(p.x, p.y, 0.13)
+			var qc: Vector3 = lift.call(q.x, q.y, 0.13)
+			for s: float in [-1.0, 1.0]:
+				var pf: Vector3 = lift.call(p.x + side.x * s, p.y + side.y * s, 0.02)
+				var qf: Vector3 = lift.call(q.x + side.x * s, q.y + side.y * s, 0.02)
+				var n := (qc - pc).cross(pf - pc).normalized()
+				if n.y < 0.0:
+					n = -n
+				quad(hips, pf, pc, qc, qf, n, func(_p: Vector3) -> Vector2: return Vector2.ZERO)
+		var out := Vector3(-along.x, 0, -along.y)
+		tri(hips, lift.call(corner.x + side.x, corner.y + side.y, 0.0), lift.call(corner.x - side.x, corner.y - side.y, 0.0),
+			lift.call(corner.x, corner.y, 0.13), out, func(_p: Vector3) -> Vector2: return Vector2.ZERO)
+
+	for pair in [[outer, _material(roof_key)], [under, _material(roof_key)], [band, _material(edge_key)]]:
+		add_mesh(w, pair[0], pair[1])
+	add_mesh(w, hips, plain(Color("4a5058")))
+	var snow_mat := SnowLayer.top_material()
+	w._snow_mats.append(snow_mat)
+	add_mesh(w, snow, snow_mat).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return crest
+
+
+## Where a hip roof over `eave` lays its main ridge: [x from, x to], a little past the hips.
+static func hip_ridge_ends(eave: Rect2) -> Vector2:
+	var half := eave.size.y / 2.0
+	return Vector2(eave.position.x + half - 0.15, eave.end.x - half + 0.15)
+
+
+## One row of round tiles on a roof whose surface `lift` gives, from `foot` at the eave to `top`
+## (x / z; y ignored), `wide` across along `across`: two faces leaning off the crown, and the
+## round tile end facing `face` (out of the eave) on `band`.
+static func _roll(outer: SurfaceTool, band: SurfaceTool, lift: Callable, foot: Vector3, top: Vector3,
+		across: Vector3, wide: float, high: float, face: Vector3) -> void:
+	var at := func(p: Vector3, off: float, up: float) -> Vector3:
+		var q := p + across * off
+		return lift.call(q.x, q.z, up)
+	var up_slope := Vector3(top.x - foot.x, 0, top.z - foot.z).normalized()
+	var slope_uv := func(p: Vector3) -> Vector2:   # u across the roll, v down the slope
+		return Vector2(p.dot(across), -(p - foot).dot(up_slope) * 1.1)
+	var ce: Vector3 = at.call(foot, 0.0, high)
+	for lean: float in [-1.0, 1.0]:
+		var fe: Vector3 = at.call(foot, lean * wide / 2.0, 0.0)
+		var fr: Vector3 = at.call(top, lean * wide / 2.0, 0.0)
+		var cr: Vector3 = at.call(top, 0.0, high)
+		var n := (cr - ce).cross(fe - ce).normalized()
+		if n.y < 0.0:
+			n = -n
+		quad(outer, fe, ce, cr, fr, n, slope_uv)
+	tri(band, at.call(foot, -wide / 2.0, 0.0), at.call(foot, wide / 2.0, 0.0), ce, face,
+		func(p: Vector3) -> Vector2: return Vector2((p - foot).dot(across) + 0.125, (ce.y - p.y) * 3.0))
+
+
 ## A tiled ridge along x from `x0` to `x1`, sitting at height `y` over z = `z`: a dark stack
 ## of ridge tiles (noshi) under a rounded grey cap, both sweeping up by `curl` over the last
 ## `sweep` units at each end (rising with the square of the way in, so the curve starts

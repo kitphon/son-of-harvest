@@ -30,6 +30,7 @@ the user picked "medium", now the game's lens. [x] Modelled sample: the farmhous
 kayabuki roof (scripts/world3d/minka.gd, README → Farmhouse model, models/farmhouse.glb).
 [x] The coop (thatch) and barn (kawara with tile rolls) roofs as meshes (`Minka.gable`).
 [x] The village houses' kawara roofs as meshes, ridges curling up to onigawara (`Minka.ridge`).
+[x] Village house variety: hip roofs (`Minka.hip`), two storeys with a pent roof, yakisugi and timber walls (data/maps fields).
 [x] The shrine pieces as meshes (scripts/world3d/shrine.gd: torii, hokora, stone lanterns).
 [x] The seed stand, chest and bin by the farmhouse as meshes (scripts/world3d/farm_props.gd).
 [x] Interiors: walls as timber frames, low front sills, step edges and a shoe stone, soft
