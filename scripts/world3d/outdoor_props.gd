@@ -401,10 +401,12 @@ static func _tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, n: Vector3
 
 ## A tapering tube from `base` along `dir` (a unit vector), a flat-faced prism of `sides`
 ## sides through the profile `prof` (Vector2 radius, distance along dir), open at its ends;
-## `col` paints it (for vertex colour materials; ignored by plain ones).
-static func _tube(st: SurfaceTool, base: Vector3, dir: Vector3, prof: Array, sides: int, col: Color) -> void:
+## `col` (a Color, or null for none) paints it for vertex colour materials; a SurfaceTool must
+## take colours on all its vertices or none.
+static func _tube(st: SurfaceTool, base: Vector3, dir: Vector3, prof: Array, sides: int, col: Variant = null) -> void:
 	var basis := Basis(Quaternion(Vector3.UP, dir)) if dir.cross(Vector3.UP).length() > 0.0001 else Basis.IDENTITY
-	st.set_color(col)
+	if col is Color:
+		st.set_color(col)
 	for i in prof.size() - 1:
 		var p: Vector2 = prof[i]
 		var q: Vector2 = prof[i + 1]

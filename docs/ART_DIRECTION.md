@@ -102,9 +102,17 @@ Light and Farmhouse model hold the technical detail of what is built.
       (test_maps `_stable_props`). (this commit)
       Still open: the stalls have no straw bedding mesh (the floor tile is the straw).
 - [x] The outdoor small props: well, jizo, woodpile and river rock as lit meshes
-      (`outdoor_props.gd`: OutdoorProps). (this commit) Still open: the other countryside
-      props in `country_props.gd` (drying rack, garden, board fence) and the festival props
-      still use boxes.
+      (`outdoor_props.gd`: OutdoorProps). (fb9b1d8)
+- [x] The rest of the countryside props and the festival decorations as lit meshes: the rice
+      drying rack (lashed poles, paired rails, straw sheaves in fall), the kitchen garden (a
+      planked bed with ridges and rows of greens, cabbages and spring onions, bare in winter),
+      the board fence (`field_props.gd`: FieldProps); mats with their lunch, the stalls (counter,
+      posts, a cloth roof with a valance and a split curtain), the judges' table, lantern strings,
+      the drum stage and its drum, the moon offering, pampas, the standing lantern, New Year
+      bamboo, the bonfire, the mochi mortar and the race flag (`festival_meshes.gd`:
+      FestivalMeshes). Same cells, heights and lights as the boxes (test_maps `_field_props`,
+      `_festival_meshes`). (this commit) Still open: the stalls' wares are still pictures (sprites);
+      no wind on the banners and noren.
 
 ### 2. Nature
 - [x] Trees: stylized round crowns (several lumps, lit and shaded) for broadleaf trees; pines

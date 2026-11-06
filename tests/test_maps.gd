@@ -45,6 +45,8 @@ func _process(delta: float) -> bool:
 		_stable_props()
 		_trees()
 		_outdoor_props()
+		_field_props()
+		_festival_meshes()
 		_grass()
 		_crop_clusters()
 		_water()
@@ -1194,6 +1196,135 @@ func _outdoor_props() -> void:
 		var want_clumps: int = MapManager.data(id).props.filter(func(p): return p.kind == "bamboo").size()
 		check(clumps == want_clumps and stray == 0, "%s: %d bamboo meshes for %d clumps, %d boxes / cylinders left in the props' cells" % [id, clumps, want_clumps, stray])
 		m.free()
+
+
+## What a built world holds: mesh instances only as ArrayMeshes (no BoxMesh / cylinder / sphere
+## left), triangles facing their normals, the bounds in world space, the snow-driven skins and
+## the unshaded (glow) ones.
+func _mesh_report(w: Node3D) -> Dictionary:
+	var out := {"bad": 0, "tris": 0, "lo": Vector3(1e9, 1e9, 1e9), "hi": Vector3(-1e9, -1e9, -1e9), "snow": 0, "unlit": 0, "prim": 0}
+	for n in w.get_children():
+		if not n is MeshInstance3D:
+			continue
+		if not n.mesh is ArrayMesh:
+			out.prim += 1
+			continue
+		var mat: Material = n.material_override
+		if mat is ShaderMaterial:
+			out.snow += 1
+		elif mat is StandardMaterial3D and mat.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED:
+			out.unlit += 1
+		var arr: Array = n.mesh.surface_get_arrays(0)
+		var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+		for i in range(0, v.size(), 3):
+			out.tris += 1
+			var c := (v[i + 1] - v[i]).cross(v[i + 2] - v[i])
+			if c.length() > 1e-9 and c.dot(nm[i]) >= 0.0:
+				out.bad += 1
+		for q in v:
+			var gq: Vector3 = n.transform * q
+			out.lo = out.lo.min(gq)
+			out.hi = out.hi.max(gq)
+	return out
+
+
+## The farm-country props (FieldProps): the drying rack, the kitchen garden and the board fence
+## as lit meshes on every map that has them, inside their cells and as high as the boxes were,
+## their faces turned out, no box left on the maps, snow only where it lies, the fall straw on
+## the rack, the winter garden bare.
+func _field_props() -> void:
+	var fp: GDScript = load("res://scripts/world3d/field_props.gd")
+	var new_world := func() -> Node3D:
+		return load("res://scripts/world3d/farm_world.gd").new()
+	var tris := {}
+	var seen := {}
+	for id in ["kaminoda", "minamino", "sakurazaka", "town"]:
+		for p in MapManager.data(id).props:
+			var kind := str(p.kind)
+			if not kind in ["hasa", "garden", "wood_fence"]:
+				continue
+			seen[kind] = true
+			var r := Rect2(Vector2(p.cell), Vector2(p.get("size", [1, 1])))
+			var mid := Vector3(r.get_center().x, 0, r.get_center().y)
+			for season in ["spring", "fall", "winter"]:
+				for snow in [false, true]:
+					var w: Node3D = new_world.call()
+					match kind:
+						"hasa": fp.hasa(w, r, mid, season, snow)
+						"garden": fp.garden(w, r, mid, season, snow)
+						_: fp.board_fence(w, r, mid, snow)
+					var f: Dictionary = _mesh_report(w)
+					var inside: bool = f.lo.x >= r.position.x - 0.03 and f.hi.x <= r.end.x + 0.03 and f.lo.z >= r.position.y - 0.03 and f.hi.z <= r.end.y + 0.03
+					var high := {"hasa": [1.4, 1.5], "garden": [0.12, 0.45], "wood_fence": [0.68, 0.78]}[kind] as Array
+					check(f.prim == 0 and f.unlit == 0 and f.bad == 0 and f.tris > 50 and inside and f.lo.y >= -0.01 and f.hi.y > high[0] and f.hi.y < high[1] and (f.snow > 0) == snow,
+						"%s %s %s (%s, snow %s): %d tris, %d primitives, %d unlit, %d facing faults, inside %s, %.2f..%.2f high, %d snow" % [id, kind, r, season, snow, f.tris, f.prim, f.unlit, f.bad, inside, f.lo.y, f.hi.y, f.snow])
+					if not snow:
+						tris["%s|%s|%d|%d" % [kind, season, r.size.x, r.size.y]] = f.tris
+					w.free()
+	check(seen.size() == 3, "all three kinds sit on the maps checked (%s)" % [seen.keys()])
+	var hasa_key := func(season: String) -> int:
+		for k in tris:
+			if k.begins_with("hasa|" + season):
+				return tris[k]
+		return 0
+	check(hasa_key.call("fall") > hasa_key.call("spring") + 1000, "the rack carries sheaves in fall (%d tris against %d in spring)" % [hasa_key.call("fall"), hasa_key.call("spring")])
+	var garden_key := func(season: String) -> int:
+		for k in tris:
+			if k.begins_with("garden|" + season):
+				return tris[k]
+		return 0
+	check(garden_key.call("winter") < garden_key.call("spring") / 2 and garden_key.call("winter") > 20, "the garden is bare in winter (%d tris against %d in spring)" % [garden_key.call("winter"), garden_key.call("spring")])
+	# On the maps themselves: no box left in the cells of these props.
+	for id in ["kaminoda", "minamino"]:
+		var m: Node3D = load("res://scripts/world3d/map_world.gd").new()
+		m.build(MapManager.data(id))
+		var rects: Array[Rect2] = []
+		for p in MapManager.data(id).props:
+			if str(p.kind) in ["hasa", "garden", "wood_fence"]:
+				rects.append(Rect2(Vector2(p.cell), Vector2(p.get("size", [1, 1]))))
+		var stray := 0
+		for n in m.get_children():
+			if n is MeshInstance3D and (n.mesh is BoxMesh or n.mesh is CylinderMesh or n.mesh is SphereMesh):
+				for r in rects:
+					if r.has_point(Vector2(n.position.x, n.position.z)) and n.position.y < 1.6:
+						stray += 1
+		check(not rects.is_empty() and stray == 0, "%s: %d boxes / cylinders left in the cells of %d racks, gardens and fences" % [id, stray, rects.size()])
+		m.free()
+
+
+## The festival decorations (FestivalMeshes): every prop of every festival as lit meshes only
+## (the paper of the lanterns and the flame unshaded), faces turned out, near their cells and as
+## tall as before, the lights (glows) listed as before, the wares still pictures.
+func _festival_meshes() -> void:
+	var fprops: GDScript = load("res://scripts/world3d/festival_props.gd")
+	var kinds := {}
+	var tall := {"stall": [1.5, 1.9], "judge_table": [1.25, 1.4], "lantern_line": [1.85, 2.0], "drum_stage": [1.5, 1.8], "moon_table": [0.6, 0.8],
+		"pampas": [1.3, 1.6], "paper_lantern": [1.4, 1.6], "kadomatsu": [1.2, 1.45], "bonfire": [0.5, 0.9], "mochi_usu": [0.8, 1.0],
+		"race_flag": [1.6, 1.8], "picnic_mat": [0.1, 0.25], "red_mat": [0.1, 0.25]}
+	for fest in Festivals.all():
+		var data: Dictionary = Festivals.get_festival(fest)
+		for p in data.get("props", []):
+			var kind := str(p.kind)
+			if not tall.has(kind):
+				continue
+			var fpn: Node3D = fprops.new(str(data.get("map", "town")))
+			fpn.festival = fest
+			fpn._make(p)
+			var r := Rect2(Vector2(p.cell[0], p.cell[1]), Vector2(p.get("size", [1, 1])[0], p.get("size", [1, 1])[1]))
+			var rep: Dictionary = _mesh_report(fpn)
+			var near: bool = rep.lo.x >= r.position.x - 0.6 and rep.hi.x <= r.end.x + 0.6 and rep.lo.z >= r.position.y - 0.7 and rep.hi.z <= r.end.y + 0.7
+			var band: Array = tall[kind]
+			kinds[kind] = true
+			check(rep.prim == 0 and rep.bad == 0 and rep.tris > 100 and near and rep.lo.y >= -0.03 and rep.hi.y >= band[0] and rep.hi.y <= band[1],
+				"%s %s at %s: %d tris, %d primitives, %d facing faults, near its cell %s, %.2f..%.2f high" % [fest, kind, r, rep.tris, rep.prim, rep.bad, near, rep.lo.y, rep.hi.y])
+			var glowing: bool = kind in ["stall", "lantern_line", "drum_stage", "paper_lantern", "bonfire"]
+			check((fpn.glows.size() > 0) == glowing, "%s: lights listed (%d)" % [kind, fpn.glows.size()])
+			# Unshaded parts exist only on the lantern paper and the flame.
+			var paper: bool = kind in ["stall", "lantern_line", "paper_lantern", "bonfire"]
+			check((rep.unlit > 0) == paper, "%s: %d unshaded parts" % [kind, rep.unlit])
+			fpn.free()
+	check(kinds.size() >= 12, "festival kinds checked: %d" % kinds.size())
 
 
 ## Grass tufts (GrassTufts): the same tufts for a cell every time, inside it; on a map only

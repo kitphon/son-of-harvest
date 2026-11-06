@@ -33,6 +33,45 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
   `shots/showcase`, to compare after the next look change with `--compare`. The views run one
   at a time (about 10 s each on this machine), so the whole set takes a few minutes.
 
+## 2026-11-06 — The countryside props and the festival decorations as lit meshes
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: ART_DIRECTION section 1's last box pieces. New scripts/world3d/field_props.gd
+  (FieldProps, CountryProps calls it): the rice drying rack (tapered poles with straw lashing
+  at the rails, paired rails at 0.75 and 1.2, in fall sheaves of straw draped over each rail,
+  bound, with ears at the foot; a line of snow on the rails and pole tops), the kitchen garden
+  (earth bed in a plank frame, ridges every half cell, rows alternating leafy greens, cabbage
+  heads with outer leaves and spring onions; only the bed in winter; a snow cover where snow
+  lies) and the board fence (capped posts every cell, weathered boards nailed to the +z / +x
+  face a little off each other's height, nail heads, snow on caps and top boards). New
+  scripts/world3d/festival_meshes.gd (FestivalMeshes, FestivalProps._make calls it): mats with
+  a lunch box, rice balls and teacups; the stall (planks counter, posts, tie beams, sloped cloth
+  roof, scalloped valance, curtain pieces, hanging lantern); the judges' table (striped drape,
+  name board with brush strokes, tilted rosettes with tails); the lantern string (turned poles,
+  sagging rope, ribbed lanterns on cords); the drum stage (braced legs, planks, cloth skirt, a
+  barrel drum with skins and tacks on chocks, sticks); the moon stand with its dango pyramid;
+  pampas in a glazed vase; the standing lantern; the kadomatsu (straw tub with rope bands,
+  slant-cut bamboo with node rings and the hollow showing, pine boughs); the bonfire (rough
+  stones, leaning and lying logs, embers and flames); the mortar with its hoops, dough, mallet
+  and pail; the race flag (node-ringed pole, banner with a fish on both faces, the creel).
+  Lantern paper, embers and flames stay unshaded (`Parts.glow`) as the flat colours were; the
+  lights (FestivalProps.glows) are the same positions, sizes and colours, no light added or
+  changed. `OutdoorProps._tube` now takes a null colour (a SurfaceTool must colour all its
+  vertices or none), which the new code uses.
+- Checked: test_maps `_field_props` (every hasa / garden / wood_fence on kaminoda, minamino,
+  sakurazaka and town, in spring / fall / winter, with and without snow: lit ArrayMeshes only,
+  faces turned out, inside their cells, 1.4 / 0.12..0.45 / 0.7 high, snow skin only where
+  snow is, fall straw adds triangles, the winter garden is bare, no box left in the cells on
+  kaminoda and minamino) and `_festival_meshes` (every prop of every festival: no primitives,
+  faces out, near its cell, height band per kind, lights listed for the lit kinds, unshaded
+  parts only on paper and flame). Screenshots `--demo --map=kaminoda@well --time=8:30`,
+  `--map=minamino@shige --time=9:00`, `--festival=blossom_day`, `--festival=lantern_night`,
+  `--season=winter --map=town --snow=80` (before / after), plus fall kaminoda, minamino@kiku in
+  fall and moon_night. All 29 test scripts in tests/ print `OK (0 failed)` with no SCRIPT ERROR; smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, kaminoda winter snow 80, `--demo --festival=lantern_night`) print no error or warning.
+- Left / next: the stall wares are still item pictures; banners and noren do not move in the
+  wind; the camera shows the new pieces small (480x270 frames), a closer look at the drum stage
+  and kadomatsu could refine proportions. Section 3's night item (real lights) belongs to the
+  other branch.
+
 ## 2026-11-06 — Merge: sun by the clock, coop / barn insides, bamboo and outdoor props
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents worked in parallel worktrees: 8e4cfd8 the sun follows the clock (Opus),
