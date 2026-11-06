@@ -44,6 +44,8 @@ The full style roadmap, the rules for making pieces and how to continue: docs/AR
 (scripts/world3d/crop_clusters.gd).
 [x] Water: a gentle moving surface on the farm pond, the village pond and the river
 (scripts/world3d/water_surface.gd).
+[x] Bamboo (segmented, swaying, by season, snowy) and the well, jizo, woodpile and river rock
+as lit meshes (scripts/world3d/outdoor_props.gd).
 Next: section 3 goes on with the morning and evening sun following the clock. "ทำ art direction ต่อ" from the user
 means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
