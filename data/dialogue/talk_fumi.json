@@ -9,6 +9,8 @@
 		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
 		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"flags": ["engaged_fumi"]}, "at": ["engaged_1", "engaged_2"]},
+		{"if": {"flags": ["married_fumi", "help_water"]}, "at": ["help_water_1", "help_water_2"]},
+		{"if": {"flags": ["married_fumi", "help_feed"]}, "at": ["help_feed_1", "help_feed_2"]},
 		{"if": {"flags": ["married_fumi"], "map": ["house"], "time": ["06:00", "12:00"]}, "at": ["wed_morning_1", "wed_morning_2", "wed_morning_3"]},
 		{"if": {"flags": ["married_fumi"], "map": ["house"]}, "at": ["wed_evening_1", "wed_evening_2", "wed_evening_3"]},
 		{"if": {"flags": ["married_fumi"]}, "at": ["wed_out_1", "wed_out_2"]},
@@ -85,6 +87,10 @@
 		{"id": "wed_evening_1", "speaker": "fumi", "mood": "happy", "text": "Welcome home. Last cup of the day. Sit, before it goes cold.", "next": "end"},
 		{"id": "wed_evening_2", "speaker": "fumi", "mood": "neutral", "text": "Ichiro asked if I'd still pour his lunch. As if I'd let anyone else do it badly.", "next": "end"},
 		{"id": "wed_evening_3", "speaker": "fumi", "mood": "happy", "text": "The farm is quieter than the road at night. I like it. I can hear the kettle think.", "next": "end"},
+		{"id": "help_water_1", "speaker": "fumi", "mood": "happy", "text": "I watered your dry plots this morning, before the first tea. Tell me if I drowned anything.", "next": "end"},
+		{"id": "help_water_2", "speaker": "fumi", "mood": "neutral", "text": "The rows by the path were parched, so I gave them a can. You owe me a cup for that.", "next": "end"},
+		{"id": "help_feed_1", "speaker": "fumi", "mood": "happy", "text": "I topped up the coop's feed box this morning. The hens greeted me like an old friend.", "next": "end"},
+		{"id": "help_feed_2", "speaker": "fumi", "mood": "neutral", "text": "I put feed in the coop before breakfast. Next time, you can carry the sack yourself.", "next": "end"},
 		{"id": "wed_out_1", "speaker": "fumi", "mood": "happy", "text": "Customers ask how married life is. I tell them the tea tastes the same and the walk home is better.", "next": "end"},
 		{"id": "wed_out_2", "speaker": "fumi", "mood": "neutral", "text": "Sit for one cup? You don't have to pay anymore. That's the only drawback of marrying me.", "next": "end"}
 	]
