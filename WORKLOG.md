@@ -10,6 +10,17 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — Genzo's band 6 scene
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: `heart_genzo_6` (data/events/heart_genzo_6.json, lines in heart_events_6.json): after the jizo bibs
+  and his seed rice, Genzo has braided a straw rope for the jizo from the rice's straw and asks to tie it on
+  together (a line of its own if the farmer tied the bibs, `genzo_jizo`). Sets `heart_genzo_6` and `genzo_straw`.
+  Trigger rows in triggers_kaminoda, triggers_genzo_house and triggers_town, music rule, `dear_1..3` talk lines
+  (band 6 after the scene; the jizo lines now stop at band 5), Thai for all new lines, README / ROADMAP.
+- Checked: test_relationships now expects Genzo's band 5 / 6 events, `genzo_straw`, both branches of the looking-back
+  line; all tests/test_*.gd print OK (0 failed); smoke runs (title, --demo, town, mine=3, kaminoda event) show no errors.
+- Left / next: hearts for Haru, Shige, Nana or Kiku (ROADMAP).
+
 ## 2026-11-06 — GitHub remote
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: added `origin` = https://github.com/kitphon/son-of-harvest.git (the user made the
