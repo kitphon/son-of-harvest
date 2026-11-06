@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — Merge: mountain backdrop, shared washi-and-wood UI, snow on bare branches
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three art-direction agents in parallel worktrees, models picked by difficulty:
+  6c5e66f far mountain ridges and haze past a rim on the outdoor maps (Opus; finishes the old
+  c8e1ed0 attempt), fba992d one shared UI style UiStyle with richer paper and wood frames
+  (Sonnet), 7f5fad1 snow on the bare winter branches of persimmons and cherries (Haiku).
+  WORKLOG conflicts resolved by keeping every entry; test_maps and ART_DIRECTION auto-merged.
+- Checked: on merged main, after `--import`, all 28 tests/test_*.gd print `OK (0 failed)`;
+  smoke runs (title, `--demo`, `--map=town`, `--mine=3`, `--season=winter --map=kaminoda
+  --snow=80`) print no error or warning. Screenshot `--demo --season=winter --map=kaminoda@hill
+  --snow=80`: the new HUD frames, a grey snow-capped ridge at the top right; the persimmon's
+  branch snow is only a few pale pixels on the limbs at 480 x 270 (faint).
+- Left / next: the ridges show only near north / west map edges; the branch snow is very
+  subtle at game size; ART_DIRECTION section 4 (characters) waits on the user's decision on
+  who draws.
+
 ## 2026-11-06 — Snow on the bare winter branches
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: `Trees.broadleaf` takes `snow` (default off). In winter, bare persimmons and cherries get
