@@ -138,8 +138,12 @@ Light and Farmhouse model hold the technical detail of what is built.
 - [x] Water: a gentle moving surface for the pond and river (`water_surface.gd`: WaterSurface,
       a transparent sheet over the water cells, glints and troughs drifting over the pixel grid,
       lit like the ground). (this commit)
-      Still open: no ripple ring round the bobber or the farmer's feet; the flat view's water
-      is still the still tile; no frozen water in winter (the game has none).
+      Ripple rings (`WaterSurface.ripple()`, a uniform array of eight in the sheet's shader, one pixel
+      wide, stepping out a pixel at a time, two fade steps, lit like the ground): a strong ring as the
+      bobber lands and as a fish bites (then every 0.4 s), a gentle ring every 1.7 s while it waits
+      (`Main3D._ring_bobber`). (this commit)
+      Still open: no ring at the farmer's feet (the farmer never wades: water cells are blocked); the
+      flat view's water is still the still tile; no frozen water in winter (the game has none).
 
 ### 3. Light and atmosphere
 - [x] Night: real warm lights at lanterns, windows and the festival stalls, the tint lighter.

@@ -43,6 +43,22 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   window pools land on the ground under the pent roof; the flat view's houses are unchanged
   (only their upstairs window glows are new).
 
+## 2026-11-06 — Water: ripple rings round the fishing bobber
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: WaterSurface gets `ripple(at, strong)`, `advance(delta)`, `ripples_alive()` and a uniform array
+  of eight rings (x, z, start time, life; negative life = strong) with its own clock. The shader draws a
+  ring one pixel wide, its radius stepping whole pixels (14 px/s, strong 1.3x and wider), alpha in two
+  fade steps; it is part of the same sheet, so it keeps the bank inset, the ground light and the pixel
+  grid. `Main3D._ring_bobber` (called from `_show_fishing`) starts a strong ring as the bobber lands and
+  as a bite begins, a gentle one every 1.7 s while waiting, a strong one every 0.4 s while biting.
+  No ring at the farmer's feet: the farmer never wades (water cells are blocked). Flat view unchanged.
+- Checked: screenshots `--fishing=wait`, `--fishing`, `--fishing=river:wait` and
+  `--festival=moon_night --contest=fishing:auto` (frames 300 / 450 / 600): pale pixel rings spread round
+  the float, clipped at the bank, dimmed at night, bite shows a double ring. test_maps `_water` has new
+  checks (slots, strength, life, reuse of the oldest, the shader's clock). Main3D cannot load in a
+  headless script, so the bobber hookup is checked by the screenshots only.
+- Left / next: no ring at the feet; rain does not dimple the water; the flat view's water is still.
+
 ## 2026-11-06 — Merge: mountain backdrop, shared washi-and-wood UI, snow on bare branches
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three art-direction agents in parallel worktrees, models picked by difficulty:
