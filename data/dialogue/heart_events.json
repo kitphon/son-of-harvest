@@ -45,6 +45,14 @@
 			"choices": [{"text": "Sweet, with a little iron.", "next": "genzo_iron"}, {"text": "Just cold, to me.", "next": "genzo_cold"}]},
 		{"id": "genzo_iron", "speaker": "genzo", "mood": "surprised", "text": "Iron and sweet... a dry month, then. I thought so. She'd have smiled at that.", "next": "genzo_end"},
 		{"id": "genzo_cold", "speaker": "genzo", "mood": "happy", "text": "Ha. Honest. It takes years to taste the rest. Keep drinking.", "next": "genzo_end"},
-		{"id": "genzo_end", "speaker": "genzo", "mood": "happy", "text": "Here. Seed rice from my last good sack. Sow it where the water stays. Don't tell Haru, he'll want some.", "next": "end"}
+		{"id": "genzo_end", "speaker": "genzo", "mood": "happy", "text": "Here. Seed rice from my last good sack. Sow it where the water stays. Don't tell Haru, she'll want some.", "next": "end"},
+
+		{"id": "haru", "speaker": "haru", "mood": "happy", "text": "There you are! Stand still. No, on the mat. Both feet. I need to see how wide you walk."},
+		{"speaker": "haru", "mood": "neutral", "text": "Grandma taught me on sandals. The first pair I ever made was hers, all lumps. She wore them every day until the soles came apart."},
+		{"speaker": "haru", "mood": "happy", "text": "So now everyone I like gets a pair. That's the rule. Tight weave or loose? Tight lasts, loose is kind to your feet.",
+			"choices": [{"text": "Tight. The field is hard on them.", "next": "haru_tight"}, {"text": "Loose. Be kind to my feet.", "next": "haru_loose"}]},
+		{"id": "haru_tight", "speaker": "haru", "mood": "happy", "text": "A working pair, then. I'll twist a little rice straw from Genzo's racks into the heel. He won't miss it.", "next": "haru_end"},
+		{"id": "haru_loose", "speaker": "haru", "mood": "surprised", "text": "Ha! That's what Grandma always said. Soft feet make a soft temper. Loose it is.", "next": "haru_end"},
+		{"id": "haru_end", "speaker": "haru", "mood": "happy", "text": "They'll be ready by the end of the week. And here, cucumber seed I saved from my best vines. Grow me something to brag about.", "next": "end"}
 	]
 }

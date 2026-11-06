@@ -1,9 +1,11 @@
 {
-	"_note": "Events in Kaminoda (data/maps/kaminoda.json): Genzo's heart events (bands 3, 5 and 6) when the farmer talks to him out on the terraces and the lane; Haru and Genzo teach a recipe of wild things once they know the farmer. Format: README.md, Events.",
+	"_note": "Events in Kaminoda (data/maps/kaminoda.json): Genzo's heart events (bands 3, 5 and 6) when the farmer talks to him out on the terraces and the lane, and Haru's (bands 3 and 5) by her garden and the drying rack; Haru and Genzo teach a recipe of wild things once they know the farmer. Format: README.md, Events.",
 	"rows": [
 		{"event": "heart_genzo", "on": "talk", "who": "genzo", "hearts": {"genzo": [3, 6]}},
 		{"event": "heart_genzo_5", "on": "talk", "who": "genzo", "hearts": {"genzo": [5, 6]}, "seen": ["heart_genzo"]},
 		{"event": "heart_genzo_6", "on": "talk", "who": "genzo", "hearts": {"genzo": [6, 6]}, "seen": ["heart_genzo_5"]},
+		{"event": "heart_haru", "on": "talk", "who": "haru", "hearts": {"haru": [3, 6]}},
+		{"event": "heart_haru_5", "on": "talk", "who": "haru", "hearts": {"haru": [5, 6]}, "seen": ["heart_haru"]},
 		{"event": "recipe_haru", "on": "talk", "who": "haru", "hearts": {"haru": [1, 6]}, "not_flags": ["recipe_sansai_tempura"]},
 		{"event": "recipe_genzo", "on": "talk", "who": "genzo", "hearts": {"genzo": [1, 6]}, "not_flags": ["recipe_kinoko_jiru"]}
 	]

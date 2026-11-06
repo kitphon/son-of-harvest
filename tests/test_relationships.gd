@@ -39,6 +39,7 @@ func _process(_delta: float) -> bool:
 		_dish_gift_in_game()
 		_keepsake_gift_in_game()
 		_genzo_friend()
+		_haru_friend()
 		_keepsake_homes()   # builds the 3D view, which needs the Game autoload
 		_keepsake_kept_in_game()
 		_neglect_in_game()
@@ -180,9 +181,10 @@ func _heart_event_rows() -> void:
 	var maps := {"tome": ["town", "tome_house"], "kota": ["town", "kota_house"],
 		"sayo": ["town", "store", "sayo_house"], "hachiro": ["town", "smithy"],
 		"fumi": ["town", "teahouse", "sakurazaka"], "ichiro": ["town", "sakurazaka", "ichiro_house"],
-		"genzo": ["town", "kaminoda", "genzo_house"]}
+		"genzo": ["town", "kaminoda", "genzo_house"], "haru": ["town", "kaminoda", "haru_house", "hill"]}
 	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro", "genzo"]:
 		check(_has_event("heart_%s_5" % id) and _has_event("heart_%s_6" % id), "%s has heart events at 5 and 6" % id)
+	check(_has_event("heart_haru_5") and not _has_event("heart_haru_6"), "Haru has heart events at 3 and 5")
 	for id in Villagers.friends():
 		check(maps.has(id) and _has_event("heart_" + id), "%s has a heart event" % id)
 		for m in maps.get(id, []):
@@ -340,7 +342,7 @@ func _keepsake_gift_in_game() -> void:
 ## Keepsakes.given_flag, there only with that flag, drawn in both views from the item's icon.
 func _keepsake_homes() -> void:
 	var homes := {"tome": "tome_house", "kota": "kota_house", "sayo": "sayo_house", "hachiro": "smithy",
-		"fumi": "teahouse", "ichiro": "ichiro_house", "genzo": "genzo_house"}
+		"fumi": "teahouse", "ichiro": "ichiro_house", "genzo": "genzo_house", "haru": "haru_house"}
 	for id in homes:
 		var loved: Array = Villagers.all()[id].gifts.love.filter(func(i): return i.begins_with("keep:"))
 		var flag := Keepsakes.given_flag(id, loved[0])
@@ -349,7 +351,8 @@ func _keepsake_homes() -> void:
 		check(kept.call({}).is_empty(), "nothing of %s's on show before it is given" % loved[0])
 		var on: Array = kept.call({flag: true})
 		check(on.size() == 1 and on[0].item == loved[0], "%s keeps %s at home once %s is set" % [id, loved[0], flag])
-		check(kept.call({Keepsakes.given_flag(id, "keep:paper_fan"): true}).is_empty(), "another keepsake's flag shows nothing in %s" % homes[id])
+		var other_keep := "keep:daruma" if loved[0] == "keep:paper_fan" else "keep:paper_fan"
+		check(kept.call({Keepsakes.given_flag(id, other_keep): true}).is_empty(), "another keepsake's flag shows nothing in %s" % homes[id])
 		var m: MapData = MapManager.load_map(homes[id], null, {flag: true})[1]
 		for sp in m.spawns:
 			check(not m.is_solid(m.spawns[sp][0]), "%s spawn %s isn't under the keepsake" % [homes[id], sp])
@@ -587,7 +590,7 @@ func _has_event(id: String) -> bool:
 ## close lines, the band 5 scenes' branches, and a place at the end of the record.
 func _sakurazaka_friends() -> void:
 	var friends := Villagers.friends()
-	check(friends.has("fumi") and friends.has("ichiro") and friends.size() == 7, "seven villagers with hearts (%s)" % [friends.keys()])
+	check(friends.has("fumi") and friends.has("ichiro") and friends.size() == 8, "eight villagers with hearts (%s)" % [friends.keys()])
 	check(Villagers.all().fumi.birthday.season == "spring" and int(Villagers.all().fumi.birthday.day) == 26 and Villagers.all().ichiro.birthday.season == "fall" and int(Villagers.all().ichiro.birthday.day) == 9,
 		"Fumi's birthday spring 26, Ichiro's fall 9")
 	var spring := {"year": 1, "season": "spring", "day": 26, "weekday": "fri", "weather": "sunny", "flags": {}, "festival": ""}
@@ -666,6 +669,46 @@ func _genzo_friend() -> void:
 	var g := _game()
 	g.affection.add("genzo", int(Affection.rules().bands[int(Ending.data().neighbour_band)]))
 	check(g.ending_values().neighbours_known == 0 and g.ending_values().heart_bands >= 1, "Genzo is a friend (a heart band), not a neighbour")
+
+
+## Haru of Kaminoda is a friend too: a birthday and its day plan (up on the hill all the middle
+## of the day), close lines, the sandal lines after her band 5 scene, the answers in her scenes,
+## the cucumber seed at band 3, a place at the end of the record and one Neighbours row less.
+func _haru_friend() -> void:
+	var v: Dictionary = Villagers.all().haru
+	check(Villagers.friends().has("haru") and v.get("hearts", true) != false, "Haru has hearts now")
+	check(v.birthday.season == "summer" and int(v.birthday.day) == 27, "Haru's birthday is summer 27")
+	var summer := {"year": 1, "season": "summer", "day": 27, "weekday": "thu", "weather": "sunny", "flags": {}, "festival": ""}
+	Villagers.reset_day()
+	var w := Villagers.where("haru", 11 * 60, summer)
+	check(w.get("map", "") == "hill" and Vector2i(w.get("pos", Vector2.ZERO).floor()) == Vector2i(21, 4), "on her birthday Haru sits at the lookout all morning (%s)" % [w])
+	check(Villagers.is_on("haru", "haru_house", 8 * 60, summer) and Villagers.where("haru", 17 * 60, summer).get("map", "") == "kaminoda"
+		and Villagers.is_on("haru", "haru_house", 19 * 60, summer), "home early, her garden by late afternoon, home by evening")
+	Villagers.reset_day()
+	check(Villagers.where("haru", 11 * 60, summer.merged({"day": 26}, true)).get("map", "") == "kaminoda", "the day before she is at the drying rack at eleven")
+	Villagers.reset_day()
+	check(Villagers.pick_plan(v, summer.merged({"weather": "rain"}, true)) == "birthday", "even a wet birthday is her birthday plan")
+	var st := {"year": 1, "season": "spring", "day": 3, "weekday": "wed", "time": 15 * 60 + 30, "weather": "sunny",
+		"flags": {}, "festival": "", "band": 4, "again": false, "birthday": false, "day_number": 0}
+	check(Talk.pick("haru", st) in ["close_1", "close_2"] and not Talk.pick("haru", st.merged({"band": 3}, true)) in ["close_1", "close_2"], "close lines from band 4: %s" % Talk.pick("haru", st))
+	check(Talk.pick("haru", st.merged({"band": 5, "flags": {"heart_haru_5": true}}, true)).begins_with("sandals"), "the sandal lines after the band 5 scene")
+	check(Talk.pick("haru", st.merged({"band": 5, "map": "hill"}, true)).begins_with("hill"), "on the hill her hill lines still")
+	check(Talk.pick("haru", st.merged({"birthday": true, "map": "hill"}, true)) == "birthday" and Talk.has_line("haru", "gift_birthday"), "birthday lines, on the hill too")
+	# The scenes have both answers' lines.
+	for at in ["haru_tight", "haru_loose"]:
+		var d := DialogueRunner.open("heart_events", {}, at)
+		check(d.error == "" and d.text() != "", "%s has its line" % at)
+	for at in ["haru_stay", "haru_go"]:
+		var d := DialogueRunner.open("heart_events_5", {}, at)
+		check(d.error == "" and d.text() != "", "%s has its line" % at)
+	check("seeds:cucumber" in FileAccess.get_file_as_string(EventRunner.DIR + "heart_haru.json"), "Haru gives cucumber seed at band 3")
+	check("Haru, she'll want some" in FileAccess.get_file_as_string("res://data/dialogue/heart_events.json"), "Genzo calls Haru she")
+	# The record: Haru counts as a friend, so she no longer makes a Neighbours row.
+	check(Ending.friend({"haru": int(Affection.rules().bands[5]), "genzo": int(Affection.rules().bands[4])}) == "haru", "Haru can close the record")
+	check("ending_friend_haru" in FileAccess.get_file_as_string(EventRunner.DIR + "ending.json") and DialogueRunner.open("ending", {}, "haru").error == "", "the ending has a part and lines for Haru")
+	var g := _game()
+	g.affection.add("haru", int(Affection.rules().bands[int(Ending.data().neighbour_band)]))
+	check(g.ending_values().neighbours_known == 0 and g.ending_values().heart_bands >= 1, "Haru is a friend (a heart band), not a neighbour")
 
 
 func _next_line(d: DialogueRunner) -> void:

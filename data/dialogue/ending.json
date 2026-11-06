@@ -28,8 +28,11 @@
 		{"speaker": "fumi", "face": "calm", "text": "Two years of you on my road. The cherries wouldn't know what to do without you now. Neither would I.", "next": "end"},
 		{"id": "ichiro", "speaker": "ichiro", "face": "calm", "text": "...Fumi said I should come. Said I should say something."},
 		{"speaker": "ichiro", "face": "smile", "text": "So. Good work. Your stove's charcoal is on me, as long as I'm burning.", "next": "end"},
-		{"id": "genzo", "speaker": "genzo", "face": "calm", "text": "Climbed down with a bag of seed rice. Two years of you, and the terraces look younger for it."},
+
+		{"id": "genzo", "speaker": "genzo", "face": "calm", "text": "Climbed down with a bag of seed rice. Two years of you, and the terraces look younger for it."},
 		{"speaker": "genzo", "face": "smile", "text": "My wife would have liked you. She tasted everyone's water, you know. Yours is sweet. Good rice follows.", "next": "end"},
+		{"id": "haru", "speaker": "haru", "face": "smile", "text": "I ran the whole lane down! Here. New sandals, a tight pair and a loose pair. Two years' walking wore out your last ones."},
+		{"speaker": "haru", "face": "calm", "text": "I nearly left Kaminoda once, you know. I'm glad I'm still here to see this page. Wear them up the hill sometime.", "next": "end"},
 
 		{"id": "close", "speaker": "tome", "face": "smile", "text": "Well! The record is written, but the seasons don't stop for it. Spring is waiting for you out there.", "next": "end"}
 	]

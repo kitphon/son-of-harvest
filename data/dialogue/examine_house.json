@@ -6,7 +6,7 @@
 		{"id": "spring_birthday", "text": "Someone has penciled a name on the 19th, with a little fish: 'Kota's birthday.' A cherry petal is drawn on the 26th: 'Fumi's birthday.'", "next": "end"},
 		{"id": "summer", "text": "The calendar shows summer. Morning glories are printed along the edge. 'Water twice when it's hot.'", "next": "summer_festival"},
 		{"id": "summer_festival", "text": "The 20th is circled in red: 'Lantern Night in the village. Fireworks!'", "next": "summer_birthday"},
-		{"id": "summer_birthday", "text": "The 6th, in neat writing: 'Sayo's birthday.' A green rice sprout is drawn on the 13th: 'Genzo's birthday.'", "next": "end"},
+		{"id": "summer_birthday", "text": "The 6th, in neat writing: 'Sayo's birthday.' A green rice sprout is drawn on the 13th: 'Genzo's birthday.' A tiny straw sandal is drawn on the 27th: 'Haru's birthday.'", "next": "end"},
 		{"id": "fall", "text": "The calendar shows fall, with a picture of rice drying on poles. 'Harvest before the first frost.'", "next": "fall_festival"},
 		{"id": "fall_festival", "text": "The 15th has a little moon drawn on it: 'Moon Night at the shrine.'", "next": "fall_birthday"},
 		{"id": "fall_birthday", "text": "A little pile of charcoal is drawn on the 9th: 'Ichiro's birthday.' A persimmon is drawn on the 24th: 'Tome's birthday.'", "next": "end"},

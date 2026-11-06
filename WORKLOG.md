@@ -10,6 +10,29 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — Hearts for Haru of Kaminoda
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: Haru joins `Villagers.friends()` (hearts no longer false). Birthday summer 27 (free of
+  every other birthday and festival; the cucumbers at their best, before fall's straw), with a
+  `birthday` day plan: home until 9:00, the hill lookout 9:20-15:00, her garden until dusk; the
+  farmhouse calendar marks it. Talk: birthday / gift_birthday, close lines from band 4, her forage
+  lines from band 2 to 5 like the other friends, `sandals_` lines after band 5. `heart_haru`
+  (band 3: she sizes the farmer for straw sandals, tight or loose weave, two cucumber seeds) and
+  `heart_haru_5` (band 5: her New Year's wish, a city craft shop wants her; stay or go, she
+  stays and Sayo sells her sandals). Trigger rows in triggers_kaminoda, triggers_hill,
+  triggers_haru_house and triggers_town (before the tempura lesson); music rule; her part in
+  the ending (data/events/ending.json, dialogue/ending.json). Record steps: Friendships
+  6 / 13 / 22 / 33 of 42 -> 7 / 15 / 25 / 38 of 48 (same share), Neighbours 2 / 3 / 4 / 5 ->
+  1 / 2 / 3 / 4 (four without hearts left: Shige, Nana, Kiku, Dr. Yae). Fixed Genzo's band 3
+  line calling Haru "he". Thai for every new line (and the changed calendar / Genzo keys).
+- Checked: test_relationships has `_haru_friend` (birthday plan, close / sandal / hill /
+  birthday picks, both answers of both scenes, the seed, the ending part, not a neighbour) and
+  Haru in the heart rows (4 maps) and keepsake homes; test_talk moves her to the friends' forage
+  days; test_ending uses Kiku as the neighbour. All 28 test scripts print `OK (0 failed)`; smoke
+  runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, and `--demo --map=kaminoda
+  --event=heart_haru`) print no error or warning; a Thai frame of heart_haru fits the box.
+- Left / next: Haru's band 6 scene (`heart_haru_6`, dear lines); hearts for Shige, Nana or Kiku.
+
 ## 2026-11-06 — Merge: kiln mark and jizo bibs, Genzo band 6, the spouse's chore talk
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents worked in parallel worktrees, each on a model picked by difficulty:
