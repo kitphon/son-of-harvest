@@ -38,6 +38,36 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Left / next: the sky shows only where no land is drawn, which none of the framed views has;
   to see it the scene needs a horizon (the optional mountain backdrop in ART_DIRECTION section 3).
 
+## 2026-11-06 — The spouse helps on the farm each morning
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: ROADMAP "Later for marriage". data/marriage.json gets a `help` block, used by
+  `Marriage.help` (rules) from `Game.end_day` after the night: on a sunny day the spouse
+  waters up to `water` = 6 dry tilled plots with an unripe crop (new
+  `FarmGrid.water_dry_crops`, row by row from the top-left), and for each home in
+  `feed_homes` (the coop) tops the feed box up by at most `feed` = 3 portions from the
+  farmer's own stock (`Animals.fill_feed_box` takes an optional cap). Single or only engaged:
+  nothing. What was done is told on stepping out of the house (`Game.help_news`, like the
+  builder's news and joined with it): one whole sentence each for watered / fed / both with
+  the spouse's name, Thai in data/lang/th/ui.json. `Marriage.check` checks the block.
+  The village record already names the spouse under the title (`Ending.spouse_line`, also on
+  the yearly page), so nothing was added there; ROADMAP's line now says so.
+- Balance: 6 plots is two thirds of one seed bag's 3 x 3, so a small field gets a head start
+  and a bigger one still needs the can; rain waters already, so sunny days only. 3 portions is
+  half a full coop (6 hens), and it comes out of the farmer's feed, so feed still has to be
+  bought and a busy coop still needs topping up. The barn is left to the farmer.
+- Checked: `--import` ran clean. tests/test_relationships.gd: `_spouse_help_rules` (the cap,
+  the next plots on a second call, ripe and unsown plots left dry, no watering in rain / storm
+  / snow, the box topped up to one portion a hen and no further, an empty sack, no help single
+  / engaged / spouse flag without married_<id>, a line for each case) and
+  `_spouse_help_in_game` (end_day single and married, the news told once on stepping out,
+  save / load keeps the wet plots and the help goes on). All 28 test scripts print
+  `OK (0 failed)` (test_relationships, test_lang, test_ending, test_save among them) with no
+  SCRIPT ERROR line. Smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`,
+  `--demo --map=house --built=room --flags=married_sayo,spouse=sayo --time=19:00`, each
+  `--quit-after 300`) print no error or warning line. No screenshot (the help is a message).
+- Left / next: a child (the last "Later for marriage" item); a spouse talk line about the
+  morning's chore could follow (the talk files have wed_morning_ lines).
+
 ## 2026-11-06 — Merge: night lights, countryside / festival meshes, showcase views
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three agents worked in parallel worktrees: cb0e67b night real lights, a lighter night

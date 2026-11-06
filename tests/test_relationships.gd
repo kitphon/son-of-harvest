@@ -6,7 +6,7 @@ extends SceneTree
 ## gifts, the villagers' own lines for keepsakes and dishes, a loved keepsake kept in its
 ## new owner's home, and marriage (data/marriage.json: the rules for the mizuhiki knot, the
 ## answers, the proposal, the wedding day and its trigger, the spouse's day plan and lines,
-## the save). Run:
+## the spouse's morning help, the save). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_relationships.gd
 
 var failures := 0
@@ -28,6 +28,7 @@ func _init() -> void:
 	_sakurazaka_friends()
 	_marriage_rules()
 	_married_plans_and_lines()
+	_spouse_help_rules()
 
 
 func _process(_delta: float) -> bool:
@@ -44,6 +45,7 @@ func _process(_delta: float) -> bool:
 		_birthday_weather()
 		_birthday_tag()
 		_marriage_in_game()
+		_spouse_help_in_game()
 		print("test_relationships: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -785,6 +787,129 @@ func _married_plans_and_lines() -> void:
 	check(Talk.pick("tome", fri.merged({"flags": {"heart_sayo_6": true, "engaged": "sayo"}}, true)) != "knot_hint", "not once engaged")
 	check(Talk.pick("tome", fri.merged({"flags": {"spouse": "sayo"}}, true)) == "newlyweds", "a word for the newly married")
 	check(Talk.pick("tome", fri.merged({"flags": {}}, true)) != "knot_hint", "nothing about it before")
+
+
+## The spouse's morning help (data/marriage.json help): the watering cap on fair days only,
+## dry unripe crops only, the coop's feed box topped up to the cap from the stock, and nothing
+## for a single farmer (or one only engaged).
+func _spouse_help_rules() -> void:
+	var crops: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/crops.json"))
+	var h: Dictionary = Marriage.data().get("help", {})
+	var cap := int(h.get("water", 0))
+	var feed_cap := int(h.get("feed", 0))
+	check(cap > 0 and cap < 9 and feed_cap > 0 and feed_cap < 6, "help is modest: fewer plots than a seed bag, under a full coop (%d, %d)" % [cap, feed_cap])
+	check("sunny" in h.get("weather", []) and not "rain" in h.get("weather", []), "help waters on sunny days, not in the rain")
+	var make := func() -> FarmGrid:
+		var f := FarmGrid.new(crops)
+		for c in [Vector2i(10, 10), Vector2i(13, 10)]:
+			for dy in range(-1, 2):
+				for dx in range(-1, 2):
+					f.till(c + Vector2i(dx, dy))
+			f.sow(c, "turnip", "spring")
+		f.till(Vector2i(20, 15))   # tilled, nothing sown: not watered
+		return f
+	var flock := Animals.new()
+	flock.start()
+	for i in 3:
+		flock.add("chicken")
+	var hens := flock.in_home("coop").size()
+	var stock := flock.stock_of("coop")
+	var wed := {"spouse": "sayo", "married_sayo": true}
+	# Single, or only engaged: nothing.
+	var f: FarmGrid = make.call()
+	for flags in [{}, {"engaged": "sayo", "engaged_sayo": true}, {"spouse": "sayo"}]:
+		var none := Marriage.help(flags, f, flock, "sunny")
+		check(none.watered == 0 and none.fed == 0, "no help when not married (%s)" % [flags])
+	check(Marriage.help_text({"watered": 0, "fed": 0}, "Sayo") == "", "nothing done, nothing said")
+	check(_wet(f) == 0 and flock.feed_box == 0 and flock.stock_of("coop") == stock, "single: the field stays dry and the feed untouched")
+	# Married, a sunny morning: the cap, then the rest.
+	var done := Marriage.help(wed, f, flock, "sunny")
+	check(done.watered == cap and _wet(f) == cap, "the spouse waters %d plots, no more (%s)" % [cap, done])
+	check(done.fed == mini(feed_cap, hens) and flock.feed_box == done.fed and flock.stock_of("coop") == stock - done.fed,
+		"the coop's box gets %d portions from the farmer's stock (%s)" % [feed_cap, done])
+	check("Sayo" in Marriage.help_text(done, "Sayo") and Marriage.help_text(done, "Sayo").ends_with("."), "the morning line names her: %s" % Marriage.help_text(done, "Sayo"))
+	done = Marriage.help(wed, f, flock, "sunny")
+	check(done.watered == mini(cap, 18 - cap) and _wet(f) == mini(18, 2 * cap), "the next call waters the next dry plots (%s)" % [done])
+	check(done.fed == mini(feed_cap, hens - feed_cap) and flock.feed_box == hens, "the box topped up to one portion a hen (%d of %d)" % [flock.feed_box, hens])
+	done = Marriage.help(wed, f, flock, "sunny")
+	check(done.fed == 0 and Marriage.help_text({"watered": 0, "fed": 0}, "Sayo") == "", "a full box: no feed")
+	check(_wet_at(f, Vector2i(20, 15)) == false, "a tilled plot with no crop is left dry")
+	# Rain (and storms) water the field already: no watering, the box still.
+	var g: FarmGrid = make.call()
+	flock.feed_box = 0
+	for w in ["rain", "storm", "snow"]:
+		check(Marriage.help(wed, g, flock, w).watered == 0, "no watering on a %s day" % w)
+	check(flock.feed_box == hens, "the box is filled whatever the weather")
+	# Ripe crops aren't watered; an empty stock gives no feed.
+	var r: FarmGrid = make.call()
+	for i in r.cells.size():
+		if r.cells[i].crop != "":
+			r.cells[i].stage = r.ripe_stage(r.cells[i].crop)
+	var empty := Animals.new()
+	empty.start()
+	empty.state["coop"].stock = 0
+	done = Marriage.help(wed, r, empty, "sunny")
+	check(done.watered == 0 and done.fed == 0, "ripe crops and an empty sack: nothing to do (%s)" % [done])
+	var texts := {}
+	for d in [{"watered": 1, "fed": 0}, {"watered": 0, "fed": 1}, {"watered": 1, "fed": 1}]:
+		texts[Marriage.help_text(d, "Fumi")] = true
+	check(texts.size() == 3 and not texts.has(""), "a line each for watered, fed and both")
+
+
+func _wet(f: FarmGrid) -> int:
+	var n := 0
+	for d in f.cells:
+		if d.wet:
+			n += 1
+	return n
+
+
+func _wet_at(f: FarmGrid, c: Vector2i) -> bool:
+	return bool(f.cell(c).wet)
+
+
+## In the game: married, the morning help happens in Game.end_day and is told on stepping
+## out; single it doesn't; after a save and load it goes on.
+func _spouse_help_in_game() -> void:
+	var g := _game()
+	var messages := []
+	g.message.connect(func(t): messages.append(t))
+	g.season = g.SEASONS.find("spring")
+	g.day = 3
+	g.weather_tomorrow = "sunny"
+	var c := Vector2i(6, 12)
+	for x in range(c.x - 1, c.x + 2):
+		for y in range(c.y - 1, c.y + 2):
+			g.farm.cell(Vector2i(x, y)).obj = FarmGrid.Obj.NONE
+			g.farm.till(Vector2i(x, y))
+	check(g.farm.sow(c, "turnip", "spring") == 9, "nine turnips sown")
+	g.weather_tomorrow = "sunny"
+	g.end_day()
+	check(g.weather_today != "sunny" or _wet(g.farm) == 0, "single: the field is dry in the morning")
+	check(g.help_news == "", "single: no help news")
+	g.flags["spouse"] = "sayo"
+	g.flags["married_sayo"] = true
+	g.weather_tomorrow = "sunny"
+	g.end_day()
+	var cap := int(Marriage.data().help.water)
+	check(g.weather_today == "sunny" and _wet(g.farm) == cap, "married, a sunny morning: %d plots watered (%d wet)" % [cap, _wet(g.farm)])
+	check(g.help_news != "" and "Sayo" in g.help_news, "the news waits: %s" % g.help_news)
+	g.go_to_spawn("farm", "home")
+	messages.clear()
+	g.map_arrived()
+	check(messages.size() > 0 and "Sayo" in messages.back(), "told on stepping out (%s)" % [messages])
+	check(g.help_news == "", "told once")
+	# Saved and loaded, married: the help goes on.
+	var path := "user://test_spouse_help.json"
+	check(SaveGame.write(g, path) == "", "write the save")
+	var h := _game()
+	check(SaveGame.read(h, path) == "" and Marriage.spouse(h.flags) == "sayo", "married after loading")
+	check(_wet(h.farm) == cap, "the watered plots are saved (%d)" % _wet(h.farm))
+	h.weather_tomorrow = "sunny"
+	h.end_day()
+	check(h.weather_today == "sunny" and _wet(h.farm) == cap and h.help_news != "", "after loading, the next morning's help (%d wet)" % _wet(h.farm))
+	SaveGame.restore({path: null, path + SaveGame.BACKUP: null, path + SaveGame.TEMP: null})
+	h.new_game()
 
 
 ## In the game: buy the knot, the answers with the knot kept, the proposal with it given,
