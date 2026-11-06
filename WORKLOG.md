@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-06 — Merge: kiln mark and jizo bibs, Genzo band 6, the spouse's chore talk
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three agents worked in parallel worktrees, each on a model picked by difficulty:
+  11eb048 story props for `ichiro_mark` (a new kiln at Sakurazaka with the farmer's thumbprint)
+  and `genzo_jizo` (new red bibs on the Kaminoda jizo), both views (Opus); b2c0014 Genzo's band
+  6 scene `heart_genzo_6` (Sonnet); 3e87b8b the spouse's talk names the morning's chore (Haiku).
+  Merged into main; only WORKLOG conflicted (all entries kept).
+- Checked: on merged main, after `--import`, all 28 test scripts print `OK (0 failed)`; smoke
+  runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print no error or warning.
+- Left / next: the thumbprints are small (2-3 px at the medium lens); the kiln does not show
+  `ichiro_kiln`; the chore line is not limited to the morning; hearts for Haru, Shige, Nana or
+  Kiku; the mountain backdrop waits on the user.
+
 ## 2026-11-06 — Genzo's band 6 scene
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: `heart_genzo_6` (data/events/heart_genzo_6.json, lines in heart_events_6.json): after the jizo bibs
