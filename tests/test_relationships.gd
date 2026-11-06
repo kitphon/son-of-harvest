@@ -174,16 +174,15 @@ func _neglect() -> void:
 
 ## Every villager has a heart event at band 3: a talk row in each map's table where they can
 ## be talked to, played once; then one at band 5 and one at band 6, each after the last
-## (the first four, Fumi and Ichiro have all three; Genzo has 3 and 5, the 5 / 6 checks run where
+## (every villager has all three, the 5 / 6 checks run where
 ## the event file is there).
 func _heart_event_rows() -> void:
 	var maps := {"tome": ["town", "tome_house"], "kota": ["town", "kota_house"],
 		"sayo": ["town", "store", "sayo_house"], "hachiro": ["town", "smithy"],
 		"fumi": ["town", "teahouse", "sakurazaka"], "ichiro": ["town", "sakurazaka", "ichiro_house"],
 		"genzo": ["town", "kaminoda", "genzo_house"]}
-	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro"]:
+	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro", "genzo"]:
 		check(_has_event("heart_%s_5" % id) and _has_event("heart_%s_6" % id), "%s has heart events at 5 and 6" % id)
-	check(_has_event("heart_genzo_5") and not _has_event("heart_genzo_6"), "Genzo has heart events at 3 and 5")
 	for id in Villagers.friends():
 		check(maps.has(id) and _has_event("heart_" + id), "%s has a heart event" % id)
 		for m in maps.get(id, []):
@@ -489,9 +488,9 @@ func _neglect_in_game() -> void:
 ## Each heart event (bands 3, 5 and 6) runs to the end on the real Game: flag set, affection
 ## up, and band 6's own story flag. Kota's second and third read both ways, with and without
 ## his carp promise; band 6 also with and without the band 5 flags its lines look back on.
-const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle", "ichiro": "ichiro_mark", "genzo": ""}
+const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle", "ichiro": "ichiro_mark", "genzo": "genzo_straw"}
 ## The flag each band 6 scene looks back on (Fumi's comes from her band 3 scene).
-const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest", "ichiro": "ichiro_kiln"}
+const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest", "ichiro": "ichiro_kiln", "genzo": "genzo_jizo"}
 
 func _heart_events_play() -> void:
 	for id in Villagers.friends():
@@ -544,7 +543,8 @@ func _heart_events_play() -> void:
 	# Band 6's lines look back on band 5: each branch shows its own line.
 	var looks := {"tome": ["grandchild", "nag it"], "kota": ["promise", "Nobody else"],
 		"sayo": ["new sign", "minding his store"], "fumi": ["bean paste", "owed to her"],
-		"ichiro": ["dug the clay", "never said thanks"]}
+		"ichiro": ["dug the clay", "never said thanks"],
+		"genzo": ["watched you tie", "let the jizo go without"]}
 	for id in looks:
 		d = DialogueRunner.open("heart_events_6", {FIVE_FLAGS[id]: true}, id)
 		_next_line(d)

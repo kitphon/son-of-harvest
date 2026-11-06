@@ -341,7 +341,7 @@ right after it with `{"<id>": [5, 6]}` and `seen: ["heart_<id>"]`, plays
 The third, a row after that with `{"<id>": [6, 6]}` and `seen: ["heart_<id>_5"]`, plays
 `data/events/heart_<id>_6.json` (lines in `data/dialogue/heart_events_6.json`, each with a
 line of its own when the band 5 flag is set (Fumi's when her band 3 `fumi_honest` is); flag `heart_<id>_6`, plus `kota_streamer`,
-`sayo_ledger`, `hachiro_strike` or `fumi_kettle`); after it, the talk files' `dear_` lines (band 6 and the
+`sayo_ledger`, `hachiro_strike`, `fumi_kettle`, `ichiro_mark` or `genzo_straw`); after it, the talk files' `dear_` lines (band 6 and the
 flag) come before the band 4 .. 6 ones. `-- --demo --hearts=N` starts everyone at the start of band N.
 
 **Marriage** (`data/marriage.json`, `Marriage` in scripts/villagers/marriage.gd): courting ends

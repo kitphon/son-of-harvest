@@ -1,5 +1,5 @@
 {
-	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow; Fumi's looks back on fumi_honest from her band 3 scene, Ichiro's on ichiro_kiln from his band 5 one). Our own scenes.",
+	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow; Fumi's looks back on fumi_honest from her band 3 scene, Ichiro's on ichiro_kiln from his band 5 one, Genzo's on genzo_jizo from his). Our own scenes.",
 	"lines": [
 		{"id": "tome", "speaker": "tome", "mood": "neutral", "text": "My son wrote back. He wants me to come and live in the city with him. An apartment with an elevator, he says."},
 		{"speaker": "tome", "mood": "sad", "text": "He means well. He frets about the shrine stairs, and the winters, and me alone in that house."},
@@ -61,6 +61,18 @@
 			"choices": [{"text": "I'd be proud to.", "next": "ichiro_proud"}, {"text": "Only a small mark.", "next": "ichiro_small"}]},
 		{"id": "ichiro_proud", "speaker": "ichiro", "mood": "happy", "text": "Press hard, so it holds. ...It'll outlast the both of us.", "next": "ichiro_end"},
 		{"id": "ichiro_small", "speaker": "ichiro", "mood": "surprised", "text": "Ha. A small one, then. Clay doesn't care. It keeps whatever you give it.", "next": "ichiro_end"},
-		{"id": "ichiro_end", "speaker": "ichiro", "mood": "happy", "text": "Three marks on one kiln. Hm. ...That's a family. Don't tell Fumi I used the word.", "next": "end"}
+		{"id": "ichiro_end", "speaker": "ichiro", "mood": "happy", "text": "Three marks on one kiln. Hm. ...That's a family. Don't tell Fumi I used the word.", "next": "end"},
+
+		{"id": "genzo", "speaker": "genzo", "mood": "neutral", "text": "Stay a moment. The harvest is in, and I have something to finish."},
+		{"speaker": "genzo", "mood": "happy", "text": "The straw from your seed rice came out clean and long. Better than my own, and I'll deny I said so."},
+		{"if": "genzo_jizo", "then": "genzo_knots"},
+		{"speaker": "genzo", "mood": "neutral", "text": "My wife always braided the first straw into a rope for the jizo. I never learned how. I let the jizo go without.", "next": "genzo_rope"},
+		{"id": "genzo_knots", "speaker": "genzo", "mood": "happy", "text": "Every autumn I stood and held the cloth while my wife tied the bibs. This year I stood and watched you tie them. It felt the same. Almost the same."},
+		{"id": "genzo_rope", "speaker": "genzo", "mood": "neutral", "text": "So I braided one, badly, with these old fingers. It took me all week. It's a straw rope for the jizo, the way she made it."},
+		{"speaker": "genzo", "mood": "sad", "text": "I'd like it tied on by two pairs of hands. Mine, and the ones I trust to keep the lane when I can't climb it anymore.",
+			"choices": [{"text": "Let's tie it together.", "next": "genzo_together"}, {"text": "It's yours to tie. I'll hold it.", "next": "genzo_hold"}]},
+		{"id": "genzo_together", "speaker": "genzo", "mood": "happy", "text": "Over, under, pull. ...There. Your end is the straighter one. Don't tell the jizo.", "next": "genzo_end"},
+		{"id": "genzo_hold", "speaker": "genzo", "mood": "surprised", "text": "Hm. Hold it steady, then. ...Done. Not one bad knot. She would have called that a miracle.", "next": "genzo_end"},
+		{"id": "genzo_end", "speaker": "genzo", "mood": "happy", "text": "The rice grows well for you. And the lane is red and tied again. ...I think I can stop counting the years now.", "next": "end"}
 	]
 }

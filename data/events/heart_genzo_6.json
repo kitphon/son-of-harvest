@@ -1,0 +1,14 @@
+{
+	"_note": "Genzo's third heart event: the first talk once his heart band reaches 6, after heart_genzo_5 (triggers_kaminoda.json, triggers_genzo_house.json, triggers_town.json). The straw of the seed rice he gave the farmer came out clean, and he has braided a straw rope for the jizo by the lane, as his wife did with the first straw every autumn (a line of its own if the farmer tied the bibs, genzo_jizo); he asks to tie it on together. Sets heart_genzo_6 and genzo_straw. Genzo acts in it from where the talk found them (an actor step at plan; played where their plan has them elsewhere, they walk up to the farmer), faces the farmer through the lines and goes back to their day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "genzo", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "genzo"},
+		{"do": "sound", "key": "amb_wind"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_6", "at": "genzo"},
+		{"do": "affection", "who": "genzo", "amount": 5},
+		{"do": "set", "flags": {"heart_genzo_6": true, "genzo_straw": true}},
+		{"do": "actor", "who": "genzo", "to": "plan"},
+		{"do": "actor", "who": "genzo", "leave": true}
+	]
+}

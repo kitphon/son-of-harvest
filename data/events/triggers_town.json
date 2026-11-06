@@ -23,6 +23,7 @@
 		{"event": "heart_ichiro_6", "on": "talk", "who": "ichiro", "hearts": {"ichiro": [6, 6]}, "seen": ["heart_ichiro_5"]},
 		{"event": "heart_genzo", "on": "talk", "who": "genzo", "hearts": {"genzo": [3, 6]}},
 		{"event": "heart_genzo_5", "on": "talk", "who": "genzo", "hearts": {"genzo": [5, 6]}, "seen": ["heart_genzo"]},
+		{"event": "heart_genzo_6", "on": "talk", "who": "genzo", "hearts": {"genzo": [6, 6]}, "seen": ["heart_genzo_5"]},
 		{"event": "shrine_offering", "on": "examine", "spot": [18, 1, 2, 2], "once": false},
 		{"event": "lantern_snow", "on": "examine", "spot": [16, 3], "once": false, "weather": ["snow"]},
 		{"event": "lantern_snow", "on": "examine", "spot": [21, 3], "once": false, "weather": ["snow"]},
