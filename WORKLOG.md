@@ -43,6 +43,20 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   window pools land on the ground under the pent roof; the flat view's houses are unchanged
   (only their upstairs window glows are new).
 
+## 2026-11-07 — Merge: village house variety, water ripples, wind by weather
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three art-direction agents in parallel worktrees, models picked by difficulty:
+  ec260e8 village houses with hip roofs, two storeys and yakisugi / timber walls (Opus),
+  8e00c11 ripple rings round the fishing bobber (Sonnet), 4297f2b the grass tufts and bamboo
+  sway following the weather through data/wind.json (Haiku). WORKLOG conflicts resolved by
+  keeping every entry; ART_DIRECTION, test_maps and main_3d.gd auto-merged.
+- Checked: on merged main, `--import` exit 0; all 28 tests/test_*.gd print `OK (0 failed)`;
+  smoke runs (title, `--demo`, `--map=town`, `--mine=3`, `--season=winter --map=kaminoda
+  --snow=80`, `--fishing=wait`) print no error or warning. No new screenshot on merged main.
+- Left / next: the agents' open notes (roof snow patch holes, no ring at the feet or rain
+  dimples, banners and vines take no wind); ART_DIRECTION section 4 (characters) waits on the
+  user's decision on who draws.
+
 ## 2026-11-06 — Water: ripple rings round the fishing bobber
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: WaterSurface gets `ripple(at, strong)`, `advance(delta)`, `ripples_alive()` and a uniform array
