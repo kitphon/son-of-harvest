@@ -53,6 +53,12 @@ var roof_edge := INF                  # map units: pools facing south do not go 
 ## all in map units.
 var glow := 0.0
 var pools: Array[Dictionary] = []
+## Today's festival on this map: its lights (FestivalProps.glows, 3D map units) light the ground
+## round them while it is on, as strong as they stand out (`fest_dark`, FestivalGlow.darkness).
+var festival := ""
+var festival_map := ""
+var festival_lights: Array[Dictionary] = []
+var fest_dark := 0.0
 
 ## The CanvasModulate over the picture (main_2d sets it).
 var tint: CanvasModulate
@@ -62,7 +68,8 @@ var _pane_layer: Node2D
 
 
 ## `props` are the map's props (MapData.props); the farm has the farmhouse and no lanterns.
-func setup(props: Array, on_farm: bool) -> NightView:
+## `map_id`: the map, for today's festival lights there (FestivalProps.glows_of).
+func setup(props: Array, on_farm: bool, map_id := "") -> NightView:
 	if on_farm:
 		windows = LitSpots.farmhouse()
 		roof_edge = FARM_ROOF_EDGE
@@ -70,6 +77,11 @@ func setup(props: Array, on_farm: bool) -> NightView:
 		var spots := LitSpots.of_map(props)
 		windows = spots.windows
 		lamps = spots.lamps
+	var fest := Game.festival_today()
+	if map_id != "" and fest != "" and str(Festivals.get_festival(fest).get("map", "")) == map_id:
+		festival = fest
+		festival_map = map_id
+		festival_lights = FestivalProps.glows_of(fest, map_id)
 	return self
 
 
@@ -106,15 +118,26 @@ func _process(_delta: float) -> void:
 	if tint != null:
 		for l: Node2D in [_pool_layer, _halo_layer, _pane_layer]:
 			(l.material as ShaderMaterial).set_shader_parameter("tint", tint.color)
-	if Game.window_light() != glow:
+	if Game.window_light() != glow or festival_dark() != fest_dark:
 		_refresh()
+
+
+## How much the festival's lights stand out now: FestivalGlow.darkness while it is on here, else 0.
+func festival_dark() -> float:
+	if festival == "" or not Festivals.on_now(festival, festival_map, Game.hour * 60 + Game.minute):
+		return 0.0
+	var d := FestivalGlow.darkness(Game.light_color())
+	return d if d > 0.05 else 0.0
 
 
 ## Works out the brightness and the pools, and redraws when it changed.
 func _refresh() -> void:
 	glow = Game.window_light()
-	pools = NightLights.pools_from(windows, lamps, glow, Game.light_data().get("pools", {}))
-	visible = glow > 0.0 and (not windows.is_empty() or not lamps.is_empty())
+	fest_dark = festival_dark()
+	var rules: Dictionary = Game.light_data().get("pools", {})
+	pools = NightLights.pools_from(windows, lamps, glow, rules)
+	pools.append_array(NightLights.festival_pools(festival_lights, fest_dark, rules))
+	visible = not pools.is_empty()
 	for l: Node2D in [_pool_layer, _halo_layer, _pane_layer]:
 		if l != null:
 			l.queue_redraw()

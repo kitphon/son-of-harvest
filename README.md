@@ -886,7 +886,7 @@ to about two thirds). Shadows fade with the daylight (dusk, night) and are gone 
 glow lifts the brightest things (snow, lights). Sprites stay unshaded, with their own blob
 shadows. Day / night itself is still the multiply tint over the picture: `data/light.json`
 "sky" lists its colour through the day (`Game.light_color()`, `Game.sky_at`), plain white
-7:00..16:00, a warm 17:30, a mauve dusk at 18:30 and a deep blue night (404c8e) from 20:30 to
+7:00..16:00, a warm 17:30, a mauve dusk at 18:30 and a deep blue night (46529a) from 20:30 to
 4:30, dawn back through mauve and peach to 7:00. Both views use it.
 
 Outdoors the sun itself follows the clock (`data/light.json` "sun", `Game.sun_light()`, applied
@@ -918,6 +918,28 @@ Then a BackBufferCopy keeps the picture, the panes and glows are added, and last
 (sprites marked with `NightLights.figure`: the farmer, villagers, animals) standing in front
 of a glow are drawn back from the copy, so a window behind someone never tints them. Someone
 standing in a pool keeps its light (the pools are under the copy).
+
+A festival's lights light the ground too while it is on, as strong as FestivalGlow shows them
+(`FestivalGlow.darkness`): `NightLights.festival_pools` (data/light.json "pools" → "festival")
+gives a round pool under a standing lantern, the drum stage and the bonfire, a fainter one
+under each string lantern, and a pool in front of each stall's counter for its lantern
+(`FestivalProps.glows` carry the kind: round, line, stall). NightLights draws them in 3D and
+the flat view's NightView under its decorations, from the same lights.
+
+Real lights as well: `NightLamps` (scripts/world3d/night_lamps.gd, made by main_3d) keeps a few
+OmniLight3Ds without shadows (data/light.json "lamps" → max, 8) at the lit windows (a little in
+front of the pane), by the stone lanterns' fire boxes and at the festival lights, the ones
+nearest the middle of the view, the farthest fading out before it is dropped so none pops. So
+the lit meshes near them (the engawa, posts and lower walls, eaves, the stone lanterns, trees,
+the stalls' counters, the chest and bin) take warm light. They burn with `Game.window_light()`
+(festival lights with `FestivalGlow.darkness`) and are all off by day, so the daytime picture is
+unchanged. The tint multiplies the picture afterwards, so each light's colour is the wanted
+colour divided by the tint (as NightView's shader divides it out; at most `boost` times). The
+ground, the water and the grass sit on `NightLamps.GROUND_LAYER`, outside the lights' cull
+mask: their light is the drawn pools, and they cost no extra pass. Pale plaster is already near
+white under the night sun before the tint, so it takes little of the lamps; dark wood shows them
+best. The night blue itself is a touch lighter since the lamps came (46529a, was 404c8e). Unshaded
+pieces (sprites, the festival decorations' flat colours) do not take the lamps.
 
 ## Showcase
 Fixed views for trailer shots and for comparing a look before and after a change:
@@ -955,6 +977,7 @@ flags as AGENTS.md → Screenshot). The runner renders each with `--write-movie`
 - `scripts/events/event_runner.gd`, `event_triggers.gd` (pure logic) and `event_player.gd`
   (the view's side: triggers, moving the farmer, the fade): event scripts.
 - `scripts/world3d/night_lights.gd`: lit house windows, lantern glows and their warm ground pools at night over the 3D view (README → Light).
+- `scripts/world3d/night_lamps.gd`: a few real warm lights (OmniLight3D, no shadows) at lit windows, stone lanterns and festival lights at night in the 3D view (README → Light).
 - `data/*.json`: crops and weather, tuned without touching code (`data/light.json`: the day /
   night sky and the lit windows); `data/dialogue/`: dialogue;
   `data/events/`: events and trigger tables.

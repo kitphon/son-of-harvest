@@ -109,6 +109,7 @@ func _make_ground() -> void:
 	ground.mesh = plane
 	ground.material_override = mat
 	ground.position = Vector3(FarmGrid.W / 2.0, 0, FarmGrid.H / 2.0)
+	ground.layers = NightLamps.GROUND_LAYER   # the night's lamps leave it to the drawn pools
 	add_child(ground)
 
 

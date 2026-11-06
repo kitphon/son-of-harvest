@@ -13,7 +13,7 @@ const FLAME := Color("ffb040")
 
 var map_id := ""
 var festival := ""
-var glows: Array[Dictionary] = []   # {pos: Vector3, color: Color, size: cells across}
+var glows: Array[Dictionary] = []   # {pos: Vector3, color: Color, size: cells across, pool: "round" / "line" / "stall"}
 var wares := 0                      # item pictures on the selling stalls' counters
 
 
@@ -54,14 +54,14 @@ func _make(p: Dictionary) -> void:
 		"red_mat": FestivalMeshes.mat(self, mid, r, Color("b02a24"))
 		"stall":
 			FestivalMeshes.stall(self, mid, r, cloth)
-			_glow(mid + Vector3((r.size.x - 0.2) / 2, 1.2, 0.36), LANTERN_RED.lerp(Color("ffd890"), 0.5), 1.4)
+			_glow(mid + Vector3((r.size.x - 0.2) / 2, 1.2, 0.36), LANTERN_RED.lerp(Color("ffd890"), 0.5), 1.4, "stall", mid, r.size.x - 0.2)
 			_wares(mid, r, Festivals.stall_of_prop(festival, p))
 		"judge_table": FestivalMeshes.judge_table(self, mid, r)
 		"lantern_line":
 			FestivalMeshes.lantern_line(self, r)
 			for i in int(r.size.x):
 				var paper := LANTERN_RED if i % 2 == 0 else LANTERN_PAPER
-				_glow(Vector3(r.position.x + i + 0.5, 1.62, r.get_center().y), paper.lerp(Color("ffd890"), 0.5), 1.4)
+				_glow(Vector3(r.position.x + i + 0.5, 1.62, r.get_center().y), paper.lerp(Color("ffd890"), 0.5), 1.4, "line")
 		"drum_stage":
 			FestivalMeshes.drum_stage(self, mid)
 			_glow(mid + Vector3(0, 1.3, 0), Color("ffd890"), 2.2)
@@ -81,8 +81,11 @@ func _make(p: Dictionary) -> void:
 			_box(Vector3(r.size.x, 0.5, r.size.y) * 0.9, mid + Vector3(0, 0.25, 0), flat_material(Color.MAGENTA))
 
 
-func _glow(pos: Vector3, color: Color, size: float) -> void:
-	glows.append({"pos": pos, "color": color, "size": size})
+## A light at `pos` (FestivalGlow's glow, NightLamps' lamp) and the pool it casts on the ground
+## (NightLights.festival_pools): "round" under it, "line" a string lantern's fainter one, "stall"
+## in front of the counter of a stall `wide` cells across standing at `mid`.
+func _glow(pos: Vector3, color: Color, size: float, pool := "round", mid := Vector3.ZERO, wide := 0.0) -> void:
+	glows.append({"pos": pos, "color": color, "size": size, "pool": pool, "mid": mid, "wide": wide})
 
 
 ## A cherry tree in bloom (Trees.broadleaf in spring): a crown of pink lumps, petals on the

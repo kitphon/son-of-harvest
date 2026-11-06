@@ -53,8 +53,11 @@ decoration (scripts/world3d/festival_meshes.gd) as lit meshes.
 high and plain at noon (data/light.json "sun", README → Light).
 [x] Trailer-ready screenshots: 12 fixed views (data/showcase.json), rendered and compared by
 tools/showcase.py (README → Showcase).
-Next: section 3's open night item (real lights / a lighter tint, festival stalls lighting the
-ground), then the optional mountain backdrop and haze. "ทำ art direction ต่อ" from the user
+[x] Night: real warm lights (NightLamps, at most 8 OmniLight3Ds without shadows at the lit
+windows, stone lanterns and festival lights; data/light.json "lamps"), the night blue a touch
+lighter, the festival's lights and stalls lighting the ground in both views (README → Light).
+Next: the optional mountain backdrop and haze (section 3; a branch for it waits on the user),
+then section 4 (characters, needs the user's decision on who draws). "ทำ art direction ต่อ" from the user
 means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our

@@ -195,6 +195,9 @@ func _night_light(game_script: GDScript, fx: Dictionary) -> void:
 	check(at.call(2, 0) == night and at.call(23, 30) == night, "the same night blue at 2:00 and 23:30")
 	var old_night := Color(0.42, 0.45, 0.72)   # the night before FEEDBACK item 6
 	check(night.get_luminance() < old_night.get_luminance() - 0.12, "night clearly darker than before (%.2f < %.2f)" % [night.get_luminance(), old_night.get_luminance()])
+	var unlit_night := Color("404c8e")   # the night before the real lamps (NightLamps)
+	check(night.get_luminance() > unlit_night.get_luminance() + 0.01 and night.get_luminance() < unlit_night.get_luminance() + 0.05,
+		"with the lamps the night is a touch lighter (%.3f > %.3f)" % [night.get_luminance(), unlit_night.get_luminance()])
 	# Dusk 16:00 -> 20:30 only darkens, and smoothly (no step over 0.06 in 10 minutes); dawn 4:30 -> 7:00 only brightens.
 	var steps := {"dusk": [960, 1230, -1], "dawn": [270, 420, 1]}
 	for name in steps:

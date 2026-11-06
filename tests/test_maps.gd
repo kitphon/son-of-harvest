@@ -97,6 +97,31 @@ func _start_view() -> void:
 		check(lights[0].figures.material is ShaderMaterial and "hint_screen_texture" in lights[0].figures.material.shader.code,
 			"the figures are drawn back from the copy (the screen as it was before the glows)")
 		check(_scene.sprite.is_in_group(lights[0].FIGURES), "the farmer is a figure the glows keep off")
+	# The real lamps: a bounded few OmniLight3Ds without shadows, lit at night, all off by day.
+	var lamps: Node3D = _scene.lamps
+	var lr: Dictionary = g.light_data().lamps
+	check(lamps != null and lamps.lights.size() == int(lr.max) and lamps.tint == _scene.tint
+		and lamps.lights.all(func(l): return l is OmniLight3D and not l.shadow_enabled and (l.light_cull_mask & lamps.GROUND_LAYER) == 0),
+		"the view has %d night lamps, no shadows, leaving the ground out" % int(lr.max))
+	if lamps != null:
+		var h: int = g.hour
+		var mi: int = g.minute
+		g.hour = 21
+		g.minute = 0
+		_scene.tint.color = g.light_color()
+		lamps._process(0.0)
+		var on: Array = lamps.lights.filter(func(l): return l.visible)
+		var want: int = mini(_scene.world.windows.size(), int(lr.max))
+		var warm: bool = on.all(func(l): return l.light_energy > 0.0 and l.light_color.r == 1.0 and l.light_color.b < l.light_color.g)
+		check(on.size() == want and warm, "at 21:00 the farmhouse's windows light warm lamps (%d of %d)" % [on.size(), want])
+		g.hour = 12
+		_scene.tint.color = g.light_color()
+		lamps._process(0.0)
+		check(lamps.lights.all(func(l): return not l.visible), "at noon every lamp is off: the daytime picture is untouched")
+		g.hour = h
+		g.minute = mi
+		_scene.tint.color = g.light_color()
+		lamps._process(0.0)
 
 
 func _check_view() -> void:
@@ -461,6 +486,65 @@ func _light_pools(world: Node3D, occ: RefCounted) -> void:
 	check(NightLights.ground_seen(Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(0, 1, 20), blocker) == 0.0, "a house in front hides a pool")
 	check(NightLights.ground_seen(Vector3(0, 0, 1), Vector3(0, 1, 3), Vector3(0, 1, 20), blocker) == 1.0, "the house that casts a pool never hides it")
 	box.free()
+	_night_lamps(world)
+
+
+## Real warm lights at night (NightLamps, data/light.json "lamps"): one for every lit window and
+## lantern while they glow, none by day, the nearest few kept with the farthest faded, the colour
+## divided by the tint, and the ground, water and grass left to the drawn pools.
+func _night_lamps(world: Node3D) -> void:
+	var NightLamps: GDScript = load("res://scripts/world3d/night_lamps.gd")
+	var light: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/light.json"))
+	var lr: Dictionary = light.lamps
+	var all: Array = NightLamps.spots_of([world], [], 1.0, 0.0, lr)
+	check(all.size() == world.windows.size() + world.lamps.size(), "a lamp for every lit window and lantern (%d)" % all.size())
+	check(NightLamps.spots_of([world], [], 0.0, 0.0, lr).is_empty(), "no lamps while the windows are dark (by day)")
+	var win: Dictionary = world.windows[0]
+	check(all[0].pos.is_equal_approx(win.pos + win.normal * float(lr.out)) and is_equal_approx(all[0].energy, float(lr.window)),
+		"a window's lamp hangs %.2f in front of its pane, as bright as lamps.window" % float(lr.out))
+	var lamp: Dictionary = all[world.windows.size()]
+	var fire: Vector3 = world.lamps[0].pos
+	check(lamp.pos.distance_to(fire) < float(lr.lamp_out) + 0.001 and lamp.pos.x > fire.x and lamp.pos.z > fire.z
+		and is_equal_approx(lamp.energy, float(lr.lamp)), "a stone lantern's lamp sits by its fire box, toward the camera")
+	var half: Array = NightLamps.spots_of([world], [], 0.5, 0.0, lr)
+	check(half.size() == all.size() and is_equal_approx(half[0].energy, all[0].energy * 0.5), "the lamps dim with the windows' glow")
+	# The nearest few, nearest first; the last one kept fades out before it is dropped.
+	var row: Array = []
+	for i in 12:
+		row.append({"pos": Vector3(i, 1, 0), "energy": 1.0})
+	var picked: Array = NightLamps.nearest(row, Vector3(0, 0, 0), 8, 1.5)
+	var order := picked.size() <= 8
+	for i in range(1, picked.size()):
+		order = order and picked[i].pos.x > picked[i - 1].pos.x
+	check(order and picked.size() == 8 and picked[0].energy == 1.0, "at most 8 lamps, nearest first (%d)" % picked.size())
+	check(is_equal_approx(picked[7].energy, 1.0 / 1.5) and picked[6].energy == 1.0, "the farthest kept fades as it nears the cut (%.2f)" % picked[7].energy)
+	var even: Array = NightLamps.nearest(row, Vector3(7.5, 0, 0), 7, 1.5)   # x 4 and 11 as near: the 7th sits at the cut
+	check(even.size() == 6 and even.all(func(s): return s.pos.x != 11.0 and s.pos.x != 4.0), "a lamp right at the cut is faded out, not kept (%d)" % even.size())
+	check(NightLamps.nearest(row.slice(0, 5), Vector3.ZERO, 8, 1.5).size() == 5, "fewer spots than lamps: all of them, full")
+	check(NightLamps.nearest(row, Vector3(11, 0, 0), 8, 1.5)[0].pos.x == 11.0, "the nearest the middle of the view come first")
+	# The tint multiplies the picture afterwards: the light's colour is warm / tint, so it lands as warm.
+	var night: Color = Color(str(light.sky[0][1]))
+	var warm := Color(str(lr.color))
+	var t: Dictionary = NightLamps.color_through(warm, night, float(lr.boost))
+	var lands := Color(t.color.r * t.energy * night.r, t.color.g * t.energy * night.g, t.color.b * t.energy * night.b)
+	check(maxf(t.color.r, maxf(t.color.g, t.color.b)) == 1.0 and t.energy > 1.0 and lands.is_equal_approx(warm),
+		"through the night blue the lamps land warm %s (colour %s x %.2f)" % [lands, t.color, t.energy])
+	var day: Dictionary = NightLamps.color_through(warm, Color.WHITE, float(lr.boost))
+	check(day.color.is_equal_approx(warm) and is_equal_approx(day.energy, 1.0), "under no tint the colour is its own")
+	check(NightLamps.color_through(warm, Color(0.01, 0.01, 0.01), float(lr.boost)).energy == float(lr.boost), "a near-black tint is held at the boost")
+	check(int(lr.max) <= 8 and int(lr.max) > 0, "a bounded number of lamps (%d)" % int(lr.max))
+	# The ground, the water and the grass are on GROUND_LAYER, which the lamps leave out.
+	var is_ground := func(n: Node) -> bool:
+		var m: Material = n.material_override
+		if m is ShaderMaterial and "uniform sampler2D ground" in str((m as ShaderMaterial).shader.code):
+			return true
+		return n.get_script() != null and n.get_script().resource_path.get_file() in ["water_surface.gd", "grass_tufts.gd"]
+	var grounds: Array = world.find_children("*", "GeometryInstance3D", true, false).filter(is_ground)
+	var plain_ground: Array = world.find_children("*", "MeshInstance3D", true, false).filter(func(n): return n.mesh != null and n.mesh.get_class() == "PlaneMesh")   # not a QuadMesh picture
+	var lit: Array = (grounds + plain_ground).filter(func(n): return n.layers != NightLamps.GROUND_LAYER or (n.layers & NightLamps.LIT_MASK) != 0)
+	check(not grounds.is_empty() and not plain_ground.is_empty() and lit.is_empty(),
+		"the ground, water and grass are left out of the lamps (%d lit as the ground; still lit: %s)" % [grounds.size() + plain_ground.size(),
+		lit.map(func(n): return "%s %s" % [n.get_class(), n.get_script().resource_path.get_file() if n.get_script() else ""])])
 
 
 ## The glow keeps off figures in front of it (NightLights.shielded, sprite_corners, hidden).

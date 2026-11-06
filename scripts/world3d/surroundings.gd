@@ -41,6 +41,7 @@ func build(w: int, h: int, kind_at: Callable, hold_at: Callable) -> void:
 	ground.mesh = plane
 	ground.material_override = material
 	ground.position = Vector3(w / 2.0, -0.02, h / 2.0)   # just under the map's ground
+	ground.layers = NightLamps.GROUND_LAYER
 	add_child(ground)
 	water = WaterSurface.new()
 	add_child(water)

@@ -90,6 +90,7 @@ func _make_tile_ground() -> void:
 	ground.mesh = plane
 	ground.material_override = mat
 	ground.position = Vector3(map.w / 2.0, 0, map.h / 2.0)
+	ground.layers = NightLamps.GROUND_LAYER   # the night's lamps leave it to the drawn pools
 	add_child(ground)
 
 

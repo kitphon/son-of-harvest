@@ -34,6 +34,7 @@ var weather: WeatherFX
 var world: FarmWorld
 var env: Environment
 var sun: DirectionalLight3D
+var lamps: NightLamps
 var flash: ColorRect
 var fade: MapFade
 var lightning := Lightning.new()
@@ -148,6 +149,9 @@ func _ready() -> void:
 	_lantern = MineLight.material()
 	tint.material = _mul
 	layer.add_child(tint)
+	lamps = NightLamps.new()   # real warm lights at lit windows, lanterns and festival lights
+	lamps.tint = tint
+	add_child(lamps)
 	# Lightning: a short wash of pale sky light added over the picture (Lightning times it).
 	flash = ColorRect.new()
 	flash.set_anchors_preset(Control.PRESET_FULL_RECT)

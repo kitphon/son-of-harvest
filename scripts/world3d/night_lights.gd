@@ -130,11 +130,14 @@ func _plan() -> void:
 	_shields.clear()
 	var glow := Game.window_light()
 	var cam := get_viewport().get_camera_3d()
-	if glow <= 0.0 or cam == null:
+	if cam == null:
 		return
 	var eye := cam.global_position
-	var rules: Dictionary = Game.light_data().get("windows", {})
 	var pool_rules: Dictionary = Game.light_data().get("pools", {})
+	_plan_festival(cam, pool_rules)
+	if glow <= 0.0:
+		return
+	var rules: Dictionary = Game.light_data().get("windows", {})
 	var warm := Color(str(rules.get("color", "ffb25c")))
 	var back := cam.global_basis.z
 	var flat_back := Vector3(back.x, 0, back.z).normalized()
@@ -174,6 +177,53 @@ func _plan() -> void:
 	for s in get_tree().get_nodes_in_group(FIGURES):
 		if s is Sprite3D and s.is_visible_in_tree():
 			_shield(s, cam, worlds)
+
+
+## The pools of the festival lights on show (FestivalProps), as strong as they stand out
+## (FestivalGlow.darkness); a building of the map they stand on hides them as it hides the rest.
+func _plan_festival(cam: Camera3D, pool_rules: Dictionary) -> void:
+	var dark := FestivalGlow.darkness(Game.light_color())
+	if dark <= 0.05:
+		return
+	var c := Color(str(pool_rules.get("color", "ff9a48")))
+	for n in get_tree().get_nodes_in_group(FestivalProps.GROUP):
+		if not (n.is_inside_tree() and n.is_visible_in_tree() and n.shown()):
+			continue
+		var occ: Occluders = n.get_parent().occluders if n.get_parent() is FarmWorld else n.occluders
+		for p in festival_pools(n.glows, dark, pool_rules):
+			var k: float = p.strength * ground_seen(p.center, p.own, cam.global_position, occ)
+			var pts := _project(pool_corners(p), cam)
+			if k > 0.0 and not pts.is_empty():
+				var pc := c
+				pc.a = k
+				_pools.append({"pts": pts, "color": pc})
+
+
+## The ground pools of a festival's lights (FestivalProps.glows) when they stand out `dark`
+## (0..1), by data/light.json "pools" → "festival", in the shape of `pools_from`: a round pool
+## under a standing light (`radius` times its glow's size), a fainter one (`line`) under a string
+## lantern, and in front of a stall's counter for its lantern. Both views use it.
+static func festival_pools(lights: Array, dark: float, rules: Dictionary) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if dark <= 0.0:
+		return out
+	var fr: Dictionary = rules.get("festival", {})
+	var strength := float(fr.get("strength", 0.36)) * dark
+	for g in lights:
+		var at: Vector3 = g.pos
+		var kind := str(g.get("pool", "round"))
+		if kind == "stall":
+			var mid: Vector3 = g.mid
+			var reach := float(fr.get("stall_reach", 0.7))
+			out.append({"center": Vector3(mid.x, 0.02, mid.z + float(fr.get("stall_front", 0.85))),
+				"across": Vector3(float(g.wide) / 2.0 + 0.2, 0, 0), "out": Vector3(0, 0, reach),
+				"strength": strength, "own": at, "normal": Vector3.ZERO})
+			continue
+		var r := float(g.size) * float(fr.get("radius", 0.7))
+		var k := strength * (float(fr.get("line", 0.45)) if kind == "line" else 1.0)
+		out.append({"center": Vector3(at.x, 0.02, at.z), "across": Vector3(r, 0, 0), "out": Vector3(0, 0, r),
+			"strength": k, "own": at, "normal": Vector3.ZERO})
+	return out
 
 
 ## Draws figure `s` (and its sprite children) back over the glows if it stands in front of one.

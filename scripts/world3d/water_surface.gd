@@ -85,6 +85,7 @@ func set_cells(cells: Array[Vector2i], water_at: Callable) -> void:
 	mesh = st.commit() if not cells.is_empty() else null
 	position = Vector3(0, LIFT, 0)
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	layers = NightLamps.GROUND_LAYER   # lit as the ground: the night's lamps leave it out
 	var sh := Shader.new()
 	sh.code = SHADER
 	var m := ShaderMaterial.new()
