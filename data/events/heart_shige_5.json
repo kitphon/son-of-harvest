@@ -1,0 +1,15 @@
+{
+	"_note": "Shige's second heart event: the first talk once his heart band reaches 5, after heart_shige (same tables). He shows his late wife's tin of pumpkin seed, saved down her family's vines, that he has not sown in eight years, and asks the farmer grower to grower (sow it by her fence, or share it with the farmer's field too). Either way he will sow it, and he gives a packet of pumpkin seed as the farmer's share. Sets heart_shige_5. Shige acts in it from where the talk found him (an actor step at plan; played where his plan has him elsewhere, he walks up to the farmer), faces the farmer through the lines and goes back to his day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "shige", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "shige"},
+		{"do": "sound", "key": "step_grass"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_5", "at": "shige"},
+		{"do": "give", "item": "seeds:pumpkin", "count": 1},
+		{"do": "affection", "who": "shige", "amount": 5},
+		{"do": "set", "flags": {"heart_shige_5": true}},
+		{"do": "actor", "who": "shige", "to": "plan"},
+		{"do": "actor", "who": "shige", "leave": true}
+	]
+}

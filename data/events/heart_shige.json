@@ -1,0 +1,15 @@
+{
+	"_note": "Shige's heart event: the first talk once his heart band reaches 3, in Minamino, at home or in the village (triggers_minamino.json, triggers_shige_house.json, triggers_town.json). He has the farmer hold the pole of the scarecrow Nana wanted (old hoe handles and his second-best hat, meant to look like him after the crows took the tomatoes), asks whether its face should smile or keep Nana's frown, and gives two packets of tomato seed from the plants the crows left alone. Sets heart_shige. Shige acts in it from where the talk found him (an actor step at plan; played where his plan has him elsewhere, he walks up to the farmer), faces the farmer through the lines and goes back to his day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "shige", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "shige"},
+		{"do": "sound", "key": "step_grass"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events", "at": "shige"},
+		{"do": "give", "item": "seeds:tomato", "count": 2},
+		{"do": "affection", "who": "shige", "amount": 5},
+		{"do": "set", "flags": {"heart_shige": true}},
+		{"do": "actor", "who": "shige", "to": "plan"},
+		{"do": "actor", "who": "shige", "leave": true}
+	]
+}

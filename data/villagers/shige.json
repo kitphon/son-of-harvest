@@ -1,8 +1,8 @@
 {
-	"_note": "Shige grows vegetables in Minamino (the village's south part) and lives there with his daughter Nana. In his gardens from 7:00 (the plots behind the low fence, then the ones by his house), lunch at home, the gardens again 13:00-17:00, water from the well at 17:00, home at 17:20, asleep from 21:00. Wet days he mends tools at home. A villager without hearts (hearts false). Gifts: seeds of hard work (vegetables he doesn't grow himself: corn, pumpkin, rice), hearty dishes, sake fish; he dislikes sweets. Format: README.md, Villagers.",
+	"_note": "Shige grows vegetables in Minamino (the village's south part) and lives there with his daughter Nana. In his gardens from 7:00 (the plots behind the low fence, then the ones by his house), lunch at home, the gardens again 13:00-17:00, water from the well at 17:00, home at 17:20, asleep from 21:00. Wet days he mends tools at home. On his birthday (winter 18, the beds empty and next year's rows still only plans) Nana hides his hoe: home in the morning, by the roadside shrine under the cherry 9:00-11:40, lunch at home, walking the beds by his house with empty hands 13:00-16:00, home by evening. His heart events: data/events/heart_shige.json (band 3), heart_shige_5.json (band 5). Gifts: seeds of hard work (vegetables he doesn't grow himself: corn, pumpkin, rice), hearty dishes, sake fish; he dislikes sweets. Format: README.md, Villagers.",
 	"id": "shige",
 	"name": "Shige",
-	"hearts": false,
+	"birthday": {"season": "winter", "day": 18},
 	"speed": 1.5,
 	"look": {
 		"outfit": "happi",
@@ -19,6 +19,7 @@
 		{"if": {"festival": ["blossom_day"]}, "plan": "festival_day"},
 		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
+		{"if": {"birthday": true}, "plan": "birthday"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
 	],
 	"default": "usual",
@@ -68,6 +69,16 @@
 			{"at": "17:00", "map": "minamino", "route": [{"to": [10, 9]}, {"to": [8, 9]}, {"face": "up"}, {"wait": 5}]},
 			{"at": "17:10", "map": "minamino", "route": [{"to": [11, 9]}, {"to": [11, 7]}, {"face": "up"}]},
 			{"at": "17:20", "map": "shige_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"birthday": [
+			{"at": "06:00", "map": "shige_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "09:00", "map": "minamino", "from": [11, 7], "route": [{"to": [11, 9]}, {"to": [2, 9]}, {"face": "up"}], "loop": [{"wait": 20}, {"face": "right"}, {"wait": 10}, {"face": "up"}]},
+			{"at": "11:40", "map": "minamino", "route": [{"to": [11, 9]}, {"to": [11, 7]}, {"face": "up"}]},
+			{"at": "12:00", "map": "shige_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "13:00", "map": "minamino", "from": [11, 7], "route": [{"to": [11, 8]}, {"to": [14, 8]}, {"to": [16, 8]}, {"face": "up"}], "loop": [{"wait": 15}, {"to": [18, 8]}, {"face": "up"}, {"wait": 15}, {"to": [16, 8]}, {"face": "up"}]},
+			{"at": "16:00", "map": "minamino", "route": [{"to": [14, 8]}, {"to": [11, 8]}, {"to": [11, 7]}, {"face": "up"}]},
+			{"at": "16:10", "map": "shige_house", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "21:00", "map": "away"}
 		],
 		"wet": [

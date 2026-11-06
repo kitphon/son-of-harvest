@@ -1,0 +1,7 @@
+{
+	"_note": "Events in Shige's house (Shige and Nana live here): his heart events (bands 3 and 5), as in Minamino. Format: README.md, Events.",
+	"rows": [
+		{"event": "heart_shige", "on": "talk", "who": "shige", "hearts": {"shige": [3, 6]}},
+		{"event": "heart_shige_5", "on": "talk", "who": "shige", "hearts": {"shige": [5, 6]}, "seen": ["heart_shige"]}
+	]
+}

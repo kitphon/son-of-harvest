@@ -192,10 +192,10 @@ func _values() -> void:
 	check(v.neighbours_known == 0, "no neighbours known yet")
 	var near := int(Affection.rules().bands[int(Ending.data().neighbour_band)])
 	g.affection.add("kiku", near)
-	g.affection.add("shige", near - 1)
+	g.affection.add("nana", near - 1)
 	g.affection.add("yae", near + 30)
 	g.affection.add("fumi", near)
-	check(g.ending_values().neighbours_known == 2 and g.ending_values().heart_bands == 4, "Kiku and Dr. Yae known, Shige not quite; Fumi counts as a friend (%s)" % [g.ending_values()])
+	check(g.ending_values().neighbours_known == 2 and g.ending_values().heart_bands == 4, "Kiku and Dr. Yae known, Nana not quite; Fumi counts as a friend (%s)" % [g.ending_values()])
 	var neighbours := 0
 	for id in Villagers.all():
 		neighbours += 0 if Villagers.friends().has(id) else 1
