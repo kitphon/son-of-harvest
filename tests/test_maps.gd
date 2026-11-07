@@ -148,6 +148,34 @@ func _footprints() -> void:
 		check(w.prints.count() == 0, "footprints: the snow melting below the threshold takes the prints with it")
 	w.free()
 	g.snow_cover = 0
+	# Snow lies in patches: a print appears only where the cover's own noise says snow lies.
+	var SL: GDScript = load("res://scripts/world3d/snow_layer.gd")
+	g.snow_cover = 80
+	var lying := 0
+	var total := 0
+	for y in range(0, 64):
+		for x in range(0, 64):
+			total += 1
+			if SL.lies(Vector2(x * 0.5 + 0.25, y * 0.5 + 0.25), 0.4):
+				lying += 1
+	check(absf(float(lying) / total - 0.4 * 0.926) < 0.08, "footprints: at cover 0.4 about that share of the ground has snow lying (%.2f)" % (float(lying) / total))
+	check(not SL.lies(Vector2(3.3, 2.1), 0.0) and SL.lies(Vector2(3.3, 2.1), 1.0), "footprints: no snow lies at amount 0, all of it at 1")
+	check(SL.noise_at(Vector2(1.3, 2.7)) == SL.noise_at(Vector2(1.3 + 8.0, 2.7 + 16.0)), "footprints: the noise repeats every 8 cells like the shader's texture")
+	var with_snow: Object = FP.new(r)
+	var any_ground: Object = FP.new(r)
+	walk.call(with_snow, "farmer", Vector2(0.5, row + 0.5), Vector2(15.5, row + 0.5), 300, FP.ground_snow)
+	walk.call(any_ground, "farmer", Vector2(0.5, row + 0.5), Vector2(15.5, row + 0.5), 300, FP.ground_hold)
+	var all_lie := true
+	for p in with_snow.prints:
+		all_lie = all_lie and SL.lies(p.pos, 0.8 * float(p.hold))
+	var bare_ones: Array = any_ground.prints.filter(func(p): return not SL.lies(p.pos, 0.8 * float(p.hold)))
+	check(bare_ones.size() > 0, "footprints: the row has bare patches inside the snow (%d prints would be bare)" % bare_ones.size())
+	check(all_lie and with_snow.prints.size() > 0 and with_snow.prints.size() == any_ground.prints.size() - bare_ones.size(), "footprints: a trail stops at a bare patch and goes on in the snow (%d of %d)" % [with_snow.prints.size(), any_ground.prints.size()])
+	check(FP.ground_snow(Vector2(bare_ones[0].pos)) == 0.0 if bare_ones.size() > 0 else false, "footprints: ground_snow is 0 on a bare patch")
+	var lay: Object = load("res://scripts/world3d/footprint_layer.gd").new()
+	check("snow_at(world.xz" in lay.SHADER and "COLOR.r" in lay.SHADER, "footprints: the 3D shader tests the same snow noise (snow_at) per pixel")
+	lay.free()
+	g.snow_cover = 0
 	var main_src := FileAccess.get_file_as_string("res://scripts/main_3d.gd")
 	var enter := main_src.substr(main_src.find("func _enter_map"), 3200)
 	var day := main_src.substr(main_src.find("func _on_day_started"), 300)

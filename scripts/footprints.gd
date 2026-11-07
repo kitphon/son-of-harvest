@@ -11,10 +11,10 @@ extends RefCounted
 ## data/footprints.json.
 
 const DEFAULTS := {"min_cover": 30, "min_hold": 0.65, "step": 0.55, "side": 0.11, "cap": 160, "life": 90,
-	"snowing_rate": 4.0, "jump": 3.0, "size": [0.3, 0.46], "color": "5f76ab", "alpha": 0.95}
+	"snowing_rate": 4.0, "jump": 3.0, "size": [0.38, 0.58], "color": "506aa8", "alpha": 0.95}
 
 var rules: Dictionary = DEFAULTS
-var prints: Array = []   # oldest first: {pos: Vector2 (cells), dir: Vector2, age: float (minutes)}
+var prints: Array = []   # oldest first: {pos: Vector2 (cells), dir: Vector2, age: float (minutes), hold: float (what the ground held)}
 var _last := {}          # walker id -> {pos: Vector2, side: int}
 
 
@@ -58,9 +58,10 @@ func feed(walkers: Dictionary, hold := Callable()) -> int:
 		l.side = -int(l.side)
 		var at := pos + Vector2(-dir.y, dir.x) * float(rules.side) * int(l.side)
 		l.pos = pos
-		if hold.is_valid() and float(hold.call(at)) < float(rules.min_hold):
+		var held := float(hold.call(at)) if hold.is_valid() else 1.0
+		if held < float(rules.min_hold):
 			continue
-		prints.append({"pos": at, "dir": dir, "age": 0.0})
+		prints.append({"pos": at, "dir": dir, "age": 0.0, "hold": held})
 		made += 1
 	while prints.size() > int(rules.cap):
 		prints.pop_front()
@@ -86,7 +87,15 @@ func clear() -> void:
 
 
 ## How much snow the ground at `at` (cells) holds on the current map, 0..1 (SnowLayer's hold by
-## ground kind), for `feed`'s `hold`.
+## ground kind). `ground_snow` is the one `feed` takes as its `hold`.
+## What `ground_hold` gives where snow really lies at `at` (the snow cover's patch noise,
+## SnowLayer.lies, at Game.snow_cover); 0 on a bare patch inside the snow. So a trail stops at a
+## bare patch and goes on in the snow, as the shaders draw it.
+static func ground_snow(at: Vector2) -> float:
+	var h := ground_hold(at)
+	return h if SnowLayer.lies(at, float(Game.snow_cover) / 100.0 * h) else 0.0
+
+
 static func ground_hold(at: Vector2) -> float:
 	var c := Vector2i(floori(at.x), floori(at.y))
 	if Game.maps.on_farm():

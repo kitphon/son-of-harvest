@@ -15,7 +15,7 @@ func feed(walkers: Dictionary) -> void:
 		if not trail.prints.is_empty():
 			clear()
 		return
-	if trail.feed(walkers, Footprints.ground_hold) > 0:
+	if trail.feed(walkers, Footprints.ground_snow) > 0:
 		queue_redraw()
 
 
@@ -34,7 +34,10 @@ func _draw() -> void:
 	var w := float(size[0]) * T
 	var l := float(size[1]) * T
 	var tone := Color(str(trail.rules.color))
+	var cover := float(Game.snow_cover) / 100.0
 	for p in trail.prints:
+		if not SnowLayer.lies(p.pos, cover * float(p.get("hold", 1.0))):
+			continue   # the snow has thinned to a bare patch here since
 		var c := tone
 		c.a = float(trail.rules.alpha) * trail.strength(p)
 		draw_set_transform(p.pos * T, p.dir.angle() + PI / 2.0)   # the toe, up in the local frame, ahead
