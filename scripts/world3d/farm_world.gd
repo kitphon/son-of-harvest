@@ -26,6 +26,8 @@ var backdrop: Backdrop           # the far mountain ridges past it (data/backdro
 var tufts: GrassTufts            # grass tufts on the grass cells (outdoors)
 var rain: Dictionary = {}         # the rain dimples' style on the water (set_rain)
 var prints: FootprintLayer      # footprints in lying snow (made when snow first lies)
+var ice: Dictionary = {}          # the winter ice along the shore (set_ice)
+var ice_snow := 0.0               # the snow lying on that ice (0..1)
 var wind := 0.0                 # 0 calm .. 1 a gale (set_wind)
 var _tuft_cells: Array[Vector2i] = []
 var crops: CropClusters          # tall crops (rice, corn, cucumber, tomato) as clusters of small sprites; the village paddies' rice
@@ -257,6 +259,7 @@ func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable, map_
 		backdrop.build(w, h)
 	if surroundings.water != null:
 		surroundings.water.set_rain(rain)
+		surroundings.water.set_ice(ice, ice_snow)
 	_snow_mats.append(surroundings.material)
 	_snow_mats.append_array(surroundings.snow_mats)
 
@@ -296,6 +299,18 @@ func set_rain(style: Dictionary) -> void:
 	for n in get_children():
 		if n is FarmWorld:
 			(n as FarmWorld).set_rain(rain)
+
+
+## Winter ice along the shore of the water (Game.ice_style(); {} = none) and the snow lying on
+## it (0..1), passed to the sheet and to the layers that are worlds of their own.
+func set_ice(style: Dictionary, snow := 0.0) -> void:
+	ice = style
+	ice_snow = snow
+	if surroundings != null and surroundings.water != null:
+		surroundings.water.set_ice(ice, ice_snow)
+	for n in get_children():
+		if n is FarmWorld:
+			(n as FarmWorld).set_ice(ice, ice_snow)
 
 
 ## The farmer's feet (Main3D, each frame): the grass tufts and tall crops round them part

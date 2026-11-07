@@ -4,5 +4,8 @@
 	"rain_melt": 60,
 	"ground": {"grass": 1.0, "path": 0.85, "tilled": 0.6, "wet": 0.3, "water": 0.0,
 		"gravel": 0.75, "scree": 0.7, "rock_wall": 0.5, "paddy": 0.5},
-	"roofs": {"village_house": 0.7, "hokora": 0.7}
+	"roofs": {"village_house": 0.7, "hokora": 0.7},
+	"ice": {"seasons": ["winter"], "width": [2, 4], "alpha": 0.92, "edge_alpha": 0.7,
+		"cracks": 0.35, "frost": 0.08, "snow": 0.85,
+		"colors": {"ice": "d6e5ef", "edge": "9ab9d3", "crack": "7f9fbf", "frost": "f4f8fc", "snow": "eff4fb"}}
 }

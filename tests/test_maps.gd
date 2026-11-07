@@ -197,6 +197,7 @@ func _process(delta: float) -> bool:
 		_crop_clusters()
 		_parting()
 		_water()
+		_water_ice()
 		_game_maps()
 		_bed_and_doors()
 		_clinic_doors()
@@ -243,6 +244,15 @@ func _start_view() -> void:
 	check(is_equal_approx(_scene.sun.rotation_degrees.x, -sun_now.elevation) and is_equal_approx(_scene.sun.rotation_degrees.y, sun_now.yaw)
 		and _scene.sun.light_color == sun_now.color, "on the farm the sun follows the clock (%s)" % _scene.sun.rotation_degrees)
 	check(_scene.world.windows.size() == 4, "the farmhouse lights three windows and its door (%d)" % _scene.world.windows.size())
+	var season_was: int = g.season
+	var ice_m: ShaderMaterial = _scene.world.surroundings.water.material_override
+	check(is_equal_approx(float(ice_m.get_shader_parameter("ice_on")), 0.0), "the 3D view's pond is open in spring")
+	g.season = g.SEASONS.find("winter")
+	_scene._show_weather()
+	check(is_equal_approx(float(ice_m.get_shader_parameter("ice_on")), 1.0), "the 3D view's pond ices at the shore in winter")
+	g.season = season_was
+	_scene._show_weather()
+	check(is_equal_approx(float(ice_m.get_shader_parameter("ice_on")), 0.0), "and thaws out of winter")
 	var lights := _scene.find_children("*", "Control", true, false).filter(func(n): return n.get_script() != null and n.get_script().resource_path.ends_with("night_lights.gd"))
 	check(lights.size() == 1, "the 3D view draws the lit windows")
 	if lights.size() == 1:
@@ -2684,6 +2694,86 @@ func _water() -> void:
 	house.build(MapManager.data("house"))
 	check(house.surroundings == null, "no water sheet indoors (so no dimples)")
 	house.free()
+
+
+## Winter ice on the water (data/snow_cover.json "ice", WaterSurface.set_ice): winter only, thin
+## at the shore with the middle open, the land round each cell on the sheet's quads, the
+## uniforms from the data, the snow dusting by the cover, rings and dimples on open water only.
+func _water_ice() -> void:
+	var rules: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/snow_cover.json"))
+	var game_script: GDScript = load("res://scripts/autoload/game.gd")
+	var style: Dictionary = game_script.ice_for("winter", rules)
+	check(not style.is_empty(), "winter has ice on the water")
+	for s in ["spring", "summer", "fall"]:
+		check(game_script.ice_for(s, rules).is_empty(), "no ice in %s" % s)
+	var wmin := float(style.width[0])
+	var wmax := float(style.width[1])
+	check(wmin >= 1.0 and wmax >= wmin and wmax <= 16.0 / 3.0, "the ice is %s..%s px from the bank, a third of a cell at most" % [wmin, wmax])
+	check(WaterIce.shore_px(Vector2(8, 8), 255) >= wmax, "a cell's middle stays open even with land all round (the bobber's water)")
+	var narrow := WaterIce.BITS.left | WaterIce.BITS.right
+	var open := 0
+	for px in 16:
+		if WaterIce.shore_px(Vector2(px + 0.5, 8.5), narrow) >= wmax and px >= 3 and px < 13:
+			open += 1
+	check(open >= 2, "a channel one cell wide keeps open water down its middle (%d px)" % open)
+	# The sheet's quads carry the land round their cell; inner cells have none (no ice there).
+	var fw: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	var farm := FarmGrid.new(JSON.parse_string(FileAccess.get_file_as_string("res://data/crops.json")))
+	farm.generate(RandomNumberGenerator.new())
+	var pond := func(c: Vector2i) -> bool: return farm.fixed_at(Vector2i(clampi(c.x, 0, FarmGrid.W - 1), clampi(c.y, 0, FarmGrid.H - 1))) == "pond"
+	var sheet: Node3D = load("res://scripts/world3d/water_surface.gd").new()
+	fw.add_child(sheet)
+	var cells: Array[Vector2i] = []
+	for y in FarmGrid.H:
+		for x in FarmGrid.W:
+			if pond.call(Vector2i(x, y)):
+				cells.append(Vector2i(x, y))
+	sheet.set_cells(cells, pond)
+	var wrong := 0
+	var inner := 0
+	var shore := 0
+	for q in sheet.quads:
+		var expect := 0
+		for k in WaterIce.STEPS:
+			if not pond.call(q.cell + WaterIce.STEPS[k]):
+				expect |= int(WaterIce.BITS[k])
+		wrong += 0 if int(q.land) == expect else 1
+		inner += 1 if int(q.land) == 0 else 0
+		shore += 1 if int(q.land) != 0 else 0
+	check(cells.size() > 0 and wrong == 0 and inner > 0 and shore > 0,
+		"the pond's quads carry the land round them (%d shore cells, %d open ones, %d wrong)" % [shore, inner, wrong])
+	var code: String = sheet.material_override.shader.code
+	check(code.contains("ice_at(") and not code.contains("//ICE//") and code.find("ice.a > 0.0") < code.find("ripples[i]"),
+		"the sheet's shader draws the ice first, the rings and dimples only off it")
+	var m: ShaderMaterial = sheet.material_override
+	check(is_equal_approx(float(m.get_shader_parameter("ice_on")), 0.0), "no ice until it is set")
+	sheet.set_ice(style, 0.8)
+	check(is_equal_approx(float(m.get_shader_parameter("ice_on")), 1.0)
+		and m.get_shader_parameter("ice_width") == Vector2(wmin, wmax)
+		and is_equal_approx(float(m.get_shader_parameter("ice_snow")), 0.8 * float(style.snow))
+		and m.get_shader_parameter("ice_color") == Color(String(style.colors.ice))
+		and m.get_shader_parameter("ice_snow_color") == Color(String(style.colors.snow)),
+		"winter sets the ice's width, colours and the snow on it from the data")
+	sheet.set_ice(style, 0.0)
+	check(is_equal_approx(float(m.get_shader_parameter("ice_snow")), 0.0), "no snow lying, no snow on the ice")
+	sheet.set_ice({})
+	check(is_equal_approx(float(m.get_shader_parameter("ice_on")), 0.0), "the ice goes in spring")
+	# Ice set before the sheet is built carries into it, and a world passes it on.
+	var built: Node3D = load("res://scripts/world3d/water_surface.gd").new()
+	built.set_ice(style, 0.5)
+	built.set_cells(cells, pond)
+	check(is_equal_approx(float(built.material_override.get_shader_parameter("ice_on")), 1.0), "a sheet built in winter has its ice")
+	built.free()
+	fw.free()
+	var town: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	town.set_ice(style, 0.3)
+	town.build(MapManager.data("town"))
+	var tm: ShaderMaterial = town.surroundings.water.material_override
+	check(is_equal_approx(float(tm.get_shader_parameter("ice_on")), 1.0)
+		and is_equal_approx(float(tm.get_shader_parameter("ice_snow")), 0.3 * float(style.snow)), "the village water takes the world's ice")
+	town.set_ice({})
+	check(is_equal_approx(float(tm.get_shader_parameter("ice_on")), 0.0), "and lets it go")
+	town.free()
 
 
 ## Upright faces (eave bands, verges, roll ends) of the meshes in `w` whose normal points

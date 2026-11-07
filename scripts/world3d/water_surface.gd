@@ -6,8 +6,8 @@ extends MeshInstance3D
 ## shows slow bands drifting over the pixel grid: pale warm sun glints and a few darker
 ## troughs, nothing else (most pixels are see-through, so the base shows). It is lit like the
 ## ground (SnowLayer.SUN_SHARE with the sky light), so it darkens with dusk and night and takes
-## the sun's shadows. Water never holds snow (data/snow_cover.json), so the sheet is the same
-## in winter. The pattern is a function of the world pixel (16 per cell), stepped, so it moves
+## the sun's shadows. Open water never holds snow (data/snow_cover.json); in winter the shore's
+## ice does (set_ice, below). The pattern is a function of the world pixel (16 per cell), stepped, so it moves
 ## in pixel-art jumps and costs a few sines per pixel.
 ## Ripple rings (`ripple()`): up to MAX_RIPPLES rings at a time spread from a point, one pixel
 ## wide, stepping out a pixel at a time and fading in two steps; the bobber's landing, its slow
@@ -18,6 +18,13 @@ extends MeshInstance3D
 ## "dimples") are a second layer in the same shader: a hash of the cell and the clock picks, in
 ## each slot of `life` seconds, cells that get one small ring (grows 0..3 px, in its cell), so
 ## they use none of the bobber's eight slots.
+## Winter ice (`set_ice()`, data/snow_cover.json "ice"): thin ice along the shore, `width` px
+## (ragged between a min and a max) in from the bank line, pale blue-white with a darker rim at
+## its water edge, a few short cracks and frost specks, and with snow lying a dusting of snow on
+## it (`snow` x the cover, more near the shore). The middle stays open dark water: glints, the
+## bobber's rings and rain dimples are drawn on open water only. Each quad carries the land round
+## its cell (UV2.x: a bit for each of the 8 neighbours, WaterIce.BITS) so the shader knows how
+## far a pixel is from the shore; the flat view (WaterView) uses the same WaterIce.GLSL.
 
 const T := 16
 const LAND_INSET := 3.0 / T   # a bank is 2 px wide and the foam line 1 px; the sheet starts after them
@@ -30,6 +37,7 @@ const RING_LIFE_STRONG := 1.9
 const SHADER := """shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, shadows_disabled;
 varying vec3 world;
+varying float land_mask;
 uniform float sun_share = 0.045;
 uniform vec3 glint_color : source_color = vec3(1.0, 0.93, 0.7);
 uniform vec3 trough_color : source_color = vec3(0.13, 0.31, 0.56);
@@ -40,11 +48,19 @@ uniform float dimple_density = 0.0;   // chance a cell has a rain dimple in a ti
 uniform float dimple_life = 0.9;      // seconds a dimple lasts (= the length of a time slot)
 float hash2(vec2 v) { return fract(sin(dot(v, vec2(12.9898, 78.233))) * 43758.5453); }
 uniform vec4 ripples[8];   // x, z of the centre, clock time it began, life (0 = unused; < 0 = strong)
-void vertex() { world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+//ICE//
+void vertex() { world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; land_mask = UV2.x; }
 void fragment() {
 	vec2 p = (floor(world.xz * 16.0) + 0.5) / 16.0;
 	float t = TIME;
+	vec4 ice = ice_at(floor(world.xz * 16.0), land_mask);
 	float ring = 0.0;
+	if (ice.a > 0.0) {   // the shore's ice in winter: no glints, rings or dimples on it
+		ALBEDO = ice.rgb;
+		ALPHA = ice.a;
+		ROUGHNESS = 1.0;
+		SPECULAR = 0.0;
+	} else {
 	for (int i = 0; i < 8; i++) {
 		vec4 r = ripples[i];
 		float life = abs(r.w);
@@ -95,6 +111,7 @@ void fragment() {
 	ROUGHNESS = 1.0;
 	SPECULAR = 0.0;
 	}
+	}
 }
 void light() {
 	DIFFUSE_LIGHT += ATTENUATION * LIGHT_COLOR * sun_share;
@@ -109,6 +126,8 @@ var ripples := PackedVector4Array()      # the slots the shader reads (see `ripp
 var _next_slot := 0
 var rain_density := 0.0                  # set_rain: 0 when dry
 var rain_life := 0.9
+var ice: Dictionary = {}                 # set_ice: {} when there is none
+var ice_snow := 0.0                      # the snow lying on it (0..1)
 
 
 func _process(delta: float) -> void:
@@ -145,6 +164,21 @@ func set_rain(style: Dictionary) -> void:
 	if m != null:
 		m.set_shader_parameter("dimple_density", rain_density)
 		m.set_shader_parameter("dimple_life", rain_life)
+
+
+## Winter ice along the shore (data/snow_cover.json "ice" through Game.ice_style(); {} = none)
+## and the snow lying today (0..1), which dusts it.
+func set_ice(style: Dictionary, snow := 0.0) -> void:
+	ice = style
+	ice_snow = clampf(snow, 0.0, 1.0)
+	var m := material_override as ShaderMaterial
+	if m != null:
+		WaterIce.push(m, ice, ice_snow)
+
+
+## The shader's code (WaterIce.GLSL pasted in).
+static func shader_code() -> String:
+	return SHADER.replace("//ICE//", WaterIce.GLSL)
 
 
 ## How many rings are still spreading now.
@@ -185,21 +219,24 @@ func set_cells(cells: Array[Vector2i], water_at: Callable) -> void:
 		var x1 := c.x + 1.0 - (0.0 if water_at.call(c + Vector2i.RIGHT) else LAND_INSET)
 		var z0 := c.y + (0.0 if water_at.call(c + Vector2i.UP) else LAND_INSET)
 		var z1 := c.y + 1.0 - (0.0 if water_at.call(c + Vector2i.DOWN) else LAND_INSET)
-		quads.append({"cell": c, "rect": Rect2(x0, z0, x1 - x0, z1 - z0)})
+		var land := WaterIce.land_mask(c, water_at)
+		quads.append({"cell": c, "rect": Rect2(x0, z0, x1 - x0, z1 - z0), "land": land})
 		var v := [Vector3(x0, 0, z0), Vector3(x1, 0, z0), Vector3(x1, 0, z1), Vector3(x0, 0, z1)]
 		for i in [0, 1, 2, 0, 2, 3]:
 			st.set_normal(Vector3.UP)
+			st.set_uv2(Vector2(land, 0))
 			st.add_vertex(v[i])
 	mesh = st.commit() if not cells.is_empty() else null
 	position = Vector3(0, LIFT, 0)
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	layers = NightLamps.GROUND_LAYER   # lit as the ground: the night's lamps leave it out
 	var m := ShaderMaterial.new()
-	m.shader = SnowLayer.shader(SHADER)   # shared, parsed once a run
+	m.shader = SnowLayer.shader(shader_code())   # shared, parsed once a run
 	m.set_shader_parameter("sun_share", SnowLayer.SUN_SHARE)
 	ripples.resize(MAX_RIPPLES)
 	m.set_shader_parameter("ripples", ripples)
 	m.set_shader_parameter("clock", clock)
 	m.set_shader_parameter("dimple_density", rain_density)
 	m.set_shader_parameter("dimple_life", rain_life)
+	WaterIce.push(m, ice, ice_snow)
 	material_override = m

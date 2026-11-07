@@ -149,6 +149,7 @@ func _show_weather() -> void:
 	var sheet := view.get("_water") as WaterView if view != null else null
 	if sheet != null:
 		sheet.set_rain({} if Game.sheltered() else Game.dimple_style())
+		sheet.set_ice({} if Game.sheltered() else Game.ice_style(), Game.snow_cover / 100.0)
 
 
 ## The farmer is put home by the map change (Game.go_home) that comes with the new day.

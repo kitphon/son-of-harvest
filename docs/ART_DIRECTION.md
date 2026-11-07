@@ -219,8 +219,20 @@ Light and Farmhouse model hold the technical detail of what is built.
       shader, no use of the bobber's eight slots; a dimple grows 0..3 px in its cell, two fade steps),
       more and quicker in a storm (`data/weather_fx.json` dimples: density, life per look; none in
       sun, snow, blizzard or indoors); `Game.dimple_style()`, `FarmWorld.set_rain`, `WaterView.set_rain`.
-      Still open: no ring at the farmer's feet (the farmer never wades: water cells are blocked); no
-      frozen water in winter (the game has none).
+      Still open: no ring at the farmer's feet (the farmer never wades: water cells are blocked).
+      [x] Winter ice (this commit): in winter outdoors the pond, the village water and the river get
+      thin ice along the shore (`WaterIce`, scripts/world3d/water_ice.gd, one piece of shader code
+      pasted into both the 3D sheet and WaterView): 2..4 px in from the bank line, ragged (value noise
+      every 4 px), pale blue-white with a one-pixel darker rim where it meets the open water, short
+      diagonal cracks and frost specks, lit like the ground in 3D. With snow lying, 2 x 2 px flecks of
+      snow on it (`snow` 0.85 x the cover, more near the shore). Each 3D quad carries the land round
+      its cell (UV2.x, 8 bits); the flat view keeps it in its mask's red channel. The middle of every
+      cell stays open (8 px from any side), so the bobber floats on water and fishing is untouched;
+      glints, the bobber's rings and rain dimples are drawn on open water only. Numbers and colours in
+      `data/snow_cover.json` "ice" (seasons, width, alphas, cracks, frost, snow, colours);
+      `Game.ice_style()`, `FarmWorld.set_ice`, `WaterView.set_ice`; none in spring to fall or indoors.
+      Tests: test_maps `_water_ice` (and the scene: winter ices the farm pond, spring thaws it),
+      test_view2d `_water` / `_check_water`.
       (this commit) Flat view: `WaterView` (scripts/world/water_view.gd), a Sprite2D over the water
       cells of FarmView (the pond) and MapView (the village pond, the river), under the objects. One
       pixel per map pixel, alpha on the water pixels only: a land side keeps its bank and foam line

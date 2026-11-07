@@ -857,6 +857,18 @@ func dimple_style() -> Dictionary:
 	return weather_style().get("dimples", {})
 
 
+## Thin ice along the shore of the outdoor water today (data/snow_cover.json "ice"), {} when
+## the season has none. Views leave it off indoors (sheltered).
+func ice_style() -> Dictionary:
+	return ice_for(season_name(), snow_rules)
+
+
+## The ice style of season `season_id` under snow rules `rules` ({} when it has none).
+static func ice_for(season_id: String, rules: Dictionary) -> Dictionary:
+	var ice: Dictionary = rules.get("ice", {})
+	return ice if season_id in (ice.get("seasons", []) as Array) else {}
+
+
 ## The wind today, 0 (dead calm) .. 1 (a gale): data/wind.json by today's look. Views push it
 ## to the grass tufts and the bamboo sway (FarmWorld.set_wind).
 func wind_strength() -> float:

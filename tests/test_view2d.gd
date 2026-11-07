@@ -472,7 +472,29 @@ func _water() -> void:
 	root.add_child(fv)
 	await process_frame
 	_check_water(fv, FarmGrid.W, FarmGrid.H, func(c: Vector2i) -> bool: return g.farm.fixed_at(c) == "pond", true, "the farm pond")
+	var rules: Dictionary = g.snow_rules
+	var fm := _water_of(fv).material as ShaderMaterial
+	check(is_equal_approx(float(fm.get_shader_parameter("ice_on")), 0.0), "the flat pond has no ice until it is set")
+	_water_of(fv).set_ice(g.ice_for("winter", rules), 0.6)
+	check(is_equal_approx(float(fm.get_shader_parameter("ice_on")), 1.0)
+		and fm.get_shader_parameter("ice_width") == Vector2(float(rules.ice.width[0]), float(rules.ice.width[1]))
+		and is_equal_approx(float(fm.get_shader_parameter("ice_snow")), 0.6 * float(rules.ice.snow)),
+		"the flat pond takes the winter ice and its snow from the data")
+	_water_of(fv).set_ice(g.ice_for("spring", rules))
+	check(is_equal_approx(float(fm.get_shader_parameter("ice_on")), 0.0), "no ice on the flat pond in spring")
 	fv.free()
+	# The scene pushes the season's ice (outdoors) as it shows the weather.
+	var sv := scene.view.get("_water") as WaterView if scene.view != null else null
+	if sv != null and not g.sheltered():
+		var season_was: int = g.season
+		g.season = g.SEASONS.find("winter")
+		scene._show_weather()
+		check(is_equal_approx(float((sv.material as ShaderMaterial).get_shader_parameter("ice_on")), 1.0), "the flat view's water ices in winter")
+		g.season = season_was
+		scene._show_weather()
+		check(is_equal_approx(float((sv.material as ShaderMaterial).get_shader_parameter("ice_on")), 0.0), "and thaws after")
+	else:
+		check(false, "the scene's view has water to ice (on %s)" % g.maps.current().id)
 	var mv := MapView.new()
 	mv.map = MapManager.data("town")
 	root.add_child(mv)
@@ -517,6 +539,22 @@ func _check_water(view: Node2D, w: int, h: int, is_water: Callable, edge_bank: b
 					var p := c * WaterView.T + Vector2i(px, py)
 					if (img.get_pixelv(p).a > 0.5) != inside:
 						bad += 1
+	# Winter ice: each water pixel's red channel is the land round its cell (as the 3D quads).
+	var land_bad := 0
+	var shore_cells := 0
+	for y in h:
+		for x in w:
+			var c := Vector2i(x, y)
+			if not bool(is_water.call(c)):
+				continue
+			var expect := WaterIce.land_mask(c, func(n: Vector2i) -> bool: return not land.call(n))
+			shore_cells += 1 if expect != 0 else 0
+			if wv.land_at(c * WaterView.T + Vector2i(8, 8)) != expect:
+				land_bad += 1
+	check(shore_cells > 0 and land_bad == 0, "%s: the mask carries the land round each cell for the ice (%d shore cells, %d wrong)" % [what, shore_cells, land_bad])
+	var code: String = (wv.material as ShaderMaterial).shader.code
+	check(code.contains("ice_at(") and not code.contains("//ICE//") and code.find("if (ice.a > 0.0)") < code.find("else if (ring > 0.0)"),
+		"%s: the ice is drawn first, rings, dimples and glints only on open water" % what)
 	check(wv.water_cells == water, "%s: one sheet cell per water cell (%d)" % [what, water])
 	check(bad == 0, "%s: the skin covers the water pixels only, banks and foam left still (%d off)" % [what, bad])
 
