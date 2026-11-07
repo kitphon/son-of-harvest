@@ -203,6 +203,7 @@ func _picture(key: String, size: Vector2, center: Vector3, normal_yaw := 0.0) ->
 func _lit_spot(spot: Dictionary) -> void:
 	var n: Vector3 = spot.normal
 	_lit_picture(spot.key, spot.size, spot.pos, rad_to_deg(atan2(n.x, n.z)))
+	windows.back().merge(spot)   # and what else LitSpots gave it (its wall's finish)
 
 
 ## A window (or a shoji door) on a house wall that glows at night: the same as `_picture`,

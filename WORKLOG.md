@@ -10,6 +10,49 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Earthen and yakisugi walls take the night lamps
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: ART_DIRECTION section 3's "still open" from "Pale plaster takes the night lamps". The
+  pale wash skipped the timber look's earthen plaster (tsuchi) and the yakisugi charred boards
+  (their red already at the tint's cap, their blue under pale_from). New `NightLights.finish_wash`
+  in the same pass after the copy (a "Finishes" layer beside "Washes", its own FINISH_SHADER):
+  the same disc round each lit window and shoji door, but only on windows LitSpots dressed with
+  their wall: `LitSpots.wall_look` gives the kind (`earth` for timber / upper_timber, `board`
+  for yakisugi, none for plaster or the plaster upper floors) and the heights clear of the skirt,
+  rails and front beam; `_dress` adds the wall's ends along it (in from the side's corners) and
+  the front posts' widths (`LitSpots.front_posts`, now also what MapWorld._house_walls builds
+  from), and the pieces are cut round them, so the timber stays dark. The shader keeps it to warm
+  pixels that are not pale: the copy over the tint, red above both green and blue by warm_from
+  0.03 .. warm_full 0.1 (earth 0.32 and boards 0.13 at night; roof tiles -0.07, grass -0.21,
+  plaster about 0), times one minus the pale mask. Numbers in data/light.json pools.wall:
+  `earth` ffa860 x 0.3 (a soft warm glow), `board` c8a07c x 0.1 (a faint warm-grey sheen, so the
+  boards stay dark wood, not orange); a door up to 1.5 times as strong, like the pale wash. The
+  village walls' heights (VILLAGE_WALL, TIMBER_SKIRT, TIMBER_RAIL, YAKISUGI_BAND, RAIL) and
+  `village_body` moved to LitSpots, MapWorld uses them; FarmWorld._lit_spot keeps LitSpots' extra
+  window fields. wall_wash's rects / pieces / strength split into helpers shared by both washes.
+- Checked: test_maps `_finish_wash` (data present, boards fainter and greyer than earth; the
+  town's timber and yakisugi windows dressed, the plaster ones none; every piece on the wall
+  plane, within reach and the wall's ends, on a band, off every front post and the pane, UVs
+  centred; bands clear of skirt, rails and beam; a timber house's posts cut at the corners and
+  every cell edge; follows the glow, a door brighter; pass order copy < finishes < glows; the
+  shader's mask on the pictures: earth 0.8+, boards > 0.1, plaster and kawara under 0.01).
+  Leaving the posts uncut made it fail ("keeps off the front posts"), so it bites. All 28 test
+  scripts print OK (0 failed). Smoke runs (title, --demo, --demo --map=town, --demo --mine=3,
+  --demo --map=kaminoda --time=21:00) 0 error / warning lines; the window runs print no shader
+  errors. Pixels (480x270, last frame, --weather=sunny, before = HEAD, after = this change):
+  `--demo --map=kaminoda@genzo --time=21:00` (Genzo's timber house): 3339 px changed, all on the
+  earthen panels (mean 72.6,57.7,62.1 -> 110.4,82.7,76.4; beside the door 88,74,77 -> 146,112,98,
+  further off 70,56,68 -> 89,69,76), the posts, rail, board skirt, roof and the farmer unchanged
+  (post 49,42,52 both). `--map=kaminoda@haru` (Haru's yakisugi house): 5004 px on its boards
+  (mean 34.5,21.7,22.4 -> 44.8,29.9,28.8, at most +25,+20,+16; by the side window 39,21,19 ->
+  52,31,27), still dark brown; a dark seam 23,20,33 and the pane 247,161,91 unchanged.
+  `--map=town@start` (Tome's timber house): 2055 px, 77.0,63.4,71.1 -> 117.3,90.1,86.3;
+  `--map=town@river` (Kota's yakisugi): 2141 px, 57.8,38.9,33.8 -> 69.9,48.7,41.5. Unchanged
+  (0 px outside the HUD forecast icon): `--map=town@sayo` 21:00 (plaster), `--demo --time=21:00`
+  (the farmhouse plaster), `--map=kaminoda@haru --time=10:00` (day). The flat view has no wall
+  wash (its houses are seen from above), so nothing there.
+- Left / next: stone lanterns still wash no walls; the plaster band under a yakisugi house's eaves
+  and the upper floors keep the pale wash only; sprites stay unshaded.
 ## 2026-11-07 — Winter ice along the water's shore
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: ART_DIRECTION section 2 "no frozen water in winter". New `WaterIce`

@@ -8,7 +8,9 @@ extends Control
 ##  2. wall washes (after a BackBufferCopy, so the copy holds the picture with the pools but no
 ##     glow yet): a soft warm disc on the wall round every lit window and door, added only where
 ##     the copy is pale (the plaster and the paper; see `wall_wash`), as the tint caps the real
-##     lamps' light on near-white plaster;
+##     lamps' light on near-white plaster; and on the earthen and charred board walls of the
+##     village houses (their red already at the tint's cap) a warm glow or a faint sheen of their
+##     own, kept to the material between the posts and rails (see `finish_wash`);
 ##  3. glows: each window of the FarmWorld on show (`FarmWorld.windows`, the farmhouse and
 ##     the village houses) gets its own paper picture added in warm light over its pane and a
 ##     soft glow round it, each lantern (`FarmWorld.lamps`) a glow round its fire box;
@@ -60,6 +62,31 @@ void fragment() {
 }
 """
 
+## The earthen and board walls' wash (`finish_wash`): like the pale wash, but kept to the warm
+## pixels of the copy (its red over the tint's red above both green and blue, `warm` from / full:
+## earth and wood, not the blue roof tiles, the grass or the sky) that are not pale (the plaster
+## has its own wash), the posts and rails already cut out of the pieces.
+const FINISH_SHADER := """
+shader_type canvas_item;
+render_mode blend_add;
+
+uniform sampler2D screen : hint_screen_texture, filter_nearest;
+uniform vec3 tint = vec3(1.0);
+uniform vec2 pale = vec2(0.45, 0.72);
+uniform vec2 warm = vec2(0.03, 0.1);
+
+const float BAYER[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
+
+void fragment() {
+	float k = 1.0 - smoothstep(0.0, 1.0, length(UV));
+	ivec2 q = ivec2(mod(floor(FRAGCOORD.xy), 4.0));
+	k = clamp(floor(k * 6.0 + BAYER[q.y * 4 + q.x] / 16.0) / 6.0, 0.0, 1.0);
+	vec3 c = textureLod(screen, SCREEN_UV, 0.0).rgb / max(tint, vec3(0.05));
+	float w = smoothstep(warm.x, warm.y, c.r - max(c.g, c.b)) * (1.0 - smoothstep(pale.x, pale.y, c.b));
+	COLOR = vec4(COLOR.rgb, COLOR.a * k * w);
+}
+"""
+
 const FIGURE_SHADER := """
 shader_type canvas_item;
 
@@ -76,6 +103,7 @@ void fragment() {
 static var _dot: Texture2D
 
 var washes: Control    # pass 2: warm light on the pale walls round lit windows
+var finishes: Control  # pass 2 too: on the earthen and charred board walls
 var glows: Control     # pass 3: panes, halos, lantern glows
 var figures: Control   # pass 4: the figures in front, drawn back from the copy
 var copy: BackBufferCopy
@@ -83,6 +111,7 @@ var copy: BackBufferCopy
 var _pools: Array[Dictionary] = []     # {pts: PackedVector2Array, color}
 var _panes: Array[Dictionary] = []     # {win, k} windows to draw
 var _washes: Array[Dictionary] = []    # {pts, uvs, color} wall washes
+var _finishes: Array[Dictionary] = []  # {pts, uvs, color} earthen and board wall washes
 var _lamps: Array[Dictionary] = []     # {at: Vector2, px, color}
 var _lit: Array[Dictionary] = []       # {rect: Rect2, pos, normal} everything glowing on screen
 var _shields: Array[Dictionary] = []   # {pts, uvs, tex} figure quads drawn back
@@ -98,6 +127,9 @@ func _ready() -> void:
 	washes = _layer("Washes")
 	washes.material = _shader_material(WASH_SHADER)
 	washes.draw.connect(_draw_washes)
+	finishes = _layer("Finishes")
+	finishes.material = _shader_material(FINISH_SHADER)
+	finishes.draw.connect(_draw_finishes)
 	glows = _layer("Glows")
 	var add := CanvasItemMaterial.new()
 	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
@@ -148,6 +180,7 @@ func _process(_delta: float) -> void:
 	_plan()
 	queue_redraw()
 	washes.queue_redraw()
+	finishes.queue_redraw()
 	glows.queue_redraw()
 	figures.queue_redraw()
 
@@ -157,6 +190,7 @@ func _plan() -> void:
 	_pools.clear()
 	_panes.clear()
 	_washes.clear()
+	_finishes.clear()
 	_lamps.clear()
 	_lit.clear()
 	_shields.clear()
@@ -176,6 +210,10 @@ func _plan() -> void:
 	var wm := washes.material as ShaderMaterial
 	wm.set_shader_parameter("tint", Vector3(tint.r, tint.g, tint.b))
 	wm.set_shader_parameter("pale", Vector2(float(wall_rules.get("pale_from", 0.45)), float(wall_rules.get("pale_full", 0.72))))
+	var fm := finishes.material as ShaderMaterial
+	fm.set_shader_parameter("tint", Vector3(tint.r, tint.g, tint.b))
+	fm.set_shader_parameter("pale", Vector2(float(wall_rules.get("pale_from", 0.45)), float(wall_rules.get("pale_full", 0.72))))
+	fm.set_shader_parameter("warm", Vector2(float(wall_rules.get("warm_from", 0.03)), float(wall_rules.get("warm_full", 0.1))))
 	var back := cam.global_basis.z
 	var flat_back := Vector3(back.x, 0, back.z).normalized()
 	var worlds: Array[FarmWorld] = []
@@ -206,6 +244,14 @@ func _plan() -> void:
 					if not wpts.is_empty():
 						_washes.append({"pts": wpts, "uvs": piece.uvs, "color": wc})
 						_lit.append({"rect": _bounds(wpts), "pos": win.pos, "normal": win.normal})
+				var own := finish_wash(win, glow * seen, wall_rules)
+				for piece in (own.pieces if own.strength > 0.0 else []):
+					var fpts := _project(piece.corners, cam)
+					if not fpts.is_empty():
+						var fc: Color = own.color
+						fc.a = own.strength
+						_finishes.append({"pts": fpts, "uvs": piece.uvs, "color": fc})
+						_lit.append({"rect": _bounds(fpts), "pos": win.pos, "normal": win.normal})
 		var lamp: Dictionary = pool_rules.get("lamp", {})
 		for l in w.lamps:
 			var seen := ground_seen(l.pos, l.pos, eye, w.occluders)
@@ -305,6 +351,11 @@ func _draw() -> void:
 func _draw_washes() -> void:
 	for w in _washes:
 		washes.draw_colored_polygon(w.pts, w.color, w.uvs)
+
+
+func _draw_finishes() -> void:
+	for w in _finishes:
+		finishes.draw_colored_polygon(w.pts, w.color, w.uvs)
 
 
 func _draw_glows() -> void:
@@ -414,27 +465,85 @@ static func pools_from(windows: Array, lamps: Array, glow: float, rules: Diction
 ## round the pane itself (left, right, above, below), so the paper keeps the pane's own warm
 ## colour; a bigger pane (a door) is a little brighter, as its pool is.
 static func wall_wash(win: Dictionary, glow: float, rules: Dictionary) -> Dictionary:
+	var pieces: Array[Dictionary] = []
+	for r in _wash_rects(win, rules):
+		pieces.append(_wash_piece(win, r, rules))
+	return {"pieces": pieces, "strength": _wash_strength(win, glow, float(rules.get("strength", 0.3)))}
+
+
+## The warm light on window `win`'s own wall when that is not plaster (LitSpots.wall_look: the
+## timber look's earthen plaster, "earth", or the yakisugi look's charred boards, "board"), by
+## data/light.json "pools" → "wall" → "finishes" → its kind: {pieces (as wall_wash's), strength,
+## color}. The same disc round the window as the pale wash, cut to the material: to its `bands`
+## (heights clear of the rails and the beam), to its wall's `span` and round its front `posts`, so
+## the timber stays dark; the shader keeps it to the warm, not pale pixels. A plaster window, or a
+## kind without rules, gets none.
+static func finish_wash(win: Dictionary, glow: float, rules: Dictionary) -> Dictionary:
+	var fr: Dictionary = rules.get("finishes", {}).get(str(win.get("finish", "")), {})
+	var none := {"pieces": [] as Array[Dictionary], "strength": 0.0, "color": Color.BLACK}
+	if fr.is_empty():
+		return none
+	var span: Vector2 = win.get("span", Vector2(-INF, INF))
+	var pieces: Array[Dictionary] = []
+	for r in _wash_rects(win, rules):
+		for band: Vector2 in win.get("bands", [Vector2(-INF, INF)]):
+			var y0 := maxf(r[2], band.x)
+			var y1 := minf(r[3], band.y)
+			if y1 - y0 < 0.001:
+				continue
+			# The stretches along the wall between the posts.
+			var runs: Array = [[maxf(r[0], span.x), minf(r[1], span.y)]]
+			for post: Vector2 in win.get("posts", []):
+				var next: Array = []
+				for run in runs:
+					if post.y <= run[0] or post.x >= run[1]:
+						next.append(run)
+						continue
+					next.append([run[0], post.x])
+					next.append([post.y, run[1]])
+				runs = next
+			for run in runs:
+				if run[1] - run[0] >= 0.001:
+					pieces.append(_wash_piece(win, [run[0], run[1], y0, y1], rules))
+	return {"pieces": pieces, "strength": _wash_strength(win, glow, float(fr.get("strength", 0.2))),
+		"color": Color(str(fr.get("color", "ffa050")))}
+
+
+## The pale wash's rects round window `win`: [x0, x1, y0, y1] in cells along the wall from the
+## window's middle (right of it +) and heights: `reach` either side, from the ground to `up` over
+## the window, in four pieces round the pane (left, right, above, below; none under a door).
+static func _wash_rects(win: Dictionary, rules: Dictionary) -> Array:
 	var reach := maxf(float(rules.get("reach", 1.5)), 0.01)
-	var right: Vector3 = Vector3.UP.cross(win.normal).normalized()
 	var c: Vector3 = win.pos
 	var half: Vector2 = win.size / 2.0
 	var top: float = c.y + half.y + float(rules.get("up", 0.6))
 	var foot := minf(0.0, c.y - half.y)
-	var area: float = win.size.x * win.size.y
-	var k := float(rules.get("strength", 0.3)) * clampf(sqrt(area / 0.35), 0.8, 1.5) * glow
-	var pieces: Array[Dictionary] = []
-	# [x0, x1, y0, y1] in cells along the wall from the window's middle and heights.
+	var out: Array = []
 	for r in [[-reach, -half.x, foot, top], [half.x, reach, foot, top],
 			[-half.x, half.x, c.y + half.y, top], [-half.x, half.x, foot, c.y - half.y]]:
-		if r[1] - r[0] < 0.001 or r[3] - r[2] < 0.001:
-			continue
-		var corners: Array[Vector3] = []
-		var uvs := PackedVector2Array()
-		for p in [Vector2(r[0], r[3]), Vector2(r[1], r[3]), Vector2(r[1], r[2]), Vector2(r[0], r[2])]:
-			corners.append(Vector3(c.x, p.y, c.z) + right * p.x)
-			uvs.append(Vector2(p.x, c.y - p.y) / reach)
-		pieces.append({"corners": corners, "uvs": uvs})
-	return {"pieces": pieces, "strength": maxf(k, 0.0)}
+		if r[1] - r[0] >= 0.001 and r[3] - r[2] >= 0.001:
+			out.append(r)
+	return out
+
+
+## Rect `r` of _wash_rects on window `win`'s wall plane: {corners (top left first), uvs (-1..1
+## from the window's middle, `reach` cells to the edge)}.
+static func _wash_piece(win: Dictionary, r: Array, rules: Dictionary) -> Dictionary:
+	var reach := maxf(float(rules.get("reach", 1.5)), 0.01)
+	var right: Vector3 = Vector3.UP.cross(win.normal).normalized()
+	var c: Vector3 = win.pos
+	var corners: Array[Vector3] = []
+	var uvs := PackedVector2Array()
+	for p in [Vector2(r[0], r[3]), Vector2(r[1], r[3]), Vector2(r[1], r[2]), Vector2(r[0], r[2])]:
+		corners.append(Vector3(c.x, p.y, c.z) + right * p.x)
+		uvs.append(Vector2(p.x, c.y - p.y) / reach)
+	return {"corners": corners, "uvs": uvs}
+
+
+## A wash's strength at `glow`: `base`, a bigger pane (a door) a little brighter, as its pool is.
+static func _wash_strength(win: Dictionary, glow: float, base: float) -> float:
+	var area: float = win.size.x * win.size.y
+	return maxf(base * clampf(sqrt(area / 0.35), 0.8, 1.5) * glow, 0.0)
 
 
 ## A pool's four ground corners in the order of its UVs (the quad its round falloff fills).
