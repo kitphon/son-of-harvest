@@ -45,6 +45,7 @@ the wood as MultiMeshes (scripts/world3d/trees.gd).
 (scripts/world3d/grass_tufts.gd).
 [x] Rice and corn as clusters of small pixel sprites, the village paddies' rice by season
 (scripts/world3d/crop_clusters.gd).
+[x] Animals redrawn in the same style: 2x pixel density, four facings, all states (scripts/art/animal_art.gd). Next art step: section 4's remaining items (farmer / villager sprites, shadows) in docs/ART_DIRECTION.md.
 [x] The grass tufts and the rice / corn part round the farmer in the 3D view (scripts/world3d/parting.gd, data/wind.json "part").
 [x] Roof snow without patch holes: snow tops whole from half cover up, thinning in patches only
 when little lies (`SnowLayer.TOP_FULL`, scripts/world3d/snow_layer.gd).

@@ -15,6 +15,9 @@ const SHADOW := {"chicken": Vector2(0.45, 0.3), "chick": Vector2(0.3, 0.2), "cow
 	"calf": Vector2(0.8, 0.35), "sheep": Vector2(0.9, 0.45), "sheep_shorn": Vector2(0.8, 0.4),
 	"lamb": Vector2(0.6, 0.3), "dog": Vector2(0.6, 0.3)}
 const SHADOW_DEFAULT := Vector2(0.5, 0.3)
+## The animal pictures have AnimalArt.SCALE times the farmer's pixel density, so their sprites'
+## pixels are that much smaller and the animals keep their world size.
+const ANIMAL_PX := FarmWorld.PX / AnimalArt.SCALE
 
 var on_farm := false
 var map: MapData            # the home's map when inside
@@ -76,12 +79,15 @@ func _shadow(s: Sprite3D, kind: String) -> void:
 
 func _add_beast(beast: Dictionary, area: Rect2, start: Vector2) -> void:
 	var kind := Game.animals.look(beast)
-	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:%s:idle:0" % kind))
+	var facing: String = AnimalArt.FACINGS[_rng.randi() % 2]   # at first they face the camera, left or right
+	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:%s:idle:0:%s" % [kind, facing]))
+	s.pixel_size = ANIMAL_PX
 	NightLights.figure(s)
 	add_child(s)
 	_shadow(s, kind)
 	_beasts.append({"sprite": s, "kind": kind, "sick": bool(beast.sick), "home": area, "pos": start,
-		"target": start, "wait": _rng.randf_range(0.0, 2.0), "pose": "idle", "time": _rng.randf() * 3.0})
+		"target": start, "wait": _rng.randf_range(0.0, 2.0), "pose": "idle", "time": _rng.randf() * 3.0,
+		"facing": facing})
 	_place(_beasts.back())
 
 
@@ -90,11 +96,13 @@ func _add_dog() -> void:
 	if dog.held:
 		return
 	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:dog:idle:0"))
+	s.pixel_size = ANIMAL_PX
 	NightLights.figure(s)
 	s.add_to_group(Parting.GROUP)   # the grass and crops part round the dog too
 	add_child(s)
 	_shadow(s, "dog")
-	_dog = {"sprite": s, "pos": Vector2(dog.cell) + Vector2(0.5, 0.5), "pose": "idle", "time": 0.0, "still": 0.0}
+	_dog = {"sprite": s, "pos": Vector2(dog.cell) + Vector2(0.5, 0.5), "pose": "idle", "time": 0.0, "still": 0.0,
+		"facing": "dl"}
 	_place_dog(0.0)
 
 
@@ -159,7 +167,7 @@ func _process(delta: float) -> void:
 			else:
 				h.pose = "walk"
 				h.pos += to.limit_length(SPEED.get(h.kind, DEFAULT_SPEED) * delta)
-				h.sprite.flip_h = to.x - to.y > 0.0   # screen right is +x / -z from this camera
+				h.facing = AnimalArt.facing_of(to, h.facing)   # screen right is +x / -z from this camera
 		_place(h)
 	if on_farm and farmer != null and not Game.paused():
 		Game.animals.dog_walk(delta, Player.cell_of(farmer.position), func(c: Vector2i) -> bool: return not Game.farm.is_solid(c), _rng)
@@ -169,7 +177,7 @@ func _process(delta: float) -> void:
 
 func _place(h: Dictionary) -> void:
 	var frame := int(h.time * (WALK_FPS if h.pose == "walk" else 1.5)) % 2
-	h.sprite.texture = PlaceholderArt.tex("animal:%s:%s:%d" % [h.kind, h.pose, frame])
+	h.sprite.texture = PlaceholderArt.tex("animal:%s:%s:%d:%s" % [h.kind, h.pose, frame, h.facing])
 	h.sprite.position = Vector3(h.pos.x, 0, h.pos.y)
 
 
@@ -184,11 +192,10 @@ func _place_dog(delta: float) -> void:
 		_dog.pos += to.limit_length(speed * delta)
 		_dog.pose = "walk"
 		_dog.still = 0.0
-		if absf(to.x - to.y) > 0.01:
-			_dog.sprite.flip_h = to.x - to.y > 0.0
+		_dog.facing = AnimalArt.facing_of(to, _dog.facing)
 	else:
 		_dog.still += delta
 		_dog.pose = "sit" if _dog.still > 2.5 else "idle"
 	var frame := int(_dog.time * (WALK_FPS * 1.5 if _dog.pose == "walk" else 1.5)) % 2
-	_dog.sprite.texture = PlaceholderArt.tex("animal:dog:%s:%d" % [_dog.pose, frame])
+	_dog.sprite.texture = PlaceholderArt.tex("animal:dog:%s:%d:%s" % [_dog.pose, frame, _dog.facing])
 	_dog.sprite.position = Vector3(_dog.pos.x, 0, _dog.pos.y)

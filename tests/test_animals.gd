@@ -15,6 +15,7 @@ func _init() -> void:
 	_game()
 	_map_and_art()
 	_barn_rules()
+	_animal_art()
 	_barn_day()
 	_dog()
 	_barn_save()
@@ -342,8 +343,8 @@ func _map_and_art() -> void:
 	check(f.fixed_at(Vector2i(14, 2)) == "coop" and not f.cell(Vector2i(14, 2)).tilled and f.item_at(Vector2i(16, 1)) == "", "coop added to an older farm")
 	# Art.
 	for key in ["animal:chicken:idle:0", "animal:chicken:idle:1", "animal:chicken:peck:1", "animal:chicken:walk:1", "animal:chicken:sick:0"]:
-		check(PlaceholderArt.tex(key).get_size() == Vector2(14, 12), key + " is 14 x 12")
-	check(PlaceholderArt.tex("animal:chick:walk:1").get_size() == Vector2(9, 8), "chick is 9 x 8")
+		check(PlaceholderArt.tex(key).get_size() == Vector2(30, 28), key + " is 30 x 28")
+	check(PlaceholderArt.tex("animal:chick:walk:1").get_size() == Vector2(18, 16), "chick is 18 x 16")
 	check(PlaceholderArt.tex("animal:chicken:idle:0").get_image().get_data() != PlaceholderArt.tex("animal:chicken:sick:0").get_image().get_data(), "a sick hen looks different")
 	for egg in ["egg", "egg_good", "egg_best"]:
 		check(PlaceholderArt.world_item_key(egg) == "item:" + egg and PlaceholderArt.tex("item:" + egg).get_size() == Vector2(12, 12), egg + " world sprite")
@@ -700,15 +701,15 @@ func _barn_map_and_art() -> void:
 	f.add_missing_fixed()
 	check(f.fixed_at(Vector2i(20, 2)) == "barn" and not f.cell(Vector2i(20, 2)).tilled and f.fixed_at(FarmGrid.BARN_DOOR) == "barn_door", "barn added to an older farm")
 	# Art.
-	var sizes := {"cow": Vector2(24, 16), "calf": Vector2(16, 12), "sheep": Vector2(18, 14), "sheep_shorn": Vector2(18, 14),
-		"lamb": Vector2(12, 10), "dog": Vector2(14, 11)}
+	var sizes := {"cow": Vector2(52, 38), "calf": Vector2(34, 26), "sheep": Vector2(40, 32), "sheep_shorn": Vector2(40, 32),
+		"lamb": Vector2(26, 22), "dog": Vector2(30, 24)}
 	for kind in sizes:
 		for pose in ["idle", "peck", "walk", "sick"]:
 			for frame in 2:
 				var key := "animal:%s:%s:%d" % [kind, pose, frame]
 				check(PlaceholderArt.tex(key).get_size() == sizes[kind], key + " size")
-	for pose in ["sit", "held"]:
-		check(PlaceholderArt.tex("animal:dog:%s:0" % pose).get_size() == sizes.dog, "dog " + pose)
+	check(PlaceholderArt.tex("animal:dog:sit:0").get_size() == sizes.dog, "dog sit")
+	check(PlaceholderArt.tex("animal:dog:held:0").get_size() == Vector2(14, 11), "the dog in the arms keeps its small picture")
 	var data_of := func(k): return PlaceholderArt.tex(k).get_image().get_data()
 	check(data_of.call("animal:sheep:idle:0") != data_of.call("animal:sheep_shorn:idle:0"), "a shorn sheep looks different")
 	check(data_of.call("animal:cow:idle:0") != data_of.call("animal:cow:sick:0"), "a sick cow looks different")
@@ -741,3 +742,66 @@ func check(ok: bool, what: String) -> void:
 	if not ok:
 		failures += 1
 		print("FAIL: " + what)
+
+
+# --- the animal sprites (AnimalArt): sizes, facings, states -------------------------
+
+func _animal_art() -> void:
+	check(AnimalArt.SCALE >= 2, "animal sprites are denser than the farmer's (the layer sets pixel_size = PX / SCALE)")
+	var poses := ["idle", "peck", "walk", "sick"]
+	for kind in AnimalArt.KINDS:
+		var size: Vector2i = AnimalArt.size_of(kind)
+		var seen := {}
+		for facing in AnimalArt.FACINGS:
+			for pose in poses + (["sit"] if kind == "dog" else []):
+				for frame in 2:
+					var key := "animal:%s:%s:%d:%s" % [kind, pose, frame, facing]
+					var img := PlaceholderArt.tex(key).get_image()
+					check(img.get_size() == Vector2i(size), key + " size")
+					check(_opaque(img) > size.x * size.y / 12, key + " is drawn")
+					check(_feet_row(img) == size.y - 1, key + " stands on the bottom row (its outline)")
+		var tex_default := PlaceholderArt.tex("animal:%s:idle:0" % kind).get_image().get_data()
+		check(tex_default == PlaceholderArt.tex("animal:%s:idle:0:dl" % kind).get_image().get_data(), kind + ": no facing means down-left")
+		# Four facings that differ: the right ones are the left ones mirrored, front and back differ.
+		var dl := PlaceholderArt.tex("animal:%s:idle:0:dl" % kind).get_image()
+		var dr := PlaceholderArt.tex("animal:%s:idle:0:dr" % kind).get_image()
+		var ul := PlaceholderArt.tex("animal:%s:idle:0:ul" % kind).get_image()
+		var ur := PlaceholderArt.tex("animal:%s:idle:0:ur" % kind).get_image()
+		var mirrored := dl.duplicate() as Image
+		mirrored.flip_x()
+		check(dr.get_data() == mirrored.get_data() and dr.get_data() != dl.get_data(), kind + ": down-right mirrors down-left")
+		mirrored = ul.duplicate() as Image
+		mirrored.flip_x()
+		check(ur.get_data() == mirrored.get_data() and ul.get_data() != dl.get_data(), kind + ": up faces differ from down faces")
+		# The states: sick differs from idle, a step differs from the other, grazing from standing.
+		var idle := PlaceholderArt.tex("animal:%s:idle:0" % kind).get_image().get_data()
+		check(idle != PlaceholderArt.tex("animal:%s:sick:0" % kind).get_image().get_data(), kind + ": sick looks different")
+		check(PlaceholderArt.tex("animal:%s:walk:0" % kind).get_image().get_data() != PlaceholderArt.tex("animal:%s:walk:1" % kind).get_image().get_data(), kind + ": walks")
+		check(idle != PlaceholderArt.tex("animal:%s:peck:1" % kind).get_image().get_data(), kind + ": grazes with its head down")
+	# Bigger animals are bigger: cow > sheep > dog, hen > chick; the young are smaller.
+	var area := func(k): return AnimalArt.size_of(k).x * AnimalArt.size_of(k).y
+	check(area.call("cow") > area.call("sheep") and area.call("sheep") > area.call("dog") and area.call("sheep") > area.call("chicken") and area.call("dog") > area.call("chick") and area.call("chicken") > area.call("chick"), "kinds keep their relative sizes")
+	check(area.call("calf") < area.call("cow") and area.call("lamb") < area.call("sheep") and area.call("lamb") < area.call("sheep_shorn"), "the young are smaller")
+	# Facing from a step: the camera's right is +x -z, towards it +x +z.
+	check(AnimalArt.facing_of(Vector2(1, 0)) == "dr" and AnimalArt.facing_of(Vector2(0, 1)) == "dl", "steps towards the camera face down")
+	check(AnimalArt.facing_of(Vector2(-1, 0)) == "ul" and AnimalArt.facing_of(Vector2(0, -1)) == "ur", "steps away face up")
+	check(AnimalArt.facing_of(Vector2(1, -1)) == "dr" and AnimalArt.facing_of(Vector2.ZERO, "ul") == "ul", "a sideways step keeps the near/far side; no step keeps the facing")
+	check(AnimalArt.facing_of(Vector2(1, -1), "ul") == "ur" and AnimalArt.facing_of(Vector2(-1, 1), "dr") == "dl", "a pure left or right step keeps the front or back")
+
+
+func _opaque(img: Image) -> int:
+	var n := 0
+	for y in img.get_height():
+		for x in img.get_width():
+			if img.get_pixel(x, y).a > 0.0:
+				n += 1
+	return n
+
+
+## The lowest row with a drawn pixel.
+func _feet_row(img: Image) -> int:
+	for y in range(img.get_height() - 1, -1, -1):
+		for x in img.get_width():
+			if img.get_pixel(x, y).a > 0.0:
+				return y
+	return -1

@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Animals redrawn: denser pixels, four facings
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: docs/ART_DIRECTION.md section 4 "Animals in the same style". New `scripts/art/animal_art.gd`
+  (AnimalArt) draws hens, chicks, cows, calves, sheep, shorn sheep, lambs and the dog in code at
+  `SCALE` = 2 times the farmer's pixel density (cow 52 x 38, sheep 40 x 32, dog 30 x 24, hen
+  30 x 28, chick 18 x 16 art pixels), in three tones lit from the upper left, a wool cloud of
+  curls, a udder, horns, pricked shiba ears with cream cheeks and chest, a hen's comb / wattle /
+  scalloped wing / tail fan. Keys keep `animal:<kind>:<pose>:<frame>` and take an optional fifth
+  part, the facing `dl` (default), `dr`, `ul`, `ur`: front or back 3/4 for the diagonal camera
+  (the right ones are the left mirrored; seen from the front the face shows, from behind the ears,
+  rump and tail), the figure tilted a little by a shear so the near end stands lower. Poses
+  unchanged: idle (frame 1 lifts the head, flicks an ear), peck, walk, sick (lying, dull, eyes
+  shut), dog sit; wool / shorn / young by kind. `AnimalLayer` sets `pixel_size = PX / SCALE` (same
+  world size), faces beasts and the dog by their step (`AnimalArt.facing_of`) instead of flipping
+  the sprite; `AnimalView` (flat) draws at half size. The dog held in the arms stays the old
+  14 x 11 picture (it is drawn by Main3D / Player at the farmer's pixel size, not touched here).
+  Shadow code untouched.
+- Checked: test_animals (new `_animal_art`: every kind x pose x frame x facing draws at its size
+  and stands on the bottom row, right = mirrored left, up differs from down, sick / walk / graze
+  differ, relative sizes, facing from steps; the old size checks updated). Screenshots of
+  `--map=coop`, `--map=barn`, `--map=farm@coop --hens-out`, `--map=farm@barn --barn-out` before
+  and after: the new animals read clearly at 480 x 270. All tests and smoke runs: see below.
+- Left / next: no "brushed" look (the layer does not show it; the old art did not either); the
+  eight-frame walk and a lying cow beyond "sick" are not drawn; fish are items, not creatures.
+  Section 4 still has the farmer / villager sprites and the shadow decision.
+
 ## 2026-11-07 — Roof snow without patch holes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the long-open "patch holes" in the roof snow. Root cause: `SnowLayer.TOP_SHADER` (the

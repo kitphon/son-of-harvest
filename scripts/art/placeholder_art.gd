@@ -35,8 +35,10 @@ static func _make(key: String) -> Image:
 			return _stalk(parts[1], int(parts[2]), parts[3] == "ripe", int(parts[4]) if parts.size() > 4 else 0)
 		"item":     # item:<id>, a picked crop held overhead or lying on the ground (12 x 12)
 			return _item(parts[1])
-		"animal":   # animal:<chicken|chick|cow|calf|sheep|sheep_shorn|lamb|dog>:<idle|peck|walk|sick, dog: sit|held>:<frame>, side view facing left
-			return _animal(parts[1], parts[2], int(parts[3]))
+		"animal":   # animal:<chicken|chick|cow|calf|sheep|sheep_shorn|lamb|dog>:<idle|peck|walk|sick, dog: sit|held>:<frame>[:<dl|dr|ul|ur>], AnimalArt (twice the farmer's pixel density; the dog "held" is the small old one)
+			if parts[1] == "dog" and parts[2] == "held":
+				return _animal(parts[1], parts[2], int(parts[3]))
+			return AnimalArt.make(parts[1], parts[2], int(parts[3]), parts[4] if parts.size() > 4 else "dl")
 		"build":    # build:<plaster|tsuchi|board|kawara|kawara_edge|thatch|kaya|kaya_edge|hay|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
 		"ground":   # ground:<grass|tilled|wet|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>
@@ -216,9 +218,8 @@ static func _egg(id: String, size: int) -> Image:
 	return _outline(img)
 
 
-## A hen (14 x 12) or a chick (9 x 8) seen from the side, facing left (mirrored for right):
-## idle (frame 1 turns the head), peck (head down to the ground), walk (two steps), sick
-## (grey, fluffed up, head sunk, eyes shut).
+## The first, low resolution animal drawings (a hen 14 x 12, a chick 9 x 8, side view facing
+## left). Only the dog held in the farmer's arms still uses them (AnimalArt draws the rest).
 static func _animal(kind: String, pose: String, frame: int) -> Image:
 	if kind == "chick":
 		return _chick(pose, frame)

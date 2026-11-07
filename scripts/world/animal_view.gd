@@ -56,8 +56,15 @@ func _draw() -> void:
 						n += 1
 	for s in shown:
 		var tex := PlaceholderArt.tex("animal:%s:%s:0" % [a.look(s[0]), "sick" if s[0].sick else "idle"])
-		draw_texture(tex, s[1] * T - Vector2(tex.get_width() / 2.0, tex.get_height()) + Vector2(0, 4))
+		_draw_animal(tex, s[1] * T + Vector2(0, 4))
 	if on_farm and not a.dog.held:
 		var tex := PlaceholderArt.tex("animal:dog:idle:0")
 		var at := (Vector2(a.dog.cell) + Vector2(0.5, 0.5)) * T
-		draw_texture(tex, at - Vector2(tex.get_width() / 2.0, tex.get_height() - 4))
+		_draw_animal(tex, at + Vector2(0, 4))
+
+
+## An animal picture with its feet at `feet`, at the flat view's pixel size (the pictures have
+## AnimalArt.SCALE times the density).
+func _draw_animal(tex: Texture2D, feet: Vector2) -> void:
+	var size := tex.get_size() / float(AnimalArt.SCALE)
+	draw_texture_rect(tex, Rect2(feet - Vector2(size.x / 2.0, size.y), size), false)
