@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Flat view stalls show their wares
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: the flat view's festival stalls drew the items' inventory pictures; they now draw the same
+  wares the 3D StallWares builds. `PlaceholderArt._ware` paints one 8 x 12 picture per item with
+  a 3D look (key `festival:ware_<name>:1x1`, sizes / anchors in festival_size / festival_anchor):
+  dango skewers, sakura mochi, tea pot and cup, yakisoba on the griddle, shaved ice, soda bottles
+  in a tub, chime, fans, chestnuts, sweet potatoes, clay rabbits, moon lantern, soba bowls, yuzu
+  tea, daruma, charms on a rack; steam puffs (see-through pixels) over the hot ones.
+  `FestivalView.ware_key` uses `StallWares.has_look` (no second table), an item with no look keeps
+  its item picture; the display of the two bare Lantern Night stalls was already drawn.
+- Checked: test_festivals `_flat_art` (every stocked item: its picture exists, 8 x 12, drawn, not
+  magenta, standing on its ground, steam as StallWares.STEAMING; no-look items keep the item
+  picture). All test scripts OK (0 failed), the four smoke runs clean. Looked at main_2d frames
+  of all four festivals (enlarged crops): wares read at the counter, steam shows. 3D files
+  untouched.
+- Left / next: crowd or the player can cover a counter in a frame; wares are 8 px wide so three
+  stock items touch edge to edge.
 ## 2026-11-07 — Faster first visit to a map
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the open item of "Smooth map changes" (a first visit built in one frame). Measured
