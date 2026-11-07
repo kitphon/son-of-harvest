@@ -155,6 +155,12 @@ Light and Farmhouse model hold the technical detail of what is built.
       matching `festival:display_<id>:1x1` picture on the counter (FestivalView.display_key).
       `house_model.gd --what=stalls` renders them too. Tests: test_maps `_stall_wares`,
       test_festivals (`_flat_art`, the data check).
+      The flat view's stalls show their wares too (2026-11-07, this commit): each item with a 3D
+      look (`StallWares.LOOKS`, the one list; `FestivalView.ware_key`) is drawn as its own 8 x 12
+      pixel picture `festival:ware_<name>:1x1` (`PlaceholderArt._ware`: skewers, bowls, griddle,
+      glass, chimes, fans, daruma, charms ...) along the counter, semi-transparent steam puffs
+      over the hot ones (`StallWares.STEAMING`); an item with no look keeps its item picture.
+      Test: test_festivals `_flat_art`.
 
 ### 2. Nature
 - [x] Trees: stylized round crowns (several lumps, lit and shaded) for broadleaf trees; pines

@@ -1148,6 +1148,7 @@ func check(ok: bool, what: String) -> void:
 func _flat_art() -> void:
 	var view: GDScript = load("res://scripts/world/festival_view.gd")   # they name the Game autoload
 	var props3d: GDScript = load("res://scripts/world3d/festival_props.gd")
+	var wares: GDScript = load("res://scripts/world3d/stall_wares.gd")
 	for id in Festivals.all():
 		var fest: Dictionary = Festivals.get_festival(id)
 		var pics: Array = []   # [origin, image]
@@ -1188,6 +1189,34 @@ func _flat_art() -> void:
 				check(dimg.get_size() == dsize and not dmagenta and dlow >= dan.y - 1 and dsize.x <= (p.size[0] - 0.75) * 16 + 20 and dsize.y <= 20,
 					"%s: the %s display has its flat picture (%s, %s)" % [id, p.display, dkey, dsize])
 		check(view.display_key({"kind": "stall"}) == "", "a stall without a display has no display picture")
+		# Every ware with a 3D look (StallWares.LOOKS) stands on the counter in the flat view as its own
+		# pixel picture; an item with no look keeps its item picture.
+		for s in Festivals.stalls(id):
+			for entry in s.get("stock", []):
+				var item := str(entry.item)
+				var wkey: String = view.ware_key(item)
+				if not wares.has_look(item):
+					check(wkey == "", "%s: %s has no 3D look, so it keeps its item picture" % [id, item])
+					continue
+				var wimg: Image = PlaceholderArt.tex(wkey).get_image()
+				var wan := PlaceholderArt.festival_anchor("ware_" + item.get_slice(":", 1), 1, 1)
+				var seen := 0
+				var wlow := -1
+				var wmagenta := false
+				for y in wimg.get_height():
+					for x in wimg.get_width():
+						var wc := wimg.get_pixel(x, y)
+						if wc.a > 0:
+							seen += 1
+							wlow = y
+							wmagenta = wmagenta or wc.is_equal_approx(Color.MAGENTA)
+				check(wkey.begins_with("festival:ware_") and wimg.get_size() == Vector2i(8, 12) and seen >= 12 and not wmagenta and wlow >= wan.y - 1,
+					"%s: %s has its flat ware picture (%s, %d px)" % [id, item, wkey, seen])
+				var steams := false   # steam puffs are the see-through pixels
+				for y in wimg.get_height():
+					for x in wimg.get_width():
+						steams = steams or (wimg.get_pixel(x, y).a > 0.0 and wimg.get_pixel(x, y).a < 0.9)
+				check(steams == (item in wares.STEAMING), "%s: %s steams in the flat view as in 3D" % [id, item])
 		var lights: Array = props3d.glows_of(id, str(fest.get("map", "")))
 		var lit := 0
 		for g in lights:

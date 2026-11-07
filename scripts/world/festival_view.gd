@@ -58,6 +58,12 @@ static func display_key(p: Dictionary) -> String:
 	return "festival:display_%s:1x1" % p.display if p.has("display") else ""
 
 
+## The art key of one ware on a stall counter ("festival:ware_<name>:1x1"), "" for an item the
+## 3D view has no look for (StallWares.LOOKS): that one keeps its item picture.
+static func ware_key(item: String) -> String:
+	return "festival:ware_%s:1x1" % item.get_slice(":", 1) if StallWares.has_look(item) else ""
+
+
 ## The middle of a decoration's cells, in pixels: where its picture stands.
 static func ground_mid(p: Dictionary) -> Vector2:
 	var size: Array = p.get("size", [1, 1])
@@ -82,7 +88,8 @@ func _draw() -> void:
 			var mid := ground_mid(p)
 			var w: float = (float(p.get("size", [1, 1])[0]) - 0.75) * T   # clear of the corner lantern
 			for i in stock.size():
-				var tex := PlaceholderArt.tex(PlaceholderArt.item_key(str(stock[i].item)))
+				var wk := ware_key(str(stock[i].item))
+				var tex := PlaceholderArt.tex(wk if wk != "" else PlaceholderArt.item_key(str(stock[i].item)))
 				var x := mid.x - w / 2 + w * (i + 0.5) / stock.size()
 				draw_texture(tex, Vector2(x - tex.get_width() / 2.0, mid.y - 4 - tex.get_height()).round())
 			if p.has("display"):   # a stall that sells nothing sets out a display (StallWares.DISPLAYS)
