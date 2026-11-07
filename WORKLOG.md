@@ -10,6 +10,53 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — The field takes the night lift
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: ART_DIRECTION section 3's "the field's objects and crops take no night lift". The
+  field's unshaded sprites now take the figures' warm lift by the same rule and numbers
+  (data/light.json "sprites" → "lift": range 2.4, (1 - d/range)², a window only on its lit
+  side, none past a solid building, capped at 0.6): crop sprites, the CropClusters plants
+  (corn, rice, the vines), items lying on the ground, forage, eggs, story props, every lit
+  sprite (SpriteLight.GROUP) that is not a figure or held by one. `SpriteLight.field_lifts`
+  measures each at the middle of its picture (a plant: its root plus half its picture's height
+  at its size; a plant its cell's snow may fold away takes none). NightLights' "Warmth" pass
+  draws them before the figures, so a figure standing in front covers them (one out of the
+  light but over a lifted object is drawn back plain). Same shader: the copy plus the picture's
+  own pixel times the warm colour times the lift (a plant's colour also times its shade), so
+  the pool under them is not counted twice. Why not the CropClusters `sun` uniform or a
+  per-instance lift: the night tint (46529a) multiplies the 3D picture after it, and the
+  Compatibility renderer clamps the 3D picture at 1, so the lift divided by the tint (x3 in
+  red) would clip on most leaves and fruit; the overlay adds it after the tint, as for the
+  figures. Cost: the lifts are worked out once a game minute (Game.minute_passed), or when the
+  number of lit sprites changes, a CropClusters is replanted or a listed sprite was replaced;
+  each frame only the few lifted ones are projected (a sprite that moved since is skipped until
+  the next minute). A plant's quad (`NightLights.plant_corners`) stands like its billboard but
+  does not follow its sway (about half a pixel at the tip in calm air).
+- Checked: test_weather `_sprite_light` new checks: a crop sprite and an item in front of a lit
+  window take the lift, the nearer more; none behind the window's wall or far off; figures and
+  what they hold are left out; the corn cluster in front of the window lit (3 plants), the
+  ones behind it and far off not; none by day; capped by many lights; a building between keeps
+  a lantern's light off the field; a plant the snow may fold takes none; a plant's quad stands
+  on its root at its picture's size. With `max` 0 test_weather printed `test_weather: FAILED
+  (9 failed)`, 5 of them the new field checks, so they bite. All 28 test scripts print OK (0
+  failed). Smoke runs (title, --demo, --demo --map=town, --demo --mine=3, --demo --time=21:00,
+  --demo --season=summer --time=21:00, --demo --festival=lantern_night) print no error or
+  warning lines.
+  Pixels (480x270, last frame of 30; "before" = this build with field_lifts returning nothing;
+  the farm frames were made steady for the comparison by a temporary fixed Game rng seed,
+  reverted: two "after" runs then differed by 0 px): `--demo --time=21:00` 1418 px changed, all
+  on the five objects nearest the farmhouse (three sprouts and two cabbages, lifts 0.06..0.08;
+  mean 20.4,31.6,27.2 -> 25.0,35.4,28.2, at most +11 red, +10 green, +3 blue, none darker).
+  `--demo --season=summer --time=21:00` 2694 px, on the sprouts and the corn plants by the house
+  (24.9,36.0,28.7 -> 28.4,39.3,29.6, at most +19,+15,+5). `--festival=lantern_night`,
+  `--map=town --time=21:00`, `--map=kaminoda --time=21:00`: 0 px (no field sprite near a light);
+  `--map=kaminoda@genzo --time=21:00`: 91 px, all in the HUD forecast icon. Looked at, with the
+  window energy raised x9 for the look only (reverted): the lit corn's warm pixels sit on the
+  plants' own pixels, the ground pool round them unchanged.
+- Left / next: the overlay knows no depth, so a lit plant behind another plant or a fence is
+  drawn over it where they overlap; a plant's lift does not follow its sway or parting; the
+  winter paddy water patches and the grass tufts take none (they lie in the pools).
+
 ## 2026-11-07 — Flat view water patches in winter
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: the flat view (MapView, the Kaminoda paddies) draws the winter grey-blue water patches that

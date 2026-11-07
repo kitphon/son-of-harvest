@@ -147,6 +147,11 @@ func set_cover(cover: float) -> void:
 	_water_material.set_shader_parameter("cover", cover)
 
 
+## The snow lying now (set_cover), 0..1: SpriteLight.field_lifts leaves a plant that may fold away unlit.
+func snow_cover() -> float:
+	return _cover
+
+
 ## The wind, 0..1 (FarmWorld.set_wind): every picture's material, and the ones made later.
 func set_wind(strength: float) -> void:
 	wind = clampf(strength, 0.0, 1.0)
