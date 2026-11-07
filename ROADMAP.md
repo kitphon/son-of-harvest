@@ -35,6 +35,7 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 [x] Pale plaster takes the night lamps (2026-11-07): a warm wash on the pale walls round every lit window and door, over the tint, kept to pale pixels (NightLights.wall_wash, data/light.json pools.wall; README → Light).
 [x] Maples (2026-11-07): a Japanese maple tree kind (`Trees` "maple", small layered crown; green, deep green, red and orange, bare with snow), six on the bamboo hill and one each in Kaminoda and Sakurazaka; the hill's trees checked from the lookout (ART_DIRECTION, Trees).
 [x] Hill trees (2026-11-07): six broadleaf trees on the bamboo hill (data/maps/hill.json: persimmons and sakuras), red or gold in fall, bare with snow in winter (ART_DIRECTION, Trees).
+[x] Faster first visit to a map (2026-11-07): meshes the same every build kept a run (MeshCache), the maps next door built ahead while the farmer stands still (Main3D._prebuild); tools/build_times.gd times every build.
 Art direction (2026-11-03): the user wants an "HD-2D lite" look, Japanese countryside: pixel
 sprites in a lit 3D world. [x] Light pass (sun shadows on the ground, warm sun / cool shade,
 glow; README → Light). [x] Camera lenses (data/camera.json: ps1, medium, wide; `--lens`);

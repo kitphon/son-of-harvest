@@ -31,18 +31,20 @@ func build(w: int, h: int, kind_at: Callable, hold_at: Callable, back_cells := M
 	share = pine_share
 	var cw := w + MARGIN + back
 	var ch := h + MARGIN + back
-	var img := Image.create(cw * T, ch * T, false, Image.FORMAT_RGBA8)
-	var mask := Image.create_empty(cw * SnowLayer.MASK_PER_CELL, ch * SnowLayer.MASK_PER_CELL, false, Image.FORMAT_L8)
-	for y in range(-back, h + MARGIN):
-		for x in range(-back, w + MARGIN):
-			var c := Vector2i(x, y)   # under the map too: its edge pixels must not show a gap
-			var tile := PlaceholderArt.tex(ground_key(kind_at, w, h, c)).get_image()
-			tile.convert(Image.FORMAT_RGBA8)
-			img.blit_rect(tile, Rect2i(0, 0, T, T), Vector2i(x + back, y + back) * T)
-			var v: float = hold_at.call(edge_cell(c, w, h))
-			var m := SnowLayer.MASK_PER_CELL
-			mask.fill_rect(Rect2i((x + back) * m, (y + back) * m, m, m), Color(v, v, v))
-	material = SnowLayer.ground_material(ImageTexture.create_from_image(img), ImageTexture.create_from_image(mask))
+	# Every in-map cell's kind and hold asked once (the apron asks each edge cell many times).
+	var kinds := PackedStringArray()
+	var holds := PackedFloat32Array()
+	for y in h:
+		for x in w:
+			kinds.append(kind_at.call(Vector2i(x, y)))
+			holds.append(hold_at.call(Vector2i(x, y)))
+	var kind := func(c: Vector2i) -> String: return kinds[c.y * w + c.x]
+	var hold := func(c: Vector2i) -> float: return holds[c.y * w + c.x]
+	var id := "%d|%d|%d|%d|%d|%d" % [w, h, back, share, hash(kinds), hash(holds)]
+	if not _kept.has(id):   # the same map looks the same past its edges: kept a run
+		_kept[id] = _lay(w, h, kind, hold)
+	var made: Dictionary = _kept[id]
+	material = SnowLayer.ground_material(made.ground, made.mask)
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(cw, ch)
 	var ground := MeshInstance3D.new()
@@ -53,23 +55,49 @@ func build(w: int, h: int, kind_at: Callable, hold_at: Callable, back_cells := M
 	add_child(ground)
 	water = WaterSurface.new()
 	add_child(water)
-	water.build(w, h, kind_at, MARGIN, back)
-	_make_pines(w, h, kind_at)
-	_make_tufts(w, h, kind_at, hold_at)
+	water.build(w, h, kind, MARGIN, back)
+	_make_pines(made.pines)
+	_make_tufts(made.tufts, w, h, hold)
+
+
+static var _kept := {}   # the map's size, rim and kinds / holds -> what _lay worked out
+
+## The apron's ground picture and snow mask, the wood's pines (per shape, their transforms) and
+## the apron's grass cells, worked out from the edge cells' kinds and holds.
+func _lay(w: int, h: int, kind: Callable, hold: Callable) -> Dictionary:
+	var cw := w + MARGIN + back
+	var ch := h + MARGIN + back
+	var img := Image.create(cw * T, ch * T, false, Image.FORMAT_RGBA8)
+	var mask := Image.create_empty(cw * SnowLayer.MASK_PER_CELL, ch * SnowLayer.MASK_PER_CELL, false, Image.FORMAT_L8)
+	for y in range(-back, h + MARGIN):
+		for x in range(-back, w + MARGIN):
+			var c := Vector2i(x, y)   # under the map too: its edge pixels must not show a gap
+			var tile := PlaceholderArt.image(ground_key(kind, w, h, c))
+			img.blit_rect(tile, Rect2i(0, 0, T, T), Vector2i(x + back, y + back) * T)
+			var v: float = hold.call(edge_cell(c, w, h))
+			var m := SnowLayer.MASK_PER_CELL
+			mask.fill_rect(Rect2i((x + back) * m, (y + back) * m, m, m), Color(v, v, v))
+	return {"ground": ImageTexture.create_from_image(img), "mask": ImageTexture.create_from_image(mask),
+		"pines": _pine_spots(w, h, kind), "tufts": _tuft_cells(w, h, kind)}
 
 
 ## Grass tufts on the apron's grass (GrassTufts), the edge cell's snow hold under each.
-func _make_tufts(w: int, h: int, kind_at: Callable, hold_at: Callable) -> void:
+func _make_tufts(cells: Array[Vector2i], w: int, h: int, hold: Callable) -> void:
+	tufts = GrassTufts.new()
+	add_child(tufts)
+	snow_mats.append(tufts.snow_material())
+	tufts.plant(cells, func(c: Vector2i) -> float: return hold.call(edge_cell(c, w, h)))
+
+
+## The apron's grass cells (off the map, the edge cell grass).
+func _tuft_cells(w: int, h: int, kind: Callable) -> Array[Vector2i]:
 	var cells: Array[Vector2i] = []
 	for y in range(-back, h + MARGIN):
 		for x in range(-back, w + MARGIN):
 			var c := Vector2i(x, y)
-			if (x < 0 or y < 0 or x >= w or y >= h) and kind_at.call(edge_cell(c, w, h)) == "grass":
+			if (x < 0 or y < 0 or x >= w or y >= h) and kind.call(edge_cell(c, w, h)) == "grass":
 				cells.append(c)
-	tufts = GrassTufts.new()
-	add_child(tufts)
-	snow_mats.append(tufts.snow_material())
-	tufts.plant(cells, func(c: Vector2i) -> float: return hold_at.call(edge_cell(c, w, h)))
+	return cells
 
 
 ## The in-map cell nearest `c` (itself when inside).
@@ -118,30 +146,34 @@ static func pine_at(kind_at: Callable, w: int, h: int, c: Vector2i, pct := TREE_
 
 ## The wood: straight pines (Trees.pine, PINE_SHAPES shapes), each nudged in its cell,
 ## turned and a little taller or shorter, one MultiMesh per shape and material.
-func _make_pines(w: int, h: int, kind_at: Callable) -> void:
+func _make_pines(at: Array) -> void:
+	for i in PINE_SHAPES:
+		if at[i].is_empty():
+			continue
+		var meshes := MeshCache.parts("wood_pine:%d" % i,   # the same shapes on every map: built once a run
+			func(parts: FarmProps.Parts): Trees.pine(parts, Vector3.ZERO, 101 + i * 37, false, true))
+		for key in meshes:
+			var mmi := _multi(meshes[key], at[i], FarmProps.Parts.material(key, snow_mats))
+			if not FarmProps.Parts.casts_shadow(key):
+				mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+## Where the wood's pines stand: per shape, their transforms.
+func _pine_spots(w: int, h: int, kind: Callable) -> Array:
 	var at := []
 	for i in PINE_SHAPES:
 		at.append([] as Array[Transform3D])
 	for y in range(-back, h + MARGIN):
 		for x in range(-back, w + MARGIN):
 			var c := Vector2i(x, y)
-			if not pine_at(kind_at, w, h, c, share):
+			if not pine_at(kind, w, h, c, share):
 				continue
 			var r := posmod(c.x * 131 + c.y * 197, 1000) / 1000.0
 			var s := 0.85 + 0.45 * r
 			var nudge := Vector3(posmod(c.x * 37 + c.y * 11, 7) - 3, 0, posmod(c.x * 17 + c.y * 41, 7) - 3) * 0.08
 			var basis := Basis(Vector3.UP, r * TAU).scaled(Vector3(s, s, s))
 			at[posmod(c.x * 5 + c.y * 3, PINE_SHAPES)].append(Transform3D(basis, Vector3(x + 0.5, 0, y + 0.5) + nudge))
-	for i in PINE_SHAPES:
-		if at[i].is_empty():
-			continue
-		var parts := FarmProps.Parts.new()
-		Trees.pine(parts, Vector3.ZERO, 101 + i * 37, false, true)
-		var meshes := parts.meshes()
-		for key in meshes:
-			var mmi := _multi(meshes[key], at[i], FarmProps.Parts.material(key, snow_mats))
-			if not FarmProps.Parts.casts_shadow(key):
-				mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return at
 
 
 func _multi(mesh: Mesh, at: Array[Transform3D], mat: Material) -> MultiMeshInstance3D:

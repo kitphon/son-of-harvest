@@ -77,6 +77,7 @@ func _process(delta: float) -> bool:
 		_backdrop()
 		_walk_slide()
 		_fade_steps()
+		_mesh_cache()
 		_start_view()
 	elif _frame == 3:
 		var g: Node = root.get_node("Game")
@@ -159,6 +160,7 @@ func _check_view() -> void:
 	check(events.size() == 1 and events[0].map_id == "house" and events[0].table.map_id == "house",
 		"the event triggers follow the map")
 	_kept_worlds(g)
+	_prebuilt_worlds(g)
 	_scene.free()
 	check(not g.paused(), "leaving the view keeps no pause")
 	g.new_game()
@@ -2967,6 +2969,158 @@ func check(ok: bool, what: String) -> void:
 		failures += 1
 		print("FAIL: " + what)
 
+
+## Faster first visits (2026-11-07): meshes the same every build are kept a run (MeshCache) and
+## placed again; a world built again looks the same piece by piece, with its own materials.
+func _mesh_cache() -> void:
+	var MeshCacheS: GDScript = load("res://scripts/world3d/mesh_cache.gd")
+	var fw: GDScript = load("res://scripts/world3d/farm_world.gd")
+	var snow_layer: GDScript = load("res://scripts/world3d/snow_layer.gd")
+	var runs := [0]
+	var make := func(w: Node3D) -> float:
+		runs[0] += 1
+		w._box(Vector3(1, 0.5, 1), Vector3(2.5, 0.25, 3.5), w.flat_material(Color("2e221a")))
+		w._snow_top(Vector3(0.9, 0.03, 0.9), Vector3(2.5, 0.52, 3.5))
+		return 1.5
+	var a: Node3D = fw.new()
+	var b: Node3D = fw.new()
+	var id := "test|box %d" % Time.get_ticks_usec()
+	var out_a: Variant = MeshCacheS.build(a, id, make.bind(a))
+	var out_b: Variant = MeshCacheS.build(b, id, make.bind(b))
+	var ka := a.get_children()
+	var kb := b.get_children()
+	var same := ka.size() == 2 and kb.size() == 2
+	for i in mini(ka.size(), kb.size()):
+		same = same and ka[i].mesh == kb[i].mesh and ka[i].transform == kb[i].transform and ka[i].cast_shadow == kb[i].cast_shadow \
+			and ka[i].material_override != kb[i].material_override and ka[i].material_override.get_class() == kb[i].material_override.get_class()
+	check(runs[0] == 1 and out_a == 1.5 and out_b == 1.5 and same and MeshCacheS.kept(id),
+		"mesh cache: the second build places the kept meshes (built %d times, %s / %s, same pieces %s)" % [runs[0], out_a, out_b, same])
+	check(b._snow_mats.size() == 1 and kb.size() == 2 and b._snow_mats[0] == kb[1].material_override
+		and kb[1].material_override.shader == snow_layer.top_material().shader,
+		"mesh cache: the snow top's own material is in the new world's snow (set_snow drives it)")
+	a.free()
+	b.free()
+	# A build that makes more than plain pieces (here a lit window) is not kept: it runs each time.
+	runs[0] = 0
+	var lit := func(w: Node3D) -> void:
+		runs[0] += 1
+		w._lit_picture("build:shoji", Vector2(0.5, 0.5), Vector3(1, 1, 1))
+	id = "test|lit %d" % Time.get_ticks_usec()
+	for i in 2:
+		var w: Node3D = fw.new()
+		MeshCacheS.build(w, id, lit.bind(w))
+		check(w.windows.size() == 1, "mesh cache: a lit window is made on every world (%d)" % i)
+		w.free()
+	check(runs[0] == 2 and not MeshCacheS.kept(id), "mesh cache: a build with a lit window is not kept (ran %d times)" % runs[0])
+	runs[0] = 0
+	id = "test|parts %d" % Time.get_ticks_usec()
+	var parts := func(p: RefCounted) -> void:
+		runs[0] += 1
+		load("res://scripts/world3d/farm_props.gd").block(p.st(Color.RED), Rect2(0, 0, 1, 1), 0.0, Rect2(0, 0, 1, 1), 1.0)
+	var m1: Dictionary = MeshCacheS.parts(id, parts)
+	var m2: Dictionary = MeshCacheS.parts(id, parts)
+	check(runs[0] == 1 and m1 == m2 and m1.size() == 1, "mesh cache: parts are built once and handed out again")
+	# Real maps: a second village, farm, room and hill look the same piece by piece and share meshes.
+	var g: Node = root.get_node("Game")
+	for map_id in ["town", "farm", "house", "hill"]:
+		var m := MapManager.data(map_id)
+		var worlds := []
+		for i in 2:
+			var w: Node3D = fw.new() if m.farm else load("res://scripts/world3d/map_world.gd").new()
+			if m.farm:
+				w.setup(g.farm, m.gate_cells())
+			else:
+				w.build(m)
+			worlds.append(w)
+		var p0: Array = worlds[0].find_children("*", "GeometryInstance3D", true, false)
+		var p1: Array = worlds[1].find_children("*", "GeometryInstance3D", true, false)
+		var shared := 0
+		var meshes := 0
+		var alike: bool = p0.size() == p1.size() and worlds[0].windows.size() == worlds[1].windows.size() \
+			and worlds[0]._snow_mats.size() == worlds[1]._snow_mats.size() and worlds[0].occluders.count() == worlds[1].occluders.count()
+		var own := true
+		for i in mini(p0.size(), p1.size()):
+			var x: GeometryInstance3D = p0[i]
+			var y: GeometryInstance3D = p1[i]
+			alike = alike and x.get_class() == y.get_class() and x.transform.is_equal_approx(y.transform) and x.cast_shadow == y.cast_shadow \
+				and x.layers == y.layers and x.visible == y.visible
+			if x is MeshInstance3D and y is MeshInstance3D:
+				shared += int(x.mesh == y.mesh)
+				meshes += 1
+				var ma: Material = x.material_override
+				var mb: Material = y.material_override
+				own = own and (ma == null or ma != mb)
+				if ma is StandardMaterial3D and mb is StandardMaterial3D:
+					alike = alike and ma.albedo_color == mb.albedo_color and ma.albedo_texture == mb.albedo_texture and ma.transparency == mb.transparency \
+						and ma.vertex_color_use_as_albedo == mb.vertex_color_use_as_albedo and ma.shading_mode == mb.shading_mode
+				elif ma is ShaderMaterial and mb is ShaderMaterial:
+					alike = alike and ma.shader == mb.shader
+				if x.mesh is ArrayMesh and y.mesh is ArrayMesh and x.mesh != y.mesh:
+					alike = alike and x.mesh.get_surface_count() == y.mesh.get_surface_count() \
+						and x.mesh.surface_get_array_len(0) == y.mesh.surface_get_array_len(0)
+		check(alike and own and shared * 2 > meshes,
+			"mesh cache: %s built again looks the same (%d pieces, %d of %d meshes shared, own materials %s, alike %s)" % [map_id, p0.size(), shared, meshes, own, alike])
+		for w in worlds:
+			w.free()
+	check(PlaceholderArt.image("ground:grass:0").get_data() == PlaceholderArt.tex("ground:grass:0").get_image().get_data(),
+		"the kept tile pictures are the textures' pictures")
+
+
+## Maps next door built ahead (Main3D._prebuild): while the farmer stands still the farm's
+## doors' maps are built a few steps a frame and kept (outdoor first, none past KEEP_WORLDS);
+## going through finds the world ready; one half built is finished on the way in.
+func _prebuilt_worlds(g: Node) -> void:
+	g.maps.place("farm", Vector2i(10, 10), Vector2i.DOWN)
+	_scene._enter_map()
+	_scene._drop_worlds()
+	var before: int = _scene.prebuilt
+	_scene.player.moving = true
+	_scene._prebuild(1.0)
+	check(_scene._pre.is_empty(), "built ahead: nothing while the farmer walks")
+	_scene.player.moving = false
+	_scene._prebuild(0.1)
+	check(_scene._pre.is_empty(), "built ahead: not before the farmer has stood still a moment")
+	var first := ""
+	for i in 3000:
+		_scene._prebuild(0.1)
+		if first == "" and not _scene._pre.is_empty():
+			first = _scene._pre.id
+		if _scene._pre.is_empty() and _scene._next_prebuild() == null:
+			break
+	var ids: Array = _scene._worlds.keys()
+	ids.sort()
+	check(first == "town" and ids == ["barn", "coop", "house", "town"] and _scene.prebuilt - before == 4,
+		"built ahead from the farm: the village first, then the house, coop and barn (%s first, %s)" % [first, ids])
+	var ok := true
+	for id in ids:
+		var w: Node = _scene._worlds[id].world
+		ok = ok and not w.is_inside_tree() and w.away and _scene._worlds[id].key == _scene.world_key(MapManager.data(id))
+	check(ok, "built ahead: kept out of the tree, away, for today's look")
+	var town_world: Node = _scene._worlds.town.world if _scene._worlds.has("town") else null
+	g.maps.place("town", Vector2i(2, 10), Vector2i.RIGHT)
+	_scene._enter_map()
+	check(town_world != null and _scene.world == town_world and _scene.world.is_inside_tree(), "built ahead: the village is ready on the way in")
+	# Half built: the rest of its steps on the way in, the same world.
+	_scene._drop_worlds()
+	var guard := 0
+	while (_scene._pre.is_empty() or _scene._pre.next < 1) and guard < 100:
+		_scene._prebuild(0.1)
+		guard += 1
+	var half_id: String = _scene._pre.get("id", "")
+	var half: Node = _scene._pre.get("world")
+	var at: int = _scene._pre.get("next", 0)
+	var steps: int = _scene._pre.get("steps", []).size()
+	check(half_id != "" and at < steps, "built ahead: one under way (%s, step %d of %d)" % [half_id, at, steps])
+	if half_id != "" and at < steps:
+		var m := MapManager.data(half_id)
+		g.maps.place(half_id, m.spawns.values()[0][0], Vector2i.DOWN)
+		_scene._enter_map()
+		check(_scene.world == half and _scene._pre.is_empty() and _scene.world.get_meta("map_id") == half_id,
+			"built ahead: the half built %s is finished on the way in" % half_id)
+	_scene._still = 1.0
+	_scene._prebuild(0.1)
+	_scene._on_day_started()
+	check(_scene._pre.is_empty() and _scene._worlds.is_empty(), "built ahead: a new day drops them")
 
 ## Walking (playtest 2026-11-07: the farmer stuck on things until wiggled free): straight into a
 ## corner a few pixels off a gap slides into the gap and through it; a solid cell that came

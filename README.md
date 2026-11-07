@@ -269,6 +269,18 @@ edge where boards or tatami meet the earth and a shoe stone below the door's ste
 `Game.go_to_map()` changes it and emits `map_changed` (the views fade, rebuild, place the
 farmer), and once the picture is back `map_entered(map_id)`, the hook for event triggers.
 
+Map worlds in the 3D view: up to `Main3D.KEEP_WORLDS` (6) worlds built today are kept out of
+the tree for going back. While the farmer stands still (0.4 s, no fade), `Main3D._prebuild`
+builds the maps next door ahead (outdoor ones first), a few build steps a frame
+(`FarmWorld.setup_steps`, `MapWorld.build_steps`, about 4 ms), and keeps them as if visited, so
+going through the door takes a millisecond or two; to make room it drops a kept map that is not
+next door. Meshes that are the same every build (the farm's buildings and fence, the village
+houses' walls and roofs, the map props made of plain meshes, the rooms' walls, the wood's pines)
+are kept for the whole run by `MeshCache` (scripts/world3d/mesh_cache.gd) and only placed
+again, with each world's own materials; so are the maps' ground pictures and the land past
+their edges. `tools/build_times.gd` times every map's build, first and again
+(`-- --parts` per step, `-- --maps=farm,town`; run with a window for the renderer's share).
+
 ## Villagers
 Each villager is a file `data/villagers/<id>.json` (shared numbers in `_common.json`: walk
 speed in cells per game minute, cells per walk frame): `id`, `name`, optional `speed`, `look`

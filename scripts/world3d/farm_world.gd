@@ -45,14 +45,28 @@ var hidden_item := Vector2i(-1, -1):
 
 
 func setup(f: FarmGrid, open_cells: Array[Vector2i] = []) -> void:
+	for step in setup_steps(f, open_cells):
+		step.call()
+
+
+## The build as steps to be called in order (setup runs them all at once; Main3D runs them
+## over idle frames to have the farm ready before the farmer goes back to it).
+func setup_steps(f: FarmGrid, open_cells: Array[Vector2i] = []) -> Array[Callable]:
 	farm = f
 	gaps = open_cells
-	_make_ground()
-	_make_buildings()
+	return [_make_ground, _make_buildings, _make_fence, _make_edges, _make_field]
+
+
+## The land past the fence (Surroundings).
+func _make_edges() -> void:
 	var rules: Dictionary = Game.snow_rules
 	add_surroundings(FarmGrid.W, FarmGrid.H,
 		func(c: Vector2i) -> String: return PlaceholderArt.ground_key(farm, c).get_slice(":", 1),
 		func(c: Vector2i) -> float: return SnowLayer.hold(farm, c, rules), "farm")
+
+
+## The grass tufts, the tall crops and what stands or lies on the field, then the snow.
+func _make_field() -> void:
 	add_tufts()
 	add_crops()
 	_objects = Node3D.new()
@@ -208,13 +222,14 @@ func lit_lamp(at: Vector3) -> void:
 ## Buildings over the fixed cells laid out by FarmGrid.generate(). The camera looks from +x / +z,
 ## so doors and windows go on those faces.
 func _make_buildings() -> void:
+	# The same every time: their meshes are kept a run (MeshCache); the lit windows, the noren
+	# and the lamps are made fresh (a build that makes them is not kept).
 	occlude(_make_house)
-	FarmProps.chest(self)
-	FarmProps.bin(self)
-	occlude(func(): FarmProps.stand(self))
-	occlude(func(): CoopProps.coop(self))
-	occlude(func(): BarnProps.barn(self))
-	_make_fence()
+	MeshCache.build(self, "farm|chest", func(): FarmProps.chest(self))
+	MeshCache.build(self, "farm|bin", func(): FarmProps.bin(self))
+	occlude(func(): MeshCache.build(self, "farm|stand", func(): FarmProps.stand(self)))
+	occlude(func(): MeshCache.build(self, "farm|coop", func(): CoopProps.coop(self)))
+	occlude(func(): MeshCache.build(self, "farm|barn", func(): BarnProps.barn(self)))
 
 
 ## Runs a builder and keeps what it made as one thing that fades when in the way (if tall).
@@ -321,6 +336,14 @@ func plant_tufts(cells: Array[Vector2i], hold_at: Callable) -> void:
 ## (veranda) along the front under the eaves, with a shoji door and windows on the faces the
 ## camera sees (+z, +x).
 func _make_house() -> void:
+	MeshCache.build(self, "farm|house", _house_body)
+	# Shoji door over the door cell (4, 3), shoji windows beside it and on the +x face.
+	for spot in LitSpots.farmhouse():
+		_lit_spot(spot)
+
+
+## The farmhouse's walls, frame, engawa and roof (_make_house).
+func _house_body() -> void:
 	var timber := flat_material(Color("2e221a"))
 	var front := LitSpots.FARM_FRONT      # wall face; the engawa fills z 3.6 .. 4.0
 	var depth := front - 1.0
@@ -347,9 +370,6 @@ func _make_house() -> void:
 	# round, half a unit of straw thick.
 	_box(Vector3(5, 0.34, depth), Vector3(4.5, 1.93, mid), timber)   # under the roof, fills the gap to the soffit
 	Minka.roof(self, Rect2(1.45, 0.55, 6.1, 3.5), 1.45, 1.25, 0.5)
-	# Shoji door over the door cell (4, 3), shoji windows beside it and on the +x face.
-	for spot in LitSpots.farmhouse():
-		_lit_spot(spot)
 
 
 ## Many copies of one mesh in a single MultiMesh.
@@ -373,7 +393,6 @@ func _multi(mesh: Mesh, transforms: Array[Transform3D], mat: Material) -> void:
 func _make_fence() -> void:
 	var w := float(FarmGrid.W)
 	var h := float(FarmGrid.H)
-	var p := FarmProps.Parts.new()
 	var line: Array[Vector2] = []      # (x, z) of every post, none in the gate
 	for x in FarmGrid.W:
 		line.append(Vector2(x + 0.5, 0.5))
@@ -381,6 +400,24 @@ func _make_fence() -> void:
 	for z in range(1, FarmGrid.H - 1):
 		line.append(Vector2(0.5, z + 0.5))
 		line.append(Vector2(w - 0.5, z + 0.5))
+	# The same for the same gate, so built once a run (MeshCache) and placed after that.
+	MeshCache.commit(self, MeshCache.parts("farm_fence:%s" % [gaps], _fence_parts.bind(line)))
+	# About one post in five keeps a leafy side shoot along the line (not at the corners or
+	# beside the gate); only the shoots move in the wind (OutdoorProps.Sway), the fence stands.
+	for q in line:
+		var along := Vector2(1, 0) if q.y == 0.5 or q.y == h - 0.5 else Vector2(0, 1)
+		var corner := (q.x == 0.5 or q.x == w - 0.5) and (q.y == 0.5 or q.y == h - 0.5)
+		if corner or posmod(int(q.x) * 7 + int(q.y) * 11, 5) != 0 or _open(q) or _open(q + along) or _open(q - along):
+			continue
+		var flip := posmod(int(q.x) + int(q.y), 2) == 0
+		var yaw := (0.0 if along.x > 0.0 else PI / 2) + (PI if flip else 0.0)
+		OutdoorProps.fence_spray(self, q.x, q.y, yaw, Game.season_name(), q.x * 1.3 + q.y * 0.7)
+
+
+## The fence's posts, canes and rails (OutdoorProps.fence_*) on the post spots `line` into `p`.
+func _fence_parts(p: FarmProps.Parts, line: Array[Vector2]) -> void:
+	var w := float(FarmGrid.W)
+	var h := float(FarmGrid.H)
 	for q in line:
 		if not _open(q):
 			OutdoorProps.fence_post(p, q.x, q.y)
@@ -404,17 +441,6 @@ func _make_fence() -> void:
 		for x in [0.5, w - 0.5]:
 			for run in _runs(func(t: float): return Vector2(x, t), h):
 				OutdoorProps.fence_rail(p, Vector3(x, y, run.x), Vector3(x, y, run.y))
-	p.commit(self)
-	# About one post in five keeps a leafy side shoot along the line (not at the corners or
-	# beside the gate); only the shoots move in the wind (OutdoorProps.Sway), the fence stands.
-	for q in line:
-		var along := Vector2(1, 0) if q.y == 0.5 or q.y == h - 0.5 else Vector2(0, 1)
-		var corner := (q.x == 0.5 or q.x == w - 0.5) and (q.y == 0.5 or q.y == h - 0.5)
-		if corner or posmod(int(q.x) * 7 + int(q.y) * 11, 5) != 0 or _open(q) or _open(q + along) or _open(q - along):
-			continue
-		var flip := posmod(int(q.x) + int(q.y), 2) == 0
-		var yaw := (0.0 if along.x > 0.0 else PI / 2) + (PI if flip else 0.0)
-		OutdoorProps.fence_spray(self, q.x, q.y, yaw, Game.season_name(), q.x * 1.3 + q.y * 0.7)
 
 
 ## Is the fence spot (x, z) in a gate cell? `between` also counts the stretch from a gate

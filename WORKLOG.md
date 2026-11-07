@@ -10,6 +10,65 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Faster first visit to a map
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the open item of "Smooth map changes" (a first visit built in one frame). Measured
+  with the new `tools/build_times.gd` (every map's build, first and again, `--parts` per step;
+  a print in a window costs ~14 ms, so the times are kept and printed after): the dearest
+  parts were not the farm buildings but the farm's bamboo fence (~160..220 ms, every day),
+  the land past each outdoor map's edge (40..100 ms: thousands of tile pictures read back
+  from their textures, every apron cell asking the edge cells' kind nine times), a new Shader
+  parsed for every snow material (0.7 ms each, dozens a map), the rooms' corner shading
+  (per pixel over the whole floor, ~40 ms a room) and the props' meshes. Changes, the look
+  kept: `MeshCache` (scripts/world3d/mesh_cache.gd) keeps meshes for the run: `parts(id,
+  build)` for FarmProps.Parts builds (the fence by its gate, the wood's three pine shapes),
+  `build(w, id, make)` records the plain MeshInstance3Ds a build adds (mesh, transform,
+  shadow, layers, its materials copied; snow materials go into the world's snow) and places
+  them again with copies of the materials; a build that adds anything else (lit windows,
+  lamps, a Sway, a MultiMesh, groups, metas) is not kept and always runs. Used for the
+  farmhouse body, coop, barn, chest, bin (the stand has a noren: runs), every map prop but the
+  story props (id: map, prop, season, snow), the village houses' walls and roofs (footprint
+  and look), rock / thresholds / room walls (the map's shape). `PlaceholderArt.image(key)`
+  keeps tile pictures as RGBA8 images; MapWorld keeps each map's ground picture;
+  Surroundings asks every map cell's kind and hold once and keeps the apron picture, snow
+  mask, pine spots and grass cells by them; SnowLayer.shader(code) shares one Shader per code
+  (snow, water, backdrop); GrassTufts share one blade mesh; _shade_corners skips cells with no
+  wall beside them. Building ahead: FarmWorld.setup_steps / MapWorld.build_steps split a build
+  into steps (setup / build run them all); `Main3D._prebuild` builds the maps next door (the
+  current map's doors, outdoor first, never a mine floor) while the farmer has stood still
+  0.4 s and no fade runs, steps up to 4 ms a frame (PREBUILD_MS), and keeps them as kept
+  worlds (away, out of the tree); room is made by dropping a kept map not next door, never past
+  KEEP_WORLDS 6; `_enter_map` finishes a half-built one if it is the map entered, else drops it,
+  and takes the entered map's kept world out before keeping the one left (a trim could drop it
+  before). A new day drops the one under way with the kept ones.
+- Checked: all 28 test scripts print OK (0 failed). test_maps new `_mesh_cache` (a recorded
+  build placed again: same meshes and transforms, own materials, snow material in the new
+  world's snow, the return value; a build with a lit window not kept, runs each time; parts
+  built once; town, farm, house and hill built twice alike piece by piece with own materials and
+  most meshes shared; kept tile images equal the textures' pictures) and `_prebuilt_worlds`
+  (nothing while walking or before standing still; from the farm the village first, then house,
+  coop, barn, kept out of the tree for today's key; entering the village uses the one built;
+  a half-built one is finished on the way in; a new day drops them). With MeshCache handing out
+  the recorded materials themselves and building ahead off, 7 of these failed. Look: Game's rng fixed to one seed
+  (temporarily, in HEAD exported to a copy and here), 14 frames (`--demo` farm, town, house, hill,
+  mine 3, winter town with snow 80, minamino, sakurazaka, kaminoda, town at 21:00, store, river,
+  fall farm, barn), frame 39 each: 0 pixels differ in all 14. Entering the village built ahead
+  vs built on entry (throwaway script, same seed): 0 pixels differ. Smoke runs (title, --demo,
+  --demo --map=town, --demo --mine=3): no errors or warnings.
+  Times, in a window, other agents running (noisy): `tools/build_times.gd`, first / again, HEAD
+  vs now: farm 291 / 223 -> 269 / 49 ms, town 100 / 99 -> 108 / 47, hill 173 / 142 -> 188 / 98,
+  minamino 155 / 170 -> 198 / 50, sakurazaka 114 / 127 -> 102 / 46, kaminoda 110 / 113 -> 125 /
+  49, house 35 / 34 -> 18 / 6, store 57 / 54 -> 26 / 6, all 23 maps 1829 / 1758 -> 1426 / 494.
+  Main3D._enter_map on a walk through first visits (throwaway script, 2.5 s idle between):
+  HEAD town 104, sakurazaka 125, mine 75, teahouse 48, minamino 156, river 61, kiku_house 46,
+  kaminoda 108, hill 149, store 56, farm (after dropped) 199, house 34 ms; now with building ahead
+  all 0.7..2.5 ms except the store 24 ms (the village has ten doors; six kept); without it 86,
+  117, 37, 25, 145, 59, 19, 100, 140, 24, 43, 12 ms. Building ahead: 611 step frames on that
+  walk, most under 8 ms; the dearest frames 18..26 ms (a map's edges step; the hill's last two).
+- Left / next: a map's first build still costs its cold time somewhere (now on idle frames
+  while the farmer stands still: a frame of up to ~26 ms); the bamboo clumps and the stand
+  (Sway) and the village houses' lit windows are made each build. First draws of new materials
+  (shader compiles) are not warmed. Not tried by hand.
 ## 2026-11-07 — Lantern Night's two bare stalls get a display
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: the two Lantern Night stalls that sell nothing (WORKLOG "festival stalls' wares as lit

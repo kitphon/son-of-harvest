@@ -18,6 +18,7 @@ const SWAY := 0.035         # how far a tip swings (units)
 ## What was planted: the spots_for() entries with their snow `hold` (the MultiMesh's own
 ## data can't be read back under the headless renderer).
 var planted: Array[Dictionary] = []
+static var _tuft: ArrayMesh   # tuft_mesh(), shared by every tuft layer
 
 const SHADER := "shader_type spatial;\nrender_mode cull_disabled;\n" + SnowLayer._SNOW_AT + Parting.GLSL + """
 uniform vec3 tip : source_color = vec3(0.55, 0.8, 0.35);
@@ -60,7 +61,9 @@ func _init() -> void:
 	multimesh = MultiMesh.new()
 	multimesh.transform_format = MultiMesh.TRANSFORM_3D
 	multimesh.use_custom_data = true
-	multimesh.mesh = tuft_mesh()
+	if _tuft == null:   # one blade fan for every tuft layer of the run
+		_tuft = tuft_mesh()
+	multimesh.mesh = _tuft
 	var m := SnowLayer._material(SHADER)
 	m.set_shader_parameter("sun_share", SnowLayer.SUN_SHARE)
 	m.set_shader_parameter("sway", SWAY)

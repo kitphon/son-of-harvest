@@ -4,12 +4,23 @@ extends RefCounted
 ## Replace each key with a real sprite file later.
 
 static var _cache := {}
+static var _images := {}   # key -> its picture as an RGBA8 Image (image(); for laying tiles)
 
 
 static func tex(key: String) -> Texture2D:
 	if not _cache.has(key):
 		_cache[key] = ImageTexture.create_from_image(_make(key))
 	return _cache[key]
+
+
+## The picture of `key` as an RGBA8 Image, kept (the 3D grounds lay thousands of tiles; reading
+## each back from its texture was most of a map's ground). Shared: copy before changing it.
+static func image(key: String) -> Image:
+	if not _images.has(key):
+		var img := _make(key)
+		img.convert(Image.FORMAT_RGBA8)
+		_images[key] = img
+	return _images[key]
 
 
 static func _make(key: String) -> Image:

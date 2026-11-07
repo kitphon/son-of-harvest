@@ -194,10 +194,8 @@ func set_cells(cells: Array[Vector2i], water_at: Callable) -> void:
 	position = Vector3(0, LIFT, 0)
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	layers = NightLamps.GROUND_LAYER   # lit as the ground: the night's lamps leave it out
-	var sh := Shader.new()
-	sh.code = SHADER
 	var m := ShaderMaterial.new()
-	m.shader = sh
+	m.shader = SnowLayer.shader(SHADER)   # shared, parsed once a run
 	m.set_shader_parameter("sun_share", SnowLayer.SUN_SHARE)
 	ripples.resize(MAX_RIPPLES)
 	m.set_shader_parameter("ripples", ripples)

@@ -84,6 +84,7 @@ void fragment() {
 """
 
 static var _noise: ImageTexture
+static var _shaders := {}   # code -> its Shader, one a run (a new Shader per material parsed its code each time)
 
 
 ## How much snow a cell's ground holds, 0..1, by its ground kind (grass, path, tilled, ...).
@@ -188,12 +189,19 @@ static func noise_image(seed_value := 7) -> Image:
 	return img
 
 
+## The one Shader for `code` (shared by every material made from it).
+static func shader(code: String) -> Shader:
+	if not _shaders.has(code):
+		var sh := Shader.new()
+		sh.code = code
+		_shaders[code] = sh
+	return _shaders[code]
+
+
 static func _material(code: String) -> ShaderMaterial:
 	if _noise == null:
 		_noise = ImageTexture.create_from_image(noise_image())
-	var sh := Shader.new()
-	sh.code = code
 	var m := ShaderMaterial.new()
-	m.shader = sh
+	m.shader = shader(code)
 	m.set_shader_parameter("noise", _noise)
 	return m
