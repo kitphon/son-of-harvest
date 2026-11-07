@@ -6,16 +6,11 @@ extends Node3D
 ## (the `windows`, fading in and out at each end); the world's wind leans them (FarmWorld.wind,
 ## so a gale leans them more); a weather look in `hide_in` buries them. Lit, no shadow.
 
-const DATA_PATH := "res://data/smoke.json"
-## The village roofs' eave overhang and pitch, and the soffit height at the front eave, as
-## MapWorld._village_house builds them (copied here, so the vent sits on that ridge).
-const OVERHANG := 0.35
-const PITCH := 0.5
-const WALL_LOW := 1.45
-## The vent sits a little over the ridge tiles.
-const RIDGE_LIFT := 0.04
-
-static var _cfg: Dictionary = {}
+const DATA_PATH := SmokeRules.DATA_PATH
+const OVERHANG := SmokeRules.OVERHANG
+const PITCH := SmokeRules.PITCH
+const WALL_LOW := SmokeRules.WALL_LOW
+const RIDGE_LIFT := SmokeRules.RIDGE_LIFT
 
 var _sd := 0
 var _t := 0.0
@@ -25,55 +20,21 @@ var _rgb := Color.WHITE
 var _puffs: Array[MeshInstance3D] = []
 
 
-## data/smoke.json (read once).
+## data/smoke.json (read once); SmokeRules keeps the rules both views share.
 static func config() -> Dictionary:
-	if _cfg.is_empty():
-		_cfg = JSON.parse_string(FileAccess.get_file_as_string(DATA_PATH))
-	return _cfg
+	return SmokeRules.config()
 
 
-## How strong the smoke is at `hour` (a float on the game clock, 0..24): 0 outside the windows,
-## 1 inside them, eased in and out over `fade_hours` at each end.
 static func strength_at(hour: float, cfg := {}) -> float:
-	if cfg.is_empty():
-		cfg = config()
-	var fade := maxf(float(cfg.fade_hours), 0.001)
-	var best := 0.0
-	for w in cfg.windows:
-		var a := float(w[0])
-		var b := float(w[1])
-		if hour < a or hour > b:
-			continue
-		var s := clampf(minf((hour - a) / fade, (b - hour) / fade), 0.0, 1.0)
-		best = maxf(best, s * s * (3.0 - 2.0 * s))
-	return best
+	return SmokeRules.strength_at(hour, cfg)
 
 
-## Where smoke leaves a roof: over the middle of `eave` (x / z of its outer edge) at the ridge
-## height. Its soffit is `low` at the eaves, rising `pitch` per unit run; a hip roof's ridge
-## is half its shorter side up, a roof whose ridge runs along x is half its depth (z) up.
 static func vent_at(eave: Rect2, low: float, pitch: float, hip: bool) -> Vector3:
-	var half := minf(eave.size.x, eave.size.y) / 2.0 if hip else eave.size.y / 2.0
-	var c := eave.get_center()
-	return Vector3(c.x, low + half * pitch + RIDGE_LIFT, c.y)
+	return SmokeRules.vent_at(eave, low, pitch, hip)
 
 
-## The vent of a village house over footprint `r` with `style` (LitSpots.village_style), built
-## as MapWorld._village_house builds its roof: the walls and roof of the upper storey when it
-## has two.
 static func village_vent(r: Rect2, style: Dictionary) -> Vector3:
-	var back := r.position.y + 0.1
-	var front := LitSpots.village_front(r)
-	var cx := r.get_center().x
-	var wide := r.size.x - 0.2
-	var body := Rect2(cx - wide / 2.0, back, wide, front - back)
-	var wall := WALL_LOW + OVERHANG * PITCH
-	if int(style.get("storeys", 1)) >= 2:
-		body = body.grow(-LitSpots.UPPER_INSET)
-		wall = LitSpots.UPPER_TOP
-	var hip := str(style.get("roof", "gable")) == "hip"
-	var eave := body.grow(OVERHANG) if hip else Rect2(body.position.x - 0.25, body.position.y - OVERHANG, body.size.x + 0.5, body.size.y + OVERHANG * 2.0)
-	return vent_at(eave, wall - OVERHANG * PITCH, PITCH, hip)
+	return SmokeRules.village_vent(r, style)
 
 
 func _init(sd := 0, at := Vector3.ZERO) -> void:
@@ -96,7 +57,7 @@ func _init(sd := 0, at := Vector3.ZERO) -> void:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mi)
 		_puffs.append(mi)
-	_t = float(sd % 97) / 97.0 * float(cfg.period)
+	_t = SmokeRules.start_time(sd, cfg)
 	refresh()
 
 
@@ -113,11 +74,9 @@ func refresh() -> void:
 		_strength = 0.0
 		visible = false
 		return
-	var hour := float(game.hour) + float(game.minute) / 60.0
-	var look: String = game.weather_look(game.weather_today, game.season_name())
 	var world := get_parent() as FarmWorld
 	_wind = world.wind if world != null else 0.0
-	_strength = 0.0 if look in cfg.hide_in else strength_at(hour, cfg)
+	_strength = SmokeRules.strength_now(game, cfg)
 	visible = _strength > 0.0
 	if visible:
 		_place(cfg)
@@ -127,16 +86,14 @@ func refresh() -> void:
 ## goes, fading in then out; the puffs are out of step with each other.
 func _place(cfg: Dictionary) -> void:
 	var n := _puffs.size()
-	var period := float(cfg.period)
 	var wobble := float(cfg.wobble)
 	for k in n:
-		var u := fposmod(_t / period + float(k) / n, 1.0)
+		var q := SmokeRules.puff(_t, k, n, _sd, _wind, cfg)
 		var mi := _puffs[k]
-		var lean := u * u * float(cfg.lean) * (0.3 + _wind)
-		mi.position = Vector3(lean + sin(u * 5.0 + k * 2.1 + float(_sd)) * wobble, u * float(cfg.rise), cos(u * 4.0 + k) * wobble * 0.5)
-		mi.scale = Vector3.ONE * float(cfg.size) * (1.0 + (float(cfg.grow) - 1.0) * u)
+		mi.position = Vector3(float(q.lean) * float(cfg.lean) + float(q.sx) * wobble, float(q.u) * float(cfg.rise), float(q.sz) * wobble * 0.5)
+		mi.scale = Vector3.ONE * float(cfg.size) * float(q.grow)
 		var m := mi.material_override as StandardMaterial3D
-		m.albedo_color = Color(_rgb, float(cfg.alpha) * sin(PI * u) * _strength)
+		m.albedo_color = Color(_rgb, float(cfg.alpha) * float(q.alpha) * _strength)
 
 
 ## How strong the smoke is now, 0..1 (for tests and the clock's ease).

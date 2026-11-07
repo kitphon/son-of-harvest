@@ -405,7 +405,7 @@ func _make_house() -> void:
 ## _house_body (eave Rect2(1.45, 0.55, 6.1, 3.5), soffit 1.45, pitch 1.25, the ridge along x).
 ## Not inside occlude: the smoke must not turn see-through with the walls.
 func _make_hearth_smoke() -> void:
-	add_child(HearthSmoke.new(4, HearthSmoke.vent_at(Rect2(1.45, 0.55, 6.1, 3.5), 1.45, 1.25, false)))
+	add_child(HearthSmoke.new(4, SmokeRules.farm_vent()))
 
 
 ## The farmhouse's walls, frame, engawa and roof (_make_house).

@@ -49,6 +49,30 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   with snow and the town pond rimmed. Before: plain blue water in all of them.
 - Left / next: no ice on the paddies (they show only the ground picture in winter); the ice does
   not grow over the winter or with the cold (one width all season).
+## 2026-11-07 — Hearth smoke in the flat view
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: the flat view (main_2d.tscn) now has the hearth smoke. The pure rules moved out of HearthSmoke
+  into `SmokeRules` (scripts/smoke_rules.gd): the config, `strength_at` (meal windows and fade),
+  `strength_now` (the clock plus the `hide_in` weather rule), the vents (`vent_at`, `farm_vent`,
+  `village_vent`, `village_vents`) and `puff` (how far along its rise a puff is, as fractions: lean,
+  sway, growth, opacity). HearthSmoke keeps its old static names (they delegate) and `_place` now takes
+  its numbers from `SmokeRules.puff`; the arithmetic is the same, so the 3D result is unchanged.
+  `SmokeView` (scripts/world/smoke_view.gd) is the flat layer: it reads the same vents (x / z in cells
+  x 16 px, from above), climbs each puff up the screen from the vent, snaps puffs to whole pixels
+  (a square with its corners off, 3 px growing 2.6x), leans them by Game.wind_strength and fades them
+  with the same strength. Main2D adds one per map view (after NightView, under the figures); indoor
+  maps get none. Flat numbers in data/smoke.json under `flat` (size_px 3, rise_px 26, lean_px 14,
+  wobble_px 1.5, alpha 0.7; ours).
+- Checked: test_view2d `_hearth_smoke` (farm: one vent that is the 3D one seen from above, shown at
+  7:00 with 4 puffs inside the rise, gone at noon, eased at 6:10, a storm buries it, rain leans them
+  further than sun; town: one vent per village house, all alight at 18:00, none at noon; Tome's
+  house none) and test_maps (SmokeRules equals HearthSmoke, strength_now, farm vent, village vents,
+  puff start and wind lean). Screenshots of `res://scenes/main_2d.tscn --demo --time=7:00` (farm) and
+  `--map=town --time=18:00` show pale puffs over the roofs; a pixel diff of the farm at 7:00 against
+  8:40 (no smoke) changes 89 pixels over the house and 0 elsewhere; at 12:00 the town has none.
+- Left / next: the puffs are faint against the brown roof boxes in the flat view (the flat roofs
+  are plain boxes); the smoke still shows only where the camera frames a roof.
+
 ## 2026-11-07 — Hearth smoke made visible; smoke and footprints merged
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged the hearth smoke (d9ab050) and footprints (eb04db7) branches (only the WORKLOG /

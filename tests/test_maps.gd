@@ -3280,6 +3280,28 @@ func _hearth_smoke() -> void:
 	if not smokes.is_empty():
 		var at: Vector3 = smokes[0].position
 		check(at.y > 2.0 and at.y < 4.5, "a village house's vent is over its roof (%.2f)" % at.y)
+	# The rules both views share (SmokeRules): the 3D smoke asks them, so the two cannot drift apart.
+	var SR: GDScript = load("res://scripts/smoke_rules.gd")
+	check(SR.strength_at(7.0) == HS.strength_at(7.0) and SR.strength_at(6.1) == HS.strength_at(6.1), "SmokeRules and HearthSmoke give the same strength")
+	g.hour = 7
+	g.minute = 0
+	g.weather_today = "sunny"
+	check(SR.strength_now(g) == 1.0, "SmokeRules.strength_now: 7:00 in fair weather")
+	g.hour = 12
+	check(SR.strength_now(g) == 0.0 and SR.strength_now(null) == 0.0, "SmokeRules.strength_now: noon, and no clock, none")
+	g.hour = 7
+	g.weather_today = "storm"
+	if g.weather_look("storm", g.season_name()) == "storm":
+		check(SR.strength_now(g) == 0.0, "SmokeRules.strength_now: a storm buries it")
+	g.weather_today = weather0
+	check(SR.farm_vent().is_equal_approx(Vector3(4.5, 1.45 + 1.75 * 1.25 + SR.RIDGE_LIFT, 2.3)), "SmokeRules.farm_vent is the ridge's middle")
+	check(SR.village_vents(town_data.props).size() == houses, "SmokeRules.village_vents: one per village house")
+	var q0: Dictionary = SR.puff(0.0, 0, 4, 0, 0.0)
+	var q1: Dictionary = SR.puff(0.0, 0, 4, 0, 1.0)
+	check(is_equal_approx(float(q0.u), 0.0) and float(q0.alpha) == 0.0 and float(q1.lean) == 0.0, "a puff starts at the vent, clear")
+	var qa: Dictionary = SR.puff(1.5, 0, 4, 0, 0.0)
+	var qb: Dictionary = SR.puff(1.5, 0, 4, 0, 1.0)
+	check(float(qb.lean) > float(qa.lean) and float(qa.grow) > 1.0, "the wind leans a puff more; it grows as it rises")
 	town.free()
 	var inside: Node3D = load("res://scripts/world3d/map_world.gd").new()
 	inside.build(MapManager.data("tome_house"))

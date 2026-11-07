@@ -315,7 +315,9 @@ Light and Farmhouse model hold the technical detail of what is built.
       village house's roof, 6:00-8:30 and 17:00-19:30 by the clock, fading in and out at each
       end; the puffs drift with the wind and a storm buries them (HearthSmoke,
       scripts/world3d/hearth_smoke.gd; numbers in data/smoke.json). Outdoor maps only, separate
-      nodes (not in occlude or MeshCache). Left open: the flat view (no smoke there yet).
+      nodes (not in occlude or MeshCache). The flat view has it too (SmokeView, scripts/world/smoke_view.gd:
+      pixel puffs climbing from the same vents seen from above; the timing, fade, storm rule, vents
+      and a puff's path are SmokeRules, scripts/smoke_rules.gd, shared by both views).
       (this commit)
 
 ### 4. Characters (needs the user's decision on who draws)

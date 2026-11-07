@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] Hearth smoke in the flat view (2026-11-07): pixel puffs over the farmhouse and village roofs at the same vents, hours, fade, wind drift and storm rule as the 3D smoke; the rules moved to SmokeRules and both views call them (SmokeView, data/smoke.json "flat"; ART_DIRECTION section 3).
 [x] Hearth smoke (2026-11-07): thin pale smoke from the farmhouse's ridge and the village roofs at meal times, drifting with the wind, buried in a storm (HearthSmoke, data/smoke.json; ART_DIRECTION section 3). The flat view is left open.
 [x] Footprints in lying snow (2026-11-07): the farmer, villagers and dog press small blue-grey soles into snow of 30% cover or more (ring of 160, fading in 90 game minutes, faster in snowfall, cleared on a map change and a new day), 3D and flat (data/footprints.json; ART_DIRECTION, section 2).
 [x] Flat view maple (2026-11-07): the maple is a small layered tree picture in the flat view (PlaceholderArt tree:maple, by season and snow), not a box (WORKLOG "The flat view's maple is a tree picture").

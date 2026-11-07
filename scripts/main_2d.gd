@@ -18,6 +18,7 @@ var weather: WeatherView
 var flash: ColorRect   # lightning: pale sky light added over the picture
 var lightning := Lightning.new()
 var glow: FestivalGlow
+var smoke: SmokeView        # hearth smoke at meal times (the current view's)
 var prints: FootprintView   # footprints in lying snow (the current view's)
 var flying: Sprite2D  # a thrown item on its way
 var _flight := {}      # from, to, time, seconds, height (while flying)
@@ -119,6 +120,8 @@ func _enter_map() -> void:
 	var night := NightView.new().setup(m.props, Game.maps.on_farm(), m.id)
 	night.tint = tint
 	view.add_child(night)   # lit windows and lanterns, under the figures
+	smoke = SmokeView.new().setup(m.props, Game.maps.on_farm(), m.indoor)   # hearth smoke over the roofs
+	view.add_child(smoke)
 	view.add_child(StoryView.new(m))   # what the heart events left (the bell, the store's sign)
 	view.add_child(FestivalView.new(m.id))   # today's festival decorations, in its hours
 	view.add_child(ForageView.new(m.id))   # what grows wild there today (data/forage.json)

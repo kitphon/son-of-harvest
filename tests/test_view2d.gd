@@ -47,6 +47,7 @@ func _run() -> void:
 	await _ripples()
 	await _maples()
 	await _footprints()
+	await _hearth_smoke()
 	scene.free()
 	print("test_view2d: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -674,3 +675,74 @@ func _footprints() -> void:
 	g.snow_cover = 0
 
 
+
+
+## Hearth smoke in the flat view (SmokeRules, data/smoke.json): the farmhouse and every village house
+## send up pixel puffs at meal times (7:00 yes, noon no), indoors none; a storm buries it; the wind
+## leans it; the vents are the 3D view's, seen from above.
+func _hearth_smoke() -> void:
+	var SR: GDScript = load("res://scripts/smoke_rules.gd")
+	var cfg: Dictionary = SR.config()
+	g.weather_today = "sunny"
+	g.snow_cover = 0
+	g.hour = 7
+	g.minute = 0
+	g.go_to_map("farm", Vector2i(10, 8), Vector2i.DOWN)
+	await _wait_view("farm_view.gd")
+	var sm: Node = scene.smoke
+	check(sm != null and _is(sm, "smoke_view.gd") and sm.get_parent() == scene.view, "flat smoke: the farm view has its SmokeView")
+	check(sm.vents.size() == 1, "flat smoke: the farmhouse has one vent (%d)" % sm.vents.size())
+	if sm.vents.size() == 1:
+		var v: Vector3 = SR.farm_vent()
+		check(sm.vents[0].is_equal_approx(Vector2(v.x, v.z) * 16.0), "flat smoke: the farmhouse's vent is the 3D view's, from above")
+	sm.refresh()
+	check(sm.visible and sm.strength() == 1.0, "flat smoke: shown at 7:00")
+	check(sm.puffs().size() == int(cfg.puffs), "flat smoke: %d puffs" % int(cfg.puffs))
+	var flat: Dictionary = cfg.flat
+	var in_reach := true
+	for p in sm.puffs():
+		in_reach = in_reach and p.pos.y <= sm.vents[0].y + 3.0 and p.pos.y >= sm.vents[0].y - float(flat.rise_px) - 3.0 and p.alpha >= 0.0 and p.alpha <= float(flat.alpha)
+	check(in_reach, "flat smoke: the puffs climb from the vent, no further than rise_px")
+	g.hour = 12
+	sm.refresh()
+	check(not sm.visible and sm.strength() == 0.0 and sm.puffs().is_empty(), "flat smoke: gone at noon")
+	g.hour = 6
+	g.minute = 10
+	sm.refresh()
+	check(sm.strength() > 0.0 and sm.strength() < 1.0, "flat smoke: eases in at 6:10 (%.2f)" % sm.strength())
+	g.hour = 7
+	g.minute = 0
+	g.weather_today = "storm"
+	if g.weather_look("storm", g.season_name()) == "storm":
+		sm.refresh()
+		check(not sm.visible, "flat smoke: a storm buries it")
+	g.weather_today = "sunny"
+	sm.refresh()
+	var calm: Array = sm.puffs().map(func(p): return p.pos.x)
+	g.weather_today = "rain"
+	sm.refresh()
+	var rainy: Array = sm.puffs().map(func(p): return p.pos.x)
+	var leans := false
+	for i in calm.size():
+		leans = leans or absf(rainy[i] - calm[i]) >= 1.0
+	check(leans, "flat smoke: more wind leans the puffs further")
+	g.weather_today = "sunny"
+	# A village: one vent per house, all alight at 18:00, none at noon; indoors none.
+	g.hour = 18
+	g.go_to_map("town", Vector2i(2, 10), Vector2i.RIGHT)
+	await _wait_view("map_view.gd")
+	var houses := 0
+	for p in scene.view.map.props:
+		houses += 1 if str(p.kind) == "village_house" else 0
+	sm = scene.smoke
+	check(houses > 0 and sm.vents.size() == houses, "flat smoke: the town has one vent per village house (%d of %d)" % [sm.vents.size(), houses])
+	sm.refresh()
+	check(sm.visible and sm.puffs().size() == houses * int(cfg.puffs), "flat smoke: every house smokes at 18:00")
+	g.hour = 12
+	sm.refresh()
+	check(not sm.visible, "flat smoke: none in the village at noon")
+	g.hour = 7
+	g.go_to_map("tome_house", Vector2i(4, 5), Vector2i.UP)
+	await _wait_view("map_view.gd")
+	check(scene.smoke.vents.is_empty() and not scene.smoke.visible, "flat smoke: indoors, none even at 7:00")
+	g.hour = 10
