@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Flat view: ripple rings round the bobber
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: `WaterView.ripple(pos, strong)` (scripts/world/water_view.gd) mirrors `WaterSurface.ripple`:
+  eight slots in a uniform array read by the same shader loop, in map pixels (a cell's centre is
+  (cell + 0.5) x 16), one pixel wide, 14 px a second (strong 1.3 times, to 34 px; gentle to 22 px),
+  two fade steps. Lives RING_LIFE 1.5 s gentle, RING_LIFE_STRONG 1.9 s strong. The shader's ring
+  test runs first, the glints and troughs after it. `advance()` moves its clock (`_process` calls it).
+  `main_2d.gd` `_ring_bobber(delta)` (called in `_process`) mirrors `Main3D._ring_bobber` with the
+  same timing: a strong ring as the line goes out and as a bite starts, 0.4 s between strong ones in
+  a bite, a gentle one every 1.7 s while waiting. It reads the view's sheet as `view.get("_water")`
+  (FarmView and MapView both keep it there), so a map with no water does nothing.
+- Fixed on the way: the shader's `return` in the fragment function was refused by the compiler
+  (Godot allows none there); the ring branch is now an if / else.
+- Checked: test_view2d prints `test_view2d: OK (0 failed)` (the cast gives one strong ring over the
+  pond in `_fishing`; `_ripples`: a call fills slot 0 gentle and slot 1 strong, the uniform array
+  has eight entries, both expire after RING_LIFE and RING_LIFE_STRONG). All 28 tests/test_*.gd print
+  OK (0 failed). Smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, and
+  `res://scenes/main_2d.tscn -- --demo --fishing`) print no errors. Screenshot of the flat view with
+  `--demo --fishing`: the rings show round the red bobber on the farm pond, pixel-crisp, banks and
+  foam still (checked by a 6x crop of the last frame).
+- Left / next: the flat view's bobber cadence is checked by reading, not by a timed test. The farmer
+  does not ripple the water at the feet (the farmer never wades, as in 3D). The ring constants are
+  copied from the 3D sheet, not read from data (as the water's other constants are).
+
 ## 2026-11-07 — Grass and rice part round the farmer
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: new `Parting` (scripts/world3d/parting.gd): a GLSL `part_push(root)` included in the

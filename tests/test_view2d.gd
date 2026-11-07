@@ -36,13 +36,14 @@ func _run() -> void:
 	_tools()
 	await _hold_and_throw()
 	_bin_and_food()
-	_fishing()
+	await _fishing()
 	await _doors()
 	await _talk_and_shop()
 	await _mine()
 	await _weather_and_festival()
 	await _night()
 	await _water()
+	await _ripples()
 	scene.free()
 	print("test_view2d: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -141,6 +142,10 @@ func _fishing() -> void:
 	select("rod")
 	act("tool", Vector2i(24, 3), Vector2i.RIGHT)
 	check(g.fishing.active(), "the rod casts into the pond")
+	await process_frame   # main_2d's _process sees the cast: a strong ring over the bobber
+	var sheet := _water_of(scene.view)
+	check(sheet != null and sheet.ripples_alive() == 1 and sheet.ripples[0].w < 0.0,
+		"the bobber's landing sends a strong ring over the pond")
 	g.fishing.state = "bite"
 	act("tool", Vector2i(24, 3), Vector2i.RIGHT)
 	check(not g.fishing.active() and str(g.held).begins_with("fish:"), "a press on a bite lands a fish overhead (%s)" % g.held)
@@ -417,6 +422,39 @@ func _check_water(view: Node2D, w: int, h: int, is_water: Callable, edge_bank: b
 						bad += 1
 	check(wv.water_cells == water, "%s: one sheet cell per water cell (%d)" % [what, water])
 	check(bad == 0, "%s: the skin covers the water pixels only, banks and foam left still (%d off)" % [what, bad])
+
+
+## The bobber's rings in the flat view (WaterView.ripple): a call fills a slot, a gentle ring
+## lasts RING_LIFE and a strong one RING_LIFE_STRONG, then the slot is empty again. The shader
+## gets the same slots, and the ring is drawn by the pond's own sheet only.
+func _ripples() -> void:
+	var fv := FarmView.new()
+	fv.farm = g.farm
+	root.add_child(fv)
+	await process_frame
+	var wv := _water_of(fv)
+	check(wv != null and wv.ripples.size() == WaterView.MAX_RIPPLES and wv.ripples_alive() == 0,
+		"the pond's sheet has %d ring slots and none at the start" % WaterView.MAX_RIPPLES)
+	wv.advance(1.0)   # the clock moves on; the rings start from here
+	wv.ripple(Vector2(100, 60))
+	wv.ripple(Vector2(100, 60), true)
+	check(wv.ripples_alive() == 2 and is_equal_approx(wv.ripples[0].w, WaterView.RING_LIFE)
+		and is_equal_approx(wv.ripples[1].w, -WaterView.RING_LIFE_STRONG), "a ripple call fills a slot (gentle, then strong)")
+	var m := wv.material as ShaderMaterial
+	check(m != null and m.get_shader_parameter("ripples").size() == WaterView.MAX_RIPPLES
+		and m.shader.code.contains("ripples[8]"), "the shader reads the ring slots")
+	wv.advance(WaterView.RING_LIFE + 0.05)
+	check(wv.ripples_alive() == 1, "a gentle ring is gone after %.2f s, a strong one still spreads" % WaterView.RING_LIFE)
+	wv.advance(WaterView.RING_LIFE_STRONG)
+	check(wv.ripples_alive() == 0, "the strong ring is gone too: the rings expire")
+	fv.free()
+
+
+func _water_of(view: Node) -> WaterView:
+	for n in view.get_children():
+		if n is WaterView:
+			return n
+	return null
 
 
 func _is(n: Object, file: String) -> bool:
