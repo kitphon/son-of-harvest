@@ -133,12 +133,20 @@ Light and Farmhouse model hold the technical detail of what is built.
       farm's bamboo fence stay boxes and cylinders.
 - [x] Grass tufts on grass cells (MultiMesh, a small wind sway in the shader). (this commit)
       (this commit) They bend harder in a storm and a gust comes through now and then, from the
-      same wind (`wind` uniform, "Wind by weather" in the table). Still open: the tufts don't
-      part round the farmer.
+      same wind (`wind` uniform, "Wind by weather" in the table). (this commit) They part round
+      the farmer: tips within about a cell of the feet bend straight away and a little down,
+      fully close in and easing out by a smoothstep, springing back as the farmer walks on
+      (`scripts/world3d/parting.gd`: Parting, its GLSL `part_push` in the shader, the `farmer`
+      uniform fed each frame by `FarmWorld.set_farmer` from `Main3D._process`; numbers in
+      data/wind.json "part"). The tufts' height share moved from the vertex colour to the UV:
+      under the Compatibility renderer the MultiMesh's COLOR read black in the vertex shader, so
+      the tips had never swayed. Still open: villagers and the dog don't part the grass.
 - [x] Rice and tall crops as clusters of pixel sprites (the paddies, the field in summer).
       (this commit) Still open: the other tall crops (cucumber and tomato vines on stakes)
       stay one sprite; the paddies have no stubble or water showing in winter beyond the
-      ground picture; the plants don't part round the farmer.
+      ground picture. (this commit) The rice and corn part round the farmer as the grass does
+      (Parting; bend 0.22 against the grass's 0.18), so the farmer's legs show between the
+      hills when standing in rice.
 - [x] Water: a gentle moving surface for the pond and river (`water_surface.gd`: WaterSurface,
       a transparent sheet over the water cells, glints and troughs drifting over the pixel grid,
       lit like the ground). (this commit)

@@ -10,6 +10,47 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Grass and rice part round the farmer
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: new `Parting` (scripts/world3d/parting.gd): a GLSL `part_push(root)` included in the
+  grass tufts' and the crop clusters' shaders and the same math in GDScript (`Parting.push`)
+  for the tests. A plant whose root is within `radius` of the farmer's feet has its tip pushed
+  straight away and lowered by `dip` x the push; full bend within `full` x radius, easing to
+  nothing at the radius by a smoothstep (and to nothing right under the feet, so a root there
+  can't flip). By distance alone, so the plants spring back as the farmer walks on. The feet
+  go in a `farmer` uniform: `Main3D._process` calls `FarmWorld.set_farmer(sprite.position)`
+  (one line), which feeds the map's tufts, the apron's tufts (`Surroundings.tufts`, now kept)
+  and every crop picture's material (`CropClusters.set_farmer`, also on the shared material so
+  pictures made later start right). Tufts turn the push from world into their own turned and
+  sized space; crops into the billboard's camera axes. Numbers in data/wind.json "part":
+  radius 1.0 (the cells beside the feet bend, the next ones stand), full 0.3 (the plants the
+  farmer's sprite hides are not the ones that show it, so the ease-out falls just beside the
+  feet), grass bend 0.18 (a tuft is 0.15..0.3 high: at 0.12 a tuft beside the feet moved under
+  a pixel at 480 x 270), crops 0.22 (a rice hill or corn stalk is 0.8..1.2 high, so a lean of
+  about a fifth reads without flattening the cluster), dip 0.45. Villagers and the dog don't
+  part anything (not done).
+- Fixed on the way: the grass tufts' tips never moved. Their height share was the mesh's vertex
+  colour red, and under the Compatibility renderer a MultiMesh without instance colours reads
+  COLOR as black in the vertex shader (checked by painting COLOR.r into the tufts: all blue),
+  so the sway, the wind and the tip colour were all at the root's values. The share is now the
+  UV's y. So the tufts now really sway with data/wind.json, and their tips are a little lighter
+  (the tip colour, not 80% of it).
+- Checked: test_maps `_parting` (data in range; Parting.rules reads it; nothing from the radius
+  out; pushed straight away in four directions; full near the feet, easing with no step over
+  0.012 a hundredth of a cell; nothing jumps right under the feet; both shaders include and
+  call part_push; FarmWorld.set_farmer reaches the map's and apron's tufts and every crop
+  material with their own bend / radius / full; a crop picture made later has the feet).
+  A deliberately wrong `full` in the data made it print one FAIL. After `--import` all 28
+  tests/test_*.gd print `OK (0 failed)`; smoke runs (title, `--demo`, `--map=town`,
+  `--mine=3`, `--map=kaminoda --season=summer`, `--season=winter --map=kaminoda --snow=80`)
+  print no error or warning. Screenshots with a scratch script standing the farmer on a cell,
+  bend 0 against the data's: in a Kaminoda paddy in summer the rice in front parts and shows
+  the farmer's shirt and legs (1254 pixels changed, all in x 198..280, y 89..132 round the
+  farmer); on the farm's grass a tuft by the feet lies over away from them; winter snow 40
+  still folds tufts away, no shader errors under the GL renderer.
+- Left / next: villagers and the dog don't part the grass; the parting has no lag or wobble
+  (it follows the feet exactly); the flat view is unchanged.
+
 ## 2026-11-07 — Village house variety: hip roofs, two storeys, three wall finishes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a `village_house` prop may set `roof` (gable / hip), `storeys` (1 / 2) and `wall`

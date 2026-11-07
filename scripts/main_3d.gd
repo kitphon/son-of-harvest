@@ -248,6 +248,7 @@ func _process(delta: float) -> void:
 	_update_flash(delta)
 	_follow()
 	world.occluders.update(sprite.position, lens.back, delta)
+	world.set_farmer(sprite.position)   # the grass and tall crops part round the feet
 	_aim_lantern()
 	_fly(delta)
 	_show_fishing()

@@ -18,6 +18,7 @@ const TREE_KINDS: Array[String] = ["grass"]   # ground a pine stands on
 var material: ShaderMaterial   # the apron's ground; FarmWorld.set_snow sets its cover
 var water: WaterSurface   # the moving skin on the water cells (and past the edges)
 var snow_mats: Array[ShaderMaterial] = []   # the snow on the pines' pads, set with it
+var tufts: GrassTufts   # the apron's grass tufts (FarmWorld.set_farmer parts them too)
 var back := MARGIN   # cells of land past the north and west edges (the rim, with a backdrop)
 var share := TREE_SHARE   # % of the allowed cells with a pine (fewer on a rim, so the ridges show)
 
@@ -65,7 +66,7 @@ func _make_tufts(w: int, h: int, kind_at: Callable, hold_at: Callable) -> void:
 			var c := Vector2i(x, y)
 			if (x < 0 or y < 0 or x >= w or y >= h) and kind_at.call(edge_cell(c, w, h)) == "grass":
 				cells.append(c)
-	var tufts := GrassTufts.new()
+	tufts = GrassTufts.new()
 	add_child(tufts)
 	snow_mats.append(tufts.snow_material())
 	tufts.plant(cells, func(c: Vector2i) -> float: return hold_at.call(edge_cell(c, w, h)))

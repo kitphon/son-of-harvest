@@ -44,6 +44,7 @@ the wood as MultiMeshes (scripts/world3d/trees.gd).
 (scripts/world3d/grass_tufts.gd).
 [x] Rice and corn as clusters of small pixel sprites, the village paddies' rice by season
 (scripts/world3d/crop_clusters.gd).
+[x] The grass tufts and the rice / corn part round the farmer in the 3D view (scripts/world3d/parting.gd, data/wind.json "part").
 [x] Water: a gentle moving surface on the farm pond, the village pond and the river
 (scripts/world3d/water_surface.gd).
 [x] The coop's and barn's insides as lit meshes (scripts/world3d/coop_props.gd, barn_props.gd).

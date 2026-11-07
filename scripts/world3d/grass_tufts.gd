@@ -7,6 +7,7 @@ extends MultiMeshInstance3D
 ## its custom data and folds away where the ground under its root lies white (the same
 ## noise as SnowLayer's ground), so snow never shows green blades through it. The tips take
 ## the season's colour: fresh in spring, deep in summer, straw in fall, dry in winter.
+## Round the farmer's feet the blades part (Parting, `set_farmer`).
 
 const PER_CELL := 2         # tufts a grass cell may hold
 const SHARE := 70           # % of those places that grow one, picked by the place
@@ -18,7 +19,7 @@ const SWAY := 0.035         # how far a tip swings (units)
 ## data can't be read back under the headless renderer).
 var planted: Array[Dictionary] = []
 
-const SHADER := "shader_type spatial;\nrender_mode cull_disabled;\n" + SnowLayer._SNOW_AT + """
+const SHADER := "shader_type spatial;\nrender_mode cull_disabled;\n" + SnowLayer._SNOW_AT + Parting.GLSL + """
 uniform vec3 tip : source_color = vec3(0.55, 0.8, 0.35);
 uniform float sun_share = 0.7;
 uniform float sway = 0.035;
@@ -28,15 +29,20 @@ void vertex() {
 	if (snow_at(root.xz, cover * INSTANCE_CUSTOM.r) > 0.5) {
 		VERTEX = vec3(0.0);   // under snow: folded away
 	} else {
-		float k = COLOR.r * COLOR.r;
+		float k = UV.y * UV.y;   // the height share (tuft_mesh), squared
 		// Gusts: a slow swell and a quicker flutter, by place; none when the air is still.
 		float gust = 1.0 + wind * (0.8 * sin(TIME * 0.55 + root.x * 0.25) + 0.4 * sin(TIME * 1.7 + root.z * 0.5));
 		float t = TIME * (1.6 + 0.9 * wind) + root.x * 0.7 + root.z * 0.45;
 		float amp = sway * (1.0 + 1.5 * wind) * gust * k;
 		VERTEX.x += sin(t) * amp + wind * 0.02 * k;   // a lean downwind
 		VERTEX.z += sin(t * 0.8 + 1.3) * amp * 0.5;
+		// Parting round the farmer (Parting): the tip pushed away and down, in world (x, z),
+		// turned back into the tuft's own turned and sized space.
+		vec2 p = part_push(root.xz) * k;
+		vec3 w = vec3(p.x, -length(p) * part_dip, p.y);
+		VERTEX += transpose(mat3(MODEL_MATRIX)) * w / dot(MODEL_MATRIX[0].xyz, MODEL_MATRIX[0].xyz);
 	}
-	COLOR.rgb = mix(tip * 0.8, tip, COLOR.r) * (0.9 + 0.2 * INSTANCE_CUSTOM.g);
+	COLOR.rgb = mix(tip * 0.8, tip, UV.y) * (0.9 + 0.2 * INSTANCE_CUSTOM.g);
 }
 void fragment() {
 	NORMAL = normalize((VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz);   // lit as the ground, both faces
@@ -59,6 +65,7 @@ func _init() -> void:
 	m.set_shader_parameter("sun_share", SnowLayer.SUN_SHARE)
 	m.set_shader_parameter("sway", SWAY)
 	m.set_shader_parameter("tip", TIPS.get(Game.season_name(), TIPS.spring))
+	Parting.setup(m, "grass")
 	material_override = m
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	layers = NightLamps.GROUND_LAYER   # lit as the ground: the night's lamps leave it out
@@ -72,6 +79,11 @@ func snow_material() -> ShaderMaterial:
 ## The wind the tufts sway in, 0..1 (Game.wind_strength via FarmWorld.set_wind): the shader's `wind`.
 func set_wind(strength: float) -> void:
 	material_override.set_shader_parameter("wind", clampf(strength, 0.0, 1.0))
+
+
+## The farmer's feet in the world (FarmWorld.set_farmer, each frame): the tufts round them part.
+func set_farmer(feet: Vector3) -> void:
+	material_override.set_shader_parameter("farmer", Vector2(feet.x, feet.z))
 
 
 ## Grows tufts on `cells` (grass cells); `hold_at(c)` is how much snow the cell holds.
@@ -100,8 +112,10 @@ static func spots_for(cells: Array[Vector2i]) -> Array[Dictionary]:
 	return out
 
 
-## One tuft: a fan of thin blades round its root, each leaning out; the vertex colour's red is
-## the height share (0 at the root, 1 at the tip) for the shader's shading and sway.
+## One tuft: a fan of thin blades round its root, each leaning out; the UV's y is the height
+## share (0 at the root, 1 at the tip) for the shader's shading, sway and parting. (It was the
+## vertex colour's red, but under the Compatibility renderer a MultiMesh without instance
+## colours reads COLOR as black in the vertex shader, so the tips never moved.)
 static func tuft_mesh() -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -112,7 +126,7 @@ static func tuft_mesh() -> ArrayMesh:
 		var side := Vector3(-out.z, 0, out.x) * 0.035
 		var foot := out * 0.025
 		for p in [[foot - side, 0.0], [foot + side, 0.0], [out * 0.07 + Vector3(0, high, 0), 1.0]]:
-			st.set_color(Color(p[1], 0, 0))
+			st.set_uv(Vector2(0.5, p[1]))
 			st.set_normal(Vector3.UP)
 			st.add_vertex(p[0])
 	return st.commit()

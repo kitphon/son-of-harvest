@@ -236,6 +236,17 @@ func set_wind(strength: float) -> void:
 		sway.wind = wind
 
 
+## The farmer's feet (Main3D, each frame): the grass tufts and tall crops round them part
+## (Parting), on the map and on the apron past its edge.
+func set_farmer(feet: Vector3) -> void:
+	if tufts != null:
+		tufts.set_farmer(feet)
+	if surroundings != null and surroundings.tufts != null:
+		surroundings.tufts.set_farmer(feet)
+	if crops != null:
+		crops.set_farmer(feet)
+
+
 ## The tall crops' clusters (CropClusters); FarmWorld plants them with the field, MapWorld
 ## on the paddies.
 func add_crops() -> void:

@@ -49,6 +49,7 @@ func _process(delta: float) -> bool:
 		_festival_meshes()
 		_grass()
 		_crop_clusters()
+		_parting()
 		_water()
 		_game_maps()
 		_bed_and_doors()
@@ -1787,6 +1788,67 @@ func _grass() -> void:
 ## small single plants, ripe rice gold-eared; on the farm a cluster cell has no sprite and a
 ## harvest takes its plants away; the village paddies grow rice by the season (none in winter),
 ## each plant carrying the paddy's snow hold, the cover driven by set_snow.
+## Grass and tall crops part round the farmer (Parting): the push math, the data, the shader
+## code and the `farmer` uniform reaching every tuft and crop material through FarmWorld.
+func _parting() -> void:
+	var pt: GDScript = load("res://scripts/world3d/parting.gd")
+	var part: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/wind.json")).get("part", {})
+	var radius := float(part.get("radius", 0.0))
+	var bend: Dictionary = part.get("bend", {})
+	check(radius >= 0.7 and radius <= 1.5 and float(bend.get("grass", 0)) > 0.0 and float(bend.get("crops", 0)) > float(bend.get("grass", 0))
+		and float(part.get("dip", -1)) >= 0.0 and float(part.get("dip", 2)) <= 1.0 and float(part.get("full", -1)) >= 0.0 and float(part.get("full", 1)) < 0.8,
+		"parting: data/wind.json has a radius of about a cell (%.2f), a bend for grass and a bigger one for crops, a dip 0..1, a full share under 0.8" % radius)
+	var g: Dictionary = pt.rules("grass")
+	var c: Dictionary = pt.rules("crops")
+	check(is_equal_approx(g.radius, radius) and is_equal_approx(g.bend, float(bend.grass)) and is_equal_approx(c.bend, float(bend.crops)),
+		"parting: Parting.rules reads the data (grass %.2f, crops %.2f)" % [g.bend, c.bend])
+	var feet := Vector2(5.5, 5.5)
+	var at := func(dx: float, dz: float) -> Vector2:
+		return pt.push(feet + Vector2(dx, dz), feet, 1.0, 0.2, 0.3)
+	check(at.call(1.0, 0.0) == Vector2.ZERO and at.call(0.0, 1.3) == Vector2.ZERO and at.call(-3.0, 2.0) == Vector2.ZERO,
+		"parting: nothing bends from the radius out")
+	var right: Vector2 = at.call(0.3, 0.0)
+	var up: Vector2 = at.call(0.0, -0.3)
+	var diag: Vector2 = at.call(-0.4, 0.4)
+	check(right.x > 0.0 and is_zero_approx(right.y) and up.y < 0.0 and is_zero_approx(up.x) and diag.x < 0.0 and diag.y > 0.0
+		and absf(diag.angle_to(Vector2(-1, 1))) < 0.001, "parting: a tip is pushed straight away from the feet")
+	var prev := INF
+	var smooth := true
+	var top := 0.0
+	for i in range(1, 101):
+		var l: float = (at.call(i / 100.0, 0.0) as Vector2).length()
+		top = maxf(top, l)
+		if i >= 8:
+			smooth = smooth and l <= prev + 0.000001 and (prev == INF or prev - l < 0.012)
+			prev = l
+	check(smooth and top <= 0.2 + 0.000001 and top > 0.199 and is_equal_approx((at.call(0.25, 0.0) as Vector2).length(), 0.2)
+		and (at.call(0.95, 0.0) as Vector2).length() < 0.005, "parting: the full bend near the feet (%.3f of 0.2), easing smoothly to nothing at the radius" % top)
+	check((at.call(0.0, 0.0) as Vector2).is_finite() and (at.call(0.0, 0.0) as Vector2).length() < 0.001,
+		"parting: a root right under the feet does not jump")
+	# The shaders carry the same function and use it.
+	var gt: GDScript = load("res://scripts/world3d/grass_tufts.gd")
+	var cc: GDScript = load("res://scripts/world3d/crop_clusters.gd")
+	check(pt.GLSL in gt.SHADER and "part_push(root.xz)" in gt.SHADER and pt.GLSL in cc.SHADER and "part_push(root.xz)" in cc.SHADER
+		and "smoothstep(part_radius * part_full, part_radius, dist)" in pt.GLSL, "parting: the tufts' and crops' shaders include part_push and call it")
+	# The uniform: the farmer's feet reach every tuft and crop material through FarmWorld.
+	var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	w.build(MapManager.data("kaminoda"))
+	w.crops.plant({Vector2i(20, 20): "stalk:corn:3:growing"}, func(_c: Vector2i) -> float: return 0.0)   # a picture the paddies don't have
+	w.set_farmer(Vector3(10.5, 0.0, 13.5))
+	var mats: Array = [w.tufts.material_override, w.surroundings.tufts.material_override]
+	mats.append_array(w.crops.materials())
+	var fed := mats.all(func(m: ShaderMaterial) -> bool: return m.get_shader_parameter("farmer") == Vector2(10.5, 13.5))
+	var tuned: bool = is_equal_approx(float(w.tufts.material_override.get_shader_parameter("part_bend")), g.bend) \
+		and is_equal_approx(float(w.crops.materials()[1].get_shader_parameter("part_bend")), c.bend) \
+		and is_equal_approx(float(w.crops.materials()[1].get_shader_parameter("part_radius")), radius) \
+		and is_equal_approx(float(w.tufts.material_override.get_shader_parameter("part_full")), float(part.full))
+	check(fed and tuned and mats.size() >= 3, "parting: FarmWorld.set_farmer feeds the feet to the map's and the apron's tufts and every crop picture (%d materials), each with its bend" % mats.size())
+	w.crops.plant({Vector2i(21, 20): "stalk:rice:3:ripe", Vector2i(20, 20): "stalk:corn:3:growing"}, func(_c: Vector2i) -> float: return 0.0)
+	check(w.crops.materials().all(func(m: ShaderMaterial) -> bool: return m.get_shader_parameter("farmer") == Vector2(10.5, 13.5)),
+		"parting: a crop picture made later starts with the feet where they are")
+	w.free()
+
+
 func _crop_clusters() -> void:
 	var cc: GDScript = load("res://scripts/world3d/crop_clusters.gd")
 	check(cc.key_for("crop:rice:3:ripe") == "stalk:rice:3:ripe" and cc.key_for("crop:corn:2:growing") == "stalk:corn:2:growing"

@@ -6,7 +6,8 @@ extends Node3D
 ## stand as clusters; seeds and sprouts, and every other crop, stay single sprites (FarmWorld).
 ## Each plant is a camera-facing quad in one MultiMesh per picture (`stalk:<id>:<growth>:
 ## <ripe|growing>:<variant>`), placed, sized, flipped and shaded by a hash of its cell and
-## place so a cell always grows the same plants. The tips sway a little in the wind. Unshaded
+## place so a cell always grows the same plants. The tips sway a little in the wind and part
+## round the farmer's feet (Parting, `set_farmer`). Unshaded
 ## like the Sprite3D crops; each plant carries its cell's snow hold and folds away where the
 ## ground under its root lies white (only the village paddies give a hold: a crop on the farm
 ## stands in snow as its sprite always did).
@@ -38,7 +39,7 @@ var _layers := {}                      # texture key -> MultiMeshInstance3D
 var _material: ShaderMaterial
 var _cover := 0.0
 
-const SHADER := "shader_type spatial;\nrender_mode unshaded, cull_disabled;\n" + SnowLayer._SNOW_AT + """
+const SHADER := "shader_type spatial;\nrender_mode unshaded, cull_disabled;\n" + SnowLayer._SNOW_AT + Parting.GLSL + """
 uniform sampler2D tex : source_color, filter_nearest;
 uniform float sway = 0.03;
 void vertex() {
@@ -50,6 +51,11 @@ void vertex() {
 		float k = (1.0 - UV.y) * (1.0 - UV.y);
 		float t = TIME * 1.3 + root.x * 0.9 + root.z * 0.6;
 		VERTEX.x += sin(t) * sway * k;
+		// Parting round the farmer (Parting): the tip pushed away and down in world (x, z),
+		// turned into the billboard's camera-facing axes at the plant's size.
+		vec2 p = part_push(root.xz) * k;
+		vec3 w = vec3(p.x, -length(p) * part_dip, p.y);
+		VERTEX += vec3(dot(w, INV_VIEW_MATRIX[0].xyz), dot(w, INV_VIEW_MATRIX[1].xyz), dot(w, INV_VIEW_MATRIX[2].xyz)) / s;
 	}
 	if (INSTANCE_CUSTOM.b > 0.5) {
 		UV.x = 1.0 - UV.x;
@@ -72,6 +78,7 @@ void fragment() {
 func _init() -> void:
 	_material = SnowLayer._material(SHADER)
 	_material.set_shader_parameter("sway", SWAY)
+	Parting.setup(_material, "crops")
 
 
 ## Snow lying, 0..1 (FarmWorld.set_snow): every picture's material, and the ones made later.
@@ -79,6 +86,13 @@ func set_cover(cover: float) -> void:
 	_cover = cover
 	for m in materials():
 		m.set_shader_parameter("cover", cover)
+
+
+## The farmer's feet in the world (FarmWorld.set_farmer, each frame): the plants round them
+## part. Set on the shared material too, so pictures made later start with it.
+func set_farmer(feet: Vector3) -> void:
+	for m in materials():
+		m.set_shader_parameter("farmer", Vector2(feet.x, feet.z))
 
 
 ## Every picture's material (each picture has its own copy of the shared one).
