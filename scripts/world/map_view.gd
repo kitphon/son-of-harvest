@@ -148,6 +148,8 @@ func paddy_hold(c: Vector2i) -> float:
 func _draw_objects() -> void:
 	var paddies := paddy_cells()
 	if not paddies.is_empty():
+		# The winter water patches lie under the stubble (CropPatches.draw_water: winter only).
+		(load(CROP_PATCHES) as GDScript).draw_water(_objects, season, paddies, paddy_hold, _cover)
 		(load(CROP_PATCHES) as GDScript).draw(_objects, paddies, paddy_hold, _cover)
 	for p in map.props:
 		if p.kind in StoryView.KINDS:   # drawn as pictures by StoryView

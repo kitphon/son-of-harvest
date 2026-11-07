@@ -841,3 +841,56 @@ func _tall_crops() -> void:
 	check(some < bare and most <= some, "snow lying hides the plants on white ground (%d, %d, %d)" % [bare, some, most])
 	check(mv.paddy_cells().keys().all(func(cell): return mv.map.tile(cell) == "paddy" and mv.map.prop_at(cell).is_empty()), "only prop-free paddy cells grow rice")
 	mv.free()
+	await _water_patches()
+
+
+## The winter water patches of the flat view (CropPatches.draw_water): the 3D view's places
+## (CropClusters.water_spots_for) in winter only, none under snow lying on their paddy, and the
+## blob drawn in the data's colours (data/paddy.json), the same colours as the 3D picture.
+func _water_patches() -> void:
+	var CP: GDScript = load("res://scripts/world/crop_patches.gd")
+	var cc: GDScript = load("res://scripts/world3d/crop_clusters.gd")
+	var mv = MapView.new()
+	mv.map = MapManager.data("kaminoda")
+	mv.snow_rules = g.snow_rules
+	root.add_child(mv)
+	await process_frame
+	var per = {}
+	for season in ["spring", "summer", "fall", "winter"]:
+		mv.set_season(season)
+		per[season] = CP.water_to_draw(season, mv.paddy_cells(), mv.paddy_hold, 0.0).size()
+	check(per.winter > 0, "flat water: kaminoda has water patches in winter (%d)" % per.winter)
+	check(per.spring == 0 and per.summer == 0 and per.fall == 0, "flat water: none in spring, summer or fall (%s)" % [per])
+	mv.set_season("winter")
+	var cells = mv.paddy_cells()
+	var want = cc.water_spots_for(cells.keys())
+	var got = CP.water_to_draw("winter", cells)
+	var same = got.size() == want.size()
+	for i in range(mini(got.size(), want.size())):
+		same = same and got[i].pos == want[i].pos and got[i].cell == want[i].cell and got[i].size == want[i].size
+	check(same and got.size() > 0, "flat water: the same places and sizes as the 3D view's water_spots_for (%d)" % got.size())
+	check(CP.water_to_draw("winter", cells, mv.paddy_hold, 0.0).size() == want.size(), "flat water: no snow, every patch shows")
+	var snowy = CP.water_to_draw("winter", cells, mv.paddy_hold, 1.0)
+	var lying = want.filter(func(s): return SnowLayer.lies(Vector2(s.pos.x, s.pos.z), mv.paddy_hold(s.cell)))
+	check(lying.size() > 0 and snowy.size() + lying.size() == want.size(), "flat water: heavy snow hides %d of %d patches by the paddy's hold" % [lying.size(), want.size()])
+	check(snowy.all(func(s): return not SnowLayer.lies(Vector2(s.pos.x, s.pos.z), mv.paddy_hold(s.cell))), "flat water: none left lying under snow")
+	# The blob's colours are data/paddy.json's, and the 3D picture uses the same three.
+	var data: Dictionary = cc.paddy_data().get("water", {})
+	var blob = CP.water_texture().get_image()
+	var colours = {}
+	for y in blob.get_height():
+		for x in blob.get_width():
+			var px = blob.get_pixel(x, y)
+			if px.a > 0.5:
+				colours[px.to_html(false)] = true
+	var pic = PlaceholderArt.tex("patch:paddy_water").get_image()
+	var pic_colours = {}
+	for y in pic.get_height():
+		for x in pic.get_width():
+			var px = pic.get_pixel(x, y)
+			if px.a > 0.5:
+				pic_colours[px.to_html(false)] = true
+	var json_colours = [data.color, data.glint, data.sky]
+	check(colours.size() == 3 and json_colours.all(func(c): return colours.has(c)), "flat water: the blob is drawn in data/paddy.json's colours (%s)" % [colours.keys()])
+	check(json_colours.all(func(c): return pic_colours.has(c)), "flat water: the same colours as the 3D picture patch:paddy_water")
+	mv.free()
