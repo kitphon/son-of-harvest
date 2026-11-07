@@ -5,11 +5,14 @@ extends Control
 ## blue instead of being darkened by it. Three passes, in this order:
 ##  1. pools (this node): a soft warm pool on the ground in front of every lit window and round
 ##     every stone lantern, its edge cut into dithered steps like the mine lantern's;
-##  2. glows (a child after a BackBufferCopy, so the copy holds the picture with the pools but
-##     no glow yet): each window of the FarmWorld on show (`FarmWorld.windows`, the farmhouse and
+##  2. wall washes (after a BackBufferCopy, so the copy holds the picture with the pools but no
+##     glow yet): a soft warm disc on the wall round every lit window and door, added only where
+##     the copy is pale (the plaster and the paper; see `wall_wash`), as the tint caps the real
+##     lamps' light on near-white plaster;
+##  3. glows: each window of the FarmWorld on show (`FarmWorld.windows`, the farmhouse and
 ##     the village houses) gets its own paper picture added in warm light over its pane and a
 ##     soft glow round it, each lantern (`FarmWorld.lamps`) a glow round its fire box;
-##  3. figures (the last child): the overlay knows no depth, so a farmer, villager or animal
+##  4. figures (the last child): the overlay knows no depth, so a farmer, villager or animal
 ##     standing in front of a glow (on its lit side, not hidden behind a building) is drawn
 ##     back from the copy over its own pixels, and the glow behind it no longer tints it.
 ## How bright is Game.window_light() (data/light.json "windows": with the dark, in the lit
@@ -35,6 +38,28 @@ void fragment() {
 }
 """
 
+## The wall wash: a soft disc (UV -1..1 from the window's middle) in dithered steps, kept to the
+## pale pixels of the copy: its blue over the tint's blue is about the surface's brightness
+## before the tint, near 1 on white plaster, low on dark wood, roof tiles and the ground.
+const WASH_SHADER := """
+shader_type canvas_item;
+render_mode blend_add;
+
+uniform sampler2D screen : hint_screen_texture, filter_nearest;
+uniform vec3 tint = vec3(1.0);
+uniform vec2 pale = vec2(0.45, 0.72);
+
+const float BAYER[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
+
+void fragment() {
+	float k = 1.0 - smoothstep(0.0, 1.0, length(UV));
+	ivec2 q = ivec2(mod(floor(FRAGCOORD.xy), 4.0));
+	k = clamp(floor(k * 6.0 + BAYER[q.y * 4 + q.x] / 16.0) / 6.0, 0.0, 1.0);
+	float b = textureLod(screen, SCREEN_UV, 0.0).b / max(tint.b, 0.05);
+	COLOR = vec4(COLOR.rgb, COLOR.a * k * smoothstep(pale.x, pale.y, b));
+}
+"""
+
 const FIGURE_SHADER := """
 shader_type canvas_item;
 
@@ -50,12 +75,14 @@ void fragment() {
 
 static var _dot: Texture2D
 
-var glows: Control     # pass 2: panes, halos, lantern glows
-var figures: Control   # pass 3: the figures in front, drawn back from the copy
+var washes: Control    # pass 2: warm light on the pale walls round lit windows
+var glows: Control     # pass 3: panes, halos, lantern glows
+var figures: Control   # pass 4: the figures in front, drawn back from the copy
 var copy: BackBufferCopy
 ## This frame's work, worked out in _process and drawn by the three passes.
 var _pools: Array[Dictionary] = []     # {pts: PackedVector2Array, color}
 var _panes: Array[Dictionary] = []     # {win, k} windows to draw
+var _washes: Array[Dictionary] = []    # {pts, uvs, color} wall washes
 var _lamps: Array[Dictionary] = []     # {at: Vector2, px, color}
 var _lit: Array[Dictionary] = []       # {rect: Rect2, pos, normal} everything glowing on screen
 var _shields: Array[Dictionary] = []   # {pts, uvs, tex} figure quads drawn back
@@ -68,6 +95,9 @@ func _ready() -> void:
 	copy = BackBufferCopy.new()
 	copy.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
 	add_child(copy)
+	washes = _layer("Washes")
+	washes.material = _shader_material(WASH_SHADER)
+	washes.draw.connect(_draw_washes)
 	glows = _layer("Glows")
 	var add := CanvasItemMaterial.new()
 	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
@@ -117,6 +147,7 @@ static func figure(s: Sprite3D) -> void:
 func _process(_delta: float) -> void:
 	_plan()
 	queue_redraw()
+	washes.queue_redraw()
 	glows.queue_redraw()
 	figures.queue_redraw()
 
@@ -125,6 +156,7 @@ func _process(_delta: float) -> void:
 func _plan() -> void:
 	_pools.clear()
 	_panes.clear()
+	_washes.clear()
 	_lamps.clear()
 	_lit.clear()
 	_shields.clear()
@@ -139,6 +171,11 @@ func _plan() -> void:
 		return
 	var rules: Dictionary = Game.light_data().get("windows", {})
 	var warm := Color(str(rules.get("color", "ffb25c")))
+	var wall_rules: Dictionary = pool_rules.get("wall", {})
+	var tint := Game.light_color()
+	var wm := washes.material as ShaderMaterial
+	wm.set_shader_parameter("tint", Vector3(tint.r, tint.g, tint.b))
+	wm.set_shader_parameter("pale", Vector2(float(wall_rules.get("pale_from", 0.45)), float(wall_rules.get("pale_full", 0.72))))
 	var back := cam.global_basis.z
 	var flat_back := Vector3(back.x, 0, back.z).normalized()
 	var worlds: Array[FarmWorld] = []
@@ -161,6 +198,14 @@ func _plan() -> void:
 				var r := _bounds(pts)
 				_lit.append({"rect": r.grow(r.size.x * (float(rules.get("halo_size", 2.4)) - 1.0) / 2.0),
 					"pos": win.pos, "normal": win.normal})
+				var wash := wall_wash(win, glow * seen, wall_rules)
+				var wc := Color(str(wall_rules.get("color", "ffa050")))
+				wc.a = wash.strength
+				for piece in (wash.pieces if wash.strength > 0.0 else []):
+					var wpts := _project(piece.corners, cam)
+					if not wpts.is_empty():
+						_washes.append({"pts": wpts, "uvs": piece.uvs, "color": wc})
+						_lit.append({"rect": _bounds(wpts), "pos": win.pos, "normal": win.normal})
 		var lamp: Dictionary = pool_rules.get("lamp", {})
 		for l in w.lamps:
 			var seen := ground_seen(l.pos, l.pos, eye, w.occluders)
@@ -255,6 +300,11 @@ func _shield(s: Sprite3D, cam: Camera3D, worlds: Array[FarmWorld]) -> void:
 func _draw() -> void:
 	for p in _pools:
 		draw_colored_polygon(p.pts, p.color, PackedVector2Array([Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)]))
+
+
+func _draw_washes() -> void:
+	for w in _washes:
+		washes.draw_colored_polygon(w.pts, w.color, w.uvs)
 
 
 func _draw_glows() -> void:
@@ -355,6 +405,36 @@ static func pools_from(windows: Array, lamps: Array, glow: float, rules: Diction
 			"out": Vector3(0, 0, r), "strength": float(lr.get("strength", 0.4)) * glow, "own": l.pos,
 			"normal": Vector3.ZERO})
 	return out
+
+
+## The warm wash on the wall round lit window `win` when it glows `glow` (0..1), by data/light.json
+## "pools" → "wall": {pieces: [{corners (on the window's wall plane, top left first), uvs (-1..1
+## from the window's middle, `reach` cells to the edge)}], strength}. The wash runs `reach`
+## either side of the window, from the ground up to `up` over the window, in up to four pieces
+## round the pane itself (left, right, above, below), so the paper keeps the pane's own warm
+## colour; a bigger pane (a door) is a little brighter, as its pool is.
+static func wall_wash(win: Dictionary, glow: float, rules: Dictionary) -> Dictionary:
+	var reach := maxf(float(rules.get("reach", 1.5)), 0.01)
+	var right: Vector3 = Vector3.UP.cross(win.normal).normalized()
+	var c: Vector3 = win.pos
+	var half: Vector2 = win.size / 2.0
+	var top: float = c.y + half.y + float(rules.get("up", 0.6))
+	var foot := minf(0.0, c.y - half.y)
+	var area: float = win.size.x * win.size.y
+	var k := float(rules.get("strength", 0.3)) * clampf(sqrt(area / 0.35), 0.8, 1.5) * glow
+	var pieces: Array[Dictionary] = []
+	# [x0, x1, y0, y1] in cells along the wall from the window's middle and heights.
+	for r in [[-reach, -half.x, foot, top], [half.x, reach, foot, top],
+			[-half.x, half.x, c.y + half.y, top], [-half.x, half.x, foot, c.y - half.y]]:
+		if r[1] - r[0] < 0.001 or r[3] - r[2] < 0.001:
+			continue
+		var corners: Array[Vector3] = []
+		var uvs := PackedVector2Array()
+		for p in [Vector2(r[0], r[3]), Vector2(r[1], r[3]), Vector2(r[1], r[2]), Vector2(r[0], r[2])]:
+			corners.append(Vector3(c.x, p.y, c.z) + right * p.x)
+			uvs.append(Vector2(p.x, c.y - p.y) / reach)
+		pieces.append({"corners": corners, "uvs": uvs})
+	return {"pieces": pieces, "strength": maxf(k, 0.0)}
 
 
 ## A pool's four ground corners in the order of its UVs (the quad its round falloff fills).

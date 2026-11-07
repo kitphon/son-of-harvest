@@ -990,10 +990,22 @@ the stalls' counters, the chest and bin) take warm light. They burn with `Game.w
 unchanged. The tint multiplies the picture afterwards, so each light's colour is the wanted
 colour divided by the tint (as NightView's shader divides it out; at most `boost` times). The
 ground, the water and the grass sit on `NightLamps.GROUND_LAYER`, outside the lights' cull
-mask: their light is the drawn pools, and they cost no extra pass. Pale plaster is already near
-white under the night sun before the tint, so it takes little of the lamps; dark wood shows them
-best. The night blue itself is a touch lighter since the lamps came (46529a, was 404c8e). Unshaded
-pieces (sprites, the festival decorations' flat colours) do not take the lamps.
+mask: their light is the drawn pools, and they cost no extra pass. The night blue itself is a
+touch lighter since the lamps came (46529a, was 404c8e). Unshaded pieces (sprites, the lit paper
+and flames of the festival lights) do not take the lamps.
+
+The tint multiplies the picture after the lights, so nothing drawn under it gets brighter than
+the tint itself; pale plaster is already near white under the night sun, so the real lamps can
+hardly lift it (dark wood shows them well). So NightLights adds a warm wash over the tint on the
+wall round every lit window and shoji door (`NightLights.wall_wash`, data/light.json "pools" →
+"wall": colour, strength, `reach` cells either side, `up` over the window), in its own pass
+between the copy and the glows: a soft disc from the window's middle in dithered steps, in up to
+four pieces round the pane (the paper keeps the pane's own colour), a door's brighter, on the
+windows' schedule. Its shader keeps it to pale pixels: the copy's blue over the tint's blue
+(about the surface's brightness before the tint) between `pale_from` and `pale_full`, so the
+plaster and the paper take it and dark boards, posts, roofs and the ground (the real lamps' and
+the pools') do not. Figures in front of it are drawn back from the copy as for the glows. The
+night sun, the tint and the measured ground are unchanged, and by day nothing is drawn.
 
 ## Showcase
 Fixed views for trailer shots and for comparing a look before and after a change:
