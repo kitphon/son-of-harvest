@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] Vines read better (2026-11-07): a ripe cucumber's fruit is pale yellow-green with a lit edge and a dark side, the leaves left off beside the fruit (both vines); the villagers' and the dog's parting on a stake checked to take the vine's stiffness like the farmer's (ART_DIRECTION, Rice and tall crops).
 [x] Rain dimples on the water (2026-11-07): small rings at random spots in rain and storm, 3D and flat (data/weather_fx.json dimples; ART_DIRECTION, Water).
 [x] Barn stalls: straw bedding as lit meshes (2026-11-07): a low pad, lumps and loose stalks in each stall (ART_DIRECTION, the barn's insides).
 [x] Playtest fixes (2026-11-07): smooth map changes (a steady fade, worlds kept for going back) and no getting stuck on corners or villagers.
