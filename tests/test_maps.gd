@@ -1488,7 +1488,7 @@ func _outdoor_props() -> void:
 	var w: Node3D = new_world.call()
 	for i in 6:
 		op.bamboo(w, Vector3(i + 0.5, 0, 0.5), Vector2i(i, 0), "summer", false)
-	var sway: Node = w.get_node("BambooSway")
+	var sway: Node = w.get_node(op.SWAY)
 	var first: MeshInstance3D = w.get_children().filter(func(n): return n is MeshInstance3D)[0]
 	var shapes := {}
 	for n in w.get_children():
@@ -1656,7 +1656,7 @@ func _bamboo_pieces() -> void:
 		var snow_ok: bool = rep.snow == 1 and w.get_children().all(func(n): return not (n is MeshInstance3D and n.material_override is ShaderMaterial) or n.material_override in w._snow_mats)
 		check(rep.prim == 0 and rep.unlit == 0 and rep.bad == 0 and rep.tris > 20000 and snow_ok,
 			"fence (gate %s): %d tris, %d primitives, %d unlit, %d facing faults, snow skin driven %s" % [gate, rep.tris, rep.prim, rep.unlit, rep.bad, snow_ok])
-		check(rep.lo.x > 0.5 - 0.1 and rep.hi.x < W - 0.5 + 0.1 and rep.lo.z > 0.5 - 0.1 and rep.hi.z < H - 0.5 + 0.1 and rep.lo.y >= -0.02
+		check(rep.lo.x > 0.5 - 0.15 and rep.hi.x < W - 0.5 + 0.15 and rep.lo.z > 0.5 - 0.15 and rep.hi.z < H - 0.5 + 0.15 and rep.lo.y >= -0.02
 			and rep.hi.y > 0.66 and rep.hi.y < 0.72, "fence line and height: x %.2f..%.2f, z %.2f..%.2f, y %.2f..%.2f" % [rep.lo.x, rep.hi.x, rep.lo.z, rep.hi.z, rep.lo.y, rep.hi.y])
 		var in_gate := 0
 		for n in w.get_children():
@@ -1675,12 +1675,14 @@ func _bamboo_pieces() -> void:
 		var cut := 0
 		var rings := 0
 		for n in w.get_children():
+			if not n is MeshInstance3D:   # the world's WindSway
+				continue
 			var mat: Material = n.material_override
 			if mat is StandardMaterial3D and mat.albedo_color.is_equal_approx(Color("d8e8b0")):
 				cut += n.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()
 			if mat is StandardMaterial3D and mat.albedo_color.is_equal_approx(fm.KADO_NODE):
 				rings += n.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()
-		check(rep.prim == 0 and rep.unlit == 0 and rep.bad == 0 and rep.tris > 600 and rep.snow == (1 if snow else 0),
+		check(rep.prim == 0 and rep.unlit == 0 and rep.bad == 0 and rep.tris > 600 and rep.snow == (6 if snow else 0),
 			"kadomatsu (snow %s): %d tris, %d primitives, %d unlit, %d facing faults, %d snow skins" % [snow, rep.tris, rep.prim, rep.unlit, rep.bad, rep.snow])
 		check(cut == 3 * 8 * 3 and rings >= 3 * 96 and rep.hi.y > 1.3 and rep.hi.y < 1.45 and rep.lo.y >= -0.03
 			and rep.lo.x > mid.x - 0.6 and rep.hi.x < mid.x + 0.6 and rep.lo.z > mid.z - 0.6 and rep.hi.z < mid.z + 0.6,

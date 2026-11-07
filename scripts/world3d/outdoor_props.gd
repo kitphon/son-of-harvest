@@ -17,6 +17,7 @@ const NEW_RED := Color("e23a2c")     # the jizo's new bibs (genzo_jizo), brighte
 const KILN_CLAY := Color("9a7656")
 const KILN_FACE := 0.8               # the kiln's clay face, this far in front of its middle
 const CLUMP_LOOKS := 8   # bamboo clump shapes; a cell picks one and turns it
+const SWAY := "WindSway"  # the world's node that moves things in the wind (Sway)
 
 ## Bamboo colours by season: culm, node ring, three leaf tones. Evergreen: winter only dulls.
 const BAMBOO := {
@@ -609,6 +610,46 @@ static func fence_rail(p: FarmProps.Parts, a: Vector3, b: Vector3) -> void:
 			a.y + 0.03, r0.grow(-0.012), a.y + 0.052)
 
 
+## Where a fence post keeps a live side shoot: its node 0.52 up (under the cut top).
+const FENCE_SPRAY_Y := 0.52
+static var _sprays := {}   # season -> the shared spray mesh
+
+## A leafy side shoot on a fence post at (x, z): a thin twig out of the post's upper node along
+## `yaw` (along the fence line, so it stays over the line) and four small bamboo leaves fanned
+## a little round it, drooping, in the season's leaf colours. One shared mesh a season (vertex
+## colours, lit), turned and placed per post; the world's Sway leans it in the wind about the
+## node (the post itself stays still). No snow skin: the leaves are too small to carry one.
+static func fence_spray(w: FarmWorld, x: float, z: float, yaw: float, season: String, phase: float) -> MeshInstance3D:
+	if not _sprays.has(season):
+		_sprays[season] = _build_spray(season)
+	var sway := _sway(w)
+	var mi := MeshInstance3D.new()
+	mi.mesh = _sprays[season]
+	mi.material_override = _vertex_material()
+	w.add_child(mi)
+	var foot := Vector3(x, FENCE_SPRAY_Y, z)
+	sway.add_leaves([mi], foot, yaw, phase)
+	return mi
+
+
+static func _build_spray(season: String) -> ArrayMesh:
+	var leaves: Array = BAMBOO.get(season, BAMBOO.summer).leaves
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var twig := Vector3(1.0, 0.7, 0.0).normalized()
+	_tube(st, Vector3(0.05, 0, 0), twig, [Vector2(0.009, 0.0), Vector2(0.005, 0.12)], 4, Color("6a7a40"))
+	var base := Vector3(0.05, 0, 0) + twig * 0.12
+	# Paler and yellower than the clumps' leaves (young leaves in the sun), so the small shoot
+	# reads against the grass behind it.
+	for j in 5:
+		var a := (j - 2.0) * 0.2
+		var rise := -0.12 - 0.14 * (j % 2)
+		var d := Vector3(cos(a) * cos(rise), sin(rise), sin(a) * cos(rise)).normalized()
+		var col := (leaves[j % leaves.size()] as Color).lerp(Color("e8e070"), 0.35)
+		_leaf(st, null, base, d, 0.28 + 0.03 * (j % 2), 0.08, col)
+	return st.commit()
+
+
 # --- helpers ------------------------------------------------------------------
 
 ## A triangle facing `n` (corners turned to it), no UVs.
@@ -663,34 +704,109 @@ static func _snow_material(w: FarmWorld) -> ShaderMaterial:
 	return m
 
 
-## The world's one Sway (made on the first clump).
+## The world's one Sway (made on the first thing that moves in the wind).
 static func _sway(w: FarmWorld) -> Sway:
-	var s: Sway = w.get_node_or_null("BambooSway")
+	var s: Sway = w.get_node_or_null(SWAY)
 	if s == null:
 		s = Sway.new()
-		s.name = "BambooSway"
+		s.name = SWAY
 		s.wind = w.wind
 		w.add_child(s)
 	return s
 
 
-## Moves the bamboo clumps in the wind: each leans a little to and fro about its foot, two
-## slow waves out of step, its own phase by cell. `pose(t)` sets them for a time (tests).
+## Commits `p` to `w` as one piece that moves in the wind about `hinge` (a world point; the
+## geometry is in world units, so at rest it stands as built): `kind` "leaves" lean a little
+## about it (a sprig, a twig), "cloth" hangs from its top edge and blows out (`lift`, see
+## Sway.add_cloth). The Sway is made first, so its node is not one of the meshes. The meshes.
+static func commit_swaying(w: FarmWorld, p: FarmProps.Parts, hinge: Vector3, kind: String, phase: float,
+		lift := Sway.CLOTH_LIFT) -> Array:
+	var sway := _sway(w)
+	var first := w.get_child_count()
+	p.commit(w)
+	var nodes := w.get_children().slice(first)
+	if kind == "cloth":
+		sway.add_cloth(nodes, hinge, 0.0, phase, -hinge, lift)
+	else:
+		sway.add_leaves(nodes, hinge, 0.0, phase, -hinge)
+	return nodes
+
+
+## A cloth picture (a noren: a QuadMesh `size` across, centred on its node, facing its yaw)
+## hung by its top edge, blowing out from the wall in the wind.
+static func sway_picture(w: FarmWorld, mi: MeshInstance3D, size: Vector2, phase: float) -> void:
+	_sway(w).add_cloth([mi], mi.position + Vector3(0, size.y / 2, 0), mi.rotation.y, phase, Vector3(0, -size.y / 2, 0))
+
+
+## Moves things in the wind (FarmWorld.set_wind, data/wind.json). Three kinds:
+##  - bamboo clumps (`add`): each leans a little to and fro about its foot, two slow waves out
+##    of step, its own phase by cell; at wind 0 the old calm wave;
+##  - leaves (`add_leaves`: the kadomatsu's pine sprigs and plum twig, the sprays on the fence
+##    posts): a small lean downwind (+x, as the grass leans) about their base and a quicker
+##    wave on it;
+##  - cloth (`add_cloth`: the noren, the stalls' curtains, the race banner): hung by its top
+##    edge, the bottom blows out from its face (`lift`) and streams downwind (a shear, so the
+##    top edge stays on its rod), fluttering in gusts.
+## Leaves and cloth stand still at wind 0, as they did before. Posts, culms and rods are not in
+## it. `pose(t)` sets everything for a time (tests).
 class Sway extends Node3D:
 	const AMPLITUDE := 0.028   # radians: about 0.07 units at the tip of a 2.5 high culm
+	const LEAF_LEAN := 0.06    # leaves: radians downwind per unit of wind ...
+	const LEAF_WAVE := 0.08    # ... and the wave on it (a pine sprig's tip moves about 0.06 in a gale)
+	const CLOTH_LIFT := 0.35   # a hanging cloth's steady blow-out per unit of wind (sine of the angle)
+	const CLOTH_FLUTTER := 0.22
+	const CLOTH_STREAM := 0.3  # the downwind shear per unit of wind (the hem moves this x its drop)
 	var wind := 0.0            # 0 dead calm .. 1 a gale (FarmWorld.set_wind, data/wind.json)
 	var _items: Array[Dictionary] = []
 	var _time := 0.0
 
+	## A bamboo clump's meshes (standing at its foot, turned by `yaw`).
 	func add(nodes: Array, yaw: float, phase: float) -> void:
-		_items.append({"nodes": nodes, "yaw": yaw, "phase": phase})
-		_apply(_items[_items.size() - 1])
+		_put({"kind": "clump", "nodes": nodes, "yaw": yaw, "phase": phase})
+
+	## Leaves leaning about `hinge`: each node is its mesh moved by `offset` (-hinge for a mesh
+	## built in world units), turned by `yaw`, leaned at the hinge.
+	func add_leaves(nodes: Array, hinge: Vector3, yaw: float, phase: float, offset := Vector3.ZERO) -> void:
+		_put({"kind": "leaves", "nodes": nodes, "hinge": hinge, "yaw": yaw, "phase": phase, "offset": offset})
+
+	## A cloth hung by its top edge at `hinge`, its face turned by `yaw` (it looks along local
+	## +z). `lift`: the steady blow-out per unit of wind; CLOTH_LIFT for a cloth before a wall or
+	## a counter (it only ever lifts away from it), 0 for one free on both faces (it swings both ways).
+	func add_cloth(nodes: Array, hinge: Vector3, yaw: float, phase: float, offset := Vector3.ZERO, lift := CLOTH_LIFT) -> void:
+		_put({"kind": "cloth", "nodes": nodes, "hinge": hinge, "yaw": yaw, "phase": phase, "offset": offset, "lift": lift})
+
+	func _put(it: Dictionary) -> void:
+		_items.append(it)
+		_apply(it)
 
 	func count() -> int:
 		return _items.size()
 
+	## How many things of `kind` ("clump", "leaves", "cloth") it moves.
+	func count_of(kind: String) -> int:
+		return _items.filter(func(it): return it.kind == kind).size()
+
+	## Thing `i`'s meshes and its hinge (a clump's: its foot).
+	func nodes_of(i: int) -> Array:
+		return _items[i].nodes
+
+	func hinge_of(i: int) -> Vector3:
+		return _items[i].get("hinge", (_items[i].nodes[0] as Node3D).position)
+
+	func kind_of(i: int) -> String:
+		return _items[i].kind
+
 	func angle_of(i: int) -> float:
 		return _angle(float(_items[i].phase))
+
+	## Where the point `local` of thing `i` (in its own frame at the hinge, before its yaw: for
+	## a cloth y down the drop, z out of its face) is now, against the hinge.
+	func moved(i: int, local: Vector3) -> Vector3:
+		var it: Dictionary = _items[i]
+		match str(it.kind):
+			"leaves": return _lean(float(it.phase)) * local
+			"cloth": return _cloth(float(it.phase), float(it.lift), float(it.yaw)) * local
+		return Basis(Vector3.BACK, _angle(float(it.phase))) * local
 
 	func _process(delta: float) -> void:
 		pose(_time + delta)
@@ -698,7 +814,13 @@ class Sway extends Node3D:
 	func pose(t: float) -> void:
 		_time = t
 		for it in _items:
+			if it.kind != "clump" and wind == 0.0 and it.get("still", false):
+				continue   # calm: already set at rest
 			_apply(it)
+
+	## The slow gust swell on the leaves and cloth (1 at no wind).
+	func _gust(phase: float) -> float:
+		return 1.0 + wind * (0.8 * sin(_time * 0.55 + phase * 0.3) + 0.4 * sin(_time * 1.7 + phase * 0.5))
 
 	## In a wind the lean grows (1 + 1.5 x wind), the wave runs faster (1 + 0.6 x wind) and comes
 	## in gusts (a slow swell on the amplitude). At wind 0 it is the calm wave it always was.
@@ -707,7 +829,46 @@ class Sway extends Node3D:
 		var t := _time * (1.0 + 0.6 * wind)
 		return AMPLITUDE * (1.0 + 1.5 * wind) * gust * (0.7 * sin(t * 1.3 + phase) + 0.3 * sin(t * 2.9 + phase * 1.7))
 
+	## Leaves: a lean downwind (+x) with a quicker wave on it, a smaller nod across; none at 0.
+	func _lean(phase: float) -> Basis:
+		var t := _time * (1.4 + 0.8 * wind)
+		var wave := 0.65 * sin(t * 1.9 + phase) + 0.35 * sin(t * 4.3 + phase * 1.3)
+		var a := -wind * (LEAF_LEAN + LEAF_WAVE * _gust(phase) * wave)
+		var nod := wind * LEAF_WAVE * 0.5 * sin(t * 2.6 + phase * 0.7)
+		return Basis(Vector3.BACK, a) * Basis(Vector3.RIGHT, nod)
+
+	## Cloth, in its own frame (x along the rod, y up, z out of the face): the drop (local -y)
+	## blows out by `lift` and a flutter (never back past the face when `lift` > 0) and streams
+	## downwind by a shear, as much as the rod lies across the wind (`yaw`). None at 0.
+	## Cloth is light: it takes a breeze by the square root of the wind (a calm sunny day's 0.15
+	## moves it like 0.39), so the festival days (always fair) still see their curtains stir.
+	func _cloth(phase: float, lift: float, yaw: float) -> Basis:
+		var k := sqrt(wind)
+		var t := _time * (1.6 + 1.0 * wind)
+		var wave := 0.6 * sin(t * 2.3 + phase) + 0.4 * sin(t * 5.1 + phase * 1.3)
+		var wave2 := 0.6 * sin(t * 1.7 + phase * 0.8) + 0.4 * sin(t * 3.7 + phase * 1.9)
+		var g := _gust(phase)
+		var out := k * (lift + CLOTH_FLUTTER * g * wave)
+		if lift > 0.0:
+			out = maxf(out, 0.0)
+		out = clampf(out, -0.7, 0.7)
+		var stream := cos(yaw) * k * (CLOTH_STREAM + 0.15 * g * wave2)
+		# A point (x, y) of the cloth (y <= 0 below the rod) goes to (x - stream y, c y, -out y).
+		return Basis(Vector3.RIGHT, Vector3(-stream, sqrt(1.0 - out * out), -out), Vector3.BACK)
+
 	func _apply(it: Dictionary) -> void:
-		var b := Basis(Vector3.BACK, _angle(float(it.phase))) * Basis(Vector3.UP, float(it.yaw))
+		var yaw_b := Basis(Vector3.UP, float(it.yaw))
+		if it.kind == "clump":
+			var bc := Basis(Vector3.BACK, _angle(float(it.phase))) * yaw_b
+			for n: Node3D in it.nodes:
+				n.basis = bc
+			return
+		var b: Basis
+		if it.kind == "cloth":   # the motion in the cloth's own frame, then turned to its face
+			b = yaw_b * _cloth(float(it.phase), float(it.lift), float(it.yaw))
+		else:                    # the lean is downwind in the world
+			b = _lean(float(it.phase)) * yaw_b
+		var xf := Transform3D(b, (it.hinge as Vector3) + b * (it.offset as Vector3))
 		for n: Node3D in it.nodes:
-			n.basis = b
+			n.transform = xf
+		it.still = wind == 0.0

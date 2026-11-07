@@ -103,7 +103,8 @@ static func stand(w: FarmWorld) -> void:
 	block(p.st("build:sugi"), Rect2(10.74, 3.8, 0.16, 0.12), 0.66, Rect2(10.75, 3.81, 0.14, 0.1), 0.79)
 	block(p.st(IRON), Rect2(10.78, 3.85, 0.08, 0.02), 0.79, Rect2(10.78, 3.85, 0.08, 0.02), 0.795)
 	p.commit(w)
-	w._picture("build:noren", Vector2(0.84, 0.24), Vector3(10.5, 1.3, 4.035))
+	var noren := w._picture("build:noren", Vector2(0.84, 0.24), Vector3(10.5, 1.3, 4.035))
+	OutdoorProps.sway_picture(w, noren, Vector2(0.84, 0.24), 0.4)   # it blows out in the wind
 	w._picture("build:stand_sign", Vector2(0.5, 0.3), Vector3(10.97, 1.08, 3.64), 90)
 
 

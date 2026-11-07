@@ -209,7 +209,8 @@ func _village_house(r: Rect2, door: int, noren: bool, side_door := -1, style := 
 	var dx := r.position.x + door + 0.5
 	if noren:   # a shop's door stays dark at night: its noren hangs over the paper
 		_picture("build:shoji_door", Vector2(0.85, 1.05), Vector3(dx, 0.55, front + 0.005))
-		_picture("build:noren", Vector2(0.95, 0.36), Vector3(dx, 1.0, front + 0.03))
+		var cloth := _picture("build:noren", Vector2(0.95, 0.36), Vector3(dx, 1.0, front + 0.03))
+		OutdoorProps.sway_picture(self, cloth, Vector2(0.95, 0.36), dx * 1.1)   # it blows out in the wind
 	for spot in LitSpots.village_house(r, door, noren, side_door, storeys):
 		_lit_spot(spot)
 

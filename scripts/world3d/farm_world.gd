@@ -169,7 +169,7 @@ func _box(size: Vector3, center: Vector3, mat: Material, rot := Vector3.ZERO) ->
 
 
 ## A picture on a wall: `normal_yaw` 0 faces +z (towards the camera side), 90 faces +x.
-func _picture(key: String, size: Vector2, center: Vector3, normal_yaw := 0.0) -> void:
+func _picture(key: String, size: Vector2, center: Vector3, normal_yaw := 0.0) -> MeshInstance3D:
 	var quad := QuadMesh.new()
 	quad.size = size
 	var mi := MeshInstance3D.new()
@@ -178,6 +178,7 @@ func _picture(key: String, size: Vector2, center: Vector3, normal_yaw := 0.0) ->
 	mi.position = center
 	mi.rotation_degrees.y = normal_yaw
 	add_child(mi)
+	return mi
 
 
 ## A window from LitSpots on a house wall (see `_lit_picture`).
@@ -248,15 +249,20 @@ func add_tufts() -> void:
 	tufts.set_wind(wind)
 
 
-## The wind, 0 (calm) .. 1 (a gale), pushed to the grass tufts' shader and the bamboo sway
-## (data/wind.json through Game.wind_strength; main_3d sets it each morning and on a map change).
+## The wind, 0 (calm) .. 1 (a gale), pushed to the grass tufts' shader and the world's Sway
+## (bamboo, the fence's leafy shoots, the kadomatsu's greens, noren, stall curtains, banners),
+## and on to the layers that are worlds of their own (FestivalProps) (data/wind.json through
+## Game.wind_strength; main_3d sets it each morning and on a map change).
 func set_wind(strength: float) -> void:
 	wind = clampf(strength, 0.0, 1.0)
 	if tufts != null:
 		tufts.set_wind(wind)
-	var sway := get_node_or_null("BambooSway") as OutdoorProps.Sway
+	var sway := get_node_or_null(OutdoorProps.SWAY) as OutdoorProps.Sway
 	if sway != null:
 		sway.wind = wind
+	for n in get_children():   # layers that are worlds of their own (today's FestivalProps)
+		if n is FarmWorld:
+			(n as FarmWorld).set_wind(wind)
 
 
 ## The farmer's feet (Main3D, each frame): the grass tufts and tall crops round them part
@@ -382,6 +388,16 @@ func _make_fence() -> void:
 			for run in _runs(func(t: float): return Vector2(x, t), h):
 				OutdoorProps.fence_rail(p, Vector3(x, y, run.x), Vector3(x, y, run.y))
 	p.commit(self)
+	# About one post in five keeps a leafy side shoot along the line (not at the corners or
+	# beside the gate); only the shoots move in the wind (OutdoorProps.Sway), the fence stands.
+	for q in line:
+		var along := Vector2(1, 0) if q.y == 0.5 or q.y == h - 0.5 else Vector2(0, 1)
+		var corner := (q.x == 0.5 or q.x == w - 0.5) and (q.y == 0.5 or q.y == h - 0.5)
+		if corner or posmod(int(q.x) * 7 + int(q.y) * 11, 5) != 0 or _open(q) or _open(q + along) or _open(q - along):
+			continue
+		var flip := posmod(int(q.x) + int(q.y), 2) == 0
+		var yaw := (0.0 if along.x > 0.0 else PI / 2) + (PI if flip else 0.0)
+		OutdoorProps.fence_spray(self, q.x, q.y, yaw, Game.season_name(), q.x * 1.3 + q.y * 0.7)
 
 
 ## Is the fence spot (x, z) in a gate cell? `between` also counts the stretch from a gate

@@ -10,6 +10,43 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — The wind moves leaves and cloth: fence, kadomatsu, noren, curtains, banner
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: docs/ART_DIRECTION.md's open wind items. `OutdoorProps.Sway` (now the world's
+  "WindSway", `OutdoorProps.SWAY`) moves three kinds: bamboo clumps as before; leaves
+  (`add_leaves`) lean downwind (+x, as the grass) by 0.06 x wind with a wave of 0.08 x wind and
+  gusts about their base; cloth (`add_cloth`) hangs from its top edge, the hem blowing out from
+  its face (0.35 + a flutter of 0.22, never back into a wall; free on both faces it swings both
+  ways) and streaming downwind by a shear of 0.3 (so the top stays on its rod), by the square
+  root of the wind (cloth is light: a fair festival day's 0.15 moves it like 0.39). Leaves and
+  cloth stand still at wind 0. Pieces: the kadomatsu's five pine sprigs (with their snow) and
+  its plum twig, each its own piece (`OutdoorProps.commit_swaying`); a leafy side shoot on about
+  one farm fence post in five (`OutdoorProps.fence_spray`, one shared vertex-colour mesh a season,
+  paler than the clumps' leaves so it reads against the grass, no snow skin); the shop noren
+  (`MapWorld._village_house`) and the seed stand's noren (`OutdoorProps.sway_picture`,
+  `FarmWorld._picture` now returns its mesh); each festival stall's curtain piece; the race
+  banner below its hem. Posts, culms, the tub, rods, roofs and the stalls' valance stay still.
+  `FarmWorld.set_wind` passes the wind on to child worlds (today's FestivalProps, a world of
+  its own). Balance: the numbers are ours, small enough that a calm day barely moves leaves.
+- Checked: all 29 test scripts print OK (0 failed); `test_weather: OK (0 failed)` with the new
+  `_wind_on_leaves_and_cloth` (values seen once: a sprig's tip 0.007 / 0.027 / 0.064 sunny / rain /
+  storm, a noren's hem 0.102 / 0.215 / 0.337, its hem z 0.000..0.252 in a storm (never into the
+  wall), the banner 0.067 / 0.242 and 0.150 back, hinges and rod 0.000000, at rest again at 0;
+  the fence 19 shoots and the posts' meshes still, kadomatsu 6 pieces (22 meshes) moving and 8
+  still, a stall's 6 curtain pieces, one banner, the village's 2 shop noren). test_maps adjusted
+  (the WindSway name, the kadomatsu's 6 snow skins, the fence's bounds 0.15 past the line).
+  Smoke runs (title, --demo, --demo --map=town, --demo --mine=3, and --demo
+  --festival=years_turn) logged 0 error / warning lines. Before / after frames (HEAD in a
+  copy against this tree, frame 59): `--festival=moon_night --contest=fishing:wait
+  --weather=storm` the banner streams out from the pole; `--map=town@sayo --weather=storm` the
+  store's noren lifts out and leans (shorter on screen); `--weather=sunny` farm: a pale shoot on a
+  fence post, nothing else on the fence changed; `--festival=years_turn` (always fair) the
+  pixels that changed lie on the two kadomatsu's pine and the stalls' curtains;
+  `--festival=blossom_day` the changes are at the stall's curtain.
+- Left / next: the seed stand's noren was not in any frame (only tested). The kadomatsu
+  barely moves on a fair festival day by design (leaves take the wind straight, not by the
+  square root). The tall vine crops (cucumber, tomato) still take no wind.
+
 ## 2026-11-07 — Run through exits, walk at once after a map change
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user's second playtest round (docs/FEEDBACK.md → Fixed). Running: Player found a
