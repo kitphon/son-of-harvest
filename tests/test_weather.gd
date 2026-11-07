@@ -197,11 +197,101 @@ func _init() -> void:
 	_night_light(game_script, fx)
 	_sun_by_clock(game_script, fx)
 	_sky_by_clock(game_script, fx)
+	_sprite_shadows(game_script)
 	_finish(game_script, fx)
 
 
 ## The wind checks wait a frame: the world scripts read the Game autoload, which is on the root
 ## only once the main loop runs (test_maps does its world checks in _process for the same reason).
+
+## The figures' shadows (SpriteShadow, data/light.json "sprite_shadows"): the data, the blob's
+## share by sun, the caster facing the sun, sizes read from the texture, the caster following
+## the sprite's picture and flip, the blob and caster by the sun's strength (0 in rain, night, rooms).
+func _sprite_shadows(game_script: GDScript) -> void:
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/light.json"))
+	var raw: Dictionary = data.get("sprite_shadows", {})
+	check(raw.get("mode", "") in ["real", "blob"], "sprite shadows: data mode is real or blob (%s)" % raw.get("mode", ""))
+	var r := SpriteShadow.merged(raw)
+	for k in ["blob_in_sun", "blob_width", "blob_depth", "blob_min"]:
+		check(raw.has(k) and float(raw[k]) > 0.0, "sprite shadows: data has %s" % k)
+	check(float(r.blob_in_sun) < 1.0, "sprite shadows: the blob is fainter under the sun")
+	check(SpriteShadow.merged({"mode": "blob"}).blob_depth == r.blob_depth, "sprite shadows: unset keys keep their defaults")
+	# The blob by sun: whole where there is none, faint under full sun, whole in blob mode.
+	check(is_equal_approx(SpriteShadow.blob_share(true, 0.0, 0.35), 1.0), "blob share: no sun shadows, whole blob")
+	check(is_equal_approx(SpriteShadow.blob_share(true, 1.0, 0.35), 0.35), "blob share: full sun, contact blob only")
+	var half := SpriteShadow.blob_share(true, 0.5, 0.35)
+	check(half > 0.35 and half < 1.0, "blob share: dusk eases between (%.2f)" % half)
+	check(is_equal_approx(SpriteShadow.blob_share(false, 1.0, 0.35), 1.0), "blob share: blob mode stays whole at any sun")
+	# The caster faces the sun: its normal (sin, cos of the yaw) points against the light's heading.
+	for pose in [[46.0, -34.0], [16.0, -74.0], [60.0, -44.0], [30.0, 120.0]]:
+		var dir: Vector3 = game_script.sun_direction({"elevation": pose[0], "yaw": pose[1]})
+		var y := SpriteShadow.face_yaw(dir)
+		var normal := Vector3(sin(y), 0.0, cos(y))
+		var h := Vector3(dir.x, 0.0, dir.z).normalized()
+		check(normal.dot(h) < -0.999, "caster faces the sun at elevation %d yaw %d" % [pose[0], pose[1]])
+	check(SpriteShadow.face_yaw(Vector3.DOWN) == 0.0, "caster: a sun straight overhead keeps the quad as it is")
+	# Sizes come from the texture, so any redrawn sprite fits.
+	var small := Image.create(10, 20, false, Image.FORMAT_RGBA8)
+	small.fill_rect(Rect2i(2, 0, 6, 20), Color.WHITE)
+	var big := Image.create(40, 60, false, Image.FORMAT_RGBA8)
+	big.fill_rect(Rect2i(5, 0, 30, 60), Color.WHITE)
+	var t_small := ImageTexture.create_from_image(small)
+	var t_big := ImageTexture.create_from_image(big)
+	check(SpriteShadow.opaque_width(t_small) == 6 and SpriteShadow.opaque_width(t_big) == 30, "opaque width read from the texture (6, 30)")
+	var s := _sprite(t_small)
+	root.add_child(s)
+	var sh := SpriteShadow.attach(s)
+	var blob: MeshInstance3D = sh.get_child(0)
+	var caster: MeshInstance3D = sh.get_child(1)
+	check(caster.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY, "the caster is shadows-only")
+	check(blob.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "the blob casts nothing")
+	var px := s.pixel_size
+	check(is_equal_approx(blob.mesh.size.x, maxf(6.0 * px * float(r.blob_width), float(r.blob_min))), "blob width follows the opaque pixels (the minimum holds for a narrow one)")
+	var s2 := _sprite(t_big)
+	root.add_child(s2)
+	var sh2 := SpriteShadow.attach(s2)
+	check(sh2.get_child(0).mesh.size.x > blob.mesh.size.x, "a bigger sprite gets a bigger blob")
+	# The caster: the sprite's size, standing on its feet, in the sun's heading; the blob fades with the sun.
+	SpriteShadow._mode = "real"
+	SpriteShadow.sun_strength = 1.0
+	SpriteShadow.sun_yaw = 0.7
+	sh._process(0.0)
+	check(caster.visible and is_equal_approx(caster.rotation.y, 0.7), "sun on: the caster shows, turned to the sun")
+	check((caster.mesh as QuadMesh).size.is_equal_approx(Vector2(10, 20) * px) and is_equal_approx(caster.mesh.center_offset.y, s.offset.y * px), "the caster has the sprite's size and stands on the feet")
+	check(is_equal_approx((blob.material_override as StandardMaterial3D).albedo_color.a, 0.3 * float(r.blob_in_sun)), "sun on: the blob is only a contact shadow")
+	s.flip_h = true
+	sh._process(0.0)
+	check(caster.scale.x < 0.0, "a mirrored sprite's caster is mirrored")
+	s.texture = t_big
+	sh._process(0.0)
+	check((caster.mesh as QuadMesh).size.is_equal_approx(Vector2(40, 60) * px), "a new picture resizes the caster")
+	SpriteShadow.sun_strength = 0.0
+	sh._process(0.0)
+	check(not caster.visible and is_equal_approx((blob.material_override as StandardMaterial3D).albedo_color.a, 0.3), "no sun (rain, night, rooms): no caster, the whole blob")
+	SpriteShadow._mode = "blob"
+	SpriteShadow.sun_strength = 1.0
+	sh._process(0.0)
+	check(not caster.visible and is_equal_approx((blob.material_override as StandardMaterial3D).albedo_color.a, 0.3), "blob mode: the blob alone, whole under full sun")
+	var crop_sprite := _sprite(t_small)
+	root.add_child(crop_sprite)
+	var crop := SpriteShadow.attach(crop_sprite, 0.0, false)
+	check(not (crop.get_child(0) as MeshInstance3D).visible, "a crop gets no blob")
+	SpriteShadow._mode = ""
+	SpriteShadow.sun_strength = 0.0
+	s.free()
+	s2.free()
+	crop_sprite.free()
+
+
+## A sprite made like FarmWorld.make_sprite (that needs the autoloads): 0.045 a pixel, on its feet.
+func _sprite(tex: Texture2D) -> Sprite3D:
+	var s := Sprite3D.new()
+	s.texture = tex
+	s.pixel_size = 0.045
+	s.offset = Vector2(0, tex.get_height() / 2.0)
+	return s
+
+
 func _finish(game_script: GDScript, fx: Dictionary) -> void:
 	await process_frame
 	_wind_by_weather(game_script, fx)

@@ -10,11 +10,6 @@ extends Node3D
 const SPEED := {"chicken": 0.6, "chick": 0.6}   # cells a second while walking; others DEFAULT_SPEED
 const DEFAULT_SPEED := 0.35
 const WALK_FPS := 6.0
-## Shadow sizes per sprite kind (others: SHADOW_DEFAULT).
-const SHADOW := {"chicken": Vector2(0.45, 0.3), "chick": Vector2(0.3, 0.2), "cow": Vector2(1.2, 0.5),
-	"calf": Vector2(0.8, 0.35), "sheep": Vector2(0.9, 0.45), "sheep_shorn": Vector2(0.8, 0.4),
-	"lamb": Vector2(0.6, 0.3), "dog": Vector2(0.6, 0.3)}
-const SHADOW_DEFAULT := Vector2(0.5, 0.3)
 
 var on_farm := false
 var map: MapData            # the home's map when inside
@@ -64,22 +59,12 @@ func _rebuild() -> void:
 	_eggs_and_feed(home)
 
 
-func _shadow(s: Sprite3D, kind: String) -> void:
-	var shadow := MeshInstance3D.new()
-	var disc := PlaneMesh.new()
-	disc.size = SHADOW.get(kind, SHADOW_DEFAULT)
-	shadow.mesh = disc
-	shadow.material_override = FarmWorld.flat_material(Color(0, 0, 0, 0.25))
-	shadow.position = Vector3(0, 0.01, 0)
-	s.add_child(shadow)
-
-
 func _add_beast(beast: Dictionary, area: Rect2, start: Vector2) -> void:
 	var kind := Game.animals.look(beast)
 	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:%s:idle:0" % kind))
 	NightLights.figure(s)
 	add_child(s)
-	_shadow(s, kind)
+	SpriteShadow.attach(s, 0.25)
 	_beasts.append({"sprite": s, "kind": kind, "sick": bool(beast.sick), "home": area, "pos": start,
 		"target": start, "wait": _rng.randf_range(0.0, 2.0), "pose": "idle", "time": _rng.randf() * 3.0})
 	_place(_beasts.back())
@@ -93,7 +78,7 @@ func _add_dog() -> void:
 	NightLights.figure(s)
 	s.add_to_group(Parting.GROUP)   # the grass and crops part round the dog too
 	add_child(s)
-	_shadow(s, "dog")
+	SpriteShadow.attach(s, 0.25)
 	_dog = {"sprite": s, "pos": Vector2(dog.cell) + Vector2(0.5, 0.5), "pose": "idle", "time": 0.0, "still": 0.0}
 	_place_dog(0.0)
 
