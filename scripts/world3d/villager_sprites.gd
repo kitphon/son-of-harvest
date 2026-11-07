@@ -29,6 +29,7 @@ func refresh() -> void:
 		if s == null:
 			s = FarmWorld.make_sprite(PlaceholderArt.tex(Villagers.sprite_key(w)))
 			NightLights.figure(s)
+			s.add_to_group(Parting.GROUP)   # the grass and crops part round them
 			var shadow := MeshInstance3D.new()
 			var disc := PlaneMesh.new()
 			disc.size = Vector2(0.55, 0.55)

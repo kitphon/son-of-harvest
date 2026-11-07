@@ -144,11 +144,14 @@ Light and Farmhouse model hold the technical detail of what is built.
       same wind (`wind` uniform, "Wind by weather" in the table). (this commit) They part round
       the farmer: tips within about a cell of the feet bend straight away and a little down,
       fully close in and easing out by a smoothstep, springing back as the farmer walks on
-      (`scripts/world3d/parting.gd`: Parting, its GLSL `part_push` in the shader, the `farmer`
-      uniform fed each frame by `FarmWorld.set_farmer` from `Main3D._process`; numbers in
+      (`scripts/world3d/parting.gd`: Parting, its GLSL `part_push` in the shader, the `pushers`
+      array uniform fed each frame by `FarmWorld.set_farmer` from `Main3D._process`; numbers in
       data/wind.json "part"). The tufts' height share moved from the vertex colour to the UV:
       under the Compatibility renderer the MultiMesh's COLOR read black in the vertex shader, so
-      the tips had never swayed. Still open: villagers and the dog don't part the grass.
+      the tips had never swayed. (this commit) The villagers and the dog part them too: their
+      sprites join the group `Parting.GROUP`, and `set_farmer` feeds the shader up to `part.max`
+      (8) pushers, the farmer first and then the nearest to them; pushes add but never bend a
+      tip past `bend`, so the farmer alone looks as before.
 - [x] Rice and tall crops as clusters of pixel sprites (the paddies, the field in summer).
       (this commit) Still open: the other tall crops (cucumber and tomato vines on stakes)
       stay one sprite; the paddies have no stubble or water showing in winter beyond the

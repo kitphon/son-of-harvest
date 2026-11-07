@@ -81,9 +81,9 @@ func set_wind(strength: float) -> void:
 	material_override.set_shader_parameter("wind", clampf(strength, 0.0, 1.0))
 
 
-## The farmer's feet in the world (FarmWorld.set_farmer, each frame): the tufts round them part.
-func set_farmer(feet: Vector3) -> void:
-	material_override.set_shader_parameter("farmer", Vector2(feet.x, feet.z))
+## The pushers' feet in the world (FarmWorld.set_farmer, each frame; Parting.pick): the tufts round them part.
+func set_pushers(feet: PackedVector2Array) -> void:
+	Parting.feed(material_override, feet)
 
 
 ## Grows tufts on `cells` (grass cells); `hold_at(c)` is how much snow the cell holds.

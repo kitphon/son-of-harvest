@@ -237,14 +237,22 @@ func set_wind(strength: float) -> void:
 
 
 ## The farmer's feet (Main3D, each frame): the grass tufts and tall crops round them part
-## (Parting), on the map and on the apron past its edge.
+## (Parting), on the map and on the apron past its edge. So do they round the villagers and
+## the dog on this map (their sprites are in Parting.GROUP), the nearest to the farmer first.
 func set_farmer(feet: Vector3) -> void:
+	var others: Array = []
+	if is_inside_tree():
+		for n in get_tree().get_nodes_in_group(Parting.GROUP):
+			var s := n as Node3D
+			if s != null and s.visible and is_ancestor_of(s):
+				others.append(Vector2(s.position.x, s.position.z))
+	var pushers := Parting.pick(Vector2(feet.x, feet.z), others, int(Parting.rules("grass").max))
 	if tufts != null:
-		tufts.set_farmer(feet)
+		tufts.set_pushers(pushers)
 	if surroundings != null and surroundings.tufts != null:
-		surroundings.tufts.set_farmer(feet)
+		surroundings.tufts.set_pushers(pushers)
 	if crops != null:
-		crops.set_farmer(feet)
+		crops.set_pushers(pushers)
 
 
 ## The tall crops' clusters (CropClusters); FarmWorld plants them with the field, MapWorld

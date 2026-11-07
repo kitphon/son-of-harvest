@@ -48,6 +48,8 @@ the wood as MultiMeshes (scripts/world3d/trees.gd).
 [x] The grass tufts and the rice / corn part round the farmer in the 3D view (scripts/world3d/parting.gd, data/wind.json "part").
 [x] Roof snow without patch holes: snow tops whole from half cover up, thinning in patches only
 when little lies (`SnowLayer.TOP_FULL`, scripts/world3d/snow_layer.gd).
+
+[x] The villagers and the dog part the grass and crops too (up to 8 pushers, the farmer first; `Parting.GROUP`).
 [x] Water: a gentle moving surface on the farm pond, the village pond and the river
 (scripts/world3d/water_surface.gd).
 [x] Flat view water: the same drifting glints and troughs on the pond and river, pixel-stepped,

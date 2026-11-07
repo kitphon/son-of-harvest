@@ -1891,16 +1891,63 @@ func _parting() -> void:
 	w.set_farmer(Vector3(10.5, 0.0, 13.5))
 	var mats: Array = [w.tufts.material_override, w.surroundings.tufts.material_override]
 	mats.append_array(w.crops.materials())
-	var fed := mats.all(func(m: ShaderMaterial) -> bool: return m.get_shader_parameter("farmer") == Vector2(10.5, 13.5))
+	var fed := mats.all(func(m: ShaderMaterial) -> bool: return m.get_shader_parameter("pusher_count") == 1 and m.get_shader_parameter("pushers")[0] == Vector2(10.5, 13.5))
 	var tuned: bool = is_equal_approx(float(w.tufts.material_override.get_shader_parameter("part_bend")), g.bend) \
 		and is_equal_approx(float(w.crops.materials()[1].get_shader_parameter("part_bend")), c.bend) \
 		and is_equal_approx(float(w.crops.materials()[1].get_shader_parameter("part_radius")), radius) \
 		and is_equal_approx(float(w.tufts.material_override.get_shader_parameter("part_full")), float(part.full))
 	check(fed and tuned and mats.size() >= 3, "parting: FarmWorld.set_farmer feeds the feet to the map's and the apron's tufts and every crop picture (%d materials), each with its bend" % mats.size())
 	w.crops.plant({Vector2i(21, 20): "stalk:rice:3:ripe", Vector2i(20, 20): "stalk:corn:3:growing"}, func(_c: Vector2i) -> float: return 0.0)
-	check(w.crops.materials().all(func(m: ShaderMaterial) -> bool: return m.get_shader_parameter("farmer") == Vector2(10.5, 13.5)),
+	check(w.crops.materials().all(func(m: ShaderMaterial) -> bool: return m.get_shader_parameter("pusher_count") == 1 and m.get_shader_parameter("pushers")[0] == Vector2(10.5, 13.5)),
 		"parting: a crop picture made later starts with the feet where they are")
 	w.free()
+	# Several pushers: the villagers' and the dog's sprites part the plants too, the cap holds.
+	var cap := int(part.get("max", 0))
+	check(cap >= 2 and cap <= pt.MAX_PUSHERS and pt.rules("grass").max == cap and ("PART_MAX = %d" % pt.MAX_PUSHERS) in pt.GLSL
+		and "uniform vec2 pushers[PART_MAX]" in pt.GLSL, "parting: data/wind.json caps the pushers at %d, no more than the shader's array of %d" % [cap, pt.MAX_PUSHERS])
+	var near: Vector2 = pt.push(feet + Vector2(0.4, 0.0), feet, 1.0, 0.2, 0.3)
+	check((pt.push_all(feet + Vector2(0.4, 0.0), PackedVector2Array([feet]), 1.0, 0.2, 0.3) as Vector2).is_equal_approx(near),
+		"parting: the farmer alone parts the plants exactly as before")
+	var villager := feet + Vector2(3.0, 0.0)
+	var both := PackedVector2Array([feet, villager])
+	var beside_v: Vector2 = pt.push_all(villager + Vector2(0.4, 0.0), both, 1.0, 0.2, 0.3)
+	check(beside_v.x > 0.0 and absf(beside_v.length() - near.length()) < 0.0001, "parting: a plant beside a villager leans away from them as from the farmer (%.3f)" % beside_v.length())
+	check(pt.push_all(feet + Vector2(1.5, 0.0), both, 1.0, 0.2, 0.3) == Vector2.ZERO, "parting: a plant out of every radius stands")
+	var pinched: Vector2 = pt.push_all(feet + Vector2(0.5, 0.0), PackedVector2Array([feet, feet + Vector2(1.0, 0.0), feet + Vector2(0.9, 0.1)]), 1.0, 0.2, 0.3)
+	check(pinched.length() <= 0.2 + 0.000001, "parting: pushers together never bend a tip past the bend (%.3f)" % pinched.length())
+	var many: Array = []
+	for i in 20:
+		many.append(feet + Vector2(20.0 - i, 0.5))
+	var picked: PackedVector2Array = pt.pick(feet, many, cap)
+	check(picked.size() == cap and picked[0] == feet, "parting: the farmer first, %d pushers at most of %d" % [cap, many.size() + 1])
+	var nearest := true
+	for i in range(2, picked.size()):
+		nearest = nearest and picked[i].distance_to(feet) >= picked[i - 1].distance_to(feet)
+	check(nearest and picked[1].distance_to(feet) < picked[picked.size() - 1].distance_to(feet) + 0.001, "parting: past the farmer the nearest come first (%s)" % picked[1])
+	check(pt.pick(feet, many, 99).size() == pt.MAX_PUSHERS and pt.pick(feet, [], cap).size() == 1, "parting: never over the array, just the farmer when nobody is near")
+	# In the tree: sprites in the group feed the shaders through FarmWorld.set_farmer.
+	var w2: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	w2.build(MapManager.data("kaminoda"))
+	root.add_child(w2)
+	var npc := Node3D.new()
+	npc.position = Vector3(12.0, 0.0, 13.5)
+	npc.add_to_group(pt.GROUP)
+	w2.add_child(npc)
+	var stray := Node3D.new()   # another world's figure is not this one's
+	stray.add_to_group(pt.GROUP)
+	root.add_child(stray)
+	w2.set_farmer(Vector3(10.5, 0.0, 13.5))
+	var gm: ShaderMaterial = w2.tufts.material_override
+	check(gm.get_shader_parameter("pusher_count") == 2 and gm.get_shader_parameter("pushers")[1] == Vector2(12.0, 13.5)
+		and gm.get_shader_parameter("pushers")[0] == Vector2(10.5, 13.5), "parting: a figure in the group is a second pusher, a stray one is not")
+	npc.visible = false
+	w2.set_farmer(Vector3(10.5, 0.0, 13.5))
+	check(gm.get_shader_parameter("pusher_count") == 1, "parting: a hidden figure parts nothing")
+	stray.queue_free()
+	w2.queue_free()
+	var vs_src := FileAccess.get_file_as_string("res://scripts/world3d/villager_sprites.gd")
+	var an_src := FileAccess.get_file_as_string("res://scripts/world3d/animal_layer.gd")
+	check("add_to_group(Parting.GROUP)" in vs_src and "add_to_group(Parting.GROUP)" in an_src, "parting: the villagers' and the dog's sprites join the group")
 
 
 func _crop_clusters() -> void:
