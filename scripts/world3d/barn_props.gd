@@ -122,6 +122,54 @@ static func _stalls(p: FarmProps.Parts, prop_data: Dictionary, r: Rect2) -> void
 			RoomProps._cube(planks, c + Vector3(0, y, 0), Vector3(0.07, 0.11, 0.84), 0.015)
 		RoomProps._cube(iron, c + Vector3(0.062, 0.55, 0.42), Vector3(0.02, 0.07, 0.07))   # the tether ring
 		RoomProps._cube(iron, c + Vector3(0.062, 0.6, 0.42), Vector3(0.02, 0.025, 0.045))
+	_bedding(p, prop_data, r)
+
+
+## The straw bedding in each stall: the open space between two partitions (a run of free cells,
+## so six stalls, the last two cells wide), a low tapered pad 0.03 high in three tones of straw,
+## two or three lumps of straw on it up to 0.05 and nine loose stalks lying flat near its edges.
+## Nothing stands above 0.05 in a stall, so the animals still stand on the floor and the bedding
+## is lit like the rest. Each stall's pieces come from a seed by its place, so the view never shifts.
+static func _bedding(p: FarmProps.Parts, prop_data: Dictionary, r: Rect2) -> void:
+	var blocked := {}
+	for b in prop_data.get("blocks", []):
+		blocked[int(b[0])] = true
+	var tones := [Color("c9ad6c"), Color("b89c5e"), Color("d9c184")]
+	var k := 0
+	var n := int(r.size.x)
+	while k < n:
+		if blocked.has(k):
+			k += 1
+			continue
+		var first := k
+		while k < n and not blocked.has(k):
+			k += 1
+		var span := float(k - first)
+		var centre := Vector3(r.position.x + first + span / 2, 0, r.position.y + 0.5)
+		var half := span / 2 - 0.05   # clear of the partitions
+		var rng := RandomNumberGenerator.new()
+		rng.seed = int(centre.x * 97.0 + centre.z * 31.0)
+		FarmProps.block(p.st(tones[0]), RoomProps._rect(centre, span - 0.1, 0.76), 0.0,
+			RoomProps._rect(centre, span - 0.2, 0.66), 0.03)
+		for lump in 2 + rng.randi_range(0, 1):
+			var at := centre + Vector3(rng.randf_range(-(half - 0.2), half - 0.2), 0, rng.randf_range(-0.2, 0.2))
+			var w := rng.randf_range(0.24, 0.34)
+			var d := rng.randf_range(0.2, 0.28)
+			var top := rng.randf_range(0.04, 0.05)
+			FarmProps.block(p.st(tones[1 + lump % 2]), RoomProps._rect(at, w, d), 0.0,
+				RoomProps._rect(at, w * 0.7, d * 0.7), top)
+		for s in 9 + int(span) * 3:
+			var at := centre
+			if s % 2 == 0:   # along the front or back edge
+				at.x += rng.randf_range(-(half - 0.12), half - 0.12)
+				at.z += (1.0 if rng.randf() < 0.5 else -1.0) * rng.randf_range(0.28, 0.36)
+			else:            # at one end of the stall
+				at.x += (1.0 if rng.randf() < 0.5 else -1.0) * (half - 0.18 - rng.randf_range(0.0, 0.04))
+				at.z += rng.randf_range(-0.3, 0.3)
+			var length := rng.randf_range(0.14, 0.22)
+			var yaw := rng.randf_range(0.0, PI)
+			RoomProps._placed(p.st(tones[1 + s % 2]), Transform3D(Basis(Vector3.UP, yaw), at),
+				func(t: SurfaceTool) -> void: RoomProps._cube(t, Vector3.ZERO, Vector3(0.012, 0.008, length)))
 
 
 ## Bundles of hay fodder stacked two high, each three tapered blocks (a bulging belly) bound with a

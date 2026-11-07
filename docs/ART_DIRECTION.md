@@ -110,7 +110,11 @@ Light and Farmhouse model hold the technical detail of what is built.
       bound bundles with a pitchfork, the barn gate with braced leaves). Same places and
       heights as before, so the eggs and the feed AnimalLayer lays on them still sit right
       (test_maps `_stable_props`). (this commit)
-      Still open: the stalls have no straw bedding mesh (the floor tile is the straw).
+      The stalls' straw bedding is a mesh too (`BarnProps._bedding`, this commit): in each of the
+      six spaces between the partitions a low tapered pad 0.03 high in three straw tones, two or
+      three lumps up to 0.05 and nine loose stalks lying flat near its edges; nothing in a stall
+      rises above 0.05, so the animals and the items they stand by sit as before (test_maps
+      `_straw_bedding`). The floor tile stays the straw under it.
 - [x] The outdoor small props: well, jizo, woodpile and river rock as lit meshes
       (`outdoor_props.gd`: OutdoorProps). (fb9b1d8) Since 2026-11-06 also Ichiro's charcoal kiln
       (a clay dome, a stone-framed mouth, thumbprints about 0.2 cell wide over it; the new kiln half built from courses of clay bricks, then finished) and the jizo's new red bibs.
