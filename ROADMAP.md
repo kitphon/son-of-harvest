@@ -65,6 +65,8 @@ as lit meshes (scripts/world3d/outdoor_props.gd).
 [x] Flat view water ripples: the same bobber rings on the pond in the flat view (WaterView.ripple, driven by main_2d.gd `_ring_bobber`).
 [x] Wind follows the weather: data/wind.json per weather, pushed to the grass tufts and the bamboo sway
 (a calm sunny day, medium in rain, strong in a storm or blizzard; docs/ART_DIRECTION.md, the table).
+[x] The wind also moves the fence's leafy shoots, the kadomatsu's pine and plum, the shop and stand
+noren, the festival stalls' curtains and the race banner (OutdoorProps.Sway leaves / cloth); posts stay still.
 [x] The drying rack, kitchen garden and board fence (scripts/world3d/field_props.gd) and every festival
 decoration (scripts/world3d/festival_meshes.gd) as lit meshes.
 [x] The sun's colour and angle follow the clock outdoors: low and golden morning and evening,

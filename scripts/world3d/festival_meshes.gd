@@ -102,11 +102,15 @@ static func stall(w: FarmWorld, mid: Vector3, r: Rect2, cloth: Color) -> void:
 	FarmProps.block(p.st(WOOD_DARK), rod, 1.41, rod, 1.44)
 	var pieces := maxi(2, int(wd / 0.3))
 	var cw := wd / pieces
-	for i in pieces:
-		var piece := Rect2(cx - wd / 2 + i * cw + 0.015, mid.z + 0.345, cw - 0.03, 0.015)
-		FarmProps.block(p.st(light), piece, 1.17, piece, 1.41)
 	lantern(p, mid + Vector3(wd / 2, 1.2, 0.36), RED, 0.12)
 	p.commit(w)
+	# The curtain's pieces hang from the rod each on its own, so they blow out in the wind
+	# (OutdoorProps.Sway, out of step); the roof, the valance and the rod stay still.
+	for i in pieces:
+		var piece := Rect2(cx - wd / 2 + i * cw + 0.015, mid.z + 0.345, cw - 0.03, 0.015)
+		var cp := FarmProps.Parts.new()
+		FarmProps.block(cp.st(light), piece, 1.17, piece, 1.41)
+		OutdoorProps.commit_swaying(w, cp, Vector3(piece.get_center().x, 1.41, piece.get_center().y), "cloth", mid.x + i * 1.9)
 
 
 # --- the judges' table -------------------------------------------------------------
@@ -338,12 +342,17 @@ static func kadomatsu(w: FarmWorld, mid: Vector3, snow := false) -> void:
 	for y in [0.575, 0.665]:
 		OutdoorProps._tube(cord, bundle + Vector3(0, y, 0), Vector3.UP,
 			[Vector2(0.182, 0.0), Vector2(0.19, 0.008), Vector2(0.19, 0.024), Vector2(0.182, 0.032)], 12, null)
-	# Pine sprigs round the foot: a cone of dark boughs and fans of needles on each.
-	var pine := p.st(Color("2f5a34"))
-	var needle := p.st(Color("3a6e3c"))
-	var sn: SurfaceTool = p.st(FarmProps.Parts.SNOW) if snow else null
-	var rim := p.st(Color("224a2a"))
+	if snow:
+		Shrine.lathe(p.st(FarmProps.Parts.SNOW), mid, [Vector2(0.225, 0.43), Vector2(0.15, 0.455), Vector2(0.04, 0.46)], 12)
+	p.commit(w)
+	# Pine sprigs round the foot: a cone of dark boughs and fans of needles on each. Each sprig
+	# (with its snow) and the plum twig is its own piece, leaning a little in the wind about
+	# where it is stuck in (OutdoorProps.Sway); the tub and the culms stay still.
 	for j in 5:
+		var sp := FarmProps.Parts.new()
+		var pine := sp.st(Color("2f5a34"))
+		var needle := sp.st(Color("3a6e3c"))
+		var rim := sp.st(Color("224a2a"))
 		var a := 0.5 + TAU * j / 5.0
 		var at := mid + Vector3(cos(a) * 0.185, 0.41, sin(a) * 0.185)
 		Shrine.lathe(pine, at, [Vector2(0.13, 0.0), Vector2(0.07, 0.12), Vector2(0.0, 0.28 + 0.02 * (j % 2))], 8)
@@ -352,19 +361,19 @@ static func kadomatsu(w: FarmWorld, mid: Vector3, snow := false) -> void:
 			var b: float = a + (k - 4) * 0.33
 			var d := Vector3(cos(b) * 0.8, 0.55 + 0.25 * (k % 3), sin(b) * 0.8).normalized()
 			OutdoorProps._tube(needle, at + Vector3(0, 0.03, 0), d, [Vector2(0.011, 0.0), Vector2(0.003, 0.2 + 0.04 * (k % 2))], 4, null)
-		if sn != null:
-			Shrine.lathe(sn, at + Vector3(0, 0.03, 0), [Vector2(0.095, 0.0), Vector2(0.0, 0.25)], 8)
-	if sn != null:
-		Shrine.lathe(sn, mid, [Vector2(0.225, 0.43), Vector2(0.15, 0.455), Vector2(0.04, 0.46)], 12)
+		if snow:
+			Shrine.lathe(sp.st(FarmProps.Parts.SNOW), at + Vector3(0, 0.03, 0), [Vector2(0.095, 0.0), Vector2(0.0, 0.25)], 8)
+		OutdoorProps.commit_swaying(w, sp, at, "leaves", mid.x + j * 1.3)
 	# A plum twig leaning out at the back, three blossoms.
-	var twig := p.st(Color("4a3424"))
+	var tp := FarmProps.Parts.new()
+	var twig := tp.st(Color("4a3424"))
 	var d_t := Vector3(-0.4, 0.8, -0.35).normalized()
 	var t_foot := mid + Vector3(0.1, 0.43, -0.05)
 	OutdoorProps._tube(twig, t_foot, d_t, [Vector2(0.012, 0.0), Vector2(0.006, 0.34)], 4, null)
-	var bloom := p.st(Color("f4d8e0"))
+	var bloom := tp.st(Color("f4d8e0"))
 	for q in [0.14, 0.24, 0.34]:
 		Shrine.lathe(bloom, t_foot + d_t * q + Vector3(0, 0.008, 0), [Vector2(0.04, 0.0), Vector2(0.03, 0.02), Vector2(0.0, 0.025)], 5)
-	p.commit(w)
+	OutdoorProps.commit_swaying(w, tp, t_foot, "leaves", mid.x + 7.7)
 
 
 ## A bamboo culm of radius `rad` standing on `foot`, `len` high at its lowest point, tapering a
@@ -481,14 +490,17 @@ static func race_flag(w: FarmWorld, mid: Vector3) -> void:
 		Shrine.lathe(node, at, [Vector2(0.04, y - 0.012), Vector2(0.04, y + 0.012)], 8)
 	OutdoorProps._tube(pole, Vector3(at.x, 1.62, at.z), Vector3.RIGHT, [Vector2(0.016, 0.0), Vector2(0.014, 0.52)], 6, null)
 	var cloth := PlaceholderArt.RACE_CLOTH
+	# The banner below its hem is its own piece, swinging from the crossbar in the wind
+	# (OutdoorProps.Sway, free on both faces); the pole, the bar and the hem round it stay still.
+	var fp := FarmProps.Parts.new()
 	var banner := Rect2(at.x + 0.03, at.z - 0.01, 0.44, 0.02)
-	FarmProps.block(p.st(cloth), banner, 0.555, banner, 1.605)
+	FarmProps.block(fp.st(cloth), banner, 0.555, banner, 1.605)
 	var hem := Rect2(at.x + 0.025, at.z - 0.013, 0.45, 0.026)
 	FarmProps.block(p.st(cloth.lightened(0.25)), hem, 1.55, hem, 1.61)
-	FarmProps.block(p.st(cloth.darkened(0.25)), Rect2(at.x + 0.46, at.z - 0.012, 0.012, 0.024), 0.56, Rect2(at.x + 0.46, at.z - 0.012, 0.012, 0.024), 1.55)
+	FarmProps.block(fp.st(cloth.darkened(0.25)), Rect2(at.x + 0.46, at.z - 0.012, 0.012, 0.024), 0.56, Rect2(at.x + 0.46, at.z - 0.012, 0.012, 0.024), 1.55)
 	# The fish: an ellipse nose up and a split tail, on both faces.
 	var none := func(_q: Vector3) -> Vector2: return Vector2.ZERO
-	var mark := p.st(PlaceholderArt.RACE_MARK)
+	var mark := fp.st(PlaceholderArt.RACE_MARK)
 	var cx := at.x + 0.25
 	for side in [1.0, -1.0]:
 		var zf: float = at.z + side * 0.012
@@ -511,3 +523,4 @@ static func race_flag(w: FarmWorld, mid: Vector3) -> void:
 	Shrine.lathe(p.st(basket.darkened(0.25)), creel_at, [Vector2(0.168, 0.26), Vector2(0.168, 0.285), Vector2(0.11, 0.32), Vector2(0.035, 0.34), Vector2(0.0, 0.342)], 10)
 	Shrine.lathe(p.st(basket.darkened(0.45)), creel_at + Vector3(0, 0.34, 0), [Vector2(0.025, 0.0), Vector2(0.03, 0.025), Vector2(0.0, 0.04)], 6)
 	p.commit(w)
+	OutdoorProps.commit_swaying(w, fp, Vector3(banner.get_center().x, 1.58, at.z), "cloth", mid.x, 0.0)

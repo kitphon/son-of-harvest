@@ -594,7 +594,126 @@ func _wind_by_weather(game_script: GDScript, fx: Dictionary) -> void:
 	check(is_equal_approx(bamboo.wind, gale), "a sway made after the wind takes it (%.2f)" % bamboo.wind)
 	world.set_wind(calm)
 	check(is_equal_approx(bamboo.wind, calm) and is_equal_approx(float(world.tufts.material_override.get_shader_parameter("wind")), calm), "and the next set_wind moves both back")
+	# A layer that is a world of its own (today's FestivalProps) takes the wind too.
+	var layer = farm_world.new()
+	world.add_child(layer)
+	var layer_sway = outdoor._sway(layer)
+	world.set_wind(wet)
+	check(is_equal_approx(layer_sway.wind, wet) and is_equal_approx(layer.wind, wet), "set_wind reaches a child world's sway (%.2f)" % layer_sway.wind)
 	world.free()
+	_wind_on_leaves_and_cloth(outdoor, calm, wet, gale)
+
+
+## Leaves (the kadomatsu's pine, the fence's shoots) and cloth (noren, stall curtains, the race
+## banner) in the wind: still at 0; a breeze moves them, a storm further and faster; their hinge
+## never moves; a noren only ever blows out from its wall, and its top edge stays on the rod.
+func _wind_on_leaves_and_cloth(outdoor: GDScript, calm: float, wet: float, gale: float) -> void:
+	var sway = outdoor.Sway.new()
+	var leaf_node := Node3D.new()
+	var cloth_node := Node3D.new()
+	var banner_node := Node3D.new()
+	var east_node := Node3D.new()
+	var hinge := Vector3(3.0, 1.2, 4.0)
+	sway.add_leaves([leaf_node], hinge, 0.0, 0.3, -hinge)
+	sway.add_cloth([cloth_node], hinge, 0.0, 1.1, -hinge)
+	sway.add_cloth([banner_node], hinge, 0.0, 2.0, -hinge, 0.0)
+	sway.add_cloth([east_node], hinge, PI / 2, 0.7, -hinge)   # a noren on an east wall: its rod lies along the wind
+	var tip := Vector3(0, 0.3, 0)    # a sprig's tip over its base
+	var hem := Vector3(0, -0.36, 0)  # a noren's hem under its rod
+	var top := Vector3(0.4, 0, 0)    # a corner of the rod
+	# Over a minute: the furthest a point moves, the least a hem lifts and the turns of the lean.
+	var run := func(s: float) -> Dictionary:
+		sway.wind = s
+		var r := {"leaf": 0.0, "cloth": 0.0, "banner": 0.0, "lift_min": 1e9, "lift_max": -1e9, "back": -1e9, "rod": 0.0,
+			"hinge": 0.0, "turns": 0, "east_x": 0.0}
+		var last := 0.0
+		for i in 600:
+			sway.pose(i * 0.1)
+			var lt: Vector3 = sway.moved(0, tip)
+			r.leaf = maxf(r.leaf, (lt - tip).length())
+			var ch: Vector3 = sway.moved(1, hem)
+			r.cloth = maxf(r.cloth, (ch - hem).length())
+			r.lift_min = minf(r.lift_min, ch.z)
+			r.lift_max = maxf(r.lift_max, ch.z)
+			r.rod = maxf(r.rod, (sway.moved(1, top) - top).length())
+			var bh: Vector3 = sway.moved(2, hem)
+			r.banner = maxf(r.banner, (bh - hem).length())
+			r.back = maxf(r.back, -bh.z)
+			r.east_x = maxf(r.east_x, absf(sway.moved(3, hem).x))
+			for n: Node3D in [leaf_node, cloth_node, banner_node]:
+				r.hinge = maxf(r.hinge, (n.transform * hinge - hinge).length())
+			var a: float = lt.x
+			if i > 0 and signf(a - last) != 0.0 and signf(a) != signf(last):
+				r.turns += 1
+			last = a
+		return r
+	var still: Dictionary = run.call(0.0)
+	check(still.leaf < 0.000001 and still.cloth < 0.000001 and still.banner < 0.000001 and still.hinge < 0.000001
+		and leaf_node.transform.is_equal_approx(Transform3D.IDENTITY) and cloth_node.transform.is_equal_approx(Transform3D.IDENTITY),
+		"no wind: leaves and cloth stand as built (%.6f %.6f %.6f)" % [still.leaf, still.cloth, still.banner])
+	var breeze: Dictionary = run.call(calm)
+	var rain: Dictionary = run.call(wet)
+	var storm: Dictionary = run.call(gale)
+	check(breeze.leaf < rain.leaf and rain.leaf < storm.leaf and storm.leaf > 0.04 and storm.leaf < 0.12,
+		"a sprig's tip moves further in rain, further in a storm (%.3f %.3f %.3f)" % [breeze.leaf, rain.leaf, storm.leaf])
+	check(breeze.cloth > 0.03 and breeze.cloth < rain.cloth and rain.cloth < storm.cloth and storm.cloth < 0.4,
+		"a noren's hem stirs on a calm day and blows further in rain and a storm (%.3f %.3f %.3f)" % [breeze.cloth, rain.cloth, storm.cloth])
+	check(breeze.banner > 0.02 and breeze.banner < storm.banner, "the banner swings in a breeze, more in a storm (%.3f %.3f)" % [breeze.banner, storm.banner])
+	check(storm.lift_min >= -0.000001 and storm.lift_max > 0.1 and rain.lift_min >= -0.000001,
+		"a noren only blows out from its wall (hem z %.3f..%.3f in a storm)" % [storm.lift_min, storm.lift_max])
+	check(storm.back > 0.02, "a banner free on both faces swings both ways (%.3f back)" % storm.back)
+	check(storm.rod < 0.000001 and storm.hinge < 0.000001, "the rod and the hinges stay put (%.6f %.6f)" % [storm.rod, storm.hinge])
+	check(storm.east_x < 0.000001, "a noren whose rod lies along the wind does not stream sideways (%.6f)" % storm.east_x)
+	check(storm.turns > breeze.turns, "the leaves' wave runs faster in a storm (%d turns against %d)" % [storm.turns, breeze.turns])
+	# Back to calm: everything at rest again.
+	run.call(0.0)
+	check(cloth_node.transform.is_equal_approx(Transform3D.IDENTITY) and banner_node.transform.is_equal_approx(Transform3D.IDENTITY),
+		"the wind dropping to 0 sets them back at rest")
+	for n in [leaf_node, cloth_node, banner_node, east_node]:
+		n.free()
+	sway.free()
+
+	# The pieces themselves: the fence's shoots, the kadomatsu's greens, a stall's curtain, the
+	# race banner and the noren are in their world's sway; the posts, tubs and roofs are not.
+	var fw: GDScript = load("res://scripts/world3d/farm_world.gd")
+	var fm: GDScript = load("res://scripts/world3d/festival_meshes.gd")
+	var w = fw.new()
+	w._make_fence()
+	var fs = outdoor._sway(w)
+	var fence_meshes: int = w.get_children().filter(func(n): return n is MeshInstance3D).size()
+	check(fs.count() >= 10 and fs.count_of("leaves") == fs.count() and fence_meshes > fs.count(),
+		"the fence: %d leafy shoots in the wind, the other %d meshes (posts, canes, rails) still" % [fs.count(), fence_meshes - fs.count()])
+	w.free()
+	w = fw.new()
+	fm.kadomatsu(w, Vector3(5.5, 0, 7.5), true)
+	var ks = outdoor._sway(w)
+	var moving := 0
+	for i in ks.count():
+		moving += ks.nodes_of(i).size()
+	var all_meshes: int = w.get_children().filter(func(n): return n is MeshInstance3D).size()
+	check(ks.count_of("leaves") == 6 and ks.count() == 6 and moving < all_meshes,
+		"kadomatsu: 5 pine sprigs and the plum twig lean (%d meshes), the tub and culms stand (%d)" % [moving, all_meshes - moving])
+	w.free()
+	w = fw.new()
+	fm.stall(w, Vector3(5.0, 0, 5.5), Rect2(4, 5, 2, 1), Color("c8442c"))
+	var ss = outdoor._sway(w)
+	check(ss.count_of("cloth") >= 2 and ss.count() == ss.count_of("cloth"), "a stall: its %d curtain pieces hang in the wind" % ss.count_of("cloth"))
+	w.free()
+	w = fw.new()
+	fm.race_flag(w, Vector3(5.5, 0, 5.5))
+	var rs = outdoor._sway(w)
+	check(rs.count_of("cloth") == 1, "the race flag: one banner in the wind")
+	w.free()
+	var town = load("res://scripts/world3d/map_world.gd").new()
+	town.build(MapManager.data("town"))
+	var ts = town.get_node_or_null(outdoor.SWAY)
+	var noren := 0
+	if ts != null:
+		for i in ts.count():
+			if ts.kind_of(i) == "cloth" and ts.nodes_of(i)[0].mesh is QuadMesh:
+				noren += 1
+	check(noren >= 2, "the village's shop noren hang in the wind (%d)" % noren)
+	town.free()
 
 
 func check(ok: bool, what: String) -> void:
