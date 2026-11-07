@@ -129,8 +129,14 @@ Light and Farmhouse model hold the technical detail of what is built.
 - [x] Bamboo: segmented culms with node rings, leaf sprays, swaying, by season, snow on the
       leaves (`OutdoorProps.bamboo`). (this commit) The wind follows the weather (data/wind.json,
       see "Wind by weather" in the table): in a storm the clumps lean further, sway faster and
-      gust; in rain a middle sway; at calm the old wave. Still open: the New Year bamboo and the
-      farm's bamboo fence stay boxes and cylinders.
+      gust; in rain a middle sway; at calm the old wave. (this commit) The New Year bamboo
+      (`FestivalMeshes.kadomatsu`: straw-bound tub with cord bands and frayed straw, three
+      culms of different heights with node rings and slanted cuts, a straw wrap with cord,
+      pine sprigs, a plum twig, snow where it snows) and the farm's bamboo fence
+      (`OutdoorProps.fence_post` / `fence_cane` / `fence_rail`, built by `FarmWorld._make_fence`:
+      eight-sided posts and thin canes with node rings and cut tops, horizontal rails, cord
+      ties, snow on the caps and the upper rail) are lit meshes now, same footprint and
+      heights (test_maps `_bamboo_pieces`). Still open: the fence and kadomatsu take no wind.
 - [x] Grass tufts on grass cells (MultiMesh, a small wind sway in the shader). (this commit)
       (this commit) They bend harder in a storm and a gust comes through now and then, from the
       same wind (`wind` uniform, "Wind by weather" in the table). (this commit) They part round

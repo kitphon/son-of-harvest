@@ -312,13 +312,14 @@ func _multi(mesh: Mesh, transforms: Array[Transform3D], mat: Material) -> void:
 	add_child(mmi)
 
 
-## A low bamboo lattice fence (yotsume-gaki look) along the border cells: a thick bamboo post
-## per cell, thin canes standing between the posts, two cross canes a side, and dark rope ties
-## where the cross canes meet the posts. Its line runs through the border cells' middles.
+## A low bamboo lattice fence (yotsume-gaki look) along the border cells, lit meshes
+## (OutdoorProps.fence_post / fence_cane / fence_rail): a thick bamboo post per cell, thin canes
+## standing between the posts, two cross rails a side, cord ties where the rails meet the posts,
+## snow on the caps and the upper rail. Its line runs through the border cells' middles.
 func _make_fence() -> void:
 	var w := float(FarmGrid.W)
 	var h := float(FarmGrid.H)
-	var bamboo := surface_material("build:bamboo")
+	var p := FarmProps.Parts.new()
 	var line: Array[Vector2] = []      # (x, z) of every post, none in the gate
 	for x in FarmGrid.W:
 		line.append(Vector2(x + 0.5, 0.5))
@@ -326,49 +327,30 @@ func _make_fence() -> void:
 	for z in range(1, FarmGrid.H - 1):
 		line.append(Vector2(0.5, z + 0.5))
 		line.append(Vector2(w - 0.5, z + 0.5))
-	line = line.filter(func(p: Vector2): return not _open(p))
-	var posts: Array[Transform3D] = []
-	var ties: Array[Transform3D] = []
-	for p in line:
-		posts.append(Transform3D(Basis(), Vector3(p.x, 0.32, p.y)))
-		for y in [0.2, 0.44]:
-			ties.append(Transform3D(Basis(), Vector3(p.x, y, p.y)))
+	for q in line:
+		if not _open(q):
+			OutdoorProps.fence_post(p, q.x, q.y)
 	# Thin canes a third of a cell apart along each side, skipping the post spots.
-	var canes: Array[Transform3D] = []
 	for i in range(1, (FarmGrid.W - 1) * 3):
 		if i % 3 != 0:
 			for z in [0.5, h - 0.5]:
 				if not _open(Vector2(0.5 + i / 3.0, z), true):
-					canes.append(Transform3D(Basis(), Vector3(0.5 + i / 3.0, 0.26, z)))
+					OutdoorProps.fence_cane(p, 0.5 + i / 3.0, z)
 	for i in range(1, (FarmGrid.H - 1) * 3):
 		if i % 3 != 0:
 			for x in [0.5, w - 0.5]:
 				if not _open(Vector2(x, 0.5 + i / 3.0), true):
-					canes.append(Transform3D(Basis(), Vector3(x, 0.26, 0.5 + i / 3.0)))
-	var post := CylinderMesh.new()
-	post.top_radius = 0.06
-	post.bottom_radius = 0.06
-	post.height = 0.64
-	post.radial_segments = 8
-	_multi(post, posts, bamboo)
-	var cane := CylinderMesh.new()
-	cane.top_radius = 0.045
-	cane.bottom_radius = 0.045
-	cane.height = 0.52
-	cane.radial_segments = 6
-	_multi(cane, canes, bamboo)
-	var tie := BoxMesh.new()
-	tie.size = Vector3(0.15, 0.06, 0.15)
-	_multi(tie, ties, flat_material(Color("2a2420")))
-	# Cross canes: cylinders lying along x (front / back) and along z (left / right), cut at
-	# the gate (they run post to post, so the opening spans the gate cells and a post each side).
-	for y in [0.2, 0.44]:
+					OutdoorProps.fence_cane(p, x, 0.5 + i / 3.0)
+	# Cross rails run post to post, cut at the gate (the opening spans the gate cells and a
+	# post each side).
+	for y in OutdoorProps.FENCE_RAILS:
 		for z in [0.5, h - 0.5]:
 			for run in _runs(func(t: float): return Vector2(t, z), w):
-				_rail(run.y - run.x, Vector3((run.x + run.y) / 2, y, z), Vector3(0, 0, PI / 2), bamboo)
+				OutdoorProps.fence_rail(p, Vector3(run.x, y, z), Vector3(run.y, y, z))
 		for x in [0.5, w - 0.5]:
 			for run in _runs(func(t: float): return Vector2(x, t), h):
-				_rail(run.y - run.x, Vector3(x, y, (run.x + run.y) / 2), Vector3(PI / 2, 0, 0), bamboo)
+				OutdoorProps.fence_rail(p, Vector3(x, y, run.x), Vector3(x, y, run.y))
+	p.commit(self)
 
 
 ## Is the fence spot (x, z) in a gate cell? `between` also counts the stretch from a gate
@@ -397,20 +379,6 @@ func _runs(at: Callable, length: float) -> Array[Vector2]:
 	if length - 0.5 > start:
 		out.append(Vector2(start, length - 0.5))
 	return out
-
-
-func _rail(length: float, center: Vector3, rot: Vector3, mat: Material) -> void:
-	var m := CylinderMesh.new()
-	m.top_radius = 0.035
-	m.bottom_radius = 0.035
-	m.height = length
-	m.radial_segments = 6
-	var mi := MeshInstance3D.new()
-	mi.mesh = m
-	mi.material_override = mat
-	mi.position = center
-	mi.rotation = rot
-	add_child(mi)
 
 
 ## A snow top over a roof slab or lid: a thin slab just above it, a little smaller, so the

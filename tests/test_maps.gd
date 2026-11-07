@@ -47,6 +47,7 @@ func _process(delta: float) -> bool:
 		_outdoor_props()
 		_field_props()
 		_festival_meshes()
+		_bamboo_pieces()
 		_grass()
 		_crop_clusters()
 		_parting()
@@ -1616,6 +1617,59 @@ func _mesh_report(w: Node3D) -> Dictionary:
 			out.lo = out.lo.min(gq)
 			out.hi = out.hi.max(gq)
 	return out
+
+
+## The farm's bamboo fence and the New Year bamboo as lit meshes: no box or cylinder left, faces
+## turned out, the fence on its line (posts at the border cells' middles, 0.64 high, rails and
+## canes inside them), cut at the gate, snow skins driven by set_snow; the kadomatsu with three
+## cut culms of different heights (a pale cut face each), node rings, pine, snow only where it
+## lies, and inside its cell.
+func _bamboo_pieces() -> void:
+	var fm: GDScript = load("res://scripts/world3d/festival_meshes.gd")
+	var farm_script: GDScript = load("res://scripts/world3d/farm_world.gd")
+	var W := float(FarmGrid.W)
+	var H := float(FarmGrid.H)
+	var counts := []
+	for gate in [false, true]:
+		var w: Node3D = farm_script.new()
+		if gate:
+			w.gaps.append(Vector2i(0, 5))
+		w._make_fence()
+		var rep: Dictionary = _mesh_report(w)
+		counts.append(rep.tris)
+		var snow_ok: bool = rep.snow == 1 and w.get_children().all(func(n): return not (n is MeshInstance3D and n.material_override is ShaderMaterial) or n.material_override in w._snow_mats)
+		check(rep.prim == 0 and rep.unlit == 0 and rep.bad == 0 and rep.tris > 20000 and snow_ok,
+			"fence (gate %s): %d tris, %d primitives, %d unlit, %d facing faults, snow skin driven %s" % [gate, rep.tris, rep.prim, rep.unlit, rep.bad, snow_ok])
+		check(rep.lo.x > 0.5 - 0.1 and rep.hi.x < W - 0.5 + 0.1 and rep.lo.z > 0.5 - 0.1 and rep.hi.z < H - 0.5 + 0.1 and rep.lo.y >= -0.02
+			and rep.hi.y > 0.66 and rep.hi.y < 0.72, "fence line and height: x %.2f..%.2f, z %.2f..%.2f, y %.2f..%.2f" % [rep.lo.x, rep.hi.x, rep.lo.z, rep.hi.z, rep.lo.y, rep.hi.y])
+		var in_gate := 0
+		for n in w.get_children():
+			if n is MeshInstance3D and n.mesh is ArrayMesh:
+				for q in n.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+					if absf(q.x - 0.5) < 0.2 and q.z > 5.0 and q.z < 6.0:
+						in_gate += 1
+		check((in_gate == 0) == gate, "fence: %d vertices in the gate cell (gate %s)" % [in_gate, gate])
+		w.free()
+	check(counts[1] < counts[0], "fence: the gate takes pieces out (%d < %d tris)" % [counts[1], counts[0]])
+	var mid := Vector3(5.5, 0, 7.5)
+	for snow in [false, true]:
+		var w: Node3D = farm_script.new()
+		fm.kadomatsu(w, mid, snow)
+		var rep: Dictionary = _mesh_report(w)
+		var cut := 0
+		var rings := 0
+		for n in w.get_children():
+			var mat: Material = n.material_override
+			if mat is StandardMaterial3D and mat.albedo_color.is_equal_approx(Color("d8e8b0")):
+				cut += n.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()
+			if mat is StandardMaterial3D and mat.albedo_color.is_equal_approx(fm.KADO_NODE):
+				rings += n.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()
+		check(rep.prim == 0 and rep.unlit == 0 and rep.bad == 0 and rep.tris > 600 and rep.snow == (1 if snow else 0),
+			"kadomatsu (snow %s): %d tris, %d primitives, %d unlit, %d facing faults, %d snow skins" % [snow, rep.tris, rep.prim, rep.unlit, rep.bad, rep.snow])
+		check(cut == 3 * 8 * 3 and rings >= 3 * 96 and rep.hi.y > 1.3 and rep.hi.y < 1.45 and rep.lo.y >= -0.03
+			and rep.lo.x > mid.x - 0.6 and rep.hi.x < mid.x + 0.6 and rep.lo.z > mid.z - 0.6 and rep.hi.z < mid.z + 0.6,
+			"kadomatsu: 3 cut faces (%d verts), %d node ring vertices, %.2f..%.2f high, inside its cell" % [cut, rings, rep.lo.y, rep.hi.y])
+		w.free()
 
 
 ## The farm-country props (FieldProps): the drying rack, the kitchen garden and the board fence
