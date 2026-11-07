@@ -167,7 +167,13 @@
 		{"kind": "pine", "cell": [35, 16]},
 		{"kind": "pine", "cell": [22, 26]},
 		{"kind": "pine", "cell": [2, 4]},
-		{"kind": "pine", "cell": [37, 25]}
+		{"kind": "pine", "cell": [37, 25]},
+		{"kind": "persimmon", "cell": [10, 3]},
+		{"kind": "sakura", "cell": [31, 3]},
+		{"kind": "persimmon", "cell": [10, 8]},
+		{"kind": "sakura", "cell": [22, 13]},
+		{"kind": "persimmon", "cell": [38, 14]},
+		{"kind": "sakura", "cell": [2, 11]}
 	],
 	"doors": [
 		{"cells": [[19, 30], [20, 30]], "to": "kaminoda", "spawn": [22, 1], "facing": "down"}

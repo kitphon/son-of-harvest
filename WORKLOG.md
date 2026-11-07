@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Broadleaf trees on the bamboo hill
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: six broadleaf trees on the bamboo hill (data/maps/hill.json props): persimmons at
+  [10, 3], [10, 8], [38, 14] and sakuras at [31, 3], [22, 13], [2, 11], each on free grass (not on
+  the paths, the forage spots, the bamboo or pines, the lookout gravel, the shrine or the lanterns).
+  Data only, no code. Maple is not a kind yet (Trees.LEAVES has persimmon and sakura only), so the
+  set is those two; a maple would need a LEAVES entry in scripts/world3d/trees.gd.
+- Checked: all 28 test scripts print OK (0 failed), test_maps, test_forage and test_showcase among
+  them. Smoke `--headless --path . --quit-after 300 -- --demo --map=hill`: exit 0, no error or
+  warning lines. Screenshots of `--demo --map=hill --season=fall` and `--season=winter --snow=80`
+  (default spawn) show bamboo and the path only; no new tree is in those frames. To see the trees,
+  three spawns were added to hill.json for a few runs and removed again (file restored byte for
+  byte before the commit): fall persimmon red at [10, 8], fall sakura gold at [31, 3], winter bare
+  sakura at [22, 13] with snow on the ground. Snow on the bare branches is faint at 480 x 270.
+- Left / next: no maple (see above). Trees are not checked from the lookout spawn.
 ## 2026-11-07 — Run through exits, walk at once after a map change
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user's second playtest round (docs/FEEDBACK.md → Fixed). Running: Player found a

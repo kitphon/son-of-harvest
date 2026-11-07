@@ -131,7 +131,8 @@ Light and Farmhouse model hold the technical detail of what is built.
       (this commit) Snow on bare branches: in winter on snowy outdoor maps, a thin lit sheet lies
       over the upper side of each limb and twig (`Trees.broadleaf(..., snow)`, `_branch_snow`),
       its amount driven by set_snow like the pads'; none without snow. Pines and the wood unchanged.
-      Still open: the hill has only pines (no broadleaf), so the hill screenshot shows no bare tree.
+      The bamboo hill has six broadleaf trees now (data/maps/hill.json: three persimmons and three
+      sakuras on free grass): red and gold in fall, bare with snow in winter.
 - [x] Bamboo: segmented culms with node rings, leaf sprays, swaying, by season, snow on the
       leaves (`OutdoorProps.bamboo`). (this commit) The wind follows the weather (data/wind.json,
       see "Wind by weather" in the table): in a storm the clumps lean further, sway faster and
