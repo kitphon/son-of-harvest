@@ -163,6 +163,8 @@ func _draw_objects() -> void:
 	_tall = not paddies.is_empty()
 	_sway = _sway_for(Time.get_ticks_msec() / 1000.0)
 	if _tall:
+		# The winter water patches lie under the stubble (CropPatches.draw_water: winter only).
+		(load(CROP_PATCHES) as GDScript).draw_water(_objects, season, paddies, paddy_hold, _cover)
 		(load(CROP_PATCHES) as GDScript).draw(_objects, paddies, paddy_hold, _cover, _sway)
 	for p in map.props:
 		if p.kind in StoryView.KINDS:   # drawn as pictures by StoryView

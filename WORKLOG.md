@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Flat view water patches in winter
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: the flat view (MapView, the Kaminoda paddies) draws the winter grey-blue water patches that
+  the 3D view has, under the stubble. The places are CropClusters.water_spots_for's (the same cells,
+  row gaps, nudges, sizes and flips), read by CropPatches.water_to_draw and drawn by draw_water
+  (called in MapView._draw_objects before the stubble). Only in a season with water
+  (CropClusters.water_on: winter). A patch is left out where snow lies on its cell
+  (SnowLayer.lies with the paddy's hold, as the stubble). The blob is a 12 x 5 pixel oval cut once
+  from data/paddy.json's new keys water.color (5d7680), water.glint (7d939b) and water.sky
+  (9aaeb4), the same colours as the 3D picture patch:paddy_water, centred on the place.
+- Checked: test_view2d `_water_patches` (in `_tall_crops`): water only in winter (none in spring,
+  summer or fall; winter has some); the same places and sizes as
+  water_spots_for; no snow, all shown; heavy snow (1.0) hides the ones lying, none left under
+  snow; the blob's colours are the three data colours and the 3D picture uses the same three.
+  Mutation check: with the season gate removed the test printed `FAIL: flat water: none in spring,
+  summer or fall` (restored after). The snow rule for the water was not mutated separately.
+  All 26 test scripts print OK (0 failed). Smoke run `res://scenes/main_2d.tscn -- --demo
+  --map=kaminoda --season=winter` (--quit-after 300): no error or warning lines. Screenshot
+  (shots/frame00000019.png, 480 x 270, --demo, Kaminoda winter): the dark grey-blue patches show
+  between the stubble rows, zoomed to check; shots/ then deleted.
+- Left / next: the flat view's patches do not sway or flicker with the rice; the 3D view's
+  picture patch:paddy_water is unchanged (its colours are now the same as data/paddy.json's).
+  The screenshot was checked by eye only, no pixel count.
+
 ## 2026-11-07 — Tall crops sway in the flat view
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: the flat view's rice, corn, vines and the Kaminoda paddies sway with the wind like the 3D
