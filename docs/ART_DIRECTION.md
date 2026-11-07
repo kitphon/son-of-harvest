@@ -172,10 +172,16 @@ Light and Farmhouse model hold the technical detail of what is built.
       pixel per map pixel, alpha on the water pixels only: a land side keeps its bank and foam line
       still (the sheet starts 3 px in, as in 3D). The shader is the 3D sheet's pattern on the pixel
       centres (glints and troughs drifting, the same speeds, thresholds and colours), with alphas
-      0.3 / 0.2 instead of 0.5 / 0.32, since the flat view has no sun term to darken them. No rings
-      in the flat view yet. The constants are copied, not read from data. Test: test_view2d `_water`
-      (the sheet covers the water pixels only on the farm pond and the town's water, the shader
-      uses TIME); test_maps keeps its snow checks off the sheet.
+      0.3 / 0.2 instead of 0.5 / 0.32, since the flat view has no sun term to darken them. The
+      constants are copied, not read from data. Ripple rings (this commit): `WaterView.ripple(pos,
+      strong)` takes map pixels (a cell's centre is (cell + 0.5) x 16) and fills one of eight slots
+      in the same shader loop as 3D (14 px a second, a strong ring 1.3 times that to 34 px, a gentle
+      one to 22 px, one pixel wide, two fade steps, the same 0.6 / 0.3 alphas in `ring_color`). The
+      bobber drives them from `main_2d.gd` `_ring_bobber`, the 3D timing: a strong ring as it lands
+      and as a bite starts, then 0.4 s between strong ones in a bite, a gentle one every 1.7 s while
+      it waits. Test: test_view2d `_water` (the sheet covers the water pixels only on the farm pond
+      and the town's water, the shader uses TIME) and `_ripples` (a call fills a slot, the rings
+      expire); test_maps keeps its snow checks off the sheet.
 
 ### 3. Light and atmosphere
 - [x] Night: real warm lights at lanterns, windows and the festival stalls, the tint lighter.

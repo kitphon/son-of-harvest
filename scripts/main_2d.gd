@@ -20,6 +20,10 @@ var lightning := Lightning.new()
 var glow: FestivalGlow
 var flying: Sprite2D   # a thrown item on its way
 var _flight := {}      # from, to, time, seconds, height (while flying)
+const RING_EVERY := 1.7        # seconds between the gentle rings round a waiting bobber (as Main3D)
+const RING_BITE_EVERY := 0.4   # and between the strong ones in a bite
+var _ring_state := "idle"
+var _ring_next := 0.0
 
 
 func _ready() -> void:
@@ -160,8 +164,33 @@ func _update_tint() -> void:
 func _process(delta: float) -> void:
 	_aim_lantern()
 	_fly(delta)
+	_ring_bobber(delta)
 	weather.follow(cam.get_screen_center_position())
 	_update_flash(delta)
+
+
+## Ripple rings on the pond round the bobber, timed as Main3D._ring_bobber: a strong one as it
+## lands and as a fish bites, a gentle one every RING_EVERY while it waits, strong ones every
+## RING_BITE_EVERY in a bite. The water is the view's WaterView (FarmView and MapView keep it
+## as `_water`); the bobber's cell centre in map pixels is where the ring starts.
+func _ring_bobber(delta: float) -> void:
+	var f := Game.fishing
+	var was := _ring_state
+	_ring_state = f.state
+	if not f.active() or view == null:
+		return
+	var sheet := view.get("_water") as WaterView
+	if sheet == null:
+		return
+	var at := (Vector2(f.spot) + Vector2(0.5, 0.5)) * T
+	if was == "idle" or (f.state == "bite" and was != "bite"):
+		sheet.ripple(at, true)
+		_ring_next = RING_EVERY if f.state == "wait" else RING_BITE_EVERY
+		return
+	_ring_next -= delta
+	if _ring_next <= 0.0:
+		sheet.ripple(at, f.state == "bite")
+		_ring_next = RING_EVERY if f.state == "wait" else RING_BITE_EVERY
 
 
 func _update_flash(delta: float) -> void:

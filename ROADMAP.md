@@ -48,7 +48,6 @@ the wood as MultiMeshes (scripts/world3d/trees.gd).
 [x] The grass tufts and the rice / corn part round the farmer in the 3D view (scripts/world3d/parting.gd, data/wind.json "part").
 [x] Roof snow without patch holes: snow tops whole from half cover up, thinning in patches only
 when little lies (`SnowLayer.TOP_FULL`, scripts/world3d/snow_layer.gd).
-
 [x] The villagers and the dog part the grass and crops too (up to 8 pushers, the farmer first; `Parting.GROUP`).
 [x] Water: a gentle moving surface on the farm pond, the village pond and the river
 (scripts/world3d/water_surface.gd).
@@ -58,6 +57,7 @@ banks left still (scripts/world/water_view.gd, WaterView, in FarmView and MapVie
 [x] Bamboo (segmented, swaying, by season, snowy) and the well, jizo, woodpile and river rock
 as lit meshes (scripts/world3d/outdoor_props.gd).
 [x] Water: ripple rings round the fishing bobber (WaterSurface.ripple, scripts/world3d/water_surface.gd).
+[x] Flat view water ripples: the same bobber rings on the pond in the flat view (WaterView.ripple, driven by main_2d.gd `_ring_bobber`).
 [x] Wind follows the weather: data/wind.json per weather, pushed to the grass tufts and the bamboo sway
 (a calm sunny day, medium in rain, strong in a storm or blizzard; docs/ART_DIRECTION.md, the table).
 [x] The drying rack, kitchen garden and board fence (scripts/world3d/field_props.gd) and every festival
