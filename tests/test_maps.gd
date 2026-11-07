@@ -197,6 +197,7 @@ func _lenses() -> void:
 var _frame := 0
 var _since_door := -1.0          # seconds since the door (the fade runs on real time)
 var _warm_before := 0            # ShaderWarm.shown before the door
+var _warm_shadows := {}          # the sun's shadow switch seen while the warm-up quads were up
 var _scene: Node
 var _entered: Array = []
 var _farm_world_ok := false
@@ -206,6 +207,8 @@ func _process(delta: float) -> bool:
 	_frame += 1
 	if _since_door >= 0.0:
 		_since_door += delta
+	if _scene != null and _scene._warm != null:
+		_warm_shadows[_scene.sun.shadow_enabled] = true
 	if _frame == 1:
 		_homes_3d()
 		_minka()
@@ -267,6 +270,10 @@ func _start_view() -> void:
 	_scene = load("res://scenes/main.tscn").instantiate()
 	root.add_child(_scene)
 	check(_entered == ["farm"], "the view says the farmer entered the farm %s" % [_entered])
+	# No fade led here (the title, a load): the first map is built and warmed under black too.
+	check(_scene.fade.busy() and _scene.fade.holding() and is_equal_approx(_scene.fade.alpha(), 1.0) and not g.paused()
+		and _scene._warm != null and _scene._warm.get_child_count() > 5,
+		"shader warm: the first map starts under black, its kinds drawn (%d)" % (_scene._warm.get_child_count() if _scene._warm != null else 0))
 	_farm_world_ok = _scene.world.surroundings != null and _scene.world.occluders.count() == 4
 	var sun_now: Dictionary = g.sun_light()
 	check(is_equal_approx(_scene.sun.rotation_degrees.x, -sun_now.elevation) and is_equal_approx(_scene.sun.rotation_degrees.y, sun_now.yaw)
@@ -330,6 +337,8 @@ func _check_view() -> void:
 	check(_scene.player.position == g.maps.pos and _scene.player.facing == Vector2i.UP, "the farmer stands at the house spawn")
 	check(_k("shader_warm").shown > _warm_before and _scene._warm == null and _scene.find_children("ShaderWarm", "", true, false).is_empty(),
 		"shader warm: the house's kinds drawn in the fade's black (%d) and taken away before it cleared" % (_k("shader_warm").shown - _warm_before))
+	check(_warm_shadows.has(true) and _warm_shadows.has(false) and not _scene.sun.shadow_enabled,
+		"shader warm: drawn with the sun's shadows on and off (%s), off again in the house" % [_warm_shadows.keys()])
 	var plain: Dictionary = g.sun_light(true)
 	check(is_equal_approx(_scene.sun.rotation_degrees.x, -plain.elevation) and is_equal_approx(_scene.sun.rotation_degrees.y, plain.yaw)
 		and _scene.sun.light_color == plain.color, "in the house the plain fixed sun (%s)" % _scene.sun.rotation_degrees)
@@ -3782,12 +3791,50 @@ func _shader_warm() -> void:
 	holder.add_child(cam)
 	var node: Node3D = _k("shader_warm").show(holder, cam, first)
 	var near := true
-	for q in node.get_children():
+	var quads: Array = node.get_children().filter(func(q): return q is GeometryInstance3D)
+	for q in quads:
 		near = near and (q.position - cam.position).length() < 1.0 and q.material_override in first.map(func(k): return k.mat)
-	check(node.get_child_count() == first.size() and near and _k("shader_warm").show(holder, cam, again) == null,
+	check(quads.size() == first.size() and near and _k("shader_warm").show(holder, cam, again) == null,
 		"shader warm: one tiny quad a new kind, just in front of the camera; none when nothing is new")
+	# The night's lamps make another variant on what they light: those quads stand under a lamp
+	# like theirs (no shadows, the same cull mask) reaching only the quads; the ground's do not.
+	var lamps: Array = node.get_children().filter(func(q): return q is OmniLight3D)
+	var lit := first.filter(func(k): return k.lit)
+	var reach := true
+	var layers_ok := true
+	for i in quads.size():
+		layers_ok = layers_ok and quads[i].layers == (_k("night_lamps").LIT_MASK if first[i].lit else _k("night_lamps").GROUND_LAYER)
+		if lamps.size() == 1:
+			reach = reach and (quads[i].position - lamps[0].position).length() < lamps[0].omni_range
+	check(lamps.size() == 1 and not lamps[0].shadow_enabled and lamps[0].light_cull_mask == _k("night_lamps").LIT_MASK
+		and lamps[0].omni_range < _k("shader_warm").NEAR and reach and layers_ok and lit.size() > 5 and lit.size() < first.size(),
+		"shader warm: a lamp over the lit kinds' quads (%d of %d lit), reaching only them" % [lit.size(), first.size()])
 	holder.free()
 	w.free()
+	# A kind first seen on the ground is kept again where a lamp lights it; not the other way.
+	_k("shader_warm").clear()
+	var plain: StandardMaterial3D = _k("farm_world").flat_material(Color(0.2, 0.6, 0.3))
+	var on_ground := MeshInstance3D.new()
+	on_ground.material_override = plain
+	on_ground.layers = _k("night_lamps").GROUND_LAYER
+	var on_wall := MeshInstance3D.new()
+	on_wall.material_override = plain
+	var wn := Node3D.new()
+	wn.add_child(on_ground)
+	var ground_first: Array = _k("shader_warm").news(wn)
+	wn.add_child(on_wall)
+	var then_lit: Array = _k("shader_warm").news(wn)
+	var wn2 := Node3D.new()
+	var g2 := MeshInstance3D.new()
+	g2.material_override = plain.duplicate()
+	g2.layers = _k("night_lamps").GROUND_LAYER
+	wn2.add_child(g2)
+	var ground_after: Array = _k("shader_warm").news(wn2)
+	check(ground_first.size() == 1 and not ground_first[0].lit and then_lit.size() == 1 and then_lit[0].lit and ground_after.is_empty(),
+		"shader warm: a kind seen on the ground, then lit, is kept lit too; on the ground again, nothing new")
+	wn.free()
+	wn2.free()
+	_k("shader_warm").clear()
 
 
 ## Maps next door built ahead (Main3D._prebuild): while the farmer stands still the farm's

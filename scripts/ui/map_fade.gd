@@ -22,6 +22,7 @@ var _busy := false
 var _phase := ""             # "out", "hold", "in" while busy
 var _hold := 0
 var _pausing := false        # holding a Game pause (out and black)
+var _arrive := true          # say Game.map_arrived() as the picture comes back (not after cover)
 
 
 func _init() -> void:
@@ -40,10 +41,26 @@ func run(swap: Callable) -> void:
 	if _busy:
 		_phase = "out"   # past black already: go (or stay) dark and swap again
 		_pause(true)
+		_arrive = true
 		return
 	_busy = true
 	_phase = "out"
 	_pause(true)
+	set_process(true)
+	_arrive = true
+
+
+## Starts black, as if a map had just been swapped, and comes back in: the view's first map
+## (after the title, or a load) is built and its shaders warmed (ShaderWarm) under it, as a map
+## change's are. No Game pause, and no Game.map_arrived() at its end (the view says that itself).
+func cover() -> void:
+	if _busy:
+		return
+	_busy = true
+	_arrive = false
+	_phase = "hold"
+	_hold = HOLD_FRAMES
+	_rect.color.a = 1.0
 	set_process(true)
 
 
@@ -75,7 +92,8 @@ func _process(delta: float) -> void:
 			if _hold <= 0:
 				_phase = "in"
 				_pause(false)   # the farmer may walk as the picture comes back
-				Game.map_arrived()
+				if _arrive:
+					Game.map_arrived()
 		"in":
 			_rect.color.a = maxf(0.0, _rect.color.a - step / IN_SECONDS)
 			if _rect.color.a <= 0.0:
