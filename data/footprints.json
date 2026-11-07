@@ -1,0 +1,4 @@
+{
+	"min_cover": 30, "min_hold": 0.65, "step": 0.55, "side": 0.11, "cap": 160, "life": 90,
+	"snowing_rate": 4.0, "jump": 3.0, "size": [0.3, 0.46], "color": "5f76ab", "alpha": 0.95
+}

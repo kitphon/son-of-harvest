@@ -46,6 +46,7 @@ func _run() -> void:
 	await _water()
 	await _ripples()
 	await _maples()
+	await _footprints()
 	scene.free()
 	print("test_view2d: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -580,3 +581,58 @@ func check(ok: bool, what: String) -> void:
 	if not ok:
 		failures += 1
 		print("FAIL: " + what)
+
+
+## Footprints in lying snow in the flat view (the rules are Footprints', tested in test_maps): the
+## farmer's steps leave small prints in a FootprintView of the map's view, none under the snow
+## threshold or indoors, gone with the new view, a new day and the snow's age.
+func _footprints() -> void:
+	var fpc: GDScript = load("res://scripts/footprints.gd")
+	var rules: Dictionary = fpc.from_game().rules
+	g.weather_today = "sunny"
+	g.hour = 10
+	g.minute = 0
+	g.snow_cover = 80
+	g.go_to_map("town", Vector2i(2, 10), Vector2i.RIGHT)
+	await _wait_view("map_view.gd")
+	var layer: Node = scene.prints
+	check(layer != null and _is(layer, "footprint_view.gd") and layer.get_parent() == scene.view and layer.trail.prints.is_empty(), "flat footprints: the view has its FootprintView, empty")
+	var row := -1
+	for y in scene.view.map.h:
+		var all := true
+		for x in range(3, 14):
+			all = all and fpc.ground_hold(Vector2(x + 0.5, y + 0.5)) >= float(rules.min_hold)
+		if all:
+			row = y
+			break
+	check(row >= 0, "flat footprints: the village has a row of ground that holds snow (row %d)" % row)
+	var walk := func(x0: float, x1: float, y: float) -> void:
+		for i in 41:
+			player.position = Vector2(lerpf(x0, x1, i / 40.0), y) * 16.0
+			scene._leave_prints()
+	walk.call(3.5, 13.5, row + 0.5)
+	var n: int = layer.trail.prints.size()
+	check(n >= 10 and n <= int(rules.cap), "flat footprints: the farmer's walk leaves a trail (%d)" % n)
+	var sides := {}
+	for p in layer.trail.prints:
+		sides[signf(p.pos.y - (row + 0.5))] = true
+	check(sides.has(1.0) and sides.has(-1.0), "flat footprints: left and right prints")
+	g.snow_cover = 10
+	scene._leave_prints()
+	check(layer.trail.prints.is_empty(), "flat footprints: the snow thinning under the threshold takes them away")
+	g.snow_cover = 80
+	walk.call(3.5, 13.5, row + 0.5)
+	scene._on_day_started()
+	check(scene.prints.trail.prints.is_empty(), "flat footprints: a new day clears them")
+	walk.call(3.5, 13.5, row + 0.5)
+	check(not scene.prints.trail.prints.is_empty(), "flat footprints: and a new trail starts")
+	scene._age_prints()
+	check(is_equal_approx(scene.prints.trail.strength(scene.prints.trail.prints[0]), 1.0 - 1.0 / float(rules.life)), "flat footprints: a minute passing dims them")
+	g.go_to_map("house", Vector2i(4, 5), Vector2i.UP)
+	await _wait_view("map_view.gd")
+	check(scene.prints != layer and scene.prints.trail.prints.is_empty(), "flat footprints: a map change gives a fresh, empty view")
+	walk.call(2.5, 6.5, 5.5)
+	check(scene.prints.trail.prints.is_empty(), "flat footprints: none indoors, snow or not")
+	g.snow_cover = 0
+
+

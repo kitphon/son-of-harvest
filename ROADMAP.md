@@ -24,6 +24,7 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 
 ## Next up
 [x] Hearth smoke (2026-11-07): thin pale smoke from the farmhouse's ridge and the village roofs at meal times, drifting with the wind, buried in a storm (HearthSmoke, data/smoke.json; ART_DIRECTION section 3). The flat view is left open.
+[x] Footprints in lying snow (2026-11-07): the farmer, villagers and dog press small blue-grey soles into snow of 30% cover or more (ring of 160, fading in 90 game minutes, faster in snowfall, cleared on a map change and a new day), 3D and flat (data/footprints.json; ART_DIRECTION, section 2).
 [x] Flat view maple (2026-11-07): the maple is a small layered tree picture in the flat view (PlaceholderArt tree:maple, by season and snow), not a box (WORKLOG "The flat view's maple is a tree picture").
 [x] Vines read better (2026-11-07): a ripe cucumber's fruit is pale yellow-green with a lit edge and a dark side, the leaves left off beside the fruit (both vines); the villagers' and the dog's parting on a stake checked to take the vine's stiffness like the farmer's (ART_DIRECTION, Rice and tall crops).
 [x] Rain dimples on the water (2026-11-07): small rings at random spots in rain and storm, 3D and flat (data/weather_fx.json dimples; ART_DIRECTION, Water).

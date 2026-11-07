@@ -25,7 +25,8 @@ var surroundings: Surroundings   # the land past the map's edge (outdoors)
 var backdrop: Backdrop           # the far mountain ridges past it (data/backdrop.json maps; else null)
 var tufts: GrassTufts            # grass tufts on the grass cells (outdoors)
 var rain: Dictionary = {}         # the rain dimples' style on the water (set_rain)
-var wind := 0.0                  # 0 calm .. 1 a gale (set_wind)
+var prints: FootprintLayer      # footprints in lying snow (made when snow first lies)
+var wind := 0.0                 # 0 calm .. 1 a gale (set_wind)
 var _tuft_cells: Array[Vector2i] = []
 var crops: CropClusters          # tall crops (rice, corn, cucumber, tomato) as clusters of small sprites; the village paddies' rice
 ## House windows and shoji doors that light up at night (NightLights draws them over the night tint):
@@ -302,11 +303,13 @@ func set_rain(style: Dictionary) -> void:
 ## the dog on this map (their sprites are in Parting.GROUP), the nearest to the farmer first.
 func set_farmer(feet: Vector3) -> void:
 	var others: Array = []
+	var walkers := {"farmer": Vector2(feet.x, feet.z)}   # for the footprints (Footprints): the same walkers
 	if is_inside_tree():
 		for n in get_tree().get_nodes_in_group(Parting.GROUP):
 			var s := n as Node3D
 			if s != null and s.visible and is_ancestor_of(s):
 				others.append(Vector2(s.position.x, s.position.z))
+				walkers[s.get_instance_id()] = Vector2(s.position.x, s.position.z)
 	var pushers := Parting.pick(Vector2(feet.x, feet.z), others, int(Parting.rules("grass").max))
 	if tufts != null:
 		tufts.set_pushers(pushers)
@@ -314,6 +317,45 @@ func set_farmer(feet: Vector3) -> void:
 		surroundings.tufts.set_pushers(pushers)
 	if crops != null:
 		crops.set_pushers(pushers)
+	_leave_prints(walkers)
+
+
+## Footprints: the walkers (set_farmer) leave them while enough snow lies out in the open.
+func _leave_prints(walkers: Dictionary) -> void:
+	var cover := float(Game.snow_cover)
+	if prints == null:
+		if not Footprints.from_game().active(cover, Game.sheltered()):
+			return
+		prints = FootprintLayer.new()
+		add_child(prints)
+	prints.feed(walkers, cover, Game.sheltered(), Footprints.ground_hold)
+
+
+## `--footprints` (screenshots): a trail already pressed behind the farmer at `feet` (the older
+## prints part-filled) and another walker's crossing it, by feeding made-up steps.
+func seed_prints(feet: Vector3) -> void:
+	_leave_prints({"farmer": Vector2(feet.x - 5.0, feet.z + 3.0), "walker": Vector2(feet.x + 3.0, feet.z + 5.0)})
+	if prints == null:
+		return
+	for i in 16:
+		var t := (i + 1) / 16.0
+		_leave_prints({"farmer": Vector2(feet.x - 5.0 + 5.0 * t, feet.z + 3.0 - 2.0 * t + sin(t * 5.0) * 0.4),
+			"walker": Vector2(feet.x + 3.0 - 8.0 * t, feet.z + 5.0 - 3.0 * t)})
+	var n: int = prints.trail.prints.size()
+	for i in n:
+		prints.trail.prints[i].age = 40.0 * (1.0 - float(i) / n)
+	prints.age(0.0, false)
+
+
+## Game time passes: the prints age (quicker while snow falls over them).
+func age_prints(minutes: float) -> void:
+	if prints != null:
+		prints.age(minutes, str(Game.weather_style().get("fall", "")) == "snow" and not Game.sheltered())
+
+
+func clear_prints() -> void:
+	if prints != null:
+		prints.clear()
 
 
 ## The tall crops' clusters (CropClusters); FarmWorld plants them with the field, MapWorld

@@ -25,6 +25,135 @@ func _sprite_casts() -> void:
 	check("SpriteShadow.attach(sprite" in main_src and "SpriteShadow.attach(s" in vill_src and animal_src.count("SpriteShadow.attach(s") == 2, "sprite shadows: the farmer, villagers, animals and the dog each get a SpriteShadow")
 
 
+## Footprints in lying snow (Footprints rules, data/footprints.json, FootprintLayer in
+## the world): left / right pairs a step apart along the walk, a ring of at most `cap`, fading
+## with age (quicker in falling snow), none under the cover threshold, on ground that holds little
+## snow, across a jump, indoors; the world feeds the farmer and the walkers of Parting.GROUP and
+## clears them on a map change and a new day.
+func _footprints() -> void:
+	var g: Node = root.get_node("Game")
+	var FP: GDScript = load("res://scripts/footprints.gd")
+	var PG: GDScript = load("res://scripts/world3d/parting.gd")
+	g.new_game()
+	check(FileAccess.file_exists("res://data/footprints.json"), "footprints: the numbers are in data/footprints.json")
+	var r: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/footprints.json"))
+	for k in FP.DEFAULTS:
+		check(r.has(k), "footprints: data has %s" % k)
+	check(float(r.step) > 0.2 and float(r.side) > 0.0 and float(r.side) < float(r.step) and int(r.cap) >= 40 and int(r.life) >= 30 and float(r.snowing_rate) > 1.0
+		and float(r.min_cover) > 0.0 and float(r.min_cover) < 100.0, "footprints: sane numbers")
+	var walk := func(fp, id, from: Vector2, to: Vector2, n: int, hold := Callable()) -> void:
+		for i in range(n + 1):
+			fp.feed({id: from.lerp(to, float(i) / n)}, hold)
+	# A straight walk east: pairs left and right of the line, a step apart, along the walk.
+	var fp: Object = FP.new(r)
+	walk.call(fp, "farmer", Vector2(2, 5), Vector2(12, 5), 200)
+	var expected := 10.0 / float(r.step)
+	check(fp.prints.size() >= expected - 2 and fp.prints.size() <= expected + 1, "footprints: about one every %.2f cells (%d for 10 cells)" % [float(r.step), fp.prints.size()])
+	var ok_dir := true
+	var ok_side := true
+	var ok_gap := true
+	for i in fp.prints.size():
+		var p: Dictionary = fp.prints[i]
+		ok_dir = ok_dir and p.dir.distance_to(Vector2.RIGHT) < 0.001
+		ok_side = ok_side and is_equal_approx(absf(p.pos.y - 5.0), float(r.side)) and (i == 0 or signf(p.pos.y - 5.0) != signf(fp.prints[i - 1].pos.y - 5.0))
+		ok_gap = ok_gap and (i == 0 or (p.pos.x - fp.prints[i - 1].pos.x) >= float(r.step) - 0.2 and (p.pos.x - fp.prints[i - 1].pos.x) <= float(r.step) + 0.2)
+	check(ok_dir and ok_side and ok_gap, "footprints: turned along the walk, left and right in turn at +-%.2f, spaced by the step" % float(r.side))
+	# Standing still, a jump, a walker gone and back.
+	var n_before: int = fp.prints.size()
+	for i in 30:
+		fp.feed({"farmer": Vector2(12, 5)})
+	check(fp.prints.size() == n_before, "footprints: none while standing still")
+	fp.feed({"farmer": Vector2(40, 5)})
+	fp.feed({"farmer": Vector2(40.1, 5)})
+	check(fp.prints.size() == n_before, "footprints: a jump (a door) leaves no trail across it")
+	fp.feed({})
+	fp.feed({"farmer": Vector2(20, 20)})
+	check(fp.prints.size() == n_before, "footprints: a walker back on the map starts afresh (no print first)")
+	# Two walkers each leave their own.
+	var two: Object = FP.new(r)
+	for i in 21:
+		two.feed({"farmer": Vector2(2 + i * 0.5, 5), 77: Vector2(2 + i * 0.5, 9)})
+	check(two.prints.filter(func(p): return absf(p.pos.y - 5.0) < 0.5).size() > 5 and two.prints.filter(func(p): return absf(p.pos.y - 9.0) < 0.5).size() > 5, "footprints: the villagers' and the dog's walkers leave theirs too")
+	# Ground that holds little snow leaves none.
+	var bare: Object = FP.new(r)
+	walk.call(bare, "farmer", Vector2(2, 5), Vector2(12, 5), 50, func(_at): return 0.3)
+	check(bare.prints.is_empty(), "footprints: none where the ground holds under min_hold of the snow")
+	# The ring: never over cap, the oldest go first.
+	var ring: Object = FP.new(r)
+	walk.call(ring, "farmer", Vector2(0, 0), Vector2(150, 0), 3000)
+	check(ring.prints.size() == int(r.cap), "footprints: a ring of at most %d (%d)" % [int(r.cap), ring.prints.size()])
+	check(ring.prints[ring.prints.size() - 1].pos.x > 148.0 and ring.prints[0].pos.x > 150.0 - (int(r.cap) + 1) * float(r.step) * 1.15, "footprints: the oldest are dropped, the newest kept")
+	# Fading: age by game minutes, gone after life, quicker while snow falls.
+	var old: Object = FP.new(r)
+	walk.call(old, "farmer", Vector2(2, 5), Vector2(6, 5), 20)
+	var n0: int = old.prints.size()
+	check(n0 > 3 and is_equal_approx(old.strength(old.prints[0]), 1.0), "footprints: fresh prints show in full")
+	old.age(float(r.life) / 2.0)
+	check(is_equal_approx(old.strength(old.prints[0]), 0.5) and old.prints.size() == n0, "footprints: half way through their life they show half")
+	old.age(float(r.life) / 2.0)
+	check(old.prints.is_empty(), "footprints: gone after %d minutes" % int(r.life))
+	var snowy: Object = FP.new(r)
+	walk.call(snowy, "farmer", Vector2(2, 5), Vector2(6, 5), 20)
+	snowy.age(float(r.life) / float(r.snowing_rate) + 0.01, true)
+	check(snowy.prints.is_empty(), "footprints: fresh snowfall fills them in %.1f times as fast" % float(r.snowing_rate))
+	walk.call(snowy, "farmer", Vector2(2, 5), Vector2(6, 5), 20)
+	snowy.clear()
+	check(snowy.prints.is_empty(), "footprints: clear() empties the ring")
+	# The threshold and shelter.
+	check(not fp.active(float(r.min_cover) - 1.0, false) and fp.active(float(r.min_cover), false) and fp.active(100.0, false), "footprints: only from min_cover percent of snow")
+	check(not fp.active(100.0, true), "footprints: none indoors or in the mine (sheltered)")
+
+	# In the world: the farmer and a PG.GROUP walker, snow 80 on the farm.
+	var row := -1
+	for y in FarmGrid.H:
+		var all := true
+		for x in range(4, 16):
+			all = all and FP.ground_hold(Vector2(x + 0.5, y + 0.5)) >= float(r.min_hold)
+		if all:
+			row = y
+			break
+	check(row >= 0, "footprints: the farm has a row of ground that holds snow (row %d)" % row)
+	var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	root.add_child(w)
+	var walker := Sprite3D.new()
+	walker.add_to_group(PG.GROUP)
+	w.add_child(walker)
+	g.snow_cover = 20
+	for i in 40:
+		walker.position = Vector3(4.0 + i * 0.3, 0, row + 2.5)
+		w.set_farmer(Vector3(4.0 + i * 0.3, 0, row + 0.5))
+	check(w.prints == null, "footprints: no layer, no prints while snow lies under the threshold (cover %d)" % g.snow_cover)
+	g.snow_cover = 80
+	g.weather_today = "sunny"
+	for i in 40:
+		walker.position = Vector3(4.0 + i * 0.3, 0, row + 2.5)
+		w.set_farmer(Vector3(4.0 + i * 0.3, 0, row + 0.5))
+	check(w.prints != null and w.prints.count() > 8, "footprints: with snow 80 the world's layer holds the trail (%d)" % (w.prints.count() if w.prints != null else -1))
+	if w.prints != null:
+		check(w.prints.count() == w.prints.trail.prints.size() and w.prints.count() <= int(r.cap), "footprints: the layer draws exactly the trail, within the cap")
+		var rows := {}
+		for p in w.prints.trail.prints:
+			rows[floori(p.pos.y)] = true
+		check(rows.has(row) and rows.has(row + 2), "footprints: the farmer's and the PG.GROUP walker's prints are both there")
+		check(w.prints.trail.strength(w.prints.trail.prints[0]) > 0.99, "footprints: a fresh print is drawn in full strength")
+		w.age_prints(float(r.life) / 2.0)
+		check(w.prints.count() > 0 and is_equal_approx(w.prints.trail.strength(w.prints.trail.prints[0]), 0.5), "footprints: aging dims the world's prints")
+		w.clear_prints()
+		check(w.prints.count() == 0 and w.prints.trail.prints.is_empty(), "footprints: cleared by clear_prints (map change, new day)")
+		for i in 12:
+			w.set_farmer(Vector3(4.0 + i * 0.6, 0, row + 0.5))
+		check(w.prints.count() > 0, "footprints: and a new trail starts after")
+		g.snow_cover = 10
+		w.set_farmer(Vector3(10.0, 0, row + 0.5))
+		check(w.prints.count() == 0, "footprints: the snow melting below the threshold takes the prints with it")
+	w.free()
+	g.snow_cover = 0
+	var main_src := FileAccess.get_file_as_string("res://scripts/main_3d.gd")
+	var enter := main_src.substr(main_src.find("func _enter_map"), 3200)
+	var day := main_src.substr(main_src.find("func _on_day_started"), 300)
+	check("world.clear_prints()" in enter and "world.clear_prints()" in day and "age_prints" in main_src, "footprints: Main3D clears them on a map change and a new day and ages them each minute")
+
+
 ## Camera lenses (data/camera.json): ps1 is the measured camera, every lens frames the feet alike.
 func _lenses() -> void:
 	var cam_data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/camera.json"))
@@ -74,6 +203,7 @@ func _process(delta: float) -> bool:
 		_story_props()
 		_lane_and_kiln_props()
 		_map_snow()
+		_footprints()
 		_edges_and_fades()
 		_backdrop()
 		_walk_slide()
