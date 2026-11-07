@@ -16,7 +16,11 @@ extends Control
 ##     soft glow round it, each lantern (`FarmWorld.lamps`) a glow round its fire box;
 ##  4. figures (the last child): the overlay knows no depth, so a farmer, villager or animal
 ##     standing in front of a glow (on its lit side, not hidden behind a building) is drawn
-##     back from the copy over its own pixels, and the glow behind it no longer tints it.
+##     back from the copy over its own pixels, and the glow behind it no longer tints it;
+##  5. warmth (the very last): a figure near a lit window, door, stone lantern or festival light
+##     is drawn back once more with warm light added in proportion to its own colour (its
+##     picture's pixels), as strong as SpriteLight.lift_at says (data/light.json "sprites" → "lift"),
+##     so it reads warm by the light while one in the dark stays night blue.
 ## How bright is Game.window_light() (data/light.json "windows": with the dark, in the lit
 ## hours); the pools follow it too (data/light.json "pools"). A window turned from the camera,
 ## or behind another building, stays dark; a building faded see-through lets the light through
@@ -100,12 +104,36 @@ void fragment() {
 }
 """
 
+## Pass 5: a figure's pixels from the copy, plus its own colour (its picture's pixel, so a pool
+## under it already in the copy is not counted twice) times the warm light (the vertex colour,
+## its alpha the lift).
+const WARM_SHADER := """
+shader_type canvas_item;
+
+uniform sampler2D screen : hint_screen_texture, filter_nearest;
+varying vec4 lift;
+
+void vertex() {
+	lift = COLOR;
+}
+
+void fragment() {
+	vec4 own = texture(TEXTURE, UV);
+	if (own.a < 0.5) {
+		discard;
+	}
+	vec3 c = textureLod(screen, SCREEN_UV, 0.0).rgb;
+	COLOR = vec4(c + own.rgb * lift.rgb * lift.a, 1.0);
+}
+"""
+
 static var _dot: Texture2D
 
 var washes: Control    # pass 2: warm light on the pale walls round lit windows
 var finishes: Control  # pass 2 too: on the earthen and charred board walls
 var glows: Control     # pass 3: panes, halos, lantern glows
 var figures: Control   # pass 4: the figures in front, drawn back from the copy
+var warmth: Control    # pass 5: the figures near a light, drawn back warmer
 var copy: BackBufferCopy
 ## This frame's work, worked out in _process and drawn by the three passes.
 var _pools: Array[Dictionary] = []     # {pts: PackedVector2Array, color}
@@ -115,6 +143,7 @@ var _finishes: Array[Dictionary] = []  # {pts, uvs, color} earthen and board wal
 var _lamps: Array[Dictionary] = []     # {at: Vector2, px, color}
 var _lit: Array[Dictionary] = []       # {rect: Rect2, pos, normal} everything glowing on screen
 var _shields: Array[Dictionary] = []   # {pts, uvs, tex} figure quads drawn back
+var _warm: Array[Dictionary] = []      # {pts, uvs, tex, color} figure quads drawn back warmer
 
 
 func _ready() -> void:
@@ -139,6 +168,10 @@ func _ready() -> void:
 	figures.material = _shader_material(FIGURE_SHADER)
 	figures.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	figures.draw.connect(_draw_figures)
+	warmth = _layer("Warmth")
+	warmth.material = _shader_material(WARM_SHADER)
+	warmth.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	warmth.draw.connect(_draw_warmth)
 	if _dot == null:
 		var g := Gradient.new()
 		g.set_color(0, Color(1, 1, 1, 1))
@@ -178,11 +211,13 @@ static func figure(s: Sprite3D) -> void:
 
 func _process(_delta: float) -> void:
 	_plan()
+	_plan_warmth()
 	queue_redraw()
 	washes.queue_redraw()
 	finishes.queue_redraw()
 	glows.queue_redraw()
 	figures.queue_redraw()
+	warmth.queue_redraw()
 
 
 ## Works out this frame's pools, panes, lantern glows and the figures to draw back.
@@ -319,12 +354,30 @@ static func festival_pools(lights: Array, dark: float, rules: Dictionary) -> Arr
 
 ## Draws figure `s` (and its sprite children) back over the glows if it stands in front of one.
 func _shield(s: Sprite3D, cam: Camera3D, worlds: Array[FarmWorld]) -> void:
+	var quads := _quads(s, cam)
+	if quads.is_empty():
+		return
+	var box := _bounds(quads[0].pts)
+	for q in quads:
+		box = box.merge(_bounds(q.pts))
+	var mid := s.global_position + cam.global_basis.y * (s.texture.get_height() * s.pixel_size / 2.0)
+	for w in worlds:
+		if hidden(mid, cam.global_position, w.occluders):
+			return
+	if shielded(box, s.global_position, _lit):
+		_shields.append_array(quads)
+
+
+## Figure `s` and its visible sprite children as screen quads: {pts, tex, uvs}.
+## With `lit_only` the marks over it (SpriteLight.unlit: a note puff, the lantern) are left out.
+static func _quads(s: Sprite3D, cam: Camera3D, lit_only := false) -> Array[Dictionary]:
 	var quads: Array[Dictionary] = []
 	var all: Array = [s]
 	all.append_array(s.find_children("*", "Sprite3D", true, false))
-	var box := Rect2()
 	for part: Sprite3D in all:
 		if not part.is_visible_in_tree() or part.texture == null:
+			continue
+		if lit_only and part != s and not part.is_in_group(SpriteLight.GROUP):
 			continue
 		var pts := _project(sprite_corners(part, cam.global_basis), cam)
 		if pts.is_empty():
@@ -332,15 +385,52 @@ func _shield(s: Sprite3D, cam: Camera3D, worlds: Array[FarmWorld]) -> void:
 		var u0 := 1.0 if part.flip_h else 0.0
 		quads.append({"pts": pts, "tex": part.texture,
 			"uvs": PackedVector2Array([Vector2(u0, 0), Vector2(1 - u0, 0), Vector2(1 - u0, 1), Vector2(u0, 1)])})
-		box = _bounds(pts) if quads.size() == 1 else box.merge(_bounds(pts))
-	if quads.is_empty():
+	return quads
+
+
+## Pass 5's work: every figure near a light that burns now (SpriteLight.spots_of: the lit
+## windows and lanterns of the worlds on show, the festival lights) and not behind a solid
+## building, with its lift (SpriteLight.lift_at) as the warm colour's alpha.
+func _plan_warmth() -> void:
+	_warm.clear()
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
 		return
-	var mid := s.global_position + cam.global_basis.y * (s.texture.get_height() * s.pixel_size / 2.0)
-	for w in worlds:
-		if hidden(mid, cam.global_position, w.occluders):
-			return
-	if shielded(box, s.global_position, _lit):
-		_shields.append_array(quads)
+	var glow := Game.window_light()
+	var dark := FestivalGlow.darkness(Game.light_color())
+	if glow <= 0.0 and dark <= 0.05:
+		return
+	var worlds: Array[FarmWorld] = []
+	for w in get_tree().get_nodes_in_group(GROUP):
+		if w is FarmWorld and w.is_inside_tree() and w.is_visible_in_tree():
+			worlds.append(w)
+	var fests: Array = []
+	for n in get_tree().get_nodes_in_group(FestivalProps.GROUP):
+		if n.is_inside_tree() and n.is_visible_in_tree() and n.shown():
+			fests.append(n)
+	var rules := SpriteLight.rules_of(Game.light_data())
+	var spots := SpriteLight.spots_of(worlds, fests, glow, dark, rules)
+	if spots.is_empty():
+		return
+	var warm := Color(str(rules.get("lift", {}).get("color", "ffa050")))
+	var occ: Occluders = worlds[0].occluders if worlds.size() == 1 else null
+	for s in get_tree().get_nodes_in_group(FIGURES):
+		if not (s is Sprite3D and s.is_visible_in_tree() and s.texture != null):
+			continue
+		var mid: Vector3 = s.global_position + Vector3.UP * (s.texture.get_height() * s.pixel_size / 2.0)
+		var behind := false
+		for w in worlds:
+			behind = behind or hidden(mid, cam.global_position, w.occluders)
+		if behind:
+			continue
+		var k := SpriteLight.lift_at(mid, spots, rules, occ)
+		if k <= 0.01:
+			continue
+		var c := warm
+		c.a = k
+		for q in _quads(s, cam, true):
+			q.color = c
+			_warm.append(q)
 
 
 func _draw() -> void:
@@ -371,6 +461,11 @@ func _draw_figures() -> void:
 		figures.draw_colored_polygon(q.pts, Color.WHITE, q.uvs, q.tex)
 
 
+func _draw_warmth() -> void:
+	for q in _warm:
+		warmth.draw_colored_polygon(q.pts, q.color, q.uvs, q.tex)
+
+
 ## How much of window `win` the eye at `eye` sees, 0..1: 0 when its wall is turned away or a
 ## solid building stands between; a building faded see-through lets through its fade. The
 ## window's own building (whose box holds the window) never hides it.
@@ -385,6 +480,12 @@ static func how_seen(win: Dictionary, eye: Vector3, occ: Occluders) -> float:
 ## whose box holds `own` (the pool's window or lantern) never hides it.
 static func ground_seen(at: Vector3, own: Vector3, eye: Vector3, occ: Occluders) -> float:
 	return _through(at + Vector3(0, 0.05, 0), own, eye, occ)
+
+
+## How much of the light at `own` (a window's pane, a lantern's fire box) reaches `at` past the
+## buildings, 0..1 (SpriteLight.lift_at): a solid one between drops it, a faded one lets its fade.
+static func light_reaches(at: Vector3, own: Vector3, occ: Occluders) -> float:
+	return _through(at, own, own, occ)
 
 
 static func _through(at: Vector3, own: Vector3, eye: Vector3, occ: Occluders) -> float:

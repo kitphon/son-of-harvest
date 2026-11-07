@@ -40,7 +40,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   must print `test_farm: OK (0 failed)`. Save / load: same with `res://tests/test_save.gd`
   must print `test_save: OK (0 failed)`. Title menu / new game: same with
   `res://tests/test_title.gd` must print `test_title: OK (0 failed)`. Weather (snow cover,
-  lightning, the day / night light of data/light.json, the sun by the clock, when windows light up): `res://tests/test_weather.gd` must print `test_weather: OK (0 failed)`.
+  lightning, the day / night light of data/light.json, the sun by the clock, when windows light up, the sprites' share of the sun and their warm lift by night lights): `res://tests/test_weather.gd` must print `test_weather: OK (0 failed)`.
   Dialogue (runner, data, text box layout): `res://tests/test_dialogue.gd` must print
   `test_dialogue: OK (0 failed)`. Pause menu / settings (language and the Thai tables, display, text speed, HUD, key hints, reset) / key and pad remapping: `res://tests/test_menu.gd` must print
   `test_menu: OK (0 failed)`. Fatigue (tired states, oversleeping, collapse, waking in the clinic and the doctor's fee):

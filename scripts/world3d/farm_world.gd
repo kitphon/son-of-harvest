@@ -113,6 +113,7 @@ static func make_sprite(tex: Texture2D) -> Sprite3D:
 	s.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	s.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF   # a billboard casts a wrong sliver (SpriteShadow)
 	s.offset = Vector2(0, tex.get_height() / 2.0)   # stand on the ground
+	SpriteLight.lit(s)   # the sun's colour by the clock, a share of it
 	return s
 
 

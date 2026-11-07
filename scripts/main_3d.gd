@@ -97,6 +97,7 @@ func _ready() -> void:
 	charge_pips = FarmWorld.make_sprite(PlaceholderArt.tex(PlaceholderArt.charge_key(0, 1)))
 	charge_pips.position = Vector3(0, 1.38, 0)   # over the farmer's head (its top about 1.17)
 	charge_pips.visible = false
+	SpriteLight.unlit(charge_pips)   # a mark, as drawn
 	sprite.add_child(charge_pips)
 	held_sprite = FarmWorld.make_sprite(PlaceholderArt.tex("item:turnip"))
 	held_sprite.visible = false
@@ -104,6 +105,7 @@ func _ready() -> void:
 	lantern_sprite = FarmWorld.make_sprite(PlaceholderArt.tex("mine:lantern"))
 	lantern_sprite.offset.y = -lantern_sprite.texture.get_height() / 2.0   # hangs from its top
 	lantern_sprite.visible = false
+	SpriteLight.unlit(lantern_sprite)   # it gives light
 	sprite.add_child(lantern_sprite)
 	flying = FarmWorld.make_sprite(PlaceholderArt.tex("item:turnip"))
 	flying.visible = false
@@ -114,6 +116,7 @@ func _ready() -> void:
 	bite_mark = FarmWorld.make_sprite(PlaceholderArt.tex("fish_fx:alert"))
 	bite_mark.position = Vector3(0, 1.3, 0)   # clear of the head
 	bite_mark.visible = false
+	SpriteLight.unlit(bite_mark)   # a mark, as drawn
 	sprite.add_child(bite_mark)
 	fish_line = MeshInstance3D.new()
 	fish_line.mesh = _line_mesh
@@ -665,6 +668,8 @@ func _aim_sun(inside: bool) -> void:
 	sun.light_color = s.color
 	sun.light_energy = s.energy
 	SpriteShadow.sun_yaw = SpriteShadow.face_yaw(Game.sun_direction(s))
+	# The sprites take a share of the sun's colour (SpriteLight; white for the plain sun).
+	SpriteLight.apply(get_tree(), SpriteLight.sun_tint(s.color, SpriteLight.rules_of(Game.light_data())))
 
 
 ## Sun shadows outdoors only (Game.sun_shadow: by the daylight and the sky).

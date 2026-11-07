@@ -295,6 +295,7 @@ func _sprite(tex: Texture2D) -> Sprite3D:
 func _finish(game_script: GDScript, fx: Dictionary) -> void:
 	await process_frame
 	_wind_by_weather(game_script, fx)
+	_sprite_light(game_script, fx)
 	print("test_weather: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 
@@ -726,6 +727,122 @@ func _wind_on_leaves_and_cloth(outdoor: GDScript, calm: float, wet: float, gale:
 				noren += 1
 	check(noren >= 2, "the village's shop noren hang in the wind (%d)" % noren)
 	town.free()
+
+
+## The world's light on the sprites (SpriteLight, data/light.json "sprites"): a share of the
+## sun's colour by the clock (white at noon, at night, indoors and under cloud; golden morning
+## and evening, never brighter than drawn), set on every lit sprite and crop picture but not on
+## the marks; and at night a warm lift from the lit windows, lanterns and festival lights near a
+## figure (only on a window's lit side, fading with distance, capped, none by day), drawn by
+## NightLights' last pass.
+func _sprite_light(game_script: GDScript, fx: Dictionary) -> void:
+	# The world scripts read the Game autoload, so they are loaded here, after the first frame.
+	var SL: GDScript = load("res://scripts/world3d/sprite_light.gd")
+	var FW: GDScript = load("res://scripts/world3d/farm_world.gd")
+	var CC: GDScript = load("res://scripts/world3d/crop_clusters.gd")
+	var OC: GDScript = load("res://scripts/world3d/occluders.gd")
+	var NL: GDScript = load("res://scripts/world3d/night_lights.gd")
+	var light: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/light.json"))
+	var rules: Dictionary = SL.rules_of(light)
+	var share := float(rules.get("share", -1.0))
+	check(share > 0.2 and share < 0.7, "sprite light: a modest share of the sun (%.2f)" % share)
+	check(Color(str(rules.get("ref", ""))).to_html(false) == game_script.sun_plain(light.sun).color.to_html(false),
+		"sprite light: ref is the plain sun's colour")
+	var gm: Node = game_script.new()
+	gm.weather_fx = fx
+	gm.weather_today = "sunny"
+	var tint_at := func(h: int, m: int, inside := false) -> Color:
+		gm.hour = h
+		gm.minute = m
+		return SL.sun_tint(gm.sun_light(inside).color, rules)
+	for hm in [[12, 0], [21, 0], [2, 0], [23, 30]]:
+		check(tint_at.call(hm[0], hm[1]).is_equal_approx(Color.WHITE), "sprite light: plain at %d:%02d" % hm)
+	for hm in [[6, 30], [12, 0], [17, 30]]:
+		check(tint_at.call(hm[0], hm[1], true).is_equal_approx(Color.WHITE), "sprite light: rooms and mines plain at %d:%02d" % hm)
+	var morning: Color = tint_at.call(6, 30)
+	var evening: Color = tint_at.call(17, 30)
+	for c: Color in [morning, evening]:
+		check(is_equal_approx(c.r, 1.0) and c.b < c.g and c.g < 1.0 and c.b >= 1.0 - share - 0.001,
+			"sprite light: golden, blue held back most, never past the share (%s)" % c)
+	var brightest := 0.0
+	var lowest := 1.0
+	for m in range(0, 1440, 10):
+		var c: Color = tint_at.call(m / 60, m % 60)
+		brightest = maxf(brightest, maxf(c.r, maxf(c.g, c.b)))
+		lowest = minf(lowest, minf(c.r, minf(c.g, c.b)))
+	check(brightest <= 1.0 and lowest >= 1.0 - share - 0.001,
+		"sprite light: never brighter than drawn, never darker than the share (%.2f .. %.2f)" % [lowest, brightest])
+	for w in ["rain", "storm", "snow", "blizzard"]:
+		gm.weather_today = w
+		check(tint_at.call(17, 30).is_equal_approx(Color.WHITE), "sprite light: plain under %s" % w)
+	gm.weather_today = "sunny"
+	gm.free()
+	# On the sprites: make_sprite takes the share (now and later), a mark keeps its picture, the
+	# modulate's alpha (the occluders' fade) is kept; the crop pictures take it as a uniform.
+	var old: Color = SL.now
+	var tex: Texture2D = load("res://scripts/art/placeholder_art.gd").tex("item:turnip")
+	var s: Sprite3D = FW.make_sprite(tex)
+	var mark: Sprite3D = FW.make_sprite(tex)
+	SL.unlit(mark)
+	s.modulate.a = 0.4
+	root.add_child(s)
+	root.add_child(mark)
+	var crops = CC.new()
+	root.add_child(crops)
+	SL.apply(self, evening)
+	check(s.is_in_group(SL.GROUP) and Color(s.modulate.r, s.modulate.g, s.modulate.b).is_equal_approx(evening)
+		and is_equal_approx(s.modulate.a, 0.4), "sprite light: a sprite takes the share, its alpha kept (%s)" % s.modulate)
+	check(mark.modulate.is_equal_approx(Color.WHITE), "sprite light: a mark stays as drawn")
+	var later: Sprite3D = FW.make_sprite(tex)
+	check(Color(later.modulate.r, later.modulate.g, later.modulate.b).is_equal_approx(evening), "sprite light: a sprite made later takes it too")
+	var cm: Vector3 = crops.materials()[0].get_shader_parameter("sun")
+	check(cm.is_equal_approx(Vector3(evening.r, evening.g, evening.b)), "sprite light: the crop pictures take it (%s)" % cm)
+	SL.apply(self, Color.WHITE)
+	check(s.modulate.is_equal_approx(Color(1, 1, 1, 0.4)), "sprite light: back to white at noon")
+	SL.now = old
+	for n in [s, mark, crops, later]:
+		n.free()
+	# The night lift: a window's light only on its lit side, more the nearer, none far off or by
+	# day, capped; a lantern's all round; a festival light with its darkness; a building between.
+	var lr: Dictionary = rules.get("lift", {})
+	var reach := float(lr.get("range", 0.0))
+	var cap := float(lr.get("max", 0.0))
+	check(reach > 1.0 and reach < 4.0 and cap > 0.2 and cap <= 1.0, "sprite light: lift reach %.1f and cap %.2f" % [reach, cap])
+	var win := {"pos": Vector3(5, 1, 5), "normal": Vector3(0, 0, 1), "size": Vector2(0.6, 0.6)}
+	var world := {"windows": [win], "lamps": []}
+	var spots: Array = SL.spots_of([world], [], 1.0, 0.0, rules)
+	check(spots.size() == 1, "sprite light: one spot per lit window")
+	check(SL.spots_of([world], [], 0.0, 0.0, rules).is_empty(), "sprite light: no lift by day")
+	var near: float = SL.lift_at(Vector3(5, 0.6, 5.8), spots, rules)
+	var further: float = SL.lift_at(Vector3(5, 0.6, 6.8), spots, rules)
+	check(near > further and further > 0.0 and near > 0.15, "sprite light: in front of a window, more the nearer (%.2f > %.2f)" % [near, further])
+	check(SL.lift_at(Vector3(5, 0.6, 4.2), spots, rules) == 0.0, "sprite light: none behind the window's wall")
+	check(SL.lift_at(Vector3(5, 0.6, 5 + reach + 1.0), spots, rules) == 0.0, "sprite light: none in the dark far off")
+	var many := {"windows": [win, win, win, win, win], "lamps": [{"pos": Vector3(5, 0.6, 6)}]}
+	check(is_equal_approx(SL.lift_at(Vector3(5, 0.6, 5.6), SL.spots_of([many], [], 1.0, 0.0, rules), rules), cap),
+		"sprite light: capped by many lights")
+	var lamp: Array = SL.spots_of([{"windows": [], "lamps": [{"pos": Vector3(0, 0.6, 0)}]}], [], 1.0, 0.0, rules)
+	check(SL.lift_at(Vector3(-1, 0.6, 0), lamp, rules) > 0.0 and SL.lift_at(Vector3(1, 0.6, 0), lamp, rules) > 0.0,
+		"sprite light: a lantern lights all round")
+	var fest := {"glows": [{"pos": Vector3(0, 1, 0), "size": 1.0}]}
+	check(SL.spots_of([], [fest], 0.0, 0.8, rules).size() == 1 and SL.spots_of([], [fest], 0.0, 0.0, rules).is_empty(),
+		"sprite light: festival lights while they stand out")
+	var occ = OC.new()
+	var wall := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(0.2, 2.0, 2.0)
+	wall.mesh = box
+	wall.position = Vector3(-0.5, 1.0, 0)
+	occ.add([wall])
+	check(SL.lift_at(Vector3(-1, 0.6, 0), lamp, rules, occ) == 0.0 and SL.lift_at(Vector3(1, 0.6, 0), lamp, rules, occ) > 0.0,
+		"sprite light: a building between keeps a lantern's light off")
+	wall.free()
+	# NightLights draws the lift last, over the figures drawn back.
+	var nl = NL.new()
+	root.add_child(nl)
+	check(nl.warmth != null and nl.warmth.get_index() > nl.figures.get_index() and nl.warmth.get_index() == nl.get_child_count() - 1,
+		"sprite light: the warmth is NightLights' last pass")
+	nl.free()
 
 
 func check(ok: bool, what: String) -> void:

@@ -10,6 +10,63 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Sprites take the world's light
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: ART_DIRECTION section 3's "sprites stay unshaded". The sprites stay unshaded (crisp, the
+  pixels as drawn) and take two touches of the world's light, numbers in data/light.json
+  "sprites" (new `SpriteLight`, scripts/world3d/sprite_light.gd):
+  1. By day a share of the sun's colour by the clock: `sun_tint` = the sun's colour (Game.sun_light)
+     over the plain noon sun `ref` ffedcc per channel, at most 1, `share` 0.45 of the way from
+     white. So noon, the night, rooms, mines and clouded days (all the plain colour) are exactly
+     white and change nothing; 6:30 gives (1, 0.90, 0.81), 17:30 (1, 0.88, 0.80): green and blue held
+     back, never brightened, so nothing washes out. Why 0.45: the meshes take the whole sun, but
+     the sprites carry their own drawn light; under half keeps faces and clothes in their own
+     colours while the figure sits in the same golden hour as the houses. `Main3D._aim_sun` calls
+     `SpriteLight.apply` each game minute: the modulate colour of every sprite in the group (alpha
+     kept: the occluders' fade, the note puff's), and the CropClusters' new `sun` uniform
+     (`set_sun`; one uniform and one multiply in the fragment, nothing else there touched).
+     `FarmWorld.make_sprite` puts every sprite in the group with the share of the moment;
+     `SpriteLight.unlit` keeps the charge pips, the bite's "!", the whistle note and the mine
+     lantern as drawn.
+  2. At night a warm lift near lights: NightLights gets a fifth, last pass ("Warmth", WARM_SHADER)
+     that draws each figure (the farmer, villagers, animals, with their held items) near a lit
+     window, shoji door, stone lantern or festival light back from the copy plus its own picture's
+     colour times `lift.color` ffa050 times the lift. `SpriteLight.spots_of` (windows `out` 0.3 in
+     front of the pane, lanterns, festival lights by FestivalGlow.darkness, string lanterns 0.6) and
+     `lift_at`: each within `range` 2.4 cells of the figure's middle gives energy x (1 - d/range)²,
+     a window only on its lit side, none past a solid building (`NightLights.light_reaches`), capped
+     at `max` 0.6. A first try took the colour from the copy over the tint and burnt the legs of a
+     farmer standing in a window pool orange (the pool was counted twice); the picture's own
+     pixel fixed it. The figures' quads come from a shared `NightLights._quads` (the draw-back
+     uses it too, unchanged).
+  3. No sun-and-shadow on the sprites: the only cheap scene query is Occluders' boxes, which hold
+     the houses, coop and barn but not the trees, the fences or a hip roof's real outline, so a
+     sprite would darken where the ground shows no shadow and stay bright in a tree's; a real one
+     needs the shadow map in a per-sprite shader, which the SpriteShadow caster quad would shadow.
+  The flat view is unchanged (its sprites take only the tint, as before).
+- Checked: test_weather `_sprite_light` (share modest; ref = the plain sun; white at noon, night,
+  indoors, under rain / storm / snow / blizzard; golden morning and evening, blue held back most,
+  never over 1 or under 1 - share all day; make_sprite takes it now and later, alpha kept, a mark
+  white, the crop pictures' uniform; the lift: in front of a window more the nearer, none behind
+  its wall or far off or by day, capped, a lantern all round, festival lights by darkness, a
+  wall's box blocks a lantern; Warmth is NightLights' last child). With `max` 0 it failed 4 checks,
+  so it bites. All 28 test scripts print OK (0 failed). Smoke runs (title, --demo, --demo
+  --map=town, --demo --mine=3, --demo --map=town --time=21:00, --festival=lantern_night) 0 error /
+  warning lines; the Movie Maker runs print no shader errors.
+  Pixels (480x270, last frame of 30, --demo; "off" = this build with share 0 and max 0, as the
+  farm demo frames differ run to run even at HEAD; the village, rooms and barn are steady):
+  `--map=town --time=7:00` 2447 px changed, all on the villagers (mean 139.9,121.0,117.7 ->
+  139.9,112.9,102.8; red unchanged, at most -21 green / -35 blue). `--map=town --time=21:00`,
+  `--map=house --time=21:00`, `--map=barn` (noon): 0 px outside the HUD forecast icon (no figure by a
+  light; indoors plain). `--map=kaminoda@genzo --time=21:00` (the farmer by Genzo's lit door, before
+  = HEAD): 1135 px, all on the farmer, 46.1,38.6,57.5 -> 107.1,71.3,74.2. `--festival=lantern_night`:
+  6551 px on the figures among the lanterns, 56.1,44.6,58.9 -> 73.0,52.5,60.7. `--map=town --time=19:30`:
+  972 px, a slight dusk warmth (green -2.5, blue -7.4). Looked at: the farmer by the farmhouse door at
+  21:00 has a warm face and shirt, outlines and pixels crisp; the 17:30 farmer and cabbages a touch
+  golden like the house; the room at 21:00 as before.
+- Left / next: the field's objects and crops take no night lift (only the pools under them, as
+  before); a figure partly behind a fence or a corner is lifted whole (the overlay knows no depth;
+  one whose middle is behind a solid building is skipped); sprites take no sun shadow (above).
 ## 2026-11-07 — Merge: the flat view's paddies take the winter stubble
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged the two parallel branches "Tall crops in the flat view" and "Winter paddies". The
