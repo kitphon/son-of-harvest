@@ -10,6 +10,71 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — The field's night lift keeps to its own pixels
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: the open problem of "The field takes the night lift". The lift of the field (crop
+  sprites, CropClusters plants, items, objects; SpriteLight.field_lifts, unchanged, once a game
+  minute) moved out of the Warmth pass into a pass of its own, NightLights pass 0: a
+  BackBufferCopy "FieldCopy" of the tinted picture right after the tint (before the pools), then
+  the "Field" layer, then the pools (now a child "Pools"), then the old copy, washes, glows,
+  figures, warmth. FIELD_SHADER adds own texel x warm colour x shade x lift (the same amount as
+  before) only on the pixels inside the picture's outline where the copy shows that texel as
+  the 3D view draws it under the tint (the plants' shade and sun in linear light, a sprite's
+  modulate on its colour; also the texel half a texel either way, for texel edges), within
+  data/light.json sprites.lift.match 0.024 (why: a few 8-bit steps and the faint bloom of the
+  night picture, below the gap between two leaf greens under the tint, 0.033). So whatever stands
+  in front (another plant, the fence, a figure, rain) keeps its own pixels. `NightLights.field_off`
+  is the shader test in GDScript, `field_quads` the pass's quads ({pts, uvs, tex, color = shade,
+  shade, shade, lift}). Sway and parting: CropClusters' shader swayed on TIME, which GDScript
+  cannot read, so it now sways on a `clock` uniform that CropClusters advances each frame
+  (process mode always, as TIME ran while paused) and sets on every picture;
+  `CropClusters.tip_shift` is the vertex shader's sway, parting and lean in GDScript (the
+  pushers are kept by set_pushers), and `NightLights.field_corners` moves a lit plant's two top
+  corners by it. Figures out of the light are no longer drawn back over lifted field objects
+  (nothing to cover now). The copy is shown only while some field quad is lit (a full-screen
+  copy a frame at night near lit field objects). Why not the lift in the plants' own shaders:
+  measured first, the 3D pass writes alpha 1 whatever ALPHA says (so no mask can ride on it),
+  and a lift before the tint would clip at 1 and pass the glow's 0.9 threshold.
+- Checked: test_weather `_field_pass`: each field lift is the window's energy x (1 - d/range)²
+  capped; one quad per lit sprite and plant carrying (shade, shade, shade, lift); the clock is on
+  every picture, advanced by _process, and the shader has no TIME; a lit plant's quad's top
+  corners equal plant_corners plus tip_shift and change with the clock, the root kept; calm air
+  sways only along the view's right, at most SWAY at its size, a stiff 0 none; feet behind the
+  root push the tip away and down, and the drawn quad moves (> 0.5 px); field_off: a plant's and
+  a sprite's own texel under the tint match (with a faint bloom too), a fence's culm colour and a
+  paler leaf do not, the sun's share counted; the pass order FieldCopy < Field < Pools < copy,
+  shader reads the screen and adds, copy off while nothing is lit. test_maps: the scene's
+  NightLights in that order; the farm's CropClusters clock > 0 and on every picture at frame 3.
+  Mutations: field_corners without the shift: `FAIL: field pass: a lit plant's quad sways with
+  the plant, its root kept ((-0.020644, 0.0, 0.0))`, `FAIL: field pass: the drawn quad stands
+  where the parted plant is (0.0 px)`, `test_weather: FAILED (2 failed)`; field_off returning 0
+  and lift_at with (1 - d/range) unsquared: `FAIL: field pass: each lift is the window's energy x
+  (1 - d / range)², capped (5 lifts)`, `FAIL: field pass: a fence or a paler leaf standing in
+  front keeps its own pixel`, `FAIL: field pass: the sun's share is counted in what the view
+  drew`, `test_weather: FAILED (3 failed)` (the old field checks did not catch the falloff
+  change); the clock not advanced: `FAIL: the 3D view's tall crops sway on their clock, every
+  picture told (1)`, `test_maps: FAILED (1 failed)`; all restored. Then `test_weather: OK (0
+  failed)`, `test_maps: OK (0 failed)`, `test_farm: OK (0 failed)`, `test_view2d: OK (0
+  failed)`, `test_festivals: OK (0 failed)`. Smoke runs (title, --demo, --demo --map=town,
+  --demo --mine=3, --demo --season=summer --time=21:00): no error or warning lines.
+  Pixels (480x270, last frame of 30, Game rng seed fixed for the comparison only, reverted;
+  "off" = this build with lift max 0): measured against the build before, `--demo --time=21:00`:
+  every pixel the new pass lifts (2553 with the farmer's own lift) equals the old frame within 1
+  level (237 by 1, 0 by more); `--demo --map=town --time=20:00`: 0 px changed. A debug run
+  painting matched pixels green and refused ones magenta: `--demo --time=21:00` 1418 matched
+  (the 1418 px the old entry measured), 0 refused; `--demo --season=summer --time=21:00` 2790
+  matched, 118 refused, all where an unlit corn stalk or a nearer lit one stands in front (the
+  pixels the old overlay painted over); in a storm (`--weather=storm --no-flashes`) 2794 / 187
+  with the quad following the sway, 2414 / 779 with the shift taken out. The summer frame looked
+  at side by side: the same warm corn and sprouts by the house. Other frames differ from the old
+  build only by the tall crops' sway phase (the clock starts with the view, not with the engine).
+  shots/ deleted.
+- Left / next: not measured on a slow machine (one more full-screen copy a frame while field
+  objects by a light are on screen). During a lightning flash the copy does not match, so the
+  field lift drops for those frames. A field object seen through a see-through faded building
+  no longer takes the lift there. The figures still use the depth-less Warmth pass (a figure
+  behind a plant takes its lift over the plant's pixels, as before).
+
 ## 2026-11-07 — Glint on the winter water patches
 Agent: Claude Code (claude-haiku) · Commit: this commit
 - Done: the flat view's winter water patches (CropPatches.draw_water, the Kaminoda paddies) glint.
