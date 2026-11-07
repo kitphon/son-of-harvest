@@ -10,6 +10,25 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Bamboo: the New Year bamboo and the farm fence as lit meshes
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: `FarmWorld._make_fence` no longer uses cylinders and boxes in MultiMeshes: new
+  `OutdoorProps.pole` (a bamboo pole with node rings), `fence_post` (eight-sided culm, cut top
+  with a dark hollow, two cord ties, snow cap), `fence_cane` and `fence_rail` (a node ring every
+  half cell, snow on the upper rail); one `Parts` commit, same posts, canes, rails and gate cut
+  as before. `FestivalMeshes.kadomatsu(w, mid, snow)` rebuilt: straw tub with cord bands and
+  frayed straw, three bundled culms (1.3 / 1.05 / 0.85) with node rings and slanted cut faces,
+  a straw wrap with cord turns, five pine sprigs, a plum twig, snow on tub and sprigs where the
+  map has snow (`FestivalProps` passes `SnowLayer.map_has_snow`).
+- Checked: test_maps `_bamboo_pieces` (fence with and without a gate: only ArrayMeshes, lit,
+  faces out, on its line, 0.64..0.72 high, nothing in the gate cell, snow skin driven by
+  set_snow; kadomatsu with and without snow: faces, three cut faces, node rings, 1.3..1.45 high,
+  inside its cell); all tests/test_*.gd print OK (0 failed); smoke runs clean; screenshots of
+  `--demo`, `--demo --season=winter --snow=80`, `--demo --festival=years_turn` (also in snow)
+  looked right (the window renders 480x270, so details are small).
+- Left / next: the fence and kadomatsu take no wind; the fence is about 80k triangles in one
+  mesh (fine so far, a MultiMesh of a post would be the way to cut it).
+
 ## 2026-11-07 — Village house variety: hip roofs, two storeys, three wall finishes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a `village_house` prop may set `roof` (gable / hip), `storeys` (1 / 2) and `wall`

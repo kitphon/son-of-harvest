@@ -70,7 +70,7 @@ func _make(p: Dictionary) -> void:
 		"paper_lantern":
 			FestivalMeshes.paper_lantern(self, mid)
 			_glow(mid + Vector3(0, 1.25, 0), Color("ffe0a0"), 1.8)
-		"kadomatsu": FestivalMeshes.kadomatsu(self, mid)
+		"kadomatsu": FestivalMeshes.kadomatsu(self, mid, SnowLayer.map_has_snow(MapManager.data(map_id)))
 		"bonfire":
 			FestivalMeshes.bonfire(self, mid)
 			_glow(mid + Vector3(0, 0.4, 0), FLAME, 3.0)

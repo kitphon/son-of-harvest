@@ -300,50 +300,88 @@ static func paper_lantern(w: FarmWorld, mid: Vector3) -> void:
 
 # --- New Year bamboo -------------------------------------------------------------
 
-## New Year bamboo (kadomatsu): a straw-bound tub, three green bamboo stalks of different
-## heights cut slantwise at the top (their nodes ringed, the hollow showing), pine boughs round
-## the foot.
-static func kadomatsu(w: FarmWorld, mid: Vector3) -> void:
+const KADO_STRAW := Color("c8a868")
+const KADO_CORD := Color("6a4a26")
+const KADO_CULM := Color("5a9a48")
+const KADO_NODE := Color("8abf6c")
+
+## New Year bamboo (kadomatsu): a straw-bound tub (cord bands, a frayed straw lip, straw ends
+## splayed at the foot), three green culms of different heights bundled with a straw wrap and
+## cord, each with node rings and its top cut on a slant (pale face, dark hollow), pine sprigs
+## fanned round the foot with a twig of plum blossom. `snow` lays snow on the tub and the sprigs.
+static func kadomatsu(w: FarmWorld, mid: Vector3, snow := false) -> void:
 	var p := FarmProps.Parts.new()
-	Shrine.lathe(p.st(Color("c8a868")), mid, [Vector2(0.26, 0.0), Vector2(0.275, 0.1), Vector2(0.27, 0.2), Vector2(0.26, 0.3), Vector2(0.235, 0.39)], 12)
-	var rope := p.st(Color("7a5a2a"))
-	for band in [Vector2(0.28, 0.1), Vector2(0.276, 0.2), Vector2(0.266, 0.3)]:
-		Shrine.lathe(rope, mid, [Vector2(band.x, band.y - 0.014), Vector2(band.x, band.y + 0.014)], 12)
-	Shrine.lathe(p.st(Color("6a4a2a")), mid, [Vector2(0.24, 0.4), Vector2(0.0, 0.4)], 12)
-	var node := p.st(Color("8abf6c"))
-	for s in [[Vector3(0, 0, -0.06), 1.3], [Vector3(-0.1, 0, 0.07), 1.05], [Vector3(0.1, 0, 0.07), 0.85]]:
-		var foot: Vector3 = mid + (s[0] as Vector3) + Vector3(0, 0.4, 0)
-		var top: float = s[1]
-		_cut_stalk(p, foot, 0.05, top - 0.4)
-		var y := 0.3
-		while y < top - 0.45:
-			Shrine.lathe(node, foot, [Vector2(0.056, y - 0.012), Vector2(0.056, y + 0.012)], 8)
-			y += 0.3
+	var straw := p.st(KADO_STRAW)
+	Shrine.lathe(straw, mid, [Vector2(0.27, 0.0), Vector2(0.285, 0.1), Vector2(0.28, 0.2), Vector2(0.27, 0.3), Vector2(0.245, 0.39),
+		Vector2(0.272, 0.41), Vector2(0.25, 0.425)], 12)
+	var cord := p.st(KADO_CORD)
+	for band in [Vector2(0.29, 0.1), Vector2(0.285, 0.2), Vector2(0.275, 0.3)]:
+		OutdoorProps._tube(cord, mid + Vector3(0, band.y - 0.022, 0), Vector3.UP,
+			[Vector2(band.x, 0.0), Vector2(band.x + 0.01, 0.01), Vector2(band.x + 0.01, 0.034), Vector2(band.x, 0.044)], 12, null)
+	Shrine.lathe(p.st(Color("6a4a2a")), mid, [Vector2(0.245, 0.405), Vector2(0.0, 0.405)], 12)
+	# Straw ends splayed out at the foot and fraying over the lip.
+	for k in 14:
+		var a := TAU * (k + 0.3) / 14.0
+		var out := Vector3(cos(a), 0, sin(a))
+		var foot := mid + out * 0.27 + Vector3(0, 0.01, 0)
+		OutdoorProps._tube(straw, foot, (out * 0.5 + Vector3(0, 0.85, 0)).normalized(), [Vector2(0.012, 0.0), Vector2(0.004, 0.09 + 0.02 * (k % 3))], 4, null)
+		OutdoorProps._tube(straw, mid + out * 0.255 + Vector3(0, 0.42, 0), (out * 0.9 + Vector3(0, 0.4, 0)).normalized(),
+			[Vector2(0.01, 0.0), Vector2(0.003, 0.07)], 4, null)
+	# The culms: bundle, cut on a slant, node rings.
+	var node := p.st(KADO_NODE)
+	var bundle := mid + Vector3(0, 0, 0.0267)
+	for s in [[Vector3(0, 0, -0.06), 1.3, 0.05, 0.0], [Vector3(-0.1, 0, 0.07), 1.05, 0.052, 0.09], [Vector3(0.1, 0, 0.07), 0.85, 0.046, 0.17]]:
+		_cut_stalk(p, mid + (s[0] as Vector3) + Vector3(0, 0.4, 0), float(s[2]), float(s[1]) - 0.4, float(s[3]))
+	# The wrap: a band of straw with two cord turns over it.
+	OutdoorProps._tube(straw, bundle + Vector3(0, 0.56, 0), Vector3.UP,
+		[Vector2(0.172, 0.0), Vector2(0.182, 0.02), Vector2(0.182, 0.1), Vector2(0.172, 0.12)], 12, null)
+	for y in [0.575, 0.665]:
+		OutdoorProps._tube(cord, bundle + Vector3(0, y, 0), Vector3.UP,
+			[Vector2(0.182, 0.0), Vector2(0.19, 0.008), Vector2(0.19, 0.024), Vector2(0.182, 0.032)], 12, null)
+	# Pine sprigs round the foot: a cone of dark boughs and fans of needles on each.
 	var pine := p.st(Color("2f5a34"))
 	var needle := p.st(Color("3a6e3c"))
-	for a in [0.0, 2.1, 4.2]:
-		var at := mid + Vector3(cos(a) * 0.17, 0.4, sin(a) * 0.17)
-		Shrine.lathe(pine, at, [Vector2(0.14, 0.0), Vector2(0.0, 0.24)], 8)
-		for k in 7:
-			var b: float = a + (k - 3) * 0.4
-			var d := Vector3(cos(b) * 0.8, 0.7 + 0.2 * (k % 3), sin(b) * 0.8).normalized()
-			OutdoorProps._tube(needle, at + Vector3(0, 0.03, 0), d, [Vector2(0.012, 0.0), Vector2(0.003, 0.24 + 0.04 * (k % 2))], 4, null)
+	var sn: SurfaceTool = p.st(FarmProps.Parts.SNOW) if snow else null
+	var rim := p.st(Color("224a2a"))
+	for j in 5:
+		var a := 0.5 + TAU * j / 5.0
+		var at := mid + Vector3(cos(a) * 0.185, 0.41, sin(a) * 0.185)
+		Shrine.lathe(pine, at, [Vector2(0.13, 0.0), Vector2(0.07, 0.12), Vector2(0.0, 0.28 + 0.02 * (j % 2))], 8)
+		Shrine.lathe(rim, at, [Vector2(0.15, -0.01), Vector2(0.13, 0.0)], 8)
+		for k in 9:
+			var b: float = a + (k - 4) * 0.33
+			var d := Vector3(cos(b) * 0.8, 0.55 + 0.25 * (k % 3), sin(b) * 0.8).normalized()
+			OutdoorProps._tube(needle, at + Vector3(0, 0.03, 0), d, [Vector2(0.011, 0.0), Vector2(0.003, 0.2 + 0.04 * (k % 2))], 4, null)
+		if sn != null:
+			Shrine.lathe(sn, at + Vector3(0, 0.03, 0), [Vector2(0.095, 0.0), Vector2(0.0, 0.25)], 8)
+	if sn != null:
+		Shrine.lathe(sn, mid, [Vector2(0.225, 0.43), Vector2(0.15, 0.455), Vector2(0.04, 0.46)], 12)
+	# A plum twig leaning out at the back, three blossoms.
+	var twig := p.st(Color("4a3424"))
+	var d_t := Vector3(-0.4, 0.8, -0.35).normalized()
+	var t_foot := mid + Vector3(0.1, 0.43, -0.05)
+	OutdoorProps._tube(twig, t_foot, d_t, [Vector2(0.012, 0.0), Vector2(0.006, 0.34)], 4, null)
+	var bloom := p.st(Color("f4d8e0"))
+	for q in [0.14, 0.24, 0.34]:
+		Shrine.lathe(bloom, t_foot + d_t * q + Vector3(0, 0.008, 0), [Vector2(0.04, 0.0), Vector2(0.03, 0.02), Vector2(0.0, 0.025)], 5)
 	p.commit(w)
 
 
-## A bamboo stalk of radius `rad` standing on `foot`, `len` high at its lowest point, its top cut
-## slantwise: a pale cut face with the dark hollow in the middle.
-static func _cut_stalk(p: FarmProps.Parts, foot: Vector3, rad: float, len: float) -> void:
+## A bamboo culm of radius `rad` standing on `foot`, `len` high at its lowest point, tapering a
+## little, a node ring every 0.28 (the first at `phase`), its top cut slantwise: a pale cut face
+## with the dark hollow in the middle.
+static func _cut_stalk(p: FarmProps.Parts, foot: Vector3, rad: float, len: float, phase := 0.0) -> void:
 	const SIDES := 8
 	const SLOPE := 0.7
-	var green := p.st(Color("5a9a48"))
+	var green := p.st(KADO_CULM)
 	var none := func(_q: Vector3) -> Vector2: return Vector2.ZERO
+	var r_top := rad * 0.9
 	var ring_top: Array[Vector3] = []
 	var ring_foot: Array[Vector3] = []
 	for k in SIDES:
 		var a := TAU * k / SIDES
 		ring_foot.append(foot + Vector3(cos(a) * rad, 0, sin(a) * rad))
-		ring_top.append(foot + Vector3(cos(a) * rad, len + 0.03 + SLOPE * rad * cos(a), sin(a) * rad))
+		ring_top.append(foot + Vector3(cos(a) * r_top, len + 0.03 + SLOPE * r_top * cos(a), sin(a) * r_top))
 	var face := foot + Vector3(0, len + 0.03, 0)
 	var n_cut := Vector3(-SLOPE, 1.0, 0).normalized()
 	var pale := p.st(Color("d8e8b0"))
@@ -357,6 +395,12 @@ static func _cut_stalk(p: FarmProps.Parts, foot: Vector3, rad: float, len: float
 		var inner_a: Vector3 = face + (ring_top[k] - face) * 0.55 + lift
 		var inner_b: Vector3 = face + (ring_top[k2] - face) * 0.55 + lift
 		Minka.tri(dark, face + lift, inner_a, inner_b, n_cut, none)
+	var node := p.st(KADO_NODE)
+	var y := 0.2 + phase
+	while y < len - 0.1:
+		var r := lerpf(rad, r_top, y / len)
+		OutdoorProps._tube(node, foot + Vector3(0, y, 0), Vector3.UP, [Vector2(r, -0.012), Vector2(r * 1.3, 0.0), Vector2(r, 0.012)], SIDES, null)
+		y += 0.28
 
 
 # --- the bonfire -------------------------------------------------------------------

@@ -547,6 +547,68 @@ static func _foam(st: SurfaceTool, at: Vector3, rx: float, rz: float, reach: flo
 		_tri(st, inner[k], outer[k2], outer[k], Vector3.UP)
 
 
+# --- the farm's bamboo fence ---------------------------------------------------------
+
+## The fence's aged bamboo: culm, node ring, cut face, hollow and the cord of the ties.
+const FENCE_CULM := Color("a6a45e")
+const FENCE_NODE := Color("c8c488")
+const FENCE_CUT := Color("e4dcaa")
+const FENCE_HOLLOW := Color("4a4630")
+const FENCE_CORD := Color("3a2c20")
+const FENCE_POST_H := 0.64
+const FENCE_CANE_H := 0.52
+const FENCE_RAILS: Array[float] = [0.2, 0.44]
+
+
+## A bamboo pole from `base` along `dir`, tapering r0 to r1, a node ring every `spacing`
+## (the first at `first`), the rings on `node_st`.
+static func pole(st: SurfaceTool, node_st: SurfaceTool, base: Vector3, dir: Vector3, r0: float, r1: float, length: float,
+		spacing: float, first: float, sides := 6) -> void:
+	_tube(st, base, dir, [Vector2(r0, 0.0), Vector2(r1, length)], sides, null)
+	var s := first
+	while s < length - 0.03:
+		var r := lerpf(r0, r1, s / length)
+		_tube(node_st, base + dir * s, dir, [Vector2(r, -0.012), Vector2(r * 1.3, 0.0), Vector2(r, 0.012)], sides, null)
+		s += spacing
+
+
+## A fence post at (x, z): a thick eight-sided culm with node rings, a cut top (pale face, dark
+## hollow), a cord tie at each rail height; snow caps it.
+static func fence_post(p: FarmProps.Parts, x: float, z: float) -> void:
+	var at := Vector3(x, 0, z)
+	pole(p.st(FENCE_CULM), p.st(FENCE_NODE), at, Vector3.UP, 0.062, 0.054, FENCE_POST_H, 0.21, 0.1, 8)
+	Shrine.lathe(p.st(FENCE_CUT), at, [Vector2(0.054, FENCE_POST_H), Vector2(0.0, FENCE_POST_H)], 8)
+	Shrine.lathe(p.st(FENCE_HOLLOW), at, [Vector2(0.03, FENCE_POST_H + 0.003), Vector2(0.0, FENCE_POST_H + 0.003)], 8)
+	var cord := p.st(FENCE_CORD)
+	for y in FENCE_RAILS:   # the cord turns round the post and the rail
+		_tube(cord, at + Vector3(0, y - 0.035, 0), Vector3.UP,
+			[Vector2(0.066, 0.0), Vector2(0.074, 0.012), Vector2(0.074, 0.058), Vector2(0.066, 0.07)], 8, null)
+	var sn := p.st(FarmProps.Parts.SNOW)
+	FarmProps.block(sn, Rect2(x - 0.06, z - 0.06, 0.12, 0.12), FENCE_POST_H + 0.006, Rect2(x - 0.035, z - 0.035, 0.07, 0.07), FENCE_POST_H + 0.034)
+
+
+## A thin cane standing at (x, z) between the posts: a node ring in the middle, a cut top.
+static func fence_cane(p: FarmProps.Parts, x: float, z: float) -> void:
+	var at := Vector3(x, 0, z)
+	pole(p.st(FENCE_CULM), p.st(FENCE_NODE), at, Vector3.UP, 0.045, 0.04, FENCE_CANE_H, 0.26, 0.26, 6)
+	Shrine.lathe(p.st(FENCE_CUT), at, [Vector2(0.04, FENCE_CANE_H), Vector2(0.0, FENCE_CANE_H)], 6)
+
+
+## A cross rail from `a` to `b` (both at the rail's height, along x or z): a bamboo pole with a
+## node ring each half cell, snow lying on the upper rail.
+static func fence_rail(p: FarmProps.Parts, a: Vector3, b: Vector3) -> void:
+	var d := b - a
+	var length := d.length()
+	pole(p.st(FENCE_CULM), p.st(FENCE_NODE), a, d / length, 0.036, 0.036, length, 0.5, 0.25, 6)
+	if a.y > FENCE_RAILS[0] + 0.01:
+		var lo := Vector3(minf(a.x, b.x), 0, minf(a.z, b.z))
+		var hi := Vector3(maxf(a.x, b.x), 0, maxf(a.z, b.z))
+		var along_x := absf(d.x) > absf(d.z)
+		var r0 := Rect2(lo.x, lo.z - 0.032, hi.x - lo.x, 0.064) if along_x else Rect2(lo.x - 0.032, lo.z, 0.064, hi.z - lo.z)
+		FarmProps.block(p.st(FarmProps.Parts.SNOW), r0,
+			a.y + 0.03, r0.grow(-0.012), a.y + 0.052)
+
+
 # --- helpers ------------------------------------------------------------------
 
 ## A triangle facing `n` (corners turned to it), no UVs.
