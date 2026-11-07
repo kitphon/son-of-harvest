@@ -39,6 +39,33 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
   art style of the other ground tiles; the 3D view still shows the painted tufts (not changed, as
   asked).
 
+## 2026-11-07 — The shore ice grows over the winter
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: the ice width is no longer one number all season. `data/snow_cover.json` "ice" gets `grow`:
+  `curve` (day of the season, factor: 1 -> 0.35, 8 -> 0.65, 16 -> 0.95, 22 -> 1.0, 26 -> 0.8,
+  30 -> 0.5, linear between), `cover_bonus` 0.2 (+20% at full snow cover, so snowy and blizzard days
+  and the days after them, while the snow lies, are wider) and `max` 4.4. `WaterIce.grown_width(style,
+  day, cover)` scales `width` [2, 4] by both and caps the top at `max`; `Game.ice_for(season, rules,
+  day, cover)` returns the style with that width (no day = the plain mid-winter data), and
+  `Game.ice_style()` passes today's day and `snow_cover`. Both views push the same style through
+  `WaterIce.push` (FarmWorld/WaterSurface.set_ice, WaterView.set_ice), so the shader and the flat
+  view follow one rule; they re-read it in `_show_weather` (each morning, each map change).
+  Reasoning: ice thickens through the cold, is widest in the deep of winter (about day 22, the
+  old 2..4), recedes in the last week as it warms, and snow insulates and adds a lip, so it
+  widens a little under cover. `max` 4.4, not 4.8: with land on all sides the open middle pixels
+  (centres 7.5 and 8.5) are 4.5 px from the bank line, so any width at or under 4.5 keeps them open;
+  the bobber (a cell's middle) and every fishing rule are untouched.
+- Checked: test_maps `_water_ice` new checks: thin early (day 1), widest at day 22, receding at day
+  30; snow widens on the same day; every day 1..30 at cover 0 / 50 / 100 stays positive, ordered,
+  at most `max` and within the open middle; no grown ice outside winter; WaterView takes the grown
+  width in its shader uniform. A first try with max 4.8 FAILED the middle check, which is why it is
+  4.4. Screenshots (`--demo --season=winter --weather=sunny --fishing=wait`, frame 19, 480 x 270,
+  farm pond): day 1 a thin rim, day 20 a clearly wider ragged rim. Rough count of pale
+  blue-white pixels in the frame (b > 200, r > 170, 8 < b - r < 45; includes some background):
+  day 1 snow 0: 1893; day 20 snow 0: 2072; day 20 snow 80: 2080; day 30 snow 0: 1859.
+- Left / next: only the pond's width is measured in screenshots (frame is small); ice on the paddies
+  is still open; the flat view's growth is checked by the uniform test, not by a screenshot.
+
 ## 2026-11-07 — The field takes the night lift
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: ART_DIRECTION section 3's "the field's objects and crops take no night lift". The

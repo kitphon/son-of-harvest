@@ -860,13 +860,21 @@ func dimple_style() -> Dictionary:
 ## Thin ice along the shore of the outdoor water today (data/snow_cover.json "ice"), {} when
 ## the season has none. Views leave it off indoors (sheltered).
 func ice_style() -> Dictionary:
-	return ice_for(season_name(), snow_rules)
+	return ice_for(season_name(), snow_rules, day, snow_cover)
 
 
 ## The ice style of season `season_id` under snow rules `rules` ({} when it has none).
-static func ice_for(season_id: String, rules: Dictionary) -> Dictionary:
+## With `day` (1..30 of the season, 0 = the full mid-winter width) and the snow lying `cover`
+## (0..100), the width is the one WaterIce.grown_width gives that day.
+static func ice_for(season_id: String, rules: Dictionary, day_of_season := 0, cover := 0) -> Dictionary:
 	var ice: Dictionary = rules.get("ice", {})
-	return ice if season_id in (ice.get("seasons", []) as Array) else {}
+	if not season_id in (ice.get("seasons", []) as Array):
+		return {}
+	if day_of_season <= 0 or not ice.has("grow"):
+		return ice
+	var out := ice.duplicate(true)
+	out["width"] = WaterIce.grown_width(ice, day_of_season, cover / 100.0)
+	return out
 
 
 ## The wind today, 0 (dead calm) .. 1 (a gale): data/wind.json by today's look. Views push it

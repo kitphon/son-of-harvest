@@ -234,6 +234,8 @@ Light and Farmhouse model hold the technical detail of what is built.
       glints, the bobber's rings and rain dimples are drawn on open water only. Numbers and colours in
       `data/snow_cover.json` "ice" (seasons, width, alphas, cracks, frost, snow, colours);
       `Game.ice_style()`, `FarmWorld.set_ice`, `WaterView.set_ice`; none in spring to fall or indoors.
+      The ice grows over the winter (`ice.grow`: a day curve thin at the start, widest about day 22, receding
+      to the end, +20% under snow cover, capped at 4.4 px; `WaterIce.grown_width`), in both views.
       Tests: test_maps `_water_ice` (and the scene: winter ices the farm pond, spring thaws it),
       test_view2d `_water` / `_check_water`.
       (this commit) Flat view: `WaterView` (scripts/world/water_view.gd), a Sprite2D over the water
