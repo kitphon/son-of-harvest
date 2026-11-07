@@ -53,6 +53,11 @@ static func art_key(p: Dictionary) -> String:
 	return key
 
 
+## The art key of the display on a stall prop's counter (data: "display"), "" for none.
+static func display_key(p: Dictionary) -> String:
+	return "festival:display_%s:1x1" % p.display if p.has("display") else ""
+
+
 ## The middle of a decoration's cells, in pixels: where its picture stands.
 static func ground_mid(p: Dictionary) -> Vector2:
 	var size: Array = p.get("size", [1, 1])
@@ -80,3 +85,6 @@ func _draw() -> void:
 				var tex := PlaceholderArt.tex(PlaceholderArt.item_key(str(stock[i].item)))
 				var x := mid.x - w / 2 + w * (i + 0.5) / stock.size()
 				draw_texture(tex, Vector2(x - tex.get_width() / 2.0, mid.y - 4 - tex.get_height()).round())
+			if p.has("display"):   # a stall that sells nothing sets out a display (StallWares.DISPLAYS)
+				var show := PlaceholderArt.tex(display_key(p))
+				draw_texture(show, Vector2(mid.x - 4 - show.get_width() / 2.0, mid.y - 4 - show.get_height()).round())

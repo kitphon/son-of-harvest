@@ -94,14 +94,20 @@ func _stalls() -> void:
 	var wares: GDScript = load("res://scripts/world3d/stall_wares.gd")
 	var meshes: GDScript = load("res://scripts/world3d/festival_meshes.gd")
 	for id in fest.all():
-		for s in fest.stalls(id):
-			var cloth := Color("c8442c")
-			for p in fest.get_festival(id).get("props", []):
-				if str(p.kind) == "stall" and int(p.cell[0]) == int(s.cell[0]) and int(p.cell[1]) == int(s.cell[1]):
-					cloth = Color(str(p.get("cloth", "c8442c")))
+		for p in fest.get_festival(id).get("props", []):
+			if str(p.kind) != "stall":
+				continue
+			var s: Dictionary = fest.stall_of_prop(id, p)
+			if s.is_empty() and not p.has("display"):
+				continue
+			var cloth := Color(str(p.get("cloth", "c8442c")))
 			var r := Rect2(_stall_ids.size() * STALL_STEP, 0, 2, 1)
 			var mid := Vector3(r.get_center().x, 0, r.get_center().y)
 			meshes.stall(_house, mid, r, cloth)
+			if s.is_empty():   # a display only (goldfish tub, masks)
+				wares.display(_house, mid, r, str(p.display))
+				_stall_ids.append("%s_%s" % [id, p.display])
+				continue
 			wares.build(_house, mid, r, s.get("stock", []).map(func(st: Dictionary) -> String: return str(st.item)))
 			_stall_ids.append(fest.stall_shop_id(id, s).replace(":", "_"))
 	_views = _stall_ids.duplicate()

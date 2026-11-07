@@ -10,7 +10,9 @@ const GameRules := preload("res://scripts/autoload/game.gd")   # SEASONS, DAYS_P
 const PATH := "res://data/festivals.json"
 const KEYS: Array[String] = ["_note", "name", "season", "day", "hours", "map", "place", "event",
 	"closes", "props", "fireworks", "contest", "game", "stall"]
-const PROP_KEYS: Array[String] = ["kind", "cell", "size", "cloth"]
+## The displays a stall prop may set out when it sells nothing (StallWares builds them).
+const DISPLAYS: Array[String] = ["goldfish", "masks"]
+const PROP_KEYS: Array[String] = ["kind", "cell", "size", "cloth", "display"]
 const CONTEST_KEYS: Array[String] = ["_note", "name", "takes", "table", "ask", "in_season", "rivals",
 	"prizes", "event"]
 const GAME_KEYS: Array[String] = ["_note", "id", "name", "kind", "cell", "partners", "lead", "gap", "rounds",
@@ -534,6 +536,8 @@ static func _check_prop(p: Variant, m: MapData) -> String:
 	for k in p:
 		if not k in PROP_KEYS:
 			return "unknown key " + k
+	if p.has("display") and (p.kind != "stall" or not str(p.display) in DISPLAYS):
+		return "display is only for a stall, one of %s" % [DISPLAYS]
 	var c: Variant = p.get("cell")
 	var size: Variant = p.get("size", [1, 1])
 	if not c is Array or c.size() != 2 or not size is Array or size.size() != 2 or size[0] < 1 or size[1] < 1:

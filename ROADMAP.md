@@ -29,6 +29,7 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 [x] Flat view farmer: the FigureArt figure (24 x 32, FarmerAnim poses) instead of the drawn stand-in (Player "Figure" sprite).
 [x] Cucumber and tomato vines on stakes as clusters, the wind on every tall crop (2026-11-07; ART_DIRECTION, Rice and tall crops).
 [x] Festival stalls' wares as lit meshes (2026-11-07): every selling stall's goods on its counter (StallWares: skewers, bowls, griddle, chimes, fans, daruma, charms; steam over hot food), the curtain a little shorter so they show (ART_DIRECTION section 1).
+[x] Lantern Night's two bare stalls (2026-11-07): a goldfish-scooping tub with swimming fish and paper scoops, and a stand of festival masks, as a stall prop's `display` (StallWares, both views; ART_DIRECTION section 1).
 [x] Hill trees (2026-11-07): six broadleaf trees on the bamboo hill (data/maps/hill.json: persimmons and sakuras), red or gold in fall, bare with snow in winter (ART_DIRECTION, Trees).
 Art direction (2026-11-03): the user wants an "HD-2D lite" look, Japanese countryside: pixel
 sprites in a lit 3D world. [x] Light pass (sun shadows on the ground, warm sun / cool shade,

@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Lantern Night's two bare stalls get a display
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: the two Lantern Night stalls that sell nothing (WORKLOG "festival stalls' wares as lit
+  meshes": "stay bare") now show a fair display, as a stall prop's new `display` key in
+  data/festivals.json (`Festivals.DISPLAYS` = goldfish, masks; `Festivals._check_prop` refuses it on
+  a non-stall or an unknown name). `StallWares.display` (3D): a goldfish-scooping tub (hooped wooden
+  tub, blue floor, see-through water, four goldfish as `StallWares.Swimmers`, each a small lit mesh
+  swimming its own circle and wiggling, kept under the water; a glass bowl of two spare fish, three
+  paper scoops on a tray, a cloth sign on a stick) and a two-tier stand of masks (fox, demon,
+  round-faced, rabbit, tanuki, all our own shapes, tilted back). Same slot limits as the wares (one
+  lit mesh, counter front half, under 0.28, clear of the lantern). Flat view: `festival:display_goldfish`
+  and `festival:display_masks` pictures drawn on the counter by FestivalView (`display_key`).
+  `tools/house_model.gd --what=stalls` includes them. A lathe closes an end that has a radius (a
+  lid!) - the tub's profile therefore ends on the axis and its hoops are bands (`_band`).
+- Checked: test_maps `_stall_wares` (each display: one lit vertex-coloured mesh, no wares or
+  pictures, on the counter within the posts and clear of the lantern, under TALL; the goldfish move,
+  stay in the tub under the water and wiggle; every display used; no Lantern Night stall bare; run
+  with TALL 0.2 it failed 7 checks, so it bites), test_festivals (data check of display; flat
+  pictures drawn, not magenta, standing on the counter). Looked at `--what=stalls` renders from the
+  game's angle and the flat pictures enlarged. An in-game `--festival=lantern_night --map=town@...`
+  frame did not show the stalls (the spawn did not put them in view), so they were not seen in the
+  running game's village, only in the stall renders.
+- Left / next: nothing open for the stalls.
+
 ## 2026-11-07 — The festival stalls' wares as lit meshes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: docs/ART_DIRECTION.md section 1's open item. `scripts/world3d/stall_wares.gd` (StallWares)
