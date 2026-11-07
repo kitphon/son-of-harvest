@@ -1,8 +1,9 @@
 class_name MapFade
 extends CanvasLayer
 ## The short fade to black when the farmer changes maps (doors, waking up, loading). The
-## clock and the farmer wait while it runs (a Game pause); at black the view swaps the map,
-## and when the picture is back Game.map_arrived() says the farmer is there.
+## clock and the farmer wait until it starts back from black (a Game pause); at black the view
+## swaps the map, and as the picture comes back the farmer may walk and Game.map_arrived()
+## says the farmer is there.
 ##
 ## Building a map takes a long frame (and the first frames that draw it compile shaders), so
 ## the screen stays black for HOLD_FRAMES frames after the swap, and every step of the fade is
@@ -20,6 +21,7 @@ var _swap: Callable
 var _busy := false
 var _phase := ""             # "out", "hold", "in" while busy
 var _hold := 0
+var _pausing := false        # holding a Game pause (out and black)
 
 
 func _init() -> void:
@@ -37,10 +39,11 @@ func run(swap: Callable) -> void:
 	_swap = swap
 	if _busy:
 		_phase = "out"   # past black already: go (or stay) dark and swap again
+		_pause(true)
 		return
 	_busy = true
 	_phase = "out"
-	Game.pause()
+	_pause(true)
 	set_process(true)
 
 
@@ -66,6 +69,8 @@ func _process(delta: float) -> void:
 			_hold -= 1
 			if _hold <= 0:
 				_phase = "in"
+				_pause(false)   # the farmer may walk as the picture comes back
+				Game.map_arrived()
 		"in":
 			_rect.color.a = maxf(0.0, _rect.color.a - step / IN_SECONDS)
 			if _rect.color.a <= 0.0:
@@ -76,12 +81,17 @@ func _done() -> void:
 	_busy = false
 	_phase = ""
 	set_process(false)
-	Game.unpause()
-	Game.map_arrived()
+
+
+func _pause(on: bool) -> void:
+	if on and not _pausing:
+		Game.pause()
+	elif not on and _pausing:
+		Game.unpause()
+	_pausing = on
 
 
 ## Leaving the scene mid-fade (back to the title) must not leave the clock paused.
 func _exit_tree() -> void:
-	if _busy:
-		_busy = false
-		Game.unpause()
+	_busy = false
+	_pause(false)

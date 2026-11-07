@@ -18,8 +18,11 @@ func _init() -> void:
 		if not file.ends_with(".json"):
 			continue
 		if file.begins_with("triggers_"):
-			var t := EventTriggers.open(file.get_basename().trim_prefix("triggers_"))
-			check(t.error == "" and not t.rows.is_empty(), "data/events/%s loads (%s)" % [file, t.error])
+			var t := EventTriggers.open(file.get_basename().trim_prefix("triggers_"), true)
+			check(t.error == "" and not t.rows.is_empty(), "data/events/%s loads, every event checked (%s)" % [file, t.error])
+			var quick := EventTriggers.open(file.get_basename().trim_prefix("triggers_"))
+			check(quick.error == "" and quick.rows.size() == t.rows.size() and EventTriggers.open(quick.map_id) == quick,
+				"data/events/%s: the game's quick look-up has the same rows and keeps the table" % file)
 		else:
 			var r := EventRunner.open(file.get_basename(), g)
 			check(r.error == "" and not r.done(), "data/events/%s loads (%s)" % [file, r.error])

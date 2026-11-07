@@ -23,18 +23,29 @@ static func path(map: String) -> String:
 	return EventRunner.DIR + "triggers_%s.json" % map
 
 
-## The table for map `map`. A map without a file has no events (not an error).
-static func open(map: String) -> EventTriggers:
+## The table for map `map`. A map without a file has no events (not an error). The game's
+## look-up (`deep` false) only checks that each row's event file is there, and keeps the table:
+## checking every event's steps and lines took 1.5 s on entering the village (playtest
+## 2026-11-07: the farmer stood frozen after each map change). `deep` checks every event as
+## well (test_events does, for every table).
+static func open(map: String, deep := false) -> EventTriggers:
+	if not deep and _kept.has(map):
+		return _kept[map]
 	var data: Variant = {"rows": []}
 	if FileAccess.file_exists(path(map)):
 		data = JSON.parse_string(FileAccess.get_file_as_string(path(map)))
-	var t := EventTriggers.new(data)
+	var t := EventTriggers.new(data, deep)
 	t.map_id = map
+	if not deep:
+		_kept[map] = t
 	return t
 
 
-func _init(data: Variant) -> void:
-	error = _check(data)
+static var _kept := {}   # map id -> its table, read once (open without deep)
+
+
+func _init(data: Variant, deep := true) -> void:
+	error = _check(data, deep)
 	if error != "":
 		rows = []
 
@@ -118,19 +129,20 @@ static func _within(v: int, pair: Array) -> bool:
 
 # --- checking the data ------------------------------------------------------
 
-func _check(data: Variant) -> String:
+func _check(data: Variant, deep := true) -> String:
 	if not data is Dictionary or not data.get("rows") is Array:
 		return "Trigger table has no rows list"
 	rows = data.rows
 	for i in rows.size():
-		var err := check_row(rows[i])
+		var err := check_row(rows[i], deep)
 		if err != "":
 			return "Row %d: %s" % [i, err]
 	return ""
 
 
-## "" when `row` is a trigger we can check, else what is wrong with it.
-static func check_row(row: Variant) -> String:
+## "" when `row` is a trigger we can check, else what is wrong with it. `deep`: its event is
+## checked step by step too (else only that its file is there).
+static func check_row(row: Variant, deep := true) -> String:
 	if not row is Dictionary:
 		return "not a dictionary"
 	for k in row:
@@ -138,9 +150,12 @@ static func check_row(row: Variant) -> String:
 			return "unknown key %s" % k
 	if not row.get("event") is String:
 		return "no event"
-	var r := EventRunner.open(row.event, null)
-	if r.error != "":
-		return "event %s: %s" % [row.event, r.error]
+	if deep:
+		var r := EventRunner.open(row.event, null)
+		if r.error != "":
+			return "event %s: %s" % [row.event, r.error]
+	elif EventRunner.read(row.event) == null:
+		return "event %s: No event %s" % [row.event, row.event]
 	var on: Variant = row.get("on")
 	var causes: Array = on if on is Array else [on]
 	if causes.is_empty() or not causes.all(func(c): return c is String and c in CAUSES):

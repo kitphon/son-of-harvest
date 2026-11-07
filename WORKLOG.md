@@ -10,6 +10,29 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Run through exits, walk at once after a map change
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user's second playtest round (docs/FEEDBACK.md → Fixed). Running: Player found a
+  door or map exit 1 px past the blocked feet, but a blocked step leaves the feet up to one
+  step short (running 1.7 px), so a run stopped at the edge; the look now reaches
+  `1 + step.length()` px past the feet. The freeze after arriving: measured in a window,
+  Game.map_arrived took 1210 ms on the village (EventPlayer.enter_map → EventTriggers.open,
+  which ran the full EventRunner check of all 37 rows' events, dialogue lines and all).
+  `EventTriggers.open(map, deep := false)`: the game's look-up checks only that each row's
+  event file is there and keeps the table per map (`_kept`); `deep` checks every event as
+  before (test_events uses it for every table; `check_row` and `new` stay deep by default).
+  MapFade now lets go of the pause and calls Game.map_arrived() when the fade starts back
+  from black, not when it ends.
+- Checked: all 28 test scripts print OK (0 failed); smoke runs (title, --demo, --demo --map=town,
+  --demo --mine=3) logged no errors or warnings. test_maps new checks:
+  running into the village's west exit 0.2, 1.0 and 1.6 px short of the edge goes through
+  (with the old look 1.0 and 1.6 failed: "FAIL: walking: running into the village's west exit
+  1.0 px short of the edge goes through ([], running true)"); the farmer may walk while the
+  fade comes back. test_events: each table's quick look-up has the deep check's rows and is
+  kept. In a window (throwaway script), farm → village holding right: the farmer moved from
+  t=0.47 s after the door (was 0.88 s, with a 7 fps frame on arrival); no frame under 60 fps
+  after arriving.
+- Left / next: nothing open from this round.
 ## 2026-11-07 — Smooth map changes, no getting stuck
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user's own playtest (docs/FEEDBACK.md → Fixed). Map changes: measured in a window,

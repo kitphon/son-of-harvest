@@ -23,6 +23,15 @@ None right now.
 4. ~~Item 6 (night), then 7 and 8.~~ Fixed.
 
 ## Fixed
+- The user's playtest (2026-11-07, second round), running never went through an exit: blocked
+  feet stop up to one step short of the edge (running 1.7 px a frame), and the exit was looked
+  for only 1 px past the feet, so only walking (1 px a frame) reached it. The look now reaches
+  a step past the feet. Commit: see WORKLOG 2026-11-07 "Run through exits, walk at once".
+- Same playtest, the farmer couldn't move for 1–2 s after a map change: arriving re-read the
+  map's trigger table and checked every event in it step by step, 1.2–1.5 s for the village's
+  37 rows, in one frame. Now the game's look-up only checks that each event's file is there and
+  keeps the table (the full check stays in test_events), and the farmer may walk as soon as
+  the picture starts back from black. Same commit.
 - The user's own playtest (2026-11-07), changing maps was slow and jerky: the whole new map was
   built in one long frame (35–240 ms; the farm the most), and the fade back in jumped half way
   on that frame, so the stutter showed. Now the fade steps at most 1/30 s a frame, stays black

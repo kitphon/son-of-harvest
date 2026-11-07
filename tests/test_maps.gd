@@ -2627,7 +2627,24 @@ func _walk_slide() -> void:
 	farm.cell(mid + Vector2i.LEFT).obj = FarmGrid.Obj.ROCK
 	r.position = Vector2(mid.x * 16 + 8, mid.y * 16 + 8)
 	check(not r._try_move(Vector2(-4, 0)), "walking: but not into the next one")
-	for n in [p, q, r]:
+	# Running into a map's edge exit (playtest 2026-11-07: only walking went through): the feet
+	# stop up to a running step short of the edge, and the exit is still found.
+	g.maps.place("town", Vector2i(0, 10), Vector2i.LEFT)
+	var e: Node2D = load("res://scripts/player/player.gd").new()
+	e.farm = saved_farm
+	var entered := []
+	e.action.connect(func(kind, origin, face, _c): entered.append([kind, origin, face]))
+	for gap_px in [0.2, 1.0, 1.6]:
+		entered.clear()
+		e.position = Vector2(5.0 + gap_px, 10 * 16 + 10)
+		Input.action_press("move_left")
+		Input.action_press("run")
+		e._physics_process(1.0 / 60.0)
+		Input.action_release("move_left")
+		Input.action_release("run")
+		check(not entered.is_empty() and entered[0][0] == "enter" and entered[0][2] == Vector2i.LEFT,
+			"walking: running into the village's west exit %.1f px short of the edge goes through (%s, running %s)" % [gap_px, entered, e.running])
+	for n in [p, q, r, e]:
 		n.free()
 	g.farm = saved_farm
 	g.maps.id = saved_id
@@ -2659,6 +2676,7 @@ func _fade_steps() -> void:
 	check(is_equal_approx(f.alpha(), 1.0), "fade: black for %d frames after the swap" % HOLD)
 	f._process(1.0)
 	check(f.alpha() < 1.0 and f.alpha() >= 1.0 - MAX_STEP / IN_S - 0.001, "fade: back in by small steps (%.2f)" % f.alpha())
+	check(f.busy() and not g.paused(), "fade: the farmer may walk as the picture comes back")
 	f.run(func(): swaps[0] += 10)   # a second change on the way back: dark again, swapped again
 	frames = 0
 	while f.busy() and frames < 200:

@@ -77,7 +77,8 @@ func _physics_process(delta: float) -> void:
 		queue_redraw()
 		# Walking into a door (or off the map at an exit) goes through it.
 		var pushed := not moved_x if facing.x != 0 else not moved_y
-		var ahead := cell_of(position + Vector2(facing) * (FEET + Vector2.ONE))
+		# Blocked feet stop up to one step short of the edge (running: 1.7 px), so look a step ahead.
+		var ahead := cell_of(position + Vector2(facing) * (FEET + Vector2.ONE * (1.0 + step.length())))
 		if pushed and not Game.maps.door_at(ahead).is_empty():
 			action.emit("enter", ahead - facing, facing, 0)
 			return
