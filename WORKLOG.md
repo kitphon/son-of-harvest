@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Painted paddy ground in the flat view
+Agent: Claude Code (claude-haiku) · Commit: this commit
+- Done: the flat view's calm paddy ground (CropPatches.paddy_ground, MapView.ground_key_in) is now
+  painted in the same pixel style as the other ground tiles, not a flat fill. `paddy_mud` (winter,
+  drained): dark mud with grain, pale wet-sheen streaks with a dark line under each, two puddles
+  (blue-grey pool, darker lower edge, a light glint) and short straw bits. `paddy_flood` (spring to
+  fall, still water): a soft sky reflection as two pale bands (the middle lighter than the ends),
+  three small ripple lines (a pale stroke over a dark one) and a few specks. Every feature is drawn
+  with the new `PlaceholderArt._wrap`, which wraps past the tile's edges, so the tiles repeat
+  without a seam. The palette stays in PlaceholderArt, as the other ground tiles' does (the ground
+  colours were never in data; data/paddy.json keeps the patch colours). The 3D view's painted
+  paddy tile is unchanged.
+- Checked: test_view2d `_paddy_tiles` (after `_paddy_ground`): each variant of both tiles has at
+  least four colours; the wrap column and row are no harsher than the tile's worst inside
+  neighbouring column or row (mean colour difference); the mud carries no water or stubble colour
+  of data/paddy.json. Output: `test_view2d: OK (0 failed)`. test_maps: `test_maps: OK (0 failed)`.
+  Smoke: `res://scenes/main_2d.tscn -- --demo --map=kaminoda --season=winter` and `--season=summer`
+  (--quit-after 300) ran with no error lines. Screenshots (`--write-movie`, frame 19, zoomed 4x on
+  the paddies): the winter mud reads as wet mud with puddles and straw under the stubble; in
+  summer the water shows between the tall rice as small blue bits (the rice covers most of it).
+  shots/ deleted.
+- Left / next: the seam check is a heuristic (a mean over one column or row against the tile's
+  own neighbours), not a pixel-exact tiling test. The flood tile's sky reflection shows only
+  between rice in the flat view, so it was not judged alone at full size. Not run: a mutation
+  test of the seam check.
+
 ## 2026-11-07 — Glint on the winter water patches
 Agent: Claude Code (claude-haiku) · Commit: this commit
 - Done: the flat view's winter water patches (CropPatches.draw_water, the Kaminoda paddies) glint.

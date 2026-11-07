@@ -567,6 +567,15 @@ static func _px(img: Image, x: int, y: int, w: int, h: int, c: Color) -> void:
 		img.fill_rect(r, c)
 
 
+## A w x h block at (x, y) that wraps past the image's edges, so a tile's features that run over
+## an edge reappear on the far side and the tile repeats without a seam.
+static func _wrap(img: Image, x: int, y: int, w: int, h: int, c: Color) -> void:
+	var size := img.get_size()
+	for j in h:
+		for i in w:
+			img.set_pixel(posmod(x + i, size.x), posmod(y + j, size.y), c)
+
+
 ## Filled ellipse, tested at pixel centres.
 static func _oval(img: Image, cx: float, cy: float, rx: float, ry: float, c: Color) -> void:
 	for y in range(floori(cy - ry), ceili(cy + ry) + 1):
@@ -1338,17 +1347,51 @@ static func _ground(kind: String, n: int) -> Image:
 			# The flat view's paddy ground where rice is drawn over it (CropPatches.paddy_ground):
 			# the same still water as "paddy" but no painted tufts, the plants are drawn on top.
 			# Two faint strips of sky on the water and a few dark specks keep it from looking flat.
+			# Every feature wraps past the tile's edges (_wrap), so the tile repeats without a seam.
 			img.fill(Color("6a94a0"))
-			for i in 2:
-				_px(img, rng.randi_range(1, 9), rng.randi_range(2, 13), rng.randi_range(3, 4), 1, Color("7fa8b2"))
-			for i in 4:
-				_px(img, rng.randi_range(0, 15), rng.randi_range(0, 15), 1, 1, Color("5e8a94"))
+			for i in 2:   # a soft sky reflection: a pale band, its middle lighter than its ends
+				var x := rng.randi_range(0, 15)
+				var y := rng.randi_range(1, 14)
+				var w := rng.randi_range(5, 8)
+				_wrap(img, x, y, w, 1, Color("7fa8b2"))
+				_wrap(img, x + 1, y, w - 2, 1, Color("8fb6be"))
+			for i in 3:   # small ripple lines: a pale stroke with a dark one under it
+				var x := rng.randi_range(0, 15)
+				var y := rng.randi_range(0, 15)
+				var w := rng.randi_range(2, 4)
+				_wrap(img, x, y, w, 1, Color("8fb6be"))
+				_wrap(img, x + 1, y + 1, w - 1, 1, Color("5e8a94"))
+			for i in 3:
+				_wrap(img, rng.randi_range(0, 15), rng.randi_range(0, 15), 1, 1, Color("5e8a94"))
 		"paddy_mud":
-			# The flat view's paddy ground in winter, drained after the harvest: plain dark mud with
-			# faint grain, so the cut stubble and the grey-blue water patches read against it.
+			# The flat view's paddy ground in winter, drained after the harvest: dark mud with grain,
+			# a wet sheen in pale streaks, a few puddles (dark blue-grey, a light glint on each) and
+			# straw bits from the cut stubble, so the stubble and the water patches read against it.
+			# Every feature wraps past the tile's edges (_wrap), so the tile repeats without a seam.
 			img.fill(Color("6e604c"))
 			for i in 12:
-				_px(img, rng.randi_range(0, 15), rng.randi_range(0, 15), 1, 1, Color("5a4e40") if i % 2 == 0 else Color("7a6a55"))
+				_wrap(img, rng.randi_range(0, 15), rng.randi_range(0, 15), 1, 1, Color("5a4e40") if i % 2 == 0 else Color("7a6a55"))
+			for i in 4:   # wet sheen: a short pale streak with a dark line under it
+				var x := rng.randi_range(0, 15)
+				var y := rng.randi_range(0, 15)
+				var w := rng.randi_range(2, 4)
+				_wrap(img, x, y, w, 1, Color("86806c"))
+				_wrap(img, x + 1, y + 1, w - 1, 1, Color("5a4e40"))
+			for i in 2:   # puddles: a rounded blue-grey pool, darker along its lower edge
+				var x := rng.randi_range(0, 11)
+				var y := rng.randi_range(1, 12)
+				_wrap(img, x + 1, y, 3, 1, Color("56666c"))
+				_wrap(img, x, y + 1, 5, 2, Color("56666c"))
+				_wrap(img, x + 1, y + 3, 3, 1, Color("4a5a5e"))
+				_wrap(img, x + 1, y + 1, 2, 1, Color("8aa0a6"))
+			for i in 4:   # straw bits: short dull gold strokes, lying every way
+				var x := rng.randi_range(0, 15)
+				var y := rng.randi_range(0, 15)
+				var c := Color("9c8752") if i % 2 == 0 else Color("7a6840")
+				if i % 2 == 0:
+					_wrap(img, x, y, 2, 1, c)
+				else:
+					_wrap(img, x, y, 1, 2, c)
 		"wall":
 			img.fill(Color("3e3028"))
 		"cave":
