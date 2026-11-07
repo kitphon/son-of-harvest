@@ -60,6 +60,7 @@ func _process(delta: float) -> bool:
 		_outdoor_props()
 		_field_props()
 		_festival_meshes()
+		_stall_wares()
 		_bamboo_pieces()
 		_grass()
 		_crop_clusters()
@@ -1756,7 +1757,7 @@ func _field_props() -> void:
 
 ## The festival decorations (FestivalMeshes): every prop of every festival as lit meshes only
 ## (the paper of the lanterns and the flame unshaded), faces turned out, near their cells and as
-## tall as before, the lights (glows) listed as before, the wares still pictures.
+## tall as before, the lights (glows) listed as before (the wares: `_stall_wares`).
 func _festival_meshes() -> void:
 	var fprops: GDScript = load("res://scripts/world3d/festival_props.gd")
 	var kinds := {}
@@ -1786,6 +1787,94 @@ func _festival_meshes() -> void:
 			check((rep.unlit > 0) == paper, "%s: %d unshaded parts" % [kind, rep.unlit])
 			fpn.free()
 	check(kinds.size() >= 12, "festival kinds checked: %d" % kinds.size())
+
+
+## The festival stalls' wares (StallWares): every item any stall sells has a mesh; each selling
+## stall of every festival sets its stock out as one lit vertex-coloured mesh (no pictures left),
+## faces turned out, on the counter top between the posts and under the curtain's hem, no taller
+## than TALL; steam over each hot item, rising and fading; the wind chimes' strips blow in the
+## wind with the curtain; the lights unchanged (one per stall); an item without a mesh keeps its
+## picture in its slot.
+func _stall_wares() -> void:
+	var fprops: GDScript = load("res://scripts/world3d/festival_props.gd")
+	var sw: GDScript = load("res://scripts/world3d/stall_wares.gd")
+	var stalls := 0
+	for fest in Festivals.all():
+		var data: Dictionary = Festivals.get_festival(fest)
+		for s in Festivals.stalls(fest):
+			var items: Array = s.get("stock", []).map(func(it: Dictionary) -> String: return str(it.item))
+			var no_look := items.filter(func(it: String) -> bool: return not sw.has_look(it))
+			check(no_look.is_empty(), "%s: every ware has a mesh (%s without)" % [fest, no_look])
+			var prop: Dictionary = {}
+			for p in data.get("props", []):
+				if str(p.kind) == "stall" and Festivals.stall_of_prop(fest, p) == s:
+					prop = p
+			if prop.is_empty():
+				check(false, "%s: the stall at %s has a prop" % [fest, s.cell])
+				continue
+			stalls += 1
+			var fpn: Node3D = fprops.new(str(data.get("map", "town")))
+			fpn.festival = fest
+			fpn._make(prop)
+			var r := Rect2(Vector2(prop.cell[0], prop.cell[1]), Vector2(prop.size[0], prop.size[1]))
+			var mid := Vector3(r.get_center().x, 0, r.get_center().y)
+			var sprites := fpn.get_children().filter(func(n): return n is Sprite3D).size()
+			var ware_meshes := fpn.get_children().filter(func(n): return n is MeshInstance3D and n.has_meta("wares"))
+			var steams := fpn.get_children().filter(func(n): return n is Node3D and n.has_method("strength"))
+			var hot := items.filter(func(it: String) -> bool: return it in sw.STEAMING).size()
+			check(sprites == 0 and ware_meshes.size() == 1 and fpn.wares == items.size(),
+				"%s %s: %d pictures, %d ware meshes, %d wares counted (%d sold)" % [fest, s.get("id", ""), sprites, ware_meshes.size(), fpn.wares, items.size()])
+			if ware_meshes.size() != 1:
+				fpn.free()
+				continue
+			var mi: MeshInstance3D = ware_meshes[0]
+			var mat: StandardMaterial3D = mi.material_override
+			var arr: Array = mi.mesh.surface_get_arrays(0)
+			var lo := Vector3(1e9, 1e9, 1e9)
+			var hi := -lo
+			var bad := 0
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+			for i in range(0, v.size(), 3):
+				var c := (v[i + 1] - v[i]).cross(v[i + 2] - v[i])
+				if c.length() > 1e-9 and c.dot(nm[i]) >= 0.0:
+					bad += 1
+			for q in v:
+				lo = lo.min(q)
+				hi = hi.max(q)
+			var colours := {}
+			for c in (arr[Mesh.ARRAY_COLOR] as PackedColorArray):
+				colours[c.to_html(false)] = true
+			check(mi.get_meta("wares") == items and mat.vertex_color_use_as_albedo and mat.shading_mode != BaseMaterial3D.SHADING_MODE_UNSHADED
+					and colours.size() >= 6 and bad == 0 and v.size() / 3 > 300,
+				"%s %s: wares %s as one lit mesh, %d tris, %d colours, %d facing faults" % [fest, s.get("id", ""), mi.get_meta("wares"), v.size() / 3, colours.size(), bad])
+			var wd := r.size.x - 0.2   # FestivalMeshes.stall: posts at mid.x +- wd / 2, the counter top z -0.43..0.23
+			var on_counter: bool = lo.y >= sw.COUNTER_TOP - 0.03 and hi.y <= sw.COUNTER_TOP + sw.TALL and hi.y < 1.25 - 0.2 \
+				and lo.x >= mid.x - wd / 2 + 0.03 and hi.x <= mid.x + wd / 2 - 0.03 and lo.z >= mid.z - 0.43 and hi.z <= mid.z + 0.23
+			check(on_counter, "%s %s: wares on the counter, x %.2f..%.2f (posts %.2f / %.2f), y %.3f..%.3f, z %.2f..%.2f (counter %.2f..%.2f)" % [
+				fest, s.get("id", ""), lo.x, hi.x, mid.x - wd / 2, mid.x + wd / 2, lo.y, hi.y, lo.z, hi.z, mid.z - 0.43, mid.z + 0.23])
+			check(steams.size() == hot, "%s %s: steam over %d hot wares (%d)" % [fest, s.get("id", ""), hot, steams.size()])
+			for st in steams:
+				var before: Vector3 = st.get_child(0).position
+				var a0: float = st.strength()
+				st._process(0.4)
+				check(st.get_child(0).position != before and st.strength() > 0.0 and st.strength() <= 3 * 0.6 and a0 > 0.0,
+					"%s: steam moves and fades (%.2f then %.2f)" % [fest, a0, st.strength()])
+			check(fpn.glows.size() == 1 and fpn.glows[0].pool == "stall", "%s %s: the stall's one light (%d)" % [fest, s.get("id", ""), fpn.glows.size()])
+			var sway: Node = fpn.get_node_or_null("WindSway")   # OutdoorProps.SWAY
+			var cloth: int = sway.count_of("cloth") if sway != null else 0
+			var strips := 2 if "keep:wind_chime" in items else 0
+			var pieces := maxi(2, int((r.size.x - 0.2) / 0.3))
+			check(cloth == pieces + strips, "%s %s: %d cloth pieces in the wind (curtain %d, chime strips %d)" % [fest, s.get("id", ""), cloth, pieces, strips])
+			fpn.free()
+	check(stalls >= 7, "selling stalls checked: %d" % stalls)
+	# An item with no mesh keeps its picture in its slot.
+	var w: Node3D = fprops.new("town")
+	w._wares(Vector3(10, 0, 7.5), Rect2(9, 7, 2, 1), {"stock": [{"item": "food:dango"}, {"item": "food:milk"}]})
+	var pics := w.get_children().filter(func(n): return n is Sprite3D)
+	check(w.wares == 2 and pics.size() == 1 and absf(pics[0].position.x - sw.slot(Vector3(10, 0, 7.5), Rect2(9, 7, 2, 1), 1, 2).x) < 0.001,
+		"an item with no mesh keeps its picture (%d wares, %d pictures)" % [w.wares, pics.size()])
+	w.free()
 
 
 ## Grass tufts (GrassTufts): the same tufts for a cell every time, inside it; on a map only

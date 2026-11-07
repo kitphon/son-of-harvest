@@ -64,7 +64,7 @@ Light and Farmhouse model hold the technical detail of what is built.
 - **See-through.** Build a tall thing inside `occlude(...)` so it fades when it hides the
   farmer; keep its materials StandardMaterial3D (the occluder fades their alpha).
 - **Checking.** `tools/house_model.gd` shows the farmhouse alone from four sides
-  (`--what=coop` / `--what=barn` / `--what=village` / `--what=shrine` / `--what=props` for those; add a `CENTERS` entry and a builder for more).
+  (`--what=coop` / `--what=barn` / `--what=village` / `--what=shrine` / `--what=props` / `--what=stalls` for those; add a `CENTERS` entry and a builder for more).
   Check that upright faces point outwards (test_maps `_walls_facing_in`): `Minka.tri` turns a face
   to the normal it is given, so a wrong normal makes a face that is culled from outside. Look at the game at 10:00,
   17:00, 20:00, rain and winter snow, and inside the see-through fade, before committing.
@@ -122,8 +122,23 @@ Light and Farmhouse model hold the technical detail of what is built.
       the drum stage and its drum, the moon offering, pampas, the standing lantern, New Year
       bamboo, the bonfire, the mochi mortar and the race flag (`festival_meshes.gd`:
       FestivalMeshes). Same cells, heights and lights as the boxes (test_maps `_field_props`,
-      `_festival_meshes`). (this commit) Still open: the stalls' wares are still pictures (sprites);
-      (this commit) the stalls' curtains, the race banner and the noren take the wind ("Wind by weather").
+      `_festival_meshes`). (this commit) the stalls' curtains, the race banner and the noren take the wind ("Wind by weather").
+- [x] The festival stalls' wares as lit meshes (`stall_wares.gd`: StallWares, one vertex-coloured
+      mesh a stall, colours from the items' looks): dango skewers on a lacquered tray and two
+      standing in a cup, sakura mochi in their leaves on a plate, a side-handled teapot and cups of
+      green tea; yakisoba heaped on an iron griddle with a spatula, shaved ice in footed glasses
+      with syrup and a little flag, marble soda bottles in a tub of water with ice; wind chimes on a
+      stand (their paper strips blow in the wind with the curtain), round paper fans in a block;
+      roast chestnuts in a pan on a clay brazier, sweet potatoes on hot stones (one broken open);
+      clay rabbits on a red cloth, moon lanterns; a bowl of year-end soba (fishcake, prawn, onion)
+      with chopsticks and a stack of bowls, yuzu tea with the fruit; daruma (one eye painted in),
+      omamori charms on a rack and a tray. Hot food steams (`StallWares.Steam`: pale lit puffs
+      rising 0.2 and fading). Same slots along the counter as the pictures (moved to its front
+      half and a little left, clear of the corner lantern) and no taller than 0.28, so the game's
+      camera sees them under the curtain, whose hem went up from 1.17 to 1.25. An item with no
+      mesh keeps its picture. The lights are unchanged. `house_model.gd --what=stalls` shows
+      each selling stall near, from the game's angle. Test: test_maps `_stall_wares`. (this commit)
+      The flat view's stalls still show the item pictures.
 
 ### 2. Nature
 - [x] Trees: stylized round crowns (several lumps, lit and shaded) for broadleaf trees; pines

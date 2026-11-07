@@ -10,6 +10,44 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — The festival stalls' wares as lit meshes
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: docs/ART_DIRECTION.md section 1's open item. `scripts/world3d/stall_wares.gd` (StallWares)
+  builds every selling stall's stock on its counter as one lit vertex-coloured mesh
+  (`OutdoorProps._vertex_material`), colours from the items' looks: Blossom Day dango (three
+  skewers on a lacquered tray, two standing in a cup), sakura mochi in their leaves on a plate, a
+  teapot and cups of green tea; Lantern Night's eats yakisoba on an iron griddle with a spatula,
+  shaved ice in footed glasses (strawberry, melon) by a little flag, marble soda in a tub of water
+  with ice, its chime stall two wind chimes on a stand (the paper strips are their own pieces,
+  blowing in the wind as cloth, `OutdoorProps.commit_swaying`) and three uchiwa in a block; Moon
+  Night roast chestnuts in a pan on a clay brazier, sweet potatoes on hot stones (one broken
+  open), clay rabbits on a red cloth, two moon lanterns; Year's Turn a bowl of soba (fishcake,
+  prawn, onion) with chopsticks and stacked bowls, yuzu tea with the fruit and a leaf, two daruma
+  (one eye painted in), omamori on a rack and a tray. Hot food steams (`StallWares.Steam`: three
+  pale lit puffs rising 0.2 and fading, out of step). `FestivalProps._wares` calls it; an item
+  without a mesh keeps its picture in its slot (none today). The slots are the pictures' slots
+  moved to the counter's front half and 0.1 left (clear of the corner lantern), and wares stay
+  under 0.28 high: seen from the game's camera (yaw 45, pitch 30) the old curtain hid nearly
+  everything behind it, so its hem went up from 1.17 to 1.25 (still six pieces in the wind). Lights
+  (FestivalProps.glows, NightLamps, NightLights' stall pools) unchanged. `tools/house_model.gd
+  --what=stalls` renders each selling stall near from the game's angle. The flat view's stalls
+  keep their item pictures.
+- Checked: test_maps `_stall_wares` (every stall's items have a mesh; per stall no pictures, one
+  ware mesh listing the stock, lit vertex colours, faces out, on the counter between the posts,
+  y 0.745..1.02 at most, steam over each hot item that moves and fades, one stall light, curtain
+  pieces + chime strips in WindSway; the picture fallback); a run with TALL set to 0.1 and green
+  tea left out of STEAMING failed it (8 fails), so it bites. All 28 test scripts print OK (0 failed). Smoke runs
+  (title, --demo, --demo --map=town, --demo --mine=3, --demo --festival=years_turn and
+  lantern_night) logged 0 error / warning lines. Screenshots: `--demo
+  --festival=<id>` for all four before / after (HEAD exported to a copy): the stalls are at the
+  frame's edge there, the changed pixels only at the stalls' counters and curtains; with
+  `--map=town@tome` / `town@shrine` / `town@north` added the stalls are in view: the Blossom Day
+  counter shows the tray and the plate of mochi, Moon Night the rabbits on red cloth and two
+  lanterns, Year's Turn the soba bowl and yuzu cups with steam rising (night, lit by the stall's
+  lamp); the house_model views show all seven stalls near.
+- Left / next: the flat view's stalls still draw the item pictures. The two stalls at Lantern
+  Night that sell nothing stay bare. The steam is lit (dark at night under the lamp's light only).
+
 ## 2026-11-07 — The wind moves leaves and cloth: fence, kadomatsu, noren, curtains, banner
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: docs/ART_DIRECTION.md's open wind items. `OutdoorProps.Sway` (now the world's

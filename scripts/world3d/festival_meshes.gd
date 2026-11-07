@@ -65,6 +65,7 @@ static func ink_of(p: FarmProps.Parts) -> SurfaceTool:
 
 ## A festival stall (yatai): a plank counter with a lighter top, four posts with tie beams, a
 ## sloping roof in its cloth colour with a scalloped valance, a short split curtain under it
+## (its hem at 1.25, high enough that the wares on the counter (StallWares) show under it)
 ## and a hanging lantern at the front corner (the light is FestivalProps').
 static func stall(w: FarmWorld, mid: Vector3, r: Rect2, cloth: Color) -> void:
 	var p := FarmProps.Parts.new()
@@ -109,7 +110,7 @@ static func stall(w: FarmWorld, mid: Vector3, r: Rect2, cloth: Color) -> void:
 	for i in pieces:
 		var piece := Rect2(cx - wd / 2 + i * cw + 0.015, mid.z + 0.345, cw - 0.03, 0.015)
 		var cp := FarmProps.Parts.new()
-		FarmProps.block(cp.st(light), piece, 1.17, piece, 1.41)
+		FarmProps.block(cp.st(light), piece, 1.25, piece, 1.41)
 		OutdoorProps.commit_swaying(w, cp, Vector3(piece.get_center().x, 1.41, piece.get_center().y), "cloth", mid.x + i * 1.9)
 
 
