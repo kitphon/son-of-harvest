@@ -225,6 +225,7 @@ func _make_buildings() -> void:
 	# The same every time: kept a run (MeshCache), the lit windows and the stand's noren with
 	# the rest.
 	occlude(_make_house)
+	_make_hearth_smoke()
 	MeshCache.build(self, "farm|chest", func(): FarmProps.chest(self))
 	MeshCache.build(self, "farm|bin", func(): FarmProps.bin(self))
 	occlude(func(): MeshCache.build(self, "farm|stand", func(): FarmProps.stand(self)))
@@ -341,6 +342,13 @@ func _make_house() -> void:
 		# Shoji door over the door cell (4, 3), shoji windows beside it and on the +x face.
 		for spot in LitSpots.farmhouse():
 			_lit_spot(spot))
+
+
+## The farmhouse's hearth smoke (HearthSmoke) from the middle of its ridge: the roof of
+## _house_body (eave Rect2(1.45, 0.55, 6.1, 3.5), soffit 1.45, pitch 1.25, the ridge along x).
+## Not inside occlude: the smoke must not turn see-through with the walls.
+func _make_hearth_smoke() -> void:
+	add_child(HearthSmoke.new(4, HearthSmoke.vent_at(Rect2(1.45, 0.55, 6.1, 3.5), 1.45, 1.25, false)))
 
 
 ## The farmhouse's walls, frame, engawa and roof (_make_house).
