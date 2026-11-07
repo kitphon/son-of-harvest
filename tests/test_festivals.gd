@@ -309,6 +309,20 @@ func _contest_data() -> void:
 	night.stall[1].erase("id")
 	night.stall[0].erase("id")
 	check(Festivals.check({"festivals": {"a": night}}) != "", "two stalls without ids are refused")
+	# A display is for a stall prop only and must be a known one.
+	var shown: Dictionary = Festivals.get_festival("lantern_night").duplicate(true)
+	check(Festivals.check({"festivals": {"a": shown}}) == "" and shown.props.filter(func(p): return p.has("display")).size() == 2,
+		"Lantern Night's two bare stalls have a display and pass")
+	for p in shown.props:
+		if p.has("display"):
+			p.display = "nope"
+	check(Festivals.check({"festivals": {"a": shown}}) != "", "an unknown display is refused")
+	for p in shown.props:
+		if p.has("display"):
+			p.display = "goldfish"
+	shown.props[0].display = "goldfish"
+	shown.props[0].kind = "judge_table"
+	check(Festivals.check({"festivals": {"a": shown}}) != "", "a display on a prop that is not a stall is refused")
 	var f: Dictionary = Festivals.get_festival("blossom_day").duplicate(true)
 	check(Festivals.check({"festivals": {"a": f}}) == "", "Blossom Day's data passes on its own")
 	var bad := {
@@ -1157,6 +1171,23 @@ func _flat_art() -> void:
 			var mid := Vector2(p.cell[0] + size[0] / 2.0, p.cell[1] + size[1] / 2.0) * 16
 			check(view.ground_mid(p) == mid and view.art_origin(p) + Vector2(anchor) == mid, "%s: the %s stands where the 3D prop does" % [id, p.kind])
 			pics.append([view.art_origin(p), img])
+		# A stall that sells nothing shows a display in the flat view: its own picture, drawn, sized for the counter.
+		for p in fest.get("props", []):
+			if p.has("display"):
+				var dkey: String = view.display_key(p)
+				var dimg: Image = PlaceholderArt.tex(dkey).get_image()
+				var dsize := PlaceholderArt.festival_size("display_" + str(p.display), 1, 1)
+				var dan := PlaceholderArt.festival_anchor("display_" + str(p.display), 1, 1)
+				var dmagenta := false
+				var dlow := -1
+				for y in dimg.get_height():
+					for x in dimg.get_width():
+						if dimg.get_pixel(x, y).a > 0:
+							dlow = y
+							dmagenta = dmagenta or dimg.get_pixel(x, y).is_equal_approx(Color.MAGENTA)
+				check(dimg.get_size() == dsize and not dmagenta and dlow >= dan.y - 1 and dsize.x <= (p.size[0] - 0.75) * 16 + 20 and dsize.y <= 20,
+					"%s: the %s display has its flat picture (%s, %s)" % [id, p.display, dkey, dsize])
+		check(view.display_key({"kind": "stall"}) == "", "a stall without a display has no display picture")
 		var lights: Array = props3d.glows_of(id, str(fest.get("map", "")))
 		var lit := 0
 		for g in lights:

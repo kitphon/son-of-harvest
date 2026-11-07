@@ -143,6 +143,18 @@ Light and Farmhouse model hold the technical detail of what is built.
       mesh keeps its picture. The lights are unchanged. `house_model.gd --what=stalls` shows
       each selling stall near, from the game's angle. Test: test_maps `_stall_wares`. (this commit)
       The flat view's stalls still show the item pictures.
+      (this commit) Lantern Night's two stalls that sell nothing are no longer bare: a stall prop
+      may carry `"display": "goldfish"` or `"masks"` (data/festivals.json, `Festivals.DISPLAYS`,
+      refused on anything but a stall). `StallWares.display` builds a goldfish-scooping tub (a
+      hooped wooden tub with a blue floor, a see-through water disc, four goldfish as small
+      lit meshes of their own swimming round on circles of their own and wiggling as they go, a
+      glass bowl of spare fish, three paper scoops on a tray, a little cloth sign) and a two-tier
+      stand of masks (our own fox, demon, round-faced, rabbit and tanuki masks, tilted back to
+      look up at the street). Same limits as the wares: one lit vertex-coloured mesh on the
+      counter's front half, under 0.28 high, clear of the corner lantern. The flat view draws a
+      matching `festival:display_<id>:1x1` picture on the counter (FestivalView.display_key).
+      `house_model.gd --what=stalls` renders them too. Tests: test_maps `_stall_wares`,
+      test_festivals (`_flat_art`, the data check).
 
 ### 2. Nature
 - [x] Trees: stylized round crowns (several lumps, lit and shaded) for broadleaf trees; pines

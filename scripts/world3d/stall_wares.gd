@@ -29,6 +29,9 @@ const GLASS := Color("b8d8e4")
 const LOOKS := ["food:dango", "food:sakura_mochi", "food:green_tea", "food:yakisoba", "food:shaved_ice", "food:marble_soda",
 	"keep:wind_chime", "keep:paper_fan", "food:roast_chestnuts", "food:baked_imo", "keep:clay_rabbit", "keep:moon_lantern",
 	"food:year_soba", "food:yuzu_tea", "keep:daruma", "keep:omamori"]
+## The stalls that sell nothing set out a display instead (a stall prop's "display" in
+## data/festivals.json): a goldfish-scooping tub with swimming fish, a stand of festival masks.
+const DISPLAYS := Festivals.DISPLAYS
 ## The hot ones: steam rises from them.
 const STEAMING := ["food:yakisoba", "food:roast_chestnuts", "food:baked_imo", "food:year_soba", "food:yuzu_tea", "food:green_tea"]
 
@@ -68,6 +71,23 @@ static func build(w: FarmWorld, mid: Vector3, r: Rect2, items: Array) -> Array[i
 		var mi := Minka.add_mesh(w, st, OutdoorProps._vertex_material())
 		mi.set_meta("wares", built)
 	return missing
+
+
+## Sets the display `kind` (one of DISPLAYS) out on the counter of the stall `r` round `mid`: one
+## lit mesh (its meta "display" is `kind`), the goldfish as small meshes of their own that swim.
+## False for a kind that is not known.
+static func display(w: FarmWorld, mid: Vector3, r: Rect2, kind: String) -> bool:
+	if kind not in DISPLAYS:
+		return false
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var a := slot(mid, r, 0, 1)
+	match kind:
+		"goldfish": _goldfish(st, w, mid, a)
+		"masks": _masks(st, w, mid, a)
+	var mi := Minka.add_mesh(w, st, OutdoorProps._vertex_material())
+	mi.set_meta("display", kind)
+	return true
 
 
 ## Builds `item` round `a` into `st`; where its steam rises (a Vector3) or null.
@@ -477,6 +497,204 @@ static func _charm_shape(st: SurfaceTool, at: Vector3, c: Color) -> void:
 	st.set_color(Color("e8c050"))
 	FarmProps.block(st, band, at.y + 0.045, band, at.y + 0.058)
 	RoomProps._ball(_paint(st, Color("f0e6c8")), at + Vector3(0, 0.088, 0), 0.008)
+
+
+# --- displays: stalls that sell nothing ------------------------------------------------
+# A fair game or a show of goods to look at, on a stall prop with `"display": "<id>"`
+# (data/festivals.json); no stock, no shop. Same limits as the wares: lit vertex colours,
+# on the counter's front half, under TALL, clear of the lantern at the right front corner.
+
+## Goldfish scooping: a round wooden tub of water with goldfish swimming slowly round in it
+## (Swimmers), a second little basin of spare fish, and three paper scoops (poi) on a tray.
+static func _goldfish(st: SurfaceTool, w: FarmWorld, mid: Vector3, a: Vector3) -> void:
+	var tub := a + Vector3(-0.22, 0, -0.04)
+	var wood := Color("8a6a44")
+	var bottom := Color("5a8aa8")
+	# One profile out, up the wall, over the lip and back down inside (a lathe closes an end that has a
+	# radius, so it must finish on the axis), the floor as its own piece.
+	_turn(st, wood, tub, [Vector2(0.0, 0.0), Vector2(0.19, 0.0), Vector2(0.205, 0.05), Vector2(0.21, 0.1), Vector2(0.195, 0.1), Vector2(0.18, 0.014), Vector2(0.0, 0.014)], 14)
+	_turn(st, bottom, tub, [Vector2(0.18, 0.016), Vector2(0.0, 0.016)], 14)
+	for y in [0.02, 0.07]:   # two iron hoops round the outside
+		_band(st, IRON, tub, 0.19 + 0.2 * y + 0.004, y, y + 0.014, 14)
+	var swim := Swimmers.new(int(mid.x * 11))
+	swim.position = tub
+	w.add_child(swim)
+	# The spare fish in a little glass bowl, three of them standing still.
+	var bowl := a + Vector3(0.1, 0, 0.1)
+	_vessel(st, bowl, 0.04, 0.06, 0.08, GLASS, 0.06, Color("8ac4d8"))
+	var fish_mesh: ArrayMesh = Swimmers.fish_mesh(Color("f08a2a"), Color("e8601c"))
+	for k in 2:
+		st.append_from(fish_mesh, 0, Transform3D(Basis(Vector3.UP, 0.8 + k * 2.2).scaled(Vector3.ONE * 0.6), bowl + Vector3(0.015 - k * 0.03, 0.035 + k * 0.01, 0.0)))
+	# Three paper scoops on a tray: a white paper disc in a thin ring on a short handle.
+	_tray(st, Color("7a2a1e"), a + Vector3(0.36, 0, -0.1), Vector2(0.3, 0.2), 0.014)
+	for k in 3:
+		var ring := a + Vector3(0.28 + k * 0.08, 0.014, -0.12 + (k % 2) * 0.1)
+		_turn(st, Color("c8a06a"), ring, [Vector2(0.034, 0.0), Vector2(0.034, 0.008), Vector2(0.0, 0.008)], 10)
+		_turn(st, Color("f2ecdc"), ring + Vector3(0, 0.002, 0), [Vector2(0.03, 0.0), Vector2(0.03, 0.009), Vector2(0.0, 0.009)], 10)
+		_rod(st, Color("c8a06a"), ring + Vector3(0.03, 0.004, 0.0), Vector3(1, 0.1, 0.2), 0.07, 0.004, 4)
+	# A cloth sign on a stick: "scoop", a white fish on blue.
+	_rod(st, WOOD, a + Vector3(0.5, 0, 0.1), Vector3.UP, 0.2, 0.006, 4)
+	_box(st, Color("2a4a8a"), a + Vector3(0.5, 0.1, 0.1), Vector3(0.08, 0.1, 0.006))
+	_box(st, Color("f2ecdc"), a + Vector3(0.5, 0.14, 0.104), Vector3(0.03, 0.04, 0.004))
+
+
+## A thin upright band of radius `r` round `at` from height y0 to y1, facing out (a hoop).
+static func _band(st: SurfaceTool, c: Color, at: Vector3, r: float, y0: float, y1: float, sides: int) -> void:
+	_paint(st, c)
+	var none := func(_p: Vector3) -> Vector2: return Vector2.ZERO
+	for k in sides:
+		var a0 := TAU * (k + 0.5) / sides
+		var a1 := TAU * (k + 1.5) / sides
+		var n := Vector3(sin((a0 + a1) / 2), 0, cos((a0 + a1) / 2))
+		Minka.quad(st, at + Vector3(sin(a0) * r, y0, cos(a0) * r), at + Vector3(sin(a1) * r, y0, cos(a1) * r),
+			at + Vector3(sin(a1) * r, y1, cos(a1) * r), at + Vector3(sin(a0) * r, y1, cos(a0) * r), n, none)
+
+
+## Festival masks on a two-tier wooden stand: fox, demon, round-faced and rabbit masks in the
+## back row, fox, tanuki and round-faced ones in front, leaning back to look up at the street.
+static func _masks(st: SurfaceTool, _w: FarmWorld, _mid: Vector3, a: Vector3) -> void:
+	var centre := a + Vector3(0.0, 0, 0.0)
+	var back_h := 0.08
+	_box(st, WOOD, centre + Vector3(0, 0, -0.07), Vector3(0.98, back_h, 0.13), 0.004)
+	_box(st, WOOD_LIGHT, centre + Vector3(0, back_h, -0.07), Vector3(0.99, 0.008, 0.14), 0.003)
+	_box(st, WOOD, centre + Vector3(0, 0, 0.08), Vector3(0.98, 0.04, 0.14), 0.004)
+	_box(st, WOOD_LIGHT, centre + Vector3(0, 0.04, 0.08), Vector3(0.99, 0.008, 0.15), 0.003)
+	var back: Array = ["fox", "demon", "round", "rabbit"]
+	for k in back.size():
+		_mask(st, back[k], centre + Vector3(-0.36 + k * 0.24, back_h + 0.008 + 0.06, -0.07), -0.3, k)
+	var front: Array = ["tanuki", "fox", "round"]
+	for k in front.size():
+		_mask(st, front[k], centre + Vector3(-0.24 + k * 0.24, 0.048 + 0.06, 0.085), -0.3, k + 1)
+
+
+## One mask of `kind` with its face centre at `at`, leaned back by `lean`; `v` picks a variant of
+## its colours. Faces look +z.
+static func _mask(st: SurfaceTool, kind: String, at: Vector3, lean: float, v: int) -> void:
+	var tmp := SurfaceTool.new()
+	tmp.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var white := Color("f4f0e4")
+	var red := Color("c8282c")
+	match kind:
+		"fox":
+			var tint := red if v % 2 == 0 else Color("2a4a8a")
+			for e in [-1.0, 1.0]:
+				_turn(tmp, white, Vector3(e * 0.034, 0.03, -0.004), [Vector2(0.02, 0.0), Vector2(0.0, 0.05)], 3)
+				_turn(tmp, tint, Vector3(e * 0.034, 0.03, 0.002), [Vector2(0.011, 0.0), Vector2(0.0, 0.032)], 3)
+			_disc(tmp, white, Vector3.ZERO, 0.05, 0.012)
+			_box(tmp, white, Vector3(0, -0.044, 0.004), Vector3(0.05, 0.04, 0.03), 0.004)   # the snout
+			_disc(tmp, INK, Vector3(0, -0.03, 0.026), 0.008, 0.006, 0.0, 8)   # the nose
+			for e in [-1.0, 1.0]:
+				_box(tmp, tint, Vector3(e * 0.03, 0.01, 0.0075), Vector3(0.026, 0.008, 0.004))   # the cheek stripes
+				_box(tmp, tint, Vector3(e * 0.03, -0.004, 0.0075), Vector3(0.02, 0.006, 0.004))
+				_box(tmp, INK, Vector3(e * 0.022, 0.022, 0.0075), Vector3(0.02, 0.005, 0.004))   # a slanted eye slit
+		"demon":
+			for e in [-1.0, 1.0]:
+				_turn(tmp, Color("f4e8c8"), Vector3(e * 0.034, 0.038, -0.004), [Vector2(0.012, 0.0), Vector2(0.0, 0.04)], 5)
+			_disc(tmp, Color("c02a2a") if v % 2 == 0 else Color("2a5a9a"), Vector3.ZERO, 0.052, 0.014)
+			for e in [-1.0, 1.0]:
+				_box(tmp, INK, Vector3(e * 0.022, 0.018, 0.0085), Vector3(0.03, 0.007, 0.004))   # heavy brows
+				_disc(tmp, Color("f8e8a0"), Vector3(e * 0.02, 0.005, 0.0085), 0.009, 0.004, 0.0, 8)   # gold eyes
+				_box(tmp, white, Vector3(e * 0.016, -0.034, 0.0085), Vector3(0.007, 0.014, 0.004))   # tusks
+			_box(tmp, INK, Vector3(0, -0.025, 0.0085), Vector3(0.04, 0.008, 0.004))
+		"round":
+			_disc(tmp, INK, Vector3(0, 0.012, -0.004), 0.054, 0.01)   # the black hair
+			_disc(tmp, white, Vector3(0, -0.004, 0.0), 0.046, 0.014)
+			for e in [-1.0, 1.0]:
+				_disc(tmp, Color("e8707c"), Vector3(e * 0.027, -0.01, 0.008), 0.011, 0.004, 0.0, 8)   # red cheeks
+				_box(tmp, INK, Vector3(e * 0.019, 0.007, 0.008), Vector3(0.016, 0.004, 0.004))       # closed eyes
+			_disc(tmp, red, Vector3(0, -0.026, 0.008), 0.006, 0.004, 0.0, 8)
+			_box(tmp, INK, Vector3(0, 0.032, 0.0), Vector3(0.05, 0.01, 0.014))   # a hair parting on top
+		"rabbit":
+			for e in [-1.0, 1.0]:
+				_box(tmp, white, Vector3(e * 0.024, 0.032, -0.004), Vector3(0.022, 0.06, 0.008), 0.004)   # long ears
+				_box(tmp, Color("f0a8b8"), Vector3(e * 0.024, 0.04, 0.001), Vector3(0.011, 0.04, 0.004))
+			_disc(tmp, white, Vector3.ZERO, 0.048, 0.012)
+			for e in [-1.0, 1.0]:
+				_disc(tmp, red, Vector3(e * 0.02, 0.008, 0.0075), 0.008, 0.004, 0.0, 8)
+			_disc(tmp, Color("f0a8b8"), Vector3(0, -0.016, 0.0075), 0.006, 0.004, 0.0, 8)
+		_:   # tanuki
+			for e in [-1.0, 1.0]:
+				RoomProps._ball(_paint(tmp, Color("5a4030")), Vector3(e * 0.04, 0.04, -0.004), 0.016)
+			_disc(tmp, Color("7a5a3c"), Vector3.ZERO, 0.05, 0.012)
+			_disc(tmp, Color("d8c4a0"), Vector3(0, -0.018, 0.0075), 0.026, 0.004, 0.0, 10)   # the pale muzzle
+			for e in [-1.0, 1.0]:
+				_disc(tmp, INK, Vector3(e * 0.02, 0.01, 0.0075), 0.013, 0.004, 0.0, 8)   # dark eye patches
+				_disc(tmp, Color("f4f0e4"), Vector3(e * 0.02, 0.011, 0.0115), 0.003, 0.002, 0.0, 6)
+			_disc(tmp, INK, Vector3(0, -0.012, 0.0115), 0.007, 0.004, 0.0, 8)
+	st.append_from(tmp.commit(), 0, Transform3D(Basis(Vector3.RIGHT, lean).scaled(Vector3.ONE * 1.2), at))
+
+
+## Goldfish swimming slowly round in a tub (the tub is the parent's mesh): each fish is its own
+## small lit mesh on a circle of its own, wiggling a little as it goes; a thin see-through disc
+## of water over them. Centred on the tub's bottom middle.
+class Swimmers extends Node3D:
+	const WATER_Y := 0.082
+	const FISH_Y := 0.045
+	var _t := 0.0
+	var _fish: Array[MeshInstance3D] = []
+	var _orbit: Array[Vector3] = []   # per fish: radius, speed (radians / s, signed), phase
+
+	func _init(sd := 0) -> void:
+		var looks := [[Color("f08a2a"), Color("e8601c")], [Color("e8481c"), Color("c82a18")], [Color("f4a84a"), Color("f8f0e0")], [Color("f08a2a"), Color("f8f0e0")]]
+		for k in looks.size():
+			var mi := MeshInstance3D.new()
+			mi.mesh = StallWares.Swimmers.fish_mesh(looks[k][0], looks[k][1])
+			mi.material_override = OutdoorProps._vertex_material()
+			mi.scale = Vector3.ONE * 1.5
+			add_child(mi)
+			_fish.append(mi)
+			var dir := 1.0 if (k + sd) % 2 == 0 else -1.0
+			_orbit.append(Vector3(0.05 + 0.035 * (k % 3), dir * (0.6 + 0.12 * k), float(k) * 1.7 + sd % 7))
+		var water := MeshInstance3D.new()
+		var wst := SurfaceTool.new()
+		wst.begin(Mesh.PRIMITIVE_TRIANGLES)
+		Shrine.lathe(wst, Vector3(0, WATER_Y, 0), [Vector2(0.185, 0.0), Vector2(0.0, 0.0)], 14)
+		water.mesh = wst.commit()
+		var m := StandardMaterial3D.new()
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.albedo_color = Color(0.55, 0.82, 0.95, 0.6)
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		water.material_override = m
+		water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(water)
+		_place()
+
+	func _process(delta: float) -> void:
+		_t += delta
+		_place()
+
+	func _place() -> void:
+		for k in _fish.size():
+			var o := _orbit[k]
+			var a: float = o.z + _t * o.y
+			_fish[k].position = Vector3(cos(a) * o.x, FISH_Y + sin(_t * 1.3 + k) * 0.004, sin(a) * o.x)
+			# Heading along the circle (the head is +x); the body swings a little either side.
+			var heading := atan2(-cos(a) * signf(o.y), -sin(a) * signf(o.y))
+			_fish[k].rotation = Vector3(0, heading + sin(_t * 5.0 + k * 1.9) * 0.22, 0)
+
+	## Where the fish are now (tub-relative), for tests.
+	func positions() -> Array[Vector3]:
+		var out: Array[Vector3] = []
+		for mi in _fish:
+			out.append(mi.position)
+		return out
+
+	## A fish of body colour `body`, fins and tail `fin`: head toward +x, about 0.1 long.
+	static func fish_mesh(body: Color, fin: Color) -> ArrayMesh:
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var tmp := SurfaceTool.new()
+		tmp.begin(Mesh.PRIMITIVE_TRIANGLES)
+		# The body, a lathe along y turned onto the x axis, the head at +x.
+		Shrine.lathe(StallWares._paint(tmp, body), Vector3(-0.045, 0, 0), [Vector2(0.0, 0.0), Vector2(0.014, 0.015), Vector2(0.022, 0.04), Vector2(0.019, 0.07), Vector2(0.01, 0.09), Vector2(0.0, 0.098)], 8)
+		st.append_from(tmp.commit(), 0, Transform3D(Basis(Vector3.BACK, -PI / 2), Vector3.ZERO))
+		var ft := SurfaceTool.new()
+		ft.begin(Mesh.PRIMITIVE_TRIANGLES)
+		# A tail fan behind and a fin on the back, thin and upright.
+		StallWares._box(ft, fin, Vector3(-0.062, -0.02, 0.0), Vector3(0.035, 0.04, 0.004))
+		StallWares._box(ft, fin, Vector3(-0.012, 0.016, 0.0), Vector3(0.03, 0.02, 0.004))
+		st.append_from(ft.commit(), 0, Transform3D.IDENTITY)
+		return st.commit()
 
 
 # --- steam ---------------------------------------------------------------------------

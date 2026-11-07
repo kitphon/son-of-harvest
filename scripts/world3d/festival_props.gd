@@ -56,6 +56,8 @@ func _make(p: Dictionary) -> void:
 			FestivalMeshes.stall(self, mid, r, cloth)
 			_glow(mid + Vector3((r.size.x - 0.2) / 2, 1.2, 0.36), LANTERN_RED.lerp(Color("ffd890"), 0.5), 1.4, "stall", mid, r.size.x - 0.2)
 			_wares(mid, r, Festivals.stall_of_prop(festival, p))
+			if p.has("display"):   # a stall that sells nothing sets out a display
+				StallWares.display(self, mid, r, str(p.display))
 		"judge_table": FestivalMeshes.judge_table(self, mid, r)
 		"lantern_line":
 			FestivalMeshes.lantern_line(self, r)

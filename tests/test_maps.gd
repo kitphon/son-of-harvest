@@ -2023,6 +2023,70 @@ func _stall_wares() -> void:
 			check(cloth == pieces + strips, "%s %s: %d cloth pieces in the wind (curtain %d, chime strips %d)" % [fest, s.get("id", ""), cloth, pieces, strips])
 			fpn.free()
 	check(stalls >= 7, "selling stalls checked: %d" % stalls)
+	# The stalls that sell nothing set out a display (goldfish tub, masks): one lit mesh on the counter,
+	# under TALL, clear of the posts and the lantern, no shop; the goldfish swim and wiggle in the tub.
+	var shown := {}
+	for fest in Festivals.all():
+		var data: Dictionary = Festivals.get_festival(fest)
+		for prop in data.get("props", []):
+			if str(prop.kind) != "stall" or not prop.has("display"):
+				continue
+			var kind := str(prop.display)
+			shown[kind] = true
+			check(kind in sw.DISPLAYS and Festivals.stall_of_prop(fest, prop).is_empty(), "%s: the %s display is on a stall that sells nothing" % [fest, kind])
+			var dn: Node3D = fprops.new(str(data.get("map", "town")))
+			dn.festival = fest
+			dn._make(prop)
+			var dr := Rect2(Vector2(prop.cell[0], prop.cell[1]), Vector2(prop.size[0], prop.size[1]))
+			var dmid := Vector3(dr.get_center().x, 0, dr.get_center().y)
+			var meshes := dn.get_children().filter(func(n): return n is MeshInstance3D and n.has_meta("display"))
+			check(meshes.size() == 1 and meshes[0].get_meta("display") == kind and dn.wares == 0
+				and dn.get_children().filter(func(n): return n is Sprite3D).is_empty(), "%s %s: one display mesh, no wares, no pictures (%d)" % [fest, kind, meshes.size()])
+			if meshes.size() == 1:
+				var arr: Array = meshes[0].mesh.surface_get_arrays(0)
+				var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+				var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+				var lo := Vector3(1e9, 1e9, 1e9)
+				var hi := -lo
+				var bad := 0
+				for i in range(0, v.size(), 3):
+					var c := (v[i + 1] - v[i]).cross(v[i + 2] - v[i])
+					if c.length() > 1e-9 and c.dot(nm[i]) >= 0.0:
+						bad += 1
+				for q in v:
+					lo = lo.min(q)
+					hi = hi.max(q)
+				var colours := {}
+				for c in (arr[Mesh.ARRAY_COLOR] as PackedColorArray):
+					colours[c.to_html(false)] = true
+				var wd := dr.size.x - 0.2
+				var mat: StandardMaterial3D = meshes[0].material_override
+				check(mat.vertex_color_use_as_albedo and mat.shading_mode != BaseMaterial3D.SHADING_MODE_UNSHADED and colours.size() >= 6 and bad == 0 and v.size() / 3 > 300,
+					"%s %s: a lit vertex-coloured mesh, %d tris, %d colours, %d facing faults" % [fest, kind, v.size() / 3, colours.size(), bad])
+				check(lo.y >= sw.COUNTER_TOP - 0.03 and hi.y <= sw.COUNTER_TOP + sw.TALL and hi.y < 1.25 - 0.2 and lo.x >= dmid.x - wd / 2 + 0.03 and hi.x <= dmid.x + wd / 2 - 0.3
+						and lo.z >= dmid.z - 0.43 and hi.z <= dmid.z + 0.23,
+					"%s %s: on the counter, clear of the lantern, x %.2f..%.2f, y %.3f..%.3f, z %.2f..%.2f" % [fest, kind, lo.x, hi.x, lo.y, hi.y, lo.z, hi.z])
+			var swimmers := dn.get_children().filter(func(n): return n is Node3D and n.has_method("positions"))
+			check(swimmers.size() == (1 if kind == "goldfish" else 0), "%s %s: swimming fish %d" % [fest, kind, swimmers.size()])
+			for sn in swimmers:
+				var before: Array = sn.positions()
+				sn._process(0.5)
+				var after: Array = sn.positions()
+				var moved := 0
+				var inside := true
+				var fish: Array = sn.get_children().filter(func(n): return n is MeshInstance3D and n.mesh.get_surface_count() > 0 and n.material_override.vertex_color_use_as_albedo)
+				for i in before.size():
+					moved += 1 if before[i] != after[i] else 0
+					inside = inside and Vector2(after[i].x, after[i].z).length() < 0.185 and after[i].y < sn.WATER_Y
+				check(before.size() >= 3 and moved == before.size() and inside and fish.size() == before.size(),
+					"%s: %d goldfish swim round in the tub and stay under its water (%d moved)" % [fest, before.size(), moved])
+				var yaw0: float = fish[0].rotation.y
+				sn._process(0.3)
+				check(not is_equal_approx(fish[0].rotation.y, yaw0), "%s: a goldfish wiggles as it swims" % fest)
+			dn.free()
+	check(shown.size() == sw.DISPLAYS.size(), "every display is used: %s" % [shown.keys()])
+	check(Festivals.get_festival("lantern_night").props.filter(func(p): return p.kind == "stall").all(func(p): return p.has("display") or not Festivals.stall_of_prop("lantern_night", p).is_empty()),
+		"no Lantern Night stall is bare")
 	# An item with no mesh keeps its picture in its slot.
 	var w: Node3D = fprops.new("town")
 	w._wares(Vector3(10, 0, 7.5), Rect2(9, 7, 2, 1), {"stock": [{"item": "food:dango"}, {"item": "food:milk"}]})

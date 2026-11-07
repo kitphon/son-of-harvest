@@ -2714,6 +2714,8 @@ static func festival_size(kind: String, w: int, h: int) -> Vector2i:
 		"bonfire": return Vector2i(22, 24)
 		"mochi_usu": return Vector2i(32, 24)
 		"race_flag": return Vector2i(18, 40)
+		"display_goldfish": return Vector2i(34, 14)   # the stall displays that sell nothing (StallWares.DISPLAYS)
+		"display_masks": return Vector2i(34, 16)
 	return Vector2i(w * 16, h * 16)
 
 
@@ -2733,6 +2735,7 @@ static func festival_anchor(kind: String, w: int, h: int) -> Vector2i:
 		"bonfire": return Vector2i(11, 15)
 		"mochi_usu": return Vector2i(16, 20)
 		"race_flag": return Vector2i(6, 37)
+		"display_goldfish", "display_masks": return Vector2i(size.x / 2, size.y - 1)
 	return size / 2
 
 
@@ -2911,6 +2914,73 @@ static func _festival(kind: String, w: int, h: int, cloth: Color) -> Image:
 			_px(img, a.x + 4, a.y - 6, 7, 1, RACE_CREEL.lightened(0.2))
 			for y in [a.y - 4, a.y - 2]:
 				_px(img, a.x + 4, y, 7, 1, RACE_CREEL.darkened(0.25))       # its weave
+			_outline(img)
+			return img
+		"display_goldfish":
+			# A round wooden tub of water with three goldfish, two paper scoops (poi) lying beside it.
+			var tub := Color("8a6a44")
+			_oval(img, 11, 7, 11, 6, tub.darkened(0.25))
+			_oval(img, 11, 7, 10, 5, tub)
+			_oval(img, 11, 6.5, 9, 4, Color("7fb4cc"))
+			_oval(img, 10, 6, 5, 2, Color("a4d0e0"))
+			for f in [[6, 6], [12, 8], [15, 5]]:   # the fish: an orange body, a tail, a white fleck
+				_px(img, f[0], f[1], 3, 2, Color("f08a2a"))
+				_px(img, f[0] - 1, f[1], 1, 1, Color("e86a20"))
+				_px(img, f[0] + 1, f[1], 1, 1, Color("f8c890"))
+			for x in [24, 29]:   # the scoops: a white paper ring on a stick
+				_oval(img, x + 1, 9, 2.8, 2.2, Color("e8e0cc"))
+				_oval(img, x + 1, 9, 1.6, 1.2, Color("c8d8e0"))
+				_px(img, x + 3, 10, 3, 1, Color("c8a06a"))
+			_outline(img)
+			return img
+		"display_masks":
+			# Two tiers of festival masks on a wooden stand: a white fox with red marks, a red demon,
+			# a white round-faced one with red cheeks, a rabbit, a brown tanuki.
+			var wood := Color("8a6a44")
+			_px(img, 1, 14, 32, 2, wood)
+			_px(img, 1, 14, 32, 1, wood.lightened(0.15))
+			_px(img, 2, 8, 30, 2, wood.darkened(0.1))
+			var white := Color("f4f0e4")
+			for k in 4:   # the back tier
+				var x := 5 + k * 8
+				match k:
+					0:   # fox
+						_px(img, x - 2, 0, 2, 3, white)
+						_px(img, x + 2, 0, 2, 3, white)
+						_oval(img, x + 0.5, 4.5, 3.5, 3.5, white)
+						_px(img, x - 3, 4, 2, 1, Color("c8282c"))
+						_px(img, x + 3, 4, 2, 1, Color("c8282c"))
+						_px(img, x, 6, 1, 1, FEST_INK)
+					1:   # demon
+						_px(img, x - 2, 0, 1, 2, white)
+						_px(img, x + 3, 0, 1, 2, white)
+						_oval(img, x + 0.5, 4.5, 3.5, 3.5, Color("c8282c"))
+						_px(img, x - 2, 3, 5, 1, FEST_INK)
+						_px(img, x - 1, 6, 1, 1, white)
+						_px(img, x + 2, 6, 1, 1, white)
+					2:   # round white face, red cheeks, black hair
+						_oval(img, x + 0.5, 4.5, 3.7, 3.7, white)
+						_px(img, x - 3, 1, 8, 2, FEST_INK)
+						_px(img, x - 2, 5, 1, 1, Color("e86a78"))
+						_px(img, x + 3, 5, 1, 1, Color("e86a78"))
+						_px(img, x, 6, 1, 1, Color("c8282c"))
+					_:   # rabbit
+						_px(img, x - 1, 0, 1, 3, white)
+						_px(img, x + 2, 0, 1, 3, white)
+						_oval(img, x + 0.5, 5, 3.2, 3.2, white)
+						_px(img, x - 1, 4, 1, 1, Color("c8282c"))
+						_px(img, x + 2, 4, 1, 1, Color("c8282c"))
+			for k in 3:   # the front tier
+				var x := 9 + k * 8
+				if k == 1:   # tanuki
+					_oval(img, x + 0.5, 11.5, 3.2, 2.6, Color("7a5a3c"))
+					_px(img, x - 2, 11, 2, 1, FEST_INK)
+					_px(img, x + 2, 11, 2, 1, FEST_INK)
+				else:
+					_oval(img, x + 0.5, 11.5, 3.2, 2.6, white)
+					_px(img, x - 2, 11, 1, 1, Color("c8282c"))
+					_px(img, x + 2, 11, 1, 1, Color("c8282c"))
+					_px(img, x, 13, 1, 1, FEST_INK)
 			_outline(img)
 			return img
 		"paper_lantern":
