@@ -2109,6 +2109,19 @@ func _parting() -> void:
 	npc.visible = false
 	w2.set_farmer(Vector3(10.5, 0.0, 13.5))
 	check(gm.get_shader_parameter("pusher_count") == 1, "parting: a hidden figure parts nothing")
+	# A vine on its stake: the villagers' and the dog's pushes go through the same shader path as the
+	# farmer's, scaled by the vine layer's stiffness, so the stake holds the vine as firm for them.
+	npc.visible = true
+	w2.crops.plant({Vector2i(12, 13): "stalk:cucumber:3:ripe"}, func(_c: Vector2i) -> float: return 0.0)
+	w2.set_farmer(Vector3(10.5, 0.0, 13.5))
+	var vines: Array = w2.crops.materials().filter(func(m: ShaderMaterial) -> bool: return m.get_shader_parameter("stiff") < 1.0)
+	var cc_gd: GDScript = load("res://scripts/world3d/crop_clusters.gd")
+	var stiff := float(cc_gd.layout("stalk:cucumber:3:ripe").get("stiff", 1.0))
+	var pushed_firm := func(m: ShaderMaterial) -> bool:
+		return is_equal_approx(float(m.get_shader_parameter("stiff")), stiff) and m.get_shader_parameter("pusher_count") == 2 \
+			and m.get_shader_parameter("pushers")[1] == Vector2(12.0, 13.5)
+	check(vines.size() >= 1 and stiff < 1.0 and vines.all(pushed_firm) and "part_push(root.xz) * k * stiff" in cc_gd.SHADER,
+		"parting: a villager beside a vine stake is a pusher too, scaled by the vine's stiffness %.2f (%d vine pictures)" % [stiff, vines.size()])
 	stray.queue_free()
 	w2.queue_free()
 	var vs_src := FileAccess.get_file_as_string("res://scripts/world3d/villager_sprites.gd")
@@ -2142,7 +2155,7 @@ func _crop_clusters() -> void:
 	# Vines: a stake each, the fruit showing only when ripe, taller grown than young.
 	var vine_ok := true
 	for id in ["cucumber", "tomato"]:
-		var fc := Color(PlaceholderArt.crop_look(id).fruit)
+		var fc := Color(PlaceholderArt.crop_look(id).get("ripe_fruit", PlaceholderArt.crop_look(id).fruit))
 		var counts := {}
 		for st in ["3:ripe", "3:growing", "2:ripe", "2:growing"]:
 			var im := PlaceholderArt.tex("stalk:%s:%s:1" % [id, st]).get_image()
@@ -2157,6 +2170,37 @@ func _crop_clusters() -> void:
 	var vspots: Array = cc.spots_for({Vector2i(3, 3): "stalk:cucumber:3:ripe", Vector2i(4, 3): "stalk:tomato:2:growing"})
 	check(vspots.size() == 4 and vspots.all(func(s): return Rect2(Vector2(s.cell), Vector2.ONE).grow(-0.05).has_point(Vector2(s.pos.x, s.pos.z)))
 		and cc.layout("stalk:tomato:3:ripe").get("stiff", 1.0) < 1.0, "clusters: two stakes a vine cell, inside it, held firmer than rice")
+	# A ripe cucumber stands apart: its fruit is paler than its leaves, and no leaf touches it
+	# (only its own lit and shaded tones, or the leaf rim, lie beside a fruit pixel).
+	var cuc: Dictionary = PlaceholderArt.crop_look("cucumber")
+	var pale := Color(cuc.get("ripe_fruit", "000000"))
+	var leafc := Color(cuc.leaf)
+	var same := func(a: Color, b: Color) -> bool: return absf(a.r - b.r) < 0.02 and absf(a.g - b.g) < 0.02 and absf(a.b - b.b) < 0.02
+	var tones := [pale, pale.lightened(0.45), pale.darkened(0.4)]
+	var is_fruit := func(c: Color) -> bool: return c.a >= 0.5 and tones.any(func(t: Color) -> bool: return same.call(c, t))
+	var rim := leafc.darkened(0.6)
+	var stand_off := true
+	var fruit_px := 0
+	for v in 3:
+		for growth in [2, 3]:
+			var im := PlaceholderArt.tex("stalk:cucumber:%d:ripe:%d" % [growth, v]).get_image()
+			var iw := im.get_width()
+			var ih := im.get_height()
+			for y in ih:
+				for x in iw:
+					if not is_fruit.call(im.get_pixel(x, y)):
+						continue
+					fruit_px += 1
+					for d in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+						var q: Vector2i = Vector2i(x, y) + d
+						if q.x < 0 or q.y < 0 or q.x >= iw or q.y >= ih:
+							continue
+						var n := im.get_pixel(q.x, q.y)
+						if n.a >= 0.5 and not is_fruit.call(n) and not same.call(n, rim):
+							stand_off = false
+	var lum := func(c: Color) -> float: return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
+	check(stand_off and fruit_px >= 40 and lum.call(pale) - lum.call(leafc) >= 0.15,
+		"clusters: a ripe cucumber's fruit is paler than its leaves (%.2f vs %.2f) and no leaf touches it (%d fruit pixels)" % [lum.call(pale), lum.call(leafc), fruit_px])
 	var gold := 0
 	var fruit := Color(PlaceholderArt.crop_look("rice").fruit)
 	for y in ripe.get_height():

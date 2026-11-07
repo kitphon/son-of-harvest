@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Vines read better: the ripe cucumber stands apart
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: the open item of the 2026-11-07 vines entry. The cucumber's ripe fruit was the leaf's dark
+  green (2a5a24) and vanished among the leaves. `data/crops.json` cucumber look gains `ripe_fruit`
+  d4e46a (pale yellow-green; the item icon keeps `fruit`, so a picked cucumber looks as before).
+  `PlaceholderArt._stalk` (vine branch): a ripe long fruit is a pale column with a lit top pixel and
+  a darker column beside it (the dark edge). Where a ripe vine's fruit hangs, the leaves on that
+  side within six rows are left off (`_hangs_by`, window 6.5: a leaf one step past the fruit still
+  touched it), so the fruit shows against the stake. Tomato keeps its red fruit and gets the same
+  leaf gap. Round fruit with no `ripe_fruit` key keep their colour.
+  Parting: no code change. The villagers' and the dog's sprites feed the same `pushers` array as the
+  farmer (`FarmWorld.set_farmer` -> `CropClusters.set_pushers`), and the vine shader scales every
+  push by the layer's `stiff` (`part_push(root.xz) * k * stiff`), so they were already held as firm
+  as the farmer. The new test pins it.
+- Checked: test_maps. `_crop_clusters`: the ripe cucumber fruit (the 2 and 3 growth pictures, three
+  variants) is paler than its leaves (luminance 0.85 vs 0.64, at least 0.15 apart) and no opaque
+  pixel that is not fruit or leaf rim touches a fruit pixel (a first pass with the 4.5 window failed
+  on one leaf five rows down; the test caught it). The old fruit-colour count reads `ripe_fruit` now.
+  `_parting`: with a villager beside a cucumber stake, every vine picture's material has the vine's
+  stiff (0.6), two pushers, the villager second, and the shader still multiplies by stiff. Enlarged
+  sheet of the pictures (x8, nearest) before and after: the dark fruit under the leaves before, the
+  pale fruit on bare stake after. In-game `--demo --season=spring` frame 39 (the ripe cucumbers are
+  spring crops, not summer; the tomato has no grown stage in the demo): the pale fruit reads small
+  at 480 x 270. All 30 test scripts print OK (0 failed). Smoke runs (title, --demo, --demo
+  --map=town, --demo --mine=3): 0 error / warning lines.
+- Left / next: the stake reads thin with the leaves left off; a fuller leaf set above the fruit
+  would be the next pass. The item icon for a cucumber is still the dark fruit.
+
 ## 2026-11-07 — The festival stalls' wares as lit meshes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: docs/ART_DIRECTION.md section 1's open item. `scripts/world3d/stall_wares.gd` (StallWares)

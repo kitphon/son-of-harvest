@@ -4,7 +4,7 @@
 	"potato":   {"name": "Potato",   "seasons": ["spring"], "stage_days": [2, 2, 2], "sell": 55, "seed_price": 130,
 		"look": {"shape": "bush", "leaf": "4f8f35", "fruit": "c9a26b", "fruit_shape": "tuber", "flower": "f4f0e8"}},
 	"cucumber": {"name": "Cucumber", "seasons": ["spring"], "stage_days": [3, 3, 3], "regrow_stage": 2, "sell": 30, "seed_price": 220,
-		"look": {"shape": "vine", "leaf": "7fb84a", "fruit": "2a5a24", "fruit_shape": "long"}},
+		"look": {"shape": "vine", "leaf": "7fb84a", "fruit": "2a5a24", "ripe_fruit": "d4e46a", "fruit_shape": "long"}},
 	"tomato":   {"name": "Tomato",   "seasons": ["summer"], "stage_days": [3, 3, 3], "regrow_stage": 2, "sell": 35, "seed_price": 240,
 		"look": {"shape": "vine", "leaf": "4f8f35", "fruit": "d8402c", "fruit_shape": "round"}},
 	"onion":    {"name": "Onion",    "seasons": ["summer"], "stage_days": [2, 3, 3], "sell": 75, "seed_price": 150,

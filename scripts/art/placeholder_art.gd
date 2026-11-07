@@ -1065,18 +1065,27 @@ static func _stalk(id: String, growth: int, ripe: bool, variant: int) -> Image:
 		var top := g - (18 if big else 9)
 		_px(img, 6, top - 1, 1, g - top + 2, _STAKE)
 		_px(img, 7, top, 1, g - top + 1, _STAKE.darkened(0.25))
+		# A ripe vine's fruit hangs at these places; no leaf is drawn beside it, so it shows.
+		var hang: Array = []
+		if ripe:
+			hang = [Vector2(3.0, g - 6 - variant), Vector2(10.0, g - 10), Vector2(3.5, g - 14 + variant)] if big \
+				else [Vector2(3.0, g - 4), Vector2(10.0, g - 6)]
 		var side := 1 if variant % 2 == 0 else -1
 		for y in range(g - 1 - variant, top + 1, -3):
-			_oval(img, 6.5 + side * 3.0, y, 2.6, 1.8, leaf if side < 0 else dark)
-			_px(img, 6 + (1 if side > 0 else 0), y, 1, 1, dark)   # the leaf stalk to the stake
+			if not (ripe and _hangs_by(hang, side, y)):
+				_oval(img, 6.5 + side * 3.0, y, 2.6, 1.8, leaf if side < 0 else dark)
+				_px(img, 6 + (1 if side > 0 else 0), y, 1, 1, dark)   # the leaf stalk to the stake
 			side = -side
 		_px(img, 6, top - 1, 2, 2, light)   # the growing tip
 		if ripe:
-			var hang := [Vector2(3.0, g - 6 - variant), Vector2(10.0, g - 10), Vector2(3.5, g - 14 + variant)] if big 				else [Vector2(3.0, g - 4), Vector2(10.0, g - 6)]
+			# A long fruit (cucumber) ripens to its own pale yellow-green, lit on the left and dark
+			# along the right edge, so it stands off the dark leaves; round fruit keep the colour.
+			var pale := Color(look["ripe_fruit"]) if look.has("ripe_fruit") else fruit
 			for p in hang:
 				if look.get("fruit_shape", "") == "long":
-					_px(img, int(p.x), int(p.y) - 2, 2, 5, fruit)
-					_px(img, int(p.x), int(p.y) - 2, 1, 2, fruit.lightened(0.3))
+					_px(img, int(p.x), int(p.y) - 2, 1, 5, pale)
+					_px(img, int(p.x), int(p.y) - 2, 1, 1, pale.lightened(0.45))
+					_px(img, int(p.x) + 1, int(p.y) - 2, 1, 5, pale.darkened(0.4))
 				else:
 					_oval(img, p.x, p.y, 1.9, 1.9, fruit)
 					_px(img, int(p.x) - 1, int(p.y) - 1, 1, 1, fruit.lightened(0.4))
@@ -1099,6 +1108,16 @@ static func _stalk(id: String, growth: int, ripe: bool, variant: int) -> Image:
 				_px(img, top.x + side, top.y + 1, 1, 3, fruit)
 				_px(img, top.x + side, top.y + 3, 1, 1, fruit.darkened(0.2))
 	return _rim(img, leaf.darkened(0.6))
+
+
+## True when a ripe vine's fruit (`hang`, the spots of _stalk) hangs on `side` (-1 left, 1 right)
+## at height `y`: the leaf there is left off. A leaf is 1.8 up and down and the fruit 2 either way,
+## so a leaf one step (3) past the fruit still touches it: the window is 6.5 (two steps).
+static func _hangs_by(hang: Array, side: int, y: int) -> bool:
+	for p: Vector2 in hang:
+		if (p.x < 6.5) == (side < 0) and absf(p.y - y) < 6.5:
+			return true
+	return false
 
 
 ## Like `_outline`, in a colour of its own.
