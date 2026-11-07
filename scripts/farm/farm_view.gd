@@ -38,6 +38,8 @@ var hidden_item := Vector2i(-1, -1):
 
 
 var _water: WaterView        # the moving skin on the pond (over the ground, under the objects)
+var _tall := false           # the last draw had tall crops (they sway while the wind blows)
+var _sway := {}              # the sway handed to CropPatches.draw ({wind, t}, {} in still air)
 
 
 func _ready() -> void:
@@ -55,6 +57,19 @@ func _ready() -> void:
 			move_child(_water, _objects.get_index())
 		else:
 			water.free()
+
+
+## The tall crops' sway at a time: the wind (Game.wind_strength) kept to the sway's frame rate.
+func _sway_for(seconds: float) -> Dictionary:
+	var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
+	var patches: GDScript = load(CROP_PATCHES)
+	return patches.sway_now(game.wind_strength() if game != null else 0.0, seconds)
+
+
+## Redraws the objects when the swaying crops move on a frame (a few times a second).
+func _process(_delta: float) -> void:
+	if _tall and _objects != null and _sway_for(Time.get_ticks_msec() / 1000.0) != _sway:
+		_objects.queue_redraw()
 
 
 ## Lays snow over the ground by `rules` (data/snow_cover.json). Call once, then set_snow.
@@ -96,6 +111,8 @@ func _draw() -> void:
 
 
 func _draw_objects() -> void:
+	_tall = false
+	_sway = _sway_for(Time.get_ticks_msec() / 1000.0)
 	for y in FarmGrid.H:
 		for x in FarmGrid.W:
 			_draw_cell(Vector2i(x, y))
@@ -116,7 +133,8 @@ func _draw_cell(c: Vector2i) -> void:
 	var patches: GDScript = load(CROP_PATCHES)   # tall crops: several small plants, as in 3D (CropPatches)
 	var cluster: String = patches.cluster_key(key)
 	if cluster != "":
-		patches.draw(_objects, {c: cluster})
+		_tall = true
+		patches.draw(_objects, {c: cluster}, Callable(), 0.0, _sway)
 	elif key != "":
 		var tex := PlaceholderArt.tex(key)
 		_objects.draw_texture(tex, r.position + Vector2(0, T - tex.get_height()))
