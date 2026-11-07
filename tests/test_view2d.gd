@@ -844,6 +844,7 @@ func _tall_crops() -> void:
 	mv.free()
 	await _water_patches()
 	await _paddy_ground()
+	_paddy_tiles()
 	await _water_glint()
 
 
@@ -991,6 +992,55 @@ func _paddy_ground() -> void:
 			var clash := water_html.filter(func(h): return mud.has(h))
 			check(clash.is_empty(), "flat paddy ground: the drained mud carries no water or stubble colour (%s)" % [clash])
 	mv.free()
+
+
+## The flat view's paddy ground pictures (PlaceholderArt "paddy_flood" and "paddy_mud"): every
+## variant is painted, not flat (at least four colours), and repeats seamlessly: the wrap column
+## (15 next to 0) and the wrap row (15 next to 0) differ on average no more than the worst of the
+## tile's own neighbouring columns or rows does. The drained mud carries no water or stubble colour.
+func _paddy_tiles() -> void:
+	var dist := func(a: Color, b: Color) -> float:
+		return absf(a.r - b.r) + absf(a.g - b.g) + absf(a.b - b.b)
+	var water_html := ["5d7680", "7d939b", "9aaeb4", "b89a5a"]
+	for kind in ["paddy_flood", "paddy_mud"]:
+		var flat := 0
+		var seam_fail := 0
+		for n in PlaceholderArt.GROUND_VARIANTS:
+			var img: Image = PlaceholderArt.image("ground:%s:%d" % [kind, n])
+			var size := img.get_size()
+			var colours := {}
+			for y in size.y:
+				for x in size.x:
+					colours[img.get_pixel(x, y).to_html(false)] = true
+			if colours.size() < 4:
+				flat += 1
+			# Mean difference across each pair of neighbouring columns (x, x + 1) and rows (y, y + 1).
+			var col_means := []
+			var row_means := []
+			for x in size.x:
+				var sum := 0.0
+				for y in size.y:
+					sum += dist.call(img.get_pixel(x, y), img.get_pixel((x + 1) % size.x, y))
+				col_means.append(sum / size.y)
+			for y in size.y:
+				var sum := 0.0
+				for x in size.x:
+					sum += dist.call(img.get_pixel(x, y), img.get_pixel(x, (y + 1) % size.y))
+				row_means.append(sum / size.x)
+			var worst_inside := 0.0
+			for x in size.x - 1:
+				worst_inside = maxf(worst_inside, col_means[x])
+			for y in size.y - 1:
+				worst_inside = maxf(worst_inside, row_means[y])
+			var seam := maxf(col_means[size.x - 1], row_means[size.y - 1])
+			if seam > worst_inside + 0.0001:
+				seam_fail += 1
+			if kind == "paddy_mud":
+				for h in water_html:
+					if colours.has(h):
+						check(false, "flat paddy mud tile %d carries the water / stubble colour %s" % [n, h])
+		check(flat == 0, "%s: every variant is painted, not flat (%d with fewer than four colours)" % [kind, flat])
+		check(seam_fail == 0, "%s repeats seamlessly: the wrap column and row are no harsher than the tile's inside edges (%d variants over)" % [kind, seam_fail])
 
 
 ## The water patches' glint in the flat view (CropPatches.glint_dots): a patch's light moves over
