@@ -141,6 +141,9 @@ func _show_weather() -> void:
 	weather.show_weather({} if Game.sheltered() else Game.weather_style())
 	lightning.reset({} if Game.sheltered() else Game.lightning_style())
 	weather.follow(cam.get_screen_center_position())
+	var sheet := view.get("_water") as WaterView if view != null else null
+	if sheet != null:
+		sheet.set_rain({} if Game.sheltered() else Game.dimple_style())
 
 
 ## The farmer is put home by the map change (Game.go_home) that comes with the new day.

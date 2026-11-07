@@ -189,6 +189,11 @@ Light and Farmhouse model hold the technical detail of what is built.
       wide, stepping out a pixel at a time, two fade steps, lit like the ground): a strong ring as the
       bobber lands and as a fish bites (then every 0.4 s), a gentle ring every 1.7 s while it waits
       (`Main3D._ring_bobber`). (this commit)
+      Rain dimples (this commit): in rain and storm the pond, the village water and the river show many
+      small rings popping at random spots (a hash of the cell, a time slot and the clock in the same
+      shader, no use of the bobber's eight slots; a dimple grows 0..3 px in its cell, two fade steps),
+      more and quicker in a storm (`data/weather_fx.json` dimples: density, life per look; none in
+      sun, snow, blizzard or indoors); `Game.dimple_style()`, `FarmWorld.set_rain`, `WaterView.set_rain`.
       Still open: no ring at the farmer's feet (the farmer never wades: water cells are blocked); no
       frozen water in winter (the game has none).
       (this commit) Flat view: `WaterView` (scripts/world/water_view.gd), a Sprite2D over the water

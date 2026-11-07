@@ -1,7 +1,9 @@
 {
 	"sunny":    {"tint": "ffffff", "fall": ""},
-	"rain":     {"tint": "c4cfe0", "sun": 0.0, "fall": "rain", "amount": 1500, "speed": 13.0, "wind": 0.8},
+	"rain":     {"tint": "c4cfe0", "sun": 0.0, "fall": "rain", "amount": 1500, "speed": 13.0, "wind": 0.8,
+                  "dimples": {"density": 0.22, "life": 0.9}},
 	"storm":    {"tint": "97a2b8", "sun": 0.0, "fall": "rain", "amount": 3000, "speed": 17.0, "wind": 4.0,
+                  "dimples": {"density": 0.55, "life": 0.55},
 	            "lightning": {"gap": [6.0, 16.0], "first": [1.5, 5.0], "strength": 0.3, "sky": "dce4ff",
 	                          "pulses": [[0.0, 0.08, 1.0], [0.2, 0.25, 0.6]]}},
 	"snow":     {"tint": "e4eaf5", "sun": 0.0, "fall": "snow", "amount": 800,  "speed": 1.1,  "wind": 0.3},

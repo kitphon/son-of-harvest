@@ -848,6 +848,12 @@ func weather_style() -> Dictionary:
 	return weather_fx.get(weather_look(weather_today, season_name()), {})
 
 
+## The rain dimples on the water today (data/weather_fx.json "dimples": density, life), {} when
+## it does not rain.
+func dimple_style() -> Dictionary:
+	return weather_style().get("dimples", {})
+
+
 ## The wind today, 0 (dead calm) .. 1 (a gale): data/wind.json by today's look. Views push it
 ## to the grass tufts and the bamboo sway (FarmWorld.set_wind).
 func wind_strength() -> float:

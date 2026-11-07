@@ -14,7 +14,10 @@ extends MeshInstance3D
 ## breathing while it waits and the burst of a bite use them. They are drawn by the same sheet
 ## (a uniform array, a loop of eight in the shader), so they take the bank inset, the ground's
 ## light and the pixel grid for free and add no node. (The farmer never wades: water cells are
-## blocked, so there is no ring at the feet; the bobber's rings are the only ones.)
+## blocked, so there is no ring at the feet.) Rain dimples (`set_rain()`, data/weather_fx.json
+## "dimples") are a second layer in the same shader: a hash of the cell and the clock picks, in
+## each slot of `life` seconds, cells that get one small ring (grows 0..3 px, in its cell), so
+## they use none of the bobber's eight slots.
 
 const T := 16
 const LAND_INSET := 3.0 / T   # a bank is 2 px wide and the foam line 1 px; the sheet starts after them
@@ -33,6 +36,9 @@ uniform vec3 trough_color : source_color = vec3(0.13, 0.31, 0.56);
 uniform vec2 drift = vec2(0.5, 0.25);
 uniform vec3 ring_color : source_color = vec3(0.86, 0.95, 1.0);
 uniform float clock = 0.0;
+uniform float dimple_density = 0.0;   // chance a cell has a rain dimple in a time slot (0 = dry)
+uniform float dimple_life = 0.9;      // seconds a dimple lasts (= the length of a time slot)
+float hash2(vec2 v) { return fract(sin(dot(v, vec2(12.9898, 78.233))) * 43758.5453); }
 uniform vec4 ripples[8];   // x, z of the centre, clock time it began, life (0 = unused; < 0 = strong)
 void vertex() { world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 void fragment() {
@@ -49,6 +55,21 @@ void fragment() {
 			float d = length((p - r.xy) * 16.0);
 			if (radius <= maxr && abs(d - radius) < 0.8) {
 				ring = max(ring, age / life < 0.55 ? 0.6 : 0.3);
+			}
+		}
+	}
+	if (dimple_density > 0.0) {
+		// Rain dimples: each cell, in each slot of dimple_life seconds (a phase by cell), may get
+		// one small ring, centred on a whole pixel 3..12 in, growing 0..3 px, so it stays in its cell.
+		vec2 cell = floor(world.xz);
+		float u = clock / dimple_life + hash2(cell) * 7.0;
+		float slot = mod(floor(u), 64.0);
+		float age01 = fract(u);
+		if (hash2(cell + vec2(slot * 0.37, slot * 1.13) + 21.0) < dimple_density) {
+			vec2 centre = floor(vec2(3.0) + vec2(hash2(cell + vec2(slot, 5.0)), hash2(cell.yx + vec2(slot, 9.0))) * 10.0) + 0.5;
+			float d = length((p - cell) * 16.0 - centre);
+			if (abs(d - floor(age01 * 4.0)) < 0.8) {
+				ring = max(ring, age01 < 0.5 ? 0.5 : 0.25);
 			}
 		}
 	}
@@ -86,6 +107,8 @@ var quads: Array[Dictionary] = []
 var clock := 0.0                         # seconds since the sheet was made; the rings' time
 var ripples := PackedVector4Array()      # the slots the shader reads (see `ripple`)
 var _next_slot := 0
+var rain_density := 0.0                  # set_rain: 0 when dry
+var rain_life := 0.9
 
 
 func _process(delta: float) -> void:
@@ -111,6 +134,17 @@ func ripple(at: Vector2, strong := false) -> void:
 	var m := material_override as ShaderMaterial
 	if m != null:
 		m.set_shader_parameter("ripples", ripples)
+
+
+## Rain dimples (data/weather_fx.json "dimples" of today's look; {} = dry): many small rings
+## popping at random spots, shown by the shader from the clock alone (no ring slots used).
+func set_rain(style: Dictionary) -> void:
+	rain_density = clampf(float(style.get("density", 0.0)), 0.0, 1.0)
+	rain_life = maxf(float(style.get("life", 0.9)), 0.1)
+	var m := material_override as ShaderMaterial
+	if m != null:
+		m.set_shader_parameter("dimple_density", rain_density)
+		m.set_shader_parameter("dimple_life", rain_life)
 
 
 ## How many rings are still spreading now.
@@ -168,4 +202,6 @@ func set_cells(cells: Array[Vector2i], water_at: Callable) -> void:
 	ripples.resize(MAX_RIPPLES)
 	m.set_shader_parameter("ripples", ripples)
 	m.set_shader_parameter("clock", clock)
+	m.set_shader_parameter("dimple_density", rain_density)
+	m.set_shader_parameter("dimple_life", rain_life)
 	material_override = m

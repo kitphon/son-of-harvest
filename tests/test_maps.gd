@@ -2298,6 +2298,22 @@ func _water() -> void:
 		sheet.ripple(Vector2(1, 1))
 	check(sheet.ripples_alive() == sheet.MAX_RIPPLES and sheet.ripples.size() == sheet.MAX_RIPPLES,
 		"more rings than slots reuse the oldest slot")
+	# Rain dimples: dry by default, set from data/weather_fx.json, in the shader, no slots used.
+	var fx: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/weather_fx.json"))
+	var rain_d: Dictionary = fx.rain.dimples
+	var storm_d: Dictionary = fx.storm.dimples
+	var m3: ShaderMaterial = sheet.material_override
+	check(sheet.rain_density == 0.0 and is_equal_approx(float(m3.get_shader_parameter("dimple_density")), 0.0)
+		and m3.shader.code.contains("dimple_density"), "the water is dry until it rains")
+	fw.set_rain(rain_d)
+	check(is_equal_approx(float(m3.get_shader_parameter("dimple_density")), float(rain_d.density))
+		and is_equal_approx(float(m3.get_shader_parameter("dimple_life")), float(rain_d.life)), "rain sets the dimples' density and life on the sheet")
+	check(float(storm_d.density) > float(rain_d.density) and float(storm_d.life) < float(rain_d.life), "a storm dimples more and quicker than rain")
+	check(sheet.ripples_alive() == sheet.MAX_RIPPLES, "dimples take none of the bobber's ring slots")
+	fw.set_rain({})
+	check(is_equal_approx(float(m3.get_shader_parameter("dimple_density")), 0.0), "no dimples once it stops")
+	for look in ["sunny", "snow", "blizzard"]:
+		check(not fx[look].has("dimples"), "%s has no rain dimples" % look)
 	fw.free()
 	for id in ["river", "town"]:
 		var m := MapManager.data(id)
@@ -2315,7 +2331,7 @@ func _water() -> void:
 		w.free()
 	var house: Node3D = load("res://scripts/world3d/map_world.gd").new()
 	house.build(MapManager.data("house"))
-	check(house.surroundings == null, "no water sheet indoors")
+	check(house.surroundings == null, "no water sheet indoors (so no dimples)")
 	house.free()
 
 
