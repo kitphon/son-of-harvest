@@ -82,6 +82,7 @@ func _process(delta: float) -> bool:
 		_occluder_own()
 		_kept_lit_and_swaying()
 		_shader_warm()
+		_hearth_smoke()
 		_start_view()
 	elif _frame == 3:
 		var g: Node = root.get_node("Game")
@@ -2979,6 +2980,96 @@ func _walkable(m: MapData, from: Vector2i) -> Dictionary:
 
 
 ## A world3d script by its file name, loaded when the tests run (it reaches the Game autoload).
+## Hearth smoke (HearthSmoke, data/smoke.json): the farmhouse and every village house on an
+## outdoor map send up smoke at meal times (7:00 yes, 12:00 no), indoors none; a storm buries it;
+## the wind leans it; the farmhouse's vent sits over its ridge.
+func _hearth_smoke() -> void:
+	var HS: GDScript = _k("hearth_smoke")   # loaded at run time: a class name here would compile farm_world too early
+	var g: Node = root.get_node("Game")
+	var hour0: int = g.hour
+	var min0: int = g.minute
+	var weather0: String = g.weather_today
+	var cfg: Dictionary = HS.config()
+	check(cfg.windows.size() == 2 and int(cfg.puffs) > 0, "smoke data: two meal windows and puffs (%s)" % [cfg.windows])
+	check(HS.strength_at(7.0) == 1.0 and HS.strength_at(18.0) == 1.0, "smoke: full at 7:00 and 18:00")
+	check(HS.strength_at(12.0) == 0.0 and HS.strength_at(3.0) == 0.0, "smoke: none at noon or 3:00")
+	check(HS.strength_at(6.0) == 0.0 and HS.strength_at(20.0) == 0.0, "smoke: none at the window's edges (6:00, 20:00)")
+	var mid: float = HS.strength_at(6.0 + float(cfg.fade_hours) / 2.0)
+	check(mid > 0.0 and mid < 1.0, "smoke: eases in over the fade (%.2f)" % mid)
+	# The farmhouse: over the ridge's middle (Minka.roof: eave Rect2(1.45, 0.55, 6.1, 3.5), soffit 1.45, pitch 1.25).
+	var farm: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	farm._make_hearth_smoke()
+	var farm_smoke := farm.get_children().filter(func(n): return n.get_script() == HS)
+	check(farm_smoke.size() == 1, "the farmhouse has one hearth smoke (%d)" % farm_smoke.size())
+	if farm_smoke.size() == 1:
+		var fs: Node3D = farm_smoke[0]
+		check(fs.position.distance_to(Vector3(4.5, 1.45 + 1.75 * 1.25 + HS.RIDGE_LIFT, 2.3)) < 0.001, "the farmhouse's smoke rises from the ridge's middle (%s)" % fs.position)
+		g.hour = 7
+		g.minute = 0
+		fs.refresh()
+		check(fs.visible and fs.strength() == 1.0, "farmhouse smoke at 7:00")
+		g.hour = 12
+		fs.refresh()
+		check(not fs.visible and fs.strength() == 0.0, "farmhouse smoke gone at 12:00")
+		g.hour = 7
+		fs.refresh()
+		g.weather_today = "storm"
+		if g.weather_look("storm", g.season_name()) == "storm":
+			fs.refresh()
+			check(not fs.visible, "a storm buries the farmhouse's smoke")
+		g.weather_today = weather0
+		# The wind leans the puffs: a gale moves the top of a rise further than a calm day.
+		fs.refresh()
+		var calm: Array = []
+		for mi in fs._puffs:
+			calm.append(mi.position.x)
+		farm.set_wind(1.0)
+		fs.refresh()
+		var gale: Array = []
+		for mi in fs._puffs:
+			gale.append(mi.position.x)
+		var leans := false
+		for i in calm.size():
+			leans = leans or absf(gale[i] - calm[i]) > 0.001
+		check(leans, "the wind leans the farmhouse's smoke")
+	farm.free()
+	# A village: every house with its own smoke, shown at 7:00, gone at noon; indoors none.
+	var town_data := MapManager.data("town")
+	var houses := 0
+	for p in town_data.props:
+		if p.kind == "village_house":
+			houses += 1
+	var town: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	town.build(town_data)
+	var smokes := town.get_children().filter(func(n): return n.get_script() == HS)
+	check(houses > 0 and smokes.size() == houses, "town: one hearth smoke per village house (%d of %d)" % [smokes.size(), houses])
+	g.hour = 7
+	g.minute = 0
+	var shown := 0
+	for n in smokes:
+		n.refresh()
+		shown += 1 if n.visible else 0
+	check(shown == smokes.size() and smokes.size() > 0, "town: every house smokes at 7:00 (%d)" % shown)
+	g.hour = 12
+	var still := 0
+	for n in smokes:
+		n.refresh()
+		still += 1 if n.visible else 0
+	check(still == 0, "town: no smoke at noon (%d)" % still)
+	# The first house's vent stands over its roof, not in the walls.
+	if not smokes.is_empty():
+		var at: Vector3 = smokes[0].position
+		check(at.y > 2.0 and at.y < 4.5, "a village house's vent is over its roof (%.2f)" % at.y)
+	town.free()
+	var inside: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	inside.build(MapManager.data("tome_house"))
+	check(inside.get_children().filter(func(n): return n.get_script() == HS).is_empty(), "indoors (Tome's house): no hearth smoke")
+	inside.free()
+	g.hour = hour0
+	g.minute = min0
+	g.weather_today = weather0
+
+
 func _k(file: String) -> GDScript:
 	return load("res://scripts/world3d/%s.gd" % file)
 

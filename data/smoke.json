@@ -1,0 +1,15 @@
+{
+	"_about": "Hearth smoke (HearthSmoke): thin pale smoke rising from the farmhouse's thatched ridge and the village houses' roofs at meal times, outdoors only. `windows` are the hours of the game clock [from, to] when the cooking fires burn (6:00-8:30 and 17:00-19:30); the smoke fades in and out over `fade_hours` at each end, so it never pops on or off. `hide_in` lists the weather looks that bury it (a storm; light rain and snow leave it be; data/weather_fx.json). Each puff rises `rise` units from the ridge over `period` real seconds, from `size` wide at the start to `size` x `grow` at the top, fading in then out; `lean` is how far the top of a rise drifts sideways at a gale (data/wind.json's wind strength, scaled by 0.3 + wind, so calm days still lean a little). `wobble` is the small side-to-side sway of each puff. `alpha` is the puff's strongest opacity; `color` the smoke's colour (lit, so it darkens at night with the rest). Balance numbers are ours.",
+	"windows": [[6.0, 8.5], [17.0, 19.5]],
+	"fade_hours": 0.33,
+	"hide_in": ["storm"],
+	"puffs": 4,
+	"period": 6.0,
+	"rise": 0.9,
+	"size": 0.08,
+	"grow": 2.6,
+	"alpha": 0.42,
+	"color": "ece8e0",
+	"lean": 0.9,
+	"wobble": 0.04
+}

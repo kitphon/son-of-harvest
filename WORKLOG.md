@@ -10,6 +10,47 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Hearth smoke at meal times
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: thin pale smoke from the farmhouse's ridge (FarmWorld._make_hearth_smoke) and from every
+  village house's roof on outdoor maps (MapWorld._make_village_smoke), 6:00-8:30 and 17:00-19:30
+  by the clock, eased in and out over 0.33 h at each end. HearthSmoke (scripts/world3d/hearth_smoke.gd)
+  copies StallWares.Steam's approach: four lit puffs out of step, bigger and slower (rise 0.9,
+  period 6 s, size 0.08 growing to 2.6x, alpha 0.42, colour ece8e0). Numbers in data/smoke.json
+  (windows, fade_hours, hide_in, puffs, period, rise, size, grow, alpha, color, lean, wobble).
+  The wind (FarmWorld.wind, from data/wind.json) leans the puffs; a storm look hides them. Each
+  smoke is its own node, added outside occlude and MeshCache, so the house meshes and their
+  cache are unchanged. Vent positions come from the roof formulas (HearthSmoke.vent_at /
+  village_vent, copied constants as in Minka / _village_house).
+  Note: there was no existing vent in scripts/world3d/minka.gd (the brief said there was). The
+  farmhouse's roof is a hip roof, so its vent is the middle of the ridge (4.5, 3.68, 2.3).
+  Data file is data/smoke.json, not weather_fx.json: weather_fx keys are weather looks and are
+  iterated by tests and Game, so a new key there would be read as a look.
+- Checked: test_maps `_hearth_smoke` (runs at frame 1; loads the script at run time, since a
+  class name in the test would compile farm_world too early and fail): strength_at 7:00 and
+  18:00 = 1, noon, 3:00, 6:00 and 20:00 = 0, mid-fade between; the farmhouse has one smoke at the
+  ridge's middle, visible at 7:00 and hidden at 12:00; a storm hides it (checked when the look is
+  storm in the season); a gale moves the puffs further than a calm day; the town has one smoke per
+  village house, all shown at 7:00 and none at noon; a vent is over its roof (y 2..4.5); Tome's
+  indoor house has none. Test results (run from the worktree, each script's final line):
+  test_farm OK (0 failed), test_save OK (0 failed), test_title OK (0 failed), test_weather OK (0 failed),
+  test_dialogue OK (0 failed), test_menu OK (0 failed), test_body OK (0 failed), test_events OK (0 failed),
+  test_maps OK (0 failed), test_inventory OK (0 failed), test_food OK (0 failed), test_cooking OK (0 failed),
+  test_hold OK (0 failed), test_villagers OK (0 failed), test_talk OK (0 failed), test_relationships OK (0 failed),
+  test_shops OK (0 failed), test_animals OK (0 failed), test_fishing OK (0 failed), test_forage OK (0 failed),
+  test_mine OK (0 failed), test_ending OK (0 failed), test_festivals OK (0 failed), test_view2d OK (0 failed),
+  test_goals OK (0 failed), test_lang OK (0 failed), test_showcase OK (0 failed), test_audio OK (0 failed).
+  No SCRIPT ERROR in any log. Smoke runs (title, `-- --demo`, `-- --demo --map=town`, `-- --demo --mine=3`,
+  `--quit-after 300`): exit 0, no errors, no warnings.
+  Screenshots (480 x 270, `--write-movie`): `--demo --time=7:00` and `--demo --map=town --time=18:00`
+  (also `--map=town@sayo`, `--map=kaminoda@well` at 18:00, and `--lens=wide` at 7:00). In every
+  framing the farmhouse ridge and the village ridges are cut off by the top edge of the frame, so
+  the puffs are not visible in the pictures; the smoke is checked by the tests above only. Nothing
+  else in the frames changed.
+- Left / next: the flat view has no hearth smoke (left open). The smoke is not seen in any
+  screenshot: a framing that shows a roof's ridge and the puffs above it (or a close-up camera for
+  a check) is still to do. Puff size and alpha are not judged by eye yet.
+
 ## 2026-11-07 — Shader warm-up, cheaper rebuilds of houses, the stand and bamboo
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the open items of "Faster first visit to a map". Measured first (throwaway script in a

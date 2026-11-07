@@ -281,6 +281,13 @@ Light and Farmhouse model hold the technical detail of what is built.
       sky's colour above the peaks. Flat coloured by season, hazed with the sky by the clock
       (the far layer more), feet fading into it, snow caps in winter. Not in rooms or the mine.
 
+- [x] Hearth smoke at meal times: thin pale smoke rising from the farmhouse's ridge and every
+      village house's roof, 6:00-8:30 and 17:00-19:30 by the clock, fading in and out at each
+      end; the puffs drift with the wind and a storm buries them (HearthSmoke,
+      scripts/world3d/hearth_smoke.gd; numbers in data/smoke.json). Outdoor maps only, separate
+      nodes (not in occlude or MeshCache). Left open: the flat view (no smoke there yet).
+      (this commit)
+
 ### 4. Characters (needs the user's decision on who draws)
 - [x] Larger, more detailed farmer and villager sprites, four or eight directions. (d2d8064:
       the user asked the agent to refine the code-drawn placeholders for now; real art later.
