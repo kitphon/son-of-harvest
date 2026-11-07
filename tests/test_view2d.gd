@@ -45,6 +45,7 @@ func _run() -> void:
 	await _night()
 	await _water()
 	await _ripples()
+	await _maples()
 	scene.free()
 	print("test_view2d: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -408,6 +409,62 @@ func _night() -> void:
 ## The water's moving skin (WaterView) in the flat view: the farm pond (FarmView) and the village
 ## pond / river (MapView) get one, it covers the water cells only, and the bank and foam pixels a
 ## land side draws on the ground stay still (the sheet starts 3 px in, as in 3D).
+## The maple in the flat view is a picture of a tree, not a box (MapView draws PlaceholderArt
+## "tree:maple:<season>:<snow>"): every season has a round crown with a trunk and clear corners,
+## the leaves in the 3D maple's colours (orange among the reds in fall only), bare branches in
+## winter with snow on them only where the map has snow.
+func _maples() -> void:
+	var mv := MapView.new()
+	mv.map = MapManager.data("hill")
+	root.add_child(mv)
+	await process_frame
+	var maples := mv.map.props.filter(func(p): return p.kind == "maple")
+	check(maples.size() >= 6, "the hill has its maples in the flat view (%d)" % maples.size())
+	# the 3D maple's colours (Trees.LEAVES.maple, Trees.MAPLE_FLAME; this script does not load Trees)
+	var flame := Color("dc6a1e")
+	var leaves := {"spring": Color("86b844"), "summer": Color("2f6e32"), "fall": Color("c42a1e")}
+	for season in ["spring", "summer", "fall", "winter"]:
+		for snow in [false, true]:
+			var img: Image = PlaceholderArt.image(MapView.maple_key(snow, season))
+			var green := 0
+			var red := 0
+			var orange := 0
+			var white := 0
+			var bark := 0
+			var clear := 0
+			for y in img.get_height():
+				for x in img.get_width():
+					var c := img.get_pixel(x, y)
+					if c.a < 0.5:
+						clear += 1
+						continue
+					if c.g > c.r and c.g > c.b:
+						green += 1
+					elif c.r > 0.6 and c.g < c.r * 0.5:
+						red += 1
+					if Vector3(c.r, c.g, c.b).distance_to(Vector3(flame.r, flame.g, flame.b)) < 0.12:
+						orange += 1
+					if c.r > 0.9 and c.g > 0.9 and c.b > 0.9:
+						white += 1
+					if c.r < 0.35 and c.g < 0.25 and c.a > 0.5 and c.r > c.g:
+						bark += 1
+			var what := "%s, snow %s" % [season, snow]
+			check(img.get_size() == Vector2i(24, 32), "maple %s: a 24 x 32 picture" % what)
+			check(clear > img.get_width() * img.get_height() * 0.4, "maple %s: round, not a box (%d clear)" % [what, clear])
+			check(img.get_pixel(0, 0).a < 0.5 and img.get_pixel(23, 0).a < 0.5 and img.get_pixel(0, 31).a < 0.5 and img.get_pixel(23, 31).a < 0.5,
+				"maple %s: clear corners" % what)
+			check(bark > 10, "maple %s: a trunk or bare branches in bark (%d)" % [what, bark])
+			if leaves.has(season):
+				check(green + red + orange > 90, "maple %s: a leafy crown (%d)" % [what, green + red + orange])
+				check((green > 40) == (season in ["spring", "summer"]), "maple %s: green leaves only in spring and summer (%d)" % [what, green])
+				check((orange > 0) == (season == "fall"), "maple %s: orange lumps only in fall (%d)" % [what, orange])
+				check(red > 0 or season != "fall", "maple %s: red in fall" % what)
+			else:
+				check(green == 0 and red == 0 and orange == 0, "maple %s: no leaves in winter" % what)
+			check((white > 0) == (season == "winter" and snow), "maple %s: snow on the branches only in winter with snow (%d)" % [what, white])
+	mv.free()
+
+
 func _water() -> void:
 	var fv := FarmView.new()
 	fv.farm = g.farm

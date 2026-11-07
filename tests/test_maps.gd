@@ -1494,6 +1494,12 @@ func _height_at(tris: PackedVector3Array, at: Vector2) -> float:
 ## its snow driven by the world's set_snow.
 func _trees() -> void:
 	var trees: GDScript = load("res://scripts/world3d/trees.gd")
+	# The flat view's maple picture keeps the 3D maple's colours (PlaceholderArt copies them, it does not load Trees).
+	var flat_art: GDScript = load("res://scripts/art/placeholder_art.gd")
+	for season in ["spring", "summer", "fall"]:
+		check(flat_art.MAPLE_LEAVES[season] == trees.LEAVES.maple[season], "the flat maple's %s leaves are the 3D maple's" % season)
+	check(flat_art.MAPLE_FLAME == trees.MAPLE_FLAME, "the flat maple's orange is the 3D maple's")
+	check(not trees.LEAVES.maple.has("winter") or trees.LEAVES.maple.winter.a == 0.0, "the 3D maple is bare in winter, as the flat one")
 	var parts_of := func(build: Callable) -> Node3D:
 		var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
 		var p = load("res://scripts/world3d/farm_props.gd").Parts.new()
