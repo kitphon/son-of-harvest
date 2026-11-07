@@ -66,6 +66,50 @@ Agent: Claude Code (claude-sonnet) · Commit: this commit
 - Left / next: only the pond's width is measured in screenshots (frame is small); ice on the paddies
   is still open; the flat view's growth is checked by the uniform test, not by a screenshot.
 
+## 2026-11-07 — Shader warm-up for the night and the first map
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: the two gaps left by "Shader warm-up, cheaper rebuilds". (1) Night variants:
+  `ShaderWarm.news` notes whether each mesh is on the night lamps' layer (`lit`; a kind seen on
+  the ground layer and later on a lit mesh is kept again as lit, not the other way), and `show`
+  puts an OmniLight3D like NightLamps' (`WarmLamp`: no shadows, cull mask LIT_MASK, range 0.1,
+  just toward the camera from the quads) over the quads, the lit ones on LIT_MASK and the
+  ground's on GROUND_LAYER, so the lamp's extra pass compiles in the black. Measuring showed a
+  second hitch at dusk: the frame the sun's shadows switch off (Game.sun_shadow reaches 0) also
+  compiled new variants, so Main3D now draws one warm-up frame with the sun's shadows the other
+  way round (`_warm_step`, then `_show_shadows` again; `_end_warm` restores them too). (2) The
+  first map: `MapFade.cover()` starts the fade at black in its hold (no Game pause, no
+  map_arrived at its end: the view still says that itself in `_ready`, so map_entered and the
+  events run as before); Main3D calls it before the first `_enter_map`, so the first map's kinds
+  are drawn under black like any map change's. Frames 1..3 of a run are black, the picture is
+  back by frame 11 at 30 fps (a `--demo` movie: means 0,0,0 for frames 1..3, 122.7,126.9,79.6
+  from frame 11 to 19; frame 19 looked at: shadows as before).
+- Checked: all 28 test scripts print OK (0 failed). test_maps new checks: the town's quads under
+  one lamp without shadows, cull mask LIT_MASK, range under NEAR and reaching every quad, lit
+  quads on LIT_MASK and the ground's on GROUND_LAYER (13 of 16 kinds lit); a kind first on the
+  ground then lit is kept again, then on the ground nothing new; in the scene the first map
+  starts covered (busy, holding, alpha 1, not paused, its warm-up drawn); the sun's shadow switch
+  seen both on and off while the warm-up was up, and off again in the house. With the lamp, the
+  cover and the flip taken out, test_maps printed `test_maps: FAILED (3 failed)`, those three.
+  Smoke runs (title, --demo, --demo --map=town, --demo --mine=3, --demo --time=21:00): no error
+  or warning lines.
+  Times, in a window (a throwaway SceneTree script, not kept: the farm at 17:30 as the first
+  map, 90 frames, a map change to the village, 110 frames, then a game minute a frame from
+  17:30 to 21:30 in the village; sound off, see below), "before" = this build with the lamp, the
+  flip and the cover switched off, two runs each: the frame the lamps came on (17:55) 371 / 484
+  -> 160 / 167 ms; the frame the sun's shadows went off (18:30) 500 / 483 -> 108 / 112 ms; the
+  map change to the village, longest frame 387 / 287 -> 87 / 183 ms (the farm's kinds were
+  warmed at the start). The first map's warm-up costs one black frame of 670 / 776 ms (before:
+  its frames after the first, in view, at most 47 / 36 ms, but its unseen kinds then compiled
+  at the next map change and at dusk). With the lamp alone (no flip, no cover) the lamps' frame
+  was 104 / 120 ms and the shadows' 451 / 456 ms, so both parts count. A second warm-up lamp
+  made no difference (180 / 101 ms), so it was not kept.
+- Left / next: the frames where the lamps come on and the shadows go off are still 100..170 ms
+  (not found: the sprites are unshaded, every mesh has a material_override; perhaps not
+  shaders). With sound on, the frame at 20:00 in spring took 216..355 ms: the crickets' ambient
+  loop is synthesized on the main thread when it first plays (Sfx._process -> stream(key));
+  with sound off it was gone. Making ambient loops ahead, off the main thread, as the tunes are,
+  would close it.
+
 ## 2026-11-07 — The field takes the night lift
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: ART_DIRECTION section 3's "the field's objects and crops take no night lift". The

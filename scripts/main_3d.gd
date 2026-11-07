@@ -52,9 +52,11 @@ var prebuilt := 0                # worlds built ahead so far (tests)
 var _pre := {}                   # the one under way: {id, key, world, steps, next}
 var _still := 0.0                # seconds the farmer has stood still (with no fade)
 ## Shader warm-up (ShaderWarm): the new kinds of material of a map entered are drawn once while
-## the fade holds black, then taken away.
+## the fade holds black (the first map under MapFade.cover), one of those frames with the sun's
+## shadows the other way round (_warm_step), then taken away.
 var warm := true
 var _warm: Node3D
+var _warm_frames := 0           # frames drawn with the warm-up after its first
 var _layers: Array[Node] = []   # this visit's layers on the world (villagers, forage, animals ...)
 var lightning := Lightning.new()
 var held_sprite: Sprite3D        # the item carried overhead
@@ -204,6 +206,8 @@ func _ready() -> void:
 	Game.settings_changed.connect(func(): lightning.reset({} if Game.sheltered() else Game.lightning_style()))
 	Game.thrown.connect(_on_thrown)
 	Game.fishing_event.connect(func(kind): FarmActions.on_fishing_event(kind))
+	if warm:
+		fade.cover()   # the first map is built and warmed behind black too (no fade led here)
 	_enter_map()
 	Game.map_arrived()
 	FarmActions.connect_view(player)   # the actions, and the --talk flag
@@ -272,13 +276,36 @@ func _enter_map() -> void:
 	_end_warm()
 	if warm and fade.busy():
 		_warm = ShaderWarm.show(self, cam, ShaderWarm.news(world))
+		_warm_frames = 0
 
 
-## Takes the warm-up quads away (before the picture comes back from black).
+## Takes the warm-up quads away (before the picture comes back from black), the sun's shadows
+## as they should be.
 func _end_warm() -> void:
 	if _warm != null:
 		_warm.free()
 		_warm = null
+		_show_shadows(_inside())
+
+
+## One frame of the warm-up after the first (the screen still black): the sun's shadows the
+## other way round, so the quads (and the world under the black) also draw the variant they
+## have with them off (night, rooms) or on (day outdoors). Measured 2026-11-07: the village's
+## frame at dusk when the sun's shadows went off took 450..560 ms before.
+func _warm_step() -> void:
+	_warm_frames += 1
+	if _warm_frames == 1:
+		sun.shadow_enabled = not sun.shadow_enabled
+		if sun.shadow_enabled:
+			sun.shadow_opacity = 1.0
+	elif _warm_frames == 2:
+		_show_shadows(_inside())
+
+
+## A room, a mine floor or a map with its own light: the plain sun, no sun shadows.
+func _inside() -> bool:
+	var m := Game.maps.current()
+	return m.indoor or Game.maps.mine_floor != null or m.light != null
 
 
 ## A new world for map `m` (not built yet) and its build steps, in order: the farm (FarmWorld,
@@ -474,6 +501,8 @@ func _process(delta: float) -> void:
 	_prebuild(delta)
 	if _warm != null and not fade.holding():
 		_end_warm()
+	elif _warm != null:
+		_warm_step()
 
 
 func _follow() -> void:
@@ -652,7 +681,7 @@ func _update_tint() -> void:
 	var f := Game.maps.mine_floor
 	tint.material = _lantern if f != null else _mul
 	tint.color = f.light if f != null else (m.light if m.light != null else Game.light_color())
-	var inside := m.indoor or f != null or m.light != null
+	var inside := _inside()
 	env.background_color = Game.sky_background(inside, m.background)
 	_aim_sun(inside)
 	_show_shadows(inside)
