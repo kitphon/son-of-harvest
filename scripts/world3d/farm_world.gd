@@ -6,7 +6,11 @@ extends Node3D
 ## and roofs (Game.snow_cover) is drawn by SnowLayer shaders.
 
 const T := 16
-const PX := 0.045              # world units per sprite pixel (a 24 px farmer ~ 1.1 cells tall)
+const PX := 0.045              # world units per sprite pixel (crops, items, animals, props)
+## World units per pixel of a figure sprite (the farmer, villagers: FigureArt, 24 x 32). Their
+## head tops about 1.2 units up, a little taller than the 1.08 of the old 24 px figures and under
+## every eave (1.45); a pixel comes out about 1.5 screen pixels at the medium lens.
+const FIGURE_PX := 0.04
 
 var farm: FarmGrid
 var gaps: Array[Vector2i] = []   # fence cells left open (the gate to the village)
@@ -79,6 +83,13 @@ static func make_sprite(tex: Texture2D) -> Sprite3D:
 	s.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	s.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	s.offset = Vector2(0, tex.get_height() / 2.0)   # stand on the ground
+	return s
+
+
+## A figure's sprite (farmer, villager): make_sprite at FIGURE_PX, feet on the ground.
+static func make_figure(tex: Texture2D) -> Sprite3D:
+	var s := make_sprite(tex)
+	s.pixel_size = FIGURE_PX
 	return s
 
 

@@ -32,6 +32,7 @@ func _process(_delta: float) -> bool:
 	if _frame == 1:
 		_town_today()
 		_sprites()
+		_figures()
 		_start_views()
 	elif _frame == 3:
 		_check_views()
@@ -191,6 +192,7 @@ func _files() -> void:
 		var v: Dictionary = r[1]
 		check(str(v.look.get("hair_style", "short")) in PlaceholderArt.VILLAGER_STYLES and str(v.look.get("outfit", "happi")) in PlaceholderArt.VILLAGER_OUTFITS,
 			"%s has a known hair style and outfit" % id)
+		check(str(v.look.get("build", "adult")) in PlaceholderArt.VILLAGER_BUILDS, "%s has a known build" % id)
 		var used := {v.default: true}
 		for rule in v.rules:
 			used[rule.plan] = true
@@ -311,7 +313,7 @@ func _river_sunday() -> void:
 		var idle := PlaceholderArt.tex("villager:%s:front:idle:0" % id).get_image()
 		var up := PlaceholderArt.tex("villager:%s:front:fish:0" % id).get_image()
 		var dip := PlaceholderArt.tex("villager:%s:front:fish:1" % id).get_image()
-		check(up.get_size() == Vector2i(16, 24) and _has_colour(up, Color("7a5a32")) and not _has_colour(idle, Color("7a5a32"))
+		check(up.get_size() == PlaceholderArt.FIGURE_SIZE and _has_colour(up, Color("7a5a32")) and not _has_colour(idle, Color("7a5a32"))
 			and up.get_data() != dip.get_data(), "%s's fish frames: the rod out, then the tip dipped" % id)
 
 
@@ -515,9 +517,9 @@ func _sprites() -> void:
 			var idle := PlaceholderArt.tex("villager:%s:%s:idle:0" % [id, side]).get_image()
 			var up := PlaceholderArt.tex("villager:%s:%s:work:0" % [id, side]).get_image()
 			var blow := PlaceholderArt.tex("villager:%s:%s:work:1" % [id, side]).get_image()
-			check(up.get_size() == Vector2i(16, 24) and up.get_data() != blow.get_data() and up.get_data() != idle.get_data()
+			check(up.get_size() == PlaceholderArt.FIGURE_SIZE and up.get_data() != blow.get_data() and up.get_data() != idle.get_data()
 				and _has_colour(up, Color("5a5e66")) and _has_colour(blow, Color("5a5e66")), "%s %s work frames: the hammer raised, then the blow" % [id, side])
-			check(idle.get_size() == Vector2i(16, 24), "%s %s frame is 16 x 24" % [id, side])
+			check(idle.get_size() == PlaceholderArt.FIGURE_SIZE, "%s %s frame is 24 x 32" % [id, side])
 			check(_has_colour(idle, top), "%s %s shows their top colour" % [id, side])
 			check(_has_colour(idle, PlaceholderArt.OUTLINE), "%s %s has the outline" % [id, side])
 			var a := PlaceholderArt.tex("villager:%s:%s:walk:0" % [id, side]).get_image()
@@ -527,6 +529,68 @@ func _sprites() -> void:
 	check(Villagers.sprite_key(w) == "villager:kota:back:walk:2", "walk frame by the distance walked: %s" % Villagers.sprite_key(w))
 	w = {"id": "kota", "facing": Vector2i.DOWN, "moving": false, "walked": 0.0}
 	check(Villagers.sprite_key(w) == "villager:kota:front:idle:0", "standing")
+
+
+## The figures (FigureArt, 24 x 32): every key of every villager and the farmer is drawn at the
+## figure size with the feet on the bottom rows; four directions from two drawings (front and
+## back differ, mirrored for Right and Up); faces only from the front; builds set the height.
+func _figures() -> void:
+	var fig := PlaceholderArt.FIGURE_SIZE
+	check(fig == Vector2i(24, 32), "figures are 24 x 32")
+	var keys: Array[String] = []
+	for side in ["front", "back"]:
+		for pose in ["idle", "walk", "run", "tired_idle", "tired_walk", "hold_idle", "hold_walk", "fish_wait", "fish_bite", "eat", "drink"]:
+			for f in PlaceholderArt.farmer_frames(pose):
+				keys.append("player:%s:%s:%d" % [side, pose, f])
+		for id in Villagers.all():
+			for p in ["idle:0", "walk:0", "walk:1", "walk:2", "walk:3", "work:0", "work:1", "fish:0", "fish:1"]:
+				keys.append("villager:%s:%s:%s" % [id, side, p])
+	var bad: Array[String] = []
+	for key in keys:
+		var img := PlaceholderArt.tex(key).get_image()
+		var used := img.get_used_rect()
+		var grounded := false
+		for x in fig.x:
+			grounded = grounded or img.get_pixel(x, fig.y - 1).a > 0.0
+		if img.get_size() != fig or not grounded or used.size.y < 20:
+			bad.append(key)
+	check(bad.is_empty(), "every figure key is drawn 24 x 32, standing on the bottom row (%d keys; off: %s)" % [keys.size(), bad])
+	# Four directions: Down = front, Right = front mirrored, Left = back, Up = back mirrored.
+	var pics := {}
+	for facing in [Vector2i.DOWN, Vector2i.RIGHT, Vector2i.LEFT, Vector2i.UP]:
+		var a := FarmerAnim.new()
+		var img := PlaceholderArt.tex(a.key(facing)).get_image().duplicate() as Image
+		if FarmerAnim.is_mirrored(facing):
+			img.flip_x()
+		pics[img.get_data()] = facing
+	check(pics.size() == 4, "the four facings show four different pictures")
+	for id in Villagers.all():
+		var front := PlaceholderArt.tex("villager:%s:front:idle:0" % id).get_image()
+		var back := PlaceholderArt.tex("villager:%s:back:idle:0" % id).get_image()
+		check(front.get_data() != back.get_data() and _has_colour(front, FigureArt.EYE) and not _has_colour(back, FigureArt.EYE),
+			"%s: a face from the front, the back of the head from behind" % id)
+	# Builds: children stand shorter than grown-ups, elders stoop a little; all taller than the old 24 px.
+	var height := func(id: String) -> int:
+		return PlaceholderArt.tex("villager:%s:front:idle:0" % id).get_image().get_used_rect().size.y
+	for id in Villagers.all():
+		var build := str(Villagers.look(id).get("build", "adult"))
+		var h: int = height.call(id)
+		match build:
+			"child":
+				check(h < height.call("hachiro") - 3 and PlaceholderArt.villager_top(id) > PlaceholderArt.villager_top("hachiro"),
+					"%s is a child: shorter (%d px)" % [id, h])
+			_:
+				check(h > 24, "%s stands taller than the old figures (%d px)" % [id, h])
+	check(PlaceholderArt.villager_top("tome") > PlaceholderArt.villager_top("sayo"), "Tome (an elder) stoops lower than Sayo")
+	var fw: GDScript = load("res://scripts/world3d/farm_world.gd")
+	var px: float = fw.FIGURE_PX
+	var farmer_h := PlaceholderArt.tex("player:front:idle:0").get_image().get_used_rect().size.y
+	check(farmer_h >= 27 and farmer_h * px > 1.08 and farmer_h * px < 1.45,
+		"the farmer stands %.2f units: taller than before (1.08), under the eaves (1.45)" % (farmer_h * px))
+	# The 3D sprites use the figure's pixel size, the feet on the ground.
+	var s: Sprite3D = fw.make_figure(PlaceholderArt.tex("player:front:idle:0"))
+	check(is_equal_approx(s.pixel_size, px) and is_equal_approx(s.offset.y, fig.y / 2.0), "a figure sprite stands on its feet at FIGURE_PX")
+	s.free()
 
 
 func _has_colour(img: Image, c: Color) -> bool:

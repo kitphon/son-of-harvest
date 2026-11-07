@@ -10,6 +10,47 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Larger, more detailed farmer and villager figures
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: docs/ART_DIRECTION.md section 4 item 1 (the user chose code-drawn placeholders refined
+  by the agent for now). New `scripts/art/figure_art.gd` (FigureArt) draws the farmer and every
+  villager as 24 x 32 figures (were 16 x 24), part by part back to front, each part with its own
+  1 px outline (so a near arm reads against the body), light from the upper left (a darker right
+  side, a lighter upper left). Own designs in Japanese country clothes: the farmer in an indigo
+  noragi with kasuri flecks, a white collar band and a straw rope belt, slate monpe gathered at
+  the ankle, dark jika-tabi, a red tenugui knotted behind, a straw hip basket; villagers' kimono
+  (white under-collar V, obi with a cord, the drum bow on the back, wide sleeves, tabi and zori),
+  happi (collar band, a crest on the back) over trousers, shirt and shorts; hair bun with a pin,
+  short, hachimaki, long and tied, a wide straw hat. New look field `build` (data/villagers):
+  elder (Tome, Kiku, Genzo: the head a pixel forward and lower) and child (Kota, Nana: shorter).
+  Directions: four from two drawings, as before (front three-quarters to the lower left, back to
+  the upper left, mirrored for Right / Up); eight would need diagonal facings that the grid
+  rules do not have, so not done. Every pose kept with the same keys and frame counts (walk,
+  run, tired with heavy lids and sweat, hold with the hands at the head's top, fish with the
+  bamboo rod, eat / drink at the mouth, the villagers' hammer and rod). PlaceholderArt keeps
+  its calls (`farmer_frames`, `rod_tip`, `farmer_drop`, `lantern_at` (now with `back`: the
+  near hand is screen right from the front, screen left from the back), new `hold_row`,
+  `villager_top`, `FIGURE_SIZE`, `VILLAGER_BUILDS`). Sizing: `FarmWorld.FIGURE_PX` 0.04 and
+  `make_figure` for the farmer's and villagers' Sprite3Ds, so the farmer stands about 1.17
+  units (was 1.08), still under the 1.45 eaves; a sprite pixel is about 1.5 screen pixels at
+  the medium lens. Main3D places the held item, lantern and rod line from the figure's size;
+  the bite "!" at 1.3 and the charge pips at 1.38 clear the taller head. VillagerSprites /
+  VillagerView put a carried item and the whistle note on top of each head (a child's is
+  lower); the flat view stands the 32 px villagers' feet where the 24 px ones stood. The mochi
+  screen places both figures by their feet. Shadows and animals untouched (other agents).
+- Checked: test_villagers `_figures` (new: 24 x 32; all 270 figure keys drawn, standing on the
+  bottom row; the four facings are four different pictures; a face (eye colour) only from the
+  front; children shorter than Hachiro and their head lower, adults taller than 24 px, Tome
+  lower than Sayo; the farmer 1.08..1.45 units; `make_figure` at FIGURE_PX with the feet on the
+  ground; every look's build known), test_hold (hands up at the head's top, bobbing), test_mine
+  (the lantern inside the frame from both sides), test_farm / test_fishing / test_food at the
+  new size. Before / after frames: `--demo`, `--demo --map=town --time=10:00`, `--talk=tome`
+  (`--map=town --time=14:30`), `--hold`, `--fishing`, the flat view of town, `--mine=3 --tired`
+  (the lantern in the near hand, sweat), `--eat`, the mochi pounding: feet on the ground, the
+  held turnip on the hands, the line from the rod tip, Kota a child under his straw hat.
+- Left / next: eight directions; the flat view's farmer is still the drawn stand-in (circles)
+  and its villagers are 2 cells tall there; real art can replace the keys later.
+
 ## 2026-11-07 — Roof snow without patch holes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the long-open "patch holes" in the roof snow. Root cause: `SnowLayer.TOP_SHADER` (the

@@ -29,7 +29,7 @@ func refresh() -> void:
 		if s == null:
 			s = Sprite2D.new()
 			s.centered = false
-			s.offset = Vector2(-8, -21)
+			s.offset = Vector2(-PlaceholderArt.FIGURE_SIZE.x / 2, 2 - PlaceholderArt.FIGURE_SIZE.y)   # feet 2 px below the spot
 			s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 			add_child(s)
 			_sprites[w.id] = s
@@ -59,10 +59,10 @@ func _show_held(s: Sprite2D, w: Dictionary) -> void:
 	if held == null:
 		held = Sprite2D.new()
 		held.name = "Held"
-		held.position = Vector2(0, -21)
 		held.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		s.add_child(held)
 	held.texture = PlaceholderArt.tex(PlaceholderArt.world_item_key(item))
+	held.position = Vector2(0, 3 - PlaceholderArt.FIGURE_SIZE.y + PlaceholderArt.villager_top(w.id))   # on top of the head
 	held.offset = Vector2(0, -held.texture.get_height() / 2.0)
 	held.set_meta("item", item)
 	held.visible = true
@@ -83,7 +83,7 @@ func _show_note(s: Sprite2D, w: Dictionary) -> void:
 		s.add_child(note)
 	var look := Whistles.puff_look(p)
 	note.texture = PlaceholderArt.tex(look.key)
-	note.position = Vector2(4.0 + look.sway, -24.0 - look.rise).round()
+	note.position = Vector2(4.0 + look.sway, PlaceholderArt.villager_top(w.id) - PlaceholderArt.FIGURE_SIZE.y - 1.0 - look.rise).round()
 	note.modulate.a = look.alpha
 	note.visible = true
 

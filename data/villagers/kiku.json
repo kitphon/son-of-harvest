@@ -4,7 +4,7 @@
 	"name": "Kiku",
 	"hearts": false,
 	"speed": 1.0,
-	"look": {
+	"look": {"build": "elder", 
 		"outfit": "kimono",
 		"hair_style": "bun",
 		"hair": "dcd8d0",

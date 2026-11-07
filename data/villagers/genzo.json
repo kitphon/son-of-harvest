@@ -4,7 +4,7 @@
 	"name": "Genzo",
 	"birthday": {"season": "summer", "day": 13},
 	"speed": 1.2,
-	"look": {
+	"look": {"build": "elder", 
 		"outfit": "happi",
 		"hair_style": "headband",
 		"hair": "c8c4bc",

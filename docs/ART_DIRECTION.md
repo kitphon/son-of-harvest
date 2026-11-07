@@ -39,11 +39,13 @@ Light and Farmhouse model hold the technical detail of what is built.
 | Grass tufts | (this commit) | `scripts/world3d/grass_tufts.gd` (GrassTufts): one MultiMesh of a five-blade tuft (one triangle a blade, both faces) on the grass cells: the farm's bare untilled ground (replanted when the field changes, skipped when no grass changed), outdoor maps' free grass with no prop, and the apron past the edge. Up to two a cell, 70% kept, nudged, turned, sized and shaded by a hash of the cell so they never move. The shader sways the tips (height share squared, phase by place) and lights them as the ground (normal up on both faces, the sun only at `SUN_SHARE`); the base 80% of the tip colour, the tip by season (fresh, deep, straw, dry). Each tuft carries its cell's snow hold and folds away where the ground under its root is white (SnowLayer's noise). |
 | Rice and tall crops | (this commit) | `scripts/world3d/crop_clusters.gd` (CropClusters): rice and corn grown past the sprout (growth 2 and 3, looks "grain" and "stalk") stand as several small pixel plants a cell instead of one sprite: nine rice hills in three rows (young: six smaller ones in two rows, the ground showing between), three corn stalks. Each picture (`stalk:<id>:<growth>:<ripe|growing>:<variant>` in PlaceholderArt, three variants leaning the blades or setting the leaves another way, rimmed in a deep leaf shade instead of the black outline) is one MultiMesh of camera-facing quads (the shader billboards each instance at its own size, flips half, shades each a little, sways the tips); places, sizes, flips and variants by a hash of the cell. Ripe rice goes straw-stemmed with gold ears bowing. Unshaded like the crop sprites. The village paddies (Kaminoda) grow rice by season (`CropClusters.PADDY`): young in spring, tall and green in summer, ripe in fall, none in winter; their plants carry the paddy's snow hold and fold away under white ground. The flat view keeps one sprite a cell. |
 | Sun by the clock | (this commit) | data/light.json "sun": keys of [minute, elevation, yaw, colour, energy], read by `Game.sun_light()` (`sun_at`, `sun_plain`, `sun_direction`) and put on the DirectionalLight3D by `Main3D._aim_sun` each game minute. A low orange sun from the lower left at 5:30, golden through the morning, high (60°) and plain at noon, golden from the upper left in the evening, so long shadows fall up-right in the morning and down-right in the evening and are short at noon. It eases back to the plain fixed sun (48°, -40°, SUN_COLOR) only after the dusk tint has put the shadows out, so the night is unchanged. Energy stays SUN_ENERGY (the ground's SUN_SHARE holds); clouded weather keeps the plain colour; rooms and mines keep the plain sun. |
+| Figures | (this commit) | `scripts/art/figure_art.gd` (FigureArt): the farmer and every villager as 24 x 32 pixel figures in Japanese country clothes (noragi, kimono, happi; tenugui, hachimaki, straw hat), adult / elder / child builds from the look's `build`, an outline round each part, front and back three-quarter views mirrored for four directions; every pose kept (walk, run, tired, hold, fish, eat, drink, work, the villagers' rod). 3D sprites at `FarmWorld.FIGURE_PX` (0.04): about 1.17 units tall. Tests: test_villagers `_figures`. |
 | Outdoor props, bamboo | (this commit) | `scripts/world3d/outdoor_props.gd` (OutdoorProps), all lit, no boxes or cylinders. Bamboo: a clump is three or four culms (6-sided tubes bowed in two pieces, 2.2..2.9 high, tilting a little apart) with a node ring every 0.3 or so, five-leaf sprays on a twig at the upper nodes and a seven-leaf plume at each tip (long double-sided diamonds, drooping), colours by season (`OutdoorProps.BAMBOO`: fresh in spring with husked shoots at the foot, deep in summer, olive with fallen leaves in fall, dull in winter), snow skins on the upward leaves where snow lies (`Parts.SNOW`'s top shader, one material for the whole map). A clump is ONE mesh with colours on the vertices (`vertex_color_use_as_albedo`, so it still fades as one for the Occluders), built once per season / snow / look (8 looks picked by the cell) and shared; each cell turns it by its own yaw. `OutdoorProps.Sway` (a node in the world) leans each clump about its foot, two slow waves out of step, a phase by cell, 0.028 rad at most. Well: a ten-sided curb in three courses with a lighter rim and dark water, timber posts, a windlass with crank, rope and a hanging bucket, under a `Minka.gable` board roof. Jizo: a two-step block, a robed lathe body, a round head, a red cap, collar and bib. Woodpile: split logs (bark prisms with pale cut ends) in four rows under a plank lean-to sloping to the front, timber posts, snow on the roof. River rock: two faceted boulders (dark and wet low, lighter and sometimes mossy on top) in a ragged ring of foam, snow on the upward facets. |
 
 ## How the pieces are made (keep to these)
-- **Scale.** 1 cell = 1 world unit; textures are 16 px a unit, nearest filtering. A 24 px
-  farmer is about 1.1 units tall. Doors and eaves must clear the farmer (front eaves at 1.45
+- **Scale.** 1 cell = 1 world unit; textures are 16 px a unit, nearest filtering. Figures
+  (FigureArt, 24 x 32) are drawn at `FarmWorld.FIGURE_PX` (0.04): the farmer is about 1.17
+  units tall. Doors and eaves must clear the farmer (front eaves at 1.45
   or more).
 - **Meshes in code.** Build with SurfaceTool as in `scripts/world3d/minka.gd` (`roof` for a
   thatched hip roof, `hip` for a tiled one, `gable` for a gable roof, `FarmProps.block` for tapered boxes and bevelled lids, thatch or kawara with tile rolls, `ridge` for a tiled
@@ -219,7 +221,21 @@ Light and Farmhouse model hold the technical detail of what is built.
       (the far layer more), feet fading into it, snow caps in winter. Not in rooms or the mine.
 
 ### 4. Characters (needs the user's decision on who draws)
-- [ ] Larger, more detailed farmer and villager sprites, four or eight directions.
+- [x] Larger, more detailed farmer and villager sprites, four or eight directions. (this commit:
+      the user asked the agent to refine the code-drawn placeholders for now; real art later.
+      `scripts/art/figure_art.gd` (FigureArt): 24 x 32 figures (were 16 x 24) about 2.6 heads
+      tall, drawn part by part with an outline round each part, light from the upper left. Four
+      directions from two drawings (front three-quarters to the lower left, back to the upper
+      left, mirrored for Right / Up); eight would need diagonal facings, which the grid rules
+      don't have. The farmer in an indigo noragi with kasuri flecks and a white collar band, a
+      straw rope belt, slate monpe gathered at the ankle, jika-tabi, a red tenugui knotted
+      behind and a straw hip basket. Villagers: kimono with obi, cord and drum bow, happi with
+      a collar band and a crest on the back, shirt and shorts; hair bun with a pin, short, a
+      hachimaki, long and tied, a wide straw hat; `build` in the look: elder (stooping a
+      little: Tome, Kiku, Genzo) or child (shorter: Kota, Nana). 3D sprites at
+      `FarmWorld.FIGURE_PX` 0.04, so the farmer stands about 1.17 units (was 1.08), a pixel
+      about 1.5 screen pixels at the medium lens. Still open: no eight directions; the flat
+      view shows villagers at their full 32 px (its farmer is still the drawn stand-in).)
 - [ ] Animals in the same style.
 - [ ] Keep the blob shadows, or switch to real sprite shadows (test how billboards cast).
 

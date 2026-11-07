@@ -305,7 +305,7 @@ func _pose(g: Node) -> void:
 		for f in PlaceholderArt.farmer_frames(pose_name):
 			for side in ["front", "back"]:
 				var img := PlaceholderArt.tex("player:%s:%s:%d" % [side, pose_name, f]).get_image()
-				check(img.get_size() == Vector2i(16, 24) and img.get_used_rect().has_area(), "player:%s:%s:%d drawn" % [side, pose_name, f])
+				check(img.get_size() == PlaceholderArt.FIGURE_SIZE and img.get_used_rect().has_area(), "player:%s:%s:%d drawn" % [side, pose_name, f])
 			frames.append(PlaceholderArt.tex("player:front:%s:%d" % [pose_name, f]).get_image().get_data())
 		check(PlaceholderArt.farmer_frames(pose_name) == 2 and frames[0] != frames[1], "%s has two different frames" % pose_name)
 		check(frames[0] != idle.get_data(), "%s doesn't look like standing idle" % pose_name)

@@ -60,7 +60,7 @@ func _ready() -> void:
 	player.visible = false
 	add_child(player)
 
-	sprite = FarmWorld.make_sprite(PlaceholderArt.tex(anim.key(Vector2i.DOWN)))
+	sprite = FarmWorld.make_figure(PlaceholderArt.tex(anim.key(Vector2i.DOWN)))
 	NightLights.figure(sprite)   # lit windows behind the farmer don't glow over them
 	add_child(sprite)
 	var shadow := MeshInstance3D.new()
@@ -82,7 +82,7 @@ func _ready() -> void:
 	target_mark.material_override = mark_mat
 	add_child(target_mark)
 	charge_pips = FarmWorld.make_sprite(PlaceholderArt.tex(PlaceholderArt.charge_key(0, 1)))
-	charge_pips.position = Vector3(0, 1.3, 0)   # over the farmer's head
+	charge_pips.position = Vector3(0, 1.38, 0)   # over the farmer's head (its top about 1.17)
 	charge_pips.visible = false
 	sprite.add_child(charge_pips)
 	held_sprite = FarmWorld.make_sprite(PlaceholderArt.tex("item:turnip"))
@@ -99,7 +99,7 @@ func _ready() -> void:
 	bobber.visible = false
 	add_child(bobber)
 	bite_mark = FarmWorld.make_sprite(PlaceholderArt.tex("fish_fx:alert"))
-	bite_mark.position = Vector3(0, 1.25, 0)
+	bite_mark.position = Vector3(0, 1.3, 0)   # clear of the head
 	bite_mark.visible = false
 	sprite.add_child(bite_mark)
 	fish_line = MeshInstance3D.new()
@@ -307,8 +307,8 @@ func _show_held() -> void:
 	held_sprite.visible = Game.holding()
 	if Game.holding():
 		held_sprite.texture = PlaceholderArt.tex(Game.held_key())
-		var top := 24 - PlaceholderArt.farmer_drop(anim.pose, anim.frame()) - 1
-		held_sprite.position = Vector3(0, top * FarmWorld.PX, 0)
+		var top := PlaceholderArt.FIGURE_SIZE.y - PlaceholderArt.hold_row(anim.pose, anim.frame())
+		held_sprite.position = Vector3(0, top * FarmWorld.FIGURE_PX, 0)
 
 
 ## Down the mine the lantern hangs at its pixel on the farmer's frame (PlaceholderArt.lantern_at),
@@ -318,10 +318,11 @@ func _show_lantern() -> void:
 	lantern_sprite.visible = Game.maps.mine_floor != null
 	if not lantern_sprite.visible:
 		return
-	var at := PlaceholderArt.lantern_at(anim.pose, anim.frame())
+	var at := PlaceholderArt.lantern_at(anim.pose, anim.frame(), FarmerAnim.is_back(player.facing))
 	var axes := cam.global_transform.basis
-	var side := (at.x + 3.5 - 8.0) * (-1.0 if sprite.flip_h else 1.0)
-	lantern_sprite.position = axes.x * side * FarmWorld.PX + axes.y * (24.0 - at.y) * FarmWorld.PX + axes.z * 0.02
+	var fig := PlaceholderArt.FIGURE_SIZE
+	var side := (at.x + 3.5 - fig.x / 2.0) * (-1.0 if sprite.flip_h else 1.0)
+	lantern_sprite.position = axes.x * side * FarmWorld.FIGURE_PX + axes.y * (fig.y - at.y) * FarmWorld.FIGURE_PX + axes.z * 0.02
 
 
 ## While the line is out: the bobber rocks on its cell (on a bite it dips under and shakes),
@@ -341,8 +342,9 @@ func _show_fishing() -> void:
 	# The rod tip: a pixel of the billboard sprite, so along the camera's right and up.
 	var tip := PlaceholderArt.rod_tip(anim.pose, anim.frame())
 	var axes := cam.global_transform.basis
-	var side := (tip.x + 0.5 - 8.0) * (-1.0 if sprite.flip_h else 1.0)
-	var from := sprite.position + axes.x * side * FarmWorld.PX + axes.y * (24.0 - tip.y - 0.5) * FarmWorld.PX
+	var fig := PlaceholderArt.FIGURE_SIZE
+	var side := (tip.x + 0.5 - fig.x / 2.0) * (-1.0 if sprite.flip_h else 1.0)
+	var from := sprite.position + axes.x * side * FarmWorld.FIGURE_PX + axes.y * (fig.y - tip.y - 0.5) * FarmWorld.FIGURE_PX
 	_line_mesh.clear_surfaces()
 	_line_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
 	_line_mesh.surface_add_vertex(from)

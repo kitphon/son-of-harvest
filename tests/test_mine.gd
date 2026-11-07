@@ -411,8 +411,10 @@ func _art(rules: Dictionary) -> void:
 	var hangs := true
 	for pose in ["idle", "walk", "run", "tired_idle", "tired_walk", "hold_idle", "hold_walk", "fish_wait"]:
 		for fr in PlaceholderArt.farmer_frames(pose):
-			var at := PlaceholderArt.lantern_at(pose, fr)
-			hangs = hangs and at.x >= -1 and at.x + 7 <= 16 and at.y >= 10 and at.y + 11 <= 28
+			for back in [false, true]:
+				var at := PlaceholderArt.lantern_at(pose, fr, back)
+				var fig := PlaceholderArt.FIGURE_SIZE
+				hangs = hangs and at.x >= -1 and at.x + 7 <= fig.x + 1 and at.y >= fig.y / 2 and at.y + 11 <= fig.y + 1
 	check(hangs, "the lantern hangs on the farmer's frame in every pose")
 	check(PlaceholderArt.lantern_at("walk", 0) != PlaceholderArt.lantern_at("walk", 2), "the lantern swings with the hand")
 	for kind in ["cave", "rock_wall", "scree"]:

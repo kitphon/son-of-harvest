@@ -27,7 +27,7 @@ func refresh() -> void:
 		seen[w.id] = true
 		var s: Sprite3D = _sprites.get(w.id)
 		if s == null:
-			s = FarmWorld.make_sprite(PlaceholderArt.tex(Villagers.sprite_key(w)))
+			s = FarmWorld.make_figure(PlaceholderArt.tex(Villagers.sprite_key(w)))
 			NightLights.figure(s)
 			s.add_to_group(Parting.GROUP)   # the grass and crops part round them
 			var shadow := MeshInstance3D.new()
@@ -65,8 +65,8 @@ func _show_held(s: Sprite3D, w: Dictionary) -> void:
 	if held == null:
 		held = FarmWorld.make_sprite(PlaceholderArt.tex(PlaceholderArt.world_item_key(item)))
 		held.name = "Held"
-		held.position = Vector3(0, 23 * FarmWorld.PX, 0)
 		s.add_child(held)
+	held.position = Vector3(0, (PlaceholderArt.FIGURE_SIZE.y - PlaceholderArt.villager_top(w.id) - 1) * FarmWorld.FIGURE_PX, 0)
 	held.texture = PlaceholderArt.tex(PlaceholderArt.world_item_key(item))
 	held.set_meta("item", item)
 	held.visible = true
@@ -87,7 +87,8 @@ func _show_note(s: Sprite3D, w: Dictionary) -> void:
 		note.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED   # it fades
 		s.add_child(note)
 	note.texture = PlaceholderArt.tex(look.key)
-	note.position = Vector3((4.0 + look.sway) * FarmWorld.PX, (24.0 + look.rise) * FarmWorld.PX, 0)
+	var head := PlaceholderArt.FIGURE_SIZE.y - PlaceholderArt.villager_top(w.id)   # px from the feet to the head's top
+	note.position = Vector3((4.0 + look.sway) * FarmWorld.PX, head * FarmWorld.FIGURE_PX + (2.0 + look.rise) * FarmWorld.PX, 0)
 	note.modulate.a = look.alpha
 	note.visible = true
 
