@@ -318,7 +318,16 @@ Light and Farmhouse model hold the technical detail of what is built.
       picture; worked out once a game minute or when the field changes, only projected per
       frame), their own pixels times the warm colour, so the pool under them is not counted
       twice. A cluster plant's quad does not follow its sway (well under a pixel in calm air).
-      Still open: stone lanterns wash no walls (none stands by one); the overlay knows no
+      Stone lanterns wash the walls (2026-11-07): a lit lantern standing in front of a house
+      wall (one with lit windows, `NightLights.lamp_walls`) adds the same kind of soft warm disc
+      on it (`lamp_wash`, data/light.json "pools" → "wall" → "lamp"), centred on the point of
+      the wall square to its fire box, smaller than a window's (`reach` 1.0 against 1.6) and
+      weaker (the material's own strength and colour times `share` 0.6), fading linearly to
+      nothing `out` 1.6 cells from the wall; plaster through the pale pass, earthen plaster and
+      charred boards through the finish pass, cut to the wall's ends, the finish's bands and
+      posts and round the panes; a building between the fire box and the wall drops it. Two
+      lanterns now stand by village walls so it shows: by Tome's timber house and by the
+      clinic's door. Still open: the overlay knows no
       depth, so a lit plant behind another plant or a fence is drawn over it where they overlap.
       The festival decorations are lit meshes since
       FestivalMeshes / StallWares; only what gives light (lantern paper, flames) is unshaded.

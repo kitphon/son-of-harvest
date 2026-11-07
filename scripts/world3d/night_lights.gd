@@ -295,6 +295,19 @@ func _plan() -> void:
 						fc.a = own.strength
 						_finishes.append({"pts": fpts, "uvs": piece.uvs, "color": fc})
 						_lit.append({"rect": _bounds(fpts), "pos": win.pos, "normal": win.normal})
+		# The stone lanterns' wash on the walls they stand in front of (lamp_washes).
+		for lw in lamp_washes(w.windows, w.lamps, glow, wall_rules, w.occluders):
+			var at: Vector3 = lw.at + lw.normal * 0.05
+			var k: float = lw.strength * (_through(at, lw.own, eye, w.occluders) if lw.normal.dot(eye - at) > 0.0 else 0.0)
+			if k <= 0.0:
+				continue
+			var lc: Color = lw.color
+			lc.a = k
+			for piece in lw.pieces:
+				var lpts := _project(piece.corners, cam)
+				if not lpts.is_empty():
+					(_washes if lw.finish == "" else _finishes).append({"pts": lpts, "uvs": piece.uvs, "color": lc})
+					_lit.append({"rect": _bounds(lpts), "pos": lw.at, "normal": lw.normal})
 		var lamp: Dictionary = pool_rules.get("lamp", {})
 		for l in w.lamps:
 			var seen := ground_seen(l.pos, l.pos, eye, w.occluders)
@@ -738,6 +751,135 @@ static func _wash_piece(win: Dictionary, r: Array, rules: Dictionary) -> Diction
 static func _wash_strength(win: Dictionary, glow: float, base: float) -> float:
 	var area: float = win.size.x * win.size.y
 	return maxf(base * clampf(sqrt(area / 0.35), 0.8, 1.5) * glow, 0.0)
+
+
+## The walls the lit windows `windows` stand on, for the stone lanterns' wash (lamp_wash): one per
+## wall plane and ends, {normal, right (along the wall, as wall_wash's), plane (the wall's offset
+## along normal), span (its ends along right), finish ("" for plaster, else LitSpots.wall_look's
+## kind), bands, posts (Vector2 from / to along right), panes ([x0, x1, y0, y1] along right / up:
+## its windows, kept clear as the window's own wash keeps the pane)}. A window without a `span`
+## stands for a wall of its own, as wide as a lantern's wash.
+static func lamp_walls(windows: Array) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for win in windows:
+		var n: Vector3 = win.normal
+		var right := Vector3.UP.cross(n).normalized()
+		var a: float = win.pos.dot(right)
+		var span: Vector2 = win.get("span", Vector2(-INF, INF))
+		var ends := Vector2(a + span.x, a + span.y)
+		var plane: float = win.pos.dot(n)
+		var wall: Dictionary = {}
+		for w in out:
+			if w.normal.is_equal_approx(n) and absf(w.plane - plane) < 0.02 and _same(w.span.x, ends.x) and _same(w.span.y, ends.y):
+				wall = w
+		if wall.is_empty():
+			var posts: Array[Vector2] = []
+			for post: Vector2 in win.get("posts", []):
+				posts.append(post + Vector2(a, a))
+			wall = {"normal": n, "right": right, "plane": plane, "span": ends, "finish": str(win.get("finish", "")),
+				"bands": win.get("bands", [Vector2(-INF, INF)]), "posts": posts, "panes": []}
+			out.append(wall)
+		var half: Vector2 = win.size / 2.0
+		wall.panes.append([a - half.x, a + half.x, win.pos.y - half.y, win.pos.y + half.y])
+	return out
+
+
+static func _same(a: float, b: float) -> bool:
+	return a == b or absf(a - b) < 0.02
+
+
+## The warm wash stone lantern `lamp` ({pos: its fire box}) puts on `wall` (lamp_walls) when the
+## lights glow `glow` (0..1), by data/light.json "pools" → "wall" → "lamp": {pieces (as
+## wall_wash's, uvs -1..1 from the point of the wall square to the fire box, `reach` cells to the
+## edge), strength, color, finish, at (that point, kept within the wall's ends), normal, own (the
+## fire box: the lantern never hides its own wash)}. Only a wall the lantern stands in front of,
+## nearer than `out` cells, takes it; it fades out linearly to `out` and is the window's wash of
+## that material (strength, color) times `share`: a lantern is a small light, so its wash is
+## weaker and smaller than a window's. It keeps to the wall's ends and, on earthen or board
+## walls, to the finish's bands clear of the posts (as finish_wash); it keeps off the wall's
+## panes. A finish without rules gets none.
+static func lamp_wash(lamp: Dictionary, wall: Dictionary, glow: float, rules: Dictionary) -> Dictionary:
+	var p: Vector3 = lamp.pos
+	var none := {"pieces": [] as Array[Dictionary], "strength": 0.0, "color": Color.BLACK, "finish": wall.finish,
+		"at": Vector3.ZERO, "normal": wall.normal, "own": p}
+	var lr: Dictionary = rules.get("lamp", {})
+	var d: float = p.dot(wall.normal) - wall.plane
+	var out := maxf(float(lr.get("out", 1.8)), 0.01)
+	var reach := maxf(float(lr.get("reach", 1.1)), 0.01)
+	var ca: float = p.dot(wall.right)
+	if glow <= 0.0 or d <= 0.0 or d >= out or ca + reach <= wall.span.x or ca - reach >= wall.span.y:
+		return none
+	var base := float(rules.get("strength", 0.3))
+	var color := Color(str(rules.get("color", "ffa050")))
+	if wall.finish != "":
+		var fr: Dictionary = rules.get("finishes", {}).get(wall.finish, {})
+		if fr.is_empty():
+			return none
+		base = float(fr.get("strength", 0.2))
+		color = Color(str(fr.get("color", "ffa050")))
+	var rects: Array = []
+	var x0 := maxf(ca - reach, wall.span.x)
+	var x1 := minf(ca + reach, wall.span.y)
+	for band: Vector2 in (wall.bands if wall.finish != "" else [Vector2(-INF, INF)]):
+		rects.append([x0, x1, maxf(maxf(p.y - reach, 0.0), band.x), minf(p.y + reach, band.y)])
+	if wall.finish != "":
+		for post: Vector2 in wall.posts:
+			rects = _cut(rects, [post.x, post.y, -INF, INF])
+	for pane: Array in wall.panes:
+		rects = _cut(rects, pane)
+	var pieces: Array[Dictionary] = []
+	var origin: Vector3 = wall.normal * wall.plane
+	for r: Array in rects:
+		if r[1] - r[0] < 0.001 or r[3] - r[2] < 0.001:
+			continue
+		var corners: Array[Vector3] = []
+		var uvs := PackedVector2Array()
+		for q in [Vector2(r[0], r[3]), Vector2(r[1], r[3]), Vector2(r[1], r[2]), Vector2(r[0], r[2])]:
+			corners.append(origin + wall.right * q.x + Vector3.UP * q.y)
+			uvs.append(Vector2(q.x - ca, p.y - q.y) / reach)
+		pieces.append({"corners": corners, "uvs": uvs})
+	if pieces.is_empty():
+		return none
+	var at: Vector3 = origin + wall.right * clampf(ca, wall.span.x, wall.span.y) + Vector3.UP * p.y
+	return {"pieces": pieces, "strength": base * float(lr.get("share", 0.5)) * (1.0 - d / out) * glow,
+		"color": color, "finish": wall.finish, "at": at, "normal": wall.normal, "own": p}
+
+
+## Every stone lantern's wash on the lit windows' walls (lamp_walls, lamp_wash) whose light
+## reaches the wall: a solid building between the fire box and the wall drops it, a faded one lets
+## its fade through (light_reaches). The eye's view of the wall is left to the caller.
+static func lamp_washes(windows: Array, lamps: Array, glow: float, rules: Dictionary, occ: Occluders) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if glow <= 0.0 or lamps.is_empty():
+		return out
+	var walls := lamp_walls(windows)
+	for l in lamps:
+		for wall in walls:
+			var lw := lamp_wash(l, wall, glow, rules)
+			if lw.strength <= 0.0:
+				continue
+			if occ != null:
+				lw.strength *= light_reaches(lw.at + wall.normal * 0.05, l.pos, occ)
+			if lw.strength > 0.0:
+				out.append(lw)
+	return out
+
+
+## Rects `rects` ([x0, x1, y0, y1]) with `hole` cut out of them: what is left of each, in up to
+## four rects (left, right, below, above the hole).
+static func _cut(rects: Array, hole: Array) -> Array:
+	var out: Array = []
+	for r: Array in rects:
+		if hole[1] <= r[0] or hole[0] >= r[1] or hole[3] <= r[2] or hole[2] >= r[3]:
+			out.append(r)
+			continue
+		var mx0 := maxf(r[0], hole[0])
+		var mx1 := minf(r[1], hole[1])
+		for c in [[r[0], mx0, r[2], r[3]], [mx1, r[1], r[2], r[3]],
+				[mx0, mx1, r[2], maxf(r[2], hole[2])], [mx0, mx1, minf(r[3], hole[3]), r[3]]]:
+			if c[1] - c[0] >= 0.001 and c[3] - c[2] >= 0.001:
+				out.append(c)
+	return out
 
 
 ## A pool's four ground corners in the order of its UVs (the quad its round falloff fills).

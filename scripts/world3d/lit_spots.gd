@@ -17,13 +17,17 @@ static func spot(key: String, size: Vector2, pos: Vector3, normal: Vector3) -> D
 
 
 ## The farmhouse: the shoji door over the door cell (4, 3), windows beside it and on the +x face.
+## Each knows its wall's ends (`span`, see wall_span) for the stone lanterns' wash.
 static func farmhouse() -> Array[Dictionary]:
-	return [
+	var out: Array[Dictionary] = [
 		spot("build:shoji_door", Vector2(0.9, 1.3), Vector3(4.5, 0.32 + 0.65, FARM_FRONT + 0.005), SOUTH),
 		spot("build:shoji", Vector2(0.8, 0.6), Vector3(2.8, 1.2, FARM_FRONT + 0.005), SOUTH),
 		spot("build:shoji", Vector2(0.8, 0.6), Vector3(6.2, 1.2, FARM_FRONT + 0.005), SOUTH),
 		spot("build:shoji", Vector2(0.8, 0.6), Vector3(7.005, 1.2, FARM_MID), EAST),
 	]
+	for s in out:
+		s.span = wall_span(s, Rect2(2.0, 1.0, 5.0, FARM_FRONT - 1.0))
+	return out
 
 
 ## The front wall (z) of a village house over footprint `r`.
@@ -101,27 +105,33 @@ static func wall_look(finish: String, base: float, top: float) -> Dictionary:
 ## light needs (see wall_look): `finish` (the kind), `bands`, `span` (the wall's ends along it from
 ## the window's middle, in NightLights's `right` direction, in from the side's corner posts) and
 ## `posts` (the front posts' widths along it, Vector2 from / to).
+## A plaster window gets its wall's `span` only (the stone lanterns' wash needs it too).
 static func _dress(s: Dictionary, finish: String, body: Rect2, base: float, top: float, skirt: bool) -> Dictionary:
+	s.span = wall_span(s, body)
 	var look := wall_look(finish, base, top)
 	if look.is_empty():
 		return s
 	var at: Vector3 = s.pos
-	var right: Vector3 = Vector3.UP.cross(s.normal).normalized()
 	var posts: Array[Vector2] = []
-	var span: Vector2
 	if s.normal == SOUTH:
-		span = Vector2(body.position.x - at.x, body.end.x - at.x)
 		for x in front_posts(body, finish, skirt):
 			posts.append(Vector2(x - at.x - POST_CUT, x - at.x + POST_CUT))
-	else:
-		var a: float = (Vector3(at.x, at.y, body.position.y) - at).dot(right)
-		var b: float = (Vector3(at.x, at.y, body.end.y) - at).dot(right)
-		span = Vector2(minf(a, b) + 0.08, maxf(a, b) - 0.08)
 	s.finish = look.kind
 	s.bands = look.bands
-	s.span = span
 	s.posts = posts
 	return s
+
+
+## The ends of window `s`'s wall over walls `body` (x / z), along NightLights's `right` direction
+## from the window's middle: a front wall's corners; a side wall's in from its corner posts.
+static func wall_span(s: Dictionary, body: Rect2) -> Vector2:
+	var at: Vector3 = s.pos
+	if s.normal == SOUTH:
+		return Vector2(body.position.x - at.x, body.end.x - at.x)
+	var right: Vector3 = Vector3.UP.cross(s.normal).normalized()
+	var a: float = (Vector3(at.x, at.y, body.position.y) - at).dot(right)
+	var b: float = (Vector3(at.x, at.y, body.end.y) - at).dot(right)
+	return Vector2(minf(a, b) + 0.08, maxf(a, b) - 0.08)
 
 
 ## A village house over footprint `r` (door cells from its left, a shop's noren door and a plain
