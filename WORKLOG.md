@@ -10,6 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Merge: the flat view's paddies take the winter stubble
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged the two parallel branches "Tall crops in the flat view" and "Winter paddies". The
+  flat view's MapView reads `CropClusters.paddy_key`, which now gives `stalk:rice:0:stubble` in
+  winter, so the flat paddies show the cut stubble too (no water patches there). test_view2d's
+  paddy check now expects the stubble in winter, in the same nine-hill count as summer.
+- Checked: all 28 test scripts print OK (0 failed) on the merged tree (test_view2d failed 2 checks
+  before the test update: "kaminoda winter: paddies grow nothing" and the winter count 1152).
+  Flat screenshot `main_2d.tscn -- --demo --season=winter --map=kaminoda@well --snow=0`: the
+  paddies show straw stubble over the paddy ground, no errors printed.
+- Left / next: in the flat view the stubble sits on the paddy tile's painted tufts and reads busy;
+  the flat paddies have no winter water patches.
 ## 2026-11-07 — Winter paddies: cut stubble and water patches
 Agent: Claude Code (claude-haiku) · Commit: this commit
 - Done: the Kaminoda paddies in winter. They had no rice at all (`PADDY` had no winter). Now

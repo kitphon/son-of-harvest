@@ -815,13 +815,13 @@ func _tall_crops() -> void:
 				gold += 1
 	check(gold >= 8, "a ripe rice hill has gold ears (%d px)" % gold)
 	fv.free()
-	# The village paddies by season: young, tall, ripe, none; snow hides the plants on white ground.
+	# The village paddies by season: young, tall, ripe, winter stubble (CropClusters.paddy_key); snow hides the plants on white ground.
 	var mv = MapView.new()
 	mv.map = MapManager.data("kaminoda")
 	mv.snow_rules = g.snow_rules
 	root.add_child(mv)
 	await process_frame
-	var want_key = {"spring": "stalk:rice:2:growing", "summer": "stalk:rice:3:growing", "fall": "stalk:rice:3:ripe", "winter": ""}
+	var want_key = {"spring": "stalk:rice:2:growing", "summer": "stalk:rice:3:growing", "fall": "stalk:rice:3:ripe", "winter": "stalk:rice:0:stubble"}
 	var counts = {}
 	for season in want_key:
 		mv.set_season(season)
@@ -831,7 +831,7 @@ func _tall_crops() -> void:
 		for cell in cells:
 			keys[cells[cell]] = true
 		check(keys.keys() == ([want_key[season]] if want_key[season] != "" else []), "kaminoda %s: paddies grow %s" % [season, want_key[season] if want_key[season] != "" else "nothing"])
-	check(counts.winter == 0 and counts.spring > 0 and counts.summer > counts.spring, "kaminoda paddies: none in winter, fewer plants young (%s)" % [counts])
+	check(counts.winter == counts.summer and counts.spring > 0 and counts.summer > counts.spring, "kaminoda paddies: stubble in winter in the nine-hill layout, fewer plants young (%s)" % [counts])
 	mv.set_season("summer")
 	var paddies = mv.paddy_cells()
 	var bare = CP.standing(paddies).size()
