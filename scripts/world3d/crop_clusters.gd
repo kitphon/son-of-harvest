@@ -14,15 +14,22 @@ extends Node3D
 ## stands in snow as its sprite always did).
 ##
 ## The village paddies (map tile "paddy") grow rice by the season: young in spring, tall and
-## green in summer, ripe in fall, none in winter (PADDY).
+## green in summer, ripe in fall (PADDY). In winter the cut rice stands as stubble (growth 0,
+## "stalk:rice:0:stubble:<variant>") in the same nine-hill layout, and where water still stands
+## between the rows a few flat patches of grey-blue water lie on the ground (plant_water; the
+## numbers in data/paddy.json). Stubble and patches fold away or vanish under snow lying on them,
+## by the same snow rule as the rice.
 
 ## How a cluster is laid out by the crop's look shape: the places in a cell (x, z from its
 ## corner), how far each is nudged, the plants' size range. Rice in three rows of three hills
 ## (young, growth 2: two rows of three smaller ones, the water showing between the rows),
-## corn as three stalks, one at the back and two in front.
+## corn as three stalks, one at the back and two in front. Growth 0 is the winter stubble:
+## the same nine places, shorter plants.
 const LAYOUT := {
 	"grain:2": {"places": [[0.17, 0.3], [0.5, 0.3], [0.83, 0.3], [0.17, 0.8], [0.5, 0.8], [0.83, 0.8]],
 		"nudge": 0.04, "size": [0.75, 0.9]},
+	"grain:0": {"places": [[0.17, 0.17], [0.5, 0.17], [0.83, 0.17], [0.17, 0.5], [0.5, 0.5],
+		[0.83, 0.5], [0.17, 0.83], [0.5, 0.83], [0.83, 0.83]], "nudge": 0.05, "size": [0.9, 1.1]},
 	"grain": {"places": [[0.17, 0.17], [0.5, 0.17], [0.83, 0.17], [0.17, 0.5], [0.5, 0.5],
 		[0.83, 0.5], [0.17, 0.83], [0.5, 0.83], [0.83, 0.83]], "nudge": 0.05, "size": [0.85, 1.1]},
 	"stalk": {"places": [[0.62, 0.25], [0.3, 0.55], [0.7, 0.78]], "nudge": 0.07, "size": [0.85, 1.0]},
@@ -31,8 +38,12 @@ const LAYOUT := {
 }
 const VARIANTS := 3
 const SWAY := 0.03          # how far a tip swings (units)
-## The village paddies' rice by season: [growth, ripe]; a season left out has none.
-const PADDY := {"spring": [2, false], "summer": [3, false], "fall": [3, true]}
+## The village paddies' rice by season: [growth, ripe]; growth 0 is the winter stubble. A season
+## left out has none.
+const PADDY := {"spring": [2, false], "summer": [3, false], "fall": [3, true], "winter": [0, false]}
+const WATER_PATH := "res://data/paddy.json"
+const WATER_TEX := "patch:paddy_water"
+const WATER_Y := 0.02          # lifted off the ground picture so the patch does not flicker into it
 
 ## What was planted: the spots_for() entries ({cell, key, tex, pos, size, flip, shade, hold}),
 ## read by the tests (the MultiMesh's own data can't be read back under the headless renderer).
@@ -42,6 +53,11 @@ var _layers := {}                      # texture key -> MultiMeshInstance3D
 var _material: ShaderMaterial
 var _cover := 0.0
 var wind := 0.0
+## The winter water patches (plant_water): flat on the ground, one MultiMesh, their own shader.
+var water_planted: Array[Dictionary] = []
+var _water_layer: MultiMeshInstance3D
+var _water_material: ShaderMaterial
+static var _paddy_data := {}
 
 const SHADER := "shader_type spatial;\nrender_mode unshaded, cull_disabled;\n" + SnowLayer._SNOW_AT + Parting.GLSL + """
 uniform sampler2D tex : source_color, filter_nearest;
@@ -85,11 +101,38 @@ void fragment() {
 """
 
 
+## The winter water: a flat patch lying on the ground (rotated to the ground by the instance's
+## basis), folded out of sight where snow lies on its cell (the same rule as the plants), faced
+## and flipped like the plants' pictures, unshaded.
+const WATER_SHADER := "shader_type spatial;\nrender_mode unshaded, cull_disabled;\n" + SnowLayer._SNOW_AT + """
+uniform sampler2D tex : source_color, filter_nearest;
+void vertex() {
+	vec3 root = MODEL_MATRIX[3].xyz;
+	if (snow_at(root.xz, cover * INSTANCE_CUSTOM.r) > 0.5) {
+		VERTEX = vec3(0.0);   // under snow: gone
+	}
+	if (INSTANCE_CUSTOM.b > 0.5) {
+		UV.x = 1.0 - UV.x;
+	}
+	COLOR.rgb = vec3(INSTANCE_CUSTOM.g);
+}
+void fragment() {
+	vec4 c = texture(tex, UV);
+	if (c.a < 0.5) {
+		discard;
+	}
+	ALBEDO = c.rgb * COLOR.rgb;
+}
+"""
+
+
 func _init() -> void:
 	_material = SnowLayer._material(SHADER)
 	_material.set_shader_parameter("sway", SWAY)
 	_material.set_shader_parameter("stiff", 1.0)
 	Parting.setup(_material, "crops")
+	_water_material = SnowLayer._material(WATER_SHADER)
+	_water_material.set_shader_parameter("tex", PlaceholderArt.tex(WATER_TEX))
 
 
 ## Snow lying, 0..1 (FarmWorld.set_snow): every picture's material, and the ones made later.
@@ -97,6 +140,7 @@ func set_cover(cover: float) -> void:
 	_cover = cover
 	for m in materials():
 		m.set_shader_parameter("cover", cover)
+	_water_material.set_shader_parameter("cover", cover)
 
 
 ## The wind, 0..1 (FarmWorld.set_wind): every picture's material, and the ones made later.
@@ -132,12 +176,83 @@ static func key_for(crop_key: String) -> String:
 	return "stalk:%s:%s:%s" % [parts[1], parts[2], parts[3]]
 
 
-## The rice in the village paddies this season ("" for none).
+## The rice in the village paddies this season ("" for none): the stubble in winter.
 static func paddy_key(season: String) -> String:
 	if not PADDY.has(season):
 		return ""
 	var p: Array = PADDY[season]
+	if p[0] == 0:
+		return "stalk:rice:0:stubble"
 	return "stalk:rice:%d:%s" % [p[0], "ripe" if p[1] else "growing"]
+
+
+## Whether the paddies' water patches show this season (data/paddy.json water.seasons).
+static func water_on(season: String) -> bool:
+	return season in paddy_data().get("water", {}).get("seasons", [])
+
+
+## data/paddy.json, read once.
+static func paddy_data() -> Dictionary:
+	if _paddy_data.is_empty():
+		_paddy_data = JSON.parse_string(FileAccess.get_file_as_string(WATER_PATH))
+	return _paddy_data
+
+
+## Stands the water patches on the given cells (the paddy cells with no prop): none for a season
+## without water (the caller checks water_on). Each patch carries its cell's snow hold, and snow
+## lying on it hides it.
+func plant_water(cells: Array, hold_at: Callable) -> void:
+	var spots := water_spots_for(cells)
+	for s in spots:
+		s.hold = float(hold_at.call(s.cell))
+	if _water_layer == null:
+		_water_layer = _make_water_layer()
+	var mm := _water_layer.multimesh
+	mm.instance_count = spots.size()
+	for i in spots.size():
+		var s: Dictionary = spots[i]
+		mm.set_instance_transform(i, Transform3D(Basis(Vector3.RIGHT, -PI / 2.0).scaled(Vector3.ONE * s.size), s.pos))
+		mm.set_instance_custom_data(i, Color(s.hold, s.shade, 1.0 if s.flip else 0.0, 0))
+	water_planted = spots
+
+
+## One MultiMesh for the water patches: a quad the picture's size, lying flat in the ground plane
+## (the instance's basis turns it, see plant_water).
+func _make_water_layer() -> MultiMeshInstance3D:
+	var tex := PlaceholderArt.tex(WATER_TEX)
+	var quad := QuadMesh.new()
+	quad.size = Vector2(tex.get_width(), tex.get_height()) * FarmWorld.PX
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = MultiMesh.new()
+	mmi.multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	mmi.multimesh.use_custom_data = true
+	mmi.multimesh.mesh = quad
+	mmi.material_override = _water_material
+	add_child(mmi)
+	return mmi
+
+
+## Where the water patches stand: per cell and row gap (data/paddy.json) a patch when its hash
+## passes `chance`, across the cell and wandering a little off its row gap, sized, flipped and
+## shaded by its own hash. Sorted by cell, then row gap.
+static func water_spots_for(cells: Array) -> Array[Dictionary]:
+	var d: Dictionary = paddy_data().get("water", {})
+	var out: Array[Dictionary] = []
+	var sorted := cells.duplicate()
+	sorted.sort()
+	for c: Vector2i in sorted:
+		var zs: Array = d.z
+		for k in zs.size():
+			if _rand(c, k, 6) >= float(d.chance):
+				continue
+			var xs: Array = d.x
+			var size: Array = d.size
+			var x: float = c.x + lerpf(float(xs[0]), float(xs[1]), _rand(c, k, 7))
+			var z: float = c.y + float(zs[k]) + (_rand(c, k, 8) * 2.0 - 1.0) * float(d.nudge)
+			out.append({"cell": c, "tex": WATER_TEX, "pos": Vector3(x, WATER_Y, z),
+				"size": lerpf(float(size[0]), float(size[1]), _rand(c, k, 9)),
+				"flip": _rand(c, k, 10) < 0.5, "shade": 0.9 + 0.16 * _rand(c, k, 11), "hold": 0.0})
+	return out
 
 
 ## Stands the clusters: `cells` maps a cell to its cluster key; `hold_at(c)` is how much snow

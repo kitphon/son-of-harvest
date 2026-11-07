@@ -42,8 +42,12 @@ static func _make(key: String) -> Image:
 			return _mine(parts[1])
 		"crop":     # crop:<id>:<growth 0..3>:<ripe|growing>
 			return _crop(parts[1], int(parts[2]), parts[3] == "ripe")
-		"stalk":    # stalk:<id>:<growth 2..3>:<ripe|growing>:<variant 0..2>, one plant of a tall crop's cluster in the 3D view (CropClusters)
+		"stalk":    # stalk:<id>:<growth 2..3>:<ripe|growing>:<variant 0..2>, one plant of a tall crop's cluster in the 3D view (CropClusters); stalk:rice:0:stubble:<variant>, the cut rice in winter
+			if parts[3] == "stubble":
+				return _stubble(int(parts[4]))
 			return _stalk(parts[1], int(parts[2]), parts[3] == "ripe", int(parts[4]) if parts.size() > 4 else 0)
+		"patch":    # patch:paddy_water, a still puddle between the paddy rows in winter (CropClusters.plant_water)
+			return _paddy_water()
 		"item":     # item:<id>, a picked crop held overhead or lying on the ground (12 x 12)
 			return _item(parts[1])
 		"animal":   # animal:<chicken|chick|cow|calf|sheep|sheep_shorn|lamb|dog>:<idle|peck|walk|sick, dog: sit|held>:<frame>[:<dl|dr|ul|ur>], AnimalArt (twice the farmer's pixel density; the dog "held" is the small old one)
@@ -1146,6 +1150,35 @@ static func _rim(img: Image, c: Color) -> Image:
 				if q.x >= 0 and q.y >= 0 and q.x < size.x and q.y < size.y and src.get_pixelv(q).a > 0:
 					img.set_pixel(x, y, c)
 					break
+	return img
+
+
+## One hill of cut rice stubble (CropClusters, the paddies in winter): four short straw stalks, a
+## pixel apart and cut off at different heights, a lighter cut end on each. No rim: a dark rim
+## filled the gaps between the stalks and made them read as lumps. `variant` (0..2) leans them
+## another way, as for the rice.
+const _STRAW := Color("b89a5a")
+
+static func _stubble(variant: int) -> Image:
+	var img := _blank(9, 6)
+	var g := img.get_height() - 1
+	var hs := [4, 3, 5, 3]
+	var leans: Array = [[0, 1, 0, -1], [1, 0, 0, -1], [0, -1, 0, 1]][variant % 3]
+	for i in 4:
+		var foot := Vector2i(1 + 2 * i, g)
+		var top := Vector2i(foot.x + leans[i], g - hs[i])
+		_line(img, foot, top, _STRAW if i % 2 == 0 else _STRAW.darkened(0.2))
+		_px(img, top.x, top.y, 1, 1, _STRAW.lightened(0.35))   # the cut end
+	return img
+
+
+## A still puddle between the winter paddy rows: dull grey-blue water with a paler strip where the
+## grey sky shows on it, an oval about 12 x 5 px (CropClusters.plant_water, data/paddy.json).
+static func _paddy_water() -> Image:
+	var img := _blank(12, 5)
+	_oval(img, 6, 2.5, 6, 2.5, Color("5d7680"))
+	_oval(img, 6.5, 2, 3.5, 1, Color("7d939b"))
+	_px(img, 4, 2, 2, 1, Color("9aaeb4"))
 	return img
 
 

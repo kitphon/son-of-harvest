@@ -91,20 +91,26 @@ func _make_edges() -> void:
 		func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, rules), map.id)
 
 
-## Rice in the paddy cells with no prop, by the season (CropClusters.paddy_key; none in winter).
+## Rice in the paddy cells with no prop, by the season (CropClusters.paddy_key: the stubble in
+## winter); in winter the water patches between the rows too (CropClusters.water_on).
 func _plant_paddies(hold_at: Callable) -> void:
-	var key := CropClusters.paddy_key(Game.season_name())
+	var season := Game.season_name()
+	var key := CropClusters.paddy_key(season)
 	if key == "":
 		return
 	var cells := {}
+	var free: Array = []
 	for y in map.h:
 		for x in map.w:
 			var c := Vector2i(x, y)
 			if map.tile(c) == "paddy" and map.prop_at(c).is_empty():
 				cells[c] = key
+				free.append(c)
 	if not cells.is_empty():
 		add_crops()
 		crops.plant(cells, hold_at)
+		if CropClusters.water_on(season):
+			crops.plant_water(free, hold_at)
 
 
 ## The tiles as one picture under the whole map (unshaded, like the farm ground).
