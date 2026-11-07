@@ -10,6 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Footprints in lying snow
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: where snow lies (cover at least 30%) out in the open, the farmer, the villagers and the
+  dog press small prints, left and right in turn, a step of 0.55 cells apart, turned along the walk.
+  `Footprints` (scripts/footprints.gd) is the rule set both views share: walkers as {id: cell
+  position}, a ring of 160, prints age in game minutes (gone after 90, four times as fast while snow
+  falls), none where the ground holds under 0.65 of the snow (tilled and wet soil, water: the snow
+  there is patchy), none across a jump of 3 cells (a door), none indoors or in the mine. 3D:
+  `FootprintLayer` (one MultiMesh of flat quads, a shader drawing a pixel-stepped sole and the ground
+  shader's light), made by `FarmWorld.set_farmer` from the same walker list Parting uses; Main3D
+  ages it each minute and clears it on a map change and on a new day. Flat: `FootprintView`
+  (toe and heel blocks), fed from `Main2D._process` (farmer, `VillagerView.feet()`, the dog).
+  Numbers in data/footprints.json (balance is ours: 0.65 min_hold keeps prints off the
+  field, where the snow is patchy and prints on bare soil looked wrong). New screenshot arg
+  `--footprints` (Game.demo_footprints, `FarmWorld.seed_prints`) pre-seeds a trail.
+- Checked: all test scripts and the smoke runs (see the commit report). test_maps `_footprints`
+  (data, spacing, sides, direction, standing / jump / return, two walkers, hold, the ring, fading
+  and snowfall, threshold, shelter, the world feeding the farmer and a Parting.GROUP walker, cleared,
+  melted below the threshold, Main3D's hooks); test_view2d `_footprints`. Screenshot
+  `--demo --season=winter --map=town@shrine --snow=80 --footprints`, cropped and enlarged: soft
+  blue dashes in a left / right pattern across the snow; at the 480 x 270 picture each is about
+  9 x 4 px, so the sole's shape does not read, only the trail.
+- Left / next: the prints do not read the snow's noise, so one can lie on a bare patch inside
+  the snow; a sole shape that reads at this size (bigger, or two-tone) if the user wants it.
+
 ## 2026-11-07 — Shader warm-up, cheaper rebuilds of houses, the stand and bamboo
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the open items of "Faster first visit to a map". Measured first (throwaway script in a

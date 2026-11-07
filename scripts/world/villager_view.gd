@@ -102,3 +102,12 @@ func held(id: String) -> String:
 
 func shown() -> Array:
 	return _sprites.keys().filter(func(id): return _sprites[id].visible)
+
+
+## Where the shown villagers stand, {id: Vector2 cell position} (the footprints in snow).
+func feet() -> Dictionary:
+	var out := {}
+	for id in _sprites:
+		if _sprites[id].visible:
+			out[id] = _sprites[id].position / T
+	return out

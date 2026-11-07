@@ -18,7 +18,8 @@ var weather: WeatherView
 var flash: ColorRect   # lightning: pale sky light added over the picture
 var lightning := Lightning.new()
 var glow: FestivalGlow
-var flying: Sprite2D   # a thrown item on its way
+var prints: FootprintView   # footprints in lying snow (the current view's)
+var flying: Sprite2D  # a thrown item on its way
 var _flight := {}      # from, to, time, seconds, height (while flying)
 const RING_EVERY := 1.7        # seconds between the gentle rings round a waiting bobber (as Main3D)
 const RING_BITE_EVERY := 0.4   # and between the strong ones in a bite
@@ -78,6 +79,7 @@ func _ready() -> void:
 
 	Game.minute_passed.connect(_update_tint)
 	Game.day_started.connect(_on_day_started)
+	Game.minute_passed.connect(_age_prints)   # footprints in snow fill in
 	Game.map_changed.connect(func(_id): fade.run(_enter_map))
 	Game.settings_changed.connect(func(): lightning.reset({} if Game.sheltered() else Game.lightning_style()))
 	Game.fishing_event.connect(func(kind): FarmActions.on_fishing_event(kind))
@@ -112,6 +114,8 @@ func _enter_map() -> void:
 		mv.show_snow(Game.snow_rules)   # outdoors only
 		mv.set_snow(Game.snow_cover / 100.0)
 		mv.set_season(Game.season_name())
+	prints = FootprintView.new()   # footprints in lying snow, over the ground, under everything else
+	view.add_child(prints)
 	var night := NightView.new().setup(m.props, Game.maps.on_farm(), m.id)
 	night.tint = tint
 	view.add_child(night)   # lit windows and lanterns, under the figures
@@ -152,6 +156,7 @@ func _on_day_started() -> void:
 	player.cancel_charge()
 	_show_weather()
 	_update_tint()
+	prints.clear()
 	view.set_snow(Game.snow_cover / 100.0)
 	if view is MapView:
 		view.set_season(Game.season_name())
@@ -168,11 +173,31 @@ func _update_tint() -> void:
 
 
 func _process(delta: float) -> void:
+	_leave_prints()
 	_aim_lantern()
 	_fly(delta)
 	_ring_bobber(delta)
 	weather.follow(cam.get_screen_center_position())
 	_update_flash(delta)
+
+
+func _age_prints() -> void:
+	if prints != null:
+		prints.age(1.0)
+
+
+## Footprints in snow (Footprints): the farmer, the villagers here and the dog leave them.
+func _leave_prints() -> void:
+	if prints == null or view == null:
+		return
+	var walkers := {"farmer": player.position / T}
+	for n in view.get_children():
+		if n is VillagerView:
+			walkers.merge((n as VillagerView).feet())
+	var dog: Dictionary = Game.animals.dog
+	if Game.maps.on_farm() and not dog.get("held", false) and not dog.get("lifted", false):
+		walkers["dog"] = Vector2(dog.cell) + Vector2(0.5, 0.5)
+	prints.feed(walkers)
 
 
 ## Ripple rings on the pond round the bobber, timed as Main3D._ring_bobber: a strong one as it

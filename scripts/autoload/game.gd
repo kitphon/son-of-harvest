@@ -47,6 +47,7 @@ var weather_tomorrow := "sunny"
 var snow_cover := 0             # snow lying on the ground, 0 (none) .. 100 (all white)
 var flashes_enabled := true     # lightning flashes in storms; off for photosensitive players
 var text_speed := 1.0           # the text box's speed from the settings (x letters per second; 0 = at once)
+var demo_footprints := false      # `--footprints`: a few footprints already pressed in the snow (screenshots)
 var always_run := false         # settings: the farmer runs unless the run key is held
 var hud_visible := true         # settings: the HUD is drawn
 var pad_active := false         # the last input came from a joypad (key hints show pad buttons); keyboard / mouse input clears it
@@ -268,6 +269,8 @@ func new_game() -> void:
 		elif arg.begins_with("--weather="):   # e.g. `-- --demo --weather=storm` for screenshots
 			weather_today = arg.trim_prefix("--weather=")
 			snow_cover = next_snow_cover(0, weather_look(weather_today, season_name()), season_name(), snow_rules)
+		elif arg == "--footprints":   # e.g. `-- --demo --season=winter --snow=80 --footprints`: a trail behind the farmer and another walker's
+			demo_footprints = true
 		elif arg.begins_with("--snow="):   # e.g. `-- --demo --season=winter --map=town --snow=80`: snow lying, 0..100
 			snow_cover = clampi(int(arg.trim_prefix("--snow=")), 0, 100)
 		elif arg.begins_with("--time="):   # e.g. `-- --demo --map=town --time=14:30` (villagers by their plans)

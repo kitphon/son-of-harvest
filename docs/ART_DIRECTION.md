@@ -236,6 +236,24 @@ Light and Farmhouse model hold the technical detail of what is built.
       it waits. Test: test_view2d `_water` (the sheet covers the water pixels only on the farm pond
       and the town's water, the shader uses TIME) and `_ripples` (a call fills a slot, the rings
       expire); test_maps keeps its snow checks off the sheet.
+- [x] Footprints in lying snow (this commit): while `Game.snow_cover` is at least `min_cover` (30) out
+      in the open, the farmer, every villager and the dog leave small pressed prints, left and right
+      in turn (`side` 0.11 off the line, a step of 0.55 cells apart, turned along the walk), a cool
+      blue-grey dent (`color` 5f76ab, alpha 0.95) lit like the ground. `Footprints` (scripts/footprints.gd)
+      holds the rules both views share: walkers fed as {id: cell position} (the 3D view reuses
+      the walker list `FarmWorld.set_farmer` collects for Parting: the farmer and Parting.GROUP; the flat
+      view feeds the farmer, VillagerView.feet() and the dog), a ring of at most `cap` (160) prints, ages
+      in game minutes and gone after `life` (90), four times as fast while snow falls (`snowing_rate`:
+      fresh snowfall fills them), none on ground that holds under `min_hold` of the snow (tilled and
+      wet soil, water), none across a jump (a door), none indoors or in the mine. Cleared on a map
+      change (`Main3D._enter_map`, a new view in 2D) and on a new day. 3D: `FootprintLayer`
+      (scripts/world3d/footprint_layer.gd), one MultiMesh of flat quads at y 0.025 with a shader that draws
+      a pixel-stepped sole and the ground shader's light (`SnowLayer.SUN_SHARE`), no shadows;
+      flat: `FootprintView` draws a toe block and a heel block. Numbers: data/footprints.json.
+      Screenshot: `--demo --season=winter --map=town@shrine --snow=80 --footprints`
+      (a trail already pressed). Tests: test_maps `_footprints`, test_view2d `_footprints`.
+      Open: the prints are drawn over the whole ground, also over a bare patch inside the snow's
+      noise (they do not read the snow noise); small at the 480 x 270 picture.
 
 ### 3. Light and atmosphere
 - [x] Night: real warm lights at lanterns, windows and the festival stalls, the tint lighter.

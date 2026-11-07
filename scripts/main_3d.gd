@@ -196,6 +196,7 @@ func _ready() -> void:
 
 	Game.minute_passed.connect(_update_tint)
 	Game.day_started.connect(_on_day_started)
+	Game.minute_passed.connect(func(): world.age_prints(1.0))   # footprints in snow fill in
 	Game.map_changed.connect(func(_id): fade.run(_enter_map))
 	Game.settings_changed.connect(func(): lightning.reset({} if Game.sheltered() else Game.lightning_style()))
 	Game.thrown.connect(_on_thrown)
@@ -238,6 +239,7 @@ func _enter_map() -> void:
 				step.call()
 		world.set_meta("key", key)
 		world.set_meta("map_id", m.id)
+	world.clear_prints()   # no trail from before the map change
 	_stop_prebuild()
 	_still = 0.0
 	if world.backdrop != null:
@@ -260,6 +262,8 @@ func _enter_map() -> void:
 	player.cancel_charge()
 	target_mark.visible = _tools_work()
 	_show_weather()
+	if Game.demo_footprints:   # `--footprints`: a trail already there to look at
+		world.seed_prints(Vector3(player.position.x / T, 0, player.position.y / T))
 	_update_tint()
 	_follow()
 	_end_warm()
@@ -624,6 +628,7 @@ func _fly(delta: float) -> void:
 func _on_day_started() -> void:
 	_stop_prebuild()
 	_drop_worlds()   # built for yesterday
+	world.clear_prints()
 	player.cancel_charge()
 	_show_weather()
 	_update_tint()
