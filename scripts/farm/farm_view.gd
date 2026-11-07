@@ -5,6 +5,7 @@ extends Node2D
 ## over the ground, under the sprites and buildings, so plots and crops stay readable.
 
 const T := 16
+const CROP_PATCHES := "res://scripts/world/crop_patches.gd"   # loaded when drawn: it needs the autoloads
 const COLORS := {
 	"fence": Color("b08a5a"), "house": Color("a0522d"), "door": Color("4a2a14"),
 	"bin": Color("7a6a50"), "stand": Color("d9b45a"), "chest": Color("8a5a32"),
@@ -112,7 +113,11 @@ func _draw_cell(c: Vector2i) -> void:
 	# Same sprites as the 3D view, standing on the cell's bottom edge (tall ones overlap the
 	# cell above).
 	var key := PlaceholderArt.cell_key(farm, d)
-	if key != "":
+	var patches: GDScript = load(CROP_PATCHES)   # tall crops: several small plants, as in 3D (CropPatches)
+	var cluster: String = patches.cluster_key(key)
+	if cluster != "":
+		patches.draw(_objects, {c: cluster})
+	elif key != "":
 		var tex := PlaceholderArt.tex(key)
 		_objects.draw_texture(tex, r.position + Vector2(0, T - tex.get_height()))
 	if farm.item_at(c) != "" and c != hidden_item:   # put down or thrown: lying in the middle of the cell

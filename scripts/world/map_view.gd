@@ -6,6 +6,7 @@ extends Node2D
 ## overlay whitens the roofs seen from above.
 
 const T := 16
+const CROP_PATCHES := "res://scripts/world/crop_patches.gd"   # loaded when drawn: it needs the autoloads
 const COLORS := {
 	"wall": Color("6a5a48"), "door": Color("4a2a14"), "futon": Color("e8e2d0"),
 	"low_table": Color("5a3a24"), "tansu": Color("3e3028"), "andon": Color("ffe6a8"),
@@ -31,7 +32,9 @@ var _snow: Sprite2D          # on the ground, under the props
 var _roof_snow: Sprite2D     # on the roofs, over the props
 var _objects: Node2D         # props and doors, above the ground snow
 var _water: WaterView        # the moving skin on the water cells, over the ground
-var season := "spring"       # the season the maples are drawn in (set_season)
+var season := "spring"       # the season the maples and the paddies' rice are drawn in (set_season)
+var snow_rules: Dictionary = {}   # data/snow_cover.json, set by show_snow (what the paddies hold)
+var _cover := 0.0            # snow lying, 0..1 (set_snow): the paddies' rice stands where it is not white
 
 
 ## The picture key of a maple in the flat view: its season and whether the map lies under snow.
@@ -79,6 +82,7 @@ func set_season(season_name: String) -> void:
 ## Lays snow over an outdoor map by `rules` (data/snow_cover.json); nothing under a roof.
 ## Call once, then set_snow.
 func show_snow(rules: Dictionary) -> void:
+	snow_rules = rules
 	if not SnowLayer.map_has_snow(map):
 		return
 	snow_mask = SnowLayer.map_mask_image(map, rules)
@@ -92,6 +96,10 @@ func show_snow(rules: Dictionary) -> void:
 
 ## Snow on the ground and roofs, 0 (none) .. 1 (all white where the ground holds it).
 func set_snow(cover: float) -> void:
+	if not is_equal_approx(cover, _cover):
+		_cover = cover
+		if _objects != null:
+			_objects.queue_redraw()
 	for s in [_snow, _roof_snow]:
 		if s != null:
 			(s.material as ShaderMaterial).set_shader_parameter("cover", cover)
@@ -117,7 +125,30 @@ func _draw() -> void:
 				draw_rect(Rect2(Vector2(c * T), Vector2(T, T)), COLORS.wall)
 
 
+## The paddy cells with no prop and the rice they grow this season (CropClusters.paddy_key;
+## empty in winter): cell -> cluster key.
+func paddy_cells() -> Dictionary:
+	var cells := {}
+	var key: String = (load(CROP_PATCHES) as GDScript).paddy_key(season)
+	if key == "":
+		return cells
+	for y in map.h:
+		for x in map.w:
+			var c := Vector2i(x, y)
+			if map.tile(c) == "paddy" and map.prop_at(c).is_empty():
+				cells[c] = key
+	return cells
+
+
+## The paddies' rice, under the props; the plants on white ground are left out (as in 3D).
+func paddy_hold(c: Vector2i) -> float:
+	return SnowLayer.map_hold(map, c, snow_rules)
+
+
 func _draw_objects() -> void:
+	var paddies := paddy_cells()
+	if not paddies.is_empty():
+		(load(CROP_PATCHES) as GDScript).draw(_objects, paddies, paddy_hold, _cover)
 	for p in map.props:
 		if p.kind in StoryView.KINDS:   # drawn as pictures by StoryView
 			continue

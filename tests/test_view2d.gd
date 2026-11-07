@@ -48,6 +48,7 @@ func _run() -> void:
 	await _maples()
 	await _footprints()
 	await _hearth_smoke()
+	await _tall_crops()
 	scene.free()
 	print("test_view2d: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -763,3 +764,80 @@ func _hearth_smoke() -> void:
 	await _wait_view("map_view.gd")
 	check(scene.smoke.vents.is_empty() and not scene.smoke.visible, "flat smoke: indoors, none even at 7:00")
 	g.hour = 10
+
+
+## Tall crops (CropPatches): the flat view reads rice, corn and the vines like the 3D view does.
+func _tall_crops() -> void:
+	var CP: GDScript = load("res://scripts/world/crop_patches.gd")
+	var crops: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/crops.json"))
+	var farm = FarmGrid.new(crops)
+	var c = Vector2i(3, 3)
+	var fv = FarmView.new()
+	fv.farm = farm
+	root.add_child(fv)
+	var expect = {"rice": [9, 6], "corn": [3, 3], "cucumber": [2, 2], "turnip": [0, 0]}
+	for id in expect:
+		for growth in [1, 2, 3]:
+			var key = CP.cluster_key("crop:%s:%d:growing" % [id, growth])
+			var n = CP.standing({c: key}).size() if key != "" else 0
+			var want: int = 0 if growth == 1 else expect[id][1 if growth == 2 else 0]
+			check(n == want, "flat %s at growth %d stands as %d plants (%d)" % [id, growth, want, n])
+	# Planted for real: the cell's sprite is replaced by the cluster, the same key as the 3D view's.
+	var d: Dictionary = farm.cell(c)
+	d.crop = "rice"
+	d.stage = farm.ripe_stage("rice")
+	var key = PlaceholderArt.cell_key(farm, d)
+	var ck = CP.cluster_key(key)
+	check(ck == "stalk:rice:3:ripe", "a ripe rice cell is the cluster %s (%s)" % [ck, key])
+	var spots = CP.standing({c: ck})
+	check(spots == CP.standing({c: ck}), "the plants stand the same every time (hash of the cell)")
+	var spans = {}
+	var x0 = 1000.0
+	var x1 = -1000.0
+	for sp in spots:
+		var r = CP.rect_for(sp)
+		var ab = r.abs()
+		check(ab.size == Vector2(PlaceholderArt.tex(sp.tex).get_size() * float(sp.size)).round(), "a plant is its picture at its size in whole pixels")
+		check(ab.end.y >= (c.y + 0.1) * 16 and ab.end.y <= (c.y + 1.0) * 16 + 4, "a plant's foot stands in its cell (%.0f)" % ab.end.y)
+		check((r.size.x < 0) == bool(sp.flip), "a flipped plant is drawn mirrored")
+		x0 = minf(x0, ab.position.x)
+		x1 = maxf(x1, ab.end.x)
+		spans[sp.tex] = true
+	check(x0 < c.x * 16 + 6 and x1 > (c.x + 1) * 16 - 6, "the rice spreads over the cell (%.0f .. %.0f)" % [x0, x1])
+	check(spans.size() >= 2, "the plants use more than one picture variant (%d)" % spans.size())
+	# The ripe rice is straw and gold, the green one green (the pictures the 3D view draws).
+	var ripe = PlaceholderArt.image(spots[0].tex)
+	var gold = 0
+	for y in ripe.get_height():
+		for x in ripe.get_width():
+			var px = ripe.get_pixel(x, y)
+			if px.a > 0.5 and px.r > px.b + 0.3 and px.g > 0.55:
+				gold += 1
+	check(gold >= 8, "a ripe rice hill has gold ears (%d px)" % gold)
+	fv.free()
+	# The village paddies by season: young, tall, ripe, none; snow hides the plants on white ground.
+	var mv = MapView.new()
+	mv.map = MapManager.data("kaminoda")
+	mv.snow_rules = g.snow_rules
+	root.add_child(mv)
+	await process_frame
+	var want_key = {"spring": "stalk:rice:2:growing", "summer": "stalk:rice:3:growing", "fall": "stalk:rice:3:ripe", "winter": ""}
+	var counts = {}
+	for season in want_key:
+		mv.set_season(season)
+		var cells = mv.paddy_cells()
+		counts[season] = CP.standing(cells).size()
+		var keys = {}
+		for cell in cells:
+			keys[cells[cell]] = true
+		check(keys.keys() == ([want_key[season]] if want_key[season] != "" else []), "kaminoda %s: paddies grow %s" % [season, want_key[season] if want_key[season] != "" else "nothing"])
+	check(counts.winter == 0 and counts.spring > 0 and counts.summer > counts.spring, "kaminoda paddies: none in winter, fewer plants young (%s)" % [counts])
+	mv.set_season("summer")
+	var paddies = mv.paddy_cells()
+	var bare = CP.standing(paddies).size()
+	check(CP.standing(paddies, mv.paddy_hold, 0.0).size() == bare, "no snow lying hides nothing")
+	var some = CP.standing(paddies, mv.paddy_hold, 0.8).size()
+	var most = CP.standing(paddies, mv.paddy_hold, 1.0).size()
+	check(some < bare and most <= some, "snow lying hides the plants on white ground (%d, %d, %d)" % [bare, some, most])
+	check(mv.paddy_cells().keys().all(func(cell): return mv.map.tile(cell) == "paddy" and mv.map.prop_at(cell).is_empty()), "only prop-free paddy cells grow rice")
+	mv.free()

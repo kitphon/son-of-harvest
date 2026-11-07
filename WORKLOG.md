@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Tall crops in the flat view
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: the flat view reads tall crops as 3D does. New `scripts/world/crop_patches.gd` (CropPatches): draws
+  CropClusters.spots_for (same places, sizes, flips, shades and `stalk:<id>:<growth>:<ripe|growing>:<variant>`
+  pictures, so a cell grows the same plants in both views; nothing jitters) as whole-pixel quads, the root row on
+  the place, further back first. FarmView draws the cluster instead of the one sprite for rice and corn at growth
+  2 and 3 and the vines (cucumber, tomato); MapView draws the Kaminoda paddies' rice under the props by season
+  (young spring, tall summer, ripe fall, none winter; `paddy_cells`) and leaves a plant out where snow lies on
+  the paddy (SnowLayer.lies with cover x map_hold, as the 3D shader; the farm's crops stay in snow as before).
+  FarmView / MapView reach CropPatches through load() so they still compile in test scripts that run before the
+  autoloads (CropClusters pulls FarmWorld and Game). MapView got `snow_rules` (set by show_snow).
+- Checked: test_view2d `_tall_crops` (plant counts per crop and growth, the same hash every time, rects whole
+  pixels and in the cell, flips mirrored, variants, gold ears, paddies by season and the snow gate); all test
+  scripts print OK (0 failed). Screenshots (flat, 480x270): `--demo --season=summer` ripe straw-and-gold rice
+  beside corn and young plants on the field, `--map=kaminoda@well` summer green rice, fall golden, winter
+  with `--snow=80` no rice, snow patches over the ground.
+- Left / next: no sway in the flat view; the winter paddy stubble another agent is adding to 3D is not in the flat
+  view; the paddy ground picture still carries its own painted tufts.
 ## 2026-11-07 — Earthen and yakisugi walls take the night lamps
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: ART_DIRECTION section 3's "still open" from "Pale plaster takes the night lamps". The
