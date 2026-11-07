@@ -32,15 +32,39 @@ func add(nodes: Array) -> bool:
 			geo.append(n)
 	if geo.is_empty() or box.end.y < MIN_HEIGHT:
 		return false
-	var own := {}   # material -> this thing's copy (shared within the thing, never with others)
-	for n in geo:
-		var m := n.material_override
-		if m is StandardMaterial3D:
-			if not own.has(m):
-				own[m] = m.duplicate()
-			n.material_override = own[m]
+	# Each material this thing's own (shared within the thing, never with others): a copy where
+	# anything else holds it too, the material itself where only these meshes do (a copy is
+	# about ten times dearer than making one, and most builders make theirs fresh).
+	var uses := _uses(geo)   # material -> how many of these meshes wear it
+	for m: Material in uses:
+		if not only_here(m, uses[m]):
+			var mine := MeshCache.copy(m)
+			for n in geo:
+				if n.material_override == m:
+					n.material_override = mine
 	_groups.append({"nodes": geo, "box": box, "now": 0.0, "target": 0.0})
 	return true
+
+
+## The StandardMaterial3Ds the meshes `geo` wear: material -> how many wear it (its own
+## function, so no local of it still holds one of them while add() asks only_here).
+static func _uses(geo: Array[GeometryInstance3D]) -> Dictionary:
+	var uses := {}
+	for n in geo:
+		if n.material_override is StandardMaterial3D:
+			uses[n.material_override] = int(uses.get(n.material_override, 0)) + 1
+	return uses
+
+
+## Is `m` held by nothing but `count` meshes' material_override (and add()'s own references to
+## it while it asks: HELD_HERE)?
+static func only_here(m: Material, count: int) -> bool:
+	return m.get_reference_count() <= count + HELD_HERE
+
+
+## Add()'s own references to a material while it asks only_here: the table's key, the loop's
+## variable and its copy, this call's argument (measured; test_maps' _occluder_own checks it).
+const HELD_HERE := 4
 
 
 ## Adds everything `parent` got after it had `first` children (what one builder made).
@@ -50,6 +74,18 @@ func add_children_from(parent: Node, first: int) -> bool:
 
 func count() -> int:
 	return _groups.size()
+
+
+## The StandardMaterial3Ds of the things that fade (ShaderWarm warms their faded look).
+func materials() -> Array[Material]:
+	var seen := {}
+	for g in _groups:
+		for n: GeometryInstance3D in g.nodes:
+			if n.material_override is StandardMaterial3D:
+				seen[n.material_override] = true
+	var out: Array[Material] = []
+	out.assign(seen.keys())
+	return out
 
 
 ## Thing `i`'s box (world units).

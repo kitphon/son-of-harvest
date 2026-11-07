@@ -10,6 +10,71 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Shader warm-up, cheaper rebuilds of houses, the stand and bamboo
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the open items of "Faster first visit to a map". Measured first (throwaway script in a
+  window: each map entered, then the camera stepped over the whole map twice, frame times):
+  the long frames on a map were not first draws but the fades of things in the farmer's way.
+  Occluders switches a thing's materials to alpha blending, a new StandardMaterial3D shader;
+  Godot frees a shader with its last material, so the faded kind was compiled again on every
+  fade (30..90 ms frames, as many on the second pass over a map as on the first; with the
+  fades off none over 25 ms, a map's first frames on unseen parts ~20 ms). Changes:
+  `ShaderWarm` (scripts/world3d/shader_warm.gd): a material's kind is its switches, modes and
+  which textures it has (`signature`; colours and numbers are uniforms, the same shader), plus
+  whether a MultiMesh wears it; `news(world)` keeps a copy of every kind a world wears that no
+  world wore before this run, and the faded twin of each that fades (so their shaders stay
+  compiled for the run); `show` draws the new ones once as tiny quads in front of the camera.
+  Main3D does that in `_enter_map` while the map change's fade holds black (MapFade.holding)
+  and takes them away before the picture comes back (`warm`, `_warm`). Cheaper rebuilds:
+  MeshCache.build now also keeps builds that list lit windows and lamps (NightLights group)
+  and hang things in the world's Sway (a noren, stall curtains: the items kept with their
+  nodes as pieces, the Sway itself a piece when the build made it), so a village house is kept
+  whole (walls, roofs, windows, noren), as are the farmhouse with its windows and the stand
+  with its noren; replayed materials are made from a recipe (the stored properties that differ
+  from a new StandardMaterial3D) instead of duplicate() (64 us a material, ten times making
+  one); Occluders.add copies a material only when something else holds it
+  (`only_here`: its reference count; most builders make theirs fresh, and the copy was the
+  bamboo hill's dearest part, 12 ms of the 113 clumps' 17); bamboo props skip MeshCache (the
+  clump meshes are shared by OutdoorProps already). The flaky test_maps check "farm built
+  again looks the same" (1 run in 4 on main: 153 of 332 meshes shared) built the farm on
+  Game's field, which comes from an unseeded rng; it now uses a field generated from a fixed
+  seed.
+- Checked: all 28 test scripts print OK (0 failed). test_maps new `_occluder_own` (fresh
+  materials used as they are, one shared by two meshes of the thing stays one, one held by a
+  variable or a mesh outside copied; a recipe's material equals duplicate() property by
+  property; with HELD_HERE 5 or 3 one of these fails), `_kept_lit_and_swaying` (the five
+  village houses kept; a village built again lists the same windows and lamps and is in the
+  NightLights group; its noren are its own nodes in its own Sway, same places among the
+  children and the same poses in a wind; the farmhouse and stand kept, windows and Sway made),
+  `_shader_warm` (kinds by switches not colours; faded and MultiMesh kinds apart; the
+  village's kinds kept once with faded and MultiMesh ones; a quad each near the camera, none
+  when nothing is new), and in the scene the house's kinds drawn during the door's fade and
+  gone before it cleared; the old "a lit window build is not kept" now checks it is kept, and a
+  MultiMesh build is the one not kept. Look: Game's rng fixed to one seed (temporarily, in
+  HEAD exported to a copy and here), frame 39: farm, town, house, hill, mine 3, winter town
+  snow 80, minamino, sakurazaka, kaminoda, town 21:00, store, river, fall farm, barn, farm
+  21:00, winter hill snow 80: 0 pixels differ in all 16; a storm in the village 16822, all
+  rain streaks and dimples (the particles' own randomness). Every world built twice before it
+  shows (a temporary hack in both, so the shown one is replayed from MeshCache): 0 pixels in 14
+  of 16; the town 1 pixel (HEAD differs by that pixel between built once and twice too);
+  sakurazaka 73 (72 off by 1 in one channel on a yakisugi board wall and one corner pixel:
+  coplanar faces drawn in another order since an occluded thing's fresh materials are no
+  longer copied; with the copy forced back, 0). Smoke runs (title, --demo, --demo --map=town,
+  --demo --mine=3): no errors or warnings.
+  Times, in a window: `tools/build_times.gd` warm (a build again), HEAD vs now, two runs each:
+  all 23 maps 484 / 522 -> 292 / 300 ms, town 44 / 42 -> 25 / 23, hill 97 / 104 -> 49 / 65,
+  sakurazaka 46 / 62 -> 25 / 24, minamino 48 / 53 -> 25 / 27, kaminoda 50 / 65 -> 33 / 30,
+  farm 51 / 45 -> 48 / 38, rooms 4..9 -> 2..5; first builds unchanged within the noise (all
+  1352 / 1427 -> 1327 / 1408). The walk over eight maps and back to three (stepping the camera
+  over each twice): frames over 25 ms on the first pass HEAD 43 (longest 115.7 ms), now
+  without the warm-up 44 (87.1), now 1 (30.1, the store's first frames); on the second pass 38
+  (98.3) -> 0 (8.1); on revisits 14 + 16 -> 0 + 0 (6.0); the first passes' frame time in all
+  3438 -> 1630 ms (the bamboo hill no longer recompiles its fades every frame it fades). The
+  black frames (build and warm-up) longest 216 ms in HEAD, 241 now (out of sight).
+- Left / next: the night lamps' OmniLights make other shader variants on the things they light;
+  those are not warmed (a lit night frame was not measured). The first map after the title has
+  no fade, so its kinds are only warmed at the next map change. Coplanar faces on the yakisugi
+  walls can fight (a pixel's draw order changes with material order). Not tried by hand.
 ## 2026-11-07 — Flat view stalls show their wares
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: the flat view's festival stalls drew the items' inventory pictures; they now draw the same

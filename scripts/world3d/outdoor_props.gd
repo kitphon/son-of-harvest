@@ -779,6 +779,14 @@ class Sway extends Node3D:
 		_items.append(it)
 		_apply(it)
 
+	## Thing `i` as it was added ({kind, nodes, yaw, phase ...}; MeshCache keeps it) and one
+	## added again from such a dictionary (posed at once).
+	func item(i: int) -> Dictionary:
+		return _items[i]
+
+	func put(it: Dictionary) -> void:
+		_put(it)
+
 	func count() -> int:
 		return _items.size()
 

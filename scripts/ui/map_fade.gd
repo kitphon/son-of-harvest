@@ -51,6 +51,11 @@ func busy() -> bool:
 	return _busy
 
 
+## Is the screen held black after the swap (ShaderWarm's quads may show)?
+func holding() -> bool:
+	return _phase == "hold"
+
+
 ## The fade's darkness now, 0 (clear) .. 1 (black).
 func alpha() -> float:
 	return _rect.color.a

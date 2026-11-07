@@ -193,7 +193,9 @@ func _snow_top(size: Vector3, center: Vector3, rot := Vector3.ZERO) -> void:
 ## A prop, its meshes kept a run (MeshCache) by the map, the prop, the season and whether snow
 ## lies, which is all its look depends on; story props (shown by flags) are always made.
 func _prop(p: Dictionary) -> void:
-	if str(p.kind) in StoryView.KINDS:
+	# Story props (shown by flags) are always made; so is bamboo, whose clump meshes
+	# OutdoorProps already shares (placing them is cheaper than keeping each clump here).
+	if str(p.kind) in StoryView.KINDS or str(p.kind) == "bamboo":
 		_make_prop(p)
 		return
 	MeshCache.build(self, "prop|%s|%s|%s|%s" % [map.id, p, Game.season_name(), SnowLayer.map_has_snow(map)], _make_prop.bind(p))
