@@ -207,6 +207,7 @@ func _autoload_checks() -> void:
 	for key in sfx.sounds:
 		if not sfx.sounds[key].has("loop"):
 			sfx.play(key)   # must not error without an audio device
+	_loop_checks(sfx)
 	var tune: AudioStreamWAV = sfx.make_song("whistle:tome")
 	check(tune != null and tune.loop_mode == AudioStreamWAV.LOOP_DISABLED and tune.get_length() > 1.0, "Sfx makes Tome's whistle, played once")
 	sfx._song_streams["whistle:tome"] = tune
@@ -413,6 +414,41 @@ func _music() -> void:
 	check(same, "off the shop maps and outside those events every pick is as before")
 	check(MusicPicker.pick([], "field", "sunny", "spring", 10).is_empty(), "no rules: silence")
 	check(MusicPicker.pick([{"track": ""}], "field", "sunny", "spring", 10).is_empty(), "an empty track is silence")
+
+
+## The ambient loops are made ahead on a worker thread: loop_stream hands out null until one is
+## ready (never blocking), then the cache holds it, and a ready key costs no synthesis.
+func _loop_checks(sfx: Node) -> void:
+	var keys: Array = sfx._loops.keys()
+	check(not keys.is_empty(), "Sfx has ambient loops")
+	sfx._streams.clear()
+	sfx._loop_jobs.clear()
+	var first: AudioStreamWAV = sfx.loop_stream("amb_crickets")
+	check(first == null, "loop_stream: a loop not made yet is null, not made on the spot")
+	check(sfx._loop_jobs.has("amb_crickets"), "loop_stream: the job is started")
+	check(not sfx._streams.has("amb_crickets"), "loop_stream: nothing synthesized on the caller")
+	for key in keys:
+		sfx.loop_stream(key)
+	var t0 := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - t0 < 20000:
+		var all := true
+		for key in keys:
+			all = all and sfx.loop_stream(key) != null
+		if all:
+			break
+		OS.delay_msec(10)
+	for key in keys:
+		check(sfx._streams.has(key), "loop %s is in the cache ahead of its first play" % key)
+	var cached: AudioStreamWAV = sfx._streams["amb_crickets"]
+	var t1 := Time.get_ticks_usec()
+	var again: AudioStreamWAV = sfx.loop_stream("amb_crickets")
+	var took := Time.get_ticks_usec() - t1
+	check(again == cached and sfx.stream("amb_crickets") == cached, "a pre-made key is handed out as it is")
+	check(took < 2000, "a pre-made key costs no synthesis (%d us)" % took)
+	for key in keys:
+		var old: AudioStreamWAV = SfxSynth.to_stream(SfxSynth.render(sfx.sounds[key], hash(key)), true)
+		check(sfx._streams[key].data == old.data and sfx._streams[key].loop_mode == old.loop_mode
+				and sfx._streams[key].loop_end == old.loop_end, "loop %s from the worker equals the plain synthesis" % key)
 
 
 func _scripts(dir: String) -> Array:

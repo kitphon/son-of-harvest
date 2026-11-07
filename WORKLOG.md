@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Ambient loops made ahead, no hitch at first play
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: Sfx no longer synthesizes an ambient loop on the frame it first plays. New `Sfx.loop_stream(key)`
+  (same pattern as `song_stream`): the loop is made on a WorkerThreadPool task and returns null until
+  ready; `_ready` starts a job for every loop in AmbientPicker.loops when sound is on, and `_process`
+  starts a loop only once `loop_stream` has it (a loop not ready is simply started a few frames later).
+  Movie Maker runs make it at once; silent (headless / movie without --movie-audio) runs start nothing.
+  `stream(key)` keeps its synchronous cache (now over the new `make_sound(key)`, same synthesis, same
+  key seed), so one-shots and tests are unchanged. The music already had this (song_stream).
+- Checked: measured on the main thread, one loop's synthesis cost: amb_rain 92, amb_wind 99, amb_cicadas
+  196, amb_crickets 191, amb_river 293, amb_pond 242 ms (the old first-play stall; the crickets' 191 ms
+  matches the 216..355 ms frame). New: the first `loop_stream` call costs 65 us on the main thread.
+  Not measured: a full windowed frame-time run with sound on (no audio-on timing run was made).
+  test_audio gained `_loop_checks`: first call null and job started, nothing cached by the caller, all
+  loops cached after the worker, a ready key costs < 2 ms, and every worker loop's data / loop mode /
+  loop end equals the plain SfxSynth synthesis. Mutation (loop_stream returns stream(key)): 3 FAIL lines,
+  `test_audio: FAILED (3 failed)`; restored. test_audio and test_weather OK; smoke runs (title, --demo,
+  --demo --map=town, --demo --mine=3) no error or warning lines.
+- Left / next: the one-shots (play) are still made on first use but are short (not measured as hitches).
+
 ## 2026-11-07 — Calm paddy ground in the flat view
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: the flat view's paddy cells that grow rice (MapView.paddy_cells, the Kaminoda paddies in

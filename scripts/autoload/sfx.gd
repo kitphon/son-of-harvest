@@ -24,7 +24,8 @@ var volumes: Dictionary = {}       # bus -> 0..1
 var music: Dictionary = {}         # data/music.json
 var rng := RandomNumberGenerator.new()
 var silent := DisplayServer.get_name() == "headless" 		or (Engine.get_write_movie_path() != "" and not "--movie-audio" in OS.get_cmdline_user_args())
-var _streams: Dictionary = {}      # key -> AudioStreamWAV, made on first use
+var _streams: Dictionary = {}      # key -> AudioStreamWAV, made on first use (loops: ahead, see loop_stream)
+var _loop_jobs: Dictionary = {}    # loop key -> [WorkerThreadPool task, {stream}] being made
 var _voices: Array[AudioStreamPlayer] = []
 var _next_voice := 0
 var _loops: Dictionary = {}        # loop key -> AudioStreamPlayer
@@ -71,7 +72,9 @@ func _ready() -> void:
 		add_child(p)
 		_songs[key] = p
 		_song_level[key] = 0.0
-	if not silent:   # the tunes are made early, off the main thread
+	if not silent:   # the ambient loops and the tunes are made early, off the main thread
+		for key in _loops:
+			loop_stream(key)
 		for id in Whistles.data().tunes:
 			song_stream("whistle:" + id)
 	apply_settings()
@@ -92,8 +95,10 @@ func _process(delta: float) -> void:
 		var p: AudioStreamPlayer = _loops[key]
 		var to := float(_target.get(key, 0.0))
 		if to > 0.0 and not p.playing and not silent:
-			p.stream = stream(key)
-			p.play()
+			var ls := loop_stream(key)   # null while still being made: it starts a little later
+			if ls != null:
+				p.stream = ls
+				p.play()
 		var base := db_to_linear(float(sounds[key].get("volume_db", 0.0)))
 		var level := move_toward(p.volume_linear / base, to, step) if p.playing else 0.0
 		p.volume_linear = level * base
@@ -263,8 +268,35 @@ func get_volume(bus: String) -> float:
 
 func stream(key: String) -> AudioStreamWAV:
 	if not _streams.has(key):
-		var s: Dictionary = sounds[key]
-		_streams[key] = SfxSynth.to_stream(SfxSynth.render(s, hash(key)), s.has("loop"))
+		_streams[key] = make_sound(key)
+	return _streams[key]
+
+
+## A sound made from its recipe (the same every time: the noise is seeded by the key).
+func make_sound(key: String) -> AudioStreamWAV:
+	var s: Dictionary = sounds[key]
+	return SfxSynth.to_stream(SfxSynth.render(s, hash(key)), s.has("loop"))
+
+
+## The ambient loop for a key, or null while it is still being made. Made on a worker thread
+## (started at start-up) so the frame it first plays on doesn't stall; in a Movie Maker run
+## (frames don't wait for threads) at once.
+func loop_stream(key: String) -> AudioStreamWAV:
+	if _streams.has(key):
+		return _streams[key]
+	if Engine.get_write_movie_path() != "":
+		return stream(key)
+	if not _loop_jobs.has(key):
+		var out := {}
+		_loop_jobs[key] = [WorkerThreadPool.add_task(func(): out.stream = make_sound(key)), out]
+		return null
+	var job: Array = _loop_jobs[key]
+	if not WorkerThreadPool.is_task_completed(job[0]):
+		return null
+	WorkerThreadPool.wait_for_task_completion(job[0])
+	_loop_jobs.erase(key)
+	if not _streams.has(key):
+		_streams[key] = job[1].stream
 	return _streams[key]
 
 
