@@ -91,6 +91,7 @@ func _add_dog() -> void:
 		return
 	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:dog:idle:0"))
 	NightLights.figure(s)
+	s.add_to_group(Parting.GROUP)   # the grass and crops part round the dog too
 	add_child(s)
 	_shadow(s, "dog")
 	_dog = {"sprite": s, "pos": Vector2(dog.cell) + Vector2(0.5, 0.5), "pose": "idle", "time": 0.0, "still": 0.0}

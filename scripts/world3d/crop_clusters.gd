@@ -88,11 +88,11 @@ func set_cover(cover: float) -> void:
 		m.set_shader_parameter("cover", cover)
 
 
-## The farmer's feet in the world (FarmWorld.set_farmer, each frame): the plants round them
-## part. Set on the shared material too, so pictures made later start with it.
-func set_farmer(feet: Vector3) -> void:
+## The pushers' feet in the world (FarmWorld.set_farmer, each frame; Parting.pick): the plants
+## round them part. Set on the shared material too, so pictures made later start with it.
+func set_pushers(feet: PackedVector2Array) -> void:
 	for m in materials():
-		m.set_shader_parameter("farmer", Vector2(feet.x, feet.z))
+		Parting.feed(m, feet)
 
 
 ## Every picture's material (each picture has its own copy of the shared one).

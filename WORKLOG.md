@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Villagers and the dog part the grass and crops too
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: `Parting`'s `farmer` uniform is now `pushers[8]` plus `pusher_count`; `part_push`
+  sums each pusher's push (same smoothstep math) and limits the total to `bend`, so the farmer
+  alone looks exactly as before. `Parting.push_all` mirrors it in GDScript, `Parting.pick` takes
+  the farmer first and then the others nearest them up to `max`, `Parting.feed` sets a material.
+  The villagers' sprites (VillagerSprites) and the dog's (AnimalLayer) are in the group
+  `Parting.GROUP`; `FarmWorld.set_farmer` (still the one line in Main3D._process) collects the
+  visible ones of its own world and feeds the map's and apron's tufts and every crop picture
+  (`set_farmer` on GrassTufts / CropClusters became `set_pushers`). data/wind.json "part".max = 8
+  (the shader's array size; the cap is rarely met in a village).
+- Checked: test_maps `_parting` extended (max in data within the array; farmer alone unchanged;
+  a villager parts like the farmer; out of every radius stands; summed pushes never exceed bend;
+  pick: farmer first, nearest next, capped; a figure in the group is a second pusher in a real
+  MapWorld, a stray or hidden one is not; the sprites join the group). All tests/test_*.gd OK
+  (0 failed); smoke runs (title, --demo, --demo --map=town, --demo --mine=3) with no errors or
+  warnings. Screenshots `--demo --map=town --time=10:00` and `--map=kaminoda@well --time=8:30`
+  render fine, but no villager stood in grass close enough to show a bend at 480 x 270.
+- Left / next: the visible bend round a villager was not seen in a screenshot, only checked by
+  the shader math in tests; the barn yard cows and sheep do not part anything.
+
 ## 2026-11-07 — Grass and rice part round the farmer
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: new `Parting` (scripts/world3d/parting.gd): a GLSL `part_push(root)` included in the

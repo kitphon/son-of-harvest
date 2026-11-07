@@ -46,6 +46,7 @@ the wood as MultiMeshes (scripts/world3d/trees.gd).
 [x] Rice and corn as clusters of small pixel sprites, the village paddies' rice by season
 (scripts/world3d/crop_clusters.gd).
 [x] The grass tufts and the rice / corn part round the farmer in the 3D view (scripts/world3d/parting.gd, data/wind.json "part").
+[x] The villagers and the dog part the grass and crops too (up to 8 pushers, the farmer first; `Parting.GROUP`).
 [x] Water: a gentle moving surface on the farm pond, the village pond and the river
 (scripts/world3d/water_surface.gd).
 [x] Flat view water: the same drifting glints and troughs on the pond and river, pixel-stepped,
