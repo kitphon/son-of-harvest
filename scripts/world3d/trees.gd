@@ -14,11 +14,14 @@ const SAKURA_BARK := Color("3e302c")
 const NEEDLES: Array[Color] = [Color("2f5a34"), Color("3a6a3c"), Color("467a44")]
 const FRUIT := Color("e8782a")
 const PETAL := Color("f6c4d2")
+const MAPLE_FLAME := Color("dc6a1e")   # the orange lumps among a maple's reds in fall
 const LUMP_SIDES := 7
 
 ## Leaf colours of the broadleaf kinds by season; a clear colour = bare branches.
 const LEAVES := {
 	"persimmon": {"spring": Color("5e9a3e"), "summer": Color("4a8434"), "fall": Color("a8402c"), "winter": Color(0, 0, 0, 0)},
+	# A Japanese maple (momiji): fresh light green in spring, deep green in summer, vivid red in fall.
+	"maple": {"spring": Color("86b844"), "summer": Color("2f6e32"), "fall": Color("c42a1e"), "winter": Color(0, 0, 0, 0)},
 	"sakura": {"spring": Color("f2bccb"), "summer": Color("4e8a3a"), "fall": Color("c8783a"), "winter": Color(0, 0, 0, 0)},
 }
 
@@ -65,6 +68,9 @@ static func broadleaf(p: FarmProps.Parts, at: Vector3, kind: String, season: Str
 				if rng.randf() < 0.6:
 					_lump(p.st(FRUIT), e + Vector3(0, -0.07, 0), 0.055, 1.0, 6)
 		return
+	if kind == "maple":
+		_maple_crown(p, at, leaf, season, rng, turn)
+		return
 	# The crown: a big lump in the middle, four round it a little lower, one on top.
 	var lumps: Array = [[Vector3(0, 1.5, 0), 0.5, leaf]]
 	for i in 4:
@@ -82,6 +88,28 @@ static func broadleaf(p: FarmProps.Parts, at: Vector3, kind: String, season: Str
 			_lump(p.st(FRUIT), at + c + out * float(l[1]) * 0.92 + Vector3(0, -0.05, 0), 0.06, 1.0, 6)
 	if kind == "sakura" and season in ["", "spring"]:
 		fallen_petals(p, at, seed)
+
+
+## A maple's crown: small and layered, a wide flat tier of five low lumps, a narrower tier of
+## three above it and a cap, so it reads as stacked sprays of leaves. In fall some lumps turn
+## orange among the reds.
+static func _maple_crown(p: FarmProps.Parts, at: Vector3, leaf: Color, season: String, rng: RandomNumberGenerator, turn: float) -> void:
+	var lumps: Array = []
+	for i in 5:
+		var a := turn + TAU * i / 5 + rng.randf_range(-0.25, 0.25)
+		var d := rng.randf_range(0.36, 0.44)
+		lumps.append([Vector3(cos(a) * d, rng.randf_range(1.22, 1.34), sin(a) * d), rng.randf_range(0.3, 0.35), 0.58, leaf.darkened(0.16 if i % 2 == 0 else 0.08)])
+	for i in 3:
+		var a := turn + 0.6 + TAU * i / 3 + rng.randf_range(-0.2, 0.2)
+		var d := rng.randf_range(0.14, 0.2)
+		lumps.append([Vector3(cos(a) * d, rng.randf_range(1.5, 1.6), sin(a) * d), rng.randf_range(0.28, 0.32), 0.6, leaf.darkened(0.03)])
+	lumps.append([Vector3(rng.randf_range(-0.05, 0.05), 1.78, rng.randf_range(-0.05, 0.05)), 0.26, 0.7, leaf.lightened(0.1)])
+	lumps.append([Vector3(0, 1.45, 0), 0.34, 0.7, leaf])
+	for i in lumps.size():
+		var c: Color = lumps[i][3]
+		if season == "fall" and i in [1, 4, 6]:
+			c = MAPLE_FLAME.darkened(0.04 * (i % 3))
+		_lump(p.st(c), at + lumps[i][0], lumps[i][1], lumps[i][2], LUMP_SIDES, rng.randf() * TAU)
 
 
 ## Petals lying round a cherry in bloom.

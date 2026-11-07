@@ -258,6 +258,16 @@ func _map_rules() -> void:
 				todo.append(n)
 	check(seen.has(hl.spawns.top[0]), "the lookout can be walked to from the foot")
 	check(hl.is_solid(Vector2i(5, 0)) and hl.tile(Vector2i(5, 0)) == "rock_wall", "the cliff along the top")
+	# Maples (momiji): a few on the hill, one each in Kaminoda and Sakurazaka, all on open grass
+	# clear of the paths, the bamboo and every other prop.
+	for spot in [["hill", 3], ["kaminoda", 1], ["sakurazaka", 1]]:
+		var mm := MapManager.data(spot[0])
+		var maples := mm.props.filter(func(p): return p.kind == "maple")
+		check(maples.size() >= spot[1], "%s has %d maples at least" % [spot[0], spot[1]])
+		for mp in maples:
+			var mc := Vector2i(mp.cell)
+			var crowded := mm.props.filter(func(p): return p != mp and Rect2i(Vector2i(p.cell), Vector2i(p.get("size", [1, 1]))).has_point(mc))
+			check(mm.tile(mc) == "grass" and crowded.is_empty(), "%s: the maple at %s stands on free grass" % [spot[0], mc])
 	# The village's outer parts: every door of each can be walked to from its way in, and every
 	# house door leads to a room whose way out comes back in front of it.
 	for id in ["kaminoda", "sakurazaka", "minamino"]:
@@ -1429,7 +1439,7 @@ func _trees() -> void:
 				out.reach = maxf(out.reach, Vector2(q.x, q.z).length())
 				out.top = maxf(out.top, q.y)
 		return out
-	for kind in ["persimmon", "sakura"]:
+	for kind in ["persimmon", "sakura", "maple"]:
 		for season in ["spring", "summer", "fall", "winter"]:
 			for seed in [3, 40]:
 				var w: Node3D = parts_of.call(func(p): trees.broadleaf(p, Vector3.ZERO, kind, season, seed))
@@ -1440,12 +1450,13 @@ func _trees() -> void:
 				check(l.bad == 0 and l.reach < 0.95 and l.top < 2.3, "%s in %s (seed %d): %d faults, reaches %.2f, %.2f high" % [kind, season, seed, l.bad, l.reach, l.top])
 				check(leafy == (season != "winter"), "%s in %s: leaves %s" % [kind, season, leafy])
 				check(fruit == (kind == "persimmon" and season in ["fall", "winter"]), "%s in %s: fruit %s" % [kind, season, fruit])
+				check(kind != "maple" or ((trees.MAPLE_FLAME in l.colours or trees.MAPLE_FLAME.darkened(0.04) in l.colours) == (season == "fall")), "maple in %s: orange among the reds only in fall" % season)
 				check((trees.PETAL in l.colours) == (kind == "sakura" and season == "spring"), "%s in %s: petals on the ground" % [kind, season])
 				w.free()
 	# Snow on the bare branches: a snow piece (driven by set_snow) in winter with snow, none
 	# without snow, none in a leafy season; the sheets stay in the tree's reach and the winding
 	# is right (the same look checks as above).
-	for kind in ["persimmon", "sakura"]:
+	for kind in ["persimmon", "sakura", "maple"]:
 		for seed in [3, 40]:
 			for case in [["winter", true], ["winter", false], ["spring", true]]:
 				var w: Node3D = parts_of.call(func(p): trees.broadleaf(p, Vector3.ZERO, kind, case[0], seed, case[1]))

@@ -51,6 +51,7 @@
 		{"kind": "persimmon", "cell": [5, 17]},
 		{"kind": "sakura", "cell": [30, 2]},
 		{"kind": "sakura", "cell": [8, 16]},
+		{"kind": "maple", "cell": [28, 16]},
 		{"kind": "wood_fence", "cell": [24, 8], "size": [3, 1]},
 		{"kind": "bamboo", "cell": [20, 0]},
 		{"kind": "bamboo", "cell": [25, 0]},

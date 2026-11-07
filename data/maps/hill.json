@@ -173,7 +173,13 @@
 		{"kind": "persimmon", "cell": [10, 8]},
 		{"kind": "sakura", "cell": [22, 13]},
 		{"kind": "persimmon", "cell": [38, 14]},
-		{"kind": "sakura", "cell": [2, 11]}
+		{"kind": "sakura", "cell": [2, 11]},
+		{"kind": "maple", "cell": [11, 11]},
+		{"kind": "maple", "cell": [28, 2]},
+		{"kind": "maple", "cell": [14, 7]},
+		{"kind": "maple", "cell": [24, 20]},
+		{"kind": "maple", "cell": [12, 19]},
+		{"kind": "maple", "cell": [36, 22]}
 	],
 	"doors": [
 		{"cells": [[19, 30], [20, 30]], "to": "kaminoda", "spawn": [22, 1], "facing": "down"}

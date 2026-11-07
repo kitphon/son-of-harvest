@@ -1,12 +1,12 @@
 class_name CountryProps
 extends RefCounted
 ## The countryside things of the village's outer parts in 3D: a well and a stone jizo in a red
-## bib (OutdoorProps), a persimmon and a cherry tree (Trees: their look follows the season), a rice
+## bib (OutdoorProps), a persimmon, a cherry and a maple tree (Trees: their look follows the season), a rice
 ## drying rack, a stack of firewood, a kitchen garden, a low board fence (FieldProps) and Ichiro's
 ## charcoal kiln (OutdoorProps), all lit
 ## meshes. Same units as MapWorld (1 unit = 1 cell).
 
-const KINDS: Array[String] = ["well", "jizo", "persimmon", "sakura", "hasa", "woodpile", "garden", "wood_fence", "kiln"]
+const KINDS: Array[String] = ["well", "jizo", "persimmon", "sakura", "maple", "hasa", "woodpile", "garden", "wood_fence", "kiln"]
 
 
 ## A countryside prop by its kind (MapWorld calls this). `season` picks the trees' and the
@@ -15,7 +15,7 @@ static func prop(w: MapWorld, p: Dictionary, mid: Vector3, r: Rect2, season: Str
 	match str(p.kind):
 		"well": OutdoorProps.well(w, mid)
 		"jizo": OutdoorProps.jizo(w, mid, SnowLayer.map_has_snow(w.map))
-		"persimmon", "sakura":
+		"persimmon", "sakura", "maple":
 			var parts := FarmProps.Parts.new()
 			Trees.broadleaf(parts, mid, str(p.kind), season, int(p.cell[0]) * 31 + int(p.cell[1]) * 17, SnowLayer.map_has_snow(w.map))
 			parts.commit(w)

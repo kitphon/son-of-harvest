@@ -50,6 +50,7 @@
 		{"kind": "sakura", "cell": [6, 13]},
 		{"kind": "sakura", "cell": [10, 13]},
 		{"kind": "sakura", "cell": [26, 13]},
+		{"kind": "maple", "cell": [27, 4]},
 		{"kind": "kiln_mark", "cell": [20, 17], "size": [2, 2], "flag": "ichiro_mark", "use": "examine", "message": "Ichiro's thumbprint is in the new kiln's clay, and now yours is beside it."},
 		{"kind": "kiln_new", "cell": [20, 17], "size": [2, 2], "flag": "ichiro_mark", "use": "examine", "message": "The new kiln stands finished beside the old one, fired and ready."},
 		{"kind": "kiln_site", "cell": [20, 17], "size": [2, 2], "flag": "ichiro_kiln", "unless": "ichiro_mark", "use": "examine", "message": "The new kiln is half built: a mound of clay bricks, a pile still waiting, and the shovel stuck in the dirt."},
