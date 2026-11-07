@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Glint on the winter water patches
+Agent: Claude Code (claude-haiku) · Commit: this commit
+- Done: the flat view's winter water patches (CropPatches.draw_water, the Kaminoda paddies) glint.
+  Each shown patch carries one or two pale pixels (data/paddy.json water.shine, e4eef0) on its top
+  row, inside the paler oval. CropPatches.glint_dots puts them at whole pixels from the patch's own
+  rectangle (water_rect, now shared with draw_water_spot; mirrored patches mirror the glint). The
+  drift is the rice's wind: the phase advances at data/wind.json "flat".glint.speed (0.9 rad/s)
+  times (1 + faster x wind), so a storm (wind 1.0, faster 1.0) runs it twice as quick as a sunny
+  day, and the light moves `swing` (2 px) either side of the middle. Phase by place (a hash of the
+  patch's x and z), so patches are not in step; one or two lights by the same hash. Redrawn 4 times
+  a second (CropPatches.glint_now, MapView._glint_for: only in winter, redraw only when the frame
+  changes). Still air keeps a slow shimmer. None while snow lies on the ground (cover > 0).
+- Checked: test_view2d `_water_glint` (after `_paddy_ground`, rain and storm winds from
+  data/wind.json): a patch's light takes at least 3 places in 30 s; two patches of the same size
+  and facing are not in step (at most half the frames in the same column of their own patch);
+  one or two pixels a patch (both seen); whole pixels inside their patch; more changes in a storm
+  than under a calm sky; none with cover 1.0 or 0.4 or with no glint; the colour is data's
+  water.shine. Output: `test_view2d: OK (0 failed)`. Mutation 1 (snow gate removed from
+  glint_dots): `FAIL: flat glint: none under snow, none with no glint (288)` then
+  `test_view2d: FAILED (1 failed)`, restored. Mutation 2 (phase ignored, `+ 0.0 * h * TAU`):
+  `FAIL: flat glint: two patches are not in step (120 of 120 frames in the same column)` then
+  `test_view2d: FAILED (1 failed)`, restored. Smoke: `res://scenes/main_2d.tscn -- --demo
+  --map=kaminoda --season=winter` (--quit-after 300) and `--demo --map=town` ran with no errors. Screenshot
+  (480 x 270, shots/frame00000019.png, Kaminoda winter, zoomed 8x): one pale pixel sits on several
+  patches; subtle at 1x. shots/ deleted.
+- Left / next: the glint is one pixel, no blink (only the drift; a blink would need a second
+  rate). The 3D view's picture patch:paddy_water has no glint. Not timed on a slow machine.
+
 ## 2026-11-07 — Calm paddy ground in the flat view
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: the flat view's paddy cells that grow rice (MapView.paddy_cells, the Kaminoda paddies in

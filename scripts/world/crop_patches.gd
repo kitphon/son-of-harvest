@@ -9,7 +9,8 @@ extends RefCounted
 ## further back first. The tips sway with the wind as the 3D shader's do (sway_tip): the picture is
 ## cut into a few bands and each band is shifted sideways by whole pixels, the top one the most.
 ## The winter water patches of the village paddies (CropClusters.water_spots_for,
-## data/paddy.json) lie under the stubble as flat pixel blobs.
+## data/paddy.json) lie under the stubble as flat pixel blobs, each with a light pixel that drifts on
+## the wind (glint_dots, data/wind.json "flat".glint), none under snow.
 
 const T := 16
 ## FarmView and MapView reach this class through load(): their scripts compile in test scripts that
@@ -102,13 +103,16 @@ static func draw_spot(canvas: CanvasItem, s: Dictionary, sway := {}) -> void:
 
 
 ## The flat-only numbers (data/wind.json "flat"): `rate` sway frames a second, `bands` strips a plant
-## is cut into.
+## is cut into, and `glint` the water patches' glint (rate, speed, faster, swing).
 static func flat_config() -> Dictionary:
 	if _flat.is_empty():
 		var f := FileAccess.open(WIND_PATH, FileAccess.READ)
 		var d: Variant = JSON.parse_string(f.get_as_text()) if f != null else null
 		var flat: Dictionary = (d as Dictionary).get("flat", {}) if d is Dictionary else {}
-		_flat = {"rate": float(flat.get("rate", 8.0)), "bands": int(flat.get("bands", 4))}
+		var glint: Dictionary = flat.get("glint", {})
+		_flat = {"rate": float(flat.get("rate", 8.0)), "bands": int(flat.get("bands", 4)),
+			"glint": {"rate": float(glint.get("rate", 4.0)), "speed": float(glint.get("speed", 0.9)),
+				"faster": float(glint.get("faster", 1.0)), "swing": float(glint.get("swing", 2.0))}}
 	return _flat
 
 
@@ -151,10 +155,63 @@ static var _water_tex: Texture2D = null
 
 ## Draws the winter water patches of `cells` (paddy cell -> key) under the stubble, in `season`
 ## only (CropClusters.water_on). The places are CropClusters.water_spots_for's, as in 3D; a patch
-## is left out where snow lies on its cell (`hold_at` and `cover` as in draw).
-static func draw_water(canvas: CanvasItem, season: String, cells: Dictionary, hold_at := Callable(), cover := 0.0) -> void:
+## is left out where snow lies on its cell (`hold_at` and `cover` as in draw). `glint` is
+## {wind, t} (see glint_now): each shown patch carries its light pixels on top (glint_dots).
+static func draw_water(canvas: CanvasItem, season: String, cells: Dictionary, hold_at := Callable(), cover := 0.0, glint := {}) -> void:
+	var shine := shine_colour()
 	for s in water_to_draw(season, cells, hold_at, cover):
 		draw_water_spot(canvas, s)
+		var lit := shine * Color(s.shade, s.shade, s.shade, 1.0)
+		for d in glint_dots(s, glint, cover):
+			canvas.draw_rect(Rect2(Vector2(d), Vector2.ONE), lit)
+
+
+## Whether the water patches show in `season` (CropClusters.water_on), for the views that only
+## need the answer (MapView keeps its glint redraws to those seasons).
+static func water_on(season: String) -> bool:
+	return CropClusters.water_on(season)
+
+
+## The glint's time kept to its frame rate (data/wind.json "flat".glint.rate), with the wind, as
+## sway_now does for the tips: the glint is redrawn only when this changes. Unlike the sway it is
+## also kept in still air, where the patches shimmer slowly.
+static func glint_now(wind: float, seconds: float) -> Dictionary:
+	var rate: float = float(flat_config().glint.rate)
+	return {"wind": wind, "t": floorf(seconds * rate) / rate}
+
+
+## The light pixels of one water patch at `glint` ({wind, t}): one or two (by the patch's place),
+## on the patch's top row, drifting sideways a pixel or two as the wind moves them (the phase by
+## place, so patches are not in step; faster in rain and storm). Whole pixels in the flat view,
+## inside the patch's rectangle. None while snow lies on the ground (`cover` > 0) or with no glint.
+static func glint_dots(s: Dictionary, glint: Dictionary, cover := 0.0) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if glint.is_empty() or cover > 0.0:
+		return out
+	var cfg: Dictionary = flat_config().glint
+	var wind: float = float(glint.wind)
+	var h := fposmod(float(s.pos.x) * 12.9898 + float(s.pos.z) * 78.233, 1.0)
+	var count := 2 if h >= 0.5 else 1
+	var p := float(glint.t) * float(cfg.speed) * (1.0 + float(cfg.faster) * wind) + h * TAU
+	var r := water_rect(s).abs()
+	var w := int(r.size.x)
+	var hgt := int(r.size.y)
+	for i in count:
+		# The glint sits on the top row of the blob, inside the paler oval (columns 3..8 of 12).
+		var tx := clampi(5 + roundi(sin(p + i * PI) * float(cfg.swing)), 3, 8)
+		var col := mini(w - 1, floori(float(tx) * w / WATER_W))
+		if s.flip:
+			col = w - 1 - col
+		var row := mini(hgt - 1, floori(1.0 * hgt / WATER_H))
+		var d := Vector2i(int(r.position.x) + col, int(r.position.y) + row)
+		if not out.has(d):
+			out.append(d)
+	return out
+
+
+## The glint's colour from data/paddy.json (water.shine): paler than the glint on the blob.
+static func shine_colour() -> Color:
+	return Color(String(CropClusters.paddy_data().get("water", {}).get("shine", "e4eef0")))
 
 
 ## The water patches that show: none outside water_on seasons, else the ones not under snow.
@@ -172,15 +229,20 @@ static func water_to_draw(season: String, cells: Dictionary, hold_at := Callable
 ## One water patch: the blob's picture at the spot's size in whole pixels, centred on the place
 ## (a flat patch on the ground, so its centre is the place), mirrored by its flip, shaded.
 static func draw_water_spot(canvas: CanvasItem, s: Dictionary) -> void:
-	var tex := water_texture()
+	var shade: float = s.shade
+	canvas.draw_texture_rect(water_texture(), water_rect(s), false, Color(shade, shade, shade))
+
+
+## Where a water patch's picture goes (a negative width mirrors it): its size in whole pixels,
+## centred on the place.
+static func water_rect(s: Dictionary) -> Rect2:
 	var w := maxi(1, roundi(WATER_W * float(s.size)))
 	var h := maxi(1, roundi(WATER_H * float(s.size)))
 	var c := Vector2(roundf(s.pos.x * T), roundf(s.pos.z * T))
 	var rect := Rect2(c.x - floorf(w / 2.0), c.y - floorf(h / 2.0), -w if s.flip else w, h)
 	if s.flip:
 		rect.position.x += w
-	var shade: float = s.shade
-	canvas.draw_texture_rect(tex, rect, false, Color(shade, shade, shade))
+	return rect
 
 
 ## The water patch's picture, cut once from data/paddy.json's colours: a pixel oval 12 x 5 in the

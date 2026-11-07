@@ -36,6 +36,7 @@ var season := "spring"       # the season the maples and the paddies' rice are d
 var snow_rules: Dictionary = {}   # data/snow_cover.json, set by show_snow (what the paddies hold)
 var _tall := false           # paddies stand (their rice sways while the wind blows)
 var _sway := {}              # the sway handed to CropPatches.draw ({wind, t}, {} in still air)
+var _glint := {}             # the water patches' glint time (CropPatches.glint_now; {} where no water shows)
 var _cover := 0.0            # snow lying, 0..1 (set_snow): the paddies' rice stands where it is not white
 
 
@@ -164,19 +165,32 @@ func _sway_for(seconds: float) -> Dictionary:
 	return (load(CROP_PATCHES) as GDScript).sway_now(game.wind_strength() if game != null else 0.0, seconds)
 
 
-## Redraws the objects when the swaying paddies move on a frame (a few times a second).
+## The water patches' glint on the same wind, kept to its own frame rate; {} in seasons with no water.
+func _glint_for(seconds: float) -> Dictionary:
+	var crops := load(CROP_PATCHES) as GDScript
+	if not crops.water_on(season):
+		return {}
+	var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
+	return crops.glint_now(game.wind_strength() if game != null else 0.0, seconds)
+
+
+## Redraws the objects when the swaying paddies or the water's glint move on a frame (a few times a second).
 func _process(_delta: float) -> void:
-	if _tall and _objects != null and _sway_for(Time.get_ticks_msec() / 1000.0) != _sway:
-		_objects.queue_redraw()
+	if _tall and _objects != null:
+		var now := Time.get_ticks_msec() / 1000.0
+		if _sway_for(now) != _sway or _glint_for(now) != _glint:
+			_objects.queue_redraw()
 
 
 func _draw_objects() -> void:
 	var paddies := paddy_cells()
 	_tall = not paddies.is_empty()
-	_sway = _sway_for(Time.get_ticks_msec() / 1000.0)
+	var now := Time.get_ticks_msec() / 1000.0
+	_sway = _sway_for(now)
+	_glint = _glint_for(now)
 	if _tall:
-		# The winter water patches lie under the stubble (CropPatches.draw_water: winter only).
-		(load(CROP_PATCHES) as GDScript).draw_water(_objects, season, paddies, paddy_hold, _cover)
+		# The winter water patches lie under the stubble (CropPatches.draw_water: winter only), each with its glint.
+		(load(CROP_PATCHES) as GDScript).draw_water(_objects, season, paddies, paddy_hold, _cover, _glint)
 		(load(CROP_PATCHES) as GDScript).draw(_objects, paddies, paddy_hold, _cover, _sway)
 	for p in map.props:
 		if p.kind in StoryView.KINDS:   # drawn as pictures by StoryView

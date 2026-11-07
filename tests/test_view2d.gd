@@ -844,6 +844,7 @@ func _tall_crops() -> void:
 	mv.free()
 	await _water_patches()
 	await _paddy_ground()
+	await _water_glint()
 
 
 ## The winter water patches of the flat view (CropPatches.draw_water): the 3D view's places
@@ -989,4 +990,81 @@ func _paddy_ground() -> void:
 			var mud: Dictionary = colours_of.call(PlaceholderArt.image("ground:paddy_mud:0"))
 			var clash := water_html.filter(func(h): return mud.has(h))
 			check(clash.is_empty(), "flat paddy ground: the drained mud carries no water or stubble colour (%s)" % [clash])
+	mv.free()
+
+
+## The water patches' glint in the flat view (CropPatches.glint_dots): a patch's light moves over
+## time, two patches are not in step, one or two pixels a patch, whole pixels inside the patch,
+## faster in a storm than under a calm sky, and none while snow lies on the ground.
+func _water_glint() -> void:
+	var CP: GDScript = load("res://scripts/world/crop_patches.gd")
+	var cc: GDScript = load("res://scripts/world3d/crop_clusters.gd")
+	var rules: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/wind.json"))
+	var calm: float = rules.strength.sunny
+	var rain: float = rules.strength.rain
+	var storm: float = rules.strength.storm
+	var mv = MapView.new()
+	mv.map = MapManager.data("kaminoda")
+	mv.snow_rules = g.snow_rules
+	root.add_child(mv)
+	await process_frame
+	mv.set_season("winter")
+	var patches: Array = CP.water_to_draw("winter", mv.paddy_cells())
+	check(patches.size() >= 2, "flat glint: the winter paddies have water patches to glint (%d)" % patches.size())
+	var rate: float = CP.flat_config().glint.rate
+	var frames := 120   # 30 s at the glint's frame rate
+	var seen := {}
+	var same_steps := 0
+	var bad := 0
+	var counts := {}
+	# A second patch of the same size and facing, moved to another place (so its own phase),
+	# so the two columns compare by phase alone.
+	var other: Dictionary = patches[0].duplicate()
+	other.pos = Vector3(float(patches[0].pos.x) + 0.37, 0.0, float(patches[0].pos.z) + 0.21)
+	var left0: int = int(CP.water_rect(patches[0]).abs().position.x)
+	var left1: int = int(CP.water_rect(other).abs().position.x)
+	for i in frames:
+		var at: float = i / rate
+		var g0: Array = CP.glint_dots(patches[0], CP.glint_now(rain, at))
+		var g1: Array = CP.glint_dots(other, CP.glint_now(rain, at))
+		seen[str(g0)] = true
+		# Both patches' first light in the same column of its own patch: in step.
+		if g0.size() > 0 and g1.size() > 0 and g0[0].x - left0 == g1[0].x - left1:
+			same_steps += 1
+		for s in patches:
+			var dots: Array = CP.glint_dots(s, CP.glint_now(rain, at))
+			counts[dots.size()] = true
+			var r: Rect2 = CP.water_rect(s).abs()
+			for d in dots:
+				if not r.has_point(Vector2(d)):
+					bad += 1
+	check(seen.size() >= 3, "flat glint: a patch's light moves over time (%d positions in 30 s)" % seen.size())
+	check(same_steps < frames / 2, "flat glint: two patches are not in step (%d of %d frames in the same column)" % [same_steps, frames])
+	check(counts.keys().all(func(n): return n == 1 or n == 2) and counts.has(1) and counts.has(2),
+		"flat glint: one or two light pixels a patch (%s)" % [counts.keys()])
+	check(bad == 0, "flat glint: whole pixels, inside their patch (%d off)" % bad)
+	# Faster in rain and storm: the light changes place more often in a storm than under a calm sky.
+	var changes := {}
+	for w in [calm, storm]:
+		var n := 0
+		var last := ""
+		for i in frames:
+			var dots := str(CP.glint_dots(patches[0], CP.glint_now(w, i / rate)))
+			if i > 0 and dots != last:
+				n += 1
+			last = dots
+		changes[w] = n
+	check(changes[storm] > changes[calm], "flat glint: a storm moves the light more often than a calm sky (%s)" % [changes])
+	# None under snow lying on the ground, none with no glint.
+	var leftover := 0
+	for s in patches:
+		leftover += CP.glint_dots(s, CP.glint_now(storm, 2.0), 1.0).size()
+		leftover += CP.glint_dots(s, CP.glint_now(storm, 2.0), 0.4).size()
+		leftover += CP.glint_dots(s, {}).size()
+	check(leftover == 0, "flat glint: none under snow, none with no glint (%d)" % leftover)
+	check(CP.water_on("winter") and not CP.water_on("spring") and not CP.water_on("summer") and not CP.water_on("fall"),
+		"flat glint: the water, and so its glint, is winter only")
+	# The light's colour is data/paddy.json's water.shine.
+	var shine_data := String(cc.paddy_data().get("water", {}).get("shine", ""))
+	check(shine_data != "" and CP.shine_colour().is_equal_approx(Color(shine_data)), "flat glint: the light is data/paddy.json's water.shine (%s)" % [shine_data])
 	mv.free()
