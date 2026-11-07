@@ -2936,8 +2936,70 @@ func _paddy_winter(cc: GDScript) -> void:
 	w.set_snow(0.8)
 	check(is_equal_approx(float(w.crops._water_material.get_shader_parameter("cover")), 0.8) and w.crops.materials().all(func(mat): return is_equal_approx(float(mat.get_shader_parameter("cover")), 0.8)),
 		"paddy winter: set_snow drives the patches' cover too")
+	_paddy_glint(cc, w, patches)
 	w.free()
 	g.season = keep
+
+
+## The 3D winter patches' glint (CropClusters.WATER_SHADER, glint_columns is its sum in GDScript):
+## phase by place, quicker in a storm, none under snow, the colour and numbers from data.
+func _paddy_glint(cc: GDScript, w: Node3D, patches: Array) -> void:
+	var wind_d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/wind.json"))
+	var gd: Dictionary = wind_d["3d"]["glint"]
+	var cfg: Dictionary = cc.glint_config()
+	check(patches.size() > 3 and is_equal_approx(float(cfg.speed), float(gd.speed)) and is_equal_approx(float(cfg.swing), float(gd.swing))
+		and is_equal_approx(float(cfg.faster), float(gd.faster)) and is_equal_approx(float(cfg.rate), float(gd.rate)),
+		"3d glint: the numbers come from data/wind.json \"3d\"")
+	var gv: Vector4 = w.crops._water_material.get_shader_parameter("glint")
+	var sv: Vector3 = w.crops._water_material.get_shader_parameter("shine")
+	var shine := Color(String(JSON.parse_string(FileAccess.get_file_as_string("res://data/paddy.json")).water.shine))
+	check(is_equal_approx(gv.y, float(gd.speed)) and is_equal_approx(gv.w, float(gd.swing)) and is_equal_approx(sv.x, shine.r) and is_equal_approx(sv.z, shine.b),
+		"3d glint: the material carries data's numbers and water.shine")
+	check("glint_columns" in cc.WATER_SHADER and "cover <= 0.0" in cc.WATER_SHADER and "px.y == 1.0" in cc.WATER_SHADER,
+		"3d glint: the shader draws it only with no snow cover, on the second row")
+	# Phase by place: patches are not in step.
+	var in_step := 0
+	var frames := 0
+	var a: Vector3 = patches[0].pos
+	var b: Vector3 = a
+	for s in patches:
+		if absf(fposmod(s.pos.x * 12.9898 + s.pos.z * 78.233, 1.0) - fposmod(a.x * 12.9898 + a.z * 78.233, 1.0)) > 0.15:
+			b = s.pos
+			break
+	for f in 120:
+		var t := f * 0.25
+		if cc.glint_columns(a, 0.0, t)[0] == cc.glint_columns(b, 0.0, t)[0]:
+			in_step += 1
+		frames += 1
+	check(b != a and in_step < frames / 2, "3d glint: two patches are not in step (%d of %d frames in the same column)" % [in_step, frames])
+	# One or two lights, whole columns inside the oval, both seen.
+	var seen := {}
+	var inside := true
+	for s in patches:
+		var cols: Array = cc.glint_columns(s.pos, 0.5, 3.0)
+		seen[cols.size()] = true
+		for c in cols:
+			inside = inside and c >= 3 and c <= 8
+	check(seen.has(1) and seen.has(2) and inside, "3d glint: one or two lights a patch (both seen), inside the oval")
+	# Quicker in a storm: more column changes in 30 s.
+	var changes := func(wind: float) -> int:
+		var n := 0
+		var last: int = cc.glint_columns(a, wind, 0.0)[0]
+		for f in 1200:
+			var c: int = cc.glint_columns(a, wind, f * 0.025)[0]
+			if c != last:
+				n += 1
+			last = c
+		return n
+	var calm: int = changes.call(0.15)
+	var storm: int = changes.call(1.0)
+	check(storm > calm and calm > 0, "3d glint: more changes in a storm (%d) than a sunny day (%d)" % [storm, calm])
+	var moved := {}
+	for f in 300:
+		moved[cc.glint_columns(a, 0.15, f * 0.1)[0]] = true
+	check(moved.size() >= 3, "3d glint: a light takes at least 3 places in 30 s (%d)" % moved.size())
+	check(cc.glint_columns(a, 1.0, 5.0, 0.4).is_empty() and cc.glint_columns(a, 0.0, 5.0, 1.0).is_empty() and not cc.glint_columns(a, 1.0, 5.0, 0.0).is_empty(),
+		"3d glint: none with snow lying")
 
 
 ## The moving skin on the water (WaterSurface): a sheet over the farm pond, the village pond

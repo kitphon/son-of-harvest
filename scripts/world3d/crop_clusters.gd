@@ -43,6 +43,7 @@ const SWAY := 0.03          # how far a tip swings (units)
 const PADDY := {"spring": [2, false], "summer": [3, false], "fall": [3, true], "winter": [0, false]}
 const WATER_PATH := "res://data/paddy.json"
 const WATER_TEX := "patch:paddy_water"
+const WIND_PATH := "res://data/wind.json"
 const WATER_Y := 0.02          # lifted off the ground picture so the patch does not flicker into it
 
 ## What was planted: the spots_for() entries ({cell, key, tex, pos, size, flip, shade, hold}),
@@ -58,6 +59,7 @@ var water_planted: Array[Dictionary] = []
 var _water_layer: MultiMeshInstance3D
 var _water_material: ShaderMaterial
 static var _paddy_data := {}
+static var _glint := {}
 var _sun := Color.WHITE
 
 const SHADER := "shader_type spatial;\nrender_mode unshaded, cull_disabled;\n" + SnowLayer._SNOW_AT + Parting.GLSL + """
@@ -108,8 +110,13 @@ void fragment() {
 ## and flipped like the plants' pictures, unshaded.
 const WATER_SHADER := "shader_type spatial;\nrender_mode unshaded, cull_disabled;\n" + SnowLayer._SNOW_AT + """
 uniform sampler2D tex : source_color, filter_nearest;
+uniform float wind = 0.0;           // as the rice's (set_wind)
+uniform vec3 shine : source_color = vec3(0.89, 0.93, 0.94);   // data/paddy.json water.shine
+uniform vec4 glint = vec4(4.0, 0.9, 1.0, 2.0);                // rate, speed, faster, swing (data/wind.json "3d")
+varying float place;
 void vertex() {
 	vec3 root = MODEL_MATRIX[3].xyz;
+	place = fract(root.x * 12.9898 + root.z * 78.233);   // the glint's phase and count, by place
 	if (snow_at(root.xz, cover * INSTANCE_CUSTOM.r) > 0.5) {
 		VERTEX = vec3(0.0);   // under snow: gone
 	}
@@ -124,6 +131,19 @@ void fragment() {
 		discard;
 	}
 	ALBEDO = c.rgb * COLOR.rgb;
+	if (cover <= 0.0) {   // none while snow lies on the ground
+		// One or two lights on the picture's second row, drifting with the wind (CropClusters.glint_columns).
+		float t = floor(TIME * glint.x) / glint.x;
+		float p = t * glint.y * (1.0 + glint.z * wind) + place * 6.2831853;
+		vec2 px = floor(UV * vec2(12.0, 5.0));
+		if (px.y == 1.0) {
+			float a = clamp(5.0 + floor(sin(p) * glint.w + 0.5), 3.0, 8.0);
+			float b = clamp(5.0 + floor(sin(p + 3.1415927) * glint.w + 0.5), 3.0, 8.0);
+			if (px.x == a || (place >= 0.5 && px.x == b)) {
+				ALBEDO = shine * COLOR.rgb;
+			}
+		}
+	}
 }
 """
 
@@ -135,6 +155,10 @@ func _init() -> void:
 	Parting.setup(_material, "crops")
 	_water_material = SnowLayer._material(WATER_SHADER)
 	_water_material.set_shader_parameter("tex", PlaceholderArt.tex(WATER_TEX))
+	var g := glint_config()
+	_water_material.set_shader_parameter("glint", Vector4(g.rate, g.speed, g.faster, g.swing))
+	var sh := shine_colour()
+	_water_material.set_shader_parameter("shine", Vector3(sh.r, sh.g, sh.b))
 	add_to_group(SpriteLight.GROUP)   # SpriteLight.apply sets the sun's share (set_sun)
 	set_sun(SpriteLight.now)
 
@@ -157,6 +181,7 @@ func set_wind(strength: float) -> void:
 	wind = clampf(strength, 0.0, 1.0)
 	for m in materials():
 		m.set_shader_parameter("wind", wind)
+	_water_material.set_shader_parameter("wind", wind)
 
 
 ## The sun's share on the pictures (SpriteLight.apply): every picture's material, and the ones made later.
@@ -205,6 +230,40 @@ static func paddy_key(season: String) -> String:
 ## Whether the paddies' water patches show this season (data/paddy.json water.seasons).
 static func water_on(season: String) -> bool:
 	return season in paddy_data().get("water", {}).get("seasons", [])
+
+
+## The 3D glint's numbers (data/wind.json "3d".glint): rate, speed, faster, swing.
+static func glint_config() -> Dictionary:
+	if _glint.is_empty():
+		var f := FileAccess.open(WIND_PATH, FileAccess.READ)
+		var d: Variant = JSON.parse_string(f.get_as_text()) if f != null else null
+		var g: Dictionary = {}
+		if d is Dictionary:
+			g = (d as Dictionary).get("3d", {}).get("glint", {})
+		_glint = {"rate": float(g.get("rate", 4.0)), "speed": float(g.get("speed", 0.9)),
+			"faster": float(g.get("faster", 1.0)), "swing": float(g.get("swing", 2.0))}
+	return _glint
+
+
+## The glint's colour (data/paddy.json water.shine).
+static func shine_colour() -> Color:
+	return Color(String(paddy_data().get("water", {}).get("shine", "e4eef0")))
+
+
+## What WATER_SHADER lights on a patch at `pos`: the texel columns (of 12, on the picture's second
+## row) of its one or two lights at `seconds` in `wind`, before any flip. None while snow lies
+## (`cover` > 0). The shader does this sum on the GPU; this copy is for the tests.
+static func glint_columns(pos: Vector3, wind: float, seconds: float, cover := 0.0) -> Array[int]:
+	var out: Array[int] = []
+	if cover > 0.0:
+		return out
+	var g := glint_config()
+	var place := fposmod(pos.x * 12.9898 + pos.z * 78.233, 1.0)
+	var t := floorf(seconds * float(g.rate)) / float(g.rate)
+	var p := t * float(g.speed) * (1.0 + float(g.faster) * wind) + place * TAU
+	for i in (2 if place >= 0.5 else 1):
+		out.append(clampi(5 + int(floorf(sin(p + i * PI) * float(g.swing) + 0.5)), 3, 8))
+	return out
 
 
 ## data/paddy.json, read once.
