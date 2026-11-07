@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Hearth smoke made visible; smoke and footprints merged
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged the hearth smoke (d9ab050) and footprints (eb04db7) branches (only the WORKLOG /
+  ROADMAP entries clashed; both kept). The smoke's puffs were 0.08 units at 42% opacity, about two
+  pixels on screen, and no screenshot had shown them. Now size 0.13, alpha 0.55, rise 1.2
+  (data/smoke.json): pale puffs that read on the roof.
+- Checked: all 28 test scripts print OK (0 failed) on the merge; smoke runs (title, demo, town,
+  mine 3) 0 error lines. A throwaway script stood the farmer just north of Kota's house at 7:00
+  (the spawns all put the ridges above the frame: vents project at y < 0 from every town spawn
+  and the farm), frame 45: the puffs show over the ridge, white-cream, clearly smoke.
+- Left / next: the smoke shows only when the farmer is north of or level with a house; the game's
+  camera seldom frames ridges. Flat view still has no smoke.
+
 ## 2026-11-07 — Footprints in lying snow
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: where snow lies (cover at least 30%) out in the open, the farmer, the villagers and the
