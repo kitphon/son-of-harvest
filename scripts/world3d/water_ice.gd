@@ -86,6 +86,36 @@ vec4 ice_at(vec2 pix, float mask) {
 """
 
 
+## The ice's width pair [min, max] px on day `day` of the season with snow lying `cover` (0..1):
+## style.width scaled by style.grow.curve (day, factor points, linear between: thin at the start
+## of winter, full about day 22, receding to the end) and by 1 + grow.cover_bonus x cover, the
+## top capped at grow.max (4.4, so the middle 8 px of every cell stays open and fishing is untouched).
+## A style with no "grow" keeps its width.
+static func grown_width(style: Dictionary, day: int, cover: float) -> Array:
+	var w: Array = style.get("width", [2, 4])
+	var grow: Dictionary = style.get("grow", {})
+	if grow.is_empty():
+		return w
+	var curve: Array = grow.get("curve", [])
+	var f := 1.0
+	if not curve.is_empty():
+		f = float(curve[0][1])
+		var d := float(day)
+		if d >= float(curve[curve.size() - 1][0]):
+			f = float(curve[curve.size() - 1][1])
+		else:
+			for i in range(1, curve.size()):
+				if d <= float(curve[i][0]):
+					var a: Array = curve[i - 1]
+					var b: Array = curve[i]
+					var t := clampf((d - float(a[0])) / maxf(float(b[0]) - float(a[0]), 0.001), 0.0, 1.0)
+					f = lerpf(float(a[1]), float(b[1]), t)
+					break
+	f *= 1.0 + float(grow.get("cover_bonus", 0.0)) * clampf(cover, 0.0, 1.0)
+	var cap := float(grow.get("max", 4.0))
+	return [minf(float(w[0]) * f, cap), minf(float(w[1]) * f, cap)]
+
+
 ## Puts an ice style ({} = none) and the snow lying (0..1) into a water material (the 3D
 ## sheet's or WaterView's: the same uniforms).
 static func push(m: ShaderMaterial, style: Dictionary, snow: float) -> void:

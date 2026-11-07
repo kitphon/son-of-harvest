@@ -2932,6 +2932,30 @@ func _water_ice() -> void:
 		if WaterIce.shore_px(Vector2(px + 0.5, 8.5), narrow) >= wmax and px >= 3 and px < 13:
 			open += 1
 	check(open >= 2, "a channel one cell wide keeps open water down its middle (%d px)" % open)
+	# The ice grows over the winter and with the snow lying, and never past the open middle.
+	var early: Array = game_script.ice_for("winter", rules, 1, 0).width
+	var mid: Array = game_script.ice_for("winter", rules, 22, 0).width
+	var late: Array = game_script.ice_for("winter", rules, 30, 0).width
+	var snowy: Array = game_script.ice_for("winter", rules, 22, 100).width
+	check(float(early[1]) < float(mid[1]) - 1.0 and float(late[1]) < float(mid[1]) - 0.5,
+		"the ice is thin early (%.2f), widest in late winter (%.2f) and recedes by the end (%.2f)" % [early[1], mid[1], late[1]])
+	check(float(snowy[1]) > float(mid[1]) and float(snowy[0]) > float(mid[0]),
+		"snow lying widens it (%.2f -> %.2f)" % [mid[1], snowy[1]])
+	check(float(game_script.ice_for("winter", rules, 12, 100).width[1]) > float(game_script.ice_for("winter", rules, 12, 0).width[1]),
+		"with snow lying the ice is wider on the same day")
+	var cap_ok := true
+	for d in range(1, 31):
+		for cv in [0, 50, 100]:
+			var gw: Array = game_script.ice_for("winter", rules, d, cv).width
+			cap_ok = cap_ok and float(gw[0]) > 0.0 and float(gw[1]) >= float(gw[0]) and float(gw[1]) <= float(rules.ice.grow.max) 				and WaterIce.shore_px(Vector2(8.5, 8.5), 255) >= float(gw[1]) and float(gw[1]) <= 16.0 / 3.0
+	check(cap_ok, "every day and cover keeps the cell's middle open")
+	check(game_script.ice_for("spring", rules, 22, 100).is_empty(), "no grown ice outside winter")
+	var wv := WaterView.new()
+	wv.build(3, 3, func(c: Vector2i) -> bool: return c == Vector2i(1, 1), false)
+	wv.set_ice(game_script.ice_for("winter", rules, 1, 0), 0.0)
+	check((wv.material as ShaderMaterial).get_shader_parameter("ice_width") == Vector2(float(early[0]), float(early[1])),
+		"the flat view takes the same grown width")
+	wv.free()
 	# The sheet's quads carry the land round their cell; inner cells have none (no ice there).
 	var fw: Node3D = load("res://scripts/world3d/farm_world.gd").new()
 	var farm := FarmGrid.new(JSON.parse_string(FileAccess.get_file_as_string("res://data/crops.json")))
