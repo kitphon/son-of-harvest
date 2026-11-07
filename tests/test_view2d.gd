@@ -639,7 +639,7 @@ func _footprints() -> void:
 	for y in scene.view.map.h:
 		var all := true
 		for x in range(3, 14):
-			all = all and fpc.ground_hold(Vector2(x + 0.5, y + 0.5)) >= float(rules.min_hold)
+			all = all and fpc.ground_snow(Vector2(x + 0.5, y + 0.5)) >= float(rules.min_hold)
 		if all:
 			row = y
 			break
@@ -655,6 +655,23 @@ func _footprints() -> void:
 	for p in layer.trail.prints:
 		sides[signf(p.pos.y - (row + 0.5))] = true
 	check(sides.has(1.0) and sides.has(-1.0), "flat footprints: left and right prints")
+	var SL: GDScript = load("res://scripts/world3d/snow_layer.gd")
+	var all_lie := true
+	for p in layer.trail.prints:
+		all_lie = all_lie and SL.lies(p.pos, 0.8 * float(p.hold))
+	check(all_lie, "flat footprints: every print lies where the snow's patch noise has snow")
+	var bare_at := Vector2.ZERO
+	for i in 400:
+		var at := Vector2(3.5 + i * 0.025, row + 0.5)
+		if fpc.ground_hold(at) >= float(rules.min_hold) and fpc.ground_snow(at) == 0.0:
+			bare_at = at
+			break
+	check(bare_at != Vector2.ZERO, "flat footprints: the row has a bare patch inside the snow")
+	var before_n: int = layer.trail.prints.size()
+	for i in 12:
+		player.position = (bare_at + Vector2(float(i) * 0.005, 0.0)) * 16.0
+		scene._leave_prints()
+	check(layer.trail.prints.size() == before_n, "flat footprints: standing on a bare patch leaves no print")
 	g.snow_cover = 10
 	scene._leave_prints()
 	check(layer.trail.prints.is_empty(), "flat footprints: the snow thinning under the threshold takes them away")

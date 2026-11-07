@@ -264,8 +264,10 @@ Light and Farmhouse model hold the technical detail of what is built.
       flat: `FootprintView` draws a toe block and a heel block. Numbers: data/footprints.json.
       Screenshot: `--demo --season=winter --map=town@shrine --snow=80 --footprints`
       (a trail already pressed). Tests: test_maps `_footprints`, test_view2d `_footprints`.
-      Open: the prints are drawn over the whole ground, also over a bare patch inside the snow's
-      noise (they do not read the snow noise); small at the 480 x 270 picture.
+      Then (2026-11-07): prints read the snow noise: a print is made only where snow lies at that spot
+      (`Footprints.ground_snow`, `SnowLayer.lies` / `noise_at`, the GDScript copy of the shader's snow_at),
+      the 3D shader discards a print's pixels on bare or rim pixels (COLOR.r carries the ground's hold),
+      the flat view skips a print the snow has thinned from; size 0.38 x 0.58, colour 506aa8 for the 480 x 270 picture.
 
 ### 3. Light and atmosphere
 - [x] Night: real warm lights at lanterns, windows and the festival stalls, the tint lighter.

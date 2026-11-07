@@ -8,8 +8,11 @@ extends Node3D
 const LIFT := 0.025   # over the ground, which snow lies on at y = 0
 const GRID := Vector2(5.0, 8.0)   # the sole's pixel grid
 
-const SHADER := """shader_type spatial;
+const SHADER := "shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled;
+" + SnowLayer._SNOW_AT + """
+varying vec3 world;
+void vertex() { world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 uniform vec3 tone : source_color = vec3(0.37, 0.46, 0.67);
 uniform float strength = 0.8;
 uniform float sun_share = 0.045;
@@ -19,6 +22,8 @@ float inside(vec2 p, vec2 c, vec2 r) {
 	return dot(q, q) <= 1.0 ? 1.0 : 0.0;
 }
 void fragment() {
+	// Only where snow lies at this pixel (the ground shader's own test; COLOR.r = what the ground holds)
+	if (snow_at(world.xz, cover * COLOR.r) < 1.5) discard;
 	vec2 p = (floor(UV * grid) + 0.5) / grid;   // pixel-stepped: the toe at v = 0
 	float sole = max(inside(p, vec2(0.5, 0.3), vec2(0.5, 0.29)), inside(p, vec2(0.5, 0.8), vec2(0.34, 0.19)));
 	ALBEDO = tone;
@@ -34,6 +39,7 @@ void light() {
 var trail: Footprints
 var _mm: MultiMesh
 var _node: MultiMeshInstance3D
+var _mat: ShaderMaterial
 var _dirty := false
 
 
@@ -55,6 +61,8 @@ func _init() -> void:
 	mat.set_shader_parameter("strength", float(trail.rules.alpha))
 	mat.set_shader_parameter("sun_share", SnowLayer.SUN_SHARE)
 	mat.set_shader_parameter("grid", GRID)
+	mat.set_shader_parameter("noise", SnowLayer.noise_texture())
+	_mat = mat
 	_node = MultiMeshInstance3D.new()
 	_node.multimesh = _mm
 	_node.material_override = mat
@@ -64,6 +72,7 @@ func _init() -> void:
 
 ## The walkers' places now ({id: Vector2 cell position}); makes prints while snow lies enough.
 func feed(walkers: Dictionary, cover: float, sheltered: bool, hold: Callable) -> void:
+	_mat.set_shader_parameter("cover", cover / 100.0)
 	if not trail.active(cover, sheltered):
 		if not trail.prints.is_empty():
 			clear()
@@ -97,4 +106,4 @@ func _redraw() -> void:
 		var at := Vector3(p.pos.x, LIFT, p.pos.y)
 		var basis := Basis.looking_at(Vector3(p.dir.x, 0.0, p.dir.y), Vector3.UP)   # the toe, -z, ahead
 		_mm.set_instance_transform(i, Transform3D(basis, at))
-		_mm.set_instance_color(i, Color(1, 1, 1, trail.strength(p)))
+		_mm.set_instance_color(i, Color(float(p.get("hold", 1.0)), 1, 1, trail.strength(p)))

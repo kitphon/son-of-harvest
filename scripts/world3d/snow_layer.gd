@@ -84,6 +84,7 @@ void fragment() {
 """
 
 static var _noise: ImageTexture
+static var _noise_img: Image   # the same noise for GDScript lookups (noise_at)
 static var _shaders := {}   # code -> its Shader, one a run (a new Shader per material parsed its code each time)
 
 
@@ -167,6 +168,22 @@ static func snow_kind(n: float, amount: float) -> int:
 	return 2 if n < a - 0.08 else (1 if n < a else 0)
 
 
+## The noise value (0..1) of the world pixel under `at` (cells): the shader's texture(noise, px / 8)
+## in GDScript, for the footprints and the tests. The pattern repeats every NOISE_CELLS cells.
+static func noise_at(at: Vector2) -> float:
+	if _noise_img == null:
+		_noise_img = noise_image()
+	var x := posmod(floori(at.x * 16.0), NOISE_SIZE)
+	var y := posmod(floori(at.y * 16.0), NOISE_SIZE)
+	return _noise_img.get_pixel(x, y).r
+
+
+## Does snow lie (not bare, not the rim) at `at` (cells) when `amount` 0..1 of the pixels
+## are under it (cover * what the ground holds)? snow_at's 2 in GDScript.
+static func lies(at: Vector2, amount: float) -> bool:
+	return snow_kind(noise_at(at), amount) == 2
+
+
 ## Seamless noise, equalised: every value 0..1 is equally common, so `cover` is the share of
 ## pixels that are white.
 static func noise_image(seed_value := 7) -> Image:
@@ -196,6 +213,13 @@ static func shader(code: String) -> Shader:
 		sh.code = code
 		_shaders[code] = sh
 	return _shaders[code]
+
+
+## The noise as the shaders' texture (for the footprints' own snow test).
+static func noise_texture() -> ImageTexture:
+	if _noise == null:
+		_noise = ImageTexture.create_from_image(noise_image())
+	return _noise
 
 
 static func _material(code: String) -> ShaderMaterial:

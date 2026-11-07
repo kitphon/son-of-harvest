@@ -343,7 +343,7 @@ func _leave_prints(walkers: Dictionary) -> void:
 			return
 		prints = FootprintLayer.new()
 		add_child(prints)
-	prints.feed(walkers, cover, Game.sheltered(), Footprints.ground_hold)
+	prints.feed(walkers, cover, Game.sheltered(), Footprints.ground_snow)
 
 
 ## `--footprints` (screenshots): a trail already pressed behind the farmer at `feet` (the older

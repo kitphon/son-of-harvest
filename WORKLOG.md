@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Footprints read the snow patches
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: ART_DIRECTION section 2, the footprints' open note. A print now appears only where snow lies at that spot.
+  `SnowLayer.noise_at` / `lies` are the GDScript copy of the shader's `snow_at` (pixel of the 128 noise, 16 per cell,
+  repeating every 8 cells; only "snow", not the rim, counts), `noise_texture()` shares the texture. `Footprints.ground_snow`
+  = the ground's hold where snow lies at Game.snow_cover, else 0; both views feed it as `hold`, and each print keeps its `hold`.
+  3D: the FootprintLayer shader includes `_SNOW_AT`, discards pixels where `snow_at(world.xz, cover * COLOR.r)` is not
+  snow (COLOR.r = the print's hold, the cover uniform set each feed), so a print also vanishes if the snow melts back.
+  Flat: FootprintView skips a print where snow no longer lies. Legibility: size 0.3 x 0.46 -> 0.38 x 0.58, colour 5f76ab -> 506aa8.
+- Checked: all 28 test scripts print OK (0 failed); test_maps `_footprints` (share lying at cover 0.4, repeat, a trail on a row
+  stops at bare patches and the counts differ by exactly the bare ones, shader text) and test_view2d `_footprints` (every print
+  on snow, none while standing on a bare patch); smoke runs title, --demo, --map=town, --mine=3 clean. 3D shots at snow 40 and 80:
+  prints sit on white only and are clearer at the larger size.
+- Left / next: no before-screenshot kept; the flat view has no `--footprints` seeded trail, so it is checked by tests only.
+
 ## 2026-11-07 — Winter ice along the water's shore
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: ART_DIRECTION section 2 "no frozen water in winter". New `WaterIce`
