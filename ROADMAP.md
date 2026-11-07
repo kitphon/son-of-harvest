@@ -25,6 +25,7 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 ## Next up
 [x] Flat view maple (2026-11-07): the maple is a small layered tree picture in the flat view (PlaceholderArt tree:maple, by season and snow), not a box (WORKLOG "The flat view's maple is a tree picture").
 [x] Vines read better (2026-11-07): a ripe cucumber's fruit is pale yellow-green with a lit edge and a dark side, the leaves left off beside the fruit (both vines); the villagers' and the dog's parting on a stake checked to take the vine's stiffness like the farmer's (ART_DIRECTION, Rice and tall crops).
+[x] Winter ice on the water (2026-11-07): thin ice along the shore of the pond, the village water and the river in winter outdoors (pale rim, cracks, frost, a snow dusting by the snow lying), the middle open for fishing, 3D and flat (data/snow_cover.json ice, WaterIce; ART_DIRECTION, Water).
 [x] Rain dimples on the water (2026-11-07): small rings at random spots in rain and storm, 3D and flat (data/weather_fx.json dimples; ART_DIRECTION, Water).
 [x] Barn stalls: straw bedding as lit meshes (2026-11-07): a low pad, lumps and loose stalks in each stall (ART_DIRECTION, the barn's insides).
 [x] Playtest fixes (2026-11-07): smooth map changes (a steady fade, worlds kept for going back) and no getting stuck on corners or villagers.

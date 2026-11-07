@@ -448,6 +448,7 @@ func _show_weather() -> void:
 	world.set_snow(Game.snow_cover / 100.0)
 	world.set_wind(0.0 if Game.sheltered() else Game.wind_strength())
 	world.set_rain({} if Game.sheltered() else Game.dimple_style())
+	world.set_ice({} if Game.sheltered() else Game.ice_style(), Game.snow_cover / 100.0)
 
 
 func _unhandled_input(event: InputEvent) -> void:

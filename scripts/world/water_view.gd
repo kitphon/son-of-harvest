@@ -20,6 +20,9 @@ extends Sprite2D
 ## bite use them (main_2d.gd drives them, as Main3D does in 3D).
 ## Rain dimples (`set_rain()`) are the same hash layer as in 3D (cell, slot, centre; a ring grows
 ## 0..3 px); main_2d pushes Game.dimple_style() in the rain, none indoors.
+## Winter ice (`set_ice()`) is the 3D sheet's: WaterIce.GLSL in this shader, the land
+## round each cell in the mask's red channel (x 255, WaterIce.BITS); main_2d pushes
+## Game.ice_style() and the snow lying, none indoors.
 
 const T := 16
 const INSET := 3   # px in from a land side (the bank and foam line of the ground tile)
@@ -39,13 +42,16 @@ uniform float dimple_density = 0.0;   // chance a cell has a rain dimple in a ti
 uniform float dimple_life = 0.9;      // seconds a dimple lasts
 float hash2(vec2 v) { return fract(sin(dot(v, vec2(12.9898, 78.233))) * 43758.5453); }
 uniform vec4 ripples[8];   // x, y of the centre in map pixels, clock time it began, life (0 = unused; < 0 = strong)
+//ICE//
 void fragment() {
-	if (texture(TEXTURE, UV).a < 0.5) {
+	vec4 mask = texture(TEXTURE, UV);
+	if (mask.a < 0.5) {
 		discard;   // a bank, the foam line or land
 	}
 	vec2 pix = floor(UV * size_px);
 	vec2 p = (pix + 0.5) / 16.0;   // cell units, as the 3D sheet's world.xz
 	float t = TIME;
+	vec4 ice = ice_at(pix, mask.r * 255.0);
 	float ring = 0.0;
 	for (int i = 0; i < 8; i++) {
 		vec4 r = ripples[i];
@@ -77,7 +83,9 @@ void fragment() {
 	float a = sin(q.x * 2.3 + q.y * 1.1 + t * 0.55) + sin(q.x * 1.3 - q.y * 2.5 - t * 0.4);
 	float b = sin((q.x + q.y) * 3.7 + sin(q.y * 2.1 + t * 0.5) * 1.7 - t * 0.9);
 	float h = 0.25 * a + 0.5 * b;   // -1 .. 1
-	if (ring > 0.0) {
+	if (ice.a > 0.0) {   // the shore's ice in winter: no glints, rings or dimples on it
+		COLOR = ice;
+	} else if (ring > 0.0) {
 		COLOR = vec4(ring_color, ring);
 	} else if (h > 0.62) {
 		COLOR = vec4(glint_color, 0.3);
@@ -95,6 +103,8 @@ var ripples := PackedVector4Array()      # the slots the shader reads (see `ripp
 var _next_slot := 0
 var rain_density := 0.0                  # set_rain: 0 when dry
 var rain_life := 0.9
+var ice: Dictionary = {}                 # set_ice: {} when there is none
+var ice_snow := 0.0                      # the snow lying on it (0..1)
 
 
 func _process(delta: float) -> void:
@@ -134,6 +144,25 @@ func set_rain(style: Dictionary) -> void:
 		m.set_shader_parameter("dimple_life", rain_life)
 
 
+## Winter ice along the shore, as the 3D sheet's (WaterSurface.set_ice: the same style from
+## Game.ice_style(), the same uniforms and WaterIce.GLSL); {} = none.
+func set_ice(style: Dictionary, snow := 0.0) -> void:
+	ice = style
+	ice_snow = clampf(snow, 0.0, 1.0)
+	var m := material as ShaderMaterial
+	if m != null:
+		WaterIce.push(m, ice, ice_snow)
+
+
+## The land round the cell holding map pixel `p` as WaterIce.BITS (0 off the water). For tests.
+func land_at(p: Vector2i) -> int:
+	var img := texture.get_image()
+	if img == null or p.x < 0 or p.y < 0 or p.x >= img.get_width() or p.y >= img.get_height():
+		return 0
+	var c := img.get_pixelv(p)
+	return roundi(c.r * 255.0) if c.a > 0.5 else 0
+
+
 ## How many rings are still spreading now.
 func ripples_alive() -> int:
 	var n := 0
@@ -161,13 +190,14 @@ func build(w: int, h: int, water_at: Callable, edge_bank: bool) -> void:
 			var x1 := T if not _land(water_at, w, h, c + Vector2i.RIGHT, edge_bank) else T - INSET
 			var y0 := 0 if not _land(water_at, w, h, c + Vector2i.UP, edge_bank) else INSET
 			var y1 := T if not _land(water_at, w, h, c + Vector2i.DOWN, edge_bank) else T - INSET
-			img.fill_rect(Rect2i(c.x * T + x0, c.y * T + y0, x1 - x0, y1 - y0), Color.WHITE)
+			var land := WaterIce.land_mask(c, func(n: Vector2i) -> bool: return not _land(water_at, w, h, n, edge_bank))
+			img.fill_rect(Rect2i(c.x * T + x0, c.y * T + y0, x1 - x0, y1 - y0), Color8(land, 255, 255, 255))
 	centered = false
 	position = Vector2.ZERO
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	texture = ImageTexture.create_from_image(img)
 	var sh := Shader.new()
-	sh.code = SHADER
+	sh.code = SHADER.replace("//ICE//", WaterIce.GLSL)
 	var m := ShaderMaterial.new()
 	m.shader = sh
 	m.set_shader_parameter("size_px", Vector2(w * T, h * T))
@@ -176,6 +206,7 @@ func build(w: int, h: int, water_at: Callable, edge_bank: bool) -> void:
 	m.set_shader_parameter("clock", clock)
 	m.set_shader_parameter("dimple_density", rain_density)
 	m.set_shader_parameter("dimple_life", rain_life)
+	WaterIce.push(m, ice, ice_snow)
 	material = m
 	visible = water_cells > 0
 

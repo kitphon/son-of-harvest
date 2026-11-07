@@ -10,6 +10,46 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Winter ice along the water's shore
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: ART_DIRECTION section 2 "no frozen water in winter". New `WaterIce`
+  (scripts/world3d/water_ice.gd, no other dependencies): a piece of shader code pasted into the
+  3D sheet (WaterSurface) and the flat view's skin (WaterView) at `//ICE//`, `push` (style and
+  snow into the uniforms), `land_mask` (8 bits for the land round a cell) and `shore_px` (the
+  shader's shore distance in GDScript, for tests). In winter outdoors the farm pond, the village
+  water and the river get thin ice 2..4 px in from the bank line (ragged by value noise every
+  4 px), pale blue-white (d6e5ef, alpha 0.92) with a one-pixel rim (9ab9d3, 0.7) where it meets
+  open water, short diagonal cracks (35% of the dash segments) and frost specks (8%); with snow
+  lying, 2 x 2 px flecks of snow on it (0.85 x the cover, more near the shore). Lit like the
+  ground in 3D (the sheet's own light term), under the CanvasModulate in the flat view. 3D quads
+  carry the land mask in UV2.x, the flat view in its mask's red channel. Glints, the bobber's
+  rings and rain dimples are drawn on open water only. Width 4 at most keeps 8 px from any side
+  open, so the bobber (a cell's middle) is always on water; fishing rules untouched. Numbers in
+  `data/snow_cover.json` "ice" (seasons, width, alphas, cracks, frost, snow, colours), read by
+  `Game.ice_style()` / `Game.ice_for`; pushed by Main3D._show_weather (`FarmWorld.set_ice`,
+  also to child worlds, kept for a sheet built later) and main_2d._show_weather
+  (`WaterView.set_ice`), none when sheltered.
+  Width chosen 2..4 (not up to a third of a cell, 5.3) so a one-cell channel still has open
+  water down its middle.
+- Checked: test_maps `_water_ice` (winter only; width within a third of a cell; a cell's middle
+  open with land all round; a one-cell channel keeps >= 2 px open; the pond's quads carry the
+  right land masks, shore and inner cells both present; the shader draws ice before rings; the
+  uniforms, colours and snow from the data; no snow without cover; spring clears it; a sheet built
+  after set_ice has it; MapWorld passes it to the village water) and in the 3D scene (spring
+  open, winter ice_on 1, back to 0); test_view2d `_check_water` (each cell's mask = WaterIce's
+  land mask on the farm pond and town water; the ice first in the shader) and `_water` (the flat
+  pond takes the data's ice and snow, none in spring; the scene ices its water in winter and
+  thaws). All 28 test scripts print OK (0 failed); smoke runs (title, --demo, --demo
+  --map=town, --demo --mine=3, --demo --season=winter, with --map=town) show no ERROR or WARNING
+  lines; the window runs below print no shader errors. Screenshots (480 x 270, last
+  frame): winter `--fishing=wait`: a pale ragged rim with blue crack dashes round the pond, the
+  bobber's ring cut off where it meets the ice; `--snow=80`: white flecks on the rim; the river
+  (`--fishing=river`): ice along the near bank, rings on open water; `--map=town@east`: the
+  village pond rimmed; 19:30: the ice darkens with the ground; flat view (main_2d.tscn) farm pond
+  with snow and the town pond rimmed. Before: plain blue water in all of them.
+- Left / next: no ice on the paddies (they show only the ground picture in winter); the ice does
+  not grow over the winter or with the cold (one width all season).
+
 ## 2026-11-07 — Shader warm-up, cheaper rebuilds of houses, the stand and bamboo
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the open items of "Faster first visit to a map". Measured first (throwaway script in a
