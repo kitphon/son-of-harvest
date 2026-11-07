@@ -254,17 +254,13 @@ func _village_house(r: Rect2, door: int, noren: bool, side_door := -1, style := 
 	var roof := str(style.get("roof", "gable"))
 	var storeys := int(style.get("storeys", 1))
 	var finish := str(style.get("wall", "plaster"))
-	var back := r.position.y + 0.1
 	var front := LitSpots.village_front(r)
-	var depth := front - back
-	var cx := r.get_center().x
-	var wide := r.size.x - 0.2
 	# Eaves 0.35 past the walls (0.25 past a gable end), the soffit 1.45 high at the front eave,
 	# rising 0.5 a unit (about 27°, a gentle tile roof); the walls go up to the soffit.
 	var overhang := 0.35
 	var pitch := 0.5
-	var wall := 1.45 + overhang * pitch
-	var body := Rect2(cx - wide / 2, back, wide, depth)
+	var wall := LitSpots.VILLAGE_WALL   # 1.45 + overhang * pitch
+	var body := LitSpots.village_body(r)
 	# The walls and roofs depend on the footprint and the look only: kept a run (MeshCache).
 	MeshCache.build(self, "village_house|%s|%s|%s|%s|%s" % [body, roof, storeys, finish, SnowLayer.map_has_snow(map)], func() -> void:
 		_house_walls(body, 0.0, wall, finish, true)
@@ -281,7 +277,7 @@ func _village_house(r: Rect2, door: int, noren: bool, side_door := -1, style := 
 		_picture("build:shoji_door", Vector2(0.85, 1.05), Vector3(dx, 0.55, front + 0.005))
 		var cloth := _picture("build:noren", Vector2(0.95, 0.36), Vector3(dx, 1.0, front + 0.03))
 		OutdoorProps.sway_picture(self, cloth, Vector2(0.95, 0.36), dx * 1.1)   # it blows out in the wind
-	for spot in LitSpots.village_house(r, door, noren, side_door, storeys):
+	for spot in LitSpots.village_house(r, door, noren, side_door, storeys, finish):
 		_lit_spot(spot)
 
 
@@ -300,24 +296,18 @@ func _house_walls(body: Rect2, base: float, top: float, finish: String, skirt: b
 	# Front posts: the corners and the middle (an upper floor's middle only when it is wide
 	# enough to keep it off the window there); the timber look has one at every cell's edge.
 	# Rails stay clear of the doors (up to 1.08) and the windows (0.85 .. 1.35).
-	var posts: Array = [body.position.x, body.end.x]
-	if skirt or size.x > 4.0:
-		posts.append(cx)
+	var posts := LitSpots.front_posts(body, finish, skirt)
 	var rail := func(y: float) -> void:
 		_box(Vector3(size.x + 0.05, 0.07, size.y + 0.05), Vector3(cx, y, mid_z), timber)
 	match finish:
 		"yakisugi":   # charred boards most of the way up, a white band under the eaves
-			layer.call("build:board", base, top - 0.22)
-			layer.call("build:plaster", top - 0.22, top)
-			rail.call(top - 0.22)
+			layer.call("build:board", base, top - LitSpots.YAKISUGI_BAND)
+			layer.call("build:plaster", top - LitSpots.YAKISUGI_BAND, top)
+			rail.call(top - LitSpots.YAKISUGI_BAND)
 		"timber":   # earthen plaster over a low skirt, framed by a post at every cell's edge
-			layer.call("build:board", base, 0.35)
-			layer.call("build:tsuchi", 0.35, top)
-			rail.call(1.42)
-			posts = [body.position.x, body.end.x]
-			for x in range(int(ceil(body.position.x)), int(floor(body.end.x)) + 1):
-				if x > body.position.x + 0.3 and x < body.end.x - 0.3:
-					posts.append(float(x))
+			layer.call("build:board", base, LitSpots.TIMBER_SKIRT)
+			layer.call("build:tsuchi", LitSpots.TIMBER_SKIRT, top)
+			rail.call(LitSpots.TIMBER_RAIL)
 			for z in [body.position.y + 0.02, front - 0.02]:   # the +x face's corner posts
 				_box(Vector3(0.06, top - base, 0.1), Vector3(body.end.x + 0.02, (base + top) / 2, z), timber)
 		"upper_timber":
@@ -329,7 +319,7 @@ func _house_walls(body: Rect2, base: float, top: float, finish: String, skirt: b
 			layer.call("build:plaster", base + 0.5, top)
 	for x: float in posts:
 		_box(Vector3(0.1, top - base, 0.08), Vector3(x, (base + top) / 2, front + 0.02), timber)
-	_box(Vector3(size.x + 0.06, 0.07, 0.06), Vector3(cx, top - 0.03, front + 0.03), timber)
+	_box(Vector3(size.x + 0.06, LitSpots.RAIL, 0.06), Vector3(cx, top - 0.03, front + 0.03), timber)
 
 
 ## The texture of a gable end over walls of `finish`: earthen for the timber look, else plaster.

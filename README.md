@@ -1019,6 +1019,17 @@ plaster and the paper take it and dark boards, posts, roofs and the ground (the 
 the pools') do not. Figures in front of it are drawn back from the copy as for the glows. The
 night sun, the tint and the measured ground are unchanged, and by day nothing is drawn.
 
+The village walls that are not plaster get a wash of their own in the same pass
+(`NightLights.finish_wash`, "pools" → "wall" → "finishes"): their red is already at the tint's
+cap, so the real lamps cannot lift them, and they are too dark for the pale wash. Each window of
+a timber or yakisugi house is dressed by `LitSpots.wall_look` with its material (`earth`, the
+earthen plaster; `board`, the charred boards), the heights it covers clear of the skirt, rails
+and beam, the wall's ends and its front posts; the same disc round the window is cut to those,
+so the timber stays dark. Earth takes a soft warm glow (ffa860, 0.3), boards a faint warm-grey
+sheen (c8a07c, 0.1). Its shader keeps it to warm pixels that are not pale: the copy over the
+tint, red above both green and blue by `warm_from` .. `warm_full` (earth and wood; not the blue
+roof tiles, the grass or the sky).
+
 ## Showcase
 Fixed views for trailer shots and for comparing a look before and after a change:
 `data/showcase.json` lists 12 named views, each the command-line args of one run (the same

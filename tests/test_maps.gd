@@ -670,6 +670,7 @@ func _light_pools(world: Node3D, occ: RefCounted) -> void:
 	check(NightLights.ground_seen(Vector3(0, 0, 1), Vector3(0, 1, 3), Vector3(0, 1, 20), blocker) == 1.0, "the house that casts a pool never hides it")
 	box.free()
 	_wall_wash(world)
+	_finish_wash(world)
 	_night_lamps(world)
 
 
@@ -755,6 +756,113 @@ func _wall_wash(world: Node3D) -> void:
 	check(plaster > float(wr.pale_full) and board < float(wr.pale_from),
 		"plaster (%.2f) takes the wash, dark boards (%.2f) do not" % [plaster, board])
 	nl.free()
+
+
+## The earthen and charred board walls' own warm light at night (NightLights.finish_wash,
+## data/light.json "pools" → "wall" → "finishes"): the timber and yakisugi houses dress their
+## windows (LitSpots.wall_look); the pieces stay inside the plain wash, on the material's heights,
+## within the wall and off the posts and the pane; earth a soft glow, boards a fainter, greyer
+## sheen; in its own pass with the pale wash, its shader keeping it to warm, not pale pixels.
+func _finish_wash(world: Node3D) -> void:
+	var NightLights: GDScript = load("res://scripts/world3d/night_lights.gd")
+	var light: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/light.json"))
+	var wr: Dictionary = light.pools.wall
+	var fr: Dictionary = wr.get("finishes", {})
+	check(fr.has("earth") and fr.has("board") and float(fr.earth.strength) > 0.0 and float(fr.board.strength) > 0.0
+		and float(wr.warm_from) < float(wr.warm_full), "data/light.json pools.wall: earth and board finishes, warm_from under warm_full")
+	var earth := Color(str(fr.earth.color))
+	var board := Color(str(fr.board.color))
+	check(float(fr.board.strength) < float(fr.earth.strength) and board.s < earth.s,
+		"the boards take a fainter, greyer sheen than the earthen wall (%.2f / %.2f, saturation %.2f / %.2f)"
+		% [float(fr.board.strength), float(fr.earth.strength), board.s, earth.s])
+	# Which windows are dressed: the town's timber and yakisugi houses, not the plaster ones.
+	var kinds := {}
+	var plain := 0
+	for w in world.windows:
+		if w.has("finish"):
+			kinds[w.finish] = int(kinds.get(w.finish, 0)) + 1
+		elif NightLights.finish_wash(w, 1.0, wr).pieces.is_empty():
+			plain += 1
+	check(kinds.get("earth", 0) > 0 and kinds.get("board", 0) > 0 and plain > 0 and plain + kinds.earth + kinds.board == world.windows.size(),
+		"timber and yakisugi houses' windows dressed, plaster ones get no finish wash (%s, %d plain)" % [kinds, plain])
+	var reach := float(wr.reach)
+	var inside := true
+	var on_band := true
+	var off_posts := true
+	var no_pane := true
+	var lit := true
+	for win in world.windows.filter(func(w): return w.has("finish")):
+		var own: Dictionary = NightLights.finish_wash(win, 1.0, wr)
+		lit = lit and own.strength > 0.0 and not own.pieces.is_empty()
+		var right: Vector3 = Vector3.UP.cross(win.normal).normalized()
+		var half: Vector2 = win.size / 2.0
+		var pane := Rect2(-half.x, win.pos.y - half.y, win.size.x, win.size.y)
+		for piece in own.pieces:
+			var bb := Rect2()
+			for i in 4:
+				var d: Vector3 = piece.corners[i] - win.pos
+				var p := Vector2(d.dot(right), piece.corners[i].y)
+				bb = Rect2(p, Vector2.ZERO) if i == 0 else bb.expand(p)
+				inside = inside and absf(d.dot(win.normal)) < 0.0001 and absf(p.x) <= reach + 0.0001 \
+					and p.x >= win.span.x - 0.0001 and p.x <= win.span.y + 0.0001 \
+					and piece.uvs[i].is_equal_approx(Vector2(p.x, win.pos.y - p.y) / reach)
+			on_band = on_band and win.bands.any(func(b: Vector2): return bb.position.y >= b.x - 0.0001 and bb.end.y <= b.y + 0.0001)
+			for post: Vector2 in win.posts:
+				off_posts = off_posts and (bb.end.x <= post.x + 0.0001 or bb.position.x >= post.y - 0.0001)
+			no_pane = no_pane and bb.intersection(pane).get_area() < 0.0001
+	check(lit, "every dressed window lights its own wall")
+	check(inside, "the finish wash lies on the wall plane, within reach and the wall's ends, centred on the window")
+	check(on_band, "the finish wash keeps to the material's heights")
+	check(off_posts, "the finish wash keeps off the front posts")
+	check(no_pane, "the finish wash keeps off the pane")
+	# The heights clear the timber: the skirt, the rails and the front beam.
+	var top := LitSpots.VILLAGE_WALL
+	var rail_ok := true
+	for b: Vector2 in LitSpots.wall_look("timber", 0.0, top).bands:
+		rail_ok = rail_ok and b.x >= LitSpots.TIMBER_SKIRT - 0.0001 and (b.y <= LitSpots.TIMBER_RAIL - LitSpots.RAIL / 2 + 0.0001
+			or b.x >= LitSpots.TIMBER_RAIL + LitSpots.RAIL / 2 - 0.0001) and b.y <= top - LitSpots.RAIL + 0.0001
+	for b: Vector2 in LitSpots.wall_look("yakisugi", 0.0, top).bands:
+		rail_ok = rail_ok and b.y <= top - LitSpots.YAKISUGI_BAND - LitSpots.RAIL / 2 + 0.0001
+	check(rail_ok and LitSpots.wall_look("plaster", 0.0, top).is_empty() and LitSpots.wall_look("upper_yakisugi", 1.3, 2.9).is_empty(),
+		"the bands clear the skirt, rails and beam; plaster walls have no finish")
+	# A timber house's posts: one at every cell's edge, cut from its wash.
+	var r := Rect2(10, 4, 5, 3)
+	var spots: Array = LitSpots.village_house(r, 2, false, -1, 1, "timber")
+	var door: Dictionary = spots[0]
+	var cut := true
+	for x in [10.1, 11.0, 12.0, 13.0, 14.0, 14.9]:
+		cut = cut and door.posts.any(func(p: Vector2): return x - door.pos.x > p.x and x - door.pos.x < p.y)
+	check(cut and door.finish == "earth", "a timber house's door: posts cut at the corners and every cell's edge")
+	var win: Dictionary = spots[1]
+	var full: float = NightLights.finish_wash(win, 1.0, wr).strength
+	check(NightLights.finish_wash(win, 0.0, wr).strength == 0.0 and is_equal_approx(NightLights.finish_wash(win, 0.5, wr).strength, full * 0.5)
+		and NightLights.finish_wash(door, 1.0, wr).strength > full, "the finish wash follows the glow; a door brighter")
+	# Its pass: with the pale wash, between the copy and the glows.
+	var nl: Control = NightLights.new()
+	root.add_child(nl)
+	check(nl.copy.get_index() < nl.finishes.get_index() and nl.finishes.get_index() < nl.glows.get_index(),
+		"the finish wash is drawn after the copy and before the glows")
+	var code: String = (nl.finishes.material as ShaderMaterial).shader.code
+	check("hint_screen_texture" in code and "blend_add" in code and "warm" in code and "pale" in code,
+		"the finish wash's shader reads the copy for warm, not pale pixels")
+	nl.free()
+	# The shader's mask on the pictures (as if lit white): earthen plaster takes it, white
+	# plaster (its own wash) and the blue roof tiles do not, the boards some.
+	var weight := func(key: String) -> float:
+		var img: Image = PlaceholderArt.tex(key).get_image()
+		var sum := 0.0
+		for y in img.get_height():
+			for x in img.get_width():
+				var c := img.get_pixel(x, y)
+				sum += smoothstep(float(wr.warm_from), float(wr.warm_full), c.r - maxf(c.g, c.b)) \
+					* (1.0 - smoothstep(float(wr.pale_from), float(wr.pale_full), c.b))
+		return sum / (img.get_width() * img.get_height())
+	var w_earth: float = weight.call("build:tsuchi")
+	var w_plaster: float = weight.call("build:plaster")
+	var w_roof: float = weight.call("build:kawara")
+	var w_board: float = weight.call("build:board")
+	check(w_earth > 0.8 and w_plaster < 0.01 and w_roof < 0.01 and w_board > 0.1,
+		"the mask: earth %.2f, boards %.2f take it, plaster %.2f and roof tiles %.2f not" % [w_earth, w_board, w_plaster, w_roof])
 
 
 ## Real warm lights at night (NightLamps, data/light.json "lamps"): one for every lit window and

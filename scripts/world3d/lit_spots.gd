@@ -50,11 +50,86 @@ static func village_style(p: Dictionary) -> Dictionary:
 	}
 
 
+## The walls of a village house: the soffit height at the front eave (the walls go up to it:
+## eaves 0.35 out, 1.45 high, rising 0.5 a unit), the timber look's skirt top and rail height,
+## and the yakisugi look's plaster band under the eaves.
+const VILLAGE_WALL := 1.45 + 0.35 * 0.5
+const TIMBER_SKIRT := 0.35
+const TIMBER_RAIL := 1.42
+const YAKISUGI_BAND := 0.22
+const RAIL := 0.07       # the rails' and the front beam's height
+const POST_CUT := 0.07   # half a front post (0.1 wide) and a little: a wall's warm light keeps off it
+
+
+## A village house's walls over footprint `r` (x / z): in from the sides and the back by 0.1, to
+## the front wall.
+static func village_body(r: Rect2) -> Rect2:
+	return Rect2(r.position.x + 0.1, r.position.y + 0.1, r.size.x - 0.2, village_front(r) - r.position.y - 0.1)
+
+
+## The x of the posts on the front of walls `body` in `finish` (MapWorld._house_walls): the
+## corners and the middle (an upper floor's middle only when wider than 4); the timber look one at
+## every cell's edge.
+static func front_posts(body: Rect2, finish: String, skirt: bool) -> Array[float]:
+	var posts: Array[float] = [body.position.x, body.end.x]
+	if finish == "timber":
+		for x in range(int(ceil(body.position.x)), int(floor(body.end.x)) + 1):
+			if x > body.position.x + 0.3 and x < body.end.x - 0.3:
+				posts.append(float(x))
+	elif skirt or body.size.x > 4.0:
+		posts.append(body.get_center().x)
+	return posts
+
+
+## The wall material round a window that is not plaster, for its own warm light at night
+## (NightLights.finish_wash): {kind: "earth" (the timber look's earthen plaster) or "board" (the
+## yakisugi look's charred boards), bands: the heights it covers clear of the rails and the beam};
+## {} for plaster (the pale wash's).
+static func wall_look(finish: String, base: float, top: float) -> Dictionary:
+	match finish:
+		"yakisugi":
+			return {"kind": "board", "bands": [Vector2(base, top - YAKISUGI_BAND - RAIL / 2)]}
+		"timber":
+			return {"kind": "earth", "bands": [Vector2(TIMBER_SKIRT, TIMBER_RAIL - RAIL / 2),
+				Vector2(TIMBER_RAIL + RAIL / 2, top - RAIL)]}
+		"upper_timber":
+			return {"kind": "earth", "bands": [Vector2(base, top - RAIL)]}
+	return {}
+
+
+## Adds to window `s` on walls `body` (from `base` to `top`, in `finish`) what its wall's own warm
+## light needs (see wall_look): `finish` (the kind), `bands`, `span` (the wall's ends along it from
+## the window's middle, in NightLights's `right` direction, in from the side's corner posts) and
+## `posts` (the front posts' widths along it, Vector2 from / to).
+static func _dress(s: Dictionary, finish: String, body: Rect2, base: float, top: float, skirt: bool) -> Dictionary:
+	var look := wall_look(finish, base, top)
+	if look.is_empty():
+		return s
+	var at: Vector3 = s.pos
+	var right: Vector3 = Vector3.UP.cross(s.normal).normalized()
+	var posts: Array[Vector2] = []
+	var span: Vector2
+	if s.normal == SOUTH:
+		span = Vector2(body.position.x - at.x, body.end.x - at.x)
+		for x in front_posts(body, finish, skirt):
+			posts.append(Vector2(x - at.x - POST_CUT, x - at.x + POST_CUT))
+	else:
+		var a: float = (Vector3(at.x, at.y, body.position.y) - at).dot(right)
+		var b: float = (Vector3(at.x, at.y, body.end.y) - at).dot(right)
+		span = Vector2(minf(a, b) + 0.08, maxf(a, b) - 0.08)
+	s.finish = look.kind
+	s.bands = look.bands
+	s.span = span
+	s.posts = posts
+	return s
+
+
 ## A village house over footprint `r` (door cells from its left, a shop's noren door and a plain
 ## side door `side_door` cells from the left, -1 for none): the lit door (not under a noren),
 ## the side door and the windows between; with two `storeys` also the upper windows over the
-## pent roof, in front and on the +x side.
-static func village_house(r: Rect2, door: int, noren: bool, side_door := -1, storeys := 1) -> Array[Dictionary]:
+## pent roof, in front and on the +x side. Walls of `wall` (village_style) other than plaster
+## dress each window for their own warm light (_dress).
+static func village_house(r: Rect2, door: int, noren: bool, side_door := -1, storeys := 1, wall := "plaster") -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var back := r.position.y + 0.1
 	var front := village_front(r)
@@ -75,6 +150,12 @@ static func village_house(r: Rect2, door: int, noren: bool, side_door := -1, sto
 		for x: float in xs:
 			out.append(spot("build:shoji", Vector2(0.9, 0.34), Vector3(x, UPPER_WINDOW, up_front), SOUTH))
 		out.append(spot("build:shoji", Vector2(0.6, 0.34), Vector3(r.end.x - 0.1 - UPPER_INSET + 0.005, UPPER_WINDOW, mid_z), EAST))
+	var body := village_body(r)
+	for s in out:
+		if s.pos.y > UPPER_FLOOR:
+			_dress(s, "upper_" + wall, body.grow(-UPPER_INSET), VILLAGE_WALL - 0.3, UPPER_TOP, false)
+		else:
+			_dress(s, wall, body, 0.0, VILLAGE_WALL, true)
 	return out
 
 
@@ -92,7 +173,7 @@ static func of_map(props: Array) -> Dictionary:
 		match str(p.kind):
 			"village_house":
 				windows.append_array(village_house(r, int(p.get("door", 1)), bool(p.get("noren", false)), int(p.get("side_door", -1)),
-					village_style(p).storeys))
+					village_style(p).storeys, village_style(p).wall))
 			"stone_lantern":
 				lamps.append({"pos": lantern(Vector3(r.get_center().x, 0, r.get_center().y))})
 	return {"windows": windows, "lamps": lamps}

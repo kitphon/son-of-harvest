@@ -287,8 +287,15 @@ Light and Farmhouse model hold the technical detail of what is built.
       pale_full), so plaster and paper take it and dark boards, posts, roofs and the ground
       (lit by the real lamps and the pools) do not; the pane itself is left out; figures in
       front are drawn back. The night sun, the tint, the ground and the day are unchanged.
-      Still open: the earthen (tsuchi) and yakisugi walls stay with the real lamps (red
-      already at the tint's cap there); stone lanterns wash no walls (none stands by one);
+      Earthen and yakisugi walls take them too (this commit): their red already sat at the
+      tint's cap and the pale wash skipped them, so `NightLights.finish_wash` (data/light.json
+      "pools" → "wall" → "finishes") adds their own: a soft warm glow on the timber look's
+      earthen plaster (`earth`), a faint warm-grey sheen on the charred boards (`board`), so
+      they stay dark wood. The pieces are cut to the material (LitSpots.wall_look: clear of
+      the skirt, rails and beam, within the wall, round every front post) and its shader keeps
+      them to warm, not pale pixels (red over the tint above green and blue), so roofs, posts,
+      the ground, the plaster's result, figures and the day are unchanged.
+      Still open: stone lanterns wash no walls (none stands by one);
       sprites stay unshaded. The festival decorations are lit meshes since
       FestivalMeshes / StallWares; only what gives light (lantern paper, flames) is unshaded.
 - [x] Morning and evening sun colour and angle following the clock (data/light.json "sun",

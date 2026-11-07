@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] Earthen and yakisugi walls take the night lamps (2026-11-07): a soft warm glow on the timber look's earthen plaster and a faint warm-grey sheen on the charred boards round lit windows and doors, cut clear of posts and rails (NightLights.finish_wash, data/light.json pools.wall.finishes; ART_DIRECTION section 3).
 [x] Hearth smoke (2026-11-07): thin pale smoke from the farmhouse's ridge and the village roofs at meal times, drifting with the wind, buried in a storm (HearthSmoke, data/smoke.json; ART_DIRECTION section 3). The flat view is left open.
 [x] Footprints in lying snow (2026-11-07): the farmer, villagers and dog press small blue-grey soles into snow of 30% cover or more (ring of 160, fading in 90 game minutes, faster in snowfall, cleared on a map change and a new day), 3D and flat (data/footprints.json; ART_DIRECTION, section 2).
 [x] Flat view maple (2026-11-07): the maple is a small layered tree picture in the flat view (PlaceholderArt tree:maple, by season and snow), not a box (WORKLOG "The flat view's maple is a tree picture").
