@@ -58,6 +58,8 @@ static func _make(key: String) -> Image:
 			return _fx(parts[1])
 		"fish_fx":  # fish_fx:<bobber|alert>, the float on the water and the "!" of a bite
 			return _fish_fx(parts[1])
+		"tree":     # tree:maple:<spring|summer|fall|winter>:<snow 0|1>, a Japanese maple in the flat view (MapView), 24 x 32
+			return _maple_tree(parts[2], parts[3] == "1")
 		"ui":       # ui:<frame|slot|weather|tool|seeds|food|item|cursor|coin|stamina|heart>:<kind>, HUD pieces
 			return _ui(parts[1], parts[2] if parts.size() > 2 else "")
 		"title":    # title:bg, the title screen picture (480 x 270)
@@ -1859,6 +1861,49 @@ static func _heart(band: int) -> Image:
 	if band > 0:
 		img.set_pixel(2, 2, Color("f0c850") if band >= colors.size() - 1 else fill.lightened(0.45))
 	return img
+
+
+## The 3D maple's leaf colours by season and its orange lumps (Trees.LEAVES.maple, Trees.MAPLE_FLAME;
+## a test keeps them equal). Kept here, not read from Trees, so this script compiles alone.
+const MAPLE_LEAVES := {"spring": Color("86b844"), "summer": Color("2f6e32"), "fall": Color("c42a1e")}
+const MAPLE_FLAME := Color("dc6a1e")
+
+
+## A Japanese maple for the flat view (24 x 32, the trunk's foot at (12, 30)): a small layered
+## crown, a wide lower tier of four lumps, a narrower middle pair and a top lump, in the 3D
+## maple's colours (Trees.LEAVES; the orange lumps among the reds in fall). In winter it is bare
+## branches off the trunk, with snow on their upper side when the map has snow.
+static func _maple_tree(season: String, snow: bool) -> Image:
+	var img := _blank(24, 32)
+	var bark := Color("4a3428")
+	var leaf: Color = MAPLE_LEAVES.get(season, Color(0, 0, 0, 0))
+	if leaf.a == 0.0:   # winter: bare branches
+		_px(img, 11, 15, 2, 15, bark)
+		for seg in [[Vector2i(12, 15), Vector2i(6, 9)], [Vector2i(12, 15), Vector2i(18, 9)], [Vector2i(12, 15), Vector2i(12, 3)],
+				[Vector2i(6, 9), Vector2i(2, 5)], [Vector2i(6, 9), Vector2i(4, 13)], [Vector2i(18, 9), Vector2i(22, 5)],
+				[Vector2i(18, 9), Vector2i(20, 13)], [Vector2i(12, 6), Vector2i(8, 2)], [Vector2i(12, 6), Vector2i(16, 2)]]:
+			_line(img, seg[0], seg[1], bark)
+		if snow:   # snow on the upper side of every branch pixel
+			for y in range(1, 32):
+				for x in 24:
+					if img.get_pixel(x, y).a > 0.5 and img.get_pixel(x, y - 1).a < 0.5:
+						img.set_pixel(x, y - 1, Color("f4f8fc"))
+		return img
+	_px(img, 11, 15, 2, 15, bark)
+	# [x, y, rx, ry, colour, fall: lump turns orange]
+	var lumps := [
+		[5.5, 13.0, 4.0, 3.2, leaf.darkened(0.16), true], [18.5, 13.0, 4.0, 3.2, leaf.darkened(0.08), true],
+		[8.0, 16.5, 4.0, 3.0, leaf.darkened(0.08), false], [16.0, 16.5, 4.0, 3.0, leaf.darkened(0.16), true],
+		[8.0, 9.0, 4.0, 3.2, leaf.darkened(0.03), false], [16.0, 9.0, 4.0, 3.2, leaf.darkened(0.03), false],
+		[12.0, 11.0, 4.0, 3.0, leaf, false], [12.0, 6.0, 3.2, 3.0, leaf.lightened(0.1), false],
+	]
+	for i in lumps.size():
+		var l: Array = lumps[i]
+		var c: Color = l[4]
+		if season == "fall" and l[5]:
+			c = MAPLE_FLAME.darkened(0.04 * (i % 3))
+		_oval(img, l[0], l[1], l[2], l[3], c)
+	return _outline(img)
 
 
 ## alert a vermilion "!" on a paper bubble (7 x 11).

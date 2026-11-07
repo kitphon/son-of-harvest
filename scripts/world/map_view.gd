@@ -31,6 +31,12 @@ var _snow: Sprite2D          # on the ground, under the props
 var _roof_snow: Sprite2D     # on the roofs, over the props
 var _objects: Node2D         # props and doors, above the ground snow
 var _water: WaterView        # the moving skin on the water cells, over the ground
+var season := "spring"       # the season the maples are drawn in (set_season)
+
+
+## The picture key of a maple in the flat view: its season and whether the map lies under snow.
+static func maple_key(snow: bool, season: String) -> String:
+	return "tree:maple:%s:%d" % [season, 1 if snow else 0]
 
 
 ## The ground key for a cell: water gets banks where it meets land, others a variant by spot.
@@ -61,6 +67,13 @@ func _ready() -> void:
 			move_child(_water, _objects.get_index())
 		else:
 			water.free()
+
+
+## The season the maples are drawn in (the flat view calls it on each day's start).
+func set_season(season_name: String) -> void:
+	if season_name != season:
+		season = season_name
+		_objects.queue_redraw()
 
 
 ## Lays snow over an outdoor map by `rules` (data/snow_cover.json); nothing under a roof.
@@ -107,6 +120,10 @@ func _draw() -> void:
 func _draw_objects() -> void:
 	for p in map.props:
 		if p.kind in StoryView.KINDS:   # drawn as pictures by StoryView
+			continue
+		if p.kind == "maple":   # a small tree picture, its foot on the cell's middle (PlaceholderArt "tree:")
+			var tex := PlaceholderArt.tex(maple_key(SnowLayer.map_has_snow(map), season))
+			_objects.draw_texture(tex, Vector2(p.cell * T) + Vector2(T / 2 - 12, T - 32))
 			continue
 		var r := Rect2(Vector2(p.cell * T), Vector2(p.size * T))
 		_objects.draw_rect(r.grow(-1), COLORS.get(p.kind, Color.MAGENTA))

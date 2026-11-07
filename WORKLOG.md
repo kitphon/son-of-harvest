@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — The flat view's maple is a tree picture
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: the open item of "Japanese maples" (the flat view drew a red box). Looking at the flat
+  view first: persimmon, sakura, pine and bamboo are boxes there too (MapView.COLORS, one flat
+  rect each); only the festival sakura has a picture. So the maple is a picture like the story
+  props (StoryView): `PlaceholderArt` key `tree:maple:<season>:<snow 0|1>` (`_maple_tree`, 24 x 32,
+  trunk foot at (12, 30)): a layered crown of eight lumps (wide lower tier of four, a middle
+  pair, a centre and a top lump) in the 3D maple's colours, outlined; fall turns three lumps
+  orange (MAPLE_FLAME); winter is bare branches with snow on their upper side when the map has
+  snow. `MapView._draw_objects` draws it for kind `maple` (`MapView.maple_key`), foot on the
+  cell's middle. The season reaches the view by `MapView.set_season` (called on the map's entry
+  and on each day's start from main_2d). The COLORS entry stays (test_maps needs every prop kind
+  to have one). The picture's colours are copied into PlaceholderArt (MAPLE_LEAVES, MAPLE_FLAME)
+  rather than read from Trees: loading Trees makes the flat view's scripts depend on farm_world,
+  which names the Game autoload and fails to compile in the --script tests. test_maps checks the
+  copies equal Trees.LEAVES.maple and MAPLE_FLAME.
+- Checked: all 28 test scripts print OK (0 failed), no SCRIPT ERROR in any run. test_view2d new
+  `_maples`: the hill has its maples in the flat view; for spring, summer, fall and winter, with
+  and without snow: a 24 x 32 picture, round (over 40 % clear), clear corners, a trunk or bare
+  bark, green leaves only in spring and summer, orange only in fall, no leaves in winter, snow
+  only in winter with snow. test_maps: the copies equal the 3D colours. Screenshots (flat view,
+  `res://scenes/main_2d.tscn --demo --map=hill`, frame 39, removed afterwards): fall (two red
+  maples among the lit grass, a little orange) and winter `--season=winter --snow=80` (bare
+  branches with snow among the snow). Smoke runs of `--demo --map=hill --season=fall` and
+  winter: no errors.
+- Left / next: the flat maple is small (24 px crown) and its orange lumps are faint at the
+  game's size; the spring and summer pictures were checked by the tests, not by a screenshot.
+  Other flat tree kinds (persimmon, sakura, pine, bamboo) are still boxes.
 ## 2026-11-07 — Faster first visit to a map
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the open item of "Smooth map changes" (a first visit built in one frame). Measured

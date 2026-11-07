@@ -111,6 +111,7 @@ func _enter_map() -> void:
 		add_child(view)
 		mv.show_snow(Game.snow_rules)   # outdoors only
 		mv.set_snow(Game.snow_cover / 100.0)
+		mv.set_season(Game.season_name())
 	var night := NightView.new().setup(m.props, Game.maps.on_farm(), m.id)
 	night.tint = tint
 	view.add_child(night)   # lit windows and lanterns, under the figures
@@ -152,6 +153,8 @@ func _on_day_started() -> void:
 	_show_weather()
 	_update_tint()
 	view.set_snow(Game.snow_cover / 100.0)
+	if view is MapView:
+		view.set_season(Game.season_name())
 
 
 func _update_tint() -> void:
