@@ -24,6 +24,7 @@ var occluders := Occluders.new()
 var surroundings: Surroundings   # the land past the map's edge (outdoors)
 var backdrop: Backdrop           # the far mountain ridges past it (data/backdrop.json maps; else null)
 var tufts: GrassTufts            # grass tufts on the grass cells (outdoors)
+var rain: Dictionary = {}         # the rain dimples' style on the water (set_rain)
 var wind := 0.0                  # 0 calm .. 1 a gale (set_wind)
 var _tuft_cells: Array[Vector2i] = []
 var crops: CropClusters          # tall crops (rice, corn, cucumber, tomato) as clusters of small sprites; the village paddies' rice
@@ -237,6 +238,8 @@ func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable, map_
 		backdrop = Backdrop.new()
 		add_child(backdrop)
 		backdrop.build(w, h)
+	if surroundings.water != null:
+		surroundings.water.set_rain(rain)
 	_snow_mats.append(surroundings.material)
 	_snow_mats.append_array(surroundings.snow_mats)
 
@@ -265,6 +268,17 @@ func set_wind(strength: float) -> void:
 	for n in get_children():   # layers that are worlds of their own (today's FestivalProps)
 		if n is FarmWorld:
 			(n as FarmWorld).set_wind(wind)
+
+
+## Rain dimples on the water (a weather_fx.json "dimples" style; {} = none), passed to the sheet
+## and to the layers that are worlds of their own.
+func set_rain(style: Dictionary) -> void:
+	rain = style
+	if surroundings != null and surroundings.water != null:
+		surroundings.water.set_rain(rain)
+	for n in get_children():
+		if n is FarmWorld:
+			(n as FarmWorld).set_rain(rain)
 
 
 ## The farmer's feet (Main3D, each frame): the grass tufts and tall crops round them part

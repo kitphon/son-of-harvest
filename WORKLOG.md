@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Rain dimples on the water
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: in rain and storm the farm pond, village water and river get many small short-lived rings at
+  random spots. 3D: a second layer in WaterSurface's shader (`dimple_density`, `dimple_life`
+  uniforms; a hash of the cell, the time slot and the clock picks which cells ring and where, a ring
+  grows 0..3 px in its cell, so no ring slot is used); flat view: the same in WaterView's shader.
+  Numbers in data/weather_fx.json ("dimples" on rain 0.22 / 0.9 s and storm 0.55 / 0.55 s; none on
+  sunny, snow, blizzard). `Game.dimple_style()`, `FarmWorld.set_rain` (kept for worlds built later),
+  `WaterSurface.set_rain`, `WaterView.set_rain`; Main3D / Main2D `_show_weather` push it, {} indoors.
+- Checked: test_maps `_water`, test_view2d `_dimples`, test_weather `_rain_dimples` (dry by default,
+  style reaches the shaders, storm > rain, none in sun / snow / blizzard / winter storm, no ring slots
+  used). Screenshots: `--demo --weather=rain|storm --fishing=wait` (3D) and main_2d.tscn storm: pale
+  rings over the pond, fainter in the flat view.
+- Left / next: no ring at the feet.
+
 ## 2026-11-07 — The festival stalls' wares as lit meshes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: docs/ART_DIRECTION.md section 1's open item. `scripts/world3d/stall_wares.gd` (StallWares)

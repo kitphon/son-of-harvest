@@ -18,6 +18,8 @@ extends Sprite2D
 ## wide, stepping out 14 px a second (a strong ring 1.3 times that, to 34 px; a gentle one to
 ## 22 px), fading in two steps. The bobber's landing, its slow breathing while it waits and a
 ## bite use them (main_2d.gd drives them, as Main3D does in 3D).
+## Rain dimples (`set_rain()`) are the same hash layer as in 3D (cell, slot, centre; a ring grows
+## 0..3 px); main_2d pushes Game.dimple_style() in the rain, none indoors.
 
 const T := 16
 const INSET := 3   # px in from a land side (the bank and foam line of the ground tile)
@@ -33,6 +35,9 @@ uniform vec3 trough_color : source_color = vec3(0.13, 0.31, 0.56);
 uniform vec2 drift = vec2(0.5, 0.25);
 uniform vec3 ring_color : source_color = vec3(0.86, 0.95, 1.0);
 uniform float clock = 0.0;
+uniform float dimple_density = 0.0;   // chance a cell has a rain dimple in a time slot (0 = dry)
+uniform float dimple_life = 0.9;      // seconds a dimple lasts
+float hash2(vec2 v) { return fract(sin(dot(v, vec2(12.9898, 78.233))) * 43758.5453); }
 uniform vec4 ripples[8];   // x, y of the centre in map pixels, clock time it began, life (0 = unused; < 0 = strong)
 void fragment() {
 	if (texture(TEXTURE, UV).a < 0.5) {
@@ -52,6 +57,19 @@ void fragment() {
 			float d = length(pix + 0.5 - r.xy);
 			if (radius <= maxr && abs(d - radius) < 0.8) {
 				ring = max(ring, age / life < 0.55 ? 0.6 : 0.3);
+			}
+		}
+	}
+	if (dimple_density > 0.0) {   // as the 3D sheet: one small ring, 0..3 px, centred 3..12 px into its cell
+		vec2 cell = floor(p);
+		float u = clock / dimple_life + hash2(cell) * 7.0;
+		float slot = mod(floor(u), 64.0);
+		float age01 = fract(u);
+		if (hash2(cell + vec2(slot * 0.37, slot * 1.13) + 21.0) < dimple_density) {
+			vec2 centre = floor(vec2(3.0) + vec2(hash2(cell + vec2(slot, 5.0)), hash2(cell.yx + vec2(slot, 9.0))) * 10.0) + 0.5;
+			float d = length((p - cell) * 16.0 - centre);
+			if (abs(d - floor(age01 * 4.0)) < 0.8) {
+				ring = max(ring, age01 < 0.5 ? 0.5 : 0.25);
 			}
 		}
 	}
@@ -75,6 +93,8 @@ var water_cells := 0   # how many water cells the picture covers (0 = no sheet)
 var clock := 0.0                         # seconds since the sheet was made; the rings' time
 var ripples := PackedVector4Array()      # the slots the shader reads (see `ripple`)
 var _next_slot := 0
+var rain_density := 0.0                  # set_rain: 0 when dry
+var rain_life := 0.9
 
 
 func _process(delta: float) -> void:
@@ -101,6 +121,17 @@ func ripple(at: Vector2, strong := false) -> void:
 	var m := material as ShaderMaterial
 	if m != null:
 		m.set_shader_parameter("ripples", ripples)
+
+
+## Rain dimples (data/weather_fx.json "dimples" of today's look; {} = dry), the 3D sheet's
+## second layer: many small rings popping at random spots from the clock alone.
+func set_rain(style: Dictionary) -> void:
+	rain_density = clampf(float(style.get("density", 0.0)), 0.0, 1.0)
+	rain_life = maxf(float(style.get("life", 0.9)), 0.1)
+	var m := material as ShaderMaterial
+	if m != null:
+		m.set_shader_parameter("dimple_density", rain_density)
+		m.set_shader_parameter("dimple_life", rain_life)
 
 
 ## How many rings are still spreading now.
@@ -143,6 +174,8 @@ func build(w: int, h: int, water_at: Callable, edge_bank: bool) -> void:
 	ripples.resize(MAX_RIPPLES)
 	m.set_shader_parameter("ripples", ripples)
 	m.set_shader_parameter("clock", clock)
+	m.set_shader_parameter("dimple_density", rain_density)
+	m.set_shader_parameter("dimple_life", rain_life)
 	material = m
 	visible = water_cells > 0
 

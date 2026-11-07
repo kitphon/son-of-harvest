@@ -489,6 +489,25 @@ func _ripples() -> void:
 	fv.free()
 
 
+## Rain dimples in the flat view (WaterView.set_rain): dry until set, the shader reads the style.
+func _dimples() -> void:
+	var fx: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/weather_fx.json"))
+	var fv := FarmView.new()
+	fv.farm = g.farm
+	root.add_child(fv)
+	await process_frame
+	var wv := _water_of(fv)
+	var m := wv.material as ShaderMaterial
+	check(wv != null and wv.rain_density == 0.0 and m.shader.code.contains("dimple_density"), "the flat pond is dry until it rains")
+	wv.set_rain(fx.storm.dimples)
+	check(is_equal_approx(float(m.get_shader_parameter("dimple_density")), float(fx.storm.dimples.density))
+		and is_equal_approx(float(m.get_shader_parameter("dimple_life")), float(fx.storm.dimples.life)), "a storm's density and life reach the flat shader")
+	check(wv.ripples_alive() == 0, "dimples use no ring slot")
+	wv.set_rain({})
+	check(is_equal_approx(float(m.get_shader_parameter("dimple_density")), 0.0), "dry again when it stops")
+	fv.free()
+
+
 func _water_of(view: Node) -> WaterView:
 	for n in view.get_children():
 		if n is WaterView:
