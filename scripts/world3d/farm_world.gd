@@ -26,7 +26,7 @@ var backdrop: Backdrop           # the far mountain ridges past it (data/backdro
 var tufts: GrassTufts            # grass tufts on the grass cells (outdoors)
 var wind := 0.0                  # 0 calm .. 1 a gale (set_wind)
 var _tuft_cells: Array[Vector2i] = []
-var crops: CropClusters          # tall crops (rice, corn) as clusters of small sprites; the village paddies' rice
+var crops: CropClusters          # tall crops (rice, corn, cucumber, tomato) as clusters of small sprites; the village paddies' rice
 ## House windows and shoji doors that light up at night (NightLights draws them over the night tint):
 ## {key: picture, pos: centre, size: Vector2 (w, h), normal: Vector3 out of the wall}.
 var windows: Array[Dictionary] = []
@@ -257,6 +257,8 @@ func set_wind(strength: float) -> void:
 	wind = clampf(strength, 0.0, 1.0)
 	if tufts != null:
 		tufts.set_wind(wind)
+	if crops != null:
+		crops.set_wind(wind)
 	var sway := get_node_or_null(OutdoorProps.SWAY) as OutdoorProps.Sway
 	if sway != null:
 		sway.wind = wind
@@ -290,6 +292,7 @@ func add_crops() -> void:
 	crops = CropClusters.new()
 	add_child(crops)
 	crops.set_cover(Game.snow_cover / 100.0)
+	crops.set_wind(wind)
 
 
 ## Tufts on `cells` (only when the grass changed: a tool swing that touches no grass keeps them).

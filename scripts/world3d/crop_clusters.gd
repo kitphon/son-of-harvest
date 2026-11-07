@@ -1,8 +1,9 @@
 class_name CropClusters
 extends Node3D
 ## Tall crops in the 3D view as clusters of small pixel sprites instead of one billboard a
-## cell: rice as nine hills in three rows, corn as three stalks. Only the grown stages
-## (growth 2 and 3 of PlaceholderArt.cell_key) of crops whose look is "grain" or "stalk"
+## cell: rice as nine hills in three rows, corn as three stalks, cucumber and tomato
+## as two stakes with the vine up each. Only the grown stages
+## (growth 2 and 3 of PlaceholderArt.cell_key) of crops whose look is "grain", "stalk" or "vine"
 ## stand as clusters; seeds and sprouts, and every other crop, stay single sprites (FarmWorld).
 ## Each plant is a camera-facing quad in one MultiMesh per picture (`stalk:<id>:<growth>:
 ## <ripe|growing>:<variant>`), placed, sized, flipped and shaded by a hash of its cell and
@@ -25,6 +26,8 @@ const LAYOUT := {
 	"grain": {"places": [[0.17, 0.17], [0.5, 0.17], [0.83, 0.17], [0.17, 0.5], [0.5, 0.5],
 		[0.83, 0.5], [0.17, 0.83], [0.5, 0.83], [0.83, 0.83]], "nudge": 0.05, "size": [0.85, 1.1]},
 	"stalk": {"places": [[0.62, 0.25], [0.3, 0.55], [0.7, 0.78]], "nudge": 0.07, "size": [0.85, 1.0]},
+	# Vines (cucumber, tomato): two stakes a cell, one behind and to the left, one in front right.
+	"vine": {"places": [[0.3, 0.38], [0.7, 0.72]], "nudge": 0.06, "size": [0.9, 1.0], "stiff": 0.6},
 }
 const VARIANTS := 3
 const SWAY := 0.03          # how far a tip swings (units)
@@ -38,10 +41,13 @@ var _cells := {}                       # Vector2i -> cluster key, as last plante
 var _layers := {}                      # texture key -> MultiMeshInstance3D
 var _material: ShaderMaterial
 var _cover := 0.0
+var wind := 0.0
 
 const SHADER := "shader_type spatial;\nrender_mode unshaded, cull_disabled;\n" + SnowLayer._SNOW_AT + Parting.GLSL + """
 uniform sampler2D tex : source_color, filter_nearest;
 uniform float sway = 0.03;
+uniform float wind = 0.0;   // 0 dead calm .. 1 a gale (data/wind.json, FarmWorld.set_wind)
+uniform float stiff = 1.0;   // 1 = the tip sways and parts fully; a stake holds the vine firmer
 void vertex() {
 	vec3 root = MODEL_MATRIX[3].xyz;
 	float s = length(MODEL_MATRIX[1].xyz);
@@ -49,11 +55,15 @@ void vertex() {
 		VERTEX = vec3(0.0);   // under snow: folded away
 	} else {
 		float k = (1.0 - UV.y) * (1.0 - UV.y);
-		float t = TIME * 1.3 + root.x * 0.9 + root.z * 0.6;
-		VERTEX.x += sin(t) * sway * k;
+		// The wind as the grass takes it: a bigger, quicker swing, a slow gust swell and a flutter
+		// by place, and a small lean downwind (+x, in the parting's world push below); none of it
+		// when the air is still.
+		float gust = 1.0 + wind * (0.8 * sin(TIME * 0.55 + root.x * 0.25) + 0.4 * sin(TIME * 1.7 + root.z * 0.5));
+		float t = TIME * (1.3 + 0.9 * wind) + root.x * 0.9 + root.z * 0.6;
+		VERTEX.x += sin(t) * sway * (1.0 + 1.5 * wind) * gust * k * stiff;
 		// Parting round the farmer (Parting): the tip pushed away and down in world (x, z),
 		// turned into the billboard's camera-facing axes at the plant's size.
-		vec2 p = part_push(root.xz) * k;
+		vec2 p = part_push(root.xz) * k * stiff + vec2(wind * 0.02 * k * stiff, 0.0);
 		vec3 w = vec3(p.x, -length(p) * part_dip, p.y);
 		VERTEX += vec3(dot(w, INV_VIEW_MATRIX[0].xyz), dot(w, INV_VIEW_MATRIX[1].xyz), dot(w, INV_VIEW_MATRIX[2].xyz)) / s;
 	}
@@ -78,6 +88,7 @@ void fragment() {
 func _init() -> void:
 	_material = SnowLayer._material(SHADER)
 	_material.set_shader_parameter("sway", SWAY)
+	_material.set_shader_parameter("stiff", 1.0)
 	Parting.setup(_material, "crops")
 
 
@@ -86,6 +97,13 @@ func set_cover(cover: float) -> void:
 	_cover = cover
 	for m in materials():
 		m.set_shader_parameter("cover", cover)
+
+
+## The wind, 0..1 (FarmWorld.set_wind): every picture's material, and the ones made later.
+func set_wind(strength: float) -> void:
+	wind = clampf(strength, 0.0, 1.0)
+	for m in materials():
+		m.set_shader_parameter("wind", wind)
 
 
 ## The pushers' feet in the world (FarmWorld.set_farmer, each frame; Parting.pick): the plants
@@ -170,6 +188,8 @@ func _layer(tex_key: String) -> MultiMeshInstance3D:
 	var m := _material.duplicate() as ShaderMaterial
 	m.set_shader_parameter("tex", tex)
 	m.set_shader_parameter("cover", _cover)
+	m.set_shader_parameter("wind", wind)
+	m.set_shader_parameter("stiff", float(layout(tex_key).get("stiff", 1.0)))
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = MultiMesh.new()
 	mmi.multimesh.transform_format = MultiMesh.TRANSFORM_3D

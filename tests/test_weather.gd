@@ -550,6 +550,18 @@ func _wind_by_weather(game_script: GDScript, fx: Dictionary) -> void:
 	tufts.set_wind(calm)
 	check(is_equal_approx(float(tufts.material_override.get_shader_parameter("wind")), calm), "and set back to calm (%.2f)" % calm)
 	tufts.free()
+	# Tall crops (rice, corn, the vines on stakes) take the same wind and hold it on every picture.
+	var cc_script: GDScript = load("res://scripts/world3d/crop_clusters.gd")
+	var cl = cc_script.new()
+	cl.plant({Vector2i(2, 2): "stalk:tomato:3:ripe", Vector2i(3, 2): "stalk:rice:3:ripe"}, func(_c: Vector2i) -> float: return 0.0)
+	cl.set_wind(gale)
+	check(cl.materials().all(func(m: ShaderMaterial) -> bool: return is_equal_approx(float(m.get_shader_parameter("wind")), gale)) and cl.materials().size() >= 3,
+		"the crop clusters' wind uniform is set on every picture (%.2f)" % gale)
+	cl.plant({Vector2i(2, 2): "stalk:cucumber:3:ripe"}, func(_c: Vector2i) -> float: return 0.0)
+	check(cl.materials().all(func(m: ShaderMaterial) -> bool: return is_equal_approx(float(m.get_shader_parameter("wind")), gale)),
+		"and a picture made later starts with it")
+	check("uniform float wind" in cc_script.SHADER and "wind * 0.02 * k" in cc_script.SHADER and "(1.0 + 1.5 * wind)" in cc_script.SHADER, "the crop shader takes the wind like the grass")
+	cl.free()
 
 	# The bamboo sway: over a minute, a storm leans further and swings more often than a calm day.
 	var outdoor: GDScript = load("res://scripts/world3d/outdoor_props.gd")

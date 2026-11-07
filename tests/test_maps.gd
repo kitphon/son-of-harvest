@@ -2031,8 +2031,9 @@ func _crop_clusters() -> void:
 	var cc: GDScript = load("res://scripts/world3d/crop_clusters.gd")
 	check(cc.key_for("crop:rice:3:ripe") == "stalk:rice:3:ripe" and cc.key_for("crop:corn:2:growing") == "stalk:corn:2:growing"
 		and cc.key_for("crop:rice:1:growing") == "" and cc.key_for("crop:corn:0:growing") == ""
-		and cc.key_for("crop:tomato:3:ripe") == "" and cc.key_for("crop:turnip:3:ripe") == "" and cc.key_for("weed") == "",
-		"clusters: rice and corn from growth 2; seeds, sprouts and other crops stay sprites")
+		and cc.key_for("crop:tomato:3:ripe") == "stalk:tomato:3:ripe" and cc.key_for("crop:cucumber:2:growing") == "stalk:cucumber:2:growing"
+		and cc.key_for("crop:tomato:1:growing") == "" and cc.key_for("crop:turnip:3:ripe") == "" and cc.key_for("crop:potato:3:ripe") == "" and cc.key_for("weed") == "",
+		"clusters: rice, corn, cucumber and tomato from growth 2; seeds, sprouts and other crops stay sprites")
 	var cells := {}
 	for i in 30:
 		cells[Vector2i(i % 6, i / 6)] = ["stalk:rice:3:ripe", "stalk:rice:2:growing", "stalk:corn:3:ripe"][i % 3]
@@ -2049,6 +2050,24 @@ func _crop_clusters() -> void:
 	var ripe := PlaceholderArt.tex("stalk:rice:3:ripe:0").get_image()
 	var young := PlaceholderArt.tex("stalk:rice:2:growing:1").get_image()
 	var corn := PlaceholderArt.tex("stalk:corn:3:ripe:2").get_image()
+	# Vines: a stake each, the fruit showing only when ripe, taller grown than young.
+	var vine_ok := true
+	for id in ["cucumber", "tomato"]:
+		var fc := Color(PlaceholderArt.crop_look(id).fruit)
+		var counts := {}
+		for st in ["3:ripe", "3:growing", "2:ripe", "2:growing"]:
+			var im := PlaceholderArt.tex("stalk:%s:%s:1" % [id, st]).get_image()
+			var n := 0
+			for y in im.get_height():
+				for x in im.get_width():
+					if im.get_pixel(x, y).is_equal_approx(fc):
+						n += 1
+			counts[st] = [n, im.get_height()]
+		vine_ok = vine_ok and counts["3:ripe"][0] >= 8 and counts["3:growing"][0] == 0 and counts["2:ripe"][0] >= 4 and counts["2:growing"][0] == 0 			and counts["3:ripe"][1] > counts["2:ripe"][1]
+		check(vine_ok, "clusters: the %s vine shows fruit only when ripe, taller grown (%s)" % [id, counts])
+	var vspots: Array = cc.spots_for({Vector2i(3, 3): "stalk:cucumber:3:ripe", Vector2i(4, 3): "stalk:tomato:2:growing"})
+	check(vspots.size() == 4 and vspots.all(func(s): return Rect2(Vector2(s.cell), Vector2.ONE).grow(-0.05).has_point(Vector2(s.pos.x, s.pos.z)))
+		and cc.layout("stalk:tomato:3:ripe").get("stiff", 1.0) < 1.0, "clusters: two stakes a vine cell, inside it, held firmer than rice")
 	var gold := 0
 	var fruit := Color(PlaceholderArt.crop_look("rice").fruit)
 	for y in ripe.get_height():
@@ -2077,17 +2096,30 @@ func _crop_clusters() -> void:
 	farm.till(rc)
 	farm.sow(rc, "rice", "summer")
 	farm.till(tc)
-	farm.sow(tc, "tomato", "summer")
+	farm.sow(tc, "onion", "summer")
 	farm.cell(rc).stage = farm.ripe_stage("rice")
-	farm.cell(tc).stage = farm.ripe_stage("tomato")
+	farm.cell(tc).stage = farm.ripe_stage("onion")
 	farm.cells_changed.emit()
 	var on_rc: Array = fw.crops.planted.filter(func(s): return s.cell == rc)
 	check(on_rc.size() == 9 and not fw._sprites.has(rc) and fw._sprites.has(tc) and fw.crops.planted.size() == 9
 		and fw.crops.layer_counts().values().reduce(func(a, b): return a + b, 0) == 9,
-		"the farm: ripe rice %s is 9 plants and no sprite, the tomato %s a sprite" % [rc, tc])
+		"the farm: ripe rice %s is 9 plants and no sprite, the onion %s a sprite" % [rc, tc])
 	farm.cell(rc).stage = 1
 	farm.cells_changed.emit()
 	check(fw.crops.planted.is_empty() and fw._sprites.has(rc), "the farm: rice at its sprout is a sprite again")
+	# A tomato vine: two stakes, fruit when ripe, a sprite again at its sprout.
+	farm.cell(tc).crop = ""
+	farm.sow(tc, "tomato", "summer")
+	farm.cell(tc).stage = farm.ripe_stage("tomato")
+	farm.cells_changed.emit()
+	var on_tc: Array = fw.crops.planted.filter(func(s): return s.cell == tc)
+	check(on_tc.size() == 2 and not fw._sprites.has(tc) and on_tc.all(func(s): return s.key == "stalk:tomato:3:ripe"),
+		"the farm: a ripe tomato %s is 2 stakes and no sprite (%d)" % [tc, on_tc.size()])
+	farm.cell(tc).stage = 0
+	farm.cells_changed.emit()
+	check(fw.crops.planted.is_empty() and fw._sprites.has(tc), "the farm: a tomato at its seed is a sprite again")
+	farm.cell(tc).crop = ""
+	farm.cells_changed.emit()
 	farm.cell(rc).crop = ""
 	farm.cells_changed.emit()
 	check(fw.crops.planted.is_empty() and not fw._sprites.has(rc), "the farm: the cell cleared, nothing stands")
