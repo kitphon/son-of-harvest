@@ -10,6 +10,35 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Calm paddy ground in the flat view
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: the flat view's paddy cells that grow rice (MapView.paddy_cells, the Kaminoda paddies in
+  every season) no longer draw the painted "paddy" tile, which had rows of green tufts that the
+  rice and the stubble were drawn over. MapView._draw takes each such cell's ground from
+  MapView.ground_key_in, which calls CropPatches.paddy_ground: drained plain mud in winter
+  (`ground:paddy_mud:<variant>`, dark mud with faint grain, where the water patches lie), and
+  flooded still water in spring to fall (`ground:paddy_flood:<variant>`, the same blue-green water
+  as the old tile without its tufts, two faint sky strips). Both are new kinds in
+  PlaceholderArt._ground. The paddy tile "ground:paddy:<n>" is unchanged and still used by the 3D
+  view and by paddy tiles with a prop on them. set_season now also redraws the ground, since the
+  picture depends on the season. Why mud in winter: the grey-blue water patches (5d7680) and the
+  straw stubble (b89a5a) read clearly on dark mud; on the blue-green water they blended.
+- Checked: test_view2d `_paddy_ground` (in the flat view's tests, after the water patches): the
+  3D tile still has its tufts; for each season every rice cell's ground is paddy_flood (spring,
+  summer, fall) or paddy_mud (winter), none with a tuft colour (4e7e34, 62983e, 94c464), every
+  other cell keeps its ground_key; the drained mud carries no water or stubble colour. Mutation
+  check: with paddy_ground returning the key unchanged, the test printed four FAIL lines ("flat
+  paddy ground in spring/summer/fall/winter: 128 rice cells ... (128 off)") and `test_view2d:
+  FAILED (4 failed)`; restored after. Screenshots (480x270 flat view, last frame of 20):
+  `--demo --season=winter --map=kaminoda@well`, the paddies cropped and enlarged x3: the stubble
+  and the grey-blue patches read on plain mud; `--season=summer` the same spot: the rice stands
+  in flooded water with the blue-green between the rows. Smoke runs (title, --demo, --demo
+  --map=town, --demo --mine=3, res://scenes/main_2d.tscn --demo --map=kaminoda --season=winter):
+  no error or warning lines.
+- Left / next: the calm mud and flood are flat-coloured with faint grain, not yet painted in the
+  art style of the other ground tiles; the 3D view still shows the painted tufts (not changed, as
+  asked).
+
 ## 2026-11-07 — The field takes the night lift
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: ART_DIRECTION section 3's "the field's objects and crops take no night lift". The

@@ -29,6 +29,15 @@ static func paddy_key(season: String) -> String:
 	return CropClusters.paddy_key(season)
 
 
+## The flat view's ground under a paddy cell that grows rice (MapView.ground_key_in): the calm
+## picture without the painted tufts, which the rice is drawn over. Drained mud in winter, where
+## the water patches lie; flooded still water in the other seasons. `key` is the cell's
+## "ground:paddy:<variant>" (MapView.ground_key); the 3D view keeps its painted tile.
+static func paddy_ground(season: String, key: String) -> String:
+	var kind := "paddy_mud" if CropClusters.water_on(season) else "paddy_flood"
+	return key.replace("ground:paddy:", "ground:%s:" % kind)
+
+
 ## Draws the clusters of `cells` (cell -> cluster key, CropClusters.key_for / paddy_key) on
 ## `canvas`. `hold_at(cell)` is how much snow the cell holds and `cover` how much snow lies
 ## (0..1): a plant stands where the ground under its root is not white, as in the 3D shader

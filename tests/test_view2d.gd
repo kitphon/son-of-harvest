@@ -843,6 +843,7 @@ func _tall_crops() -> void:
 	check(mv.paddy_cells().keys().all(func(cell): return mv.map.tile(cell) == "paddy" and mv.map.prop_at(cell).is_empty()), "only prop-free paddy cells grow rice")
 	mv.free()
 	await _water_patches()
+	await _paddy_ground()
 
 
 ## The winter water patches of the flat view (CropPatches.draw_water): the 3D view's places
@@ -939,3 +940,53 @@ func _tall_sway() -> void:
 	cv.queue_redraw()
 	await process_frame
 	cv.free()
+
+
+## The flat view's paddy ground (MapView.ground_key_in, CropPatches.paddy_ground): the paddy cells
+## that grow rice get a calm picture with no painted tufts, which the rice is drawn over (flooded
+## water in spring to fall, drained mud in winter where the water patches lie). Other cells keep
+## their ground picture, and the 3D view's painted paddy tile keeps its tufts.
+func _paddy_ground() -> void:
+	var mv = MapView.new()
+	mv.map = MapManager.data("kaminoda")
+	mv.snow_rules = g.snow_rules
+	root.add_child(mv)
+	await process_frame
+	var tuft_html := [Color("4e7e34").to_html(false), Color("62983e").to_html(false), Color("94c464").to_html(false)]
+	var water_html := [Color("5d7680").to_html(false), Color("7d939b").to_html(false), Color("9aaeb4").to_html(false), Color("b89a5a").to_html(false)]
+	var colours_of = func(img: Image) -> Dictionary:
+		var found := {}
+		for y in img.get_height():
+			for x in img.get_width():
+				var px: Color = img.get_pixel(x, y)
+				if px.a > 0.5:
+					found[px.to_html(false)] = true
+		return found
+	var has_tufts = func(img: Image) -> bool:
+		var found: Dictionary = colours_of.call(img)
+		return tuft_html.any(func(h): return found.has(h))
+	check(has_tufts.call(PlaceholderArt.image("ground:paddy:0")), "flat paddy ground: the 3D view's painted paddy tile keeps its tufts")
+	for season in ["spring", "summer", "fall", "winter"]:
+		mv.set_season(season)
+		var paddies = mv.paddy_cells()
+		var want_kind := "paddy_mud" if season == "winter" else "paddy_flood"
+		var bad := 0
+		var kinds := {}
+		for c in paddies:
+			var key: String = mv.ground_key_in(c, paddies)
+			kinds[key.get_slice(":", 1)] = true
+			if not key.begins_with("ground:%s:" % want_kind) or has_tufts.call(PlaceholderArt.image(key)):
+				bad += 1
+		check(paddies.size() > 0 and bad == 0 and kinds.keys() == [want_kind], "flat paddy ground in %s: %d rice cells on %s, none with painted tufts (%d off)" % [season, paddies.size(), want_kind, bad])
+		var same := true
+		for y in mv.map.h:
+			for x in mv.map.w:
+				var c := Vector2i(x, y)
+				if not paddies.has(c) and mv.ground_key_in(c, paddies) != MapView.ground_key(mv.map, c):
+					same = false
+		check(same, "flat ground: cells without rice keep their ground picture in %s" % season)
+		if season == "winter":
+			var mud: Dictionary = colours_of.call(PlaceholderArt.image("ground:paddy_mud:0"))
+			var clash := water_html.filter(func(h): return mud.has(h))
+			check(clash.is_empty(), "flat paddy ground: the drained mud carries no water or stubble colour (%s)" % [clash])
+	mv.free()

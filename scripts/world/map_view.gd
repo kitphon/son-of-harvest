@@ -79,6 +79,7 @@ func set_season(season_name: String) -> void:
 	if season_name != season:
 		season = season_name
 		_objects.queue_redraw()
+		queue_redraw()   # the paddies' ground changes with the season (ground_key_in)
 
 
 ## Lays snow over an outdoor map by `rules` (data/snow_cover.json); nothing under a roof.
@@ -119,12 +120,23 @@ func _snow_sprite(mask: Image) -> Sprite2D:
 
 
 func _draw() -> void:
+	var paddies := paddy_cells()
 	for y in map.h:
 		for x in map.w:
 			var c := Vector2i(x, y)
-			draw_texture(PlaceholderArt.tex(ground_key(map, c)), Vector2(c * T))
+			draw_texture(PlaceholderArt.tex(ground_key_in(c, paddies)), Vector2(c * T))
 			if map.tile(c) == "wall":
 				draw_rect(Rect2(Vector2(c * T), Vector2(T, T)), COLORS.wall)
+
+
+## The ground picture of cell `c` as the flat view draws it: a paddy cell that grows rice (`paddies`,
+## paddy_cells) gets the calm picture CropPatches.paddy_ground gives, so the rice and the winter
+## water patches read on it; every other cell is ground_key.
+func ground_key_in(c: Vector2i, paddies: Dictionary) -> String:
+	var key := ground_key(map, c)
+	if paddies.has(c):
+		return (load(CROP_PATCHES) as GDScript).paddy_ground(season, key)
+	return key
 
 
 ## The paddy cells with no prop and the rice they grow this season (CropClusters.paddy_key;

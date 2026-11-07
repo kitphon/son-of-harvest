@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] Calm paddy ground in the flat view (2026-11-07): the Kaminoda paddies where rice is drawn use plain drained mud in winter and flooded still water in the other seasons instead of the painted tuft tile, so the stubble and the water patches read clearly (CropPatches.paddy_ground, MapView.ground_key_in; the 3D view keeps its tile).
 [x] The field takes the night lift (2026-11-07): crop sprites, the crop clusters' plants, items on the ground and the other unshaded field sprites near a lit window, door, stone lantern or festival light take the figures' warm lift (same range, falloff, lit side, buildings between, cap), worked out once a game minute, drawn before the figures in NightLights' "Warmth" pass (SpriteLight.field_lifts; ART_DIRECTION section 3). The flat view is unchanged.
 [x] Flat view water patches (2026-11-07): the Kaminoda paddies' winter water patches, the 3D view's water_spots_for places, drawn under the stubble in the flat view as pixel blobs in data/paddy.json's colours, left out under snow (CropPatches.draw_water; ART_DIRECTION, Rice and tall crops).
 [x] Tall crops sway in the flat view (2026-11-07): the tips of rice, corn, vines and the paddies shift by whole pixels with the wind of data/wind.json (stronger in rain and storm, vines stiffer, phase by place; CropPatches.sway_tip, data/wind.json "flat"; ART_DIRECTION, Rice and tall crops).

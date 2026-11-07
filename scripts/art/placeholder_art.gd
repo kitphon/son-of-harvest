@@ -1334,6 +1334,21 @@ static func _ground(kind: String, n: int) -> Image:
 					_px(img, x + 1, y, 1, 3, Color("62983e"))
 					_px(img, x + 1, y, 1, 1, Color("94c464"))
 					_px(img, x, y + 3, 2, 1, Color("587e88"))   # the tuft's shadow on the water
+		"paddy_flood":
+			# The flat view's paddy ground where rice is drawn over it (CropPatches.paddy_ground):
+			# the same still water as "paddy" but no painted tufts, the plants are drawn on top.
+			# Two faint strips of sky on the water and a few dark specks keep it from looking flat.
+			img.fill(Color("6a94a0"))
+			for i in 2:
+				_px(img, rng.randi_range(1, 9), rng.randi_range(2, 13), rng.randi_range(3, 4), 1, Color("7fa8b2"))
+			for i in 4:
+				_px(img, rng.randi_range(0, 15), rng.randi_range(0, 15), 1, 1, Color("5e8a94"))
+		"paddy_mud":
+			# The flat view's paddy ground in winter, drained after the harvest: plain dark mud with
+			# faint grain, so the cut stubble and the grey-blue water patches read against it.
+			img.fill(Color("6e604c"))
+			for i in 12:
+				_px(img, rng.randi_range(0, 15), rng.randi_range(0, 15), 1, 1, Color("5a4e40") if i % 2 == 0 else Color("7a6a55"))
 		"wall":
 			img.fill(Color("3e3028"))
 		"cave":
