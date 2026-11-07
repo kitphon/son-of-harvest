@@ -18,34 +18,64 @@ var map: MapData
 
 
 func build(m: MapData) -> void:
+	for step in build_steps(m):
+		step.call()
+
+
+## The build as steps, each a few milliseconds or so, to be called in order (build runs them
+## all at once; Main3D runs a neighbour map's over idle frames, ahead of the visit).
+func build_steps(m: MapData) -> Array[Callable]:
 	map = m
-	_make_tile_ground()
-	for y in map.h:
-		for x in map.w:
-			var c := Vector2i(x, y)
-			if map.tile(c) == "rock_wall":
-				_rock_wall(c)
-			elif map.is_solid(c) and not map.door_at(c).is_empty() and map.prop_at(c).is_empty() and map.indoor:
-				_box(Vector3(1, 0.06, 0.9), Vector3(x + 0.5, 0.03, y + 0.5), flat_material(Color("4a3424")))   # threshold
-	RoomWalls.build(self, map)
+	var steps: Array[Callable] = [_make_tile_ground, _make_walls]
 	for p in map.props:
-		occlude(_make_prop.bind(p))
+		steps.append(occlude.bind(_prop.bind(p)))
 	if not map.sheltered and not map.indoor:
-		var grass: Array[Vector2i] = []
+		steps.append(_make_grass)
+	if not map.sheltered:
+		steps.append(_make_edges)
+	return steps
+
+
+## What the map's own look depends on (its tiles, doors, props, walls, inside or not, snow):
+## names the kept ground picture and walls (MeshCache).
+func _shape_id() -> String:
+	return "%s|%d|%d|%d|%s|%s|%s" % [map.id, map.tiles.hash(), str(map.doors).hash(), str(map.props).hash(),
+		map.walls, map.indoor, SnowLayer.map_has_snow(map)]
+
+
+## Rock, door thresholds and a room's walls (RoomWalls), kept a run by the map's shape.
+func _make_walls() -> void:
+	MeshCache.build(self, "walls|" + _shape_id(), func() -> void:
 		for y in map.h:
 			for x in map.w:
 				var c := Vector2i(x, y)
-				if map.tile(c) == "grass" and map.prop_at(c).is_empty() and not map.is_solid(c):
-					grass.append(c)
-		var snowy := SnowLayer.map_has_snow(map)
-		var hold_rules: Dictionary = Game.snow_rules
-		add_tufts()
-		plant_tufts(grass, func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, hold_rules) if snowy else 0.0)
-		_plant_paddies(func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, hold_rules) if snowy else 0.0)
-	if not map.sheltered:
-		var rules: Dictionary = Game.snow_rules
-		add_surroundings(map.w, map.h, func(c: Vector2i) -> String: return map.tile(c),
-			func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, rules), map.id)
+				if map.tile(c) == "rock_wall":
+					_rock_wall(c)
+				elif map.is_solid(c) and not map.door_at(c).is_empty() and map.prop_at(c).is_empty() and map.indoor:
+					_box(Vector3(1, 0.06, 0.9), Vector3(x + 0.5, 0.03, y + 0.5), flat_material(Color("4a3424")))   # threshold
+		RoomWalls.build(self, map))
+
+
+## Grass tufts on the open grass and rice in the paddies (outdoors).
+func _make_grass() -> void:
+	var grass: Array[Vector2i] = []
+	for y in map.h:
+		for x in map.w:
+			var c := Vector2i(x, y)
+			if map.tile(c) == "grass" and map.prop_at(c).is_empty() and not map.is_solid(c):
+				grass.append(c)
+	var snowy := SnowLayer.map_has_snow(map)
+	var hold_rules: Dictionary = Game.snow_rules
+	add_tufts()
+	plant_tufts(grass, func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, hold_rules) if snowy else 0.0)
+	_plant_paddies(func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, hold_rules) if snowy else 0.0)
+
+
+## The land past the map's edges (and the far ridges where they stand).
+func _make_edges() -> void:
+	var rules: Dictionary = Game.snow_rules
+	add_surroundings(map.w, map.h, func(c: Vector2i) -> String: return map.tile(c),
+		func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, rules), map.id)
 
 
 ## Rice in the paddy cells with no prop, by the season (CropClusters.paddy_key; none in winter).
@@ -66,22 +96,15 @@ func _plant_paddies(hold_at: Callable) -> void:
 
 ## The tiles as one picture under the whole map (unshaded, like the farm ground).
 func _make_tile_ground() -> void:
-	var img := Image.create(map.w * T, map.h * T, false, Image.FORMAT_RGBA8)
-	for y in map.h:
-		for x in map.w:
-			var tile := PlaceholderArt.tex(MapView.ground_key(map, Vector2i(x, y))).get_image()
-			tile.convert(Image.FORMAT_RGBA8)
-			img.blit_rect(tile, Rect2i(0, 0, T, T), Vector2i(x * T, y * T))
-	if map.indoor:
-		_shade_corners(img)
+	var picture := ground_picture()
 	var mat: Material
 	if SnowLayer.map_has_snow(map):
 		var snow := ImageTexture.create_from_image(SnowLayer.map_mask_image(map, Game.snow_rules))
-		mat = SnowLayer.ground_material(ImageTexture.create_from_image(img), snow)
+		mat = SnowLayer.ground_material(picture, snow)
 		_snow_mats.append(mat)
 	else:
 		var flat := flat_material(Color.WHITE)
-		flat.albedo_texture = ImageTexture.create_from_image(img)
+		flat.albedo_texture = picture
 		flat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		mat = flat
 	var plane := PlaneMesh.new()
@@ -94,6 +117,23 @@ func _make_tile_ground() -> void:
 	add_child(ground)
 
 
+static var _grounds := {}   # map id and tiles -> the ground picture (the same every visit)
+
+## The map's tiles laid into one picture (indoors with the corners shaded), kept a run.
+func ground_picture() -> ImageTexture:
+	var id := "%s|%d|%s" % [map.id, map.tiles.hash(), map.indoor]
+	if not _grounds.has(id):
+		var img := Image.create(map.w * T, map.h * T, false, Image.FORMAT_RGBA8)
+		for y in map.h:
+			for x in map.w:
+				var tile := PlaceholderArt.image(MapView.ground_key(map, Vector2i(x, y)))
+				img.blit_rect(tile, Rect2i(0, 0, T, T), Vector2i(x * T, y * T))
+		if map.indoor:
+			_shade_corners(img)
+		_grounds[id] = ImageTexture.create_from_image(img)
+	return _grounds[id]
+
+
 ## The renderer has no ambient occlusion, so the floor darkens softly where it meets the
 ## walls, more under the tall back walls than the low front sills (indoor maps only).
 func _shade_corners(img: Image) -> void:
@@ -104,13 +144,17 @@ func _shade_corners(img: Image) -> void:
 			var c := Vector2i(x, y)
 			if map.tile(c) == "wall":
 				continue
+			var walls: Array = []   # the sides of this cell that meet a wall
+			for i in sides.size():
+				var o: Vector2i = sides[i][0]
+				if map.in_bounds(c + o) and map.tile(c + o) == "wall":
+					walls.append(i)
+			if walls.is_empty():
+				continue
 			for py in T:
 				for px in T:
 					var shade := 1.0
-					for i in sides.size():
-						var o: Vector2i = sides[i][0]
-						if not map.in_bounds(c + o) or map.tile(c + o) != "wall":
-							continue
+					for i: int in walls:
 						var d := float([py, px, T - 1 - py, T - 1 - px][i])   # pixels from that edge
 						var k := maxf(0.0, 1.0 - (d + 0.5) / REACH)
 						shade *= 1.0 - float(sides[i][1]) * k * k
@@ -144,6 +188,15 @@ func _rock_wall(c: Vector2i) -> void:
 func _snow_top(size: Vector3, center: Vector3, rot := Vector3.ZERO) -> void:
 	if SnowLayer.map_has_snow(map):
 		super._snow_top(size, center, rot)
+
+
+## A prop, its meshes kept a run (MeshCache) by the map, the prop, the season and whether snow
+## lies, which is all its look depends on; story props (shown by flags) are always made.
+func _prop(p: Dictionary) -> void:
+	if str(p.kind) in StoryView.KINDS:
+		_make_prop(p)
+		return
+	MeshCache.build(self, "prop|%s|%s|%s|%s" % [map.id, p, Game.season_name(), SnowLayer.map_has_snow(map)], _make_prop.bind(p))
 
 
 func _make_prop(p: Dictionary) -> void:
@@ -197,15 +250,17 @@ func _village_house(r: Rect2, door: int, noren: bool, side_door := -1, style := 
 	var pitch := 0.5
 	var wall := 1.45 + overhang * pitch
 	var body := Rect2(cx - wide / 2, back, wide, depth)
-	_house_walls(body, 0.0, wall, finish, true)
-	if storeys < 2:
-		_house_roof(body, wall, overhang, pitch, roof, _gable_key(finish))
-	else:
-		# The pent roof round the first floor, then the upper floor standing in from it.
-		Minka.hip(self, body.grow(overhang), 1.45, pitch, 0.14, "build:kawara", "build:kawara_edge", 0.25)
-		var up := body.grow(-LitSpots.UPPER_INSET)
-		_house_walls(up, wall - 0.3, LitSpots.UPPER_TOP, "upper_" + finish, false)
-		_house_roof(up, LitSpots.UPPER_TOP, overhang, pitch, roof, _gable_key(finish))
+	# The walls and roofs depend on the footprint and the look only: kept a run (MeshCache).
+	MeshCache.build(self, "village_house|%s|%s|%s|%s|%s" % [body, roof, storeys, finish, SnowLayer.map_has_snow(map)], func() -> void:
+		_house_walls(body, 0.0, wall, finish, true)
+		if storeys < 2:
+			_house_roof(body, wall, overhang, pitch, roof, _gable_key(finish))
+		else:
+			# The pent roof round the first floor, then the upper floor standing in from it.
+			Minka.hip(self, body.grow(overhang), 1.45, pitch, 0.14, "build:kawara", "build:kawara_edge", 0.25)
+			var up := body.grow(-LitSpots.UPPER_INSET)
+			_house_walls(up, wall - 0.3, LitSpots.UPPER_TOP, "upper_" + finish, false)
+			_house_roof(up, LitSpots.UPPER_TOP, overhang, pitch, roof, _gable_key(finish)))
 	var dx := r.position.x + door + 0.5
 	if noren:   # a shop's door stays dark at night: its noren hangs over the paper
 		_picture("build:shoji_door", Vector2(0.85, 1.05), Vector3(dx, 0.55, front + 0.005))

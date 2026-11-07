@@ -65,8 +65,7 @@ static func rim_pines() -> int:
 func build(w: int, h: int) -> void:
 	var cfg := config()
 	var span := float(cfg.get("span", 40.0))
-	var shader := Shader.new()
-	shader.code = SHADER
+	var shader := SnowLayer.shader(SHADER)   # shared, parsed once a run
 	for layer: Dictionary in cfg.get("layers", []):
 		var pts := samples(path(w, h, float(layer.gap), span), float(layer.step))
 		var tops := tops_for(pts.size(), float(layer.low), float(layer.high), int(layer.seed))

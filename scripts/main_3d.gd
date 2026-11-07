@@ -42,6 +42,15 @@ var fade: MapFade
 var _worlds := {}
 var _world_order: Array[String] = []   # oldest first
 const KEEP_WORLDS := 6
+## Building the maps next door ahead (_prebuild): the frame's budget, how long the farmer must
+## stand still first, and the maps never built ahead (a mine floor is made fresh each time).
+const PREBUILD_MS := 4.0
+const PREBUILD_WAIT := 0.4
+const PREBUILD_SKIP: Array[String] = ["mine_floor"]
+var prebuild := true            # false: no building ahead
+var prebuilt := 0                # worlds built ahead so far (tests)
+var _pre := {}                   # the one under way: {id, key, world, steps, next}
+var _still := 0.0                # seconds the farmer has stood still (with no fade)
 var _layers: Array[Node] = []   # this visit's layers on the world (villagers, forage, animals ...)
 var lightning := Lightning.new()
 var held_sprite: Sprite3D        # the item carried overhead
@@ -194,10 +203,17 @@ func _ready() -> void:
 
 ## Builds the world for Game.maps and puts the farmer where it says.
 func _enter_map() -> void:
-	_leave_world()
 	var m := Game.maps.current()
 	var key := world_key(m)
 	var kept: Dictionary = _worlds.get(m.id, {})
+	if not kept.is_empty() and kept.key == key:
+		_worlds.erase(m.id)   # taken out first, so keeping the world left can't drop it
+		_world_order.erase(m.id)
+	else:
+		kept = {}
+	_leave_world()
+	if kept.is_empty():
+		kept = _worlds.get(m.id, {})   # the same map again: the world just left
 	if not kept.is_empty() and kept.key == key:
 		world = kept.world   # been here today and nothing changed: no rebuild
 		world.come_back()
@@ -206,15 +222,20 @@ func _enter_map() -> void:
 	else:
 		if not kept.is_empty():
 			_drop_world(m.id)
-		if Game.maps.on_farm():
-			world = FarmWorld.new()
-			world.setup(Game.farm, m.gate_cells())
-			world.make_story_props(m)   # the door bell, once Hachiro has given it
+		if not _pre.is_empty() and _pre.id == m.id and _pre.key == key:
+			world = _pre.world   # was being built ahead: only the rest of its steps now
+			for i in range(_pre.next, _pre.steps.size()):
+				_pre.steps[i].call()
+			_pre = {}
 		else:
-			world = MapWorld.new()
-			(world as MapWorld).build(m)
+			var made := new_world(m)
+			world = made[0]
+			for step: Callable in made[1]:
+				step.call()
 		world.set_meta("key", key)
 		world.set_meta("map_id", m.id)
+	_stop_prebuild()
+	_still = 0.0
 	if world.backdrop != null:
 		world.backdrop.refresh()
 	_add_layer(FestivalProps.new(m.id))   # today's festival decorations, in its hours
@@ -237,6 +258,109 @@ func _enter_map() -> void:
 	_show_weather()
 	_update_tint()
 	_follow()
+
+
+## A new world for map `m` (not built yet) and its build steps, in order: the farm (FarmWorld,
+## its story props last) or another map (MapWorld).
+static func new_world(m: MapData) -> Array:
+	if m.farm:
+		var fw := FarmWorld.new()
+		var steps := fw.setup_steps(Game.farm, m.gate_cells())
+		steps.append(fw.make_story_props.bind(m))   # the door bell, once Hachiro has given it
+		return [fw, steps]
+	var mw := MapWorld.new()
+	return [mw, mw.build_steps(m)]
+
+
+## Builds the maps next door ahead, while the farmer stands still (PREBUILD_WAIT seconds), a
+## few steps a frame (PREBUILD_MS), so going through the door finds the world ready (kept as
+## if visited). Outdoor maps first (the dearer builds); never more than KEEP_WORLDS kept (room
+## is made by dropping a kept map that is not next door), never a mine floor; a change of map
+## finishes the one under way if it is the map entered, or drops it.
+func _prebuild(delta: float) -> void:
+	if not prebuild or fade.busy() or Game.maps.mine_floor != null or player.moving or player.charging:
+		_still = 0.0
+		return
+	_still += delta
+	if _still < PREBUILD_WAIT:
+		return
+	if _pre.is_empty():
+		var m := _next_prebuild()
+		if m == null:
+			return
+		var made := new_world(m)
+		_pre = {"id": m.id, "key": world_key(m), "world": made[0], "steps": made[1], "next": 0}
+	var start := Time.get_ticks_usec()
+	while _pre.next < _pre.steps.size() and (Time.get_ticks_usec() - start) < PREBUILD_MS * 1000.0:
+		_pre.steps[_pre.next].call()
+		_pre.next += 1
+	if _pre.next < _pre.steps.size():
+		return
+	var w: FarmWorld = _pre.world
+	var id: String = _pre.id
+	var key: String = _pre.key
+	_pre = {}
+	if MapManager.data(id) == null or world_key(MapManager.data(id)) != key or (_worlds.has(id) and _worlds[id].key == key):
+		w.queue_free()   # its map changed meanwhile (a flag, an extension)
+		return
+	_drop_world(id)   # one kept from before the change, if any
+	w.set_meta("key", key)
+	w.set_meta("map_id", id)
+	w.away = true
+	_worlds[id] = {"key": key, "world": w}
+	_world_order.append(id)
+	prebuilt += 1
+	_trim_worlds()
+
+
+## The next map to build ahead: a door's map from here not kept yet (outdoor ones first), or
+## null; nothing when the kept worlds are KEEP_WORLDS of the maps next door already.
+func _next_prebuild() -> MapData:
+	var near := _maps_next_door()
+	if _worlds.size() >= KEEP_WORLDS and _spare_world(near) == "":
+		return null
+	for m in near:
+		if not (_worlds.has(m.id) and _worlds[m.id].key == world_key(m)):
+			return m
+	return null
+
+
+## The maps the doors here lead to (none built fresh each time: PREBUILD_SKIP), outdoor first.
+func _maps_next_door() -> Array[MapData]:
+	var here := Game.maps.current()
+	var outdoor: Array[MapData] = []
+	var indoor: Array[MapData] = []
+	for door in here.doors:
+		var to := str(door.to)
+		if to == "" or to == here.id or to in PREBUILD_SKIP or not MapManager.has(to):
+			continue
+		var m := MapManager.data(to)
+		if m == null or m in outdoor or m in indoor:
+			continue
+		(indoor if m.indoor else outdoor).append(m)
+	return outdoor + indoor
+
+
+## The kept world to drop first: the oldest of a map not next door (`near`), "" when all are.
+func _spare_world(near: Array[MapData]) -> String:
+	var ids := near.map(func(m: MapData) -> String: return m.id)
+	for id in _world_order:
+		if not id in ids:
+			return id
+	return ""
+
+
+## Keeps KEEP_WORLDS worlds at most, dropping the oldest of maps not next door first.
+func _trim_worlds() -> void:
+	while _world_order.size() > KEEP_WORLDS:
+		var id := _spare_world(_maps_next_door())
+		_drop_world(id if id != "" else _world_order[0])
+
+
+func _stop_prebuild() -> void:
+	if not _pre.is_empty():
+		(_pre.world as Node).free()
+		_pre = {}
 
 
 ## What a world was built for: the map (a new MapData when its story props or extensions
@@ -270,8 +394,7 @@ func _leave_world() -> void:
 		world.away = true   # the farm's field changes wait until it is back
 		_worlds[id] = {"key": key, "world": world}
 		_world_order.append(id)
-		while _world_order.size() > KEEP_WORLDS:
-			_drop_world(_world_order[0])
+		_trim_worlds()
 	world = null
 
 
@@ -294,6 +417,7 @@ func _drop_worlds() -> void:
 
 
 func _exit_tree() -> void:
+	_stop_prebuild()
 	_drop_worlds()
 
 
@@ -323,6 +447,7 @@ func _process(delta: float) -> void:
 	_aim_lantern()
 	_fly(delta)
 	_show_fishing()
+	_prebuild(delta)
 
 
 func _follow() -> void:
@@ -479,6 +604,7 @@ func _fly(delta: float) -> void:
 
 ## The farmer is put home by the map change (Game.go_home) that comes with the new day.
 func _on_day_started() -> void:
+	_stop_prebuild()
 	_drop_worlds()   # built for yesterday
 	player.cancel_charge()
 	_show_weather()
