@@ -48,6 +48,8 @@ the wood as MultiMeshes (scripts/world3d/trees.gd).
 [x] The grass tufts and the rice / corn part round the farmer in the 3D view (scripts/world3d/parting.gd, data/wind.json "part").
 [x] Water: a gentle moving surface on the farm pond, the village pond and the river
 (scripts/world3d/water_surface.gd).
+[x] Flat view water: the same drifting glints and troughs on the pond and river, pixel-stepped,
+banks left still (scripts/world/water_view.gd, WaterView, in FarmView and MapView).
 [x] The coop's and barn's insides as lit meshes (scripts/world3d/coop_props.gd, barn_props.gd).
 [x] Bamboo (segmented, swaying, by season, snowy) and the well, jizo, woodpile and river rock
 as lit meshes (scripts/world3d/outdoor_props.gd).

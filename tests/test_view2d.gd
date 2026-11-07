@@ -42,6 +42,7 @@ func _run() -> void:
 	await _mine()
 	await _weather_and_festival()
 	await _night()
+	await _water()
 	scene.free()
 	print("test_view2d: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -358,6 +359,64 @@ func _night() -> void:
 	g.minute = 0
 	await process_frame
 	check(fn != null and not fn.visible and fn.pools.is_empty(), "and not by day")
+
+
+## The water's moving skin (WaterView) in the flat view: the farm pond (FarmView) and the village
+## pond / river (MapView) get one, it covers the water cells only, and the bank and foam pixels a
+## land side draws on the ground stay still (the sheet starts 3 px in, as in 3D).
+func _water() -> void:
+	var fv := FarmView.new()
+	fv.farm = g.farm
+	root.add_child(fv)
+	await process_frame
+	_check_water(fv, FarmGrid.W, FarmGrid.H, func(c: Vector2i) -> bool: return g.farm.fixed_at(c) == "pond", true, "the farm pond")
+	fv.free()
+	var mv := MapView.new()
+	mv.map = MapManager.data("town")
+	root.add_child(mv)
+	await process_frame
+	var town: MapData = mv.map
+	_check_water(mv, town.w, town.h, func(c: Vector2i) -> bool: return town.tile(c) == "water", false, "the village water")
+	mv.free()
+
+
+func _check_water(view: Node2D, w: int, h: int, is_water: Callable, edge_bank: bool, what: String) -> void:
+	var wv: WaterView = null
+	for n in view.get_children():
+		if n is WaterView:
+			wv = n
+	check(wv != null and wv.visible and wv.water_cells > 0, "%s has its moving water" % what)
+	if wv == null:
+		return
+	check(wv.material is ShaderMaterial and (wv.material as ShaderMaterial).shader.code.contains("TIME"),
+		"%s's skin is a shader on TIME (drifts)" % what)
+	var img: Image = wv.texture.get_image()
+	var land := func(n: Vector2i) -> bool:
+		if n.x < 0 or n.y < 0 or n.x >= w or n.y >= h:
+			return edge_bank
+		return not bool(is_water.call(n))
+	var water := 0
+	var bad := 0
+	for y in h:
+		for x in w:
+			var c := Vector2i(x, y)
+			var wet := bool(is_water.call(c))
+			water += 1 if wet else 0
+			var l: bool = wet and land.call(c + Vector2i.LEFT)
+			var r: bool = wet and land.call(c + Vector2i.RIGHT)
+			var u: bool = wet and land.call(c + Vector2i.UP)
+			var d: bool = wet and land.call(c + Vector2i.DOWN)
+			for py in WaterView.T:
+				for px in WaterView.T:
+					var inside: bool = wet and not (l and px < WaterView.INSET) \
+						and not (r and px >= WaterView.T - WaterView.INSET) \
+						and not (u and py < WaterView.INSET) \
+						and not (d and py >= WaterView.T - WaterView.INSET)
+					var p := c * WaterView.T + Vector2i(px, py)
+					if (img.get_pixelv(p).a > 0.5) != inside:
+						bad += 1
+	check(wv.water_cells == water, "%s: one sheet cell per water cell (%d)" % [what, water])
+	check(bad == 0, "%s: the skin covers the water pixels only, banks and foam left still (%d off)" % [what, bad])
 
 
 func _is(n: Object, file: String) -> bool:

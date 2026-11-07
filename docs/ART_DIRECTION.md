@@ -160,8 +160,17 @@ Light and Farmhouse model hold the technical detail of what is built.
       wide, stepping out a pixel at a time, two fade steps, lit like the ground): a strong ring as the
       bobber lands and as a fish bites (then every 0.4 s), a gentle ring every 1.7 s while it waits
       (`Main3D._ring_bobber`). (this commit)
-      Still open: no ring at the farmer's feet (the farmer never wades: water cells are blocked); the
-      flat view's water is still the still tile; no frozen water in winter (the game has none).
+      Still open: no ring at the farmer's feet (the farmer never wades: water cells are blocked); no
+      frozen water in winter (the game has none).
+      (this commit) Flat view: `WaterView` (scripts/world/water_view.gd), a Sprite2D over the water
+      cells of FarmView (the pond) and MapView (the village pond, the river), under the objects. One
+      pixel per map pixel, alpha on the water pixels only: a land side keeps its bank and foam line
+      still (the sheet starts 3 px in, as in 3D). The shader is the 3D sheet's pattern on the pixel
+      centres (glints and troughs drifting, the same speeds, thresholds and colours), with alphas
+      0.3 / 0.2 instead of 0.5 / 0.32, since the flat view has no sun term to darken them. No rings
+      in the flat view yet. The constants are copied, not read from data. Test: test_view2d `_water`
+      (the sheet covers the water pixels only on the farm pond and the town's water, the shader
+      uses TIME); test_maps keeps its snow checks off the sheet.
 
 ### 3. Light and atmosphere
 - [x] Night: real warm lights at lanterns, windows and the festival stalls, the tint lighter.

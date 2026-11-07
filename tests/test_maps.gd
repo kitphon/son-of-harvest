@@ -631,7 +631,7 @@ func _map_snow() -> void:
 	v2.map = town
 	root.add_child(v2)
 	v2.show_snow(rules)
-	var sprites: Array = v2.get_children().filter(func(n): return n is Sprite2D)
+	var sprites: Array = v2.get_children().filter(func(n): return n is Sprite2D and not n is WaterView)
 	var objects: Node = v2.get_children().filter(func(n): return not n is Sprite2D)[0]
 	check(sprites.size() == 2 and sprites[0].get_index() < objects.get_index() and sprites[1].get_index() > objects.get_index(),
 		"2D village: snow under the props and on the roofs")
