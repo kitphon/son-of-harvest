@@ -15,6 +15,7 @@ extends RefCounted
 ##    lights (`lift_at`, the same spots as NightLamps): NightLights draws each figure near one
 ##    back over the tint with `warm` times the lift added in proportion to its own colour (its
 ##    picture's pixels), so a villager by a lit window reads warm, one in the dark stays blue.
+##    The field's crops, cluster plants, items and objects take it too (`field_lifts`).
 ## No sun-and-shadow on the sprites: the only cheap scene query is Occluders' boxes, which hold
 ## the houses but not the trees, the fences or a hip roof's real outline, so a sprite would
 ## darken where the ground shows no shadow (WORKLOG 2026-11-07 "Sprites take the world's light").
@@ -108,3 +109,52 @@ static func lift_at(at: Vector3, spots: Array, rules: Dictionary, occ: Occluders
 		var f := 1.0 - d / reach
 		k += float(s.energy) * f * f * seen
 	return minf(k, float(lr.get("max", 0.6)))
+
+
+## Whether `s` is a figure (NightLights.FIGURES: the farmer, villagers, animals) or part of one
+## (a held item, a note puff): those take the figures' own lift, not the field's.
+static func in_figure(s: Node) -> bool:
+	var n := s
+	while n != null:
+		if n.is_in_group(NightLights.FIGURES):
+			return true
+		n = n.get_parent()
+	return false
+
+
+## Where a field sprite's light is measured: the middle of its picture (its item rect, y up).
+static func middle(s: SpriteBase3D) -> Vector3:
+	return s.global_position + Vector3.UP * s.get_item_rect().get_center().y * s.pixel_size
+
+
+## The field's share of the night lift, by the same rule as the figures' (`lift_at`): every lit
+## sprite of `sprites` (GROUP: crops, items lying on the ground, forage, eggs, story props) that
+## is shown and not a figure or part of one, and every plant of the CropClusters in `clusters`,
+## each measured at the middle of its picture. Only the ones that take some (over 0.01) are
+## listed: {sprite, at (its position then), mid, k} or {crops, plant (its CropClusters.planted
+## entry), tex, root, mid, k}. A plant its cell's snow may fold away (a hold, snow lying) takes
+## none. NightLights works this out once a game minute (or when the field changes), not per frame.
+static func field_lifts(sprites: Array, clusters: Array, spots: Array, rules: Dictionary, occ: Occluders = null) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if spots.is_empty():
+		return out
+	for s in sprites:
+		if not (s is Sprite3D) or s.texture == null or not s.is_visible_in_tree() or in_figure(s):
+			continue
+		var mid := middle(s)
+		var k := lift_at(mid, spots, rules, occ)
+		if k > 0.01:
+			out.append({"sprite": s, "at": s.global_position, "mid": mid, "k": k})
+	for cc in clusters:
+		if not (cc is CropClusters) or not cc.is_visible_in_tree():
+			continue
+		for p in cc.planted:
+			if float(p.hold) > 0.0 and cc.snow_cover() > 0.0:
+				continue
+			var tex := PlaceholderArt.tex(p.tex)
+			var root: Vector3 = cc.global_transform * (p.pos as Vector3)
+			var mid := root + Vector3.UP * (tex.get_height() * FarmWorld.PX * float(p.size) / 2.0)
+			var k := lift_at(mid, spots, rules, occ)
+			if k > 0.01:
+				out.append({"crops": cc, "plant": p, "tex": tex, "root": root, "mid": mid, "k": k})
+	return out

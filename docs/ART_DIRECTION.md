@@ -309,8 +309,16 @@ Light and Farmhouse model hold the technical detail of what is built.
       it reads warm by the light and stays blue in the dark. Sun-and-shadow on the sprites was
       left out: Occluders' boxes are the only cheap query and hold the houses but not the trees
       or the roofs' outline, so it would not match the shadows on the ground.
-      Still open: stone lanterns wash no walls (none stands by one); the field's objects and
-      crops take no night lift (only the pools under them). The festival decorations are lit meshes since
+      The field takes the same night lift (2026-11-07): crop sprites, the CropClusters plants,
+      items lying on the ground, forage, eggs and the other unshaded field sprites near a light
+      are drawn back in the Warmth pass, before the figures (so a figure in front covers them),
+      by the same rule and numbers (`SpriteLight.field_lifts`, measured at the middle of each
+      picture; worked out once a game minute or when the field changes, only projected per
+      frame), their own pixels times the warm colour, so the pool under them is not counted
+      twice. A cluster plant's quad does not follow its sway (well under a pixel in calm air).
+      Still open: stone lanterns wash no walls (none stands by one); the overlay knows no
+      depth, so a lit plant behind another plant or a fence is drawn over it where they overlap.
+      The festival decorations are lit meshes since
       FestivalMeshes / StallWares; only what gives light (lantern paper, flames) is unshaded.
 - [x] Morning and evening sun colour and angle following the clock (data/light.json "sun",
       `Game.sun_light`, `Main3D._aim_sun`: low orange sun from the lower left at 5:30, golden

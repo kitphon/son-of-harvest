@@ -836,6 +836,67 @@ func _sprite_light(game_script: GDScript, fx: Dictionary) -> void:
 	occ.add([wall])
 	check(SL.lift_at(Vector3(-1, 0.6, 0), lamp, rules, occ) == 0.0 and SL.lift_at(Vector3(1, 0.6, 0), lamp, rules, occ) > 0.0,
 		"sprite light: a building between keeps a lantern's light off")
+	# The field takes the same lift: a crop sprite, an item lying on the ground and the cluster
+	# plants in front of a lit window, none by day, behind its wall, past a building or far off,
+	# capped; the figures (and what they hold) are left to their own pass.
+	var crop_s: Sprite3D = FW.make_sprite(load("res://scripts/art/placeholder_art.gd").tex("crop:turnip:3:ripe"))
+	crop_s.position = Vector3(5.5, 0, 5.7)
+	var item_s: Sprite3D = FW.make_sprite(tex)
+	item_s.position = Vector3(4.5, 0, 6.4)
+	var back_s: Sprite3D = FW.make_sprite(tex)
+	back_s.position = Vector3(5, 0, 4.4)
+	var far_s: Sprite3D = FW.make_sprite(tex)
+	far_s.position = Vector3(5, 0, 5 + reach + 1.0)
+	var fig: Sprite3D = FW.make_sprite(tex)
+	fig.position = Vector3(5.2, 0, 5.8)
+	NL.figure(fig)
+	var held: Sprite3D = FW.make_sprite(tex)
+	fig.add_child(held)
+	var field_cc = CC.new()
+	for n in [crop_s, item_s, back_s, far_s, fig, field_cc]:
+		root.add_child(n)
+	field_cc.plant({Vector2i(4, 5): "stalk:corn:3:growing", Vector2i(4, 3): "stalk:corn:3:growing",
+		Vector2i(4, 12): "stalk:corn:3:growing"}, func(_c: Vector2i) -> float: return 0.0)
+	var field_sprites: Array = [crop_s, item_s, back_s, far_s, fig, held]
+	var lifts: Array = SL.field_lifts(field_sprites, [field_cc], spots, rules)
+	var lifted := {}
+	var plants_lit := {}
+	for e in lifts:
+		if e.has("sprite"):
+			lifted[e.sprite] = e.k
+		else:
+			plants_lit[e.plant.cell] = int(plants_lit.get(e.plant.cell, 0)) + 1
+			check(e.k > 0.0 and e.k <= cap + 0.0001, "sprite light: a lit plant within the cap (%.2f)" % e.k)
+	check(lifted.has(crop_s) and lifted.has(item_s) and float(lifted.get(crop_s, 0.0)) > 0.15 and float(lifted.get(item_s, 0.0)) > 0.0,
+		"sprite light: a crop and an item in front of a lit window take the lift (%s)" % [lifted.values()])
+	check(float(lifted.get(crop_s, 0.0)) > float(lifted.get(item_s, 0.0)), "sprite light: the nearer field object takes more")
+	check(not lifted.has(back_s) and not lifted.has(far_s), "sprite light: none for the field behind the window's wall or far off")
+	check(not lifted.has(fig) and not lifted.has(held), "sprite light: figures and what they hold are not the field's")
+	check(plants_lit.get(Vector2i(4, 5), 0) == 3 and not plants_lit.has(Vector2i(4, 3)) and not plants_lit.has(Vector2i(4, 12)),
+		"sprite light: the corn in front of the window lit, behind it and far off not (%s)" % plants_lit)
+	check(SL.field_lifts(field_sprites, [field_cc], SL.spots_of([world], [], 0.0, 0.0, rules), rules).is_empty(),
+		"sprite light: no lift on the field by day")
+	var crowd: Array = SL.spots_of([many], [], 1.0, 0.0, rules)
+	var top := 0.0
+	for e in SL.field_lifts(field_sprites, [field_cc], crowd, rules):
+		top = maxf(top, e.k)
+	check(top > 0.0 and top <= cap + 0.0001 and is_equal_approx(top, cap), "sprite light: the field capped by many lights (%.2f)" % top)
+	var lamp_s: Sprite3D = FW.make_sprite(tex)
+	lamp_s.position = Vector3(-1, 0, 0)
+	var lamp_t: Sprite3D = FW.make_sprite(tex)
+	lamp_t.position = Vector3(1, 0, 0)
+	root.add_child(lamp_s)
+	root.add_child(lamp_t)
+	var by_lamp: Array = SL.field_lifts([lamp_s, lamp_t], [], lamp, rules, occ)
+	check(by_lamp.size() == 1 and by_lamp[0].sprite == lamp_t, "sprite light: a building between keeps a lantern's light off the field")
+	field_cc.plant({Vector2i(4, 5): "stalk:corn:3:growing"}, func(_c: Vector2i) -> float: return 0.5)
+	field_cc.set_cover(0.8)
+	check(SL.field_lifts([], [field_cc], spots, rules).is_empty(), "sprite light: a plant the snow may fold takes none")
+	var pc: Array = NL.plant_corners(Vector3(2, 0, 3), tex, 1.0, Basis())
+	check(((pc[2] + pc[3]) / 2.0).is_equal_approx(Vector3(2, 0, 3)) and is_equal_approx(pc[0].y - pc[3].y, tex.get_height() * FW.PX),
+		"sprite light: a plant's quad stands on its root at its picture's size")
+	for n in [crop_s, item_s, back_s, far_s, fig, field_cc, lamp_s, lamp_t]:
+		n.free()
 	wall.free()
 	# NightLights draws the lift last, over the figures drawn back.
 	var nl = NL.new()
