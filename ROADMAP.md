@@ -75,7 +75,10 @@ windows, stone lanterns and festival lights; data/light.json "lamps"), the night
 lighter, the festival's lights and stalls lighting the ground in both views (README → Light).
 [x] The far country: mountain ridges past a rim on the north and west sides of the outdoor
 maps, hazed with the sky by the clock, snow caps in winter (data/backdrop.json, README → Camera).
-Next: section 4 (characters; the sprite shadows are done, what is left is the larger, more detailed farmer / villager / animal sprites, the user's decision on who draws; `SpriteShadow` reads each sprite's texture, so a new size just fits). "ทำ art direction ต่อ" from the user
+[x] Characters, step 1: larger, more detailed farmer and villager sprites (24 x 32, Japanese
+country clothes, builds for elders and children; scripts/art/figure_art.gd, FigureArt), four
+directions (front / back, mirrored), drawn in code by the agent until real art comes.
+Next: section 4 is done (figures d2d8064, animals 36d42c6, real sprite shadows f261048). Open there: eight directions, the flat view's farmer stand-in, real art by an artist. "ทำ art direction ต่อ" from the user
 means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our

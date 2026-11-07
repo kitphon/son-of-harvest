@@ -146,8 +146,10 @@ func _init() -> void:
 		for back in ["front", "back"]:
 			for i in PlaceholderArt.farmer_frames(pose):
 				var img := PlaceholderArt.tex("player:%s:%s:%d" % [back, pose, i]).get_image()
-				check(img.get_size() == Vector2i(16, 24) and img.get_pixel(1, PlaceholderArt.farmer_drop(pose, i)).a > 0.0,
-					"%s %s %d: 16 x 24, hand up top" % [back, pose, i])
+				var hand: Vector2i = FigureArt.hands(FigureArt.FARMER_LOOK, back == "back", pose, i).near
+				check(img.get_size() == PlaceholderArt.FIGURE_SIZE and img.get_pixelv(hand).a > 0.0
+					and PlaceholderArt.hold_row(pose, i) <= FigureArt.head_top(FigureArt.FARMER_LOOK) + PlaceholderArt.farmer_drop(pose, i),
+					"%s %s %d: 24 x 32, hands up at the top of the head" % [back, pose, i])
 	check(PlaceholderArt.tex("player:front:hold_idle:0").get_image().get_data() != PlaceholderArt.tex("player:front:idle:0").get_image().get_data(), "hold idle looks different")
 	check(PlaceholderArt.farmer_drop("hold_walk", 0) == 1 and PlaceholderArt.farmer_drop("hold_walk", 1) == 0, "the load bobs")
 	var seen := {}

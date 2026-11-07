@@ -15,10 +15,10 @@ static func tex(key: String) -> Texture2D:
 static func _make(key: String) -> Image:
 	var parts := key.split(":")
 	match parts[0]:
-		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk|fish_wait|fish_bite|eat|drink>:<frame>
-			return _player(parts[1] == "back", parts[2], int(parts[3]))
-		"villager": # villager:<id>:<front|back>:<idle|walk|work|fish>:<frame>, from the look in data/villagers/<id>.json
-			return _villager(Villagers.look(parts[1]), parts[2] == "back", parts[3], int(parts[4]))
+		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk|fish_wait|fish_bite|eat|drink>:<frame>, 24 x 32 (FigureArt)
+			return FigureArt.draw(FigureArt.FARMER_LOOK, parts[1] == "back", parts[2], int(parts[3]), true)
+		"villager": # villager:<id>:<front|back>:<idle|walk|work|fish>:<frame>, 24 x 32, from the look in data/villagers/<id>.json
+			return FigureArt.draw(Villagers.look(parts[1]), parts[2] == "back", parts[3], int(parts[4]))
 		"target":   # corner brackets laid on the cell the tool will hit
 			var c := Color(1, 1, 1, 0.85)
 			return _draw(16, 16, [[0, 0, 5, 1, c], [0, 0, 1, 5, c], [11, 0, 5, 1, c], [15, 0, 1, 5, c],
@@ -444,344 +444,46 @@ static func _draw(w: int, h: int, rects: Array) -> Image:
 	return img
 
 
-## Farmer frames, 16 x 24: head and torso from a pixel map, legs and hands placed per frame.
-## The camera looks along a diagonal, so every walking direction is a screen diagonal: the
-## front view is turned three-quarters towards the lower left (Down), the back view towards
-## the upper left (Left); mirrored they serve Right and Up. Steps go sideways on screen.
-const _FARMER_COLORS := {
-	"o": "2a1e1e", "h": "c8452c", "H": "8e2c1c", "s": "f2c79b", "S": "d29a6e", "e": "2a2a3a",
-	"r": "6b4423", "R": "4e3018", "b": "3b6fd1", "B": "2a50a0", "d": "34426a", "y": "d9b45a",
-	"k": "5e3d1e",
-}
-const _FARMER_FRONT := [
-	".....oooooooo...",
-	"....ohhhhhhhho..",
-	"...ohhhhhhhhhho.",
-	".ooHHHHHHHHHHHo.",
-	"..osssssrrrrrro.",
-	"..osssssssrrrro.",
-	"..osessessSrro..",
-	"..osessessSrro..",
-	"...oSssssSSoo...",
-	".....oSSSoo.....",
-	"....obbbbbbo....",
-	"...obbbbbbbbo...",
-	"...obdbbbbdbo...",
-	"...obddddddbo...",
-	"...oBddddddBo...",
-	"....oddddddo....",
-	"....oddddddo....",
-]
-const _FARMER_BACK := [
-	".....oooooooo...",
-	"....ohhhhhhhho..",
-	"...ohhhhhhhhhho.",
-	".ooHHHHHHHHHHHo.",
-	"..oSrrrrrrrrro..",
-	"..oSrrrrrrrrro..",
-	"..osrrrrrrrrro..",
-	"..oRrrrrrrrrRo..",
-	"...oSRrrrrrRo...",
-	".....oSSSoo.....",
-	"....obbbbbbo....",
-	"...obbbbbbbbo...",
-	"...obbdbbdbbo...",
-	"...obbbddbbbo...",
-	"...oBbbddbbBo...",
-	"....oddddddo....",
-	"....oddddddo....",
-]
-## Per pose, per frame: [body drop, near leg x shift, near leg lift, far leg x shift,
-## far leg lift, near hand x shift, far hand x shift]. Negative x = the way the view faces.
-## Walk / run cycles go contact, pass, contact, pass: on contact the legs are spread with the
-## opposite arm forward and the body 1 px lower; on a pass one foot is lifted under the body.
-const _FARMER_POSES := {
-	"idle": [[0, 0, 0, 0, 0, 0, 0]],
-	"walk": [[1, -2, 0, 2, 0, 2, -2], [0, 0, 0, 0, 2, 0, 0], [1, 2, 0, -2, 0, -2, 2], [0, 0, 2, 0, 0, 0, 0]],
-	"run": [[1, -3, 0, 3, 0, 3, -3], [0, 0, 0, 0, 3, 0, 0], [1, 3, 0, -3, 0, -3, 3], [0, 0, 3, 0, 0, 0, 0]],
-	# Tired: slumped 1-2 px lower, slow heavy breaths standing, short dragging steps walking.
-	"tired_idle": [[1, 0, 0, 0, 0, 0, 0], [2, 0, 0, 0, 0, 0, 0]],
-	"tired_walk": [[2, -1, 0, 1, 0, 1, -1], [1, 0, 0, 0, 1, 0, 0], [2, 1, 0, -1, 0, -1, 1], [1, 0, 1, 0, 0, 0, 0]],
-	# Holding: both arms up by the head steadying the item overhead (the hand shifts are
-	# unused); shorter, careful steps, and the load bobs with the body.
-	"hold_idle": [[0, 0, 0, 0, 0, 0, 0]],
-	"hold_walk": [[1, -2, 0, 2, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0], [1, 2, 0, -2, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0]],
-	# Fishing: both hands together in front on the rod butt (hand shifts towards the water);
-	# waiting the rod stands up still, on a bite the farmer leans in and the tip jerks down.
-	"fish_wait": [[0, 0, 0, 0, 0, -1, -5]],
-	"fish_bite": [[1, -1, 0, 1, 0, -1, -5], [1, -1, 0, 1, 0, -1, -5]],
-	# Eating / drinking: standing, the near hand up at the mouth (_MOUTH_HANDS); eating
-	# bites, then chews with the hand lowered a little; drinking tips the cup up on the sip.
-	"eat": [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0]],
-	"drink": [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]],
-}
-## Per eat / drink frame: [near hand x, hand y, what it holds: "bite" (a morsel at the lips),
-## "chew" (the bitten rest), "cup" (upright at the lips), "tip" (tipped up)]. Front view facing
-## left; seen from the back the face hides what is in the hand.
-const _MOUTH_HANDS := {
-	"eat": [[3, 8, "bite"], [3, 11, "chew"]],
-	"drink": [[2, 10, "cup"], [2, 8, "tip"]],
-}
-const _MORSEL := Color("f4ecd8")
-const _CUP := Color("d8c8a8")
-const _CUP_TEA := Color("7aa848")
-## The rod's tip per fishing pose frame, in sprite pixels (the line starts here).
-const _ROD_TIPS := {"fish_wait": [Vector2i(0, 1)], "fish_bite": [Vector2i(0, 8), Vector2i(0, 6)]}
-const _ROD := Color("c8a85a")
-const _ROD_NODE := Color("8a6a32")
-const _SWEAT := Color("9fd8f2")
+## The farmer and villager figures are drawn by FigureArt (24 x 32, front / back, four
+## directions with the mirror); these keep the older calls working.
+const FIGURE_SIZE := Vector2i(FigureArt.W, FigureArt.H)
+const VILLAGER_STYLES: Array[String] = ["bun", "short", "headband", "long", "straw_hat"]
+const VILLAGER_OUTFITS: Array[String] = ["kimono", "happi", "shirt_shorts"]
+const VILLAGER_BUILDS: Array[String] = ["adult", "elder", "child"]
+const _ROD := FigureArt.ROD
+const _ROD_NODE := FigureArt.ROD_NODE
 
 
 static func farmer_frames(pose: String) -> int:
-	return _FARMER_POSES[pose].size()
+	return FigureArt.frames(pose)
 
 
-## Where the rod tip is in a fishing frame (sprite pixels, front view facing left).
+## Where the rod tip is in a fishing frame (sprite pixels, front view facing left; the same
+## from the back).
 static func rod_tip(pose: String, frame: int) -> Vector2i:
-	var tips: Array = _ROD_TIPS.get(pose, [Vector2i(0, 1)])
-	return tips[frame % tips.size()]
+	return FigureArt.rod_tip(pose, frame)
 
 
 ## How many pixels a frame drops the body (and what the raised hands hold) below its rest.
 static func farmer_drop(pose: String, frame: int) -> int:
-	return _FARMER_POSES[pose][frame % farmer_frames(pose)][0]
+	return FigureArt.row(pose, frame)[0]
+
+
+## The sprite row a held item's bottom rests on (the raised hands' top) on a hold frame.
+static func hold_row(pose: String, frame: int) -> int:
+	return FigureArt.hold_row(pose, frame)
 
 
 ## Where the mine lantern (mine:lantern, 7 x 11) goes on a farmer frame: its top-left pixel.
-## Its loop is in the near hand and it swings with the hand; with the arms up holding something, or
-## both hands on the rod, it hangs at the hip instead.
-static func lantern_at(pose: String, frame: int) -> Vector2i:
-	var p: Array = _FARMER_POSES[pose][frame % farmer_frames(pose)]
-	if pose.begins_with("hold") or _ROD_TIPS.has(pose):
-		return Vector2i(1, 11 + p[0])
-	return Vector2i(2 + p[5], 13 + p[0] + int(pose.begins_with("tired")))
+## It hangs from the near hand (screen right from the front, screen left from the back) and
+## swings with it; with the arms up or both hands on the rod, at the near hip instead.
+static func lantern_at(pose: String, frame: int, back := false) -> Vector2i:
+	return FigureArt.lantern_at(pose, frame, back)
 
 
-## Draw order back to front: far hand, far leg, near leg, body, bag, near hand. The bag hangs
-## at the farmer's back on the front view and at the front on the back view.
-static func _player(back: bool, pose: String, frame: int) -> Image:
-	var p: Array = _FARMER_POSES[pose][frame % farmer_frames(pose)]
-	var tired := pose.begins_with("tired")
-	var arms: int = p[0] + int(tired)   # tired arms hang a pixel lower
-	var hold := pose.begins_with("hold")
-	var mouth: Array = _MOUTH_HANDS[pose][frame % farmer_frames(pose)] if _MOUTH_HANDS.has(pose) else []
-	var img := Image.create_empty(16, 24, false, Image.FORMAT_RGBA8)
-	img.fill(Color(0, 0, 0, 0))
-	if not hold:
-		_hand(img, 11 + p[6], 14 + arms)
-	_leg(img, 8 + p[3], p[4])
-	_leg(img, 5 + p[1], p[2])
-	_map(img, _FARMER_BACK if back else _FARMER_FRONT, p[0])
-	var bag_x := 1 if back else 11
-	img.fill_rect(Rect2i(bag_x, 14 + p[0], 4, 5), Color(_FARMER_COLORS.o))
-	img.fill_rect(Rect2i(bag_x + 1, 15 + p[0], 2, 3), Color(_FARMER_COLORS.y))
-	if hold:
-		_raised_arm(img, 1, p[0])
-		_raised_arm(img, 13, p[0])
-	elif not mouth.is_empty():
-		if not back:
-			_in_hand(img, mouth[0], mouth[1] + p[0], mouth[2])
-		_hand(img, mouth[0], mouth[1] + p[0])
-	else:
-		_hand(img, 4 + p[5], 14 + arms)
-	if _ROD_TIPS.has(pose):   # the bamboo rod from the hands up to its tip, a node every few px
-		var tip := rod_tip(pose, frame)
-		var butt := Vector2i(4 + p[5], 15 + arms)
-		_line(img, butt, tip, _ROD)
-		for t in [0.3, 0.6]:
-			var q := Vector2(butt).lerp(Vector2(tip), t).round()
-			_px(img, int(q.x), int(q.y), 1, 1, _ROD_NODE)
-	if tired:   # a drop of sweat by the brow: in front of the face, or behind the head seen from the back
-		var sx := 14 if back else 1
-		img.fill_rect(Rect2i(sx, 4 + p[0], 1, 1), Color.WHITE)
-		img.fill_rect(Rect2i(sx, 5 + p[0], 1, 2), _SWEAT)
-	return img
-
-
-## An arm lifted from the shoulder up the side of the head, its hand at the top of the cap
-## where the held item rests (the view draws the item just above the sprite).
-static func _raised_arm(img: Image, x: int, dy: int) -> void:
-	img.fill_rect(Rect2i(x - 1, dy, 4, 12), Color(_FARMER_COLORS.o))
-	img.fill_rect(Rect2i(x, 3 + dy, 2, 8), Color(_FARMER_COLORS.b))
-	img.fill_rect(Rect2i(x, 10 + dy, 2, 1), Color(_FARMER_COLORS.B))
-	img.fill_rect(Rect2i(x, dy, 2, 2), Color(_FARMER_COLORS.s))
-
-
-## What the hand at the mouth (`x`, `y`, as _hand) holds, drawn before the hand so the
-## fingers close over it: a morsel or its bitten rest, a cup upright or tipped to the lips.
-static func _in_hand(img: Image, x: int, y: int, what: String) -> void:
-	var o := Color(_FARMER_COLORS.o)
-	match what:
-		"bite":
-			_px(img, x - 2, y - 2, 4, 4, o)
-			_px(img, x - 1, y - 1, 2, 2, _MORSEL)
-		"chew":
-			_px(img, x - 2, y - 1, 3, 3, o)
-			_px(img, x - 1, y, 1, 1, _MORSEL)
-		"cup":
-			_px(img, x - 3, y - 3, 4, 5, o)
-			_px(img, x - 2, y - 3, 2, 1, _CUP_TEA)
-			_px(img, x - 2, y - 2, 2, 3, _CUP)
-		"tip":
-			_px(img, x - 3, y - 2, 5, 4, o)
-			_px(img, x - 2, y - 1, 3, 2, _CUP)
-			_px(img, x + 1, y - 1, 1, 1, _CUP_TEA)
-
-
-## A 2 x 2 hand under the sleeve, outlined on the sides and below.
-static func _hand(img: Image, x: int, y: int) -> void:
-	img.fill_rect(Rect2i(x - 1, y, 4, 3), Color(_FARMER_COLORS.o))
-	img.fill_rect(Rect2i(x, y, 2, 2), Color(_FARMER_COLORS.s))
-
-
-## One leg: 3 px of trousers and boot inside a 1 px outline, from under the body to the ground,
-## shorter by `lift` when the foot is off the ground.
-static func _leg(img: Image, x: int, lift: int) -> void:
-	var bottom := 23 - lift
-	img.fill_rect(Rect2i(x - 1, 16, 5, bottom - 15), Color(_FARMER_COLORS.o))
-	img.fill_rect(Rect2i(x, 16, 3, bottom - 19), Color(_FARMER_COLORS.d))
-	img.fill_rect(Rect2i(x, bottom - 3, 3, 3), Color(_FARMER_COLORS.k))
-
-
-static func _map(img: Image, rows: Array, dy: int) -> void:
-	for y in rows.size():
-		var row: String = rows[y]
-		for x in row.length():
-			if row[x] != ".":
-				img.set_pixel(x, y + dy, Color(_FARMER_COLORS[row[x]]))
-
-
-## Villager frames, 16 x 24 like the farmer and seen the same way (front = three-quarters
-## towards Down, back = towards Left; mirrored for Right / Up). The head is a hair style over
-## a shared face, the body an outfit; colours come from the villager's look (hair, skin, top,
-## waist, lower, accent, shoes; darker shades are worked out). Map letters: o outline,
-## h / H hair, s / S skin, e eye, a / A accent (hat, headband, hairpin), t / T top, w waist
-## (obi, sash), l / L lower (trousers, shorts).
-const VILLAGER_STYLES: Array[String] = ["bun", "short", "headband", "long", "straw_hat"]
-const VILLAGER_OUTFITS: Array[String] = ["kimono", "happi", "shirt_shorts"]
-const _VILLAGER_HEADS := {
-	"bun": [[
-		"..........ooo...", ".....ooooohhho..", "....ohhhhhhhhho.", "...ohhhhhhhhhho.", "..ohhssssshhhho.",
-	], [
-		"......ooo.......", ".....ohhho......", "....ohhhhhoo....", "...ohhhhhhhhho..", "..oHhhhhhhhhho..",
-	]],
-	"short": [[
-		"................", ".....ooooooo....", "....ohhhhhhhoo..", "...ohhhhhhhhhho.", "..ohhhsssshhhho.",
-	], [
-		"................", ".....ooooooo....", "....ohhhhhhhoo..", "...ohhhhhhhhhho.", "..oHhhhhhhhhho..",
-	]],
-	"headband": [[
-		"................", ".....ooooooo....", "....ohhhhhhhoo..", "...oaaaaaaaaaaoo", "..ohhsssssshhhoA",
-	], [
-		"................", ".....ooooooo....", "....ohhhhhhhoo..", "oo.oaaaaaaaaaao.", "Ao.oHhhhhhhhho..",
-	]],
-	"long": [[
-		"................", ".....oooooooo...", "....ohhhhhhhhoa.", "...ohhhhhhhhhhoa", "..ohhsssssshhhho",
-	], [
-		"................", ".....oooooooo...", ".aoohhhhhhhhho..", "aohhhhhhhhhhho..", "..oHhhhhhhhhho..",
-	]],
-	"straw_hat": [[
-		"......oooo......", ".....oaaaaoo....", "....oaaaaaaao...", ".ooAAAAAAAAAAAoo", "..ohhsssssshhho.",
-	], [
-		"......oooo......", ".....oaaaaoo....", "....oaaaaaaao...", ".ooAAAAAAAAAAAoo", "..oHhhhhhhhhho..",
-	]],
-}
-const _VILLAGER_FACE := [
-	"..osssssssshhho.", "..osessessShho..", "..osessessShho..", "...oSssssSSoo...", ".....oSSSoo.....",
-]
-const _VILLAGER_NAPE := [
-	"..oShhhhhhhhho..", "..oshhhhhhhhho..", "..oHhhhhhhhhHo..", "...oSHhhhhhHo...", ".....oSSSoo.....",
-]
-## Rows 10 down; a kimono runs on to the ankles, the others stop where the legs start (16).
-const _VILLAGER_BODIES := {
-	"kimono": [
-		"....otTttTto....", "...ottTttTtto...", "...owwwwwwwwo...", "...otttttttTo...", "...otttttttTo...",
-		"...otttttttTo...", "...otttttttTo...", "...otttttttTo...", "...otttttttTo...", "...otttttttTo...",
-		"...otttttttTo...", "...oTTTTTTTTo...",
-	],
-	"happi": [
-		"....otTttTto....", "...ottTttTtto...", "...owwwwwwwwo...", "...otttttttTo...", "...oTttttttTo...",
-		"....ollllllo....", "....ollllllo....",
-	],
-	"shirt_shorts": [
-		"....otttttto....", "...otttttttto...", "...otttttttto...", "...oTttttttTo...", "....ollllllo....",
-		"....ollllllo....", "....oLLLLLLo....",
-	],
-}
-
-
-## The villager's picture for a pose and frame; `walk` frames step like the farmer's walk;
-## `work` swings a carpenter's hammer (0 = raised over the shoulder, 1 = the blow, the body
-## dipping a pixel into it); `fish` holds a rod out to the right, the line hanging from its tip
-## (0 = the tip up, 1 = dipped by a bite or the current).
-static func _villager(look: Dictionary, back: bool, pose: String, frame: int) -> Image:
-	var p: Array = _FARMER_POSES["walk" if pose == "walk" else "idle"][frame % farmer_frames("walk" if pose == "walk" else "idle")]
-	if pose == "work":
-		p = [frame % 2, 0, 0, 0, 0, 0, 0]
-	var style := str(look.get("hair_style", "short"))
-	var outfit := str(look.get("outfit", "happi"))
-	var c := _villager_colors(look)
-	var img := _blank(16, 24)
-	var hand := func(x: int, y: int) -> void:
-		_px(img, x - 1, y, 4, 3, c.o)
-		_px(img, x, y, 2, 2, c.s)
-	if pose != "work" and pose != "fish":
-		hand.call(11 + p[6], 14 + p[0])
-	if outfit == "kimono":   # short steps under the robe: only the sandals show
-		for f in [[8 + p[3], p[4]], [5 + p[1], p[2]]]:
-			_px(img, f[0] - 1, 21 - mini(f[1], 1), 5, 3, c.o)
-			_px(img, f[0], 22 - mini(f[1], 1), 3, 1, c.k)
-	else:
-		var shin: Color = c.s if outfit == "shirt_shorts" else c.l
-		for f in [[8 + p[3], p[4]], [5 + p[1], p[2]]]:
-			var bottom: int = 23 - f[1]
-			_px(img, f[0] - 1, 16, 5, bottom - 15, c.o)
-			_px(img, f[0], 16, 3, bottom - 19, shin)
-			_px(img, f[0], bottom - 3, 3, 3, c.k)
-	var head: Array = _VILLAGER_HEADS.get(style, _VILLAGER_HEADS.short)[1 if back else 0]
-	var rows: Array = head + (_VILLAGER_NAPE if back else _VILLAGER_FACE) + _VILLAGER_BODIES.get(outfit, _VILLAGER_BODIES.happi)
-	for y in rows.size():
-		var row: String = rows[y]
-		for x in row.length():
-			if row[x] != "." and y + p[0] < 24:
-				img.set_pixel(x, y + p[0], c[row[x]])
-	hand.call(4 + p[5], 14 + p[0])
-	if pose == "work":
-		var wood := Color("a07a4a")
-		var iron := Color("5a5e66")
-		if frame % 2 == 0:   # raised: the handle up past the head, the head across its top
-			_px(img, 12, 1, 3, 9, c.o)
-			_px(img, 13, 2, 1, 7, wood)
-			_px(img, 10, 0, 6, 4, c.o)
-			_px(img, 11, 1, 4, 2, iron)
-			hand.call(13, 8)
-		else:   # the blow: out in front at the waist, the head turned down on the work
-			_px(img, 12, 13, 4, 3, c.o)
-			_px(img, 13, 14, 3, 1, wood)
-			_px(img, 13, 11, 3, 7, c.o)
-			_px(img, 14, 12, 1, 5, iron)
-			hand.call(12, 14)
-	elif pose == "fish":
-		var rod := Color("7a5a32")
-		var line := Color(0.92, 0.92, 0.86, 0.85)
-		var tip := 2 if frame % 2 == 0 else 4
-		for y in range(tip, 14):   # a thin pole from the hand up and out to the sprite's edge
-			img.set_pixel(12 + roundi(3.0 * float(13 - y) / float(13 - tip)), y, rod)
-		for y in range(tip + 1, 23):
-			img.set_pixel(15, y, line)
-		hand.call(12, 13)
-	return img
-
-
-static func _villager_colors(look: Dictionary) -> Dictionary:
-	var pick := func(k: String, fallback: String) -> Color:
-		return Color(str(look.get(k, fallback)))
-	var c := {"o": OUTLINE, "e": Color("2a2a3a"), "h": pick.call("hair", "2a2422"), "s": pick.call("skin", "f2c79b"),
-		"a": pick.call("accent", "e0c070"), "t": pick.call("top", "6a7a8a"), "w": pick.call("waist", "c8a050"),
-		"l": pick.call("lower", "3a3430"), "k": pick.call("shoes", "6b4423")}
-	for k in ["h", "s", "a", "t", "l"]:
-		c[k.to_upper()] = (c[k] as Color).darkened(0.25)
-	return c
+## The top row of villager `id`'s head on their sprite (where a carried thing rests).
+static func villager_top(id: String) -> int:
+	return FigureArt.head_top(Villagers.look(id))
 
 
 ## Field objects and crops share one style with the farmer: shapes in 2-3 shades, then a

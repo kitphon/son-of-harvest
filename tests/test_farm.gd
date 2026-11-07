@@ -119,8 +119,10 @@ func _init() -> void:
 	for pose in ["idle", "walk", "run", "tired_idle", "tired_walk"]:
 		for i in PlaceholderArt.farmer_frames(pose):
 			var img := PlaceholderArt.tex("player:front:%s:%d" % [pose, i]).get_image()
-			check(img.get_size() == Vector2i(16, 24) and (img.get_pixel(5, 22).a > 0 or img.get_pixel(10, 22).a > 0),
-				"%s %d: 16 x 24 with a foot on the ground" % [pose, i])
+			var foot := false
+			for x in img.get_width():
+				foot = foot or img.get_pixel(x, img.get_height() - 2).a > 0
+			check(img.get_size() == PlaceholderArt.FIGURE_SIZE and foot, "%s %d: 24 x 32 with a foot on the ground" % [pose, i])
 
 	# Field sprites: every crop has a look in the data and a sprite per growth look; the key
 	# follows the crop's stage.

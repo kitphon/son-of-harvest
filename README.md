@@ -273,8 +273,11 @@ farmer), and once the picture is back `map_entered(map_id)`, the hook for event 
 Each villager is a file `data/villagers/<id>.json` (shared numbers in `_common.json`: walk
 speed in cells per game minute, cells per walk frame): `id`, `name`, optional `speed`, `look`
 (`outfit` kimono / happi / shirt_shorts, `hair_style` bun / short / headband / long /
-straw_hat, colours `hair`, `skin`, `top`, `waist`, `lower`, `accent`, `shoes`; drawn by
-`PlaceholderArt` as `villager:<id>:<front|back>:<idle|walk>:<frame>`), `birthday`
+straw_hat, `build` adult (unset) / elder (stooping a little) / child (shorter), colours `hair`,
+`skin`, `top`, `waist`, `lower`, `accent`, `shoes`; drawn by `FigureArt`
+(scripts/art/figure_art.gd) as the 24 x 32 key `villager:<id>:<front|back>:<idle|walk|work|fish>:<frame>`,
+like the farmer's `player:...`: front turned towards the lower left, back towards the upper left,
+mirrored for the other two facings; 3D sprites at `FarmWorld.FIGURE_PX` (0.04) a pixel), `birthday`
 (`{"season": "fall", "day": 24}`, optional; the farmhouse calendar names it), optional
 `hearts` (false: a villager the farmer can't grow close to, like Dr. Yae at the clinic: no
 birthday, heart events or place in the village record; `Villagers.friends()` is everyone

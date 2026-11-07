@@ -227,7 +227,7 @@ func _init() -> void:
 			for i in PlaceholderArt.farmer_frames(pose):
 				var img := PlaceholderArt.tex("player:%s:%s:%d" % [back, pose, i]).get_image()
 				var tip := PlaceholderArt.rod_tip(pose, i)
-				check(img.get_size() == Vector2i(16, 24) and img.get_data() != idle, "%s %s %d drawn" % [back, pose, i])
+				check(img.get_size() == PlaceholderArt.FIGURE_SIZE and img.get_data() != idle, "%s %s %d drawn" % [back, pose, i])
 				check(img.get_pixelv(tip).a > 0.0, "%s %s %d: the rod reaches its tip %s" % [back, pose, i, tip])
 	check(PlaceholderArt.rod_tip("fish_bite", 0).y > PlaceholderArt.rod_tip("fish_wait", 0).y, "a bite pulls the tip down")
 	check(PlaceholderArt.tex("fish_fx:bobber").get_size() == Vector2(5, 7) and PlaceholderArt.tex("fish_fx:alert").get_size() == Vector2(7, 11), "bobber and bite mark")

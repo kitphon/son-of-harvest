@@ -16,8 +16,8 @@ const LINE := 11
 const SCALE := 2.0           # the sprites on the stage
 const MORTAR := Vector2(88, 62)      # the usu's top left on the stage
 const DOUGH := Vector2(120, 72)      # where the mallet lands and the ring closes
-const FARMER := Vector2(36, 60)
-const PARTNER := Vector2(156, 60)
+const FARMER := Vector2(52, 108)    # the figures' feet (bottom middle) on the stage
+const PARTNER := Vector2(172, 108)
 const HANDS := Vector2(66, 88)       # the farmer's grip on the handle
 const UP := -0.45            # the mallet's angle raised (radians from upright), and on the dough
 const DOWN := 1.35
@@ -203,11 +203,11 @@ func draw_stage(c: Control) -> void:
 		return
 	c.draw_rect(Rect2(0, 100, STAGE.x, STAGE.y - 100), Color("d8c8a0"))   # the trodden ground
 	var turning := game.turning()
-	_sprite(c, "villager:%s:front:%s:%d" % [partner, "work" if turning else "idle", 1 if turning else 0], PARTNER)
+	_figure(c, "villager:%s:front:%s:%d" % [partner, "work" if turning else "idle", 1 if turning else 0], PARTNER)
 	_sprite(c, "mochi:usu:%d" % game.dough(4), MORTAR)
 	var t := game.time - game.swung_at
 	var swung := t < 0.28
-	_sprite(c, "player:front:%s:0" % ("idle" if swung and t < 0.14 else "hold_idle"), FARMER)
+	_figure(c, "player:front:%s:0" % ("idle" if swung and t < 0.14 else "hold_idle"), FARMER)
 	# The mallet: down onto the dough fast, a moment there, back up slower.
 	var a := UP
 	if swung:
@@ -234,6 +234,12 @@ func draw_stage(c: Control) -> void:
 			"good": c.draw_circle(p, 2.5, Hud.INK)
 			"miss": c.draw_arc(p, 2.5, 0, TAU, 10, Hud.INK_SOFT, 1.0)
 			_: c.draw_circle(p, 1.0, Hud.RULE)
+
+
+## A figure (farmer, villager) standing with its feet at `feet`.
+func _figure(c: Control, key: String, feet: Vector2) -> void:
+	var size := Vector2(PlaceholderArt.FIGURE_SIZE) * SCALE
+	_sprite(c, key, feet - Vector2(size.x / 2.0, size.y))
 
 
 func _sprite(c: Control, key: String, at: Vector2) -> void:

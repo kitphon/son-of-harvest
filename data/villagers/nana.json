@@ -4,7 +4,7 @@
 	"name": "Nana",
 	"hearts": false,
 	"speed": 2.0,
-	"look": {
+	"look": {"build": "child", 
 		"outfit": "shirt_shorts",
 		"hair_style": "short",
 		"hair": "3a2420",
