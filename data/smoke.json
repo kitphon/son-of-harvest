@@ -1,5 +1,5 @@
 {
-	"_about": "Hearth smoke (HearthSmoke): thin pale smoke rising from the farmhouse's thatched ridge and the village houses' roofs at meal times, outdoors only. `windows` are the hours of the game clock [from, to] when the cooking fires burn (6:00-8:30 and 17:00-19:30); the smoke fades in and out over `fade_hours` at each end, so it never pops on or off. `hide_in` lists the weather looks that bury it (a storm; light rain and snow leave it be; data/weather_fx.json). Each puff rises `rise` units from the ridge over `period` real seconds, from `size` wide at the start to `size` x `grow` at the top, fading in then out; `lean` is how far the top of a rise drifts sideways at a gale (data/wind.json's wind strength, scaled by 0.3 + wind, so calm days still lean a little). `wobble` is the small side-to-side sway of each puff. `alpha` is the puff's strongest opacity; `color` the smoke's colour (lit, so it darkens at night with the rest). Balance numbers are ours.",
+	"_about": "Hearth smoke (HearthSmoke): thin pale smoke rising from the farmhouse's thatched ridge and the village houses' roofs at meal times, outdoors only. `windows` are the hours of the game clock [from, to] when the cooking fires burn (6:00-8:30 and 17:00-19:30); the smoke fades in and out over `fade_hours` at each end, so it never pops on or off. `hide_in` lists the weather looks that bury it (a storm; light rain and snow leave it be; data/weather_fx.json). Each puff rises `rise` units from the ridge over `period` real seconds, from `size` wide at the start to `size` x `grow` at the top, fading in then out; `lean` is how far the top of a rise drifts sideways at a gale (data/wind.json's wind strength, scaled by 0.3 + wind, so calm days still lean a little). `wobble` is the small side-to-side sway of each puff. `alpha` is the puff's strongest opacity; `color` the smoke's colour (lit, so it darkens at night with the rest). `flat` is the same smoke in the flat view (SmokeView, drawn from above in pixels, 16 px = 1 cell): the same windows, fade, storm rule, period, grow, wind and puff count; `size_px` is a puff's width at the start, `rise_px` how far it climbs up the screen from the vent (the roof's ridge, seen from above), `lean_px` its drift at a gale, `wobble_px` its sway and `alpha` its strongest opacity. Balance numbers are ours.",
 	"windows": [[6.0, 8.5], [17.0, 19.5]],
 	"fade_hours": 0.33,
 	"hide_in": ["storm"],
@@ -11,5 +11,6 @@
 	"alpha": 0.55,
 	"color": "ece8e0",
 	"lean": 0.9,
-	"wobble": 0.04
+	"wobble": 0.04,
+	"flat": {"size_px": 3.0, "rise_px": 26.0, "lean_px": 14.0, "wobble_px": 1.5, "alpha": 0.7}
 }
