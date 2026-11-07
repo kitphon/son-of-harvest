@@ -10,6 +10,50 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Pale plaster takes the night lamps (a warm wash on the walls round lit windows)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: docs/ART_DIRECTION.md section 3's open item. Why plaster took little of the lamps: the
+  night tint multiplies the whole picture after the 3D lights, so nothing under it can be brighter
+  than the tint (46529a), and white plaster already sits near that cap under the night sun
+  (Sayo's store, unlit sunward plaster 58,66,121; lamp-lit plaster 70,82,114: red and green at the
+  cap). No per-material or sun / tint balance under the tint can lift it past the cap, and a
+  lighter tint with a dimmer sun would change the unshaded ground and sprites. So NightLights adds
+  a fourth pass, "Washes", between the BackBufferCopy and the glows: `NightLights.wall_wash(win,
+  glow, rules)` lays a soft disc on each lit window's / shoji door's wall plane, `reach` 1.6 cells
+  either side, from the ground to `up` 0.6 over the window, in up to four pieces round the pane
+  (the paper keeps the pane's own orange; a first try over the pane bleached a door to white),
+  a door's up to 1.5 times as strong like its pool, on the windows' schedule and seen-through
+  fade. Its shader (blend_add, screen texture) adds data/light.json "pools" → "wall" colour
+  ffa050 times strength 0.4 in dithered steps, only where the copy's blue over the tint's blue
+  (about the brightness before the tint) lies between pale_from 0.45 and pale_full 0.72: plaster
+  and paper take it, dark boards, posts, roofs, the ground (real lamps and pools) do not. The wash
+  rects join `_lit`, so figures in front are drawn back from the copy. Night sun, tint, ground,
+  lamps and the day unchanged. The festival decorations were already lit meshes
+  (FestivalMeshes, StallWares; only lantern paper and flames, which give light, are unshaded), so
+  nothing to do there; docs corrected.
+- Checked: test_maps `_wall_wash` (data present; for every town window: pieces on its wall plane,
+  off the pane, spanning +-reach from the ground to over the window, UVs centred on the window;
+  strength follows the glow, none at 0; a door brighter, no piece under a door; the pass order
+  copy < washes < glows < figures; the shader reads the screen and the tint; plaster's picture
+  blue over pale_full, the boards' under pale_from). Mutating the left piece over the pane and
+  the UV centre made it fail (2 fails), so it bites. All 28 test scripts print OK (0 failed).
+  Smoke runs (title, --demo, --demo --map=town, --demo --mine=3, --demo --festival=lantern_night,
+  --demo --map=town@sayo --time=21:00) logged 0 error / warning lines. Pixels (480x270 frames,
+  before / after): `--demo --map=town@sayo --time=21:00` 5521 px changed, all in x 220..388 y
+  33..122 (Sayo's walls), mean on them 95,97,126 -> 159,139,148; plaster by the side window
+  121,117,127 -> 222,181,158, further off 90,96,125 -> 175,149,151; no changed pixel whose blue
+  was under 0.45 of the tint's (dark wood, ground untouched), the farmer's pixels unchanged. Same
+  view at `--festival=lantern_night` (20:01): 134,124,127 -> 236,187,159 and 103,102,125 ->
+  189,156,152. `--demo --time=21:00` (farmhouse plaster between timbers): 2976 px, mean 85,88,115
+  -> 159,134,138. `--demo --map=town --time=21:00` (the timber house's earthen wall by its door):
+  only the 3D pixels at the door's frame edge change (805 px with the HUD forecast); the earthen
+  wall stays with the real lamps. Day `--demo --map=town --time=10:00`: only 91 px in the HUD's
+  tomorrow-forecast icon differ, which is rolled at random per run (two after-runs are identical
+  pixel for pixel); the 3D picture is identical.
+- Left / next: earthen (tsuchi) and yakisugi walls keep the real lamps only (their red is at the
+  cap); stone lanterns wash no walls (none stands by a plaster wall today); the flat view has no
+  walls to wash; sprites stay unshaded.
+
 ## 2026-11-07 — The festival stalls' wares as lit meshes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: docs/ART_DIRECTION.md section 1's open item. `scripts/world3d/stall_wares.gd` (StallWares)

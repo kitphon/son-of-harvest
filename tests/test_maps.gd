@@ -508,7 +508,92 @@ func _light_pools(world: Node3D, occ: RefCounted) -> void:
 	check(NightLights.ground_seen(Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(0, 1, 20), blocker) == 0.0, "a house in front hides a pool")
 	check(NightLights.ground_seen(Vector3(0, 0, 1), Vector3(0, 1, 3), Vector3(0, 1, 20), blocker) == 1.0, "the house that casts a pool never hides it")
 	box.free()
+	_wall_wash(world)
 	_night_lamps(world)
+
+
+## The warm wash on the pale walls round the lit windows (NightLights.wall_wash, data/light.json
+## "pools" → "wall"), drawn over the tint since the tint caps the real lamps on white plaster:
+## pieces on the window's wall plane round (not over) the pane, from the ground to over the
+## window, `reach` either side, the falloff's middle at the window; as bright as the windows
+## glow; a door brighter; kept to pale pixels by its shader, in its own pass between the copy
+## and the glows.
+func _wall_wash(world: Node3D) -> void:
+	var NightLights: GDScript = load("res://scripts/world3d/night_lights.gd")
+	var light: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/light.json"))
+	var wr: Dictionary = light.pools.get("wall", {})
+	check(not wr.is_empty() and float(wr.get("strength", 0)) > 0.0 and float(wr.reach) > 0.0
+		and float(wr.pale_from) < float(wr.pale_full), "data/light.json pools.wall: a strength, a reach, pale_from under pale_full")
+	var reach := float(wr.get("reach", 1.0))
+	var on_plane := true
+	var no_pane := true
+	var spans := true
+	var centred := true
+	var lit := true
+	for win in world.windows:
+		var wash: Dictionary = NightLights.wall_wash(win, 1.0, wr)
+		lit = lit and wash.strength > 0.0 and wash.pieces.size() >= 3
+		var right: Vector3 = Vector3.UP.cross(win.normal).normalized()
+		var half: Vector2 = win.size / 2.0
+		var lo := INF
+		var hi := -INF
+		var top := -INF
+		var foot := INF
+		for piece in wash.pieces:
+			var cs: Array = piece.corners
+			var bb := Rect2()
+			for i in 4:
+				var d: Vector3 = cs[i] - win.pos
+				on_plane = on_plane and absf(d.dot(win.normal)) < 0.0001
+				var x := d.dot(right)
+				lo = minf(lo, x)
+				hi = maxf(hi, x)
+				top = maxf(top, cs[i].y)
+				foot = minf(foot, cs[i].y)
+				var p := Vector2(x, cs[i].y)
+				bb = Rect2(p, Vector2.ZERO) if i == 0 else bb.expand(p)
+				# The uv is the point's offset from the window's middle in reaches (y down).
+				centred = centred and piece.uvs[i].is_equal_approx(Vector2(x, win.pos.y - cs[i].y) / reach)
+			var pane := Rect2(-half.x, win.pos.y - half.y, win.size.x, win.size.y)
+			no_pane = no_pane and bb.intersection(pane).get_area() < 0.0001
+		spans = spans and is_equal_approx(lo, -reach) and is_equal_approx(hi, reach) and foot <= 0.0 \
+			and top > win.pos.y + half.y
+	check(lit, "every lit window washes its wall (in three or four pieces)")
+	check(on_plane, "the wash lies on the window's wall plane")
+	check(no_pane, "the wash keeps off the pane itself")
+	check(spans, "the wash runs `reach` either side, from the ground to over the window")
+	check(centred, "the wash's falloff is centred on the window")
+	var win: Dictionary = world.windows[0]
+	var full: float = NightLights.wall_wash(win, 1.0, wr).strength
+	check(NightLights.wall_wash(win, 0.0, wr).strength == 0.0 and is_equal_approx(NightLights.wall_wash(win, 0.5, wr).strength, full * 0.5),
+		"the wash follows the windows' glow (none by day)")
+	var small := {"key": "build:shoji", "pos": Vector3(0, 1, 0), "size": Vector2(0.7, 0.5), "normal": Vector3(0, 0, 1)}
+	var door := {"key": "build:shoji_door", "pos": Vector3(0, 0.55, 0), "size": Vector2(0.8, 1.1), "normal": Vector3(0, 0, 1)}
+	check(NightLights.wall_wash(door, 1.0, wr).strength > NightLights.wall_wash(small, 1.0, wr).strength, "a door washes its wall brighter than a window")
+	check(NightLights.wall_wash(door, 1.0, wr).pieces.size() == 3, "a door down to the ground: no piece under it")
+	# Its pass: after the copy, before the glows, its shader keeping it to the pale pixels.
+	var nl: Control = NightLights.new()
+	root.add_child(nl)
+	var order: bool = nl.copy.get_index() < nl.washes.get_index() and nl.washes.get_index() < nl.glows.get_index() \
+		and nl.glows.get_index() < nl.figures.get_index()
+	check(order, "the wash is drawn after the copy and before the glows and the figures")
+	var code: String = (nl.washes.material as ShaderMaterial).shader.code
+	check("hint_screen_texture" in code and "blend_add" in code and "pale" in code and "tint" in code,
+		"the wash's shader adds light only where the copy is pale for the tint")
+	# The pale mask splits the walls: white plaster's picture over pale_full, the dark boards'
+	# under pale_from (the night sun and sky light keep a lit face near its picture).
+	var blue := func(key: String) -> float:
+		var img: Image = PlaceholderArt.tex(key).get_image()
+		var sum := 0.0
+		for y in img.get_height():
+			for x in img.get_width():
+				sum += img.get_pixel(x, y).b
+		return sum / (img.get_width() * img.get_height())
+	var plaster: float = blue.call("build:plaster")
+	var board: float = blue.call("build:board")
+	check(plaster > float(wr.pale_full) and board < float(wr.pale_from),
+		"plaster (%.2f) takes the wash, dark boards (%.2f) do not" % [plaster, board])
+	nl.free()
 
 
 ## Real warm lights at night (NightLamps, data/light.json "lamps"): one for every lit window and

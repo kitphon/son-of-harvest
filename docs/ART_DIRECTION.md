@@ -218,10 +218,19 @@ Light and Farmhouse model hold the technical detail of what is built.
       their colour divided by the tint so they land warm; the ground, water and grass left to
       the drawn pools; the night blue a touch lighter (46529a); the festival's lights and
       stalls lighting the ground in both views (NightLights.festival_pools). (this commit)
-      Still open: pale plaster takes little of the lamps (near white under the night sun
-      before the tint; dimming the night sun under a lighter tint would free it, but changes
-      the measured ground); unshaded pieces (sprites, the festival props' flat colours) do
-      not take them.
+      Pale plaster takes them too (this commit): the tint multiplies the picture after the
+      lights, so nothing under it can be brighter than the tint (46529a) and near-white
+      plaster had no room left for the lamps. NightLights now adds a warm wash
+      (`wall_wash`, data/light.json "pools" → "wall") on the wall round every lit window and
+      shoji door over the tint, like the pools, in its own pass after the copy; its shader
+      keeps it to pale pixels (the copy's blue over the tint's blue between pale_from and
+      pale_full), so plaster and paper take it and dark boards, posts, roofs and the ground
+      (lit by the real lamps and the pools) do not; the pane itself is left out; figures in
+      front are drawn back. The night sun, the tint, the ground and the day are unchanged.
+      Still open: the earthen (tsuchi) and yakisugi walls stay with the real lamps (red
+      already at the tint's cap there); stone lanterns wash no walls (none stands by one);
+      sprites stay unshaded. The festival decorations are lit meshes since
+      FestivalMeshes / StallWares; only what gives light (lantern paper, flames) is unshaded.
 - [x] Morning and evening sun colour and angle following the clock (data/light.json "sun",
       `Game.sun_light`, `Main3D._aim_sun`: low orange sun from the lower left at 5:30, golden
       morning, high plain noon, golden evening from the upper left, back to the plain night
