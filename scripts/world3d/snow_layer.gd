@@ -12,6 +12,12 @@ extends RefCounted
 const MASK_PER_CELL := 4       # mask pixels per cell; linear filtering blends kinds over 1/4 cell
 const NOISE_SIZE := 128        # noise texture pixels; it spans NOISE_CELLS cells and repeats
 const NOISE_CELLS := 8.0
+## Snow tops (roofs, lids, caps, pads) fill up faster than the ground: whole at this much
+## cover and above, below it the ground's pattern at cover / TOP_FULL. The ground's equalised
+## noise leaves 1 - cover of the pixels bare in clumps a few cells wide: right for a field,
+## but on a small roof it reads as holes torn in the snow. Snow that sticks to a roof covers
+## it evenly and only thins (melts off in patches) when little lies.
+const TOP_FULL := 0.5
 
 const _SNOW_AT := """
 uniform sampler2D noise : repeat_enable, filter_nearest;
@@ -67,9 +73,11 @@ void fragment() {
 """
 
 ## Lit, so roof tops keep the sun's shading; bare spots are cut away and show the roof below.
+## The amount is top_amount(cover): whole from TOP_FULL up.
 const TOP_SHADER := "shader_type spatial;\n" + _COMMON + """
+uniform float top_full = 0.5;
 void fragment() {
-	float s = snow_at(world.xz + vec2(world.y * 0.37), cover);
+	float s = snow_at(world.xz + vec2(world.y * 0.37), min(cover / top_full, 1.0));
 	if (s < 0.5) discard;
 	ALBEDO = s > 1.5 ? snow_color : rim_color;
 }
@@ -141,7 +149,21 @@ static func canvas_material() -> ShaderMaterial:
 
 
 static func top_material() -> ShaderMaterial:
-	return _material(TOP_SHADER)
+	var m := _material(TOP_SHADER)
+	m.set_shader_parameter("top_full", TOP_FULL)
+	return m
+
+
+## The share of a snow top's pixels under snow (the shader's amount) at ground `cover` 0..1.
+static func top_amount(cover: float) -> float:
+	return minf(cover / TOP_FULL, 1.0)
+
+
+## A pixel with noise value `n` at `amount`: 2 snow, 1 rim, 0 bare (snow_at past its noise
+## lookup, for the tests).
+static func snow_kind(n: float, amount: float) -> int:
+	var a := amount * 1.08
+	return 2 if n < a - 0.08 else (1 if n < a else 0)
 
 
 ## Seamless noise, equalised: every value 0..1 is equally common, so `cover` is the share of

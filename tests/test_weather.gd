@@ -78,6 +78,30 @@ func _init() -> void:
 			low += 1 if noise.get_pixel(x, y).r < 0.4 else 0
 	var share := float(low) / (noise.get_width() * noise.get_height())
 	check(absf(share - 0.4) < 0.01, "equalised noise: cover 0.4 whitens 40%% of pixels (%.3f)" % share)
+	# Snow tops (roofs) fill up faster than the ground: whole from TOP_FULL up, so a roof at
+	# high cover has no bare clumps (they read as holes), while the ground keeps its patches.
+	var shares := func(amount: float) -> Vector2:   # x: snow, y: bare, shares of the noise pixels
+		var n_snow := 0
+		var n_bare := 0
+		for y in noise.get_height():
+			for x in noise.get_width():
+				var kind := SnowLayer.snow_kind(noise.get_pixel(x, y).r, amount)
+				n_snow += 1 if kind == 2 else 0
+				n_bare += 1 if kind == 0 else 0
+		return Vector2(n_snow, n_bare) / float(noise.get_width() * noise.get_height())
+	var top80: Vector2 = shares.call(SnowLayer.top_amount(0.8))
+	var top_full: Vector2 = shares.call(SnowLayer.top_amount(SnowLayer.TOP_FULL))
+	var ground80: Vector2 = shares.call(0.8)
+	var ground100: Vector2 = shares.call(1.0)
+	var top30: Vector2 = shares.call(SnowLayer.top_amount(0.3))
+	check(top80.x == 1.0 and top_full.x == 1.0, "roof snow whole at cover 0.8 and at TOP_FULL (%.3f %.3f)" % [top80.x, top_full.x])
+	check(ground80.y > 0.1 and ground80.x < 0.85, "ground at cover 0.8 keeps bare patches (snow %.3f, bare %.3f)" % [ground80.x, ground80.y])
+	check(ground100.x == 1.0, "ground at full cover is all snow (%.4f)" % ground100.x)
+	check(top30.y > 0.2 and top30.x > 0.3 and top30.x > shares.call(0.3).x, "light snow: roofs thin in patches, still whiter than the ground (snow %.3f, bare %.3f)" % [top30.x, top30.y])
+	var top_mat := SnowLayer.top_material()
+	check(is_equal_approx(top_mat.get_shader_parameter("top_full"), SnowLayer.TOP_FULL)
+		and SnowLayer.TOP_SHADER.contains("min(cover / top_full, 1.0)"),
+		"the top shader fills by cover / top_full, whole at 1")
 
 	# The 2D view: the overlay starts hidden, follows the cover, and its mask follows the ground.
 	var view := FarmView.new()

@@ -10,6 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Roof snow without patch holes
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the long-open "patch holes" in the roof snow. Root cause: `SnowLayer.TOP_SHADER` (the
+  snow tops on every roof, lid, cap and pad) fed the ground's raw `cover` into the ground's
+  equalised noise, which by design leaves 1 - cover of the pixels bare, in clumps a few cells
+  wide (the noise tile spans 8 cells). Right for a field at 0.8; on a 5 x 3 roof one of those
+  bare clumps is a hole torn in the snow, with the grey tiles showing through (town@store at
+  snow 80 had a hole over a third of the roof's width). Not the geometry, the normals, the
+  see-through fade (it hides snow tops whole) or a renderer pitfall: the top shader reads no
+  COLOR or INSTANCE_CUSTOM, and `world` comes from MODEL_MATRIX. Fix: snow tops take
+  `min(cover / top_full, 1.0)` as their amount (`SnowLayer.TOP_FULL` = 0.5, set as the
+  `top_full` uniform by `top_material()`; GDScript twin `top_amount`). So from half cover up
+  roofs read as one even cover, and below it they thin in the same ragged patches (at snow 30
+  about 57 % white plus the rim, the ground about 24 %), as snow melting off a roof. Our number: 0.5, so a roof is
+  whole once half the ground is white (a snowy day lays 50, data/snow_cover.json "fall"). The
+  ground, the flat view and the tufts' and crops' snow are unchanged (`_SNOW_AT` untouched).
+- Checked: test_weather (new: on the noise image, roof snow is 100 % white at cover 0.8 and at
+  TOP_FULL; the ground at 0.8 keeps bare patches; the ground at 1.0 is all snow; at 0.3 roofs
+  are part bare yet whiter than the ground; the material carries top_full and the shader the
+  clamp). Before / after frames of town, town@store, kaminoda@well and the farm at snow 80 and
+  30: at 80 the town roofs' holes are gone, the farmhouse thatch and lids fully white; at 30
+  roofs show patches, the ground looks the same as before. All tests OK, smoke runs clean.
+- Left / next: nothing for the roof snow. The flat view's roof overlay (`roof_mask_image`,
+  "roofs" 0.7) still uses the ground's pattern; not touched here (another agent's area).
+
 ## 2026-11-07 — Grass and rice part round the farmer
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: new `Parting` (scripts/world3d/parting.gd): a GLSL `part_push(root)` included in the

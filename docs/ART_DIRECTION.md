@@ -88,8 +88,10 @@ Light and Farmhouse model hold the technical detail of what is built.
       ridge ends (`Minka.ridge`) and real tile rows. (4395016)
 - [x] Village house variety: per-house `roof` (gable / hip: `Minka.hip`), `storeys` (2: a
       low upper floor over a tiled pent roof, upstairs windows lit at night) and `wall`
-      (plaster / yakisugi / timber) fields in data/maps. (this commit) Still open: the roof
-      snow shows the top shader's patch holes (as before; the snow shader, not the roof).
+      (plaster / yakisugi / timber) fields in data/maps. (this commit) The roof snow's patch
+      holes are fixed: snow tops fill at cover / `SnowLayer.TOP_FULL` (0.5), so roofs, lids
+      and caps are whole from half cover up and only thin in patches when little lies; the
+      ground keeps its equalised patches.
 - [x] Shrine pieces: torii with curved kasagi and real cross section, the hokora, stone
       lanterns (`shrine.gd`: `Shrine.torii`, `hokora`, `stone_lantern`). (63b877f)
 - [x] The seed stand, chest and bin by the farmhouse (`farm_props.gd`: `FarmProps.bin`,
