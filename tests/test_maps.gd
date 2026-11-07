@@ -247,6 +247,7 @@ func _process(delta: float) -> bool:
 		_hearth_smoke()
 		_start_view()
 	elif _frame == 3:
+		_crops_clock()
 		var g: Node = root.get_node("Game")
 		_k("shader_warm").clear()   # every kind of the house is new: the fade's black draws them
 		_warm_before = _k("shader_warm").shown
@@ -300,6 +301,12 @@ func _start_view() -> void:
 			"night lights: pools, then a copy of the picture, then the glows, then the figures")
 		check(lights[0].figures.material is ShaderMaterial and "hint_screen_texture" in lights[0].figures.material.shader.code,
 			"the figures are drawn back from the copy (the screen as it was before the glows)")
+		# The field's lift comes first, from its own copy of the tinted picture (no pools yet), so it
+		# can tell the field's own pixels from what stands in front of them.
+		var fc := kids.find(lights[0].field_copy)
+		check(fc >= 0 and fc < kids.find(lights[0].field) and kids.find(lights[0].field) < kids.find(lights[0].pools)
+			and kids.find(lights[0].pools) < copy_at and "hint_screen_texture" in lights[0].field.material.shader.code,
+			"night lights: the field's copy, the field's lift, the pools, then the copy for the walls and glows")
 		check(_scene.sprite.is_in_group(lights[0].FIGURES), "the farmer is a figure the glows keep off")
 	# The real lamps: a bounded few OmniLight3Ds without shadows, lit at night, all off by day.
 	var lamps: Node3D = _scene.lamps
@@ -326,6 +333,17 @@ func _start_view() -> void:
 		g.minute = mi
 		_scene.tint.color = g.light_color()
 		lamps._process(0.0)
+
+
+## A few frames into the farm: its tall crops sway on their own clock (CropClusters.clock, not the
+## shader's TIME), every picture told each frame, so NightLights' field lift can follow the sway.
+func _crops_clock() -> void:
+	var is_cc := func(n: Node) -> bool: return n.get_script() != null and n.get_script().resource_path.ends_with("crop_clusters.gd")
+	var ccs := _scene.find_children("*", "Node3D", true, false).filter(is_cc)
+	var ticking := not ccs.is_empty()
+	for cc in ccs:
+		ticking = ticking and cc.clock > 0.0 and cc.materials().all(func(m): return is_equal_approx(float(m.get_shader_parameter("clock")), cc.clock))
+	check(ticking, "the 3D view's tall crops sway on their clock, every picture told (%d)" % ccs.size())
 
 
 func _check_view() -> void:

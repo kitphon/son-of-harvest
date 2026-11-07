@@ -895,6 +895,7 @@ func _sprite_light(game_script: GDScript, fx: Dictionary) -> void:
 	var pc: Array = NL.plant_corners(Vector3(2, 0, 3), tex, 1.0, Basis())
 	check(((pc[2] + pc[3]) / 2.0).is_equal_approx(Vector3(2, 0, 3)) and is_equal_approx(pc[0].y - pc[3].y, tex.get_height() * FW.PX),
 		"sprite light: a plant's quad stands on its root at its picture's size")
+	_field_pass(SL, NL, CC, FW, field_cc, crop_s, item_s, spots, rules)
 	for n in [crop_s, item_s, back_s, far_s, fig, field_cc, lamp_s, lamp_t]:
 		n.free()
 	wall.free()
@@ -904,6 +905,109 @@ func _sprite_light(game_script: GDScript, fx: Dictionary) -> void:
 	check(nl.warmth != null and nl.warmth.get_index() > nl.figures.get_index() and nl.warmth.get_index() == nl.get_child_count() - 1,
 		"sprite light: the warmth is NightLights' last pass")
 	nl.free()
+
+
+## The field's lift in its own pass (NightLights pass 0): the lift and its falloff and cap reach
+## each plant's and sprite's quad unchanged, a plant's quad follows its sway and parting as the
+## shader moves it (CropClusters.tip_shift on the `clock` uniform), and the pixel test that keeps
+## the lift off whatever stands in front (NightLights.field_off, FIELD_SHADER's twin).
+func _field_pass(SL: GDScript, NL: GDScript, CC: GDScript, FW: GDScript, cc: Node3D, crop_s: Sprite3D,
+		item_s: Sprite3D, spots: Array, rules: Dictionary) -> void:
+	var lr: Dictionary = rules.get("lift", {})
+	var reach := float(lr.range)
+	cc.set_cover(0.0)
+	cc.plant({Vector2i(4, 5): "stalk:corn:3:growing"}, func(_c: Vector2i) -> float: return 0.0)
+	var cam := Camera3D.new()
+	root.add_child(cam)
+	cam.position = Vector3(5, 9, 16)
+	cam.look_at(Vector3(5, 0, 5))
+	cam.make_current()
+	var lifts: Array = SL.field_lifts([crop_s, item_s], [cc], spots, rules)
+	# Falloff and cap as before: a lone window's energy times (1 - d / range)², at most `max`.
+	var spot: Vector3 = spots[0].pos
+	var falloff_ok := true
+	for e in lifts:
+		var f := 1.0 - (e.mid as Vector3).distance_to(spot) / reach
+		falloff_ok = falloff_ok and is_equal_approx(e.k, minf(float(lr.window) * f * f, float(lr.max)))
+	check(lifts.size() == 5 and falloff_ok, "field pass: each lift is the window's energy x (1 - d / range)², capped (%d lifts)" % lifts.size())
+	var quads: Array = NL.field_quads(lifts, cam)
+	var plant_q: Array = quads.filter(func(q): return q.tex != crop_s.texture and q.tex != item_s.texture)
+	var by_k := true
+	for i in lifts.size():
+		var e: Dictionary = lifts[i]
+		var shade := 1.0 if e.has("sprite") else float(e.plant.shade)
+		var q: Dictionary = quads[i]
+		by_k = by_k and q.color.is_equal_approx(Color(shade, shade, shade, e.k))
+	check(quads.size() == lifts.size() and plant_q.size() == 3 and by_k,
+		"field pass: every lit sprite and plant gets one quad carrying its shade and its lift (%d quads)" % quads.size())
+	# The shader's clock: set on every picture each frame; the sway no longer reads TIME.
+	cc.set_clock(12.5)
+	var clocks_ok: bool = cc.materials().all(func(m): return is_equal_approx(float(m.get_shader_parameter("clock")), 12.5))
+	cc._process(0.5)
+	check(clocks_ok and is_equal_approx(cc.clock, 13.0) and is_equal_approx(float(cc.materials()[1].get_shader_parameter("clock")), 13.0)
+		and not ("TIME" in CC.SHADER) and "uniform float clock" in CC.SHADER,
+		"field pass: the plants sway on the clock the view also knows (%.2f)" % cc.clock)
+	# The quad follows the sway: its top corners move with the clock as the tip does, its root stays.
+	var e0: Dictionary = lifts.filter(func(x): return x.has("crops"))[0]
+	var basis := cam.global_basis
+	var at_t := func(t: float) -> Array:
+		cc.set_clock(t)
+		return NL.field_corners(e0, basis)
+	var a: Array = at_t.call(1.0)
+	var b: Array = at_t.call(2.2)
+	var still: Array = NL.plant_corners(e0.root, e0.tex, float(e0.plant.size), basis)
+	var want: Vector3 = CC.tip_shift(e0.root, float(e0.plant.size), 1.0, 2.2, cc.wind, cc.pushers, cc.part, basis.x)
+	check(a[2].is_equal_approx(still[2]) and b[3].is_equal_approx(still[3]) and not a[0].is_equal_approx(b[0])
+		and b[0].is_equal_approx(still[0] + want) and b[1].is_equal_approx(still[1] + want),
+		"field pass: a lit plant's quad sways with the plant, its root kept (%s)" % want)
+	var amp: float = CC.SWAY * float(e0.plant.size)
+	var calm := true
+	for t in [0.0, 0.7, 3.1, 9.9]:
+		var s: Vector3 = CC.tip_shift(e0.root, float(e0.plant.size), 1.0, t, 0.0, PackedVector2Array(), cc.part, basis.x)
+		calm = calm and s.length() <= amp + 0.0001 and is_zero_approx(s.dot(basis.y)) and is_zero_approx(s.dot(basis.z))
+	check(calm and CC.tip_shift(e0.root, 1.0, 0.0, 3.0, 0.5, PackedVector2Array([Vector2(e0.root.x, e0.root.z + 0.2)]), cc.part, basis.x).is_zero_approx(),
+		"field pass: calm air sways the tip along the view's right, at most SWAY at its size; a stiff stake none")
+	# Parting: the farmer's feet just behind the root push the tip away (+z) and down.
+	var feet := PackedVector2Array([Vector2(e0.root.x, e0.root.z - 0.25)])
+	var parted: Vector3 = CC.tip_shift(e0.root, 1.0, 1.0, 0.0, 0.0, feet, cc.part, basis.x)
+	var plain: Vector3 = CC.tip_shift(e0.root, 1.0, 1.0, 0.0, 0.0, PackedVector2Array(), cc.part, basis.x)
+	check((parted - plain).z > 0.05 and (parted - plain).y < 0.0,
+		"field pass: the quad parts round the farmer's feet as the plant does (%s)" % (parted - plain))
+	cc.set_pushers(feet)
+	cc.set_clock(0.0)
+	var pq: Array = NL.field_quads([e0], cam)
+	var moved: PackedVector2Array = pq[0].pts
+	var flat: PackedVector2Array = NL._project(NL.plant_corners(e0.root, e0.tex, float(e0.plant.size), basis), cam)
+	check(moved[0].distance_to(flat[0]) > 0.5 and moved[3].is_equal_approx(flat[3]),
+		"field pass: the drawn quad stands where the parted plant is (%.1f px)" % moved[0].distance_to(flat[0]))
+	cc.set_pushers(PackedVector2Array())
+	# The pixel test: a plant's or a sprite's own texel as drawn under the night tint takes the lift;
+	# a different picture in front of it (another colour) does not.
+	var match_at := float(lr.get("match", -1.0))
+	check(match_at > 2.0 / 255.0 and match_at < 0.05, "field pass: the match is a few 8-bit steps (%.3f)" % match_at)
+	var tint := Color("46529a")
+	var leaf := Color("4e7e34")
+	var drawn := Color(NL._to_srgb(NL._to_lin(leaf.r) * 0.95) * tint.r, NL._to_srgb(NL._to_lin(leaf.g) * 0.95) * tint.g,
+		NL._to_srgb(NL._to_lin(leaf.b) * 0.95) * tint.b)
+	check(NL.field_off(drawn, leaf, 0.95, Color.WHITE, tint) < match_at, "field pass: a plant's own pixel under the tint matches")
+	check(NL.field_off(leaf * tint + Color(0.004, 0.004, 0.004, 0), leaf, 1.0, Color.WHITE, tint) < match_at,
+		"field pass: a sprite's own pixel matches, a faint bloom on it too")
+	var culm := Color("a89c5c")
+	check(NL.field_off(culm * tint, leaf, 1.0, Color.WHITE, tint) > match_at and NL.field_off(Color("62983e") * tint, leaf, 1.0, Color.WHITE, tint) > match_at,
+		"field pass: a fence or a paler leaf standing in front keeps its own pixel")
+	var gold := Color(1.0, 0.85, 0.7)
+	check(NL.field_off(leaf * gold * tint, leaf, 1.0, gold, tint) < match_at and NL.field_off(leaf * tint, leaf, 1.0, gold, tint) > match_at * 0.5,
+		"field pass: the sun's share is counted in what the view drew")
+	# The pass: its own copy of the tinted picture, then the field, then the pools and their copy.
+	var nl = NL.new()
+	root.add_child(nl)
+	var code: String = (nl.field.material as ShaderMaterial).shader.code
+	check(nl.field_copy.get_index() < nl.field.get_index() and nl.field.get_index() < nl.pools.get_index()
+		and nl.pools.get_index() < nl.copy.get_index() and nl.field_copy.copy_mode == BackBufferCopy.COPY_MODE_VIEWPORT
+		and "hint_screen_texture" in code and "blend_add" in code and not nl.field_copy.visible,
+		"field pass: its own copy of the tinted picture before the pools, added, off while nothing is lit")
+	nl.free()
+	cam.free()
 
 
 func check(ok: bool, what: String) -> void:

@@ -2,8 +2,16 @@ class_name NightLights
 extends Control
 ## Lit house windows and stone lanterns over the 3D view at dusk and night. main_3d puts it in
 ## the tint's layer, after the multiply tint, so the warm light is added on top of the night
-## blue instead of being darkened by it. Three passes, in this order:
-##  1. pools (this node): a soft warm pool on the ground in front of every lit window and round
+## blue instead of being darkened by it. The passes, in this order:
+##  0. the field's lift ("Field", after its own BackBufferCopy "FieldCopy" of the tinted picture,
+##     only while something of the field is lit): the crops, cluster plants, items and objects near
+##     a lit window, door, stone lantern or festival light (SpriteLight.field_lifts, worked out once
+##     a game minute) take warm light added in proportion to their own colour, as strong as
+##     SpriteLight.lift_at says. The overlay knows no depth, so each pixel takes it only where the
+##     copy shows that picture's own pixel there as the 3D view draws it under the tint
+##     (`field_off`): a plant, fence, figure or anything else standing in front keeps its own
+##     pixels. A cluster plant's quad follows its sway and parting (CropClusters.tip_shift).
+##  1. pools ("Pools"): a soft warm pool on the ground in front of every lit window and round
 ##     every stone lantern, its edge cut into dithered steps like the mine lantern's;
 ##  2. wall washes (after a BackBufferCopy, so the copy holds the picture with the pools but no
 ##     glow yet): a soft warm disc on the wall round every lit window and door, added only where
@@ -20,9 +28,7 @@ extends Control
 ##  5. warmth (the very last): a figure near a lit window, door, stone lantern or festival light
 ##     is drawn back once more with warm light added in proportion to its own colour (its
 ##     picture's pixels), as strong as SpriteLight.lift_at says (data/light.json "sprites" → "lift"),
-##     so it reads warm by the light while one in the dark stays night blue. The field's crops,
-##     cluster plants, items and objects near a light take the same lift first
-##     (SpriteLight.field_lifts, worked out once a game minute), so a figure in front covers them.
+##     so it reads warm by the light while one in the dark stays night blue.
 ## How bright is Game.window_light() (data/light.json "windows": with the dark, in the lit
 ## hours); the pools follow it too (data/light.json "pools"). A window turned from the camera,
 ## or behind another building, stays dark; a building faded see-through lets the light through
@@ -129,8 +135,69 @@ void fragment() {
 }
 """
 
+## Pass 0, the field's lift, added: a field picture's own colour (its texel) times the warm light
+## times its shade (the vertex colour's red; 1 for a sprite) times the lift (its alpha), only on
+## the pixels inside the picture's outline where the copy (FieldCopy: the tinted 3D picture,
+## before the pools) shows that texel as the 3D view draws it (`off`, the same math as
+## NightLights.field_off): what stands in front of it keeps its own pixels. The texel half a
+## texel either way is tried too, so a pixel on a texel's edge matches whichever side the 3D view
+## drew.
+const FIELD_SHADER := """
+shader_type canvas_item;
+render_mode blend_add;
+
+uniform sampler2D screen : hint_screen_texture, filter_nearest;
+uniform vec3 tint = vec3(1.0);
+uniform vec3 sun = vec3(1.0);
+uniform vec3 warm = vec3(1.0);
+uniform float match = 0.024;
+varying vec4 lift;
+
+vec3 to_lin(vec3 c) {
+	return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c));
+}
+
+vec3 to_srgb(vec3 c) {
+	return mix(c * 12.92, 1.055 * pow(max(c, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), c));
+}
+
+float off(vec3 seen, vec3 own, float shade) {
+	vec3 a = abs(seen - to_srgb(to_lin(own) * shade * sun) * tint);
+	vec3 b = abs(seen - own * shade * sun * tint);
+	return min(max(a.r, max(a.g, a.b)), max(b.r, max(b.g, b.b)));
+}
+
+void vertex() {
+	lift = COLOR;
+}
+
+void fragment() {
+	if (texture(TEXTURE, UV).a < 0.5) {
+		discard;   // outside the picture's outline, as the figures' pass
+	}
+	vec3 seen = textureLod(screen, SCREEN_UV, 0.0).rgb;
+	vec2 h = 0.5 / vec2(textureSize(TEXTURE, 0));
+	vec2 tries[5] = vec2[5](vec2(0.0), vec2(h.x, 0.0), vec2(-h.x, 0.0), vec2(0.0, h.y), vec2(0.0, -h.y));
+	vec4 hit = vec4(0.0);
+	for (int i = 0; i < 5; i++) {
+		vec4 own = texture(TEXTURE, UV + tries[i]);
+		if (own.a >= 0.5 && off(seen, own.rgb, lift.r) < match) {
+			hit = own;
+			break;
+		}
+	}
+	if (hit.a < 0.5) {
+		discard;
+	}
+	COLOR = vec4(hit.rgb * warm * lift.r, lift.a);
+}
+"""
+
 static var _dot: Texture2D
 
+var field_copy: BackBufferCopy   # pass 0's copy of the tinted picture (shown only while the field is lit)
+var field: Control     # pass 0: the field's lift, kept to its own pixels
+var pools: Control     # pass 1: the ground pools
 var washes: Control    # pass 2: warm light on the pale walls round lit windows
 var finishes: Control  # pass 2 too: on the earthen and charred board walls
 var glows: Control     # pass 3: panes, halos, lantern glows
@@ -145,7 +212,8 @@ var _finishes: Array[Dictionary] = []  # {pts, uvs, color} earthen and board wal
 var _lamps: Array[Dictionary] = []     # {at: Vector2, px, color}
 var _lit: Array[Dictionary] = []       # {rect: Rect2, pos, normal} everything glowing on screen
 var _shields: Array[Dictionary] = []   # {pts, uvs, tex} figure quads drawn back
-var _warm: Array[Dictionary] = []      # {pts, uvs, tex, color} field and figure quads drawn back warmer
+var _warm: Array[Dictionary] = []      # {pts, uvs, tex, color} figure quads drawn back warmer
+var _field_quads: Array[Dictionary] = []   # {pts, uvs, tex, color (shade, shade, shade, lift)} pass 0
 ## The field's lifts (SpriteLight.field_lifts), worked out once a game minute or when the field
 ## changes (`_field_key`: how many lit sprites there are and which plantings), projected each frame.
 var _field: Array[Dictionary] = []
@@ -156,7 +224,19 @@ var _field_key := []
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	material = _shader_material(POOL_SHADER)
+	field_copy = BackBufferCopy.new()
+	field_copy.name = "FieldCopy"
+	field_copy.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+	field_copy.visible = false
+	add_child(field_copy)
+	field = _layer("Field")
+	field.material = _shader_material(FIELD_SHADER)
+	field.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	field.visible = false
+	field.draw.connect(_draw_field)
+	pools = _layer("Pools")
+	pools.material = _shader_material(POOL_SHADER)
+	pools.draw.connect(_draw_pools)
 	copy = BackBufferCopy.new()
 	copy.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
 	add_child(copy)
@@ -220,7 +300,11 @@ static func figure(s: Sprite3D) -> void:
 func _process(_delta: float) -> void:
 	_plan()
 	_plan_warmth()
-	queue_redraw()
+	# The field's copy costs a full-screen copy a frame: only while something of the field is lit.
+	field_copy.visible = not _field_quads.is_empty()
+	field.visible = field_copy.visible
+	field.queue_redraw()
+	pools.queue_redraw()
 	washes.queue_redraw()
 	finishes.queue_redraw()
 	glows.queue_redraw()
@@ -411,11 +495,12 @@ static func _quads(s: Sprite3D, cam: Camera3D, lit_only := false) -> Array[Dicti
 
 ## Pass 5's work: every figure near a light that burns now (SpriteLight.spots_of: the lit
 ## windows and lanterns of the worlds on show, the festival lights) and not behind a solid
-## building, with its lift (SpriteLight.lift_at) as the warm colour's alpha; before them the
+## building, with its lift (SpriteLight.lift_at) as the warm colour's alpha; and pass 0's: the
 ## field's crops, plants, items and objects by the same rule (SpriteLight.field_lifts, kept for a
-## game minute), so a figure standing in front of one is drawn over it afterwards.
+## game minute), each plant's quad where its sway and parting put it now.
 func _plan_warmth() -> void:
 	_warm.clear()
+	_field_quads.clear()
 	var cam := get_viewport().get_camera_3d()
 	if cam == null:
 		return
@@ -438,7 +523,8 @@ func _plan_warmth() -> void:
 	if spots.is_empty():
 		_field.clear()
 		return
-	var warm := Color(str(rules.get("lift", {}).get("color", "ffa050")))
+	var lr: Dictionary = rules.get("lift", {})
+	var warm := Color(str(lr.get("color", "ffa050")))
 	var occ: Occluders = worlds[0].occluders if worlds.size() == 1 else null
 	var eye := cam.global_position
 	var behind := func(at: Vector3) -> bool:
@@ -446,8 +532,13 @@ func _plan_warmth() -> void:
 			if hidden(at, eye, w.occluders):
 				return true
 		return false
-	# The field first (its lifts kept for a game minute): figures drawn after cover it where they
-	# stand in front.
+	var tint := Game.light_color()
+	var fm := field.material as ShaderMaterial
+	fm.set_shader_parameter("tint", Vector3(tint.r, tint.g, tint.b))
+	fm.set_shader_parameter("sun", Vector3(SpriteLight.now.r, SpriteLight.now.g, SpriteLight.now.b))
+	fm.set_shader_parameter("warm", Vector3(warm.r, warm.g, warm.b))
+	fm.set_shader_parameter("match", float(lr.get("match", 0.024)))
+	# The field (its lifts kept for a game minute), in its own pass before the pools.
 	if _field_dirty or _field_changed():
 		_field_dirty = false
 		var lit: Array = []
@@ -459,36 +550,13 @@ func _plan_warmth() -> void:
 			elif n is Sprite3D:
 				lit.append(n)
 		_field = SpriteLight.field_lifts(lit, _field_key.filter(func(x): return x is CropClusters), spots, rules, occ)
-	var field_box := Rect2()
+	var shown: Array[Dictionary] = []
 	for e in _field:
-		if behind.call(e.mid):
-			continue
-		var c := warm
-		c.a = e.k
-		var quads: Array[Dictionary] = []
-		if e.has("sprite"):
-			var s = e.sprite
-			if not is_instance_valid(s):
-				_field_dirty = true   # replaced (a new picture): worked out again next frame
-				continue
-			if not s.is_visible_in_tree() or s.global_position.distance_to(e.at) > 0.05:
-				continue   # gone, hidden or moved since: none until the next minute
-			quads = _quads(s, cam, true)
-		else:
-			if not is_instance_valid(e.crops) or not e.crops.is_visible_in_tree():
-				continue
-			var pts := _project(plant_corners(e.root, e.tex, float(e.plant.size), cam.global_basis), cam)
-			if pts.is_empty():
-				continue
-			var u0 := 1.0 if e.plant.flip else 0.0
-			quads = [{"pts": pts, "tex": e.tex,
-				"uvs": PackedVector2Array([Vector2(u0, 0), Vector2(1 - u0, 0), Vector2(1 - u0, 1), Vector2(u0, 1)])}]
-			var shade := float(e.plant.shade)
-			c = Color(warm.r * shade, warm.g * shade, warm.b * shade, e.k)
-		for q in quads:
-			q.color = c
-			_warm.append(q)
-			field_box = _bounds(q.pts) if field_box.size == Vector2.ZERO else field_box.merge(_bounds(q.pts))
+		if e.has("sprite") and not is_instance_valid(e.sprite):
+			_field_dirty = true   # replaced (a new picture): worked out again next frame
+		elif not behind.call(e.mid):
+			shown.append(e)
+	_field_quads = field_quads(shown, cam)
 	for s in get_tree().get_nodes_in_group(FIGURES):
 		if not (s is Sprite3D and s.is_visible_in_tree() and s.texture != null):
 			continue
@@ -496,17 +564,9 @@ func _plan_warmth() -> void:
 		if behind.call(mid):
 			continue
 		var k := SpriteLight.lift_at(mid, spots, rules, occ)
-		if k <= 0.01 and field_box.size == Vector2.ZERO:
+		if k <= 0.01:
 			continue
 		var quads := _quads(s, cam, true)
-		if k <= 0.01:
-			# Out of the light: drawn back plain only where it stands over a lifted field object.
-			var over := false
-			for q in quads:
-				over = over or field_box.intersects(_bounds(q.pts))
-			if not over:
-				continue
-			k = 0.0
 		var c := warm
 		c.a = k
 		for q in quads:
@@ -531,6 +591,37 @@ func _field_changed() -> bool:
 	return false
 
 
+## Pass 0's quads for the field's lifts `field` (SpriteLight.field_lifts entries) seen by `cam`:
+## {pts, uvs, tex, color}, the colour (shade, shade, shade, lift): a plant's own shade (1 for a
+## sprite) and its lift, which FIELD_SHADER turns into warm light. A sprite gone, hidden or moved
+## since its lift was worked out is left out until the next minute; a plant's quad stands where
+## its sway and parting put it now (field_corners).
+static func field_quads(field: Array, cam: Camera3D) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for e in field:
+		var quads: Array[Dictionary] = []
+		var shade := 1.0
+		if e.has("sprite"):
+			var s = e.sprite
+			if not is_instance_valid(s) or not s.is_visible_in_tree() or s.global_position.distance_to(e.at) > 0.05:
+				continue
+			quads = _quads(s, cam, true)
+		else:
+			if not is_instance_valid(e.crops) or not e.crops.is_visible_in_tree():
+				continue
+			var pts := _project(field_corners(e, cam.global_basis), cam)
+			if pts.is_empty():
+				continue
+			var u0 := 1.0 if e.plant.flip else 0.0
+			quads = [{"pts": pts, "tex": e.tex,
+				"uvs": PackedVector2Array([Vector2(u0, 0), Vector2(1 - u0, 0), Vector2(1 - u0, 1), Vector2(u0, 1)])}]
+			shade = float(e.plant.shade)
+		for q in quads:
+			q.color = Color(shade, shade, shade, e.k)
+			out.append(q)
+	return out
+
+
 ## A CropClusters plant's quad standing on `root` (its picture `tex` at `size`, FarmWorld.PX a
 ## pixel, faced like a billboard for a camera turned `basis`), in the order of its UVs.
 static func plant_corners(root: Vector3, tex: Texture2D, size: float, basis: Basis) -> Array[Vector3]:
@@ -539,9 +630,55 @@ static func plant_corners(root: Vector3, tex: Texture2D, size: float, basis: Bas
 	return [root - right + up, root + right + up, root + right, root - right]
 
 
-func _draw() -> void:
+## A lit plant's quad (a SpriteLight.field_lifts entry: {crops, plant, tex, root}) where its
+## CropClusters draws it now: plant_corners with the two top corners moved by the plant's sway and
+## parting at the cluster's clock, wind and pushers (CropClusters.tip_shift), so the lift stays on
+## the plant as it moves.
+static func field_corners(e: Dictionary, basis: Basis) -> Array[Vector3]:
+	var size := float(e.plant.size)
+	var pts := plant_corners(e.root, e.tex, size, basis)
+	var cc = e.crops
+	var stiff := float(CropClusters.layout(str(e.plant.key)).get("stiff", 1.0))
+	var shift := CropClusters.tip_shift(e.root, size, stiff, cc.clock, cc.wind, cc.pushers, cc.part, basis.x)
+	pts[0] += shift
+	pts[1] += shift
+	return pts
+
+
+## The GDScript twin of FIELD_SHADER's `off`: how far the copy's pixel `seen` is from texel `own`
+## of a field picture as the 3D view draws it under the tint (`tint`), shaded `shade` (a plant's;
+## 1 for a sprite) in the sun's share `sun`: the plants' shader multiplies in linear light, a
+## sprite's modulate on its colour, so the nearer of the two. Under data/light.json "sprites" →
+## "lift" → "match" the pixel is that picture's and takes the lift; past it something else stands
+## in front there.
+static func field_off(seen: Color, own: Color, shade: float, sun: Color, tint: Color) -> float:
+	var off := INF
+	for lin in [true, false]:
+		var d := 0.0
+		for i in 3:
+			var o: float = own[i]
+			var drawn: float = (_to_srgb(_to_lin(o) * shade * sun[i]) if lin else o * shade * sun[i]) * tint[i]
+			d = maxf(d, absf(seen[i] - drawn))
+		off = minf(off, d)
+	return off
+
+
+static func _to_lin(c: float) -> float:
+	return c / 12.92 if c < 0.04045 else pow((c + 0.055) / 1.055, 2.4)
+
+
+static func _to_srgb(c: float) -> float:
+	return c * 12.92 if c < 0.0031308 else 1.055 * pow(maxf(c, 0.0), 1.0 / 2.4) - 0.055
+
+
+func _draw_field() -> void:
+	for q in _field_quads:
+		field.draw_colored_polygon(q.pts, q.color, q.uvs, q.tex)
+
+
+func _draw_pools() -> void:
 	for p in _pools:
-		draw_colored_polygon(p.pts, p.color, PackedVector2Array([Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)]))
+		pools.draw_colored_polygon(p.pts, p.color, PackedVector2Array([Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)]))
 
 
 func _draw_washes() -> void:

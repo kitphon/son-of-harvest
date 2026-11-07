@@ -313,11 +313,16 @@ Light and Farmhouse model hold the technical detail of what is built.
       or the roofs' outline, so it would not match the shadows on the ground.
       The field takes the same night lift (2026-11-07): crop sprites, the CropClusters plants,
       items lying on the ground, forage, eggs and the other unshaded field sprites near a light
-      are drawn back in the Warmth pass, before the figures (so a figure in front covers them),
-      by the same rule and numbers (`SpriteLight.field_lifts`, measured at the middle of each
+      take warm light added in proportion to their own colours (at first in the Warmth pass,
+      before the figures), by the same rule and numbers (`SpriteLight.field_lifts`, measured at the middle of each
       picture; worked out once a game minute or when the field changes, only projected per
       frame), their own pixels times the warm colour, so the pool under them is not counted
-      twice. A cluster plant's quad does not follow its sway (well under a pixel in calm air).
+      twice. Since 2026-11-08 the field's lift has its own pass before the pools, from its own
+      copy of the tinted picture: a pixel takes it only where that copy shows the picture's own
+      texel as the 3D view draws it (within data/light.json sprites.lift.match), so a plant, a
+      fence, a figure or rain in front of a lit plant keeps its own pixels; a cluster plant's
+      quad follows its sway and parting (the plants sway on `CropClusters.clock`, and
+      `CropClusters.tip_shift` is the shader's math in GDScript).
       Stone lanterns wash the walls (2026-11-07): a lit lantern standing in front of a house
       wall (one with lit windows, `NightLights.lamp_walls`) adds the same kind of soft warm disc
       on it (`lamp_wash`, data/light.json "pools" → "wall" → "lamp"), centred on the point of
@@ -327,8 +332,7 @@ Light and Farmhouse model hold the technical detail of what is built.
       charred boards through the finish pass, cut to the wall's ends, the finish's bands and
       posts and round the panes; a building between the fire box and the wall drops it. Two
       lanterns now stand by village walls so it shows: by Tome's timber house and by the
-      clinic's door. Still open: the overlay knows no
-      depth, so a lit plant behind another plant or a fence is drawn over it where they overlap.
+      clinic's door.
       The festival decorations are lit meshes since
       FestivalMeshes / StallWares; only what gives light (lantern paper, flames) is unshaded.
 - [x] Morning and evening sun colour and angle following the clock (data/light.json "sun",

@@ -61,6 +61,12 @@ var _water_material: ShaderMaterial
 static var _paddy_data := {}
 static var _glint := {}
 var _sun := Color.WHITE
+## The sway's time in seconds, advanced each frame (also while paused, as TIME was) and set on
+## every picture's `clock`; NightLights reads it to stand a lit plant's warm quad where the plant is.
+var clock := 0.0
+## The pushers' feet as last fed (set_pushers) and the parting numbers (Parting.rules "crops").
+var pushers := PackedVector2Array()
+var part: Dictionary = {}
 
 const SHADER := "shader_type spatial;\nrender_mode unshaded, cull_disabled;\n" + SnowLayer._SNOW_AT + Parting.GLSL + """
 uniform sampler2D tex : source_color, filter_nearest;
@@ -68,6 +74,7 @@ uniform float sway = 0.03;
 uniform float wind = 0.0;   // 0 dead calm .. 1 a gale (data/wind.json, FarmWorld.set_wind)
 uniform float stiff = 1.0;   // 1 = the tip sways and parts fully; a stake holds the vine firmer
 uniform vec3 sun = vec3(1.0);   // the sun's share by the clock, as on the Sprite3Ds (SpriteLight)
+uniform float clock = 0.0;   // seconds (CropClusters.clock, each frame): the sway's time, known to NightLights too
 void vertex() {
 	vec3 root = MODEL_MATRIX[3].xyz;
 	float s = length(MODEL_MATRIX[1].xyz);
@@ -78,8 +85,9 @@ void vertex() {
 		// The wind as the grass takes it: a bigger, quicker swing, a slow gust swell and a flutter
 		// by place, and a small lean downwind (+x, in the parting's world push below); none of it
 		// when the air is still.
-		float gust = 1.0 + wind * (0.8 * sin(TIME * 0.55 + root.x * 0.25) + 0.4 * sin(TIME * 1.7 + root.z * 0.5));
-		float t = TIME * (1.3 + 0.9 * wind) + root.x * 0.9 + root.z * 0.6;
+		// (CropClusters.tip_shift is the same in GDScript, for NightLights' field lift.)
+		float gust = 1.0 + wind * (0.8 * sin(clock * 0.55 + root.x * 0.25) + 0.4 * sin(clock * 1.7 + root.z * 0.5));
+		float t = clock * (1.3 + 0.9 * wind) + root.x * 0.9 + root.z * 0.6;
 		VERTEX.x += sin(t) * sway * (1.0 + 1.5 * wind) * gust * k * stiff;
 		// Parting round the farmer (Parting): the tip pushed away and down in world (x, z),
 		// turned into the billboard's camera-facing axes at the plant's size.
@@ -153,6 +161,8 @@ func _init() -> void:
 	_material.set_shader_parameter("sway", SWAY)
 	_material.set_shader_parameter("stiff", 1.0)
 	Parting.setup(_material, "crops")
+	part = Parting.rules("crops")
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_water_material = SnowLayer._material(WATER_SHADER)
 	_water_material.set_shader_parameter("tex", PlaceholderArt.tex(WATER_TEX))
 	var g := glint_config()
@@ -194,8 +204,34 @@ func set_sun(c: Color) -> void:
 ## The pushers' feet in the world (FarmWorld.set_farmer, each frame; Parting.pick): the plants
 ## round them part. Set on the shared material too, so pictures made later start with it.
 func set_pushers(feet: PackedVector2Array) -> void:
+	pushers = feet.slice(0, Parting.MAX_PUSHERS)
 	for m in materials():
 		Parting.feed(m, feet)
+
+
+func _process(delta: float) -> void:
+	set_clock(fmod(clock + delta, 3600.0))
+
+
+## The sway's time (`clock`) on every picture's material.
+func set_clock(t: float) -> void:
+	clock = t
+	for m in materials():
+		m.set_shader_parameter("clock", t)
+
+
+## How far the shader moves a plant's tip (its quad's two top corners; the root stays) at `clock`,
+## in the world: the sway along the camera's right `right` at the plant's `size`, the parting round
+## the pushers' `feet` and the small lean downwind (`part`: Parting.rules), all times `stiff`. The
+## same math as SHADER's vertex(), so NightLights' warm quad for a lit plant follows the plant.
+static func tip_shift(root: Vector3, size: float, stiff: float, t: float, wind_now: float,
+		feet: PackedVector2Array, part_rules: Dictionary, right: Vector3) -> Vector3:
+	var gust := 1.0 + wind_now * (0.8 * sin(t * 0.55 + root.x * 0.25) + 0.4 * sin(t * 1.7 + root.z * 0.5))
+	var phase := t * (1.3 + 0.9 * wind_now) + root.x * 0.9 + root.z * 0.6
+	var sway := sin(phase) * SWAY * (1.0 + 1.5 * wind_now) * gust * stiff
+	var p := Parting.push_all(Vector2(root.x, root.z), feet, float(part_rules.get("radius", Parting.RADIUS)),
+		float(part_rules.get("bend", 0.0)), float(part_rules.get("full", Parting.FULL))) * stiff + Vector2(wind_now * 0.02 * stiff, 0.0)
+	return right.normalized() * sway * size + Vector3(p.x, -p.length() * float(part_rules.get("dip", Parting.DIP)), p.y)
 
 
 ## Every picture's material (each picture has its own copy of the shared one).
@@ -380,6 +416,7 @@ func _layer(tex_key: String) -> MultiMeshInstance3D:
 	m.set_shader_parameter("cover", _cover)
 	m.set_shader_parameter("wind", wind)
 	m.set_shader_parameter("sun", Vector3(_sun.r, _sun.g, _sun.b))
+	m.set_shader_parameter("clock", clock)
 	m.set_shader_parameter("stiff", float(layout(tex_key).get("stiff", 1.0)))
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = MultiMesh.new()
