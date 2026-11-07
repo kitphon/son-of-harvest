@@ -58,6 +58,47 @@ Agent: Claude Code (claude-sonnet) · Commit: this commit
   --demo --map=town, --demo --mine=3) no error or warning lines.
 - Left / next: the one-shots (play) are still made on first use but are short (not measured as hitches).
 
+## 2026-11-07 — Stone lanterns wash the walls
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: a lit stone lantern (FarmWorld.lamps) standing in front of a house wall now puts a soft
+  warm wash on it at night, in the same passes as the windows' (pale plaster in "Washes", earthen
+  plaster and charred boards in "Finishes"). `NightLights.lamp_walls(windows)` groups the lit
+  windows into walls (normal, plane, ends, finish, bands, posts, panes); `lamp_wash(lamp, wall,
+  glow, rules)` is a disc centred on the point of the wall square to the fire box, `reach` cells
+  round it, cut to the wall's ends, to the finish's bands and off its posts (as finish_wash), and
+  round the panes; its strength is that material's window wash strength (and colour) times
+  `share`, times (1 - distance / `out`); none behind the wall, from `out` away, past the wall's
+  end, for a finish without rules or by day. `lamp_washes(...)` drops it where a building stands
+  between the fire box and the wall (light_reaches); `_plan` also needs the wall seen from the eye,
+  with the lantern never hiding its own wash. Data: `data/light.json` pools.wall.lamp {share 0.6,
+  reach 1.0, out 1.6} (why: the fire box is a small light, so smaller than a window's reach 1.6
+  and about half as strong; a lantern a cell's middle from the wall, 0.65 out, gets 0.6 x 0.59
+  of the wall's strength). LitSpots now gives every lit window its wall's `span` (also plaster
+  ones and the farmhouse's; `wall_span`), so plaster walls know their ends. No lantern stood by
+  a wall, so the village (data/maps/town.json) gets two: cell (3, 7) by Tome's timber house and
+  (32, 7) by the clinic's door, both off the villagers' routes and the festival stalls.
+  ART_DIRECTION section 3 updated.
+- Checked: test_maps `_lamp_wash`: data sane (share under 1, reach under the window's); the town's
+  windows stand on fewer walls than windows, every pane on one, every window with a span; the
+  new lanterns wash a plaster and an earthen wall, the shrine's two wash none; every wash on its
+  wall plane, within its ends, above the ground, within `reach`, uvs centred square to the fire
+  box, on the finish's bands and off posts, off the panes, weaker than the window's; on a test
+  wall: fades with distance (exact value at 0.3), none at `out` or behind, half at glow 0.5,
+  none by day, none past the wall's end, none for an unknown finish, a box between stops it.
+  Mutation checks: without the distance falloff and the clip to the wall's ends, "it keeps within
+  the wall's ends ..." and "the wash fades with the lantern's distance from the wall (0.240 near,
+  0.240 further)" FAILED, `test_maps: FAILED (2 failed)`; without the building check, "a building
+  between the lantern and the wall stops its wash" FAILED, `test_maps: FAILED (1 failed)`;
+  restored after. First screenshot showed no change at all (pixel diff 0): the lantern's own
+  occluder box hid its wash from the eye; fixed by passing the fire box as `own`. Then A/B
+  frames (share 0.6 vs 0) at `--demo --map=town@tome --time=21:00`: 984 px changed, mean
+  +14/+9/+5 rgb, on the earthen panel left of Tome's door only; `town@clinic`: 1451 px, mean
+  +17/+10/+5, on the plaster left of the clinic door, the lantern and the farmer left out.
+  `--demo --map=town --time=21:00` looked right by eye. All 28 test scripts print OK; smoke
+  runs (title, --demo, --demo --map=town, --demo --mine=3) no error or warning lines.
+- Left / next: only walls with lit windows are known (the faces the camera sees all have one);
+  the flat view has no wall washes, so the lanterns' is 3D only, like the windows'.
+
 ## 2026-11-07 — Calm paddy ground in the flat view
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: the flat view's paddy cells that grow rice (MapView.paddy_cells, the Kaminoda paddies in
@@ -2245,7 +2286,7 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
   are English.
 - Checked: lang_report --lang=th: before 784 of 1685 done (dialogue 124 of 889, data 305 of 377,
   code 355 of 419); after 1060 of 1688 (dialogue 391 of 889, data 310 of 377, code 359 of 422),
-  0 stale. All 29 test scripts print OK (0 failed); smoke runs (title, --demo, --map=town,
+  0 stale. All 28 test scripts print OK (0 failed); smoke runs (title, --demo, --map=town,
   --mine=3) print no error or warning lines. A `--demo --map=town --event=heart_fumi_5 --lang=th`
   frame shows Fumi's first line in Thai in the text box.
 - Left / next: the villagers' daily talk (talk_*.json) came in the parallel branch (next entry);

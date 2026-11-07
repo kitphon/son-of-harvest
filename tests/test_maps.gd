@@ -708,6 +708,7 @@ func _light_pools(world: Node3D, occ: RefCounted) -> void:
 	box.free()
 	_wall_wash(world)
 	_finish_wash(world)
+	_lamp_wash(world)
 	_night_lamps(world)
 
 
@@ -793,6 +794,111 @@ func _wall_wash(world: Node3D) -> void:
 	check(plaster > float(wr.pale_full) and board < float(wr.pale_from),
 		"plaster (%.2f) takes the wash, dark boards (%.2f) do not" % [plaster, board])
 	nl.free()
+
+
+## The stone lanterns' wash on the house walls they stand in front of (NightLights.lamp_walls /
+## lamp_wash / lamp_washes, data/light.json "pools" → "wall" → "lamp"): smaller and weaker than a
+## window's, of the wall's own material, fading with the distance to nothing at `out`, on the
+## wall plane within its ends (and the finish's bands, off the posts), round the panes, never
+## behind the wall, through another building or by day.
+func _lamp_wash(world: Node3D) -> void:
+	var NightLights: GDScript = load("res://scripts/world3d/night_lights.gd")
+	var light: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/light.json"))
+	var wr: Dictionary = light.pools.wall
+	var lr: Dictionary = wr.get("lamp", {})
+	check(not lr.is_empty() and float(lr.share) > 0.0 and float(lr.share) < 1.0 and float(lr.reach) > 0.0
+		and float(lr.reach) < float(wr.reach) and float(lr.out) > 0.0,
+		"data/light.json pools.wall.lamp: a share under 1, a reach under the window's, an out")
+	var reach := float(lr.reach)
+	# The walls: every window's pane on exactly one, every village window with its wall's ends.
+	var walls: Array = NightLights.lamp_walls(world.windows)
+	var panes := 0
+	for wall in walls:
+		panes += wall.panes.size()
+	check(walls.size() > 0 and walls.size() < world.windows.size() and panes == world.windows.size()
+		and world.windows.all(func(w): return w.has("span")),
+		"the lit windows stand on %d walls (%d panes), each knowing its ends" % [walls.size(), panes])
+	var washes: Array = NightLights.lamp_washes(world.windows, world.lamps, 1.0, wr, world.occluders)
+	var kinds := {}
+	for lw in washes:
+		kinds[lw.finish] = int(kinds.get(lw.finish, 0)) + 1
+	check(kinds.get("", 0) >= 1 and kinds.get("earth", 0) >= 1,
+		"the lanterns by the clinic's plaster and Tome's earthen wall wash them (%s)" % [kinds])
+	# The shrine's lanterns stand in no wall's light.
+	var far: Array = world.lamps.filter(func(l): return l.pos.z < 5.0)
+	check(far.size() == 2 and NightLights.lamp_washes(world.windows, far, 1.0, wr, world.occluders).is_empty(),
+		"the shrine's lanterns, far from any wall, wash none")
+	var on_wall := true
+	var within := true
+	var bands_ok := true
+	var no_pane := true
+	var weaker := true
+	var centred := true
+	for l in world.lamps:
+		for wall in walls:
+			var lw: Dictionary = NightLights.lamp_wash(l, wall, 1.0, wr)
+			if lw.strength <= 0.0:
+				continue
+			var ca: float = l.pos.dot(wall.right)
+			var base := float(wr.strength) if wall.finish == "" else float(wr.finishes[wall.finish].strength)
+			# A window's wash of the material is `base` at the least (a door's more).
+			weaker = weaker and lw.strength <= base * float(lr.share) + 0.0001 and lw.strength < base
+			for piece in lw.pieces:
+				var bb := Rect2()
+				for i in 4:
+					var c: Vector3 = piece.corners[i]
+					on_wall = on_wall and absf(c.dot(wall.normal) - wall.plane) < 0.0001
+					var p := Vector2(c.dot(wall.right), c.y)
+					bb = Rect2(p, Vector2.ZERO) if i == 0 else bb.expand(p)
+					within = within and p.x >= wall.span.x - 0.0001 and p.x <= wall.span.y + 0.0001 and p.y >= -0.0001 \
+						and absf(p.x - ca) <= reach + 0.0001 and absf(p.y - l.pos.y) <= reach + 0.0001
+					centred = centred and piece.uvs[i].is_equal_approx(Vector2(p.x - ca, l.pos.y - p.y) / reach)
+				if wall.finish != "":
+					bands_ok = bands_ok and wall.bands.any(func(b: Vector2): return bb.position.y >= b.x - 0.0001 and bb.end.y <= b.y + 0.0001)
+					for post: Vector2 in wall.posts:
+						bands_ok = bands_ok and (bb.end.x <= post.x + 0.0001 or bb.position.x >= post.y - 0.0001)
+				for pane: Array in wall.panes:
+					no_pane = no_pane and bb.intersection(Rect2(pane[0], pane[2], pane[1] - pane[0], pane[3] - pane[2])).get_area() < 0.0001
+	check(on_wall, "a lantern's wash lies on its wall's plane")
+	check(within, "it keeps within the wall's ends, above the ground, `reach` round the fire box")
+	check(centred, "its falloff is centred on the point of the wall square to the fire box")
+	check(bands_ok, "on earthen and board walls it keeps to the finish's heights and off the posts")
+	check(no_pane, "it keeps off the panes")
+	check(weaker, "a lantern washes its wall more faintly than a window would")
+	# A plain test wall: the falloff with distance, behind it, by day, a building between.
+	var wall: Dictionary = {"normal": Vector3(0, 0, 1), "right": Vector3(1, 0, 0), "plane": 2.0, "span": Vector2(-3, 3),
+		"finish": "", "bands": [Vector2(-INF, INF)], "posts": [], "panes": [[0.5, 1.2, 0.8, 1.3]]}
+	var at := func(d: float) -> Dictionary: return {"pos": Vector3(0, 0.86, 2.0 + d)}
+	var near: float = NightLights.lamp_wash(at.call(0.3), wall, 1.0, wr).strength
+	var mid: float = NightLights.lamp_wash(at.call(0.9), wall, 1.0, wr).strength
+	check(near > mid and mid > 0.0 and is_equal_approx(near, float(wr.strength) * float(lr.share) * (1.0 - 0.3 / float(lr.out))),
+		"the wash fades with the lantern's distance from the wall (%.3f near, %.3f further)" % [near, mid])
+	check(NightLights.lamp_wash(at.call(float(lr.out) + 0.01), wall, 1.0, wr).pieces.is_empty()
+		and NightLights.lamp_wash(at.call(-0.4), wall, 1.0, wr).pieces.is_empty(),
+		"none from `out` cells away or behind the wall")
+	check(NightLights.lamp_wash(at.call(0.3), wall, 0.0, wr).strength == 0.0
+		and is_equal_approx(NightLights.lamp_wash(at.call(0.3), wall, 0.5, wr).strength, near * 0.5),
+		"it follows the lights' glow (none by day)")
+	check(NightLights.lamp_wash({"pos": Vector3(3.0 + reach + 0.1, 0.86, 2.5)}, wall, 1.0, wr).pieces.is_empty(),
+		"none from a lantern past the wall's end")
+	var odd: Dictionary = wall.duplicate()
+	odd.finish = "glass"
+	check(NightLights.lamp_wash(at.call(0.3), odd, 1.0, wr).pieces.is_empty(), "a finish without rules gets none")
+	var win := {"key": "build:shoji", "pos": Vector3(0.85, 1.05, 2.0), "size": Vector2(0.7, 0.5), "normal": Vector3(0, 0, 1),
+		"span": Vector2(-3.85, 2.15)}
+	var lamp := {"pos": Vector3(0, 0.86, 2.6)}
+	var Occluders: GDScript = load("res://scripts/world3d/occluders.gd")
+	var occ: RefCounted = Occluders.new()
+	check(NightLights.lamp_washes([win], [lamp], 1.0, wr, occ).size() == 1, "a lantern in the open washes the wall")
+	var box := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(2, 2, 0.2)
+	box.mesh = mesh
+	box.position = Vector3(0, 1.0, 2.3)
+	box.material_override = StandardMaterial3D.new()
+	occ.add([box])
+	check(NightLights.lamp_washes([win], [lamp], 1.0, wr, occ).is_empty(), "a building between the lantern and the wall stops its wash")
+	box.free()
 
 
 ## The earthen and charred board walls' own warm light at night (NightLights.finish_wash,
