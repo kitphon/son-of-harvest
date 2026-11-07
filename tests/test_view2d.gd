@@ -33,6 +33,7 @@ func _run() -> void:
 	await process_frame
 	player = scene.player
 	_scene_built()
+	await _figure()
 	_tools()
 	await _hold_and_throw()
 	_bin_and_food()
@@ -54,6 +55,44 @@ func _scene_built() -> void:
 	check(_is(scene.view, "farm_view.gd") and g.maps.on_farm(), "it starts with the farm view")
 	check(player.action.is_connected(actions.on_action), "the Player's actions go to FarmActions")
 	check(not g.event_running, "no event is playing")
+
+
+## The flat farmer is the FigureArt picture the 3D view uses: 24 x 32, feet 2 px below the spot
+## like the villagers', turning with the facing and posing with what the farmer does.
+func _figure() -> void:
+	var fig: Sprite2D = player.get_node_or_null("Figure")
+	check(fig != null, "the flat farmer has a figure sprite")
+	if fig == null:
+		return
+	var size := Vector2i(FigureArt.W, FigureArt.H)
+	check(fig.texture != null and fig.texture.get_size() == Vector2(size), "its picture is the 24 x 32 FigureArt size")
+	check(fig.offset == Vector2(-size.x / 2, 2 - size.y), "its feet stand 2 px below the spot, as the villagers' do")
+	for f in [Vector2i.DOWN, Vector2i.UP, Vector2i.LEFT, Vector2i.RIGHT]:
+		player.facing = f
+		await process_frame
+		var key: String = player.anim.key(f)
+		check(fig.texture == PlaceholderArt.tex(key), "facing %s shows %s" % [f, key])
+		check(fig.texture.get_image().get_data() == FigureArt.draw(FigureArt.FARMER_LOOK, FarmerAnim.is_back(f), player.anim.pose, player.anim.frame(), true).get_data(),
+			"facing %s is drawn by FigureArt" % [f])
+		check(fig.flip_h == FarmerAnim.is_mirrored(f), "facing %s mirrors %s" % [f, FarmerAnim.is_mirrored(f)])
+	check(player.anim.key(Vector2i.DOWN).begins_with("player:front") and player.anim.key(Vector2i.UP).begins_with("player:back"), "down is the front picture, up the back")
+	g.held = "turnip"
+	player.facing = Vector2i.DOWN
+	await process_frame
+	await process_frame
+	check(player.anim.pose == "hold_idle" and fig.texture == PlaceholderArt.tex(player.anim.key(Vector2i.DOWN)), "carrying an item shows the hold pose")
+	g.held = ""
+	await process_frame
+	check(player.anim.pose == "idle", "putting it down goes back to idle")
+	g.start_eat_pose(false)
+	await process_frame
+	await process_frame
+	check(player.anim.pose == "eat" and fig.texture == PlaceholderArt.tex(player.anim.key(Vector2i.DOWN)), "eating shows the eat pose")
+	g.eat_pose = ""
+	g.eat_left = 0.0
+	await process_frame
+	await process_frame
+	player.facing = Vector2i.DOWN
 
 
 ## Sends an action as the Player does (its signal), from cell `origin` towards `facing`.

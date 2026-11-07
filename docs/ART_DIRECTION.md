@@ -236,8 +236,10 @@ Light and Farmhouse model hold the technical detail of what is built.
       hachimaki, long and tied, a wide straw hat; `build` in the look: elder (stooping a
       little: Tome, Kiku, Genzo) or child (shorter: Kota, Nana). 3D sprites at
       `FarmWorld.FIGURE_PX` 0.04, so the farmer stands about 1.17 units (was 1.08), a pixel
-      about 1.5 screen pixels at the medium lens. Still open: no eight directions; the flat
-      view shows villagers at their full 32 px (its farmer is still the drawn stand-in).)
+      about 1.5 screen pixels at the medium lens. Still open: no eight directions. Flat view: the farmer is the same FigureArt
+      picture now (`Player`: a Sprite2D "Figure", feet 2 px below the spot like the villagers', FarmerAnim
+      picking pose and frame: walk, run, tired, hold, fish, eat, drink); the carried item, the rod line,
+      the lantern and the "!" are placed from the picture's rows. Test: test_view2d `_figure`.)
 - [x] Animals in the same style. (36d42c6: `scripts/art/animal_art.gd` (AnimalArt) draws hens, chicks, Japanese Black cows and calves, cream-wool sheep, shorn sheep, lambs and the shiba-like dog at twice the farmer's pixel density (`AnimalArt.SCALE`; the layer sets `pixel_size = PX / SCALE`, so world sizes stay), in three tones lit from the upper left, with a warm dark rim. Keys `animal:<kind>:<pose>:<frame>[:<dl|dr|ul|ur>]`: four facings for the diagonal camera (front, back; right = left mirrored), the whole figure tilted a little so the near end stands lower; `AnimalArt.facing_of` turns a step into a facing. States kept: idle (head lift, ear flick), peck / graze, walk (diagonal leg pairs), sick (lying, dull, eyes shut), the dog sitting, wool or shorn, young. Only the dog held in the arms keeps its small old picture. Flat view: `AnimalView._draw_animal` draws them at half size. Test: test_animals `_animal_art`.)
 - [x] Keep the blob shadows, or switch to real sprite shadows (test how billboards cast). (f261048: real shadows won; `SpriteShadow`, data/light.json "sprite_shadows", see the Done table)
 

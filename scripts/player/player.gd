@@ -2,7 +2,8 @@ class_name Player
 extends Node2D
 ## The farmer: walks (8 ways, faces 4), runs with Shift, uses the tool / interacts
 ## with the cell in front. Holding the use button charges a charging tool (standing still);
-## letting go swings it. Drawn as a placeholder until there is sprite art.
+## letting go swings it. Drawn with the same FigureArt pictures as the 3D view (24 x 32, feet 2 px
+## below the spot like the villagers' in VillagerView), picked by FarmerAnim.
 
 ## kind = "tool" or "interact"; from the farmer's cell towards `facing`, `charge` steps.
 signal action(kind: String, origin: Vector2i, facing: Vector2i, charge: int)
@@ -21,10 +22,39 @@ var charge := 0         # charge steps reached so far
 var _charge_time := 0.0
 var _charge_tool := ""
 var _after_menu := false   # keys held from a menu do nothing until let go
+var anim := FarmerAnim.new()   # which picture: pose and frame by what the farmer does
+var figure: Sprite2D           # the farmer's picture (FigureArt via PlaceholderArt)
+const FIGURE_TOP := 2 - PlaceholderArt.FIGURE_SIZE.y   # the picture's top row, from the spot (feet 2 px below)
 
 
 func _ready() -> void:
 	Game.changed.connect(queue_redraw)   # picking up / putting down while standing still
+	var shadow := Node2D.new()   # contact shadow under the feet, behind the picture and the overlays
+	shadow.show_behind_parent = true
+	shadow.draw.connect(func(): shadow.draw_circle(Vector2(0, 2), 5, Color(0, 0, 0, 0.25)))
+	add_child(shadow)
+	figure = Sprite2D.new()
+	figure.show_behind_parent = true   # the target box, lantern, carried item and fishing marks draw over it
+	figure.name = "Figure"
+	figure.centered = false
+	figure.offset = Vector2(-PlaceholderArt.FIGURE_SIZE.x / 2, FIGURE_TOP)
+	figure.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	figure.texture = PlaceholderArt.tex(anim.key(facing))
+	add_child(figure)
+
+
+## The picture follows what the farmer does (walking, running, tired, eating, fishing, carrying);
+## redrawn each frame as the pose steps.
+func _process(delta: float) -> void:
+	anim.step(delta, moving, running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose)
+	figure.texture = PlaceholderArt.tex(anim.key(facing))
+	figure.flip_h = FarmerAnim.is_mirrored(facing)
+	queue_redraw()
+
+
+## Screen x offset of a picture pixel column `x` (its left edge) from the spot, mirrored with the figure.
+func _px(x: float) -> float:
+	return (x - PlaceholderArt.FIGURE_SIZE.x / 2.0) * (-1.0 if figure.flip_h else 1.0)
 
 
 func _physics_process(delta: float) -> void:
@@ -196,33 +226,23 @@ func _draw() -> void:
 		draw_rect(Rect2(Vector2(tc * T) - position, Vector2(T, T)), Color(1, 1, 1, 0.6), false, 1.0)
 	if charging:
 		var pips := PlaceholderArt.tex(PlaceholderArt.charge_key(charge, Game.max_charge(_charge_tool)))
-		draw_texture(pips, Vector2(-pips.get_width() / 2.0, -26))
-	# Body, head and a dot for the facing.
-	draw_circle(Vector2(0, 2), 5, Color(0, 0, 0, 0.25))
-	draw_rect(Rect2(-4, -10, 8, 11), Color("3b6fd1"))
-	draw_circle(Vector2(0, -13), 4.5, Color("f2c79b"))
-	draw_rect(Rect2(-5, -18, 10, 3), Color("c8452c"))   # cap
-	draw_circle(Vector2(facing) * 5 + Vector2(0, -6), 1.5, Color.WHITE)
+		draw_texture(pips, Vector2(-pips.get_width() / 2.0, FIGURE_TOP + FigureArt.head_top(FigureArt.FARMER_LOOK) - 2 - pips.get_height()))
 	if Game.maps.mine_floor != null:   # the lantern in hand down the mine, on the side away from the facing
-		draw_texture(PlaceholderArt.tex("mine:lantern"), Vector2(4 if facing.x < 0 else -11, -6))
+		var lamp := PlaceholderArt.tex("mine:lantern")
+		var at := PlaceholderArt.lantern_at(anim.pose, anim.frame(), FarmerAnim.is_back(facing))
+		var lx := _px(at.x + 3.5)   # the loop's column
+		draw_texture(lamp, Vector2(lx - 3.5, FIGURE_TOP + at.y))
 	if Game.fishing.active():   # rod, line and bobber; a "!" over the head on a bite
 		var bob := Vector2(Game.fishing.spot * T) + Vector2(8, 8) - position
 		var bite := Game.fishing.state == "bite"
-		var tip := Vector2(facing) * 10 + Vector2(0, -16)
-		draw_line(Vector2(0, -6), tip, Color("6b4a2a"), 1.0)
+		var rt := PlaceholderArt.rod_tip(anim.pose, anim.frame())
+		var tip := Vector2(_px(rt.x + 0.5), FIGURE_TOP + rt.y + 0.5)   # the rod itself is in the picture
 		draw_line(tip, bob, Color(1, 1, 1, 0.7), 1.0)
 		draw_circle(bob + Vector2(0, 1.5 if bite else sin(Game.fishing.time * 3.0)), 2.0, Color("d8402a"))
 		if bite:
 			var mark := PlaceholderArt.tex("fish_fx:alert")
-			draw_texture(mark, Vector2(-mark.get_width() / 2.0, -22 - mark.get_height()))
-	if Game.eating():   # a hand at the mouth with a morsel (bite, chew) or a cup (sip, tipped up)
-		var drink := Game.eat_pose == "drink"
-		var up := int(Game.eat_left * (FarmerAnim.DRINK_FPS if drink else FarmerAnim.EAT_FPS)) % 2 == 0
-		var at := Vector2(facing) * 4 + Vector2(0, -12 if up else -9)
-		draw_rect(Rect2(at + Vector2(-1.5, -2 if drink and up else -1), Vector2(3, 3)), Color("d8c8a8") if drink else Color("f4ecd8"))
-		draw_circle(at + Vector2(0, 1.5), 1.5, Color("f2c79b"))
-	if Game.holding():   # carried overhead, arms up
-		draw_rect(Rect2(-7, -19, 3, 9), Color("3b6fd1"))
-		draw_rect(Rect2(4, -19, 3, 9), Color("3b6fd1"))
+			draw_texture(mark, Vector2(-mark.get_width() / 2.0, FIGURE_TOP + FigureArt.head_top(FigureArt.FARMER_LOOK) - 2 - mark.get_height()))
+	if Game.holding():   # carried overhead, resting on the raised hands of the picture
 		var item := PlaceholderArt.tex(Game.held_key())
-		draw_texture(item, Vector2(-item.get_width() / 2.0, -19 - item.get_height()))
+		var row := PlaceholderArt.hold_row(anim.pose, anim.frame())
+		draw_texture(item, Vector2(-item.get_width() / 2.0, FIGURE_TOP + row - item.get_height()))
