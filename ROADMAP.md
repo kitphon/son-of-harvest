@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] Barn stalls: straw bedding as lit meshes (2026-11-07): a low pad, lumps and loose stalks in each stall (ART_DIRECTION, the barn's insides).
 [x] Playtest fixes (2026-11-07): smooth map changes (a steady fade, worlds kept for going back) and no getting stuck on corners or villagers.
 [x] Playtest fixes, second round (2026-11-07): running goes through exits; no freeze after a map change (trigger tables kept, the fade lets go sooner).
 [x] Flat view farmer: the FigureArt figure (24 x 32, FarmerAnim poses) instead of the drawn stand-in (Player "Figure" sprite).

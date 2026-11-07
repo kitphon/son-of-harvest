@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Barn stalls: straw bedding mesh
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: docs/ART_DIRECTION.md's open item "the stalls have no straw bedding mesh". `BarnProps._bedding`
+  (scripts/world3d/barn_props.gd), called at the end of `_stalls`, makes the bedding in each stall: the
+  open space between two partitions (a run of free cells: five single cells and the last space, two
+  cells wide, so six stalls). Per stall: a tapered pad 0.03 high (0.9 x 0.76 of a cell, narrower
+  on top), two or three lumps (0.24..0.34 x 0.2..0.28) up to 0.05, and 9 + 3 per cell of loose
+  stalks (0.012 x 0.008 x 0.14..0.22, lying flat, yaw random) along the front and back edges and at
+  the ends, clear of the partitions and the back wall. Three straw tones (c9ad6c, b89c5e, d9c184),
+  lit plain colours like the coop's straw. A seed by the stall's place keeps each stall the same
+  every run. The partitions, the posts, the rails and the stall places are unchanged; nothing in a
+  stall rises above 0.05, so the cows and sheep and the eggs and feed AnimalLayer lays still sit right.
+  Balance: the pad is low on purpose (a few hundredths), so animals still read as standing on the floor.
+- Checked: test_maps `_straw_bedding` (new): six stall spaces; the bedding's middle stands 0.02..0.06
+  up in every stall; no sampled spot in a stall rises above 0.06 and the bedding covers at least 60
+  spots. Output: `test_maps: OK (0 failed)` (the existing `_stable_props` checks pass too: lit,
+  faces wound outward, inside the cells, not in a wall). `test_animals: OK (0 failed)`. Smoke runs
+  (`--quit-after 300`, exit 0, no error or warning lines): title (no args), `-- --demo`,
+  `-- --demo --map=town`, `-- --demo --mine=3`. Before / after of `--demo --map=barn` (frame 59,
+  shots/ deleted afterwards): before the stalls are bare straw floor with the partitions; after,
+  each stall has a pale straw bed under the partitions' gaps, the floor between the stalls still
+  the straw tile, the cows and sheep standing clear of it.
+- Left / next: the bedding is not seen at the edge of a cow's stance in a frame (only checked by
+  the spot test). Loose stalks are random by seed, not by hand-placed. Not pushed (the task said
+  branch only).
+
 ## 2026-11-07 — The wind moves leaves and cloth: fence, kadomatsu, noren, curtains, banner
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: docs/ART_DIRECTION.md's open wind items. `OutdoorProps.Sway` (now the world's

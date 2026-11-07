@@ -56,6 +56,7 @@ func _process(delta: float) -> bool:
 		_room_walls()
 		_room_props()
 		_stable_props()
+		_straw_bedding()
 		_trees()
 		_outdoor_props()
 		_field_props()
@@ -1306,6 +1307,64 @@ func _stable_props() -> void:
 			w.free()
 	for kind in ["feed_box", "nest", "incubator", "feed_sack", "hatch", "fodder_box", "stalls", "hay", "barn_gate"]:
 		check(seen.has(kind), "the coop / barn have a %s" % kind)
+
+
+## The barn's straw stalls (BarnProps._bedding): each space between the partitions has straw
+## bedding under it. Its middle stands 0.02 to 0.06 up (a pad an animal
+## stands on), and across the stall nothing rises above 0.06, so the cows and sheep and the items
+## they stand by still sit right. The partitions and the stall's count (six) stay as they were.
+func _straw_bedding() -> void:
+	var bp: GDScript = load("res://scripts/world3d/barn_props.gd")
+	var m := MapManager.data("barn")
+	for p in m.props:
+		if str(p.kind) != "stalls":
+			continue
+		var r := Rect2(Vector2(p.cell), Vector2(p.size))
+		var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+		var mid := Vector3(r.get_center().x, 0, r.get_center().y)
+		bp.prop(w, p, mid, r)
+		var tris := PackedVector3Array()
+		for n in w.get_children():
+			if n is MeshInstance3D and n.mesh is ArrayMesh:
+				var arr: Array = n.mesh.surface_get_arrays(0)
+				var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+				var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX] if arr[Mesh.ARRAY_INDEX] != null else PackedInt32Array(range(v.size()))
+				for i in idx:
+					tris.append(v[i])
+		var blocked := {}
+		for b in p.get("blocks", []):
+			blocked[int(b[0])] = true
+		var stalls := 0
+		var middle_ok := 0
+		var over := 0
+		var covered := 0
+		var k := 0
+		var n := int(r.size.x)
+		while k < n:
+			if blocked.has(k):
+				k += 1
+				continue
+			var first := k
+			while k < n and not blocked.has(k):
+				k += 1
+			stalls += 1
+			var x_from := r.position.x + first
+			var x_to := r.position.x + k
+			var centre := _height_at(tris, Vector2((x_from + x_to) / 2.0, r.position.y + 0.5))
+			if centre >= 0.02 and centre <= 0.06:
+				middle_ok += 1
+			for i in 5 * (k - first):
+				for j in 5:
+					var q := Vector2(x_from + 0.1 + (x_to - x_from - 0.2) * i / (5.0 * (k - first) - 1.0), r.position.y + 0.1 + 0.2 * j)
+					var top := _height_at(tris, q)
+					if top > 0.06:
+						over += 1
+					elif top >= 0.02:
+						covered += 1
+		check(stalls == 6, "the barn's stalls: six spaces between the partitions (%d)" % stalls)
+		check(middle_ok == stalls, "barn stalls: the bedding's middle stands 0.02 to 0.06 up in every stall (%d of %d)" % [middle_ok, stalls])
+		check(over == 0 and covered >= 60, "barn stalls: nothing in a stall rises above 0.06 (%d over), and the bedding covers the stalls (%d spots)" % [over, covered])
+		w.free()
 
 
 ## The highest surface of `tris` (triangles, three points each) above the ground point `at`
