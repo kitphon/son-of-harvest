@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Japanese maples
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: the "no maple" gap from the hill entry below was only a missing kind, so `maple` is one now.
+  scripts/world3d/trees.gd: `LEAVES.maple` (spring light green 86b844, summer deep green 2f6e32,
+  fall red c42a1e, bare in winter), its own small layered crown `_maple_crown` (a wide flat tier of
+  five low lumps, a narrower tier of three, a cap; orange `MAPLE_FLAME` lumps among the reds in
+  fall); the bare winter form and its snow are the shared ones. Prop kind `maple` in
+  CountryProps / MapWorld; the flat view draws a red box (MapView.COLORS). Placed on free grass:
+  hill (11, 11), (28, 2), (14, 7), (24, 20), (12, 19), (36, 22) (the two near the lookout were
+  added after the lookout view showed no broadleaf tree), Kaminoda (28, 16), Sakurazaka (27, 4).
+- Checked: all 28 test scripts print OK (0 failed) (run in one sequence). test_maps new checks: the
+  maple in every season and seed (same reach / height / winding as the others), orange only in
+  fall, snow on the bare maple, the maples on free grass in the hill / Kaminoda / Sakurazaka.
+  Screenshots (480 x 270): `--demo --map=hill@top` in fall (a red and orange maple in the left of
+  the view) and winter (bare, snow lying), and three temporary spawns (removed again) near
+  (24, 20): spring fresh green, summer deep green, fall red with orange, winter bare with a
+  little snow on the twigs. The lookout shows only that one broadleaf tree; the others are out of
+  frame. Smoke runs (title, --demo, town, mine=3, hill and Kaminoda in fall, Sakurazaka in winter)
+  logged no errors or warnings.
+- Left / next: the maple is not in a festival view or the flat view's own picture (a box only).
+
 ## 2026-11-07 — The festival stalls' wares as lit meshes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: docs/ART_DIRECTION.md section 1's open item. `scripts/world3d/stall_wares.gd` (StallWares)

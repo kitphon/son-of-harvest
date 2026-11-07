@@ -162,7 +162,7 @@ func _make_prop(p: Dictionary) -> void:
 		"river_rock": _river_rock(mid)
 		"feed_box", "nest", "incubator", "feed_sack", "hatch": CoopProps.prop(self, p, mid, r)
 		"fodder_box", "stalls", "hay", "barn_gate": BarnProps.prop(self, p, mid, r)
-		"well", "jizo", "persimmon", "sakura", "hasa", "woodpile", "garden", "wood_fence", "kiln": CountryProps.prop(self, p, mid, r, Game.season_name())
+		"well", "jizo", "persimmon", "sakura", "maple", "hasa", "woodpile", "garden", "wood_fence", "kiln": CountryProps.prop(self, p, mid, r, Game.season_name())
 		"cave_mouth": _cave_mouth(mid, r)
 		"door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark", "kiln_site", "kiln_new": StoryProps.prop(self, p)
 		"ladder": _ladder(mid)
