@@ -10,6 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Cucumber and tomato vines on stakes, and the wind on every tall crop
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: docs/ART_DIRECTION.md's open tall-crop item. `CropClusters` LAYOUT gains "vine"
+  (cucumber, tomato from growth 2): two stakes a cell (places [0.3, 0.38] and [0.7, 0.72], nudge
+  0.06, size 0.9..1.0) each a small `stalk:<id>:<growth>:<ripe|growing>:<variant>` picture
+  (`PlaceholderArt._stalk` vine branch: a brown stake, leaves up it alternating sides, a light
+  growing tip, and when ripe the fruit hanging: long dark cucumbers, round red tomatoes; rimmed in
+  a deep leaf shade like rice). The crop art keys (`crop:<id>:<growth>:<state>`) and the flat view
+  are untouched. A vine layer's material has `stiff` 0.6 (LAYOUT "stiff"): a stake holds the
+  vine, so its sway and parting are a bit under rice's. The crop shader (all tall crops, rice and
+  corn too, which until now ignored the wind) takes a `wind` uniform: the grass's swing and speed
+  growth, gust swell and flutter, a small lean downwind (+x, through the parting's world push),
+  none at wind 0 (`CropClusters.set_wind`, called by `FarmWorld.set_wind` and `add_crops`).
+- Checked: all 30 test scripts print OK (0 failed); test_maps adjusted (tomato now a cluster key,
+  the farm test's sprite crop is an onion; new checks: vine pictures show fruit only when ripe and
+  are taller grown, two stakes a cell inside it, a ripe tomato cell is 2 plants and no sprite and
+  a sprite again at its seed); test_weather: the crops' wind uniform on every picture and on ones
+  made later, the shader carrying the wind. Smoke runs (title, --demo, --demo --map=town, --demo
+  --mine=3): 0 error / warning lines each. Frames `--demo --season=spring` (the demo's ripe
+  cucumbers, with and without `--weather=storm`) before and after, frame 39: before, one big
+  black-outlined sprite a cell; after, two thin stakes with leaves and dark fruit, the storm's
+  sway too small to read in a still. The demo has no summer tomato at a grown stage (one sprout).
+- Left / next: the vine pictures are dense among the leaves; a cucumber's fruit (dark green) is
+  hard to pick out from the leaves at this size. Villagers and the dog still part them as rice.
+
 ## 2026-11-07 — The wind moves leaves and cloth: fence, kadomatsu, noren, curtains, banner
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: docs/ART_DIRECTION.md's open wind items. `OutdoorProps.Sway` (now the world's

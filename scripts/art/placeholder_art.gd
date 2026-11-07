@@ -1023,7 +1023,8 @@ static func _crop(id: String, growth: int, ripe: bool) -> Image:
 
 
 ## One plant of a tall crop's cluster (CropClusters stands several on a cell in the 3D view):
-## a grain crop (rice) as one hill of thin blades, ripe with straw stems and gold ears bowing
+## a vine crop (cucumber, tomato) as one stake with the vine's leaves up it and the fruit hanging
+## when ripe; a grain crop (rice) as one hill of thin blades, ripe with straw stems and gold ears bowing
 ## over; a stalk crop (corn) as one stalk with its leaves, the tassel when grown, the cob
 ## when ripe. `variant` (0..2) leans the blades or sets the leaves another way, so a field of
 ## them doesn't repeat. The rim is a deep shade of the leaf, not the black outline: a cell
@@ -1058,6 +1059,27 @@ static func _stalk(id: String, growth: int, ripe: bool, variant: int) -> Image:
 			_oval(img, x + 1, g - 10, 1.4, 3.2, fruit)
 			_px(img, x + 1, g - 12, 1, 3, fruit.lightened(0.3))
 			_px(img, x, g - 7, 3, 2, leaf)   # the husk
+	elif look.get("shape", "") == "vine":   # a stake with the vine climbing it
+		img = _blank(13, 23 if big else 14)
+		var g := img.get_height() - 2
+		var top := g - (18 if big else 9)
+		_px(img, 6, top - 1, 1, g - top + 2, _STAKE)
+		_px(img, 7, top, 1, g - top + 1, _STAKE.darkened(0.25))
+		var side := 1 if variant % 2 == 0 else -1
+		for y in range(g - 1 - variant, top + 1, -3):
+			_oval(img, 6.5 + side * 3.0, y, 2.6, 1.8, leaf if side < 0 else dark)
+			_px(img, 6 + (1 if side > 0 else 0), y, 1, 1, dark)   # the leaf stalk to the stake
+			side = -side
+		_px(img, 6, top - 1, 2, 2, light)   # the growing tip
+		if ripe:
+			var hang := [Vector2(3.0, g - 6 - variant), Vector2(10.0, g - 10), Vector2(3.5, g - 14 + variant)] if big 				else [Vector2(3.0, g - 4), Vector2(10.0, g - 6)]
+			for p in hang:
+				if look.get("fruit_shape", "") == "long":
+					_px(img, int(p.x), int(p.y) - 2, 2, 5, fruit)
+					_px(img, int(p.x), int(p.y) - 2, 1, 2, fruit.lightened(0.3))
+				else:
+					_oval(img, p.x, p.y, 1.9, 1.9, fruit)
+					_px(img, int(p.x) - 1, int(p.y) - 1, 1, 1, fruit.lightened(0.4))
 	else:   # grain: one hill of rice
 		img = _blank(9, 16 if big else 11)
 		var g := img.get_height() - 2
