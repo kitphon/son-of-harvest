@@ -42,12 +42,14 @@ var _layers := {}                      # texture key -> MultiMeshInstance3D
 var _material: ShaderMaterial
 var _cover := 0.0
 var wind := 0.0
+var _sun := Color.WHITE
 
 const SHADER := "shader_type spatial;\nrender_mode unshaded, cull_disabled;\n" + SnowLayer._SNOW_AT + Parting.GLSL + """
 uniform sampler2D tex : source_color, filter_nearest;
 uniform float sway = 0.03;
 uniform float wind = 0.0;   // 0 dead calm .. 1 a gale (data/wind.json, FarmWorld.set_wind)
 uniform float stiff = 1.0;   // 1 = the tip sways and parts fully; a stake holds the vine firmer
+uniform vec3 sun = vec3(1.0);   // the sun's share by the clock, as on the Sprite3Ds (SpriteLight)
 void vertex() {
 	vec3 root = MODEL_MATRIX[3].xyz;
 	float s = length(MODEL_MATRIX[1].xyz);
@@ -80,7 +82,7 @@ void fragment() {
 	if (c.a < 0.5) {
 		discard;
 	}
-	ALBEDO = c.rgb * COLOR.rgb;
+	ALBEDO = c.rgb * COLOR.rgb * sun;
 }
 """
 
@@ -90,6 +92,8 @@ func _init() -> void:
 	_material.set_shader_parameter("sway", SWAY)
 	_material.set_shader_parameter("stiff", 1.0)
 	Parting.setup(_material, "crops")
+	add_to_group(SpriteLight.GROUP)   # SpriteLight.apply sets the sun's share (set_sun)
+	set_sun(SpriteLight.now)
 
 
 ## Snow lying, 0..1 (FarmWorld.set_snow): every picture's material, and the ones made later.
@@ -104,6 +108,13 @@ func set_wind(strength: float) -> void:
 	wind = clampf(strength, 0.0, 1.0)
 	for m in materials():
 		m.set_shader_parameter("wind", wind)
+
+
+## The sun's share on the pictures (SpriteLight.apply): every picture's material, and the ones made later.
+func set_sun(c: Color) -> void:
+	_sun = c
+	for m in materials():
+		m.set_shader_parameter("sun", Vector3(c.r, c.g, c.b))
 
 
 ## The pushers' feet in the world (FarmWorld.set_farmer, each frame; Parting.pick): the plants
@@ -189,6 +200,7 @@ func _layer(tex_key: String) -> MultiMeshInstance3D:
 	m.set_shader_parameter("tex", tex)
 	m.set_shader_parameter("cover", _cover)
 	m.set_shader_parameter("wind", wind)
+	m.set_shader_parameter("sun", Vector3(_sun.r, _sun.g, _sun.b))
 	m.set_shader_parameter("stiff", float(layout(tex_key).get("stiff", 1.0)))
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = MultiMesh.new()

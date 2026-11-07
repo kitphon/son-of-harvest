@@ -79,6 +79,7 @@ func _show_note(s: Sprite3D, w: Dictionary) -> void:
 		note = FarmWorld.make_sprite(PlaceholderArt.tex(look.key))
 		note.name = "Note"
 		note.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED   # it fades
+		SpriteLight.unlit(note)   # a mark over the world, as drawn
 		s.add_child(note)
 	note.texture = PlaceholderArt.tex(look.key)
 	var head := PlaceholderArt.FIGURE_SIZE.y - PlaceholderArt.villager_top(w.id)   # px from the feet to the head's top

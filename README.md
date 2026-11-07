@@ -935,7 +935,8 @@ little blue. Outdoors the sun casts shadows; the ground is lit only to take them
 `SnowLayer.SUN_SHARE`, measured so sunlit ground keeps its picture's colours and shade drops
 to about two thirds). Shadows fade with the daylight (dusk, night) and are gone under cloud
 (`data/weather_fx.json` "sun", `Game.sun_shadow()`); rooms and mine floors have none. A soft
-glow lifts the brightest things (snow, lights). Sprites stay unshaded, but the farmer, villagers,
+glow lifts the brightest things (snow, lights). Sprites stay unshaded (with a share of the sun's
+colour and a warm lift by night lights: Sprites and the world's light, below), but the farmer, villagers,
 animals and the field's objects throw the sun's real shadow: `SpriteShadow` gives each a
 shadows-only quad wearing its picture, turned square to the sun, so the silhouette falls like the
 buildings' shadows (a billboard itself casts nothing, as it turns with the camera). A faint blob
@@ -1004,7 +1005,8 @@ colour divided by the tint (as NightView's shader divides it out; at most `boost
 ground, the water and the grass sit on `NightLamps.GROUND_LAYER`, outside the lights' cull
 mask: their light is the drawn pools, and they cost no extra pass. The night blue itself is a
 touch lighter since the lamps came (46529a, was 404c8e). Unshaded pieces (sprites, the lit paper
-and flames of the festival lights) do not take the lamps.
+and flames of the festival lights) do not take the lamps; the figures get a warm lift of their
+own (below: Sprites and the world's light).
 
 The tint multiplies the picture after the lights, so nothing drawn under it gets brighter than
 the tint itself; pale plaster is already near white under the night sun, so the real lamps can
@@ -1029,6 +1031,26 @@ so the timber stays dark. Earth takes a soft warm glow (ffa860, 0.3), boards a f
 sheen (c8a07c, 0.1). Its shader keeps it to warm pixels that are not pale: the copy over the
 tint, red above both green and blue by `warm_from` .. `warm_full` (earth and wood; not the blue
 roof tiles, the grass or the sky).
+
+Sprites and the world's light: the pixel sprites (the farmer, villagers, animals, the dog, the
+field's objects, the crop clusters) stay unshaded, so their pixels stay as drawn, but they take
+two touches of the light round them (`SpriteLight`, scripts/world3d/sprite_light.gd,
+data/light.json "sprites"). By day a share (`share` 0.45) of the sun's colour by the clock: the
+sun's colour over the plain noon sun (`ref`) per channel, never over 1, so noon, the night, rooms,
+mines and clouded days leave them as drawn and the golden morning and evening hold back their
+green and blue (never brighter, so nothing washes out). `Main3D._aim_sun` sets it each game
+minute (`SpriteLight.apply`: the sprites' modulate colour, its alpha left to the occluders; the
+crop pictures' `sun` uniform); `FarmWorld.make_sprite` gives every new sprite the share of the
+moment, and the marks over the world (the charge pips, the bite's "!", a whistle's note) and the
+mine lantern stay as drawn (`SpriteLight.unlit`). At night NightLights' last pass ("Warmth")
+draws every figure near a lit window, shoji door, stone lantern or festival light
+(`SpriteLight.spots_of`) back from the copy with warm light ("lift" → color) added in proportion
+to its own picture's colours, as strong as `SpriteLight.lift_at`: each light within `range`
+cells gives its energy times (1 - distance / range)², a window only to its lit side, nothing past
+a solid building, capped at `max`. So a villager by a lit window or among the festival lanterns
+reads warm, while one in the dark stays night blue. The sprites do not take the buildings' sun
+shadows: Occluders' boxes hold the houses only, not the trees or the roofs' outline, so it would
+not match the shadows on the ground. The flat view is as before.
 
 ## Showcase
 Fixed views for trailer shots and for comparing a look before and after a change:
