@@ -25,6 +25,7 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 ## Next up
 [x] Playtest fixes (2026-11-07): smooth map changes (a steady fade, worlds kept for going back) and no getting stuck on corners or villagers.
 [x] Playtest fixes, second round (2026-11-07): running goes through exits; no freeze after a map change (trigger tables kept, the fade lets go sooner).
+[x] Flat view farmer: the FigureArt figure (24 x 32, FarmerAnim poses) instead of the drawn stand-in (Player "Figure" sprite).
 [x] Hill trees (2026-11-07): six broadleaf trees on the bamboo hill (data/maps/hill.json: persimmons and sakuras), red or gold in fall, bare with snow in winter (ART_DIRECTION, Trees).
 Art direction (2026-11-03): the user wants an "HD-2D lite" look, Japanese countryside: pixel
 sprites in a lit 3D world. [x] Light pass (sun shadows on the ground, warm sun / cool shade,
@@ -81,7 +82,7 @@ maps, hazed with the sky by the clock, snow caps in winter (data/backdrop.json, 
 [x] Characters, step 1: larger, more detailed farmer and villager sprites (24 x 32, Japanese
 country clothes, builds for elders and children; scripts/art/figure_art.gd, FigureArt), four
 directions (front / back, mirrored), drawn in code by the agent until real art comes.
-Next: section 4 is done (figures d2d8064, animals 36d42c6, real sprite shadows f261048). Open there: eight directions, the flat view's farmer stand-in, real art by an artist. "ทำ art direction ต่อ" from the user
+Next: section 4 is done (figures d2d8064, animals 36d42c6, real sprite shadows f261048). Open there: eight directions, real art by an artist. "ทำ art direction ต่อ" from the user
 means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our

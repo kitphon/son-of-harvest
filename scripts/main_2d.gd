@@ -206,7 +206,7 @@ func _on_thrown(item: String, _from: Vector2i, to: Vector2i, result: String) -> 
 	flying.visible = true
 	var h := flying.texture.get_height()
 	_flight = {
-		"from": player.position + Vector2(0, -19 - h / 2.0), "to": Vector2(to * T) + Vector2(T / 2.0, T / 2.0),
+		"from": player.position + Vector2(0, Player.FIGURE_TOP + PlaceholderArt.hold_row("hold_idle", 0) - h / 2.0), "to": Vector2(to * T) + Vector2(T / 2.0, T / 2.0),
 		"time": 0.0, "seconds": float(Game.hold_rules.get("flight_seconds", 0.35)),
 		"height": float(Game.hold_rules.get("arc_height", 1.2)) * T,
 	}

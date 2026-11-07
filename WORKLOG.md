@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Flat view: the farmer wears the FigureArt figure
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: `Player` (scripts/player/player.gd) no longer draws the circle-and-rect stand-in. It owns a
+  FarmerAnim and a Sprite2D "Figure" (24 x 32 FigureArt via `PlaceholderArt.tex`, feet 2 px below the
+  spot as VillagerView does, mirrored by the facing), stepped each frame from moving / running /
+  tired / holding / fishing / eating exactly as Main3D does. The held item, rod line, fishing "!",
+  charge pips and mine lantern are placed from the picture's rows (`hold_row`, `rod_tip`, `lantern_at`,
+  `head_top`); the eat morsel and the stand-in rod are gone (the picture draws them). A soft contact
+  shadow stays under the feet. Movement and collision (FEET, 16 px cells) untouched. main_2d's
+  throw now starts at the raised hands. ART_DIRECTION section 4 note updated.
+- Checked: test_view2d `_figure` (sprite is 24 x 32 FigureArt, offset, each facing's key / pixels /
+  mirror, hold and eat poses); all tests and smoke runs (see the report); flat-view screenshots
+  before and after at --demo, --hold, --tired.
+- Left / next: fishing and mine-lantern placement in the flat view were not looked at in a screenshot.
 ## 2026-11-07 — Broadleaf trees on the bamboo hill
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: six broadleaf trees on the bamboo hill (data/maps/hill.json props): persimmons at
