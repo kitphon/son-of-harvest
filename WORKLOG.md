@@ -10,6 +10,42 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Winter paddies: cut stubble and water patches
+Agent: Claude Code (claude-haiku) · Commit: this commit
+- Done: the Kaminoda paddies in winter. They had no rice at all (`PADDY` had no winter). Now
+  `CropClusters.paddy_key("winter")` = `stalk:rice:0:stubble`: the cut rice in the same nine-hill
+  layout as the rice (`LAYOUT "grain:0"`, sizes 0.9..1.1 of the picture), each hill a picture of
+  four short straw stalks a pixel apart, cut at different heights, lighter cut ends, no rim
+  (PlaceholderArt `_stubble`; the first draft had a rim and read as tan lumps, so it was redrawn).
+  Winter water: `CropClusters.plant_water` puts flat patches (`patch:paddy_water`, 12 x 5 px,
+  dull grey-blue oval with a paler strip) on the paddy cells, lying on the ground (own
+  MultiMesh and shader, lifted 0.02 off the ground). Per row gap (z 0.33 and 0.67, between the
+  layout's rows) a patch when the cell's hash passes `chance` 0.4, so about 0.8 a cell. Numbers
+  in data/paddy.json (`water`: seasons, chance, z, x, nudge, size; reasoning in its `_about`).
+  MapWorld._plant_paddies plants the water only when `CropClusters.water_on(season)` (winter).
+  Snow: stubble and patches use the paddy's hold (0.5) and the same snow rule as the rice
+  (`snow_at(root.xz, cover * INSTANCE_CUSTOM.r) > 0.5` folds them, under snow or its rim); the
+  water's cover uniform is set by `set_cover` with the plants'. Spring to fall unchanged (the
+  same keys, no water).
+- Checked: test_maps `_crop_clusters` paddy loop for all four seasons (the keys, plant counts,
+  holds, snow driven, water only in winter, every patch on a paddy) and `_paddy_winter`: the
+  stubble picture is shorter than the young rice and has straw pixels, the patch is a 12 x 5
+  grey-blue oval, data/paddy.json is winter only with two row gaps between the rows, the
+  patches sit between the rows and inside their cell with a count near the chance, no fold at
+  cover 0, the GDScript rule folds some plants and patches at cover 0.8 (not all: the paddy
+  holds half), the shaders carry the rule, and set_snow drives the patches. Test output:
+  `test_maps: OK (0 failed)`. All 28 test scripts print OK (0 failed) (the list in the output of
+  the run). Smoke runs (`--quit-after 300`: title, `-- --demo`, `-- --demo --map=kaminoda`,
+  `-- --demo --map=town`, `-- --demo --mine=3`) print no error or warning lines.
+  Screenshots (480 x 270, `--demo --season=winter --map=kaminoda@well`, 10:00): snow 0 shows the
+  stubble among the grey-blue patches (2x crop checked); snow 80 whitens the paddy's snowy cells,
+  the stubble on them folds and the patches there are gone, stubble stands on the bare spots;
+  summer (`--season=summer --snow=0`) keeps its tall rice unchanged.
+- Left / next: the flat view has no paddy stubble or water (it draws one sprite a cell, the
+  winter paddy stays bare there). At 480 x 270 the stubble is small; the first look was judged
+  by an enlarged crop, not the game's own pixels at a distance. The water picture is one shape
+  (flips and shades only).
+
 ## 2026-11-07 — Earthen and yakisugi walls take the night lamps
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: ART_DIRECTION section 3's "still open" from "Pale plaster takes the night lamps". The

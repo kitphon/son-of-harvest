@@ -2459,8 +2459,9 @@ func _grass() -> void:
 ## (and their seeds and sprouts) stay one sprite a cell; the plants stay inside their cell,
 ## the same each time, rice in nine hills (six young), corn in three stalks; the pictures are
 ## small single plants, ripe rice gold-eared; on the farm a cluster cell has no sprite and a
-## harvest takes its plants away; the village paddies grow rice by the season (none in winter),
-## each plant carrying the paddy's snow hold, the cover driven by set_snow.
+## harvest takes its plants away; the village paddies grow rice by the season (cut stubble in
+## winter, with its grey-blue water patches, _paddy_winter), each plant carrying the paddy's snow
+## hold, the cover driven by set_snow.
 ## Grass and tall crops part round the farmer (Parting): the push math, the data, the shader
 ## code and the `farmer` uniform reaching every tuft and crop material through FarmWorld.
 func _parting() -> void:
@@ -2723,26 +2724,105 @@ func _crop_clusters() -> void:
 		g.season = si
 		var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
 		w.build(m)
-		var want: String = cc.paddy_key(g.season_name())
-		if want == "":
-			check(w.crops == null, "kaminoda in %s: no rice in the paddies" % g.season_name())
-		else:
-			var cl: Array = w.crops.planted
-			var keys := {}
-			var bad_hold := 0
-			for s in cl:
-				keys[s.key] = true
-				if m.tile(s.cell) != "paddy" or absf(s.hold - SnowLayer.map_hold(m, s.cell, rules)) > 0.01:
-					bad_hold += 1
-			w.set_snow(0.4)
-			var driven: bool = w.crops.materials().all(func(mat): return is_equal_approx(float(mat.get_shader_parameter("cover")), 0.4))
-			check(keys.keys() == [want] and cl.size() == paddies * cc.layout(want).places.size() and bad_hold == 0 and driven,
-				"kaminoda in %s: %d paddy cells grow %s (%d plants), %d off a paddy or wrong hold, snow driven %s"
-				% [g.season_name(), paddies, want, cl.size(), bad_hold, driven])
+		var season: String = g.season_name()
+		var want: String = cc.paddy_key(season)
+		var cl: Array = w.crops.planted
+		var keys := {}
+		var bad_hold := 0
+		for s in cl:
+			keys[s.key] = true
+			if m.tile(s.cell) != "paddy" or absf(s.hold - SnowLayer.map_hold(m, s.cell, rules)) > 0.01:
+				bad_hold += 1
+		w.set_snow(0.4)
+		var driven: bool = w.crops.materials().all(func(mat): return is_equal_approx(float(mat.get_shader_parameter("cover")), 0.4))
+		var water: Array = w.crops.water_planted
+		var bad_water := 0
+		for s in water:
+			if m.tile(s.cell) != "paddy" or absf(s.hold - SnowLayer.map_hold(m, s.cell, rules)) > 0.01:
+				bad_water += 1
+		check(keys.keys() == [want] and cl.size() == paddies * cc.layout(want).places.size() and bad_hold == 0 and driven
+			and (water.size() > 0) == cc.water_on(season) and bad_water == 0,
+			"kaminoda in %s: %d paddy cells grow %s (%d plants), %d off a paddy or wrong hold, snow driven %s, %d water patches (%d off a paddy or wrong hold)"
+			% [season, paddies, want, cl.size(), bad_hold, driven, water.size(), bad_water])
 		w.free()
 	g.season = keep
-	check(cc.paddy_key("summer") == "stalk:rice:3:growing" and cc.paddy_key("fall") == "stalk:rice:3:ripe" and cc.paddy_key("winter") == "",
-		"paddies: tall and green in summer, ripe in fall, none in winter")
+	check(cc.paddy_key("spring") == "stalk:rice:2:growing" and cc.paddy_key("summer") == "stalk:rice:3:growing"
+		and cc.paddy_key("fall") == "stalk:rice:3:ripe" and cc.paddy_key("winter") == "stalk:rice:0:stubble"
+		and cc.water_on("winter") and not cc.water_on("spring") and not cc.water_on("summer") and not cc.water_on("fall"),
+		"paddies: young in spring, tall and green in summer, ripe in fall, cut stubble and water in winter")
+	_paddy_winter(cc)
+
+
+## The winter paddies (CropClusters): the stubble and the water patches as pictures, the water
+## patches' places and counts from data/paddy.json, and the snow rule: a plant or patch folds away
+## exactly where the shader's snow_at says snow or its rim lies on its cell (the paddy's hold),
+## more of them as the cover grows.
+func _paddy_winter(cc: GDScript) -> void:
+	var g: Node = root.get_node("Game")
+	var keep: int = g.season
+	var stub := PlaceholderArt.tex("stalk:rice:0:stubble:0").get_image()
+	var young := PlaceholderArt.tex("stalk:rice:2:growing:1").get_image()
+	var straw := 0   # straw browns are much redder than blue; the dark rim is not (r - b 0.16 vs 0.24 and up)
+	for y in stub.get_height():
+		for x in stub.get_width():
+			var c := stub.get_pixel(x, y)
+			if c.a >= 0.5 and c.r - c.b > 0.2:
+				straw += 1
+	var pond := PlaceholderArt.tex("patch:paddy_water").get_image()
+	var grey := 0
+	for y in pond.get_height():
+		for x in pond.get_width():
+			var c := pond.get_pixel(x, y)
+			if c.a >= 0.5 and c.b > c.r and c.b > 0.3 and c.r < 0.7:
+				grey += 1
+	check(stub.get_height() < young.get_height() and straw >= 8 and stub.get_width() == 9 and stub.get_height() == 6,
+		"paddy winter: the stubble is %dx%d (young rice %d high) with %d straw pixels" % [stub.get_width(), stub.get_height(), young.get_height(), straw])
+	check(pond.get_width() == 12 and pond.get_height() == 5 and grey >= 30 and pond.get_pixel(0, 0).a < 0.5,
+		"paddy winter: the water patch is a 12x5 grey-blue oval (%d pixels)" % grey)
+	# The data: winter only, a chance per row gap, the row gaps between the rows.
+	var data: Dictionary = cc.paddy_data().get("water", {})
+	check(data.get("seasons", []) == ["winter"] and float(data.get("chance", 0)) > 0.0 and float(data.get("chance", 2)) < 1.0
+		and (data.z as Array).size() == 2 and float(data.z[0]) > 0.17 and float(data.z[1]) < 0.83 and float(data.z[0]) < float(data.z[1]),
+		"paddy winter: data/paddy.json puts water in winter only, a chance under 1, two row gaps between the rows")
+	# A few patches, between the rows: no patch off a row gap, the count near the chance.
+	var cells: Array = []
+	for i in 400:
+		cells.append(Vector2i(i % 20, i / 20))
+	var spots: Array = cc.water_spots_for(cells)
+	var between := spots.all(func(s): return absf(s.pos.z - s.cell.y - 0.33) <= float(data.nudge) + 0.001 or absf(s.pos.z - s.cell.y - 0.67) <= float(data.nudge) + 0.001)
+	var inside := spots.all(func(s): return Rect2(Vector2(s.cell), Vector2.ONE).has_point(Vector2(s.pos.x, s.pos.z)))
+	var expected := 2.0 * cells.size() * float(data.chance)
+	var spread := 4.0 * sqrt(2.0 * cells.size() * float(data.chance) * (1.0 - float(data.chance)))
+	check(between and inside and absf(spots.size() - expected) <= spread and spots == cc.water_spots_for(cells),
+		"paddy winter: %d water patches on 400 cells (about %d expected), each between two rows and inside its cell" % [spots.size(), expected])
+	# Snow: the plants and patches fold where the shader's rule says, and more of them as it grows.
+	var m := MapManager.data("kaminoda")
+	g.season = g.SEASONS.find("winter")
+	var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	w.build(m)
+	var folded_by_rule := func(list: Array, cover: float) -> int:
+		var n := 0
+		for s in list:
+			var amount := cover * float(s.hold)
+			if SnowLayer.snow_kind(SnowLayer.noise_at(Vector2(s.pos.x, s.pos.z)), amount) > 0:
+				n += 1
+		return n
+	var plants: Array = w.crops.planted
+	var patches: Array = w.crops.water_planted
+	var none_at_0: int = folded_by_rule.call(plants, 0.0) + folded_by_rule.call(patches, 0.0)
+	var part: int = folded_by_rule.call(plants, 0.8)
+	var water_part: int = folded_by_rule.call(patches, 0.8)
+	check(none_at_0 == 0 and part > 0 and part < plants.size() and water_part > 0 and water_part < patches.size()
+		and folded_by_rule.call(plants, 1.0) >= part and folded_by_rule.call(patches, 1.0) >= water_part,
+		"paddy winter: no snow, nothing folds; heavy snow (0.8) folds %d of %d stubble plants and %d of %d patches, by the paddy's hold" % [part, plants.size(), water_part, patches.size()])
+	check("snow_at(root.xz, cover * INSTANCE_CUSTOM.r) > 0.5" in cc.SHADER and "snow_at(root.xz, cover * INSTANCE_CUSTOM.r) > 0.5" in cc.WATER_SHADER
+		and "render_mode unshaded" in cc.WATER_SHADER,
+		"paddy winter: the plants' and the patches' shaders fold them on the same snow rule")
+	w.set_snow(0.8)
+	check(is_equal_approx(float(w.crops._water_material.get_shader_parameter("cover")), 0.8) and w.crops.materials().all(func(mat): return is_equal_approx(float(mat.get_shader_parameter("cover")), 0.8)),
+		"paddy winter: set_snow drives the patches' cover too")
+	w.free()
+	g.season = keep
 
 
 ## The moving skin on the water (WaterSurface): a sheet over the farm pond, the village pond

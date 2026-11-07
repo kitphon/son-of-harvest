@@ -1,0 +1,11 @@
+{
+	"_about": "The village paddies in winter (CropClusters, MapWorld._plant_paddies). After the harvest the rice stands as short cut stubble: the same nine-hill layout as the rice (CropClusters.LAYOUT \"grain:0\"), pictures `stalk:rice:0:stubble:<variant>`. Where water still stands between the rows, a few flat patches of dull grey-blue water lie on the ground (`patch:paddy_water`). Stubble and patches fold away or go out of sight under snow lying on them (the paddy's snow hold, the crops' own shader rule). water.chance: the odds that a row gap (water.z, between the rows of the layout at 0.17, 0.5 and 0.83) in a paddy cell gets a patch, so two gaps a cell gives about 0.8 patches a cell: a few in each paddy, not a sheet. water.x: the range across the cell a patch may sit in. water.nudge: how far it wanders off its row gap (cells). water.size: the size scale on its picture (12 x 5 px at CropClusters' pixel size, about 0.5 to 0.6 units wide). water.seasons: where the water shows; none in spring to fall, when the rice stands there. Balance numbers are ours.",
+	"water": {
+		"seasons": ["winter"],
+		"chance": 0.4,
+		"z": [0.33, 0.67],
+		"x": [0.12, 0.88],
+		"nudge": 0.04,
+		"size": [0.9, 1.1]
+	}
+}
