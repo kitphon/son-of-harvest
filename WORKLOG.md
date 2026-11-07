@@ -10,6 +10,28 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Flat view: moving water on the pond and river
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: `WaterView` (scripts/world/water_view.gd), a Sprite2D over the water cells in the flat
+  view: FarmView's pond and MapView's water (village pond, river), added under the objects and
+  left out where a map has no water. One pixel per map pixel, alpha on the water pixels only, so a
+  land side keeps its 2 px bank and 1 px foam line still (inset 3 px, as the 3D sheet's
+  LAND_INSET). Shader: the 3D sheet's drifting glint and trough pattern, sampled at the pixel
+  centres (pixel-stepped), same speeds, thresholds and colours; alphas 0.3 / 0.2 (3D 0.5 / 0.32)
+  because the flat view has no sun term. Constants copied from water_surface.gd (not in data).
+  The 3D water, grass tufts, crop clusters, outdoor props and festival meshes are untouched.
+- Checked: test_view2d `_water` (one sheet per water cell; every pixel of the sheet matches the
+  rule, banks and foam left still on the farm pond and the town's water; the shader uses TIME).
+  test_maps needed its flat snow check to skip the WaterView (it is a Sprite2D). After `--import`,
+  all 28 tests/test_*.gd print `OK (0 failed)` (animals, audio, body, cooking, dialogue, ending,
+  events, farm, festivals, fishing, food, forage, goals, hold, inventory, lang, maps, menu, mine,
+  relationships, save, shops, showcase, talk, title, view2d, villagers, weather). Smoke runs
+  (title, `--demo`, `--map=town`, `--mine=3`) print no error or warning; `res://scenes/main_2d.tscn
+  -- --demo` writes frames. The first render's glints were too strong (a pale blue block on the
+  pond), so the alphas went down. Pond crop frames 5 and 19 differ in 222 of 2376 pixels (it moves).
+- Left / next: the flat view has no rings (bobber ripples) yet; the village pond was off-screen in
+  the one town frame checked (the test covers it, no screenshot of it); no frozen water in winter.
+
 ## 2026-11-07 — Village house variety: hip roofs, two storeys, three wall finishes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a `village_house` prop may set `roof` (gable / hip), `storeys` (1 / 2) and `wall`

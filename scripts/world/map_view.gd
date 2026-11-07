@@ -30,6 +30,7 @@ var snow_mask: Image
 var _snow: Sprite2D          # on the ground, under the props
 var _roof_snow: Sprite2D     # on the roofs, over the props
 var _objects: Node2D         # props and doors, above the ground snow
+var _water: WaterView        # the moving skin on the water cells, over the ground
 
 
 ## The ground key for a cell: water gets banks where it meets land, others a variant by spot.
@@ -51,6 +52,15 @@ func _ready() -> void:
 	_objects = Node2D.new()
 	_objects.draw.connect(_draw_objects)
 	add_child(_objects)
+	if map != null:   # a map with water gets the moving skin (none on a house's floor)
+		var water := WaterView.new()
+		water.build(map.w, map.h, func(c: Vector2i) -> bool: return map.tile(c) == "water", false)
+		if water.water_cells > 0:
+			_water = water
+			add_child(_water)
+			move_child(_water, _objects.get_index())
+		else:
+			water.free()
 
 
 ## Lays snow over an outdoor map by `rules` (data/snow_cover.json); nothing under a roof.

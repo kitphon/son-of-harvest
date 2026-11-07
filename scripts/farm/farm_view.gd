@@ -36,12 +36,24 @@ var hidden_item := Vector2i(-1, -1):
 			_objects.queue_redraw()
 
 
+var _water: WaterView        # the moving skin on the pond (over the ground, under the objects)
+
+
 func _ready() -> void:
 	if ground_only:
 		return
 	_objects = Node2D.new()
 	_objects.draw.connect(_draw_objects)
 	add_child(_objects)
+	if farm != null:   # the pond's moving skin (none on a farm without one)
+		var water := WaterView.new()
+		water.build(FarmGrid.W, FarmGrid.H, func(c: Vector2i) -> bool: return farm.fixed_at(c) == "pond", true)
+		if water.water_cells > 0:
+			_water = water
+			add_child(_water)
+			move_child(_water, _objects.get_index())
+		else:
+			water.free()
 
 
 ## Lays snow over the ground by `rules` (data/snow_cover.json). Call once, then set_snow.
