@@ -36,6 +36,7 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 [x] Maples (2026-11-07): a Japanese maple tree kind (`Trees` "maple", small layered crown; green, deep green, red and orange, bare with snow), six on the bamboo hill and one each in Kaminoda and Sakurazaka; the hill's trees checked from the lookout (ART_DIRECTION, Trees).
 [x] Hill trees (2026-11-07): six broadleaf trees on the bamboo hill (data/maps/hill.json: persimmons and sakuras), red or gold in fall, bare with snow in winter (ART_DIRECTION, Trees).
 [x] Faster first visit to a map (2026-11-07): meshes the same every build kept a run (MeshCache), the maps next door built ahead while the farmer stands still (Main3D._prebuild); tools/build_times.gd times every build.
+[x] Shader warm-up and cheaper rebuilds (2026-11-07): every kind of material (and its faded twin) kept a run and drawn once in the map change's black (ShaderWarm), no more long frames when a house or a bamboo clump fades in the farmer's way; village houses, the farmhouse and the stand kept whole by MeshCache (windows, noren in the wind); rebuilds about 40% quicker.
 Art direction (2026-11-03): the user wants an "HD-2D lite" look, Japanese countryside: pixel
 sprites in a lit 3D world. [x] Light pass (sun shadows on the ground, warm sun / cool shade,
 glow; README → Light). [x] Camera lenses (data/camera.json: ps1, medium, wide; `--lens`);

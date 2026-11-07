@@ -39,6 +39,7 @@ func _lenses() -> void:
 
 var _frame := 0
 var _since_door := -1.0          # seconds since the door (the fade runs on real time)
+var _warm_before := 0            # ShaderWarm.shown before the door
 var _scene: Node
 var _entered: Array = []
 var _farm_world_ok := false
@@ -78,9 +79,14 @@ func _process(delta: float) -> bool:
 		_walk_slide()
 		_fade_steps()
 		_mesh_cache()
+		_occluder_own()
+		_kept_lit_and_swaying()
+		_shader_warm()
 		_start_view()
 	elif _frame == 3:
 		var g: Node = root.get_node("Game")
+		_k("shader_warm").clear()   # every kind of the house is new: the fade's black draws them
+		_warm_before = _k("shader_warm").shown
 		g.use_door(MapManager.data("farm").doors[0])
 		check(_scene.fade.busy() and g.paused(), "a door starts the fade and holds the farmer")
 		_since_door = 0.0
@@ -153,6 +159,8 @@ func _check_view() -> void:
 	check(_scene.world.get_script().resource_path.ends_with("map_world.gd") and _scene.world.map.id == "house", "the view rebuilt as the house")
 	check(_farm_world_ok, "the farm has land past its fence and its house, stand, coop and barn can fade")
 	check(_scene.player.position == g.maps.pos and _scene.player.facing == Vector2i.UP, "the farmer stands at the house spawn")
+	check(_k("shader_warm").shown > _warm_before and _scene._warm == null and _scene.find_children("ShaderWarm", "", true, false).is_empty(),
+		"shader warm: the house's kinds drawn in the fade's black (%d) and taken away before it cleared" % (_k("shader_warm").shown - _warm_before))
 	var plain: Dictionary = g.sun_light(true)
 	check(is_equal_approx(_scene.sun.rotation_degrees.x, -plain.elevation) and is_equal_approx(_scene.sun.rotation_degrees.y, plain.yaw)
 		and _scene.sun.light_color == plain.color, "in the house the plain fixed sun (%s)" % _scene.sun.rotation_degrees)
@@ -2964,6 +2972,11 @@ func _walkable(m: MapData, from: Vector2i) -> Dictionary:
 	return seen
 
 
+## A world3d script by its file name, loaded when the tests run (it reaches the Game autoload).
+func _k(file: String) -> GDScript:
+	return load("res://scripts/world3d/%s.gd" % file)
+
+
 func check(ok: bool, what: String) -> void:
 	if not ok:
 		failures += 1
@@ -3000,7 +3013,7 @@ func _mesh_cache() -> void:
 		"mesh cache: the snow top's own material is in the new world's snow (set_snow drives it)")
 	a.free()
 	b.free()
-	# A build that makes more than plain pieces (here a lit window) is not kept: it runs each time.
+	# A build with a lit window is kept too: the window is listed on every world, the build ran once.
 	runs[0] = 0
 	var lit := func(w: Node3D) -> void:
 		runs[0] += 1
@@ -3011,7 +3024,19 @@ func _mesh_cache() -> void:
 		MeshCacheS.build(w, id, lit.bind(w))
 		check(w.windows.size() == 1, "mesh cache: a lit window is made on every world (%d)" % i)
 		w.free()
-	check(runs[0] == 2 and not MeshCacheS.kept(id), "mesh cache: a build with a lit window is not kept (ran %d times)" % runs[0])
+	check(runs[0] == 1 and MeshCacheS.kept(id), "mesh cache: a build with a lit window is kept (ran %d times)" % runs[0])
+	# One that makes anything else (here a MultiMesh) is not kept: it runs each time.
+	runs[0] = 0
+	var multi := func(w: Node3D) -> void:
+		runs[0] += 1
+		w._multi(BoxMesh.new(), [Transform3D()] as Array[Transform3D], w.flat_material(Color.RED))
+	id = "test|multi %d" % Time.get_ticks_usec()
+	for i in 2:
+		var w: Node3D = fw.new()
+		MeshCacheS.build(w, id, multi.bind(w))
+		check(w.get_child_count() == 1 and w.get_child(0) is MultiMeshInstance3D, "mesh cache: a MultiMesh is made on every world (%d)" % i)
+		w.free()
+	check(runs[0] == 2 and not MeshCacheS.kept(id), "mesh cache: a build with a MultiMesh is not kept (ran %d times)" % runs[0])
 	runs[0] = 0
 	id = "test|parts %d" % Time.get_ticks_usec()
 	var parts := func(p: RefCounted) -> void:
@@ -3022,13 +3047,19 @@ func _mesh_cache() -> void:
 	check(runs[0] == 1 and m1 == m2 and m1.size() == 1, "mesh cache: parts are built once and handed out again")
 	# Real maps: a second village, farm, room and hill look the same piece by piece and share meshes.
 	var g: Node = root.get_node("Game")
+	# The farm from one fixed field: Game's own field comes from an unseeded rng, and its share of
+	# field pieces (never kept) made the half-shared check pass or fail from run to run.
+	var field := FarmGrid.new(g.crops)
+	var seeded := RandomNumberGenerator.new()
+	seeded.seed = 20261107
+	field.generate(seeded)
 	for map_id in ["town", "farm", "house", "hill"]:
 		var m := MapManager.data(map_id)
 		var worlds := []
 		for i in 2:
 			var w: Node3D = fw.new() if m.farm else load("res://scripts/world3d/map_world.gd").new()
 			if m.farm:
-				w.setup(g.farm, m.gate_cells())
+				w.setup(field, m.gate_cells())
 			else:
 				w.build(m)
 			worlds.append(w)
@@ -3064,6 +3095,144 @@ func _mesh_cache() -> void:
 			w.free()
 	check(PlaceholderArt.image("ground:grass:0").get_data() == PlaceholderArt.tex("ground:grass:0").get_image().get_data(),
 		"the kept tile pictures are the textures' pictures")
+
+
+## A thing that fades in the farmer's way gets its own materials (Occluders.add): one only its
+## meshes hold is used as it is (no copy), one anything else holds is copied (cheaper rebuilds,
+## 2026-11-07).
+func _occluder_own() -> void:
+	var occ: RefCounted = _k("occluders").new()
+	var parent := Node3D.new()
+	var fresh: Array[int] = []
+	for i in 3:
+		var mi := MeshInstance3D.new()
+		mi.mesh = BoxMesh.new()
+		mi.mesh.size = Vector3(1, 2, 1)
+		mi.material_override = StandardMaterial3D.new()
+		parent.add_child(mi)
+		fresh.append(mi.material_override.get_instance_id())
+	# Two meshes wear one material, which nothing else holds.
+	var kids := parent.get_children()
+	kids[2].material_override = kids[1].material_override
+	fresh[2] = fresh[1]
+	var outside := MeshInstance3D.new()   # not in the thing, wears a material of it
+	var held := StandardMaterial3D.new()  # and one a variable here holds
+	held.albedo_color = Color(0.2, 0.4, 0.6)
+	var a := MeshInstance3D.new()
+	a.mesh = BoxMesh.new()
+	a.mesh.size = Vector3(1, 2, 1)
+	a.material_override = held
+	parent.add_child(a)
+	var shared_with_outside := MeshInstance3D.new()
+	shared_with_outside.mesh = BoxMesh.new()
+	shared_with_outside.mesh.size = Vector3(1, 2, 1)
+	shared_with_outside.material_override = StandardMaterial3D.new()
+	outside.material_override = shared_with_outside.material_override
+	parent.add_child(shared_with_outside)
+	occ.add(parent.get_children())
+	kids = parent.get_children()
+	var kept_fresh: bool = kids[0].material_override.get_instance_id() == fresh[0] and kids[1].material_override.get_instance_id() == fresh[1] \
+		and kids[1].material_override == kids[2].material_override
+	check(kept_fresh, "occluders: a material only the thing's meshes hold is used as it is, still one for both that share it")
+	check(kids[3].material_override != held and kids[3].material_override.albedo_color == held.albedo_color
+		and kids[4].material_override != outside.material_override,
+		"occluders: a material held elsewhere (a variable, a mesh outside) is copied")
+	# The copy is the same as duplicate() would make.
+	var src: StandardMaterial3D = _k("farm_world").surface_material("build:plaster")
+	src.albedo_color = Color(0.9, 0.8, 0.7, 0.5)
+	src.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	src.set_meta("solid", [0, 1.0])
+	var c: Material = _k("mesh_cache").copy(src)
+	var d: Material = src.duplicate()
+	var same := c != src
+	for prop in d.get_property_list():
+		if prop.usage & PROPERTY_USAGE_STORAGE:
+			var x: Variant = c.get(prop.name)
+			var y: Variant = d.get(prop.name)
+			same = same and typeof(x) == typeof(y) and x == y
+	check(same and c.get_meta("solid") == [0, 1.0], "mesh cache: a material made from its recipe equals its duplicate()")
+	outside.free()
+	parent.free()
+
+
+## Village houses (lit windows, a shop's noren in the wind), the farmhouse and the stand are kept
+## a run too (MeshCache): a second world gets the same windows, the noren in its own Sway, the
+## NightLights group, and the same Sway poses.
+func _kept_lit_and_swaying() -> void:
+	var g: Node = root.get_node("Game")
+	var mw: GDScript = load("res://scripts/world3d/map_world.gd")
+	var worlds := []
+	for i in 2:
+		var w: Node3D = mw.new()
+		w.build(MapManager.data("town"))
+		worlds.append(w)
+	var a: Node3D = worlds[0]
+	var b: Node3D = worlds[1]
+	var house_ids := 0
+	for p in MapManager.data("town").props:
+		if str(p.kind) == "village_house":
+			house_ids += int(_k("mesh_cache").kept("prop|%s|%s|%s|%s" % ["town", p, g.season_name(), _k("snow_layer").map_has_snow(MapManager.data("town"))]))
+	check(house_ids == 5, "mesh cache: the village's five houses are kept with their windows (%d)" % house_ids)
+	check(a.windows.size() > 0 and a.windows == b.windows and a.lamps == b.lamps and b.is_in_group(_k("night_lights").GROUP),
+		"mesh cache: a village built again lists the same lit windows and lamps (%d, %d) and glows" % [b.windows.size(), b.lamps.size()])
+	var sa: Node3D = a.get_node_or_null("WindSway")
+	var sb: Node3D = b.get_node_or_null("WindSway")
+	var ok: bool = sa != null and sb != null and sa.count() == sb.count() and sa.count_of("cloth") > 0
+	if ok:
+		sa.wind = 0.8
+		sb.wind = 0.8
+		sa.pose(3.7)
+		sb.pose(3.7)
+		for i in sa.count():
+			ok = ok and sa.kind_of(i) == sb.kind_of(i) and sa.nodes_of(i).size() == sb.nodes_of(i).size()
+			for k in sa.nodes_of(i).size():
+				var na: Node3D = sa.nodes_of(i)[k]
+				var nb: Node3D = sb.nodes_of(i)[k]
+				ok = ok and na != nb and nb.get_parent() == b and na.transform.is_equal_approx(nb.transform) \
+					and a.get_children().find(na) == b.get_children().find(nb)
+	check(ok, "mesh cache: the noren sway in the second village as in the first (own nodes, same poses in a wind)")
+	for w in worlds:
+		w.free()
+	# The farm: the farmhouse with its windows and the stand with its noren are kept.
+	var fw: Node3D = _k("farm_world").new()
+	fw.setup(g.farm, MapManager.data("farm").gate_cells())
+	check(_k("mesh_cache").kept("farm|house") and _k("mesh_cache").kept("farm|stand") and fw.windows.size() == _k("lit_spots").farmhouse().size()
+		and fw.get_node_or_null("WindSway") != null,
+		"mesh cache: the farmhouse (with its %d windows) and the stand (its noren swaying) are kept" % fw.windows.size())
+	fw.free()
+
+
+## Shader warm-up (ShaderWarm): a material's kind is its switches and textures, not its colours;
+## a world's new kinds (with the faded twins of what fades) are kept once and drawn by tiny quads
+## in front of the camera.
+func _shader_warm() -> void:
+	var a: StandardMaterial3D = _k("farm_world").surface_material("build:plaster")
+	var b: StandardMaterial3D = _k("farm_world").surface_material("build:plaster")
+	b.albedo_color = Color(0.3, 0.5, 0.7)
+	var c: StandardMaterial3D = _k("farm_world").flat_material(Color.RED)
+	check(_k("shader_warm").signature(a) == _k("shader_warm").signature(b) and _k("shader_warm").signature(a) != _k("shader_warm").signature(c)
+		and _k("shader_warm").signature(a) != _k("shader_warm").signature(_k("shader_warm").faded(a)) and _k("shader_warm").signature(a) != _k("shader_warm").signature(a, true),
+		"shader warm: one kind for the same switches in another colour; another when flat, faded or on a MultiMesh")
+	_k("shader_warm").clear()
+	var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	w.build(MapManager.data("town"))
+	var first: Array = _k("shader_warm").news(w)
+	var again: Array = _k("shader_warm").news(w)
+	var faded := first.filter(func(k): return k.mat is StandardMaterial3D and k.mat.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA)
+	var multi := first.filter(func(k): return k.multi)
+	check(first.size() > 5 and again.is_empty() and faded.size() > 0 and multi.size() > 0 and _k("shader_warm").count() == first.size(),
+		"shader warm: the village's kinds kept once (%d, %d faded, %d on MultiMeshes; again %d)" % [first.size(), faded.size(), multi.size(), again.size()])
+	var cam := Camera3D.new()
+	var holder := Node3D.new()
+	holder.add_child(cam)
+	var node: Node3D = _k("shader_warm").show(holder, cam, first)
+	var near := true
+	for q in node.get_children():
+		near = near and (q.position - cam.position).length() < 1.0 and q.material_override in first.map(func(k): return k.mat)
+	check(node.get_child_count() == first.size() and near and _k("shader_warm").show(holder, cam, again) == null,
+		"shader warm: one tiny quad a new kind, just in front of the camera; none when nothing is new")
+	holder.free()
+	w.free()
 
 
 ## Maps next door built ahead (Main3D._prebuild): while the farmer stands still the farm's

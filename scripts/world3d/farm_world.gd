@@ -222,8 +222,8 @@ func lit_lamp(at: Vector3) -> void:
 ## Buildings over the fixed cells laid out by FarmGrid.generate(). The camera looks from +x / +z,
 ## so doors and windows go on those faces.
 func _make_buildings() -> void:
-	# The same every time: their meshes are kept a run (MeshCache); the lit windows, the noren
-	# and the lamps are made fresh (a build that makes them is not kept).
+	# The same every time: kept a run (MeshCache), the lit windows and the stand's noren with
+	# the rest.
 	occlude(_make_house)
 	MeshCache.build(self, "farm|chest", func(): FarmProps.chest(self))
 	MeshCache.build(self, "farm|bin", func(): FarmProps.bin(self))
@@ -336,10 +336,11 @@ func plant_tufts(cells: Array[Vector2i], hold_at: Callable) -> void:
 ## (veranda) along the front under the eaves, with a shoji door and windows on the faces the
 ## camera sees (+z, +x).
 func _make_house() -> void:
-	MeshCache.build(self, "farm|house", _house_body)
-	# Shoji door over the door cell (4, 3), shoji windows beside it and on the +x face.
-	for spot in LitSpots.farmhouse():
-		_lit_spot(spot)
+	MeshCache.build(self, "farm|house", func() -> void:
+		_house_body()
+		# Shoji door over the door cell (4, 3), shoji windows beside it and on the +x face.
+		for spot in LitSpots.farmhouse():
+			_lit_spot(spot))
 
 
 ## The farmhouse's walls, frame, engawa and roof (_make_house).

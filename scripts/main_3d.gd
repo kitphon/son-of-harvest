@@ -51,6 +51,10 @@ var prebuild := true            # false: no building ahead
 var prebuilt := 0                # worlds built ahead so far (tests)
 var _pre := {}                   # the one under way: {id, key, world, steps, next}
 var _still := 0.0                # seconds the farmer has stood still (with no fade)
+## Shader warm-up (ShaderWarm): the new kinds of material of a map entered are drawn once while
+## the fade holds black, then taken away.
+var warm := true
+var _warm: Node3D
 var _layers: Array[Node] = []   # this visit's layers on the world (villagers, forage, animals ...)
 var lightning := Lightning.new()
 var held_sprite: Sprite3D        # the item carried overhead
@@ -258,6 +262,16 @@ func _enter_map() -> void:
 	_show_weather()
 	_update_tint()
 	_follow()
+	_end_warm()
+	if warm and fade.busy():
+		_warm = ShaderWarm.show(self, cam, ShaderWarm.news(world))
+
+
+## Takes the warm-up quads away (before the picture comes back from black).
+func _end_warm() -> void:
+	if _warm != null:
+		_warm.free()
+		_warm = null
 
 
 ## A new world for map `m` (not built yet) and its build steps, in order: the farm (FarmWorld,
@@ -417,6 +431,7 @@ func _drop_worlds() -> void:
 
 
 func _exit_tree() -> void:
+	_end_warm()
 	_stop_prebuild()
 	_drop_worlds()
 
@@ -449,6 +464,8 @@ func _process(delta: float) -> void:
 	_fly(delta)
 	_show_fishing()
 	_prebuild(delta)
+	if _warm != null and not fade.holding():
+		_end_warm()
 
 
 func _follow() -> void:
