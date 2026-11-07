@@ -37,6 +37,12 @@ var sun: DirectionalLight3D
 var lamps: NightLamps
 var flash: ColorRect
 var fade: MapFade
+## Worlds built earlier today, kept out of the tree for going back (a map build is a long frame):
+## map id -> {key: what it was built for (world_key), world}. The newest KEEP_WORLDS are kept.
+var _worlds := {}
+var _world_order: Array[String] = []   # oldest first
+const KEEP_WORLDS := 6
+var _layers: Array[Node] = []   # this visit's layers on the world (villagers, forage, animals ...)
 var lightning := Lightning.new()
 var held_sprite: Sprite3D        # the item carried overhead
 var lantern_sprite: Sprite3D     # the lantern in the farmer's hand down the mine
@@ -188,27 +194,40 @@ func _ready() -> void:
 
 ## Builds the world for Game.maps and puts the farmer where it says.
 func _enter_map() -> void:
-	if world != null:
-		world.queue_free()
+	_leave_world()
 	var m := Game.maps.current()
-	if Game.maps.on_farm():
-		world = FarmWorld.new()
-		world.setup(Game.farm, m.gate_cells())
-		world.make_story_props(m)   # the door bell, once Hachiro has given it
+	var key := world_key(m)
+	var kept: Dictionary = _worlds.get(m.id, {})
+	if not kept.is_empty() and kept.key == key:
+		world = kept.world   # been here today and nothing changed: no rebuild
+		world.come_back()
+		_worlds.erase(m.id)
+		_world_order.erase(m.id)
 	else:
-		world = MapWorld.new()
-		(world as MapWorld).build(m)
-	world.add_child(FestivalProps.new(m.id))   # today's festival decorations, in its hours
-	world.add_child(VillagerSprites.new(m.id))
-	world.add_child(ForageLayer.new(m.id))   # what grows wild there today (data/forage.json)
+		if not kept.is_empty():
+			_drop_world(m.id)
+		if Game.maps.on_farm():
+			world = FarmWorld.new()
+			world.setup(Game.farm, m.gate_cells())
+			world.make_story_props(m)   # the door bell, once Hachiro has given it
+		else:
+			world = MapWorld.new()
+			(world as MapWorld).build(m)
+		world.set_meta("key", key)
+		world.set_meta("map_id", m.id)
+	if world.backdrop != null:
+		world.backdrop.refresh()
+	_add_layer(FestivalProps.new(m.id))   # today's festival decorations, in its hours
+	_add_layer(VillagerSprites.new(m.id))
+	_add_layer(ForageLayer.new(m.id))   # what grows wild there today (data/forage.json)
 	add_child(world)
 	move_child(world, 0)
 	var animals := AnimalLayer.new()   # the animals, eggs and feed (coop, barn, or the farm and its dog)
-	world.add_child(animals)
+	_add_layer(animals)
 	animals.setup(m, Game.maps.on_farm(), player)
 	if Game.maps.mine_floor != null:   # rocks, soft spots and the hole down
 		var rocks := MineLayer.new()
-		world.add_child(rocks)
+		_add_layer(rocks)
 		rocks.setup(Game.maps.mine_floor)
 	player.farm = Game.farm
 	player.position = Game.maps.pos
@@ -218,6 +237,64 @@ func _enter_map() -> void:
 	_show_weather()
 	_update_tint()
 	_follow()
+
+
+## What a world was built for: the map (a new MapData when its story props or extensions
+## change), the farm, the day, the weather and the snow lying. A kept world with the same key is
+## used again; a mine floor ("" here) is always built fresh.
+static func world_key(m: MapData) -> String:
+	if Game.maps.mine_floor != null:
+		return ""
+	return "%d/%d/%d-%d-%d/%s/%d" % [m.get_instance_id(), Game.farm.get_instance_id(), Game.year, Game.season, Game.day,
+		Game.weather_today, Game.snow_cover]
+
+
+## Takes this visit's layers off the world and keeps the world (out of the tree) for going back.
+func _leave_world() -> void:
+	for n in _layers:
+		if is_instance_valid(n):
+			n.get_parent().remove_child(n)
+			n.queue_free()
+	_layers.clear()
+	if world == null:
+		return
+	remove_child(world)
+	var id := str(world.get_meta("map_id", ""))
+	var key := str(world.get_meta("key", ""))
+	if world.hidden_item != Vector2i(-1, -1):
+		world.hidden_item = Vector2i(-1, -1)
+	if key == "" or id == "":
+		world.queue_free()
+	else:
+		_drop_world(id)
+		world.away = true   # the farm's field changes wait until it is back
+		_worlds[id] = {"key": key, "world": world}
+		_world_order.append(id)
+		while _world_order.size() > KEEP_WORLDS:
+			_drop_world(_world_order[0])
+	world = null
+
+
+func _drop_world(id: String) -> void:
+	if _worlds.has(id):
+		_worlds[id].world.queue_free()
+		_worlds.erase(id)
+	_world_order.erase(id)
+
+
+func _add_layer(n: Node) -> void:
+	world.add_child(n)
+	_layers.append(n)
+
+
+## Frees the kept worlds (a new day, and leaving the view).
+func _drop_worlds() -> void:
+	for id in _worlds.keys():
+		_drop_world(id)
+
+
+func _exit_tree() -> void:
+	_drop_worlds()
 
 
 ## Do the tools work here (the farm, a mine floor)? Then the target brackets show.
@@ -402,6 +479,7 @@ func _fly(delta: float) -> void:
 
 ## The farmer is put home by the map change (Game.go_home) that comes with the new day.
 func _on_day_started() -> void:
+	_drop_worlds()   # built for yesterday
 	player.cancel_charge()
 	_show_weather()
 	_update_tint()

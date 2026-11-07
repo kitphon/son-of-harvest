@@ -33,6 +33,9 @@ var windows: Array[Dictionary] = []
 ## Stone lanterns lit at night (NightLights: a glow round the fire box, a pool round the foot):
 ## {pos: the fire box's centre}.
 var lamps: Array[Dictionary] = []
+## Kept out of the tree by the view (Main3D's kept worlds): field changes only mark it stale.
+var away := false
+var _stale := false
 ## A thrown item still in the air: its cell's sprite waits until the flight lands.
 var hidden_item := Vector2i(-1, -1):
 	set(value):
@@ -63,6 +66,14 @@ func make_story_props(m: MapData) -> void:
 	for p in m.props:
 		if p.kind in StoryView.KINDS:
 			StoryProps.prop(self, p)
+
+
+## Back in the view after being kept: catches up on the field changes made meanwhile.
+func come_back() -> void:
+	away = false
+	if _stale:
+		_stale = false
+		_rebuild_objects()
 
 
 ## Snow on the ground and roofs, 0 (none) .. 1 (all white where the ground holds it).
@@ -416,6 +427,9 @@ func _update_mask() -> void:
 
 
 func _rebuild_objects() -> void:
+	if away:
+		_stale = true
+		return
 	# The snow mask only matters while snow lies; otherwise it waits for set_snow.
 	_mask_dirty = true
 	if Game.snow_cover > 0:

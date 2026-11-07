@@ -73,6 +73,8 @@ func _process(delta: float) -> bool:
 		_map_snow()
 		_edges_and_fades()
 		_backdrop()
+		_walk_slide()
+		_fade_steps()
 		_start_view()
 	elif _frame == 3:
 		var g: Node = root.get_node("Game")
@@ -154,6 +156,7 @@ func _check_view() -> void:
 	var events: Array = _scene.get_children().filter(func(n): return n.get_script() != null and n.get_script().resource_path.ends_with("event_player.gd"))
 	check(events.size() == 1 and events[0].map_id == "house" and events[0].table.map_id == "house",
 		"the event triggers follow the map")
+	_kept_worlds(g)
 	_scene.free()
 	check(not g.paused(), "leaving the view keeps no pause")
 	g.new_game()
@@ -2561,3 +2564,139 @@ func check(ok: bool, what: String) -> void:
 	if not ok:
 		failures += 1
 		print("FAIL: " + what)
+
+
+## Walking (playtest 2026-11-07: the farmer stuck on things until wiggled free): straight into a
+## corner a few pixels off a gap slides into the gap and through it; a solid cell that came
+## over the feet never traps them.
+func _walk_slide() -> void:
+	var g: Node = root.get_node("Game")
+	var farm := FarmGrid.new(g.crops)
+	var at := Vector2i(-1, -1)   # a clear 5 x 5 patch of field
+	for y in range(4, FarmGrid.H - 6):
+		for x in range(4, FarmGrid.W - 6):
+			var ok := true
+			for dy in 5:
+				for dx in 5:
+					if not farm.can_farm(Vector2i(x + dx, y + dy)):
+						ok = false
+			if ok:
+				at = Vector2i(x, y)
+				break
+		if at.x >= 0:
+			break
+	check(at.x >= 0, "walking: a clear patch of field to test on")
+	if at.x < 0:
+		return
+	for dy in 5:
+		for dx in 5:
+			farm.cell(at + Vector2i(dx, dy)).obj = FarmGrid.Obj.NONE
+	var gap := at + Vector2i(2, 2)
+	farm.cell(gap + Vector2i.LEFT).obj = FarmGrid.Obj.ROCK
+	farm.cell(gap + Vector2i.RIGHT).obj = FarmGrid.Obj.ROCK
+	var saved_farm: FarmGrid = g.farm
+	var saved_id: String = g.maps.id
+	var saved_pos: Vector2 = g.maps.pos
+	g.farm = farm
+	g.maps.id = MapManager.FARM
+	var p: Node2D = load("res://scripts/player/player.gd").new()
+	p.farm = farm
+	# Below the gap, 6 px right of its middle: the right foot hits the rock beside it.
+	p.position = Vector2(gap.x * 16 + 8 + 6, (gap.y + 1) * 16 + 4)
+	var d := Vector2(0, -2)
+	check(not p._try_move(d), "walking: 6 px off the gap the step up is blocked by the rock")
+	var x0 := p.position.x
+	check(p._slide(d) and p.position.x < x0 and p.position.y == (gap.y + 1) * 16 + 4, "walking: blocked, the farmer slides sideways towards the gap (%s)" % p.position)
+	for i in 40:
+		if not p._try_move(d):
+			p._slide(d)
+	check(p.position.y < gap.y * 16, "walking: holding up walks round the corner and through the gap (%s)" % p.position)
+	# Far off any gap: no slide.
+	var q: Node2D = load("res://scripts/player/player.gd").new()
+	q.farm = farm
+	farm.cell(gap).obj = FarmGrid.Obj.ROCK
+	q.position = Vector2(gap.x * 16 + 8, (gap.y + 1) * 16 + 4)
+	check(not q._try_move(d) and not q._slide(d) and q.position == Vector2(gap.x * 16 + 8, (gap.y + 1) * 16 + 4), "walking: a wall with no gap near stays a wall")
+	# A rock over the feet: every step out is free, a step into another rock is not.
+	var r: Node2D = load("res://scripts/player/player.gd").new()
+	r.farm = farm
+	var mid := at + Vector2i(2, 4)
+	r.position = Vector2(mid.x * 16 + 8, mid.y * 16 + 8)
+	farm.cell(mid).obj = FarmGrid.Obj.ROCK
+	check(r._try_move(Vector2(0, 2)) and r._try_move(Vector2(2, 0)), "walking: a solid cell under the feet lets them walk off it")
+	farm.cell(mid + Vector2i.LEFT).obj = FarmGrid.Obj.ROCK
+	r.position = Vector2(mid.x * 16 + 8, mid.y * 16 + 8)
+	check(not r._try_move(Vector2(-4, 0)), "walking: but not into the next one")
+	for n in [p, q, r]:
+		n.free()
+	g.farm = saved_farm
+	g.maps.id = saved_id
+	g.maps.pos = saved_pos
+
+
+## The map fade: never jumps on a slow frame, swaps at black, stays black HOLD_FRAMES frames.
+func _fade_steps() -> void:
+	var g: Node = root.get_node("Game")
+	var fade_script: GDScript = load("res://scripts/ui/map_fade.gd")
+	var f: Node = fade_script.new()
+	var MAX_STEP: float = fade_script.MAX_STEP
+	var OUT_S: float = fade_script.OUT_SECONDS
+	var IN_S: float = fade_script.IN_SECONDS
+	var HOLD: int = fade_script.HOLD_FRAMES
+	root.add_child(f)
+	var swaps := [0]
+	f.run(func(): swaps[0] += 1)
+	check(f.busy() and g.paused(), "fade: running holds the clock")
+	f._process(1.0)   # a one-second hitch
+	check(f.alpha() <= MAX_STEP / OUT_S + 0.001, "fade: a slow frame moves it one small step (%.2f)" % f.alpha())
+	var frames := 0
+	while swaps[0] == 0 and frames < 100:
+		f._process(1.0)
+		frames += 1
+	check(swaps[0] == 1 and is_equal_approx(f.alpha(), 1.0), "fade: the swap comes at black")
+	for i in HOLD:
+		f._process(1.0)
+	check(is_equal_approx(f.alpha(), 1.0), "fade: black for %d frames after the swap" % HOLD)
+	f._process(1.0)
+	check(f.alpha() < 1.0 and f.alpha() >= 1.0 - MAX_STEP / IN_S - 0.001, "fade: back in by small steps (%.2f)" % f.alpha())
+	f.run(func(): swaps[0] += 10)   # a second change on the way back: dark again, swapped again
+	frames = 0
+	while f.busy() and frames < 200:
+		f._process(1.0 / 60.0)
+		frames += 1
+	check(swaps[0] == 11 and not f.busy() and f.alpha() == 0.0 and not g.paused(), "fade: a change on the way back swaps again, then the fade ends (%d)" % swaps[0])
+	f.free()
+
+
+## Worlds built today are kept for going back (a build is a long frame): back on the farm the
+## same world returns, its field changes caught up; a new day or a changed map builds anew.
+func _kept_worlds(g: Node) -> void:
+	var farm_kept: Dictionary = _scene._worlds.get("farm", {})
+	check(not farm_kept.is_empty() and not farm_kept.world.is_inside_tree() and farm_kept.world.away, "kept worlds: the farm's world waits out of the tree while in the house")
+	if farm_kept.is_empty():
+		return
+	var house_world: Node = _scene.world
+	var c := Vector2i(-1, -1)
+	for i in g.farm.cells.size():
+		var cc := Vector2i(i % FarmGrid.W, i / FarmGrid.W)
+		if g.farm.can_farm(cc) and g.farm.cell(cc).obj == FarmGrid.Obj.NONE and not g.farm.cell(cc).tilled:
+			c = cc
+			break
+	g.farm.till(c)
+	check(farm_kept.world._stale, "kept worlds: a field change while away only marks the farm stale")
+	g.maps.place("farm", Vector2i(10, 10), Vector2i.DOWN)
+	_scene._enter_map()
+	check(_scene.world == farm_kept.world and _scene.world.is_inside_tree() and not _scene.world.away and not _scene.world._stale,
+		"kept worlds: back on the farm the same world returns and catches up")
+	check(_scene.world.find_children("*", "", false, false).filter(func(n): return n.get_script() != null and n.get_script().resource_path.ends_with("villager_sprites.gd")).size() == 1,
+		"kept worlds: one fresh set of villagers and animals on it")
+	check(_scene._worlds.has("house") and _scene._worlds.house.world == house_world, "kept worlds: and the house waits in turn")
+	g.maps.place("house", Vector2i(3, 3), Vector2i.UP)
+	_scene._enter_map()
+	check(_scene.world == house_world, "kept worlds: the house again, not rebuilt")
+	_scene._on_day_started()
+	check(_scene._worlds.is_empty(), "kept worlds: a new day drops them")
+	g.day += 1
+	g.maps.place("farm", Vector2i(10, 10), Vector2i.DOWN)
+	_scene._enter_map()
+	check(_scene.world != farm_kept.world, "kept worlds: the next day the farm is built anew")

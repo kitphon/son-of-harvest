@@ -23,6 +23,18 @@ None right now.
 4. ~~Item 6 (night), then 7 and 8.~~ Fixed.
 
 ## Fixed
+- The user's own playtest (2026-11-07), changing maps was slow and jerky: the whole new map was
+  built in one long frame (35–240 ms; the farm the most), and the fade back in jumped half way
+  on that frame, so the stutter showed. Now the fade steps at most 1/30 s a frame, stays black
+  3 frames after the swap (the build and the first draws), and the view keeps up to 6 worlds
+  built today (out of the tree) for going back: town → store → town rebuilt the town in
+  ~110 ms, now ~1 ms. Commit: see WORKLOG 2026-11-07 "Smooth map changes, no getting stuck".
+- The user's own playtest (2026-11-07), the farmer got stuck on things until wiggled free:
+  walking straight into a wall's corner a few pixels off a gap (a door, between posts) stopped
+  dead, a villager just off the path did too, and a solid cell that came over the feet (a
+  villager's spot, a thing set down) trapped them. Now a straight walk slides round a corner
+  (up to half a cell) or a villager (up to 0.75 cell) into the free way, and a solid cell the
+  feet already touch never blocks. Same commit.
 - Winter mining beat the whole farm (item 4): deep finds about halved again (data/mine.json
   `_prices`: hoshigane 110, jade 85, kogane 30 ...) and floors 13+ hide nothing half the time;
   the First Stone rivals scaled with them. Year bot, year 1 winter mine 73160 → 38378 G, the

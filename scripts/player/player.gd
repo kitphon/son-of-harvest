@@ -81,6 +81,9 @@ func _physics_process(delta: float) -> void:
 		if pushed and not Game.maps.door_at(ahead).is_empty():
 			action.emit("enter", ahead - facing, facing, 0)
 			return
+		# Straight into a corner or a villager: slide round it when the way is clear a little to the side.
+		if pushed and minf(absf(dir.x), absf(dir.y)) < 0.25 * maxf(absf(dir.x), absf(dir.y)):
+			_slide(Vector2(facing) * speed * delta)
 	if Input.is_action_just_pressed("use_tool"):
 		# Hands full (an item overhead): the button sets it down, nothing charges.
 		if Game.max_charge(Game.current_tool()) > 0 and not Game.holding():
@@ -140,17 +143,50 @@ func target_cell() -> Vector2i:
 
 
 ## Moves by `d` unless a corner of the feet would end on a solid cell or the step goes into
-## a villager; false when blocked.
+## a villager; false when blocked. A solid cell the feet already stand on does not block (a
+## crate set down or a villager's spot that came over the feet must never trap the farmer).
 func _try_move(d: Vector2) -> bool:
 	var np := position + d
-	if Game.villager_in_way(position, np):
+	if not _free(position, np):
 		return false
-	for corner in [Vector2(-FEET.x, -FEET.y), Vector2(FEET.x, -FEET.y),
-			Vector2(-FEET.x, FEET.y), Vector2(FEET.x, FEET.y)]:
-		if Game.maps.is_solid(cell_of(np + corner), farm):
-			return false
 	position = np
 	return true
+
+
+const CORNERS: Array[Vector2] = [Vector2(-FEET.x, -FEET.y), Vector2(FEET.x, -FEET.y),
+		Vector2(-FEET.x, FEET.y), Vector2(FEET.x, FEET.y)]
+## How far to the side (pixels) the farmer slides round what blocks a straight walk: a wall's
+## corner (half a cell), a villager (past block_reach, 0.7 cells).
+const SLIDE_WALL := 8
+const SLIDE_VILLAGER := 12
+
+
+## May the feet go from `from` to `to`?
+func _free(from: Vector2, to: Vector2) -> bool:
+	if Game.villager_in_way(from, to):
+		return false
+	var under := {}
+	for corner in CORNERS:
+		under[cell_of(from + corner)] = true
+	for corner in CORNERS:
+		var c := cell_of(to + corner)
+		if not under.has(c) and Game.maps.is_solid(c, farm):
+			return false
+	return true
+
+
+## Blocked walking straight by `d`: when the way is clear up to a few pixels to one side, step
+## that way (at most as far as `d`), so a gap a little off the feet or a villager in the path is
+## walked round instead of stuck on. The nearer side wins. True when the farmer moved.
+func _slide(d: Vector2) -> bool:
+	var side := Vector2(absf(signf(d.y)), absf(signf(d.x)))   # across the walk
+	var reach := SLIDE_VILLAGER if Game.villager_in_way(position, position + d) else SLIDE_WALL
+	for k in range(1, reach + 1):
+		for sgn in [1.0, -1.0]:
+			var at: Vector2 = position + side * sgn * k
+			if _free(position, at) and _free(at, at + d):
+				return _try_move(side * sgn * minf(d.length(), k))
+	return false
 
 
 func _draw() -> void:

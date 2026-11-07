@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] Playtest fixes (2026-11-07): smooth map changes (a steady fade, worlds kept for going back) and no getting stuck on corners or villagers.
 Art direction (2026-11-03): the user wants an "HD-2D lite" look, Japanese countryside: pixel
 sprites in a lit 3D world. [x] Light pass (sun shadows on the ground, warm sun / cool shade,
 glow; README → Light). [x] Camera lenses (data/camera.json: ps1, medium, wide; `--lens`);

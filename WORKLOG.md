@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Smooth map changes, no getting stuck
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user's own playtest (docs/FEEDBACK.md → Fixed). Map changes: measured in a window,
+  a build took one frame of 35 ms (house) .. 240 ms (farm), and MapFade's tween took that long
+  frame as one step, so the picture popped back half faded and the stutter showed. MapFade now
+  runs in _process: each step at most 1/30 s (OUT 0.2 s, IN 0.25 s), black kept HOLD_FRAMES 3
+  frames after the swap (the build, the first draws and shader compiles), and a change during
+  the hold or the way back goes dark and swaps again (the old tween lost it). Main3D keeps up to
+  KEEP_WORLDS 6 worlds built today out of the tree (`_worlds`, keyed by `world_key`: the MapData
+  instance (new when gates change), the farm, the date, the weather, the snow); per-visit layers
+  (festival props, villagers, forage, animals, mine rocks) are made fresh each visit; a kept
+  FarmWorld is `away` and only marks field changes stale (`come_back` catches up); a new day
+  drops them; mine floors are never kept. Walking (Player): a straight walk blocked by a corner
+  slides sideways up to 8 px (half a cell) or past a villager up to 12 px into the free way
+  (`_slide`, only when the input is mainly one axis); a solid cell the feet already touch never
+  blocks (`_free`), so nothing that comes over the feet can trap the farmer.
+- Checked: all 28 test scripts print OK (0 failed); test_maps new `_walk_slide`, `_fade_steps`
+  (a 1 s hitch moves the fade one small step, swap at black, 3 black frames, a second change
+  swaps again) and `_kept_worlds` (the farm world waits out of the tree, a till marks it stale,
+  back on the farm the same world with one fresh set of villagers, the house kept in turn, a new
+  day builds anew). Smoke runs (title, --demo, --demo --map=town, --demo --mine=3) logged no
+  errors. Timing in a window (a throwaway script, not kept): town → store → town: town 118.9 ms
+  first, 1.1 ms back; farm 227.9 ms first, 1.8–2.8 ms back. Memory with 6 kept worlds: 143 MB /
+  video 61 MB, against 115 / 40 MB keeping none.
+- Left / next: a first visit still builds in one frame (now under black); the farm's buildings
+  (~160 ms) are the dearest part if it needs to go faster. Not tried by hand with a pad.
 ## 2026-11-07 — Larger, more detailed farmer and villager figures
 Agent: Claude Code (claude-opus-5-5) · Commit: d2d8064
 - Done: docs/ART_DIRECTION.md section 4 item 1 (the user chose code-drawn placeholders refined
