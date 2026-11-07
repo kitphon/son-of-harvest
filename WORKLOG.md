@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Tall crops sway in the flat view
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: the flat view's rice, corn, vines and the Kaminoda paddies sway with the wind like the 3D
+  shader's. `CropPatches.sway_tip` is the shader's swing in pixels (CropClusters.SWAY, 1 + 1.5 x wind,
+  gust swell and flutter, speed 1.3 + 0.9 x wind, phase by the plant's root place so by the cell's
+  hash, a small lean downwind, times `stiff`: vines 0.6); `band_shifts` cuts the picture into
+  `bands` strips and shifts each by whole pixels by the shader's (1 - v)^2 height weight, so the top
+  moves most and the root row never. `draw` / `draw_spot` take an optional `sway` {wind, t}; empty =
+  still as before (snow hiding is untouched). FarmView and MapView take Game.wind_strength() in
+  `_process`, keep the time to `flat.rate` frames a second (data/wind.json "flat": rate 8, bands 4)
+  and redraw their objects only when that frame changes and tall crops stand. Peaks: a sunny
+  breeze under 1 px (a twitch at a gust's crest), rain 1 px, a storm 2 px or more, vines about
+  0.6 of that.
+- Checked: test_view2d `_tall_sway` (no wind none; calm under a pixel, more in rain and storm,
+  storm 2 px; vines less than rice; same time and place same value; places out of step; bands top
+  heaviest and root band 0; time quantised; the draw runs). Whole suite, smoke runs and a flat-view
+  `--demo --season=summer --weather=storm` frame (tips differ between frames, pixels crisp).
+- Left / next: the winter water patches are not in the flat view (another task); gusts are not
+  synced between the views.
+
 ## 2026-11-07 — Sprites take the world's light
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: ART_DIRECTION section 3's "sprites stay unshaded". The sprites stay unshaded (crisp, the

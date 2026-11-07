@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] Tall crops sway in the flat view (2026-11-07): the tips of rice, corn, vines and the paddies shift by whole pixels with the wind of data/wind.json (stronger in rain and storm, vines stiffer, phase by place; CropPatches.sway_tip, data/wind.json "flat"; ART_DIRECTION, Rice and tall crops).
 [x] Sprites take the world's light (2026-11-07): the unshaded sprites take a share of the sun's colour by the clock (golden morning and evening, plain at noon, night, indoors and under cloud) and, at night, a warm lift near lit windows, doors, stone lanterns and festival lights, staying blue in the dark (SpriteLight, NightLights "Warmth", data/light.json "sprites"; ART_DIRECTION section 3). No sun shadow on the sprites (would not match the ground's); the flat view is unchanged.
 [x] Winter paddies (2026-11-07): the cut rice stands as stubble in the nine-hill layout and a few grey-blue water patches lie between the rows, both folding away or vanishing under snow lying on them by the paddy's hold (CropClusters.paddy_key / plant_water, data/paddy.json; ART_DIRECTION, Rice and tall crops).
 [x] Tall crops in the flat view (2026-11-07): rice, corn and the vine crops past the sprout are several small pixel plants a cell, as in 3D, and the Kaminoda paddies grow rice by season (CropPatches, the same CropClusters places and `stalk:` pictures; no sway yet; ART_DIRECTION).

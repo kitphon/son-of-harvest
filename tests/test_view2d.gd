@@ -49,6 +49,7 @@ func _run() -> void:
 	await _footprints()
 	await _hearth_smoke()
 	await _tall_crops()
+	await _tall_sway()
 	scene.free()
 	print("test_view2d: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -841,3 +842,47 @@ func _tall_crops() -> void:
 	check(some < bare and most <= some, "snow lying hides the plants on white ground (%d, %d, %d)" % [bare, some, most])
 	check(mv.paddy_cells().keys().all(func(cell): return mv.map.tile(cell) == "paddy" and mv.map.prop_at(cell).is_empty()), "only prop-free paddy cells grow rice")
 	mv.free()
+
+
+
+## The tall crops' sway (CropPatches.sway_tip / band_shifts): still at calm, more in a storm, vines
+## stiffer than rice, the same every time for a place, only whole pixels, the root row never moved.
+func _tall_sway() -> void:
+	var CP: GDScript = load("res://scripts/world/crop_patches.gd")
+	var rules: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/wind.json"))
+	var calm: float = rules.strength.sunny
+	var rain: float = rules.strength.rain
+	var storm: float = rules.strength.storm
+	check(CP.sway_tip(0.0, 3.0, 4.2, 5.1) == 0.0 and CP.sway_now(0.0, 3.0).is_empty(), "no wind: no sway at all")
+	var peak = {}
+	for w in [calm, rain, storm]:
+		var m := 0.0
+		var mv := 0.0
+		for i in 400:
+			var t := i / float(CP.flat_config().rate)
+			m = maxf(m, absf(CP.sway_tip(w, t, 4.2, 5.1)))
+			mv = maxf(mv, absf(CP.sway_tip(w, t, 4.2, 5.1, 0.6)))
+		peak[w] = [m, mv]
+	check(peak[calm][0] < 1.0, "a sunny breeze: the rice tip swings under a pixel (%.2f), a 1 px twitch at the crest at most" % peak[calm][0])
+	check(peak[rain][0] > peak[calm][0] and peak[storm][0] > peak[rain][0], "more wind, more sway (%s)" % [peak])
+	check(peak[storm][0] >= 2.0, "a storm moves the tip by 2 px or more (%.2f)" % peak[storm][0])
+	check(peak[storm][1] < peak[storm][0] * 0.7 and peak[rain][1] < peak[rain][0], "a vine on its stake sways less than rice (%s)" % [peak])
+	check(CP.sway_tip(storm, 2.25, 4.2, 5.1) == CP.sway_tip(storm, 2.25, 4.2, 5.1), "the sway is the same for the same time and place")
+	var phases = {}
+	for x in 6:
+		phases[snappedf(CP.sway_tip(storm, 1.0, float(x), 2.0), 0.01)] = true
+	check(phases.size() >= 4, "plants in different places sway out of step (%d phases)" % phases.size())
+	var sh: Array[int] = CP.band_shifts(2.4, 4)
+	check(sh.size() == 4 and sh[0] >= sh[1] and sh[1] >= sh[2] and sh[3] == 0 and sh[0] == 2, "the top band moves most, the root band never (%s)" % [sh])
+	check(CP.band_shifts(0.4, 4).all(func(v): return v == 0), "under half a pixel nothing is shifted")
+	var a: Dictionary = CP.sway_now(1.0, 5.07)
+	var b: Dictionary = CP.sway_now(1.0, 5.11)
+	check(a == b and a.t != 5.07, "the sway time is kept to the sway's frame rate (%s)" % [a])
+	check(CP.band_shifts(3.0).size() == int(CP.flat_config().bands), "one shift a band")
+	# Drawn for real, swaying: the draw runs without error.
+	var cv := Node2D.new()
+	root.add_child(cv)
+	cv.draw.connect(func(): CP.draw(cv, {Vector2i(3, 3): "stalk:rice:3:ripe"}, Callable(), 0.0, {"wind": 1.0, "t": 0.0}))
+	cv.queue_redraw()
+	await process_frame
+	cv.free()
