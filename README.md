@@ -912,7 +912,9 @@ lanterns turned by `Shrine.lathe`); `--what=shrine` shows the town's shrine. The
 storage chest and seed stand by the farmhouse are `scripts/world3d/farm_props.gd` (FarmProps:
 `FarmProps.block` makes tapered blocks for splayed sides and bevelled lids, the stand has a
 `Minka.gable` board roof and turned seed sacks); `--what=props` shows them from close by. In the
-game, `--demo --map=farm@bin` stands the farmer in front of them.
+game, `--demo --map=farm@bin` stands the farmer in front of them. `--what=stalls` sets every
+festival's selling stall in a row with its wares (`scripts/world3d/stall_wares.gd`) and writes one
+picture of each from the game's angle (`shots/stalls_stall_<festival>[_<stall>].png`).
 
 ## Light
 The 3D view has a warm sun from the upper left of the screen over a cool sky light

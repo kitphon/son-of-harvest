@@ -4,7 +4,8 @@ extends SceneTree
 ## the barn or a village shop (their Minka.gable roofs; add `--style=roof:hip,storeys:2,wall:timber`
 ## for another look, the fields of a map's village_house), `--what=shrine` the town's shrine
 ## (Shrine: torii, hokora, stone lanterns), `--what=props` the bin, chest and seed stand
-## (FarmProps): pictures of it from round about, and a .glb of it to open in Blender. Run:
+## (FarmProps), `--what=stalls` every festival's selling stall with its wares (FestivalMeshes,
+## StallWares; one picture each, from the game's side, named by the stall's shop id): pictures of it from round about, and a .glb of it to open in Blender. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --path . --script res://tools/house_model.gd -- --shots=shots
 ## (writes shots/<what>_<view>.png; needs a window, so not --headless), or
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tools/house_model.gd -- --glb=models/farmhouse.glb
@@ -24,7 +25,9 @@ const CENTERS := {   # each building's middle, where the views look
 	"village": Vector3(3.0, 1.2, 1.5),
 	"shrine": Vector3(19.0, 1.0, 4.0),
 	"props": Vector3(9.0, 0.6, 3.5),
+	"stalls": Vector3(1.0, 0.8, 0.4),   # the first stall; the views walk along the row
 }
+const STALL_STEP := 3.5   # --what=stalls: the stalls stand this far apart along x
 const ZOOM := {"props": 0.45}   # small things are looked at from nearer
 const SHRINE := [   # the town's shrine props (data/maps/town.json)
 	{"kind": "hokora", "cell": Vector2i(18, 1), "size": Vector2i(2, 2)},
@@ -41,6 +44,7 @@ var _shots := ""
 var _views: Array = VIEWS.keys()
 var _frame := 0
 var _style := {}   # --what=village: the house's look (LitSpots.village_style fields)
+var _stall_ids: Array = []   # --what=stalls: the stalls' shop ids, in the row's order
 
 
 func _init() -> void:
@@ -73,6 +77,7 @@ func _start() -> void:
 		"shrine":
 			for p in SHRINE:
 				_house._make_prop(p)
+		"stalls": _stalls()
 		_: _house._make_house()
 	root.add_child(_house)
 	if _glb != "":
@@ -80,6 +85,26 @@ func _start() -> void:
 	if _shots != "":
 		DirAccess.make_dir_recursive_absolute(_shots)
 		_stage()
+
+
+## Every festival's selling stalls in a row along x (each 2 x 1 cells, its own cloth), their
+## wares set out; the views are the stalls' shop ids.
+func _stalls() -> void:
+	var fest: GDScript = load("res://scripts/festivals/festivals.gd")
+	var wares: GDScript = load("res://scripts/world3d/stall_wares.gd")
+	var meshes: GDScript = load("res://scripts/world3d/festival_meshes.gd")
+	for id in fest.all():
+		for s in fest.stalls(id):
+			var cloth := Color("c8442c")
+			for p in fest.get_festival(id).get("props", []):
+				if str(p.kind) == "stall" and int(p.cell[0]) == int(s.cell[0]) and int(p.cell[1]) == int(s.cell[1]):
+					cloth = Color(str(p.get("cloth", "c8442c")))
+			var r := Rect2(_stall_ids.size() * STALL_STEP, 0, 2, 1)
+			var mid := Vector3(r.get_center().x, 0, r.get_center().y)
+			meshes.stall(_house, mid, r, cloth)
+			wares.build(_house, mid, r, s.get("stock", []).map(func(st: Dictionary) -> String: return str(st.item)))
+			_stall_ids.append(fest.stall_shop_id(id, s).replace(":", "_"))
+	_views = _stall_ids.duplicate()
 
 
 ## Ground, sky light and sun as in the game (Main3D's numbers), and a camera.
@@ -116,6 +141,14 @@ func _stage() -> void:
 
 
 func _aim(view: String) -> void:
+	if _what == "stalls":   # each stall near, from the game's own angle (data/camera.json: yaw 45, pitch 30)
+		var i := _stall_ids.find(view)
+		var c: Vector3 = CENTERS.stalls + Vector3(i * STALL_STEP, 0, 0)
+		var p := deg_to_rad(30.0)
+		_cam.position = c + Vector3(cos(p) * sin(PI / 4), sin(p), cos(p) * cos(PI / 4)) * 4.0
+		_cam.fov = 14.0   # the counter and its wares filling the picture
+		_cam.look_at(c, Vector3.UP)
+		return
 	var v: Array = VIEWS[view]
 	var yaw := deg_to_rad(v[0])
 	var pitch := deg_to_rad(v[1])

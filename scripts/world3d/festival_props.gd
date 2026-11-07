@@ -14,7 +14,7 @@ const FLAME := Color("ffb040")
 var map_id := ""
 var festival := ""
 var glows: Array[Dictionary] = []   # {pos: Vector3, color: Color, size: cells across, pool: "round" / "line" / "stall"}
-var wares := 0                      # item pictures on the selling stalls' counters
+var wares := 0                      # items set out on the selling stalls' counters (StallWares)
 
 
 func _init(map: String) -> void:
@@ -96,17 +96,18 @@ func _sakura(mid: Vector3) -> void:
 	parts.commit(self)
 
 
-## A selling stall's stock set out along its counter, one item picture each (the same icons
-## as in the rucksack).
+## A selling stall's stock set out along its counter as lit meshes (StallWares: skewers, bowls,
+## chimes, charms; steam over the hot food); an item with no mesh there keeps its picture (the
+## same icon as in the rucksack) in its slot.
 func _wares(mid: Vector3, r: Rect2, stall: Dictionary) -> void:
 	var stock: Array = stall.get("stock", [])
-	var w := r.size.x - 0.5
-	for i in stock.size():
-		var s := make_sprite(PlaceholderArt.tex(PlaceholderArt.item_key(str(stock[i].item))))
+	var items := stock.map(func(s: Dictionary) -> String: return str(s.item))
+	for i in StallWares.build(self, mid, r, items):
+		var s := make_sprite(PlaceholderArt.tex(PlaceholderArt.item_key(str(items[i]))))
 		s.pixel_size = 0.028
-		s.position = mid + Vector3(-w / 2 + w * (i + 0.5) / stock.size(), 0.75, 0.05)
+		s.position = StallWares.slot(mid, r, i, items.size()) + Vector3(0, 0.005, 0.05)
 		add_child(s)
-		wares += 1
+	wares += items.size()
 
 
 ## The lights a festival's decorations give on a map (as in `glows`), without keeping the
