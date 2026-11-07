@@ -918,8 +918,13 @@ little blue. Outdoors the sun casts shadows; the ground is lit only to take them
 `SnowLayer.SUN_SHARE`, measured so sunlit ground keeps its picture's colours and shade drops
 to about two thirds). Shadows fade with the daylight (dusk, night) and are gone under cloud
 (`data/weather_fx.json` "sun", `Game.sun_shadow()`); rooms and mine floors have none. A soft
-glow lifts the brightest things (snow, lights). Sprites stay unshaded, with their own blob
-shadows. Day / night itself is still the multiply tint over the picture: `data/light.json`
+glow lifts the brightest things (snow, lights). Sprites stay unshaded, but the farmer, villagers,
+animals and the field's objects throw the sun's real shadow: `SpriteShadow` gives each a
+shadows-only quad wearing its picture, turned square to the sun, so the silhouette falls like the
+buildings' shadows (a billboard itself casts nothing, as it turns with the camera). A faint blob
+stays at the feet, whole again where the sun's shadows are off (rain, dusk, night, rooms, the mine).
+`data/light.json` "sprite_shadows" ("mode": "real" or "blob") is the switch; `-- --sprite-shadows=blob`
+tries the old blob alone for one run. Day / night itself is still the multiply tint over the picture: `data/light.json`
 "sky" lists its colour through the day (`Game.light_color()`, `Game.sky_at`), plain white
 7:00..16:00, a warm 17:30, a mauve dusk at 18:30 and a deep blue night (46529a) from 20:30 to
 4:30, dawn back through mauve and peach to 7:00. Both views use it.
@@ -1021,6 +1026,7 @@ flags as AGENTS.md → Screenshot). The runner renders each with `--write-movie`
 - `scripts/events/event_runner.gd`, `event_triggers.gd` (pure logic) and `event_player.gd`
   (the view's side: triggers, moving the farmer, the fade): event scripts.
 - `scripts/world3d/night_lights.gd`: lit house windows, lantern glows and their warm ground pools at night over the 3D view (README → Light).
+- `scripts/world3d/sprite_shadow.gd`: the sun shadows of the figures and field objects: a shadows-only caster quad plus a soft blob (README → Light).
 - `scripts/world3d/night_lamps.gd`: a few real warm lights (OmniLight3D, no shadows) at lit windows, stone lanterns and festival lights at night in the 3D view (README → Light).
 - `data/*.json`: crops and weather, tuned without touching code (`data/light.json`: the day /
   night sky and the lit windows); `data/dialogue/`: dialogue;

@@ -10,6 +10,19 @@ func _init() -> void:
 	_map_rules()
 	_clinic()
 	_lenses()
+	_sprite_casts()
+
+
+## Billboard sprites cast nothing themselves (their shadow is SpriteShadow's caster, steady under
+## any lens); the farmer, villagers, animals and the dog each get a SpriteShadow.
+func _sprite_casts() -> void:
+	var fw_src := FileAccess.get_file_as_string("res://scripts/world3d/farm_world.gd")
+	var make := fw_src.substr(fw_src.find("static func make_sprite"), 600)
+	check("s.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF" in make, "sprite shadows: a billboard sprite casts no shadow of its own (FarmWorld.make_sprite)")
+	var main_src := FileAccess.get_file_as_string("res://scripts/main_3d.gd")
+	var vill_src := FileAccess.get_file_as_string("res://scripts/world3d/villager_sprites.gd")
+	var animal_src := FileAccess.get_file_as_string("res://scripts/world3d/animal_layer.gd")
+	check("SpriteShadow.attach(sprite" in main_src and "SpriteShadow.attach(s" in vill_src and animal_src.count("SpriteShadow.attach(s") == 2, "sprite shadows: the farmer, villagers, animals and the dog each get a SpriteShadow")
 
 
 ## Camera lenses (data/camera.json): ps1 is the measured camera, every lens frames the feet alike.

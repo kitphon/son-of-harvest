@@ -10,8 +10,35 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-07 — Real sun shadows for the figures
+Agent: Claude Code (claude-sonnet-5-5) · Commit: f261048
+- Done: docs/ART_DIRECTION.md section 4 item 3: real shadows won over blobs. Finding: a Sprite3D
+  billboard cast from a quad turning with the camera (a thin smudge on the farmhouse deck behind
+  the farmer in the morning), so `FarmWorld.make_sprite` now sets `cast_shadow` OFF for every
+  sprite. New `SpriteShadow` (scripts/world3d/sprite_shadow.gd) is a child of the figure's sprite:
+  a shadows-only quad wearing the sprite's own picture (alpha scissor; size, offset, flip and
+  texture read at runtime, so any redrawn sprite fits), turned square to the sun's horizontal
+  heading (`face_yaw`; `Main3D._aim_sun` feeds `SpriteShadow.sun_yaw`, `_show_shadows` the
+  strength), so the sun's shadow map throws the real silhouette in the same direction as the
+  buildings' shadows. Plus a soft blob at the feet, sized from the sprite's opaque width: at
+  `blob_in_sun` (0.35) of its strength under full sun shadows, whole where there are none (rain,
+  snow, dusk, night, rooms, the mine). Used by the farmer, villagers, animals, the dog (the old
+  per-class blobs and animal SHADOW sizes are gone) and, caster only, the field's object sprites.
+  The switch: data/light.json "sprite_shadows" ("mode": "real" or "blob", blob numbers);
+  `-- --sprite-shadows=blob` for one run.
+- Checked: frames of `--demo` (7:00, 12:00, 17:30), `--demo --map=town` (8:30, 12:00, 17:30,
+  real vs `--sprite-shadows=blob`, difference image), `--map=farm@barn --barn-out`, rain, 19:00,
+  `--map=house`. Real reads right: long to one side in the morning and evening, short at noon,
+  the sheep and the farmer shadowed on the barn's ground; in rain, at night and indoors the blob
+  alone. test_weather `_sprite_shadows` (data, blob share by sun, the caster facing the sun at
+  four poses, sizes from the texture, flip / picture / strength follow, blob mode, crops without
+  a blob) and test_maps `_sprite_casts`. All tests/test_*.gd OK (0 failed); smoke runs (title,
+  --demo, --demo --map=town, --demo --mine=3, --demo --map=barn) with no errors.
+- Left / next: shadows are soft-edged blobs at 480 x 270 (the shadow map is smooth); a villager
+  or the farmer in a roof's shadow shows no extra. Tall CropClusters (rice, corn) and the flat
+  view cast / draw nothing new. The larger character and animal sprites (item 1 and 2) remain.
 ## 2026-11-07 — Animals redrawn: denser pixels, four facings
-Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+Agent: Claude Code (claude-sonnet-5-5) · Commit: 36d42c6
 - Done: docs/ART_DIRECTION.md section 4 "Animals in the same style". New `scripts/art/animal_art.gd`
   (AnimalArt) draws hens, chicks, cows, calves, sheep, shorn sheep, lambs and the dog in code at
   `SCALE` = 2 times the farmer's pixel density (cow 52 x 38, sheep 40 x 32, dog 30 x 24, hen

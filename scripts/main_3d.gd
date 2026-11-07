@@ -63,13 +63,7 @@ func _ready() -> void:
 	sprite = FarmWorld.make_sprite(PlaceholderArt.tex(anim.key(Vector2i.DOWN)))
 	NightLights.figure(sprite)   # lit windows behind the farmer don't glow over them
 	add_child(sprite)
-	var shadow := MeshInstance3D.new()
-	var disc := PlaneMesh.new()
-	disc.size = Vector2(0.6, 0.6)
-	shadow.mesh = disc
-	shadow.material_override = FarmWorld.flat_material(Color(0, 0, 0, 0.3))
-	shadow.position = Vector3(0, 0.01, 0)
-	sprite.add_child(shadow)
+	SpriteShadow.attach(sprite)   # blob and the sun's real shadow (data/light.json "sprite_shadows")
 
 	target_mark = MeshInstance3D.new()
 	var quad := PlaneMesh.new()
@@ -440,6 +434,7 @@ func _aim_sun(inside: bool) -> void:
 	sun.rotation_degrees = Vector3(-float(s.elevation), float(s.yaw), 0)
 	sun.light_color = s.color
 	sun.light_energy = s.energy
+	SpriteShadow.sun_yaw = SpriteShadow.face_yaw(Game.sun_direction(s))
 
 
 ## Sun shadows outdoors only (Game.sun_shadow: by the daylight and the sky).
@@ -447,6 +442,7 @@ func _show_shadows(inside: bool) -> void:
 	var strength := 0.0 if inside else Game.sun_shadow()
 	sun.shadow_enabled = strength > 0.0
 	sun.shadow_opacity = strength
+	SpriteShadow.sun_strength = strength
 
 
 ## The lantern circle follows the farmer on screen, one cell measured across at their feet.

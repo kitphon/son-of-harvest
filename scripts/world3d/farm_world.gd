@@ -78,6 +78,7 @@ static func make_sprite(tex: Texture2D) -> Sprite3D:
 	s.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	s.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	s.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	s.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF   # a billboard casts a wrong sliver (SpriteShadow)
 	s.offset = Vector2(0, tex.get_height() / 2.0)   # stand on the ground
 	return s
 
@@ -447,6 +448,7 @@ func _rebuild_objects() -> void:
 			s = make_sprite(PlaceholderArt.tex(key))
 			s.position = Vector3(c.x + 0.5, 0, c.y + 0.5)
 			_objects.add_child(s)
+			SpriteShadow.attach(s, 0.0, false)   # a crop throws the sun's shadow, no blob
 			_sprites[c] = [key, s]
 		s.visible = c != hidden_item
 	for c in _sprites.keys():

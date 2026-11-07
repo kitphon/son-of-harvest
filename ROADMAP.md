@@ -67,6 +67,7 @@ decoration (scripts/world3d/festival_meshes.gd) as lit meshes.
 high and plain at noon (data/light.json "sun", README → Light).
 [x] The sky behind the land follows the clock outdoors: dawn peach, the day blue at noon, mauve
 dusk, a deep blue night, greyer and darker under cloud (data/light.json "background", README → Light).
+[x] Real sun shadows for the figures: farmer, villagers, animals and field objects (`SpriteShadow`, data/light.json "sprite_shadows", README → Light); a faint blob stays, whole in rain, at night and indoors.
 [x] Trailer-ready screenshots: 12 fixed views (data/showcase.json), rendered and compared by
 tools/showcase.py (README → Showcase).
 [x] Night: real warm lights (NightLamps, at most 8 OmniLight3Ds without shadows at the lit
@@ -74,7 +75,7 @@ windows, stone lanterns and festival lights; data/light.json "lamps"), the night
 lighter, the festival's lights and stalls lighting the ground in both views (README → Light).
 [x] The far country: mountain ridges past a rim on the north and west sides of the outdoor
 maps, hazed with the sky by the clock, snow caps in winter (data/backdrop.json, README → Camera).
-Next: section 4 (characters, needs the user's decision on who draws). "ทำ art direction ต่อ" from the user
+Next: section 4 (characters; the sprite shadows are done, what is left is the larger, more detailed farmer / villager / animal sprites, the user's decision on who draws; `SpriteShadow` reads each sprite's texture, so a new size just fits). "ทำ art direction ต่อ" from the user
 means take the next unticked item in docs/ART_DIRECTION.md.
 Playtest feedback waiting to be fixed is kept in docs/FEEDBACK.md (the user starts it with
 "แก้ feedback"). [x] Item 1: Thai text (Settings → Language, data/lang/th, Thai glyphs in our
