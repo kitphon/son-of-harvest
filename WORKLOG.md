@@ -10,6 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Candidates: half villagers already here, half new
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: the user wants half the eight candidates to be existing villagers and half new. The
+  roster in docs/DESIGN.md (ความรักและแต่งงาน) is now Sayo, Fumi, Haru, Ichiro (existing; 3
+  women, 1 man) and Mio, Kaede, Shino, Ren (new; 3 women, 1 man), still six women and two men.
+  Yae is out (no hearts, birthday or scenes yet, so the most work of the existing ones) and
+  Shino comes in: an indigo dyer, back from the city to her family's dye house, a new house by
+  Minamino's lane down to the river (the map has no creek, so not "by a creek"). ROADMAP: the
+  Yae task dropped, a Shino task added.
+- Checked: docs only, no code or data changed. Not run: tests (nothing they read changed).
+- Left / next: Ichiro as a candidate.
+
 ## 2026-11-08 — Haru can be married
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: Haru joins data/marriage.json candidates (sayo, fumi, haru), open to any farmer. Her

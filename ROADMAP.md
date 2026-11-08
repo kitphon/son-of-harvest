@@ -28,15 +28,15 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 [x] Painted roofs in the flat view (2026-11-08): the village houses, farmhouse, coop and barn are pixel roofs seen from above, not brown boxes: kawara tile rolls (gable, hip, two-storey pent), straw thatch on the coop, grey-brown kaya on the farmhouse, light from the upper left, same sizes and collisions; snow lying whitens them through the existing roof mask and the hearth smoke draws over them (RoofArt, PlaceholderArt "roof:", FarmView.ROOFS, MapView; test_view2d _roofs; ART_DIRECTION).
 [x] Calm paddy ground in the 3D view (2026-11-08): the Kaminoda paddies where rice is drawn use the flat view's calm ground in 3D too, paddy_mud in winter and paddy_flood in the other seasons, from one rule shared by both views (MapView.paddy_cells_in / ground_key_at, MapWorld.ground_keys); the painted paddy tile stays where no rice grows (test_maps `_paddy_ground_3d`; ART_DIRECTION, Rice and tall crops).
 Marriage for everyone (planned 2026-11-08, docs/DESIGN.md → ความรักและแต่งงาน): eight
-candidates, six women and two men, each open to the farmer whatever the farmer's look. One
+candidates, six women and two men, half of them villagers already here (Sayo, Fumi, Haru, Ichiro) and half new (Mio, Kaede, Shino, Ren), each open to the farmer whatever the farmer's look. One
 candidate per commit, Sayo and Fumi as the pattern (band 3 / 5 / 6 scenes, knot answers,
 proposal, wedding, married rules and lines, Thai).
 [x] The roster and the rule written down (2026-11-08): DESIGN, STYLE_EN (no gendered words for the farmer or spouse).
 [x] Haru a candidate (2026-11-08): her band 6 scene was already in; the knot answers, the proposal, the wedding at the shrine (Genzo among the guests), married plans (up to Kaminoda and the hill by day, the farmhouse mornings and evenings, weaving by the kotatsu on wet days), engaged / married / chore lines, Tome's Friday hint, Thai.
 [ ] Ichiro: candidate (his band 6 scene is already in).
-[ ] Yae: hearts, a birthday, band 3 / 5 / 6 scenes, then candidate.
 [ ] Mio (new): the ferry hut on the river map, day plans, talk, then candidate.
 [ ] Kaede (new): keeps the village shrine, helps Tome ready weddings, then candidate.
+[ ] Shino (new): a new indigo dye house by Minamino's lane down to the river, day plans, talk, then candidate.
 [ ] Ren (new): the post office by the village's entry, rounds through every part, then candidate.
 [x] The farmer's look chosen on a new game (2026-11-08): New game opens a look step on the title screen (hair style, hair color, skin, clothes; a few choices each in data/farmer_looks.json, the first of each the old look), a walking preview turning round, keys / pad / mouse, English and Thai; saved, old saves load the old look; FigureArt draws the farmer from it in both views and every pose, the art cache kept per look (FarmerLooks, LookMenu; `--look=`, `--new-game`; test_title, test_save, test_lang).
 
