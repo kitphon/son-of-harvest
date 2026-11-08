@@ -66,6 +66,8 @@ static func _make(key: String) -> Image:
 			return _ground(parts[1], int(parts[2]))
 		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour); fx:<note|notes>, a whistler's note puff
 			return _fx(parts[1])
+		"cloth":    # cloth:<hex>, one indigo length drying over a pole (DyeCloth: 22 x 24, the pole across the top)
+			return _dye_cloth(Color(parts[1]))
 		"fish_fx":  # fish_fx:<bobber|alert>, the float on the water and the "!" of a bite
 			return _fish_fx(parts[1])
 		"tree":     # tree:maple:<spring|summer|fall|winter>:<snow 0|1>, a Japanese maple in the flat view (MapView), 24 x 32
@@ -1188,6 +1190,40 @@ static func _stubble(variant: int) -> Image:
 		var top := Vector2i(foot.x + leans[i], g - hs[i])
 		_line(img, foot, top, _STRAW if i % 2 == 0 else _STRAW.darkened(0.2))
 		_px(img, top.x, top.y, 1, 1, _STRAW.lightened(0.35))   # the cut end
+	return img
+
+
+## One length of indigo cloth hung over a drying pole (Shino's rack, DyeCloth): the fold over
+## the pole a little lighter where the sun catches it, soft vertical folds down the drop, the hem
+## a shade darker and slightly uneven, a few paler streaks where the dye took less.
+static func _dye_cloth(c: Color) -> Image:
+	var w := DyeCloth.ART_W
+	var h := DyeCloth.ART_H
+	var img := Image.create_empty(w, h, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(c.to_html(false))
+	var hem := []
+	for x in w:
+		hem.append(h - 1 - (1 if (x * 7 + rng.randi_range(0, 3)) % 5 == 0 else 0))
+	for x in w:
+		var fold := 0.5 + 0.5 * sin(float(x) * 0.95 + 0.6)   # soft folds across the width
+		for y in hem[x] + 1:
+			var k := 1.0 + 0.12 * (fold - 0.5)
+			if y <= 1:
+				k = 1.22   # the fold over the pole, catching the light
+			elif y == 2:
+				k = 0.8    # its shadow under the pole
+			if y >= hem[x] - 1:
+				k *= 0.82   # the hem
+			var px := Color(c.r * k, c.g * k, c.b * k)
+			if x == 0 or x == w - 1:
+				px = px.darkened(0.15)   # the selvedges
+			img.set_pixel(x, y, px)
+	for i in 3:   # streaks where the dye took less
+		var sx := rng.randi_range(2, w - 3)
+		for y in range(rng.randi_range(4, 8), rng.randi_range(12, h - 3)):
+			img.set_pixel(sx, y, img.get_pixel(sx, y).lightened(0.12))
 	return img
 
 

@@ -17,7 +17,7 @@ const COLORS := {
 	"well": Color("8e8a80"), "jizo": Color("c8342c"), "persimmon": Color("e8782a"), "sakura": Color("f2bccb"), "maple": Color("c42a1e"),
 	"hasa": Color("d8b85a"), "woodpile": Color("8a6440"), "garden": Color("5a9a3a"), "wood_fence": Color("b08a5a"), "kiln": Color("9a7656"),
 	"counter": Color("4a3424"), "shelf": Color("6a4a30"), "rice_sacks": Color("d8c088"),
-	"forge": Color("7a746c"), "anvil": Color("2a2a2e"), "tool_rack": Color("8a6a48"), "water_tub": Color("2a4a5a"), "river_rock": Color("6e6a62"), "ferry_boat": Color("8a6440"), "landing": Color("9a7650"),
+	"forge": Color("7a746c"), "anvil": Color("2a2a2e"), "tool_rack": Color("8a6a48"), "water_tub": Color("2a4a5a"), "river_rock": Color("6e6a62"), "ferry_boat": Color("8a6440"), "landing": Color("9a7650"), "cloth_rack": Color("2f5a96"),
 	"feed_box": Color("9a7048"), "nest": Color("d8bc78"), "incubator": Color("c8a868"),
 	"feed_sack": Color("a88a52"), "hatch": Color("4a2a14"),
 	"fodder_box": Color("8a6440"), "stalls": Color("d0b478"), "hay": Color("c8b060"), "barn_gate": Color("4a2a14"),
@@ -207,7 +207,7 @@ func _draw_objects() -> void:
 		(load(CROP_PATCHES) as GDScript).draw_water(_objects, season, paddies, paddy_hold, _cover, _glint)
 		(load(CROP_PATCHES) as GDScript).draw(_objects, paddies, paddy_hold, _cover, _sway, Callable(load(FLAT_LIGHT), "at_mid"))
 	for p in map.props:
-		if p.kind in StoryView.KINDS:   # drawn as pictures by StoryView
+		if p.kind in StoryView.KINDS or p.kind == DyeCloth.KIND:   # drawn as pictures by StoryView / DyeClothView
 			continue
 		if p.kind == "maple":   # a small tree picture, its foot on the cell's middle (PlaceholderArt "tree:")
 			var tex := PlaceholderArt.tex(maple_key(SnowLayer.map_has_snow(map), season))

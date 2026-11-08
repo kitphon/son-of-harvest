@@ -10,6 +10,50 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Shino's indigo drying by her vats
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: Shino's dye house has its drying rack now.
+  - minamino.json: a `cloth_rack` prop west of her vats (0..1, 15..17), with `hours`
+    7:00-17:00 and three `shades` (5582bc, 2e5698, 1a2f64): the palest on the first pole by
+    the vats, the darkest on the last. A bamboo moved from (1, 16) to (1, 19) to make room, and
+    the forage spot at (1, 15) to (2, 17).
+  - DyeCloth (scripts/world/dye_cloth.gd, pure rules): one pole a row of the rack, its shade,
+    out in the rack's hours unless today's look is wet (rain, storm, snow, blizzard), and the
+    hem's downwind shear (the 3D Sway's free cloth formula, its STREAM copied, since MapView
+    compiles before the autoloads and the 3D scripts name Game; a test keeps them equal).
+  - PlaceholderArt "cloth:<hex>" (22 x 24): the fold over the pole catching the light, its
+    shadow, soft folds, a darker uneven hem, the selvedges, a few paler streaks.
+  - 3D (OutdoorProps.cloth_rack): two bamboo posts and a pole a row, and the lengths as
+    two-sided pictures in a DyeCloth.Show (visible by the clock each game minute) hung in the
+    world's Sway as free cloth (lift 0), so they stream and flutter with the day's wind.
+  - Flat view (DyeClothView, added by main_2d; MapView skips the prop): the posts and poles,
+    and while out the lengths cut in six strips shifted downwind by whole pixels, the hem the
+    most, redrawn at data/wind.json "flat".rate, lit by FlatLight.
+- Checked: test_maps `_dye_cloth`:
+  - the rack's place beside the vats, solid cells, Shino's spots and the lane open;
+  - out at 7:00 / 10:00 / 16:59, in at 6:59, 17:00, 22:00, and on rain, storm, snow and
+    blizzard days;
+  - three shades, palest first; the pictures drawn and different;
+  - the 3D rack: poles, three lengths shown at 10:00 sunny, each a cloth in the Sway, still in
+    calm air and blown downwind at wind 0.5, hidden at 18:00 and on a rainy morning;
+  - the flat strips: none in still air, rising to the hem in a gale; the flat view hangs the
+    cloth at 10:00 and takes it in at 20:00.
+
+  Output `test_maps: OK (0 failed)`. Mutation test (the wet check turned off): `FAIL: taken in
+  on a rain day` (and storm, snow, blizzard, `and on a rainy morning`), `test_maps: FAILED (5
+  failed)`; restored. The first full run printed `test_forage: FAILED (1 failed)` (`FAIL: data:
+  minamino spot (1, 15) is on a free cell off the lanes`): the spot moved to (2, 17) (not
+  (1, 18): `can be reached` failed there, walled in by bamboo), then `test_forage: OK (0
+  failed)`. All 30 suites printed `OK (0 failed)`. Smoke runs (title, --demo, --map=town,
+  --mine=3, --map=minamino@shino --time=16:58, main_2d --map=minamino@shino) printed no error or
+  warning lines. Screenshots: `--map=minamino@shino --time=10:00 --weather=sunny` in 3D (three
+  lengths blowing beside the vats; the first shades washed to sky blue in the sun, so they were
+  darkened a step); main_2d with `--weather=storm` (taken in); the flat rack rendered alone
+  (the HUD covers that corner in game): three lengths stepping from pale to dark, the hems
+  leaning downwind. shots/ deleted.
+- Left / next: the cloth is out on Sundays and her birthday too, when she is away. Mio poling
+  the ferry across is next.
+
 ## 2026-11-08 — Mio's ferry boat and landing on the river
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: the ferry Mio talks about in her heart scenes is on the river now.

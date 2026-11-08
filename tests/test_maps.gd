@@ -234,6 +234,7 @@ func _process(delta: float) -> bool:
 		_clinic_doors()
 		_story_props()
 		_ferry_boat()
+		_dye_cloth()
 		_lane_and_kiln_props()
 		_map_snow()
 		_footprints()
@@ -4356,3 +4357,86 @@ func _ferry_boat() -> void:
 	var hull := w.get_children().filter(func(c): return c is MeshInstance3D and c.material_override is StandardMaterial3D and c.material_override.albedo_color == Color("8a6440")).size()
 	w.free()
 	check(hull > 0, "the 3D river has the boat's hull (%d)" % hull)
+
+
+## Shino's drying rack by her vats (DyeCloth): in Minamino beside the vats, its cells solid and
+## her work spots open; out 7:00-17:00 on dry days only; three shades, the palest first; the
+## pictures drawn; the 3D rack builds its frame and three swaying lengths shown by the clock;
+## the flat view's strips shift downwind, the hem the most, none in still air.
+func _dye_cloth() -> void:
+	var m: MapData = MapManager.load_map("minamino", null, {})[1]
+	var rack := m.prop_at(Vector2i(0, 15))
+	check(rack.get("kind", "") == DyeCloth.KIND and rack.size == Vector2i(2, 3), "the drying rack (2 x 3) west of Shino's vats")
+	check(m.prop_at(Vector2i(2, 15)).get("kind", "") == "water_tub", "the first pole is beside the vats")
+	for c in [Vector2i(0, 15), Vector2i(1, 16), Vector2i(1, 17)]:
+		check(m.is_solid(c), "the rack stands on %s" % c)
+	for c in [Vector2i(1, 14), Vector2i(2, 16), Vector2i(3, 16), Vector2i(4, 16)]:
+		check(not m.is_solid(c), "Shino's way at %s stays open" % c)
+	check(DyeCloth.out(rack, 10 * 60, "sunny") and DyeCloth.out(rack, 7 * 60, "sunny") and DyeCloth.out(rack, 16 * 60 + 59, "sunny"),
+		"out in her hours on a dry day")
+	check(not DyeCloth.out(rack, 6 * 60 + 59, "sunny") and not DyeCloth.out(rack, 17 * 60, "sunny") and not DyeCloth.out(rack, 22 * 60, "sunny"),
+		"taken in before seven and from five")
+	for look in ["rain", "storm", "snow", "blizzard"]:
+		check(not DyeCloth.out(rack, 10 * 60, look), "taken in on a %s day" % look)
+	var shades := DyeCloth.shades(rack)
+	check(shades.size() == 3 and shades[0].get_luminance() > shades[1].get_luminance() and shades[1].get_luminance() > shades[2].get_luminance(),
+		"three lengths, the palest on the first pole and the darkest on the last")
+	var a := PlaceholderArt.tex(DyeCloth.art_key(shades[0])).get_image()
+	var b := PlaceholderArt.tex(DyeCloth.art_key(shades[2])).get_image()
+	check(a.get_size() == Vector2i(DyeCloth.ART_W, DyeCloth.ART_H) and a.get_data() != b.get_data() and a.get_pixel(5, 10).a > 0.9,
+		"the lengths are drawn, each in its own blue")
+	var g: Node = root.get_node("Game")
+	var keep := [g.hour, g.minute, g.weather_today]
+	g.hour = 10
+	g.minute = 0
+	g.weather_today = "sunny"
+	var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	w.build(m)
+	root.add_child(w)
+	var show: Node3D = w.get_node_or_null("DyeCloth")
+	var sway: Node = w.get_node_or_null("WindSway")   # OutdoorProps.SWAY
+	check(show != null and show.get_child_count() == 3 and show.visible, "the 3D rack hangs its three lengths at 10:00 on a sunny day")
+	var poles := w.get_children().filter(func(c): return c is MeshInstance3D and c.material_override is StandardMaterial3D and c.material_override.albedo_color == Color("cdbd80")).size()
+	check(poles > 0, "and its bamboo poles (%d)" % poles)
+	if show != null and sway != null:
+		var cloth: MeshInstance3D = show.get_child(2)
+		var i := -1
+		for k in sway.count():
+			if cloth in sway.nodes_of(k):
+				i = k
+		check(i >= 0 and sway.kind_of(i) == "cloth", "each length sways as a cloth")
+		if i >= 0:
+			sway.wind = 0.0
+			sway.pose(3.0)
+			var rest: Vector3 = sway.moved(i, Vector3(0, -DyeCloth.DROP, 0))
+			sway.wind = 0.5
+			sway.pose(3.0)
+			var blown: Vector3 = sway.moved(i, Vector3(0, -DyeCloth.DROP, 0))
+			check(rest.is_equal_approx(Vector3(0, -DyeCloth.DROP, 0)) and blown.x > 0.1, "still in calm air, the hem blown downwind in a wind (%s)" % blown)
+		g.hour = 18
+		show.refresh()
+		check(not show.visible, "taken in at 18:00, the frame left standing")
+		g.hour = 10
+		g.weather_today = "rain"
+		show.refresh()
+		check(not show.visible, "and on a rainy morning")
+	w.queue_free()
+	var calm := DyeClothView.band_shifts(0.0, 4.0, 0.0)
+	var gale := DyeClothView.band_shifts(1.0, 4.0, 0.0)
+	check(calm.all(func(x): return x == 0), "the flat view's lengths hang straight in still air")
+	var rising := true
+	for k in range(1, gale.size()):
+		rising = rising and gale[k] >= gale[k - 1]
+	check(DyeCloth.STREAM == load("res://scripts/world3d/outdoor_props.gd").Sway.CLOTH_STREAM, "the flat view's shear is the 3D cloth's")
+	check(gale[0] == 0 and gale.back() > 0 and rising, "in a gale the strips shift downwind, the hem the most %s" % [gale])
+	g.weather_today = "sunny"
+	var v := DyeClothView.new(m)
+	root.add_child(v)
+	check(v.has_racks() and v.cloth_out(), "the flat view hangs the cloth at 10:00 on a sunny day")
+	g.hour = 20
+	v.refresh()
+	check(not v.cloth_out(), "and takes it in at night")
+	v.queue_free()
+	g.hour = keep[0]
+	g.minute = keep[1]
+	g.weather_today = keep[2]

@@ -537,6 +537,44 @@ static func landing(w: FarmWorld, r: Rect2) -> void:
 	p.commit(w)
 
 
+## Shino's drying rack beside her dye vats (DyeCloth, a "cloth_rack" prop): a pole across each
+## row of its cells on two bamboo posts, and one long indigo length over each pole, the shades
+## of DyeCloth.shades, hanging free on both faces and swaying in the wind (Sway, lift 0). The
+## lengths stand in a DyeCloth.Show, out only in the rack's hours on dry days; the frame stays.
+static func cloth_rack(w: FarmWorld, p: Dictionary, r: Rect2) -> DyeCloth.Show:
+	var parts := FarmProps.Parts.new()
+	var post := parts.st(Color("a89a60"))
+	var pole := parts.st(Color("cdbd80"))
+	var top := DyeCloth.POLE_Y
+	var x0 := r.position.x + 0.1
+	var x1 := r.end.x - 0.16
+	var shades := DyeCloth.shades(p)
+	for i in shades.size():
+		var z := r.position.y + i + 0.5
+		for x in [x0, x1]:
+			FarmProps.block(post, Rect2(x, z - 0.03, 0.06, 0.06), 0.0, Rect2(x + 0.005, z - 0.025, 0.05, 0.05), top + 0.12)
+		FarmProps.block(pole, Rect2(x0 - 0.06, z - 0.025, x1 - x0 + 0.18, 0.05), top - 0.025,
+			Rect2(x0 - 0.06, z - 0.025, x1 - x0 + 0.18, 0.05), top + 0.025)
+	parts.commit(w)
+	var show := DyeCloth.Show.new()
+	show.name = "DyeCloth"
+	show.rack = p
+	w.add_child(show)
+	var size := Vector2(x1 - x0 - 0.12, DyeCloth.DROP)
+	for i in shades.size():
+		var quad := QuadMesh.new()
+		quad.size = size
+		var mi := MeshInstance3D.new()
+		mi.mesh = quad
+		var mat := FarmWorld.picture_material(DyeCloth.art_key(shades[i]))
+		mat.cull_mode = BaseMaterial3D.CULL_DISABLED   # seen from both sides as it swings
+		mi.material_override = mat
+		show.add_child(mi)
+		var hinge := Vector3((x0 + x1 + 0.06) / 2, top, r.position.y + i + 0.5)
+		_sway(w).add_cloth([mi], hinge, 0.0, 1.3 * i + r.position.x, Vector3(0, -size.y / 2, 0), 0.0)
+	return show
+
+
 ## A faceted boulder of half-widths rx / rz and height h standing on `at`: four rings of
 ## corners (the base, the belly, the shoulder, the apex), each corner nudged, flat facets
 ## coloured by height (and a few mossy), the upward ones copied into `sn` (or null).
