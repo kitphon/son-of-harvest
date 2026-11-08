@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-09 — Hearts for Kiku of Minamino
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done:
+  - data/villagers/kiku.json: no longer `hearts: false`; birthday winter 25 (free day) with a
+    `birthday` plan (home, the water shrine 8:30-10:00 to thank the spirit, her hearth after).
+  - Talk (talk_kiku.json): birthday and gift_birthday, close lines from band 4, `bell_` lines
+    once heart_kiku_5 is seen, forage lines from band 2 like the other friends (was band 1).
+  - Heart events heart_kiku (band 3: the flood when she was nine and why she bows; daikon seed)
+    and heart_kiku_5 (band 5: her brass bell, rung once for each person she misses, and
+    whether the rim may ring for the glad ones; two daikon), dialogue in heart_events(_5).json,
+    rows in triggers_minamino / kiku_house / town (before her mochi lesson), music rule.
+  - Ending: a part and two lines for Kiku; calendar names her birthday; Thai for every new
+    line. Record steps for fifteen friends (14 / 29 / 46 / 73 of 90) and Neighbours down to
+    Dr. Yae (one step); the record has 40 stars now. README and ROADMAP updated.
+  - Tests: test_relationships `_kiku_friend`, heart rows for her three maps, 15 friends;
+    test_talk (her forage day moved into the friends' loop); test_ending counts.
+- Checked: after `--import`, all 31 tests/test_*.gd print `OK (0 failed)` (test_lang and
+  test_menu first failed on a stale Thai calendar key, fixed); the four smoke runs print no
+  error or warning lines. Two fixes on the way: the font cannot draw ";" and a choice must fit.
+- Left / next: Kiku's and Nana's band 6 scenes; the child, step 5.
+
 ## 2026-11-08 — Merge: the child, step 4
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged c2ca432 the child, step 4 (Opus, own worktree) onto the Shige / Nana merge.

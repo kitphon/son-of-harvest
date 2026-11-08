@@ -1,0 +1,15 @@
+{
+	"_note": "Kiku's second heart event: the first talk once her heart band reaches 5, after heart_kiku (same tables). She shows the little brass bell she rings at the year's turn once for every person she misses, and asks whether it may ring for those she is glad of too, with only the one note (the answer: the rim tapped light for the living); she gives two daikon for the first name on her glad list. Sets heart_kiku_5. Kiku acts in it from where the talk found her (an actor step at plan), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "kiku", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "kiku"},
+		{"do": "sound", "key": "step_grass"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_5", "at": "kiku"},
+		{"do": "give", "item": "daikon", "count": 2},
+		{"do": "affection", "who": "kiku", "amount": 5},
+		{"do": "set", "flags": {"heart_kiku_5": true}},
+		{"do": "actor", "who": "kiku", "to": "plan"},
+		{"do": "actor", "who": "kiku", "leave": true}
+	]
+}

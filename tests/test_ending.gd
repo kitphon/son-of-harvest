@@ -195,7 +195,7 @@ func _values() -> void:
 	g.affection.add("nana", near)
 	g.affection.add("yae", near + 30)
 	g.affection.add("fumi", near)
-	check(g.ending_values().neighbours_known == 2 and g.ending_values().heart_bands == 5, "Kiku and Dr. Yae known; Nana and Fumi count as friends (%s)" % [g.ending_values()])
+	check(g.ending_values().neighbours_known == 1 and g.ending_values().heart_bands == 6, "Dr. Yae known; Kiku, Nana and Fumi count as friends (%s)" % [g.ending_values()])
 	var neighbours := 0
 	for id in Villagers.all():
 		neighbours += 0 if Villagers.friends().has(id) else 1

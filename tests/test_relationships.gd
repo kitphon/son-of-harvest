@@ -43,6 +43,7 @@ func _process(_delta: float) -> bool:
 		_haru_friend()
 		_shige_friend()
 		_nana_friend()
+		_kiku_friend()
 		_keepsake_homes()   # builds the 3D view, which needs the Game autoload
 		_keepsake_kept_in_game()
 		_neglect_in_game()
@@ -225,11 +226,13 @@ func _heart_event_rows() -> void:
 		"fumi": ["town", "teahouse", "sakurazaka"], "ichiro": ["town", "sakurazaka", "ichiro_house"],
 		"genzo": ["town", "kaminoda", "genzo_house"], "haru": ["town", "kaminoda", "haru_house", "hill"],
 		"shige": ["town", "minamino", "shige_house"], "nana": ["town", "minamino", "shige_house"], "mio": ["town", "river", "mio_hut"], "kaede": ["town", "minamino", "kaede_house"],
+		"kiku": ["town", "minamino", "kiku_house"],
 		"shino": ["town", "minamino", "shino_house", "river"],
 		"ren": ["town", "post_office", "sakurazaka", "kaminoda", "minamino", "river"]}
 	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro", "genzo", "haru", "shige", "mio", "kaede", "shino", "ren"]:
 		check(_has_event("heart_%s_5" % id) and _has_event("heart_%s_6" % id), "%s has heart events at 5 and 6" % id)
 	check(_has_event("heart_nana_5") and not _has_event("heart_nana_6"), "Nana has heart events at 3 and 5")
+	check(_has_event("heart_kiku_5") and not _has_event("heart_kiku_6"), "Kiku has heart events at 3 and 5")
 	for id in Villagers.friends():
 		check(maps.has(id) and _has_event("heart_" + id), "%s has a heart event" % id)
 		for m in maps.get(id, []):
@@ -387,7 +390,7 @@ func _keepsake_gift_in_game() -> void:
 ## Keepsakes.given_flag, there only with that flag, drawn in both views from the item's icon.
 func _keepsake_homes() -> void:
 	var homes := {"tome": "tome_house", "kota": "kota_house", "sayo": "sayo_house", "hachiro": "smithy",
-		"fumi": "teahouse", "ichiro": "ichiro_house", "genzo": "genzo_house", "haru": "haru_house", "shige": "shige_house", "nana": "shige_house"}
+		"fumi": "teahouse", "ichiro": "ichiro_house", "genzo": "genzo_house", "haru": "haru_house", "shige": "shige_house", "nana": "shige_house", "kiku": "kiku_house"}
 	for id in homes:
 		var loved: Array = Villagers.all()[id].gifts.love.filter(func(i): return i.begins_with("keep:"))
 		var flag := Keepsakes.given_flag(id, loved[0])
@@ -641,7 +644,7 @@ func _has_event(id: String) -> bool:
 ## close lines, the band 5 scenes' branches, and a place at the end of the record.
 func _sakurazaka_friends() -> void:
 	var friends := Villagers.friends()
-	check(friends.has("fumi") and friends.has("ichiro") and friends.size() == 14, "fourteen villagers with hearts (%s)" % [friends.keys()])
+	check(friends.has("fumi") and friends.has("ichiro") and friends.size() == 15, "fifteen villagers with hearts (%s)" % [friends.keys()])
 	check(Villagers.all().fumi.birthday.season == "spring" and int(Villagers.all().fumi.birthday.day) == 26 and Villagers.all().ichiro.birthday.season == "fall" and int(Villagers.all().ichiro.birthday.day) == 9,
 		"Fumi's birthday spring 26, Ichiro's fall 9")
 	var spring := {"year": 1, "season": "spring", "day": 26, "weekday": "fri", "weather": "sunny", "flags": {}, "festival": ""}
@@ -860,6 +863,46 @@ func _nana_friend() -> void:
 	var g := _game()
 	g.affection.add("nana", int(Affection.rules().bands[int(Ending.data().neighbour_band)]))
 	check(g.ending_values().neighbours_known == 0 and g.ending_values().heart_bands >= 1, "Nana is a friend (a heart band), not a neighbour")
+
+
+## Kiku of Minamino is a friend too: a birthday (winter 25) and its day plan (the shrine in the
+## morning, her hearth after), close lines, the bell lines after her band 5 scene, the answers in
+## her scenes, the seed and the daikon she gives, a place at the end of the record and the
+## Neighbours row down to Dr. Yae alone.
+func _kiku_friend() -> void:
+	var v: Dictionary = Villagers.all().kiku
+	check(Villagers.friends().has("kiku") and v.get("hearts", true) != false, "Kiku has hearts now")
+	check(v.birthday.season == "winter" and int(v.birthday.day) == 25, "Kiku's birthday is winter 25")
+	var winter := {"year": 1, "season": "winter", "day": 25, "weekday": "thu", "weather": "sunny", "flags": {}, "festival": ""}
+	Villagers.reset_day()
+	var w := Villagers.where("kiku", 9 * 60 + 30, winter)
+	check(w.get("map", "") == "minamino" and Vector2i(w.get("pos", Vector2.ZERO).floor()) == Vector2i(2, 9), "on her birthday Kiku bows at the water shrine in the morning (%s)" % [w])
+	check(Villagers.is_on("kiku", "kiku_house", 7 * 60, winter) and Villagers.is_on("kiku", "kiku_house", 15 * 60, winter) and Villagers.is_on("kiku", "kiku_house", 18 * 60, winter),
+		"home early and from the shrine on, her hearth till bed")
+	Villagers.reset_day()
+	check(Villagers.where("kiku", 15 * 60 + 30, winter.merged({"day": 24}, true)).get("map", "") == "minamino", "the day before she is out in the orchard at half past three")
+	var st := {"year": 1, "season": "spring", "day": 3, "weekday": "wed", "time": 15 * 60 + 30, "weather": "sunny",
+		"flags": {}, "festival": "", "band": 4, "again": false, "birthday": false, "day_number": 0}
+	check(Talk.pick("kiku", st) in ["close_1", "close_2"] and not Talk.pick("kiku", st.merged({"band": 3}, true)) in ["close_1", "close_2"], "close lines from band 4: %s" % Talk.pick("kiku", st))
+	check(Talk.pick("kiku", st.merged({"band": 5, "flags": {"heart_kiku_5": true}}, true)).begins_with("bell"), "the bell lines after the band 5 scene")
+	check(not Talk.pick("kiku", st.merged({"band": 6}, true)).begins_with("bell"), "no bell lines before the scene")
+	check(Talk.pick("kiku", st.merged({"birthday": true}, true)) == "birthday" and Talk.has_line("kiku", "gift_birthday"), "birthday lines")
+	check(Talk.pick("kiku", st.merged({"band": 1, "weekday": "fri"}, true)) != "forage_spring" and Talk.pick("kiku", st.merged({"band": 2, "weekday": "fri"}, true)) == "forage_spring",
+		"forage lines from band 2, like the other friends")
+	for at in ["kiku_glad", "kiku_honest"]:
+		var d := DialogueRunner.open("heart_events", {}, at)
+		check(d.error == "" and d.text() != "", "%s has its line" % at)
+	for at in ["kiku_miss", "kiku_glad"]:
+		var d := DialogueRunner.open("heart_events_5", {}, at)
+		check(d.error == "" and d.text() != "", "%s has its line" % at)
+	check("seeds:daikon" in FileAccess.get_file_as_string(EventRunner.DIR + "heart_kiku.json"), "Kiku gives daikon seed at band 3")
+	check("\"daikon\"" in FileAccess.get_file_as_string(EventRunner.DIR + "heart_kiku_5.json"), "and daikon at band 5")
+	check("'Kiku's birthday.'" in DialogueRunner.open("examine_house", {}, "winter_birthday").text(), "the calendar names Kiku's birthday")
+	check(Ending.friend({"kiku": int(Affection.rules().bands[5]), "haru": int(Affection.rules().bands[4])}) == "kiku", "Kiku can close the record")
+	check("ending_friend_kiku" in FileAccess.get_file_as_string(EventRunner.DIR + "ending.json") and DialogueRunner.open("ending", {}, "kiku").error == "", "the ending has a part and lines for Kiku")
+	var g := _game()
+	g.affection.add("kiku", int(Affection.rules().bands[int(Ending.data().neighbour_band)]))
+	check(g.ending_values().neighbours_known == 0 and g.ending_values().heart_bands >= 1, "Kiku is a friend (a heart band), not a neighbour")
 
 
 func _next_line(d: DialogueRunner) -> void:
