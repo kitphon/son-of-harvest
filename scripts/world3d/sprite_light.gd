@@ -12,9 +12,10 @@ extends RefCounted
 ##    every sprite in GROUP (their modulate's colour; its alpha stays the occluders' and the
 ##    note puffs') and on the CropClusters (their `sun` uniform); a sprite made later takes `now`.
 ##  - at night a warm lift from the nearby lit windows, shoji doors, stone lanterns and festival
-##    lights (`lift_at`, the same spots as NightLamps): NightLights draws each figure near one
-##    back over the tint with `warm` times the lift added in proportion to its own colour (its
-##    picture's pixels), so a villager by a lit window reads warm, one in the dark stays blue.
+##    lights (`lift_at`, the same spots as NightLamps): NightLights adds `warm` times the lift to
+##    each figure near one (NightLights.figure_lifts) in proportion to its own colour (its
+##    picture's pixels), only where the picture shows that figure's own pixel, so a villager by a
+##    lit window reads warm, one in the dark stays blue, and a fence in front keeps its pixels.
 ##    The field's crops, cluster plants, items and objects take it too (`field_lifts`).
 ## No sun-and-shadow on the sprites: the only cheap scene query is Occluders' boxes, which hold
 ## the houses but not the trees, the fences or a hip roof's real outline, so a sprite would

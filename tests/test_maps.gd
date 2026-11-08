@@ -301,12 +301,13 @@ func _start_view() -> void:
 			"night lights: pools, then a copy of the picture, then the glows, then the figures")
 		check(lights[0].figures.material is ShaderMaterial and "hint_screen_texture" in lights[0].figures.material.shader.code,
 			"the figures are drawn back from the copy (the screen as it was before the glows)")
-		# The field's lift comes first, from its own copy of the tinted picture (no pools yet), so it
-		# can tell the field's own pixels from what stands in front of them.
+		# The night lift (the field's, then the figures') comes first, from its own copy of the tinted picture (no pools yet), so it
+		# can tell their own pixels from what stands in front of them.
 		var fc := kids.find(lights[0].field_copy)
 		check(fc >= 0 and fc < kids.find(lights[0].field) and kids.find(lights[0].field) < kids.find(lights[0].pools)
+			and kids.find(lights[0].field) < kids.find(lights[0].figure_lift) and kids.find(lights[0].figure_lift) < kids.find(lights[0].pools)
 			and kids.find(lights[0].pools) < copy_at and "hint_screen_texture" in lights[0].field.material.shader.code,
-			"night lights: the field's copy, the field's lift, the pools, then the copy for the walls and glows")
+			"night lights: the lift's copy, the field's lift, the figures' lift, the pools, then the copy for the walls and glows")
 		check(_scene.sprite.is_in_group(lights[0].FIGURES), "the farmer is a figure the glows keep off")
 	# The real lamps: a bounded few OmniLight3Ds without shadows, lit at night, all off by day.
 	var lamps: Node3D = _scene.lamps
@@ -325,9 +326,31 @@ func _start_view() -> void:
 		var want: int = mini(_scene.world.windows.size(), int(lr.max))
 		var warm: bool = on.all(func(l): return l.light_energy > 0.0 and l.light_color.r == 1.0 and l.light_color.b < l.light_color.g)
 		check(on.size() == want and warm, "at 21:00 the farmhouse's windows light warm lamps (%d of %d)" % [on.size(), want])
+		# The farmer in front of a lit farmhouse window takes the night lift in pass 0 (its own
+		# copy shown), carrying (1, 1, 1, lift), and is drawn back in pass 4 over the glows.
+		var nl: Control = lights[0] if lights.size() == 1 else null
+		var fig_at: Vector3 = _scene.sprite.global_position
+		var win: Dictionary = _scene.world.windows[0]
+		_scene.sprite.global_position = Vector3(win.pos.x, 0.0, win.pos.z) + win.normal * 0.8
+		if nl != null:
+			nl._process(0.0)
+			var mine: Array = nl._warm.filter(func(q): return q.tex == _scene.sprite.texture)
+			# Drawn back for its lift alone (not only for standing in front of a glow).
+			nl._shields.clear()
+			nl._shielded.clear()
+			nl._plan_warmth()
+			var shield: bool = nl._shields.any(func(q): return q.tex == _scene.sprite.texture)
+			check(mine.size() == 1 and mine[0].color.a > 0.01 and is_equal_approx(mine[0].color.r, 1.0)
+				and nl.field_copy.visible and nl.figure_lift.visible and shield,
+				"night lights: the farmer by a lit window takes the lift in pass 0 and is drawn back (%d quads)" % mine.size())
 		g.hour = 12
 		_scene.tint.color = g.light_color()
 		lamps._process(0.0)
+		if nl != null:
+			nl._process(0.0)
+			check(nl._warm.is_empty() and nl._field_quads.is_empty() and not nl.field_copy.visible,
+				"night lights: by day nothing is lifted and the lift's copy is off")
+		_scene.sprite.global_position = fig_at
 		check(lamps.lights.all(func(l): return not l.visible), "at noon every lamp is off: the daytime picture is untouched")
 		g.hour = h
 		g.minute = mi

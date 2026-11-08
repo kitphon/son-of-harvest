@@ -898,13 +898,160 @@ func _sprite_light(game_script: GDScript, fx: Dictionary) -> void:
 	_field_pass(SL, NL, CC, FW, field_cc, crop_s, item_s, spots, rules)
 	for n in [crop_s, item_s, back_s, far_s, fig, field_cc, lamp_s, lamp_t]:
 		n.free()
+	_figure_pass(SL, NL, FW, spots, rules, lamp, occ)
 	wall.free()
-	# NightLights draws the lift last, over the figures drawn back.
+	# The figures' lift is drawn in pass 0 with the field's; no pass of its own after the figures.
 	var nl = NL.new()
 	root.add_child(nl)
-	check(nl.warmth != null and nl.warmth.get_index() > nl.figures.get_index() and nl.warmth.get_index() == nl.get_child_count() - 1,
-		"sprite light: the warmth is NightLights' last pass")
+	check(nl.find_child("Warmth", false, false) == null and not ("warmth" in nl)
+		and nl.figures.get_index() == nl.get_child_count() - 1,
+		"figure pass: no separate warmth pass, the figures drawn back last")
+	var fl_code: String = (nl.figure_lift.material as ShaderMaterial).shader.code
+	var field_bloom = (nl.field.material as ShaderMaterial).get_shader_parameter("bloom")   # null: the shader's default, 0
+	check(nl.field.get_index() < nl.figure_lift.get_index() and nl.figure_lift.get_index() < nl.pools.get_index()
+		and nl.field_copy.get_index() < nl.field.get_index() and fl_code == NL.FIELD_SHADER
+		and nl.figure_lift.material != nl.field.material and not nl.figure_lift.visible
+		and (field_bloom == null or is_zero_approx(float(field_bloom))) and "uniform float bloom = 0.0;" in fl_code,
+		"figure pass: the figures' lift after the field's from the same copy, before the pools, its own material (the field's bloom 0), off while nothing is lit")
 	nl.free()
+
+
+## The figures' lift in pass 0 (NightLights.figure_lifts, then field_quads and FIELD_SHADER as the
+## field's): the same lift as the old Warmth pass, one quad for the figure and each lit sprite it
+## holds (the marks over it left out) carrying (1, 1, 1, lift), following its frame, facing flip
+## and pixel size; the figure's own texel under the tint takes it, a building's, a fence's or
+## another figure's colour standing in front does not.
+func _figure_pass(SL: GDScript, NL: GDScript, FW: GDScript, spots: Array, rules: Dictionary, lamp: Array, occ) -> void:
+	var PA: GDScript = load("res://scripts/art/placeholder_art.gd")
+	var lr: Dictionary = rules.get("lift", {})
+	var reach := float(lr.range)
+	var cam := Camera3D.new()
+	root.add_child(cam)
+	cam.position = Vector3(5, 9, 16)
+	cam.look_at(Vector3(5, 0, 5))
+	cam.make_current()
+	var stand: Texture2D = PA.tex("player:front:idle:0")
+	var step: Texture2D = PA.tex("player:back:walk:1")
+	var fig: Sprite3D = FW.make_figure(stand)
+	fig.position = Vector3(5.2, 0, 5.8)
+	NL.figure(fig)
+	var held: Sprite3D = FW.make_sprite(PA.tex("item:turnip"))
+	held.position = Vector3(0, 1.0, 0)
+	fig.add_child(held)
+	var note: Sprite3D = FW.make_sprite(PA.tex("item:egg"))
+	note.position = Vector3(0, 1.6, 0)
+	SL.unlit(note)
+	fig.add_child(note)
+	var cow_tex: Texture2D = PA.tex("animal:cow:idle:0:dl")
+	var cow: Sprite3D = FW.make_sprite(cow_tex)
+	cow.pixel_size = FW.PX / float(load("res://scripts/art/animal_art.gd").SCALE)
+	cow.position = Vector3(4.6, 0, 6.2)
+	NL.figure(cow)
+	var far: Sprite3D = FW.make_figure(stand)
+	far.position = Vector3(5, 0, 5 + reach + 1.0)
+	NL.figure(far)
+	for n in [fig, cow, far]:
+		root.add_child(n)
+	# The same lift as before: lift_at at the figure's middle (its feet plus half its picture).
+	var lifts: Array = NL.figure_lifts([fig, cow, far], spots, rules)
+	var same := true
+	for e in lifts:
+		var sp: Sprite3D = e.sprite
+		var old_mid: Vector3 = sp.global_position + Vector3.UP * (sp.texture.get_height() * sp.pixel_size / 2.0)
+		same = same and (e.mid as Vector3).is_equal_approx(old_mid) and is_equal_approx(e.k, SL.lift_at(old_mid, spots, rules))
+	var who: Array = lifts.map(func(e): return e.sprite)
+	check(lifts.size() == 2 and fig in who and cow in who and same and lifts.all(func(e): return e.k > 0.01 and e.k <= float(lr.max) + 0.0001),
+		"figure pass: the farmer and the cow by the window take the lift at their middle, the far one none (%s)" % [lifts.map(func(e): return snappedf(e.k, 0.001))])
+	check(NL.figure_lifts([fig, cow], [], rules).is_empty(), "figure pass: none by day")
+	var by_lamp: Array = NL.figure_lifts([fig], lamp, rules, occ)
+	fig.position = Vector3(-1, 0, 0)
+	var blocked: Array = NL.figure_lifts([fig], lamp, rules, occ)
+	fig.position = Vector3(1, 0, 0)
+	var open: Array = NL.figure_lifts([fig], lamp, rules, occ)
+	check(by_lamp.is_empty() and blocked.is_empty() and open.size() == 1,
+		"figure pass: a building between the lantern and the figure keeps it off")
+	fig.position = Vector3(5.2, 0, 5.8)
+	var mine: Array = lifts.filter(func(e): return e.sprite == fig)
+	var quads: Array = NL.field_quads(mine, cam)
+	var k: float = mine[0].k
+	check(quads.size() == 2 and quads[0].tex == stand and quads[1].tex == held.texture
+		and quads.all(func(q): return q.color.is_equal_approx(Color(1, 1, 1, k)) and q.tex != note.texture),
+		"figure pass: one quad for the figure and its held item carrying (1, 1, 1, lift), the mark over it left out (%d)" % quads.size())
+	var plain_uv: Vector2 = quads[0].uvs[0]
+	fig.flip_h = true
+	var flipped: Array = NL.field_quads(mine, cam)
+	fig.flip_h = false
+	fig.texture = step
+	var stepped: Array = NL.field_quads(mine, cam)
+	fig.texture = stand
+	check(plain_uv == Vector2(0, 0) and flipped[0].uvs[0] == Vector2(1, 0) and stepped[0].tex == step,
+		"figure pass: the quad follows the facing flip and the animation frame")
+	var cow_q: Array = NL.field_quads(lifts.filter(func(e): return e.sprite == cow), cam)
+	cow.pixel_size = FW.PX
+	var big_q: Array = NL.field_quads(lifts.filter(func(e): return e.sprite == cow), cam)
+	var wide := func(q: Dictionary) -> float: return (q.pts[1] as Vector2).distance_to(q.pts[0])
+	check(cow_q.size() == 1 and big_q.size() == 1 and absf(wide.call(big_q[0]) / wide.call(cow_q[0]) - 2.0) < 0.05,
+		"figure pass: an animal's quad at its own pixel size (%.1f px wide)" % (wide.call(cow_q[0]) if cow_q.size() == 1 else -1.0))
+	# The pixel test on the farmer's own texels: each one as drawn under the night tint (and in the
+	# sun's share, and with the 3D view's glow by a lit window on it, up to `bloom`) matches; a
+	# darker pixel never does; a plaster wall, a dark board, a fence culm or the cow standing in
+	# front takes only a small share of the lift (dark colours come close under the night tint).
+	var match_at := float(lr.get("match", -1.0))
+	var bloom := float(lr.get("bloom", -1.0))
+	check(bloom >= 0.0 and bloom <= match_at * 2.0, "figure pass: the bloom allowance is a few 8-bit steps (%.3f)" % bloom)
+	var glow := Color(0.041, 0.025, 0.025)   # the most a farmer by Tome's lit window measured brighter (2026-11-08)
+	var glow_ok := 0
+	var dark_ok := 0
+	var tint := Color("46529a")
+	var gold := Color(1.0, 0.85, 0.7)
+	var img: Image = stand.get_image()
+	var cow_img: Image = cow_tex.get_image()
+	var cow_px: Array[Color] = []
+	for y in cow_img.get_height():
+		for x in cow_img.get_width():
+			if cow_img.get_pixel(x, y).a >= 0.5:
+				cow_px.append(cow_img.get_pixel(x, y))
+	var texels := 0
+	var own_ok := 0
+	var total := 0.0   # the lift the figure's texels take (their brightest channel)
+	var leaked := {"plaster": 0.0, "board": 0.0, "culm": 0.0, "cow": 0.0}   # of it, what would land on the one in front
+	var walls := {"plaster": Color("e8e0cc"), "board": Color("3a2c24"), "culm": Color("a89c5c")}
+	for y in img.get_height():
+		for x in img.get_width():
+			var own := img.get_pixel(x, y)
+			if own.a < 0.5:
+				continue
+			texels += 1
+			var gain := maxf(own.r, maxf(own.g, own.b))   # the lift a texel takes goes with its colour
+			total += gain
+			var seen := Color(own.r * tint.r, own.g * tint.g, own.b * tint.b)
+			var warm_seen := Color(own.r * gold.r * tint.r, own.g * gold.g * tint.g, own.b * gold.b * tint.b)
+			if NL.field_off(seen, own, 1.0, Color.WHITE, tint, bloom) < match_at and NL.field_off(warm_seen, own, 1.0, gold, tint, bloom) < match_at:
+				own_ok += 1
+			var glowing := Color(seen.r + glow.r, seen.g + glow.g, seen.b + glow.b)
+			if NL.field_off(glowing, own, 1.0, Color.WHITE, tint, bloom) < match_at and NL.field_off(glowing, own, 1.0, Color.WHITE, tint) >= match_at:
+				glow_ok += 1
+			var darker := Color(maxf(seen.r - match_at * 1.2, -1.0), seen.g, seen.b)
+			if NL.field_off(darker, own, 1.0, Color.WHITE, tint, bloom) >= match_at:
+				dark_ok += 1
+			for wname in walls:
+				var c: Color = walls[wname]
+				if NL.field_off(Color(c.r * tint.r, c.g * tint.g, c.b * tint.b), own, 1.0, Color.WHITE, tint, bloom) < match_at:
+					leaked[wname] += gain
+			var cc: Color = cow_px[(x * 7 + y * 13) % cow_px.size()]
+			if NL.field_off(Color(cc.r * tint.r, cc.g * tint.g, cc.b * tint.b), own, 1.0, Color.WHITE, tint, bloom) < match_at:
+				leaked.cow += gain
+	check(texels > 50 and own_ok == texels and glow_ok == texels,
+		"figure pass: the figure's own texels under the tint match, with a lit window's glow on them too (only with bloom) (%d, %d of %d)" % [own_ok, glow_ok, texels])
+	check(dark_ok == texels, "figure pass: a pixel darker than the figure's texel never matches (%d of %d)" % [dark_ok, texels])
+	var shares := {}
+	for wname in leaked:
+		shares[wname] = snappedf(leaked[wname] / maxf(total, 0.001), 0.001)
+	check(shares.values().all(func(f): return f <= 0.2),
+		"figure pass: a wall, a fence or another figure in front keeps its own pixels (share of the lift on it %s)" % [shares])
+	for n in [fig, cow, far]:
+		n.free()
+	cam.free()
 
 
 ## The field's lift in its own pass (NightLights pass 0): the lift and its falloff and cap reach
