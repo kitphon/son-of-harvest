@@ -1,5 +1,5 @@
 {
-	"_note": "Events in the village. examine rows play when the farmer presses interact facing their spot ([x, y] or [x, y, width, height]); the first matching row wins, so special cases go first. The doors (the shops, Tome's 5, 6, Kota's 8, 15, Sayo's 25, 15) are left to the doors. The weddings come first (data/marriage.json: from 10:00 on the wedding day, or any later day until one has played; the flags come from the proposal). Then the heart events: the first talk with a villager once their heart band is 3 or more, again at 5 once that one was seen, and at 6 after the one at 5 (Fumi, in the village on festival days, has bands 3, 5 and 6, Ichiro bands 3, 5 and 6, Genzo bands 3, 5 and 6, Haru and Shige bands 3 and 5). Format: README.md, Events.",
+	"_note": "Events in the village. examine rows play when the farmer presses interact facing their spot ([x, y] or [x, y, width, height]); the first matching row wins, so special cases go first. The doors (the shops, Tome's 5, 6, Kota's 8, 15, Sayo's 25, 15) are left to the doors. The weddings come first (data/marriage.json: from 10:00 on the wedding day, or any later day until one has played; the flags come from the proposal). Then the heart events: the first talk with a villager once their heart band is 3 or more, again at 5 once that one was seen, and at 6 after the one at 5 (Fumi, in the village on festival days, has bands 3, 5 and 6, Ichiro bands 3, 5 and 6, Genzo bands 3, 5 and 6, Haru, Shige and Nana bands 3 and 5). Format: README.md, Events.",
 	"rows": [
 		{"event": "wedding_sayo", "on": ["enter", "minute"], "flags": ["wedding_due", "engaged_sayo"], "time": ["10:00", "18:00"]},
 		{"event": "wedding_fumi", "on": ["enter", "minute"], "flags": ["wedding_due", "engaged_fumi"], "time": ["10:00", "18:00"]},
@@ -38,6 +38,8 @@
 		{"event": "heart_mio_6", "on": "talk", "who": "mio", "hearts": {"mio": [6, 6]}, "seen": ["heart_mio_5"]},
 		{"event": "heart_shige", "on": "talk", "who": "shige", "hearts": {"shige": [3, 6]}},
 		{"event": "heart_shige_5", "on": "talk", "who": "shige", "hearts": {"shige": [5, 6]}, "seen": ["heart_shige"]},
+		{"event": "heart_nana", "on": "talk", "who": "nana", "hearts": {"nana": [3, 6]}},
+		{"event": "heart_nana_5", "on": "talk", "who": "nana", "hearts": {"nana": [5, 6]}, "seen": ["heart_nana"]},
 		{"event": "shrine_offering", "on": "examine", "spot": [18, 1, 2, 2], "once": false},
 		{"event": "lantern_snow", "on": "examine", "spot": [16, 3], "once": false, "weather": ["snow"]},
 		{"event": "lantern_snow", "on": "examine", "spot": [21, 3], "once": false, "weather": ["snow"]},

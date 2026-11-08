@@ -43,6 +43,8 @@
 		{"speaker": "ren", "face": "calm", "text": "Two years ago your name was on three letters. Now it's in half the valley's. That's the best news I ever carried.", "next": "end"},
 		{"id": "shige", "speaker": "shige", "face": "smile", "text": "Nana made me wear my good jacket. She says a page in the village record deserves it, and she's right."},
 		{"speaker": "shige", "face": "calm", "text": "Two years ago that farm was stones and stubbornness. Now Sayo asks me why your greens sell first. I tell her: soil talks, and you listened.", "next": "end"},
+		{"id": "nana", "speaker": "nana", "face": "smile", "text": "Tome let me come in! I wiped my shoes on the mat. Twice. Is that the whole book? It's so long!"},
+		{"speaker": "nana", "face": "calm", "text": "Two years ago I couldn't carry the big bucket. Now I can. Your farm got big, too. Everybody grew. Even Captain. He's a frog now!", "next": "end"},
 
 		{"id": "close", "speaker": "tome", "face": "smile", "text": "Well! The record is written, but the seasons don't stop for it. Spring is waiting for you out there.", "next": "end"}
 	]

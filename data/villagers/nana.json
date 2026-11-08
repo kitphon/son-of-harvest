@@ -1,8 +1,8 @@
 {
-	"_note": "Nana, Shige's daughter, a girl of Kota's age who lives in Minamino. Mornings she helps her father in the gardens (8:00-11:30), lunch at home; in the afternoon she runs up the lane to the village pond to play by Kota (14:00-17:00, the pond's north-west corner beside his spot), home by 17:40, asleep from 20:00. Wet days she stays in with her toys. A villager without hearts (hearts false). Gifts: sweets, eggs, fish to look at, pretty stones; she dislikes bitter things. Format: README.md, Villagers.",
+	"_note": "Nana, Shige's daughter, a girl of Kota's age who lives in Minamino. Mornings she helps her father in the gardens (8:00-11:30), lunch at home; in the afternoon she runs up the lane to the village pond to play by Kota (14:00-17:00, the pond's north-west corner beside his spot), home by 17:40, asleep from 20:00. Wet days she stays in with her toys. On her birthday (fall 19) Granny Kiku has knitted the jizo by the lane a new red scarf, and Nana is allowed to dress it herself: home in the morning, at the jizo 9:00-11:40, lunch at home, then the village pond as on other days but till dusk (18:00), home by 18:40, bed at 20:30. Her heart events: data/events/heart_nana.json (band 3), heart_nana_5.json (band 5). Gifts: sweets, eggs, fish to look at, pretty stones; she dislikes bitter things. Format: README.md, Villagers.",
 	"id": "nana",
 	"name": "Nana",
-	"hearts": false,
+	"birthday": {"season": "fall", "day": 19},
 	"speed": 2.0,
 	"look": {"build": "child", 
 		"outfit": "shirt_shorts",
@@ -18,6 +18,7 @@
 		{"if": {"festival": ["blossom_day"]}, "plan": "festival_day"},
 		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
+		{"if": {"birthday": true}, "plan": "birthday"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
 	],
 	"default": "usual",
@@ -64,6 +65,18 @@
 			{"at": "17:20", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 9]}, {"to": [11, 9]}, {"to": [11, 7]}, {"face": "up"}]},
 			{"at": "17:40", "map": "shige_house", "from": [2, 2], "route": [{"face": "down"}]},
 			{"at": "20:00", "map": "away"}
+		],
+		"birthday": [
+			{"at": "06:00", "map": "shige_house", "from": [2, 2], "route": [{"face": "down"}]},
+			{"at": "09:00", "map": "minamino", "from": [11, 7], "route": [{"to": [11, 9]}, {"to": [4, 9]}, {"to": [4, 18]}, {"face": "right"}], "loop": [{"wait": 12}, {"face": "down"}, {"wait": 6}, {"face": "right"}]},
+			{"at": "11:40", "map": "minamino", "route": [{"to": [4, 9]}, {"to": [11, 9]}, {"to": [11, 7]}, {"face": "up"}]},
+			{"at": "11:50", "map": "shige_house", "from": [2, 2], "route": [{"face": "down"}]},
+			{"at": "13:30", "map": "minamino", "from": [11, 7], "route": [{"to": [11, 9]}, {"to": [4, 9]}, {"to": [4, 0]}, {"face": "up"}]},
+			{"at": "13:40", "map": "town", "from": [4, 21], "route": [{"to": [4, 16]}, {"to": [29, 16]}, {"to": [30, 16]}, {"face": "right"}]},
+			{"at": "18:00", "map": "town", "route": [{"to": [29, 16]}, {"to": [4, 16]}, {"to": [4, 21]}, {"face": "down"}]},
+			{"at": "18:20", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 9]}, {"to": [11, 9]}, {"to": [11, 7]}, {"face": "up"}]},
+			{"at": "18:40", "map": "shige_house", "from": [2, 2], "route": [{"face": "down"}]},
+			{"at": "20:30", "map": "away"}
 		],
 		"wet": [
 			{"at": "06:00", "map": "shige_house", "from": [2, 2], "route": [{"face": "down"}]},

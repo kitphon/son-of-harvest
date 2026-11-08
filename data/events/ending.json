@@ -28,6 +28,7 @@
 		{"if": "ending_friend_shino", "then": "shino"},
 		{"if": "ending_friend_ren", "then": "ren"},
 		{"if": "ending_friend_shige", "then": "shige"},
+		{"if": "ending_friend_nana", "then": "nana"},
 		{"do": "say", "dialogue": "ending", "at": "tome_friend", "next": "close"},
 		{"id": "kota", "do": "actor", "who": "kota", "at": [4, 6], "face": "up"},
 		{"do": "sound", "key": "door_slide"},
@@ -77,6 +78,10 @@
 		{"do": "sound", "key": "door_slide"},
 		{"do": "actor", "who": "shige", "to": [5, 5]},
 		{"do": "say", "dialogue": "ending", "at": "shige", "next": "close"},
+		{"id": "nana", "do": "actor", "who": "nana", "at": [4, 6], "face": "up"},
+		{"do": "sound", "key": "door_slide"},
+		{"do": "actor", "who": "nana", "to": [5, 5]},
+		{"do": "say", "dialogue": "ending", "at": "nana", "next": "close"},
 		{"id": "close", "do": "say", "dialogue": "ending", "at": "close"},
 		{"do": "set", "flags": {"ending_seen": true}}
 	]

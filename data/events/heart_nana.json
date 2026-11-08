@@ -1,0 +1,15 @@
+{
+	"_note": "Nana's heart event: the first talk once her heart band reaches 3, in Minamino, at home or in the village (triggers_minamino.json, triggers_shige_house.json, triggers_town.json). She shows the farmer Captain, the tadpole in her jar from the ditch behind her father's beds, and asks whether he goes back to the pond now or waits for legs; either way she gives corn seed from her father's tallest row. Sets heart_nana. Nana acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "nana", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "nana"},
+		{"do": "sound", "key": "step_grass"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events", "at": "nana"},
+		{"do": "give", "item": "seeds:corn", "count": 2},
+		{"do": "affection", "who": "nana", "amount": 5},
+		{"do": "set", "flags": {"heart_nana": true}},
+		{"do": "actor", "who": "nana", "to": "plan"},
+		{"do": "actor", "who": "nana", "leave": true}
+	]
+}

@@ -9,7 +9,7 @@
 		{"id": "summer_birthday", "text": "The 6th, in neat writing: 'Sayo's birthday.' A green rice sprout is drawn on the 13th: 'Genzo's birthday.' A tiny straw sandal is drawn on the 27th: 'Haru's birthday.'", "next": "end"},
 		{"id": "fall", "text": "The calendar shows fall, with a picture of rice drying on poles. 'Harvest before the first frost.'", "next": "fall_festival"},
 		{"id": "fall_festival", "text": "The 15th has a little moon drawn on it: 'Moon Night at the shrine.'", "next": "fall_birthday"},
-		{"id": "fall_birthday", "text": "A red maple leaf is drawn on the 4th: 'Kaede's birthday.' A little pile of charcoal is drawn on the 9th: 'Ichiro's birthday.' A persimmon is drawn on the 24th: 'Tome's birthday.'", "next": "end"},
+		{"id": "fall_birthday", "text": "A red maple leaf is drawn on the 4th: 'Kaede's birthday.' A little pile of charcoal is drawn on the 9th: 'Ichiro's birthday.' A tiny red scarf is drawn on the 19th: 'Nana's birthday.' A persimmon is drawn on the 24th: 'Tome's birthday.'", "next": "end"},
 		{"id": "winter", "text": "The calendar shows winter. Nothing grows outside now. 'Mend the tools. Rest.'", "next": "winter_festival"},
 		{"id": "winter_festival", "text": "The 30th is circled twice: 'Year's Turn. A fire at the shrine, all evening.'", "next": "winter_birthday"},
 		{"id": "winter_birthday", "text": "A little square of blue cloth is pinned to the 4th: 'Shino's birthday.' The 11th, in thick pencil: 'Hachiro's birthday.' A little hoe is drawn on the 18th: 'Shige's birthday.'", "next": "end"},
