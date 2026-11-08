@@ -10,6 +10,42 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Portrait hair styles: the candidates read apart
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: the text box portrait (PlaceholderArt._portrait) drew its hair from the figure's
+  hair_style, and the women's figures only use `bun` and `long`. So Sayo, Haru, Mio and Kaede
+  had the same long-hair face, and Shino, Fumi, Tome, Kiku and Yae the same bun. Shino's read
+  like a man's topknot. Now:
+  - four portrait-only styles in PlaceholderArt.PORTRAIT_HAIR: hime (a blunt level fringe,
+    straight locks cut at the chin, a ribbon over the crown), ponytail (tied high, the tail
+    swinging out to the right, a side-swept fringe), braid (a middle parting, one braid over
+    the left shoulder tied with a cord) and low_knot (parted in the middle, swept down over
+    the ears to the jaw, a knot at the nape with a hairpin through it);
+  - a speaker's face in data/dialogue/speakers.json can name one as `portrait_hair`
+    (PlaceholderArt.portrait_hair_style), and the figures don't change. Haru has a braid (she
+    weaves straw), Mio a ponytail, Kaede a hime cut (a shrine keeper's look) and Shino a low
+    knot. Sayo keeps her long hair and Fumi her bun;
+  - the hair behind the head is drawn in one place (_portrait_hair_behind: long, hime, the
+    ponytail, the low knot);
+  - the bun now has soft side wings over the ears instead of two thin strips, so the old women,
+    Fumi and Yae read softer.
+- Checked: test_dialogue:
+  - every speaker's portrait_hair is a known style;
+  - every style draws different hair;
+  - the six women who can marry each have their own style;
+  - Shino a low knot, Sayo long.
+
+  Output `test_dialogue: OK (0 failed)`. Mutation test (Shino's portrait_hair removed):
+  `FAIL: the women who can marry each wear their own portrait hair { "long": "sayo", "bun":
+  "shino", ... }`, `test_dialogue: FAILED (2 failed)`; restored. Then all 30 suites printed
+  `OK (0 failed)`. Smoke runs (title, --demo, --map=town, --mine=3) printed no error or
+  warning lines. Looked at: a sheet of twelve portraits rendered from PlaceholderArt (scratch
+  file, not kept): Haru, Mio, Kaede and Shino now each have their own outline, and Shino's hair
+  falls to her jaw. Also `--map=minamino@shino --time=9:00 --talk=shino` (her portrait in the
+  text box). shots/ deleted.
+- Left / next: Nana's portrait still uses the plain short hair (she is a child; her figure is
+  short-haired too). Real portrait art would replace these keys.
+
 ## 2026-11-08 — Ren the mail carrier, the last of the eight candidates
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: a new villager with hearts, our own: Ren carries the post. He talks a lot and knows

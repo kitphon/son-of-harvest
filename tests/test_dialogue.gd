@@ -255,6 +255,26 @@ func _portraits() -> void:
 		check(PlaceholderArt.tex("portrait:%s:sleepy" % id).get_image().get_data() == plain, "%s: an unknown mood draws neutral" % id)
 		check(who.has(id), "%s has a name tag in speakers.json" % id)
 	check(neutral.size() == Villagers.all().size() and neutral.size() >= 4, "every villager has a face of their own")
+	# Portrait hair: a speaker's portrait_hair is one PlaceholderArt.PORTRAIT_HAIR knows, every
+	# style draws its own hair, and the six women who can marry each have a style of their own.
+	for id in who:
+		if not who[id] is Dictionary:   # the file's _note
+			continue
+		var ph: Variant = who[id].get("face", {}).get("portrait_hair", null)
+		check(ph == null or str(ph) in PlaceholderArt.PORTRAIT_HAIR, "%s's portrait_hair %s is a known style" % [id, ph])
+	var drawn := {}
+	for style in PlaceholderArt.PORTRAIT_HAIR:
+		var hi := Image.create(40, 40, false, Image.FORMAT_RGBA8)
+		var hl := {"hair_style": style, "hair": "2a1e1a", "accent": "c8342c"}
+		PlaceholderArt._portrait_hair_behind(hi, hl, 20.0)
+		PlaceholderArt._portrait_hair(hi, hl, 20.0)
+		drawn[hi.get_data()] = true
+	check(drawn.size() == PlaceholderArt.PORTRAIT_HAIR.size(), "every portrait hair style draws differently (%d of %d)" % [drawn.size(), PlaceholderArt.PORTRAIT_HAIR.size()])
+	var styles := {}
+	for id in ["sayo", "fumi", "haru", "mio", "kaede", "shino"]:
+		styles[PlaceholderArt.portrait_hair_style(id)] = id
+	check(styles.size() == 6, "the women who can marry each wear their own portrait hair %s" % [styles])
+	check(PlaceholderArt.portrait_hair_style("shino") == "low_knot" and PlaceholderArt.portrait_hair_style("sayo") == "long", "Shino a low knot, Sayo her figure's long hair")
 	# The layout, with and without a portrait: everything inside the box and the screen, the
 	# text clear of the frame, the tag over the box's top edge above the text.
 	var box := Rect2i(Vector2i.ZERO, TextBoxLayout.BOX.size)

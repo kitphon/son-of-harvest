@@ -2353,7 +2353,8 @@ static func _face(speaker: String, expression: String) -> Image:
 ## their face in data/dialogue/speakers.json. The hair style and outfit shape them; `mood`
 ## (DialogueRunner.MOODS; any other draws neutral) sets the eyes, brows and mouth.
 static func _portrait(id: String, mood: String) -> Image:
-	var look := Villagers.look(id)
+	var look := Villagers.look(id).duplicate()
+	look.hair_style = portrait_hair_style(id)
 	var face: Dictionary = DialogueRunner.speakers().get(id, {}).get("face", {})
 	var marks: Array = face.get("marks", [])
 	var skin := Color(look.get("skin", "f2c79b"))
@@ -2368,9 +2369,7 @@ static func _portrait(id: String, mood: String) -> Image:
 	var cy := 22.0 if child else 20.0
 	var rx := 9.0 if child else 9.5
 	var ry := 9.5 if child else 10.5
-	if look.get("hair_style", "") == "long":                       # hair down the back, behind it all
-		_px(img, 8, int(cy) - 6, 24, 22, OUTLINE)
-		_px(img, 9, int(cy) - 6, 22, 21, hair)
+	_portrait_hair_behind(img, look, cy)
 	_portrait_body(img, look, child)
 	_px(img, 18 if child else 17, int(cy) + 7, 4 if child else 6, 6, skin.darkened(0.18))   # neck
 	for side in [-1.0, 1.0]:                                       # ears
@@ -2404,6 +2403,46 @@ static func _portrait(id: String, mood: String) -> Image:
 	return img
 
 
+## The hair styles a portrait can draw: the figures' own (FigureArt) and a few more that only
+## the portrait knows, so people whose figures share a hair style still look apart in the text
+## box: hime (a blunt fringe and straight locks cut at the chin), ponytail (tied high with a
+## side-swept fringe), braid (one braid over the shoulder) and low_knot (parted in the middle,
+## a knot at the nape with a hairpin through it).
+const PORTRAIT_HAIR: Array[String] = ["bun", "short", "headband", "long", "straw_hat", "hime", "ponytail", "braid", "low_knot"]
+
+
+## The hair style villager `id`'s portrait is drawn with: their face's "portrait_hair" in
+## data/dialogue/speakers.json when it names one of PORTRAIT_HAIR, else their look's hair_style.
+static func portrait_hair_style(id: String) -> String:
+	var face: Dictionary = DialogueRunner.speakers().get(id, {}).get("face", {})
+	var own := str(face.get("portrait_hair", ""))
+	return own if own in PORTRAIT_HAIR else str(Villagers.look(id).get("hair_style", ""))
+
+
+## The hair behind the head and shoulders: long hair down the back (long, hime), a ponytail
+## swinging out to the right, a low knot at the nape on the left with its hairpin.
+static func _portrait_hair_behind(img: Image, look: Dictionary, cy: float) -> void:
+	var hair := Color(look.get("hair", "4a3020"))
+	var accent := Color(look.get("accent", look.get("waist", "c8a050")))
+	var y := int(cy)
+	match look.get("hair_style", ""):
+		"long", "hime":
+			_px(img, 8, y - 6, 24, 22, OUTLINE)
+			_px(img, 9, y - 6, 22, 21, hair)
+		"ponytail":
+			_oval(img, 32, cy - 1, 3.6, 8.5, OUTLINE)
+			_oval(img, 32, cy - 1, 2.6, 7.5, hair)
+			_px(img, 33, y - 4, 1, 8, hair.lightened(0.12))           # a shine down the tail
+			_px(img, 27, y - 12, 5, 4, OUTLINE)
+			_px(img, 28, y - 11, 4, 3, hair)
+		"low_knot":
+			_oval(img, 10, cy + 6, 4.4, 3.6, OUTLINE)
+			_oval(img, 10, cy + 6, 3.4, 2.6, hair)
+			_px(img, 8, y + 5, 3, 1, hair.lightened(0.12))
+			_line(img, Vector2i(4, y + 2), Vector2i(15, y + 9), accent)   # the hairpin through it
+			_px(img, 3, y + 1, 2, 2, accent.lightened(0.2))
+
+
 ## Shoulders and collar by outfit: a kimono's crossed white collar, a happi coat's open
 ## front with its bands, or a boy's round-necked shirt.
 static func _portrait_body(img: Image, look: Dictionary, child: bool) -> void:
@@ -2430,7 +2469,8 @@ static func _portrait_body(img: Image, look: Dictionary, child: bool) -> void:
 
 
 ## Hair by style: a grey bun with a hairpin, short hair under a smith's headband, long hair
-## with a fringe and a hair ornament, or tufts under a straw hat.
+## with a fringe and a hair ornament, tufts under a straw hat, or one of the portrait-only
+## styles (PORTRAIT_HAIR): a hime cut, a ponytail, a braid, a low knot.
 static func _portrait_hair(img: Image, look: Dictionary, cy: float) -> void:
 	var hair := Color(look.get("hair", "4a3020"))
 	var accent := Color(look.get("accent", look.get("waist", "c8a050")))
@@ -2440,8 +2480,8 @@ static func _portrait_hair(img: Image, look: Dictionary, cy: float) -> void:
 			_oval(img, 20, cy - 14, 4.5, 3.5, OUTLINE)
 			_oval(img, 20, cy - 14, 3.5, 2.5, hair)
 			_oval(img, 20, cy - 9, 10.5, 4.6, hair)
-			_px(img, 10, y - 8, 2, 9, hair)
-			_px(img, 28, y - 8, 2, 9, hair)
+			for side in [-1.0, 1.0]:                                  # soft wings over the ears
+				_oval(img, 20 + side * 9.5, cy - 3, 2.6, 5.5, hair)
 			for x in [14, 18, 23]:                                    # combed lines
 				_px(img, x, y - 11, 1, 3, hair.darkened(0.12))
 			var pin := Color(look.get("waist", "c8a050"))
@@ -2468,6 +2508,42 @@ static func _portrait_hair(img: Image, look: Dictionary, cy: float) -> void:
 			_px(img, 18, y - 13, 1, 3, hair.lightened(0.15))          # a shine
 			_oval(img, 27, cy - 11, 1.8, 1.8, accent)                 # a flower kanzashi
 			_px(img, 28, y - 9, 1, 3, accent.darkened(0.2))
+		"hime":
+			_oval(img, 20, cy - 9, 10.8, 4.8, hair)
+			_px(img, 10, y - 7, 3, 13, hair)                          # straight locks cut at the chin
+			_px(img, 27, y - 7, 3, 13, hair)
+			_px(img, 11, y - 6, 18, 3, hair)                          # a blunt, level fringe
+			_px(img, 11, y - 3, 18, 1, hair.darkened(0.15))
+			_px(img, 12, y - 13, 16, 1, accent)                       # a ribbon over the crown
+			_px(img, 18, y - 12, 1, 2, hair.lightened(0.15))          # a shine
+		"ponytail":
+			_oval(img, 20, cy - 9, 10.5, 4.4, hair)
+			_px(img, 10, y - 7, 2, 6, hair)                           # short side locks
+			_px(img, 28, y - 7, 2, 5, hair)
+			_px(img, 12, y - 6, 10, 2, hair)                          # the fringe swept to one side
+			_px(img, 12, y - 4, 5, 1, hair)
+			for x in [15, 19, 24]:                                    # combed back
+				_px(img, x, y - 12, 1, 3, hair.darkened(0.14))
+			_px(img, 28, y - 12, 3, 2, accent)                        # the hair tie
+		"braid":
+			_oval(img, 20, cy - 9, 10.5, 4.6, hair)
+			_px(img, 20, y - 14, 1, 5, hair.darkened(0.3))           # a middle parting
+			_px(img, 10, y - 7, 2, 8, hair)
+			_px(img, 28, y - 7, 2, 8, hair)
+			_px(img, 12, y - 6, 7, 1, hair)
+			_px(img, 21, y - 6, 7, 1, hair)
+			for i in 5:                                               # the braid over the left shoulder
+				_oval(img, 11, cy + 5 + i * 3, 2.6, 2.0, OUTLINE)
+				_oval(img, 11, cy + 5 + i * 3, 1.8, 1.3, hair if i % 2 == 0 else hair.lightened(0.1))
+			_px(img, 9, y + 19, 4, 2, accent)                         # tied with a straw cord
+		"low_knot":
+			_oval(img, 20, cy - 9, 10.6, 4.6, hair)
+			_px(img, 20, y - 14, 1, 6, hair.darkened(0.3))           # parted in the middle
+			for side in [-1.0, 1.0]:                                  # swept down over the ears to the jaw
+				_oval(img, 20 + side * 9.2, cy - 1, 2.8, 7.5, hair)
+			_line(img, Vector2i(12, y - 5), Vector2i(19, y - 8), hair)
+			_line(img, Vector2i(21, y - 8), Vector2i(28, y - 5), hair)
+			_px(img, 23, y - 12, 1, 3, hair.lightened(0.15))          # a shine
 		"straw_hat":
 			_px(img, 10, y - 7, 3, 5, hair)                           # tufts under the brim
 			_px(img, 27, y - 7, 3, 5, hair)
