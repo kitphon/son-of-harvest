@@ -124,7 +124,7 @@ func _names() -> void:
 		for s in n:
 			check(not seen.has(s), "%s is offered once" % s)
 			seen[s] = true
-	check(Child.names("sayo") == ["Hinata", "Sora", "Aoi"], "Sayo's three")
+	check(Child.names("sayo") == ["Hikari", "Sora", "Aoi"], "Sayo's three")
 	check(Child.names("tome").is_empty() and Child.names("").is_empty(), "no names for someone who cannot marry")
 	for id in Marriage.candidates():
 		check(Child.names(id).size() == 3, "every candidate has names (%s)" % id)
@@ -218,7 +218,7 @@ func _event_step() -> void:
 	check(Child.born_day(f) == 70, "born once")
 	var g := _married("ren", 10)
 	Child.tell_news(g, 40)
-	g[Child.NAME] = "Hinata"   # not one of Ren's
+	g[Child.NAME] = "Hikari"   # not one of Ren's
 	Child.event_step(g, "birth", 70)
 	check(Child.child_name(g) == "Riku", "a name that isn't the spouse's falls back to their first (%s)" % Child.child_name(g))
 

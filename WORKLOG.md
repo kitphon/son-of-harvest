@@ -10,6 +10,17 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Sayo's child name "Hinata" renamed "Hikari"
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: one of Sayo's three child names, "Hinata", was also the clinic's name (Hinata Clinic).
+  It is now "Hikari" (light), a name not used elsewhere: data/child.json, her choice and
+  answer in data/dialogue/child.json ("Hikari. Light. Every store needs some by the window."),
+  the Thai (ฮิคาริ) in data/lang/th/dialogue.json, test_child, and DESIGN's example list.
+- Checked: `test_child: OK (0 failed)`, `test_dialogue: OK (0 failed)`, `test_lang: OK (0
+  failed)`, `test_events: OK (0 failed)`; the `-- --demo` smoke run printed no error or
+  warning lines.
+- Left / next: the child, step 4.
+
 ## 2026-11-08 — The child, step 3: the baby in a bamboo cradle, looked in on, held and laid back
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done:
