@@ -31,6 +31,7 @@ const CUP := Color("d8c8a8")
 const CUP_TEA := Color("7aa848")
 const SWEAT := Color("9fd8f2")
 const BASKET := Color("d9b45a")          # the farmer's straw hip basket (koshi-kago)
+const LETTER := Color("f4f0e4")          # a letter in the post pose
 
 const STYLES: Array[String] = ["bun", "short", "headband", "long", "straw_hat", "tenugui"]
 const OUTFITS: Array[String] = ["kimono", "happi", "shirt_shorts", "noragi"]
@@ -78,6 +79,9 @@ const POSES := {
 	# A villager's hammer (0 = raised over the shoulder, 1 = the blow, dipping into it) and rod.
 	"work": [[0, 0, 0, 0, 0, 0, 0], [1, -1, 0, 1, 0, 0, 0]],
 	"fish": [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]],
+	# A villager putting a letter in at a door (Ren's round): the near hand up in front with the
+	# letter (0), then pushed a pixel further as it slips in (1).
+	"post": [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]],
 }
 ## Per eat / drink frame: [hand offset from the mouth, what it holds: "bite" (a morsel at the
 ## lips), "chew" (the bitten rest), "cup" (upright at the lips), "tip" (tipped up)].
@@ -172,6 +176,8 @@ static func draw(look: Dictionary, back: bool, pose: String, frame: int, farmer 
 		_long_hair_down_back(img, r, c)
 	if farmer:
 		_basket(img, r, back)
+	if look.has("bag"):   # a shoulder bag: the strap across the body, the bag at the far hip
+		_bag(img, r, back, Color(str(look.bag)))
 	if rod:   # both arms reach forward to the rod butt in front (screen left)
 		var tip: Vector2i = rod_tip(pose, frame) if farmer else VILLAGER_ROD_TIPS[frame % 2]
 		_arm(img, far_sh, hd.far, c, sleeve, false)
@@ -186,6 +192,9 @@ static func draw(look: Dictionary, back: bool, pose: String, frame: int, farmer 
 		var at: Vector2i = hd.near
 		var what: String = mouth[1] if not back else ""
 		_arm(img, near_sh, at, c, sleeve, false, what)
+	elif pose == "post":
+		_arm(img, near_sh, hd.near, c, sleeve, false)
+		_letter(img, hd.near, frame % 2 == 1)
 	elif pose == "work":
 		_hammer(img, hd.near, frame % 2 == 0, back)
 		_arm(img, near_sh, hd.near, c, sleeve, frame % 2 == 0)
@@ -247,6 +256,8 @@ static func _hands(r: Dictionary, back: bool, pose: String, frame: int) -> Dicti
 		var m: Vector2i = MOUTH[pose][frame % frames(pose)][0]
 		var mouth := Vector2i(roundi(r.cx) - (6 if back else 4), roundi(r.cy) + 3)
 		near = mouth + m
+	elif pose == "post":   # up in front at the chest (from the back, up at the shoulder, toward the door)
+		near = Vector2i(r.x0 - 3 - frame % 2, r.sh + (-2 if back else 1) - frame % 2)
 	elif pose == "work":
 		if frame % 2 == 0:   # raised over the near shoulder
 			near = Vector2i(r.x0 - 3 if back else r.x1 + 2, r.sh - 4)
@@ -539,6 +550,35 @@ static func _basket(dst: Image, r: Dictionary, back: bool) -> void:
 	_r(L, x + 1, y - 2, 2, 1, BASKET.darkened(0.4))   # the cord to the belt
 	_dot(L, x + (3 if back else 0), y - 1, BASKET.darkened(0.4))
 	_stamp(dst, L)
+
+
+## A canvas shoulder bag (a mailbag): its strap from the near shoulder down across the body to
+## the bag hanging at the far hip, a flap with a buckle. From the back the strap crosses the
+## other way and the bag hangs on the screen's right.
+static func _bag(dst: Image, r: Dictionary, back: bool, col: Color) -> void:
+	var L := _blank()
+	var strap := col.darkened(0.35)
+	var x: int = r.x1 if back else r.x0 - 4
+	var y: int = r.hip - 4
+	var top := Vector2i(r.x0 + 1 if back else r.x1 - 1, r.sh)
+	var foot := Vector2i(x + 2, y)
+	var n := maxi(absi(foot.x - top.x), absi(foot.y - top.y))
+	for i in n + 1:
+		var p := Vector2(top).lerp(Vector2(foot), float(i) / n)
+		_dot(L, roundi(p.x), roundi(p.y), strap)
+	_r(L, x, y, 5, 4, col)
+	_r(L, x, y + 3, 5, 1, col.darkened(0.2))
+	_r(L, x, y, 5, 2, col.lightened(0.15))          # the flap
+	_dot(L, x + 2, y + 1, Color("c8a050"))           # its buckle
+	_stamp(dst, L)
+
+
+## The letter in the post pose, held at `hand` (the hand's top-left): a pale envelope above
+## the fingers, or only its end once `slipped` in at the door.
+static func _letter(dst: Image, hand: Vector2i, slipped: bool) -> void:
+	var w := 2 if slipped else 4
+	_r(dst, hand.x - (1 if slipped else 2), hand.y - 2, w, 2, LETTER)
+	_r(dst, hand.x - (1 if slipped else 2), hand.y - 1, w, 1, LETTER.darkened(0.15))
 
 
 ## A bamboo rod from the hands (`butt`) up to its tip, a node every few px (the farmer's), or a

@@ -151,6 +151,7 @@
 		"step_floor": {"volume_db": -19, "pitch": [0.85, 1.15], "layers": [
 			{"kind": "tone", "freq": 140, "partials": [[1, 1], [2.3, 0.3]], "dur": 0.12, "attack": 0.002, "decay": 0.03},
 			{"kind": "noise", "hp": 300, "lp": 1800, "dur": 0.06, "attack": 0.003, "decay": 0.015, "gain": 0.4}]},
+		"letter_post": {"volume_db": -18, "pitch": [0.92, 1.08], "layers": [{"kind": "noise", "hp": 1800, "lp": 7000, "dur": 0.22, "attack": 0.03, "decay": 0.12, "gain": 0.7}, {"kind": "grains", "count": 3, "dur": 0.12, "hp": 2500, "lp": 8000, "grain": 0.002, "gain": 0.25}, {"kind": "tone", "freq": 900, "freq_end": 700, "partials": [[1, 1]], "dur": 0.05, "at": 0.2, "attack": 0.001, "decay": 0.02, "gain": 0.25}]},
 		"door_slide": {"volume_db": -14, "pitch": [0.95, 1.05], "layers": [
 			{"kind": "noise", "hp": 500, "lp": 2600, "dur": 0.32, "attack": 0.08, "decay": 0.08, "gain": 0.6},
 			{"kind": "tone", "freq": 190, "partials": [[1, 1], [2.7, 0.3]], "dur": 0.2, "at": 0.3, "attack": 0.002, "decay": 0.04, "gain": 0.7}]},

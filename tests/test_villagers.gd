@@ -18,6 +18,7 @@ func _init() -> void:
 	_plan_errors()
 	_work_step()
 	_fish_step()
+	_post_step()
 	_rules()
 	_files()
 	_paths_stay_clear()
@@ -322,6 +323,45 @@ func _river_sunday() -> void:
 		var dip := PlaceholderArt.tex("villager:%s:front:fish:1" % id).get_image()
 		check(up.get_size() == PlaceholderArt.FIGURE_SIZE and _has_colour(up, Color("7a5a32")) and not _has_colour(idle, Color("7a5a32"))
 			and up.get_data() != dip.get_data(), "%s's fish frames: the rod out, then the tip dipped" % id)
+
+
+## The post step (Ren's round): a {"post": minutes} stand shows the post pose, the letter held up
+## for post_hold_minutes and then slipped in; the figure draws it and Ren's mailbag; his round
+## stops at each door with it.
+func _post_step() -> void:
+	var r: Array = DayPlan.build([{"at": "06:00", "map": "town", "from": [5, 7], "route": [{"face": "up"}, {"post": 2}, {"wait": 5}]}], 1.5)
+	check(r[0] == "", "a post step is read (%s)" % r[0])
+	var p: DayPlan = r[1]
+	var a: Dictionary = p.where(360.5)
+	var b: Dictionary = p.where(361.5)
+	check(a.posting and is_equal_approx(a.posted, 0.5) and not a.working and not a.fishing, "posting half a minute in %s" % [a])
+	check(not p.where(363.0).posting, "done after its two minutes")
+	a.id = "ren"
+	b.id = "ren"
+	check(Villagers.pose(a) == "post" and Villagers.sprite_key(a).ends_with(":post:0") and Villagers.sprite_key(b).ends_with(":post:1"),
+		"the letter held up, then slipped in (%s, %s)" % [Villagers.sprite_key(a), Villagers.sprite_key(b)])
+	check(DayPlan.build([{"at": "06:00", "map": "town", "from": [5, 7], "route": [{"post": 0}]}], 1.5)[0] != "", "refused: a post of 0 minutes")
+	var look := Villagers.look("ren")
+	var idle := FigureArt.draw(look, false, "idle", 0).get_data()
+	check(look.has("bag") and idle != FigureArt.draw(_without(look, "bag"), false, "idle", 0).get_data(),
+		"Ren's mailbag is drawn")
+	var p0 := FigureArt.draw(look, false, "post", 0).get_data()
+	var p1 := FigureArt.draw(look, false, "post", 1).get_data()
+	check(p0 != p1 and p0 != idle and FigureArt.draw(look, true, "post", 0).get_data() != FigureArt.draw(look, true, "idle", 0).get_data(),
+		"the post pose's two frames, front and back")
+	var posts := JSON.stringify(Villagers.all().ren.plans.usual).count('"post"')
+	check(posts >= 13, "Ren posts at every door of his round (%d stops)" % posts)
+	Villagers.reset_day()
+	var w := Villagers.where("ren", 8 * 60 + 35, _state())
+	check(w.map == "town" and w.posting and Vector2i(w.pos.floor()) == Vector2i(5, 7) and w.facing == Vector2i.UP,
+		"8:35, Ren slips the post in at Tome's door %s" % [w])
+	check(FileAccess.get_file_as_string("res://data/sfx.json").contains('"letter_post"'), "the letter's paper sound is in data/sfx.json")
+
+
+func _without(d: Dictionary, key: String) -> Dictionary:
+	var out := d.duplicate()
+	out.erase(key)
+	return out
 
 
 func _state(extra := {}) -> Dictionary:

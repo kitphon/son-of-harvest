@@ -10,6 +10,45 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Ren's mailbag and the delivery at each door
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: Ren used to stand two minutes at each door doing nothing. Now:
+  - a villager's look can have `bag` (a color): FigureArt._bag draws a canvas shoulder bag,
+    the strap from the near shoulder across the body to the bag at the far hip, a flap and a
+    buckle, mirrored from the back. Ren's is `b89a68`. It is drawn on every pose, so both
+    views have it;
+  - a new day plan step `{"post": minutes}` (DayPlan.STEP_KEYS; legs carry `post`, `where`
+    gives `posting` / `posted`; talking to him stops it like work and fishing);
+  - a new villager pose "post" (Villagers.pose, sprite key `villager:<id>:<side>:post:<frame>`):
+    the near hand up at the door with a pale letter (frame 0) for post_hold_minutes (1, in
+    data/villagers/_common.json), then pushed in so only its end shows (frame 1);
+  - the switch to frame 1 plays a new sound, letter_post (data/sfx.json: a soft paper rustle
+    and a light tap, -18 dB), in the 3D view (VillagerSprites) and the flat view
+    (VillagerView), on the map the farmer is on, like the hammer's knock;
+  - ren.json: every stop at a door on his round (usual and married plans, 30 in all) is a
+    post step instead of a wait. The waits at the counter and the pond stay.
+- Checked: test_villagers `_post_step`:
+  - the step is read, posting half a minute in, done after two;
+  - the two frames by the minute;
+  - a post of 0 minutes is refused;
+  - the bag changes his picture;
+  - the post frames differ from each other and from idle, front and back;
+  - at least 13 post stops on his round;
+  - at 8:35 on a Monday he is posting at Tome's door, facing it;
+  - letter_post is in data/sfx.json.
+
+  Output `test_villagers: OK (0 failed)`, `test_audio: OK (0 failed)` (52 sounds), then all 30
+  suites printed `OK (0 failed)`. Mutation test (post_frame always 0): `FAIL: the letter held
+  up, then slipped in (villager:ren:back:post:0, villager:ren:back:post:0)`,
+  `test_villagers: FAILED (1 failed)`; restored. Smoke runs (title, --demo, --map=town,
+  --mine=3, main_2d --demo --map=town --time=8:35) printed no error or warning lines. Looked at:
+  a sheet of his poses (idle, walk, post 0 / 1, front and back). The first try put the bag
+  too far into the middle of his chest, so it moved out to the hip. Then
+  `--map=town@post --time=8:35` in the 3D view and in main_2d: Ren at Tome's door from behind,
+  the satchel at his hip and the letter raised to the door. shots/ deleted.
+- Left / next: the sound is heard anywhere on the map (as the hammer's is), not by distance.
+  Mio's boat at the ferry landing is next.
+
 ## 2026-11-08 — Portrait hair styles: the candidates read apart
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: the text box portrait (PlaceholderArt._portrait) drew its hair from the figure's

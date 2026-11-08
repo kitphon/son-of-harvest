@@ -225,6 +225,7 @@ static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 		w.moving = false
 		w.working = false   # puts the hammer down to talk
 		w.fishing = false   # and reels the line in
+		w.posting = false   # and holds the letter back
 	return w
 
 
@@ -344,7 +345,8 @@ static func is_on(id: String, map_id: String, t: float, s: Dictionary) -> bool:
 ## The sprite key for a villager as on_map gives them (PlaceholderArt "villager:..."): walk
 ## frames go by the distance walked, so steps match the ground at any speed; work frames
 ## (hammer up, 0, and down, 1) by the minutes worked; fish frames (the rod tip up, 0, and
-## dipped, 1) by the minutes the rod has been out.
+## dipped, 1) by the minutes the rod has been out; post frames (the letter held up to the
+## door, 0, and slipped in, 1) by the minutes at the door.
 static func sprite_key(w: Dictionary) -> String:
 	var back := FarmerAnim.is_back(w.facing)
 	var p := pose(w)
@@ -355,12 +357,26 @@ static func sprite_key(w: Dictionary) -> String:
 		frame = work_frame(w.worked)
 	elif p == "fish":
 		frame = fish_frame(w.fished)
+	elif p == "post":
+		frame = post_frame(w.posted)
 	return "villager:%s:%s:%s:%d" % [w.id, "back" if back else "front", p, frame]
 
 
-## What villager `w` (as on_map gives them) is doing: walk, work, fish or idle.
+## What villager `w` (as on_map gives them) is doing: walk, work, fish, post or idle.
 static func pose(w: Dictionary) -> String:
-	return "walk" if w.moving else ("work" if w.get("working", false) else ("fish" if w.get("fishing", false) else "idle"))
+	if w.moving:
+		return "walk"
+	if w.get("working", false):
+		return "work"
+	if w.get("fishing", false):
+		return "fish"
+	return "post" if w.get("posting", false) else "idle"
+
+
+## The post frame after `posted` minutes at a door: the letter held up to it (0) for
+## post_hold_minutes (_common.json), then slipped in (1).
+static func post_frame(posted: float) -> int:
+	return 1 if posted >= float(common().get("post_hold_minutes", 1.0)) else 0
 
 
 ## The work frame after `worked` minutes at it: 0 = hammer raised, 1 = the blow

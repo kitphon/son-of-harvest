@@ -38,6 +38,8 @@ func refresh() -> void:
 		var key := Villagers.sprite_key(w)
 		if key.ends_with(":work:1") and s.get_meta("key", "") != key:
 			Sfx.play("build_knock")   # each blow of the hammer, heard on this map
+		elif key.ends_with(":post:1") and s.get_meta("key", "") != key:
+			Sfx.play("letter_post")   # a letter slipped in at a door on Ren's round
 		s.set_meta("key", key)
 		s.texture = PlaceholderArt.tex(key)
 		s.flip_h = FarmerAnim.is_mirrored(w.facing)
