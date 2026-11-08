@@ -952,6 +952,10 @@ static func _mine_icon(look: Dictionary) -> Image:
 static func _crop(id: String, growth: int, ripe: bool) -> Image:
 	var look := crop_look(id)
 	var shape: String = look.get("shape", "bush")
+	# The single-sprite crops (and every crop's seed and sprout) are drawn by CropArt; only the tall
+	# crops' grown look stays below (the 3D and flat views stand those as `stalk:` clusters).
+	if growth < 2 or CropArt.draws_grown(shape):
+		return CropArt.draw(id, growth, ripe)
 	var tall := growth >= 2 and (shape == "vine" or shape == "stalk")
 	var img := _blank(16, 24 if tall else 16)
 	var g := img.get_height() - 2          # ground row; the row below is left for the outline

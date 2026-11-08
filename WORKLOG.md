@@ -10,6 +10,12 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Field crops refined (CropArt)
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: `scripts/art/crop_art.gd` (CropArt, palettes in `data/crop_art.json`) draws the single-sprite crops (looks root, bush, ground: turnip, onion, carrot, daikon, potato, eggplant, pumpkin) at growth 2 and 3 and every crop's seed and sprout (growth 0 and 1) part by part: shaded balls and leaves in three tones lit from the upper left, a shaded soil mound, a deep leaf-shade rim (mixed a little with the produce's colour when ripe) instead of the black outline. Ripe produce is distinct per crop; flowers on the grown potato, eggplant and pumpkin. `PlaceholderArt._crop` calls it; the tall crops' (vine, stalk, grain) grown looks keep the old drawing (the clusters' `stalk:` plants replace them). Same keys, 16 x 16 size and anchor; the withered, watered and snow handling is by key and tint, untouched. A refined placeholder, not the real hand art.
+- Checked: test_farm `_crop_art` (every crop and growth keeps the old size, no black outline pixels on the CropArt pictures, young / grown / ripe differ, ripe crops differ, produce lit upper left over lower right); the full test list; a contact sheet old vs new, `--demo` frames in 3D (spring, fall, summer) and the flat view looked at.
+- Left / next: real hand art for the crop keys; the bush leaf mass could use more leaf detail.
+
 ## 2026-11-08 — Seasonal drifting life outdoors
 Agent: Claude Code (claude-sonnet) · Commit: this commit
 - Done: art direction sections 2 and 3. Spring cherry petals, fall maple / persimmon leaves and

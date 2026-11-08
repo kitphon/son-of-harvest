@@ -1,0 +1,11 @@
+{
+	"_note": "Palettes for CropArt (scripts/art/crop_art.gd): the field's single-sprite crops, drawn part by part in three tones lit from the upper left, rimmed in a deep shade instead of black. Our own numbers.",
+	"tone": {"shade": 0.3, "lit": 0.3, "shade_tint": "1c3040", "lit_tint": "fff2a0", "tint_mix": 0.12},
+	"rim": 0.6,
+	"rim_fruit_mix": 0.3,
+	"soil": "6b4a2a",
+	"seed": {"default": "e8d8a8", "turnip": "3a2a24", "carrot": "d8c898", "daikon": "e8e0c8", "eggplant": "c8b070", "pumpkin": "f0e8c0"},
+	"flower": {"potato": "f4f0e8", "eggplant": "b890d8", "pumpkin": "f0c030"},
+	"tuber_eye": "7a5a30",
+	"stem": "5e7a2a"
+}
