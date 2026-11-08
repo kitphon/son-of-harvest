@@ -183,8 +183,9 @@ func _heart_event_rows() -> void:
 		"sayo": ["town", "store", "sayo_house"], "hachiro": ["town", "smithy"],
 		"fumi": ["town", "teahouse", "sakurazaka"], "ichiro": ["town", "sakurazaka", "ichiro_house"],
 		"genzo": ["town", "kaminoda", "genzo_house"], "haru": ["town", "kaminoda", "haru_house", "hill"],
-		"shige": ["town", "minamino", "shige_house"], "mio": ["town", "river", "mio_hut"], "kaede": ["town", "minamino", "kaede_house"]}
-	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro", "genzo", "haru", "mio", "kaede"]:
+		"shige": ["town", "minamino", "shige_house"], "mio": ["town", "river", "mio_hut"], "kaede": ["town", "minamino", "kaede_house"],
+		"shino": ["town", "minamino", "shino_house", "river"]}
+	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro", "genzo", "haru", "mio", "kaede", "shino"]:
 		check(_has_event("heart_%s_5" % id) and _has_event("heart_%s_6" % id), "%s has heart events at 5 and 6" % id)
 	check(_has_event("heart_shige_5") and not _has_event("heart_shige_6"), "Shige has heart events at 3 and 5")
 	for id in Villagers.friends():
@@ -493,9 +494,9 @@ func _neglect_in_game() -> void:
 ## Each heart event (bands 3, 5 and 6) runs to the end on the real Game: flag set, affection
 ## up, and band 6's own story flag. Kota's second and third read both ways, with and without
 ## his carp promise; band 6 also with and without the band 5 flags its lines look back on.
-const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle", "ichiro": "ichiro_mark", "genzo": "genzo_straw", "haru": "haru_wave", "mio": "mio_ferry", "kaede": "kaede_fortune"}
+const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle", "ichiro": "ichiro_mark", "genzo": "genzo_straw", "haru": "haru_wave", "mio": "mio_ferry", "kaede": "kaede_fortune", "shino": "shino_first"}
 ## The flag each band 6 scene looks back on (Fumi's comes from her band 3 scene).
-const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest", "ichiro": "ichiro_kiln", "genzo": "genzo_jizo", "haru": "haru_go", "mio": "mio_keep", "kaede": "kaede_recite"}
+const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest", "ichiro": "ichiro_kiln", "genzo": "genzo_jizo", "haru": "haru_go", "mio": "mio_keep", "kaede": "kaede_recite", "shino": "shino_own"}
 
 func _heart_events_play() -> void:
 	for id in Villagers.friends():
@@ -552,7 +553,8 @@ func _heart_events_play() -> void:
 		"genzo": ["watched you tie", "let the jizo go without"],
 		"haru": ["Nobody holding the door", "eleven times"],
 		"mio": ["bell rang", "just for myself"],
-		"kaede": ["said them to you again", "my sleeve"]}
+		"kaede": ["said them to you again", "my sleeve"],
+		"shino": ["wildflower stencil", "Mother's cranes"]}
 	for id in looks:
 		d = DialogueRunner.open("heart_events_6", {FIVE_FLAGS[id]: true}, id)
 		_next_line(d)
@@ -595,7 +597,7 @@ func _has_event(id: String) -> bool:
 ## close lines, the band 5 scenes' branches, and a place at the end of the record.
 func _sakurazaka_friends() -> void:
 	var friends := Villagers.friends()
-	check(friends.has("fumi") and friends.has("ichiro") and friends.size() == 11, "eleven villagers with hearts (%s)" % [friends.keys()])
+	check(friends.has("fumi") and friends.has("ichiro") and friends.size() == 12, "twelve villagers with hearts (%s)" % [friends.keys()])
 	check(Villagers.all().fumi.birthday.season == "spring" and int(Villagers.all().fumi.birthday.day) == 26 and Villagers.all().ichiro.birthday.season == "fall" and int(Villagers.all().ichiro.birthday.day) == 9,
 		"Fumi's birthday spring 26, Ichiro's fall 9")
 	var spring := {"year": 1, "season": "spring", "day": 26, "weekday": "fri", "weather": "sunny", "flags": {}, "festival": ""}
@@ -831,7 +833,7 @@ func check(ok: bool, what: String) -> void:
 ## morning it is due and the trigger rows that play the wedding in the village.
 func _marriage_rules() -> void:
 	check(Marriage.check() == "", "marriage data: %s" % Marriage.check())
-	check(Marriage.candidates() == ["sayo", "fumi", "haru", "ichiro", "mio", "kaede"] and Marriage.item() == "keep:mizuhiki", "Sayo, Fumi, Haru, Ichiro, Mio and Kaede can marry; the knot is %s" % Marriage.item())
+	check(Marriage.candidates() == ["sayo", "fumi", "haru", "ichiro", "mio", "kaede", "shino"] and Marriage.item() == "keep:mizuhiki", "Sayo, Fumi, Haru, Ichiro, Mio, Kaede and Shino can marry; the knot is %s" % Marriage.item())
 	check(Keepsakes.name_of(Marriage.item()) == "Mizuhiki knot" and Keepsakes.keepsake(Marriage.item()).look.shape == "knot", "the knot is a keepsake of its own look")
 	var art := PlaceholderArt.tex(PlaceholderArt.item_key(Marriage.item()))
 	check(art != null and art.get_width() == 14, "the knot has its icon")
@@ -881,11 +883,14 @@ func _marriage_rules() -> void:
 	check(t.pick("enter", s.merged({"flags": {"wedding_due": true, "engaged": "kaede", "engaged_kaede": true}}, true)) == "wedding_kaede", "Kaede's for Kaede")
 	guests = FileAccess.get_file_as_string(EventRunner.DIR + "wedding_kaede.json")
 	check(guests.contains('"who": "nana"') and guests.contains('"at": "kaede_wedding"') and guests.count('"who": "kaede", "at"') == 1, "Nana is at Kaede's wedding, Kaede placed once")
+	check(t.pick("enter", s.merged({"flags": {"wedding_due": true, "engaged": "shino", "engaged_shino": true}}, true)) == "wedding_shino", "Shino's for Shino")
+	guests = FileAccess.get_file_as_string(EventRunner.DIR + "wedding_shino.json")
+	check(guests.contains('"who": "kiku"') and guests.contains('"at": "shino_wedding"') and guests.count('"who": "shino", "at"') == 1, "Kiku is at Shino's wedding, Shino placed once")
 	# Every candidate's scenes run and set what they say.
 	for id in Marriage.candidates():
 		for kind in ["propose", "wedding"]:
 			check(EventRunner.open(Marriage.event(kind, id), null).error == "", "%s runs" % Marriage.event(kind, id))
-	var tables := {"fumi": ["town", "teahouse", "sakurazaka"], "haru": ["town", "kaminoda", "hill", "haru_house"], "ichiro": ["town", "sakurazaka"], "mio": ["town", "river", "mio_hut"], "kaede": ["town", "minamino", "kaede_house"]}
+	var tables := {"fumi": ["town", "teahouse", "sakurazaka"], "haru": ["town", "kaminoda", "hill", "haru_house"], "ichiro": ["town", "sakurazaka"], "mio": ["town", "river", "mio_hut"], "kaede": ["town", "minamino", "kaede_house"], "shino": ["town", "minamino", "shino_house", "river"]}
 	for id in tables:
 		for m in tables[id]:
 			check(("heart_%s_6" % id) in FileAccess.get_file_as_string(EventRunner.DIR + "triggers_%s.json" % m), "%s's band 6 scene on %s" % [id, m])
@@ -956,6 +961,17 @@ func _married_plans_and_lines() -> void:
 	Villagers.reset_day()
 	check(Villagers.where("kaede", 6 * 60 + 10, day.merged({"flags": {}}, true)).map == "kaede_house" and Villagers.is_on("kaede", "town", 9 * 60, day.merged({"flags": {}}, true)),
 		"single, Kaede wakes in her house in Minamino and sweeps the shrine by 9:00")
+	var shday := day.merged({"flags": {"married_shino": true}}, true)
+	Villagers.reset_day()
+	check(Villagers.is_on("shino", "house", 6 * 60 + 30, shday) and Villagers.is_on("shino", "minamino", 9 * 60, shday) and Villagers.is_on("shino", "shino_house", 12 * 60, shday)
+		and Villagers.is_on("shino", "minamino", 14 * 60, shday) and Villagers.is_on("shino", "house", 18 * 60, shday) and Villagers.where("shino", 22 * 60, shday).map == "away",
+		"married, Shino works her vats in Minamino by day, lunch at the dye house, home to the farmhouse by 16:45")
+	Villagers.reset_day()
+	check(Villagers.is_on("shino", "house", 12 * 60, shday.merged({"weather": "rain"}, true)), "a wet day Shino sews by the farmhouse kotatsu")
+	Villagers.reset_day()
+	var sh1 := day.merged({"flags": {}}, true)
+	check(Villagers.where("shino", 6 * 60 + 10, sh1).map == "shino_house" and Villagers.is_on("shino", "minamino", 9 * 60, sh1) and Villagers.is_on("shino", "river", 13 * 60, sh1),
+		"single, Shino wakes in her dye house, works the vats by 9:00 and rinses at the river at 13:00")
 	Villagers.reset_day()
 	# Their lines: engaged, then married at home (morning, evening) and out.
 	var st := {"year": 1, "season": "summer", "day": 3, "weekday": "wed", "time": 7 * 60, "weather": "sunny",
@@ -980,6 +996,10 @@ func _married_plans_and_lines() -> void:
 	check(Talk.pick("tome", fri.merged({"flags": {"heart_ichiro_6": true}}, true)) == "knot_hint", "or Ichiro's")
 	check(Talk.pick("tome", fri.merged({"flags": {"heart_mio_6": true}}, true)) == "knot_hint", "or Mio's")
 	check(Talk.pick("tome", fri.merged({"flags": {"heart_kaede_6": true}}, true)) == "knot_hint", "or Kaede's")
+	check(Talk.pick("tome", fri.merged({"flags": {"heart_shino_6": true}}, true)) == "knot_hint", "or Shino's")
+	var shst := st.merged({"map": "minamino", "time": 15 * 60}, true)
+	check(Talk.pick("shino", shst.merged({"flags": {"heart_shino_6": true}}, true)).begins_with("dear"), "Shino's dear lines while single")
+	check(not Talk.pick("shino", shst.merged({"flags": {"heart_shino_6": true, "married_shino": true}}, true)).begins_with("dear"), "not once married")
 	var kst := st.merged({"map": "town", "time": 15 * 60}, true)
 	check(Talk.pick("kaede", kst.merged({"flags": {"heart_kaede_6": true}}, true)).begins_with("dear"), "Kaede's dear lines while single")
 	check(not Talk.pick("kaede", kst.merged({"flags": {"heart_kaede_6": true, "married_kaede": true}}, true)).begins_with("dear"), "not once married")

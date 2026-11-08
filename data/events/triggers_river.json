@@ -3,6 +3,9 @@
 	"rows": [
 		{"event": "heart_mio", "on": "talk", "who": "mio", "hearts": {"mio": [3, 6]}},
 		{"event": "heart_mio_5", "on": "talk", "who": "mio", "hearts": {"mio": [5, 6]}, "seen": ["heart_mio"]},
-		{"event": "heart_mio_6", "on": "talk", "who": "mio", "hearts": {"mio": [6, 6]}, "seen": ["heart_mio_5"]}
+		{"event": "heart_mio_6", "on": "talk", "who": "mio", "hearts": {"mio": [6, 6]}, "seen": ["heart_mio_5"]},
+		{"event": "heart_shino", "on": "talk", "who": "shino", "hearts": {"shino": [3, 6]}},
+		{"event": "heart_shino_5", "on": "talk", "who": "shino", "hearts": {"shino": [5, 6]}, "seen": ["heart_shino"]},
+		{"event": "heart_shino_6", "on": "talk", "who": "shino", "hearts": {"shino": [6, 6]}, "seen": ["heart_shino_5"]}
 	]
 }

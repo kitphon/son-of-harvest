@@ -10,6 +10,60 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Shino the indigo dyer, the third new candidate
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: a new villager with hearts, our own: Shino dyes indigo. She came back from the city,
+  where she studied textiles, to keep her family's dye house going. The house stands west of
+  Minamino's lane down to the river (a village_house with timber walls at 0, 11, door 1, 13,
+  two indigo vats in front at 2, 15 and 3, 15). To make room, the cherry moved from 2, 11 to
+  3, 18 and the forage spot at 2, 13 moved to 5, 13. A water_tub prop can now have its own
+  water `color`, in 3D (RoomProps._water_tub) and the flat view (MapView), for the indigo vats.
+  Inside: data/maps/shino_house.json (a tatami room at the back with a chest, a pattern table
+  and a lamp, an earth workroom with two vats, the stove and a water jar; door hours
+  6:00-21:00). data/villagers/shino.json: the vats 6:30-11:30, lunch at home, rinsing cloth on
+  the river's west shore 12:45-14:00 (2, 5, clear of the Sunday fishers and Mio), the vats again
+  14:10-17:30, bed 21:00. On Sundays the vats rest and she picks wildflowers east of the lane
+  9:00-15:00, so the river's Sunday checks still hold. Wet days at the vats inside. Festivals
+  in the village (blossom 13, 12; the night ones 16, 12; the year's 19, 6: the first tries at
+  9, 13 and 21, 6 were solid). Birthday winter 4, by the river all day. Look: indigo kimono, a
+  bun, a gold hairpin in the portrait. Gifts: mulberries, akebi, warabi mochi, wild greens
+  tempura and a painted paper fan loved (kept by her table once given). Mugwort, eggplant,
+  teas, rice balls, chestnut rice and agate liked. Marble soda, milk pudding (the city's sweets)
+  and iron sand (it dulls a vat) disliked, a stone hated. talk_shino.json has every pick a friend
+  needs (vats mornings, rinsing at the river, pattern lines after band 5, dear after band 6,
+  gift and dish answers). Heart scenes: band 3 the cloth turning blue in the air, which blue
+  (one dip or twenty), eggplant seed from Kiku's garden. Band 5 her mother's 200 stencils: dye
+  them (shino_mother) or cut her own (shino_own). Band 6 the year's first bolt sold out (her
+  mother's cranes, or her wildflower stencil), a noren for the farmhouse door, the field's rows
+  or her flowers (shino_noren), and the first cloth of every new vat promised (shino_first).
+  Triggers in town, Minamino, the river and her house. Calendar (winter 4), ending page,
+  whistle, heart music. Marriage on the others' pattern: married plans from the farmhouse
+  kotatsu, the vats by day with lunch at the dye house, sewing by the kotatsu on wet days. The
+  wedding at the shrine has Kiku, Kaede and Sayo on her side and Kota and Hachiro on the
+  farmer's. 97 new Thai lines (Shino ฉัน / เธอ) and 3 names. The ending's Friendships steps
+  went from 10 / 21 / 34 / 53 of 66 to 11 / 23 / 37 / 58 of 72 (twelve villagers with hearts).
+- Checked: all 30 suites printed `OK (0 failed)`, among them
+  `test_relationships: OK (0 failed)`, `test_villagers: OK (0 failed)`,
+  `test_talk: OK (0 failed)`, `test_lang: OK (0 failed)`, `test_maps: OK (0 failed)`,
+  `test_forage: OK (0 failed)`, `test_ending: OK (0 failed)` and `test_festivals: OK (0 failed)`.
+  test_audio was rerun after its fix: `test_audio: OK (0 failed)`. Failures fixed on the way:
+  `shino loves a dish and dislikes one (0, 1)`, two festival spots and walks through solid
+  cells, `shino's whistle lasts 4.64 s` (now 11 notes at 92 bpm). The line generator also
+  stopped half way over a "Grey" (STYLE_EN wants Gray); data/ was reset and it was rerun.
+  Mutation test (her married rule removed): `FAIL: married, Shino works her vats in Minamino
+  by day, lunch at the dye house, home to the farmhouse by 16:45`,
+  `test_relationships: FAILED (1 failed)`; restored. Smoke runs (title, --demo, --map=town,
+  --mine=3, --map=minamino@shino, --map=shino_house, --map=river --time=13:00) printed no
+  error or warning lines. Screenshots: `--map=minamino@shino --time=9:00` (the dye house, Shino
+  at the indigo vats), `--map=river --time=13:00` (rinsing on the west shore),
+  `--map=shino_house --time=18:30` (the room and the two vats inside),
+  `--map=minamino@shino --time=9:00 --talk=shino` (her new-face line and portrait).
+  shots/ deleted.
+- Left / next: Ren (the post office by the village's entry). Every woman's portrait is the
+  same bun face (only the colors change), so Shino's reads a bit like the others; separate
+  portrait hair styles would be new art. No cloth hangs to dry by the vats yet (that would be
+  a new prop). Her birthday and festival plans win over the married ones, as for the others.
+
 ## 2026-11-08 — Kaede of the shrine, the second new candidate
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: a new villager with hearts, our own: Kaede keeps the village shrine, and Tome is

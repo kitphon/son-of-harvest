@@ -1,0 +1,14 @@
+{
+	"_note": "Shino's third heart event: the first talk once her heart band reaches 6, after heart_shino_5 (same tables). The year's first bolt is dry and sold out at Sayo's (her mother's cranes, or with shino_own her own wildflower stencil); she kept a length back for a noren on the farmhouse door, the field's rows or her wildflowers (shino_noren), and the first cloth of every new vat is the farmer's from now. Sets heart_shino_6 and shino_first; after it she can be asked to marry (data/marriage.json). Shino acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "shino", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "shino"},
+		{"do": "sound", "key": "chime_morning"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_6", "at": "shino"},
+		{"do": "affection", "who": "shino", "amount": 5},
+		{"do": "set", "flags": {"heart_shino_6": true, "shino_first": true}},
+		{"do": "actor", "who": "shino", "to": "plan"},
+		{"do": "actor", "who": "shino", "leave": true}
+	]
+}

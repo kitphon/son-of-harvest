@@ -103,6 +103,16 @@
 		{"id": "kaede_box", "speaker": "kaede", "mood": "neutral", "text": "Grandfather's last box of fortunes is new paper now. Somebody has to draw the very first one.", "choices": [{"text": "Draw one for me.", "next": "kaede_drawn", "set": {"kaede_draw": "for"}}, {"text": "We'll draw together.", "next": "kaede_together", "set": {"kaede_draw": "together"}}]},
 		{"id": "kaede_drawn", "speaker": "kaede", "mood": "surprised", "text": "Great blessing! ...For you, of course. I definitely didn't put three in the front.", "next": "kaede_end"},
 		{"id": "kaede_together", "speaker": "kaede", "mood": "happy", "text": "Both hands on the box, then. ...Great blessing. One slip, two people. Tome would say that means something.", "next": "kaede_end"},
-		{"id": "kaede_end", "speaker": "kaede", "mood": "happy", "text": "From now on, the first fortune every New Year is yours. That's a shrine keeper's promise.", "next": "end"}
+		{"id": "kaede_end", "speaker": "kaede", "mood": "happy", "text": "From now on, the first fortune every New Year is yours. That's a shrine keeper's promise.", "next": "end"},
+
+		{"id": "shino", "speaker": "shino", "mood": "happy", "text": "There you are. Come and look. The first bolt of the year is dry."},
+		{"speaker": "shino", "mood": "neutral", "text": "Sayo sold the whole first batch in two days. Two days. The city shop took a month."},
+		{"if": "shino_own", "then": "shino_new"},
+		{"speaker": "shino", "mood": "happy", "text": "Mother's cranes, every one. Kiku cried when she saw them. Then she bought three.", "next": "shino_cloth"},
+		{"id": "shino_new", "speaker": "shino", "mood": "happy", "text": "My wildflower stencil. People keep asking what the flowers are. I tell them: the ones by the lane."},
+		{"id": "shino_cloth", "speaker": "shino", "mood": "neutral", "text": "I kept one length back for you. For a noren on your door. Which pattern?", "choices": [{"text": "The rows of my field.", "next": "shino_rows", "set": {"shino_noren": "rows"}}, {"text": "Your wildflowers.", "next": "shino_flowers", "set": {"shino_noren": "flowers"}}]},
+		{"id": "shino_rows", "speaker": "shino", "mood": "surprised", "text": "The rows of your field. Straight lines are the hardest to dye true. ...Fine. For you, they'll be true.", "next": "shino_end"},
+		{"id": "shino_flowers", "speaker": "shino", "mood": "happy", "text": "Then every morning you'll walk out under the flowers from the lane. I like thinking of that.", "next": "shino_end"},
+		{"id": "shino_end", "speaker": "shino", "mood": "happy", "text": "One more thing. From now on the first cloth out of every new vat is yours. That's how a dyer says it.", "next": "end"}
 	]
 }

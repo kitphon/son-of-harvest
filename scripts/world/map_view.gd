@@ -219,7 +219,10 @@ func _draw_objects() -> void:
 			var inner := r.grow(-1)
 			_objects.draw_texture(PlaceholderArt.tex(RoofArt.key("kawara", style.roof, style.storeys, Vector2i(inner.size))), inner.position)
 			continue
-		_objects.draw_rect(r.grow(-1), COLORS.get(p.kind, Color.MAGENTA))
+		var fill: Color = COLORS.get(p.kind, Color.MAGENTA)
+		if p.kind == "water_tub" and p.has("color"):   # a tub of its own water (Shino's indigo vats)
+			fill = Color(str(p.color))
+		_objects.draw_rect(r.grow(-1), fill)
 	for door in map.doors:
 		for c in door.cells:
 			if map.in_bounds(c):

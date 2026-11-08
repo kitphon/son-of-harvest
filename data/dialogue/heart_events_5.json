@@ -87,6 +87,13 @@
 		{"speaker": "kaede", "mood": "neutral", "text": "What do I do? Tell me something, anything.", "choices": [{"text": "Write the words on my sleeve.", "next": "kaede_sleeve", "set": {"kaede_sleeve": true}}, {"text": "Say them to me now.", "next": "kaede_recite", "set": {"kaede_recite": true}}]},
 		{"id": "kaede_sleeve", "speaker": "kaede", "mood": "happy", "text": "Inside the sleeve, where nobody sees... You're terrible. I love it. Tome must never know.", "next": "kaede_end"},
 		{"id": "kaede_recite", "speaker": "kaede", "mood": "surprised", "text": "Now? To you? ...All right. Don't look at me. Look at the fox.", "next": "kaede_end"},
-		{"id": "kaede_end", "speaker": "kaede", "mood": "neutral", "text": "Thank you. Whatever happens at midnight, I'll remember someone stood on this step with me.", "next": "end"}
+		{"id": "kaede_end", "speaker": "kaede", "mood": "neutral", "text": "Thank you. Whatever happens at midnight, I'll remember someone stood on this step with me.", "next": "end"},
+
+		{"id": "shino", "speaker": "shino", "mood": "sad", "text": "I opened Mother's stencil box last night. Two hundred patterns. Waves, cranes, hemp leaves. All hers."},
+		{"speaker": "shino", "mood": "neutral", "text": "The school in the city taught me to make my own. But who wants a new pattern from someone who left?"},
+		{"speaker": "shino", "mood": "neutral", "text": "So tell me. Do I dye her patterns, or cut my own?", "choices": [{"text": "Dye your mother's.", "next": "shino_mother", "set": {"shino_mother": true}}, {"text": "Cut your own.", "next": "shino_own", "set": {"shino_own": true}}]},
+		{"id": "shino_mother", "speaker": "shino", "mood": "happy", "text": "Her patterns, my hands. ...Then she's still dyeing with me. I hadn't thought of it like that.", "next": "shino_end"},
+		{"id": "shino_own", "speaker": "shino", "mood": "surprised", "text": "My own. ...You say it like it's simple. Maybe it is. I'll start with the wildflowers by the lane.", "next": "shino_end"},
+		{"id": "shino_end", "speaker": "shino", "mood": "neutral", "text": "Thank you. I've asked the vats about this for a month. They never answer.", "next": "end"}
 	]
 }

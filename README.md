@@ -302,7 +302,7 @@ mirrored for the other two facings; 3D sprites at `FarmWorld.FIGURE_PX` (0.04) a
 (`{"season": "fall", "day": 24}`, optional; the farmhouse calendar names it), optional
 `hearts` (false: a villager the farmer can't grow close to, like Dr. Yae at the clinic: no
 birthday, heart events or place in the village record; `Villagers.friends()` is everyone
-else (Tome, Hachiro, Sayo and Kota, and from Sakurazaka Fumi and Ichiro, and Genzo and Haru of Kaminoda, Shige and Kaede of Minamino, and Mio of the river), and the heart checks
+else (Tome, Hachiro, Sayo and Kota, and from Sakurazaka Fumi and Ichiro, and Genzo and Haru of Kaminoda, Shige, Kaede and Shino of Minamino, and Mio of the river), and the heart checks
 in test_relationships loop over it; a friend needs a birthday with its lines and day plan, a
 `heart_<id>` event at band 3 in the trigger table of every map they can be talked on, and a
 part in the ending (`data/events/ending.json`); `heart_<id>_5` / `_6` are optional, checked
@@ -377,14 +377,14 @@ right after it with `{"<id>": [5, 6]}` and `seen: ["heart_<id>"]`, plays
 The third, a row after that with `{"<id>": [6, 6]}` and `seen: ["heart_<id>_5"]`, plays
 `data/events/heart_<id>_6.json` (lines in `data/dialogue/heart_events_6.json`, each with a
 line of its own when the band 5 flag is set (Fumi's when her band 3 `fumi_honest` is); flag `heart_<id>_6`, plus `kota_streamer`,
-`sayo_ledger`, `hachiro_strike`, `fumi_kettle`, `ichiro_mark`, `genzo_straw`, `haru_wave`, `mio_ferry` or `kaede_fortune`); after it, the talk files' `dear_` lines (band 6 and the
+`sayo_ledger`, `hachiro_strike`, `fumi_kettle`, `ichiro_mark`, `genzo_straw`, `haru_wave`, `mio_ferry`, `kaede_fortune` or `shino_first`); after it, the talk files' `dear_` lines (band 6 and the
 flag) come before the band 4 .. 6 ones. Haru has all three (her band 5 answer sets `haru_stay` or `haru_go`, which her band 6 scene looks back on; her tables:
 `triggers_kaminoda`, `triggers_hill`, `triggers_haru_house`, `triggers_town`; after band 5
 her `sandals_` lines, after band 6 her `dear_` lines). Shige has the first two (`triggers_minamino`,
-`triggers_shige_house`, `triggers_town`; after band 5 his `pumpkin_` lines). Mio has all three (her band 5 answer sets `mio_keep` or `mio_let`, which her band 6 scene looks back on, and band 6 names her boat, `mio_boat`; her tables: `triggers_river`, `triggers_mio_hut`, `triggers_town`; after band 5 her `ferry_` lines). The view: `-- --demo --map=river@mio --time=9:00` (her traps), `--map=mio_hut`. Kaede has all three (her band 5 answer sets `kaede_sleeve` or `kaede_recite`, which her band 6 scene looks back on, and band 6 sets `kaede_draw`; her tables: `triggers_town`, `triggers_minamino`, `triggers_kaede_house`; after band 5 her `rite_` lines). The view: `-- --demo --map=town@shrine --time=9:00` (sweeping the gravel), `--map=minamino@kaede`, `--map=kaede_house --time=6:00`. `-- --demo --hearts=N` starts everyone at the start of band N.
+`triggers_shige_house`, `triggers_town`; after band 5 his `pumpkin_` lines). Mio has all three (her band 5 answer sets `mio_keep` or `mio_let`, which her band 6 scene looks back on, and band 6 names her boat, `mio_boat`; her tables: `triggers_river`, `triggers_mio_hut`, `triggers_town`; after band 5 her `ferry_` lines). The view: `-- --demo --map=river@mio --time=9:00` (her traps), `--map=mio_hut`. Kaede has all three (her band 5 answer sets `kaede_sleeve` or `kaede_recite`, which her band 6 scene looks back on, and band 6 sets `kaede_draw`; her tables: `triggers_town`, `triggers_minamino`, `triggers_kaede_house`; after band 5 her `rite_` lines). The view: `-- --demo --map=town@shrine --time=9:00` (sweeping the gravel), `--map=minamino@kaede`, `--map=kaede_house --time=6:00`. Shino has all three (her band 5 answer sets `shino_mother` or `shino_own`, which her band 6 scene looks back on, and band 6 sets `shino_noren`; her tables: `triggers_town`, `triggers_minamino`, `triggers_shino_house`, `triggers_river`; after band 5 her `pattern_` lines). The view: `-- --demo --map=minamino@shino --time=9:00` (her vats), `--map=river --time=13:00` (rinsing), `--map=shino_house`. `-- --demo --hearts=N` starts everyone at the start of band N.
 
 **Marriage** (`data/marriage.json`, `Marriage` in scripts/villagers/marriage.gd): courting ends
-at the shrine. The candidates are Sayo, Fumi, Haru, Ichiro, Mio and Kaede, open to the farmer whatever the farmer's look (docs/DESIGN.md). The proposal item is the **mizuhiki knot**
+at the shrine. The candidates are Sayo, Fumi, Haru, Ichiro, Mio, Kaede and Shino, open to the farmer whatever the farmer's look (docs/DESIGN.md). The proposal item is the **mizuhiki knot**
 (`keep:mizuhiki`, a keepsake, 1500 G at the general store, any season). Held overhead and
 taken to a candidate (`Game.talk_to` → `Game.propose`) it is a proposal, not a gift: yes when
 their band is 6, their band 6 scene (`heart_<id>_6`) was seen, the house's second room is

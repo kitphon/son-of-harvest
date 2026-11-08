@@ -1,0 +1,15 @@
+{
+	"_note": "Shino's heart event: the first talk once her heart band reaches 3, at her vats, in her dye house, on the river shore or in the village (triggers_minamino.json, triggers_shino_house.json, triggers_river.json, triggers_town.json). She has the farmer hold a cloth as it turns from green to blue in the air, asks which blue they like (one dip, pale, or twenty, nearly black) and gives eggplant seed from Kiku's garden. Sets heart_shino. Shino acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "shino", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "shino"},
+		{"do": "sound", "key": "step_grass"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events", "at": "shino"},
+		{"do": "give", "item": "seeds:eggplant", "count": 2},
+		{"do": "affection", "who": "shino", "amount": 5},
+		{"do": "set", "flags": {"heart_shino": true}},
+		{"do": "actor", "who": "shino", "to": "plan"},
+		{"do": "actor", "who": "shino", "leave": true}
+	]
+}

@@ -136,6 +136,28 @@
 		{"speaker": "farmer", "mood": "happy", "text": "And I'll keep every one you draw. I promise."},
 		{"speaker": "nana", "mood": "surprised", "text": "Kaede, does this mean no more ghost stories?"},
 		{"speaker": "kaede", "mood": "happy", "text": "It means twice as many. Now there's someone at home to scare."},
+		{"speaker": "tome", "mood": "happy", "text": "There. Done and tied. Off home with you both, and be good to each other.", "next": "end"},
+
+		{"id": "shino_married", "speaker": "shino", "mood": "happy", "text": "Another knot? I already wove yours into the edge of my best cloth. One is plenty.", "next": "end"},
+		{"id": "shino_taken", "speaker": "shino", "mood": "sad", "text": "Put it away. You've promised someone else. I don't dye over another person's pattern.", "next": "end"},
+		{"id": "shino_waiting", "speaker": "shino", "mood": "happy", "text": "Still yes. Three days. I'm dyeing as fast as I can.", "next": "end"},
+		{"id": "shino_band", "speaker": "shino", "mood": "surprised", "text": "A mizuhiki knot? ...No. Not yet. Cloth that's rushed fades."},
+		{"speaker": "shino", "mood": "neutral", "text": "Come by the vats more. Let it take the color properly first.", "next": "end"},
+		{"id": "shino_room", "speaker": "shino", "mood": "surprised", "text": "Red and white. For me?"},
+		{"speaker": "shino", "mood": "neutral", "text": "I want to say yes. But your farmhouse is one room, and I come with stencils, bolts of cloth and a smell."},
+		{"speaker": "shino", "mood": "happy", "text": "Ask Hachiro for a second room. Then ask me again.", "next": "end"},
+		{"id": "shino_yes", "speaker": "shino", "mood": "surprised", "text": "A mizuhiki knot. Red and white. The two colors I've never once dyed."},
+		{"speaker": "farmer", "mood": "neutral", "text": "Then start with these. Will you marry me?"},
+		{"speaker": "shino", "mood": "sad", "text": "I came home to keep Mother's vats alive. I didn't expect to find anything else here."},
+		{"speaker": "shino", "mood": "happy", "text": "Yes. The vats by day, and you the rest of it."},
+		{"speaker": "shino", "mood": "neutral", "text": "Tome will want three days to ready the shrine. I'll need every one of them for the sash.", "next": "end"},
+		{"id": "shino_wedding", "speaker": "tome", "mood": "happy", "text": "Well. Shino, back from the city and staying for good, it seems. Settle down, everyone."},
+		{"speaker": "tome", "mood": "neutral", "text": "Your mother stood right here at her own wedding, blue to the wrist like you. She laughed all the way through."},
+		{"speaker": "tome", "mood": "neutral", "text": "Now take each other's hands and tie the knot round them both. Tight. A loose knot is a loose promise."},
+		{"speaker": "shino", "mood": "happy", "text": "I dipped this sash twenty times for the darkest blue. Every dip was a promise. That's my vow."},
+		{"speaker": "farmer", "mood": "happy", "text": "And I'll keep every color you make. I promise."},
+		{"speaker": "kiku", "mood": "surprised", "text": "Twenty dips, dear! Your mother stopped at twelve."},
+		{"speaker": "shino", "mood": "happy", "text": "She said twelve was plenty. I wanted to be sure."},
 		{"speaker": "tome", "mood": "happy", "text": "There. Done and tied. Off home with you both, and be good to each other.", "next": "end"}
 	]
 }

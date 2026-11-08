@@ -6,6 +6,9 @@
 		{"event": "recipe_kiku", "on": "talk", "who": "kiku", "hearts": {"kiku": [1, 6]}, "not_flags": ["recipe_kusa_mochi"]},
 		{"event": "heart_kaede", "on": "talk", "who": "kaede", "hearts": {"kaede": [3, 6]}},
 		{"event": "heart_kaede_5", "on": "talk", "who": "kaede", "hearts": {"kaede": [5, 6]}, "seen": ["heart_kaede"]},
-		{"event": "heart_kaede_6", "on": "talk", "who": "kaede", "hearts": {"kaede": [6, 6]}, "seen": ["heart_kaede_5"]}
+		{"event": "heart_kaede_6", "on": "talk", "who": "kaede", "hearts": {"kaede": [6, 6]}, "seen": ["heart_kaede_5"]},
+		{"event": "heart_shino", "on": "talk", "who": "shino", "hearts": {"shino": [3, 6]}},
+		{"event": "heart_shino_5", "on": "talk", "who": "shino", "hearts": {"shino": [5, 6]}, "seen": ["heart_shino"]},
+		{"event": "heart_shino_6", "on": "talk", "who": "shino", "hearts": {"shino": [6, 6]}, "seen": ["heart_shino_5"]}
 	]
 }

@@ -46,7 +46,7 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, r: Rect2) -> void:
 		"forge": _forge(parts, mid, r)
 		"anvil": _anvil(parts, mid)
 		"tool_rack": _tool_rack(parts, r)
-		"water_tub": _water_tub(parts, mid)
+		"water_tub": _water_tub(parts, mid, Color(str(p.get("color", "2a4a5a"))))
 		"irori": _irori(parts, mid, r)
 		"tokonoma": _tokonoma(parts, mid, r)
 		"butsudan": _butsudan(parts, mid)
@@ -359,10 +359,11 @@ static func _tool_rack(p: FarmProps.Parts, r: Rect2) -> void:
 				put.call(Color("a8b0b4"), Vector3(x, 0.9, 0.07), Vector3(0.08, 0.38, 0.015))
 
 
-## A wooden quench tub full of dark water: cedar staves flaring to the rim, two dark hoops.
-static func _water_tub(p: FarmProps.Parts, mid: Vector3) -> void:
+## A wooden quench tub full of dark water: cedar staves flaring to the rim, two dark hoops. A
+## prop's "color" is the water's (Shino's indigo vats in Minamino).
+static func _water_tub(p: FarmProps.Parts, mid: Vector3, water: Color) -> void:
 	Shrine.lathe(p.st(Color("b08a5a")), mid, [Vector2(0.25, 0.0), Vector2(0.3, 0.42)], 12)
-	Shrine.lathe(p.st(Color("2a4a5a")), mid, [Vector2(0.27, 0.42), Vector2(0.27, 0.423)], 12)
+	Shrine.lathe(p.st(water), mid, [Vector2(0.27, 0.42), Vector2(0.27, 0.423)], 12)
 	for y in [0.08, 0.32]:
 		var rr: float = 0.255 + 0.05 * y / 0.42
 		Shrine.lathe(p.st(TIMBER), mid, [Vector2(rr, y), Vector2(rr + 0.005, y + 0.04)], 12)

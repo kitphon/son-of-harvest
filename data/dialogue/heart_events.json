@@ -73,6 +73,13 @@
 		{"speaker": "kaede", "mood": "happy", "text": "The rice ball was always gone by morning. ...Do you believe in the fox?", "choices": [{"text": "Maybe a little.", "next": "kaede_maybe"}, {"text": "Only in daylight.", "next": "kaede_day"}]},
 		{"id": "kaede_maybe", "speaker": "kaede", "mood": "surprised", "text": "Maybe a little! That's the right answer. That's exactly how much Grandfather believed.", "next": "kaede_end"},
 		{"id": "kaede_day", "speaker": "kaede", "mood": "happy", "text": "Ha! Only in daylight. Then come by at dusk sometime, and we'll see how brave you are.", "next": "kaede_end"},
-		{"id": "kaede_end", "speaker": "kaede", "mood": "neutral", "text": "Here, turnip seed from the offering box. The fox doesn't eat turnips. I checked.", "next": "end"}
+		{"id": "kaede_end", "speaker": "kaede", "mood": "neutral", "text": "Here, turnip seed from the offering box. The fox doesn't eat turnips. I checked.", "next": "end"},
+
+		{"id": "shino", "speaker": "shino", "mood": "happy", "text": "Good timing. Hold this cloth by the corners. Don't let it touch the ground."},
+		{"speaker": "shino", "mood": "neutral", "text": "Watch. It comes out of the vat green. Then the air touches it and it turns blue. I still hold my breath every time."},
+		{"speaker": "shino", "mood": "happy", "text": "So which blue do you like? One dip, pale as the sky? Or twenty dips, nearly black?", "choices": [{"text": "The pale sky blue.", "next": "shino_pale"}, {"text": "The deep, dark blue.", "next": "shino_deep"}]},
+		{"id": "shino_pale", "speaker": "shino", "mood": "surprised", "text": "One dip. Most people want the dark. Pale is harder to get even. You picked the honest one.", "next": "shino_end"},
+		{"id": "shino_deep", "speaker": "shino", "mood": "happy", "text": "Twenty dips, then. That takes patience. Mother would have liked you.", "next": "shino_end"},
+		{"id": "shino_end", "speaker": "shino", "mood": "neutral", "text": "Here, eggplant seed from Kiku's garden. Grow it. The skins dye a gray that's almost purple.", "next": "end"}
 	]
 }

@@ -1,0 +1,14 @@
+{
+	"_note": "Shino's second heart event: the first talk once her heart band reaches 5, after heart_shino (same tables). She opened her mother's box of two hundred stencils and doesn't know whether to dye her mother's patterns (shino_mother) or cut her own (shino_own). Sets heart_shino_5. Shino acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "shino", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "shino"},
+		{"do": "sound", "key": "amb_wind"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_5", "at": "shino"},
+		{"do": "affection", "who": "shino", "amount": 5},
+		{"do": "set", "flags": {"heart_shino_5": true}},
+		{"do": "actor", "who": "shino", "to": "plan"},
+		{"do": "actor", "who": "shino", "leave": true}
+	]
+}

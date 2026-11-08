@@ -1,0 +1,43 @@
+{
+	"_note": "Shino's dye house in Minamino, west of the lane down to the river (data/maps/minamino.json, door 1, 13): her family has dyed indigo here for four generations. A small tatami room at the back (her chest, a low table where she draws patterns, a lamp) and a wide earth-floored workroom in front with two indigo vats sunk by the wall, the stove and the water jar. Format: README.md, Maps. The paper fan the farmer gives Shino stands by her table once given (kept_shino_paper_fan).",
+	"id": "shino_house",
+	"name": "Shino's dye house",
+	"size": [8, 7],
+	"indoor": true,
+	"ambient": "indoor",
+	"light": "eef0f4",
+	"background": "12141a",
+	"legend": {
+		"#": {"tile": "wall", "solid": true},
+		".": {"tile": "tatami", "step": "floor"},
+		"e": {"tile": "earth", "step": "soil"},
+		"D": {"tile": "earth", "solid": true}
+	},
+	"ground": [
+		"########",
+		"#......#",
+		"#......#",
+		"#eeeeee#",
+		"#eeeeee#",
+		"#eeeeee#",
+		"###D####"
+	],
+	"props": [
+		{"kind": "tansu", "cell": [1, 1]},
+		{"kind": "low_table", "cell": [3, 1], "size": [2, 1]},
+		{"kind": "zabuton", "cell": [3, 2], "solid": false, "color": "26346a"},
+		{"kind": "andon", "cell": [6, 1]},
+		{"kind": "keepsake", "cell": [5, 1], "item": "keep:paper_fan", "flag": "kept_shino_paper_fan"},
+		{"kind": "water_tub", "cell": [5, 3], "color": "1c2a5a"},
+		{"kind": "water_tub", "cell": [6, 3], "color": "1c2a5a"},
+		{"kind": "kamado", "cell": [1, 4]},
+		{"kind": "mizugame", "cell": [1, 5]}
+	],
+	"doors": [
+		{"cells": [[3, 6]], "to": "minamino", "spawn": [1, 14], "facing": "down"}
+	],
+	"spawns": {
+		"start": [[3, 5], "up"],
+		"home": [[2, 2], "down"]
+	}
+}

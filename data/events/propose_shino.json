@@ -1,0 +1,13 @@
+{
+	"_note": "The proposal to Shino (data/marriage.json): played by Game.propose when the farmer holds the mizuhiki knot out to Shino and the rules hold (the knot is taken and the engaged flags set before it starts). Shino acts in it from where the talk found them, faces the farmer through the lines and goes back to their day plan. The wedding follows in three days at the shrine (wedding_shino.json). Format: README.md, Villagers → Marriage.",
+	"steps": [
+		{"do": "actor", "who": "shino", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "shino"},
+		{"do": "sound", "key": "chime_morning"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "marriage", "at": "shino_yes"},
+		{"do": "affection", "who": "shino", "amount": 10},
+		{"do": "actor", "who": "shino", "to": "plan"},
+		{"do": "actor", "who": "shino", "leave": true}
+	]
+}

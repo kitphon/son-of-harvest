@@ -63,7 +63,7 @@
 			{"cell": [28, 17], "spring": "warabi", "summer": "sansho", "fall": "akebi"}
 		],
 		"minamino": [
-			{"cell": [2, 13], "spring": "tsukushi", "summer": "yomogi"},
+			{"cell": [5, 13], "spring": "tsukushi", "summer": "yomogi"},
 			{"cell": [1, 15], "spring": "tsukushi", "fall": "mukago"},
 			{"cell": [3, 17], "summer": "yomogi"},
 			{"cell": [3, 5], "spring": "nobiru", "fall": "ginnan"},
