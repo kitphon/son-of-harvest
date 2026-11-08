@@ -9,7 +9,7 @@ extends Node2D
 ## kiln's wear (story:kiln_worn) is drawn over its box, on its own cells.
 
 const T := 16
-const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark", "kiln_site", "kiln_new", "boat_name"]
+const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark", "kiln_site", "kiln_new", "boat_name", "noren"]
 
 var map: MapData
 
@@ -18,6 +18,8 @@ var map: MapData
 static func art_key(p: Dictionary) -> String:
 	if str(p.kind) == "store_sign":
 		return "story:sign_" + str(p.get("style", "old"))
+	if str(p.kind) == "noren":   # a door curtain Shino dyed (shino_noren rows / flowers, or her own)
+		return "story:noren_" + str(p.get("style", "shino"))
 	if str(p.kind) == "boat_name":   # Mio's boat's name by her answer (mio_boat father / new)
 		return "story:boat_" + str(p.get("style", "new"))
 	if str(p.kind) == "ribbon_board":   # one rosette per ribbon won (Keepsakes.RECORD)
@@ -48,6 +50,8 @@ func _draw() -> void:
 			draw_rect(Rect2(r.position.x + 3, r.end.y - 5, T - 6, 4), Color("6a4a2a"))
 			r.end.y -= 4
 		elif p.kind == "keepsake":   # hung from the lintel: its top near the cell's top
+			r.end.y = r.position.y + tex.get_height() + 2
+		elif p.kind == "noren":   # over the door, the top of its cell
 			r.end.y = r.position.y + tex.get_height() + 2
 		elif p.kind == "jizo_bibs":   # on the jizo's chest, the middle of its cell
 			r.end.y -= 4

@@ -1,5 +1,5 @@
 {
-	"_note": "Minamino, the village's south part (added 2026-11-01), between the lane behind Kota's house and the river: the lane runs on down to the river (x 4), a cart track east (y 9). Vegetable gardens behind a low board fence and more by Shige's house (north of the track, door 11, 6), where Shige and his daughter Nana live; a well; Kiku's house south-east (door 22, 14, round its front) in her persimmon orchard, with a drying rack for the persimmons and rice. A little roadside shrine with a stone lantern by the lane, a jizo by the way down, bamboo in the south-west corner. Shino's indigo dye house stands west of the lane on the way down to the river (door 1, 13), its two dye vats in front, the cherry moved south to make room, and west of the vats her drying rack (0..1, 15..17): three poles, a length of indigo over each, the palest by the vats and the darkest last, out 7:00-17:00 on dry days (DyeCloth); a bamboo moved south for it. Format: README.md, Maps.",
+	"_note": "Minamino, the village's south part (added 2026-11-01), between the lane behind Kota's house and the river: the lane runs on down to the river (x 4), a cart track east (y 9). Vegetable gardens behind a low board fence and more by Shige's house (north of the track, door 11, 6), where Shige and his daughter Nana live; a well; Kiku's house south-east (door 22, 14, round its front) in her persimmon orchard, with a drying rack for the persimmons and rice. A little roadside shrine with a stone lantern by the lane, a jizo by the way down, bamboo in the south-west corner. Shino's indigo dye house stands west of the lane on the way down to the river (door 1, 13), its two dye vats in front, the cherry moved south to make room, and west of the vats her drying rack (0..1, 15..17): three poles, a length of indigo over each, the palest by the vats and the darkest last, out 7:00-17:00 on dry days, in on Sundays and her birthday (DyeCloth); a bamboo moved south for it. Once she has dyed the farmhouse's noren (shino_noren) a new one of her own, with the dye house's mark, hangs over her door. Format: README.md, Maps.",
 	"id": "minamino",
 	"name": "Minamino",
 	"size": [30, 20],
@@ -41,7 +41,8 @@
 		{"kind": "village_house", "cell": [0, 11], "size": [4, 3], "door": 1, "wall": "timber"},
 		{"kind": "water_tub", "cell": [2, 15], "color": "1c2a5a"},
 		{"kind": "water_tub", "cell": [3, 15], "color": "1c2a5a"},
-		{"kind": "cloth_rack", "cell": [0, 15], "size": [2, 3], "hours": ["07:00", "17:00"], "shades": ["5582bc", "2e5698", "1a2f64"]},
+		{"kind": "noren", "cell": [1, 13], "solid": false, "flag": "shino_noren", "style": "shino", "front": 13.85, "y": 0.9},
+		{"kind": "cloth_rack", "cell": [0, 15], "size": [2, 3], "hours": ["07:00", "17:00"], "rest_weekdays": ["sun"], "keeper": "shino", "shades": ["5582bc", "2e5698", "1a2f64"]},
 		{"kind": "garden", "cell": [6, 12], "size": [4, 3]},
 		{"kind": "garden", "cell": [11, 12], "size": [4, 3]},
 		{"kind": "garden", "cell": [6, 16], "size": [4, 2]},

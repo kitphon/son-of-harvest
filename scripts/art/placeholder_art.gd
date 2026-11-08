@@ -80,7 +80,7 @@ static func _make(key: String) -> Image:
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
 		"portrait": # portrait:<villager>:<neutral|happy|sad|surprised|angry>, a villager's 40 x 40 text box portrait
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
-		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|ume_jar|carp_streamer|lumber|rope_lift|jizo_bibs|kiln_mark|kiln_site|kiln_new|kiln_worn|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
+		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|noren_rows|noren_flowers|noren_shino|ume_jar|carp_streamer|lumber|rope_lift|jizo_bibs|kiln_mark|kiln_site|kiln_new|kiln_worn|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
 		"festival": # festival:<kind>:<w>x<h>[:<cloth hex>], a festival decoration in the flat view (FestivalView)
 			var wh := parts[2].split("x") if parts.size() > 2 else PackedStringArray(["1", "1"])
@@ -1224,6 +1224,44 @@ static func _dye_cloth(c: Color) -> Image:
 		var sx := rng.randi_range(2, w - 3)
 		for y in range(rng.randi_range(4, 8), rng.randi_range(12, h - 3)):
 			img.set_pixel(sx, y, img.get_pixel(sx, y).lightened(0.12))
+	return img
+
+
+## A door curtain Shino dyed (StoryView "noren", 22 x 10): indigo cloth hanging in three
+## panels with dark slits between, a paler band where it folds over the rod and a deeper hem.
+## The mark, resisted white: `rows` the farmer's field (furrows of little sprouts across the
+## panels), `flowers` her wildflowers (five-petal blossoms scattered, one with a pale centre),
+## `shino` her own dye house's mark (a ring round an indigo leaf, on the middle panel).
+static func _noren_story(style: String) -> Image:
+	var img := _blank(22, 10)
+	var cloth := Color("23356a") if style != "shino" else Color("1c2c5c")
+	var white := Color("eeeae0")
+	img.fill(cloth)
+	_px(img, 0, 0, 22, 1, cloth.lightened(0.25))   # over the rod
+	_px(img, 0, 9, 22, 1, cloth.darkened(0.3))     # the hem
+	for x in [7, 14]:
+		_px(img, x, 3, 1, 7, Color(0, 0, 0, 0))   # the slits between the panels
+	match style:
+		"rows":
+			for y in [3, 6]:
+				_px(img, 1, y + 1, 20, 1, cloth.lightened(0.12))   # the furrow
+				for x in range(2, 21, 3):
+					if x == 7 or x == 14:
+						continue
+					_px(img, x, y, 1, 1, white)   # a sprout on the ridge
+					_px(img, x - 1, y - 1, 1, 1, white)
+					_px(img, x + 1, y - 1, 1, 1, white)
+		"flowers":
+			for at in [Vector2i(3, 3), Vector2i(10, 6), Vector2i(17, 3), Vector2i(4, 7), Vector2i(18, 7)]:
+				_px(img, at.x, at.y - 1, 1, 1, white)
+				_px(img, at.x - 1, at.y, 3, 1, white)
+				_px(img, at.x, at.y + 1, 1, 1, white)
+				_px(img, at.x, at.y, 1, 1, Color("e8c860") if at == Vector2i(10, 6) else cloth.lightened(0.3))
+		_:   # her own mark: a ring round an indigo leaf
+			for p in [Vector2i(10, 3), Vector2i(11, 3), Vector2i(9, 4), Vector2i(12, 4), Vector2i(9, 5), Vector2i(12, 5), Vector2i(9, 6), Vector2i(12, 6), Vector2i(10, 7), Vector2i(11, 7)]:
+				_px(img, p.x, p.y, 1, 1, white)
+			_px(img, 10, 4, 2, 2, white)   # the leaf
+			_px(img, 11, 6, 1, 1, white)   # its stem
 	return img
 
 
@@ -2761,6 +2799,8 @@ static func _ribbon_board(places: String) -> Image:
 ## a 1 x 2 cell stack seen from the front).
 static func _story(kind: String) -> Image:
 	match kind:
+		"noren_rows", "noren_flowers", "noren_shino":
+			return _noren_story(kind.get_slice("_", 1))
 		"boat_father", "boat_new":
 			# The name Mio painted on her boat's side (heart_mio_6, mio_boat): a pale painted
 			# plaque, 14 x 6, with her father's coiled red dragon (Tatsu) on it, or her new name's

@@ -13,7 +13,8 @@ extends RefCounted
 ## jizo by the Kaminoda lane (genzo_jizo, band 5) and the farmer's thumbprint is pressed in
 ## the clay of Ichiro's kiln in Sakurazaka beside his and his father's (ichiro_mark, band 6):
 ## both lit meshes (OutdoorProps); the name Mio painted on her ferry boat on the river (mio_boat,
-## band 6) is a picture on its side. The pictures are PlaceholderArt "story:" keys, the same ones the flat view draws
+## band 6) is a picture on its side; the noren Shino dyed for the farmhouse hangs over its door
+## (shino_noren rows / flowers, band 6) and her own new one over the dye house's. The pictures are PlaceholderArt "story:" keys, the same ones the flat view draws
 ## (StoryView, which also keeps the list of kinds). Same units as MapWorld (1 unit = 1 cell).
 
 
@@ -65,6 +66,13 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 			s.pixel_size = 0.04
 			s.position = Vector3(r.get_center().x, 0, r.get_center().y)
 			w.add_child(s)
+		"noren":
+			# A door curtain Shino dyed, hung from the lintel over the door (the cell's front wall,
+			# `front`, the house front's z, and `y` its middle's height), blowing in the wind.
+			var front := float(p.get("front", r.position.y + 0.85))
+			var size := Vector2(0.95, 0.42)
+			var cloth := w._picture(StoryView.art_key(p), size, Vector3(r.get_center().x, float(p.get("y", 0.85)), front + 0.03))
+			OutdoorProps.sway_picture(w, cloth, size, r.position.x * 1.3)
 		"boat_name":
 			# Painted on the boat's side facing the camera, near the stern (OutdoorProps.ferry_boat:
 			# the hull's near gunwale at the cell's middle + 0.3), up to the gunwale.

@@ -10,6 +10,47 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Shino's noren over the farmhouse door and her own
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: her band 6 scene sets `shino_noren` (rows or flowers: "a noren on your door"), but no
+  noren was ever hung. Now:
+  - a `noren` story prop (StoryView.KINDS; StoryProps in 3D: a picture over the door at the
+    prop's `front` and `y`, swaying in the world's Sway; StoryView in the flat view at the top
+    of the door cell);
+  - PlaceholderArt "story:noren_rows" (white sprouts on furrows across three indigo panels),
+    "story:noren_flowers" (five-petal wildflowers, one with a yellow centre) and
+    "story:noren_shino" (her dye house's mark, a ring round an indigo leaf), 22 x 10, slits
+    between the panels;
+  - farm.json: over the farmhouse door (4, 3), by the answer (flag_value rows / flowers),
+    y 1.08: at 1.41 (the door's top) the deep thatch eave hid it from the camera;
+  - minamino.json: her own new one over the dye house door (1, 13) once shino_noren is set
+    either way;
+  - the drying rack stays in on Sundays (`rest_weekdays`, her vats rest) and on its `keeper`'s
+    birthday (read from data/villagers/shino.json: winter 4, she sits by the river)
+    (DyeCloth.resting, out_now passes the weekday and date).
+- Checked: test_maps:
+  - `_shino_noren`: none before; the farmhouse's by the answer; hers either way; the three
+    pictures differ; her door still opens; the 3D one hangs and sways;
+  - `_dye_cloth`: in on a Sunday and on winter 4, out on Monday and winter 5.
+
+  Output `test_maps: OK (0 failed)`. Mutation test (the rest days ignored): `FAIL: in on
+  Sundays, when her vats rest`, `FAIL: in on her birthday (winter 4), out the day after`,
+  `test_maps: FAILED (2 failed)`; restored, `test_maps: OK (0 failed)`. All 30 suites printed
+  `OK (0 failed)`, and test_maps again after the farm noren was lowered. Smoke runs printed no
+  error or warning lines: title, --demo, --map=town, --mine=3, --demo
+  --flags=shino_noren=rows, --map=minamino@shino --day=7 --flags=shino_noren=flowers, main_2d
+  --map=minamino@shino.
+  Screenshots:
+  - `--map=farm@bin --flags=shino_noren=flowers` (3D): the flowers noren over the farmhouse
+    door, under the eave once lowered;
+  - `--map=minamino@river --time=10:00 --flags=shino_noren=rows`: her mark over the dye house
+    door;
+  - main_2d `--map=farm@bin --flags=shino_noren=rows`: the rows noren on the flat farmhouse.
+
+  shots/ deleted.
+- Left / next: the farmhouse noren is the same in every season. Married spouses still wake in
+  their old homes on their birthday and festival days (their own plans win); that is next.
+
 ## 2026-11-08 — Mio poles the ferry across
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: the old ferry boat now goes out. On her fine mornings Mio takes it across the river and

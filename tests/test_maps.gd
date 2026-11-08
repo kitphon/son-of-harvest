@@ -235,6 +235,7 @@ func _process(delta: float) -> bool:
 		_story_props()
 		_ferry_boat()
 		_dye_cloth()
+		_shino_noren()
 		_lane_and_kiln_props()
 		_map_snow()
 		_footprints()
@@ -4388,6 +4389,10 @@ func _dye_cloth() -> void:
 		"taken in before seven and from five")
 	for look in ["rain", "storm", "snow", "blizzard"]:
 		check(not DyeCloth.out(rack, 10 * 60, look), "taken in on a %s day" % look)
+	check(DyeCloth.out(rack, 10 * 60, "sunny", "mon", "spring", 1) and not DyeCloth.out(rack, 10 * 60, "sunny", "sun", "spring", 7),
+		"in on Sundays, when her vats rest")
+	check(not DyeCloth.out(rack, 10 * 60, "sunny", "tue", "winter", 4) and DyeCloth.out(rack, 10 * 60, "sunny", "wed", "winter", 5),
+		"in on her birthday (winter 4), out the day after")
 	var shades := DyeCloth.shades(rack)
 	check(shades.size() == 3 and shades[0].get_luminance() > shades[1].get_luminance() and shades[1].get_luminance() > shades[2].get_luminance(),
 		"three lengths, the palest on the first pole and the darkest on the last")
@@ -4450,3 +4455,43 @@ func _dye_cloth() -> void:
 	g.hour = keep[0]
 	g.minute = keep[1]
 	g.weather_today = keep[2]
+
+
+## The noren Shino dyed (heart_shino_6, shino_noren rows / flowers): over the farmhouse door
+## by the farmer's answer, and her own new one with the dye house's mark over her door; none
+## before; the three pictures drawn and different; the doors still work; the 3D noren sways.
+func _shino_noren() -> void:
+	var keys := func(map_id: String, f: Dictionary) -> Array:
+		var out := []
+		for p in MapManager.load_map(map_id, null, f)[1].props:
+			if p.kind == "noren":
+				out.append(StoryView.art_key(p))
+		return out
+	check(keys.call("farm", {}).is_empty() and keys.call("minamino", {}).is_empty(), "no noren before Shino has dyed one")
+	check(keys.call("farm", {"shino_noren": "rows"}) == ["story:noren_rows"] and keys.call("farm", {"shino_noren": "flowers"}) == ["story:noren_flowers"],
+		"the farmhouse noren by the farmer's answer: the field's rows or her wildflowers")
+	check(keys.call("minamino", {"shino_noren": "rows"}) == ["story:noren_shino"] and keys.call("minamino", {"shino_noren": "flowers"}) == ["story:noren_shino"],
+		"and her own new one over the dye house door either way")
+	var imgs := []
+	for k in ["story:noren_rows", "story:noren_flowers", "story:noren_shino"]:
+		imgs.append(PlaceholderArt.tex(k).get_image())
+	check(imgs[0].get_size() == Vector2i(22, 10) and imgs[0].get_data() != imgs[1].get_data() and imgs[1].get_data() != imgs[2].get_data() and imgs[0].get_data() != imgs[2].get_data(),
+		"the three noren are drawn and differ")
+	var m: MapData = MapManager.load_map("minamino", null, {"shino_noren": "rows"})[1]
+	check(m.door_at(Vector2i(1, 13)).get("to", "") == "shino_house", "the dye house door still opens under it")
+	var farm: MapData = MapManager.load_map("farm", null, {"shino_noren": "rows"})[1]
+	check(not farm.door_at(Vector2i(4, 3)).is_empty() or farm.is_solid(Vector2i(4, 3)) == MapManager.load_map("farm", null, {})[1].is_solid(Vector2i(4, 3)),
+		"the farmhouse door is as it was")
+	var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	w.build(m)
+	var cloth: MeshInstance3D = null
+	for c in w.get_children():
+		if c is MeshInstance3D and c.material_override is StandardMaterial3D and c.material_override.albedo_texture == PlaceholderArt.tex("story:noren_shino"):
+			cloth = c
+	var sway: Node = w.get_node_or_null("WindSway")
+	var swaying := false
+	if sway != null and cloth != null:
+		for i in sway.count():
+			swaying = swaying or cloth in sway.nodes_of(i)
+	check(cloth != null and swaying, "the 3D dye house hangs it, swaying in the wind")
+	w.free()
