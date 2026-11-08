@@ -10,6 +10,33 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — The child's rules (design only)
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: docs/DESIGN.md → ความรักและแต่งงาน → ลูก, in Thai. The RE project has not studied
+  children (DESIGN lists marriage as not yet studied), so the rules are ours:
+  - one child, no gender in the rules or the lines (as for the farmer and spouse);
+  - the news comes 30 days after the wedding while the spouse stays at band 6, not on a
+    festival day; the birth comes 30 days later at the farmhouse (Dr. Yae and Tome);
+  - the name is chosen from three the spouse offers: there is no name entry screen yet, and a
+    list works in every language;
+  - four stages by days since the birth: baby (a bamboo cradle in the second room, held in the
+    house only), crawler, toddler (follows the spouse at home, the dog in the yard), and child
+    from 120 days (out with the spouse by day, at festivals, no growing past it);
+  - hearts like a villager's, starting at band 3 and never below it;
+  - from band 5 the child pulls up to two weeds on dry mornings;
+  - a line in the village record;
+  - the save in the marriage flags and the affection table;
+  - left out on purpose: a second child, choosing a gender, illness, taking the child out
+    alone, a teenager;
+  - five build steps, one commit each.
+
+  Balance numbers (30 / 30 days, the stage lengths, 2 weeds, band 3 floor) are ours. They go
+  in data/child.json in step 1.
+- Checked: documentation only, no code or data changed, so the test suites were not run
+  again (the last run on 2d74a94: all 30 `OK (0 failed)`). `git status -sb` clean after the
+  commit.
+- Left / next: step 1, data/child.json and the Child rules with tests.
+
 ## 2026-11-08 — Married spouses keep the farmhouse on festival days and birthdays
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: a spouse's own festival and birthday rules came before `married_<id>`, so on those days
