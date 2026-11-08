@@ -269,6 +269,16 @@ edge where boards or tatami meet the earth and a shoe stone below the door's ste
   sits on is the one `prop_at` finds, so its examine line takes over while its flag is set.
   A prop with `use: "examine"`
   plays its `sound` (data/sfx.json) and shows its `message` when used, on any map;
+- the baby's `cradle` in the farmhouse's second room (`room` extension, cell 10, 1) shows while
+  `child_stage` is `baby` (Child.sync_stage keeps that flag in step with the day: each morning,
+  at the birth, on loading). It is drawn by its own layer in both views (CradleLayer,
+  CradleView, art `child:cradle:<empty|asleep|awake|cry>:<skin>:<hair>:<top>`), read every
+  frame, so it shows the moment the baby is born. E looks in (data/child.json `cradle.times`:
+  a line and a picture by the clock); the tool button lifts the baby into the hold pose
+  (`child:held:...` overhead, Game.baby_held, not saved); while held either button facing the
+  cradle lays them back, nothing else takes the baby (no throw, no setting down, no talk or
+  sleep), doors wait ("Lay ... back in the cradle first."), and any map change or new day
+  lays the baby back (BabyActions);
 - the village clinic (`clinic`, door east of the smithy, shop `clinic`) has a `bed` spawn by
   its futon (a futon prop without `use` is only a bed), where a collapse wakes the farmer;
 - `spawns`: named `[cell, facing]`, `start` needed (`--map=<id>@<spawn>`), the house has

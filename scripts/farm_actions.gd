@@ -33,7 +33,8 @@ static func talk_flag(player: Player, id: String) -> void:
 ## kind "enter" = the farmer walked into a door cell `origin + facing`. Interact facing a
 ## villager talks to them (or gives them the item overhead). With an item overhead on the
 ## farm the hands are full: interact throws it, the tool button sets it down. With the dog in
-## the arms either button sets it down (DogActions). With the food slot in hand the tool
+## the arms either button sets it down (DogActions); with the baby, either button facing the
+## cradle lays them back and doors wait (BabyActions); the tool button on the cradle lifts them. With the food slot in hand the tool
 ## button eats an edible item overhead (a crop, an egg, a fish, a dish). Otherwise interact
 ## first asks the map's trigger table about the spot faced (examine).
 static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge := 0) -> void:
@@ -41,9 +42,13 @@ static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge :
 		reel()
 	elif Game.animals.dog.held:
 		DogActions.held_action(kind, origin + facing)
+	elif Game.baby_held:   # the baby in the arms: back into the cradle, nowhere else (BabyActions)
+		BabyActions.held_action(kind, origin + facing)
 	elif kind == "enter":
 		interact(origin + facing)
 	elif kind == "interact" and talk_to(origin, facing):
+		pass
+	elif kind != "interact" and BabyActions.lift(origin + facing):   # the tool button on the cradle
 		pass
 	elif kind != "interact" and Game.current_tool() == "food" and Game.edible(Game.held):
 		eat_held()
@@ -178,6 +183,8 @@ static func interact(c: Vector2i) -> void:
 	if festival_spot(c):
 		return
 	if examine_prop(c):
+		return
+	if BabyActions.look_in(c):   # the baby's cradle: a line by the clock
 		return
 	if not Game.maps.on_farm():
 		var prop := Game.maps.current().prop_at(c)

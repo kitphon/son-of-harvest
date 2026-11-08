@@ -236,6 +236,7 @@ func _process(delta: float) -> bool:
 		_ferry_boat()
 		_dye_cloth()
 		_shino_noren()
+		_cradle()
 		_lane_and_kiln_props()
 		_map_snow()
 		_footprints()
@@ -4495,3 +4496,39 @@ func _shino_noren() -> void:
 			swaying = swaying or cloth in sway.nodes_of(i)
 	check(cloth != null and swaying, "the 3D dye house hangs it, swaying in the wind")
 	w.free()
+
+
+## The baby's cradle (Child, data/maps/house.json): in the second room only while child_stage is
+## "baby"; the 3D house builds round it with no stand-in box (CradleLayer shows it), and the
+## layer stands its picture on the cradle's cell, empty while the baby is held.
+func _cradle() -> void:
+	var g: Node = root.get_node("Game")
+	var has := func(f: Dictionary) -> bool:
+		return MapManager.load_map("house", ["room"], f)[1].props.any(func(p): return p.kind == Child.CRADLE)
+	check(has.call({Child.STAGE: "baby"}) and not has.call({}) and not has.call({Child.STAGE: "crawler"}), "the house's cradle only while the child is a baby")
+	var m: MapData = MapManager.load_map("house", ["room"], {Child.STAGE: "baby"})[1]
+	var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	w.build(m)
+	var magenta := 0
+	for c in w.find_children("*", "MeshInstance3D", true, false):
+		var mat: Variant = (c as MeshInstance3D).material_override
+		magenta += int(mat is StandardMaterial3D and mat.albedo_color == Color.MAGENTA)
+	check(magenta == 0, "the 3D house has no stand-in box for the cradle")
+	w.free()
+	g.new_game()
+	g._finish_build({"build": "room", "shop": g._builder_shop("room"), "ready": 0})
+	g.flags.merge({"spouse": "fumi", "married_fumi": true})
+	Child.tell_news(g.flags, g.day_number())
+	Child.give_birth(g.flags, g.day_number(), "Nagisa")
+	Child.sync_stage(g.flags, g.day_number())
+	g.maps.place("house", Vector2i(10, 2), Vector2i.UP)
+	var layer: Node3D = load("res://scripts/world3d/cradle_layer.gd").new("house")
+	root.add_child(layer)
+	check(layer.sprite != null and layer.sprite.visible and layer.sprite.position == Vector3(10.5, 0, 1.5)
+		and is_equal_approx(layer.sprite.pixel_size, load("res://scripts/world3d/farm_world.gd").FIGURE_PX), "the 3D cradle stands on its cell at the figures' size")
+	var full: String = layer.sprite.get_meta("key")
+	g.lift_baby()
+	layer.refresh()
+	check(full.begins_with("child:cradle:") and not full.contains(":empty:") and layer.sprite.get_meta("key").contains(":empty:"), "and shows it empty while the baby is held")
+	layer.free()
+	g.new_game()

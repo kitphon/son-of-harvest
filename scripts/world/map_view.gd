@@ -207,7 +207,7 @@ func _draw_objects() -> void:
 		(load(CROP_PATCHES) as GDScript).draw_water(_objects, season, paddies, paddy_hold, _cover, _glint)
 		(load(CROP_PATCHES) as GDScript).draw(_objects, paddies, paddy_hold, _cover, _sway, Callable(load(FLAT_LIGHT), "at_mid"))
 	for p in map.props:
-		if p.kind in StoryView.KINDS or p.kind == DyeCloth.KIND:   # drawn as pictures by StoryView / DyeClothView
+		if p.kind in StoryView.KINDS or p.kind == DyeCloth.KIND or p.kind == Child.CRADLE:   # drawn as pictures by StoryView / DyeClothView / CradleView
 			continue
 		if p.kind == "maple":   # a small tree picture, its foot on the cell's middle (PlaceholderArt "tree:")
 			var tex := PlaceholderArt.tex(maple_key(SnowLayer.map_has_snow(map), season))

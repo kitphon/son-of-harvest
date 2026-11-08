@@ -25,6 +25,12 @@ const BIRTH_DUE := "child_birth_due"
 const NEWS_EVENT := "child_news_%s"
 const BIRTH_EVENT := "child_birth_%s"
 const DIALOGUE := "child"
+## The stage's id while a child is born ("baby", "crawler", ...), kept in step with the day by
+## sync_stage (each morning, the birth, a loaded save) so map props can be gated by it: the
+## cradle in the second room shows while it is "baby" (data/maps/house.json).
+const STAGE := "child_stage"
+## The map prop kind of the baby's cradle (drawn by CradleView / CradleLayer, not MapView's boxes).
+const CRADLE := "cradle"
 ## The child's id in the affection table.
 const ID := "child"
 
@@ -105,6 +111,7 @@ static func give_birth(flags: Dictionary, today: int, name: String) -> void:
 ## festival day): sets NEWS_DUE or BIRTH_DUE while that scene is due, else clears it. Returns
 ## "news", "birth" or "".
 static func day_start(flags: Dictionary, today: int, band: int, festival: bool) -> String:
+	sync_stage(flags, today)
 	flags.erase(NEWS_DUE)
 	flags.erase(BIRTH_DUE)
 	if news_due(flags, today, band, festival):
@@ -129,6 +136,7 @@ static func event_step(flags: Dictionary, step: String, today: int) -> void:
 			n = str(list[0]) if not list.is_empty() else n
 		give_birth(flags, today, n)
 		flags.erase(BIRTH_DUE)
+		sync_stage(flags, today)
 
 
 ## The three names the spouse `id` offers (empty for someone who cannot marry).
@@ -156,6 +164,67 @@ static func stage_at(days: int) -> String:
 ## The child's stage on day `today` ("" when none is born).
 static func stage(flags: Dictionary, today: int) -> String:
 	return stage_at(age(flags, today))
+
+
+## Sets STAGE to the stage on day `today` (erased while no child is born).
+static func sync_stage(flags: Dictionary, today: int) -> void:
+	var s := stage(flags, today)
+	if s == "":
+		flags.erase(STAGE)
+	else:
+		flags[STAGE] = s
+
+
+## Is the child a baby on day `today` (the cradle in the second room)?
+static func is_baby(flags: Dictionary, today: int) -> bool:
+	return stage(flags, today) == "baby"
+
+
+## The cradle's row for `minute_of_day` (data/child.json cradle.times): {from, look, line}.
+## Before the first row's time the last row still holds (it runs past midnight). Minutes past
+## 24:00 (Game.day_minutes after midnight) count from midnight again.
+static func cradle_time(minute_of_day: int) -> Dictionary:
+	minute_of_day = posmod(minute_of_day, 24 * 60)
+	var rows: Array = data().get("cradle", {}).get("times", [])
+	if rows.is_empty():
+		return {"look": "asleep", "line": "%s"}
+	var out: Dictionary = rows.back()
+	for r in rows:
+		if _minutes(str(r.get("from", "00:00"))) <= minute_of_day:
+			out = r
+	return out
+
+
+## What the farmer reads looking into the cradle at `minute_of_day`, the name put in (English;
+## the message is translated as a pattern).
+static func cradle_line(flags: Dictionary, minute_of_day: int) -> String:
+	return str(cradle_time(minute_of_day).get("line", "%s")) % child_name(flags)
+
+
+## The baby's picture in the cradle at `minute_of_day`: asleep, awake or cry.
+static func cradle_look(minute_of_day: int) -> String:
+	return str(cradle_time(minute_of_day).get("look", "asleep"))
+
+
+static func _minutes(s: String) -> int:
+	var parts := s.split(":")
+	return int(parts[0]) * 60 + (int(parts[1]) if parts.size() > 1 else 0)
+
+
+## The PlaceholderArt key of the cradle with the baby in it (`look` asleep / awake / cry), or
+## empty ("empty", while the farmer holds the baby), in the child's colours `colours`
+## (Child.look): child:cradle:<look>:<skin>:<hair>:<top>.
+static func cradle_key(state: String, colours: Dictionary) -> String:
+	return "child:cradle:%s:%s" % [state, _colour_part(colours)]
+
+
+## The baby held up in the farmer's arms (the hold pose): child:held:<look>:<skin>:<hair>:<top>.
+static func held_key(state: String, colours: Dictionary) -> String:
+	return "child:held:%s:%s" % ["asleep" if state == "asleep" else "awake", _colour_part(colours)]
+
+
+static func _colour_part(c: Dictionary) -> String:
+	return "%s:%s:%s" % [str(c.get("skin", "e0b088")), str(c.get("hair", "3a2a24")), str(c.get("top", "2e4a8c"))]
 
 
 static func stage_ids() -> Array[String]:
@@ -229,6 +298,17 @@ static func check() -> String:
 		for ev in [NEWS_EVENT, BIRTH_EVENT]:
 			if not FileAccess.file_exists(EventRunner.DIR + (ev % who) + ".json"):
 				return "no event %s" % (ev % who)
+	var rows: Array = d.get("cradle", {}).get("times", [])
+	if rows.is_empty():
+		return "cradle.times is empty"
+	var at := -1
+	for r in rows:
+		if not r is Dictionary or not str(r.get("look", "")) in ["asleep", "awake", "cry"] or not "%s" in str(r.get("line", "")):
+			return "a cradle row needs a look (asleep, awake, cry) and a line with %s"
+		var m := _minutes(str(r.get("from", "")))
+		if m <= at or m >= 24 * 60:
+			return "cradle times must rise within the day"
+		at = m
 	var seen := {}
 	for who in d.get("names", {}):
 		if not Marriage.is_candidate(who):

@@ -11,6 +11,18 @@
 	],
 	"hearts": {"start_band": 3, "min_band": 3},
 	"look": {"skin_mix": 0.5, "clothes": {"top": "2e4a8c", "waist": "e8e2d0", "accent": "e8e2d0"}},
+	"cradle": {
+		"_about": "The baby's bamboo cradle in the second room (a cradle prop in data/maps/house.json, shown while the stage is baby: the flag child_stage). times: from (HH:MM) until the next row's from, the last running past midnight to the first; look is the picture (asleep, awake, cry) and line what the farmer reads looking in (%s is the child's name). The house's clock stands still indoors, so it is the hour the farmer came in.",
+		"times": [
+			{"from": "00:00", "look": "asleep", "line": "%s is fast asleep, breathing slow and even."},
+			{"from": "04:30", "look": "cry", "line": "%s is awake before the birds and crying to be fed."},
+			{"from": "06:30", "look": "awake", "line": "%s is wide awake, waving two small fists at the beams."},
+			{"from": "10:00", "look": "asleep", "line": "%s is napping, one hand curled by one cheek."},
+			{"from": "13:00", "look": "awake", "line": "%s is awake and kicking at the quilt."},
+			{"from": "17:00", "look": "awake", "line": "%s watches the lantern light and yawns."},
+			{"from": "19:30", "look": "asleep", "line": "%s has drifted off to sleep."}
+		]
+	},
 	"names": {
 		"sayo": ["Hinata", "Sora", "Aoi"],
 		"fumi": ["Nagisa", "Makoto", "Akira"],

@@ -4,7 +4,10 @@ extends SceneTree
 ## from the parents, each spouse's three names, the child's hearts (start and floor at band 3),
 ## the save, and the two scenes: the morning flags (Child.day_start, from Game.end_day), the
 ## trigger rows in the farmhouse, every spouse's news and birth events and lines (English and
-## Thai), the name picked from the three and stored by the event's child step. Run:
+## Thai), the name picked from the three and stored by the event's child step; the baby's
+## cradle (step 3): the stage flag, the cradle prop only while the baby stage holds, the lines
+## by the clock, lifting the baby and laying them back, no throw, the door rule, the save while
+## holding, the art and both views' pictures. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_child.gd
 
 var failures := 0
@@ -24,6 +27,8 @@ func _init() -> void:
 	_triggers()
 	_scenes()
 	_thai()
+	_cradle_rules()
+	_cradle_map()
 
 
 func _process(_delta: float) -> bool:
@@ -32,6 +37,8 @@ func _process(_delta: float) -> bool:
 		_save()
 		_morning()
 		_play_birth()
+		_baby_in_arms()
+		_baby_save()
 		print("test_child: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -355,4 +362,206 @@ func _play_birth() -> void:
 	check(r.done() and heard == ["child@birth", "child@kaede_names"], "the birth scene plays through its two talks %s" % [heard])
 	check(Child.born_day(g.flags) == g.day_number() and Child.child_name(g.flags) == "Michi" and not g.flags.has(Child.BIRTH_DUE),
 		"the scene's end: born today, named Michi (%s), the due flag gone" % Child.child_name(g.flags))
+	g.new_game()
+
+
+
+## The stage flag and the cradle's rows: the line and the picture by the clock, the name put in.
+func _cradle_rules() -> void:
+	var f := _married("sayo", 10)
+	Child.sync_stage(f, 50)
+	check(not f.has(Child.STAGE), "no child: no stage flag")
+	Child.tell_news(f, 40)
+	Child.give_birth(f, 70, "Sora")
+	for t in [[70, "baby"], [99, "baby"], [100, "crawler"], [130, "toddler"], [190, "child"]]:
+		Child.sync_stage(f, t[0])
+		check(f.get(Child.STAGE) == t[1], "day %d: child_stage %s (%s)" % [t[0], t[1], f.get(Child.STAGE)])
+	check(Child.is_baby(f, 70) and Child.is_baby(f, 99) and not Child.is_baby(f, 100), "a baby from the birth until day 30")
+	var g := _married("sayo", 10)
+	g[Child.NEWS] = 40
+	g[Child.BIRTH_DUE] = true
+	Child.event_step(g, "birth", 70)
+	check(g.get(Child.STAGE) == "baby", "the birth sets child_stage to baby")
+	Child.day_start(g, 100, 6, false)
+	check(g.get(Child.STAGE) == "crawler", "a morning keeps the stage flag in step")
+	var by_hour := {}
+	for h in 24:
+		var line := Child.cradle_line(f, h * 60)
+		check("Sora" in line and not "%s" in line, "%d:00: the line names the baby (%s)" % [h, line])
+		by_hour[h] = [Child.cradle_look(h * 60), line]
+	check(by_hour[2][0] == "asleep" and by_hour[23][0] == "asleep", "asleep at night")
+	check(by_hour[5][0] == "cry", "crying before dawn")
+	check(by_hour[8][0] == "awake" and by_hour[15][0] == "awake", "awake by day")
+	check(by_hour[11][0] == "asleep", "a nap late in the morning")
+	var lines := {}
+	for h in by_hour:
+		lines[by_hour[h][1]] = true
+	check(lines.size() >= 5, "the line changes through the day (%d lines)" % lines.size())
+	check(Child.cradle_line(f, 0) == Child.cradle_line(f, 4 * 60 + 29), "midnight to 4:29 is one row")
+	check(Child.cradle_time(23 * 60 + 59) == Child.cradle_time(19 * 60 + 30), "the last row runs to midnight")
+	var words := RegEx.create_from_string("(?i)\\b(he|she|him|her|his|hers|boy|girl|son|daughter)\\b")
+	for r in Child.data().cradle.times:
+		check(words.search(r.line) == null, "no gendered words: %s" % r.line)
+	Lang.set_language("th")
+	for r in Child.data().cradle.times:
+		check(Lang.covered(r.line) and Lang.t(r.line) != r.line, "in Thai: %s" % r.line)
+	for k in ["You lift %s from the cradle.", "You lay %s back in the cradle.", "Lay %s back in the cradle first.", "Hold", "Put back"]:
+		check(Lang.covered(k), "in Thai: %s" % k)
+	Lang.set_language("en")
+	Lang.release()
+	# The art: the cradle 20 x 16 in four looks, the baby held 12 x 12 like a carried item.
+	var look := Child.look({"hair_style": "long", "hair": "2a1a14", "skin": "f0c8a0"}, "c08a60")
+	var seen := {}
+	for st in ["empty", "asleep", "awake", "cry"]:
+		var img := PlaceholderArt.tex(Child.cradle_key(st, look)).get_image()
+		check(img.get_size() == Vector2i(20, 16), "the cradle %s is 20 x 16" % st)
+		seen[img.get_data()] = st
+	check(seen.size() == 4, "the four cradle pictures differ")
+	var held := PlaceholderArt.tex(Child.held_key("awake", look)).get_image()
+	check(held.get_size() == Vector2i(12, 12), "the baby held is 12 x 12, like an item overhead")
+	check(Child.held_key("cry", look) == Child.held_key("awake", look) and Child.held_key("asleep", look) != Child.held_key("awake", look), "held: asleep or awake")
+	var skin := Color(look.skin)
+	var found := false
+	for y in held.get_height():
+		for x in held.get_width():
+			found = found or held.get_pixel(x, y).is_equal_approx(skin)
+	check(found, "the held baby has the child's skin (Child.look)")
+
+
+## The cradle prop in the second room only while the baby stage holds, and only once the
+## room is built.
+func _cradle_map() -> void:
+	var cradles := func(ext: Array, f: Dictionary) -> Array:
+		var out := []
+		for p in MapManager.load_map("house", ext, f)[1].props:
+			if p.kind == Child.CRADLE:
+				out.append(p)
+		return out
+	check(cradles.call(["room"], {}).is_empty(), "no child: no cradle")
+	for st in ["crawler", "toddler", "child"]:
+		check(cradles.call(["room"], {Child.STAGE: st}).is_empty(), "no cradle once the child is a %s" % st)
+	var c: Array = cradles.call(["room"], {Child.STAGE: "baby"})
+	check(c.size() == 1 and Vector2i(c[0].cell) == Vector2i(10, 1), "the baby's cradle in the second room at (10, 1)")
+	check(cradles.call([], {Child.STAGE: "baby"}).is_empty(), "no cradle without the second room")
+	var m: MapData = MapManager.load_map("house", ["room"], {Child.STAGE: "baby"})[1]
+	check(m.is_solid(Vector2i(10, 1)) and not m.is_solid(Vector2i(10, 2)) and not m.is_solid(Vector2i(9, 1)), "the cradle is solid, the cells in front free")
+
+
+## A married farmer in the farmhouse with a baby born today, the second room built, standing
+## below the cradle facing it.
+func _baby_home(g: Node) -> void:
+	g.new_game()
+	g.clock_running = false
+	g._finish_build({"build": "room", "shop": g._builder_shop("room"), "ready": 0})
+	var m := _married("sayo", 5)
+	for k in m:
+		g.flags[k] = m[k]
+	Child.tell_news(g.flags, g.day_number())
+	Child.give_birth(g.flags, g.day_number(), "Sora")
+	Child.sync_stage(g.flags, g.day_number())
+	g.maps.place("house", Vector2i(10, 2), Vector2i.UP)
+
+
+## Looking in, lifting, no throw, the door rule, laying back, the views' pictures, the morning.
+func _baby_in_arms() -> void:
+	var g: Node = root.get_node("Game")
+	var FA: GDScript = load("res://scripts/farm_actions.gd")   # they name the Game autoload: loaded once it is up
+	var AH: GDScript = load("res://scripts/ui/action_hints.gd")
+	var CL: GDScript = load("res://scripts/world3d/cradle_layer.gd")
+	var said: Array = []
+	var hear := func(t: String) -> void: said.append(t)
+	var thrown: Array = []
+	var fly := func(item, _a, _b, _r) -> void: thrown.append(item)
+	g.message.connect(hear)
+	g.thrown.connect(fly)
+	_baby_home(g)
+	var at := Vector2i(10, 2)
+	var cradle := Vector2i(10, 1)
+	check(g.is_cradle(cradle) and not g.is_cradle(at), "the cradle is at (10, 1) in the farmhouse")
+	check(g.cradle_prop("farm").is_empty(), "no cradle on the farm")
+	g.hour = 8
+	g.minute = 0
+	check(AH.pick(at, Vector2i.UP) == {"interact": "Look", "use_tool": "Hold"}, "the key hints: Look and Hold %s" % [AH.pick(at, Vector2i.UP)])
+	FA.on_action("interact", at, Vector2i.UP)
+	check(not said.is_empty() and said.back() == Child.cradle_line(g.flags, 8 * 60) and not g.baby_held, "E looks in: the 8:00 line %s" % [said])
+	g.hour = 2
+	FA.on_action("interact", at, Vector2i.UP)
+	check(said.back() == Child.cradle_line(g.flags, 2 * 60) and said.back() != Child.cradle_line(g.flags, 8 * 60), "at 2:00 another line (%s)" % said.back())
+	g.hour = 8
+	var crad := CradleView.new()
+	root.add_child(crad)
+	crad.refresh()
+	check(crad.key() == Child.cradle_key("awake", g.child_look()), "the flat view's cradle: the baby awake at 8:00 (%s)" % crad.key())
+	var layer: Node3D = CL.new("house")
+	root.add_child(layer)
+	check(layer.sprite != null and layer.sprite.visible and layer.sprite.get_meta("key") == crad.key(), "the 3D view's cradle: the same picture")
+	FA.on_action("tool", at, Vector2i.UP)
+	check(g.baby_held and g.holding() and g.held == "", "the tool button lifts the baby (the hand slot stays empty)")
+	check(said.back() == "You lift Sora from the cradle.", "lifted: %s" % said.back())
+	check(g.held_key() == Child.held_key("awake", g.child_look()), "the baby is the picture overhead (%s)" % g.held_key())
+	crad.refresh()
+	layer.refresh()
+	check(crad.key() == Child.cradle_key("empty", g.child_look()) and layer.sprite.get_meta("key") == crad.key(), "both views show the cradle empty")
+	check(AH.pick(at, Vector2i.UP) == {"interact": "Put back", "use_tool": "Put back"} and AH.pick(at, Vector2i.LEFT) == {"interact": "", "use_tool": ""},
+		"the key hints while held: Put back at the cradle only")
+	# Not thrown, not set down, no sleep: only the cradle takes the baby.
+	for kind in ["interact", "tool"]:
+		FA.on_action(kind, at, Vector2i.LEFT)
+		check(g.baby_held and thrown.is_empty() and g.farm.item_at(at + Vector2i.LEFT) == "", "%s facing the floor: still held, nothing thrown or put down" % kind)
+	check(said.back() == "Your hands are full.", "the hands are full")
+	var day: int = g.day
+	g.maps.place("house", Vector2i(1, 3), Vector2i.UP)
+	FA.on_action("interact", Vector2i(1, 3), Vector2i.UP)   # the futon
+	check(g.baby_held and g.maps.id == "house" and g.day == day, "no sleeping with the baby in the arms")
+	g.maps.place("house", Vector2i(4, 5), Vector2i.DOWN)
+	FA.on_action("enter", Vector2i(4, 5), Vector2i.DOWN)   # the farmhouse door
+	check(g.maps.id == "house" and g.baby_held, "the door waits: still in the farmhouse with the baby")
+	check(said.back() == "Lay Sora back in the cradle first.", "the door rule says why: %s" % said.back())
+	g.maps.place("house", at, Vector2i.UP)
+	FA.on_action("interact", at, Vector2i.UP)
+	check(not g.baby_held and not g.holding() and said.back() == "You lay Sora back in the cradle.", "E at the cradle lays the baby back")
+	FA.on_action("tool", at, Vector2i.UP)
+	FA.on_action("tool", at, Vector2i.UP)
+	check(not g.baby_held, "the tool button at the cradle lays the baby back too")
+	# Map changes and the night put the baby back (an event, a collapse).
+	g.lift_baby()
+	g.go_to_map("farm", Vector2i(4, 4), Vector2i.DOWN)
+	check(not g.baby_held, "a map change lays the baby back")
+	g.maps.place("house", at, Vector2i.UP)
+	check(g.lift_baby(), "lifted again")
+	g.end_day()
+	check(not g.baby_held, "a new day lays the baby back")
+	g.maps.place("house", at, Vector2i.UP)
+	g.held = "turnip"
+	check(not g.lift_baby(), "no lifting with an item in hand")
+	g.held = ""
+	# 30 days after the birth: a crawler, the cradle gone.
+	for i in 29:
+		g.end_day()
+	check(Child.stage(g.flags, g.day_number()) == "crawler" and g.flags.get(Child.STAGE) == "crawler", "30 days on: a crawler (%s)" % g.flags.get(Child.STAGE))
+	g.maps.place("house", at, Vector2i.UP)
+	check(not g.is_cradle(cradle) and not g.lift_baby(), "no cradle, nothing to lift")
+	crad.refresh()
+	layer.refresh()
+	check(crad.key() == "" and not layer.sprite.visible, "both views drop the cradle")
+	crad.free()
+	layer.free()
+	g.message.disconnect(hear)
+	g.thrown.disconnect(fly)
+	g.new_game()
+
+
+## Saved while holding: on load the baby is back in the cradle.
+func _baby_save() -> void:
+	var g: Node = root.get_node("Game")
+	_baby_home(g)
+	check(g.lift_baby(), "lift the baby")
+	var path := "user://test_child_baby.json"
+	check(SaveGame.write(g, path) == "", "write the save while holding")
+	g.new_game()
+	var err := SaveGame.read(g, path)
+	check(err == "", "read it (%s)" % err)
+	check(not g.baby_held and not g.holding() and g.held == "", "loaded: the arms are empty")
+	check(g.maps.id == "house" and g.is_cradle(Vector2i(10, 1)) and g.flags.get(Child.STAGE) == "baby", "and the baby is in the cradle")
+	SaveGame.restore({path: null, path + SaveGame.BACKUP: null, path + SaveGame.TEMP: null})
 	g.new_game()

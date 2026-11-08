@@ -131,6 +131,7 @@ func _enter_map() -> void:
 	view.add_child(StoryView.new(m))   # what the heart events left (the bell, the store's sign)
 	view.add_child(FerryView.new(m))   # Mio's ferry boat, moving when she takes it across
 	view.add_child(DyeClothView.new(m))   # Shino's indigo drying by her vats, in her hours on dry days
+	view.add_child(CradleView.new())   # the baby's cradle in the second room, while the child is a baby
 	view.add_child(FestivalView.new(m.id))   # today's festival decorations, in its hours
 	view.add_child(ForageView.new(m.id))   # what grows wild there today (data/forage.json)
 	view.add_child(VillagerView.new(m.id))

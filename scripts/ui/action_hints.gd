@@ -11,7 +11,7 @@ const TOOL_VERBS := {"hoe": "Till", "can": "Water", "sickle": "Cut", "hammer": "
 const USE_VERBS := {"sleep": "Sleep", "shop": "Shop", "storage": "Open", "cook": "Cook",
 	"ribbons": "Look", "examine": "Look", "feed_box": "Feed", "feed_sack": "Look",
 	"nest": "Take egg", "incubator": "Incubator", "hatch": "Hatch", "fodder_box": "Feed",
-	"fodder": "Feed", "barn_tools": "Look", "barn_gate": "Gate"}
+	"fodder": "Feed", "barn_tools": "Look", "barn_gate": "Gate", "cradle": "Look"}
 
 
 ## {interact, use_tool} for the farmer on cell `origin` facing `facing`.
@@ -21,6 +21,9 @@ static func pick(origin: Vector2i, facing: Vector2i) -> Dictionary:
 	if Game.animals.dog.held:
 		return {"interact": "Put down", "use_tool": "Put down"}
 	var c := origin + facing
+	if Game.baby_held:   # only the cradle takes the baby back (BabyActions)
+		var back := "Put back" if Game.is_cradle(c) else ""
+		return {"interact": back, "use_tool": back}
 	var out := {"interact": interact_verb(origin, facing), "use_tool": tool_verb(origin, facing)}
 	if Game.holding() and Game.maps.on_farm():
 		if out.interact == "":
@@ -80,6 +83,8 @@ static func interact_verb(origin: Vector2i, facing: Vector2i) -> String:
 
 ## The tool button: eat, cast, or the tool's own work where tools work.
 static func tool_verb(origin: Vector2i, facing: Vector2i) -> String:
+	if not Game.holding() and Game.is_cradle(origin + facing):
+		return "Hold"   # lifts the baby (BabyActions.lift, before the tool's own work)
 	var tool := Game.current_tool()
 	if tool == "food":
 		if Game.edible(Game.held) or Game.count("food:" + Game.current_food()) > 0:

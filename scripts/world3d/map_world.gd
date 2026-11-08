@@ -252,6 +252,7 @@ func _make_prop(p: Dictionary) -> void:
 		"cave_mouth": _cave_mouth(mid, r)
 		"door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark", "kiln_site", "kiln_new", "boat_name", "noren": StoryProps.prop(self, p)
 		"ladder": _ladder(mid)
+		"cradle": pass   # the baby's cradle: CradleLayer shows it (it changes as the farmer lifts the baby)
 		_:
 			push_warning("MapWorld: no look for prop '%s'" % p.kind)
 			_box(Vector3(r.size.x, 0.5, r.size.y) * 0.9, mid + Vector3(0, 0.25, 0), flat_material(Color.MAGENTA))

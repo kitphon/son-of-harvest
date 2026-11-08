@@ -39,6 +39,7 @@ func _run() -> void:
 	_bin_and_food()
 	await _fishing()
 	await _doors()
+	await _cradle()
 	await _talk_and_shop()
 	await _mine()
 	await _weather_and_festival()
@@ -211,6 +212,32 @@ func _doors() -> void:
 	await _wait_view("map_view.gd")
 	check(_is(scene.view, "map_view.gd") and scene.view.map.id == "house", "the 2D view swaps to the house")
 	check(player.position == g.maps.pos, "the farmer stands at the door's spawn %s %s" % [player.position, g.maps.pos])
+
+
+## The baby's cradle in the flat view (CradleView): drawn in the second room while the child
+## is a baby, the tool button lifts the baby into the hold pose, the door waits, E lays them back.
+func _cradle() -> void:
+	g._finish_build({"build": "room", "shop": g._builder_shop("room"), "ready": 0})
+	g.flags.merge({"spouse": "sayo", "married_sayo": true})
+	Child.tell_news(g.flags, g.day_number())
+	Child.give_birth(g.flags, g.day_number(), "Aoi")
+	Child.sync_stage(g.flags, g.day_number())
+	g.go_to_map("house", Vector2i(10, 2), Vector2i.UP)
+	await _wait_view("map_view.gd")
+	await process_frame
+	var cv: Node = scene.view.get_node_or_null("Cradle")
+	check(_is(cv, "cradle_view.gd") and cv.key().begins_with("child:cradle:") and not cv.key().contains(":empty:"), "the flat house draws the baby's cradle")
+	act("tool", Vector2i(10, 2), Vector2i.UP)
+	await process_frame
+	check(g.baby_held and player.anim.key(Vector2i.UP).contains("hold"), "the tool button lifts the baby, the farmer in the hold pose (%s)" % player.anim.key(Vector2i.UP))
+	check(cv.key().contains(":empty:"), "the flat cradle is empty while held")
+	act("enter", Vector2i(4, 5), Vector2i.DOWN)
+	check(g.maps.id == "house" and g.baby_held, "the farmhouse door waits while the baby is held")
+	act("interact", Vector2i(10, 2), Vector2i.UP)
+	await process_frame
+	check(not g.baby_held and not cv.key().contains(":empty:"), "E at the cradle lays the baby back")
+	for k in ["child_news", "child_born", "child_name", Child.STAGE, "spouse", "married_sayo"]:
+		g.flags.erase(k)
 
 
 func _talk_and_shop() -> void:

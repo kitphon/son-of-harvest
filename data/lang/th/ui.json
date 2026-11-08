@@ -581,6 +581,19 @@
 		"Persimmon": "ส้มลูกพลับ",
 		"Moss green": "เขียวมอส",
 		"Plum": "ม่วงพลัม",
-		"Ash gray": "เทาขี้เถ้า"
+		"Ash gray": "เทาขี้เถ้า",
+
+		"Hold": "อุ้ม",
+		"Put back": "วางคืน",
+		"You lift %s from the cradle.": "อุ้ม%sขึ้นจากเปล",
+		"You lay %s back in the cradle.": "วาง%sกลับลงในเปล",
+		"Lay %s back in the cradle first.": "วาง%sกลับลงในเปลก่อน",
+		"%s is fast asleep, breathing slow and even.": "%sหลับปุ๋ย หายใจช้า ๆ สม่ำเสมอ",
+		"%s is awake before the birds and crying to be fed.": "%sตื่นก่อนนกร้อง ร้องไห้หิวนม",
+		"%s is wide awake, waving two small fists at the beams.": "%sตื่นเต็มตา โบกกำปั้นเล็ก ๆ สองข้างไปทางขื่อ",
+		"%s is napping, one hand curled by one cheek.": "%sงีบหลับอยู่ มือข้างหนึ่งกำไว้ข้างแก้ม",
+		"%s is awake and kicking at the quilt.": "%sตื่นแล้ว ถีบผ้าห่มดุ๊กดิ๊ก",
+		"%s watches the lantern light and yawns.": "%sมองแสงโคมแล้วหาวหวอด",
+		"%s has drifted off to sleep.": "%sเคลิ้มหลับไปแล้ว"
 	}
 }

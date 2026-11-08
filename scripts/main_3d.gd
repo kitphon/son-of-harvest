@@ -255,6 +255,7 @@ func _enter_map() -> void:
 	_add_layer(FestivalProps.new(m.id))   # today's festival decorations, in its hours
 	_add_layer(VillagerSprites.new(m.id))
 	_add_layer(ForageLayer.new(m.id))   # what grows wild there today (data/forage.json)
+	_add_layer(CradleLayer.new(m.id))   # the baby's cradle in the second room, while the child is a baby
 	add_child(world)
 	move_child(world, 0)
 	var animals := AnimalLayer.new()   # the animals, eggs and feed (coop, barn, or the farm and its dog)

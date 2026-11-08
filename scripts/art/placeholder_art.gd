@@ -85,6 +85,8 @@ static func _make(key: String) -> Image:
 		"festival": # festival:<kind>:<w>x<h>[:<cloth hex>], a festival decoration in the flat view (FestivalView)
 			var wh := parts[2].split("x") if parts.size() > 2 else PackedStringArray(["1", "1"])
 			return _festival(parts[1], int(wh[0]), int(wh[1]), Color(parts[3]) if parts.size() > 3 else Color("c8442c"))
+		"child":    # child:<cradle|held>:<empty|asleep|awake|cry>:<skin>:<hair>:<top>, the baby in its bamboo cradle (20 x 14) or held up in the arms (12 x 12), in the child's colours (Child.look)
+			return _baby_cradle(parts[2], Color(parts[3]), Color(parts[4]), Color(parts[5])) if parts[1] == "cradle" 				else _baby_held(parts[2], Color(parts[3]), Color(parts[4]), Color(parts[5]))
 		"mochi":    # mochi:<usu:<dough 0..3>|kine>, the mochi pounding's mortar and mallet (MochiScreen, FestivalView)
 			return _usu(int(parts[2]) if parts.size() > 2 else 0) if parts[1] == "usu" else _kine()
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
@@ -561,6 +563,83 @@ static func food_look(id: String) -> Dictionary:
 		for k in data.get("foods", {}):
 			_food_looks[k] = data.foods[k].get("look", {})
 	return _food_looks.get(id, {})
+
+
+## The baby's face in a swaddle: a round face at (cx, cy), a tuft of the hair colour on top,
+## eyes shut (asleep: a short dark line each) or open (dots), and the mouth open while crying.
+static func _baby_face(img: Image, cx: int, cy: int, look: String, skin: Color, hair: Color) -> void:
+	_oval(img, cx + 0.5, cy + 0.5, 3.2, 2.8, skin)
+	_px(img, cx - 1, cy - 3, 3, 1, hair)          # the tuft
+	_px(img, cx, cy - 4, 1, 1, hair)
+	_px(img, cx - 2, cy + 2, 1, 1, Color("e8907a").lerp(skin, 0.4))   # pink cheeks
+	_px(img, cx + 3, cy + 2, 1, 1, Color("e8907a").lerp(skin, 0.4))
+	var eye := Color("2a1e1e")
+	if look == "asleep":
+		_px(img, cx - 2, cy + 1, 2, 1, eye)
+		_px(img, cx + 2, cy + 1, 2, 1, eye)
+	else:
+		_px(img, cx - 1, cy, 1, 1, eye)
+		_px(img, cx + 2, cy, 1, 1, eye)
+	if look == "cry":
+		_px(img, cx, cy + 2, 2, 2, Color("8a2a2a"))
+	elif look == "awake":
+		_px(img, cx + 1, cy + 2, 1, 1, skin.darkened(0.3))
+
+
+## The bamboo cradle (a woven basket on two rockers) seen from the front and a little above,
+## 20 x 16: the baby's head over the rim on a white pad, an indigo quilt (`top`) over the rest;
+## awake, a small fist up by the quilt. "empty": the pad and the quilt folded back.
+static func _baby_cradle(look: String, skin: Color, hair: Color, top: Color) -> Image:
+	var img := _blank(20, 16)
+	var cane := Color("c8b070")
+	var cane_dark := cane.darkened(0.25)
+	var rocker := Color("8a6a3a")
+	_px(img, 3, 3, 14, 3, Color("ece4d0"))           # the pad inside, over the far rim
+	if look == "empty":
+		_px(img, 10, 3, 7, 2, top)                   # the quilt folded back
+		_px(img, 10, 3, 7, 1, top.lightened(0.2))
+	else:
+		_px(img, 8, 3, 10, 3, top)                   # the quilt over the little body
+		_px(img, 8, 3, 10, 1, top.lightened(0.2))
+		_px(img, 11, 4, 1, 1, Color("e8e2d0"))       # the happi's pale dots
+		_px(img, 15, 4, 1, 1, Color("e8e2d0"))
+		_baby_face(img, 5, 3, look, skin, hair)
+		if look != "asleep":                         # a small fist waving over the quilt
+			_px(img, 13, 1, 2, 2, skin)
+	_px(img, 1, 6, 18, 2, cane.lightened(0.2))       # the rim, bound with cane
+	_px(img, 1, 6, 18, 1, cane.lightened(0.35))
+	_px(img, 2, 8, 16, 5, cane)                      # the basket's front
+	for x in range(3, 18, 2):                        # the weave
+		_px(img, x, 8, 1, 5, cane_dark)
+	_px(img, 2, 10, 16, 1, cane_dark)
+	_px(img, 4, 13, 1, 1, rocker)                    # the rockers' legs and curve
+	_px(img, 15, 13, 1, 1, rocker)
+	_px(img, 2, 14, 16, 1, rocker)
+	_px(img, 1, 13, 1, 1, rocker)
+	_px(img, 18, 13, 1, 1, rocker)
+	return _outline(img)
+
+
+## The baby held up in the arms (the hold pose), 12 x 12 like a carried item: a small bundle
+## lying across the hands, swaddled in the house's indigo, the face in its white wrap at one end.
+static func _baby_held(look: String, skin: Color, hair: Color, top: Color) -> Image:
+	var img := _blank(12, 12)
+	_oval(img, 7.5, 8.5, 4.4, 2.8, top)              # the swaddle
+	_px(img, 5, 7, 6, 1, top.lightened(0.2))
+	_px(img, 7, 9, 1, 1, Color("e8e2d0"))
+	_px(img, 10, 9, 1, 1, Color("e8e2d0"))
+	_oval(img, 3.5, 7.5, 3.4, 3.4, Color("ece4d0"))  # the white wrap round the face
+	_oval(img, 3.5, 7.5, 2.3, 2.2, skin)             # the face
+	_px(img, 3, 5, 2, 1, hair)                       # the tuft
+	var eye := Color("2a1e1e")
+	if look == "asleep":
+		_px(img, 2, 7, 1, 1, eye)
+		_px(img, 4, 7, 1, 1, eye)
+	else:
+		_px(img, 2, 6, 1, 1, eye)
+		_px(img, 4, 6, 1, 1, eye)
+		_px(img, 3, 8, 1, 1, skin.darkened(0.3))
+	return _outline(img)
 
 
 static func _blank(w: int, h: int) -> Image:

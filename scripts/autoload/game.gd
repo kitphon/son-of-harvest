@@ -100,6 +100,10 @@ var held: String:
 		return inventory.id_at("hand", 0)
 	set(value):
 		inventory.slots.hand[0] = {} if value == "" else {"id": value, "n": 1}
+## The baby is in the farmer's arms (the hold pose; BabyActions). Not saved: a game saved while
+## holding loads with the baby back in the cradle, and every map change and new day lays the
+## baby back too (the baby never leaves the farmhouse).
+var baby_held := false
 var shipped: Dictionary = {}    # item id -> how many were ever shipped
 var shop_jobs: Dictionary = {}  # shop id -> {tool, level, ready (day number), slot}: a tool left for an upgrade
 var house_built: Array[String] = []   # house extensions done (data/shops.json builds; the maps follow)
@@ -191,6 +195,7 @@ func _ready() -> void:
 ## earlier game in the same session is left over. New run state belongs in this list too.
 func new_game() -> void:
 	ending_open = false
+	baby_held = false
 	game_partner = ""
 	race = null
 	year = 1
@@ -385,9 +390,36 @@ func new_game() -> void:
 			var m := MapManager.data(mine_map("floor_map"))
 			maps.place(m.id, m.spawns.start[0], m.spawns.start[1])
 			maps.mine_floor = new_mine_floor(maxi(arg.trim_prefix("--mine=").to_int(), 1))
+		elif arg == "--baby" or arg == "--baby=held":   # `-- --demo --map=house --built=room --flags=married_sayo,spouse=sayo --baby`: born today, in the cradle (=held: in the arms)
+			_demo_baby(arg == "--baby=held")
+	Child.sync_stage(flags, day_number())   # `--flags=` may have set a birth
 	# `--map=mine_floor` alone: the first floor.
 	if maps.id == mine_map("floor_map") and maps.mine_floor == null:
 		maps.mine_floor = new_mine_floor(1)
+
+
+## `--baby`: a child born today to the spouse of the `--flags` (Sayo when none is set), named
+## their first name unless `--flags=child_name=...` named it; the farmer stands below the
+## cradle in the second room facing it; `held`: the baby lifted out.
+func _demo_baby(held_up: bool) -> void:
+	if Marriage.spouse(flags) == "":
+		flags["spouse"] = "sayo"
+		flags["married_sayo"] = true
+	var who := Marriage.spouse(flags)
+	var list := Child.names(who) if not Child.names(who).is_empty() else Child.names("sayo")
+	var name := Child.child_name(flags)
+	if not name in list:
+		name = str(list[0])
+	Child.tell_news(flags, day_number())
+	Child.give_birth(flags, day_number(), name)
+	Child.sync_stage(flags, day_number())
+	var p := cradle_prop("house")
+	if p.is_empty():
+		push_warning("--baby: no cradle without the second room (--built=room)")
+		return
+	maps.place("house", Vector2i(p.cell) + Vector2i.DOWN, Vector2i.UP)
+	if held_up:
+		lift_baby()
 
 
 ## The demo field's three crops per season (winter, with no field crops, shows spring's).
@@ -538,6 +570,7 @@ func go_to_map(map_id: String, cell: Vector2i, face: Vector2i) -> bool:
 	if map_id == mine_map("floor_map"):
 		depth = maps.mine_floor.depth + 1 if maps.mine_floor != null else maxi(_mine_start, 1)
 	_mine_start = 0
+	baby_held = false   # the baby stays in the farmhouse: back in the cradle (doors wait, BabyActions)
 	maps.place(map_id, cell, face)
 	maps.mine_floor = new_mine_floor(depth) if depth > 0 else null
 	fishing.stop()
@@ -996,6 +1029,7 @@ func knock_out(kind: String) -> void:
 ## Ends the day and starts the next one; the farmer wakes on map `wake_map` at its spawn
 ## `wake_spawn` (at home by the futon unless a knock-out says otherwise).
 func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
+	baby_held = false   # asleep in the cradle by morning
 	pay_bin()
 	affection.day_end(day_number(), rng)   # before the date moves: who was left alone today
 	day += 1
@@ -1097,12 +1131,57 @@ func add_animal(kind: String, young := false) -> bool:
 # --- holding and throwing ---------------------------------------------------
 
 func holding() -> bool:
-	return held != "" or animals.dog.held
+	return held != "" or animals.dog.held or baby_held
 
 
-## The sprite key for what is carried overhead: the held item, or the dog in the arms.
+## The sprite key for what is carried overhead: the held item, the dog in the arms, or the baby.
 func held_key() -> String:
+	if baby_held:
+		return Child.held_key(Child.cradle_look(int(day_minutes())), child_look())
 	return "animal:dog:held:0" if animals.dog.held else PlaceholderArt.world_item_key(held)
+
+
+# --- the baby (Child; the cradle in the second room) ------------------------
+
+## The child's colours (Child.look): the spouse's hair, the skin between the farmer's and theirs.
+func child_look() -> Dictionary:
+	var spouse := Marriage.spouse(flags)
+	return Child.look(Villagers.look(spouse) if spouse != "" else {}, str(FarmerLooks.current_look().get("skin", "f2c79b")))
+
+
+## The cradle prop on map `map_id` while the child is a baby ({} for none: no baby, not built).
+func cradle_prop(map_id: String) -> Dictionary:
+	var m := MapManager.data(map_id) if MapManager.has(map_id) else null
+	if m == null or not Child.is_baby(flags, day_number()):
+		return {}
+	for p in m.props:
+		if p.kind == Child.CRADLE:
+			return p
+	return {}
+
+
+## Is cell `c` of the current map the baby's cradle (shown now)?
+func is_cradle(c: Vector2i) -> bool:
+	var p := cradle_prop(maps.id)
+	return not p.is_empty() and Rect2i(Vector2i(p.cell), Vector2i(p.size)).has_point(c)
+
+
+## Takes the baby out of the cradle into the arms (hands free, a baby in the cradle here).
+func lift_baby() -> bool:
+	if holding() or cradle_prop(maps.id).is_empty():
+		return false
+	baby_held = true
+	changed.emit()
+	return true
+
+
+## Lays the baby back in the cradle.
+func lay_baby() -> bool:
+	if not baby_held:
+		return false
+	baby_held = false
+	changed.emit()
+	return true
 
 
 ## What one of `id` fetches in the bin (0 = can't be shipped). Fish are "fish:<id>", dishes
@@ -2925,6 +3004,8 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	farm.add_missing_fixed()   # saves from before the storage chest / the coop / the barn get them
 	for key in n:
 		set(key, n[key])
+	baby_held = false   # never saved: the baby is back in the cradle
+	Child.sync_stage(flags, day_number())   # the cradle follows the loaded day
 	sync_build_flag()
 	MapManager.set_built(house_built)
 	MapManager.set_flags(flags)

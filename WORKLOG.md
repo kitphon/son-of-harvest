@@ -10,6 +10,68 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — The child, step 3: the baby in a bamboo cradle, looked in on, held and laid back
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done:
+  - `Child.sync_stage` keeps a flag `child_stage` (baby, crawler, toddler, child) in step with
+    the day: each morning (`day_start`), at the birth (`event_step`), on loading a save and
+    after the `--flags` / `--baby` flags. data/maps/house.json's `room` extension has a
+    `cradle` prop at (10, 1) in the second room, gated by `child_stage` = "baby", so it stands
+    from the birth until day 30 and only with the second room built.
+  - data/child.json `cradle.times`: seven rows by the clock, each a picture (asleep, awake,
+    cry) and a line with the name: asleep from 19:30 and through the night, crying for a feed
+    from 4:30, wide awake from 6:30, a nap from 10:00, awake and kicking from 13:00, watching
+    the lantern from 17:00 (the house's clock stands still indoors, so it is the hour the
+    farmer came in). No gendered words; Thai for all of them in data/lang/th/ui.json.
+  - Controls (BabyActions, FarmActions, ActionHints): E on the cradle looks in ("Look"); the
+    tool button lifts the baby ("Hold") into the hold pose (`Game.baby_held`; the rucksack's
+    hand slot stays empty); while held either button facing the cradle lays the baby back
+    ("Put back"), anything else says "Your hands are full." (no throw, no setting down, no
+    talk, gift or sleep). Door rule (my choice): the door waits with "Lay %s back in the
+    cradle first.", as with the dog; as a safety net any map change (events, a collapse) and
+    the night lay the baby back too. `baby_held` is not saved, so a game saved while holding
+    loads with the baby in the cradle.
+  - Art (PlaceholderArt "child:"): `child:cradle:<empty|asleep|awake|cry>:<skin>:<hair>:<top>`,
+    a woven bamboo cradle on rockers (20 x 16) with the baby's head over the rim on a white
+    pad under an indigo quilt, a fist up when awake, the mouth open when crying; and
+    `child:held:<asleep|awake>:...`, a 12 x 12 bundle in indigo with the face in a white wrap,
+    carried like an item. Colours from `Child.look` (the spouse's hair, the skin between,
+    the happi's indigo) via `Game.child_look`.
+  - Views: CradleLayer (3D, a visit layer, a billboard at the figures' pixel size) and
+    CradleView (flat) read the cradle prop and `baby_held` every frame, so the cradle shows
+    the moment the birth scene ends and empties when the baby is lifted; MapWorld and MapView
+    leave the prop out of their own drawing.
+  - Debug flags `--baby` (born today, the farmer below the cradle) and `--baby=held`, in
+    AGENTS.md; README → Maps describes the prop and the rules.
+- Checked: test_child new checks (stage flag by day, birth and morning; the cradle prop only
+  with child_stage baby and the room built, solid with free cells in front; the line and the
+  picture by the hour incl. 2:00 asleep, 5:00 crying, 8:00 / 15:00 awake, 11:00 a nap, five
+  or more different lines, no he / she words, Thai; the four cradle pictures differ, the held
+  one 12 x 12 in the child's skin; E's line at 8:00 and at 2:00; hints Look / Hold, Put back
+  only at the cradle; the tool button lifts, held_key is the baby; interact and tool facing
+  the floor keep the baby, nothing thrown or put down; the futon does nothing; the door keeps
+  the farmer inside with the message; E and the tool button lay the baby back; a map change
+  and end_day lay the baby back; no lifting with an item in hand; 30 days on a crawler and no
+  cradle in either view; saved while holding, loaded with empty arms and the baby in the
+  cradle). test_maps `_cradle`: the 3D house builds with no stand-in box, CradleLayer stands
+  the picture on (10.5, 1.5) at FIGURE_PX, empty while held. test_view2d `_cradle`: the flat
+  house draws it, the tool button lifts into the hold pose, the door waits, E lays back.
+  Mutation (the door not waiting in BabyActions): `FAIL: the door rule says why: Your hands
+  are full.`, `test_child: FAILED (1 failed)`; restored. All 31 suites printed
+  `OK (0 failed)`; after the last art and flag edits test_child, test_hold, test_maps,
+  test_view2d, test_save, test_lang and test_events ran again, all `OK (0 failed)`. Smoke
+  runs (title, `-- --demo`, `-- --demo --map=house --built=room
+  --flags=married_sayo,spouse=sayo --baby=held`) printed no error or warning lines.
+  Screenshots (3D, `--demo --map=house --built=room --flags=married_sayo,spouse=sayo,child_name=Sora
+  --baby --time=8:00`, frame 39): the cradle by the back wall of the second room, the baby
+  awake with a fist up under the indigo quilt, Sayo at the kotatsu, the hints "E Look
+  Space Hold". With `--baby=held`: the farmer in the hold pose with the swaddled baby
+  overhead, the cradle empty, the hint "E/Space Put back". Flat view (`res://scenes/main_2d.tscn`
+  with `--baby --map=house@start`): the cradle with the baby in the second room's corner.
+  shots/ deleted.
+- Left / next: step 4, crawler and toddler figures. No crying sound; the birth scene itself
+  still shows no baby (the cradle appears as it ends).
+
 ## 2026-11-08 — The child, step 2: the news and the birth scenes for all eight spouses
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done:
