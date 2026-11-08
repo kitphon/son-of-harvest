@@ -10,6 +10,48 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Married spouses keep the farmhouse on festival days and birthdays
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: a spouse's own festival and birthday rules came before `married_<id>`, so on those days
+  (and Ren on every Sunday) they woke in their old home and walked from there. Now each of the
+  eight has married plans, listed first in their rules:
+  - `married_festival_day`, `married_festival_night`, `married_festival_year` (Sayo: one per
+    festival, as her single plans): at the farmhouse ([9, 3]) from 6:00, into the village by
+    the farm road (town [0, 10]) at the time they used to arrive, along it to the same spot
+    they stand at for the festival (a lead-in per side they used to come from: along row 10,
+    row 11 or down the x 4 lane), back the same way at the festival's end and home a few
+    minutes after the walk (rounded up to five), away at the old time or ten minutes after;
+  - Sayo keeps the store on festival days as when single, her old house swapped for the
+    farmhouse (her married days already come to the store's door);
+  - `married_birthday`: the day where each likes to be (Fumi the cherry road after a morning
+    at the counter, Haru the hill's lookout then the field, Ichiro the teahouse bench, Mio the
+    far east shore, Kaede Minamino's roadside shrine, Shino the river shore, Ren the pond),
+    from and back to the farmhouse along their married commute. Sayo's married days already
+    held on her birthday;
+  - Ren: `married_day_off`, the pond bench on Sundays.
+
+  The plans were written into the villager files by a one-off script from the single plans
+  (not kept); the files are the data.
+- Checked: test_relationships `_spouse_special_days`:
+  - every candidate on each festival, their birthday and (Ren) a Sunday gets a married plan
+    that builds;
+  - they are at the farmhouse at 6:30 and it is their last map of the day;
+  - they never visit their old home (Fumi's home is her teahouse, where she works);
+  - single, the old plan still holds.
+
+  test_villagers checks every walk stays off solid cells. Output `test_relationships: OK (0
+  failed)`, `test_villagers: OK (0 failed)`. Mutation test (Kaede's married Blossom Day rule
+  removed): `FAIL: kaede married on blossom_day: a married plan (festival_day)`, `FAIL: ...
+  wakes and ends the day at the farmhouse`, `FAIL: ... never back in kaede_house`,
+  `test_relationships: FAILED (3 failed)`; restored. All 30 suites printed `OK (0 failed)`.
+  Smoke runs printed no error or warning lines: title, --demo, --map=town, --mine=3,
+  --festival=blossom_day --flags=married_mio,spouse=mio, --season=winter --day=4 --map=river
+  --flags=married_shino,spouse=shino --time=11:00.
+  Screenshot: `--day=8 --map=house --built=room --flags=married_kaede,spouse=kaede
+  --time=7:00`: Kaede in the farmhouse on Blossom Day morning. (`--festival=` moves the
+  farmer to the village, so the date was set instead.) shots/ deleted.
+- Left / next: a child, the last marriage piece, starts with its rules in DESIGN.
+
 ## 2026-11-08 — Shino's noren over the farmhouse door and her own
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: her band 6 scene sets `shino_noren` (rows or flowers: "a noren on your door"), but no

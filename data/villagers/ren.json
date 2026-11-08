@@ -6,6 +6,11 @@
 	"speed": 1.6,
 	"look": {"outfit": "happi", "hair_style": "short", "bag": "b89a68", "hair": "2a2018", "skin": "e4b088", "top": "4a5e42", "waist": "c8a050", "lower": "3a3430", "accent": "e8e2d0", "shoes": "4a3a30"},
 	"rules": [
+		{"if": {"flags": ["married_ren"], "festival": ["blossom_day"]}, "plan": "married_festival_day"},
+		{"if": {"flags": ["married_ren"], "festival": ["lantern_night", "moon_night"]}, "plan": "married_festival_night"},
+		{"if": {"flags": ["married_ren"], "festival": ["years_turn"]}, "plan": "married_festival_year"},
+		{"if": {"flags": ["married_ren"], "birthday": true}, "plan": "married_birthday"},
+		{"if": {"flags": ["married_ren"], "weekday": ["sun"]}, "plan": "married_day_off"},
 		{"if": {"festival": ["blossom_day"]}, "plan": "festival_day"},
 		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
@@ -21,6 +26,41 @@
 		"hate": ["mine:stone"]
 	},
 	"plans": {
+		"married_festival_day": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "09:45", "map": "town", "from": [0, 10], "route": [{"to": [1, 10]}, {"to": [7, 11]}, {"to": [7, 12]}, {"face": "up"}]},
+			{"at": "16:00", "map": "town", "route": [{"to": [7, 11]}, {"to": [1, 10]}, {"to": [0, 10]}, {"face": "left"}]},
+			{"at": "16:10", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"married_festival_night": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "17:30", "map": "town", "from": [0, 10], "route": [{"to": [1, 10]}, {"to": [26, 11]}, {"to": [26, 12]}, {"face": "up"}]},
+			{"at": "21:40", "map": "town", "route": [{"to": [26, 11]}, {"to": [1, 10]}, {"to": [0, 10]}, {"face": "left"}]},
+			{"at": "22:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "22:10", "map": "away"}
+		],
+		"married_festival_year": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "18:30", "map": "town", "from": [0, 10], "route": [{"to": [1, 10]}, {"to": [14, 10]}, {"to": [14, 6]}, {"face": "up"}]},
+			{"at": "23:00", "map": "town", "route": [{"to": [14, 10]}, {"to": [1, 10]}, {"to": [0, 10]}, {"face": "left"}]},
+			{"at": "23:15", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "23:25", "map": "away"}
+		],
+		"married_birthday": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "08:50", "map": "town", "from": [0, 10], "route": [{"to": [1, 10]}, {"to": [29, 10]}, {"to": [29, 15]}, {"to": [30, 15]}, {"face": "right"}], "loop": [{"wait": 25}, {"face": "down"}, {"wait": 5}, {"face": "right"}]},
+			{"at": "15:00", "map": "town", "route": [{"to": [29, 15]}, {"to": [29, 10]}, {"to": [0, 10]}, {"face": "left"}]},
+			{"at": "15:30", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"married_day_off": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "09:00", "map": "town", "from": [0, 10], "route": [{"to": [1, 10]}, {"to": [29, 10]}, {"to": [29, 15]}, {"to": [30, 15]}, {"face": "right"}], "loop": [{"wait": 25}, {"face": "down"}, {"wait": 5}, {"face": "right"}]},
+			{"at": "15:00", "map": "town", "route": [{"to": [29, 15]}, {"to": [29, 10]}, {"to": [0, 10]}, {"face": "left"}]},
+			{"at": "15:30", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "21:00", "map": "away"}
+		],
 		"usual": [
 			{"at": "06:00", "map": "post_office", "from": [5, 2], "route": [{"face": "down"}]},
 			{"at": "07:00", "map": "post_office", "route": [{"to": [3, 2]}, {"face": "down"}], "loop": [{"work": 20}, {"face": "left"}, {"wait": 5}, {"face": "down"}]},

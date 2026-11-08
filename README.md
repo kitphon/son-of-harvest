@@ -406,7 +406,15 @@ front, the guests at the sides, sets `spouse` = id and `married_<id>` and clears
 `wedding_day` (the village record's date, see Ending).
 Married, the spouse's rules (`married_<id>` in their villager file) have them live at the
 farmhouse (by the kotatsu in the second room, `house` [9, 3]) mornings and evenings and keep
-their own work by day; their talk files have `engaged_`, `wed_morning_` / `wed_evening_` (at
+their own work by day. Their festival days and birthday have married plans too, listed before
+the single ones so they win (`married_festival_day` / `_night` / `_year`, Sayo's four
+`married_festival_<id>`, `married_birthday`; Ren's Sundays `married_day_off`): they wake at the
+farmhouse, walk into the village by the farm road ([0, 10] on the town map) for the festival's
+hours and come home after, or spend the birthday at the place they like that day (Mio's far
+shore, Kaede's roadside shrine, Haru's lookout) and are home by evening. Sayo still keeps the
+store on festival days, from her married mornings (`--demo --day=8 --map=house --built=room
+--flags=married_kaede,spouse=kaede --time=7:00` shows Kaede at home on Blossom Day morning).
+Their talk files have `engaged_`, `wed_morning_` / `wed_evening_` (at
 home) and `wed_out_` lines, and Tome mentions the knot on Fridays once a candidate's band 6
 scene is seen. Each morning the spouse helps on the farm (`help` in `marriage.json`,
 `Marriage.help` from `Game.end_day` after the night): on a sunny day up to `water` (6) dry

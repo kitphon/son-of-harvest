@@ -29,6 +29,7 @@ func _init() -> void:
 	_marriage_rules()
 	_married_plans_and_lines()
 	_spouse_help_rules()
+	_spouse_special_days()
 
 
 func _process(_delta: float) -> bool:
@@ -55,6 +56,45 @@ func _process(_delta: float) -> bool:
 
 
 # --- pure logic and data ----------------------------------------------------
+
+## A married spouse keeps the farmhouse on festival days and their birthday (and Ren on his
+## Sundays off): the married_ plan wins, they wake and end the day at the farmhouse and never
+## go to their old home; single, the old plans still hold.
+func _spouse_special_days() -> void:
+	const OLD_HOME := {"sayo": "sayo_house", "haru": "haru_house", "ichiro": "ichiro_house", "mio": "mio_hut",
+		"kaede": "kaede_house", "shino": "shino_house", "ren": "post_office", "fumi": ""}
+	var people := Villagers.all()
+	for id in Marriage.candidates():
+		var v: Dictionary = people[id]
+		var days := []
+		for f in ["blossom_day", "lantern_night", "moon_night", "years_turn"]:
+			days.append({"name": f, "s": {"year": 1, "season": "spring", "day": 3, "weekday": "wed", "weather": "sunny", "festival": f}})
+		var born: Dictionary = v.birthday
+		days.append({"name": "birthday", "s": {"year": 1, "season": born.season, "day": int(born.day), "weekday": "wed", "weather": "sunny", "festival": ""}})
+		if id == "ren":
+			days.append({"name": "sunday", "s": {"year": 1, "season": "spring", "day": 7, "weekday": "sun", "weather": "sunny", "festival": ""}})
+		for d in days:
+			var married: Dictionary = d.s.merged({"flags": {"married_" + id: true}})
+			var plan := Villagers.pick_plan(v, married)
+			var single := Villagers.pick_plan(v, d.s.merged({"flags": {}}))
+			if plan == str(v.default) and single == str(v.default):
+				continue   # nothing special that day (Sayo's birthday: her married days already hold)
+			var built: Array = DayPlan.build(v.plans[plan], Villagers.speed_of(v))
+			check(built[0] == "" and plan.begins_with("married"), "%s married on %s: a married plan (%s) %s" % [id, d.name, plan, built[0]])
+			if built[0] != "":
+				continue
+			var p: DayPlan = built[1]
+			var maps := {}
+			for e in p.entries:
+				maps[e.map] = true
+			var last := ""
+			for e in p.entries:
+				if e.map != DayPlan.AWAY:
+					last = e.map
+			check(p.where(6 * 60 + 30).map == "house" and last == "house", "%s married on %s: wakes and ends the day at the farmhouse" % [id, d.name])
+			check(OLD_HOME[id] == "" or not maps.has(OLD_HOME[id]), "%s married on %s: never back in %s" % [id, d.name, OLD_HOME[id]])
+			check(not single.begins_with("married"), "%s single on %s keeps the old plan (%s)" % [id, d.name, single])
+
 
 ## One heart colour per band, each heart drawn differently, the name tag wide enough for it.
 func _heart_art() -> void:

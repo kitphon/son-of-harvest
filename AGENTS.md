@@ -63,7 +63,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Relationships (hearts on the name tag, birthdays and x5 gifts, the nightly loss, heart
   events at bands 3, 5 and 6, birthday day plans, fair weather and the HUD tag, mine finds, dishes and
   keepsakes as gifts, marriage: the mizuhiki knot's rules and answers, the proposal, the wedding day
-  and its trigger, the spouse's day plan and lines, the spouse's morning help, the save): `res://tests/test_relationships.gd` must print `test_relationships: OK (0 failed)`.
+  and its trigger, the spouse's day plan and lines, their festival days and birthday at the farmhouse, the spouse's morning help, the save): `res://tests/test_relationships.gd` must print `test_relationships: OK (0 failed)`.
   Shops (data/shops.json, buying / selling, tool upgrades and their ores, mine finds sold, the smithy while Hachiro builds,
   shop maps and doors, the screen, Fumi's teahouse):
   `res://tests/test_shops.gd` must print `test_shops: OK (0 failed)`.
