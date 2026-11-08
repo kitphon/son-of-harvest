@@ -40,7 +40,7 @@ func _draw() -> void:
 		if p.kind == "kiln":   # the old kiln's wear, over its box (MapView draws the box)
 			draw_texture(PlaceholderArt.tex("story:kiln_worn"), Vector2(p.cell * T))
 			continue
-		if not p.kind in KINDS:
+		if not p.kind in KINDS or p.kind == "boat_name":   # the boat's name goes with the boat (FerryView)
 			continue
 		var tex := PlaceholderArt.tex(art_key(p))
 		var r := Rect2(Vector2(p.cell * T), Vector2(p.size * T))
@@ -49,8 +49,6 @@ func _draw() -> void:
 			r.end.y -= 4
 		elif p.kind == "keepsake":   # hung from the lintel: its top near the cell's top
 			r.end.y = r.position.y + tex.get_height() + 2
-		elif p.kind == "boat_name":   # on the boat's side, low in its cell (MapView draws the boat)
-			r.end.y -= 3
 		elif p.kind == "jizo_bibs":   # on the jizo's chest, the middle of its cell
 			r.end.y -= 4
 		elif p.kind == "kiln_mark":   # over the kiln's mouth, in the front cells' upper half

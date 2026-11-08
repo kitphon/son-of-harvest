@@ -10,6 +10,70 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Mio poles the ferry across
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: the old ferry boat now goes out. On her fine mornings Mio takes it across the river and
+  back.
+  - data/ferry.json (FerryRun, scripts/villagers/ferry_run.gd, pure):
+    - the poler (mio) and the map (river);
+    - the boat's mooring middle (14.5, 7.5) and its place against the far bank (14.5, 9.55);
+    - where she stands (the stern, 0.8 west), the landing's end she steps from, her lift in the
+      boat (0.16);
+    - the phases: board 2, out 10, wait 6, back 10, off 2 (30 minutes; a slow crossing of a
+      narrow river, back by about 10:05);
+    - no crossing in winter (the shore ice).
+  - DayPlan: a new step `{"ferry": minutes}`; `where` gives `ferrying` / `ferried`.
+    Villagers.where passes the place through FerryRun.ride:
+    - down the landing into the stern (walking), poling out (facing down) and back (facing up),
+      standing at the far bank, stepping off;
+    - `lift` while in the boat; `poling` gives a new pose "pole".
+  - FigureArt "pole": both hands on a long pole leaning down the figure's front to the water,
+    high on it (0), then pushing down with the body dipping a pixel (1), each pole_minutes.
+    Front and back.
+  - mio.json: in her usual and married plans a 9:30 entry walks to the shore above the landing
+    (14, 5), crosses, and goes back to her traps. Wet days, festivals and her birthday have
+    their own plans and no crossing.
+  - The boat moves:
+    - 3D: OutdoorProps.ferry_boat puts its pieces in a BoatRide node moved each frame by
+      FerryRun.boat_offset from Mio's place. The painted name (StoryProps) is reparented into
+      it, and the spare pole is its own piece, hidden while it is in her hands.
+    - Flat view: a new FerryView draws the boat and its name (MapView keeps the landing,
+      StoryView skips the name) and moves with the same offset.
+    - Villager sprites in both views stand `lift` higher.
+- Checked:
+  - test_villagers `_ferry_crossing`:
+    - the step is read and lasts its minutes; the run is 30 minutes;
+    - the phase order; the boat at the mooring, the far bank and back;
+    - the boat's ends stay on water cells clear of the rocks all the way;
+    - boarding walks into the stern; poling out lifts her, frames 0 / 1; the pole is in use;
+    - she waits at the far bank and poles back facing up; she steps off with the boat tied;
+    - no crossing in winter; the pole pose's frames differ, front and back;
+    - both plans carry `{"ferry":30}`;
+    - a sunny spring Monday takes the boat across between 9:30 and 10:20; none in winter; on a
+      rainy morning she is not on the river.
+  - test_maps `_ferry_boat`: the hull is in the moving piece, the name goes with it, and the flat
+    view has the boat.
+
+  Output `test_villagers: OK (0 failed)`, `test_maps: OK (0 failed)`. Mutation test (the boat
+  kept at its mooring in "out" and "wait"): `FAIL: the boat leaves its mooring, lies at the far
+  bank and comes back`, `FAIL: poling out, standing in the boat ...`, `FAIL: standing at the far
+  bank`, `FAIL: on a fine spring morning she takes the boat across ...`, `test_villagers: FAILED
+  (4 failed)`; restored, `test_villagers: OK (0 failed)`. All 30 suites printed `OK (0 failed)`.
+  test_maps, test_villagers, test_view2d and test_relationships were run again after the
+  spare-pole change: all `OK (0 failed)`. Smoke runs printed no error or warning lines: title,
+  --demo, --map=town, --mine=3, --map=river@ferry --time=9:30 (and with --season=winter),
+  main_2d --map=river@ferry --time=9:30.
+  Screenshots:
+  - `--map=river@ferry --time=9:38 --weather=sunny`: Mio poling the boat out mid-river.
+  - main_2d at 9:47: the boat against the far bank, her in it.
+  - `--time=9:55 --flags=mio_boat=father`: poling back from behind, the dragon plaque riding on
+    the boat. The first frame showed the spare pole still lying on the seats while she held
+    one, so it became its own piece and is hidden then.
+
+  shots/ deleted.
+- Left / next: nobody is ferried yet; the far bank has nothing to cross to. The farmer cannot
+  ride along. Shino's dye house noren and the rack kept in when she is away are next.
+
 ## 2026-11-08 — Shino's indigo drying by her vats
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: Shino's dye house has its drying rack now.

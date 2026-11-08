@@ -19,6 +19,7 @@ func _init() -> void:
 	_work_step()
 	_fish_step()
 	_post_step()
+	_ferry_crossing()
 	_rules()
 	_files()
 	_paths_stay_clear()
@@ -356,6 +357,80 @@ func _post_step() -> void:
 	check(w.map == "town" and w.posting and Vector2i(w.pos.floor()) == Vector2i(5, 7) and w.facing == Vector2i.UP,
 		"8:35, Ren slips the post in at Tome's door %s" % [w])
 	check(FileAccess.get_file_as_string("res://data/sfx.json").contains('"letter_post"'), "the letter's paper sound is in data/sfx.json")
+
+
+## Mio's ferry crossing (data/ferry.json, FerryRun, the {"ferry": minutes} step): the step is
+## read; the phases run board, out, wait, back, off over its minutes; the boat leaves its mooring,
+## lies against the far bank and comes back, staying on the water clear of the rocks; she steps
+## down into the stern, poles out and back (the pole pose, two frames) and steps off again; on a
+## fine spring morning her plan takes it across, never in winter, and her step lasts the run.
+func _ferry_crossing() -> void:
+	var r: Array = DayPlan.build([{"at": "06:00", "map": "river", "from": [14, 5], "route": [{"ferry": 30}, {"wait": 5}]}], 1.5)
+	check(r[0] == "", "a ferry step is read (%s)" % r[0])
+	var p: DayPlan = r[1]
+	check(p.where(375.0).ferrying and is_equal_approx(p.where(375.0).ferried, 15.0) and not p.where(391.0).ferrying, "ferrying for its minutes, done after")
+	check(is_equal_approx(FerryRun.total(), 30.0), "the crossing takes 30 minutes (%s)" % FerryRun.total())
+	var names := []
+	for m in [0.5, 5.0, 15.0, 25.0, 29.5]:
+		names.append(FerryRun.phase(m)[0])
+	check(names == ["board", "out", "wait", "back", "off"], "board, out, wait, back, off %s" % [names])
+	check(FerryRun.boat_at(0.0) == FerryRun.mooring() and FerryRun.boat_at(15.0) == FerryRun.far() and FerryRun.boat_at(30.0) == FerryRun.mooring(),
+		"the boat leaves its mooring, lies at the far bank and comes back")
+	var river: MapData = MapManager.load_map("river", null, {})[1]
+	var clear := true
+	for i in 61:
+		var b := FerryRun.boat_at(i * 0.5)
+		for c in [Vector2(b.x - 1.35, b.y), Vector2(b.x + 1.35, b.y), Vector2(b.x, b.y - 0.3), Vector2(b.x, b.y + 0.3)]:
+			var cell := Vector2i(c.floor())
+			if river.tile(cell) != "water" or river.prop_at(cell).get("kind", "") == "river_rock":
+				clear = false
+	check(clear, "the boat stays on the water, clear of the rocks")
+	var w := {"map": "river", "pos": Vector2(14.5, 5.5), "facing": Vector2i.DOWN, "moving": false, "walked": 0.0, "ferrying": true, "ferried": 0.0, "id": "mio"}
+	var at := func(m: float) -> Dictionary:
+		var x := w.duplicate()
+		x.ferried = m
+		return FerryRun.ride(x, "spring")
+	var stern: Vector2 = FerryRun.mooring() + Vector2(-0.8, 0)
+	check(at.call(0.0).pos.is_equal_approx(Vector2(14.5, 5.5)) and at.call(1.99).pos.distance_to(stern) < 0.05 and at.call(1.0).moving,
+		"she walks down the landing into the stern")
+	var out: Dictionary = at.call(5.0)
+	check(out.poling and Villagers.pose(out) == "pole" and out.lift > 0.1 and out.pos.y > stern.y + 0.3, "poling out, standing in the boat %s" % [out])
+	var a: Dictionary = at.call(3.0)
+	var b: Dictionary = at.call(4.6)
+	check(Villagers.sprite_key(a).ends_with(":pole:0") and Villagers.sprite_key(b).ends_with(":pole:1"), "the pole planted, then pushed (%s, %s)" % [Villagers.sprite_key(a), Villagers.sprite_key(b)])
+	check(FerryRun.in_use(out) and not FerryRun.in_use({"map": "river", "ferrying": false}), "the boat's pole is in her hands while she crosses, lying on the seats otherwise")
+	check(not at.call(15.0).poling and at.call(15.0).pos.is_equal_approx(FerryRun.far() + Vector2(-0.8, 0)), "standing at the far bank")
+	check(at.call(20.0).poling and at.call(20.0).facing == Vector2i.UP, "poling back")
+	check(at.call(29.99).pos.distance_to(Vector2(14.5, 5.5)) < 0.05 and FerryRun.boat_offset(at.call(29.99)) == Vector2.ZERO, "off on the shore, the boat tied again")
+	var winter: Dictionary = w.duplicate()
+	winter.ferried = 15.0
+	FerryRun.ride(winter, "winter")
+	check(not winter.ferrying and winter.pos == Vector2(14.5, 5.5), "no crossing in winter: she stays on the shore")
+	var look := Villagers.look("mio")
+	var idle := FigureArt.draw(look, false, "idle", 0).get_data()
+	var p0 := FigureArt.draw(look, false, "pole", 0).get_data()
+	check(p0 != idle and p0 != FigureArt.draw(look, false, "pole", 1).get_data() and FigureArt.draw(look, true, "pole", 0).get_data() != FigureArt.draw(look, true, "idle", 0).get_data(),
+		"the pole pose's two frames, front and back")
+	for plan in ["usual", "married"]:
+		var steps := JSON.stringify(Villagers.all().mio.plans[plan])
+		check(steps.contains('{"ferry":30}') or steps.contains('{"ferry":30.0}'), "Mio's %s plan crosses for the run's minutes" % plan)
+	Villagers.reset_day()
+	var crossed := false
+	var mid: Dictionary = {}
+	for m in range(9 * 60 + 30, 10 * 60 + 20):
+		var v := Villagers.where("mio", m, _state())
+		if v.get("ferrying", false) and v.ferried >= 14.0 and v.ferried < 16.0:
+			crossed = true
+			mid = v
+	check(crossed and mid.map == "river" and FerryRun.boat_offset(mid).y > 1.5, "on a fine spring morning she takes the boat across %s" % [mid])
+	Villagers.reset_day()
+	var any := false
+	for m in range(9 * 60 + 30, 10 * 60 + 20):
+		any = any or Villagers.where("mio", m, _state({"season": "winter"})).get("ferrying", false)
+	check(not any, "never in winter")
+	Villagers.reset_day()
+	check(Villagers.where("mio", 9 * 60 + 50, _state({"weather": "rain"})).map != "river", "not on a wet day (she mends nets inside)")
+	Villagers.reset_day()
 
 
 func _without(d: Dictionary, key: String) -> Dictionary:

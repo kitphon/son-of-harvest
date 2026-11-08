@@ -34,7 +34,7 @@ func refresh() -> void:
 			add_child(s)
 			_sprites[w.id] = s
 		s.visible = true
-		s.position = Vector3(w.pos.x, 0, w.pos.y)
+		s.position = Vector3(w.pos.x, float(w.get("lift", 0.0)), w.pos.y)   # lifted standing in the ferry boat
 		var key := Villagers.sprite_key(w)
 		if key.ends_with(":work:1") and s.get_meta("key", "") != key:
 			Sfx.play("build_knock")   # each blow of the hammer, heard on this map

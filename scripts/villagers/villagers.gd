@@ -218,7 +218,7 @@ static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 		return {}
 	if actors.has(id):   # acting in an event: its place, not the plan's
 		return actors[id].duplicate()
-	var w: Dictionary = plans[id].where(plan_minute(id, t))
+	var w: Dictionary = FerryRun.ride(plans[id].where(plan_minute(id, t)), str(s.get("season", "")))   # onto the ferry boat in a crossing
 	var turn: Variant = _turns.get(id)
 	if turn != null and t >= turn.from:
 		w.facing = turn.facing
@@ -226,6 +226,7 @@ static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 		w.working = false   # puts the hammer down to talk
 		w.fishing = false   # and reels the line in
 		w.posting = false   # and holds the letter back
+		w.poling = false    # and rests the pole
 	return w
 
 
@@ -346,7 +347,8 @@ static func is_on(id: String, map_id: String, t: float, s: Dictionary) -> bool:
 ## frames go by the distance walked, so steps match the ground at any speed; work frames
 ## (hammer up, 0, and down, 1) by the minutes worked; fish frames (the rod tip up, 0, and
 ## dipped, 1) by the minutes the rod has been out; post frames (the letter held up to the
-## door, 0, and slipped in, 1) by the minutes at the door.
+## door, 0, and slipped in, 1) by the minutes at the door; pole frames (planted high, 0, and
+## pushed down, 1) by the minutes into the crossing.
 static func sprite_key(w: Dictionary) -> String:
 	var back := FarmerAnim.is_back(w.facing)
 	var p := pose(w)
@@ -359,10 +361,13 @@ static func sprite_key(w: Dictionary) -> String:
 		frame = fish_frame(w.fished)
 	elif p == "post":
 		frame = post_frame(w.posted)
+	elif p == "pole":
+		frame = FerryRun.pole_frame(w.ferried)
 	return "villager:%s:%s:%s:%d" % [w.id, "back" if back else "front", p, frame]
 
 
-## What villager `w` (as on_map gives them) is doing: walk, work, fish, post or idle.
+## What villager `w` (as on_map gives them) is doing: walk, work, fish, post, pole (poling the
+## ferry boat, FerryRun) or idle.
 static func pose(w: Dictionary) -> String:
 	if w.moving:
 		return "walk"
@@ -370,6 +375,8 @@ static func pose(w: Dictionary) -> String:
 		return "work"
 	if w.get("fishing", false):
 		return "fish"
+	if w.get("poling", false):
+		return "pole"
 	return "post" if w.get("posting", false) else "idle"
 
 

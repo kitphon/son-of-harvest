@@ -32,6 +32,7 @@ const CUP_TEA := Color("7aa848")
 const SWEAT := Color("9fd8f2")
 const BASKET := Color("d9b45a")          # the farmer's straw hip basket (koshi-kago)
 const LETTER := Color("f4f0e4")          # a letter in the post pose
+const POLE := Color("b89a68")            # the ferry pole in the pole pose (the 3D boat's pole)
 
 const STYLES: Array[String] = ["bun", "short", "headband", "long", "straw_hat", "tenugui"]
 const OUTFITS: Array[String] = ["kimono", "happi", "shirt_shorts", "noragi"]
@@ -82,6 +83,10 @@ const POSES := {
 	# A villager putting a letter in at a door (Ren's round): the near hand up in front with the
 	# letter (0), then pushed a pixel further as it slips in (1).
 	"post": [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]],
+	# A villager poling a boat (Mio's ferry): both hands on a long pole planted at the front
+	# (screen left) down into the water, high on it (0), then pushing down on it, the body
+	# dipping a pixel (1).
+	"pole": [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0]],
 }
 ## Per eat / drink frame: [hand offset from the mouth, what it holds: "bite" (a morsel at the
 ## lips), "chew" (the bitten rest), "cup" (upright at the lips), "tip" (tipped up)].
@@ -153,6 +158,7 @@ static func draw(look: Dictionary, back: bool, pose: String, frame: int, farmer 
 	var tired := pose.begins_with("tired")
 	var hold := pose.begins_with("hold")
 	var rod := ROD_TIPS.has(pose) or pose == "fish"
+	var poling := pose == "pole"
 	var mouth: Array = MOUTH[pose][frame % frames(pose)] if MOUTH.has(pose) else []
 	var sleeve := "wide" if outfit == "kimono" else ("short" if outfit == "shirt_shorts" else "narrow")
 	# Screen-left / -right shoulders (the top-left of each sleeve's first row).
@@ -164,7 +170,7 @@ static func draw(look: Dictionary, back: bool, pose: String, frame: int, farmer 
 	if style == "long" and not back:
 		_long_hair_behind(img, r, c)
 	# The far arm, behind the body (rod and work poses draw it after, both hands in front).
-	if not rod:
+	if not rod and not poling:
 		_arm(img, far_sh, hd.far, c, sleeve, hold)
 	# Legs: far first, then near. From the front the far leg is on the left, from the back on the right.
 	var far_x: int = (r.bx + 1 if back else r.bx - 3) + p[3]
@@ -185,6 +191,9 @@ static func draw(look: Dictionary, back: bool, pose: String, frame: int, farmer 
 		if not farmer:   # the line hangs from the tip
 			for y in range(tip.y + 1, H - 1):
 				_dot(img, tip.x, y, Color(0.92, 0.92, 0.86, 0.85))
+	if poling:   # the pole from over the head down past the feet, both hands on it
+		_pole(img, r, frame % 2 == 1)
+		_arm(img, far_sh, hd.far, c, sleeve, false)
 	_head(img, r, c, style, back, tired)
 	if hold:
 		_arm(img, near_sh, hd.near, c, sleeve, true)
@@ -256,6 +265,10 @@ static func _hands(r: Dictionary, back: bool, pose: String, frame: int) -> Dicti
 		var m: Vector2i = MOUTH[pose][frame % frames(pose)][0]
 		var mouth := Vector2i(roundi(r.cx) - (6 if back else 4), roundi(r.cy) + 3)
 		near = mouth + m
+	elif pose == "pole":   # on the pole in front: the near hand high, the far one at the waist
+		var pushed := frame % 2
+		near = _on_pole(r, r.sh - 3 + 2 * pushed)
+		far = _on_pole(r, r.hip - 3 + pushed)
 	elif pose == "post":   # up in front at the chest (from the back, up at the shoulder, toward the door)
 		near = Vector2i(r.x0 - 3 - frame % 2, r.sh + (-2 if back else 1) - frame % 2)
 	elif pose == "work":
@@ -571,6 +584,26 @@ static func _bag(dst: Image, r: Dictionary, back: bool, col: Color) -> void:
 	_r(L, x, y, 5, 2, col.lightened(0.15))          # the flap
 	_dot(L, x + 2, y + 1, Color("c8a050"))           # its buckle
 	_stamp(dst, L)
+
+
+## The ferry pole's x at row `y`: a straight line leaning from its top over the near shoulder
+## in front (screen left) down to the water below the feet.
+static func _pole_x(r: Dictionary, y: int) -> int:
+	var top := Vector2(r.x0 - 1, 0)
+	var foot := Vector2(r.x0 - 6, H - 1)
+	return roundi(lerpf(top.x, foot.x, float(y) / float(H - 1)))
+
+
+## A hand's top-left on the pole at row `y`.
+static func _on_pole(r: Dictionary, y: int) -> Vector2i:
+	return Vector2i(_pole_x(r, y) - 1, y)
+
+
+## The ferry pole down the figure's front, from the top edge to the bottom; pushed, its top is
+## lower by two pixels (driven into the river bed).
+static func _pole(dst: Image, r: Dictionary, pushed: bool) -> void:
+	for y in range(2 if pushed else 0, H):
+		_dot(dst, _pole_x(r, y), y, POLE if y % 7 != 3 else POLE.darkened(0.3))
 
 
 ## The letter in the post pose, held at `hand` (the hand's top-left): a pale envelope above

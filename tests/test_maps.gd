@@ -4354,9 +4354,19 @@ func _ferry_boat() -> void:
 	check(a.get_size() == Vector2i(14, 6) and a.get_data() != b.get_data(), "the two names are drawn and differ")
 	var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
 	w.build(river)
-	var hull := w.get_children().filter(func(c): return c is MeshInstance3D and c.material_override is StandardMaterial3D and c.material_override.albedo_color == Color("8a6440")).size()
+	var ride: Node3D = w.get_node_or_null("FerryBoat")
+	var hull := 0 if ride == null else ride.get_children().filter(func(c): return c is MeshInstance3D and c.material_override is StandardMaterial3D and c.material_override.albedo_color == Color("8a6440")).size()
 	w.free()
-	check(hull > 0, "the 3D river has the boat's hull (%d)" % hull)
+	check(hull > 0, "the 3D river has the boat's hull, in the piece that moves (%d)" % hull)
+	var named: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	named.build(MapManager.load_map("river", null, {"mio_boat": "new"})[1])
+	var on_boat: Node3D = named.get_node_or_null("FerryBoat")
+	check(on_boat != null and on_boat.get_children().any(func(c): return c is MeshInstance3D and c.mesh is QuadMesh),
+		"its painted name goes with it")
+	named.free()
+	var fv := FerryView.new(river)
+	check(fv.has_boat(), "the flat view draws the boat")
+	fv.free()
 
 
 ## Shino's drying rack by her vats (DyeCloth): in Minamino beside the vats, its cells solid and

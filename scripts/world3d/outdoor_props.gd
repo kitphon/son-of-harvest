@@ -508,12 +508,47 @@ static func ferry_boat(w: FarmWorld, r: Rect2, snow: bool) -> void:
 	FarmProps.block(rim, Rect2(x0 - 0.02, cz - half, 0.06, half * 2), 0.14, Rect2(x0 - 0.02, cz - half, 0.06, half * 2), 0.22)   # the stern board
 	for x in [x0 + 0.55, x1 - 0.5]:   # two thwarts across
 		FarmProps.block(rim, Rect2(x, cz - half, 0.12, half * 2), 0.19, Rect2(x, cz - half, 0.12, half * 2), 0.23)
-	FarmProps.block(p.st(Color("b89a68")), Rect2(x0 + 0.2, cz - 0.03, x1 - x0, 0.05), 0.23,   # the pole along the seats
-		Rect2(x0 + 0.2, cz - 0.03, x1 - x0, 0.05), 0.26)
 	_foam(p.st(Color("d4e4e6")), Vector3(r.get_center().x, 0, cz), (r.size.x) * 0.48, 0.42, 0.03, int(r.position.x * 7))
 	if snow:
 		FarmProps.block(p.st(FarmProps.Parts.SNOW), Rect2(x0 + 0.5, cz - 0.2, 0.5, 0.4), 0.185, Rect2(x0 + 0.55, cz - 0.16, 0.4, 0.32), 0.22)
+	var first := w.get_child_count()
 	p.commit(w)
+	var ride := BoatRide.new()   # the boat moves as one when Mio takes it across (FerryRun)
+	ride.name = BoatRide.NAME
+	for n in w.get_children().slice(first):
+		w.remove_child(n)
+		ride.add_child(n)
+	var pole := FarmProps.Parts.new()   # the pole along the seats: in Mio's hands while she crosses
+	FarmProps.block(pole.st(Color("b89a68")), Rect2(x0 + 0.2, cz - 0.03, x1 - x0, 0.05), 0.23,
+		Rect2(x0 + 0.2, cz - 0.03, x1 - x0, 0.05), 0.26)
+	first = w.get_child_count()
+	pole.commit(w)
+	var lying := Node3D.new()
+	lying.name = BoatRide.POLE
+	for n in w.get_children().slice(first):
+		w.remove_child(n)
+		lying.add_child(n)
+	ride.add_child(lying)
+	w.add_child(ride)
+
+
+## The ferry boat's pieces (and its painted name, StoryProps), moved by FerryRun.boat_offset
+## each frame from where the poler's plan has them: tied at the mooring, or out on the river.
+class BoatRide extends Node3D:
+	const NAME := "FerryBoat"
+	const POLE := "Pole"
+
+	func _process(_delta: float) -> void:
+		refresh()
+
+	func refresh() -> void:
+		var game := get_node_or_null("/root/Game")
+		if game == null:
+			return
+		var w := Villagers.where(FerryRun.villager(), game.day_minutes(), game.trigger_state(Vector2i.ZERO))
+		var off := FerryRun.boat_offset(w)
+		position = Vector3(off.x, 0, off.y)
+		get_node(POLE).visible = not FerryRun.in_use(w)
 
 
 ## A small plank landing from the shore out over the water (Mio's ferry stage): boards laid

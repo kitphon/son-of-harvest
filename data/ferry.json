@@ -1,0 +1,13 @@
+{
+	"_about": "Mio's crossing on the old ferry boat (FerryRun; the river map, data/maps/river.json). Her day plan has a step {\"ferry\": minutes} on the shore above her landing; the step's minutes must be the phases' total. Through it she steps down onto the landing and into the boat's stern (board), poles it straight across to the far bank (out), stands there a while (wait), poles it back (back) and steps off onto the shore again (off). The boat (both views) follows her: at the mooring before and after, moving with her in between. `mooring` is the middle of the ferry_boat prop's cells, `far` where its middle lies against the far bank's gravel, `stand` where the poler stands from the boat's middle (the stern, west), `board_at` the landing's end she steps from, `lift` how far her feet stand above the water inside the boat (the 3D floor is at 0.18; the flat view lifts her as many pixels a unit), `pole_minutes` how long each push of the pole lasts (the two pole frames). No crossing in `no_seasons` (the winter shore ice; she stands on the shore looking at the boat for the step's minutes instead). Balance numbers are ours: 30 minutes is a slow, careful crossing of a narrow river, there and back by about 10:00 on her fine mornings.",
+	"villager": "mio",
+	"map": "river",
+	"mooring": [14.5, 7.5],
+	"far": [14.5, 9.55],
+	"stand": [-0.8, 0.0],
+	"board_at": [13.6, 6.35],
+	"lift": 0.16,
+	"pole_minutes": 1.5,
+	"no_seasons": ["winter"],
+	"phases": [["board", 2], ["out", 10], ["wait", 6], ["back", 10], ["off", 2]]
+}

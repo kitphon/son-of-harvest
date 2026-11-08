@@ -68,7 +68,10 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 		"boat_name":
 			# Painted on the boat's side facing the camera, near the stern (OutdoorProps.ferry_boat:
 			# the hull's near gunwale at the cell's middle + 0.3), up to the gunwale.
-			w._picture(StoryView.art_key(p), Vector2(0.7, 0.3), Vector3(r.get_center().x, 0.15, r.get_center().y + 0.34))
+			var name := w._picture(StoryView.art_key(p), Vector2(0.7, 0.3), Vector3(r.get_center().x, 0.15, r.get_center().y + 0.34))
+			var ride := w.get_node_or_null(OutdoorProps.BoatRide.NAME)
+			if ride != null:   # it goes across with the boat
+				name.reparent(ride, false)
 		"keepsake":
 			# A low wooden stand against the back of its cell, the keepsake's icon on it; or,
 			# with `hang`, hung from the lintel over the cell (a chime by the window).

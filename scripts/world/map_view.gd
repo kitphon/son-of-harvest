@@ -219,8 +219,10 @@ func _draw_objects() -> void:
 			var inner := r.grow(-1)
 			_objects.draw_texture(PlaceholderArt.tex(RoofArt.key("kawara", style.roof, style.storeys, Vector2i(inner.size))), inner.position)
 			continue
-		if p.kind == "ferry_boat" or p.kind == "landing":
-			_draw_river_wood(p.kind, r)
+		if p.kind == "ferry_boat":   # drawn by FerryView, which moves it when Mio takes it across
+			continue
+		if p.kind == "landing":
+			_draw_landing(r)
 			continue
 		var fill: Color = COLORS.get(p.kind, Color.MAGENTA)
 		if p.kind == "water_tub" and p.has("color"):   # a tub of its own water (Shino's indigo vats)
@@ -231,24 +233,13 @@ func _draw_objects() -> void:
 			if map.in_bounds(c):
 				_objects.draw_rect(Rect2(Vector2(c * T), Vector2(T, T)).grow(-2), COLORS.door)
 
-## Mio's ferry boat (a wooden hull with dark gunwales, its floor and seats inside, a raised bow
-## at the east end, the pole lying along it) or her plank landing over the water, in pixels.
-func _draw_river_wood(kind: String, r: Rect2) -> void:
+
+## Mio's plank landing over the water, in pixels (her boat is FerryView's).
+func _draw_landing(r: Rect2) -> void:
 	var o := Color("2a1e14")
-	if kind == "landing":
-		var deck := Rect2(r.position.x + 1, r.position.y - 5, r.size.x - 2, r.size.y + 3)
-		_objects.draw_rect(deck.grow(1), o)
-		for i in 6:
-			var x := deck.position.x + i * deck.size.x / 6.0
-			_objects.draw_rect(Rect2(x, deck.position.y, deck.size.x / 6.0 - 1, deck.size.y), Color("9a7650") if i % 2 == 0 else Color("7a5a3a"))
-		_objects.draw_rect(Rect2(deck.end.x - 3, deck.end.y - 7, 3, 7), Color("4a3424"))   # the mooring post
-		return
-	var hull := Rect2(r.position.x + 2, r.get_center().y - 5, r.size.x - 8, 10)
-	_objects.draw_rect(hull.grow(1), o)
-	_objects.draw_rect(hull, Color("8a6440"))
-	_objects.draw_rect(hull.grow(-2), Color("4a3424"))                      # the floor inside
-	_objects.draw_colored_polygon(PackedVector2Array([hull.end - Vector2(0, 10), Vector2(hull.end.x + 6, hull.get_center().y), hull.end]), o)
-	_objects.draw_colored_polygon(PackedVector2Array([Vector2(hull.end.x, hull.position.y + 1), Vector2(hull.end.x + 4, hull.get_center().y), Vector2(hull.end.x, hull.end.y - 1)]), Color("8a6440"))
-	for x in [hull.position.x + 9, hull.end.x - 10]:                       # the seats
-		_objects.draw_rect(Rect2(x, hull.position.y + 1, 3, hull.size.y - 2), Color("5e4228"))
-	_objects.draw_rect(Rect2(hull.position.x + 3, hull.get_center().y - 1, hull.size.x - 2, 2), Color("b89a68"))   # the pole
+	var deck := Rect2(r.position.x + 1, r.position.y - 5, r.size.x - 2, r.size.y + 3)
+	_objects.draw_rect(deck.grow(1), o)
+	for i in 6:
+		var x := deck.position.x + i * deck.size.x / 6.0
+		_objects.draw_rect(Rect2(x, deck.position.y, deck.size.x / 6.0 - 1, deck.size.y), Color("9a7650") if i % 2 == 0 else Color("7a5a3a"))
+	_objects.draw_rect(Rect2(deck.end.x - 3, deck.end.y - 7, 3, 7), Color("4a3424"))   # the mooring post
