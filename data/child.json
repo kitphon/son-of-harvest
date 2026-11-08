@@ -23,6 +23,58 @@
 			{"from": "19:30", "look": "asleep", "line": "%s has drifted off to sleep."}
 		]
 	},
+	"figures": {
+		"_about": "How the crawler, the toddler and the child are drawn (Child.figure_key, FigureArt.draw_little): build is the FigureArt body (crawler on hands and knees, toddler and child standing); stride is the cells moved per walk frame (short arms and legs take short steps). styles: the spouse's hair style as the little one wears it (no long hair, headbands, tenugui or straw hats on someone this small: long hair is tied up in a bun).",
+		"crawler": {"build": "crawler", "stride": 0.2},
+		"toddler": {"build": "toddler", "stride": 0.3},
+		"child": {"build": "child", "stride": 0.4},
+		"styles": {"long": "bun", "headband": "short", "tenugui": "short", "straw_hat": "short"}
+	},
+	"days": {
+		"_about": "Where the crawler and the toddler are through the day (Child.plan, shown by Villagers like a villager): per stage a speed (cells per game minute), rules ({if: the conditions of a villager rule, plan}: the first that holds picks the day's plan, else default) and plans in the villager plan format (DayPlan; README.md, Villagers). by_spouse: while the plan and the spouse are both on map `home`, the little one stays at the spouse's side, this many cells off the spouse, turned to them (the crawler on the mat in front of them, the toddler beside them at the kotatsu). A stage with no plans of its own (the child, until step 5 gives it some) uses the toddler's. Ours: the crawler never leaves the house; the toddler plays in the yard by the dog's kennel from 9:00 to 15:45 on dry days and stays in on wet days and festival days; both are in bed from 20:00.",
+		"home": "house",
+		"by_spouse": {"crawler": [0, 1], "toddler": [1, 0]},
+		"crawler": {
+			"speed": 0.4,
+			"rules": [],
+			"default": "home",
+			"plans": {
+				"home": [
+					{"at": "06:00", "map": "house", "from": [9, 4], "loop": [{"face": "up"}, {"wait": 25}, {"to": [9, 3]}, {"to": [10, 3]}, {"wait": 20}, {"to": [10, 2]}, {"face": "left"}, {"wait": 15}, {"to": [10, 3]}, {"to": [9, 3]}, {"to": [9, 4]}]},
+					{"at": "20:00", "map": "away"}
+				]
+			}
+		},
+		"toddler": {
+			"speed": 0.8,
+			"rules": [
+				{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "indoors"},
+				{"if": {"festival": ["blossom_day", "lantern_night", "moon_night", "years_turn"]}, "plan": "indoors"}
+			],
+			"default": "yard",
+			"plans": {
+				"yard": [
+					{"at": "06:00", "map": "house", "from": [10, 3], "loop": [{"face": "left"}, {"wait": 20}, {"to": [10, 1]}, {"to": [9, 1]}, {"face": "down"}, {"wait": 15}, {"to": [10, 1]}, {"to": [10, 3]}]},
+					{"at": "09:00", "map": "farm", "from": [4, 4], "route": [{"to": [10, 4]}], "loop": [{"to": [12, 4]}, {"face": "down"}, {"wait": 8}, {"to": [12, 5]}, {"face": "left"}, {"wait": 6}, {"to": [12, 4]}, {"to": [10, 4]}, {"face": "right"}, {"wait": 8}]},
+					{"at": "15:45", "map": "farm", "from": [10, 4], "route": [{"to": [4, 4]}, {"face": "up"}]},
+					{"at": "16:00", "map": "house", "from": [10, 3], "loop": [{"face": "left"}, {"wait": 20}, {"to": [10, 1]}, {"to": [9, 1]}, {"face": "down"}, {"wait": 15}, {"to": [10, 1]}, {"to": [10, 3]}]},
+					{"at": "20:00", "map": "away"}
+				],
+				"indoors": [
+					{"at": "06:00", "map": "house", "from": [10, 3], "loop": [{"face": "left"}, {"wait": 20}, {"to": [10, 1]}, {"to": [9, 1]}, {"face": "down"}, {"wait": 15}, {"to": [10, 1]}, {"to": [10, 3]}]},
+					{"at": "20:00", "map": "away"}
+				]
+			}
+		}
+	},
+	"gifts_from": "toddler",
+	"gifts": {
+		"_about": "What the little one thinks of a gift (Villagers.reaction, as a villager's gifts): sweets and wild berries are the best, bitter and hot things the worst. Gifts are taken from the stage gifts_from on (the crawler only babbles). Ours.",
+		"love": ["food:dango", "food:sakura_mochi", "food:kinako_mochi", "food:milk_pudding", "wild:kiichigo"],
+		"like": ["wild:kuwa", "wild:akebi", "food:warabi_mochi", "food:tamagoyaki", "food:onigiri", "egg", "tomato"],
+		"dislike": ["wild:sansho", "wild:myoga", "food:green_tea", "onion"],
+		"hate": ["wild:fukinoto"]
+	},
 	"names": {
 		"sayo": ["Hikari", "Sora", "Aoi"],
 		"fumi": ["Nagisa", "Makoto", "Akira"],

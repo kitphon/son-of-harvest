@@ -207,6 +207,9 @@ static func today(s: Dictionary) -> Dictionary:
 		var people := all()
 		for id in people:
 			_today[id] = DayPlan.build(people[id].plans[pick_plan(people[id], s)], speed_of(people[id]))[1]
+		var little := Child.plan(s)   # the crawler / toddler about the house, under the id child
+		if little != null:
+			_today[Child.ID] = little
 	return _today
 
 
@@ -219,6 +222,13 @@ static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 	if actors.has(id):   # acting in an event: its place, not the plan's
 		return actors[id].duplicate()
 	var w: Dictionary = FerryRun.ride(plans[id].where(plan_minute(id, t)), str(s.get("season", "")))   # onto the ferry boat in a crossing
+	if id == Child.ID:   # at the spouse's side while both are at home; drawn in the child's colours
+		var stage := str(s.flags.get(Child.STAGE, ""))
+		var spouse := Marriage.spouse(s.flags)
+		if spouse != "" and plans.has(spouse):
+			w = Child.by_spouse(w, where(spouse, t, s), stage)
+		w.stage = stage
+		w.look = Child.colours(s.flags)
 	var turn: Variant = _turns.get(id)
 	if turn != null and t >= turn.from:
 		w.facing = turn.facing
@@ -314,7 +324,7 @@ static func reset_day() -> void:
 ## Villager `id`'s reaction to being given `item` (gifts in their file): "love", "like",
 ## "dislike", "hate", or "neutral" for anything not listed. "fish:*" in a list means any fish.
 static func reaction(id: String, item: String) -> String:
-	var gifts: Dictionary = all().get(id, {}).get("gifts", {})
+	var gifts: Dictionary = (Child.data().get("gifts", {}) if id == Child.ID else all().get(id, {}).get("gifts", {}))   # the little one's in data/child.json
 	for r in REACTIONS:
 		for want in gifts.get(r, []):
 			if want == item or (want.ends_with(":*") and item.begins_with(want.trim_suffix("*"))):
@@ -350,6 +360,8 @@ static func is_on(id: String, map_id: String, t: float, s: Dictionary) -> bool:
 ## door, 0, and slipped in, 1) by the minutes at the door; pole frames (planted high, 0, and
 ## pushed down, 1) by the minutes into the crossing.
 static func sprite_key(w: Dictionary) -> String:
+	if w.get("id", "") == Child.ID:   # the crawler / toddler (Child.figure_key)
+		return Child.figure_key(w)
 	var back := FarmerAnim.is_back(w.facing)
 	var p := pose(w)
 	var frame := 0

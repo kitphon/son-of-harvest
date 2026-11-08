@@ -85,7 +85,9 @@ static func _make(key: String) -> Image:
 		"festival": # festival:<kind>:<w>x<h>[:<cloth hex>], a festival decoration in the flat view (FestivalView)
 			var wh := parts[2].split("x") if parts.size() > 2 else PackedStringArray(["1", "1"])
 			return _festival(parts[1], int(wh[0]), int(wh[1]), Color(parts[3]) if parts.size() > 3 else Color("c8442c"))
-		"child":    # child:<cradle|held>:<empty|asleep|awake|cry>:<skin>:<hair>:<top>, the baby in its bamboo cradle (20 x 14) or held up in the arms (12 x 12), in the child's colours (Child.look)
+		"child":    # child:<cradle|held>:<empty|asleep|awake|cry>:<skin>:<hair>:<top>, the baby in its bamboo cradle (20 x 14) or held up in the arms (12 x 12), in the child's colours (Child.look); child:figure:<crawler|toddler|child>:<style>:<skin>:<hair>:<top>:<front|back>:<idle|walk>:<frame>, the little one about the house (24 x 32, FigureArt.draw_little)
+			if parts[1] == "figure":
+				return FigureArt.draw_little(parts[2], _little_look(parts), parts[7] == "back", parts[8], int(parts[9]))
 			return _baby_cradle(parts[2], Color(parts[3]), Color(parts[4]), Color(parts[5])) if parts[1] == "cradle" 				else _baby_held(parts[2], Color(parts[3]), Color(parts[4]), Color(parts[5]))
 		"mochi":    # mochi:<usu:<dough 0..3>|kine>, the mochi pounding's mortar and mallet (MochiScreen, FestivalView)
 			return _usu(int(parts[2]) if parts.size() > 2 else 0) if parts[1] == "usu" else _kine()
@@ -506,6 +508,14 @@ static func hold_row(pose: String, frame: int) -> int:
 ## swings with it; with the arms up or both hands on the rod, at the near hip instead.
 static func lantern_at(pose: String, frame: int, back := false) -> Vector2i:
 	return FigureArt.lantern_at(pose, frame, back)
+
+
+## The little one's look from a child:figure key: the style and colours in it, the rest the
+## small indigo happi of data/child.json.
+static func _little_look(parts: PackedStringArray) -> Dictionary:
+	var look: Dictionary = Child.data().get("look", {}).get("clothes", {}).duplicate()
+	look.merge({"outfit": "happi", "hair_style": parts[3], "skin": parts[4], "hair": parts[5], "top": parts[6]}, true)
+	return look
 
 
 ## The top row of villager `id`'s head on their sprite (where a carried thing rests).

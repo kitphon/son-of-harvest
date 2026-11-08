@@ -29,6 +29,10 @@ func _init() -> void:
 	_thai()
 	_cradle_rules()
 	_cradle_map()
+	_little_data()
+	_little_days()
+	_little_art()
+	_little_lines()
 
 
 func _process(_delta: float) -> bool:
@@ -39,6 +43,9 @@ func _process(_delta: float) -> bool:
 		_play_birth()
 		_baby_in_arms()
 		_baby_save()
+		_little_talk()
+		_little_gifts()
+		_little_views()
 		print("test_child: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -445,6 +452,302 @@ func _cradle_map() -> void:
 	check(cradles.call([], {Child.STAGE: "baby"}).is_empty(), "no cradle without the second room")
 	var m: MapData = MapManager.load_map("house", ["room"], {Child.STAGE: "baby"})[1]
 	check(m.is_solid(Vector2i(10, 1)) and not m.is_solid(Vector2i(10, 2)) and not m.is_solid(Vector2i(9, 1)), "the cradle is solid, the cells in front free")
+
+
+# --- step 4: the crawler and the toddler -----------------------------------------------
+
+## A day's state as Game.trigger_state gives it: Sayo's spouse, the child at `stage`.
+func _state(stage: String, weather := "sunny", time := 600, festival := "", weekday := "mon") -> Dictionary:
+	var f := _married("sayo", 0)
+	f[Child.BORN] = 0
+	f[Child.NEWS] = 0
+	f[Child.NAME] = "Sora"
+	if stage != "":
+		f[Child.STAGE] = stage
+	return {"year": 1, "season": "spring", "day": 2, "weekday": weekday, "time": time, "weather": weather,
+		"flags": f, "seen": {}, "cell": Vector2i.ZERO, "hearts": {}, "festival": festival}
+
+
+func _little_data() -> void:
+	check(Child.FIGURE_STAGES == ["crawler", "toddler", "child"], "three stages are figures of their own")
+	var s := _state("crawler")
+	check(Child.about(s.flags), "a crawler is about")
+	s.flags[Child.STAGE] = "baby"
+	check(not Child.about(s.flags) and Child.plan(s) == null, "a baby is in the cradle, not about")
+	s.flags.erase(Child.BORN)
+	s.flags[Child.STAGE] = "toddler"
+	check(not Child.about(s.flags), "no birth, no little one")
+	check(Child.takes_gifts("toddler") and Child.takes_gifts("child") and not Child.takes_gifts("crawler") and not Child.takes_gifts("baby"),
+		"gifts from the toddler on")
+	check(Child.small_style("long") == "bun" and Child.small_style("straw_hat") == "short" and Child.small_style("bun") == "bun",
+		"long hair is tied up in a bun, no hats or headbands on the little one")
+	check(Villagers.reaction(Child.ID, "food:dango") == "love" and Villagers.reaction(Child.ID, "wild:kuwa") == "like"
+		and Villagers.reaction(Child.ID, "wild:fukinoto") == "hate" and Villagers.reaction(Child.ID, "turnip") == "neutral",
+		"the little one loves sweets, likes berries, hates bitter shoots")
+	# Every house cell the plans use is free in the farmhouse with the second room (and no cradle).
+	var house: MapData = MapManager.load_map("house", ["room"], {Child.STAGE: "toddler"})[1]
+	var bad := []
+	for st in ["crawler", "toddler"]:
+		var d := Child.days_of(st)
+		for name in d.plans:
+			var p: DayPlan = DayPlan.build(d.plans[name], float(d.speed))[1]
+			for e in p.entries:
+				if e.map == "house" and house.is_solid(Vector2i(e.pos.floor())):
+					bad.append("%s %s start" % [st, name])
+			for w in p.walks():
+				if w[0] == "house":
+					for k in 11:
+						var c := Vector2i((w[1] as Vector2).lerp(w[2], k / 10.0).floor())
+						if house.is_solid(c):
+							bad.append("%s %s %s" % [st, name, c])
+		var off: Array = Child.data().days.by_spouse[st]
+		if house.is_solid(Vector2i(9, 3) + Vector2i(int(off[0]), int(off[1]))):
+			bad.append("%s by the spouse" % st)
+	check(bad.is_empty(), "the plans walk only on free floor in the second room %s" % [bad])
+	# The spouse's spot at home leaves the way into the second room open: (8, 3) stays free of the little one.
+	for st in ["crawler", "toddler"]:
+		var off: Array = Child.data().days.by_spouse[st]
+		check(Vector2i(9, 3) + Vector2i(int(off[0]), int(off[1])) != Vector2i(8, 3), "%s by the spouse leaves the door of the room free" % st)
+
+
+func _little_days() -> void:
+	Villagers.reset_day()
+	# The crawler: at Sayo's side while she is home, on the mat on their own while she keeps the store, in bed at night.
+	var s := _state("crawler")
+	var at := func(t: int, st: Dictionary) -> Dictionary:
+		return Villagers.where(Child.ID, float(DayPlan.day_minute(t / 60, t % 60)), st)
+	var sayo: Dictionary = Villagers.where("sayo", float(DayPlan.day_minute(7, 0)), s)
+	var w: Dictionary = at.call(7 * 60, s)
+	check(sayo.map == "house" and w.map == "house" and w.pos == sayo.pos + Vector2(0, 1), "7:00: the crawler on the mat in front of Sayo (%s, %s)" % [w.pos, sayo.pos])
+	check(w.facing == Vector2i.UP and not w.moving, "turned up to Sayo, still")
+	check(w.stage == "crawler" and w.look == Child.colours(s.flags), "drawn as the crawler in the child's colours")
+	w = at.call(11 * 60, s)
+	check(Villagers.where("sayo", float(DayPlan.day_minute(11, 0)), s).map != "house" and w.map == "house", "11:00: Sayo at the store, the crawler at home")
+	var spots := {}
+	for m in range(9 * 60, 16 * 60, 7):
+		var p: Dictionary = at.call(m, s)
+		check(p.map == "house", "the crawler never leaves the house (%d)" % m)
+		spots[Vector2i(p.pos.floor())] = true
+	check(spots.size() >= 3, "and crawls about the mat (%d cells)" % spots.size())
+	check(at.call(21 * 60, s).map == DayPlan.AWAY and at.call(3 * 60, s).map == DayPlan.AWAY, "in bed at night")
+	var on_map := Villagers.on_map("house", float(DayPlan.day_minute(7, 0)), s)
+	check(on_map.any(func(v): return v.id == Child.ID) and on_map.any(func(v): return v.id == "sayo"), "on_map shows the little one with Sayo")
+	check(Villagers.sprite_key(w.merged({"id": Child.ID})).begins_with("child:figure:crawler:bun:"), "the crawler's sprite key %s" % Villagers.sprite_key(w.merged({"id": Child.ID})))
+	# The toddler: beside Sayo at home, out in the yard by the kennel on a dry day, in on a wet one or a festival.
+	s = _state("toddler")
+	w = at.call(7 * 60, s)
+	sayo = Villagers.where("sayo", float(DayPlan.day_minute(7, 0)), s)
+	check(w.map == "house" and w.pos == sayo.pos + Vector2(1, 0) and w.facing == Vector2i.LEFT, "7:00: the toddler beside Sayo, turned to her")
+	var home: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/animals.json")).dog.home
+	var kennel := Vector2(home[0], home[1]) + Vector2(0.5, 0.5)
+	for m in [9 * 60 + 30, 11 * 60, 13 * 60 + 20, 15 * 60]:
+		w = at.call(m, s)
+		check(w.map == "farm" and w.pos.distance_to(kennel) <= 2.5, "%d: the toddler in the yard by the dog's kennel (%s)" % [m, w.pos])
+	check(Child.plan_name(s) == "yard", "a sunny day: the yard")
+	check(at.call(17 * 60, s).map == "house" and at.call(21 * 60, s).map == DayPlan.AWAY, "home by the evening, in bed at night")
+	for wet in ["rain", "storm", "snow"]:
+		var ws := _state("toddler", wet)
+		check(Child.plan_name(ws) == "indoors" and at.call(11 * 60, ws).map == "house", "%s: the toddler stays in" % wet)
+	var fs := _state("toddler", "sunny", 600, "blossom_day")
+	check(Child.plan_name(fs) == "indoors", "a festival day: in the house")
+	# The child stage has no plans of its own yet: the toddler's.
+	check(Child.plan_name(_state("child")) == "yard" and at.call(11 * 60, _state("child")).map == "farm", "the child stage keeps the toddler's days for now")
+	check(Villagers.sprite_key((at.call(11 * 60, _state("child")) as Dictionary).merged({"id": Child.ID})).begins_with("child:figure:child:"), "drawn in the child build")
+	# No little one, no figure.
+	var none := _state("")
+	none.flags.erase(Child.BORN)
+	Villagers.reset_day()
+	check(Villagers.where(Child.ID, 600.0, none).is_empty() and not Villagers.on_map("house", 420.0, none).any(func(v): return v.id == Child.ID),
+		"no child: nobody under the id child")
+	Villagers.reset_day()
+
+
+func _little_art() -> void:
+	var look := Child.look({"hair_style": "long", "hair": "3a2420", "skin": "f2c79b"}, "e0a878")
+	var keys := {}
+	for st in ["crawler", "toddler", "child"]:
+		for back in [Vector2i.DOWN, Vector2i.LEFT]:
+			for mv in [false, true]:
+				var key := Child.figure_key({"stage": st, "look": look, "facing": back, "moving": mv, "walked": 0.5})
+				check(key.begins_with("child:figure:%s:bun:" % Child.figure(st).build), "the key names the build and the small style: %s" % key)
+				var img := PlaceholderArt.image(key)
+				check(img.get_size() == PlaceholderArt.FIGURE_SIZE, "%s is a figure's size" % key)
+				keys[img.get_data()] = true
+	check(keys.size() == 12, "front, back, still and walking differ for each build (%d)" % keys.size())
+	var walk := {}
+	for f in 4:
+		walk[PlaceholderArt.image("child:figure:crawler:bun:e0a878:3a2420:2e4a8c:front:walk:%d" % f).get_data()] = true
+	check(walk.size() >= 2, "the crawl moves (%d frames differ)" % walk.size())
+	var tops := {}
+	for b in ["crawler", "toddler", "child"]:
+		var img := PlaceholderArt.image("child:figure:%s:short:e0a878:3a2420:2e4a8c:front:idle:0" % b)
+		tops[b] = img.get_used_rect().position.y
+		check(img.get_used_rect().end.y == FigureArt.H, "%s stands on the bottom row" % b)
+	check(tops.crawler > tops.toddler and tops.toddler > tops.child, "the crawler lowest, then the toddler, then the child %s" % [tops])
+	var skin := Color("e0a878").lerp(Color("f2c79b"), 0.5)
+	var img := PlaceholderArt.image(Child.figure_key({"stage": "toddler", "look": look, "facing": Vector2i.DOWN, "moving": false, "walked": 0.0}))
+	var found := false
+	for y in img.get_height():
+		for x in img.get_width():
+			found = found or img.get_pixel(x, y).is_equal_approx(Color(look.skin))
+	check(found and Color(look.skin).is_equal_approx(Color(skin.to_html(false))), "the toddler in the skin between the parents")
+
+
+func _little_lines() -> void:
+	var d := Talk.data(Child.ID)
+	check(Talk.check(d) == "", "talk_child.json is a talk file (%s)" % Talk.check(d))
+	var r := DialogueRunner.open(Talk.dialogue_id(Child.ID), {})
+	check(r.error == "", "its lines run (%s)" % r.error)
+	check(DialogueRunner.speakers().has(Child.ID) and DialogueRunner.portrait_key({"speaker": Child.ID}) == "", "the little one can speak, with no portrait")
+	var longest := ""
+	for who in Marriage.candidates():
+		for n in Child.names(who):
+			if PixelFont.width(n) > PixelFont.width(longest):
+				longest = n
+	var named := Child.named_dialogue(d, longest)
+	var gendered := RegEx.create_from_string("\\b(he|she|him|her|his|hers|boy|girl|son|daughter|mama|papa|dada)\\b")
+	var thai := 0
+	for l in named.lines:
+		check(not "%s" in l.text, "the name is put in: %s" % l.text)
+		check(TextBoxLayout.wrap_rows(l.text, TextBoxLayout.text_w(false)).size() <= TextBoxLayout.ROWS, "with %s it fits: %s" % [longest, l.text])
+		check(gendered.search(l.text.to_lower()) == null, "no gendered word: %s" % l.text)
+	Lang.set_language("th")
+	for l in d.lines:
+		check(Lang.covered(l.text), "Thai: %s" % l.text)
+		if Lang.covered(l.text):
+			thai += 1
+	for l in named.lines:
+		var t := Lang.t(l.text)
+		check(not longest in t and TextBoxLayout.wrap_rows(t, TextBoxLayout.text_w(false)).size() <= TextBoxLayout.ROWS, "Thai with the name fits: %s" % t)
+	check(Lang.covered("%s is too little for presents yet." % longest) and Lang.covered("Little one"), "the crawler's gift note and the speaker in Thai")
+	Lang.set_language("en")
+	check(thai == d.lines.size(), "every line in Thai (%d of %d)" % [thai, d.lines.size()])
+	# Picks by the stage.
+	var s := _state("crawler")
+	s.merge({"band": 3, "again": false, "day_number": 4, "stage": "crawler", "map": "house"})
+	check(Talk.pick(Child.ID, s).begins_with("crawler_"), "a crawler babbles (%s)" % Talk.pick(Child.ID, s))
+	s.time = 7 * 60
+	check(Talk.pick(Child.ID, s) == "crawler_morning", "early: yawning")
+	s.time = 600
+	s.stage = "toddler"
+	check(Talk.pick(Child.ID, s).begins_with("toddler_"), "a toddler talks (%s)" % Talk.pick(Child.ID, s))
+	s.map = "farm"
+	check(Talk.pick(Child.ID, s).begins_with("yard_"), "in the yard, about the yard")
+	s.map = "house"
+	s.band = 5
+	check(Talk.pick(Child.ID, s).begins_with("close_"), "band 5: close lines")
+	s.again = true
+	check(Talk.pick(Child.ID, s).begins_with("again_"), "again today: busy")
+	s.stage = "crawler"
+	check(Talk.pick(Child.ID, s).begins_with("crawler_again_"), "the crawler again: busy too")
+
+
+## The little one at home: a crawler at Sayo's side in the farmhouse at 7:00.
+func _little_home(g: Node, stage: String) -> void:
+	g.new_game()
+	g.clock_running = false
+	g._finish_build({"build": "room", "shop": g._builder_shop("room"), "ready": 0})
+	g.year = 2
+	var m := _married("sayo", 5)
+	for k in m:
+		g.flags[k] = m[k]
+	var from := {"crawler": 30, "toddler": 60, "child": 120}[stage] as int
+	Child.tell_news(g.flags, g.day_number() - from)
+	Child.give_birth(g.flags, g.day_number() - from, "Sora")
+	Child.sync_stage(g.flags, g.day_number())
+	g.hour = 7
+	g.minute = 0
+	g.weather_today = "sunny"
+	Villagers.reset_day()
+
+
+func _little_talk() -> void:
+	var g: Node = root.get_node("Game")
+	var FA: GDScript = load("res://scripts/farm_actions.gd")
+	var AH: GDScript = load("res://scripts/ui/action_hints.gd")
+	_little_home(g, "crawler")
+	check(g.flags.get(Child.STAGE) == "crawler", "30 days on: a crawler")
+	var w: Dictionary = Villagers.where(Child.ID, g.day_minutes(), g.trigger_state(Vector2i.ZERO))
+	var cell := Vector2i(w.pos.floor())
+	check(w.map == "house" and cell == Vector2i(9, 4), "the crawler on the mat at (9, 4) (%s)" % cell)
+	var said: Array = []
+	var hear := func(id: String, at: String) -> void: said.append([id, at])
+	g.dialogue_requested.connect(hear)
+	var notes: Array = []
+	var note := func(t: String) -> void: notes.append(t)
+	g.message.connect(note)
+	var from := cell + Vector2i.LEFT
+	g.maps.place("house", from, Vector2i.RIGHT)
+	check(AH.pick(from, Vector2i.RIGHT).get("interact", "") == "Talk", "the key hint says Talk %s" % [AH.pick(from, Vector2i.RIGHT)])
+	var before: int = g.affection.of(Child.ID)
+	FA.on_action("interact", from, Vector2i.RIGHT)
+	check(said.size() == 1 and said[0][0] == "talk_child" and said[0][1] == "crawler_morning", "E: the crawler's morning line %s" % [said])
+	check(g.affection.of(Child.ID) == before + int(Affection.rules().talk), "a talk counts once a day (%d -> %d)" % [before, g.affection.of(Child.ID)])
+	check(g.heart_band(Child.ID) == 3, "the name tag's hearts: band 3")
+	var made: Dictionary = g.dialogue_made.get("talk_child", {})
+	var line: Dictionary = made.get("lines", []).filter(func(l): return l.get("id") == "crawler_morning")[0] if not made.is_empty() else {}
+	check(line.get("text", "").contains("Sora") and not line.get("text", "").contains("%s"), "the line has the name in it: %s" % line.get("text", ""))
+	check(Villagers.where(Child.ID, g.day_minutes(), g.trigger_state(Vector2i.ZERO)).facing == Vector2i.LEFT, "the crawler turns to the farmer")
+	FA.on_action("interact", from, Vector2i.RIGHT)
+	check(said.back()[1].begins_with("crawler_again_") and g.affection.of(Child.ID) == before + int(Affection.rules().talk), "again: busy, no more hearts")
+	# A crawler takes no gifts: the farmer keeps the item.
+	g.held = "food:dango"
+	FA.on_action("interact", from, Vector2i.RIGHT)
+	check(g.held == "food:dango" and notes.back() == "Sora is too little for presents yet.", "the crawler takes no gift (%s)" % notes.back())
+	g.held = ""
+	# Many nights untalked to: the hearts never fall below band 3.
+	var rng := RandomNumberGenerator.new()
+	for d in 60:
+		g.affection.day_end(g.day_number() + 1 + d, rng)
+	check(g.affection.band(Child.ID) == 3, "two months of neglect: still band 3")
+	g.dialogue_requested.disconnect(hear)
+	g.message.disconnect(note)
+
+
+func _little_gifts() -> void:
+	var g: Node = root.get_node("Game")
+	_little_home(g, "toddler")
+	var said: Array = []
+	var hear := func(id: String, at: String) -> void: said.append([id, at])
+	g.dialogue_requested.connect(hear)
+	var before: int = g.affection.of(Child.ID)
+	g.held = "food:dango"
+	check(g.talk_to(Child.ID, Vector2i.DOWN) == "gift", "the toddler takes a gift")
+	check(not g.holding() and said.back() == ["talk_child", "gift_love"], "dango, loved %s" % [said])
+	check(g.affection.of(Child.ID) - before == int(Affection.rules().gift.love), "a loved gift's hearts (%d)" % (g.affection.of(Child.ID) - before))
+	g.held = "wild:fukinoto"
+	g.talk_to(Child.ID, Vector2i.DOWN)
+	check(g.held == "wild:fukinoto" and said.back() == ["talk_child", "gift_again"], "one gift a day: the second is kept")
+	g.held = ""
+	g.dialogue_requested.disconnect(hear)
+
+
+## Both views draw the little one on the house map: the crawler beside Sayo, then the toddler in the yard.
+func _little_views() -> void:
+	var g: Node = root.get_node("Game")
+	_little_home(g, "crawler")
+	var v3: Node = load("res://scripts/world3d/villager_sprites.gd").new("house")
+	var v2: Node = load("res://scripts/world/villager_view.gd").new("house")
+	root.add_child(v3)
+	root.add_child(v2)
+	check(Child.ID in v3.shown() and Child.ID in v2.shown(), "both views show the crawler in the farmhouse")
+	var s3: Sprite3D = v3._sprites[Child.ID]
+	var s2: Sprite2D = v2._sprites[Child.ID]
+	check(str(s3.get_meta("key")).begins_with("child:figure:crawler:") and s2.get_meta("key") == s3.get_meta("key"), "the crawler's picture in both (%s)" % s3.get_meta("key"))
+	check(Vector2(s3.position.x, s3.position.z) == Vector2(9.5, 4.5) and s2.position == Vector2(9.5, 4.5) * 16, "at the spot in both")
+	v3.queue_free()
+	v2.queue_free()
+	_little_home(g, "toddler")
+	g.hour = 11
+	var y3: Node = load("res://scripts/world3d/villager_sprites.gd").new("farm")
+	var y2: Node = load("res://scripts/world/villager_view.gd").new("farm")
+	root.add_child(y3)
+	root.add_child(y2)
+	check(Child.ID in y3.shown() and Child.ID in y2.shown() and str(y3._sprites[Child.ID].get_meta("key")).begins_with("child:figure:toddler:"),
+		"11:00 on a dry day: the toddler in the yard in both views")
+	y3.queue_free()
+	y2.queue_free()
+	g.new_game()
 
 
 ## A married farmer in the farmhouse with a baby born today, the second room built, standing

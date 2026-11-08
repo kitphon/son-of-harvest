@@ -10,6 +10,83 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Merge: the child, step 4
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged c2ca432 the child, step 4 (Opus, own worktree) onto the Shige / Nana merge.
+  Conflicts only in WORKLOG.md and data/lang/th/dialogue.json (both sides' Thai lines kept).
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`;
+  the four smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print no error
+  or warning lines.
+- Left / next: the child, step 5; Nana's band 6 scene; hearts for Kiku.
+
+## 2026-11-08 — The child, step 4: the crawler and the toddler about the house
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done:
+  - data/child.json: `figures` (the FigureArt body per stage and cells per walk frame; the
+    spouse's hair made small: long hair tied up in a bun, no headband, tenugui or straw hat),
+    `days` (per stage a speed, rules and plans in the villager format; `by_spouse` offsets;
+    `home` = house), `gifts_from` (toddler) and `gifts` (loves dango, sakura / kinako mochi,
+    milk pudding, wild raspberries; likes mulberries, akebi, warabi mochi, tamagoyaki, onigiri,
+    eggs, tomatoes; dislikes sansho, myoga, green tea, onion; hates fukinoto). Ours: the crawler
+    never leaves the house (on the mat at the spouse's side, crawling about the second room at
+    0.4 cells a minute while the spouse is out); the toddler (0.8) is beside the spouse at home,
+    plays in the farm yard by the dog's kennel (11, 5) from 9:00 to 15:45 on dry days, stays in
+    on rain, storm, snow and festival days; both in bed (`away`) from 20:00. The child stage
+    uses the toddler's plans until step 5.
+  - Child: `about`, `days_of`, `plan_name`, `plan`, `by_spouse` (while the plan and the spouse
+    are both in the farmhouse: spouse + offset, turned to them; crawler [0, 1] on the mat in
+    front of the spouse's (9, 3), toddler [1, 0] beside them, so the way into the second room
+    at (8, 3) stays open), `colours`, `figure`, `small_style`, `figure_key`, `takes_gifts`,
+    `named_dialogue`; `check` covers the new data. Villagers adds the little one to today's
+    plans under the id `child` (`where` puts them by the spouse and adds `stage` and `look`),
+    so both views (VillagerSprites, VillagerView), talking, blocking and the bump work as for
+    a villager; `sprite_key` and `reaction` ask Child for the id `child`.
+  - Art: `FigureArt.draw_little` / `draw_crawler` (on hands and knees, the big head in front,
+    the indigo happi over the back with its crest from behind, the rump up, the soles turned up;
+    a four-frame crawl) and a `toddler` build (head at row 18, shoulders 23); PlaceholderArt
+    `child:figure:<build>:<style>:<skin>:<hair>:<top>:<front|back>:<idle|walk>:<frame>`.
+  - Talk: data/dialogue/talk_child.json (30 lines: the crawler's babble and the toddler's
+    first words, yard, rain, snow, close, busy, gift lines; the name put into `%s`), speaker
+    `child` in speakers.json ("Little one"; the name tag shows the child's name and hearts:
+    TextBox, `Game.heart_band`), new Talk pick key `stage`. `Game._talk_child`: a talk counts
+    once a day, a gift from the toddler on, the crawler takes none ("%s is too little for
+    presents yet."). `Affection.day_end` lets the nightly loss reach the child once met (last,
+    so the villagers' rolls are unchanged), never below band 3; it now lists only ids that
+    really lost some. Thai for every new line, the note and "Little one".
+  - Debug flag `--child=<crawler|toddler|child>` (born that many days ago; year 2 when the
+    calendar is too young); `--talk=<id>` now stands on the first free side when a wall is
+    below (the crawler's mat). AGENTS.md and README → Villagers describe them.
+- Checked: test_child new checks (data, about / not about, gifts from the toddler, small
+  styles, the reactions; every house cell the plans use free in the second room and the
+  doorway (8, 3) left open; the crawler at Sayo's side at 7:00 turned up, at home all day, at
+  least three cells crawled, away at night, on_map with Sayo, its sprite key; the toddler
+  beside Sayo, within 2.5 cells of the kennel at 9:30 / 11:00 / 13:20 / 15:00, home by 17:00,
+  in on rain / storm / snow and a festival; the child stage on the toddler's plans in the child
+  build; nobody under `child` without a birth; 12 different pictures (3 builds x front / back x
+  still / walking), crawl frames differ, all on the bottom row, crawler lower than toddler lower
+  than child, the toddler in the mixed skin; the talk file checks, no portrait, every line
+  with the longest name fits, no gendered words, all Thai and fitting with the Thai name;
+  picks by stage, time, map, band, again; E with the key hint Talk, the crawler's morning line
+  with the name in it, a talk counts once, the hearts' band 3 on the tag, turned to the farmer,
+  no gift from the crawler, 60 nights of neglect still band 3; the toddler loves dango and
+  refuses a second gift; both views draw the crawler at (9.5, 4.5) and the toddler in the yard).
+  Mutation (Child.by_spouse returning the plan's place): `FAIL: 7:00: the crawler on the mat in
+  front of Sayo ((10.5, 2.5), (9.5, 3.5))`, `FAIL: turned up to Sayo, still`, `FAIL: the
+  crawler on the mat at (9, 4) ((10, 2))`, `FAIL: at the spot in both`, `test_child: FAILED
+  (4 failed)`; restored. All 31 suites printed `OK (0 failed)` (test_title's two WARNING lines
+  come from its own bad-flag check). Smoke runs (title, `-- --demo`, `--map=town`, `--mine=3`,
+  the crawler and toddler flags in 3D and the toddler in main_2d.tscn) printed no error or
+  warning lines. Screenshots: `--demo --map=house --built=room --flags=married_sayo,spouse=sayo
+  --child=crawler --time=18:00 --talk=child` frame 59: the crawler on the mat by Sayo at the
+  kotatsu, the text box "Hikari" with a heart and the babble line; `--demo --weather=sunny
+  --flags=married_sayo,spouse=sayo --child=toddler --time=10:00 --map=farm@coop` frame 39: the
+  toddler in a bun and the indigo happi by the seed stand; `--lang=th --weather=rain
+  --child=toddler --time=11:00 --talk=child`: the Thai name tag and the rain line in Thai. A
+  sheet of all three builds front / back / crawl checked by eye. shots/ deleted.
+- Left / next: step 5 (the child figure's own day plans with the spouse and at festivals, the
+  morning help, the record's line). Not done: holding the crawler like the baby (DESIGN's
+  table allows it); no portrait for the child in the text box; the toddler's yard loop is fixed
+  near the kennel, not following the dog.
 ## 2026-11-08 — Merge: Shige's band 6 scene and hearts for Nana
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged f54c107 Shige's band 6 scene (Sonnet) and 6d5a3cf hearts for Nana (Sonnet),
