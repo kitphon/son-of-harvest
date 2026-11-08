@@ -439,6 +439,46 @@ func _spouse() -> void:
 	check(not sc._spouse.visible and sc._spouse.text == "", "unmarried: nothing shown under the title")
 	sc.advance()
 	sc.queue_free()
+	_child_line(S)
+
+
+## With a child born the spouse's line goes on with the child's name; the yearly page says how
+## far they have grown (data/ending.json spouse.child_line / child_undated / stages).
+func _child_line(S: Dictionary) -> void:
+	check(Ending.child_part("Hikari", "toddler", "ending") == "Hikari", "the record names the child")
+	check(Ending.child_part("Hikari", "toddler", "year") == "Hikari, walking now", "the yearly page: walking now")
+	check(Ending.child_part("", "toddler", "year") == "", "no name, no part")
+	check(Ending.spouse_line("sayo", "Sayo", "Spring 14", Ending.data(), "Hikari") == "Married Sayo on Spring 14, with Hikari", "the dated line with the child")
+	check(Ending.spouse_line("sayo", "Sayo", "", Ending.data(), "Hikari") == "Married to Sayo, with Hikari", "the undated line with the child")
+	var longest := ""
+	for who in Marriage.candidates():
+		for n in Child.names(who):
+			for st in Child.stage_ids():
+				for page in ["ending", "year"]:
+					var name := String(Villagers.all().get(who, {}).get("name", who))
+					var line := Ending.spouse_line(who, name, "Summer 30", Ending.data(), Ending.child_part(n, st, page))
+					if PixelFont.width(line) > PixelFont.width(longest):
+						longest = line
+	check(PixelFont.missing(longest) == "" and PixelFont.width(longest) <= S.W - S.MARGIN * 2, "the longest line fits the paper: %s (%d)" % [longest, PixelFont.width(longest)])
+	Lang.set_language("th")
+	var th := Lang.t(longest)
+	Lang.set_language("en")
+	check(th != longest and not "Married" in th and not "now" in th and PixelFont.width(th) <= S.W - S.MARGIN * 2, "and in Thai: %s" % th)
+	var g := _game()
+	g.flags["spouse"] = "sayo"
+	g.flags["married_sayo"] = true
+	g.flags[Marriage.DAY] = 13
+	g.year = 2
+	Child.tell_news(g.flags, g.day_number() - 70)
+	Child.give_birth(g.flags, g.day_number() - 70, "Hikari")
+	check(g.show_ending().spouse == "Married Sayo on Spring 14, with Hikari", "the record names Sayo and the child (%s)" % g.show_ending().spouse)
+	check(g.show_ending("year").spouse == "Married Sayo on Spring 14, with Hikari, walking now", "the yearly page: 70 days on, walking now (%s)" % g.show_ending("year").spouse)
+	g.year = 3
+	Child.give_birth(g.flags, g.day_number() - 200, "Hikari")
+	check(g.show_ending("year").spouse.ends_with("Hikari, running about now"), "200 days on: running about")
+	g.flags.erase(Child.BORN)
+	check(g.show_ending().spouse == "Married Sayo on Spring 14", "no child born: the line as before")
+	g.new_game()
 
 
 ## Every shown label and picture lies inside the paper's margins.

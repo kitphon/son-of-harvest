@@ -126,14 +126,28 @@ static func last_page(pages: Dictionary, year: int) -> Dictionary:
 
 ## The record's line for a married farmer ("" when `spouse` is ""): the spouse's name and the
 ## short date of the wedding ("Spring 14"); with no date known (a save from before the date
-## was kept), the undated line. Texts: data/ending.json spouse.
-static func spouse_line(spouse: String, name: String, day_text: String, d := data()) -> String:
+## was kept), the undated line; with `child` (child_part: the child's name, on the yearly page
+## with their stage) the lines that go on to name them. Texts: data/ending.json spouse.
+static func spouse_line(spouse: String, name: String, day_text: String, d := data(), child := "") -> String:
 	var s: Dictionary = d.get("spouse", {})
 	if spouse == "" or s.is_empty():
 		return ""
+	if child != "":
+		if day_text == "":
+			return String(s.get("child_undated", "")) % [name, child]
+		return String(s.get("child_line", "")) % [name, day_text, child]
 	if day_text == "":
 		return String(s.get("undated", "")) % name
 	return String(s.get("line", "")) % [name, day_text]
+
+
+## The child as the record's line names them ("" with no name): on the yearly page (`page`
+## "year") with how far they have grown (spouse.stages.<stage>), on the record the name alone.
+static func child_part(child_name: String, stage: String, page: String, d := data()) -> String:
+	if child_name == "":
+		return ""
+	var t: Variant = d.get("spouse", {}).get("stages", {}).get(stage)
+	return String(t) % child_name if page == "year" and t is String and "%s" in t else child_name
 
 
 ## A row's number as shown: thousands split with commas, then the unit.

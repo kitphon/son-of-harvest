@@ -76,7 +76,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Mine (data/mine.json, floors from a seed, rocks / soft spots / the hole, swings, the save,
   light by depth and the lantern, frozen winter floors, the rope lift landings and their save, mine art): `res://tests/test_mine.gd` must print `test_mine: OK (0 failed)`.
   Ending (data/ending.json, grading, the values measured, the event and its trigger, the record
-  screen, the yearly pages, the first-day look back and the married farmer's line): `res://tests/test_ending.gd` must print `test_ending: OK (0 failed)`.
+  screen, the yearly pages, the first-day look back and the married farmer's line, the child's name and stage in it): `res://tests/test_ending.gd` must print `test_ending: OK (0 failed)`.
   Festivals (calendar, festival day, shops shut, fair weather, the event once a year,
   decorations and lights in both views, the HUD tag, contests and prizes, the mochi pounding (timing, ranking, partner, ribbon, save, screen), the Moon Night fishing race (clock, creel, ranking, ribbon, save, box), the stalls and their
   wares at all four festivals, keepsakes, ribbons and the farmhouse ribbon board, the payout held back, the festival lights lighting the ground and the night lamps): `res://tests/test_festivals.gd` must
@@ -84,7 +84,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   The flat view (main_2d.tscn builds, its Player's actions reach FarmActions: tools, holding
   and throwing, the bin, eating, fishing, doors, talking, the shop counter, the mine; the
   throw's flight; rain / snow, lightning and the festival glow): `res://tests/test_view2d.gd` must print `test_view2d: OK (0 failed)`.
-  The child (data/child.json, Child: the news and the birth days, the stages by days, the look from the parents, each spouse's three names, the hearts' band 3 floor, the save; the news and birth scenes per spouse: the due flags each morning, the farmhouse triggers, the names offered and the one picked, the Thai; `--demo --map=house --built=room --flags=married_sayo,spouse=sayo --event=child_birth_sayo --dialogue=child@sayo_pick` shows the name choice; the baby in the bamboo cradle: the cradle only in the baby stage, the lines by the clock, lifting the baby into the hold pose and laying them back, never thrown, the door waits, a save while holding loads with the baby in the cradle, both views; the crawler and the toddler: data/child.json days / figures / gifts, the plans by the spouse at home and in the yard by the kennel, wet and festival days in, the figures (FigureArt.draw_little), talk_child.json picked by stage with the name put in, gifts from the toddler on, the hearts never below band 3, both views): `res://tests/test_child.gd` must print `test_child: OK (0 failed)`.
+  The child (data/child.json, Child: the news and the birth days, the stages by days, the look from the parents, each spouse's three names, the hearts' band 3 floor, the save; the news and birth scenes per spouse: the due flags each morning, the farmhouse triggers, the names offered and the one picked, the Thai; `--demo --map=house --built=room --flags=married_sayo,spouse=sayo --event=child_birth_sayo --dialogue=child@sayo_pick` shows the name choice; the baby in the bamboo cradle: the cradle only in the baby stage, the lines by the clock, lifting the baby into the hold pose and laying them back, never thrown, the door waits, a save while holding loads with the baby in the cradle, both views; the crawler and the toddler: data/child.json days / figures / gifts, the plans by the spouse at home and in the yard by the kennel, wet and festival days in, the figures (FigureArt.draw_little), talk_child.json picked by stage with the name put in, gifts from the toddler on, the hearts never below band 3, both views; the child stage: the yard in the morning, out at the spouse's side from 10:00 on free floor on every spouse's maps (Child.place, with.tries), home together, the festival all day with them, in on wet days, the morning help (two weeds from band 5 on sunny days, the message after the spouse's, the help_weeds line), the child_ talk lines, both views at the store): `res://tests/test_child.gd` must print `test_child: OK (0 failed)`.
   Goals (Tome's first-week list: data/goals.json, what is counted, rewards paid once, the notes, the save, the HUD tag):
   `res://tests/test_goals.gd` must print `test_goals: OK (0 failed)`.
   Languages (LangCatalog finds the English, no glued pieces in the scripts, no stale table
@@ -128,7 +128,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   on to 2 when needed): `--demo --map=house --built=room --flags=married_sayo,spouse=sayo
   --child=crawler --time=18:00 --talk=child` the crawler by Sayo, talking; `--demo
   --weather=sunny --flags=married_sayo,spouse=sayo --child=toddler --time=10:00 --map=farm@coop`
-  the toddler in the yard by the kennel),
+  the toddler in the yard by the kennel; `--demo --weather=sunny --flags=married_sayo,spouse=sayo
+  --child=child --time=12:00 --map=store` the child by Sayo at the store),
   `--flags=a,b=c` to set story flags (`--flags=hachiro_bell` the bell by the farmhouse door,
   `--map=town@sayo --flags=sayo_sign=new` the store's new sign, `--map=house
   --flags=tome_grandma` Tome's plum jar; `--map=hill` the foot of the bamboo hill (its forage spots by `--season`), `hill@top` its

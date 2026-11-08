@@ -191,6 +191,24 @@ func water_dry_crops(most: int) -> int:
 	return n
 
 
+## Pulls up to `most` weeds in the field (farmable cells), row by row from the top-left;
+## returns how many (the child's morning help, Child.help).
+func pull_weeds(most: int) -> int:
+	var n := 0
+	for i in cells.size():
+		if n >= most:
+			break
+		var pos := Vector2i(i % W, i / W)
+		if cells[i].obj != Obj.WEED or not can_farm(pos):
+			continue
+		cells[i].obj = Obj.NONE
+		cells[i].hits = 0
+		n += 1
+	if n > 0:
+		cells_changed.emit()
+	return n
+
+
 ## One seed bag sows the 3 x 3 cells around `center`; returns how many took a seed.
 func sow(center: Vector2i, crop_id: String, season: String) -> int:
 	if not (season in crops[crop_id].seasons):

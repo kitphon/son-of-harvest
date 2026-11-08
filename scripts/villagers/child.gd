@@ -281,6 +281,76 @@ static func by_spouse(w: Dictionary, spouse: Dictionary, stage: String) -> Dicti
 	return out
 
 
+## The child stage's time out with spouse `spouse_id` on a day with plan `plan_name`
+## (days.child.with): [from, until) in minutes of the game day (DayPlan.minute_of), or [] when
+## that plan has none (wet days: in the house).
+static func with_window(stage: String, plan_name: String, spouse_id: String) -> Array:
+	var w: Variant = days_of(stage).get("with")
+	if not w is Dictionary or stage != "child":
+		return []
+	var span: Variant = w.get("plans", {}).get(plan_name)
+	if not span is Array or span.size() != 2:
+		return []
+	var from := str(w.get("join_at", {}).get(spouse_id, span[0])) if plan_name == "out" else str(span[0])
+	return [DayPlan.minute_of(from), DayPlan.minute_of(str(span[1]))]
+
+
+## Where the child stands off spouse `spouse_id` on map `map_id` while out with them
+## (with.sides.<spouse>.<map>, else with.side).
+static func side_of(spouse_id: String, map_id: String) -> Vector2:
+	var w: Dictionary = days_of("child").get("with", {})
+	var off: Variant = w.get("sides", {}).get(spouse_id, {}).get(map_id, w.get("side", [-1, 0]))
+	return Vector2(float(off[0]), float(off[1])) if off is Array and off.size() == 2 else Vector2(-1, 0)
+
+
+## The side to stand on off someone standing at `pos` on map `map_id`: `first` when that cell is
+## free floor (in the map, not solid, not a door or a counter), else the first free of
+## with.tries; `first` again when none is.
+static func free_side(map_id: String, pos: Vector2, first: Vector2) -> Vector2:
+	var m := MapManager.data(map_id)
+	if m == null:
+		return first
+	var tries: Array = [[first.x, first.y]]
+	tries.append_array(days_of("child").get("with", {}).get("tries", []))
+	for off in tries:
+		var v := Vector2(float(off[0]), float(off[1]))
+		var c := Vector2i((pos + v).floor())
+		if m.in_bounds(c) and not m.is_solid(c) and m.door_at(c).is_empty() and m.prop_at(c).get("kind", "") != "counter":
+			return v
+	return first
+
+
+## Where the little one is at minute `t` of a day with plan `plan_name`: inside the time out
+## with the spouse (with_window) and the spouse somewhere (`spouse`, as Villagers.where gives;
+## not away), at their side wherever they are: on the home map by_spouse's offset, elsewhere
+## side_of (or free_side's while they stand), turned to them, walking along while they walk. Otherwise by_spouse (at the spouse's
+## side when both are at home, else the little one's own plan, `w`).
+static func place(w: Dictionary, spouse: Dictionary, stage: String, t: float, spouse_id: String, plan_name: String) -> Dictionary:
+	var win := with_window(stage, plan_name, spouse_id)
+	var out_now: bool = not win.is_empty() and t >= float(win[0]) and t < float(win[1]) \
+		and spouse.has("pos") and str(spouse.get("map", DayPlan.AWAY)) != DayPlan.AWAY
+	if not out_now:
+		return by_spouse(w, spouse, stage)
+	var home := str(data().get("days", {}).get("home", "house"))
+	if spouse.map == home:
+		var at_home := w.duplicate()
+		at_home.map = home
+		if not at_home.has("pos"):
+			at_home.pos = spouse.pos
+		return by_spouse(at_home, spouse, stage)
+	var out := w.duplicate()
+	var v := side_of(spouse_id, str(spouse.map))
+	if not spouse.get("moving", false):   # standing: on free floor beside them (not a wall, a door or a counter)
+		v = free_side(str(spouse.map), spouse.pos, v)
+	out.map = spouse.map
+	out.pos = spouse.pos + v
+	out.moving = spouse.get("moving", false)
+	out.walked = spouse.get("walked", 0.0)
+	out.facing = spouse.facing if out.moving else DayPlan.facing_of(-v)
+	out.with_spouse = true
+	return out
+
+
 ## The little one's colours (look) for the farmer's flags: the spouse's hair and the skin
 ## between, from the farmer's look now (FarmerLooks.current_look).
 static func colours(flags: Dictionary) -> Dictionary:
@@ -294,8 +364,12 @@ static func figure(stage: String) -> Dictionary:
 	return f if f is Dictionary else {"build": "toddler", "stride": 0.3}
 
 
-## The hair style the little one wears for the spouse's `style` (figures.styles).
-static func small_style(style: String) -> String:
+## The hair style the little one wears at `stage` for the spouse's `style`: the stage's own
+## figures.<stage>.styles first, then figures.styles.
+static func small_style(style: String, stage := "") -> String:
+	var own: Variant = figure(stage).get("styles", {}) if stage != "" else {}
+	if own is Dictionary and own.has(style):
+		return str(own[style])
 	return str(data().get("figures", {}).get("styles", {}).get(style, style))
 
 
@@ -307,7 +381,7 @@ static func figure_key(w: Dictionary) -> String:
 	var c: Dictionary = w.get("look", {})
 	var walking: bool = w.get("moving", false)
 	var frame := int(float(w.get("walked", 0.0)) / maxf(float(f.get("stride", 0.3)), 0.05)) % 4 if walking else 0
-	return "child:figure:%s:%s:%s:%s:%s:%d" % [str(f.get("build", "toddler")), small_style(str(c.get("hair_style", "short"))),
+	return "child:figure:%s:%s:%s:%s:%s:%d" % [str(f.get("build", "toddler")), small_style(str(c.get("hair_style", "short")), str(w.get("stage", "toddler"))),
 		_colour_part(c), "back" if FarmerAnim.is_back(w.get("facing", Vector2i.DOWN)) else "front", "walk" if walking else "idle", frame]
 
 
@@ -325,6 +399,38 @@ static func named_dialogue(d: Dictionary, name: String) -> Dictionary:
 		if l is Dictionary and l.get("text") is String and "%s" in l.text:
 			l.text = l.text.replace("%s", name)
 	return out
+
+
+# --- the child's morning help (step 5) -------------------------------------------------
+
+## Set for the day the child pulled weeds this morning (the child's talk line).
+const HELP_WEEDS := "help_weeds"
+
+
+## The child's morning help (data/child.json help), after the night and the spouse's help:
+## at help.stage, the child's heart band `band` at least help.band, today's `weather` in
+## help.weather, up to help.weeds weeds in the field pulled (FarmGrid.pull_weeds). Returns how
+## many (0: no child of that age, too few hearts, a wet day or no weeds).
+static func help(flags: Dictionary, farm: FarmGrid, band: int, weather: String) -> int:
+	flags.erase(HELP_WEEDS)
+	var h: Dictionary = data().get("help", {})
+	if farm == null or not is_born(flags) or str(flags.get(STAGE, "")) != str(h.get("stage", "child")):
+		return 0
+	if band < int(h.get("band", 5)) or not weather in h.get("weather", ["sunny"]):
+		return 0
+	var n := farm.pull_weeds(int(h.get("weeds", 0)))
+	if n > 0:
+		flags[HELP_WEEDS] = true
+	return n
+
+
+## What the farmer is told on stepping out ("" when nothing was pulled): help.messages one or
+## more, with the child's name (and how many).
+static func help_text(pulled: int, name: String) -> String:
+	if pulled <= 0:
+		return ""
+	var m: Dictionary = data().get("help", {}).get("messages", {})
+	return str(m.get("one", "%s")) % name if pulled == 1 else str(m.get("more", "%s %d")) % [name, pulled]
 
 
 static func stage_ids() -> Array[String]:
@@ -415,7 +521,7 @@ static func check() -> String:
 	var days: Dictionary = d.get("days", {})
 	if not MapManager.has(str(days.get("home", ""))):
 		return "days.home is not a map"
-	for st in ["crawler", "toddler"]:
+	for st in ["crawler", "toddler", "child"]:
 		var p: Variant = days.get(st)
 		if not p is Dictionary or not p.get("plans") is Dictionary or not p.plans.has(p.get("default")):
 			return "days.%s needs plans and a default plan" % st
@@ -432,6 +538,30 @@ static func check() -> String:
 		var off: Variant = days.get("by_spouse", {}).get(st)
 		if not off is Array or off.size() != 2:
 			return "days.by_spouse.%s needs [x, y]" % st
+	var with: Variant = days.get("child", {}).get("with")
+	if not with is Dictionary or not with.get("plans") is Dictionary or not with.get("sides", {}) is Dictionary:
+		return "days.child.with needs plans and sides"
+	for name in with.plans:
+		var span: Variant = with.plans[name]
+		if not days.child.plans.has(name) or not span is Array or span.size() != 2 \
+				or DayPlan.minute_of(span[0]) < 0 or DayPlan.minute_of(span[1]) <= DayPlan.minute_of(span[0]):
+			return "days.child.with.plans.%s needs a plan of the child and [from, until] rising" % name
+	for who in with.get("join_at", {}):
+		if not Marriage.is_candidate(who) or DayPlan.minute_of(with.join_at[who]) < 0:
+			return "days.child.with.join_at.%s needs a spouse and a time" % who
+	for who in with.sides:
+		if not Marriage.is_candidate(who) or not with.sides[who] is Dictionary:
+			return "days.child.with.sides.%s needs a spouse and {map: [x, y]}" % who
+		for m in with.sides[who]:
+			var off: Variant = with.sides[who][m]
+			if not MapManager.has(m) or not off is Array or off.size() != 2:
+				return "days.child.with.sides.%s.%s needs a map and [x, y]" % [who, m]
+	var hp: Variant = d.get("help")
+	if not hp is Dictionary or not str(hp.get("stage", "")) in stage_ids() or not EventRunner._whole(hp.get("band", -1), 0, 6) \
+			or not EventRunner._whole(hp.get("weeds", -1), 0, 99) or not hp.get("weather") is Array:
+		return "help needs a stage, band 0 .. 6, weeds 0 .. 99 and a weather list"
+	if not "%s" in str(hp.get("messages", {}).get("one", "")) or not "%d" in str(hp.get("messages", {}).get("more", "")):
+		return "help.messages need one (%s) and more (%s, %d)"
 	if not str(d.get("gifts_from", "")) in stage_ids():
 		return "gifts_from is a stage"
 	var gifts: Variant = d.get("gifts")

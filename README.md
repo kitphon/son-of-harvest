@@ -355,7 +355,7 @@ farmer can talk to them at home too (`-- --demo --map=tome_house --time=6:30`).
 **The farmer's child about the house.** Once the baby is out of the cradle (Child,
 `child_stage` crawler, toddler or child) `Villagers` adds them under the id `child`: today's
 plan comes from data/child.json `days` (per stage a speed, rules and plans in the format above;
-the child stage uses the toddler's until it has its own), and while the plan and the spouse are
+the child stage has its own), and while the plan and the spouse are
 both in the farmhouse the little one stays at the spouse's side (`days.by_spouse`, turned to
 them; `Child.by_spouse`). The crawler never leaves the house; the toddler plays in the farm yard
 by the dog's kennel from 9:00 to 15:45 on dry days. `on_map` gives them with `stage` and `look`
@@ -367,6 +367,26 @@ data/dialogue/talk_child.json (pick key `stage`, the name put into each `%s` by
 `Child.named_dialogue`, the name tag showing the name and the hearts); from the toddler on an
 item overhead is a gift (`gifts` in data/child.json), the crawler takes none. The hearts start
 at band 3 and never fall below it, the nightly loss included (`Affection.day_end`).
+
+**The child out with the spouse.** At the child stage (`days.child`) the little one is beside
+the spouse at home from 6:00, plays in the yard by the kennel from 7:00, walks off by the gate
+at 9:35 and from 10:00 (`with.plans.out`; Mio's after her ferry, `with.join_at`) is at the
+spouse's side wherever their day takes them, store, teahouse, kiln, river or post round, until
+they come home together (`Child.place`: on the home map `by_spouse`'s offset, elsewhere
+`with.side`, or while the spouse stands still the first free cell of `with.tries` that is not a
+wall, a door or a counter, turned to them; `with_spouse` is set). On a festival day the plan
+`festival` keeps them together all day (6:00 to 20:30), so the child goes to the festival with
+the spouse; wet days (rain, storm, snow) are `indoors`. The figure is FigureArt's child build;
+the child wears the spouse's long hair and headband (`figures.child.styles`), still no tenugui
+or straw hat. The talk file has `child_` lines: the yard, the morning's weeds, a festival, rain
+and one for each spouse's work (`flags: married_<id>` and the maps of that work).
+The child helps too (`help` in data/child.json, `Child.help` from `Game.end_day` after the
+spouse's help): at the child stage with the child's hearts at band 5 or more, on a sunny day,
+up to two weeds in the field are pulled (`FarmGrid.pull_weeds`); the farmer is told on stepping
+out, after the spouse's line (`help.messages` one / more), and the flag `help_weeds` picks the
+child's `child_helped` line that morning. `-- --demo --weather=sunny
+--flags=married_sayo,spouse=sayo --child=child --time=12:00 --map=store` shows the child by
+Sayo at the store.
 
 **Talking, gifts, affection.** E facing a villager (or facing a counter with them behind it)
 turns them to the farmer (`Villagers.turn`) and calls `Game.talk_to(id, face)`:
@@ -892,7 +912,10 @@ extensions, tool levels, contests won, recipes known) and `Ending.grade` turns i
 per category, a rank and a title from `data/ending.json`; the EndingScreen shows it. A married
 farmer's record has one line under the title, "Married Sayo on Spring 14" (`Ending.spouse_line`,
 the texts in `data/ending.json` `spouse`; the wedding day is `wedding_day`, kept after the
-wedding; "Married to Sayo" when that day is not known; nothing when single). The flags
+wedding; "Married to Sayo" when that day is not known; nothing when single). With a child born
+it goes on with the child's name, "Married Sayo on Spring 14, with Hikari", and the yearly page
+says how far they have grown, "..., with Hikari, walking now" (`spouse.child_line`,
+`child_undated`, `stages`; `Ending.child_part`). The flags
 `ending_rank_<n>` and `ending_friend_<id>` pick Tome's verdict and who comes in to close it
 (the villager liked most, from heart band 3; else Tome). The game goes on afterwards
 (`ending_seen`). DESIGN lists the ending as not studied, so every rule is ours. `-- --ending`
