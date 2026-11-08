@@ -308,7 +308,7 @@ Light and Farmhouse model hold the technical detail of what is built.
       at noon, at night, in rooms, mines and under cloud, only ever holding green and blue back
       (SpriteLight, data/light.json "sprites"; the crop clusters too); and at night a figure
       near a lit window, door, stone lantern or festival light is drawn back over the tint with
-      warm light added in proportion to its own colours (NightLights' last pass, "Warmth"), so
+      warm light added in proportion to its own colours (at first NightLights' last pass, "Warmth"), so
       it reads warm by the light and stays blue in the dark. Sun-and-shadow on the sprites was
       left out: Occluders' boxes are the only cheap query and hold the houses but not the trees
       or the roofs' outline, so it would not match the shadows on the ground.
@@ -324,6 +324,17 @@ Light and Farmhouse model hold the technical detail of what is built.
       fence, a figure or rain in front of a lit plant keeps its own pixels; a cluster plant's
       quad follows its sway and parting (the plants sway on `CropClusters.clock`, and
       `CropClusters.tip_shift` is the shader's math in GDScript).
+      The figures' lift keeps to their own pixels too (2026-11-08): the "Warmth" pass is gone;
+      the farmer, villagers, animals and the dog (with what they hold, not the marks over them)
+      take the same lift (same numbers, measured at the middle of their picture) in a layer of
+      their own, "FigureLift", right after the field's and reading the same copy, so a figure
+      behind a plant, a fence or a building corner takes it only where it shows and the
+      occluder keeps its pixels. Its own allowance `bloom` (data/light.json sprites.lift.bloom
+      0.024) lets the copy be that much brighter than the texel, as the 3D view's glow round a
+      lit window lies on a figure standing by it (measured up to +0.041 red by Tome's window;
+      without it 3-7 % of a farmer's pixels went unlifted). A lifted figure is drawn back over
+      the glows from the copy, as the old pass did. A figure seen through a building faded
+      see-through takes no lift there.
       Stone lanterns wash the walls (2026-11-07): a lit lantern standing in front of a house
       wall (one with lit windows, `NightLights.lamp_walls`) adds the same kind of soft warm disc
       on it (`lamp_wash`, data/light.json "pools" → "wall" → "lamp"), centred on the point of

@@ -10,6 +10,76 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — The figures' night lift keeps to their own pixels
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: the open problem of "The field's night lift keeps to its own pixels" for the figures.
+  The depth-less "Warmth" pass (WARM_SHADER, drawing each lifted figure's whole quad back from
+  the copy plus its own texel x warm x lift) is removed. The figures (FIGURES: farmer, villagers,
+  animals, the dog; with the lit sprites they hold, not the marks over them) now take the lift
+  in a new layer "FigureLift" right after "Field", with the same FIELD_SHADER and reading the
+  same FieldCopy (no new copy): own texel x warm x lift added only where the copy shows that
+  texel as the 3D view draws it (under the tint, modulate and sun share, `field_off`).
+  `NightLights.figure_lifts(figs, spots, rules, occ)` gives {sprite, at, mid, k} per figure each
+  frame (lift_at at SpriteLight.middle, the item rect's middle, which equals the old feet + half
+  the picture), and `field_quads` makes the quads (frame = the sprite's current texture, flip_h
+  reverses the uvs, pixel_size and offset through sprite_corners, so AnimalArt.SCALE counts).
+  Same amount, falloff, lit side, buildings-between and cap. The lift's copy is shown while a
+  field quad or a figure quad is lit. Workaround removed: a figure whose middle is behind a solid
+  building is no longer skipped for the lift (the building's pixels are not the figure's, so it
+  is lifted only where it shows); the skip stays for the draw-back. A lifted figure not behind a
+  building is now added to the Figures draw-back (pass 4), so the glows and washes added after
+  the copy stay off it as the old pass did (the copy holds its lift now).
+  Figure-specific value, in data: data/light.json sprites.lift.bloom 0.024, one-sided (the copy
+  may be up to match + bloom brighter than the texel, never more than match darker; FIELD_SHADER
+  `bloom` uniform, 0 on the field's material, so the field is unchanged). Why: measured with a
+  debug shader writing each figure pixel's best `off`, the unoccluded farmer by Tome's lit window
+  (`--demo --map=town@tome --time=21:00`) had 58 of 878 pixels over 0.024 (by Genzo's door 29 of
+  883), all brighter and warmer than the texel (mean +0.008/+0.005/+0.004, at most
+  +0.041/+0.025/+0.025: the 3D view's glow round the window), which would have left them
+  unlifted specks; with bloom 0.024 all 878 and 883 are under 0.02.
+- Checked: test_weather `_figure_pass`: the farmer and a cow (pixel size PX / AnimalArt.SCALE) by
+  the window take lift_at at their middle (= the old middle), the far one none, none by day, a
+  box between a lantern and the figure keeps it off; one quad for the figure and its held item
+  carrying (1, 1, 1, lift), the unlit mark left out; the quad follows flip_h and a new frame; the
+  cow's quad is half the width of one at PX; bloom data sane; every one of the farmer's 358
+  texels under the tint matches (also in a golden sun share, and with the measured glow added,
+  the latter only with bloom); a pixel darker than the texel never matches; share of the lift
+  that would land on an occluder in front (weighted by the texel's brightest channel): plaster
+  e8e0cc 0.09, dark board 3a2c24 0.143, fence culm a89c5c 0.0, the cow's colours 0.113 (dark
+  colours come close under the night tint; checked at most 0.2); no Warmth child, Figures last,
+  FigureLift after Field and before Pools with its own material (field's bloom 0), off while
+  nothing is lit. test_maps: the scene's NightLights order; at 21:00 the farmer put in front of a
+  farmhouse window gets one FigureLift quad (1, 1, 1, k > 0.01), the copy and layer on, and is
+  drawn back by _plan_warmth alone; at noon nothing lifted and the copy off.
+  Mutations: figure_lifts measuring at the feet and field_off without bloom: `FAIL: figure pass:
+  the farmer and the cow by the window take the lift at their middle, the far one none ([0.277,
+  0.172])`, `FAIL: figure pass: the figure's own texels under the tint match, with a lit window's
+  glow on them too (only with bloom) (358, 0 of 358)`, `test_weather: FAILED (2 failed)`; lifted
+  figures not added to the draw-back: `FAIL: night lights: the farmer by a lit window takes the
+  lift in pass 0 and is drawn back (1 quads)`, `test_maps: FAILED (1 failed)` (before the test
+  called _plan_warmth alone this mutation passed, as the farmer is shielded anyway); restored.
+  Then `test_weather: OK (0 failed)`, `test_maps: OK (0 failed)`, `test_villagers: OK (0
+  failed)`, `test_animals: OK (0 failed)`, `test_view2d: OK (0 failed)`, `test_farm: OK (0
+  failed)`, `test_festivals: OK (0 failed)`. Smoke runs (title, --demo, --demo --map=town, --demo
+  --mine=3, --demo --map=town --time=20:00): 0 error / warning lines; the Movie Maker runs print
+  none either. Pixels against the build before (HEAD NightLights swapped in, 480x270, frame 29,
+  HUD forecast icon left out): `--demo --map=town --time=20:00` 0 px changed (the farmer by the
+  lantern looks as before: warm face and shirt); `--demo --map=town@tome --time=21:00` 81 px, 67
+  by 1 level, 14 by more, all one row under the farmer's feet where the picture shows the ground
+  through (the old pass lifted it orange); `--demo --festival=lantern_night` 1137 px by > 1, 1124
+  of them darker: a figure seen through a faded see-through roof at the bottom and the stall
+  keeper behind the faded awning (debug: there the copy is +0.025 red / -0.040 blue off her
+  texels, the awning's colours blended in), so they take less lift where seen through.
+  Screenshot `--demo --map=town --time=20:00` looked at: the farmer by the stone lantern, warm,
+  crisp; shots/ deleted.
+- Left / next: a figure seen through a building faded see-through takes no lift there (as the
+  field's objects); dark figure colours behind a dark occluder still pass the colour test (the
+  measured shares above). The draw-back of a lifted figure still covers its whole quad (it only
+  restores the copy there, so an occluder in front loses the glows added after the copy). Not
+  measured: frame cost (one more layer on the same copy; the copy itself is now also on while
+  only a figure is lit, a full-screen copy a frame at night by a light). Not seen in a
+  screenshot: a figure partly behind a fence by a light (only the GDScript twin is tested).
+
 ## 2026-11-08 — Painted roofs in the flat view
 Agent: Claude Code (claude-sonnet) · Commit: this commit
 - Done: the flat view's roofs are painted. New `scripts/art/roof_art.gd` (RoofArt) makes PlaceholderArt `roof:<material>:<shape>:<storeys>:<w>:<h>` pictures from above: kawara (tile rolls with a lit crown and dark trough, tile ends, capped ridge, dark eave lip with round tile ends on the south / east eaves), thatch (coop) and kaya (farmhouse, with moss flecks) as strands with lapped courses, a thick ridge and a cut edge. `hip` shows four slopes with capped hips, `storeys: 2` a pent roof with the main roof standing in 5 px and casting a shadow. North and west slopes are lit, south and east shaded (light from the upper left). MapView draws each village house's roof from its data (`roof`, `storeys` via LitSpots.village_style) at the old box's size (footprint minus 1 px a side); FarmView draws the house, coop and barn as one roof each (FarmView.ROOFS: kaya, thatch, kawara; roof_rect) with the doors over them. Collisions untouched (drawing only). Snow lying already whitened roofs through SnowLayer.roof_mask_image over the props; that is unchanged and still lies over the new roofs. SmokeView is a later child, so its puffs draw over them.
