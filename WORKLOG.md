@@ -10,6 +10,50 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Kaede of the shrine, the second new candidate
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: a new villager with hearts, our own: Kaede keeps the village shrine, and Tome is
+  teaching her the rites her grandfather (the last keeper) never wrote down. Where she lives:
+  the village had no free 4 x 3 near the shrine (the ground north of the road is festival
+  stalls and villagers' festival spots), so the shrine keepers' house stands in Minamino's
+  east (a village_house at 22, 4, door 23, 6; nothing walked or foraged there) and she walks
+  up each morning, bowing at Minamino's roadside shrine on the way. Inside:
+  data/maps/kaede_house.json (tatami, family altar, alcove, low table for folding charms; door
+  hours 6:00-21:00). data/villagers/kaede.json: sweeps the gravel before the hall 7:00-11:30,
+  lunch on the step, folds charms by the hall 12:30-16:00, home 16:55, bed 21:00; wet days
+  charms at home; festivals by the hall (20, 4) for their hours; birthday fall 4 (the first
+  leaves on the shrine path; the 3rd was first, but the calendar check reads "4th"-style days)
+  at Minamino's roadside shrine all day. Each walk between Minamino and the shrine has about 30
+  minutes (15 was refused: the plan can't get there before the next entry). Look: white top,
+  red lower, long black hair, a bun portrait. Gifts: dango, amazake, kinako mochi and an
+  omamori from elsewhere loved (kept in her alcove once given), quartz liked, herb tonic, fish
+  stewed with daikon and clay disliked, a stone hated. talk_kaede.json with every pick a friend
+  needs (shrine mornings, rite lines after band 5, dear after band 6, gift and dish answers).
+  Heart scenes: band 3 the shrine's white fox (a little, or only in daylight) and turnip seed
+  from the offering box; band 5 she must lead the New Year rite alone: words written in her
+  sleeve (kaede_sleeve) or said to the farmer now (kaede_recite); band 6 she led it (in her
+  head to the farmer, or never looking at her sleeve) and the new fortune box's first draw,
+  for the farmer or together (kaede_draw), the first fortune of every year promised
+  (kaede_fortune). Triggers in town, Minamino and her house. Calendar, ending page, whistle,
+  heart music. Marriage on the others' pattern; the wedding is at her own shrine with Tome
+  leading the rite she taught her (Nana, Shige and Mio on her side). 96 new Thai lines and 3
+  names. The ending's Friendships steps went 9 / 19 / 31 / 48 of 60 -> 10 / 21 / 34 / 53 of
+  66 (eleven villagers with hearts). test_villagers' 10:00 and 14:20 village checks name her.
+- Checked: all 30 suites `OK (0 failed)` (test_farm .. test_puddles, among them
+  `test_relationships: OK (0 failed)`, `test_villagers: OK (0 failed)`, `test_talk: OK (0 failed)`,
+  `test_lang: OK (0 failed)`, `test_festivals: OK (0 failed)`), then `test_ending: OK (0 failed)`
+  again after the steps changed. Failures fixed on the way: four lines without their Thai in
+  the generator (it stopped half way; data/ reset and rerun), walks too short, the 3rd as a
+  birthday, no disliked dish, the two village lists. Mutation (her married rule removed):
+  `FAIL: married, Kaede keeps the shrine by day, home to the farmhouse by 16:30`,
+  `test_relationships: FAILED (1 failed)`; restored. Smoke runs (title, --demo, --map=town,
+  --mine=3, --map=minamino@kaede, --map=kaede_house) printed no error or warning lines.
+  Screenshots: `--map=town@shrine --time=9:00` (Kaede sweeping by the hall),
+  `--map=minamino@kaede --time=17:30` (her house), `--map=kaede_house --time=18:00` (the room,
+  her by the altar), `--map=town --time=14:00 --talk=kaede` (her portrait). shots/ deleted.
+- Left / next: Shino (the indigo dyer). Her birthday and festival plans win over the married
+  ones, as for the others.
+
 ## 2026-11-08 — Mio of the river, the first new candidate
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: a new villager with hearts, our own: Mio keeps the fish traps and the old ferry on

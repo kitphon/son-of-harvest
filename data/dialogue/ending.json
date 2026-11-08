@@ -35,6 +35,8 @@
 		{"speaker": "haru", "face": "calm", "text": "I nearly left Kaminoda once, you know. I'm glad I'm still here to see this page. Wear them up the hill sometime.", "next": "end"},
 		{"id": "mio", "speaker": "mio", "face": "smile", "text": "I ran up from the river with my boots still wet. Here. The first fish of the year, for the page. Grill it with salt, nothing else."},
 		{"speaker": "mio", "face": "calm", "text": "Two years ago you couldn't tell a chub from a dace. Now Hachiro asks you where they're biting. Don't let it go to your head.", "next": "end"},
+		{"id": "kaede", "speaker": "kaede", "face": "smile", "text": "I brought the year's first fortune down from the shrine. Unopened. It's for your page, so you open it."},
+		{"speaker": "kaede", "face": "calm", "text": "Two years of you walking up the shrine path. I've prayed for this village a long time. You're the first answer I can point to.", "next": "end"},
 		{"id": "shige", "speaker": "shige", "face": "smile", "text": "Nana made me wear my good jacket. She says a page in the village record deserves it, and she's right."},
 		{"speaker": "shige", "face": "calm", "text": "Two years ago that farm was stones and stubbornness. Now Sayo asks me why your greens sell first. I tell her: soil talks, and you listened.", "next": "end"},
 

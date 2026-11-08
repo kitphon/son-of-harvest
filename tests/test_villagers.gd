@@ -448,7 +448,7 @@ func _town_today() -> void:
 	var at := func(t: float) -> Array:
 		return Villagers.on_map("town", t, s).map(func(w): return w.id)
 	check(at.call(360.0).is_empty(), "nobody out at 6:00")
-	check(at.call(600.0) == ["kota", "tome"], "Kota and Tome out at 10:00 %s" % [at.call(600.0)])
+	check(at.call(600.0) == ["kaede", "kota", "tome"], "Kaede (sweeping the shrine), Kota and Tome out at 10:00 %s" % [at.call(600.0)])
 	check(Villagers.on_map("store", 600.0, s).map(func(w): return w.id) == ["sayo"]
 		and Villagers.on_map("smithy", 600.0, s).map(func(w): return w.id) == ["hachiro"], "the keepers at their counters at 10:00")
 	check(at.call(1260.0).is_empty(), "everyone in at 21:00 %s" % [at.call(1260.0)])
@@ -634,7 +634,7 @@ func _check_views() -> void:
 	var g: Node = root.get_node("Game")
 	var want := Villagers.on_map("town", g.day_minutes(), g.trigger_state(Vector2i.ZERO))
 	var ids := want.map(func(w): return w.id)
-	check(ids == ["kota", "mio", "nana", "tome"], "Kota, Mio (selling her catch at the store's front), Nana and Tome are in the village at 14:20 (the keepers are in their shops) %s" % [ids])
+	check(ids == ["kaede", "kota", "mio", "nana", "tome"], "Kaede (folding charms at the shrine), Kota, Mio (selling her catch at the store's front), Nana and Tome are in the village at 14:20 (the keepers are in their shops) %s" % [ids])
 	var layers3: Array = _scene3.world.get_children().filter(func(n): return _script_is(n, "villager_sprites.gd"))
 	check(layers3.size() == 1 and layers3[0].map_id == "town", "the 3D village world has its villagers")
 	var layers2: Array = _scene2.view.get_children().filter(func(n): return _script_is(n, "villager_view.gd"))

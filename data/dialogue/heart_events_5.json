@@ -80,6 +80,13 @@
 		{"speaker": "mio", "mood": "neutral", "text": "So tell me straight. Do I keep the ferry, or let the river have it?", "choices": [{"text": "Keep it for the slow way.", "next": "mio_keep", "set": {"mio_keep": true}}, {"text": "Let it go. You'd still be you.", "next": "mio_let", "set": {"mio_let": true}}]},
 		{"id": "mio_keep", "speaker": "mio", "mood": "happy", "text": "The slow way... I like that. I'll hang a bell on the landing. Anyone who rings it gets taken across, even at night.", "next": "mio_end"},
 		{"id": "mio_let", "speaker": "mio", "mood": "surprised", "text": "...Huh. Nobody's ever told me that. That I'd still be me without it.", "next": "mio_end"},
-		{"id": "mio_end", "speaker": "mio", "mood": "happy", "text": "Either way, the traps stay. The river and I aren't done arguing yet. Thanks for listening, farmer.", "next": "end"}
+		{"id": "mio_end", "speaker": "mio", "mood": "happy", "text": "Either way, the traps stay. The river and I aren't done arguing yet. Thanks for listening, farmer.", "next": "end"},
+
+		{"id": "kaede", "speaker": "kaede", "mood": "sad", "text": "Tome says I'll lead the New Year rite alone this year. Alone. In front of the whole village."},
+		{"speaker": "kaede", "mood": "neutral", "text": "Grandfather never wrote the words down. I've got Tome's version in a notebook, but what if my mind goes white?"},
+		{"speaker": "kaede", "mood": "neutral", "text": "What do I do? Tell me something, anything.", "choices": [{"text": "Write the words on my sleeve.", "next": "kaede_sleeve", "set": {"kaede_sleeve": true}}, {"text": "Say them to me now.", "next": "kaede_recite", "set": {"kaede_recite": true}}]},
+		{"id": "kaede_sleeve", "speaker": "kaede", "mood": "happy", "text": "Inside the sleeve, where nobody sees... You're terrible. I love it. Tome must never know.", "next": "kaede_end"},
+		{"id": "kaede_recite", "speaker": "kaede", "mood": "surprised", "text": "Now? To you? ...All right. Don't look at me. Look at the fox.", "next": "kaede_end"},
+		{"id": "kaede_end", "speaker": "kaede", "mood": "neutral", "text": "Thank you. Whatever happens at midnight, I'll remember someone stood on this step with me.", "next": "end"}
 	]
 }

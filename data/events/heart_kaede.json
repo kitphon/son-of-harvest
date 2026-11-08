@@ -1,0 +1,15 @@
+{
+	"_note": "Kaede's heart event: the first talk once her heart band reaches 3, at the shrine, in Minamino, at home or anywhere in the village (triggers_town.json, triggers_minamino.json, triggers_kaede_house.json). She tells of the shrine's white fox her grandfather left rice balls for, asks if the farmer believes (a little, or only in daylight) and gives turnip seed from the offering box. Sets heart_kaede. Kaede acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "kaede", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "kaede"},
+		{"do": "sound", "key": "step_grass"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events", "at": "kaede"},
+		{"do": "give", "item": "seeds:turnip", "count": 2},
+		{"do": "affection", "who": "kaede", "amount": 5},
+		{"do": "set", "flags": {"heart_kaede": true}},
+		{"do": "actor", "who": "kaede", "to": "plan"},
+		{"do": "actor", "who": "kaede", "leave": true}
+	]
+}

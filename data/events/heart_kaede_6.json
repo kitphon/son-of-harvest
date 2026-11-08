@@ -1,0 +1,14 @@
+{
+	"_note": "Kaede's third heart event: the first talk once her heart band reaches 6, after heart_kaede_5 (same tables). She led the rite alone (said to the farmer in her head, with kaede_recite; otherwise never once looking at her sleeve), and the new fortune box needs its first draw: for the farmer, or together (kaede_draw); the first fortune of every year is the farmer's from now. Sets heart_kaede_6 and kaede_fortune; after it she can be asked to marry (data/marriage.json). Kaede acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "kaede", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "kaede"},
+		{"do": "sound", "key": "chime_morning"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_6", "at": "kaede"},
+		{"do": "affection", "who": "kaede", "amount": 5},
+		{"do": "set", "flags": {"heart_kaede_6": true, "kaede_fortune": true}},
+		{"do": "actor", "who": "kaede", "to": "plan"},
+		{"do": "actor", "who": "kaede", "leave": true}
+	]
+}

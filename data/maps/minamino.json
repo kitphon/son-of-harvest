@@ -34,7 +34,7 @@
 	],
 	"props": [
 		{"kind": "village_house", "cell": [9, 4], "size": [5, 3], "door": 2, "storeys": 2},
-		{"kind": "village_house", "cell": [20, 12], "size": [5, 3], "door": 2, "roof": "hip", "wall": "yakisugi"},
+		{"kind": "village_house", "cell": [22, 4], "size": [4, 3], "door": 1, "roof": "hip"}, {"kind": "village_house", "cell": [20, 12], "size": [5, 3], "door": 2, "roof": "hip", "wall": "yakisugi"},
 		{"kind": "hokora", "cell": [1, 6], "size": [2, 2]},
 		{"kind": "stone_lantern", "cell": [3, 7]},
 		{"kind": "sakura", "cell": [2, 11]},
@@ -70,9 +70,11 @@
 		{"cells": [[3, -1], [4, -1], [5, -1]], "to": "town", "spawn": [4, 20], "facing": "up"},
 		{"cells": [[3, 20], [4, 20], [5, 20]], "to": "river", "spawn": [5, 1], "facing": "down"},
 		{"cells": [[11, 6]], "to": "shige_house", "spawn": [4, 5], "facing": "up", "hours": ["06:00", "21:00"], "closed": "Shige's house is dark. Nana must be asleep."},
-		{"cells": [[22, 14]], "to": "kiku_house", "spawn": [4, 5], "facing": "up", "hours": ["06:00", "19:00"], "closed": "Kiku's house is shut. She goes to bed with the sun."}
+		{"cells": [[22, 14]], "to": "kiku_house", "spawn": [4, 5], "facing": "up", "hours": ["06:00", "19:00"], "closed": "Kiku's house is shut. She goes to bed with the sun."},
+		{"cells": [[23, 6]], "to": "kaede_house", "spawn": [3, 5], "facing": "up", "hours": ["06:00", "21:00"], "closed": "Kaede's lamp is out. She must be asleep."}
 	],
 	"spawns": {
+		"kaede": [[23, 7], "down"],
 		"start": [[4, 1], "down"],
 		"river": [[4, 18], "up"],
 		"shige": [[11, 7], "down"],

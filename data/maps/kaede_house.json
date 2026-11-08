@@ -1,0 +1,43 @@
+{
+	"_note": "Kaede's house in Minamino's east, where the shrine keepers of the village have lived (her grandfather was the last): a tatami room with the family altar and an alcove, a low table where she folds paper charms, a lamp and a chest; the stove and the water jar in the earth entry. Format: README.md, Maps. The omamori the farmer gives Kaede stands in the alcove once given (kept_kaede_omamori).",
+	"id": "kaede_house",
+	"name": "Kaede's house",
+	"size": [8, 7],
+	"indoor": true,
+	"ambient": "indoor",
+	"light": "fff0dc",
+	"background": "1a1410",
+	"legend": {
+		"#": {"tile": "wall", "solid": true},
+		".": {"tile": "tatami", "step": "floor"},
+		"e": {"tile": "earth", "step": "soil"},
+		"D": {"tile": "earth", "solid": true}
+	},
+	"ground": [
+		"########",
+		"#......#",
+		"#......#",
+		"#......#",
+		"#......#",
+		"#eeeeee#",
+		"###D####"
+	],
+	"props": [
+		{"kind": "butsudan", "cell": [1, 1]},
+		{"kind": "tokonoma", "cell": [5, 1], "size": [2, 1]},
+		{"kind": "low_table", "cell": [3, 2], "size": [2, 1]},
+		{"kind": "zabuton", "cell": [3, 3], "solid": false, "color": "c8342c"},
+		{"kind": "andon", "cell": [1, 3]},
+		{"kind": "tansu", "cell": [6, 3]},
+		{"kind": "mizugame", "cell": [1, 5]},
+		{"kind": "kamado", "cell": [6, 5]},
+		{"kind": "keepsake", "cell": [5, 1], "item": "keep:omamori", "flag": "kept_kaede_omamori"}
+	],
+	"doors": [
+		{"cells": [[3, 6]], "to": "minamino", "spawn": [23, 7], "facing": "down"}
+	],
+	"spawns": {
+		"start": [[3, 5], "up"],
+		"home": [[2, 4], "down"]
+	}
+}

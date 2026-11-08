@@ -66,6 +66,13 @@
 		{"id": "mio", "speaker": "mio", "mood": "happy", "text": "Hey, farmer! Quick: where are the fish right now? The fast water by the rocks, or the dark pool under the bank?", "choices": [{"text": "The fast water.", "next": "mio_fast"}, {"text": "The dark pool.", "next": "mio_pool"}]},
 		{"id": "mio_fast", "speaker": "mio", "mood": "surprised", "text": "Ha! Most people pick the pool. In summer they sit in the fast water, where the air is. You've got river eyes.", "next": "mio_end"},
 		{"id": "mio_pool", "speaker": "mio", "mood": "happy", "text": "That's what everyone picks. In winter you'd be right. Today they're up in the riffle, gulping air. Lesson one.", "next": "mio_end"},
-		{"id": "mio_end", "speaker": "mio", "mood": "neutral", "text": "Father poled the ferry here thirty years and never caught more than me. Here, a daikon from behind the hut. Simmer it with a river fish. Nothing else needed.", "next": "end"}
+		{"id": "mio_end", "speaker": "mio", "mood": "neutral", "text": "Father poled the ferry here thirty years and never caught more than me. Here, a daikon from behind the hut. Simmer it with a river fish. Nothing else needed.", "next": "end"},
+
+		{"id": "kaede", "speaker": "kaede", "mood": "happy", "text": "You came at the right time. Sit on the step. I'm going to tell you about the shrine's fox."},
+		{"speaker": "kaede", "mood": "neutral", "text": "Grandfather said a white fox walks the gravel on misty nights, checking that every lantern is lit. He'd leave it a rice ball."},
+		{"speaker": "kaede", "mood": "happy", "text": "The rice ball was always gone by morning. ...Do you believe in the fox?", "choices": [{"text": "Maybe a little.", "next": "kaede_maybe"}, {"text": "Only in daylight.", "next": "kaede_day"}]},
+		{"id": "kaede_maybe", "speaker": "kaede", "mood": "surprised", "text": "Maybe a little! That's the right answer. That's exactly how much Grandfather believed.", "next": "kaede_end"},
+		{"id": "kaede_day", "speaker": "kaede", "mood": "happy", "text": "Ha! Only in daylight. Then come by at dusk sometime, and we'll see how brave you are.", "next": "kaede_end"},
+		{"id": "kaede_end", "speaker": "kaede", "mood": "neutral", "text": "Here, turnip seed from the offering box. The fox doesn't eat turnips. I checked.", "next": "end"}
 	]
 }

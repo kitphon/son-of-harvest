@@ -93,6 +93,16 @@
 		{"id": "mio_name", "speaker": "mio", "mood": "neutral", "text": "The boat's never had a name. Father said a boat with a name gets proud and tips over. I think it's time anyway.", "choices": [{"text": "Name it after your father.", "next": "mio_father", "set": {"mio_boat": "father"}}, {"text": "Give it a new name.", "next": "mio_new", "set": {"mio_boat": "new"}}]},
 		{"id": "mio_father", "speaker": "mio", "mood": "sad", "text": "...Then it's Tatsu's boat again. He'd grumble. He'd be pleased.", "next": "mio_end"},
 		{"id": "mio_new", "speaker": "mio", "mood": "happy", "text": "A new name, then. I'll paint it on tonight and tell you when it's dry. No peeking.", "next": "mio_end"},
-		{"id": "mio_end", "speaker": "mio", "mood": "happy", "text": "One more thing. The first crossing of the morning is mine to give. From now on it's yours, whenever you want it.", "next": "end"}
+		{"id": "mio_end", "speaker": "mio", "mood": "happy", "text": "One more thing. The first crossing of the morning is mine to give. From now on it's yours, whenever you want it.", "next": "end"},
+
+		{"id": "kaede", "speaker": "kaede", "mood": "happy", "text": "You're here! I've been waiting by the new fortune box since the gravel was raked."},
+		{"speaker": "kaede", "mood": "neutral", "text": "I led the New Year rite. Alone. The whole village heard every word."},
+		{"if": "kaede_recite", "then": "kaede_said"},
+		{"speaker": "kaede", "mood": "happy", "text": "And I never once looked at my sleeve. Tome says the words were mine all along. The ink is still there, though. I'm keeping it.", "next": "kaede_box"},
+		{"id": "kaede_said", "speaker": "kaede", "mood": "happy", "text": "You made me say them to you on this step. So at midnight, I just... said them to you again, in my head. It worked."},
+		{"id": "kaede_box", "speaker": "kaede", "mood": "neutral", "text": "Grandfather's last box of fortunes is new paper now. Somebody has to draw the very first one.", "choices": [{"text": "Draw one for me.", "next": "kaede_drawn", "set": {"kaede_draw": "for"}}, {"text": "We'll draw together.", "next": "kaede_together", "set": {"kaede_draw": "together"}}]},
+		{"id": "kaede_drawn", "speaker": "kaede", "mood": "surprised", "text": "Great blessing! ...For you, of course. I definitely didn't put three in the front.", "next": "kaede_end"},
+		{"id": "kaede_together", "speaker": "kaede", "mood": "happy", "text": "Both hands on the box, then. ...Great blessing. One slip, two people. Tome would say that means something.", "next": "kaede_end"},
+		{"id": "kaede_end", "speaker": "kaede", "mood": "happy", "text": "From now on, the first fortune every New Year is yours. That's a shrine keeper's promise.", "next": "end"}
 	]
 }

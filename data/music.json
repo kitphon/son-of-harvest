@@ -161,7 +161,7 @@
 	},
 	"rules": [
 		{"track": "title", "scenes": ["title"]},
-		{"track": "heart", "events": ["heart_fumi", "heart_fumi_5", "heart_fumi_6", "heart_hachiro", "heart_hachiro_5", "heart_hachiro_6", "heart_haru", "heart_haru_5", "heart_haru_6", "heart_mio", "heart_mio_5", "heart_mio_6", "heart_shige", "heart_shige_5", "heart_genzo", "heart_genzo_5", "heart_genzo_6", "heart_ichiro", "heart_ichiro_5", "heart_ichiro_6", "heart_kota", "heart_kota_5", "heart_kota_6", "heart_sayo", "heart_sayo_5", "heart_sayo_6", "heart_tome", "heart_tome_5", "heart_tome_6", "propose_sayo", "propose_fumi", "wedding_sayo", "wedding_fumi"]},
+		{"track": "heart", "events": ["heart_fumi", "heart_fumi_5", "heart_fumi_6", "heart_hachiro", "heart_hachiro_5", "heart_hachiro_6", "heart_haru", "heart_haru_5", "heart_haru_6", "heart_mio", "heart_mio_5", "heart_mio_6", "heart_kaede", "heart_kaede_5", "heart_kaede_6", "heart_shige", "heart_shige_5", "heart_genzo", "heart_genzo_5", "heart_genzo_6", "heart_ichiro", "heart_ichiro_5", "heart_ichiro_6", "heart_kota", "heart_kota_5", "heart_kota_6", "heart_sayo", "heart_sayo_5", "heart_sayo_6", "heart_tome", "heart_tome_5", "heart_tome_6", "propose_sayo", "propose_fumi", "wedding_sayo", "wedding_fumi"]},
 		{"track": "morning", "events": ["opening", "first_morning"]},
 		{"track": "fest_blossom", "festivals": ["blossom_day"]},
 		{"track": "fest_lanterns", "festivals": ["lantern_night"]},

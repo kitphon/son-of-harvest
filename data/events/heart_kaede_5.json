@@ -1,0 +1,14 @@
+{
+	"_note": "Kaede's second heart event: the first talk once her heart band reaches 5, after heart_kaede (same tables). Tome will have her lead the New Year rite alone and she fears forgetting the words; the farmer says to write them inside her sleeve (kaede_sleeve) or to say them now (kaede_recite). Sets heart_kaede_5. Kaede acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "kaede", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "kaede"},
+		{"do": "sound", "key": "amb_wind"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_5", "at": "kaede"},
+		{"do": "affection", "who": "kaede", "amount": 5},
+		{"do": "set", "flags": {"heart_kaede_5": true}},
+		{"do": "actor", "who": "kaede", "to": "plan"},
+		{"do": "actor", "who": "kaede", "leave": true}
+	]
+}

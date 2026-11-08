@@ -1,0 +1,88 @@
+{
+	"_note": "Kaede keeps the village shrine. She lives in the shrine keepers' house in Minamino's east (data/maps/kaede_house.json; her grandfather kept the shrine before her) and Grandma Tome is teaching her the rites he never wrote down. Up at 6:00; at 6:30 she walks the track west, bows at Minamino's roadside shrine, and goes up the lane; from 7:00 she sweeps the shrine's gravel in front of the hall, lunch on its step at 11:30, then folds paper charms by the hall until 16:00, home by 16:55, asleep from 21:00. Wet days she folds charms at home. On her birthday (fall 4, when the first leaves turn on the shrine path) she leaves the broom: home in the morning, then the roadside shrine in Minamino 10:00-15:00, telling herself the old tales. Festivals she stands by the hall for their hours. Married to the farmer (married_kaede, data/marriage.json) she lives at the farmhouse: by the kotatsu in the second room before 7:00 and from 16:30, the shrine as before in between; a wet day she folds charms by the kotatsu. Her heart events: data/events/heart_kaede.json (band 3), heart_kaede_5.json (band 5), heart_kaede_6.json (band 6; after it she can be asked to marry). Gifts: sweets for the gods and for herself (dango, amazake, kinako mochi), an omamori from somewhere else above all, quartz from the mine; strong medicine, fish stewed with daikon and muddy clay she doesn't like, a plain stone is an insult. A character of our own, one of the four new candidates (docs/DESIGN.md, ความรักและแต่งงาน). Format: README.md, Villagers.",
+	"id": "kaede",
+	"name": "Kaede",
+	"birthday": {"season": "fall", "day": 4},
+	"speed": 1.5,
+	"look": {"outfit": "happi", "hair_style": "long", "hair": "1a1416", "skin": "f2c8a0", "top": "eeeee6", "waist": "e8e2d0", "lower": "c8342c", "accent": "c8342c", "shoes": "6b4423"},
+	"rules": [
+		{"if": {"festival": ["blossom_day"]}, "plan": "festival_day"},
+		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
+		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
+		{"if": {"birthday": true}, "plan": "birthday"},
+		{"if": {"flags": ["married_kaede"], "weather": ["rain", "storm", "snow"]}, "plan": "married_wet"},
+		{"if": {"flags": ["married_kaede"]}, "plan": "married"},
+		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
+	],
+	"default": "usual",
+	"gifts": {
+		"love": ["food:dango", "food:amazake", "food:kinako_mochi", "keep:omamori"],
+		"like": ["food:green_tea", "food:sakura_mochi", "food:onigiri", "food:baked_imo", "food:zenzai", "turnip", "mine:suisho"],
+		"dislike": ["food:herb_tonic", "food:daikon_fish", "mine:clay"],
+		"hate": ["mine:stone"]
+	},
+	"plans": {
+		"married": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "07:00", "map": "town", "from": [0, 10], "route": [{"to": [0, 11]}, {"to": [18, 11]}, {"to": [18, 5]}, {"to": [16, 4]}, {"face": "up"}], "loop": [{"work": 15}, {"to": [21, 4]}, {"face": "up"}, {"work": 15}, {"to": [16, 4]}, {"face": "up"}]},
+			{"at": "11:30", "map": "town", "route": [{"to": [19, 5]}, {"face": "down"}], "loop": [{"wait": 30}]},
+			{"at": "12:30", "map": "town", "route": [{"to": [18, 3]}, {"face": "up"}], "loop": [{"wait": 20}, {"face": "left"}, {"wait": 10}, {"face": "up"}]},
+			{"at": "16:00", "map": "town", "route": [{"to": [18, 5]}, {"to": [18, 11]}, {"to": [0, 11]}, {"to": [0, 10]}, {"face": "left"}]},
+			{"at": "16:30", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"married_wet": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}], "loop": [{"work": 30}, {"wait": 15}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"festival_day": [
+			{"at": "06:00", "map": "kaede_house", "from": [2, 4], "route": [{"face": "down"}]},
+			{"at": "09:15", "map": "minamino", "from": [23, 7], "route": [{"to": [23, 9]}, {"to": [4, 9]}, {"to": [4, 0]}]},
+			{"at": "09:45", "map": "town", "from": [4, 21], "route": [{"to": [4, 11]}, {"to": [18, 11]}, {"to": [18, 5]}, {"to": [20, 4]}, {"face": "down"}]},
+			{"at": "15:45", "map": "town", "route": [{"to": [18, 5]}, {"to": [18, 11]}, {"to": [4, 11]}, {"to": [4, 21]}, {"face": "down"}]},
+			{"at": "16:15", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 9]}, {"to": [23, 9]}, {"to": [23, 7]}, {"face": "up"}]},
+			{"at": "16:40", "map": "kaede_house", "from": [2, 4], "route": [{"face": "down"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"festival_night": [
+			{"at": "06:00", "map": "kaede_house", "from": [2, 4], "route": [{"face": "down"}]},
+			{"at": "17:05", "map": "minamino", "from": [23, 7], "route": [{"to": [23, 9]}, {"to": [4, 9]}, {"to": [4, 0]}]},
+			{"at": "17:35", "map": "town", "from": [4, 21], "route": [{"to": [4, 11]}, {"to": [18, 11]}, {"to": [18, 5]}, {"to": [20, 4]}, {"face": "down"}]},
+			{"at": "21:40", "map": "town", "route": [{"to": [18, 5]}, {"to": [18, 11]}, {"to": [4, 11]}, {"to": [4, 21]}, {"face": "down"}]},
+			{"at": "22:10", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 9]}, {"to": [23, 9]}, {"to": [23, 7]}, {"face": "up"}]},
+			{"at": "22:35", "map": "kaede_house", "from": [2, 4], "route": [{"face": "down"}]},
+			{"at": "22:45", "map": "away"}
+		],
+		"festival_year": [
+			{"at": "06:00", "map": "kaede_house", "from": [2, 4], "route": [{"face": "down"}]},
+			{"at": "18:05", "map": "minamino", "from": [23, 7], "route": [{"to": [23, 9]}, {"to": [4, 9]}, {"to": [4, 0]}]},
+			{"at": "18:35", "map": "town", "from": [4, 21], "route": [{"to": [4, 11]}, {"to": [18, 11]}, {"to": [18, 5]}, {"to": [20, 4]}, {"face": "down"}]},
+			{"at": "23:00", "map": "town", "route": [{"to": [18, 5]}, {"to": [18, 11]}, {"to": [4, 11]}, {"to": [4, 21]}, {"face": "down"}]},
+			{"at": "23:30", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 9]}, {"to": [23, 9]}, {"to": [23, 7]}, {"face": "up"}]},
+			{"at": "23:55", "map": "kaede_house", "from": [2, 4], "route": [{"face": "down"}]},
+			{"at": "23:59", "map": "away"}
+		],
+		"usual": [
+			{"at": "06:00", "map": "kaede_house", "from": [2, 4], "route": [{"face": "down"}]},
+			{"at": "06:20", "map": "minamino", "from": [23, 7], "route": [{"to": [23, 9]}, {"to": [4, 9]}, {"to": [3, 9]}, {"to": [2, 8]}, {"face": "up"}, {"wait": 6}, {"to": [3, 9]}, {"to": [4, 9]}, {"to": [4, 0]}]},
+			{"at": "07:00", "map": "town", "from": [4, 21], "route": [{"to": [4, 11]}, {"to": [18, 11]}, {"to": [18, 5]}, {"to": [16, 4]}, {"face": "up"}], "loop": [{"work": 15}, {"to": [21, 4]}, {"face": "up"}, {"work": 15}, {"to": [16, 4]}, {"face": "up"}]},
+			{"at": "11:30", "map": "town", "route": [{"to": [19, 5]}, {"face": "down"}], "loop": [{"wait": 30}]},
+			{"at": "12:30", "map": "town", "route": [{"to": [18, 3]}, {"face": "up"}], "loop": [{"wait": 20}, {"face": "left"}, {"wait": 10}, {"face": "up"}]},
+			{"at": "16:00", "map": "town", "route": [{"to": [18, 5]}, {"to": [18, 11]}, {"to": [4, 11]}, {"to": [4, 21]}, {"face": "down"}]},
+			{"at": "16:30", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 9]}, {"to": [23, 9]}, {"to": [23, 7]}, {"face": "up"}]},
+			{"at": "16:55", "map": "kaede_house", "from": [2, 4], "route": [{"face": "down"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"birthday": [
+			{"at": "06:00", "map": "kaede_house", "from": [2, 4], "route": [{"face": "down"}]},
+			{"at": "10:00", "map": "minamino", "from": [23, 7], "route": [{"to": [23, 9]}, {"to": [3, 9]}, {"to": [2, 8]}, {"face": "up"}], "loop": [{"wait": 20}, {"face": "right"}, {"wait": 10}, {"face": "up"}]},
+			{"at": "15:00", "map": "minamino", "route": [{"to": [3, 9]}, {"to": [23, 9]}, {"to": [23, 7]}, {"face": "up"}]},
+			{"at": "15:30", "map": "kaede_house", "from": [2, 4], "route": [{"face": "down"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"wet": [
+			{"at": "06:00", "map": "kaede_house", "from": [3, 3], "route": [{"face": "up"}], "loop": [{"work": 30}, {"wait": 15}]},
+			{"at": "21:00", "map": "away"}
+		]
+	}
+}

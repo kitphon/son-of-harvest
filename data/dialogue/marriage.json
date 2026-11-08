@@ -114,6 +114,28 @@
 		{"speaker": "farmer", "mood": "happy", "text": "And every evening I'll be waiting on the bank. I promise."},
 		{"speaker": "hachiro", "mood": "happy", "text": "Hah. Now who beats me to the best spot on Sundays?"},
 		{"speaker": "mio", "mood": "happy", "text": "Me, same as ever. Marriage doesn't make me slower."},
+		{"speaker": "tome", "mood": "happy", "text": "There. Done and tied. Off home with you both, and be good to each other.", "next": "end"},
+
+		{"id": "kaede_married", "speaker": "kaede", "mood": "happy", "text": "Another knot? I tied yours to the shrine rope and to my wrist. One promise, two places. That's plenty.", "next": "end"},
+		{"id": "kaede_taken", "speaker": "kaede", "mood": "sad", "text": "Please put it away. Your promise is made to someone else. Even the gods keep count.", "next": "end"},
+		{"id": "kaede_waiting", "speaker": "kaede", "mood": "happy", "text": "Still yes! Three days. I've drawn a fortune for each one. All great blessing. Don't ask how.", "next": "end"},
+		{"id": "kaede_band", "speaker": "kaede", "mood": "surprised", "text": "A mizuhiki knot? Oh, no, no. Not yet. Even the fox would say it's too soon."},
+		{"speaker": "kaede", "mood": "neutral", "text": "Come up the shrine path more often. Then we'll see what the fortunes say.", "next": "end"},
+		{"id": "kaede_room", "speaker": "kaede", "mood": "surprised", "text": "Red and white... for me? Oh."},
+		{"speaker": "kaede", "mood": "neutral", "text": "I want to say yes. But your farmhouse is one room, and I come with an altar, a chest of charms and a great many notebooks."},
+		{"speaker": "kaede", "mood": "happy", "text": "Ask Hachiro for a second room. Then ask me again at the shrine.", "next": "end"},
+		{"id": "kaede_yes", "speaker": "kaede", "mood": "surprised", "text": "That's a mizuhiki knot. I've tied a hundred of those for other people's weddings."},
+		{"speaker": "farmer", "mood": "neutral", "text": "This one is for yours. Will you marry me?"},
+		{"speaker": "kaede", "mood": "sad", "text": "Grandfather used to say a shrine keeper marries the shrine. I always thought that sounded lonely."},
+		{"speaker": "kaede", "mood": "happy", "text": "Yes. The shrine by day, you by night. And the first fortune of every year."},
+		{"speaker": "kaede", "mood": "neutral", "text": "Tome will want three days to ready the shrine. My shrine. Oh, this is going to be strange.", "next": "end"},
+		{"id": "kaede_wedding", "speaker": "tome", "mood": "happy", "text": "Well. The whole village up at the shrine, and not even a festival. Settle down, all of you."},
+		{"speaker": "tome", "mood": "neutral", "text": "Kaede, I taught you every word of this rite. I never thought I'd say it with you on this side of it."},
+		{"speaker": "tome", "mood": "neutral", "text": "Now take each other's hands and tie the knot round them both. Tight. A loose knot is a loose promise."},
+		{"speaker": "kaede", "mood": "happy", "text": "Every New Year the first fortune is yours, and I'll stack the box every time. That's my vow."},
+		{"speaker": "farmer", "mood": "happy", "text": "And I'll keep every one you draw. I promise."},
+		{"speaker": "nana", "mood": "surprised", "text": "Kaede, does this mean no more ghost stories?"},
+		{"speaker": "kaede", "mood": "happy", "text": "It means twice as many. Now there's someone at home to scare."},
 		{"speaker": "tome", "mood": "happy", "text": "There. Done and tied. Off home with you both, and be good to each other.", "next": "end"}
 	]
 }
