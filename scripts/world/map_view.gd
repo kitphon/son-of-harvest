@@ -134,23 +134,35 @@ func _draw() -> void:
 ## paddy_cells) gets the calm picture CropPatches.paddy_ground gives, so the rice and the winter
 ## water patches read on it; every other cell is ground_key.
 func ground_key_in(c: Vector2i, paddies: Dictionary) -> String:
-	var key := ground_key(map, c)
+	return ground_key_at(map, c, season, paddies)
+
+
+## The same ground key for any map and season, shared with the 3D view (MapWorld.ground_keys):
+## a paddy cell in `paddies` (paddy_cells_in) gets CropPatches.paddy_ground, every other cell
+## is ground_key.
+static func ground_key_at(m: MapData, c: Vector2i, season_name: String, paddies: Dictionary) -> String:
+	var key := ground_key(m, c)
 	if paddies.has(c):
-		return (load(CROP_PATCHES) as GDScript).paddy_ground(season, key)
+		return (load(CROP_PATCHES) as GDScript).paddy_ground(season_name, key)
 	return key
 
 
 ## The paddy cells with no prop and the rice they grow this season (CropClusters.paddy_key;
 ## empty in winter): cell -> cluster key.
 func paddy_cells() -> Dictionary:
+	return paddy_cells_in(map, season)
+
+
+## paddy_cells for any map and season, shared with the 3D view (MapWorld._plant_paddies).
+static func paddy_cells_in(m: MapData, season_name: String) -> Dictionary:
 	var cells := {}
-	var key: String = (load(CROP_PATCHES) as GDScript).paddy_key(season)
+	var key: String = (load(CROP_PATCHES) as GDScript).paddy_key(season_name)
 	if key == "":
 		return cells
-	for y in map.h:
-		for x in map.w:
+	for y in m.h:
+		for x in m.w:
 			var c := Vector2i(x, y)
-			if map.tile(c) == "paddy" and map.prop_at(c).is_empty():
+			if m.tile(c) == "paddy" and m.prop_at(c).is_empty():
 				cells[c] = key
 	return cells
 

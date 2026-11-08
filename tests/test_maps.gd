@@ -2884,6 +2884,51 @@ func _crop_clusters() -> void:
 		and cc.water_on("winter") and not cc.water_on("spring") and not cc.water_on("summer") and not cc.water_on("fall"),
 		"paddies: young in spring, tall and green in summer, ripe in fall, cut stubble and water in winter")
 	_paddy_winter(cc)
+	_paddy_ground_3d()
+
+
+## The 3D ground of the village paddies (MapWorld.ground_keys): a paddy cell that grows rice takes
+## the flat view's calm ground, paddy_mud in winter and paddy_flood in the other seasons, every
+## cell's key is the one MapView.ground_key_in gives, and a paddy tile with no rice keeps the
+## painted "paddy" tile.
+func _paddy_ground_3d() -> void:
+	var mw: GDScript = load("res://scripts/world3d/map_world.gd")
+	var m := MapManager.data("kaminoda")
+	var mv := MapView.new()
+	mv.map = m
+	var rice := {}      # season -> cells drawn with rice
+	var bad := 0        # rice cells whose 3D key is not the season's calm ground
+	var disagree := 0   # cells where the 3D and flat keys differ
+	var painted := 0    # paddy tiles with no rice
+	var painted_bad := 0
+	var sample := {}    # season -> the key of one rice cell
+	for season in ["winter", "spring", "summer", "fall"]:
+		mv.season = season   # the field itself: set_season redraws, and this view is not in the tree
+		var flat_paddies: Dictionary = mv.paddy_cells()
+		var keys: Dictionary = mw.ground_keys(m, season)
+		var want := "ground:paddy_mud:" if season == "winter" else "ground:paddy_flood:"
+		rice[season] = flat_paddies.size()
+		for y in m.h:
+			for x in m.w:
+				var c := Vector2i(x, y)
+				if keys[c] != mv.ground_key_in(c, flat_paddies):
+					disagree += 1
+				if flat_paddies.has(c):
+					if not keys[c].begins_with(want):
+						bad += 1
+					if not sample.has(season):
+						sample[season] = keys[c]
+				elif m.tile(c) == "paddy":
+					painted += 1
+					if not keys[c].begins_with("ground:paddy:"):
+						painted_bad += 1
+	mv.free()
+	check(rice.values().all(func(n): return n > 0), "paddy ground 3d: rice cells in every season %s" % [rice])
+	check(sample.get("winter", "").begins_with("ground:paddy_mud:") and sample.get("summer", "").begins_with("ground:paddy_flood:"),
+		"paddy ground 3d: a rice cell is paddy_mud in winter (%s) and paddy_flood in summer (%s)" % [sample.get("winter", ""), sample.get("summer", "")])
+	check(bad == 0, "paddy ground 3d: every rice cell has its season's calm ground (%d off)" % bad)
+	check(disagree == 0, "paddy ground 3d: the 3D and flat views pick the same ground key for every cell (%d differ)" % disagree)
+	check(painted_bad == 0, "paddy ground 3d: paddy tiles with no rice keep the painted tile (%d of %d painted)" % [painted_bad, painted])
 
 
 ## The winter paddies (CropClusters): the stubble and the water patches as pictures, the water

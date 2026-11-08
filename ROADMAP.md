@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] Calm paddy ground in the 3D view (2026-11-08): the Kaminoda paddies where rice is drawn use the flat view's calm ground in 3D too, paddy_mud in winter and paddy_flood in the other seasons, from one rule shared by both views (MapView.paddy_cells_in / ground_key_at, MapWorld.ground_keys); the painted paddy tile stays where no rice grows (test_maps `_paddy_ground_3d`; ART_DIRECTION, Rice and tall crops).
 Marriage for everyone (planned 2026-11-08, docs/DESIGN.md → ความรักและแต่งงาน): eight
 candidates, six women and two men, each open to the farmer whatever the farmer's look. One
 candidate per commit, Sayo and Fumi as the pattern (band 3 / 5 / 6 scenes, knot answers,
