@@ -393,6 +393,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)
    - [x] Field object and crop placeholders (per crop look in `data/crops.json`, 4 growth looks + ripe)
    - [x] Field object and crop art (same keys: `crop:<id>:<growth>:<ripe|growing>`): the refined placeholder pass (2026-11-08): CropArt draws the single-sprite crops part by part, three tones, deep leaf-shade rim. Real hand art is still to come.
+   - [x] Bush leaf detail (2026-11-08): the potato and eggplant bushes at growth 2 and 3 are a fan of separate leaves with lit upper-left edges and shade midribs over a shaded underside (CropArt._foliage; test_farm `_crop_art` counts the tone-edge pixels).
    - [x] Ground tiles instead of flat colours (grass, soil dry / wet / tilled, paths, water)
    - [x] House, bin, stand, fence as models or textured boxes
    - [x] Rain / snow particles, weather tint

@@ -259,16 +259,37 @@ static func _root(img: Image, look: Dictionary, growth: int, ripe: bool, lt: Arr
 
 # ---- bush crops: potato, eggplant ----
 
+## The bush's leaf mass: separate leaves fanned from one foot, the outer ones first. Each leaf is
+## lit on its upper-left side and has a shade midrib (the vein); a shaded underside sits below
+## them, so the gaps between leaves read dark.
+static func _foliage(img: Image, big: bool, lt: Array) -> void:
+	var g := GROUND
+	# Per leaf: foot x, foot y, tip x, tip y, half width. The outer leaves come first.
+	var leaves: Array = [[5.5, g - 2.0, 1.5, g - 5.5, 1.9], [10.5, g - 2.0, 14.5, g - 5.5, 1.9],
+		[6.5, g - 2.5, 3.0, g - 10.5, 1.9], [9.5, g - 2.5, 13.0, g - 10.5, 1.9],
+		[7.0, g - 2.5, 5.5, g - 13.0, 1.8], [9.0, g - 2.5, 10.5, g - 13.0, 1.8],
+		[8.0, g - 2.5, 8.0, g - 12.5, 2.0]] if big else [[6.0, g - 2.0, 3.0, g - 5.5, 1.7],
+		[10.0, g - 2.0, 13.0, g - 5.5, 1.7], [7.0, g - 2.5, 5.5, g - 8.0, 1.8],
+		[9.0, g - 2.5, 10.5, g - 8.0, 1.8], [8.0, g - 2.5, 8.0, g - 9.5, 2.0]]
+	if big:
+		_ball(img, 8, g - 2.6, 5.6, 1.6, [lt[0], lt[0], lt[0]])
+	else:
+		_ball(img, 8, g - 2.2, 4.0, 1.4, [lt[0], lt[0], lt[0]])
+	for lf: Array in leaves:
+		_fan_leaf(img, Vector2(lf[0], lf[1]), Vector2(lf[2], lf[3]), lf[4], lt)
+
+
+## One leaf of the fan and its midrib.
+static func _fan_leaf(img: Image, foot: Vector2, tip: Vector2, w: float, lt: Array) -> void:
+	_leaf(img, foot, tip, w, lt)
+	_stem(img, foot, foot.lerp(tip, 0.7), lt[0])
+
 static func _bush(img: Image, id: String, look: Dictionary, growth: int, ripe: bool, lt: Array) -> void:
 	var g := GROUND
 	var big := growth >= 3
 	var ft := tones(Color(look.get("fruit", "e8a23a")))
-	var blobs: Array = [[4.5, g - 3.0, 3.6, 2.8], [11.5, g - 3.0, 3.6, 2.8], [8, g - 6.5, 4.4, 3.4], [5.5, g - 8.0, 3.0, 2.4], [10.5, g - 8.5, 3.0, 2.4]] \
-		if big else [[5.5, g - 2.0, 2.8, 2.0], [10.5, g - 2.5, 2.8, 2.2], [8, g - 4.5, 3.0, 2.4]]
-	for bl: Array in blobs:
-		_blob(img, bl[0], bl[1], bl[2], bl[3], lt)
-		if not _po:   # a shade pixel where each mass turns away, so it reads as leaves
-			_px(img, int(bl[0] + bl[2] * 0.3), int(bl[1] + bl[3] * 0.2), lt[0])
+	if not _po:
+		_foliage(img, big, lt)
 	if big and not _po and data().flower.has(id):
 		var fl := tones(Color(data().flower[id]))
 		for p in [Vector2i(5, g - 10), Vector2i(10, g - 11), Vector2i(8, g - 7)]:
