@@ -101,6 +101,14 @@
 		{"speaker": "ren", "mood": "neutral", "text": "They said I could drive the van. Or I could tell them no. What would you do?", "choices": [{"text": "Keep walking the round.", "next": "ren_walk", "set": {"ren_walk": true}}, {"text": "Drive the van yourself.", "next": "ren_van", "set": {"ren_van": true}}]},
 		{"id": "ren_walk", "speaker": "ren", "mood": "happy", "text": "On foot. Every door, every day. ...Yes. I'll write them the longest letter of my life.", "next": "ren_end"},
 		{"id": "ren_van", "speaker": "ren", "mood": "surprised", "text": "Drive it myself. Then the van would at least know whose gate sticks and whose dog bites. Huh. That might work.", "next": "ren_end"},
-		{"id": "ren_end", "speaker": "ren", "mood": "neutral", "text": "Thanks. I talk all day and never ask anyone anything. That was nice, for once.", "next": "end"}
+		{"id": "ren_end", "speaker": "ren", "mood": "neutral", "text": "Thanks. I talk all day and never ask anyone anything. That was nice, for once.", "next": "end"},
+
+		{"id": "nana", "speaker": "nana", "mood": "neutral", "text": "Can I show you something? Don't tell Kota. It's a map of the sky. I drew it on the back of a seed sack."},
+		{"speaker": "nana", "mood": "sad", "text": "Granny Kiku says Mama is up with the stars. I don't remember her. So I picked one for her: the small one that blinks. She sounds like somebody who blinks a lot."},
+		{"speaker": "nana", "mood": "neutral", "text": "Dad hasn't got a star yet. He just looks at the ground. Which one should be his?",
+			"choices": [{"text": "The big one that never moves.", "next": "nana_steady"}, {"text": "The one right beside hers.", "next": "nana_beside"}]},
+		{"id": "nana_steady", "speaker": "nana", "mood": "happy", "text": "Big and steady and right where you left it. That's Dad all over! He'll say it's too bright. He'll like it.", "next": "nana_end"},
+		{"id": "nana_beside", "speaker": "nana", "mood": "surprised", "text": "Right beside Mama's? ...Yes. So they can blink at each other. I'm drawing it now.", "next": "nana_end"},
+		{"id": "nana_end", "speaker": "nana", "mood": "happy", "text": "Here, two cucumbers from my own row. For a friend who looks at maps. Don't tell Kota I like you.", "next": "end"}
 	]
 }

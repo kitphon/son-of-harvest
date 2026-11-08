@@ -359,16 +359,16 @@ fall 9, close lines, heart events at bands 3 and 5, a word at the ending); they 
 and a sweet of the season sold nowhere else, while she is behind her counter). Forage is in
 (data/forage.json: fifteen spots on the bamboo hill, what grows changes by the season, a picked
 spot grows back overnight; README → Forage). The village record has a Neighbours
-row (the villagers without hearts known to band 1; three now, three steps; four before Shige got hearts, five before Haru did, six before Genzo did, eight before Fumi and Ichiro did).
-Haru of Kaminoda has hearts now too (birthday summer 27, close lines, heart events at bands 3, 5 and 6, a word at the ending; Neighbours four now). So has Shige of Minamino (birthday winter 18, close lines, heart events at bands 3, 5 and 6: the scarecrow, his wife's pumpkin seed and the first pumpkins, a word at the ending; Neighbours three now, the record 42 stars). Later for hearts: hearts for Nana or Kiku the same way (README → Villagers says what a friend needs). Shige, Genzo, Haru, Ichiro and Nana are
+row (the villagers without hearts known to band 1; two now, two steps; three before Nana got hearts, four before Shige got hearts, five before Haru did, six before Genzo did, eight before Fumi and Ichiro did).
+Haru of Kaminoda has hearts now too (birthday summer 27, close lines, heart events at bands 3, 5 and 6, a word at the ending; Neighbours four now). So has Shige of Minamino (birthday winter 18, close lines, heart events at bands 3, 5 and 6: the scarecrow, his wife's pumpkin seed and the first pumpkins, a word at the ending; Neighbours three then). So has Nana, his daughter (birthday fall 19, close lines, heart events at bands 3 and 5: Captain the tadpole and her map of the sky, a word at the ending; Neighbours two now, Kiku and Dr. Yae, the record 41 stars). Later for hearts: Nana's band 6 scene; hearts for Kiku the same way (README → Villagers says what a friend needs). Shige, Genzo, Haru, Ichiro and Nana are
 contest rivals (one in every contest and game). Forage spots are in the three outer parts too
 (their own wild things: water dropwort, sansho, mulberries, ginkgo nuts and more). Wild things
 cook: six recipes of wild greens, mushrooms, bamboo shoots, chestnuts and matsutake (Haru, Genzo
 and Kiku teach three once they know the farmer; the first bamboo shoot, chestnuts or matsutake
 shipped brings a card). Tome, Hachiro, Sayo and Kota talk about forage too (a line per season,
 one weekday each, from band 2), and so do the outer parts' villagers about their own part
-(one weekday each; Fumi, Ichiro, Genzo, Haru and Shige, who have hearts now, from band 2 like the first
-four, the other two once they know the farmer).
+(one weekday each; Fumi, Ichiro, Genzo, Haru, Shige and Nana, who have hearts now, from band 2 like the first
+four, Kiku once she knows the farmer).
 After that: milestone 10, building the .exe once the export templates are installed (README → Export).
 Later for the HUD: kana / kanji glyphs in `data/font_pixel.json` once there is Japanese text.
 Open from the user: the farmer sprite still looks a bit odd to them (no details given, set

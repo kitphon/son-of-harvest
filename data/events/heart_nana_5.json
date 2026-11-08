@@ -1,0 +1,15 @@
+{
+	"_note": "Nana's second heart event: the first talk once her heart band reaches 5, after heart_nana (same tables). She shows the map of the sky she drew on the back of a seed sack: a small blinking star picked for the mother she does not remember, and asks which star should be her father's (the big steady one or the one beside her mother's); she pays the farmer in two cucumbers from her own row. Sets heart_nana_5. Nana acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "nana", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "nana"},
+		{"do": "sound", "key": "step_grass"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_5", "at": "nana"},
+		{"do": "give", "item": "cucumber", "count": 2},
+		{"do": "affection", "who": "nana", "amount": 5},
+		{"do": "set", "flags": {"heart_nana_5": true}},
+		{"do": "actor", "who": "nana", "to": "plan"},
+		{"do": "actor", "who": "nana", "leave": true}
+	]
+}

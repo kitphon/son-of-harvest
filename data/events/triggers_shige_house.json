@@ -1,8 +1,10 @@
 {
-	"_note": "Events in Shige's house (Shige and Nana live here): his heart events (bands 3, 5 and 6), as in Minamino. Format: README.md, Events.",
+	"_note": "Events in Shige's house (Shige and Nana live here): Shige's heart events (bands 3, 5 and 6) and Nana's (bands 3 and 5), as in Minamino. Format: README.md, Events.",
 	"rows": [
 		{"event": "heart_shige", "on": "talk", "who": "shige", "hearts": {"shige": [3, 6]}},
 		{"event": "heart_shige_5", "on": "talk", "who": "shige", "hearts": {"shige": [5, 6]}, "seen": ["heart_shige"]},
-		{"event": "heart_shige_6", "on": "talk", "who": "shige", "hearts": {"shige": [6, 6]}, "seen": ["heart_shige_5"]}
+		{"event": "heart_shige_6", "on": "talk", "who": "shige", "hearts": {"shige": [6, 6]}, "seen": ["heart_shige_5"]},
+		{"event": "heart_nana", "on": "talk", "who": "nana", "hearts": {"nana": [3, 6]}},
+		{"event": "heart_nana_5", "on": "talk", "who": "nana", "hearts": {"nana": [5, 6]}, "seen": ["heart_nana"]}
 	]
 }

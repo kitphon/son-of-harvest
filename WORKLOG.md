@@ -10,6 +10,51 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Merge: Shige's band 6 scene and hearts for Nana
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged f54c107 Shige's band 6 scene (Sonnet) and 6d5a3cf hearts for Nana (Sonnet),
+  both made in their own worktrees. Conflicts resolved by keeping both: the trigger rows in
+  triggers_minamino / triggers_shige_house / triggers_town, the heart music list, the Thai
+  dialogue lines, README → Villagers, the ROADMAP prose (Later for hearts: Nana's band 6 scene,
+  hearts for Kiku); test_relationships keeps only "Nana has heart events at 3 and 5", since
+  Shige now has band 6.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`;
+  the four smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print no error
+  or warning lines.
+- Left / next: the child, step 4 (in its own worktree); Nana's band 6 scene; hearts for Kiku.
+
+## 2026-11-08 — Hearts for Nana of Minamino
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: Nana joins `Villagers.friends()` (hearts no longer false), the way Shige did. Birthday
+  fall 19 (free of every other birthday and festival; Granny Kiku's persimmon season), with a
+  `birthday` day plan: home until 9:00, dressing the jizo on the lane in a new red scarf
+  9:00-11:40 (cell 4, 18), lunch at home, the village pond as on other days but till dusk
+  (18:00), home by 18:40, bed at 20:30; the farmhouse calendar marks it (a tiny red scarf on the
+  19th). Talk: birthday / gift_birthday, close lines from band 4, her forage lines now band 2
+  to 5 like the other friends, `stars_` lines after the band 5 scene. `heart_nana` (band 3: her
+  tadpole Captain from the ditch behind her father's beds; let him go to the pond or wait for
+  legs; two packets of corn seed from her father's tallest row) and `heart_nana_5` (band 5: the
+  map of the sky she drew on a seed sack, a blinking star picked for the mother she does not
+  remember, and which star should be her father's, the big steady one or the one beside her
+  mother's; two cucumbers). Trigger rows in triggers_minamino, triggers_shige_house and
+  triggers_town; music rule; her part in the ending (data/events/ending.json,
+  dialogue/ending.json: Captain is a frog now). Record steps: Friendships 12 / 25 / 40 / 63 of
+  78 -> 13 / 27 / 43 / 68 of 84 (same share, fourteen friends), Neighbours 1 / 2 / 3 -> 1 / 2
+  (two without hearts left: Kiku and Dr. Yae; steps must rise, so the record has 41 stars now,
+  not 42; the rank steps 9 / 18 / 27 / 36 stay). Thai for every new line and the changed
+  calendar key. README (Villagers, Ending) and ROADMAP updated. No band 6 scene (Shige's is
+  another agent's task).
+- Checked: test_relationships has `_nana_friend` (birthday plan incl. the jizo cell and the
+  pond at dusk, close / star / birthday / forage picks, both answers of both scenes, both gifts,
+  the calendar, the ending part, not a neighbour) and Nana in the heart rows (3 maps), keepsake
+  homes (her clay rabbit stands in her house) and the friend count (14); test_talk moves her to
+  the friends' forage days; test_ending counts Nana as a friend and Kiku and Dr. Yae as the
+  neighbours. After `--import`, all 31 test scripts print `OK (0 failed)`; smoke runs (title,
+  `--demo`, `--demo --map=town`, `--demo --mine=3`) print no error or warning. Screenshot
+  (`--demo --map=minamino --time=9:00 --event=heart_nana`, frame 149): Nana's name tag with her
+  face over the first line of the scene, the farmer on the track.
+- Left / next: Shige's and Nana's band 6 scenes; hearts for Kiku; Captain, the star map and
+  the jizo's scarf change nothing in the world yet.
 ## 2026-11-08 — Shige's band 6 scene and his dear lines
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: `heart_shige_6` (data/events, lines in heart_events_6.json): the pumpkin vines grown from
