@@ -3,9 +3,12 @@ extends Node2D
 ## Draws a FarmGrid: ground tiles and field sprites from PlaceholderArt, buildings as boxes.
 ## Snow lying on the ground (show_snow / set_snow) goes between the two: a SnowLayer overlay
 ## over the ground, under the sprites and buildings, so plots and crops stay readable.
+## The crops, their plants and the items lying on the field take the world's light (FlatLight,
+## by the 3D sprites' rules); the ground, fences, roofs and doors do not (the 3D view's meshes).
 
 const T := 16
 const CROP_PATCHES := "res://scripts/world/crop_patches.gd"   # loaded when drawn: it needs the autoloads
+const FLAT_LIGHT := "res://scripts/world/flat_light.gd"       # the same
 const COLORS := {
 	"fence": Color("b08a5a"), "house": Color("a0522d"), "door": Color("4a2a14"),
 	"bin": Color("7a6a50"), "stand": Color("d9b45a"), "chest": Color("8a5a32"),
@@ -63,6 +66,7 @@ func _ready() -> void:
 		return
 	_objects = Node2D.new()
 	_objects.draw.connect(_draw_objects)
+	_objects.add_to_group("flat_lit")   # FlatLight.GROUP: redrawn when the light changes
 	add_child(_objects)
 	if farm != null:   # the pond's moving skin (none on a farm without one)
 		var water := WaterView.new()
@@ -151,13 +155,17 @@ func _draw_cell(c: Vector2i) -> void:
 	# cell above).
 	var key := PlaceholderArt.cell_key(farm, d)
 	var patches: GDScript = load(CROP_PATCHES)   # tall crops: several small plants, as in 3D (CropPatches)
+	var light: GDScript = load(FLAT_LIGHT)
+	var px: float = light.field_px()
 	var cluster: String = patches.cluster_key(key)
 	if cluster != "":
 		_tall = true
-		patches.draw(_objects, {c: cluster}, Callable(), 0.0, _sway)
+		patches.draw(_objects, {c: cluster}, Callable(), 0.0, _sway, Callable(light, "at_mid"))
 	elif key != "":
 		var tex := PlaceholderArt.tex(key)
-		_objects.draw_texture(tex, r.position + Vector2(0, T - tex.get_height()))
+		_objects.draw_texture(tex, r.position + Vector2(0, T - tex.get_height()),
+			light.at(r.position + Vector2(T / 2.0, T), tex.get_height(), px))
 	if farm.item_at(c) != "" and c != hidden_item:   # put down or thrown: lying in the middle of the cell
 		var it := PlaceholderArt.tex(PlaceholderArt.world_item_key(farm.item_at(c)))
-		_objects.draw_texture(it, r.position + (Vector2(T, T) - it.get_size()) / 2.0 + Vector2(0, 2))
+		var at := r.position + (Vector2(T, T) - it.get_size()) / 2.0 + Vector2(0, 2)
+		_objects.draw_texture(it, at, light.at(at + Vector2(it.get_width() / 2.0, it.get_height()), it.get_height(), px))

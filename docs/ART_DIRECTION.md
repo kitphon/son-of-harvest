@@ -348,6 +348,20 @@ Light and Farmhouse model hold the technical detail of what is built.
       without it 3-7 % of a farmer's pixels went unlifted). A lifted figure is drawn back over
       the glows from the copy, as the old pass did. A figure seen through a building faded
       see-through takes no lift there.
+      The flat view takes the same light (this commit): `FlatLight` (scripts/world/flat_light.gd)
+      gives the farmer (and what the farmer carries), the villagers (and what they hold), the
+      animals, the dog, the eggs, the crops and the tall crops' and paddies' plants, items lying
+      or in flight, forage and story props the sun's share by the clock and the warm night lift
+      by SpriteLight's own rules (sun_tint, spots_of from the map's NightView spots, lift_at at
+      the middle of the picture, as high as the 3D sprite's). Each picture is drawn with the
+      modulate sun x (1 + warm x lift / tint), so under the CanvasModulate night tint it comes
+      out as the 3D one, own x sun x tint + own x sun x warm x lift; a modulate touches only the
+      picture's own pixels, so whole pixels stay crisp and whatever stands in front keeps its
+      own. The only flat-only number is the tint's floor (data/light.json
+      sprites.lift.flat_floor 0.05, as NightView's shader). The ground, fences, roofs, doors
+      and the map's boxes stay as drawn (the 3D view's meshes); the marks (charge pips, the
+      bite's "!", note puffs) and the mine lantern too. No buildings stop a light in the flat
+      view (no Occluders there, as its pools).
       Stone lanterns wash the walls (2026-11-07): a lit lantern standing in front of a house
       wall (one with lit windows, `NightLights.lamp_walls`) adds the same kind of soft warm disc
       on it (`lamp_wash`, data/light.json "pools" → "wall" → "lamp"), centred on the point of

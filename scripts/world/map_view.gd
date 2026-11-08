@@ -7,6 +7,7 @@ extends Node2D
 
 const T := 16
 const CROP_PATCHES := "res://scripts/world/crop_patches.gd"   # loaded when drawn: it needs the autoloads
+const FLAT_LIGHT := "res://scripts/world/flat_light.gd"       # the same (the paddies' rice takes the world's light)
 const COLORS := {
 	"wall": Color("6a5a48"), "door": Color("4a2a14"), "futon": Color("e8e2d0"),
 	"low_table": Color("5a3a24"), "tansu": Color("3e3028"), "andon": Color("ffe6a8"),
@@ -63,6 +64,7 @@ static func ground_key(m: MapData, c: Vector2i) -> String:
 func _ready() -> void:
 	_objects = Node2D.new()
 	_objects.draw.connect(_draw_objects)
+	_objects.add_to_group("flat_lit")   # FlatLight.GROUP: redrawn when the light changes
 	add_child(_objects)
 	if map != null:   # a map with water gets the moving skin (none on a house's floor)
 		var water := WaterView.new()
@@ -203,7 +205,7 @@ func _draw_objects() -> void:
 	if _tall:
 		# The winter water patches lie under the stubble (CropPatches.draw_water: winter only), each with its glint.
 		(load(CROP_PATCHES) as GDScript).draw_water(_objects, season, paddies, paddy_hold, _cover, _glint)
-		(load(CROP_PATCHES) as GDScript).draw(_objects, paddies, paddy_hold, _cover, _sway)
+		(load(CROP_PATCHES) as GDScript).draw(_objects, paddies, paddy_hold, _cover, _sway, Callable(load(FLAT_LIGHT), "at_mid"))
 	for p in map.props:
 		if p.kind in StoryView.KINDS:   # drawn as pictures by StoryView
 			continue

@@ -10,6 +10,40 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — The flat view takes the world's light on its sprites
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: art direction section 3. `FlatLight` (scripts/world/flat_light.gd) brings the 3D sprites'
+  light to the flat view by SpriteLight's own rules: the sun's share by the clock
+  (SpriteLight.sun_tint of Game.sun_light; plain at noon, at night, indoors, down the mine, under
+  cloud) and at night the warm lift (SpriteLight.spots_of from the map's NightView windows,
+  lanterns and festival lights, SpriteLight.lift_at at the picture's middle, as high as the 3D
+  sprite's: FarmWorld.FIGURE_PX / PX / AnimalLayer.ANIMAL_PX). Each picture is drawn with the
+  modulate sun x (1 + warm x lift / tint), which under the CanvasModulate night tint is the 3D
+  view's own x sun x tint + own x sun x warm x lift; only the picture's own pixels change, whole
+  pixels, no blur. main_2d sets the light each game minute (and on a new map / day) and redraws
+  the views in FlatLight.GROUP when it changed; the farmer (figure self_modulate, the carried item
+  via Player.light), the villagers (self_modulate, the held item too, not the note puff) and a
+  thrown item take it each frame. AnimalView (animals, dog, eggs), FarmView (crops, the tall
+  crops' plants, items on the field), MapView (the paddies' plants, CropPatches.draw's new
+  `light` callable at CropPatches.light_mid), ForageView and StoryView draw with it. The ground,
+  fences, roofs, doors, map boxes, the marks and the mine lantern stay as drawn. One flat-only
+  number, data/light.json sprites.lift.flat_floor 0.05 (the least the tint is divided by, as
+  NightView's shader). No Occluders in the flat view, so no building stops a light (as its pools).
+  The 3D view is untouched. FlatLight loads the 3D scripts lazily, so views compile before the
+  autoloads in tests.
+- Checked: test_view2d `_sprite_light` (the modulate's sum under the tint, the middle's height, the
+  farmer golden at 6:30 and 17:30 and plain at noon and indoors, the field's and animals' views in
+  the group, a plant's middle, the village's spots = SpriteLight.spots_of, the farmer by a lit
+  window lifted by exactly lift_at, none in the dark, each villager by its own spot with the note
+  puff unlit, no lift by day). test_view2d, test_weather, test_maps, test_farm, test_animals,
+  test_villagers, test_forage, test_festivals, test_drift, test_mine OK; smoke runs of main_2d
+  (`--demo`, `--map=town --time=21:00`, `--mine=3`) and main with `--demo` print no errors.
+  Flat-view frames at 6:30, 12:00, 17:30 on the farm and 21:00 at town@sayo looked at: farmer
+  mean RGB 94/74/50 at 6:30 against 103/96/76 at noon (grass 100/140/54 against 107/168/71, so
+  the sprites are a little warmer than the ground, as in 3D); by the store's lit window at night
+  the farmer reads warm (92/67/75) over the night-blue ground. Shots deleted.
+- Left / next: festival decorations in the flat view stay as drawn (they are the lights).
+
 ## 2026-11-08 — Puddles in rain
 Agent: Claude Code (claude-sonnet) · Commit: this commit
 - Done: art direction section 2. In rain and storm, puddles gather on the outdoor maps' path and gravel cells (free of solid ground and props) and on the farm's doorsteps (the farm has no dirt paths of its own), in both views. One pure rule script (`PuddleRules`, scripts/puddle_rules.gd; numbers in data/puddles.json): wetness from today's look, yesterday's look, the clock and the snow lying (grows to the look's max over the first game hour from 06:00; a rainy day's wetness dries out linearly over two hours the next morning; none with any snow lying, in snow looks, indoors or in the mine), the places (a hash of the cell and the map id; each puddle has its own start wetness, so a storm fills more than rain, and its own size kept inside its cell) and the rain rings (the water's dimple style, density x 2.5). `Game.weather_yesterday` is new (set at the day's end, not saved: a loaded save starts dry). 3D: `PuddleLayer` (one MultiMesh of flat lit quads at y 0.02; the shader draws the wobbly ellipse, rim, sky reflection and rings; the instances are rewritten only when the wetness moves a step of 1/50); built beside the DriftLayer on the farm world and every outdoor MapWorld. Flat: `PuddleView` (pixel ellipses, the same colours; rings redrawn 8 times a second only while it rains), added under the footprints in main_2d.
