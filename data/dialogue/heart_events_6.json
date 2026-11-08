@@ -113,6 +113,16 @@
 		{"id": "shino_cloth", "speaker": "shino", "mood": "neutral", "text": "I kept one length back for you. For a noren on your door. Which pattern?", "choices": [{"text": "The rows of my field.", "next": "shino_rows", "set": {"shino_noren": "rows"}}, {"text": "Your wildflowers.", "next": "shino_flowers", "set": {"shino_noren": "flowers"}}]},
 		{"id": "shino_rows", "speaker": "shino", "mood": "surprised", "text": "The rows of your field. Straight lines are the hardest to dye true. ...Fine. For you, they'll be true.", "next": "shino_end"},
 		{"id": "shino_flowers", "speaker": "shino", "mood": "happy", "text": "Then every morning you'll walk out under the flowers from the lane. I like thinking of that.", "next": "shino_end"},
-		{"id": "shino_end", "speaker": "shino", "mood": "happy", "text": "One more thing. From now on the first cloth out of every new vat is yours. That's how a dyer says it.", "next": "end"}
+		{"id": "shino_end", "speaker": "shino", "mood": "happy", "text": "One more thing. From now on the first cloth out of every new vat is yours. That's how a dyer says it.", "next": "end"},
+
+		{"id": "ren", "speaker": "ren", "mood": "happy", "text": "You'll never guess what was in the morning bag. A reply from head office. About me."},
+		{"speaker": "ren", "mood": "neutral", "text": "I read it twice on the step of the post office. Then once more to the hens. They had no opinion."},
+		{"if": "ren_van", "then": "ren_van"},
+		{"speaker": "ren", "mood": "happy", "text": "They're keeping the rounds on foot. Someone sent them a letter signed by every house in the valley. I carried it myself. I didn't peek. Much.", "next": "ren_letter"},
+		{"id": "ren_van", "speaker": "ren", "mood": "happy", "text": "The van's mine, on one rule I set: I park at the bridge and walk the last stretch to every door. They said yes."},
+		{"id": "ren_letter", "speaker": "ren", "mood": "neutral", "text": "I've carried ten thousand letters and never written one. So I wrote one. To you.", "choices": [{"text": "I'll read it now.", "next": "ren_now", "set": {"ren_letter": "now"}}, {"text": "I'll keep it sealed.", "next": "ren_sealed", "set": {"ren_letter": "sealed"}}]},
+		{"id": "ren_now", "speaker": "ren", "mood": "surprised", "text": "Now? In front of me? ...I'll look at the pond. Tell me when you've finished. Don't read it out loud.", "next": "ren_end"},
+		{"id": "ren_sealed", "speaker": "ren", "mood": "happy", "text": "Sealed! Someone after my own heart. Some letters are better as letters.", "next": "ren_end"},
+		{"id": "ren_end", "speaker": "ren", "mood": "happy", "text": "From tomorrow your farm is the first stop on my round. Whatever comes for you, you'll have it before the dew's dry.", "next": "end"}
 	]
 }

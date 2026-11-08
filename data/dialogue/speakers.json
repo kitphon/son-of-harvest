@@ -10,6 +10,7 @@
 	"genzo": {"name": "Genzo", "face": {"bg": "c8c0a8", "skin": "d49a6a", "hair": "c8c4bc", "style": "cap", "hat": "e8e2d0", "clothes": "5a5048", "marks": ["wrinkles"]}},
 	"haru": {"name": "Haru", "face": {"bg": "c8dcc0", "skin": "f0c49a", "hair": "2a1e1a", "style": "bun", "hat": "e8c870", "clothes": "4a7a5a"}},
 	"mio": {"name": "Mio", "face": {"bg": "b8d0dc", "skin": "e0a878", "hair": "2a1c18", "style": "bun", "hat": "e8e2d0", "clothes": "2e4e78"}},
+	"ren": {"name": "Ren", "face": {"bg": "d0d8c0", "skin": "e4b088", "hair": "2a2018", "style": "cap", "hat": "4a5e42", "clothes": "4a5e42"}},
 	"shino": {"name": "Shino", "face": {"bg": "c8d0e0", "skin": "eec09a", "hair": "241a1a", "style": "bun", "hat": "d8a040", "clothes": "26346a"}},
 	"kaede": {"name": "Kaede", "face": {"bg": "e8d8d0", "skin": "f2c8a0", "hair": "1a1416", "style": "bun", "hat": "c8342c", "clothes": "eeeee6"}},
 	"fumi": {"name": "Fumi", "face": {"bg": "e0c8d8", "skin": "f0c8a0", "hair": "3a2a24", "style": "bun", "hat": "c8442c", "clothes": "8a5a8a"}},

@@ -80,6 +80,11 @@
 		{"speaker": "shino", "mood": "happy", "text": "So which blue do you like? One dip, pale as the sky? Or twenty dips, nearly black?", "choices": [{"text": "The pale sky blue.", "next": "shino_pale"}, {"text": "The deep, dark blue.", "next": "shino_deep"}]},
 		{"id": "shino_pale", "speaker": "shino", "mood": "surprised", "text": "One dip. Most people want the dark. Pale is harder to get even. You picked the honest one.", "next": "shino_end"},
 		{"id": "shino_deep", "speaker": "shino", "mood": "happy", "text": "Twenty dips, then. That takes patience. Mother would have liked you.", "next": "shino_end"},
-		{"id": "shino_end", "speaker": "shino", "mood": "neutral", "text": "Here, eggplant seed from Kiku's garden. Grow it. The skins dye a gray that's almost purple.", "next": "end"}
+		{"id": "shino_end", "speaker": "shino", "mood": "neutral", "text": "Here, eggplant seed from Kiku's garden. Grow it. The skins dye a gray that's almost purple.", "next": "end"},
+
+		{"id": "ren", "speaker": "ren", "mood": "happy", "text": "Farmer! Perfect. A riddle for you while I catch my breath. Whose letters weigh the most in this valley?", "choices": [{"text": "Tome's.", "next": "ren_tome"}, {"text": "Sayo's.", "next": "ren_sayo"}]},
+		{"id": "ren_tome", "speaker": "ren", "mood": "surprised", "text": "Right! Every week, to the city. Thick as a rice cake. I never know what's in them. I only know someone's always writing back.", "next": "ren_end"},
+		{"id": "ren_sayo", "speaker": "ren", "mood": "happy", "text": "Close! Sayo sends the most. Orders, bills, catalogs. But Tome's are the heaviest. Every week, to the city.", "next": "ren_end"},
+		{"id": "ren_end", "speaker": "ren", "mood": "neutral", "text": "A seed company sent Genzo too many samples. He gave me some to give away. Potatoes. They're yours.", "next": "end"}
 	]
 }

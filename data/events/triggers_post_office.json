@@ -1,0 +1,8 @@
+{
+	"_note": "Events in the post office: Ren's heart events (bands 3, 5 and 6), as on his round. Format: README.md, Events.",
+	"rows": [
+		{"event": "heart_ren", "on": "talk", "who": "ren", "hearts": {"ren": [3, 6]}},
+		{"event": "heart_ren_5", "on": "talk", "who": "ren", "hearts": {"ren": [5, 6]}, "seen": ["heart_ren"]},
+		{"event": "heart_ren_6", "on": "talk", "who": "ren", "hearts": {"ren": [6, 6]}, "seen": ["heart_ren_5"]}
+	]
+}

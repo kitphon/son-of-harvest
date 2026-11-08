@@ -6,6 +6,9 @@
 		{"event": "heart_fumi_6", "on": "talk", "who": "fumi", "hearts": {"fumi": [6, 6]}, "seen": ["heart_fumi_5"]},
 		{"event": "heart_ichiro", "on": "talk", "who": "ichiro", "hearts": {"ichiro": [3, 6]}},
 		{"event": "heart_ichiro_5", "on": "talk", "who": "ichiro", "hearts": {"ichiro": [5, 6]}, "seen": ["heart_ichiro"]},
-		{"event": "heart_ichiro_6", "on": "talk", "who": "ichiro", "hearts": {"ichiro": [6, 6]}, "seen": ["heart_ichiro_5"]}
+		{"event": "heart_ichiro_6", "on": "talk", "who": "ichiro", "hearts": {"ichiro": [6, 6]}, "seen": ["heart_ichiro_5"]},
+		{"event": "heart_ren", "on": "talk", "who": "ren", "hearts": {"ren": [3, 6]}},
+		{"event": "heart_ren_5", "on": "talk", "who": "ren", "hearts": {"ren": [5, 6]}, "seen": ["heart_ren"]},
+		{"event": "heart_ren_6", "on": "talk", "who": "ren", "hearts": {"ren": [6, 6]}, "seen": ["heart_ren_5"]}
 	]
 }

@@ -1,0 +1,14 @@
+{
+	"_note": "Ren's third heart event: the first talk once his heart band reaches 6, after heart_ren_5 (same tables). Head office answered: the round stays on foot after a letter signed by every house, or (ren_van) the van is his and he walks the last stretch to every door. He wrote his first letter, to the farmer: read now or kept sealed (ren_letter); the farm is the first stop of his round from now. Sets heart_ren_6 and ren_route; after it he can be asked to marry (data/marriage.json). Ren acts in it from where the talk found him (an actor step at plan; played where his plan has him elsewhere, he walks up to the farmer), faces the farmer through the lines and goes back to his day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "ren", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "ren"},
+		{"do": "sound", "key": "chime_morning"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_6", "at": "ren"},
+		{"do": "affection", "who": "ren", "amount": 5},
+		{"do": "set", "flags": {"heart_ren_6": true, "ren_route": true}},
+		{"do": "actor", "who": "ren", "to": "plan"},
+		{"do": "actor", "who": "ren", "leave": true}
+	]
+}

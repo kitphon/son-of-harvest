@@ -1,0 +1,40 @@
+{
+	"_note": "The village post office by the farm road (data/maps/town.json, door 1, 9): one room split by a long counter. In front, an earth floor for callers; behind the counter, the pigeonholes where Ren sorts the morning bag, his chest and the futon he rolls out at night; a lamp and sacks of parcels in front by the wall. Format: README.md, Maps. The daruma the farmer gives Ren stands on his chest once given (kept_ren_daruma).",
+	"id": "post_office",
+	"name": "Post office",
+	"size": [8, 7],
+	"indoor": true,
+	"ambient": "indoor",
+	"light": "fff2dc",
+	"background": "1a1410",
+	"legend": {
+		"#": {"tile": "wall", "solid": true},
+		"w": {"tile": "floor", "step": "floor"},
+		"e": {"tile": "earth", "step": "soil"},
+		"D": {"tile": "earth", "solid": true}
+	},
+	"ground": [
+		"########",
+		"#wwwwww#",
+		"#wwwwww#",
+		"#eeeeee#",
+		"#eeeeee#",
+		"#eeeeee#",
+		"###D####"
+	],
+	"props": [
+		{"kind": "shelf", "cell": [1, 1], "size": [3, 1]},
+		{"kind": "keepsake", "cell": [5, 1], "item": "keep:daruma", "flag": "kept_ren_daruma"},
+		{"kind": "tansu", "cell": [6, 1]},
+		{"kind": "counter", "cell": [1, 3], "size": [5, 1]},
+		{"kind": "andon", "cell": [6, 4]},
+		{"kind": "rice_sacks", "cell": [1, 5]}
+	],
+	"doors": [
+		{"cells": [[3, 6]], "to": "town", "spawn": [1, 10], "facing": "down"}
+	],
+	"spawns": {
+		"start": [[3, 5], "up"],
+		"home": [[5, 2], "down"]
+	}
+}

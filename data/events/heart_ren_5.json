@@ -1,0 +1,14 @@
+{
+	"_note": "Ren's second heart event: the first talk once his heart band reaches 5, after heart_ren (same tables). Head office wants a van twice a week instead of the round on foot; keep walking (ren_walk) or drive the van himself (ren_van). Sets heart_ren_5. Ren acts in it from where the talk found him (an actor step at plan; played where his plan has him elsewhere, he walks up to the farmer), faces the farmer through the lines and goes back to his day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "ren", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "ren"},
+		{"do": "sound", "key": "amb_wind"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_5", "at": "ren"},
+		{"do": "affection", "who": "ren", "amount": 5},
+		{"do": "set", "flags": {"heart_ren_5": true}},
+		{"do": "actor", "who": "ren", "to": "plan"},
+		{"do": "actor", "who": "ren", "leave": true}
+	]
+}

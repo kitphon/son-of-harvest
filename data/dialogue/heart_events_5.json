@@ -94,6 +94,13 @@
 		{"speaker": "shino", "mood": "neutral", "text": "So tell me. Do I dye her patterns, or cut my own?", "choices": [{"text": "Dye your mother's.", "next": "shino_mother", "set": {"shino_mother": true}}, {"text": "Cut your own.", "next": "shino_own", "set": {"shino_own": true}}]},
 		{"id": "shino_mother", "speaker": "shino", "mood": "happy", "text": "Her patterns, my hands. ...Then she's still dyeing with me. I hadn't thought of it like that.", "next": "shino_end"},
 		{"id": "shino_own", "speaker": "shino", "mood": "surprised", "text": "My own. ...You say it like it's simple. Maybe it is. I'll start with the wildflowers by the lane.", "next": "shino_end"},
-		{"id": "shino_end", "speaker": "shino", "mood": "neutral", "text": "Thank you. I've asked the vats about this for a month. They never answer.", "next": "end"}
+		{"id": "shino_end", "speaker": "shino", "mood": "neutral", "text": "Thank you. I've asked the vats about this for a month. They never answer.", "next": "end"},
+
+		{"id": "ren", "speaker": "ren", "mood": "sad", "text": "Head office wrote. To me, for once. They want a van to bring the valley's post twice a week, and the rounds on foot to stop."},
+		{"speaker": "ren", "mood": "neutral", "text": "Twice a week. Tome would wait three days for her son's letter. The doctor's medicine would sit in a sorting room."},
+		{"speaker": "ren", "mood": "neutral", "text": "They said I could drive the van. Or I could tell them no. What would you do?", "choices": [{"text": "Keep walking the round.", "next": "ren_walk", "set": {"ren_walk": true}}, {"text": "Drive the van yourself.", "next": "ren_van", "set": {"ren_van": true}}]},
+		{"id": "ren_walk", "speaker": "ren", "mood": "happy", "text": "On foot. Every door, every day. ...Yes. I'll write them the longest letter of my life.", "next": "ren_end"},
+		{"id": "ren_van", "speaker": "ren", "mood": "surprised", "text": "Drive it myself. Then the van would at least know whose gate sticks and whose dog bites. Huh. That might work.", "next": "ren_end"},
+		{"id": "ren_end", "speaker": "ren", "mood": "neutral", "text": "Thanks. I talk all day and never ask anyone anything. That was nice, for once.", "next": "end"}
 	]
 }

@@ -4014,7 +4014,7 @@ func _kept_lit_and_swaying() -> void:
 	for p in MapManager.data("town").props:
 		if str(p.kind) == "village_house":
 			house_ids += int(_k("mesh_cache").kept("prop|%s|%s|%s|%s" % ["town", p, g.season_name(), _k("snow_layer").map_has_snow(MapManager.data("town"))]))
-	check(house_ids == 5, "mesh cache: the village's five houses are kept with their windows (%d)" % house_ids)
+	check(house_ids == 6, "mesh cache: the village's six houses (the post office since Ren) are kept with their windows (%d)" % house_ids)
 	check(a.windows.size() > 0 and a.windows == b.windows and a.lamps == b.lamps and b.is_in_group(_k("night_lights").GROUP),
 		"mesh cache: a village built again lists the same lit windows and lamps (%d, %d) and glows" % [b.windows.size(), b.lamps.size()])
 	var sa: Node3D = a.get_node_or_null("WindSway")

@@ -8,6 +8,9 @@
 		{"event": "heart_haru_5", "on": "talk", "who": "haru", "hearts": {"haru": [5, 6]}, "seen": ["heart_haru"]},
 		{"event": "heart_haru_6", "on": "talk", "who": "haru", "hearts": {"haru": [6, 6]}, "seen": ["heart_haru_5"]},
 		{"event": "recipe_haru", "on": "talk", "who": "haru", "hearts": {"haru": [1, 6]}, "not_flags": ["recipe_sansai_tempura"]},
-		{"event": "recipe_genzo", "on": "talk", "who": "genzo", "hearts": {"genzo": [1, 6]}, "not_flags": ["recipe_kinoko_jiru"]}
+		{"event": "recipe_genzo", "on": "talk", "who": "genzo", "hearts": {"genzo": [1, 6]}, "not_flags": ["recipe_kinoko_jiru"]},
+		{"event": "heart_ren", "on": "talk", "who": "ren", "hearts": {"ren": [3, 6]}},
+		{"event": "heart_ren_5", "on": "talk", "who": "ren", "hearts": {"ren": [5, 6]}, "seen": ["heart_ren"]},
+		{"event": "heart_ren_6", "on": "talk", "who": "ren", "hearts": {"ren": [6, 6]}, "seen": ["heart_ren_5"]}
 	]
 }

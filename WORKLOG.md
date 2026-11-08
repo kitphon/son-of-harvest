@@ -10,6 +10,77 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Ren the mail carrier, the last of the eight candidates
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: a new villager with hearts, our own: Ren carries the post. He talks a lot and knows
+  who writes to whom, never what. A new little post office stands in the village's north-west
+  corner by the farm road (a 3 x 3 village_house with timber walls at 0, 7, door 1, 9 onto the
+  road; spawn `post`), the only free ground by the village's entry. Inside:
+  data/maps/post_office.json (one room split by a long counter, pigeonholes and his chest
+  behind it, a lamp and parcel sacks in front; door hours 6:00-21:00). data/villagers/ren.json:
+  - sorting behind the counter 7:00-8:30;
+  - the village round from 8:30 (Tome, Kota's family, the store, Sayo's side door, the smithy,
+    the clinic);
+  - Sakurazaka 9:45 (the teahouse, Ichiro), back through the village, Kaminoda 11:00 (Genzo,
+    Haru);
+  - lunch at the post office 12:05;
+  - down the south lane at 13:00: the river 13:30 (Mio's hut) and Minamino's houses 13:55
+    (Shino, Shige and Nana, Kaede, Kiku);
+  - the counter again 15:20-17:30, bed 21:00.
+
+  He has no wet-day plan (the post goes out in any weather). Sundays and his birthday (spring
+  15) he reads by the village pond 9:00-15:00. Festivals in the village (blossom 7, 12; night
+  26, 12; the year's 14, 6); after the night festivals he goes straight to bed, because the
+  village doors' hours are checked and the post office shuts at 21:00. Look: a green happi and
+  short hair; the portrait wears a green postal cap. Gifts: grilled fish, rice balls and green
+  tea for the road and a daruma loved (kept on his chest once given). Sweet potato, chestnuts,
+  amazake, chestnut rice, potatoes and amber liked. The herb tonic, shaved ice, dobin mushi
+  (too fancy to eat walking) and clay disliked, a stone hated. talk_ren.json has every pick a
+  friend needs plus counter and Sunday lines, round lines after band 5, dear after band 6, and
+  gift and dish answers. Heart scenes:
+  - band 3: whose letters weigh the most (Tome's, to her son in the city; Sayo sends the
+    most), and seed potatoes Genzo had too many of;
+  - band 5: head office wants a van twice a week instead of the round on foot: keep walking
+    (ren_walk) or drive it himself (ren_van);
+  - band 6: the round stays on foot after a letter signed by every house, or the van is his
+    and he walks the last stretch to every door. Then his first letter, to the farmer, read now
+    or kept sealed (ren_letter), and the farm becomes his first stop (ren_route).
+
+  His heart rows are in every map his round reaches (town, post_office, sakurazaka, kaminoda,
+  minamino, river). Calendar (spring 15), ending page, whistle, heart music. Marriage on the
+  others' pattern: married he leaves the farmhouse at 6:45 and walks the same round, home by
+  17:45. The wedding has Genzo, Fumi and Mio (people from his round) on his side. 95 new Thai
+  lines (Ren ผม / เธอ) and 3 names. The ending's Friendships steps went from 11 / 23 / 37 / 58
+  of 72 to 12 / 25 / 40 / 63 of 78 (thirteen villagers with hearts). test_maps' village mesh
+  cache count is 6 houses now. All eight planned candidates are in.
+- Checked: all 30 suites printed `OK (0 failed)` (test_animals .. test_weather, among them
+  `test_relationships: OK (0 failed)`, `test_villagers: OK (0 failed)`,
+  `test_talk: OK (0 failed)`, `test_lang: OK (0 failed)`, `test_maps: OK (0 failed)`,
+  `test_ending: OK (0 failed)`, `test_festivals: OK (0 failed)`, `test_audio: OK (0 failed)`).
+  Failures fixed on the way:
+  - the night festivals ending at home after the door's hours;
+  - a long chest poking into the wall (now parcel sacks);
+  - the village's house count in test_maps;
+  - no `birthday` plan (one plan for Sundays and the birthday was not enough);
+  - his band 6 branch one line too early for the look-back check (a line added);
+  - a type the test script couldn't infer.
+
+  Mutation test (his married rule removed): `FAIL: married, Ren leaves the farmhouse for the
+  post office and walks his round through every part, home by 17:45`,
+  `test_relationships: FAILED (1 failed)`; restored. Smoke runs (title, --demo, --map=town,
+  --mine=3, --map=town@post --time=8:40, --map=post_office --time=7:30, --map=sakurazaka
+  --time=10:00) printed no error or warning lines. Screenshots:
+  - `--map=town@post --time=8:35`: Ren setting out on the round; the post office turns
+    see-through in front of the farmer;
+  - `--map=post_office --time=7:30`: sorting behind the counter;
+  - `--map=sakurazaka --time=10:00`: he is at the teahouse, off this frame;
+  - `--map=town@post --time=8:31 --talk=ren`: his new-face line and capped portrait.
+
+  shots/ deleted.
+- Left / next: the marriage roster is complete. He has no mailbag in his hand or delivery
+  animation (he stops at each door for two minutes). His birthday and festival plans win over
+  the married ones, as for the others.
+
 ## 2026-11-08 — Shino the indigo dyer, the third new candidate
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: a new villager with hearts, our own: Shino dyes indigo. She came back from the city,

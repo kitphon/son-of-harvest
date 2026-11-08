@@ -158,6 +158,28 @@
 		{"speaker": "farmer", "mood": "happy", "text": "And I'll keep every color you make. I promise."},
 		{"speaker": "kiku", "mood": "surprised", "text": "Twenty dips, dear! Your mother stopped at twelve."},
 		{"speaker": "shino", "mood": "happy", "text": "She said twelve was plenty. I wanted to be sure."},
+		{"speaker": "tome", "mood": "happy", "text": "There. Done and tied. Off home with you both, and be good to each other.", "next": "end"},
+
+		{"id": "ren_married", "speaker": "ren", "mood": "happy", "text": "Another knot? I've delivered yours already. To myself. Signed for. One is plenty.", "next": "end"},
+		{"id": "ren_taken", "speaker": "ren", "mood": "sad", "text": "Put it away. That's addressed to someone else. I don't open other people's post.", "next": "end"},
+		{"id": "ren_waiting", "speaker": "ren", "mood": "happy", "text": "Still yes! Three days. I've counted the steps from here to the shrine. Two hundred and twelve.", "next": "end"},
+		{"id": "ren_band", "speaker": "ren", "mood": "surprised", "text": "A mizuhiki knot? For me? Whoa. Hold on. I haven't even finished my letter to you yet."},
+		{"speaker": "ren", "mood": "neutral", "text": "Walk the round with me a while longer. Then we'll see.", "next": "end"},
+		{"id": "ren_room", "speaker": "ren", "mood": "surprised", "text": "Red and white! For me? Oh."},
+		{"speaker": "ren", "mood": "neutral", "text": "I want to say yes. But your farmhouse is one room, and I come with a mailbag, a book pile and very muddy boots."},
+		{"speaker": "ren", "mood": "happy", "text": "Ask Hachiro for a second room. Then ask me again. I'll be easy to find. I'm everywhere.", "next": "end"},
+		{"id": "ren_yes", "speaker": "ren", "mood": "surprised", "text": "A mizuhiki knot. I've carried a hundred of these to other people's doors. Nobody ever handed one to me."},
+		{"speaker": "farmer", "mood": "neutral", "text": "This one is for you. Will you marry me?"},
+		{"speaker": "ren", "mood": "sad", "text": "I know every house in the valley. I never had one to come back to. Just a room behind a counter."},
+		{"speaker": "ren", "mood": "happy", "text": "Yes! Yes. The round by day, and home to you. The best address I'll ever have."},
+		{"speaker": "ren", "mood": "neutral", "text": "Tome will want three days to ready the shrine. I'll deliver the invitations. Fastest post in history.", "next": "end"},
+		{"id": "ren_wedding", "speaker": "tome", "mood": "happy", "text": "Well. Ren carried every invitation himself, so of course nobody's late. Settle down, all of you."},
+		{"speaker": "tome", "mood": "neutral", "text": "Ren, you've brought my son's letters up my path for years. Today I get to give you something back."},
+		{"speaker": "tome", "mood": "neutral", "text": "Now take each other's hands and tie the knot round them both. Tight. A loose knot is a loose promise."},
+		{"speaker": "ren", "mood": "happy", "text": "Every morning I'll leave from your door, and every evening I'll come back to it. That's my vow."},
+		{"speaker": "farmer", "mood": "happy", "text": "And I'll be waiting at the gate. I promise."},
+		{"speaker": "genzo", "mood": "surprised", "text": "Hmph. Who'll bring my seed catalogs on time now?"},
+		{"speaker": "ren", "mood": "happy", "text": "Me, Genzo. Same as ever. Marriage doesn't slow the post."},
 		{"speaker": "tome", "mood": "happy", "text": "There. Done and tied. Off home with you both, and be good to each other.", "next": "end"}
 	]
 }
