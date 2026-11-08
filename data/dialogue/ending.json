@@ -33,6 +33,8 @@
 		{"speaker": "genzo", "face": "smile", "text": "My wife would have liked you. She tasted everyone's water, you know. Yours is sweet. Good rice follows.", "next": "end"},
 		{"id": "haru", "speaker": "haru", "face": "smile", "text": "I ran the whole lane down! Here. New sandals, a tight pair and a loose pair. Two years' walking wore out your last ones."},
 		{"speaker": "haru", "face": "calm", "text": "I nearly left Kaminoda once, you know. I'm glad I'm still here to see this page. Wear them up the hill sometime.", "next": "end"},
+		{"id": "mio", "speaker": "mio", "face": "smile", "text": "I ran up from the river with my boots still wet. Here. The first fish of the year, for the page. Grill it with salt, nothing else."},
+		{"speaker": "mio", "face": "calm", "text": "Two years ago you couldn't tell a chub from a dace. Now Hachiro asks you where they're biting. Don't let it go to your head.", "next": "end"},
 		{"id": "shige", "speaker": "shige", "face": "smile", "text": "Nana made me wear my good jacket. She says a page in the village record deserves it, and she's right."},
 		{"speaker": "shige", "face": "calm", "text": "Two years ago that farm was stones and stubbornness. Now Sayo asks me why your greens sell first. I tell her: soil talks, and you listened.", "next": "end"},
 

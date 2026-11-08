@@ -1,0 +1,14 @@
+{
+	"_note": "Mio's second heart event: the first talk once her heart band reaches 5, after heart_mio (same tables). The village wants to pull out the ferry landing now the bridge upstream carries everyone; she asks the farmer to keep it (mio_keep: she hangs a bell for anyone who needs the slow way) or let it go (mio_let: she would still be herself). Either way the traps stay. Sets heart_mio_5. Mio acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "mio", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "mio"},
+		{"do": "sound", "key": "amb_river"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_5", "at": "mio"},
+		{"do": "affection", "who": "mio", "amount": 5},
+		{"do": "set", "flags": {"heart_mio_5": true}},
+		{"do": "actor", "who": "mio", "to": "plan"},
+		{"do": "actor", "who": "mio", "leave": true}
+	]
+}

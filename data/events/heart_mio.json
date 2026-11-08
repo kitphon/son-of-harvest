@@ -1,0 +1,15 @@
+{
+	"_note": "Mio's heart event: the first talk once her heart band reaches 3, on the river, in her hut or in the village (triggers_river.json, triggers_mio_hut.json, triggers_town.json). She quizzes the farmer on where the fish lie (the fast water or the dark pool), tells of her father the ferryman and gives a daikon from the patch behind her hut, to simmer with a river fish. Sets heart_mio. Mio acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "mio", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "mio"},
+		{"do": "sound", "key": "step_grass"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events", "at": "mio"},
+		{"do": "give", "item": "daikon", "count": 1},
+		{"do": "affection", "who": "mio", "amount": 5},
+		{"do": "set", "flags": {"heart_mio": true}},
+		{"do": "actor", "who": "mio", "to": "plan"},
+		{"do": "actor", "who": "mio", "leave": true}
+	]
+}

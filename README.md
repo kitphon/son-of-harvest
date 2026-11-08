@@ -210,7 +210,7 @@ scaled up); it writes `icon.png` (project icon) and `icon.ico` (16 to 256 px, fo
 Maps live in `data/maps/<id>.json`: the farm (`farm`, its ground and buildings stay
 FarmGrid's, so the file only adds doors and spawns), the farmhouse inside (`house`) and the
 village (`town`), the river south of it, past Minamino (`river`, its own fish table: place `river` in
-`data/fish.json`; water at a map's side edge draws no bank, so the river flows on), Kaminoda up
+`data/fish.json`; water at a map's side edge draws no bank, so the river flows on; Mio's driftwood hut on its north bank, `mio_hut`), Kaminoda up
 the village's north lane (`kaminoda`: a farming hamlet of terraced paddies, a drying rack, a
 well, jizo and a persimmon orchard; Genzo's and Haru's houses, `genzo_house` / `haru_house`),
 Sakurazaka on the
@@ -302,7 +302,7 @@ mirrored for the other two facings; 3D sprites at `FarmWorld.FIGURE_PX` (0.04) a
 (`{"season": "fall", "day": 24}`, optional; the farmhouse calendar names it), optional
 `hearts` (false: a villager the farmer can't grow close to, like Dr. Yae at the clinic: no
 birthday, heart events or place in the village record; `Villagers.friends()` is everyone
-else (Tome, Hachiro, Sayo and Kota, and from Sakurazaka Fumi and Ichiro, and Genzo and Haru of Kaminoda, and Shige of Minamino), and the heart checks
+else (Tome, Hachiro, Sayo and Kota, and from Sakurazaka Fumi and Ichiro, and Genzo and Haru of Kaminoda, Shige of Minamino, and Mio of the river), and the heart checks
 in test_relationships loop over it; a friend needs a birthday with its lines and day plan, a
 `heart_<id>` event at band 3 in the trigger table of every map they can be talked on, and a
 part in the ending (`data/events/ending.json`); `heart_<id>_5` / `_6` are optional, checked
@@ -377,14 +377,14 @@ right after it with `{"<id>": [5, 6]}` and `seen: ["heart_<id>"]`, plays
 The third, a row after that with `{"<id>": [6, 6]}` and `seen: ["heart_<id>_5"]`, plays
 `data/events/heart_<id>_6.json` (lines in `data/dialogue/heart_events_6.json`, each with a
 line of its own when the band 5 flag is set (Fumi's when her band 3 `fumi_honest` is); flag `heart_<id>_6`, plus `kota_streamer`,
-`sayo_ledger`, `hachiro_strike`, `fumi_kettle`, `ichiro_mark`, `genzo_straw` or `haru_wave`); after it, the talk files' `dear_` lines (band 6 and the
+`sayo_ledger`, `hachiro_strike`, `fumi_kettle`, `ichiro_mark`, `genzo_straw`, `haru_wave` or `mio_ferry`); after it, the talk files' `dear_` lines (band 6 and the
 flag) come before the band 4 .. 6 ones. Haru has all three (her band 5 answer sets `haru_stay` or `haru_go`, which her band 6 scene looks back on; her tables:
 `triggers_kaminoda`, `triggers_hill`, `triggers_haru_house`, `triggers_town`; after band 5
 her `sandals_` lines, after band 6 her `dear_` lines). Shige has the first two (`triggers_minamino`,
-`triggers_shige_house`, `triggers_town`; after band 5 his `pumpkin_` lines). `-- --demo --hearts=N` starts everyone at the start of band N.
+`triggers_shige_house`, `triggers_town`; after band 5 his `pumpkin_` lines). Mio has all three (her band 5 answer sets `mio_keep` or `mio_let`, which her band 6 scene looks back on, and band 6 names her boat, `mio_boat`; her tables: `triggers_river`, `triggers_mio_hut`, `triggers_town`; after band 5 her `ferry_` lines). The view: `-- --demo --map=river@mio --time=9:00` (her traps), `--map=mio_hut`. `-- --demo --hearts=N` starts everyone at the start of band N.
 
 **Marriage** (`data/marriage.json`, `Marriage` in scripts/villagers/marriage.gd): courting ends
-at the shrine. The candidates are Sayo, Fumi, Haru and Ichiro, open to the farmer whatever the farmer's look (docs/DESIGN.md). The proposal item is the **mizuhiki knot**
+at the shrine. The candidates are Sayo, Fumi, Haru, Ichiro and Mio, open to the farmer whatever the farmer's look (docs/DESIGN.md). The proposal item is the **mizuhiki knot**
 (`keep:mizuhiki`, a keepsake, 1500 G at the general store, any season). Held overhead and
 taken to a candidate (`Game.talk_to` → `Game.propose`) it is a proposal, not a gift: yes when
 their band is 6, their band 6 scene (`heart_<id>_6`) was seen, the house's second room is

@@ -92,6 +92,28 @@
 		{"speaker": "farmer", "mood": "happy", "text": "And I'll sit in the smoke with you. Every burn. I promise."},
 		{"speaker": "fumi", "mood": "happy", "text": "Years of my rice balls and never a word. Now he gives speeches!"},
 		{"speaker": "ichiro", "mood": "neutral", "text": "...Hm. Don't get used to it."},
+		{"speaker": "tome", "mood": "happy", "text": "There. Done and tied. Off home with you both, and be good to each other.", "next": "end"},
+
+		{"id": "mio_married", "speaker": "mio", "mood": "happy", "text": "Another? Yours is tied round my wrist, wet or dry. One's plenty.", "next": "end"},
+		{"id": "mio_taken", "speaker": "mio", "mood": "sad", "text": "Put it away. Your promise belongs to someone else. I don't fish in other people's water.", "next": "end"},
+		{"id": "mio_waiting", "speaker": "mio", "mood": "happy", "text": "Yes is yes. Three days. I'm trying not to go fishing for my nerves.", "next": "end"},
+		{"id": "mio_band", "speaker": "mio", "mood": "surprised", "text": "Whoa, a mizuhiki knot? That's a big catch for such a short line."},
+		{"speaker": "mio", "mood": "neutral", "text": "Come down to the river more. Then cast again.", "next": "end"},
+		{"id": "mio_room", "speaker": "mio", "mood": "surprised", "text": "Red and white... is that for me?"},
+		{"speaker": "mio", "mood": "neutral", "text": "I'd say yes. But your house is one room, and I come with nets, a pole and a smell of fish."},
+		{"speaker": "mio", "mood": "happy", "text": "Get Hachiro to add a second room. Then ask me again on the shore.", "next": "end"},
+		{"id": "mio_yes", "speaker": "mio", "mood": "surprised", "text": "That's a mizuhiki knot. You're holding it like a fish you think will jump."},
+		{"speaker": "farmer", "mood": "neutral", "text": "It won't. Will you marry me?"},
+		{"speaker": "mio", "mood": "sad", "text": "Father always said the river takes and never gives back. He never met you."},
+		{"speaker": "mio", "mood": "happy", "text": "Yes! Traps at dawn, the farm at night. And the first crossing every morning, for you."},
+		{"speaker": "mio", "mood": "neutral", "text": "Tome will want three days for the shrine. I'll need them to scrub the river off.", "next": "end"},
+		{"id": "mio_wedding", "speaker": "tome", "mood": "happy", "text": "Well. The whole village up at the shrine, and not even a festival. Settle down, all of you."},
+		{"speaker": "tome", "mood": "neutral", "text": "Mio, your father poled me across to my own wedding. He sang the whole way, badly. I hope you got his heart and not his voice."},
+		{"speaker": "tome", "mood": "neutral", "text": "Now take each other's hands and tie the knot round them both. Tight. A loose knot is a loose promise."},
+		{"speaker": "mio", "mood": "happy", "text": "Tied tight, like a good trap. The first crossing every morning is yours, and every evening I'll come home off the river."},
+		{"speaker": "farmer", "mood": "happy", "text": "And every evening I'll be waiting on the bank. I promise."},
+		{"speaker": "hachiro", "mood": "happy", "text": "Hah. Now who beats me to the best spot on Sundays?"},
+		{"speaker": "mio", "mood": "happy", "text": "Me, same as ever. Marriage doesn't make me slower."},
 		{"speaker": "tome", "mood": "happy", "text": "There. Done and tied. Off home with you both, and be good to each other.", "next": "end"}
 	]
 }

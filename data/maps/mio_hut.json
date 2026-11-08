@@ -1,0 +1,40 @@
+{
+	"_note": "Mio's hut on the river's north bank (data/maps/river.json): one plank-floored room her father built of driftwood, a low table, a lamp and a chest, nets hung by the stove and a tub for the morning's catch in the earth entry. The moon lantern the farmer gives Mio stands in the room once given (kept_mio_moon_lantern). Format: README.md, Maps.",
+	"id": "mio_hut",
+	"name": "Mio's hut",
+	"size": [8, 6],
+	"indoor": true,
+	"ambient": "indoor",
+	"light": "f4ecdc",
+	"background": "16120e",
+	"legend": {
+		"#": {"tile": "wall", "solid": true},
+		"w": {"tile": "floor", "step": "floor"},
+		"e": {"tile": "earth", "step": "soil"},
+		"D": {"tile": "earth", "solid": true}
+	},
+	"ground": [
+		"########",
+		"#wwwwww#",
+		"#wwwwww#",
+		"#wwwwww#",
+		"#eeeeee#",
+		"###D####"
+	],
+	"props": [
+		{"kind": "low_table", "cell": [3, 2], "size": [2, 1]},
+		{"kind": "zabuton", "cell": [3, 3], "solid": false, "color": "3a5a8a"},
+		{"kind": "andon", "cell": [1, 1]},
+		{"kind": "tansu", "cell": [6, 1]},
+		{"kind": "water_tub", "cell": [1, 4]},
+		{"kind": "kamado", "cell": [6, 4]},
+		{"kind": "keepsake", "cell": [5, 1], "item": "keep:moon_lantern", "flag": "kept_mio_moon_lantern"}
+	],
+	"doors": [
+		{"cells": [[3, 5]], "to": "river", "spawn": [13, 4], "facing": "down"}
+	],
+	"spawns": {
+		"start": [[3, 4], "up"],
+		"home": [[2, 3], "down"]
+	}
+}

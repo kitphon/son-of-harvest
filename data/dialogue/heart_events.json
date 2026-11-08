@@ -61,6 +61,11 @@
 			"choices": [{"text": "Give it a smile.", "next": "shige_smile"}, {"text": "Keep the frown for the crows.", "next": "shige_frown"}]},
 		{"id": "shige_smile", "speaker": "shige", "mood": "surprised", "text": "A smile... My wife used to say I glared at seedlings as if they owed me money. All right. One smiling Shige, at least.", "next": "shige_end"},
 		{"id": "shige_frown", "speaker": "shige", "mood": "happy", "text": "Ha! Nana will be furious that I agreed with her. The crows, too. Frown it is.", "next": "shige_end"},
-		{"id": "shige_end", "speaker": "shige", "mood": "happy", "text": "Here, for the help. Tomato seed from the few plants the crows left alone. Clever plants. Grow them where you can keep an eye on them.", "next": "end"}
+		{"id": "shige_end", "speaker": "shige", "mood": "happy", "text": "Here, for the help. Tomato seed from the few plants the crows left alone. Clever plants. Grow them where you can keep an eye on them.", "next": "end"},
+
+		{"id": "mio", "speaker": "mio", "mood": "happy", "text": "Hey, farmer! Quick: where are the fish right now? The fast water by the rocks, or the dark pool under the bank?", "choices": [{"text": "The fast water.", "next": "mio_fast"}, {"text": "The dark pool.", "next": "mio_pool"}]},
+		{"id": "mio_fast", "speaker": "mio", "mood": "surprised", "text": "Ha! Most people pick the pool. In summer they sit in the fast water, where the air is. You've got river eyes.", "next": "mio_end"},
+		{"id": "mio_pool", "speaker": "mio", "mood": "happy", "text": "That's what everyone picks. In winter you'd be right. Today they're up in the riffle, gulping air. Lesson one.", "next": "mio_end"},
+		{"id": "mio_end", "speaker": "mio", "mood": "neutral", "text": "Father poled the ferry here thirty years and never caught more than me. Here, a daikon from behind the hut. Simmer it with a river fish. Nothing else needed.", "next": "end"}
 	]
 }

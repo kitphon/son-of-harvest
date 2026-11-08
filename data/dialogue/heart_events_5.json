@@ -73,6 +73,13 @@
 			"choices": [{"text": "Plant them by her fence.", "next": "shige_fence"}, {"text": "Grow some on my farm too.", "next": "shige_share"}]},
 		{"id": "shige_fence", "speaker": "shige", "mood": "happy", "text": "By the fence, where she'd look for them. ...Yes. If they come up, they should come up there.", "next": "shige_end"},
 		{"id": "shige_share", "speaker": "shige", "mood": "surprised", "text": "Half here, half with you. If one patch fails, the other won't. That's a real grower's answer. She'd have said the same.", "next": "shige_end"},
-		{"id": "shige_end", "speaker": "shige", "mood": "happy", "text": "Here, your share, in a fresh packet. Sow it thick. And when Nana cries over the first vine, pretend you didn't see.", "next": "end"}
+		{"id": "shige_end", "speaker": "shige", "mood": "happy", "text": "Here, your share, in a fresh packet. Sow it thick. And when Nana cries over the first vine, pretend you didn't see.", "next": "end"},
+
+		{"id": "mio", "speaker": "mio", "mood": "neutral", "text": "They want to pull out the ferry landing. The bridge upstream does the job, the village head says. Nobody's crossed with me since spring."},
+		{"speaker": "mio", "mood": "sad", "text": "Father's pole is still up in the rafters. I keep oiling it. Silly, isn't it?"},
+		{"speaker": "mio", "mood": "neutral", "text": "So tell me straight. Do I keep the ferry, or let the river have it?", "choices": [{"text": "Keep it for the slow way.", "next": "mio_keep", "set": {"mio_keep": true}}, {"text": "Let it go. You'd still be you.", "next": "mio_let", "set": {"mio_let": true}}]},
+		{"id": "mio_keep", "speaker": "mio", "mood": "happy", "text": "The slow way... I like that. I'll hang a bell on the landing. Anyone who rings it gets taken across, even at night.", "next": "mio_end"},
+		{"id": "mio_let", "speaker": "mio", "mood": "surprised", "text": "...Huh. Nobody's ever told me that. That I'd still be me without it.", "next": "mio_end"},
+		{"id": "mio_end", "speaker": "mio", "mood": "happy", "text": "Either way, the traps stay. The river and I aren't done arguing yet. Thanks for listening, farmer.", "next": "end"}
 	]
 }

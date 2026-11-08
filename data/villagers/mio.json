@@ -1,0 +1,104 @@
+{
+	"_note": "Mio keeps the fish traps and the old ferry on the river south of the village (data/maps/river.json) and lives in her father's driftwood hut on the north bank (data/maps/mio_hut.json). Mornings she works her traps along the shore east of the path (the fishing pose); lunch at the hut; at 13:00 she takes the lane up through Minamino to sell her catch at the Yorozu Store's front (13:30-14:30); back to mend nets on the gravel by the path until 18:00, at the hut until bed at 21:00. Wet days she mends nets by the stove. On her birthday (spring 12, when the river runs high with snowmelt) no traps and no ferry: she sits on the far east end of the shore 9:00-16:00 watching the far bank. Festivals bring her up to the village for their hours, standing on the south road. Married to the farmer (married_mio, data/marriage.json) she lives at the farmhouse: by the kotatsu in the second room before 6:40 and from 18:00, the river and the store as before in between, and on a wet day she mends nets by the kotatsu. Her heart events: data/events/heart_mio.json (band 3), heart_mio_5.json (band 5), heart_mio_6.json (band 6; after it she can be asked to marry). Gifts: river fish and fish dishes, rice balls and hearty rice; amber from the mine (it washes up in rivers, she says); a moon lantern above all, for night crossings; fancy sweets and matcha are too dainty for her; a plain stone is an insult. A character of our own, one of the four new candidates (docs/DESIGN.md, ความรักและแต่งงาน). Format: README.md, Villagers.",
+	"id": "mio",
+	"name": "Mio",
+	"birthday": {"season": "spring", "day": 12},
+	"speed": 1.7,
+	"look": {"outfit": "happi", "hair_style": "long", "hair": "2a1c18", "skin": "e0a878", "top": "2e4e78", "waist": "d8a040", "lower": "3a4658", "accent": "e8e2d0", "shoes": "6b4423"},
+	"rules": [
+		{"if": {"festival": ["blossom_day"]}, "plan": "festival_day"},
+		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
+		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
+		{"if": {"birthday": true}, "plan": "birthday"},
+		{"if": {"flags": ["married_mio"], "weather": ["rain", "storm", "snow"]}, "plan": "married_wet"},
+		{"if": {"flags": ["married_mio"]}, "plan": "married"},
+		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
+	],
+	"default": "usual",
+	"gifts": {
+		"love": ["food:grilled_fish", "food:daikon_fish", "food:onigiri", "fish:ayu", "fish:sake", "keep:moon_lantern"],
+		"like": ["fish:*", "food:miso_soup", "food:takikomi_gohan", "food:green_tea", "food:roast_chestnuts", "corn", "food:marble_soda", "mine:kohaku"],
+		"dislike": ["food:milk_pudding", "food:matcha", "food:warabi_mochi"],
+		"hate": ["mine:stone"]
+	},
+	"plans": {
+		"married": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "06:40", "map": "river", "from": [5, 0], "route": [{"to": [5, 2]}, {"to": [6, 2]}, {"to": [6, 3]}, {"to": [6, 4]}, {"to": [13, 4]}, {"to": [13, 5]}, {"to": [16, 5]}, {"face": "down"}], "loop": [{"fish": 20}, {"wait": 4}, {"to": [18, 5]}, {"face": "down"}, {"fish": 20}, {"wait": 4}, {"to": [16, 5]}, {"face": "down"}]},
+			{"at": "11:30", "map": "river", "route": [{"to": [13, 5]}, {"to": [13, 4]}, {"face": "up"}]},
+			{"at": "11:40", "map": "mio_hut", "from": [2, 3], "route": [{"face": "down"}]},
+			{"at": "13:00", "map": "river", "route": [{"to": [13, 5]}, {"to": [8, 5]}, {"to": [8, 3]}, {"to": [6, 3]}, {"to": [6, 2]}, {"to": [5, 2]}, {"to": [5, 0]}], "from": [13, 4]},
+			{"at": "13:15", "map": "minamino", "from": [4, 19], "route": [{"to": [4, 0]}]},
+			{"at": "13:30", "map": "town", "from": [4, 21], "route": [{"to": [4, 16]}, {"to": [22, 16]}, {"face": "up"}]},
+			{"at": "14:30", "map": "town", "route": [{"to": [22, 16]}, {"to": [4, 16]}, {"to": [4, 21]}, {"face": "down"}]},
+			{"at": "14:50", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 19]}, {"face": "down"}]},
+			{"at": "15:05", "map": "river", "from": [5, 0], "route": [{"to": [5, 2]}, {"to": [6, 2]}, {"to": [6, 3]}, {"to": [10, 3]}, {"to": [10, 4]}, {"face": "down"}], "loop": [{"work": 20}, {"wait": 10}]},
+			{"at": "17:30", "map": "river", "route": [{"to": [10, 3]}, {"to": [6, 3]}, {"to": [6, 2]}, {"to": [5, 2]}, {"to": [5, 0]}, {"face": "up"}]},
+			{"at": "18:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"married_wet": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}], "loop": [{"work": 30}, {"wait": 15}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"festival_day": [
+			{"at": "06:00", "map": "mio_hut", "from": [2, 3], "route": [{"face": "down"}]},
+			{"at": "09:20", "map": "river", "route": [{"to": [13, 5]}, {"to": [8, 5]}, {"to": [8, 3]}, {"to": [6, 3]}, {"to": [6, 2]}, {"to": [5, 2]}, {"to": [5, 0]}], "from": [13, 4]},
+			{"at": "09:40", "map": "minamino", "from": [4, 19], "route": [{"to": [4, 0]}]},
+			{"at": "09:55", "map": "town", "from": [4, 21], "route": [{"to": [4, 16]}, {"to": [12, 16]}, {"face": "up"}]},
+			{"at": "15:45", "map": "town", "route": [{"to": [12, 16]}, {"to": [4, 16]}, {"to": [4, 21]}, {"face": "down"}]},
+			{"at": "16:05", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 19]}, {"face": "down"}]},
+			{"at": "16:20", "map": "river", "from": [5, 0], "route": [{"to": [5, 2]}, {"to": [6, 2]}, {"to": [6, 3]}, {"to": [6, 4]}, {"to": [13, 4]}, {"face": "up"}]},
+			{"at": "16:30", "map": "mio_hut", "from": [2, 3], "route": [{"face": "down"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"festival_night": [
+			{"at": "06:00", "map": "mio_hut", "from": [2, 3], "route": [{"face": "down"}]},
+			{"at": "17:15", "map": "river", "route": [{"to": [13, 5]}, {"to": [8, 5]}, {"to": [8, 3]}, {"to": [6, 3]}, {"to": [6, 2]}, {"to": [5, 2]}, {"to": [5, 0]}], "from": [13, 4]},
+			{"at": "17:35", "map": "minamino", "from": [4, 19], "route": [{"to": [4, 0]}]},
+			{"at": "17:50", "map": "town", "from": [4, 21], "route": [{"to": [4, 16]}, {"to": [10, 16]}, {"face": "up"}]},
+			{"at": "21:40", "map": "town", "route": [{"to": [10, 16]}, {"to": [4, 16]}, {"to": [4, 21]}, {"face": "down"}]},
+			{"at": "22:00", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 19]}, {"face": "down"}]},
+			{"at": "22:15", "map": "river", "from": [5, 0], "route": [{"to": [5, 2]}, {"to": [6, 2]}, {"to": [6, 3]}, {"to": [6, 4]}, {"to": [13, 4]}, {"face": "up"}]},
+			{"at": "22:25", "map": "mio_hut", "from": [2, 3], "route": [{"face": "down"}]},
+			{"at": "22:30", "map": "away"}
+		],
+		"festival_year": [
+			{"at": "06:00", "map": "mio_hut", "from": [2, 3], "route": [{"face": "down"}]},
+			{"at": "18:20", "map": "river", "route": [{"to": [13, 5]}, {"to": [8, 5]}, {"to": [8, 3]}, {"to": [6, 3]}, {"to": [6, 2]}, {"to": [5, 2]}, {"to": [5, 0]}], "from": [13, 4]},
+			{"at": "18:40", "map": "minamino", "from": [4, 19], "route": [{"to": [4, 0]}]},
+			{"at": "18:55", "map": "town", "from": [4, 21], "route": [{"to": [4, 16]}, {"to": [14, 16]}, {"face": "up"}]},
+			{"at": "23:00", "map": "town", "route": [{"to": [14, 16]}, {"to": [4, 16]}, {"to": [4, 21]}, {"face": "down"}]},
+			{"at": "23:15", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 19]}, {"face": "down"}]},
+			{"at": "23:30", "map": "river", "from": [5, 0], "route": [{"to": [5, 2]}, {"to": [6, 2]}, {"to": [6, 3]}, {"to": [6, 4]}, {"to": [13, 4]}, {"face": "up"}]},
+			{"at": "23:40", "map": "mio_hut", "from": [2, 3], "route": [{"face": "down"}]},
+			{"at": "23:45", "map": "away"}
+		],
+		"usual": [
+			{"at": "06:00", "map": "mio_hut", "from": [2, 3], "route": [{"face": "down"}]},
+			{"at": "06:40", "map": "river", "from": [13, 4], "route": [{"to": [13, 5]}, {"to": [16, 5]}, {"face": "down"}], "loop": [{"fish": 20}, {"wait": 4}, {"to": [18, 5]}, {"face": "down"}, {"fish": 20}, {"wait": 4}, {"to": [16, 5]}, {"face": "down"}]},
+			{"at": "11:30", "map": "river", "route": [{"to": [13, 5]}, {"to": [13, 4]}, {"face": "up"}]},
+			{"at": "11:40", "map": "mio_hut", "from": [2, 3], "route": [{"face": "down"}]},
+			{"at": "13:00", "map": "river", "route": [{"to": [13, 5]}, {"to": [8, 5]}, {"to": [8, 3]}, {"to": [6, 3]}, {"to": [6, 2]}, {"to": [5, 2]}, {"to": [5, 0]}], "from": [13, 4]},
+			{"at": "13:15", "map": "minamino", "from": [4, 19], "route": [{"to": [4, 0]}]},
+			{"at": "13:30", "map": "town", "from": [4, 21], "route": [{"to": [4, 16]}, {"to": [22, 16]}, {"face": "up"}]},
+			{"at": "14:30", "map": "town", "route": [{"to": [22, 16]}, {"to": [4, 16]}, {"to": [4, 21]}, {"face": "down"}]},
+			{"at": "14:50", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 19]}, {"face": "down"}]},
+			{"at": "15:05", "map": "river", "from": [5, 0], "route": [{"to": [5, 2]}, {"to": [6, 2]}, {"to": [6, 3]}, {"to": [10, 3]}, {"to": [10, 4]}, {"face": "down"}], "loop": [{"work": 20}, {"wait": 10}]},
+			{"at": "18:00", "map": "river", "route": [{"to": [10, 4]}, {"to": [13, 4]}, {"face": "up"}]},
+			{"at": "18:10", "map": "mio_hut", "from": [2, 3], "route": [{"face": "down"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"birthday": [
+			{"at": "06:00", "map": "mio_hut", "from": [2, 3], "route": [{"face": "down"}]},
+			{"at": "09:00", "map": "river", "from": [13, 4], "route": [{"to": [13, 5]}, {"to": [19, 5]}, {"face": "down"}], "loop": [{"wait": 20}, {"face": "right"}, {"wait": 10}, {"face": "down"}]},
+			{"at": "16:00", "map": "river", "route": [{"to": [13, 5]}, {"to": [13, 4]}, {"face": "up"}]},
+			{"at": "16:10", "map": "mio_hut", "from": [2, 3], "route": [{"face": "down"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"wet": [
+			{"at": "06:00", "map": "mio_hut", "from": [5, 3], "route": [{"face": "left"}], "loop": [{"work": 30}, {"wait": 15}]},
+			{"at": "21:00", "map": "away"}
+		]
+	}
+}

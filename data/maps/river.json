@@ -1,5 +1,5 @@
 {
-	"_note": "The river south of the village: the lane behind Kota's house (the village's south edge) comes down a grassy slope to a gravel shore; the river runs across the whole map from edge to edge (water at the map's side edges keeps flowing in the drawing, MapView.ground_key), with stepping rocks out in the current and pines on the far bank, which the farmer can't reach. Fish here use place `river` in data/fish.json (its own table: dace, chub, sculpin, the fall salmon run, and the stream fish that also come down into the village pond). A map of its own, not more water in the village: the village has no room for a river without moving houses that events and day plans use, and a map id is what the fish tables already key on. Format: README.md, Maps.",
+	"_note": "The river south of the village: the lane behind Kota's house (the village's south edge) comes down a grassy slope to a gravel shore; the river runs across the whole map from edge to edge (water at the map's side edges keeps flowing in the drawing, MapView.ground_key), with stepping rocks out in the current and pines on the far bank, which the farmer can't reach. Mio's driftwood hut stands on the north bank east of the path (door 13, 3; data/maps/mio_hut.json), a tub for her catch beside it. Fish here use place `river` in data/fish.json (its own table: dace, chub, sculpin, the fall salmon run, and the stream fish that also come down into the village pond). A map of its own, not more water in the village: the village has no room for a river without moving houses that events and day plans use, and a map id is what the fish tables already key on. Format: README.md, Maps.",
 	"id": "river",
 	"name": "River",
 	"size": [20, 14],
@@ -32,7 +32,7 @@
 		{"kind": "river_rock", "cell": [12, 8]},
 		{"kind": "river_rock", "cell": [16, 6]},
 		{"kind": "pine", "cell": [1, 1]},
-		{"kind": "pine", "cell": [12, 1]},
+		{"kind": "village_house", "cell": [12, 1], "size": [4, 3], "door": 1, "wall": "yakisugi"}, {"kind": "water_tub", "cell": [16, 3]},
 		{"kind": "pine", "cell": [17, 2]},
 		{"kind": "pine", "cell": [2, 12]},
 		{"kind": "pine", "cell": [8, 11]},
@@ -40,10 +40,12 @@
 		{"kind": "pine", "cell": [18, 11]}
 	],
 	"doors": [
-		{"cells": [[3, -1], [4, -1], [5, -1], [6, -1]], "to": "minamino", "spawn": [4, 18], "facing": "up"}
+		{"cells": [[3, -1], [4, -1], [5, -1], [6, -1]], "to": "minamino", "spawn": [4, 18], "facing": "up"},
+		{"cells": [[13, 3]], "to": "mio_hut", "spawn": [3, 4], "facing": "up", "hours": ["06:00", "21:00"], "closed": "Mio's lamp is out. She must be asleep."}
 	],
 	"spawns": {
 		"start": [[4, 1], "down"],
-		"shore": [[8, 5], "down"]
+		"shore": [[8, 5], "down"],
+		"mio": [[13, 4], "down"]
 	}
 }

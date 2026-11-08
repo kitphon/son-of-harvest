@@ -83,6 +83,16 @@
 			"choices": [{"text": "Kaminoda. Let them find the hamlet.", "next": "haru_place", "set": {"haru_tag": "place"}}, {"text": "Haru. Let them find you.", "next": "haru_name", "set": {"haru_tag": "name"}}]},
 		{"id": "haru_place", "speaker": "haru", "mood": "happy", "text": "Kaminoda, in small black ink, with the bamboo hill under it. Then they'll have to come up the lane to see where the straw grew.", "next": "haru_end"},
 		{"id": "haru_name", "speaker": "haru", "mood": "surprised", "text": "My name, on a tag, in a city shop... I'll have to braid very straight, then. Everybody will check.", "next": "haru_end"},
-		{"id": "haru_end", "speaker": "haru", "mood": "happy", "text": "One more thing. I wave from the lookout every afternoon, and you never wave back. Tomorrow, wave. Then I'll know it isn't only the wind.", "next": "end"}
+		{"id": "haru_end", "speaker": "haru", "mood": "happy", "text": "One more thing. I wave from the lookout every afternoon, and you never wave back. Tomorrow, wave. Then I'll know it isn't only the wind.", "next": "end"},
+
+		{"id": "mio", "speaker": "mio", "mood": "happy", "text": "There you are. I've been waiting on the shore since the mist came up."},
+		{"speaker": "mio", "mood": "neutral", "text": "I wanted to tell you before anyone else hears it from Kota."},
+		{"if": "mio_keep", "then": "mio_bell"},
+		{"speaker": "mio", "mood": "neutral", "text": "You told me I'd still be me without the ferry. So I let the landing go. Then I found I wanted to pole across once more anyway, just for myself.", "next": "mio_name"},
+		{"id": "mio_bell", "speaker": "mio", "mood": "happy", "text": "You said someone would need the slow way. Last night the bell rang. An old peddler, soaked to the knees. I took him across by lantern light."},
+		{"id": "mio_name", "speaker": "mio", "mood": "neutral", "text": "The boat's never had a name. Father said a boat with a name gets proud and tips over. I think it's time anyway.", "choices": [{"text": "Name it after your father.", "next": "mio_father", "set": {"mio_boat": "father"}}, {"text": "Give it a new name.", "next": "mio_new", "set": {"mio_boat": "new"}}]},
+		{"id": "mio_father", "speaker": "mio", "mood": "sad", "text": "...Then it's Tatsu's boat again. He'd grumble. He'd be pleased.", "next": "mio_end"},
+		{"id": "mio_new", "speaker": "mio", "mood": "happy", "text": "A new name, then. I'll paint it on tonight and tell you when it's dry. No peeking.", "next": "mio_end"},
+		{"id": "mio_end", "speaker": "mio", "mood": "happy", "text": "One more thing. The first crossing of the morning is mine to give. From now on it's yours, whenever you want it.", "next": "end"}
 	]
 }

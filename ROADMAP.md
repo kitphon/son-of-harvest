@@ -36,7 +36,7 @@ proposal, wedding, married rules and lines, Thai).
 [x] The roster and the rule written down (2026-11-08): DESIGN, STYLE_EN (no gendered words for the farmer or spouse).
 [x] Haru a candidate (2026-11-08): her band 6 scene was already in; the knot answers, the proposal, the wedding at the shrine (Genzo among the guests), married plans (up to Kaminoda and the hill by day, the farmhouse mornings and evenings, weaving by the kotatsu on wet days), engaged / married / chore lines, Tome's Friday hint, Thai.
 [x] Ichiro a candidate (2026-11-08): the knot answers, the proposal, the wedding at the shrine (Fumi among the guests), married plans (the woods, the teahouse lunch and his woodpile by day, the farmhouse from 17:00, splitting wood in his old entry on wet days), engaged / married / chore lines, Tome's Friday hint, Thai.
-[ ] Mio (new): the ferry hut on the river map, day plans, talk, then candidate.
+[x] Mio (new) a candidate (2026-11-08): keeps the fish traps and the old ferry on the river, lives in a driftwood hut on its north bank (mio_hut); day plans (traps mornings, selling her catch at the store's front, mending nets, festivals, her birthday spring 12), talk and gifts, heart scenes 3 / 5 / 6 (where the fish lie; keep or let go the ferry; naming the boat), the ending's page, whistle, then the knot, proposal, wedding (Hachiro and Kota among her guests), married life; Thai.
 [ ] Kaede (new): keeps the village shrine, helps Tome ready weddings, then candidate.
 [ ] Shino (new): a new indigo dye house by Minamino's lane down to the river, day plans, talk, then candidate.
 [ ] Ren (new): the post office by the village's entry, rounds through every part, then candidate.

@@ -282,8 +282,15 @@ func _building_day() -> void:
 func _river_sunday() -> void:
 	var sun := _state({"day": 7, "weekday": "sun"})
 	var on := func(t: float, st: Dictionary) -> Array:
-		return Villagers.on_map("river", t, st).map(func(w): return w.id)
+		return Villagers.on_map("river", t, st).map(func(w): return w.id).filter(func(id): return id != "mio")   # Mio lives there
 	check(on.call(560.0, sun).is_empty(), "nobody at the river at 9:20")
+	# Mio works her traps east of the path, clear of the two Sunday fishers' spots.
+	for t in [600.0, 700.0, 840.0, 950.0]:
+		var m := Villagers.where("mio", t, sun)
+		var hm := Villagers.where("hachiro", t, sun)
+		var km := Villagers.where("kota", t, sun)
+		check(m.map != "river" or ((hm.map != "river" or m.pos.distance_to(hm.pos) >= 1.0) and (km.map != "river" or m.pos.distance_to(km.pos) >= 1.0)),
+			"Mio keeps clear of Hachiro and Kota at %d (%s)" % [t, m])
 	var w := Villagers.where("hachiro", 555.0, sun)
 	check(w.map == "minamino" and w.moving, "Hachiro walks down through Minamino at 9:15 %s" % [w])
 	w = Villagers.where("hachiro", 600.0, sun)
@@ -627,7 +634,7 @@ func _check_views() -> void:
 	var g: Node = root.get_node("Game")
 	var want := Villagers.on_map("town", g.day_minutes(), g.trigger_state(Vector2i.ZERO))
 	var ids := want.map(func(w): return w.id)
-	check(ids == ["kota", "nana", "tome"], "Kota, Nana and Tome are in the village at 14:20 (the keepers are in their shops) %s" % [ids])
+	check(ids == ["kota", "mio", "nana", "tome"], "Kota, Mio (selling her catch at the store's front), Nana and Tome are in the village at 14:20 (the keepers are in their shops) %s" % [ids])
 	var layers3: Array = _scene3.world.get_children().filter(func(n): return _script_is(n, "villager_sprites.gd"))
 	check(layers3.size() == 1 and layers3[0].map_id == "town", "the 3D village world has its villagers")
 	var layers2: Array = _scene2.view.get_children().filter(func(n): return _script_is(n, "villager_view.gd"))

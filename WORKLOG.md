@@ -10,6 +10,43 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Mio of the river, the first new candidate
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: a new villager with hearts, our own: Mio keeps the fish traps and the old ferry on
+  the river south of the village. Her driftwood hut stands on the river's north bank (a
+  village_house prop, yakisugi walls, at 12, 1, door 13, 3, a water tub beside it; the pine
+  that stood there is gone) and has an inside of its own (data/maps/mio_hut.json: plank floor,
+  low table, lamp, chest, tub and stove; door hours 6:00-21:00). data/villagers/mio.json: works
+  her traps east of the path with the fishing pose 6:40-11:30 (16..18, 5, clear of Hachiro's
+  and Kota's Sunday spots), lunch at the hut, up through Minamino to the store's front
+  13:30-14:30 (she sells her catch to Sayo), mends nets by the path 15:05-18:00, bed at 21:00;
+  wet days nets by the stove; festivals on the south road for their hours; birthday spring 12
+  (snowmelt; no traps, the far east of the shore all day). Look: long hair, indigo work happi
+  (a woman's look in sprite and portrait; the first try with a headband and short portrait hair
+  read as a man, so it changed). Gifts: river fish and fish dishes, rice balls, amber (it washes
+  up in rivers), the moon lantern above all (kept in her hut once given); dainty sweets and
+  matcha disliked, a stone hated. talk_mio.json with every pick a friend needs (festivals,
+  birthday, traps mornings, close, ferry after band 5, dear after band 6, gift and dish
+  answers). Heart scenes: band 3 where the fish lie (fast water or the pool) and a daikon from
+  behind the hut (events give crops or seeds only, so not a fish); band 5 the village wants the
+  ferry landing gone: keep it (mio_keep, a bell for anyone who needs the slow way) or let it go
+  (mio_let); band 6 the bell rang for a peddler, or she poled across once more for herself, the
+  boat named (mio_boat: father / new), the morning's first crossing kept for the farmer
+  (mio_ferry). triggers_river.json, triggers_mio_hut.json and rows in triggers_town.json. The
+  calendar names her on spring 12, the ending has her page, her whistle tune, her heart scenes
+  take the heart music. Then the marriage parts on the others' pattern (knot answers, proposal,
+  wedding: Hachiro, Kota and Shige on her side, Sayo and Fumi on the farmer's; married plans
+  from the farmhouse kotatsu, a wet day mending nets there; engaged / chore / married lines;
+  Tome's hint). 97 new Thai lines and 3 names. The ending's Friendships steps went 8 / 17 / 28
+  / 43 of 54 -> 9 / 19 / 31 / 48 of 60, the same share with ten villagers with hearts.
+  test_villagers' Sunday river check now leaves Mio out of "who else is at the river" and
+  checks she keeps a cell clear of Hachiro and Kota; the 14:20 village check names her at the
+  store's front.
+- Checked: 30 suites `OK (0 failed)` (test_farm .. test_puddles), among them `test_relationships: OK (0 failed)`, `test_villagers: OK (0 failed)`, `test_talk: OK (0 failed)`, `test_lang: OK (0 failed)`, `test_ending: OK (0 failed)`, `test_festivals: OK (0 failed)`, `test_maps: OK (0 failed)`. First run failures fixed on the way: a band 5 choice too long for the box (it broke every heart_events_5 scene), an event giving a dish (events give crops), a hair style only the farmer has, the hut's home cell under the table, river routes through the hut's wall, no mine find or keepsake liked, no dish answers, and test_villagers' empty-river and 14:20 checks. Mutation (her married rule removed): `FAIL: married, Mio works the river and sells at the store by day, home to the farmhouse at 18:00`, `test_relationships: FAILED (1 failed)`; restored. Smoke runs (title, --demo, --map=town, --mine=3, --map=river@mio, --map=mio_hut) printed no error or warning lines. Screenshots: `--map=river@mio --time=9:00` the hut on the north bank with its tub; `--map=mio_hut --time=7:00` the room; `--map=river@mio --time=15:30 --talk=mio` Mio by the path with her new-face line and portrait. shots/ deleted.
+- Left / next: Kaede (keeps the village shrine). The river has no boat to see yet (the ferry is
+  told, not shown; a boat prop would be new 3D and flat art). Mio's birthday and festival plans
+  win over her married ones, as for the others.
+
 ## 2026-11-08 — Ichiro can be married
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: Ichiro joins data/marriage.json candidates (sayo, fumi, haru, ichiro), the first man
