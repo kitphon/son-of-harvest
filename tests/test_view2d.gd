@@ -48,6 +48,7 @@ func _run() -> void:
 	await _maples()
 	await _footprints()
 	await _hearth_smoke()
+	await _roofs()
 	await _tall_crops()
 	await _tall_sway()
 	scene.free()
@@ -1118,3 +1119,62 @@ func _water_glint() -> void:
 	var shine_data := String(cc.paddy_data().get("water", {}).get("shine", ""))
 	check(shine_data != "" and CP.shine_colour().is_equal_approx(Color(shine_data)), "flat glint: the light is data/paddy.json's water.shine (%s)" % [shine_data])
 	mv.free()
+
+
+func _colours(img: Image) -> int:
+	var seen := {}
+	for y in img.get_height():
+		for x in img.get_width():
+			seen[img.get_pixel(x, y)] = true
+	return seen.size()
+
+
+func _differs(a: Image, b: Image) -> int:
+	var n := 0
+	for y in a.get_height():
+		for x in a.get_width():
+			n += 1 if a.get_pixel(x, y) != b.get_pixel(x, y) else 0
+	return n
+
+
+## Painted roofs (RoofArt): each kind is a picture of several colours at the old box's size, a hip
+## differs from a gable, thatch from kawara, and the views draw them from their data.
+func _roofs() -> void:
+	var size := Vector2i(78, 46)
+	var pics := {}
+	for m in ["kawara", "thatch", "kaya"]:
+		for shape in ["gable", "hip"]:
+			for storeys in [1, 2]:
+				var key: String = RoofArt.key(m, shape, storeys, size)
+				var img := PlaceholderArt.image(key)
+				pics[key] = img
+				check(img.get_size() == size, "roof %s: the old box's size" % key)
+				check(_colours(img) >= 6, "roof %s: several colours (%d)" % [key, _colours(img)])
+				var clear := 0
+				for y in size.y:
+					for x in size.x:
+						clear += 1 if img.get_pixel(x, y).a < 1.0 else 0
+				check(clear == 0, "roof %s: covers its whole box" % key)
+	check(_differs(pics[RoofArt.key("kawara", "gable", 1, size)], pics[RoofArt.key("kawara", "hip", 1, size)]) > 100, "roof: a hip differs from a gable")
+	check(_differs(pics[RoofArt.key("kawara", "gable", 1, size)], pics[RoofArt.key("kawara", "gable", 2, size)]) > 100, "roof: two storeys differ from one")
+	check(_differs(pics[RoofArt.key("thatch", "gable", 1, size)], pics[RoofArt.key("kawara", "gable", 1, size)]) > 1000, "roof: thatch differs from kawara")
+	check(_differs(pics[RoofArt.key("kaya", "gable", 1, size)], pics[RoofArt.key("thatch", "gable", 1, size)]) > 1000, "roof: the farmhouse's kaya differs from the coop's thatch")
+	# The light is from the upper left: the north slope of a gable is brighter than the south one.
+	var gable: Image = pics[RoofArt.key("kawara", "gable", 1, size)]
+	check(gable.get_pixel(40, 8).get_luminance() > gable.get_pixel(40, 38).get_luminance(), "roof: the north slope is lit, the south one shaded")
+	# The farm's buildings: the rects are the old boxes' footprints.
+	var farm: FarmGrid = g.farm
+	check(FarmView.roof_rect(farm, "house") == Rect2(32, 16, 80, 48), "roof: the farmhouse's footprint %s" % FarmView.roof_rect(farm, "house"))
+	check(FarmView.roof_rect(farm, "coop") == Rect2(Vector2(FarmGrid.COOP.position * 16), Vector2(FarmGrid.COOP.size * 16)), "roof: the coop's footprint")
+	check(FarmView.roof_rect(farm, "barn") == Rect2(Vector2(FarmGrid.BARN.position * 16), Vector2(FarmGrid.BARN.size * 16)), "roof: the barn's footprint")
+	# The town's houses draw their roofs by their data (roof, storeys).
+	g.go_to_map("town", Vector2i(2, 10), Vector2i.RIGHT)
+	await _wait_view("map_view.gd")
+	var seen := {}
+	for p in scene.view.map.props:
+		if str(p.kind) == "village_house":
+			var st: Dictionary = LitSpots.village_style(p)
+			seen["%s%d" % [st.roof, st.storeys]] = true
+	check(seen.has("gable1") and seen.has("hip1"), "roof: the town has gable and hip houses (%s)" % [seen.keys()])
+	scene.view._objects.queue_redraw()
+	await process_frame
