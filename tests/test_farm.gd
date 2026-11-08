@@ -138,6 +138,7 @@ func _init() -> void:
 				if ripe == "ripe":
 					keys[img.get_data()] = key
 	check(keys.size() == crops.size(), "ripe crops all look different (%d distinct)" % keys.size())
+	_crop_art(crops)
 	var q := FarmGrid.new(crops)
 	var qc := Vector2i(6, 6)
 	q.till(qc)
@@ -535,6 +536,66 @@ func _grow_days(crop: String) -> int:
 		n += int(d)
 	return n
 
+
+## CropArt (scripts/art/crop_art.gd): the single-sprite crops drawn part by part. Every crop and growth
+## keeps the old picture size, the ripe pictures differ, the rim is a deep shade (no black outline),
+## and the produce is lit from the upper left.
+func _crop_art(crops: Dictionary) -> void:
+	var rims := 0
+	for id in crops:
+		var shape: String = crops[id].look.get("shape", "bush")
+		for growth in 4:
+			for ripe in [false, true] if growth == 3 else [false]:
+				var key := "crop:%s:%d:%s" % [id, growth, "ripe" if ripe else "growing"]
+				var img := PlaceholderArt.tex(key).get_image()
+				var tall := growth >= 2 and (shape == "vine" or shape == "stalk")
+				check(img.get_size() == Vector2i(16, 24 if tall else 16), "%s: the old picture size" % key)
+				var black := 0
+				var opaque := 0
+				for y in img.get_height():
+					for x in img.get_width():
+						var c := img.get_pixel(x, y)
+						if c.a > 0:
+							opaque += 1
+							if c.is_equal_approx(PlaceholderArt.OUTLINE) or maxf(c.r, maxf(c.g, c.b)) < 0.12:
+								black += 1
+				check(opaque > 8 and (black == 0 or not (growth < 2 or CropArt.draws_grown(shape))), "%s: drawn, with no black outline pixels (the tall crops' grown looks are the clusters' `stalk:` fallback)" % key)
+				rims += 1
+		if CropArt.draws_grown(shape):
+			var a := PlaceholderArt.tex("crop:%s:2:growing" % id).get_image().get_data()
+			var b := PlaceholderArt.tex("crop:%s:3:growing" % id).get_image().get_data()
+			var c := PlaceholderArt.tex("crop:%s:3:ripe" % id).get_image().get_data()
+			check(a != b and b != c and a != c, "%s: young, grown and ripe all look different" % id)
+			# The produce alone: the upper left half is lighter than the lower right half.
+			var pr := CropArt.draw(id, 3, true, true)
+			var used := pr.get_used_rect()
+			check(used.has_area(), "%s: its produce is drawn" % id)
+			var mid := Vector2(used.position) + Vector2(used.size) * 0.5
+			var ul := 0.0
+			var lr := 0.0
+			var nul := 0
+			var nlr := 0
+			for y in pr.get_height():
+				for x in pr.get_width():
+					var px := pr.get_pixel(x, y)
+					if px.a == 0:
+						continue
+					var d := (x + 0.5 - mid.x) * 0.5 + (y + 0.5 - mid.y) * 0.7
+					if d < 0.0:
+						ul += px.get_luminance()
+						nul += 1
+					else:
+						lr += px.get_luminance()
+						nlr += 1
+			check(nul > 0 and nlr > 0 and ul / maxi(nul, 1) > lr / maxi(nlr, 1), "%s: produce lit from the upper left (%.3f vs %.3f)" % [id, ul / maxi(nul, 1), lr / maxi(nlr, 1)])
+	check(rims > 20, "crop art checked (%d pictures)" % rims)
+	var ripe_pics := {}
+	for id in crops:
+		ripe_pics[PlaceholderArt.tex("crop:%s:3:ripe" % id).get_image().get_data()] = id
+	check(ripe_pics.size() == crops.size(), "ripe crops differ from each other")
+	# The seed and sprout are drawn by CropArt for every crop; the grown tall crops are not.
+	check(CropArt.draws_grown("root") and CropArt.draws_grown("bush") and CropArt.draws_grown("ground")
+		and not CropArt.draws_grown("vine") and not CropArt.draws_grown("grain"), "CropArt draws the single-sprite shapes grown")
 
 func check(ok: bool, what: String) -> void:
 	if not ok:

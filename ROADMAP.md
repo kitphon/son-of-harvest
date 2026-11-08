@@ -391,7 +391,7 @@ aside on 2026-10-31); ask what bothers them when coming back to the farmer.
    - [x] Farmer placeholder frames (3/4 front / back x idle / walk / run) + animation timing
    - [ ] Farmer real art (same keys: `player:<front|back>:<pose>:<frame>`)
    - [x] Field object and crop placeholders (per crop look in `data/crops.json`, 4 growth looks + ripe)
-   - [ ] Field object and crop real art (same keys: `crop:<id>:<growth>:<ripe|growing>`)
+   - [x] Field object and crop art (same keys: `crop:<id>:<growth>:<ripe|growing>`): the refined placeholder pass (2026-11-08): CropArt draws the single-sprite crops part by part, three tones, deep leaf-shade rim. Real hand art is still to come.
    - [x] Ground tiles instead of flat colours (grass, soil dry / wet / tilled, paths, water)
    - [x] House, bin, stand, fence as models or textured boxes
    - [x] Rain / snow particles, weather tint
