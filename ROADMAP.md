@@ -37,7 +37,7 @@ proposal, wedding, married rules and lines, Thai).
 [ ] Mio (new): the ferry hut on the river map, day plans, talk, then candidate.
 [ ] Kaede (new): keeps the village shrine, helps Tome ready weddings, then candidate.
 [ ] Ren (new): the post office by the village's entry, rounds through every part, then candidate.
-[ ] The farmer's look chosen on a new game (hair, skin, clothes; looks only).
+[x] The farmer's look chosen on a new game (2026-11-08): New game opens a look step on the title screen (hair style, hair color, skin, clothes; a few choices each in data/farmer_looks.json, the first of each the old look), a walking preview turning round, keys / pad / mouse, English and Thai; saved, old saves load the old look; FigureArt draws the farmer from it in both views and every pose, the art cache kept per look (FarmerLooks, LookMenu; `--look=`, `--new-game`; test_title, test_save, test_lang).
 
 [x] Painted paddy ground in the flat view (2026-11-07): the Kaminoda paddies' ground is painted in the ground tiles' pixel style, drained mud with wet sheen, puddles and straw in winter, still water with a soft sky reflection and ripple lines in the other seasons, every feature wrapping so the tiles repeat (PlaceholderArt "paddy_mud" / "paddy_flood", PlaceholderArt._wrap; test_view2d _paddy_tiles; ART_DIRECTION, Rice and tall crops).
 [x] Glint on the 3D winter water patches (2026-11-07): the 3D view's paddy patches (CropClusters.plant_water) carry the same wind-driven glint, worked out in WATER_SHADER from the patch's place (phase and one-or-two by hash, rice's wind, quicker in rain and storm, none while snow lies), numbers in data/wind.json "3d".glint, colour data/paddy.json water.shine.

@@ -187,6 +187,22 @@ func _screens() -> void:
 	var hud: CanvasLayer = load("res://scripts/ui/hud.gd").new()
 	root.add_child(hud)
 	_fits(hud, "the HUD")
+	# The new game's look step, with every choice of every row shown in turn.
+	var title: Control = load("res://scripts/ui/title_screen.gd").new()
+	title.start_scene = ""
+	root.add_child(title)
+	title.open_look()
+	var most := 0
+	for part in FarmerLooks.PARTS:
+		most = maxi(most, FarmerLooks.ids(part).size())
+	for i in most:
+		for part in FarmerLooks.PARTS:
+			var ids := FarmerLooks.ids(part)
+			title.look.choice[part] = ids[mini(i, ids.size() - 1)]
+		title._look_refresh()
+		_fits(title._look_box, "the look step (choice %d)" % i)
+	title.close_look()
+	title.free()
 	var pause: CanvasLayer = load("res://scripts/ui/pause_screen.gd").new()
 	root.add_child(pause)
 	for page in ["", "settings", "controls"]:

@@ -119,6 +119,12 @@ var mine_news := ""                # said on arriving at a landing reached for t
 var dialogue_made: Dictionary = {} # dialogue id -> lines built in code (the rope lift's choice), for the TextBox
 var _mine_start := 0               # the floor the next trip down starts at (the rope lift), 0 = floor 1
 var forage_picked: Dictionary = {}   # map id -> {cell: true}, the wild spots picked today (data/forage.json)
+## The farmer's look chosen on a new game (FarmerLooks; looks only, saved). Setting it sets
+## FarmerLooks.current, which the farmer's pictures are drawn from.
+var farmer_look: Dictionary = {}:
+	set(v):
+		farmer_look = FarmerLooks.normalize(v)
+		FarmerLooks.current = farmer_look
 var first_day: Dictionary = {"values": {}, "field": {}}   # {values, field} measured when the run began (the record's look back)
 var year_pages: Dictionary = {}    # year -> the village record's page written that New Year (Ending.page_of)
 
@@ -242,6 +248,7 @@ func new_game() -> void:
 	mine_news = ""
 	_mine_start = 0
 	year_pages = {}
+	farmer_look = {}   # the default look; the title's look step sets the chosen one after this
 	first_day = {"values": ending_values(), "field": field_counts()}   # before --demo digs the field
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--season="):   # `-- --demo --season=winter --mine=3`: day 1 of that season
@@ -250,6 +257,8 @@ func new_game() -> void:
 				push_warning("No season " + arg)
 			else:
 				season = s
+		elif arg.begins_with("--look="):   # `-- --demo --look=style:2,hair:1,skin:3,clothes:4`: the farmer in that look
+			farmer_look = FarmerLooks.from_flag(arg.trim_prefix("--look="))
 		elif arg.begins_with("--day="):   # `-- --demo --day=7 --map=river`: that day of the season (7: the first Sunday)
 			day = clampi(arg.trim_prefix("--day=").to_int(), 1, DAYS_PER_SEASON)
 	weather_tomorrow = roll_weather(_tomorrow_season())
@@ -2611,6 +2620,7 @@ func to_dict() -> Dictionary:
 		pages.append(year_pages[y].duplicate(true))
 	pages.sort_custom(func(a, b): return a.year < b.year)
 	d.records = {"first_day": first_day.duplicate(true), "pages": pages}
+	d.look = farmer_look.duplicate()
 	d.farm = farm.to_dict()
 	return d
 
@@ -2890,6 +2900,11 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 			if pg[0] != "" or n.year_pages.has(pg[1].year):
 				return "Saved records are broken"
 			n.year_pages[pg[1].year] = pg[1]
+	# Saves from before the look was chosen: the farmer's old look (the default).
+	var look_parsed = FarmerLooks.parse(data.get("look", {}))
+	if look_parsed == null:
+		return "Saved look is broken"
+	n.farmer_look = look_parsed
 	if not data.get("farm") is Dictionary:
 		return "Saved farm is missing"
 	var err := farm.from_dict(data.farm)

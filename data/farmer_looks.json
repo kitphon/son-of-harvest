@@ -1,0 +1,32 @@
+{
+	"_note": "The farmer's look, chosen on a new game (FarmerLooks, the title screen's look step). Looks only: no rule reads it. Four parts, each a list of choices; the first of each is the look the farmer always had (FigureArt.FARMER_LOOK), so a save without a look and every older screenshot stay the same. style: the hair style (FigureArt.STYLES; `accent` overrides the clothes' accent, the straw hat's straw). hair / skin: one colour. clothes: the noragi (top), its collar band and the belt side (waist), the monpe (lower), the head cloth (accent) and the jika-tabi (shoes). No choice is tied to any other; none has a gender.",
+	"style": [
+		{"id": "tenugui", "name": "Tenugui", "hair_style": "tenugui"},
+		{"id": "short", "name": "Short", "hair_style": "short"},
+		{"id": "bun", "name": "Topknot", "hair_style": "bun"},
+		{"id": "long", "name": "Long, tied", "hair_style": "long"},
+		{"id": "headband", "name": "Hachimaki", "hair_style": "headband"},
+		{"id": "straw_hat", "name": "Straw hat", "hair_style": "straw_hat", "accent": "d9b45a"}
+	],
+	"hair": [
+		{"id": "chestnut", "name": "Chestnut", "color": "5a3a22"},
+		{"id": "black", "name": "Black", "color": "262024"},
+		{"id": "dark_brown", "name": "Dark brown", "color": "3e2a1e"},
+		{"id": "auburn", "name": "Auburn", "color": "7a3a24"},
+		{"id": "gray", "name": "Gray", "color": "8e8a86"}
+	],
+	"skin": [
+		{"id": "warm", "name": "Warm beige", "color": "f2c79b"},
+		{"id": "light", "name": "Light", "color": "f8dcc4"},
+		{"id": "tan", "name": "Tan", "color": "d9a474"},
+		{"id": "brown", "name": "Brown", "color": "a8714c"},
+		{"id": "deep", "name": "Deep brown", "color": "75492f"}
+	],
+	"clothes": [
+		{"id": "indigo", "name": "Indigo", "top": "3e64b4", "waist": "e8e2d0", "lower": "4a4e5a", "accent": "c8452c", "shoes": "34343e"},
+		{"id": "persimmon", "name": "Persimmon", "top": "b8602e", "waist": "efe4cc", "lower": "4a3e36", "accent": "3e5a8e", "shoes": "3a322e"},
+		{"id": "moss", "name": "Moss green", "top": "5a7a3e", "waist": "e8e2c8", "lower": "4e4a3a", "accent": "e0c070", "shoes": "34342e"},
+		{"id": "plum", "name": "Plum", "top": "7a4668", "waist": "eee2d8", "lower": "3e3a48", "accent": "e8e2d0", "shoes": "34303a"},
+		{"id": "ash", "name": "Ash gray", "top": "6e6e72", "waist": "e8e2d0", "lower": "3a3c44", "accent": "c8452c", "shoes": "2e2e34"}
+	]
+}

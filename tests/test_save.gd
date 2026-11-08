@@ -60,6 +60,7 @@ func _init() -> void:
 	f.place_item(Vector2i(9, 5), "potato")
 	f.place_item(Vector2i(10, 6), "turnip")
 	a.first_day = {"values": {"shipped_value": 0, "recipes_known": 4}, "field": {"debris": 88, "tilled": 0, "money": 500}}
+	a.farmer_look = {"style": "bun", "hair": "auburn", "skin": "tan", "clothes": "plum"}
 	a.year_pages = {2: {"year": 2, "values": {"mine_deepest": 5, "fish_kinds": 1}, "field": {"debris": 40, "money": 900}, "stars": 3, "rank": 0}}
 	var saved: Dictionary = a.to_dict()
 	_clear(PATH)   # no backup left from an earlier run (it would stand in for the broken files below)
@@ -112,6 +113,8 @@ func _init() -> void:
 	check(grid.items == {Vector2i(9, 5): "potato", Vector2i(10, 6): "turnip"}, "items on the ground back %s" % grid.items)
 	check(b.first_day == a.first_day and b.year_pages == a.year_pages and b.year_pages.keys()[0] is int
 		and typeof(b.year_pages[2].values.mine_deepest) == TYPE_INT, "the first day and the yearly pages back %s" % [b.year_pages])
+	check(b.farmer_look == a.farmer_look and saved.look == {"style": "bun", "hair": "auburn", "skin": "tan", "clothes": "plum"}
+		and FarmerLooks.current == a.farmer_look, "the farmer's look back %s" % [b.farmer_look])
 	# The loaded farm keeps working by the rules.
 	grid.water_cell(Vector2i(4, 10))
 	grid.day_end("spring", "sunny", rng)
@@ -143,7 +146,8 @@ func _init() -> void:
 			["records", {"first_day": {"values": {"luck": 1}, "field": {}}, "pages": []}],
 			["records", {"first_day": {"values": {}, "field": {"money": -5}}, "pages": []}],
 			["records", {"first_day": saved.records.first_day, "pages": [{"year": 2}]}],
-			["records", {"first_day": saved.records.first_day, "pages": [saved.records.pages[0], saved.records.pages[0]]}]]:
+			["records", {"first_day": saved.records.first_day, "pages": [saved.records.pages[0], saved.records.pages[0]]}],
+			["look", "bun"], ["look", [1]], ["look", {"style": 2}], ["look", {"nose": "big"}]]:
 		var d := saved.duplicate(true)
 		d[broken[0]] = broken[1]
 		_put(JSON.stringify({"version": 1, "game": d}))
@@ -256,6 +260,21 @@ func _init() -> void:
 	var back := Ending.compare(b.ending_record(), b.first_day, {}, b.field_counts())
 	check(Ending.then_text(back.field[0]) == "-" and Ending.then_text(back.field.back()) == "500 G", "the field not kept shows a dash")
 
+	# A save from before the look was chosen: the farmer's old look; a look the data no longer
+	# has (a choice taken out later) loads as the default's, the rest kept.
+	old = saved.duplicate(true)
+	old.erase("look")
+	_put(JSON.stringify({"version": 6, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.farmer_look == FarmerLooks.default_choice() and FarmerLooks.current == b.farmer_look
+		and PlaceholderArt.tex("player:front:idle:0").get_image().get_data() == FigureArt.draw(FigureArt.FARMER_LOOK, false, "idle", 0, true).get_data(),
+		"save without a look loads the default look (%s)" % err)
+	old = saved.duplicate(true)
+	old.look = {"style": "gone_now", "skin": "tan"}
+	_put(JSON.stringify({"version": 6, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.farmer_look == {"style": "tenugui", "hair": "chestnut", "skin": "tan", "clothes": "indigo"},
+		"a look the data no longer has falls back, part by part (%s)" % err)
 	_atomic(a, b)
 
 	_clear(PATH)
