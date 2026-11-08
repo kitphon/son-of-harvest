@@ -90,6 +90,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   entries, the English style of docs/STYLE_EN.md, Lang.join / list, the pseudo language, the
   screens and the dialogue still fitting a third longer, the Thai dialogue fitting the box, the daily talk all Thai): `res://tests/test_lang.gd` must print `test_lang: OK (0 failed)`.
   Showcase (data/showcase.json: the fixed trailer views; every map, spawn, festival and lens they name exists): `res://tests/test_showcase.gd` must print `test_showcase: OK (0 failed)`. The views are rendered with `python -I tools/showcase.py --out shots/showcase` (README → Showcase).
+  Drifting life (data/drift.json: spring petals, fall leaves, summer-night fireflies; season / weather / clock / indoor gating, the wind carrying them, counts, both views): `res://tests/test_drift.gd` must print `test_drift: OK (0 failed)`.
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field), `-- --demo --map=town` (the village) and
   `-- --demo --mine=3` (a mine floor).

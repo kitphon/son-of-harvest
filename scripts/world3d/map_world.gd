@@ -32,6 +32,8 @@ func build_steps(m: MapData) -> Array[Callable]:
 	if not map.indoor:
 		steps.append(_make_village_smoke)
 	if not map.sheltered and not map.indoor:
+		steps.append(func() -> void: add_child(DriftLayer.new(map)))   # petals, leaves, fireflies
+	if not map.sheltered and not map.indoor:
 		steps.append(_make_grass)
 	if not map.sheltered:
 		steps.append(_make_edges)
