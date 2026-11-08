@@ -30,6 +30,8 @@ static func _make(key: String) -> Image:
 			return FigureArt.draw(FigureArt.FARMER_LOOK, parts[1] == "back", parts[2], int(parts[3]), true)
 		"villager": # villager:<id>:<front|back>:<idle|walk|work|fish>:<frame>, 24 x 32, from the look in data/villagers/<id>.json
 			return FigureArt.draw(Villagers.look(parts[1]), parts[2] == "back", parts[3], int(parts[4]))
+		"roof":   # roof:<kawara|thatch|kaya>:<gable|hip>:<storeys>:<w>:<h>, a roof seen from above (RoofArt)
+			return RoofArt.draw(parts)
 		"target":   # corner brackets laid on the cell the tool will hit
 			var c := Color(1, 1, 1, 0.85)
 			return _draw(16, 16, [[0, 0, 5, 1, c], [0, 0, 1, 5, c], [11, 0, 5, 1, c], [15, 0, 1, 5, c],

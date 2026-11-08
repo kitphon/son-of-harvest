@@ -212,6 +212,11 @@ func _draw_objects() -> void:
 			_objects.draw_texture(tex, Vector2(p.cell * T) + Vector2(T / 2 - 12, T - 32))
 			continue
 		var r := Rect2(Vector2(p.cell * T), Vector2(p.size * T))
+		if p.kind == "village_house":   # a painted kawara roof, the old box's size (RoofArt)
+			var style := LitSpots.village_style(p)
+			var inner := r.grow(-1)
+			_objects.draw_texture(PlaceholderArt.tex(RoofArt.key("kawara", style.roof, style.storeys, Vector2i(inner.size))), inner.position)
+			continue
 		_objects.draw_rect(r.grow(-1), COLORS.get(p.kind, Color.MAGENTA))
 	for door in map.doors:
 		for c in door.cells:

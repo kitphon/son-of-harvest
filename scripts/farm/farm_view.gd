@@ -13,6 +13,22 @@ const COLORS := {
 	"barn": Color("6a4a30"), "barn_door": Color("3a2010"),
 }
 
+## The farm buildings drawn as painted roofs (RoofArt), by the material the 3D view roofs them in:
+## the farmhouse and the coop thatch, the barn kawara tile.
+const ROOFS := {"house": "kaya", "coop": "thatch", "barn": "kawara"}
+
+
+## The pixel rectangle of the fixed cells of `kind` (empty when there are none).
+static func roof_rect(grid: FarmGrid, kind: String) -> Rect2:
+	var box := Rect2i()
+	var first := true
+	for c in grid.fixed:
+		if grid.fixed[c] == kind:
+			box = Rect2i(c, Vector2i.ONE) if first else box.expand(c).expand(c + Vector2i.ONE)
+			first = false
+	return Rect2(Vector2(box.position * T), Vector2(box.size * T))
+
+
 ## Ground only (soil, water, building footprints): the 3D view uses this as the ground
 ## texture and stands everything else up as sprites / boxes.
 var ground_only := false
@@ -113,6 +129,10 @@ func _draw() -> void:
 func _draw_objects() -> void:
 	_tall = false
 	_sway = _sway_for(Time.get_ticks_msec() / 1000.0)
+	for kind in ROOFS:   # the roofs first: the doors in their front rows are drawn over them below
+		var r := roof_rect(farm, kind)
+		if r.has_area():
+			_objects.draw_texture(PlaceholderArt.tex(RoofArt.key(ROOFS[kind], "gable", 1, Vector2i(r.size))), r.position)
 	for y in FarmGrid.H:
 		for x in FarmGrid.W:
 			_draw_cell(Vector2i(x, y))
@@ -122,8 +142,8 @@ func _draw_cell(c: Vector2i) -> void:
 	var r := Rect2(Vector2(c * T), Vector2(T, T))
 	var f := farm.fixed_at(c)
 	if f != "":
-		# The flat view marks buildings and the fence on top of their ground.
-		if f != "pond" and not c in gaps:
+		# The flat view marks buildings and the fence on top of their ground (roofs: _draw_objects).
+		if f != "pond" and not f in ROOFS and not c in gaps:
 			_objects.draw_rect(r.grow(-5) if f == "fence" else r, COLORS[f])
 		return
 	var d := farm.cell(c)
