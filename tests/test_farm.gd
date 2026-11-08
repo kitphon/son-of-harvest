@@ -596,6 +596,32 @@ func _crop_art(crops: Dictionary) -> void:
 	# The seed and sprout are drawn by CropArt for every crop; the grown tall crops are not.
 	check(CropArt.draws_grown("root") and CropArt.draws_grown("bush") and CropArt.draws_grown("ground")
 		and not CropArt.draws_grown("vine") and not CropArt.draws_grown("grain"), "CropArt draws the single-sprite shapes grown")
+	# The bush's leaf mass reads as separate leaves: its young and grown pictures have many
+	# pixels on a tone edge (leaf against leaf, lit against shade).
+	for id in crops:
+		if crops[id].look.get("shape", "bush") != "bush":
+			continue
+		# Before the leaf detail: 62 (young) and 119 (grown) tone-edge pixels for both bushes.
+		for growth in [2, 3]:
+			var img := PlaceholderArt.tex("crop:%s:%d:growing" % [id, growth]).get_image()
+			var edges := _edge_pixels(img)
+			check(edges > (62 if growth == 2 else 119), "%s growth %d: more leaf-edge pixels than before (%d)" % [id, growth, edges])
+
+func _edge_pixels(img: Image) -> int:
+	var n := 0
+	for y in img.get_height():
+		for x in img.get_width():
+			var c := img.get_pixel(x, y)
+			if c.a == 0:
+				continue
+			for d in [Vector2i(1, 0), Vector2i(0, 1)]:
+				var q: Vector2i = Vector2i(x, y) + d
+				if q.x < img.get_width() and q.y < img.get_height():
+					var o: Color = img.get_pixelv(q)
+					if o.a > 0 and not o.is_equal_approx(c):
+						n += 1
+						break
+	return n
 
 func check(ok: bool, what: String) -> void:
 	if not ok:
