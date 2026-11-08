@@ -45,6 +45,17 @@ const BUILDS := {
 	"adult": {"cx": 12.0, "cy": 9.0, "rx": 5.0, "ry": 5.2, "sh": 15, "hip": 23, "left": 4, "right": 3},
 	"elder": {"cx": 11.0, "cy": 10.0, "rx": 5.0, "ry": 5.0, "sh": 16, "hip": 23, "left": 4, "right": 3},
 	"child": {"cx": 12.0, "cy": 14.0, "rx": 4.6, "ry": 4.6, "sh": 19, "hip": 25, "left": 3, "right": 3},
+	# The farmer's own toddler (Child): still smaller, the head nearly as wide as the shoulders.
+	"toddler": {"cx": 12.0, "cy": 18.0, "rx": 4.4, "ry": 4.3, "sh": 23, "hip": 27, "left": 3, "right": 2},
+}
+## The farmer's child's bodies (Child, data/child.json figures): on hands and knees (draw_crawler),
+## a toddler, a child.
+const LITTLE_BUILDS: Array[String] = ["crawler", "toddler", "child"]
+## The crawl, per frame: [near hand x, far hand x, near knee x, far knee x, body drop]; the
+## hands and knees go forward (screen left, negative) in turn, the body dipping between.
+const CRAWL := {
+	"idle": [[0, 0, 0, 0, 0]],
+	"walk": [[-1, 1, 1, -1, 0], [0, 0, 0, 0, 1], [1, -1, -1, 1, 0], [0, 0, 0, 0, 1]],
 }
 
 ## The farmer's own look: an indigo noragi (work jacket) with a white collar band and a straw
@@ -215,6 +226,80 @@ static func draw(look: Dictionary, back: bool, pose: String, frame: int, farmer 
 		_dot(img, sx, sy, Color.WHITE)
 		_r(img, sx, sy + 1, 1, 2, SWEAT)
 	return img
+
+
+## The farmer's child in `build` (LITTLE_BUILDS): the crawler on hands and knees, or standing
+## as a toddler or a child in the ordinary rig. Poses idle and walk.
+static func draw_little(build: String, look: Dictionary, back: bool, pose: String, frame: int) -> Image:
+	if build == "crawler":
+		return draw_crawler(look, back, pose, frame)
+	var l := look.duplicate()
+	l.build = build if BUILDS.has(build) else "toddler"
+	return draw(l, back, pose if pose == "walk" else "idle", frame)
+
+
+## A baby crawling on hands and knees, the big head in front (screen left, the way the figure
+## faces), the happi over the back, the rump up behind, the soles of the feet turned up.
+## Seen from the back the head shows its hair and the rump is nearer. Feet (knees) on the
+## bottom row like every figure.
+static func draw_crawler(look: Dictionary, back: bool, pose: String, frame: int) -> Image:
+	var img := _blank()
+	var c := colors(look)
+	var rows: Array = CRAWL.get(pose, CRAWL.idle)
+	var p: Array = rows[frame % rows.size()]
+	var drop: int = p[4]
+	var ground := FOOT
+	# The far arm and leg, behind the body.
+	var L := _blank()
+	_limb(L, Vector2i(9, 23 + drop), Vector2i(6 + p[1], ground - 1), c.t, c.T)
+	_r(L, 5 + p[1], ground - 1, 3, 2, c.S)   # the far hand, flat on the floor
+	_limb(L, Vector2i(18, 25 + drop), Vector2i(17 + p[3], ground - 1), c.l, c.L)
+	_r(L, 17 + p[3], ground - 1, 5, 2, c.L)   # the shin along the floor
+	_r(L, 21 + p[3], ground - 2, 2, 2, c.S)   # the sole turned up
+	_stamp(img, L)
+	# The body: a round back in the happi, the sash, the rump up behind.
+	L = _blank()
+	_oval(L, 14.5, 23.5 + drop, 6.0, 3.6, c.t)
+	_oval(L, 18.5, 22.5 + drop, 2.6, 2.6, c.t)
+	for y in range(20 + drop, 28 + drop):   # the side away from the light
+		for x in range(17, 22):
+			if _inside(x, y) and L.get_pixel(x, y).a > 0.0 and (x + 0.5 - 14.5) + (y + 0.5 - 23.5 - drop) > 4.5:
+				_dot(L, x, y, c.T)
+	_r(L, 10, 21 + drop, 3, 1, c["t+"])
+	_r(L, 15, 20 + drop, 1, 7, c.W)   # the sash round the middle
+	_r(L, 14, 20 + drop, 1, 7, c.w)
+	if back:   # the round crest (mon) on the back of the happi
+		_r(L, 18, 21 + drop, 2, 1, c.w)
+		_dot(L, 17, 22 + drop, c.w)
+		_dot(L, 20, 22 + drop, c.w)
+		_r(L, 18, 23 + drop, 2, 1, c.w)
+	_stamp(img, L)
+	# The near leg: the thigh down from the hip to the knee, the shin back along the floor.
+	L = _blank()
+	_limb(L, Vector2i(16, 25 + drop), Vector2i(15 + p[2], ground - 1), c.l, c.L)
+	_r(L, 15 + p[2], ground - 1, 5, 2, c.l)
+	_r(L, 19 + p[2], ground - 2, 2, 2, c.s)
+	_stamp(img, L)
+	# The head, big and forward, a little above the hands.
+	var r := {"cx": 8.0, "cy": 19.0 + drop, "rx": 4.6, "ry": 4.4}
+	var style := str(look.get("hair_style", "short"))
+	_head(img, r, c, style if style in ["short", "bun"] else "short", back, false)
+	# The near arm in front of the body, down to the hand on the floor.
+	L = _blank()
+	_limb(L, Vector2i(11, 24 + drop), Vector2i(9 + p[0], ground - 1), c.t, c.T)
+	_r(L, 8 + p[0], ground - 1, 3, 2, c.s)
+	_dot(L, 10 + p[0], ground, c.S)
+	_stamp(img, L)
+	return img
+
+
+## A short limb 2 px wide from `a` to `b` (a crawler's arm or thigh), its far side darker.
+static func _limb(dst: Image, a: Vector2i, b: Vector2i, col: Color, dark: Color) -> void:
+	var n := maxi(absi(b.x - a.x), absi(b.y - a.y))
+	for i in n + 1:
+		var q := Vector2(a).lerp(Vector2(b), float(i) / maxi(n, 1)).round()
+		_r(dst, int(q.x), int(q.y), 2, 1, col)
+		_dot(dst, int(q.x) + 1, int(q.y), dark)
 
 
 ## The look's colours with their shades: o outline, e eye, h hair, s skin, t top, w waist (obi,

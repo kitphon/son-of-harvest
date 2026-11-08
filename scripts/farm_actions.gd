@@ -16,18 +16,26 @@ static func connect_view(player: Player) -> void:
 			talk_flag.call_deferred(player, arg.trim_prefix("--talk="))
 
 
-## The `--talk=<villager>` screenshot flag: the farmer stands below them, facing up, and talks.
+## The `--talk=<villager>` screenshot flag: the farmer stands below them, facing up, and talks
+## (`--talk=child` the little one about the house).
 static func talk_flag(player: Player, id: String) -> void:
 	var w := Villagers.where(id, Game.day_minutes(), Game.trigger_state(Vector2i.ZERO))
 	if w.get("map", "") != Game.maps.id:
 		push_warning("--talk: %s is not on this map now" % id)
 		return
-	var c := Vector2i(w.pos.floor()) + Vector2i.DOWN
+	# Below them, or the first free side (left, right, above) when a wall is below (the crawler on the mat).
+	var side := Vector2i.DOWN
+	var m := Game.maps.current()
+	for d in [Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP]:
+		if m == null or m.farm or not m.is_solid(Vector2i(w.pos.floor()) + d):
+			side = d
+			break
+	var c := Vector2i(w.pos.floor()) + side
 	player.position = Vector2(c * T) + Vector2(T / 2.0, T / 2.0)
-	player.facing = Vector2i.UP
+	player.facing = -side
 	Game.maps.pos = player.position
 	Game.maps.facing = player.facing
-	on_action("interact", c, Vector2i.UP)
+	on_action("interact", c, player.facing)
 
 
 ## kind "enter" = the farmer walked into a door cell `origin + facing`. Interact facing a

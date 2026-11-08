@@ -392,6 +392,8 @@ func new_game() -> void:
 			maps.mine_floor = new_mine_floor(maxi(arg.trim_prefix("--mine=").to_int(), 1))
 		elif arg == "--baby" or arg == "--baby=held":   # `-- --demo --map=house --built=room --flags=married_sayo,spouse=sayo --baby`: born today, in the cradle (=held: in the arms)
 			_demo_baby(arg == "--baby=held")
+		elif arg.begins_with("--child="):   # `-- --demo --map=house --built=room --flags=married_sayo,spouse=sayo --child=toddler`: the little one at that stage
+			_demo_child(arg.trim_prefix("--child="))
 	Child.sync_stage(flags, day_number())   # `--flags=` may have set a birth
 	# `--map=mine_floor` alone: the first floor.
 	if maps.id == mine_map("floor_map") and maps.mine_floor == null:
@@ -420,6 +422,32 @@ func _demo_baby(held_up: bool) -> void:
 	maps.place("house", Vector2i(p.cell) + Vector2i.DOWN, Vector2i.UP)
 	if held_up:
 		lift_baby()
+
+
+## `--child=<crawler|toddler|child>`: a child born to the spouse of the `--flags` (Sayo when
+## none is set) just as many days ago as that stage starts (data/child.json stages), named as
+## `--baby` names them. A stage older than the calendar so far moves the year on (to year 2),
+## so the birth day is a day of the game.
+func _demo_child(stage: String) -> void:
+	var from := -1
+	for s in Child.data().get("stages", []):
+		if str(s.get("id", "")) == stage:
+			from = int(s.get("from", 0))
+	if from < 0 or not stage in Child.FIGURE_STAGES:
+		push_warning("--child: one of %s" % [Child.FIGURE_STAGES])
+		return
+	if Marriage.spouse(flags) == "":
+		flags["spouse"] = "sayo"
+		flags["married_sayo"] = true
+	while day_number() < from:
+		year += 1
+	var list := Child.names(Marriage.spouse(flags)) if not Child.names(Marriage.spouse(flags)).is_empty() else Child.names("sayo")
+	var name := Child.child_name(flags)
+	if not name in list:
+		name = str(list[0])
+	Child.tell_news(flags, day_number() - from)
+	Child.give_birth(flags, day_number() - from, name)
+	Child.sync_stage(flags, day_number())
 
 
 ## The demo field's three crops per season (winter, with no field crops, shows spring's).
@@ -1145,8 +1173,7 @@ func held_key() -> String:
 
 ## The child's colours (Child.look): the spouse's hair, the skin between the farmer's and theirs.
 func child_look() -> Dictionary:
-	var spouse := Marriage.spouse(flags)
-	return Child.look(Villagers.look(spouse) if spouse != "" else {}, str(FarmerLooks.current_look().get("skin", "f2c79b")))
+	return Child.colours(flags)
 
 
 ## The cradle prop on map `map_id` while the child is a baby ({} for none: no baby, not built).
@@ -2061,6 +2088,8 @@ func talk_to(id: String, face: Vector2i) -> String:
 	var t := day_minutes()
 	var today := day_number()
 	Villagers.turn(id, face, t)
+	if id == Child.ID:
+		return _talk_child()
 	var file := Talk.dialogue_id(id)
 	var birthday := Villagers.has_birthday(id, season_name(), day)
 	if holding() and held == Marriage.item():
@@ -2088,6 +2117,38 @@ func talk_to(id: String, face: Vector2i) -> String:
 	if shop_id != "" and open_shop(shop_id):
 		return "shop"
 	var at := Talk.pick(id, s)
+	if at != "":
+		talk(file, at)
+	return "talk"
+
+
+## E facing the little one (the crawler or the toddler about the house; Child): a talk counts
+## once a day like a villager's (the hearts start at band 3 and never fall below it); an item
+## overhead is a gift from the toddler on (Child.takes_gifts), else the farmer keeps it. The
+## lines are data/dialogue/talk_child.json, picked by Talk.pick with the stage (pick key
+## `stage`), the name put in (Child.named_dialogue). Returns "gift" or "talk".
+func _talk_child() -> String:
+	var today := day_number()
+	var stage := str(flags.get(Child.STAGE, ""))
+	var name := Child.child_name(flags)
+	var file := Talk.dialogue_id(Child.ID)
+	dialogue_made[file] = Child.named_dialogue(Talk.data(Child.ID), name)
+	if holding():
+		if not Child.takes_gifts(stage):
+			message.emit("%s is too little for presents yet." % name)
+			return "talk"
+		var item := held
+		var r := affection.give(Child.ID, item, today)
+		if r.ok:
+			inventory.take(item, 1, ["hand"])
+			changed.emit()
+		talk(file, Talk.gift_line(Child.ID, item, r.reaction) if r.ok else "gift_again")
+		return "gift"
+	var s := trigger_state(Vector2i.ZERO)
+	s.merge({"band": affection.band(Child.ID), "again": affection.talked_on(Child.ID, today), "day_number": today,
+		"stage": stage, "map": maps.id})
+	affection.talk(Child.ID, today)
+	var at := Talk.pick(Child.ID, s)
 	if at != "":
 		talk(file, at)
 	return "talk"
@@ -2185,6 +2246,8 @@ func festival_on_day(n: int) -> String:
 ## The heart band (0 .. 6) the text box shows for `speaker`, or -1 when the speaker isn't a
 ## villager (the farmer, narration, people without a villager file).
 func heart_band(speaker: String) -> int:
+	if speaker == Child.ID:   # the little one's hearts, once born
+		return affection.band(speaker) if Child.is_born(flags) else -1
 	return affection.band(speaker) if Villagers.all().has(speaker) else -1
 
 

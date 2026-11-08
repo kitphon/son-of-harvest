@@ -84,16 +84,20 @@ func give(id: String, item: String, day: int, birthday := false) -> Dictionary:
 
 ## The night after day `day`: each villager the farmer has met (affection above 0) who got
 ## neither a talk nor a gift that day may lose a little (neglect: chance, loss). Returns the
-## ids that lost some.
+## ids that lost some. The child (Child.ID) counts once talked to, kept at band 3 or above.
 func day_end(day: int, rng: RandomNumberGenerator) -> Array[String]:
 	var n: Dictionary = rules().get("neglect", {})
 	var out: Array[String] = []
-	for id in Villagers.all():
+	var ids: Array = Villagers.all().keys()
+	if points.has(Child.ID):   # the little one too, once met (last, so the villagers' rolls stay as they were); never below band 3
+		ids.append(Child.ID)
+	for id in ids:
 		if of(id) <= 0 or talked_on(id, day) or gifted_on(id, day):
 			continue
 		if rng.randf() < float(n.get("chance", 0.0)):
-			add(id, -int(n.get("loss", 0)))
-			out.append(id)
+			var was := of(id)
+			if add(id, -int(n.get("loss", 0))) < was:
+				out.append(id)
 	return out
 
 

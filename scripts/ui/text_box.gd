@@ -171,6 +171,8 @@ func _show_line() -> void:
 	_name_tag.visible = speaker != ""
 	_name_tag.position.x = TextBoxLayout.BOX.position.x + TextBoxLayout.name_x(framed)
 	_name.text = DialogueRunner.speakers().get(speaker, {}).get("name", "")
+	if speaker == Child.ID and Child.child_name(Game.flags) != "":   # the little one's own name
+		_name.text = Child.child_name(Game.flags)
 	_name_tag.size.x = PixelFont.shown_width(_name.text) + 12
 	var band := Game.heart_band(speaker)
 	_heart.visible = band >= 0

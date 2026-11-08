@@ -84,7 +84,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   The flat view (main_2d.tscn builds, its Player's actions reach FarmActions: tools, holding
   and throwing, the bin, eating, fishing, doors, talking, the shop counter, the mine; the
   throw's flight; rain / snow, lightning and the festival glow): `res://tests/test_view2d.gd` must print `test_view2d: OK (0 failed)`.
-  The child (data/child.json, Child: the news and the birth days, the stages by days, the look from the parents, each spouse's three names, the hearts' band 3 floor, the save; the news and birth scenes per spouse: the due flags each morning, the farmhouse triggers, the names offered and the one picked, the Thai; `--demo --map=house --built=room --flags=married_sayo,spouse=sayo --event=child_birth_sayo --dialogue=child@sayo_pick` shows the name choice; the baby in the bamboo cradle: the cradle only in the baby stage, the lines by the clock, lifting the baby into the hold pose and laying them back, never thrown, the door waits, a save while holding loads with the baby in the cradle, both views): `res://tests/test_child.gd` must print `test_child: OK (0 failed)`.
+  The child (data/child.json, Child: the news and the birth days, the stages by days, the look from the parents, each spouse's three names, the hearts' band 3 floor, the save; the news and birth scenes per spouse: the due flags each morning, the farmhouse triggers, the names offered and the one picked, the Thai; `--demo --map=house --built=room --flags=married_sayo,spouse=sayo --event=child_birth_sayo --dialogue=child@sayo_pick` shows the name choice; the baby in the bamboo cradle: the cradle only in the baby stage, the lines by the clock, lifting the baby into the hold pose and laying them back, never thrown, the door waits, a save while holding loads with the baby in the cradle, both views; the crawler and the toddler: data/child.json days / figures / gifts, the plans by the spouse at home and in the yard by the kennel, wet and festival days in, the figures (FigureArt.draw_little), talk_child.json picked by stage with the name put in, gifts from the toddler on, the hearts never below band 3, both views): `res://tests/test_child.gd` must print `test_child: OK (0 failed)`.
   Goals (Tome's first-week list: data/goals.json, what is counted, rewards paid once, the notes, the save, the HUD tag):
   `res://tests/test_goals.gd` must print `test_goals: OK (0 failed)`.
   Languages (LangCatalog finds the English, no glued pieces in the scripts, no stale table
@@ -123,7 +123,12 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   the first line at about 110 frames; married at home: `--demo --map=house --built=room
   --flags=married_sayo,spouse=sayo --time=19:00`; add `--baby` for a child born that day, asleep or awake in the
   bamboo cradle in the second room by `--time`, the farmer standing below it (named the spouse's first name, or
-  `--flags=child_name=Sora`), `--baby=held` with the baby in the farmer's arms),
+  `--flags=child_name=Sora`), `--baby=held` with the baby in the farmer's arms; `--child=crawler`
+  (`toddler`, `child`) for the little one at that stage (born that many days ago; the year moves
+  on to 2 when needed): `--demo --map=house --built=room --flags=married_sayo,spouse=sayo
+  --child=crawler --time=18:00 --talk=child` the crawler by Sayo, talking; `--demo
+  --weather=sunny --flags=married_sayo,spouse=sayo --child=toddler --time=10:00 --map=farm@coop`
+  the toddler in the yard by the kennel),
   `--flags=a,b=c` to set story flags (`--flags=hachiro_bell` the bell by the farmhouse door,
   `--map=town@sayo --flags=sayo_sign=new` the store's new sign, `--map=house
   --flags=tome_grandma` Tome's plum jar; `--map=hill` the foot of the bamboo hill (its forage spots by `--season`), `hill@top` its

@@ -352,6 +352,22 @@ when the farmer walks in (the catch-up) and nothing has to be saved. The views a
 `VillagerSprites` (3D) / `VillagerView` (2D) to each map they build, homes included, so the
 farmer can talk to them at home too (`-- --demo --map=tome_house --time=6:30`).
 
+**The farmer's child about the house.** Once the baby is out of the cradle (Child,
+`child_stage` crawler, toddler or child) `Villagers` adds them under the id `child`: today's
+plan comes from data/child.json `days` (per stage a speed, rules and plans in the format above;
+the child stage uses the toddler's until it has its own), and while the plan and the spouse are
+both in the farmhouse the little one stays at the spouse's side (`days.by_spouse`, turned to
+them; `Child.by_spouse`). The crawler never leaves the house; the toddler plays in the farm yard
+by the dog's kennel from 9:00 to 15:45 on dry days. `on_map` gives them with `stage` and `look`
+(the child's colours, `Child.colours`), and `sprite_key` draws them as
+`child:figure:<crawler|toddler|child>:<style>:<skin>:<hair>:<top>:<front|back>:<idle|walk>:<frame>`
+(FigureArt.draw_little: on hands and knees, or the toddler / child build; the spouse's hair
+style made small by `figures.styles`). E talks: `Game._talk_child` picks from
+data/dialogue/talk_child.json (pick key `stage`, the name put into each `%s` by
+`Child.named_dialogue`, the name tag showing the name and the hearts); from the toddler on an
+item overhead is a gift (`gifts` in data/child.json), the crawler takes none. The hearts start
+at band 3 and never fall below it, the nightly loss included (`Affection.day_end`).
+
 **Talking, gifts, affection.** E facing a villager (or facing a counter with them behind it)
 turns them to the farmer (`Villagers.turn`) and calls `Game.talk_to(id, face)`:
 - an item overhead (the rucksack's hand slot) is a gift: the reaction comes from the

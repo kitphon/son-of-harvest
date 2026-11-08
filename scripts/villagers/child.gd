@@ -227,6 +227,106 @@ static func _colour_part(c: Dictionary) -> String:
 	return "%s:%s:%s" % [str(c.get("skin", "e0b088")), str(c.get("hair", "3a2a24")), str(c.get("top", "2e4a8c"))]
 
 
+# --- the crawler and the toddler about the house (step 4) ----------------------------
+
+## The stages the little one is a figure of its own, out of the cradle (Villagers shows them
+## like a villager, under the id ID).
+const FIGURE_STAGES: Array[String] = ["crawler", "toddler", "child"]
+
+
+## Is the little one about as a figure now (the stage flag is crawler, toddler or child)?
+static func about(flags: Dictionary) -> bool:
+	return is_born(flags) and str(flags.get(STAGE, "")) in FIGURE_STAGES
+
+
+## The day plans of `stage` (data/child.json days): {speed, rules, default, plans}; a stage
+## with none of its own uses the toddler's.
+static func days_of(stage: String) -> Dictionary:
+	var d: Dictionary = data().get("days", {})
+	var own: Variant = d.get(stage)
+	return own if own is Dictionary and own.has("plans") else d.get("toddler", {})
+
+
+## The plan's name for a day in state `s` (Game.trigger_state): the first rule that holds.
+static func plan_name(s: Dictionary) -> String:
+	var d := days_of(str(s.flags.get(STAGE, "")))
+	return Villagers.pick_plan({"id": ID, "rules": d.get("rules", []), "default": d.get("default", "")}, s)
+
+
+## Today's DayPlan for the little one in state `s` (null while not about).
+static func plan(s: Dictionary) -> DayPlan:
+	if not about(s.flags):
+		return null
+	var d := days_of(str(s.flags.get(STAGE, "")))
+	var r := DayPlan.build(d.get("plans", {}).get(plan_name(s), []), float(d.get("speed", 1.0)))
+	return r[1]
+
+
+## Where the little one is, from where its own plan puts it (`w`, as DayPlan.where gives) and
+## where the spouse is (`spouse`, as Villagers.where gives): while both are on the home map, at
+## the spouse's side (days.by_spouse), turned to them (walking along with them while they
+## walk). `stage` picks the offset (a stage without one uses the toddler's).
+static func by_spouse(w: Dictionary, spouse: Dictionary, stage: String) -> Dictionary:
+	var d: Dictionary = data().get("days", {})
+	var offs: Dictionary = d.get("by_spouse", {})
+	var off: Variant = offs.get(stage, offs.get("toddler"))
+	if not off is Array or w.get("map", "") != str(d.get("home", "house")) or spouse.get("map", "") != w.map:
+		return w
+	var out := w.duplicate()
+	var v := Vector2(float(off[0]), float(off[1]))
+	out.pos = spouse.pos + v
+	out.moving = spouse.get("moving", false)
+	out.walked = spouse.get("walked", 0.0)
+	out.facing = spouse.facing if out.moving else DayPlan.facing_of(-v)
+	return out
+
+
+## The little one's colours (look) for the farmer's flags: the spouse's hair and the skin
+## between, from the farmer's look now (FarmerLooks.current_look).
+static func colours(flags: Dictionary) -> Dictionary:
+	var spouse := Marriage.spouse(flags)
+	return look(Villagers.look(spouse) if spouse != "" else {}, str(FarmerLooks.current_look().get("skin", "f2c79b")))
+
+
+## The FigureArt body (crawler, toddler, child) and the cells per walk frame for `stage`.
+static func figure(stage: String) -> Dictionary:
+	var f: Variant = data().get("figures", {}).get(stage)
+	return f if f is Dictionary else {"build": "toddler", "stride": 0.3}
+
+
+## The hair style the little one wears for the spouse's `style` (figures.styles).
+static func small_style(style: String) -> String:
+	return str(data().get("figures", {}).get("styles", {}).get(style, style))
+
+
+## The sprite key of the little one as Villagers.on_map gives them (with `stage` and `look`):
+## child:figure:<build>:<style>:<skin>:<hair>:<top>:<front|back>:<idle|walk>:<frame>, the walk
+## frame by the ground covered (figures.stride).
+static func figure_key(w: Dictionary) -> String:
+	var f := figure(str(w.get("stage", "toddler")))
+	var c: Dictionary = w.get("look", {})
+	var walking: bool = w.get("moving", false)
+	var frame := int(float(w.get("walked", 0.0)) / maxf(float(f.get("stride", 0.3)), 0.05)) % 4 if walking else 0
+	return "child:figure:%s:%s:%s:%s:%s:%d" % [str(f.get("build", "toddler")), small_style(str(c.get("hair_style", "short"))),
+		_colour_part(c), "back" if FarmerAnim.is_back(w.get("facing", Vector2i.DOWN)) else "front", "walk" if walking else "idle", frame]
+
+
+## Does the little one take gifts at `stage`? From gifts_from on (the crawler only babbles).
+static func takes_gifts(stage: String) -> bool:
+	var ids := stage_ids()
+	return stage in ids and ids.find(stage) >= ids.find(str(data().get("gifts_from", "toddler")))
+
+
+## Dialogue `d` (the little one's talk file) with the name put into every line's `%s`, for
+## Game.dialogue_made: the lines are translated as patterns, the name with them.
+static func named_dialogue(d: Dictionary, name: String) -> Dictionary:
+	var out := d.duplicate(true)
+	for l in out.get("lines", []):
+		if l is Dictionary and l.get("text") is String and "%s" in l.text:
+			l.text = l.text.replace("%s", name)
+	return out
+
+
 static func stage_ids() -> Array[String]:
 	var out: Array[String] = []
 	for s in data().get("stages", []):
@@ -309,6 +409,37 @@ static func check() -> String:
 		if m <= at or m >= 24 * 60:
 			return "cradle times must rise within the day"
 		at = m
+	for st in FIGURE_STAGES:
+		if not str(figure(st).get("build", "")) in FigureArt.LITTLE_BUILDS or float(figure(st).get("stride", 0)) <= 0.0:
+			return "figures.%s needs a build (%s) and a stride above 0" % [st, FigureArt.LITTLE_BUILDS]
+	var days: Dictionary = d.get("days", {})
+	if not MapManager.has(str(days.get("home", ""))):
+		return "days.home is not a map"
+	for st in ["crawler", "toddler"]:
+		var p: Variant = days.get(st)
+		if not p is Dictionary or not p.get("plans") is Dictionary or not p.plans.has(p.get("default")):
+			return "days.%s needs plans and a default plan" % st
+		for name in p.plans:
+			var r := DayPlan.build(p.plans[name], float(p.get("speed", 0)))
+			if r[0] != "":
+				return "days.%s plan %s: %s" % [st, name, r[0]]
+		for rule in p.get("rules", []):
+			if not rule is Dictionary or not rule.get("if") is Dictionary or not p.plans.has(rule.get("plan")):
+				return "days.%s: a rule needs if {...} and a plan" % st
+			var err := Villagers.check_conditions(rule.if)
+			if err != "":
+				return "days.%s: %s" % [st, err]
+		var off: Variant = days.get("by_spouse", {}).get(st)
+		if not off is Array or off.size() != 2:
+			return "days.by_spouse.%s needs [x, y]" % st
+	if not str(d.get("gifts_from", "")) in stage_ids():
+		return "gifts_from is a stage"
+	var gifts: Variant = d.get("gifts")
+	if not gifts is Dictionary:
+		return "gifts is {reaction: [items]}"
+	for r in gifts:
+		if r != "_about" and (not r in Villagers.REACTIONS or r == "neutral" or not EventTriggers._names_ok(gifts[r], [])):
+			return "gifts %s needs a list of items" % r
 	var seen := {}
 	for who in d.get("names", {}):
 		if not Marriage.is_candidate(who):

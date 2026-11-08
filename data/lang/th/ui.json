@@ -594,6 +594,7 @@
 		"%s is napping, one hand curled by one cheek.": "%sงีบหลับอยู่ มือข้างหนึ่งกำไว้ข้างแก้ม",
 		"%s is awake and kicking at the quilt.": "%sตื่นแล้ว ถีบผ้าห่มดุ๊กดิ๊ก",
 		"%s watches the lantern light and yawns.": "%sมองแสงโคมแล้วหาวหวอด",
-		"%s has drifted off to sleep.": "%sเคลิ้มหลับไปแล้ว"
+		"%s has drifted off to sleep.": "%sเคลิ้มหลับไปแล้ว",
+		"%s is too little for presents yet.": "%sยังเล็กเกินกว่าจะรับของขวัญ"
 	}
 }
