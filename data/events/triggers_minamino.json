@@ -1,11 +1,12 @@
 {
-	"_note": "Events in Minamino (data/maps/minamino.json): Shige's and Nana's heart events (bands 3 and 5) when the farmer talks to them in the gardens or on the track; Kiku teaches her mugwort mochi once she knows the farmer. Format: README.md, Events.",
+	"_note": "Events in Minamino (data/maps/minamino.json): Shige's and Nana's heart events (bands 3, 5 and 6) when the farmer talks to them in the gardens or on the track; Kiku teaches her mugwort mochi once she knows the farmer. Format: README.md, Events.",
 	"rows": [
 		{"event": "heart_shige", "on": "talk", "who": "shige", "hearts": {"shige": [3, 6]}},
 		{"event": "heart_shige_5", "on": "talk", "who": "shige", "hearts": {"shige": [5, 6]}, "seen": ["heart_shige"]},
 		{"event": "heart_shige_6", "on": "talk", "who": "shige", "hearts": {"shige": [6, 6]}, "seen": ["heart_shige_5"]},
 		{"event": "heart_nana", "on": "talk", "who": "nana", "hearts": {"nana": [3, 6]}},
 		{"event": "heart_nana_5", "on": "talk", "who": "nana", "hearts": {"nana": [5, 6]}, "seen": ["heart_nana"]},
+		{"event": "heart_nana_6", "on": "talk", "who": "nana", "hearts": {"nana": [6, 6]}, "seen": ["heart_nana_5"]},
 		{"event": "recipe_kiku", "on": "talk", "who": "kiku", "hearts": {"kiku": [1, 6]}, "not_flags": ["recipe_kusa_mochi"]},
 		{"event": "heart_kaede", "on": "talk", "who": "kaede", "hearts": {"kaede": [3, 6]}},
 		{"event": "heart_kaede_5", "on": "talk", "who": "kaede", "hearts": {"kaede": [5, 6]}, "seen": ["heart_kaede"]},

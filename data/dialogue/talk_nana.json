@@ -1,5 +1,5 @@
 {
-	"_note": "What Nana, Shige's daughter in Minamino, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items her own answers to a keepsake and to dishes. The birthday lines (fall 19), the close lines from band 4 and the star lines once her band 5 scene is seen (heart_nana_5); by the village pond she has her own lines (map condition). Our own lines.",
+	"_note": "What Nana, Shige's daughter in Minamino, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items her own answers to a keepsake and to dishes. The birthday lines (fall 19), the close lines from band 4 and the star lines once her band 5 scene is seen (heart_nana_5) and the dear lines at band 6 once her band 6 scene is (heart_nana_6); by the village pond she has her own lines (map condition). Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
@@ -10,6 +10,7 @@
 		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"map": ["town"]}, "at": ["pond_1", "pond_2"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
+		{"if": {"band": [6, 6], "flags": ["heart_nana_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"band": [5, 6], "flags": ["heart_nana_5"]}, "at": ["stars_1", "stars_2"]},
 		{"if": {"weekday": ["sun"], "band": [2, 5], "season": ["spring"]}, "at": ["forage_spring"]},
 		{"if": {"weekday": ["sun"], "band": [2, 5], "season": ["summer"]}, "at": ["forage_summer"]},
@@ -54,6 +55,9 @@
 		{"id": "close_2", "speaker": "nana", "mood": "neutral", "text": "I told Dad you're my friend. He said, 'Which one?' I said, 'The farmer one!' He said that's fair.", "next": "end"},
 		{"id": "stars_1", "speaker": "nana", "mood": "happy", "text": "I looked at Mama's star again last night. It blinked at me. I blinked back. We're good at it.", "next": "end"},
 		{"id": "stars_2", "speaker": "nana", "mood": "neutral", "text": "Dad stood in the yard last night with his hat off, looking up. I didn't say anything. I'm learning when not to.", "next": "end"},
+		{"id": "dear_1", "speaker": "nana", "mood": "happy", "text": "Captain sings every night now. Dad hums along when he thinks I'm asleep. Don't tell him I know.", "next": "end"},
+		{"id": "dear_2", "speaker": "nana", "mood": "neutral", "text": "I put your star on the map. It's a tiny one, but I pressed the pencil hard so it would last.", "next": "end"},
+		{"id": "dear_3", "speaker": "nana", "mood": "happy", "text": "I wave at the sky every evening now. Dad asked who for. I said, 'The stars.' It's only half the answer, but it's a true half.", "next": "end"},
 		{"id": "gift_love", "speaker": "nana", "mood": "happy", "text": "For ME? Wow! This is the best thing anybody ever gave me. Ever!", "next": "end"},
 		{"id": "gift_like", "speaker": "nana", "mood": "happy", "text": "Ooh, thank you! I'm gonna show Kota.", "next": "end"},
 		{"id": "gift_neutral", "speaker": "nana", "mood": "neutral", "text": "Um. Thanks. What is it?", "next": "end"},

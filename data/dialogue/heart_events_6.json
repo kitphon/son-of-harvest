@@ -1,5 +1,5 @@
 {
-	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow; Fumi's looks back on fumi_honest from her band 3 scene, Ichiro's on ichiro_kiln from his band 5 one, Genzo's on genzo_jizo from his, Haru's on haru_go from her band 5 answer, Shige's on shige_share from his). Our own scenes.",
+	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow; Fumi's looks back on fumi_honest from her band 3 scene, Ichiro's on ichiro_kiln from his band 5 one, Genzo's on genzo_jizo from his, Haru's on haru_go from her band 5 answer, Shige's on shige_share from his, Nana's on nana_beside from her band 5 answer). Our own scenes.",
 	"lines": [
 		{"id": "tome", "speaker": "tome", "mood": "neutral", "text": "My son wrote back. He wants me to come and live in the city with him. An apartment with an elevator, he says."},
 		{"speaker": "tome", "mood": "sad", "text": "He means well. He frets about the shrine stairs, and the winters, and me alone in that house."},
@@ -95,6 +95,17 @@
 		{"id": "shige_pot", "speaker": "shige", "mood": "happy", "text": "The pot. Sweet, far too sweet, three bowls each. She would have laughed to see me go back for a fourth.", "next": "shige_end"},
 		{"id": "shige_tin", "speaker": "shige", "mood": "surprised", "text": "The tin first... Yes. Seed first, supper after. That is how she did it, and that tin should never sit empty again.", "next": "shige_end"},
 		{"id": "shige_end", "speaker": "shige", "mood": "happy", "text": "Supper is at six. Nana will make the pot either way. Come hungry, and don't tell her I asked.", "next": "end"},
+
+		{"id": "nana", "speaker": "nana", "mood": "happy", "text": "Captain's a frog now! He sang all night in the ditch. Dad says it's the loudest thing he ever heard, and he has heard Kota."},
+		{"speaker": "nana", "mood": "neutral", "text": "I drew my sky map again, bigger, on an old bedsheet. Dad held the corner while I pinned it to the barn wall. Then he looked at it for ages and didn't say anything."},
+		{"if": "nana_beside", "then": "nana_both"},
+		{"speaker": "nana", "mood": "neutral", "text": "He found the big steady star and said, 'Too bright.' Then he stood there till the hens complained. That's how I know he likes it.", "next": "nana_ask"},
+		{"id": "nana_both", "speaker": "nana", "mood": "happy", "text": "He found the two stars blinking beside each other and said, 'Well. They blink at each other.' Then he went to feed the hens. Nobody feeds hens that slowly unless they're thinking."},
+		{"id": "nana_ask", "speaker": "nana", "mood": "happy", "text": "There's one space left on the map. A star for you! But I can't decide where it goes. Close to Dad's, or far out by itself over your field?",
+			"choices": [{"text": "Close to your dad's.", "next": "nana_near", "set": {"nana_star": "near"}}, {"text": "Out over my field.", "next": "nana_field", "set": {"nana_star": "field"}}]},
+		{"id": "nana_near", "speaker": "nana", "mood": "happy", "text": "Next to Dad's. Then he'll have somebody to say 'too bright' to. Yes. I'm drawing it with my best pencil.", "next": "nana_end"},
+		{"id": "nana_field", "speaker": "nana", "mood": "surprised", "text": "Over your field, so you can look up from your rows and find it. ...That's a good one. I'll make it a little bit twinkly.", "next": "nana_end"},
+		{"id": "nana_end", "speaker": "nana", "mood": "happy", "text": "Dad says I can stay up till all the stars are out, if I wear my scarf. Wave at the sky tonight when you're out in your field? I'll know which wave is yours.", "next": "end"},
 
 		{"id": "mio", "speaker": "mio", "mood": "happy", "text": "There you are. I've been waiting on the shore since the mist came up."},
 		{"speaker": "mio", "mood": "neutral", "text": "I wanted to tell you before anyone else hears it from Kota."},

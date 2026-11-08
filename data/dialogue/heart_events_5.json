@@ -106,7 +106,7 @@
 		{"id": "nana", "speaker": "nana", "mood": "neutral", "text": "Can I show you something? Don't tell Kota. It's a map of the sky. I drew it on the back of a seed sack."},
 		{"speaker": "nana", "mood": "sad", "text": "Granny Kiku says Mama is up with the stars. I don't remember her. So I picked one for her: the small one that blinks. She sounds like somebody who blinks a lot."},
 		{"speaker": "nana", "mood": "neutral", "text": "Dad hasn't got a star yet. He just looks at the ground. Which one should be his?",
-			"choices": [{"text": "The big one that never moves.", "next": "nana_steady"}, {"text": "The one right beside hers.", "next": "nana_beside"}]},
+			"choices": [{"text": "The big one that never moves.", "next": "nana_steady", "set": {"nana_steady": true}}, {"text": "The one right beside hers.", "next": "nana_beside", "set": {"nana_beside": true}}]},
 		{"id": "nana_steady", "speaker": "nana", "mood": "happy", "text": "Big and steady and right where you left it. That's Dad all over! He'll say it's too bright. He'll like it.", "next": "nana_end"},
 		{"id": "nana_beside", "speaker": "nana", "mood": "surprised", "text": "Right beside Mama's? ...Yes. So they can blink at each other. I'm drawing it now.", "next": "nana_end"},
 		{"id": "nana_end", "speaker": "nana", "mood": "happy", "text": "Here, two cucumbers from my own row. For a friend who looks at maps. Don't tell Kota I like you.", "next": "end"}
