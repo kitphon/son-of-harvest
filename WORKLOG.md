@@ -10,6 +10,54 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — The farmer's look chosen on a new game
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: ROADMAP "The farmer's look chosen on a new game". New game on the title screen now opens
+  a look step (paper box in UiStyle): "Your farmer", rows Hair / Hair color / Skin / Clothes /
+  Begin, "<" value ">" per row, and a wood-framed preview of the figure at 3x walking and
+  turning to its four sides (front, back, both mirrored; 0.18 s a step, 2.4 s a side). Up /
+  down pick a row, left / right turn it (wrapping), Enter on a part goes to the next row and on
+  Begin starts, Esc / pause goes back to the menu with nothing started; keys, pad (the title's
+  input now takes joypad events too, the menu's as well) and mouse. Begin: Game.new_game(), then
+  the chosen look. Looks only: no rule reads it, no gendered word or build (every look is the
+  adult body plan).
+  Data: data/farmer_looks.json, four lists (style 6, hair 5, skin 5, clothes 5); the first of
+  each is the old look (FigureArt.FARMER_LOOK), so the default draws as before. A clothes set
+  holds the noragi, collar band, monpe, head cloth and jika-tabi colours together; the straw hat
+  style brings its own straw colour (the accent). Colours chosen by eye against the field.
+  Code: FarmerLooks (scripts/art: data, normalize, parse, stepped, figure_look, the debug flag,
+  `current` + signature), LookMenu (scripts/ui, a MenuList), the title screen's look step.
+  Game.farmer_look (setter keeps FarmerLooks.current in step) is reset by new_game, saved as
+  `look` {style, hair, skin, clothes}; a save without it loads the default, a broken one ("Saved
+  look is broken") is refused, an id the data no longer has falls back part by part (looks
+  only, so the save still loads). PlaceholderArt draws "player:..." from FarmerLooks.current
+  and caches it under `key@<signature>` for any look but the default (keys and cache of the
+  default unchanged); tex() and image() both. Both views and the mochi screen get it through
+  those keys. Thai for the step's words and every choice's name (data/lang/th/ui.json; "Begin",
+  not "Start", which the table keeps as the pad button's name). Flags: `--look=style:2,hair:1,
+  skin:3,clothes:4` (places or ids), `--new-game` (the look step at once); AGENTS.md, README → Run.
+- Checked: test_title (new `_looks` and `_look_screen`): the data (4+ choices, unique ids,
+  names, valid colours, styles FigureArt knows), the default's look equals FARMER_LOOK, md5 of
+  four default frames equal the hashes taken before the change, every pose / frame / side of the
+  default equal to FARMER_LOOK's, every choice of every part a different picture, the cache
+  apart per look and back to the same texture on the default, normalize / parse / from_flag /
+  stepped, LookMenu turning and wrapping; the screen: New game opens the step and hides the menu,
+  the preview equals FigureArt's picture and follows a change, InputEventAction ui_right /
+  ui_down / ui_left / ui_accept / ui_cancel, Esc changes nothing, Begin gives the new game the
+  chosen look, a fresh run and the clock going, and the farmer's picture in that look; the game
+  keeps, saves and resets the look. test_save: round trip, four broken looks refused, an old save
+  without a look loads the default (the farmer's picture the old one), a gone id falls back.
+  test_lang: the look step fits the pseudo language with every choice shown. Mutation: cache_key
+  returning the bare key gave `FAIL: a look's pictures carry its signature, other art doesn't`,
+  `FAIL: another look: its own picture`, `FAIL: the field's farmer is drawn in the chosen look`,
+  `test_title: FAILED (3 failed)`; restored. Screenshots: the look step (English, Thai) and a
+  `--demo --look=...` frame in the 3D and the flat view, read and deleted.
+- Note: in test_lang the look step is checked before the pause screen: built after the pause
+  screen had been opened and freed, the title screen left 136 objects and 39 textures leaked
+  at exit (test still OK); not looked into further.
+- Left / next: the farmer's text box portrait (data/dialogue speakers "farmer" face) does not
+  follow the look yet.
+
 ## 2026-11-08 — The figures' night lift keeps to their own pixels
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: the open problem of "The field's night lift keeps to its own pixels" for the figures.

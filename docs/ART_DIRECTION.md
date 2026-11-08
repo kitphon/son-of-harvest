@@ -394,6 +394,13 @@ Light and Farmhouse model hold the technical detail of what is built.
       picture now (`Player`: a Sprite2D "Figure", feet 2 px below the spot like the villagers', FarmerAnim
       picking pose and frame: walk, run, tired, hold, fish, eat, drink); the carried item, the rod line,
       the lantern and the "!" are placed from the picture's rows. Test: test_view2d `_figure`.)
+      The farmer's look is chosen on a new game (2026-11-08): hair style (tenugui, short, topknot,
+      long and tied, hachimaki, straw hat), hair color, skin tone and clothes (noragi, collar band,
+      monpe, head cloth and jika-tabi colours as one set), from data/farmer_looks.json through
+      `FarmerLooks.figure_look`; the first choice of each part is `FigureArt.FARMER_LOOK`, so the
+      default is pixel for pixel the old farmer. The body plan stays the adult one for every look
+      (no gendered builds). PlaceholderArt keys stay `player:...`; the cache adds the look's
+      signature for any look but the default (`FarmerLooks.cache_key`). Test: test_title `_looks`.
 - [x] Animals in the same style. (36d42c6: `scripts/art/animal_art.gd` (AnimalArt) draws hens, chicks, Japanese Black cows and calves, cream-wool sheep, shorn sheep, lambs and the shiba-like dog at twice the farmer's pixel density (`AnimalArt.SCALE`; the layer sets `pixel_size = PX / SCALE`, so world sizes stay), in three tones lit from the upper left, with a warm dark rim. Keys `animal:<kind>:<pose>:<frame>[:<dl|dr|ul|ur>]`: four facings for the diagonal camera (front, back; right = left mirrored), the whole figure tilted a little so the near end stands lower; `AnimalArt.facing_of` turns a step into a facing. States kept: idle (head lift, ear flick), peck / graze, walk (diagonal leg pairs), sick (lying, dull, eyes shut), the dog sitting, wool or shorn, young. Only the dog held in the arms keeps its small old picture. Flat view: `AnimalView._draw_animal` draws them at half size. Test: test_animals `_animal_art`.)
 - [x] Keep the blob shadows, or switch to real sprite shadows (test how billboards cast). (f261048: real shadows won; `SpriteShadow`, data/light.json "sprite_shadows", see the Done table)
 

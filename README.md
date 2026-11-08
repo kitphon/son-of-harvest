@@ -17,6 +17,15 @@ not in git) and press F5. From a shell:
 The game opens on the title screen (`scenes/title.tscn`): New game, Continue (greyed out when
 `user://save1.json` is missing or can't be loaded) or Quit, with the arrows / W S and
 Enter / Space or the mouse. The field itself is `scenes/main.tscn`.
+New game first asks for the farmer's look: hair, hair color, skin and clothes, each a few
+choices from `data/farmer_looks.json` (FarmerLooks), with the figure walking and turning in a
+preview beside the rows. Up / down pick a row, left / right change it (keys, pad or the arrows
+under the mouse), Begin starts, Esc goes back. Looks only: no rule reads it, and no choice has a
+gender. The look is saved with the game (a save without one has the farmer's first look, the
+first choice of each list). Every "player:..." picture is drawn from it in both views, cached per
+look (`FarmerLooks.cache_key`). `-- --new-game` opens the look step at once; `--look=style:2,hair:1,skin:3,clothes:4`
+(places in each list, 0 = the first, or ids such as `clothes:moss`) puts the farmer in that look,
+with `--demo` too.
 The flat top-down view is still there as `scenes/main_2d.tscn` (F6 on that scene). It plays
 the same game: both views hook their Player to `FarmActions.connect_view`.
 Add `-- --demo` to skip the title and start at 10:00 with a few planted plots (for screenshots), and

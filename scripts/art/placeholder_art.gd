@@ -7,27 +7,31 @@ static var _cache := {}
 static var _images := {}   # key -> its picture as an RGBA8 Image (image(); for laying tiles)
 
 
+## The farmer's pictures ("player:...") follow the chosen look, so they are kept per look
+## (FarmerLooks.cache_key); every other key is kept as it is.
 static func tex(key: String) -> Texture2D:
-	if not _cache.has(key):
-		_cache[key] = ImageTexture.create_from_image(_make(key))
-	return _cache[key]
+	var ck := FarmerLooks.cache_key(key)
+	if not _cache.has(ck):
+		_cache[ck] = ImageTexture.create_from_image(_make(key))
+	return _cache[ck]
 
 
 ## The picture of `key` as an RGBA8 Image, kept (the 3D grounds lay thousands of tiles; reading
 ## each back from its texture was most of a map's ground). Shared: copy before changing it.
 static func image(key: String) -> Image:
-	if not _images.has(key):
+	var ck := FarmerLooks.cache_key(key)
+	if not _images.has(ck):
 		var img := _make(key)
 		img.convert(Image.FORMAT_RGBA8)
-		_images[key] = img
-	return _images[key]
+		_images[ck] = img
+	return _images[ck]
 
 
 static func _make(key: String) -> Image:
 	var parts := key.split(":")
 	match parts[0]:
-		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk|fish_wait|fish_bite|eat|drink>:<frame>, 24 x 32 (FigureArt)
-			return FigureArt.draw(FigureArt.FARMER_LOOK, parts[1] == "back", parts[2], int(parts[3]), true)
+		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk|fish_wait|fish_bite|eat|drink>:<frame>, 24 x 32 (FigureArt), in the chosen look (FarmerLooks.current)
+			return FigureArt.draw(FarmerLooks.current_look(), parts[1] == "back", parts[2], int(parts[3]), true)
 		"villager": # villager:<id>:<front|back>:<idle|walk|work|fish>:<frame>, 24 x 32, from the look in data/villagers/<id>.json
 			return FigureArt.draw(Villagers.look(parts[1]), parts[2] == "back", parts[3], int(parts[4]))
 		"roof":   # roof:<kawara|thatch|kaya>:<gable|hip>:<storeys>:<w>:<h>, a roof seen from above (RoofArt)
