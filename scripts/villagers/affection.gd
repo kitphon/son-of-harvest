@@ -19,13 +19,13 @@ static func max_points() -> int:
 
 
 func of(id: String) -> int:
-	return int(points.get(id, rules().get("start", 0)))
+	return int(points.get(id, Child.start_points() if id == Child.ID else rules().get("start", 0)))
 
 
 ## Changes villager `id`'s affection by `n` (kept in 0 .. max); returns the new value. The
 ## hook for events (EventRunner "affection") and anything else that pleases or hurts them.
 func add(id: String, n: int) -> int:
-	points[id] = clampi(of(id) + n, 0, max_points())
+	points[id] = clampi(of(id) + n, Child.min_points(id), max_points())   # the child never falls below band 3
 	return points[id]
 
 

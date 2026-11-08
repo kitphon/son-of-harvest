@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — The child, step 1: data/child.json and Child (pure rules)
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: `data/child.json` (30 days to the news, band 6, 30 days to the birth, stages baby 0 /
+  crawler 30 / toddler 60 / child 120, hearts start and floor at band 3, the look's skin mix
+  and the indigo happi colours, three gender-neutral names for each of the eight spouses, all
+  24 different; ours) and `scripts/villagers/child.gd` (`Child`, pure rules): `news_due`,
+  `birth_due`, `tell_news`, `give_birth`, `age`, `stage` / `stage_at`, `look(spouse_look,
+  farmer_skin)` (spouse's hair, skin halfway), `names(spouse)`, `start_points`, `min_points`,
+  `check`. The save is the marriage flags `child_news`, `child_born`, `child_name` (day numbers
+  and the name) and the child's hearts in Affection under id `child`: `Affection.of` starts it
+  at band 3 and `Affection.add` keeps it from falling below. No events, art or UI (steps 2-5).
+  New `tests/test_child.gd`, listed in AGENTS.md.
+- Checked: test_child, test_relationships, test_save, test_events, test_lang, test_villagers,
+  test_talk all `OK (0 failed)`; smoke runs (title and `-- --demo`) print no errors.
+- Left / next: step 2, the news and birth events with the name chosen from the three.
+
 ## 2026-11-08 — The child's rules (design only)
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: docs/DESIGN.md → ความรักและแต่งงาน → ลูก, in Thai. The RE project has not studied

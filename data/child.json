@@ -1,0 +1,24 @@
+{
+	"_about": "The child (Child, scripts/villagers/child.gd; docs/DESIGN.md, ความรักและแต่งงาน -> ลูก). One child per marriage, no gender in the rules. news_after_days: the news comes this many days after the wedding day (flag wedding_day), on the first morning from then that is not a festival day and the spouse's heart band is at least news_band. birth_after_days: the birth comes this many days after the news, on the first morning from then that is not a festival day. stages: by days since the birth, from (a stage runs until the next one starts; the last never ends). hearts: the child's affection under the id child; start_band and min_band are heart bands of Affection.rules().bands, so the child starts at band 3 and never falls below it. look: the child has the spouse's hair style and colour; skin is the middle of the farmer's and the spouse's skin (skin_mix 0.5); clothes are the small indigo happi every child wears. names: three for each spouse, all gender-neutral, made up for this game; the player picks one at the birth. Balance numbers are ours.",
+	"news_after_days": 30,
+	"news_band": 6,
+	"birth_after_days": 30,
+	"stages": [
+		{"id": "baby", "from": 0},
+		{"id": "crawler", "from": 30},
+		{"id": "toddler", "from": 60},
+		{"id": "child", "from": 120}
+	],
+	"hearts": {"start_band": 3, "min_band": 3},
+	"look": {"skin_mix": 0.5, "clothes": {"top": "2e4a8c", "waist": "e8e2d0", "accent": "e8e2d0"}},
+	"names": {
+		"sayo": ["Hinata", "Sora", "Aoi"],
+		"fumi": ["Nagisa", "Makoto", "Akira"],
+		"haru": ["Kaoru", "Hikaru", "Yuki"],
+		"ichiro": ["Minato", "Asahi", "Tsubasa"],
+		"mio": ["Mizuki", "Izumi", "Kai"],
+		"kaede": ["Rin", "Michi", "Tomo"],
+		"shino": ["Natsu", "Shun", "Chihiro"],
+		"ren": ["Riku", "Hotaru", "Kou"]
+	}
+}

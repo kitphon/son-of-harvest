@@ -23,7 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
-[ ] The child, step 1: data/child.json and Child (pure rules): the news 30 days after the wedding while the spouse's hearts stay at band 6 and not on a festival day, the birth 30 days after the news, the stage by days since the birth (baby 0-29, crawler 30-59, toddler 60-119, child from 120), the look from the parents (the spouse's hair, the skin between the two), each spouse's three names, the save (child_news, child_born, child_name flags, the child's hearts under id "child"); tests. (docs/DESIGN.md → ลูก)
+[x] The child, step 1 (2026-11-08): data/child.json and Child (pure rules): the news 30 days after the wedding while the spouse's hearts stay at band 6 and not on a festival day, the birth 30 days after the news, the stage by days since the birth (baby 0-29, crawler 30-59, toddler 60-119, child from 120), the look from the parents (the spouse's hair, the skin between the two), each spouse's three names, the save (child_news, child_born, child_name flags, the child's hearts under id "child"); tests. (docs/DESIGN.md → ลูก)
 [ ] The child, step 2: the news event and the birth event with the name chosen from the spouse's three, for all eight spouses, English and Thai.
 [ ] The child, step 3: the baby in a bamboo cradle in the second room (3D and flat view), the cradle examined by the clock, the baby held (the hold pose, not out of the house) and put back.
 [ ] The child, step 4: crawler and toddler figures (FigureArt builds), day plans at home near the spouse and out by the dog in the yard, talk and gifts, the child's hearts (from band 3, never below it).
