@@ -1,5 +1,5 @@
 {
-	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow; Fumi's looks back on fumi_honest from her band 3 scene, Ichiro's on ichiro_kiln from his band 5 one, Genzo's on genzo_jizo from his, Haru's on haru_go from her band 5 answer). Our own scenes.",
+	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow; Fumi's looks back on fumi_honest from her band 3 scene, Ichiro's on ichiro_kiln from his band 5 one, Genzo's on genzo_jizo from his, Haru's on haru_go from her band 5 answer, Shige's on shige_share from his). Our own scenes.",
 	"lines": [
 		{"id": "tome", "speaker": "tome", "mood": "neutral", "text": "My son wrote back. He wants me to come and live in the city with him. An apartment with an elevator, he says."},
 		{"speaker": "tome", "mood": "sad", "text": "He means well. He frets about the shrine stairs, and the winters, and me alone in that house."},
@@ -84,6 +84,17 @@
 		{"id": "haru_place", "speaker": "haru", "mood": "happy", "text": "Kaminoda, in small black ink, with the bamboo hill under it. Then they'll have to come up the lane to see where the straw grew.", "next": "haru_end"},
 		{"id": "haru_name", "speaker": "haru", "mood": "surprised", "text": "My name, on a tag, in a city shop... I'll have to braid very straight, then. Everybody will check.", "next": "haru_end"},
 		{"id": "haru_end", "speaker": "haru", "mood": "happy", "text": "One more thing. I wave from the lookout every afternoon, and you never wave back. Tomorrow, wave. Then I'll know it isn't only the wind.", "next": "end"},
+
+		{"id": "shige", "speaker": "shige", "mood": "happy", "text": "Come and look before the light goes. It came up. All of it."},
+		{"speaker": "shige", "mood": "neutral", "text": "The vine by the fence ran the whole length of the rail this summer. Four pumpkins. Nana cried over the first one, and I studied the sky very hard."},
+		{"if": "shige_share", "then": "shige_both"},
+		{"speaker": "shige", "mood": "happy", "text": "She would have looked for them at the fence, and there they were. Eight years in a tin, and the soil still remembered the seed.", "next": "shige_crow"},
+		{"id": "shige_both", "speaker": "shige", "mood": "happy", "text": "Yours came up too, didn't it? Half and half, and both patches took. I told Nana that is how a grower sleeps at night."},
+		{"id": "shige_crow", "speaker": "shige", "mood": "neutral", "text": "Even the crows keep off. Nana swears it's her scarecrow. I let her swear. Now, a grower's question. The first pumpkin: the pot, or the tin?",
+			"choices": [{"text": "The pot. Eat it her way.", "next": "shige_pot", "set": {"shige_pumpkin": "pot"}}, {"text": "The tin. Save the seed first.", "next": "shige_tin", "set": {"shige_pumpkin": "tin"}}]},
+		{"id": "shige_pot", "speaker": "shige", "mood": "happy", "text": "The pot. Sweet, far too sweet, three bowls each. She would have laughed to see me go back for a fourth.", "next": "shige_end"},
+		{"id": "shige_tin", "speaker": "shige", "mood": "surprised", "text": "The tin first... Yes. Seed first, supper after. That is how she did it, and that tin should never sit empty again.", "next": "shige_end"},
+		{"id": "shige_end", "speaker": "shige", "mood": "happy", "text": "Supper is at six. Nana will make the pot either way. Come hungry, and don't tell her I asked.", "next": "end"},
 
 		{"id": "mio", "speaker": "mio", "mood": "happy", "text": "There you are. I've been waiting on the shore since the mist came up."},
 		{"speaker": "mio", "mood": "neutral", "text": "I wanted to tell you before anyone else hears it from Kota."},

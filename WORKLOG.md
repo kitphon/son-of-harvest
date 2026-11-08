@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Shige's band 6 scene and his dear lines
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: `heart_shige_6` (data/events, lines in heart_events_6.json): the pumpkin vines grown from
+  his late wife's tin came up by the fence, four pumpkins, and Nana cried over the first one as
+  he predicted. A line of its own for the band 5 answer (band 5's choices now set `shige_fence`
+  / `shige_share`; the share answer says both patches took), a word on the crows and the
+  scarecrow, and the farmer picks what the first pumpkin is for, the pot or the tin
+  (`shige_pumpkin` = pot / tin). Sets `heart_shige_6` and `shige_vine`. Rows in
+  triggers_minamino, triggers_shige_house and triggers_town; music rule; three `dear_` talk
+  lines at band 6 after the scene (the tin full again, Nana's pumpkin lantern, the dusk walk to
+  the fence); Thai for every new line. test_relationships: Shige joins the band 5 / 6 loops
+  (rows, playing, flags, looks back on the band 5 answer, dear lines) and checks both answers'
+  lines. README → Villagers and ROADMAP updated; every villager with hearts has all three
+  scenes now.
+- Checked: `--import`, then all 31 tests/test_*.gd each print `OK (0 failed)`; smoke runs (title, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`) print no error or warning; a `--event=heart_shige_6`
+  frame showed the text box with Shige's first line (he was not in view on that map).
+- Left / next: hearts for Nana or Kiku; `shige_vine`, `shige_pumpkin` (and the earlier
+  `shige_fence` / `shige_share`) are only flags so far, nothing in the world reads them.
+
 ## 2026-11-08 — Sayo's child name "Hinata" renamed "Hikari"
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: one of Sayo's three child names, "Hinata", was also the clinic's name (Hinata Clinic).

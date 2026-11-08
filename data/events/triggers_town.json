@@ -38,6 +38,7 @@
 		{"event": "heart_mio_6", "on": "talk", "who": "mio", "hearts": {"mio": [6, 6]}, "seen": ["heart_mio_5"]},
 		{"event": "heart_shige", "on": "talk", "who": "shige", "hearts": {"shige": [3, 6]}},
 		{"event": "heart_shige_5", "on": "talk", "who": "shige", "hearts": {"shige": [5, 6]}, "seen": ["heart_shige"]},
+		{"event": "heart_shige_6", "on": "talk", "who": "shige", "hearts": {"shige": [6, 6]}, "seen": ["heart_shige_5"]},
 		{"event": "shrine_offering", "on": "examine", "spot": [18, 1, 2, 2], "once": false},
 		{"event": "lantern_snow", "on": "examine", "spot": [16, 3], "once": false, "weather": ["snow"]},
 		{"event": "lantern_snow", "on": "examine", "spot": [21, 3], "once": false, "weather": ["snow"]},

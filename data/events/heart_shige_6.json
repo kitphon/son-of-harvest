@@ -1,0 +1,14 @@
+{
+	"_note": "Shige's third heart event: the first talk once his heart band reaches 6, after heart_shige_5 (same tables). The pumpkin vines from his late wife's tin came up and fruited by the fence; Nana cried over the first one, as he predicted. A line of its own for the band 5 answer (shige_share: both patches took; otherwise the fence alone). The farmer picks what comes first, the pot or the tin (shige_pumpkin = pot or tin). Sets heart_shige_6 and shige_vine. Shige acts in it from where the talk found him (an actor step at plan; played where his plan has him elsewhere, he walks up to the farmer), faces the farmer through the lines and goes back to his day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "shige", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "shige"},
+		{"do": "sound", "key": "step_grass"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_6", "at": "shige"},
+		{"do": "affection", "who": "shige", "amount": 5},
+		{"do": "set", "flags": {"heart_shige_6": true, "shige_vine": true}},
+		{"do": "actor", "who": "shige", "to": "plan"},
+		{"do": "actor", "who": "shige", "leave": true}
+	]
+}

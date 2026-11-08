@@ -1,5 +1,5 @@
 {
-	"_note": "What Shige, the vegetable grower of Minamino, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items his own answers to a keepsake and to dishes. The birthday lines (winter 18), the close lines from band 4 and the pumpkin lines once his band 5 scene is seen (heart_shige_5). Our own lines.",
+	"_note": "What Shige, the vegetable grower of Minamino, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items his own answers to a keepsake and to dishes. The birthday lines (winter 18), the close lines from band 4 and the pumpkin lines once his band 5 scene is seen (heart_shige_5) and the dear lines at band 6 once his band 6 scene is (heart_shige_6). Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
@@ -9,6 +9,7 @@
 		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
 		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
+		{"if": {"band": [6, 6], "flags": ["heart_shige_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"band": [5, 6], "flags": ["heart_shige_5"]}, "at": ["pumpkin_1", "pumpkin_2"]},
 		{"if": {"weekday": ["tue"], "band": [2, 5], "season": ["spring"]}, "at": ["forage_spring"]},
 		{"if": {"weekday": ["tue"], "band": [2, 5], "season": ["summer"]}, "at": ["forage_summer"]},
@@ -56,6 +57,9 @@
 		{"id": "close_2", "speaker": "shige", "mood": "neutral", "text": "Nana asks after you at supper. So do I, if I'm honest. How's your soil holding up?", "next": "end"},
 		{"id": "pumpkin_1", "speaker": "shige", "mood": "happy", "text": "I've cleared a spot by the fence for her old seed. Nana checks it every morning, as if it might sprout overnight.", "next": "end"},
 		{"id": "pumpkin_2", "speaker": "shige", "mood": "neutral", "text": "I'll simmer the first pumpkin her way, sweet. Far too sweet for me. I'll eat the whole pot anyway.", "next": "end"},
+		{"id": "dear_1", "speaker": "shige", "mood": "happy", "text": "The tin is full again. First time in nine years. I keep lifting the lid just to hear the seeds rattle.", "next": "end"},
+		{"id": "dear_2", "speaker": "shige", "mood": "neutral", "text": "Nana wants a pumpkin lantern next fall. I said faces are for scarecrows. She said that's exactly the point.", "next": "end"},
+		{"id": "dear_3", "speaker": "shige", "mood": "happy", "text": "I walk out to the fence every dusk now. Not for the vines. Just to stand where she stood. It's an easier standing than it used to be.", "next": "end"},
 		{"id": "gift_love", "speaker": "shige", "mood": "happy", "text": "Now that's a fine one! I can't grow these as well as you. Teach me sometime.", "next": "end"},
 		{"id": "gift_like", "speaker": "shige", "mood": "happy", "text": "Thanks! This'll go in tonight's pot.", "next": "end"},
 		{"id": "gift_neutral", "speaker": "shige", "mood": "neutral", "text": "Oh, for me? Thank you.", "next": "end"},

@@ -226,9 +226,8 @@ func _heart_event_rows() -> void:
 		"shige": ["town", "minamino", "shige_house"], "mio": ["town", "river", "mio_hut"], "kaede": ["town", "minamino", "kaede_house"],
 		"shino": ["town", "minamino", "shino_house", "river"],
 		"ren": ["town", "post_office", "sakurazaka", "kaminoda", "minamino", "river"]}
-	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro", "genzo", "haru", "mio", "kaede", "shino", "ren"]:
+	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro", "genzo", "haru", "shige", "mio", "kaede", "shino", "ren"]:
 		check(_has_event("heart_%s_5" % id) and _has_event("heart_%s_6" % id), "%s has heart events at 5 and 6" % id)
-	check(_has_event("heart_shige_5") and not _has_event("heart_shige_6"), "Shige has heart events at 3 and 5")
 	for id in Villagers.friends():
 		check(maps.has(id) and _has_event("heart_" + id), "%s has a heart event" % id)
 		for m in maps.get(id, []):
@@ -535,9 +534,9 @@ func _neglect_in_game() -> void:
 ## Each heart event (bands 3, 5 and 6) runs to the end on the real Game: flag set, affection
 ## up, and band 6's own story flag. Kota's second and third read both ways, with and without
 ## his carp promise; band 6 also with and without the band 5 flags its lines look back on.
-const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle", "ichiro": "ichiro_mark", "genzo": "genzo_straw", "haru": "haru_wave", "mio": "mio_ferry", "kaede": "kaede_fortune", "shino": "shino_first", "ren": "ren_route"}
+const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle", "ichiro": "ichiro_mark", "genzo": "genzo_straw", "haru": "haru_wave", "shige": "shige_vine", "mio": "mio_ferry", "kaede": "kaede_fortune", "shino": "shino_first", "ren": "ren_route"}
 ## The flag each band 6 scene looks back on (Fumi's comes from her band 3 scene).
-const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest", "ichiro": "ichiro_kiln", "genzo": "genzo_jizo", "haru": "haru_go", "mio": "mio_keep", "kaede": "kaede_recite", "shino": "shino_own", "ren": "ren_van"}
+const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest", "ichiro": "ichiro_kiln", "genzo": "genzo_jizo", "haru": "haru_go", "shige": "shige_share", "mio": "mio_keep", "kaede": "kaede_recite", "shino": "shino_own", "ren": "ren_van"}
 
 func _heart_events_play() -> void:
 	for id in Villagers.friends():
@@ -593,6 +592,7 @@ func _heart_events_play() -> void:
 		"ichiro": ["dug the clay", "never said thanks"],
 		"genzo": ["watched you tie", "let the jizo go without"],
 		"haru": ["Nobody holding the door", "eleven times"],
+		"shige": ["both patches", "at the fence"],
 		"mio": ["bell rang", "just for myself"],
 		"kaede": ["said them to you again", "my sleeve"],
 		"shino": ["wildflower stencil", "Mother's cranes"],
@@ -801,6 +801,13 @@ func _shige_friend() -> void:
 	for at in ["shige_fence", "shige_share"]:
 		var d := DialogueRunner.open("heart_events_5", {}, at)
 		check(d.error == "" and d.text() != "", "%s has its line" % at)
+	# Band 5's answers leave a mark that band 6 looks back on; band 6 has both answers' lines and sets shige_vine.
+	var shige5 := FileAccess.get_file_as_string("res://data/dialogue/heart_events_5.json")
+	check('"set": {"shige_fence": true}' in shige5 and '"set": {"shige_share": true}' in shige5, "Shige's band 5 answers set shige_fence / shige_share")
+	for at in ["shige_pot", "shige_tin", "shige_end"]:
+		var d := DialogueRunner.open("heart_events_6", {}, at)
+		check(d.error == "" and d.text() != "", "%s has its line" % at)
+	check("shige_vine" in FileAccess.get_file_as_string(EventRunner.DIR + "heart_shige_6.json"), "Shige's band 6 sets shige_vine")
 	check("seeds:tomato" in FileAccess.get_file_as_string(EventRunner.DIR + "heart_shige.json"), "Shige gives tomato seed at band 3")
 	check("seeds:pumpkin" in FileAccess.get_file_as_string(EventRunner.DIR + "heart_shige_5.json"), "and pumpkin seed at band 5")
 	check("'Shige's birthday.'" in DialogueRunner.open("examine_house", {}, "winter_birthday").text(), "the calendar names Shige's birthday")
