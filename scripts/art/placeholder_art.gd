@@ -78,7 +78,7 @@ static func _make(key: String) -> Image:
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
 		"portrait": # portrait:<villager>:<neutral|happy|sad|surprised|angry>, a villager's 40 x 40 text box portrait
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
-		"story":    # story:<door_bell|sign_old|sign_new|ume_jar|carp_streamer|lumber|rope_lift|jizo_bibs|kiln_mark|kiln_site|kiln_new|kiln_worn|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
+		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|ume_jar|carp_streamer|lumber|rope_lift|jizo_bibs|kiln_mark|kiln_site|kiln_new|kiln_worn|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
 		"festival": # festival:<kind>:<w>x<h>[:<cloth hex>], a festival decoration in the flat view (FestivalView)
 			var wh := parts[2].split("x") if parts.size() > 2 else PackedStringArray(["1", "1"])
@@ -2725,6 +2725,30 @@ static func _ribbon_board(places: String) -> Image:
 ## a 1 x 2 cell stack seen from the front).
 static func _story(kind: String) -> Image:
 	match kind:
+		"boat_father", "boat_new":
+			# The name Mio painted on her boat's side (heart_mio_6, mio_boat): a pale painted
+			# plaque, 14 x 6, with her father's coiled red dragon (Tatsu) on it, or her new name's
+			# mark, a blue fish leaping a wave.
+			var img := _blank(14, 6)
+			var plaque := Color("e8e0cc")
+			_px(img, 0, 0, 14, 6, plaque)
+			_px(img, 0, 5, 14, 1, plaque.darkened(0.2))
+			if kind == "boat_father":
+				var red := Color("b8302a")
+				for pt in [[2, 3], [3, 2], [4, 1], [5, 1], [6, 2], [7, 3], [8, 3], [9, 2], [10, 1], [11, 2]]:
+					_px(img, pt[0], pt[1], 1, 2, red)
+				_px(img, 11, 1, 2, 1, red)      # the head
+				img.set_pixel(12, 2, Color("f0c040"))
+			else:
+				var blue := Color("2e4e8a")
+				_px(img, 4, 2, 5, 2, blue)      # the fish
+				_px(img, 3, 1, 1, 1, blue)
+				_px(img, 3, 4, 1, 1, blue)
+				_px(img, 9, 3, 1, 1, blue)
+				img.set_pixel(7, 2, plaque)     # its eye
+				for x in range(1, 13):          # the wave under it
+					img.set_pixel(x, 4 + (x % 3 == 0 as int), Color("4a8ab8"))
+			return img
 		"jizo_bibs":
 			# The new red bib Genzo asked for (heart_genzo_5), tied over the jizo's old one:
 			# bright red cloth narrowing to a rounded hem, a white sewn edge, the ties at the neck.

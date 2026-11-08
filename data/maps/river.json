@@ -1,5 +1,5 @@
 {
-	"_note": "The river south of the village: the lane behind Kota's house (the village's south edge) comes down a grassy slope to a gravel shore; the river runs across the whole map from edge to edge (water at the map's side edges keeps flowing in the drawing, MapView.ground_key), with stepping rocks out in the current and pines on the far bank, which the farmer can't reach. Mio's driftwood hut stands on the north bank east of the path (door 13, 3; data/maps/mio_hut.json), a tub for her catch beside it. Fish here use place `river` in data/fish.json (its own table: dace, chub, sculpin, the fall salmon run, and the stream fish that also come down into the village pond). A map of its own, not more water in the village: the village has no room for a river without moving houses that events and day plans use, and a map id is what the fish tables already key on. Format: README.md, Maps.",
+	"_note": "The river south of the village: the lane behind Kota's house (the village's south edge) comes down a grassy slope to a gravel shore; the river runs across the whole map from edge to edge (water at the map's side edges keeps flowing in the drawing, MapView.ground_key), with stepping rocks out in the current and pines on the far bank, which the farmer can't reach. Mio's driftwood hut stands on the north bank east of the path (door 13, 3; data/maps/mio_hut.json), a tub for her catch beside it, and below it her plank landing and the old ferry boat tied to it (13..15, 7), her father's; once she names it (mio_boat, heart_mio_6) the name is painted on its side. Fish here use place `river` in data/fish.json (its own table: dace, chub, sculpin, the fall salmon run, and the stream fish that also come down into the village pond). A map of its own, not more water in the village: the village has no room for a river without moving houses that events and day plans use, and a map id is what the fish tables already key on. Format: README.md, Maps.",
 	"id": "river",
 	"name": "River",
 	"size": [20, 14],
@@ -33,6 +33,10 @@
 		{"kind": "river_rock", "cell": [16, 6]},
 		{"kind": "pine", "cell": [1, 1]},
 		{"kind": "village_house", "cell": [12, 1], "size": [4, 3], "door": 1, "wall": "yakisugi"}, {"kind": "water_tub", "cell": [16, 3]},
+		{"kind": "landing", "cell": [13, 6]},
+		{"kind": "ferry_boat", "cell": [13, 7], "size": [3, 1]},
+		{"kind": "boat_name", "cell": [13, 7], "flag": "mio_boat", "flag_value": "father", "style": "father"},
+		{"kind": "boat_name", "cell": [13, 7], "flag": "mio_boat", "flag_value": "new", "style": "new"},
 		{"kind": "pine", "cell": [17, 2]},
 		{"kind": "pine", "cell": [2, 12]},
 		{"kind": "pine", "cell": [8, 11]},
@@ -46,6 +50,7 @@
 	"spawns": {
 		"start": [[4, 1], "down"],
 		"shore": [[8, 5], "down"],
-		"mio": [[13, 4], "down"]
+		"mio": [[13, 4], "down"],
+		"ferry": [[14, 5], "down"]
 	}
 }

@@ -17,7 +17,7 @@ const COLORS := {
 	"well": Color("8e8a80"), "jizo": Color("c8342c"), "persimmon": Color("e8782a"), "sakura": Color("f2bccb"), "maple": Color("c42a1e"),
 	"hasa": Color("d8b85a"), "woodpile": Color("8a6440"), "garden": Color("5a9a3a"), "wood_fence": Color("b08a5a"), "kiln": Color("9a7656"),
 	"counter": Color("4a3424"), "shelf": Color("6a4a30"), "rice_sacks": Color("d8c088"),
-	"forge": Color("7a746c"), "anvil": Color("2a2a2e"), "tool_rack": Color("8a6a48"), "water_tub": Color("2a4a5a"), "river_rock": Color("6e6a62"),
+	"forge": Color("7a746c"), "anvil": Color("2a2a2e"), "tool_rack": Color("8a6a48"), "water_tub": Color("2a4a5a"), "river_rock": Color("6e6a62"), "ferry_boat": Color("8a6440"), "landing": Color("9a7650"),
 	"feed_box": Color("9a7048"), "nest": Color("d8bc78"), "incubator": Color("c8a868"),
 	"feed_sack": Color("a88a52"), "hatch": Color("4a2a14"),
 	"fodder_box": Color("8a6440"), "stalls": Color("d0b478"), "hay": Color("c8b060"), "barn_gate": Color("4a2a14"),
@@ -219,6 +219,9 @@ func _draw_objects() -> void:
 			var inner := r.grow(-1)
 			_objects.draw_texture(PlaceholderArt.tex(RoofArt.key("kawara", style.roof, style.storeys, Vector2i(inner.size))), inner.position)
 			continue
+		if p.kind == "ferry_boat" or p.kind == "landing":
+			_draw_river_wood(p.kind, r)
+			continue
 		var fill: Color = COLORS.get(p.kind, Color.MAGENTA)
 		if p.kind == "water_tub" and p.has("color"):   # a tub of its own water (Shino's indigo vats)
 			fill = Color(str(p.color))
@@ -227,3 +230,25 @@ func _draw_objects() -> void:
 		for c in door.cells:
 			if map.in_bounds(c):
 				_objects.draw_rect(Rect2(Vector2(c * T), Vector2(T, T)).grow(-2), COLORS.door)
+
+## Mio's ferry boat (a wooden hull with dark gunwales, its floor and seats inside, a raised bow
+## at the east end, the pole lying along it) or her plank landing over the water, in pixels.
+func _draw_river_wood(kind: String, r: Rect2) -> void:
+	var o := Color("2a1e14")
+	if kind == "landing":
+		var deck := Rect2(r.position.x + 1, r.position.y - 5, r.size.x - 2, r.size.y + 3)
+		_objects.draw_rect(deck.grow(1), o)
+		for i in 6:
+			var x := deck.position.x + i * deck.size.x / 6.0
+			_objects.draw_rect(Rect2(x, deck.position.y, deck.size.x / 6.0 - 1, deck.size.y), Color("9a7650") if i % 2 == 0 else Color("7a5a3a"))
+		_objects.draw_rect(Rect2(deck.end.x - 3, deck.end.y - 7, 3, 7), Color("4a3424"))   # the mooring post
+		return
+	var hull := Rect2(r.position.x + 2, r.get_center().y - 5, r.size.x - 8, 10)
+	_objects.draw_rect(hull.grow(1), o)
+	_objects.draw_rect(hull, Color("8a6440"))
+	_objects.draw_rect(hull.grow(-2), Color("4a3424"))                      # the floor inside
+	_objects.draw_colored_polygon(PackedVector2Array([hull.end - Vector2(0, 10), Vector2(hull.end.x + 6, hull.get_center().y), hull.end]), o)
+	_objects.draw_colored_polygon(PackedVector2Array([Vector2(hull.end.x, hull.position.y + 1), Vector2(hull.end.x + 4, hull.get_center().y), Vector2(hull.end.x, hull.end.y - 1)]), Color("8a6440"))
+	for x in [hull.position.x + 9, hull.end.x - 10]:                       # the seats
+		_objects.draw_rect(Rect2(x, hull.position.y + 1, 3, hull.size.y - 2), Color("5e4228"))
+	_objects.draw_rect(Rect2(hull.position.x + 3, hull.get_center().y - 1, hull.size.x - 2, 2), Color("b89a68"))   # the pole

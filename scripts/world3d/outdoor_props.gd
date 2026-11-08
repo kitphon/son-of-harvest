@@ -484,6 +484,59 @@ static func river_rock(w: FarmWorld, mid: Vector3, snow: bool) -> void:
 		snow_parts.commit(w)
 
 
+## Mio's old ferry boat on the river (a flat-bottomed wooden boat, long along x over its cells):
+## a cedar hull sitting low in the water, flaring out to its gunwales, a raised square bow at
+## the east end, two thwarts, the dark wet floor inside and the long pole lying along the seats.
+## Its name, once painted (StoryProps "boat_name"), is a picture on the side facing the camera.
+static func ferry_boat(w: FarmWorld, r: Rect2, snow: bool) -> void:
+	var p := FarmProps.Parts.new()
+	var hull := p.st(Color("8a6440"))
+	var rim := p.st(Color("5e4228"))
+	var inside := p.st(Color("4a3424"))
+	var cz := r.get_center().y
+	var x0 := r.position.x + 0.15
+	var x1 := r.end.x - 0.45
+	var half := 0.3
+	FarmProps.block(hull, Rect2(x0 + 0.1, cz - half + 0.08, x1 - x0 - 0.1, (half - 0.08) * 2), -0.06,
+		Rect2(x0, cz - half, x1 - x0, half * 2), 0.18)
+	FarmProps.block(hull, Rect2(x1, cz - half + 0.12, 0.08, (half - 0.12) * 2), -0.06,   # the bow, rising and narrowing
+		Rect2(x1, cz - half + 0.06, 0.3, (half - 0.06) * 2), 0.26)
+	FarmProps.block(inside, Rect2(x0 + 0.06, cz - half + 0.06, x1 - x0 - 0.06, (half - 0.06) * 2), 0.18,
+		Rect2(x0 + 0.06, cz - half + 0.06, x1 - x0 - 0.06, (half - 0.06) * 2), 0.185)
+	for z in [cz - half, cz + half - 0.05]:   # the gunwales
+		FarmProps.block(rim, Rect2(x0, z, x1 - x0 + 0.3, 0.05), 0.18, Rect2(x0, z, x1 - x0 + 0.3, 0.05), 0.22)
+	FarmProps.block(rim, Rect2(x0 - 0.02, cz - half, 0.06, half * 2), 0.14, Rect2(x0 - 0.02, cz - half, 0.06, half * 2), 0.22)   # the stern board
+	for x in [x0 + 0.55, x1 - 0.5]:   # two thwarts across
+		FarmProps.block(rim, Rect2(x, cz - half, 0.12, half * 2), 0.19, Rect2(x, cz - half, 0.12, half * 2), 0.23)
+	FarmProps.block(p.st(Color("b89a68")), Rect2(x0 + 0.2, cz - 0.03, x1 - x0, 0.05), 0.23,   # the pole along the seats
+		Rect2(x0 + 0.2, cz - 0.03, x1 - x0, 0.05), 0.26)
+	_foam(p.st(Color("d4e4e6")), Vector3(r.get_center().x, 0, cz), (r.size.x) * 0.48, 0.42, 0.03, int(r.position.x * 7))
+	if snow:
+		FarmProps.block(p.st(FarmProps.Parts.SNOW), Rect2(x0 + 0.5, cz - 0.2, 0.5, 0.4), 0.185, Rect2(x0 + 0.55, cz - 0.16, 0.4, 0.32), 0.22)
+	p.commit(w)
+
+
+## A small plank landing from the shore out over the water (Mio's ferry stage): boards laid
+## across two bearers on four posts standing in the river, a mooring post at the far corner.
+static func landing(w: FarmWorld, r: Rect2) -> void:
+	var p := FarmProps.Parts.new()
+	var post := p.st(Color("4a3424"))
+	var board := p.st(Color("9a7650"))
+	var dark := p.st(Color("7a5a3a"))
+	var top := 0.16
+	for x in [r.position.x + 0.15, r.end.x - 0.22]:
+		for z in [r.position.y - 0.25, r.end.y - 0.2]:
+			FarmProps.block(post, Rect2(x, z, 0.07, 0.07), -0.1, Rect2(x, z, 0.07, 0.07), top)
+	var n := 6
+	var deck := r.size.y + 0.35
+	for i in n:
+		var x := r.position.x + 0.1 + i * (r.size.x - 0.2) / n
+		FarmProps.block(board if i % 2 == 0 else dark, Rect2(x, r.position.y - 0.3, (r.size.x - 0.2) / n - 0.015, deck), top,
+			Rect2(x, r.position.y - 0.3, (r.size.x - 0.2) / n - 0.015, deck), top + 0.04)
+	FarmProps.block(post, Rect2(r.end.x - 0.2, r.end.y - 0.18, 0.09, 0.09), top, Rect2(r.end.x - 0.19, r.end.y - 0.17, 0.07, 0.07), top + 0.32)
+	p.commit(w)
+
+
 ## A faceted boulder of half-widths rx / rz and height h standing on `at`: four rings of
 ## corners (the base, the belly, the shoulder, the apex), each corner nudged, flat facets
 ## coloured by height (and a few mossy), the upward ones copied into `sn` (or null).

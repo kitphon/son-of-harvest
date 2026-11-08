@@ -233,6 +233,7 @@ func _process(delta: float) -> bool:
 		_bed_and_doors()
 		_clinic_doors()
 		_story_props()
+		_ferry_boat()
 		_lane_and_kiln_props()
 		_map_snow()
 		_footprints()
@@ -4323,3 +4324,35 @@ func _kept_worlds(g: Node) -> void:
 	g.maps.place("farm", Vector2i(10, 10), Vector2i.DOWN)
 	_scene._enter_map()
 	check(_scene.world != farm_kept.world, "kept worlds: the next day the farm is built anew")
+
+
+## Mio's ferry boat and landing on the river (heart_mio_6 names the boat): both stand on the
+## water below her hut and keep the shore open, the name shows by her answer (mio_boat), its two
+## pictures are drawn and differ, and the 3D river builds the hull.
+func _ferry_boat() -> void:
+	var river: MapData = MapManager.load_map("river", null, {})[1]
+	var boat := river.prop_at(Vector2i(14, 7))
+	var stage := river.prop_at(Vector2i(13, 6))
+	check(boat.get("kind", "") == "ferry_boat" and boat.size == Vector2i(3, 1) and stage.get("kind", "") == "landing", "the boat (3 x 1) and its landing below Mio's hut")
+	for c in [Vector2i(13, 6), Vector2i(13, 7), Vector2i(14, 7), Vector2i(15, 7)]:
+		check(river.tile(c) == "water", "%s is on the water" % c)
+	for c in [Vector2i(13, 5), Vector2i(14, 5), Vector2i(12, 5)]:
+		check(not river.is_solid(c), "the shore at %s stays open" % c)
+	check(river.spawns.has("ferry"), "a ferry spawn to look at it from")
+	var names := func(f: Dictionary) -> Array:
+		var out := []
+		for p in MapManager.load_map("river", null, f)[1].props:
+			if p.kind == "boat_name":
+				out.append(StoryView.art_key(p))
+		return out
+	check(names.call({}).is_empty(), "no name before Mio has named the boat")
+	check(names.call({"mio_boat": "father"}) == ["story:boat_father"] and names.call({"mio_boat": "new"}) == ["story:boat_new"],
+		"her father's name or the new one, by her answer")
+	var a := PlaceholderArt.tex("story:boat_father").get_image()
+	var b := PlaceholderArt.tex("story:boat_new").get_image()
+	check(a.get_size() == Vector2i(14, 6) and a.get_data() != b.get_data(), "the two names are drawn and differ")
+	var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	w.build(river)
+	var hull := w.get_children().filter(func(c): return c is MeshInstance3D and c.material_override is StandardMaterial3D and c.material_override.albedo_color == Color("8a6440")).size()
+	w.free()
+	check(hull > 0, "the 3D river has the boat's hull (%d)" % hull)

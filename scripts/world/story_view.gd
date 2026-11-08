@@ -3,13 +3,13 @@ extends Node2D
 ## The story props of a map (KINDS: the door bell, the store's sign, Tome's jar, Kota's carp
 ## streamer, the ribbon board, the builder's lumber by the farmhouse while a house extension is
 ## under way, a keepsake given to a villager who loves it, in their home, the mine's rope lift winch at the cave mouth once a landing
-## is reached, the jizo's new red bibs and the three thumbprints on Ichiro's kiln) in the flat
+## is reached, the jizo's new red bibs, the three thumbprints on Ichiro's kiln and the name on Mio's boat) in the flat
 ## view, drawn from the same PlaceholderArt "story:" keys as in 3D (StoryProps): centred in
 ## their cells, standing on the bottom edge. MapView leaves them out of its boxes. The old
 ## kiln's wear (story:kiln_worn) is drawn over its box, on its own cells.
 
 const T := 16
-const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark", "kiln_site", "kiln_new"]
+const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark", "kiln_site", "kiln_new", "boat_name"]
 
 var map: MapData
 
@@ -18,6 +18,8 @@ var map: MapData
 static func art_key(p: Dictionary) -> String:
 	if str(p.kind) == "store_sign":
 		return "story:sign_" + str(p.get("style", "old"))
+	if str(p.kind) == "boat_name":   # Mio's boat's name by her answer (mio_boat father / new)
+		return "story:boat_" + str(p.get("style", "new"))
 	if str(p.kind) == "ribbon_board":   # one rosette per ribbon won (Keepsakes.RECORD)
 		return "story:ribbon_board:" + Keepsakes.board_places(MapManager.flags)
 	if str(p.kind) == "keepsake":   # the keepsake's own icon (`item`, keep:<id>)
@@ -47,6 +49,8 @@ func _draw() -> void:
 			r.end.y -= 4
 		elif p.kind == "keepsake":   # hung from the lintel: its top near the cell's top
 			r.end.y = r.position.y + tex.get_height() + 2
+		elif p.kind == "boat_name":   # on the boat's side, low in its cell (MapView draws the boat)
+			r.end.y -= 3
 		elif p.kind == "jizo_bibs":   # on the jizo's chest, the middle of its cell
 			r.end.y -= 4
 		elif p.kind == "kiln_mark":   # over the kiln's mouth, in the front cells' upper half

@@ -12,7 +12,8 @@ extends RefCounted
 ## in their home, or hangs (`hang`, the wind chime). Genzo's new red bibs are tied on the
 ## jizo by the Kaminoda lane (genzo_jizo, band 5) and the farmer's thumbprint is pressed in
 ## the clay of Ichiro's kiln in Sakurazaka beside his and his father's (ichiro_mark, band 6):
-## both lit meshes (OutdoorProps). The pictures are PlaceholderArt "story:" keys, the same ones the flat view draws
+## both lit meshes (OutdoorProps); the name Mio painted on her ferry boat on the river (mio_boat,
+## band 6) is a picture on its side. The pictures are PlaceholderArt "story:" keys, the same ones the flat view draws
 ## (StoryView, which also keeps the list of kinds). Same units as MapWorld (1 unit = 1 cell).
 
 
@@ -64,6 +65,10 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 			s.pixel_size = 0.04
 			s.position = Vector3(r.get_center().x, 0, r.get_center().y)
 			w.add_child(s)
+		"boat_name":
+			# Painted on the boat's side facing the camera, near the stern (OutdoorProps.ferry_boat:
+			# the hull's near gunwale at the cell's middle + 0.3), up to the gunwale.
+			w._picture(StoryView.art_key(p), Vector2(0.7, 0.3), Vector3(r.get_center().x, 0.15, r.get_center().y + 0.34))
 		"keepsake":
 			# A low wooden stand against the back of its cell, the keepsake's icon on it; or,
 			# with `hang`, hung from the lintel over the cell (a chime by the window).

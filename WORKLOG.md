@@ -10,6 +10,45 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Mio's ferry boat and landing on the river
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: the ferry Mio talks about in her heart scenes is on the river now.
+  - river.json: a plank landing (`landing`, 13, 6) out over the water below her hut and the
+    old flat-bottomed boat tied beside it (`ferry_boat`, 13..15, 7). Both stand on water cells,
+    so the shore path stays open. A new spawn `ferry` (14, 5) looks at them.
+  - 3D (OutdoorProps.ferry_boat / landing, lit meshes): a cedar hull sitting low in the water,
+    flaring to dark gunwales, a raised narrowing bow at the east end, the dark floor inside,
+    two thwarts, the long pole lying along the seats, a little foam round it, snow on a seat
+    when snow lies. The landing is boards across two bearers on four posts in the river, with
+    a mooring post.
+  - Flat view (MapView._draw_river_wood): the same in pixels (hull, floor, seats, pointed
+    bow, pole; the planks and the post). Flat colors for both in MapView.COLORS.
+  - The name: a `boat_name` story prop gated by mio_boat (her band 6 answer), `style` father
+    or new. PlaceholderArt "story:boat_father" is a pale painted plaque with her father's
+    coiled red dragon (Tatsu); "story:boat_new" has a blue fish leaping a wave (the new name
+    is never said, so it is a mark, not words). It is a picture on the hull's near side by
+    the stern in 3D (StoryProps) and on the boat in the flat view (StoryView).
+- Checked: test_maps `_ferry_boat`:
+  - the boat (3 x 1) and the landing are in place, on water;
+  - the shore cells stay open;
+  - the spawn exists;
+  - no name without mio_boat, the right name for father / new;
+  - the two pictures are drawn and differ;
+  - the 3D river builds the hull.
+
+  Output `test_maps: OK (0 failed)`. Mutation test (the father name's flag removed): `FAIL: no
+  name before Mio has named the boat`, `FAIL: her father's name or the new one, by her
+  answer`, `test_maps: FAILED (3 failed)`; restored. All 30 suites printed `OK (0 failed)`.
+  Smoke runs (title, --demo, --map=town, --mine=3, --map=river@ferry --flags=mio_boat=new,
+  main_2d --map=river@ferry --flags=mio_boat=father) printed no error or warning lines.
+  Screenshots: `--map=river@mio --time=9:00` (the boat and landing in 3D; with
+  `--season=winter --snow=80` in the snow), main_2d with mio_boat=new (the flat boat with the
+  fish mark). The first 3D name sat low by the boat's middle, mostly hidden and under the HUD
+  from her door. It moved up to the gunwale by the stern, a little bigger. Then
+  `--map=river@ferry --flags=mio_boat=father` / `=new`: the plaque reads on the stern side.
+  shots/ deleted.
+- Left / next: the boat stays tied; nobody poles it across yet. Shino's drying cloth is next.
+
 ## 2026-11-08 — Ren's mailbag and the delivery at each door
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: Ren used to stand two minutes at each door doing nothing. Now:
