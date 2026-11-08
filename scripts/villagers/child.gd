@@ -8,11 +8,23 @@ extends RefCounted
 ##   child_name = "<name>"     (picked from the spouse's three)
 ##   Affection id "child"      (starts at heart band 3, never below it)
 ## Day numbers are Game.day_number(). Older saves have none of these: no child.
+## The two scenes (data/events/child_news_<spouse>.json, child_birth_<spouse>.json) play on
+## the first morning they are due, when the farmer wakes in the farmhouse (triggers_house.json):
+## day_start sets the flag NEWS_DUE or BIRTH_DUE each morning while it holds, and the scene's
+## `child` step (event_step) tells the news or gives the birth, with the name picked in its
+## dialogue (data/dialogue/child.json: the choice sets child_name).
 
 const PATH := "res://data/child.json"
 const NEWS := "child_news"
 const BORN := "child_born"
 const NAME := "child_name"
+## Set each morning the news (or the birth) is due, for the trigger rows; gone once it played.
+const NEWS_DUE := "child_news_due"
+const BIRTH_DUE := "child_birth_due"
+## The scenes, by the spouse's id.
+const NEWS_EVENT := "child_news_%s"
+const BIRTH_EVENT := "child_birth_%s"
+const DIALOGUE := "child"
 ## The child's id in the affection table.
 const ID := "child"
 
@@ -87,6 +99,36 @@ static func tell_news(flags: Dictionary, today: int) -> void:
 static func give_birth(flags: Dictionary, today: int, name: String) -> void:
 	flags[BORN] = today
 	flags[NAME] = name
+
+
+## A new morning (day number `today`, the spouse's heart band `band`, `festival` true on a
+## festival day): sets NEWS_DUE or BIRTH_DUE while that scene is due, else clears it. Returns
+## "news", "birth" or "".
+static func day_start(flags: Dictionary, today: int, band: int, festival: bool) -> String:
+	flags.erase(NEWS_DUE)
+	flags.erase(BIRTH_DUE)
+	if news_due(flags, today, band, festival):
+		flags[NEWS_DUE] = true
+		return "news"
+	if birth_due(flags, today, festival):
+		flags[BIRTH_DUE] = true
+		return "birth"
+	return ""
+
+
+## A scene's `child` step on day `today`: "news" tells the news; "birth" gives the birth with
+## the name the dialogue's choice set (child_name; the spouse's first name if none was).
+static func event_step(flags: Dictionary, step: String, today: int) -> void:
+	if step == "news" and not has_news(flags):
+		tell_news(flags, today)
+		flags.erase(NEWS_DUE)
+	elif step == "birth" and has_news(flags) and not is_born(flags):
+		var n := child_name(flags)
+		if n == "" or not n in names(Marriage.spouse(flags)):
+			var list := names(Marriage.spouse(flags))
+			n = str(list[0]) if not list.is_empty() else n
+		give_birth(flags, today, n)
+		flags.erase(BIRTH_DUE)
 
 
 ## The three names the spouse `id` offers (empty for someone who cannot marry).
@@ -184,6 +226,9 @@ static func check() -> String:
 		for n in list:
 			if not n is String or n.strip_edges() == "":
 				return "%s has a name that is not a word" % who
+		for ev in [NEWS_EVENT, BIRTH_EVENT]:
+			if not FileAccess.file_exists(EventRunner.DIR + (ev % who) + ".json"):
+				return "no event %s" % (ev % who)
 	var seen := {}
 	for who in d.get("names", {}):
 		if not Marriage.is_candidate(who):

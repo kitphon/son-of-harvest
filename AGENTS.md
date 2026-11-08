@@ -84,7 +84,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   The flat view (main_2d.tscn builds, its Player's actions reach FarmActions: tools, holding
   and throwing, the bin, eating, fishing, doors, talking, the shop counter, the mine; the
   throw's flight; rain / snow, lightning and the festival glow): `res://tests/test_view2d.gd` must print `test_view2d: OK (0 failed)`.
-  The child (data/child.json, Child: the news and the birth days, the stages by days, the look from the parents, each spouse's three names, the hearts' band 3 floor, the save): `res://tests/test_child.gd` must print `test_child: OK (0 failed)`.
+  The child (data/child.json, Child: the news and the birth days, the stages by days, the look from the parents, each spouse's three names, the hearts' band 3 floor, the save; the news and birth scenes per spouse: the due flags each morning, the farmhouse triggers, the names offered and the one picked, the Thai; `--demo --map=house --built=room --flags=married_sayo,spouse=sayo --event=child_birth_sayo --dialogue=child@sayo_pick` shows the name choice): `res://tests/test_child.gd` must print `test_child: OK (0 failed)`.
   Goals (Tome's first-week list: data/goals.json, what is counted, rewards paid once, the notes, the save, the HUD tag):
   `res://tests/test_goals.gd` must print `test_goals: OK (0 failed)`.
   Languages (LangCatalog finds the English, no glued pieces in the scripts, no stale table

@@ -1027,6 +1027,8 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 	build_news = _build_off_news()
 	if Marriage.day_start(flags, day_number()):   # the wedding day (or a later one): the shrine waits
 		message.emit(Marriage.text("due"))
+	var spouse_id := Marriage.spouse(flags)   # the child's news or birth due this morning (triggers_house.json)
+	Child.day_start(flags, day_number(), affection.band(spouse_id) if spouse_id != "" else 0, festival_today() != "")
 	help_news = spouse_help()
 	go_to_spawn(wake_map, wake_spawn)
 	day_started.emit()
@@ -1720,6 +1722,13 @@ func show_ending(page := "ending") -> Dictionary:
 		ending_open = true
 		ending_requested.emit(r)
 	return r
+
+
+## An event's `child` step: "news" (child_news) or "birth" (child_born, and child_name from the
+## name the scene's choice set), on today's day number (Child.event_step).
+func child_event(step: String) -> void:
+	Child.event_step(flags, step, day_number())
+	changed.emit()
 
 
 ## The married farmer's spouse helps this morning (Marriage.help, data/marriage.json help):

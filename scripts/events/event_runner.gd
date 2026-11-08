@@ -22,6 +22,7 @@ const COMMANDS := {
 	"set": ["flags"], "clear": ["flags"], "give": ["item", "count"], "money": ["amount"],
 	"fade": ["to", "seconds"], "sound": ["key"], "affection": ["who", "amount"],
 	"place": ["at", "dir"], "actor": ["who", "at", "to", "face", "leave", "holds", "meanwhile"], "ending": ["page"],
+	"child": ["step"],
 }
 
 var id := ""
@@ -191,6 +192,8 @@ func _begin(s: Dictionary) -> void:
 			_begin_actor(s)
 		"ending":
 			game.show_ending(String(s.get("page", "ending")))
+		"child":   # the child's news or birth (Child.event_step; the name from the dialogue's choice)
+			game.child_event(String(s.step))
 
 
 ## An actor step: off the stage, onto cell `at` (or their plan's spot), walking to `to`, then
@@ -423,6 +426,9 @@ func _check_step(s: Dictionary) -> String:
 		"ending":
 			if s.has("page") and not s.page in Ending.PAGES:
 				return "ending's page is ending or year"
+		"child":
+			if not s.get("step") in ["news", "birth"]:
+				return "child's step is news or birth"
 		"walk":
 			if s.has("to") == s.has("by") or not _pair(s.get("to", s.get("by"))):
 				return "walk needs to [x, y] or by [dx, dy]"

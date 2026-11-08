@@ -10,6 +10,49 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — The child, step 2: the news and the birth scenes for all eight spouses
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done:
+  - `Child.day_start` (from `Game.end_day`, after the wedding check): each morning sets
+    `child_news_due` or `child_birth_due` while `news_due` / `birth_due` hold (the spouse's band,
+    festival days), else clears them; `Child.event_step` for a new event step
+    `{"do": "child", "step": "news" | "birth"}` (EventRunner, `Game.child_event`): the news sets
+    `child_news` to the day, the birth `child_born` and keeps the `child_name` the dialogue's
+    choice set (a name not the spouse's falls back to their first). `Child.check` asks for both
+    events per candidate. README → Events lists the step.
+  - `data/events/child_news_<id>.json` and `child_birth_<id>.json` for Sayo, Fumi, Haru, Ichiro,
+    Mio, Kaede, Shino and Ren; triggers_house.json plays them on `day_start` (waking in the
+    farmhouse) with the due flag and `married_<id>`, once each, after the ending and the yearly
+    page. The news: the spouse walks from the second room to the futon and tells it. The birth:
+    the spouse in the second room, Dr. Yae and Tome beside them, the farmer walks over; Tome and
+    Yae's lines (`birth`), the spouse's two lines and the choice of their three names
+    (`<id>_names`, `<id>_pick`), the spouse's answer to the name (`<id>_<name>`), Tome's welcome
+    (`born`).
+  - `data/dialogue/child.json`: 75 lines in each spouse's voice (Sayo's ledger, Fumi's tea and
+    her mother, Haru's straw sandals and few words, Ichiro's short sentences and a cedar cradle,
+    Mio's river and father's boat, Kaede's fortunes and fox statues, Shino plain and brief,
+    Ren's post); no gendered words for the child (the name, they, the little one). Thai for all
+    of them and the 24 names (99 entries in data/lang/th/dialogue.json).
+- Checked: test_child new checks: the due flags on the right mornings only (29 / 30 days,
+  band 5, festival, after the news, after the birth, single), the event step, the trigger rows
+  for every spouse (day_start only, once each, not without the married flag), both scenes per
+  spouse with Yae and Tome at the birth, each spouse offering exactly their three names and
+  each pick setting child_name and getting its answer, no he / she in the lines, Thai complete,
+  `Game.end_day` setting child_news_due on the 30th day, the birth scene played on the real
+  Game with the second name picked (Michi). Mutation test (day_start not clearing the news
+  flag): `FAIL: band 5 the next morning: not due until the hearts are back`, `FAIL: not on a
+  festival morning`, `FAIL: told: nothing due`, `test_child: FAILED (3 failed)`; restored.
+  All 31 suites printed `OK (0 failed)`. Smoke runs (title, `-- --demo`, and `--demo
+  --map=house --built=room --flags=married_sayo,spouse=sayo --event=child_news_sayo`) printed
+  no error or warning lines.
+  Screenshot: `--demo --map=house --built=room --flags=married_sayo,spouse=sayo --time=6:30
+  --event=child_birth_sayo --dialogue=child@sayo_pick`, frame 129: the farmer before Sayo in
+  the second room, Yae and Tome beside them, the text box with Sayo's line and the choice of
+  Hinata, Sora and Aoi. (The `--dialogue` box is opened over the scene before its first talk;
+  the event itself starts its talks from `birth`.) shots/ deleted.
+- Left / next: step 3, the baby in a bamboo cradle in the second room. No baby is drawn in
+  the birth scene yet (the cradle comes with step 3); there is no crying sound.
+
 ## 2026-11-08 — The child, step 1: data/child.json and Child (pure rules)
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: `data/child.json` (30 days to the news, band 6, 30 days to the birth, stages baby 0 /

@@ -1,0 +1,23 @@
+{
+	"_note": "The child's birth (Child, docs/DESIGN.md, ลูก): on the first morning the farmer wakes in the farmhouse 30 days or more after the news, not on a festival day (child_birth_due, set by Child.day_start; triggers_house.json). In the second room Shino rests with the baby, Dr. Yae and Tome beside them; the farmer walks over, and Shino offers three names (data/child.json) to choose from. The child step sets child_born to the day and keeps the name the choice set (child_name). Format: README.md, Events.",
+	"steps": [
+		{"do": "fade", "to": "black", "seconds": 0},
+		{"do": "place", "at": [2, 2], "dir": "down"},
+		{"do": "actor", "who": "shino", "at": [9, 3], "face": "left"},
+		{"do": "actor", "who": "yae", "at": [9, 4], "face": "up"},
+		{"do": "actor", "who": "tome", "at": [10, 2], "face": "left"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "fade", "to": "clear", "seconds": 1.0},
+		{"do": "wait", "seconds": 0.5},
+		{"do": "walk", "to": [2, 3]},
+		{"do": "walk", "to": [8, 3]},
+		{"do": "face", "dir": "right"},
+		{"do": "wait", "seconds": 1.0},
+		{"do": "say", "dialogue": "child", "at": "birth"},
+		{"do": "say", "dialogue": "child", "at": "shino_names"},
+		{"do": "child", "step": "birth"},
+		{"do": "sound", "key": "chime_morning"},
+		{"do": "wait", "seconds": 1.0},
+		{"do": "fade", "to": "black", "seconds": 1.0}
+	]
+}

@@ -1,0 +1,17 @@
+{
+	"_note": "The child's news (Child, docs/DESIGN.md, ลูก): on the first morning the farmer wakes in the farmhouse 30 days or more after the wedding, Shino at heart band 6 and not on a festival day (child_news_due, set by Child.day_start; triggers_house.json). Shino comes from the second room to the futon and tells the farmer. The child step sets child_news to the day. Format: README.md, Events.",
+	"steps": [
+		{"do": "fade", "to": "black", "seconds": 0},
+		{"do": "place", "at": [2, 2], "dir": "down"},
+		{"do": "actor", "who": "shino", "at": [9, 3], "face": "left"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "fade", "to": "clear", "seconds": 1.0},
+		{"do": "actor", "who": "shino", "to": [3, 2], "face": "left"},
+		{"do": "face", "dir": "right"},
+		{"do": "say", "dialogue": "child", "at": "shino_news"},
+		{"do": "child", "step": "news"},
+		{"do": "sound", "key": "chime_morning"},
+		{"do": "wait", "seconds": 0.8},
+		{"do": "fade", "to": "black", "seconds": 0.8}
+	]
+}

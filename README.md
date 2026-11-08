@@ -681,6 +681,11 @@ the script says, and keys go only to the text box. Each step is one of:
   several actors walk at once;
 - `{"do": "ending"}`: grades the run and shows the village record (README → Ending); the
   event waits until it is closed; `"page": "year"` shows the yearly page instead;
+- `{"do": "child", "step": "news"}` / `"birth"`: the child's news (flag `child_news`, the day
+  number) or the birth (`child_born`, and `child_name` from the name the scene's dialogue
+  choice set; `Child.event_step`). The scenes are `child_news_<spouse>` and
+  `child_birth_<spouse>`, played on the morning `Child.day_start` sets `child_news_due` /
+  `child_birth_due` (triggers_house.json);
 - a branch: `{"if": "<flag>", "then": "<step id>"}` or `{"unless": ...}`.
 
 Any step can have an `id` and a `next` (a step id or `"end"`). `EventRunner` refuses a file with
