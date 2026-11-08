@@ -23,6 +23,19 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+Marriage for everyone (planned 2026-11-08, docs/DESIGN.md → ความรักและแต่งงาน): eight
+candidates, six women and two men, each open to the farmer whatever the farmer's look. One
+candidate per commit, Sayo and Fumi as the pattern (band 3 / 5 / 6 scenes, knot answers,
+proposal, wedding, married rules and lines, Thai).
+[x] The roster and the rule written down (2026-11-08): DESIGN, STYLE_EN (no gendered words for the farmer or spouse).
+[ ] Haru: a band 6 scene, then candidate.
+[ ] Ichiro: a band 6 scene, then candidate.
+[ ] Yae: hearts, a birthday, band 3 / 5 / 6 scenes, then candidate.
+[ ] Mio (new): the ferry hut on the river map, day plans, talk, then candidate.
+[ ] Kaede (new): keeps the village shrine, helps Tome ready weddings, then candidate.
+[ ] Ren (new): the post office by the village's entry, rounds through every part, then candidate.
+[ ] The farmer's look chosen on a new game (hair, skin, clothes; looks only).
+
 [x] Painted paddy ground in the flat view (2026-11-07): the Kaminoda paddies' ground is painted in the ground tiles' pixel style, drained mud with wet sheen, puddles and straw in winter, still water with a soft sky reflection and ripple lines in the other seasons, every feature wrapping so the tiles repeat (PlaceholderArt "paddy_mud" / "paddy_flood", PlaceholderArt._wrap; test_view2d _paddy_tiles; ART_DIRECTION, Rice and tall crops).
 [x] Glint on the 3D winter water patches (2026-11-07): the 3D view's paddy patches (CropClusters.plant_water) carry the same wind-driven glint, worked out in WATER_SHADER from the patch's place (phase and one-or-two by hash, rice's wind, quicker in rain and storm, none while snow lies), numbers in data/wind.json "3d".glint, colour data/paddy.json water.shine.
 [x] The field's night lift keeps to its own pixels (2026-11-08): the lift of crops, cluster plants, items and objects near a light is drawn in its own pass from a copy of the tinted picture before the pools, only on pixels where that copy shows the picture's own texel (data/light.json sprites.lift.match), so a plant, fence or figure in front keeps its pixels; a cluster plant's quad follows its sway and parting (the plants sway on CropClusters.clock, CropClusters.tip_shift). Same lift, falloff and cap (ART_DIRECTION section 3).

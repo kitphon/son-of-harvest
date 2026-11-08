@@ -387,7 +387,7 @@ is taken, the flags `engaged` = id, `engaged_<id>`, `wedding_day` (the day numbe
 in hand with a message. From the wedding day's morning (`Game.end_day` → `Marriage.day_start`)
 the flag `wedding_due` is set (with a morning message and the HUD tag "Wedding day") until
 `wedding_<id>` has played: a row in `triggers_town.json` from 10:00, on entering the village or
-a minute later. The wedding stands the farmer before the shrine beside the bride, Tome in
+a minute later. The wedding stands the farmer before the shrine beside the one they marry, Tome in
 front, the guests at the sides, sets `spouse` = id and `married_<id>` and clears the rest but
 `wedding_day` (the village record's date, see Ending).
 Married, the spouse's rules (`married_<id>` in their villager file) have them live at the

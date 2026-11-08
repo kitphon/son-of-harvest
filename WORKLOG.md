@@ -10,6 +10,25 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Marriage for everyone: the roster and the rule
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: the user wants six women and two men the farmer can marry, open to everyone. Written
+  down, no code yet: docs/DESIGN.md gets a "ความรักและแต่งงาน" section (any candidate marries
+  the farmer whatever the farmer's look, no orientation per candidate, no text split by the
+  farmer's gender; the farmer's look chosen on a new game, looks only). The roster: Sayo, Fumi
+  (done), Haru, Yae, Ichiro (existing villagers) and three new ones of our own, Mio (river
+  ferry and fish traps), Kaede (keeps the village shrine) and Ren (the mail carrier). Why
+  existing villagers first: their houses, maps and sprites are already there. Not candidates:
+  Hachiro, Shige (a father), Genzo, Tome, Kiku (old), Kota, Nana (children). STYLE_EN gets the
+  rule: no he / she, bride / groom, husband / wife, boy / girl for the farmer or the spouse.
+  README → Marriage: "beside the bride" became "beside the one they marry". ROADMAP lists one
+  task per candidate plus the look choice.
+- Checked: grepped data/dialogue, data/events and data/*.json for gendered words: the only hit
+  aimed near the farmer, Hachiro's "boy" at the Sayo wedding, answers Kota, so it stays.
+  `test_lang: OK (0 failed)`, `test_relationships: OK (0 failed)`; the title smoke run
+  (--quit-after 300) printed no error or warning lines.
+- Left / next: Haru as a candidate (a band 6 scene, knot answers, proposal, wedding, married
+  rules and lines, Thai). The 6:2 split leaves fewer men; more can be added to candidates later.
 ## 2026-11-07 — Painted paddy ground in the flat view
 Agent: Claude Code (claude-haiku) · Commit: this commit
 - Done: the flat view's calm paddy ground (CropPatches.paddy_ground, MapView.ground_key_in) is now

@@ -30,6 +30,9 @@ written once, plainly and the same way everywhere. test_lang checks the rules ma
   Use "the %s", a colon ("Caught: %s!", "Shipped: %s (%d G)."), or a data field with the
   whole phrase (a kitchen tool's `a_name`). (checked)
 - Singular and plural are two keys ("%s %d day." / "%s %d days.").
+- The farmer has no set gender, and anyone the farmer can marry may marry them
+  (docs/DESIGN.md → ความรักและแต่งงาน). Never call the farmer or the spouse he / she, bride /
+  groom, husband / wife, boy / girl: use "you", a name, "spouse", "partner", "the two of you".
 
 ## Voice
 - Villagers keep their own voices: Kota's "gonna", Tome's "child" and "dear", Kiku's "dear",
