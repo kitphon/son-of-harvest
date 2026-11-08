@@ -109,6 +109,14 @@
 			"choices": [{"text": "The big one that never moves.", "next": "nana_steady", "set": {"nana_steady": true}}, {"text": "The one right beside hers.", "next": "nana_beside", "set": {"nana_beside": true}}]},
 		{"id": "nana_steady", "speaker": "nana", "mood": "happy", "text": "Big and steady and right where you left it. That's Dad all over! He'll say it's too bright. He'll like it.", "next": "nana_end"},
 		{"id": "nana_beside", "speaker": "nana", "mood": "surprised", "text": "Right beside Mama's? ...Yes. So they can blink at each other. I'm drawing it now.", "next": "nana_end"},
-		{"id": "nana_end", "speaker": "nana", "mood": "happy", "text": "Here, two cucumbers from my own row. For a friend who looks at maps. Don't tell Kota I like you.", "next": "end"}
+		{"id": "nana_end", "speaker": "nana", "mood": "happy", "text": "Here, two cucumbers from my own row. For a friend who looks at maps. Don't tell Kota I like you.", "next": "end"},
+
+		{"id": "kiku", "speaker": "kiku", "mood": "neutral", "text": "Sit with me a moment, dear. I want to show you something I don't show people. It's only a bell. A little brass one on a faded red cord."},
+		{"speaker": "kiku", "mood": "sad", "text": "At the turn of the year I ring it once for every person I miss. Once that was a short job. Last winter it took until the fire burned down. Tome sat with me through all of it."},
+		{"speaker": "kiku", "mood": "neutral", "text": "She said, 'Kiku, ring it for the ones you're glad of, too.' But the bell has only the one note. The sad ones and the glad ones would have to share it. What do you think?",
+			"choices": [{"text": "Ring it for those you miss.", "next": "kiku_miss"}, {"text": "Ring it for the glad ones too.", "next": "kiku_glad"}]},
+		{"id": "kiku_miss", "speaker": "kiku", "mood": "neutral", "text": "Those I miss. Yes. They earned every note. ...But I might tap the rim softly for the living. A bell can say two things. I never thought to try.", "next": "kiku_end"},
+		{"id": "kiku_glad", "speaker": "kiku", "mood": "surprised", "text": "Both, then. The plain note for those I miss, and the rim, tapped light, for those I'm glad of. Listen. It rings brighter than I remembered.", "next": "kiku_end"},
+		{"id": "kiku_end", "speaker": "kiku", "mood": "happy", "text": "Here, two daikon, still wet from the ground. For the first name on my glad list. Don't look so startled, dear. Somebody had to be first.", "next": "end"}
 	]
 }

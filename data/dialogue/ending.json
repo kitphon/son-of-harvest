@@ -45,6 +45,8 @@
 		{"speaker": "shige", "face": "calm", "text": "Two years ago that farm was stones and stubbornness. Now Sayo asks me why your greens sell first. I tell her: soil talks, and you listened.", "next": "end"},
 		{"id": "nana", "speaker": "nana", "face": "smile", "text": "Tome let me come in! I wiped my shoes on the mat. Twice. Is that the whole book? It's so long!"},
 		{"speaker": "nana", "face": "calm", "text": "Two years ago I couldn't carry the big bucket. Now I can. Your farm got big, too. Everybody grew. Even Captain. He's a frog now!", "next": "end"},
+		{"id": "kiku", "speaker": "kiku", "face": "smile", "text": "My knees complained all the way up the lane. I told them it was worth it. Tome held the door. She says I took too long on the step."},
+		{"speaker": "kiku", "face": "calm", "text": "Two years ago you couldn't tell a bitter persimmon from a sweet one. Now you string them yourself. I keep a little bell, dear, and your name is in it.", "next": "end"},
 
 		{"id": "close", "speaker": "tome", "face": "smile", "text": "Well! The record is written, but the seasons don't stop for it. Spring is waiting for you out there.", "next": "end"}
 	]

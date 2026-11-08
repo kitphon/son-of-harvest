@@ -1,8 +1,8 @@
 {
-	"_note": "Kiku, an old woman of Minamino who keeps the persimmon orchard round her house and dries the fruit on her rack in fall. Mornings in her orchard (7:30-11:00), lunch and a nap at home; at 14:00 she walks the track and the lane up to the roadside shrine by Minamino's lane, bows a while, back by 15:30 and in the orchard until 17:30, asleep from 19:00. Wet days she stays by her hearth. A villager without hearts (hearts false). Gifts: soft sweet things, tea, warm dishes; she dislikes anything hard to chew. Format: README.md, Villagers.",
+	"_note": "Kiku, an old woman of Minamino who keeps the persimmon orchard round her house and dries the fruit on her rack in fall. Mornings in her orchard (7:30-11:00), lunch and a nap at home; at 14:00 she walks the track and the lane up to the roadside shrine by Minamino's lane, bows a while, back by 15:30 and in the orchard until 17:30, asleep from 19:00. Wet days she stays by her hearth. On her birthday (winter 25, the orchard bare and the dried persimmons all eaten or given away) she keeps it quietly: home in the morning, at the roadside water shrine 8:30-10:00 to thank the spirit for another year, then at her hearth the rest of the day, bed at 19:00. Her heart events: data/events/heart_kiku.json (band 3), heart_kiku_5.json (band 5). Gifts: soft sweet things, tea, warm dishes; she dislikes anything hard to chew. Format: README.md, Villagers.",
 	"id": "kiku",
 	"name": "Kiku",
-	"hearts": false,
+	"birthday": {"season": "winter", "day": 25},
 	"speed": 1.0,
 	"look": {"build": "elder", 
 		"outfit": "kimono",
@@ -18,6 +18,7 @@
 		{"if": {"festival": ["blossom_day"]}, "plan": "festival_day"},
 		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
+		{"if": {"birthday": true}, "plan": "birthday"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
 	],
 	"default": "usual",
@@ -62,6 +63,13 @@
 			{"at": "15:00", "map": "minamino", "route": [{"to": [19, 9]}, {"to": [19, 15]}, {"to": [26, 15]}, {"to": [26, 12]}, {"face": "right"}]},
 			{"at": "17:30", "map": "minamino", "route": [{"to": [26, 15]}, {"to": [22, 15]}, {"face": "up"}]},
 			{"at": "17:45", "map": "kiku_house", "from": [3, 2], "route": [{"face": "right"}]},
+			{"at": "19:00", "map": "away"}
+		],
+		"birthday": [
+			{"at": "06:00", "map": "kiku_house", "from": [3, 2], "route": [{"face": "right"}]},
+			{"at": "08:30", "map": "minamino", "from": [22, 15], "route": [{"to": [19, 15]}, {"to": [19, 9]}, {"to": [2, 9]}, {"face": "up"}, {"wait": 15}]},
+			{"at": "10:00", "map": "minamino", "route": [{"to": [19, 9]}, {"to": [19, 15]}, {"to": [22, 15]}, {"face": "up"}]},
+			{"at": "11:15", "map": "kiku_house", "from": [3, 2], "route": [{"face": "right"}]},
 			{"at": "19:00", "map": "away"}
 		],
 		"wet": [

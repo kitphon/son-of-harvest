@@ -1,0 +1,15 @@
+{
+	"_note": "Kiku's heart event: the first talk once her heart band reaches 3, in Minamino, at her house or in the village (triggers_minamino.json, triggers_kiku_house.json, triggers_town.json). She tells why she bows to the water spirit every afternoon (the flood when she was nine, when two families sat in her persimmon trees till the water tired), asks whether the spirit minds a crooked bow, and gives daikon seed saved from her best row. Sets heart_kiku. Kiku acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "kiku", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "kiku"},
+		{"do": "sound", "key": "step_grass"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events", "at": "kiku"},
+		{"do": "give", "item": "seeds:daikon", "count": 2},
+		{"do": "affection", "who": "kiku", "amount": 5},
+		{"do": "set", "flags": {"heart_kiku": true}},
+		{"do": "actor", "who": "kiku", "to": "plan"},
+		{"do": "actor", "who": "kiku", "leave": true}
+	]
+}
