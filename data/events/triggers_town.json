@@ -4,6 +4,7 @@
 		{"event": "wedding_sayo", "on": ["enter", "minute"], "flags": ["wedding_due", "engaged_sayo"], "time": ["10:00", "18:00"]},
 		{"event": "wedding_fumi", "on": ["enter", "minute"], "flags": ["wedding_due", "engaged_fumi"], "time": ["10:00", "18:00"]},
 		{"event": "wedding_haru", "on": ["enter", "minute"], "flags": ["wedding_due", "engaged_haru"], "time": ["10:00", "18:00"]},
+		{"event": "wedding_ichiro", "on": ["enter", "minute"], "flags": ["wedding_due", "engaged_ichiro"], "time": ["10:00", "18:00"]},
 		{"event": "heart_tome", "on": "talk", "who": "tome", "hearts": {"tome": [3, 6]}},
 		{"event": "heart_tome_5", "on": "talk", "who": "tome", "hearts": {"tome": [5, 6]}, "seen": ["heart_tome"]},
 		{"event": "heart_tome_6", "on": "talk", "who": "tome", "hearts": {"tome": [6, 6]}, "seen": ["heart_tome_5"]},

@@ -1,5 +1,5 @@
 {
-	"_note": "Ichiro burns charcoal in Sakurazaka (the village's east part): a big quiet man who smells of smoke. Out early (6:30) to the bamboo grove and the woods north-east of the creek, where he cuts and hauls wood till noon; lunch at the Hanami teahouse (on its gravel, 12:00-12:45); stacking firewood by his house in the afternoon; home at 17:00, asleep from 20:00. Wet days he works in his earth-floored entry. On his birthday (fall 9, when the burning season starts) the axe rests: home in the morning, then a long sit on the teahouse gravel 10:00-14:00, home again after. His heart events: data/events/heart_ichiro.json (band 3), heart_ichiro_5.json (band 5). Gifts: hearty food, sweet potatoes, chestnuts; ores; he dislikes sweets and milk. Format: README.md, Villagers.",
+	"_note": "Ichiro burns charcoal in Sakurazaka (the village's east part): a big quiet man who smells of smoke. Out early (6:30) to the bamboo grove and the woods north-east of the creek, where he cuts and hauls wood till noon; lunch at the Hanami teahouse (on its gravel, 12:00-12:45); stacking firewood by his house in the afternoon; home at 17:00, asleep from 20:00. Wet days he works in his earth-floored entry. Married to the farmer (married_ichiro, data/marriage.json) he lives at the farmhouse: by the kotatsu in the second room before 6:30 and from 17:00, his woods, lunch at the teahouse and his woodpile as before in between; on a wet day he walks over to split wood in his old earth-floored entry 7:00-17:00. On his birthday (fall 9, when the burning season starts) the axe rests: home in the morning, then a long sit on the teahouse gravel 10:00-14:00, home again after. His heart events: data/events/heart_ichiro.json (band 3), heart_ichiro_5.json (band 5). Gifts: hearty food, sweet potatoes, chestnuts; ores; he dislikes sweets and milk. Format: README.md, Villagers.",
 	"id": "ichiro",
 	"name": "Ichiro",
 	"birthday": {"season": "fall", "day": 9},
@@ -20,6 +20,8 @@
 		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
 		{"if": {"birthday": true}, "plan": "birthday"},
+		{"if": {"flags": ["married_ichiro"], "weather": ["rain", "storm", "snow"]}, "plan": "married_wet"},
+		{"if": {"flags": ["married_ichiro"]}, "plan": "married"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
 	],
 	"default": "usual",
@@ -35,6 +37,22 @@
 		"hate": ["mine:clay"]
 	},
 	"plans": {
+		"married": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "06:30", "map": "sakurazaka", "from": [22, 16], "route": [{"to": [19, 16]}, {"to": [19, 10]}, {"to": [21, 10]}, {"to": [21, 6]}, {"face": "up"}], "loop": [{"work": 20}, {"to": [23, 6]}, {"face": "up"}, {"work": 20}, {"to": [21, 6]}, {"face": "up"}]},
+			{"at": "11:40", "map": "sakurazaka", "route": [{"to": [21, 6]}, {"to": [21, 10]}, {"to": [9, 10]}, {"to": [9, 9]}, {"face": "up"}]},
+			{"at": "12:00", "map": "sakurazaka", "route": [{"wait": 40}]},
+			{"at": "12:45", "map": "sakurazaka", "route": [{"to": [9, 10]}, {"to": [19, 10]}, {"to": [19, 16]}, {"to": [25, 16]}, {"face": "right"}], "loop": [{"work": 15}, {"to": [25, 15]}, {"face": "right"}, {"work": 15}, {"to": [25, 16]}, {"face": "right"}]},
+			{"at": "16:45", "map": "sakurazaka", "route": [{"to": [22, 16]}, {"face": "up"}]},
+			{"at": "17:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "20:00", "map": "away"}
+		],
+		"married_wet": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "07:00", "map": "ichiro_house", "from": [3, 4], "route": [{"face": "left"}], "loop": [{"work": 30}, {"wait": 15}]},
+			{"at": "17:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "20:00", "map": "away"}
+		],
 		"festival_day": [
 			{"at": "06:00", "map": "ichiro_house", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "09:35", "map": "sakurazaka", "from": [22, 16], "route": [{"to": [19, 16]}, {"to": [19, 10]}, {"to": [0, 10]}]},

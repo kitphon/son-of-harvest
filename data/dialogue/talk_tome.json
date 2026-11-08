@@ -11,6 +11,7 @@
 		{"if": {"weekday": ["fri"], "flags": ["heart_sayo_6"], "not_flags": ["spouse", "engaged"]}, "at": ["knot_hint"]},
 		{"if": {"weekday": ["fri"], "flags": ["heart_fumi_6"], "not_flags": ["spouse", "engaged"]}, "at": ["knot_hint"]},
 		{"if": {"weekday": ["fri"], "flags": ["heart_haru_6"], "not_flags": ["spouse", "engaged"]}, "at": ["knot_hint"]},
+		{"if": {"weekday": ["fri"], "flags": ["heart_ichiro_6"], "not_flags": ["spouse", "engaged"]}, "at": ["knot_hint"]},
 		{"if": {"band": [6, 6], "flags": ["heart_tome_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"weekday": ["thu"], "band": [2, 5], "season": ["spring"]}, "at": ["forage_spring"]},
 		{"if": {"weekday": ["thu"], "band": [2, 5], "season": ["summer"]}, "at": ["forage_summer"]},

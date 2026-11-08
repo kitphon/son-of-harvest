@@ -35,7 +35,7 @@ candidate per commit, Sayo and Fumi as the pattern (band 3 / 5 / 6 scenes, knot 
 proposal, wedding, married rules and lines, Thai).
 [x] The roster and the rule written down (2026-11-08): DESIGN, STYLE_EN (no gendered words for the farmer or spouse).
 [x] Haru a candidate (2026-11-08): her band 6 scene was already in; the knot answers, the proposal, the wedding at the shrine (Genzo among the guests), married plans (up to Kaminoda and the hill by day, the farmhouse mornings and evenings, weaving by the kotatsu on wet days), engaged / married / chore lines, Tome's Friday hint, Thai.
-[ ] Ichiro: candidate (his band 6 scene is already in).
+[x] Ichiro a candidate (2026-11-08): the knot answers, the proposal, the wedding at the shrine (Fumi among the guests), married plans (the woods, the teahouse lunch and his woodpile by day, the farmhouse from 17:00, splitting wood in his old entry on wet days), engaged / married / chore lines, Tome's Friday hint, Thai.
 [ ] Mio (new): the ferry hut on the river map, day plans, talk, then candidate.
 [ ] Kaede (new): keeps the village shrine, helps Tome ready weddings, then candidate.
 [ ] Shino (new): a new indigo dye house by Minamino's lane down to the river, day plans, talk, then candidate.

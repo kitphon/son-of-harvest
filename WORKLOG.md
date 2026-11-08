@@ -10,6 +10,39 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Ichiro can be married
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: Ichiro joins data/marriage.json candidates (sayo, fumi, haru, ichiro), the first man
+  among them, open to any farmer. His band 6 scene was already in; this adds the rest on Fumi's
+  and Haru's pattern: marriage.json lines ichiro_married / _taken / _waiting / _band / _room,
+  ichiro_yes (his father said a burner marries the kiln) and ichiro_wedding (Tome on his father
+  never staying for tea, his promise of the kiln's first piece each winter, Fumi teasing that
+  he gives speeches now); propose_ichiro.json and wedding_ichiro.json (Kota and Hachiro on the
+  farmer's side, Fumi, Sayo and Haru on his); the wedding row in triggers_town.json; Tome's
+  Friday hint for heart_ichiro_6. ichiro.json: married rules before the wet one; "married" is
+  his usual day with the farmhouse kotatsu [9, 3] in place of his house (6:00-6:30 and from
+  17:00, away at 20:00 as before); "married_wet" walks over to split wood in his old entry
+  7:00-17:00 (his single wet day is that work, so he keeps it). talk_ichiro.json: engaged_,
+  help_, wed_morning_ / wed_evening_ / wed_out_ picks after the festivals, before the wet one;
+  dear lines only while single. Lines keep his short sentences (STYLE_EN, Voice). 32 new Thai
+  lines (Ichiro ผม / เธอ, the farmer เรา / เธอ).
+- Checked: test_relationships extended (Ichiro in candidates, his wedding row and guests, band 6
+  rows on town and sakurazaka, married plan at 6:10 / 9:00 / 12:20 / 18:00 / 21:00, wet day in
+  his old entry, single morning at his house, Tome's hint, dear lines only single; the
+  per-candidate loops cover his answers, lines, chores and events). Output:
+  `test_relationships: OK (0 failed)`, `test_talk: OK (0 failed)`, `test_lang: OK (0 failed)`,
+  `test_events: OK (0 failed)`, `test_dialogue: OK (0 failed)`, `test_villagers: OK (0 failed)`,
+  `test_ending: OK (0 failed)`, `test_save: OK (0 failed)`, `test_festivals: OK (0 failed)`.
+  Mutation (his married_wet rule removed): `FAIL: a wet day Ichiro splits wood in his old entry,
+  from the farmhouse`, `test_relationships: FAILED (1 failed)`; restored. Smoke runs (title,
+  --demo) printed no error or warning lines. Screenshots: `--event=wedding_ichiro` frame 150
+  (Tome's first line, Ichiro beside the farmer, Fumi, Sayo and Haru on the right) and
+  `--map=house --built=room --flags=married_ichiro,spouse=ichiro --time=18:30` (Ichiro in the
+  second room). shots/ deleted.
+- Left / next: Mio, the first new candidate (a ferry hut on the river map, sprite, day plans,
+  talk, heart scenes, then marriage). As with the others, his birthday and festival plans win
+  over the married ones.
+
 ## 2026-11-08 — The flat view takes the world's light on its sprites
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: art direction section 3. `FlatLight` (scripts/world/flat_light.gd) brings the 3D sprites'
