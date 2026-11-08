@@ -316,6 +316,7 @@ static func new_world(m: MapData) -> Array:
 		var fw := FarmWorld.new()
 		var steps := fw.setup_steps(Game.farm, m.gate_cells())
 		steps.append(func() -> void: fw.add_child(DriftLayer.new(m, Game.farm)))   # petals, leaves, fireflies
+		steps.append(func() -> void: fw.add_child(PuddleLayer.new(m, Game.farm)))   # puddles in rain
 		steps.append(fw.make_story_props.bind(m))   # the door bell, once Hachiro has given it
 		return [fw, steps]
 	var mw := MapWorld.new()

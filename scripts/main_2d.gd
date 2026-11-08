@@ -115,6 +115,7 @@ func _enter_map() -> void:
 		mv.show_snow(Game.snow_rules)   # outdoors only
 		mv.set_snow(Game.snow_cover / 100.0)
 		mv.set_season(Game.season_name())
+	view.add_child(PuddleView.new().setup(m, Game.farm if Game.maps.on_farm() else null))   # puddles in rain, on the ground
 	prints = FootprintView.new()   # footprints in lying snow, over the ground, under everything else
 	view.add_child(prints)
 	var night := NightView.new().setup(m.props, Game.maps.on_farm(), m.id)
