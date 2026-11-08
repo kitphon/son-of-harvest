@@ -33,6 +33,8 @@ func _init() -> void:
 	_little_days()
 	_little_art()
 	_little_lines()
+	_child_days()
+	_child_help_rules()
 
 
 func _process(_delta: float) -> bool:
@@ -46,6 +48,8 @@ func _process(_delta: float) -> bool:
 		_little_talk()
 		_little_gifts()
 		_little_views()
+		_child_help_in_game()
+		_child_views()
 		print("test_child: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -550,9 +554,9 @@ func _little_days() -> void:
 		check(Child.plan_name(ws) == "indoors" and at.call(11 * 60, ws).map == "house", "%s: the toddler stays in" % wet)
 	var fs := _state("toddler", "sunny", 600, "blossom_day")
 	check(Child.plan_name(fs) == "indoors", "a festival day: in the house")
-	# The child stage has no plans of its own yet: the toddler's.
-	check(Child.plan_name(_state("child")) == "yard" and at.call(11 * 60, _state("child")).map == "farm", "the child stage keeps the toddler's days for now")
-	check(Villagers.sprite_key((at.call(11 * 60, _state("child")) as Dictionary).merged({"id": Child.ID})).begins_with("child:figure:child:"), "drawn in the child build")
+	# The child stage has plans of its own (step 5, _child_days).
+	check(Child.plan_name(_state("child")) == "out" and at.call(8 * 60, _state("child")).map == "farm", "the child stage: out in the yard at 8:00")
+	check(Villagers.sprite_key((at.call(8 * 60, _state("child")) as Dictionary).merged({"id": Child.ID})).begins_with("child:figure:child:"), "drawn in the child build")
 	# No little one, no figure.
 	var none := _state("")
 	none.flags.erase(Child.BORN)
@@ -569,7 +573,8 @@ func _little_art() -> void:
 		for back in [Vector2i.DOWN, Vector2i.LEFT]:
 			for mv in [false, true]:
 				var key := Child.figure_key({"stage": st, "look": look, "facing": back, "moving": mv, "walked": 0.5})
-				check(key.begins_with("child:figure:%s:bun:" % Child.figure(st).build), "the key names the build and the small style: %s" % key)
+				var style := "long" if st == "child" else "bun"   # the child grows the long hair out
+				check(key.begins_with("child:figure:%s:%s:" % [Child.figure(st).build, style]), "the key names the build and the small style: %s" % key)
 				var img := PlaceholderArt.image(key)
 				check(img.get_size() == PlaceholderArt.FIGURE_SIZE, "%s is a figure's size" % key)
 				keys[img.get_data()] = true
@@ -867,4 +872,194 @@ func _baby_save() -> void:
 	check(not g.baby_held and not g.holding() and g.held == "", "loaded: the arms are empty")
 	check(g.maps.id == "house" and g.is_cradle(Vector2i(10, 1)) and g.flags.get(Child.STAGE) == "baby", "and the baby is in the cradle")
 	SaveGame.restore({path: null, path + SaveGame.BACKUP: null, path + SaveGame.TEMP: null})
+	g.new_game()
+
+
+# --- step 5: the child out with the spouse, festivals, the morning help ---------------
+
+## A day's state with spouse `id` and a child at the child stage, named Sora.
+func _kid_state(id: String, weather := "sunny", festival := "", weekday := "mon") -> Dictionary:
+	var s := _state("child", weather, 600, festival, weekday)
+	s.flags = _married(id, 0)
+	s.flags[Child.BORN] = 0
+	s.flags[Child.NEWS] = 0
+	s.flags[Child.NAME] = "Sora"
+	s.flags[Child.STAGE] = "child"
+	return s
+
+
+func _kid_at(hm: String, s: Dictionary) -> Dictionary:
+	return Villagers.where(Child.ID, float(DayPlan.minute_of(hm)), s)
+
+
+func _child_days() -> void:
+	check(Child.small_style("long", "child") == "long" and Child.small_style("headband", "child") == "headband"
+		and Child.small_style("straw_hat", "child") == "short" and Child.small_style("tenugui", "child") == "short"
+		and Child.small_style("long", "toddler") == "bun", "the child grows the long hair out and wears a headband, still no hats")
+	var win := Child.with_window("child", "out", "sayo")
+	check(win == [DayPlan.minute_of("10:00"), DayPlan.minute_of("20:00")], "out with the spouse 10:00 to 20:00 (%s)" % [win])
+	check(Child.with_window("child", "out", "mio")[0] == DayPlan.minute_of("10:30"), "with Mio after the ferry: 10:30")
+	check(Child.with_window("child", "festival", "mio") == [DayPlan.minute_of("06:00"), DayPlan.minute_of("20:30")], "a festival: all day together")
+	check(Child.with_window("child", "indoors", "sayo").is_empty() and Child.with_window("toddler", "yard", "sayo").is_empty(),
+		"no time out on a wet day, nor for the toddler")
+	Villagers.reset_day()
+	var s := _kid_state("sayo")
+	check(Child.plan_name(s) == "out", "a sunny day: out")
+	var home: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/animals.json")).dog.home
+	var kennel := Vector2(home[0], home[1]) + Vector2(0.5, 0.5)
+	var w := _kid_at("06:30", s)
+	check(w.map == "house" and w.pos == Villagers.where("sayo", float(DayPlan.minute_of("06:30")), s).pos + Vector2(1, 0), "6:30: beside Sayo at home")
+	for hm in ["07:30", "08:20", "09:10"]:
+		w = _kid_at(hm, s)
+		check(w.map == "farm" and w.pos.distance_to(kennel) <= 2.5, "%s: in the yard with the dog (%s)" % [hm, w.pos])
+	w = _kid_at("09:55", s)
+	check(w.map == "farm" and w.pos.x > 20.0, "9:55: off across the farm to the gate (%s)" % w.pos)
+	var sayo := Villagers.where("sayo", float(DayPlan.minute_of("12:00")), s)
+	w = _kid_at("12:00", s)
+	check(sayo.map == "store" and w.map == "store" and w.pos == sayo.pos + Child.side_of("sayo", "store") and w.get("with_spouse", false),
+		"12:00: at Sayo's side in the store (%s, %s)" % [w.pos, sayo.pos])
+	check(w.facing == DayPlan.facing_of(-Child.side_of("sayo", "store")) and not w.moving, "turned to her")
+	var talk := Talk.pick(Child.ID, s.merged({"band": 3, "again": false, "day_number": 0, "stage": "child", "map": "store", "time": 720}, true))
+	check(talk == "child_sayo", "talking at the store: about helping Sayo (%s)" % talk)
+	w = _kid_at("18:00", s)
+	sayo = Villagers.where("sayo", float(DayPlan.minute_of("18:00")), s)
+	check(w.map == "house" and sayo.map == "house" and w.pos == sayo.pos + Vector2(1, 0), "home with Sayo in the evening")
+	check(_kid_at("20:30", s).map == DayPlan.AWAY and _kid_at("03:00", s).map == DayPlan.AWAY, "in bed from 20:00")
+	# Wet days: in the house, even while the spouse works.
+	for wet in ["rain", "storm", "snow"]:
+		var ws := _kid_state("sayo", wet)
+		Villagers.reset_day()
+		check(Child.plan_name(ws) == "indoors" and _kid_at("12:00", ws).map == "house" and _kid_at("08:00", ws).map == "house", "%s: the child stays in" % wet)
+	# Every spouse: with them from the time out on, on free floor wherever they stand, home together.
+	for id in Marriage.candidates():
+		for day in [["mon", ""], ["sun", ""], ["mon", "blossom_day"], ["mon", "lantern_night"], ["mon", "moon_night"], ["mon", "years_turn"]]:
+			var ks := _kid_state(id, "sunny", day[1], day[0])
+			Villagers.reset_day()
+			var plan := Child.plan_name(ks)
+			check(plan == ("festival" if day[1] != "" else "out"), "%s %s: the plan %s" % [id, day, plan])
+			var span := Child.with_window("child", plan, id)
+			var bad := []
+			var maps := {}
+			for m in range(int(span[0]), int(span[1]), 5):
+				var kid := Villagers.where(Child.ID, float(m), ks)
+				var sp := Villagers.where(id, float(m), ks)
+				if sp.map == DayPlan.AWAY:
+					continue
+				if kid.map != sp.map or kid.pos.distance_to(sp.pos) > 1.01:
+					bad.append("%d: not by them (%s %s / %s %s)" % [m, kid.map, kid.pos, sp.map, sp.pos])
+					continue
+				maps[kid.map] = true
+				if kid.moving or kid.map == "farm":
+					continue
+				var md: MapData = MapManager.load_map(kid.map, ["room"], {})[1]
+				var c := Vector2i(kid.pos.floor())
+				if md == null or not md.in_bounds(c) or md.is_solid(c) or not md.door_at(c).is_empty() or md.prop_at(c).get("kind", "") == "counter":
+					bad.append("%d: %s %s" % [m, kid.map, c])
+			check(bad.is_empty(), "%s %s: at their side on free floor %s" % [id, day, bad.slice(0, 4)])
+			check(day[1] != "" or day[0] == "sun" or maps.size() >= 2, "%s: out to their work and home again %s" % [id, maps.keys()])
+			check(Villagers.where(Child.ID, float(DayPlan.minute_of("19:50")), ks).map in ["house", DayPlan.AWAY] or day[1] != "",
+				"%s %s: home by the evening" % [id, day])
+	# A festival: together all day, at the festival with them.
+	var fs := _kid_state("sayo", "sunny", "blossom_day")
+	Villagers.reset_day()
+	sayo = Villagers.where("sayo", float(DayPlan.minute_of("13:30")), fs)
+	w = _kid_at("13:30", fs)
+	check(w.map == sayo.map and sayo.map == "town", "Blossom Day 13:30: in the village with Sayo (%s)" % w.map)
+	check(Talk.pick(Child.ID, fs.merged({"band": 3, "again": false, "day_number": 0, "stage": "child", "map": "town", "time": 810}, true)).begins_with("child_festival_"),
+		"talking on the festival: the festival lines")
+	Villagers.reset_day()
+
+
+func _child_help_rules() -> void:
+	var farm := FarmGrid.new(JSON.parse_string(FileAccess.get_file_as_string("res://data/crops.json")))
+	var weeds := func() -> int:
+		var n := 0
+		for i in farm.cells.size():
+			if farm.cells[i].obj == FarmGrid.Obj.WEED and farm.can_farm(Vector2i(i % FarmGrid.W, i / FarmGrid.W)):
+				n += 1
+		return n
+	for c in [Vector2i(6, 10), Vector2i(7, 10), Vector2i(8, 11)]:
+		farm.cell(c).obj = FarmGrid.Obj.WEED
+	var before: int = weeds.call()
+	check(before >= 3, "a field with weeds (%d)" % before)
+	var f: Dictionary = _kid_state("sayo").flags
+	var most := int(Child.data().help.weeds)
+	check(most == 2 and int(Child.data().help.band) == 5, "two weeds from band 5")
+	check(Child.help(f, farm, 4, "sunny") == 0 and weeds.call() == before, "band 4: no help")
+	check(Child.help(f, farm, 5, "rain") == 0 and Child.help(f, farm, 6, "snow") == 0 and Child.help(f, farm, 6, "storm") == 0, "wet days: no help")
+	f[Child.STAGE] = "toddler"
+	check(Child.help(f, farm, 6, "sunny") == 0, "a toddler doesn't weed yet")
+	f[Child.STAGE] = "child"
+	check(not f.has(Child.HELP_WEEDS), "no flag without help")
+	check(Child.help(f, farm, 5, "sunny") == most and weeds.call() == before - most and f.get(Child.HELP_WEEDS, false), "band 5, sunny: two weeds pulled, flagged")
+	var wet := 0
+	for d in farm.cells:
+		wet += 1 if d.wet else 0
+	check(wet == 0, "the child only weeds; the watering is the spouse's")
+	check(Child.help_text(2, "Sora") == "Sora pulled up 2 weeds in the field this morning.", "the message: %s" % Child.help_text(2, "Sora"))
+	check(Child.help_text(1, "Sora") == "Sora pulled up a weed in the field this morning." and Child.help_text(0, "Sora") == "", "one weed, and none")
+	var lone := FarmGrid.new(JSON.parse_string(FileAccess.get_file_as_string("res://data/crops.json")))
+	for i in lone.cells.size():
+		lone.cells[i].obj = FarmGrid.Obj.NONE
+	lone.cell(Vector2i(6, 10)).obj = FarmGrid.Obj.WEED
+	check(Child.help(f, lone, 6, "sunny") == 1 and lone.pull_weeds(2) == 0, "one weed left: one pulled, then none")
+	check(Child.help(f, lone, 6, "sunny") == 0 and not f.has(Child.HELP_WEEDS), "nothing to pull: no flag")
+	for k in ["Sora pulled up a weed in the field this morning.", "Sora pulled up 2 weeds in the field this morning."]:
+		Lang.set_language("th")
+		var t := Lang.t(k)
+		Lang.set_language("en")
+		check(t != k and not "%" in t, "the help message in Thai: %s" % t)
+
+
+func _child_help_in_game() -> void:
+	var g: Node = root.get_node("Game")
+	_little_home(g, "child")
+	var messages := []
+	var note := func(t: String) -> void: messages.append(t)
+	g.message.connect(note)
+	for c in [Vector2i(6, 10), Vector2i(7, 10), Vector2i(8, 11)]:
+		g.farm.cell(c).obj = FarmGrid.Obj.WEED
+	g.affection.points[Child.ID] = int(Affection.rules().bands[5])
+	g.weather_tomorrow = "sunny"
+	g.end_day()
+	check(g.weather_today == "sunny" and g.child_help_news == "Sora pulled up 2 weeds in the field this morning.", "a sunny morning at band 5: the news waits (%s)" % g.child_help_news)
+	check(g.flags.get(Child.HELP_WEEDS, false), "the flag for the day")
+	g.go_to_spawn("farm", "home")
+	messages.clear()
+	g.map_arrived()
+	var told: String = messages.back() if not messages.is_empty() else ""
+	check("Sora pulled up 2 weeds" in told and (g.help_news == "") and g.child_help_news == "", "told on stepping out (%s)" % told)
+	var spouse_at := told.find("Sayo")
+	check(spouse_at < 0 or spouse_at < told.find("Sora"), "after the spouse's line (%s)" % told)
+	var said := []
+	var hear := func(id: String, at: String) -> void: said.append([id, at])
+	g.dialogue_requested.connect(hear)
+	g.hour = 8
+	g.talk_to(Child.ID, Vector2i.DOWN)
+	check(not said.is_empty() and said.back() == ["talk_child", "child_helped"], "talking that morning: the weeds %s" % [said])
+	g.dialogue_requested.disconnect(hear)
+	# Band 4 the next morning: no help.
+	g.affection.points[Child.ID] = int(Affection.rules().bands[4])
+	g.weather_tomorrow = "sunny"
+	g.end_day()
+	check(g.child_help_news == "" and not g.flags.has(Child.HELP_WEEDS), "band 4: no help")
+	g.message.disconnect(note)
+	g.new_game()
+
+
+## Both views draw the child at Sayo's side in the store at noon.
+func _child_views() -> void:
+	var g: Node = root.get_node("Game")
+	_little_home(g, "child")
+	g.hour = 12
+	var v3: Node = load("res://scripts/world3d/villager_sprites.gd").new("store")
+	var v2: Node = load("res://scripts/world/villager_view.gd").new("store")
+	root.add_child(v3)
+	root.add_child(v2)
+	check(Child.ID in v3.shown() and Child.ID in v2.shown() and "sayo" in v3.shown(), "noon: the child with Sayo in the store in both views")
+	if Child.ID in v3.shown() and Child.ID in v2.shown():
+		var key := str(v3._sprites[Child.ID].get_meta("key"))
+		check(key.begins_with("child:figure:child:") and v2._sprites[Child.ID].get_meta("key") == key, "in the child build in both (%s)" % key)
+	v3.queue_free()
+	v2.queue_free()
 	g.new_game()

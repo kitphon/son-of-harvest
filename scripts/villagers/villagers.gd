@@ -222,11 +222,11 @@ static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 	if actors.has(id):   # acting in an event: its place, not the plan's
 		return actors[id].duplicate()
 	var w: Dictionary = FerryRun.ride(plans[id].where(plan_minute(id, t)), str(s.get("season", "")))   # onto the ferry boat in a crossing
-	if id == Child.ID:   # at the spouse's side while both are at home; drawn in the child's colours
+	if id == Child.ID:   # at the spouse's side while both are at home or out together; drawn in the child's colours
 		var stage := str(s.flags.get(Child.STAGE, ""))
 		var spouse := Marriage.spouse(s.flags)
 		if spouse != "" and plans.has(spouse):
-			w = Child.by_spouse(w, where(spouse, t, s), stage)
+			w = Child.place(w, where(spouse, t, s), stage, t, spouse, Child.plan_name(s))
 		w.stage = stage
 		w.look = Child.colours(s.flags)
 	var turn: Variant = _turns.get(id)

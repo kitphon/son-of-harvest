@@ -156,6 +156,7 @@ var animals := Animals.new()       # the coop, the barn and the dog (data/animal
 var animal_news: Array[String] = []   # what happened to the animals overnight, told in the coop
 var build_news := ""                  # the builder stays away today (a storm), told outside
 var help_news := ""                   # what the spouse did this morning (Marriage.help), told outside
+var child_help_news := ""             # what the child did this morning (Child.help), told after it
 var affection := Affection.new()   # how much each villager likes the farmer (saved)
 var goals := Goals.new()           # Tome's first-week list: which goals are done (data/goals.json, saved)
 var goals_on := true               # the list is checked and shown (off for plain --demo runs; `--goals` turns it on)
@@ -241,6 +242,7 @@ func new_game() -> void:
 	animal_news = []
 	build_news = ""
 	help_news = ""
+	child_help_news = ""
 	fishing = Fishing.new(fish_data)
 	fish_caught = {}
 	forage_picked = {}
@@ -645,10 +647,11 @@ func map_arrived() -> void:
 	if animals.home_on_map(maps.id) != "" and not animal_news.is_empty():
 		message.emit(Lang.join(animal_news))
 		animal_news.clear()
-	if (build_news != "" or help_news != "") and maps.id != MapManager.HOME:
-		message.emit(Lang.join([help_news, build_news].filter(func(t): return t != "")))
+	if (build_news != "" or help_news != "" or child_help_news != "") and maps.id != MapManager.HOME:
+		message.emit(Lang.join([help_news, child_help_news, build_news].filter(func(t): return t != "")))
 		build_news = ""
 		help_news = ""
+		child_help_news = ""
 
 
 ## A new day starts at home: in the house, by the futon.
@@ -1092,6 +1095,7 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 	var spouse_id := Marriage.spouse(flags)   # the child's news or birth due this morning (triggers_house.json)
 	Child.day_start(flags, day_number(), affection.band(spouse_id) if spouse_id != "" else 0, festival_today() != "")
 	help_news = spouse_help()
+	child_help_news = child_help()
 	go_to_spawn(wake_map, wake_spawn)
 	day_started.emit()
 	changed.emit()
@@ -1812,7 +1816,7 @@ func show_ending(page := "ending") -> Dictionary:
 	var r := Ending.compare(ending_record(values), first_day, Ending.last_page(year_pages, year), field)
 	r.page = page
 	r.year = year
-	r.spouse = _spouse_line()
+	r.spouse = _spouse_line(page)
 	year_pages[year] = Ending.page_of(year, values, field, r)
 	for k in flags.keys():
 		if String(k).begins_with("ending_rank_") or String(k).begins_with("ending_friend_") \
@@ -1846,15 +1850,24 @@ func spouse_help() -> String:
 	return Marriage.help_text(done, String(Villagers.all().get(id, {}).get("name", id)))
 
 
+## The child's morning help (Child.help, data/child.json help): from the child stage and
+## heart band 5, on a dry day, a weed or two pulled in the field. Returns what the farmer is
+## told on stepping out, after the spouse's line ("" when nothing was pulled).
+func child_help() -> String:
+	return Child.help_text(Child.help(flags, farm, affection.band(Child.ID), weather_today), Child.child_name(flags))
+
+
 ## The record's line for a married farmer ("" single; Ending.spouse_line): the spouse's name
-## and the day the wedding was set for (Marriage.DAY, kept after the wedding).
-func _spouse_line() -> String:
+## and the day the wedding was set for (Marriage.DAY, kept after the wedding), then the child's
+## name once born (Ending.child_part: on the yearly page with how far they have grown).
+func _spouse_line(page := "ending") -> String:
 	var id := Marriage.spouse(flags)
 	if id == "":
 		return ""
 	var n: Variant = flags.get(Marriage.DAY)
 	var day_text := short_date_of(int(n)) if n is int or n is float else ""
-	return Ending.spouse_line(id, String(Villagers.all().get(id, {}).get("name", id)), day_text)
+	var kid := Ending.child_part(Child.child_name(flags), Child.stage(flags, day_number()), page) if Child.is_born(flags) else ""
+	return Ending.spouse_line(id, String(Villagers.all().get(id, {}).get("name", id)), day_text, Ending.data(), kid)
 
 
 # --- fatigue and tired states (data/body.json) -----------------------------

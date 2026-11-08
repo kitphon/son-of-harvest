@@ -595,6 +595,14 @@
 		"%s is awake and kicking at the quilt.": "%sตื่นแล้ว ถีบผ้าห่มดุ๊กดิ๊ก",
 		"%s watches the lantern light and yawns.": "%sมองแสงโคมแล้วหาวหวอด",
 		"%s has drifted off to sleep.": "%sเคลิ้มหลับไปแล้ว",
-		"%s is too little for presents yet.": "%sยังเล็กเกินกว่าจะรับของขวัญ"
+		"%s is too little for presents yet.": "%sยังเล็กเกินกว่าจะรับของขวัญ",
+		"%s pulled up a weed in the field this morning.": "เช้านี้%sช่วยถอนวัชพืชในไร่ไปหนึ่งต้น",
+		"%s pulled up %d weeds in the field this morning.": "เช้านี้%sช่วยถอนวัชพืชในไร่ไป %d ต้น",
+		"Married %s on %s, with %s": "แต่งงานกับ%s เมื่อ%s มีลูกชื่อ%s",
+		"Married to %s, with %s": "แต่งงานกับ%s มีลูกชื่อ%s",
+		"%s, still a baby": "%s ยังเป็นทารก",
+		"%s, crawling now": "%s ตอนนี้คลานได้แล้ว",
+		"%s, walking now": "%s ตอนนี้เดินเตาะแตะได้แล้ว",
+		"%s, running about now": "%s ตอนนี้วิ่งเล่นได้แล้ว"
 	}
 }

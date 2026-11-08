@@ -10,6 +10,17 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-09 — Merge: the child, step 5
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged 6f3404f the child, step 5 (Opus, own worktree) onto the Nana / Kiku merge.
+  Conflicts in data/ending.json (Kiku's 15-friend scale and 40 stars kept, the child's
+  child_line / child_undated / stages and their note added), the Thai dialogue (both sides'
+  lines) and WORKLOG.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`;
+  the four smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print no error
+  or warning lines.
+- Left / next: Kiku's band 6 scene; the child's portrait and holding the crawler (step 5 entry).
+
 ## 2026-11-09 — Merge: Nana's band 6 scene and hearts for Kiku
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged e99c579 Nana's band 6 scene (Sonnet, own worktree) and 7413aab hearts for Kiku
@@ -55,6 +66,59 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
   test_menu first failed on a stale Thai calendar key, fixed); the four smoke runs print no
   error or warning lines. Two fixes on the way: the font cannot draw ";" and a choice must fit.
 - Left / next: Kiku's and Nana's band 6 scenes; the child, step 5.
+## 2026-11-09 — The child, step 5: out with the spouse, the morning help, the record's line
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done:
+  - data/child.json `days.child`: the child stage's own speed (1.0) and plans. `out` (sunny
+    days): beside the spouse at home from 6:00, the yard by the kennel from 7:00, off along the
+    farm path to the gate at 9:35; `festival` (the four festival days): with the spouse all day;
+    `indoors` (rain, storm, snow): the second room. `with` says when the child is at the
+    spouse's side wherever they are: `plans.out` 10:00-20:00, `plans.festival` 6:00-20:30,
+    `join_at.mio` 10:30 (after her ferry), `side` [-1, 0], `tries` (the next free sides),
+    `sides` (per spouse and map, none needed). `by_spouse.child` [1, 0] at home.
+    Ours: the child goes along to the spouse's work late in the morning and comes home with
+    them, and goes to every festival with them, as DESIGN's table says.
+  - Child: `with_window`, `side_of`, `free_side` (while the spouse stands still, the first side
+    that is in the map and not a wall, a door or a counter; MapManager.data), `place` (the
+    time out with the spouse, else `by_spouse`); Villagers.where calls `place` for the id
+    `child`. `small_style(style, stage)`: a stage's own `figures.<stage>.styles` first, so the
+    child build wears the spouse's long hair and headband (no tenugui or straw hat).
+  - The morning help: data/child.json `help` (stage child, band 5, weather sunny, weeds 2,
+    messages one / more), `Child.help` / `help_text`, `FarmGrid.pull_weeds` (row by row from the
+    field's top-left), `Game.child_help` from `end_day` after the spouse's help, the message
+    `child_help_news` joined after the spouse's line on stepping out; flag `help_weeds` for the
+    day. The spouse waters and feeds, the child only weeds.
+  - Talk: 22 `child_` lines in talk_child.json (the yard, the weeds that morning, festivals,
+    rain, close, again, and one for each spouse's work picked by `married_<id>` and that work's
+    maps) and their Thai.
+  - The record: data/ending.json `spouse.child_line` / `child_undated` / `stages`,
+    `Ending.child_part`, `Ending.spouse_line(..., child)`; `Game._spouse_line(page)`: the record
+    says "Married Sayo on Spring 14, with Hikari", the yearly page "..., with Hikari, walking
+    now". Thai for the lines and the help messages.
+  - README → Villagers (the child out with the spouse), → Ending; AGENTS.md (test_child,
+    test_ending, the screenshot flags).
+- Checked: test_child new checks (styles; the windows; Sayo's day: 6:30 beside her at home,
+  the yard by the kennel at 7:30 / 8:20 / 9:10, crossing the farm at 9:55, at her side in the
+  store at 12:00 turned to her, home with her at 18:00, away from 20:00; in on rain / storm /
+  snow; every spouse on a Monday, a Sunday and the four festivals: by them every 5 minutes of
+  the window, on free floor whenever standing, at least two maps on work days; Blossom Day
+  13:30 in the village with Sayo; the store and festival talk picks; the weeds: none at band 4,
+  on wet days or for a toddler, two at band 5 sunny with the flag, no watering, one / none, the
+  messages and their Thai; in the game: the news after `end_day`, told on stepping out after
+  Sayo's line, the `child_helped` line that morning, none at band 4; both views draw the child
+  by Sayo in the store). test_ending: the child part, both lines, the longest line of every
+  spouse x name x stage x page fits the paper in English and Thai, the record and the yearly
+  page in the game at 70 and 200 days, no child no part. Mutation (`place` never seeing the
+  spouse's position): `FAIL: 12:00: at Sayo's side in the store ((0.0, 0.0), (3.5, 2.5))`,
+  `FAIL: home with Sayo in the evening`, `FAIL: noon: the child with Sayo in the store in both
+  views`, `test_child: FAILED (61 failed)`; restored. All 31 suites printed `OK (0 failed)`. Smoke runs (title, `-- --demo`,
+  `--map=town`, `--mine=3`, the child at the store, on Blossom Day and with Ren in
+  main_2d.tscn) printed no error or warning lines. Screenshot `--demo --weather=sunny
+  --flags=married_sayo,spouse=sayo --child=child --time=12:00 --map=store` frame 39: the child
+  behind the counter at Sayo's left. shots/ deleted.
+- Left / next: the five steps of DESIGN → ลูก are done. Not done: holding the crawler; a
+  portrait for the child; the child hops a cell when the spouse stops where the first side is
+  not free; on the walk between maps the child is not shown (as the spouses).
 
 ## 2026-11-08 — Merge: the child, step 4
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

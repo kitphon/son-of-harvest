@@ -24,16 +24,16 @@
 		]
 	},
 	"figures": {
-		"_about": "How the crawler, the toddler and the child are drawn (Child.figure_key, FigureArt.draw_little): build is the FigureArt body (crawler on hands and knees, toddler and child standing); stride is the cells moved per walk frame (short arms and legs take short steps). styles: the spouse's hair style as the little one wears it (no long hair, headbands, tenugui or straw hats on someone this small: long hair is tied up in a bun).",
+		"_about": "How the crawler, the toddler and the child are drawn (Child.figure_key, FigureArt.draw_little): build is the FigureArt body (crawler on hands and knees, toddler and child standing); stride is the cells moved per walk frame (short arms and legs take short steps). styles: the spouse's hair style as the little one wears it (no long hair, headbands, tenugui or straw hats on someone this small: long hair is tied up in a bun). A stage's own styles stand before them: the child grows the spouse's long hair out and wears a headband like them, but still no tenugui or straw hat.",
 		"crawler": {"build": "crawler", "stride": 0.2},
 		"toddler": {"build": "toddler", "stride": 0.3},
-		"child": {"build": "child", "stride": 0.4},
+		"child": {"build": "child", "stride": 0.4, "styles": {"long": "long", "headband": "headband"}},
 		"styles": {"long": "bun", "headband": "short", "tenugui": "short", "straw_hat": "short"}
 	},
 	"days": {
-		"_about": "Where the crawler and the toddler are through the day (Child.plan, shown by Villagers like a villager): per stage a speed (cells per game minute), rules ({if: the conditions of a villager rule, plan}: the first that holds picks the day's plan, else default) and plans in the villager plan format (DayPlan; README.md, Villagers). by_spouse: while the plan and the spouse are both on map `home`, the little one stays at the spouse's side, this many cells off the spouse, turned to them (the crawler on the mat in front of them, the toddler beside them at the kotatsu). A stage with no plans of its own (the child, until step 5 gives it some) uses the toddler's. Ours: the crawler never leaves the house; the toddler plays in the yard by the dog's kennel from 9:00 to 15:45 on dry days and stays in on wet days and festival days; both are in bed from 20:00.",
+		"_about": "Where the crawler and the toddler are through the day (Child.plan, shown by Villagers like a villager): per stage a speed (cells per game minute), rules ({if: the conditions of a villager rule, plan}: the first that holds picks the day's plan, else default) and plans in the villager plan format (DayPlan; README.md, Villagers). by_spouse: while the plan and the spouse are both on map `home`, the little one stays at the spouse's side, this many cells off the spouse, turned to them (the crawler on the mat in front of them, the toddler beside them at the kotatsu). A stage with no plans of its own uses the toddler's. The child stage has its own, with times out at the spouse's side (child.with). Ours: the crawler never leaves the house; the toddler plays in the yard by the dog's kennel from 9:00 to 15:45 on dry days and stays in on wet days and festival days; both are in bed from 20:00.",
 		"home": "house",
-		"by_spouse": {"crawler": [0, 1], "toddler": [1, 0]},
+		"by_spouse": {"crawler": [0, 1], "toddler": [1, 0], "child": [1, 0]},
 		"crawler": {
 			"speed": 0.4,
 			"rules": [],
@@ -65,7 +65,47 @@
 					{"at": "20:00", "map": "away"}
 				]
 			}
+		},
+		"child": {
+			"speed": 1.0,
+			"rules": [
+				{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "indoors"},
+				{"if": {"festival": ["blossom_day", "lantern_night", "moon_night", "years_turn"]}, "plan": "festival"}
+			],
+			"default": "out",
+			"plans": {
+				"out": [
+					{"at": "06:00", "map": "house", "from": [10, 3], "loop": [{"face": "left"}, {"wait": 20}, {"to": [10, 1]}, {"to": [9, 1]}, {"face": "down"}, {"wait": 15}, {"to": [10, 1]}, {"to": [10, 3]}]},
+					{"at": "07:00", "map": "farm", "from": [4, 4], "route": [{"to": [10, 4]}], "loop": [{"to": [12, 4]}, {"face": "down"}, {"wait": 5}, {"to": [12, 5]}, {"face": "left"}, {"wait": 4}, {"to": [12, 4]}, {"to": [10, 4]}, {"to": [10, 5]}, {"face": "right"}, {"wait": 5}, {"to": [10, 4]}]},
+					{"at": "09:35", "map": "farm", "from": [10, 4], "route": [{"to": [10, 5]}, {"to": [30, 5]}, {"to": [30, 6]}, {"face": "right"}]},
+					{"at": "10:00", "map": "away"}
+				],
+				"festival": [
+					{"at": "06:00", "map": "house", "from": [10, 3], "loop": [{"face": "left"}, {"wait": 20}, {"to": [10, 1]}, {"to": [9, 1]}, {"face": "down"}, {"wait": 15}, {"to": [10, 1]}, {"to": [10, 3]}]},
+					{"at": "20:30", "map": "away"}
+				],
+				"indoors": [
+					{"at": "06:00", "map": "house", "from": [10, 3], "loop": [{"face": "left"}, {"wait": 20}, {"to": [10, 1]}, {"to": [9, 1]}, {"face": "down"}, {"wait": 15}, {"to": [10, 1]}, {"to": [10, 3]}]},
+					{"at": "20:00", "map": "away"}
+				]
+			},
+			"with": {
+				"_about": "When the child is out with the spouse (Child.place): plans names the day plans that have a time out together, [from, until): from then, wherever the spouse is (any map but away), the child is at the spouse's side, on the home map at by_spouse's offset, elsewhere at side (sides.<spouse>.<map> for a map of their own; while the spouse stands still and that cell is a wall, a door, a counter or off the map, the first free of tries), turned to them, walking along while they walk. join_at moves the out plan's from for a spouse whose late morning is not a place to join them (Mio poles the ferry until about 10:00). Ours: the child plays in the yard by the kennel from 7:00, walks off by the gate at 9:35, is with the spouse at their work from 10:00 and comes home with them; on a festival day with the spouse all day, home again by 20:30.",
+				"plans": {"out": ["10:00", "20:00"], "festival": ["06:00", "20:30"]},
+				"join_at": {"mio": "10:30"},
+				"side": [-1, 0],
+				"tries": [[1, 0], [0, 1], [-1, 1], [1, 1], [0, -1]],
+				"sides": {}
+			}
 		}
+	},
+	"help": {
+		"_about": "The child's morning help (Child.help, from Game.end_day after the spouse's): at stage `stage`, the child's heart band at least `band`, on a day whose weather is in `weather`, up to `weeds` weeds in the field are pulled (FarmGrid.pull_weeds, row by row from the field's top-left). The spouse waters and feeds; the child only weeds, so the two never do the same chore. The farmer hears it on stepping out, after the spouse's line (messages one / more, %s the child's name, %d how many). Kept as the flag help_weeds for the day, for the child's talk line. Ours: two weeds is a small hand's morning, a nudge and not a hoe's worth; rain, storms and snow keep the child in.",
+		"stage": "child",
+		"band": 5,
+		"weather": ["sunny"],
+		"weeds": 2,
+		"messages": {"one": "%s pulled up a weed in the field this morning.", "more": "%s pulled up %d weeds in the field this morning."}
 	},
 	"gifts_from": "toddler",
 	"gifts": {
