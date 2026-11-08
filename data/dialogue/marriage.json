@@ -47,6 +47,28 @@
 		{"speaker": "farmer", "mood": "happy", "text": "And the field's first harvest is yours. I promise."},
 		{"speaker": "ichiro", "mood": "neutral", "text": "...Hm. Good. Now who pours my tea at lunch?"},
 		{"speaker": "fumi", "mood": "happy", "text": "I do, as always. I'm getting married, Ichiro, not moving to the moon."},
+		{"speaker": "tome", "mood": "happy", "text": "There. Done and tied. Off home with you both, and be good to each other.", "next": "end"},
+
+		{"id": "haru_married", "speaker": "haru", "mood": "happy", "text": "Another knot? I braided the first one into my sandal strap. One promise is plenty.", "next": "end"},
+		{"id": "haru_taken", "speaker": "haru", "mood": "sad", "text": "Don't. That knot is a promise, and yours is already made to somebody else. Keep it for them.", "next": "end"},
+		{"id": "haru_waiting", "speaker": "haru", "mood": "happy", "text": "Yes still means yes. Three days. I'm weaving myself new sandals for the shrine steps.", "next": "end"},
+		{"id": "haru_band", "speaker": "haru", "mood": "surprised", "text": "A mizuhiki knot? For me? ...Not yet. I don't even know how wide you walk."},
+		{"speaker": "haru", "mood": "neutral", "text": "Come up the lane more often. Then ask me again.", "next": "end"},
+		{"id": "haru_room", "speaker": "haru", "mood": "surprised", "text": "Red and white, twisted tight... Is that for me?"},
+		{"speaker": "haru", "mood": "neutral", "text": "I want to say yes. But your farmhouse is one room, and my straw alone would fill it."},
+		{"speaker": "haru", "mood": "happy", "text": "Ask Hachiro for a second room. Then come and find me by the rack.", "next": "end"},
+		{"id": "haru_yes", "speaker": "haru", "mood": "surprised", "text": "That's a mizuhiki knot. Paper cord, twisted tight. I know a good twist when I see one."},
+		{"speaker": "farmer", "mood": "neutral", "text": "Then you know what it means. Will you marry me?"},
+		{"speaker": "haru", "mood": "sad", "text": "I told everyone I stayed for the hill. That was never all of it."},
+		{"speaker": "haru", "mood": "happy", "text": "Yes. I'll weave in Kaminoda by day and walk down to the farm at night. From the lookout I'll wave at our own roof."},
+		{"speaker": "haru", "mood": "neutral", "text": "Tome will want three days to ready the shrine. I'll need them for a new pair of sandals.", "next": "end"},
+		{"id": "haru_wedding", "speaker": "tome", "mood": "happy", "text": "Well. The whole village up at the shrine, and not even a festival. Settle down, all of you."},
+		{"speaker": "tome", "mood": "neutral", "text": "Haru, your grandmother wove the sandals I was married in. She would be proud to see you on these steps in your own."},
+		{"speaker": "tome", "mood": "neutral", "text": "Now take each other's hands and tie the knot round them both. Tight. A loose knot is a loose promise."},
+		{"speaker": "haru", "mood": "happy", "text": "A tight weave, then. It lasts. Every afternoon I'll wave from the hill, and every evening I'll come home down it."},
+		{"speaker": "farmer", "mood": "happy", "text": "And I'll wave back. Every time. I promise."},
+		{"speaker": "genzo", "mood": "neutral", "text": "Hmph. And who ties my sheaves in the fall?"},
+		{"speaker": "haru", "mood": "happy", "text": "I do, Genzo. I'm marrying the farm down the hill, not leaving the racks."},
 		{"speaker": "tome", "mood": "happy", "text": "There. Done and tied. Off home with you both, and be good to each other.", "next": "end"}
 	]
 }

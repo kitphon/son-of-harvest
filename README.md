@@ -384,7 +384,7 @@ her `sandals_` lines, after band 6 her `dear_` lines). Shige has the first two (
 `triggers_shige_house`, `triggers_town`; after band 5 his `pumpkin_` lines). `-- --demo --hearts=N` starts everyone at the start of band N.
 
 **Marriage** (`data/marriage.json`, `Marriage` in scripts/villagers/marriage.gd): courting ends
-at the shrine. The candidates are Sayo and Fumi. The proposal item is the **mizuhiki knot**
+at the shrine. The candidates are Sayo, Fumi and Haru, open to the farmer whatever the farmer's look (docs/DESIGN.md). The proposal item is the **mizuhiki knot**
 (`keep:mizuhiki`, a keepsake, 1500 G at the general store, any season). Held overhead and
 taken to a candidate (`Game.talk_to` → `Game.propose`) it is a proposal, not a gift: yes when
 their band is 6, their band 6 scene (`heart_<id>_6`) was seen, the house's second room is

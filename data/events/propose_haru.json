@@ -1,0 +1,13 @@
+{
+	"_note": "The proposal to Haru (data/marriage.json): played by Game.propose when the farmer holds the mizuhiki knot out to Haru and the rules hold (the knot is taken and the engaged flags set before it starts). Haru acts in it from where the talk found them, faces the farmer through the lines and goes back to their day plan. The wedding follows in three days at the shrine (wedding_haru.json). Format: README.md, Villagers → Marriage.",
+	"steps": [
+		{"do": "actor", "who": "haru", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "haru"},
+		{"do": "sound", "key": "chime_morning"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "marriage", "at": "haru_yes"},
+		{"do": "affection", "who": "haru", "amount": 10},
+		{"do": "actor", "who": "haru", "to": "plan"},
+		{"do": "actor", "who": "haru", "leave": true}
+	]
+}

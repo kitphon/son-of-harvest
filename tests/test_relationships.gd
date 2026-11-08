@@ -829,7 +829,7 @@ func check(ok: bool, what: String) -> void:
 ## morning it is due and the trigger rows that play the wedding in the village.
 func _marriage_rules() -> void:
 	check(Marriage.check() == "", "marriage data: %s" % Marriage.check())
-	check(Marriage.candidates() == ["sayo", "fumi"] and Marriage.item() == "keep:mizuhiki", "Sayo and Fumi can marry; the knot is %s" % Marriage.item())
+	check(Marriage.candidates() == ["sayo", "fumi", "haru"] and Marriage.item() == "keep:mizuhiki", "Sayo, Fumi and Haru can marry; the knot is %s" % Marriage.item())
 	check(Keepsakes.name_of(Marriage.item()) == "Mizuhiki knot" and Keepsakes.keepsake(Marriage.item()).look.shape == "knot", "the knot is a keepsake of its own look")
 	var art := PlaceholderArt.tex(PlaceholderArt.item_key(Marriage.item()))
 	check(art != null and art.get_width() == 14, "the knot has its icon")
@@ -867,13 +867,17 @@ func _marriage_rules() -> void:
 	check(t.pick("enter", s.merged({"flags": {"engaged": "sayo", "engaged_sayo": true}}, true)) == "", "not before the day")
 	check(t.pick("enter", s.merged({"seen": {"wedding_sayo": true}}, true)) == "", "once")
 	check(t.pick("enter", s.merged({"flags": {"wedding_due": true, "engaged": "fumi", "engaged_fumi": true}}, true)) == "wedding_fumi", "Fumi's for Fumi")
+	check(t.pick("enter", s.merged({"flags": {"wedding_due": true, "engaged": "haru", "engaged_haru": true}}, true)) == "wedding_haru", "Haru's for Haru")
+	var guests := FileAccess.get_file_as_string(EventRunner.DIR + "wedding_haru.json")
+	check(guests.contains('"who": "genzo"') and guests.contains('"at": "haru_wedding"'), "Genzo of Kaminoda is at Haru's wedding")
 	# Every candidate's scenes run and set what they say.
 	for id in Marriage.candidates():
 		for kind in ["propose", "wedding"]:
 			check(EventRunner.open(Marriage.event(kind, id), null).error == "", "%s runs" % Marriage.event(kind, id))
-	var tables := {"fumi": ["town", "teahouse", "sakurazaka"]}
-	for m in tables.fumi:
-		check("heart_fumi_6" in FileAccess.get_file_as_string(EventRunner.DIR + "triggers_%s.json" % m), "Fumi's band 6 scene on %s" % m)
+	var tables := {"fumi": ["town", "teahouse", "sakurazaka"], "haru": ["town", "kaminoda", "hill", "haru_house"]}
+	for id in tables:
+		for m in tables[id]:
+			check(("heart_%s_6" % id) in FileAccess.get_file_as_string(EventRunner.DIR + "triggers_%s.json" % m), "%s's band 6 scene on %s" % [id, m])
 
 
 ## The spouse's married day plans (at the farmhouse mornings and evenings, their own work in
@@ -902,6 +906,15 @@ func _married_plans_and_lines() -> void:
 	Villagers.reset_day()
 	check(Villagers.is_on("fumi", "teahouse", 14 * 60, fday.merged({"weather": "rain"}, true)) and Villagers.is_on("fumi", "house", 7 * 60, fday.merged({"weather": "rain"}, true)),
 		"a wet day at the counter, from the farmhouse")
+	var hday := day.merged({"flags": {"married_haru": true}}, true)
+	Villagers.reset_day()
+	check(Villagers.is_on("haru", "house", 7 * 60, hday) and Villagers.is_on("haru", "kaminoda", 9 * 60, hday)
+		and Villagers.is_on("haru", "hill", 15 * 60, hday) and Villagers.is_on("haru", "house", 19 * 60, hday) and Villagers.where("haru", 22 * 60, hday).map == "away",
+		"married, Haru goes up to Kaminoda and the hill by day and comes home to the farmhouse")
+	Villagers.reset_day()
+	check(Villagers.is_on("haru", "house", 14 * 60, hday.merged({"weather": "rain"}, true)), "a wet day Haru weaves by the farmhouse kotatsu")
+	Villagers.reset_day()
+	check(Villagers.where("haru", 7 * 60, day.merged({"flags": {}}, true)).map == "haru_house", "single, Haru wakes in her own house")
 	Villagers.reset_day()
 	# Their lines: engaged, then married at home (morning, evening) and out.
 	var st := {"year": 1, "season": "summer", "day": 3, "weekday": "wed", "time": 7 * 60, "weather": "sunny",
@@ -922,6 +935,10 @@ func _married_plans_and_lines() -> void:
 	var fri := st.merged({"weekday": "fri", "map": "town", "time": 10 * 60, "band": 3}, true)
 	check(Talk.pick("tome", fri.merged({"flags": {"heart_sayo_6": true}}, true)) == "knot_hint", "Tome tells of the knot on a Friday once Sayo's band 6 scene is seen")
 	check(Talk.pick("tome", fri.merged({"flags": {"heart_fumi_6": true}}, true)) == "knot_hint", "or Fumi's")
+	check(Talk.pick("tome", fri.merged({"flags": {"heart_haru_6": true}}, true)) == "knot_hint", "or Haru's")
+	var hst := st.merged({"map": "kaminoda", "time": 10 * 60}, true)
+	check(Talk.pick("haru", hst.merged({"flags": {"heart_haru_6": true}}, true)).begins_with("dear"), "Haru's dear lines while single")
+	check(not Talk.pick("haru", hst.merged({"flags": {"heart_haru_6": true, "married_haru": true}}, true)).begins_with("dear"), "not once married")
 	check(Talk.pick("tome", fri.merged({"flags": {"heart_sayo_6": true, "engaged": "sayo"}}, true)) != "knot_hint", "not once engaged")
 	check(Talk.pick("tome", fri.merged({"flags": {"spouse": "sayo"}}, true)) == "newlyweds", "a word for the newly married")
 	check(Talk.pick("tome", fri.merged({"flags": {}}, true)) != "knot_hint", "nothing about it before")

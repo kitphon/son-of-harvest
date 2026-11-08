@@ -1,5 +1,5 @@
 {
-	"_note": "Haru, a young woman of Kaminoda who weaves straw (sandals, rice bags, the drying rack's sheaves in fall) and keeps a kitchen garden behind her house. Mornings in her garden, then at the drying rack below the lane; after lunch she takes the lane north up the bamboo hill to the lookout (about 14:00-16:00, the hill map), back at her garden until dusk. Wet days she weaves at home. On her birthday (summer 27, the cucumbers at their best and the straw for fall not yet cut) she weaves nothing: home in the morning, then the whole middle of the day up at the hill lookout 9:20-15:00, her garden until dusk. Her heart events: data/events/heart_haru.json (band 3), heart_haru_5.json (band 5). Gifts: vegetables from the field and the gardens, tea; she dislikes fish. Format: README.md, Villagers.",
+	"_note": "Haru, a young woman of Kaminoda who weaves straw (sandals, rice bags, the drying rack's sheaves in fall) and keeps a kitchen garden behind her house. Mornings in her garden, then at the drying rack below the lane; after lunch she takes the lane north up the bamboo hill to the lookout (about 14:00-16:00, the hill map), back at her garden until dusk. Wet days she weaves at home. Married to the farmer (married_haru, data/marriage.json) she lives at the farmhouse: by the kotatsu in the second room before 7:40 and from 18:30, down the village and up the lane to Kaminoda in between (the rack, her old house for lunch and the straw, the hill lookout in the afternoon, from where she waves at the farm), and on a wet day she weaves by the kotatsu all day. On her birthday (summer 27, the cucumbers at their best and the straw for fall not yet cut) she weaves nothing: home in the morning, then the whole middle of the day up at the hill lookout 9:20-15:00, her garden until dusk. Her heart events: data/events/heart_haru.json (band 3), heart_haru_5.json (band 5). Gifts: vegetables from the field and the gardens, tea; she dislikes fish. Format: README.md, Villagers.",
 	"id": "haru",
 	"name": "Haru",
 	"birthday": {"season": "summer", "day": 27},
@@ -19,6 +19,8 @@
 		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
 		{"if": {"birthday": true}, "plan": "birthday"},
+		{"if": {"flags": ["married_haru"], "weather": ["rain", "storm", "snow"]}, "plan": "married_wet"},
+		{"if": {"flags": ["married_haru"]}, "plan": "married"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
 	],
 	"default": "usual",
@@ -29,6 +31,24 @@
 		"hate": ["mine:stone"]
 	},
 	"plans": {
+		"married": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "07:40", "map": "kaminoda", "from": [11, 19], "route": [{"to": [11, 10]}, {"to": [27, 10]}, {"to": [27, 9]}, {"to": [28, 9]}, {"face": "up"}], "loop": [{"wait": 15}, {"to": [30, 9]}, {"face": "up"}, {"wait": 15}, {"to": [28, 9]}, {"face": "up"}]},
+			{"at": "10:30", "map": "kaminoda", "route": [{"to": [28, 11]}, {"to": [18, 11]}, {"face": "down"}], "loop": [{"wait": 20}, {"to": [16, 11]}, {"face": "down"}, {"wait": 20}, {"to": [18, 11]}, {"face": "down"}]},
+			{"at": "12:00", "map": "kaminoda", "route": [{"to": [27, 11]}, {"to": [27, 7]}, {"face": "up"}]},
+			{"at": "12:20", "map": "haru_house", "from": [5, 2], "route": [{"face": "down"}]},
+			{"at": "13:30", "map": "kaminoda", "from": [27, 7], "route": [{"to": [27, 9]}, {"to": [23, 9]}, {"to": [23, 0]}, {"face": "up"}]},
+			{"at": "13:50", "map": "hill", "from": [19, 28], "route": [{"to": [19, 22]}, {"to": [10, 22]}, {"to": [10, 14]}, {"to": [28, 14]}, {"to": [28, 6]}, {"to": [21, 6]}, {"to": [21, 4]}, {"face": "up"}]},
+			{"at": "16:00", "map": "hill", "route": [{"to": [21, 6]}, {"to": [28, 6]}, {"to": [28, 14]}, {"to": [10, 14]}, {"to": [10, 22]}, {"to": [19, 22]}, {"to": [19, 29]}, {"face": "down"}]},
+			{"at": "17:00", "map": "kaminoda", "from": [22, 1], "route": [{"to": [22, 9]}, {"to": [28, 9]}, {"face": "up"}], "loop": [{"wait": 15}, {"to": [30, 9]}, {"face": "up"}, {"wait": 15}, {"to": [28, 9]}, {"face": "up"}]},
+			{"at": "18:00", "map": "kaminoda", "route": [{"to": [27, 9]}, {"to": [27, 10]}, {"to": [11, 10]}, {"to": [11, 19]}, {"face": "down"}]},
+			{"at": "18:30", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"married_wet": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "21:00", "map": "away"}
+		],
 		"festival_day": [
 			{"at": "06:00", "map": "haru_house", "from": [5, 2], "route": [{"face": "down"}]},
 			{"at": "09:35", "map": "kaminoda", "from": [27, 7], "route": [{"to": [27, 10]}, {"to": [11, 10]}, {"to": [11, 19]}]},

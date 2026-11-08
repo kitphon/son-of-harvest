@@ -1,0 +1,27 @@
+{
+	"_note": "The wedding with Haru at the village shrine (data/marriage.json): triggers_town.json plays it from 10:00 on the wedding day (Marriage: the flag wedding_due, set each morning from the day fixed at the proposal until it has played), from wherever the farmer walked in. Under a black fade the farmer stands before the shrine beside Haru, Tome in front of them, the guests at the sides; Tome ties the knot. Sets spouse = haru and married_haru, clears the engaged flags (wedding_day stays: the village record names the date); from then on Haru lives at the farmhouse (the married rules in data/villagers/haru.json). Format: README.md, Villagers, Marriage. Haru's guests: Genzo of Kaminoda nearest her side, with Sayo and Fumi; Kota and Hachiro on the farmer's.",
+	"steps": [
+		{"do": "fade", "to": "black", "seconds": 0.8},
+		{"do": "place", "at": [18, 5], "dir": "up"},
+		{"do": "actor", "who": "haru", "at": [19, 5], "face": "up"},
+		{"do": "actor", "who": "tome", "at": [18, 3], "face": "down"},
+		{"do": "actor", "who": "kota", "at": [16, 5], "face": "right"},
+		{"do": "actor", "who": "hachiro", "at": [15, 4], "face": "right"},
+		{"do": "actor", "who": "genzo", "at": [21, 5], "face": "left"},
+		{"do": "actor", "who": "sayo", "at": [22, 4], "face": "left"},
+		{"do": "actor", "who": "fumi", "at": [22, 5], "face": "left"},
+		{"do": "wait", "seconds": 0.3},
+		{"do": "fade", "to": "clear", "seconds": 0.8},
+		{"do": "sound", "key": "chime_morning"},
+		{"do": "wait", "seconds": 0.6},
+		{"do": "say", "dialogue": "marriage", "at": "haru_wedding"},
+		{"do": "face", "dir": "haru"},
+		{"do": "actor", "who": "haru", "face": "farmer"},
+		{"do": "sound", "key": "chime_morning"},
+		{"do": "wait", "seconds": 1.0},
+		{"do": "affection", "who": "haru", "amount": 10},
+		{"do": "set", "flags": {"spouse": "haru", "married_haru": true}},
+		{"do": "clear", "flags": ["engaged", "engaged_haru", "wedding_due"]},
+		{"do": "fade", "to": "black", "seconds": 1.0}
+	]
+}

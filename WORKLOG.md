@@ -10,6 +10,40 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Haru can be married
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: Haru joins data/marriage.json candidates (sayo, fumi, haru), open to any farmer. Her
+  band 6 scene was already in (99bf478), so this adds the rest on Fumi's pattern:
+  marriage.json lines haru_married / _taken / _waiting / _band / _room, haru_yes and
+  haru_wedding (Tome on Haru's grandmother weaving her own wedding sandals, Genzo asking who
+  ties his sheaves); data/events/propose_haru.json and wedding_haru.json (guests Kota and
+  Hachiro on the farmer's side, Genzo, Sayo and Fumi on hers); the wedding row in
+  triggers_town.json; Tome's Friday knot hint for heart_haru_6. haru.json: married rules before
+  the wet one; "married" wakes at the farmhouse kotatsu [9, 3], walks in from Kaminoda's south
+  edge at 7:40 to the rack, keeps her day (her old house at lunch, the hill lookout 13:50-16:00),
+  leaves by the south edge at 18:00, home 18:30; "married_wet" weaves by the kotatsu all day.
+  Why the wet day at home: her single wet day is weaving at home too, and the farmhouse is home
+  now. talk_haru.json: engaged_, help_water_ / help_feed_ (mornings), wed_morning_ /
+  wed_evening_ / wed_out_ picks after the festivals (before the hill's), dear lines only while
+  single. 32 new Thai lines (Haru ฉัน / เธอ, Tome ยาย / หลาน, the farmer เรา). No gendered
+  word for the farmer (STYLE_EN).
+- Checked: test_relationships extended (Haru in candidates, her wedding row and guests, band 6
+  rows on town / kaminoda / hill / haru_house, married plan at 7:00 / 9:00 / 15:00 / 19:00 /
+  22:00, wet day at home, single morning at her house, Tome's hint, dear lines only single; the
+  per-candidate loops now cover her lines, answers, chores and events). Output:
+  `test_relationships: OK (0 failed)`, `test_talk: OK (0 failed)`, `test_lang: OK (0 failed)`,
+  `test_events: OK (0 failed)`, `test_dialogue: OK (0 failed)`, `test_villagers: OK (0 failed)`,
+  `test_ending: OK (0 failed)`, `test_save: OK (0 failed)`. Mutation (her married rule removed):
+  `FAIL: married, Haru goes up to Kaminoda and the hill by day and comes home to the farmhouse`,
+  `test_relationships: FAILED (1 failed)`; restored. Smoke runs (title, --demo, married at the
+  house at 19:00) printed no error or warning lines. Screenshots: `--event=wedding_haru` frame
+  150 shows Tome's first line, Haru beside the farmer, Genzo, Sayo and Fumi on the right;
+  `--map=house --built=room --flags=married_haru,spouse=haru --time=19:00` shows Haru in the
+  second room. shots/ deleted.
+- Left / next: Ichiro as a candidate (his band 6 scene is in). Like Sayo and Fumi, on her
+  birthday and festival days Haru's own plans win over the married ones, so she wakes in her
+  old house then.
+
 ## 2026-11-08 — Bush leaf detail (CropArt)
 Agent: Claude Code (claude-haiku) · Commit: this commit
 - Done: `scripts/art/crop_art.gd` `_bush` (potato, eggplant: look "bush") draws its leaf mass at growth 2 and 3 as separate leaves (`_foliage`, `_fan_leaf`): 5 leaves young, 7 grown, fanned from separate feet, each leaf lit on its upper-left side with a shade midrib (the vein) and a shaded underside under them, so the gaps between leaves read dark. Still three tones, the deep rim, no outline; same keys, size, anchor; flowers and ripe produce unchanged; other looks untouched. Produce-only drawing unchanged (no leaves).
