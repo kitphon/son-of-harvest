@@ -166,6 +166,17 @@ Light and Farmhouse model hold the technical detail of what is built.
       Test: test_festivals `_flat_art`.
 
 ### 2. Nature
+- [x] Puddles in rain (2026-11-08, this commit): in rain and storm small puddles gather on the bare ground
+      outdoors (the villages' path and gravel cells that are free of props, and the farm's doorsteps; not grass,
+      tilled plots, water, buildings, indoors or the mine). Weather is one look a day, so they grow from nothing
+      at 06:00 to full over the first game hour and, after a rainy day, dry out over two game hours of the next
+      one (`Game.weather_yesterday`, not saved); none in snow looks or while any snow lies. One pure rule script
+      (`PuddleRules`, numbers in data/puddles.json: places by a hash of the cell, each with its own start wetness
+      and size, kept inside its cell) feeds both views: `PuddleLayer` (3D: one MultiMesh of flat lit quads just over
+      the ground; the shader draws a wobbly ellipse in a dark wet tone with a darker rim and a soft sky
+      reflection on the far side, and the water's own rain dimple style as rings) and `PuddleView` (flat: pixel
+      ellipses with the same colours, rings redrawn 8 times a second only while it rains). The instances are
+      rewritten only when the wetness moves a step of 1/50. Test: test_puddles.
 - [x] Trees: stylized round crowns (several lumps, lit and shaded) for broadleaf trees; pines
       with layered tiers; per season (blossom, green, red / gold, bare with snow). (578b60c)
       (this commit) Snow on bare branches: in winter on snowy outdoor maps, a thin lit sheet lies

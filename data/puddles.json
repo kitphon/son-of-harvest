@@ -1,0 +1,18 @@
+{
+	"_about": "Puddles on the bare outdoor ground in rain (PuddleRules; the 3D view's PuddleLayer, the flat view's PuddleView). Weather is one look a day, so the rain 'starts' when the day does (06:00): the wetness (0..1) grows to the look's `max` over `grow_hours` of game time, and when a rainy day is followed by a dry one it dries out linearly over `dry_hours` from 06:00 (Game.weather_yesterday; not saved, so a loaded save starts dry). None while any snow lies, in snow looks, indoors or in the mine. `looks`: the weather looks that make puddles and how wet they get (a storm fills more of them). Where: map cells of a `tiles` kind that are not solid and carry no prop, one in `density` by a hash of the cell; the farm has no dirt paths, so there only the doorsteps (`farm_fixed` kinds, one in `farm_density`). Each puddle has its own `on` wetness (a hash in the `on` range) at which it starts to gather, and its own size (`radius` cells, x and y, kept inside its cell, wider than deep); it grows from nothing to full size between its `on` and 1, and is dropped under `min_scale`. `colors`/`alpha`: the dark wet tone, the soft sky reflection (lightest on the far, upper side) and the darker rim; `core`/`rim` the opacity inside and on the thin rim, `sky` how far the reflection tints the tone. `dimple`: while it rains each puddle shows rain rings, using the water's own dimple life (data/weather_fx.json) and its density times `scale` (a puddle is small, so the chance per slot is higher); rings grow to `ring` of the puddle's half width. `flat`: the flat view redraws the rings `rate` times a second. Balance numbers are ours.",
+	"looks": {"rain": {"max": 0.8}, "storm": {"max": 1.0}},
+	"day_start": 6,
+	"grow_hours": 1.0,
+	"dry_hours": 2.0,
+	"tiles": ["path", "gravel"],
+	"farm_fixed": ["door", "coop_door", "barn_door"],
+	"density": 0.3,
+	"farm_density": 1.0,
+	"on": [0.05, 0.75],
+	"radius": {"x": [0.34, 0.48], "y": [0.2, 0.33]},
+	"min_scale": 0.14,
+	"colors": {"wet": "4a5b72", "sky": "c4d4e8", "rim": "34414f", "ring": "d6e0ee"},
+	"alpha": {"core": 0.78, "rim": 0.5, "sky": 0.7},
+	"dimple": {"scale": 2.5, "ring": 0.55},
+	"flat": {"rate": 8}
+}

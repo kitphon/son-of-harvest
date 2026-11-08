@@ -10,6 +10,12 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Puddles in rain
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: art direction section 2. In rain and storm, puddles gather on the outdoor maps' path and gravel cells (free of solid ground and props) and on the farm's doorsteps (the farm has no dirt paths of its own), in both views. One pure rule script (`PuddleRules`, scripts/puddle_rules.gd; numbers in data/puddles.json): wetness from today's look, yesterday's look, the clock and the snow lying (grows to the look's max over the first game hour from 06:00; a rainy day's wetness dries out linearly over two hours the next morning; none with any snow lying, in snow looks, indoors or in the mine), the places (a hash of the cell and the map id; each puddle has its own start wetness, so a storm fills more than rain, and its own size kept inside its cell) and the rain rings (the water's dimple style, density x 2.5). `Game.weather_yesterday` is new (set at the day's end, not saved: a loaded save starts dry). 3D: `PuddleLayer` (one MultiMesh of flat lit quads at y 0.02; the shader draws the wobbly ellipse, rim, sky reflection and rings; the instances are rewritten only when the wetness moves a step of 1/50); built beside the DriftLayer on the farm world and every outdoor MapWorld. Flat: `PuddleView` (pixel ellipses, the same colours; rings redrawn 8 times a second only while it rains), added under the footprints in main_2d.
+- Checked: test_puddles (new, in AGENTS.md's list): gating per look / snow / indoors / mine, growth and drying values, placement (only free path / gravel, inside the cell, none on grass or water, doorsteps on the farm), counts rising with wetness, rings, both views building and following the rules (06:00 none, 06:30 some, 07:30 more, dry the morning after, snow). The other tests and smoke runs: see the final report. Screenshots (3D town in rain, 3D farm in a storm, flat town in a storm): the puddles read as dark blue-grey pools with rings on the paths; deleted.
+- Left / next: the farm has almost nothing to puddle on (only the doorsteps); real dirt paths there would show more. Colours and sizes are balance numbers in data/puddles.json.
+
 ## 2026-11-08 — Candidates: half villagers already here, half new
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: the user wants half the eight candidates to be existing villagers and half new. The

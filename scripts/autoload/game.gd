@@ -44,6 +44,7 @@ var hour := 6
 var minute := 0
 var weather_today := "sunny"
 var weather_tomorrow := "sunny"
+var weather_yesterday := ""     # the day before's weather ("" at the start of a run or a load; not saved): the puddles it left dry out (PuddleRules)
 var snow_cover := 0             # snow lying on the ground, 0 (none) .. 100 (all white)
 var flashes_enabled := true     # lightning flashes in storms; off for photosensitive players
 var text_speed := 1.0           # the text box's speed from the settings (x letters per second; 0 = at once)
@@ -198,6 +199,7 @@ func new_game() -> void:
 	hour = 6
 	minute = 0
 	weather_today = "sunny"
+	weather_yesterday = ""
 	money = START_MONEY
 	bin_total = 0
 	max_stamina = 100
@@ -1007,6 +1009,7 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 	_count_build_day()   # before the date moves: did the builder work today?
 	animal_news.append_array(animals.day_end(weather_today, rng))
 	fishing.stop()
+	weather_yesterday = weather_today
 	weather_today = weather_tomorrow
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	if fair_tomorrow():
