@@ -95,22 +95,13 @@ func _make_edges() -> void:
 ## winter); in winter the water patches between the rows too (CropClusters.water_on).
 func _plant_paddies(hold_at: Callable) -> void:
 	var season := Game.season_name()
-	var key := CropClusters.paddy_key(season)
-	if key == "":
+	var cells := MapView.paddy_cells_in(map, season)   # the same cells the flat view draws rice in
+	if cells.is_empty():
 		return
-	var cells := {}
-	var free: Array = []
-	for y in map.h:
-		for x in map.w:
-			var c := Vector2i(x, y)
-			if map.tile(c) == "paddy" and map.prop_at(c).is_empty():
-				cells[c] = key
-				free.append(c)
-	if not cells.is_empty():
-		add_crops()
-		crops.plant(cells, hold_at)
-		if CropClusters.water_on(season):
-			crops.plant_water(free, hold_at)
+	add_crops()
+	crops.plant(cells, hold_at)
+	if CropClusters.water_on(season):
+		crops.plant_water(cells.keys(), hold_at)
 
 
 ## The tiles as one picture under the whole map (unshaded, like the farm ground).
@@ -140,17 +131,32 @@ static var _grounds := {}   # map id and tiles -> the ground picture (the same e
 
 ## The map's tiles laid into one picture (indoors with the corners shaded), kept a run.
 func ground_picture() -> ImageTexture:
-	var id := "%s|%d|%s" % [map.id, map.tiles.hash(), map.indoor]
+	var season := Game.season_name()
+	var id := "%s|%d|%s|%s|%d" % [map.id, map.tiles.hash(), map.indoor, season, str(map.props).hash()]
 	if not _grounds.has(id):
+		var keys := ground_keys(map, season)
 		var img := Image.create(map.w * T, map.h * T, false, Image.FORMAT_RGBA8)
 		for y in map.h:
 			for x in map.w:
-				var tile := PlaceholderArt.image(MapView.ground_key(map, Vector2i(x, y)))
+				var tile := PlaceholderArt.image(keys[Vector2i(x, y)])
 				img.blit_rect(tile, Rect2i(0, 0, T, T), Vector2i(x * T, y * T))
 		if map.indoor:
 			_shade_corners(img)
 		_grounds[id] = ImageTexture.create_from_image(img)
 	return _grounds[id]
+
+
+## The ground key of every cell as the 3D view draws it (ground_picture): MapView.ground_key_at
+## with the paddy cells that grow rice, so those take the flat view's calm ground (drained mud in
+## winter, still water otherwise). Other paddy tiles keep the painted tile.
+static func ground_keys(m: MapData, season_name: String) -> Dictionary:
+	var keys := {}
+	var paddies := MapView.paddy_cells_in(m, season_name)
+	for y in m.h:
+		for x in m.w:
+			var c := Vector2i(x, y)
+			keys[c] = MapView.ground_key_at(m, c, season_name, paddies)
+	return keys
 
 
 ## The renderer has no ambient occlusion, so the floor darkens softly where it meets the

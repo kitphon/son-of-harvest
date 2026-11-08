@@ -10,6 +10,35 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Calm paddy ground in the 3D view
+Agent: Claude Code (claude-haiku) · Commit: this commit
+- Done: the 3D view's ground under the Kaminoda paddies where rice is drawn is the flat view's calm
+  ground: `paddy_mud` in winter (drained, the water patches lie on it) and `paddy_flood` in the other
+  seasons, instead of the painted "paddy" tile with its tufts. One rule for both views, not a copy:
+  MapView.paddy_cells_in (the paddy cells with no prop that grow rice, moved out of paddy_cells as a
+  static) and MapView.ground_key_at (the ground key, CropPatches.paddy_ground for those cells; the
+  flat view's ground_key_in now calls it). MapWorld.ground_keys(m, season) gives every cell's key as
+  the 3D picture draws it; ground_picture uses it and its cache key takes the season and the props.
+  _plant_paddies uses paddy_cells_in too, so the rice and the water patches sit on the same cells.
+  A paddy tile with no rice (a prop on it) keeps the painted tile. Nothing else in the 3D view changed.
+- Checked: test_maps `_paddy_ground_3d` (after `_paddy_winter`): rice cells in every season; a sample
+  rice cell is `ground:paddy_mud:N` in winter and `ground:paddy_flood:N` in summer; every rice cell
+  has its season's ground; the 3D key equals MapView.ground_key_in for every cell in all four seasons
+  (MapView's season set as a field, the view is not in the tree); painted tiles kept. Output:
+  `test_maps: OK (0 failed)`, `test_view2d: OK (0 failed)`, `test_farm: OK (0 failed)`. Mutation (3D
+  picks no paddies): `FAIL: paddy ground 3d: a rice cell is paddy_mud in winter (ground:paddy:1) and
+  paddy_flood in summer (ground:paddy:1)`, `FAIL: ... every rice cell has its season's calm ground (512
+  off)`, `FAIL: ... the 3D and flat views pick the same ground key for every cell (512 differ)`,
+  `test_maps: FAILED (3 failed)`; restored. Smoke `-- --demo --map=kaminoda --season=winter` and
+  `--season=summer` (--quit-after 300): exit 0, no error or warning lines. Screenshot
+  (`--map=kaminoda@well --season=winter --time=12:00`, frame 19): the village by the farmhouse, the
+  paddies' stubble at the left edge behind the fence, drained brown-grey ground under it; too small to
+  judge the mud's detail. shots/ deleted.
+- Left / next: `--map=kaminoda` alone opened the farm in the screenshot (the spawn form `kaminoda@well`
+  is what shows the village); the smoke runs with the plain `--map=kaminoda` form printed no errors but
+  did not show the village. Summer's flood ground was not screenshotted. No windowed close look at the
+  paddies. The 3D picture is built per map and season (a season change rebuilds it on the next visit).
+
 ## 2026-11-07 — Painted paddy ground in the flat view
 Agent: Claude Code (claude-haiku) · Commit: this commit
 - Done: the flat view's calm paddy ground (CropPatches.paddy_ground, MapView.ground_key_in) is now
