@@ -24,6 +24,9 @@ var _charge_tool := ""
 var _after_menu := false   # keys held from a menu do nothing until let go
 var anim := FarmerAnim.new()   # which picture: pose and frame by what the farmer does
 var figure: Sprite2D           # the farmer's picture (FigureArt via PlaceholderArt)
+## The world's light on the farmer (FlatLight; main_2d sets it with the figure's self_modulate):
+## what the farmer carries takes it too, the marks over the head do not.
+var light := Color.WHITE
 const FIGURE_TOP := 2 - PlaceholderArt.FIGURE_SIZE.y   # the picture's top row, from the spot (feet 2 px below)
 
 
@@ -245,4 +248,4 @@ func _draw() -> void:
 	if Game.holding():   # carried overhead, resting on the raised hands of the picture
 		var item := PlaceholderArt.tex(Game.held_key())
 		var row := PlaceholderArt.hold_row(anim.pose, anim.frame())
-		draw_texture(item, Vector2(-item.get_width() / 2.0, FIGURE_TOP + row - item.get_height()))
+		draw_texture(item, Vector2(-item.get_width() / 2.0, FIGURE_TOP + row - item.get_height()), light)

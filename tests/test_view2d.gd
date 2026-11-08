@@ -43,6 +43,7 @@ func _run() -> void:
 	await _mine()
 	await _weather_and_festival()
 	await _night()
+	await _sprite_light()
 	await _water()
 	await _ripples()
 	await _maples()
@@ -409,6 +410,101 @@ func _night() -> void:
 	g.minute = 0
 	await process_frame
 	check(fn != null and not fn.visible and fn.pools.is_empty(), "and not by day")
+
+
+## The world's light on the flat view's pictures (FlatLight, by the 3D sprites' rules, SpriteLight):
+## the sun's share by the clock on the farmer, the villagers, the animals and the field (golden
+## morning and evening, plain at noon, at night and indoors), and at night the warm lift near a lit
+## window (the same lift_at as the 3D view, at the picture's middle), none in the dark; the modulate
+## under the night tint comes out as the 3D view's own x sun x tint + own x sun x warm x lift; the
+## marks over the world keep their pictures.
+func _sprite_light() -> void:
+	var FL: GDScript = load("res://scripts/world/flat_light.gd")
+	var SL: GDScript = load("res://scripts/world3d/sprite_light.gd")
+	var FW: GDScript = load("res://scripts/world3d/farm_world.gd")
+	var CP: GDScript = load("res://scripts/world/crop_patches.gd")
+	var rules: Dictionary = SL.rules_of(g.light_data())
+	var lr: Dictionary = rules.get("lift", {})
+	check(float(lr.get("flat_floor", 0.0)) > 0.0, "flat light: data/light.json has the tint's floor")
+	# The modulate's rule: under the tint it is the 3D view's sum.
+	var night_tint := Color("46529a")
+	var sun := Color(1.0, 0.9, 0.8)
+	var warm := Color(str(lr.color))
+	var k := 0.4
+	var m: Color = FL.color_for(sun, k, rules, night_tint)
+	var ok := true
+	for i in 3:
+		ok = ok and is_equal_approx(m[i] * night_tint[i], sun[i] * night_tint[i] + sun[i] * warm[i] * k)
+	check(ok, "flat light: own x modulate x tint = own x sun x tint + own x sun x warm x lift (%s)" % m)
+	check(FL.color_for(sun, 0.0, rules, night_tint).is_equal_approx(sun), "flat light: no lift, the sun's share alone")
+	check(FL.mid(Vector2(32, 48), 32, FW.FIGURE_PX).is_equal_approx(Vector3(2, 32 * FW.FIGURE_PX / 2.0, 3)),
+		"flat light: measured at the picture's middle, as high as the 3D sprite's")
+	# By the clock on the farm (sunny): golden in the morning and evening, plain at noon.
+	g.weather_today = "sunny"
+	var at_time := func(h: int, mm: int) -> void:
+		g.hour = h
+		g.minute = mm
+		scene._update_tint()
+	for hm in [[6, 30], [17, 30]]:
+		at_time.call(hm[0], hm[1])
+		await process_frame
+		var want: Color = SL.sun_tint(g.sun_light(false).color, rules)
+		var fig: Color = player.figure.self_modulate
+		check(not want.is_equal_approx(Color.WHITE) and FL.sun.is_equal_approx(want) and fig.is_equal_approx(want) and player.light.is_equal_approx(want),
+			"flat light: the farmer takes the golden share at %d:%02d (%s)" % [hm[0], hm[1], fig])
+		check(fig.r >= fig.g and fig.g > fig.b and fig.r <= 1.0, "flat light: warm, never brighter than drawn at %d:%02d" % hm)
+	at_time.call(12, 0)
+	await process_frame
+	check(player.figure.self_modulate.is_equal_approx(Color.WHITE), "flat light: plain at noon")
+	check(scene.view._objects.is_in_group(FL.GROUP), "flat light: the field's pictures are redrawn with the light")
+	var animals: Node = null
+	for n in scene.view.get_children():
+		if _is(n, "animal_view.gd"):
+			animals = n
+	check(animals != null and animals.is_in_group(FL.GROUP), "flat light: the animals and the dog are too")
+	# A plant of the tall crops is measured at its picture's middle (the 3D field's place).
+	var spot := {"tex": "stalk:corn:3:ripe:0", "pos": Vector3(3.5, 0, 4.5), "size": 1.0}
+	var tex: Texture2D = PlaceholderArt.tex(spot.tex)
+	check(CP.light_mid(spot).is_equal_approx(Vector3(3.5, tex.get_height() * FW.PX / 2.0, 4.5)), "flat light: a plant is measured at its middle")
+	# Indoors the sun is plain.
+	g.go_to_map("house", Vector2i(4, 6), Vector2i.UP)
+	await _wait_view("map_view.gd")
+	at_time.call(6, 30)
+	await process_frame
+	check(player.figure.self_modulate.is_equal_approx(Color.WHITE), "flat light: plain indoors in the morning")
+	# Night in the village: warm by a lit window, night blue in the dark.
+	g.go_to_map("town", Vector2i(10, 10), Vector2i.DOWN)
+	await _wait_view("map_view.gd")
+	at_time.call(21, 0)
+	await process_frame
+	var nv: Node = scene.night
+	var spots: Array = SL.spots_of([nv], [{"glows": nv.festival_lights}], g.window_light(), nv.festival_dark(), rules)
+	check(not FL.spots.is_empty() and FL.spots.size() == spots.size(), "flat light: the village's lit windows and lanterns light the figures (%d)" % FL.spots.size())
+	var win: Dictionary = nv.windows.filter(func(w): return w.normal.z > 0.5)[0]
+	var feet := Vector2(win.pos.x, win.pos.z + 0.6) * 16.0
+	player.position = feet
+	await process_frame
+	var near: Color = player.figure.self_modulate
+	var lift: float = SL.lift_at(FL.mid(feet, PlaceholderArt.FIGURE_SIZE.y, FW.FIGURE_PX), FL.spots, rules)
+	check(lift > 0.1 and near.is_equal_approx(FL.color_for(FL.sun, lift, rules, scene.tint.color)) and near.r > near.b and near.r > 1.0,
+		"flat light: by a lit window the farmer reads warm (lift %.2f, %s)" % [lift, near])
+	check(FL.at(Vector2(-40, -40) * 16.0, 32, FW.FIGURE_PX).is_equal_approx(Color.WHITE), "flat light: in the dark no lift")
+	var villagers: Node = null
+	for n in scene.view.get_children():
+		if _is(n, "villager_view.gd"):
+			villagers = n
+	var vs: Array = villagers._sprites.values().filter(func(v): return v.visible) if villagers != null else []
+	var v_ok := true
+	for v in vs:
+		v_ok = v_ok and v.self_modulate.is_equal_approx(FL.at(v.position, v.texture.get_height(), FW.FIGURE_PX))
+		var note: Node = v.get_node_or_null("Note")
+		v_ok = v_ok and (note == null or Color(note.modulate.r, note.modulate.g, note.modulate.b).is_equal_approx(Color.WHITE))
+	check(v_ok, "flat light: each villager takes the light where it stands, the note puff does not (%d shown)" % vs.size())
+	at_time.call(10, 0)
+	await process_frame
+	check(FL.spots.is_empty() and player.figure.self_modulate.is_equal_approx(FL.sun), "flat light: by day no lift, the sun's share alone at 10:00")
+	g.go_to_map("farm", Vector2i(4, 6), Vector2i.UP)
+	await _wait_view("farm_view.gd")
 
 
 ## The water's moving skin (WaterView) in the flat view: the farm pond (FarmView) and the village

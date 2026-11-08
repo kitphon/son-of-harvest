@@ -3,6 +3,7 @@ extends Node2D
 ## The animals in the flat view: animals on their spots in the coop / barn (or spread over
 ## their yard on the farm while they are out), the eggs in the nests, and the dog on the farm
 ## (stepped by the rules like in AnimalLayer). Same sprites as AnimalLayer, standing still.
+## They and the eggs take the world's light (FlatLight) where they stand.
 
 const T := 16
 
@@ -16,6 +17,7 @@ func setup(m: MapData, farm: bool, player: Node2D = null) -> void:
 	map = m
 	on_farm = farm
 	farmer = player
+	add_to_group(FlatLight.GROUP)   # redrawn when the light changes
 	Game.animals.changed.connect(queue_redraw)
 	queue_redraw()
 
@@ -52,7 +54,8 @@ func _draw() -> void:
 					for y in p.size.y:
 						if n < a.eggs.size():
 							var e := PlaceholderArt.tex(PlaceholderArt.world_item_key(a.eggs[n]))
-							draw_texture(e, Vector2(p.cell.x * T, (p.cell.y + y) * T) + (Vector2(T, T) - e.get_size()) / 2.0)
+							var ep := Vector2(p.cell.x * T, (p.cell.y + y) * T) + (Vector2(T, T) - e.get_size()) / 2.0
+							draw_texture(e, ep, FlatLight.at(ep + Vector2(e.get_width() / 2.0, e.get_height()), e.get_height(), FlatLight.field_px() * 0.8))
 						n += 1
 	for s in shown:
 		var tex := PlaceholderArt.tex("animal:%s:%s:0" % [a.look(s[0]), "sick" if s[0].sick else "idle"])
@@ -67,4 +70,5 @@ func _draw() -> void:
 ## AnimalArt.SCALE times the density).
 func _draw_animal(tex: Texture2D, feet: Vector2) -> void:
 	var size := tex.get_size() / float(AnimalArt.SCALE)
-	draw_texture_rect(tex, Rect2(feet - Vector2(size.x / 2.0, size.y), size), false)
+	draw_texture_rect(tex, Rect2(feet - Vector2(size.x / 2.0, size.y), size), false,
+		FlatLight.at(feet, tex.get_height(), FlatLight.animal_px()))

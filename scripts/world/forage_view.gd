@@ -14,6 +14,7 @@ func _init(id: String) -> void:
 
 
 func _ready() -> void:
+	add_to_group(FlatLight.GROUP)   # the world's light on the pictures, redrawn when it changes
 	Game.forage_changed.connect(queue_redraw)
 
 
@@ -23,4 +24,6 @@ func _draw() -> void:
 	var here := Game.forage_here()
 	for c in here:
 		var tex := PlaceholderArt.tex(PlaceholderArt.world_item_key(here[c]))
-		draw_texture(tex, Vector2(c * T) + Vector2((T - tex.get_width()) / 2.0, T - tex.get_height() - 1))
+		var feet := Vector2(c * T) + Vector2(T / 2.0, T - 1)
+		draw_texture(tex, Vector2(c * T) + Vector2((T - tex.get_width()) / 2.0, T - tex.get_height() - 1),
+			FlatLight.at(feet, tex.get_height(), FlatLight.field_px()))

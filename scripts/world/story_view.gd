@@ -29,6 +29,10 @@ func _init(m: MapData) -> void:
 	map = m
 
 
+func _ready() -> void:
+	add_to_group(FlatLight.GROUP)   # the props' pictures take the world's light (redrawn when it changes)
+
+
 func _draw() -> void:
 	for p in map.props:
 		if p.kind == "kiln":   # the old kiln's wear, over its box (MapView draws the box)
@@ -50,4 +54,5 @@ func _draw() -> void:
 			r.position.x += 12   # right of Ichiro's print, which kiln_new draws
 		elif p.kind == "kiln_site" or p.kind == "kiln_new":   # the whole 2 x 2 picture on the old kiln's footing
 			r.end.y -= 1
-		draw_texture(tex, Vector2(roundf(r.get_center().x - tex.get_width() / 2.0), r.end.y - tex.get_height() - 1))
+		draw_texture(tex, Vector2(roundf(r.get_center().x - tex.get_width() / 2.0), r.end.y - tex.get_height() - 1),
+			FlatLight.at(Vector2(r.get_center().x, r.end.y - 1), tex.get_height(), FlatLight.field_px()))

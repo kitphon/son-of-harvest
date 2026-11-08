@@ -44,9 +44,9 @@ static func paddy_ground(season: String, key: String) -> String:
 ## (0..1): a plant stands where the ground under its root is not white, as in the 3D shader
 ## (SnowLayer.lies). With no hold callable, or no cover, snow hides nothing.
 ## `sway` is {wind, t} (see sway_now): the tips sway; empty, they stand still.
-static func draw(canvas: CanvasItem, cells: Dictionary, hold_at := Callable(), cover := 0.0, sway := {}) -> void:
+static func draw(canvas: CanvasItem, cells: Dictionary, hold_at := Callable(), cover := 0.0, sway := {}, light := Callable()) -> void:
 	for s in standing(cells, hold_at, cover):
-		draw_spot(canvas, s, sway)
+		draw_spot(canvas, s, sway, light)
 
 
 ## The plants that stand (CropClusters.spots_for entries), the further back first, less the ones
@@ -76,8 +76,16 @@ static func rect_for(s: Dictionary) -> Rect2:
 	return rect
 
 
+## Where a plant's light is measured (as SpriteLight.field_lifts does in 3D): the middle of its
+## picture over its root, map units, y up.
+static func light_mid(s: Dictionary) -> Vector3:
+	var tex := PlaceholderArt.tex(s.tex)
+	return Vector3(s.pos.x, 0.0, s.pos.z) + Vector3.UP * (tex.get_height() * FarmWorld.PX * float(s.size) / 2.0)
+
+
 ## One plant of CropClusters.spots_for. With a `sway` ({wind, t}) its tip is shifted by whole pixels.
-static func draw_spot(canvas: CanvasItem, s: Dictionary, sway := {}) -> void:
+## `light` (FlatLight.at_mid, or none) gives the world's light at its light_mid, times its shade.
+static func draw_spot(canvas: CanvasItem, s: Dictionary, sway := {}, light := Callable()) -> void:
 	var shade: float = s.shade
 	var tex := PlaceholderArt.tex(s.tex)
 	var rect := rect_for(s)
@@ -86,6 +94,8 @@ static func draw_spot(canvas: CanvasItem, s: Dictionary, sway := {}) -> void:
 		shifts = band_shifts(sway_tip(float(sway.wind), float(sway.t), s.pos.x, s.pos.z,
 			float(CropClusters.layout(s.key).get("stiff", 1.0))))
 	var tint := Color(shade, shade, shade)
+	if light.is_valid():
+		tint *= light.call(light_mid(s)) as Color
 	if shifts.is_empty() or shifts.count(0) == shifts.size():
 		canvas.draw_texture_rect(tex, rect, false, tint)
 		return

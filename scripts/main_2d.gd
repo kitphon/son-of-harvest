@@ -4,7 +4,8 @@ extends Node2D
 ## The farm is a FarmView, other maps a MapView; a change of map fades and swaps them.
 ## Weather and festival lights read the same rules as the 3D view: WeatherView for rain and
 ## snow, Lightning for the flashes, FestivalGlow for the lanterns and fireworks at night,
-## NightView for the lit windows, stone lanterns and the warm pools under them.
+## NightView for the lit windows, stone lanterns and the warm pools under them, FlatLight for
+## the sun's share and the warm night lift on the farmer, villagers, animals and field pictures.
 
 const T := 16
 
@@ -19,6 +20,7 @@ var flash: ColorRect   # lightning: pale sky light added over the picture
 var lightning := Lightning.new()
 var glow: FestivalGlow
 var smoke: SmokeView        # hearth smoke at meal times (the current view's)
+var night: NightView        # the lit windows, lanterns and festival lights (the current view's)
 var prints: FootprintView   # footprints in lying snow (the current view's)
 var flying: Sprite2D  # a thrown item on its way
 var _flight := {}      # from, to, time, seconds, height (while flying)
@@ -117,7 +119,7 @@ func _enter_map() -> void:
 		mv.set_season(Game.season_name())
 	prints = FootprintView.new()   # footprints in lying snow, over the ground, under everything else
 	view.add_child(prints)
-	var night := NightView.new().setup(m.props, Game.maps.on_farm(), m.id)
+	night = NightView.new().setup(m.props, Game.maps.on_farm(), m.id)
 	night.tint = tint
 	view.add_child(night)   # lit windows and lanterns, under the figures
 	smoke = SmokeView.new().setup(m.props, Game.maps.on_farm(), m.indoor)   # hearth smoke over the roofs
@@ -177,12 +179,38 @@ func _update_tint() -> void:
 	if f != null:
 		mine_light.color = f.light
 	_aim_lantern()
+	_update_light()
+
+
+## The world's light on the pictures (FlatLight, by SpriteLight's rules): the sun's share by the
+## clock (plain in rooms, down the mine and in a house's own light, as Main3D's _inside) and the
+## lights burning now on this map; the views in FlatLight.GROUP redraw when it changed.
+func _update_light() -> void:
+	var m := Game.maps.current()
+	var inside := m.indoor or Game.maps.mine_floor != null or m.light != null
+	var rules := SpriteLight.rules_of(Game.light_data())
+	var sun_c := SpriteLight.sun_tint(Game.sun_light(inside).color, rules)
+	var lit := night != null and is_instance_valid(night)
+	var spots := FlatLight.spots_from(night if lit else null, Game.window_light(), night.festival_dark() if lit else 0.0, rules)
+	if FlatLight.update(sun_c, spots, tint.color, rules):
+		get_tree().call_group(FlatLight.GROUP, "queue_redraw")
+
+
+## The farmer (and what the farmer carries) and a thrown item in flight take the light where they
+## are, each frame (they move); the villagers' VillagerView does the same for them.
+func _light_figures() -> void:
+	var c := FlatLight.at(player.position, PlaceholderArt.FIGURE_SIZE.y, FarmWorld.FIGURE_PX)
+	player.figure.self_modulate = c
+	player.light = c
+	if flying.visible and flying.texture != null:
+		flying.modulate = FlatLight.at(flying.position, flying.texture.get_height(), FarmWorld.PX)
 
 
 func _process(delta: float) -> void:
 	_leave_prints()
 	_aim_lantern()
 	_fly(delta)
+	_light_figures()
 	_ring_bobber(delta)
 	weather.follow(cam.get_screen_center_position())
 	_update_flash(delta)

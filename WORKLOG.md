@@ -10,6 +10,40 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — The flat view takes the world's light on its sprites
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: art direction section 3. `FlatLight` (scripts/world/flat_light.gd) brings the 3D sprites'
+  light to the flat view by SpriteLight's own rules: the sun's share by the clock
+  (SpriteLight.sun_tint of Game.sun_light; plain at noon, at night, indoors, down the mine, under
+  cloud) and at night the warm lift (SpriteLight.spots_of from the map's NightView windows,
+  lanterns and festival lights, SpriteLight.lift_at at the picture's middle, as high as the 3D
+  sprite's: FarmWorld.FIGURE_PX / PX / AnimalLayer.ANIMAL_PX). Each picture is drawn with the
+  modulate sun x (1 + warm x lift / tint), which under the CanvasModulate night tint is the 3D
+  view's own x sun x tint + own x sun x warm x lift; only the picture's own pixels change, whole
+  pixels, no blur. main_2d sets the light each game minute (and on a new map / day) and redraws
+  the views in FlatLight.GROUP when it changed; the farmer (figure self_modulate, the carried item
+  via Player.light), the villagers (self_modulate, the held item too, not the note puff) and a
+  thrown item take it each frame. AnimalView (animals, dog, eggs), FarmView (crops, the tall
+  crops' plants, items on the field), MapView (the paddies' plants, CropPatches.draw's new
+  `light` callable at CropPatches.light_mid), ForageView and StoryView draw with it. The ground,
+  fences, roofs, doors, map boxes, the marks and the mine lantern stay as drawn. One flat-only
+  number, data/light.json sprites.lift.flat_floor 0.05 (the least the tint is divided by, as
+  NightView's shader). No Occluders in the flat view, so no building stops a light (as its pools).
+  The 3D view is untouched. FlatLight loads the 3D scripts lazily, so views compile before the
+  autoloads in tests.
+- Checked: test_view2d `_sprite_light` (the modulate's sum under the tint, the middle's height, the
+  farmer golden at 6:30 and 17:30 and plain at noon and indoors, the field's and animals' views in
+  the group, a plant's middle, the village's spots = SpriteLight.spots_of, the farmer by a lit
+  window lifted by exactly lift_at, none in the dark, each villager by its own spot with the note
+  puff unlit, no lift by day). test_view2d, test_weather, test_maps, test_farm, test_animals,
+  test_villagers, test_forage, test_festivals, test_drift, test_mine OK; smoke runs of main_2d
+  (`--demo`, `--map=town --time=21:00`, `--mine=3`) and main with `--demo` print no errors.
+  Flat-view frames at 6:30, 12:00, 17:30 on the farm and 21:00 at town@sayo looked at: farmer
+  mean RGB 94/74/50 at 6:30 against 103/96/76 at noon (grass 100/140/54 against 107/168/71, so
+  the sprites are a little warmer than the ground, as in 3D); by the store's lit window at night
+  the farmer reads warm (92/67/75) over the night-blue ground. Shots deleted.
+- Left / next: festival decorations in the flat view stay as drawn (they are the lights).
+
 ## 2026-11-08 — Field crops refined (CropArt)
 Agent: Claude Code (claude-sonnet) · Commit: this commit
 - Done: `scripts/art/crop_art.gd` (CropArt, palettes in `data/crop_art.json`) draws the single-sprite crops (looks root, bush, ground: turnip, onion, carrot, daikon, potato, eggplant, pumpkin) at growth 2 and 3 and every crop's seed and sprout (growth 0 and 1) part by part: shaded balls and leaves in three tones lit from the upper left, a shaded soil mound, a deep leaf-shade rim (mixed a little with the produce's colour when ripe) instead of the black outline. Ripe produce is distinct per crop; flowers on the grown potato, eggplant and pumpkin. `PlaceholderArt._crop` calls it; the tall crops' (vine, stalk, grain) grown looks keep the old drawing (the clusters' `stalk:` plants replace them). Same keys, 16 x 16 size and anchor; the withered, watered and snow handling is by key and tint, untouched. A refined placeholder, not the real hand art.

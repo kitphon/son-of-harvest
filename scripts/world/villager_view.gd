@@ -41,6 +41,8 @@ func refresh() -> void:
 		s.set_meta("key", key)
 		s.texture = PlaceholderArt.tex(key)
 		s.flip_h = FarmerAnim.is_mirrored(w.facing)
+		# The world's light (FlatLight) on the figure and what it carries; the note puff keeps its picture.
+		s.self_modulate = FlatLight.at(s.position, s.texture.get_height(), FlatLight.figure_px())
 		_show_held(s, w)
 		_show_note(s, w)
 	for id in _sprites:
@@ -65,6 +67,7 @@ func _show_held(s: Sprite2D, w: Dictionary) -> void:
 	held.position = Vector2(0, 3 - PlaceholderArt.FIGURE_SIZE.y + PlaceholderArt.villager_top(w.id))   # on top of the head
 	held.offset = Vector2(0, -held.texture.get_height() / 2.0)
 	held.set_meta("item", item)
+	held.self_modulate = s.self_modulate
 	held.visible = true
 
 
