@@ -1,0 +1,14 @@
+{
+	"_note": "Nana's third heart event: the first talk once her heart band reaches 6, after heart_nana_5 (same tables). Captain the tadpole is a frog now and sings in the ditch; she has pinned a bigger sky map to the barn wall and her father stood before it a long time (a line of its own for the band 5 answer: nana_beside, the two stars blinking at each other; otherwise the big steady one). One space is left on the map for a star for the farmer, and the farmer picks where it goes, close to her father's or out over the farmer's field (nana_star = near or field). Sets heart_nana_6 and nana_sky. Nana acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "nana", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "nana"},
+		{"do": "sound", "key": "step_grass"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_6", "at": "nana"},
+		{"do": "affection", "who": "nana", "amount": 5},
+		{"do": "set", "flags": {"heart_nana_6": true, "nana_sky": true}},
+		{"do": "actor", "who": "nana", "to": "plan"},
+		{"do": "actor", "who": "nana", "leave": true}
+	]
+}

@@ -227,9 +227,8 @@ func _heart_event_rows() -> void:
 		"shige": ["town", "minamino", "shige_house"], "nana": ["town", "minamino", "shige_house"], "mio": ["town", "river", "mio_hut"], "kaede": ["town", "minamino", "kaede_house"],
 		"shino": ["town", "minamino", "shino_house", "river"],
 		"ren": ["town", "post_office", "sakurazaka", "kaminoda", "minamino", "river"]}
-	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro", "genzo", "haru", "shige", "mio", "kaede", "shino", "ren"]:
+	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro", "genzo", "haru", "shige", "nana", "mio", "kaede", "shino", "ren"]:
 		check(_has_event("heart_%s_5" % id) and _has_event("heart_%s_6" % id), "%s has heart events at 5 and 6" % id)
-	check(_has_event("heart_nana_5") and not _has_event("heart_nana_6"), "Nana has heart events at 3 and 5")
 	for id in Villagers.friends():
 		check(maps.has(id) and _has_event("heart_" + id), "%s has a heart event" % id)
 		for m in maps.get(id, []):
@@ -536,9 +535,9 @@ func _neglect_in_game() -> void:
 ## Each heart event (bands 3, 5 and 6) runs to the end on the real Game: flag set, affection
 ## up, and band 6's own story flag. Kota's second and third read both ways, with and without
 ## his carp promise; band 6 also with and without the band 5 flags its lines look back on.
-const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle", "ichiro": "ichiro_mark", "genzo": "genzo_straw", "haru": "haru_wave", "shige": "shige_vine", "mio": "mio_ferry", "kaede": "kaede_fortune", "shino": "shino_first", "ren": "ren_route"}
+const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle", "ichiro": "ichiro_mark", "genzo": "genzo_straw", "haru": "haru_wave", "shige": "shige_vine", "nana": "nana_sky", "mio": "mio_ferry", "kaede": "kaede_fortune", "shino": "shino_first", "ren": "ren_route"}
 ## The flag each band 6 scene looks back on (Fumi's comes from her band 3 scene).
-const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest", "ichiro": "ichiro_kiln", "genzo": "genzo_jizo", "haru": "haru_go", "shige": "shige_share", "mio": "mio_keep", "kaede": "kaede_recite", "shino": "shino_own", "ren": "ren_van"}
+const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest", "ichiro": "ichiro_kiln", "genzo": "genzo_jizo", "haru": "haru_go", "shige": "shige_share", "nana": "nana_beside", "mio": "mio_keep", "kaede": "kaede_recite", "shino": "shino_own", "ren": "ren_van"}
 
 func _heart_events_play() -> void:
 	for id in Villagers.friends():
@@ -595,6 +594,7 @@ func _heart_events_play() -> void:
 		"genzo": ["watched you tie", "let the jizo go without"],
 		"haru": ["Nobody holding the door", "eleven times"],
 		"shige": ["both patches", "at the fence"],
+		"nana": ["blinking beside each other", "big steady star"],
 		"mio": ["bell rang", "just for myself"],
 		"kaede": ["said them to you again", "my sleeve"],
 		"shino": ["wildflower stencil", "Mother's cranes"],
@@ -852,6 +852,15 @@ func _nana_friend() -> void:
 	for at in ["nana_steady", "nana_beside"]:
 		var d := DialogueRunner.open("heart_events_5", {}, at)
 		check(d.error == "" and d.text() != "", "%s has its line" % at)
+	# Band 5's answers leave a mark that band 6 looks back on; band 6 has both answers' lines and sets nana_sky.
+	var nana5 := FileAccess.get_file_as_string("res://data/dialogue/heart_events_5.json")
+	check('"set": {"nana_steady": true}' in nana5 and '"set": {"nana_beside": true}' in nana5, "Nana's band 5 answers set nana_steady / nana_beside")
+	for at in ["nana_near", "nana_field", "nana_end"]:
+		var d := DialogueRunner.open("heart_events_6", {}, at)
+		check(d.error == "" and d.text() != "", "%s has its line" % at)
+	check("nana_sky" in FileAccess.get_file_as_string(EventRunner.DIR + "heart_nana_6.json") and "nana_star" in FileAccess.get_file_as_string("res://data/dialogue/heart_events_6.json"), "Nana's band 6 sets nana_sky and the star's place")
+	check(Talk.pick("nana", st.merged({"band": 6, "flags": {"heart_nana_5": true, "heart_nana_6": true}}, true)).begins_with("dear"), "Nana's dear lines after the band 6 scene")
+	check(not Talk.pick("nana", st.merged({"band": 5, "flags": {"heart_nana_5": true, "heart_nana_6": true}}, true)).begins_with("dear"), "no dear lines below band 6")
 	check("seeds:corn" in FileAccess.get_file_as_string(EventRunner.DIR + "heart_nana.json"), "Nana gives corn seed at band 3")
 	check("\"cucumber\"" in FileAccess.get_file_as_string(EventRunner.DIR + "heart_nana_5.json"), "and cucumbers at band 5")
 	check("'Nana's birthday.'" in DialogueRunner.open("examine_house", {}, "fall_birthday").text(), "the calendar names Nana's birthday")

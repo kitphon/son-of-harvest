@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-09 — Nana's band 6 scene: a star on her sky map for the farmer
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: heart_nana_6 (Captain is a frog and sings in the ditch; Nana pinned a bigger sky map to
+  the barn wall and her father stood before it a long time; a line of its own for the band 5
+  answer, which now sets nana_steady / nana_beside; one space left on the map for a star for
+  the farmer, which the farmer places close to her father's or out over the farm field,
+  nana_star = near / field; sets heart_nana_6 and nana_sky), rows in triggers_minamino /
+  shige_house / town (hearts 6, seen heart_nana_5), three dear_ talk lines, music rule, Thai for
+  every new line, tests in test_relationships (all friends loop incl. Nana, branches, dear lines),
+  README → Villagers and ROADMAP notes. Story and lines are ours.
+- Checked: see the commit message / final report for the test lines.
+- Left / next: hearts for Kiku; the child, step 5.
+
 ## 2026-11-08 — Merge: the child, step 4
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged c2ca432 the child, step 4 (Opus, own worktree) onto the Shige / Nana merge.
