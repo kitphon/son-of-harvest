@@ -185,6 +185,7 @@ func _ready() -> void:
 	layer.add_child(flash)
 	layer.add_child(NightLights.new())    # lit house windows, over the night tint
 	layer.add_child(FestivalGlow.new())  # festival lanterns and fireworks, over the night tint
+	layer.add_child(DriftGlow.new())     # summer fireflies, over the night tint
 	add_child(layer)
 	add_child(Hud.new())
 	fade = MapFade.new()
@@ -314,6 +315,7 @@ static func new_world(m: MapData) -> Array:
 	if m.farm:
 		var fw := FarmWorld.new()
 		var steps := fw.setup_steps(Game.farm, m.gate_cells())
+		steps.append(func() -> void: fw.add_child(DriftLayer.new(m, Game.farm)))   # petals, leaves, fireflies
 		steps.append(fw.make_story_props.bind(m))   # the door bell, once Hachiro has given it
 		return [fw, steps]
 	var mw := MapWorld.new()

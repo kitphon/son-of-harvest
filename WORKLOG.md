@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-08 — Seasonal drifting life outdoors
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: art direction sections 2 and 3. Spring cherry petals, fall maple / persimmon leaves and
+  summer-night fireflies, outdoors only, in both views. One pure rule script (`DriftRules`,
+  scripts/drift_rules.gd; numbers and colours in data/drift.json) gives what shows now (season,
+  weather look, clock window with a fade, wraps midnight for fireflies; none on indoor or sheltered
+  maps), how many (the data's `count` scaled by the look's share: rain thins petals / leaves, a
+  storm or snow stops them, fireflies need clear air) and where each mote is at a time `t`, as a
+  pure function (falling motes start near the map's own cherry / maple / persimmon props and the
+  festival's cherries, else anywhere, and are carried along `wind_dir` at `drift` + `drift_wind` x
+  data/wind.json's strength; fireflies keep to a home spot over water or grass, wander and blink).
+  3D: `DriftLayer` (a child of the farm world and of every outdoor MapWorld; one unshaded
+  billboard MultiMesh, tinted with the field) and `DriftGlow` in the tint's layer, which draws the
+  fireflies as added pixels over the night tint (so they glow instead of being dimmed). Flat:
+  `DriftView` (whole pixels; fireflies added with their colour divided by the night tint, as
+  NightView does). Not in occlude or MeshCache.
+- Checked: test_drift (new, in AGENTS.md's list): gating per season / look / hour / map (house and
+  mine empty), counts within the data, wind carrying motes along its direction (gale vs calm, and
+  over time), falling, heights, fireflies over both water and grass and blinking, scenes (trees,
+  pond), both views building and showing by the rules. All tests of AGENTS.md's list and smoke
+  runs: see the final report. Screenshots (3D spring at the bridge, fall, summer night by the farm
+  pond, flat view spring and summer night): the effect reads but stays small; deleted.
+- Left / next: nothing open; counts and sizes are balance numbers in data/drift.json.
+
 ## 2026-11-08 — The farmer's look chosen on a new game
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: ROADMAP "The farmer's look chosen on a new game". New game on the title screen now opens

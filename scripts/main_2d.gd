@@ -122,6 +122,9 @@ func _enter_map() -> void:
 	view.add_child(night)   # lit windows and lanterns, under the figures
 	smoke = SmokeView.new().setup(m.props, Game.maps.on_farm(), m.indoor)   # hearth smoke over the roofs
 	view.add_child(smoke)
+	var drift := DriftView.new().setup(m, Game.farm if Game.maps.on_farm() else null)   # petals, leaves, fireflies
+	drift.tint = tint
+	view.add_child(drift)
 	view.add_child(StoryView.new(m))   # what the heart events left (the bell, the store's sign)
 	view.add_child(FestivalView.new(m.id))   # today's festival decorations, in its hours
 	view.add_child(ForageView.new(m.id))   # what grows wild there today (data/forage.json)
