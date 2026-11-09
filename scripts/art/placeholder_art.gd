@@ -85,9 +85,11 @@ static func _make(key: String) -> Image:
 		"festival": # festival:<kind>:<w>x<h>[:<cloth hex>], a festival decoration in the flat view (FestivalView)
 			var wh := parts[2].split("x") if parts.size() > 2 else PackedStringArray(["1", "1"])
 			return _festival(parts[1], int(wh[0]), int(wh[1]), Color(parts[3]) if parts.size() > 3 else Color("c8442c"))
-		"child":    # child:<cradle|held>:<empty|asleep|awake|cry>:<skin>:<hair>:<top>, the baby in its bamboo cradle (20 x 14) or held up in the arms (12 x 12), in the child's colours (Child.look); child:figure:<crawler|toddler|child>:<style>:<skin>:<hair>:<top>:<front|back>:<idle|walk>:<frame>, the little one about the house (24 x 32, FigureArt.draw_little)
+		"child":    # child:<cradle|held>:<empty|asleep|awake|cry>:<skin>:<hair>:<top>, the baby in its bamboo cradle (20 x 14) or held up in the arms (12 x 12), in the child's colours (Child.look); child:carry:<style>:<skin>:<hair>:<top>, the crawler held up in the arms (16 x 14, Child.carry_key); child:figure:<crawler|toddler|child>:<style>:<skin>:<hair>:<top>:<front|back>:<idle|walk>:<frame>, the little one about the house (24 x 32, FigureArt.draw_little)
 			if parts[1] == "figure":
 				return FigureArt.draw_little(parts[2], _little_look(parts), parts[7] == "back", parts[8], int(parts[9]))
+			if parts[1] == "carry":
+				return _crawler_carry(parts[2], Color(parts[3]), Color(parts[4]), Color(parts[5]))
 			return _baby_cradle(parts[2], Color(parts[3]), Color(parts[4]), Color(parts[5])) if parts[1] == "cradle" 				else _baby_held(parts[2], Color(parts[3]), Color(parts[4]), Color(parts[5]))
 		"mochi":    # mochi:<usu:<dough 0..3>|kine>, the mochi pounding's mortar and mallet (MochiScreen, FestivalView)
 			return _usu(int(parts[2]) if parts.size() > 2 else 0) if parts[1] == "usu" else _kine()
@@ -649,6 +651,42 @@ static func _baby_held(look: String, skin: Color, hair: Color, top: Color) -> Im
 		_px(img, 2, 6, 1, 1, eye)
 		_px(img, 4, 6, 1, 1, eye)
 		_px(img, 3, 8, 1, 1, skin.darkened(0.3))
+	return _outline(img)
+
+
+## The crawler held up in the arms (the hold pose), 16 x 14, a little bigger than the swaddled
+## baby: sitting up on the hands facing out, the round head with the spouse's hair (`style`: a
+## bun on top for long hair), the indigo happi (`top`) with its pale sash and dots, both arms
+## out to the sides and the bare feet hanging below.
+static func _crawler_carry(style: String, skin: Color, hair: Color, top: Color) -> Image:
+	var img := _blank(16, 14)
+	var pale := Color("e8e2d0")
+	_px(img, 1, 7, 3, 2, top)                        # the sleeves, arms out
+	_px(img, 12, 7, 3, 2, top)
+	_px(img, 0, 7, 1, 2, skin)                       # the small hands
+	_px(img, 15, 7, 1, 2, skin)
+	_oval(img, 8.0, 9.5, 4.4, 3.4, top)              # the happi over the round body
+	_px(img, 5, 8, 6, 1, top.lightened(0.2))
+	_px(img, 4, 10, 8, 1, pale)                      # the sash
+	_px(img, 6, 9, 1, 1, pale)                       # the happi's dots
+	_px(img, 10, 9, 1, 1, pale)
+	_px(img, 5, 12, 2, 2, skin)                      # the bare feet hanging below
+	_px(img, 9, 12, 2, 2, skin)
+	_oval(img, 8.0, 4.0, 3.6, 3.4, skin)             # the head
+	_px(img, 5, 0, 6, 2, hair)                       # the hair on top
+	_px(img, 4, 1, 1, 2, hair)
+	_px(img, 11, 1, 1, 2, hair)
+	if style == "bun":
+		_px(img, 7, 0, 2, 1, hair.lightened(0.15))
+	elif style == "long" or style == "headband":
+		_px(img, 4, 2, 1, 3, hair)
+		_px(img, 11, 2, 1, 3, hair)
+	var eye := Color("2a1e1e")
+	_px(img, 6, 4, 1, 1, eye)                        # eyes open, a small smile, pink cheeks
+	_px(img, 9, 4, 1, 1, eye)
+	_px(img, 7, 6, 2, 1, skin.darkened(0.3))
+	_px(img, 5, 5, 1, 1, Color("e8907a").lerp(skin, 0.4))
+	_px(img, 10, 5, 1, 1, Color("e8907a").lerp(skin, 0.4))
 	return _outline(img)
 
 

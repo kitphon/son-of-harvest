@@ -107,6 +107,11 @@
 		"weeds": 2,
 		"messages": {"one": "%s pulled up a weed in the field this morning.", "more": "%s pulled up %d weeds in the field this morning."}
 	},
+	"hold": {
+		"_about": "Holding the little one out of the cradle (BabyActions, Child.carried): the tool button facing them lifts them into the hold pose at the stages listed; either button sets them down on the free cell in front, or back where they were lifted when that cell is taken. Never thrown, never left as an item. Set down, they sit there stay_minutes of the clock (the house's clock stands still, so until the farmer leaves the room), then their day plan has them again. Doors wait while they are held; a map change, the night and a load put them back to the plan's place. Ours: only the crawler is small enough to carry about; the toddler walks by themselves.",
+		"stages": ["crawler"],
+		"stay_minutes": 30
+	},
 	"gifts_from": "toddler",
 	"gifts": {
 		"_about": "What the little one thinks of a gift (Villagers.reaction, as a villager's gifts): sweets and wild berries are the best, bitter and hot things the worst. Gifts are taken from the stage gifts_from on (the crawler only babbles). Ours.",

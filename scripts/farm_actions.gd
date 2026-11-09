@@ -42,7 +42,8 @@ static func talk_flag(player: Player, id: String) -> void:
 ## villager talks to them (or gives them the item overhead). With an item overhead on the
 ## farm the hands are full: interact throws it, the tool button sets it down. With the dog in
 ## the arms either button sets it down (DogActions); with the baby, either button facing the
-## cradle lays them back and doors wait (BabyActions); the tool button on the cradle lifts them. With the food slot in hand the tool
+## cradle lays them back and doors wait (BabyActions); the tool button on the cradle lifts them.
+## The tool button facing the crawler lifts them too; held, either button sets them down. With the food slot in hand the tool
 ## button eats an edible item overhead (a crop, an egg, a fish, a dish). Otherwise interact
 ## first asks the map's trigger table about the spot faced (examine).
 static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge := 0) -> void:
@@ -52,11 +53,15 @@ static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge :
 		DogActions.held_action(kind, origin + facing)
 	elif Game.baby_held:   # the baby in the arms: back into the cradle, nowhere else (BabyActions)
 		BabyActions.held_action(kind, origin + facing)
+	elif Game.crawler_held():   # the crawler in the arms: set down in front (or where they were), doors wait
+		BabyActions.crawler_held_action(kind, origin, facing)
 	elif kind == "enter":
 		interact(origin + facing)
 	elif kind == "interact" and talk_to(origin, facing):
 		pass
 	elif kind != "interact" and BabyActions.lift(origin + facing):   # the tool button on the cradle
+		pass
+	elif kind != "interact" and BabyActions.lift_crawler(origin + facing):   # the tool button facing the crawler
 		pass
 	elif kind != "interact" and Game.current_tool() == "food" and Game.edible(Game.held):
 		eat_held()

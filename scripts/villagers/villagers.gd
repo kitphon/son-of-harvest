@@ -227,6 +227,7 @@ static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 		var spouse := Marriage.spouse(s.flags)
 		if spouse != "" and plans.has(spouse):
 			w = Child.place(w, where(spouse, t, s), stage, t, spouse, Child.plan_name(s))
+		w = Child.carried_place(w, t)   # in the farmer's arms (on no map) or where set down (BabyActions)
 		w.stage = stage
 		w.look = Child.colours(s.flags)
 	var turn: Variant = _turns.get(id)

@@ -7,7 +7,10 @@ extends SceneTree
 ## Thai), the name picked from the three and stored by the event's child step; the baby's
 ## cradle (step 3): the stage flag, the cradle prop only while the baby stage holds, the lines
 ## by the clock, lifting the baby and laying them back, no throw, the door rule, the save while
-## holding, the art and both views' pictures. Run:
+## holding, the art and both views' pictures; the crawler in the arms (data/child.json hold):
+## lifted by the tool button facing them, the picture, set down in front or back where they were,
+## the door, the night, a map change and a load putting them back to the plan, both views, no
+## toddler or older lifted. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_child.gd
 
 var failures := 0
@@ -45,6 +48,9 @@ func _process(_delta: float) -> bool:
 		_play_birth()
 		_baby_in_arms()
 		_baby_save()
+		_crawler_in_arms()
+		_crawler_save()
+		_crawler_only()
 		_little_talk()
 		_little_gifts()
 		_little_views()
@@ -872,6 +878,169 @@ func _baby_save() -> void:
 	check(not g.baby_held and not g.holding() and g.held == "", "loaded: the arms are empty")
 	check(g.maps.id == "house" and g.is_cradle(Vector2i(10, 1)) and g.flags.get(Child.STAGE) == "baby", "and the baby is in the cradle")
 	SaveGame.restore({path: null, path + SaveGame.BACKUP: null, path + SaveGame.TEMP: null})
+	g.new_game()
+
+
+# --- holding the crawler (data/child.json hold) -----------------------------------------
+
+func _crawler_where(g: Node, t := -1.0) -> Dictionary:
+	return Villagers.where(Child.ID, g.day_minutes() if t < 0.0 else t, g.trigger_state(Vector2i.ZERO))
+
+
+## Lifting, the picture, the hints, the door, setting down in front and back where they were,
+## the stay and the plan after it, both views, a map change and the night.
+func _crawler_in_arms() -> void:
+	var g: Node = root.get_node("Game")
+	var FA: GDScript = load("res://scripts/farm_actions.gd")
+	var AH: GDScript = load("res://scripts/ui/action_hints.gd")
+	var said: Array = []
+	var hear := func(t: String) -> void: said.append(t)
+	var thrown: Array = []
+	var fly := func(item, _a, _b, _r) -> void: thrown.append(item)
+	g.message.connect(hear)
+	g.thrown.connect(fly)
+	check(Child.liftable("crawler") and not Child.liftable("toddler") and not Child.liftable("child") and not Child.liftable("baby"), "hold.stages: the crawler only")
+	check(Child.hold_stay() > 0.0, "a set-down crawler stays a while (%s min)" % Child.hold_stay())
+	_little_home(g, "crawler")
+	var w := _crawler_where(g)
+	var cell := Vector2i(w.pos.floor())
+	var from := cell + Vector2i.LEFT
+	g.maps.place("house", from, Vector2i.RIGHT)
+	check(AH.pick(from, Vector2i.RIGHT) == {"interact": "Talk", "use_tool": "Hold"}, "the key hints facing the crawler: Talk and Hold %s" % [AH.pick(from, Vector2i.RIGHT)])
+	FA.on_action("tool", from, Vector2i.RIGHT)
+	check(g.crawler_held() and g.holding() and g.held == "" and not g.baby_held, "the tool button lifts the crawler (the hand slot stays empty)")
+	check(not said.is_empty() and said.back() == "You pick Sora up.", "lifted: %s" % [said])
+	check(g.held_key() == Child.carry_key(g.child_look()) and g.held_key().begins_with("child:carry:"), "the crawler is the picture overhead (%s)" % g.held_key())
+	check(_crawler_where(g).map == DayPlan.AWAY and Villagers.on_map("house", g.day_minutes(), g.trigger_state(Vector2i.ZERO)).filter(func(v): return v.id == Child.ID).is_empty(),
+		"held: not on the floor any more")
+	var img := PlaceholderArt.tex(g.held_key()).get_image()
+	var baby := PlaceholderArt.tex(Child.held_key("awake", g.child_look())).get_image()
+	var top := Color(str(g.child_look().get("top", "2e4a8c")))
+	var skin := Color(str(g.child_look().get("skin", "e0b088")))
+	var has_top := false
+	var has_skin := false
+	for y in img.get_height():
+		for x in img.get_width():
+			var px := img.get_pixel(x, y)
+			has_top = has_top or px.is_equal_approx(top)
+			has_skin = has_skin or px.is_equal_approx(skin)
+	check(img.get_size() == Vector2i(16, 14) and img.get_width() > baby.get_width(), "the held crawler is 16 x 14, bigger than the swaddled baby (%s)" % img.get_size())
+	check(has_top and has_skin, "in the child's colours: the happi and the skin")
+	check(AH.pick(from, Vector2i.RIGHT) == {"interact": "Put down", "use_tool": "Put down"} and AH.pick(from, Vector2i.UP) == {"interact": "Put down", "use_tool": "Put down"},
+		"the key hints while held: Put down either way")
+	# Views: nobody on the floor while held.
+	var v3: Node = load("res://scripts/world3d/villager_sprites.gd").new("house")
+	var v2: Node = load("res://scripts/world/villager_view.gd").new("house")
+	root.add_child(v3)
+	root.add_child(v2)
+	check(not Child.ID in v3.shown() and not Child.ID in v2.shown(), "both views: the crawler is not on the floor while held")
+	# The door waits.
+	g.maps.place("house", Vector2i(4, 5), Vector2i.DOWN)
+	FA.on_action("enter", Vector2i(4, 5), Vector2i.DOWN)
+	check(g.maps.id == "house" and g.crawler_held(), "the door waits: still in the farmhouse with the crawler")
+	check(said.back() == "Set Sora down first.", "the door rule says why: %s" % said.back())
+	# Set down on the free cell in front, turned to the farmer.
+	var stand := from
+	var face := Vector2i.ZERO
+	for d in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT]:
+		if g.crawler_spot_free(stand + d):
+			face = d
+			break
+	check(face != Vector2i.ZERO, "a free cell beside (%s)" % stand)
+	g.maps.place("house", stand, face)
+	FA.on_action("interact", stand, face)
+	var put := _crawler_where(g)
+	check(not g.crawler_held() and not g.holding() and thrown.is_empty() and said.back() == "You set Sora down.", "E sets the crawler down, nothing thrown (%s)" % said.back())
+	check(put.map == "house" and Vector2i(put.pos.floor()) == stand + face and put.facing == -face and not put.moving, "on the cell in front, turned to the farmer (%s %s)" % [put.pos, put.facing])
+	v3.refresh()
+	v2.refresh()
+	check(Child.ID in v3.shown() and Child.ID in v2.shown() and v2._sprites[Child.ID].position == put.pos * 16 \
+			and Vector2(v3._sprites[Child.ID].position.x, v3._sprites[Child.ID].position.z) == put.pos, "both views draw the crawler where set down")
+	check(AH.pick(stand, face).use_tool == "Hold", "and the tool button may lift them again")
+	# The stay: the plan has them again after it.
+	var later := _crawler_where(g, g.day_minutes() + Child.hold_stay() + 1.0)
+	check(later.pos != put.pos or later.facing != put.facing, "after the stay the day plan has them again (%s)" % later.pos)
+	# Lifted again, facing a wall: back where they were lifted.
+	FA.on_action("tool", stand, face)
+	check(g.crawler_held(), "lifted again")
+	g.maps.place("house", Vector2i(9, 1), Vector2i.UP)
+	check(not g.crawler_spot_free(Vector2i(9, 0)), "the wall above (9, 1)")
+	FA.on_action("tool", Vector2i(9, 1), Vector2i.UP)
+	var back := _crawler_where(g)
+	check(not g.crawler_held() and back.pos == put.pos and back.facing == put.facing, "facing the wall: set back down where they were (%s)" % back.pos)
+	# The futon: sets the crawler down, no sleep while held.
+	FA.on_action("tool", stand, face)
+	var day: int = g.day
+	g.maps.place("house", Vector2i(1, 3), Vector2i.UP)
+	FA.on_action("interact", Vector2i(1, 3), Vector2i.UP)
+	check(g.day == day and not g.crawler_held() and g.maps.id == "house", "no sleeping with the crawler in the arms: set down first")
+	# A map change while held: the plan's place again.
+	g.maps.place("house", stand, face)
+	check(g.lift_crawler(stand + face), "lifted for the map change")
+	g.go_to_map("farm", Vector2i(4, 4), Vector2i.DOWN)
+	check(not g.crawler_held() and Child.carried.is_empty(), "a map change puts the crawler back")
+	g.maps.place("house", stand, face)
+	check(Vector2i(_crawler_where(g).pos.floor()) == cell, "back at the plan's place (%s)" % _crawler_where(g).pos)
+	# The night.
+	g.maps.place("house", from, Vector2i.RIGHT)
+	check(g.lift_crawler(cell), "lifted at night")
+	g.end_day()
+	check(not g.crawler_held() and Child.carried.is_empty(), "a new day puts the crawler back")
+	# No lifting with something in hand.
+	g.hour = 7
+	g.minute = 0
+	Villagers.reset_day()
+	g.maps.place("house", from, Vector2i.RIGHT)
+	g.held = "turnip"
+	FA.on_action("tool", from, Vector2i.RIGHT)
+	check(not g.lift_crawler(cell) and not g.crawler_held() and g.held == "turnip", "no lifting with an item in hand")
+	g.held = ""
+	v3.queue_free()
+	v2.queue_free()
+	g.message.disconnect(hear)
+	g.thrown.disconnect(fly)
+	g.new_game()
+	check(Child.carried.is_empty(), "a new game: nobody held")
+
+
+## Saved while holding the crawler: on load the arms are empty and the crawler at the plan's place.
+func _crawler_save() -> void:
+	var g: Node = root.get_node("Game")
+	_little_home(g, "crawler")
+	var w := _crawler_where(g)
+	var cell := Vector2i(w.pos.floor())
+	g.maps.place("house", cell + Vector2i.LEFT, Vector2i.RIGHT)
+	check(g.lift_crawler(cell), "lift the crawler")
+	var path := "user://test_child_crawler.json"
+	check(SaveGame.write(g, path) == "", "write the save while holding the crawler")
+	g.new_game()
+	var err := SaveGame.read(g, path)
+	check(err == "", "read it (%s)" % err)
+	Villagers.reset_day()
+	check(not g.crawler_held() and not g.holding() and Child.carried.is_empty(), "loaded: the arms are empty")
+	var after := _crawler_where(g)
+	check(after.map == "house" and Vector2i(after.pos.floor()) == cell, "and the crawler at the plan's place (%s)" % after.pos)
+	SaveGame.restore({path: null, path + SaveGame.BACKUP: null, path + SaveGame.TEMP: null})
+	g.new_game()
+
+
+## The toddler and the child are not lifted: the tool button does the tool's work.
+func _crawler_only() -> void:
+	var g: Node = root.get_node("Game")
+	var FA: GDScript = load("res://scripts/farm_actions.gd")
+	var AH: GDScript = load("res://scripts/ui/action_hints.gd")
+	for stage in ["toddler", "child"]:
+		_little_home(g, stage)
+		g.hour = 6
+		g.minute = 30
+		var w := _crawler_where(g)
+		check(w.get("map", "") == "house", "%s in the farmhouse at 6:30 (%s)" % [stage, w.get("map", "")])
+		var cell := Vector2i(w.pos.floor())
+		g.maps.place("house", cell + Vector2i.LEFT, Vector2i.RIGHT)
+		check(g.crawler_at(cell).is_empty() and not g.lift_crawler(cell), "the %s cannot be lifted" % stage)
+		FA.on_action("tool", cell + Vector2i.LEFT, Vector2i.RIGHT)
+		check(not g.crawler_held() and not g.holding(), "the tool button facing the %s lifts nobody" % stage)
+		check(AH.pick(cell + Vector2i.LEFT, Vector2i.RIGHT).use_tool != "Hold", "no Hold hint for the %s" % stage)
 	g.new_game()
 
 

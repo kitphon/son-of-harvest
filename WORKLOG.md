@@ -10,6 +10,36 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-09 — Holding the crawler
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done:
+  - data/child.json `hold`: `stages` ["crawler"] (only the crawler is carried; the toddler
+    walks), `stay_minutes` 30 (how long a set-down crawler sits where put before the plan has
+    them again; the house's clock stands still, so in practice until the farmer leaves). Ours.
+  - Child: `carried` (static: held, or set down {map, pos, facing, until}), `liftable`,
+    `hold_stay`, `carried_place` (Villagers.where for id `child`: held = on no map, set down =
+    that spot, still, turned to the farmer), `carry_key`; the data check covers `hold`.
+  - Game: `crawler_held`, `crawler_at`, `lift_crawler`, `crawler_spot_free` (floor, no door,
+    prop or anyone; on the farm no crop / item / fixture), `set_crawler_down` (front, else back
+    where lifted), `crawler_back` on new game, map change, end of day and load; `holding()` and
+    `held_key()` know the crawler. `--child=crawler:held` (after every flag: the farmer beside
+    the crawler, facing them, lifted).
+  - BabyActions `lift_crawler` / `crawler_held_action` (doors wait: "Set %s down first."),
+    FarmActions wiring, ActionHints (Hold facing the crawler; Put down both buttons while held),
+    PlaceholderArt `child:carry:<style>:<skin>:<hair>:<top>` (16 x 14, sitting up, happi, arms
+    out), three Thai lines. README → Villagers, AGENTS.md (test_child, the flag).
+- Checked: test_child new checks (Talk / Hold hints, lifted with the hand slot empty, the carry
+  picture 16 x 14 in the child's colours, off the floor in both views while held, the door
+  waits, set down in front turned to the farmer and drawn there in both views, the plan again
+  after the stay, facing a wall: back where lifted, the futon sets them down first, map change
+  / night / new game / load clear it, no lift with an item in hand, toddler and child never
+  lifted); test_view2d `_crawler` (hold pose in the flat view, door, set down drawn). Mutation
+  (`carried_place` not called): `test_child: FAILED (8 failed)`; restored. All 31 suites print
+  `OK (0 failed)`; the four smoke runs print no error or warning lines. Screenshot `--demo
+  --map=house --built=room --flags=married_sayo,spouse=sayo --child=crawler:held --time=7:00`
+  frame 39: the crawler overhead in the indigo happi, the hint "E/Space Put down". shots/ deleted.
+- Left / next: the child's portrait in the text box; Kiku's band 6 scene.
+
 ## 2026-11-09 — Merge: the child, step 5
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 6f3404f the child, step 5 (Opus, own worktree) onto the Nana / Kiku merge.

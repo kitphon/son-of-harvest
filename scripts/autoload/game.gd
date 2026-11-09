@@ -197,6 +197,7 @@ func _ready() -> void:
 func new_game() -> void:
 	ending_open = false
 	baby_held = false
+	crawler_back()
 	game_partner = ""
 	race = null
 	year = 1
@@ -271,6 +272,7 @@ func new_game() -> void:
 		elif arg.begins_with("--day="):   # `-- --demo --day=7 --map=river`: that day of the season (7: the first Sunday)
 			day = clampi(arg.trim_prefix("--day=").to_int(), 1, DAYS_PER_SEASON)
 	weather_tomorrow = roll_weather(_tomorrow_season())
+	var lift_after := false   # `--child=crawler:held`
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--festival="):   # `-- --demo --festival=lantern_night`: its day, hours and place
 			Festivals.start_at(self, arg.trim_prefix("--festival="))
@@ -394,9 +396,13 @@ func new_game() -> void:
 			maps.mine_floor = new_mine_floor(maxi(arg.trim_prefix("--mine=").to_int(), 1))
 		elif arg == "--baby" or arg == "--baby=held":   # `-- --demo --map=house --built=room --flags=married_sayo,spouse=sayo --baby`: born today, in the cradle (=held: in the arms)
 			_demo_baby(arg == "--baby=held")
-		elif arg.begins_with("--child="):   # `-- --demo --map=house --built=room --flags=married_sayo,spouse=sayo --child=toddler`: the little one at that stage
-			_demo_child(arg.trim_prefix("--child="))
+		elif arg.begins_with("--child="):   # `-- --demo --map=house --built=room --flags=married_sayo,spouse=sayo --child=toddler`: the little one at that stage (`--child=crawler:held`: the crawler in the arms)
+			var what := arg.trim_prefix("--child=").split(":")
+			_demo_child(what[0])
+			lift_after = what.size() > 1 and what[1] == "held"
 	Child.sync_stage(flags, day_number())   # `--flags=` may have set a birth
+	if lift_after:   # after every flag, so `--time` and `--map` have put the crawler where the plan says
+		_demo_lift_crawler()
 	# `--map=mine_floor` alone: the first floor.
 	if maps.id == mine_map("floor_map") and maps.mine_floor == null:
 		maps.mine_floor = new_mine_floor(1)
@@ -424,6 +430,23 @@ func _demo_baby(held_up: bool) -> void:
 	maps.place("house", Vector2i(p.cell) + Vector2i.DOWN, Vector2i.UP)
 	if held_up:
 		lift_baby()
+
+
+## `--child=crawler:held`: the farmer stands beside the crawler (below, else the first free
+## side), facing them, and lifts them into the arms.
+func _demo_lift_crawler() -> void:
+	var w := Villagers.where(Child.ID, day_minutes(), trigger_state(Vector2i.ZERO))
+	if w.is_empty() or not Child.liftable(str(flags.get(Child.STAGE, ""))) or not MapManager.has(str(w.get("map", ""))):
+		push_warning("--child=<stage>:held: only a crawler in the house can be held (--built=room, a time they are up)")
+		return
+	var c := Vector2i(w.pos.floor())
+	maps.place(str(w.map), c + Vector2i.DOWN, Vector2i.UP)
+	for d in [Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP]:
+		maps.place(str(w.map), c + d, -d)
+		if crawler_spot_free(c + d):
+			break
+	if not lift_crawler(c):
+		push_warning("--child=crawler:held: the crawler could not be lifted")
 
 
 ## `--child=<crawler|toddler|child>`: a child born to the spouse of the `--flags` (Sayo when
@@ -601,6 +624,7 @@ func go_to_map(map_id: String, cell: Vector2i, face: Vector2i) -> bool:
 		depth = maps.mine_floor.depth + 1 if maps.mine_floor != null else maxi(_mine_start, 1)
 	_mine_start = 0
 	baby_held = false   # the baby stays in the farmhouse: back in the cradle (doors wait, BabyActions)
+	crawler_back()   # the crawler too: back to the plan's place (doors wait while held)
 	maps.place(map_id, cell, face)
 	maps.mine_floor = new_mine_floor(depth) if depth > 0 else null
 	fishing.stop()
@@ -1061,6 +1085,7 @@ func knock_out(kind: String) -> void:
 ## `wake_spawn` (at home by the futon unless a knock-out says otherwise).
 func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 	baby_held = false   # asleep in the cradle by morning
+	crawler_back()   # and the crawler in bed
 	pay_bin()
 	affection.day_end(day_number(), rng)   # before the date moves: who was left alone today
 	day += 1
@@ -1163,13 +1188,15 @@ func add_animal(kind: String, young := false) -> bool:
 # --- holding and throwing ---------------------------------------------------
 
 func holding() -> bool:
-	return held != "" or animals.dog.held or baby_held
+	return held != "" or animals.dog.held or baby_held or crawler_held()
 
 
-## The sprite key for what is carried overhead: the held item, the dog in the arms, or the baby.
+## The sprite key for what is carried overhead: the held item, the dog in the arms, the baby or the crawler.
 func held_key() -> String:
 	if baby_held:
 		return Child.held_key(Child.cradle_look(int(day_minutes())), child_look())
+	if crawler_held():
+		return Child.carry_key(child_look(), str(flags.get(Child.STAGE, "crawler")))
 	return "animal:dog:held:0" if animals.dog.held else PlaceholderArt.world_item_key(held)
 
 
@@ -1213,6 +1240,67 @@ func lay_baby() -> bool:
 	baby_held = false
 	changed.emit()
 	return true
+
+
+# --- the crawler in the arms (Child.carried; data/child.json hold) -----------
+
+## Is the little one (at a liftable stage, the crawler) in the farmer's arms?
+func crawler_held() -> bool:
+	return Child.carried.get("held", false)
+
+
+## The little one on cell `c` of the current map when they can be lifted now (Villagers.on_map
+## under the id Child.ID, a stage in hold.stages); {} otherwise.
+func crawler_at(c: Vector2i) -> Dictionary:
+	if not Child.about(flags) or not Child.liftable(str(flags.get(Child.STAGE, ""))):
+		return {}
+	for w in Villagers.on_map(maps.id, day_minutes(), trigger_state(c)):
+		if w.id == Child.ID and Vector2i(w.pos.floor()) == c:
+			return w
+	return {}
+
+
+## Lifts the crawler off cell `c` into the arms (hands free). False when nobody liftable is there.
+func lift_crawler(c: Vector2i) -> bool:
+	var w := crawler_at(c)
+	if w.is_empty() or holding():
+		return false
+	Child.carried = {"held": true, "map": maps.id, "from": w.pos, "facing": w.facing}
+	changed.emit()
+	return true
+
+
+## Can the crawler be set down on cell `c` of the current map: in the map, floor (not a wall, a
+## door or a prop), nobody standing there, and on the farm no crop, item or fixture either?
+func crawler_spot_free(c: Vector2i) -> bool:
+	var m := maps.current()
+	if m == null or not m.in_bounds(c) or m.is_solid(c) or not m.door_at(c).is_empty() or not m.prop_at(c).is_empty():
+		return false
+	if maps.on_farm() and farm.in_bounds(c) and (farm.cell(c).obj != FarmGrid.Obj.NONE or farm.fixed_at(c) != ""
+			or farm.item_at(c) != "" or farm.cell(c).crop != ""):
+		return false
+	for w in Villagers.on_map(maps.id, day_minutes(), trigger_state(c)):
+		if Vector2i(w.pos.floor()) == c:
+			return false
+	return true
+
+
+## Sets the crawler down on cell `c` (the farmer faces it along `facing`), turned to the farmer,
+## or back where they were lifted when `c` is not free. Returns "front" or "back" ("" when not held).
+func set_crawler_down(c: Vector2i, facing: Vector2i) -> String:
+	if not crawler_held():
+		return ""
+	var front := crawler_spot_free(c)
+	var pos: Vector2 = Vector2(c) + Vector2(0.5, 0.5) if front else Child.carried.from
+	var face: Vector2i = -facing if front else Child.carried.facing
+	Child.carried = {"map": maps.id, "pos": pos, "facing": face, "until": day_minutes() + Child.hold_stay()}
+	changed.emit()
+	return "front" if front else "back"
+
+
+## The crawler back to the day plan's place (a map change, the night, a new game, a load).
+func crawler_back() -> void:
+	Child.carried = {}
 
 
 ## What one of `id` fetches in the bin (0 = can't be shipped). Fish are "fish:<id>", dishes
@@ -3081,6 +3169,7 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	for key in n:
 		set(key, n[key])
 	baby_held = false   # never saved: the baby is back in the cradle
+	crawler_back()   # never saved: the crawler at the plan's place
 	Child.sync_stage(flags, day_number())   # the cradle follows the loaded day
 	sync_build_flag()
 	MapManager.set_built(house_built)

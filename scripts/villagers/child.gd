@@ -385,6 +385,54 @@ static func figure_key(w: Dictionary) -> String:
 		_colour_part(c), "back" if FarmerAnim.is_back(w.get("facing", Vector2i.DOWN)) else "front", "walk" if walking else "idle", frame]
 
 
+# --- holding the crawler -----------------------------------------------------
+
+## The farmer and the crawler (data/child.json hold; BabyActions): {} while the day plan
+## stands; {held: true, map, from, facing} in the farmer's arms (lifted off `from`, a position in
+## cells); {map, pos, facing, until} set down there until clock minute `until` (the house's
+## clock stands still, so in practice until the farmer leaves the map). Game clears it on every
+## map change, the night, a new game and a load, and the plan's place is back.
+static var carried := {}
+
+
+## Can the little one at `stage` be lifted into the arms (hold.stages)?
+static func liftable(stage: String) -> bool:
+	return stage in data().get("hold", {}).get("stages", [])
+
+
+## The game minutes a set-down little one stays where they were put (hold.stay_minutes).
+static func hold_stay() -> float:
+	return float(data().get("hold", {}).get("stay_minutes", 30))
+
+
+## Where the little one is while the farmer has them (`carried`), from where the plan puts them
+## (`w`): held, on no map (DayPlan.AWAY); set down, on that spot, sitting still and turned as
+## put down, until the stay ends; otherwise `w`.
+static func carried_place(w: Dictionary, t: float) -> Dictionary:
+	if carried.is_empty():
+		return w
+	var out := w.duplicate()
+	if carried.get("held", false):
+		out.map = DayPlan.AWAY
+		out.moving = false
+		return out
+	if t >= float(carried.get("until", 0.0)):
+		return w
+	out.map = str(carried.map)
+	out.pos = carried.pos
+	out.facing = carried.facing
+	out.moving = false
+	out.walked = 0.0
+	out.with_spouse = false
+	return out
+
+
+## The little one held up in the farmer's arms (the hold pose), in the child's colours `colours`
+## (Child.look) and hair as worn at `stage`: child:carry:<style>:<skin>:<hair>:<top>.
+static func carry_key(colours: Dictionary, stage := "crawler") -> String:
+	return "child:carry:%s:%s" % [small_style(str(colours.get("hair_style", "short")), stage), _colour_part(colours)]
+
+
 ## Does the little one take gifts at `stage`? From gifts_from on (the crawler only babbles).
 static func takes_gifts(stage: String) -> bool:
 	var ids := stage_ids()
@@ -562,6 +610,12 @@ static func check() -> String:
 		return "help needs a stage, band 0 .. 6, weeds 0 .. 99 and a weather list"
 	if not "%s" in str(hp.get("messages", {}).get("one", "")) or not "%d" in str(hp.get("messages", {}).get("more", "")):
 		return "help.messages need one (%s) and more (%s, %d)"
+	var hold: Variant = d.get("hold")
+	if not hold is Dictionary or not hold.get("stages") is Array or float(hold.get("stay_minutes", -1)) < 0.0:
+		return "hold needs stages [...] and stay_minutes >= 0"
+	for st in hold.stages:
+		if not st in FIGURE_STAGES:
+			return "hold.stages: %s is not one of %s" % [st, FIGURE_STAGES]
 	if not str(d.get("gifts_from", "")) in stage_ids():
 		return "gifts_from is a stage"
 	var gifts: Variant = d.get("gifts")

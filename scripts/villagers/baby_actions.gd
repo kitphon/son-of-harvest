@@ -6,6 +6,8 @@ extends RefCounted
 ## hold pose. While the baby is held either button facing the cradle lays them back; the baby
 ## is never thrown or set down anywhere else, and a door waits until the baby is back (the
 ## baby stays in the farmhouse). Map changes and the night put the baby back as well (Game).
+## The crawler (data/child.json hold) is lifted the same way by the tool button facing them,
+## and either button sets them down in front (or where they were); doors wait for them too.
 
 
 ## E on cell `c` with the hands free: the cradle's line. True when the cradle was there.
@@ -37,3 +39,28 @@ static func held_action(kind: String, c: Vector2i) -> void:
 		Game.message.emit("You lay %s back in the cradle." % name)
 	else:
 		Game.message.emit("Your hands are full.")
+
+
+# --- the crawler (data/child.json hold; Child.carried) -------------------------------------
+
+## The tool button on cell `c` with the hands free: lifts the crawler there into the hold pose.
+## True when a liftable little one was there.
+static func lift_crawler(c: Vector2i) -> bool:
+	if Game.holding() or not Game.lift_crawler(c):
+		return false
+	Sfx.play("pick")
+	Game.message.emit("You pick %s up." % Child.child_name(Game.flags))
+	return true
+
+
+## A button while the crawler is held, the farmer on `origin` facing `facing` ("enter" =
+## walking into a door): the door waits; either button sets them down on the free cell in front,
+## or back where they were lifted (never thrown, never left as an item).
+static func crawler_held_action(kind: String, origin: Vector2i, facing: Vector2i) -> void:
+	var name := Child.child_name(Game.flags)
+	if kind == "enter":
+		Game.message.emit("Set %s down first." % name)
+		return
+	Game.set_crawler_down(origin + facing, facing)
+	Sfx.play("hold_land")
+	Game.message.emit("You set %s down." % name)

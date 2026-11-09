@@ -236,8 +236,43 @@ func _cradle() -> void:
 	act("interact", Vector2i(10, 2), Vector2i.UP)
 	await process_frame
 	check(not g.baby_held and not cv.key().contains(":empty:"), "E at the cradle lays the baby back")
+	await _crawler()
 	for k in ["child_news", "child_born", "child_name", Child.STAGE, "spouse", "married_sayo"]:
 		g.flags.erase(k)
+
+
+## The crawler in the flat view: the tool button facing them lifts them into the hold pose (off
+## the floor, the carry picture overhead), the door waits, E sets them down in front.
+func _crawler() -> void:
+	var was_year: int = g.year
+	var was_hour: int = g.hour
+	g.year += 1
+	Child.give_birth(g.flags, g.day_number() - 30, "Aoi")
+	Child.sync_stage(g.flags, g.day_number())
+	g.hour = 7
+	Villagers.reset_day()
+	await process_frame
+	var vv: Node = null
+	for n in scene.view.get_children():
+		if _is(n, "villager_view.gd"):
+			vv = n
+	var w := Villagers.where(Child.ID, g.day_minutes(), g.trigger_state(Vector2i.ZERO))
+	var cell := Vector2i(w.pos.floor())
+	check(g.flags.get(Child.STAGE) == "crawler" and vv != null and Child.ID in vv.shown(), "the flat house draws the crawler (%s)" % g.flags.get(Child.STAGE))
+	act("tool", cell + Vector2i.LEFT, Vector2i.RIGHT)
+	await process_frame
+	check(g.crawler_held() and player.anim.key(Vector2i.RIGHT).contains("hold") and not Child.ID in vv.shown(),
+		"the tool button lifts the crawler, the farmer in the hold pose, off the floor (%s)" % player.anim.key(Vector2i.RIGHT))
+	act("enter", Vector2i(4, 5), Vector2i.DOWN)
+	check(g.maps.id == "house" and g.crawler_held(), "the farmhouse door waits while the crawler is held")
+	act("interact", cell + Vector2i.LEFT, Vector2i.RIGHT)
+	await process_frame
+	check(not g.crawler_held() and Child.ID in vv.shown() and vv._sprites[Child.ID].position == (Vector2(cell) + Vector2(0.5, 0.5)) * 16,
+		"E sets the crawler down in front, drawn there")
+	g.crawler_back()
+	g.year = was_year
+	g.hour = was_hour
+	Villagers.reset_day()
 
 
 func _talk_and_shop() -> void:

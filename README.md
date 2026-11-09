@@ -368,6 +368,16 @@ data/dialogue/talk_child.json (pick key `stage`, the name put into each `%s` by
 item overhead is a gift (`gifts` in data/child.json), the crawler takes none. The hearts start
 at band 3 and never fall below it, the nightly loss included (`Affection.day_end`).
 
+**Holding the crawler.** The tool button facing the crawler (data/child.json `hold.stages`)
+lifts them into the hold pose, drawn overhead as `child:carry:<style>:<skin>:<hair>:<top>`
+(16 x 14, `Child.carry_key`). Held, they are on no map (`Child.carried`, read by
+`Villagers.where` through `Child.carried_place`); either button sets them down on the free cell
+in front (`Game.crawler_spot_free`: floor, no door, prop or anyone there), turned to the farmer,
+or back where they were lifted. They sit there `hold.stay_minutes` of the clock (the house's
+clock stands still, so until the farmer leaves), then the plan has them again. Never thrown or
+left as an item; a door waits while they are held; a map change, the night, a new game and a
+load clear `Child.carried`. `--child=crawler:held` starts with them in the arms.
+
 **The child out with the spouse.** At the child stage (`days.child`) the little one is beside
 the spouse at home from 6:00, plays in the yard by the kennel from 7:00, walks off by the gate
 at 9:35 and from 10:00 (`with.plans.out`; Mio's after her ferry, `with.join_at`) is at the

@@ -24,6 +24,8 @@ static func pick(origin: Vector2i, facing: Vector2i) -> Dictionary:
 	if Game.baby_held:   # only the cradle takes the baby back (BabyActions)
 		var back := "Put back" if Game.is_cradle(c) else ""
 		return {"interact": back, "use_tool": back}
+	if Game.crawler_held():   # set down in front, or back where they were (BabyActions)
+		return {"interact": "Put down", "use_tool": "Put down"}
 	var out := {"interact": interact_verb(origin, facing), "use_tool": tool_verb(origin, facing)}
 	if Game.holding() and Game.maps.on_farm():
 		if out.interact == "":
@@ -85,6 +87,8 @@ static func interact_verb(origin: Vector2i, facing: Vector2i) -> String:
 static func tool_verb(origin: Vector2i, facing: Vector2i) -> String:
 	if not Game.holding() and Game.is_cradle(origin + facing):
 		return "Hold"   # lifts the baby (BabyActions.lift, before the tool's own work)
+	if not Game.holding() and not Game.crawler_at(origin + facing).is_empty():
+		return "Hold"   # lifts the crawler (BabyActions.lift_crawler)
 	var tool := Game.current_tool()
 	if tool == "food":
 		if Game.edible(Game.held) or Game.count("food:" + Game.current_food()) > 0:
