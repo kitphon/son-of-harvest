@@ -14,7 +14,11 @@ extends RefCounted
 ## the clay of Ichiro's kiln in Sakurazaka beside his and his father's (ichiro_mark, band 6):
 ## both lit meshes (OutdoorProps); the name Mio painted on her ferry boat on the river (mio_boat,
 ## band 6) is a picture on its side; the noren Shino dyed for the farmhouse hangs over its door
-## (shino_noren rows / flowers, band 6) and her own new one over the dye house's. The pictures are PlaceholderArt "story:" keys, the same ones the flat view draws
+## (shino_noren rows / flowers, band 6) and her own new one over the dye house's. In Minamino
+## Captain's jar stands by Shige's door while Nana keeps him till he has legs (nana_captain
+## "jar", band 3, until heart_nana_6), then Captain the frog sits in the ditch behind the beds
+## (heart_nana_6) and her sky map is pinned to the hen barn's front (nana_sky, its stars by her
+## answers: StoryView.sky_map_key). The pictures are PlaceholderArt "story:" keys, the same ones the flat view draws
 ## (StoryView, which also keeps the list of kinds). Same units as MapWorld (1 unit = 1 cell).
 
 
@@ -117,6 +121,25 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 			# The finished new kiln (ichiro_mark): Ichiro's print is on it, the farmer's is kiln_mark.
 			var c := r.get_center()
 			OutdoorProps.kiln(w, r, Vector3(c.x, 0, c.y), w is MapWorld and SnowLayer.map_has_snow((w as MapWorld).map), [1], false)
+		"captain_jar":
+			# Nana's jar with Captain the tadpole by her father's door (nana_captain "jar"), on
+			# the ground beside the step.
+			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))
+			s.pixel_size = 0.035
+			s.position = Vector3(r.get_center().x + 0.15, 0, r.position.y + 0.3)
+			w.add_child(s)
+		"frog":
+			# Captain grown, on a stone at the ditch's back bank (OutdoorProps.ditch, its middle
+			# the cell's), singing.
+			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))
+			s.pixel_size = 0.035
+			s.position = Vector3(r.get_center().x + 0.2, 0.03, r.get_center().y - 0.24)
+			w.add_child(s)
+		"sky_map":
+			# Nana's sky map on its bedsheet, pinned flat to the hen barn's front over the hen
+			# hole, left of the door (OutdoorProps.hen_barn: the prop is its front row); its top under 1.0,
+			# so it never fades as a thing in the way of its own (Occluders.MIN_HEIGHT).
+			w._picture(StoryView.art_key(p), Vector2(1.02, 0.68), Vector3(r.position.x + 0.62, 0.63, OutdoorProps.hen_barn_front(r) + 0.04))
 		"carp_streamer":
 			# Pole and carp are one picture, standing on its cell, the carp just over the eave.
 			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))

@@ -1,5 +1,5 @@
 {
-	"_note": "Minamino, the village's south part (added 2026-11-01), between the lane behind Kota's house and the river: the lane runs on down to the river (x 4), a cart track east (y 9). Vegetable gardens behind a low board fence and more by Shige's house (north of the track, door 11, 6), where Shige and his daughter Nana live; a well; Kiku's house south-east (door 22, 14, round its front) in her persimmon orchard, with a drying rack for the persimmons and rice. A little roadside shrine with a stone lantern by the lane, a jizo by the way down, bamboo in the south-west corner. Shino's indigo dye house stands west of the lane on the way down to the river (door 1, 13), its two dye vats in front, the cherry moved south to make room, and west of the vats her drying rack (0..1, 15..17): three poles, a length of indigo over each, the palest by the vats and the darkest last, out 7:00-17:00 on dry days, in on Sundays and her birthday (DyeCloth); a bamboo moved south for it. Once she has dyed the farmhouse's noren (shino_noren) a new one of her own, with the dye house's mark, hangs over her door. Format: README.md, Maps.",
+	"_note": "Minamino, the village's south part (added 2026-11-01), between the lane behind Kota's house and the river: the lane runs on down to the river (x 4), a cart track east (y 9). Vegetable gardens behind a low board fence and more by Shige's house (north of the track, door 11, 6), where Shige and his daughter Nana live; a well; Kiku's house south-east (door 22, 14, round its front) in her persimmon orchard, with a drying rack for the persimmons and rice. A little roadside shrine with a stone lantern by the lane, a jizo by the way down, bamboo in the south-west corner. Shino's indigo dye house stands west of the lane on the way down to the river (door 1, 13), its two dye vats in front, the cherry moved south to make room, and west of the vats her drying rack (0..1, 15..17): three poles, a length of indigo over each, the palest by the vats and the darkest last, out 7:00-17:00 on dry days, in on Sundays and her birthday (DyeCloth); a bamboo moved south for it. Once she has dyed the farmhouse's noren (shino_noren) a new one of her own, with the dye house's mark, hangs over her door. East of Shige's beds his little board hen barn (hen_barn, 19..20 x 4..5), and behind the beds, north of them, the ditch (15..17 x 2) where Nana found Captain. Nana's story props: Captain's jar by Shige's door (10, 7) once she kept him till he grows legs (nana_captain jar, heart_nana) and until her band 6 scene (unless heart_nana_6); then Captain the frog in the ditch (heart_nana_6) and her big sky map on a bedsheet pinned to the hen barn's front (nana_sky), its stars by her answers (nana_steady / nana_beside, nana_star near / field: StoryView.sky_map_key). Format: README.md, Maps.",
 	"id": "minamino",
 	"name": "Minamino",
 	"size": [30, 20],
@@ -58,6 +58,11 @@
 		{"kind": "persimmon", "cell": [23, 17]},
 		{"kind": "hasa", "cell": [20, 17], "size": [3, 1]},
 		{"kind": "woodpile", "cell": [14, 5], "size": [1, 1]},
+		{"kind": "hen_barn", "cell": [19, 4], "size": [2, 2]},
+		{"kind": "ditch", "cell": [15, 2], "size": [3, 1]},
+		{"kind": "captain_jar", "cell": [10, 7], "flag": "nana_captain", "flag_value": "jar", "unless": "heart_nana_6"},
+		{"kind": "frog", "cell": [16, 2], "solid": false, "flag": "heart_nana_6"},
+		{"kind": "sky_map", "cell": [19, 5], "size": [2, 1], "solid": false, "flag": "nana_sky"},
 		{"kind": "well", "cell": [8, 8]},
 		{"kind": "jizo", "cell": [5, 18]},
 		{"kind": "bamboo", "cell": [0, 14]},
@@ -86,6 +91,7 @@
 		"river": [[4, 18], "up"],
 		"shige": [[11, 7], "down"],
 		"kiku": [[22, 15], "down"],
-		"shrine": [[2, 9], "up"]
+		"shrine": [[2, 9], "up"],
+		"barn": [[18, 6], "up"]
 	}
 }

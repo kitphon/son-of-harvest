@@ -82,7 +82,9 @@ static func _make(key: String) -> Image:
 			if parts[1] == Child.ID and parts.size() > 7:   # portrait:child:<mood>:<stage>:<style>:<skin>:<hair>:<top>
 				return _child_portrait(parts[2], parts[3], _little_look(PackedStringArray(["", "", "", parts[4], parts[5], parts[6], parts[7]])))
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
-		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|noren_rows|noren_flowers|noren_shino|ume_jar|carp_streamer|lumber|rope_lift|jizo_bibs|kiln_mark|kiln_site|kiln_new|kiln_worn|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
+		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|noren_rows|noren_flowers|noren_shino|ume_jar|carp_streamer|lumber|rope_lift|jizo_bibs|kiln_mark|kiln_site|kiln_new|kiln_worn|captain_jar|frog|ribbon_board:<places>|sky_map:<steady|beside>:<near|field>>, things the story leaves in the world (StoryProps)
+			if parts[1] == "sky_map":
+				return _sky_map(parts[2] if parts.size() > 2 else "steady", parts[3] if parts.size() > 3 else "near")
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
 		"festival": # festival:<kind>:<w>x<h>[:<cloth hex>], a festival decoration in the flat view (FestivalView)
 			var wh := parts[2].split("x") if parts.size() > 2 else PackedStringArray(["1", "1"])
@@ -2934,6 +2936,60 @@ static func _ribbon_board(places: String) -> Image:
 	return img
 
 
+## Nana's sky map (heart_nana_6, nana_sky), drawn in pencil on an old bedsheet and pinned to
+## Shige's hen barn (30 x 20): a pale sheet with a fold or two, red pins at the top corners, a
+## crescent moon and a scatter of small stars; her mother's star, the small one that blinks (a
+## tiny cross with dashes round it); her father's by the band 5 answer: `steady` the big one far
+## left that never moves, `beside` a middling one right by her mother's; and the farmer's by the
+## band 6 answer: `near` close to her father's, `field` low on the right over three drawn rows,
+## a little twinkly.
+static func _sky_map(father: String, farmer: String) -> Image:
+	var img := _blank(30, 20)
+	var sheet := Color("dcd4bc")   # a little dim, so it does not wash out on a sunlit wall
+	var lead := Color("23283e")
+	var soft := Color("55596e")
+	_px(img, 0, 0, 30, 20, sheet)
+	_px(img, 0, 0, 1, 18, sheet.darkened(0.22))    # its edges, shadowed against the boards
+	_px(img, 29, 2, 1, 16, sheet.darkened(0.22))
+	_px(img, 0, 18, 30, 2, sheet.darkened(0.3))    # the hem, turned over
+	_px(img, 11, 0, 1, 20, sheet.darkened(0.06))   # a fold down the sheet
+	_px(img, 0, 11, 30, 1, sheet.darkened(0.05))   # and one across
+	_px(img, 1, 0, 2, 2, Color("c8342c"))          # the pins
+	_px(img, 27, 0, 2, 2, Color("c8342c"))
+	var star := func(x: int, y: int, r: int, c: Color) -> void:
+		_px(img, x - r, y, r * 2 + 1, 1, c)
+		_px(img, x, y - r, 1, r * 2 + 1, c)
+	# The moon, a crescent top left, and the small stars Nana dotted everywhere.
+	_px(img, 4, 3, 2, 4, lead)
+	_px(img, 5, 2, 2, 1, lead)
+	_px(img, 5, 7, 2, 1, lead)
+	for q in [[9, 3], [14, 2], [24, 4], [16, 9], [7, 13], [13, 15], [22, 8], [3, 9], [27, 12], [19, 3]]:
+		img.set_pixel(q[0], q[1], soft)
+	# Her mother's: small, and it blinks (the dashes round it).
+	star.call(18, 6, 1, lead)
+	for q in [[16, 4], [20, 4], [16, 8], [20, 8]]:
+		img.set_pixel(q[0], q[1], soft)
+	var dad := Vector2i(7, 9)
+	if father == "beside":
+		dad = Vector2i(22, 6)
+		star.call(dad.x, dad.y, 1, lead)
+		img.set_pixel(dad.x - 1, dad.y - 1, soft)
+		img.set_pixel(dad.x + 1, dad.y + 1, soft)
+	else:   # the big one that never moves
+		star.call(dad.x, dad.y, 2, lead)
+		_px(img, dad.x - 1, dad.y - 1, 3, 3, lead)
+	if farmer == "field":   # out by itself over the farmer's field: three rows of it
+		for y in [15, 16, 17]:
+			_px(img, 19, y, 9, 1, Color("4a6a2a") if y % 2 == 1 else Color("7a5a3a"))
+		star.call(23, 12, 1, Color("b07418"))
+		for q in [[21, 10], [25, 10], [21, 14], [25, 14]]:
+			img.set_pixel(q[0], q[1], Color("c8902a"))
+	else:   # close to her father's
+		var at := dad + Vector2i(4, 3) if father != "beside" else dad + Vector2i(3, 4)
+		star.call(at.x, at.y, 1, Color("b07418"))
+	return img
+
+
 ## What the band 5 and 6 heart events leave in the world (map props gated by a flag, StoryProps):
 ## Hachiro's iron door bell (12 x 16, hanging from its bracket), the store's new sign board
 ## (48 x 14; "old" = the old name freshly painted, "new" = Sayo's own red board), Tome's
@@ -2969,6 +3025,45 @@ static func _story(kind: String) -> Image:
 				for x in range(1, 13):          # the wave under it
 					img.set_pixel(x, 4 + (x % 3 == 0 as int), Color("4a8ab8"))
 			return img
+		"captain_jar":
+			# Nana's jar by her father's door (heart_nana, nana_captain "jar"), 10 x 13: a glass
+			# jar of ditch water with weed in it, Captain the tadpole (a black head, a wiggle of
+			# tail), a paper lid tied on with red string and the name brushed on a paper slip.
+			var img := _blank(10, 13)
+			var glass := Color("a8c4c8")
+			_px(img, 1, 3, 8, 10, glass)                   # the jar
+			_px(img, 1, 12, 8, 1, glass.darkened(0.25))
+			_px(img, 2, 5, 6, 7, Color("6e9a86"))         # the water
+			_px(img, 2, 5, 6, 1, Color("9cc4b4"))         # its top, catching the light
+			_px(img, 3, 8, 1, 4, Color("3e6a3a"))         # weed
+			_px(img, 6, 9, 1, 3, Color("3e6a3a"))
+			_px(img, 4, 7, 2, 2, Color("1e1a16"))         # Captain's head
+			_px(img, 6, 8, 1, 1, Color("1e1a16"))         # and tail
+			img.set_pixel(7, 7, Color("1e1a16"))
+			_px(img, 1, 3, 1, 9, glass.lightened(0.35))   # the glint down one side
+			_px(img, 0, 1, 10, 2, Color("ece4cc"))        # the paper lid
+			_px(img, 0, 2, 10, 1, Color("c8342c"))        # the string round it
+			_px(img, 3, 0, 4, 1, Color("ece4cc"))
+			return _outline(img)
+		"frog":
+			# Captain grown (heart_nana_6), singing on a stone at the ditch's edge, 12 x 10: a
+			# green frog facing out, eyes up on top, his throat puffed pale, the stone under him
+			# and a reed beside.
+			var img := _blank(12, 10)
+			var green := Color("5a8a3a")
+			_px(img, 1, 7, 10, 3, Color("7e7a72"))        # the stone
+			_px(img, 1, 7, 10, 1, Color("a29e94"))
+			_px(img, 3, 3, 6, 4, green)                    # his body
+			_px(img, 2, 5, 8, 2, green)
+			_px(img, 3, 2, 2, 2, green.lightened(0.2))     # the eyes
+			_px(img, 7, 2, 2, 2, green.lightened(0.2))
+			img.set_pixel(4, 2, Color("1e1a16"))
+			img.set_pixel(7, 2, Color("1e1a16"))
+			_px(img, 4, 5, 4, 2, Color("e2dca8"))         # the throat, puffed to sing
+			_px(img, 2, 6, 1, 1, green.darkened(0.3))      # the feet
+			_px(img, 9, 6, 1, 1, green.darkened(0.3))
+			_px(img, 11, 0, 1, 8, Color("6e8a3a"))         # a reed
+			return _outline(img)
 		"jizo_bibs":
 			# The new red bib Genzo asked for (heart_genzo_5), tied over the jizo's old one:
 			# bright red cloth narrowing to a rounded hem, a white sewn edge, the ties at the neck.
