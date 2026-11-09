@@ -82,9 +82,9 @@ static func _make(key: String) -> Image:
 			if parts[1] == Child.ID and parts.size() > 7:   # portrait:child:<mood>:<stage>:<style>:<skin>:<hair>:<top>
 				return _child_portrait(parts[2], parts[3], _little_look(PackedStringArray(["", "", "", parts[4], parts[5], parts[6], parts[7]])))
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
-		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|noren_rows|noren_flowers|noren_shino|ume_jar|carp_streamer|scion:<sapling|young|tree>:<season>:<snow 0|1>|lumber|rope_lift|jizo_bibs|jizo_scarf|kiln_mark|kiln_site|kiln_new|kiln_worn|captain_jar|frog|ribbon_board:<places>|sky_map:<steady|beside>:<near|field>>, things the story leaves in the world (StoryProps)
+		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|noren_rows|noren_flowers|noren_shino|ume_jar|carp_streamer|scion:<sapling|young|tree>:<season>:<snow 0|1>[:<persimmons shown>]|lumber|rope_lift|jizo_bibs|jizo_scarf|kiln_mark|kiln_site|kiln_new|kiln_worn|captain_jar|frog|ribbon_board:<places>|sky_map:<steady|beside>:<near|field>>, things the story leaves in the world (StoryProps)
 			if parts[1] == "scion":
-				return _scion_story(parts[2] if parts.size() > 2 else "sapling", parts[3] if parts.size() > 3 else "spring", parts.size() > 4 and parts[4] == "1")
+				return _scion_story(parts[2] if parts.size() > 2 else "sapling", parts[3] if parts.size() > 3 else "spring", parts.size() > 4 and parts[4] == "1", int(parts[5]) if parts.size() > 5 else -1)
 			if parts[1] == "sky_map":
 				return _sky_map(parts[2] if parts.size() > 2 else "steady", parts[3] if parts.size() > 3 else "near")
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
@@ -1406,13 +1406,13 @@ static func _noren_story(style: String) -> Image:
 ## By season: spring pale new leaves, summer full green (small green fruit on the tree), fall
 ## orange and red leaves, winter bare with a straw wrap round the foot; snow on the upper side
 ## of the bare branches when the farm lies under snow.
-static func _scion_story(stage: String, season: String, snow: bool) -> Image:
+static func _scion_story(stage: String, season: String, snow: bool, shown: int = -1) -> Image:
 	var img: Image
 	match stage:
 		"young":
 			img = _scion_young(season)
 		"tree":
-			img = _scion_tree(season)
+			img = _scion_tree(season, shown)
 		_:
 			img = _scion_sapling(season)
 	if snow and season == "winter":   # snow on the upper side of every branch pixel above the wrap
@@ -1523,7 +1523,7 @@ static func _scion_young(season: String) -> Image:
 	return img
 
 
-static func _scion_tree(season: String) -> Image:
+static func _scion_tree(season: String, shown: int = -1) -> Image:
 	var img := _blank(26, 42)
 	var bark := Color("5e4632") if season != "winter" else Color("4e3a28")
 	_px(img, 12, 20, 3, 22, bark)                       # the trunk, stouter now
@@ -1553,8 +1553,10 @@ static func _scion_tree(season: String) -> Image:
 		[22.5, 17.5, 2.6, 2.2, 0.16],
 	])
 	if season == "fall":   # the persimmons hanging under the leaves
-		for at in [[4, 17], [9, 12], [16, 14], [20, 18], [12, 18], [18, 8], [7, 7], [22, 11]]:
-			_persimmon(img, at[0], at[1], 3)
+		var hanging := [[4, 17], [9, 12], [16, 14], [20, 18], [12, 18], [18, 8], [7, 7], [22, 11]]
+		for i in hanging.size():
+			if shown < 0 or i < shown:   # `shown`: what is left after picking (Scion.drawn_left)
+				_persimmon(img, hanging[i][0], hanging[i][1], 3)
 	elif season == "summer":   # small green fruit setting
 		for at in [[6, 16], [16, 15], [11, 19], [20, 10]]:
 			_px(img, at[0], at[1], 2, 2, Color("8cb848"))

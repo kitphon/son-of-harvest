@@ -124,6 +124,7 @@ var mine_news := ""                # said on arriving at a landing reached for t
 var dialogue_made: Dictionary = {} # dialogue id -> lines built in code (the rope lift's choice), for the TextBox
 var _mine_start := 0               # the floor the next trip down starts at (the rope lift), 0 = floor 1
 var forage_picked: Dictionary = {}   # map id -> {cell: true}, the wild spots picked today (data/forage.json)
+var scion_picked := 0                # persimmons picked from Kiku's grown tree today (data/scion.json pick)
 ## The farmer's look chosen on a new game (FarmerLooks; looks only, saved). Setting it sets
 ## FarmerLooks.current, which the farmer's pictures are drawn from.
 var farmer_look: Dictionary = {}:
@@ -247,6 +248,7 @@ func new_game() -> void:
 	fishing = Fishing.new(fish_data)
 	fish_caught = {}
 	forage_picked = {}
+	scion_picked = 0
 	affection = Affection.new()
 	goals = Goals.new()
 	goals_on = not "--demo" in OS.get_cmdline_user_args()
@@ -1119,6 +1121,7 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 	snow_cover = next_snow_cover(snow_cover, weather_look(weather_today, season_name()), season_name(), snow_rules)
 	farm.day_end(season_name(), weather_today, rng)
 	forage_picked = {}   # DESIGN: a picked wild spot grows again after one night
+	scion_picked = 0     # and so do the persimmons on Kiku's tree
 	forage_changed.emit()
 	hour = 6
 	minute = 0
@@ -1687,6 +1690,42 @@ func forage_pick(c: Vector2i) -> Dictionary:
 		forage_changed.emit()
 		changed.emit()
 	return {"id": id, "to": to}
+
+
+## Kiku's grown persimmon tree on `c` (the farm's scion prop) with fruit on it: fall, the
+## "tree" stage. Persimmons it still gives today (Scion.picks_per_day less the picks), 0 when
+## `c` is not a fruiting tree.
+func scion_fruit_left(c: Vector2i) -> int:
+	if maps.id != "farm" or maps.current().prop_at(c).get("kind", "") != "scion":
+		return -1
+	if not Scion.fruits(Scion.stage(flags, day_number()), season_name()):
+		return -1
+	return maxi(Scion.picks_per_day() - scion_picked, 0)
+
+
+## Picks a persimmon from the tree on `c`, like a wild thing (overhead, else the rucksack).
+## Returns {id ("" when `c` is no fruiting tree), to ("hand", "rucksack", "" when it didn't
+## fit), left (picks still to come today)}; when the day's picks are used, id is the item with
+## to "none" and nothing is taken.
+func scion_pick(c: Vector2i) -> Dictionary:
+	var left := scion_fruit_left(c)
+	if left < 0:
+		return {"id": "", "to": "", "left": 0}
+	var id := Scion.pick_item()
+	if left == 0:
+		return {"id": id, "to": "none", "left": 0}
+	var to := ""
+	if not holding():
+		held = id
+		to = "hand"
+	elif can_carry(id):
+		inventory.add(id, 1)
+		to = "rucksack"
+	if to != "":
+		scion_picked += 1
+		forage_changed.emit()   # the tree is redrawn with fewer persimmons
+		changed.emit()
+	return {"id": id, "to": to, "left": left - (1 if to != "" else 0)}
 
 
 ## Where a save made down the mine puts the farmer: at the cave mouth (floors are never kept).
@@ -2888,7 +2927,7 @@ func to_dict() -> Dictionary:
 		picked[m] = []
 		for c in forage_picked[m]:
 			picked[m].append([c.x, c.y])
-	d.forage = {"picked": picked}
+	d.forage = {"picked": picked, "scion": scion_picked}
 	var pages := []
 	for y in year_pages:
 		pages.append(year_pages[y].duplicate(true))
@@ -3147,6 +3186,7 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	if not saved_forage is Dictionary or not saved_forage.get("picked") is Dictionary:
 		return "Saved forage is broken"
 	n.forage_picked = {}
+	n.scion_picked = clampi(int(saved_forage.get("scion", 0)), 0, Scion.picks_per_day())   # older saves: none picked
 	for m in saved_forage.picked:
 		if not m is String or not saved_forage.picked[m] is Array:
 			return "Saved forage is broken"

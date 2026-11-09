@@ -4549,6 +4549,8 @@ func _kiku_scion() -> void:
 		return n
 	check(orange.call(Scion.art_key("tree", "fall", false)) >= 8 * 4 and orange.call(Scion.art_key("young", "fall", false)) == 0,
 		"the tree's fall crown hangs persimmons, the young tree's none")
+	check(orange.call(Scion.art_key("tree", "fall", false, 1)) < orange.call(Scion.art_key("tree", "fall", false)) and orange.call(Scion.art_key("tree", "fall", false, 2)) == 0
+		and Scion.art_key("tree", "summer", false, 1) == Scion.art_key("tree", "summer", false), "picking takes persimmons off the drawn tree (fall only)")
 	# Growth by the days since planting (kiku_scion_day), a year being 120 days.
 	var days: int = 4 * root.get_node("Game").DAYS_PER_SEASON
 	var f := {"kiku_scion": "door", "kiku_scion_day": 10}

@@ -47,7 +47,7 @@ static func scion_key() -> String:
 	if game == null:
 		return Scion.art_key("sapling", "spring", false)
 	var season: String = game.season_name()
-	return Scion.art_key(Scion.stage(game.flags, game.day_number()), season, Scion.snowy(season, game.snow_cover))
+	return Scion.art_key(Scion.stage(game.flags, game.day_number()), season, Scion.snowy(season, game.snow_cover), game.scion_picked)
 
 
 ## Nana's sky map with these story flags: her father's star the big steady one, or beside her
@@ -67,6 +67,7 @@ func _ready() -> void:
 	var game := get_node_or_null("/root/Game")
 	if game != null:
 		game.day_started.connect(queue_redraw)   # the persimmon twig changes with the season
+		game.forage_changed.connect(queue_redraw)   # and loses a persimmon when one is picked
 
 
 func _draw() -> void:

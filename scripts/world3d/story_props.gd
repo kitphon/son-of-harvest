@@ -136,6 +136,12 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 			s.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 			s.position = Vector3(r.get_center().x, 0, r.get_center().y + 0.2)
 			w.add_child(s)
+			var game: Node = (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
+			if game != null:   # a persimmon picked: the same tree with fewer on it
+				var redraw := func() -> void:
+					s.texture = PlaceholderArt.tex(StoryView.art_key(p))
+				game.forage_changed.connect(redraw)
+				s.tree_exiting.connect(func() -> void: game.forage_changed.disconnect(redraw))
 		"captain_jar":
 			# Nana's jar with Captain the tadpole by her father's door (nana_captain "jar"), on
 			# the ground beside the step.

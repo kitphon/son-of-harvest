@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Kiku's persimmons can be picked
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: the grown persimmon tree (Scion stage "tree", fall) now bears fruit to pick. Facing it,
+  the action button (FarmActions.scion_fruit, after forage) gives a ripe persimmon through
+  Game.scion_pick: overhead, else the rucksack, else "No room for the ..."; once the day's picks
+  are used it says "The rest are for the birds." (Kiku's own advice; English and Thai). The new
+  item is `wild:persimmon` ("Ripe persimmon", data/forage.json items, no spot), so the existing
+  item rules apply: it ships (30 G), is eaten raw (data/foods.json: stamina 5, fatigue -1) and is
+  a gift Kiku likes (data/villagers/kiku.json). Balance (data/scion.json `pick`): 2 a day, back
+  every morning (Game.end_day), about 60 G a day at most over a 30-day fall, a small treat beside
+  the crops (a good crop of one plot is worth more); the fruit is only there in fall from the
+  third year. `scion_picked` is saved as `forage.scion` (older saves: 0, clamped). The crown
+  shows what is left: `drawn` 8 persimmons, each pick takes half (Scion.drawn_left), art key
+  `story:scion:tree:fall:<snow>:<shown>` (suffix only after a pick). The 3D sprite re-textures on
+  `forage_changed`, the flat StoryView redraws on it.
+- Checked: test_forage `_persimmon` (picks, hand then rucksack, birds, 3D sprite and keys, save
+  and old save, eat, sell, morning, wrong season / young tree), test_maps (fewer orange pixels
+  per pick). All 31 tests/test_*.gd print `OK (0 failed)`; the four smoke runs (title, `--demo`, `--map=town`, `--mine=3`) print no error or warning lines; screenshot `--demo --flags=kiku_scion=door --season=fall --scion=tree`: the grown tree by the door with persimmons.
+- Left / next: Kiku's talk lines do not mention the picking; the flat view was not screenshot
+  with a half-picked tree.
+
 ## 2026-11-09 — Merge: hands full with the dog, Nana's birthday scarf, Kiku's persimmon grows
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 7aa9895 hands full with the dog (Haiku, own worktree), 3ab9f07 Nana's birthday
