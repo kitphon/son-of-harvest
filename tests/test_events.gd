@@ -108,6 +108,7 @@ func _init() -> void:
 			{"steps": [{"do": "walk", "by": [0, 1], "run": "yes"}]},
 			{"steps": [{"do": "set", "flags": {"x": [1]}}]}, {"steps": [{"do": "set", "flags": {}}]},
 			{"steps": [{"do": "clear", "flags": "x"}]}, {"steps": [{"do": "give", "item": "gold"}]},
+			{"steps": [{"do": "date"}]}, {"steps": [{"do": "date", "flag": ""}]},
 			{"steps": [{"do": "give", "item": "seeds:turnip", "count": 0}]}, {"steps": [{"do": "money", "amount": 0}]},
 			{"steps": [{"do": "money", "amount": 1.5}]}, {"steps": [{"do": "fade", "to": "white"}]},
 			{"steps": [{"do": "sound", "key": "trumpet"}]}, {"steps": [{"do": "wait", "seconds": 1, "next": "x"}]},

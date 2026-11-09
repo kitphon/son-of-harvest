@@ -273,6 +273,7 @@ func new_game() -> void:
 			day = clampi(arg.trim_prefix("--day=").to_int(), 1, DAYS_PER_SEASON)
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	var lift_after := false   # `--child=crawler:held`
+	var scion_ago := -1   # `--scion=`: Kiku's persimmon planted this many days ago
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--festival="):   # `-- --demo --festival=lantern_night`: its day, hours and place
 			Festivals.start_at(self, arg.trim_prefix("--festival="))
@@ -330,6 +331,12 @@ func new_game() -> void:
 		elif arg.begins_with("--flags="):   # e.g. `-- --demo --flags=hachiro_bell,sayo_sign=new`: story flags set
 			for f in arg.trim_prefix("--flags=").split(",", false):
 				flags[f.get_slice("=", 0)] = f.get_slice("=", 1) if "=" in f else true
+		elif arg.begins_with("--scion="):   # `-- --demo --flags=kiku_scion=door --scion=tree`: Kiku's persimmon planted that stage's first day ago (or `--scion=N` days ago)
+			var what := arg.trim_prefix("--scion=")
+			var ago := what.to_int() if what.is_valid_int() else Scion.from_days(what)
+			if ago < 0:
+				push_warning("No such stage for " + arg)
+			scion_ago = ago
 		elif arg.begins_with("--hearts="):   # e.g. `-- --demo --hearts=4 --talk=tome`: everyone at the start of band 4
 			var bands: Array = Affection.rules().get("bands", [0])
 			var b := clampi(arg.trim_prefix("--hearts=").to_int(), 0, bands.size() - 1)
@@ -401,6 +408,11 @@ func new_game() -> void:
 			_demo_child(what[0])
 			lift_after = what.size() > 1 and what[1] == "held"
 	Child.sync_stage(flags, day_number())   # `--flags=` may have set a birth
+	if scion_ago >= 0:   # after every flag, `--season` and `--day`, so the age is the one asked for
+		if not Scion.planted(flags):
+			flags[Scion.FLAG] = "door"
+		flags[Scion.day_flag()] = day_number() - scion_ago
+	Scion.record(flags, day_number())   # `--flags=kiku_scion=door` alone: planted today
 	if lift_after:   # after every flag, so `--time` and `--map` have put the crawler where the plan says
 		_demo_lift_crawler()
 	# `--map=mine_floor` alone: the first floor.
@@ -1119,6 +1131,7 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 		message.emit(Marriage.text("due"))
 	var spouse_id := Marriage.spouse(flags)   # the child's news or birth due this morning (triggers_house.json)
 	Child.day_start(flags, day_number(), affection.band(spouse_id) if spouse_id != "" else 0, festival_today() != "")
+	Scion.record(flags, day_number())   # Kiku's twig planted before its day was kept: from today
 	help_news = spouse_help()
 	child_help_news = child_help()
 	go_to_spawn(wake_map, wake_spawn)
@@ -3177,6 +3190,7 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	baby_held = false   # never saved: the baby is back in the cradle
 	crawler_back()   # never saved: the crawler at the plan's place
 	Child.sync_stage(flags, day_number())   # the cradle follows the loaded day
+	Scion.record(flags, day_number())   # a save from before the twig's planting day: planted the day it is loaded on
 	sync_build_flag()
 	MapManager.set_built(house_built)
 	MapManager.set_flags(flags)

@@ -10,6 +10,45 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-09 — Kiku's persimmon grows over the years
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the twig planted in Kiku's band 6 scene now grows. The scene keeps its planting day: a
+  new event step `{"do": "date", "flag": "kiku_scion_day"}` (EventRunner: today's
+  Game.day_number into a flag; README → Events) after the scene's set step. Scion
+  (scripts/farm/scion.gd, pure rules) and data/scion.json: stages by days since planting,
+  sapling from 0 (16 x 26, the old picture), young from 120 (22 x 34, stake gone, a small round
+  crown), tree from 240 (26 x 42, a wide crown, persimmons in fall, the one fruit left for the
+  birds on a bare branch in winter, small green fruit in summer); snow on the bare winter
+  branches from snow_cover 30. Reasoning: a year is 120 days (4 x 30); a real grafted persimmon
+  takes years to bear, but a game's run is a few years, so the farmer sees fruit from the third
+  year, one stage a year so each spring brings a visible change. Old saves (kiku_scion, no day):
+  Scion.record gives it the day it is loaded on (Game.from_dict), also each morning and after a
+  demo run's flags, so it starts as a sapling then. Art: PlaceholderArt
+  `story:scion:<stage>:<season>:<snow 0|1>` (`_scion_story` split into sapling / young / tree,
+  `_persimmon`, `_scion_crown`, `_scion_wrap`); StoryView.scion_key (both views; the flat view
+  redraws each morning, the farm's 3D world is rebuilt each day). The 3D sprite now turns about
+  y only (BILLBOARD_FIXED_Y) and stands 0.2 to the cell's front: a full billboard's top leaned back
+  into the farmhouse eave (front z 4.05) and the grown crown was cut off. Same solid cell as
+  before ([3, 4] door / [30, 8] field), never wider than 26 px, so the crown reaches at most
+  5 px past the cell and clears the door column, path, spawn, bin, chest and Hachiro's row 5
+  route. Demo flag `--scion=<stage>` (or `=N` days ago; plants by the door when kiku_scion is not
+  set). AGENTS.md and README (Kiku, Events) updated.
+- Checked: test_maps `_kiku_scion` (every stage and season drawn at its size and different,
+  snow differs, three stages taller each time, at most 26 wide, persimmons only on the fall
+  tree (>= 32 persimmon pixels, none on the young tree), stage by days: day 119 sapling, 120
+  young, 240 tree, a day before planting a sapling; Scion.record once and only when planted;
+  heart_kiku_6 has the date step and a date step keeps today's number; the art key follows
+  age, season and snow); test_events refuses a date step without a flag; test_save: the day
+  loads back, a save without it loads planted that day as a sapling. Screenshots (3D, `--demo
+  --flags=kiku_scion=door`): `--season=fall --scion=tree` an orange-red crown hung with
+  persimmons left of the farmer by the door, whole in front of the eave; `--scion=young` (spring)
+  a thin trunk with pale new leaf clumps; `--season=winter --snow=80 --scion=tree` bare
+  branches with snow along them, one persimmon left, the straw wrap at the foot; flat view
+  (main_2d.tscn, fall tree) the persimmon tree left of the farmer by the house. All suites and
+  the four smoke runs: see the final report.
+- Left / next: the tree bears no fruit to pick (it is only drawn); the field place (30, 8) was
+  not screenshotted.
+
 ## 2026-11-09 — Merge: hands full with the child, Kiku's persimmon sapling, Nana's keepsakes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged cb1af67 hands full with the baby or crawler (Haiku, own worktree), 0a03f9e Kiku's

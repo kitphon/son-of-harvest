@@ -216,6 +216,19 @@ func _init() -> void:
 	err = SaveGame.read(b, PATH)
 	check(err == "" and b.flags == {}, "save without flags loads with none (%s)" % err)
 
+	# Kiku's persimmon keeps its planting day; a save from before the day was kept (the place
+	# chosen, no day) loads with the twig planted on the loaded day, a sapling (Scion).
+	old = saved.duplicate(true)
+	old.flags = {"kiku_scion": "door", "kiku_scion_day": 37}
+	_put(JSON.stringify({"version": 1, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.flags.get("kiku_scion_day") is int and b.flags.kiku_scion_day == 37, "the persimmon's planting day loads (%s)" % err)
+	old.flags = {"kiku_scion": "field"}
+	_put(JSON.stringify({"version": 1, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.flags.get("kiku_scion_day") == b.day_number() and Scion.stage(b.flags, b.day_number()) == "sapling",
+		"an old save's persimmon is planted the day it loads (%s, %s)" % [err, str(b.flags.get("kiku_scion_day"))])
+
 	# A save from before fatigue existed loads rested.
 	old = saved.duplicate(true)
 	old.erase("fatigue")

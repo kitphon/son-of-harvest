@@ -16,7 +16,8 @@ extends RefCounted
 ## band 6) is a picture on its side; the noren Shino dyed for the farmhouse hangs over its door
 ## (shino_noren rows / flowers, band 6) and her own new one over the dye house's; the twig of
 ## the oldest persimmon tree Kiku gave stands planted by the farmhouse door or at the field's
-## edge (kiku_scion door / field, band 6), a sapling in the season's look. In Minamino
+## edge (kiku_scion door / field, band 6), growing from a sapling to a fruiting tree by the
+## years since (Scion, data/scion.json), in the season's look. In Minamino
 ## Captain's jar stands by Shige's door while Nana keeps him till he has legs (nana_captain
 ## "jar", band 3, until heart_nana_6), then Captain the frog sits in the ditch behind the beds
 ## (heart_nana_6) and her sky map is pinned to the hen barn's front (nana_sky, its stars by her
@@ -124,10 +125,13 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 			var c := r.get_center()
 			OutdoorProps.kiln(w, r, Vector3(c.x, 0, c.y), w is MapWorld and SnowLayer.map_has_snow((w as MapWorld).map), [1], false)
 		"scion":
-			# Kiku's persimmon twig, planted: one picture standing on its cell, its look by the
-			# season the map is built in (the farm's world is rebuilt each day).
+			# Kiku's persimmon, planted: one picture standing on its cell, its stage and look by
+			# the day the map is built (the farm's world is rebuilt each day; Scion). Upright
+			# (turning about y only), so a grown crown by the farmhouse door does not lean back
+			# into the eave (front at z 4.05, FarmWorld) as a full billboard's top would.
 			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))
-			s.position = Vector3(r.get_center().x, 0, r.get_center().y)
+			s.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+			s.position = Vector3(r.get_center().x, 0, r.get_center().y + 0.2)
 			w.add_child(s)
 		"captain_jar":
 			# Nana's jar with Captain the tadpole by her father's door (nana_captain "jar"), on

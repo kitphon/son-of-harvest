@@ -21,8 +21,8 @@ static func art_key(p: Dictionary) -> String:
 		return "story:sign_" + str(p.get("style", "old"))
 	if str(p.kind) == "noren":   # a door curtain Shino dyed (shino_noren rows / flowers, or her own)
 		return "story:noren_" + str(p.get("style", "shino"))
-	if str(p.kind) == "scion":   # Kiku's persimmon twig, drawn in the season's look
-		return "story:scion_" + _season()
+	if str(p.kind) == "scion":   # Kiku's persimmon, by its age and the season (Scion)
+		return scion_key()
 	if str(p.kind) == "boat_name":   # Mio's boat's name by her answer (mio_boat father / new)
 		return "story:boat_" + str(p.get("style", "new"))
 	if str(p.kind) == "ribbon_board":   # one rosette per ribbon won (Keepsakes.RECORD)
@@ -38,6 +38,17 @@ static func art_key(p: Dictionary) -> String:
 static func _season() -> String:
 	var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
 	return game.season_name() if game != null else "spring"
+
+## Kiku's persimmon today: its stage by the days since it was planted (Game.flags), the
+## season's look, snow on the winter branches with snow lying (a sapling in spring when the
+## game is not up).
+static func scion_key() -> String:
+	var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
+	if game == null:
+		return Scion.art_key("sapling", "spring", false)
+	var season: String = game.season_name()
+	return Scion.art_key(Scion.stage(game.flags, game.day_number()), season, Scion.snowy(season, game.snow_cover))
+
 
 ## Nana's sky map with these story flags: her father's star the big steady one, or beside her
 ## mother's (nana_beside, her band 5 answer); the farmer's near his or out over the field
