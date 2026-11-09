@@ -175,10 +175,10 @@ func _looks() -> void:
 	check(FarmerLooks.stepped(def, "skin", -1).skin == "deep" and FarmerLooks.stepped(def, "skin", 1).skin == "light", "stepping wraps round")
 	check(FarmerLooks.signature(def) == "" and FarmerLooks.signature({"hair": "gray"}) == "tenugui.gray.warm.indigo", "the signature: none for the default")
 
-	# The default is drawn pixel for pixel as before (the hashes of the pictures before looks
-	# could be chosen), on every pose and side.
-	var golden := {"front:idle:0": "987fa7b0d21e5e769aeea6be99ad3980", "back:walk:1": "4efbbfcec7c2807c30541bebe4da6112",
-		"front:fish_bite:1": "54f4db4f0a564832b52d4e318a6e33a3", "back:hold_walk:2": "f02aac49b7c952a7f561911fbfcfcc9e"}
+	# The default is drawn pixel for pixel as recorded (the hashes of the refined farmer art,
+	# 2026-11-10; before it, of the pictures before looks could be chosen), on every pose and side.
+	var golden := {"front:idle:0": "8367e96be66cc7276b90da4b4ce7820f", "back:walk:1": "9a1bc64118ef2bce80b2a980f03d0a66",
+		"front:fish_bite:1": "a335882b091517b99f467907edbd2919", "back:hold_walk:2": "55e7a746cc4c0cf12fe2efd7020c33ae"}
 	for k in golden:
 		var bits: PackedStringArray = k.split(":")
 		var img := FigureArt.draw(FarmerLooks.figure_look(def), bits[0] == "back", bits[1], int(bits[2]), true)

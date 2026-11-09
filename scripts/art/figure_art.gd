@@ -15,6 +15,12 @@ extends RefCounted
 ## Light from the upper left: each part's right side is a shade darker, its upper left a little
 ## lighter. The figure's feet stand on the bottom row; the 3D view shows a sprite pixel as
 ## FarmWorld.FIGURE_PX world units.
+##
+## The farmer (draw with `farmer`) gets the refined pass (data/farmer_art.json): every material
+## in three tones (shade, base, lit) by which side of its part a pixel is open to, the lines
+## between parts in the material's own deep tone instead of the black outline, a darker rim round
+## the whole silhouette, jika-tabi with a split toe, a clasp and a pale rubber sole, a woven hip
+## basket. Same rig, keys, size, poses and look options; villagers keep the plain drawing.
 
 const W := 24
 const H := 32
@@ -34,7 +40,21 @@ const BASKET := Color("d9b45a")          # the farmer's straw hip basket (koshi-
 const LETTER := Color("f4f0e4")          # a letter in the post pose
 const POLE := Color("b89a68")            # the ferry pole in the pole pose (the 3D boat's pole)
 
-const STYLES: Array[String] = ["bun", "short", "headband", "long", "straw_hat", "tenugui"]
+const ART_PATH := "res://data/farmer_art.json"
+
+static var _art := {}
+## While drawing the farmer: the refined pass is on (_stamp tones each part and lines it in its
+## material's deep tone).
+static var _refine := false
+## The farmer's materials while drawing: a stored pixel colour (_key) -> [tones (shade, base, lit,
+## deep), the role of that colour (0 shade, 1 base, 2 lit, 3 deep), true for skin].
+static var _mat := {}
+## The part lines laid so far: pixel -> its colour (the ones still showing and open to the outside
+## become the silhouette's rim at the end).
+static var _lines := {}
+static var _q: Image
+
+const STYLES: Array[String] =["bun", "short", "headband", "long", "straw_hat", "tenugui"]
 const OUTFITS: Array[String] = ["kimono", "happi", "shirt_shorts", "noragi"]
 const BUILDS_LIST: Array[String] = ["adult", "elder", "child"]
 
@@ -161,6 +181,19 @@ static func lantern_at(pose: String, frame: int, back := false) -> Vector2i:
 static func draw(look: Dictionary, back: bool, pose: String, frame: int, farmer := false) -> Image:
 	var img := _blank()
 	var c := colors(look)
+	_refine = farmer
+	_lines.clear()
+	if farmer:
+		_materials(c)
+	var out := _draw(img, c, look, back, pose, frame, farmer)
+	if farmer:
+		_silhouette(out)
+	_refine = false
+	_lines.clear()
+	return out
+
+
+static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose: String, frame: int, farmer: bool) -> Image:
 	var r := _rig(look, pose, frame)
 	var p := row(pose, frame)
 	var style := str(look.get("hair_style", "short"))
@@ -380,6 +413,18 @@ static func _leg(dst: Image, r: Dictionary, c: Dictionary, outfit: String, x: in
 	var top: int = r.hip - 1
 	var shin: Color = c.s if outfit == "shirt_shorts" else c.l
 	var shin_dark: Color = c.S if outfit == "shirt_shorts" else c.L
+	if _refine and outfit == "noragi":   # the farmer's monpe tucked into jika-tabi
+		_r(L, x, top, 3, bottom - top - 2, shin)
+		_r(L, x + 2, top, 1, bottom - top - 2, shin_dark)
+		_r(L, x, bottom - 3, 3, 1, shin_dark)          # gathered at the ankle
+		_r(L, x, bottom - 2, 3, 1, c.k)                # the tabi's ankle
+		_dot(L, x + 2, bottom - 2, c["k+"])            # its brass clasp (kohaze)
+		_r(L, x - 1, bottom - 1, 4, 1, c.k)            # the foot, a toe longer forward
+		_dot(L, x, bottom - 1, c.K)                    # the split between the big toe and the rest
+		var sole: Color = c.k.lerp(Color(art().sole), float(art().sole_mix))
+		_r(L, x - 1, bottom, 4, 1, sole)               # the rubber sole
+		_stamp(dst, L)
+		return
 	_r(L, x, top, 3, bottom - top - 1, shin)
 	_r(L, x + 2, top, 1, bottom - top - 1, shin_dark)
 	if outfit == "noragi":   # monpe gathered at the ankle
@@ -560,7 +605,8 @@ static func _head(dst: Image, r: Dictionary, c: Dictionary, style: String, back:
 		_dot(L, icx - 3, ey + 3, c.S)   # the mouth
 		_dot(L, icx + 2, ey + 1, c.S)   # the ear
 		_dot(L, icx + 2, ey, c.s)
-		_r(L, icx, ey + 3, 2, 1, c.S)   # the jaw's shade
+		if not _refine:   # (refined: the side shading models the jaw; a shade row here read as a beard)
+			_r(L, icx, ey + 3, 2, 1, c.S)   # the jaw's shade
 	else:
 		_dot(L, icx - 5, icy + 1, c.S)   # the near ear's edge
 	match style:
@@ -641,6 +687,18 @@ static func _basket(dst: Image, r: Dictionary, back: bool) -> void:
 	var L := _blank()
 	var x: int = r.x0 - 2 if back else r.x1 + 1
 	var y: int = r.hip - 3
+	if _refine:   # woven: a lit rim, the weave in a checker of base and shade, a deep cord
+		var tn := tones(BASKET)
+		_r(L, x, y, 4, 4, BASKET)
+		_r(L, x, y, 4, 1, tn[2])
+		for j in range(1, 4):
+			for i in 4:
+				if (i + j) % 2 == 0:
+					_dot(L, x + i, y + j, tn[0])
+		_r(L, x + 1, y - 2, 2, 1, tn[3])
+		_dot(L, x + (3 if back else 0), y - 1, tn[3])
+		_stamp(dst, L)
+		return
 	_r(L, x, y, 4, 4, BASKET)
 	_r(L, x, y, 4, 1, BASKET.lightened(0.2))
 	for i in 4:
@@ -767,6 +825,9 @@ static func _stamp(dst: Image, layer: Image, outline := true) -> void:
 	var used := layer.get_used_rect()
 	if not used.has_area():
 		return
+	if _refine:
+		_stamp_refined(dst, layer, used, outline)
+		return
 	if outline:
 		var g := used.grow(1).intersection(Rect2i(0, 0, W, H))
 		for y in range(g.position.y, g.end.y):
@@ -776,6 +837,107 @@ static func _stamp(dst: Image, layer: Image, outline := true) -> void:
 				if _solid(layer, x - 1, y) or _solid(layer, x + 1, y) or _solid(layer, x, y - 1) or _solid(layer, x, y + 1):
 					dst.set_pixel(x, y, OUTLINE)
 	dst.blend_rect(layer, used, used.position)
+
+
+# --- the farmer's refined pass ---------------------------------------------------------------
+
+static func art() -> Dictionary:
+	if _art.is_empty():
+		_art = JSON.parse_string(FileAccess.get_file_as_string(ART_PATH))
+	return _art
+
+
+## The shade, base, lit and deep tones of a material colour (`skin`: a warmer shade).
+static func tones(col: Color, skin := false) -> Array:
+	var t: Dictionary = art().tone
+	var mix: float = t.tint_mix
+	var tint := Color(str(art().skin_shade_tint if skin else t.shade_tint))
+	return [col.darkened(t.shade).lerp(tint, mix), col, col.lightened(t.lit).lerp(Color(t.lit_tint), mix),
+		col.darkened(art().deep).lerp(tint, mix)]
+
+
+## The colour as an RGBA8 picture stores it, as a key.
+static func _key(col: Color) -> String:
+	if _q == null:
+		_q = Image.create_empty(1, 1, false, Image.FORMAT_RGBA8)
+	_q.set_pixel(0, 0, col)
+	return _q.get_pixel(0, 0).to_html()
+
+
+## The look's materials for the refined pass: each base colour, its plain darker and lighter
+## shades (colors(): `K`, `k+`) and its own tones, all pointing at the material's tones.
+static func _materials(c: Dictionary) -> void:
+	_mat.clear()
+	var add := func(base: Color, tn: Array, extra: Array, skin := false) -> void:
+		for role in 4:
+			_mat[_key(tn[role])] = [tn, role, skin]
+		for e in extra:   # [colour, role]
+			if not _mat.has(_key(e[0])):
+				_mat[_key(e[0])] = [tn, e[1], skin]
+		_mat[_key(base)] = [tn, 1, skin]
+	for k in ["h", "s", "a", "t", "w", "l", "k"]:
+		add.call(c[k], tones(c[k], k == "s"), [[c[k.to_upper()], 0], [c[k + "+"], 2]], k == "s")
+	add.call(BASKET, tones(BASKET), [[BASKET.darkened(0.3), 0], [BASKET.lightened(0.2), 2], [BASKET.darkened(0.4), 3]])
+	var collar := Color(str(art().collar))
+	add.call(collar, tones(collar), [])
+
+
+## A part laid the refined way: its material pixels toned by the side they are open to (the
+## upper left lit, the lower right shade, both or neither the base), its plain shades put on the
+## material's own tones; then a line round it in the deep tone of the pixel it borders.
+static func _stamp_refined(dst: Image, layer: Image, used: Rect2i, outline: bool) -> void:
+	var toned := layer.duplicate() as Image
+	for y in range(used.position.y, used.end.y):
+		for x in range(used.position.x, used.end.x):
+			var col := layer.get_pixel(x, y)
+			if col.a == 0.0:
+				continue
+			var m: Variant = _mat.get(_key(col))
+			if m == null:
+				continue
+			var tn: Array = m[0]
+			var role: int = m[1]
+			if role == 1:
+				var lit := not _solid(layer, x - 1, y) or not _solid(layer, x, y - 1)
+				# Skin is shaded by its side only: a shade along the chin read as a beard.
+				var shade := not _solid(layer, x + 1, y) or (not _solid(layer, x, y + 1) and not bool(m[2]))
+				role = 2 if lit and not shade else (0 if shade and not lit else 1)
+			toned.set_pixel(x, y, tn[role])
+	if outline:
+		var g := used.grow(1).intersection(Rect2i(0, 0, W, H))
+		for y in range(g.position.y, g.end.y):
+			for x in range(g.position.x, g.end.x):
+				if _solid(toned, x, y):
+					continue
+				var next := Color(0, 0, 0, 0)
+				for d in [Vector2i(1, 0), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(0, 1)]:
+					if _solid(toned, x + d.x, y + d.y):
+						next = toned.get_pixel(x + d.x, y + d.y)
+						break
+				if next.a == 0.0:
+					continue
+				var m: Variant = _mat.get(_key(next))
+				var line: Color = (m[0] as Array)[3] if m != null else next.darkened(0.6)
+				line.a = 1.0
+				dst.set_pixel(x, y, line)
+				_lines[Vector2i(x, y)] = dst.get_pixel(x, y)
+	dst.blend_rect(toned, used, used.position)
+
+
+## The rim: every part line still showing on the figure's outer edge is pulled darker, so the
+## silhouette reads against any ground; lines between parts keep their material's deep tone.
+static func _silhouette(img: Image) -> void:
+	var rim := Color(str(art().rim))
+	var mix: float = art().rim_mix
+	for p: Vector2i in _lines:
+		var col := img.get_pixelv(p)
+		if not _same(col, _lines[p]) or col.a < 1.0:
+			continue
+		var open := false
+		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			open = open or not _solid(img, p.x + d.x, p.y + d.y)
+		if open:
+			img.set_pixelv(p, col.lerp(rim, mix))
 
 
 static func _same(a: Color, b: Color) -> bool:
