@@ -111,6 +111,9 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 		"jizo_bibs":
 			# Over the jizo's own bib on the same cell (OutdoorProps.jizo).
 			OutdoorProps.jizo_bibs(w, Vector3(r.get_center().x, 0, r.get_center().y))
+		"jizo_scarf":
+			# Round the neck of the jizo on the same cell (OutdoorProps.jizo).
+			OutdoorProps.jizo_scarf(w, Vector3(r.get_center().x, 0, r.get_center().y))
 		"kiln_mark":
 			# The farmer's thumbprint beside Ichiro's, on the new kiln's clay face over the
 			# mouth (same cells as kiln_new: OutdoorProps.kiln_mark_at).

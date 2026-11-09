@@ -4614,6 +4614,43 @@ func _nana_props() -> void:
 	# The flat view draws them from the same keys (StoryView) and leaves them out of its boxes.
 	check(StoryView.KINDS.has("captain_jar") and StoryView.KINDS.has("frog") and StoryView.KINDS.has("sky_map") and MapView.COLORS.has("hen_barn") and MapView.COLORS.has("ditch"),
 		"the flat view knows the jar, the frog, the sky map, the barn and the ditch")
+	_nana_scarf()
+
+
+## Nana's birthday scarf on the jizo by the Minamino lane (nana_scarf): the silent event that
+## sets it once the farmer is in Minamino on fall 19 from 9:40, the prop gated by it in both
+## views, the jizo still blocking and readable.
+func _nana_scarf() -> void:
+	var ev: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/events/nana_scarf.json"))
+	check(ev is Dictionary and ev.steps.size() == 1 and ev.steps[0].get("do", "") == "set" and ev.steps[0].flags == {"nana_scarf": true},
+		"the nana_scarf event only sets the flag")
+	var tbl := EventTriggers.open("minamino", true)
+	check(tbl.error == "", "Minamino's trigger table loads (%s)" % tbl.error)
+	var s := {"year": 1, "season": "fall", "day": 19, "weekday": "mon", "time": 10 * 60, "weather": "sunny", "flags": {}, "seen": {}, "cell": Vector2i(5, 17)}
+	check(tbl.pick("enter", s) == "nana_scarf" and tbl.pick("minute", s) == "nana_scarf", "on her birthday the scarf is set on entering and each minute")
+	check(tbl.pick("enter", s.merged({"time": 9 * 60 + 39}, true)) == "" and tbl.pick("enter", s.merged({"time": 23 * 60 + 59}, true)) == "nana_scarf",
+		"not before 9:40, still on late in the day")
+	check(tbl.pick("enter", s.merged({"day": 18}, true)) == "" and tbl.pick("enter", s.merged({"season": "winter"}, true)) == "" and tbl.pick("enter", s.merged({"seen": {"nana_scarf": true}}, true)) == "",
+		"not on other days or seasons, and only once")
+	var scarves := func(f: Dictionary) -> Array:
+		return MapManager.load_map("minamino", null, f)[1].props.filter(func(p): return p.kind == "jizo_scarf")
+	check(scarves.call({}).is_empty() and scarves.call({"nana_scarf": true}).size() == 1, "the scarf shows only with nana_scarf")
+	var m: MapData = MapManager.load_map("minamino", null, {"nana_scarf": true})[1]
+	var scarf := m.prop_at(Vector2i(5, 18))
+	check(scarf.get("kind", "") == "jizo_scarf" and scarf.get("use", "") == "examine" and str(scarf.get("message", "")) != "" and m.is_solid(Vector2i(5, 18))
+		and m.props.any(func(p): return p.kind == "jizo" and p.cell == Vector2i(5, 18)), "the scarf is on the jizo at (5, 18), which still blocks")
+	check(MapManager.load_map("minamino", null, {})[1].prop_at(Vector2i(5, 18)).get("kind", "") == "jizo", "without the flag the jizo is the prop there")
+	check(MapManager.load_map("kaminoda", null, {"nana_scarf": true})[1].props.all(func(p): return p.kind != "jizo_scarf"), "the Kaminoda jizo get no scarf")
+	check(StoryView.KINDS.has("jizo_scarf") and StoryView.art_key(scarf) == "story:jizo_scarf", "the flat view draws it from story:jizo_scarf")
+	var img: Image = PlaceholderArt.tex("story:jizo_scarf").get_image()
+	check(img.get_width() >= 8 and img.get_pixel(img.get_width() / 2, 1) != Color.MAGENTA, "the scarf is drawn")
+	var count := func(mp: MapData) -> int:
+		var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+		w.build(mp)
+		var n := w.get_children().filter(func(c): return c is MeshInstance3D and c.material_override is StandardMaterial3D and c.material_override.albedo_color == load("res://scripts/world3d/outdoor_props.gd").SCARF_RED).size()
+		w.free()
+		return n
+	check(count.call(MapManager.load_map("minamino", null, {})[1]) == 0 and count.call(m) == 1, "in 3D the red scarf is there only with the flag (one mesh)")
 
 
 ## The baby's cradle (Child, data/maps/house.json): in the second room only while child_stage is

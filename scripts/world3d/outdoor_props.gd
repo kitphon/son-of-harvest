@@ -14,6 +14,7 @@ const STONE := Color("8e8a80")
 const STONE_LIGHT := Color("a29e94")
 const RED := Color("c8342c")
 const NEW_RED := Color("e23a2c")     # the jizo's new bibs (genzo_jizo), brighter than the old
+const SCARF_RED := Color("d02a3c")   # Nana's scarf on the jizo by the Minamino lane (nana_scarf)
 const KILN_CLAY := Color("9a7656")
 const KILN_FACE := 0.8               # the kiln's clay face, this far in front of its middle
 const CLUMP_LOOKS := 8   # bamboo clump shapes; a cell picks one and turns it
@@ -257,6 +258,21 @@ static func jizo_bibs(w: FarmWorld, mid: Vector3) -> void:
 		Rect2(mid.x - 0.108, mid.z + 0.118, 0.216, 0.028), 0.235)   # the hem
 	FarmProps.block(white, Rect2(mid.x - 0.022, mid.z + 0.124, 0.044, 0.012), 0.32,
 		Rect2(mid.x - 0.022, mid.z + 0.12, 0.044, 0.012), 0.37)   # a crest sewn on
+	p.commit(w)
+
+
+## Nana's scarf (StoryProps, nana_scarf: her birthday, fall 19): a thick knitted red band wound
+## round the jizo's neck over the collar with a cream stripe, and one end hanging down the
+## front with a cream stripe near its tip. `mid` is the jizo's own (the middle of its cell).
+static func jizo_scarf(w: FarmWorld, mid: Vector3) -> void:
+	var p := FarmProps.Parts.new()
+	var red := p.st(SCARF_RED)
+	var at := Vector3(mid.x, 0, mid.z)
+	Shrine.lathe(red, at, [Vector2(0.08, 0.425), Vector2(0.108, 0.44), Vector2(0.11, 0.49), Vector2(0.082, 0.505)], 10)   # the wound band
+	var cream := p.st(Color("f2e6c8"))
+	Shrine.lathe(cream, at, [Vector2(0.109, 0.462), Vector2(0.112, 0.47), Vector2(0.112, 0.478), Vector2(0.109, 0.482)], 10)   # a stripe round it
+	FarmProps.block(red, Rect2(mid.x + 0.01, mid.z + 0.1, 0.07, 0.024), 0.19, Rect2(mid.x + 0.015, mid.z + 0.098, 0.062, 0.024), 0.47)   # the hanging end
+	FarmProps.block(cream, Rect2(mid.x + 0.009, mid.z + 0.102, 0.072, 0.026), 0.23, Rect2(mid.x + 0.014, mid.z + 0.1, 0.064, 0.026), 0.255)   # its stripe
 	p.commit(w)
 
 

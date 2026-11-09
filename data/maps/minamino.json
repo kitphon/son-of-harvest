@@ -64,6 +64,7 @@
 		{"kind": "frog", "cell": [16, 2], "solid": false, "flag": "heart_nana_6"},
 		{"kind": "sky_map", "cell": [19, 5], "size": [2, 1], "solid": false, "flag": "nana_sky"},
 		{"kind": "well", "cell": [8, 8]},
+		{"kind": "jizo_scarf", "cell": [5, 18], "solid": false, "flag": "nana_scarf", "use": "examine", "message": "The jizo by the lane wears a new red scarf, tied on a little crooked. Nana did it herself."},
 		{"kind": "jizo", "cell": [5, 18]},
 		{"kind": "bamboo", "cell": [0, 14]},
 		{"kind": "bamboo", "cell": [1, 19]},

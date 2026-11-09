@@ -10,7 +10,7 @@ extends Node2D
 ## kiln's wear (story:kiln_worn) is drawn over its box, on its own cells.
 
 const T := 16
-const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark", "kiln_site", "kiln_new", "boat_name", "noren", "scion", "captain_jar", "frog", "sky_map"]
+const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift", "jizo_bibs", "jizo_scarf", "kiln_mark", "kiln_site", "kiln_new", "boat_name", "noren", "scion", "captain_jar", "frog", "sky_map"]
 
 var map: MapData
 
@@ -80,6 +80,8 @@ func _draw() -> void:
 			r.end.y -= 2
 		elif p.kind == "jizo_bibs":   # on the jizo's chest, the middle of its cell
 			r.end.y -= 4
+		elif p.kind == "jizo_scarf":   # round the jizo's neck, higher than the bib
+			r.end.y -= 7
 		elif p.kind == "kiln_mark":   # over the kiln's mouth, in the front cells' upper half
 			r.end.y -= T / 2 + 1
 			r.position.x += 12   # right of Ichiro's print, which kiln_new draws

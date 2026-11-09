@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-09 — Nana's birthday scarf on the jizo by the Minamino lane
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: Nana's birthday plan and talk line (fall 19: she dresses the jizo by the lane in a new
+  scarf) now leave something in the world. data/events/nana_scarf.json is a silent event that sets
+  `nana_scarf`; a row in triggers_minamino.json plays it (enter / minute, fall 19, from 9:40 on, once)
+  whenever the farmer is in Minamino that day after Nana is done at the jizo. The new `jizo_scarf`
+  story prop (data/maps/minamino.json, cell 5, 18, gated by nana_scarf, examine line in English and
+  Thai) is drawn over the jizo: 3D OutdoorProps.jizo_scarf (a knitted red band with cream stripes
+  round the neck, one end hanging down the front), flat StoryView.KINDS + `story:jizo_scarf`
+  (PlaceholderArt, 10 x 9). Own art, own colours (SCARF_RED d02a3c).
+- Checked: `test_maps: OK (0 failed)` with the new _nana_scarf checks (the event, the trigger row's
+  window, the prop by flag, the jizo still blocking, the art, one 3D mesh); full suite and smoke
+  runs below. Screenshot `--demo --weather=sunny --season=fall --time=12:00 --map=minamino@river
+  --flags=nana_scarf`, zoomed: the jizo wears a red scarf with cream stripes and a hanging end.
+- Left / next: if the farmer is away from Minamino all of fall 19 the scarf is not set that year
+  (no day-start hook off the farmer's map); the flat view's scarf height was not screenshot.
+
 ## 2026-11-09 — Merge: hands full with the child, Kiku's persimmon sapling, Nana's keepsakes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged cb1af67 hands full with the baby or crawler (Haiku, own worktree), 0a03f9e Kiku's

@@ -250,7 +250,7 @@ func _make_prop(p: Dictionary) -> void:
 		"fodder_box", "stalls", "hay", "barn_gate": BarnProps.prop(self, p, mid, r)
 		"well", "jizo", "persimmon", "sakura", "maple", "hasa", "woodpile", "garden", "wood_fence", "kiln", "hen_barn", "ditch": CountryProps.prop(self, p, mid, r, Game.season_name())
 		"cave_mouth": _cave_mouth(mid, r)
-		"door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark", "kiln_site", "kiln_new", "boat_name", "noren", "captain_jar", "frog", "sky_map": StoryProps.prop(self, p)
+		"door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "keepsake", "rope_lift", "jizo_bibs", "jizo_scarf", "kiln_mark", "kiln_site", "kiln_new", "boat_name", "noren", "captain_jar", "frog", "sky_map": StoryProps.prop(self, p)
 		"ladder": _ladder(mid)
 		"cradle": pass   # the baby's cradle: CradleLayer shows it (it changes as the farmer lifts the baby)
 		_:
