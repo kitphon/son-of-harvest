@@ -10,6 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-09 — Kiku's band 6 scene: a twig of the oldest persimmon tree
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: heart_kiku_6 (under the oldest persimmon tree Kiku gives the farmer a twig cut from it,
+  wrapped in wet moss, to plant; a line of its own for the band 5 answer, which now sets
+  kiku_miss / kiku_glad; the farmer picks the farmhouse door or the field's edge, kiku_scion =
+  door / field; sets heart_kiku_6 and kiku_graft), rows in triggers_minamino / kiku_house / town
+  (hearts 6, seen heart_kiku_5), three dear_ talk lines, the music rule (Kiku's three events were
+  not in it; added), Thai for every new line, tests in test_relationships (Kiku in the band 6
+  loops, both answer branches, dear lines), README → Villagers and ROADMAP. Story and lines are ours.
+- Checked: see the commit message / final report for the test lines.
+- Left / next: nothing for hearts: every villager with hearts has all three scenes.
+
 ## 2026-11-09 — Merge: the child, step 5
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 6f3404f the child, step 5 (Opus, own worktree) onto the Nana / Kiku merge.

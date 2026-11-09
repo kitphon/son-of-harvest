@@ -1,0 +1,14 @@
+{
+	"_note": "Kiku's third heart event: the first talk once her heart band reaches 6, after heart_kiku_5 (same tables). Under the oldest persimmon tree she tells of a twig she cut from it, wrapped in wet moss, for the farmer to plant (a line of its own for the band 5 answer: kiku_glad, the rim tapped for the living with the farmer's name the first tap; otherwise kiku_miss, the plain note first). The farmer picks where it goes, by the farmhouse door or at the edge of the field (kiku_scion = door or field). Sets heart_kiku_6 and kiku_graft. Kiku acts in it from where the talk found her (an actor step at plan; played where her plan has her elsewhere, she walks up to the farmer), faces the farmer through the lines and goes back to her day plan. Format: README.md, Events.",
+	"steps": [
+		{"do": "actor", "who": "kiku", "at": "plan", "face": "farmer"},
+		{"do": "face", "dir": "kiku"},
+		{"do": "sound", "key": "step_grass"},
+		{"do": "wait", "seconds": 0.4},
+		{"do": "say", "dialogue": "heart_events_6", "at": "kiku"},
+		{"do": "affection", "who": "kiku", "amount": 5},
+		{"do": "set", "flags": {"heart_kiku_6": true, "kiku_graft": true}},
+		{"do": "actor", "who": "kiku", "to": "plan"},
+		{"do": "actor", "who": "kiku", "leave": true}
+	]
+}
