@@ -14,7 +14,9 @@ extends RefCounted
 ## the clay of Ichiro's kiln in Sakurazaka beside his and his father's (ichiro_mark, band 6):
 ## both lit meshes (OutdoorProps); the name Mio painted on her ferry boat on the river (mio_boat,
 ## band 6) is a picture on its side; the noren Shino dyed for the farmhouse hangs over its door
-## (shino_noren rows / flowers, band 6) and her own new one over the dye house's. The pictures are PlaceholderArt "story:" keys, the same ones the flat view draws
+## (shino_noren rows / flowers, band 6) and her own new one over the dye house's; the twig of
+## the oldest persimmon tree Kiku gave stands planted by the farmhouse door or at the field's
+## edge (kiku_scion door / field, band 6), a sapling in the season's look. The pictures are PlaceholderArt "story:" keys, the same ones the flat view draws
 ## (StoryView, which also keeps the list of kinds). Same units as MapWorld (1 unit = 1 cell).
 
 
@@ -117,6 +119,12 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 			# The finished new kiln (ichiro_mark): Ichiro's print is on it, the farmer's is kiln_mark.
 			var c := r.get_center()
 			OutdoorProps.kiln(w, r, Vector3(c.x, 0, c.y), w is MapWorld and SnowLayer.map_has_snow((w as MapWorld).map), [1], false)
+		"scion":
+			# Kiku's persimmon twig, planted: one picture standing on its cell, its look by the
+			# season the map is built in (the farm's world is rebuilt each day).
+			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))
+			s.position = Vector3(r.get_center().x, 0, r.get_center().y)
+			w.add_child(s)
 		"carp_streamer":
 			# Pole and carp are one picture, standing on its cell, the carp just over the eave.
 			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))

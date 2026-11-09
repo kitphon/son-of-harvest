@@ -236,6 +236,7 @@ func _process(delta: float) -> bool:
 		_ferry_boat()
 		_dye_cloth()
 		_shino_noren()
+		_kiku_scion()
 		_cradle()
 		_lane_and_kiln_props()
 		_map_snow()
@@ -4495,6 +4496,52 @@ func _shino_noren() -> void:
 		for i in sway.count():
 			swaying = swaying or cloth in sway.nodes_of(i)
 	check(cloth != null and swaying, "the 3D dye house hangs it, swaying in the wind")
+	w.free()
+
+
+## The persimmon twig Kiku gave (heart_kiku_6, kiku_scion door / field): planted by the farmhouse
+## door or at the field's edge by the farmer's answer, none before; solid, off the door path, the
+## plots' rows, the bin and the gate road; the four seasons' pictures drawn and different.
+func _kiku_scion() -> void:
+	var cells := func(f: Dictionary) -> Array:
+		var out := []
+		for p in MapManager.load_map("farm", null, f)[1].props:
+			if p.kind == "scion":
+				out.append(p.cell)
+		return out
+	check(cells.call({}).is_empty() and cells.call({"kiku_graft": true}).is_empty(), "no sapling before the farmer has chosen where it goes")
+	check(cells.call({"kiku_scion": "door"}) == [Vector2i(3, 4)] and cells.call({"kiku_scion": "field"}) == [Vector2i(30, 8)],
+		"the sapling by the farmhouse door or at the field's edge by the answer")
+	var base: MapData = MapManager.load_map("farm", null, {})[1]
+	for answer in ["door", "field"]:
+		var m: MapData = MapManager.load_map("farm", null, {"kiku_scion": answer})[1]
+		var c: Vector2i = cells.call({"kiku_scion": answer})[0]
+		check(m.is_solid(c) and not base.is_solid(c), "the %s sapling blocks its own cell" % answer)
+		var fixed := FarmGrid.new({})
+		fixed.generate(RandomNumberGenerator.new())
+		check(fixed.fixed_at(c) == "" and c.y != 5 and c != Vector2i(4, 4) and c != Vector2i(4, 3) and c != Vector2i(8, 6)
+			and m.door_at(c).is_empty() and not m.doors.any(func(d): return c in d.cells), "and sits clear of the fixtures, doors and the road of row 5 (%s)" % answer)
+	var imgs := []
+	for k in ["spring", "summer", "fall", "winter"]:
+		var img := PlaceholderArt.tex("story:scion_" + k).get_image()
+		check(img.get_size() == Vector2i(16, 26), "the %s sapling is drawn" % k)
+		imgs.append(img.get_data())
+	for i in 4:
+		for j in range(i + 1, 4):
+			check(imgs[i] != imgs[j], "the sapling's seasons differ (%d, %d)" % [i, j])
+	var key := StoryView.art_key({"kind": "scion"})
+	check(key == "story:scion_" + root.get_node("Game").season_name(), "the picture follows the season")
+	var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	var farm_w: Node3D = w
+	var props_script = load("res://scripts/world3d/story_props.gd")
+	var sprites := 0
+	var m: MapData = MapManager.load_map("farm", null, {"kiku_scion": "door"})[1]
+	for p in m.props:
+		if p.kind == "scion":
+			props_script.prop(farm_w, p)
+	for c in farm_w.get_children():
+		sprites += int(c is Sprite3D and c.texture == PlaceholderArt.tex(key))
+	check(sprites == 1, "the 3D view stands one sapling sprite")
 	w.free()
 
 

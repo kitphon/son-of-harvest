@@ -30,6 +30,24 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
   -- --demo`: no error or warning lines.
 - Left / next: not checked: the dog in the arms (animals.dog.held, also in holding()) is not part
   of arms_full, so the menu may still fill the hand while the dog is held. Not in this brief.
+## 2026-11-09 — Kiku's persimmon sapling in the world
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: the twig from Kiku's band 6 scene now stands planted on the farm. Two story prop entries
+  in data/maps/farm.json (kind `scion`, flag `kiku_scion`, flag_value `door` at cell [3, 4] left
+  of the farmhouse door beside the path, `field` at [30, 8] at the field's right edge), both solid
+  (nothing is farmed under it; clear of the door, spawn (4, 4), the bin, chest, the lumber, the
+  streamer, Hachiro's row 5 route and the gate road). Drawn in both views: StoryView KINDS
+  `scion` (art key `story:scion_<season>` from the game's season, redrawn each day start) and
+  StoryProps `scion` (a sprite on its cell; the farm's 3D world is rebuilt each day);
+  PlaceholderArt `_scion_story` (16 x 26: a young sapling beside a bamboo stake with a straw
+  tie; spring pale buds, summer green, fall orange leaves and one small persimmon, winter a bare
+  twig with a straw wrap round its foot). AGENTS.md note for `--flags=kiku_scion=door`.
+- Checked: test_maps `_kiku_scion` (none before the choice, the cell by answer, solid and clear
+  of fixtures / doors / row 5, four seasons drawn and different, the key follows the season, one
+  3D sprite); all 31 tests/test_*.gd and the four smoke runs, see the final report. Screenshots
+  (3D fall and winter, flat fall) show the sapling by the door; shots/ deleted.
+- Left / next: the sapling does not grow over the years or bear fruit to pick; the field cell
+  is only seen in a screenshot by walking there.
 
 ## 2026-11-09 — Merge: holding the crawler, Kiku's band 6 scene, a portrait for the child
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

@@ -82,7 +82,7 @@ static func _make(key: String) -> Image:
 			if parts[1] == Child.ID and parts.size() > 7:   # portrait:child:<mood>:<stage>:<style>:<skin>:<hair>:<top>
 				return _child_portrait(parts[2], parts[3], _little_look(PackedStringArray(["", "", "", parts[4], parts[5], parts[6], parts[7]])))
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
-		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|noren_rows|noren_flowers|noren_shino|ume_jar|carp_streamer|lumber|rope_lift|jizo_bibs|kiln_mark|kiln_site|kiln_new|kiln_worn|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
+		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|noren_rows|noren_flowers|noren_shino|ume_jar|carp_streamer|scion_<season>|lumber|rope_lift|jizo_bibs|kiln_mark|kiln_site|kiln_new|kiln_worn|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
 		"festival": # festival:<kind>:<w>x<h>[:<cloth hex>], a festival decoration in the flat view (FestivalView)
 			var wh := parts[2].split("x") if parts.size() > 2 else PackedStringArray(["1", "1"])
@@ -1392,6 +1392,62 @@ static func _noren_story(style: String) -> Image:
 			_px(img, 10, 4, 2, 2, white)   # the leaf
 			_px(img, 11, 6, 1, 1, white)   # its stem
 	return img
+
+
+## The twig Kiku cut from the oldest persimmon tree, planted (StoryView "scion", 16 x 26): a
+## young sapling beside a little bamboo stake, tied to it with straw. By season: spring
+## pale new leaves and buds, summer full green, fall orange leaves and one small persimmon,
+## winter a bare twig with a straw wrap round its foot against the frost.
+static func _scion_story(season: String) -> Image:
+	var img := _blank(16, 26)
+	var bark := Color("6a5238") if season != "winter" else Color("56402c")
+	var straw := Color("d8b866")
+	var stake := Color("b09a5a")
+	_px(img, 11, 9, 1, 17, stake)                       # the stake
+	_px(img, 11, 8, 1, 1, stake.lightened(0.25))
+	_px(img, 7, 14, 2, 12, bark)                        # the trunk, a thin young one
+	_px(img, 8, 10, 1, 4, bark)
+	_px(img, 9, 8, 1, 3, bark)
+	_px(img, 5, 12, 2, 1, bark)                         # two side twigs
+	_px(img, 9, 15, 2, 1, bark)
+	if season == "winter":
+		_px(img, 5, 12, 1, 1, bark.darkened(0.2))
+		for y in range(17, 25):                         # the straw wrap, wider toward the ground
+			var w := 4 + (y - 17) / 3
+			_px(img, 8 - w / 2, y, w, 1, straw if y % 2 == 0 else straw.darkened(0.12))
+		_px(img, 5, 19, 7, 1, straw.darkened(0.35))     # its binding
+		_px(img, 6, 16, 4, 1, straw.lightened(0.1))     # the tuft on top
+	else:
+		_px(img, 7, 20, 5, 1, straw)                    # the straw tie round trunk and stake
+		_px(img, 7, 21, 5, 1, straw.darkened(0.18))
+		_px(img, 10, 22, 1, 1, straw)                   # its loose end
+		var leaf: Color
+		var leaf2: Color
+		match season:
+			"spring":
+				leaf = Color("a8d870")
+				leaf2 = Color("d8e890")
+			"summer":
+				leaf = Color("4c9438")
+				leaf2 = Color("68b04a")
+			_:
+				leaf = Color("d8741e")
+				leaf2 = Color("e8a038")
+		var spots := [[4, 10], [9, 6], [6, 7], [10, 12], [3, 13], [11, 9]]
+		for i in spots.size():
+			var at: Array = spots[i]
+			if season == "spring":   # small, bud-like
+				_px(img, at[0], at[1], 2, 2, leaf)
+				_px(img, at[0], at[1], 1, 1, leaf2)
+			else:
+				_px(img, at[0], at[1], 3, 2, leaf)
+				_px(img, at[0] + 1, at[1] - 1, 2, 1, leaf2)
+				_px(img, at[0], at[1] + 2, 2, 1, leaf.darkened(0.2))
+		if season == "fall":                            # one small persimmon on the low twig
+			_px(img, 9, 16, 3, 3, Color("e86a14"))
+			_px(img, 10, 15, 1, 1, Color("5c8a34"))
+			_px(img, 9, 16, 1, 1, Color("f4a050"))
+	return _outline(img)
 
 
 ## A still puddle between the winter paddy rows: dull grey-blue water with a paler strip where the
@@ -2945,6 +3001,8 @@ static func _story(kind: String) -> Image:
 	match kind:
 		"noren_rows", "noren_flowers", "noren_shino":
 			return _noren_story(kind.get_slice("_", 1))
+		"scion_spring", "scion_summer", "scion_fall", "scion_winter":
+			return _scion_story(kind.get_slice("_", 1))
 		"boat_father", "boat_new":
 			# The name Mio painted on her boat's side (heart_mio_6, mio_boat): a pale painted
 			# plaque, 14 x 6, with her father's coiled red dragon (Tatsu) on it, or her new name's
