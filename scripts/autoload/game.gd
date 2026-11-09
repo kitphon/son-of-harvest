@@ -1132,6 +1132,7 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 	var spouse_id := Marriage.spouse(flags)   # the child's news or birth due this morning (triggers_house.json)
 	Child.day_start(flags, day_number(), affection.band(spouse_id) if spouse_id != "" else 0, festival_today() != "")
 	Scion.record(flags, day_number())   # Kiku's twig planted before its day was kept: from today
+	DateFlags.day_start(flags, year, season_name(), day)   # a date already past (Nana's scarf, fall 19): set whatever the farmer did
 	help_news = spouse_help()
 	child_help_news = child_help()
 	go_to_spawn(wake_map, wake_spawn)

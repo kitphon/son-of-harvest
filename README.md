@@ -749,6 +749,11 @@ the script says, and keys go only to the text box. Each step is one of:
 Any step can have an `id` and a `next` (a step id or `"end"`). `EventRunner` refuses a file with
 anything wrong and says why.
 
+**Date flags**: `data/date_flags.json` lists `{"flag": ..., "after": {"season": ..., "day": ...}}`
+rows (DateFlags). Each morning the flag is set once the date has passed (any later year too),
+whatever the farmer did; `nana_scarf` (after fall 19) is the one row, so the scarf is on the jizo
+even if the farmer was never in Minamino on her birthday. Set by Game's morning, not by a map.
+
 **Trigger tables**: `data/events/triggers_<map id>.json` holds `{"rows": [...]}`. The view's
 `EventPlayer` asks the table of the map the farmer is on when something happens (`on`):
 `enter` (the farmer arrives on the map, also at the start of a game), `day_start` (a new day,

@@ -1,0 +1,6 @@
+{
+	"_note": "Flags set on a morning once the date has passed (DateFlags, scripts/farm/date_flags.gd; Game's morning). `after` is a season and day: from the next day on, in that year and every later one, the flag is set whatever the farmer did. Nana's birthday scarf (fall 19, triggers_minamino.json) is the one case: a farmer who was never in Minamino that day still gets the scarf on the jizo from fall 20 on. Format: README.md, Events.",
+	"rows": [
+		{"flag": "nana_scarf", "after": {"season": "fall", "day": 19}}
+	]
+}
