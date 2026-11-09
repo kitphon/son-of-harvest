@@ -68,7 +68,7 @@ func open(mode := "rucksack") -> void:
 		return
 	_open = true
 	Game.pause()
-	menu = InventoryMenu.new(Game.inventory, mode, Game.tool_index)
+	menu = InventoryMenu.new(Game.inventory, mode, Game.tool_index, Game.arms_full())
 	_dim.visible = true
 	_build()
 	_note.text = ""

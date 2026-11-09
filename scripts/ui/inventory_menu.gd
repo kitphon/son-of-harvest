@@ -11,6 +11,7 @@ const COLS := 8
 const PLACES := {"rucksack": ["tools", "bag", "hand"], "storage": ["chest", "tools", "bag", "hand"]}
 const TITLES := {"rucksack": "Rucksack", "storage": "Storage chest"}
 const LABELS := {"tools": "Tools", "bag": "Rucksack", "hand": "Hand", "chest": "Chest"}
+const HANDS_FULL := "Your hands are full."   # the baby or the crawler is in the arms (arms_full)
 
 var inv: Inventory
 var mode := "rucksack"
@@ -19,14 +20,16 @@ var row := 0
 var col := 0
 var carry := {}             # the stack on the cursor, {} when none
 var tool_slot := 0          # the tool slot in hand (Game.tool_index)
+var arms_full := false      # the baby or the crawler is in the arms: the hand slot takes nothing (Game.arms_full)
 var last_ok := false        # did the last eat() go through
 var _from := ["", -1]       # where the carried stack was picked up
 
 
-func _init(inventory: Inventory, m := "rucksack", tool_in_hand := 0) -> void:
+func _init(inventory: Inventory, m := "rucksack", tool_in_hand := 0, arms_full_now := false) -> void:
 	inv = inventory
 	mode = m if PLACES.has(m) else "rucksack"
 	tool_slot = tool_in_hand
+	arms_full = arms_full_now
 	for place in PLACES[mode]:
 		var n := inv.size(place)
 		for start in range(0, n, COLS):
@@ -81,6 +84,8 @@ func choose() -> String:
 		if not carry.is_empty():
 			_from = [place(), index()]
 		return ""
+	if place() == "hand" and arms_full:
+		return HANDS_FULL
 	if not inv.accepts(place(), carry.id):
 		return "Only tools go here." if place() == "tools" else "Tools go in the tool slots or the chest."
 	carry = inv.drop(place(), index(), carry)
@@ -112,6 +117,8 @@ func hold() -> String:
 		return ""
 	if inv.is_tool(id):
 		return "" if inv.move(place(), index(), "tools", tool_slot) else "No room for the tool."
+	if arms_full:
+		return HANDS_FULL
 	return "" if inv.move(place(), index(), "hand", 0) else "Can't hold that."
 
 
