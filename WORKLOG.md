@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Merge: Nana's scarf from the morning after, Kiku's persimmons to pick, farmer art refined
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged 3b4edc3 Nana's scarf set on the morning after her birthday (Haiku, own worktree),
+  0037ed1 Kiku's grown persimmon tree can be picked (Sonnet, own worktree) and caf57c0 farmer art,
+  refined (Opus, own worktree). Conflicts only in WORKLOG and ROADMAP; every side's entry kept.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`; the
+  four smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print no ERROR or
+  WARNING lines. No screenshot of the merged tree (each branch took its own).
+- Left / next: the half-picked persimmon tree and the farmer's back / fishing poses were not
+  screenshot in the game; the villagers do not have the farmer's refined art pass yet;
+  test_inventory prints `ERROR: 8 resources still in use at exit` at quit (suite passes; not
+  checked whether it predates these changes).
+
 ## 2026-11-10 — Nana's scarf set on the morning after her birthday
 Agent: Claude Code (claude-haiku) · Commit: this commit
 - Done: `nana_scarf` no longer depends on the farmer being in Minamino on fall 19. New
