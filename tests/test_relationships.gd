@@ -229,9 +229,8 @@ func _heart_event_rows() -> void:
 		"kiku": ["town", "minamino", "kiku_house"],
 		"shino": ["town", "minamino", "shino_house", "river"],
 		"ren": ["town", "post_office", "sakurazaka", "kaminoda", "minamino", "river"]}
-	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro", "genzo", "haru", "shige", "nana", "mio", "kaede", "shino", "ren"]:
+	for id in ["tome", "kota", "sayo", "hachiro", "fumi", "ichiro", "genzo", "haru", "shige", "nana", "kiku", "mio", "kaede", "shino", "ren"]:
 		check(_has_event("heart_%s_5" % id) and _has_event("heart_%s_6" % id), "%s has heart events at 5 and 6" % id)
-	check(_has_event("heart_kiku_5") and not _has_event("heart_kiku_6"), "Kiku has heart events at 3 and 5")
 	for id in Villagers.friends():
 		check(maps.has(id) and _has_event("heart_" + id), "%s has a heart event" % id)
 		for m in maps.get(id, []):
@@ -538,9 +537,9 @@ func _neglect_in_game() -> void:
 ## Each heart event (bands 3, 5 and 6) runs to the end on the real Game: flag set, affection
 ## up, and band 6's own story flag. Kota's second and third read both ways, with and without
 ## his carp promise; band 6 also with and without the band 5 flags its lines look back on.
-const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle", "ichiro": "ichiro_mark", "genzo": "genzo_straw", "haru": "haru_wave", "shige": "shige_vine", "nana": "nana_sky", "mio": "mio_ferry", "kaede": "kaede_fortune", "shino": "shino_first", "ren": "ren_route"}
+const SIX_FLAGS := {"tome": "", "kota": "kota_streamer", "sayo": "sayo_ledger", "hachiro": "hachiro_strike", "fumi": "fumi_kettle", "ichiro": "ichiro_mark", "genzo": "genzo_straw", "haru": "haru_wave", "shige": "shige_vine", "nana": "nana_sky", "kiku": "kiku_graft", "mio": "mio_ferry", "kaede": "kaede_fortune", "shino": "shino_first", "ren": "ren_route"}
 ## The flag each band 6 scene looks back on (Fumi's comes from her band 3 scene).
-const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest", "ichiro": "ichiro_kiln", "genzo": "genzo_jizo", "haru": "haru_go", "shige": "shige_share", "nana": "nana_beside", "mio": "mio_keep", "kaede": "kaede_recite", "shino": "shino_own", "ren": "ren_van"}
+const FIVE_FLAGS := {"tome": "tome_grandma", "kota": "kota_carp_promise", "sayo": "sayo_sign", "hachiro": "hachiro_bell", "fumi": "fumi_honest", "ichiro": "ichiro_kiln", "genzo": "genzo_jizo", "haru": "haru_go", "shige": "shige_share", "nana": "nana_beside", "kiku": "kiku_glad", "mio": "mio_keep", "kaede": "kaede_recite", "shino": "shino_own", "ren": "ren_van"}
 
 func _heart_events_play() -> void:
 	for id in Villagers.friends():
@@ -598,6 +597,7 @@ func _heart_events_play() -> void:
 		"haru": ["Nobody holding the door", "eleven times"],
 		"shige": ["both patches", "at the fence"],
 		"nana": ["blinking beside each other", "big steady star"],
+		"kiku": ["Yours was the first tap", "did not feel like cheating"],
 		"mio": ["bell rang", "just for myself"],
 		"kaede": ["said them to you again", "my sleeve"],
 		"shino": ["wildflower stencil", "Mother's cranes"],
@@ -904,6 +904,14 @@ func _kiku_friend() -> void:
 	for at in ["kiku_miss", "kiku_glad"]:
 		var d := DialogueRunner.open("heart_events_5", {}, at)
 		check(d.error == "" and d.text() != "", "%s has its line" % at)
+	var kiku5 := FileAccess.get_file_as_string("res://data/dialogue/heart_events_5.json")
+	check('"set": {"kiku_miss": true}' in kiku5 and '"set": {"kiku_glad": true}' in kiku5, "Kiku's band 5 answers set kiku_miss / kiku_glad")
+	for at in ["kiku_door", "kiku_edge", "kiku_end"]:
+		var d := DialogueRunner.open("heart_events_6", {}, at)
+		check(d.error == "" and d.text() != "", "%s has its line" % at)
+	check("kiku_graft" in FileAccess.get_file_as_string(EventRunner.DIR + "heart_kiku_6.json") and "kiku_scion" in FileAccess.get_file_as_string("res://data/dialogue/heart_events_6.json"), "Kiku's band 6 sets kiku_graft and the twig's place")
+	check(Talk.pick("kiku", st.merged({"band": 6, "flags": {"heart_kiku_5": true, "heart_kiku_6": true}}, true)).begins_with("dear"), "Kiku's dear lines after the band 6 scene")
+	check(not Talk.pick("kiku", st.merged({"band": 5, "flags": {"heart_kiku_5": true, "heart_kiku_6": true}}, true)).begins_with("dear"), "no dear lines below band 6")
 	check("seeds:daikon" in FileAccess.get_file_as_string(EventRunner.DIR + "heart_kiku.json"), "Kiku gives daikon seed at band 3")
 	check("\"daikon\"" in FileAccess.get_file_as_string(EventRunner.DIR + "heart_kiku_5.json"), "and daikon at band 5")
 	check("'Kiku's birthday.'" in DialogueRunner.open("examine_house", {}, "winter_birthday").text(), "the calendar names Kiku's birthday")

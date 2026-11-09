@@ -1,5 +1,5 @@
 {
-	"_note": "What Kiku, the old woman of the persimmon orchard in Minamino, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items her own answers to a keepsake and to dishes. The birthday lines (winter 25), the close lines from band 4 and the bell lines once her band 5 scene is seen (heart_kiku_5). Our own lines.",
+	"_note": "What Kiku, the old woman of the persimmon orchard in Minamino, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items her own answers to a keepsake and to dishes. The birthday lines (winter 25), the close lines from band 4 and the dear lines at band 6 once her band 6 scene is seen (heart_kiku_6), the bell lines once her band 5 scene is seen (heart_kiku_5). Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
@@ -10,6 +10,7 @@
 		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"time": ["14:00", "15:00"]}, "at": ["shrine"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
+		{"if": {"band": [6, 6], "flags": ["heart_kiku_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"band": [5, 6], "flags": ["heart_kiku_5"]}, "at": ["bell_1", "bell_2"]},
 		{"if": {"weekday": ["fri"], "band": [2, 5], "season": ["spring"]}, "at": ["forage_spring"]},
 		{"if": {"weekday": ["fri"], "band": [2, 5], "season": ["summer"]}, "at": ["forage_summer"]},
@@ -53,6 +54,9 @@
 		{"id": "close_2", "speaker": "kiku", "mood": "neutral", "text": "Tome says I talk about you more than I talk about my own knees. That's saying a great deal.", "next": "end"},
 		{"id": "bell_1", "speaker": "kiku", "mood": "happy", "text": "I rang the little bell twice in the lane yesterday, the plain note and the bright one. A crow stopped to listen. I took that as an answer.", "next": "end"},
 		{"id": "bell_2", "speaker": "kiku", "mood": "neutral", "text": "I'm counting the ones I'm glad of now, the way I used to count the ones I miss. The count is higher than I expected. Your name is in it.", "next": "end"},
+		{"id": "dear_1", "speaker": "kiku", "mood": "happy", "text": "The twig took, dear. I wrapped it myself and it has not even sulked. Tree or farmer, you both settle in fast.", "next": "end"},
+		{"id": "dear_2", "speaker": "kiku", "mood": "neutral", "text": "Eight autumns. I told the water spirit I mean to see at least two of them. She did not say no.", "next": "end"},
+		{"id": "dear_3", "speaker": "kiku", "mood": "happy", "text": "I rang the bell this morning for nobody at all. Just to hear it. Is that allowed? I decided it is.", "next": "end"},
 		{"id": "gift_love", "speaker": "kiku", "mood": "happy", "text": "Oh, my. You remembered what an old woman likes. Thank you, dear.", "next": "end"},
 		{"id": "gift_like", "speaker": "kiku", "mood": "happy", "text": "How thoughtful. I'll have it with my afternoon tea.", "next": "end"},
 		{"id": "gift_neutral", "speaker": "kiku", "mood": "neutral", "text": "Thank you, dear.", "next": "end"},

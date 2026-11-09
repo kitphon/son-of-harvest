@@ -1,5 +1,5 @@
 {
-	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow; Fumi's looks back on fumi_honest from her band 3 scene, Ichiro's on ichiro_kiln from his band 5 one, Genzo's on genzo_jizo from his, Haru's on haru_go from her band 5 answer, Shige's on shige_share from his, Nana's on nana_beside from her band 5 answer). Our own scenes.",
+	"_note": "The third heart events (data/events/heart_<villager>_6.json): one scene per villager when their heart band first reaches 6 and the farmer talks to them, after the band 5 one. One part per villager, started at its id (Hachiro's has a second part, hachiro_strike, after the farmer's hammer blow; Fumi's looks back on fumi_honest from her band 3 scene, Ichiro's on ichiro_kiln from his band 5 one, Genzo's on genzo_jizo from his, Haru's on haru_go from her band 5 answer, Shige's on shige_share from his, Nana's on nana_beside from her band 5 answer, Kiku's on kiku_glad from hers). Our own scenes.",
 	"lines": [
 		{"id": "tome", "speaker": "tome", "mood": "neutral", "text": "My son wrote back. He wants me to come and live in the city with him. An apartment with an elevator, he says."},
 		{"speaker": "tome", "mood": "sad", "text": "He means well. He frets about the shrine stairs, and the winters, and me alone in that house."},
@@ -106,6 +106,17 @@
 		{"id": "nana_near", "speaker": "nana", "mood": "happy", "text": "Next to Dad's. Then he'll have somebody to say 'too bright' to. Yes. I'm drawing it with my best pencil.", "next": "nana_end"},
 		{"id": "nana_field", "speaker": "nana", "mood": "surprised", "text": "Over your field, so you can look up from your rows and find it. ...That's a good one. I'll make it a little bit twinkly.", "next": "nana_end"},
 		{"id": "nana_end", "speaker": "nana", "mood": "happy", "text": "Dad says I can stay up till all the stars are out, if I wear my scarf. Wave at the sky tonight when you're out in your field? I'll know which wave is yours.", "next": "end"},
+
+		{"id": "kiku", "speaker": "kiku", "mood": "happy", "text": "There you are, dear. Come into the orchard. I want you under the oldest tree for this."},
+		{"speaker": "kiku", "mood": "neutral", "text": "My grandfather planted it the year the water came down and took the lane. It has outlived the flood, the fire at the mill, and three roofs of mine."},
+		{"if": "kiku_glad", "then": "kiku_rim"},
+		{"speaker": "kiku", "mood": "neutral", "text": "I rang the bell for those I miss at the year's turn, as I always have, and tapped the rim softly for the living afterwards. It did not feel like cheating.", "next": "kiku_ask"},
+		{"id": "kiku_rim", "speaker": "kiku", "mood": "happy", "text": "I tapped the rim for the glad ones at the year's turn, as you told me. Yours was the first tap. The crows have not stopped gossiping about it since."},
+		{"id": "kiku_ask", "speaker": "kiku", "mood": "neutral", "text": "A tree like this one will not wait for me. So I cut a twig from it this morning and wrapped it in wet moss. A persimmon takes eight years to bear. I am too old to wait, but you are not. Where shall it go, do you think?",
+			"choices": [{"text": "By the farmhouse door.", "next": "kiku_door", "set": {"kiku_scion": "door"}}, {"text": "At the edge of my field.", "next": "kiku_edge", "set": {"kiku_scion": "field"}}]},
+		{"id": "kiku_door", "speaker": "kiku", "mood": "happy", "text": "By the door, where you will pass it every day, and it will know your step. Yes. It should be a tree that is greeted.", "next": "kiku_end"},
+		{"id": "kiku_edge", "speaker": "kiku", "mood": "surprised", "text": "At the edge of the field, where it can watch you work. A tree with something to look at. Ah, that is the better idea. I was only going to say the door.", "next": "kiku_end"},
+		{"id": "kiku_end", "speaker": "kiku", "mood": "happy", "text": "Tie the moss on with this red cord, the same red as my bell. In eight autumns, pick the first fruit and eat it right off the branch. It will be bitter. Eat it anyway, and think of me kindly.", "next": "end"},
 
 		{"id": "mio", "speaker": "mio", "mood": "happy", "text": "There you are. I've been waiting on the shore since the mist came up."},
 		{"speaker": "mio", "mood": "neutral", "text": "I wanted to tell you before anyone else hears it from Kota."},

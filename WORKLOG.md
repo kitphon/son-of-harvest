@@ -39,6 +39,19 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   --map=house --built=room --flags=married_sayo,spouse=sayo --child=crawler:held --time=7:00`
   frame 39: the crawler overhead in the indigo happi, the hint "E/Space Put down". shots/ deleted.
 - Left / next: the child's portrait in the text box; Kiku's band 6 scene.
+/^>>>>>>> worktree-agent-ab816ce9f8b05a366$/d
+## 2026-11-09 — Kiku's band 6 scene: a twig of the oldest persimmon tree
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: heart_kiku_6 (under the oldest persimmon tree Kiku gives the farmer a twig cut from it,
+  wrapped in wet moss, to plant; a line of its own for the band 5 answer, which now sets
+  kiku_miss / kiku_glad; the farmer picks the farmhouse door or the field's edge, kiku_scion =
+  door / field; sets heart_kiku_6 and kiku_graft), rows in triggers_minamino / kiku_house / town
+  (hearts 6, seen heart_kiku_5), three dear_ talk lines, the music rule (Kiku's three events were
+  not in it; added), Thai for every new line, tests in test_relationships (Kiku in the band 6
+  loops, both answer branches, dear lines), README → Villagers and ROADMAP. Story and lines are ours.
+- Checked: see the commit message / final report for the test lines.
+- Left / next: nothing for hearts: every villager with hearts has all three scenes.
+>>>>>>> worktree-agent-ab816ce9f8b05a366
 
 ## 2026-11-09 — Merge: the child, step 5
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

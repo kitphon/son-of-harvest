@@ -9,6 +9,7 @@
 		{"event": "heart_nana_6", "on": "talk", "who": "nana", "hearts": {"nana": [6, 6]}, "seen": ["heart_nana_5"]},
 		{"event": "heart_kiku", "on": "talk", "who": "kiku", "hearts": {"kiku": [3, 6]}},
 		{"event": "heart_kiku_5", "on": "talk", "who": "kiku", "hearts": {"kiku": [5, 6]}, "seen": ["heart_kiku"]},
+		{"event": "heart_kiku_6", "on": "talk", "who": "kiku", "hearts": {"kiku": [6, 6]}, "seen": ["heart_kiku_5"]},
 		{"event": "recipe_kiku", "on": "talk", "who": "kiku", "hearts": {"kiku": [1, 6]}, "not_flags": ["recipe_kusa_mochi"]},
 		{"event": "heart_kaede", "on": "talk", "who": "kaede", "hearts": {"kaede": [3, 6]}},
 		{"event": "heart_kaede_5", "on": "talk", "who": "kaede", "hearts": {"kaede": [5, 6]}, "seen": ["heart_kaede"]},
