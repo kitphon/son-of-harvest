@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-09 — Merge: holding the crawler, Kiku's band 6 scene, a portrait for the child
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged 290e288 holding the crawler (Opus, own worktree), 5c73680 Kiku's band 6 scene
+  (Sonnet, own worktree) and b4c970d a portrait for the child (Sonnet, own worktree). Conflicts
+  in WORKLOG, ROADMAP (both Next up lines kept) and scripts/villagers/child.gd (the crawler's
+  carry functions and the portrait functions both kept). The crawler entry below still lists the
+  portrait and Kiku's band 6 as open; both are done (entries below it).
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`
+  (test_child included; the portrait agent's one full-run test_child failure did not come back);
+  the four smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print no error
+  or warning lines.
+- Left / next: the rucksack's hand slot may still take an item while the baby or crawler is
+  held (untested); only the kiku_glad answer has its own band 6 line.
+
 ## 2026-11-09 — Holding the crawler
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done:
@@ -39,7 +53,7 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   --map=house --built=room --flags=married_sayo,spouse=sayo --child=crawler:held --time=7:00`
   frame 39: the crawler overhead in the indigo happi, the hint "E/Space Put down". shots/ deleted.
 - Left / next: the child's portrait in the text box; Kiku's band 6 scene.
-/^>>>>>>> worktree-agent-ab816ce9f8b05a366$/d
+
 ## 2026-11-09 — Kiku's band 6 scene: a twig of the oldest persimmon tree
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: heart_kiku_6 (under the oldest persimmon tree Kiku gives the farmer a twig cut from it,
@@ -51,7 +65,22 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
   loops, both answer branches, dear lines), README → Villagers and ROADMAP. Story and lines are ours.
 - Checked: see the commit message / final report for the test lines.
 - Left / next: nothing for hearts: every villager with hearts has all three scenes.
->>>>>>> worktree-agent-ab816ce9f8b05a366
+
+## 2026-11-09 — A portrait for the child
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: talking to the child (crawler, toddler, child stage) now frames a portrait in the text box.
+  `Child.portrait_key` / `portrait_stage` build `portrait:child:<mood>:<stage>:<style>:<skin>:<hair>:<top>`
+  (the spouse's hair colour, the hair style of that stage from `Child.small_style`: Sayo's bun
+  for the toddler, her long hair for the child stage; the skin between the parents; the happi),
+  `DialogueRunner.has_portrait` / `portrait_key` accept the child once out of the cradle (none for
+  the baby or with no child), `PlaceholderArt._child_portrait` draws it through `_portrait_of`
+  (the old `_portrait` body, now shared): a rounder, wider face with cheeks for the crawler and
+  toddler, the young villagers' face for the child stage; cached by key like every texture. The
+  name tag already shows the child's name (child_name flag); both views share the text box.
+- Checked: tests/test_child.gd `_child_portrait` (key per stage, 40 x 40, every mood differs,
+  cached, spouse's hair colour and mixed skin drawn, bun vs long, no portrait for the baby / no
+  child, runner key); other tests and smoke runs: see the final report.
+- Left / next: holding the crawler.
 
 ## 2026-11-09 — Merge: the child, step 5
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

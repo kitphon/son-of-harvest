@@ -78,7 +78,9 @@ static func _make(key: String) -> Image:
 			return _title_bg()
 		"face":     # face:<speaker>:<calm|smile|surprised|worried>, a 40 x 40 text box portrait
 			return _face(parts[1], parts[2] if parts.size() > 2 else "calm")
-		"portrait": # portrait:<villager>:<neutral|happy|sad|surprised|angry>, a villager's 40 x 40 text box portrait
+		"portrait": # portrait:<villager>:<neutral|happy|sad|surprised|angry>, a villager's 40 x 40 text box portrait; portrait:child:<mood>:<crawler|toddler|child>:<style>:<skin>:<hair>:<top> the little one's (Child.portrait_key)
+			if parts[1] == Child.ID and parts.size() > 7:   # portrait:child:<mood>:<stage>:<style>:<skin>:<hair>:<top>
+				return _child_portrait(parts[2], parts[3], _little_look(PackedStringArray(["", "", "", parts[4], parts[5], parts[6], parts[7]])))
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
 		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|noren_rows|noren_flowers|noren_shino|ume_jar|carp_streamer|lumber|rope_lift|jizo_bibs|kiln_mark|kiln_site|kiln_new|kiln_worn|ribbon_board:<places>>, things the story leaves in the world (StoryProps)
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
@@ -2556,7 +2558,19 @@ static func _face(speaker: String, expression: String) -> Image:
 static func _portrait(id: String, mood: String) -> Image:
 	var look := Villagers.look(id).duplicate()
 	look.hair_style = portrait_hair_style(id)
-	var face: Dictionary = DialogueRunner.speakers().get(id, {}).get("face", {})
+	return _portrait_of(look, DialogueRunner.speakers().get(id, {}).get("face", {}), mood)
+
+
+## The little one's head and shoulders (the text box when the farmer talks to them): the
+## spouse's hair colour and style at `stage` (Child.small_style), the skin between the parents,
+## the small happi. The crawler and the toddler get the rounder, wider-eyed baby face; the
+## child stage the boy-sized face of the young villagers.
+static func _child_portrait(mood: String, stage: String, look: Dictionary) -> Image:
+	var face: Dictionary = DialogueRunner.speakers().get(Child.ID, {}).get("face", {})
+	return _portrait_of(look, face, mood, stage != "child")
+
+
+static func _portrait_of(look: Dictionary, face: Dictionary, mood: String, young := false) -> Image:
 	var marks: Array = face.get("marks", [])
 	var skin := Color(look.get("skin", "f2c79b"))
 	var hair := Color(look.get("hair", "4a3020"))
@@ -2567,9 +2581,9 @@ static func _portrait(id: String, mood: String) -> Image:
 	for y in 12:                                                   # light from above
 		_px(img, 0, y, 40, 1, bg.lightened(0.14 * (1.0 - y / 12.0)))
 	var cx := 20.0
-	var cy := 22.0 if child else 20.0
-	var rx := 9.0 if child else 9.5
-	var ry := 9.5 if child else 10.5
+	var cy := 23.0 if young else (22.0 if child else 20.0)
+	var rx := 9.5 if young else (9.0 if child else 9.5)
+	var ry := 8.5 if young else (9.5 if child else 10.5)
 	_portrait_hair_behind(img, look, cy)
 	_portrait_body(img, look, child)
 	_px(img, 18 if child else 17, int(cy) + 7, 4 if child else 6, 6, skin.darkened(0.18))   # neck
@@ -2601,6 +2615,9 @@ static func _portrait(id: String, mood: String) -> Image:
 		img.set_pixel(24, my - 1, skin.darkened(0.45))
 	var brow := hair.darkened(0.35) if hair.v > 0.3 else hair
 	_portrait_mood(img, mood, ey, my, brow, 2 if "stubble" in marks else 1, child or "wrinkles" in marks)
+	if young:                                                      # round cheeks
+		_px(img, 12, ey + 3, 3, 2, Color("eaa08c"))
+		_px(img, 25, ey + 3, 3, 2, Color("eaa08c"))
 	return img
 
 

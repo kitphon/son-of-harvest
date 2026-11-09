@@ -104,9 +104,20 @@ static func mood_of(l: Dictionary, default := "") -> String:
 	return m if m in MOODS else "neutral"
 
 
-## Only villagers (data/villagers) have portraits; narration and anyone else show none.
+static func _game() -> Node:
+	var tree := Engine.get_main_loop() as SceneTree
+	return tree.root.get_node_or_null("Game") if tree != null and tree.root != null else null
+
+
+## The little one's portrait stage today ("" for the baby or no child).
+static func _child_stage() -> String:
+	var g := _game()
+	return Child.portrait_stage(g.flags, g.day_number()) if g != null else ""
+
+
+## Only villagers (data/villagers) and the child out of the cradle have portraits; narration and anyone else show none.
 static func has_portrait(speaker: String) -> bool:
-	return speaker != "" and Villagers.all().has(speaker)
+	return speaker != "" and (Villagers.all().has(speaker) or (speaker == Child.ID and _child_stage() != ""))
 
 
 ## "portrait:<speaker>:<mood>" for line `l`, or "" when it shows no portrait.
@@ -114,6 +125,8 @@ static func portrait_key(l: Dictionary, default := "") -> String:
 	var speaker: Variant = l.get("speaker", "")
 	if not speaker is String or not has_portrait(speaker):
 		return ""
+	if speaker == Child.ID:
+		return Child.portrait_key(_game().flags, _game().day_number(), mood_of(l, default)) if _game() != null else ""
 	return "portrait:%s:%s" % [speaker, mood_of(l, default)]
 
 

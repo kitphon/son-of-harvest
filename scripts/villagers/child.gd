@@ -431,6 +431,21 @@ static func carried_place(w: Dictionary, t: float) -> Dictionary:
 ## (Child.look) and hair as worn at `stage`: child:carry:<style>:<skin>:<hair>:<top>.
 static func carry_key(colours: Dictionary, stage := "crawler") -> String:
 	return "child:carry:%s:%s" % [small_style(str(colours.get("hair_style", "short")), stage), _colour_part(colours)]
+## The stage the text box portrait is drawn for: the figure stages (crawler, toddler, child);
+## "" for the baby (who has no talk) and when none is born.
+static func portrait_stage(flags: Dictionary, today: int) -> String:
+	var s := stage(flags, today)
+	return s if s in FIGURE_STAGES else ""
+
+
+## "portrait:child:<mood>:<stage>:<style>:<skin>:<hair>:<top>", the little one's text box portrait
+## in their look from the parents (colours) and the hair style of their stage; "" with no portrait.
+static func portrait_key(flags: Dictionary, today: int, mood: String) -> String:
+	var st := portrait_stage(flags, today)
+	if st == "":
+		return ""
+	var c := colours(flags)
+	return "portrait:%s:%s:%s:%s:%s" % [ID, mood, st, small_style(str(c.get("hair_style", "short")), st), _colour_part(c)]
 
 
 ## Does the little one take gifts at `stage`? From gifts_from on (the crawler only babbles).
