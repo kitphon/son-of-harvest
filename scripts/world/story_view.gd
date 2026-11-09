@@ -9,7 +9,7 @@ extends Node2D
 ## kiln's wear (story:kiln_worn) is drawn over its box, on its own cells.
 
 const T := 16
-const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark", "kiln_site", "kiln_new", "boat_name", "noren"]
+const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark", "kiln_site", "kiln_new", "boat_name", "noren", "scion"]
 
 var map: MapData
 
@@ -20,6 +20,8 @@ static func art_key(p: Dictionary) -> String:
 		return "story:sign_" + str(p.get("style", "old"))
 	if str(p.kind) == "noren":   # a door curtain Shino dyed (shino_noren rows / flowers, or her own)
 		return "story:noren_" + str(p.get("style", "shino"))
+	if str(p.kind) == "scion":   # Kiku's persimmon twig, drawn in the season's look
+		return "story:scion_" + _season()
 	if str(p.kind) == "boat_name":   # Mio's boat's name by her answer (mio_boat father / new)
 		return "story:boat_" + str(p.get("style", "new"))
 	if str(p.kind) == "ribbon_board":   # one rosette per ribbon won (Keepsakes.RECORD)
@@ -29,12 +31,21 @@ static func art_key(p: Dictionary) -> String:
 	return "story:" + str(p.kind)
 
 
+## The season's name (spring if the game is not up, as in a bare tool run).
+static func _season() -> String:
+	var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
+	return game.season_name() if game != null else "spring"
+
+
 func _init(m: MapData) -> void:
 	map = m
 
 
 func _ready() -> void:
 	add_to_group(FlatLight.GROUP)   # the props' pictures take the world's light (redrawn when it changes)
+	var game := get_node_or_null("/root/Game")
+	if game != null:
+		game.day_started.connect(queue_redraw)   # the persimmon twig changes with the season
 
 
 func _draw() -> void:
