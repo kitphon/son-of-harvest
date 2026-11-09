@@ -136,7 +136,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   lookout; `--map=kaminoda@well --time=8:30` the hamlet north of the village, Genzo and Haru out;
   `--map=sakurazaka@bridge --time=12:10` the cherry road east, Ichiro at lunch by the teahouse;
   `--map=sakurazaka@newkiln --flags=ichiro_kiln` the new kiln half built beside Ichiro's old one, `--flags=ichiro_mark` (or both) the finished kiln with the farmer's thumbprint;
-  `--map=kaminoda@jizo --flags=genzo_jizo` the jizo in Genzo's new red bibs;
+  `--map=kaminoda@jizo --flags=genzo_jizo` the jizo in Genzo's new red bibs; `--demo --season=fall --map=minamino@river --flags=nana_scarf` the jizo by the Minamino lane in Nana's new red scarf;
   `--map=minamino@shige --time=9:00` the gardens south, Shige and Nana at work; `--map=minamino@shige --flags=heart_nana,nana_captain=jar` Captain's jar by Shige's door; `--map=minamino@barn --flags=heart_nana_6,nana_sky,nana_beside,nana_star=field` Nana's sky map on the hen barn and Captain the frog in the ditch behind the beds),
   `--built=kitchen,chest,room` to have those house extensions built (with `--map=house` to see
   them), `--building=<id>` (kitchen, chest, room) to have that extension under way since

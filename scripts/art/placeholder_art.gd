@@ -82,7 +82,7 @@ static func _make(key: String) -> Image:
 			if parts[1] == Child.ID and parts.size() > 7:   # portrait:child:<mood>:<stage>:<style>:<skin>:<hair>:<top>
 				return _child_portrait(parts[2], parts[3], _little_look(PackedStringArray(["", "", "", parts[4], parts[5], parts[6], parts[7]])))
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
-		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|noren_rows|noren_flowers|noren_shino|ume_jar|carp_streamer|scion_<season>|lumber|rope_lift|jizo_bibs|kiln_mark|kiln_site|kiln_new|kiln_worn|captain_jar|frog|ribbon_board:<places>|sky_map:<steady|beside>:<near|field>>, things the story leaves in the world (StoryProps)
+		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|noren_rows|noren_flowers|noren_shino|ume_jar|carp_streamer|scion_<season>|lumber|rope_lift|jizo_bibs|jizo_scarf|kiln_mark|kiln_site|kiln_new|kiln_worn|captain_jar|frog|ribbon_board:<places>|sky_map:<steady|beside>:<near|field>>, things the story leaves in the world (StoryProps)
 			if parts[1] == "sky_map":
 				return _sky_map(parts[2] if parts.size() > 2 else "steady", parts[3] if parts.size() > 3 else "near")
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
@@ -3132,6 +3132,21 @@ static func _story(kind: String) -> Image:
 			_px(img, 2, 4, 4, 1, red)
 			_px(img, 2, 5, 4, 1, Color("f2ece0"))     # the white hem
 			_px(img, 2, 1, 1, 2, red.lightened(0.3))  # a fold catching the light
+			return _outline(img)
+		"jizo_scarf":
+			# Nana's red scarf (nana_scarf), 10 x 9: a knitted band round the neck with two cream
+			# stripes and one end hanging down the front, a cream stripe near its tip.
+			var img := _blank(10, 9)
+			var red := Color("d02a3c")
+			var cream := Color("f2e6c8")
+			_px(img, 0, 0, 10, 3, red)
+			_px(img, 0, 1, 10, 1, red.lightened(0.15))
+			_px(img, 1, 3, 8, 1, red.darkened(0.2))   # the shadow under the wind
+			_px(img, 3, 0, 1, 3, cream)               # the stripes round it
+			_px(img, 6, 0, 1, 3, cream)
+			_px(img, 5, 3, 3, 5, red)                  # the hanging end
+			_px(img, 5, 5, 3, 1, cream)
+			_px(img, 5, 8, 3, 1, red.darkened(0.2))   # fringe
 			return _outline(img)
 		"kiln_mark":
 			# The three thumbprints in the clay over the kiln's mouth (heart_ichiro_6): the

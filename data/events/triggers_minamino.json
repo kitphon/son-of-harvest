@@ -1,6 +1,7 @@
 {
-	"_note": "Events in Minamino (data/maps/minamino.json): Shige's and Nana's heart events (bands 3, 5 and 6) and Kiku's (bands 3 and 5) when the farmer talks to them in the gardens, in the orchard or on the track; Kiku also teaches her mugwort mochi once she knows the farmer. Format: README.md, Events.",
+	"_note": "Events in Minamino (data/maps/minamino.json): Shige's and Nana's heart events (bands 3, 5 and 6) and Kiku's (bands 3 and 5) when the farmer talks to them in the gardens, in the orchard or on the track; on Nana's birthday (fall 19) the scarf she tied on the jizo by the lane is set as nana_scarf (a silent event, no lines); Kiku also teaches her mugwort mochi once she knows the farmer. Format: README.md, Events.",
 	"rows": [
+		{"event": "nana_scarf", "on": ["enter", "minute"], "season": ["fall"], "days": [19, 19], "time": ["9:40", "24:00"]},
 		{"event": "heart_shige", "on": "talk", "who": "shige", "hearts": {"shige": [3, 6]}},
 		{"event": "heart_shige_5", "on": "talk", "who": "shige", "hearts": {"shige": [5, 6]}, "seen": ["heart_shige"]},
 		{"event": "heart_shige_6", "on": "talk", "who": "shige", "hearts": {"shige": [6, 6]}, "seen": ["heart_shige_5"]},

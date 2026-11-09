@@ -1,0 +1,6 @@
+{
+	"_note": "Nana's birthday scarf (fall 19, triggers_minamino.json): Granny Kiku knitted the jizo by the lane a new red scarf and Nana ties it on herself at 9:00-11:40 (her birthday day plan). Once the farmer is in Minamino from 9:40 on that day the scarf is on: this sets nana_scarf, which the jizo at (5, 18) shows from then on (StoryProps / StoryView jizo_scarf). No lines; her own are in data/dialogue/talk_nana.json. Format: README.md, Events.",
+	"steps": [
+		{"do": "set", "flags": {"nana_scarf": true}}
+	]
+}
