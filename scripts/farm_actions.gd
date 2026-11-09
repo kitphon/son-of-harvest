@@ -193,6 +193,8 @@ static func interact(c: Vector2i) -> void:
 			return
 	if forage(c):
 		return
+	if scion_fruit(c):
+		return
 	if festival_spot(c):
 		return
 	if examine_prop(c):
@@ -251,6 +253,27 @@ static func forage(c: Vector2i) -> bool:
 			Game.message.emit("Put the %s in the rucksack." % item_name(r.id).to_lower())
 		_:
 			Game.message.emit("No room for the %s." % item_name(r.id).to_lower())
+	return true
+
+
+## Kiku's grown persimmon tree on `c` in fall (data/scion.json pick): a persimmon picked like
+## a wild thing, a couple a day. Returns whether the tree bears fruit there.
+static func scion_fruit(c: Vector2i) -> bool:
+	var r := Game.scion_pick(c)
+	if r.id == "":
+		return false
+	var name := item_name(r.id).to_lower()
+	match r.to:
+		"hand":
+			Sfx.play("pick")
+			Game.message.emit("Picked the %s." % name)
+		"rucksack":
+			Sfx.play("pick")
+			Game.message.emit("Put the %s in the rucksack." % name)
+		"none":
+			Game.message.emit("The rest are for the birds.")
+		_:
+			Game.message.emit("No room for the %s." % name)
 	return true
 
 

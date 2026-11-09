@@ -88,6 +88,31 @@ static func snowy(season: String, cover: int) -> bool:
 	return season == "winter" and cover >= int(rules().get("snow_cover", 30))
 
 
-## story:scion:<stage>:<season>:<snow 0|1>, PlaceholderArt's picture of it.
-static func art_key(id: String, season: String, snow: bool) -> String:
-	return "story:scion:%s:%s:%d" % [id, season, 1 if snow else 0]
+## Picking: the item one pick gives (a "wild:" thing, data/forage.json), picks a day, and the
+## persimmons the fall crown is drawn with when none is picked.
+static func pick_item() -> String:
+	return str(rules().get("pick", {}).get("item", "wild:persimmon"))
+
+
+static func picks_per_day() -> int:
+	return maxi(int(rules().get("pick", {}).get("per_day", 2)), 1)
+
+
+static func drawn_max() -> int:
+	return maxi(int(rules().get("pick", {}).get("drawn", 8)), 1)
+
+
+## The persimmons the fall crown shows after `picked` picks today (all of them at 0, none
+## when every pick is used).
+static func drawn_left(picked: int) -> int:
+	var left := maxi(picks_per_day() - picked, 0)
+	return ceili(float(drawn_max()) * left / picks_per_day())
+
+
+## story:scion:<stage>:<season>:<snow 0|1>[:<persimmons shown>], PlaceholderArt's picture of
+## it. The last part only once something was picked from a fruiting tree.
+static func art_key(id: String, season: String, snow: bool, picked: int = 0) -> String:
+	var key := "story:scion:%s:%s:%d" % [id, season, 1 if snow else 0]
+	if picked > 0 and fruits(id, season):
+		key += ":%d" % drawn_left(picked)
+	return key

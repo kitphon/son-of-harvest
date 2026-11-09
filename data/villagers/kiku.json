@@ -24,7 +24,7 @@
 	"default": "usual",
 	"gifts": {
 		"love": ["food:kinako_mochi", "food:yomogi_tea", "pumpkin", "keep:daruma"],
-		"like": ["food:kusa_mochi", "wild:kuwa", "food:green_tea", "food:simmered_pumpkin", "food:furofuki_daikon", "food:turnip_stew", "egg", "milk", "daikon", "mine:hisui"],
+		"like": ["food:kusa_mochi", "wild:kuwa", "wild:persimmon", "food:green_tea", "food:simmered_pumpkin", "food:furofuki_daikon", "food:turnip_stew", "egg", "milk", "daikon", "mine:hisui"],
 		"dislike": ["corn", "food:roast_chestnuts", "food:grilled_fish", "mine:clay"],
 		"hate": ["mine:stone"]
 	},

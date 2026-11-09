@@ -1,5 +1,5 @@
 {
-	"_note": "Kiku's persimmon twig (heart_kiku_6, kiku_scion door / field) grows by the days since it was planted (kiku_scion_day, the event's date step; a save from before it gets the day it is loaded on). A year is 120 days (4 seasons of 30). stages: from `from_days` on (the last one reached wins) the tree is drawn as `id`, a picture of `size` px (w, h) standing on its one solid cell. A real grafted persimmon takes years to bear; here it is a sapling on its stake through the first year, a young tree without the stake in the second and a small tree from the third, so the farmer sees it fruit inside a game's run. `fruit` lists the stages that hang persimmons in `fruit_season`. `snow_cover`: from this much snow lying (Game.snow_cover, 0..100) the winter branches carry snow. Scion reads it.",
+	"_note": "Kiku's persimmon twig (heart_kiku_6, kiku_scion door / field) grows by the days since it was planted (kiku_scion_day, the event's date step; a save from before it gets the day it is loaded on). A year is 120 days (4 seasons of 30). stages: from `from_days` on (the last one reached wins) the tree is drawn as `id`, a picture of `size` px (w, h) standing on its one solid cell. A real grafted persimmon takes years to bear; here it is a sapling on its stake through the first year, a young tree without the stake in the second and a small tree from the third, so the farmer sees it fruit inside a game's run. `fruit` lists the stages that hang persimmons in `fruit_season`. `snow_cover`: from this much snow lying (Game.snow_cover, 0..100) the winter branches carry snow. Scion reads it. `pick`: the fruiting tree in `fruit_season` gives `per_day` persimmons a day (one per press of the action button facing it, `item` goes overhead or into the rucksack like a wild thing); they hang back the next morning. `drawn`: how many persimmons the fall crown shows when none is picked; each pick takes off its share (drawn / per_day), so a tree picked twice is bare. Two a day, about 30 G each shipped, makes at most 60 G a day for a month of fall: a small treat beside the crops, with Kiku saying the last one is for the birds.",
 	"day_flag": "kiku_scion_day",
 	"stages": [
 		{"id": "sapling", "from_days": 0, "size": [16, 26]},
@@ -8,5 +8,6 @@
 	],
 	"fruit": ["tree"],
 	"fruit_season": "fall",
-	"snow_cover": 30
+	"snow_cover": 30,
+	"pick": {"item": "wild:persimmon", "per_day": 2, "drawn": 8}
 }
