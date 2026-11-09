@@ -14,6 +14,7 @@ func _init() -> void:
 	_move_rules()
 	_save_format()
 	_menu()
+	_arms_full()
 	_game()
 	print("test_inventory: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -217,6 +218,40 @@ func _menu() -> void:
 	fm.point("bag", 0)
 	full.slots.bag[0] = {"id": "milk", "n": 1}   # something filled the hole
 	check(fm.close() != "" and fm.carry.id == "egg", "no room: the screen stays open")
+
+
+## With the baby or the crawler in the arms the hands are full: the rucksack and the chest
+## never put an item in the hand slot (hold, choose), and a carried stack can't be put there.
+func _arms_full() -> void:
+	var g: Node = (load("res://scripts/autoload/game.gd") as GDScript).new()
+	g.new_game()
+	var inv := Inventory.empty(TOOLS, {"slots": {"tools": 3, "bag": 10, "hand": 1, "chest": 4}, "stack_max": 10})
+	inv.add("turnip", 6)
+	inv.add("axe", 1, ["chest"])
+	for who in ["baby", "crawler"]:
+		g.baby_held = who == "baby"
+		Child.carried = {"held": true, "map": "house", "from": Vector2(1, 1), "facing": Vector2i(0, 1)} if who == "crawler" else {}
+		check(g.arms_full() and g.holding(), "%s in the arms: arms full" % who)
+		var m := InventoryMenu.new(inv, "rucksack", 0, g.arms_full())
+		m.point("bag", 0)
+		check(m.hold() == "Your hands are full." and inv.id_at("hand", 0) == "" and inv.id_at("bag", 0) == "turnip", "%s: hold puts nothing in the hand" % who)
+		check(m.choose() == "" and m.carry.id == "turnip", "%s: picking up from the bag is fine" % who)
+		m.point("hand", 0)
+		check(m.choose() == "Your hands are full." and m.carry.id == "turnip" and inv.id_at("hand", 0) == "", "%s: carried stack not put in the hand" % who)
+		check(m.close() == "" and inv.id_at("bag", 0) == "turnip", "%s: closing puts it back in the rucksack" % who)
+		inv.lift("tools", 0)
+		inv.add("axe", 1, ["chest"])
+		var st := InventoryMenu.new(inv, "storage", 0, g.arms_full())
+		st.point("chest", 0)
+		check(st.hold() == "" and inv.id_at("tools", 0) == "axe", "%s: a tool from the chest still swaps with the tool in hand" % who)
+		st.point("bag", 0)
+		check(st.hold() == "Your hands are full." and inv.id_at("hand", 0) == "", "%s: nothing from the rucksack into the hand" % who)
+		Child.carried = {}
+		g.baby_held = false
+	check(not g.arms_full() and not g.holding(), "hands free: not full")
+	var free := InventoryMenu.new(inv, "rucksack", 0, g.arms_full())
+	free.point("bag", 0)
+	check(free.hold() == "" and inv.id_at("hand", 0) == "turnip", "hands free: hold puts the item in the hand")
 
 
 func _game() -> void:

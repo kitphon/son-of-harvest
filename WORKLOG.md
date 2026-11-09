@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-09 — Hands full: the rucksack never fills the hand while the baby or crawler is held
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: the bug existed. With the baby (or the crawler) in the arms, the rucksack / storage menu
+  could still move an item into the hand slot (InventoryMenu.hold on a bag or chest item). Now
+  Game.arms_full() (baby_held or crawler_held; holding() uses it) is the one rule: InventoryMenu
+  takes it as its 4th argument (set by InventoryScreen from Game) and refuses a move into the hand
+  with "Your hands are full." (hold and choose; a carried stack too). Picking up from the bag and
+  swapping tools stay allowed; the ground and the chest's items already went through holding().
+  Thai line already in data/lang/th/ui.json.
+- Checked: test_inventory `_arms_full` (baby and crawler: hold, choose, the storage menu, closing
+  puts the stack back, hands free again). Before the rule: `FAIL: baby: hold puts nothing in the
+  hand` (the turnip went into the hand). After: `test_inventory: OK (0 failed)`. All 31 suites
+  print `OK (0 failed)` (test_farm, test_save, test_title, test_weather, test_dialogue, test_menu,
+  test_body, test_events, test_maps, test_inventory, test_food, test_cooking, test_hold,
+  test_villagers, test_talk, test_relationships, test_shops, test_animals, test_fishing,
+  test_forage, test_mine, test_ending, test_festivals, test_view2d, test_child, test_goals,
+  test_lang, test_showcase, test_puddles, test_drift, test_audio). Smoke run `--quit-after 300
+  -- --demo`: no error or warning lines.
+- Left / next: not checked: the dog in the arms (animals.dog.held, also in holding()) is not part
+  of arms_full, so the menu may still fill the hand while the dog is held. Not in this brief.
+
 ## 2026-11-09 — Merge: holding the crawler, Kiku's band 6 scene, a portrait for the child
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 290e288 holding the crawler (Opus, own worktree), 5c73680 Kiku's band 6 scene
