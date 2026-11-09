@@ -22,7 +22,7 @@ const COMMANDS := {
 	"set": ["flags"], "clear": ["flags"], "give": ["item", "count"], "money": ["amount"],
 	"fade": ["to", "seconds"], "sound": ["key"], "affection": ["who", "amount"],
 	"place": ["at", "dir"], "actor": ["who", "at", "to", "face", "leave", "holds", "meanwhile"], "ending": ["page"],
-	"child": ["step"],
+	"child": ["step"], "date": ["flag"],
 }
 
 var id := ""
@@ -192,6 +192,8 @@ func _begin(s: Dictionary) -> void:
 			_begin_actor(s)
 		"ending":
 			game.show_ending(String(s.get("page", "ending")))
+		"date":   # today's day number kept in a flag (Kiku's twig: the day it was planted, Scion)
+			game.flags[String(s.flag)] = game.day_number() if game.has_method("day_number") else 0
 		"child":   # the child's news or birth (Child.event_step; the name from the dialogue's choice)
 			game.child_event(String(s.step))
 
@@ -426,6 +428,9 @@ func _check_step(s: Dictionary) -> String:
 		"ending":
 			if s.has("page") and not s.page in Ending.PAGES:
 				return "ending's page is ending or year"
+		"date":
+			if not s.get("flag") is String or s.flag == "":
+				return "date needs a flag"
 		"child":
 			if not s.get("step") in ["news", "birth"]:
 				return "child's step is news or birth"

@@ -82,7 +82,9 @@ static func _make(key: String) -> Image:
 			if parts[1] == Child.ID and parts.size() > 7:   # portrait:child:<mood>:<stage>:<style>:<skin>:<hair>:<top>
 				return _child_portrait(parts[2], parts[3], _little_look(PackedStringArray(["", "", "", parts[4], parts[5], parts[6], parts[7]])))
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
-		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|noren_rows|noren_flowers|noren_shino|ume_jar|carp_streamer|scion_<season>|lumber|rope_lift|jizo_bibs|jizo_scarf|kiln_mark|kiln_site|kiln_new|kiln_worn|captain_jar|frog|ribbon_board:<places>|sky_map:<steady|beside>:<near|field>>, things the story leaves in the world (StoryProps)
+		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|noren_rows|noren_flowers|noren_shino|ume_jar|carp_streamer|scion:<sapling|young|tree>:<season>:<snow 0|1>|lumber|rope_lift|jizo_bibs|jizo_scarf|kiln_mark|kiln_site|kiln_new|kiln_worn|captain_jar|frog|ribbon_board:<places>|sky_map:<steady|beside>:<near|field>>, things the story leaves in the world (StoryProps)
+			if parts[1] == "scion":
+				return _scion_story(parts[2] if parts.size() > 2 else "sapling", parts[3] if parts.size() > 3 else "spring", parts.size() > 4 and parts[4] == "1")
 			if parts[1] == "sky_map":
 				return _sky_map(parts[2] if parts.size() > 2 else "steady", parts[3] if parts.size() > 3 else "near")
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
@@ -1396,11 +1398,40 @@ static func _noren_story(style: String) -> Image:
 	return img
 
 
-## The twig Kiku cut from the oldest persimmon tree, planted (StoryView "scion", 16 x 26): a
-## young sapling beside a little bamboo stake, tied to it with straw. By season: spring
-## pale new leaves and buds, summer full green, fall orange leaves and one small persimmon,
-## winter a bare twig with a straw wrap round its foot against the frost.
-static func _scion_story(season: String) -> Image:
+## Kiku's persimmon, planted (StoryView "scion", story:scion:<stage>:<season>:<snow 0|1>; the
+## stages and sizes in data/scion.json, Scion). sapling (16 x 26): the twig beside a little
+## bamboo stake, tied to it with straw. young (22 x 34): the stake gone, a thin trunk with a few
+## branches and a small round crown. tree (26 x 42): a stouter trunk, a wide crown, persimmons
+## in fall (fruit: data/scion.json) and in winter the one left on a bare branch for the birds.
+## By season: spring pale new leaves, summer full green (small green fruit on the tree), fall
+## orange and red leaves, winter bare with a straw wrap round the foot; snow on the upper side
+## of the bare branches when the farm lies under snow.
+static func _scion_story(stage: String, season: String, snow: bool) -> Image:
+	var img: Image
+	match stage:
+		"young":
+			img = _scion_young(season)
+		"tree":
+			img = _scion_tree(season)
+		_:
+			img = _scion_sapling(season)
+	if snow and season == "winter":   # snow on the upper side of every branch pixel above the wrap
+		var size := img.get_size()
+		var top := size.y - (9 if stage == "sapling" else 12)
+		var src := img.duplicate() as Image
+		for y in range(1, top):
+			for x in size.x:
+				if src.get_pixel(x, y).a > 0.5 and src.get_pixel(x, y - 1).a < 0.5:
+					img.set_pixel(x, y - 1, Color("f4f8fc"))
+	return _outline(img)
+
+
+const SCION_LEAVES := {"spring": [Color("a8d870"), Color("d8e890")], "summer": [Color("4c9438"), Color("68b04a")],
+	"fall": [Color("d8741e"), Color("e8a038")]}
+const PERSIMMON := Color("e86a14")
+
+
+static func _scion_sapling(season: String) -> Image:
 	var img := _blank(16, 26)
 	var bark := Color("6a5238") if season != "winter" else Color("56402c")
 	var straw := Color("d8b866")
@@ -1414,27 +1445,14 @@ static func _scion_story(season: String) -> Image:
 	_px(img, 9, 15, 2, 1, bark)
 	if season == "winter":
 		_px(img, 5, 12, 1, 1, bark.darkened(0.2))
-		for y in range(17, 25):                         # the straw wrap, wider toward the ground
-			var w := 4 + (y - 17) / 3
-			_px(img, 8 - w / 2, y, w, 1, straw if y % 2 == 0 else straw.darkened(0.12))
-		_px(img, 5, 19, 7, 1, straw.darkened(0.35))     # its binding
+		_scion_wrap(img, 8, 17, 25, straw)
 		_px(img, 6, 16, 4, 1, straw.lightened(0.1))     # the tuft on top
 	else:
 		_px(img, 7, 20, 5, 1, straw)                    # the straw tie round trunk and stake
 		_px(img, 7, 21, 5, 1, straw.darkened(0.18))
 		_px(img, 10, 22, 1, 1, straw)                   # its loose end
-		var leaf: Color
-		var leaf2: Color
-		match season:
-			"spring":
-				leaf = Color("a8d870")
-				leaf2 = Color("d8e890")
-			"summer":
-				leaf = Color("4c9438")
-				leaf2 = Color("68b04a")
-			_:
-				leaf = Color("d8741e")
-				leaf2 = Color("e8a038")
+		var leaf: Color = SCION_LEAVES[season][0]
+		var leaf2: Color = SCION_LEAVES[season][1]
 		var spots := [[4, 10], [9, 6], [6, 7], [10, 12], [3, 13], [11, 9]]
 		for i in spots.size():
 			var at: Array = spots[i]
@@ -1446,10 +1464,102 @@ static func _scion_story(season: String) -> Image:
 				_px(img, at[0] + 1, at[1] - 1, 2, 1, leaf2)
 				_px(img, at[0], at[1] + 2, 2, 1, leaf.darkened(0.2))
 		if season == "fall":                            # one small persimmon on the low twig
-			_px(img, 9, 16, 3, 3, Color("e86a14"))
-			_px(img, 10, 15, 1, 1, Color("5c8a34"))
-			_px(img, 9, 16, 1, 1, Color("f4a050"))
-	return _outline(img)
+			_persimmon(img, 9, 16, 3)
+	return img
+
+
+## The straw wrap round a trunk's foot against the frost, from row y0 to y1 about x (wider down).
+static func _scion_wrap(img: Image, x: int, y0: int, y1: int, straw: Color) -> void:
+	for y in range(y0, y1):
+		var w := 4 + (y - y0) / 3
+		_px(img, x - w / 2, y, w, 1, straw if y % 2 == 0 else straw.darkened(0.12))
+	_px(img, x - 3, y0 + 2, 7, 1, straw.darkened(0.35))   # its binding
+
+
+## A persimmon: a round orange fruit of `d` px with a green calyx on top and a light spot.
+static func _persimmon(img: Image, x: int, y: int, d: int) -> void:
+	_px(img, x, y, d, d, PERSIMMON)
+	if d >= 3:   # shaded underside
+		_px(img, x + 1, y + d - 1, d - 1, 1, PERSIMMON.darkened(0.2))
+	_px(img, x + d / 2, y - 1, 1, 1, Color("5c8a34"))
+	_px(img, x, y, 1, 1, Color("f4a050"))
+
+
+## Leaf lumps for a crown: [cx, cy, rx, ry, shade] ovals in the season's two greens (or fall's
+## oranges, every third one redder).
+static func _scion_crown(img: Image, season: String, lumps: Array) -> void:
+	var leaf: Color = SCION_LEAVES[season][0]
+	var leaf2: Color = SCION_LEAVES[season][1]
+	for i in lumps.size():
+		var l: Array = lumps[i]
+		var c := leaf.darkened(float(l[4]))
+		if season == "fall" and i % 3 == 1:
+			c = Color("c4421e").darkened(float(l[4]) * 0.5)
+		_oval(img, l[0], l[1], l[2], l[3], c)
+	for i in lumps.size():   # a light fleck on the upper side of each lump
+		var l: Array = lumps[i]
+		_px(img, int(l[0] - l[2] * 0.4), int(l[1] - l[3] * 0.6), 2, 1, leaf2 if season != "fall" or i % 3 != 1 else Color("e86a2a"))
+
+
+static func _scion_young(season: String) -> Image:
+	var img := _blank(22, 34)
+	var bark := Color("6a5238") if season != "winter" else Color("56402c")
+	_px(img, 10, 17, 2, 17, bark)                       # the trunk
+	for seg in [[Vector2i(11, 18), Vector2i(5, 11)], [Vector2i(11, 17), Vector2i(17, 10)], [Vector2i(10, 17), Vector2i(10, 4)],
+			[Vector2i(10, 9), Vector2i(7, 5)], [Vector2i(11, 12), Vector2i(14, 6)], [Vector2i(6, 12), Vector2i(3, 9)],
+			[Vector2i(16, 11), Vector2i(19, 8)]]:
+		_line(img, seg[0], seg[1], bark)
+	if season == "winter":
+		_scion_wrap(img, 11, 25, 33, Color("d8b866"))
+		return img
+	_scion_crown(img, season, [
+		[5.5, 10.0, 3.6, 3.0, 0.14], [16.5, 9.5, 3.6, 3.0, 0.08], [8.0, 6.0, 3.6, 3.2, 0.04],
+		[14.0, 5.5, 3.4, 3.0, 0.1], [11.0, 9.5, 4.0, 3.4, 0.0], [11.0, 3.2, 2.8, 2.4, 0.06],
+		[8.5, 13.0, 3.0, 2.4, 0.16], [14.5, 13.0, 3.0, 2.4, 0.12],
+	] if season != "spring" else [   # spring: the leaves just out, smaller lumps with the branches between
+		[5.0, 10.5, 2.4, 2.0, 0.1], [17.0, 9.5, 2.4, 2.0, 0.04], [7.5, 5.5, 2.4, 2.0, 0.0],
+		[14.0, 5.5, 2.4, 2.0, 0.08], [10.5, 3.5, 2.2, 1.8, 0.0], [12.0, 10.0, 2.4, 2.0, 0.12],
+	])
+	return img
+
+
+static func _scion_tree(season: String) -> Image:
+	var img := _blank(26, 42)
+	var bark := Color("5e4632") if season != "winter" else Color("4e3a28")
+	_px(img, 12, 20, 3, 22, bark)                       # the trunk, stouter now
+	_px(img, 11, 39, 5, 3, bark)                        # its foot spreading
+	_px(img, 12, 24, 1, 6, bark.lightened(0.15))        # the light side of the bark
+	for seg in [[Vector2i(13, 22), Vector2i(5, 13)], [Vector2i(13, 21), Vector2i(21, 12)], [Vector2i(13, 21), Vector2i(13, 4)],
+			[Vector2i(13, 10), Vector2i(8, 4)], [Vector2i(13, 13), Vector2i(18, 5)], [Vector2i(6, 14), Vector2i(2, 10)],
+			[Vector2i(20, 13), Vector2i(24, 9)], [Vector2i(9, 18), Vector2i(4, 18)], [Vector2i(17, 18), Vector2i(22, 18)]]:
+		_line(img, seg[0], seg[1], bark)
+		if Vector2(seg[0]).distance_to(Vector2(seg[1])) > 9.0:   # the long limbs two px thick
+			_line(img, seg[0] + Vector2i(1, 0), seg[1] + Vector2i(1, 0), bark)
+	if season == "winter":
+		_scion_wrap(img, 13, 31, 39, Color("d8b866"))
+		_persimmon(img, 21, 13, 3)                      # the one left for the birds
+		return img
+	if season == "spring":
+		_scion_crown(img, season, [
+			[5.0, 12.5, 3.0, 2.4, 0.1], [21.0, 11.5, 3.0, 2.4, 0.04], [9.0, 5.5, 3.0, 2.4, 0.0],
+			[17.5, 6.0, 3.0, 2.4, 0.08], [13.0, 4.0, 2.8, 2.2, 0.0], [13.5, 12.0, 3.2, 2.6, 0.12],
+			[4.5, 17.5, 2.6, 2.0, 0.14], [21.5, 17.5, 2.6, 2.0, 0.1],
+		])
+		return img
+	_scion_crown(img, season, [
+		[5.5, 13.0, 4.6, 3.6, 0.14], [20.5, 12.5, 4.6, 3.6, 0.08], [9.0, 7.0, 4.6, 3.8, 0.04],
+		[17.5, 7.0, 4.4, 3.6, 0.1], [13.0, 11.0, 5.2, 4.2, 0.0], [13.0, 3.6, 3.6, 3.0, 0.06],
+		[8.5, 17.0, 4.0, 3.0, 0.16], [17.5, 17.0, 4.0, 3.0, 0.12], [3.5, 17.5, 2.6, 2.2, 0.18],
+		[22.5, 17.5, 2.6, 2.2, 0.16],
+	])
+	if season == "fall":   # the persimmons hanging under the leaves
+		for at in [[4, 17], [9, 12], [16, 14], [20, 18], [12, 18], [18, 8], [7, 7], [22, 11]]:
+			_persimmon(img, at[0], at[1], 3)
+	elif season == "summer":   # small green fruit setting
+		for at in [[6, 16], [16, 15], [11, 19], [20, 10]]:
+			_px(img, at[0], at[1], 2, 2, Color("8cb848"))
+			_px(img, at[0], at[1], 1, 1, Color("b4d468"))
+	return img
 
 
 ## A still puddle between the winter paddy rows: dull grey-blue water with a paler strip where the
@@ -3057,8 +3167,6 @@ static func _story(kind: String) -> Image:
 	match kind:
 		"noren_rows", "noren_flowers", "noren_shino":
 			return _noren_story(kind.get_slice("_", 1))
-		"scion_spring", "scion_summer", "scion_fall", "scion_winter":
-			return _scion_story(kind.get_slice("_", 1))
 		"boat_father", "boat_new":
 			# The name Mio painted on her boat's side (heart_mio_6, mio_boat): a pale painted
 			# plaque, 14 x 6, with her father's coiled red dragon (Tatsu) on it, or her new name's

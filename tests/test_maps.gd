@@ -4522,16 +4522,60 @@ func _kiku_scion() -> void:
 		fixed.generate(RandomNumberGenerator.new())
 		check(fixed.fixed_at(c) == "" and c.y != 5 and c != Vector2i(4, 4) and c != Vector2i(4, 3) and c != Vector2i(8, 6)
 			and m.door_at(c).is_empty() and not m.doors.any(func(d): return c in d.cells), "and sits clear of the fixtures, doors and the road of row 5 (%s)" % answer)
-	var imgs := []
-	for k in ["spring", "summer", "fall", "winter"]:
-		var img := PlaceholderArt.tex("story:scion_" + k).get_image()
-		check(img.get_size() == Vector2i(16, 26), "the %s sapling is drawn" % k)
-		imgs.append(img.get_data())
-	for i in 4:
-		for j in range(i + 1, 4):
-			check(imgs[i] != imgs[j], "the sapling's seasons differ (%d, %d)" % [i, j])
+	var seasons := ["spring", "summer", "fall", "winter"]
+	for stage in Scion.stage_ids():
+		var imgs := []
+		for k in seasons:
+			var img := PlaceholderArt.tex(Scion.art_key(stage, k, false)).get_image()
+			check(img.get_size() == Scion.size(stage), "the %s %s is drawn at its size" % [k, stage])
+			imgs.append(img.get_data())
+		for i in 4:
+			for j in range(i + 1, 4):
+				check(imgs[i] != imgs[j], "the %s's seasons differ (%d, %d)" % [stage, i, j])
+		check(PlaceholderArt.tex(Scion.art_key(stage, "winter", true)).get_image().get_data() != imgs[3], "snow lies on the winter %s" % stage)
+	check(Scion.stage_ids() == ["sapling", "young", "tree"], "three stages: sapling, young, tree")
+	var sizes := Scion.stage_ids().map(func(s): return Scion.size(s))
+	check(sizes[0].y < sizes[1].y and sizes[1].y < sizes[2].y, "it grows taller each stage")
+	check(sizes.all(func(z): return z.x <= 26), "never wider than the cell and a third either side (clear of the door's column)")
+	# Persimmons: only the grown tree in fall; the fall picture has more orange than the young one's.
+	check(Scion.fruits("tree", "fall") and not Scion.fruits("tree", "summer") and not Scion.fruits("young", "fall") and not Scion.fruits("sapling", "fall"),
+		"persimmons hang on the grown tree in fall")
+	var orange := func(key: String) -> int:
+		var img := PlaceholderArt.tex(key).get_image()
+		var n := 0
+		for y in img.get_height():
+			for x in img.get_width():
+				n += int(img.get_pixel(x, y).is_equal_approx(PlaceholderArt.PERSIMMON))
+		return n
+	check(orange.call(Scion.art_key("tree", "fall", false)) >= 8 * 4 and orange.call(Scion.art_key("young", "fall", false)) == 0,
+		"the tree's fall crown hangs persimmons, the young tree's none")
+	# Growth by the days since planting (kiku_scion_day), a year being 120 days.
+	var days: int = 4 * root.get_node("Game").DAYS_PER_SEASON
+	var f := {"kiku_scion": "door", "kiku_scion_day": 10}
+	check(Scion.stage(f, 10) == "sapling" and Scion.stage(f, 10 + days - 1) == "sapling", "a sapling through its first year")
+	check(Scion.stage(f, 10 + days) == "young" and Scion.stage(f, 10 + 2 * days - 1) == "young", "a young tree in its second")
+	check(Scion.stage(f, 10 + 2 * days) == "tree" and Scion.stage(f, 10 + 9 * days) == "tree", "a small fruiting tree from its third on")
+	check(Scion.stage(f, 3) == "sapling", "a day before planting reads as planted today")
+	# An old save: the place chosen, no day kept. It is given the day it is first seen.
+	var old := {"kiku_scion": "field"}
+	check(Scion.stage(old, 400) == "sapling", "no planting day: a sapling")
+	check(Scion.record(old, 400) and old.kiku_scion_day == 400 and not Scion.record(old, 500) and old.kiku_scion_day == 400,
+		"an old save's twig is planted the day it is loaded on, once")
+	check(not Scion.record({}, 5) and not Scion.record({"kiku_graft": true}, 5), "nothing kept before the farmer chose a place")
+	# The event keeps the day: heart_kiku_6 has the date step, and it sets today's day number.
+	var ev: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(EventRunner.DIR + "heart_kiku_6.json"))
+	check(ev.steps.any(func(s): return s.get("do") == "date" and s.get("flag") == Scion.day_flag()), "Kiku's band 6 scene keeps the planting day")
+	var g: Node = root.get_node("Game")
+	var keep: Dictionary = g.flags.duplicate()
+	g.flags.erase("kiku_scion_day")
+	var r := EventRunner.new({"steps": [{"do": "date", "flag": "kiku_scion_day"}]}, g)
+	check(r.error == "", "a date step is a step (%s)" % r.error)
+	r.update(0.1)
+	check(g.flags.get("kiku_scion_day") == g.day_number(), "the date step keeps today's day number (%s)" % str(g.flags.get("kiku_scion_day")))
+	g.flags = keep
 	var key := StoryView.art_key({"kind": "scion"})
-	check(key == "story:scion_" + root.get_node("Game").season_name(), "the picture follows the season")
+	var game_season: String = g.season_name()
+	check(key == Scion.art_key(Scion.stage(g.flags, g.day_number()), game_season, Scion.snowy(game_season, g.snow_cover)), "the picture follows the age and the season")
 	var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
 	var farm_w: Node3D = w
 	var props_script = load("res://scripts/world3d/story_props.gd")
