@@ -89,7 +89,7 @@
 
 		{"id": "nana", "speaker": "nana", "mood": "happy", "text": "Shh! Don't scare him. This is Captain. I found him in the ditch behind Dad's beds, and he's only got a tail so far."},
 		{"speaker": "nana", "mood": "neutral", "text": "Dad says Captain should go back to the pond. Kota says frogs are loud and I shouldn't. I say I'm Captain's boss. What do you think?",
-			"choices": [{"text": "Let Captain go to the pond.", "next": "nana_pond"}, {"text": "Wait until he has legs.", "next": "nana_legs"}]},
+			"choices": [{"text": "Let Captain go to the pond.", "next": "nana_pond", "set": {"nana_captain": "pond"}}, {"text": "Wait until he has legs.", "next": "nana_legs", "set": {"nana_captain": "jar"}}]},
 		{"id": "nana_pond", "speaker": "nana", "mood": "surprised", "text": "...You're on Dad's side. Okay. But I get to say goodbye first. Goodbye, Captain. Don't let Kota's carp eat you.", "next": "nana_end"},
 		{"id": "nana_legs", "speaker": "nana", "mood": "happy", "text": "Legs first, then the pond! That's the rule. Captain doesn't know it yet, but he'll love it.", "next": "nana_end"},
 		{"id": "nana_end", "speaker": "nana", "mood": "happy", "text": "Here. Corn seed from Dad's tallest row. It's taller than me, which isn't hard, but still. Thanks for listening. You're good at it.", "next": "end"},

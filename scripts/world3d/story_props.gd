@@ -16,7 +16,11 @@ extends RefCounted
 ## band 6) is a picture on its side; the noren Shino dyed for the farmhouse hangs over its door
 ## (shino_noren rows / flowers, band 6) and her own new one over the dye house's; the twig of
 ## the oldest persimmon tree Kiku gave stands planted by the farmhouse door or at the field's
-## edge (kiku_scion door / field, band 6), a sapling in the season's look. The pictures are PlaceholderArt "story:" keys, the same ones the flat view draws
+## edge (kiku_scion door / field, band 6), a sapling in the season's look. In Minamino
+## Captain's jar stands by Shige's door while Nana keeps him till he has legs (nana_captain
+## "jar", band 3, until heart_nana_6), then Captain the frog sits in the ditch behind the beds
+## (heart_nana_6) and her sky map is pinned to the hen barn's front (nana_sky, its stars by her
+## answers: StoryView.sky_map_key). The pictures are PlaceholderArt "story:" keys, the same ones the flat view draws
 ## (StoryView, which also keeps the list of kinds). Same units as MapWorld (1 unit = 1 cell).
 
 
@@ -125,6 +129,25 @@ static func prop(w: FarmWorld, p: Dictionary) -> void:
 			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))
 			s.position = Vector3(r.get_center().x, 0, r.get_center().y)
 			w.add_child(s)
+		"captain_jar":
+			# Nana's jar with Captain the tadpole by her father's door (nana_captain "jar"), on
+			# the ground beside the step.
+			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))
+			s.pixel_size = 0.035
+			s.position = Vector3(r.get_center().x + 0.15, 0, r.position.y + 0.3)
+			w.add_child(s)
+		"frog":
+			# Captain grown, on a stone at the ditch's back bank (OutdoorProps.ditch, its middle
+			# the cell's), singing.
+			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))
+			s.pixel_size = 0.035
+			s.position = Vector3(r.get_center().x + 0.2, 0.03, r.get_center().y - 0.24)
+			w.add_child(s)
+		"sky_map":
+			# Nana's sky map on its bedsheet, pinned flat to the hen barn's front over the hen
+			# hole, left of the door (OutdoorProps.hen_barn: the prop is its front row); its top under 1.0,
+			# so it never fades as a thing in the way of its own (Occluders.MIN_HEIGHT).
+			w._picture(StoryView.art_key(p), Vector2(1.02, 0.68), Vector3(r.position.x + 0.62, 0.63, OutdoorProps.hen_barn_front(r) + 0.04))
 		"carp_streamer":
 			# Pole and carp are one picture, standing on its cell, the carp just over the eave.
 			var s := FarmWorld.make_sprite(PlaceholderArt.tex(StoryView.art_key(p)))

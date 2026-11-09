@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-09 — Merge: hands full with the child, Kiku's persimmon sapling, Nana's keepsakes
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged cb1af67 hands full with the baby or crawler (Haiku, own worktree), 0a03f9e Kiku's
+  persimmon sapling (Sonnet, own worktree) and d97fe6c Nana's keepsakes in the world (Opus, own
+  worktree). Conflicts in WORKLOG, ROADMAP, AGENTS.md, StoryView.KINDS, StoryProps (header and the
+  scion / captain_jar / frog / sky_map cases), PlaceholderArt's story key comment and test_maps
+  (_kiku_scion and _nana_props both run): every side kept.
+- Checked: on the merged tree after `--import`, all 32 tests/test_*.gd print `OK (0 failed)`; the
+  four smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print no error or
+  warning lines. No screenshot of the merged tree (each branch took its own).
+- Left / next: the dog in the arms is not part of Game.arms_full(); the jizo's scarf from Nana's
+  birthday has no flag; Kiku's sapling does not grow over the years.
+
 ## 2026-11-09 — Hands full: the rucksack never fills the hand while the baby or crawler is held
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: the bug existed. With the baby (or the crawler) in the arms, the rucksack / storage menu
@@ -48,6 +61,46 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
   (3D fall and winter, flat fall) show the sapling by the door; shots/ deleted.
 - Left / next: the sapling does not grow over the years or bear fruit to pick; the field cell
   is only seen in a screenshot by walking there.
+
+## 2026-11-09 — Nana's keepsakes in the world: Captain's jar, the frog in the ditch, the sky map
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done:
+  - Band 3's answer now sets `nana_captain` (`pond` / `jar`; data/dialogue/heart_events.json).
+  - Minamino (data/maps/minamino.json) gets two permanent props: Shige's little board hen barn
+    (`hen_barn`, 19..20 x 4..5, east of his beds; the band 6 scene says the map is pinned to "the
+    barn wall" and the hens complain) and the ditch behind his north bed (`ditch`, 15..17 x 2,
+    where Nana found Captain). 3D: OutdoorProps.hen_barn (plank walls on a stone footing, a plank
+    lean-to roof down to the front, corner posts, a board door, a hen hole with a cleated ramp,
+    snow skin) and OutdoorProps.ditch (dark still water between muddy banks, reeds, snow skin),
+    lit ArrayMeshes via CountryProps; flat view: MapView colours. A `barn` spawn (18, 6).
+  - Story props (StoryProps in 3D, StoryView in the flat view, PlaceholderArt "story:" keys):
+    `captain_jar` by Shige's door (10, 7) while `nana_captain` is `jar`, `unless` heart_nana_6
+    (story:captain_jar, 10 x 13: glass jar, weed, the tadpole, paper lid with red string);
+    `frog` on the ditch's back bank once heart_nana_6 (story:frog, 12 x 10, throat puffed to
+    sing); `sky_map` on the hen barn's front once nana_sky (story:sky_map:<steady|beside>:<near|field>,
+    30 x 20: a dim cream bedsheet, red pins, a crescent moon, dotted stars, her mother's blinking
+    star, her father's big steady one or one beside hers (nana_beside), the farmer's gold star
+    near his or out over three drawn field rows (nana_star); StoryView.sky_map_key from the
+    shared flags). The sheet's top stays under 1.0 so it never fades on its own as a thing in the
+    way (Occluders.MIN_HEIGHT: at 1.06 it went see-through beside the farmer).
+  - Notes in heart_nana / heart_nana_6, minamino, README → Villagers, AGENTS.md (test_maps list,
+    two `--flags` screenshot examples).
+- Checked: test_maps `_nana_props` (nothing before the scenes or with Captain let go; the jar
+  with `jar`; at band 6 the jar gone, frog and map shown for either band 3 answer; the band 3
+  sets; the key by answers; four maps 30 x 20 all different; jar / frog sizes; barn, ditch and
+  jar solid, Shige's door still opens; the 3D jar on its cell, the 3D frog in the ditch and the
+  map on the barn's front in the answers' picture; the flat view's kinds and colours) and the
+  minamino row of the no-stand-in-boxes check now covers hen_barn and ditch. After `--import`
+  all 32 tests/test_*.gd print `OK (0 failed)`; the four smoke runs (title, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`) print no error or warning lines. Screenshots (frame
+  39): `--demo --map=minamino@barn --time=10:00 --weather=sunny
+  --flags=heart_nana_6,nana_sky,nana_beside,nana_star=field` shows the barn, the sheet with moon,
+  stars and the gold star over the rows, the frog by the dark ditch; `--map=minamino@shige
+  --flags=heart_nana,nana_captain=jar` the jar by the door; main_2d.tscn the same flags: the
+  ditch strip with the frog and the map on the barn's box. shots/ deleted.
+- Left / next: the jizo's new red scarf that Nana ties on her birthday still changes nothing
+  in the world (no flag marks it); with Captain let go to the pond (`pond`) nothing shows until
+  band 6.
 
 ## 2026-11-09 — Merge: holding the crawler, Kiku's band 6 scene, a portrait for the child
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

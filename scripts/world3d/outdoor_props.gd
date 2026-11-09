@@ -462,6 +462,89 @@ static func _slab_top(st: SurfaceTool, x0: float, x1: float, zb: float, yb: floa
 		Vector3(0, zf - zb, yb - yf).normalized(), none)
 
 
+# --- Shige's hen barn and the ditch behind his beds ---------------------------
+
+## The z of the hen barn's front wall over footprint `r` (Nana's sky map is pinned to it).
+static func hen_barn_front(r: Rect2) -> float:
+	return r.end.y - 0.2
+
+
+## Shige's little board hen barn (Minamino, east of his beds) over the cells `r`: plank walls
+## on a low stone footing, a plank lean-to roof sloping down to the front (+z) past the walls,
+## timber corner posts, a board door on the right of the front and a little hen hole low on
+## the left with a cleated ramp up to it. Snow on the roof.
+static func hen_barn(w: FarmWorld, r: Rect2, snow: bool) -> void:
+	var p := FarmProps.Parts.new()
+	var x0 := r.position.x + 0.1
+	var x1 := r.end.x - 0.1
+	var z0 := r.position.y + 0.15
+	var z1 := hen_barn_front(r)
+	var eave := 1.28   # the walls' top at the front, inside the roof's slab
+	var ridge := 1.66  # the roof's back edge
+	FarmProps.block(p.st(STONE_DARK), Rect2(x0 - 0.02, z0 - 0.02, x1 - x0 + 0.04, z1 - z0 + 0.04), 0.0, Rect2(x0 - 0.02, z0 - 0.02, x1 - x0 + 0.04, z1 - z0 + 0.04), 0.08)
+	FarmProps.block(p.st("build:planks"), Rect2(x0, z0, x1 - x0, z1 - z0), 0.08, Rect2(x0, z0, x1 - x0, z1 - z0), eave)
+	# The sides rise with the roof towards the back: a board wedge on each end.
+	var walls := p.st("build:planks")
+	var uv := func(q: Vector3) -> Vector2: return Vector2(q.z, -q.y)
+	for side in [[x0, -1.0], [x1, 1.0]]:
+		var x: float = side[0]
+		Minka.tri(walls, Vector3(x, eave, z0), Vector3(x, eave, z1), Vector3(x, ridge - 0.04, z0), Vector3(side[1], 0, 0), uv)
+	Minka.quad(walls, Vector3(x0, eave, z0), Vector3(x1, eave, z0), Vector3(x1, ridge - 0.04, z0), Vector3(x0, ridge - 0.04, z0), Vector3(0, 0, -1), uv)
+	var post := p.st(TIMBER)
+	for x in [x0, x1]:
+		for z in [z0, z1]:
+			FarmProps.block(post, Rect2(x - 0.04, z - 0.04, 0.08, 0.08), 0.0, Rect2(x - 0.04, z - 0.04, 0.08, 0.08), eave + (ridge - 0.05 - eave) * (z1 - z) / (z1 - z0))
+	FarmProps.block(post, Rect2(x0, z1 - 0.01, x1 - x0, 0.05), eave - 0.08, Rect2(x0, z1 - 0.01, x1 - x0, 0.05), eave)   # the front beam
+	# The board door on the right and the hen hole with its ramp on the left.
+	var dx := x1 - 0.5
+	FarmProps.block(p.st("build:planks_dark"), Rect2(dx - 0.28, z1, 0.56, 0.035), 0.08, Rect2(dx - 0.28, z1, 0.56, 0.035), 1.08)
+	FarmProps.block(post, Rect2(dx - 0.28, z1 + 0.035, 0.56, 0.02), 0.62, Rect2(dx - 0.28, z1 + 0.035, 0.56, 0.02), 0.68)   # its cross batten
+	FarmProps.block(p.st(Color("3a3a40")), Rect2(dx - 0.22, z1 + 0.035, 0.05, 0.03), 0.5, Rect2(dx - 0.22, z1 + 0.035, 0.05, 0.03), 0.56)   # the latch
+	var hx := x0 + 0.3
+	FarmProps.block(p.st(Color("1a1410")), Rect2(hx - 0.12, z1, 0.24, 0.012), 0.08, Rect2(hx - 0.12, z1, 0.24, 0.012), 0.27)
+	_slab(p.st("build:planks_dark"), hx - 0.09, hx + 0.09, z1 + 0.01, 0.1, z1 + 0.4, 0.02, 0.025)
+	# The lean-to roof, out past the walls on every side.
+	_slab(p.st("build:planks_dark"), x0 - 0.14, x1 + 0.14, z0 - 0.16, ridge, z1 + 0.28, eave - 0.02, 0.045)
+	p.commit(w)
+	if snow:
+		var sn := FarmProps.Parts.new()
+		_slab_top(sn.st(FarmProps.Parts.SNOW), x0 - 0.11, x1 + 0.11, z0 - 0.13, ridge, z1 + 0.25, eave - 0.02)
+		sn.commit(w)
+
+
+## The ditch behind Shige's beds (where Nana found Captain) along the cells `r`: a narrow run of
+## still dark water between low muddy banks, a few reeds standing out of it. Outdoors a snow skin
+## lies over it all when snow does (the snow top material shows it by the cover).
+static func ditch(w: FarmWorld, r: Rect2, snow: bool) -> void:
+	var p := FarmProps.Parts.new()
+	var zc := r.get_center().y
+	var x0 := r.position.x + 0.05
+	var x1 := r.end.x - 0.05
+	var flat := func(q: Vector3) -> Vector2: return Vector2(q.x, q.z)
+	Minka.quad(p.st(Color("34504a")), Vector3(x0, 0.03, zc - 0.17), Vector3(x1, 0.03, zc - 0.17),
+		Vector3(x1, 0.03, zc + 0.17), Vector3(x0, 0.03, zc + 0.17), Vector3.UP, flat)
+	Minka.quad(p.st(Color("5a7a70")), Vector3(x0, 0.031, zc - 0.17), Vector3(x1, 0.031, zc - 0.17),
+		Vector3(x1, 0.031, zc - 0.11), Vector3(x0, 0.031, zc - 0.11), Vector3.UP, flat)   # the sky caught along the far edge
+	var mud := p.st(Color("6a5238"))
+	for z in [zc - 0.3, zc + 0.17]:
+		FarmProps.block(mud, Rect2(x0, z, x1 - x0, 0.13), 0.0, Rect2(x0, z + 0.02, x1 - x0, 0.09), 0.07)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(r.position.x) * 13 + int(r.position.y) * 7 + 3
+	var reed := p.st(Color("6e8a3a"))
+	for i in int(r.size.x * 3):
+		var x := x0 + 0.12 + rng.randf() * (x1 - x0 - 0.24)
+		var z := zc + (rng.randf_range(-0.22, -0.12) if i % 2 == 0 else rng.randf_range(0.12, 0.22))
+		var h := rng.randf_range(0.28, 0.5)
+		FarmProps.block(reed, Rect2(x - 0.012, z - 0.012, 0.024, 0.024), 0.0, Rect2(x - 0.004, z - 0.004, 0.008, 0.008), h)
+	p.commit(w)
+	if snow:   # snow on the banks (and a skin over the still water) when it lies
+		var sn := FarmProps.Parts.new()
+		var none := func(_q: Vector3) -> Vector2: return Vector2.ZERO
+		Minka.quad(sn.st(FarmProps.Parts.SNOW), Vector3(x0, 0.082, zc - 0.29), Vector3(x1, 0.082, zc - 0.29),
+			Vector3(x1, 0.082, zc + 0.29), Vector3(x0, 0.082, zc + 0.29), Vector3.UP, none)
+		sn.commit(w)
+
+
 # --- the river rock -----------------------------------------------------------
 
 ## A stepping rock out in the river: a wide faceted boulder with a smaller one against it, the

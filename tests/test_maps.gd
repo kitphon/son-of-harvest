@@ -237,6 +237,7 @@ func _process(delta: float) -> bool:
 		_dye_cloth()
 		_shino_noren()
 		_kiku_scion()
+		_nana_props()
 		_cradle()
 		_lane_and_kiln_props()
 		_map_snow()
@@ -2191,7 +2192,7 @@ func _outdoor_props() -> void:
 	# On the maps: no box or cylinder left in the cells of these props, and a bamboo mesh for
 	# every clump in the data.
 	var spots := {"hill": ["bamboo"], "kaminoda": ["well", "jizo", "woodpile", "bamboo"], "river": ["river_rock"],
-		"minamino": ["well", "jizo", "woodpile", "bamboo"], "sakurazaka": ["jizo", "woodpile", "bamboo", "kiln"]}
+		"minamino": ["well", "jizo", "woodpile", "bamboo", "hen_barn", "ditch"], "sakurazaka": ["jizo", "woodpile", "bamboo", "kiln"]}
 	for id in spots:
 		var m: Node3D = load("res://scripts/world3d/map_world.gd").new()
 		m.build(MapManager.data(id))
@@ -4543,6 +4544,76 @@ func _kiku_scion() -> void:
 		sprites += int(c is Sprite3D and c.texture == PlaceholderArt.tex(key))
 	check(sprites == 1, "the 3D view stands one sapling sprite")
 	w.free()
+
+## What Nana's heart scenes leave in Minamino (data/maps/minamino.json): Captain's jar by
+## Shige's door once she kept him till he has legs (nana_captain "jar"), gone at her band 6
+## scene; Captain the frog in the ditch behind the beds (heart_nana_6) and her sky map on the
+## hen barn's front (nana_sky), its stars by her answers; the barn and the ditch always there,
+## solid; the pictures in both views.
+func _nana_props() -> void:
+	var kinds := func(f: Dictionary) -> Array:
+		var out := []
+		for p in MapManager.load_map("minamino", null, f)[1].props:
+			if p.kind in ["captain_jar", "frog", "sky_map"]:
+				out.append(p.kind)
+		return out
+	check(kinds.call({}).is_empty() and kinds.call({"heart_nana": true, "nana_captain": "pond"}).is_empty(), "no jar, frog or sky map before Nana's scenes (or with Captain let go)")
+	check(kinds.call({"heart_nana": true, "nana_captain": "jar"}) == ["captain_jar"], "Captain's jar by Shige's door once Nana keeps him till he has legs")
+	check(kinds.call({"nana_captain": "jar", "heart_nana_6": true, "nana_sky": true}) == ["frog", "sky_map"]
+		and kinds.call({"nana_captain": "pond", "heart_nana_6": true, "nana_sky": true}) == ["frog", "sky_map"],
+		"at band 6 the jar is gone, Captain sings in the ditch and the sky map hangs on the barn")
+	var dlg := FileAccess.get_file_as_string("res://data/dialogue/heart_events.json")
+	check('"set": {"nana_captain": "pond"}' in dlg and '"set": {"nana_captain": "jar"}' in dlg, "Nana's band 3 answers set nana_captain")
+	check(StoryView.sky_map_key({}) == "story:sky_map:steady:near" and StoryView.sky_map_key({"nana_beside": true, "nana_star": "field"}) == "story:sky_map:beside:field"
+		and StoryView.sky_map_key({"nana_steady": true, "nana_star": "near"}) == "story:sky_map:steady:near", "the sky map's stars by her answers")
+	var datas := []
+	var sized := true
+	for k in ["story:sky_map:steady:near", "story:sky_map:steady:field", "story:sky_map:beside:near", "story:sky_map:beside:field"]:
+		var img: Image = PlaceholderArt.tex(k).get_image()
+		sized = sized and img.get_size() == Vector2i(30, 20)
+		datas.append(img.get_data())
+	var differ := true
+	for i in datas.size():
+		for j in range(i + 1, datas.size()):
+			differ = differ and datas[i] != datas[j]
+	check(sized and differ, "the four sky maps are drawn, 30 x 20, and differ")
+	check(PlaceholderArt.tex("story:captain_jar").get_size() == Vector2(10, 13) and PlaceholderArt.tex("story:frog").get_size() == Vector2(12, 10), "the jar and the frog are drawn")
+	var jar_f := {"nana_captain": "jar", "heart_nana": true}
+	var m: MapData = MapManager.load_map("minamino", null, jar_f)[1]
+	check(m.is_solid(Vector2i(19, 4)) and m.is_solid(Vector2i(20, 5)) and m.is_solid(Vector2i(16, 2)) and m.is_solid(Vector2i(10, 7)) and not m.is_solid(Vector2i(10, 8)),
+		"the hen barn, the ditch and the jar block their cells")
+	check(m.door_at(Vector2i(11, 6)).get("to", "") == "shige_house", "Shige's door still opens beside the jar")
+	# 3D: the barn and the ditch are lit meshes (the box check in _lane_and_kiln_props), the pictures by flag.
+	var pics := func(f: Dictionary) -> Array:
+		var was: Dictionary = MapManager.flags
+		MapManager.set_flags(f)   # the sky map's stars come from the shared flags, as in the game
+		var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+		w.build(MapManager.load_map("minamino", null, f)[1])
+		MapManager.set_flags(was)
+		var out := []
+		for c in w.get_children():
+			var tex: Variant = null
+			if c is Sprite3D:
+				tex = c.texture
+			elif c is MeshInstance3D and c.material_override is StandardMaterial3D:
+				tex = c.material_override.albedo_texture
+			for k in ["story:captain_jar", "story:frog", StoryView.sky_map_key(f)]:
+				if tex != null and tex == PlaceholderArt.tex(k):
+					out.append([k, c.position])
+		w.free()
+		return out
+	var jar: Array = pics.call(jar_f)
+	check(jar.size() == 1 and jar[0][0] == "story:captain_jar" and Rect2(10, 7, 1, 1).has_point(Vector2(jar[0][1].x, jar[0][1].z)), "the 3D jar stands on its cell (%s)" % [jar])
+	var six := {"nana_captain": "jar", "heart_nana_6": true, "nana_sky": true, "nana_beside": true, "nana_star": "field"}
+	var later: Array = pics.call(six)
+	var frog: Array = later.filter(func(e): return e[0] == "story:frog")
+	var sky: Array = later.filter(func(e): return e[0] == "story:sky_map:beside:field")
+	check(later.size() == 2 and frog.size() == 1 and Rect2(15, 2, 3, 1).has_point(Vector2(frog[0][1].x, frog[0][1].z))
+		and sky.size() == 1 and absf(sky[0][1].z - load("res://scripts/world3d/outdoor_props.gd").hen_barn_front(Rect2(19, 5, 2, 1)) - 0.04) < 0.001 and sky[0][1].x > 19.0 and sky[0][1].x < 21.0,
+		"the 3D frog in the ditch and the sky map on the barn's front (%s)" % [later])
+	# The flat view draws them from the same keys (StoryView) and leaves them out of its boxes.
+	check(StoryView.KINDS.has("captain_jar") and StoryView.KINDS.has("frog") and StoryView.KINDS.has("sky_map") and MapView.COLORS.has("hen_barn") and MapView.COLORS.has("ditch"),
+		"the flat view knows the jar, the frog, the sky map, the barn and the ditch")
 
 
 ## The baby's cradle (Child, data/maps/house.json): in the second room only while child_stage is

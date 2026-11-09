@@ -3,13 +3,14 @@ extends Node2D
 ## The story props of a map (KINDS: the door bell, the store's sign, Tome's jar, Kota's carp
 ## streamer, the ribbon board, the builder's lumber by the farmhouse while a house extension is
 ## under way, a keepsake given to a villager who loves it, in their home, the mine's rope lift winch at the cave mouth once a landing
-## is reached, the jizo's new red bibs, the three thumbprints on Ichiro's kiln and the name on Mio's boat) in the flat
+## is reached, the jizo's new red bibs, the three thumbprints on Ichiro's kiln, the name on Mio's boat, the noren Shino dyed,
+## Captain's jar by Shige's door, Captain the frog in the ditch and Nana's sky map on the hen barn) in the flat
 ## view, drawn from the same PlaceholderArt "story:" keys as in 3D (StoryProps): centred in
 ## their cells, standing on the bottom edge. MapView leaves them out of its boxes. The old
 ## kiln's wear (story:kiln_worn) is drawn over its box, on its own cells.
 
 const T := 16
-const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark", "kiln_site", "kiln_new", "boat_name", "noren", "scion"]
+const KINDS: Array[String] = ["door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "lumber", "keepsake", "rope_lift", "jizo_bibs", "kiln_mark", "kiln_site", "kiln_new", "boat_name", "noren", "scion", "captain_jar", "frog", "sky_map"]
 
 var map: MapData
 
@@ -26,6 +27,8 @@ static func art_key(p: Dictionary) -> String:
 		return "story:boat_" + str(p.get("style", "new"))
 	if str(p.kind) == "ribbon_board":   # one rosette per ribbon won (Keepsakes.RECORD)
 		return "story:ribbon_board:" + Keepsakes.board_places(MapManager.flags)
+	if str(p.kind) == "sky_map":   # Nana's stars by her answers (nana_beside, nana_star)
+		return sky_map_key(MapManager.flags)
 	if str(p.kind) == "keepsake":   # the keepsake's own icon (`item`, keep:<id>)
 		return PlaceholderArt.item_key(str(p.get("item", "")))
 	return "story:" + str(p.kind)
@@ -35,6 +38,13 @@ static func art_key(p: Dictionary) -> String:
 static func _season() -> String:
 	var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
 	return game.season_name() if game != null else "spring"
+
+## Nana's sky map with these story flags: her father's star the big steady one, or beside her
+## mother's (nana_beside, her band 5 answer); the farmer's near his or out over the field
+## (nana_star, band 6).
+static func sky_map_key(f: Dictionary) -> String:
+	var star := str(f.get("nana_star", "near"))
+	return "story:sky_map:%s:%s" % ["beside" if EventRunner.is_set(f, "nana_beside") else "steady", "field" if star == "field" else "near"]
 
 
 func _init(m: MapData) -> void:
@@ -64,6 +74,10 @@ func _draw() -> void:
 			r.end.y = r.position.y + tex.get_height() + 2
 		elif p.kind == "noren":   # over the door, the top of its cell
 			r.end.y = r.position.y + tex.get_height() + 2
+		elif p.kind == "frog":   # on the ditch's back bank
+			r.end.y -= 5
+		elif p.kind == "sky_map":   # pinned to the hen barn's front, over its lower half
+			r.end.y -= 2
 		elif p.kind == "jizo_bibs":   # on the jizo's chest, the middle of its cell
 			r.end.y -= 4
 		elif p.kind == "kiln_mark":   # over the kiln's mouth, in the front cells' upper half

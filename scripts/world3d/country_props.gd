@@ -3,10 +3,10 @@ extends RefCounted
 ## The countryside things of the village's outer parts in 3D: a well and a stone jizo in a red
 ## bib (OutdoorProps), a persimmon, a cherry and a maple tree (Trees: their look follows the season), a rice
 ## drying rack, a stack of firewood, a kitchen garden, a low board fence (FieldProps) and Ichiro's
-## charcoal kiln (OutdoorProps), all lit
+## charcoal kiln, Shige's little hen barn and the ditch behind his beds (OutdoorProps), all lit
 ## meshes. Same units as MapWorld (1 unit = 1 cell).
 
-const KINDS: Array[String] = ["well", "jizo", "persimmon", "sakura", "maple", "hasa", "woodpile", "garden", "wood_fence", "kiln"]
+const KINDS: Array[String] = ["well", "jizo", "persimmon", "sakura", "maple", "hasa", "woodpile", "garden", "wood_fence", "kiln", "hen_barn", "ditch"]
 
 
 ## A countryside prop by its kind (MapWorld calls this). `season` picks the trees' and the
@@ -24,3 +24,5 @@ static func prop(w: MapWorld, p: Dictionary, mid: Vector3, r: Rect2, season: Str
 		"garden": FieldProps.garden(w, r, mid, season, SnowLayer.map_has_snow(w.map))
 		"wood_fence": FieldProps.board_fence(w, r, mid, SnowLayer.map_has_snow(w.map))
 		"kiln": OutdoorProps.kiln(w, r, mid, SnowLayer.map_has_snow(w.map))
+		"hen_barn": OutdoorProps.hen_barn(w, r, SnowLayer.map_has_snow(w.map))
+		"ditch": OutdoorProps.ditch(w, r, SnowLayer.map_has_snow(w.map))
