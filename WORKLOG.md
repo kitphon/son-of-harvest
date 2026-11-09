@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-09 — A portrait for the child
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: talking to the child (crawler, toddler, child stage) now frames a portrait in the text box.
+  `Child.portrait_key` / `portrait_stage` build `portrait:child:<mood>:<stage>:<style>:<skin>:<hair>:<top>`
+  (the spouse's hair colour, the hair style of that stage from `Child.small_style`: Sayo's bun
+  for the toddler, her long hair for the child stage; the skin between the parents; the happi),
+  `DialogueRunner.has_portrait` / `portrait_key` accept the child once out of the cradle (none for
+  the baby or with no child), `PlaceholderArt._child_portrait` draws it through `_portrait_of`
+  (the old `_portrait` body, now shared): a rounder, wider face with cheeks for the crawler and
+  toddler, the young villagers' face for the child stage; cached by key like every texture. The
+  name tag already shows the child's name (child_name flag); both views share the text box.
+- Checked: tests/test_child.gd `_child_portrait` (key per stage, 40 x 40, every mood differs,
+  cached, spouse's hair colour and mixed skin drawn, bun vs long, no portrait for the baby / no
+  child, runner key); other tests and smoke runs: see the final report.
+- Left / next: holding the crawler.
+
 ## 2026-11-09 — Merge: the child, step 5
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 6f3404f the child, step 5 (Opus, own worktree) onto the Nana / Kiku merge.
