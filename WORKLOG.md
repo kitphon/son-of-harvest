@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-09 — Hands full with the dog: the rucksack never fills the hand while the dog is carried
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: Game.arms_full() now also counts the dog in the arms (animals.dog.held), so InventoryMenu
+  (hold and choose, the carried stack too) refuses the hand slot with "Your hands are full." as
+  it does for the baby and the crawler. holding() is now `held != "" or arms_full()`, the same
+  set as before (the dog was already in holding()). Other callers checked: arms_full is used only
+  by InventoryScreen and the menu; baby / crawler lifting, doors and the ground all go through
+  holding(), which keeps the dog case, so nothing else changed.
+- Checked: test_inventory `_arms_full` now loops over baby, crawler and dog. Before the fix:
+  `FAIL: dog in the arms: arms full` and `FAIL: dog: hold puts nothing in the hand` (a script
+  error followed, since the turnip did land in the hand). After the fix every suite prints
+  `OK (0 failed)`: test_inventory, test_animals (the dog's pick-up and doors), test_farm,
+  test_save, test_title, test_weather, test_dialogue, test_menu, test_body, test_events,
+  test_maps, test_food, test_cooking, test_hold, test_villagers, test_talk, test_relationships,
+  test_shops, test_fishing, test_forage, test_mine, test_ending, test_festivals, test_view2d,
+  test_child, test_goals, test_lang, test_showcase, test_puddles, test_drift, test_audio (32 of
+  32). Smoke run `--headless --quit-after 300 -- --demo`: no error or warning lines.
+- Left / next: not checked: whether the dog and the crawler or baby can be in the arms at the same
+  time (the test covers each one alone).
+
 ## 2026-11-09 — Merge: hands full with the child, Kiku's persimmon sapling, Nana's keepsakes
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged cb1af67 hands full with the baby or crawler (Haiku, own worktree), 0a03f9e Kiku's

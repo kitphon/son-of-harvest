@@ -220,7 +220,7 @@ func _menu() -> void:
 	check(fm.close() != "" and fm.carry.id == "egg", "no room: the screen stays open")
 
 
-## With the baby or the crawler in the arms the hands are full: the rucksack and the chest
+## With the baby, the crawler or the dog in the arms the hands are full: the rucksack and the chest
 ## never put an item in the hand slot (hold, choose), and a carried stack can't be put there.
 func _arms_full() -> void:
 	var g: Node = (load("res://scripts/autoload/game.gd") as GDScript).new()
@@ -228,8 +228,9 @@ func _arms_full() -> void:
 	var inv := Inventory.empty(TOOLS, {"slots": {"tools": 3, "bag": 10, "hand": 1, "chest": 4}, "stack_max": 10})
 	inv.add("turnip", 6)
 	inv.add("axe", 1, ["chest"])
-	for who in ["baby", "crawler"]:
+	for who in ["baby", "crawler", "dog"]:
 		g.baby_held = who == "baby"
+		g.animals.dog.held = who == "dog"
 		Child.carried = {"held": true, "map": "house", "from": Vector2(1, 1), "facing": Vector2i(0, 1)} if who == "crawler" else {}
 		check(g.arms_full() and g.holding(), "%s in the arms: arms full" % who)
 		var m := InventoryMenu.new(inv, "rucksack", 0, g.arms_full())
@@ -248,6 +249,7 @@ func _arms_full() -> void:
 		check(st.hold() == "Your hands are full." and inv.id_at("hand", 0) == "", "%s: nothing from the rucksack into the hand" % who)
 		Child.carried = {}
 		g.baby_held = false
+		g.animals.dog.held = false
 	check(not g.arms_full() and not g.holding(), "hands free: not full")
 	var free := InventoryMenu.new(inv, "rucksack", 0, g.arms_full())
 	free.point("bag", 0)

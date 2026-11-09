@@ -1188,13 +1188,13 @@ func add_animal(kind: String, young := false) -> bool:
 # --- holding and throwing ---------------------------------------------------
 
 func holding() -> bool:
-	return held != "" or animals.dog.held or arms_full()
+	return held != "" or arms_full()
 
 
-## The baby or the crawler is in the farmer's arms: both hands are full, so nothing may go into
-## the hand slot (the rucksack and chest menus, the ground).
+## Both hands are full while the baby, the crawler or the dog is in the farmer's arms: nothing may
+## go into the hand slot (the rucksack and chest menus, the ground).
 func arms_full() -> bool:
-	return baby_held or crawler_held()
+	return baby_held or crawler_held() or animals.dog.held
 
 
 ## The sprite key for what is carried overhead: the held item, the dog in the arms, the baby or the crawler.
