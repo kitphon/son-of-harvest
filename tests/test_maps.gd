@@ -4695,6 +4695,22 @@ func _nana_scarf() -> void:
 		w.free()
 		return n
 	check(count.call(MapManager.load_map("minamino", null, {})[1]) == 0 and count.call(m) == 1, "in 3D the red scarf is there only with the flag (one mesh)")
+	# The morning rule (data/date_flags.json, DateFlags): set from fall 20 on even if the farmer
+	# was never in Minamino on fall 19; not before, and the rule is in the data.
+	var early := {}
+	for d in [[1, "spring", 1], [1, "fall", 18], [1, "fall", 19]]:
+		DateFlags.day_start(early, d[0], d[1], d[2])
+	check(not early.has("nana_scarf"), "the scarf flag is not set on or before the morning of fall 19")
+	var late := {}
+	DateFlags.day_start(late, 1, "fall", 20)
+	check(late.get("nana_scarf") == true, "the scarf flag is set on the morning of fall 20 with the farmer away")
+	var later := {}
+	DateFlags.day_start(later, 1, "winter", 1)
+	var next_year := {}
+	DateFlags.day_start(next_year, 2, "spring", 1)
+	check(later.get("nana_scarf") == true and next_year.get("nana_scarf") == true, "and later in the year and in later years")
+	check(DateFlags.rows().any(func(r): return r.get("flag", "") == "nana_scarf" and r.get("after", {}).get("season", "") == "fall" and int(r.after.get("day", 0)) == 19),
+		"the rule is in data/date_flags.json (fall 19)")
 
 
 ## The baby's cradle (Child, data/maps/house.json): in the second room only while child_stage is

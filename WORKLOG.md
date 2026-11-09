@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Nana's scarf set on the morning after her birthday
+Agent: Claude Code (claude-haiku) · Commit: this commit
+- Done: `nana_scarf` no longer depends on the farmer being in Minamino on fall 19. New
+  data/date_flags.json (rows `{flag, after: {season, day}}`) and DateFlags (scripts/farm/date_flags.gd,
+  pure rules): each morning, Game sets a flag once the date has passed, in that year and in every
+  later one. The row for nana_scarf is after fall 19, so the flag is set from fall 20 on. Game's
+  morning calls it right after Scion.record. Reasoning: a map's trigger table only runs while the
+  farmer is on that map, so the fallback has to be a morning rule. The fall 19 trigger row
+  (9:40 on in Minamino) is unchanged and still puts the scarf on the day itself. The morning of
+  fall 19 does not set the flag (the day is compared, not the 9:40 time).
+- Checked: test_maps `_nana_scarf` has new checks: not set on spring 1, fall 18 or fall 19 of year
+  1; set on the morning of fall 20 with the farmer away; set on winter 1 and on spring 1 of year 2;
+  the rule is in the data. Suites, run one by one on this tree after `--import`: all 31 print
+  `OK (0 failed)` (test_title prints two push_warning lines from its bad-look checks, and test_inventory
+  prints `ERROR: 8 resources still in use at exit` at quit; date_flags.gd is not in that list; not checked
+  whether these predate this change). The four smoke runs print no error or warning line.
+- Left / next: an old save loaded on fall 20 or later gets the flag at its next morning, not at the
+  load. The morning call in Game has no test of its own; the pure rule does. No screenshot (the
+  prop is already drawn from the flag).
+
 ## 2026-11-09 — Merge: hands full with the dog, Nana's birthday scarf, Kiku's persimmon grows
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 7aa9895 hands full with the dog (Haiku, own worktree), 3ab9f07 Nana's birthday
