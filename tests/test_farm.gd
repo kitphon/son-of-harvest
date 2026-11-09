@@ -139,6 +139,7 @@ func _init() -> void:
 					keys[img.get_data()] = key
 	check(keys.size() == crops.size(), "ripe crops all look different (%d distinct)" % keys.size())
 	_crop_art(crops)
+	_farmer_art()
 	var q := FarmGrid.new(crops)
 	var qc := Vector2i(6, 6)
 	q.till(qc)
@@ -606,6 +607,82 @@ func _crop_art(crops: Dictionary) -> void:
 			var img := PlaceholderArt.tex("crop:%s:%d:growing" % [id, growth]).get_image()
 			var edges := _edge_pixels(img)
 			check(edges > (62 if growth == 2 else 119), "%s growth %d: more leaf-edge pixels than before (%d)" % [id, growth, edges])
+
+## The farmer's refined art (FigureArt with farmer = true, data/farmer_art.json): every key of
+## every look keeps its size and feet; no black outline (lines in each material's deep tone, a
+## darker rim round the silhouette); three tones per material lit from the upper left; more
+## tone-edge pixels than the plain drawing; villagers (farmer = false) keep the plain drawing.
+func _farmer_art() -> void:
+	var def := FarmerLooks.default_choice()
+	var looks: Array = [def]
+	for part in ["style", "clothes"]:
+		for id in FarmerLooks.ids(part):
+			var c := def.duplicate()
+			c[part] = id
+			looks.append(c)
+	var bad: Array[String] = []
+	var dark_rim := 0
+	var rim_px := 0
+	for choice in looks:
+		var look := FarmerLooks.figure_look(choice)
+		for pose in ["idle", "walk", "run", "tired_idle", "tired_walk", "hold_idle", "hold_walk", "fish_wait", "fish_bite", "eat", "drink"]:
+			for f in FigureArt.frames(pose):
+				for back in [false, true]:
+					var img := FigureArt.draw(look, back, pose, f, true)
+					var foot := false
+					var black := false
+					for y in img.get_height():
+						for x in img.get_width():
+							var col := img.get_pixel(x, y)
+							if col.a == 0.0:
+								continue
+							black = black or col.is_equal_approx(FigureArt.OUTLINE)
+							foot = foot or y == img.get_height() - 2
+							if pose in ["idle", "walk"] and _open(img, x, y):
+								rim_px += 1
+								dark_rim += int(col.get_luminance() < 0.22)
+					if img.get_size() != Vector2i(24, 32) or not foot or black:
+						bad.append("%s %s %s %d" % [FarmerLooks.signature(choice), "back" if back else "front", pose, f])
+	check(bad.is_empty(), "the farmer's refined frames: 24 x 32, feet on the ground, no black outline (%d off: %s)" % [bad.size(), bad.slice(0, 4)])
+	check(rim_px > 0 and dark_rim >= rim_px * 0.9, "a dark rim round the silhouette (%d of %d edge pixels)" % [dark_rim, rim_px])
+	# Three tones per material, the lit ones left of the shade ones (light from the upper left).
+	var c := FigureArt.colors(FigureArt.FARMER_LOOK)
+	for back in [false, true]:
+		var img := FigureArt.draw(FigureArt.FARMER_LOOK, back, "idle", 0, true)
+		for k in ["t", "l", "s"]:
+			var tn: Array = FigureArt.tones(c[k], k == "s")
+			var n := [0, 0, 0]
+			var sx := [0.0, 0.0, 0.0]
+			for y in img.get_height():
+				for x in img.get_width():
+					for i in 3:
+						if _near(img.get_pixel(x, y), tn[i]):
+							n[i] += 1
+							sx[i] += x
+			check(n[0] > 0 and n[1] > 0 and n[2] > 0, "%s %s: shade, base and lit tones all used (%s)" % ["back" if back else "front", k, n])
+			if k != "s" and n[0] > 0 and n[2] > 0:
+				check(sx[2] / n[2] < sx[0] / n[0], "%s %s: the lit tone sits left of the shade" % ["back" if back else "front", k])
+		# Before the refined pass: 268 (front) and 243 (back) tone-edge pixels standing.
+		var edges := _edge_pixels(img)
+		check(edges > (243 if back else 268), "%s idle: more tone-edge pixels than the plain drawing (%d)" % ["back" if back else "front", edges])
+	var plain := FigureArt.draw(FigureArt.FARMER_LOOK, false, "idle", 0)
+	var has_outline := false
+	for y in plain.get_height():
+		for x in plain.get_width():
+			has_outline = has_outline or plain.get_pixel(x, y).is_equal_approx(FigureArt.OUTLINE)
+	check(has_outline, "villagers (farmer = false) keep the plain outline drawing")
+
+
+func _open(img: Image, x: int, y: int) -> bool:
+	for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+		var q: Vector2i = Vector2i(x, y) + d
+		if q.x < 0 or q.y < 0 or q.x >= img.get_width() or q.y >= img.get_height() or img.get_pixelv(q).a == 0.0:
+			return true
+	return false
+
+
+func _near(a: Color, b: Color) -> bool:
+	return absf(a.r - b.r) + absf(a.g - b.g) + absf(a.b - b.b) < 0.012 and a.a > 0.0
 
 func _edge_pixels(img: Image) -> int:
 	var n := 0

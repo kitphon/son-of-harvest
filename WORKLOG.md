@@ -49,6 +49,45 @@ Agent: Claude Code (claude-sonnet) · Commit: this commit
   per pick). All 31 tests/test_*.gd print `OK (0 failed)`; the four smoke runs (title, `--demo`, `--map=town`, `--mine=3`) print no error or warning lines; screenshot `--demo --flags=kiku_scion=door --season=fall --scion=tree`: the grown tree by the door with persimmons.
 - Left / next: Kiku's talk lines do not mention the picking; the flat view was not screenshot
   with a half-picked tree.
+## 2026-11-10 — Farmer art, refined (FigureArt's refined pass)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the farmer's frames (`player:<front|back>:<pose>:<frame>`, FigureArt.draw with farmer =
+  true; the title screen's look preview too) get a refined pass, as the crops got from CropArt:
+  every material of the look (hair, skin, noragi, collar band, monpe, head cloth, jika-tabi, the
+  straw belt and hip basket, the white under-collar) is drawn in three tones, shade / base / lit,
+  picked per pixel by which side of its part the pixel is open to (upper left lit, lower right
+  shade; skin by its side only, since a shade along the chin read as a beard; the old plain `T` /
+  `t+` shades are put on the same tones); the lines between parts are the material's own deep
+  tone instead of the black outline, and the lines left on the outer edge are pulled darker
+  towards a rim colour, so the silhouette stays clear. The jika-tabi now have a split toe, a
+  brass clasp at the ankle and a pale rubber sole under the gathered monpe; the hip basket is
+  woven (lit rim, checker weave, deep cord); the refined face has no jaw shade row. Numbers in
+  the new data/farmer_art.json (shade 0.3, lit 0.22 with a cool shade tint and a warm lit tint,
+  a warmer skin shade, deep 0.55, rim mix 0.5): chosen by eye against the grass and the deck,
+  dark enough that the rim reads on both, light enough that the lit tones do not glare. Same rig,
+  hands, rod tips, keys, 24 x 32 size, poses and every look option (style, hair, skin, clothes);
+  villagers and the child figures (farmer = false) keep the plain drawing.
+- Checked: test_farm `_farmer_art` (new): every pose, side and frame of the default look and of
+  every style and clothes choice is 24 x 32 with a foot on row 30 and no black outline pixel; at
+  least 90 % of the silhouette's edge pixels on idle / walk frames are dark; the top, monpe and
+  skin use all three tones front and back, the noragi's and monpe's lit tones sit left of their
+  shade; standing front / back have more tone-edge pixels than the plain drawing (305 / 268 now
+  against 268 / 243 before); a villager-style draw keeps the outline. test_title's four golden
+  hashes of the default look were re-recorded for the new art (the other look checks are
+  unchanged and pass). After `--import`, all 31 tests/test_*.gd print `OK (0 failed)` (animals, audio,
+  body, child, cooking, dialogue, drift, ending, events, farm, festivals, fishing, food, forage,
+  goals, hold, inventory, lang, maps, menu, mine, puddles, relationships, save, shops, showcase,
+  talk, title, view2d, villagers, weather). A first run of the whole list in one background loop
+  stalled after test_ending (while screenshot runs went at the same time) and was stopped; every
+  suite was then run again and passed.
+  Smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--quit-after 300`): no
+  error or warning lines. Looked at: a contact sheet old vs new (three looks x front / back, idle,
+  walk, hold, fish, eat, tired), and screenshots `--demo` and `--demo
+  --look=style:2,hair:1,skin:3,clothes:4` in the 3D view (zoomed on the farmer by the farmhouse
+  deck) and `scenes/main_2d.tscn -- --demo` in the flat view.
+- Left / next: a refined placeholder, not final hand art. Villagers still use the plain drawing
+  (the same pass could be switched on for them next). Not screenshot: the back view and the
+  fishing / eating poses in game (only on the contact sheet), the title screen's preview.
 
 ## 2026-11-09 — Merge: hands full with the dog, Nana's birthday scarf, Kiku's persimmon grows
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
