@@ -10,6 +10,42 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Portraits, refined
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: the text box portraits get the figures' refined look. New PortraitArt
+  (scripts/art/portrait_art.gd) and data/portrait_art.json: the portrait is drawn as before but on a
+  clear picture, then every material of the head and shoulders (skin, hair, the top, its accent, the
+  undershirt, the hairpin, the hat, the kimono collar and the straw hat's cord) is put in three
+  tones lit from the upper left (a pixel within `band` 2 of its part's upper-left edge lit, of its
+  lower-right edge shade; skin by its right side only, and skin is not lit or shaded against the
+  hair over it). The black part lines become the deep tone of the material beside them, and lines
+  against the background are pulled towards the rim. The drawing's own darker / lighter shades
+  (neck, ears, the shaded cheek, the hair's combed lines, partings and shine, the top's folds,
+  the accent's knots) are put on their material's tones. Then the nose, marks (stubble now finds the
+  toned skin), eyes (data `eye`), mouth (the skin's deep tone) and the young cheeks go on top, and
+  the background with its light from above goes under. Covers every `portrait:<villager>:<mood>`, the
+  child's `portrait:child:...` at all three stages (`_child_portrait`), every PORTRAIT_HAIR style
+  (they all go through `_portrait_of`) and the older generic `face:<speaker>:<expression>`. Numbers:
+  the villagers' tones, deep 0.55, rim 1a1216 and rim_mix 0.6, so the face in the box matches the
+  figure in the field; band 2 because a 40 x 40 face is about twice the scale of a figure's head.
+  Keys, the 40 x 40 size, moods, colours and the hair drawing functions are unchanged. Portraits do
+  not depend on the farmer's look (the farmer has no portrait in the game; the generic face:farmer
+  is refined too).
+- Checked: new test_dialogue `_refined_portraits`: every villager x 5 moods, the child at 3 stages
+  for each of the 6 spouses who can marry x 5 moods, and every face:<speaker> x 4 expressions; each
+  is 40 x 40 and opaque, has no pixel in the old line colour 2a1e1e, shows the skin's shade, base
+  and lit tones with the lit pixels left of the shade ones, and has lines in the skin's deep tone;
+  each child stage's moods differ; Hachiro's stubble is still drawn; Tome's eyes are in the eye
+  colour. The existing portrait checks (sizes, moods differ, villagers differ, hair styles differ,
+  keys) still pass. After `--import`, all 31 tests/test_*.gd print `OK (0 failed)` (test_title
+  prints its two deliberate `No look ...` warnings). The four smoke runs print no ERROR or WARNING
+  line. Screenshots `--demo --map=town --time=14:30 --talk=tome` and the same with `--lang=th`: Tome's
+  portrait in the box shows the toned white hair, the warm skin shade on her right cheek and brown
+  lines instead of black; a 4x crop looked right. A 3x sheet of every portrait (all villagers and
+  moods, the child stages, the faces) looked right (throwaway script, not committed).
+- Left / next: the baby's cradle and carry pictures are still the plain drawing. Very dark hair
+  (Kaede's 1a1416) shows its tones only faintly.
+
 ## 2026-11-10 — Merge: inventory test leak, Nana's scarf on load, villager art refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 3a9aaa9 test_inventory frees its Game (Sonnet, own worktree), 710b6ae Nana's scarf
