@@ -38,6 +38,7 @@ func _init() -> void:
 	_scoop_result_lines()
 	_scoop_pose_art()
 	_usu_kine_art_refined()
+	_festival_deco_art_refined()
 
 
 func _process(_delta: float) -> bool:
@@ -1825,6 +1826,27 @@ func _usu_kine_art_refined() -> void:
 	var kine := PlaceholderArt.image("mochi:kine")
 	check(kine.get_size() == Vector2i(16, 28), "mochi art: the mallet is 16 x 28")
 	_refined_colours(kine, "mochi:kine", old)
+
+
+## The festival decorations (PlaceholderArt._festival) are laid in flat materials and passed
+## through ItemArt.refine: each kind keeps festival_size, has no 2a1e1e pixel and several tones,
+## a stall takes its cloth colour, and the bonfire's flame keeps its bright colours.
+func _festival_deco_art_refined() -> void:
+	var old := FigureArt._key(PlaceholderArt.OUTLINE)
+	var kinds := {"sakura": [2, 2], "picnic_mat": [3, 2], "red_mat": [3, 2], "stall": [3, 2], "judge_table": [4, 2],
+		"lantern_line": [6, 1], "drum_stage": [3, 2], "moon_table": [1, 1], "pampas": [1, 1], "paper_lantern": [1, 1],
+		"kadomatsu": [1, 1], "bonfire": [1, 1], "race_flag": [1, 1], "display_goldfish": [1, 1], "display_masks": [1, 1]}
+	for kind in kinds:
+		var wh: Array = kinds[kind]
+		var img := PlaceholderArt.image("festival:%s:%dx%d" % [kind, wh[0], wh[1]])
+		check(img.get_size() == PlaceholderArt.festival_size(kind, wh[0], wh[1]), "festival art: %s keeps its size" % kind)
+		_refined_colours(img, "festival:" + kind, old)
+	var red := PlaceholderArt.image("festival:stall:3x2:c8442c")
+	var blue := PlaceholderArt.image("festival:stall:3x2:2a5aa8")
+	check(red.get_data() != blue.get_data(), "festival art: the stall takes its cloth colour")
+	var fire := PlaceholderArt.image("festival:bonfire:1x1")
+	var a := PlaceholderArt.festival_anchor("bonfire", 1, 1)
+	check(fire.get_pixel(a.x - 1, a.y - 9).to_html(false) == "ffb040" and fire.get_pixel(a.x, a.y - 1).to_html(false) == "fff0a0", "festival art: the flame keeps its glow colours")
 
 
 func _refined_colours(img: Image, key: String, old: String) -> void:
