@@ -427,10 +427,9 @@ static func villager_top(id: String) -> int:
 	return FigureArt.head_top(Villagers.look(id))
 
 
-## The near-black outline. Every field, village, festival and story picture is laid in flat
-## materials and toned by ItemArt.refine now (the fish float and bite box too). Still laid by
-## hand: the portraits' first pass before PortraitArt.refine (`_portrait_of`). Tests use it as
-## a colour to look for.
+## The near-black outline. Every field, village, festival, story and portrait picture is laid in
+## flat materials and toned by ItemArt / PortraitArt.refine now, so nothing lays it by hand any
+## more. It stays only as the colour tests look for (no picture may still hold it).
 const OUTLINE := Color("2a1e1e")
 const _STAKE := Color("b08a5a")
 const _DEFAULT_LOOK := {"shape": "bush", "leaf": "5f9e3a", "fruit": "e8a23a"}
@@ -2553,6 +2552,12 @@ static func _child_portrait(mood: String, stage: String, look: Dictionary) -> Im
 	return _portrait_of(look, face, mood, stage != "child")
 
 
+## The ring round a portrait part: the deep tone of the part's material, which PortraitArt.refine
+## reads as a part line (and pulls towards the rim on the silhouette).
+static func _ring(col: Color, skin := false) -> Color:
+	return PortraitArt.tones(col, skin)[3]
+
+
 static func _portrait_of(look: Dictionary, face: Dictionary, mood: String, young := false) -> Image:
 	var marks: Array = face.get("marks", [])
 	var skin := Color(look.get("skin", "f2c79b"))
@@ -2567,9 +2572,9 @@ static func _portrait_of(look: Dictionary, face: Dictionary, mood: String, young
 	_portrait_body(img, look, child)
 	_px(img, 18 if child else 17, int(cy) + 7, 4 if child else 6, 6, skin.darkened(0.18))   # neck
 	for side in [-1.0, 1.0]:                                       # ears
-		_oval(img, cx + side * (rx + 0.5), cy + 2, 2.2, 3.0, OUTLINE)
+		_oval(img, cx + side * (rx + 0.5), cy + 2, 2.2, 3.0, _ring(skin, true))
 		_oval(img, cx + side * (rx + 0.5), cy + 2, 1.4, 2.2, skin.darkened(0.08))
-	_oval(img, cx, cy, rx + 1, ry + 1, OUTLINE)
+	_oval(img, cx, cy, rx + 1, ry + 1, _ring(skin, true))
 	_oval(img, cx, cy, rx, ry, skin)
 	_px(img, 26 if child else 27, int(cy) - 2, 2, 9, skin.darkened(0.06))   # the shaded side
 	var ey := int(cy) + 2                                          # eye row
@@ -2655,16 +2660,16 @@ static func _portrait_hair_behind(img: Image, look: Dictionary, cy: float) -> vo
 	var y := int(cy)
 	match look.get("hair_style", ""):
 		"long", "hime":
-			_px(img, 8, y - 6, 24, 22, OUTLINE)
+			_px(img, 8, y - 6, 24, 22, _ring(hair))
 			_px(img, 9, y - 6, 22, 21, hair)
 		"ponytail":
-			_oval(img, 32, cy - 1, 3.6, 8.5, OUTLINE)
+			_oval(img, 32, cy - 1, 3.6, 8.5, _ring(hair))
 			_oval(img, 32, cy - 1, 2.6, 7.5, hair)
 			_px(img, 33, y - 4, 1, 8, hair.lightened(0.12))           # a shine down the tail
-			_px(img, 27, y - 12, 5, 4, OUTLINE)
+			_px(img, 27, y - 12, 5, 4, _ring(hair))
 			_px(img, 28, y - 11, 4, 3, hair)
 		"low_knot":
-			_oval(img, 10, cy + 6, 4.4, 3.6, OUTLINE)
+			_oval(img, 10, cy + 6, 4.4, 3.6, _ring(hair))
 			_oval(img, 10, cy + 6, 3.4, 2.6, hair)
 			_px(img, 8, y + 5, 3, 1, hair.lightened(0.12))
 			_line(img, Vector2i(4, y + 2), Vector2i(15, y + 9), accent)   # the hairpin through it
@@ -2677,7 +2682,7 @@ static func _portrait_body(img: Image, look: Dictionary, child: bool) -> void:
 	var top := Color(look.get("top", "3b6fd1"))
 	var accent := Color(look.get("accent", look.get("waist", "e8e2d0")))
 	var w := 13.0 if child else (18.0 if look.get("outfit", "") == "happi" else 16.0)
-	_oval(img, 20, 45, w + 1, 12, OUTLINE)
+	_oval(img, 20, 45, w + 1, 12, _ring(top))
 	_oval(img, 20, 45, w, 11, top)
 	match look.get("outfit", ""):
 		"kimono":
@@ -2705,7 +2710,7 @@ static func _portrait_hair(img: Image, look: Dictionary, cy: float) -> void:
 	var y := int(cy)
 	match look.get("hair_style", ""):
 		"bun":
-			_oval(img, 20, cy - 14, 4.5, 3.5, OUTLINE)
+			_oval(img, 20, cy - 14, 4.5, 3.5, _ring(hair))
 			_oval(img, 20, cy - 14, 3.5, 2.5, hair)
 			_oval(img, 20, cy - 9, 10.5, 4.6, hair)
 			for side in [-1.0, 1.0]:                                  # soft wings over the ears
@@ -2761,7 +2766,7 @@ static func _portrait_hair(img: Image, look: Dictionary, cy: float) -> void:
 			_px(img, 12, y - 6, 7, 1, hair)
 			_px(img, 21, y - 6, 7, 1, hair)
 			for i in 5:                                               # the braid over the left shoulder
-				_oval(img, 11, cy + 5 + i * 3, 2.6, 2.0, OUTLINE)
+				_oval(img, 11, cy + 5 + i * 3, 2.6, 2.0, _ring(hair))
 				_oval(img, 11, cy + 5 + i * 3, 1.8, 1.3, hair if i % 2 == 0 else hair.lightened(0.1))
 			_px(img, 9, y + 19, 4, 2, accent)                         # tied with a straw cord
 		"low_knot":
@@ -2777,9 +2782,9 @@ static func _portrait_hair(img: Image, look: Dictionary, cy: float) -> void:
 			_px(img, 27, y - 7, 3, 5, hair)
 			_px(img, 14, y - 6, 3, 2, hair)
 			_px(img, 21, y - 6, 4, 2, hair)
-			_oval(img, 20, cy - 8, 16, 3.6, OUTLINE)
+			_oval(img, 20, cy - 8, 16, 3.6, _ring(accent))
 			_oval(img, 20, cy - 8, 15, 2.8, accent)                   # the brim
-			_oval(img, 20, cy - 12, 8.5, 5.5, OUTLINE)
+			_oval(img, 20, cy - 12, 8.5, 5.5, _ring(accent))
 			_oval(img, 20, cy - 12, 7.5, 4.8, accent)                 # the crown
 			_px(img, 13, y - 11, 14, 2, Color("5a6a3a"))              # a cord band
 			for x in range(14, 27, 3):                                # the weave
