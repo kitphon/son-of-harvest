@@ -386,6 +386,21 @@ func _fish_mine_wild_art_refined() -> void:
 	check(fish.size() > 0 and mine.size() > 0 and wild.size() > 0, "fish/mine/wild art: the item lists are not empty")
 	for c in cases:
 		var img := PlaceholderArt.image(c[0])
+		var seen := {}
+		for y in img.get_height():
+			for x in img.get_width():
+				var p := img.get_pixel(x, y)
+				if p.a > 0.0:
+					seen[p.to_html()] = true
+		check(img.get_size() == Vector2i(14, 14), "fish/mine/wild art: %s is 14 x 14" % c[0])
+		check(not seen.has(old), "fish/mine/wild art: %s has no old outline colour" % c[0])
+		check(seen.size() >= 4, "fish/mine/wild art: %s has several colours (%d)" % [c[0], seen.size()])
+		var tn := ItemArt.tones(c[1])
+		# Thin parts (a fish's body) can be all lit edge and part line, so the shade tone or the deep one.
+		check(seen.has(FigureArt._key(tn[2])) and (seen.has(FigureArt._key(tn[0])) or seen.has(FigureArt._key(tn[3]))),
+			"fish/mine/wild art: %s shows its main material's lit tone and its shade or deep one" % c[0])
+
+
 ## The kitchen tools, the keepsakes and the ribbons (ItemArt, the refined pass): every key keeps
 ## its 14 x 14 picture, has no pixel of the old near-black outline and several colours.
 func _kitchen_keep_ribbon_art_refined() -> void:
@@ -403,15 +418,6 @@ func _kitchen_keep_ribbon_art_refined() -> void:
 		for y in img.get_height():
 			for x in img.get_width():
 				var p := img.get_pixel(x, y)
-				if p.a > 0.0:
-					seen[p.to_html()] = true
-		check(img.get_size() == Vector2i(14, 14), "fish/mine/wild art: %s is 14 x 14" % c[0])
-		check(not seen.has(old), "fish/mine/wild art: %s has no old outline colour" % c[0])
-		check(seen.size() >= 4, "fish/mine/wild art: %s has several colours (%d)" % [c[0], seen.size()])
-		var tn := ItemArt.tones(c[1])
-		# Thin parts (a fish's body) can be all lit edge and part line, so the shade tone or the deep one.
-		check(seen.has(FigureArt._key(tn[2])) and (seen.has(FigureArt._key(tn[0])) or seen.has(FigureArt._key(tn[3]))),
-			"fish/mine/wild art: %s shows its main material's lit tone and its shade or deep one" % c[0])
 				if p.a == 0.0:
 					continue
 				seen[p.to_html()] = true

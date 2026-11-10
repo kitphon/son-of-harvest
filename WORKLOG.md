@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Merge: food, fish / mine / wild and kitchen / keepsake / ribbon icons refined
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged b2d3c84 food icons (Opus), 73fc8f4 fish, mine finds and wild things (Sonnet) and
+  4b28a03 kitchen tools, keepsakes and ribbons (Haiku), each from its own worktree.
+  scripts/art/placeholder_art.gd merged without a conflict; WORKLOG, ROADMAP and the run list of
+  tests/test_inventory.gd kept every side. The two new test functions that git had interleaved
+  (`_fish_mine_wild_art_refined`, `_kitchen_keep_ribbon_art_refined`) were put back whole from
+  their branches. ROADMAP's open item now names only the HUD's coin, stamina and weather icons.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`
+  (test_inventory rerun after the fix); the smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`) print 0 ERROR or WARNING lines. No screenshot of the merged tree.
+- Left / next: the HUD's coin / stamina / weather icons still have the old outline; the Windows
+  .exe still waits on the export templates.
+
 ## 2026-11-10 — Food icon art, refined
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: the food icons (`ui:food:<id>`, every food and dish in data/foods.json, and so the onigiri
