@@ -428,8 +428,9 @@ static func villager_top(id: String) -> int:
 
 
 ## The near-black outline. Every field, village, festival and story picture is laid in flat
-## materials and toned by ItemArt.refine now. Still laid by hand: the fish bite's "!" box
-## (`_fish_fx`) and the portraits' first pass before PortraitArt.refine (`_portrait_of`). Tests use it as a colour to look for.
+## materials and toned by ItemArt.refine now (the fish float and bite box too). Still laid by
+## hand: the portraits' first pass before PortraitArt.refine (`_portrait_of`). Tests use it as
+## a colour to look for.
 const OUTLINE := Color("2a1e1e")
 const _STAKE := Color("b08a5a")
 const _DEFAULT_LOOK := {"shape": "bush", "leaf": "5f9e3a", "fruit": "e8a23a"}
