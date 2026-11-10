@@ -1496,6 +1496,14 @@ func _scoop_art() -> void:
 		check(black <= 2, "fish look %d has no black outline (%d near-black pixels: eyes only)" % [look, black])
 		seen[img.get_data().hex_encode()] = true
 	check(seen.size() == looks, "the three fish pictures differ")
+	# The black look must show against the tub's water: its body base (the centre, lit from the
+	# upper left) differs from the water's value by a quarter, and its lit back edge is paler still.
+	var black := PlaceholderArt.image(PlaceholderArt.scoop_fish_key(2))
+	var water_v: float = Color("5a9ab8").v   # ScoopScreen.WATER (not referenced here: it compiles the screen early)
+	var base_v: float = black.get_pixel(12, 5).v
+	check(absf(base_v - water_v) >= 0.25, "the black fish's body (value %.2f) differs from the water (%.2f) by 0.25" % [base_v, water_v])
+	var lit_v: float = black.get_pixel(13, 3).v
+	check(lit_v > base_v + 0.1, "the black fish's lit back edge (%.2f) is paler than its body (%.2f)" % [lit_v, base_v])
 	check(PlaceholderArt.scoop_fish_key(9) == "scoop:fish:2" and PlaceholderArt.scoop_fish_key(-1) == "scoop:fish:0", "an unknown look is clamped")
 	var src := FileAccess.get_file_as_string("res://scripts/ui/scoop_screen.gd")
 	check(src.contains("PlaceholderArt.tex(PlaceholderArt.scoop_fish_key(") and not src.contains("draw_colored_polygon"), "the screen draws the fish textures, not shapes")

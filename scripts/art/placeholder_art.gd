@@ -4083,7 +4083,9 @@ static func _usu(dough: int) -> Image:
 
 ## Goldfish tones per look (GoldfishScoop `look`): body base, fin / patch base. Each is toned in
 ## three (lit from the upper left, so the upper edge of the fish is lit) with a darker rim.
-const SCOOP_FISH := [[Color("f06a2a"), Color("f8b070")], [Color("f4ece0"), Color("e0482a")], [Color("3a3840"), Color("6a6470")]]
+## The black look is a dark blue-grey, not near black, so it shows against the tub's water (value
+## about 0.72, WATER in ScoopScreen); its fins are pale and its back edge and eye ring are lit.
+const SCOOP_FISH := [[Color("f06a2a"), Color("f8b070")], [Color("f4ece0"), Color("e0482a")], [Color("4a5668"), Color("b8c4d4")]]
 const SCOOP_FISH_SIZE := Vector2i(20, 10)
 
 
@@ -4108,10 +4110,18 @@ static func _scoop_fish(look: int) -> Image:
 	# The body: deep tone, then base, then the lit upper edge.
 	_oval(img, 12, 5, 7, 3.3, body.darkened(0.3))
 	_oval(img, 12, 4.6, 6.4, 2.7, body)
-	_oval(img, 11.4, 3.6, 4.6, 1.2, body.lightened(0.22))
+	# The black look (2) lifts its back edge further and rings its eyes pale, so its shape shows.
+	_oval(img, 11.4, 3.6, 4.6, 1.2, body.lightened(0.4 if look == 2 else 0.22))
 	# The eye and a patch.
 	_px(img, 16, 3, 1, 1, Color("14181c"))
 	_px(img, 16, 6, 1, 1, Color("14181c"))
+	if look == 2:
+		for eye in [Vector2i(16, 3), Vector2i(16, 6)]:
+			for dy in [-1, 0, 1]:
+				for dx in [-1, 0, 1]:
+					var p: Vector2i = eye + Vector2i(dx, dy)
+					if (dx != 0 or dy != 0) and img.get_pixel(p.x, p.y).a > 0.0:
+						img.set_pixel(p.x, p.y, Color("dfe6ee"))
 	_px(img, 9, 3, 3, 2, fin)
 	_px(img, 9, 3, 2, 1, fin.lightened(0.18))
 	# A darker rim instead of a black outline.
