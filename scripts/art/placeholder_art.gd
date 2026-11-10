@@ -2674,9 +2674,9 @@ static func _face(speaker: String, expression: String) -> Image:
 	var skin := Color(look.get("skin", "f2c79b"))
 	var hair := Color(look.get("hair", "4a3020"))
 	var hat := Color(look.get("hat", "c8452c"))
-	var ink := Color("2a1e1e")
-	var img := _blank(40, 40)
-	_px(img, 0, 0, 40, 40, Color(look.get("bg", "c8d8c0")))
+	var ink := PortraitArt.eye()
+	var lips := PortraitArt.mouth(skin)
+	var img := _blank(40, 40)                                            # the figure alone; the background goes under at the end
 	_oval(img, 20, 44, 15, 10, Color(look.get("clothes", "3b6fd1")))     # shoulders
 	_px(img, 17, 29, 6, 5, skin.darkened(0.15))                          # neck
 	_oval(img, 20, 20, 10.5, 11.5, OUTLINE)
@@ -2693,6 +2693,9 @@ static func _face(speaker: String, expression: String) -> Image:
 		_px(img, 28, 13, 2, 7, hair)
 		_oval(img, 20, 11, 10.5, 5.5, hat)                               # the cap
 		_px(img, 9, 13, 23, 2, hat.darkened(0.25))                       # its brim
+	var clothes := Color(look.get("clothes", "3b6fd1"))
+	PortraitArt.refine(img, [{"base": skin, "skin": true, "extra": [[skin.darkened(0.15), 0]]}, {"base": hair},
+		{"base": hat, "extra": [[hat.darkened(0.25), 0]]}, {"base": clothes}])
 	var eye_y := 21
 	match expression:
 		"smile":
@@ -2700,16 +2703,16 @@ static func _face(speaker: String, expression: String) -> Image:
 				_px(img, x, eye_y, 1, 1, ink)
 				_px(img, x + 1, eye_y - 1, 2, 1, ink)
 				_px(img, x + 3, eye_y, 1, 1, ink)
-			_px(img, 17, 27, 6, 1, ink)
-			_px(img, 16, 26, 1, 1, ink)
-			_px(img, 23, 26, 1, 1, ink)
+			_px(img, 17, 27, 6, 1, lips)
+			_px(img, 16, 26, 1, 1, lips)
+			_px(img, 23, 26, 1, 1, lips)
 			_px(img, 12, 24, 3, 1, Color("e89a8a"))
 			_px(img, 25, 24, 3, 1, Color("e89a8a"))
 		"surprised":
 			for x in [15, 24]:
 				_px(img, x, eye_y - 1, 2, 3, ink)
 				_px(img, x - 1, eye_y - 5, 4, 1, hair.darkened(0.3))
-			_px(img, 19, 26, 2, 2, ink)
+			_px(img, 19, 26, 2, 2, lips)
 		"worried":
 			for x in [15, 24]:
 				_px(img, x, eye_y, 2, 2, ink)
@@ -2717,14 +2720,14 @@ static func _face(speaker: String, expression: String) -> Image:
 			_px(img, 15, eye_y - 4, 2, 1, hair.darkened(0.3))
 			_px(img, 23, eye_y - 4, 2, 1, hair.darkened(0.3))
 			_px(img, 25, eye_y - 3, 2, 1, hair.darkened(0.3))
-			_px(img, 18, 27, 4, 1, ink)
-			_px(img, 17, 28, 1, 1, ink)
-			_px(img, 22, 28, 1, 1, ink)
+			_px(img, 18, 27, 4, 1, lips)
+			_px(img, 17, 28, 1, 1, lips)
+			_px(img, 22, 28, 1, 1, lips)
 		_:   # calm
 			for x in [15, 24]:
 				_px(img, x, eye_y, 2, 2, ink)
-			_px(img, 18, 27, 4, 1, ink)
-	return img
+			_px(img, 18, 27, 4, 1, lips)
+	return _portrait_on(img, Color(look.get("bg", "c8d8c0")))
 
 
 # --- villager portraits ------------------------------------------------------
@@ -2753,11 +2756,7 @@ static func _portrait_of(look: Dictionary, face: Dictionary, mood: String, young
 	var skin := Color(look.get("skin", "f2c79b"))
 	var hair := Color(look.get("hair", "4a3020"))
 	var child := "child" in marks
-	var img := _blank(40, 40)
-	var bg := Color(face.get("bg", "c8d8c0"))
-	_px(img, 0, 0, 40, 40, bg)
-	for y in 12:                                                   # light from above
-		_px(img, 0, y, 40, 1, bg.lightened(0.14 * (1.0 - y / 12.0)))
+	var img := _blank(40, 40)                                      # the figure alone; the background goes under at the end
 	var cx := 20.0
 	var cy := 23.0 if young else (22.0 if child else 20.0)
 	var rx := 9.5 if young else (9.0 if child else 9.5)
@@ -2773,8 +2772,9 @@ static func _portrait_of(look: Dictionary, face: Dictionary, mood: String, young
 	_px(img, 26 if child else 27, int(cy) - 2, 2, 9, skin.darkened(0.06))   # the shaded side
 	var ey := int(cy) + 2                                          # eye row
 	var my := ey + (5 if child else 6)                             # mouth row
-	_px(img, 20, ey + 2, 1, 2, skin.darkened(0.2))                 # nose
 	_portrait_hair(img, look, cy)
+	PortraitArt.refine(img, _portrait_materials(look))             # the three tones, the deep lines, the rim
+	_px(img, 20, ey + 2, 1, 2, skin.darkened(0.2))                 # nose
 	if "wrinkles" in marks:
 		for x in [13, 26]:
 			_px(img, x, ey - 1, 1, 1, skin.darkened(0.2))
@@ -2784,7 +2784,7 @@ static func _portrait_of(look: Dictionary, face: Dictionary, mood: String, young
 	if "stubble" in marks:
 		for y in range(my - 1, int(cy + ry)):
 			for x in range(12, 28):
-				if (x + y) % 2 == 0 and img.get_pixel(x, y).is_equal_approx(skin):
+				if (x + y) % 2 == 0 and PortraitArt.is_tone(img.get_pixel(x, y), skin, true):
 					img.set_pixel(x, y, skin.darkened(0.16))
 	if "plaster" in marks:                                         # a sticking plaster on the cheek
 		_px(img, 24, ey + 3, 4, 2, Color("f4dcb0"))
@@ -2792,11 +2792,41 @@ static func _portrait_of(look: Dictionary, face: Dictionary, mood: String, young
 	if "mole" in marks:
 		img.set_pixel(24, my - 1, skin.darkened(0.45))
 	var brow := hair.darkened(0.35) if hair.v > 0.3 else hair
-	_portrait_mood(img, mood, ey, my, brow, 2 if "stubble" in marks else 1, child or "wrinkles" in marks)
+	_portrait_mood(img, mood, ey, my, brow, 2 if "stubble" in marks else 1, child or "wrinkles" in marks, PortraitArt.mouth(skin))
 	if young:                                                      # round cheeks
 		_px(img, 12, ey + 3, 3, 2, Color("eaa08c"))
 		_px(img, 25, ey + 3, 3, 2, Color("eaa08c"))
+	return _portrait_on(img, Color(face.get("bg", "c8d8c0")))
+
+
+## Portrait `fig` (drawn on a clear picture) over its background, lighter towards the top.
+static func _portrait_on(fig: Image, bg: Color) -> Image:
+	var img := _blank(40, 40)
+	_px(img, 0, 0, 40, 40, bg)
+	for y in 12:                                                   # light from above
+		_px(img, 0, y, 40, 1, bg.lightened(0.14 * (1.0 - y / 12.0)))
+	img.blend_rect(fig, Rect2i(0, 0, 40, 40), Vector2i.ZERO)
 	return img
+
+
+## The materials of a portrait in `look` for PortraitArt.refine, each with the plain darker and
+## lighter shades the drawing gives it (the neck, the ears, the shaded cheek; the hair's combed
+## lines, partings and shine; the top's folds and kimono line; the accent's knots and pins).
+static func _portrait_materials(look: Dictionary) -> Array:
+	var skin := Color(look.get("skin", "f2c79b"))
+	var hair := Color(look.get("hair", "4a3020"))
+	var top := Color(look.get("top", "3b6fd1"))
+	var out := [
+		{"base": skin, "skin": true, "extra": [[skin.darkened(0.18), 0], [skin.darkened(0.08), 1], [skin.darkened(0.06), 0]]},
+		{"base": hair, "extra": [[hair.darkened(0.12), 0], [hair.darkened(0.14), 0], [hair.darkened(0.15), 0], [hair.darkened(0.3), 3],
+			[hair.lightened(0.1), 2], [hair.lightened(0.12), 2], [hair.lightened(0.15), 2]]},
+		{"base": top, "extra": [[top.darkened(0.12), 0], [top.darkened(0.18), 0], [top.darkened(0.25), 3]]},
+		{"base": Color(look.get("lower", "3a3430"))},
+	]
+	for h in [look.get("accent", look.get("waist", "c8a050")), look.get("accent", look.get("waist", "e8e2d0")), look.get("waist", "c8a050")]:
+		var c := Color(str(h))
+		out.append({"base": c, "extra": [[c.darkened(0.1), 0], [c.darkened(0.18), 0], [c.darkened(0.2), 0], [c.lightened(0.2), 2]]})
+	return out
 
 
 ## The hair styles a portrait can draw: the figures' own (FigureArt) and a few more that only
@@ -2959,8 +2989,8 @@ static func _portrait_hair(img: Image, look: Dictionary, cy: float) -> void:
 
 ## The eyes, brows and mouth for `mood`. `ey` / `my` are the eye and mouth rows, `brow_h`
 ## the brows' thickness; `soft` eyes (an old woman's, a boy's) are drawn rounder.
-static func _portrait_mood(img: Image, mood: String, ey: int, my: int, brow: Color, brow_h: int, soft: bool) -> void:
-	var ink := OUTLINE
+static func _portrait_mood(img: Image, mood: String, ey: int, my: int, brow: Color, brow_h: int, soft: bool, lips: Color) -> void:
+	var ink := PortraitArt.eye()
 	var white := Color("f8f4ec")
 	var eyes := [15, 23]                                          # each eye's left pixel
 	match mood:
@@ -2970,9 +3000,9 @@ static func _portrait_mood(img: Image, mood: String, ey: int, my: int, brow: Col
 				_px(img, x, ey - 1, 2, 1, ink)
 				_px(img, x + 2, ey, 1, 1, ink)
 				_px(img, x - 1, ey - 4, 4, brow_h, brow)
-			_px(img, 16, my - 1, 1, 1, ink)                       # an open smile
-			_px(img, 23, my - 1, 1, 1, ink)
-			_px(img, 17, my, 6, 1, ink)
+			_px(img, 16, my - 1, 1, 1, lips)                       # an open smile
+			_px(img, 23, my - 1, 1, 1, lips)
+			_px(img, 17, my, 6, 1, lips)
 			_px(img, 18, my + 1, 4, 1, Color("b84a4a"))
 			_px(img, 12, ey + 3, 3, 1, Color("e89a8a"))           # blush
 			_px(img, 25, ey + 3, 3, 1, Color("e89a8a"))
@@ -2982,9 +3012,9 @@ static func _portrait_mood(img: Image, mood: String, ey: int, my: int, brow: Col
 			for i in brow_h:                                      # brows up in the middle
 				_line(img, Vector2i(13, ey - 2 + i), Vector2i(16, ey - 4 + i), brow)
 				_line(img, Vector2i(26, ey - 2 + i), Vector2i(23, ey - 4 + i), brow)
-			_px(img, 18, my, 4, 1, ink)                           # a frown
-			_px(img, 17, my + 1, 1, 1, ink)
-			_px(img, 22, my + 1, 1, 1, ink)
+			_px(img, 18, my, 4, 1, lips)                           # a frown
+			_px(img, 17, my + 1, 1, 1, lips)
+			_px(img, 22, my + 1, 1, 1, lips)
 			_px(img, 15, ey + 3, 1, 2, Color("8ac8f0"))           # a tear
 		"surprised":
 			for x in eyes:
@@ -2993,7 +3023,7 @@ static func _portrait_mood(img: Image, mood: String, ey: int, my: int, brow: Col
 				_px(img, x - 1, ey - 5, 1, brow_h, brow)          # brows up high, arched
 				_px(img, x, ey - 6, 2, brow_h, brow)
 				_px(img, x + 2, ey - 5, 1, brow_h, brow)
-			_px(img, 19, my - 1, 2, 3, ink)                       # an O
+			_px(img, 19, my - 1, 2, 3, lips)                       # an O
 			_px(img, 19, my, 2, 1, Color("b84a4a"))
 		"angry":
 			for x in eyes:
@@ -3001,7 +3031,7 @@ static func _portrait_mood(img: Image, mood: String, ey: int, my: int, brow: Col
 			for i in brow_h + 1:                                  # brows down in the middle
 				_line(img, Vector2i(13, ey - 4 + i), Vector2i(16, ey - 2 + i), brow)
 				_line(img, Vector2i(26, ey - 4 + i), Vector2i(23, ey - 2 + i), brow)
-			_px(img, 17, my - 1, 6, 3, ink)                       # gritted teeth
+			_px(img, 17, my - 1, 6, 3, lips)                       # gritted teeth
 			_px(img, 18, my, 4, 1, white)
 			var red := Color("d8342c")                            # a cross mark of temper
 			for p in [Vector2i(32, 4), Vector2i(35, 4), Vector2i(32, 8), Vector2i(35, 8)]:
@@ -3013,7 +3043,7 @@ static func _portrait_mood(img: Image, mood: String, ey: int, my: int, brow: Col
 				if soft:
 					img.set_pixel(x, ey - 1, white)
 				_px(img, x - 1, ey - 3 - (1 if soft else 0), 4, brow_h, brow)
-			_px(img, 18, my, 4, 1, ink)
+			_px(img, 18, my, 4, 1, lips)
 
 
 ## A keepsake: a glass wind chime (bell, clapper, paper strip), a round paper fan on a

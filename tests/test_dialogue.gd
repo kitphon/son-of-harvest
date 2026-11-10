@@ -166,6 +166,7 @@ func _init() -> void:
 		check(who[speaker].get("name", "") != "" and PixelFont.missing(who[speaker].name) == "", "%s has a name the font can draw" % speaker)
 
 	_portraits()
+	_refined_portraits()
 
 	# The Game side: talk() asks the view, and an open text box holds the clock.
 	var game: Node = load("res://scripts/autoload/game.gd").new()
@@ -297,6 +298,100 @@ func _portraits() -> void:
 	var narrow := TextBoxLayout.wrap_rows(text, TextBoxLayout.text_w(true)).size()
 	check(narrow <= TextBoxLayout.ROWS and TextBoxLayout.wrap_rows(text, TextBoxLayout.text_w(false)).size() <= narrow,
 		"a line that fits beside a portrait fits without one")
+
+
+## The refined portraits (PortraitArt, data/portrait_art.json): every villager in every mood,
+## the little one at each stage for each spouse who can marry, and the generic face:<speaker>
+## keys. Each is 40 x 40 and opaque, has no black part line left, shows the skin's shade, base
+## and lit tones with the lit side to the left of the shade side, draws its lines in the
+## skin's deep tone, and the stubble still finds the skin. Every mood still looks different.
+func _refined_portraits() -> void:
+	var a := PortraitArt.art()
+	check(a.has("tone") and a.has("deep") and a.has("rim") and int(a.get("band", 0)) >= 1, "data/portrait_art.json has the numbers")
+	var line := PlaceholderArt.OUTLINE.to_html()
+	var sets := []   # [key, skin colour, label]
+	for id in Villagers.all():
+		for m in DialogueRunner.MOODS:
+			sets.append(["portrait:%s:%s" % [id, m], Color(Villagers.look(id).get("skin", "f2c79b")), id])
+	for sp in ["sayo", "fumi", "haru", "mio", "kaede", "shino"]:
+		var c := Child.look(Villagers.look(sp), "f2c79b")
+		for st in Child.FIGURE_STAGES:
+			var seen := {}
+			for m in DialogueRunner.MOODS:
+				var key := "portrait:%s:%s:%s:%s:%s:%s:%s" % [Child.ID, m, st, Child.small_style(str(c.hair_style), st), c.skin, c.hair, c.top]
+				sets.append([key, Color(str(c.skin)), "child of %s %s" % [sp, st]])
+				seen[PlaceholderArt.tex(key).get_image().get_data()] = true
+			check(seen.size() == DialogueRunner.MOODS.size(), "child of %s, %s: every mood looks different" % [sp, st])
+	var who := DialogueRunner.speakers()
+	for sp in who:
+		if who[sp] is Dictionary and who[sp].has("face"):
+			for e in DialogueRunner.EXPRESSIONS:
+				sets.append(["face:%s:%s" % [sp, e], Color(who[sp].face.get("skin", "f2c79b")), "face " + sp])
+	var bad := []
+	for s in sets:
+		var img: Image = PlaceholderArt.tex(s[0]).get_image()
+		img.convert(Image.FORMAT_RGBA8)
+		var tn := PortraitArt.tones(s[1], true)
+		var keys := []
+		for t in tn:
+			keys.append(_rgba8(t))
+		var count := [0, 0, 0, 0]
+		var xs := [0.0, 0.0, 0.0]
+		var black := 0
+		var clear := 0
+		for y in 40:
+			for x in 40:
+				var p := img.get_pixel(x, y)
+				if p.a < 1.0:
+					clear += 1
+				var k := p.to_html()
+				if k == line:
+					black += 1
+				for i in 4:
+					if k == keys[i]:
+						count[i] += 1
+						if i < 3:
+							xs[i] += x
+		var why := ""
+		if img.get_size() != Vector2i(40, 40) or clear > 0:
+			why = "not a full 40 x 40"
+		elif black > 0:
+			why = "%d black line pixels" % black
+		elif count[0] == 0 or count[1] == 0 or count[2] == 0:
+			why = "skin tones %s" % [count]
+		elif xs[2] / count[2] >= xs[0] / count[0]:
+			why = "lit not left of shade"
+		elif count[3] == 0:
+			why = "no line in the skin's deep tone"
+		if why != "":
+			bad.append("%s (%s)" % [s[0], why])
+	check(bad.is_empty(), "every portrait (%d) is refined: %s" % [sets.size(), bad.slice(0, 6)])
+	check(sets.size() >= Villagers.all().size() * DialogueRunner.MOODS.size() + 90, "the portraits checked include the child and the faces (%d)" % sets.size())
+	# The stubble is still drawn over the toned skin.
+	var stubbled := PlaceholderArt.tex("portrait:hachiro:neutral").get_image()
+	stubbled.convert(Image.FORMAT_RGBA8)
+	var stub := _rgba8(Color(Villagers.look("hachiro").get("skin", "d9a473")).darkened(0.16))
+	var n := 0
+	for y in 40:
+		for x in 40:
+			if stubbled.get_pixel(x, y).to_html() == stub:
+				n += 1
+	check(n >= 10, "Hachiro's stubble is drawn on the toned skin (%d)" % n)
+	# The eyes are drawn in the data's eye colour, the mouth in the skin's deep tone.
+	var tome := PlaceholderArt.tex("portrait:tome:neutral").get_image()
+	tome.convert(Image.FORMAT_RGBA8)
+	var eyes := 0
+	for y in 40:
+		for x in 40:
+			if tome.get_pixel(x, y).to_html() == _rgba8(PortraitArt.eye()):
+				eyes += 1
+	check(eyes >= 8, "Tome's eyes are in the eye colour (%d)" % eyes)
+
+
+func _rgba8(c: Color) -> String:
+	var q := Image.create_empty(1, 1, false, Image.FORMAT_RGBA8)
+	q.set_pixel(0, 0, c)
+	return q.get_pixel(0, 0).to_html()
 
 
 func check(ok: bool, what: String) -> void:
