@@ -3232,6 +3232,7 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	crawler_back()   # never saved: the crawler at the plan's place
 	Child.sync_stage(flags, day_number())   # the cradle follows the loaded day
 	Scion.record(flags, day_number())   # a save from before the twig's planting day: planted the day it is loaded on
+	DateFlags.day_start(flags, year, season_name(), day)   # a date already past (Nana's scarf, fall 19): set at the load, as the morning would
 	sync_build_flag()
 	MapManager.set_built(house_built)
 	MapManager.set_flags(flags)

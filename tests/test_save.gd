@@ -51,7 +51,8 @@ func _init() -> void:
 	a.inventory.move("tools", 0, "chest", 4)   # the hoe put away in the chest
 	a.tool_levels.hoe = 3
 	a.tool_levels.can = 5
-	a.flags = {"bin_note_read": true, "times_asked": 3, "answer": "later"}
+	# nana_scarf: the fixture is in year 2, where the date rule has set it already (DateFlags)
+	a.flags = {"bin_note_read": true, "times_asked": 3, "answer": "later", "nana_scarf": true}
 	a.tool_exp.hoe = 950
 	a.tool_exp.axe = 12
 	a.events_seen = {"first_morning": true, "pond_first": true}
@@ -214,7 +215,7 @@ func _init() -> void:
 	old.erase("flags")
 	_put(JSON.stringify({"version": 1, "game": old}))
 	err = SaveGame.read(b, PATH)
-	check(err == "" and b.flags == {}, "save without flags loads with none (%s)" % err)
+	check(err == "" and b.flags == {"nana_scarf": true}, "save without flags loads with none but the date rule's nana_scarf (%s)" % err)
 
 	# Kiku's persimmon keeps its planting day; a save from before the day was kept (the place
 	# chosen, no day) loads with the twig planted on the loaded day, a sapling (Scion).
@@ -228,6 +229,37 @@ func _init() -> void:
 	err = SaveGame.read(b, PATH)
 	check(err == "" and b.flags.get("kiku_scion_day") == b.day_number() and Scion.stage(b.flags, b.day_number()) == "sapling",
 		"an old save's persimmon is planted the day it loads (%s, %s)" % [err, str(b.flags.get("kiku_scion_day"))])
+
+	# Nana's scarf (data/date_flags.json): a save loaded on fall 20 or later has the flag at once,
+	# as its morning would have set it; a save from before fall 20 does not get it.
+	old = saved.duplicate(true)
+	old.flags = {}
+	for d in [[1, 2, 20], [1, 3, 1], [2, 0, 1]]:
+		old.year = d[0]
+		old.season = d[1]
+		old.day = d[2]
+		_put(JSON.stringify({"version": 1, "game": old}))
+		err = SaveGame.read(b, PATH)
+		check(err == "" and b.flags.get("nana_scarf") == true, "a save on year %d, season %d, day %d loads with nana_scarf (%s)" % [d[0], d[1], d[2], err])
+	for d in [[1, 2, 19], [1, 2, 1], [1, 1, 28]]:
+		old.year = d[0]
+		old.season = d[1]
+		old.day = d[2]
+		_put(JSON.stringify({"version": 1, "game": old}))
+		err = SaveGame.read(b, PATH)
+		check(err == "" and not b.flags.has("nana_scarf"), "a save on year %d, season %d, day %d loads without nana_scarf (%s)" % [d[0], d[1], d[2], err])
+
+	# The morning itself: Game.end_day moves the date on, and fall 20's morning sets the flag
+	# but fall 19's does not.
+	var m: Node = _game(game_script, crops, 5)
+	m.year = 1
+	m.season = 2
+	m.day = 18
+	m.end_day()
+	check(m.day == 19 and not m.flags.has("nana_scarf"), "the morning of fall 19 does not set nana_scarf")
+	m.end_day()
+	check(m.day == 20 and m.flags.get("nana_scarf") == true, "the morning of fall 20 sets nana_scarf")
+	m.free()
 
 	# A save from before fatigue existed loads rested.
 	old = saved.duplicate(true)

@@ -24,6 +24,24 @@ Agent: Claude Code (claude-sonnet) · Commit: this commit
   ERROR/WARNING lines.
 - Left / next: nothing; no other suite printed the exit error.
 
+## 2026-11-10 — Nana's scarf set when an old save loads past fall 19
+Agent: Claude Code (claude-haiku) · Commit: this commit
+- Done: Game.from_dict calls DateFlags.day_start for the loaded date, right after Scion.record, so a save
+  from fall 20 or later without nana_scarf has the flag at once (the same function the morning uses; no
+  copy of the rule). A save from before fall 20 does not get it. Closes the open item of the scarf entry
+  below. Reasoning: a save loaded on fall 20 would otherwise show the jizo bare until the next morning.
+- Checked: test_save has new load checks: years 1 fall 20, winter 1 and year 2 spring 1 load with the flag;
+  fall 19, fall 1 and summer 28 of year 1 load without it. A new check runs Game.end_day (the morning) on a
+  scratch game: moved from fall 18 to 19 it does not set the flag, from 19 to 20 it does. The fixture's
+  flags carry nana_scarf (year 2 always has it under the rule), and the "no flags" load expects only that
+  flag. Suites, run one by one on this tree after `--import`: all 31 print `OK (0 failed)`, test_save with
+  no output lines besides its OK. test_inventory still prints its `ERROR: 8 resources still in use at exit`
+  and `WARNING: 19 ObjectDB instances were leaked at exit` lines, and test_title its two look warnings; both
+  noted before, not from this change. The four smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`) print no ERROR or WARNING line.
+- Left / next: nothing open for the scarf. The rule counts a year after the first as past in every season
+  (DateFlags.passed), so a year-2 save always carries the flag, as before this change.
+
 ## 2026-11-10 — Merge: Nana's scarf from the morning after, Kiku's persimmons to pick, farmer art refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 3b4edc3 Nana's scarf set on the morning after her birthday (Haiku, own worktree),
