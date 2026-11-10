@@ -429,8 +429,10 @@ static func villager_top(id: String) -> int:
 	return FigureArt.head_top(Villagers.look(id))
 
 
-## Field objects and crops share one style with the farmer: shapes in 2-3 shades, then a
-## 1 px dark outline around the whole silhouette.
+## The near-black outline. Every field, village, festival and story picture is laid in flat
+## materials and toned by ItemArt.refine now. Still laid by hand: the fish bite's "!" box
+## (`_fish_fx`) and the portraits' first pass before PortraitArt.refine (`_face`,
+## `_portrait_of`). Tests use it as a colour to look for.
 const OUTLINE := Color("2a1e1e")
 const _STAKE := Color("b08a5a")
 const _DEFAULT_LOOK := {"shape": "bush", "leaf": "5f9e3a", "fruit": "e8a23a"}
@@ -637,22 +639,6 @@ static func _line(img: Image, a: Vector2i, b: Vector2i, c: Color) -> void:
 	for i in n + 1:
 		var p := Vector2(a).lerp(Vector2(b), float(i) / maxi(n, 1)).round()
 		_px(img, int(p.x), int(p.y), 1, 1, c)
-
-
-## Dark outline on every clear pixel that touches the silhouette (4 neighbours).
-static func _outline(img: Image) -> Image:
-	var src := img.duplicate() as Image
-	var size := img.get_size()
-	for y in size.y:
-		for x in size.x:
-			if src.get_pixel(x, y).a > 0:
-				continue
-			for d in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
-				var q: Vector2i = Vector2i(x, y) + d
-				if q.x >= 0 and q.y >= 0 and q.x < size.x and q.y < size.y and src.get_pixelv(q).a > 0:
-					img.set_pixel(x, y, OUTLINE)
-					break
-	return img
 
 
 ## A field obstacle, 16 x 16: a rock, a fallen branch, a weed, a stump. Laid in flat materials

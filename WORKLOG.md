@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Merge: story props, stall wares and the outline cleanup
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three subagents in their own worktrees, the model picked by the job: 39544bf story
+  props refined (Opus), 7a34714 festival stall wares refined (Sonnet), 3aee9ec the OUTLINE
+  comment and the old portrait code check (Haiku). Merged into main; WORKLOG and ROADMAP keep
+  every side. On the merge: PlaceholderArt._outline removed (no caller left once the story
+  props were refined) and the OUTLINE comment rewritten to say only `_fish_fx`'s "!" box and
+  the portraits' first pass (`_face`, `_portrait_of`) still lay it.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`;
+  the four smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print 0 ERROR or
+  WARNING lines.
+- Left / next: the old `face:` key (`_face`) is only reached by a test_dialogue check; drop
+  both. The Windows .exe still waits on the export templates.
+
 ## 2026-11-10 — Story props art, refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: PlaceholderArt._story (boat_father / boat_new, captain_jar, frog, jizo_bibs, jizo_scarf,
@@ -54,6 +68,23 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Checked: test_festivals `_ware_art_refined`: every ware is 8 x 12, has no 2a1e1e pixel and
   several colours, and the soba's steam stays soft. All tests/test_*.gd and the smoke runs.
 - Left / next: the story props (`_story`, `_noren_story`, `_scion_*`).
+
+## 2026-11-10 — Placeholder art cleanup: the outline comment and the portrait check
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: the comment above `PlaceholderArt.OUTLINE` no longer says field objects and crops get a
+  1 px outline. It now lists what still draws with it: the story props (`_story`, `_scion_story`
+  with `_outline`), the fish bobber's "!" (`_fish_fx`), and the portraits' first pass before
+  PortraitArt.refine (`_face`, `_portrait_of`). The constant and `_outline` are kept.
+- Checked: the old portrait code. Every `portrait:` key path (`_portrait`, `_child_portrait`,
+  `_portrait_of` and its hair, body, mood and materials helpers) is reached at runtime through
+  DialogueRunner.portrait_key and Child.portrait_key, so it stays. `_face` (the `face:<speaker>:<mood>`
+  key) has no runtime caller, but tests/test_dialogue.gd calls it, so it is not provably dead and
+  stays. Nothing was removed. Story props, `_noren_story`, `_scion_*` and `_ware` untouched.
+- Checked: `--import` ran clean. All 31 tests/test_*.gd print `OK (0 failed)` (test_dialogue:
+  `test_dialogue: OK (0 failed)`). `--headless --path . --quit-after 300 -- --demo` exits 0 with no
+  ERROR lines.
+- Left / next: `_face` can go once test_dialogue stops calling it; the story props still use the
+  outline.
 
 ## 2026-11-10 — Merge: crops, festival decorations and the maple tree refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
