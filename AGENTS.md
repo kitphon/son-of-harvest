@@ -78,7 +78,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Ending (data/ending.json, grading, the values measured, the event and its trigger, the record
   screen, the yearly pages, the first-day look back and the married farmer's line, the child's name and stage in it): `res://tests/test_ending.gd` must print `test_ending: OK (0 failed)`.
   Festivals (calendar, festival day, shops shut, fair weather, the event once a year,
-  decorations and lights in both views, the HUD tag, contests and prizes, the mochi pounding (timing, ranking, partner, ribbon, save, screen), the Moon Night fishing race (clock, creel, ranking, ribbon, save, box), the Lantern Night goldfish scoop (the tub, dips, paper wear and tear, balance, ranking, ribbon, save, screen), the stalls and their
+  decorations and lights in both views, the HUD tag, contests and prizes, the mochi pounding (timing, ranking, partner, ribbon, save, screen), the Moon Night fishing race (clock, creel, ranking, ribbon, save, box), the Lantern Night goldfish scoop (the tub, dips, paper wear and tear, balance, ranking, the farmer's scoop pose at the tub, ribbon, save, screen), the stalls and their
   wares at all four festivals, keepsakes, ribbons and the farmhouse ribbon board, the payout held back, the festival lights lighting the ground and the night lamps): `res://tests/test_festivals.gd` must
   print `test_festivals: OK (0 failed)`.
   The flat view (main_2d.tscn builds, its Player's actions reach FarmActions: tools, holding

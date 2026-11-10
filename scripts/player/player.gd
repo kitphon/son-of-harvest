@@ -46,10 +46,11 @@ func _ready() -> void:
 	add_child(figure)
 
 
-## The picture follows what the farmer does (walking, running, tired, eating, fishing, carrying);
+## The picture follows what the farmer does (walking, running, tired, eating, fishing, carrying,
+## scooping goldfish);
 ## redrawn each frame as the pose steps.
 func _process(delta: float) -> void:
-	anim.step(delta, moving, running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose)
+	anim.step(delta, moving, running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose, Game.scoop_pose())
 	figure.texture = PlaceholderArt.tex(anim.key(facing))
 	figure.flip_h = FarmerAnim.is_mirrored(facing)
 	queue_redraw()

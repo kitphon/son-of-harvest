@@ -124,6 +124,12 @@ const POSES := {
 	# (screen left) down into the water, high on it (0), then pushing down on it, the body
 	# dipping a pixel (1).
 	"pole": [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0]],
+	# The goldfish scoop at the Lantern Night tub: crouched low over the water, knees apart, the
+	# paper scoop held out in front just over it and the small bowl at the belly in the other
+	# hand ("scoop"); just after a dip the scoop comes up to the bowl and the body rises a little
+	# ("scoop_lift"). Colours: data/farmer_art.json `scoop`.
+	"scoop": [[3, -1, 0, 1, 0, 0, 0]],
+	"scoop_lift": [[2, -1, 0, 1, 0, 0, 0]],
 }
 ## Per eat / drink frame: [hand offset from the mouth, what it holds: "bite" (a morsel at the
 ## lips), "chew" (the bitten rest), "cup" (upright at the lips), "tip" (tipped up)].
@@ -219,6 +225,7 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 	var hold := pose.begins_with("hold")
 	var rod := ROD_TIPS.has(pose) or pose == "fish"
 	var poling := pose == "pole"
+	var scoop := pose.begins_with("scoop")
 	var mouth: Array = MOUTH[pose][frame % frames(pose)] if MOUTH.has(pose) else []
 	var sleeve := "wide" if outfit == "kimono" else ("short" if outfit == "shirt_shorts" else "narrow")
 	# Screen-left / -right shoulders (the top-left of each sleeve's first row).
@@ -230,7 +237,7 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 	if style == "long" and not back:
 		_long_hair_behind(img, r, c)
 	# The far arm, behind the body (rod and work poses draw it after, both hands in front).
-	if not rod and not poling:
+	if not rod and not poling and not scoop:
 		_arm(img, far_sh, hd.far, c, sleeve, hold)
 	# Legs: far first, then near. From the front the far leg is on the left, from the back on the right.
 	var far_x: int = (r.bx + 1 if back else r.bx - 3) + p[3]
@@ -254,6 +261,8 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 	if poling:   # the pole from over the head down past the feet, both hands on it
 		_pole(img, r, frame % 2 == 1)
 		_arm(img, far_sh, hd.far, c, sleeve, false)
+	if scoop:   # the far hand reaches round in front of the belly to hold the bowl
+		_arm(img, far_sh, hd.far, c, sleeve, false)
 	_head(img, r, c, style, back, tired)
 	if hold:
 		_arm(img, near_sh, hd.near, c, sleeve, true)
@@ -261,6 +270,10 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 		var at: Vector2i = hd.near
 		var what: String = mouth[1] if not back else ""
 		_arm(img, near_sh, at, c, sleeve, false, what)
+	elif scoop:
+		_arm(img, near_sh, hd.near, c, sleeve, false)
+		_bowl(img, hd.far)   # over the near arm, so it reads against the jacket
+		_poi(img, hd.near, pose == "scoop_lift")
 	elif pose == "post":
 		_arm(img, near_sh, hd.near, c, sleeve, false)
 		_letter(img, hd.near, frame % 2 == 1)
@@ -376,7 +389,7 @@ static func _rig(look: Dictionary, pose: String, frame: int) -> Dictionary:
 	var p := row(pose, frame)
 	var d: int = p[0]
 	var tired := pose.begins_with("tired")
-	var lean := -1.0 if pose == "run" or tired or pose == "fish_bite" else 0.0
+	var lean := -1.0 if pose == "run" or tired or pose == "fish_bite" or pose.begins_with("scoop") else 0.0
 	var bx := 12
 	return {"bx": bx, "cx": float(b.cx) + lean, "cy": float(b.cy) + d + (1.0 if tired else 0.0),
 		"rx": float(b.rx), "ry": float(b.ry), "sh": int(b.sh) + d, "hip": int(b.hip) + d,
@@ -404,6 +417,10 @@ static func _hands(r: Dictionary, back: bool, pose: String, frame: int) -> Dicti
 		var pushed := frame % 2
 		near = _on_pole(r, r.sh - 3 + 2 * pushed)
 		far = _on_pole(r, r.hip - 3 + pushed)
+	elif pose.begins_with("scoop"):   # the scoop out in front low over the water, the bowl at the belly
+		var lift := pose == "scoop_lift"
+		near = Vector2i(r.x0 - (1 if lift else 3), r.hip - 4)
+		far = Vector2i(r.x1 + 2 if back else r.x0 + 1, r.hip - 3)   # from the back, out at the far side
 	elif pose == "post":   # up in front at the chest (from the back, up at the shoulder, toward the door)
 		near = Vector2i(r.x0 - 3 - frame % 2, r.sh + (-2 if back else 1) - frame % 2)
 	elif pose == "work":
@@ -786,6 +803,52 @@ static func _rod(dst: Image, butt: Vector2i, tip: Vector2i, farmer: bool) -> voi
 		for t in [0.3, 0.6]:
 			var q := Vector2(butt).lerp(Vector2(tip), t).round()
 			_dot(dst, int(q.x), int(q.y), ROD_NODE)
+
+
+## The scoop pose's colours (data/farmer_art.json `scoop`).
+static func _scoop_col(k: String) -> Color:
+	return Color(str(art().get("scoop", {}).get(k, "ffffff")))
+
+
+## The paper scoop (poi) in the near hand at `hand`: a short handle out in front, then the ring
+## seen nearly edge-on at a slant with the pale paper in it, held just over the water; `lifted`
+## after a dip it is tipped up towards the bowl, a drop falling from it.
+static func _poi(dst: Image, hand: Vector2i, lifted: bool) -> void:
+	var L := _blank()
+	var ring := _scoop_col("ring")
+	var paper := _scoop_col("paper")
+	if lifted:   # tipped up beside the bowl: the ring stands more upright, above the hand
+		_r(L, hand.x - 1, hand.y - 1, 1, 1, ring)
+		_r(L, hand.x - 4, hand.y - 5, 4, 1, ring)
+		_r(L, hand.x - 4, hand.y - 2, 4, 1, ring)
+		_r(L, hand.x - 5, hand.y - 4, 1, 2, ring)
+		_r(L, hand.x, hand.y - 4, 1, 2, ring)
+		_r(L, hand.x - 4, hand.y - 4, 4, 2, paper)
+		_dot(L, hand.x - 3, hand.y - 4, _scoop_col("fish"))
+	else:   # out flat over the water: handle, then a wide flat ring
+		_r(L, hand.x - 2, hand.y + 1, 2, 1, ring)
+		_r(L, hand.x - 7, hand.y + 1, 5, 1, ring)
+		_r(L, hand.x - 8, hand.y + 2, 1, 1, ring)
+		_r(L, hand.x - 7, hand.y + 3, 5, 1, ring)
+		_r(L, hand.x - 3, hand.y + 2, 1, 1, ring)
+		_r(L, hand.x - 7, hand.y + 2, 4, 1, paper)
+	_stamp(dst, L)
+	if lifted:   # a drop of water falling from the paper
+		_dot(dst, hand.x - 3, hand.y, _scoop_col("water"))
+
+
+## The small bowl of fish scooped, held at `hand` (the far hand's top-left): a white bowl with a
+## coloured band, the water and a goldfish in it, the fingers under it.
+static func _bowl(dst: Image, hand: Vector2i) -> void:
+	var L := _blank()
+	var bowl := _scoop_col("bowl")
+	_r(L, hand.x - 2, hand.y - 3, 7, 1, _scoop_col("water"))
+	_r(L, hand.x, hand.y - 3, 2, 1, _scoop_col("fish"))
+	_r(L, hand.x - 2, hand.y - 2, 7, 1, bowl)
+	_r(L, hand.x - 2, hand.y - 1, 7, 1, _scoop_col("band"))
+	_r(L, hand.x - 1, hand.y, 5, 1, bowl)
+	_dot(L, hand.x + 3, hand.y, bowl.darkened(0.2))
+	_stamp(dst, L)
 
 
 ## A carpenter's hammer in the near hand: raised up past the head, or brought down in front.

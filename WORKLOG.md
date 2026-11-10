@@ -10,6 +10,38 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — The farmer's pose at the goldfish tub
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: while the goldfish scoop runs (Game.scooping) the farmer crouches at the tub in both views
+  with the paper scoop and a small bowl. New FigureArt poses `scoop` (crouched 3 px, knees apart,
+  leaning in, the scoop held out flat just over the water, the bowl at the belly; from the back
+  the bowl is held out at the far side) and `scoop_lift` (just after a dip, for GoldfishScoop's
+  `dip` lift: the body 1 px higher, the scoop tipped up with a fish on the paper and a drop
+  falling). Drawn in the farmer's refined pass like the rod / eat poses (FigureArt `_poi`,
+  `_bowl`); colours in data/farmer_art.json `scoop` (the ring and paper match ScoopScreen).
+  Game.scoop_lifted (set each frame by ScoopScreen from `game.lifted()`, cleared on close, leave,
+  finish_game and new_game) and Game.scoop_pose(); FarmerAnim.step takes it as a last argument and
+  it wins over every other pose; main_3d and the flat Player pass it. Keys `player:<side>:scoop:0`
+  / `scoop_lift:0` (PlaceholderArt comment). The pose ends when the go ends or is left.
+- Checked: test_festivals `_scoop_pose_art` (colours in the data, one frame each, the scoop lower
+  than the lift, ring and bowl band pixels in both poses from the front and the back, the scoop
+  held out in front, the crouch lower than standing), `_scoop_play` (scoop_pose "scoop" on start,
+  "scoop_lift" when lifted, "" after finish_game), the views (both views' FarmerAnim show `scoop`
+  with the 3D sprite on that key, a dip turns both to `scoop_lift`, 0.5 s on back over the water,
+  leaving the screen mid-game ends the pose in both); test_view2d `_figure` (the flat Player:
+  scoop with the back key, scoop_lift, idle after). After `--import`, all 31 tests/test_*.gd print
+  `OK (0 failed)` with no ERROR line; the smoke runs (title, `--demo`, `--demo --map=town`, `--demo
+  --mine=3`, `--demo --festival=lantern_night --contest=scoop`) print no ERROR or WARNING line.
+  Screenshot `--demo --festival=lantern_night --contest=scoop:auto`, frame 329: the scoop screen
+  covers the middle of the view, so the farmer is hidden behind it (the mochi screen does the
+  same); a second run with the box hidden by a scratch edit (reverted, not committed) shows the
+  farmer from the back at the tub, red tenugui, the bowl with its red band out at one side and the
+  pink scoop at the other (a villager stands partly in front). The pose sheet (idle / scoop /
+  scoop_lift, front and back, 6x) was looked at too; shots/ deleted.
+- Left / next: in play the ScoopScreen box hides the farmer and the tub (the pose shows only at
+  the screen's edges or when the box is moved); a smaller box or a camera nudge while a festival
+  game is up would let it be seen. The scoop's fish are still drawn shapes, not a PlaceholderArt key.
+
 ## 2026-11-10 — Merge: goldfish scoop, neglect-roll audit, Kiku's twig share
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 6268899 goldfish scoop at Lantern Night (Opus, own worktree), c3187f5 the

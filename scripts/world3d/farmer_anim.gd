@@ -21,9 +21,12 @@ var fast := false   # running: a hold walk steps at the run rate
 ## overhead) wins over both: hold_idle / hold_walk, the walk stepping faster when running.
 ## `fishing` (Fishing.state while the line is out: "wait" / "bite") wins over everything.
 ## `eating` (Game.eat_pose: "eat" / "drink") wins over the tired poses; the farmer stands.
-func step(delta: float, moving: bool, running: bool, tired := false, holding := false, fishing := "", eating := "") -> void:
+## `scooping` (Game.scoop_pose(): "scoop" / "scoop_lift" at the goldfish tub) wins over all.
+func step(delta: float, moving: bool, running: bool, tired := false, holding := false, fishing := "", eating := "", scooping := "") -> void:
 	var p := "idle" if not moving else ("run" if running else "walk")
-	if fishing != "" and fishing != "idle":
+	if scooping != "":
+		p = scooping
+	elif fishing != "" and fishing != "idle":
 		p = "fish_" + fishing
 	elif holding:
 		p = "hold_walk" if moving else "hold_idle"

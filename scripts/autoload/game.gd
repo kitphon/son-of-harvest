@@ -65,6 +65,7 @@ var event_running := false      # an event script plays: the clock waits, the sc
 var ending_open := false        # the village record is on screen (the ending event waits for it)
 var game_partner := ""          # who turns the dough in the festival game going on now ("" for none)
 var scooping := false           # the goldfish scoop (a game of kind scoop) is on screen now (ScoopScreen)
+var scoop_lifted := false       # ...and the scoop is up out of the water just after a dip (ScoopScreen; the farmer's pose)
 var race: FishingRace = null    # the festival's fishing race going on now (null for none; saved)
 var settings: Settings          # the player's settings (user://settings.json), not saved with the run
 var _pauses := 0                # open menus; while any is open time stands still
@@ -202,6 +203,7 @@ func new_game() -> void:
 	crawler_back()
 	game_partner = ""
 	scooping = false
+	scoop_lifted = false
 	race = null
 	year = 1
 	season = 0
@@ -1824,6 +1826,14 @@ func start_eat_pose(drink: bool) -> void:
 		eat_pose = ""
 
 
+## The farmer's pose at the goldfish tub (FarmerAnim): "scoop" while the scoop game is on,
+## "scoop_lift" just after a dip, "" when no scoop game is going on.
+func scoop_pose() -> String:
+	if not scooping:
+		return ""
+	return "scoop_lift" if scoop_lifted else "scoop"
+
+
 ## Is the eat / drink pose playing?
 func eating() -> bool:
 	return eat_pose != ""
@@ -2585,6 +2595,7 @@ func finish_game(score: int) -> Dictionary:
 	var fid := festival_today()
 	var g := Festivals.game(fid)
 	scooping = false
+	scoop_lifted = false
 	if g.is_empty():
 		game_partner = ""
 		return {}
