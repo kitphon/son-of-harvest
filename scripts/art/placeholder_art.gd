@@ -429,8 +429,11 @@ static func villager_top(id: String) -> int:
 	return FigureArt.head_top(Villagers.look(id))
 
 
-## Field objects and crops share one style with the farmer: shapes in 2-3 shades, then a
-## 1 px dark outline around the whole silhouette.
+## The near-black outline. Crops, field objects, festival decorations, the maple and the mine
+## art no longer use it: they are laid in flat materials and toned by ItemArt.refine. Still
+## drawn with it: the story props (`_story`, `_scion_story`, which also rims with `_outline`),
+## the fish bobber's "!" (`_fish_fx`), and the portraits' first pass before PortraitArt.refine
+## (`_face`, `_portrait_of`). Tests use it as a colour to look for.
 const OUTLINE := Color("2a1e1e")
 const _STAKE := Color("b08a5a")
 const _DEFAULT_LOOK := {"shape": "bush", "leaf": "5f9e3a", "fruit": "e8a23a"}

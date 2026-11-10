@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Placeholder art cleanup: the outline comment and the portrait check
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: the comment above `PlaceholderArt.OUTLINE` no longer says field objects and crops get a
+  1 px outline. It now lists what still draws with it: the story props (`_story`, `_scion_story`
+  with `_outline`), the fish bobber's "!" (`_fish_fx`), and the portraits' first pass before
+  PortraitArt.refine (`_face`, `_portrait_of`). The constant and `_outline` are kept.
+- Checked: the old portrait code. Every `portrait:` key path (`_portrait`, `_child_portrait`,
+  `_portrait_of` and its hair, body, mood and materials helpers) is reached at runtime through
+  DialogueRunner.portrait_key and Child.portrait_key, so it stays. `_face` (the `face:<speaker>:<mood>`
+  key) has no runtime caller, but tests/test_dialogue.gd calls it, so it is not provably dead and
+  stays. Nothing was removed. Story props, `_noren_story`, `_scion_*` and `_ware` untouched.
+- Checked: `--import` ran clean. All 31 tests/test_*.gd print `OK (0 failed)` (test_dialogue:
+  `test_dialogue: OK (0 failed)`). `--headless --path . --quit-after 300 -- --demo` exits 0 with no
+  ERROR lines.
+- Left / next: `_face` can go once test_dialogue stops calling it; the story props still use the
+  outline.
+
 ## 2026-11-10 — Merge: crops, festival decorations and the maple tree refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 682361e crops and stalks (Opus), edb9f0a festival decorations (Sonnet) and
