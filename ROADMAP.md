@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] The black goldfish reads at the tub's size (2026-11-10): look 2 is a dark blue-grey with pale fins, a lit back edge and pale eye rings (`scoop:fish:2`); looks 0 and 1 unchanged; test_festivals checks its contrast with the water; see WORKLOG.
 [x] The mochi box at the left edge (2026-11-10): narrower and moved off the middle like the scoop box, so the farmer at the mortar shows during the pounding; shorter hint; the Moon Night race box left as it is (the farmer shows below it); test_festivals checks the box and hint.
 [x] No villager in front of the farmer at a festival game (2026-11-10): festival spots of Fumi (night festivals, also married), Kota (his loop by the table), Sayo, Genzo and Ren (also married) at Year's Turn moved, and the right-hand rivals of the four judges' tables' result events a cell further out, so the farmer's spot at every table and game and the cells in front of it in the camera's view stay free; test_festivals `_contest_spots_clear`.
 [x] The scoop box at the left edge (2026-11-10): narrower and moved off the middle, so the farmer crouched at the tub shows during the goldfish scoop; shorter hint; test_festivals checks the box and the hint.

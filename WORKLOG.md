@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — The black goldfish reads at the tub's size
+Agent: Claude Code (claude-haiku) · Commit: this commit
+- Done: look 2 (black) of the goldfish, PlaceholderArt `scoop:fish:2`, is a dark blue-grey
+  (body 4a5668, value 0.41, not near black 3a3840 at 0.25) so it stands out from the tub's water
+  (WATER 5a9ab8, value 0.72); fins pale (b8c4d4); the lit back edge lifted further (lightened 0.4
+  instead of 0.22); a pale ring (dfe6ee) round each eye. Looks 0 and 1, the keys, the size and all
+  rules are unchanged. Only look 2 branches in the drawing (`look == 2`).
+- Checked: test_festivals `_scoop_art` keeps its checks (no black outline, several tones, looks
+  differ) and adds two: the black fish's body centre differs from the water's value by at least
+  0.25 (0.41 vs 0.72, a difference of 0.31), and its lit back edge (13, 3) is paler than the body
+  by more than 0.1. The test uses the water colour as a literal with a comment, because
+  referencing ScoopScreen from the test made Godot fail to compile the test script. `--demo
+  --festival=lantern_night --contest=scoop:auto --quit-after 330`: last frame read, tub crop
+  enlarged 6x: the black fish show as blue-grey with pale fins and eye rings. test_festivals OK (0
+  failed), 0 SCRIPT ERROR lines. All tests/test_*.gd print `OK (0 failed)` except test_villagers,
+  which failed once (2 failures in the lumber blocks checks) and then printed `OK (0 failed)` on
+  two reruns, so it looks random, not from this change. Smoke runs (title, `--demo`, `--demo
+  --map=town`, `--demo --mine=3`) print no ERROR or WARNING line. shots/ deleted.
+- Left / next: the black fish's shape is still small at this size (about 20 x 10 px); a bigger
+  tub or a larger sprite is not decided. test_villagers' lumber checks failed once in the run and
+  should be looked at if it returns.
 ## 2026-11-10 — The mochi box moves aside so the farmer shows at the mortar
 Agent: Claude Code (claude-sonnet) · Commit: this commit
 - Done: MochiScreen's box is narrower (paper 280 -> 220 px, stage 240 -> 208, the mortar, dough,
