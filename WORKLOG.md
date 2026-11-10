@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Merge: crops, festival decorations and the maple tree refined
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged 682361e crops and stalks (Opus), edb9f0a festival decorations (Sonnet) and
+  4bf6c12 the maple tree (Haiku), each from its own worktree. scripts/art/placeholder_art.gd
+  merged without a conflict (separate functions); WORKLOG and ROADMAP kept every side. ROADMAP
+  Next up now names only the story props (`_story`, `_noren_story`, `_scion_*`) as left.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`; the
+  smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print 0 ERROR or WARNING
+  lines. A flat-view frame (`main_2d.tscn -- --demo --festival=blossom_day`) shows the sakura,
+  stalls, mats and judge table toned with no near-black outline.
+- Left / next: story props; the stale OUTLINE comment in PlaceholderArt (crops no longer use it);
+  the `_ware_*` stall wares; the Windows .exe still waits on the export templates.
+
 ## 2026-11-10 — Crop art in the field, refined (the tall crops and the cluster plants)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: PlaceholderArt._crop's grown vine / stalk / grain looks (cucumber, tomato, corn, rice:
