@@ -244,7 +244,37 @@ func _kiku_scion() -> void:
 		check(Talk.pick("kiku", _state(fruit.merged({"scion": "tree", "season": "fall", "weekday": "tue", "day_number": day}, true))) in picked, "picked, a fall Tuesday: the picked lines (day %d)" % day)
 		check(Talk.pick("kiku", _state(fruit.merged({"scion": "tree", "season": "fall", "weekday": "sat", "day_number": day}, true))) in picked, "picked, a fall Saturday (day %d)" % day)
 	check(Talk.pick("kiku", _state(fruit.merged({"scion": "tree", "season": "fall", "weekday": "mon"}, true))) in ["dear_1", "dear_2", "dear_3"], "picked, a fall Monday: her heart lines")
-	check(Talk.pick("kiku", _state(fruit.merged({"scion": "tree", "season": "winter", "weekday": "tue"}, true))) in tree, "picked, winter: the tree line, not the picked ones")
+	# Outside fall, after the pick, the twig's days bring that season's own after-the-pick lines;
+	# before the pick, the usual tree lines; every other day her heart lines.
+	var after := {"winter": ["scion_picked_winter_1", "scion_picked_winter_2"], "spring": ["scion_picked_spring_1", "scion_picked_spring_2"], "summer": ["scion_picked_summer_1", "scion_picked_summer_2"]}
+	for sn in after:
+		var n_after := 0
+		var n_stray := 0
+		var n_before := 0
+		var n_heart := 0
+		var n_other := 0
+		for dn in 700:
+			var wd2: String = weekdays[dn % 7]
+			var p2 := Talk.pick("kiku", _state(fruit.merged({"scion": "tree", "season": sn, "weekday": wd2, "day_number": dn}, true)))
+			if p2 in after[sn]:
+				n_after += 1
+				if not wd2 in ["tue", "sat"]:
+					n_stray += 1
+			else:
+				n_other += 1
+				if p2 in ["dear_1", "dear_2", "dear_3"]:
+					n_heart += 1
+			if Talk.pick("kiku", _state(six.merged({"scion": "tree", "season": sn, "weekday": wd2, "day_number": dn}, true))) in tree:
+				n_before += 1
+		check(n_after == 200 and n_stray == 0, "picked, %s: its own lines on the twig's days only, 2 in 7 (%d of 700, %d stray)" % [sn, n_after, n_stray])
+		check(n_heart == n_other, "picked, %s: her close and dear lines on every other day (%d of %d)" % [sn, n_heart, n_other])
+		check(n_before == 200, "not picked, %s: the usual tree lines as before (%d of 700)" % [sn, n_before])
+		for i2 in 2:
+			var seen_line := false
+			for dn in 14:
+				if Talk.pick("kiku", _state(fruit.merged({"scion": "tree", "season": sn, "weekday": "tue", "day_number": dn}, true))) == after[sn][i2]:
+					seen_line = true
+			check(seen_line, "picked, %s: line %d comes up" % [sn, i2 + 1])
 	var fruit_days := 0
 	var fruit_stray := 0
 	var unpicked_picked := 0
@@ -272,6 +302,9 @@ func _kiku_scion() -> void:
 	check(_kiku_talk(true, 250, 3) in tree, "planted 250 days ago, winter: a tree line (%s)" % _kiku_talk(true, 250, 3))
 	check(_kiku_talk(true, 250, 2) in fall, "fall, not picked yet: the fruit question (%s)" % _kiku_talk(true, 250, 2))
 	check(_kiku_talk(true, 250, 2, true) in picked, "picked, fall, a Tuesday: the picked lines (%s)" % _kiku_talk(true, 250, 2, true))
+	check(_kiku_talk(true, 250, 3, true) in after["winter"], "picked, winter, a Tuesday: the winter lines (%s)" % _kiku_talk(true, 250, 3, true))
+	check(_kiku_talk(true, 250, 0, true) in after["spring"], "picked, spring, a Tuesday: the spring lines (%s)" % _kiku_talk(true, 250, 0, true))
+	check(_kiku_talk(true, 250, 1, true) in after["summer"], "picked, summer, a Tuesday: the summer lines (%s)" % _kiku_talk(true, 250, 1, true))
 
 
 ## Kiku's line on a fresh game at 9:00 on a Tuesday of `season`, her heart at band 6 with the band
