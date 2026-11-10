@@ -5,9 +5,12 @@ extends RefCounted
 ## is down (the dog stays on the farm). Rules and numbers in Animals / data/animals.json.
 
 
-## E on farm cell `c` with the hands free. True when the dog was there.
+## E on farm cell `c` with the hands free. True when the dog was there. Only one thing goes in
+## the arms: with the baby, the crawler or an item overhead nothing happens (no pat, no pick-up).
 static func interact(c: Vector2i) -> bool:
 	var a := Game.animals
+	if Game.holding():
+		return false
 	if not Game.maps.on_farm() or a.dog.held or a.dog.cell != c:
 		return false
 	Sfx.play("dog_bark")
