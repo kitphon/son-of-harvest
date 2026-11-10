@@ -9,6 +9,7 @@ extends RefCounted
 
 const PATH := "res://data/scion.json"
 const FLAG := "kiku_scion"
+const PICKED_FLAG := "kiku_scion_picked"   # set once the farmer has picked a persimmon (Kiku's talk)
 
 static var _data: Variant = null
 

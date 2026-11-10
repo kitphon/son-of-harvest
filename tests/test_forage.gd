@@ -232,6 +232,7 @@ func _persimmon() -> void:
 	root.add_child(view)
 	actions.interact(tree)
 	check(g.held == "wild:persimmon" and g.scion_picked == 1 and said.back() == "Picked the ripe persimmon.", "E picks one overhead: %s" % [said])
+	check(g.flags.get(Scion.PICKED_FLAG, false) == true, "the first pick sets kiku_scion_picked (Kiku's talk)")
 	var key1: String = StoryView.art_key({"kind": "scion"})
 	check(key1 == "story:scion:tree:fall:0:4" and sprite.texture == PlaceholderArt.tex(key1), "3D: half the fruit is gone (%s)" % key1)
 	check(Scion.drawn_left(1) == 4 and Scion.drawn_left(2) == 0 and Scion.drawn_left(0) == 8, "the drawn share")
