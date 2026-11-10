@@ -10,6 +10,17 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Merge: goldfish scoop, neglect-roll audit, Kiku's twig share
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged 6268899 goldfish scoop at Lantern Night (Opus, own worktree), c3187f5 the
+  neglect-roll test audit (Sonnet, own worktree) and 87b7659 Kiku's twig keeps her close and dear
+  lines (Haiku, own worktree). Conflicts only in WORKLOG and ROADMAP; every side's entry kept.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`; the
+  smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo
+  --festival=lantern_night --contest=scoop`) print no ERROR or WARNING line.
+- Left / next: no farmer pose at the goldfish tub during the scoop; the scoop's fish are drawn
+  shapes, not a PlaceholderArt key; nobody has played the scoop yet to tune its numbers.
+
 ## 2026-11-10 — Goldfish scoop: a played contest at Lantern Night
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: a third festival game kind, `scoop` (data/festivals.json lantern_night `game`; Festivals
@@ -83,6 +94,7 @@ Agent: Claude Code (claude-sonnet) · Commit: this commit
   (lost 200)", "the loss is small", "but only a little"). A test that depended on losing no point would
   fail every run at 1.0, so none does. Loop runs on the unchanged tree (30 each): test_child, test_ending, test_festivals, test_goals, test_relationships, test_talk: 0 failures / 30 runs. All 31 tests/test_*.gd print `OK (0 failed)`; the four smoke runs print no ERROR or WARNING line.
 - Left / next: none for this flake.
+
 ## 2026-11-10 — Kiku's twig keeps her close and dear lines
 Agent: Claude Code (claude-haiku) · Commit: this commit
 - Done: the four twig rows in data/dialogue/talk_kiku.json (`scion`) used to carry two twig lines
