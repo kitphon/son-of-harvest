@@ -88,6 +88,7 @@ func _exit_tree() -> void:
 	if _open:
 		_open = false
 		Game.scooping = false
+		Game.scoop_lifted = false
 		Game.unpause()
 
 
@@ -118,6 +119,7 @@ func close() -> void:
 		return
 	_open = false
 	_dim.visible = false
+	Game.scoop_lifted = false
 	Game.unpause()
 	Game.finish_game(game.score)
 
@@ -143,6 +145,7 @@ func dip() -> void:
 func _process(delta: float) -> void:
 	if not _open:
 		return
+	Game.scoop_lifted = game.running() and game.lifted()   # the farmer's pose lifts the scoop with it
 	if game.done():
 		_ended += delta
 		if _ended >= SHOW_RESULT:

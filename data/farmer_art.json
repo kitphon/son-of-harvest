@@ -7,5 +7,6 @@
 	"rim_mix": 0.5,
 	"sole": "8a8478",
 	"sole_mix": 0.5,
-	"collar": "f4f0e6"
+	"collar": "f4f0e6",
+	"scoop": {"_note": "The goldfish scoop pose's things (FigureArt scoop / scoop_lift): the paper scoop's pink ring and its paper, the small bowl, its band, the water and a goldfish. The ring and paper match the scoop on ScoopScreen.", "ring": "e8607a", "paper": "f4f0e6", "bowl": "f0ece4", "band": "d8503a", "water": "6aa8c8", "fish": "f06a2a"}
 }

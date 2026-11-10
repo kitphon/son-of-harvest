@@ -35,6 +35,7 @@ func _init() -> void:
 	_scoop_art()
 	_scoop_timing()
 	_scoop_result_lines()
+	_scoop_pose_art()
 
 
 func _process(_delta: float) -> bool:
@@ -859,12 +860,29 @@ func _check_views() -> void:
 		scoop2[0]._refresh()
 		check(scoop2[0].game.running() and scoop2[0]._info.text == "0:45   0 fish" and scoop2[0]._call.text == "Go!",
 			"the time left and the count (%s, %s)" % [scoop2[0]._info.text, scoop2[0]._call.text])
+		# The farmer's pose at the tub in both views follows the game (FarmerAnim via Game.scoop_pose).
+		scoop2[0]._process(0.0)
+		_scene2.player._process(0.0)
+		_scene3._process(0.0)
+		check(_scene2.player.anim.pose == "scoop" and _scene3.anim.pose == "scoop" and _scene3.sprite.texture == PlaceholderArt.tex(_scene3.anim.key(_scene3.player.facing)),
+			"both views show the farmer crouched at the tub with the scoop (%s, %s)" % [_scene2.player.anim.pose, _scene3.anim.pose])
+		scoop2[0].dip()
+		scoop2[0]._process(0.0)
+		_scene2.player._process(0.0)
+		_scene3._process(0.0)
+		check(g.scoop_lifted and _scene2.player.anim.pose == "scoop_lift" and _scene3.anim.pose == "scoop_lift", "a dip lifts the scoop in both views")
+		scoop2[0].game.advance(0.5)
+		scoop2[0]._process(0.0)
+		check(not g.scoop_lifted, "then it goes back over the water")
 		scoop2[0].game.paper = 1.0
 		scoop2[0].game.advance(0.8)
 		scoop2[0].dip()
 		check(scoop2[0].game.torn and scoop2[0]._call.text == "The paper tore!", "a dip on worn paper tears it (%s)" % scoop2[0]._call.text)
 		scoop2[0]._exit_tree()
 		check(g._pauses == pauses and not g.scooping, "leaving the view mid-game lets the clock go")
+		_scene2.player._process(0.0)
+		_scene3._process(0.0)
+		check(g.scoop_pose() == "" and _scene2.player.anim.pose != "scoop" and _scene3.anim.pose != "scoop", "leaving it ends the pose in both views")
 		scoop2[0]._open = false
 	g.hour = 16
 	g.minute = 0
@@ -1629,6 +1647,31 @@ func _scoop_result_lines() -> void:
 
 ## Playing the scoop: the stall, empty hands, no partner, one go a year, the prize, the ribbon,
 ## the flags, the save, the judged catch contest still beside it.
+## The scoop pose's picture (FigureArt scoop / scoop_lift): the paper scoop's ring and the bowl in
+## data/farmer_art.json's colours, from the front and the back; crouched lower than standing.
+func _scoop_pose_art() -> void:
+	var cols: Dictionary = FigureArt.art().get("scoop", {})
+	check(cols.has("ring") and cols.has("bowl") and cols.has("band"), "data/farmer_art.json has the scoop pose's colours")
+	check(FigureArt.frames("scoop") == 1 and FigureArt.frames("scoop_lift") == 1 and FigureArt.row("scoop", 0)[0] > FigureArt.row("scoop_lift", 0)[0],
+		"one frame each; crouched lower over the water than with the scoop lifted")
+	for back in [false, true]:
+		for pose in ["scoop", "scoop_lift"]:
+			var img := FigureArt.draw(FigureArt.FARMER_LOOK, back, pose, 0, true)
+			var seen := {}
+			for y in FigureArt.H:
+				for x in FigureArt.W:
+					var px := img.get_pixel(x, y)
+					for k in ["ring", "band"]:
+						if px.a > 0.0 and px.to_html(false) == Color(str(cols[k])).to_html(false):
+							seen[k] = true
+			check(seen.size() == 2, "%s %s shows the scoop's ring and the bowl (%s)" % [pose, "back" if back else "front", seen.keys()])
+		var hd := FigureArt.hands(FigureArt.FARMER_LOOK, back, "scoop", 0)
+		check(hd.near.x < 8, "the scoop is held out in front (%s)" % [hd.near])
+	var stand := FigureArt.draw(FigureArt.FARMER_LOOK, true, "idle", 0, true).get_used_rect()
+	var low := FigureArt.draw(FigureArt.FARMER_LOOK, true, "scoop", 0, true).get_used_rect()
+	check(low.position.y > stand.position.y, "the crouch is lower than standing (%d, %d)" % [low.position.y, stand.position.y])
+
+
 func _scoop_play() -> void:
 	var g := _game()
 	g.new_game()
@@ -1651,10 +1694,14 @@ func _scoop_play() -> void:
 	g.held = ""
 	var s: Dictionary = g.start_game()
 	check(s.ok and s.partner == "" and asked == [["lantern_night", ""]] and g.scooping and g.game_partner == "", "the scoop starts, no partner")
+	check(g.scoop_pose() == "scoop", "the farmer takes the scoop pose (%s)" % g.scoop_pose())
+	g.scoop_lifted = true
+	check(g.scoop_pose() == "scoop_lift", "just after a dip, the lifted scoop")
 	check(g.start_game().why == "busy" and asked.size() == 1, "not twice at once")
 	var top: int = Festivals.judge_game("lantern_night", 1, 0).rivals[0].score
 	var money: int = g.money
 	var r: Dictionary = g.finish_game(top)
+	check(g.scoop_pose() == "" and not g.scoop_lifted, "the go over, the pose ends")
 	check(r.place == 1 and g.money == money + 300 and g.count("food:shaved_ice") == 2 and g.count("ribbon:scoop:1") == 1 and not g.scooping,
 		"first place: 300 G, two shaved ice and the ribbon (%s)" % [r])
 	check(events == ["contest_scoop"] and g.events_seen.has("game:lantern_night:1") and int(g.flags.get("game_best_scoop", 0)) == top

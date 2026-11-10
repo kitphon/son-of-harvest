@@ -100,6 +100,20 @@ func _figure() -> void:
 	g.eat_left = 0.0
 	await process_frame
 	await process_frame
+	# The goldfish scoop (Game.scooping, ScoopScreen): crouched at the tub with the scoop and bowl.
+	player.facing = Vector2i.UP
+	g.scooping = true
+	await process_frame
+	await process_frame
+	check(player.anim.pose == "scoop" and fig.texture == PlaceholderArt.tex("player:back:scoop:0"), "the scoop game shows the scoop pose at the tub")
+	g.scoop_lifted = true
+	await process_frame
+	check(player.anim.pose == "scoop_lift", "just after a dip the scoop comes up")
+	g.scooping = false
+	g.scoop_lifted = false
+	await process_frame
+	await process_frame
+	check(player.anim.pose == "idle", "the scoop game over, back to idle")
 	player.facing = Vector2i.DOWN
 
 
