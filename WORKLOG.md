@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Merge: mochi box aside, villagers clear of contest spots, black goldfish
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged 98be842 the mochi box at the left edge (Sonnet, own worktree), 618937c no villager
+  in front of the farmer at a festival game (Opus, own worktree) and 58aca1f the black goldfish
+  reads at the tub's size (Haiku, own worktree). Conflicts only in WORKLOG and ROADMAP; every
+  side's entry kept. The Opus entry's "Left / next" (the mochi screen covers the middle) is done
+  by the Sonnet side.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`; the
+  smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo
+  --festival=years_turn --contest=mochi`, `--demo --festival=lantern_night --contest=scoop`) print
+  0 ERROR or WARNING lines. Two agents each saw test_villagers fail once in their worktrees (the
+  Haiku side quoted "the lumber blocks the farmer..." and "the lumber's cells are open once it is
+  gone"), passing on rerun; on the merged tree it printed `test_villagers: OK (0 failed)` 11 of 11
+  runs. Cause not found.
+- Left / next: the test_villagers lumber flake (rare, cause unknown).
+
 ## 2026-11-10 — The black goldfish reads at the tub's size
 Agent: Claude Code (claude-haiku) · Commit: this commit
 - Done: look 2 (black) of the goldfish, PlaceholderArt `scoop:fish:2`, is a dark blue-grey
