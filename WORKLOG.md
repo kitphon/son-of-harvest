@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Goldfish art moved into PlaceholderArt
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: the scoop's goldfish are now PlaceholderArt keys `scoop:fish:0|1|2` (one per look of
+  data/festivals.json `tub.looks`: orange, white with red, black), 20 x 10 top-down sprites facing
+  right in the refined style: three tones lit from the upper left, a darker rim instead of a
+  black outline, tail fan, side fins, patch, eye. `PlaceholderArt.scoop_fish_key(look)` clamps the
+  look; ScoopScreen `_fish` draws that texture turned to the swim direction (tub and bowl)
+  and its own polygon shapes and LOOKS table are gone. Rules and numbers untouched.
+- Checked: test_festivals `_scoop_art` (keys, size, tones, no black outline, looks differ, the screen
+  uses the textures); all tests/test_*.gd OK; smoke runs clean; screenshot of
+  `--demo --festival=lantern_night --contest=scoop:auto --quit-after 330` shows the fish turned
+  as they swim (crop looked at); shots/ deleted.
+- Left / next: no farmer pose at the tub; the black fish reads a little blobby at the tub's size.
+
 ## 2026-11-10 — Merge: goldfish scoop, neglect-roll audit, Kiku's twig share
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 6268899 goldfish scoop at Lantern Night (Opus, own worktree), c3187f5 the

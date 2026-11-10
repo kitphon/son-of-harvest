@@ -21,8 +21,6 @@ const SQUASH := 0.82                # the tub seen from above at a slant
 const BOWL := Vector2(204, 76)      # the bowl of fish scooped
 const SHOW_RESULT := 2.0     # seconds the final count stays up
 const AUTO_WAIT := 0.06      # --contest=scoop:auto: seconds a fish is under the paper before the dip
-## The goldfish looks (GoldfishScoop fish `look`): body, fin / patch.
-const LOOKS := [[Color("f06a2a"), Color("f8b070")], [Color("f4ece0"), Color("e0482a")], [Color("2a2830"), Color("6a6470")]]
 const WATER := Color("5a9ab8")
 const WATER_DEEP := Color("467c9c")
 const TUB_WOOD := Color("8a6a44")
@@ -271,15 +269,14 @@ func _poi(c: Control) -> void:
 		_ring(c, mid, inner, Color(PlaceholderArt.UI_SEAL, 0.8))
 
 
-## One goldfish at `p` swimming along `dir`, `look` of LOOKS, `size` times the tub's size.
+## One goldfish at `p` swimming along `dir`, `look` of GoldfishScoop's looks (PlaceholderArt
+## "scoop:fish:<look>"), `size` times the tub's size, turned to face the way it swims.
 func _fish(c: Control, p: Vector2, dir: Vector2, look: int, size: float) -> void:
-	var d := Vector2(dir.x, dir.y * SQUASH).normalized() * size
-	var side := Vector2(-d.y, d.x)
-	var colors: Array = LOOKS[clampi(look, 0, LOOKS.size() - 1)]
-	var body: Color = colors[0]
-	c.draw_colored_polygon(PackedVector2Array([p + d * 5.0, p + side * 2.2, p - d * 3.0, p - side * 2.2]), body)
-	c.draw_colored_polygon(PackedVector2Array([p - d * 2.5, p - d * 6.5 + side * 2.8, p - d * 5.5, p - d * 6.5 - side * 2.8]), colors[1])
-	c.draw_circle(p + d * 1.5 + side * 0.8, 0.9 * size, colors[1])   # a patch or the eye's gleam
+	var tex := PlaceholderArt.tex(PlaceholderArt.scoop_fish_key(look))
+	var d := Vector2(dir.x, dir.y * SQUASH)
+	c.draw_set_transform(p, d.angle(), Vector2.ONE * size * 0.75)
+	c.draw_texture(tex, Vector2(-14, -tex.get_height() / 2.0))
+	c.draw_set_transform(Vector2.ZERO)
 
 
 func _ellipse(c: Control, mid: Vector2, r: float, color: Color) -> void:
