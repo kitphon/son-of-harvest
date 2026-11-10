@@ -10,6 +10,33 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — No villager stands in front of the farmer at a festival game
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the farmer plays every contest from the cell below its judges' table or game prop
+  (Game `--contest=`); the camera looks from +x +y at yaw 45°, so the cells right of, below and
+  down-right of that spot are in front of the farmer on screen. Festival plans that stood
+  there were moved, in data only: Fumi's night-festival spot (14, 9) -> (12, 9), also when married
+  (she stood down-right of the goldfish tub: the figure in front of the farmer at the scoop);
+  Kota's loop by the stalls turns at (18, 8) instead of (16, 8) (right of the Lantern Night
+  table); at Year's Turn Sayo (also married) stops at (19, 5) instead of on the mortar's spot
+  (20, 5), Genzo stands at (18, 6) instead of (15, 5) (right of the table) and Ren (also
+  married) at (13, 6) instead of (14, 6) (below the table). In the four judges' tables' result
+  events the rival who walked up at the farmer's right moves a cell further out (and the one
+  past him too): Blossom Day Tome 22, Sayo 23; Lantern Night Kota 17, Tome 18; Moon Night Tome
+  24, Kota 25; Year's Turn Kota 17 (16 is a paper lantern). The festivals' crowds otherwise
+  stand where they did.
+- Checked: test_festivals `_contest_spots_clear`: for every festival's table and game, nobody
+  stands on the farmer's spot or the three cells in front of it at any 2-minute step of the
+  hours (unmarried, married to each candidate, and with the child out too; walkers passing
+  are allowed), nobody at all there at the `--festival=` start time, and no result-event rival
+  walks onto them. All 31 tests/test_*.gd print `OK (0 failed)`; the smoke runs (title,
+  `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --festival=lantern_night
+  --contest=scoop`, `--demo --festival=years_turn --contest=mochi`) print no ERROR or WARNING
+  line. Screenshots `--demo --festival=lantern_night --contest=scoop:auto` frame 199 (the farmer
+  crouched at the tub right of the box, nobody in front; crop looked at) and `--festival=years_turn
+  --contest=mochi:auto` frame 149 (the screen, the crowd round it). shots/ deleted.
+- Left / next: the mochi pounding's screen still covers the middle of the view.
+
 ## 2026-11-10 — The scoop box moves aside so the farmer shows at the tub
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: ScoopScreen's box is narrower (paper 280 -> 220 px, stage 240 -> 208, tub and bowl moved

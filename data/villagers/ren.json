@@ -42,8 +42,8 @@
 		],
 		"married_festival_year": [
 			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
-			{"at": "18:30", "map": "town", "from": [0, 10], "route": [{"to": [1, 10]}, {"to": [14, 10]}, {"to": [14, 6]}, {"face": "up"}]},
-			{"at": "23:00", "map": "town", "route": [{"to": [14, 10]}, {"to": [1, 10]}, {"to": [0, 10]}, {"face": "left"}]},
+			{"at": "18:30", "map": "town", "from": [0, 10], "route": [{"to": [1, 10]}, {"to": [13, 10]}, {"to": [13, 6]}, {"face": "up"}]},
+			{"at": "23:00", "map": "town", "route": [{"to": [13, 10]}, {"to": [1, 10]}, {"to": [0, 10]}, {"face": "left"}]},
 			{"at": "23:15", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
 			{"at": "23:25", "map": "away"}
 		],
@@ -128,8 +128,8 @@
 		],
 		"festival_year": [
 			{"at": "06:00", "map": "post_office", "from": [5, 2], "route": [{"face": "down"}]},
-			{"at": "18:30", "map": "town", "from": [1, 10], "route": [{"to": [14, 10]}, {"to": [14, 6]}, {"face": "up"}]},
-			{"at": "23:00", "map": "town", "route": [{"to": [14, 10]}, {"to": [1, 10]}, {"face": "up"}]},
+			{"at": "18:30", "map": "town", "from": [1, 10], "route": [{"to": [13, 10]}, {"to": [13, 6]}, {"face": "up"}]},
+			{"at": "23:00", "map": "town", "route": [{"to": [13, 10]}, {"to": [1, 10]}, {"face": "up"}]},
 			{"at": "23:20", "map": "away"}
 		]
 	}

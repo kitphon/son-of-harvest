@@ -19,7 +19,7 @@
 			"at": "plan",
 			"holds": "fish:ayu",
 			"to": [
-				16,
+				17,
 				8
 			],
 			"face": "up",
@@ -31,7 +31,7 @@
 			"at": "plan",
 			"holds": "fish:funa",
 			"to": [
-				17,
+				18,
 				8
 			],
 			"face": "up",
