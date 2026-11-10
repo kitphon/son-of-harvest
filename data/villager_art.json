@@ -1,0 +1,12 @@
+{
+	"_note": "The villagers' refined pixel art (FigureArt with farmer = false: every villager, and the farmer's child as crawler, toddler and child). The same pass as data/farmer_art.json: every material of the look in three tones (shade / base / lit) by the side of its part a pixel is open to (light from the upper left), the lines between parts in the material's own deep tone, the outer lines pulled towards `rim`. `materials` are the villagers' own pieces toned the same way (base colours; the plain darker and lighter shades they are drawn with map onto their tones): the white tabi under a kimono, the straw hat's band, the hammer's wood and iron. A shoulder bag's colour comes from the look. Our own numbers: the tones are the farmer's, so everyone stands in the same light; the rim is pulled a little further (0.6 against 0.5) so the pale clothes (the white happi, Tome's white hair) still read against the village's pale gravel and the snow.",
+	"tone": {"shade": 0.3, "lit": 0.22, "shade_tint": "24304a", "lit_tint": "fff0c8", "tint_mix": 0.14},
+	"skin_shade_tint": "8a3a30",
+	"deep": 0.55,
+	"rim": "1a1216",
+	"rim_mix": 0.6,
+	"sole": "8a8478",
+	"sole_mix": 0.5,
+	"collar": "f4f0e6",
+	"materials": ["f0ece0", "8e2c1c", "a07a4a", "5a5e66"]
+}

@@ -16,11 +16,13 @@ extends RefCounted
 ## lighter. The figure's feet stand on the bottom row; the 3D view shows a sprite pixel as
 ## FarmWorld.FIGURE_PX world units.
 ##
-## The farmer (draw with `farmer`) gets the refined pass (data/farmer_art.json): every material
-## in three tones (shade, base, lit) by which side of its part a pixel is open to, the lines
-## between parts in the material's own deep tone instead of the black outline, a darker rim round
-## the whole silhouette, jika-tabi with a split toe, a clasp and a pale rubber sole, a woven hip
-## basket. Same rig, keys, size, poses and look options; villagers keep the plain drawing.
+## Every figure gets the refined pass: every material in three tones (shade, base, lit) by which
+## side of its part a pixel is open to, the lines between parts in the material's own deep tone
+## instead of the black outline, a darker rim round the whole silhouette. The farmer (draw with
+## `farmer`) takes the numbers of data/farmer_art.json and adds jika-tabi with a split toe, a
+## clasp and a pale rubber sole and a woven hip basket; the villagers and the farmer's child take
+## data/villager_art.json, which also tones their own pieces (the kimono's tabi, the hat band,
+## the hammer, a shoulder bag). Same rig, keys, size, poses and look options as the plain drawing.
 
 const W := 24
 const H := 32
@@ -41,12 +43,16 @@ const LETTER := Color("f4f0e4")          # a letter in the post pose
 const POLE := Color("b89a68")            # the ferry pole in the pole pose (the 3D boat's pole)
 
 const ART_PATH := "res://data/farmer_art.json"
+const VILLAGER_ART_PATH := "res://data/villager_art.json"
 
 static var _art := {}
-## While drawing the farmer: the refined pass is on (_stamp tones each part and lines it in its
+static var _villager_art := {}
+## The numbers of the figure being drawn (art() or villager_art()); empty between drawings.
+static var _cur := {}
+## While drawing: the refined pass is on (_stamp tones each part and lines it in its
 ## material's deep tone).
 static var _refine := false
-## The farmer's materials while drawing: a stored pixel colour (_key) -> [tones (shade, base, lit,
+## The figure's materials while drawing: a stored pixel colour (_key) -> [tones (shade, base, lit,
 ## deep), the role of that colour (0 shade, 1 base, 2 lit, 3 deep), true for skin].
 static var _mat := {}
 ## The part lines laid so far: pixel -> its colour (the ones still showing and open to the outside
@@ -181,16 +187,26 @@ static func lantern_at(pose: String, frame: int, back := false) -> Vector2i:
 static func draw(look: Dictionary, back: bool, pose: String, frame: int, farmer := false) -> Image:
 	var img := _blank()
 	var c := colors(look)
-	_refine = farmer
-	_lines.clear()
-	if farmer:
-		_materials(c)
+	_begin(c, look, farmer)
 	var out := _draw(img, c, look, back, pose, frame, farmer)
-	if farmer:
-		_silhouette(out)
+	return _end(out)
+
+
+## Starts the refined pass for one figure: its numbers and its materials.
+static func _begin(c: Dictionary, look: Dictionary, farmer: bool) -> void:
+	_cur = art() if farmer else villager_art()
+	_refine = true
+	_lines.clear()
+	_materials(c, look, farmer)
+
+
+## Ends it: the rim round the silhouette, the state cleared.
+static func _end(img: Image) -> Image:
+	_silhouette(img)
 	_refine = false
 	_lines.clear()
-	return out
+	_cur = {}
+	return img
 
 
 static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose: String, frame: int, farmer: bool) -> Image:
@@ -278,6 +294,7 @@ static func draw_little(build: String, look: Dictionary, back: bool, pose: Strin
 static func draw_crawler(look: Dictionary, back: bool, pose: String, frame: int) -> Image:
 	var img := _blank()
 	var c := colors(look)
+	_begin(c, look, false)
 	var rows: Array = CRAWL.get(pose, CRAWL.idle)
 	var p: Array = rows[frame % rows.size()]
 	var drop: int = p[4]
@@ -323,7 +340,7 @@ static func draw_crawler(look: Dictionary, back: bool, pose: String, frame: int)
 	_r(L, 8 + p[0], ground - 1, 3, 2, c.s)
 	_dot(L, 10 + p[0], ground, c.S)
 	_stamp(img, L)
-	return img
+	return _end(img)
 
 
 ## A short limb 2 px wide from `a` to `b` (a crawler's arm or thigh), its far side darker.
@@ -421,7 +438,7 @@ static func _leg(dst: Image, r: Dictionary, c: Dictionary, outfit: String, x: in
 		_dot(L, x + 2, bottom - 2, c["k+"])            # its brass clasp (kohaze)
 		_r(L, x - 1, bottom - 1, 4, 1, c.k)            # the foot, a toe longer forward
 		_dot(L, x, bottom - 1, c.K)                    # the split between the big toe and the rest
-		var sole: Color = c.k.lerp(Color(art().sole), float(art().sole_mix))
+		var sole: Color = c.k.lerp(Color(str(_cur.sole)), float(_cur.sole_mix))
 		_r(L, x - 1, bottom, 4, 1, sole)               # the rubber sole
 		_stamp(dst, L)
 		return
@@ -839,21 +856,32 @@ static func _stamp(dst: Image, layer: Image, outline := true) -> void:
 	dst.blend_rect(layer, used, used.position)
 
 
-# --- the farmer's refined pass ---------------------------------------------------------------
+# --- the refined pass ------------------------------------------------------------------------
 
+## The farmer's numbers (data/farmer_art.json).
 static func art() -> Dictionary:
 	if _art.is_empty():
 		_art = JSON.parse_string(FileAccess.get_file_as_string(ART_PATH))
 	return _art
 
 
-## The shade, base, lit and deep tones of a material colour (`skin`: a warmer shade).
-static func tones(col: Color, skin := false) -> Array:
-	var t: Dictionary = art().tone
+## The villagers' and the child's numbers (data/villager_art.json).
+static func villager_art() -> Dictionary:
+	if _villager_art.is_empty():
+		_villager_art = JSON.parse_string(FileAccess.get_file_as_string(VILLAGER_ART_PATH))
+	return _villager_art
+
+
+## The shade, base, lit and deep tones of a material colour (`skin`: a warmer shade) by the
+## numbers `a` (default: the figure being drawn, else the farmer's).
+static func tones(col: Color, skin := false, a: Dictionary = {}) -> Array:
+	if a.is_empty():
+		a = _cur if not _cur.is_empty() else art()
+	var t: Dictionary = a.tone
 	var mix: float = t.tint_mix
-	var tint := Color(str(art().skin_shade_tint if skin else t.shade_tint))
+	var tint := Color(str(a.skin_shade_tint if skin else t.shade_tint))
 	return [col.darkened(t.shade).lerp(tint, mix), col, col.lightened(t.lit).lerp(Color(t.lit_tint), mix),
-		col.darkened(art().deep).lerp(tint, mix)]
+		col.darkened(a.deep).lerp(tint, mix)]
 
 
 ## The colour as an RGBA8 picture stores it, as a key.
@@ -865,8 +893,10 @@ static func _key(col: Color) -> String:
 
 
 ## The look's materials for the refined pass: each base colour, its plain darker and lighter
-## shades (colors(): `K`, `k+`) and its own tones, all pointing at the material's tones.
-static func _materials(c: Dictionary) -> void:
+## shades (colors(): `K`, `k+`) and its own tones, all pointing at the material's tones. The
+## farmer adds the straw of the belt and basket; a villager the pieces in villager_art.json's
+## `materials` and the look's shoulder bag, each with the plain shades it is drawn in.
+static func _materials(c: Dictionary, look: Dictionary, farmer: bool) -> void:
 	_mat.clear()
 	var add := func(base: Color, tn: Array, extra: Array, skin := false) -> void:
 		for role in 4:
@@ -877,8 +907,16 @@ static func _materials(c: Dictionary) -> void:
 		_mat[_key(base)] = [tn, 1, skin]
 	for k in ["h", "s", "a", "t", "w", "l", "k"]:
 		add.call(c[k], tones(c[k], k == "s"), [[c[k.to_upper()], 0], [c[k + "+"], 2]], k == "s")
-	add.call(BASKET, tones(BASKET), [[BASKET.darkened(0.3), 0], [BASKET.lightened(0.2), 2], [BASKET.darkened(0.4), 3]])
-	var collar := Color(str(art().collar))
+	if farmer:
+		add.call(BASKET, tones(BASKET), [[BASKET.darkened(0.3), 0], [BASKET.lightened(0.2), 2], [BASKET.darkened(0.4), 3]])
+	else:
+		var own: Array = _cur.get("materials", []).map(func(h): return Color(str(h)))
+		if look.has("bag"):
+			own.append(Color(str(look.bag)))
+		for col: Color in own:
+			add.call(col, tones(col), [[col.darkened(0.2), 0], [col.darkened(0.25), 0], [col.darkened(0.15), 0],
+				[col.lightened(0.15), 2], [col.lightened(0.25), 2], [col.darkened(0.35), 3]])
+	var collar := Color(str(_cur.collar))
 	add.call(collar, tones(collar), [])
 
 
@@ -927,8 +965,8 @@ static func _stamp_refined(dst: Image, layer: Image, used: Rect2i, outline: bool
 ## The rim: every part line still showing on the figure's outer edge is pulled darker, so the
 ## silhouette reads against any ground; lines between parts keep their material's deep tone.
 static func _silhouette(img: Image) -> void:
-	var rim := Color(str(art().rim))
-	var mix: float = art().rim_mix
+	var rim := Color(str(_cur.rim))
+	var mix: float = _cur.rim_mix
 	for p: Vector2i in _lines:
 		var col := img.get_pixelv(p)
 		if not _same(col, _lines[p]) or col.a < 1.0:
