@@ -58,7 +58,7 @@ static func _make(key: String) -> Image:
 			return _item(parts[1])
 		"animal":   # animal:<chicken|chick|cow|calf|sheep|sheep_shorn|lamb|dog>:<idle|peck|walk|sick, dog: sit|held>:<frame>[:<dl|dr|ul|ur>], AnimalArt (twice the farmer's pixel density; the dog "held" is the small old one)
 			if parts[1] == "dog" and parts[2] == "held":
-				return _animal(parts[1], parts[2], int(parts[3]))
+				return _beast(parts[1], parts[2], int(parts[3]))
 			return AnimalArt.make(parts[1], parts[2], int(parts[3]), parts[4] if parts.size() > 4 else "dl")
 		"build":    # build:<plaster|tsuchi|board|kawara|kawara_edge|thatch|kaya|kaya_edge|hay|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
@@ -236,11 +236,6 @@ static func _item(id: String) -> Image:
 ## Egg shells per grade (data/animals.json items): plain white, a warm brown one, and the best
 ## with a golden blush and a sparkle.
 const EGG_SHELLS := {"egg": Color("f2ecdc"), "egg_good": Color("d8b088"), "egg_best": Color("eccb7a")}
-const _HEN_WHITE := Color("f4f0e6")
-const _HEN_SHADE := Color("d8d0c0")
-const _COMB := Color("c8442c")
-const _BEAK := Color("e8a23a")
-const _CHICK := Color("f2d25a")
 
 
 ## An egg standing on its round end, `size` square (12 in the world, 14 as a slot icon).
@@ -257,88 +252,10 @@ static func _egg(id: String, size: int) -> Image:
 	return _outline(img)
 
 
-## The first, low resolution animal drawings (a hen 14 x 12, a chick 9 x 8, side view facing
-## left). Only the dog held in the farmer's arms still uses them (AnimalArt draws the rest), and
-## _beast tones it like the AnimalArt pictures.
-static func _animal(kind: String, pose: String, frame: int) -> Image:
-	if kind == "chick":
-		return _chick(pose, frame)
-	if BEASTS.has(kind):
-		return _beast(kind, pose, frame)
-	var img := _blank(14, 12)
-	var sick := pose == "sick"
-	var white := _HEN_WHITE.darkened(0.15) if sick else _HEN_WHITE
-	var shade := _HEN_SHADE.darkened(0.15) if sick else _HEN_SHADE
-	var legs := 0 if pose != "walk" else frame % 2 + 1
-	# Legs and feet.
-	for x in [6 + (1 if legs == 1 else 0), 9 - (1 if legs == 2 else 0)]:
-		_px(img, x, 9, 1, 2, _BEAK)
-		_px(img, x - 1, 11, 2, 1, _BEAK)
-	# Tail feathers up behind, the body, a folded wing.
-	_px(img, 11, 2, 2, 4, shade)
-	_px(img, 12, 1, 1, 2, shade)
-	_oval(img, 8, 6.8 if not sick else 7.2, 5.2 if not sick else 5.6, 3.4, white)
-	_oval(img, 8.5, 8.4, 4.0, 1.4, shade)
-	_line(img, Vector2i(7, 6), Vector2i(10, 7), shade)
-	# The head: up and alert, turned, pecking low, or sunk into the shoulders.
-	var head := Vector2(3.5, 3.5)
-	if pose == "peck":
-		head = Vector2(2.5, 7.0 + frame % 2)
-	elif sick:
-		head = Vector2(4.0, 5.0)
-	_oval(img, head.x, head.y, 2.3, 2.2, white)
-	var hx := int(head.x)
-	var hy := int(head.y)
-	_px(img, hx - 1, hy - 3, 3, 1, _COMB)            # comb
-	_px(img, hx, hy - 4, 1, 1, _COMB)
-	if not (pose == "idle" and frame % 2 == 1):
-		_px(img, hx - 3, hy, 2, 1, _BEAK)            # beak, out in front
-		_px(img, hx - 2, hy + 1, 1, 2, _COMB)        # wattle
-		_px(img, hx - 1, hy - 1, 1, 1, OUTLINE if not sick else shade.darkened(0.4))
-	else:
-		_px(img, hx - 2, hy, 1, 1, _BEAK)            # head turned: beak towards us
-		_px(img, hx - 1, hy + 1, 1, 1, _COMB)
-		_px(img, hx, hy - 1, 1, 1, OUTLINE)
-	return _outline(img)
-
-
-static func _chick(pose: String, frame: int) -> Image:
-	var img := _blank(9, 8)
-	var body := _CHICK.darkened(0.2) if pose == "sick" else _CHICK
-	var low := pose == "peck"
-	var step := frame % 2 if pose == "walk" else 0
-	_px(img, 4 - step, 6, 1, 2, _BEAK)
-	_px(img, 6 + step, 6, 1, 2, _BEAK)
-	_oval(img, 5, 4.5, 3.4, 2.4, body)
-	_oval(img, 2.5 if not low else 2.0, 2.5 if not low else 4.5, 1.8, 1.8, body)
-	var hy := 2 if not low else 4
-	_px(img, 0, hy + 1, 1, 1, _BEAK)
-	_px(img, 2, hy, 1, 1, OUTLINE)
-	_px(img, 5, 4, 2, 1, body.darkened(0.15))         # little wing
-	return _outline(img)
-
-
-## Four-legged animals, side view facing left like the hens: sizes and colours per kind.
-## Japanese Black cattle (near-black with a pale muzzle), cream-wool sheep with dark faces
-## (thin and pinkish grey once shorn), a red-tan shiba-like dog with a cream chest and a tail
-## curled over its back. Keys "animal:<kind>:<pose>:<frame>"; the dog also sits and has a
-## "held" pose (sitting up in the arms).
+## The first, low resolution animal drawing, side view facing left: only the dog held in the
+## farmer's arms (key "animal:dog:held:0", 14 x 11) still uses it; AnimalArt draws every other
+## animal and pose. A red-tan shiba-like dog with a cream chest and a tail curled over its back.
 const BEASTS := {
-	"cow": {"w": 24, "h": 16, "body": Color("2e2824"), "head": Color("2e2824"), "muzzle": Color("b8a898"),
-		"leg": Color("2a2420"), "hoof": Color("504840"), "b": [13.5, 7.5, 8.0, 4.2], "hd": [4.5, 6.0, 3.0],
-		"legs": [7, 10, 16, 19], "leg_y": 10, "leg_len": 5, "tail": "rope", "horns": Color("e0d8c0")},
-	"calf": {"w": 16, "h": 12, "body": Color("3a322c"), "head": Color("3a322c"), "muzzle": Color("c0b0a0"),
-		"leg": Color("342c26"), "hoof": Color("605850"), "b": [9.0, 5.5, 5.2, 2.8], "hd": [3.5, 4.5, 2.3],
-		"legs": [5, 7, 10, 12], "leg_y": 7, "leg_len": 4, "tail": "rope"},
-	"sheep": {"w": 18, "h": 14, "body": Color("f0e8d4"), "head": Color("3a302c"), "muzzle": Color("4a403a"),
-		"leg": Color("3a302c"), "hoof": Color("2a2220"), "b": [10.0, 6.5, 6.6, 4.2], "hd": [3.5, 5.0, 2.3],
-		"legs": [6, 8, 12, 14], "leg_y": 9, "leg_len": 4, "tail": "stub", "fleece": true},
-	"sheep_shorn": {"w": 18, "h": 14, "body": Color("d8c8c0"), "head": Color("3a302c"), "muzzle": Color("4a403a"),
-		"leg": Color("3a302c"), "hoof": Color("2a2220"), "b": [10.0, 7.2, 5.4, 2.9], "hd": [3.5, 5.2, 2.2],
-		"legs": [6, 8, 12, 14], "leg_y": 9, "leg_len": 4, "tail": "stub"},
-	"lamb": {"w": 12, "h": 10, "body": Color("f6f0e2"), "head": Color("4a403a"), "muzzle": Color("5a504a"),
-		"leg": Color("4a403a"), "hoof": Color("2a2220"), "b": [6.8, 4.8, 4.2, 2.6], "hd": [2.6, 3.6, 1.8],
-		"legs": [4, 6, 8, 9], "leg_y": 6, "leg_len": 3, "tail": "stub", "fleece": true},
 	"dog": {"w": 14, "h": 11, "body": Color("c8783c"), "head": Color("c8783c"), "muzzle": Color("f2e2c8"),
 		"leg": Color("c8783c"), "hoof": Color("f2e2c8"), "b": [7.5, 5.5, 4.2, 2.3], "hd": [3.0, 3.6, 2.2],
 		"legs": [4, 6, 9, 11], "leg_y": 7, "leg_len": 3, "tail": "curl", "ears": true},
@@ -353,7 +270,6 @@ static func _beast(kind: String, pose: String, frame: int) -> Image:
 	var sick := pose == "sick"
 	var sit := pose == "sit" or pose == "held"
 	var body: Color = s.body.darkened(0.15) if sick else s.body
-	var shade: Color = body.darkened(0.12) if s.has("fleece") else body.darkened(0.22)
 	var head_c: Color = s.head.darkened(0.15) if sick else s.head
 	var b: Array = s.b
 	var bx: float = b[0] + (1.0 if sit else 0.0)
@@ -372,26 +288,14 @@ static func _beast(kind: String, pose: String, frame: int) -> Image:
 			_px(img, x, top + long - 1, thick, 1, s.hoof)
 	# The tail, then the body over it.
 	var tail_x := int(bx + b[2]) - 1
-	match s.tail:
-		"rope":
-			_line(img, Vector2i(tail_x, int(by - b[3] * 0.5)), Vector2i(tail_x + 1, int(by + b[3] * 0.8)), shade)
-			_px(img, tail_x + 1, int(by + b[3] * 0.8), 1, 2, Color("1a1614"))
-		"stub":
-			_px(img, tail_x, int(by - 1), 2, 2, body.darkened(0.08))
-		"curl":
-			_oval(img, tail_x - 0.5, by - b[3] - 0.2, 1.6, 1.5, body)
-			_px(img, int(tail_x - 0.5), int(by - b[3]), 1, 1, s.muzzle)
+	_oval(img, tail_x - 0.5, by - b[3] - 0.2, 1.6, 1.5, body)   # the tail curled over its back
+	_px(img, int(tail_x - 0.5), int(by - b[3]), 1, 1, s.muzzle)
 	if sit:
 		_oval(img, bx + 0.5, by + 0.5, b[2] * 0.8, b[3] * 1.05, body)   # haunch down, chest up
 		_oval(img, bx - b[2] * 0.45, by - 0.5, b[2] * 0.45, b[3] * 1.1, body)
 	else:
 		_oval(img, bx, by, b[2], b[3], body)
-	_oval(img, bx + 0.5, by + b[3] * 0.55, b[2] * 0.72, b[3] * 0.38, s.muzzle if kind == "dog" else shade)
-	if s.has("fleece"):   # curls on the wool
-		for p in [Vector2(-0.5, -0.4), Vector2(0.2, -0.6), Vector2(0.55, -0.1), Vector2(-0.2, 0.1), Vector2(0.3, 0.3)]:
-			_px(img, int(bx + p.x * b[2]), int(by + p.y * b[3]), 1, 1, body.lightened(0.5))
-	if kind == "cow":
-		_px(img, int(bx) + 2, int(by + b[3]) - 1, 2, 1, Color("c8a8a0"))   # udder
+	_oval(img, bx + 0.5, by + b[3] * 0.55, b[2] * 0.72, b[3] * 0.38, s.muzzle)
 	# The head: up, a little raised, down to the grass, sunk while lying, up when sitting.
 	var hd: Array = s.hd
 	var head := Vector2(hd[0], hd[1])
@@ -405,23 +309,16 @@ static func _beast(kind: String, pose: String, frame: int) -> Image:
 		head = Vector2(hd[0] + 0.5, hd[1] - 0.5)
 	var r: float = hd[2]
 	var dark := Color(str(AnimalArt.art().features.nostril))   # eye and nose: no black outline colour
-	if s.has("fleece"):
-		_oval(img, head.x + r * 0.6, head.y - r * 0.4, r * 0.9, r * 0.8, body)   # wool cap
 	_oval(img, head.x, head.y, r * 1.1, r, head_c)
 	_oval(img, head.x - r * 0.75, head.y + r * 0.35, r * 0.55, r * 0.5, s.muzzle)
 	var eye := Vector2i(int(head.x - r * 0.15), int(head.y - r * 0.35))
 	if sick:
 		_px(img, eye.x - 1, eye.y + 1, 2, 1, head_c.darkened(0.5))
 	else:
-		_px(img, eye.x, eye.y, 1, 1, Color("e8e0d0") if kind in ["cow", "calf"] else dark)
-	if s.has("ears"):   # pricked shiba ears
-		_px(img, int(head.x), int(head.y - r) - 1, 1, 2, head_c.darkened(0.15))
-		_px(img, int(head.x + r * 0.7), int(head.y - r) - 1, 1, 2, head_c.darkened(0.15))
-	else:
-		_px(img, int(head.x + r * 0.8), int(head.y - r * 0.5), 2, 1, head_c.darkened(0.2))   # ear out sideways
-	if s.has("horns"):
-		_px(img, int(head.x), int(head.y - r) - 1, 1, 2, s.horns)
-	if kind == "dog" and not sick:
+		_px(img, eye.x, eye.y, 1, 1, dark)
+	_px(img, int(head.x), int(head.y - r) - 1, 1, 2, head_c.darkened(0.15))   # pricked shiba ears
+	_px(img, int(head.x + r * 0.7), int(head.y - r) - 1, 1, 2, head_c.darkened(0.15))
+	if not sick:
 		_px(img, int(head.x - r * 1.3), int(head.y + r * 0.1), 1, 1, dark)   # nose
 	# Toned like the animals (AnimalArt): three tones a material, a rim in its deep tone.
 	return AnimalArt.refine_flat(img, [dark, Color("e8e0d0"), head_c.darkened(0.5)])

@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Dead animal art removed
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: removed from scripts/art/placeholder_art.gd the unused first-generation animal drawings:
+  `_animal` (the hen and its dispatch), `_chick`, the constants `_HEN_WHITE`, `_HEN_SHADE`, `_COMB`,
+  `_BEAK`, `_CHICK`, the BEASTS entries cow, calf, sheep, sheep_shorn, lamb, and the branches of
+  `_beast` only they used (rope / stub tails, fleece curls and wool cap, udder, cow eye, horns, the
+  sideways ear, the unused `shade`). The key `animal:dog:held:N` now goes straight to `_beast`
+  (the dog, unchanged). Grep over scripts/, tests/, tools/ and scenes/ found no other use of any
+  removed name (no string-built keys or call()s reach them; every other animal key goes to AnimalArt).
+- Checked: `--import`, every tests/test_*.gd prints `OK (0 failed)` with no SCRIPT ERROR or Parse
+  Error (test_animals checks the held dog's 14 x 11 picture); the four smoke runs print 0 ERROR lines.
+- Left / next: the Windows .exe still waits on the export templates.
+
 ## 2026-11-10 — Merge: animal art refined, the weed-flake audit, the persimmon hint checked
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged ab771d7 Animal art, refined (Opus, own worktree), 75d6381 the audit of the tests
