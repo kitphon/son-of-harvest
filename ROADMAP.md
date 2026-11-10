@@ -24,7 +24,8 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 
 ## Next up
 [x] Food icon art, refined (2026-11-10): every `ui:food:*` (the onigiri in the tool bar too) laid in flat materials and toned by ItemArt.refine, the cut, eye, grill line, chestnut shine and printed band kept as fixed marks; same keys and sizes; test_inventory `_food_art_refined`; see WORKLOG.
-[ ] Item icon art, refined, the rest: the fish, mine finds, wild things, kitchen tools, keepsakes and ribbons' icons through ItemArt.refine (laid in flat materials first), as the tools and crops below.
+[ ] Item icon art, refined, the rest: the HUD's coin, stamina and weather icons through ItemArt.refine (laid in flat materials first), as the item icons below.
+[x] Item icon art, refined: the fish, mine finds and wild things (ItemArt.refine, flat materials first; test_inventory `_fish_mine_wild_art_refined`).
 [x] Item and tool icon art, refined (2026-11-10): the six tools, the seed bags, the crops as items (slot icon and held / ground sprite), the furoshiki bundle and the eggs, milk and wool (both sizes) in three tones a material lit from the upper left, deep-tone part lines and a rim in the material's own deep tone instead of the near-black outline (ItemArt, data/item_art.json); same keys and sizes; test_inventory `_item_art_refined`; see WORKLOG.
 [x] Dead animal art removed (2026-11-10): the old low-resolution hen, chick, cow, calf, sheep, lamb drawings and their palettes in PlaceholderArt; only the held dog (`_beast`) stays; see WORKLOG.
 [x] Flat-view screenshots of the refined animals (2026-11-10): `--map=barn` and `--map=coop` through `res://scenes/main_2d.tscn` show the animals in several tones with no near-black outline on the pale ones; test_view2d and test_animals OK; see WORKLOG.

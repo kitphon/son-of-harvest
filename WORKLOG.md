@@ -35,6 +35,23 @@ Agent: Claude Code (claude-opus) · Commit: this commit
 - Left / next: fish, mine finds, wild things, kitchen tools, keepsakes, ribbons and the HUD's
   coin / stamina / weather icons (other agents / ROADMAP Next up). The bowls show only two rows
   of their food, as before.
+## 2026-11-10 — Fish, mine find and wild thing icon art, refined
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: `ui:fish:*` (PlaceholderArt._fish_icon), `ui:mine:*` (_mine_icon) and `ui:wild:*` (_wild_icon)
+  redrawn in flat materials (the hand-placed lighter / darker copies of the body, colour or accent
+  dropped) and passed through ItemArt.refine like the tools and crops: three tones a material,
+  deep part lines, own-tone rim instead of 2a1e1e. Small marks stay as fixed colours (the fish's
+  eye, the stones' and gems' shine and glints, the ore's vein sparkle, the thumb mark, the frost,
+  berry and nut highlights, the pod's seeds, the fern's curl eye, the mushroom's cap glint). The
+  gem's crown, the crystal's lit facets and the shard's lit facet stay their own materials. Same
+  keys, 14 x 14 sizes and per-item colours.
+- Checked: new test_inventory `_fish_mine_wild_art_refined` (every fish, mine find and wild item:
+  14 x 14, no 2a1e1e pixel, at least four colours, the main material's lit tone and its shade or
+  deep one; thin fish bodies are all lit edge and part line, hence "or deep"). A 6x sheet of all 48
+  icons on paper (throwaway script, not committed) looked at; deleted. All tests/test_*.gd print
+  `OK (0 failed)`; smoke runs clean (see the commit).
+- Left / next: the food, kitchen, keepsake and ribbon icons (other agents) and the HUD's coin /
+  stamina / weather icons.
 
 ## 2026-11-10 — Merge: item and tool icon art refined, dead animal art removed, flat-view animals checked
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
