@@ -42,6 +42,24 @@ Agent: Claude Code (claude-opus) · Commit: this commit
   smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print 0 ERROR or WARNING lines.
 - Left / next: no flat-view screenshot of the animals (the flat view draws the same pictures at
   half size); the old low-resolution hen / chick / beast drawings other than the held dog are unused.
+## 2026-11-10 — Audit of the tests for the night's weed flake
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: searched every tests/test_*.gd that runs a night (`end_day()` / `day_end`; 18 files) for
+  checks that read a farm cell afterwards. To prove them, `FarmGrid.WEED_CHANCE` was temporarily set
+  to 1.0 (every empty cell weeds each night) and all 31 tests were run. Failures: test_farm "daikon
+  dries like any crop" (the empty plot's night weeded and untilled it, so the next sow failed),
+  test_farm "a can with 2 water waters the first 2 cells" (the night weeded the tilled plots),
+  test_animals "egg thrown into the bin is shipped" and "eggs in the rucksack ship at the bin too"
+  and "milk thrown into the bin is shipped" (a weed on [8, 4], the cell between the farmer and the
+  bin, makes `throw_target` answer "blocked"; the egg throw fails first, the later checks follow).
+  Those tests use fixed seeds, so they passed every normal run, but they depended on the roll
+  not hitting those cells. Fix: after the night each clears the weed (and re-tills the plot in
+  test_farm) with a comment; no retry, no seed change, no rule change. The game is right (a weed
+  stopping a throw is correct). Every other test, test_villagers included, printed `OK (0 failed)`
+  with the chance at 1.0, so none else is at risk. The constant was reverted.
+- Checked: forced 1.0 with the fixes: test_farm, test_animals, test_villagers `OK (0 failed)`. With
+  the real chance all tests/test_*.gd print `OK (0 failed)`; smoke runs print 0 ERROR or WARNING lines.
+- Left / next: none.
 ## 2026-11-10 — Merge: lumber flake, Kiku's picked lines all year, the persimmon pick in hand
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged e844018 the test_villagers lumber flake (Opus, own worktree), 3a6a44b Kiku's picked
