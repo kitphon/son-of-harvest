@@ -2,7 +2,7 @@ class_name AnimalArt
 extends RefCounted
 ## The farm animals as pixel sprites, drawn in code (our own designs): hens and chicks, Japanese
 ## Black cattle and calves, cream-wool sheep (shorn, and lambs), a red-tan shiba-like dog.
-## Keys "animal:<kind>:<pose>:<frame>[:<facing>]" (PlaceholderArt._animal hands them here).
+## Keys "animal:<kind>:<pose>:<frame>[:<facing>]" (PlaceholderArt hands them here).
 ##
 ## - Twice the pixel density of the farmer's sprites (SCALE art pixels per world pixel), so the
 ##   3D view sets pixel_size = FarmWorld.PX / SCALE and the animals keep their world size.
