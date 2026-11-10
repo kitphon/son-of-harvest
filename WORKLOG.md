@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Merge: animal art refined, the weed-flake audit, the persimmon hint checked
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged ab771d7 Animal art, refined (Opus, own worktree), 75d6381 the audit of the tests
+  for the night's weed flake (Sonnet, own worktree) and ea273a0 the persimmon tree's hint checked
+  (Haiku, own worktree). Conflicts only in WORKLOG and ROADMAP; every side's entry kept.
+  tests/test_animals.gd took both sides' changes without a conflict.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`
+  with no SCRIPT ERROR or Parse Error line; the smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`) print 0 ERROR or WARNING lines.
+- Left / next: no flat-view screenshot of the refined animals; the old low-resolution hen and
+  chick drawings in PlaceholderArt are unused code; the Windows .exe still waits on the export
+  templates.
+
 ## 2026-11-10 — Animal art, refined
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: the farm animals get the figures' refined look. AnimalArt (scripts/art/animal_art.gd) now
