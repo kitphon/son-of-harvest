@@ -2145,13 +2145,13 @@ static func _ui(kind: String, arg: String) -> Image:
 			_px(img, 8, 10, 2, 3, c)
 			img.set_pixel(6, 4, gold)
 			return ItemArt.refine(img, [gold])
-		"coin":     # a gold coin with a square hole
+		"coin":     # a gold coin with a square hole: flat gold rim and face, toned by ItemArt
 			var img := _blank(9, 9)
 			_oval(img, 4.5, 4.5, 4.0, 4.0, Color("c8962a"))
 			_oval(img, 4.5, 4.5, 3.0, 3.0, Color("e8c050"))
 			_px(img, 3, 3, 3, 3, Color("c8962a"))
 			_px(img, 4, 4, 1, 1, Color(0, 0, 0, 0))
-			return img
+			return ItemArt.refine(img)
 		"heart":    # heart:<band 0..6>, 9 x 8, on the text box's name tag (colours in data/text_box.json)
 			return _heart(int(arg))
 		"more":     # the small vermilion arrow that says a press goes on
@@ -2161,13 +2161,13 @@ static func _ui(kind: String, arg: String) -> Image:
 			return img
 		"scroll":   # scroll:<washi|roller_<w>|star_on|star_off|seal|arrow>, the village record (EndingScreen)
 			return _scroll_art(arg)
-		"stamina":  # a rice ball: what keeps the farmer going
+		"stamina":  # a rice ball: what keeps the farmer going (rice and nori, toned by ItemArt)
 			var img := _blank(9, 9)
 			for y in 7:
 				var half := (y + 1) / 2 + 1
 				_px(img, 4 - half + 1, y + 1, half * 2 - 1, 1, Color("fbf8f0"))
 			_px(img, 3, 6, 3, 2, Color("26302a"))
-			return _outline(img)
+			return ItemArt.refine(img)
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
 
@@ -2409,19 +2409,21 @@ const FOOD_EYE := Color("1e1e1e")
 static func _weather_icon(kind: String) -> Image:
 	var img := _blank(12, 12)
 	if kind == "sunny":
+		# Flat rays and disc, toned by ItemArt; the bright glint is laid after.
 		var ray := Color("e8902a")
 		for p in [[5, 0, 2, 2], [5, 10, 2, 2], [0, 5, 2, 2], [10, 5, 2, 2], [1, 1, 2, 2], [9, 1, 2, 2], [1, 9, 2, 2], [9, 9, 2, 2]]:
 			_px(img, p[0], p[1], p[2], p[3], ray)
 		_oval(img, 6, 6, 3.5, 3.5, Color("f0a830"))
-		_oval(img, 5.5, 5.5, 2.0, 2.0, Color("f8d868"))
+		ItemArt.refine(img)
+		_oval(img, 5.5, 5.5, 1.5, 1.5, Color("f8d868"))
 		return img
 	var dark := kind in ["storm", "blizzard"]
 	var cloud := Color("6a7282") if dark else Color("a8b2c2")
-	var cloud_top := Color("8a92a2") if dark else Color("d4dae4")
 	_oval(img, 4, 4.5, 3, 2.5, cloud)
 	_oval(img, 7.5, 3.5, 3.5, 3, cloud)
 	_px(img, 1, 5, 10, 2, cloud)
-	_oval(img, 7, 3, 2, 1.5, cloud_top)
+	ItemArt.refine(img)
+	# The small marks are laid after the cloud's toning, as fixed colours (no rim).
 	match kind:
 		"rain", "storm":
 			var drop := Color("3a78c8")

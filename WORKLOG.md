@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — HUD icon art (coin, stamina, weather), refined
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: `ui:coin`, `ui:stamina` and `ui:weather:<sunny|rain|storm|snow|blizzard>` in
+  PlaceholderArt (`_ui`, `_weather_icon`) are laid in flat materials and passed through
+  ItemArt.refine: the near-black outline is gone, replaced by tones lit from the upper left and a
+  rim in each material's deep tone. The hand-placed light cloud top is dropped (refine lights the
+  cloud). The sun's glint, raindrops, flakes, lightning and blizzard streaks are laid after the
+  refine as fixed colours, so they get no rim. Same keys, sizes (9 x 9, 12 x 12) and main colours.
+- Checked: test_weather `_hud_icons_refined` (sizes, no 2a1e1e, at least four colours each, the
+  coin's lit gold tone); a throwaway 6x sheet of the seven icons looked at, then deleted; all
+  tests/test_*.gd OK (0 failed); the four smoke runs print no ERROR or WARNING lines.
+- Left / next: the 9 x 9 coin is busy at 6x (its hole gets a rim); look at it in the HUD at 1x
+  if it should be calmer. The Windows .exe still waits on the export templates.
+
 ## 2026-11-10 — Merge: food, fish / mine / wild and kitchen / keepsake / ribbon icons refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged b2d3c84 food icons (Opus), 73fc8f4 fish, mine finds and wild things (Sonnet) and

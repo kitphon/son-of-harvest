@@ -296,6 +296,7 @@ func _finish(game_script: GDScript, fx: Dictionary) -> void:
 	await process_frame
 	_wind_by_weather(game_script, fx)
 	_sprite_light(game_script, fx)
+	_hud_icons_refined()
 	print("test_weather: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 
@@ -1155,6 +1156,34 @@ func _field_pass(SL: GDScript, NL: GDScript, CC: GDScript, FW: GDScript, cc: Nod
 		"field pass: its own copy of the tinted picture before the pools, added, off while nothing is lit")
 	nl.free()
 	cam.free()
+
+
+## The HUD's coin, stamina and weather icons go through ItemArt.refine: no old outline colour,
+## several tones, the same sizes.
+func _hud_icons_refined() -> void:
+	var old := FigureArt._key(PlaceholderArt.OUTLINE)
+	var sizes := {"ui:coin": Vector2i(9, 9), "ui:stamina": Vector2i(9, 9)}
+	for w in ["sunny", "rain", "storm", "snow", "blizzard"]:
+		sizes["ui:weather:" + w] = Vector2i(12, 12)
+	for key in sizes:
+		var img := PlaceholderArt.image(key)
+		var seen := {}
+		for y in img.get_height():
+			for x in img.get_width():
+				var p := img.get_pixel(x, y)
+				if p.a > 0.0:
+					seen[p.to_html()] = true
+		check(img.get_size() == sizes[key], "hud icon: %s keeps its size" % key)
+		check(not seen.has(old), "hud icon: %s has no old outline colour" % key)
+		check(seen.size() >= 4, "hud icon: %s has several tones (%d colours)" % [key, seen.size()])
+	var gold := ItemArt.tones(Color("e8c050"))
+	var coin := PlaceholderArt.image("ui:coin")
+	var found := false
+	for y in 9:
+		for x in 9:
+			if FigureArt._key(coin.get_pixel(x, y)) == FigureArt._key(gold[2]):
+				found = true
+	check(found, "hud icon: the coin's face shows its lit gold tone")
 
 
 func check(ok: bool, what: String) -> void:
