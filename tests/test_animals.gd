@@ -787,6 +787,91 @@ func _animal_art() -> void:
 	check(AnimalArt.facing_of(Vector2(-1, 0)) == "ul" and AnimalArt.facing_of(Vector2(0, -1)) == "ur", "steps away face up")
 	check(AnimalArt.facing_of(Vector2(1, -1)) == "dr" and AnimalArt.facing_of(Vector2.ZERO, "ul") == "ul", "a sideways step keeps the near/far side; no step keeps the facing")
 	check(AnimalArt.facing_of(Vector2(1, -1), "ul") == "ur" and AnimalArt.facing_of(Vector2(-1, 1), "dr") == "dl", "a pure left or right step keeps the front or back")
+	_animal_art_refined()
+
+
+## The refined look (data/animal_art.json): three tones a material, deep part lines, a rim in the
+## material's own deep tone instead of the old near-black outline; sizes and the sick dullness kept.
+func _animal_art_refined() -> void:
+	var old_line := FigureArt._key(Color("2a1e1e"))
+	var sizes := {"chicken": Vector2i(30, 28), "chick": Vector2i(18, 16), "cow": Vector2i(52, 38), "calf": Vector2i(34, 26),
+		"sheep": Vector2i(40, 32), "sheep_shorn": Vector2i(40, 32), "lamb": Vector2i(26, 22), "dog": Vector2i(30, 24)}
+	var main_part := {"chicken": "hen", "chick": "chick"}
+	for kind in AnimalArt.KINDS:
+		check(AnimalArt.size_of(kind) == sizes[kind], kind + " keeps its size %s" % AnimalArt.size_of(kind))
+		var part: String = main_part.get(kind, "body")
+		var m := AnimalArt.tones_of(kind, part)
+		var sick_m := AnimalArt.tones_of(kind, part, true)
+		for facing in AnimalArt.FACINGS:
+			for pose in ["idle", "peck", "walk", "sick"] + (["sit"] if kind == "dog" else []):
+				for frame in 2:
+					var key := "animal:%s:%s:%d:%s" % [kind, pose, frame, facing]
+					var img := PlaceholderArt.tex(key).get_image()
+					var cols := _colours(img)
+					check(not cols.has(old_line), key + ": no pixel in the old outline colour")
+					var rim := _rim_colours(img)
+					var tm: Dictionary = sick_m if pose == "sick" else m
+					var want: Color = tm.deep.lerp(Color(str(AnimalArt.art().rim)), float(AnimalArt.art().rim_mix))
+					var rim_keys := {}
+					for c: Color in rim:
+						rim_keys[c.to_html()] = true
+					check(rim_keys.has(FigureArt._key(want)), key + ": the rim round the %s is its own deep tone pulled to the rim colour" % part)
+					var tones := 0
+					for role in ["shade", "base", "lit"]:
+						if cols.has(FigureArt._key(tm[role])):
+							tones += 1
+					check(tones == 3, key + ": the %s shows its shade, base and lit tones (%d)" % [part, tones])
+					if pose == "sick":
+						check(not cols.has(FigureArt._key(m.base)) and not cols.has(FigureArt._key(m.lit)), key + ": sick keeps its dull colours")
+					if kind in ["chicken", "chick", "sheep", "lamb"]:   # pale birds and wool: a grey rim, not a black one
+						var dark := 0
+						var light := 0.0
+						for c: Color in rim:
+							if c.v < 0.12:
+								dark += 1
+							light = maxf(light, c.v)
+						check(light > 0.22, key + ": the pale coat's rim is a soft grey, lighter than the old outline (%.2f)" % light)
+						if kind in ["chicken", "chick"]:
+							check(dark == 0, key + ": a hen or chick has no near-black rim (%d dark rim colours)" % dark)
+	# Part lines in a material's deep tone: the hen's wing, the wool over the sheep's legs and face.
+	var hen := _colours(PlaceholderArt.tex("animal:chicken:idle:0:dl").get_image())
+	check(hen.has(FigureArt._key(AnimalArt.tones_of("chicken", "wing").deep)), "the hen's wing is lined in its deep tone")
+	var sheep := _colours(PlaceholderArt.tex("animal:sheep:idle:0:dl").get_image())
+	check(sheep.has(FigureArt._key(AnimalArt.tones_of("sheep", "body").deep)), "the wool's edge over the legs and face is its deep tone")
+	var cow := _colours(PlaceholderArt.tex("animal:cow:idle:0:dl").get_image())
+	check(cow.has(FigureArt._key(AnimalArt.tones_of("cow", "muzzle").deep)), "the cow's muzzle is lined in its deep tone")
+	# The dog in the arms: the same toning, its size kept.
+	var held := PlaceholderArt.tex("animal:dog:held:0").get_image()
+	var hc := _colours(held)
+	check(held.get_size() == Vector2i(14, 11) and not hc.has(old_line) and hc.size() >= 8, "the dog in the arms is toned, no old outline (%d colours)" % hc.size())
+
+
+## The colour keys of a picture's drawn pixels.
+func _colours(img: Image) -> Dictionary:
+	var out := {}
+	for y in img.get_height():
+		for x in img.get_width():
+			var c := img.get_pixel(x, y)
+			if c.a > 0.0:
+				out[c.to_html()] = true
+	return out
+
+
+## The colours on the picture's outer edge (drawn pixels next to a clear one or the canvas edge).
+func _rim_colours(img: Image) -> Array:
+	var out := {}
+	var size := img.get_size()
+	for y in size.y:
+		for x in size.x:
+			var c := img.get_pixel(x, y)
+			if c.a == 0.0:
+				continue
+			for d in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+				var q: Vector2i = Vector2i(x, y) + d
+				if q.x < 0 or q.y < 0 or q.x >= size.x or q.y >= size.y or img.get_pixelv(q).a == 0.0:
+					out[c.to_html()] = c
+					break
+	return out.values()
 
 
 func _opaque(img: Image) -> int:

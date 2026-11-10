@@ -258,7 +258,8 @@ static func _egg(id: String, size: int) -> Image:
 
 
 ## The first, low resolution animal drawings (a hen 14 x 12, a chick 9 x 8, side view facing
-## left). Only the dog held in the farmer's arms still uses them (AnimalArt draws the rest).
+## left). Only the dog held in the farmer's arms still uses them (AnimalArt draws the rest), and
+## _beast tones it like the AnimalArt pictures.
 static func _animal(kind: String, pose: String, frame: int) -> Image:
 	if kind == "chick":
 		return _chick(pose, frame)
@@ -403,6 +404,7 @@ static func _beast(kind: String, pose: String, frame: int) -> Image:
 	elif sit:
 		head = Vector2(hd[0] + 0.5, hd[1] - 0.5)
 	var r: float = hd[2]
+	var dark := Color(str(AnimalArt.art().features.nostril))   # eye and nose: no black outline colour
 	if s.has("fleece"):
 		_oval(img, head.x + r * 0.6, head.y - r * 0.4, r * 0.9, r * 0.8, body)   # wool cap
 	_oval(img, head.x, head.y, r * 1.1, r, head_c)
@@ -411,7 +413,7 @@ static func _beast(kind: String, pose: String, frame: int) -> Image:
 	if sick:
 		_px(img, eye.x - 1, eye.y + 1, 2, 1, head_c.darkened(0.5))
 	else:
-		_px(img, eye.x, eye.y, 1, 1, Color("e8e0d0") if kind in ["cow", "calf"] else OUTLINE)
+		_px(img, eye.x, eye.y, 1, 1, Color("e8e0d0") if kind in ["cow", "calf"] else dark)
 	if s.has("ears"):   # pricked shiba ears
 		_px(img, int(head.x), int(head.y - r) - 1, 1, 2, head_c.darkened(0.15))
 		_px(img, int(head.x + r * 0.7), int(head.y - r) - 1, 1, 2, head_c.darkened(0.15))
@@ -420,8 +422,9 @@ static func _beast(kind: String, pose: String, frame: int) -> Image:
 	if s.has("horns"):
 		_px(img, int(head.x), int(head.y - r) - 1, 1, 2, s.horns)
 	if kind == "dog" and not sick:
-		_px(img, int(head.x - r * 1.3), int(head.y + r * 0.1), 1, 1, OUTLINE)   # nose
-	return _outline(img)
+		_px(img, int(head.x - r * 1.3), int(head.y + r * 0.1), 1, 1, dark)   # nose
+	# Toned like the animals (AnimalArt): three tones a material, a rim in its deep tone.
+	return AnimalArt.refine_flat(img, [dark, Color("e8e0d0"), head_c.darkened(0.5)])
 
 
 ## Animal goods as items (data/animals.json): eggs, milk, wool. Grades differ by colour.
