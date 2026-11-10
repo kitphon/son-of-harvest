@@ -833,43 +833,47 @@ static func _kitchen_icon(id: String) -> Image:
 	var steel := Color("b8c0c8")
 	var wood := Color("9a6a3a")
 	var clay := Color("a8583a")
+	var lid := Color("7a4a36")       # the pot's glazed lid, its own material
 	var iron := Color("4a4848")
 	var bamboo := Color("c8b070")
+	var green := Color("5a7a5a")     # the teapot
+	var lacquer := Color("7a3a2a")   # the mochi mortar's red-brown lacquer
+	var fixed: Array = []            # small marks left as they are
 	match id:
 		"knife":
 			_line(img, Vector2i(2, 11), Vector2i(5, 8), wood)   # the handle
 			_line(img, Vector2i(3, 11), Vector2i(6, 8), wood)
 			for i in 6:   # the blade, widest at the heel
 				_px(img, 6 + i, 7 - i, 2, 2 if i < 4 else 1, steel)
-			_line(img, Vector2i(7, 8), Vector2i(12, 3), steel.lightened(0.3))
+			_line(img, Vector2i(7, 8), Vector2i(12, 3), steel)
 		"pot":
 			_oval(img, 7, 8.5, 5.5, 3.5, clay)
-			_px(img, 2, 5, 10, 2, clay.darkened(0.2))   # the lid's rim
-			_px(img, 6, 3, 2, 2, clay.darkened(0.3))    # its knob
-			_px(img, 4, 8, 3, 1, clay.lightened(0.25))
+			_px(img, 2, 5, 10, 2, lid)      # the lid's rim
+			_px(img, 6, 3, 2, 2, lid)       # its knob
 		"teapot":
-			_oval(img, 6.5, 8, 4, 3.5, Color("5a7a5a"))
-			_px(img, 5, 4, 3, 1, Color("4a6a4a"))
-			_line(img, Vector2i(10, 8), Vector2i(12, 6), Color("5a7a5a"))   # the spout
+			_oval(img, 6.5, 8, 4, 3.5, green)
+			_px(img, 5, 4, 3, 1, green)     # the lid
+			_line(img, Vector2i(10, 8), Vector2i(12, 6), green)   # the spout
 			_line(img, Vector2i(1, 6), Vector2i(3, 8), wood)   # the side handle
 		"rice_pot":
 			_px(img, 2, 6, 10, 6, iron)
-			_px(img, 1, 8, 12, 1, iron.lightened(0.15))   # the flange
-			_px(img, 2, 4, 10, 2, wood)   # the wooden lid
-			_px(img, 6, 3, 2, 1, wood.darkened(0.25))
+			_px(img, 1, 8, 12, 1, iron)     # the flange
+			_px(img, 2, 4, 10, 2, wood)     # the wooden lid
+			_px(img, 6, 3, 2, 1, wood)      # its knob
 		"steamer":
-			_px(img, 2, 4, 10, 4, bamboo)
-			_px(img, 2, 8, 10, 4, bamboo.darkened(0.12))
-			_px(img, 2, 7, 10, 1, bamboo.darkened(0.35))   # the two baskets' seam
-			_px(img, 3, 3, 8, 1, bamboo.lightened(0.2))
+			_px(img, 3, 3, 8, 1, bamboo)    # the lid's edge
+			_px(img, 2, 4, 10, 3, bamboo)   # the top basket
+			_px(img, 2, 8, 10, 4, bamboo)   # the bottom basket; the clear row between is the seam
 		"mallet":
-			_px(img, 7, 2, 2, 7, wood)   # the handle
-			_px(img, 3, 1, 6, 3, wood.darkened(0.15))   # the head
-			_px(img, 2, 9, 10, 4, wood.darkened(0.3))   # the mortar
-			_px(img, 3, 9, 8, 1, Color("f0ece0"))   # the rice in it
+			_px(img, 7, 2, 2, 7, wood)      # the handle
+			_px(img, 3, 1, 6, 3, wood)      # the head
+			_px(img, 2, 9, 10, 4, lacquer)  # the mortar
+			var rice := Color("f0ece0")
+			_px(img, 3, 9, 8, 1, rice)      # the rice in it
+			fixed.append(rice)
 		_:
 			_oval(img, 7, 7, 5, 5, steel)
-	return _outline(img)
+	return ItemArt.refine(img, fixed)
 
 
 ## A wild thing (data/forage.json look): a bamboo shoot in its husk, a curled bracken frond, a
@@ -2134,8 +2138,13 @@ static func _ui(kind: String, arg: String) -> Image:
 			return _keepsake_icon(Keepsakes.keepsake("keep:" + arg).get("look", {}))
 		"ribbon":   # ribbon:<place>, 14 x 14, a contest rosette in the place's colour
 			var img := _blank(14, 14)
-			_rosette(img, 7, 5, Keepsakes.ribbon_color(int(arg)))
-			return _outline(img)
+			var c := Keepsakes.ribbon_color(int(arg))
+			var gold := Color("e8c050")   # the button, kept as it is
+			_oval(img, 7, 4.5, 4.0, 4.0, c)               # the pleated round
+			_px(img, 4, 10, 2, 3, c)                      # the two tails, a clear row above them
+			_px(img, 8, 10, 2, 3, c)
+			img.set_pixel(6, 4, gold)
+			return ItemArt.refine(img, [gold])
 		"coin":     # a gold coin with a square hole
 			var img := _blank(9, 9)
 			_oval(img, 4.5, 4.5, 4.0, 4.0, Color("c8962a"))
@@ -2974,66 +2983,77 @@ static func _keepsake_icon(look: Dictionary) -> Image:
 	var img := _blank(14, 14)
 	var c := Color(look.get("color", "a8d4ec"))
 	var a := Color(look.get("accent", "c8442c"))
+	var cord := Color("6a5a48")      # cords, strings and the shadow under the rabbit
+	var paper := Color("f4f0e6")
+	var bamboo := Color("c8a060")    # the fan's handle and ribs
+	var hanger := Color("4a3424")
+	var ink := Color("2e2a26")       # the lantern's rims and ribs
+	var face := Color("f4ead8")
+	var glint := Color("f4f8fc")     # small marks, kept as they are
+	var moon := Color("f8f4e0")
+	var ear := Color("e8a0a0")
+	var fixed: Array = []
 	match look.get("shape", ""):
 		"chime":
-			_px(img, 6, 0, 2, 2, Color("6a5a48"))          # the cord
+			_px(img, 6, 0, 2, 2, cord)                    # the cord
 			_oval(img, 7, 4.5, 3.5, 3.0, c)               # the glass bell
 			_px(img, 3, 5, 8, 2, c)
-			_px(img, 4, 3, 1, 2, c.lightened(0.5))
+			_px(img, 4, 3, 1, 2, glint)                   # the glint on the glass
+			fixed.append(glint)
 			_px(img, 5, 4, 4, 1, a)                       # a painted band
-			_px(img, 7, 7, 1, 2, Color("6a5a48"))         # the clapper string
-			_px(img, 6, 9, 3, 5, Color("f4f0e6"))         # the paper strip that catches the wind
+			_px(img, 7, 7, 1, 2, cord)                    # the clapper string
+			_px(img, 6, 9, 3, 5, paper)                   # the paper strip that catches the wind
 			_px(img, 6, 10, 3, 1, a)
 		"fan":
-			_px(img, 6, 8, 2, 6, Color("c8a060"))          # the bamboo handle
+			_px(img, 6, 8, 2, 6, bamboo)                  # the bamboo handle
 			_oval(img, 7, 5.5, 5.5, 4.5, c)
 			_oval(img, 7, 5.5, 2.5, 2.0, a)               # a painted flower
 			for x in [3, 7, 11]:                          # the ribs
-				_line(img, Vector2i(7, 9), Vector2i(x, 2), c.darkened(0.15))
+				_line(img, Vector2i(7, 9), Vector2i(x, 2), bamboo)
 		"rabbit":
-			_oval(img, 7, 9.5, 4.5, 3.5, c)                # the body, sitting
+			_oval(img, 7, 9.5, 4.5, 3.5, c)               # the body, sitting
 			_oval(img, 9, 6, 2.5, 2.2, c)                 # the head
 			_px(img, 8, 1, 1, 4, c)                       # the long ears
 			_px(img, 10, 1, 1, 4, c)
-			_px(img, 8, 2, 1, 2, a.lightened(0.4))
+			_px(img, 8, 2, 1, 2, ear)                     # the inside of an ear
+			fixed.append(ear)
 			img.set_pixel(10, 6, a)                       # a red eye
-			_px(img, 3, 9, 2, 2, a.lightened(0.3))        # a painted spot on the flank
-			_px(img, 2, 13, 10, 1, c.darkened(0.25))      # where it sits
+			_px(img, 3, 9, 2, 2, a)                       # a painted spot on the flank
+			_px(img, 2, 13, 10, 1, cord)                  # where it sits
 		"lantern":
-			_px(img, 6, 0, 2, 2, Color("4a3424"))          # the hanger
-			_px(img, 4, 2, 6, 1, Color("2e2a26"))          # the top and bottom rims
-			_px(img, 4, 12, 6, 1, Color("2e2a26"))
+			_px(img, 6, 0, 2, 2, hanger)                  # the hanger
+			_px(img, 4, 2, 6, 1, ink)                     # the top and bottom rims
+			_px(img, 4, 12, 6, 1, ink)
 			_oval(img, 7, 7.5, 5.0, 4.8, c)               # the glowing paper
 			for y in [5, 8, 10]:                          # its ribs
-				_px(img, 3, y, 8, 1, c.darkened(0.12))
+				_px(img, 3, y, 8, 1, ink)
 			_oval(img, 7, 6.5, 2.0, 2.0, a)               # a dark night sky...
-			_oval(img, 7.5, 6.5, 1.3, 1.3, Color("f8f4e0"))  # ...round a full moon
+			_oval(img, 7.5, 6.5, 1.3, 1.3, moon)          # ...round a full moon
+			fixed.append(moon)
 		"daruma":
 			_oval(img, 7, 7.5, 5.5, 6.0, c)               # the round red body
-			_oval(img, 7, 6, 3.2, 2.8, Color("f4ead8"))   # the face
+			_oval(img, 7, 6, 3.2, 2.8, face)              # the face
 			_px(img, 5, 5, 1, 2, Color("1e1e1e"))         # one eye painted in (the other waits for a wish)
-			_px(img, 8, 5, 1, 2, Color("f4ead8").darkened(0.2))
 			_px(img, 4, 10, 6, 1, a)                      # gold trim on the belly
 			_px(img, 6, 11, 2, 1, a)
 		"charm":
 			_line(img, Vector2i(5, 0), Vector2i(7, 3), a)  # the cord loop
 			_line(img, Vector2i(9, 0), Vector2i(7, 3), a)
 			_px(img, 4, 3, 6, 10, c)                      # the cloth bag
-			_px(img, 4, 3, 6, 1, c.darkened(0.2))
-			_px(img, 5, 6, 4, 5, c.lightened(0.15))       # a brocade panel with a gold mark
-			_px(img, 6, 7, 2, 3, a)
+			_px(img, 4, 3, 6, 1, a)                       # its gold hem
+			_px(img, 6, 7, 2, 3, a)                       # the gold mark
 		"knot":   # a mizuhiki knot: red and white paper cords tied in three loops, two tails below
 			for p in [[4, 4], [10, 4], [7, 8]]:           # the loops: a red ring round a white one
 				_oval(img, p[0], p[1], 3.0, 2.6, c)
 				_oval(img, p[0], p[1], 1.6, 1.3, a)
 				_oval(img, p[0], p[1], 0.6, 0.6, Color(0, 0, 0, 0))
-			_px(img, 6, 5, 3, 2, c.darkened(0.2))         # where the cords cross
+			_px(img, 6, 5, 3, 2, c)                       # where the cords cross
 			_line(img, Vector2i(6, 10), Vector2i(4, 13), c)   # the tails
 			_line(img, Vector2i(8, 10), Vector2i(10, 13), c)
 			_line(img, Vector2i(7, 10), Vector2i(7, 13), a)
 		_:
 			_oval(img, 7, 7, 5, 5, c)
-	return _outline(img)
+	return ItemArt.refine(img, fixed)
 
 
 ## A contest rosette: a round of pleats in `c` with a darker heart and two tails below it;

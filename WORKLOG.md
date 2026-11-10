@@ -52,6 +52,31 @@ Agent: Claude Code (claude-sonnet) · Commit: this commit
   `OK (0 failed)`; smoke runs clean (see the commit).
 - Left / next: the food, kitchen, keepsake and ribbon icons (other agents) and the HUD's coin /
   stamina / weather icons.
+## 2026-11-10 — Kitchen tools, keepsakes and ribbons, refined
+Agent: Claude Code (claude-haiku) · Commit: this commit
+- Done: the cooking tools (`ui:kitchen:*`), the keepsakes (`ui:keep:*`) and the contest rosettes
+  (`ui:ribbon:*`) laid in flat materials and passed through ItemArt.refine, as the tools before.
+  Kitchen (PlaceholderArt._kitchen_icon): the hand-placed lighter and darker copies merged into
+  one colour per material; the pot's glazed lid is its own material (7a4a36), the mochi mortar a
+  red-brown lacquer (7a3a2a); the steamer's seam between its baskets is a clear row (the rim
+  draws it); the rice in the mortar is a fixed mark. Keepsakes (_keepsake_icon): the shade and
+  lit copies dropped (c and a are the materials); cords and strings 6a5a48, the fan's handle and
+  ribs in its bamboo c8a060, the lantern's rims and ribs in ink 2e2a26; fixed marks: the chime's
+  glint f4f8fc, the rabbit's inner ear e8a0a0, the moon f8f4e0. Ribbon branch of the icon
+  switch: drawn inline (not through the shared _rosette, which the ribbon board still uses):
+  one disc in the place's colour, two tails under a clear row, the gold button fixed; the darker
+  pleat heart dropped. Same keys, sizes and the data colours of each item. The ribbon board,
+  food, fish, mine and wild icons untouched.
+- Checked: new test_inventory `_kitchen_keep_ribbon_art_refined`: all 6 cooking tools, the 7
+  keepsakes and the 3 ribbons are 14 x 14, have no pixel in the old 2a1e1e and at least four
+  colours. Test output lines: `test_inventory: OK (0 failed)`. A 16-icon sheet (throwaway script in
+  the scratchpad, nothing committed) was looked at: the tools, keepsakes and rosettes read with
+  three tones and the coloured rims. Every tests/test_*.gd (31 files) printed `OK (0 failed)` with
+  no SCRIPT ERROR, Parse Error or FAIL line. Smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, each `--quit-after 300`) printed 0 ERROR or WARNING lines.
+- Left / next: the food, fish, mine finds, wild things and the HUD's coin / stamina / weather
+  icons still have the old outline (ROADMAP Next up). No flat-view or 3D screenshot of these
+  icons yet.
 
 ## 2026-11-10 — Merge: item and tool icon art refined, dead animal art removed, flat-view animals checked
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

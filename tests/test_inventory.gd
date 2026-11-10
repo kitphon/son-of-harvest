@@ -19,6 +19,7 @@ func _init() -> void:
 	_item_art_refined()
 	_food_art_refined()
 	_fish_mine_wild_art_refined()
+	_kitchen_keep_ribbon_art_refined()
 	print("test_inventory: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 
@@ -385,6 +386,19 @@ func _fish_mine_wild_art_refined() -> void:
 	check(fish.size() > 0 and mine.size() > 0 and wild.size() > 0, "fish/mine/wild art: the item lists are not empty")
 	for c in cases:
 		var img := PlaceholderArt.image(c[0])
+## The kitchen tools, the keepsakes and the ribbons (ItemArt, the refined pass): every key keeps
+## its 14 x 14 picture, has no pixel of the old near-black outline and several colours.
+func _kitchen_keep_ribbon_art_refined() -> void:
+	var old := FigureArt._key(PlaceholderArt.OUTLINE)
+	var keys := []
+	for t in ["knife", "pot", "teapot", "rice_pot", "steamer", "mallet"]:
+		keys.append("ui:kitchen:" + t)
+	for k in ["wind_chime", "paper_fan", "clay_rabbit", "moon_lantern", "daruma", "omamori", "mizuhiki"]:
+		keys.append("ui:keep:" + k)
+	for place in range(1, Keepsakes.places().size() + 1):
+		keys.append("ui:ribbon:%d" % place)
+	for key in keys:
+		var img := PlaceholderArt.image(key)
 		var seen := {}
 		for y in img.get_height():
 			for x in img.get_width():
@@ -398,6 +412,12 @@ func _fish_mine_wild_art_refined() -> void:
 		# Thin parts (a fish's body) can be all lit edge and part line, so the shade tone or the deep one.
 		check(seen.has(FigureArt._key(tn[2])) and (seen.has(FigureArt._key(tn[0])) or seen.has(FigureArt._key(tn[3]))),
 			"fish/mine/wild art: %s shows its main material's lit tone and its shade or deep one" % c[0])
+				if p.a == 0.0:
+					continue
+				seen[p.to_html()] = true
+		check(img.get_size() == Vector2i(14, 14), "kitchen/keep/ribbon art: %s is 14 x 14" % key)
+		check(not seen.has(old), "kitchen/keep/ribbon art: %s has no old outline colour" % key)
+		check(seen.size() >= 4, "kitchen/keep/ribbon art: %s has several colours (%d)" % [key, seen.size()])
 
 
 func check(ok: bool, what: String) -> void:
