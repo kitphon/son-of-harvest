@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Kaede's portrait hair: tones for very dark materials
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: PortraitArt.tones now tones a very dark material from a lifted colour (new
+  `PortraitArt.lift`; data/portrait_art.json `dark`: below 0.11, base_v 0.2). A material whose
+  value is under `below` is lightened to value `base_v` first, then the usual shade / lit / deep
+  rule runs. Before, Kaede's 1a1416 hair gave deep 0f0e12, shade 141217, base 1a1416: within a few
+  steps of each other, so the hair read as one near-black blob (only the small lit strip showed).
+  Now her hair is a dark charcoal base with the shade, the deep part lines and the lit side clearly
+  apart, and still reads as black hair. A general rule in the tone step, not a per-portrait key;
+  0.11 is chosen so Ichiro's 1e1a18 (v 0.12, the next darkest, mostly under his cap) is left as it
+  was. The field figures (FigureArt) are not touched. The raw-hair brows over the face are unchanged.
+- Checked: new test_dialogue `_dark_hair`: Kaede's hair counts as very dark; 1e1a18, 241a1a and two
+  light colours are toned exactly as before; the dark hair's luminance steps deep < shade < base by
+  at least 0.03 and lit 0.15 above base, base luminance at most 0.2; in all 5 of Kaede's moods and
+  her child's 5 (child stage) the hair shows shade, base, lit and deep (at least 8 px each) with the
+  lit pixels left of the shade ones. With base_v set to 0 (the old tones) the spread check fails
+  (`[0.077, 0.084, 0.377, 0.058]`). Hashes of all 246 portraits and faces before / after: only
+  portrait:kaede:* (5), face:kaede:* (4) and the child's portraits with her hair (15) changed.
+  Screenshot `--demo --weather=sunny --map=town@shrine --time=9:00 --talk=kaede`: the text box
+  portrait shows the toned black hair (4x crop looked at); shots/ deleted. After `--import`, all 31
+  tests/test_*.gd print `OK (0 failed)` with no ERROR line; the four smoke runs print no ERROR or
+  WARNING line.
+- Left / next: no flat-view screenshot.
+
 ## 2026-11-10 — Merge: portraits refined, cradle / carry refined, test_child flake
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 4b30278 test_child help flake (Sonnet, own worktree), 96ca269 the baby's cradle and

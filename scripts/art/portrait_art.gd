@@ -25,8 +25,20 @@ static func art() -> Dictionary:
 
 
 ## The shade, base, lit and deep tones of material colour `col` by the portrait's numbers.
+## A very dark material (value under the data's `dark.below`, e.g. Kaede's near-black hair) is
+## toned from itself lightened to value `dark.base_v`: so close to black, the colour's own shade
+## and deep tones sit a few steps from it and the part reads as one flat blob. Lifted that
+## little it still reads as black.
 static func tones(col: Color, skin := false) -> Array:
-	return FigureArt.tones(col, skin, art())
+	return FigureArt.tones(lift(col), skin, art())
+
+
+## `col` itself, or for a very dark material the colour its tones are taken from (see tones()).
+static func lift(col: Color) -> Color:
+	var d: Dictionary = art().get("dark", {})
+	if d.is_empty() or col.v >= float(d.below) or col.v >= float(d.base_v):
+		return col
+	return col.lightened((float(d.base_v) - col.v) / (1.0 - col.v))
 
 
 ## The colour the eyes are drawn in.
