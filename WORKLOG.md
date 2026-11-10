@@ -10,6 +10,38 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Mine music
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: data/music.json has a new track `mine`, written for this game: the in scale
+  [0,1,5,7,8] on D (root 50) for the miyako-bushi colour, 54 bpm, 12 bars of 8 steps (about
+  53 s a loop), volume -7 dB (the quietest score, it sits under the mine's own ambient).
+  Voices: a slow shakuhachi line (octave up, long held notes, two bars of rest in it), the
+  same line again at gain 0.28 one step (0.56 s) behind as the cave's echo (the synth has no
+  reverb, so the echo is written into the score), a soft low sho drone (D with A, G or Bb,
+  two bars a chord), a few low koto notes every bar or two and a rin drop now and then (two in
+  every six bars). A new rule `{"track": "mine", "maps": ["mine",
+  "mine_floor"]}` right after the store and smithy rules: below the title, events and
+  festivals (so heart events and festivals keep theirs), above storm / rain / night / season,
+  because the floors are underground and the cave mouth sits beside them. Depth and frozen
+  winter floors keep the same score: the picker has no depth input and adding one was not worth
+  it. `_about` names the new rule. README → Audio and ROADMAP's audio note list it.
+- Checked: after `--import`, `test_audio: OK (0 failed)` (new: `mine` and `mine_floor` pick
+  `mine` by day, at 22:00, in rain, in a storm at 3:00, in a winter blizzard; farm / town /
+  house / no map never pick it at 10:00 or 22:00 in sun or winter rain; the title screen
+  over the mine keeps the title; the score is in the in scale, root <= 52, bpm <= 60, loop
+  >= 40 s; the whole loop renders normalized; the "every pick as before" sweep now uses
+  `river` instead of `mine_floor`), `test_mine: OK (0 failed)`; the smoke run `--headless
+  --quit-after 300 -- --demo --mine=3` printed nothing past the engine banner. A Movie Maker
+  run (`--quit-after 900 -- --demo --mine=3 --movie-audio`) wrote a 30.00 s 48 kHz stereo
+  wav of the whole mix (music and the mine ambient together): peak 0.2440, rms 0.0611, 0
+  samples at |x| >= 0.999, every 5 s window rms 0.0362..0.0723. That run and the same run on
+  plain `--demo --movie-audio` both end with `WARNING: 2 ObjectDB instances were leaked at
+  exit`; 60-frame runs without `--movie-audio` print none, so it comes with the audio
+  recording, not with this score (not checked on the tree before this change).
+- Left / next: no person has heard the mine music yet; listen for the echo voice's balance
+  and whether the loop is too sparse. More tracks stay new scores and rules in
+  data/music.json.
+
 ## 2026-11-10 — Merge: story props, stall wares and the outline cleanup
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three subagents in their own worktrees, the model picked by the job: 39544bf story

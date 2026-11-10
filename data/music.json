@@ -1,5 +1,5 @@
 {
-	"_about": "Our own music: every melody here was written for Harvest Son, in five-note scales (yo [0,2,5,7,9], in [0,1,5,7,8], minyo [0,3,5,7,10], ritsu [0,2,5,7,10]). Played by scripts/audio/music_synth.gd (score format at its top) on the Music bus. rules pick the track (first fit wins, see music_picker.gd; festivals = while one of those festivals is on around the farmer, data/festivals.json; the four fest_ scores play then; maps = on those maps, data/maps: store and smithy have their own; events = while one of those event scripts plays, data/events: heart for the heart events, the proposals and the weddings, morning for the opening of a new game); fade_seconds is the cross-fade between tracks, start_fade the fade-in from silence.",
+	"_about": "Our own music: every melody here was written for Harvest Son, in five-note scales (yo [0,2,5,7,9], in [0,1,5,7,8], minyo [0,3,5,7,10], ritsu [0,2,5,7,10]). Played by scripts/audio/music_synth.gd (score format at its top) on the Music bus. rules pick the track (first fit wins, see music_picker.gd; festivals = while one of those festivals is on around the farmer, data/festivals.json; the four fest_ scores play then; maps = on those maps, data/maps: store and smithy have their own, and the mine (its entrance and every floor) has its quiet underground score over the weather, night and season; events = while one of those event scripts plays, data/events: heart for the heart events, the proposals and the weddings, morning for the opening of a new game); fade_seconds is the cross-fade between tracks, start_fade the fade-in from silence.",
 	"fade_seconds": 3.0,
 	"start_fade": 1.0,
 	"instruments": {
@@ -139,6 +139,22 @@
 				{"instrument": "koto", "gain": 0.8, "bars": ["0 . 2 . 0 . 3 .", "-1 . 1 . -1 . 2 .", "-2 . 0 . -2 . 1 .", "-1 . 1 . 2 . 1 ."]},
 				{"instrument": "kane", "octave": 2, "gain": 0.7, "bars": ["0 . . . 0 . 0 .", "0 . . . 0 . . ."]},
 				{"instrument": "taiko", "octave": -1, "gain": 0.7, "bars": ["0 . . . . . . .", "0 . . . 0 . . ."]}]},
+		"mine": {"bpm": 54, "steps_per_beat": 2, "steps_per_bar": 8, "bars": 12, "root": 50, "scale": [0, 1, 5, 7, 8], "volume_db": -7,
+			"voices": [
+				{"instrument": "shakuhachi", "octave": 1, "gain": 0.8, "bars": [
+					"0 _ _ _ _ _ 1 _", "0 _ _ _ . . . .", "-1 _ _ _ 0 _ 2 _", "3 _ _ _ _ _ . .",
+					". . . . 4 _ 3 _", "2 _ _ _ 1 _ _ _", "0 _ _ _ _ _ . .", ". . . . . . . .",
+					"3 _ _ 4 5 _ _ _", "4 _ 3 _ 2 _ _ _", "1 _ _ _ 2 _ 1 _", "0 _ _ _ _ _ . ."]},
+				{"instrument": "shakuhachi", "octave": 1, "gain": 0.28, "bars": [
+					". 0 _ _ _ _ _ 1", "_ 0 _ _ _ . . .", ". -1 _ _ _ 0 _ 2", "_ 3 _ _ _ _ _ .",
+					". . . . . 4 _ 3", "_ 2 _ _ _ 1 _ _", "_ 0 _ _ _ _ _ .", ". . . . . . . .",
+					". 3 _ _ 4 5 _ _", "_ 4 _ 3 _ 2 _ _", "_ 1 _ _ _ 2 _ 1", "_ 0 _ _ _ _ _ ."]},
+				{"instrument": "koto", "gain": 0.6, "bars": ["0 . . . . . . .", ". . . . 3 . . .", "0 . . . . . . .", ". . 2 . . . 1 ."]},
+				{"instrument": "rin", "octave": 1, "gain": 0.5, "bars": ["5 . . . . . . .", ". . . . . . . .", ". . . . . . 3 .", ". . . . . . . .", ". . . . . . . .", ". . . . . . . ."]},
+				{"instrument": "sho", "octave": -1, "bars": [
+					"0+3 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "0+2 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .",
+					"0+3 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "0+4 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .",
+					"0+3 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ .", "0+3 _ _ _ _ _ _ _", "_ _ _ _ _ _ _ ."]}]},
 		"heart": {"bpm": 63, "steps_per_beat": 2, "steps_per_bar": 6, "bars": 8, "root": 63, "scale": [0, 2, 5, 7, 9], "volume_db": -6,
 			"voices": [
 				{"instrument": "shakuhachi", "octave": 1, "gain": 0.7, "bars": [
@@ -169,6 +185,7 @@
 		{"track": "fest_year", "festivals": ["years_turn"]},
 		{"track": "store", "maps": ["store"]},
 		{"track": "smithy", "maps": ["smithy"]},
+		{"track": "mine", "maps": ["mine", "mine_floor"]},
 		{"track": "rain", "looks": ["storm"], "level": 0.6},
 		{"track": "rain", "looks": ["rain"]},
 		{"track": "night", "hours": [19, 6]},
