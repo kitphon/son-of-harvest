@@ -32,6 +32,7 @@ func _init() -> void:
 	_race_timing()
 	_race_result_lines()
 	_scoop_data()
+	_scoop_art()
 	_scoop_timing()
 	_scoop_result_lines()
 
@@ -1448,6 +1449,34 @@ func _race_play() -> void:
 
 ## The goldfish scoop's data: the game at Lantern Night, played at the goldfish stall (which
 ## sells nothing), its ribbon and event, the checks on bad data.
+## The goldfish are PlaceholderArt keys (scoop:fish:<look>), one per look the tub has, and the
+## screen draws them instead of shapes of its own.
+func _scoop_art() -> void:
+	var looks := int(Festivals.game("lantern_night").tub.looks)
+	check(looks == 3 and PlaceholderArt.SCOOP_FISH.size() == looks, "the tub's looks have a fish picture each")
+	var seen := {}
+	for look in looks:
+		var key := PlaceholderArt.scoop_fish_key(look)
+		var img := PlaceholderArt.image(key)
+		check(key == "scoop:fish:%d" % look and img.get_size() == PlaceholderArt.SCOOP_FISH_SIZE, "fish look %d: key and size" % look)
+		var tones := {}
+		var black := 0
+		for y in img.get_height():
+			for x in img.get_width():
+				var c := img.get_pixel(x, y)
+				if c.a > 0.5:
+					tones[c.to_html()] = true
+					if c.v < 0.06:
+						black += 1
+		check(tones.size() >= 5, "fish look %d has several tones, got %d" % [look, tones.size()])
+		check(black <= 2, "fish look %d has no black outline (%d near-black pixels: eyes only)" % [look, black])
+		seen[img.get_data().hex_encode()] = true
+	check(seen.size() == looks, "the three fish pictures differ")
+	check(PlaceholderArt.scoop_fish_key(9) == "scoop:fish:2" and PlaceholderArt.scoop_fish_key(-1) == "scoop:fish:0", "an unknown look is clamped")
+	var src := FileAccess.get_file_as_string("res://scripts/ui/scoop_screen.gd")
+	check(src.contains("PlaceholderArt.tex(PlaceholderArt.scoop_fish_key(") and not src.contains("draw_colored_polygon"), "the screen draws the fish textures, not shapes")
+
+
 func _scoop_data() -> void:
 	var g := Festivals.game("lantern_night")
 	check(g.get("kind") == "scoop" and g.id == "scoop" and Festivals.festival_of_game("scoop") == "lantern_night",

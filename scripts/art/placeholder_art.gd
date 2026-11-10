@@ -97,6 +97,8 @@ static func _make(key: String) -> Image:
 			if parts[1] == "carry":
 				return _crawler_carry(parts[2], Color(parts[3]), Color(parts[4]), Color(parts[5]))
 			return _baby_cradle(parts[2], Color(parts[3]), Color(parts[4]), Color(parts[5])) if parts[1] == "cradle" 				else _baby_held(parts[2], Color(parts[3]), Color(parts[4]), Color(parts[5]))
+		"scoop":    # scoop:fish:<look 0..2>, a goldfish seen from above facing right, 20 x 10 (ScoopScreen turns it to swim; GoldfishScoop looks: orange, white with red, black)
+			return _scoop_fish(int(parts[2]) if parts.size() > 2 else 0)
 		"mochi":    # mochi:<usu:<dough 0..3>|kine>, the mochi pounding's mortar and mallet (MochiScreen, FestivalView)
 			return _usu(int(parts[2]) if parts.size() > 2 else 0) if parts[1] == "usu" else _kine()
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
@@ -4077,6 +4079,54 @@ static func _usu(dough: int) -> Image:
 	elif d == 3:   # the shine of finished mochi
 		_px(img, 12, int(4 - rise * 0.6), 3, 1, Color.WHITE)
 	return _outline(img)
+
+
+## Goldfish tones per look (GoldfishScoop `look`): body base, fin / patch base. Each is toned in
+## three (lit from the upper left, so the upper edge of the fish is lit) with a darker rim.
+const SCOOP_FISH := [[Color("f06a2a"), Color("f8b070")], [Color("f4ece0"), Color("e0482a")], [Color("3a3840"), Color("6a6470")]]
+const SCOOP_FISH_SIZE := Vector2i(20, 10)
+
+
+## The key of goldfish `look` (clamped to the looks there are).
+static func scoop_fish_key(look: int) -> String:
+	return "scoop:fish:%d" % clampi(look, 0, SCOOP_FISH.size() - 1)
+
+
+static func _scoop_fish(look: int) -> Image:
+	var tones: Array = SCOOP_FISH[clampi(look, 0, SCOOP_FISH.size() - 1)]
+	var body: Color = tones[0]
+	var fin: Color = tones[1]
+	var img := _blank(SCOOP_FISH_SIZE.x, SCOOP_FISH_SIZE.y)
+	# The tail: a fan behind the body, thin and pale.
+	for pt in [[0, 1, 3], [1, 2, 4], [2, 3, 5], [3, 4, 3]]:
+		_px(img, pt[0], pt[1], 1, pt[2] + (2 if pt[0] == 0 else 0), fin.darkened(0.12))
+	_px(img, 1, 3, 5, 4, fin)
+	_px(img, 1, 3, 4, 1, fin.lightened(0.18))
+	# The side fins, one each side of the body.
+	_px(img, 8, 0, 3, 2, fin.darkened(0.08))
+	_px(img, 8, 8, 3, 2, fin.darkened(0.22))
+	# The body: deep tone, then base, then the lit upper edge.
+	_oval(img, 12, 5, 7, 3.3, body.darkened(0.3))
+	_oval(img, 12, 4.6, 6.4, 2.7, body)
+	_oval(img, 11.4, 3.6, 4.6, 1.2, body.lightened(0.22))
+	# The eye and a patch.
+	_px(img, 16, 3, 1, 1, Color("14181c"))
+	_px(img, 16, 6, 1, 1, Color("14181c"))
+	_px(img, 9, 3, 3, 2, fin)
+	_px(img, 9, 3, 2, 1, fin.lightened(0.18))
+	# A darker rim instead of a black outline.
+	var rim := body.darkened(0.5)
+	var keep := img.duplicate()
+	for y in img.get_height():
+		for x in img.get_width():
+			if keep.get_pixel(x, y).a > 0.0:
+				continue
+			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var n: Vector2i = Vector2i(x, y) + d
+				if n.x >= 0 and n.y >= 0 and n.x < img.get_width() and n.y < img.get_height() and keep.get_pixel(n.x, n.y).a > 0.0:
+					img.set_pixel(x, y, Color(rim, 0.85))
+					break
+	return img
 
 
 ## The kine (16 x 28): a wooden mallet standing up, a barrel head on a long handle whose end
