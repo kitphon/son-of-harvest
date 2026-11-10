@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — The test_villagers lumber flake: a night's weed, not the lumber
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: found the cause of the rare test_villagers failure. `_start_farm_views` orders the
+  kitchen and calls `end_day()`; that night `FarmGrid.day_end` rolls a weed on every empty cell
+  (WEED_CHANCE 1%, Game.rng randomized at start) before `sync_build_flag` sets the build flag, so
+  the lumber is not there yet to keep weeds off its cells. A weed on [2, 5] made "the lumber
+  blocks the farmer..., the cell he fetches from stays open" fail (`farm.is_solid([2, 5])`); one on
+  [1, 4] stayed after the lumber left and made "the lumber's cells are open once it is gone" fail.
+  The game is right (a weed may grow there before the builder comes; nothing grows under the
+  lumber while it lies there); the test was asking the wrong thing. Those two checks now ask
+  `FarmGrid.under_prop` (is the lumber on that cell), and the closing one checks both [1, 4] and
+  [1, 5]; the "blocks" half still asks `is_solid` / `Game.maps.is_solid`. No retry, no seed.
+- Checked: with temporary diagnostics printing the objects on [1, 4], [1, 5], [2, 5], 120 runs
+  before the fix: 119 `test_villagers: OK (0 failed)`, 1 `FAILED (1 failed)` with `DIAG before:
+  [0, 0, 3, "sunny", 2]` (3 = WEED on [2, 5]) and `FAIL: the lumber blocks the farmer (both views'
+  Player asks Game.maps), the cell he fetches from stays open`; weeds on these cells showed in 6 of
+  the 120 runs' diagnostics. Weeds forced on [1, 4] and [2, 5] the morning after the order: the old
+  test printed both quoted FAIL lines and `test_villagers: FAILED (2 failed)`, the new one `OK (0
+  failed)`. After the fix 100 of 100 runs printed `test_villagers: OK (0 failed)`. All
+  tests/test_*.gd print `OK (0 failed)`; smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`) print 0 ERROR or WARNING lines.
+- Left / next: nothing for this; other tests that read cells near the house after an
+  `end_day()` could meet the same 1% weed.
+
 ## 2026-11-10 — Merge: mochi box aside, villagers clear of contest spots, black goldfish
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 98be842 the mochi box at the left edge (Sonnet, own worktree), 618937c no villager

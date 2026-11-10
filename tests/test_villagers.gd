@@ -924,7 +924,10 @@ func _check_farm_views() -> void:
 			and layers2[0]._sprites.hachiro.texture == PlaceholderArt.tex(key), "in the work pose in both views %s" % key)
 		var s3: Node3D = layers3[0]._sprites.hachiro
 		check(Vector2(s3.position.x, s3.position.z).distance_to(Vector2(2.5, 4.5)) < 0.05, "at the wall in 3D")
-		check(g.farm.is_solid(Vector2i(1, 4)) and g.maps.is_solid(Vector2i(1, 5), g.farm) and not g.farm.is_solid(Vector2i(2, 5)),
+		# The open cells are asked about the lumber (FarmGrid.under_prop), not is_solid: the
+		# order night rolls weeds (FarmGrid.WEED_CHANCE, Game.rng randomized) and one on
+		# [2, 5] or [1, 4] made these checks fail about 1 run in 100.
+		check(g.farm.is_solid(Vector2i(1, 4)) and g.maps.is_solid(Vector2i(1, 5), g.farm) and not g.farm.under_prop(Vector2i(2, 5)),
 			"the lumber blocks the farmer (both views' Player asks Game.maps), the cell he fetches from stays open")
 	else:
 		check(false, "the farm views have their villager layers")
@@ -934,7 +937,7 @@ func _check_farm_views() -> void:
 	for i in 2:
 		g.weather_today = "sunny"   # a storm day wouldn't count (Game._count_build_day)
 		g.end_day()
-	check(not g.farm.is_solid(Vector2i(1, 4)), "the lumber's cells are open once it is gone")
+	check(not g.farm.under_prop(Vector2i(1, 4)) and not g.farm.under_prop(Vector2i(1, 5)), "the lumber's cells are open once it is gone")
 	check(g.has_built("kitchen") and not g.flags.has(g.BUILD_FLAG) and not MapManager.data("farm").props.any(func(p): return p.kind == "lumber"),
 		"built: the flag and the lumber are gone")
 
