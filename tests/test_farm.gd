@@ -611,7 +611,8 @@ func _crop_art(crops: Dictionary) -> void:
 ## The farmer's refined art (FigureArt with farmer = true, data/farmer_art.json): every key of
 ## every look keeps its size and feet; no black outline (lines in each material's deep tone, a
 ## darker rim round the silhouette); three tones per material lit from the upper left; more
-## tone-edge pixels than the plain drawing; villagers (farmer = false) keep the plain drawing.
+## tone-edge pixels than the plain drawing; the villagers' drawing (farmer = false) is refined
+## too, with data/villager_art.json's numbers (checked in test_villagers _villager_art).
 func _farmer_art() -> void:
 	var def := FarmerLooks.default_choice()
 	var looks: Array = [def]
@@ -670,7 +671,7 @@ func _farmer_art() -> void:
 	for y in plain.get_height():
 		for x in plain.get_width():
 			has_outline = has_outline or plain.get_pixel(x, y).is_equal_approx(FigureArt.OUTLINE)
-	check(has_outline, "villagers (farmer = false) keep the plain outline drawing")
+	check(not has_outline, "the villagers' drawing (farmer = false) is refined too: no black outline")
 
 
 func _open(img: Image, x: int, y: int) -> bool:

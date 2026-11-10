@@ -10,6 +10,45 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Villager art, refined
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: FigureArt's refined pass (from "Farmer art, refined") now draws every figure. The refined
+  pass is on for every draw; `farmer` only picks the numbers and the farmer's own pieces. The
+  villagers (`farmer = false`) and the farmer's child as crawler, toddler and child (`draw_little`,
+  and `draw_crawler`, which now runs through the same `_begin` / `_end`) use the new
+  data/villager_art.json. Each material is drawn in shade / base / lit by the side of its part a
+  pixel is open to (light from the upper left), lines between parts are in the material's deep
+  tone instead of black, and the outer lines are pulled towards `rim`. The villagers' own pieces
+  are materials too: data `materials` (the kimono's white tabi, the hat band, the hammer's wood
+  and iron) and the look's shoulder bag (Ren), with the plain shades they are drawn in mapped onto
+  their tones. Numbers: the farmer's tones, so everyone stands in the same light; rim_mix 0.6
+  against the farmer's 0.5, so the white happi of Kaede and Yae and Tome's white hair still read on
+  gravel and snow. Jika-tabi and the hip basket stay the farmer's (no villager wears the noragi).
+  `tones()` takes an optional numbers dictionary; `villager_art()` is new. Every key, the 24 x 32
+  size, the builds and the poses (idle, walk, work, fish, post, pole) are kept. The baby's cradle
+  and carry pictures and the portraits are not FigureArt and are unchanged.
+- Checked: the new test_villagers `_villager_art` covers 16 villagers x 13 pose frames x 2 sides
+  plus the three child stages x 5 frames x 2 sides. Every frame is 24 x 32, the feet are on the
+  ground and no black outline remains. At least 90% of the silhouette pixels on idle / walk are
+  dark. Each villager's top shows shade, base and lit, with lit to the left of shade. Each front
+  idle has more tone-edge pixels than the plain drawing (counts taken before the change, e.g.
+  Sayo 256 -> 283, Nana 179 -> 204). Ren's bag and the hammer's iron show their tones, and the
+  farmer's and the villagers' numbers are separate. test_villagers `_sprites`: "has the outline"
+  became "no black outline, lines in the top's deep tone". test_farm's "villagers keep the plain
+  outline" became "no black outline". test_title's farmer hashes are unchanged, so the farmer's
+  frames are the same pixels as before. Ran all 31 tests/test_*.gd after `--import`: all print `OK (0 failed)`
+  (test_inventory still prints the ObjectDB / `8 resources still in use` lines at exit; test_title
+  prints its two bad-look warnings, as before). test_child failed once (5 checks in
+  `_child_help_in_game`, the weeding news) on its first run, then passed three times, including on
+  the unchanged code and in the full run. It looks timing-related; I did not look into it further. The four smoke runs print
+  no ERROR / WARNING line. Screenshot `--demo --map=town --time=10:00` plus a 4x crop: Kota and
+  Tome show the deep-tone lines and a dark rim on the grass and the path. A 3x sheet of every
+  villager in idle / walk / work / fish / post / pole, front and back, and the child stages looked
+  right (made with a throwaway script, not committed).
+- Left / next: the flat view was not screenshot (it uses the same PlaceholderArt keys; test_view2d
+  passes). One-pixel strips (the kimono's tabi, the hat band) keep their base tone. The cradle,
+  carry and portrait pictures are still the plain drawing.
+
 ## 2026-11-10 — Merge: Nana's scarf from the morning after, Kiku's persimmons to pick, farmer art refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 3b4edc3 Nana's scarf set on the morning after her birthday (Haiku, own worktree),

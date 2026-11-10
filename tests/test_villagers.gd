@@ -27,6 +27,7 @@ func _init() -> void:
 	_river_sunday()
 	_doctor()
 	_whistles()
+	_villager_art()
 
 
 func _process(_delta: float) -> bool:
@@ -643,7 +644,8 @@ func _sprites() -> void:
 				and _has_colour(up, Color("5a5e66")) and _has_colour(blow, Color("5a5e66")), "%s %s work frames: the hammer raised, then the blow" % [id, side])
 			check(idle.get_size() == PlaceholderArt.FIGURE_SIZE, "%s %s frame is 24 x 32" % [id, side])
 			check(_has_colour(idle, top), "%s %s shows their top colour" % [id, side])
-			check(_has_colour(idle, PlaceholderArt.OUTLINE), "%s %s has the outline" % [id, side])
+			check(not _has_colour(idle, PlaceholderArt.OUTLINE) and _has_near(idle, FigureArt.tones(top, false, FigureArt.villager_art())[3]),
+				"%s %s: no black outline, lines in the top's deep tone" % [id, side])
 			var a := PlaceholderArt.tex("villager:%s:%s:walk:0" % [id, side]).get_image()
 			var b := PlaceholderArt.tex("villager:%s:%s:walk:1" % [id, side]).get_image()
 			check(a.get_data() != b.get_data(), "%s %s walk frames differ" % [id, side])
@@ -713,6 +715,119 @@ func _figures() -> void:
 	var s: Sprite3D = fw.make_figure(PlaceholderArt.tex("player:front:idle:0"))
 	check(is_equal_approx(s.pixel_size, px) and is_equal_approx(s.offset.y, fig.y / 2.0), "a figure sprite stands on its feet at FIGURE_PX")
 	s.free()
+
+
+## The villagers' refined art (FigureArt with farmer = false, data/villager_art.json): every
+## villager in every pose they use, both sides, and the farmer's child at every stage keep the
+## 24 x 32 size and the feet on the ground, with no black outline (lines in each material's deep
+## tone) and a dark rim round the silhouette; three tones per material lit from the upper left;
+## more tone-edge pixels than the plain drawing had; the villagers' own pieces toned too.
+func _villager_art() -> void:
+	var va := FigureArt.villager_art()
+	check(va.has("tone") and va.has("rim") and va.has("materials") and float(va.tone.shade) > 0.0, "data/villager_art.json has its numbers")
+	var poses := ["idle:0", "walk:0", "walk:1", "walk:2", "walk:3", "work:0", "work:1", "fish:0", "fish:1", "post:0", "post:1", "pole:0", "pole:1"]
+	var pics := []   # [name, image, counted for the rim]
+	for id in Villagers.all():
+		for p in poses:
+			var bits: PackedStringArray = p.split(":")
+			for back in [false, true]:
+				pics.append(["%s %s %s" % [id, "back" if back else "front", p], FigureArt.draw(Villagers.look(id), back, bits[0], int(bits[1])), bits[0] in ["idle", "walk"]])
+	for b in FigureArt.LITTLE_BUILDS:
+		for p in ["idle:0", "walk:0", "walk:1", "walk:2", "walk:3"]:
+			var bits: PackedStringArray = p.split(":")
+			for back in [false, true]:
+				pics.append(["%s %s %s" % [b, "back" if back else "front", p], FigureArt.draw_little(b, Villagers.look("kota"), back, bits[0], int(bits[1])), true])
+	var bad: Array[String] = []
+	var rim_px := 0
+	var dark_rim := 0
+	for e in pics:
+		var img: Image = e[1]
+		var foot := false
+		var black := false
+		for y in img.get_height():
+			for x in img.get_width():
+				var col := img.get_pixel(x, y)
+				if col.a == 0.0:
+					continue
+				black = black or col.is_equal_approx(FigureArt.OUTLINE)
+				foot = foot or y == img.get_height() - 2
+				if e[2] and _open(img, x, y):
+					rim_px += 1
+					dark_rim += int(col.get_luminance() < 0.22)
+		if img.get_size() != Vector2i(24, 32) or not foot or black:
+			bad.append(e[0])
+	check(bad.is_empty(), "the villagers' and the child's refined frames: 24 x 32, feet on the ground, no black outline (%d frames, %d off: %s)" % [pics.size(), bad.size(), bad.slice(0, 4)])
+	check(rim_px > 0 and dark_rim >= rim_px * 0.9, "a dark rim round every silhouette (%d of %d edge pixels)" % [dark_rim, rim_px])
+	# Three tones of the top, the lit ones left of the shade ones (light from the upper left), and
+	# more tone edges than the plain drawing (front idle, counted before the refined pass).
+	var before := {"fumi": 245, "genzo": 238, "hachiro": 251, "haru": 247, "ichiro": 237, "kaede": 251, "kiku": 229,
+		"kota": 210, "mio": 251, "nana": 179, "ren": 240, "sayo": 256, "shige": 270, "shino": 245, "tome": 238, "yae": 239}
+	for id in Villagers.all():
+		var look := Villagers.look(id)
+		var img := FigureArt.draw(look, false, "idle", 0)
+		var tn: Array = FigureArt.tones(Color(str(look.top)), false, va)
+		var n := [0, 0, 0]
+		var sx := [0.0, 0.0, 0.0]
+		for y in img.get_height():
+			for x in img.get_width():
+				for i in 3:
+					if _near(img.get_pixel(x, y), tn[i]):
+						n[i] += 1
+						sx[i] += x
+		check(n[0] > 0 and n[1] > 0 and n[2] > 0 and sx[2] / n[2] < sx[0] / n[0], "%s: the top in shade, base and lit tones, lit on the left (%s)" % [id, n])
+		var edges := _edge_pixels(img)
+		check(not before.has(id) or edges > int(before[id]), "%s front idle: more tone-edge pixels than the plain drawing (%d, before %d)" % [id, edges, before.get(id, 0)])
+	# The villagers' own pieces in their tones: Ren's mailbag, the hammer's iron. (A one-pixel
+	# strip, the kimono's tabi or the hat band, is open on both sides and keeps its base tone.)
+	var has_tone := func(img: Image, base: Color) -> bool:
+		var tn: Array = FigureArt.tones(base, false, va)
+		for y in img.get_height():
+			for x in img.get_width():
+				if _near(img.get_pixel(x, y), tn[0]) or _near(img.get_pixel(x, y), tn[2]):
+					return true
+		return false
+	check(has_tone.call(FigureArt.draw(Villagers.look("ren"), false, "idle", 0), Color(str(Villagers.look("ren").bag))), "Ren's mailbag in its own tones")
+	check(has_tone.call(FigureArt.draw(Villagers.look("hachiro"), false, "work", 1), FigureArt.HAMMER_IRON), "the hammer's iron in its tones")
+	# The farmer keeps his own numbers (data/farmer_art.json); the villagers' rim is pulled further.
+	check(float(va.rim_mix) > float(FigureArt.art().rim_mix) and FigureArt.tones(Color("3e64b4")) == FigureArt.tones(Color("3e64b4"), false, FigureArt.art()),
+		"the farmer's numbers and the villagers' are each their own")
+
+
+func _open(img: Image, x: int, y: int) -> bool:
+	for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+		var q: Vector2i = Vector2i(x, y) + d
+		if q.x < 0 or q.y < 0 or q.x >= img.get_width() or q.y >= img.get_height() or img.get_pixelv(q).a == 0.0:
+			return true
+	return false
+
+
+func _has_near(img: Image, c: Color) -> bool:
+	for y in img.get_height():
+		for x in img.get_width():
+			if _near(img.get_pixel(x, y), c):
+				return true
+	return false
+
+
+func _near(a: Color, b: Color) -> bool:
+	return absf(a.r - b.r) + absf(a.g - b.g) + absf(a.b - b.b) < 0.012 and a.a > 0.0
+
+
+func _edge_pixels(img: Image) -> int:
+	var n := 0
+	for y in img.get_height():
+		for x in img.get_width():
+			var c := img.get_pixel(x, y)
+			if c.a == 0:
+				continue
+			for d in [Vector2i(1, 0), Vector2i(0, 1)]:
+				var q: Vector2i = Vector2i(x, y) + d
+				if q.x < img.get_width() and q.y < img.get_height():
+					var o: Color = img.get_pixelv(q)
+					if o.a > 0 and not o.is_equal_approx(c):
+						n += 1
+						break
+	return n
 
 
 func _has_colour(img: Image, c: Color) -> bool:

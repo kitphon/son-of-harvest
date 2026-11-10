@@ -1,5 +1,5 @@
 {
-	"_note": "The farmer's refined pixel art (FigureArt with farmer = true; villagers keep the plain drawing). Every material of the look (hair, skin, the noragi, its collar band, the monpe, the head cloth, the jika-tabi, the straw of the belt and hip basket) is drawn in three tones, lit from the upper left: a part's pixels open to the upper left take the lit tone, those open to the lower right the shade tone. Lines between parts are the material's own deep tone, not black; the outer silhouette is that deep tone pulled further towards `rim`. Our own numbers.",
+	"_note": "The farmer's refined pixel art (FigureArt with farmer = true; the villagers and the child have the same pass with their own numbers in data/villager_art.json). Every material of the look (hair, skin, the noragi, its collar band, the monpe, the head cloth, the jika-tabi, the straw of the belt and hip basket) is drawn in three tones, lit from the upper left: a part's pixels open to the upper left take the lit tone, those open to the lower right the shade tone. Lines between parts are the material's own deep tone, not black; the outer silhouette is that deep tone pulled further towards `rim`. Our own numbers.",
 	"tone": {"shade": 0.3, "lit": 0.22, "shade_tint": "24304a", "lit_tint": "fff0c8", "tint_mix": 0.14},
 	"skin_shade_tint": "8a3a30",
 	"deep": 0.55,

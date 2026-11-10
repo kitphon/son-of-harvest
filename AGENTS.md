@@ -55,7 +55,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `test_cooking: OK (0 failed)`.
   Holding and throwing (items on the ground, throws, poses, item art): `res://tests/test_hold.gd`
   must print `test_hold: OK (0 failed)`.
-  Villagers (rule lists, day plans, catch-up, paths, sprites in both views, Hachiro building,
+  Villagers (rule lists, day plans, catch-up, paths, sprites in both views, the refined figure art of data/villager_art.json, Hachiro building,
   the Sunday river visit and the fish pose, Ren's post step, Mio's ferry crossing (data/ferry.json, FerryRun, the pole pose), whistling: who may whistle when, the note puff):
   `res://tests/test_villagers.gd` must print `test_villagers: OK (0 failed)`. Talking (talk
   files and picks, gifts, daily limits, affection save, shopkeepers, bump delay):
