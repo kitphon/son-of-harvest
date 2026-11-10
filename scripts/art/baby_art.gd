@@ -16,8 +16,9 @@ static func colours() -> Dictionary:
 ## The picture `img` (flat material colours, the size kept) toned and lined. `fixed` are the
 ## colours left as they are (eyes, mouth, cheeks, dots, weave); a colour in `skins` is toned
 ## with the warm shade and shaded by its right side only (a shade under the chin read as a beard).
-static func refine(img: Image, fixed: Array, skins: Array) -> Image:
-	var a := FigureArt.villager_art()
+## `numbers` are the tones and rim to use (default data/villager_art.json; AnimalArt passes its own).
+static func refine(img: Image, fixed: Array, skins: Array, numbers: Dictionary = {}) -> Image:
+	var a := numbers if not numbers.is_empty() else FigureArt.villager_art()
 	var size := img.get_size()
 	var src := img.duplicate() as Image
 	var keep := {}

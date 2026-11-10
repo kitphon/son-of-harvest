@@ -1,0 +1,20 @@
+{
+	"_note": "The farm animals' refined pixel art (AnimalArt; the dog held in the arms too, PlaceholderArt._beast). The same light as the figures (data/villager_art.json): every material in three tones, shade / base / lit, lit from the upper left (a part's upper-left side lit, its lower-right side shade), the edge of a part laid over another material in the part's own deep tone, and a rim round the silhouette in the deep tone of the material it touches pulled towards `rim` by `rim_mix` instead of the old near-black outline. The tones are the villagers' numbers so the animals stand in the figures' light; the rim is pulled less (0.4 against 0.6) because the animals' pixels are half the size and the pale hens and sheep should keep a soft grey edge, not a black one. `sick` dulls the body, head and leg colours towards a grey (legs a little less) and darkens them. Colours are ours (Japanese Black cattle, cream wool with dark faces, a red-tan shiba with a cream chest, white hens with red combs, yellow chicks).",
+	"tone": {"shade": 0.3, "lit": 0.22, "shade_tint": "24304a", "lit_tint": "fff0c8", "tint_mix": 0.14},
+	"skin_shade_tint": "8a3a30",
+	"deep": 0.55,
+	"rim": "1a1216",
+	"rim_mix": 0.4,
+	"far_leg": 0.22,
+	"sick": {"grey": "8a8478", "mix": 0.28, "leg_mix": 0.2, "dark": 0.06},
+	"kinds": {
+		"cow": {"body": "302823", "head": "302823", "muzzle": "b8a898", "leg": "2a2420", "hoof": "574d44", "horns": "e0d8c0", "udder": "d4aca4", "tail_tip": "1e1714"},
+		"calf": {"body": "43372f", "head": "43372f", "muzzle": "c0b0a0", "leg": "382e28", "hoof": "605850", "tail_tip": "241c18"},
+		"sheep": {"body": "f3ecda", "head": "3a302c", "muzzle": "52463f", "leg": "3a302c", "hoof": "2e2624"},
+		"sheep_shorn": {"body": "dcc6bd", "head": "3a302c", "muzzle": "52463f", "leg": "3a302c", "hoof": "2e2624"},
+		"lamb": {"body": "f7f1e4", "head": "4a403a", "muzzle": "5e524b", "leg": "4a403a", "hoof": "2e2624"},
+		"dog": {"body": "c8783c", "head": "c8783c", "muzzle": "f2e2c8", "leg": "c8783c", "hoof": "f2e2c8"}
+	},
+	"birds": {"hen": "f4f0e6", "wing": "e2ddd0", "tail": "d8d2c4", "comb": "c8442c", "beak": "e8a23a", "leg": "d9972f", "cheek": "e8c8c0", "chick": "f2d25a", "chick_sick": "a8a088", "hen_sick": 0.12, "chick_sick_mix": 0.3},
+	"features": {"eye_glint": "f8f0e0", "eye": "14100e", "cow_eye_glint": "e8e0d0", "cow_eye": "4a2c1c", "nostril": "1a1412", "tongue": "d8707a", "ear_inner": "c8908a", "prick_inner": "e8b8a0"}
+}

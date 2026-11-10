@@ -10,6 +10,38 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Animal art, refined
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: the farm animals get the figures' refined look. AnimalArt (scripts/art/animal_art.gd) now
+  draws every part in a material's three tones (FigureArt.tones with new data/animal_art.json's
+  numbers, the villagers' tones, so the animals stand in the same light): ellipses lit on the
+  upper left and shaded on the lower right, necks and tails toned by the side of the stroke, legs
+  and hooves lit on the left column and shaded on the right, the far legs a step darker. A part's
+  edge where it lies over another material is that part's deep tone (head over neck, the muzzle,
+  the hen's wing with its scalloped feather edges, the wool's curls over the sheep's legs and face).
+  The near-black OUTLINE is gone: the rim round the silhouette is the deep tone of the material it
+  touches pulled towards `rim` by `rim_mix` 0.4 (less than the figures' 0.6, since the animals'
+  pixels are half the size; the white hens and wool keep a soft grey edge, the black cattle a
+  dark one of their own). The rim is laid before the mirror so the right facings still mirror the
+  left exactly. All palettes (per kind, the birds, the eyes / nostrils / tongue / ear insides, the
+  sick grey and mix) moved from code into data/animal_art.json; QUADS keeps only the geometry.
+  The sick pose keeps its dull colours (toned from the dulled base). The dog held in the arms
+  (PlaceholderArt._beast, 14 x 11) is toned through AnimalArt.refine_flat (BabyArt.refine, which
+  now takes optional numbers), its eye and nose a dark brown instead of the outline colour. Same
+  keys, sizes, poses, facings, SCALE, SHEAR and anchor (feet rim on the last row).
+- Checked: new test_animals `_animal_art_refined`: the eight sizes as before; every kind x pose x
+  frame x facing has no pixel in the old 2a1e1e, shows its main material's shade, base and lit
+  tones, and has the material's deep tone pulled to the rim colour on its rim; the sick pose has
+  none of the healthy base or lit tone; the hen and chick rims have no near-black colour and the
+  pale coats' (hen, chick, sheep, lamb) lightest rim is above value 0.22 (the old outline was
+  0.165); the hen's wing, the sheep's wool and the cow's muzzle show their deep part lines; the
+  dog in the arms is 14 x 11 with no old outline colour and at least 8 colours. A 4x sheet of
+  every kind and pose (throwaway script, not committed) and 3D screenshots `--demo --map=barn` and
+  `--demo --map=coop` looked at (cow, calf and sheep in their stalls, hens and a chick on the
+  straw: toned with soft rims); shots/ deleted. All tests/test_*.gd print `OK (0 failed)`; the
+  smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print 0 ERROR or WARNING lines.
+- Left / next: no flat-view screenshot of the animals (the flat view draws the same pictures at
+  half size); the old low-resolution hen / chick / beast drawings other than the held dog are unused.
 ## 2026-11-10 — Merge: lumber flake, Kiku's picked lines all year, the persimmon pick in hand
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged e844018 the test_villagers lumber flake (Opus, own worktree), 3a6a44b Kiku's picked
