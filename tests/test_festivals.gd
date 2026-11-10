@@ -817,6 +817,11 @@ func _check_views() -> void:
 		mochi3[0].game.advance(mochi3[0].game.beats[0])
 		mochi3[0].swing()
 		check(mochi3[0].game.score == 3 and mochi3[0].game.marks[0] == "great", "a swing right on the first beat lands great")
+		# The box sits at the left edge and leaves the middle of the view (the farmer at the mortar) clear.
+		var mbox: Rect2 = mochi3[0]._wood.get_rect()
+		var mmid := float(ProjectSettings.get_setting("display/window/size/viewport_width")) / 2.0
+		check(mbox.position.x <= 8.0 and mbox.end.x < mmid - 4.0, "the mochi box leaves the farmer in sight (%s)" % mbox)
+		check(PixelFont.shown_width("Tome turns. E: swing as the ring closes") <= mochi3[0].W - 12, "the mochi hint fits the narrow paper")
 		mochi3[0]._exit_tree()
 		check(g._pauses == pauses and g.game_partner == "", "leaving the view mid-game lets the clock go")
 		mochi3[0]._open = false

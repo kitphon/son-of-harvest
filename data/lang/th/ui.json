@@ -279,7 +279,7 @@
 		"Miss": "พลาด",
 		"Faster now!": "เร็วขึ้นแล้ว!",
 		"Ready...": "เตรียมตัว...",
-		"%s turns the dough. E: swing as the ring closes": "%sพลิกแป้งให้ กด E ตอนวงหดเข้ามา",
+		"%s turns. E: swing as the ring closes": "%sพลิกแป้งให้ กด E ตอนวงหดเข้ามา",
 		"Great %d   Good %d   Miss %d": "เยี่ยม %d   ดี %d   พลาด %d",
 		"Fishing race": "แข่งตกปลา",
 		"%d fish": "%d ตัว",

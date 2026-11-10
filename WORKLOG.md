@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — The mochi box moves aside so the farmer shows at the mortar
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: MochiScreen's box is narrower (paper 280 -> 220 px, stage 240 -> 208, the mortar, dough,
+  figures and mallet grip moved 16 px left, the strike dots 6 px apart so 30 fit) and sits at the
+  left edge, a little above the middle, like the scoop box. Hint shortened to "Tome turns. E:
+  swing as the ring closes" (the Thai table's key renamed, its Thai line kept). Rules and numbers
+  unchanged. The Moon Night race box (top middle, y 26..70) was checked in a `--festival=moon_night
+  --contest=fishing:auto` frame: the farmer stands below it, not covered, so it is left as it is.
+- Checked: test_festivals new checks (box at the left edge and left of the view's middle; the
+  hint fits). Screenshot `--demo --festival=years_turn --contest=mochi:auto` frame 149: the box
+  at the left, the hint whole, the ring and figures inside the paper. shots/ deleted.
+- Left / next: none for this.
+
 ## 2026-11-10 — The scoop box moves aside so the farmer shows at the tub
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: ScoopScreen's box is narrower (paper 280 -> 220 px, stage 240 -> 208, tub and bowl moved

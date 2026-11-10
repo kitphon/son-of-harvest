@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] The mochi box at the left edge (2026-11-10): narrower and moved off the middle like the scoop box, so the farmer at the mortar shows during the pounding; shorter hint; the Moon Night race box left as it is (the farmer shows below it); test_festivals checks the box and hint.
 [x] The scoop box at the left edge (2026-11-10): narrower and moved off the middle, so the farmer crouched at the tub shows during the goldfish scoop; shorter hint; test_festivals checks the box and the hint.
 [x] Goldfish art as PlaceholderArt keys (2026-11-10): `scoop:fish:<look>` x3, refined top-down sprites turned to swim direction in ScoopScreen; test_festivals `_scoop_art`; see WORKLOG.
 [x] Kiku talks about the picked persimmons (2026-11-10): four picked lines (`scion_picked_1..4`) on fall Tuesdays and Saturdays once the farmer has picked from the grown tree (flag kiku_scion_picked, set by Game.scion_pick, kept for good); before the first pick, nothing changes; EN and TH; test_talk `_kiku_scion`, test_forage `_persimmon`; see WORKLOG.
