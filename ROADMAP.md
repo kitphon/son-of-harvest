@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] Field obstacles and mine art, refined (2026-11-10): the field's rock, branch, weed and stump, the mine's rock, big rock, soft spot, hole with its ladder, ice block and the farmer's lantern, and the rope lift cage (`mine:landing`) laid in flat materials and toned by ItemArt.refine (three tones lit from the upper left, deep-tone part lines, a rim in the material's own deep tone instead of the near-black outline); small marks and the lantern glow kept as laid, the frost sheet unchanged; same keys and sizes; test_mine `_mine_field_art_refined`; see WORKLOG.
 [x] Food icon art, refined (2026-11-10): every `ui:food:*` (the onigiri in the tool bar too) laid in flat materials and toned by ItemArt.refine, the cut, eye, grill line, chestnut shine and printed band kept as fixed marks; same keys and sizes; test_inventory `_food_art_refined`; see WORKLOG.
 [x] Item icon art, refined, the rest (2026-11-10): the HUD's coin, stamina and the five weather icons laid in flat materials and passed through ItemArt.refine (the sun's glint, raindrops, flakes, lightning and blizzard streaks laid after as fixed marks); same keys, sizes and colours; test_weather `_hud_icons_refined`; see WORKLOG.
 [x] Item icon art, refined: the fish, mine finds and wild things (ItemArt.refine, flat materials first; test_inventory `_fish_mine_wild_art_refined`).

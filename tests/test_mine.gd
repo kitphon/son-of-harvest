@@ -24,6 +24,7 @@ func _init() -> void:
 	_landing_game(rules)
 	_landing_save(rules)
 	_art(rules)
+	_mine_field_art_refined()
 	print("test_mine: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 
@@ -657,6 +658,52 @@ func _landing_save(rules: Dictionary) -> void:
 	check(g.mine_landings.is_empty() and g.mine_start_floors() == [1], "a new game forgets the landings")
 	g.free()
 	h.free()
+
+
+## The field obstacles, the mine's pieces and the rope lift cage in the refined look
+## (ItemArt.refine): no near-black outline, several tones, the main material toned and rimmed in
+## its own deep tone, the same sizes as before for every kind.
+func _mine_field_art_refined() -> void:
+	var old := Color("2a1e1e")
+	# key -> [size, main material ("" for the see-through frost, which has no rim)]
+	var kinds := {"rock": [Vector2i(16, 16), "8e8e8e"], "branch": [Vector2i(16, 16), "7e5632"],
+		"weed": [Vector2i(16, 16), "5fa83a"], "stump": [Vector2i(16, 16), "6b4423"],
+		"mine:rock": [Vector2i(16, 16), "6e655a"], "mine:big_rock": [Vector2i(24, 20), "665c52"],
+		"mine:soft": [Vector2i(16, 16), "6a5440"], "mine:hole": [Vector2i(16, 16), "3a3028"],
+		"mine:ice": [Vector2i(16, 16), "78b4d8"], "mine:frost": [Vector2i(16, 16), ""],
+		"mine:lantern": [Vector2i(7, 11), "4a4440"], "mine:landing": [Vector2i(16, 26), "7a5530"]}
+	var q := Image.create_empty(1, 1, false, Image.FORMAT_RGBA8)
+	var key_of := func(c: Color) -> String:
+		q.set_pixel(0, 0, c)
+		return q.get_pixel(0, 0).to_html()
+	for key in kinds:
+		var img := PlaceholderArt.tex(key).get_image()
+		var cols := {}
+		var black := 0
+		for y in img.get_height():
+			for x in img.get_width():
+				var c := img.get_pixel(x, y)
+				if c.a == 0.0:
+					continue
+				cols[c.to_html()] = true
+				black += int(c.a == 1.0 and c.to_html(false) == old.to_html(false))
+		check(img.get_size() == kinds[key][0], "%s keeps its size %s (%s)" % [key, kinds[key][0], img.get_size()])
+		check(black == 0, "%s has no 2a1e1e outline (%d px)" % [key, black])
+		check(cols.size() >= 4, "%s has several tones (%d colours)" % [key, cols.size()])
+		if str(kinds[key][1]) == "":
+			continue
+		var main := Color(str(kinds[key][1]))
+		var tn := ItemArt.tones(main)
+		# The hole's earth ring is thin, so one toned side is enough; the lantern's iron is one
+		# pixel thin all over (base and rim only).
+		var thin: bool = key == "mine:hole"
+		var shade: bool = cols.has(key_of.call(tn[0]))
+		var lit: bool = cols.has(key_of.call(tn[2]))
+		if key != "mine:lantern":
+			check((shade or lit) if thin else (shade and lit), "%s: its main material shows its shade and lit tones" % key)
+		check(cols.has(key_of.call(ItemArt.rim_of(main))), "%s: rimmed in its own deep tone" % key)
+	var lamp := PlaceholderArt.tex("mine:lantern").get_image()
+	check(lamp.get_pixel(3, 6).get_luminance() > 0.85, "the lantern's flame still glows after the pass")
 
 
 func _rock(f: MineFloor, kind: String) -> Vector2i:

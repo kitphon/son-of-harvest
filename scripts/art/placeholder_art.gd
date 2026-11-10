@@ -656,32 +656,44 @@ static func _outline(img: Image) -> Image:
 	return img
 
 
+## A field obstacle, 16 x 16: a rock, a fallen branch, a weed, a stump. Laid in flat materials
+## (one colour per material) and toned by ItemArt.refine like the item icons: three tones lit
+## from the upper left, deep-tone part lines, a rim in the material's own deep tone. Small marks
+## (the rock's chip and crack, the stump's grooves and rings) stay as laid.
 static func _obstacle(kind: String) -> Image:
 	var img := _blank(16, 16)
+	var fixed: Array = []
 	match kind:
 		"rock":
-			_oval(img, 8, 10.5, 6, 4, Color("767676"))
-			_oval(img, 7.5, 9.5, 5, 3.2, Color("9e9e9e"))
-			_px(img, 5, 7, 3, 1, Color("c8c8c8"))
-			_px(img, 10, 10, 1, 2, Color("6a6a6a"))
+			var chip := Color("c8c8c8")
+			var crack := Color("6a6a6a")
+			_oval(img, 8, 10.5, 6, 4, Color("8e8e8e"))
+			_px(img, 5, 8, 3, 1, chip)
+			_px(img, 10, 10, 1, 2, crack)
+			fixed = [chip, crack]
 		"branch":
-			_line(img, Vector2i(2, 13), Vector2i(13, 9), Color("5e3d1e"))
-			_line(img, Vector2i(2, 12), Vector2i(13, 8), Color("8a6038"))
-			_line(img, Vector2i(8, 10), Vector2i(10, 5), Color("7a5230"))
+			var bark := Color("7e5632")
+			_line(img, Vector2i(2, 13), Vector2i(13, 9), bark)
+			_line(img, Vector2i(2, 12), Vector2i(13, 8), bark)
+			_line(img, Vector2i(8, 10), Vector2i(10, 5), bark)
 			_px(img, 10, 4, 2, 2, Color("6fae4a"))
 		"weed":
 			for t in [[3, 6, "3e7a2a"], [6, 3, "4f8f35"], [10, 4, "3e7a2a"], [13, 7, "4f8f35"], [8, 6, "5fa83a"]]:
 				_line(img, Vector2i(8, 14), Vector2i(t[0], t[1]), Color(t[2]))
 				_line(img, Vector2i(7, 14), Vector2i(t[0] - 1, t[1] + 1), Color(t[2]))
 		"stump":
-			_px(img, 3, 7, 10, 7, Color("6b4423"))
-			_px(img, 5, 9, 1, 4, Color("4e3018"))
-			_px(img, 9, 8, 1, 5, Color("4e3018"))
-			_px(img, 1, 13, 3, 1, Color("5e3d1e"))
-			_px(img, 12, 13, 3, 1, Color("5e3d1e"))
-			_oval(img, 8, 7, 5, 2, Color("c49a64"))
-			_oval(img, 8, 7, 2.5, 1, Color("a07a4a"))
-	return _outline(img)
+			var bark := Color("6b4423")
+			var groove := Color("4e3018")
+			var ring := Color("a07a4a")
+			_px(img, 3, 7, 10, 7, bark)
+			_px(img, 1, 13, 3, 1, bark)                    # the roots
+			_px(img, 12, 13, 3, 1, bark)
+			_px(img, 5, 9, 1, 4, groove)
+			_px(img, 9, 9, 1, 4, groove)
+			_oval(img, 8, 7, 5, 2, Color("c49a64"))        # the cut top
+			_oval(img, 8, 7, 2.5, 1, ring)
+			fixed = [groove, ring]
+	return ItemArt.refine(img, fixed)
 
 
 ## A mine floor's pieces. Rocks stand up as sprites: a rock is 16 x 16 (dark cave stone
@@ -690,52 +702,57 @@ static func _obstacle(kind: String) -> Image:
 ## pit with the top of a ladder in it. On a frozen floor a block of ice stands up (16 x 16,
 ## a jagged chunk with a lit top, a crack and the frost stone dark inside) and frost lies
 ## flat (16 x 16, a see-through sheet with rime feathers). The farmer's lantern down the mine is
-## 7 x 11 (lantern_at says where it hangs on the farmer's frame).
+## 7 x 11 (lantern_at says where it hangs on the farmer's frame). Everything but the frost sheet
+## is laid in flat materials and toned by ItemArt.refine (three tones lit from the upper left,
+## deep-tone part lines, a rim in the material's deep tone); small marks and the lantern's glow
+## stay as laid. The darkness by depth is the floor's light, laid over these later.
 static func _mine(kind: String) -> Image:
 	match kind:
 		"rock":
 			var img := _blank(16, 16)
-			_oval(img, 8, 10.5, 6.5, 4.5, Color("4e463e"))
-			_oval(img, 7.5, 9.5, 5.5, 3.6, Color("6e655a"))
-			_px(img, 5, 7, 3, 1, Color("9a9084"))
-			_px(img, 10, 10, 1, 2, Color("3a342e"))
-			_px(img, 8, 12, 2, 1, Color("3a342e"))
-			return _outline(img)
+			var chip := Color("9a9084")
+			var crack := Color("3a342e")
+			_oval(img, 8, 10.5, 6.5, 4.5, Color("6e655a"))
+			_px(img, 5, 8, 3, 1, chip)
+			_px(img, 10, 10, 1, 2, crack)
+			_px(img, 8, 12, 2, 1, crack)
+			return ItemArt.refine(img, [chip, crack])
 		"big_rock":
 			var img := _blank(24, 20)
-			_oval(img, 12, 12.5, 10.5, 7.0, Color("463e38"))
-			_oval(img, 11.5, 11.5, 9.0, 6.0, Color("665c52"))
-			_oval(img, 8.5, 9.5, 4.0, 2.4, Color("7a7064"))
-			_line(img, Vector2i(13, 6), Vector2i(15, 17), Color("2e2824"))   # the seam
-			_line(img, Vector2i(14, 11), Vector2i(19, 13), Color("2e2824"))
-			_px(img, 6, 8, 4, 1, Color("a09484"))
-			return _outline(img)
+			var seam := Color("2e2824")
+			var chip := Color("a09484")
+			_oval(img, 12, 12.5, 10.5, 7.0, Color("665c52"))
+			_line(img, Vector2i(13, 7), Vector2i(15, 17), seam)   # the seam
+			_line(img, Vector2i(14, 11), Vector2i(19, 13), seam)
+			_px(img, 6, 9, 4, 1, chip)
+			return ItemArt.refine(img, [seam, chip])
 		"ice":
-			# A chunk of ice with a jagged top: the lit top face, a clear blue front lit from
-			# the left with trapped air in it, a crack, frost round its foot, and the dark
-			# splinter of the frost stone it hides frozen inside.
+			# A chunk of ice with a jagged top: the pale top face over the clear blue body, trapped
+			# air in it, a crack, rime round its foot, and the dark splinter of the frost stone it
+			# hides frozen inside.
 			var img := _blank(16, 16)
-			_px(img, 2, 6, 12, 9, Color("4f86ad"))        # the body, its shaded right side
-			_px(img, 3, 7, 9, 7, Color("78b4d8"))
-			_px(img, 3, 7, 1, 7, Color("a8d8f0"))         # the lit left edge
+			var stone := Color("2e5878")
+			var air := Color("cdeefc")
+			var crack := Color("3e7298")
+			var glint := Color("eaf8ff")
+			_px(img, 2, 6, 12, 9, Color("78b4d8"))        # the body
 			var tops := [5, 3, 4, 2, 4, 3, 1, 3, 4, 2, 4, 5]
 			for i in tops.size():   # the top face, broken into points
 				_px(img, 2 + i, tops[i], 1, 7 - tops[i], Color("bfe6f8"))
-				_px(img, 2 + i, tops[i], 1, 1, Color("eaf8ff"))
 			for p in [Vector2i(8, 8), Vector2i(8, 9), Vector2i(9, 9), Vector2i(9, 10), Vector2i(10, 10), Vector2i(9, 11)]:
-				img.set_pixelv(p, Color("2e5878"))        # the frost stone inside
-			img.set_pixelv(Vector2i(8, 9), Color("9ccce8"))
+				img.set_pixelv(p, stone)                  # the frost stone inside
 			for p in [Vector2i(5, 9), Vector2i(6, 12), Vector2i(11, 8)]:
-				img.set_pixelv(p, Color("cdeefc"))        # air caught in the ice
-			_line(img, Vector2i(12, 6), Vector2i(11, 9), Color("3e7298"))   # a crack
-			_line(img, Vector2i(11, 9), Vector2i(12, 12), Color("3e7298"))
+				img.set_pixelv(p, air)                    # air caught in the ice
+			_line(img, Vector2i(12, 7), Vector2i(11, 9), crack)   # a crack
+			_line(img, Vector2i(11, 9), Vector2i(12, 12), crack)
 			for x in range(2, 14):   # rime round the foot
-				img.set_pixel(x, 14, Color("eaf8ff") if x % 3 == 0 else Color("a8d8f0"))
+				img.set_pixel(x, 14, glint if x % 3 == 0 else Color("a8d8f0"))
 			img.set_pixel(5, 3, Color.WHITE)               # a glint
-			return _outline(img)
+			return ItemArt.refine(img, [stone, air, crack, glint, Color.WHITE])
 		"frost":
 			# Hoarfrost on the earth: a thin see-through sheet with three feathers of rime
-			# (a diagonal stem, barbs every other pixel) and loose glints between them.
+			# (a diagonal stem, barbs every other pixel) and loose glints between them. Left
+			# unrimmed: it is a sheet lying on the floor, not a thing.
 			var img := _blank(16, 16)
 			var sheet := Color(0.86, 0.94, 1.0, 0.22)
 			_oval(img, 7, 8, 6.0, 4.5, sheet)
@@ -756,38 +773,45 @@ static func _mine(kind: String) -> Image:
 				img.set_pixelv(p, Color(1, 1, 1, 0.85))
 			return img
 		"lantern":
-			# The farmer's lantern, 7 x 11: an iron loop, a dark cap, glowing paper panes
-			# between iron posts with the flame bright in the middle, a dark foot.
+			# The farmer's lantern, 7 x 11: an iron loop, a wooden cap and foot, glowing paper
+			# panes between iron posts with the flame bright in the middle. The glow is not lit
+			# from outside, so the panes and flame stay as laid.
 			var img := _blank(7, 11)
-			var iron := Color("3a3430")
+			var iron := Color("4a4440")
+			var wood := Color("6a5238")
+			var pane := Color("e8a040")
+			var glow := Color("ffd070")
+			var flame := Color("fff4d0")
 			_px(img, 2, 1, 3, 1, iron)                    # the loop
 			_px(img, 1, 2, 1, 1, iron)
 			_px(img, 5, 2, 1, 1, iron)
-			_px(img, 1, 3, 5, 1, Color("5a4632"))         # the cap
+			_px(img, 1, 3, 5, 1, wood)                    # the cap
 			_px(img, 1, 4, 5, 5, iron)                    # the posts
-			_px(img, 2, 4, 3, 5, Color("e8a040"))         # the panes
-			_px(img, 2, 5, 3, 3, Color("ffd070"))
-			_px(img, 3, 6, 1, 1, Color("fff4d0"))         # the flame
-			_px(img, 1, 9, 5, 1, Color("5a4632"))         # the foot
-			return _outline(img)
+			_px(img, 2, 4, 3, 5, pane)                    # the panes
+			_px(img, 2, 5, 3, 3, glow)
+			_px(img, 3, 6, 1, 1, flame)                   # the flame
+			_px(img, 1, 9, 5, 1, wood)                    # the foot
+			return ItemArt.refine(img, [pane, glow, flame])
 		"soft":
 			var img := _blank(16, 16)
-			_oval(img, 8, 8.5, 6.5, 5.5, Color("3e3028"))
-			_oval(img, 8, 8, 5.5, 4.5, Color("6a5440"))
-			for p in [Vector2i(5, 6), Vector2i(9, 5), Vector2i(11, 9), Vector2i(6, 10), Vector2i(8, 8)]:
-				_px(img, p.x, p.y, 2, 1, Color("806650"))
-			_line(img, Vector2i(4, 8), Vector2i(7, 9), Color("3a2c22"))
-			_line(img, Vector2i(9, 10), Vector2i(12, 7), Color("3a2c22"))
-			return img
+			var clod := Color("806650")
+			var crack := Color("3a2c22")
+			_oval(img, 8, 8.5, 6.5, 5.5, Color("6a5440"))
+			for p in [Vector2i(5, 6), Vector2i(9, 5), Vector2i(11, 9), Vector2i(6, 11), Vector2i(8, 8)]:
+				_px(img, p.x, p.y, 2, 1, clod)
+			_line(img, Vector2i(4, 8), Vector2i(7, 9), crack)
+			_line(img, Vector2i(9, 10), Vector2i(12, 7), crack)
+			return ItemArt.refine(img, [clod, crack])
 		"hole":
 			var img := _blank(16, 16)
-			_oval(img, 8, 8, 7.0, 6.5, Color("2a221c"))
-			_oval(img, 8, 8.5, 5.8, 5.2, Color("0c0a08"))
+			var pit := Color("0c0a08")
+			_oval(img, 8, 8, 7.0, 6.5, Color("3a3028"))  # the broken earth round the mouth
+			_oval(img, 8, 8.5, 5.8, 5.2, pit)
 			for x in [5, 10]:   # the ladder's rails and rungs going down
 				_px(img, x, 4, 1, 9, Color("8a6a3a"))
 			for y in [5, 8, 11]:
 				_px(img, 5, y, 6, 1, Color("a8844a"))
-			return img
+			return ItemArt.refine(img, [pit])
 		"landing":
 			return _lift_cage()
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
@@ -796,32 +820,34 @@ static func _mine(kind: String) -> Image:
 ## A landing's rope lift down the mine (mine:landing, 16 x 26): the rope comes down out of the
 ## dark above to a timber cage (two posts, a top bar with the rope's iron ring, a rail half way,
 ## a plank floor), a lit lantern hung on its left post so the landing shows from the ladder.
+## Flat materials toned by ItemArt.refine; the rope's twist, the board ends and the lantern's
+## glow stay as laid.
 static func _lift_cage() -> Image:
 	var img := _blank(16, 26)
-	var timber := Color("6a4a2a")
-	var timber_light := Color("8e6a3e")
+	var timber := Color("7a5530")
 	var rope := Color("c8a868")
+	var twist := rope.darkened(0.3)
+	var iron := Color("4a4440")
+	var ends := Color("5a3d22")
+	var pane := Color("e8a040")
+	var flame := Color("fff4d0")
 	_px(img, 7, 0, 2, 10, rope)                  # the rope, up into the dark
-	_px(img, 7, 0, 1, 10, rope.lightened(0.2))
 	for y in [2, 5, 8]:                          # its twist
-		_px(img, 8, y, 1, 1, rope.darkened(0.3))
-	_px(img, 6, 9, 4, 2, Color("3a3430"))        # the iron ring
+		_px(img, 8, y, 1, 1, twist)
+	_px(img, 6, 9, 4, 2, iron)                   # the iron ring
 	_px(img, 2, 11, 12, 2, timber)               # the top bar
-	_px(img, 2, 11, 12, 1, timber_light)
 	_px(img, 2, 11, 2, 13, timber)               # the posts
 	_px(img, 12, 11, 2, 13, timber)
-	_px(img, 2, 11, 1, 13, timber_light)
-	_px(img, 4, 17, 8, 1, timber_light)          # the rail
-	_px(img, 1, 22, 14, 3, Color("8a6a3a"))      # the plank floor, its board ends
-	_px(img, 1, 22, 14, 1, Color("b08a58"))
+	_px(img, 4, 17, 8, 1, timber)                # the rail
+	_px(img, 1, 22, 14, 3, Color("9a7848"))      # the plank floor, its board ends
 	for x in [4, 8, 12]:
-		_px(img, x, 23, 1, 2, Color("5a3d22"))
-	_px(img, 0, 13, 2, 1, Color("3a3430"))       # the lantern's hook off the left post
-	_px(img, 0, 14, 3, 1, Color("3a3430"))       # its cap
-	_px(img, 0, 15, 3, 3, Color("e8a040"))       # its glowing panes
-	_px(img, 1, 16, 1, 1, Color("fff4d0"))       # the flame
-	_px(img, 0, 18, 3, 1, Color("3a3430"))
-	return _outline(img)
+		_px(img, x, 23, 1, 2, ends)
+	_px(img, 0, 13, 2, 1, iron)                  # the lantern's hook off the left post
+	_px(img, 0, 14, 3, 1, iron)                  # its cap
+	_px(img, 0, 15, 3, 3, pane)                  # its glowing panes
+	_px(img, 1, 16, 1, 1, flame)                 # the flame
+	_px(img, 0, 18, 3, 1, iron)
+	return ItemArt.refine(img, [twist, ends, pane, flame])
 
 
 ## A mine find as a 14 x 14 icon from its look: a rounded stone, a lump of clay, a heap of
