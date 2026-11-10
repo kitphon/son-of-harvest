@@ -1,5 +1,5 @@
 {
-	"_note": "What Kiku, the old woman of the persimmon orchard in Minamino, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items her own answers to a keepsake and to dishes. The birthday lines (winter 25), the close lines from band 4 and the dear lines at band 6 once her band 6 scene is seen (heart_kiku_6), the bell lines once her band 5 scene is seen (heart_kiku_5). Our own lines.",
+	"_note": "What Kiku, the old woman of the persimmon orchard in Minamino, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items her own answers to a keepsake and to dishes. The birthday lines (winter 25), the close lines from band 4 and the dear lines at band 6 once her band 6 scene is seen (heart_kiku_6), the bell lines once her band 5 scene is seen (heart_kiku_5). The twig rows (scion) take Tuesdays and Saturdays only, about 2 talks in 7, and carry only twig lines; on the other days her usual rows run as before, so her close and dear lines keep their share of those days. Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
@@ -10,10 +10,10 @@
 		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
 		{"if": {"time": ["14:00", "15:00"]}, "at": ["shrine"]},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "at": ["wet"]},
-		{"if": {"scion": ["sapling"]}, "at": ["scion_sapling_1", "scion_sapling_2", "dear_1", "close_1"]},
-		{"if": {"scion": ["young"]}, "at": ["scion_young_1", "scion_young_2", "dear_2", "close_2"]},
-		{"if": {"scion": ["tree"], "season": ["fall"]}, "at": ["scion_fall_1", "scion_fall_2", "fall_1", "fall_2"]},
-		{"if": {"scion": ["tree"]}, "at": ["scion_tree_1", "scion_tree_2", "dear_3", "plain_2"]},
+		{"if": {"scion": ["sapling"], "weekday": ["tue", "sat"]}, "at": ["scion_sapling_1", "scion_sapling_2"]},
+		{"if": {"scion": ["young"], "weekday": ["tue", "sat"]}, "at": ["scion_young_1", "scion_young_2"]},
+		{"if": {"scion": ["tree"], "season": ["fall"], "weekday": ["tue", "sat"]}, "at": ["scion_fall_1", "scion_fall_2"]},
+		{"if": {"scion": ["tree"], "weekday": ["tue", "sat"]}, "at": ["scion_tree_1", "scion_tree_2"]},
 		{"if": {"band": [6, 6], "flags": ["heart_kiku_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"band": [5, 6], "flags": ["heart_kiku_5"]}, "at": ["bell_1", "bell_2"]},
 		{"if": {"weekday": ["fri"], "band": [2, 5], "season": ["spring"]}, "at": ["forage_spring"]},
