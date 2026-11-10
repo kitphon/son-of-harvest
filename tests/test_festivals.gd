@@ -21,6 +21,7 @@ func _init() -> void:
 	_hours()
 	_villagers()
 	_crowd()
+	_contest_spots_clear()
 	_contest_data()
 	_judging()
 	_result_lines()
@@ -175,6 +176,55 @@ func _crowd() -> void:
 	check(Villagers.where("hachiro", 840.0, plain).map == "smithy" and Villagers.where("sayo", 840.0, plain).map == "store", "a plain day: both at work")
 	var building := blossom.merged({"flags": {"house_work": true}}, true)
 	check(Villagers.where("hachiro", 600.0, building).map == "farm", "a house job under way still comes first for Hachiro")
+
+
+## The farmer's spot at each contest (the cell below the judges' table or the game's prop,
+## Game's `--contest=` and the E there) and the cells in front of it in the 3D view (the
+## camera looks from +x +y at yaw 45°, so the cell right, below and down-right of it) stay
+## free: no villager stands there in the festival's hours (unmarried, married to each
+## candidate, and with the child out too; walkers only pass), nobody at all at the
+## `--festival=` start time, and no rival of a result event walks up onto them.
+const _FRONT: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]
+
+func _contest_spots_clear() -> void:
+	var variants: Array = [{}]
+	for sp in Marriage.candidates():
+		variants.append({"married_" + sp: true, "spouse": sp})
+		variants.append({"married_" + sp: true, "spouse": sp, Child.BORN: 1, Child.STAGE: "child"})
+	for fid in Festivals.all():
+		var f := Festivals.get_festival(fid)
+		var spots := {}
+		var c := Festivals.contest(fid)
+		if not c.is_empty():
+			spots["the judges' table"] = [Vector2i(int(c.table[0]), int(c.table[1]) + 1), c.event]
+		var g := Festivals.game(fid)
+		if not g.is_empty():
+			spots[g.id] = [Vector2i(int(g.cell[0]), int(g.cell[1]) + 1), g.event]
+		check(not spots.is_empty(), "%s has a contest or a game" % fid)
+		var start := EventTriggers.clock(f.fireworks[0] if f.has("fireworks") else f.hours[0]) + 30
+		var open := EventTriggers.clock(f.hours[0])
+		var close := EventTriggers.clock(f.hours[1])
+		if close <= open:
+			close = 1440
+		for flags in variants:
+			var s := {"year": 1, "season": f.season, "day": int(f.day), "weekday": "tue", "weather": "sunny", "flags": flags, "festival": fid}
+			var bad := {}
+			for t in range(open, close, 2):
+				for w in Villagers.on_map(f.map, float(t), s):
+					var cell := Vector2i(w.pos.floor())
+					for k in spots:
+						if cell - spots[k][0] in _FRONT and (t == start or not w.get("moving", false)):
+							bad["%s at %s by %s" % [w.id, cell, k]] = t
+			check(bad.is_empty(), "%s %s: nobody stands on or in front of the farmer's contest spots (%s)" % [fid, flags, bad])
+		for k in spots:
+			var ev: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/events/%s.json" % spots[k][1]))
+			check(ev is Dictionary, "%s: %s's event reads" % [fid, k])
+			if not ev is Dictionary:
+				continue
+			for step in ev.get("steps", []):
+				if step is Dictionary and step.get("do") == "actor" and step.get("to") is Array:
+					var to := Vector2i(int(step.to[0]), int(step.to[1]))
+					check(not (to - spots[k][0]) in _FRONT, "%s: %s walks up beside the farmer at %s, not in front (%s)" % [fid, step.get("who"), k, to])
 
 
 func _fireworks() -> void:

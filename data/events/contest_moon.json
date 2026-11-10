@@ -19,7 +19,7 @@
 			"at": "plan",
 			"holds": "egg_best",
 			"to": [
-				23,
+				24,
 				9
 			],
 			"face": "up",
@@ -31,7 +31,7 @@
 			"at": "plan",
 			"holds": "wool",
 			"to": [
-				24,
+				25,
 				9
 			],
 			"face": "up",

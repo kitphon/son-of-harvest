@@ -27,7 +27,7 @@
 		"festival": [
 			{"at": "06:00", "map": "kota_house", "from": [1, 2], "route": [{"face": "up"}]},
 			{"at": "09:30", "map": "town", "from": [8, 16], "route": [{"to": [4, 16]}, {"to": [4, 11]}, {"to": [21, 11]}, {"to": [21, 8]}],
-				"loop": [{"face": "up"}, {"wait": 8}, {"to": [16, 8]}, {"face": "down"}, {"wait": 6}, {"to": [21, 8]}]},
+				"loop": [{"face": "up"}, {"wait": 8}, {"to": [18, 8]}, {"face": "down"}, {"wait": 6}, {"to": [21, 8]}]},
 			{"at": "23:30", "map": "town", "route": [{"to": [21, 11]}, {"to": [4, 11]}, {"to": [4, 16]}, {"to": [8, 16]}, {"face": "up"}]},
 			{"at": "23:55", "map": "away"}
 		],
