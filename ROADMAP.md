@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] Kiku talks about her persimmon twig (2026-11-10): sapling, young and fruiting-tree lines by the twig's stage (new talk pick key `scion`, Game.talk_to) and fall lines once it fruits; EN and TH; test_talk `_kiku_scion`, see WORKLOG.
 [x] test_child help flake (2026-11-10): the nightly neglect roll (1 in 8) could drop the child below band 5 before the morning help; the test now counts a talk today before `end_day()`, 7 failures in 40 runs before, see WORKLOG.
 [x] Portraits, refined (2026-11-10): every text box portrait (each villager in each mood, the child at crawler, toddler and child, the generic face: keys) in the figures' refined look: three tones per material lit from the upper left, deep-tone part lines and a darker rim instead of the black outline, eyes and mouth in their own colours; keys, size, moods and colours kept (PortraitArt, data/portrait_art.json; test_dialogue `_refined_portraits`). Next for the look: the baby's cradle and carry pictures are still the plain drawing.
 [x] test_inventory exit leak (2026-11-10): `_arms_full()` freed no Game node; `g.free()` added, the suite quits with no ERROR line.

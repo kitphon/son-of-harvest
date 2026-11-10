@@ -2271,8 +2271,9 @@ func talk_to(id: String, face: Vector2i) -> String:
 	var w := Villagers.where(id, t, trigger_state(Vector2i.ZERO))
 	var shop_id := Talk.keeper_shop(id, maps.id, Vector2i(w.get("pos", Vector2(-1, -1)).floor()))
 	var s := trigger_state(Vector2i.ZERO)
+	# The persimmon twig's stage for Kiku's lines (Scion); "" while nothing is planted.
 	s.merge({"band": affection.band(id), "again": affection.talked_on(id, today), "day_number": today, "birthday": birthday,
-		"map": str(w.get("map", maps.id))})
+		"map": str(w.get("map", maps.id)), "scion": Scion.stage(flags, today) if Scion.planted(flags) else ""})
 	affection.talk(id, today)
 	if shop_id != "" and open_shop(shop_id):
 		return "shop"
