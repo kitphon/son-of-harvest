@@ -238,6 +238,7 @@ func _process(delta: float) -> bool:
 		_shino_noren()
 		_kiku_scion()
 		_nana_props()
+		_story_art_refined()
 		_cradle()
 		_lane_and_kiln_props()
 		_map_snow()
@@ -4550,10 +4551,13 @@ func _kiku_scion() -> void:
 		"persimmons hang on the grown tree in fall")
 	var orange := func(key: String) -> int:
 		var img := PlaceholderArt.tex(key).get_image()
+		var tones := {}   # the fruit's refined tones (ItemArt.refine)
+		for t: Color in ItemArt.tones(PlaceholderArt.PERSIMMON):
+			tones[FigureArt._key(t)] = true
 		var n := 0
 		for y in img.get_height():
 			for x in img.get_width():
-				n += int(img.get_pixel(x, y).is_equal_approx(PlaceholderArt.PERSIMMON))
+				n += int(tones.has(img.get_pixel(x, y).to_html()))
 		return n
 	check(orange.call(Scion.art_key("tree", "fall", false)) >= 8 * 4 and orange.call(Scion.art_key("young", "fall", false)) == 0,
 		"the tree's fall crown hangs persimmons, the young tree's none")
@@ -4598,6 +4602,49 @@ func _kiku_scion() -> void:
 		sprites += int(c is Sprite3D and c.texture == PlaceholderArt.tex(key))
 	check(sprites == 1, "the 3D view stands one sapling sprite")
 	w.free()
+
+## The story props (PlaceholderArt._story, _noren_story, _scion_story) are laid in flat
+## materials and toned by ItemArt.refine: every kind, noren style and scion stage / season /
+## snow keeps its size, has no near-black 2a1e1e pixel and at least four colours. The noren's
+## slits stay see-through; the old kiln's wear overlay keeps its own crack colour.
+func _story_art_refined() -> void:
+	var old := FigureArt._key(PlaceholderArt.OUTLINE)
+	var sizes := {"boat_father": Vector2i(14, 6), "boat_new": Vector2i(14, 6), "captain_jar": Vector2i(10, 13),
+		"frog": Vector2i(12, 10), "jizo_bibs": Vector2i(8, 7), "jizo_scarf": Vector2i(10, 9), "kiln_mark": Vector2i(10, 8),
+		"kiln_site": Vector2i(32, 30), "kiln_new": Vector2i(32, 30), "rope_lift": Vector2i(20, 28), "lumber": Vector2i(16, 28),
+		"door_bell": Vector2i(12, 16), "sign_old": Vector2i(48, 14), "sign_new": Vector2i(48, 14), "ume_jar": Vector2i(12, 12),
+		"carp_streamer": Vector2i(26, 40), "noren_rows": Vector2i(22, 10), "noren_flowers": Vector2i(22, 10),
+		"noren_shino": Vector2i(22, 10)}
+	var keys := {}
+	for kind in sizes:
+		keys["story:" + kind] = sizes[kind]
+	for stage in Scion.stage_ids():
+		for season in ["spring", "summer", "fall", "winter"]:
+			for snow in [false, true]:
+				keys[Scion.art_key(stage, season, snow)] = Scion.size(stage)
+	for key in keys:
+		var img: Image = PlaceholderArt.tex(key).get_image()
+		var colours := {}
+		var outline := 0
+		for y in img.get_height():
+			for x in img.get_width():
+				var p := img.get_pixel(x, y)
+				if p.a == 0.0:
+					continue
+				colours[p.to_html()] = true
+				outline += int(p.to_html() == old)
+		check(img.get_size() == keys[key] and outline == 0 and colours.size() >= 4,
+			"story art %s: size %s kept, no 2a1e1e pixel (%d), several tones (%d)" % [key, str(img.get_size()), outline, colours.size()])
+	var noren: Image = PlaceholderArt.tex("story:noren_rows").get_image()
+	check(noren.get_pixel(7, 5).a == 0.0 and noren.get_pixel(14, 8).a == 0.0, "the noren's slits stay see-through")
+	var bark := {}
+	for t: Color in ItemArt.tones(Color("5e4632")):
+		bark[FigureArt._key(t)] = true
+	var tree: Image = PlaceholderArt.tex(Scion.art_key("tree", "summer", false)).get_image()
+	check(bark.has(tree.get_pixel(13, 30).to_html()), "the tree's trunk is in a refined bark tone (%s)" % tree.get_pixel(13, 30).to_html())
+	var wear: Image = PlaceholderArt.tex("story:kiln_worn").get_image()
+	check(wear.get_size() == Vector2i(32, 32) and wear.get_pixel(6, 6) == Color("2e1d12"), "the kiln's wear stays an overlay of cracks")
+
 
 ## What Nana's heart scenes leave in Minamino (data/maps/minamino.json): Captain's jar by
 ## Shige's door once she kept him till he has legs (nana_captain "jar"), gone at her band 6

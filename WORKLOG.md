@@ -10,6 +10,39 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Story props art, refined
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: PlaceholderArt._story (boat_father / boat_new, captain_jar, frog, jizo_bibs, jizo_scarf,
+  kiln_mark, kiln_site, kiln_new, rope_lift, lumber, door_bell, sign_old / sign_new, ume_jar,
+  carp_streamer), _noren_story (rows, flowers, shino) and _scion_story with _scion_sapling /
+  _young / _tree / _crown / _wrap / _persimmon are laid in flat materials and toned by
+  ItemArt.refine (data/item_art.json, no new entry) instead of `_outline`: three tones lit from
+  the upper left, deep-tone part lines, a rim in each material's deep tone. Dropped hand-shaded
+  copies: highlight rows, glints, shine strips, darker hems and undersides, the persimmon's lit
+  spot and dark underside, the crown's light flecks, the trunk's light side. Fixed marks (kept as
+  laid): the boat paint, the tadpole and the frog's pupils, the kiln print's ridges and Ichiro's
+  print, the rope lift's shaft dark, panes and flame, the bell's clapper, the sign ink, the plum
+  jar's note writing, the carp's eye, pupil, scales and pole nodes, the noren's resist white and
+  flower centres, the persimmon's calyx and the green fruit's tip. Parting by material: the
+  crown's near lumps in the season's front colour, the far ones in its back colour (fall every
+  third red); the lumber's boards in two shades by turn; the wrap's straw bands in two colours.
+  The noren fills its picture (no rim room), so its slits are cut clear again after refine.
+  kiln_worn (the crack overlay on the old kiln's box) is unchanged. `_outline` and OUTLINE are
+  kept (nothing calls `_outline` now; the cleanup is the next ROADMAP item). Same keys and sizes.
+- Checked: new test_maps `_story_art_refined` (every story kind, the three noren, every scion
+  stage x season x snow: size kept, no 2a1e1e pixel, at least four colours; the noren slits
+  see-through; the tree trunk in a refined bark tone; kiln_worn still its crack colour).
+  `_kiku_scion`'s persimmon count now counts ItemArt.tones(PERSIMMON) instead of the flat colour.
+  After `--import`, all tests/test_*.gd print `OK (0 failed)`; the four smoke runs print 0 ERROR /
+  WARNING lines. Screenshots `--demo --flags=kiku_scion=door --season=fall --scion=tree` (the
+  fruiting tree toned orange / red with deep rims, persimmons with green calyxes),
+  `--demo --map=house --flags=tome_grandma` (the plum jar) and `--demo
+  --flags=kiku_scion=door,shino_noren=rows,hachiro_bell --season=winter --snow=80 --scion=tree`
+  (the bare tree with snow on its limbs and the straw wrap, the noren, the bell) looked at, no
+  near-black outline; shots/ deleted.
+- Left / next: PlaceholderArt cleanup (`_outline` unused; OUTLINE still laid by hand in
+  `_fish_fx` and the dialogue faces / portraits).
+
 ## 2026-11-10 — Merge: crops, festival decorations and the maple tree refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 682361e crops and stalks (Opus), edb9f0a festival decorations (Sonnet) and

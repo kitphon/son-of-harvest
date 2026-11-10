@@ -1238,23 +1238,28 @@ static func _dye_cloth(c: Color) -> Image:
 
 
 ## A door curtain Shino dyed (StoryView "noren", 22 x 10): indigo cloth hanging in three
-## panels with dark slits between, a paler band where it folds over the rod and a deeper hem.
-## The mark, resisted white: `rows` the farmer's field (furrows of little sprouts across the
-## panels), `flowers` her wildflowers (five-petal blossoms scattered, one with a pale centre),
-## `shino` her own dye house's mark (a ring round an indigo leaf, on the middle panel).
+## panels with see-through slits between. Laid as one flat cloth and toned by ItemArt.refine
+## (lit over the rod, shaded at the hem and beside each slit); the slits are cut clear again
+## after it, so the rim it lays in them does not close them. The mark, resisted white (fixed):
+## `rows` the farmer's field (furrows of little sprouts across the panels), `flowers` her
+## wildflowers (five-petal blossoms scattered, one with a yellow centre), `shino` her own dye
+## house's mark (a ring round an indigo leaf, on the middle panel).
 static func _noren_story(style: String) -> Image:
 	var img := _blank(22, 10)
 	var cloth := Color("23356a") if style != "shino" else Color("1c2c5c")
 	var white := Color("eeeae0")
+	var fixed: Array = [white]
 	img.fill(cloth)
-	_px(img, 0, 0, 22, 1, cloth.lightened(0.25))   # over the rod
-	_px(img, 0, 9, 22, 1, cloth.darkened(0.3))     # the hem
 	for x in [7, 14]:
 		_px(img, x, 3, 1, 7, Color(0, 0, 0, 0))   # the slits between the panels
 	match style:
 		"rows":
+			var furrow := Color("33497e")
+			fixed.append(furrow)
 			for y in [3, 6]:
-				_px(img, 1, y + 1, 20, 1, cloth.lightened(0.12))   # the furrow
+				for x in 20:
+					if x + 1 != 7 and x + 1 != 14:
+						_px(img, x + 1, y + 1, 1, 1, furrow)   # the furrow
 				for x in range(2, 21, 3):
 					if x == 7 or x == 14:
 						continue
@@ -1262,16 +1267,22 @@ static func _noren_story(style: String) -> Image:
 					_px(img, x - 1, y - 1, 1, 1, white)
 					_px(img, x + 1, y - 1, 1, 1, white)
 		"flowers":
+			var heart := Color("e8c860")
+			var pale := Color("5a6c9c")
+			fixed.append_array([heart, pale])
 			for at in [Vector2i(3, 3), Vector2i(10, 6), Vector2i(17, 3), Vector2i(4, 7), Vector2i(18, 7)]:
 				_px(img, at.x, at.y - 1, 1, 1, white)
 				_px(img, at.x - 1, at.y, 3, 1, white)
 				_px(img, at.x, at.y + 1, 1, 1, white)
-				_px(img, at.x, at.y, 1, 1, Color("e8c860") if at == Vector2i(10, 6) else cloth.lightened(0.3))
+				_px(img, at.x, at.y, 1, 1, heart if at == Vector2i(10, 6) else pale)
 		_:   # her own mark: a ring round an indigo leaf
 			for p in [Vector2i(10, 3), Vector2i(11, 3), Vector2i(9, 4), Vector2i(12, 4), Vector2i(9, 5), Vector2i(12, 5), Vector2i(9, 6), Vector2i(12, 6), Vector2i(10, 7), Vector2i(11, 7)]:
 				_px(img, p.x, p.y, 1, 1, white)
 			_px(img, 10, 4, 2, 2, white)   # the leaf
 			_px(img, 11, 6, 1, 1, white)   # its stem
+	ItemArt.refine(img, fixed)
+	for x in [7, 14]:
+		_px(img, x, 3, 1, 7, Color(0, 0, 0, 0))   # the slits stay open
 	return img
 
 
@@ -1282,7 +1293,10 @@ static func _noren_story(style: String) -> Image:
 ## in fall (fruit: data/scion.json) and in winter the one left on a bare branch for the birds.
 ## By season: spring pale new leaves, summer full green (small green fruit on the tree), fall
 ## orange and red leaves, winter bare with a straw wrap round the foot; snow on the upper side
-## of the bare branches when the farm lies under snow.
+## of the bare branches when the farm lies under snow. Laid in flat materials (bark, stake,
+## straw, the leaves in a front and a back colour so the lumps part, the fruit, the snow) and
+## toned by ItemArt.refine: three tones lit from the upper left, deep-tone part lines, a rim
+## in each material's own deep tone. The calyx and the green fruit's tip are fixed marks.
 static func _scion_story(stage: String, season: String, snow: bool, shown: int = -1) -> Image:
 	var img: Image
 	match stage:
@@ -1299,13 +1313,18 @@ static func _scion_story(stage: String, season: String, snow: bool, shown: int =
 		for y in range(1, top):
 			for x in size.x:
 				if src.get_pixel(x, y).a > 0.5 and src.get_pixel(x, y - 1).a < 0.5:
-					img.set_pixel(x, y - 1, Color("f4f8fc"))
-	return _outline(img)
+					img.set_pixel(x, y - 1, SCION_SNOW)
+	return ItemArt.refine(img, SCION_FIXED)
 
 
 const SCION_LEAVES := {"spring": [Color("a8d870"), Color("d8e890")], "summer": [Color("4c9438"), Color("68b04a")],
 	"fall": [Color("d8741e"), Color("e8a038")]}
 const PERSIMMON := Color("e86a14")
+const SCION_SNOW := Color("f4f8fc")
+const SCION_CALYX := Color("5c8a34")
+## The small marks left as they are by ItemArt.refine: the persimmon's calyx and the tip of a
+## setting green fruit.
+const SCION_FIXED := [SCION_CALYX, Color("b4d468")]
 
 
 static func _scion_sapling(season: String) -> Image:
@@ -1313,69 +1332,59 @@ static func _scion_sapling(season: String) -> Image:
 	var bark := Color("6a5238") if season != "winter" else Color("56402c")
 	var straw := Color("d8b866")
 	var stake := Color("b09a5a")
-	_px(img, 11, 9, 1, 17, stake)                       # the stake
-	_px(img, 11, 8, 1, 1, stake.lightened(0.25))
+	_px(img, 11, 8, 1, 18, stake)                       # the stake
 	_px(img, 7, 14, 2, 12, bark)                        # the trunk, a thin young one
 	_px(img, 8, 10, 1, 4, bark)
 	_px(img, 9, 8, 1, 3, bark)
 	_px(img, 5, 12, 2, 1, bark)                         # two side twigs
 	_px(img, 9, 15, 2, 1, bark)
 	if season == "winter":
-		_px(img, 5, 12, 1, 1, bark.darkened(0.2))
 		_scion_wrap(img, 8, 17, 25, straw)
-		_px(img, 6, 16, 4, 1, straw.lightened(0.1))     # the tuft on top
+		_px(img, 6, 16, 4, 1, straw)                    # the tuft on top
 	else:
-		_px(img, 7, 20, 5, 1, straw)                    # the straw tie round trunk and stake
-		_px(img, 7, 21, 5, 1, straw.darkened(0.18))
+		_px(img, 7, 20, 5, 2, straw)                    # the straw tie round trunk and stake
 		_px(img, 10, 22, 1, 1, straw)                   # its loose end
 		var leaf: Color = SCION_LEAVES[season][0]
-		var leaf2: Color = SCION_LEAVES[season][1]
 		var spots := [[4, 10], [9, 6], [6, 7], [10, 12], [3, 13], [11, 9]]
 		for i in spots.size():
 			var at: Array = spots[i]
 			if season == "spring":   # small, bud-like
 				_px(img, at[0], at[1], 2, 2, leaf)
-				_px(img, at[0], at[1], 1, 1, leaf2)
 			else:
-				_px(img, at[0], at[1], 3, 2, leaf)
-				_px(img, at[0] + 1, at[1] - 1, 2, 1, leaf2)
-				_px(img, at[0], at[1] + 2, 2, 1, leaf.darkened(0.2))
+				_px(img, at[0], at[1], 3, 3, leaf)
+				_px(img, at[0] + 1, at[1] - 1, 2, 1, leaf)
 		if season == "fall":                            # one small persimmon on the low twig
 			_persimmon(img, 9, 16, 3)
 	return img
 
 
-## The straw wrap round a trunk's foot against the frost, from row y0 to y1 about x (wider down).
+## The straw wrap round a trunk's foot against the frost, from row y0 to y1 about x (wider down):
+## bands of straw in two colours and a darker binding.
 static func _scion_wrap(img: Image, x: int, y0: int, y1: int, straw: Color) -> void:
 	for y in range(y0, y1):
 		var w := 4 + (y - y0) / 3
-		_px(img, x - w / 2, y, w, 1, straw if y % 2 == 0 else straw.darkened(0.12))
+		_px(img, x - w / 2, y, w, 1, straw if (y - y0) % 4 < 2 else straw.darkened(0.12))
 	_px(img, x - 3, y0 + 2, 7, 1, straw.darkened(0.35))   # its binding
 
 
-## A persimmon: a round orange fruit of `d` px with a green calyx on top and a light spot.
+## A persimmon: a round orange fruit of `d` px with a green calyx (a fixed mark) on top.
 static func _persimmon(img: Image, x: int, y: int, d: int) -> void:
 	_px(img, x, y, d, d, PERSIMMON)
-	if d >= 3:   # shaded underside
-		_px(img, x + 1, y + d - 1, d - 1, 1, PERSIMMON.darkened(0.2))
-	_px(img, x + d / 2, y - 1, 1, 1, Color("5c8a34"))
-	_px(img, x, y, 1, 1, Color("f4a050"))
+	_px(img, x + d / 2, y - 1, 1, 1, SCION_CALYX)
 
 
-## Leaf lumps for a crown: [cx, cy, rx, ry, shade] ovals in the season's two greens (or fall's
-## oranges, every third one redder).
+## Leaf lumps for a crown: [cx, cy, rx, ry, depth] ovals. The near lumps (depth under 0.1) in
+## the season's front colour, the far ones in its back colour, so the lumps part where they
+## overlap; in fall every third one red.
 static func _scion_crown(img: Image, season: String, lumps: Array) -> void:
-	var leaf: Color = SCION_LEAVES[season][0]
-	var leaf2: Color = SCION_LEAVES[season][1]
+	var back: Color = SCION_LEAVES[season][0]
+	var front: Color = SCION_LEAVES[season][1]
 	for i in lumps.size():
 		var l: Array = lumps[i]
-		var c := leaf.darkened(float(l[4]))
+		var c := front if float(l[4]) < 0.1 else back
 		if season == "fall" and i % 3 == 1:
-			c = Color("c4421e").darkened(float(l[4]) * 0.5)
+			c = Color("c4421e")
 		_oval(img, l[0], l[1], l[2], l[3], c)
-	for i in lumps.size():   # a light fleck on the upper side of each lump
-		var l: Array = lumps[i]
-		_px(img, int(l[0] - l[2] * 0.4), int(l[1] - l[3] * 0.6), 2, 1, leaf2 if season != "fall" or i % 3 != 1 else Color("e86a2a"))
 
 
 static func _scion_young(season: String) -> Image:
@@ -1405,7 +1414,6 @@ static func _scion_tree(season: String, shown: int = -1) -> Image:
 	var bark := Color("5e4632") if season != "winter" else Color("4e3a28")
 	_px(img, 12, 20, 3, 22, bark)                       # the trunk, stouter now
 	_px(img, 11, 39, 5, 3, bark)                        # its foot spreading
-	_px(img, 12, 24, 1, 6, bark.lightened(0.15))        # the light side of the bark
 	for seg in [[Vector2i(13, 22), Vector2i(5, 13)], [Vector2i(13, 21), Vector2i(21, 12)], [Vector2i(13, 21), Vector2i(13, 4)],
 			[Vector2i(13, 10), Vector2i(8, 4)], [Vector2i(13, 13), Vector2i(18, 5)], [Vector2i(6, 14), Vector2i(2, 10)],
 			[Vector2i(20, 13), Vector2i(24, 9)], [Vector2i(9, 18), Vector2i(4, 18)], [Vector2i(17, 18), Vector2i(22, 18)]]:
@@ -1437,7 +1445,7 @@ static func _scion_tree(season: String, shown: int = -1) -> Image:
 	elif season == "summer":   # small green fruit setting
 		for at in [[6, 16], [16, 15], [11, 19], [20, 10]]:
 			_px(img, at[0], at[1], 2, 2, Color("8cb848"))
-			_px(img, at[0], at[1], 1, 1, Color("b4d468"))
+			_px(img, at[0], at[1], 1, 1, SCION_FIXED[1])
 	return img
 
 
@@ -3085,84 +3093,93 @@ static func _sky_map(father: String, farmer: String) -> Image:
 ## bamboo pole (26 x 40). While a house extension is being built, the builder's lumber lies
 ## beside the farmhouse: a stack of planed boards on two bearers with a saw on top (16 x 28,
 ## a 1 x 2 cell stack seen from the front).
+## Every picture is laid in flat materials (one colour per material) and toned by
+## ItemArt.refine like the item icons: three tones lit from the upper left, deep-tone part lines,
+## a rim in the material's own deep tone instead of the near-black outline. Small marks (writing,
+## eyes, the tadpole, scales, glowing panes) are `fixed`. The old kiln's wear (kiln_worn) is an
+## overlay of cracks on the kiln's box and stays as it is.
 static func _story(kind: String) -> Image:
+	var fixed: Array = []
 	match kind:
 		"noren_rows", "noren_flowers", "noren_shino":
 			return _noren_story(kind.get_slice("_", 1))
 		"boat_father", "boat_new":
 			# The name Mio painted on her boat's side (heart_mio_6, mio_boat): a pale painted
 			# plaque, 14 x 6, with her father's coiled red dragon (Tatsu) on it, or her new name's
-			# mark, a blue fish leaping a wave.
+			# mark, a blue fish leaping a wave. The paint is fixed.
 			var img := _blank(14, 6)
 			var plaque := Color("e8e0cc")
 			_px(img, 0, 0, 14, 6, plaque)
-			_px(img, 0, 5, 14, 1, plaque.darkened(0.2))
 			if kind == "boat_father":
 				var red := Color("b8302a")
+				var eye := Color("f0c040")
+				fixed.append_array([red, eye])
 				for pt in [[2, 3], [3, 2], [4, 1], [5, 1], [6, 2], [7, 3], [8, 3], [9, 2], [10, 1], [11, 2]]:
 					_px(img, pt[0], pt[1], 1, 2, red)
 				_px(img, 11, 1, 2, 1, red)      # the head
-				img.set_pixel(12, 2, Color("f0c040"))
+				img.set_pixel(12, 2, eye)
 			else:
 				var blue := Color("2e4e8a")
+				var wave := Color("4a8ab8")
+				fixed.append_array([blue, wave])
 				_px(img, 4, 2, 5, 2, blue)      # the fish
 				_px(img, 3, 1, 1, 1, blue)
 				_px(img, 3, 4, 1, 1, blue)
 				_px(img, 9, 3, 1, 1, blue)
 				img.set_pixel(7, 2, plaque)     # its eye
 				for x in range(1, 13):          # the wave under it
-					img.set_pixel(x, 4 + (x % 3 == 0 as int), Color("4a8ab8"))
-			return img
+					img.set_pixel(x, 4 + (x % 3 == 0 as int), wave)
+			return ItemArt.refine(img, fixed)
 		"captain_jar":
 			# Nana's jar by her father's door (heart_nana, nana_captain "jar"), 10 x 13: a glass
 			# jar of ditch water with weed in it, Captain the tadpole (a black head, a wiggle of
 			# tail), a paper lid tied on with red string and the name brushed on a paper slip.
 			var img := _blank(10, 13)
 			var glass := Color("a8c4c8")
+			var weed := Color("3e6a3a")
+			var tadpole := Color("1e1a16")
+			fixed.append(tadpole)
 			_px(img, 1, 3, 8, 10, glass)                   # the jar
-			_px(img, 1, 12, 8, 1, glass.darkened(0.25))
 			_px(img, 2, 5, 6, 7, Color("6e9a86"))         # the water
-			_px(img, 2, 5, 6, 1, Color("9cc4b4"))         # its top, catching the light
-			_px(img, 3, 8, 1, 4, Color("3e6a3a"))         # weed
-			_px(img, 6, 9, 1, 3, Color("3e6a3a"))
-			_px(img, 4, 7, 2, 2, Color("1e1a16"))         # Captain's head
-			_px(img, 6, 8, 1, 1, Color("1e1a16"))         # and tail
-			img.set_pixel(7, 7, Color("1e1a16"))
-			_px(img, 1, 3, 1, 9, glass.lightened(0.35))   # the glint down one side
+			_px(img, 3, 8, 1, 4, weed)                     # weed
+			_px(img, 6, 9, 1, 3, weed)
+			_px(img, 4, 7, 2, 2, tadpole)                  # Captain's head
+			_px(img, 6, 8, 1, 1, tadpole)                  # and tail
+			img.set_pixel(7, 7, tadpole)
 			_px(img, 0, 1, 10, 2, Color("ece4cc"))        # the paper lid
 			_px(img, 0, 2, 10, 1, Color("c8342c"))        # the string round it
 			_px(img, 3, 0, 4, 1, Color("ece4cc"))
-			return _outline(img)
+			return ItemArt.refine(img, fixed)
 		"frog":
 			# Captain grown (heart_nana_6), singing on a stone at the ditch's edge, 12 x 10: a
 			# green frog facing out, eyes up on top, his throat puffed pale, the stone under him
 			# and a reed beside.
 			var img := _blank(12, 10)
 			var green := Color("5a8a3a")
+			var pupil := Color("1e1a16")
+			fixed.append(pupil)
 			_px(img, 1, 7, 10, 3, Color("7e7a72"))        # the stone
-			_px(img, 1, 7, 10, 1, Color("a29e94"))
 			_px(img, 3, 3, 6, 4, green)                    # his body
 			_px(img, 2, 5, 8, 2, green)
-			_px(img, 3, 2, 2, 2, green.lightened(0.2))     # the eyes
-			_px(img, 7, 2, 2, 2, green.lightened(0.2))
-			img.set_pixel(4, 2, Color("1e1a16"))
-			img.set_pixel(7, 2, Color("1e1a16"))
+			_px(img, 3, 2, 2, 2, Color("74a44c"))         # the eyes
+			_px(img, 7, 2, 2, 2, Color("74a44c"))
+			img.set_pixel(4, 2, pupil)
+			img.set_pixel(7, 2, pupil)
 			_px(img, 4, 5, 4, 2, Color("e2dca8"))         # the throat, puffed to sing
-			_px(img, 2, 6, 1, 1, green.darkened(0.3))      # the feet
-			_px(img, 9, 6, 1, 1, green.darkened(0.3))
+			_px(img, 2, 6, 1, 1, green)                    # the feet
+			_px(img, 9, 6, 1, 1, green)
 			_px(img, 11, 0, 1, 8, Color("6e8a3a"))         # a reed
-			return _outline(img)
+			return ItemArt.refine(img, fixed)
 		"jizo_bibs":
 			# The new red bib Genzo asked for (heart_genzo_5), tied over the jizo's old one:
 			# bright red cloth narrowing to a rounded hem, a white sewn edge, the ties at the neck.
 			var img := _blank(8, 7)
 			var red := Color("e23a2c")
-			_px(img, 1, 0, 6, 1, red.darkened(0.25))   # the ties round the neck
+			_px(img, 1, 0, 6, 1, Color("aa2c22"))     # the ties round the neck
 			_px(img, 1, 1, 6, 3, red)
 			_px(img, 2, 4, 4, 1, red)
 			_px(img, 2, 5, 4, 1, Color("f2ece0"))     # the white hem
-			_px(img, 2, 1, 1, 2, red.lightened(0.3))  # a fold catching the light
-			return _outline(img)
+			return ItemArt.refine(img, fixed)
 		"jizo_scarf":
 			# Nana's red scarf (nana_scarf), 10 x 9: a knitted band round the neck with two cream
 			# stripes and one end hanging down the front, a cream stripe near its tip.
@@ -3170,64 +3187,69 @@ static func _story(kind: String) -> Image:
 			var red := Color("d02a3c")
 			var cream := Color("f2e6c8")
 			_px(img, 0, 0, 10, 3, red)
-			_px(img, 0, 1, 10, 1, red.lightened(0.15))
-			_px(img, 1, 3, 8, 1, red.darkened(0.2))   # the shadow under the wind
+			_px(img, 1, 3, 8, 1, red)
 			_px(img, 3, 0, 1, 3, cream)               # the stripes round it
 			_px(img, 6, 0, 1, 3, cream)
-			_px(img, 5, 3, 3, 5, red)                  # the hanging end
+			_px(img, 5, 3, 3, 6, red)                  # the hanging end
 			_px(img, 5, 5, 3, 1, cream)
-			_px(img, 5, 8, 3, 1, red.darkened(0.2))   # fringe
-			return _outline(img)
+			return ItemArt.refine(img, fixed)
 		"kiln_mark":
 			# The three thumbprints in the clay over the kiln's mouth (heart_ichiro_6): the
 			# father's, Ichiro's and the farmer's, each a pressed dark oval with a lighter rim.
 			# The farmer's print only, 10 x 8, on the new kiln beside Ichiro's: a lighter rim
-			# round a dark oval with two ridges of the thumb's skin, big enough to read.
+			# round a dark oval with two ridges of the thumb's skin (fixed), big enough to read.
 			var img := _blank(10, 8)
 			var clay := Color("b08458")
+			var ridge := clay.darkened(0.1)
+			fixed.append(ridge)
 			_px(img, 1, 0, 8, 8, clay.lightened(0.2))
 			_px(img, 0, 1, 10, 6, clay.lightened(0.2))
 			_px(img, 2, 1, 6, 6, Color("4a2e1c"))
 			_px(img, 1, 2, 8, 4, Color("4a2e1c"))
-			_px(img, 3, 3, 4, 1, clay.darkened(0.1))   # ridges
-			_px(img, 3, 5, 4, 1, clay.darkened(0.1))
-			return img
+			_px(img, 3, 3, 4, 1, ridge)   # ridges
+			_px(img, 3, 5, 4, 1, ridge)
+			return ItemArt.refine(img, fixed)
 		"kiln_site":
 			# The new kiln half built (32 x 30): a ring of two courses of clay bricks round wet
 			# clay, the mouth gap in front with a timber form, a stack of bricks and a shovel.
 			var img := _blank(32, 30)
 			var b1 := Color("b4553a")
 			var b2 := Color("9a4630")
+			var form := Color("7a5a3a")
 			_px(img, 5, 12, 22, 9, Color("8a6a4a"))              # the wet clay inside
 			for row in 2:
 				for k in 6:
 					_px(img, 3 + k * 4 + (row * 2), 14 + row * 5, 4, 4, b1 if (k + row) % 2 == 0 else b2)
 			_px(img, 11, 19, 10, 6, Color("1e1612"))              # the open mouth
-			_px(img, 10, 17, 2, 9, Color("7a5a3a"))               # the form
-			_px(img, 20, 17, 2, 9, Color("7a5a3a"))
-			_px(img, 10, 16, 12, 2, Color("7a5a3a"))
+			_px(img, 10, 17, 2, 9, form)                          # the form
+			_px(img, 20, 17, 2, 9, form)
+			_px(img, 10, 16, 12, 2, form)
 			for row in 3:
 				for k in 3 - row:
 					_px(img, 24 + k * 3 + row, 24 - row * 2, 3, 2, b1 if (row + k) % 2 == 0 else b2)
 			_px(img, 1, 14, 1, 12, Color("c9a468"))               # the shovel
 			_px(img, 0, 24, 3, 4, Color("8a8f96"))
-			return _outline(img)
+			return ItemArt.refine(img, fixed)
 		"kiln_new":
 			# The finished new kiln (32 x 30): the same dome of baked clay as the old one, a
-			# stone-framed mouth, a chimney and Ichiro's print over the mouth.
+			# stone-framed mouth, a chimney and Ichiro's print over the mouth (fixed).
 			var img := _blank(32, 30)
 			var clay := Color("9a7656")
+			var stone := Color("989489")
+			var print_rim := clay.lightened(0.25)
+			var print_dark := Color("4a2e1c")
+			fixed.append_array([print_rim, print_dark])
 			_px(img, 21, 2, 4, 10, clay.darkened(0.3))            # the chimney
-			_px(img, 5, 10, 22, 4, clay.lightened(0.06))          # the dome's crown
+			_px(img, 5, 10, 22, 4, clay)                          # the dome's crown
 			_px(img, 2, 14, 28, 14, clay)
 			_px(img, 2, 25, 28, 3, clay.darkened(0.15))           # the soot-dark foot
 			_px(img, 10, 21, 12, 7, Color("1e1612"))              # the mouth
-			_px(img, 8, 19, 16, 2, Color("a29e94"))               # the lintel
-			_px(img, 8, 21, 2, 7, Color("8e8a80"))
-			_px(img, 22, 21, 2, 7, Color("8e8a80"))
-			_px(img, 5, 14, 8, 4, clay.lightened(0.25))           # Ichiro's print
-			_px(img, 6, 15, 6, 2, Color("4a2e1c"))
-			return _outline(img)
+			_px(img, 8, 19, 16, 2, stone)                         # the lintel
+			_px(img, 8, 21, 2, 7, stone)
+			_px(img, 22, 21, 2, 7, stone)
+			_px(img, 5, 14, 8, 4, print_rim)                      # Ichiro's print
+			_px(img, 6, 15, 6, 2, print_dark)
+			return ItemArt.refine(img, fixed)
 		"kiln_worn":
 			# The old kiln's wear over its 2 x 2 footing (32 x 32, see-through elsewhere): two
 			# hairline cracks in the clay, a branch off the left one, and a chip knocked out of the
@@ -3245,67 +3267,63 @@ static func _story(kind: String) -> Image:
 			# The rope lift's winch at the cave mouth (20 x 28), once a landing is reached: a
 			# timber gantry over a stone-lipped shaft, a drum wound with rope between its posts,
 			# a crank on the right, the rope running down into the dark and a lantern hung lit
-			# off the beam.
+			# off the beam (its panes and flame fixed: they glow).
 			var img := _blank(20, 28)
 			var timber := Color("6a4a2a")
-			var timber_light := Color("8e6a3e")
 			var rope := Color("c8a868")
+			var iron := Color("3a3430")
+			var shaft := Color("0c0a08")
+			var pane := Color("e8a040")
+			var flame := Color("fff4d0")
+			fixed.append_array([shaft, pane, flame])
 			_oval(img, 10, 24.5, 8.5, 3.0, Color("6e655a"))   # the shaft's stone lip
-			_oval(img, 10, 24.5, 6.5, 2.0, Color("0c0a08"))   # the dark down it
+			_oval(img, 10, 24.5, 6.5, 2.0, shaft)             # the dark down it
 			_px(img, 2, 3, 16, 2, timber)                # the beam
-			_px(img, 2, 3, 16, 1, timber_light)
 			_px(img, 2, 5, 2, 21, timber)                # the posts
 			_px(img, 16, 5, 2, 21, timber)
-			_px(img, 2, 5, 1, 21, timber_light)
 			_px(img, 4, 9, 12, 4, Color("5a3d22"))       # the drum
 			for x in range(5, 15, 2):                    # rope wound round it
 				_px(img, x, 9, 1, 4, rope)
-			_px(img, 4, 9, 12, 1, Color("8a6a3a"))
-			_px(img, 18, 10, 2, 1, Color("3a3430"))      # the crank's arm and grip
-			_px(img, 19, 10, 1, 4, Color("3a3430"))
+			_px(img, 18, 10, 2, 1, iron)                 # the crank's arm and grip
+			_px(img, 19, 10, 1, 4, iron)
 			_px(img, 9, 13, 2, 11, rope)                 # the rope down the shaft
-			_px(img, 9, 13, 1, 11, rope.lightened(0.2))
-			_px(img, 6, 5, 1, 1, Color("3a3430"))        # the lantern off the beam: its hook,
-			_px(img, 5, 6, 3, 1, Color("3a3430"))        # cap,
-			_px(img, 5, 7, 3, 2, Color("e8a040"))        # glowing panes
-			_px(img, 6, 7, 1, 1, Color("fff4d0"))        # and flame
-			return _outline(img)
+			_px(img, 6, 5, 1, 1, iron)                   # the lantern off the beam: its hook,
+			_px(img, 5, 6, 3, 1, iron)                   # cap,
+			_px(img, 5, 7, 3, 2, pane)                   # glowing panes
+			_px(img, 6, 7, 1, 1, flame)                  # and flame
+			return ItemArt.refine(img, fixed)
 		"lumber":
+			# Boards in two shades by turn, so each one parts from the next.
 			var img := _blank(16, 28)
 			var board := Color("d8b07a")
-			var bearer := Color("6a4a2a")
-			_px(img, 1, 22, 14, 4, bearer)               # the bearers it rests on, off the ground
+			_px(img, 1, 22, 14, 4, Color("6a4a2a"))      # the bearers it rests on, off the ground
 			for i in 5:                                  # boards, the ends showing, stacked up
-				var y := 18 - i * 4
-				_px(img, 1 + i % 2, y, 13, 4, board.darkened(0.06 * (i % 2)))
-				_px(img, 1 + i % 2, y, 13, 1, board.lightened(0.2))
-				_px(img, 1 + i % 2, y + 3, 13, 1, board.darkened(0.25))
+				_px(img, 1 + i % 2, 18 - i * 4, 13, 4, board if i % 2 == 0 else Color("c8a06c"))
 			_px(img, 3, 0, 9, 2, Color("b8bcc4"))        # a saw lying on the top board
 			_px(img, 11, 0, 4, 2, Color("8a5a32"))
-			return _outline(img)
+			return ItemArt.refine(img, fixed)
 		"door_bell":
 			var img := _blank(12, 16)
-			var iron := Color("3a3a40")
-			var iron_light := Color("6a6e78")
+			var iron := Color("4a4a52")
+			var clapper := Color("2a2a2e")
+			fixed.append(clapper)
 			_px(img, 1, 0, 10, 2, iron)           # the bracket off the eave post
-			_px(img, 1, 0, 10, 1, iron_light)
 			_px(img, 5, 2, 2, 3, Color("8a6a3a")) # the cord
 			_px(img, 4, 5, 4, 2, iron)            # the bell's crown
 			_px(img, 3, 7, 6, 3, iron)
 			_px(img, 2, 10, 8, 2, iron)
 			_px(img, 1, 12, 10, 1, iron)
-			_px(img, 4, 6, 1, 5, iron_light)      # the shine down one side
-			_px(img, 5, 13, 2, 1, Color("2a2a2e"))   # the clapper
-			_px(img, 5, 14, 2, 2, Color("c8442c"))   # a red tassel under it
-			return _outline(img)
+			_px(img, 5, 13, 2, 1, clapper)        # the clapper
+			_px(img, 5, 14, 2, 2, Color("c8442c")) # a red tassel under it
+			return ItemArt.refine(img, fixed)
 		"sign_old", "sign_new":
 			var img := _blank(48, 14)
 			var fresh := kind == "sign_new"
 			var board := Color("b8322a") if fresh else Color("4a3424")
 			var ink := Color("f4ecd8") if fresh else Color("e8c868")
+			fixed.append(ink)
 			_px(img, 0, 0, 48, 14, Color("2e221a"))   # the frame
 			_px(img, 1, 1, 46, 12, board)
-			_px(img, 1, 1, 46, 1, board.lightened(0.2))
 			if fresh:
 				# Sayo's brushwork: three loose, flowing marks.
 				for i in 3:
@@ -3322,27 +3340,32 @@ static func _story(kind: String) -> Image:
 					_px(img, x + 3, 3, 2, 8, ink)
 					_px(img, x, 7, 8, 1, ink)
 					_px(img, x + (0 if i % 2 == 0 else 6), 9, 2, 2, ink)
-			return img
+			return ItemArt.refine(img, fixed)
 		"ume_jar":
 			var img := _blank(12, 12)
-			var glaze := Color("8a5030")
-			_oval(img, 6, 7.5, 5, 4.2, glaze)                # the jar
+			var writing := Color("3a2a1a")
+			fixed.append(writing)
+			_oval(img, 6, 7.5, 5, 4.2, Color("8a5030"))      # the jar
 			_px(img, 3, 3, 6, 2, Color("e8dcc0"))            # cloth over the mouth
 			_px(img, 2, 4, 8, 1, Color("c8442c"))            # tied with red string
-			_px(img, 3, 6, 3, 3, glaze.lightened(0.25))      # the glaze's shine
 			_px(img, 6, 7, 4, 3, Color("f4f0e0"))            # the note tucked under the string
-			_px(img, 7, 8, 2, 1, Color("3a2a1a"))
-			return _outline(img)
+			_px(img, 7, 8, 2, 1, writing)
+			return ItemArt.refine(img, fixed)
 		"carp_streamer":
 			# Kota's streamer on a bamboo pole: the old black carp with its one white spot,
 			# mouth tied to the pole, tail out in the wind; a gilt ball on the pole's top.
 			var img := _blank(26, 40)
 			var bamboo := Color("a89a5a")
+			var knot := Color("766c3f")
+			var eye := Color("f8f4e8")
+			var pupil := Color("141418")
+			var scales := Color("4a4a56")
+			fixed.append_array([knot, eye, pupil, scales])
 			_px(img, 2, 2, 2, 38, bamboo)
 			for y in [10, 20, 30]:
-				_px(img, 2, y, 2, 1, bamboo.darkened(0.3))   # the nodes
+				_px(img, 2, y, 2, 1, knot)                    # the nodes
 			_oval(img, 3, 1.5, 1.6, 1.4, Color("e8c868"))
-			var black := Color("26262c")
+			var black := Color("2e2e36")
 			_oval(img, 12, 8, 8, 3.6, black)                  # the body
 			_px(img, 4, 5, 2, 7, Color("c8442c"))             # the red mouth ring on the pole
 			for i in 3:                                        # the tail fins, forked
@@ -3350,12 +3373,12 @@ static func _story(kind: String) -> Image:
 				_px(img, 19 + i, 10 + i, 2, 2, black)
 			_px(img, 23, 3, 2, 2, black)
 			_px(img, 23, 12, 2, 2, black)
-			_px(img, 7, 7, 2, 2, Color("f4f0e0"))            # the eye
-			_px(img, 8, 8, 1, 1, black)
+			_px(img, 7, 7, 2, 2, eye)                         # the eye
+			_px(img, 8, 8, 1, 1, pupil)
 			_px(img, 14, 6, 3, 2, Color("f4f0e0"))           # the one white spot
 			for x in [11, 15, 18]:
-				_px(img, x, 10, 2, 1, Color("4a4a56"))       # scales
-			return _outline(img)
+				_px(img, x, 10, 2, 1, scales)                # scales
+			return ItemArt.refine(img, fixed)
 	return _draw(16, 16, [[0, 0, 16, 16, "ff00ff"]])
 
 
