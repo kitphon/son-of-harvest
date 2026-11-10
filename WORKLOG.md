@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Thai coverage: the last 36 "missing" were never player text
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: lang_report listed 36 Thai gaps (12 data, 24 code). None reaches the screen: the 12
+  are data/showcase.json's view names (file names for tools/showcase.py), the 24 are node names
+  (Figure, Cradle, Drift, DyeCloth, Ferry, Puddles, Lamp%d, FieldCopy, Field, FigureLift,
+  Washes, Finishes, WindSway, FerryBoat, Pole, ShaderWarm, WarmLamp, SpriteShadow), the Game
+  autoload's name and path, two class names (StandardMaterial3D, GeometryInstance3D), the
+  water shader's //ICE// marker and Child.help_text's "%s %d" fallback (data/child.json has the
+  real message, already Thai). So instead of Thai entries for them, LangCatalog leaves them out
+  like the node names before them: showcase.json in DATA_SKIP, the rest in NOT_SHOWN. No Thai
+  table and no English changed.
+- Checked: lang_report prints `th: 2599 of 2599 done (100%), 0 missing, 0 stale` (dialogue
+  1724, data 434, code 441; the catalogue went 2635 -> 2599, exactly the 36). test_lang,
+  test_menu, test_dialogue, test_title, test_showcase print `OK (0 failed)`; `--quit-after 300
+  -- --demo --lang=th` prints 0 ERROR or WARNING lines.
+- Left / next: nothing for Thai. New node names in scripts still show up as "missing" until
+  added to NOT_SHOWN (or made StringName literals, which the catalogue skips).
+
 ## 2026-11-10 — Merge: the face key, fishing effects art and mine music
 Agent: Claude Code (claude-opus-5-5) · Commit: f61d059 and this commit
 - Done: three subagents in their own worktrees, the model picked by the job: 03228a3 the old

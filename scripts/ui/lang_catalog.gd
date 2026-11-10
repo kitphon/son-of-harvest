@@ -16,7 +16,8 @@ const DATA_DIR := "res://data/"
 const SCRIPTS_DIR := "res://scripts/"
 ## Data with no words for the player (or the tables themselves).
 const DATA_SKIP := ["lang", "font_pixel.json", "camera.json", "light.json", "sfx.json",
-	"music.json", "weather_fx.json", "snow_cover.json", "text_box.json", "whistles.json"]
+	"music.json", "weather_fx.json", "snow_cover.json", "text_box.json", "whistles.json",
+	"showcase.json"]   # the trailer views' names are file names for tools/showcase.py
 ## Data keys whose strings aren't shown.
 ## (taught: where a recipe's lesson comes from, a note for people reading data/recipes.json.)
 const KEY_SKIP := ["bus", "id", "key", "sound", "texture", "art", "look", "face", "mood", "taught"]
@@ -38,6 +39,13 @@ const NOT_SHOWN := [
 	"No dialogue %s", "No line %s", "Dialogue is not a dictionary", "No event %s",
 	"Event is not a dictionary", "Can't read event %s", "Can't read dialogue %s",   # broken data, for us
 	"TOOLS", "%s,", "The save file is from a newer",   # a constant's name, a saved list, a prefix compared
+	"Game", "/root/Game",     # the autoload's node name and path
+	"Figure", "Cradle", "Drift", "DyeCloth", "Ferry", "Puddles", "Lamp%d", "FieldCopy", "Field",
+	"FigureLift", "Washes", "Finishes", "WindSway", "FerryBoat", "Pole", "ShaderWarm", "WarmLamp",
+	"SpriteShadow",           # node names
+	"StandardMaterial3D", "GeometryInstance3D",   # class names
+	"//ICE//",                # a marker in the water shader's code
+	"%s %d",                  # Child.help_text's fallback when data/child.json has no message
 ]
 
 
