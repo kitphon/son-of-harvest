@@ -24,6 +24,7 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 
 ## Next up
 [ ] Portraits' first pass: `_portrait_of` lays flat materials straight for PortraitArt.refine, so OUTLINE is only a colour tests look for; same keys, moods and pictures.
+[x] Unrefined figure path removed (2026-11-10): FigureArt's `_refine` flag and branches, the near-black outline stamp and the `OUTLINE` const gone (no picture reached them); `_stamp` is the refined stamp; 918 figure pictures identical before and after; see WORKLOG.
 [x] The old `face:` key (2026-11-10): PlaceholderArt._face and its dispatch branch removed with the test_dialogue checks of the face keys; the live `portrait:` path and PortraitArt untouched; see WORKLOG.
 [x] Fishing effects art, refined (2026-11-10): the float and the bite "!" box (`_fish_fx`) laid in flat materials and toned by ItemArt.refine instead of the near-black outline; the "!" laid after as a fixed mark; same keys and sizes; test_fishing `_fish_fx_art_refined`; see WORKLOG.
 [x] Mine music (2026-11-10): a new `mine` score in data/music.json (in scale on D, 54 bpm, 12 bars, about 53 s: a slow shakuhachi line, a quiet copy of it one step behind as the cave's echo, a soft low sho drone, a few low koto notes and a rare rin drip) and a `maps` rule for `mine` and `mine_floor` after the shops' (over rain, night and season; festivals and events still first); test_audio checks; not heard by a person yet; see WORKLOG.

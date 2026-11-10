@@ -749,7 +749,7 @@ func _villager_art() -> void:
 				var col := img.get_pixel(x, y)
 				if col.a == 0.0:
 					continue
-				black = black or col.is_equal_approx(FigureArt.OUTLINE)
+				black = black or col.is_equal_approx(PlaceholderArt.OUTLINE)
 				foot = foot or y == img.get_height() - 2
 				if e[2] and _open(img, x, y):
 					rim_px += 1

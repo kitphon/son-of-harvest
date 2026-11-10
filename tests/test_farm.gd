@@ -706,7 +706,7 @@ func _farmer_art() -> void:
 							var col := img.get_pixel(x, y)
 							if col.a == 0.0:
 								continue
-							black = black or col.is_equal_approx(FigureArt.OUTLINE)
+							black = black or col.is_equal_approx(PlaceholderArt.OUTLINE)
 							foot = foot or y == img.get_height() - 2
 							if pose in ["idle", "walk"] and _open(img, x, y):
 								rim_px += 1
@@ -739,7 +739,7 @@ func _farmer_art() -> void:
 	var has_outline := false
 	for y in plain.get_height():
 		for x in plain.get_width():
-			has_outline = has_outline or plain.get_pixel(x, y).is_equal_approx(FigureArt.OUTLINE)
+			has_outline = has_outline or plain.get_pixel(x, y).is_equal_approx(PlaceholderArt.OUTLINE)
 	check(not has_outline, "the villagers' drawing (farmer = false) is refined too: no black outline")
 
 

@@ -2,8 +2,8 @@ class_name FigureArt
 extends RefCounted
 ## The farmer and the villagers as 24 x 32 pixel figures, our own designs in Japanese country
 ## clothes (HD-2D lite: chunky figures about 2.6 heads tall). Drawn in code part by part, back
-## to front; every part gets its own 1 px dark outline, so a near arm or leg reads against the
-## body behind it. Placeholders until real art replaces the keys (PlaceholderArt "player:..."
+## to front; every part's line is its material's own deep tone, so a near arm or leg reads against
+## the body behind it. Placeholders until real art replaces the keys (PlaceholderArt "player:..."
 ## and "villager:...").
 ##
 ## Directions: the camera looks along a diagonal, so walking along a grid axis is a screen
@@ -17,8 +17,9 @@ extends RefCounted
 ## FarmWorld.FIGURE_PX world units.
 ##
 ## Every figure gets the refined pass: every material in three tones (shade, base, lit) by which
-## side of its part a pixel is open to, the lines between parts in the material's own deep tone
-## instead of the black outline, a darker rim round the whole silhouette. The farmer (draw with
+## side of its part a pixel is open to, the lines between parts in the material's own deep tone,
+## a darker rim round the whole silhouette. (The old near-black outline pass is gone: no figure
+## is drawn with it.) The farmer (draw with
 ## `farmer`) takes the numbers of data/farmer_art.json and adds jika-tabi with a split toe, a
 ## clasp and a pale rubber sole and a woven hip basket; the villagers and the farmer's child take
 ## data/villager_art.json, which also tones their own pieces (the kimono's tabi, the hat band,
@@ -26,8 +27,7 @@ extends RefCounted
 
 const W := 24
 const H := 32
-const FOOT := 30          # the last row of the feet's fill (the outline is the bottom row)
-const OUTLINE := Color("2a1e1e")
+const FOOT := 30          # the last row of the feet's fill
 const EYE := Color("2a2a3a")
 const ROD := Color("c8a85a")            # the farmer's bamboo rod
 const ROD_NODE := Color("8a6a32")
@@ -49,9 +49,6 @@ static var _art := {}
 static var _villager_art := {}
 ## The numbers of the figure being drawn (art() or villager_art()); empty between drawings.
 static var _cur := {}
-## While drawing: the refined pass is on (_stamp tones each part and lines it in its
-## material's deep tone).
-static var _refine := false
 ## The figure's materials while drawing: a stored pixel colour (_key) -> [tones (shade, base, lit,
 ## deep), the role of that colour (0 shade, 1 base, 2 lit, 3 deep), true for skin].
 static var _mat := {}
@@ -201,7 +198,6 @@ static func draw(look: Dictionary, back: bool, pose: String, frame: int, farmer 
 ## Starts the refined pass for one figure: its numbers and its materials.
 static func _begin(c: Dictionary, look: Dictionary, farmer: bool) -> void:
 	_cur = art() if farmer else villager_art()
-	_refine = true
 	_lines.clear()
 	_materials(c, look, farmer)
 
@@ -209,7 +205,6 @@ static func _begin(c: Dictionary, look: Dictionary, farmer: bool) -> void:
 ## Ends it: the rim round the silhouette, the state cleared.
 static func _end(img: Image) -> Image:
 	_silhouette(img)
-	_refine = false
 	_lines.clear()
 	_cur = {}
 	return img
@@ -365,13 +360,13 @@ static func _limb(dst: Image, a: Vector2i, b: Vector2i, col: Color, dark: Color)
 		_dot(dst, int(q.x) + 1, int(q.y), dark)
 
 
-## The look's colours with their shades: o outline, e eye, h hair, s skin, t top, w waist (obi,
+## The look's colours with their shades: e eye, h hair, s skin, t top, w waist (obi,
 ## sash, collar band), l lower (trousers, shorts), a accent (hat, headband, hairpin), k shoes;
 ## capitals are a shade darker, `<key>+` a little lighter.
 static func colors(look: Dictionary) -> Dictionary:
 	var pick := func(k: String, fallback: String) -> Color:
 		return Color(str(look.get(k, fallback)))
-	var c := {"o": OUTLINE, "e": EYE, "h": pick.call("hair", "2a2422"), "s": pick.call("skin", "f2c79b"),
+	var c := {"e": EYE, "h": pick.call("hair", "2a2422"), "s": pick.call("skin", "f2c79b"),
 		"a": pick.call("accent", "e0c070"), "t": pick.call("top", "6a7a8a"), "w": pick.call("waist", "c8a050"),
 		"l": pick.call("lower", "3a3430"), "k": pick.call("shoes", "6b4423")}
 	for k in ["h", "s", "a", "t", "w", "l", "k"]:
@@ -447,7 +442,7 @@ static func _leg(dst: Image, r: Dictionary, c: Dictionary, outfit: String, x: in
 	var top: int = r.hip - 1
 	var shin: Color = c.s if outfit == "shirt_shorts" else c.l
 	var shin_dark: Color = c.S if outfit == "shirt_shorts" else c.L
-	if _refine and outfit == "noragi":   # the farmer's monpe tucked into jika-tabi
+	if outfit == "noragi":   # the farmer's monpe tucked into jika-tabi
 		_r(L, x, top, 3, bottom - top - 2, shin)
 		_r(L, x + 2, top, 1, bottom - top - 2, shin_dark)
 		_r(L, x, bottom - 3, 3, 1, shin_dark)          # gathered at the ankle
@@ -639,8 +634,6 @@ static func _head(dst: Image, r: Dictionary, c: Dictionary, style: String, back:
 		_dot(L, icx - 3, ey + 3, c.S)   # the mouth
 		_dot(L, icx + 2, ey + 1, c.S)   # the ear
 		_dot(L, icx + 2, ey, c.s)
-		if not _refine:   # (refined: the side shading models the jaw; a shade row here read as a beard)
-			_r(L, icx, ey + 3, 2, 1, c.S)   # the jaw's shade
 	else:
 		_dot(L, icx - 5, icy + 1, c.S)   # the near ear's edge
 	match style:
@@ -721,24 +714,16 @@ static func _basket(dst: Image, r: Dictionary, back: bool) -> void:
 	var L := _blank()
 	var x: int = r.x0 - 2 if back else r.x1 + 1
 	var y: int = r.hip - 3
-	if _refine:   # woven: a lit rim, the weave in a checker of base and shade, a deep cord
-		var tn := tones(BASKET)
-		_r(L, x, y, 4, 4, BASKET)
-		_r(L, x, y, 4, 1, tn[2])
-		for j in range(1, 4):
-			for i in 4:
-				if (i + j) % 2 == 0:
-					_dot(L, x + i, y + j, tn[0])
-		_r(L, x + 1, y - 2, 2, 1, tn[3])
-		_dot(L, x + (3 if back else 0), y - 1, tn[3])
-		_stamp(dst, L)
-		return
+	# Woven: a lit rim, the weave in a checker of base and shade, a deep cord.
+	var tn := tones(BASKET)
 	_r(L, x, y, 4, 4, BASKET)
-	_r(L, x, y, 4, 1, BASKET.lightened(0.2))
-	for i in 4:
-		_dot(L, x + i, y + 1 + i % 2 + 1, BASKET.darkened(0.3))
-	_r(L, x + 1, y - 2, 2, 1, BASKET.darkened(0.4))   # the cord to the belt
-	_dot(L, x + (3 if back else 0), y - 1, BASKET.darkened(0.4))
+	_r(L, x, y, 4, 1, tn[2])
+	for j in range(1, 4):
+		for i in 4:
+			if (i + j) % 2 == 0:
+				_dot(L, x + i, y + j, tn[0])
+	_r(L, x + 1, y - 2, 2, 1, tn[3])
+	_dot(L, x + (3 if back else 0), y - 1, tn[3])
 	_stamp(dst, L)
 
 
@@ -899,26 +884,6 @@ static func _oval(img: Image, cx: float, cy: float, rx: float, ry: float, c: Col
 				_dot(img, x, y, c)
 
 
-## Lays part `layer` over `dst`: first a 1 px outline round the part's silhouette (4 neighbours),
-## then the part itself.
-static func _stamp(dst: Image, layer: Image, outline := true) -> void:
-	var used := layer.get_used_rect()
-	if not used.has_area():
-		return
-	if _refine:
-		_stamp_refined(dst, layer, used, outline)
-		return
-	if outline:
-		var g := used.grow(1).intersection(Rect2i(0, 0, W, H))
-		for y in range(g.position.y, g.end.y):
-			for x in range(g.position.x, g.end.x):
-				if layer.get_pixel(x, y).a > 0.0:
-					continue
-				if _solid(layer, x - 1, y) or _solid(layer, x + 1, y) or _solid(layer, x, y - 1) or _solid(layer, x, y + 1):
-					dst.set_pixel(x, y, OUTLINE)
-	dst.blend_rect(layer, used, used.position)
-
-
 # --- the refined pass ------------------------------------------------------------------------
 
 ## The farmer's numbers (data/farmer_art.json).
@@ -986,7 +951,11 @@ static func _materials(c: Dictionary, look: Dictionary, farmer: bool) -> void:
 ## A part laid the refined way: its material pixels toned by the side they are open to (the
 ## upper left lit, the lower right shade, both or neither the base), its plain shades put on the
 ## material's own tones; then a line round it in the deep tone of the pixel it borders.
-static func _stamp_refined(dst: Image, layer: Image, used: Rect2i, outline: bool) -> void:
+## Lays part `layer` over `dst` this way (every part of every figure goes through here).
+static func _stamp(dst: Image, layer: Image) -> void:
+	var used := layer.get_used_rect()
+	if not used.has_area():
+		return
 	var toned := layer.duplicate() as Image
 	for y in range(used.position.y, used.end.y):
 		for x in range(used.position.x, used.end.x):
@@ -1004,24 +973,23 @@ static func _stamp_refined(dst: Image, layer: Image, used: Rect2i, outline: bool
 				var shade := not _solid(layer, x + 1, y) or (not _solid(layer, x, y + 1) and not bool(m[2]))
 				role = 2 if lit and not shade else (0 if shade and not lit else 1)
 			toned.set_pixel(x, y, tn[role])
-	if outline:
-		var g := used.grow(1).intersection(Rect2i(0, 0, W, H))
-		for y in range(g.position.y, g.end.y):
-			for x in range(g.position.x, g.end.x):
-				if _solid(toned, x, y):
-					continue
-				var next := Color(0, 0, 0, 0)
-				for d in [Vector2i(1, 0), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(0, 1)]:
-					if _solid(toned, x + d.x, y + d.y):
-						next = toned.get_pixel(x + d.x, y + d.y)
-						break
-				if next.a == 0.0:
-					continue
-				var m: Variant = _mat.get(_key(next))
-				var line: Color = (m[0] as Array)[3] if m != null else next.darkened(0.6)
-				line.a = 1.0
-				dst.set_pixel(x, y, line)
-				_lines[Vector2i(x, y)] = dst.get_pixel(x, y)
+	var g := used.grow(1).intersection(Rect2i(0, 0, W, H))
+	for y in range(g.position.y, g.end.y):
+		for x in range(g.position.x, g.end.x):
+			if _solid(toned, x, y):
+				continue
+			var next := Color(0, 0, 0, 0)
+			for d in [Vector2i(1, 0), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(0, 1)]:
+				if _solid(toned, x + d.x, y + d.y):
+					next = toned.get_pixel(x + d.x, y + d.y)
+					break
+			if next.a == 0.0:
+				continue
+			var m: Variant = _mat.get(_key(next))
+			var line: Color = (m[0] as Array)[3] if m != null else next.darkened(0.6)
+			line.a = 1.0
+			dst.set_pixel(x, y, line)
+			_lines[Vector2i(x, y)] = dst.get_pixel(x, y)
 	dst.blend_rect(toned, used, used.position)
 
 
