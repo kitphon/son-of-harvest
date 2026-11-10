@@ -1955,6 +1955,7 @@ const UI_WOOD_LIGHT := Color("a8743f")
 const UI_WOOD_DARK := Color("5a3a20")
 const UI_PAPER := Color("efe3c4")
 const UI_PAPER_FIBRE := Color("e3d4b0")
+const FISH_FX_STICK := Color("6a4a30")   # the float's top peg
 const UI_SEAL := Color("c8442c")      # vermilion, like a name seal: marks the tool in hand
 
 
@@ -2232,25 +2233,26 @@ static func _maple_tree(season: String, snow: bool) -> Image:
 	return ItemArt.refine(img)
 
 
-## alert a vermilion "!" on a paper bubble (7 x 11).
+## alert a vermilion "!" on a paper bubble (7 x 11). Laid in flat materials (the red and cream
+## float, the paper bubble) and toned by ItemArt.refine; the "!" is laid after the pass as a fixed
+## vermilion mark so it stays sharp against the paper.
 static func _fish_fx(kind: String) -> Image:
 	match kind:
 		"bobber":
 			var img := _blank(5, 7)
-			_px(img, 2, 0, 1, 1, Color("2a1e1e"))
+			_px(img, 2, 0, 1, 1, FISH_FX_STICK)
 			_oval(img, 2.5, 3.0, 2.0, 1.6, Color("d8402a"))
 			_oval(img, 2.5, 5.0, 2.0, 1.4, Color("f4ecd8"))
-			_px(img, 1, 2, 1, 1, Color("f08a6a"))
-			return img
+			return ItemArt.refine(img)
 		"alert":
 			var img := _blank(7, 11)
-			_px(img, 0, 0, 7, 11, OUTLINE)
-			_px(img, 1, 1, 5, 9, UI_PAPER)
-			_px(img, 3, 2, 1, 4, UI_SEAL)
-			_px(img, 2, 2, 3, 3, UI_SEAL)
-			_px(img, 3, 7, 1, 2, UI_SEAL)
+			_px(img, 0, 0, 7, 11, UI_PAPER)
 			for p in [Vector2i(0, 0), Vector2i(6, 0), Vector2i(0, 10), Vector2i(6, 10)]:
 				img.set_pixelv(p, Color(0, 0, 0, 0))
+			ItemArt.refine(img)
+			_px(img, 3, 2, 1, 4, UI_SEAL)   # the "!", a fixed mark
+			_px(img, 2, 2, 3, 3, UI_SEAL)
+			_px(img, 3, 7, 1, 2, UI_SEAL)
 			return img
 	return _draw(4, 4, [[0, 0, 4, 4, "ff00ff"]])
 

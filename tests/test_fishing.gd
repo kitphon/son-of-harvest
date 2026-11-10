@@ -246,6 +246,8 @@ func _init() -> void:
 		seen[img.get_data()] = id
 	check(seen.size() == fish.size(), "every fish looks different")
 
+	_fish_fx_art_refined()
+
 	g.free()
 	h.free()
 	print("test_fishing: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
@@ -281,3 +283,27 @@ func check(ok: bool, what: String) -> void:
 	if not ok:
 		failures += 1
 		print("FAIL: " + what)
+
+
+## The float and the bite mark (PlaceholderArt._fish_fx) through ItemArt.refine: sizes kept, no
+## 2a1e1e pixel, several tones, and the vermilion "!" still reads against its paper.
+func _fish_fx_art_refined() -> void:
+	var old := FigureArt._key(PlaceholderArt.OUTLINE)
+	for kind: String in ["bobber", "alert"]:
+		var img := PlaceholderArt.image("fish_fx:" + kind)
+		check(img.get_size() == (Vector2i(5, 7) if kind == "bobber" else Vector2i(7, 11)), "fish fx: %s size kept" % kind)
+		var colours := {}
+		for y in img.get_height():
+			for x in img.get_width():
+				var p := img.get_pixel(x, y)
+				if p.a > 0.0:
+					colours[p.to_html()] = true
+		check(not colours.has(old), "fish fx: %s has no old outline colour" % kind)
+		check(colours.size() >= 4, "fish fx: %s has several tones (%d)" % [kind, colours.size()])
+	var alert := PlaceholderArt.image("fish_fx:alert")
+	var mark := alert.get_pixel(3, 3)
+	var dots := alert.get_pixel(3, 8)
+	var paper := alert.get_pixel(1, 5)
+	check(mark.a == 1.0 and dots.a == 1.0 and paper.a == 1.0, "fish fx: the mark and its paper are solid")
+	check(absf(mark.get_luminance() - paper.get_luminance()) > 0.25, "fish fx: the mark reads against the paper (%.2f vs %.2f)" % [mark.get_luminance(), paper.get_luminance()])
+	check(absf(dots.get_luminance() - paper.get_luminance()) > 0.25, "fish fx: the dot reads against the paper")

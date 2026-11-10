@@ -30,6 +30,17 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
   printed no ERROR or error lines (exit 0).
 - Left / next: the Windows .exe still waits on the export templates. Next up in ROADMAP is the
   rest of the placeholder art and the story work already listed.
+## 2026-11-10 — Fishing effects art, refined
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: PlaceholderArt._fish_fx (`fish_fx:bobber` 5 x 7, `fish_fx:alert` 7 x 11) laid in flat
+  materials (red and cream float, paper bubble) and toned by ItemArt.refine instead of the
+  near-black outline: three tones, a rim in each material's own deep tone. The bite "!" is laid
+  after the pass as a fixed vermilion mark. Same keys and sizes. The OUTLINE comment is left
+  to the other branch.
+- Checked: test_fishing, test_view2d, test_inventory print `OK (0 failed)` (new
+  `_fish_fx_art_refined`: size, no 2a1e1e, several tones, mark contrast); `--demo` smoke run 0
+  error or warning lines; `--demo --fishing` frame shows the "!" and the float clearly.
+- Left / next: nothing for this art; `_face` removal stays with the other branch.
 
 ## 2026-11-10 — Merge: story props, stall wares and the outline cleanup
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
