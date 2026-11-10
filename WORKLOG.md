@@ -10,6 +10,33 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Kiku's twig keeps her close and dear lines
+Agent: Claude Code (claude-haiku) · Commit: this commit
+- Done: the four twig rows in data/dialogue/talk_kiku.json (`scion`) used to carry two twig lines
+  and two of her own (dear_1 / close_1 for the sapling, dear_2 / close_2 for the young tree, dear_3
+  / plain_2 for the tree), so from the planting day on every talk drew from a list where half the
+  lines were hers and the rotation was halved. The fix is data only: each twig row now also names
+  `weekday: [tue, sat]` and carries only its two twig lines. On Tuesdays and Saturdays Kiku says a
+  twig line (about 2 talks in 7, the twig's fair share); on the other five days the rows below run
+  exactly as before the planting, so her close and dear lines keep their full rotation there. The
+  rows also no longer leak her heart lines to a stranger (the old sapling row had dear_1 with no
+  band gate). Reasoning for the share: with a one-third twig share the rule can only come out of
+  her other talks, and a fixed weekday pair is the simplest data-only split that needs no new pick
+  key; 2 in 7 (29%) is closest to a third among whole weekdays. Lines, English and Thai (data/lang/th
+  keyed by the English text) are unchanged; README → Villagers says so.
+- Checked: test_talk `_kiku_scion` now counts over 700 days (each day's weekday from its number):
+  for each stage the twig comes up on 25%..35% of talks, every talk on the other days is a close or
+  dear line, and close / dear are at least 65% of all talks; unplanted, every band 6 talk is a close
+  or dear line (700 of 700). Through Game.talk_to the planted cases now run on a Tuesday (the helper
+  finds the season's first Tuesday; a season is not 28 days, so day 2 was not always one).
+  Full run after `--import`: all 31 tests/test_*.gd print `OK (0 failed)` (test_talk, test_lang and
+  test_relationships among them); the four smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, `--quit-after 300`) exit 0 with no ERROR or WARNING line.
+- Left / next: the share of close and dear lines over all talks is about 71% after planting (5 of 7
+  days), not 100%: the twig takes its share of the talks, so they cannot both stay at 100%. If the
+  player wants a bigger or smaller twig share, change the weekday list. The old rows were not run
+  against the new test, so the 50% share that prompted this was measured only by reading the rows.
+
 ## 2026-11-10 — Merge: Kaede's portrait hair, one thing in the arms, Kiku's twig lines
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 14bd884 Kaede's portrait hair (Opus, own worktree), dab3fa0 one thing in the arms

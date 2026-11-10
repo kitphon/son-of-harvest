@@ -190,37 +190,68 @@ func _picks() -> void:
 ## Kiku's lines about her persimmon twig: each stage's row holds only with that stage (the
 ## scion key, Talk.holds), the fall row only in fall, and nothing about it before it is planted.
 func _kiku_scion() -> void:
-	var sapling := ["scion_sapling_1", "scion_sapling_2", "dear_1", "close_1"]
-	var young := ["scion_young_1", "scion_young_2", "dear_2", "close_2"]
-	var fall := ["scion_fall_1", "scion_fall_2", "fall_1", "fall_2"]
-	var tree := ["scion_tree_1", "scion_tree_2", "dear_3", "plain_2"]
+	var sapling := ["scion_sapling_1", "scion_sapling_2"]
+	var young := ["scion_young_1", "scion_young_2"]
+	var fall := ["scion_fall_1", "scion_fall_2"]
+	var tree := ["scion_tree_1", "scion_tree_2"]
+	var close_dear := ["dear_1", "dear_2", "dear_3", "close_1", "close_2"]
 	var six := {"band": 6, "flags": {"heart_kiku_6": true}}
+	# The twig rows take Tuesdays and Saturdays only (talk_kiku.json).
 	for day in 4:
-		check(Talk.pick("kiku", _state(six.merged({"scion": "sapling", "day_number": day}, true))) in sapling, "a sapling: her twig lines (day %d)" % day)
-		check(Talk.pick("kiku", _state(six.merged({"scion": "young", "day_number": day}, true))) in young, "a young tree (day %d)" % day)
-		check(Talk.pick("kiku", _state(six.merged({"scion": "tree", "season": "fall", "day_number": day}, true))) in fall, "a fruiting tree in fall (day %d)" % day)
-		check(Talk.pick("kiku", _state(six.merged({"scion": "tree", "season": "winter", "day_number": day}, true))) in tree, "a tree in winter (day %d)" % day)
-	check(Talk.pick("kiku", _state(six.merged({"scion": "sapling"}, true))) == "scion_sapling_1", "the first sapling line on the first day")
-	check(Talk.pick("kiku", _state(six.merged({"scion": "tree", "season": "fall"}, true))) == "scion_fall_1", "the first fall line on the first day")
-	check(Talk.pick("kiku", _state(six.merged({"scion": "young", "season": "fall"}, true))) in young, "a young tree doesn't fruit: no fall line")
-	check(Talk.pick("kiku", _state(six.merged({"scion": "sapling", "season": "fall"}, true))) in sapling, "a sapling in fall: no fall line")
-	check(Talk.pick("kiku", _state(six.merged({"scion": "", "season": "fall"}, true))) in ["dear_1", "dear_2", "dear_3", "fall_1", "fall_2"],
+		check(Talk.pick("kiku", _state(six.merged({"scion": "sapling", "weekday": "tue", "day_number": day}, true))) in sapling, "a sapling on a Tuesday: her twig lines (day %d)" % day)
+		check(Talk.pick("kiku", _state(six.merged({"scion": "young", "weekday": "sat", "day_number": day}, true))) in young, "a young tree on a Saturday (day %d)" % day)
+		check(Talk.pick("kiku", _state(six.merged({"scion": "tree", "season": "fall", "weekday": "tue", "day_number": day}, true))) in fall, "a fruiting tree in fall on a Tuesday (day %d)" % day)
+		check(Talk.pick("kiku", _state(six.merged({"scion": "tree", "season": "winter", "weekday": "sat", "day_number": day}, true))) in tree, "a tree in winter on a Saturday (day %d)" % day)
+	check(Talk.pick("kiku", _state(six.merged({"scion": "sapling", "weekday": "tue"}, true))) == "scion_sapling_1", "the first sapling line on the first day")
+	check(Talk.pick("kiku", _state(six.merged({"scion": "tree", "season": "fall", "weekday": "sat"}, true))) == "scion_fall_1", "the first fall line on the first day")
+	check(Talk.pick("kiku", _state(six.merged({"scion": "young", "season": "fall", "weekday": "tue"}, true))) in young, "a young tree doesn't fruit: no fall line")
+	check(Talk.pick("kiku", _state(six.merged({"scion": "sapling", "season": "fall", "weekday": "sat"}, true))) in sapling, "a sapling in fall: no fall line")
+	check(Talk.pick("kiku", _state(six.merged({"scion": "", "season": "fall", "weekday": "tue"}, true))) in ["dear_1", "dear_2", "dear_3", "fall_1", "fall_2"],
 		"nothing planted: no twig line in fall")
-	check(Talk.pick("kiku", _state(six.merged({"scion": ""}, true))) in ["dear_1", "dear_2", "dear_3"], "nothing planted: her heart lines")
+	check(Talk.pick("kiku", _state(six.merged({"scion": "", "weekday": "tue"}, true))) in ["dear_1", "dear_2", "dear_3"], "nothing planted: her heart lines")
+	check(Talk.pick("kiku", _state(six.merged({"scion": "sapling", "weekday": "mon"}, true))) in ["dear_1", "dear_2", "dear_3"], "a sapling on a Monday: her heart lines, not the twig")
 	var bad := Talk.data("kiku").duplicate(true)
 	bad.picks.insert(0, {"if": {"scion": ["bush"]}, "at": ["plain_1"]})
 	check(Talk.check(bad).begins_with("pick 0: scion needs"), "a twig stage that doesn't exist is refused (%s)" % Talk.check(bad))
+	# Share: over 700 days (each day's weekday from its number, as Game does), the twig comes up
+	# on about a third or less of Kiku's talks, and her close and dear lines keep every other day,
+	# as they were before the twig was planted.
+	var weekdays := ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+	for stage in ["sapling", "young", "tree"]:
+		var twig := 0
+		var cd_other := 0   # close / dear picks on the days the twig rows don't take
+		var other := 0
+		var cd_all := 0
+		for dn in 700:
+			var pick := Talk.pick("kiku", _state(six.merged({"scion": stage, "weekday": weekdays[dn % 7], "day_number": dn, "season": "spring"}, true)))
+			if pick.begins_with("scion_"):
+				twig += 1
+			else:
+				other += 1
+				if pick in close_dear:
+					cd_other += 1
+			if pick in close_dear:
+				cd_all += 1
+		var share := float(twig) / 700.0
+		check(share >= 0.25 and share <= 0.35, "%s: the twig comes up on about a third of talks (%.3f)" % [stage, share])
+		check(cd_other == other, "%s: her close and dear lines on every other day (%d of %d)" % [stage, cd_other, other])
+		check(float(cd_all) / 700.0 >= 0.65, "%s: close and dear still most of her talks (%.3f)" % [stage, float(cd_all) / 700.0])
+	var before := 0
+	for dn in 700:
+		if Talk.pick("kiku", _state(six.merged({"weekday": weekdays[dn % 7], "day_number": dn, "season": "spring"}, true))) in close_dear:
+			before += 1
+	check(before == 700, "unplanted: close and dear lines every talk at band 6 (%d of 700)" % before)
 	# Through Game.talk_to: the stage comes from the planting day, the season from the clock.
 	check(_kiku_talk(false, 0, 0) in ["dear_1", "dear_2", "dear_3"], "unplanted: no twig line (%s)" % _kiku_talk(false, 0, 0))
 	check(_kiku_talk(false, 0, 2) in ["dear_1", "dear_2", "dear_3", "fall_1", "fall_2"], "unplanted in fall: no twig line")
-	check(_kiku_talk(true, 0, 0) in sapling, "planted today: a sapling line (%s)" % _kiku_talk(true, 0, 0))
+	check(_kiku_talk(true, 0, 0) in sapling, "planted today, a Tuesday: a sapling line (%s)" % _kiku_talk(true, 0, 0))
 	check(_kiku_talk(true, 130, 0) in young, "planted 130 days ago: a young tree line (%s)" % _kiku_talk(true, 130, 0))
 	check(_kiku_talk(true, 250, 2) in fall, "planted 250 days ago, fall: a fruiting tree line (%s)" % _kiku_talk(true, 250, 2))
 	check(_kiku_talk(true, 250, 3) in tree, "planted 250 days ago, winter: a tree line (%s)" % _kiku_talk(true, 250, 3))
 
 
-## Kiku's line on a fresh game at 9:00 on day 1 of `season`, her heart at band 6 with the band 6
-## scene seen; the twig planted `age` days ago when `planted`. The line she opens with, or "".
+## Kiku's line on a fresh game at 9:00 on a Tuesday of `season`, her heart at band 6 with the band
+## 6 scene seen; the twig planted `age` days ago when `planted`. The line she opens with, or "".
 func _kiku_talk(planted: bool, age: int, season: int) -> String:
 	var g := _game()
 	var seen := _listen(g)
@@ -228,6 +259,10 @@ func _kiku_talk(planted: bool, age: int, season: int) -> String:
 	g.hour = 9
 	g.minute = 0
 	g.season = season
+	for d in range(1, 40):   # the first Tuesday of the season (the twig's days are Tuesdays and Saturdays)
+		g.day = d
+		if g.weekday() == "tue":
+			break
 	g.affection.add("kiku", 9999)
 	g.flags["heart_kiku_6"] = true
 	if planted:

@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] Kiku's twig keeps her close and dear lines (2026-11-10): the twig rows take only Tuesdays and Saturdays (about 2 talks in 7) and carry only twig lines, so her close and dear lines keep every other day; test_talk `_kiku_scion` counts the share over 700 days; see WORKLOG.
 [x] Kaede's portrait hair (2026-11-10): a material darker than value 0.11 (only Kaede's 1a1416 today) is toned from itself lifted to value 0.2, so her black hime hair shows its shade, base, lit and deep tones in every mood; every other portrait unchanged (PortraitArt.lift, data/portrait_art.json `dark`; test_dialogue `_dark_hair`).
 [x] One thing in the arms (2026-11-10): the dog, the baby and the crawler never together, in every order; the pick-up of the dog now refuses while anything is held (DogActions.interact), the baby / crawler lifts already did; test_child `_one_in_the_arms`, see WORKLOG.
 [x] Kiku talks about her persimmon twig (2026-11-10): sapling, young and fruiting-tree lines by the twig's stage (new talk pick key `scion`, Game.talk_to) and fall lines once it fruits; EN and TH; test_talk `_kiku_scion`, see WORKLOG.
