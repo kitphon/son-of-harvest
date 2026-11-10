@@ -53,6 +53,7 @@ func _run() -> void:
 	await _roofs()
 	await _tall_crops()
 	await _tall_sway()
+	await _persimmon()
 	scene.free()
 	print("test_view2d: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -1115,6 +1116,81 @@ func _tall_sway() -> void:
 	cv.queue_redraw()
 	await process_frame
 	cv.free()
+
+
+## Kiku's grown persimmon tree through the flat view (data/scion.json pick, Player -> FarmActions):
+## the first press picks one overhead, the second puts one in the rucksack (the crown drawn half
+## full, then bare), the third says the rest are for the birds and throws nothing; each step
+## redraws the tree's picture; the next morning it is full again.
+func _persimmon() -> void:
+	g.flags["kiku_scion"] = "door"
+	g.flags[Scion.day_flag()] = g.day_number() - Scion.from_days("tree")
+	g.season = 2
+	g.held = ""
+	var msgs: Array = []
+	g.message.connect(func(t): msgs.append(t))
+	var hints: GDScript = load("res://scripts/ui/action_hints.gd")   # loaded here: it names the Game autoload
+	g.go_to_map("farm", Vector2i(3, 5), Vector2i.UP)
+	await _wait_view("farm_view.gd")
+	var tree := Vector2i(3, 4)
+	var prop: Dictionary = g.maps.current().prop_at(tree)
+	var sv := _story_view()
+	check(sv != null and prop.get("kind", "") == "scion", "the flat farm has Kiku's grown tree")
+	if sv == null:
+		return
+	var drawn: Array = []   # the key each redraw of the story props drew for the tree
+	sv.draw.connect(func(): drawn.append(StoryView.art_key(prop)))
+	sv.queue_redraw()
+	await process_frame
+	check(drawn.back() == "story:scion:tree:fall:0", "the full crown is drawn (%s)" % [drawn])
+	var thrown_before: int = said.thrown.size()
+	check(hints.interact_verb(Vector2i(3, 5), Vector2i.UP) == "Pick", "the hint says Pick at the full tree")
+	act("interact", Vector2i(3, 5), Vector2i.UP)
+	await process_frame
+	await process_frame
+	check(g.held == "wild:persimmon" and g.scion_picked == 1 and msgs.back() == "Picked the ripe persimmon.",
+		"the first press picks one overhead (%s)" % [msgs])
+	check(drawn.back() == "story:scion:tree:fall:0:4", "half the crown is drawn (%s)" % [drawn])
+	act("interact", Vector2i(3, 5), Vector2i.UP)
+	await process_frame
+	await process_frame
+	check(g.count("wild:persimmon") == 2 and g.scion_picked == 2 and msgs.back() == "Put the ripe persimmon in the rucksack.",
+		"the second press puts one in the rucksack (%s)" % [msgs])
+	check(drawn.back() == "story:scion:tree:fall:0:0", "the crown is bare (%s)" % [drawn])
+	act("interact", Vector2i(3, 5), Vector2i.UP)
+	await process_frame
+	await process_frame
+	check(msgs.back() == "The rest are for the birds.", "the third press: the birds (%s)" % [msgs])
+	check(g.count("wild:persimmon") == 2 and said.thrown.size() == thrown_before, "nothing is thrown at the tree")
+	check(hints.interact_verb(Vector2i(3, 5), Vector2i.UP) == "Look", "the hint at the bare tree is not Throw")
+	check(drawn.has("story:scion:tree:fall:0") and drawn.has("story:scion:tree:fall:0:4") and drawn.has("story:scion:tree:fall:0:0"),
+		"the view redrew each of the three pictures (%s)" % [drawn])
+	var a: Image = PlaceholderArt.tex("story:scion:tree:fall:0").get_image()
+	var b: Image = PlaceholderArt.tex("story:scion:tree:fall:0:4").get_image()
+	var c: Image = PlaceholderArt.tex("story:scion:tree:fall:0:0").get_image()
+	check(_differs(a, b) > 0 and _differs(b, c) > 0 and _differs(a, c) > 0, "the three pictures differ")
+	g.end_day()
+	g.go_to_map("farm", Vector2i(3, 5), Vector2i.UP)
+	await _wait_view("farm_view.gd")
+	sv = _story_view()
+	if sv == null:
+		check(false, "the farm view has its story props the next morning")
+		return
+	drawn.clear()
+	sv.draw.connect(func(): drawn.append(StoryView.art_key(prop)))
+	sv.queue_redraw()
+	await process_frame
+	check(g.scion_picked == 0 and drawn.back() == "story:scion:tree:fall:0", "the next morning the crown is full (%s)" % [drawn])
+	g.held = ""
+	g.flags.erase("kiku_scion")
+	g.new_game()
+
+
+func _story_view() -> Node:
+	for n in scene.view.get_children():
+		if _is(n, "story_view.gd"):
+			return n
+	return null
 
 
 ## The flat view's paddy ground (MapView.ground_key_in, CropPatches.paddy_ground): the paddy cells

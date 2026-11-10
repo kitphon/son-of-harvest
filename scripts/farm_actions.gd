@@ -65,6 +65,8 @@ static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge :
 		pass
 	elif kind != "interact" and Game.current_tool() == "food" and Game.edible(Game.held):
 		eat_held()
+	elif kind == "interact" and scion_fruit(origin + facing):   # Kiku's fruiting tree takes the press even with hands full (never a throw at it)
+		pass
 	elif Game.holding() and Game.maps.on_farm():
 		if kind == "interact":
 			throw(origin, facing)

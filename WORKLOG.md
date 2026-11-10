@@ -38,6 +38,34 @@ Agent: Claude Code (claude-sonnet) · Commit: this commit
 - Done: three new rows in data/dialogue/talk_kiku.json (winter, spring, summer; scion tree, Tuesday / Saturday, flag kiku_scion_picked) placed before the fall unpicked row, each with two lines: winter `scion_picked_winter_1..2` (hanging persimmons turning sweet, the one left on the tree for the birds), spring `scion_picked_spring_1..2` (the tree leafing out, keeping a seed in damp soil), summer `scion_picked_summer_1..2` (the green fruit set, some dropping in the heat). English and Thai (data/lang/th/dialogue.json). Before the first pick nothing changes; the fall picked lines are as before. No code changed.
 - Checked: test_talk `_kiku_scion`: for each of winter / spring / summer over 700 days the new lines come on exactly 200 days (2 in 7), only Tuesdays and Saturdays, her close and dear lines on every other day, the unpicked days still pick the usual tree lines, both lines appear; through Game.talk_to the three seasons give their lines. test_talk and test_lang print OK (0 failed).
 - Left / next: none.
+## 2026-11-10 — Kiku's persimmon picked through the flat view
+Agent: Claude Code (claude-haiku) · Commit: this commit
+- Done: the first flat-view play of the picking found a bug (shared by both views, since both use
+  FarmActions.on_action). With one persimmon in hand, the next press threw it at the tree ("No room
+  to throw it."), so the second pick never reached the rucksack and the third never gave the birds
+  line. Fix: on_action gives Kiku's fruiting tree (Game.scion_fruit_left >= 0) the interact press
+  before the hands-full throw, so a press at the tree never throws at it. ActionHints.interact_verb
+  says "Pick" while fruit hangs and "Look" on the bare tree (it used to say "Throw" when holding).
+  Tests call FarmActions.interact directly, which is why test_forage missed the throw.
+- Checked: test_view2d `_persimmon` (new) goes through Player's action signal: the full crown is
+  drawn (art key story:scion:tree:fall:0); the first press picks one overhead ("Picked the ripe
+  persimmon.", crown :4); the second puts one in the rucksack (count 2, crown :0); the third says
+  "The rest are for the birds.", nothing thrown, hint "Look"; StoryView redraws the three pictures
+  (draw signal) and they differ in pixels; the next morning (end_day) the crown is full again.
+  Before the fix it failed 7 checks. The test loads ActionHints at run time: named as a class at
+  parse time, it fails to compile in --script mode (Game is not yet an identifier), which made the
+  HUD's ActionHints.pick fail too. Tests after the fix: `test_view2d: OK (0 failed)`. Every
+  tests/test_*.gd (31 files) printed `OK (0 failed)` (test_audio also prints timing lines). Smoke
+  runs (title, `-- --demo`, `-- --demo --map=town`, `-- --demo --mine=3`, `--quit-after 300`,
+  headless): 0 SCRIPT ERROR / ERROR / WARNING lines. 3D screenshot: a temporary scene script
+  (shots/pick_shot.gd) with `--path . --write-movie shots/frame.png --script ... -- --demo
+  --flags=kiku_scion=door --season=fall --scion=tree` picked once through FarmActions at frame 60;
+  frame 119 read: the crown has fewer persimmons than a full one and the message "Picked the ripe
+  persimmon." shows. The farmer faced down (the field), so the hint read "Throw" for the field,
+  not for the tree. shots/ deleted.
+- Left / next: the 3D screenshot is 480 x 270 (movie size), so the crown's count is judged by the
+  test's pixel checks, not by eye. The hint at the tree while holding a persimmon now says "Look"
+  on a bare tree, not checked in a frame.
 
 ## 2026-11-10 — Merge: mochi box aside, villagers clear of contest spots, black goldfish
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
