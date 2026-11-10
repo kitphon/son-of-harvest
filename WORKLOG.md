@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Mochi mortar and mallet art, refined
+Agent: Claude Code (claude-haiku) · Commit: this commit
+- Done: the Year's Turn mochi pounding's props in PlaceholderArt. `_usu(dough)` (32 x 24, the wooden
+  mortar with its dough, every stage 0..3) is laid in flat materials: the body and cut top in
+  MOCHI_WOOD, the bowl and foot in MOCHI_WOOD_DARK, the two hoops in MOCHI_HOOP, the dough as one
+  mound in MOCHI_DOUGH. The hand-placed darker waist, lighter cut top and the separate darker dough
+  underside are dropped (refine tones them). The rice grains (stage 0) and the shine (stage 3) stay
+  fixed marks. `_kine()` (16 x 28, the mallet) is the head in MOCHI_WOOD with its end grain and
+  hoop, and the handle in its own wood; the lighter handle column and the lighter top row are
+  dropped. Both go through ItemArt.refine instead of _outline(). Same keys, sizes, dough stages and
+  the grip (KINE_GRIP). MOCHI_DOUGH_SHADE is now only the rice grains' colour.
+- Checked: test_festivals `_usu_kine_art_refined`: the four dough stages are 32 x 24 and differ, the
+  mallet is 16 x 28, no picture has the 2a1e1e outline colour, each has several colours. One existing
+  check in the same file changed: "the mortar and mallet pictures" expected the hoop pixel to be the
+  raw MOCHI_HOOP colour; it is now one of the hoop's three refined tones (ItemArt.tones). Headless
+  `--script res://tests/test_festivals.gd` prints `test_festivals: OK (0 failed)`. All 31
+  tests/test_*.gd print `OK (0 failed)` (the runner counted 0 ERROR lines in each). Smoke runs
+  (title, `-- --demo`, `-- --demo --map=town`, `-- --demo --mine=3`, `--quit-after 300`): exit 0, 0 ERROR
+  and 0 WARNING lines. Screenshot `--demo --festival=years_turn --contest=mochi:auto`, frame 149:
+  the mallet and mortar in the Mochi Pounding box read as toned wood with a lit top edge and no black
+  outline; the dough shows in the bowl. A 5x crop was looked at; shots/ deleted.
+- Left / next: the mochi box's mortar is small on screen (the game draws it at 32 x 24); no other
+  mochi art changed. The HUD's coin, stamina and weather icons are still open in ROADMAP.
+
 ## 2026-11-10 — Merge: food, fish / mine / wild and kitchen / keepsake / ribbon icons refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged b2d3c84 food icons (Opus), 73fc8f4 fish, mine finds and wild things (Sonnet) and

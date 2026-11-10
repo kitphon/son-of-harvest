@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] Mochi mortar and mallet, refined (2026-11-10): the usu (every dough stage) and the kine (mallet) laid in flat materials (wood, dough, hoops and the barrel binding) and passed through ItemArt.refine: three tones lit from the upper left, deep-tone part lines and a rim in the material's own deep tone instead of the near-black outline; same keys, sizes and dough stages; test_festivals `_usu_kine_art_refined`; see WORKLOG.
 [x] Food icon art, refined (2026-11-10): every `ui:food:*` (the onigiri in the tool bar too) laid in flat materials and toned by ItemArt.refine, the cut, eye, grill line, chestnut shine and printed band kept as fixed marks; same keys and sizes; test_inventory `_food_art_refined`; see WORKLOG.
 [ ] Item icon art, refined, the rest: the HUD's coin, stamina and weather icons through ItemArt.refine (laid in flat materials first), as the item icons below.
 [x] Item icon art, refined: the fish, mine finds and wild things (ItemArt.refine, flat materials first; test_inventory `_fish_mine_wild_art_refined`).

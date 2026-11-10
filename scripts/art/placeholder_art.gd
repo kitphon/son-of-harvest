@@ -3998,25 +3998,26 @@ static func _ware(name: String) -> Image:
 ## dough in the bowl. `dough` 0 is steamed rice (lumpy, grains showing), 3 a smooth shiny mound.
 static func _usu(dough: int) -> Image:
 	var img := _blank(32, 24)
-	_px(img, 3, 7, 26, 15, MOCHI_WOOD)
-	_px(img, 5, 12, 22, 6, MOCHI_WOOD.darkened(0.08))   # the waist, a shade darker
+	var fixed: Array = []            # small marks left as they are
+	_px(img, 3, 7, 26, 15, MOCHI_WOOD)                    # the body
 	_oval(img, 16, 21.5, 13, 2.5, MOCHI_WOOD_DARK)        # the foot
 	for y in [9, 18]:
-		_px(img, 3, y, 26, 2, MOCHI_HOOP)
+		_px(img, 3, y, 26, 2, MOCHI_HOOP)                 # the two hoops, the binding
 	for x in [8, 15, 23]:
-		_px(img, x, 12, 1, 5, MOCHI_WOOD_DARK)             # grain lines
-	_oval(img, 16, 6, 14, 4.5, MOCHI_WOOD.lightened(0.15))   # the cut top
-	_oval(img, 16, 6, 11, 3.2, MOCHI_WOOD_DARK)            # the bowl
+		_px(img, x, 12, 1, 5, MOCHI_WOOD_DARK)            # grain lines
+	_oval(img, 16, 6, 14, 4.5, MOCHI_WOOD)                # the cut top
+	_oval(img, 16, 6, 11, 3.2, MOCHI_WOOD_DARK)           # the bowl
 	var d := clampi(dough, 0, 3)
 	var rise: float = [0.0, 0.5, 1.2, 2.2][d]
-	_oval(img, 16, 6 - rise * 0.5, 9 - (1 if d == 0 else 0), 2.4 + rise, MOCHI_DOUGH_SHADE)
-	_oval(img, 16, 5.5 - rise * 0.6, 8 - (1 if d == 0 else 0), 1.8 + rise * 0.8, MOCHI_DOUGH)
+	_oval(img, 16, 6 - rise * 0.5, 9 - (1 if d == 0 else 0), 2.4 + rise, MOCHI_DOUGH)   # the dough, a mound
 	if d == 0:   # grains of rice still showing
+		fixed.append(MOCHI_DOUGH_SHADE)
 		for g in [Vector2i(10, 5), Vector2i(13, 6), Vector2i(17, 4), Vector2i(20, 6), Vector2i(15, 7), Vector2i(22, 5)]:
 			_px(img, g.x, g.y, 1, 1, MOCHI_DOUGH_SHADE)
 	elif d == 3:   # the shine of finished mochi
+		fixed.append(Color.WHITE)
 		_px(img, 12, int(4 - rise * 0.6), 3, 1, Color.WHITE)
-	return _outline(img)
+	return ItemArt.refine(img, fixed)
 
 
 ## Goldfish tones per look (GoldfishScoop `look`): body base, fin / patch base. Each is toned in
@@ -4084,11 +4085,9 @@ const KINE_GRIP := Vector2(8, 27)
 
 static func _kine() -> Image:
 	var img := _blank(16, 28)
-	_px(img, 7, 8, 2, 20, Color("c8a06a"))
-	_px(img, 7, 8, 1, 20, Color("dab47c"))
-	_px(img, 1, 1, 14, 8, MOCHI_WOOD)
-	_px(img, 1, 1, 14, 1, MOCHI_WOOD.lightened(0.2))
+	_px(img, 7, 8, 2, 20, Color("c8a06a"))   # the handle, its own wood
+	_px(img, 1, 1, 14, 8, MOCHI_WOOD)        # the barrel head
 	_px(img, 1, 1, 2, 8, MOCHI_WOOD_DARK)    # the end grain at either side
 	_px(img, 13, 1, 2, 8, MOCHI_WOOD_DARK)
-	_px(img, 1, 4, 14, 1, MOCHI_HOOP)
-	return _outline(img)
+	_px(img, 1, 4, 14, 1, MOCHI_HOOP)        # its binding
+	return ItemArt.refine(img, [])

@@ -37,6 +37,7 @@ func _init() -> void:
 	_scoop_timing()
 	_scoop_result_lines()
 	_scoop_pose_art()
+	_usu_kine_art_refined()
 
 
 func _process(_delta: float) -> bool:
@@ -1234,7 +1235,11 @@ func _game_play() -> void:
 	props.free()
 	var usu := PlaceholderArt.tex("mochi:usu:3").get_image()
 	var kine := PlaceholderArt.tex("mochi:kine").get_image()
-	check(usu.get_size() == Vector2i(32, 24) and kine.get_size() == Vector2i(16, 28) and usu.get_pixel(16, 18).is_equal_approx(PlaceholderArt.MOCHI_HOOP),
+	# The hoop is a material now: its pixel is one of the hoop's three tones (ItemArt.refine).
+	var hoop_tones := []
+	for t in ItemArt.tones(PlaceholderArt.MOCHI_HOOP):
+		hoop_tones.append(FigureArt._key(t))
+	check(usu.get_size() == Vector2i(32, 24) and kine.get_size() == Vector2i(16, 28) and hoop_tones.has(usu.get_pixel(16, 18).to_html()),
 		"the mortar and mallet pictures")
 	check(PlaceholderArt.tex("mochi:usu:0").get_image().get_data() != usu.get_data(), "the dough changes as it is pounded")
 	g.new_game()
@@ -1802,3 +1807,33 @@ func _scoop_play() -> void:
 	g.game_requested.disconnect(ask)
 	g.event_requested.disconnect(ev)
 	g.new_game()
+
+
+## The mochi pounding's mortar and mallet (mochi:usu:<dough>, mochi:kine) through ItemArt.refine:
+## every dough stage keeps the mortar's 32 x 24 and the mallet's 16 x 28, the mortar's four stages
+## differ, and no picture keeps the old near-black outline or has only a few colours.
+func _usu_kine_art_refined() -> void:
+	var old := FigureArt._key(PlaceholderArt.OUTLINE)
+	var seen := {}
+	for d in 4:
+		var key := "mochi:usu:%d" % d
+		var img := PlaceholderArt.image(key)
+		check(img.get_size() == Vector2i(32, 24), "mochi art: %s is 32 x 24" % key)
+		_refined_colours(img, key, old)
+		seen[img.get_data().hex_encode()] = true
+	check(seen.size() == 4, "mochi art: the four dough stages differ")
+	var kine := PlaceholderArt.image("mochi:kine")
+	check(kine.get_size() == Vector2i(16, 28), "mochi art: the mallet is 16 x 28")
+	_refined_colours(kine, "mochi:kine", old)
+
+
+func _refined_colours(img: Image, key: String, old: String) -> void:
+	var colours := {}
+	for y in img.get_height():
+		for x in img.get_width():
+			var p := img.get_pixel(x, y)
+			if p.a == 0.0:
+				continue
+			colours[p.to_html()] = true
+	check(not colours.has(old), "mochi art: %s has no old outline colour" % key)
+	check(colours.size() >= 4, "mochi art: %s has several colours (%d)" % [key, colours.size()])
