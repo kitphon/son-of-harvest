@@ -386,6 +386,50 @@ func _refined_portraits() -> void:
 			if tome.get_pixel(x, y).to_html() == _rgba8(PortraitArt.eye()):
 				eyes += 1
 	check(eyes >= 8, "Tome's eyes are in the eye colour (%d)" % eyes)
+	_dark_hair()
+
+
+## Kaede's near-black hair: toned from a lifted colour (data/portrait_art.json `dark`) so its
+## deep, shade, base and lit tones stand apart in every mood, and it still reads as black. Only
+## colours that dark are lifted (Ichiro's 1e1a18, the next darkest, is toned as before).
+func _dark_hair() -> void:
+	var d: Dictionary = PortraitArt.art().get("dark", {})
+	check(d.has("below") and d.has("base_v"), "data/portrait_art.json has the dark material numbers")
+	var hair := Color(str(Villagers.look("kaede").hair))
+	check(hair.v < float(d.below), "Kaede's hair counts as very dark (v %.3f)" % hair.v)
+	for h in ["1e1a18", "241a1a", "f2c8a0", "eeeee6"]:
+		check(PortraitArt.lift(Color(h)) == Color(h) and PortraitArt.tones(Color(h)) == FigureArt.tones(Color(h), false, PortraitArt.art()),
+			"%s is toned as before" % h)
+	var tn := PortraitArt.tones(hair)
+	var lum := []   # shade, base, lit, deep
+	for t: Color in tn:
+		lum.append(t.get_luminance())
+	check(lum[3] + 0.03 <= lum[0] and lum[0] + 0.03 <= lum[1] and lum[1] + 0.15 <= lum[2],
+		"the dark hair's deep, shade, base and lit tones stand apart (%s)" % [lum.map(func(v): return snappedf(v, 0.001))])
+	check(lum[1] <= 0.2 and (tn[1] as Color).v <= 0.21, "and its base still reads as black (%.3f)" % lum[1])
+	var keys := []
+	for t in tn:
+		keys.append(_rgba8(t))
+	var c := Child.look(Villagers.look("kaede"), "f2c79b")
+	var sets := []
+	for m in DialogueRunner.MOODS:
+		sets.append("portrait:kaede:%s" % m)
+		sets.append("portrait:%s:%s:%s:%s:%s:%s:%s" % [Child.ID, m, "child", Child.small_style(str(c.hair_style), "child"), c.skin, c.hair, c.top])
+	for key in sets:
+		var img: Image = PlaceholderArt.tex(key).get_image()
+		img.convert(Image.FORMAT_RGBA8)
+		var count := [0, 0, 0, 0]
+		var xs := [0.0, 0.0, 0.0]
+		for y in 40:
+			for x in 40:
+				var i := keys.find(img.get_pixel(x, y).to_html())
+				if i >= 0:
+					count[i] += 1
+					if i < 3:
+						xs[i] += x
+		var lit_left: bool = count[0] > 0 and count[2] > 0 and xs[2] / count[2] < xs[0] / count[0]
+		check(count[0] >= 8 and count[1] >= 8 and count[2] >= 8 and count[3] >= 8 and lit_left,
+			"%s: the hair shows its shade, base, lit and deep tones, lit left of shade (%s)" % [key, count])
 
 
 func _rgba8(c: Color) -> String:
