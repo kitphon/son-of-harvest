@@ -17,6 +17,7 @@ func _init() -> void:
 	_arms_full()
 	_game()
 	_item_art_refined()
+	_fish_mine_wild_art_refined()
 	print("test_inventory: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 
@@ -363,6 +364,39 @@ func _item_art_refined() -> void:
 	var deep_handle := FigureArt._key(ItemArt.tones(PlaceholderArt.TOOL_TIN_HANDLE)[3])
 	check(can.get_pixel(3, 4).to_html() == deep_handle and can.get_pixel(8, 4).to_html() == deep_handle,
 		"item art: the can's handle meets the tin in its deep tone")
+
+
+## The fish, mine finds and wild things' icons through ItemArt.refine: 14 x 14 kept, no pixel in
+## the old near-black outline, at least four colours, the main material (body / colour) in its
+## lit tone and its shade or deep one.
+func _fish_mine_wild_art_refined() -> void:
+	var old := FigureArt._key(PlaceholderArt.OUTLINE)
+	var cases := []   # [key, main material colour]
+	var fish: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/fish.json")).get("fish", {})
+	for id in fish:
+		cases.append(["ui:fish:" + id, Color(PlaceholderArt.fish_look(id).get("body", "8a8a6a"))])
+	var mine: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/mine.json")).get("items", {})
+	for id in mine:
+		cases.append(["ui:mine:" + id, Color(PlaceholderArt.mine_look(id).get("body", "8e8a84"))])
+	var wild: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/forage.json")).get("items", {})
+	for id in wild:
+		cases.append(["ui:wild:" + id, Color(wild[id].get("look", {}).get("color", "8a6a3a"))])
+	check(fish.size() > 0 and mine.size() > 0 and wild.size() > 0, "fish/mine/wild art: the item lists are not empty")
+	for c in cases:
+		var img := PlaceholderArt.image(c[0])
+		var seen := {}
+		for y in img.get_height():
+			for x in img.get_width():
+				var p := img.get_pixel(x, y)
+				if p.a > 0.0:
+					seen[p.to_html()] = true
+		check(img.get_size() == Vector2i(14, 14), "fish/mine/wild art: %s is 14 x 14" % c[0])
+		check(not seen.has(old), "fish/mine/wild art: %s has no old outline colour" % c[0])
+		check(seen.size() >= 4, "fish/mine/wild art: %s has several colours (%d)" % [c[0], seen.size()])
+		var tn := ItemArt.tones(c[1])
+		# Thin parts (a fish's body) can be all lit edge and part line, so the shade tone or the deep one.
+		check(seen.has(FigureArt._key(tn[2])) and (seen.has(FigureArt._key(tn[0])) or seen.has(FigureArt._key(tn[3]))),
+			"fish/mine/wild art: %s shows its main material's lit tone and its shade or deep one" % c[0])
 
 
 func check(ok: bool, what: String) -> void:

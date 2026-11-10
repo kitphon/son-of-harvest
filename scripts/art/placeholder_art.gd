@@ -879,64 +879,70 @@ static func _wild_icon(look: Dictionary) -> Image:
 	var img := _blank(14, 14)
 	var c := Color(look.get("color", "8a6a3a"))
 	var a := Color(look.get("accent", "f0e2b0"))
+	# Flat materials (the colour, the accent), then ItemArt.refine; the small marks stay as laid.
+	var marks := []
 	match look.get("shape", ""):
 		"shoot":
 			for y in 10:
 				var half := (y + 2) / 3 + 1
-				_px(img, 7 - half, y + 2, half * 2, 1, c if y % 3 else c.darkened(0.2))
-			_px(img, 6, 1, 2, 2, c.darkened(0.25))
+				_px(img, 7 - half, y + 2, half * 2, 1, c)
+			_px(img, 6, 1, 2, 2, c)
 			_px(img, 5, 10, 4, 2, a)
 		"fern":
-			_line(img, Vector2i(7, 13), Vector2i(7, 5), c.darkened(0.2))
+			_line(img, Vector2i(7, 13), Vector2i(7, 5), c)
 			_oval(img, 7, 4, 2.5, 2.5, c)
-			_oval(img, 7.5, 4, 1.0, 1.0, c.darkened(0.3))
 			_line(img, Vector2i(3, 9), Vector2i(11, 7), c)
 			_px(img, 6, 12, 3, 2, a)
+			marks = [c.darkened(0.3)]
+			img.set_pixel(8, 4, marks[0])   # the curl's eye
 		"bud":
 			_oval(img, 7, 8, 4.0, 4.5, c)
 			_oval(img, 7, 6, 2.0, 2.5, a)
-			_line(img, Vector2i(4, 9), Vector2i(7, 12), c.darkened(0.25))
-			_line(img, Vector2i(10, 9), Vector2i(7, 12), c.darkened(0.25))
+			_line(img, Vector2i(4, 9), Vector2i(7, 12), c)
+			_line(img, Vector2i(10, 9), Vector2i(7, 12), c)
 		"berries":
 			_oval(img, 7, 10, 5.0, 2.5, a)
+			marks = [c.lightened(0.4)]
 			for p in [[5, 6], [8.5, 6], [6.5, 8.5], [9.5, 9], [4.5, 9]]:
 				_oval(img, p[0], p[1], 1.8, 1.8, c)
-				img.set_pixel(int(p[0]) - 1, int(p[1]) - 1, c.lightened(0.4))
+				img.set_pixel(int(p[0]) - 1, int(p[1]) - 1, marks[0])
 		"nut":
 			_oval(img, 7, 8, 5.5, 4.5, a)
 			for x in [2, 5, 9, 12]:
-				_px(img, x, 3 + x % 3, 1, 1, a.darkened(0.25))
+				_px(img, x, 3 + x % 3, 1, 1, a)
 			_oval(img, 5.5, 8.5, 2.2, 2.5, c)
-			_oval(img, 8.5, 8.5, 2.2, 2.5, c.lightened(0.1))
-			_px(img, 5, 7, 1, 1, c.lightened(0.4))
+			_oval(img, 8.5, 8.5, 2.2, 2.5, c)
+			marks = [c.lightened(0.4)]
+			_px(img, 5, 7, 1, 1, marks[0])
 		"pod":
 			_oval(img, 7, 7, 3.5, 5.5, c)
 			_oval(img, 7, 7, 1.5, 4.0, a)
-			_px(img, 6, 6, 1, 1, Color("1e1e1e"))
-			_px(img, 8, 9, 1, 1, Color("1e1e1e"))
 			_px(img, 7, 1, 1, 2, Color("6a4a2a"))
+			marks = [Color("1e1e1e")]
+			_px(img, 6, 6, 1, 1, marks[0])
+			_px(img, 8, 9, 1, 1, marks[0])
 		"mushroom":
 			_px(img, 6, 7, 3, 6, a)
 			_oval(img, 7, 6, 5.5, 3.0, c)
-			_px(img, 2, 7, 11, 1, c.darkened(0.25))
-			_px(img, 5, 4, 2, 1, c.lightened(0.35))
-	return _outline(img)
+			marks = [c.lightened(0.35)]
+			_px(img, 5, 4, 2, 1, marks[0])
+	return ItemArt.refine(img, marks)
 
 
 static func _mine_icon(look: Dictionary) -> Image:
 	var img := _blank(14, 14)
 	var body := Color(look.get("body", "8e8a84"))
 	var shine := Color(look.get("shine", body.lightened(0.4).to_html()))
+	var marks := [shine]   # small glints stay as laid; the larger faces below are materials
 	match look.get("shape", "stone"):
 		"stone":
 			_oval(img, 7, 8, 5.5, 4.2, body)
 			_px(img, 4, 6, 3, 1, shine)
-			_px(img, 9, 10, 2, 1, body.darkened(0.25))
 		"lump":
 			_oval(img, 7, 8.5, 5.0, 3.8, body)
-			_oval(img, 6, 6.5, 3.0, 2.0, body.lightened(0.08))
 			_px(img, 4, 6, 2, 1, shine)
-			_line(img, Vector2i(5, 10), Vector2i(9, 9), body.darkened(0.25))   # a thumb mark
+			marks.append(body.darkened(0.25))
+			_line(img, Vector2i(5, 10), Vector2i(9, 9), marks[1])   # a thumb mark
 		"sand":
 			for y in range(5, 12):
 				var half := (y - 4) + 1
@@ -946,25 +952,26 @@ static func _mine_icon(look: Dictionary) -> Image:
 		"ore":
 			var vein := Color(look.get("vein", "c8643a"))
 			_oval(img, 7, 8, 5.8, 4.5, body)
-			_oval(img, 6, 7, 3.5, 2.5, body.lightened(0.12))
 			_line(img, Vector2i(3, 9), Vector2i(10, 5), vein)
 			_line(img, Vector2i(6, 11), Vector2i(10, 9), vein)
-			_px(img, 8, 6, 1, 1, vein.lightened(0.4))
+			marks.append(vein.lightened(0.4))
+			img.set_pixel(8, 6, marks[1])
 		"gem":
-			for y in 4:   # the crown widening, then the point
+			for y in 4:   # the crown (its own facet colour) widening, then the point
 				_px(img, 4 - y, 3 + y, 6 + y * 2, 1, body.lightened(0.15))
 			for y in 5:
 				_px(img, 1 + y, 7 + y, 12 - y * 2, 1, body)
 			_px(img, 4, 4, 2, 1, shine)
-			_px(img, 2, 7, 10, 1, body.darkened(0.2))
 		"drop":
 			_oval(img, 7, 8.5, 4.2, 4.0, body)
 			for y in 3:
 				_px(img, 6 - y / 2, 3 + y, 2 + y, 1, body)
 			_px(img, 5, 7, 2, 2, shine)
-			_px(img, 8, 10, 1, 1, body.darkened(0.25))   # something old caught inside
+			marks.append(body.darkened(0.25))
+			img.set_pixel(8, 10, marks[1])   # something old caught inside
 		"crystal":
-			for i in 3:   # three points from a cluster
+			marks = []
+			for i in 3:   # three points from a cluster, each with a lit facet down its left edge
 				var x := 3 + i * 3
 				var tall := 8 - absi(i - 1) * 2
 				_px(img, x, 12 - tall, 3, tall, body)
@@ -973,19 +980,20 @@ static func _mine_icon(look: Dictionary) -> Image:
 			_px(img, 2, 11, 10, 2, Color("6a625a"))   # the rock it grows from
 		"shard":
 			# Two splinters of ice rising apart from a frosted rock, each split down the middle
-			# into a lit facet and a shaded one, a glint near each tip.
+			# into a lit facet and a body one, a glint near each tip.
+			var facet := body.lerp(shine, 0.5)
 			for sp in [[5, 1, 2], [10, 5, 2]]:   # tip x, tip y, half width at the widest
 				for y in range(sp[1], 11):
 					var half := mini((y - sp[1]) / 2 + 1, sp[2])
-					_px(img, sp[0] - half, y, half, 1, body.lerp(shine, 0.5))
+					_px(img, sp[0] - half, y, half, 1, facet)
 					_px(img, sp[0], y, half, 1, body)
-					_px(img, sp[0] + half - 1, y, 1, 1, body.darkened(0.25))
 				img.set_pixel(sp[0] - 1, sp[1] + 2, shine)
 			img.set_pixel(4, 1, shine)
 			_px(img, 2, 11, 10, 2, Color("6a625a"))   # the rock they grow from
+			marks.append(Color("dcecf4"))
 			for x in [3, 6, 9, 11]:
-				img.set_pixel(x, 11, Color("dcecf4"))   # frost on it
-	return _outline(img)
+				img.set_pixel(x, 11, marks[1])   # frost on it
+	return ItemArt.refine(img, marks)
 
 
 ## Seed and sprout look the same for every crop (in its leaf colour); from growth 2 the shape
@@ -2215,9 +2223,9 @@ static func _fish_icon(look: Dictionary) -> Image:
 	if shape == "catfish":
 		_line(img, Vector2i(2, int(cy)), Vector2i(0, int(cy) + 3), fin)   # whiskers
 		_line(img, Vector2i(2, int(cy) - 1), Vector2i(0, int(cy) - 3), fin)
-	_outline(img)
-	img.set_pixel(3 if shape != "eel" else 1, int(cy) - 1, Color("1a1a1a"))
-	return img
+	var eye := Color("1a1a1a")   # a small fixed mark, not toned
+	img.set_pixel(3 if shape != "eel" else 1, int(cy) - 1, eye)
+	return ItemArt.refine(img, [eye])
 
 
 ## The float and the bite mark. The bobber is red over white with a dark stem (5 x 7); the
