@@ -17,6 +17,7 @@ func _init() -> void:
 	_arms_full()
 	_game()
 	_item_art_refined()
+	_food_art_refined()
 	print("test_inventory: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 
@@ -369,3 +370,34 @@ func check(ok: bool, what: String) -> void:
 	if not ok:
 		failures += 1
 		print("FAIL: " + what)
+
+
+## The food icons (ui:food:*, the onigiri in the tool bar too) through ItemArt.refine: every
+## food in data/foods.json keeps 14 x 14, has no old outline colour, several tones, and its main
+## material (the food itself, or the dish / wrapper it sits in) in its shade, lit and rim tones.
+func _food_art_refined() -> void:
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/foods.json"))
+	var old := FigureArt._key(PlaceholderArt.OUTLINE)
+	var dish_main := ["cup", "bowl", "plate", "fish_plate", "bag", "imo"]   # the accent is the main material
+	check(data.foods.size() >= 10, "food art: foods to draw")
+	for id in data.foods:
+		var look: Dictionary = PlaceholderArt.food_look(str(id))
+		var key: String = "ui:food:" + str(id)
+		var img := PlaceholderArt.image(key)
+		var seen := {}
+		for y in img.get_height():
+			for x in img.get_width():
+				var p := img.get_pixel(x, y)
+				if p.a > 0.0:
+					seen[p.to_html()] = true
+		check(img.get_size() == Vector2i(14, 14), "food art: %s is 14 x 14" % key)
+		check(not seen.has(old), "food art: %s has no old outline colour" % key)
+		check(seen.size() >= 5, "food art: %s has several tones (%d colours)" % [key, seen.size()])
+		var main := Color(look.get("accent" if look.get("shape", "") in dish_main else "color", "fbf8f0"))
+		var tn := ItemArt.tones(main)
+		check(seen.has(FigureArt._key(tn[0])) and seen.has(FigureArt._key(tn[2])),
+			"food art: %s shows its main material's shade and lit tones" % key)
+		check(seen.has(FigureArt._key(ItemArt.rim_of(main))), "food art: %s is rimmed in its material's deep tone" % key)
+	# Dishes of one shape still differ by their colours.
+	check(PlaceholderArt.image("ui:food:green_tea").get_data() != PlaceholderArt.image("ui:food:amazake").get_data(),
+		"food art: two cups differ")
