@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — The scoop box moves aside so the farmer shows at the tub
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: ScoopScreen's box is narrower (paper 280 -> 220 px, stage 240 -> 208, tub and bowl moved
+  in) and sits at the left edge, a little above the middle, instead of over the middle of the
+  view, where the camera keeps the farmer; so the new crouched scoop pose is seen beside the box
+  while the game runs. The hint is shorter to fit: "E: dip with a fish under the paper" (the Thai
+  table's key renamed, its Thai line kept). Rules and numbers unchanged.
+- Checked: test_festivals new checks (the box starts at the left edge and ends left of the
+  view's middle; the hint fits the paper). All 31 tests/test_*.gd print `OK (0 failed)`; the smoke
+  runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --festival=lantern_night
+  --contest=scoop`) print no ERROR or WARNING line. Screenshot `--demo --festival=lantern_night
+  --contest=scoop:auto` frame 199: the box at the left, the hint whole, the farmer at about
+  x 240, y 100 (found with the box hidden by a temporary edit, reverted) clear of the box; a
+  villager stands partly in front of the farmer there. shots/ deleted.
+- Left / next: the mochi pounding's screen still covers the middle; a villager can stand in front
+  of the farmer at the tub.
+
 ## 2026-11-10 — Merge: farmer's scoop pose, goldfish art keys, Kiku's picked lines
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 29475b4 the farmer's pose at the goldfish tub (Opus, own worktree), b4f37bb the

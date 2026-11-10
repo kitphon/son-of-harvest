@@ -847,6 +847,12 @@ func _check_views() -> void:
 	var scoop3: Array = _scene3.get_children().filter(func(n): return _script_is(n, "scoop_screen.gd"))
 	var scoop2: Array = _scene2.get_children().filter(func(n): return _script_is(n, "scoop_screen.gd"))
 	check(scoop3.size() == 1 and scoop2.size() == 1, "both views have the goldfish scoop screen")
+	if scoop3.size() == 1:
+		# The box sits at the left edge and leaves the middle of the view (the farmer at the tub) clear.
+		var box: Rect2 = scoop3[0]._wood.get_rect()
+		var mid := float(ProjectSettings.get_setting("display/window/size/viewport_width")) / 2.0
+		check(box.position.x <= 8.0 and box.end.x < mid - 4.0, "the scoop box leaves the farmer in sight (%s)" % box)
+		check(PixelFont.shown_width("E: dip with a fish under the paper") <= scoop3[0].W - 12, "the hint fits the narrow paper")
 	if scoop3.size() == 1 and scoop2.size() == 1 and mochi3.size() == 1:
 		var pauses: int = g._pauses
 		scoop3[0].open("years_turn", "kota")

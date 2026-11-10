@@ -11,14 +11,14 @@ extends CanvasLayer
 ## `-- --demo --festival=lantern_night --contest=scoop` opens it at the start;
 ## `--contest=scoop:auto` dips by itself (for screenshots).
 
-const W := 280               # the paper's width
-const STAGE := Vector2(240, 118)
+const W := 220               # the paper's width (narrow, so the farmer at the tub shows beside it)
+const STAGE := Vector2(208, 118)
 const TOP := 17              # the heading strip on the wood
 const LINE := 11
-const TUB := Vector2(104, 54)       # the tub's middle on the stage
+const TUB := Vector2(62, 54)        # the tub's middle on the stage
 const TUB_R := 50.0                 # its water's radius (x); y is squashed by SQUASH
 const SQUASH := 0.82                # the tub seen from above at a slant
-const BOWL := Vector2(204, 76)      # the bowl of fish scooped
+const BOWL := Vector2(172, 76)      # the bowl of fish scooped
 const SHOW_RESULT := 2.0     # seconds the final count stays up
 const AUTO_WAIT := 0.06      # --contest=scoop:auto: seconds a fish is under the paper before the dip
 const WATER := Color("5a9ab8")
@@ -78,7 +78,9 @@ func _ready() -> void:
 	_wood.size = Vector2(W + 8, TOP + _paper.size.y + 4)
 	var screen := Vector2(ProjectSettings.get_setting("display/window/size/viewport_width"),
 		ProjectSettings.get_setting("display/window/size/viewport_height"))
-	_wood.position = Vector2(floorf((screen.x - _wood.size.x) / 2), 28)
+	# At the left edge, not the middle: the camera keeps the farmer (crouched at the tub) in
+	# the middle of the view, and the box must leave them in sight.
+	_wood.position = Vector2(4, floorf((screen.y - _wood.size.y) / 2) - 14)
 	_dim.visible = false
 	Game.game_requested.connect(open)
 	_auto = Array(OS.get_cmdline_user_args()).any(func(a): return a == "--contest=scoop:auto")
@@ -201,7 +203,7 @@ func _refresh() -> void:
 	_call.text = call
 	_call.add_theme_color_override("font_color", color)
 	_call.position.x = (W - PixelFont.shown_width(call)) / 2
-	_hint.text = "E: dip the scoop as a fish swims under the paper" if not game.done() \
+	_hint.text = "E: dip with a fish under the paper" if not game.done() \
 		else "Clean %d   Close %d   Splash %d" % [game.counts.clean, game.counts.edge, game.counts.splash]
 	_stage.queue_redraw()
 
