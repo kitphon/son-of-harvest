@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Merge: portraits' first pass, Thai coverage, the unrefined figure path
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three subagents in their own worktrees, the model picked by the job: 67aa77b the
+  portraits' first pass lays no OUTLINE (Sonnet), a920db4 the last 36 Thai gaps found to be
+  never-shown strings and left out of LangCatalog (Opus), 56b76d2 FigureArt's dead unrefined
+  path removed (Haiku). Merged into main; WORKLOG and ROADMAP keep every side. The figure
+  tests' outline checks now use PlaceholderArt.OUTLINE, which the portrait branch kept.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`;
+  the four smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print 0 error
+  or warning lines; lang_report prints `th: 2599 of 2599 done (100%), 0 missing, 0 stale`.
+- Left / next: ROADMAP "Next up" has no open item. The mine music has not been heard by a
+  person. The Windows .exe still waits on the export templates.
+
 ## 2026-11-11 — Portraits' first pass lays flat materials only
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: `_portrait_of` and its helpers (head, ears, neck's ring, hair behind, body, bun, braid,
