@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — The baby's cradle and carry pictures, refined
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: PlaceholderArt `child:cradle` (20 x 16), `child:held` (12 x 12) and `child:carry` (16 x 14) now come
+  out of the refined pass. Each picture is laid in flat material colours and new scripts/art/baby_art.gd
+  (`BabyArt.refine`) tones them through FigureArt.tones with data/villager_art.json's numbers: shade / base /
+  lit by the open side (upper-left light; skin shaded by its right side only), a line round the picture in
+  the material's deep tone pulled to the rim colour (0.6), no black outline. Eyes, cheeks, mouth, dots and the
+  cane weave stay as drawn; the weave is the cane's deep tone. New `baby` block in data/villager_art.json
+  (cane, bound rim, rocker, pad, pale, eye, cheek, mouth). The eye is now 2a2a3a (the figures' eye) so no
+  pixel is the old line colour. Keys, sizes, the four cradle looks and the child's colours are unchanged.
+- Checked: test_child has new checks (four pictures: no pixel near black or the old 2a1e1e line, at least 8
+  tones, carry stays 16 x 14; run with a fair-haired look since near-black hair has near-black tones of its
+  own). Screenshots of `--baby`, `--baby=held` and `--child=crawler:held --time=7:00` looked at; shots/ deleted.
+  Suites and smoke runs: see the merge report. test_child's weed / feed-box checks failed on 1 of 5 runs
+  (the flake noted in the merge entry; unrelated, passes on rerun).
+- Left / next: the portraits keep the plain drawing (another agent); the flake in test_child's morning
+  help is still not looked into.
+
 ## 2026-11-10 — Merge: inventory test leak, Nana's scarf on load, villager art refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 3a9aaa9 test_inventory frees its Game (Sonnet, own worktree), 710b6ae Nana's scarf
