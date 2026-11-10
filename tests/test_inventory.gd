@@ -254,6 +254,7 @@ func _arms_full() -> void:
 	var free := InventoryMenu.new(inv, "rucksack", 0, g.arms_full())
 	free.point("bag", 0)
 	check(free.hold() == "" and inv.id_at("hand", 0) == "turnip", "hands free: hold puts the item in the hand")
+	g.free()
 
 
 func _game() -> void:

@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — test_inventory no longer leaks a Game at exit
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: cause of `ERROR: 8 resources still in use at exit` (and `WARNING: 19 ObjectDB instances were
+  leaked`): `_arms_full()` in tests/test_inventory.gd made a `game.gd` Node with `.new()` and never freed
+  it (only `_game()` did). The leaked Game kept its scripts (farm_grid, inventory, affection, fishing,
+  map_manager, animals, goals, game) loaded. Added `g.free()` at the end of `_arms_full()`. Test-only; the
+  leak came in with that test (the dog / arms-full steps), not a game-code leak.
+- Checked: before, `test_inventory: OK (0 failed)` then `WARNING: 19 ObjectDB instances were leaked at
+  exit` and `ERROR: 8 resources still in use at exit`; after, only the OK line. All 31 tests/test_*.gd
+  print `OK (0 failed)` with no ERROR/WARNING lines, except test_title, whose 2 WARNING lines
+  (`No look part nose:1`) are the deliberate bad-look-id check, not exit errors. Four smoke runs: 0
+  ERROR/WARNING lines.
+- Left / next: nothing; no other suite printed the exit error.
+
 ## 2026-11-10 — Merge: Nana's scarf from the morning after, Kiku's persimmons to pick, farmer art refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 3b4edc3 Nana's scarf set on the morning after her birthday (Haiku, own worktree),
