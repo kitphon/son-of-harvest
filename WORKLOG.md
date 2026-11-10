@@ -10,6 +10,7 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+<<<<<<< HEAD
 ## 2026-11-10 — Kaede's portrait hair: tones for very dark materials
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: PortraitArt.tones now tones a very dark material from a lifted colour (new
@@ -33,6 +34,25 @@ Agent: Claude Code (claude-opus) · Commit: this commit
   tests/test_*.gd print `OK (0 failed)` with no ERROR line; the four smoke runs print no ERROR or
   WARNING line.
 - Left / next: no flat-view screenshot.
+=======
+## 2026-11-10 — One thing in the arms: the dog, the baby and the crawler never together
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: answers the open question of "Hands full with the dog". Lifting the baby (Game.lift_baby,
+  BabyActions.lift) and the crawler (Game.lift_crawler, BabyActions.lift_crawler) already refused
+  with the dog in the arms (they test holding(), which includes arms_full()), and in FarmActions the
+  dog / baby / crawler held branches come before every lift, so those two orders were impossible.
+  The gap: DogActions.interact (pet, then pick up) did not look at what was held; Animals.dog_lift
+  only checks the dog itself. Through FarmActions it was unreachable (the held branches catch it
+  first), but a direct call with the baby or crawler in the arms lifted the dog too. Fix:
+  DogActions.interact returns false (no pat, no pick-up, no message) when Game.holding().
+- Checked: new test_child `_one_in_the_arms` tries all four orders (dog then baby at the cradle,
+  dog then crawler, baby then dog, crawler then dog), through FarmActions buttons and the direct
+  helpers. Before the fix: `FAIL: baby held: the dog is not picked up (DogActions)` and
+  `FAIL: crawler held: the dog is not picked up (DogActions)`; after: `test_child: OK (0 failed)`.
+  Note: with the dog held, the tool button at the cradle or the crawler sets the dog down (existing
+  held-dog behaviour) and lifts nothing. Full run: see the commit report.
+- Left / next: none for this question.
+>>>>>>> refs/heads/worktree-agent-a92a2a94eaa3aae42
 
 ## 2026-11-10 — Merge: portraits refined, cradle / carry refined, test_child flake
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

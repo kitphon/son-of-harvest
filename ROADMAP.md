@@ -23,7 +23,11 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+<<<<<<< HEAD
 [x] Kaede's portrait hair (2026-11-10): a material darker than value 0.11 (only Kaede's 1a1416 today) is toned from itself lifted to value 0.2, so her black hime hair shows its shade, base, lit and deep tones in every mood; every other portrait unchanged (PortraitArt.lift, data/portrait_art.json `dark`; test_dialogue `_dark_hair`).
+=======
+[x] One thing in the arms (2026-11-10): the dog, the baby and the crawler never together, in every order; the pick-up of the dog now refuses while anything is held (DogActions.interact), the baby / crawler lifts already did; test_child `_one_in_the_arms`, see WORKLOG.
+>>>>>>> refs/heads/worktree-agent-a92a2a94eaa3aae42
 [x] test_child help flake (2026-11-10): the nightly neglect roll (1 in 8) could drop the child below band 5 before the morning help; the test now counts a talk today before `end_day()`, 7 failures in 40 runs before, see WORKLOG.
 [x] Portraits, refined (2026-11-10): every text box portrait (each villager in each mood, the child at crawler, toddler and child, the generic face: keys) in the figures' refined look: three tones per material lit from the upper left, deep-tone part lines and a darker rim instead of the black outline, eyes and mouth in their own colours; keys, size, moods and colours kept (PortraitArt, data/portrait_art.json; test_dialogue `_refined_portraits`). Next for the look: the baby's cradle and carry pictures are still the plain drawing.
 [x] test_inventory exit leak (2026-11-10): `_arms_full()` freed no Game node; `g.free()` added, the suite quits with no ERROR line.

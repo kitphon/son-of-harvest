@@ -51,6 +51,7 @@ func _process(_delta: float) -> bool:
 		_crawler_in_arms()
 		_crawler_save()
 		_crawler_only()
+		_one_in_the_arms()
 		_little_talk()
 		_little_gifts()
 		_little_views()
@@ -898,6 +899,55 @@ func _baby_save() -> void:
 
 
 # --- holding the crawler (data/child.json hold) -----------------------------------------
+
+## Only one thing in the arms: the dog, the baby and the crawler never at once, in every order.
+func _one_in_the_arms() -> void:
+	var g: Node = root.get_node("Game")
+	var FA: GDScript = load("res://scripts/farm_actions.gd")
+	var BA: GDScript = load("res://scripts/villagers/baby_actions.gd")
+	var DA: GDScript = load("res://scripts/animals/dog_actions.gd")
+	var cradle := Vector2i(10, 1)
+	var at := Vector2i(10, 2)
+	# Dog held, then the baby at the cradle (either button; the helper and Game both refuse).
+	_baby_home(g)
+	g.hour = 8
+	g.minute = 0
+	check(g.animals.dog_lift() and g.arms_full(), "dog first: in the arms")
+	FA.on_action("tool", at, Vector2i.UP)
+	check(not g.baby_held, "dog held, tool button at the cradle: the baby stays in the cradle (the button sets the dog down)")
+	g.animals.dog_lift()
+	check(g.animals.dog.held and not g.baby_held, "dog in the arms again")
+	check(not BA.lift(cradle) and not g.lift_baby() and not g.baby_held and g.animals.dog.held, "dog held: lift and lift_baby refuse")
+	g.animals.dog_put(Vector2i(3, 3))
+	# Baby held, then the g.animals.dog.
+	check(g.lift_baby() and g.baby_held, "baby first: in the arms")
+	g.maps.place("farm", g.animals.dog.cell + Vector2i.LEFT, Vector2i.RIGHT)
+	check(not DA.interact(g.animals.dog.cell) and not g.animals.dog.held, "baby held: the dog is not picked up (DogActions)")
+	FA.on_action("interact", g.animals.dog.cell + Vector2i.LEFT, Vector2i.RIGHT)
+	FA.on_action("tool", g.animals.dog.cell + Vector2i.LEFT, Vector2i.RIGHT)
+	check(g.baby_held and not g.animals.dog.held, "baby held: either button facing the dog leaves them as they were")
+	g.baby_held = false
+	# Dog held, then the crawler.
+	_little_home(g, "crawler")
+	var w := _crawler_where(g)
+	var cell := Vector2i(w.pos.floor())
+	var from := cell + Vector2i.LEFT
+	g.maps.place("house", from, Vector2i.RIGHT)
+	check(g.animals.dog_lift(), "dog first (again): in the arms")
+	check(not BA.lift_crawler(cell) and not g.lift_crawler(cell) and not g.crawler_held() and g.animals.dog.held, "dog held: the crawler is not lifted")
+	FA.on_action("tool", from, Vector2i.RIGHT)
+	check(not g.crawler_held(), "dog held, tool button facing the crawler: the crawler is not lifted (the button sets the dog down)")
+	g.animals.dog_lift()
+	g.animals.dog_put(Vector2i(3, 3))
+	# Crawler held, then the g.animals.dog.
+	check(g.lift_crawler(cell) and g.crawler_held(), "crawler first: in the arms")
+	g.maps.place("farm", g.animals.dog.cell + Vector2i.LEFT, Vector2i.RIGHT)
+	check(not DA.interact(g.animals.dog.cell) and not g.animals.dog.held, "crawler held: the dog is not picked up (DogActions)")
+	FA.on_action("interact", g.animals.dog.cell + Vector2i.LEFT, Vector2i.RIGHT)
+	FA.on_action("tool", g.animals.dog.cell + Vector2i.LEFT, Vector2i.RIGHT)
+	check(not g.animals.dog.held, "crawler held: the buttons facing the dog never put the dog in the arms too")
+	g.crawler_back()
+
 
 func _crawler_where(g: Node, t := -1.0) -> Dictionary:
 	return Villagers.where(Child.ID, g.day_minutes() if t < 0.0 else t, g.trigger_state(Vector2i.ZERO))
