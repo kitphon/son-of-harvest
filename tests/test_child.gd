@@ -437,6 +437,22 @@ func _cradle_rules() -> void:
 	var held := PlaceholderArt.tex(Child.held_key("awake", look)).get_image()
 	check(held.get_size() == Vector2i(12, 12), "the baby held is 12 x 12, like an item overhead")
 	check(Child.held_key("cry", look) == Child.held_key("awake", look) and Child.held_key("asleep", look) != Child.held_key("awake", look), "held: asleep or awake")
+	# Refined like the figures: no pure-black outline pixel, several tones, the keys' sizes kept.
+	var fair := Child.look({"hair_style": "long", "hair": "7a5a3a", "skin": "f0c8a0"}, "c08a60")   # dark hair has dark tones of its own
+	for key in [Child.cradle_key("awake", fair), Child.cradle_key("empty", fair), Child.held_key("asleep", fair), Child.carry_key(fair)]:
+		var pic := PlaceholderArt.tex(key).get_image()
+		var tones := {}
+		var dark := 0
+		for yy in pic.get_height():
+			for xx in pic.get_width():
+				var px := pic.get_pixel(xx, yy)
+				if px.a > 0.0:
+					tones[px.to_html()] = true
+					if px.is_equal_approx(PlaceholderArt.OUTLINE) or maxf(px.r, maxf(px.g, px.b)) < 0.08:
+						dark += 1
+		check(dark == 0, "%s: no black outline pixels (the old line colour or near 0) (%d)" % [key.get_slice(":", 1), dark])
+		check(tones.size() >= 8, "%s: several tones (%d)" % [key.get_slice(":", 1), tones.size()])
+	check(PlaceholderArt.tex(Child.carry_key(look)).get_image().get_size() == Vector2i(16, 14), "the carried crawler stays 16 x 14")
 	var skin := Color(look.skin)
 	var found := false
 	for y in held.get_height():

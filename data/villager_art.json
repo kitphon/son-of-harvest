@@ -8,5 +8,6 @@
 	"sole": "8a8478",
 	"sole_mix": 0.5,
 	"collar": "f4f0e6",
-	"materials": ["f0ece0", "8e2c1c", "a07a4a", "5a5e66"]
+	"materials": ["f0ece0", "8e2c1c", "a07a4a", "5a5e66"],
+	"baby": {"_note": "The baby's cradle and carry pictures (BabyArt): the bamboo cradle's cane, its bound rim and the rockers, the pad and the pale dots and sash in the happi. Our own colours; toned like everything else here.", "cane": "c8b070", "cane_rim": "dcc88c", "rocker": "8a6a3a", "pad": "ece4d0", "pale": "e8e2d0", "eye": "2a2a3a", "cheek": "e8907a", "mouth": "8a2a2a"}
 }

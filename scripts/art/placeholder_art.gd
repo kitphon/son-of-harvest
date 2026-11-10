@@ -585,13 +585,15 @@ static func food_look(id: String) -> Dictionary:
 
 ## The baby's face in a swaddle: a round face at (cx, cy), a tuft of the hair colour on top,
 ## eyes shut (asleep: a short dark line each) or open (dots), and the mouth open while crying.
-static func _baby_face(img: Image, cx: int, cy: int, look: String, skin: Color, hair: Color) -> void:
+## Flat colours; BabyArt.refine tones them.
+static func _baby_face(img: Image, cx: int, cy: int, look: String, skin: Color, hair: Color, b: Dictionary) -> void:
+	var cheek := Color(str(b.cheek)).lerp(skin, 0.4)
 	_oval(img, cx + 0.5, cy + 0.5, 3.2, 2.8, skin)
 	_px(img, cx - 1, cy - 3, 3, 1, hair)          # the tuft
 	_px(img, cx, cy - 4, 1, 1, hair)
-	_px(img, cx - 2, cy + 2, 1, 1, Color("e8907a").lerp(skin, 0.4))   # pink cheeks
-	_px(img, cx + 3, cy + 2, 1, 1, Color("e8907a").lerp(skin, 0.4))
-	var eye := Color("2a1e1e")
+	_px(img, cx - 2, cy + 2, 1, 1, cheek)         # pink cheeks
+	_px(img, cx + 3, cy + 2, 1, 1, cheek)
+	var eye := Color(str(b.eye))
 	if look == "asleep":
 		_px(img, cx - 2, cy + 1, 2, 1, eye)
 		_px(img, cx + 2, cy + 1, 2, 1, eye)
@@ -599,57 +601,62 @@ static func _baby_face(img: Image, cx: int, cy: int, look: String, skin: Color, 
 		_px(img, cx - 1, cy, 1, 1, eye)
 		_px(img, cx + 2, cy, 1, 1, eye)
 	if look == "cry":
-		_px(img, cx, cy + 2, 2, 2, Color("8a2a2a"))
+		_px(img, cx, cy + 2, 2, 2, Color(str(b.mouth)))
 	elif look == "awake":
 		_px(img, cx + 1, cy + 2, 1, 1, skin.darkened(0.3))
 
 
+## What stays as drawn in the baby pictures (eyes, cheeks, mouth, dots, the cane's weave).
+static func _baby_fixed(skin: Color, b: Dictionary, weave := Color(0, 0, 0, 0)) -> Array:
+	return [Color(str(b.eye)), Color(str(b.cheek)).lerp(skin, 0.4), Color(str(b.mouth)), skin.darkened(0.3),
+		Color(str(b.pale)), weave]
+
+
 ## The bamboo cradle (a woven basket on two rockers) seen from the front and a little above,
 ## 20 x 16: the baby's head over the rim on a white pad, an indigo quilt (`top`) over the rest;
-## awake, a small fist up by the quilt. "empty": the pad and the quilt folded back.
+## awake, a small fist up by the quilt. "empty": the pad and the quilt folded back. Refined
+## (BabyArt): three tones of cane, rocker, pad and quilt lit from the upper left, no black line.
 static func _baby_cradle(look: String, skin: Color, hair: Color, top: Color) -> Image:
+	var b := BabyArt.colours()
 	var img := _blank(20, 16)
-	var cane := Color("c8b070")
-	var cane_dark := cane.darkened(0.25)
-	var rocker := Color("8a6a3a")
-	_px(img, 3, 3, 14, 3, Color("ece4d0"))           # the pad inside, over the far rim
+	var cane := Color(str(b.cane))
+	var weave := FigureArt.tones(cane, false, FigureArt.villager_art())[3] as Color
+	var rocker := Color(str(b.rocker))
+	_px(img, 3, 3, 14, 3, Color(str(b.pad)))         # the pad inside, over the far rim
 	if look == "empty":
 		_px(img, 10, 3, 7, 2, top)                   # the quilt folded back
-		_px(img, 10, 3, 7, 1, top.lightened(0.2))
 	else:
 		_px(img, 8, 3, 10, 3, top)                   # the quilt over the little body
-		_px(img, 8, 3, 10, 1, top.lightened(0.2))
-		_px(img, 11, 4, 1, 1, Color("e8e2d0"))       # the happi's pale dots
-		_px(img, 15, 4, 1, 1, Color("e8e2d0"))
-		_baby_face(img, 5, 3, look, skin, hair)
+		_px(img, 11, 4, 1, 1, Color(str(b.pale)))    # the happi's pale dots
+		_px(img, 15, 4, 1, 1, Color(str(b.pale)))
+		_baby_face(img, 5, 3, look, skin, hair, b)
 		if look != "asleep":                         # a small fist waving over the quilt
 			_px(img, 13, 1, 2, 2, skin)
-	_px(img, 1, 6, 18, 2, cane.lightened(0.2))       # the rim, bound with cane
-	_px(img, 1, 6, 18, 1, cane.lightened(0.35))
+	_px(img, 1, 6, 18, 2, Color(str(b.cane_rim)))    # the rim, bound with cane
 	_px(img, 2, 8, 16, 5, cane)                      # the basket's front
-	for x in range(3, 18, 2):                        # the weave
-		_px(img, x, 8, 1, 5, cane_dark)
-	_px(img, 2, 10, 16, 1, cane_dark)
+	for x in range(3, 18, 2):                        # the weave, in the cane's deep tone
+		_px(img, x, 8, 1, 5, weave)
+	_px(img, 2, 10, 16, 1, weave)
 	_px(img, 4, 13, 1, 1, rocker)                    # the rockers' legs and curve
 	_px(img, 15, 13, 1, 1, rocker)
 	_px(img, 2, 14, 16, 1, rocker)
 	_px(img, 1, 13, 1, 1, rocker)
 	_px(img, 18, 13, 1, 1, rocker)
-	return _outline(img)
+	return BabyArt.refine(img, _baby_fixed(skin, b, weave), [skin])
 
 
 ## The baby held up in the arms (the hold pose), 12 x 12 like a carried item: a small bundle
 ## lying across the hands, swaddled in the house's indigo, the face in its white wrap at one end.
 static func _baby_held(look: String, skin: Color, hair: Color, top: Color) -> Image:
+	var b := BabyArt.colours()
 	var img := _blank(12, 12)
 	_oval(img, 7.5, 8.5, 4.4, 2.8, top)              # the swaddle
-	_px(img, 5, 7, 6, 1, top.lightened(0.2))
-	_px(img, 7, 9, 1, 1, Color("e8e2d0"))
-	_px(img, 10, 9, 1, 1, Color("e8e2d0"))
-	_oval(img, 3.5, 7.5, 3.4, 3.4, Color("ece4d0"))  # the white wrap round the face
+	_px(img, 7, 9, 1, 1, Color(str(b.pale)))
+	_px(img, 10, 9, 1, 1, Color(str(b.pale)))
+	_oval(img, 3.5, 7.5, 3.4, 3.4, Color(str(b.pad)))  # the white wrap round the face
 	_oval(img, 3.5, 7.5, 2.3, 2.2, skin)             # the face
 	_px(img, 3, 5, 2, 1, hair)                       # the tuft
-	var eye := Color("2a1e1e")
+	var eye := Color(str(b.eye))
 	if look == "asleep":
 		_px(img, 2, 7, 1, 1, eye)
 		_px(img, 4, 7, 1, 1, eye)
@@ -657,22 +664,22 @@ static func _baby_held(look: String, skin: Color, hair: Color, top: Color) -> Im
 		_px(img, 2, 6, 1, 1, eye)
 		_px(img, 4, 6, 1, 1, eye)
 		_px(img, 3, 8, 1, 1, skin.darkened(0.3))
-	return _outline(img)
+	return BabyArt.refine(img, _baby_fixed(skin, b), [skin])
 
 
 ## The crawler held up in the arms (the hold pose), 16 x 14, a little bigger than the swaddled
 ## baby: sitting up on the hands facing out, the round head with the spouse's hair (`style`: a
 ## bun on top for long hair), the indigo happi (`top`) with its pale sash and dots, both arms
-## out to the sides and the bare feet hanging below.
+## out to the sides and the bare feet hanging below. Refined like the figures (BabyArt).
 static func _crawler_carry(style: String, skin: Color, hair: Color, top: Color) -> Image:
+	var b := BabyArt.colours()
 	var img := _blank(16, 14)
-	var pale := Color("e8e2d0")
+	var pale := Color(str(b.pale))
 	_px(img, 1, 7, 3, 2, top)                        # the sleeves, arms out
 	_px(img, 12, 7, 3, 2, top)
 	_px(img, 0, 7, 1, 2, skin)                       # the small hands
 	_px(img, 15, 7, 1, 2, skin)
 	_oval(img, 8.0, 9.5, 4.4, 3.4, top)              # the happi over the round body
-	_px(img, 5, 8, 6, 1, top.lightened(0.2))
 	_px(img, 4, 10, 8, 1, pale)                      # the sash
 	_px(img, 6, 9, 1, 1, pale)                       # the happi's dots
 	_px(img, 10, 9, 1, 1, pale)
@@ -687,13 +694,14 @@ static func _crawler_carry(style: String, skin: Color, hair: Color, top: Color) 
 	elif style == "long" or style == "headband":
 		_px(img, 4, 2, 1, 3, hair)
 		_px(img, 11, 2, 1, 3, hair)
-	var eye := Color("2a1e1e")
+	var eye := Color(str(b.eye))
 	_px(img, 6, 4, 1, 1, eye)                        # eyes open, a small smile, pink cheeks
 	_px(img, 9, 4, 1, 1, eye)
 	_px(img, 7, 6, 2, 1, skin.darkened(0.3))
-	_px(img, 5, 5, 1, 1, Color("e8907a").lerp(skin, 0.4))
-	_px(img, 10, 5, 1, 1, Color("e8907a").lerp(skin, 0.4))
-	return _outline(img)
+	var cheek := Color(str(b.cheek)).lerp(skin, 0.4)
+	_px(img, 5, 5, 1, 1, cheek)
+	_px(img, 10, 5, 1, 1, cheek)
+	return BabyArt.refine(img, _baby_fixed(skin, b) + [hair.lightened(0.15)], [skin])
 
 
 static func _blank(w: int, h: int) -> Image:
