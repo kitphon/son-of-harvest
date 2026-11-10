@@ -10,6 +10,35 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Crop art in the field, refined (the tall crops and the cluster plants)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: PlaceholderArt._crop's grown vine / stalk / grain looks (cucumber, tomato, corn, rice:
+  `crop:<id>:2..3:*`, the one-sprite fallback) and _stalk (`stalk:<cucumber|tomato|corn|rice>:
+  <2|3>:<growing|ripe>:<0..2>`, the CropClusters plants in both views) are laid in flat materials
+  and toned by ItemArt.refine (data/item_art.json, no new entry): three tones lit from the upper
+  left, deep-tone part lines, a rim in each material's deep tone instead of the 2a1e1e outline
+  (_crop) or the one leaf-dark rim (_stalk). Materials: the stake, the leaf, the corn's stem
+  (`_corn_stem`, the leaf a little yellower and darker), the tassel and the husk (new `_TASSEL`,
+  `_HUSK`), the rice's front and back blades, the fruit (the cucumber's pale ripe colour). Dropped
+  hand-shaded copies: the alternating light / dark leaves, the stake's dark column, the dark leaf
+  stalks at the stake, the light growing tip, the fruit highlights, the cucumber's lit and dark
+  columns (it is two pixels of one pale now), the ears' darker tips, the rice's lit middle blade.
+  The corn's leaves are two pixels thick (one-pixel lines take no lit side) and the 16 x 16 rice
+  fallback's blades two wide side by side; the cluster rice keeps its one-pixel blades. Removed
+  dead code: _crop's seed / sprout / root / bush / ground branches (CropArt draws those), the
+  `_root` helper, `_rim` and `_SOIL`, used only there. Same keys, sizes and anchors (bottom row);
+  the single-sprite crops (CropArt) and the winter stubble are unchanged.
+- Checked: new test_farm `_crop_art_refined` (every crop id, growth 0..3, ripe or not, and every
+  stalk growth / state / variant: size and bottom row kept, no 2a1e1e pixel, at least four
+  colours, the leaf in a refined tone); `_crop_art`'s black-outline check now covers the tall crops
+  too. Three test_maps checks counted exact flat colours and now count the refined tones
+  (ItemArt.tones): the vines' fruit only when ripe, the ripe cucumber not touching a leaf tone,
+  the rice's gold ears. A 5x sheet of all the tall pictures and screenshots `--demo` (the cucumber
+  stakes) and `--demo --season=summer` (corn rows toned green with deep-green rims, the ripe rice
+  gold, no black outline) looked at; shots/ deleted. All tests/test_*.gd print `OK (0 failed)`;
+  the four smoke runs print 0 ERROR and 0 WARNING lines.
+- Left / next: the maple tree, festival decorations and story props still use the old outline.
+
 ## 2026-11-10 — Merge: HUD icons, field / mine art and the mochi mortar and mallet refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 3f5b0e9 HUD coin / stamina / weather icons (Sonnet), 7afcefd field obstacles, mine

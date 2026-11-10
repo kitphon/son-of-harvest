@@ -144,6 +144,7 @@ func _init() -> void:
 					keys[img.get_data()] = key
 	check(keys.size() == crops.size(), "ripe crops all look different (%d distinct)" % keys.size())
 	_crop_art(crops)
+	_crop_art_refined(crops)
 	_farmer_art()
 	var q := FarmGrid.new(crops)
 	var qc := Vector2i(6, 6)
@@ -551,6 +552,61 @@ func _grow_days(crop: String) -> int:
 	return n
 
 
+## The tall crops refined (PlaceholderArt._crop's grown vine / stalk / grain and _stalk, the
+## clusters' plants): every crop id and growth, ripe or not, and every stalk variant keeps its size
+## and stands on its bottom row, has no near-black 2a1e1e pixel, has several tones, and shows its
+## leaf in a refined tone (ItemArt.refine: lit from the upper left, deep-tone part lines; the rice's
+## one-pixel blades hold no lit side, so for them a shade or deep part line counts).
+func _crop_art_refined(crops: Dictionary) -> void:
+	var sizes := {"vine": [Vector2i(13, 14), Vector2i(13, 23)], "stalk": [Vector2i(11, 15), Vector2i(11, 24)],
+		"grain": [Vector2i(9, 11), Vector2i(9, 16)]}
+	var n := 0
+	for id in crops:
+		var look: Dictionary = crops[id].look
+		var shape: String = look.get("shape", "bush")
+		var tall := shape == "vine" or shape == "stalk"
+		# The refined tones of the leaf (or of the ripe grain's straw stem and its back blades)
+		# other than the flat base: lit, shade or the deep part line.
+		var leaf := Color(look.leaf)
+		var straw := leaf.lerp(Color(look.fruit).darkened(0.2), 0.55)
+		var toned: Array = []
+		for m in [leaf, leaf.darkened(0.2), straw, straw.darkened(0.2)] if shape == "grain" else [leaf]:
+			var t: Array = ItemArt.tones(m)
+			toned.append_array([t[0], t[2], t[3]])
+		var keys := {}
+		for growth in 4:
+			for ripe in ["growing", "ripe"] if growth == 3 else ["growing"]:
+				var want := Vector2i(16, 24 if tall and growth >= 2 else 16)
+				keys["crop:%s:%d:%s" % [id, growth, ripe]] = [want, growth >= 2 and not CropArt.draws_grown(shape)]
+		if sizes.has(shape):
+			for growth in [2, 3]:
+				for ripe in ["growing", "ripe"]:
+					for v in 3:
+						keys["stalk:%s:%d:%s:%d" % [id, growth, ripe, v]] = [sizes[shape][growth - 2], true]
+		for key in keys:
+			var img := PlaceholderArt.tex(key).get_image()
+			var outline := 0
+			var has_lit := false
+			var colours := {}
+			for y in img.get_height():
+				for x in img.get_width():
+					var c := img.get_pixel(x, y)
+					if c.a == 0:
+						continue
+					colours[c.to_html()] = true
+					if c.is_equal_approx(PlaceholderArt.OUTLINE):
+						outline += 1
+					if toned.any(func(t: Color) -> bool: return _near(c, t)):
+						has_lit = true
+			check(img.get_size() == keys[key][0] and img.get_used_rect().end.y == img.get_height(),
+				"%s: keeps its size %s and stands on its bottom row (%s)" % [key, keys[key][0], img.get_size()])
+			check(outline == 0 and colours.size() >= 4, "%s: no 2a1e1e outline pixel (%d), several tones (%d)" % [key, outline, colours.size()])
+			if keys[key][1]:
+				check(has_lit, "%s: refined, the leaf shows its lit, shade or deep tone" % key)
+			n += 1
+	check(n > 100, "tall crop art checked (%d pictures)" % n)
+
+
 ## CropArt (scripts/art/crop_art.gd): the single-sprite crops drawn part by part. Every crop and growth
 ## keeps the old picture size, the ripe pictures differ, the rim is a deep shade (no black outline),
 ## and the produce is lit from the upper left.
@@ -573,7 +629,7 @@ func _crop_art(crops: Dictionary) -> void:
 							opaque += 1
 							if c.is_equal_approx(PlaceholderArt.OUTLINE) or maxf(c.r, maxf(c.g, c.b)) < 0.12:
 								black += 1
-				check(opaque > 8 and (black == 0 or not (growth < 2 or CropArt.draws_grown(shape))), "%s: drawn, with no black outline pixels (the tall crops' grown looks are the clusters' `stalk:` fallback)" % key)
+				check(opaque > 8 and black == 0, "%s: drawn, with no black outline pixels" % key)
 				rims += 1
 		if CropArt.draws_grown(shape):
 			var a := PlaceholderArt.tex("crop:%s:2:growing" % id).get_image().get_data()

@@ -2776,9 +2776,11 @@ func _crop_clusters() -> void:
 		for st in ["3:ripe", "3:growing", "2:ripe", "2:growing"]:
 			var im := PlaceholderArt.tex("stalk:%s:%s:1" % [id, st]).get_image()
 			var n := 0
+			var ft: Array = ItemArt.tones(fc)   # the fruit in any of its refined tones
 			for y in im.get_height():
 				for x in im.get_width():
-					if im.get_pixel(x, y).is_equal_approx(fc):
+					var px := im.get_pixel(x, y)
+					if ft.any(func(t: Color) -> bool: return _near(px, t)):
 						n += 1
 			counts[st] = [n, im.get_height()]
 		vine_ok = vine_ok and counts["3:ripe"][0] >= 8 and counts["3:growing"][0] == 0 and counts["2:ripe"][0] >= 4 and counts["2:growing"][0] == 0 			and counts["3:ripe"][1] > counts["2:ripe"][1]
@@ -2787,14 +2789,14 @@ func _crop_clusters() -> void:
 	check(vspots.size() == 4 and vspots.all(func(s): return Rect2(Vector2(s.cell), Vector2.ONE).grow(-0.05).has_point(Vector2(s.pos.x, s.pos.z)))
 		and cc.layout("stalk:tomato:3:ripe").get("stiff", 1.0) < 1.0, "clusters: two stakes a vine cell, inside it, held firmer than rice")
 	# A ripe cucumber stands apart: its fruit is paler than its leaves, and no leaf touches it
-	# (only its own lit and shaded tones, or the leaf rim, lie beside a fruit pixel).
+	# (only its own refined tones, or a rim, lie beside a fruit pixel; never a leaf tone).
 	var cuc: Dictionary = PlaceholderArt.crop_look("cucumber")
 	var pale := Color(cuc.get("ripe_fruit", "000000"))
 	var leafc := Color(cuc.leaf)
 	var same := func(a: Color, b: Color) -> bool: return absf(a.r - b.r) < 0.02 and absf(a.g - b.g) < 0.02 and absf(a.b - b.b) < 0.02
-	var tones := [pale, pale.lightened(0.45), pale.darkened(0.4)]
+	var tones: Array = ItemArt.tones(pale)
 	var is_fruit := func(c: Color) -> bool: return c.a >= 0.5 and tones.any(func(t: Color) -> bool: return same.call(c, t))
-	var rim := leafc.darkened(0.6)
+	var leaf_tones: Array = ItemArt.tones(leafc)
 	var stand_off := true
 	var fruit_px := 0
 	for v in 3:
@@ -2812,16 +2814,17 @@ func _crop_clusters() -> void:
 						if q.x < 0 or q.y < 0 or q.x >= iw or q.y >= ih:
 							continue
 						var n := im.get_pixel(q.x, q.y)
-						if n.a >= 0.5 and not is_fruit.call(n) and not same.call(n, rim):
+						if n.a >= 0.5 and leaf_tones.any(func(t: Color) -> bool: return same.call(n, t)):
 							stand_off = false
 	var lum := func(c: Color) -> float: return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
 	check(stand_off and fruit_px >= 40 and lum.call(pale) - lum.call(leafc) >= 0.15,
 		"clusters: a ripe cucumber's fruit is paler than its leaves (%.2f vs %.2f) and no leaf touches it (%d fruit pixels)" % [lum.call(pale), lum.call(leafc), fruit_px])
 	var gold := 0
-	var fruit := Color(PlaceholderArt.crop_look("rice").fruit)
+	var gold_tones: Array = ItemArt.tones(Color(PlaceholderArt.crop_look("rice").fruit))   # the ears in their refined tones
 	for y in ripe.get_height():
 		for x in ripe.get_width():
-			if ripe.get_pixel(x, y).is_equal_approx(fruit):
+			var px := ripe.get_pixel(x, y)
+			if gold_tones.any(func(t: Color) -> bool: return _near(px, t)):
 				gold += 1
 	check(variants.size() == 9 and ripe.get_width() < 12 and young.get_height() < ripe.get_height() and corn.get_height() > ripe.get_height() and gold >= 10,
 		"clusters: %d pictures, a rice hill %dx%d (young %d high), a corn stalk %d high, %d gold ear pixels"
@@ -3823,6 +3826,11 @@ func _hearth_smoke() -> void:
 
 func _k(file: String) -> GDScript:
 	return load("res://scripts/world3d/%s.gd" % file)
+
+
+## True when two colours are the same as an RGBA8 picture stores them.
+func _near(a: Color, b: Color) -> bool:
+	return absf(a.r - b.r) < 0.006 and absf(a.g - b.g) < 0.006 and absf(a.b - b.b) < 0.006 and a.a > 0.0
 
 
 func check(ok: bool, what: String) -> void:
