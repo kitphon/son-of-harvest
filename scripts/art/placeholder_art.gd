@@ -432,7 +432,6 @@ static func villager_top(id: String) -> int:
 ## Field objects and crops share one style with the farmer: shapes in 2-3 shades, then a
 ## 1 px dark outline around the whole silhouette.
 const OUTLINE := Color("2a1e1e")
-const _SOIL := Color("6b4a2a")
 const _STAKE := Color("b08a5a")
 const _DEFAULT_LOOK := {"shape": "bush", "leaf": "5f9e3a", "fruit": "e8a23a"}
 
@@ -1032,109 +1031,70 @@ static func _crop(id: String, growth: int, ripe: bool) -> Image:
 	var look := crop_look(id)
 	var shape: String = look.get("shape", "bush")
 	# The single-sprite crops (and every crop's seed and sprout) are drawn by CropArt; only the tall
-	# crops' grown look stays below (the 3D and flat views stand those as `stalk:` clusters).
+	# crops' grown look stays below (the 3D and flat views stand those as `stalk:` clusters, so this
+	# is their one-sprite fallback). Laid in flat materials (stake, leaf, stem, tassel, husk, fruit)
+	# and toned by ItemArt.refine like the item icons: three tones lit from the upper left, deep-tone
+	# part lines, a rim in each material's own deep tone instead of the near-black outline.
 	if growth < 2 or CropArt.draws_grown(shape):
 		return CropArt.draw(id, growth, ripe)
-	var tall := growth >= 2 and (shape == "vine" or shape == "stalk")
+	var tall := shape == "vine" or shape == "stalk"
 	var img := _blank(16, 24 if tall else 16)
-	var g := img.get_height() - 2          # ground row; the row below is left for the outline
+	var g := img.get_height() - 2          # ground row; the row below is left for the rim
 	var leaf := Color(look.get("leaf", "5f9e3a"))
-	var dark := leaf.darkened(0.25)
-	var light := leaf.lightened(0.25)
 	var fruit := Color(look.get("fruit", "e8a23a"))
-	if growth == 0:
-		_px(img, 5, g - 1, 6, 2, _SOIL)
-		_px(img, 6, g - 1, 1, 1, Color("e8d8a8"))
-		_px(img, 9, g, 1, 1, Color("e8d8a8"))
-		return _outline(img)
-	if growth == 1:
-		_px(img, 7, g - 3, 2, 4, dark)
-		_oval(img, 5.5, g - 4, 2.2, 1.3, leaf)
-		_oval(img, 10.5, g - 5, 2.2, 1.3, light)
-		return _outline(img)
 	var big := growth >= 3
 	match shape:
-		"root":
-			_root(img, look, g, big, leaf, dark, light)
-			if ripe:
-				var b: Array = look.get("bulb", [4.0, 2.5])
-				_oval(img, 8, g - b[1] + 1, b[0], b[1], fruit)
-				if look.has("fruit_top"):
-					_oval(img, 8, g - b[1] * 1.6 + 1, b[0] * 0.8, b[1] * 0.5, Color(look.fruit_top))
-				_px(img, 6, g - int(b[1]), 2, 1, fruit.lightened(0.35))
-		"bush":
-			var r := Vector2(6, 5) if big else Vector2(4, 3)
-			_oval(img, 8, g - r.y + 1, r.x, r.y, dark)
-			_oval(img, 7.5, g - r.y - 0.5, r.x - 0.5, r.y - 0.5, leaf)
-			_px(img, 5, g - 2 * int(r.y) + 2, 2, 1, light)
-			if ripe:
-				if look.get("fruit_shape", "") == "tuber":
-					for p in [Vector2(3.5, g - 0.5), Vector2(12.5, g - 0.5), Vector2(8, g)]:
-						_oval(img, p.x, p.y, 2.2, 1.6, fruit)
-				else:
-					for p in [Vector2(4.5, g - 3), Vector2(11.5, g - 4), Vector2(8, g - 2)]:
-						_oval(img, p.x, p.y, 1.6, 2.6, fruit)
-						_px(img, int(p.x) - 1, int(p.y - 3), 2, 1, dark)
-				if look.has("flower"):
-					for p in [Vector2i(6, g - 9), Vector2i(10, g - 8)]:
-						_px(img, p.x, p.y, 2, 2, Color(look.flower))
 		"vine":
 			var top := g - (19 if big else 10)
 			_px(img, 7, top - 1, 2, g - top + 2, _STAKE)
 			var side := -1
 			for y in range(g - 1, top, -3):
-				_oval(img, 8 + side * 3, y, 2.6, 1.8, leaf if side < 0 else dark)
+				_oval(img, 8 + side * 3, y, 2.6, 1.8, leaf)
 				side = -side
-			_px(img, 8, top, 2, 2, light)
+			_px(img, 7, top - 1, 2, 2, leaf)   # the growing tip
 			if ripe:
+				var pale := Color(look["ripe_fruit"]) if look.has("ripe_fruit") else fruit
 				for p in [Vector2(4, g - 6), Vector2(12, g - 10), Vector2(4.5, g - 14)]:
 					if look.get("fruit_shape", "") == "long":
-						_px(img, int(p.x), int(p.y) - 2, 2, 5, fruit)
-						_px(img, int(p.x), int(p.y) - 2, 1, 2, fruit.lightened(0.3))
+						_px(img, int(p.x), int(p.y) - 2, 2, 5, pale)
 					else:
 						_oval(img, p.x, p.y, 1.9, 1.9, fruit)
-						_px(img, int(p.x) - 1, int(p.y) - 1, 1, 1, fruit.lightened(0.4))
 		"stalk":
 			var h := 20 if big else 10
-			_px(img, 7, g - h, 2, h + 1, dark)
+			_px(img, 7, g - h, 2, h + 1, _corn_stem(leaf))
 			for y in range(g - 2, g - h + 1, -5):
-				_line(img, Vector2i(6, y), Vector2i(2, y - 3), leaf)
-				_line(img, Vector2i(9, y - 2), Vector2i(13, y - 5), leaf)
+				for t in 2:   # two pixels thick, so refine lights the upper edge and shades the lower
+					_line(img, Vector2i(6, y + t), Vector2i(2, y - 3 + t), leaf)
+					_line(img, Vector2i(9, y - 2 + t), Vector2i(13, y - 5 + t), leaf)
 			if big:
-				_px(img, 7, g - h - 2, 2, 2, Color("d9c27a"))
-				_px(img, 6, g - h - 1, 1, 1, Color("d9c27a"))
-				_px(img, 9, g - h - 1, 1, 1, Color("d9c27a"))
+				_px(img, 7, g - h - 2, 2, 2, _TASSEL)
+				_px(img, 6, g - h - 1, 1, 1, _TASSEL)
+				_px(img, 9, g - h - 1, 1, 1, _TASSEL)
 			if ripe:
 				_oval(img, 10.5, g - 11, 1.8, 3.5, fruit)
-				_px(img, 10, g - 13, 1, 3, fruit.lightened(0.3))
-				_px(img, 9, g - 8, 3, 2, leaf)
+				_px(img, 9, g - 8, 3, 2, _HUSK)
 		"grain":   # a clump of upright blades; ripe, the stems go straw and the ears bow over
 			var hs := [8, 11, 13, 10, 7] if big else [4, 6, 7, 5, 3]
 			var stem := leaf.lerp(fruit.darkened(0.2), 0.55) if ripe else leaf
-			for i in 5:
-				_px(img, 4 + i * 2, g - hs[i], 1, hs[i] + 1, stem if i % 2 == 0 else stem.darkened(0.2))
-			_px(img, 8, g - hs[2] + 1, 1, 3, stem.lightened(0.25))
+			for i in 5:   # two pixels wide, side by side; the back blades (odd) are their own, darker material
+				_px(img, 4 + i * 2, g - hs[i], 2, hs[i] + 1, stem if i % 2 == 0 else stem.darkened(0.2))
 			if ripe:
 				for i in 5:
 					var x := 4 + i * 2
 					var top: int = g - hs[i]
 					var side := -1 if i < 2 else 1
 					_px(img, x, top, 1, 2, fruit)
-					_px(img, x + side, top + 1, 1, 3, fruit)
-					_px(img, x + side, top + 3, 1, 1, fruit.darkened(0.2))
-		"ground":
-			_line(img, Vector2i(2, g), Vector2i(14, g - 1), dark)
-			_oval(img, 4, g - 3, 2.8, 2.2, leaf)
-			_oval(img, 12, g - 4, 2.8, 2.2, dark)
-			if big:
-				_oval(img, 8, g - 6, 3, 2.4, light)
-			if ripe:
-				_oval(img, 8, g - 3.5, 6, 3.6, fruit.darkened(0.15))
-				_oval(img, 8, g - 3.5, 3.2, 3.4, fruit)
-				_oval(img, 8, g - 3.5, 1.2, 3.2, fruit.darkened(0.1))
-				_px(img, 5, g - 5, 1, 2, fruit.lightened(0.3))
-				_px(img, 8, g - 9, 1, 2, Color("5e7a2a"))
-	return _outline(img)
+					_px(img, x + side, top + 1, 1, 4, fruit)
+	return ItemArt.refine(img)
+
+
+## The tall crops' own materials: the corn's tassel and the husk round its cob (our colours),
+## and its stem, a little yellower and darker than its leaves so the leaves part from it.
+const _TASSEL := Color("d9c27a")
+const _HUSK := Color("a8c86a")
+
+static func _corn_stem(leaf: Color) -> Color:
+	return leaf.lerp(Color("8a8a3a"), 0.35)
 
 
 ## One plant of a tall crop's cluster (CropClusters stands several on a cell in the 3D view):
@@ -1142,13 +1102,12 @@ static func _crop(id: String, growth: int, ripe: bool) -> Image:
 ## when ripe; a grain crop (rice) as one hill of thin blades, ripe with straw stems and gold ears bowing
 ## over; a stalk crop (corn) as one stalk with its leaves, the tassel when grown, the cob
 ## when ripe. `variant` (0..2) leans the blades or sets the leaves another way, so a field of
-## them doesn't repeat. The rim is a deep shade of the leaf, not the black outline: a cell
-## holds many small plants, and black round each blade turned the field to noise.
+## them doesn't repeat. Laid in flat materials and toned by ItemArt.refine (three tones lit from
+## the upper left, deep-tone part lines, a rim in each material's own deep tone): never the black
+## outline, since a cell holds many small plants and black round each blade turned the field to noise.
 static func _stalk(id: String, growth: int, ripe: bool, variant: int) -> Image:
 	var look := crop_look(id)
 	var leaf := Color(look.get("leaf", "5f9e3a"))
-	var dark := leaf.darkened(0.25)
-	var light := leaf.lightened(0.25)
 	var fruit := Color(look.get("fruit", "e8a23a"))
 	var big := growth >= 3
 	var img: Image
@@ -1156,73 +1115,63 @@ static func _stalk(id: String, growth: int, ripe: bool, variant: int) -> Image:
 		img = _blank(11, 24 if big else 15)
 		var g := img.get_height() - 2
 		var h := 19 if big else 10
-		_px(img, 5, g - h, 1, h + 1, leaf)
-		_px(img, 6, g - h + 2, 1, h - 1, dark)
+		_px(img, 5, g - h, 2, h + 1, _corn_stem(leaf))
 		var side := 1 if variant % 2 == 0 else -1
 		for y in range(g - 2 - variant, g - h + 2, -4):
 			var tip := Vector2i(5 + side * 5, y - 3)
-			_line(img, Vector2i(5 + side, y), tip, leaf if side < 0 else dark)
-			_px(img, tip.x, tip.y + 1, 1, 1, light if side < 0 else leaf)   # the end hangs over
+			for t in 2:   # two pixels thick, so refine lights the upper edge and shades the lower
+				_line(img, Vector2i(5 + side, y + t), tip + Vector2i(0, t), leaf)
+			_px(img, tip.x, tip.y + 1, 1, 1, leaf)   # the end hangs over
 			side = -side
 		if big:
-			var tassel := Color("d9c27a")
-			_px(img, 5, g - h - 2, 1, 2, tassel)
-			_px(img, 4, g - h - 1, 1, 1, tassel)
-			_px(img, 6, g - h - 1, 1, 1, tassel.darkened(0.15))
+			_px(img, 5, g - h - 2, 1, 2, _TASSEL)
+			_px(img, 4, g - h - 1, 1, 1, _TASSEL)
+			_px(img, 6, g - h - 1, 1, 1, _TASSEL)
 		if ripe:
 			var x := 7 if variant != 1 else 2
 			_oval(img, x + 1, g - 10, 1.4, 3.2, fruit)
-			_px(img, x + 1, g - 12, 1, 3, fruit.lightened(0.3))
-			_px(img, x, g - 7, 3, 2, leaf)   # the husk
+			_px(img, x, g - 7, 3, 2, _HUSK)
 	elif look.get("shape", "") == "vine":   # a stake with the vine climbing it
 		img = _blank(13, 23 if big else 14)
 		var g := img.get_height() - 2
 		var top := g - (18 if big else 9)
-		_px(img, 6, top - 1, 1, g - top + 2, _STAKE)
-		_px(img, 7, top, 1, g - top + 1, _STAKE.darkened(0.25))
+		_px(img, 6, top - 1, 2, g - top + 2, _STAKE)
 		# A ripe vine's fruit hangs at these places; no leaf is drawn beside it, so it shows.
 		var hang: Array = []
 		if ripe:
-			hang = [Vector2(3.0, g - 6 - variant), Vector2(10.0, g - 10), Vector2(3.5, g - 14 + variant)] if big \
-				else [Vector2(3.0, g - 4), Vector2(10.0, g - 6)]
+			hang = [Vector2(3.0, g - 6 - variant), Vector2(10.0, g - 10), Vector2(3.5, g - 14 + variant)] if big 				else [Vector2(3.0, g - 4), Vector2(10.0, g - 6)]
 		var side := 1 if variant % 2 == 0 else -1
 		for y in range(g - 1 - variant, top + 1, -3):
 			if not (ripe and _hangs_by(hang, side, y)):
-				_oval(img, 6.5 + side * 3.0, y, 2.6, 1.8, leaf if side < 0 else dark)
-				_px(img, 6 + (1 if side > 0 else 0), y, 1, 1, dark)   # the leaf stalk to the stake
+				_oval(img, 6.5 + side * 3.0, y, 2.6, 1.8, leaf)
 			side = -side
-		_px(img, 6, top - 1, 2, 2, light)   # the growing tip
+		_px(img, 6, top - 1, 2, 2, leaf)   # the growing tip
 		if ripe:
-			# A long fruit (cucumber) ripens to its own pale yellow-green, lit on the left and dark
-			# along the right edge, so it stands off the dark leaves; round fruit keep the colour.
+			# A long fruit (cucumber) ripens to its own pale yellow-green, so it stands off the dark
+			# leaves; round fruit keep the colour. Two pixels wide: refine lights the left, shades the right.
 			var pale := Color(look["ripe_fruit"]) if look.has("ripe_fruit") else fruit
 			for p in hang:
 				if look.get("fruit_shape", "") == "long":
-					_px(img, int(p.x), int(p.y) - 2, 1, 5, pale)
-					_px(img, int(p.x), int(p.y) - 2, 1, 1, pale.lightened(0.45))
-					_px(img, int(p.x) + 1, int(p.y) - 2, 1, 5, pale.darkened(0.4))
+					_px(img, int(p.x), int(p.y) - 2, 2, 5, pale)
 				else:
 					_oval(img, p.x, p.y, 1.9, 1.9, fruit)
-					_px(img, int(p.x) - 1, int(p.y) - 1, 1, 1, fruit.lightened(0.4))
 	else:   # grain: one hill of rice
 		img = _blank(9, 16 if big else 11)
 		var g := img.get_height() - 2
 		var hs := [9, 12, 14, 11, 8] if big else [5, 7, 8, 6, 4]
 		var leans: Array = [[-3, -2, 0, 1, 3], [-2, -1, 1, 2, 3], [-3, -1, 0, 2, 2]][variant % 3]
 		var stem := leaf.lerp(fruit.darkened(0.2), 0.55) if ripe else leaf
-		for i in 5:
+		for i in 5:   # the back blades (odd) are their own, darker material
 			var foot := Vector2i(3 + i / 2, g)
 			var top := Vector2i(4 + leans[i], g - hs[i])
 			_line(img, foot, top, stem if i % 2 == 0 else stem.darkened(0.2))
-		_line(img, Vector2i(4, g - 1), Vector2i(4 + leans[2], g - hs[2] + 2), stem.lightened(0.2))
 		if ripe:
 			for i in 5:
 				var top := Vector2i(4 + leans[i], g - hs[i])
 				var side := -1 if leans[i] < 0 else 1
 				_px(img, top.x, top.y, 1, 2, fruit)
-				_px(img, top.x + side, top.y + 1, 1, 3, fruit)
-				_px(img, top.x + side, top.y + 3, 1, 1, fruit.darkened(0.2))
-	return _rim(img, leaf.darkened(0.6))
+				_px(img, top.x + side, top.y + 1, 1, 4, fruit)
+	return ItemArt.refine(img)
 
 
 ## True when a ripe vine's fruit (`hang`, the spots of _stalk) hangs on `side` (-1 left, 1 right)
@@ -1233,22 +1182,6 @@ static func _hangs_by(hang: Array, side: int, y: int) -> bool:
 		if (p.x < 6.5) == (side < 0) and absf(p.y - y) < 6.5:
 			return true
 	return false
-
-
-## Like `_outline`, in a colour of its own.
-static func _rim(img: Image, c: Color) -> Image:
-	var src := img.duplicate() as Image
-	var size := img.get_size()
-	for y in size.y:
-		for x in size.x:
-			if src.get_pixel(x, y).a > 0:
-				continue
-			for d in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
-				var q: Vector2i = Vector2i(x, y) + d
-				if q.x >= 0 and q.y >= 0 and q.x < size.x and q.y < size.y and src.get_pixelv(q).a > 0:
-					img.set_pixel(x, y, c)
-					break
-	return img
 
 
 ## One hill of cut rice stubble (CropClusters, the paddies in winter): four short straw stalks, a
@@ -1516,29 +1449,6 @@ static func _paddy_water() -> Image:
 	_oval(img, 6.5, 2, 3.5, 1, Color("7d939b"))
 	_px(img, 4, 2, 2, 1, Color("9aaeb4"))
 	return img
-
-
-## Leaves above the ground for root crops: broad (oval leaves), thin (upright blades) or
-## feathery (stems with leaflets at the tips).
-static func _root(img: Image, look: Dictionary, g: int, big: bool, leaf: Color, dark: Color, light: Color) -> void:
-	match look.get("leaves", "broad"):
-		"thin":
-			var hs := [9, 12, 11, 8] if big else [5, 7, 6, 4]
-			for i in 4:
-				_px(img, 5 + i * 2, g - hs[i], 1, hs[i] + 1, leaf if i % 2 == 0 else dark)
-		"feathery":
-			var tips := [Vector2i(3, g - 7), Vector2i(8, g - 10), Vector2i(13, g - 7)] if big \
-				else [Vector2i(5, g - 4), Vector2i(8, g - 6), Vector2i(11, g - 4)]
-			for t in tips:
-				_line(img, Vector2i(8, g), t, dark)
-				_oval(img, t.x + 0.5, t.y + 0.5, 1.8, 1.5, leaf)
-			_px(img, 8, tips[1].y, 1, 1, light)
-		_:
-			var s := 1.6 if big else 1.0
-			_oval(img, 4.5, g - 3 * s + 1, 2.2, 3 * s, dark)
-			_oval(img, 11.5, g - 3 * s + 1, 2.2, 3 * s, dark)
-			_oval(img, 8, g - 4 * s + 1, 2.4, 4 * s, leaf)
-			_px(img, 8, g - int(7 * s), 1, int(5 * s), light)
 
 
 ## Ground tiles, 16 x 16, no outline. Grass and path come in GROUND_VARIANTS so the field
