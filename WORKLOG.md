@@ -42,6 +42,28 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   -- --demo --lang=th` prints 0 ERROR or WARNING lines.
 - Left / next: nothing for Thai. New node names in scripts still show up as "missing" until
   added to NOT_SHOWN (or made StringName literals, which the catalogue skips).
+## 2026-11-10 — The unrefined figure path removed
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: FigureArt's `_refine` flag and its `if not _refine` branches removed. Every drawing goes
+  through `draw` or `draw_crawler`, and `_begin` set the flag on, so the old side never ran: the
+  head's jaw shade row, the plain woven basket, the plain monpe leg, and the plain stamp with its
+  1 px near-black outline. `_stamp` is now the refined stamp (its `outline` argument removed; no
+  caller passed false). `colors()` lost the unused `o` key and the `OUTLINE` const is gone.
+  Callers read: PlaceholderArt (player, villager, child figures), TitleScreen, Player, BabyArt,
+  AnimalArt, ItemArt, PortraitArt (tones only), FarmWorld; no test sets or reads `_refine`. The
+  three "no black outline" checks (test_farm x2, test_villagers) now compare with
+  PlaceholderArt.OUTLINE, the same colour value. Header comments updated.
+- Checked: the unrefined path was reached by no picture at runtime. A dump of 918 pictures (six
+  looks: default farmer, elder noragi, kimono long hair, shorts with straw hat, happi with a bag,
+  child happi; every pose, frame, both sides, farmer true and false; the crawler, toddler and
+  child) before and after the edit, compared pixel by pixel with numpy: 918 identical, 0
+  different. After `--import`: test_villagers, test_title, test_child, test_view2d, test_hold,
+  test_food, test_festivals and test_farm each print `OK (0 failed)`. Smoke runs `--quit-after
+  300 -- --demo` and `-- --demo --map=town` exit 0 with no error or warning lines. test_title
+  prints the stack lines of its own bad-flag push_warning checks, as before.
+- Left / next: test_animals, test_maps and the other tests were not run; they only use FigureArt
+  `_key` / `tones` / story art, which did not change. PlaceholderArt's OUTLINE stays: the portrait
+  first pass and the fish bite box still use it (see the Next up line below).
 
 ## 2026-11-10 — Merge: the face key, fishing effects art and mine music
 Agent: Claude Code (claude-opus-5-5) · Commit: f61d059 and this commit
