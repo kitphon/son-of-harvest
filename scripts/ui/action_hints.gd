@@ -54,6 +54,11 @@ static func interact_verb(origin: Vector2i, facing: Vector2i) -> String:
 		return "Pick up"
 	if Game.forage_here().has(c):
 		return "Pick"
+	var scion := Game.scion_fruit_left(c)   # Kiku's tree: a pick while fruit hangs, else the birds' line (on_action)
+	if scion > 0:
+		return "Pick"
+	if scion == 0:
+		return "Look"
 	var fid := Game.festival_now()
 	if fid != "":
 		if Festivals.at_game(fid, c):

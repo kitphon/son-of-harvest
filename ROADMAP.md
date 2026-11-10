@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] Kiku's persimmon picked through the flat view (2026-11-10): the press with a persimmon in hand threw it at the tree ("No room to throw it.") instead of picking; FarmActions.on_action now gives Kiku's fruiting tree the press first, and the hint says Pick / Look; test_view2d `_persimmon` plays two picks, the birds line and the next morning through Player's actions and checks the drawn crown; see WORKLOG.
 [x] The black goldfish reads at the tub's size (2026-11-10): look 2 is a dark blue-grey with pale fins, a lit back edge and pale eye rings (`scoop:fish:2`); looks 0 and 1 unchanged; test_festivals checks its contrast with the water; see WORKLOG.
 [x] The mochi box at the left edge (2026-11-10): narrower and moved off the middle like the scoop box, so the farmer at the mortar shows during the pounding; shorter hint; the Moon Night race box left as it is (the farmer shows below it); test_festivals checks the box and hint.
 [x] No villager in front of the farmer at a festival game (2026-11-10): festival spots of Fumi (night festivals, also married), Kota (his loop by the table), Sayo, Genzo and Ren (also married) at Year's Turn moved, and the right-hand rivals of the four judges' tables' result events a cell further out, so the farmer's spot at every table and game and the cells in front of it in the camera's view stay free; test_festivals `_contest_spots_clear`.
