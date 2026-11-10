@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] Flat-view screenshots of the refined animals (2026-11-10): `--map=barn` and `--map=coop` through `res://scenes/main_2d.tscn` show the animals in several tones with no near-black outline on the pale ones; test_view2d and test_animals OK; see WORKLOG.
 [x] Animal art, refined (2026-11-10): hens, chicks, cows, calves, sheep (wool and shorn), lambs and the dog (and the dog in the arms) in three tones a material lit from the upper left, deep-tone part lines and a rim in the material's own deep tone instead of the near-black outline (AnimalArt, data/animal_art.json); same keys, sizes, poses and facings, sick stays dull; test_animals `_animal_art_refined`; see WORKLOG.
 [x] Audit of the tests for the night's weed flake (2026-11-10): WEED_CHANCE forced to 1.0 failed three checks in test_farm (daikon after an empty plot's night; the 2-water can after a night) and test_animals (the egg and milk throws into the bin past a weed on the cell in front); each now clears or re-tills the night's weed; all other tests pass forced; see WORKLOG.
 [x] The persimmon tree's hint, checked (2026-11-10): the interact hint at Kiku's tree says Pick with fruit left (also holding one) and Look on the bare tree (hands empty or holding), and a press there never throws; test_view2d `_persimmon` checks both cases; a 3D frame shows E Pick and E Look; see WORKLOG.
