@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Audit: tests that could trip on the nightly neglect roll
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: audited every tests/test_*.gd that touches affection (child, ending, festivals, goals,
+  relationships, talk, view2d, villagers, cooking, animals) for a points-at-a-band-edge setup followed
+  by `end_day()` with no talk or gift that day (`Affection.day_end`, data/villagers/_common.json
+  neglect chance 0.125, loss 1, `Game.rng` unseeded). Only the already-fixed test_child
+  `_child_help_in_game` was at risk. The rest are safe: test_talk's `end_day()` calls follow a talk or a
+  gift that day (no roll); test_child `_morning` sets Haru to the maximum (one point is no matter) and
+  the child's neglect test calls `day_end` on purpose; test_relationships `_neglect` and
+  `_neglect_in_game` seed their own rng (7 and 11) and are deterministic; `_marriage_in_game` sets Sayo
+  and Fumi far above (Sayo) or only checks before (Fumi) any night; test_ending, test_festivals,
+  test_goals and test_view2d never advance a day after setting points; the dog's affection
+  (test_animals) is a separate counter with its own rules. No test changed, no game rule changed.
+- Checked: mutation proof instead of luck: with `neglect.chance` forced to 1.0 (every night loses a
+  point for everyone not talked to; reverted) the suites child, ending, festivals, goals, talk, events,
+  save, shops, maps, animals and view2d still printed `OK (0 failed)`; only test_relationships failed,
+  with its three checks that measure the chance itself ("left alone, Tome loses about 400 in 400 nights
+  (lost 200)", "the loss is small", "but only a little"). A test that depended on losing no point would
+  fail every run at 1.0, so none does. Loop runs on the unchanged tree (30 each): test_child, test_ending, test_festivals, test_goals, test_relationships, test_talk: 0 failures / 30 runs. All 31 tests/test_*.gd print `OK (0 failed)`; the four smoke runs print no ERROR or WARNING line.
+- Left / next: none for this flake.
+
 ## 2026-11-10 — Merge: Kaede's portrait hair, one thing in the arms, Kiku's twig lines
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 14bd884 Kaede's portrait hair (Opus, own worktree), dab3fa0 one thing in the arms
