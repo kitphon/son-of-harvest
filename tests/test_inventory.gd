@@ -16,6 +16,7 @@ func _init() -> void:
 	_menu()
 	_arms_full()
 	_game()
+	_item_art_refined()
 	print("test_inventory: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 
@@ -310,6 +311,58 @@ func _game() -> void:
 		var img := PlaceholderArt.tex(key).get_image()
 		check(img.get_width() > 0 and not img.is_invisible(), "icon %s drawn" % key)
 	g.free()
+
+
+## The refined item and tool icons (ItemArt, data/item_art.json): the sizes kept, no pixel in
+## the old near-black outline colour, the main material in its lit and shade tones (base kept as
+## the material's colour), the rim beside it in its own deep tone pulled to the rim colour, and
+## at least five colours in each.
+func _item_art_refined() -> void:
+	var a := ItemArt.art()
+	check(a.has("tone") and a.has("deep") and a.has("rim") and a.has("rim_mix"), "item art: numbers in data/item_art.json")
+	var old := FigureArt._key(PlaceholderArt.OUTLINE)
+	var cases := []   # [key, size, main material colour or null]
+	var tool_main := {"hoe": PlaceholderArt.TOOL_WOOD, "can": PlaceholderArt.TOOL_TIN, "sickle": PlaceholderArt.TOOL_WOOD,
+		"hammer": PlaceholderArt.TOOL_IRON, "axe": PlaceholderArt.TOOL_WOOD, "rod": null}
+	for t in tool_main:
+		cases.append(["ui:tool:" + t, 14, tool_main[t]])
+	for id in ["turnip", "potato", "cucumber", "tomato", "onion", "corn", "carrot", "eggplant", "pumpkin", "daikon", "rice"]:
+		var fruit := Color(PlaceholderArt.crop_look(id).get("fruit", "e8a23a"))
+		cases.append(["ui:item:" + id, 14, fruit])
+		cases.append(["item:" + id, 12, fruit if id != "corn" else null])
+		cases.append(["ui:seeds:" + id, 14, Color("d8c08a")])
+	for id in ["egg", "egg_good", "egg_best"]:
+		cases.append(["ui:item:" + id, 14, PlaceholderArt.EGG_SHELLS[id]])
+		cases.append(["item:" + id, 12, PlaceholderArt.EGG_SHELLS[id]])
+	for id in ["milk", "milk_good", "milk_best", "wool", "wool_good", "wool_best"]:
+		cases.append(["ui:item:" + id, 14, Color("f6f4ee") if id.begins_with("milk") else PlaceholderArt.WOOL_TINTS[id]])
+		cases.append(["item:" + id, 12, null])
+	cases.append(["ui:item:lumber", 14, null])
+	for c in cases:
+		var img := PlaceholderArt.image(c[0])
+		var seen := {}
+		for y in img.get_height():
+			for x in img.get_width():
+				var p := img.get_pixel(x, y)
+				if p.a == 0.0:
+					continue
+				seen[p.to_html()] = true
+		check(img.get_size() == Vector2i(c[1], c[1]), "item art: %s is %d x %d" % [c[0], c[1], c[1]])
+		check(not seen.has(old), "item art: %s has no old outline colour" % c[0])
+		check(seen.size() >= 5, "item art: %s has several tones (%d colours)" % [c[0], seen.size()])
+		if c[2] != null:
+			var tn := ItemArt.tones(c[2])
+			check(seen.has(FigureArt._key(tn[0])) and seen.has(FigureArt._key(tn[2])),
+				"item art: %s shows its main material's shade and lit tones" % c[0])
+			check(seen.has(FigureArt._key(ItemArt.rim_of(c[2]))), "item art: %s is rimmed in its material's deep tone" % c[0])
+	# The grades still differ, the pale ones keep a soft rim (lighter than the old outline).
+	check(PlaceholderArt.image("item:egg").get_data() != PlaceholderArt.image("item:egg_best").get_data(), "item art: egg grades differ")
+	check(ItemArt.rim_of(PlaceholderArt.EGG_SHELLS.egg).v > PlaceholderArt.OUTLINE.v, "item art: the white egg's rim is softer than the old outline")
+	# A part line: the can's handle where it meets the tin is the handle's deep tone.
+	var can := PlaceholderArt.image("ui:tool:can")
+	var deep_handle := FigureArt._key(ItemArt.tones(PlaceholderArt.TOOL_TIN_HANDLE)[3])
+	check(can.get_pixel(3, 4).to_html() == deep_handle and can.get_pixel(8, 4).to_html() == deep_handle,
+		"item art: the can's handle meets the tin in its deep tone")
 
 
 func check(ok: bool, what: String) -> void:

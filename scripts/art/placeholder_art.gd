@@ -184,8 +184,7 @@ static func _item(id: String) -> Image:
 	var img := _blank(12, 12)
 	var leaf := Color(look.get("leaf", "5f9e3a"))
 	var fruit := Color(look.get("fruit", "e8a23a"))
-	var dark := fruit.darkened(0.3)
-	var shine := fruit.lightened(0.45)
+	var dark := fruit.darkened(0.3)   # marks kept as they are: ribs, kernel rows, eyes, the root tip
 	var shape: String = look.get("shape", "bush")
 	var form: String = look.get("fruit_shape", "round")
 	if shape == "root":
@@ -197,7 +196,6 @@ static func _item(id: String) -> Image:
 		_line(img, Vector2i(6, 4), Vector2i(4, 1), leaf)
 		_line(img, Vector2i(6, 4), Vector2i(6, 1), leaf.darkened(0.2))
 		_line(img, Vector2i(6, 4), Vector2i(8, 1), leaf)
-		_px(img, 4, 6, 1, 1, shine)
 	elif shape == "stalk":
 		_oval(img, 6, 6.5, 2.2, 4.5, fruit)
 		for y in [3, 5, 7, 9]:
@@ -210,27 +208,25 @@ static func _item(id: String) -> Image:
 			_px(img, x, 5, 1, 4, dark)
 		_px(img, 5, 2, 2, 2, Color("6b4a2a"))                # stem
 	elif shape == "grain":   # a sheaf: straw tied at the middle, ears fanning out on top
-		for x in range(4, 9):
-			_px(img, x, 5, 1, 6, fruit.darkened(0.15) if x % 2 == 0 else fruit.darkened(0.3))
+		var straw := fruit.darkened(0.15)
+		_px(img, 4, 5, 5, 6, straw)
+		for x in [5, 7]:   # the stalks between, kept as marks
+			_px(img, x, 5, 1, 6, dark)
 		_px(img, 4, 8, 5, 1, Color("8a5a2a"))
 		for p in [Vector2(3.5, 3.5), Vector2(6.5, 2.5), Vector2(9, 3.5)]:
 			_oval(img, p.x, p.y, 1.6, 2.4, fruit)
-		_px(img, 6, 1, 1, 2, shine)
 	elif form == "long":
 		_oval(img, 6, 6.5, 2.4, 4.6, fruit)
 		_px(img, 5, 1, 3, 2, leaf)                          # calyx
-		_px(img, 5, 4, 1, 3, shine)
 	elif form == "tuber":
 		_oval(img, 6, 6.5, 4.3, 3.3, fruit)
 		for p in [Vector2i(4, 5), Vector2i(7, 7), Vector2i(5, 8), Vector2i(8, 5)]:
 			img.set_pixelv(p, dark)
-		_px(img, 4, 4, 1, 1, shine)
 	else:
 		_oval(img, 6, 7, 4.0, 3.8, fruit)
 		_px(img, 4, 3, 4, 1, leaf)                          # calyx and stem
 		_px(img, 6, 2, 1, 1, leaf.darkened(0.2))
-		_px(img, 4, 5, 1, 2, shine)
-	return _outline(img)
+	return ItemArt.refine(img, [dark])
 
 
 ## Egg shells per grade (data/animals.json items): plain white, a warm brown one, and the best
@@ -248,13 +244,12 @@ static func _egg(id: String, size: int) -> Image:
 	var img := _blank(size, size)
 	var shell: Color = EGG_SHELLS.get(id, EGG_SHELLS.egg)
 	var cx := size / 2.0
-	_oval(img, cx, size * 0.58, size * 0.27, size * 0.36, shell.darkened(0.18))
-	_oval(img, cx - 0.4, size * 0.56, size * 0.23, size * 0.32, shell)
+	_oval(img, cx, size * 0.58, size * 0.27, size * 0.36, shell)   # one material, toned by ItemArt
 	_px(img, int(cx) - 2, int(size * 0.38), 1, 2, shell.lightened(0.5))
 	if id == "egg_best":
-		_px(img, size - 3, 1, 1, 3, Color("fff6c0"))
-		_px(img, size - 4, 2, 3, 1, Color("fff6c0"))
-	return _outline(img)
+		_px(img, size - 3, 1, 1, 3, SPARKLE)
+		_px(img, size - 4, 2, 3, 1, SPARKLE)
+	return ItemArt.refine(img, [shell.lightened(0.5), SPARKLE])
 
 
 ## The first, low resolution animal drawings (a hen 14 x 12, a chick 9 x 8, side view facing
@@ -443,6 +438,7 @@ static func _animal_good(id: String, size: int) -> Image:
 ## Milk in a squat glass bottle with a paper cap: plain, green-banded, and a red-sealed best
 ## one with a sparkle.
 const MILK_CAPS := {"milk": Color("e8e4dc"), "milk_good": Color("6aa05a"), "milk_best": Color("c8442c")}
+const SPARKLE := Color("fff6c0")   # the best grade's star, kept as it is
 
 
 static func _milk(id: String, size: int) -> Image:
@@ -452,11 +448,11 @@ static func _milk(id: String, size: int) -> Image:
 	_px(img, o + 4, o + 2, 4, 2, Color("e6eef0"))       # neck
 	_px(img, o + 4, o + 1, 4, 1, MILK_CAPS[id])         # cap
 	_px(img, o + 3, o + 6, 6, 1, MILK_CAPS[id].lightened(0.2))   # label band
-	_px(img, o + 4, o + 5, 1, 4, Color(1, 1, 1))        # shine
+	_px(img, o + 4, o + 5, 1, 4, Color(1, 1, 1))        # shine on the glass, kept
 	if id == "milk_best":
-		_px(img, o + 10, o + 1, 1, 3, Color("fff6c0"))
-		_px(img, o + 9, o + 2, 3, 1, Color("fff6c0"))
-	return _outline(img)
+		_px(img, o + 10, o + 1, 1, 3, SPARKLE)
+		_px(img, o + 9, o + 2, 3, 1, SPARKLE)
+	return ItemArt.refine(img, [Color(1, 1, 1), SPARKLE])
 
 
 ## A rolled bundle of fleece: plain cream, soft white, and a cloud-white one with a sparkle.
@@ -468,14 +464,14 @@ static func _wool(id: String, size: int) -> Image:
 	var c: Color = WOOL_TINTS[id]
 	var m := size / 2.0
 	_oval(img, m - 1.5, m + 1, size * 0.28, size * 0.25, c.darkened(0.1))
-	_oval(img, m + 1.5, m + 1.5, size * 0.28, size * 0.24, c.darkened(0.05))
+	_oval(img, m + 1.5, m + 1.5, size * 0.28, size * 0.24, c.darkened(0.1))   # the two back puffs one material
 	_oval(img, m, m - 0.5, size * 0.3, size * 0.26, c)
 	for p in [Vector2i(-2, -1), Vector2i(1, 0), Vector2i(-1, 2), Vector2i(2, 2)]:
 		_px(img, int(m) + p.x, int(m) + p.y, 1, 1, c.darkened(0.15))
 	if id == "wool_best":
-		_px(img, size - 3, 1, 1, 3, Color("fff6c0"))
-		_px(img, size - 4, 2, 3, 1, Color("fff6c0"))
-	return _outline(img)
+		_px(img, size - 3, 1, 1, 3, SPARKLE)
+		_px(img, size - 4, 2, 3, 1, SPARKLE)
+	return ItemArt.refine(img, [c.darkened(0.15), SPARKLE])
 
 ## rects = [[x, y, w, h, "rrggbb"], ...] on a transparent w x h image.
 static func _draw(w: int, h: int, rects: Array) -> Image:
@@ -2212,7 +2208,7 @@ static func _ui(kind: String, arg: String) -> Image:
 			_px(img, 3, 4, 8, 1, Color("b89a62"))
 			_oval(img, 7, 8.5, 2.5, 2.5, Color(look.get("fruit", "c0a060")))
 			_px(img, 6, 6, 2, 1, Color(look.get("leaf", "5fa83a")))
-			return _outline(img)
+			return ItemArt.refine(img)
 		"item":     # item:<id>, 14 x 14: a crop as its fruit, anything else a wrapped bundle
 			return _item_icon(arg)
 		"cursor":   # vermilion corner brackets round the slot under the menu cursor, 22 x 22
@@ -2274,25 +2270,23 @@ static func _item_icon(id: String) -> Image:
 		var long: bool = look.get("shape", "") in ["vine", "stalk"]
 		var rx := 2.5 if long else 4.0
 		var ry := 5.0 if long else 4.0
-		_oval(img, 7, 8.5, rx, ry, fruit.darkened(0.25))
-		_oval(img, 6.5, 8, rx - 0.7, ry - 0.7, fruit)
-		_px(img, 5, 6, 2, 1, fruit.lightened(0.35))
+		_oval(img, 7, 8.5, rx, ry, fruit)   # one material: ItemArt gives its lit and shaded sides
 		if look.has("fruit_top"):
 			_px(img, 4, 5, 6, 2, Color(look.fruit_top))
 		_px(img, 6, 1, 2, 4, leaf)
 		_px(img, 4, 2, 2, 2, leaf)
-		_px(img, 8, 2, 2, 2, leaf.darkened(0.2))
-		return _outline(img)
+		_px(img, 8, 2, 2, 2, leaf.darkened(0.2))   # the leaf behind
+		return ItemArt.refine(img)
 	var cloths := [Color("3a5a8c"), Color("a8433a"), Color("5a8a4a"), Color("c8963a"), Color("7a4a8a")]
 	var cloth: Color = cloths[posmod(hash(id), cloths.size())]
 	_oval(img, 7, 9, 5.5, 4.0, cloth)
 	_px(img, 5, 3, 4, 3, cloth)
 	_px(img, 3, 2, 3, 2, cloth.darkened(0.2))   # the knot's ears
 	_px(img, 8, 2, 3, 2, cloth.darkened(0.2))
-	_px(img, 6, 4, 2, 2, cloth.lightened(0.3))
+	var dots := Color("f4ecd8")
 	for p in [Vector2i(4, 9), Vector2i(8, 8), Vector2i(10, 11), Vector2i(6, 11)]:
-		img.set_pixelv(p, Color("f4ecd8"))
-	return _outline(img)
+		img.set_pixelv(p, dots)
+	return ItemArt.refine(img, [dots])
 
 
 ## A fish seen from the side, head left: a body shape (deep, long, slim, trout, eel,
@@ -2526,56 +2520,64 @@ static func _weather_icon(kind: String) -> Image:
 	return img
 
 
+## The tools, 14 x 14, laid in flat materials (wood, steel, tin, bamboo) and toned by ItemArt:
+## the light from the upper left gives the lit sides, the parts' lower edges their deep line.
+## Only the whetted edges of the sickle and the axe keep a fixed bright glint.
+const TOOL_WOOD := Color("9a6a3a")
+const TOOL_STEEL := Color("9aa0aa")
+const TOOL_IRON := Color("70767e")
+const TOOL_EDGE := Color("cfd4dc")
+const TOOL_TIN := Color("6a9ab0")
+const TOOL_TIN_HANDLE := Color("4a7488")
+const FLOAT_RED := Color("d8402a")
+const FLOAT_WHITE := Color("f4ecd8")
+
+
 static func _tool_icon(kind: String) -> Image:
 	var img := _blank(14, 14)
-	var wood := Color("9a6a3a")
-	var steel := Color("9aa0aa")
-	var steel_light := Color("cfd4dc")
+	var wood := TOOL_WOOD
+	var steel := TOOL_STEEL
 	match kind:
 		"hoe":
 			_line(img, Vector2i(2, 12), Vector2i(9, 4), wood)
 			_line(img, Vector2i(3, 12), Vector2i(10, 4), wood)
 			_px(img, 8, 1, 5, 2, steel)
 			_px(img, 11, 3, 2, 4, steel)
-			_px(img, 8, 1, 5, 1, steel_light)
 		"can":
-			var tin := Color("6a9ab0")
-			_px(img, 3, 5, 6, 6, tin)
-			_px(img, 3, 5, 6, 1, Color("9ac2d2"))
-			_line(img, Vector2i(9, 8), Vector2i(12, 4), tin)
-			_px(img, 11, 3, 2, 1, tin)
-			_px(img, 4, 2, 4, 1, Color("4a7488"))
-			_px(img, 3, 3, 1, 2, Color("4a7488"))
-			_px(img, 8, 3, 1, 2, Color("4a7488"))
+			_px(img, 3, 5, 6, 6, TOOL_TIN)
+			_line(img, Vector2i(9, 8), Vector2i(12, 4), TOOL_TIN)
+			_px(img, 11, 3, 2, 1, TOOL_TIN)
+			_px(img, 4, 2, 4, 1, TOOL_TIN_HANDLE)
+			_px(img, 3, 3, 1, 2, TOOL_TIN_HANDLE)
+			_px(img, 8, 3, 1, 2, TOOL_TIN_HANDLE)
 		"sickle":
 			_line(img, Vector2i(2, 12), Vector2i(5, 9), wood)
 			_line(img, Vector2i(3, 12), Vector2i(6, 9), wood)
 			for p in [Vector2i(5, 8), Vector2i(5, 7), Vector2i(5, 6), Vector2i(6, 5), Vector2i(7, 4), Vector2i(8, 3), Vector2i(9, 3), Vector2i(10, 3), Vector2i(11, 4)]:
 				_px(img, p.x, p.y, 1, 1, steel)
 			for p in [Vector2i(6, 6), Vector2i(7, 5), Vector2i(8, 4), Vector2i(9, 4), Vector2i(10, 4)]:
-				_px(img, p.x, p.y, 1, 1, steel_light)
+				_px(img, p.x, p.y, 1, 1, TOOL_EDGE)
 		"hammer":
 			_px(img, 6, 5, 2, 8, wood)
-			_px(img, 2, 1, 10, 4, Color("70767e"))
-			_px(img, 2, 1, 10, 1, steel_light)
+			_px(img, 2, 1, 10, 4, TOOL_IRON)
 		"axe":
 			_line(img, Vector2i(3, 12), Vector2i(9, 2), wood)
 			_line(img, Vector2i(4, 12), Vector2i(10, 2), wood)
 			_px(img, 8, 1, 4, 5, steel)
-			_px(img, 11, 1, 1, 5, steel_light)
+			_px(img, 11, 1, 1, 5, TOOL_EDGE)
 		"rod":   # a bamboo rod, its line hanging to a red float
 			_line(img, Vector2i(1, 12), Vector2i(10, 1), _ROD)
 			_line(img, Vector2i(2, 12), Vector2i(4, 10), _ROD_NODE)
 			for p in [Vector2i(4, 9), Vector2i(7, 5)]:
 				img.set_pixelv(p, _ROD_NODE)
-			_outline(img)
-			_line(img, Vector2i(11, 2), Vector2i(11, 9), Color("e8e8e8"))   # line, no outline
-			_px(img, 10, 10, 3, 2, Color("d8402a"))
-			_px(img, 10, 12, 3, 1, Color("f4ecd8"))
+			_px(img, 10, 10, 3, 2, FLOAT_RED)
+			_px(img, 10, 12, 3, 1, FLOAT_WHITE)
+			ItemArt.refine(img)
+			_line(img, Vector2i(11, 2), Vector2i(11, 9), Color("e8e8e8"))   # the line, laid after: no rim
 			return img
 		_:
 			return _draw(14, 14, [[0, 0, 14, 14, "ff00ff"]])
-	return _outline(img)
+	return ItemArt.refine(img, [TOOL_EDGE])
 
 
 ## The title screen: an early morning over a satoyama valley. Banded sky with a pale sun,

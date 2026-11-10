@@ -1,0 +1,9 @@
+{
+	"_note": "The refined pass for the item and tool icons (ItemArt, scripts/art/item_art.gd): the tools in the tool bar and rucksack, the seed bags, the crops as items (the 14 x 14 slot icon and the 12 x 12 one held overhead or lying on the ground), the furoshiki bundle and the animal goods (eggs, milk, wool, both sizes). The same light as the figures (data/villager_art.json): every material in three tones, shade / base / lit, lit from the upper left; where a part's lower or right edge lies over another material that edge is the part's deep tone (a line between parts); the rim round the silhouette is the deep tone of the material it touches pulled towards `rim` by `rim_mix`, instead of the old near-black outline. The tones are the villagers' numbers, so what the farmer holds stands in the farmer's light. The rim is pulled less than the figures' (0.45 against 0.6): the icons sit on the pale paper slots, and the pale things (eggs, the white daikon, wool, the milk bottle) should keep a soft grey edge there, not a black one. `fixed_dark` darkens a small fixed mark (a sparkle, a dot) for the rim beside it. Our own numbers.",
+	"tone": {"shade": 0.3, "lit": 0.22, "shade_tint": "24304a", "lit_tint": "fff0c8", "tint_mix": 0.14},
+	"skin_shade_tint": "8a3a30",
+	"deep": 0.55,
+	"rim": "1a1216",
+	"rim_mix": 0.45,
+	"fixed_dark": 0.55
+}

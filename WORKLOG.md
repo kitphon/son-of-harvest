@@ -10,6 +10,41 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Item and tool icon art, refined
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: the item and tool icons get the figures' and animals' refined look. New ItemArt
+  (scripts/art/item_art.gd) tones an icon laid in flat material colours: every material in three
+  tones (FigureArt.tones with new data/item_art.json's numbers, the villagers' tones, so what the
+  farmer holds stands in the same light) by the side a pixel is open to (lit upper left, shade
+  lower right), the lower / right edge of a part over another material in the part's deep tone
+  (not on pieces one pixel thin), and a rim in the deep tone of the material it touches pulled
+  towards `rim` by `rim_mix` 0.45 (less than the figures' 0.6, so the pale eggs, daikon, wool and
+  milk keep a soft grey edge on the paper slots) instead of the near-black OUTLINE. Small marks
+  (tuber eyes, ribs, kernel rows, the bundle's dots, the egg / glass shine, the best grade's
+  sparkle, the whetted edges of the sickle and axe) are fixed colours left as they are.
+  Redrawn in flat materials (the hand-placed lighter / darker copies of a material dropped, the
+  pass makes them): `ui:tool:<hoe|can|sickle|hammer|axe|rod>` (tool colours now named constants;
+  the rod's float now rimmed too, its line still laid after with no rim), `ui:seeds:<crop>`,
+  `ui:item:<crop>` and the furoshiki bundle (PlaceholderArt._item_icon), `item:<crop>` held or on
+  the ground (_item; the rice sheaf's straw one material with the stalk lines kept), and the eggs,
+  milk and wool at 14 and 12 (the wool's two back puffs one material). Same keys, sizes, colours
+  per crop / grade.
+- Checked: new test_inventory `_item_art_refined`: data/item_art.json has its numbers; 6 tools,
+  every crop's slot icon, held sprite and seed bag, the 9 animal goods at both sizes and a
+  bundle keep 14 x 14 / 12 x 12, have no pixel in the old 2a1e1e, at least five colours, and
+  (where one main material is named) its shade and lit tones and its rim colour; the egg grades
+  differ; the white egg's rim is lighter than the old outline; the can's handle meets the tin in
+  the handle's deep tone. A 6x sheet of all of them on the slot paper (throwaway script, not
+  committed) and a 3D screenshot `--demo --rucksack` looked at (toned tools, seed bags, onigiri,
+  turnip and potato in the slots); shots/ deleted. All tests/test_*.gd print `OK (0 failed)`; the
+  smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print 0 ERROR or WARNING lines.
+- Left / next: still the plain drawing with the old outline: the food icons (`ui:food:*`, also the
+  onigiri in the tool bar), fish (`ui:fish:*`), mine finds (`ui:mine:*`), wild things
+  (`ui:wild:*`), kitchen tools (`ui:kitchen:*`), keepsakes (`ui:keep:*`), ribbons
+  (`ui:ribbon:*`) and the HUD's coin / stamina / weather icons. Each needs its few hand-shaded
+  copies of a material merged before ItemArt.refine (the same way as here). No flat-view
+  screenshot (the flat view uses the same icons).
+
 ## 2026-11-10 — Merge: animal art refined, the weed-flake audit, the persimmon hint checked
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged ab771d7 Animal art, refined (Opus, own worktree), 75d6381 the audit of the tests
