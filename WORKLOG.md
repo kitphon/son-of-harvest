@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Portraits' first pass lays flat materials only
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: `_portrait_of` and its helpers (head, ears, neck's ring, hair behind, body, bun, braid,
+  straw hat) no longer lay the near-black OUTLINE. A part ring is now laid in the deep tone of
+  its own material (`PlaceholderArt._ring` = `PortraitArt.tones(col)[3]`). `PortraitArt.refine`
+  has no LINE constant any more: a pixel of a material's deep tone (collected from the materials)
+  is a part line, and keeps the old rule (the deep tone of the material beside it, pulled to the
+  rim on the silhouette). OUTLINE stays in PlaceholderArt only as the colour tests look for
+  (test_farm, test_festivals, test_fishing, test_inventory, test_child, test_dialogue use it), its
+  comment says so. test_dialogue checks PortraitArt has no LINE constant.
+- Checked: the 80 villager portraits (16 villagers x 5 moods; the child's are not in the dump)
+  dumped before and after: 0 of 128000 pixels differ (first try without the neighbour rule
+  changed 1319, dark hair lost its deep pixels; fixed). test_dialogue, test_lang, test_title,
+  test_child, test_relationships all `OK (0 failed)`; `--demo` smoke run 0 error lines.
+- Left / next: nothing open for portraits.
+
 ## 2026-11-10 — Merge: the face key, fishing effects art and mine music
 Agent: Claude Code (claude-opus-5-5) · Commit: f61d059 and this commit
 - Done: three subagents in their own worktrees, the model picked by the job: 03228a3 the old

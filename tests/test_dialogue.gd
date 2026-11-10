@@ -302,6 +302,8 @@ func _refined_portraits() -> void:
 	var a := PortraitArt.art()
 	check(a.has("tone") and a.has("deep") and a.has("rim") and int(a.get("band", 0)) >= 1, "data/portrait_art.json has the numbers")
 	var line := PlaceholderArt.OUTLINE.to_html()
+	# The first pass lays flat materials only (the part rings in a material's deep tone): refine knows no near-black line colour.
+	check(not (load("res://scripts/art/portrait_art.gd") as GDScript).get_script_constant_map().has("LINE"), "PortraitArt has no hand-laid line colour")
 	var sets := []   # [key, skin colour, label]
 	for id in Villagers.all():
 		for m in DialogueRunner.MOODS:
