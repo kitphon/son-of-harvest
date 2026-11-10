@@ -33,6 +33,11 @@ Agent: Claude Code (claude-opus) · Commit: this commit
   `--demo --mine=3`) print 0 ERROR or WARNING lines.
 - Left / next: nothing for this; other tests that read cells near the house after an
   `end_day()` could meet the same 1% weed.
+## 2026-11-10 — Kiku talks about the picked persimmons outside fall
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: three new rows in data/dialogue/talk_kiku.json (winter, spring, summer; scion tree, Tuesday / Saturday, flag kiku_scion_picked) placed before the fall unpicked row, each with two lines: winter `scion_picked_winter_1..2` (hanging persimmons turning sweet, the one left on the tree for the birds), spring `scion_picked_spring_1..2` (the tree leafing out, keeping a seed in damp soil), summer `scion_picked_summer_1..2` (the green fruit set, some dropping in the heat). English and Thai (data/lang/th/dialogue.json). Before the first pick nothing changes; the fall picked lines are as before. No code changed.
+- Checked: test_talk `_kiku_scion`: for each of winter / spring / summer over 700 days the new lines come on exactly 200 days (2 in 7), only Tuesdays and Saturdays, her close and dear lines on every other day, the unpicked days still pick the usual tree lines, both lines appear; through Game.talk_to the three seasons give their lines. test_talk and test_lang print OK (0 failed).
+- Left / next: none.
 
 ## 2026-11-10 — Merge: mochi box aside, villagers clear of contest spots, black goldfish
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
