@@ -2310,75 +2310,83 @@ static func _fish_fx(kind: String) -> Image:
 ## Food shapes: a rice ball with a nori band, a round sweet on its leaf, three dumplings on
 ## a stick, a cup with a saucer line, a glass bottle with a paper cap, a full bowl, a slice on
 ## a plate, a grilled fish on a plate, a paper bag of roast chestnuts, a baked sweet potato
-## split open.
+## split open. Laid in flat materials (the food `color`, the dish or wrapper `accent`, the
+## dango stick) and toned by ItemArt like the crops; the few marks (the slice's cut, the fish's
+## eye and grill line, the chestnuts' shine, the bag's printed band) are fixed colours.
 static func _food_icon(look: Dictionary) -> Image:
 	var img := _blank(14, 14)
 	var c := Color(look.get("color", "fbf8f0"))
 	var a := Color(look.get("accent", "26302a"))
+	var marks := []
 	match look.get("shape", ""):
 		"rice_ball":
 			for y in 9:
 				var half := (y + 1) / 2 + 1
 				_px(img, 7 - half, y + 2, half * 2, 1, c)
 			_px(img, 5, 8, 4, 4, a)
-			img.set_pixel(4, 4, c.darkened(0.08))
 		"round":
 			_oval(img, 7, 10, 5.5, 2.0, a)
 			_oval(img, 7, 7.5, 4.5, 3.5, c)
-			_oval(img, 5.5, 6, 1.5, 1.0, c.lightened(0.4))
 		"skewer":
-			_line(img, Vector2i(2, 12), Vector2i(12, 2), Color("c8a060"))
+			_line(img, Vector2i(2, 12), Vector2i(12, 2), FOOD_STICK)
 			_oval(img, 4.5, 9.5, 2.2, 2.2, a)
-			_oval(img, 7, 7, 2.2, 2.2, Color("fbf8f0"))
+			_oval(img, 7, 7, 2.2, 2.2, FOOD_DANGO_WHITE)
 			_oval(img, 9.5, 4.5, 2.2, 2.2, c)
 		"cup":
-			_px(img, 2, 12, 10, 1, a.darkened(0.2))
+			_px(img, 2, 12, 10, 1, a)
 			_px(img, 3, 5, 8, 7, a)
 			_px(img, 4, 5, 6, 2, c)
-			_px(img, 4, 7, 6, 4, a.lightened(0.15))
-			_outline(img)
-			for x in [5, 8]:   # steam, after the outline so it stays soft
+			ItemArt.refine(img)
+			for x in [5, 8]:   # steam, after the pass so it stays soft
 				_px(img, x, 1 + x % 2, 1, 2, Color(1, 1, 1, 0.7))
 			return img
 		"bottle":
 			_px(img, 4, 4, 6, 9, c)
 			_px(img, 5, 2, 4, 2, c)
 			_px(img, 5, 1, 4, 2, a)
-			_px(img, 4, 7, 6, 3, a.lightened(0.3))
+			_px(img, 4, 7, 6, 3, a)   # the paper label, the cap's colour
 		"bowl":   # a lacquer or pottery bowl (accent) full to the rim (color)
 			_oval(img, 7, 6, 6.0, 2.5, c)
 			_px(img, 1, 6, 13, 3, a)
 			_oval(img, 7, 9, 5.5, 3.0, a)
-			_px(img, 5, 12, 5, 1, a.darkened(0.25))
-			_px(img, 3, 7, 4, 1, a.lightened(0.25))
-			_oval(img, 7, 5.5, 4.5, 1.5, c.lightened(0.15))
+			_px(img, 5, 12, 5, 1, a)
 		"plate":   # a long plate (accent) with a slice of something on it (color)
 			_oval(img, 7, 9.5, 6.5, 3.0, a)
-			_oval(img, 7, 9, 5.0, 2.0, a.lightened(0.35))
 			_px(img, 3, 5, 8, 4, c)
-			_px(img, 3, 5, 8, 1, c.lightened(0.25))
-			_px(img, 6, 5, 1, 4, c.darkened(0.15))
+			var cut := c.darkened(0.3)
+			_px(img, 6, 5, 1, 4, cut)
+			marks.append(cut)
 		"fish_plate":   # a whole grilled fish (color) on a long plate (accent)
 			_oval(img, 7, 10, 6.5, 2.5, a)
 			_oval(img, 6, 7, 4.5, 2.0, c)
-			_px(img, 10, 5, 2, 5, c.darkened(0.15))
-			_px(img, 3, 6, 1, 1, Color("1e1e1e"))
-			_px(img, 5, 6, 4, 1, c.darkened(0.35))
+			_px(img, 10, 5, 2, 5, c)
+			var grill := c.darkened(0.35)
+			_px(img, 3, 6, 1, 1, FOOD_EYE)
+			_px(img, 5, 6, 4, 1, grill)
+			marks.append_array([FOOD_EYE, grill])
 		"bag":   # a paper bag (accent), folded open, full of chestnuts (color)
 			_px(img, 3, 6, 8, 7, a)
-			_px(img, 3, 6, 8, 1, a.darkened(0.15))
+			var shine := c.lightened(0.35)
 			for p in [[5, 4], [8, 4], [6.5, 2.5], [9.5, 5.5], [4, 5.5]]:
 				_oval(img, p[0], p[1], 1.8, 1.6, c)
-				img.set_pixel(int(p[0]) - 1, int(p[1]) - 1, c.lightened(0.35))
-			_px(img, 5, 9, 4, 1, a.darkened(0.25))   # a printed band on the bag
+			for p in [[5, 4], [8, 4], [6.5, 2.5], [9.5, 5.5], [4, 5.5]]:
+				img.set_pixel(int(p[0]) - 1, int(p[1]) - 1, shine)
+			var band := a.darkened(0.25)
+			_px(img, 5, 9, 4, 1, band)   # a printed band on the bag
+			marks.append_array([shine, band])
 		"imo":   # a baked sweet potato: dark skin (accent) split open to its gold inside (color)
 			_oval(img, 7, 8, 6.0, 3.2, a)
 			_oval(img, 7, 7.5, 4.0, 1.8, c)
-			_oval(img, 6, 7, 1.5, 0.8, c.lightened(0.35))
-			_px(img, 1, 9, 2, 1, a.darkened(0.2))
 		_:
 			_px(img, 3, 3, 8, 8, c)
-	return _outline(img)
+	return ItemArt.refine(img, marks)
+
+
+## The food icons' own materials: the dango's bamboo stick and its plain white dumpling, the
+## grilled fish's eye.
+const FOOD_STICK := Color("c8a060")
+const FOOD_DANGO_WHITE := Color("fbf8f0")
+const FOOD_EYE := Color("1e1e1e")
 
 
 static func _weather_icon(kind: String) -> Image:

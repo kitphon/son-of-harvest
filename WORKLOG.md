@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Food icon art, refined
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: the food icons (`ui:food:<id>`, every food and dish in data/foods.json, and so the onigiri
+  in the tool bar) go through ItemArt.refine like the tools and crops. PlaceholderArt._food_icon
+  now lays each shape in flat materials: the food `color`, the dish / wrapper `accent` and, for
+  the dango, the stick and the plain white dumpling (new constants FOOD_STICK, FOOD_DANGO_WHITE,
+  FOOD_EYE beside it). Dropped / merged hand-shaded copies: the onigiri's darker rice pixel, the
+  sweet's highlight, the cup's darker saucer and lighter front (one accent), the bottle's lighter
+  label (the cap's colour), the bowl's darker foot, lighter band and lighter food top, the plate's
+  lighter face and the slice's lighter top row, the grilled fish's darker tail, the bag's darker
+  fold and the sweet potato's highlight and darker tip. Kept as fixed marks: the slice's cut, the
+  fish's eye and grill line, the chestnuts' shine dots (so the five chestnuts still read apart)
+  and the bag's printed band. The cup's steam is still laid after the pass, soft white. Same keys,
+  14 x 14, the same colours per food.
+- Checked: new test_inventory `_food_art_refined`: for every food in data/foods.json the icon is
+  14 x 14, has no 2a1e1e pixel, at least five colours, and its main material (the food for rice
+  ball / round / skewer / bottle, the accent for cup / bowl / plate / fish plate / bag / sweet
+  potato) shows its shade and lit tones and its rim colour; two cups still differ. A 6x sheet of
+  all 38 food icons on the slot paper (throwaway script, not committed) looked at: toned,
+  rimmed in their own deep tones, no black outline; shots/ deleted. All tests/test_*.gd print
+  `OK (0 failed)`; the smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`)
+  print 0 ERROR or WARNING lines.
+- Left / next: fish, mine finds, wild things, kitchen tools, keepsakes, ribbons and the HUD's
+  coin / stamina / weather icons (other agents / ROADMAP Next up). The bowls show only two rows
+  of their food, as before.
+
 ## 2026-11-10 — Merge: item and tool icon art refined, dead animal art removed, flat-view animals checked
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged e486b39 Item and tool icon art, refined (Opus, own worktree), b891f56 the dead
