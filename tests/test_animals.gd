@@ -234,6 +234,9 @@ func _game() -> void:
 	g.animals.fill_feed_box()
 	g.end_day()
 	check(g.animals.eggs.size() == g.animals.list.size(), "a night lays the eggs")
+	# The night may have grown a weed (WEED_CHANCE) on the cell between the farmer and the bin,
+	# which would stop a throw; these checks are about shipping, so that cell is clear.
+	g.farm.cell(Vector2i(8, 4)).obj = FarmGrid.Obj.NONE
 	# An egg overhead ships when thrown into the bin.
 	g.held = "egg_good"
 	var t: Dictionary = g.throw_held(Vector2i(8, 5), Vector2i.UP)

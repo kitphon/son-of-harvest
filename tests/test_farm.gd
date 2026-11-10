@@ -72,6 +72,11 @@ func _init() -> void:
 	check(p.harvest(pc) == "rice" and p.cell(pc).crop == "", "rice picked once")
 	p.day_end("fall", "sunny", rng)
 	check(not p.cell(pc).wet, "an empty plot dries out again")
+	# The empty plot's night above may have grown a weed (WEED_CHANCE, which also untills it);
+	# this check is about daikon, so the plot is bare tilled earth again.
+	if p.cell(pc).obj == FarmGrid.Obj.WEED:
+		p.cell(pc).obj = FarmGrid.Obj.NONE
+		p.cell(pc).tilled = true
 	p.sow(pc, "daikon", "fall")
 	p.water_cell(pc)
 	p.day_end("fall", "sunny", rng)
@@ -395,6 +400,14 @@ func _charge_actions() -> void:
 			wet += int(g.farm.cell(Vector2i(x, y)).wet)
 	check(wet == 6 and g.water == 34, "can charge 2 waters 6 cells for 6 water (%d wet, %d left)" % [wet, g.water])
 	g.farm.day_end("spring", "sunny", rng)
+	# The night may grow a weed on a bare plot (WEED_CHANCE, which also untills it); this check
+	# is about the can, so the six plots go back to bare tilled earth.
+	for y in range(9, 11):
+		for x in range(9, 12):
+			var nd: Dictionary = g.farm.cell(Vector2i(x, y))
+			if nd.obj == FarmGrid.Obj.WEED:
+				nd.obj = FarmGrid.Obj.NONE
+				nd.tilled = true
 	g.water = 2
 	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 2)
 	check(g.water == 0 and g.farm.cell(Vector2i(9, 9)).wet and g.farm.cell(Vector2i(10, 9)).wet 		and not g.farm.cell(Vector2i(11, 9)).wet, "a can with 2 water waters the first 2 cells")
