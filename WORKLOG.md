@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Merge: the face key, fishing effects art and mine music
+Agent: Claude Code (claude-opus-5-5) · Commit: f61d059 and this commit
+- Done: three subagents in their own worktrees, the model picked by the job: 03228a3 the old
+  `face:` key and `_face` removed (Haiku), 0f1e4e1 the fishing float and bite box refined
+  through ItemArt (Sonnet), cc397c4 the mine's own music track (Opus). Merged into main;
+  WORKLOG and ROADMAP keep every side. On the merge (f61d059): the OUTLINE comment in
+  PlaceholderArt now says only the portraits' first pass (`_portrait_of`) still lays it. This
+  entry followed in its own commit (a script slip left it out of the merge commit).
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`;
+  the four smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print 0 ERROR or
+  WARNING lines.
+- Left / next: the mine music has not been heard by a person. The portraits' first pass still
+  lays OUTLINE before PortraitArt.refine. The Windows .exe still waits on the export templates.
+
 ## 2026-11-10 — The old `face:` key removed
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: PlaceholderArt's `face:<speaker>:<expression>` dispatch branch and `_face` removed (its
