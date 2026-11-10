@@ -197,6 +197,7 @@ func _ready() -> void:
 	add_child(CookingScreen.new())
 	add_child(MochiScreen.new())
 	add_child(RaceScreen.new())
+	add_child(ScoopScreen.new())
 	add_child(EndingScreen.new())
 	add_child(EventPlayer.new(player))   # after the Player: moves it during events
 

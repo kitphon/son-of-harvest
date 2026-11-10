@@ -10,6 +10,59 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Goldfish scoop: a played contest at Lantern Night
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: a third festival game kind, `scoop` (data/festivals.json lantern_night `game`; Festivals
+  GAMES / `_check_scoop`: played at a stall prop with `display: goldfish` that sells nothing, so
+  the indigo stall at [13, 7] that was only looks is now the game). `GoldfishScoop` (pure rules,
+  scripts/festivals/goldfish_scoop.gd): a unit-circle tub with `tub.fish` goldfish on loops whose
+  radius wanders (`orbit`, `drift`, `speed` either way round, three looks), rolled from a seed
+  (festival + year, so a year's tub swims the same each time); the scoop hangs still at SPOT;
+  press() dips it: within `reach.clean` a clean scoop, within `reach.edge` a rim scoop, else a
+  splash; each dip uses `wear` of the `paper`; when it runs out the paper tears, the fish slips
+  back and the go ends; a scooped fish's place refills after `refill` s; the scoop is lifted for
+  `dip` s after each dip (no spamming). Game.start_game: kind scoop needs empty hands ("The scoop
+  and the bowl take both hands..."), no partner, `Game.scooping` marks it busy; finish_game ranks
+  it like the other games (judge_game, prizes, flags, `game_best_scoop`, ribbon `ribbon:scoop:<n>`
+  "Goldfish Scoop ribbon", event `contest_scoop`, lines `scoop_result` in contests.json with a
+  line for each rival winning and each place). `ScoopScreen` (both views, added in main_3d and
+  main_2d): the tub from above on the stall's indigo cloth, the fish, the pink-framed paper scoop
+  (a sweet-spot ring shows when a fish is right under it, ripples after a dip, wet patches as it
+  weakens, shreds once torn), the paper bar, the bowl of fish scooped; calls Ready / Go! /
+  Scooped! / Got it! / Splash / The paper tore! / Time!; sounds reuse mochi_count, chime_morning,
+  fish_catch, hold_splash, fish_escape. Like the mochi pounding it holds the clock and is not
+  saved part way (the go, the best count and the ribbon are saved). Thai for every new UI string,
+  the game's name and the ten result lines. `--festival=lantern_night --contest=scoop` stands at
+  the tub with the game counting in, `--contest=scoop:auto` dips by itself (AGENTS.md, README).
+- Balance (ours): 45 s after a 3 s count-in, paper 100, wear clean 5 / rim 14 / splash 10,
+  reach 0.14 / 0.26 tub radii, dip 0.4 s, six fish, refill 2 s. Measured over 40 tubs at 60 fps:
+  dipping only when a fish is right under the paper: 9-19, median 16, tore 8 of 40 (19 clean
+  dips is the paper's limit, so patience is rewarded and time and paper both bind); dipping at
+  every fish in reach after a 0.1-0.3 s reaction: 7-10, median 8, always tears (rim scoops cost
+  almost three clean ones); random eager dips near fish 4-10; random dips 1-8. Rivals: Shino 6-12
+  (her trade is paper and water), Kota 4-10, Nana 3-9, Hachiro 2-8, so a steady player places
+  2nd-3rd and a patient one wins. Prizes small: 300 G and two shaved ice, 120 G and a marble soda,
+  60 G.
+- Checked: test_festivals new `_scoop_data` (game, cell, not a shop, ribbon name fits, event,
+  14 kinds of bad data refused, the tub stall needed, a selling stall refused, only a scoop has
+  paper), `_scoop_timing` (count-in, clean / rim / splash / tear, lift, refill, time, seed,
+  fish stay in the tub, Lantern Night balance over 12 seeds: patient median beats every rival's
+  best, random dips under half), `_scoop_result_lines` (every place x winner), `_scoop_play`
+  (farm none, held, start, busy, first prize, flags, record, one a year, the Catch contest beside
+  it, save, E at the tub in year 2, last place, after the hours), and the views (both have the
+  screen, each kind opens only its screen, the flat view's screen opens six fish and holds the
+  clock, time / count text, a tear call, leaving mid-game frees the clock). The old check "the
+  blue stall is only a look" now expects the scoop. After `--import`, all 31 tests/test_*.gd print `OK (0 failed)` with no ERROR line
+  (`test_festivals: OK (0 failed)`); the smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, `--demo --festival=lantern_night --contest=scoop`) print no ERROR or
+  WARNING line.
+  Screenshot `--demo --festival=lantern_night --contest=scoop:auto`, frame 329 (about 8 s in):
+  the box over the village reads "Goldfish Scoop  0:38  4 fish", tub with fish, the scoop over
+  the water, the bowl with four fish, the paper bar about two thirds; the fish were drawn
+  larger after a first look (crop at 3x looked at); shots/ deleted.
+- Left / next: the 3D and flat stall still show the tub as decoration only (no farmer pose at the
+  tub during the game); fish art in the screen is drawn shapes, not a PlaceholderArt key.
+
 ## 2026-11-10 — Merge: Kaede's portrait hair, one thing in the arms, Kiku's twig lines
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 14bd884 Kaede's portrait hair (Opus, own worktree), dab3fa0 one thing in the arms

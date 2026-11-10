@@ -78,7 +78,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Ending (data/ending.json, grading, the values measured, the event and its trigger, the record
   screen, the yearly pages, the first-day look back and the married farmer's line, the child's name and stage in it): `res://tests/test_ending.gd` must print `test_ending: OK (0 failed)`.
   Festivals (calendar, festival day, shops shut, fair weather, the event once a year,
-  decorations and lights in both views, the HUD tag, contests and prizes, the mochi pounding (timing, ranking, partner, ribbon, save, screen), the Moon Night fishing race (clock, creel, ranking, ribbon, save, box), the stalls and their
+  decorations and lights in both views, the HUD tag, contests and prizes, the mochi pounding (timing, ranking, partner, ribbon, save, screen), the Moon Night fishing race (clock, creel, ranking, ribbon, save, box), the Lantern Night goldfish scoop (the tub, dips, paper wear and tear, balance, ranking, ribbon, save, screen), the stalls and their
   wares at all four festivals, keepsakes, ribbons and the farmhouse ribbon board, the payout held back, the festival lights lighting the ground and the night lamps): `res://tests/test_festivals.gd` must
   print `test_festivals: OK (0 failed)`.
   The flat view (main_2d.tscn builds, its Player's actions reach FarmActions: tools, holding
@@ -155,7 +155,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `--contest=<item>`, e.g. `--festival=blossom_day --contest=potato`, to stand at the judges'
   table with that item and enter it, the results' text box open after ~4 s, so use
   `--quit-after 120`; `--festival=years_turn --contest=mochi` starts the mochi pounding at the mortar, and
-  `--contest=mochi:auto` swings on the beat by itself (about 5 s in is mid-round, `--quit-after 150`); `--festival=moon_night --contest=fishing` starts the fishing race at the village pond and `--contest=fishing:auto` casts and reels by itself (about 20 s in is mid-race, `--quit-after 690`); `--shop=stall:blossom_day` (or `stall:lantern_night:eats`, `stall:lantern_night:chimes`,
+  `--contest=mochi:auto` swings on the beat by itself (about 5 s in is mid-round, `--quit-after 150`); `--festival=moon_night --contest=fishing` starts the fishing race at the village pond and `--contest=fishing:auto` casts and reels by itself (about 20 s in is mid-race, `--quit-after 690`); `--festival=lantern_night --contest=scoop` starts the goldfish scoop at the goldfish stall and `--contest=scoop:auto` dips by itself (about 10 s in is mid-game, `--quit-after 330`); `--shop=stall:blossom_day` (or `stall:lantern_night:eats`, `stall:lantern_night:chimes`,
   `stall:moon_night:eats`, `stall:moon_night:crafts`, `stall:years_turn:soba`, `stall:years_turn:charms`) stands at
   that festival stall with it open; `--map=house --flags=ribbons=blossom_day:1:1` shows the
   ribbon board), `--ending` (or `--ending=year`) to open the village record (or the yearly page)
