@@ -25,6 +25,7 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 ## Next up
 [x] The old `face:` key (2026-11-10): PlaceholderArt._face and its dispatch branch removed with the test_dialogue checks of the face keys; the live `portrait:` path and PortraitArt untouched; see WORKLOG.
 [x] Fishing effects art, refined (2026-11-10): the float and the bite "!" box (`_fish_fx`) laid in flat materials and toned by ItemArt.refine instead of the near-black outline; the "!" laid after as a fixed mark; same keys and sizes; test_fishing `_fish_fx_art_refined`; see WORKLOG.
+[x] Mine music (2026-11-10): a new `mine` score in data/music.json (in scale on D, 54 bpm, 12 bars, about 53 s: a slow shakuhachi line, a quiet copy of it one step behind as the cave's echo, a soft low sho drone, a few low koto notes and a rare rin drip) and a `maps` rule for `mine` and `mine_floor` after the shops' (over rain, night and season; festivals and events still first); test_audio checks; not heard by a person yet; see WORKLOG.
 [x] Placeholder art cleanup (2026-11-10): the unused `_outline` removed; the stale OUTLINE comment in PlaceholderArt now names what still uses the outline (fish bite box, portrait first pass, `_face`); the old portrait code checked, all of it reached at runtime except `_face` (test-only caller), so nothing removed; see WORKLOG.
 [x] Story props art, refined (2026-11-10): every `_story` kind (Mio's boat names, Captain's jar, the frog, Genzo's bibs, Nana's scarf, the kiln print, site and new kiln, the rope lift's winch, the lumber, the door bell, the store signs, Tome's plum jar, Kota's carp streamer), Shino's three noren (`_noren_story`, the slits kept see-through) and Kiku's persimmon (`_scion_story`: every stage, season and snow) laid in flat materials and toned by ItemArt.refine instead of the near-black outline; writing, eyes, the tadpole, scales, glowing panes, the calyx kept as fixed marks; the old kiln's wear overlay unchanged; same keys and sizes; test_maps `_story_art_refined`; see WORKLOG.
 [x] Festival stall wares, refined (2026-11-10): all 16 `ware_*` pictures (`_ware`, 8 x 12) laid in flat materials and toned by ItemArt.refine (three tones lit from the upper left, deep-tone part lines, a rim in each material's own deep tone instead of the near-black outline); the daruma's eyes, the chime's string, the rabbit's eye, the lantern glow and the steam laid after; same keys, size and anchor; test_festivals `_ware_art_refined`; see WORKLOG.
@@ -262,7 +263,7 @@ shrine; doors, a fade, clock stopped indoors). The villagers' homes are in: Tome
 houses and Sayo's rooms behind the store (irori, tokonoma, altar, screens), doors open by their
 `hours` and shut at night with a message.
 Sound effects, ambient loops and music are in (milestone 10), with Music / Sounds / Ambient
-volume sliders in Esc → Settings. The four festivals have their own scores, the store and the smithy theirs (`maps` rules),
+volume sliders in Esc → Settings. The four festivals have their own scores, the store, the smithy and the mine theirs (`maps` rules),
 the heart events and the opening theirs (`events` rules). Later for audio: more tracks are
 new scores and rules in `data/music.json`; the music has not been heard by a person yet. The
 river map has its own running-water loop and the ponds a quieter lapping by the water

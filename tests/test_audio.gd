@@ -379,6 +379,27 @@ func _music() -> void:
 	check(shop.call("town", "sunny", 10) == {"summer": 1.0} and shop.call("house", "rain", 10) == {"rain": 1.0},
 		"other maps: the old picks")
 	check(MusicPicker.pick(music.rules, "title", "sunny", "spring", 10, "", "store") == {"title": 1.0}, "title screen over the map")
+	# The mine: its entrance and every floor play the mine's own score, over weather, night and
+	# season (underground there is no rain or night to hear); the farm and the village do not.
+	var mine := func(map_id: String, look: String, season_id: String, hour: int) -> Dictionary:
+		return MusicPicker.pick(music.rules, "field", look, season_id, hour, "", map_id)
+	for map_id in ["mine", "mine_floor"]:
+		check(mine.call(map_id, "sunny", "spring", 10) == {"mine": 1.0}, "%s: the mine music by day" % map_id)
+		check(mine.call(map_id, "sunny", "summer", 22) == {"mine": 1.0}, "%s: the mine music at night" % map_id)
+		check(mine.call(map_id, "rain", "fall", 14) == {"mine": 1.0} and mine.call(map_id, "storm", "summer", 3) == {"mine": 1.0},
+			"%s: the mine music over rain and storm" % map_id)
+		check(mine.call(map_id, "blizzard", "winter", 9) == {"mine": 1.0}, "%s: the mine music in winter" % map_id)
+	for map_id in ["farm", "town", "house", ""]:
+		for hour in [10, 22]:
+			check(not mine.call(map_id, "sunny", "spring", hour).has("mine") and not mine.call(map_id, "rain", "winter", hour).has("mine"),
+				"no mine music on %s at %d:00" % [map_id if map_id != "" else "no map", hour])
+	check(MusicPicker.pick(music.rules, "title", "sunny", "spring", 10, "", "mine_floor") == {"title": 1.0}, "title screen over the mine")
+	var mt: Dictionary = tracks.mine
+	check(mt.scale.map(func(x): return int(x)) == [0, 1, 5, 7, 8] and int(mt.root) <= 52 and float(mt.bpm) <= 60, "mine: slow, low, in the in scale")
+	check(MusicSynth.loop_seconds(mt) >= 40.0, "mine: a loop of %.1f s" % MusicSynth.loop_seconds(mt))
+	var mine_wav := MusicSynth.render(mt, music.instruments, hash("mine"))
+	check(mine_wav.size() == int(MusicSynth.loop_seconds(mt) * SfxSynth.RATE)
+		and absf(SfxSynth.peak(mine_wav) - SfxSynth.PEAK) < 0.001, "mine: the whole loop renders, normalized")
 	# Events: the heart events play the gentle score, the opening of a new game the bright one.
 	var ev := func(event_id: String, map_id: String, festival := "") -> Dictionary:
 		return MusicPicker.pick(music.rules, "field", "rain", "spring", 21, festival, map_id, event_id)
@@ -408,10 +429,10 @@ func _music() -> void:
 				for hour in [2, 6, 10, 18, 19, 23]:
 					for festival in ["", "blossom_day", "lantern_night", "moon_night", "years_turn"]:
 						var was := MusicPicker.pick(old_rules, scene, look, season_id, hour, festival)
-						for map_id in ["", "farm", "town", "house", "mine_floor"]:
+						for map_id in ["", "farm", "town", "house", "river"]:
 							for event_id in ["", "pond_first", "festival_blossom"]:
 								same = same and MusicPicker.pick(music.rules, scene, look, season_id, hour, festival, map_id, event_id) == was
-	check(same, "off the shop maps and outside those events every pick is as before")
+	check(same, "off the shop and mine maps and outside those events every pick is as before")
 	check(MusicPicker.pick([], "field", "sunny", "spring", 10).is_empty(), "no rules: silence")
 	check(MusicPicker.pick([{"track": ""}], "field", "sunny", "spring", 10).is_empty(), "an empty track is silence")
 
