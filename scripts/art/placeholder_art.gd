@@ -3412,6 +3412,11 @@ static func festival_anchor(kind: String, w: int, h: int) -> Vector2i:
 	return size / 2
 
 
+## The festival decorations. Laid in flat materials (one colour per material) and toned by
+## ItemArt.refine like the item icons: three tones lit from the upper left, deep-tone part lines,
+## a rim in the material's own deep tone instead of the near-black outline. Small marks (cuts,
+## eyes, tacks, ribs, blossom spots) are `fixed`; the flame, the petals on the grass, the weave
+## of a mat, the rosettes and the rope are laid after, as fixed colours with no rim.
 static func _festival(kind: String, w: int, h: int, cloth: Color) -> Image:
 	if kind == "mochi_usu":   # the mochi pounding's mortar, the dough half pounded
 		return _usu(2)
@@ -3420,80 +3425,85 @@ static func _festival(kind: String, w: int, h: int, cloth: Color) -> Image:
 	var size := festival_size(kind, w, h)
 	var a := festival_anchor(kind, w, h)
 	var img := _blank(size.x, size.y)
+	var fixed: Array = []
 	match kind:
 		"sakura":
-			# A leaning dark trunk, a cloud of pink puffs (lit from the top left), petals below.
-			var bark := Color("4a3028")
+			# A leaning trunk, a cloud of pink puffs (three pinks, toned by the light), petals below.
+			var bark := Color("5a3c30")
 			for i in 17:
 				_px(img, a.x - 1 + i / 8, a.y - i - 1, 3, 1, bark)
 			_px(img, a.x - 3, a.y - 1, 7, 1, bark)
-			var pinks := [Color("f4b8c8"), Color("eca0b6"), Color("f8d0dc")]
+			var pinks := [Color("f0a8be"), Color("f4b8c8"), Color("f8c8d4")]
 			var puffs := [[0.0, -1.45, 7.0], [0.35, -1.2, 6.5], [-0.32, -1.37, 6.5], [0.1, -1.0, 6.5], [-0.05, -1.8, 5.5]]
 			for i in puffs.size():
 				var c := Vector2(a.x + puffs[i][0] * 16, a.y + puffs[i][1] * 16)
-				_oval(img, c.x, c.y, puffs[i][2], puffs[i][2] * 0.9, (pinks[i % 3] as Color).darkened(0.08))
-			for i in puffs.size():
-				var c := Vector2(a.x + puffs[i][0] * 16 - 1.5, a.y + puffs[i][1] * 16 - 1.5)
-				_oval(img, c.x, c.y, puffs[i][2] * 0.6, puffs[i][2] * 0.5, pinks[i % 3])
+				_oval(img, c.x, c.y, puffs[i][2], puffs[i][2] * 0.9, pinks[i % 3])
+			var spot := Color("fff0f4")
+			fixed.append(spot)
 			for i in 9:   # blossom spots on the cloud
-				_px(img, a.x - 9 + (i * 7) % 19, a.y - 28 + (i * 5) % 15, 1, 1, Color("fff0f4"))
-			_outline(img)
+				_px(img, a.x - 9 + (i * 7) % 19, a.y - 28 + (i * 5) % 15, 1, 1, spot)
+			ItemArt.refine(img, fixed)
 			var petal := Color("f6c4d2")
-			for i in 12:   # petals on the grass round the trunk (after the outline: no dark edge)
+			for i in 12:   # petals on the grass round the trunk (after the rim: no dark edge)
 				var ang := i * 2.4
 				var d := (0.25 + (i % 4) * 0.17) * 16
 				_px(img, int(a.x + cos(ang) * d), int(a.y + sin(ang) * d * 0.4), 1, 1, petal)
 			return img
 		"picnic_mat", "red_mat":
-			# A woven mat, a darker hem, a lunch box with a lid and two teacups.
+			# A woven mat, a lunch box with a lid and two teacups.
 			var mat := Color("3a6ab0") if kind == "picnic_mat" else Color("b02a24")
 			img.fill(mat)
-			for y in range(1, size.y, 3):
-				_px(img, 0, y, size.x, 1, mat.lightened(0.12))
-			_px(img, 0, 0, size.x, 1, mat.darkened(0.3))
-			_px(img, 0, size.y - 1, size.x, 1, mat.darkened(0.3))
-			_px(img, 0, 0, 1, size.y, mat.darkened(0.3))
-			_px(img, size.x - 1, 0, 1, size.y, mat.darkened(0.3))
 			var box := Vector2i(a.x - 5, a.y - 2)
-			_px(img, box.x - 1, box.y - 1, 8, 7, OUTLINE)
-			_px(img, box.x, box.y + 3, 6, 2, Color("2a1a14"))
-			_px(img, box.x, box.y, 6, 3, Color("b02a24") if kind == "picnic_mat" else Color("2a1a14"))
-			_px(img, box.x + 1, box.y, 4, 1, Color("e8c050"))
+			var lid := Color("c43a2c") if kind == "picnic_mat" else Color("4a3428")
+			_px(img, box.x, box.y + 3, 6, 2, Color("3a2a20"))
+			_px(img, box.x, box.y, 6, 3, lid)
+			var gold := Color("e8c050")
+			fixed.append(gold)
+			_px(img, box.x + 1, box.y, 4, 1, gold)
+			var tea := Color("6a8a5a")
+			fixed.append(tea)
 			for x in [a.x + 3, a.x + 6]:
 				_px(img, x, a.y + 1, 2, 2, Color("e8e0cc"))
-				_px(img, x, a.y + 1, 2, 1, Color("6a8a5a"))   # green tea
+				_px(img, x, a.y + 1, 2, 1, tea)   # green tea
+			ItemArt.refine(img, fixed)
+			var tn: Array = ItemArt.tones(mat)
+			for y in range(2, size.y - 2, 3):   # the weave, rows of the lit tone (on bare mat only)
+				for x in range(1, size.x - 1):
+					if img.get_pixel(x, y) == tn[1]:
+						img.set_pixel(x, y, tn[2])
 			return img
 		"stall":
-			# A plank counter on four posts, a sloping roof and a short curtain in its cloth,
-			# a red lantern at the front corner (the 3D stall's lamp).
+			# A plank counter on four posts, a striped sloping roof and a short curtain in its
+			# cloth, a red lantern at the front corner (the 3D stall's lamp).
 			var ww := roundi((w - 0.2) * 16)
 			var x0 := a.x - ww / 2
+			var back := Color("5a3c28")
 			for x in [x0, x0 + ww - 1]:
-				_px(img, x, a.y - 30, 1, 24, FEST_WOOD.darkened(0.2))   # back posts
-				_px(img, x, a.y - 19, 1, 24, FEST_WOOD)                 # front posts
-			var planks := Color("9a7048")
-			_px(img, x0, a.y - 18, ww, 10, planks.lightened(0.1))      # the counter top
+				_px(img, x, a.y - 30, 1, 24, back)   # back posts
+				_px(img, x, a.y - 19, 1, 24, FEST_WOOD)   # front posts
+			var planks := Color("a47a50")
+			var seam := Color("84603c")
+			_px(img, x0, a.y - 18, ww, 10, planks)      # the counter top
 			for y in [a.y - 15, a.y - 11]:
-				_px(img, x0, y, ww, 1, planks.darkened(0.1))
-			_px(img, x0 - 1, a.y - 8, ww + 2, 1, Color("8a6a48"))
-			_px(img, x0, a.y - 7, ww, 10, planks)                       # its front, boards
+				_px(img, x0, y, ww, 1, seam)
+			_px(img, x0 - 1, a.y - 8, ww + 2, 1, Color("94704a"))
+			_px(img, x0, a.y - 7, ww, 10, Color("9a7048"))   # its front, boards
 			for y in [a.y - 4, a.y]:
-				_px(img, x0, y, ww, 1, planks.darkened(0.25))
-			_px(img, x0 + 7, a.y - 7, 1, 10, planks.darkened(0.25))
-			_px(img, x0 + ww - 9, a.y - 7, 1, 10, planks.darkened(0.25))
-			# The roof, lower at the front: its slope in bands, the eave darker.
+				_px(img, x0, y, ww, 1, seam)
+			_px(img, x0 + 7, a.y - 7, 1, 10, seam)
+			_px(img, x0 + ww - 9, a.y - 7, 1, 10, seam)
+			# The roof, lower at the front: stripes of the cloth and a paler cloth.
+			var pale := cloth.lerp(Color.WHITE, 0.3)
 			for i in 14:
-				var c := cloth.lightened(0.15) if i < 5 else (cloth if i < 11 else cloth.darkened(0.2))
-				_px(img, x0 - 3, a.y - 33 + i, ww + 6, 1, c)
-			for x in range(x0, x0 + ww, 6):
-				_px(img, x, a.y - 33, 1, 11, cloth.darkened(0.12))
-			var curtain := cloth.lerp(Color.WHITE, 0.25)
+				_px(img, x0 - 3, a.y - 33 + i, ww + 6, 1, cloth)
+			for x in range(x0 - 3, x0 + ww + 3, 6):
+				_px(img, x, a.y - 33, 3, 14, pale)
+			var curtain := cloth.lerp(Color.WHITE, 0.45)
 			_px(img, x0, a.y - 19, ww, 5, curtain)
 			for x in range(x0 + 4, x0 + ww - 1, 5):
-				_px(img, x, a.y - 17, 1, 3, curtain.darkened(0.25))   # the slits
-			_outline(img)
-			_lamp(img, Vector2i(a.x + roundi((w - 0.2) * 8), a.y - 13), FEST_RED, 2)
-			return img
+				_px(img, x, a.y - 17, 1, 3, curtain.darkened(0.3))   # the slits
+			_lamp(img, Vector2i(a.x + roundi((w - 0.2) * 8), a.y - 13), FEST_RED, 2, fixed)
+			return ItemArt.refine(img, fixed)
 		"judge_table":
 			# A low table under a white cloth, a red and white curtain along the front, the name
 			# board on two posts behind it and three ribbon rosettes waiting for the winners.
@@ -3502,120 +3512,118 @@ static func _festival(kind: String, w: int, h: int, cloth: Color) -> Image:
 			for x in [x0 + 1, x0 + ww - 2]:
 				_px(img, x, a.y - 26, 1, 22, FEST_WOOD)
 			_px(img, x0 + 1, a.y - 26, ww - 2, 5, Color("e8dcc0"))
+			fixed.append(FEST_INK)
 			_px(img, x0 + 4, a.y - 24, ww - 8, 1, FEST_INK)             # the brushed name
 			_px(img, x0 + 4, a.y - 23, 3, 1, FEST_INK)
 			_px(img, x0 + ww - 9, a.y - 23, 4, 1, FEST_INK)
 			_px(img, x0, a.y - 14, ww, 9, FEST_WHITE)                   # the cloth on top
-			_px(img, x0, a.y - 14, ww, 1, Color.WHITE)
 			var n := ww / 4
 			for i in n:                                                 # the striped curtain
-				_px(img, x0 + i * ww / n, a.y - 5, ww / n + 1, 9, FEST_RED if i % 2 == 0 else FEST_WHITE.darkened(0.05))
-			_outline(img)
+				_px(img, x0 + i * ww / n, a.y - 5, ww / n + 1, 9, FEST_RED if i % 2 == 0 else FEST_WHITE.darkened(0.08))
+			ItemArt.refine(img, fixed)
 			for i in 3:
 				_rosette(img, a.x + (i - 1) * 7, a.y - 11, [FEST_RED, FEST_WHITE, Color("2c4a8a")][i], true)
 			return img
 		"lantern_line":
 			# A pole at each end, a sagging rope and a lantern every cell, red and white in turn.
-			var pole := Color("5a4030")
+			var pole := Color("6a4a34")
 			_px(img, 1, a.y - 30, 2, 31, pole)
 			_px(img, size.x - 3, a.y - 30, 2, 31, pole)
 			for x in range(2, size.x - 2):
 				var sag := roundi(sin(PI * fposmod(x - 8.0, 16.0) / 16.0))
-				_px(img, x, a.y - 29 + sag, 1, 1, FEST_INK)
-			_outline(img)
+				_px(img, x, a.y - 29 + sag, 1, 1, Color("4a3a2c"))
 			for i in w:
-				_lamp(img, Vector2i(i * 16 + 8, a.y - 26), FEST_RED if i % 2 == 0 else FEST_PAPER, 3)
-			return img
+				_lamp(img, Vector2i(i * 16 + 8, a.y - 26), FEST_RED if i % 2 == 0 else FEST_PAPER, 3, fixed)
+			return ItemArt.refine(img, fixed)
 		"drum_stage":
 			# A plank platform on legs with red and white cloth round it, a big drum on top.
 			var hw := 14
 			for x in [a.x - 13, a.x + 11]:
 				_px(img, x, a.y + 6, 2, 8, Color("5a3a24"))
-			var deck := Color("9a7048")
+			var deck := Color("a47a50")
 			_px(img, a.x - hw, a.y - 30, hw * 2, 30, deck)
 			for y in range(a.y - 27, a.y, 4):
-				_px(img, a.x - hw, y, hw * 2, 1, deck.darkened(0.2))
+				_px(img, a.x - hw, y, hw * 2, 1, Color("84603c"))
 			for i in 6:
 				_px(img, a.x - hw + i * hw * 2 / 6, a.y, hw * 2 / 6 + 1, 7, FEST_RED if i % 2 == 0 else FEST_WHITE)
 			var drum := Vector2i(a.x, a.y - 21)
-			_px(img, drum.x - 7, drum.y + 5, 14, 2, Color("3a2418"))    # its stand
+			_px(img, drum.x - 7, drum.y + 5, 14, 2, Color("4a3020"))    # its stand
 			_oval(img, drum.x, drum.y, 7, 6, Color("8a4a2a"))           # the body, lying on its side
 			_oval(img, drum.x + 3, drum.y - 1, 4, 5, Color("e8dcc0"))   # the head, turned to the corner
+			var tack := Color("e8c050")
+			fixed.append(tack)
 			for i in 5:
-				_px(img, drum.x - 5 + i * 2, drum.y - 5 + (i % 2), 1, 1, Color("e8c050"))   # tacks
-			_outline(img)
-			return img
+				_px(img, drum.x - 5 + i * 2, drum.y - 5 + (i % 2), 1, 1, tack)   # tacks
+			return ItemArt.refine(img, fixed)
 		"moon_table":
 			# A small white wooden stand with a pyramid of round dango.
 			_px(img, a.x - 5, a.y - 10, 10, 10, Color("e8dcc0"))
-			_px(img, a.x - 4, a.y, 8, 4, Color("d8c8a0"))
-			_px(img, a.x - 4, a.y + 1, 8, 1, Color("c0b088"))
+			_px(img, a.x - 4, a.y, 8, 4, Color("d0bf94"))
 			var dango := Color("f8f4ea")
 			for row in 3:
 				var n := 3 - row
 				for i in n:
 					_oval(img, a.x - (n - 1) * 1.6 + i * 3.2, a.y - 6 - row * 2.6, 1.6, 1.6, dango)
-			_outline(img)
-			return img
+			return ItemArt.refine(img, fixed)
 		"pampas":
 			# Pampas grass in a tall blue-grey vase: grey stalks, pale silver plumes.
 			for i in 5:
 				_line(img, Vector2i(a.x, a.y - 7), Vector2i(a.x + (i - 2) * 3, a.y - 19 + absi(i - 2)), Color("8a8a6a"))
+			var shine := Color("f8f4ea")
+			fixed.append(shine)
 			for i in 5:
 				var tip := Vector2(a.x + (i - 2) * 3.6, a.y - 22 + absi(i - 2))
 				_oval(img, tip.x, tip.y, 1.4, 3.2, Color("e4dcc4"))
-				_px(img, int(tip.x), int(tip.y) - 2, 1, 2, Color("f8f4ea"))
+				_px(img, int(tip.x), int(tip.y) - 2, 1, 2, shine)
 			_px(img, a.x - 2, a.y - 7, 4, 1, Color("6a7a8a"))
 			_px(img, a.x - 2, a.y - 6, 5, 6, Color("4a5a6a"))
-			_px(img, a.x - 1, a.y - 5, 1, 4, Color("6a7a8a"))
-			_outline(img)
-			return img
+			return ItemArt.refine(img, fixed)
 		"race_flag":
 			# The fishing race's start: a bamboo pole with a tall indigo banner (a white fish on
 			# it) hung from a crossbar, and the race's creel at its foot.
 			var pole := Color("b89a5a")
 			_px(img, a.x - 1, a.y - 34, 2, 35, pole)
-			_px(img, a.x - 1, a.y - 34, 1, 35, pole.lightened(0.2))
 			_px(img, a.x, a.y - 33, 11, 1, pole)
-			_px(img, a.x - 3, a.y, 6, 1, pole.darkened(0.35))
 			_px(img, a.x + 1, a.y - 32, 9, 22, RACE_CLOTH)
 			_px(img, a.x + 1, a.y - 32, 9, 2, RACE_CLOTH.lightened(0.25))   # the hem at the top
-			_px(img, a.x + 9, a.y - 30, 1, 20, RACE_CLOTH.darkened(0.25))
 			_oval(img, a.x + 5.5, a.y - 21.5, 2.2, 4.5, RACE_MARK)          # the fish, nose up
 			_px(img, a.x + 4, a.y - 16, 3, 1, RACE_MARK)                     # its tail
 			_px(img, a.x + 3, a.y - 15, 1, 1, RACE_MARK)
 			_px(img, a.x + 7, a.y - 15, 1, 1, RACE_MARK)
 			_px(img, a.x + 4, a.y - 6, 7, 6, RACE_CREEL)                     # the creel
-			_px(img, a.x + 4, a.y - 6, 7, 1, RACE_CREEL.lightened(0.2))
 			for y in [a.y - 4, a.y - 2]:
 				_px(img, a.x + 4, y, 7, 1, RACE_CREEL.darkened(0.25))       # its weave
-			_outline(img)
-			return img
+			return ItemArt.refine(img, fixed)
 		"display_goldfish":
 			# A round wooden tub of water with three goldfish, two paper scoops (poi) lying beside it.
 			var tub := Color("8a6a44")
-			_oval(img, 11, 7, 11, 6, tub.darkened(0.25))
+			_oval(img, 11, 7, 11, 6, tub.darkened(0.2))
 			_oval(img, 11, 7, 10, 5, tub)
 			_oval(img, 11, 6.5, 9, 4, Color("7fb4cc"))
 			_oval(img, 10, 6, 5, 2, Color("a4d0e0"))
+			var tail := Color("e86a20")
+			var fleck := Color("f8c890")
+			fixed.append_array([tail, fleck])
 			for f in [[6, 6], [12, 8], [15, 5]]:   # the fish: an orange body, a tail, a white fleck
 				_px(img, f[0], f[1], 3, 2, Color("f08a2a"))
-				_px(img, f[0] - 1, f[1], 1, 1, Color("e86a20"))
-				_px(img, f[0] + 1, f[1], 1, 1, Color("f8c890"))
+				_px(img, f[0] - 1, f[1], 1, 1, tail)
+				_px(img, f[0] + 1, f[1], 1, 1, fleck)
 			for x in [24, 29]:   # the scoops: a white paper ring on a stick
 				_oval(img, x + 1, 9, 2.8, 2.2, Color("e8e0cc"))
 				_oval(img, x + 1, 9, 1.6, 1.2, Color("c8d8e0"))
 				_px(img, x + 3, 10, 3, 1, Color("c8a06a"))
-			_outline(img)
-			return img
+			return ItemArt.refine(img, fixed)
 		"display_masks":
 			# Two tiers of festival masks on a wooden stand: a white fox with red marks, a red demon,
 			# a white round-faced one with red cheeks, a rabbit, a brown tanuki.
 			var wood := Color("8a6a44")
 			_px(img, 1, 14, 32, 2, wood)
-			_px(img, 1, 14, 32, 1, wood.lightened(0.15))
-			_px(img, 2, 8, 30, 2, wood.darkened(0.1))
+			_px(img, 2, 8, 30, 2, Color("7a5c3a"))
 			var white := Color("f4f0e4")
+			var red := Color("c8282c")      # the painted marks (fixed)
+			var demon := Color("c4402c")    # the demon's face (toned)
+			var cheek := Color("e86a78")
+			fixed.append_array([red, cheek, FEST_INK])
 			for k in 4:   # the back tier
 				var x := 5 + k * 8
 				match k:
@@ -3623,28 +3631,28 @@ static func _festival(kind: String, w: int, h: int, cloth: Color) -> Image:
 						_px(img, x - 2, 0, 2, 3, white)
 						_px(img, x + 2, 0, 2, 3, white)
 						_oval(img, x + 0.5, 4.5, 3.5, 3.5, white)
-						_px(img, x - 3, 4, 2, 1, Color("c8282c"))
-						_px(img, x + 3, 4, 2, 1, Color("c8282c"))
+						_px(img, x - 3, 4, 2, 1, red)
+						_px(img, x + 3, 4, 2, 1, red)
 						_px(img, x, 6, 1, 1, FEST_INK)
 					1:   # demon
 						_px(img, x - 2, 0, 1, 2, white)
 						_px(img, x + 3, 0, 1, 2, white)
-						_oval(img, x + 0.5, 4.5, 3.5, 3.5, Color("c8282c"))
+						_oval(img, x + 0.5, 4.5, 3.5, 3.5, demon)
 						_px(img, x - 2, 3, 5, 1, FEST_INK)
 						_px(img, x - 1, 6, 1, 1, white)
 						_px(img, x + 2, 6, 1, 1, white)
 					2:   # round white face, red cheeks, black hair
 						_oval(img, x + 0.5, 4.5, 3.7, 3.7, white)
 						_px(img, x - 3, 1, 8, 2, FEST_INK)
-						_px(img, x - 2, 5, 1, 1, Color("e86a78"))
-						_px(img, x + 3, 5, 1, 1, Color("e86a78"))
-						_px(img, x, 6, 1, 1, Color("c8282c"))
+						_px(img, x - 2, 5, 1, 1, cheek)
+						_px(img, x + 3, 5, 1, 1, cheek)
+						_px(img, x, 6, 1, 1, red)
 					_:   # rabbit
 						_px(img, x - 1, 0, 1, 3, white)
 						_px(img, x + 2, 0, 1, 3, white)
 						_oval(img, x + 0.5, 5, 3.2, 3.2, white)
-						_px(img, x - 1, 4, 1, 1, Color("c8282c"))
-						_px(img, x + 2, 4, 1, 1, Color("c8282c"))
+						_px(img, x - 1, 4, 1, 1, red)
+						_px(img, x + 2, 4, 1, 1, red)
 			for k in 3:   # the front tier
 				var x := 9 + k * 8
 				if k == 1:   # tanuki
@@ -3653,70 +3661,71 @@ static func _festival(kind: String, w: int, h: int, cloth: Color) -> Image:
 					_px(img, x + 2, 11, 2, 1, FEST_INK)
 				else:
 					_oval(img, x + 0.5, 11.5, 3.2, 2.6, white)
-					_px(img, x - 2, 11, 1, 1, Color("c8282c"))
-					_px(img, x + 2, 11, 1, 1, Color("c8282c"))
+					_px(img, x - 2, 11, 1, 1, red)
+					_px(img, x + 2, 11, 1, 1, red)
 					_px(img, x, 13, 1, 1, FEST_INK)
-			_outline(img)
-			return img
+			return ItemArt.refine(img, fixed)
 		"paper_lantern":
 			# A standing paper lantern on a short pole.
-			_px(img, a.x - 1, a.y - 17, 2, 18, FEST_INK)
-			_px(img, a.x - 2, a.y, 4, 1, FEST_INK)
-			_outline(img)
-			_lamp(img, Vector2i(a.x, a.y - 20), FEST_PAPER, 4)
-			return img
+			var pole := Color("5a4030")
+			_px(img, a.x - 1, a.y - 17, 2, 18, pole)
+			_px(img, a.x - 2, a.y, 4, 1, pole)
+			_lamp(img, Vector2i(a.x, a.y - 20), FEST_PAPER, 4, fixed)
+			return ItemArt.refine(img, fixed)
 		"kadomatsu":
 			# Three cut bamboo stalks in a straw-bound base, pine sprigs round them.
 			var bamboo := Color("5a9a48")
+			var cut := Color("d8e8b0")
+			fixed.append(cut)
 			for s in [[-1, 22], [-3, 16], [2, 13]]:
 				var x: int = a.x + s[0]
 				var top: int = a.y - s[1]
 				_px(img, x, top, 2, s[1] - 4, bamboo)
-				_px(img, x, top, 1, s[1] - 4, bamboo.lightened(0.2))
-				_px(img, x, top, 2, 1, Color("d8e8b0"))       # the slanted cut
-				_px(img, x + 1, top - 1, 1, 1, Color("d8e8b0"))
-				_px(img, x, top + 6, 2, 1, bamboo.darkened(0.25))   # a node
+				_px(img, x, top, 2, 1, cut)       # the slanted cut
+				_px(img, x + 1, top - 1, 1, 1, cut)
+				_px(img, x, top + 6, 2, 1, Color("3e7432"))   # a node
 			var pine := Color("2f5a34")
 			for dx in [-6, 4]:
 				for k in 3:
 					_px(img, a.x + dx + k % 2, a.y - 9 + k, 4 - k, 1, pine)
 			_px(img, a.x - 4, a.y - 7, 8, 7, Color("c8a868"))           # the straw base
 			for y in [a.y - 5, a.y - 2]:
-				_px(img, a.x - 4, y, 8, 1, Color("6a4a2a"))              # its rope bands
-			_outline(img)
-			return img
+				_px(img, a.x - 4, y, 8, 1, Color("7a5a38"))              # its rope bands
+			return ItemArt.refine(img, fixed)
 		"bonfire":
-			# A ring of stones, crossed logs and the flame.
+			# A ring of stones, crossed logs and the flame (the flame is laid after: it glows).
 			var stone := Color("7a766e")
 			for i in 8:
 				var ang := i * TAU / 8
-				_px(img, roundi(a.x + cos(ang) * 6) - 1, roundi(a.y + sin(ang) * 5) - 1, 3, 2, stone if i % 2 == 0 else stone.darkened(0.15))
-			_line(img, Vector2i(a.x - 5, a.y + 2), Vector2i(a.x + 5, a.y - 2), Color("4a3020"))
-			_line(img, Vector2i(a.x - 5, a.y - 2), Vector2i(a.x + 5, a.y + 2), Color("4a3020"))
+				_px(img, roundi(a.x + cos(ang) * 6) - 1, roundi(a.y + sin(ang) * 5) - 1, 3, 2, stone if i % 2 == 0 else Color("6a665e"))
+			_line(img, Vector2i(a.x - 5, a.y + 2), Vector2i(a.x + 5, a.y - 2), Color("5a3a28"))
+			_line(img, Vector2i(a.x - 5, a.y - 2), Vector2i(a.x + 5, a.y + 2), Color("5a3a28"))
+			ItemArt.refine(img, fixed)
 			for y in 10:   # the flame, a cone narrowing upwards
 				var half := 3.5 * (1.0 - y / 10.0)
 				_px(img, roundi(a.x - half), a.y - 1 - y, maxi(1, roundi(half * 2)), 1, Color("ffb040"))
 			for y in 6:
 				var half := 1.8 * (1.0 - y / 6.0)
 				_px(img, roundi(a.x - half), a.y - 1 - y, maxi(1, roundi(half * 2)), 1, Color("fff0a0"))
-			_outline(img)
 			return img
 	img.fill(Color.MAGENTA)
 	return img
 
 
-## One paper lantern hung with its middle at `at`: a round ribbed body, dark caps, outlined.
-## `half` is half its width.
-static func _lamp(img: Image, at: Vector2i, color: Color, half: int) -> void:
-	_px(img, at.x - half - 1, at.y - half - 2, half * 2 + 3, half * 2 + 5, OUTLINE)
+## One paper lantern hung with its middle at `at`: a round ribbed body and dark caps, flat
+## materials for the festival art's refine. `half` is half its width; the ribs are small marks,
+## added to `fixed`.
+static func _lamp(img: Image, at: Vector2i, color: Color, half: int, fixed: Array) -> void:
+	var cap := Color("5a4636")
 	_px(img, at.x - half, at.y - half, half * 2 + 1, half * 2 + 1, color)
 	_px(img, at.x - half + 1, at.y - half - 1, half * 2 - 1, 1, color)
 	_px(img, at.x - half + 1, at.y + half + 1, half * 2 - 1, 1, color)
+	var rib := color.darkened(0.14)
+	fixed.append(rib)
 	for y in range(at.y - half + 1, at.y + half, 2):
-		_px(img, at.x - half, y, half * 2 + 1, 1, color.darkened(0.12))   # the ribs
-	_px(img, at.x - half + 1, at.y - half, 1, half * 2, color.lightened(0.3))
-	_px(img, at.x - half + 1, at.y - half - 2, half * 2 - 1, 1, FEST_INK)
-	_px(img, at.x - half + 1, at.y + half + 2, half * 2 - 1, 1, FEST_INK)
+		_px(img, at.x - half, y, half * 2 + 1, 1, rib)   # the ribs
+	_px(img, at.x - half + 1, at.y - half - 2, half * 2 - 1, 1, cap)
+	_px(img, at.x - half + 1, at.y + half + 2, half * 2 - 1, 1, cap)
 
 
 # --- the village record scroll (EndingScreen) ----------------------------------------------

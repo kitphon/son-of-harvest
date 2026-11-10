@@ -38,6 +38,26 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   gold, no black outline) looked at; shots/ deleted. All tests/test_*.gd print `OK (0 failed)`;
   the four smoke runs print 0 ERROR and 0 WARNING lines.
 - Left / next: the maple tree, festival decorations and story props still use the old outline.
+## 2026-11-10 — Festival decorations, refined
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: PlaceholderArt._festival (sakura, picnic_mat, red_mat, stall in any cloth, judge_table,
+  lantern_line, drum_stage, moon_table, pampas, race_flag, display_goldfish, display_masks,
+  paper_lantern, kadomatsu, bonfire) lays each decoration in flat materials and passes it through
+  ItemArt.refine instead of `_outline`: three tones lit from the upper left, deep-tone part lines,
+  a rim in the material's own deep tone. `_lamp` now lays flat paper and cap materials (its own
+  outline and lit stripe dropped; the ribs are fixed marks). Hand-shaded copies dropped (the
+  puffs' lighter inner ovals, the roof bands, the mat hem, the pole highlight, the banner's dark
+  side). Fixed marks: blossom spots, lid gold, tea, ink name and mask eyes, tacks, the cut ends,
+  goldfish tail and fleck, mask paint. Laid after the refine with no rim: the sakura's petals,
+  the mat's weave rows (in the mat's lit tone), the rosettes and the bonfire's flame. A few
+  colours moved a step lighter where the refine's shade tones would have gone too dark (bark,
+  planks, deck, logs). Same keys, sizes and anchors; the wares (`ware_*`) and the mochi usu are
+  unchanged; the 3D lights and lamp glow are not touched.
+- Checked: new test_festivals `_festival_deco_art_refined` (all 15 kinds keep festival_size, no
+  2a1e1e pixel, at least four colours; a stall takes its cloth; the flame keeps ffb040 / fff0a0);
+  all tests/test_*.gd and the four smoke runs, see the final report for the lines; screenshots
+  `--demo --festival=blossom_day` and `--festival=lantern_night`.
+- Left / next: crops (`_crop`, `_stalk`), the maple tree and story props still carry the old outline.
 
 ## 2026-11-10 — Merge: HUD icons, field / mine art and the mochi mortar and mallet refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
