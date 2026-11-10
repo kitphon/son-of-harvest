@@ -43,6 +43,18 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Left / next: PlaceholderArt cleanup (`_outline` unused; OUTLINE still laid by hand in
   `_fish_fx` and the dialogue faces / portraits).
 
+## 2026-11-10 — Festival stall wares, refined
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: PlaceholderArt._ware (the 16 `festival:ware_*` pictures, 8 x 12) is laid in flat materials
+  (one colour per material, new WARE_* constants) and toned by ItemArt.refine like the food icons:
+  three tones lit from the upper left, deep-tone part lines, a rim in each material's own deep
+  tone instead of the near-black outline. The daruma's eyes, the chime's string, the rabbit's eye,
+  the moon lantern's glow and the steam are laid after the pass as they are. Same keys, size,
+  anchor and steam rule. The soba stack's dark colour is a brown (3a2a22), not near black.
+- Checked: test_festivals `_ware_art_refined`: every ware is 8 x 12, has no 2a1e1e pixel and
+  several colours, and the soba's steam stays soft. All tests/test_*.gd and the smoke runs.
+- Left / next: the story props (`_story`, `_noren_story`, `_scion_*`).
+
 ## 2026-11-10 — Merge: crops, festival decorations and the maple tree refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 682361e crops and stalks (Opus), edb9f0a festival decorations (Sonnet) and
