@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] The persimmon tree's hint, checked (2026-11-10): the interact hint at Kiku's tree says Pick with fruit left (also holding one) and Look on the bare tree (hands empty or holding), and a press there never throws; test_view2d `_persimmon` checks both cases; a 3D frame shows E Pick and E Look; see WORKLOG.
 [x] The test_villagers lumber flake (2026-11-10): a weed rolled on the order night (before the lumber arrives) on [2, 5] or [1, 4] failed the lumber checks about 1 run in 100; they now ask FarmGrid.under_prop; 100 of 100 runs OK; see WORKLOG.
 [x] Kiku talks about the picked persimmons outside fall (2026-11-10): two lines each for winter (dried persimmons, the one left for the birds), spring (the tree leafing out, a kept seed) and summer (green fruit setting), `scion_picked_<season>_1..2`, on the same Tuesday / Saturday twig rows once kiku_scion_picked is set; her close and dear lines keep the other days; EN and TH; test_talk `_kiku_scion`; see WORKLOG.
 [x] Kiku's persimmon picked through the flat view (2026-11-10): the press with a persimmon in hand threw it at the tree ("No room to throw it.") instead of picking; FarmActions.on_action now gives Kiku's fruiting tree the press first, and the hint says Pick / Look; test_view2d `_persimmon` plays two picks, the birds line and the next morning through Player's actions and checks the drawn crown; see WORKLOG.
