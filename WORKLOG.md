@@ -56,6 +56,27 @@ Agent: Claude Code (claude-sonnet) · Commit: this commit
 - Checked: `--import`, every tests/test_*.gd prints `OK (0 failed)` with no SCRIPT ERROR or Parse
   Error (test_animals checks the held dog's 14 x 11 picture); the four smoke runs print 0 ERROR lines.
 - Left / next: the Windows .exe still waits on the export templates.
+## 2026-11-10 — Flat-view screenshots of the refined animals
+Agent: Claude Code (claude-haiku) · Commit: this commit
+- Done: no code changed. Took the flat view's first screenshots of the refined animals:
+  `--path <worktree> --write-movie shots/frame.png --fixed-fps 30 --quit-after 20 res://scenes/main_2d.tscn -- --demo --map=barn`
+  and the same with `--map=coop`. The scene argument form worked (the engine ran the flat view
+  with no error). The last frame of each run was kept as shots/barn_2d.png and shots/coop_2d.png,
+  and 4x nearest-neighbour crops of the animal areas were looked at; shots/ deleted afterwards.
+- Checked: the barn frame shows a black cow with a pale muzzle and a dark calf, and a white
+  sheep in full wool, the cow and calf in several browns and the sheep in cream with grey curls;
+  the coop frame shows two white hens with red combs and grey wing shading, and a yellow chick on
+  the straw. Each animal has several shades (base, lit and deep tones) and no near-black outline
+  on the pale hens or sheep; the cow's rim is its own dark brown. Nothing broken seen. The frames
+  are 480 x 270, so the animals are only about 15 to 25 pixels tall: the detail is hard to judge
+  at that size. Colours counted in the animal areas: the barn 14 colours, the coop 14. Headless:
+  `--headless --path . --script res://tests/test_view2d.gd` printed `test_view2d: OK (0 failed)`;
+  `--headless --path . --script res://tests/test_animals.gd` printed `test_animals: OK (0 failed)`;
+  neither printed a SCRIPT ERROR or Parse Error line.
+- Left / next: a flat-view frame at a larger window size (the movie is 480 x 270 here) would show
+  the animals' tones better. The egg items in the coop's boxes still have a near-black outline
+  (an item, not an animal, so outside this task). The old hen and chick drawings in PlaceholderArt
+  remain unused code.
 
 ## 2026-11-10 — Merge: animal art refined, the weed-flake audit, the persimmon hint checked
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
