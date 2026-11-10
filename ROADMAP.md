@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] test_child help flake (2026-11-10): the nightly neglect roll (1 in 8) could drop the child below band 5 before the morning help; the test now counts a talk today before `end_day()`, 7 failures in 40 runs before, see WORKLOG.
 [x] test_inventory exit leak (2026-11-10): `_arms_full()` freed no Game node; `g.free()` added, the suite quits with no ERROR line.
 [x] Nana's scarf on a loaded save (2026-11-10): Game.from_dict applies DateFlags for the loaded date, so a save from fall 20 on gets nana_scarf at the load, not at the next morning; test_save covers the load (before and after fall 19) and the morning through Game.end_day.
 [x] Villager art, refined (2026-11-10): every villager's frames and the farmer's child (crawler, toddler, child) in the farmer's refined pass: three tones per material lit from the upper left, deep-tone part lines and a darker rim instead of the black outline, their own pieces (Ren's mailbag, the hammer, the kimono's tabi, the hat band) toned too; every look, key, pose and size kept, both views (FigureArt, data/villager_art.json; test_villagers `_villager_art`; the farmer's hashes in test_title unchanged). Next for the look: the baby's cradle and carry pictures and the portraits are still the plain drawing.

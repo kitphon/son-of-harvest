@@ -1189,6 +1189,9 @@ func _child_help_in_game() -> void:
 	for c in [Vector2i(6, 10), Vector2i(7, 10), Vector2i(8, 11)]:
 		g.farm.cell(c).obj = FarmGrid.Obj.WEED
 	g.affection.points[Child.ID] = int(Affection.rules().bands[5])
+	# The nightly neglect roll (1 in 8) could take the one point that holds band 5 and so the
+	# help away; a talk today skips the roll, which keeps this test deterministic.
+	g.affection.talked[Child.ID] = g.day_number()
 	g.weather_tomorrow = "sunny"
 	g.end_day()
 	check(g.weather_today == "sunny" and g.child_help_news == "Sora pulled up 2 weeds in the field this morning.", "a sunny morning at band 5: the news waits (%s)" % g.child_help_news)
@@ -1209,6 +1212,7 @@ func _child_help_in_game() -> void:
 	g.dialogue_requested.disconnect(hear)
 	# Band 4 the next morning: no help.
 	g.affection.points[Child.ID] = int(Affection.rules().bands[4])
+	g.affection.talked[Child.ID] = g.day_number()
 	g.weather_tomorrow = "sunny"
 	g.end_day()
 	check(g.child_help_news == "" and not g.flags.has(Child.HELP_WEEDS), "band 4: no help")

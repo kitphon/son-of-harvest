@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — test_child `_child_help_in_game` flake: the nightly neglect roll
+Agent: Claude Code (claude-sonnet) · Commit: this commit
+- Done: root cause is a test setup problem, not a game bug. The test sets the child's affection to
+  exactly the start of band 5 and calls `end_day()`. `Affection.day_end` rolls the neglect loss
+  (data/villagers/_common.json, chance 0.125, loss 1) for everyone met who got no talk or gift that
+  day, with the unseeded `Game.rng` (`rng.randomize()`); a lost point drops the child to band 4, so
+  `Child.help` pulled nothing (the failing message was the spouse's feed line instead). About 1 run in
+  8 failed. Fix in tests/test_child.gd: the child counts as talked to today before each of the two
+  `end_day()` calls, which skips the roll. The game code is right and unchanged.
+- Checked: `res://tests/test_child.gd` run 40 times in a loop before the fix: 7 failures / 40 (runs
+  13, 15, 20, 31, 32, 37, 39; always the same five lines from "a sunny morning at band 5"); after the
+  fix: 0 failures / 40 runs (at 1 in 8 per run, 0 of 40 by luck is about 0.4%).
+  All 31 tests/test_*.gd print `OK (0 failed)`; four smoke runs print no ERROR.
+- Left / next: other tests that set a villager's points to a band edge and then call `end_day()`
+  could have the same 1-in-8 flake (not audited).
+
 ## 2026-11-10 — Merge: inventory test leak, Nana's scarf on load, villager art refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 3a9aaa9 test_inventory frees its Game (Sonnet, own worktree), 710b6ae Nana's scarf
