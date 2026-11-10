@@ -15,8 +15,9 @@ const DIR := "res://data/dialogue/"
 ## clock ["H:MM", "H:MM"], the heart band [lowest, highest], whether they already talked today,
 ## whether it is their birthday (birthday in the villager file) and the maps they may stand on
 ## (a list of map ids: lines for the river only there).
-## `stage` (a list of Child stages) is for the little one's lines (talk_child.json).
-const PICK_KEYS: Array[String] = ["time", "band", "again", "birthday", "map", "stage"]
+## `stage` (a list of Child stages) is for the little one's lines (talk_child.json); `scion` (a
+## list of Scion stages: sapling, young, tree) is for the persimmon twig Kiku was given to plant.
+const PICK_KEYS: Array[String] = ["time", "band", "again", "birthday", "map", "stage", "scion"]
 const GIFT_LINES: Array[String] = ["gift_love", "gift_like", "gift_neutral", "gift_dislike", "gift_hate", "gift_again"]
 
 static var _files := {}   # villager id -> the talk file's data
@@ -121,6 +122,8 @@ static func _check_if(c: Variant) -> String:
 		return "map needs a list of map ids (data/maps)"
 	if c.has("stage") and not EventTriggers._names_ok(c.stage, Array(Child.stage_ids())):
 		return "stage needs a list of the child's stages"
+	if c.has("scion") and not EventTriggers._names_ok(c.scion, Scion.stage_ids()):
+		return "scion needs a list of the twig's stages (data/scion.json)"
 	for k in ["again", "birthday"]:
 		if c.has(k) and not c[k] is bool:
 			return "%s is true or false" % k
@@ -154,6 +157,8 @@ static func holds(c: Dictionary, s: Dictionary) -> bool:
 	if c.has("map") and not s.get("map", "") in c.map:
 		return false
 	if c.has("stage") and not s.get("stage", "") in c.stage:
+		return false
+	if c.has("scion") and not s.get("scion", "") in c.scion:
 		return false
 	return not c.has("again") or c.again == s.again
 

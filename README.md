@@ -409,8 +409,9 @@ turns them to the farmer (`Villagers.turn`) and calls `Game.talk_to(id, face)`:
   `picks`, `[{"if": {conditions}, "at": [line ids]}]`, the last row without `if`. Conditions
   are the rule ones above plus `time` (`["H:MM", "H:MM"]`), `band` (heart band `[low, high]`,
   0..6), `again` (already talked today), `birthday` (true on their birthday) and `map` (map ids:
-  the map the villager stands on, e.g. Kota's and Hachiro's river lines); the day picks
-  one of the row's lines. Gift answers are the lines `gift_love` .. `gift_hate` and
+  the map the villager stands on, e.g. Kota's and Hachiro's river lines), `scion` (the stage of
+  Kiku's persimmon twig, `sapling` / `young` / `tree`, `""` while nothing is planted; Game.talk_to
+  puts it in); the day picks one of the row's lines. Gift answers are the lines `gift_love` .. `gift_hate` and
   `gift_again`; an optional `gift_birthday` answers a gift that isn't disliked on their birthday.
   An optional `gift_items` table gives a villager their own answer to keepsakes and dishes
   (`Talk.gift_line`): `{"keep:<id>" | "food:<recipe id>": line id}` for one item, or

@@ -10,7 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
-<<<<<<< HEAD
+## 2026-11-10 — Merge: Kaede's portrait hair, one thing in the arms, Kiku's twig lines
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged 14bd884 Kaede's portrait hair (Opus, own worktree), dab3fa0 one thing in the arms
+  (Sonnet, own worktree) and 670bdd6 Kiku talks about her persimmon twig (Haiku, own worktree).
+  Conflicts only in WORKLOG and ROADMAP; every side's entry kept. The intermediate merge commit of
+  dab3fa0 still had conflict markers in WORKLOG / ROADMAP; this commit removes them.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`; the
+  four smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print no ERROR or
+  WARNING line.
+- Left / next: other tests that set points on a band edge before `end_day()` are still not audited
+  for the neglect roll; no flat-view screenshot of Kaede's portrait.
+
 ## 2026-11-10 — Kaede's portrait hair: tones for very dark materials
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: PortraitArt.tones now tones a very dark material from a lifted colour (new
@@ -34,7 +45,6 @@ Agent: Claude Code (claude-opus) · Commit: this commit
   tests/test_*.gd print `OK (0 failed)` with no ERROR line; the four smoke runs print no ERROR or
   WARNING line.
 - Left / next: no flat-view screenshot.
-=======
 ## 2026-11-10 — One thing in the arms: the dog, the baby and the crawler never together
 Agent: Claude Code (claude-sonnet) · Commit: this commit
 - Done: answers the open question of "Hands full with the dog". Lifting the baby (Game.lift_baby,
@@ -52,7 +62,24 @@ Agent: Claude Code (claude-sonnet) · Commit: this commit
   Note: with the dog held, the tool button at the cradle or the crawler sets the dog down (existing
   held-dog behaviour) and lifts nothing. Full run: see the commit report.
 - Left / next: none for this question.
->>>>>>> refs/heads/worktree-agent-a92a2a94eaa3aae42
+## 2026-11-10 — Kiku talks about her persimmon twig
+Agent: Claude Code (claude-haiku) · Commit: this commit
+- Done: Kiku's talk file gets four rows for the twig, placed before her heart rows and after the
+  wet / festival / shrine rows. Her sapling lines (first year, the stake) and young-tree lines
+  (second year) hold by stage; the fruiting tree gets fall lines (has the farmer picked any, the
+  birds get the top ones) and other-season lines. The new pick key `scion` (Talk.holds, checked by
+  Talk.check) takes a list of Scion stages; Game.talk_to puts the stage in as
+  `Scion.stage` (or "" while nothing is planted). No other engine change. The rows also carry a
+  few of her existing lines (dear_1..3, close_1/2, fall_1/2, plain_2), so her other lines keep
+  coming after planting. 8 new lines, English in talk_kiku.json and Thai in data/lang/th/dialogue.json.
+  README → Villagers lists the new key.
+- Checked: test_talk `_kiku_scion` (pure picks per stage and season, nothing when not planted, a
+  bad stage name is refused by Talk.check; through Game.talk_to: unplanted, sapling day 0, young
+  at 130 days, fruiting tree in fall at 250 days, tree in winter). test_talk, test_lang and
+  test_relationships print `OK (0 failed)`. All 31 tests/test_*.gd print `OK (0 failed)`. The four
+  smoke runs (title, --demo, --demo --map=town, --demo --mine=3) print no ERROR or WARNING line.
+- Left / next: the close and dear lines are shared into the tree rows, so they show less often
+  after planting; no in-game screenshot of the lines was taken.
 
 ## 2026-11-10 — Merge: portraits refined, cradle / carry refined, test_child flake
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

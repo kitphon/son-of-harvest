@@ -29,6 +29,7 @@ func _process(_delta: float) -> bool:
 		_event_hook()
 		_delay_and_bump()
 		_talk_at_river()
+		_kiku_scion()
 		print("test_talk: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -184,6 +185,56 @@ func _picks() -> void:
 		check(Talk.pick(id, river.merged({"band": 5}, true)).begins_with("river_"), "%s's river lines come before the close ones" % id)
 		check(not Talk.pick(id, river.merged({"band": 2, "map": "town"}, true)).begins_with("river_"), "%s has no river line in the village" % id)
 	check(Talk.pick("kota", river.merged({"again": true}, true)) in ["again_1", "again_2"], "a second talk at the river is still the again line")
+
+
+## Kiku's lines about her persimmon twig: each stage's row holds only with that stage (the
+## scion key, Talk.holds), the fall row only in fall, and nothing about it before it is planted.
+func _kiku_scion() -> void:
+	var sapling := ["scion_sapling_1", "scion_sapling_2", "dear_1", "close_1"]
+	var young := ["scion_young_1", "scion_young_2", "dear_2", "close_2"]
+	var fall := ["scion_fall_1", "scion_fall_2", "fall_1", "fall_2"]
+	var tree := ["scion_tree_1", "scion_tree_2", "dear_3", "plain_2"]
+	var six := {"band": 6, "flags": {"heart_kiku_6": true}}
+	for day in 4:
+		check(Talk.pick("kiku", _state(six.merged({"scion": "sapling", "day_number": day}, true))) in sapling, "a sapling: her twig lines (day %d)" % day)
+		check(Talk.pick("kiku", _state(six.merged({"scion": "young", "day_number": day}, true))) in young, "a young tree (day %d)" % day)
+		check(Talk.pick("kiku", _state(six.merged({"scion": "tree", "season": "fall", "day_number": day}, true))) in fall, "a fruiting tree in fall (day %d)" % day)
+		check(Talk.pick("kiku", _state(six.merged({"scion": "tree", "season": "winter", "day_number": day}, true))) in tree, "a tree in winter (day %d)" % day)
+	check(Talk.pick("kiku", _state(six.merged({"scion": "sapling"}, true))) == "scion_sapling_1", "the first sapling line on the first day")
+	check(Talk.pick("kiku", _state(six.merged({"scion": "tree", "season": "fall"}, true))) == "scion_fall_1", "the first fall line on the first day")
+	check(Talk.pick("kiku", _state(six.merged({"scion": "young", "season": "fall"}, true))) in young, "a young tree doesn't fruit: no fall line")
+	check(Talk.pick("kiku", _state(six.merged({"scion": "sapling", "season": "fall"}, true))) in sapling, "a sapling in fall: no fall line")
+	check(Talk.pick("kiku", _state(six.merged({"scion": "", "season": "fall"}, true))) in ["dear_1", "dear_2", "dear_3", "fall_1", "fall_2"],
+		"nothing planted: no twig line in fall")
+	check(Talk.pick("kiku", _state(six.merged({"scion": ""}, true))) in ["dear_1", "dear_2", "dear_3"], "nothing planted: her heart lines")
+	var bad := Talk.data("kiku").duplicate(true)
+	bad.picks.insert(0, {"if": {"scion": ["bush"]}, "at": ["plain_1"]})
+	check(Talk.check(bad).begins_with("pick 0: scion needs"), "a twig stage that doesn't exist is refused (%s)" % Talk.check(bad))
+	# Through Game.talk_to: the stage comes from the planting day, the season from the clock.
+	check(_kiku_talk(false, 0, 0) in ["dear_1", "dear_2", "dear_3"], "unplanted: no twig line (%s)" % _kiku_talk(false, 0, 0))
+	check(_kiku_talk(false, 0, 2) in ["dear_1", "dear_2", "dear_3", "fall_1", "fall_2"], "unplanted in fall: no twig line")
+	check(_kiku_talk(true, 0, 0) in sapling, "planted today: a sapling line (%s)" % _kiku_talk(true, 0, 0))
+	check(_kiku_talk(true, 130, 0) in young, "planted 130 days ago: a young tree line (%s)" % _kiku_talk(true, 130, 0))
+	check(_kiku_talk(true, 250, 2) in fall, "planted 250 days ago, fall: a fruiting tree line (%s)" % _kiku_talk(true, 250, 2))
+	check(_kiku_talk(true, 250, 3) in tree, "planted 250 days ago, winter: a tree line (%s)" % _kiku_talk(true, 250, 3))
+
+
+## Kiku's line on a fresh game at 9:00 on day 1 of `season`, her heart at band 6 with the band 6
+## scene seen; the twig planted `age` days ago when `planted`. The line she opens with, or "".
+func _kiku_talk(planted: bool, age: int, season: int) -> String:
+	var g := _game()
+	var seen := _listen(g)
+	g.weather_today = "sunny"
+	g.hour = 9
+	g.minute = 0
+	g.season = season
+	g.affection.add("kiku", 9999)
+	g.flags["heart_kiku_6"] = true
+	if planted:
+		g.flags[Scion.FLAG] = "door"
+		g.flags[Scion.day_flag()] = g.day_number() - age
+	g.talk_to("kiku", Vector2i.UP)
+	return str(seen.said.back()[1]) if not seen.said.is_empty() else ""
 
 
 func _reactions() -> void:
