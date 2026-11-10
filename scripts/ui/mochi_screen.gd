@@ -9,16 +9,16 @@ extends CanvasLayer
 ## it is open. `-- --demo --festival=years_turn --contest=mochi` opens it at the start;
 ## `--contest=mochi:auto` swings by itself (for screenshots).
 
-const W := 280               # the paper's width
-const STAGE := Vector2(240, 118)
+const W := 220               # the paper's width (narrow, so the farmer at the mortar shows beside it)
+const STAGE := Vector2(208, 118)
 const TOP := 17              # the heading strip on the wood
 const LINE := 11
 const SCALE := 2.0           # the sprites on the stage
-const MORTAR := Vector2(88, 62)      # the usu's top left on the stage
-const DOUGH := Vector2(120, 72)      # where the mallet lands and the ring closes
-const FARMER := Vector2(52, 108)    # the figures' feet (bottom middle) on the stage
-const PARTNER := Vector2(172, 108)
-const HANDS := Vector2(66, 88)       # the farmer's grip on the handle
+const MORTAR := Vector2(72, 62)      # the usu's top left on the stage
+const DOUGH := Vector2(104, 72)      # where the mallet lands and the ring closes
+const FARMER := Vector2(36, 108)    # the figures' feet (bottom middle) on the stage
+const PARTNER := Vector2(156, 108)
+const HANDS := Vector2(50, 88)       # the farmer's grip on the handle
 const UP := -0.45            # the mallet's angle raised (radians from upright), and on the dough
 const DOWN := 1.35
 const RING := 14.0           # the mark's radius; the ring starts RING_FAR out a second ahead
@@ -79,7 +79,9 @@ func _ready() -> void:
 	_wood.size = Vector2(W + 8, TOP + _paper.size.y + 4)
 	var screen := Vector2(ProjectSettings.get_setting("display/window/size/viewport_width"),
 		ProjectSettings.get_setting("display/window/size/viewport_height"))
-	_wood.position = Vector2(floorf((screen.x - _wood.size.x) / 2), 28)
+	# At the left edge, not the middle: the camera keeps the farmer (at the mortar) in the
+	# middle of the view, and the box must leave them in sight.
+	_wood.position = Vector2(4, floorf((screen.y - _wood.size.y) / 2) - 14)
 	_dim.visible = false
 	Game.game_requested.connect(open)
 	_auto = Array(OS.get_cmdline_user_args()).any(func(a): return a.begins_with("--contest=") and a.ends_with(":auto"))
@@ -192,7 +194,7 @@ func _refresh() -> void:
 	_call.add_theme_color_override("font_color", color)
 	_call.position.x = (W - PixelFont.shown_width(call)) / 2
 	var name := str(Villagers.all().get(partner, {}).get("name", partner))
-	_hint.text = "%s turns the dough. E: swing as the ring closes" % name if not game.done() \
+	_hint.text = "%s turns. E: swing as the ring closes" % name if not game.done() \
 		else "Great %d   Good %d   Miss %d" % [game.counts.great, game.counts.good, game.counts.miss]
 	_stage.queue_redraw()
 
@@ -228,7 +230,7 @@ func draw_stage(c: Control) -> void:
 	# The strikes so far, a dot each along the bottom: red great, ink good, hollow miss.
 	var n := game.beats.size()
 	for i in n:
-		var p := Vector2(STAGE.x / 2 - n * 3.5 + i * 7 + 3.5, 109)
+		var p := Vector2(STAGE.x / 2 - n * 3.0 + i * 6 + 3.0, 109)
 		match game.marks[i]:
 			"great": c.draw_circle(p, 2.5, PlaceholderArt.UI_SEAL)
 			"good": c.draw_circle(p, 2.5, Hud.INK)
