@@ -10,6 +10,16 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Merge: lumber flake, Kiku's picked lines all year, the persimmon pick in hand
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged e844018 the test_villagers lumber flake (Opus, own worktree), 3a6a44b Kiku's picked
+  persimmon lines for winter, spring and summer (Sonnet, own worktree) and cc44f25 the persimmon
+  picked with one already in hand, both views (Haiku, own worktree). Conflicts only in WORKLOG and
+  ROADMAP; every side's entry kept.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`; the
+  smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`) print 0 ERROR or WARNING lines.
+- Left / next: ROADMAP "Next up" has no open item; the Windows .exe still waits on the export templates.
+
 ## 2026-11-10 — The test_villagers lumber flake: a night's weed, not the lumber
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: found the cause of the rare test_villagers failure. `_start_farm_views` orders the
