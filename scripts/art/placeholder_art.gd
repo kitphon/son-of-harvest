@@ -3836,114 +3836,132 @@ const MOCHI_DOUGH := Color("f8f4ea")
 const MOCHI_DOUGH_SHADE := Color("e2d8c4")
 
 
+## The wares' own materials (one flat colour each; ItemArt.refine tones them in three).
+const WARE_WOOD := Color("a8845a")
+const WARE_WOOD_DARK := Color("6a4a30")
+const WARE_WHITE := Color("ece4d4")
+const WARE_RED := Color("a82a20")
+const WARE_IRON := Color("4a4644")
+const WARE_STONE := Color("5a5450")
+const WARE_GLASS := Color("b8d8e4")
+const WARE_LEAF := Color("5a8a3c")
+const WARE_GOLD := Color("e8c040")
+const WARE_INK := Color("2e2a28")
+
+
 ## The picture of one ware `name` (the item id after its colon, StallWares.LOOKS) as it stands on a
 ## stall's counter in the flat view: 8 x 12, the counter row at the bottom, steam puffs in the top
-## rows over the hot ones (StallWares.STEAMING). Pixel-drawn from the same look as the 3D meshes.
+## rows over the hot ones (StallWares.STEAMING). Laid in flat materials and toned by
+## ItemArt.refine like the food icons: three tones lit from the upper left, deep-tone part lines,
+## a rim in each material's own deep tone instead of the near-black outline. The small marks
+## (the daruma's eyes, the chime's string, the steam) are laid after, as they are.
 static func _ware(name: String) -> Image:
 	var img := _blank(8, 12)
-	var wood := Color("a8845a")
-	var dark := Color("6a4a30")
-	var white := Color("ece4d4")
-	var red := Color("a82a20")
-	var ink := Color("2e2a28")
+	var marks: Array = []   # [x, y, w, h, colour] laid after the pass
 	match name:
 		"dango":   # three skewers of pink, white and green dumplings on a tray
-			_px(img, 0, 11, 8, 1, wood)
+			_px(img, 0, 11, 8, 1, WARE_WOOD)
 			for x in [1, 5]:
-				_px(img, x + 1, 5, 1, 6, wood.lightened(0.2))
+				_px(img, x + 1, 5, 1, 6, Color("c8a060"))
 				_px(img, x, 4, 2, 2, Color("e88aa0"))
-				_px(img, x, 6, 2, 2, white)
+				_px(img, x, 6, 2, 2, WARE_WHITE)
 				_px(img, x, 8, 2, 2, Color("8ab05a"))
 		"sakura_mochi":   # pink rice cakes wrapped in leaves on a plate
-			_px(img, 0, 11, 8, 1, white)
+			_px(img, 0, 11, 8, 1, WARE_WHITE)
 			for x in [0, 4]:
 				_oval(img, x + 2, 9, 2.1, 1.8, Color("f0a8b8"))
-				_px(img, x + 1, 9, 3, 1, Color("5a8a3c"))
+				_px(img, x + 1, 9, 3, 1, WARE_LEAF)
 		"green_tea":   # a pot with a spout and a cup, steaming
-			_px(img, 0, 6, 5, 5, Color("5a7a5c"))
-			_px(img, 1, 5, 3, 1, Color("5a7a5c"))
-			_px(img, 5, 7, 2, 1, Color("5a7a5c"))
-			_px(img, 5, 9, 3, 2, white)
+			var pot := Color("5a7a5c")
+			_px(img, 0, 6, 5, 5, pot)
+			_px(img, 1, 5, 3, 1, pot)
+			_px(img, 5, 7, 2, 1, pot)
+			_px(img, 5, 9, 3, 2, WARE_WHITE)
 			_px(img, 5, 9, 3, 1, Color("8ab05a"))
 		"yakisoba":   # noodles heaped on an iron griddle
-			_px(img, 0, 10, 8, 2, ink)
+			_px(img, 0, 10, 8, 2, WARE_IRON)
 			_oval(img, 4, 8, 3.6, 2.4, Color("d8a850"))
-			_px(img, 2, 7, 1, 1, Color("5a8a3c"))
+			_px(img, 2, 7, 1, 1, WARE_LEAF)
 			_px(img, 5, 8, 1, 1, Color("c84a30"))
 		"shaved_ice":   # a footed glass with a mound of ice and a little flag
-			_px(img, 3, 10, 2, 2, Color("b8d8e4"))
-			_px(img, 1, 6, 6, 4, Color("b8d8e4"))
+			_px(img, 3, 10, 2, 2, WARE_GLASS)
+			_px(img, 1, 6, 6, 4, WARE_GLASS)
 			_oval(img, 4, 5, 3.2, 2, Color("f4f8fa"))
-			_px(img, 4, 2, 1, 3, wood)
-			_px(img, 5, 2, 2, 1, red)
+			_px(img, 4, 2, 1, 3, WARE_WOOD)
+			_px(img, 5, 2, 2, 1, WARE_RED)
 		"marble_soda":   # blue bottles standing in a tub of water
-			_px(img, 0, 9, 8, 3, dark)
+			_px(img, 0, 9, 8, 3, WARE_WOOD_DARK)
 			_px(img, 0, 9, 8, 1, Color("7fb4cc"))
 			for x in [1, 5]:
 				_px(img, x, 4, 2, 5, Color("6ab8d8"))
 				_px(img, x, 2, 1, 2, Color("6ab8d8"))
 		"wind_chime":   # a glass bell and paper strips hanging from a stand
-			_px(img, 0, 1, 8, 1, dark)
-			_px(img, 1, 1, 1, 10, dark)
-			_px(img, 3, 2, 3, 3, Color("b8d8e4"))
-			_px(img, 4, 5, 1, 2, ink)
+			_px(img, 0, 1, 8, 1, WARE_WOOD_DARK)
+			_px(img, 1, 1, 1, 10, WARE_WOOD_DARK)
+			_px(img, 3, 2, 3, 3, WARE_GLASS)
 			_px(img, 3, 7, 3, 3, Color("f0b8c8"))
+			marks.append([4, 5, 1, 2, WARE_INK])   # the string
 		"paper_fan":   # round paper fans stood in a block
-			_px(img, 1, 10, 6, 2, wood)
+			_px(img, 1, 10, 6, 2, WARE_WOOD)
 			_oval(img, 2.5, 6, 2.4, 3, Color("e8d8b0"))
 			_oval(img, 5.5, 6, 2.4, 3, Color("d8503a"))
-			_px(img, 2, 8, 1, 3, dark)
-			_px(img, 5, 8, 1, 3, dark)
+			_px(img, 2, 8, 1, 3, WARE_WOOD_DARK)
+			_px(img, 5, 8, 1, 3, WARE_WOOD_DARK)
 		"roast_chestnuts":   # chestnuts in a pan on a brazier
-			_px(img, 1, 10, 6, 2, ink)
-			_px(img, 0, 8, 8, 2, ink)
+			_px(img, 1, 10, 6, 2, WARE_IRON)
+			_px(img, 0, 8, 8, 2, WARE_IRON)
 			for x in [1, 3, 5]:
 				_oval(img, x + 1, 7.4, 1.4, 1.5, Color("7a4a2a"))
 		"baked_imo":   # sweet potatoes on hot stones
-			_px(img, 0, 10, 8, 2, Color("5a5450"))
+			_px(img, 0, 10, 8, 2, WARE_STONE)
 			_oval(img, 2.5, 8.5, 2.5, 1.5, Color("8a3a4a"))
 			_oval(img, 5.5, 8.2, 2.4, 1.5, Color("a04a50"))
 		"clay_rabbit":   # little clay rabbits on a cloth
+			var clay := Color("d8c0a0")
 			_px(img, 0, 11, 8, 1, Color("a84a3a"))
 			for x in [0, 4]:
-				_px(img, x + 1, 5, 1, 3, Color("d8c0a0"))
-				_px(img, x + 2, 5, 1, 2, Color("d8c0a0"))
-				_oval(img, x + 2, 9, 2.1, 1.9, Color("d8c0a0"))
-				_px(img, x + 1, 8, 1, 1, red)
+				_px(img, x + 1, 5, 1, 3, clay)
+				_px(img, x + 2, 5, 1, 2, clay)
+				_oval(img, x + 2, 9, 2.1, 1.9, clay)
+				marks.append([x + 1, 8, 1, 1, WARE_RED])   # the eye
 		"moon_lantern":   # a round moon lantern, warm inside
-			_px(img, 3, 1, 2, 2, dark)
+			_px(img, 3, 1, 2, 2, WARE_WOOD_DARK)
 			_oval(img, 4, 7, 3.5, 3.6, Color("f0d890"))
-			_px(img, 0, 11, 8, 1, dark)
-			_px(img, 3, 6, 2, 3, Color("fff0b0"))
+			_px(img, 0, 11, 8, 1, WARE_WOOD_DARK)
+			marks.append([3, 6, 2, 3, Color("fff0b0")])   # the glow
 		"year_soba":   # a bowl of year-end soba, steaming, with a stack of bowls
-			_px(img, 0, 8, 5, 4, red)
+			_px(img, 0, 8, 5, 4, WARE_RED)
 			_px(img, 0, 7, 5, 1, Color("c8b890"))
-			_px(img, 5, 5, 3, 7, Color("2a1a14"))
-			_px(img, 5, 7, 3, 1, red)
-			_px(img, 5, 9, 3, 1, red)
+			_px(img, 5, 5, 3, 7, Color("3a2a22"))
+			_px(img, 5, 7, 3, 1, WARE_RED)
+			_px(img, 5, 9, 3, 1, WARE_RED)
 		"yuzu_tea":   # a cup of yuzu tea with a yellow fruit
-			_px(img, 0, 8, 4, 4, white)
-			_px(img, 0, 8, 4, 1, Color("e8c040"))
-			_oval(img, 6, 10, 1.9, 1.9, Color("e8c040"))
+			_px(img, 0, 8, 4, 4, WARE_WHITE)
+			_px(img, 0, 8, 4, 1, WARE_GOLD)
+			_oval(img, 6, 10, 1.9, 1.9, WARE_GOLD)
 		"daruma":   # red daruma dolls with white faces
 			for x in [0, 4]:
-				_oval(img, x + 2, 8, 2.4, 3.4, red)
-				_oval(img, x + 2, 7, 1.6, 1.4, white)
-				_px(img, x + 1, 7, 1, 1, ink)
-				_px(img, x + 3, 7, 1, 1, ink)
+				_oval(img, x + 2, 8, 2.4, 3.4, WARE_RED)
+				_oval(img, x + 2, 7, 1.6, 1.4, WARE_WHITE)
+				marks.append([x + 1, 7, 1, 1, WARE_INK])   # the eyes
+				marks.append([x + 3, 7, 1, 1, WARE_INK])
 		"omamori":   # charms on a little rack
-			_px(img, 0, 1, 8, 1, dark)
-			_px(img, 0, 1, 1, 10, dark)
-			_px(img, 7, 1, 1, 10, dark)
+			_px(img, 0, 1, 8, 1, WARE_WOOD_DARK)
+			_px(img, 0, 1, 1, 10, WARE_WOOD_DARK)
+			_px(img, 7, 1, 1, 10, WARE_WOOD_DARK)
 			for x in [2, 4]:
 				_px(img, x, 2, 2, 5, [Color("c8282c"), Color("d8a830")][(x / 2) % 2])
-				_px(img, x, 5, 2, 1, white)
+				_px(img, x, 5, 2, 1, WARE_WHITE)
+	ItemArt.refine(img)
+	for m: Array in marks:
+		_px(img, m[0], m[1], m[2], m[3], m[4])
 	if name in ["green_tea", "yakisoba", "roast_chestnuts", "baked_imo", "year_soba", "yuzu_tea"]:
 		for p in [Vector2i(3, 0), Vector2i(4, 1), Vector2i(3, 2), Vector2i(5, 0)]:
 			if name == "yakisoba" or name == "roast_chestnuts" or name == "baked_imo":
 				p.y += 3
-			_px(img, p.x, p.y, 1, 1, Color(1, 1, 1, 0.6))
+			_px(img, p.x, p.y, 1, 1, Color(1, 1, 1, 0.6))   # steam, after the pass so it stays soft
 	return img
+
 
 ## The usu (32 x 24): a stout cut log, hollowed on top, two dark hoops round it, with the
 ## dough in the bowl. `dough` 0 is steamed rice (lumpy, grains showing), 3 a smooth shiny mound.

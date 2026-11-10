@@ -39,6 +39,7 @@ func _init() -> void:
 	_scoop_pose_art()
 	_usu_kine_art_refined()
 	_festival_deco_art_refined()
+	_ware_art_refined()
 
 
 func _process(_delta: float) -> bool:
@@ -1859,3 +1860,19 @@ func _refined_colours(img: Image, key: String, old: String) -> void:
 			colours[p.to_html()] = true
 	check(not colours.has(old), "mochi art: %s has no old outline colour" % key)
 	check(colours.size() >= 4, "mochi art: %s has several colours (%d)" % [key, colours.size()])
+
+## The stall wares (PlaceholderArt._ware, "festival:ware_<name>") through ItemArt.refine: every ware
+## keeps the 8 x 12 size, has no 2a1e1e pixel and several tones; the hot ones keep their steam.
+func _ware_art_refined() -> void:
+	var old := FigureArt._key(PlaceholderArt.OUTLINE)
+	var n := 0
+	for name: String in ["dango", "sakura_mochi", "green_tea", "yakisoba", "shaved_ice", "marble_soda", "wind_chime", "paper_fan",
+			"roast_chestnuts", "baked_imo", "clay_rabbit", "moon_lantern", "year_soba", "yuzu_tea", "daruma", "omamori"]:
+		var key := "festival:ware_" + name + ":1x1"
+		var img := PlaceholderArt.image(key)
+		check(img.get_size() == Vector2i(8, 12), "ware art: %s is 8 x 12" % name)
+		_refined_colours(img, key, old)
+		n += 1
+	check(n >= 16, "ware art: checked %d wares" % n)
+	var soba := PlaceholderArt.image("festival:ware_year_soba:1x1")
+	check(soba.get_pixel(3, 0).a > 0.0 and soba.get_pixel(3, 0).a < 1.0, "ware art: the soba's steam stays soft")
