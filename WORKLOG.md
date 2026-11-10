@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Field obstacles and mine art, refined
+Agent: Claude Code (claude-opus) · Commit: this commit
+- Done: PlaceholderArt._obstacle (rock, branch, weed, stump), _mine (rock, big_rock, soft, hole,
+  ice, lantern) and _lift_cage (`mine:landing`) now lay each sprite in flat materials and pass it
+  through ItemArt.refine (data/item_art.json, no new entry needed) instead of the 2a1e1e
+  outline: three tones lit from the upper left, deep-tone part lines, a rim in the material's
+  own deep tone. Dropped hand-shaded copies: the rocks' lighter top ovals and lit bulge, the
+  branch's dark under-line, the stump's darker roots, the soft spot's dark ring, the ice's
+  shaded right side, lit left edge and lit tips, the cage's lighter timber and rope edges and
+  plank top. Kept as fixed marks: the rocks' chips, cracks and seam, the stump's grooves and
+  rings, the soft spot's clods and cracks, the hole's black pit, the ice's frost stone, air,
+  crack, rime glints and glint, the rope's twist, the board ends and every lantern glow (panes
+  and flame are not lit from outside). The hole's earth ring went from 2a221c to 3a3028 so its
+  tones read; the cage's timber 6a4a2a to 7a5530 and planks 8a6a3a to 9a7848, the lanterns'
+  iron 3a3430 to 4a4440 (the refined shade tones go darker). The frost sheet is left as it was
+  (see-through, never had an outline). Same keys, sizes and anchors; the darkness by depth and
+  the frozen floors are laid over these by the floor's light, as before.
+- Checked: new test_mine `_mine_field_art_refined`: all 12 kinds keep their sizes, have no
+  2a1e1e pixel and at least four colours; the main material shows its shade and lit tones (the
+  hole's thin ring one of them, the lantern's one-pixel iron only its rim) and its own rim
+  colour; the flame still glows. Screenshots `--demo`, `--demo --map=farm@gate` (rock, branch,
+  weeds on the grass), `--demo --mine=3` and `--demo --season=winter --mine=3` (ice blocks, frost)
+  and a 4x sheet of all 12 sprites looked at: toned, own-tone rims, no black outline; shots/
+  deleted. All tests/test_*.gd print `OK (0 failed)`; the smoke runs print 0 ERROR / WARNING.
+- Left / next: the HUD's coin / stamina / weather icons (ROADMAP Next up).
+
 ## 2026-11-10 — Merge: food, fish / mine / wild and kitchen / keepsake / ribbon icons refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged b2d3c84 food icons (Opus), 73fc8f4 fish, mine finds and wild things (Sonnet) and
