@@ -1726,6 +1726,7 @@ func scion_pick(c: Vector2i) -> Dictionary:
 		to = "rucksack"
 	if to != "":
 		scion_picked += 1
+		flags[Scion.PICKED_FLAG] = true   # for good: Kiku's talk after the first pick (talk_kiku.json)
 		forage_changed.emit()   # the tree is redrawn with fewer persimmons
 		changed.emit()
 	return {"id": id, "to": to, "left": left - (1 if to != "" else 0)}

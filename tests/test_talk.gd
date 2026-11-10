@@ -236,6 +236,28 @@ func _kiku_scion() -> void:
 		check(share >= 0.25 and share <= 0.35, "%s: the twig comes up on about a third of talks (%.3f)" % [stage, share])
 		check(cd_other == other, "%s: her close and dear lines on every other day (%d of %d)" % [stage, cd_other, other])
 		check(float(cd_all) / 700.0 >= 0.65, "%s: close and dear still most of her talks (%.3f)" % [stage, float(cd_all) / 700.0])
+	# After the farmer has picked a persimmon (kiku_scion_picked), a fall Tuesday or Saturday
+	# brings the picked lines; before the first pick, never. They take only the twig's days.
+	var picked := ["scion_picked_1", "scion_picked_2", "scion_picked_3", "scion_picked_4"]
+	var fruit := {"band": 6, "flags": {"heart_kiku_6": true, "kiku_scion_picked": true}}
+	for day in 4:
+		check(Talk.pick("kiku", _state(fruit.merged({"scion": "tree", "season": "fall", "weekday": "tue", "day_number": day}, true))) in picked, "picked, a fall Tuesday: the picked lines (day %d)" % day)
+		check(Talk.pick("kiku", _state(fruit.merged({"scion": "tree", "season": "fall", "weekday": "sat", "day_number": day}, true))) in picked, "picked, a fall Saturday (day %d)" % day)
+	check(Talk.pick("kiku", _state(fruit.merged({"scion": "tree", "season": "fall", "weekday": "mon"}, true))) in ["dear_1", "dear_2", "dear_3"], "picked, a fall Monday: her heart lines")
+	check(Talk.pick("kiku", _state(fruit.merged({"scion": "tree", "season": "winter", "weekday": "tue"}, true))) in tree, "picked, winter: the tree line, not the picked ones")
+	var fruit_days := 0
+	var fruit_stray := 0
+	var unpicked_picked := 0
+	for dn in 700:
+		var wd: String = weekdays[dn % 7]
+		if Talk.pick("kiku", _state(fruit.merged({"scion": "tree", "season": "fall", "weekday": wd, "day_number": dn}, true))) in picked:
+			fruit_days += 1
+			if not wd in ["tue", "sat"]:
+				fruit_stray += 1
+		if Talk.pick("kiku", _state(six.merged({"scion": "tree", "season": "fall", "weekday": wd, "day_number": dn}, true))) in picked:
+			unpicked_picked += 1
+	check(fruit_days == 200 and fruit_stray == 0, "picked: the picked lines on the twig's days only (%d of 700, %d off the days)" % [fruit_days, fruit_stray])
+	check(unpicked_picked == 0, "never picked: no picked line (%d of 700)" % unpicked_picked)
 	var before := 0
 	for dn in 700:
 		if Talk.pick("kiku", _state(six.merged({"weekday": weekdays[dn % 7], "day_number": dn, "season": "spring"}, true))) in close_dear:
@@ -248,11 +270,13 @@ func _kiku_scion() -> void:
 	check(_kiku_talk(true, 130, 0) in young, "planted 130 days ago: a young tree line (%s)" % _kiku_talk(true, 130, 0))
 	check(_kiku_talk(true, 250, 2) in fall, "planted 250 days ago, fall: a fruiting tree line (%s)" % _kiku_talk(true, 250, 2))
 	check(_kiku_talk(true, 250, 3) in tree, "planted 250 days ago, winter: a tree line (%s)" % _kiku_talk(true, 250, 3))
+	check(_kiku_talk(true, 250, 2) in fall, "fall, not picked yet: the fruit question (%s)" % _kiku_talk(true, 250, 2))
+	check(_kiku_talk(true, 250, 2, true) in picked, "picked, fall, a Tuesday: the picked lines (%s)" % _kiku_talk(true, 250, 2, true))
 
 
 ## Kiku's line on a fresh game at 9:00 on a Tuesday of `season`, her heart at band 6 with the band
 ## 6 scene seen; the twig planted `age` days ago when `planted`. The line she opens with, or "".
-func _kiku_talk(planted: bool, age: int, season: int) -> String:
+func _kiku_talk(planted: bool, age: int, season: int, picked := false) -> String:
 	var g := _game()
 	var seen := _listen(g)
 	g.weather_today = "sunny"
@@ -268,6 +292,8 @@ func _kiku_talk(planted: bool, age: int, season: int) -> String:
 	if planted:
 		g.flags[Scion.FLAG] = "door"
 		g.flags[Scion.day_flag()] = g.day_number() - age
+	if picked:
+		g.flags[Scion.PICKED_FLAG] = true
 	g.talk_to("kiku", Vector2i.UP)
 	return str(seen.said.back()[1]) if not seen.said.is_empty() else ""
 

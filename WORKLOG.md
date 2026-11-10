@@ -10,6 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Kiku talks about the picked persimmons
+Agent: Claude Code (claude-haiku) · Commit: this commit
+- Done: Kiku now mentions the picking once the farmer has picked a persimmon from the grown twig
+  tree. A new flag `kiku_scion_picked` (Scion.PICKED_FLAG) is set in Game.scion_pick on the first
+  pick that goes into the hand or the rucksack. It is a flag, not the day's count `scion_picked`,
+  because that count is zeroed every morning (Game.end_day) and could not tell "ever picked".
+  data/dialogue/talk_kiku.json gets one twig row before the fall row: scion tree, fall,
+  Tuesdays and Saturdays, flag kiku_scion_picked, four lines `scion_picked_1..4` (the fruit from
+  the tree grown from her twig, pick gently, two a day and the birds, a proper orchard hand).
+  The row sits before `scion_fall`, so once picked the fall question ("Have you picked any
+  yet?") is not said again on those days, and the twig's share stays two days in seven. Other
+  days, other seasons and an unpicked tree are unchanged. Thai for the four lines in
+  data/lang/th/dialogue.json, Kiku's ยาย / จ้ะ voice.
+- Checked: test_talk `_kiku_scion`: the picked lines on fall Tuesdays and Saturdays over four
+  days, not on a Monday or in winter; over 700 days exactly 200 picked picks, all on Tuesdays or
+  Saturdays; with the flag unset, 0 picked lines over 700 days; through Game.talk_to the picked
+  case (`_kiku_talk(..., true)`) and the unpicked fall line. test_forage `_persimmon` checks the
+  flag after the first real pick (E at the tree). Commands run on this worktree after
+  `--import`: all 31 tests/test_*.gd print `OK (0 failed)` (test_lang and test_talk included);
+  the smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--quit-after 300`)
+  exit 0 with no ERROR or WARNING line.
+- Left / next: the picked row runs only in fall, so in other seasons after the first pick her
+  usual twig lines continue. Nobody has played the picking through the flat view with a
+  half-picked tree yet.
+
 ## 2026-11-10 — Merge: goldfish scoop, neglect-roll audit, Kiku's twig share
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 6268899 goldfish scoop at Lantern Night (Opus, own worktree), c3187f5 the
