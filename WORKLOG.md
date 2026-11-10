@@ -10,6 +10,25 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Maple tree art, refined
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: PlaceholderArt._maple_tree (`tree:maple:<season>:<snow>`, 24 x 32, the flat view's Japanese
+  maple) now passes through ItemArt.refine (data/item_art.json, no new entry) instead of the
+  2a1e1e `_outline`. The crown keeps its lumps and their leaf tones (spring 86b844, summer 2f6e32,
+  fall c42a1e with the orange lumps dc6a1e), the trunk and bare winter branches keep their bark
+  4a3428; the lumps' overlaps become part lines and the rim takes each material's deep tone. The
+  winter snow (f4f8fc on the branches' upper side, only with snow) is a fixed colour, so it stays
+  white. Same key, size and anchor; the 3D maple untouched.
+- Checked: new test_view2d `_maple_art_refined`: all eight pictures (four seasons, snow on / off)
+  are 24 x 32, have no 2a1e1e pixel and at least four colours. `_maples` (the existing picture
+  checks: clear corners, bark, green / orange / red / snow by season) still passes. Screenshot
+  `--demo --map=hill --season=fall` through `res://scenes/main_2d.tscn`: the two maples by the path
+  read as round red crowns with orange lumps, a trunk and a rim in the deep tone; a 6x crop looked
+  at, shots/ deleted. The 3D view of that frame shows bamboo and no maple (the 3D maple is elsewhere
+  on the hill), so the check was on the flat view only.
+- Left / next: the winter and spring pictures were not screenshotted (the tests cover their colours).
+  Crop art in the field, festival decorations and story props still use the near-black outline.
+
 ## 2026-11-10 — Merge: HUD icons, field / mine art and the mochi mortar and mallet refined
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 3f5b0e9 HUD coin / stamina / weather icons (Sonnet), 7afcefd field obstacles, mine
