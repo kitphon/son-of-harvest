@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — Merge: item and tool icon art refined, dead animal art removed, flat-view animals checked
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged e486b39 Item and tool icon art, refined (Opus, own worktree), b891f56 the dead
+  low-resolution animal art removed from PlaceholderArt (Sonnet, own worktree) and 84eddcf the
+  flat-view screenshots of the refined animals (Haiku, own worktree, no code). Conflicts only in
+  WORKLOG and ROADMAP; every side's entry kept. scripts/art/placeholder_art.gd took both the
+  Opus and the Sonnet changes without a conflict.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`
+  with no SCRIPT ERROR or Parse Error line; the smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`) print 0 ERROR or WARNING lines.
+- Left / next: the rest of the item icons (food, fish, mine finds, wild things, kitchen tools,
+  keepsakes, ribbons, the HUD's coin / stamina / weather) still have the old outline (ROADMAP
+  Next up); the Windows .exe still waits on the export templates.
+
 ## 2026-11-10 — Item and tool icon art, refined
 Agent: Claude Code (claude-opus) · Commit: this commit
 - Done: the item and tool icons get the figures' and animals' refined look. New ItemArt
