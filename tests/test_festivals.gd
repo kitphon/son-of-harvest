@@ -4,7 +4,9 @@ extends SceneTree
 ## and lights in both views, the HUD tag, the contests and their result lines, the stalls and
 ## their wares, ribbons and the farmhouse board, the shipping payout held back on the day, the
 ## mochi pounding: its data, timing, ranking, prizes, ribbon, save and screen; the Moon Night
-## fishing race: its data, clock, creel, ranking, prizes, ribbon, save and screen). Run:
+## fishing race: its data, clock, creel, ranking, prizes, ribbon, save and screen; the Lantern
+## Night goldfish scoop: its data, the tub's rules and balance, ranking, prizes, ribbon, save and
+## screen). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_festivals.gd
 
 var failures := 0
@@ -29,6 +31,9 @@ func _init() -> void:
 	_race_data()
 	_race_timing()
 	_race_result_lines()
+	_scoop_data()
+	_scoop_timing()
+	_scoop_result_lines()
 
 
 func _process(_delta: float) -> bool:
@@ -44,6 +49,7 @@ func _process(_delta: float) -> bool:
 		_rivals()
 		_game_play()
 		_race_play()
+		_scoop_play()
 		_stall()
 		_night_stalls()
 		_fall_winter_stalls()
@@ -604,7 +610,8 @@ func _night_stalls() -> void:
 	g.hour = 18
 	check(FarmActions.festival_spot(Vector2i(23, 7)) and opened == ["stall:lantern_night:chimes"], "E at the chime stall opens it")
 	check(FarmActions.festival_spot(Vector2i(9, 7)) and opened.back() == "stall:lantern_night:eats", "E at the eats stall opens that one")
-	check(not FarmActions.festival_spot(Vector2i(13, 7)) and opened.size() == 2, "the blue stall is only a look")
+	check(FarmActions.festival_spot(Vector2i(13, 7)) and opened.size() == 2 and g.scooping, "the blue stall sells nothing: it is the goldfish scoop")
+	g.scooping = false
 	check(g.open_stall() and opened.back() == "stall:lantern_night:eats", "open_stall with no id opens the first")
 	var money: int = g.money
 	var r: Dictionary = g.shop_buy("stall:lantern_night:chimes", "keep:wind_chime")
@@ -835,6 +842,29 @@ func _check_views() -> void:
 		g.race = null
 		race3[0]._refresh()
 		check(not race3[0].is_shown(), "the box goes with the race")
+	var scoop3: Array = _scene3.get_children().filter(func(n): return _script_is(n, "scoop_screen.gd"))
+	var scoop2: Array = _scene2.get_children().filter(func(n): return _script_is(n, "scoop_screen.gd"))
+	check(scoop3.size() == 1 and scoop2.size() == 1, "both views have the goldfish scoop screen")
+	if scoop3.size() == 1 and scoop2.size() == 1 and mochi3.size() == 1:
+		var pauses: int = g._pauses
+		scoop3[0].open("years_turn", "kota")
+		mochi3[0].open("lantern_night", "")
+		check(not scoop3[0].is_open() and not mochi3[0].is_open() and g._pauses == pauses, "each game kind opens only its own screen")
+		g.scooping = true
+		scoop2[0].open("lantern_night", "")
+		check(scoop2[0].is_open() and scoop2[0].game != null and scoop2[0].game.fish.size() == 6 and g._pauses == pauses + 1,
+			"the flat view's screen opens a tub of six goldfish and holds the clock")
+		scoop2[0].game.advance(3.0)
+		scoop2[0]._refresh()
+		check(scoop2[0].game.running() and scoop2[0]._info.text == "0:45   0 fish" and scoop2[0]._call.text == "Go!",
+			"the time left and the count (%s, %s)" % [scoop2[0]._info.text, scoop2[0]._call.text])
+		scoop2[0].game.paper = 1.0
+		scoop2[0].game.advance(0.8)
+		scoop2[0].dip()
+		check(scoop2[0].game.torn and scoop2[0]._call.text == "The paper tore!", "a dip on worn paper tears it (%s)" % scoop2[0]._call.text)
+		scoop2[0]._exit_tree()
+		check(g._pauses == pauses and not g.scooping, "leaving the view mid-game lets the clock go")
+		scoop2[0]._open = false
 	g.hour = 16
 	g.minute = 0
 	p[0].refresh()
@@ -1413,4 +1443,217 @@ func _race_play() -> void:
 	props._make({"kind": "race_flag", "cell": [30, 13]})
 	check(props.get_child_count() - before >= 6, "the pole, the banner, its fish and the creel in 3D (%d)" % (props.get_child_count() - before))
 	props.free()
+	g.new_game()
+
+
+## The goldfish scoop's data: the game at Lantern Night, played at the goldfish stall (which
+## sells nothing), its ribbon and event, the checks on bad data.
+func _scoop_data() -> void:
+	var g := Festivals.game("lantern_night")
+	check(g.get("kind") == "scoop" and g.id == "scoop" and Festivals.festival_of_game("scoop") == "lantern_night",
+		"Lantern Night has the goldfish scoop")
+	check(Festivals.at_game("lantern_night", Vector2i(13, 7)) and Festivals.at_game("lantern_night", Vector2i(14, 7))
+		and not Festivals.at_game("lantern_night", Vector2i(13, 8)) and not Festivals.at_game("lantern_night", Vector2i(9, 7))
+		and Festivals.stall_at("lantern_night", Vector2i(13, 7)) == "" and not Festivals.at_table("lantern_night", Vector2i(13, 7)),
+		"the scoop is played at the goldfish stall, not the shops or the judges' table")
+	check(Festivals.ribbon_label("scoop") == "Goldfish Scoop" and Keepsakes.name_of("ribbon:scoop:1") == "Goldfish Scoop ribbon (1st)",
+		"the scoop's ribbon")
+	for place in [1, 2, 3]:
+		var n := Keepsakes.name_of(Keepsakes.ribbon_id("scoop", place))
+		check(n != "" and PixelFont.width(n) + 12 + PixelFont.width("x99") <= HudLayout.BOXES.item.size.x, "%s fits the item box" % n)
+	check(EventRunner.open(g.event, null).error == "", "the scoop's result event runs")
+	var f: Dictionary = Festivals.get_festival("lantern_night").duplicate(true)
+	check(Festivals.check({"festivals": {"a": f}}) == "", "Lantern Night with its game passes on its own")
+	var bad := {
+		"cell": {"cell": [9, 7]}, "table cell": {"cell": [15, 7]}, "partners": {"partners": ["tome"]}, "rounds": {"rounds": []},
+		"seconds": {"seconds": 5}, "paper": {"paper": 0}, "dip": {"dip": 3.0},
+		"wear": {"wear": {"clean": 20, "edge": 10, "splash": 5}}, "free splash": {"wear": {"clean": 5, "edge": 14, "splash": 0}},
+		"reach": {"reach": {"clean": 0.3, "edge": 0.2}}, "tub fish": {"tub": {"fish": 0, "orbit": [0.25, 0.7], "drift": 0.25, "speed": [0.5, 1.1], "refill": 2.0, "looks": 3}},
+		"tub orbit": {"tub": {"fish": 6, "orbit": [0.7, 0.25], "drift": 0.25, "speed": [0.5, 1.1], "refill": 2.0, "looks": 3}},
+		"tub looks": {"tub": {"fish": 6, "orbit": [0.25, 0.7], "drift": 0.25, "speed": [0.5, 1.1], "refill": 2.0, "looks": 9}},
+		"tub key": {"tub": {"fish": 6, "orbit": [0.25, 0.7], "drift": 0.25, "speed": [0.5, 1.1], "refill": 2.0, "looks": 3, "net": 1}},
+		"rival": {"rivals": [{"who": "nobody", "score": [1, 2]}]}, "event": {"event": "no_such_event"},
+		"prizes": {"prizes": [{"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}, {"money": 1}]},
+	}
+	for what in bad:
+		var h := f.duplicate(true)
+		h.game.merge(bad[what], true)
+		check(Festivals.check({"festivals": {"a": h}}) != "", "a scoop with a bad %s is refused" % what)
+	var plain := f.duplicate(true)
+	for p in plain.props:
+		p.erase("display")
+	check(Festivals.check({"festivals": {"a": plain}}) != "", "a scoop needs the goldfish tub on its stall")
+	var sold := f.duplicate(true)
+	sold.stall[0].cell = [13, 7]
+	check(Festivals.check({"festivals": {"a": sold}}) != "", "the goldfish stall sells nothing")
+	var mochi: Dictionary = Festivals.get_festival("years_turn").duplicate(true)
+	mochi.game.paper = 100
+	check(Festivals.check({"festivals": {"a": mochi}}) != "", "only a scoop has paper")
+
+
+## A tub with one fish at `at` (unit circle; null for none in the water) and the rest out.
+func _tub(data: Dictionary, at: Variant) -> GoldfishScoop:
+	var s := GoldfishScoop.new(data, 3)
+	for i in s.fish.size():
+		s.fish[i].back = 999.0
+	if at != null:
+		s.fish[0] = {"r": at.length(), "drift": 0.0, "wob": 0.0, "wph": 0.0, "w": 0.0, "ph": at.angle(), "look": 2, "back": 0.0}
+	return s
+
+
+## The rules: the count-in, clean and edge scoops by distance, splashes, the lift between
+## dips, the paper wearing and tearing, the refill, the time, the same seed swimming the same.
+func _scoop_timing() -> void:
+	var data := {"lead": 1.0, "seconds": 10, "paper": 30, "dip": 0.4,
+		"wear": {"clean": 5, "edge": 12, "splash": 8}, "reach": {"clean": 0.1, "edge": 0.2},
+		"tub": {"fish": 3, "orbit": [0.3, 0.7], "drift": 0.1, "speed": [0.5, 1.0], "refill": 2.0, "looks": 3}}
+	var s := _tub(data, GoldfishScoop.SPOT)
+	check(s.press() == "" and s.paper == 30.0 and s.to_go() == 1.0 and not s.running(), "no dips in the count-in")
+	check(s.advance(1.0) == ["go"] and s.running() and s.under() == "clean", "go, and the fish is right under the paper")
+	check(s.press() == "clean" and s.score == 1 and s.paper == 25.0 and s.bowl == [2] and not s.swimming(0) and s.lifted(),
+		"a clean scoop: one fish in the bowl, a little wear, its place empty for the refill")
+	check(s.press() == "" and s.paper == 25.0, "the scoop is lifted for a moment: no second dip at once")
+	s.advance(0.5)
+	check(not s.lifted() and s.nearest()[0] == -1 and s.press() == "splash" and s.score == 1 and s.paper == 17.0 and s.counts.splash == 1,
+		"an empty tub: the dip only splashes and still wears the paper")
+	s.advance(1.6)
+	check(s.swimming(0) and s.fish[0].look >= 0 and s.fish[0].look < 3, "the keeper puts a new fish in after the refill")
+	var e := _tub(data, GoldfishScoop.SPOT + Vector2(0.15, 0.0))
+	e.advance(1.0)
+	check(e.under() == "edge" and e.press() == "edge" and e.score == 1 and e.paper == 18.0 and e.counts.edge == 1, "a fish at the rim comes up, with more wear")
+	var far := _tub(data, GoldfishScoop.SPOT + Vector2(0.0, 0.25))
+	far.advance(1.0)
+	check(far.press() == "splash" and far.score == 0 and far.swimming(0), "out of reach is a splash; the fish swims on")
+	var t := _tub(data, GoldfishScoop.SPOT)
+	t.advance(1.0)
+	t.paper = 4.0
+	check(t.press() == "tear" and t.torn and t.done() and t.score == 0 and t.paper == 0.0 and t.swimming(0) and t.counts.clean == 0,
+		"the paper tears under the fish: it slips back, nothing counts, the go is over")
+	check(t.advance(20.0).is_empty() and t.press() == "", "no time call after a tear")
+	var idle := GoldfishScoop.new(data, 3)
+	check(idle.advance(1.0) == ["go"] and idle.advance(10.0) == ["time"] and idle.done() and not idle.torn and idle.left() == 0.0 and idle.press() == "",
+		"time is up after the seconds")
+	var a := GoldfishScoop.new(data, 7)
+	var b := GoldfishScoop.new(data, 7)
+	var c := GoldfishScoop.new(data, 8)
+	a.advance(2.5)
+	b.advance(2.5)
+	c.advance(2.5)
+	check(a.pos(0) == b.pos(0) and a.pos(2) == b.pos(2) and a.pos(0) != c.pos(0), "the same seed swims the same way")
+	var inside := true
+	for k in 200:
+		a.advance(0.05)
+		for i in a.fish.size():
+			inside = inside and a.pos(i).length() <= 0.881
+	check(inside, "the fish keep inside the tub")
+	# Lantern Night's numbers: a patient player (dips only when a fish is right under the paper)
+	# beats every rival's best; dipping at random tears the paper early and scores far less.
+	var g := Festivals.game("lantern_night")
+	var patient: Array = []
+	var hasty: Array = []
+	for seed in 12:
+		var p := GoldfishScoop.new(g, seed)
+		while not p.done():
+			p.advance(1.0 / 30.0)
+			if p.under() == "clean":
+				p.press()
+		patient.append(p.score)
+		var h := GoldfishScoop.new(g, seed)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = seed
+		while not h.done():
+			h.advance(1.0 / 30.0)
+			if rng.randf() < 0.1:
+				h.press()
+		hasty.append(h.score)
+	patient.sort()
+	hasty.sort()
+	var top := 0
+	for r in g.rivals:
+		top = maxi(top, int(r.score[1]))
+	check(patient[6] > top and patient[6] <= 20 and hasty[6] * 2 <= patient[6],
+		"a patient player's median beats the rivals' best (%s vs %d); a hasty one scores less than half (%s)" % [patient, top, hasty])
+
+
+## The result lines for every place and winner end on the right lines.
+func _scoop_result_lines() -> void:
+	var g := Festivals.game("lantern_night")
+	for place in range(1, g.rivals.size() + 2):
+		for rival in g.rivals:
+			var flags := {"contest_place_%d" % place: true}
+			if place > 1:
+				flags["contest_won_" + rival.who] = true
+			var d := DialogueRunner.open(Festivals.DIALOGUE, flags, str(g.id) + "_result")
+			var who: Array = []
+			var ids: Array = []
+			for i in 20:
+				if d.done():
+					break
+				who.append(d.line().get("speaker", ""))
+				ids.append(d.line().get("id", ""))
+				d.press()
+				d.press()
+			var want: String = "scoop" + ("_%d" % place if place <= 3 else "_out")
+			check(d.error == "" and d.done() and want in ids and (place == 1) != (rival.who in who),
+				"goldfish scoop, place %d, %s first: %s %s" % [place, rival.who, who, ids])
+
+
+## Playing the scoop: the stall, empty hands, no partner, one go a year, the prize, the ribbon,
+## the flags, the save, the judged catch contest still beside it.
+func _scoop_play() -> void:
+	var g := _game()
+	g.new_game()
+	var said: Array = []
+	var hear := func(t): said.append(t)
+	g.message.connect(hear)
+	var asked: Array = []
+	var ask := func(f, p): asked.append([f, p])
+	g.game_requested.connect(ask)
+	var events: Array = []
+	var ev := func(id): events.append(id)
+	g.event_requested.connect(ev)
+	_set_day(g, "summer", 20, 18, 0)
+	g.maps.place("farm", Vector2i(4, 4), Vector2i.DOWN)
+	check(g.start_game().why == "none", "no scoop from the farm")
+	g.maps.place("town", Vector2i(13, 8), Vector2i.UP)
+	g.held = "potato"
+	check(g.start_game().why == "held" and said.back() == "The scoop and the bowl take both hands. Put the Potato down first." and asked.is_empty(),
+		"the scoop needs empty hands (%s)" % [said.back()])
+	g.held = ""
+	var s: Dictionary = g.start_game()
+	check(s.ok and s.partner == "" and asked == [["lantern_night", ""]] and g.scooping and g.game_partner == "", "the scoop starts, no partner")
+	check(g.start_game().why == "busy" and asked.size() == 1, "not twice at once")
+	var top: int = Festivals.judge_game("lantern_night", 1, 0).rivals[0].score
+	var money: int = g.money
+	var r: Dictionary = g.finish_game(top)
+	check(r.place == 1 and g.money == money + 300 and g.count("food:shaved_ice") == 2 and g.count("ribbon:scoop:1") == 1 and not g.scooping,
+		"first place: 300 G, two shaved ice and the ribbon (%s)" % [r])
+	check(events == ["contest_scoop"] and g.events_seen.has("game:lantern_night:1") and int(g.flags.get("game_best_scoop", 0)) == top
+		and g.flags.get("contest_place_1") == true and not g.flags.keys().any(func(k): return k.begins_with("contest_partner_")),
+		"the result event plays, the go and the best count are kept")
+	check(Keepsakes.record(g.flags).back() == {"festival": "scoop", "place": 1, "year": 1} and said.has("You won the Goldfish Scoop ribbon (1st)!"),
+		"the ribbon goes on the board's record")
+	check(g.start_game().why == "played" and said.back() == "You already took a turn at the Goldfish Scoop this year." and asked.size() == 1, "one go a year")
+	# The judged catch contest beside it goes on as before.
+	g.maps.place("town", Vector2i(15, 8), Vector2i.UP)
+	g.held = "fish:koi"
+	var c: Dictionary = g.enter_contest()
+	check(c.ok and g.events_seen.has("contest:lantern_night:1") and events.back() == "contest_lanterns", "the Lantern Night Catch still takes its entry")
+	var d: Dictionary = g.to_dict()
+	g.new_game()
+	check(g.from_dict(JSON.parse_string(JSON.stringify(d))) == "" and g.events_seen.has("game:lantern_night:1") and int(g.flags.get("game_best_scoop", 0)) == top
+		and g.count("ribbon:scoop:1") == 1 and not g.scooping, "the go, the best count and the ribbon survive a save")
+	# Year 2: E at the tub starts it; nothing scooped comes last with nothing.
+	g.year = 2
+	g.maps.place("town", Vector2i(14, 8), Vector2i.UP)
+	check(load("res://scripts/farm_actions.gd").festival_spot(Vector2i(14, 7)) and asked.back() == ["lantern_night", ""] and g.scooping, "E at the goldfish tub starts the scoop")
+	money = g.money
+	r = g.finish_game(0)
+	check(r.place == 5 and r.prize.is_empty() and g.money == money and g.count("ribbon:scoop:5") == 0 and int(g.flags.get("game_best_scoop", 0)) == top,
+		"year 2: last place, no prize or ribbon, the best count kept (%s)" % [r])
+	g.hour = 22
+	check(g.start_game().why == "none", "after the hours the tub is only looks")
+	g.message.disconnect(hear)
+	g.game_requested.disconnect(ask)
+	g.event_requested.disconnect(ev)
 	g.new_game()

@@ -607,6 +607,15 @@
 		"%s, still a baby": "%s ยังเป็นทารก",
 		"%s, crawling now": "%s ตอนนี้คลานได้แล้ว",
 		"%s, walking now": "%s ตอนนี้เดินเตาะแตะได้แล้ว",
-		"%s, running about now": "%s ตอนนี้วิ่งเล่นได้แล้ว"
+		"%s, running about now": "%s ตอนนี้วิ่งเล่นได้แล้ว",
+		"The scoop and the bowl take both hands. Put the %s down first.": "ช้อนกระดาษกับชามต้องใช้สองมือ วาง%sก่อน",
+		"%d:%02d   %d fish": "%d:%02d   %d ตัว",
+		"The paper tore!": "กระดาษขาดแล้ว!",
+		"%d fish!": "%d ตัว!",
+		"Scooped!": "ช้อนได้!",
+		"Got it!": "ได้มาหวุดหวิด!",
+		"Splash": "จ๋อม",
+		"E: dip the scoop as a fish swims under the paper": "กด E จุ่มช้อนตอนปลาว่ายมาใต้กระดาษ",
+		"Clean %d   Close %d   Splash %d": "เต็มๆ %d   เฉียด %d   จ๋อม %d"
 	}
 }

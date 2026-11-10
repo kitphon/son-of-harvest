@@ -880,6 +880,31 @@ player lands 9-11, a steady one 7-9; Hachiro rolls 6-11, Tome 4-9, Kota 3-8, Say
 the race counting in; `--contest=fishing:auto` casts and reels by itself (about 20 s in is
 mid-race, `--quit-after 690` with `--fixed-fps 30`).
 
+**A third played contest: the goldfish scoop.** Lantern Night's `game` is the Goldfish Scoop
+(kind `scoop`, `GoldfishScoop`), at the indigo stall that sets out the goldfish tub (a stall
+prop with `display: goldfish` at [13, 7]; it sells nothing). E there with empty hands starts it
+(no partner) and the ScoopScreen opens over either view: the tub seen from above with six
+goldfish (red, red and white, black) swimming slow loops that wander in and out, the farmer's
+paper scoop held still over the water, the bowl of fish scooped beside it and a bar for the
+paper left. After a `lead` of 3 seconds (`mochi_count` clicks, `chime_morning` for the start)
+the farmer has `seconds` (45) to dip: E (Enter / Space, a click) brings up a fish within
+`reach.clean` of the scoop cleanly, one within `reach.edge` at the rim, and an empty dip only
+splashes (`fish_catch`, `hold_splash`). Every dip uses some of the `paper` (100): `wear` clean
+5, rim 14, splash 10; the scoop is lifted for `dip` seconds after each. When the paper is used
+up it tears (`fish_escape`): the fish on it slips back and the go is over. A scooped fish's place
+is filled from the keeper's bucket after `refill` seconds. The score (fish scooped) is ranked
+like the mochi score (`judge_game`, the four rivals rolled per year), the prize paid,
+`scoop_result` lines in `contests.json`, `contest_scoop` plays, the best count kept in
+`game_best_scoop`, and a ribbon `ribbon:scoop:<place>` ("Goldfish Scoop ribbon"). The tub's fish
+are rolled from the festival and year, so a year's tub swims the same way each time. Like the
+mochi pounding the screen holds the clock and is not saved part way: only the go, the best count
+and the ribbon are. Balance: a patient player who dips only when a fish is right under the paper
+scoops about 16 (19 at most before the paper gives); one who dips at every fish in reach tears
+it at 7-10; Shino rolls 6-12, Kota 4-10, Nana 3-9, Hachiro 2-8. The Lantern Night Catch stays
+open beside it. `-- --demo --festival=lantern_night --contest=scoop` stands at the tub with the
+game counting in; `--contest=scoop:auto` dips by itself (about 10 s in is mid-game,
+`--quit-after 330`).
+
 **Stalls.** A festival may have a `stall` (`{id?, name, cell, stock}`; the cell is a `stall`
 prop's), or a list of them, each with its own `id`. E at one in the hours opens it as a shop
 with id `stall:<festival>` (or `stall:<festival>:<stall id>`): Blossom Day's Hanami Dango Stall

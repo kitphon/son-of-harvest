@@ -3,7 +3,8 @@ extends RefCounted
 ## The festival calendar (data/festivals.json): which festival falls on a date, whether it is
 ## on at a minute of the day, which shops it shuts, which decorations stand on a map and
 ## whether its event is due, its contest (what it takes, how it is judged, the prizes), its
-## played game (the mochi pounding, MochiPound; the fishing race, FishingRace) and its stall. Pure logic like Villagers: the date and clock come in as arguments (or
+## played game (the mochi pounding, MochiPound; the fishing race, FishingRace; the goldfish
+## scoop, GoldfishScoop) and its stall. Pure logic like Villagers: the date and clock come in as arguments (or
 ## Game.trigger_state), so tests run it headless. Format: README.md, Festivals.
 
 const GameRules := preload("res://scripts/autoload/game.gd")   # SEASONS, DAYS_PER_SEASON
@@ -16,9 +17,12 @@ const PROP_KEYS: Array[String] = ["kind", "cell", "size", "cloth", "display"]
 const CONTEST_KEYS: Array[String] = ["_note", "name", "takes", "table", "ask", "in_season", "rivals",
 	"prizes", "event"]
 const GAME_KEYS: Array[String] = ["_note", "id", "name", "kind", "cell", "partners", "lead", "gap", "rounds",
-	"windows", "points", "seconds", "rivals", "prizes", "event"]
+	"windows", "points", "seconds", "paper", "dip", "wear", "reach", "tub", "rivals", "prizes", "event"]
 ## What a played game can be, and the prop it is played at.
-const GAMES := {"mochi": "mochi_usu", "fishing": "race_flag"}
+const GAMES := {"mochi": "mochi_usu", "fishing": "race_flag", "scoop": "stall"}
+## The keys only a goldfish scoop has, and the fish looks ScoopScreen draws (red, red and white, black).
+const SCOOP_KEYS: Array[String] = ["paper", "dip", "wear", "reach", "tub"]
+const SCOOP_LOOKS := 3
 const STALL_KEYS: Array[String] = ["_note", "id", "name", "cell", "stock"]
 ## What a contest can take: Game.item_kind of the entry.
 const KINDS: Array[String] = ["crop", "fish", "animal", "mine"]
@@ -186,7 +190,7 @@ static func _rank(c: Dictionary, key: String, score: int, skip := "") -> Diction
 		"prize": prizes[place - 1] if place <= prizes.size() else {}}
 
 
-# --- the played game (mochi pounding, fishing race) --------------------------------------------
+# --- the played game (mochi pounding, fishing race, goldfish scoop) --------------------------------------------
 
 ## Festival `id`'s played game ({} for none).
 static func game(id: String) -> Dictionary:
@@ -461,6 +465,11 @@ static func _check_game(g: Variant, f: Dictionary) -> String:
 		return "kind is one of %s" % [GAMES.keys()]
 	if not _prop_under(f, g.get("cell"), GAMES[g.kind]):
 		return "cell needs a cell [x, y] of a %s prop" % GAMES[g.kind]
+	if g.kind == "scoop":
+		return _check_scoop(g, f)
+	for k in SCOOP_KEYS:
+		if g.has(k):
+			return "only a goldfish scoop has " + k
 	if g.kind == "fishing":
 		for k in g:
 			if k in ["partners", "gap", "rounds", "windows", "points"]:
@@ -498,6 +507,57 @@ static func _check_game(g: Variant, f: Dictionary) -> String:
 	var rivals: Array = g.get("rivals") if g.get("rivals") is Array else []
 	var sits_out := rivals.any(func(r): return r is Dictionary and r.get("who") in partners)
 	return _check_rivals(g, 0 if sits_out else 1)
+
+
+## A goldfish scoop (kind scoop, GoldfishScoop): played at a stall prop that sets out the
+## goldfish tub (display goldfish) and sells nothing.
+static func _check_scoop(g: Dictionary, f: Dictionary) -> String:
+	for k in g:
+		if k in ["partners", "gap", "rounds", "windows", "points"]:
+			return "a goldfish scoop has no " + k
+	var tub_prop := false
+	for p in f.get("props", []):
+		if p is Dictionary and p.get("kind") == "stall" and p.get("display") == "goldfish" and _rect(p).has_point(_cell(g.cell)):
+			tub_prop = true
+	if not tub_prop:
+		return "cell needs a cell [x, y] of a stall prop with display goldfish"
+	for st in (f.get("stall") if f.get("stall") is Array else [f.get("stall", {})]):
+		if st is Dictionary and st.has("cell") and _prop_rect_in(f, _cell(st.cell)).has_point(_cell(g.cell)):
+			return "the goldfish stall sells nothing (a stall entry stands on it)"
+	if not EventRunner._number(g.get("lead", 0.0), 0.0, 10.0):
+		return "lead is 0 to 10 seconds"
+	if not EventRunner._number(g.get("seconds"), 10.0, 600.0):
+		return "seconds is 10 to 600"
+	if not EventRunner._number(g.get("paper"), 1.0, 999.0):
+		return "paper is 1 to 999"
+	if not EventRunner._number(g.get("dip"), 0.05, 2.0):
+		return "dip is 0.05 to 2 seconds"
+	var w: Variant = g.get("wear")
+	if not w is Dictionary or w.size() != 3 or not EventRunner._number(w.get("clean"), 0.0, 999.0) 			or not EventRunner._number(w.get("edge"), float(w.clean), 999.0) or not EventRunner._number(w.get("splash"), 1.0, 999.0):
+		return "wear is {clean, edge, splash}, clean <= edge, splash at least 1"
+	var r: Variant = g.get("reach")
+	if not r is Dictionary or r.size() != 2 or not EventRunner._number(r.get("clean"), 0.01, 1.0) 			or not EventRunner._number(r.get("edge"), float(r.clean), 1.0):
+		return "reach is {clean, edge} in tub radii, clean <= edge <= 1"
+	var t: Variant = g.get("tub")
+	if not t is Dictionary or not EventRunner._whole(t.get("fish"), 1, 12) or not EventRunner._whole(t.get("looks"), 1, SCOOP_LOOKS) 			or not EventRunner._number(t.get("drift"), 0.0, 0.5) or not EventRunner._number(t.get("refill"), 0.0, 10.0) 			or not _span(t.get("orbit"), 0.1, 0.88) or not _span(t.get("speed"), 0.1, 5.0):
+		return "tub is {fish (1 to 12), orbit [from, to] (0.1 to 0.88), drift (0 to 0.5), speed [from, to] (0.1 to 5 per second), refill (0 to 10 seconds), looks (1 to %d)}" % SCOOP_LOOKS
+	for k in t:
+		if not k in ["fish", "orbit", "drift", "speed", "refill", "looks"]:
+			return "a tub has no " + k
+	return _check_rivals(g, 1)
+
+
+## A [from, to] pair of numbers with low <= from <= to <= high.
+static func _span(v: Variant, low: float, high: float) -> bool:
+	return v is Array and v.size() == 2 and EventRunner._number(v[0], low, high) and EventRunner._number(v[1], float(v[0]), high)
+
+
+## The rect of the prop covering `cell` in festival data `f` (just the cell when none does).
+static func _prop_rect_in(f: Dictionary, cell: Vector2i) -> Rect2i:
+	for p in f.get("props", []):
+		if p is Dictionary and _rect(p).has_point(cell):
+			return _rect(p)
+	return Rect2i(cell, Vector2i.ONE)
 
 
 static func _check_stall(s: Variant, f: Dictionary) -> String:

@@ -640,6 +640,98 @@
 			"face": "smile",
 			"text": "My line hardly had time to get wet.",
 			"next": "end"
+		},
+		{
+			"id": "scoop_result",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "Bowls up, everyone! We counted every fish, and they are all back in the tub. Here are the results!"
+		},
+		{
+			"if": "contest_place_1",
+			"then": "scoop_1"
+		},
+		{
+			"if": "contest_won_nana",
+			"then": "scoop_nana"
+		},
+		{
+			"if": "contest_won_kota",
+			"then": "scoop_kota"
+		},
+		{
+			"if": "contest_won_shino",
+			"then": "scoop_shino"
+		},
+		{
+			"id": "scoop_hachiro",
+			"next": "scoop_place",
+			"speaker": "hachiro",
+			"face": "smile",
+			"text": "Same as quenching a blade. In fast, out faster, and don't let the water argue."
+		},
+		{
+			"id": "scoop_nana",
+			"next": "scoop_place",
+			"speaker": "nana",
+			"face": "surprised",
+			"text": "I named every one before I scooped it! The black one is called Ink. Can I keep Ink?"
+		},
+		{
+			"id": "scoop_kota",
+			"next": "scoop_place",
+			"speaker": "kota",
+			"face": "smile",
+			"text": "I'm gonna be the goldfish champion every summer now! Just watch!"
+		},
+		{
+			"id": "scoop_shino",
+			"next": "scoop_place",
+			"speaker": "shino",
+			"face": "smile",
+			"text": "Paper in water is my whole trade. You let it drink slowly, and it holds."
+		},
+		{
+			"id": "scoop_place",
+			"if": "contest_place_2",
+			"then": "scoop_2"
+		},
+		{
+			"if": "contest_place_3",
+			"then": "scoop_3"
+		},
+		{
+			"id": "scoop_out",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "No ribbon this time. The paper always tears sooner than you think. Try again next summer!"
+		},
+		{
+			"id": "scoop_2",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "smile",
+			"text": "Second place for the farmer! A full bowl and a steady hand."
+		},
+		{
+			"id": "scoop_3",
+			"next": "end",
+			"speaker": "tsuru",
+			"face": "calm",
+			"text": "Third place for the farmer. The fish gave you a good chase."
+		},
+		{
+			"id": "scoop_1",
+			"speaker": "tsuru",
+			"face": "surprised",
+			"text": "First place goes to the farmer! The most goldfish in one paper scoop. The ribbon is yours."
+		},
+		{
+			"speaker": "farmer",
+			"face": "smile",
+			"text": "The paper held right to the end.",
+			"next": "end"
 		}
 	]
 }

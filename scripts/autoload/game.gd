@@ -64,6 +64,7 @@ var dialogue_mood := ""         # the portrait mood talk() passes to the next te
 var event_running := false      # an event script plays: the clock waits, the script moves the farmer
 var ending_open := false        # the village record is on screen (the ending event waits for it)
 var game_partner := ""          # who turns the dough in the festival game going on now ("" for none)
+var scooping := false           # the goldfish scoop (a game of kind scoop) is on screen now (ScoopScreen)
 var race: FishingRace = null    # the festival's fishing race going on now (null for none; saved)
 var settings: Settings          # the player's settings (user://settings.json), not saved with the run
 var _pauses := 0                # open menus; while any is open time stands still
@@ -200,6 +201,7 @@ func new_game() -> void:
 	baby_held = false
 	crawler_back()
 	game_partner = ""
+	scooping = false
 	race = null
 	year = 1
 	season = 0
@@ -385,7 +387,7 @@ func new_game() -> void:
 			var c := Festivals.contest(fid)
 			var what := arg.trim_prefix("--contest=").get_slice(":", 0)
 			var g := Festivals.game(fid)
-			if not g.is_empty() and what == g.id:   # `--festival=years_turn --contest=mochi`: at the mortar, the game on
+			if not g.is_empty() and what == g.id:   # `--festival=years_turn --contest=mochi`: at the mortar, the game on (`lantern_night --contest=scoop`: at the goldfish tub)
 				# A fishing race starts below its flag facing the water to the right (`--contest=fishing`).
 				maps.place(Festivals.get_festival(fid).map, Vector2i(int(g.cell[0]), int(g.cell[1]) + 1),
 					Vector2i.RIGHT if g.kind == "fishing" else Vector2i.UP)
@@ -2545,20 +2547,28 @@ func enter_contest() -> Dictionary:
 
 ## E at the prop of today's festival game (Festivals.at_game) during the festival, empty-handed:
 ## the partner (Festivals.partner_for, by affection) is picked and a MochiScreen plays it
-## (game_requested); finish_game ranks the score. One go a year. Returns {ok, partner} or
+## (game_requested); finish_game ranks the score. A goldfish scoop (kind scoop) has no partner:
+## a ScoopScreen plays it. One go a year. Returns {ok, partner} or
 ## {ok: false, why: "none" | "played" | "held" | "busy"}.
 func start_game() -> Dictionary:
 	var fid := festival_now()
 	var g := Festivals.game(fid)
 	if g.is_empty():
 		return {"ok": false, "why": "none"}
-	if game_partner != "" or race != null:
+	if game_partner != "" or race != null or scooping:
 		return {"ok": false, "why": "busy"}
 	if events_seen.has(Festivals.played_key(fid, year)):
 		message.emit("You already took a turn at the %s this year." % g.name)
 		return {"ok": false, "why": "played"}
 	if g.kind == "fishing":
 		return _start_race(fid, g)
+	if g.kind == "scoop":
+		if held != "":
+			message.emit("The scoop and the bowl take both hands. Put the %s down first." % item_name(held))
+			return {"ok": false, "why": "held"}
+		scooping = true
+		game_requested.emit(fid, "")
+		return {"ok": true, "partner": ""}
 	if held != "":
 		message.emit("The mallet takes both hands. Put the %s down first." % item_name(held))
 		return {"ok": false, "why": "held"}
@@ -2574,6 +2584,7 @@ func start_game() -> Dictionary:
 func finish_game(score: int) -> Dictionary:
 	var fid := festival_today()
 	var g := Festivals.game(fid)
+	scooping = false
 	if g.is_empty():
 		game_partner = ""
 		return {}
