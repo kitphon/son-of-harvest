@@ -48,6 +48,7 @@ func _run() -> void:
 	await _water()
 	await _ripples()
 	await _maples()
+	await _maple_art_refined()
 	await _footprints()
 	await _hearth_smoke()
 	await _roofs()
@@ -641,6 +642,30 @@ func _maples() -> void:
 				check(green == 0 and red == 0 and orange == 0, "maple %s: no leaves in winter" % what)
 			check((white > 0) == (season == "winter" and snow), "maple %s: snow on the branches only in winter with snow (%d)" % [what, white])
 	mv.free()
+
+
+## The maple picture is refined (PlaceholderArt._maple_tree through ItemArt.refine): every season
+## and snow on / off keeps its 24 x 32 size, has no near-black outline colour (2a1e1e) and has at
+## least four colours, so the bark, the leaves' tones and the snow read as separate parts.
+func _maple_art_refined() -> void:
+	var outline := Color("2a1e1e")
+	for season in ["spring", "summer", "fall", "winter"]:
+		for snow in [false, true]:
+			var img: Image = PlaceholderArt.image(MapView.maple_key(snow, season))
+			var what := "%s, snow %s" % [season, snow]
+			check(img.get_size() == Vector2i(24, 32), "maple %s refined: still 24 x 32 (%s)" % [what, img.get_size()])
+			var outlined := 0
+			var colours := {}
+			for y in img.get_height():
+				for x in img.get_width():
+					var c := img.get_pixel(x, y)
+					if c.a < 0.5:
+						continue
+					colours[c.to_html(false)] = true
+					if Vector3(c.r, c.g, c.b).distance_to(Vector3(outline.r, outline.g, outline.b)) < 0.02:
+						outlined += 1
+			check(outlined == 0, "maple %s refined: no 2a1e1e outline (%d)" % [what, outlined])
+			check(colours.size() >= 4, "maple %s refined: at least four colours (%d)" % [what, colours.size()])
 
 
 func _water() -> void:

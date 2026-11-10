@@ -2203,10 +2203,14 @@ const MAPLE_FLAME := Color("dc6a1e")
 ## A Japanese maple for the flat view (24 x 32, the trunk's foot at (12, 30)): a small layered
 ## crown, a wide lower tier of four lumps, a narrower middle pair and a top lump, in the 3D
 ## maple's colours (Trees.LEAVES; the orange lumps among the reds in fall). In winter it is bare
-## branches off the trunk, with snow on their upper side when the map has snow.
+## branches off the trunk, with snow on their upper side when the map has snow. Laid in flat
+## materials (the bark, each lump's leaf tone, the snow) and toned by ItemArt.refine like the
+## item icons: three tones lit from the upper left, deep-tone part lines between the lumps, a
+## rim in the material's own deep tone instead of the near-black outline. The snow stays white.
 static func _maple_tree(season: String, snow: bool) -> Image:
 	var img := _blank(24, 32)
 	var bark := Color("4a3428")
+	var snow_white := Color("f4f8fc")
 	var leaf: Color = MAPLE_LEAVES.get(season, Color(0, 0, 0, 0))
 	if leaf.a == 0.0:   # winter: bare branches
 		_px(img, 11, 15, 2, 15, bark)
@@ -2218,8 +2222,8 @@ static func _maple_tree(season: String, snow: bool) -> Image:
 			for y in range(1, 32):
 				for x in 24:
 					if img.get_pixel(x, y).a > 0.5 and img.get_pixel(x, y - 1).a < 0.5:
-						img.set_pixel(x, y - 1, Color("f4f8fc"))
-		return img
+						img.set_pixel(x, y - 1, snow_white)
+			return ItemArt.refine(img, [snow_white])
 	_px(img, 11, 15, 2, 15, bark)
 	# [x, y, rx, ry, colour, fall: lump turns orange]
 	var lumps := [
@@ -2234,7 +2238,7 @@ static func _maple_tree(season: String, snow: bool) -> Image:
 		if season == "fall" and l[5]:
 			c = MAPLE_FLAME.darkened(0.04 * (i % 3))
 		_oval(img, l[0], l[1], l[2], l[3], c)
-	return _outline(img)
+	return ItemArt.refine(img)
 
 
 ## alert a vermilion "!" on a paper bubble (7 x 11).
