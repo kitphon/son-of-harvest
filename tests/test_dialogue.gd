@@ -153,16 +153,10 @@ func _init() -> void:
 	check(TextBoxLayout.wrap_rows("One\nTwo", 400).size() == 2, "line breaks in the text are kept")
 	check(TextBoxLayout.TEXT_POS.y + TextBoxLayout.ROWS * TextBoxLayout.row_h() <= TextBoxLayout.BOX.size.y - 4, "four rows fit in the box")
 
-	# Portraits: one 40 x 40 face per speaker and expression, each expression different.
+	# Names: every speaker has a name the font can draw.
 	for speaker in who:
 		if speaker.begins_with("_"):
 			continue
-		var seen := {}
-		for e in DialogueRunner.EXPRESSIONS:
-			var img := PlaceholderArt.tex("face:%s:%s" % [speaker, e]).get_image()
-			check(img.get_size() == Vector2i(40, 40), "face %s %s is 40 x 40" % [speaker, e])
-			seen[img.get_data()] = true
-		check(seen.size() == DialogueRunner.EXPRESSIONS.size(), "%s: every expression looks different" % speaker)
 		check(who[speaker].get("name", "") != "" and PixelFont.missing(who[speaker].name) == "", "%s has a name the font can draw" % speaker)
 
 	_portraits()
@@ -301,8 +295,7 @@ func _portraits() -> void:
 
 
 ## The refined portraits (PortraitArt, data/portrait_art.json): every villager in every mood,
-## the little one at each stage for each spouse who can marry, and the generic face:<speaker>
-## keys. Each is 40 x 40 and opaque, has no black part line left, shows the skin's shade, base
+## the little one at each stage for each spouse who can marry. Each is 40 x 40 and opaque, has no black part line left, shows the skin's shade, base
 ## and lit tones with the lit side to the left of the shade side, draws its lines in the
 ## skin's deep tone, and the stubble still finds the skin. Every mood still looks different.
 func _refined_portraits() -> void:
@@ -322,11 +315,6 @@ func _refined_portraits() -> void:
 				sets.append([key, Color(str(c.skin)), "child of %s %s" % [sp, st]])
 				seen[PlaceholderArt.tex(key).get_image().get_data()] = true
 			check(seen.size() == DialogueRunner.MOODS.size(), "child of %s, %s: every mood looks different" % [sp, st])
-	var who := DialogueRunner.speakers()
-	for sp in who:
-		if who[sp] is Dictionary and who[sp].has("face"):
-			for e in DialogueRunner.EXPRESSIONS:
-				sets.append(["face:%s:%s" % [sp, e], Color(who[sp].face.get("skin", "f2c79b")), "face " + sp])
 	var bad := []
 	for s in sets:
 		var img: Image = PlaceholderArt.tex(s[0]).get_image()
@@ -366,7 +354,7 @@ func _refined_portraits() -> void:
 		if why != "":
 			bad.append("%s (%s)" % [s[0], why])
 	check(bad.is_empty(), "every portrait (%d) is refined: %s" % [sets.size(), bad.slice(0, 6)])
-	check(sets.size() >= Villagers.all().size() * DialogueRunner.MOODS.size() + 90, "the portraits checked include the child and the faces (%d)" % sets.size())
+	check(sets.size() >= Villagers.all().size() * DialogueRunner.MOODS.size() + 90, "the portraits checked include the child (%d)" % sets.size())
 	# The stubble is still drawn over the toned skin.
 	var stubbled := PlaceholderArt.tex("portrait:hachiro:neutral").get_image()
 	stubbled.convert(Image.FORMAT_RGBA8)

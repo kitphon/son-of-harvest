@@ -1,6 +1,6 @@
 class_name PortraitArt
 extends RefCounted
-## The refined pass for the text box portraits (PlaceholderArt's portrait:... and face:... keys),
+## The refined pass for the text box portraits (PlaceholderArt's portrait:... keys),
 ## the same look as the figures' (FigureArt): every material of the head and shoulders in three
 ## tones lit from the upper left, the black part lines turned into the deep tone of the material
 ## they hold, and the lines on the outer silhouette pulled towards a dark rim. Numbers in

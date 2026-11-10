@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-10 — The old `face:` key removed
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: PlaceholderArt's `face:<speaker>:<expression>` dispatch branch and `_face` removed (its
+  only caller was the test_dialogue check). Nothing else used `_face`: its helpers (`_portrait_on`,
+  `_blank`, `_oval`, `_px`, PortraitArt.eye / mouth / refine) are all still used by the live
+  `portrait:` path, so none went. test_dialogue lost the face check in the speakers loop (the name
+  check stays) and the face keys in `_refined_portraits`; the portrait count check still holds
+  (>= villagers x moods + 90). The OUTLINE comment now names only `_fish_fx` and `_portrait_of`.
+  The notes in data/portrait_art.json and data/dialogue/speakers.json and the header of
+  scripts/art/portrait_art.gd no longer name the face key. `DialogueRunner.EXPRESSIONS` stays: the
+  dialogue lines' `face` field still checks against it. The text box's own `_face` TextureRect is
+  unrelated and kept.
+- Checked: `grep` for `_face` and `face:` across scripts, data, tools and tests after the edit
+  leaves only unrelated hits (`_face` TextureRect in text_box.gd, `_baby_face`, `face:` line fields
+  and the speaker look's `face` dictionary). After `--import`: `test_dialogue: OK (0 failed)`,
+  `test_lang: OK (0 failed)`, `test_title: OK (0 failed)`. The title test prints push_warning lines
+  from its own bad-flag checks in farmer_looks.gd, as before. Smoke run `--quit-after 300 -- --demo`
+  printed no ERROR or error lines (exit 0).
+- Left / next: the Windows .exe still waits on the export templates. Next up in ROADMAP is the
+  rest of the placeholder art and the story work already listed.
+
 ## 2026-11-10 — Merge: story props, stall wares and the outline cleanup
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three subagents in their own worktrees, the model picked by the job: 39544bf story
