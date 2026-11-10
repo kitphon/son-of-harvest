@@ -60,6 +60,26 @@ Agent: Claude Code (claude-sonnet) · Commit: this commit
 - Checked: forced 1.0 with the fixes: test_farm, test_animals, test_villagers `OK (0 failed)`. With
   the real chance all tests/test_*.gd print `OK (0 failed)`; smoke runs print 0 ERROR or WARNING lines.
 - Left / next: none.
+## 2026-11-10 — The persimmon tree's hint, checked
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: no bug found, no game code changed. The hint at Kiku's tree is ActionHints.interact_verb:
+  "Pick" while fruit hangs (also with a persimmon in hand), "Look" on the bare tree. The test
+  test_view2d `_persimmon` now checks the hint in the two missing cases: holding one with fruit
+  left says "Pick" (and the press puts it in the rucksack, nothing thrown); hands empty on the
+  bare tree says "Look" (the press gives the birds' line, nothing thrown, hands stay empty).
+  The old check (holding, bare tree says "Look") stays.
+- Checked: `--headless --path . --script res://tests/test_view2d.gd` printed `test_view2d: OK (0
+  failed)` and `test_forage` printed `test_forage: OK (0 failed)` after `--import`. 3D frame
+  (temporary shots/tree_shot.gd, the farmer put at (3, 5) facing up with Game.maps.pos and facing
+  synced as Player does, presses through the Player's action signal): frame 169 after one press
+  (held persimmon) shows the HUD "E Pick", the persimmon in the hand slot, and the crown with
+  fewer fruit. A second frame after the rucksack and birds presses (still holding) shows the
+  message "The rest are for the birds." and "E Look", nothing thrown. Its first run showed "E
+  Throw" only because the script had not synced Game.maps.pos / facing (the HUD reads those, not
+  the Player); the game code is not at fault. shots/ deleted.
+- Left / next: the 3D frames were judged by eye at 480 x 270; the hint text is read from the
+  picture, the verb values from the printed ActionHints output.
+
 ## 2026-11-10 — Merge: lumber flake, Kiku's picked lines all year, the persimmon pick in hand
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged e844018 the test_villagers lumber flake (Opus, own worktree), 3a6a44b Kiku's picked

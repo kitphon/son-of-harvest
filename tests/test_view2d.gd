@@ -1151,11 +1151,16 @@ func _persimmon() -> void:
 	check(g.held == "wild:persimmon" and g.scion_picked == 1 and msgs.back() == "Picked the ripe persimmon.",
 		"the first press picks one overhead (%s)" % [msgs])
 	check(drawn.back() == "story:scion:tree:fall:0:4", "half the crown is drawn (%s)" % [drawn])
+	# Holding one with fruit left: the hint still says Pick, and the press puts it in the rucksack.
+	check(hints.interact_verb(Vector2i(3, 5), Vector2i.UP) == "Pick" and hints.pick(Vector2i(3, 5), Vector2i.UP).interact == "Pick",
+		"holding one with fruit left, the hint says Pick")
+	var thrown_held: int = said.thrown.size()
 	act("interact", Vector2i(3, 5), Vector2i.UP)
 	await process_frame
 	await process_frame
 	check(g.count("wild:persimmon") == 2 and g.scion_picked == 2 and msgs.back() == "Put the ripe persimmon in the rucksack.",
 		"the second press puts one in the rucksack (%s)" % [msgs])
+	check(said.thrown.size() == thrown_held, "the press while holding never throws at the tree")
 	check(drawn.back() == "story:scion:tree:fall:0:0", "the crown is bare (%s)" % [drawn])
 	act("interact", Vector2i(3, 5), Vector2i.UP)
 	await process_frame
@@ -1163,6 +1168,14 @@ func _persimmon() -> void:
 	check(msgs.back() == "The rest are for the birds.", "the third press: the birds (%s)" % [msgs])
 	check(g.count("wild:persimmon") == 2 and said.thrown.size() == thrown_before, "nothing is thrown at the tree")
 	check(hints.interact_verb(Vector2i(3, 5), Vector2i.UP) == "Look", "the hint at the bare tree is not Throw")
+	g.held = ""   # hands empty at the bare tree: Look too, and a press still never throws
+	check(hints.interact_verb(Vector2i(3, 5), Vector2i.UP) == "Look" and hints.pick(Vector2i(3, 5), Vector2i.UP).use_tool != "Throw",
+		"hands empty at the bare tree: the hint says Look")
+	act("interact", Vector2i(3, 5), Vector2i.UP)
+	await process_frame
+	await process_frame
+	check(msgs.back() == "The rest are for the birds." and said.thrown.size() == thrown_before and not g.holding(),
+		"hands empty at the bare tree: the birds, nothing thrown")
 	check(drawn.has("story:scion:tree:fall:0") and drawn.has("story:scion:tree:fall:0:4") and drawn.has("story:scion:tree:fall:0:0"),
 		"the view redrew each of the three pictures (%s)" % [drawn])
 	var a: Image = PlaceholderArt.tex("story:scion:tree:fall:0").get_image()
