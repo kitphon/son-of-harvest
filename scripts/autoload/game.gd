@@ -375,6 +375,13 @@ func new_game() -> void:
 			animals.state.barn.out = true
 		elif arg == "--pause=fishlog":   # `-- --demo --pause=fishlog`: a few catches in the log already
 			fish_caught = {"funa": 12, "koi": 1, "ayu": 3, "yamame": 2, "ugui": 7, "moon_koi": 1}
+		elif arg == "--cord":   # e.g. `-- --demo --map=barn --cord`: the musubi cord overhead, the barn's grown animals happy enough to take it, the farmer below the first
+			held = animals.breed_item()
+			for beast in animals.list:
+				beast.happy = maxi(int(beast.happy), int(animals.breeding().get("happy_min", 0)))
+			var cows := animals.in_home("barn")
+			if maps.current().id == "barn" and not cows.is_empty():   # stand below the first one, facing her
+				maps.place("barn", animals.spot(cows[0]) + Vector2i.DOWN, Vector2i.UP)
 		elif arg == "--hold":   # e.g. `-- --demo --hold`: a turnip overhead, a potato in front of the bin
 			held = "turnip"
 			farm.place_item(Vector2i(8, 4), "potato")

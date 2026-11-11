@@ -268,6 +268,8 @@ func _info_text() -> String:
 					return "Feed in the coop's sack: %d" % Game.animals.feed_stock
 				"fodder":
 					return "Fodder in the barn's loft: %d" % Game.animals.stock_of("barn")
+			if row.item == Game.animals.breed_item():
+				return "Hold it up, then E on a happy, grown cow or ewe."
 			return "In your rucksack: %d" % Game.count(str(row.item))
 		"build":
 			var b: Dictionary = menu.shop.builds.get(row.item, {})
