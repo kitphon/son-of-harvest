@@ -10,6 +10,41 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Morning mist (asagiri) over the water and the paddies
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: low soft mist at dawn on the outdoor maps, in both views, modelled on the drifting life.
+  MistRules (scripts/mist_rules.gd, pure): the clock's curve (data/mist.json `curve`
+  [[3.5, 0], [5.0, 1], [6.5, 1], [8.0, 0]], smoothstep between keys: gathering before first
+  light, thickest 5:00-6:30, gone by 8:00), the share per season and ground (spring water 1.0 /
+  paddy 0.9, summer 0.4 / 0.35, fall 1.0 / 1.0, winter water 0.85 and paddies 0: frozen or dry
+  fields, open water still steams), per weather look (sunny 1, rain 0.35, snow 0.6, storm and
+  blizzard 0), thinned by the wind of data/wind.json (x 1 - 0.6 x wind: a sunny breeze keeps
+  about nine tenths, rain's wind about seven tenths). None indoors, under a roof (the mine) or
+  without a clock. Sources: a map's `water` and `paddy` tiles, the farm's pond cells. Sheets:
+  0.55 per source cell (1..48), each living about 16 s with a sine-bell fade, drifting along the
+  wind at 0.05 + 0.25 x wind cells a second with a slow sideways wobble, 2.6..4.4 cells long and
+  0.55 of that wide, 0.12..0.45 up over water; over the paddies by season (`paddy_height`: low
+  over the spring rice, 0.75..1.1 over the tall summer and fall rice, which hid sheets lower
+  down in the first frames), fading out toward the map's edge (the flat view showed sheets on
+  the black past the river's west end). Colour f2f0ee taken 0.3 of the way toward the dawn
+  sky's hue (Game.sky_color made bright, so it tints without darkening; the day / night tint
+  lies over it). 3D: MistLayer, one MultiMesh of horizontal quads with its own shader
+  (unshaded, depth_draw_never, a radial falloff broken into wisps by a world-locked value noise
+  drifting with TIME; no volumetric fog in Compatibility), built by MapWorld on outdoor maps and
+  by Main3D.new_world on the farm. Flat: MistView, each sheet as three stepped ellipses filled
+  without smoothing round a whole-pixel centre (each 0.3 of the sheet's alpha), under the
+  figures. Alphas tuned from frames (0.22 was invisible, 0.6 reads as a veil).
+- Checked: test_mist (new: curve, gating, sources, sheets, edge fade, colour, both views and
+  main_2d holding a MistView) and every test in AGENTS.md OK, smoke runs clean (see the report
+  of this commit). Frames: `--demo --weather=sunny --time=6:15 --map=river@shore` (pink-white
+  banks over the river, spilling a little onto the bank), `--time=5:45` (lavender, fainter under
+  the darker tint), `--season=fall --time=6:00 --map=kaminoda@well` (a pale veil over the ripe
+  rice), `--time=5:30 --map=farm@barn` (faint sheets on the pond's edge), the flat view
+  `res://scenes/main_2d.tscn -- --demo --time=6:00 --map=river@shore` (soft stepped ellipses
+  over the river, inside the map).
+- Left / next: the farm's own rice plots make no mist (only the pond); the ferry and other
+  later props in the flat view draw over the mist.
+
 ## 2026-11-11 — Every shippable item's icon checked: none falls back, a test keeps it so
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: the task was to draw real icons for shippable items, fish and forage whose icon fell back to a

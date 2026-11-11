@@ -410,6 +410,17 @@ Light and Farmhouse model hold the technical detail of what is built.
       summer nights, outdoor maps only, in both views, on the same wind as the rice and smoke
       (DriftRules, DriftLayer / DriftGlow, DriftView; data/drift.json). (this commit)
 
+- [x] Morning mist (asagiri): soft low sheets lying over the water (rivers, ponds, the farm's pond)
+      and the rice paddies at dawn, thickest 5:00-6:30, thinning to nothing by 8:00; most in spring
+      and fall, a little in summer, in winter over open water only; none in a storm, a blizzard or
+      indoors, thin in rain and wind. No volumetric fog (Compatibility): in 3D flat horizontal quads
+      in one MultiMesh (MistLayer) whose shader fades each from the middle out and breaks it into
+      wisps with a slow world-locked noise, unshaded and never writing depth, drifting on the wind of
+      data/wind.json; over the paddies they lie over the rice's tips by season. Coloured toward the
+      dawn sky's hue (lavender before sunrise, peach at sunrise) under the day / night tint. The flat
+      view draws each sheet as stepped ellipses (MistView). Rules in MistRules, numbers in
+      data/mist.json. (this commit)
+
 ### 4. Characters (needs the user's decision on who draws)
 - [x] Larger, more detailed farmer and villager sprites, four or eight directions. (d2d8064:
       the user asked the agent to refine the code-drawn placeholders for now; real art later.

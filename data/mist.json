@@ -1,0 +1,32 @@
+{
+	"_about": "Morning mist (asagiri) lying low over the water and the rice paddies at dawn (MistRules; the 3D view's MistLayer, the flat view's MistView). Outdoor maps only: none in rooms, under a roof or in the mine. `sources`: which ground makes mist: a map's tiles of `water` and `paddy` (the farm: its pond's cells, as water). `curve` [[hour, density], ...] on the game clock, eased (smoothstep) between keys and 0 outside them: it gathers before first light, lies thickest from 5:00 to 6:30 and burns off by 8:00. `seasons`: the share each kind of ground makes in each season (spring and fall the most, summer a little; in winter the paddies lie frozen or dry, so only the open water steams). `looks`: the share under each weather look of data/weather_fx.json (none in a storm or a blizzard, thin in rain, some over the open water on a snowy winter morning). `wind_thin`: the wind of data/wind.json thins it, the share times 1 - wind_thin x the wind (a sunny breeze 0.15 keeps about nine tenths, rain's 0.5 about seven tenths). The mist is drawn as soft low sheets: `per_cell` sheets for each source cell, at least 1 and at most `max`; each lives `life` seconds (varied by `life_var`), fading in and out, its home a source cell (moved by up to `jitter` cells), fading out toward the map's edge, drifting along `wind_dir` at `drift` + `drift_wind` x the wind (cells a second) with a slow sideways `wobble`; `size` [min, max] cells long along the wind and `across` times that wide, swelling by `swell` over its life; `height` [min, max] cells above the ground, bobbing `bob`; over the paddies `paddy_height` by season instead, so it lies over the rice's tips (low over the young spring rice, about knee-high over the tall summer and fall rice, which would hide it lower down). `alpha`: a sheet's most alpha at full density (low: they overlap). `color`: the mist's own colour, taken toward the hue of the sky (Game.sky_color, made bright) by `sky_share`, so it reads lavender before sunrise and peach as the sun comes up; the day / night tint lies over it as over everything. `flat`: the flat view, where a sheet is drawn from above as `rings` stepped ellipses (whole pixels, no blur), each `ring_alpha` of the sheet's, `height_px` pixels a cell of height lifts it up the screen. Balance numbers are ours.",
+	"sources": ["water", "paddy"],
+	"curve": [[3.5, 0.0], [5.0, 1.0], [6.5, 1.0], [8.0, 0.0]],
+	"seasons": {
+		"spring": {"water": 1.0, "paddy": 0.9},
+		"summer": {"water": 0.4, "paddy": 0.35},
+		"fall": {"water": 1.0, "paddy": 1.0},
+		"winter": {"water": 0.85, "paddy": 0.0}
+	},
+	"looks": {"sunny": 1.0, "rain": 0.35, "snow": 0.6, "storm": 0.0, "blizzard": 0.0},
+	"wind_thin": 0.6,
+	"wind_dir": [1.0, 0.35],
+	"per_cell": 0.55,
+	"max": 48,
+	"life": 16.0,
+	"life_var": 0.35,
+	"jitter": 0.6,
+	"drift": 0.05,
+	"drift_wind": 0.25,
+	"wobble": 0.25,
+	"size": [2.6, 4.4],
+	"across": 0.55,
+	"swell": 0.25,
+	"height": [0.12, 0.45],
+	"paddy_height": {"spring": [0.2, 0.55], "summer": [0.75, 1.1], "fall": [0.75, 1.1]},
+	"bob": 0.04,
+	"alpha": 0.6,
+	"color": "f2f0ee",
+	"sky_share": 0.3,
+	"flat": {"rings": 3, "ring_alpha": 0.3, "height_px": 9.0}
+}
