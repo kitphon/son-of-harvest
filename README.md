@@ -586,6 +586,28 @@ as `animals.silo`, an old save has an empty one). The job's `work_flag` (`silo_w
 while it is under way: Hachiro's `building_silo` plan hammers at it from (30, 3), his lumber
 lies at (29, 3). `-- --demo --building=silo --time=10:00 --map=farm@gate` shows him at it,
 `-- --demo --built=silo --map=farm@silo` the finished silo.
+The greenhouse (`greenhouse`, 30000 G, 6 days: the dearest farm job, a late-game goal) stands in
+the field's bottom right corner (`FarmGrid.GREENHOUSE`, cells 25..29 x 14..16, its door
+`FarmGrid.GREENHOUSE_DOOR` (27, 16) in the front row, the spawn `farm@greenhouse` (27, 17) before
+it) only once built (`FarmGrid.set_wings`; `GreenhouseProps` in 3D, kept as `farm|greenhouse`;
+`FarmView._draw_greenhouse` flat). The farm map's extension `greenhouse` adds the door (an
+extension's `doors` are added to the map's own, like its `props`); a prop's `unless` may be a
+list (the gap's lumber hides for `silo_work` and `greenhouse_work`). Inside is
+data/maps/greenhouse.json (`walls: "glass"`: panes in a timber grid, RoomWalls / MapView), whose
+`plots` {cell, size} is a FarmGrid of its own: `Game.greenhouse` (`Game.beds()`), 8 x 4 beds,
+`sheltered`, so any seed is sown and grows in any season and nothing withers, and no weather
+reaches it (no rain watering, no storm losses, no weeds, no snow, no dice thrown): the can does
+the watering, filled at the water tub (a prop with `use: "water"`). `Game.field()` /
+`field_cell()` turn a map cell into the beds' cell, so FarmActions' tools, picking a ripe crop
+(E) and setting one down (the tool button; no throwing under glass) work there as on the field;
+the views draw the beds with the field's own FarmView (flat) and FarmWorld.setup_plots (3D) at
+the plots corner. The field outside keeps its season rules. Saved as `greenhouse` (a save from
+before has empty beds). While it is built `greenhouse_work` is set: Hachiro's
+`building_greenhouse` plan hammers from (28, 17), his lumber lies at (25..26, 17). A day of any
+plan named `building_<x>` counts as a day of work (`Game._builder_off_plan`). `-- --demo
+--building=greenhouse --time=10:00 --map=farm@greenhouse` shows him at it, `-- --demo
+--built=greenhouse --map=farm@greenhouse` the glasshouse, `-- --demo --map=greenhouse
+--season=winter` the beds inside (`--demo` sows them with crops of every season).
 The smithy's `upgrades.tool_levels` gives one tool its own price list (the rod, whose levels
 are `rod.bite_factor` in data/fish.json: the bite chance per check is multiplied by it).
 

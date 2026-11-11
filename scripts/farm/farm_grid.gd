@@ -36,11 +36,24 @@ const BARN_WING := Rect2i(24, 1, 1, 3)
 ## farm's north-east corner: clear of the pond (x 25..28), the barn's yard (y 5..6), the gate road
 ## (31, 5..6) and its spawn, and the cells in front (y 3..4) where the farmer stands to use it.
 const SILO := Rect2i(29, 1, 2, 2)
+## The glasshouse (Game.house_built: greenhouse), five cells wide and three deep in the field's
+## bottom right corner, its door in the middle of the front row: clear of the buildings, the pond,
+## both yards, the gate road (31, 5..6) and every spawn up the top, Kiku's field spot (30, 8), the
+## right-hand column (x 30) and the two rows below it (y 17..18) where Hachiro stands and his
+## lumber lies while he builds it. Inside it is another FarmGrid (Game.greenhouse, `sheltered`).
+const GREENHOUSE := Rect2i(25, 14, 5, 3)
+const GREENHOUSE_DOOR := Vector2i(27, 16)
 const WEED_CHANCE := 0.01   # per empty cell per night, not in winter
 const STORM_LOSS := 1.0 / 16.0
 
 var crops: Dictionary
-var cells: Array = []        # W * H dictionaries, row by row
+## The grid's size: W x H for the farm; the greenhouse's plots are a smaller grid of their own.
+var w := W
+var h := H
+## Under glass (the greenhouse's plots): any crop grows in any season, and no weather reaches it:
+## no rain watering, no storm damage, no weeds. Watered by hand only.
+var sheltered := false
+var cells: Array = []        # w * h dictionaries, row by row
 var fixed: Dictionary = {}   # Vector2i -> "house" / "door" / "chest" / "bin" / "stand" / "pond" / "fence"
 var items: Dictionary = {}   # Vector2i -> item id lying on the ground (put down or thrown)
 ## Is a solid story prop standing on this cell (the builder's lumber)? Game points it at the
@@ -48,9 +61,12 @@ var items: Dictionary = {}   # Vector2i -> item id lying on the ground (put down
 var prop_blocks: Callable
 
 
-func _init(crop_data: Dictionary) -> void:
+func _init(crop_data: Dictionary, size := Vector2i(W, H), under_glass := false) -> void:
 	crops = crop_data
-	for i in W * H:
+	w = size.x
+	h = size.y
+	sheltered = under_glass
+	for i in w * h:
 		cells.append(_empty_cell())
 
 
@@ -126,17 +142,18 @@ static func barn_rect(built: Array) -> Rect2i:
 ## ground when it is not built. Wings are derived from `built`, so an old save loads either way.
 func set_wings(built: Array) -> void:
 	var changed := false
-	for wing in [["coop_wing", COOP_WING, "coop"], ["barn_wing", BARN_WING, "barn"], ["silo", SILO, "silo"]]:
+	for wing in [["coop_wing", COOP_WING, "coop"], ["barn_wing", BARN_WING, "barn"], ["silo", SILO, "silo"], ["greenhouse", GREENHOUSE, "greenhouse"]]:
 		var want: bool = wing[0] in built
 		for y in range(wing[1].position.y, wing[1].end.y):
 			for x in range(wing[1].position.x, wing[1].end.x):
 				var c := Vector2i(x, y)
-				if want and fixed_at(c) != wing[2]:
+				var kind: String = wing[2] if c != GREENHOUSE_DOOR else "greenhouse_door"   # its door in the front row
+				if want and fixed_at(c) != kind:
 					cells[y * W + x] = _empty_cell()
 					items.erase(c)
-					fixed[c] = wing[2]
+					fixed[c] = kind
 					changed = true
-				elif not want and fixed_at(c) == wing[2]:
+				elif not want and fixed_at(c) == kind:
 					fixed.erase(c)
 					changed = true
 	if changed:
@@ -166,11 +183,11 @@ func _place_barn() -> void:
 
 
 func in_bounds(c: Vector2i) -> bool:
-	return c.x >= 0 and c.y >= 0 and c.x < W and c.y < H
+	return c.x >= 0 and c.y >= 0 and c.x < w and c.y < h
 
 
 func cell(c: Vector2i) -> Dictionary:
-	return cells[c.y * W + c.x]
+	return cells[c.y * w + c.x]
 
 
 func fixed_at(c: Vector2i) -> String:
@@ -221,7 +238,7 @@ func water_dry_crops(most: int) -> int:
 	for i in cells.size():
 		if n >= most:
 			break
-		var pos := Vector2i(i % W, i / W)
+		var pos := Vector2i(i % w, i / w)
 		var d: Dictionary = cells[i]
 		if d.crop == "" or d.wet or not d.tilled or not can_farm(pos) or is_ripe(pos):
 			continue
@@ -239,7 +256,7 @@ func pull_weeds(most: int) -> int:
 	for i in cells.size():
 		if n >= most:
 			break
-		var pos := Vector2i(i % W, i / W)
+		var pos := Vector2i(i % w, i / w)
 		if cells[i].obj != Obj.WEED or not can_farm(pos):
 			continue
 		cells[i].obj = Obj.NONE
@@ -252,7 +269,7 @@ func pull_weeds(most: int) -> int:
 
 ## One seed bag sows the 3 x 3 cells around `center`; returns how many took a seed.
 func sow(center: Vector2i, crop_id: String, season: String) -> int:
-	if not (season in crops[crop_id].seasons):
+	if not sheltered and not (season in crops[crop_id].seasons):
 		return 0
 	var n := 0
 	for dy in range(-1, 2):
@@ -419,17 +436,17 @@ func to_dict() -> Dictionary:
 	var lying := []
 	for c in items:
 		lying.append([c.x, c.y, items[c]])
-	return {"w": W, "h": H, "cells": rows, "fixed": spots, "items": lying}
+	return {"w": w, "h": h, "cells": rows, "fixed": spots, "items": lying}
 
 
 ## Puts a saved farm back in place (views keep their reference to this grid).
 ## Returns "" or what was wrong; on a problem nothing changes.
 func from_dict(data: Dictionary) -> String:
-	var wide: bool = SaveGame.whole(data.get("w"), WIDE_W, WIDE_W) != null and SaveGame.whole(data.get("h"), WIDE_H, WIDE_H) != null
-	if not wide and (SaveGame.whole(data.get("w"), W, W) == null or SaveGame.whole(data.get("h"), H, H) == null):
+	var wide: bool = w == W and h == H and SaveGame.whole(data.get("w"), WIDE_W, WIDE_W) != null and SaveGame.whole(data.get("h"), WIDE_H, WIDE_H) != null
+	if not wide and (SaveGame.whole(data.get("w"), w, w) == null or SaveGame.whole(data.get("h"), h, h) == null):
 		return "The saved farm has another size"
-	var sw := WIDE_W if wide else W
-	var sh := WIDE_H if wide else H
+	var sw := WIDE_W if wide else w
+	var sh := WIDE_H if wide else h
 	var rows = data.get("cells")
 	if not rows is Array or rows.size() != sw * sh:
 		return "The saved farm cells are missing"
@@ -519,17 +536,18 @@ func _cell_from(v: Variant) -> Variant:
 
 ## The night: growth on watered cells, out-of-season crops wither, weeds, storm damage,
 ## then today's rain waters the field. A crop with holds_water (rice) keeps its cell wet once
-## watered, like a flooded paddy, until it is harvested or lost.
+## watered, like a flooded paddy, until it is harvested or lost. Under glass (`sheltered`) none
+## of the season or the weather counts: no withering, storm, weeds or rain, and no dice thrown.
 func day_end(season: String, weather: String, rng: RandomNumberGenerator) -> void:
 	for i in cells.size():
-		var pos := Vector2i(i % W, i / W)
+		var pos := Vector2i(i % w, i / w)
 		if fixed_at(pos) != "":
 			continue
 		var d: Dictionary = cells[i]
 		d.hits = 0
 		if d.crop != "":
 			var data: Dictionary = crops[d.crop]
-			if not (season in data.seasons):
+			if not sheltered and not (season in data.seasons):
 				d.crop = ""
 				d.stage = 0
 				d.days = 0
@@ -538,13 +556,13 @@ func day_end(season: String, weather: String, rng: RandomNumberGenerator) -> voi
 				if d.days >= int(data.stage_days[d.stage]):
 					d.stage += 1
 					d.days = 0
-			if d.crop != "" and weather == "storm" and rng.randf() < STORM_LOSS:
+			if d.crop != "" and not sheltered and weather == "storm" and rng.randf() < STORM_LOSS:
 				d.crop = ""
 				d.stage = 0
 				d.days = 0
-		elif d.obj == Obj.NONE and not items.has(pos) and season != "winter" and not under_prop(pos) and rng.randf() < WEED_CHANCE:
+		elif not sheltered and d.obj == Obj.NONE and not items.has(pos) and season != "winter" and not under_prop(pos) and rng.randf() < WEED_CHANCE:
 			d.obj = Obj.WEED
 			d.tilled = false
 		var paddy: bool = d.wet and d.crop != "" and bool(crops[d.crop].get("holds_water", false))
-		d.wet = d.tilled and (weather == "rain" or paddy)
+		d.wet = d.tilled and ((weather == "rain" and not sheltered) or paddy)
 	cells_changed.emit()

@@ -60,6 +60,16 @@ func setup_steps(f: FarmGrid, open_cells: Array[Vector2i] = []) -> Array[Callabl
 	return [_make_ground, _make_buildings, _make_fence, _make_edges, _make_field]
 
 
+## The greenhouse's beds (Game.greenhouse, a sheltered FarmGrid) as a world of their own over
+## the greenhouse map's floor (Main3D puts it at the map's plots corner): the beds' ground, the
+## crops standing on them and what lies there, built and rebuilt as on the farm, with no
+## buildings, fence, land past the edge, grass tufts or snow.
+func setup_plots(f: FarmGrid) -> void:
+	farm = f
+	_make_ground()
+	_make_field()
+
+
 ## The land past the fence (Surroundings).
 func _make_edges() -> void:
 	var rules: Dictionary = Game.snow_rules
@@ -70,13 +80,14 @@ func _make_edges() -> void:
 
 ## The grass tufts, the tall crops and what stands or lies on the field, then the snow.
 func _make_field() -> void:
-	add_tufts()
+	if not farm.sheltered:
+		add_tufts()
 	add_crops()
 	_objects = Node3D.new()
 	add_child(_objects)
 	farm.cells_changed.connect(_rebuild_objects)
 	_rebuild_objects()
-	set_snow(Game.snow_cover / 100.0)
+	set_snow(0.0 if farm.sheltered else Game.snow_cover / 100.0)
 
 
 ## The farm map's story props (Hachiro's door bell), shown while their flags are set.
@@ -96,6 +107,8 @@ func come_back() -> void:
 
 ## Snow on the ground and roofs, 0 (none) .. 1 (all white where the ground holds it).
 func set_snow(cover: float) -> void:
+	if farm != null and farm.sheltered:
+		cover = 0.0   # the greenhouse's beds: never under snow
 	if cover > 0.0 and _mask_dirty:
 		_update_mask()
 	for m in _snow_mats:
@@ -135,7 +148,7 @@ static func flat_material(color: Color) -> StandardMaterial3D:
 
 func _make_ground() -> void:
 	var vp := SubViewport.new()
-	vp.size = Vector2i(FarmGrid.W * T, FarmGrid.H * T)
+	vp.size = Vector2i(farm.w * T, farm.h * T)
 	vp.disable_3d = true
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	var view := FarmView.new()
@@ -144,15 +157,22 @@ func _make_ground() -> void:
 	vp.add_child(view)
 	add_child(vp)
 
-	_snow_mask = ImageTexture.create_from_image(SnowLayer.mask_image(farm, Game.snow_rules))
-	var mat := SnowLayer.ground_material(vp.get_texture(), _snow_mask)
-	_snow_mats.append(mat)
+	var mat: Material
+	if farm.sheltered:   # under glass: no snow mask, the beds' picture as it is
+		var flat := flat_material(Color.WHITE)
+		flat.albedo_texture = vp.get_texture()
+		flat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		mat = flat
+	else:
+		_snow_mask = ImageTexture.create_from_image(SnowLayer.mask_image(farm, Game.snow_rules))
+		mat = SnowLayer.ground_material(vp.get_texture(), _snow_mask)
+		_snow_mats.append(mat)
 	var plane := PlaneMesh.new()
-	plane.size = Vector2(FarmGrid.W, FarmGrid.H)
+	plane.size = Vector2(farm.w, farm.h)
 	var ground := MeshInstance3D.new()
 	ground.mesh = plane
 	ground.material_override = mat
-	ground.position = Vector3(FarmGrid.W / 2.0, 0, FarmGrid.H / 2.0)
+	ground.position = Vector3(farm.w / 2.0, 0, farm.h / 2.0)
 	ground.layers = NightLamps.GROUND_LAYER   # the night's lamps leave it to the drawn pools
 	add_child(ground)
 
@@ -241,6 +261,8 @@ func _make_buildings() -> void:
 	occlude(func(): MeshCache.build(self, barn_id, func(): BarnProps.barn(self, built)))
 	if "silo" in built:   # the fodder silo, once Hachiro has built it
 		occlude(func(): MeshCache.build(self, "farm|silo", func(): SiloProps.silo(self)))
+	if "greenhouse" in built:   # the glasshouse in the field's corner, once Hachiro has built it
+		occlude(func(): MeshCache.build(self, "farm|greenhouse", func(): GreenhouseProps.greenhouse(self)))
 
 
 ## Runs a builder and keeps what it made as one thing that fades when in the way (if tall).
@@ -562,17 +584,17 @@ func _rebuild_objects() -> void:
 	if away:
 		_stale = true
 		return
-	# The snow mask only matters while snow lies; otherwise it waits for set_snow.
-	_mask_dirty = true
-	if Game.snow_cover > 0:
+	# The snow mask only matters while snow lies; otherwise it waits for set_snow (none under glass).
+	_mask_dirty = not farm.sheltered
+	if Game.snow_cover > 0 and not farm.sheltered:
 		_update_mask()
 	# Only cells whose picture changed get a new sprite, and bare cells are skipped first (the
 	# wide farm has 3000 cells; a full rebuild per tool swing was a visible hitch).
 	var grass: Array[Vector2i] = []
 	for i in farm.cells.size():   # tufts on bare grass: not tilled, nothing standing or lying
 		var d: Dictionary = farm.cells[i]
-		var c := Vector2i(i % FarmGrid.W, i / FarmGrid.W)
-		if farm.fixed_at(c) == "" and not d.tilled and d.obj == FarmGrid.Obj.NONE and d.crop == "" and not farm.items.has(c):
+		var c := Vector2i(i % farm.w, i / farm.w)
+		if not farm.sheltered and farm.fixed_at(c) == "" and not d.tilled and d.obj == FarmGrid.Obj.NONE and d.crop == "" and not farm.items.has(c):
 			grass.append(c)
 	var rules: Dictionary = Game.snow_rules
 	plant_tufts(grass, func(c: Vector2i) -> float: return SnowLayer.hold(farm, c, rules))
@@ -580,7 +602,7 @@ func _rebuild_objects() -> void:
 	var clusters := {}   # tall crops grown past the sprout: CropClusters, not one sprite
 	for i in farm.cells.size():
 		var d: Dictionary = farm.cells[i]
-		var c := Vector2i(i % FarmGrid.W, i / FarmGrid.W)
+		var c := Vector2i(i % farm.w, i / farm.w)
 		if d.obj == FarmGrid.Obj.NONE and d.crop == "" and not farm.items.has(c):
 			continue
 		if not farm.can_farm(c):

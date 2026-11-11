@@ -10,6 +10,64 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — The greenhouse
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a fourth farm job in the Yorozu Store's Build tab: the greenhouse (`greenhouse`, 30000 G,
+  6 days, `"farm": "greenhouse"`, `"work_flag": "greenhouse_work"`), built by Hachiro. Outside:
+  FarmGrid.GREENHOUSE (25..29 x 14..16, the field's bottom right corner) with its door
+  GREENHOUSE_DOOR (27, 16) in the front row, put in and out by `set_wings` like the silo, so the
+  unbuilt farm is unchanged and the 15 cells are solid only once built; chosen clear of every
+  building, the pond, both yards, the gate road and spawns (all up top), Kiku's field spot (30, 8),
+  the column x 30 and the rows y 17..18 in front (the new spawn `farm@greenhouse` (27, 17),
+  Hachiro's spot (28, 17), his lumber (25..26, 17)). The farm map's extension `greenhouse` adds the
+  door (MapManager.with_extensions now adds an extension's `doors` like its `props`); a prop's
+  `unless` may be a list (the gap's lumber hides for `silo_work` and `greenhouse_work`). Inside:
+  data/maps/greenhouse.json (10 x 8, `walls: "glass"`, a gravel walk front and back, a potting
+  bench, a water tub with `use: "water"` that fills the can) whose `plots` (MapData.plots, 8 x 4
+  at (1, 2)) are a FarmGrid of their own: Game.greenhouse (Game.beds()). FarmGrid learned an
+  instance size (`w`, `h`) and `sheltered`: under glass sow() takes any season's seed, day_end
+  withers nothing and throws no dice (no storm loss, no weeds, no rain watering), so the beds are
+  watered by hand; the field outside keeps its season rules. Game.field() / field_cell() turn a
+  map cell into a bed cell: FarmActions' tools, E on a ripe crop or an item, the tool button
+  setting a held item down (no throwing under glass), the tub, ActionHints ("Harvest", "Fill",
+  "Put down") and the target brackets work there. Views reuse the field's own drawing: a FarmView of
+  the beds (flat) and FarmWorld.setup_plots (3D: the beds' ground and crops, no tufts, land or
+  snow) at the plots corner. Look: GreenhouseProps (fieldstone footing, charred-board skirting,
+  an unpainted cedar frame, see-through glass panes, a low glass gable roof on rafters, a glazed
+  sliding door, a rain barrel, green beds seen through the glass; kept as `farm|greenhouse`),
+  FarmView._draw_greenhouse flat, `build:glass` panes for RoomWalls and the flat walls, the
+  `ground:bed` loam of an unhoed bed, RoomProps' potting bench. Saved as `greenhouse` (an old
+  save has empty beds; broken beds refused). Hachiro's `building_greenhouse` plan. `--demo` sows
+  the beds with crops of every season. Thai for the five new texts.
+  Fixed on the way: a farm job never finished. Game._builder_off_plan counted a day as worked
+  only when Hachiro's plan was `building`, so his `building_farm` / `building_silo` days each
+  pushed the ready day one on. Now any `building_<x>` plan counts. Checked: with the old line
+  test_shops' new greenhouse job printed `FAIL: built on time, six days on (20)`.
+  Balance ours: dearer than every other job (second room 18000) since it is the late-game goal; 32
+  beds of fall crops through a winter make roughly 9000 G after seeds, so it pays back in about
+  two years of winters plus off-season crops beside the field.
+- Checked: test_farm `_greenhouse_beds` (the map's beds, any season sown and grown, rain, storm,
+  snow and season changes, no weeds or losses over 60 storm nights, no dice, the save at 8 x 4, a
+  farm-sized save refused); test_shops `_greenhouse_job` (dearest farm job, through end_day done
+  six days on, Hachiro's plan each day, the message, the door, House built unchanged) and the data
+  branch; test_maps `_greenhouse` (no door unbuilt, the way in and out, beds walkable, tub and
+  bench, the lumber, only its 15 cells new, spawns, Game's field inside and out, the 3D glass
+  pieces within the footprint, the beds' world) and the glass room walls; test_save (beds saved
+  and loaded, an old save, broken refused); test_view2d `_greenhouse` (door, beds' FarmView, hoe,
+  a tomato sown in winter, the tub, the can, picking and setting down). All 31 tests `OK (0
+  failed)`; lang_report `th: 2670 of 2670 done (100%), 0 missing, 0 stale`; smoke runs (title,
+  `--demo`, `--map=town`, `--mine=3`, the three greenhouse views, and the flat beds) 0 error or
+  warning lines. Movie Maker frames looked at: `--demo --built=greenhouse
+  --map=farm@greenhouse` (3D: the glasshouse with timber frame, glass walls and roof, the door,
+  the barrel), `--demo --building=greenhouse --time=10:00 --map=farm@greenhouse` (Hachiro
+  hammering before the empty site, the lumber stack), `--demo --map=greenhouse --season=winter
+  --built=greenhouse` (3D: glass walls, the potting bench with seed trays, tomatoes, corn,
+  pumpkins, daikon growing in winter, the hint "E Harvest"), and both through main_2d.tscn (the
+  flat glasshouse, the flat beds with the glass walls), and `--shop=general@build` (seven rows fit).
+- Left / next: the seed stand and the store sell seeds only in their season, so a winter in the
+  greenhouse needs seeds kept from the fall. The spouse's morning watering does not reach the
+  beds. No snow on the glass roof, no light in it at night. Not seen: the greenhouse at night.
+
 ## 2026-11-11 — The fodder silo
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: a third farm job in the Yorozu Store's Build tab: the fodder silo (`silo`, 3000 G, 3

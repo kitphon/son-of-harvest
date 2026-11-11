@@ -1036,7 +1036,7 @@ func _silo() -> void:
 	for c in [Vector2i(25, 2), Vector2i(28, 4)]:
 		check(g.farm.fixed_at(c) == "pond", "the pond is intact at %s" % c)
 	for spawn in MapManager.data("farm").spawns.values():
-		check(not g.farm.is_solid(spawn[0]), "the spawn %s is free" % spawn[0])
+		check(g.farm.fixed_at(spawn[0]) == "", "the spawn %s is free of buildings (an obstacle on it is cleared on arrival)" % spawn[0])
 	for yard in [Animals.data().homes.coop.yard, Animals.data().homes.barn.yard]:
 		for y in range(yard[1], yard[1] + yard[3]):
 			for x in range(yard[0], yard[0] + yard[2]):

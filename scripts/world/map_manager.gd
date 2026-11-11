@@ -80,7 +80,7 @@ static func load_map(map_id: String, ext: Variant = null, f: Variant = null) -> 
 
 
 ## A map file's data with the extensions in `ext` applied, in the file's order: their props
-## are added, "moves" {kind: {key: value}} sets those keys on the map's props of that kind
+## and doors are added, "moves" {kind: {key: value}} sets those keys on the map's props of that kind
 ## (the coop's hatch to the new wall), any other key replaces the map's own. The "extensions"
 ## key itself goes.
 static func with_extensions(raw: Variant, ext: Array) -> Variant:
@@ -93,10 +93,10 @@ static func with_extensions(raw: Variant, ext: Array) -> Variant:
 		if not key in ext or not patch is Dictionary:
 			continue
 		for k in patch:
-			if k == "props":
-				var props: Array = out.get("props", []).duplicate()
-				props.append_array(patch.props.duplicate(true))
-				out.props = props
+			if k == "props" or k == "doors":   # added to the map's own (the greenhouse's door on the farm)
+				var more: Array = out.get(k, []).duplicate()
+				more.append_array(patch[k].duplicate(true))
+				out[k] = more
 			elif k == "moves" and patch.moves is Dictionary:
 				var moved: Array = out.get("props", []).duplicate(true)
 				for prop in moved:
@@ -117,8 +117,9 @@ static func gate_flags(raw: Variant) -> Array[String]:
 		for p in raw.props:
 			if p is Dictionary and p.get("flag") is String and not p.flag in out:
 				out.append(p.flag)
-			if p is Dictionary and p.get("unless") is String and not p.unless in out:
-				out.append(p.unless)
+			for u in _unless_of(p):
+				if not u in out:
+					out.append(u)
 	return out
 
 
@@ -135,8 +136,9 @@ static func with_flags(raw: Variant, f: Dictionary) -> Variant:
 
 ## Does this prop (from a map file) show with these flags?
 static func shows(p: Variant, f: Dictionary) -> bool:
-	if p is Dictionary and p.get("unless") is String and EventRunner.is_set(f, p.unless):
-		return false   # "unless": hidden while that flag is set (the kiln site once the kiln is finished)
+	for u in _unless_of(p):
+		if EventRunner.is_set(f, u):
+			return false   # "unless": hidden while that flag (or one of that list) is set (the kiln site once the kiln is finished)
 	if not p is Dictionary or not p.get("flag") is String:
 		return true
 	if p.has("flag_value"):
@@ -145,6 +147,18 @@ static func shows(p: Variant, f: Dictionary) -> bool:
 		var want: Variant = DialogueRunner.flag_value(p.flag_value)
 		return typeof(have) == typeof(want) and have == want
 	return EventRunner.is_set(f, p.flag)
+
+
+## A prop's "unless": one flag name or a list of them ([] when it has none).
+static func _unless_of(p: Variant) -> Array[String]:
+	var out: Array[String] = []
+	if p is Dictionary and p.get("unless") is String:
+		out.append(p.unless)
+	elif p is Dictionary and p.get("unless") is Array:
+		for u in p.unless:
+			if u is String:
+				out.append(u)
+	return out
 
 
 ## Every map id with a file in data/maps.

@@ -323,6 +323,28 @@ func _init() -> void:
 	err = SaveGame.read(b, PATH)
 	check(err == "" and b.farmer_look == {"style": "tenugui", "hair": "chestnut", "skin": "tan", "clothes": "indigo"},
 		"a look the data no longer has falls back, part by part (%s)" % err)
+
+	# The greenhouse's beds: saved and loaded with what grows there; a save from before the
+	# greenhouse loads with empty beds; broken beds are refused and nothing changes.
+	a.beds().till(Vector2i(2, 1))
+	a.beds().cell(Vector2i(2, 1)).crop = "tomato"
+	a.beds().place_item(Vector2i(7, 3), "potato")
+	var with_beds: Dictionary = JSON.parse_string(JSON.stringify(a.to_dict()))
+	check(with_beds.greenhouse.w == 8 and with_beds.greenhouse.h == 4, "the beds are saved at their size")
+	_put(JSON.stringify({"version": SaveGame.VERSION, "game": with_beds}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.beds().cell(Vector2i(2, 1)).crop == "tomato" and b.beds().item_at(Vector2i(7, 3)) == "potato", "the beds load (%s)" % err)
+	old = with_beds.duplicate(true)
+	old.erase("greenhouse")
+	_put(JSON.stringify({"version": SaveGame.VERSION, "game": old}))
+	err = SaveGame.read(b, PATH)
+	check(err == "" and b.beds().cell(Vector2i(2, 1)).crop == "" and b.beds().items.is_empty(), "a save from before the greenhouse loads empty beds (%s)" % err)
+	old = with_beds.duplicate(true)
+	old.greenhouse.w = 32
+	_put(JSON.stringify({"version": SaveGame.VERSION, "game": old}))
+	b.beds().till(Vector2i(0, 0))
+	err = SaveGame.read(b, PATH)
+	check(err == "The saved greenhouse is broken" and b.beds().cell(Vector2i(0, 0)).tilled, "broken beds refused, nothing changed (%s)" % err)
 	_atomic(a, b)
 
 	_clear(PATH)

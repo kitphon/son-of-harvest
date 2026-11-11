@@ -44,7 +44,7 @@
 					"forge": "Word from the smithy: \"Too wild out to raise beams. No building today; the %s will be a day late. -Hachiro\"",
 					"birthday": "Word from the smithy: \"My birthday, so the hammer rests today. The %s will be a day late. -Hachiro\""
 				},
-				"_farm_jobs": "A job with \"farm\" builds onto that farm building (data/animals.json homes.<home>.wing; the map's extensions) instead of the house: Game.FARM_FLAG holds its id while it is under way (Hachiro's building_farm plan, his lumber between the coop and the barn), and the record's House built leaves it out. Prices ours: the coop's about three and a half hens, the barn's two cows. \"work_flag\" is a flag also set while the job is under way (Hachiro's own plan for it: the silo's building_silo, his lumber beside the silo); the silo (farm \"silo\", data/animals.json silo) is no animal home: 3000 G, 3 days, about 120 bundles of fodder at the store's 25 G, which a silo of cut grass pays back over most of a year.",
+				"_farm_jobs": "A job with \"farm\" builds onto that farm building (data/animals.json homes.<home>.wing; the map's extensions) instead of the house: Game.FARM_FLAG holds its id while it is under way (Hachiro's building_farm plan, his lumber between the coop and the barn), and the record's House built leaves it out. Prices ours: the coop's about three and a half hens, the barn's two cows. \"work_flag\" is a flag also set while the job is under way (Hachiro's own plan for it: the silo's building_silo, his lumber beside the silo); the silo (farm \"silo\", data/animals.json silo) is no animal home: 3000 G, 3 days, about 120 bundles of fodder at the store's 25 G, which a silo of cut grass pays back over most of a year. The greenhouse (farm \"greenhouse\", data/maps/greenhouse.json, Game.greenhouse) is the dearest job and a late-game goal: 30000 G, 6 days, more than the second room; its 32 beds grow the dear fall crops through the winter (about 9000 G a winter, more in the other seasons beside the field), so it pays back in about two years. A day of any plan named \"plan\" plus an underscore and more (building_farm, building_silo, building_greenhouse) is a day of work too, so a farm job is done on time.",
 				"jobs": {
 					"chest": {"name": "Bigger storage chest", "about": "48 slots, with a second lid in the house.",
 						"price": 3000, "days": 2, "chest_slots": 48},
@@ -57,7 +57,9 @@
 					"barn_wing": {"name": "Barn extension", "about": "Ten stalls instead of six, and a longer trough.",
 						"price": 12000, "days": 4, "farm": "barn"},
 					"silo": {"name": "Fodder silo", "about": "Turns cut grass into fodder and keeps it for the barn.",
-						"price": 3000, "days": 3, "farm": "silo", "work_flag": "silo_work"}
+						"price": 3000, "days": 3, "farm": "silo", "work_flag": "silo_work"},
+					"greenhouse": {"name": "Greenhouse", "about": "Four rows of beds under glass. Anything grows there, in any season.",
+						"price": 30000, "days": 6, "farm": "greenhouse", "work_flag": "greenhouse_work"}
 				}
 			}
 		},

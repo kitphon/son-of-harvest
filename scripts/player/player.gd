@@ -166,6 +166,12 @@ func area_preview() -> Array[Vector2i]:
 	var rows: Array = Game.charge_rule(tool, charge).area
 	if Game.maps.mine_floor != null:
 		return Game.maps.mine_floor.area_cells(cell_of(position), facing, rows)
+	if Game.in_greenhouse():   # the beds: their own grid, at the map's plots corner
+		var corner := Game.maps.current().plots.position
+		var out: Array[Vector2i] = []
+		for c in Game.greenhouse.area_cells(cell_of(position) - corner, facing, rows):
+			out.append(c + corner)
+		return out
 	return farm.area_cells(cell_of(position), facing, rows)
 
 
@@ -226,7 +232,7 @@ func _slide(d: Vector2) -> bool:
 
 func _draw() -> void:
 	# Target cell outline (on the farm, down the mine); while charging, every cell of the charge's area and the pips.
-	for tc in (area_preview() if charging else [target_cell()]) if Game.maps.on_farm() or Game.maps.mine_floor != null else []:
+	for tc in (area_preview() if charging else [target_cell()]) if Game.maps.on_farm() or Game.maps.mine_floor != null or Game.in_greenhouse() else []:
 		draw_rect(Rect2(Vector2(tc * T) - position, Vector2(T, T)), Color(1, 1, 1, 0.6), false, 1.0)
 	if charging:
 		var pips := PlaceholderArt.tex(PlaceholderArt.charge_key(charge, Game.max_charge(_charge_tool)))

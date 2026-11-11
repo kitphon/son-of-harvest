@@ -9,7 +9,7 @@ extends RefCounted
 
 const KINDS: Array[String] = ["futon", "low_table", "tansu", "andon", "kamado", "mizuya",
 	"nagamochi", "kotatsu", "counter", "shelf", "rice_sacks", "forge", "anvil", "tool_rack",
-	"water_tub", "irori", "tokonoma", "butsudan", "zabuton", "byobu", "toy_box", "mizugame"]
+	"water_tub", "irori", "tokonoma", "butsudan", "zabuton", "byobu", "toy_box", "mizugame", "potting_bench"]
 
 const TIMBER := Color("2e221a")
 const IRON := Color("26221f")
@@ -54,7 +54,33 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, r: Rect2) -> void:
 		"byobu": _byobu(parts, mid, r)
 		"toy_box": _toy_box(parts, mid)
 		"mizugame": _mizugame(parts, mid)
+		"potting_bench": _potting_bench(parts, mid, r)
 	parts.commit(w)
+
+
+## The greenhouse's potting bench against the back wall: a plank top on four legs with a low
+## shelf, two shallow seed trays of dark soil with green seedlings in rows, a clay pot and a
+## trowel on the top.
+static func _potting_bench(p: FarmProps.Parts, mid: Vector3, r: Rect2) -> void:
+	var at := mid + Vector3(0, 0, -0.18)
+	var wide := r.size.x - 0.16
+	var frame := p.st("build:planks_dark")
+	for x in [-wide / 2 + 0.05, wide / 2 - 0.05]:
+		for z in [-0.17, 0.17]:
+			_cube(frame, at + Vector3(x, 0, z), Vector3(0.06, 0.62, 0.06))
+	_cube(p.st("build:planks"), at + Vector3(0, 0.62, 0), Vector3(wide, 0.05, 0.46), 0.01)
+	_cube(p.st("build:planks"), at + Vector3(0, 0.16, 0), Vector3(wide - 0.1, 0.03, 0.4))
+	for i in 2:
+		var tray := at + Vector3(-wide / 4 + i * wide / 2 - 0.08, 0.67, 0.0)
+		_cube(p.st(WOOD), tray, Vector3(0.5, 0.07, 0.36))
+		_cube(p.st(Color("4a3424")), tray + Vector3(0, 0.07, 0), Vector3(0.44, 0.005, 0.3))
+		for row in 3:
+			for col in 4:
+				_cube(p.st(Color("6aa040") if (row + col) % 2 else Color("86b850")), tray + Vector3(-0.15 + col * 0.1, 0.075, -0.09 + row * 0.09), Vector3(0.04, 0.06, 0.04))
+	Shrine.lathe(p.st(Color("b0643c")), at + Vector3(wide / 2 - 0.16, 0.67, 0.08), [Vector2(0.06, 0.0), Vector2(0.09, 0.14)], 10)
+	_cube(p.st(IRON), at + Vector3(wide / 2 - 0.2, 0.67, -0.12), Vector3(0.18, 0.015, 0.05))
+	for k in 3:   # small pots on the low shelf
+		Shrine.lathe(p.st(Color("a85a36")), at + Vector3(-wide / 2 + 0.2 + k * 0.2, 0.175, 0.0), [Vector2(0.05, 0.0), Vector2(0.07, 0.1)], 8)
 
 
 # --- the farmhouse and the homes ------------------------------------------------

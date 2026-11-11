@@ -237,6 +237,7 @@ func _process(delta: float) -> bool:
 		_dye_cloth()
 		_shino_noren()
 		_kiku_scion()
+		_greenhouse()
 		_nana_props()
 		_story_art_refined()
 		_cradle()
@@ -431,7 +432,8 @@ func _map_files() -> void:
 			if not to.farm:
 				check(not to.is_solid(spawn), "%s -> %s spawn is free" % [id, door.to])
 			var back := false
-			for d in to.doors:
+			var built_all: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/shops.json")).shops.general.builds.jobs.keys()
+			for d in MapManager.load_map(door.to, built_all)[1].doors:   # a way back that a build adds counts (the greenhouse's door)
 				back = back or d.to == id
 			check(back, "%s -> %s has a way back" % [id, door.to])
 	var fm := MapManager.data("farm")
@@ -1656,7 +1658,7 @@ func _farm_props() -> void:
 ## sills stay low; a shoe stone below the door's step where the earth there is clear; the
 ## coop's and barn's walls are boards, a house's plaster.
 func _room_walls() -> void:
-	for id in ["house", "clinic", "store", "smithy", "coop", "barn"]:
+	for id in ["house", "clinic", "store", "smithy", "coop", "barn", "greenhouse"]:
 		var m := MapManager.data(id)
 		var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
 		load("res://scripts/world3d/room_walls.gd").build(w, m)
@@ -1700,9 +1702,10 @@ func _room_walls() -> void:
 		check(proud <= 0.05, "%s: the back wall's face stands %.3f out (things hang at 0.08)" % [id, proud])
 		check(front_top <= 0.4, "%s: the front sill keeps the room in view (%.2f high)" % [id, front_top])
 		check(plaster == (m.walls == "plaster"), "%s: walls are %s" % [id, m.walls])
+		check((PlaceholderArt.tex("build:glass") in keys) == (m.walls == "glass"), "%s: glass panes only in a glass room" % id)
 		check((stones > 0) == free_stone, "%s: a shoe stone below the door's step (%d corners)" % [id, stones])
 		w.free()
-	var bad := MapData.parse({"id": "x", "size": [1, 1], "ground": ["."], "legend": {".": {"tile": "earth"}}, "walls": "glass"})
+	var bad := MapData.parse({"id": "x", "size": [1, 1], "ground": ["."], "legend": {".": {"tile": "earth"}}, "walls": "stone"})
 	check(bad[0] != "", "a map with unknown walls is refused")
 
 
@@ -4512,6 +4515,82 @@ func _shino_noren() -> void:
 ## The persimmon twig Kiku gave (heart_kiku_6, kiku_scion door / field): planted by the farmhouse
 ## door or at the field's edge by the farmer's answer, none before; solid, off the door path, the
 ## plots' rows, the bin and the gate road; the four seasons' pictures drawn and different.
+## The greenhouse (data/maps/greenhouse.json, the farm's extension `greenhouse`): its door on the
+## farm only once built, the way in and out, the beds open floor, the tub and bench, the lumber
+## while Hachiro builds it (the gap's stack hidden), Game's field and cells inside and out, and in
+## 3D the glasshouse on the farm (GreenhouseProps, kept as farm|greenhouse) and the beds' world.
+func _greenhouse() -> void:
+	var g: Node = root.get_node("Game")
+	g.new_game()
+	var farm: MapData = MapManager.load_map("farm", [])[1]
+	check(farm.door_at(FarmGrid.GREENHOUSE_DOOR).is_empty(), "greenhouse: no door on the unbuilt farm")
+	farm = MapManager.load_map("farm", ["greenhouse"])[1]
+	var door := farm.door_at(FarmGrid.GREENHOUSE_DOOR)
+	check(door.get("to", "") == "greenhouse" and door.spawn == Vector2i(4, 6) and door.facing == Vector2i.UP, "greenhouse: the built farm's door leads in")
+	check(farm.door_at(Vector2i(4, 3)).get("to", "") == "house" and farm.doors.size() == 5, "greenhouse: the farm keeps its other doors")
+	var m := MapManager.data("greenhouse")
+	var back: Dictionary = m.door_at(Vector2i(4, 7))
+	check(back.get("to", "") == "farm" and back.spawn == Vector2i(27, 17) and not m.is_solid(m.spawns.start[0]), "greenhouse: its door out leads to the cell before the farm's door")
+	check(m.prop_at(Vector2i(8, 1)).get("use", "") == "water" and m.prop_at(Vector2i(1, 1)).get("kind", "") == "potting_bench", "greenhouse: the water tub and the potting bench at the back")
+	var walk := _walkable(m, m.spawns.start[0])
+	for y in range(m.plots.position.y, m.plots.end.y):
+		for x in range(m.plots.position.x, m.plots.end.x):
+			check(walk.has(Vector2i(x, y)), "greenhouse: bed (%d, %d) can be walked to" % [x, y])
+	# The work: the lumber by the site, not in the gap; the spots Hachiro and the farmer use free.
+	var working: MapData = MapManager.load_map("farm", [], {"house_work": "greenhouse", "farm_work": "greenhouse", "greenhouse_work": true})[1]
+	var lumber := working.props.filter(func(p): return p.kind == "lumber")
+	check(lumber.size() == 1 and lumber[0].cell == Vector2i(25, 17) and lumber[0].size == Vector2i(2, 1), "greenhouse: the lumber lies along the site's front only")
+	for c in [Vector2i(27, 17), Vector2i(28, 17), Vector2i(28, 18), Vector2i(30, 17), Vector2i(30, 6)]:
+		check(not working.is_solid(c), "greenhouse: %s stays open while it is built" % c)
+	# The footprint: only once built, nothing it covers was a fixed cell or a spawn.
+	var before: Dictionary = g.farm.fixed.duplicate()
+	for y in range(FarmGrid.GREENHOUSE.position.y, FarmGrid.GREENHOUSE.end.y):
+		for x in range(FarmGrid.GREENHOUSE.position.x, FarmGrid.GREENHOUSE.end.x):
+			check(not before.has(Vector2i(x, y)) and g.farm.can_farm(Vector2i(x, y)), "greenhouse: (%d, %d) open field before it is built" % [x, y])
+	g._finish_build({"build": "greenhouse", "shop": "general", "ready": 0})
+	var added := 0
+	for c in g.farm.fixed:
+		if not before.has(c):
+			added += 1
+			check(FarmGrid.GREENHOUSE.has_point(c), "greenhouse: only its own cells are new (%s)" % c)
+		elif before[c] != g.farm.fixed[c]:
+			check(false, "greenhouse: a cell changed (%s)" % c)
+	check(added == 15 and g.farm.fixed_at(FarmGrid.GREENHOUSE_DOOR) == "greenhouse_door", "greenhouse: fifteen cells, the door in the front row")
+	for sp in MapManager.data("farm").spawns.values():
+		check(g.farm.fixed_at(sp[0]) == "", "greenhouse: the farm spawn %s is free of buildings" % sp[0])
+	for c in [Vector2i(30, 8), Vector2i(31, 5), Vector2i(31, 6), Vector2i(29, 6), Vector2i(18, 1), Vector2i(24, 15), Vector2i(30, 15), Vector2i(27, 17)]:
+		check(g.farm.fixed_at(c) == before.get(c, ""), "greenhouse: %s untouched" % c)
+	# Game's field: the beds inside, the farm outside.
+	g.go_to_map("greenhouse", Vector2i(4, 6), Vector2i.UP)
+	check(g.in_greenhouse() and g.field() == g.greenhouse and g.field_cell(Vector2i(1, 2)) == Vector2i.ZERO and g.sheltered(), "greenhouse: inside, the field is the beds from (1, 2), sheltered")
+	g.go_to_map("farm", Vector2i(27, 17), Vector2i.UP)
+	check(not g.in_greenhouse() and g.field() == g.farm and g.field_cell(Vector2i(3, 3)) == Vector2i(3, 3), "greenhouse: outside, the farm")
+	# 3D: the glasshouse on the farm and the beds' own world.
+	var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	load("res://scripts/world3d/greenhouse_props.gd").greenhouse(w)
+	var glass := 0
+	var box := AABB()
+	for n in w.get_children():
+		if n is MeshInstance3D:
+			box = box.merge(n.transform * n.get_aabb()) if box.size != Vector3.ZERO else n.transform * n.get_aabb()
+			var mat: Variant = n.material_override
+			glass += int(mat is StandardMaterial3D and mat.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA and mat.albedo_texture == PlaceholderArt.tex("build:glass"))
+	check(glass >= 6, "greenhouse 3D: glazed walls, roof and gables (%d glass pieces)" % glass)
+	var foot := Rect2(FarmGrid.GREENHOUSE).grow(0.75)
+	check(foot.has_point(Vector2(box.position.x, box.position.z)) and foot.has_point(Vector2(box.end.x, box.end.z)) and box.end.y < 2.6, "greenhouse 3D: within its footprint and low (%s)" % box)
+	w.free()
+	g._demo_greenhouse()
+	var beds: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	root.add_child(beds)
+	beds.setup_plots(g.greenhouse)
+	var sprites := 0
+	for n in beds._objects.get_children():
+		sprites += int(n is Sprite3D)
+	check(beds.tufts == null and beds.surroundings == null and (sprites > 0 or beds.crops != null), "greenhouse 3D: the beds' world has crops, no grass or land past it (%d sprites)" % sprites)
+	beds.free()
+	g.new_game()
+
+
 func _kiku_scion() -> void:
 	var cells := func(f: Dictionary) -> Array:
 		var out := []

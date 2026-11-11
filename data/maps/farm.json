@@ -1,5 +1,5 @@
 {
-	"_note": "The persimmon twig Kiku gave stands planted (kiku_scion door: left of the farmhouse door, beside the path; field: at the right edge of the field, clear of the gate road), solid so nothing is farmed under it (heart_kiku_6). The noren Shino dyed for the farmhouse hangs over its door once she has (shino_noren rows / flowers, heart_shino_6). The farm itself: ground, buildings and field come from FarmGrid, so this file only adds the ways out. The gate cells are fence cells left open in the drawing; walking into them goes to the village. Its props are only the story ones (StoryProps), gated by a flag; a solid one blocks its cells for the farmer, the dog and throws, and nothing is farmed under it (FarmGrid.prop_blocks), so the bell on the house wall is not solid: Hachiro's iron door bell by the house door once hachiro_bell is set (heart_hachiro_5); it rings when examined. Hachiro's lumber left of the house's front, by the fence, while a house extension is under way (house_work, Game.BUILD_FLAG); he hammers at the wall from the cell right of its top end and fetches boards from its side (data/villagers/hachiro.json building). Kota's carp streamer stands on its pole at the front left of the house by the fence, below the lumber's place, once kota_streamer is set (heart_kota_6). While the fodder silo is built (silo_work) the lumber lies beside it, east of the pond at (29, 3), and Hachiro hammers at its wall from the cell right of the stack (building_silo). While a farm building is extended (farm_work, Game.FARM_FLAG) the lumber lies in the gap between the coop and the barn instead, and Hachiro hammers at either wall from the cell below it (building_farm).",
+	"_note": "The persimmon twig Kiku gave stands planted (kiku_scion door: left of the farmhouse door, beside the path; field: at the right edge of the field, clear of the gate road), solid so nothing is farmed under it (heart_kiku_6). The noren Shino dyed for the farmhouse hangs over its door once she has (shino_noren rows / flowers, heart_shino_6). The farm itself: ground, buildings and field come from FarmGrid, so this file only adds the ways out. The gate cells are fence cells left open in the drawing; walking into them goes to the village. Its props are only the story ones (StoryProps), gated by a flag; a solid one blocks its cells for the farmer, the dog and throws, and nothing is farmed under it (FarmGrid.prop_blocks), so the bell on the house wall is not solid: Hachiro's iron door bell by the house door once hachiro_bell is set (heart_hachiro_5); it rings when examined. Hachiro's lumber left of the house's front, by the fence, while a house extension is under way (house_work, Game.BUILD_FLAG); he hammers at the wall from the cell right of its top end and fetches boards from its side (data/villagers/hachiro.json building). Kota's carp streamer stands on its pole at the front left of the house by the fence, below the lumber's place, once kota_streamer is set (heart_kota_6). While the greenhouse is built (greenhouse_work) the lumber lies along the front of its site at (25..26, 17), and Hachiro hammers at its front from (28, 17); once built, the extension `greenhouse` adds its door (FarmGrid.GREENHOUSE_DOOR) to the greenhouse map. While the fodder silo is built (silo_work) the lumber lies beside it, east of the pond at (29, 3), and Hachiro hammers at its wall from the cell right of the stack (building_silo). While a farm building is extended (farm_work, Game.FARM_FLAG) the lumber lies in the gap between the coop and the barn instead, and Hachiro hammers at either wall from the cell below it (building_farm).",
 	"id": "farm",
 	"name": "Farm",
 	"farm": true,
@@ -51,8 +51,9 @@
 			"solid": true,
 			"flag": "kota_streamer"
 		},
-		{"kind": "lumber", "cell": [18, 1], "size": [1, 2], "solid": true, "flag": "farm_work", "unless": "silo_work", "use": "examine", "message": "Planed boards, stacked to keep dry. Hachiro's saw rests on top."},
-		{"kind": "lumber", "cell": [29, 3], "size": [1, 1], "solid": true, "flag": "silo_work", "use": "examine", "message": "Planed boards, stacked to keep dry. Hachiro's saw rests on top."}
+		{"kind": "lumber", "cell": [18, 1], "size": [1, 2], "solid": true, "flag": "farm_work", "unless": ["silo_work", "greenhouse_work"], "use": "examine", "message": "Planed boards, stacked to keep dry. Hachiro's saw rests on top."},
+		{"kind": "lumber", "cell": [29, 3], "size": [1, 1], "solid": true, "flag": "silo_work", "use": "examine", "message": "Planed boards, stacked to keep dry. Hachiro's saw rests on top."},
+		{"kind": "lumber", "cell": [25, 17], "size": [2, 1], "solid": true, "flag": "greenhouse_work", "use": "examine", "message": "Planed boards, stacked to keep dry. Hachiro's saw rests on top."}
 	],
 	"doors": [
 		{
@@ -159,6 +160,14 @@
 				3
 			],
 			"up"
-		]
+		],
+		"greenhouse": [[27, 17], "up"]
+	},
+	"extensions": {
+		"greenhouse": {
+			"doors": [
+				{"cells": [[27, 16]], "to": "greenhouse", "spawn": [4, 6], "facing": "up"}
+			]
+		}
 	}
 }

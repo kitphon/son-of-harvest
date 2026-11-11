@@ -104,6 +104,12 @@ func _data() -> void:
 				check(str(Animals.data().get("silo", {}).get("build", "")) == b and FarmGrid.SILO.has_area(), "data: animals.json silo is built by %s" % b)
 				check(str(s.builds[b].get("work_flag", "")) != "", "data: %s sets a work flag for Hachiro's plan" % b)
 				continue
+			if on_map == "greenhouse":   # a building of its own: the farm's footprint, its door an extension of the farm map, its own map inside
+				var farm_raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/maps/farm.json"))
+				var doors: Array = farm_raw.extensions.get(b, {}).get("doors", [])
+				check(doors.size() == 1 and doors[0].to == "greenhouse" and FarmGrid.GREENHOUSE.has_point(Vector2i(int(doors[0].cells[0][0]), int(doors[0].cells[0][1]))), "data: farm.json's %s extension adds the door into the greenhouse" % b)
+				check(MapManager.data("greenhouse").plots.has_area() and str(s.builds[b].get("work_flag", "")) != "", "data: the greenhouse map has its beds, the job a work flag")
+				continue
 			var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/maps/%s.json" % on_map))
 			check(raw.extensions.has(b), "data: %s.json has the %s extension" % [on_map, b])
 			if s.builds[b].has("farm"):
@@ -509,7 +515,7 @@ func _builds() -> void:
 	var states := []
 	for row in m.rows():
 		states.append(row.state)
-	check(m.tab_id() == "build" and states == ["busy", "building", "busy", "busy", "busy", "busy"], "build rows: %s" % [states])
+	check(m.tab_id() == "build" and states == ["busy", "building", "busy", "busy", "busy", "busy", "busy"], "build rows: %s" % [states])
 	g.end_day()
 	g.end_day()
 	check(not g.has_built("kitchen") and MapManager.data("house").prop_at(Vector2i(1, 5)).is_empty(), "not done before the ready day")
@@ -533,6 +539,7 @@ func _builds() -> void:
 	check(not house.is_solid(Vector2i(7, 3)) and house.is_solid(Vector2i(7, 2)) and house.prop_at(Vector2i(1, 5)).kind == "kamado",
 		"an opening into the room, the stove still there")
 	check(g.house_built == ["kitchen", "chest", "room"], "all three built")
+	_greenhouse_job(g, said)
 	g.new_game()
 	check(MapManager.built.is_empty() and MapManager.data("house").w == 8, "a new game has the plain house")
 	g.free()
@@ -916,3 +923,33 @@ func check(ok: bool, what: String) -> void:
 	if not ok:
 		failures += 1
 		print("FAIL: " + what)
+
+
+## The greenhouse: the dearest farm job, built by Hachiro over its days through the nights
+## (his own plan, building_greenhouse, counts as a day of work: it is done on time), the farm's
+## footprint and door once done, the record's House built leaving it out.
+func _greenhouse_job(g: Node, said: Array) -> void:
+	var jobs: Dictionary = Shop.make("general", crops, foods).builds
+	var gh: Dictionary = jobs.greenhouse
+	for b in jobs:
+		if b != "greenhouse" and jobs[b].has("farm"):
+			check(int(gh.price) > int(jobs[b].price), "the greenhouse is the dearest farm job (%d over %s's %d)" % [gh.price, b, jobs[b].price])
+	check(int(gh.price) == 30000 and int(gh.days) == 6 and gh.farm == "greenhouse" and gh.work_flag == "greenhouse_work", "the greenhouse job: 30000 G, 6 days")
+	g.money = 30000
+	g.weather_today = "sunny"
+	g.weather_tomorrow = "sunny"
+	var r: Dictionary = g.shop_build("general", "greenhouse")
+	check(r.ok and g.money == 0, "the greenhouse ordered: %s" % r.note)
+	var start: int = g.day_number()
+	var plans := []
+	while not g.has_built("greenhouse") and g.day_number() < start + 20:
+		g.weather_tomorrow = "sunny"
+		g.end_day()
+		if g.flags.has("greenhouse_work"):
+			plans.append(Villagers.pick_plan(Villagers.all().hachiro, g.trigger_state(Vector2i.ZERO)))
+	check(g.has_built("greenhouse") and g.day_number() == start + 6, "built on time, six days on (%d)" % (g.day_number() - start))
+	check(not plans.is_empty() and plans.all(func(p): return p == "building_greenhouse"), "Hachiro's plan while it is under way: %s" % [plans])
+	check("Hachiro the carpenter has finished the greenhouse." in said, "the morning message")
+	check(g.farm.fixed_at(FarmGrid.GREENHOUSE_DOOR) == "greenhouse_door" and g.house_rooms() == 3, "its door on the farm; House built leaves it out")
+	check(MapManager.data("farm").door_at(FarmGrid.GREENHOUSE_DOOR).get("to", "") == "greenhouse", "the farm map's door into it")
+

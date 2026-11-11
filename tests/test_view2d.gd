@@ -56,6 +56,7 @@ func _run() -> void:
 	await _tall_sway()
 	await _persimmon()
 	await _silo()
+	await _greenhouse()
 	scene.free()
 	print("test_view2d: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -1499,3 +1500,63 @@ func _silo() -> void:
 	var loft: int = g.animals.stock_of("barn")
 	act("interact", Vector2i(30, 3), Vector2i.UP)
 	check(g.animals.stock_of("barn") == loft + 4 and g.animals.silo.fodder == 0, "flat: E at the silo carries its fodder to the loft")
+
+
+## The greenhouse in the flat view: open ground before it is built, the glasshouse and its door
+## after, through the door to the beds (drawn by a FarmView of Game.greenhouse at the plots
+## corner), the hoe, the can, a summer seed in winter, the tub filling the can, picking a ripe
+## crop and setting it down on a bed.
+func _greenhouse() -> void:
+	player.farm = g.farm
+	g.go_to_map("farm", Vector2i(27, 17), Vector2i.UP)
+	await process_frame
+	check(not g.maps.is_solid(Vector2i(27, 16), g.farm) and g.maps.door_at(Vector2i(27, 16)).is_empty(), "flat: no greenhouse door before it is built")
+	g.money = 50000
+	check(g.shop_build("general", "greenhouse").ok, "flat: the greenhouse ordered")
+	g._finish_build(g.house_job.duplicate())
+	g.go_to_map("farm", Vector2i(27, 17), Vector2i.UP)
+	await _wait_view("farm_view.gd")
+	scene.view._objects.queue_redraw()
+	await process_frame
+	check(FarmView.roof_rect(g.farm, "greenhouse") == Rect2(25 * 16, 14 * 16, 80, 48), "flat: the greenhouse's box: %s" % FarmView.roof_rect(g.farm, "greenhouse"))
+	check(g.maps.is_solid(Vector2i(26, 16), g.farm) and not g.maps.is_solid(Vector2i(27, 17), g.farm), "flat: the glasshouse is solid, the cell before its door open")
+	act("enter", Vector2i(27, 17), Vector2i.UP)
+	check(g.maps.id == "greenhouse", "flat: the door leads into the greenhouse (%s)" % g.maps.id)
+	await _wait_view("map_view.gd")
+	var beds: FarmView = null
+	for n in scene.view.get_children():
+		if n is FarmView:
+			beds = n
+	check(beds != null and beds.farm == g.greenhouse and beds.position == Vector2(1, 2) * 16, "flat: the beds drawn by a FarmView of the greenhouse grid at the plots corner")
+	g.season = 3   # winter
+	g.stamina = 100
+	g.greenhouse.from_dict(g.new_greenhouse().to_dict())
+	var bed := Vector2i(3, 3)   # map cell; the grid's (2, 1)
+	select("hoe")
+	act("tool", bed + Vector2i.DOWN, Vector2i.UP)
+	check(g.greenhouse.cell(Vector2i(2, 1)).tilled, "flat: the hoe tills a bed")
+	g.add_item("seeds:tomato")
+	select("seeds")
+	while g.current_seed() != "tomato":
+		g.cycle_seed()
+	act("tool", bed + Vector2i.DOWN, Vector2i.UP)
+	check(g.greenhouse.cell(Vector2i(2, 1)).crop == "tomato", "flat: a summer seed sown in winter under glass")
+	select("can")
+	g.water = 0
+	act("tool", Vector2i(8, 2), Vector2i.UP)   # the tub at (8, 1)
+	check(g.water == g.WATER_MAX, "flat: the tub fills the can")
+	act("tool", bed + Vector2i.DOWN, Vector2i.UP)
+	check(g.greenhouse.cell(Vector2i(2, 1)).wet, "flat: the can waters the bed")
+	var d: Dictionary = g.greenhouse.cell(Vector2i(2, 1))
+	d.stage = g.greenhouse.ripe_stage("tomato")
+	act("interact", bed + Vector2i.DOWN, Vector2i.UP)
+	check(g.held == "tomato", "flat: E picks the ripe tomato overhead (%s)" % g.held)
+	var free_bed := Vector2i(6, 3)
+	g.greenhouse.till(free_bed - Vector2i(1, 2))
+	act("tool", free_bed + Vector2i.DOWN, Vector2i.UP)
+	check(not g.holding() and g.greenhouse.item_at(free_bed - Vector2i(1, 2)) == "tomato", "flat: the tool button sets it down on a bed")
+	act("interact", free_bed + Vector2i.DOWN, Vector2i.UP)
+	check(g.held == "tomato", "flat: and E picks it up again")
+	g.held = ""
+	g.go_to_map("farm", Vector2i(27, 17), Vector2i.DOWN)
+	await _wait_view("farm_view.gd")

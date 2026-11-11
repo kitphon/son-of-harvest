@@ -72,6 +72,8 @@ static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge :
 			throw(origin, facing)
 		else:
 			put_down(origin + facing)
+	elif Game.holding() and Game.in_greenhouse() and kind != "interact":   # set down on a bed (no throwing under glass)
+		put_down(origin + facing)
 	elif kind == "interact":
 		if not examine(origin + facing):
 			interact(origin + facing)
@@ -203,6 +205,12 @@ static func interact(c: Vector2i) -> void:
 		return
 	if BabyActions.look_in(c):   # the baby's cradle: a line by the clock
 		return
+	if Game.in_greenhouse():   # the beds: an item lying there, else a ripe crop, goes up overhead
+		var got := Game.pick_up(c)
+		if got != "":
+			Sfx.play("pick")
+			Game.message.emit("Picked up: %s." % item_name(got))
+			return
 	if not Game.maps.on_farm():
 		var prop := Game.maps.current().prop_at(c)
 		match str(prop.get("use", "")):
@@ -378,15 +386,17 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	if Game.maps.mine_floor != null:
 		mine(origin, facing, charge)
 		return
-	if not Game.maps.on_farm():
-		return   # tools only work on the farm for now
-	var farm := Game.farm
+	if not Game.maps.on_farm() and not Game.in_greenhouse():
+		return   # tools only work on the farm and in the greenhouse's beds
+	var farm := Game.field()
 	var tool := Game.current_tool()
-	var c := origin + facing
+	var refill: bool = Game.maps.current().prop_at(origin + facing).get("use", "") == "water"   # the greenhouse's water tub
+	var c := Game.field_cell(origin + facing)
+	origin = Game.field_cell(origin)
 	if tool == "":
 		Game.message.emit("No tool in hand (I = rucksack).")
 		return
-	if tool == "can" and farm.fixed_at(c) == "pond":
+	if tool == "can" and (refill or farm.fixed_at(c) == "pond"):
 		Game.water = Game.WATER_MAX
 		Sfx.play("pond_fill")
 		Game.message.emit("Filled the watering can.")
@@ -404,7 +414,7 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 			Game.take_item("seeds:" + s)
 			Sfx.play("tool_seeds")
 			Game.message.emit("Sowed %d cells." % n)
-		elif not (Game.season_name() in Game.crops[s].seasons):
+		elif not farm.sheltered and not (Game.season_name() in Game.crops[s].seasons):
 			Game.message.emit("%s won't grow in %s." % [Game.crops[s].name, Game.season_name()])
 		return
 	if tool == "can" and Game.water == 0:

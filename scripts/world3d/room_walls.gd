@@ -6,7 +6,8 @@ extends RefCounted
 ## The camera looks in from +x / +z, so the back walls (the top row and the left column)
 ## stand full height and show their room face: a timber frame in the Japanese manner, posts
 ## every other cell standing proud of the infill, a board skirting (koshi-ita) under a rail,
-## the infill (plaster in a house, `walls: "board"` for the coop and barn), a beam across at
+## the infill (plaster in a house, `walls: "board"` for the coop and barn, `walls: "glass"`: panes
+## in a timber grid for the greenhouse), a beam across at
 ## lintel height (nageshi) and a head beam on top; a paper window set below the nageshi every
 ## fourth cell (in a plaster wall). The front walls (the bottom row and the right column) are
 ## cut down to a low sill on the room side of their cells, the posts as stubs, so the room
@@ -29,7 +30,7 @@ const STONE := Color("8a8680")
 
 static func build(w: FarmWorld, m: MapData) -> void:
 	var p := FarmProps.Parts.new()
-	var infill := "build:sugi" if m.walls == "board" else "build:plaster"
+	var infill: String = {"board": "build:sugi", "glass": "build:glass"}.get(m.walls, "build:plaster")
 	for y in m.h:
 		for x in m.w:
 			var c := Vector2i(x, y)
@@ -38,7 +39,7 @@ static func build(w: FarmWorld, m: MapData) -> void:
 			if c.x == 0 and c.y == 0:
 				_corner(p, infill)
 			elif c.y == 0 or c.x == 0:
-				_back(w, p, Face.new(c), infill, m.walls != "board")
+				_back(w, p, Face.new(c), infill, m.walls == "plaster")
 			elif c.x == m.w - 1 or c.y == m.h - 1:
 				for s in Face.fronts(m, c):
 					_front(p, s)

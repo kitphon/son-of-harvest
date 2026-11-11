@@ -1,0 +1,39 @@
+{
+	"_note": "The greenhouse inside (Hachiro builds it: data/shops.json builds greenhouse; FarmGrid.GREENHOUSE outside). A glasshouse of our own: a timber frame glazed all round (walls: glass), a gravel walk along the back and the front, and four rows of eight beds between them. `plots` is the part of the map that is a FarmGrid of its own (Game.greenhouse, sheltered: any seed grows in any season, no rain waters it, no storm, snow or weeds reach it; the can does the watering). Its cells are the beds; the farmer walks on them as on the field. The water tub at the back right fills the watering can (use water); the potting bench at the back left is only to look at. The clock stands still in here like in every building.",
+	"id": "greenhouse",
+	"name": "Greenhouse",
+	"size": [10, 8],
+	"indoor": true,
+	"walls": "glass",
+	"ambient": "indoor",
+	"light": "f4f6ec",
+	"background": "16201a",
+	"legend": {
+		"#": {"tile": "wall", "solid": true},
+		".": {"tile": "gravel", "step": "soil"},
+		"b": {"tile": "bed", "step": "soil"},
+		"D": {"tile": "gravel", "solid": true}
+	},
+	"ground": [
+		"##########",
+		"#........#",
+		"#bbbbbbbb#",
+		"#bbbbbbbb#",
+		"#bbbbbbbb#",
+		"#bbbbbbbb#",
+		"#........#",
+		"####D#####"
+	],
+	"plots": {"cell": [1, 2], "size": [8, 4]},
+	"props": [
+		{"kind": "potting_bench", "cell": [1, 1], "size": [2, 1], "use": "examine", "message": "Seed trays and a trowel. Under the glass, any seed takes."},
+		{"kind": "water_tub", "cell": [8, 1], "use": "water", "color": "3a6a7a"}
+	],
+	"doors": [
+		{"cells": [[4, 7]], "to": "farm", "spawn": [27, 17], "facing": "down"}
+	],
+	"spawns": {
+		"start": [[4, 6], "up"],
+		"beds": [[4, 4], "up"]
+	}
+}

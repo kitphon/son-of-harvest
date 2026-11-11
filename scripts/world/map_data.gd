@@ -23,7 +23,10 @@ var sheltered := false     # under a roof of rock (the mine): no weather, but th
 var ambient := "outdoor"   # which ambient rules apply (data/sfx.json "places")
 var light = null           # a fixed Color for the room, or null for the day / night light
 var background := Color("8fc6e8")
-var walls := "plaster"     # an indoor map's wall infill: "plaster" or "board" (RoomWalls)
+var walls := "plaster"     # an indoor map's wall infill: "plaster", "board" or "glass" (RoomWalls)
+## The part of the map that is a field of its own (the greenhouse's beds: Game.greenhouse, a
+## FarmGrid of this size; its cell 0, 0 is the map cell `plots.position`). Empty on other maps.
+var plots := Rect2i()
 var tiles: Array[String] = []          # w * h ground kinds, row by row
 var steps: Array[String] = []          # w * h footstep kinds ("" = by the ground)
 var _solid: Array[bool] = []
@@ -58,8 +61,8 @@ func _read(d: Variant) -> String:
 	if d.has("background"):
 		background = Color(str(d.background))
 	walls = str(d.get("walls", "plaster"))
-	if not walls in ["plaster", "board"]:
-		return "walls must be plaster or board"
+	if not walls in ["plaster", "board", "glass"]:
+		return "walls must be plaster, board or glass"
 	for i in w * h:
 		tiles.append("grass")
 		steps.append("")
@@ -68,6 +71,12 @@ func _read(d: Variant) -> String:
 		var err := _read_ground(d)
 		if err != "":
 			return err
+	if d.has("plots"):
+		var pc = _cell(d.plots.get("cell") if d.plots is Dictionary else null)
+		var ps = _cell(d.plots.get("size") if d.plots is Dictionary else null)
+		if pc == null or ps == null or ps.x < 1 or ps.y < 1 or not in_bounds(pc) or not in_bounds(pc + ps - Vector2i.ONE):
+			return "the plots are off the map"
+		plots = Rect2i(pc, ps)
 	for p in d.get("props", []):
 		var cell = _cell(p.get("cell"))
 		var psize = _cell(p.get("size", [1, 1]))

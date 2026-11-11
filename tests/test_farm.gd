@@ -263,6 +263,7 @@ func _init() -> void:
 
 	_charge_rules(crops, game_script)
 	_wide_save(crops)
+	_greenhouse_beds(crops)
 	# FarmActions works on the Game autoload, which is in the tree from the first frame.
 
 
@@ -534,6 +535,56 @@ func _wide_save(crops: Dictionary) -> void:
 		and f.item_at(Vector2i(12, 12)) == "potato" and f.items.size() == 1, "cut back: what was inside the fence line stays")
 	check(f.fixed_at(Vector2i(FarmGrid.W - 1, 5)) == "fence" and f.fixed_at(Vector2i(10, FarmGrid.H - 1)) == "fence"
 		and not f.fixed.has(Vector2i(63, 5)), "cut back: the border is fenced again")
+
+
+## The greenhouse's beds: a FarmGrid of the plots' size under glass (`sheltered`). Seeds of any
+## season are sown and grow in any season, nothing withers; rain never waters them (the can
+## does), a storm never ruins them, no weed comes up, no dice are thrown; the field outside keeps
+## its season rules; the beds save and load at their own size, and a farm-sized save is refused.
+func _greenhouse_beds(crops: Dictionary) -> void:
+	var m := MapManager.data("greenhouse")
+	check(m != null and m.plots == Rect2i(1, 2, 8, 4) and m.indoor and m.walls == "glass", "the greenhouse map: indoor, glass walls, beds 8 x 4 at (1, 2)")
+	for y in range(m.plots.position.y, m.plots.end.y):
+		for x in range(m.plots.position.x, m.plots.end.x):
+			check(not m.is_solid(Vector2i(x, y)) and m.prop_at(Vector2i(x, y)).is_empty(), "bed (%d, %d) is open floor" % [x, y])
+	var gh := FarmGrid.new(crops, m.plots.size, true)
+	check(gh.w == 8 and gh.h == 4 and gh.cells.size() == 32 and gh.sheltered and gh.fixed.is_empty(), "the beds: 32 cells, nothing fixed")
+	check(not gh.in_bounds(Vector2i(8, 0)) and not gh.in_bounds(Vector2i(0, 4)) and gh.in_bounds(Vector2i(7, 3)), "the beds' bounds")
+	var outside := FarmGrid.new(crops)
+	var c := Vector2i(1, 1)
+	for dy in range(-1, 2):
+		for dx in range(-1, 2):
+			gh.till(c + Vector2i(dx, dy))
+			outside.till(Vector2i(10, 10) + Vector2i(dx, dy))
+	check(gh.sow(c, "tomato", "winter") == 9, "a summer seed sown in winter under glass")
+	check(outside.sow(Vector2i(10, 10), "tomato", "winter") == 0, "but not in the field outside")
+	check(PlaceholderArt.ground_key(gh, Vector2i(5, 0)).begins_with("ground:bed:") and PlaceholderArt.ground_key(outside, Vector2i(5, 5)).begins_with("ground:grass:"), "an unhoed bed is loam, the field grass")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	var before := rng.state
+	gh.day_end("winter", "rain", rng)
+	check(not gh.cell(c).wet and gh.cell(c).crop == "tomato" and gh.cell(c).stage == 0, "rain does not water the beds, the crop waits")
+	check(rng.state == before, "no dice thrown under glass")
+	var nights := 0
+	while not gh.is_ripe(c) and nights < 30:
+		gh.water_cell(c)
+		gh.day_end(["winter", "spring", "fall"][nights % 3], "storm" if nights % 2 else "snow", rng)
+		nights += 1
+	check(nights == _grow_days("tomato") and gh.harvest(c) == "tomato", "watered by hand: ripe after %d nights through storms, snow and season changes (got %d)" % [_grow_days("tomato"), nights])
+	check(gh.cell(c).crop == "tomato" and gh.cell(c).stage == int(crops.tomato.regrow_stage), "it regrows as outside")
+	for i in 60:   # two months of storms: no crop lost, no weed on the bare beds
+		gh.day_end("summer", "storm", rng)
+	var weeds := 0
+	for d in gh.cells:
+		weeds += int(d.obj != FarmGrid.Obj.NONE)
+	check(weeds == 0 and gh.cell(c).crop == "tomato" and gh.cell(c + Vector2i.RIGHT).crop == "tomato", "no weeds and no storm losses under glass")
+	gh.place_item(Vector2i(7, 3), "potato")
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(gh.to_dict()))
+	check(saved.w == 8 and saved.h == 4 and saved.cells.size() == 32, "the beds save at their size")
+	var back := FarmGrid.new(crops, Vector2i(8, 4), true)
+	check(back.from_dict(saved) == "" and back.cell(c).crop == "tomato" and back.item_at(Vector2i(7, 3)) == "potato", "and load")
+	check(back.from_dict(outside.to_dict()) != "" and back.cells.size() == 32, "a farm-sized save is refused, the beds unchanged")
+	check(FarmGrid.new(crops).from_dict(saved) != "", "and the beds' save does not load as the farm")
 
 
 func _mean_luma(img: Image) -> float:

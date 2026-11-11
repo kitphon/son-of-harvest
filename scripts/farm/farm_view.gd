@@ -71,7 +71,7 @@ func _ready() -> void:
 	add_child(_objects)
 	if farm != null:   # the pond's moving skin (none on a farm without one)
 		var water := WaterView.new()
-		water.build(FarmGrid.W, FarmGrid.H, func(c: Vector2i) -> bool: return farm.fixed_at(c) == "pond", true)
+		water.build(farm.w, farm.h, func(c: Vector2i) -> bool: return farm.fixed_at(c) == "pond", true)
 		if water.water_cells > 0:
 			_water = water
 			add_child(_water)
@@ -125,8 +125,8 @@ func _on_cells_changed() -> void:
 
 
 func _draw() -> void:
-	for y in FarmGrid.H:
-		for x in FarmGrid.W:
+	for y in farm.h:
+		for x in farm.w:
 			var c := Vector2i(x, y)
 			draw_texture(PlaceholderArt.tex(PlaceholderArt.ground_key(farm, c)), Vector2(c * T))
 
@@ -139,8 +139,9 @@ func _draw_objects() -> void:
 		if r.has_area():
 			_objects.draw_texture(PlaceholderArt.tex(RoofArt.key(ROOFS[kind], "gable", 1, Vector2i(r.size))), r.position)
 	_draw_silo()
-	for y in FarmGrid.H:
-		for x in FarmGrid.W:
+	_draw_greenhouse()
+	for y in farm.h:
+		for x in farm.w:
 			_draw_cell(Vector2i(x, y))
 
 
@@ -162,12 +163,49 @@ func _draw_silo() -> void:
 	_objects.draw_rect(Rect2(o + Vector2(15, 0), Vector2(2, 2)), Color("3a3430"))
 
 
+## The greenhouse, once built (the 3D view's GreenhouseProps): a low gable roof of glass panes
+## in a cedar grid seen from above, the ridge board along the middle, the back slope a shade
+## darker than the front; under the front eave the board skirting and the glazed sliding door.
+## Through the panes the green rows of the beds show.
+func _draw_greenhouse() -> void:
+	var r := roof_rect(farm, "greenhouse")
+	if not r.has_area():
+		return
+	r = r.merge(Rect2(Vector2(FarmGrid.GREENHOUSE_DOOR * T), Vector2(T, T)))
+	var o := r.position
+	var wide := r.size.x
+	var front := r.size.y - 12.0   # the roof's foot; the wall and the door below it
+	var ridge := 14.0
+	_objects.draw_rect(Rect2(o + Vector2(0, 1), Vector2(wide, front)), Color("7a5a3a"))   # the frame's edge
+	for half in [[1.0, ridge, Color("a6c4bc")], [ridge + 2.0, front - 1.0, Color("bcd8d0")]]:
+		var top: float = half[0]
+		var bottom: float = half[1]
+		_objects.draw_rect(Rect2(o + Vector2(1, top), Vector2(wide - 2, bottom - top)), half[2])
+		for i in int(wide / 8):   # the green rows inside, seen through the panes
+			_objects.draw_rect(Rect2(o + Vector2(3 + i * 8, top + 3), Vector2(4, bottom - top - 6)), Color("7aa86a") if i % 2 else Color("8cb67a"))
+		for x in range(8, int(wide), 8):   # the rafters
+			_objects.draw_rect(Rect2(o + Vector2(x, top), Vector2(1, bottom - top)), Color("8a6a48"))
+		_objects.draw_line(o + Vector2(3, top + 2), o + Vector2(wide - 3, top + 2), Color("e4f0ea"), 1.0)   # a glint along the slope
+	_objects.draw_rect(Rect2(o + Vector2(0, ridge), Vector2(wide, 2)), Color("6e4c30"))   # the ridge board
+	_objects.draw_rect(Rect2(o + Vector2(0, ridge + 0.5), Vector2(wide, 1)), Color("2e221a"))
+	var wall := o + Vector2(0, front)
+	_objects.draw_rect(Rect2(wall, Vector2(wide, 12)), Color("b8d4cc"))   # the glazed front wall
+	_objects.draw_rect(Rect2(wall + Vector2(0, 7), Vector2(wide, 5)), Color("3e3028"))   # the board skirting
+	for x in range(0, int(wide) + 1, 16):
+		_objects.draw_rect(Rect2(wall + Vector2(clampf(x, 0, wide - 1), 0), Vector2(1, 12)), Color("6e4c30"))
+	var door := Vector2(FarmGrid.GREENHOUSE_DOOR.x * T + 3, o.y + r.size.y - 14)
+	_objects.draw_rect(Rect2(door, Vector2(10, 14)), Color("2a3a32"))
+	_objects.draw_rect(Rect2(door + Vector2(1, 1), Vector2(8, 7)), Color("cfe4dc"))
+	_objects.draw_rect(Rect2(door + Vector2(7, 9), Vector2(1, 2)), Color("1e1c1c"))
+
+
+
 func _draw_cell(c: Vector2i) -> void:
 	var r := Rect2(Vector2(c * T), Vector2(T, T))
 	var f := farm.fixed_at(c)
 	if f != "":
 		# The flat view marks buildings and the fence on top of their ground (roofs: _draw_objects).
-		if f != "pond" and f != "silo" and not f in ROOFS and not c in gaps:
+		if not f in ["pond", "silo", "greenhouse", "greenhouse_door"] and not f in ROOFS and not c in gaps:
 			_objects.draw_rect(r.grow(-5) if f == "fence" else r, COLORS[f])
 		return
 	var d := farm.cell(c)

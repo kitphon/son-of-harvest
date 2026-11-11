@@ -25,6 +25,7 @@ const COLORS := {
 	"cave_mouth": Color("0c0a08"), "ladder": Color("8a6a3a"),
 	"irori": Color("8a847a"), "tokonoma": Color("c9a26b"), "butsudan": Color("1a1616"), "zabuton": Color("8a3a3a"),
 	"byobu": Color("e8dcb8"), "toy_box": Color("c8442c"), "mizugame": Color("6a4028"),
+	"potting_bench": Color("8a6a48"),
 }
 
 var map: MapData
@@ -129,7 +130,9 @@ func _draw() -> void:
 		for x in map.w:
 			var c := Vector2i(x, y)
 			draw_texture(PlaceholderArt.tex(ground_key_in(c, paddies)), Vector2(c * T))
-			if map.tile(c) == "wall":
+			if map.tile(c) == "wall" and map.walls == "glass":   # the greenhouse: panes in a timber grid
+				draw_texture(PlaceholderArt.tex("build:glass"), Vector2(c * T))
+			elif map.tile(c) == "wall":
 				draw_rect(Rect2(Vector2(c * T), Vector2(T, T)), COLORS.wall)
 
 

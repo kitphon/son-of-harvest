@@ -266,6 +266,11 @@ func _enter_map() -> void:
 		var rocks := MineLayer.new()
 		_add_layer(rocks)
 		rocks.setup(Game.maps.mine_floor)
+	if m.plots.has_area():   # the greenhouse's beds: their crops and soil (Game.greenhouse) over the floor
+		var beds := FarmWorld.new()
+		_add_layer(beds)
+		beds.position = Vector3(m.plots.position.x, 0.004, m.plots.position.y)
+		beds.setup_plots(Game.greenhouse)
 	player.farm = Game.farm
 	player.position = Game.maps.pos
 	player.facing = Game.maps.facing
@@ -475,9 +480,9 @@ func _exit_tree() -> void:
 	_drop_worlds()
 
 
-## Do the tools work here (the farm, a mine floor)? Then the target brackets show.
+## Do the tools work here (the farm, a mine floor, the greenhouse's beds)? Then the target brackets show.
 func _tools_work() -> bool:
-	return Game.maps.on_farm() or Game.maps.mine_floor != null
+	return Game.maps.on_farm() or Game.maps.mine_floor != null or Game.in_greenhouse()
 
 
 ## Weather falls outdoors only (not in buildings or the mine); the ground outdoors shows the snow lying.

@@ -60,9 +60,9 @@ static func _make(key: String) -> Image:
 			if AnimalArt.base_of(parts[1])[0] == "dog" and parts[2] == "held":   # dog or dog_old
 				return _beast(parts[1], parts[2], int(parts[3]))
 			return AnimalArt.make(parts[1], parts[2], int(parts[3]), parts[4] if parts.size() > 4 else "dl")
-		"build":    # build:<plaster|tsuchi|board|kawara|kawara_edge|thatch|kaya|kaya_edge|hay|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
+		"build":    # build:<plaster|tsuchi|board|kawara|kawara_edge|thatch|kaya|kaya_edge|hay|planks|planks_dark|sugi|glass|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
-		"ground":   # ground:<grass|tilled|wet|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>
+		"ground":   # ground:<grass|tilled|wet|bed|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>
 			return _ground(parts[1], int(parts[2]))
 		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour); fx:<note|notes>, a whistler's note puff
 			return _fx(parts[1])
@@ -1466,7 +1466,9 @@ static func ground_key(farm: FarmGrid, c: Vector2i) -> String:
 			var d := farm.cell(c)
 			if d.wet:
 				return "ground:wet:%d" % v
-			return "ground:tilled:%d" % v if d.tilled else "ground:grass:%d" % v
+			if d.tilled:
+				return "ground:tilled:%d" % v
+			return "ground:bed:%d" % v if farm.sheltered else "ground:grass:%d" % v   # a greenhouse bed not yet hoed
 		"pond":
 			var mask := 0
 			for side in [[Vector2i.UP, WATER_N], [Vector2i.RIGHT, WATER_E], [Vector2i.DOWN, WATER_S], [Vector2i.LEFT, WATER_W]]:
@@ -1558,6 +1560,15 @@ static func _ground(kind: String, n: int) -> Image:
 					_px(img, x, y, 3, 1, c)
 				else:
 					_line(img, Vector2i(x, y), Vector2i(x + 2, y - 2), c)
+		"bed":
+			# A greenhouse bed not yet hoed: loose dark loam, a few crumbs and a pale grit fleck,
+			# darker and finer than the field's grass or the tilled furrows.
+			img.fill(Color("6e5236"))
+			for i in 14:
+				var x := rng.randi_range(0, 15)
+				var y := rng.randi_range(0, 15)
+				_px(img, x, y, 1 + i % 2, 1, Color("5a4028") if i % 3 else Color("846446"))
+			_px(img, rng.randi_range(1, 14), rng.randi_range(1, 14), 1, 1, Color("a89478"))
 		"gravel":
 			# Raked shrine gravel: light grey stones on a paler ground.
 			img.fill(Color("c8c4b8"))
@@ -1811,6 +1822,23 @@ static func _building(kind: String) -> Image:
 			for y in [3, 6]:
 				for x in range(0, 16, 2):
 					_px(img, x + (y % 2), y, 1, 1, Color("6a5838"))
+			return img
+		"glass":
+			# Panes of glass in a light timber grid (the greenhouse): four panes a unit, each a
+			# pale sky-green with a lit streak across one corner and a darker foot, the glazing
+			# bars a warm unpainted cedar. Seen from in- or outside, it reads as glass, not a wall.
+			var img := _blank(16, 16)
+			img.fill(Color("b8d4cc"))
+			for py in [0, 8]:
+				for px in [0, 8]:
+					_px(img, px + 1, py + 6, 6, 1, Color("9cbcb4"))
+					_line(img, Vector2i(px + 2, py + 4), Vector2i(px + 5, py + 1), Color("e4f0ea"))
+					_px(img, px + 1, py + 1, 1, 1, Color("d4e6de"))
+			for k in [0, 8]:
+				_px(img, k, 0, 1, 16, Color("a07a52"))
+				_px(img, 0, k, 16, 1, Color("a07a52"))
+			_px(img, 15, 0, 1, 16, Color("7e5c3a"))
+			_px(img, 0, 15, 16, 1, Color("7e5c3a"))
 			return img
 		"sugi":
 			# Light cedar boards standing upright, 4 px wide, with a straight reddish grain.

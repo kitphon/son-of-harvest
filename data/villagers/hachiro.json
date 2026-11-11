@@ -6,6 +6,7 @@
 	"look": {"outfit": "happi", "hair_style": "headband", "hair": "2a2422", "skin": "d9a473", "top": "2e4a7a", "waist": "e8e2d0", "lower": "3a3430", "accent": "e8e2d0", "shoes": "8a6a48"},
 	"rules": [
 		{"if": {"birthday": true}, "plan": "birthday"},
+		{"if": {"flags": ["greenhouse_work"], "weather": ["sunny", "rain", "snow"]}, "plan": "building_greenhouse"},
 		{"if": {"flags": ["silo_work"], "weather": ["sunny", "rain", "snow"]}, "plan": "building_silo"},
 		{"if": {"flags": ["farm_work"], "weather": ["sunny", "rain", "snow"]}, "plan": "building_farm"},
 		{"if": {"flags": ["house_work"], "weather": ["sunny", "rain", "snow"]}, "plan": "building"},
@@ -101,6 +102,19 @@
 			{"at": "13:00", "map": "farm", "route": [{"to": [30, 3]}, {"face": "up"}],
 				"loop": [{"work": 40}, {"face": "left"}, {"wait": 4}, {"face": "up"}, {"work": 40}, {"face": "left"}, {"wait": 4}, {"face": "up"}]},
 			{"at": "17:00", "map": "farm", "route": [{"to": [30, 5]}, {"to": [30, 6]}, {"face": "right"}]},
+			{"at": "17:30", "map": "town", "from": [0, 10], "route": [{"to": [27, 10]}, {"to": [27, 7]}, {"face": "up"}]},
+			{"at": "18:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "21:00", "map": "away"}
+		],
+		"building_greenhouse": [
+			{"at": "06:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "07:30", "map": "town", "from": [27, 7], "route": [{"to": [27, 10]}, {"to": [0, 10]}, {"face": "left"}]},
+			{"at": "08:00", "map": "farm", "from": [30, 6], "route": [{"to": [30, 17]}, {"to": [28, 17]}, {"face": "up"}],
+				"loop": [{"work": 40}, {"face": "left"}, {"wait": 4}, {"face": "up"}, {"work": 40}, {"face": "right"}, {"wait": 4}, {"face": "up"}]},
+			{"at": "12:00", "map": "farm", "route": [{"to": [28, 18]}, {"face": "down"}]},
+			{"at": "13:00", "map": "farm", "route": [{"to": [28, 17]}, {"face": "up"}],
+				"loop": [{"work": 40}, {"face": "left"}, {"wait": 4}, {"face": "up"}, {"work": 40}, {"face": "right"}, {"wait": 4}, {"face": "up"}]},
+			{"at": "17:00", "map": "farm", "route": [{"to": [30, 17]}, {"to": [30, 6]}, {"face": "right"}]},
 			{"at": "17:30", "map": "town", "from": [0, 10], "route": [{"to": [27, 10]}, {"to": [27, 7]}, {"face": "up"}]},
 			{"at": "18:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "21:00", "map": "away"}

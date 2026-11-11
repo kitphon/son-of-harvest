@@ -138,6 +138,11 @@ func _enter_map() -> void:
 	view.add_child(VillagerView.new(m.id))
 	if Game.maps.mine_floor != null:   # rocks, soft spots and the hole down
 		view.add_child(MineView.new(Game.maps.mine_floor))
+	if m.plots.has_area():   # the greenhouse's beds (Game.greenhouse), drawn as the field is
+		var beds := FarmView.new()
+		beds.farm = Game.greenhouse
+		beds.position = Vector2(m.plots.position * T)
+		view.add_child(beds)
 	move_child(view, 0)
 	var animals := AnimalView.new()   # the animals and eggs (coop, barn, or the farm and its dog)
 	view.add_child(animals)

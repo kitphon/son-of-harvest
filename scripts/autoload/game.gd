@@ -155,6 +155,10 @@ var fish_data: Dictionary = {}     # data/fish.json: bites, fish per place / sea
 var mine_data: Dictionary = {}     # data/mine.json: floors, finds per depth / season, mine items
 var rng := RandomNumberGenerator.new()
 var farm: FarmGrid
+## The greenhouse's beds (data/maps/greenhouse.json plots): a FarmGrid of their own under glass
+## (FarmGrid.sheltered), empty until Hachiro builds it; saved as `greenhouse`.
+var greenhouse: FarmGrid
+const GREENHOUSE_MAP := "greenhouse"
 var maps := MapManager.new()       # the map the farmer is on and where (saved)
 var animals := Animals.new()       # the coop, the barn and the dog (data/animals.json, saved)
 var animal_news: Array[String] = []   # what happened to the animals overnight, told in the coop
@@ -231,6 +235,7 @@ func new_game() -> void:
 	farm = FarmGrid.new(crops)
 	farm.prop_blocks = farm_prop_blocks   # the farm map's solid story props (the lumber)
 	farm.generate(rng)
+	greenhouse = new_greenhouse()
 	inventory = Inventory.starting(TOOLS)
 	reset_tool_levels()
 	flags = {}
@@ -537,6 +542,23 @@ const DEMO_CROPS := {"spring": ["turnip", "potato", "cucumber"], "summer": ["tom
 
 ## `-- --demo`: 10:00 with a few sown, growing and ripe plots by the house, for screenshots
 ## (`--season=fall` sows that season's crops; the third, ripe, is rice in summer and daikon in fall).
+## The greenhouse's beds for `--demo` (seen with `--map=greenhouse`, any season): every bed hoed,
+## each row two crops of different seasons, growing along the row to ripe at its end, every
+## other bed watered.
+func _demo_greenhouse() -> void:
+	var rows := [["turnip", "cucumber"], ["tomato", "corn"], ["pumpkin", "eggplant"], ["daikon", "potato"]]
+	for y in greenhouse.h:
+		for x in greenhouse.w:
+			var c := Vector2i(x, y)
+			greenhouse.till(c)
+			var d := greenhouse.cell(c)
+			var half := greenhouse.w / 2
+			d.crop = rows[y % rows.size()][int(x >= half)]
+			d.stage = mini(x % half + 1, greenhouse.ripe_stage(d.crop))
+			d.wet = (x + y) % 2 == 0
+	greenhouse.cells_changed.emit()
+
+
 func _demo_field() -> void:
 	hour = 10
 	for y in range(5, 8):
@@ -558,6 +580,7 @@ func _demo_field() -> void:
 	add_item("food:onigiri", 2)
 	add_item("food:green_tea", 1)
 	farm.cells_changed.emit()
+	_demo_greenhouse()
 	# Something to see in the rucksack and the chest (`-- --demo --rucksack`).
 	inventory.add("turnip", 6)
 	inventory.add("potato", 3)
@@ -1161,6 +1184,7 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 		weather_tomorrow = "sunny"   # DESIGN: a festival day and a villager's birthday are always fair
 	snow_cover = next_snow_cover(snow_cover, weather_look(weather_today, season_name()), season_name(), snow_rules)
 	farm.day_end(season_name(), weather_today, rng)
+	beds().day_end(season_name(), weather_today, rng)   # under glass: no season, no weather, no dice
 	forage_picked = {}   # DESIGN: a picked wild spot grows again after one night
 	scion_picked = 0     # and so do the persimmons on Kiku's tree
 	forage_changed.emit()
@@ -1404,14 +1428,46 @@ func sell_price(id: String) -> int:
 	return int(crops[id].get("sell", 0)) if crops.has(id) else animals.sell_price(id)
 
 
-## Hands free: takes the item lying on `c`, else harvests a ripe crop there, into the
-## holding hand. Returns the id taken ("" if nothing).
+## An empty greenhouse grid, the size of the greenhouse map's plots.
+func new_greenhouse() -> FarmGrid:
+	var m := MapManager.data(GREENHOUSE_MAP)
+	return FarmGrid.new(crops, m.plots.size if m != null else Vector2i.ONE, true)
+
+
+## The greenhouse's beds, made empty the first time they are wanted (a Game set up without
+## new_game, as some tests do).
+func beds() -> FarmGrid:
+	if greenhouse == null:
+		greenhouse = new_greenhouse()
+	return greenhouse
+
+
+## Is the farmer in the greenhouse (a map with plots: its beds are Game.greenhouse)?
+func in_greenhouse() -> bool:
+	var m := maps.current()
+	return m != null and m.plots.has_area()
+
+
+## The field of the map the farmer is on: the greenhouse's beds in there, else the farm.
+func field() -> FarmGrid:
+	return beds() if in_greenhouse() else farm
+
+
+## A map cell as a cell of field(): the greenhouse's beds start at the map's plots corner.
+func field_cell(c: Vector2i) -> Vector2i:
+	return c - maps.current().plots.position if in_greenhouse() else c
+
+
+## Hands free: takes the item lying on map cell `c`, else harvests a ripe crop there, into the
+## holding hand (on the farm, or in the greenhouse's beds). Returns the id taken ("" if nothing).
 func pick_up(c: Vector2i) -> String:
-	if holding() or not farm.in_bounds(c):
+	var f := field()
+	c = field_cell(c)
+	if holding() or not f.in_bounds(c):
 		return ""
-	var id := farm.take_item_at(c)
+	var id := f.take_item_at(c)
 	if id == "":
-		id = farm.harvest(c)
+		id = f.harvest(c)
 	if id != "":
 		held = id
 		changed.emit()
@@ -1420,7 +1476,7 @@ func pick_up(c: Vector2i) -> String:
 
 ## Sets the held item down on `c` (a free cell). Returns whether it was put down.
 func put_down(c: Vector2i) -> bool:
-	if not holding() or not farm.place_item(c, held):
+	if not holding() or not field().place_item(field_cell(c), held):
 		return false
 	inventory.take(held, 1, ["hand"])
 	changed.emit()
@@ -2885,7 +2941,8 @@ func _builder_off_plan() -> String:
 	if v.is_empty() or s.build_plan == "":
 		return ""
 	var plan := Villagers.pick_plan(v, trigger_state(Vector2i.ZERO))
-	return "" if plan == s.build_plan else plan
+	# His plan for a farm job is his own (building_farm, building_silo, building_greenhouse).
+	return "" if plan == s.build_plan or plan.begins_with(s.build_plan + "_") else plan
 
 
 ## The morning's word when the builder won't come today (data/shops.json builds off_day, by
@@ -3050,6 +3107,7 @@ func to_dict() -> Dictionary:
 	d.records = {"first_day": first_day.duplicate(true), "pages": pages}
 	d.look = farmer_look.duplicate()
 	d.farm = farm.to_dict()
+	d.greenhouse = beds().to_dict()
 	return d
 
 
@@ -3337,11 +3395,18 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	n.farmer_look = look_parsed
 	if not data.get("farm") is Dictionary:
 		return "Saved farm is missing"
+	# Saves from before the greenhouse have none: empty beds. Checked on a spare grid first.
+	if data.has("greenhouse") and (not data.greenhouse is Dictionary or new_greenhouse().from_dict(data.greenhouse) != ""):
+		return "The saved greenhouse is broken"
 	var err := farm.from_dict(data.farm)
 	if err != "":
 		return err
 	farm.add_missing_fixed()   # saves from before the storage chest / the coop / the barn get them
 	farm.set_wings(n.house_built)   # the extensions seen from outside follow what is built
+	if data.has("greenhouse"):
+		beds().from_dict(data.greenhouse)
+	else:
+		beds().from_dict(new_greenhouse().to_dict())
 	for key in n:
 		set(key, n[key])
 	baby_held = false   # never saved: the baby is back in the cradle

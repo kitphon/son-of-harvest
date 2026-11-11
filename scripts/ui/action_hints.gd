@@ -32,6 +32,8 @@ static func pick(origin: Vector2i, facing: Vector2i) -> Dictionary:
 			out.interact = "Throw"
 		if out.use_tool == "":
 			out.use_tool = "Put down"
+	elif Game.holding() and Game.in_greenhouse() and out.use_tool == "":
+		out.use_tool = "Put down"
 	return out
 
 
@@ -74,6 +76,12 @@ static func interact_verb(origin: Vector2i, facing: Vector2i) -> String:
 	var use := str(m.prop_at(c).get("use", ""))
 	if USE_VERBS.has(use):
 		return USE_VERBS[use]
+	if Game.in_greenhouse() and not Game.holding():   # the beds, as the field (FarmActions.interact)
+		var f := Game.field()
+		var bed := Game.field_cell(c)
+		if f.item_at(bed) != "":
+			return "Pick up"
+		return "Harvest" if f.is_ripe(bed) else ""
 	if not Game.maps.on_farm():
 		return ""
 	if Game.animals.dog.cell == c:
@@ -115,7 +123,9 @@ static func tool_verb(origin: Vector2i, facing: Vector2i) -> String:
 		if tool == "hammer" and f.rocks.has(c):
 			return "Break"
 		return "Dig" if tool == "hoe" and f.soft.has(c) else ""
-	return TOOL_VERBS.get(tool, "") if Game.maps.on_farm() else ""
+	if tool == "can" and Game.maps.current().prop_at(origin + facing).get("use", "") == "water":
+		return "Fill"   # the greenhouse's water tub
+	return TOOL_VERBS.get(tool, "") if Game.maps.on_farm() or Game.in_greenhouse() else ""
 
 
 ## The button shown for an action: its first bound key ("E", "Space"), or, while the pad was the
