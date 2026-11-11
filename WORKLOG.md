@@ -27,6 +27,22 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
   a moment when a sheet sits over the boat would confirm it. Land props that draw now above the
   mist (dye cloth, festival, forage, cradle) sit on dry ground, where no mist lies.
 
+
+## 2026-11-11 — The farm's rice plots make morning mist
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: planted rice in the farm field (any crop with holds_water in FarmGrid, at any growth) now counts as paddy
+  ground for the mist in both views. MistRules.rice_cells(farm) lists them; scene_of adds each as a "paddy" source
+  cell after the pond's water cells, so the paddy share per season, the weather looks, the wind, the clock and the
+  paddy_height (tips of summer / fall rice) all apply as for the village paddies (no new data). MistLayer and
+  MistView rebuild their scene when the count of rice plots changes (key now carries it), so rice sown at dawn
+  mists at once. Winter: the paddy share is 0, so none. No change to the flat view's draw order.
+- Checked: test_mist (new checks: twelve rice plots add twelve paddy cells beside the pond's twelve, a turnip adds
+  none, rice_cells, sheets over the rice sit at the summer rice's tips, no paddy mist on a winter farm) and all
+  AGENTS.md tests. Frames at 6:00: demo, fall, sunny, in 3D (a pale veil over the rice by the
+  farmhouse) and through main_2d.tscn (a soft pink-white patch over the rice plots); summer shows it
+  only faintly (summer paddy share 0.35, by design).
+- Left / next: the flat view's props still draw over the mist (another task).
+
 ## 2026-11-11 — Morning mist (asagiri) over the water and the paddies
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: low soft mist at dawn on the outdoor maps, in both views, modelled on the drifting life.

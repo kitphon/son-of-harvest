@@ -24,6 +24,7 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 
 ## Next up
 [x] 2026-11-11 Mist over the ferry boat in the flat view, under the figures: MistView is added after FerryView (child order, test_mist checks both sides); see WORKLOG.
+[x] 2026-11-11 The farm field's planted rice plots make morning mist as paddies (by season / weather like the village paddies), both views (MistRules.rice_cells, test_mist); see WORKLOG.
 [x] 2026-11-11 Morning mist (asagiri): soft low sheets over the water, the farm's pond and the rice paddies at dawn, thickest 5:00-6:30, gone by 8:00; most in spring and fall, a little in summer, winter over open water only; none in a storm or indoors, thin in rain and wind; tinted by the dawn sky; both views (MistRules, MistLayer, MistView, data/mist.json, test_mist); see WORKLOG.
 [x] 2026-11-11 Every shippable item's icon checked for a fallback picture: none uses one (all 86 shipped-page rows have their own, no two alike), so nothing new was drawn; test_menu `_no_fallback_icons` keeps it so; see WORKLOG.
 [x] 2026-11-11 The silo's grass pile checked in frames: 3D at night (dim, no glow), 3D in winter (white cap), flat winter (beside the silo, white cap); all 31 test scripts OK, no code change; see WORKLOG.

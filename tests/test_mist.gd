@@ -109,6 +109,23 @@ func _scenes() -> void:
 	check(rs.cells.size() > 20 and rs.kinds.has("water") and not rs.kinds.has("paddy"), "river: its water (%d)" % rs.cells.size())
 	var fs: Dictionary = MR.scene_of(MM.data("farm"), g.farm)
 	check(fs.cells.size() == 12 and fs.kinds.count("water") == 12, "farm: the pond's twelve cells (%d)" % fs.cells.size())
+	# Planted rice on the farm's plots is paddy, any growth; other crops make none.
+	var rice_at: Array = []
+	for rx in range(8, 20):
+		rice_at.append(Vector2i(rx, 10))
+	for c in rice_at:
+		g.farm.cells[c.y * g.farm.w + c.x].crop = "rice"
+	g.farm.cells[12 * g.farm.w + 12].crop = "turnip"
+	var fr: Dictionary = MR.scene_of(MM.data("farm"), g.farm)
+	check(fr.kinds.count("paddy") == 12 and fr.kinds.count("water") == 12, "farm: twelve rice plots add twelve paddy cells (%d)" % fr.kinds.count("paddy"))
+	check(fr.cells.has(Vector2(10.5, 10.5)) and not fr.cells.has(Vector2(12.5, 12.5)), "farm: rice cells yes, a turnip no")
+	check(MR.rice_cells(g.farm).size() == 12 and MR.rice_cells(null).is_empty(), "rice_cells: the planted rice only")
+	var fa: Array = MR.sheets(fr, {"paddy": 1.0}, 3.0, 0.0, "summer")
+	check(fa.size() > 0 and fa.all(func(s): return s.kind == "paddy" and s.pos.y >= 0.7), "farm: rice sheets lie over the summer rice's tips")
+	_when(3, 6, 0, "sunny")
+	check(not MR.amounts_now(g, MM.data("farm")).has("paddy"), "farm rice: no paddy mist in winter")
+	for c in rice_at + [Vector2i(12, 12)]:
+		g.farm.cells[c.y * g.farm.w + c.x].crop = ""
 	var hill: Dictionary = MR.scene_of(MM.data("hill"))
 	check(hill.cells.is_empty(), "the hill: no water, no mist")
 	check(MR.count_for(0) == 0 and MR.count_for(1) == 1 and MR.count_for(10000) == int(MR.config().max), "counts: none, at least one, capped")

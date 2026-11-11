@@ -95,7 +95,7 @@ func refresh() -> void:
 	if amounts.is_empty():
 		_mm.visible_instance_count = 0
 		return
-	var key := "%s|%d|%d" % [map.id, game.season, game.day]
+	var key := "%s|%d|%d|%d" % [map.id, game.season, game.day, MistRules.rice_cells(farm).size()]
 	if key != _scene_key:
 		_scene_key = key
 		_scene = MistRules.scene_of(map, farm)
