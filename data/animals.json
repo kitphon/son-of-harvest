@@ -89,7 +89,12 @@
 		"per_cut": 1,
 		"grass_cap": 40,
 		"grass_per_fodder": 2,
-		"fodder_cap": 30
+		"fodder_cap": 30,
+		"pile": {
+			"_about": "The grass pile drawn beside the silo, at its front right corner between the hatch and the ladder, in both views (SiloPile; PlaceholderArt silo:grass:<stage>:<snow>). Its stage is how many of `stages` the pile's bundles have reached: none when empty, a handful from 1, a heap from 12 (about four days of weeding), a big heap from 26 (two thirds of the 40 the pile holds). Under snow lying at `snow_cover` or more in winter it wears a white cap.",
+			"stages": [1, 12, 26],
+			"snow_cover": 30
+		}
 	},
 	"homes": {
 		"coop": {

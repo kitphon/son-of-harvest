@@ -264,6 +264,7 @@ func _make_buildings() -> void:
 	occlude(func(): MeshCache.build(self, barn_id, func(): BarnProps.barn(self, built)))
 	if "silo" in built:   # the fodder silo, once Hachiro has built it
 		occlude(func(): MeshCache.build(self, "farm|silo", func(): SiloProps.silo(self)))
+		SiloProps.pile(self)   # its grass pile, by the stores (not kept: it changes with each cut)
 	if "greenhouse" in built:   # the glasshouse in the field's corner, once Hachiro has built it
 		occlude(func(): MeshCache.build(self, "farm|greenhouse", func(): GreenhouseProps.greenhouse(self)))
 

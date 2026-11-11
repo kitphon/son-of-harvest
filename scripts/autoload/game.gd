@@ -384,6 +384,14 @@ func new_game() -> void:
 					beast.age = maxi(int(beast.age), int(animals.kind_rule(beast.kind).get("old_days", beast.age)))
 			animals.dog.age = maxi(int(animals.dog.age), int(animals.dog_rule().get("old_days", 0)))   # the dog too
 			animals.changed.emit()
+		elif arg.begins_with("--silo="):   # e.g. `-- --demo --built=silo --map=farm@silo --silo=30` (or =30:4): that much grass in the pile (and fodder), held to the caps
+			var stores := arg.trim_prefix("--silo=").split(":")
+			var rule := animals.silo_rule()
+			animals.silo = {"grass": clampi(stores[0].to_int(), 0, int(rule.get("grass_cap", 0))),
+				"fodder": clampi(stores[1].to_int() if stores.size() > 1 else 0, 0, int(rule.get("fodder_cap", 0)))}
+			if not animals.silo_built():
+				push_warning("--silo: no silo built (add --built=silo before it)")
+			animals.changed.emit()
 		elif arg == "--barn-out":   # e.g. `-- --demo --map=farm@barn --barn-out`: cows and sheep grazing
 			animals.state.barn.out = true
 		elif arg == "--pause=shipped":   # `-- --demo --pause=shipped`: a few items in the shipped page already
@@ -779,7 +787,7 @@ func apply_settings(args := OS.get_cmdline_user_args()) -> void:
 	flashes_enabled = bool(settings.value("flashes")) and not "--no-flashes" in args
 	text_speed = float(settings.option_value("text_speed"))
 	always_run = bool(settings.value("always_run"))
-	hud_visible = bool(settings.value("hud"))
+	hud_visible = bool(settings.value("hud")) and not "--no-hud" in args   # `--no-hud`: a screenshot run without it
 	key_hints = bool(settings.value("hints"))
 	pad_style_setting = str(settings.value("pad_style"))
 	Controls.style_now = pad_style()

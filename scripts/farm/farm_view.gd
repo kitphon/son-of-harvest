@@ -76,6 +76,9 @@ func _ready() -> void:
 	_objects.draw.connect(_draw_objects)
 	_objects.add_to_group("flat_lit")   # FlatLight.GROUP: redrawn when the light changes
 	add_child(_objects)
+	var game := get_node_or_null("/root/Game")
+	if game != null and farm != null and not farm.sheltered:   # the silo's grass pile follows its stores
+		game.animals.changed.connect(_objects.queue_redraw)
 	if farm != null:   # the pond's moving skin (none on a farm without one)
 		var water := WaterView.new()
 		water.build(farm.w, farm.h, func(c: Vector2i) -> bool: return farm.fixed_at(c) == "pond", true)
@@ -191,6 +194,20 @@ func _draw_silo() -> void:
 	_objects.draw_colored_polygon(PackedVector2Array([o + Vector2(16, 1), o + Vector2(31, 14), o + Vector2(1, 14)]), Color("55687a"))
 	_objects.draw_line(o + Vector2(16, 1), o + Vector2(16, 14), Color("6d8397"), 1.0)
 	_objects.draw_rect(Rect2(o + Vector2(15, 0), Vector2(2, 2)), Color("3a3430"))
+	var at := silo_pile_rect()   # the cut grass piled at its front right corner (none while empty)
+	if at.has_area():
+		var tex := PlaceholderArt.tex(SiloPile.key())
+		var light: GDScript = load(FLAT_LIGHT)
+		_objects.draw_texture(tex, at.position, light.at(Vector2(at.get_center().x, at.end.y), tex.get_height(), light.field_px()))
+
+
+## Where the silo's grass pile is drawn now (SiloPile), px; empty with no silo or no grass.
+func silo_pile_rect() -> Rect2:
+	var r := roof_rect(farm, "silo")
+	var pile := SiloPile.key()
+	if not r.has_area() or pile == "":
+		return Rect2()
+	return SiloPile.flat_rect(r, Vector2(PlaceholderArt.tex(pile).get_size()))
 
 
 ## The greenhouse, once built (the 3D view's GreenhouseProps): a low gable roof of glass panes

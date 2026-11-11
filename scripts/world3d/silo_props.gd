@@ -9,6 +9,9 @@ extends RefCounted
 const TIMBER := Color("2e221a")
 const IRON := Color("3a3430")
 const SEGMENTS := 20
+## The grass pile's sprite pixel: a little over the field's (FarmWorld.PX 0.045), so the big heap
+## (13 px) is about a third of the tower's width, as in the flat view (13 of 32 px).
+const PILE_PX := 0.055
 
 
 ## One round piece: a cylinder (or cone) of the given radii and height, its foot at `y`.
@@ -65,3 +68,37 @@ static func silo(w: FarmWorld) -> void:
 		w._box(Vector3(0.05, 1.5, 0.05), Vector3(sx + 0.05, 1.0, z), timber)
 	for i in 5:
 		w._box(Vector3(0.05, 0.04, 0.45), Vector3(sx + 0.05, 0.45 + i * 0.26, c.y), timber)
+
+
+## The silo's grass pile (SiloPile): an upright picture (turning about y only, like the persimmon: a full
+## billboard's top would lean back into the silo's wall) at SiloPile.at, redrawn when the stores change,
+## hidden while the pile is empty. Returns the sprite.
+static func pile(w: FarmWorld) -> Sprite3D:
+	var s := FarmWorld.make_sprite(PlaceholderArt.tex("silo:grass:1:0"))
+	s.name = "SiloPile"
+	s.pixel_size = PILE_PX
+	s.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	s.position = SiloPile.at()
+	w.add_child(s)
+	var redraw := func() -> void:
+		var k := SiloPile.key()
+		s.visible = k != ""
+		if k != "":
+			s.texture = PlaceholderArt.tex(k)
+			s.offset = Vector2(0, s.texture.get_height() / 2.0)   # its foot on the ground
+	redraw.call()
+	var game: Node = (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
+	if game != null:
+		var herd: Animals = game.animals   # the one this farm was built with (a new game makes another)
+		# Followed while in the tree (a kept world taken out and put back catches up on entering).
+		var hook := func() -> void:
+			if not herd.changed.is_connected(redraw):
+				herd.changed.connect(redraw)
+			redraw.call()
+		s.tree_entered.connect(hook)
+		s.tree_exiting.connect(func() -> void:
+			if herd.changed.is_connected(redraw):
+				herd.changed.disconnect(redraw))
+		if s.is_inside_tree():
+			hook.call()
+	return s

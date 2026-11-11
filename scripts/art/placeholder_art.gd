@@ -86,6 +86,8 @@ static func _make(key: String) -> Image:
 			if parts[1] == "sky_map":
 				return _sky_map(parts[2] if parts.size() > 2 else "steady", parts[3] if parts.size() > 3 else "near")
 			return _ribbon_board(parts[2] if parts.size() > 2 else "") if parts[1] == "ribbon_board" else _story(parts[1])
+		"silo":     # silo:grass:<stage 1..3>:<snow 0|1>, the cut grass piled beside the fodder silo (SiloPile)
+			return _silo_grass(int(parts[2]) if parts.size() > 2 else 1, parts.size() > 3 and parts[3] == "1")
 		"festival": # festival:<kind>:<w>x<h>[:<cloth hex>], a festival decoration in the flat view (FestivalView)
 			var wh := parts[2].split("x") if parts.size() > 2 else PackedStringArray(["1", "1"])
 			return _festival(parts[1], int(wh[0]), int(wh[1]), Color(parts[3]) if parts.size() > 3 else Color("c8442c"))
@@ -1274,6 +1276,58 @@ static func _noren_story(style: String) -> Image:
 	for x in [7, 14]:
 		_px(img, x, 3, 1, 7, Color(0, 0, 0, 0))   # the slits stay open
 	return img
+
+
+## The grass pile beside the fodder silo (SiloPile), by its stage (1..3, data/animals.json
+## silo.pile): a rounded mound of cut grass, 7 x 4 / 10 x 7 / 13 x 10, green below and drying
+## to straw on its sunny top, a few blade strokes and drying tips on it (fixed marks); from stage
+## 2 a tied sheaf stands against its left. Flat materials toned by ItemArt.refine. Under lying
+## snow (`snow`) a white cap lies over the top rows, fixed white with a blue-grey edge, so the
+## toning does not grey it.
+static func _silo_grass(stage: int, snow: bool) -> Image:
+	var sizes := [Vector2i(7, 4), Vector2i(10, 7), Vector2i(13, 10)]
+	var s: Vector2i = sizes[clampi(stage, 1, 3) - 1]
+	var img := _blank(s.x, s.y)
+	var grass := Color("6a8a3a")
+	var hay := Color("a4a656")
+	var blade := Color("8eac4c")
+	var tip := Color("ccb468")
+	var sheaf := Color("b8a85a")
+	var band := Color("7a5a32")
+	var white := Color("f2f5f8")
+	var edge := Color("c4d0dc")
+	var fixed: Array = [blade, tip, band, white, edge]
+	var tops: Array[int] = []
+	var first := 2 if stage >= 2 else 0   # the sheaf's columns
+	for x in s.x:
+		var u := (x + 0.5 - s.x / 2.0) / (s.x / 2.0)
+		var t := clampi(roundi(s.y * (1.0 - u * u) + 0.5 - float(x % 4 == 1) * 0.7), 1, s.y)   # a dome, slightly lumpy on top
+		tops.append(s.y - t)
+		_px(img, x, s.y - t, 1, t, grass)
+		_px(img, x, s.y - t, 1, maxi(t / 3, 1), hay)   # the sun-dried top
+	for x in range(first + 1, s.x - 1, 3):   # blade strokes slanting down the green
+		var y: int = tops[x] + maxi((s.y - tops[x]) / 3, 1) + 1
+		if y < s.y - 1:
+			img.set_pixel(x, y, blade)
+			if y + 1 < s.y - 1:
+				img.set_pixel(x + 1, y + 1, blade)
+	for x in range(first + 2, s.x - 1, 4):   # drying tips poking out of the top
+		if tops[x] > 0:
+			img.set_pixel(x, tops[x] - 1, tip)
+	if stage >= 2:   # a tied sheaf standing against the heap's left, its ears on top
+		_px(img, 0, 1, 2, s.y - 1, sheaf)
+		_px(img, 0, s.y - 3, 2, 1, band)
+		img.set_pixel(0, 0, tip)
+		tops[0] = 0
+		tops[1] = 1
+	if snow:
+		for x in s.x:
+			var top: int = tops[x] - int(img.get_pixel(x, maxi(tops[x] - 1, 0)).a > 0.0 and tops[x] > 0)
+			var deep := mini(1 + int(stage >= 2), s.y - top)
+			_px(img, x, top, 1, deep, white)
+			if top + deep < s.y:
+				img.set_pixel(x, top + deep, edge)
+	return ItemArt.refine(img, fixed)
 
 
 ## Kiku's persimmon, planted (StoryView "scion", story:scion:<stage>:<season>:<snow 0|1>; the

@@ -33,6 +33,7 @@ var fish_rules: Dictionary   # data/fish.json and the catch counts, for the fish
 var fish_caught: Dictionary
 var ship_rows: Array   # [{id, name}] for every item the bin takes (Game.shippable_rows), for the shipped page
 var shipped: Dictionary   # item id -> how many were ever shipped (Game.shipped)
+var silo := {}   # the fodder silo's stores ({grass, fodder}, Animals.silo) once it is built; {} before
 var page := "main"
 var list: MenuList
 var slot := 0          # the slot picked on the controls page (the last one is the pad's)
@@ -150,6 +151,15 @@ func count_text(item: String) -> String:
 	if is_shipped_row(item):
 		return "x%d" % shipped_count(item) if shipped_count(item) > 0 else ""
 	return "x%d" % count(item) if is_fish(item) and count(item) > 0 else ""
+
+
+## The line under the main page once the fodder silo is built: its stores ("Silo: fodder 3,
+## grass 6"), the same counts as the hint at the silo, since no other page shows the farm's
+## stores. "" on the other pages and before the silo stands.
+func silo_text() -> String:
+	if page != "main" or silo.is_empty():
+		return ""
+	return "Silo: fodder %d, grass %d" % [int(silo.get("fodder", 0)), int(silo.get("grass", 0))]
 
 
 ## The fish log's total: "5 of 19 kinds".
