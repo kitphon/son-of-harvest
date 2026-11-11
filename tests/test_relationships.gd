@@ -1286,8 +1286,48 @@ func _spouse_help_rules() -> void:
 		check(Talk.pick(id, st.merged({"time": 10 * 60, "flags": both_f}, true)).begins_with("help_water"), "%s: at 10:00 the chore line" % id)
 		check(Talk.pick(id, st.merged({"time": 14 * 60, "flags": both_f}, true)).begins_with("wed_out"), "%s: at 14:00 no chore line, a married line instead" % id)
 		check(Talk.pick(id, st.merged({"flags": {"married_" + id: true, "help_water": true}, "again": true}, true)).begins_with("again"), "%s: talked twice, the again lines" % id)
+	_spouse_help_beds(crops, make, fl)
 	var solo := Marriage.help({}, make.call(), fl, "sunny")
 	check(solo.watered == 0 and solo.fed == 0, "single: no chore flags")
+
+
+## The greenhouse's beds: watered on top of the field's cap, any weather in beds_weather, only
+## when handed in (built), dry planted ones, and nothing when single.
+func _spouse_help_beds(crops: Dictionary, make: Callable, fl: Animals) -> void:
+	var h: Dictionary = Marriage.data().get("help", {})
+	var cap := int(h.get("water", 0))
+	var bcap := int(h.get("water_beds", 0))
+	check(bcap > 0 and bcap < 32, "the beds' share is modest: %d of 32" % bcap)
+	check("rain" in h.get("beds_weather", []) and "sunny" in h.get("beds_weather", []), "beds are watered on wet days too (glass)")
+	var beds := FarmGrid.new(crops, Vector2i(8, 4), true)
+	for y in 4:
+		for x in 8:
+			beds.till(Vector2i(x, y))
+	beds.sow(Vector2i(1, 1), "turnip", "spring")
+	beds.sow(Vector2i(5, 1), "turnip", "spring")
+	beds.till(Vector2i(7, 3))
+	var wed := {"spouse": "sayo", "married_sayo": true}
+	var f: FarmGrid = make.call()
+	var none := Marriage.help(wed, f, fl, "sunny")
+	check(none.watered == cap and _wet(beds) == 0, "no beds handed in: only the field's %d" % none.watered)
+	var d := Marriage.help(wed, make.call(), fl, "sunny", beds)
+	var planted := 0
+	for c in beds.cells:
+		if c.crop != "":
+			planted += 1
+	check(d.watered == cap + mini(bcap, planted) and _wet(beds) == mini(bcap, planted), "field plus beds: %d (%d beds wet of %d planted)" % [d.watered, _wet(beds), planted])
+	check(not beds.cell(Vector2i(7, 3)).wet, "an empty tilled bed stays dry")
+	var rain := Marriage.help(wed, make.call(), fl, "rain", FarmGrid.new(crops, Vector2i(8, 4), true))
+	check(rain.watered == 0, "rain, empty beds: nothing")
+	var wet_beds := FarmGrid.new(crops, Vector2i(8, 4), true)
+	for x in 8:
+		wet_beds.till(Vector2i(x, 0))
+		wet_beds.sow(Vector2i(x, 0), "turnip", "spring")
+	var r2 := Marriage.help(wed, make.call(), fl, "rain", wet_beds)
+	check(r2.watered == bcap and _wet(wet_beds) == bcap, "rain: the field is left to the rain, %d beds watered" % r2.watered)
+	check(wed.get("help_water", false), "beds alone set the watering chore flag")
+	var single := Marriage.help({}, make.call(), fl, "sunny", wet_beds)
+	check(single.watered == 0, "single: the beds are not watered")
 
 
 func _wet(f: FarmGrid) -> int:
@@ -1339,6 +1379,22 @@ func _spouse_help_in_game() -> void:
 	g.talk_to("sayo", Vector2i.DOWN)
 	check(g.flags.get("help_water", false) and not said.is_empty() and said.back()[0] == "talk_sayo" and said.back()[1] in ["help_water_1", "help_water_2"],
 		"talking to Sayo after the watering picks its line %s" % [said])
+	# With the greenhouse built, her morning reaches the beds too; without it, never.
+	var beds_cap := int(Marriage.data().help.water_beds)
+	var bc := Vector2i(1, 1)
+	for x in range(bc.x - 1, bc.x + 2):
+		for y in range(bc.y - 1, bc.y + 2):
+			g.beds().till(Vector2i(x, y))
+	g.beds().sow(bc, "turnip", "winter")
+	g.weather_tomorrow = "sunny"
+	g.end_day()
+	check(_wet(g.beds()) == 0, "greenhouse not built: the beds stay dry")
+	g.house_built.append("greenhouse")
+	g.weather_tomorrow = "sunny"
+	g.end_day()
+	check(_wet(g.beds()) == mini(beds_cap, 9) and _wet(g.farm) == cap, "greenhouse built: %d beds watered besides the field's %d" % [_wet(g.beds()), _wet(g.farm)])
+	check(g.child_help_news == "", "the child's help pulls no weeds under glass")
+	g.house_built.erase("greenhouse")
 	# Saved and loaded, married: the help goes on.
 	var path := "user://test_spouse_help.json"
 	check(SaveGame.write(g, path) == "", "write the save")

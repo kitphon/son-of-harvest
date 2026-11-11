@@ -2121,7 +2121,7 @@ func child_event(step: String) -> void:
 ## a few dry plots watered on a fair day, the coop's feed box topped up from the stock.
 ## Returns what the farmer is told on stepping out ("" single, or nothing was done).
 func spouse_help() -> String:
-	var done := Marriage.help(flags, farm, animals, weather_today)
+	var done := Marriage.help(flags, farm, animals, weather_today, beds() if "greenhouse" in house_built else null)
 	var id := Marriage.spouse(flags)
 	return Marriage.help_text(done, String(Villagers.all().get(id, {}).get("name", id)))
 

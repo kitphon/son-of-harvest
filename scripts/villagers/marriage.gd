@@ -132,8 +132,10 @@ static func day_start(flags: Dictionary, today: int) -> bool:
 ## up to help.water dry plots with an unripe crop are watered (FarmGrid.water_dry_crops), and
 ## when a home in help.feed_homes is short in its feed box, up to help.feed portions go in
 ## from the farmer's own feed stock (Animals.fill_feed_box). Nothing when single.
-## Returns {watered, fed}: the counts.
-static func help(flags: Dictionary, farm: FarmGrid, animals: Animals, weather: String) -> Dictionary:
+## Given the greenhouse's `beds` (only once it is built), up to help.water_beds dry planted beds
+## are watered too, on a day whose weather is in help.beds_weather (rain never reaches glass, so
+## any weather): a budget of its own, added to the field's. Returns {watered, fed}: the counts.
+static func help(flags: Dictionary, farm: FarmGrid, animals: Animals, weather: String, beds: FarmGrid = null) -> Dictionary:
 	var out := {"watered": 0, "fed": 0}
 	flags.erase(HELP_WATER)   # what the spouse did this morning, for their talk lines
 	flags.erase(HELP_FEED)
@@ -143,6 +145,8 @@ static func help(flags: Dictionary, farm: FarmGrid, animals: Animals, weather: S
 	var h: Dictionary = data().get("help", {})
 	if farm != null and weather in h.get("weather", ["sunny"]):
 		out.watered = farm.water_dry_crops(int(h.get("water", 0)))
+	if beds != null and weather in h.get("beds_weather", []):
+		out.watered += beds.water_dry_crops(int(h.get("water_beds", 0)))
 	if animals != null:
 		for home in h.get("feed_homes", ["coop"]):
 			out.fed += animals.fill_feed_box(String(home), int(h.get("feed", 0)))
@@ -196,7 +200,9 @@ static func check() -> String:
 	var h: Variant = d.get("help", {})
 	if not h is Dictionary or not h.get("weather", []) is Array or not h.get("feed_homes", []) is Array:
 		return "help needs weather and feed_homes lists"
-	for k in ["water", "feed"]:
+	if not h.get("beds_weather", []) is Array:
+		return "help.beds_weather is a weather list"
+	for k in ["water", "water_beds", "feed"]:
 		if not EventRunner._whole(h.get(k, 0), 0, 99):
 			return "help.%s is 0 .. 99" % k
 	for k in ["watered", "fed", "both"]:

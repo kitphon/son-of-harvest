@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — The spouse waters the greenhouse beds
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: once the greenhouse is built, the spouse's morning help (Marriage.help, given the beds as
+  an optional last argument by Game.spouse_help only when "greenhouse" is in house_built) also
+  waters dry planted beds with FarmGrid.water_dry_crops, row by row. Numbers in data/marriage.json
+  help: `water_beds` 6 and `beds_weather` (sunny, rain, storm, snow). Reasoning: the beds get a
+  budget of their own, added to the field's 6 plots, so the greenhouse never starves the field
+  and the can is still needed (6 of 32 beds, the same modest share); the field keeps its
+  sunny-only rule because rain waters it, but rain never reaches glass, so the beds are tended on
+  any weather. The same morning line serves (a bed is a plot, "some of the dry plots"), the
+  help_water chore flag is set by beds alone, and nothing changes single or without the greenhouse.
+  The child's help only pulls the field's weeds (FarmGrid.pull_weeds on Game.farm), and beds have
+  none, so it is untouched. Marriage's data check validates beds_weather and water_beds.
+- Checked: test_relationships `_spouse_help_beds` (no beds handed in: only the field's cap; field
+  plus beds counts; an empty tilled bed stays dry; rain with only beds: just the beds' cap; single:
+  nothing) and `_spouse_help_in_game` (greenhouse not built: beds dry; built: the cap watered
+  besides the field's, no child weed news). Output: `test_relationships: OK (0 failed)`, `test_farm`, `test_child`, `test_save`, `test_lang`: all `OK (0 failed)`; lang_report th 100% (no new text); smoke runs (title, `--demo`, `--quit-after 300`): no error or warning lines.
+- Left / next: look at the glass rows of the buy tab in a frame. No snow on the glass roof, no
+  light in it at night.
+
 ## 2026-11-11 — Off-season seeds under glass
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: once the greenhouse stands, the Yorozu Store also sells the seeds of every other season
