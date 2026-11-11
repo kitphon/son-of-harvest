@@ -85,6 +85,8 @@ static func interact_verb(origin: Vector2i, facing: Vector2i) -> String:
 			return "Open"
 		"stand":
 			return "Buy"
+		"silo":
+			return "Fodder"
 	if Game.holding():
 		return ""
 	if Game.farm.item_at(c) != "":

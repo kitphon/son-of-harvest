@@ -43,6 +43,7 @@ var eggs: Array[String] = []  # egg items lying in the nests, oldest first
 var incubator := {}           # {} or {item, days}: an egg warming towards a chick
 var named := 0                # how many names were given (the next one is names[named])
 var dog := {}                 # the farm dog (see above)
+var silo := {"grass": 0, "fodder": 0}   # the fodder silo's pile of cut grass and its fodder (saved; only while it is built)
 var built: Array[String] = []   # extensions done (Game.house_built): a built wing makes its home bigger (home_rule); not saved here
 var _dog_time := 0.0
 
@@ -92,6 +93,7 @@ func start() -> void:
 	incubator = {}
 	named = 0
 	state = {}
+	silo = {"grass": 0, "fodder": 0}
 	for home in rules.get("homes", {}):
 		_st(home).stock = int(home_rule(home).get("feed_start", 0))
 	dog = new_dog()
@@ -232,6 +234,51 @@ func add_feed(n: int, home := "coop") -> void:
 ## The shop's fodder hook: hay bundles for the barn.
 func add_fodder(n: int) -> void:
 	add_feed(n, "barn")
+
+
+# --- the fodder silo (data/animals.json silo) ---------------------------------
+
+func silo_rule() -> Dictionary:
+	return rules.get("silo", {})
+
+
+func silo_built() -> bool:
+	return String(silo_rule().get("build", "")) in built and not silo_rule().is_empty()
+
+
+## Grass cut with the sickle goes into the silo's pile, up to its cap. Returns how many bundles
+## went in (0 when there is no silo or the pile is full).
+func silo_cut(n: int) -> int:
+	if not silo_built():
+		return 0
+	var put := clampi(n * int(silo_rule().get("per_cut", 1)), 0, maxi(int(silo_rule().get("grass_cap", 0)) - int(silo.grass), 0))
+	silo.grass = int(silo.grass) + put
+	if put > 0:
+		changed.emit()
+	return put
+
+
+## E at the silo: all its fodder goes into the barn's loft. Returns how many bundles.
+func silo_take() -> int:
+	if not silo_built():
+		return 0
+	var n := int(silo.fodder)
+	silo.fodder = 0
+	if n > 0:
+		add_fodder(n)
+	return n
+
+
+## The night: the pile ferments into fodder, `grass_per_fodder` bundles to one, while the silo has
+## room for it. Returns the fodder made.
+func silo_night() -> int:
+	if not silo_built():
+		return 0
+	var per := maxi(int(silo_rule().get("grass_per_fodder", 1)), 1)
+	var made := mini(int(silo.grass) / per, maxi(int(silo_rule().get("fodder_cap", 0)) - int(silo.fodder), 0))
+	silo.grass = int(silo.grass) - made * per
+	silo.fodder = int(silo.fodder) + made
+	return made
 
 
 ## Portions left in a home's feed stock (the coop's sack, the barn's loft).
@@ -477,6 +524,7 @@ func day_end(weather: String, rng: RandomNumberGenerator) -> Array[String]:
 	news.append_array(_passings(rng))   # before the births: a mother has her young first, and passes no sooner than the next night
 	news.append_array(_births())
 	_dog_night()
+	silo_night()
 	changed.emit()
 	return news
 
@@ -780,6 +828,7 @@ func to_dict() -> Dictionary:
 	return {"animals": animals, "outside": outside, "feed_stock": feed_stock, "feed_box": feed_box,
 		"eggs": eggs.duplicate(), "incubator": incubator.duplicate(), "named": named,
 		"barn": {"out": barn.out, "stock": barn.stock, "box": barn.box},
+		"silo": {"grass": int(silo.grass), "fodder": int(silo.fodder)},
 		"dog": {"name": dog.name, "affection": dog.affection, "petted": dog.petted, "lifted": dog.lifted,
 			"cell": [dog.cell.x, dog.cell.y], "age": int(dog.get("age", 0))}}
 
@@ -810,6 +859,14 @@ static func parse(v: Variant, r := data(), version := SaveGame.VERSION, done: Ar
 	if barn_stock == null or barn_box == null:
 		return ["Saved barn fodder is broken", null]
 	out.state["barn"] = {"out": barn.out, "stock": barn_stock, "box": barn_box}
+	var sv = v.get("silo", {"grass": 0, "fodder": 0})   # saves from before the silo have none
+	if not sv is Dictionary:
+		return ["The saved silo is broken", null]
+	var sgrass = SaveGame.whole(sv.get("grass"), 0, 1 << 30)
+	var sfodder = SaveGame.whole(sv.get("fodder"), 0, 1 << 30)
+	if sgrass == null or sfodder == null:
+		return ["The saved silo is broken", null]
+	out.silo = {"grass": sgrass, "fodder": sfodder}
 	for s in v.animals:
 		if not s is Dictionary or not s.get("kind") is String or out.kind_rule(s.kind).is_empty() \
 				or not s.get("name") is String or not s.get("sick") is bool or not s.get("petted") is bool \

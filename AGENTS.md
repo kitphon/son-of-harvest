@@ -67,7 +67,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Shops (data/shops.json, buying / selling, tool upgrades and their ores, mine finds sold, the smithy while Hachiro builds,
   shop maps and doors, the screen, Fumi's teahouse):
   `res://tests/test_shops.gd` must print `test_shops: OK (0 failed)`.
-  Animals (chickens, cows, sheep, the coop and barn extensions: wings, capacity, spots, the moved props, Hachiro building on the farm, old age and the old look, the dog's age, the coop and barn, products, brushing, sickness, the dog,
+  Animals (chickens, cows, sheep, the coop and barn extensions: wings, capacity, spots, the moved props, Hachiro building on the farm, the fodder silo: its job, footprint, grass from the sickle, the nightly fodder, taking it to the loft, the save; `--demo --built=silo --map=farm@silo`, `--demo --building=silo --time=10:00 --map=farm@gate`, old age and the old look, the dog's age, the coop and barn, products, brushing, sickness, the dog,
   the save, the carrying cow's and ewe's look in both views, aging: the age on E, old, the peaceful passing): `res://tests/test_animals.gd`
   must print `test_animals: OK (0 failed)`. Fishing (bites, fish tables, the river, the catch, the fish log counts and its save, poses,
   fish art): `res://tests/test_fishing.gd` must print `test_fishing: OK (0 failed)`.

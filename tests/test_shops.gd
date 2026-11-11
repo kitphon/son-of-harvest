@@ -100,6 +100,10 @@ func _data() -> void:
 		for b in s.builds:
 			check(s.build_map == MapManager.HOME and int(s.builds[b].price) > 0 and int(s.builds[b].days) >= 1, "data: %s builds %s" % [id, b])
 			var on_map := str(s.builds[b].get("farm", "house"))   # a farm job builds onto that building's map
+			if on_map == "silo":   # the silo is no animal home and has no map of its own: the farm's footprint and its rules
+				check(str(Animals.data().get("silo", {}).get("build", "")) == b and FarmGrid.SILO.has_area(), "data: animals.json silo is built by %s" % b)
+				check(str(s.builds[b].get("work_flag", "")) != "", "data: %s sets a work flag for Hachiro's plan" % b)
+				continue
 			var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/maps/%s.json" % on_map))
 			check(raw.extensions.has(b), "data: %s.json has the %s extension" % [on_map, b])
 			if s.builds[b].has("farm"):
@@ -505,7 +509,7 @@ func _builds() -> void:
 	var states := []
 	for row in m.rows():
 		states.append(row.state)
-	check(m.tab_id() == "build" and states == ["busy", "building", "busy", "busy", "busy"], "build rows: %s" % [states])
+	check(m.tab_id() == "build" and states == ["busy", "building", "busy", "busy", "busy", "busy"], "build rows: %s" % [states])
 	g.end_day()
 	g.end_day()
 	check(not g.has_built("kitchen") and MapManager.data("house").prop_at(Vector2i(1, 5)).is_empty(), "not done before the ready day")

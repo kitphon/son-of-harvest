@@ -83,6 +83,14 @@
 			"_old_days": "A ewe is old from her fifth year (480) and passes away between 5 and 6 years (600-720), between the hen and the cow."
 		}
 	},
+	"silo": {
+		"build": "silo",
+		"_about": "The fodder silo (Hachiro builds it; data/shops.json builds silo; FarmGrid.SILO). Once it stands, every weed cut with the sickle puts `per_cut` bundles of grass in its pile (up to `grass_cap`), each night `grass_per_fodder` bundles of grass ferment into one fodder (up to `fodder_cap` held), and E at the silo carries all its fodder to the barn's loft. Balance ours: a field makes about 3 weeds a night outside winter, so roughly 1 or 2 fodder a day, a fourth of what a full barn eats (25 G a bundle at the store): a saving and a chore saved, not a farm in itself. The pile holds 40 bundles (a good week of weeding) and the silo 30 fodder.",
+		"per_cut": 1,
+		"grass_cap": 40,
+		"grass_per_fodder": 2,
+		"fodder_cap": 30
+	},
 	"homes": {
 		"coop": {
 			"map": "coop",

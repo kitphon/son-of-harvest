@@ -230,6 +230,8 @@ static func interact(c: Vector2i) -> void:
 				Game.talk("bin_note")   # nothing to ship: read the note on the lid
 		"chest":
 			Game.open_inventory("storage")
+		"silo":
+			use_silo()
 		"stand":
 			buy_food() if Game.current_tool() == "food" else buy_seeds()
 		_:
@@ -238,6 +240,17 @@ static func interact(c: Vector2i) -> void:
 			if id != "":
 				Sfx.play("pick")
 				Game.message.emit("Picked up: %s." % item_name(id))
+
+
+## E at the fodder silo: all the fodder it has made goes to the barn's loft.
+static func use_silo() -> void:
+	var a := Game.animals
+	var n := a.silo_take()
+	if n > 0:
+		Sfx.play("feed_pour")
+		Game.message.emit("Carried %d fodder from the silo to the barn's loft (%d there now)." % [n, a.stock_of("barn")])
+	else:
+		Game.message.emit(Lang.join(["The silo has no fodder yet.", "Cut grass turns to fodder overnight (%d bundles waiting)." % a.silo.grass]))
 
 
 ## Something growing wild on `c` (data/forage.json) is picked: overhead, or into the rucksack
@@ -418,12 +431,21 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 			Game.changed.emit()
 		_:
 			var tough := false
+			var grass := 0   # weeds the sickle cleared: grass for the silo, once it stands
 			for cell in cells:
+				var weed: bool = farm.in_bounds(cell) and farm.cell(cell).obj == FarmGrid.Obj.WEED
 				var got := farm.hit(cell, tool, int(rule.get("hits", 1)))
 				tough = got == 1 or tough
 				worked = got > 0 or worked
+				grass += int(got == 2 and weed and tool == "sickle")
 			if tough:
 				Game.message.emit("It's tough. Keep hitting.")
+			if grass > 0 and Game.animals.silo_built():
+				var put := Game.animals.silo_cut(grass)
+				if put > 0:
+					Game.message.emit("Grass for the silo: %d bundles in the pile." % Game.animals.silo.grass)
+				else:
+					Game.message.emit("The silo's grass pile is full.")
 	# Every swing teaches the tool a little, one that did some work more.
 	Game.add_tool_exp(tool, Game.swing_exp(worked))
 

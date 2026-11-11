@@ -14,6 +14,7 @@ const COLORS := {
 	"bin": Color("7a6a50"), "stand": Color("d9b45a"), "chest": Color("8a5a32"),
 	"coop": Color("8a6a48"), "coop_door": Color("4a2a14"),
 	"barn": Color("6a4a30"), "barn_door": Color("3a2010"),
+	"silo": Color("a0764a"),
 }
 
 ## The farm buildings drawn as painted roofs (RoofArt), by the material the 3D view roofs them in:
@@ -137,9 +138,28 @@ func _draw_objects() -> void:
 		var r := roof_rect(farm, kind)
 		if r.has_area():
 			_objects.draw_texture(PlaceholderArt.tex(RoofArt.key(ROOFS[kind], "gable", 1, Vector2i(r.size))), r.position)
+	_draw_silo()
 	for y in FarmGrid.H:
 		for x in FarmGrid.W:
 			_draw_cell(Vector2i(x, y))
+
+
+## The fodder silo, once built: a round wooden tower with iron hoops and a grey tiled cone (the
+## 3D view's SiloProps), a little hatch low on the front.
+func _draw_silo() -> void:
+	var r := roof_rect(farm, "silo")
+	if not r.has_area():
+		return
+	var o := r.position
+	_objects.draw_rect(Rect2(o + Vector2(3, 12), Vector2(26, 19)), Color("a0764a"))
+	for x in [8, 13, 19, 24]:   # the staves
+		_objects.draw_rect(Rect2(o + Vector2(x, 12), Vector2(1, 19)), Color("86603a"))
+	for y in [17, 24]:   # the hoops
+		_objects.draw_rect(Rect2(o + Vector2(3, y), Vector2(26, 2)), Color("3a3430"))
+	_objects.draw_rect(Rect2(o + Vector2(13, 24), Vector2(6, 7)), Color("3a2010"))
+	_objects.draw_colored_polygon(PackedVector2Array([o + Vector2(16, 1), o + Vector2(31, 14), o + Vector2(1, 14)]), Color("55687a"))
+	_objects.draw_line(o + Vector2(16, 1), o + Vector2(16, 14), Color("6d8397"), 1.0)
+	_objects.draw_rect(Rect2(o + Vector2(15, 0), Vector2(2, 2)), Color("3a3430"))
 
 
 func _draw_cell(c: Vector2i) -> void:
@@ -147,7 +167,7 @@ func _draw_cell(c: Vector2i) -> void:
 	var f := farm.fixed_at(c)
 	if f != "":
 		# The flat view marks buildings and the fence on top of their ground (roofs: _draw_objects).
-		if f != "pond" and not f in ROOFS and not c in gaps:
+		if f != "pond" and f != "silo" and not f in ROOFS and not c in gaps:
 			_objects.draw_rect(r.grow(-5) if f == "fence" else r, COLORS[f])
 		return
 	var d := farm.cell(c)

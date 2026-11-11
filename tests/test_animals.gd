@@ -40,6 +40,7 @@ func _process(_delta: float) -> bool:
 		_aging_actions()
 		_wings_built()
 		_wings_outside()
+		_silo()
 		print("test_animals: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -977,6 +978,125 @@ func _wings_outside() -> void:
 	g.new_game()
 	check(g.farm.fixed == before, "a new game: the old footprints")
 	check(g.farm.fixed_at(Vector2i(11, 1)) == "" and g.farm.fixed_at(Vector2i(24, 2)) == "", "a new game: no wings")
+
+
+## The fodder silo: ordered at the store, Hachiro's plan and lumber beside it while it is under
+## way, its footprint only once built, grass from the sickle, fermenting overnight, fodder
+## carried to the barn's loft, the save (and an old save without it).
+func _silo() -> void:
+	var g: Node = root.get_node("Game")
+	var FarmActions: GDScript = load("res://scripts/farm_actions.gd")
+	var said: Array[String] = []
+	g.message.connect(func(t): said.append(t))
+	g.new_game()
+	var before: Dictionary = g.farm.fixed.duplicate()
+	var rule: Dictionary = Animals.data().silo
+	check(rule.build == "silo" and rule.grass_per_fodder == 2 and rule.fodder_cap == 30 and rule.grass_cap == 40, "the silo's rules are in data/animals.json")
+	check(FarmView.roof_rect(g.farm, "silo") == Rect2(), "unbuilt: no silo footprint, no flat roof")
+	for y in range(FarmGrid.SILO.position.y, FarmGrid.SILO.end.y):
+		for x in range(FarmGrid.SILO.position.x, FarmGrid.SILO.end.x):
+			check(not g.farm.is_solid(Vector2i(x, y)), "unbuilt: (%d, %d) is open ground" % [x, y])
+	check(g.animals.silo_cut(5) == 0 and g.animals.silo_take() == 0, "unbuilt: grass and fodder go nowhere")
+	# The job.
+	g.money = 50000
+	var r: Dictionary = g.shop_build("general", "silo")
+	check(r.ok and g.money == 50000 - 3000, "the silo ordered for 3000 G: %s" % r.get("note", ""))
+	check(int(g.shop("general").builds.silo.days) == 3 and g.shop("general").builds.silo.farm == "silo", "three days, a farm job")
+	g.day += 1
+	g.sync_build_flag()
+	check(g.flags.get("farm_work") == "silo" and g.flags.get("silo_work") == true, "under way: farm_work and silo_work")
+	var farm: MapData = MapManager.load_map("farm", null, g.flags)[1]
+	var lumber := farm.props.filter(func(p): return p.kind == "lumber")
+	check(lumber.size() == 1 and lumber[0].cell == Vector2i(29, 3), "the lumber lies beside the silo, not in the gap or by the house")
+	check(not g.farm.is_solid(Vector2i(30, 3)) and not g.farm.is_solid(Vector2i(30, 4)), "Hachiro's spot and the way to it are free")
+	var plan := Villagers.pick_plan(Villagers.all().hachiro, {"season": "spring", "day": g.day, "weekday": "tue", "weather": "sunny", "year": 1, "flags": g.flags, "festival": ""})
+	check(plan == "building_silo", "Hachiro builds at the silo: %s" % plan)
+	var legs: Array = Villagers.all().hachiro.plans.building_silo
+	check(Vector2i(int(legs[2].route[1].to[0]), int(legs[2].route[1].to[1])) == Vector2i(30, 3), "his plan stands at (30, 3) below the silo")
+	check(g.farm.fixed == before and not g.animals.silo_built(), "under way: the farm unchanged, no silo yet")
+	g._finish_build(g.house_job.duplicate())
+	g.sync_build_flag()
+	check(not g.flags.has("farm_work") and not g.flags.has("silo_work") and "silo" in g.house_built, "done: the flags gone")
+	check(g.house_rooms() == 0, "the record's House built leaves the silo out")
+	# Footprint and collision once built.
+	check(FarmView.roof_rect(g.farm, "silo") == Rect2(29 * 16, 16, 2 * 16, 2 * 16), "built: the flat roof box")
+	var added := 0
+	for c in g.farm.fixed:
+		if not before.has(c):
+			added += 1
+			check(g.farm.fixed[c] == "silo" and FarmGrid.SILO.has_point(c), "only the silo's cells are new: %s" % c)
+		elif before[c] != g.farm.fixed[c]:
+			check(false, "a cell changed: %s" % c)
+	check(added == 4, "four cells added (%d)" % added)
+	for y in range(1, 3):
+		for x in range(29, 31):
+			check(g.farm.is_solid(Vector2i(x, y)), "built: (%d, %d) is solid" % [x, y])
+	for c in [Vector2i(29, 3), Vector2i(30, 3), Vector2i(29, 4), Vector2i(30, 4), Vector2i(29, 6), Vector2i(31, 5), Vector2i(31, 6), Vector2i(28, 1), Vector2i(28, 5)]:
+		check(g.farm.fixed_at(c) == before.get(c, ""), "%s untouched" % c)
+	for c in [Vector2i(25, 2), Vector2i(28, 4)]:
+		check(g.farm.fixed_at(c) == "pond", "the pond is intact at %s" % c)
+	for spawn in MapManager.data("farm").spawns.values():
+		check(not g.farm.is_solid(spawn[0]), "the spawn %s is free" % spawn[0])
+	for yard in [Animals.data().homes.coop.yard, Animals.data().homes.barn.yard]:
+		for y in range(yard[1], yard[1] + yard[3]):
+			for x in range(yard[0], yard[0] + yard[2]):
+				check(g.farm.fixed_at(Vector2i(x, y)) == "", "the yard (%d, %d) is free" % [x, y])
+	# Grass from the sickle.
+	var weed := Vector2i(20, 9)
+	g.maps.place("farm", weed + Vector2i.DOWN, Vector2i.UP)
+	g.farm.cell(weed).obj = FarmGrid.Obj.WEED
+	g.select_tool(g.TOOLS.find("sickle"))
+	check(g.current_tool() == "sickle", "the sickle is in hand: %s" % g.current_tool())
+	g.stamina = 100
+	said.clear()
+	FarmActions.use_tool(weed + Vector2i.DOWN, Vector2i.UP)
+	check(g.farm.cell(weed).obj == FarmGrid.Obj.NONE and g.animals.silo.grass == 1, "a weed cut: one bundle of grass (%d)" % g.animals.silo.grass)
+	check(said.has("Grass for the silo: 1 bundles in the pile."), "and told so: %s" % str(said))
+	g.farm.cell(weed).obj = FarmGrid.Obj.ROCK
+	g.select_tool(g.TOOLS.find("hammer"))
+	FarmActions.use_tool(weed + Vector2i.DOWN, Vector2i.UP)
+	check(g.animals.silo.grass == 1, "a rock is no grass")
+	# Fermenting, the caps.
+	check(g.animals.silo_cut(100) == 39 and g.animals.silo.grass == 40, "the pile holds 40")
+	check(g.animals.silo_night() == 20 and g.animals.silo.fodder == 20 and g.animals.silo.grass == 0, "overnight 2 grass make 1 fodder")
+	g.animals.silo.grass = 3
+	check(g.animals.silo_night() == 1 and g.animals.silo.grass == 1 and g.animals.silo.fodder == 21, "an odd bundle waits for tomorrow")
+	g.animals.silo.grass = 40
+	check(g.animals.silo_night() == 9 and g.animals.silo.fodder == 30 and g.animals.silo.grass == 22, "the silo holds 30 fodder, the grass waits")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	g.animals.silo = {"grass": 4, "fodder": 0}
+	g.animals.day_end("sunny", rng)
+	check(g.animals.silo.fodder == 2 and g.animals.silo.grass == 0, "the animals' night ferments the pile")
+	# E at the silo: the fodder to the barn's loft.
+	g.maps.place("farm", Vector2i(30, 3), Vector2i.UP)
+	var loft0: int = g.animals.stock_of("barn")
+	said.clear()
+	FarmActions.interact(Vector2i(30, 2))
+	check(g.animals.stock_of("barn") == loft0 + 2 and g.animals.silo.fodder == 0, "E carries the fodder to the loft (%d -> %d)" % [loft0, g.animals.stock_of("barn")])
+	check(said.size() == 1 and said[0].begins_with("Carried 2 fodder"), "and says so: %s" % str(said))
+	said.clear()
+	FarmActions.interact(Vector2i(30, 2))
+	check(said.size() == 1 and said[0].begins_with("The silo has no fodder yet."), "empty: %s" % str(said))
+	var hints: GDScript = load("res://scripts/ui/action_hints.gd")
+	check(hints.interact_verb(Vector2i(30, 3), Vector2i.UP) == "Fodder", "the hint at the silo: %s" % hints.interact_verb(Vector2i(30, 3), Vector2i.UP))
+	# Saved and loaded; an old save has none; a new game none.
+	g.animals.silo = {"grass": 7, "fodder": 12}
+	var d: Dictionary = JSON.parse_string(JSON.stringify(g.to_dict()))
+	check(d.animals.silo.grass == 7 and d.animals.silo.fodder == 12, "the save holds the silo's stores")
+	g.new_game()
+	check(g.from_dict(d) == "" and g.animals.silo.grass == 7 and g.animals.silo.fodder == 12 and g.farm.fixed_at(Vector2i(29, 1)) == "silo", "loads with its stores and its footprint")
+	var old: Dictionary = JSON.parse_string(JSON.stringify(d))
+	old.animals.erase("silo")
+	old.house.built.erase("silo")
+	g.new_game()
+	check(g.from_dict(old) == "" and g.animals.silo.grass == 0 and g.farm.fixed_at(Vector2i(29, 1)) == "", "an old save (no silo) loads with an empty one")
+	var bad: Dictionary = JSON.parse_string(JSON.stringify(d))
+	bad.animals.silo.grass = -1
+	g.new_game()
+	check(g.from_dict(bad) != "", "a broken silo is refused")
+	g.new_game()
+	check(g.farm.fixed == before and g.animals.silo.grass == 0 and not g.animals.silo_built(), "a new game: no silo")
 
 
 func _herd(kinds: Array) -> Animals:

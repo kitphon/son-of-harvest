@@ -576,6 +576,16 @@ gap between them (18, 3), his lumber lies there instead of by the house. The rec
 built counts only the house's own (`Game.house_rooms`). `-- --demo --building=coop_wing
 --time=10:00 --map=farm@coop` shows him at it; `-- --demo --built=coop_wing --map=coop --full`
 (or `barn_wing`, `--map=barn`) a full extended coop (barn).
+The fodder silo (`silo`, 3000 G, 3 days; `"farm": "silo"` is no animal home, so no map extension)
+stands in the farm's north-east corner (`FarmGrid.SILO`, cells 29..30 x 1..2, in front of it the
+spawn `farm@silo`) only once built (`FarmGrid.set_wings`; `SiloProps` in 3D, `FarmView._draw_silo`
+flat). Rules in data/animals.json `silo`: a weed cut with the sickle puts a bundle of grass in
+its pile (cap 40), each night two bundles ferment into one fodder (the silo holds 30), E at it
+carries all its fodder to the barn's loft (`Animals.silo_cut`, `silo_night`, `silo_take`; saved
+as `animals.silo`, an old save has an empty one). The job's `work_flag` (`silo_work`) is set
+while it is under way: Hachiro's `building_silo` plan hammers at it from (30, 3), his lumber
+lies at (29, 3). `-- --demo --building=silo --time=10:00 --map=farm@gate` shows him at it,
+`-- --demo --built=silo --map=farm@silo` the finished silo.
 The smithy's `upgrades.tool_levels` gives one tool its own price list (the rod, whose levels
 are `rod.bite_factor` in data/fish.json: the bite chance per check is multiplied by it).
 

@@ -239,6 +239,8 @@ func _make_buildings() -> void:
 	var barn_id := "farm|barn" + ("|wing" if "barn_wing" in built else "")
 	occlude(func(): MeshCache.build(self, coop_id, func(): CoopProps.coop(self, built)))
 	occlude(func(): MeshCache.build(self, barn_id, func(): BarnProps.barn(self, built)))
+	if "silo" in built:   # the fodder silo, once Hachiro has built it
+		occlude(func(): MeshCache.build(self, "farm|silo", func(): SiloProps.silo(self)))
 
 
 ## Runs a builder and keeps what it made as one thing that fades when in the way (if tall).

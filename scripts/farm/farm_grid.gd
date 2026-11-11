@@ -32,6 +32,10 @@ const BARN_DOOR := Vector2i(21, 3)
 ## gap between them (Hachiro's work spot and lumber), the doors and the yards stay as they were.
 const COOP_WING := Rect2i(11, 1, 2, 3)
 const BARN_WING := Rect2i(24, 1, 1, 3)
+## The fodder silo (Game.house_built: silo), a round tower on four cells east of the pond, in the
+## farm's north-east corner: clear of the pond (x 25..28), the barn's yard (y 5..6), the gate road
+## (31, 5..6) and its spawn, and the cells in front (y 3..4) where the farmer stands to use it.
+const SILO := Rect2i(29, 1, 2, 2)
 const WEED_CHANCE := 0.01   # per empty cell per night, not in winter
 const STORM_LOSS := 1.0 / 16.0
 
@@ -117,12 +121,12 @@ static func barn_rect(built: Array) -> Rect2i:
 	return BARN.merge(BARN_WING) if "barn_wing" in built else BARN
 
 
-## Puts the wings in or out of the fixed cells to match `built` (a new game, a load, a finished
-## job): a wing's cells are cleared ground turned to its building, and go back to open ground
-## when the wing is not built. Wings are derived from `built`, so an old save loads either way.
+## Puts the wings (and the silo) in or out of the fixed cells to match `built` (a new game, a load,
+## a finished job): their cells are cleared ground turned to the building, and go back to open
+## ground when it is not built. Wings are derived from `built`, so an old save loads either way.
 func set_wings(built: Array) -> void:
 	var changed := false
-	for wing in [["coop_wing", COOP_WING, "coop"], ["barn_wing", BARN_WING, "barn"]]:
+	for wing in [["coop_wing", COOP_WING, "coop"], ["barn_wing", BARN_WING, "barn"], ["silo", SILO, "silo"]]:
 		var want: bool = wing[0] in built
 		for y in range(wing[1].position.y, wing[1].end.y):
 			for x in range(wing[1].position.x, wing[1].end.x):

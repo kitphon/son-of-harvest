@@ -55,6 +55,7 @@ func _run() -> void:
 	await _tall_crops()
 	await _tall_sway()
 	await _persimmon()
+	await _silo()
 	scene.free()
 	print("test_view2d: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -1464,3 +1465,37 @@ func _roofs() -> void:
 	check(seen.has("gable1") and seen.has("hip1"), "roof: the town has gable and hip houses (%s)" % [seen.keys()])
 	scene.view._objects.queue_redraw()
 	await process_frame
+
+
+## The fodder silo in the flat view: not there until Hachiro has built it, then a solid round
+## tower the farmer cannot walk into, grass from the sickle goes in, E carries the fodder out.
+func _silo() -> void:
+	player.farm = g.farm   # earlier parts started new games: the scene follows the farm that is now
+	g.go_to_map("farm", Vector2i(30, 4), Vector2i.UP)
+	await process_frame
+	check(g.maps.on_farm() and not g.maps.is_solid(Vector2i(29, 1), g.farm), "flat: no silo before it is built, the cells are open")
+	g.money = 50000
+	check(g.shop_build("general", "silo").ok, "flat: the silo ordered")
+	g._finish_build(g.house_job.duplicate())
+	g.go_to_map("farm", Vector2i(30, 4), Vector2i.UP)   # waking on the farm: the view follows
+	await process_frame
+	scene.view._objects.queue_redraw()
+	await process_frame
+	check(g.farm.fixed_at(Vector2i(29, 1)) == "silo" and FarmView.roof_rect(g.farm, "silo") == Rect2(29 * 16, 16, 32, 32), "flat: the silo's four cells and its box")
+	check(g.maps.is_solid(Vector2i(30, 2), g.farm) and not g.maps.is_solid(Vector2i(30, 3), g.farm), "flat: the tower is solid, the cell in front is open")
+	player.position = Vector2(Vector2i(30, 3) * 16) + Vector2(8, 8)
+	player.facing = Vector2i.UP
+	var moved := true
+	for k in 20:
+		moved = player._try_move(Vector2.UP * 2)
+	check(not moved and player.position.y > 3 * 16, "flat: the farmer stops below the silo (y %.1f)" % player.position.y)
+	var c := Vector2i(26, 9)
+	clear(c)
+	g.farm.cell(c + Vector2i.DOWN).obj = FarmGrid.Obj.WEED
+	select("sickle")
+	act("tool", c, Vector2i.DOWN)
+	check(g.animals.silo.grass == 1, "flat: a weed cut with the sickle is a bundle of grass (%d)" % g.animals.silo.grass)
+	g.animals.silo.fodder = 4
+	var loft: int = g.animals.stock_of("barn")
+	act("interact", Vector2i(30, 3), Vector2i.UP)
+	check(g.animals.stock_of("barn") == loft + 4 and g.animals.silo.fodder == 0, "flat: E at the silo carries its fodder to the loft")

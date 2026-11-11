@@ -2838,9 +2838,23 @@ func sync_build_flag() -> void:
 			flags[FARM_FLAG] = house_job.build
 		else:
 			flags.erase(FARM_FLAG)
+		_set_work_flags(b)
 	else:
 		flags.erase(BUILD_FLAG)
 		flags.erase(FARM_FLAG)
+		_set_work_flags({})
+
+
+## The job's own extra flag (data/shops.json builds work_flag: the silo's silo_work) is set while
+## it is under way; the work flags of every job are cleared first.
+func _set_work_flags(job: Dictionary) -> void:
+	for sid in Shop.ids():
+		for bid in shop(sid).builds:
+			var wf := str(shop(sid).builds[bid].get("work_flag", ""))
+			if wf != "":
+				flags.erase(wf)
+	if str(job.get("work_flag", "")) != "":
+		flags[str(job.work_flag)] = true
 
 
 ## Does a solid prop of the farm map (data/maps/farm.json, the ones its story flags show)

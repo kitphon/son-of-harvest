@@ -10,6 +10,53 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — The fodder silo
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: a third farm job in the Yorozu Store's Build tab: the fodder silo (`silo`, 3000 G, 3
+  days, `"farm": "silo"`, `"work_flag": "silo_work"`), built by Hachiro. Fodder today is only
+  bought (25 G a bundle into the barn's loft, Animals.add_fodder), so the silo gives it a second
+  source, from cut grass. Rules in data/animals.json `silo`: once built, each weed cleared with
+  the sickle (FarmActions.use_tool) puts a bundle of grass in the pile (cap 40); each night
+  `grass_per_fodder` 2 bundles ferment into 1 fodder while the silo holds fewer than 30
+  (Animals.silo_night, in day_end); E at the silo carries all its fodder to the barn's loft
+  (FarmActions.use_silo, Animals.silo_take), the hint "Fodder". Stores are `Animals.silo`,
+  saved as `animals.silo` (an old save has none: an empty pile; a negative or non-whole value
+  is refused). Footprint FarmGrid.SILO (29..30 x 1..2), put in and out of the fixed cells by
+  `set_wings` like the wings, so the unbuilt farm is unchanged and the four cells are solid
+  only once built; chosen because it is clear of the pond (25..28), the barn's yard (y 5..6),
+  the gate road and its spawn, Hachiro's gap at x 18 and the lumber at (18, 1), and the two
+  cells in front (29..30, 3..4) stay open to use it from. 3D: SiloProps (a round tower of cedar
+  staves on a fieldstone footing, iron hoops, a kawara cone roof with a finial, a hatch and
+  step on the front, a loading door and ladder on the +x side), kept by MeshCache as
+  `farm|silo`; flat: FarmView._draw_silo. While it is under way: the game's flag `silo_work`
+  (Game._set_work_flags, a job's `work_flag`) beside `farm_work`; Hachiro's new `building_silo`
+  plan works at (30, 3) below it, his lumber lies at (29, 3) beside the pond and not in the gap
+  (the (18, 1) stack has `unless: silo_work`); a new spawn `farm@silo` (30, 3) for screenshots.
+  The record's House built leaves it out (a farm job). Prices ours: about 120 bundles at the
+  store's 25 G, and a field makes about 3 weeds a night outside winter (WEED_CHANCE), so the
+  silo gives about 1 or 2 fodder a day (a fourth of what a full barn eats): a saving of about
+  35 G a day for the weeder, paid back over most of a year; cheaper than the wings because it
+  does not hold animals. Spouse / child weed-pulling (FarmGrid.pull_weeds) does not feed it.
+  Thai for the name, the about line, the five messages and the save error.
+- Checked: test_animals `_silo` (rules, unbuilt footprint open and no flat roof, the job and its
+  flags, the lumber, Hachiro's plan, only four new cells and none moved, the pond / yards / spawns
+  / gate untouched, a weed gives one bundle and a rock none, the caps 40 / 30, the odd bundle
+  waiting, day_end ferments, E carries to the loft and says so, the hint, the save, an old save,
+  a broken one refused, a new game without it); test_shops reads the silo job (no map file: the
+  animals.json rules and a work flag) and six build rows; test_view2d `_silo` (open before, solid
+  after, the farmer stopped below it, the sickle's grass and E in the flat view). All 31 tests
+  `OK (0 failed)`; lang_report `th: 2665 of 2665 done (100%), 0 missing, 0 stale`; smoke runs
+  (title, `--demo`, `--map=town`, `--mine=3`, `--built=silo --map=farm@silo`, `--building=silo
+  --time=10:00 --map=farm@gate`, and the flat view built) 0 error or warning lines. Movie Maker
+  frames looked at: `--demo --built=silo --map=farm@silo` (3D: the round wooden silo with hoops,
+  grey tiled cone and ladder beside the pond, the hint "E Fodder"), `--demo --building=silo
+  --time=10:00 --map=farm@gate` (Hachiro hammering below the silo's empty site, the lumber stack
+  at the pond's corner), and the same two through main_2d.tscn (the flat silo, 2x2 cells, on a
+  path tile; Hachiro and the lumber), with the HUD hidden for a moment by a throwaway edit that
+  was reverted. Not shown: the silo at night or in snow (it has no lit parts and no snow cap).
+- Left / next: a greenhouse. The silo's grass pile and fodder are not on any screen: only the
+  messages at the silo say them.
+
 ## 2026-11-11 — The coop and barn extensions seen from outside
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: a built wing now shows on the farm map. FarmGrid.COOP_WING (11,1,2,3: two cells left of
