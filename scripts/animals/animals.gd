@@ -8,11 +8,16 @@ extends RefCounted
 ## (DESIGN's advice: risks must be recoverable).
 ##
 ## An animal is {kind, name, happy, age, sick, sick_days, petted, out_hours, brushed,
-## prod_days}. Adults (age >= the kind's adult_days) lay (hens) or give a product every few
+## prod_days, carrying, carry_days}. Adults (age >= the kind's adult_days) lay (hens) or give a product every few
 ## fed, healthy nights (cows: milk, sheep: wool; prod_days counts towards it). Each home has a
 ## feed box with portions put in from its stock (chicken feed / hay fodder) and a door to go
 ## out by; each animal eats one portion at night unless it grazed outside long enough. Eggs
 ## lie in the coop's nests until taken.
+##
+## Breeding (data/animals.json "breeding" and each kind's "breed"): the musubi cord tied on a
+## happy, well, grown cow's or ewe's stall (breed) makes her carry for the kind's nights. She
+## gives no milk or wool meanwhile; on the due night the calf or lamb is born in the barn if
+## there is a free place, else she waits, night by night, until there is one.
 ##
 ## The dog is {name, affection, petted, lifted, held, cell, facing}: always on the farm,
 ## stepped by dog_walk (the views call it), petted and picked up once a day each.
@@ -131,8 +136,11 @@ func is_adult(a: Dictionary) -> bool:
 	return int(a.age) >= int(kind_rule(a.kind).get("adult_days", 0))
 
 
-## A name for showing: a chick is "Mochi (chick)", a calf "Momo (calf)".
+## A name for showing: a chick is "Mochi (chick)", a calf "Momo (calf)", a cow carrying
+## "Hana (in calf)".
 func label(a: Dictionary) -> String:
+	if a.get("carrying", false):
+		return "%s (%s)" % [a.name, String(breed_rule(a.kind).get("carrying_name", "+"))]
 	return a.name if is_adult(a) else "%s (%s)" % [a.name, String(kind_rule(a.kind).get("young_name", "young")).to_lower()]
 
 
@@ -141,7 +149,7 @@ func look(a: Dictionary) -> String:
 	var k := kind_rule(a.kind)
 	if not is_adult(a):
 		return String(k.get("young_sprite", a.kind))
-	if k.has("shorn_sprite") and not product_ready(a):
+	if k.has("shorn_sprite") and not _grown(a):
 		return String(k.shorn_sprite)
 	return a.kind
 
@@ -185,7 +193,8 @@ func add(kind: String, young := false) -> bool:
 	named += 1
 	list.append({"kind": kind, "name": name, "happy": int(k.get("happy_start", 0)),
 		"age": 0 if young else int(k.get("adult_days", 0)), "sick": false, "sick_days": 0,
-		"petted": false, "out_hours": 0, "brushed": false, "prod_days": 0})
+		"petted": false, "out_hours": 0, "brushed": false, "prod_days": 0,
+		"carrying": false, "carry_days": 0})
 	changed.emit()
 	return true
 
@@ -314,10 +323,16 @@ func gives(a: Dictionary) -> Dictionary:
 	return kind_rule(a.kind).get("gives", {})
 
 
-## Milk to take / wool to shear: grown, well, and enough fed nights since the last time.
+## Milk to take / wool to shear: grown, well, not carrying, and enough fed nights since the
+## last time.
 func product_ready(a: Dictionary) -> bool:
+	return _grown(a) and not a.sick and not a.get("carrying", false)
+
+
+## The product has grown back (enough fed nights): the sheep looks woolly again.
+func _grown(a: Dictionary) -> bool:
 	var g := gives(a)
-	return not g.is_empty() and is_adult(a) and not a.sick and int(a.prod_days) >= maxi(int(g.get("every", 1)), 1)
+	return not g.is_empty() and is_adult(a) and int(a.prod_days) >= maxi(int(g.get("every", 1)), 1)
 
 
 ## Milks / shears animal `i`: the product graded by its happiness now ("" when not ready).
@@ -397,7 +412,9 @@ func day_end(weather: String, rng: RandomNumberGenerator) -> Array[String]:
 		if lays != "" and is_adult(a) and ate and not a.sick and eggs.size() < nests:
 			eggs.append(grade_for(lays, a.happy))
 		var g := gives(a)
-		if not g.is_empty() and is_adult(a) and ate and not a.sick:
+		if a.get("carrying", false):
+			a.carry_days = mini(int(a.carry_days) + 1, carry_nights(a.kind))
+		elif not g.is_empty() and is_adult(a) and ate and not a.sick:
 			a.prod_days = mini(int(a.prod_days) + 1, maxi(int(g.get("every", 1)), 1))
 		if a.sick:
 			a.sick_days = int(a.sick_days) + 1
@@ -432,8 +449,85 @@ func day_end(weather: String, rng: RandomNumberGenerator) -> Array[String]:
 			incubator = {}
 			if add("chicken", true):
 				news.append("A chick hatched: %s." % list.back().name)
+	news.append_array(_births())
 	_dog_night()
 	changed.emit()
+	return news
+
+
+# --- breeding ---------------------------------------------------------------
+
+## The breeding rules shared by every kind ({item, happy_min, born_happy}).
+func breeding() -> Dictionary:
+	return rules.get("breeding", {})
+
+
+## The rucksack item that starts a pregnancy (the musubi cord).
+func breed_item() -> String:
+	return String(breeding().get("item", ""))
+
+
+## A kind's own breeding rule ({carry_nights, carrying_name, born, waits}); {} for a kind that
+## doesn't breed this way (the hens have the incubator).
+func breed_rule(kind: String) -> Dictionary:
+	return kind_rule(kind).get("breed", {})
+
+
+func carry_nights(kind: String) -> int:
+	return maxi(int(breed_rule(kind).get("carry_nights", 1)), 1)
+
+
+## "" when animal `i` may carry now, else why not ("kind", "young", "sick", "carrying",
+## "unhappy").
+func why_not_breed(i: int) -> String:
+	if i < 0 or i >= list.size() or breed_rule(list[i].kind).is_empty():
+		return "kind"
+	var a: Dictionary = list[i]
+	if not is_adult(a):
+		return "young"
+	if a.sick:
+		return "sick"
+	if a.get("carrying", false):
+		return "carrying"
+	if int(a.happy) < int(breeding().get("happy_min", 0)):
+		return "unhappy"
+	return ""
+
+
+## The cord tied on animal `i`'s stall: she carries from tonight. Returns why_not_breed.
+func breed(i: int) -> String:
+	var why := why_not_breed(i)
+	if why == "":
+		list[i].carrying = true
+		list[i].carry_days = 0
+		changed.emit()
+	return why
+
+
+## Nights until animal `a` is due (0: due, waiting for room), or -1 when not carrying.
+func due_in(a: Dictionary) -> int:
+	if not a.get("carrying", false):
+		return -1
+	return maxi(carry_nights(a.kind) - int(a.carry_days), 0)
+
+
+## The night's births: every mother at her due night has her young in her home if it has a
+## free place (named from the names list like any new animal), else she waits.
+func _births() -> Array[String]:
+	var news: Array[String] = []
+	for i in list.size():   # the young are appended at the end, past the mothers looked at
+		var a: Dictionary = list[i]
+		if not a.get("carrying", false) or due_in(a) > 0:
+			continue
+		var b := breed_rule(a.kind)
+		if not add(a.kind, true):
+			news.append(String(b.get("waits", "%s")) % a.name)
+			continue
+		var young: Dictionary = list.back()
+		young.happy = mini(int(young.happy) + int(breeding().get("born_happy", 0)), happy_max())
+		a.carrying = false
+		a.carry_days = 0
+		news.append(String(b.get("born", "%s: %s")) % [a.name, young.name])
 	return news
 
 
@@ -592,7 +686,7 @@ static func parse(v: Variant, r := data(), version := SaveGame.VERSION) -> Array
 	for s in v.animals:
 		if not s is Dictionary or not s.get("kind") is String or out.kind_rule(s.kind).is_empty() \
 				or not s.get("name") is String or not s.get("sick") is bool or not s.get("petted") is bool \
-				or not s.get("brushed", false) is bool:
+				or not s.get("brushed", false) is bool or not s.get("carrying", false) is bool:
 			return ["A saved animal is broken", null]
 		var a := {"kind": s.kind, "name": s.name, "sick": s.sick, "petted": s.petted,
 			"brushed": s.get("brushed", false),
@@ -600,7 +694,9 @@ static func parse(v: Variant, r := data(), version := SaveGame.VERSION) -> Array
 			"age": SaveGame.whole(s.get("age"), 0, 1 << 30),
 			"sick_days": SaveGame.whole(s.get("sick_days"), 0, 1 << 30),
 			"out_hours": SaveGame.whole(s.get("out_hours"), 0, 24),
-			"prod_days": SaveGame.whole(s.get("prod_days", 0), 0, 1 << 30)}
+			"prod_days": SaveGame.whole(s.get("prod_days", 0), 0, 1 << 30),
+			"carrying": s.get("carrying", false),
+			"carry_days": SaveGame.whole(s.get("carry_days", 0), 0, 1 << 30)}
 		if null in a.values():
 			return ["A saved animal is broken", null]
 		out.list.append(a)

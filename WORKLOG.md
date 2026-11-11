@@ -39,6 +39,39 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
   150%), test_save, test_lang, test_title `OK (0 failed)`; lang_report th 2606 of 2606, 0
   missing; `--demo` smoke run 0 error lines; screenshots at 100% and at `--ui=150% --lang=pseudo`.
 - Left / next: nothing open. The log counts this game's catches, race catches included.
+## 2026-11-11 — Cow and sheep breeding (the Musubi cord)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: DESIGN's "ตั้งท้อง/เกิดลูก" for the barn, our own way. data/animals.json `breeding`
+  {item musubi_cord, happy_min 60, born_happy 10} and each barn kind's `breed` {carry_nights,
+  carrying_name, born, waits}: cow 12 nights, sheep 9. The Yorozu Store sells the Musubi cord
+  (a red-and-white braided cord, after a shrine's musubi knot) for 600 G. Held up, E on a
+  grown, healthy cow or ewe at 60+ happiness ties it on her stall (Animals.breed /
+  why_not_breed; BarnActions.tie_cord): the cord is used up and she carries; too young, sick,
+  already carrying or not happy enough each has its message and the cord stays in hand. While
+  carrying: no milk or wool (product_ready false, prod_days doesn't grow; a woolly ewe stays
+  woolly), her label is "Name (in calf)" / "(in lamb)", and E on her adds when she's due
+  (due_in, BarnActions.due_note). On the due night (Animals._births, after the incubator) the
+  young is born in her home through `add` (named from the names list, happy_start + 10) and
+  the morning news says "%s had a calf in the barn: %s."; with the barn full she waits and the
+  news says so each night until there is room. Animals save `carrying` / `carry_days`; saves
+  from before load with nobody carrying (no version bump). Its own 14 x 14 icon (a braided
+  loop, a knot and two tassels) through ItemArt.refine. Thai for the 14 new texts. README
+  → Cows and sheep has a Breeding paragraph.
+- Numbers (ours): 12 nights without milk is about 1,800 G (150 a day after fodder), so cord +
+  loss is about 2,400 against the store's 3,200 calf; 9 nights is three wool cycles (about 900
+  G), about 1,500 against 1,900 for a lamb. Worth doing, not a money machine; happy_min 60 asks
+  for real care first (a bought cow starts at 30).
+- Checked: after `--import`, all 31 tests/test_*.gd print `OK (0 failed)` (test_animals,
+  test_lang, test_shops, test_save re-run after the last icon tweak: OK); test_animals has
+  `_breeding` (rules, refusals, no product, label, the due night, the news, the name, a full
+  barn waiting then the birth), `_breeding_save` (round trip, broken fields refused, a save
+  without the fields loads) and `_breeding_actions` (store stock, name, icon, held cord tied
+  through FarmActions, the due message); test_shops' store rows shifted by the new supply.
+  lang_report: `th: 2614 of 2614 done (100%), 0 missing, 0 stale`. `--quit-after 300 --
+  --demo --map=barn` prints 0 error / warning lines. The icon looked at as a PNG (a red loop
+  with white braid marks, knot and two tassels).
+- Left / next: no 3D / flat-view sign of a carrying animal beyond her name and the E message;
+  no ageing or deaths (DESIGN mentions them; left out on purpose, risks stay recoverable).
 
 ## 2026-11-11 — Merge: portraits' first pass, Thai coverage, the unrefined figure path
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

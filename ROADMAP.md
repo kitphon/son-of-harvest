@@ -25,6 +25,7 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 ## Next up
 [x] 2026-11-11 Kota and Tome get rain and storm lines (talk picks, Thai); snow still open for both, see WORKLOG.
 [x] 2026-11-11 Fish log: a pause menu page listing every fish kind (icon, name, count, where / when it bites; "???" until caught; "N of M kinds"), `--pause=fishlog`; see WORKLOG.
+[x] 2026-11-11 Cow and sheep breeding: the Musubi cord (Yorozu Store, 600 G) held up and tied on a grown, healthy cow or ewe at 60+ happiness; 12 / 9 nights carrying without milk or wool, "(in calf)" / "(in lamb)" in her name, the due date on E; the calf / lamb born in the barn on the due night (named from the list, a little happier), waits while the barn is full; saved (old saves load); its own refined icon; Thai; see WORKLOG.
 [x] 2026-11-11 Portraits' first pass: `_portrait_of` lays flat materials straight for PortraitArt.refine, so OUTLINE is only a colour tests look for; same keys, moods and pictures.
 [x] Thai coverage complete (2026-11-10): the last 36 gaps were showcase view names, node and class names, a shader marker and a fallback format, none shown; LangCatalog leaves them out (DATA_SKIP, NOT_SHOWN), th 2599 of 2599; see WORKLOG.
 [x] Unrefined figure path removed (2026-11-10): FigureArt's `_refine` flag and branches, the near-black outline stamp and the `OUTLINE` const gone (no picture reached them); `_stamp` is the refined stamp; 918 figure pictures identical before and after; see WORKLOG.
