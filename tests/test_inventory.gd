@@ -453,7 +453,10 @@ func _food_art_refined() -> void:
 		check(img.get_size() == Vector2i(14, 14), "food art: %s is 14 x 14" % key)
 		check(not seen.has(old), "food art: %s has no old outline colour" % key)
 		check(seen.size() >= 5, "food art: %s has several tones (%d colours)" % [key, seen.size()])
-		var main := Color(look.get("accent" if look.get("shape", "") in dish_main else "color", "fbf8f0"))
+		# A round sweet with its own `top` (two tiers, three pieces, one in a leaf) sits on its leaf
+		# or stand, the accent, which is then the main material like a dish's.
+		var on_dish: bool = look.get("shape", "") in dish_main or (look.get("shape", "") == "round" and look.has("top"))
+		var main := Color(look.get("accent" if on_dish else "color", "fbf8f0"))
 		var tn := ItemArt.tones(main)
 		check(seen.has(FigureArt._key(tn[0])) and seen.has(FigureArt._key(tn[2])),
 			"food art: %s shows its main material's shade and lit tones" % key)

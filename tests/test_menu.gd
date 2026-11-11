@@ -430,6 +430,63 @@ func _no_fallback_icons() -> void:
 	check(bad.is_empty() and rows.size() >= 80, "no shippable item uses a fallback picture (%d rows; bad: %s)" % [rows.size(), ", ".join(bad)])
 
 
+## Foods of one icon shape (the bowls, the plates, the round sweets, the cups, the bottles) differ
+## by more than colour: a recolouring keeps which neighbouring pixels share a colour and the
+## silhouette, so two pictures must differ in at least DETAIL_MIN of those (the noodles, chunks,
+## mochi or a pudding of data/foods.json `top` / `marks`). Every drawing step is a known one.
+const DETAIL_MIN := 8
+
+
+func _dish_details() -> void:
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/foods.json"))
+	var by_shape := {}
+	var steps_ok := true
+	for id in data.foods:
+		var look: Dictionary = data.foods[id].get("look", {})
+		for step in look.get("top", []) + look.get("marks", []):
+			steps_ok = steps_ok and step is Array and step[0] in PlaceholderArt.FOOD_STEPS
+		var shape := String(look.get("shape", ""))
+		if not by_shape.has(shape):
+			by_shape[shape] = []
+		by_shape[shape].append(id)
+	check(steps_ok, "every food icon step in data/foods.json is a known one")
+	var close: Array[String] = []
+	var pairs := 0
+	for shape in by_shape:
+		var ids: Array = by_shape[shape]
+		var pics := {}
+		for id in ids:
+			var img := PlaceholderArt.tex("ui:food:" + id).get_image()
+			img.convert(Image.FORMAT_RGBA8)
+			pics[id] = img
+		for i in ids.size():
+			for j in range(i + 1, ids.size()):
+				pairs += 1
+				var d := _structure_diff(pics[ids[i]], pics[ids[j]])
+				if d < DETAIL_MIN:
+					close.append("%s / %s (%d)" % [ids[i], ids[j], d])
+	check(close.is_empty() and pairs >= 100, "food icons of one shape differ by more than colour (%d pairs; too close: %s)" % [pairs, ", ".join(close)])
+
+
+## How far apart two pictures are, colour aside: the pixels where one is drawn and the other not,
+## plus the neighbouring pairs (right and down) that share a colour in one picture and not the
+## other.
+func _structure_diff(a: Image, b: Image) -> int:
+	var n := 0
+	var size := a.get_size()
+	for y in size.y:
+		for x in size.x:
+			if (a.get_pixel(x, y).a > 0.0) != (b.get_pixel(x, y).a > 0.0):
+				n += 1
+			for dv in [Vector2i(1, 0), Vector2i(0, 1)]:
+				var q: Vector2i = Vector2i(x, y) + dv
+				if q.x >= size.x or q.y >= size.y:
+					continue
+				if (a.get_pixel(x, y) == a.get_pixelv(q)) != (b.get_pixel(x, y) == b.get_pixelv(q)):
+					n += 1
+	return n
+
+
 func _shipped_fit() -> void:
 	var pause: GDScript = load("res://scripts/ui/pause_screen.gd")
 	var k: Dictionary = pause.get_script_constant_map()
@@ -899,6 +956,7 @@ func _settings_in_effect() -> void:
 	_shipped_fit()
 	_silhouettes()
 	_no_fallback_icons()
+	_dish_details()
 
 
 func _has_button(action: String, button: int) -> bool:

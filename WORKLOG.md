@@ -43,6 +43,50 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
   only faintly (summer paddy share 0.35, by design).
 - Left / next: the flat view's props still draw over the mist (another task).
 
+
+## 2026-11-11 — Dish icons set apart by what is in them, not only by colour
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the open note of the shippable-icons entry (the dishes of one shape, many bowls and a few
+  plates, differed mainly by colour). PlaceholderArt._food_icon reads four new optional keys of a
+  food's look in data/foods.json, drawn by `food_layers` before the ItemArt pass: `top` (drawing
+  steps toned like the rest: ["px", x, y, w, h, colour], ["oval", cx, cy, rx, ry, colour],
+  ["line", x0, y0, x1, y1, colour], ["dots", colour, x, y, ...]), `marks` (the same steps kept in
+  their colours: specks, a plum, sesame), `bare` (the shape is skipped and the top draws the whole
+  thing) and `steam` (columns of soft steam after the pass, like the cup's). With a `top` the plate
+  and the round sweet draw only their plate / leaf. The bowl is now seen a little more from above
+  (contents rows 3..6, the bowl narrowing in steps to its foot instead of a round ball), so the
+  contents have room. Every food of a shared shape got its own detail (31 looks):
+  bowls: shaved ice heaped with strawberry syrup, year-end soba with its noodles and chopsticks
+  across the rim, miso soup with tofu, wakame and negi, turnip stew with lilac-topped chunks,
+  potato stew with potato, carrot and peas, ochazuke with rice and a red plum, pumpkin nimono
+  with green-skinned wedges, furofuki daikon (a white round under miso and yuzu peel), buri
+  daikon (fish with its dark skin), takikomi gohan speckled, takenoko gohan with shoots and a
+  kinome leaf, chestnut rice, kinoko-jiru with mushroom caps, zenzai with two mochi;
+  plates: a yakisoba heap with red ginger and aonori, three rolled-egg slices with their layers and
+  grated daikon, tempura with leaf tips, warabi mochi cubes with a pick, yokan with chestnut;
+  round: sakura mochi in its leaf, two-tier kagami mochi with the orange (accent now the wooden
+  stand), a caramel pudding on a white dish, three kinako mochi, one kusa mochi opened on its anko;
+  cups: a ginger dab and band (amazake), a painted leaf (yomogi tea), a yuzu slice; the dobin-mushi
+  pot with its cup and sudachi and a matcha bowl with froth and whisk drawn bare; bottles: the
+  marble in the soda's neck, the herb tonic as a gourd with a red cord. Some base colours were
+  moved so the details read (a few broths darker, the near-black soba and zenzai bowls lifted).
+  Same keys, 14 x 14.
+- Checked: contact sheet of every food icon by shape at x8 (a scratch tool script, not kept),
+  looked at over four rounds: the round bowls read as balls (fixed with the stepped taper), the
+  three kinako mochi merged (fixed with stronger tone steps), the kusa mochi's anko was a dot
+  (now one opened mochi), the zenzai mochi were grey (now 3 x 3 so the lit top shows). New
+  test_menu `_dish_details`: every pair of foods of one shape (129 pairs) differs in at least 8
+  of silhouette pixels plus neighbouring pairs that share a colour in one picture and not the
+  other (a pure recolouring scores 0); with the old data/foods.json it fails (green_tea / amazake
+  (0) and so on). Every step is a known one. All tests and smoke runs: see the report of this
+  commit. `_no_fallback_icons` still passes. test_inventory `_food_art_refined` takes the accent
+  (the leaf or stand) as the main material of a round sweet with its own `top`, as for a dish:
+  the sweet's own colour no longer reaches the silhouette's lower right edge where the shade
+  tone is checked. In the game: `--demo --cook` shows the miso soup, turnip stew (chunks) and
+  tamagoyaki (slices) apart at a glance in the cooking list.
+- Left / next: green tea and milk keep the plain cup and bottle (the others differ from them); the
+  details are a refined placeholder like the rest of the icons.
+
 ## 2026-11-11 — Morning mist (asagiri) over the water and the paddies
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: low soft mist at dawn on the outdoor maps, in both views, modelled on the drifting life.

@@ -2389,20 +2389,26 @@ static func _fish_fx(kind: String) -> Image:
 ## split open. Laid in flat materials (the food `color`, the dish or wrapper `accent`, the
 ## dango stick) and toned by ItemArt like the crops; the few marks (the slice's cut, the fish's
 ## eye and grill line, the chestnuts' shine, the bag's printed band) are fixed colours.
+## A look's own detail (data/foods.json `top`, `marks`, `bare`, `steam`; see food_layers) sets dishes of
+## one shape apart by more than colour: the noodles, the chunks, a pudding on its plate.
 static func _food_icon(look: Dictionary) -> Image:
 	var img := _blank(14, 14)
 	var c := Color(look.get("color", "fbf8f0"))
 	var a := Color(look.get("accent", "26302a"))
 	var marks := []
-	match look.get("shape", ""):
+	var has_top: bool = look.has("top")
+	match "" if look.get("bare", false) else look.get("shape", ""):
+		"":
+			pass
 		"rice_ball":
 			for y in 9:
 				var half := (y + 1) / 2 + 1
 				_px(img, 7 - half, y + 2, half * 2, 1, c)
 			_px(img, 5, 8, 4, 4, a)
-		"round":
+		"round":   # a sweet (color) on its leaf or dish (accent); a `top` lays its own sweet
 			_oval(img, 7, 10, 5.5, 2.0, a)
-			_oval(img, 7, 7.5, 4.5, 3.5, c)
+			if not has_top:
+				_oval(img, 7, 7.5, 4.5, 3.5, c)
 		"skewer":
 			_line(img, Vector2i(2, 12), Vector2i(12, 2), FOOD_STICK)
 			_oval(img, 4.5, 9.5, 2.2, 2.2, a)
@@ -2412,7 +2418,7 @@ static func _food_icon(look: Dictionary) -> Image:
 			_px(img, 2, 12, 10, 1, a)
 			_px(img, 3, 5, 8, 7, a)
 			_px(img, 4, 5, 6, 2, c)
-			ItemArt.refine(img)
+			ItemArt.refine(img, food_layers(img, look))
 			for x in [5, 8]:   # steam, after the pass so it stays soft
 				_px(img, x, 1 + x % 2, 1, 2, Color(1, 1, 1, 0.7))
 			return img
@@ -2421,17 +2427,21 @@ static func _food_icon(look: Dictionary) -> Image:
 			_px(img, 5, 2, 4, 2, c)
 			_px(img, 5, 1, 4, 2, a)
 			_px(img, 4, 7, 6, 3, a)   # the paper label, the cap's colour
-		"bowl":   # a lacquer or pottery bowl (accent) full to the rim (color)
-			_oval(img, 7, 6, 6.0, 2.5, c)
-			_px(img, 1, 6, 13, 3, a)
-			_oval(img, 7, 9, 5.5, 3.0, a)
-			_px(img, 5, 12, 5, 1, a)
-		"plate":   # a long plate (accent) with a slice of something on it (color)
+		"bowl":   # a lacquer or pottery bowl (accent) full to the rim (color), seen from above
+			# enough to show its top: the surface is rows 3..6 (x 1..12), heaps rise to row 1.
+			_oval(img, 7, 6, 6.0, 3.0, c)
+			for y in 5:   # the bowl narrowing from its rim (rows 7..8) down to the foot
+				var inset := maxi(y - 1, 0)
+				_px(img, 1 + inset, 7 + y, 12 - inset * 2, 1, a)
+			_px(img, 5, 12, 4, 1, a)
+		"plate":   # a long plate (accent) with a slice of something on it (color); a `top`
+			# lays its own food on the plate instead of the slice
 			_oval(img, 7, 9.5, 6.5, 3.0, a)
-			_px(img, 3, 5, 8, 4, c)
-			var cut := c.darkened(0.3)
-			_px(img, 6, 5, 1, 4, cut)
-			marks.append(cut)
+			if not has_top:
+				_px(img, 3, 5, 8, 4, c)
+				var cut := c.darkened(0.3)
+				_px(img, 6, 5, 1, 4, cut)
+				marks.append(cut)
 		"fish_plate":   # a whole grilled fish (color) on a long plate (accent)
 			_oval(img, 7, 10, 6.5, 2.5, a)
 			_oval(img, 6, 7, 4.5, 2.0, c)
@@ -2455,7 +2465,44 @@ static func _food_icon(look: Dictionary) -> Image:
 			_oval(img, 7, 7.5, 4.0, 1.8, c)
 		_:
 			_px(img, 3, 3, 8, 8, c)
-	return ItemArt.refine(img, marks)
+	marks.append_array(food_layers(img, look))
+	ItemArt.refine(img, marks)
+	for x in look.get("steam", []):   # steam over a hot dish, soft, after the pass like the cup's
+		_px(img, int(x), int(x) % 2, 1, 2, Color(1, 1, 1, 0.7))
+	return img
+
+
+## The food's own detail over its shape, from its look in data/foods.json: `top` is a list of
+## drawing steps toned by ItemArt like the rest (the noodles, chunks, mochi, a pudding), `marks`
+## the same steps in fixed colours (specks, a plum, a cut line). A step is
+## ["px", x, y, w, h, colour], ["oval", cx, cy, rx, ry, colour], ["line", x0, y0, x1, y1,
+## colour] or ["dots", colour, x0, y0, x1, y1, ...]. Returns the marks' colours for refine.
+static func food_layers(img: Image, look: Dictionary) -> Array:
+	for step in look.get("top", []):
+		_food_step(img, step)
+	var fixed := []
+	for step in look.get("marks", []):
+		_food_step(img, step)
+		fixed.append(Color(str(step[1] if step[0] == "dots" else step[5])))
+	return fixed
+
+
+## The drawing steps food_layers knows.
+const FOOD_STEPS := ["px", "oval", "line", "dots"]
+
+
+static func _food_step(img: Image, s: Array) -> void:
+	match s[0]:
+		"px":
+			_px(img, int(s[1]), int(s[2]), int(s[3]), int(s[4]), Color(str(s[5])))
+		"oval":
+			_oval(img, float(s[1]), float(s[2]), float(s[3]), float(s[4]), Color(str(s[5])))
+		"line":
+			_line(img, Vector2i(int(s[1]), int(s[2])), Vector2i(int(s[3]), int(s[4])), Color(str(s[5])))
+		"dots":
+			var col := Color(str(s[1]))
+			for i in range(2, s.size() - 1, 2):
+				_px(img, int(s[i]), int(s[i + 1]), 1, 1, col)
 
 
 ## The food icons' own materials: the dango's bamboo stick and its plain white dumpling, the
