@@ -23,6 +23,8 @@ func _init() -> void:
 	_breeding()
 	_breeding_save()
 	_carrying_art()
+	_aging()
+	_aging_save()
 
 
 func _process(_delta: float) -> bool:
@@ -32,6 +34,7 @@ func _process(_delta: float) -> bool:
 		_barn_actions()
 		_breeding_actions()
 		_cord_hint()
+		_aging_actions()
 		print("test_animals: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -585,6 +588,167 @@ func _barn_save() -> void:
 	check(r[0] == "" and r[1].dog.affection == int(Animals.data().dog.affection_start) and r[1].list[0].prod_days == 0, "and the new dog")
 	check(Animals.parse(old, Animals.data(), 3)[0] == "", "a version 3 save gets them too")
 	check(Animals.parse(old, Animals.data(), 4)[0] != "", "a version 4 save must have the barn and the dog")
+
+
+# --- aging --------------------------------------------------------------------
+
+func _aging() -> void:
+	var d := Animals.data()
+	var ag: Dictionary = d.aging
+	var GameScript: GDScript = load("res://scripts/autoload/game.gd")
+	check(int(ag.season_days) == GameScript.DAYS_PER_SEASON and int(ag.seasons) == GameScript.SEASONS.size(), "the age is told in the game's calendar")
+	check(float(ag.skip_chance) > 0.0 and float(ag.skip_chance) < 0.5, "old animals thin out a little, not much")
+	check(String(ag.passed).count("%s") == 1 and String(ag.passed).ends_with("."), "the passing line names the animal")
+	var a := Animals.new()
+	for k in d.kinds:
+		var r: Dictionary = d.kinds[k]
+		var p: Array = r.get("pass_days", [])
+		check(int(r.bought_days) >= int(r.adult_days) and int(r.old_days) > int(r.bought_days) and p.size() == 2 \
+			and int(p[0]) > int(r.old_days) and int(p[1]) >= int(p[0]), "%s: bought grown, old, then a lifespan range" % k)
+		check(a.add(k) and int(a.list.back().age) == int(r.bought_days) and a.is_adult(a.list.back()), "a bought %s is %d nights old" % [k, int(r.bought_days)])
+		check(a.add(k, true) and int(a.list.back().age) == 0, "a young %s is new" % k)
+	# The first hens outlive the record (year 3's first morning, day 240).
+	check(int(d.kinds.chicken.pass_days[0]) - int(d.kinds.chicken.bought_days) > 240, "the starting hens see the record")
+	# Old: the name says so, and its age is told.
+	var hen := {"kind": "chicken", "name": "Kome", "age": int(d.kinds.chicken.old_days) - 1, "carrying": false}
+	check(a.label(hen) == "Kome" and not a.is_old(hen), "not old yet: %s" % a.label(hen))
+	hen.age = int(d.kinds.chicken.old_days)
+	check(a.is_old(hen) and a.label(hen) == "Kome (old)", "old: %s" % a.label(hen))
+	var cow := {"kind": "cow", "name": "Hana", "age": int(d.kinds.cow.old_days), "carrying": true}
+	check(a.label(cow) == "Hana (%s)" % d.kinds.cow.breed.carrying_name, "carrying says more than old: %s" % a.label(cow))
+	var ages := {0: "Kome was born last night.", 1: "Kome is a day old.", 5: "Kome is 5 days old.",
+		29: "Kome is 29 days old.", 30: "Kome is a season old.", 95: "Kome is 3 seasons old.",
+		120: "Kome is a year old.", 150: "Kome is a year and a season old.", 200: "Kome is a year and 2 seasons old.",
+		240: "Kome is 2 years old.", 275: "Kome is 2 years and a season old.", 459: "Kome is 3 years and 3 seasons old."}
+	for n in ages:
+		hen.age = n
+		check(a.age_text(hen) == ages[n], "age %d: %s" % [n, a.age_text(hen)])
+	# The night falls evenly over the lifespan and is sure at its end.
+	for k in d.kinds:
+		var p := a.pass_days(k)
+		var beast := {"kind": k, "name": "X", "age": p[0] - 1, "carrying": false}
+		check(a.pass_chance(beast) == 0.0, "%s: no passing before night %d" % [k, p[0]])
+		var alive := 1.0
+		var even := true
+		for age in range(p[0], p[1] + 1):
+			beast.age = age
+			var night := alive * a.pass_chance(beast)
+			even = even and absf(night - 1.0 / (p[1] - p[0] + 1)) < 1e-9
+			alive -= night
+		check(even and absf(alive) < 1e-9, "%s: every night of %d..%d as likely, none left after" % [k, p[0], p[1]])
+		beast.age = p[1] + 40
+		check(a.pass_chance(beast) == 1.0, "%s: sure past the end" % k)
+	# Through the night: the old hen passes, her place is free, the young one stays.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 11
+	a = _flock(2)
+	a.list[0].age = int(d.kinds.chicken.pass_days[1]) - 1
+	var name0: String = a.list[0].name
+	var room := a.room()
+	a.fill_feed_box()
+	var news := a.day_end("sunny", rng)
+	var said := String(d.aging.passed) % name0
+	check(said in news and a.list.size() == 1 and a.room() == room + 1 and a.list[0].name != name0, "she passed in her sleep, her place free (%s)" % [news])
+	news = a.day_end("sunny", rng)
+	check(a.list.size() == 1 and not news.any(func(t): return t.contains("passed away")), "the young hen stays")
+	# A carrying mother past her last night has her young first and passes the night after.
+	a = _herd(["cow"])
+	a.list[0].happy = 90
+	a.breed(0)
+	a.list[0].carry_days = int(d.kinds.cow.breed.carry_nights) - 1
+	a.list[0].age = int(d.kinds.cow.pass_days[1]) + 3
+	news = a.day_end("sunny", rng)
+	check(a.list.size() == 2 and not news.any(func(t): return t.contains("passed away")), "the calf born first (%s)" % [news])
+	news = a.day_end("sunny", rng)
+	check(a.list.size() == 1 and not a.is_adult(a.list[0]) and news.any(func(t): return t.contains("passed away")), "then she goes (%s)" % [news])
+	# Old hens lay a little less; old cows give milk a little less often.
+	var counts := []
+	for old in [false, true]:
+		a = _flock(6)
+		a.feed_stock = 999
+		rng.seed = 5
+		var laid := 0
+		for h in a.list:
+			h.age = int(d.kinds.chicken.old_days) if old else int(d.kinds.chicken.bought_days)
+			h.happy = 60
+		for n in 40:
+			a.fill_feed_box()
+			a.day_end("sunny", rng)
+			laid += a.eggs.size()
+			a.eggs.clear()
+		counts.append(laid)
+	check(counts[0] == 240 and counts[1] < counts[0] and counts[1] > counts[0] / 2, "old hens lay less, still most nights (%s)" % [counts])
+	counts = []
+	for old in [false, true]:
+		a = _herd(["cow", "cow", "cow"])
+		a.add_fodder(999)
+		rng.seed = 6
+		var milked := 0
+		for c in a.list:
+			c.age = int(d.kinds.cow.old_days) if old else int(d.kinds.cow.bought_days)
+			c.happy = 60
+		for n in 40:
+			a.fill_feed_box("barn")
+			a.day_end("sunny", rng)
+			for i in a.list.size():
+				if a.take_product(i) != "":
+					milked += 1
+		counts.append(milked)
+	check(counts[0] == 120 and counts[1] < counts[0] and counts[1] > counts[0] / 2, "old cows give milk less often (%s)" % [counts])
+
+
+func _aging_save() -> void:
+	var a := _herd(["cow", "sheep"])
+	a.list[0].age = 999
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(a.to_dict()))
+	var r := Animals.parse(saved)
+	check(r[0] == "" and r[1].list[0].age == 999 and r[1].is_old(r[1].list[0]), "the age round trips %s" % r[0])
+	saved.animals[1].erase("age")
+	r = Animals.parse(saved)
+	check(r[0] == "" and r[1].list[1].age == int(Animals.data().kinds.sheep.bought_days), "a saved animal without an age loads as if just bought %s" % r[0])
+	saved.animals[1].age = -3
+	check(Animals.parse(saved)[0] != "", "broken save refused: age below 0")
+
+
+## E on an old hen and an old cow tells how old they are; the morning news in the coop; Thai.
+func _aging_actions() -> void:
+	var g: Node = root.get_node("Game")
+	var CoopActions: GDScript = load("res://scripts/animals/coop_actions.gd")
+	var FarmActions: GDScript = load("res://scripts/farm_actions.gd")
+	var said: Array[String] = [""]
+	var hear := func(t): said.append(t)
+	g.message.connect(hear)
+	g.new_game()
+	g.events_seen = {"first_morning": true, "rainy_day": true}
+	var a: Animals = g.animals
+	a.list[0].age = 405
+	var name0: String = a.list[0].name
+	var spot: Array = MapManager.data("coop").spawns.start
+	g.go_to_map("coop", spot[0], spot[1])
+	FarmActions.interact(CoopActions.spot(0))
+	check(said.back().contains("%s (old)" % name0) and said.back().ends_with("%s is 3 years and a season old." % name0), "E on an old hen: %s" % said.back())
+	g.add_animal("cow")
+	var cow := a.in_home("barn")[0]
+	a.list[cow].age = 900
+	var cow_name: String = a.list[cow].name
+	var bspot: Array = MapManager.data("barn").spawns.start
+	g.go_to_map("barn", bspot[0], bspot[1])
+	var at := a.spot(cow)
+	FarmActions.on_action("interact", at + Vector2i.DOWN, Vector2i.UP)   # a brushing first
+	FarmActions.on_action("interact", at + Vector2i.DOWN, Vector2i.UP)   # then a talk
+	check(said.back().contains("%s (old)" % cow_name) and said.back().ends_with("%s is 7 years and 2 seasons old." % cow_name), "E on an old cow: %s" % said.back())
+	# The morning news when one passes, told in her home.
+	a.list[0].age = int(a.pass_days("chicken")[1])
+	g.animal_news.assign(a._passings(g.rng))
+	g.go_to_map("coop", spot[0], spot[1])
+	g.map_arrived()
+	check(said.back().contains("%s passed away peacefully in the night" % name0), "the news in the coop: %s" % said.back())
+	Lang.set_language("th")
+	var th := [Lang.t("%s (old)" % cow_name), Lang.t(String(a.aging().passed) % name0), Lang.t("%s is 3 years and a season old." % name0)]
+	check(th[0].begins_with(cow_name) and not th[0].contains("old") and not th[1].contains("passed") and not th[2].contains("years") and th[2].contains("3"), "the Thai lines: %s" % [th])
+	Lang.set_language("en")
+	g.message.disconnect(hear)
+	g.new_game()
 
 
 func _herd(kinds: Array) -> Animals:

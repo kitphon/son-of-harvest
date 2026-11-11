@@ -108,7 +108,8 @@ static func use_hatch() -> void:
 			Game.message.emit("There are no hens to let out.")
 
 
-## A hen: medicine if she is sick and there is some, else a stroke (once a day counts).
+## A hen: medicine if she is sick and there is some, else a stroke (once a day counts) and
+## how she feels and how old she is.
 static func tend(i: int) -> void:
 	var a := Game.animals
 	var hen: Dictionary = a.list[i]
@@ -122,13 +123,13 @@ static func tend(i: int) -> void:
 			Game.message.emit("%s looks sick. Animal medicine would help." % hen.name)
 		return
 	a.pet(i)
-	Game.message.emit(mood(hen, a.happy_max()) % a.label(hen))
+	Game.message.emit(Lang.join([mood(hen, a.happy_max()) % a.label(hen), a.age_text(hen)]))
 
 
 static func mood(hen: Dictionary, most: int) -> String:
 	var p := float(hen.happy) / most
 	if p < 0.2:
-		return "%s looks unhappy"
+		return "%s looks unhappy."
 	if p < 0.6:
-		return "%s clucks softly"
-	return "%s looks very happy"
+		return "%s clucks softly."
+	return "%s looks very happy."

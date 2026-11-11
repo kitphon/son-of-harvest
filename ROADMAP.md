@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-11 Animals grow old: the age in nights (bought a season / year / two seasons old), told on E in years and seasons; "(old)" from the 4th year (hen), 5th (ewe), 8th (cow), a product skipped on a quarter of nights; a peaceful passing at night between 4-5 / 5-6 / 9-11 years, even odds, sure at the end, the morning news, the place freed; saved; `--old`; Thai; see WORKLOG.
 [x] 2026-11-11 The shorn ewe's carrying belly is bigger and lower (`carrying.belly_of`), every carrying kind must add 24+ pixels (test_animals); test_shops checks the cord's store line; see WORKLOG.
 [x] 2026-11-11 A carrying cow or ewe looks it in both views: a rounder, lower belly and a fuller udder (data/animal_art.json `carrying`, sprite kind + `breeding.sprite_suffix`), plain again after the birth; `--carrying`; see WORKLOG.
 [x] 2026-11-11 The Musubi cord says how it is used: the E hint reads "Tie" on a cow or ewe it would take, the store screen says how to use it; `--cord`; Thai; see WORKLOG.

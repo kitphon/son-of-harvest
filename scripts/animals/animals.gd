@@ -4,8 +4,9 @@ extends RefCounted
 ## rules, no drawing: Game owns one (Game.animals), calls hour_passed / day_end from the clock
 ## and saves it; the coop / barn maps and the farm view only read it and redraw on `changed`.
 ## Every number is in data/animals.json. DESIGN "สัตว์": happiness, feeding, grazing outside,
-## produce grades by happiness, brushing, sickness and medicine; our numbers, and no deaths
-## (DESIGN's advice: risks must be recoverable).
+## produce grades by happiness, brushing, sickness and medicine; our numbers. Nothing dies of
+## neglect (DESIGN's advice: risks must be recoverable); only old age ends a life, gently and
+## seen ahead (see Aging below).
 ##
 ## An animal is {kind, name, happy, age, sick, sick_days, petted, out_hours, brushed,
 ## prod_days, carrying, carry_days}. Adults (age >= the kind's adult_days) lay (hens) or give a product every few
@@ -18,6 +19,12 @@ extends RefCounted
 ## happy, well, grown cow's or ewe's stall (breed) makes her carry for the kind's nights. She
 ## gives no milk or wool meanwhile; on the due night the calf or lamb is born in the barn if
 ## there is a free place, else she waits, night by night, until there is one.
+##
+## Aging (data/animals.json "aging" and each kind's bought_days / old_days / pass_days): `age`
+## is the nights lived. From old_days the animal is old: "Kome (old)", and on a fed night its
+## egg / milk / wool is skipped now and then (skip_chance). From pass_days[0] on it may pass
+## away in its sleep, a chance each night that reaches 1 at pass_days[1]; the morning news says
+## so and its place is free. A carrying mother waits until her young is born.
 ##
 ## The dog is {name, affection, petted, lifted, held, cell, facing}: always on the farm,
 ## stepped by dog_walk (the views call it), petted and picked up once a day each.
@@ -137,10 +144,12 @@ func is_adult(a: Dictionary) -> bool:
 
 
 ## A name for showing: a chick is "Mochi (chick)", a calf "Momo (calf)", a cow carrying
-## "Hana (in calf)".
+## "Hana (in calf)", an old hen "Kome (old)".
 func label(a: Dictionary) -> String:
 	if a.get("carrying", false):
 		return "%s (%s)" % [a.name, String(breed_rule(a.kind).get("carrying_name", "+"))]
+	if is_old(a):
+		return "%s (old)" % a.name
 	return a.name if is_adult(a) else "%s (%s)" % [a.name, String(kind_rule(a.kind).get("young_name", "young")).to_lower()]
 
 
@@ -196,7 +205,7 @@ func add(kind: String, young := false) -> bool:
 	var name: String = names[named % names.size()] if names.size() > 0 else kind.capitalize()
 	named += 1
 	list.append({"kind": kind, "name": name, "happy": int(k.get("happy_start", 0)),
-		"age": 0 if young else int(k.get("adult_days", 0)), "sick": false, "sick_days": 0,
+		"age": 0 if young else bought_age(kind), "sick": false, "sick_days": 0,
 		"petted": false, "out_hours": 0, "brushed": false, "prod_days": 0,
 		"carrying": false, "carry_days": 0})
 	changed.emit()
@@ -386,8 +395,8 @@ func grade_for(product: String, happy: int) -> String:
 
 ## The night: every animal eats (grazed outside or from its home's box), happiness moves,
 ## adults that ate and aren't sick lay or grow their product, sickness comes or passes,
-## everyone ages a day, the incubator warms, the dog goes home. Returns news to tell the
-## player ("Mochi is sick", "A chick hatched").
+## everyone ages a day, the very old may pass away in their sleep, the incubator warms, the
+## dog goes home. Returns news to tell the player ("Mochi is sick", "A chick hatched").
 func day_end(weather: String, rng: RandomNumberGenerator) -> Array[String]:
 	var news: Array[String] = []
 	var sick_rule: Dictionary = rules.get("sickness", {})
@@ -413,12 +422,13 @@ func day_end(weather: String, rng: RandomNumberGenerator) -> Array[String]:
 			d += _h("sick_day")
 		a.happy = clampi(int(a.happy) + d, 0, happy_max())
 		var lays := String(kind_rule(a.kind).get("lays", ""))
-		if lays != "" and is_adult(a) and ate and not a.sick and eggs.size() < nests:
+		var thin := is_old(a) and rng.randf() < float(aging().get("skip_chance", 0.0))   # old: now and then nothing
+		if lays != "" and is_adult(a) and ate and not a.sick and eggs.size() < nests and not thin:
 			eggs.append(grade_for(lays, a.happy))
 		var g := gives(a)
 		if a.get("carrying", false):
 			a.carry_days = mini(int(a.carry_days) + 1, carry_nights(a.kind))
-		elif not g.is_empty() and is_adult(a) and ate and not a.sick:
+		elif not g.is_empty() and is_adult(a) and ate and not a.sick and not thin:
 			a.prod_days = mini(int(a.prod_days) + 1, maxi(int(g.get("every", 1)), 1))
 		if a.sick:
 			a.sick_days = int(a.sick_days) + 1
@@ -453,6 +463,7 @@ func day_end(weather: String, rng: RandomNumberGenerator) -> Array[String]:
 			incubator = {}
 			if add("chicken", true):
 				news.append("A chick hatched: %s." % list.back().name)
+	news.append_array(_passings(rng))   # before the births: a mother has her young first, and passes no sooner than the next night
 	news.append_array(_births())
 	_dog_night()
 	changed.emit()
@@ -533,6 +544,91 @@ func _births() -> Array[String]:
 		a.carry_days = 0
 		news.append(String(b.get("born", "%s: %s")) % [a.name, young.name])
 	return news
+
+
+# --- aging ------------------------------------------------------------------
+
+## The aging rules shared by every kind ({skip_chance, passed, age_lines, ...}).
+func aging() -> Dictionary:
+	return rules.get("aging", {})
+
+
+## A bought (or starting) animal's age: its kind's bought_days, and grown up in any case.
+func bought_age(kind: String) -> int:
+	var k := kind_rule(kind)
+	return maxi(int(k.get("bought_days", 0)), int(k.get("adult_days", 0)))
+
+
+## From the kind's old_days on (never for a kind without one).
+func is_old(a: Dictionary) -> bool:
+	var k := kind_rule(a.kind)
+	return k.has("old_days") and int(a.get("age", 0)) >= int(k.old_days)
+
+
+## [first, last] night of a kind's lifespan, or [] for a kind that doesn't pass away.
+func pass_days(kind: String) -> Array[int]:
+	var p: Array = kind_rule(kind).get("pass_days", [])
+	if p.size() != 2:
+		return []
+	return [int(p[0]), maxi(int(p[1]), int(p[0]))]
+
+
+## Tonight's chance that animal `a` passes away: 0 before pass_days[0] (and while she carries),
+## then 1 / (nights left to pass_days[1] + 1), so the night falls evenly over the range and is
+## sure at the end of it.
+func pass_chance(a: Dictionary) -> float:
+	var p := pass_days(a.kind)
+	if p.is_empty() or int(a.age) < p[0] or a.get("carrying", false):
+		return 0.0
+	return 1.0 / float(maxi(p[1] - int(a.age), 0) + 1)
+
+
+## The night's peaceful passings (after the night's aging, before the births): each animal
+## past its first night rolls pass_chance; those that go leave the list and free their place.
+func _passings(rng: RandomNumberGenerator) -> Array[String]:
+	var news: Array[String] = []
+	var i := 0
+	while i < list.size():
+		var chance := pass_chance(list[i])
+		if chance > 0.0 and rng.randf() < chance:
+			news.append(String(aging().get("passed", "%s")) % list[i].name)
+			list.remove_at(i)
+		else:
+			i += 1
+	return news
+
+
+## What E on an animal says about its age: "Kome is 2 years and a season old.", in days
+## under a season ("Mochi is 5 days old."). One whole sentence per case (aging.age_lines).
+func age_text(a: Dictionary) -> String:
+	var r := aging()
+	var lines: Dictionary = r.get("age_lines", {})
+	var season := maxi(int(r.get("season_days", 30)), 1)
+	var year := season * maxi(int(r.get("seasons", 4)), 1)
+	var age := maxi(int(a.get("age", 0)), 0)
+	var y := age / year
+	var s := (age % year) / season
+	var key := ""
+	var nums := []
+	if age == 0:
+		key = "new"
+	elif age < season:
+		key = "day" if age == 1 else "days"
+		nums = [] if age == 1 else [age]
+	elif y == 0:
+		key = "season" if s == 1 else "seasons"
+		nums = [] if s == 1 else [s]
+	else:
+		key = "year" if y == 1 else "years"
+		if y > 1:
+			nums.append(y)
+		if s > 0:
+			key += "_season" if s == 1 else "_seasons"
+			if s > 1:
+				nums.append(s)
+	if not lines.has(key):
+		return ""
+	return String(lines[key]) % ([a.name] + nums)
 
 
 # --- the dog ----------------------------------------------------------------
@@ -695,7 +791,7 @@ static func parse(v: Variant, r := data(), version := SaveGame.VERSION) -> Array
 		var a := {"kind": s.kind, "name": s.name, "sick": s.sick, "petted": s.petted,
 			"brushed": s.get("brushed", false),
 			"happy": SaveGame.whole(s.get("happy"), 0, out.happy_max()),
-			"age": SaveGame.whole(s.get("age"), 0, 1 << 30),
+			"age": SaveGame.whole(s.get("age", out.bought_age(s.kind)), 0, 1 << 30),   # none saved: as if just bought
 			"sick_days": SaveGame.whole(s.get("sick_days"), 0, 1 << 30),
 			"out_hours": SaveGame.whole(s.get("out_hours"), 0, 24),
 			"prod_days": SaveGame.whole(s.get("prod_days", 0), 0, 1 << 30),

@@ -51,6 +51,8 @@ func _init() -> void:
 	a.inventory.move("tools", 0, "chest", 4)   # the hoe put away in the chest
 	a.tool_levels.hoe = 3
 	a.tool_levels.can = 5
+	a.animals.add("chicken")
+	a.animals.list.back().age = 400   # an old hen (data/animals.json kinds.chicken.old_days)
 	# nana_scarf: the fixture is in year 2, where the date rule has set it already (DateFlags)
 	a.flags = {"bin_note_read": true, "times_asked": 3, "answer": "later", "nana_scarf": true}
 	a.tool_exp.hoe = 950
@@ -102,6 +104,7 @@ func _init() -> void:
 	check(b.snow_cover == 70, "snow cover back")
 	check(b.flags == a.flags and typeof(b.flags.times_asked) == TYPE_INT, "dialogue flags back %s" % b.flags)
 	check(b.fatigue == 63, "fatigue back")
+	check(b.animals.list.size() > 0 and b.animals.list.back().age == 400 and b.animals.is_old(b.animals.list.back()) and b.animals.label(b.animals.list.back()).ends_with("(old)"), "an old hen's age back")
 	check(b.events_seen == a.events_seen and saved.events_seen == ["first_morning", "pond_first"], "seen events back %s" % b.events_seen)
 	check(b.maps.id == "house" and b.maps.pos == MapManager.cell_pos(Vector2i(3, 2)) and b.maps.facing == Vector2i.LEFT, "map and position back")
 	check(seen.map == ["house"], "load moves the views to the saved map %s" % [seen.map])
