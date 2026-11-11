@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Mist over the ferry boat, under the figures (flat view)
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: in the flat view the morning mist (MistView) was added to the map view before the
+  ferry, so Mio's boat drew over it. Its child order now follows the ferry: MapView's child
+  list reads StoryView, FerryView, MistView, DyeClothView, ..., VillagerView, so the mist lies
+  over the water-level props (the ferry boat) and under the figures. Only scripts/main_2d.gd
+  moved one line; MistRules' sources are untouched.
+- Checked: test_mist adds two checks in main_2d's built view: "flat: mist draws above the ferry
+  boat" and "flat: mist draws below the figures". Frame: `res://scenes/main_2d.tscn -- --demo
+  --weather=sunny --time=6:15 --map=river@shore` shows pale sheets over the river, the boat and
+  its landing crisp; no sheet is seen lying over the boat in that frame, so the overlap is
+  proven by the child order only, not by pixels. Note: `--map=river@shore` as the scene
+  argument must name res://scenes/main_2d.tscn; the default main scene is the 3D view.
+- Left / next: the mist's visible overlap on the boat was not seen in the frame; a frame at
+  a moment when a sheet sits over the boat would confirm it. Land props that draw now above the
+  mist (dye cloth, festival, forage, cradle) sit on dry ground, where no mist lies.
+
 ## 2026-11-11 — Morning mist (asagiri) over the water and the paddies
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: low soft mist at dawn on the outdoor maps, in both views, modelled on the drifting life.
