@@ -95,7 +95,6 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Left / next: the flat winter pile and the 3D pile at night were not framed (the art and the key
   are checked by test_animals); the 3D silo's fodder has no picture of its own (it lives inside).
 
-
 ## 2026-11-11 — The greenhouse's lit glass and roof glow in both views; flat farm roofs snow like 3D
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the three things left open by the entry below.
