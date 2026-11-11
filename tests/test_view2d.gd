@@ -1496,6 +1496,15 @@ func _silo() -> void:
 	select("sickle")
 	act("tool", c, Vector2i.DOWN)
 	check(g.animals.silo.grass == 1, "flat: a weed cut with the sickle is a bundle of grass (%d)" % g.animals.silo.grass)
+	var box := FarmView.roof_rect(g.farm, "silo")
+	if scene.view.farm != g.farm:   # earlier parts started new games on the same scene
+		scene.view.farm = g.farm
+	var handful: Rect2 = scene.view.silo_pile_rect()
+	check(handful.has_area() and box.encloses(handful) and handful.size == Vector2(PlaceholderArt.tex("silo:grass:1:0").get_size()), "flat: the silo's grass pile shows a handful (%s)" % handful)
+	g.animals.silo.grass = 30
+	var heap: Rect2 = scene.view.silo_pile_rect()
+	check(heap.size.x > handful.size.x and heap.end == handful.end, "flat: a big heap at 30, from the same corner (%s)" % heap)
+	g.animals.silo.grass = 1
 	g.animals.silo.fodder = 4
 	var hint_words: String = load("res://scripts/ui/action_hints.gd").pick(Vector2i(30, 3), Vector2i.UP).interact
 	check(hint_words == "Fodder 4, grass 1", "flat: the HUD hint at the silo shows the stores: %s" % hint_words)

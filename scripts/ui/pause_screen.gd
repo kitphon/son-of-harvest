@@ -43,6 +43,7 @@ var _notches: Dictionary = {}   # setting -> its slider's ColorRects
 static var _shadows := {}       # picture key -> its silhouette (SILHOUETTE in its shape)
 var _mark: Label
 var _note: Label
+var _silo: Label   # the main page's line under the note: the silo's stores (PauseMenu.silo_text)
 
 
 func _ready() -> void:
@@ -59,6 +60,7 @@ func _ready() -> void:
 	_mark = _label(_paper, Vector2i(6, 5), PlaceholderArt.UI_SEAL)
 	_mark.text = ">"
 	_note = _label(_paper, Vector2i(9, 0), Hud.INK_SOFT)
+	_silo = _label(_paper, Vector2i(9, 0), Hud.INK)
 	_bar = ColorRect.new()
 	_bar.color = Hud.INK_SOFT
 	_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -85,6 +87,7 @@ func open(page := "") -> void:
 	_open = true
 	Game.pause()
 	menu = PauseMenu.new(Game.settings, Game.fish_data, Game.fish_caught, Game.shippable_rows(), Game.shipped)
+	menu.silo = Game.animals.silo.duplicate() if Game.animals.silo_built() else {}
 	if page in PauseMenu.HEADINGS:
 		menu.open(page)
 	_note.text = ""
@@ -117,6 +120,9 @@ func _build() -> void:
 	var fish := menu.page == "fishlog"
 	var iconed := fish or menu.page == "shipped"   # rows with an icon and a count
 	var width := FISHLOG_WIDTH if iconed else (CONTROLS_WIDTH if menu.page == "controls" else WIDTH)
+	_silo.text = menu.silo_text()
+	if _silo.text != "":   # the box wide enough for the silo's line (a longer language)
+		width = maxi(width, PixelFont.width(Lang.t(_silo.text)) + 8 + 18)
 	var screen := get_viewport().get_visible_rect().size
 	var n := mini(menu.list.items.size(), visible_rows(Game.ui_scale, screen.y, FISH_LINES if fish else 0))
 	for i in n:
@@ -158,9 +164,11 @@ func _build() -> void:
 				row.add_child(c)
 				notches.append(c)
 			_notches[item] = notches
-	var lines := 1 + (FISH_LINES if fish else 0)   # the note line, then the fish log's details
+	var lines := 1 + (FISH_LINES if fish else 0) + int(_silo.text != "")   # the note line, then the fish log's details or the silo's line
 	_paper.size = Vector2(width - 8, 8 + n * ROW_H + lines * ROW_H)
 	_note.position.y = 5 + n * ROW_H + 1
+	_silo.visible = _silo.text != ""
+	_silo.position.y = 5 + (n + 1) * ROW_H + 1
 	if fish:
 		for k in FISH_LINES:
 			var d := _label(_paper, Vector2i(9, 5 + (n + 1 + k) * ROW_H + 1), Hud.INK)

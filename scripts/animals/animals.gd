@@ -246,6 +246,18 @@ func silo_built() -> bool:
 	return String(silo_rule().get("build", "")) in built and not silo_rule().is_empty()
 
 
+## The grass pile's stage drawn beside the silo (data/animals.json silo.pile.stages): how many of
+## the stages `grass` bundles reach, 0 (none drawn) while empty or with no silo built.
+func silo_pile_stage(grass := -1) -> int:
+	if not silo_built():
+		return 0
+	var n := int(silo.grass) if grass < 0 else grass
+	var stage := 0
+	for at in silo_rule().get("pile", {}).get("stages", []):
+		stage += int(n >= int(at) and int(at) > 0)
+	return stage
+
+
 ## Grass cut with the sickle goes into the silo's pile, up to its cap. Returns how many bundles
 ## went in (0 when there is no silo or the pile is full).
 func silo_cut(n: int) -> int:

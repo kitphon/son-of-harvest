@@ -208,7 +208,19 @@ func _screens() -> void:
 	for page in ["", "settings", "controls"]:
 		pause.open(page)
 		_fits(pause, "the pause menu %s" % page)
+		pause.close()
+	g.animals.built.append("silo")   # the main page with the silo's line, at its widest counts
+	g.animals.silo = {"grass": 40, "fodder": 30}
+	pause.open()
+	check(pause._silo.visible, "the pause menu's silo line is shown")
+	_fits(pause, "the pause menu with the silo's line")
 	pause.close()
+	Lang.set_language("th")
+	pause.open()
+	_fits(pause, "the pause menu with the silo's line in Thai")
+	pause.close()
+	Lang.set_language(Lang.PSEUDO)
+	g.animals.built.erase("silo")
 	var inv: CanvasLayer = load("res://scripts/ui/inventory_screen.gd").new()
 	root.add_child(inv)
 	g.inventory.add("turnip", 3)

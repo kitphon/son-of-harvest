@@ -1083,6 +1083,8 @@ func _silo() -> void:
 	check(hints.interact_verb(Vector2i(30, 3), Vector2i.UP) == "Fodder 3, grass 6", "the hint at the silo shows its stores: %s" % hints.interact_verb(Vector2i(30, 3), Vector2i.UP))
 	g.animals.silo = {"grass": 0, "fodder": 0}
 	check(hints.pick(Vector2i(30, 3), Vector2i.UP).interact == "Fodder 0, grass 0", "and empty: %s" % hints.pick(Vector2i(30, 3), Vector2i.UP).interact)
+	_silo_pile(g)
+	_silo_pause(g)
 	# Saved and loaded; an old save has none; a new game none.
 	g.animals.silo = {"grass": 7, "fodder": 12}
 	var d: Dictionary = JSON.parse_string(JSON.stringify(g.to_dict()))
@@ -1100,6 +1102,113 @@ func _silo() -> void:
 	check(g.from_dict(bad) != "", "a broken silo is refused")
 	g.new_game()
 	check(g.farm.fixed == before and g.animals.silo.grass == 0 and not g.animals.silo_built(), "a new game: no silo")
+
+
+## The grass pile beside the built silo (SiloPile, data/animals.json silo.pile): its stage by the
+## bundles, the picture growing stage by stage and capped white under snow, where both views put
+## it, and the 3D sprite following a cut.
+func _silo_pile(g: Node) -> void:
+	var rule: Dictionary = Animals.data().silo.pile
+	check(str(rule.stages.map(func(v): return int(v))) == str([1, 12, 26]) and int(rule.snow_cover) == 30, "pile: its stages in data/animals.json")
+	for want in [[0, 0], [1, 1], [11, 1], [12, 2], [25, 2], [26, 3], [40, 3]]:
+		g.animals.silo = {"grass": want[0], "fodder": 0}
+		var key := "" if want[1] == 0 else "silo:grass:%d:0" % want[1]
+		check(g.animals.silo_pile_stage() == want[1] and SiloPile.key() == key, "pile: %d bundles is stage %d (%s)" % [want[0], want[1], SiloPile.key()])
+	check(Animals.new().silo_pile_stage(30) == 0, "pile: none without a silo built")
+	var last := Vector2i.ZERO
+	for stage in range(1, 4):
+		var img := PlaceholderArt.image("silo:grass:%d:0" % stage)
+		var tones := {}
+		var white := 0
+		for y in img.get_height():
+			for x in img.get_width():
+				var c := img.get_pixel(x, y)
+				if c.a > 0.0:
+					tones[c.to_html()] = true
+		var snowy := PlaceholderArt.image("silo:grass:%d:1" % stage)
+		for x in snowy.get_width():   # columns with snow white in them (under the rim)
+			for y in snowy.get_height():
+				var c := snowy.get_pixel(x, y)
+				if c.a > 0.0 and c.r > 0.85 and c.g > 0.85 and c.b > 0.85:
+					white += 1
+					break
+		var plain_white := 0
+		for y in img.get_height():
+			for x in img.get_width():
+				var c := img.get_pixel(x, y)
+				plain_white += int(c.a > 0.0 and c.r > 0.85 and c.g > 0.85 and c.b > 0.85)
+		check(plain_white == 0, "pile: stage %d without snow has no white" % stage)
+		check(img.get_width() > last.x and img.get_height() > last.y and img.get_width() <= 14 and img.get_height() <= 12, "pile: stage %d is bigger than the last, within a cell (%s)" % [stage, img.get_size()])
+		check(tones.size() >= 6, "pile: stage %d is toned (ItemArt.refine: %d colours)" % [stage, tones.size()])
+		check(white * 2 > snowy.get_width(), "pile: stage %d snowy has a white top (%d of %d columns)" % [stage, white, snowy.get_width()])
+		last = img.get_size()
+	g.animals.silo = {"grass": 30, "fodder": 0}
+	var season: int = g.season
+	var cover: int = g.snow_cover
+	g.season = g.SEASONS.find("winter")
+	g.snow_cover = 80
+	check(SiloPile.key() == "silo:grass:3:1", "pile: in winter with snow lying, its snowy look (%s)" % SiloPile.key())
+	g.snow_cover = 10
+	check(SiloPile.key() == "silo:grass:3:0", "pile: a dusting of snow leaves it green")
+	g.season = season
+	g.snow_cover = cover
+	# Where it stands: inside the silo's solid cells, at its front right corner, clear of the tower's
+	# round wall from the 45° camera (in front of the footing's nearest point) and of the ladder.
+	var at := SiloPile.at()
+	var cell := Vector2i(floori(at.x), floori(at.z))
+	check(FarmGrid.SILO.has_point(cell) and g.farm.is_solid(cell), "pile: on a solid silo cell %s" % cell)
+	var centre := Rect2(FarmGrid.SILO).get_center()
+	var ahead := ((at.x - centre.x) + (at.z - centre.y)) / sqrt(2.0)   # towards the camera
+	check(ahead > 0.94 + 0.05, "pile: in front of the silo's round footing from the camera (%.2f)" % ahead)
+	# The flat view: over the silo's box, its bottom right corner, right of the hatch (x 13..18).
+	var box := FarmView.roof_rect(g.farm, "silo")
+	var flat := SiloPile.flat_rect(box, Vector2(PlaceholderArt.tex("silo:grass:3:0").get_size()))
+	check(box.encloses(flat) and flat.position.x >= box.position.x + 19 and flat.end.y == box.end.y, "pile: flat at the box's bottom right, clear of the hatch (%s in %s)" % [flat, box])
+	# The 3D sprite: shown by the stores, hidden while empty, redrawn by a cut.
+	var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	root.add_child(w)
+	g.animals.silo = {"grass": 0, "fodder": 0}
+	var listeners: int = g.animals.changed.get_connections().size()
+	var s: Sprite3D = load("res://scripts/world3d/silo_props.gd").pile(w)
+	check(s.billboard == BaseMaterial3D.BILLBOARD_FIXED_Y and s.position == at and not s.visible, "pile 3D: upright at its spot, hidden while empty")
+	g.animals.silo_cut(1)
+	check(s.visible and s.texture == PlaceholderArt.tex("silo:grass:1:0"), "pile 3D: a cut shows a handful")
+	g.animals.silo_cut(20)
+	check(s.texture == PlaceholderArt.tex("silo:grass:2:0") and s.offset.y == s.texture.get_height() / 2.0, "pile 3D: a heap at 21, standing on the ground")
+	root.remove_child(w)
+	g.animals.silo_cut(10)
+	check(s.texture == PlaceholderArt.tex("silo:grass:2:0"), "pile 3D: a kept world out of the tree waits")
+	root.add_child(w)
+	check(s.texture == PlaceholderArt.tex("silo:grass:3:0"), "pile 3D: and catches up when put back")
+	w.free()
+	check(g.animals.changed.get_connections().size() == listeners, "pile 3D: no listener left behind once freed")
+	g.animals.silo_cut(1)   # and a cut after it is harmless
+	g.animals.silo = {"grass": 0, "fodder": 0}
+
+
+## The pause menu's main page shows the silo's stores once it is built (PauseMenu.silo_text,
+## PauseScreen's line under the note), and nothing before.
+func _silo_pause(g: Node) -> void:
+	var m := PauseMenu.new(Settings.make())
+	check(m.silo_text() == "", "pause: no silo line without a silo")
+	m.silo = {"grass": 6, "fodder": 3}
+	check(m.silo_text() == "Silo: fodder 3, grass 6", "pause: the main page's silo line: %s" % m.silo_text())
+	m.open("settings")
+	check(m.silo_text() == "", "pause: only on the main page")
+	Lang.set_language("th")
+	m.open("main")
+	check(Lang.t(m.silo_text()) == PixelFont.shape("ไซโล: หญ้าแห้ง 3 หญ้า 6"), "pause: the silo line in Thai: %s" % Lang.t(m.silo_text()))
+	Lang.set_language("en")
+	g.animals.silo = {"grass": 9, "fodder": 2}
+	var pause: CanvasLayer = load("res://scripts/ui/pause_screen.gd").new()
+	root.add_child(pause)
+	pause.open()
+	var line: Label = pause._silo
+	check(line.visible and line.text == "Silo: fodder 2, grass 9" and line.position.y > pause._note.position.y, "pause: the screen shows it under the note: %s" % line.text)
+	check(Rect2(Vector2.ZERO, pause._paper.size).encloses(Rect2(line.position, Vector2(PixelFont.width(line.text), 8))), "pause: the line fits in the paper")
+	pause.close()
+	pause.free()
+	g.animals.silo = {"grass": 0, "fodder": 0}
 
 
 func _herd(kinds: Array) -> Animals:

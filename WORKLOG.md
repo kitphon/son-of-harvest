@@ -39,6 +39,63 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Checked: all test scripts, test_view2d in a loop, smoke runs (see the report of this commit).
 - Left / next: other view2d checks that read fixed cells of a random farm may be similarly fragile; none known.
 
+## 2026-11-11 — The silo's grass pile beside it and its stores on the pause menu
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the two things left open by "The silo's stores on screen".
+  1. A grass pile beside the built silo, in both views, that grows with the grass bundles: none
+     while empty, then three stages by data/animals.json `silo.pile.stages` [1, 12, 26] (ours: a
+     handful from the first cut, a heap at about four days of weeding, a big heap at two thirds
+     of the 40 the pile holds), a white cap under lying snow from `snow_cover` 30 in winter.
+     Animals.silo_pile_stage; SiloPile (scripts/farm/silo_pile.gd: the key, the 3D spot, the
+     flat rect; no autoload-bound class, so FarmView keeps compiling in tool runs). The picture
+     is our own PlaceholderArt `silo:grass:<stage>:<snow>` (7 x 4 / 10 x 7 / 13 x 10): a dome of
+     cut grass drying to straw on top, blade strokes and drying tips as fixed marks, a tied
+     sheaf against its left from stage 2, toned by ItemArt.refine; the snow cap is fixed white
+     with a blue-grey edge so the toning does not grey it. 3D: SiloProps.pile, an upright sprite
+     (billboard about y only, like the persimmon) at the silo's front right corner between the
+     hatch and the ladder, on a solid silo cell (30.75, 2.8), far enough forward from the 45°
+     camera (1.09 from the centre, the footing is 0.94) that no part goes into the round wall;
+     PILE_PX 0.055 (a little over the field's 0.045, so the heap is about a third of the tower as
+     in the flat view). Not in MeshCache (it changes with each cut); it follows Animals.changed
+     while in the tree and catches up when a kept world is put back. Flat: FarmView draws it over
+     the silo's box at the bottom right, right of the hatch, in the world's light
+     (FarmView.silo_pile_rect), redrawn on Animals.changed.
+  2. The pause menu's main page shows "Silo: fodder N, grass N" on a line under the note once the
+     silo is built (PauseMenu.silo, silo_text; PauseScreen._silo), nothing before; the box widens
+     to fit a longer language. Thai "ไซโล: หญ้าแห้ง %d หญ้า %d".
+  For frames: `--silo=G` or `--silo=G:F` (after `--built=silo`) puts that much grass (and fodder)
+  in it, held to the caps (a warning without a silo); `--no-hud` leaves the HUD off for a run (the
+  flat view's silo sits under the clock). Both in AGENTS.md.
+- Checked: test_animals `_silo_pile` (the stages in data, 0/1/11/12/25/26/40 bundles give
+  0/1/1/2/2/3/3 and the keys, none without a silo; each stage bigger than the last and within a
+  cell, toned (6+ colours), the snowy one white-topped and the plain one with no white; winter at
+  80 snow the snowy key, at 10 not; the spot on a solid silo cell, in front of the footing from the
+  camera; the flat rect in the box's bottom right clear of the hatch; the 3D sprite upright,
+  hidden while empty, a cut shows a handful, 21 a heap standing on the ground, out of the tree it
+  waits and put back it catches up, no listener left once freed) and `_silo_pause` (no line
+  without a silo, the line's text, only on the main page, Thai, the screen's line under the note
+  inside the paper); test_view2d `_silo` (the flat pile after a sickle cut, a handful, at 30 a
+  wider heap from the same corner); test_lang `_screens` (the pause menu with the silo's line fits
+  in pseudo and Thai). Output: the 31 test scripts in tests/ each `OK (0 failed)`
+  (`test_animals: OK (0 failed)`, `test_view2d: OK (0 failed)`, `test_lang: OK (0 failed)`,
+  `test_menu: OK (0 failed)` among them; those five run again after the last code change, all OK)
+  with no ERROR or SCRIPT ERROR lines; the only WARNING lines are test_title's deliberate bad look
+  pieces (`No look style:9`, `No look part nose:1`).
+  Smoke runs (`--quit-after 300`: title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo
+  --built=silo --map=farm@silo --silo=30:4`, the same with `--pause`, the flat view `--built=silo
+  --map=farm@gate --silo=12`) printed no ERROR or WARNING lines; `--demo --silo=5` without the silo
+  prints its deliberate `WARNING: --silo: no silo built (add --built=silo before it)`. Movie Maker
+  frames looked at (crops enlarged): `--demo --built=silo --map=farm@silo --silo=30:4` 3D (the
+  heap at the silo's foot right of the hatch, the farmer beside it, the hint "E Fodder 4, grass
+  30"); `--map=farm@gate --silo=30:4 --no-hud` 3D (the big heap with its sheaf between the hatch
+  and the ladder, nothing cut into the wall) and flat (the heap at the silo box's bottom right,
+  right of the hatch); `--season=winter --snow=80 --map=farm@gate --silo=14 --no-hud` 3D (the
+  heap white-capped); `--built=silo --silo=30:4 --pause` in English ("Silo: fodder 4, grass 30"
+  under the list) and `--lang=th` (the Thai line inside the wider box).
+- Left / next: the flat winter pile and the 3D pile at night were not framed (the art and the key
+  are checked by test_animals); the 3D silo's fodder has no picture of its own (it lives inside).
+
+
 ## 2026-11-11 — The greenhouse's lit glass and roof glow in both views; flat farm roofs snow like 3D
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the three things left open by the entry below.
