@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-11 test_fishing frees its fish-log Game nodes; no exit leak; see WORKLOG.
 [x] 2026-11-11 Animals grow old: the age in nights (bought a season / year / two seasons old), told on E in years and seasons; "(old)" from the 4th year (hen), 5th (ewe), 8th (cow), a product skipped on a quarter of nights; a peaceful passing at night between 4-5 / 5-6 / 9-11 years, even odds, sure at the end, the morning news, the place freed; saved; `--old`; Thai; see WORKLOG.
 
 [x] 2026-11-11 Shipped page in the pause menu: every shippable item with icon, name, "x<count>" or "???", "N of M shipped", `--pause=shipped`, Thai; see WORKLOG.

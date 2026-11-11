@@ -227,6 +227,8 @@ func _init() -> void:
 	check(Fishing.kinds_caught(rules, counted.fish_caught) >= 1 and counted.fish_caught.values().reduce(func(a, b): return a + b) == 3, "three catches are counted, by kind")
 	var again := _game(rules)
 	check(again.from_dict(JSON.parse_string(JSON.stringify(counted.to_dict()))) == "" and again.fish_caught == counted.fish_caught, "the counts by kind survive a save")
+	counted.free()
+	again.free()
 	for bad in [{"caught": []}, {"caught": {"funa": -1}, "dry_casts": 0}, {"caught": {}, "dry_casts": "x"}, "x"]:
 		var broken: Dictionary = saved.duplicate(true)
 		broken.fishing = bad

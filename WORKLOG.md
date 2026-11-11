@@ -10,6 +10,14 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — test_fishing exit leak
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the two Game nodes the fish-log counts made (`counted`, `again`) were never freed;
+  test_fishing now frees them, so it quits with no "resources still in use" ERROR line.
+- Checked: `--verbose` before showed a leaked Node and game.gd with its parts still in use;
+  after, test_fishing prints only `test_fishing: OK (0 failed)`.
+- Left / next: nothing for this.
+
 ## 2026-11-11 — Merge: animals grow old, the Shipped page, Hachiro's weather lines
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three subagents in their own worktrees, the model picked by the job: 30f1a32 animals
