@@ -904,6 +904,25 @@ func _counter_and_screen() -> void:
 			check(screen._info_text() != "Hold it up, then E on a happy, grown cow or ewe.", "%s's row has its own line" % row.get("item", ""))
 	check(seen, "the store sells the cord (%s)" % cord)
 	screen.close()
+	# `--shop-row=N` (go_to_row): with the greenhouse built the glass rows come last; the cursor
+	# goes to the first of them and the list scrolls to show it, clamped at both ends.
+	g.house_built.append("greenhouse")
+	screen.open("general")
+	var glass_at := -1
+	for i in screen.menu.rows().size():
+		if screen.menu.rows()[i].get("glass", false):
+			glass_at = i
+			break
+	screen.go_to_row(glass_at)
+	var shown: int = glass_at - int(screen._top)
+	check(glass_at > 0 and screen.menu.cursor == glass_at and shown >= 0 and shown < screen.ROWS
+		and screen._names[shown].text.ends_with("under glass"), "--shop-row: the first glass row (%d) is on screen" % glass_at)
+	screen.go_to_row(999)
+	check(screen.menu.cursor == screen.menu.rows().size() - 1 and screen._top > 0, "a row past the list is the last row")
+	screen.go_to_row(-5)
+	check(screen.menu.cursor == 0 and screen._top == 0, "a row before the list is the first row")
+	g.house_built.erase("greenhouse")
+	screen.close()
 	screen.free()
 	g.new_game()
 

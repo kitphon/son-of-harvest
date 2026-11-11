@@ -41,6 +41,7 @@ var _info: Label
 var _note: Label
 var _hint: Label
 var _hours: Label
+var _forced_row := -1   # --shop-row=N, -1 when not given
 
 
 func _ready() -> void:
@@ -61,6 +62,8 @@ func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--shop="):
 			_open_forced.call_deferred(arg.trim_prefix("--shop="))
+		elif arg.begins_with("--shop-row="):   # with --shop: the cursor on that row (go_to_row)
+			_forced_row = int(arg.trim_prefix("--shop-row="))
 
 
 func _exit_tree() -> void:
@@ -80,6 +83,15 @@ func _open_forced(arg: String) -> void:
 	if _open and want.size() > 1 and want[1] in menu.tabs:
 		menu.next_tab(menu.tabs.find(want[1]) - menu.tab)
 		_refresh()
+	if _open and _forced_row >= 0:
+		go_to_row(_forced_row)
+
+
+## `--shop-row=N` (a screenshot run): the cursor on row N of the open tab, clamped to the
+## list; the list scrolls to show it.
+func go_to_row(i: int) -> void:
+	menu.cursor = clampi(i, 0, maxi(menu.rows().size() - 1, 0))
+	_refresh()
 
 
 ## Opens shop `id`; not over another menu or a text box.
