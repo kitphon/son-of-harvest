@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — A carrying cow or ewe looks it (both views)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a carrying cow or ewe gets her own picture: Animals.look adds data/animals.json
+  `breeding.sprite_suffix` ("_carrying") to her sprite kind (cow_carrying, sheep_carrying,
+  sheep_shorn_carrying: a shorn ewe stays shorn while carrying), so the 3D AnimalLayer and the
+  flat AnimalView, which both build their keys from look(), pick it from her state and drop it
+  after the birth (both rebuild on Animals.changed). AnimalArt.base_of splits the kind; the
+  picture is the plain one with a rounder belly hung under the body (a wool cloud for a ewe in
+  wool), three to five art pixels lower, and the cow's udder fuller at the new belly line.
+  Numbers in data/animal_art.json `carrying` {belly [x, y, rx, ry] as parts of the body
+  ellipse, wool_curl, udder_grow}; same sizes, poses, facings, three tones and deep-tone rim.
+  `--carrying` (after `--demo`) adds a carrying cow and ewe beside the demo barn's animals.
+  README → Cows and sheep and AGENTS.md's screenshot list say so.
+- Checked: after `--import`, test_animals `_carrying_art` (every pose / frame / facing of the
+  three carrying kinds: differs from the plain picture, same size, feet on the bottom row, no
+  old outline colour, no near-black rim, three body tones, the deep-tone rim; rounder by pixel
+  count; look() plain -> carrying -> plain after 13 nights for the cow and the ewe, woolly ewe
+  carrying, calf never; both view scripts build keys from look()); the old "woolly ewe stays
+  woolly" check now expects `sheep_carrying`. Output: `test_animals: OK (0 failed)`,
+  `test_view2d: OK (0 failed)`, `test_save: OK (0 failed)`, `test_lang: OK (0 failed)`;
+  lang_report `th: 2629 of 2629 done (100%), 0 missing, 0 stale`. Smoke runs (title, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`, `--demo --map=barn --carrying`): 0 error or warning
+  lines. Screenshots `--demo --map=barn --carrying` in the 3D view and in main_2d.tscn: the
+  carrying cow is clearly rounder with a full pink udder; the ewe's wool belly hangs between
+  her legs; a sprite sheet at 5x compared plain and carrying side by side. shots/ deleted.
+- Left / next: the shorn ewe's bulge is the subtlest of the three (her body is small); the
+  Musubi cord's interact hint is another agent's task.
+
 ## 2026-11-11 — Merge: breeding, the fish log, Kota and Tome's wet-day lines
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three subagents in their own worktrees, the model picked by the job: 1de2930 cow and

@@ -19,11 +19,15 @@ extends RefCounted
 ##   every material in three tones (shade / base / lit, lit from the upper left), a part's edge
 ##   over another material in its deep tone, and a rim in the deep tone of the material it
 ##   touches instead of a near-black outline. The sick pose keeps its dull colours.
+## - A carrying cow or ewe: the kind with data/animals.json breeding.sprite_suffix
+##   ("cow_carrying", "sheep_carrying", "sheep_shorn_carrying"; Animals.look) has a rounder, lower
+##   belly and (the cow) a fuller udder, numbers in data/animal_art.json "carrying".
 
 const SCALE := 2
 const ART_PATH := "res://data/animal_art.json"
 const FACINGS := ["dl", "dr", "ul", "ur"]
 const KINDS := ["chicken", "chick", "cow", "calf", "sheep", "sheep_shorn", "lamb", "dog"]
+const CARRYING := ["cow", "sheep", "sheep_shorn"]   # the kinds with a carrying picture
 const SHEAR := 0.085   # rows a column moves per column away from the middle
 
 ## Per kind (all in art pixels): canvas w x h; body ellipse b = [x, y, rx, ry]; leg columns
@@ -50,6 +54,7 @@ const QUADS := {
 }
 
 static var _art := {}
+static var _suffix := ""
 static var _reg := {}   # a tone's colour key -> [its material's base key, its deep tone]
 
 
@@ -58,6 +63,24 @@ static func art() -> Dictionary:
 	if _art.is_empty():
 		_art = JSON.parse_string(FileAccess.get_file_as_string(ART_PATH))
 	return _art
+
+
+## The sprite-kind suffix of a carrying animal (data/animals.json breeding.sprite_suffix).
+static func carrying_suffix() -> String:
+	if _suffix == "":
+		_suffix = String(Animals.data().get("breeding", {}).get("sprite_suffix", "_carrying"))
+	return _suffix
+
+
+## A sprite kind split into its drawn kind and whether she is carrying: "cow_carrying" ->
+## ["cow", true]; any other kind -> [kind, false].
+static func base_of(kind: String) -> Array:
+	var suf := carrying_suffix()
+	if suf != "" and kind.ends_with(suf):
+		var b := kind.trim_suffix(suf)
+		if QUADS.has(b) or BIRDS.has(b):
+			return [b, QUADS.has(b)]
+	return [kind, false]
 
 
 ## A material from its base colour: {base, shade, lit, deep} (FigureArt.tones with our numbers).
@@ -79,7 +102,7 @@ static func _note(c: Color, m: Dictionary) -> void:
 ## The tones of a kind's material ("body", "head", "muzzle", "leg", "hoof", ...; birds: "hen",
 ## "chick", "comb", ...), dulled when sick as the sick pose draws it.
 static func tones_of(kind: String, part: String, sick := false) -> Dictionary:
-	return mat(_colour(kind, part, sick))
+	return mat(_colour(String(base_of(kind)[0]), part, sick))
 
 
 static func _colour(kind: String, part: String, sick: bool) -> Color:
@@ -116,9 +139,11 @@ static func make(kind: String, pose: String, frame: int, facing: String = "dl") 
 	if not facing in FACINGS:
 		facing = "dl"
 	var away := facing.begins_with("u")
+	var split := base_of(kind)
+	kind = split[0]
 	var img: Image
 	if QUADS.has(kind):
-		img = _quad(kind, pose, frame, away)
+		img = _quad(kind, pose, frame, away, split[1])
 	else:
 		img = _bird(kind, pose, frame, away)
 	img = _rim(_tilt(img, away))   # the rim before the mirror, so the right facings mirror exactly
@@ -129,6 +154,7 @@ static func make(kind: String, pose: String, frame: int, facing: String = "dl") 
 
 ## The picture size for a kind (every pose and facing has it).
 static func size_of(kind: String) -> Vector2i:
+	kind = base_of(kind)[0]
 	var s: Dictionary = QUADS[kind] if QUADS.has(kind) else BIRDS[kind]
 	return Vector2i(s.w, s.h)
 
@@ -359,7 +385,7 @@ static func _eye(img: Image, x: float, y: float, shut: bool, glint: Color, pupil
 
 # --- four-legged animals ----------------------------------------------------
 
-static func _quad(kind: String, pose: String, frame: int, away: bool) -> Image:
+static func _quad(kind: String, pose: String, frame: int, away: bool, carrying := false) -> Image:
 	var s: Dictionary = QUADS[kind]
 	var img := _blank(s.w, s.h)
 	var sick := pose == "sick"
@@ -393,13 +419,22 @@ static func _quad(kind: String, pose: String, frame: int, away: bool) -> Image:
 	# The tail goes behind the body seen from the front, over the rump seen from behind.
 	if not away:
 		_tail(img, s, kind, bx, by, rx, ry, body, false, sick)
-	# The body.
+	# The body (carrying: a rounder belly hung under it, data/animal_art.json "carrying").
+	var cr: Dictionary = art().carrying
+	var bl: Array = cr.belly
+	var belly := Vector4(bx + rx * float(bl[0]), by + ry * float(bl[1]), rx * float(bl[2]), ry * float(bl[3]))
+	var low := by + ry
 	if fleece:
 		_cloud(img, bx, by, rx, ry, body, 3.0 if s.w > 30 else 2.2)
+		if carrying:
+			_cloud(img, belly.x, belly.y, belly.z, belly.w, body, float(cr.wool_curl))
 	else:
 		_blob(img, bx, by, rx, ry, body)
 		_blob(img, bx + rx * 0.5, by + ry * 0.05, rx * 0.5, ry * 0.96, body)    # haunch
 		_blob(img, bx - rx * 0.5, by - ry * 0.02, rx * 0.46, ry * 0.94, body)   # shoulder
+		if carrying:
+			_blob(img, belly.x, belly.y, belly.z, belly.w, body)
+			low = maxf(low, belly.y + belly.w - 0.6)
 		if s.has("urajiro"):   # cream chest and underside
 			var cream := tones_of(kind, "muzzle")
 			_blob(img, bx - rx * 0.62, by + ry * 0.42, rx * 0.34, ry * 0.62, cream, false)
@@ -408,8 +443,9 @@ static func _quad(kind: String, pose: String, frame: int, away: bool) -> Image:
 			for i in 3:
 				var rxp := bx - 4.0 + i * 3.0
 				_px(img, roundi(rxp), roundi(by - ry * 0.25), 1, 3, body.shade)
-		if kind == "cow" and not sick:   # the udder
-			_blob(img, bx + rx * 0.3, by + ry + 0.4, 2.6, 1.8, tones_of(kind, "udder"), false)
+		if kind == "cow" and not sick:   # the udder (fuller when she carries)
+			var ug: Array = cr.udder_grow if carrying else [0.0, 0.0]
+			_blob(img, bx + rx * 0.3, low + 0.4, 2.6 + float(ug[0]), 1.8 + float(ug[1]), tones_of(kind, "udder"), false)
 	# Near legs over the body's lower edge.
 	if not sick:
 		for k in [0, 2]:

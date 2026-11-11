@@ -180,7 +180,10 @@ effect the moment it changes and saved to `user://settings.json` (version 2; a v
   On the due night the calf / lamb is born in the barn, named from the names list, a little
   happier than a bought one, and the morning news tells it; with the barn full she waits
   night by night until there is room. Saved with the animal (`carrying`, `carry_days`; older
-  saves load with nobody carrying).
+  saves load with nobody carrying). A carrying cow or ewe looks it in both views: a rounder,
+  lower belly (the cow's udder fuller), her sprite kind plus `breeding.sprite_suffix`
+  ("cow_carrying"), numbers in `data/animal_art.json` `carrying`; plain again after the birth.
+  `-- --demo --map=barn --carrying` adds a carrying cow and ewe beside the demo's.
 - The dog (Goro): wanders near its spot right of the stand, and once fond enough (about a
   week of pats) follows the farmer about the farm. E pets it (once a day counts), E again
   picks it up; either button sets it down in front. A day without either costs affection.

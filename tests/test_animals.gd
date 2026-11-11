@@ -22,6 +22,7 @@ func _init() -> void:
 	_barn_map_and_art()
 	_breeding()
 	_breeding_save()
+	_carrying_art()
 
 
 func _process(_delta: float) -> bool:
@@ -693,7 +694,7 @@ func _breeding() -> void:
 	var nights := int(d.kinds.cow.breed.carry_nights)
 	check(a.due_in(a.list[cow]) == nights and a.due_in(a.list[ewe]) == -1, "due in %d nights" % nights)
 	a.list[ewe].prod_days = int(d.kinds.sheep.gives.every)
-	check(a.breed(ewe) == "" and a.look(a.list[ewe]) == "sheep", "a woolly ewe stays woolly while carrying")
+	check(a.breed(ewe) == "" and a.look(a.list[ewe]) == "sheep" + String(d.breeding.sprite_suffix), "a woolly ewe stays woolly while carrying (her carrying picture)")
 	a.list[ewe].carrying = false   # only the cow carries through the nights below
 	var herd := a.in_home("barn").size()
 	for n in nights - 1:
@@ -849,6 +850,74 @@ func _barn_map_and_art() -> void:
 		check(PlaceholderArt.world_item_key(id) == "item:" + id and PlaceholderArt.tex("item:" + id).get_size() == Vector2(12, 12), id + " world sprite")
 		check(PlaceholderArt.tex(PlaceholderArt.item_key(id)).get_size() == Vector2(14, 14), id + " slot icon")
 	check(data_of.call("item:milk") != data_of.call("item:milk_best") and data_of.call("item:wool") != data_of.call("item:wool_good"), "grades look different")
+
+## A carrying cow or ewe (data/animal_art.json "carrying"): her own picture in every pose and
+## facing, the same size and refined look, picked by Animals.look from her state for both views
+## and dropped again after the birth.
+func _carrying_art() -> void:
+	var suf := AnimalArt.carrying_suffix()
+	check(suf != "" and suf == String(Animals.data().breeding.sprite_suffix), "the carrying suffix comes from data/animals.json (%s)" % suf)
+	var old_line := FigureArt._key(Color("2a1e1e"))
+	for kind in AnimalArt.CARRYING:
+		var ck: String = kind + suf
+		check(AnimalArt.base_of(ck) == [kind, true] and AnimalArt.base_of(kind) == [kind, false], ck + " splits into its kind")
+		check(AnimalArt.size_of(ck) == AnimalArt.size_of(kind), ck + " keeps the size %s" % AnimalArt.size_of(kind))
+		var m := AnimalArt.tones_of(ck, "body")
+		check(m.base == AnimalArt.tones_of(kind, "body").base, ck + " has her kind's colours")
+		var want: Color = m.deep.lerp(Color(str(AnimalArt.art().rim)), float(AnimalArt.art().rim_mix))
+		for facing in AnimalArt.FACINGS:
+			for pose in ["idle", "peck", "walk", "sick"]:
+				for frame in 2:
+					var key := "animal:%s:%s:%d:%s" % [ck, pose, frame, facing]
+					var img := PlaceholderArt.tex(key).get_image()
+					var plain := PlaceholderArt.tex("animal:%s:%s:%d:%s" % [kind, pose, frame, facing]).get_image()
+					check(img.get_size() == plain.get_size(), key + " is the plain picture's size")
+					check(img.get_data() != plain.get_data(), key + " differs from the plain picture")
+					check(_feet_row(img) == img.get_height() - 1, key + " stands on the bottom row")
+					var cols := _colours(img)
+					check(not cols.has(old_line), key + ": no pixel in the old outline colour")
+					var dark := 0
+					for c: Color in _rim_colours(img):
+						if c.v < 0.06:
+							dark += 1
+					check(dark == 0, key + ": no near-black rim (%d)" % dark)
+					if pose != "sick":
+						var tones := 0
+						for role in ["shade", "base", "lit"]:
+							if cols.has(FigureArt._key(m[role])):
+								tones += 1
+						check(tones == 3, key + ": the body keeps its three tones")
+						var rk := {}
+						for c: Color in _rim_colours(img):
+							rk[c.to_html()] = true
+						check(rk.has(FigureArt._key(want)), key + ": the rim is the body's deep tone pulled to the rim colour")
+		# The belly hangs lower: more drawn pixels in the lower half between the legs.
+		var a_img := PlaceholderArt.tex("animal:%s:idle:0:dl" % ck).get_image()
+		var p_img := PlaceholderArt.tex("animal:%s:idle:0:dl" % kind).get_image()
+		check(_opaque(a_img) > _opaque(p_img), ck + " is rounder (%d against %d pixels)" % [_opaque(a_img), _opaque(p_img)])
+	# Both views take the sprite kind from Animals.look: carrying, then back after the birth.
+	var a := _herd(["cow", "sheep"])
+	for x in a.list:
+		x.happy = 90
+	check(a.look(a.list[0]) == "cow" and a.look(a.list[1]) == "sheep_shorn", "before the cord: the plain looks")
+	check(a.breed(0) == "" and a.breed(1) == "", "both carry")
+	check(a.look(a.list[0]) == "cow" + suf and a.look(a.list[1]) == "sheep_shorn" + suf, "carrying: %s, %s" % [a.look(a.list[0]), a.look(a.list[1])])
+	a.list[1].prod_days = int(a.gives(a.list[1]).every)
+	check(a.look(a.list[1]) == "sheep" + suf, "a ewe in wool carrying: " + a.look(a.list[1]))
+	var young := a.add("cow", true)
+	check(young and a.look(a.list.back()) == "calf", "a calf has no carrying look")
+	a.list.pop_back()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 3
+	for n in 13:
+		a.day_end("sunny", rng)
+	check(not a.list[0].carrying and a.look(a.list[0]) == "cow", "after the calf, the cow looks plain again: " + a.look(a.list[0]))
+	check(not a.list[1].carrying and not a.look(a.list[1]).ends_with(suf), "after the lamb, the ewe looks plain again: " + a.look(a.list[1]))
+	# The 3D layer and the flat view draw what Animals.look says (their keys are built from it).
+	for path in ["res://scripts/world3d/animal_layer.gd", "res://scripts/world/animal_view.gd"]:
+		var src := FileAccess.get_file_as_string(path)
+		check(src.contains("animals.look(") or src.contains("a.look("), path + " picks the sprite from Animals.look")
+
 
 func _prop_cell(use: String) -> Vector2i:
 	for p in MapManager.data("coop").props:

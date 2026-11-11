@@ -144,14 +144,18 @@ func label(a: Dictionary) -> String:
 	return a.name if is_adult(a) else "%s (%s)" % [a.name, String(kind_rule(a.kind).get("young_name", "young")).to_lower()]
 
 
-## The sprite kind for an animal: the young one's, a shorn sheep's, or the kind itself.
+## The sprite kind for an animal: the young one's, a shorn sheep's, or the kind itself; a
+## carrying cow or ewe adds data/animals.json breeding.sprite_suffix ("cow_carrying").
 func look(a: Dictionary) -> String:
 	var k := kind_rule(a.kind)
 	if not is_adult(a):
 		return String(k.get("young_sprite", a.kind))
+	var sprite := String(a.kind)
 	if k.has("shorn_sprite") and not _grown(a):
-		return String(k.shorn_sprite)
-	return a.kind
+		sprite = String(k.shorn_sprite)
+	if a.get("carrying", false):   # a carrying cow or ewe: her rounder picture until the birth
+		sprite += String(breeding().get("sprite_suffix", ""))
+	return sprite
 
 
 ## Where animal `i` stands in its home (the home's spots, in the order they came), or (-1, -1).

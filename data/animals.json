@@ -136,7 +136,9 @@
 		"happy_min": 60,
 		"_happy_min": "Only a grown, well cow or ewe at least this happy will carry: care comes first.",
 		"born_happy": 10,
-		"_born_happy": "A calf or lamb born on the farm starts this much happier than a bought one (happy_start)."
+		"_born_happy": "A calf or lamb born on the farm starts this much happier than a bought one (happy_start).",
+		"sprite_suffix": "_carrying",
+		"_sprite_suffix": "Added to a carrying cow's or ewe's sprite kind (Animals.look: cow_carrying, sheep_carrying, sheep_shorn_carrying), drawn by AnimalArt with a rounder, lower belly (data/animal_art.json carrying); gone again after the birth."
 	},
 	"incubator": {
 		"hatch_days": 3,

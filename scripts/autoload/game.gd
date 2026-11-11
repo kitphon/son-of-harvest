@@ -364,6 +364,13 @@ func new_game() -> void:
 					goals.done.append(id)
 		elif arg == "--hens-out":   # e.g. `-- --demo --map=farm@coop --hens-out`: the hens in the yard
 			animals.outside = true
+		elif arg == "--carrying":   # e.g. `-- --demo --map=barn --carrying`: a carrying cow and ewe beside the plain ones
+			for kind in ["cow", "sheep"]:
+				if animals.add(kind):
+					animals.list.back().carrying = true
+					animals.list.back().carry_days = 3
+					animals.list.back().prod_days = int(animals.gives(animals.list.back()).every)   # the ewe in full wool
+			animals.changed.emit()
 		elif arg == "--barn-out":   # e.g. `-- --demo --map=farm@barn --barn-out`: cows and sheep grazing
 			animals.state.barn.out = true
 		elif arg == "--pause=fishlog":   # `-- --demo --pause=fishlog`: a few catches in the log already
