@@ -10,6 +10,25 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Every shippable item's icon checked: none falls back, a test keeps it so
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: the task was to draw real icons for shippable items, fish and forage whose icon fell back to a
+  generic picture (the old "Left / next" of the Shipped page entry). Checked all 86 rows of
+  Game.shippable_rows with a contact sheet of their pictures: none falls back. Crops (all 11 have a
+  look in data/crops.json), animal goods (egg / milk / wool, three grades each), fish (15), mine finds
+  (12), wild plants (20) and the dishes that have a sell price (19) each have a drawn picture; the
+  wrapped-cloth bundle and the magenta square PlaceholderArt keeps for unknown ids are used by none
+  (the one cloth bundle in the sheet is "medicine", which sells for 0 and is not a row). The
+  silhouettes entry of the same day had already said so; the older "plain blobs" note was stale. So
+  nothing new was drawn (no list of new icons).
+  Added test_menu `_no_fallback_icons`: every shippable row's picture is 14 x 14, is not the cloth
+  bundle (a plain "ui:item:" id must be a crop or an animal good), has no magenta pixel, and no two
+  rows share the same pixels (so each "???" silhouette is a shape of its own).
+- Checked: `test_menu: OK (0 failed)` with the new check; the other tests and smoke runs are in the
+  report of this commit.
+- Left / next: the dishes of one shape (many bowls, a few plates) differ mainly by colour; a detail per
+  dish (noodles, a pudding top) would set them further apart. Not needed to close this.
+
 ## 2026-11-11 — The greenhouse's +x lit patch gone from the flat view
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: the flat view draws no side wall for the greenhouse (only the roof's right edge shows), so the
