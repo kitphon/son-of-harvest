@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-11 The silo's stores on screen: the HUD's E hint at the silo reads "Fodder N, grass N" (ActionHints, both views, Thai); see WORKLOG.
 [x] 2026-11-11 The greenhouse in snow and at night: snow on the glass roof in bays between the rafters, the ridge and the barrel (3D), the flat farm roofs (greenhouse, farmhouse, coop, barn, silo) whiten under snow (`farm_roofs` in data/snow_cover.json); a paper lantern inside lights two patches of glass at night by the windows' rules (LitSpots.greenhouse, `build:glass_lit`), warm pools in front, both views; an andon inside; see WORKLOG.
 [x] 2026-11-11 The spouse's morning watering reaches the greenhouse beds once it stands: 6 more dry planted beds a morning on any weather (rain never reaches glass), a budget of its own beside the field's 6 (`water_beds`, `beds_weather` in data/marriage.json); same morning line; the child's weeding stays on the field; see WORKLOG.
 [x] 2026-11-11 Off-season seeds for the greenhouse: the Yorozu Store sells any season's seeds once the greenhouse stands (today only the season's), so a winter under glass needs no seeds kept from the fall. Done: `under_glass` in data/shops.json (150% of the seed price), the rows marked "under glass" in the buy tab; see WORKLOG.

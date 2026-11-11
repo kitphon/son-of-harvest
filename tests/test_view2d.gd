@@ -1497,6 +1497,8 @@ func _silo() -> void:
 	act("tool", c, Vector2i.DOWN)
 	check(g.animals.silo.grass == 1, "flat: a weed cut with the sickle is a bundle of grass (%d)" % g.animals.silo.grass)
 	g.animals.silo.fodder = 4
+	var hint_words: String = load("res://scripts/ui/action_hints.gd").pick(Vector2i(30, 3), Vector2i.UP).interact
+	check(hint_words == "Fodder 4, grass 1", "flat: the HUD hint at the silo shows the stores: %s" % hint_words)
 	var loft: int = g.animals.stock_of("barn")
 	act("interact", Vector2i(30, 3), Vector2i.UP)
 	check(g.animals.stock_of("barn") == loft + 4 and g.animals.silo.fodder == 0, "flat: E at the silo carries its fodder to the loft")

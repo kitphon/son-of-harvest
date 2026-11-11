@@ -385,6 +385,7 @@
 		"Grass for the silo: %d bundles in the pile.": "หญ้าสำหรับไซโล: กองมี %d มัด",
 		"The silo's grass pile is full.": "กองหญ้าในไซโลเต็มแล้ว",
 		"Carried %d fodder from the silo to the barn's loft (%d there now).": "ขนหญ้าแห้ง %d มัดจากไซโลไปยังโรงเก็บของโรงวัว (ตอนนี้มี %d)",
+		"Fodder %d, grass %d": "หญ้าแห้ง %d หญ้า %d",
 		"The silo has no fodder yet.": "ไซโลยังไม่มีหญ้าแห้ง",
 		"Cut grass turns to fodder overnight (%d bundles waiting).": "หญ้าที่ตัดมาจะกลายเป็นหญ้าแห้งในตอนกลางคืน (รออยู่ %d มัด)",
 		"The animals came back in.": "สัตว์กลับเข้าคอกแล้ว",

@@ -93,8 +93,8 @@ static func interact_verb(origin: Vector2i, facing: Vector2i) -> String:
 			return "Open"
 		"stand":
 			return "Buy"
-		"silo":
-			return "Fodder"
+		"silo":   # the stores, since no other screen shows them
+			return "Fodder %d, grass %d" % [int(Game.animals.silo.fodder), int(Game.animals.silo.grass)]
 	if Game.holding():
 		return ""
 	if Game.farm.item_at(c) != "":

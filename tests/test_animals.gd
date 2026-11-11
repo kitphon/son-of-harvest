@@ -1079,7 +1079,10 @@ func _silo() -> void:
 	FarmActions.interact(Vector2i(30, 2))
 	check(said.size() == 1 and said[0].begins_with("The silo has no fodder yet."), "empty: %s" % str(said))
 	var hints: GDScript = load("res://scripts/ui/action_hints.gd")
-	check(hints.interact_verb(Vector2i(30, 3), Vector2i.UP) == "Fodder", "the hint at the silo: %s" % hints.interact_verb(Vector2i(30, 3), Vector2i.UP))
+	g.animals.silo = {"grass": 6, "fodder": 3}
+	check(hints.interact_verb(Vector2i(30, 3), Vector2i.UP) == "Fodder 3, grass 6", "the hint at the silo shows its stores: %s" % hints.interact_verb(Vector2i(30, 3), Vector2i.UP))
+	g.animals.silo = {"grass": 0, "fodder": 0}
+	check(hints.pick(Vector2i(30, 3), Vector2i.UP).interact == "Fodder 0, grass 0", "and empty: %s" % hints.pick(Vector2i(30, 3), Vector2i.UP).interact)
 	# Saved and loaded; an old save has none; a new game none.
 	g.animals.silo = {"grass": 7, "fodder": 12}
 	var d: Dictionary = JSON.parse_string(JSON.stringify(g.to_dict()))

@@ -10,6 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — The silo's stores on screen
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: facing the fodder silo, the HUD key hint now reads "E Fodder 3, grass 6" (fodder waiting, grass
+  bundles in the pile) instead of the bare "Fodder" (ActionHints.interact_verb, the string
+  "Fodder %d, grass %d"; Thai "หญ้าแห้ง %d หญ้า %d" in data/lang/th/ui.json). The hint is the HUD's, so
+  both views share it. No visible fill cue on the silo itself.
+- Checked: test_animals (hint shows the stores, also 0/0), test_view2d (flat hint after a cut and
+  4 fodder), test_lang, test_save: OK (0 failed); smoke runs without errors; frames `--demo
+  --built=silo --map=farm@silo` in 3D, English and `--lang=th`, and the flat view show the hint.
+- Left / next: the stores are only shown at the silo (not in the pause menu); a grass pile that grows
+  beside the silo would be a nice cue.
+
 ## 2026-11-11 — The greenhouse in snow and at night
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: snow on the greenhouse and a lantern's glow in it, in both views, through the systems the
