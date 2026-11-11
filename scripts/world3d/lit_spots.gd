@@ -30,6 +30,32 @@ static func farmhouse() -> Array[Dictionary]:
 	return out
 
 
+## The greenhouse (FarmGrid.GREENHOUSE, once built): a paper lantern kept inside by the door lights
+## the glass near it, a patch of the front wall left of the door and one of the +x gable wall
+## (GreenhouseProps' walls, glazed from the skirting at 0.5 to the eaves at 1.5). The pane picture
+## `build:glass_lit` is the glazing lit from within, brightest in the middle, so the panes read lit
+## and not a window; small patches, about a shoji window's size, so the light stays soft.
+static func greenhouse() -> Array[Dictionary]:
+	var r := Rect2(FarmGrid.GREENHOUSE)
+	var body := Rect2(r.position.x + 0.1, r.position.y + 0.1, r.size.x - 0.2, r.size.y - 0.2)
+	var out: Array[Dictionary] = [
+		spot("build:glass_lit", Vector2(0.9, 0.7), Vector3(FarmGrid.GREENHOUSE_DOOR.x - 0.75, 1.0, body.end.y + 0.005), SOUTH),
+		spot("build:glass_lit", Vector2(0.9, 0.7), Vector3(body.end.x + 0.005, 1.0, body.end.y - 0.9), EAST),
+	]
+	for s in out:
+		s.span = wall_span(s, body)
+	return out
+
+
+## Every lit window of the farm: the farmhouse's, and the greenhouse's once it is in `built`
+## (Game.house_built).
+static func farm(built: Array) -> Array[Dictionary]:
+	var out := farmhouse()
+	if "greenhouse" in built:
+		out.append_array(greenhouse())
+	return out
+
+
 ## The front wall (z) of a village house over footprint `r`.
 static func village_front(r: Rect2) -> float:
 	return r.end.y - 0.15

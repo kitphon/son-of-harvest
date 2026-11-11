@@ -128,6 +128,23 @@ static func roof_mask_image(m: MapData, rules: Dictionary) -> Image:
 		return clampf(float(roofs[p.kind]), 0.0, 1.0))
 
 
+## The farm's roofs as the flat view sees them from above, as roof_mask_image does for a map's
+## houses: data/snow_cover.json "farm_roofs" (FarmGrid building kinds with a roof and how much
+## snow they hold) over each building's cells but its front row (the doors and the front wall).
+static func farm_roof_mask_image(farm: FarmGrid, rules: Dictionary) -> Image:
+	var roofs: Dictionary = rules.get("farm_roofs", {})
+	var front := {}   # building kind -> its lowest row
+	for c: Vector2i in farm.fixed:
+		var k := str(farm.fixed[c])
+		if roofs.has(k):
+			front[k] = maxi(int(front.get(k, c.y)), c.y)
+	return _mask(farm.w, farm.h, func(c: Vector2i) -> float:
+		var k := farm.fixed_at(c)
+		if not roofs.has(k) or c.y >= int(front[k]):
+			return 0.0
+		return clampf(float(roofs[k]), 0.0, 1.0))
+
+
 static func _mask(w: int, h: int, hold_at: Callable) -> Image:
 	var img := Image.create_empty(w * MASK_PER_CELL, h * MASK_PER_CELL, false, Image.FORMAT_L8)
 	for y in h:

@@ -1520,6 +1520,31 @@ func _greenhouse() -> void:
 	await process_frame
 	check(FarmView.roof_rect(g.farm, "greenhouse") == Rect2(25 * 16, 14 * 16, 80, 48), "flat: the greenhouse's box: %s" % FarmView.roof_rect(g.farm, "greenhouse"))
 	check(g.maps.is_solid(Vector2i(26, 16), g.farm) and not g.maps.is_solid(Vector2i(27, 17), g.farm), "flat: the glasshouse is solid, the cell before its door open")
+	# Snow on its glass roof (and the other farm roofs) over the objects, its front row left plain;
+	# at night the lantern inside lights the glass, the farmhouse's windows and the greenhouse's.
+	var roofs: Image = SnowLayer.farm_roof_mask_image(g.farm, g.snow_rules)
+	var hold := func(c: Vector2i) -> float: return roofs.get_pixel(c.x * SnowLayer.MASK_PER_CELL, c.y * SnowLayer.MASK_PER_CELL).r
+	var held: Dictionary = g.snow_rules.farm_roofs
+	check(absf(hold.call(Vector2i(25, 14)) - float(held.greenhouse)) < 0.01 and absf(hold.call(Vector2i(29, 15)) - float(held.greenhouse)) < 0.01,
+		"flat: snow lies on the greenhouse's glass roof (%.2f)" % hold.call(Vector2i(25, 14)))
+	check(hold.call(Vector2i(25, 16)) == 0.0 and hold.call(FarmGrid.GREENHOUSE_DOOR) == 0.0 and hold.call(Vector2i(24, 14)) == 0.0,
+		"flat: not on its front wall, door or the field beside it")
+	check(absf(hold.call(Vector2i(2, 1)) - float(held.house)) < 0.01 and hold.call(Vector2i(2, 3)) == 0.0, "flat: the farmhouse's roof takes snow too, not its front")
+	scene.view.set_snow(0.8)
+	check(scene.view._roof_snow != null and scene.view._roof_snow.visible and scene.view._roof_snow.get_index() == scene.view._objects.get_index() + 1,
+		"flat: the roofs' snow is drawn over the buildings")
+	scene.view.set_snow(0.0)
+	check(not scene.view._roof_snow.visible, "flat: and gone when no snow lies")
+	check(scene.night.windows.size() == LitSpots.farmhouse().size() + LitSpots.greenhouse().size(), "flat: the greenhouse's lit glass with the farmhouse's windows (%d)" % scene.night.windows.size())
+	var was := [g.hour, g.minute]
+	g.hour = 21
+	g.minute = 0
+	await process_frame
+	var lit: Array = scene.night.pools.filter(func(p: Dictionary) -> bool: return FarmGrid.GREENHOUSE.grow(1).has_point(Vector2i(int(p.center.x), int(p.center.z))))
+	check(scene.night.glow == 1.0 and lit.size() == 2, "flat: at night a warm pool in front of the greenhouse's glass and beside it (%d)" % lit.size())
+	g.hour = was[0]
+	g.minute = was[1]
+	await process_frame
 	act("enter", Vector2i(27, 17), Vector2i.UP)
 	check(g.maps.id == "greenhouse", "flat: the door leads into the greenhouse (%s)" % g.maps.id)
 	await _wait_view("map_view.gd")

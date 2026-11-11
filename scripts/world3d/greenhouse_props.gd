@@ -6,7 +6,10 @@ extends RefCounted
 ## with small panes; a low gable roof of glass on thin rafters, its ridge along x under a cedar
 ## ridge board; a glazed sliding door with a dark frame on the front (+z) over
 ## FarmGrid.GREENHOUSE_DOOR, a step stone before it, and a rain barrel at the +x corner. Through
-## the glass the beds show: dark soil and rows of green. Same units as FarmWorld.
+## the glass the beds show: dark soil and rows of green, and a paper lantern hanging inside by the
+## door, which lights the glass near it at night (LitSpots.greenhouse, drawn by NightLights like a
+## house's windows). Snow lies on the glass slopes, the ridge cap and the barrel's lid
+## (FarmWorld._snow_top, as on the other roofs). Same units as FarmWorld.
 
 const TIMBER := Color("6e4c30")     # the cedar frame, left unpainted (lighter than the barn's)
 const DARK := Color("2e221a")
@@ -84,6 +87,17 @@ static func greenhouse(w: FarmWorld) -> void:
 	for s in [1.0, -1.0]:
 		var centre := Vector3(cx, lift + RISE * run / (depth / 2) / 2 + 0.03, mid_z + s * run / 2)
 		w._box(Vector3(wide + over * 2, 0.02, slope), centre, glass, Vector3(s * tilt, 0, 0))
+		# Snow on the glass: a thin sheet just over the slope in each bay between the rafters, so
+		# the frame's lines still show through, stopping short of the eave where it slides off.
+		var up := Vector3(0, cos(s * tilt), sin(s * tilt))
+		var upslope: Vector3 = s * Vector3(0, sin(s * tilt), -cos(s * tilt))
+		var bays: Array[float] = [left - over]
+		for x in range(int(r.position.x) + 1, int(r.end.x)):
+			bays.append(float(x))
+		bays.append(right + over)
+		for i in bays.size() - 1:
+			var at := Vector3((bays[i] + bays[i + 1]) / 2 - cx, 0, 0)
+			w._snow_top(Vector3(bays[i + 1] - bays[i] - 0.07, 0.02, slope - 0.2), centre + at + up * 0.02 + upslope * 0.07, Vector3(s * tilt, 0, 0))
 		for x in range(int(r.position.x), int(r.end.x) + 1):
 			var px := clampf(float(x), left, right)
 			w._box(Vector3(0.05, 0.05, slope), centre + Vector3(px - cx, -0.03, 0), timber, Vector3(s * tilt, 0, 0))
@@ -91,6 +105,7 @@ static func greenhouse(w: FarmWorld) -> void:
 	var ridge := EAVE + RISE
 	w._box(Vector3(wide + over * 2 + 0.04, 0.12, 0.08), Vector3(cx, ridge + 0.03, mid_z), timber)
 	w._box(Vector3(wide + over * 2 + 0.06, 0.04, 0.2), Vector3(cx, ridge + 0.11, mid_z), dark)
+	w._snow_top(Vector3(wide + over * 2 + 0.02, 0.03, 0.18), Vector3(cx, ridge + 0.145, mid_z))
 	# The gable ends: the glass triangles over the side walls, a king post in each.
 	for x in [left, right]:
 		_gable(w, x, back, front, EAVE, ridge, glass)
@@ -111,6 +126,26 @@ static func greenhouse(w: FarmWorld) -> void:
 	for y in [0.12, 0.38]:
 		w._box(Vector3(0.39, 0.04, 0.39), barrel + Vector3(0, y, 0), FarmWorld.flat_material(Color("3a3430")))
 	w._box(Vector3(0.3, 0.01, 0.3), barrel + Vector3(0, 0.5, 0), FarmWorld.flat_material(Color("3a6a7a")))
+	w._snow_top(Vector3(0.34, 0.03, 0.34), barrel + Vector3(0, 0.52, 0))
+	var hook := front - 0.45   # the lantern hangs here, from the rafter over it
+	_lantern(w, Vector3(FarmGrid.GREENHOUSE_DOOR.x - 0.75, 0, hook), ridge - 0.04 - RISE * absf(hook - mid_z) / (depth / 2))
+	# The lantern's light on the glass at night: no picture by day, NightLights draws the glow.
+	for spot in LitSpots.greenhouse():
+		w.windows.append(spot)
+	if not w.is_in_group(NightLights.GROUP):
+		w.add_to_group(NightLights.GROUP)
+
+
+## A small paper lantern (chochin) at `at` (x / z, on the ground) hanging on a cord from a rafter
+## at height `roof`: washi between a dark top and foot, its middle at the height of the glass it
+## lights.
+static func _lantern(w: FarmWorld, at: Vector3, roof: float) -> void:
+	var dark := FarmWorld.flat_material(DARK)
+	w._box(Vector3(0.17, 0.22, 0.17), at + Vector3(0, 1.08, 0), FarmWorld.flat_material(Color("ead9b4")))
+	w._box(Vector3(0.2, 0.04, 0.2), at + Vector3(0, 1.21, 0), dark)
+	w._box(Vector3(0.2, 0.04, 0.2), at + Vector3(0, 0.95, 0), dark)
+	var hang := roof - 1.23
+	w._box(Vector3(0.015, hang, 0.015), at + Vector3(0, 1.23 + hang / 2, 0), dark)
 
 
 ## A gable triangle in the plane x = `x`, from the eaves at z `back` and `front` (height `eave`)

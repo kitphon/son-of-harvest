@@ -67,11 +67,12 @@ var _halo_layer: Node2D
 var _pane_layer: Node2D
 
 
-## `props` are the map's props (MapData.props); the farm has the farmhouse and no lanterns.
+## `props` are the map's props (MapData.props); the farm has the farmhouse (and the greenhouse once
+## built, LitSpots.farm) and no lanterns.
 ## `map_id`: the map, for today's festival lights there (FestivalProps.glows_of).
 func setup(props: Array, on_farm: bool, map_id := "") -> NightView:
 	if on_farm:
-		windows = LitSpots.farmhouse()
+		windows = LitSpots.farm(Game.house_built)   # the farmhouse, and the greenhouse once built
 		roof_edge = FARM_ROOF_EDGE
 	else:
 		var spots := LitSpots.of_map(props)

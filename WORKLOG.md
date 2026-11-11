@@ -10,6 +10,55 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — The greenhouse in snow and at night
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: snow on the greenhouse and a lantern's glow in it, in both views, through the systems the
+  other buildings use. 3D (GreenhouseProps): snow tops (FarmWorld._snow_top, SnowLayer's top
+  shader, in the world's snow materials, driven by set_snow like Minka's roofs) on each glass
+  slope, one sheet a bay between the rafters so the cedar lines still show and stopping about 0.17 short
+  of the eaves (snow slides off glass), on the ridge cap and on the rain barrel; gone with the rest
+  while the house is faded see-through (Occluders). Night: a small paper lantern (chochin) hangs
+  inside left of the door, and LitSpots.greenhouse() lists two patches of its glass (0.9 x 0.7, the
+  front wall left of the door and the +x gable wall, within the glazing 0.5..1.5) as lit windows
+  with a new pane picture `build:glass_lit` (glazing lit from within, brightest in the middle in
+  four steps, dark glazing bars). GreenhouseProps appends them to FarmWorld.windows (no day
+  picture: by day it is plain glass), so NightLights draws the pane glow, halo and the warm wall
+  wash (which takes the pale glass round the patch), the pools on the ground in front, the real
+  lamps (NightLamps) and the figures' lift by the same rules and hours as the houses
+  (Game.window_light); MeshCache keeps them with the build. Flat view: NightView's farm windows
+  are LitSpots.farm(Game.house_built) (the farmhouse, plus the greenhouse once built), so its
+  strips, halos and pools show; FarmView gets a roof snow layer over its objects like MapView's
+  (SnowLayer.farm_roof_mask_image, data/snow_cover.json `farm_roofs`: each building's cells but its
+  front row), which whitens the greenhouse's glass roof and, since the flat farm roofs had no
+  snow at all before, the farmhouse, coop, barn and silo roofs too. Holds ours: 0.7 as the village
+  houses, the greenhouse 0.6 (glass sheds snow and is a little warm inside). Inside
+  (data/maps/greenhouse.json): an andon by the door at (1, 6), the lantern whose light shows
+  outside; indoor maps keep their fixed light, so it is the same prop as in the homes. The patches
+  are about a shoji window's size, so the pools (0.46) sit between a shoji's (0.40) and the
+  farmhouse door's (0.51).
+- Checked: test_weather `_greenhouse_glow` (two patches on the front and +x glass, clear of the
+  door; on the farm's list only once built; no pools while windows are out; pools outside the glass,
+  between a shoji's and the door's strength; the picture bright in the middle, dark bars), test_maps
+  `_greenhouse` (11+ snow tops in the snow materials, no shadows, high on the roof or the barrel,
+  following set_snow; the lit glass listed for NightLights; a second MeshCache build keeps the snow
+  and lit glass; the andon inside, the way out clear), test_view2d `_greenhouse` (the roof mask on the
+  greenhouse's back rows at its hold, not its front row, door or the field; the farmhouse's roof too;
+  the roof snow over the objects and hidden without snow; NightView has the greenhouse's two
+  windows and two pools at 21:00). Output: all 32 test scripts `OK (0 failed)` (test_weather, test_maps,
+  test_view2d among them), no ERROR or SCRIPT ERROR lines; smoke runs (title, `--demo`, `--demo
+  --map=town`, `--demo --mine=3`, `--quit-after 300`) and the greenhouse runs at night and in snow in
+  both views: no error or warning lines. Movie Maker frames looked
+  at: `--demo --built=greenhouse --map=farm@greenhouse --time=21:00` (3D: two warm patches of lit
+  glass, front left of the door and on the gable, warm pools on the ground before them, the frame
+  dark round them), `... --season=winter --snow=80` (3D: snow in five bays a slope with the rafters'
+  lines between and a bare strip at the eaves, white ridge cap and barrel lid), `... --time=20:00`
+  snowy night, the same through main_2d.tscn (flat: patchy snow on the glass roof's upper rows, the
+  farmhouse, coop and barn roofs white in patches too; at night the warm strips and pools),
+  `--demo --map=greenhouse --time=21:00` (inside: the andon by the door).
+- Left / next: the flat view's lit strips follow NightView's convention (on the wall's footprint
+  line), so the front one lies on the skirting rather than the glass; the glass roof takes no glow.
+  In the flat view the roofs' snow is MapView's patchy pattern while the 3D roofs fill at half cover.
+
 ## 2026-11-11 — The spouse waters the greenhouse beds
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: once the greenhouse is built, the spouse's morning help (Marriage.help, given the beds as

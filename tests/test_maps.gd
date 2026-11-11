@@ -4578,7 +4578,35 @@ func _greenhouse() -> void:
 	check(glass >= 6, "greenhouse 3D: glazed walls, roof and gables (%d glass pieces)" % glass)
 	var foot := Rect2(FarmGrid.GREENHOUSE).grow(0.75)
 	check(foot.has_point(Vector2(box.position.x, box.position.z)) and foot.has_point(Vector2(box.end.x, box.end.z)) and box.end.y < 2.6, "greenhouse 3D: within its footprint and low (%s)" % box)
+	# Snow on the glass slopes (a sheet a bay between the rafters), the ridge cap and the barrel:
+	# snow tops in the world's snow materials, casting nothing, over the roof's glass.
+	var tops := 0
+	var high := true
+	for n in w.get_children():
+		if n is MeshInstance3D and n.material_override is ShaderMaterial and n.material_override in w._snow_mats:
+			tops += 1
+			high = high and n.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and (n.position.y > 1.4 or n.position.y > 0.5 and n.position.x > FarmGrid.GREENHOUSE.end.x)
+	check(tops == w._snow_mats.size() and tops >= 11 and high, "greenhouse 3D: snow on the glass roof, ridge and barrel (%d tops)" % tops)
+	w.set_snow(0.8)
+	check(float(w._snow_mats[0].get_shader_parameter("cover")) == 0.8, "greenhouse 3D: its snow follows the cover")
+	# The lantern inside lights the glass at night: LitSpots.greenhouse, listed for NightLights.
+	var NL: GDScript = load("res://scripts/world3d/night_lights.gd")
+	check(w.windows.size() == LitSpots.greenhouse().size() and w.is_in_group(NL.GROUP), "greenhouse 3D: its lit glass is listed for the night lights (%d)" % w.windows.size())
 	w.free()
+	# Kept a run (MeshCache): a second build gives the same snow tops and lit glass.
+	var MC: GDScript = load("res://scripts/world3d/mesh_cache.gd")
+	var GP: GDScript = load("res://scripts/world3d/greenhouse_props.gd")
+	var first: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	MC.build(first, "farm|greenhouse_test", func(): GP.greenhouse(first))
+	var again: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	MC.build(again, "farm|greenhouse_test", func(): GP.greenhouse(again))
+	check(MC.kept("farm|greenhouse_test") and again._snow_mats.size() == first._snow_mats.size() and again.windows.size() == 2
+		and again.is_in_group(NL.GROUP), "greenhouse 3D: kept whole, snow and lit glass with it")
+	first.free()
+	again.free()
+	var andon := m.prop_at(Vector2i(1, 6))
+	check(andon.get("kind", "") == "andon" and not m.is_solid(m.spawns.start[0]) and m.door_at(Vector2i(4, 7)).get("to", "") == "farm",
+		"greenhouse: the paper lantern stands inside by the door, the way out clear")
 	g._demo_greenhouse()
 	var beds: Node3D = load("res://scripts/world3d/farm_world.gd").new()
 	root.add_child(beds)

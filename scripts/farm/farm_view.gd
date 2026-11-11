@@ -47,6 +47,7 @@ var farm: FarmGrid:
 ## How much snow each cell holds (SnowLayer.mask_image), kept up to date while snow is shown.
 var snow_mask: Image
 var _snow: Sprite2D          # snow_mask stretched over the farm, drawn by the snow shader
+var _roof_snow: Sprite2D     # on the buildings' roofs, over the objects (SnowLayer.farm_roof_mask_image)
 var _snow_rules: Dictionary
 var _objects: Node2D         # sprites and buildings, above the snow
 ## A thrown item's landing cell while it is still in the air (main_2d), not drawn yet.
@@ -106,13 +107,24 @@ func show_snow(rules: Dictionary) -> void:
 	add_child(_snow)
 	if _objects != null:
 		move_child(_snow, _objects.get_index())
+		# The roofs (the farmhouse, coop, barn, silo, greenhouse) whiten over the objects, as a
+		# map's houses do in MapView.
+		_roof_snow = Sprite2D.new()
+		_roof_snow.centered = false
+		_roof_snow.scale = _snow.scale
+		_roof_snow.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		_roof_snow.texture = ImageTexture.create_from_image(SnowLayer.farm_roof_mask_image(farm, rules))
+		_roof_snow.material = SnowLayer.canvas_material()
+		add_child(_roof_snow)
+		move_child(_roof_snow, _objects.get_index() + 1)
 
 
 ## Snow on the ground, 0 (none) .. 1 (all white where the ground holds it).
 func set_snow(cover: float) -> void:
-	if _snow != null:
-		(_snow.material as ShaderMaterial).set_shader_parameter("cover", cover)
-		_snow.visible = cover > 0.0
+	for s in [_snow, _roof_snow]:
+		if s != null:
+			(s.material as ShaderMaterial).set_shader_parameter("cover", cover)
+			s.visible = cover > 0.0
 
 
 func _on_cells_changed() -> void:
@@ -122,6 +134,8 @@ func _on_cells_changed() -> void:
 	if _snow != null:
 		snow_mask = SnowLayer.mask_image(farm, _snow_rules)
 		(_snow.texture as ImageTexture).update(snow_mask)
+	if _roof_snow != null:   # a building put up (FarmGrid.set_wings) gets its roof's snow
+		(_roof_snow.texture as ImageTexture).update(SnowLayer.farm_roof_mask_image(farm, _snow_rules))
 
 
 func _draw() -> void:

@@ -1840,6 +1840,22 @@ static func _building(kind: String) -> Image:
 			_px(img, 15, 0, 1, 16, Color("7e5c3a"))
 			_px(img, 0, 15, 16, 1, Color("7e5c3a"))
 			return img
+		"glass_lit":
+			# 18 x 14 glazing lit from within at night (the greenhouse's lantern; NightLights adds
+			# it in warm light over the glass): the panes brightest round the middle, where the
+			# lantern hangs behind them, falling off in four steps to the corners; the glazing
+			# bars dark across them, so it reads as lit panes, not a window.
+			var img := _blank(18, 14)
+			for y in 14:
+				for x in 18:
+					var d := Vector2((x - 8.5) / 9.0, (y - 6.5) / 7.0).length()
+					var k := clampf(floorf((1.0 - d * 0.85) * 4.0 + 0.5) / 4.0, 0.15, 1.0)
+					img.set_pixel(x, y, Color(k, k * 0.96, k * 0.86))
+			for x in [0, 8, 17]:
+				_px(img, x, 0, 1, 14, Color("201810"))
+			for y in [0, 7, 13]:
+				_px(img, 0, y, 18, 1, Color("201810"))
+			return img
 		"sugi":
 			# Light cedar boards standing upright, 4 px wide, with a straight reddish grain.
 			var img := _blank(16, 16)

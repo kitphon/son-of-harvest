@@ -296,6 +296,7 @@ func _finish(game_script: GDScript, fx: Dictionary) -> void:
 	await process_frame
 	_wind_by_weather(game_script, fx)
 	_sprite_light(game_script, fx)
+	_greenhouse_glow()   # NightLights reads the Game autoload: after the first frame
 	_hud_icons_refined()
 	print("test_weather: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -356,6 +357,43 @@ func _night_light(game_script: GDScript, fx: Dictionary) -> void:
 		and game_script.window_glow(Color(0.9, 0.9, 0.9), 1200, {"hours": [[0, 1440]], "dark_from": 0.25, "dark_full": 0.6}) == 0.0,
 		"window_glow follows dark_from / dark_full")
 	gm.free()
+
+
+## The greenhouse's lantern at night (LitSpots.greenhouse): two patches of its glass lit, on the
+## faces the camera sees, within the glazing (skirting 0.5 to eaves 1.5) and the walls' ends; on
+## the farm's list only once it is built; pools as soft as a shoji window's (not a door's), none
+## while the windows are out (the same Game.window_light); the lit glazing picture brightest in
+## the middle with dark glazing bars.
+func _greenhouse_glow() -> void:
+	var NL: GDScript = load("res://scripts/world3d/night_lights.gd")
+	var eave: float = load("res://scripts/world3d/greenhouse_props.gd").EAVE
+	var spots: Array[Dictionary] = LitSpots.greenhouse()
+	var r := Rect2(FarmGrid.GREENHOUSE)
+	var ok := spots.size() == 2
+	for s in spots:
+		var half: Vector2 = s.size / 2.0
+		var along: float = s.pos.x if s.normal == LitSpots.SOUTH else s.pos.z
+		var ends := Vector2(r.position.x, r.end.x) if s.normal == LitSpots.SOUTH else Vector2(r.position.y, r.end.y)
+		ok = ok and s.key == "build:glass_lit" and (s.normal == LitSpots.SOUTH or s.normal == LitSpots.EAST)
+		ok = ok and s.pos.y - half.y >= 0.5 and s.pos.y + half.y <= eave and along - half.x > ends.x and along + half.x < ends.y
+		ok = ok and (absf(s.pos.z - (r.end.y - 0.1)) < 0.01 if s.normal == LitSpots.SOUTH else absf(s.pos.x - (r.end.x - 0.1)) < 0.01)
+		ok = ok and (s.normal != LitSpots.SOUTH or s.pos.x + half.x < FarmGrid.GREENHOUSE_DOOR.x + 0.08)   # clear of the door
+	check(ok and spots[0].normal == LitSpots.SOUTH and spots[1].normal == LitSpots.EAST, "greenhouse glow: two patches of glass on its front and +x walls, clear of the door")
+	check(LitSpots.farm([]).size() == LitSpots.farmhouse().size() and LitSpots.farm(["greenhouse"]).size() == LitSpots.farmhouse().size() + 2,
+		"greenhouse glow: on the farm's lit list only once built")
+	var rules: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/light.json")).pools
+	check(NL.pools_from(spots, [], 0.0, rules).is_empty(), "greenhouse glow: no pools while the windows are out")
+	var pools: Array[Dictionary] = NL.pools_from(spots, [], 1.0, rules)
+	var house: Array[Dictionary] = NL.pools_from(LitSpots.farmhouse(), [], 1.0, rules)
+	var soft := pools.size() == 2
+	for p in pools:
+		soft = soft and p.strength <= house[0].strength * 0.95 and p.strength >= house[1].strength * 0.95
+		soft = soft and not r.has_point(Vector2(p.center.x, p.center.z))   # on the ground in front, not inside
+	check(soft, "greenhouse glow: pools outside the glass, softer than the farmhouse door's (%.2f, %.2f / door %.2f)" % [pools[0].strength, pools[1].strength, house[0].strength])
+	var img: Image = PlaceholderArt.tex("build:glass_lit").get_image()
+	var mid := img.get_pixel(5, 4).get_luminance()
+	check(mid > img.get_pixel(1, 1).get_luminance() + 0.2 and img.get_pixel(8, 4).get_luminance() < 0.2 and img.get_pixel(5, 7).get_luminance() < 0.2,
+		"greenhouse glow: the lit glazing brightest by the lantern, the bars dark (%.2f)" % mid)
 
 
 ## The sun follows the clock (data/light.json "sun"): low, golden and from the front left in
