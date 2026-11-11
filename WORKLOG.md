@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Hachiro's storm, rain and snow lines
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: data/dialogue/talk_hachiro.json: the old wet pick (rain, storm and snow all sharing
+  wet_1 / wet_2) is now three picks placed where it was, before the river and heart lines, like
+  Kota and Tome: snow (and a winter storm, the blizzard), storm, rain. The two old wet lines
+  were rain lines, so they are renamed rain_1 / rain_2 with their text and Thai unchanged; storm_1,
+  storm_2, snow_1, snow_2 are new in his voice (the forge, the iron, the shutters). Thai for the
+  four new lines in data/lang/th/dialogue.json. test_talk: Hachiro on a wet day, in a storm, on a
+  snowy day, in a winter blizzard, in a spring storm (thunder), on a sunny day with no weather
+  line, and a rain line before his heart line at band 6.
+- Checked: `Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_talk.gd`
+  printed `test_talk: OK (0 failed)`; test_lang `test_lang: OK (0 failed)`; test_dialogue
+  `test_dialogue: OK (0 failed)`; lang_report `-- --lang=th` printed `th: 2639 of 2639 done (100%),
+  0 missing, 0 stale`; title and `-- --demo` smoke runs (300 frames) printed no error lines.
+- Left / next: no weather lines for Hachiro in the flat view or at the smithy counter (not in scope).
+
 ## 2026-11-11 — The shorn ewe's carrying belly reads; a test for the cord's store line
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: data/animal_art.json `carrying.belly_of` overrides the belly per kind; the shorn ewe
