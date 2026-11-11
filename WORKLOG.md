@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Under-glass rows checked in the store's buy tab
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: `--shop-row=N` for a screenshot run, with `--shop=<id>` (ShopScreen reads it in _ready;
+  `go_to_row` puts the cursor on row N of the open tab, clamped to the list, and the list scrolls
+  to show it). Documented in AGENTS.md next to `--shop=<id>`.
+- Checked: Movie Maker frames of `--demo --built=greenhouse --shop=general --shop-row=99` in English,
+  `--lang=th` and `--lang=pseudo` (480x270). English: the last rows read "Onion seeds  under glass"
+  ... "Daikon seeds  under glass" with prices 225 to 390 G right-aligned; Pumpkin seeds (780 G, over
+  the 500 G held) is greyed as unaffordable; nothing overlaps or is cut off. Pseudo: every row,
+  including "under glass", is a third longer and still fits inside the paper. Thai: the same rows read
+  "... ในโรงเรือน" (the ui.json key `%s  under glass`), fitting before the prices. No layout fix needed.
+  Tests: test_shops `go_to_row` check (the first glass row on screen with its label, past-the-end and
+  before-the-start clamped), and `test_shops: OK (0 failed)`, `test_lang: OK (0 failed)`; smoke runs
+  (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --built=greenhouse --shop=general
+  --shop-row=99`, each `--quit-after 300`) print only the Godot banner, no ERROR or WARNING lines.
+- Left / next: the frames are small (480x270 window), so the label-to-price gap is judged by eye, not
+  by pixel measure. The `--shop-row` parse itself is only covered by the frame run, not a headless check.
+
 ## 2026-11-11 — The greenhouse in snow and at night
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: snow on the greenhouse and a lantern's glow in it, in both views, through the systems the
