@@ -1520,19 +1520,38 @@ func _greenhouse() -> void:
 	await process_frame
 	check(FarmView.roof_rect(g.farm, "greenhouse") == Rect2(25 * 16, 14 * 16, 80, 48), "flat: the greenhouse's box: %s" % FarmView.roof_rect(g.farm, "greenhouse"))
 	check(g.maps.is_solid(Vector2i(26, 16), g.farm) and not g.maps.is_solid(Vector2i(27, 17), g.farm), "flat: the glasshouse is solid, the cell before its door open")
-	# Snow on its glass roof (and the other farm roofs) over the objects, its front row left plain;
-	# at night the lantern inside lights the glass, the farmhouse's windows and the greenhouse's.
+	# Snow on its glass roof (and the other farm roofs) over the objects, as the 3D roofs take it:
+	# in the glass bays and on the ridge cap, not on the rafters, the eaves' strip or the front wall;
+	# the farmhouse's whole roof but its rim and round its door. At night the lantern inside lights
+	# the glass, the farmhouse's windows and the greenhouse's.
 	var roofs: Image = SnowLayer.farm_roof_mask_image(g.farm, g.snow_rules)
-	var hold := func(c: Vector2i) -> float: return roofs.get_pixel(c.x * SnowLayer.MASK_PER_CELL, c.y * SnowLayer.MASK_PER_CELL).r
+	var px := SnowLayer.ROOF_PER_CELL / 16.0
+	var at := func(p: Vector2) -> float: return roofs.get_pixelv(Vector2i(p * px)).r
 	var held: Dictionary = g.snow_rules.farm_roofs
-	check(absf(hold.call(Vector2i(25, 14)) - float(held.greenhouse)) < 0.01 and absf(hold.call(Vector2i(29, 15)) - float(held.greenhouse)) < 0.01,
-		"flat: snow lies on the greenhouse's glass roof (%.2f)" % hold.call(Vector2i(25, 14)))
-	check(hold.call(Vector2i(25, 16)) == 0.0 and hold.call(FarmGrid.GREENHOUSE_DOOR) == 0.0 and hold.call(Vector2i(24, 14)) == 0.0,
+	var gh := Vector2(FarmGrid.GREENHOUSE.position * 16)
+	var ridge := FarmView.GREENHOUSE_RIDGE
+	var foot := FarmGrid.GREENHOUSE.size.y * 16 - FarmView.GREENHOUSE_WALL
+	check(absf(at.call(gh + Vector2(4, 6)) - float(held.greenhouse)) < 0.01 and absf(at.call(gh + Vector2(68, ridge + 6)) - float(held.greenhouse)) < 0.01
+		and at.call(gh + Vector2(40, ridge + 1)) > 0.0, "flat: snow lies in the greenhouse's glass bays and on its ridge (%.2f)" % at.call(gh + Vector2(4, 6)))
+	check(at.call(gh + Vector2(8, 6)) == 0.0 and at.call(gh + Vector2(16, ridge + 6)) == 0.0 and at.call(gh + Vector2(20, foot - 2)) == 0.0
+		and at.call(gh + Vector2(20, 1)) == 0.0, "flat: not on the rafters or the strips at the eaves (glass sheds it)")
+	check(at.call(gh + Vector2(4, foot + 4)) == 0.0 and at.call(Vector2(FarmGrid.GREENHOUSE_DOOR * 16) + Vector2(8, 8)) == 0.0 and at.call(gh + Vector2(-8, 8)) == 0.0,
 		"flat: not on its front wall, door or the field beside it")
-	check(absf(hold.call(Vector2i(2, 1)) - float(held.house)) < 0.01 and hold.call(Vector2i(2, 3)) == 0.0, "flat: the farmhouse's roof takes snow too, not its front")
+	var house := FarmView.roof_rect(g.farm, "house")
+	var door := Vector2(4, 3) * 16
+	check(absf(at.call(house.position + Vector2(4, 4)) - float(held.house)) < 0.01 and at.call(house.position + Vector2(4, house.size.y - 4)) > 0.0
+		and at.call(house.position) == 0.0 and at.call(door + Vector2(8, 8)) == 0.0 and at.call(door + Vector2(-1, 8)) == 0.0,
+		"flat: the farmhouse's whole roof takes snow too, its rim and its door bare")
+	var silo := FarmView.roof_rect(g.farm, "silo")
+	check(not silo.has_area() or (at.call(silo.position + Vector2(16, 10)) > 0.0 and at.call(silo.position + Vector2(16, 24)) == 0.0), "flat: the silo's cone, not its staves")
 	scene.view.set_snow(0.8)
-	check(scene.view._roof_snow != null and scene.view._roof_snow.visible and scene.view._roof_snow.get_index() == scene.view._objects.get_index() + 1,
-		"flat: the roofs' snow is drawn over the buildings")
+	var glow_layer: Node = scene.view.get_node_or_null("Roofs")
+	check(scene.view._roof_snow != null and scene.view._roof_snow.visible and scene.view._roof_snow.get_index() > scene.view._objects.get_index()
+		and glow_layer != null and glow_layer.get_index() > scene.view._objects.get_index() and glow_layer.get_index() < scene.view._roof_snow.get_index(),
+		"flat: the roofs' snow is drawn over the buildings, and over the glow on the glass roof")
+	var sm := scene.view._roof_snow.material as ShaderMaterial
+	check(sm.shader.code.contains("top_full") and is_equal_approx(float(sm.get_shader_parameter("top_full")), SnowLayer.TOP_FULL),
+		"flat: the roofs fill as the 3D snow tops do (whole from half cover)")
 	scene.view.set_snow(0.0)
 	check(not scene.view._roof_snow.visible, "flat: and gone when no snow lies")
 	check(scene.night.windows.size() == LitSpots.farmhouse().size() + LitSpots.greenhouse().size(), "flat: the greenhouse's lit glass with the farmhouse's windows (%d)" % scene.night.windows.size())
@@ -1542,6 +1561,7 @@ func _greenhouse() -> void:
 	await process_frame
 	var lit: Array = scene.night.pools.filter(func(p: Dictionary) -> bool: return FarmGrid.GREENHOUSE.grow(1).has_point(Vector2i(int(p.center.x), int(p.center.z))))
 	check(scene.night.glow == 1.0 and lit.size() == 2, "flat: at night a warm pool in front of the greenhouse's glass and beside it (%d)" % lit.size())
+	check(scene.night.roof_glows.size() == 2 and glow_layer.visible, "flat: and the lantern's glow on the glass roof")
 	g.hour = was[0]
 	g.minute = was[1]
 	await process_frame

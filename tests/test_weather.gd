@@ -394,6 +394,56 @@ func _greenhouse_glow() -> void:
 	var mid := img.get_pixel(5, 4).get_luminance()
 	check(mid > img.get_pixel(1, 1).get_luminance() + 0.2 and img.get_pixel(8, 4).get_luminance() < 0.2 and img.get_pixel(5, 7).get_luminance() < 0.2,
 		"greenhouse glow: the lit glazing brightest by the lantern, the bars dark (%.2f)" % mid)
+	# The flat view's strip of the front glass lies on the drawn glass band, not the skirting under
+	# it; the +x patch and the farmhouse's windows keep the footprint line.
+	var NV: GDScript = load("res://scripts/world/night_view.gd")
+	var strip: Rect2 = NV.pane_rect(spots[0])
+	var foot := float(r.end.y) * 16.0
+	check(strip.end.y <= foot - FarmView.GREENHOUSE_SKIRT and strip.position.y >= foot - FarmView.GREENHOUSE_WALL,
+		"greenhouse glow: the flat strip on the front glass, over the skirting (%s)" % strip)
+	check(not spots[1].has("flat_z") and NV.pane_rect(spots[1]).position.x == spots[1].pos.x * 16.0 - 2.0
+		and LitSpots.farmhouse().all(func(w: Dictionary) -> bool: return not w.has("flat_z")), "greenhouse glow: the other strips keep the wall's line")
+	# The glass roof: a soft disc on each slope from the lantern inside, the front's over it, the
+	# back's by the ridge and fainter, on the glass, by the windows' hours.
+	var roof: Array[Dictionary] = LitSpots.greenhouse_roof()
+	var lamp := LitSpots.greenhouse_lantern()
+	var lr: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/light.json")).roof_glow
+	var on_roof: bool = roof.size() == 2 and roof[0].slope == 1 and roof[1].slope == -1
+	for g in roof:
+		for c: Vector3 in g.corners:
+			on_roof = on_roof and r.grow(0.15).has_point(Vector2(c.x, c.z)) and c.y > eave - 0.05 and c.y < eave + 0.8
+		on_roof = on_roof and g.normal.y > 0.8 and signf(g.normal.z) == float(g.slope) and g.own == lamp
+	check(on_roof and absf(roof[0].at.x - lamp.x) < 0.01 and absf(roof[0].at.z - lamp.z) < 0.05 and roof[1].at.z < r.get_center().y,
+		"greenhouse roof glow: on both glass slopes, the front's right over the lantern")
+	check(NL.roof_glow(roof[0], 0.0, lr) == 0.0 and is_equal_approx(NL.roof_glow(roof[0], 1.0, lr), float(lr.strength))
+		and NL.roof_glow(roof[1], 1.0, lr) < NL.roof_glow(roof[0], 1.0, lr), "greenhouse roof glow: out by day, the back slope fainter")
+	check(float(lr.strength) < float(rules.wall.strength) * 1.5 and float(lr.snow_from) > float(lr.glass_full),
+		"greenhouse roof glow: soft, and the snow over the glass covers it")
+	# Seen from the camera's side; hidden while its own building is faded see-through.
+	var occ: RefCounted = load("res://scripts/world3d/occluders.gd").new()
+	var mesh := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(5, 2.3, 3)
+	mesh.mesh = bm
+	mesh.material_override = StandardMaterial3D.new()
+	mesh.position = Vector3(r.get_center().x, 1.15, r.get_center().y)
+	occ.add([mesh])
+	var eye := Vector3(r.get_center().x, 12, r.end.y + 10)
+	check(NL.roof_seen(roof[0], eye, occ) == 1.0 and NL.roof_seen(roof[0], Vector3(lamp.x, -5, lamp.z), occ) == 0.0,
+		"greenhouse roof glow: seen from above, not from under the slope")
+	occ.update(Vector3(r.get_center().x, 0, r.position.y - 0.5), (eye - mesh.position).normalized(), 1.0)
+	check(occ.fade_of(0) > 0.0 and NL.roof_seen(roof[0], eye, occ) == 0.0, "greenhouse roof glow: gone while the greenhouse is faded see-through")
+	mesh.free()
+	# The flat view: the same discs on the drawn glass roof, between the rafters.
+	var front_px: Array = NV.roof_shape(roof[0])
+	var box := Rect2(Vector2(FarmGrid.GREENHOUSE.position * 16), Vector2(FarmGrid.GREENHOUSE.size * 16))
+	var flat_ok: bool = front_px.size() >= 2
+	for piece in front_px:
+		for p: Vector2 in piece[0]:
+			flat_ok = flat_ok and box.grow(0.01).has_point(p) and p.y >= box.position.y + FarmView.GREENHOUSE_RIDGE + 2.0 - 0.01 and p.y <= box.end.y - FarmView.GREENHOUSE_WALL
+		for x in range(int(floorf(piece[0][0].x - box.position.x)), int(ceilf(piece[0][2].x - box.position.x))):
+			flat_ok = flat_ok and x % 8 != 0   # no rafter's column
+	check(flat_ok, "greenhouse roof glow: flat, on the front slope's glass between the rafters (%d pieces)" % front_px.size())
 
 
 ## The sun follows the clock (data/light.json "sun"): low, golden and from the front left in

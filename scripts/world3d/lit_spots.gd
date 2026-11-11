@@ -8,6 +8,11 @@ extends RefCounted
 
 const FARM_FRONT := 3.6   # the farmhouse's front wall (z); the engawa fills 3.6 .. 4.0
 const FARM_MID := 1.0 + (FARM_FRONT - 1.0) / 2.0   # the middle of its side wall (z)
+## The greenhouse's walls and roof (GreenhouseProps builds by these): the walls' top, the ridge
+## above it, the glass roof past the walls all round.
+const GREENHOUSE_EAVE := 1.5
+const GREENHOUSE_RISE := 0.7   # a low roof, about 27°
+const GREENHOUSE_OVER := 0.12
 const SOUTH := Vector3(0, 0, 1)   # the faces the camera sees: +z ...
 const EAST := Vector3(1, 0, 0)    # ... and +x
 
@@ -44,6 +49,75 @@ static func greenhouse() -> Array[Dictionary]:
 	]
 	for s in out:
 		s.span = wall_span(s, body)
+	# The flat view draws the greenhouse's front wall from above as a band of glass over the board
+	# skirting (FarmView._draw_greenhouse), not on its footprint line as the houses' walls: its
+	# strip goes on the glass (`flat_z`, the strip's lower edge, map units).
+	out[0].flat_z = flat_glass_z()
+	return out
+
+
+## Where the flat view's strip of the greenhouse's lit front glass ends (map units, z): one pixel
+## above the board skirting, in the band of glass FarmView._draw_greenhouse draws over it.
+static func flat_glass_z() -> float:
+	var foot := float(FarmGrid.GREENHOUSE.end.y) * FarmView.T
+	return (foot - FarmView.GREENHOUSE_SKIRT - 1.0) / FarmView.T
+
+
+## The paper lantern hanging inside the greenhouse by the door (GreenhouseProps._lantern): the
+## middle of its washi, behind the lit patch of the front glass.
+static func greenhouse_lantern() -> Vector3:
+	return Vector3(FarmGrid.GREENHOUSE_DOOR.x - 0.75, 1.08, FarmGrid.GREENHOUSE.end.y - 0.1 - 0.45)
+
+
+## data/light.json "roof_glow" from the Game autoload ({} without it: the defaults). Looked up by
+## name, as this class is compiled by tests that run without the autoloads.
+static func roof_rules() -> Dictionary:
+	var tree := Engine.get_main_loop() as SceneTree
+	var game: Node = tree.root.get_node_or_null("Game") if tree != null else null
+	return game.light_data().get("roof_glow", {}) if game != null else {}
+
+
+## The lantern's glow on the greenhouse's glass roof, seen from outside at night (NightLights in
+## 3D, NightView flat): a soft disc on each slope round the point over the lantern, `radius` along
+## the slope either way, the front slope's right over it and the back slope's by the ridge, at
+## `back` of the strength (farther from the lantern), cut to the glass (both from data/light.json
+## "roof_glow"). Each {slope: 1 front /
+## -1 back, at: the disc's middle (on the glass), centre: Vector2 (x, t: along the slope down from
+## the ridge), length: the slope's, radius, share (of the strength), corners (4, on the glass, top
+## left first) and uvs (-1..1 from the middle, `radius` to the edge), normal (out of the slope),
+## own: the lantern (inside its building's box)}. GreenhouseProps builds its roof by the same numbers.
+static func greenhouse_roof(rules: Variant = null) -> Array[Dictionary]:
+	if rules == null:
+		rules = roof_rules()
+	var radius := maxf(float(rules.get("radius", 1.7)), 0.1)
+	var back := float(rules.get("back", 0.5))
+	var r := Rect2(FarmGrid.GREENHOUSE)
+	var front := r.end.y - 0.1
+	var depth := r.size.y - 0.2
+	var mid_z := front - depth / 2
+	var tilt := atan2(GREENHOUSE_RISE, depth / 2)
+	var length := (depth / 2 + GREENHOUSE_OVER) / cos(tilt)
+	var top := GREENHOUSE_EAVE + GREENHOUSE_RISE + 0.03   # the glass's middle at the ridge
+	var lamp := greenhouse_lantern()
+	var x_ends := Vector2(r.position.x + 0.1 - GREENHOUSE_OVER + 0.03, r.end.x - 0.1 + GREENHOUSE_OVER - 0.03)
+	var t_ends := Vector2(0.06, length - 0.04)
+	var out: Array[Dictionary] = []
+	for s in [1.0, -1.0]:
+		var normal := Vector3(0, cos(tilt), s * sin(tilt))
+		var on := func(x: float, t: float) -> Vector3:
+			return Vector3(x, top - t * sin(tilt), mid_z + s * t * cos(tilt)) + normal * 0.03
+		var c := Vector2(lamp.x, clampf((lamp.z - mid_z) / cos(tilt), t_ends.x, t_ends.y) if s > 0.0 else 0.3)
+		var x0 := maxf(c.x - radius, x_ends.x)
+		var x1 := minf(c.x + radius, x_ends.y)
+		var t0 := maxf(c.y - radius, t_ends.x)
+		var t1 := minf(c.y + radius, t_ends.y)
+		var corners: Array[Vector3] = []
+		var uvs := PackedVector2Array()
+		for p in [Vector2(x0, t0), Vector2(x1, t0), Vector2(x1, t1), Vector2(x0, t1)]:
+			corners.append(on.call(p.x, p.y))
+			uvs.append((p - c) / radius)
+		out.append({"slope": int(s), "at": on.call(c.x, c.y), "centre": c, "length": length, "radius": radius,
+			"share": 1.0 if s > 0.0 else back, "corners": corners, "uvs": uvs, "normal": normal, "own": lamp})
 	return out
 
 

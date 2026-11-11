@@ -12,7 +12,7 @@ extends RefCounted
 ##    back (`commit` places them);
 ##  - `build(w, id, make)`: runs `make()` on the world `w` the first time and keeps what it
 ##    added (plain MeshInstance3Ds: mesh, material, transform, shadow, layers; the snow materials
-##    among them; the lit windows and lamps it listed for NightLights; what it hung in the
+##    among them; the lit windows, lamps and roof glows it listed for NightLights; what it hung in the
 ##    world's Sway: a noren, a curtain); the next time the same pieces are made again from that,
 ##    with new materials made like the first ones, and make's return value given back. A build
 ##    that adds anything else (a MultiMesh, a scripted node, a group other than NightLights', a
@@ -59,7 +59,7 @@ static func build(w: FarmWorld, id: String, make: Callable) -> Variant:
 		return _replay(w, _made[id])
 	var first := w.get_child_count()
 	var sway := w.get_node_or_null(OutdoorProps.SWAY) as OutdoorProps.Sway
-	var before := {"snow": w._snow_mats.size(), "windows": w.windows.size(), "lamps": w.lamps.size(),
+	var before := {"snow": w._snow_mats.size(), "windows": w.windows.size(), "lamps": w.lamps.size(), "roof_glows": w.roof_glows.size(),
 		"groups": w.get_groups(), "metas": w.get_meta_list().size(), "sway": sway.count() if sway != null else 0}
 	var out: Variant = make.call()
 	_made[id] = _record(w, first, before, out)
@@ -69,7 +69,7 @@ static func build(w: FarmWorld, id: String, make: Callable) -> Variant:
 
 ## What `w` got from a build since child `first`: the pieces and how to make their materials
 ## again (_recipe, taken now, so later fades and snow on this world don't reach the next one),
-## the lit windows and lamps it listed, what it hung in the world's Sway (the Sway itself a
+## the lit windows, lamps and roof glows it listed, what it hung in the world's Sway (the Sway itself a
 ## piece when the build made it), or null when it made anything else.
 static func _record(w: FarmWorld, first: int, before: Dictionary, out: Variant) -> Variant:
 	if w.get_meta_list().size() != before.metas:
@@ -119,7 +119,8 @@ static func _record(w: FarmWorld, first: int, before: Dictionary, out: Variant) 
 			it.nodes = at
 			swaying.append(it)
 	return {"pieces": pieces, "mats": mats, "snow": snowy, "out": out, "sway": swaying,
-		"windows": w.windows.slice(int(before.windows)), "lamps": w.lamps.slice(int(before.lamps))}
+		"windows": w.windows.slice(int(before.windows)), "lamps": w.lamps.slice(int(before.lamps)),
+		"roof_glows": w.roof_glows.slice(int(before.roof_glows))}
 
 
 static func _replay(w: FarmWorld, rec: Dictionary) -> Variant:
@@ -154,7 +155,9 @@ static func _replay(w: FarmWorld, rec: Dictionary) -> Variant:
 		w.windows.append(win.duplicate())
 	for lamp: Dictionary in rec.lamps:
 		w.lamps.append(lamp.duplicate())
-	if not (rec.windows.is_empty() and rec.lamps.is_empty()) and not w.is_in_group(NightLights.GROUP):
+	for glow: Dictionary in rec.roof_glows:
+		w.roof_glows.append(glow.duplicate())
+	if not (rec.windows.is_empty() and rec.lamps.is_empty() and rec.roof_glows.is_empty()) and not w.is_in_group(NightLights.GROUP):
 		w.add_to_group(NightLights.GROUP)
 	return rec.out
 

@@ -14,8 +14,9 @@ extends RefCounted
 const TIMBER := Color("6e4c30")     # the cedar frame, left unpainted (lighter than the barn's)
 const DARK := Color("2e221a")
 const STONE := Color("8a8680")
-const EAVE := 1.5                   # top of the walls
-const RISE := 0.7                   # the ridge above the eaves (a low roof, about 27°)
+const EAVE := LitSpots.GREENHOUSE_EAVE   # top of the walls
+const RISE := LitSpots.GREENHOUSE_RISE   # the ridge above the eaves (a low roof, about 27°)
+const OVER := LitSpots.GREENHOUSE_OVER   # the glass roof past the walls all round
 
 
 ## The glass: the pane picture laid like the other surfaces, see-through, lit, both faces drawn.
@@ -79,7 +80,7 @@ static func greenhouse(w: FarmWorld) -> void:
 			w._box(Vector3(0.06, 0.05, depth + 0.07), Vector3(x, y, mid_z), timber)
 	# The roof: two glass slopes from the eaves to the ridge, a little past the walls all round,
 	# on thin rafters at every cell, a ridge board and a cap on top.
-	var over := 0.12
+	var over := OVER
 	var run := depth / 2 + over
 	var slope := sqrt(run * run + RISE * RISE)
 	var tilt := atan2(RISE, depth / 2)
@@ -127,11 +128,13 @@ static func greenhouse(w: FarmWorld) -> void:
 		w._box(Vector3(0.39, 0.04, 0.39), barrel + Vector3(0, y, 0), FarmWorld.flat_material(Color("3a3430")))
 	w._box(Vector3(0.3, 0.01, 0.3), barrel + Vector3(0, 0.5, 0), FarmWorld.flat_material(Color("3a6a7a")))
 	w._snow_top(Vector3(0.34, 0.03, 0.34), barrel + Vector3(0, 0.52, 0))
-	var hook := front - 0.45   # the lantern hangs here, from the rafter over it
-	_lantern(w, Vector3(FarmGrid.GREENHOUSE_DOOR.x - 0.75, 0, hook), ridge - 0.04 - RISE * absf(hook - mid_z) / (depth / 2))
-	# The lantern's light on the glass at night: no picture by day, NightLights draws the glow.
+	var hook := LitSpots.greenhouse_lantern()   # the lantern hangs here, from the rafter over it
+	_lantern(w, Vector3(hook.x, 0, hook.z), ridge - 0.04 - RISE * absf(hook.z - mid_z) / (depth / 2))
+	# The lantern's light on the glass at night: no picture by day, NightLights draws the glow on
+	# the walls' glass and, softer, on the roof's (under its snow).
 	for spot in LitSpots.greenhouse():
 		w.windows.append(spot)
+	w.roof_glows.append_array(LitSpots.greenhouse_roof())
 	if not w.is_in_group(NightLights.GROUP):
 		w.add_to_group(NightLights.GROUP)
 

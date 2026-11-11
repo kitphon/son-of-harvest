@@ -4592,7 +4592,21 @@ func _greenhouse() -> void:
 	# The lantern inside lights the glass at night: LitSpots.greenhouse, listed for NightLights.
 	var NL: GDScript = load("res://scripts/world3d/night_lights.gd")
 	check(w.windows.size() == LitSpots.greenhouse().size() and w.is_in_group(NL.GROUP), "greenhouse 3D: its lit glass is listed for the night lights (%d)" % w.windows.size())
+	# And the glow through its glass roof, on both slopes, just over the glass and under its snow.
+	var under: bool = w.roof_glows.size() == 2
+	for gl: Dictionary in w.roof_glows:
+		for c: Vector3 in gl.corners:
+			under = under and c.y < LitSpots.GREENHOUSE_EAVE + LitSpots.GREENHOUSE_RISE + 0.1
+	check(under, "greenhouse 3D: the lantern's glow on its glass roof is listed for the night lights (%d)" % w.roof_glows.size())
 	w.free()
+	# The silo's cone takes snow too (the flat view's farm roofs match it).
+	var sw: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+	load("res://scripts/world3d/silo_props.gd").silo(sw)
+	var cone := 0
+	for n in sw.get_children():
+		cone += int(n is MeshInstance3D and n.material_override is ShaderMaterial and n.material_override in sw._snow_mats and n.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and n.position.y > 2.0)
+	check(cone == 1 and sw._snow_mats.size() == 1, "silo 3D: snow on its tiled cone (%d)" % cone)
+	sw.free()
 	# Kept a run (MeshCache): a second build gives the same snow tops and lit glass.
 	var MC: GDScript = load("res://scripts/world3d/mesh_cache.gd")
 	var GP: GDScript = load("res://scripts/world3d/greenhouse_props.gd")
@@ -4601,7 +4615,7 @@ func _greenhouse() -> void:
 	var again: Node3D = load("res://scripts/world3d/farm_world.gd").new()
 	MC.build(again, "farm|greenhouse_test", func(): GP.greenhouse(again))
 	check(MC.kept("farm|greenhouse_test") and again._snow_mats.size() == first._snow_mats.size() and again.windows.size() == 2
-		and again.is_in_group(NL.GROUP), "greenhouse 3D: kept whole, snow and lit glass with it")
+		and again.roof_glows.size() == 2 and again.is_in_group(NL.GROUP), "greenhouse 3D: kept whole, snow, lit glass and the roof's glow with it")
 	first.free()
 	again.free()
 	var andon := m.prop_at(Vector2i(1, 6))

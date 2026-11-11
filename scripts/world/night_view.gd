@@ -10,6 +10,9 @@ extends Node2D
 ## the villagers, animals and the farmer, so the glow lies under the figures and never tints them.
 ## The scene's CanvasModulate (the night tint, `tint`) multiplies everything drawn, glow included,
 ## so the shader divides its colour by it: the warm light lands on the tinted ground as it is.
+## On the farm, the greenhouse's lantern also glows through its glass roof (LitSpots.greenhouse_roof,
+## data/light.json "roof_glow"): that layer ("Roofs") goes into the FarmView over the buildings but
+## under the roofs' snow (FarmView.add_under_roof_snow), so snow lying on the glass covers it.
 
 const T := 16
 const GROUP := "night_view"
@@ -48,6 +51,7 @@ const FARM_ROOF_EDGE := 4.0
 
 var windows: Array[Dictionary] = []   # LitSpots windows of this map
 var lamps: Array[Dictionary] = []     # LitSpots lanterns
+var roof_glows: Array[Dictionary] = []   # LitSpots.greenhouse_roof once it is built (the farm)
 var roof_edge := INF                  # map units: pools facing south do not go above this line
 ## This frame's brightness (Game.window_light) and what it lights: the pools (NightLights.pools_from),
 ## all in map units.
@@ -65,6 +69,7 @@ var tint: CanvasModulate
 var _pool_layer: Node2D
 var _halo_layer: Node2D
 var _pane_layer: Node2D
+var _roof_layer: Node2D   # the glass roofs' glow, in the FarmView under the roofs' snow
 
 
 ## `props` are the map's props (MapData.props); the farm has the farmhouse (and the greenhouse once
@@ -73,6 +78,8 @@ var _pane_layer: Node2D
 func setup(props: Array, on_farm: bool, map_id := "") -> NightView:
 	if on_farm:
 		windows = LitSpots.farm(Game.house_built)   # the farmhouse, and the greenhouse once built
+		if "greenhouse" in Game.house_built:
+			roof_glows = LitSpots.greenhouse_roof()
 		roof_edge = FARM_ROOF_EDGE
 	else:
 		var spots := LitSpots.of_map(props)
@@ -91,7 +98,22 @@ func _ready() -> void:
 	_pool_layer = _layer("Pools", _material("pools", true), _draw_pools)
 	_halo_layer = _layer("Halos", _material("windows", true), _draw_halos)
 	_pane_layer = _layer("Panes", _material("windows", false), _draw_panes)
+	if not roof_glows.is_empty():
+		_roof_layer = Node2D.new()
+		_roof_layer.name = "Roofs"
+		_roof_layer.material = _material("roof_glow", true)
+		_roof_layer.draw.connect(_draw_roofs)
+		var parent := get_parent()
+		if parent != null and parent.has_method("add_under_roof_snow"):
+			parent.add_under_roof_snow(_roof_layer)
+		else:
+			add_child(_roof_layer)
 	_refresh()
+
+
+func _exit_tree() -> void:
+	if _roof_layer != null and is_instance_valid(_roof_layer) and _roof_layer.get_parent() != self:
+		_roof_layer.queue_free()
 
 
 func _layer(n: String, m: ShaderMaterial, drawer: Callable) -> Node2D:
@@ -103,13 +125,13 @@ func _layer(n: String, m: ShaderMaterial, drawer: Callable) -> Node2D:
 	return c
 
 
-## A layer's material: the colour of data/light.json `rules` ("windows" or "pools").
+## A layer's material: the colour of data/light.json `rules` ("windows", "pools" or "roof_glow").
 static func _material(rules: String, soft: bool) -> ShaderMaterial:
 	var s := Shader.new()
 	s.code = SHADER
 	var m := ShaderMaterial.new()
 	m.shader = s
-	var col := Color("ff9a48") if rules == "pools" else Color("ffb25c")
+	var col := Color("ff9a48") if rules == "pools" else (Color("ffa050") if rules == "roof_glow" else Color("ffb25c"))
 	m.set_shader_parameter("warm", Color(str(Game.light_data().get(rules, {}).get("color", col.to_html(false)))))
 	m.set_shader_parameter("soft", soft)
 	return m
@@ -117,8 +139,9 @@ static func _material(rules: String, soft: bool) -> ShaderMaterial:
 
 func _process(_delta: float) -> void:
 	if tint != null:
-		for l: Node2D in [_pool_layer, _halo_layer, _pane_layer]:
-			(l.material as ShaderMaterial).set_shader_parameter("tint", tint.color)
+		for l: Node2D in [_pool_layer, _halo_layer, _pane_layer, _roof_layer]:
+			if l != null:
+				(l.material as ShaderMaterial).set_shader_parameter("tint", tint.color)
 	if Game.window_light() != glow or festival_dark() != fest_dark:
 		_refresh()
 
@@ -139,7 +162,9 @@ func _refresh() -> void:
 	pools = NightLights.pools_from(windows, lamps, glow, rules)
 	pools.append_array(NightLights.festival_pools(festival_lights, fest_dark, rules))
 	visible = not pools.is_empty()
-	for l: Node2D in [_pool_layer, _halo_layer, _pane_layer]:
+	if _roof_layer != null:
+		_roof_layer.visible = glow > 0.0
+	for l: Node2D in [_pool_layer, _halo_layer, _pane_layer, _roof_layer]:
 		if l != null:
 			l.queue_redraw()
 
@@ -157,9 +182,11 @@ static func pool_polygon(p: Dictionary) -> PackedVector2Array:
 	return out
 
 
-## A window's strip on its wall seen from above: 2 px thick, as wide as the pane.
+## A window's strip on its wall seen from above: 2 px thick, as wide as the pane, its lower edge
+## on the wall's footprint line, or at the window's `flat_z` where the flat view draws the wall
+## elsewhere (the greenhouse's glass, LitSpots.greenhouse).
 static func pane_rect(win: Dictionary) -> Rect2:
-	var at := px(win.pos)
+	var at := px(Vector3(win.pos.x, 0, float(win.get("flat_z", win.pos.z))))
 	var w: float = win.size.x * T
 	if win.normal.x > 0.5:   # the east wall: the strip runs along z
 		return Rect2(at.x - 2.0, at.y - w / 2.0, 2.0, w).abs()
@@ -203,6 +230,46 @@ func _draw_pools() -> void:
 		var shape := pool_shape(p)
 		if shape[0].size() >= 3:
 			_pool_layer.draw_colored_polygon(shape[0], Color(1, 1, 1, clampf(p.strength, 0.0, 1.0)), shape[1])
+
+
+## A roof glow's shape in the flat view (FarmView._draw_greenhouse's glass roof, seen from above):
+## its pieces [polygon, uvs 0..1 across its disc], its slope's stretch from the ridge (t 0) to
+## the eaves (t its length) laid on the drawn slope, cut to it and between the rafters (every
+## 8 px), so the glass takes it and the timber does not, as in 3D.
+static func roof_shape(g: Dictionary) -> Array:
+	var box := Rect2(Vector2(FarmGrid.GREENHOUSE.position * T), Vector2(FarmGrid.GREENHOUSE.size * T))
+	var ridge := box.position.y + FarmView.GREENHOUSE_RIDGE
+	var foot := box.end.y - FarmView.GREENHOUSE_WALL - 1.0
+	# The drawn slope: its rows from the ridge down to its eave (the back slope's runs up the picture).
+	var from: float = ridge + 2.0 if g.slope > 0 else ridge
+	var to: float = foot if g.slope > 0 else box.position.y + 1.0
+	var per_t: float = (to - from) / float(g.length)   # pixels a unit along the slope (signed)
+	var c := Vector2(g.centre.x * T, from + g.centre.y * per_t)
+	var half := Vector2(float(g.radius) * T, float(g.radius) * absf(per_t))
+	var rows := Vector2(minf(from, to), maxf(from, to))
+	var disc := Rect2(c - half, half * 2.0)
+	var out: Array = []
+	for x in range(0, int(box.size.x), 8):
+		var bay := Rect2(box.position.x + x + 1.0, rows.x, 7.0 if x + 8 < int(box.size.x) else box.size.x - x - 2.0, rows.y - rows.x)
+		var r := disc.intersection(bay)
+		if not r.has_area():
+			continue
+		var poly := PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)])
+		var uvs := PackedVector2Array()
+		for p in poly:
+			uvs.append((p - c) / (half * 2.0) + Vector2(0.5, 0.5))
+		out.append([poly, uvs])
+	return out
+
+
+func _draw_roofs() -> void:
+	var rules: Dictionary = Game.light_data().get("roof_glow", {})
+	for g in roof_glows:
+		var a := NightLights.roof_glow(g, glow, rules) * float(rules.get("flat", 1.0))
+		if a <= 0.0:
+			continue
+		for piece in roof_shape(g):
+			_roof_layer.draw_colored_polygon(piece[0], Color(1, 1, 1, clampf(a, 0.0, 1.0)), piece[1])
 
 
 func _draw_halos() -> void:

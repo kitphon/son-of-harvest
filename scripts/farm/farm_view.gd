@@ -21,6 +21,12 @@ const COLORS := {
 ## the farmhouse and the coop thatch, the barn kawara tile.
 const ROOFS := {"house": "kaya", "coop": "thatch", "barn": "kawara"}
 
+## The greenhouse drawn from above (_draw_greenhouse), in pixels from its box's top: the ridge
+## board's top, the wall under the roof's foot (glass over the board skirting) and the skirting.
+const GREENHOUSE_RIDGE := 14.0
+const GREENHOUSE_WALL := 12.0
+const GREENHOUSE_SKIRT := 5.0
+
 
 ## The pixel rectangle of the fixed cells of `kind` (empty when there are none).
 static func roof_rect(grid: FarmGrid, kind: String) -> Rect2:
@@ -109,14 +115,24 @@ func show_snow(rules: Dictionary) -> void:
 		move_child(_snow, _objects.get_index())
 		# The roofs (the farmhouse, coop, barn, silo, greenhouse) whiten over the objects, as a
 		# map's houses do in MapView.
+		# A mask pixel a picture pixel, so the snow keeps to the roofs as drawn (their eaves, the
+		# doors, the greenhouse's rafters), filling them as the 3D view's snow tops do.
 		_roof_snow = Sprite2D.new()
 		_roof_snow.centered = false
-		_roof_snow.scale = _snow.scale
-		_roof_snow.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		_roof_snow.scale = Vector2.ONE * float(T) / SnowLayer.ROOF_PER_CELL
+		_roof_snow.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		_roof_snow.texture = ImageTexture.create_from_image(SnowLayer.farm_roof_mask_image(farm, rules))
-		_roof_snow.material = SnowLayer.canvas_material()
+		_roof_snow.material = SnowLayer.roof_canvas_material()
 		add_child(_roof_snow)
 		move_child(_roof_snow, _objects.get_index() + 1)
+
+
+## Puts `n` over the buildings but under their roofs' snow (NightView's glow on the greenhouse's
+## glass roof, which the snow lying on it covers).
+func add_under_roof_snow(n: CanvasItem) -> void:
+	add_child(n)
+	if _objects != null:
+		move_child(n, _objects.get_index() + 1)
 
 
 ## Snow on the ground, 0 (none) .. 1 (all white where the ground holds it).
@@ -188,8 +204,8 @@ func _draw_greenhouse() -> void:
 	r = r.merge(Rect2(Vector2(FarmGrid.GREENHOUSE_DOOR * T), Vector2(T, T)))
 	var o := r.position
 	var wide := r.size.x
-	var front := r.size.y - 12.0   # the roof's foot; the wall and the door below it
-	var ridge := 14.0
+	var front := r.size.y - GREENHOUSE_WALL   # the roof's foot; the wall and the door below it
+	var ridge := GREENHOUSE_RIDGE
 	_objects.draw_rect(Rect2(o + Vector2(0, 1), Vector2(wide, front)), Color("7a5a3a"))   # the frame's edge
 	for half in [[1.0, ridge, Color("a6c4bc")], [ridge + 2.0, front - 1.0, Color("bcd8d0")]]:
 		var top: float = half[0]
@@ -203,10 +219,10 @@ func _draw_greenhouse() -> void:
 	_objects.draw_rect(Rect2(o + Vector2(0, ridge), Vector2(wide, 2)), Color("6e4c30"))   # the ridge board
 	_objects.draw_rect(Rect2(o + Vector2(0, ridge + 0.5), Vector2(wide, 1)), Color("2e221a"))
 	var wall := o + Vector2(0, front)
-	_objects.draw_rect(Rect2(wall, Vector2(wide, 12)), Color("b8d4cc"))   # the glazed front wall
-	_objects.draw_rect(Rect2(wall + Vector2(0, 7), Vector2(wide, 5)), Color("3e3028"))   # the board skirting
+	_objects.draw_rect(Rect2(wall, Vector2(wide, GREENHOUSE_WALL)), Color("b8d4cc"))   # the glazed front wall
+	_objects.draw_rect(Rect2(wall + Vector2(0, GREENHOUSE_WALL - GREENHOUSE_SKIRT), Vector2(wide, GREENHOUSE_SKIRT)), Color("3e3028"))   # the board skirting
 	for x in range(0, int(wide) + 1, 16):
-		_objects.draw_rect(Rect2(wall + Vector2(clampf(x, 0, wide - 1), 0), Vector2(1, 12)), Color("6e4c30"))
+		_objects.draw_rect(Rect2(wall + Vector2(clampf(x, 0, wide - 1), 0), Vector2(1, GREENHOUSE_WALL)), Color("6e4c30"))
 	var door := Vector2(FarmGrid.GREENHOUSE_DOOR.x * T + 3, o.y + r.size.y - 14)
 	_objects.draw_rect(Rect2(door, Vector2(10, 14)), Color("2a3a32"))
 	_objects.draw_rect(Rect2(door + Vector2(1, 1), Vector2(8, 7)), Color("cfe4dc"))
