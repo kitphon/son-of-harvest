@@ -8,7 +8,7 @@ extends CanvasLayer
 ## slots in two columns and its pad button in a third, and scrolls; while it waits for a key
 ## every key goes to it (while it waits for a pad button, every pad button, trigger and
 ## right-stick push).
-## `-- --pause` (or `--pause=settings`, `--pause=controls`, `--pause=fishlog`) opens it at the start, for
+## `-- --pause` (or `--pause=settings`, `--pause=controls`, `--pause=fishlog`, `--pause=shipped`) opens it at the start, for
 ## screenshots.
 
 const TITLE_SCENE := "res://scenes/title.tscn"
@@ -82,7 +82,7 @@ func open(page := "") -> void:
 		return
 	_open = true
 	Game.pause()
-	menu = PauseMenu.new(Game.settings, Game.fish_data, Game.fish_caught)
+	menu = PauseMenu.new(Game.settings, Game.fish_data, Game.fish_caught, Game.shippable_rows(), Game.shipped)
 	if page in PauseMenu.HEADINGS:
 		menu.open(page)
 	_note.text = ""
@@ -113,18 +113,19 @@ func _build() -> void:
 	_top = 0
 	_heading.text = menu.heading()
 	var fish := menu.page == "fishlog"
-	var width := FISHLOG_WIDTH if fish else (CONTROLS_WIDTH if menu.page == "controls" else WIDTH)
+	var iconed := fish or menu.page == "shipped"   # rows with an icon and a count
+	var width := FISHLOG_WIDTH if iconed else (CONTROLS_WIDTH if menu.page == "controls" else WIDTH)
 	var screen := get_viewport().get_visible_rect().size
 	var n := mini(menu.list.items.size(), visible_rows(Game.ui_scale, screen.y, FISH_LINES if fish else 0))
 	for i in n:
 		var item: String = menu.list.items[i]
-		var row := _label(_paper, Vector2i(15 + (ICON_W if fish else 0), 5 + i * ROW_H))
-		row.size = Vector2(width - 8 - 19 - (ICON_W if fish else 0), ROW_H)
+		var row := _label(_paper, Vector2i(15 + (ICON_W if iconed else 0), 5 + i * ROW_H))
+		row.size = Vector2(width - 8 - 19 - (ICON_W if iconed else 0), ROW_H)
 		row.mouse_filter = Control.MOUSE_FILTER_STOP
 		row.mouse_entered.connect(_on_row_hover.bind(i, -1))
 		row.gui_input.connect(_on_row_input.bind(i, -1))
 		_rows.append(row)
-		if fish:
+		if iconed:
 			var icon := TextureRect.new()
 			icon.position = Vector2(-ICON_W, -1)
 			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -194,6 +195,12 @@ func _refresh() -> void:
 				key.text = menu.slot_text(item, k)
 				var on: bool = _top + i == menu.list.cursor and k == menu.slot
 				key.add_theme_color_override("font_color", PlaceholderArt.UI_SEAL if on else (Hud.INK_SOFT if key.text == "-" else Hud.INK))
+	if menu.page == "shipped":
+		for i in n:
+			var item: String = items[_top + i]
+			_counts[i].text = menu.count_text(item)
+			_icons[i].texture = PlaceholderArt.tex(PlaceholderArt.item_key(item)) if menu.is_shipped_row(item) else null
+			_icons[i].modulate = Color.WHITE if menu.shipped_count(item) > 0 else Color.BLACK
 	if menu.page == "fishlog":
 		var shown: Array[String] = ["", "", ""]
 		for i in n:
@@ -217,6 +224,8 @@ func _refresh() -> void:
 		_note.text = menu.hint()
 	elif menu.page == "fishlog":
 		_note.text = menu.total_text()
+	elif menu.page == "shipped":
+		_note.text = menu.shipped_total_text()
 
 
 func _say(text: String) -> void:

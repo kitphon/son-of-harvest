@@ -52,6 +52,23 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Left / next: no old look in the sprites (grey muzzle etc.); the dog doesn't age; the old
   skip is a roll, not shown on E.
 
+## 2026-11-11 — Shipped page in the pause menu
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: the pause menu's main page gains "Shipped" (Resume, Save, Settings, Fish log, Shipped,
+  Back to title). One row per thing the bin takes (Game.shippable_rows: crops, animal goods,
+  fish, mine finds, wild plants, dishes; every id with a sell price, 86 rows today), icon, name
+  and "x<count>" from the existing `Game.shipped` counts (already saved, old saves load empty,
+  so no save change); never-shipped rows show "???" and a black silhouette icon. The note line
+  reads "N of M shipped". Same box and scrolling as the fish log (PauseScreen `iconed` rows, no
+  detail lines). `--demo --pause=shipped` ships a few items first; AGENTS.md lists it. Thai:
+  "%d of %d shipped" (data/lang/th/ui.json; "Shipped" already existed). No gold-earned total:
+  prices can change, so it would be a guess.
+- Checked: test_menu (page, counts, ???, total, Esc / Back, empty page, real rows unique and
+  sellable, every name fits in en / th / pseudo, rows fit at 100 / 125 / 150%) `OK (0 failed)`;
+  Movie Maker frame of `--demo --pause=shipped` looked at: icons, names, counts, scroll bar,
+  "9 of 86 shipped".
+- Left / next: the ??? silhouettes of items with no drawn icon yet are plain blobs.
+
 ## 2026-11-11 — The shorn ewe's carrying belly reads; a test for the cord's store line
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: data/animal_art.json `carrying.belly_of` overrides the belly per kind; the shorn ewe
