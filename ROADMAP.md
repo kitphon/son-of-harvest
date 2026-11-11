@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-11 The ??? rows of the fish log and the Shipped page show a faint ink silhouette a pixel in from the edge instead of a solid black picture (PauseScreen.icon_of); see WORKLOG.
 [x] 2026-11-11 Old animals look it (a greying face, a hen's paler comb; `aging.sprite_suffix`, data/animal_art.json `old`) and the dog ages (a year old at the start, its age when petted, old from its 8th year: grey face, slower steps, never passes); saved; `--old`; see WORKLOG.
 [x] 2026-11-11 test_fishing frees its fish-log Game nodes; no exit leak; see WORKLOG.
 [x] 2026-11-11 Animals grow old: the age in nights (bought a season / year / two seasons old), told on E in years and seasons; "(old)" from the 4th year (hen), 5th (ewe), 8th (cow), a product skipped on a quarter of nights; a peaceful passing at night between 4-5 / 5-6 / 9-11 years, even odds, sure at the end, the morning news, the place freed; saved; `--old`; Thai; see WORKLOG.

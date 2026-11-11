@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Faint silhouettes on the fish log and the Shipped page
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the "???" rows showed the picture modulated solid black; the 16 px item pictures on
+  rows 13 px apart ran together into a black bar. PauseScreen.icon_of now gives a known row its
+  own picture and an unknown one its silhouette: the shape a pixel in from its edge, in one
+  faint ink colour (SILHOUETTE, a warm brown at 38% on the paper), made once per picture. The
+  fish log uses the same. (Every one of the 86 shippable items has a picture of its own; none
+  falls back to a shared one.)
+- Checked: test_menu `_silhouettes` (the ink is faint, not black; a known row is the picture
+  itself; an unknown one is exactly the inset shape in the ink, for a fish, a crop and an egg;
+  made once): `test_menu: OK (0 failed)`; `--demo --pause=shipped --ui=150%` and
+  `--pause=fishlog` frames looked at: each ??? row a separate faint shape.
+- Left / next: nothing for this.
+
 ## 2026-11-11 — Old animals look it; the dog ages
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: Animals.look adds data/animals.json `aging.sprite_suffix` ("_old") last for an old

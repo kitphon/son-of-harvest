@@ -24,6 +24,7 @@ const ICON_W := 16         # a fish icon (14 px) and its gap, left of the name
 const SLOT_X := 118         # the first key column on the controls page, px from the paper's left
 const SLOT_STEP := 58       # from one key column to the next
 const VISIBLE := 15         # rows shown at once; a longer page scrolls
+const SILHOUETTE := Color(0.42, 0.34, 0.26, 0.38)   # a thing not caught / shipped yet: its shape as a faint ink shadow on the paper
 
 var menu: PauseMenu
 var _open := false
@@ -39,6 +40,7 @@ var _icons: Array[TextureRect] = []   # per row on the fish log: the fish icon
 var _counts: Array[Label] = []        # per row on the fish log: how many were caught
 var _details: Array[Label] = []       # the lines under the fish log
 var _notches: Dictionary = {}   # setting -> its slider's ColorRects
+static var _shadows := {}       # picture key -> its silhouette (SILHOUETTE in its shape)
 var _mark: Label
 var _note: Label
 
@@ -199,15 +201,13 @@ func _refresh() -> void:
 		for i in n:
 			var item: String = items[_top + i]
 			_counts[i].text = menu.count_text(item)
-			_icons[i].texture = PlaceholderArt.tex(PlaceholderArt.item_key(item)) if menu.is_shipped_row(item) else null
-			_icons[i].modulate = Color.WHITE if menu.shipped_count(item) > 0 else Color.BLACK
+			_icons[i].texture = icon_of(PlaceholderArt.item_key(item), menu.shipped_count(item) > 0) if menu.is_shipped_row(item) else null
 	if menu.page == "fishlog":
 		var shown: Array[String] = ["", "", ""]
 		for i in n:
 			var item: String = items[_top + i]
 			_counts[i].text = menu.count_text(item)
-			_icons[i].texture = PlaceholderArt.tex("ui:fish:" + item) if menu.is_fish(item) else null
-			_icons[i].modulate = Color.WHITE if menu.count(item) > 0 else Color.BLACK   # a silhouette until caught
+			_icons[i].texture = icon_of("ui:fish:" + item, menu.count(item) > 0) if menu.is_fish(item) else null   # a silhouette until caught
 		shown = menu.fish_details(items[menu.list.cursor])
 		for k in _details.size():
 			_details[k].text = shown[k]
@@ -368,3 +368,24 @@ func _do(command: String) -> void:
 func _to_title() -> void:
 	close()
 	get_tree().change_scene_to_file(TITLE_SCENE)
+
+
+## A row's picture: the item's own once known, else its silhouette, a faint ink shadow of its
+## shape on the paper (SILHOUETTE; the same for the fish log and the shipped page), a pixel in
+## from the edge all round, so the 16 px pictures of rows 13 px apart don't run together.
+static func icon_of(key: String, known: bool) -> Texture2D:
+	if known:
+		return PlaceholderArt.tex(key)
+	if not _shadows.has(key):
+		var src := PlaceholderArt.tex(key).get_image()
+		src.convert(Image.FORMAT_RGBA8)
+		var img := Image.create_empty(src.get_width(), src.get_height(), false, Image.FORMAT_RGBA8)
+		img.fill(Color(0, 0, 0, 0))
+		var w := src.get_width()
+		var h := src.get_height()
+		for y in range(1, h - 1):
+			for x in range(1, w - 1):
+				if src.get_pixel(x, y).a > 0.0 and src.get_pixel(x - 1, y).a > 0.0 and src.get_pixel(x + 1, y).a > 0.0 and src.get_pixel(x, y - 1).a > 0.0 and src.get_pixel(x, y + 1).a > 0.0:
+					img.set_pixel(x, y, SILHOUETTE)
+		_shadows[key] = ImageTexture.create_from_image(img)
+	return _shadows[key]

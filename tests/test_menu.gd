@@ -367,6 +367,35 @@ func _shipped_page() -> void:
 
 ## The shipped page fits its width in English, Thai and a third longer (every real name), and its
 ## rows at every UI size.
+## The ??? rows of the fish log and the shipped page: the picture's own shape in one faint ink
+## colour (PauseScreen.SILHOUETTE), a pixel in from its edge, never solid black; a known row
+## shows the picture itself.
+func _silhouettes() -> void:
+	var pause: GDScript = load("res://scripts/ui/pause_screen.gd")
+	var sil: Color = pause.SILHOUETTE
+	check(sil.a > 0.2 and sil.a < 0.6 and sil.get_luminance() > 0.2, "the silhouette is a faint ink, not black")
+	for key in ["ui:fish:funa", PlaceholderArt.item_key("turnip"), PlaceholderArt.item_key("egg")]:
+		var own := PlaceholderArt.tex(key)
+		check(pause.icon_of(key, true) == own, "%s known: its own picture" % key)
+		var a := own.get_image()
+		a.convert(Image.FORMAT_RGBA8)
+		var b: Image = pause.icon_of(key, false).get_image()
+		var ok := a.get_size() == b.get_size()
+		var inked := 0
+		if ok:
+			for y in a.get_height():
+				for x in a.get_width():
+					var pa := a.get_pixel(x, y).a
+					var pb := b.get_pixel(x, y)
+					var edge := x == 0 or y == 0 or x == a.get_width() - 1 or y == a.get_height() - 1 or a.get_pixel(x - 1, y).a == 0.0 or a.get_pixel(x + 1, y).a == 0.0 or a.get_pixel(x, y - 1).a == 0.0 or a.get_pixel(x, y + 1).a == 0.0
+					ok = ok and (pb.a > 0.0) == (pa > 0.0 and not edge) and pb.a <= sil.a + 0.01
+					if pb.a > 0.0:
+						ok = ok and absf(pb.r - sil.r) < 0.01 and absf(pb.g - sil.g) < 0.01 and absf(pb.b - sil.b) < 0.01
+						inked += 1
+		check(ok and inked > 10, "%s unknown: its shape in faint ink (%d px)" % [key, inked])
+	check(pause.icon_of("ui:fish:funa", false) == pause.icon_of("ui:fish:funa", false), "a silhouette is made once")
+
+
 func _shipped_fit() -> void:
 	var pause: GDScript = load("res://scripts/ui/pause_screen.gd")
 	var k: Dictionary = pause.get_script_constant_map()
@@ -834,6 +863,7 @@ func _settings_in_effect() -> void:
 	check(rows[0] == k.VISIBLE and rows[2] < rows[1] and rows[1] < rows[0], "bigger UI, fewer rows (%s)" % [rows])
 	_fish_log_fit()
 	_shipped_fit()
+	_silhouettes()
 
 
 func _has_button(action: String, button: int) -> bool:
