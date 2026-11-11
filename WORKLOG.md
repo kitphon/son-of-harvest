@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Merge: the carrying look, the cord's Tie hint, Kota and Tome's snow lines
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three subagents in their own worktrees, the model picked by the job: b9f1964 a carrying
+  cow or ewe drawn with a rounder belly in both views (Opus), 61518c4 the Musubi cord's "Tie"
+  hint and store line (Sonnet), eb6bfe1 Kota and Tome's snow lines (Haiku). Merged into main;
+  WORKLOG and ROADMAP keep every side.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`;
+  smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --map=barn
+  --carrying`, `--demo --map=barn --cord`) print 0 error or warning lines; lang_report prints
+  `th: 2635 of 2635 done (100%), 0 missing, 0 stale`.
+- Left / next: a winter storm now gives Kota and Tome snow lines instead of thunder (on
+  purpose, like the other villagers). The shorn ewe's carrying belly is hard to see; no test
+  reads the store's cord line. ROADMAP "Next up" has no open item; the Windows .exe still
+  waits on the export templates.
+
 ## 2026-11-11 — A carrying cow or ewe looks it (both views)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a carrying cow or ewe gets her own picture: Animals.look adds data/animals.json
