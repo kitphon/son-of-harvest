@@ -283,13 +283,14 @@ func _menu() -> void:
 	check(m.tabs == ["buy", "sell", "build"], "store tabs %s" % [m.tabs])
 	check(ShopMenu.new(g, "smithy").tabs == ["tools", "sell"], "smithy tabs")
 	var rows := m.rows()
-	check(rows.size() == 19 and rows[0].item == "rucksack" and rows[1].item == "animal:chicken" and rows[9].item == "seeds:turnip"
-		and rows[18].item == Marriage.item(), "spring stock: the rucksack, 8 supplies, 4 for spring, 6 any (the mizuhiki knot last)")
+	check(rows.size() == 20 and rows[0].item == "rucksack" and rows[1].item == "animal:chicken" and rows[9].item == "musubi_cord"
+		and rows[10].item == "seeds:turnip" and rows[19].item == Marriage.item(),
+		"spring stock: the rucksack, 9 supplies (the musubi cord last), 4 for spring, 6 any (the mizuhiki knot last)")
 	m.move(-1)
-	check(m.cursor == 18, "the cursor wraps up")
+	check(m.cursor == 19, "the cursor wraps up")
 	m.move(1)
 	check(m.most() == 1, "one rucksack at a time")
-	m.point(9)
+	m.point(10)
 	var bag := int(crops.turnip.seed_price)
 	g.money = 2 * bag + 60
 	m.change_count(1)

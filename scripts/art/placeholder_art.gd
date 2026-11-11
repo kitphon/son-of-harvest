@@ -2104,6 +2104,8 @@ static func _ui(kind: String, arg: String) -> Image:
 static func _item_icon(id: String) -> Image:
 	if is_animal_good(id):
 		return _animal_good(id, 14)
+	if id == "musubi_cord":
+		return _musubi_cord()
 	var img := _blank(14, 14)
 	var look := crop_look(id)
 	if _looks.has(id):
@@ -2129,6 +2131,25 @@ static func _item_icon(id: String) -> Image:
 	for p in [Vector2i(4, 9), Vector2i(8, 8), Vector2i(10, 11), Vector2i(6, 11)]:
 		img.set_pixelv(p, dots)
 	return ItemArt.refine(img, [dots])
+
+
+## The musubi cord (data/animals.json breeding): a red-and-white braided loop with a knot at
+## the bottom and two tasselled ends hanging from it. The red and the white are two materials
+## (ItemArt tones each); the braid's twists are small white marks laid on the red, kept.
+const CORD_RED := Color("c8342c")
+const CORD_WHITE := Color("f2ece0")
+
+
+static func _musubi_cord() -> Image:
+	var img := _blank(14, 14)
+	_oval(img, 7, 5.5, 5.0, 4.6, CORD_RED)
+	_oval(img, 7, 5.5, 2.3, 2.3, Color(0, 0, 0, 0))   # the loop's hole
+	for p in [Vector2i(3, 4), Vector2i(4, 2), Vector2i(7, 1), Vector2i(10, 2), Vector2i(11, 5), Vector2i(10, 8), Vector2i(4, 8)]:
+		img.set_pixelv(p, CORD_WHITE)                    # the braid's white strand
+	_px(img, 5, 9, 5, 2, CORD_RED)                     # the knot
+	_px(img, 5, 11, 1, 3, CORD_WHITE)                  # the two tasselled ends
+	_px(img, 9, 11, 1, 3, CORD_RED)
+	return ItemArt.refine(img, [CORD_WHITE])
 
 
 ## A fish seen from the side, head left: a body shape (deep, long, slim, trout, eel,

@@ -31,6 +31,13 @@
 			},
 			"_gives": "Product every N fed, healthy nights (prod_days). It waits until taken and doesn't pile up. The tool hangs in the barn: E on the animal uses it.",
 			"brush": true,
+			"breed": {
+				"carry_nights": 12,
+				"carrying_name": "in calf",
+				"born": "%s had a calf in the barn: %s.",
+				"waits": "%s is due, but the barn is full. Make room for the calf.",
+				"_breed": "Nights from the musubi cord to the calf (Animals.breed). 12 nights without milk is about 1,800 G (150 a day after fodder), so with the cord a calf costs about 2,400 against the store's 3,200: worth it, not a money machine."
+			},
 			"price": 6000,
 			"_price": "What the store asks (data/shops.json; a calf 3200): a cow gives 110-240 G a day, about 150 after fodder, so she pays back in about 6 weeks."
 		},
@@ -50,6 +57,13 @@
 			},
 			"_gives": "Wool grows back over 3 fed, healthy nights; the sheep looks shorn until then.",
 			"brush": true,
+			"breed": {
+				"carry_nights": 9,
+				"carrying_name": "in lamb",
+				"born": "%s had a lamb in the barn: %s.",
+				"waits": "%s is due, but the barn is full. Make room for the lamb.",
+				"_breed": "9 nights: three wool cycles missed (about 900 G), with the cord about 1,500 against the store's 1,900 for a lamb."
+			},
 			"price": 3600,
 			"_price": "What the store asks (data/shops.json; a lamb 1900): 180-420 G of wool every 3 days (60-140 G a day) for the same fodder as a cow."
 		}
@@ -116,6 +130,14 @@
 		"medicine": "medicine",
 		"_medicine": "The rucksack item that cures at once (sold by a shop later)."
 	},
+	"breeding": {
+		"item": "musubi_cord",
+		"_item": "A red-and-white braided cord the Yorozu Store sells (data/shops.json). Held up and tied on a cow's or ewe's stall (E on her in the barn) it asks the hill herdsman's bull or ram to call that night; our own idea, after a shrine's musubi knot.",
+		"happy_min": 60,
+		"_happy_min": "Only a grown, well cow or ewe at least this happy will carry: care comes first.",
+		"born_happy": 10,
+		"_born_happy": "A calf or lamb born on the farm starts this much happier than a bought one (happy_start)."
+	},
 	"incubator": {
 		"hatch_days": 3,
 		"_hatch_days": "Nights until an egg in the incubator hatches into a chick."
@@ -154,7 +176,8 @@
 		"wool": {"name": "Wool", "sell": 180},
 		"wool_good": {"name": "Soft wool", "sell": 280},
 		"wool_best": {"name": "Cloud wool", "sell": 420},
-		"medicine": {"name": "Animal medicine", "sell": 0}
+		"medicine": {"name": "Animal medicine", "sell": 0},
+		"musubi_cord": {"name": "Musubi cord", "sell": 0}
 	},
 	"names": ["Kome", "Mochi", "Azuki", "Kinako", "Goma", "Yuzu", "Sumi", "Hana", "Tama", "Ume", "Kiku", "Nori", "Momo", "Kaede", "Haru", "Yuki", "Tsuki", "Sora"],
 	"_names": "Given in turn to new animals.",

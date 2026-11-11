@@ -173,6 +173,14 @@ effect the moment it changes and saved to `user://settings.json` (version 2; a v
   Cloud Wool; it looks shorn until then). Calves / lambs grow up in 14 / 10 nights. The
   barn starts empty: `Game.add_animal("cow" | "sheep", young)` and `Game.animals.add_fodder(n)`
   are the shop's hooks.
+- Breeding (`data/animals.json` `breeding` and each kind's `breed`): the store sells the
+  Musubi cord (600 G). Held up (take it in hand from the rucksack), E on a grown, healthy cow
+  or ewe at 60+ happiness ties it on her stall: she carries for 12 / 9 nights, gives no milk
+  or wool meanwhile, and her name shows it ("Hana (in calf)"); E on her says when she is due.
+  On the due night the calf / lamb is born in the barn, named from the names list, a little
+  happier than a bought one, and the morning news tells it; with the barn full she waits
+  night by night until there is room. Saved with the animal (`carrying`, `carry_days`; older
+  saves load with nobody carrying).
 - The dog (Goro): wanders near its spot right of the stand, and once fond enough (about a
   week of pats) follows the farmer about the farm. E pets it (once a day counts), E again
   picks it up; either button sets it down in front. A day without either costs affection.

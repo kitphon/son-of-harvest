@@ -6,7 +6,8 @@ extends RefCounted
 ##
 ## The brush, the milker and the shears hang in the barn, so E on an animal does the first
 ## thing that is due: milk / shear it when its product is ready (into the hands, overhead),
-## else brush it, else talk to it; then it tells how the animal feels.
+## else brush it, else talk to it; then it tells how the animal feels (and when a carrying
+## one is due). With the musubi cord held up, E ties it on her stall instead (Animals.breed).
 
 
 ## The barn's map id (data/animals.json homes.barn.map).
@@ -74,6 +75,9 @@ static func tend(i: int) -> void:
 	var beast: Dictionary = a.list[i]
 	var medicine := String(a.rules.get("sickness", {}).get("medicine", "medicine"))
 	Sfx.play(String(a.kind_rule(beast.kind).get("voice", "hen_cluck")))
+	if Game.held != "" and Game.held == a.breed_item():
+		tie_cord(i)
+		return
 	if beast.sick:
 		if Game.take_item(medicine):
 			a.cure(i)
@@ -90,13 +94,49 @@ static func tend(i: int) -> void:
 		Game.changed.emit()
 	elif a.brush(i):
 		Sfx.play("brush_stroke")
-		Game.message.emit(Lang.join(["You brushed %s." % a.label(beast), mood(beast, a.happy_max()) % a.label(beast)]))
+		Game.message.emit(Lang.join(["You brushed %s." % a.label(beast), mood(beast, a.happy_max()) % a.label(beast), due_note(beast)]))
 	elif a.pet(i):
-		Game.message.emit(mood(beast, a.happy_max()) % a.label(beast))
+		Game.message.emit(Lang.join([mood(beast, a.happy_max()) % a.label(beast), due_note(beast)]))
 	elif a.product_ready(beast):
 		Game.message.emit("Your hands are full.")
 	else:
-		Game.message.emit(mood(beast, a.happy_max()) % a.label(beast))
+		Game.message.emit(Lang.join([mood(beast, a.happy_max()) % a.label(beast), due_note(beast)]))
+
+
+## The musubi cord held up, tied on animal `i`'s stall: she carries from tonight and the cord
+## is used up; else why she can't, and the cord stays in the hands.
+static func tie_cord(i: int) -> void:
+	var a := Game.animals
+	var beast: Dictionary = a.list[i]
+	match a.breed(i):
+		"":
+			Game.held = ""
+			Game.changed.emit()
+			Sfx.play("pick")
+			Game.message.emit(Lang.join(["You tied the musubi cord on %s's stall." % beast.name, due_note(beast)]))
+		"young":
+			Game.message.emit("%s is too young to carry." % beast.name)
+		"sick":
+			Game.message.emit("%s should get well first." % beast.name)
+		"carrying":
+			Game.message.emit(due_note(beast))
+		"unhappy":
+			Game.message.emit("%s isn't happy enough to carry yet." % beast.name)
+		_:
+			Game.message.emit("The cord is for a cow or a ewe.")
+
+
+## When a carrying animal is due ("" when she isn't carrying).
+static func due_note(beast: Dictionary) -> String:
+	match Game.animals.due_in(beast):
+		-1:
+			return ""
+		0:
+			return "%s is due and waits for room in the barn." % beast.name
+		1:
+			return "%s is due tomorrow." % beast.name
+		var n:
+			return "%s is due in %d nights." % [beast.name, n]
 
 
 static func mood(beast: Dictionary, most: int) -> String:

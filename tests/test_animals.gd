@@ -20,6 +20,8 @@ func _init() -> void:
 	_dog()
 	_barn_save()
 	_barn_map_and_art()
+	_breeding()
+	_breeding_save()
 
 
 func _process(_delta: float) -> bool:
@@ -27,6 +29,7 @@ func _process(_delta: float) -> bool:
 	if _frame == 2:
 		_coop_actions()
 		_barn_actions()
+		_breeding_actions()
 		print("test_animals: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -653,6 +656,131 @@ func _barn_actions() -> void:
 	check(a.dog.held and said.back().begins_with("Put"), "no doors with the dog in the arms")
 	FarmActions.on_action("tool", dog + Vector2i.DOWN, Vector2i.RIGHT)
 	check(not a.dog.held and a.dog.cell == dog + Vector2i(1, 1) and not g.holding(), "set down in front")
+	g.new_game()
+
+
+# --- breeding: the musubi cord, carrying, births ------------------------------
+
+func _breeding() -> void:
+	var d := Animals.data()
+	var b: Dictionary = d.breeding
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 3
+	check(d.items.has(String(b.item)) and int(b.happy_min) > int(d.kinds.cow.happy_start), "the cord is an item and needs a happier cow than a bought one")
+	for k in ["cow", "sheep"]:
+		var r: Dictionary = d.kinds[k].breed
+		check(int(r.carry_nights) >= 1 and String(r.born).count("%s") == 2 and String(r.waits).count("%s") == 1 				and String(r.carrying_name) != "", "%s breeding rule complete" % k)
+	check(not d.kinds.chicken.has("breed"), "hens hatch eggs instead")
+	var a := _herd(["cow", "sheep", "chicken"])
+	var cow := 0
+	var ewe := 1
+	check(a.why_not_breed(2) == "kind", "no cord for a hen")
+	check(a.why_not_breed(cow) == "unhappy", "a new cow isn't happy enough")
+	a.list[cow].happy = int(b.happy_min)
+	a.list[ewe].happy = int(b.happy_min)
+	a.list[cow].sick = true
+	check(a.breed(cow) == "sick" and not a.list[cow].carrying, "not while sick")
+	a.list[cow].sick = false
+	a.add("cow", true)
+	var calf := a.list.size() - 1
+	a.list[calf].happy = 100
+	check(a.breed(calf) == "young", "not a calf")
+	a.list[cow].prod_days = 1
+	check(a.breed(cow) == "" and a.list[cow].carrying and a.list[cow].carry_days == 0, "the cord ties: she carries")
+	check(a.breed(cow) == "carrying", "once at a time")
+	check(not a.product_ready(a.list[cow]) and a.take_product(cow) == "", "no milk while carrying")
+	check(a.label(a.list[cow]) == "%s (%s)" % [a.list[cow].name, d.kinds.cow.breed.carrying_name], "the name says so: %s" % a.label(a.list[cow]))
+	var nights := int(d.kinds.cow.breed.carry_nights)
+	check(a.due_in(a.list[cow]) == nights and a.due_in(a.list[ewe]) == -1, "due in %d nights" % nights)
+	a.list[ewe].prod_days = int(d.kinds.sheep.gives.every)
+	check(a.breed(ewe) == "" and a.look(a.list[ewe]) == "sheep", "a woolly ewe stays woolly while carrying")
+	a.list[ewe].carrying = false   # only the cow carries through the nights below
+	var herd := a.in_home("barn").size()
+	for n in nights - 1:
+		a.fill_feed_box("barn")
+		var news := a.day_end("sunny", rng)
+		check(not news.any(func(t): return t.contains("had a calf")), "no calf on night %d" % (n + 1))
+	check(a.list[cow].carrying and a.due_in(a.list[cow]) == 1 and a.list[cow].prod_days == 1, "a night left, milk not grown meanwhile")
+	a.fill_feed_box("barn")
+	var news := a.day_end("sunny", rng)
+	var born: Dictionary = a.list.back()
+	var said := String(d.kinds.cow.breed.born) % [a.list[cow].name, born.name]
+	check(said in news, "the morning news: %s in %s" % [said, news])
+	check(not a.list[cow].carrying and born.kind == "cow" and not a.is_adult(born) and a.in_home("barn").size() == herd + 1, "a calf in the barn")
+	check(born.happy == int(d.kinds.cow.happy_start) + int(b.born_happy), "a farm-born calf starts happier")
+	check(a.product_ready(a.list[cow]), "and her milk is back")
+	check(born.name != a.list[cow].name and born.name == String(d.names[(a.named - 1) % d.names.size()]), "named from the names list: %s" % born.name)
+	# A full barn: she waits until there is room.
+	a = _herd(["cow", "cow", "cow", "cow", "cow", "sheep"])
+	check(a.room("barn") == 0, "a full barn")
+	a.list[5].happy = 80
+	a.breed(5)
+	a.list[5].carry_days = int(d.kinds.sheep.breed.carry_nights) - 1
+	news = a.day_end("sunny", rng)
+	var waits := String(d.kinds.sheep.breed.waits) % a.list[5].name
+	check(waits in news and a.list[5].carrying and a.due_in(a.list[5]) == 0, "due but no room: she waits (%s)" % [news])
+	news = a.day_end("sunny", rng)
+	check(waits in news and a.list.size() == 6, "and waits again")
+	a.list.remove_at(0)
+	news = a.day_end("sunny", rng)
+	check(not a.list[4].carrying and a.list.back().kind == "sheep" and not a.is_adult(a.list.back()), "room made: the lamb is born (%s)" % [news])
+
+
+func _breeding_save() -> void:
+	var a := _herd(["cow", "sheep"])
+	a.list[0].happy = 90
+	a.breed(0)
+	a.list[0].carry_days = 4
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(a.to_dict()))
+	var r := Animals.parse(saved)
+	check(r[0] == "" and r[1].to_dict() == a.to_dict() and r[1].list[0].carrying and r[1].list[0].carry_days == 4, "a carrying cow round trips %s" % r[0])
+	for key in ["carrying as text", "carry days below 0"]:
+		var d: Dictionary = saved.duplicate(true)
+		if key == "carrying as text":
+			d.animals[0].carrying = "yes"
+		else:
+			d.animals[0].carry_days = -1
+		check(Animals.parse(d)[0] != "", "broken save refused: " + key)
+	var old: Dictionary = saved.duplicate(true)
+	for s in old.animals:
+		s.erase("carrying")
+		s.erase("carry_days")
+	r = Animals.parse(old)
+	check(r[0] == "" and not r[1].list[0].carrying and r[1].list[0].carry_days == 0, "a save from before breeding loads, nobody carrying %s" % r[0])
+
+
+## The cord through the real Game: bought at the store, held up, tied in the barn.
+func _breeding_actions() -> void:
+	var g: Node = root.get_node("Game")
+	var BarnActions: GDScript = load("res://scripts/animals/barn_actions.gd")
+	var FarmActions: GDScript = load("res://scripts/farm_actions.gd")
+	var said: Array[String] = []
+	g.message.connect(func(t): said.append(t))
+	g.new_game()
+	g.events_seen = {"first_morning": true, "rainy_day": true}
+	var a: Animals = g.animals
+	var cord := a.breed_item()
+	var stock: Array = Shop.data().shops.general.stock.supplies
+	check(stock.any(func(e): return e.item == cord and int(e.get("price", 0)) > 0), "the store sells the cord")
+	check(g.item_name(cord) == "Musubi cord", "its name: %s" % g.item_name(cord))
+	var icon: Image = PlaceholderArt.image(PlaceholderArt.item_key(cord))
+	check(icon != null and icon.get_size() == Vector2i(14, 14) and _colours(icon).size() >= 4, "its own refined icon")
+	g.add_animal("cow")
+	var cow := a.in_home("barn")[0]
+	var spot: Array = MapManager.data("barn").spawns.start
+	g.go_to_map("barn", spot[0], spot[1])
+	var at := a.spot(cow)
+	g.held = cord
+	FarmActions.on_action("interact", at + Vector2i.DOWN, Vector2i.UP)
+	check(g.held == cord and not a.list[cow].carrying and said.back().contains("happy enough"), "an unhappy cow: the cord stays in hand (%s)" % said.back())
+	a.list[cow].happy = 90
+	FarmActions.on_action("interact", at + Vector2i.DOWN, Vector2i.UP)
+	check(g.held == "" and a.list[cow].carrying and said.back().begins_with("You tied the musubi cord"), "tied: %s" % said.back())
+	FarmActions.on_action("interact", at + Vector2i.DOWN, Vector2i.UP)
+	check(said.back().contains("is due in %d nights." % int(a.breed_rule("cow").carry_nights)), "examined, she tells when she's due: %s" % said.back())
+	check(not BarnActions.due_note(a.list[cow]).is_empty(), "the due note")
+	var door: Dictionary = MapManager.data("barn").doors[0]
+	g.go_to_map(door.to, door.spawn, door.facing)
 	g.new_game()
 
 
