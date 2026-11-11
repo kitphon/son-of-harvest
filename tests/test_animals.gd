@@ -30,6 +30,7 @@ func _process(_delta: float) -> bool:
 		_coop_actions()
 		_barn_actions()
 		_breeding_actions()
+		_cord_hint()
 		print("test_animals: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -781,6 +782,44 @@ func _breeding_actions() -> void:
 	check(not BarnActions.due_note(a.list[cow]).is_empty(), "the due note")
 	var door: Dictionary = MapManager.data("barn").doors[0]
 	g.go_to_map(door.to, door.spawn, door.facing)
+	g.new_game()
+
+
+## The interact hint with the cord held up: "Tie" only where E would tie it; elsewhere the usual words.
+func _cord_hint() -> void:
+	var g: Node = root.get_node("Game")
+	var hints: GDScript = load("res://scripts/ui/action_hints.gd")
+	g.new_game()
+	g.events_seen = {"first_morning": true, "rainy_day": true}
+	var a: Animals = g.animals
+	g.add_animal("cow")
+	g.add_animal("cow", true)
+	var cow := a.in_home("barn")[0]
+	var calf := a.in_home("barn")[1]
+	var spot: Array = MapManager.data("barn").spawns.start
+	g.go_to_map("barn", spot[0], spot[1])
+	var at := a.spot(cow)
+	var calf_at := a.spot(calf)
+	a.list[cow].happy = 90
+	check(hints.interact_verb(at + Vector2i.DOWN, Vector2i.UP) == "Tend", "empty hands: Tend")
+	g.held = a.breed_item()
+	check(hints.interact_verb(at + Vector2i.DOWN, Vector2i.UP) == "Tie", "cord held, grown happy cow: Tie")
+	check(hints.pick(at + Vector2i.DOWN, Vector2i.UP).interact == "Tie", "pick() says Tie too")
+	a.list[cow].happy = 10
+	check(hints.interact_verb(at + Vector2i.DOWN, Vector2i.UP) == "Tend", "unhappy cow: Tend (E explains)")
+	a.list[cow].happy = 90
+	check(hints.interact_verb(calf_at + Vector2i.DOWN, Vector2i.UP) == "Tend", "calf: Tend, no Tie")
+	a.list[cow].sick = true
+	check(hints.interact_verb(at + Vector2i.DOWN, Vector2i.UP) == "Tend", "sick cow: Tend")
+	a.list[cow].sick = false
+	g.held = "turnip"
+	check(hints.interact_verb(at + Vector2i.DOWN, Vector2i.UP) == "Tend", "another item held: Tend")
+	g.held = a.breed_item()
+	a.breed(cow)
+	check(hints.interact_verb(at + Vector2i.DOWN, Vector2i.UP) == "Tend", "already carrying: Tend")
+	a.list[cow].carrying = false
+	check(hints.interact_verb(at + Vector2i.DOWN, Vector2i.UP) == "Tie", "and Tie again once she is not")
+	check(hints.interact_verb(at + Vector2i.DOWN, Vector2i.DOWN) != "Tie", "facing no animal: no Tie")
 	g.new_game()
 
 

@@ -47,6 +47,10 @@ static func interact_verb(origin: Vector2i, facing: Vector2i) -> String:
 		if door.get("down", false):
 			return "Go down"
 		return "Enter" if door.to != "" else "Look"
+	if BarnActions.in_barn() and Game.holding() and Game.held == Game.animals.breed_item():
+		var cow := Game.animals.animal_at("barn", c)   # the cord: "Tie" where it would take, else the usual refusal ("Tend")
+		if cow >= 0 and Game.animals.why_not_breed(cow) == "":
+			return "Tie"
 	if CoopActions.in_coop() and CoopActions.animal_at(c) >= 0 \
 			or BarnActions.in_barn() and Game.animals.animal_at("barn", c) >= 0:
 		return "Tend"

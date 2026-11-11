@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — The Musubi cord says how it is used
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: with the cord held up in the barn and a grown, healthy, happy-enough cow or ewe in front
+  (the cases Animals.why_not_breed lets through), the E hint reads "Tie" (ActionHints.interact_verb;
+  the HUD and both views share it). When E would refuse (calf, sick, unhappy, already carrying)
+  the hint stays "Tend", as for every other refusal, and the message says why. The store's buy
+  screen shows "Hold it up, then E on a happy, grown cow or ewe." under the cord. Thai for both
+  in data/lang/th/ui.json. New `--cord` debug arg: cord overhead, the barn's animals happy enough,
+  the farmer below the first one (`--demo --map=barn --cord`), in AGENTS.md.
+- Checked: test_animals (new `_cord_hint`), test_view2d, test_shops, test_lang, test_menu,
+  test_inventory all `OK (0 failed)`; screenshot of `--demo --map=barn --cord` shows "E Tie".
+- Left / next: no test drives the shop info line itself; animals' art untouched.
+
 ## 2026-11-11 — Merge: breeding, the fish log, Kota and Tome's wet-day lines
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three subagents in their own worktrees, the model picked by the job: 1de2930 cow and
