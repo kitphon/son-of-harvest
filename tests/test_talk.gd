@@ -174,6 +174,15 @@ func _picks() -> void:
 		check(Talk.pick(who, _state({"band": 2, "weather": "storm", "season": "winter"})) in ["snow_1", "snow_2"], "%s in a winter blizzard" % who)
 		check(Talk.pick(who, _state({"band": 2, "weather": "storm", "season": "spring"})) in ["storm_1", "storm_2"], "%s in a spring storm is still thunder" % who)
 		check(Talk.pick(who, _state({"band": 2, "weather": "sunny", "season": "winter"})) in ["winter", "winter_1", "winter_2"], "%s on a dry winter day has a winter line" % who)
+	# Hachiro: rain, storm and snow picks of his own, the same rules as Kota and Tome.
+	check(Talk.pick("hachiro", _state({"band": 2, "weather": "rain"})) in ["rain_1", "rain_2"], "Hachiro on a wet day")
+	check(Talk.pick("hachiro", _state({"band": 2, "weather": "storm"})) in ["storm_1", "storm_2"], "Hachiro in a storm")
+	check(Talk.pick("hachiro", _state({"band": 2, "weather": "snow", "season": "winter"})) in ["snow_1", "snow_2"], "Hachiro on a snowy day")
+	check(Talk.pick("hachiro", _state({"band": 2, "weather": "storm", "season": "winter"})) in ["snow_1", "snow_2"], "Hachiro in a winter blizzard")
+	check(Talk.pick("hachiro", _state({"band": 2, "weather": "storm", "season": "spring"})) in ["storm_1", "storm_2"], "Hachiro in a spring storm is still thunder")
+	check(Talk.pick("hachiro", _state({"band": 2, "weather": "sunny"})) not in ["rain_1", "rain_2", "storm_1", "storm_2", "snow_1", "snow_2"], "Hachiro on a sunny day has no weather line")
+	# A weather line comes before his heart lines, as for Kota and Tome.
+	check(Talk.pick("hachiro", _state({"band": 6, "flags": {"heart_hachiro_6": true}, "weather": "rain"})) in ["rain_1", "rain_2"], "Hachiro's rain line before his heart lines")
 	check(Talk.pick("hachiro", _state({"band": 2, "time": 480})) in ["morning_1", "morning_2"], "Hachiro before the smithy opens")
 	check(Talk.pick("kota", _state({"band": 2, "season": "summer", "time": 900})) in ["cicada_1", "cicada_2"], "Kota's summer afternoons")
 	check(Talk.pick("sayo", _state({"band": 6, "flags": {"heart_sayo_6": true}, "season": "fall", "day": 15, "festival": "moon_night", "time": 1200}))
