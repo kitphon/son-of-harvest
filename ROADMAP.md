@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-11 The silo's grass pile checked in frames: 3D at night (dim, no glow), 3D in winter (white cap), flat winter (beside the silo, white cap); all 31 test scripts OK, no code change; see WORKLOG.
 [x] 2026-11-11 The flat view's greenhouse +x lit patch hidden (no side wall is drawn there, it lay over the roof): `flat_hide` on the spot, no strip or halo, the pool on the ground stays; see WORKLOG.
 [x] 2026-11-11 Flaky test_view2d ("flat: no greenhouse door before it is built") fixed: the new-game debris may lie on the greenhouse site (15% per cell), so the test read the dice; it clears the door cell first, and test_farm checks that building clears debris under the footprint and door; see WORKLOG.
 [x] 2026-11-11 The silo's grass pile and its stores on the pause menu: a pile of cut grass beside the silo grows in three stages with the bundles (none when empty, white under snow; `silo.pile` in data/animals.json, SiloPile, both views), and the pause menu's main page reads "Silo: fodder N, grass N" once it stands (Thai); `--silo=G[:F]`, `--no-hud` for frames; see WORKLOG.

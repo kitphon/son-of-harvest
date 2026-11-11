@@ -10,6 +10,28 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — The silo's grass pile framed at night and in the flat winter view
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: nothing to fix, so no code change. Frames taken (Movie Maker, frame 19 of each run, 480x270,
+  crops enlarged for the check):
+  - 3D night, `--demo --built=silo --silo=30:4 --map=farm@gate --time=21:00` (21:01): the pile at the
+    tower's foot right of the hatch, dark green like the other props under the night light; no glow,
+    not black.
+  - 3D winter, `--demo --built=silo --silo=30 --season=winter --snow=80 --map=farm@gate` (10:01): the
+    heap white-capped, the cap not greyed, the pile in front of the wall's foot, not inside it.
+  - Flat winter, `res://scenes/main_2d.tscn` with the same winter flags and `--no-hud`: the pile at the
+    box's bottom right, right of the door, white cap, base on the silo's base line. Its top edge
+    overlaps the wall's lower right corner, drawn in front of it; read as beside the silo, left as is.
+- Checked: every test in AGENTS.md printed `OK (0 failed)`: test_animals, test_audio, test_body,
+  test_child, test_cooking, test_dialogue, test_drift, test_ending, test_events, test_farm,
+  test_festivals, test_fishing, test_food, test_forage, test_goals, test_hold, test_inventory,
+  test_lang, test_maps, test_menu, test_mine, test_puddles, test_relationships, test_save,
+  test_shops, test_showcase, test_talk, test_title, test_view2d, test_villagers, test_weather
+  (31 scripts, one `tests/test_*.gd` each). Smoke runs (`--quit-after 300`: title, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`, `--demo --built=silo --map=farm@silo --silo=30:4`) printed
+  no ERROR or WARNING lines.
+- Left / next: the flat view's pile at night and in the other seasons was not framed.
+
 ## 2026-11-11 — The greenhouse's +x lit patch gone from the flat view
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: the flat view draws no side wall for the greenhouse (only the roof's right edge shows), so the
