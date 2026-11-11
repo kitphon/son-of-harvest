@@ -10,6 +10,16 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Flaky test_maps ("farm spawn greenhouse is free") fixed
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the check of every map's spawns read the new game's random debris on the farm (15% a
+  cell), which may lie on the greenhouse's door cell (cleared when the greenhouse is built), so
+  about one run in nine failed. On the farm a spawn is now checked against buildings, story props
+  and the bounds only; other maps unchanged. Found while checking the merge of three art agents'
+  branches (mist over the ferry, mist over the farm's rice, dish icon details).
+- Checked: test_maps run 10 times, `test_maps: OK (0 failed)` each time; every other test OK.
+- Left / next: nothing for this.
+
 ## 2026-11-11 — Mist over the ferry boat, under the figures (flat view)
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: in the flat view the morning mist (MistView) was added to the map view before the

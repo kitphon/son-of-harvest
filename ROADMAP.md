@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-11 Flaky test_maps fixed: a farm spawn is checked against buildings and props, not the new game's random debris; see WORKLOG.
 [x] 2026-11-11 Mist over the ferry boat in the flat view, under the figures: MistView is added after FerryView (child order, test_mist checks both sides); see WORKLOG.
 [x] 2026-11-11 The farm field's planted rice plots make morning mist as paddies (by season / weather like the village paddies), both views (MistRules.rice_cells, test_mist); see WORKLOG.
 [x] 2026-11-11 Dish icons set apart by more than colour: each food look in data/foods.json can add its own detail (`top`, `marks`, `bare`, `steam` as drawing steps), the bowl shows its contents from a little above; noodles and chopsticks, tofu, chunks, mixed rice, mochi, a caramel pudding, kagami mochi, the dobin pot, a matcha bowl and more; test_menu `_dish_details`; see WORKLOG.

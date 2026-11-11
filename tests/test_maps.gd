@@ -416,8 +416,12 @@ func _map_files() -> void:
 			continue
 		var m: MapData = r[1]
 		var solid := func(c: Vector2i) -> bool: return farm.is_solid(c) if m.farm else m.is_solid(c)
+		# On the farm a spawn must be clear of buildings and props; the new game's loose debris is
+		# random (it may fall on the greenhouse's door cell, cleared when the greenhouse is built).
+		var spawn_blocked := func(c: Vector2i) -> bool:
+			return (not farm.in_bounds(c) or farm.fixed_at(c) != "" or farm.under_prop(c)) if m.farm else m.is_solid(c)
 		for key in m.spawns:
-			check(not solid.call(m.spawns[key][0]), "%s spawn %s is free" % [id, key])
+			check(not spawn_blocked.call(m.spawns[key][0]), "%s spawn %s is free" % [id, key])
 		for door in m.doors:
 			for c in door.cells:
 				check(solid.call(c), "%s door %s is a solid cell (walked into, not over)" % [id, c])
