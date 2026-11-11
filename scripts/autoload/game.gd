@@ -366,6 +366,8 @@ func new_game() -> void:
 			animals.outside = true
 		elif arg == "--barn-out":   # e.g. `-- --demo --map=farm@barn --barn-out`: cows and sheep grazing
 			animals.state.barn.out = true
+		elif arg == "--pause=fishlog":   # `-- --demo --pause=fishlog`: a few catches in the log already
+			fish_caught = {"funa": 12, "koi": 1, "ayu": 3, "yamame": 2, "ugui": 7, "moon_koi": 1}
 		elif arg == "--hold":   # e.g. `-- --demo --hold`: a turnip overhead, a potato in front of the bin
 			held = "turnip"
 			farm.place_item(Vector2i(8, 4), "potato")

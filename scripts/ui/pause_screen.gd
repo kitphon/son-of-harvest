@@ -8,7 +8,7 @@ extends CanvasLayer
 ## slots in two columns and its pad button in a third, and scrolls; while it waits for a key
 ## every key goes to it (while it waits for a pad button, every pad button, trigger and
 ## right-stick push).
-## `-- --pause` (or `--pause=settings`, `--pause=controls`) opens it at the start, for
+## `-- --pause` (or `--pause=settings`, `--pause=controls`, `--pause=fishlog`) opens it at the start, for
 ## screenshots.
 
 const TITLE_SCENE := "res://scenes/title.tscn"
@@ -18,6 +18,9 @@ const TOP := 17             # the heading strip on the wood
 const PAPER := UiStyle.PAPER_TEXT
 const NOTCH := Vector2(3, 5)   # one slider step, px; a pixel apart
 const CONTROLS_WIDTH := 300
+const FISHLOG_WIDTH := 310   # the fish log: icon, name, count, and three detail lines under the list
+const FISH_LINES := 3      # detail lines under the fish log (where, season, hours)
+const ICON_W := 16         # a fish icon (14 px) and its gap, left of the name
 const SLOT_X := 118         # the first key column on the controls page, px from the paper's left
 const SLOT_STEP := 58       # from one key column to the next
 const VISIBLE := 15         # rows shown at once; a longer page scrolls
@@ -32,6 +35,9 @@ var _rows: Array[Label] = []    # the rows on screen; row i shows item _top + i
 var _slots: Array = []          # per row on the controls page: its key slot Labels
 var _top := 0                   # the first item shown
 var _bar: ColorRect             # the scroll bar on a page that scrolls
+var _icons: Array[TextureRect] = []   # per row on the fish log: the fish icon
+var _counts: Array[Label] = []        # per row on the fish log: how many were caught
+var _details: Array[Label] = []       # the lines under the fish log
 var _notches: Dictionary = {}   # setting -> its slider's ColorRects
 var _mark: Label
 var _note: Label
@@ -76,7 +82,7 @@ func open(page := "") -> void:
 		return
 	_open = true
 	Game.pause()
-	menu = PauseMenu.new(Game.settings)
+	menu = PauseMenu.new(Game.settings, Game.fish_data, Game.fish_caught)
 	if page in PauseMenu.HEADINGS:
 		menu.open(page)
 	_note.text = ""
@@ -100,20 +106,34 @@ func _build() -> void:
 		r.queue_free()
 	_rows.clear()
 	_slots.clear()
+	_icons.clear()
+	_counts.clear()
+	_details.clear()
 	_notches.clear()
 	_top = 0
 	_heading.text = menu.heading()
-	var width := CONTROLS_WIDTH if menu.page == "controls" else WIDTH
+	var fish := menu.page == "fishlog"
+	var width := FISHLOG_WIDTH if fish else (CONTROLS_WIDTH if menu.page == "controls" else WIDTH)
 	var screen := get_viewport().get_visible_rect().size
-	var n := mini(menu.list.items.size(), visible_rows(Game.ui_scale, screen.y))
+	var n := mini(menu.list.items.size(), visible_rows(Game.ui_scale, screen.y, FISH_LINES if fish else 0))
 	for i in n:
 		var item: String = menu.list.items[i]
-		var row := _label(_paper, Vector2i(15, 5 + i * ROW_H))
-		row.size = Vector2(width - 8 - 19, ROW_H)
+		var row := _label(_paper, Vector2i(15 + (ICON_W if fish else 0), 5 + i * ROW_H))
+		row.size = Vector2(width - 8 - 19 - (ICON_W if fish else 0), ROW_H)
 		row.mouse_filter = Control.MOUSE_FILTER_STOP
 		row.mouse_entered.connect(_on_row_hover.bind(i, -1))
 		row.gui_input.connect(_on_row_input.bind(i, -1))
 		_rows.append(row)
+		if fish:
+			var icon := TextureRect.new()
+			icon.position = Vector2(-ICON_W, -1)
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			row.add_child(icon)
+			_icons.append(icon)
+			var count := _label(row, Vector2i(0, 0))
+			count.size = row.size
+			count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+			_counts.append(count)
 		if menu.page == "controls":
 			var keys: Array[Label] = []
 			for k in menu.slot_count():
@@ -135,8 +155,15 @@ func _build() -> void:
 				row.add_child(c)
 				notches.append(c)
 			_notches[item] = notches
-	_paper.size = Vector2(width - 8, 8 + n * ROW_H + ROW_H)   # one line kept for the note
+	var lines := 1 + (FISH_LINES if fish else 0)   # the note line, then the fish log's details
+	_paper.size = Vector2(width - 8, 8 + n * ROW_H + lines * ROW_H)
 	_note.position.y = 5 + n * ROW_H + 1
+	if fish:
+		for k in FISH_LINES:
+			var d := _label(_paper, Vector2i(9, 5 + (n + 1 + k) * ROW_H + 1), Hud.INK)
+			d.size = Vector2(width - 8 - 18, ROW_H)
+			d.clip_text = true
+			_details.append(d)
 	_wood.size = Vector2(width, TOP + _paper.size.y + 4)
 	_bar.visible = menu.list.items.size() > n
 	_bar.position.x = _paper.size.x - 6
@@ -147,8 +174,9 @@ func _build() -> void:
 
 ## Rows shown at once at UI size `ui_scale` on a screen `screen_h` high: VISIBLE, fewer when
 ## the box grown by the UI size would not fit (a long page then scrolls).
-static func visible_rows(ui_scale: float, screen_h: float) -> int:
-	var room := floori((screen_h / maxf(ui_scale, 1.0) - TOP - 4 - 8 - ROW_H) / ROW_H)
+## `extra` lines are kept under the list (the fish log's details).
+static func visible_rows(ui_scale: float, screen_h: float, extra := 0) -> int:
+	var room := floori((screen_h / maxf(ui_scale, 1.0) - TOP - 4 - 8 - ROW_H - extra * ROW_H) / ROW_H)
 	return clampi(room, 1, VISIBLE)
 
 
@@ -166,6 +194,16 @@ func _refresh() -> void:
 				key.text = menu.slot_text(item, k)
 				var on: bool = _top + i == menu.list.cursor and k == menu.slot
 				key.add_theme_color_override("font_color", PlaceholderArt.UI_SEAL if on else (Hud.INK_SOFT if key.text == "-" else Hud.INK))
+	if menu.page == "fishlog":
+		var shown: Array[String] = ["", "", ""]
+		for i in n:
+			var item: String = items[_top + i]
+			_counts[i].text = menu.count_text(item)
+			_icons[i].texture = PlaceholderArt.tex("ui:fish:" + item) if menu.is_fish(item) else null
+			_icons[i].modulate = Color.WHITE if menu.count(item) > 0 else Color.BLACK   # a silhouette until caught
+		shown = menu.fish_details(items[menu.list.cursor])
+		for k in _details.size():
+			_details[k].text = shown[k]
 	for item in _notches:
 		var filled := menu.slider(item).x
 		for k in _notches[item].size():
@@ -177,6 +215,8 @@ func _refresh() -> void:
 		_bar.position.y = floorf(5 + (track - _bar.size.y) * _top / float(items.size() - n))
 	if menu.page == "controls":
 		_note.text = menu.hint()
+	elif menu.page == "fishlog":
+		_note.text = menu.total_text()
 
 
 func _say(text: String) -> void:

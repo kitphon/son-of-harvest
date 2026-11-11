@@ -69,7 +69,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `res://tests/test_shops.gd` must print `test_shops: OK (0 failed)`.
   Animals (chickens, cows, sheep, the coop and barn, products, brushing, sickness, the dog,
   the save): `res://tests/test_animals.gd`
-  must print `test_animals: OK (0 failed)`. Fishing (bites, fish tables, the river, the catch, save, poses,
+  must print `test_animals: OK (0 failed)`. Fishing (bites, fish tables, the river, the catch, the fish log counts and its save, poses,
   fish art): `res://tests/test_fishing.gd` must print `test_fishing: OK (0 failed)`.
   Forage (data/forage.json, the hill's spots by season, picking, the morning regrowth, the save,
   shipping and eating, the views, the art): `res://tests/test_forage.gd` must print `test_forage: OK (0 failed)`.
@@ -102,7 +102,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   add `--weather=rain` (storm, snow, blizzard) to force the weather, `--no-flashes` to turn
   lightning off, `--snow=N` (0..100) for that much snow lying (on the farm and the outdoor
   maps: `--season=winter --map=town --snow=80`; add `--footprints` for a trail of footprints already pressed in it, `--map=town@shrine` shows it well), `--dialogue=<id>` (or `<id>@<line id>`) to open a text box from
-  `data/dialogue`, `--pause` (or `--pause=settings`, `--pause=controls`) to open the pause menu, `--ui=150%` (125%) for a UI size this run only, `--lang=th` for the Thai text this run only (`--lang=pseudo`: every text a third longer) (with `--dialogue=opening@field` a Thai text box), `--lens=<id>` (ps1, wide; data/camera.json, the game uses medium) for another camera lens, `--goals` to turn Tome's first-week list on in a `--demo` run (plain demo runs have it off; `--goals=plant,hello` marks those done, so the HUD tag shows the next), `--look=style:2,hair:1,skin:3,clothes:4` for the farmer in that look (places in data/farmer_looks.json's lists, 0 = the default; ids work too), `--new-game` (without `--demo`) to open the new game's look step on the title screen, `--tired` to start
+  `data/dialogue`, `--pause` (or `--pause=settings`, `--pause=controls`, `--pause=fishlog`: the fish log with a few catches in it) to open the pause menu, `--ui=150%` (125%) for a UI size this run only, `--lang=th` for the Thai text this run only (`--lang=pseudo`: every text a third longer) (with `--dialogue=opening@field` a Thai text box), `--lens=<id>` (ps1, wide; data/camera.json, the game uses medium) for another camera lens, `--goals` to turn Tome's first-week list on in a `--demo` run (plain demo runs have it off; `--goals=plant,hello` marks those done, so the HUD tag shows the next), `--look=style:2,hair:1,skin:3,clothes:4` for the farmer in that look (places in data/farmer_looks.json's lists, 0 = the default; ids work too), `--new-game` (without `--demo`) to open the new game's look step on the title screen, `--tired` to start
   exhausted (tired pose, slow walk), `--eat` (or `--eat=drink`) to stand mid-bite (or mid-sip)
   with the eat pose kept going, `--event=<id>` to play an event from `data/events`
   (`--demo` turns the trigger tables off, so plain demo frames have no events; to see a

@@ -15,19 +15,22 @@ extends RefCounted
 ## listening, Delete / Backspace empties the slot.
 
 const PAGES := {
-	"main": ["resume", "save", "settings", "title"],
+	"main": ["resume", "save", "settings", "fishlog", "title"],
 	"confirm": ["save_title", "title", "cancel"],
 }
-const HEADINGS := {"main": "Paused", "settings": "Settings", "controls": "Controls", "confirm": "Save first?"}
+const HEADINGS := {"main": "Paused", "settings": "Settings", "controls": "Controls", "confirm": "Save first?", "fishlog": "Fish log"}
 const LABELS := {
 	"resume": "Resume", "save": "Save", "settings": "Settings", "title": "Back to title",
 	"save_title": "Save, then go", "cancel": "Cancel", "back": "Back",
-	"controls": "Controls", "reset": "Reset to defaults",
+	"controls": "Controls", "reset": "Reset to defaults", "fishlog": "Fish log",
 }
+const UNKNOWN := "???"   # a fish never caught
 const HINT := "Enter: new key / button   Del: clear"
 const SETTINGS_ROWS: Array[String] = ["reset", "controls", "back"]   # after the settings
 
 var settings: Settings
+var fish_rules: Dictionary   # data/fish.json and the catch counts, for the fish log page
+var fish_caught: Dictionary
 var page := "main"
 var list: MenuList
 var slot := 0          # the slot picked on the controls page (the last one is the pad's)
@@ -35,8 +38,10 @@ var listening := ""    # the action waiting for a key, or ""
 var note := ""         # what the last change on the settings / controls page did
 
 
-func _init(s: Settings) -> void:
+func _init(s: Settings, rules := {}, caught := {}) -> void:
 	settings = s
+	fish_rules = rules
+	fish_caught = caught
 	open("main")
 
 
@@ -53,6 +58,10 @@ func open(p: String, on := "") -> void:
 	elif p == "controls":
 		items = settings.controls.actions()
 		items.append_array(["reset", "back"])
+	elif p == "fishlog":
+		for row in Fishing.log_rows(fish_rules, fish_caught):
+			items.append(row.id)
+		items.append("back")
 	else:
 		items.assign(PAGES[p])
 	list = MenuList.new(items)
@@ -72,11 +81,56 @@ func label(item: String) -> String:
 		return "%s: %s" % [settings.spec[item].get("label", item), settings.value_text(item)]
 	if page == "confirm" and item == "title":
 		return "Go without saving"
+	if is_fish(item):
+		return String(fish_rules.fish[item].name) if count(item) > 0 else UNKNOWN
 	return LABELS.get(item, item)
 
 
 func is_action(item: String) -> bool:
 	return page == "controls" and settings.controls.bound.has(item)
+
+
+## A row of the fish log that is a fish (not Back).
+func is_fish(item: String) -> bool:
+	return page == "fishlog" and fish_rules.get("fish", {}).has(item)
+
+
+## How many of a fish were caught.
+func count(item: String) -> int:
+	return int(fish_caught.get(item, 0))
+
+
+## The count shown at a fish's row ("x3"); "" for a fish never caught.
+func count_text(item: String) -> String:
+	return "x%d" % count(item) if is_fish(item) and count(item) > 0 else ""
+
+
+## The fish log's total: "5 of 19 kinds".
+func total_text() -> String:
+	return "%d of %d kinds" % [Fishing.kinds_caught(fish_rules, fish_caught), fish_rules.get("fish", {}).size()]
+
+
+## The three lines under the fish log for the fish under the cursor: where, which seasons,
+## which hours. Empty for a fish never caught and for Back.
+func fish_details(item: String) -> Array[String]:
+	var out: Array[String] = ["", "", ""]
+	if not is_fish(item) or count(item) == 0:
+		return out
+	var places: Array = []
+	for p in Fishing.places_of(fish_rules, item):
+		places.append(Lang.t(p))
+	out[0] = "Where: %s" % Lang.list(places)
+	var seasons := Fishing.seasons_of(fish_rules, item, Game.SEASONS)
+	if seasons.size() == Game.SEASONS.size():
+		out[1] = "Season: %s" % Lang.t("All year")
+	else:
+		var names: Array = []
+		for s in seasons:
+			names.append(Lang.t(Game.SEASON_NAMES[s]))
+		out[1] = "Season: %s" % Lang.list(names)
+	var h := Fishing.hours_of(fish_rules, item)
+	out[2] = "Hours: %s" % (Lang.t("Any hour") if h.is_empty() else "%d:00-%d:00" % [h[0], h[1]])
+	return out
 
 
 ## Slots per action row: the key slots, then the pad button.
@@ -132,6 +186,8 @@ func choose() -> String:
 					return item
 				"settings":
 					open("settings")
+				"fishlog":
+					open("fishlog")
 				"title":
 					open("confirm", "save_title")
 		"settings":
@@ -161,6 +217,9 @@ func choose() -> String:
 				open("main", "title")
 			elif item != "":
 				return item
+		"fishlog":
+			if item == "back":
+				open("main", "fishlog")
 	return ""
 
 
@@ -231,6 +290,8 @@ func back() -> String:
 			return "resume"
 		"settings":
 			open("main", "settings")
+		"fishlog":
+			open("main", "fishlog")
 		"controls":
 			if listening != "":
 				listening = ""

@@ -208,6 +208,25 @@ func _init() -> void:
 	old.inventory.tools.resize(7)
 	check(h.from_dict(old) == "" and h.inventory.count("rod", ["tools", "chest"]) == 1, "a save from before fishing gets the rod")
 	check(h.fish_caught.is_empty() and h.fishing.dry_casts == 0, "and nothing caught yet")
+	# The fish log counts by kind: rows follow the data, every kind caught once counts once.
+	var tally := {"funa": 3, "ugui": 1}
+	var log_rows: Array = Fishing.log_rows(rules, tally)
+	check(log_rows.size() == fish.size() and log_rows[0].id == fish.keys()[0], "the log has a row per kind, in file order")
+	check(log_rows[0].count == 3 and Fishing.kinds_caught(rules, tally) == 2, "counts by kind, 2 kinds caught")
+	check(Fishing.kinds_caught(rules, {}) == 0 and Fishing.kinds_caught(rules, {"gone": 5}) == 0, "none caught; a kind not in the data doesn't count")
+	check(Fishing.places_of(rules, "ugui") == (["the river", "the creek"] as Array[String]), "dace bite in the river and the creek (%s)" % [Fishing.places_of(rules, "ugui")])
+	check(Fishing.seasons_of(rules, "funa", Game.SEASONS).size() == 4 and Fishing.seasons_of(rules, "ayu", Game.SEASONS) == (["summer"] as Array[String]), "seasons: all year, or the listed ones")
+	check(Fishing.hours_of(rules, "funa").is_empty() and Fishing.hours_of(rules, "ayu").size() == 2 and int(Fishing.hours_of(rules, "ayu")[0]) == 5, "hours: all day, or from-to")
+	var counted := _game(rules)
+	counted.fish_caught.clear()
+	for i in 3:
+		counted.cast_line(Vector2i(24, 3), Vector2i.RIGHT)
+		counted.fishing.state = "bite"
+		counted.reel_in()
+		counted.held = ""
+	check(Fishing.kinds_caught(rules, counted.fish_caught) >= 1 and counted.fish_caught.values().reduce(func(a, b): return a + b) == 3, "three catches are counted, by kind")
+	var again := _game(rules)
+	check(again.from_dict(JSON.parse_string(JSON.stringify(counted.to_dict()))) == "" and again.fish_caught == counted.fish_caught, "the counts by kind survive a save")
 	for bad in [{"caught": []}, {"caught": {"funa": -1}, "dry_casts": 0}, {"caught": {}, "dry_casts": "x"}, "x"]:
 		var broken: Dictionary = saved.duplicate(true)
 		broken.fishing = bad

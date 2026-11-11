@@ -23,6 +23,22 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
   test_dialogue: OK (0 failed); lang_report --lang=th: `th: 2607 of 2607 done (100%), 0 missing, 0 stale`.
 - Left / next: snow lines for Kota and Tome. Most other villagers share one "wet" line for
   rain, storm and snow; Sayo and the child have separate rain and snow lines.
+## 2026-11-11 — Fish log in the pause menu
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: a "Fish log" page on the pause menu (main page: Resume, Save, Settings, Fish log, Back
+  to title). One row per kind in data/fish.json: caught ones show the icon, name and "x<count>",
+  the rest a black silhouette and "???"; the line under the list shows "N of M kinds"; three lines
+  under it give where / season / hours the fish under the cursor bites, from the data (Fishing
+  `places_of`, `seasons_of`, `hours_of`, `log_rows`, `kinds_caught`, pure). Counting by kind and
+  its save already existed (Game.fish_caught, saved under "fishing", old saves load empty), so
+  the rules are unchanged; test_fishing now covers them. The list scrolls (7 rows at UI 150%: the
+  box keeps the three detail lines, `visible_rows` takes the extra lines); keys and pad as the
+  other pages (Back row, Esc / pad back). Width 310 so it fits at UI 150%. `--pause=fishlog`
+  opens it (with `--demo` a few catches are put in the log). Thai in data/lang/th/ui.json.
+- Checked: test_fishing, test_menu (the page, fit in English / Thai / pseudo, rows at 100 / 125 /
+  150%), test_save, test_lang, test_title `OK (0 failed)`; lang_report th 2606 of 2606, 0
+  missing; `--demo` smoke run 0 error lines; screenshots at 100% and at `--ui=150% --lang=pseudo`.
+- Left / next: nothing open. The log counts this game's catches, race catches included.
 
 ## 2026-11-11 — Merge: portraits' first pass, Thai coverage, the unrefined figure path
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
