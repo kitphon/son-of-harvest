@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Merge: breeding, the fish log, Kota and Tome's wet-day lines
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three subagents in their own worktrees, the model picked by the job: 1de2930 cow and
+  sheep breeding with the Musubi cord (Opus), 94af090 the fish log page in the pause menu
+  (Sonnet), 59c5182 Kota and Tome's rain and storm lines (Haiku). Merged into main; WORKLOG and
+  ROADMAP keep every side.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`;
+  smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --map=barn`)
+  print 0 error or warning lines; lang_report prints `th: 2629 of 2629 done (100%), 0 missing, 0 stale`.
+- Left / next: snow lines for Kota and Tome; a carrying cow or ewe looks the same in both
+  views, and nothing tells the player the cord is used from the hand; no screenshot of the
+  barn or the store with the cord. The Windows .exe still waits on the export templates.
+
 ## 2026-11-11 — Kota and Tome: rain and storm lines
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: talk_kota.json and talk_tome.json had no weather picks at all (Tome had no rain line
