@@ -57,7 +57,7 @@ static func _make(key: String) -> Image:
 		"item":     # item:<id>, a picked crop held overhead or lying on the ground (12 x 12)
 			return _item(parts[1])
 		"animal":   # animal:<chicken|chick|cow|calf|sheep|sheep_shorn|lamb|dog>:<idle|peck|walk|sick, dog: sit|held>:<frame>[:<dl|dr|ul|ur>], AnimalArt (twice the farmer's pixel density; the dog "held" is the small old one)
-			if parts[1] == "dog" and parts[2] == "held":
+			if AnimalArt.base_of(parts[1])[0] == "dog" and parts[2] == "held":   # dog or dog_old
 				return _beast(parts[1], parts[2], int(parts[3]))
 			return AnimalArt.make(parts[1], parts[2], int(parts[3]), parts[4] if parts.size() > 4 else "dl")
 		"build":    # build:<plaster|tsuchi|board|kawara|kawara_edge|thatch|kaya|kaya_edge|hay|planks|planks_dark|sugi|bamboo|quilt|noren|shoji_door|shoji>
@@ -247,7 +247,8 @@ static func _egg(id: String, size: int) -> Image:
 
 ## The first, low resolution animal drawing, side view facing left: only the dog held in the
 ## farmer's arms (key "animal:dog:held:0", 14 x 11) still uses it; AnimalArt draws every other
-## animal and pose. A red-tan shiba-like dog with a cream chest and a tail curled over its back.
+## animal and pose. A red-tan shiba-like dog with a cream chest and a tail curled over its back;
+## an old dog ("dog_old", Animals.dog_look) has the greying head and muzzle of data/animal_art.json "old".
 const BEASTS := {
 	"dog": {"w": 14, "h": 11, "body": Color("c8783c"), "head": Color("c8783c"), "muzzle": Color("f2e2c8"),
 		"leg": Color("c8783c"), "hoof": Color("f2e2c8"), "b": [7.5, 5.5, 4.2, 2.3], "hd": [3.0, 3.6, 2.2],
@@ -258,7 +259,13 @@ const BEASTS := {
 ## idle (frame 1 lifts the head a little), peck (head down: grazing, eating), walk (legs
 ## swing), sick (lying down, dull, eyes shut); the dog also sit (on its haunches) and held.
 static func _beast(kind: String, pose: String, frame: int) -> Image:
-	var s: Dictionary = BEASTS[kind]
+	var split := AnimalArt.base_of(kind)
+	var s: Dictionary = BEASTS[split[0]].duplicate()
+	if split[2]:   # old: the face greys like AnimalArt's old dog
+		var o: Dictionary = AnimalArt.art().old
+		var frost := Color(str(o.frost))
+		s.head = (s.head as Color).lerp(frost, float(o.head))
+		s.muzzle = (s.muzzle as Color).lerp(frost, float(o.muzzle))
 	var img := _blank(s.w, s.h)
 	var sick := pose == "sick"
 	var sit := pose == "sit" or pose == "held"

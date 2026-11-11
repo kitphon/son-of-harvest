@@ -198,7 +198,7 @@ effect the moment it changes and saved to `user://settings.json` (version 2; a v
   greyer wings), numbers in `data/animal_art.json` `old`.
   The dog ages too (`dog.start_days` / `old_days` / `old_step`): a year old in a new game,
   its age told after its mood when petted, old from its eighth year (a greying face, slower
-  steps), and it never passes away. A save from before has a year-old dog.
+  steps; in the farmer's arms too, `animal:dog_old:held:0`), and it never passes away. A save from before has a year-old dog.
   `-- --demo --map=barn --old` makes the demo's grown animals and the dog old.
 - The dog (Goro): wanders near its spot right of the stand, and once fond enough (about a
   week of pats) follows the farmer about the farm. E pets it (once a day counts), E again

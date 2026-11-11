@@ -1248,7 +1248,7 @@ func held_key() -> String:
 		return Child.held_key(Child.cradle_look(int(day_minutes())), child_look())
 	if crawler_held():
 		return Child.carry_key(child_look(), str(flags.get(Child.STAGE, "crawler")))
-	return "animal:dog:held:0" if animals.dog.held else PlaceholderArt.world_item_key(held)
+	return "animal:%s:held:0" % animals.dog_look() if animals.dog.held else PlaceholderArt.world_item_key(held)
 
 
 # --- the baby (Child; the cradle in the second room) ------------------------

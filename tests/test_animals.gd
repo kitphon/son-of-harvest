@@ -916,6 +916,10 @@ func _barn_actions() -> void:
 	check(a.dog.petted and a.dog.affection > aff and not a.dog.held, "E pets the dog")
 	FarmActions.on_action("interact", dog + Vector2i.DOWN, Vector2i.UP)
 	check(a.dog.held and g.holding() and g.held == "" and g.held_key() == "animal:dog:held:0", "E again picks it up")
+	var young_age: int = a.dog.age
+	a.dog.age = int(a.dog_rule().old_days)
+	check(g.held_key() == "animal:dog%s:held:0" % AnimalArt.old_suffix(), "an old dog in the arms: %s" % g.held_key())
+	a.dog.age = young_age
 	FarmActions.on_action("enter", dog + Vector2i.DOWN, Vector2i.UP)
 	check(a.dog.held and said.back().begins_with("Put"), "no doors with the dog in the arms")
 	FarmActions.on_action("tool", dog + Vector2i.DOWN, Vector2i.RIGHT)
@@ -1355,6 +1359,18 @@ func _animal_art_refined() -> void:
 	var held := PlaceholderArt.tex("animal:dog:held:0").get_image()
 	var hc := _colours(held)
 	check(held.get_size() == Vector2i(14, 11) and not hc.has(old_line) and hc.size() >= 8, "the dog in the arms is toned, no old outline (%d colours)" % hc.size())
+	# An old dog in the arms: the same shape, its face greyer (data/animal_art.json "old").
+	var aged := PlaceholderArt.tex("animal:dog%s:held:0" % AnimalArt.old_suffix()).get_image()
+	var same := aged.get_size() == held.get_size()
+	var greyer := 0
+	if same:
+		for y in held.get_height():
+			for x in held.get_width():
+				var p := held.get_pixel(x, y)
+				var q := aged.get_pixel(x, y)
+				same = same and (p.a > 0.0) == (q.a > 0.0)
+				greyer += int(p.a > 0.0 and q.s < p.s - 0.05)
+	check(same and greyer >= 6, "the old dog in the arms: same shape, %d pixels greyer" % greyer)
 
 
 ## The colour keys of a picture's drawn pixels.

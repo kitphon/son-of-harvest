@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — The old dog in the arms has its grey face
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: Game.held_key gives `animal:<Animals.dog_look()>:held:0`, so an old dog in the farmer's
+  arms is `animal:dog_old:held:0`; PlaceholderArt sends any dog kind's held pose to `_beast`,
+  which splits the kind with AnimalArt.base_of and mixes the head and muzzle towards the frost
+  grey by data/animal_art.json `old` (the same numbers as the dog on the ground). Same 14 x 11
+  picture and toning; both views use held_key.
+- Checked: test_animals: the held key of an old dog, and its picture the same shape as the
+  young one's with 6+ pixels greyer: `test_animals: OK (0 failed)`; a 24x sheet of the held dog
+  young and old looked at (the old head and chest paler and greyer, the body still red-tan).
+  No in-game frame of the farmer holding the old dog (no flag lifts the dog at the start).
+- Left / next: nothing for this.
+
 ## 2026-11-11 — Faint silhouettes on the fish log and the Shipped page
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the "???" rows showed the picture modulated solid black; the 16 px item pictures on
