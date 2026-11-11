@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Merge: animals grow old, the Shipped page, Hachiro's weather lines
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three subagents in their own worktrees, the model picked by the job: 30f1a32 animals
+  grow old, "(old)", the age on E and a peaceful passing at night (Opus), dcab370 the Shipped
+  page in the pause menu (Sonnet), e82dd9f Hachiro's rain, storm and snow lines (Haiku).
+  Merged into main; WORKLOG and ROADMAP keep every side.
+- Checked: on the merged tree after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`;
+  smoke runs (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --map=barn
+  --old`, `--demo --pause=shipped`) print 0 error or warning lines; lang_report prints
+  `th: 2653 of 2653 done (100%), 0 missing, 0 stale`. test_fishing also prints
+  `ERROR: 8 resources still in use at exit`; it prints the same on 7ec1053 (before the merge).
+- Left / next: the test_fishing exit leak; old animals look the same in the sprites; the dog
+  doesn't age; "???" rows of items without a drawn icon are plain blobs. ROADMAP "Next up" has
+  no open item; the Windows .exe still waits on the export templates.
+
 ## 2026-11-11 — Animals grow old
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: Animals counts every animal's `age` (nights lived, already saved) towards old age.
