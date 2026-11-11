@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — The greenhouse's +x lit patch gone from the flat view
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: the flat view draws no side wall for the greenhouse (only the roof's right edge shows), so the
+  +x patch's strip lay over the roof. LitSpots.greenhouse marks that patch `flat_hide`; NightView's
+  halo and pane passes skip windows with it. Chosen over moving it onto glass: there is no side glass
+  to put it on. Its warm pool on the ground (built from the same spots) and the 3D view are unchanged.
+- Checked: test_weather `_greenhouse_glow` (the +x patch has `flat_hide`, the front one and the
+  farmhouse's windows do not) and test_view2d `_greenhouse` (one hidden patch among the windows, the
+  pools still cover every window) ran OK. Frames: `--demo --built=greenhouse --map=farm@greenhouse
+  --time=21:00` 3D (as before) and through main_2d.tscn (no strip on the greenhouse's right edge). The
+  frame the last entry did not take: the farmer behind the greenhouse at night (a temporary spawn at
+  (27, 12), not kept) in 3D: the building fades see-through, the glass roof shows dark with no roof
+  glow, the lit front and side glass still warm.
+- Left / next: nothing from this entry.
+
 ## 2026-11-11 — The greenhouse's lit glass and roof glow in both views; flat farm roofs snow like 3D
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the three things left open by the entry below.

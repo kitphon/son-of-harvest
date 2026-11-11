@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-11 The flat view's greenhouse +x lit patch hidden (no side wall is drawn there, it lay over the roof): `flat_hide` on the spot, no strip or halo, the pool on the ground stays; see WORKLOG.
 [x] 2026-11-11 The greenhouse's lit front glass on the glass in the flat view (`flat_z`), the lantern's soft glow through the glass roof at night in both views (under the roof snow, hidden while faded; `roof_glow` in data/light.json), and the flat farm roofs' snow in the roofs' drawn shapes, whole from half cover like the 3D roofs (`farm_roofs` 1.0; a snow cone on the 3D silo); see WORKLOG.
 [x] 2026-11-11 The silo's stores on screen: the HUD's E hint at the silo reads "Fodder N, grass N" (ActionHints, both views, Thai); see WORKLOG.
 [x] 2026-11-11 The store's "under glass" rows checked in frames: `--shop-row=N` (ShopScreen.go_to_row) scrolls the buy tab to a row; English, Thai and pseudo frames show the glass rows fitting with their prices; test_shops checks the jump; see WORKLOG.

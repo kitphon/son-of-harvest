@@ -277,6 +277,8 @@ func _draw_halos() -> void:
 	var lamp: Dictionary = Game.light_data().get("pools", {}).get("lamp", {})
 	var a := float(rules.get("halo", 0.35)) * glow
 	for win in windows:
+		if win.get("flat_hide", false):
+			continue
 		var r := pane_rect(win)
 		var size: float = win.size.x * T * float(rules.get("halo_size", 2.4))
 		_halo_layer.draw_rect(Rect2(r.get_center() - Vector2(size, size) / 2.0, Vector2(size, size)), Color(1, 1, 1, a))
@@ -289,6 +291,8 @@ func _draw_halos() -> void:
 func _draw_panes() -> void:
 	var a := float(Game.light_data().get("windows", {}).get("pane", 0.85)) * glow
 	for win in windows:
+		if win.get("flat_hide", false):
+			continue
 		_pane_layer.draw_rect(pane_rect(win), Color(1, 1, 1, a))
 	for l in lamps:
 		_pane_layer.draw_rect(Rect2(px(l.pos) - Vector2(2, 2), Vector2(4, 4)), Color(1, 1, 1, a))
