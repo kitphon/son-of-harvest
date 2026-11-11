@@ -7,7 +7,9 @@
 		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
 		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
 		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
-		{"if": {"band": [6, 6], "flags": ["heart_kota_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
+		{"if": {"weather": ["storm"]}, "at": ["storm_1", "storm_2"]},
+			{"if": {"weather": ["rain"]}, "at": ["rain_1", "rain_2"]},
+			{"if": {"band": [6, 6], "flags": ["heart_kota_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"map": ["river"]}, "at": ["river_1", "river_2", "river_3"]},
 		{"if": {"weekday": ["fri"], "band": [2, 5], "season": ["spring"]}, "at": ["forage_spring"]},
 		{"if": {"weekday": ["fri"], "band": [2, 5], "season": ["summer"]}, "at": ["forage_summer"]},
@@ -85,6 +87,10 @@
 		{"id": "festival_blossom_day", "speaker": "kota", "mood": "happy", "text": "I'm entering my cucumber! It's crooked, but it's the biggest one I ever grew.", "next": "end"},
 		{"id": "festival_lantern_night", "speaker": "kota", "mood": "surprised", "text": "Did you see that firework? It went bang right in my chest!", "next": "end"},
 		{"id": "festival_moon_night", "speaker": "kota", "mood": "happy", "text": "Grandma says a rabbit lives on the moon making rice cakes. I'm looking for its ears.", "next": "end"},
-		{"id": "festival_years_turn", "speaker": "kota", "mood": "happy", "text": "I'm staying up till the year turns over. I'm not even a bit sleepy. Not even...", "next": "end"}
+		{"id": "festival_years_turn", "speaker": "kota", "mood": "happy", "text": "I'm staying up till the year turns over. I'm not even a bit sleepy. Not even...", "next": "end"},
+		{"id": "rain_1", "speaker": "kota", "mood": "happy", "text": "Puddles everywhere! I'm gonna jump in every single one before Mom sees.", "next": "end"},
+		{"id": "rain_2", "speaker": "kota", "mood": "neutral", "text": "Rain on the roof is so loud I can't hear my own thoughts. That's the best part.", "next": "end"},
+		{"id": "storm_1", "speaker": "kota", "mood": "surprised", "text": "Did you hear that thunder? It shook the whole shrine roof! ...I'm not scared. A little.", "next": "end"},
+		{"id": "storm_2", "speaker": "kota", "mood": "neutral", "text": "The wind's so strong it nearly took my hat to the river. Hold on to yours!", "next": "end"}
 	]
 }

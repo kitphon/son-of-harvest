@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Kota and Tome: rain and storm lines
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: talk_kota.json and talk_tome.json had no weather picks at all (Tome had no rain line
+  either, though the brief said she had). Each got a storm pick and a rain pick, placed before
+  the heart lines as in talk_sayo.json, with two lines per weather (rain_1, rain_2, storm_1,
+  storm_2) in their own voices: Kota's short "gonna" lines, Tome's "child" and the husband
+  she misses. Thai for the eight new lines in data/lang/th/dialogue.json, in the same voices.
+  Snow is not added for either.
+- Checked: test_talk: OK (0 failed) (new checks: Kota on a wet day and in a storm, Kota on a
+  sunny day with no weather line, Tome on a wet day and in a storm); test_lang: OK (0 failed);
+  test_dialogue: OK (0 failed); lang_report --lang=th: `th: 2607 of 2607 done (100%), 0 missing, 0 stale`.
+- Left / next: snow lines for Kota and Tome. Most other villagers share one "wet" line for
+  rain, storm and snow; Sayo and the child have separate rain and snow lines.
+
 ## 2026-11-11 — Merge: portraits' first pass, Thai coverage, the unrefined figure path
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three subagents in their own worktrees, the model picked by the job: 67aa77b the
