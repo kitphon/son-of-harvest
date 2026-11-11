@@ -162,6 +162,12 @@ func _picks() -> void:
 	check(a in ["spring_1", "spring_2"] and b in ["spring_1", "spring_2"] and a != b, "another line the next day (%s, %s)" % [a, b])
 	check(Talk.pick("tome", _state({"band": 2, "day_number": 2})) == a, "the lines take turns")
 	check(Talk.pick("sayo", _state({"band": 2, "weather": "rain"})) == "rain", "Sayo on a wet day")
+	# Kota and Tome talk about the weather: rain and storm lines, two of each, a storm line of its own.
+	check(Talk.pick("kota", _state({"band": 2, "weather": "rain"})) in ["rain_1", "rain_2"], "Kota on a wet day")
+	check(Talk.pick("kota", _state({"band": 2, "weather": "storm"})) in ["storm_1", "storm_2"], "Kota in a storm")
+	check(Talk.pick("kota", _state({"band": 2, "weather": "sunny"})) not in ["rain_1", "rain_2", "storm_1", "storm_2"], "Kota on a sunny day has no weather line")
+	check(Talk.pick("tome", _state({"band": 2, "weather": "rain"})) in ["rain_1", "rain_2"], "Tome on a wet day")
+	check(Talk.pick("tome", _state({"band": 2, "weather": "storm"})) in ["storm_1", "storm_2"], "Tome in a storm")
 	check(Talk.pick("hachiro", _state({"band": 2, "time": 480})) in ["morning_1", "morning_2"], "Hachiro before the smithy opens")
 	check(Talk.pick("kota", _state({"band": 2, "season": "summer", "time": 900})) in ["cicada_1", "cicada_2"], "Kota's summer afternoons")
 	check(Talk.pick("sayo", _state({"band": 6, "flags": {"heart_sayo_6": true}, "season": "fall", "day": 15, "festival": "moon_night", "time": 1200}))

@@ -16,7 +16,9 @@
 		{"if": {"weekday": ["fri"], "flags": ["heart_kaede_6"], "not_flags": ["spouse", "engaged"]}, "at": ["knot_hint"]},
 		{"if": {"weekday": ["fri"], "flags": ["heart_shino_6"], "not_flags": ["spouse", "engaged"]}, "at": ["knot_hint"]},
 		{"if": {"weekday": ["fri"], "flags": ["heart_ren_6"], "not_flags": ["spouse", "engaged"]}, "at": ["knot_hint"]},
-		{"if": {"band": [6, 6], "flags": ["heart_tome_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
+		{"if": {"weather": ["storm"]}, "at": ["storm_1", "storm_2"]},
+			{"if": {"weather": ["rain"]}, "at": ["rain_1", "rain_2"]},
+			{"if": {"band": [6, 6], "flags": ["heart_tome_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
 		{"if": {"weekday": ["thu"], "band": [2, 5], "season": ["spring"]}, "at": ["forage_spring"]},
 		{"if": {"weekday": ["thu"], "band": [2, 5], "season": ["summer"]}, "at": ["forage_summer"]},
 		{"if": {"weekday": ["thu"], "band": [2, 5], "season": ["fall"]}, "at": ["forage_fall"]},
@@ -99,6 +101,10 @@
 		{"id": "festival_years_turn", "speaker": "tome", "mood": "happy", "text": "Another year closes. You did well, child. The old farm knows it, too.", "next": "end"},
 
 		{"id": "knot_hint", "speaker": "tome", "mood": "neutral", "text": "In my day you didn't say it out loud. You held out a mizuhiki knot, red and white. Sayo's store still sells them.", "next": "end"},
-		{"id": "newlyweds", "speaker": "tome", "mood": "happy", "text": "Two at the farm on the hill now. Good. A house with one person in it is only a roof.", "next": "end"}
+		{"id": "newlyweds", "speaker": "tome", "mood": "happy", "text": "Two at the farm on the hill now. Good. A house with one person in it is only a roof.", "next": "end"},
+		{"id": "rain_1", "speaker": "tome", "mood": "neutral", "text": "Put your umbrella up, child, and come in before you get soaked. The tea's already hot.", "next": "end"},
+		{"id": "rain_2", "speaker": "tome", "mood": "happy", "text": "Rain on the tiles and my husband would doze off in his chair. Lucky man.", "next": "end"},
+		{"id": "storm_1", "speaker": "tome", "mood": "sad", "text": "Keep clear of the bamboo in this wind, child. It bends, but a falling branch doesn't.", "next": "end"},
+		{"id": "storm_2", "speaker": "tome", "mood": "neutral", "text": "Shutters closed, lamp lit, kettle on. That's how we waited out a storm in my day. Come and sit.", "next": "end"}
 	]
 }
