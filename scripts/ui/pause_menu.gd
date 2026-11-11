@@ -15,14 +15,14 @@ extends RefCounted
 ## listening, Delete / Backspace empties the slot.
 
 const PAGES := {
-	"main": ["resume", "save", "settings", "fishlog", "title"],
+	"main": ["resume", "save", "settings", "fishlog", "shipped", "title"],
 	"confirm": ["save_title", "title", "cancel"],
 }
-const HEADINGS := {"main": "Paused", "settings": "Settings", "controls": "Controls", "confirm": "Save first?", "fishlog": "Fish log"}
+const HEADINGS := {"main": "Paused", "settings": "Settings", "controls": "Controls", "confirm": "Save first?", "fishlog": "Fish log", "shipped": "Shipped"}
 const LABELS := {
 	"resume": "Resume", "save": "Save", "settings": "Settings", "title": "Back to title",
 	"save_title": "Save, then go", "cancel": "Cancel", "back": "Back",
-	"controls": "Controls", "reset": "Reset to defaults", "fishlog": "Fish log",
+	"controls": "Controls", "reset": "Reset to defaults", "fishlog": "Fish log", "shipped": "Shipped",
 }
 const UNKNOWN := "???"   # a fish never caught
 const HINT := "Enter: new key / button   Del: clear"
@@ -31,6 +31,8 @@ const SETTINGS_ROWS: Array[String] = ["reset", "controls", "back"]   # after the
 var settings: Settings
 var fish_rules: Dictionary   # data/fish.json and the catch counts, for the fish log page
 var fish_caught: Dictionary
+var ship_rows: Array   # [{id, name}] for every item the bin takes (Game.shippable_rows), for the shipped page
+var shipped: Dictionary   # item id -> how many were ever shipped (Game.shipped)
 var page := "main"
 var list: MenuList
 var slot := 0          # the slot picked on the controls page (the last one is the pad's)
@@ -38,8 +40,10 @@ var listening := ""    # the action waiting for a key, or ""
 var note := ""         # what the last change on the settings / controls page did
 
 
-func _init(s: Settings, rules := {}, caught := {}) -> void:
+func _init(s: Settings, rules := {}, caught := {}, rows := [], ever_shipped := {}) -> void:
 	settings = s
+	ship_rows = rows
+	shipped = ever_shipped
 	fish_rules = rules
 	fish_caught = caught
 	open("main")
@@ -60,6 +64,10 @@ func open(p: String, on := "") -> void:
 		items.append_array(["reset", "back"])
 	elif p == "fishlog":
 		for row in Fishing.log_rows(fish_rules, fish_caught):
+			items.append(row.id)
+		items.append("back")
+	elif p == "shipped":
+		for row in ship_rows:
 			items.append(row.id)
 		items.append("back")
 	else:
@@ -83,6 +91,8 @@ func label(item: String) -> String:
 		return "Go without saving"
 	if is_fish(item):
 		return String(fish_rules.fish[item].name) if count(item) > 0 else UNKNOWN
+	if is_shipped_row(item):
+		return ship_name(item) if shipped_count(item) > 0 else UNKNOWN
 	return LABELS.get(item, item)
 
 
@@ -95,6 +105,41 @@ func is_fish(item: String) -> bool:
 	return page == "fishlog" and fish_rules.get("fish", {}).has(item)
 
 
+## A row of the shipped page that is an item (not Back).
+func is_shipped_row(item: String) -> bool:
+	if page != "shipped":
+		return false
+	for row in ship_rows:
+		if row.id == item:
+			return true
+	return false
+
+
+func ship_name(item: String) -> String:
+	for row in ship_rows:
+		if row.id == item:
+			return String(row.name)
+	return item
+
+
+## How many of an item were ever shipped.
+func shipped_count(item: String) -> int:
+	return int(shipped.get(item, 0))
+
+
+## How many kinds were shipped at least once.
+func shipped_kinds() -> int:
+	var n := 0
+	for row in ship_rows:
+		n += int(shipped_count(row.id) > 0)
+	return n
+
+
+## The shipped page's total: "5 of 40 shipped".
+func shipped_total_text() -> String:
+	return "%d of %d shipped" % [shipped_kinds(), ship_rows.size()]
+
+
 ## How many of a fish were caught.
 func count(item: String) -> int:
 	return int(fish_caught.get(item, 0))
@@ -102,6 +147,8 @@ func count(item: String) -> int:
 
 ## The count shown at a fish's row ("x3"); "" for a fish never caught.
 func count_text(item: String) -> String:
+	if is_shipped_row(item):
+		return "x%d" % shipped_count(item) if shipped_count(item) > 0 else ""
 	return "x%d" % count(item) if is_fish(item) and count(item) > 0 else ""
 
 
@@ -188,6 +235,8 @@ func choose() -> String:
 					open("settings")
 				"fishlog":
 					open("fishlog")
+				"shipped":
+					open("shipped")
 				"title":
 					open("confirm", "save_title")
 		"settings":
@@ -220,6 +269,9 @@ func choose() -> String:
 		"fishlog":
 			if item == "back":
 				open("main", "fishlog")
+		"shipped":
+			if item == "back":
+				open("main", "shipped")
 	return ""
 
 
@@ -292,6 +344,8 @@ func back() -> String:
 			open("main", "settings")
 		"fishlog":
 			open("main", "fishlog")
+		"shipped":
+			open("main", "shipped")
 		"controls":
 			if listening != "":
 				listening = ""

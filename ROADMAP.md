@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-11 Shipped page in the pause menu: every shippable item with icon, name, "x<count>" or "???", "N of M shipped", `--pause=shipped`, Thai; see WORKLOG.
 [x] 2026-11-11 The shorn ewe's carrying belly is bigger and lower (`carrying.belly_of`), every carrying kind must add 24+ pixels (test_animals); test_shops checks the cord's store line; see WORKLOG.
 [x] 2026-11-11 A carrying cow or ewe looks it in both views: a rounder, lower belly and a fuller udder (data/animal_art.json `carrying`, sprite kind + `breeding.sprite_suffix`), plain again after the birth; `--carrying`; see WORKLOG.
 [x] 2026-11-11 The Musubi cord says how it is used: the E hint reads "Tie" on a cow or ewe it would take, the store screen says how to use it; `--cord`; Thai; see WORKLOG.

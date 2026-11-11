@@ -373,6 +373,8 @@ func new_game() -> void:
 			animals.changed.emit()
 		elif arg == "--barn-out":   # e.g. `-- --demo --map=farm@barn --barn-out`: cows and sheep grazing
 			animals.state.barn.out = true
+		elif arg == "--pause=shipped":   # `-- --demo --pause=shipped`: a few items in the shipped page already
+			shipped = {"turnip": 14, "potato": 6, "corn": 2, "egg": 9, "milk_good": 3, "fish:funa": 4, "mine:satetsu": 5, "wild:warabi": 7, "food:onigiri": 2}
 		elif arg == "--pause=fishlog":   # `-- --demo --pause=fishlog`: a few catches in the log already
 			fish_caught = {"funa": 12, "koi": 1, "ayu": 3, "yamame": 2, "ugui": 7, "moon_koi": 1}
 		elif arg == "--cord":   # e.g. `-- --demo --map=barn --cord`: the musubi cord overhead, the barn's grown animals happy enough to take it, the farmer below the first
@@ -1344,6 +1346,29 @@ func set_crawler_down(c: Vector2i, facing: Vector2i) -> String:
 ## The crawler back to the day plan's place (a map change, the night, a new game, a load).
 func crawler_back() -> void:
 	Child.carried = {}
+
+
+## One row per thing the bin takes, in a fixed order (crops, animal goods, fish, mine finds,
+## wild plants, dishes): [{id, name}]. The shipped page of the pause menu lists them.
+func shippable_rows() -> Array:
+	var ids: Array[String] = []
+	for id in crops:
+		ids.append(id)
+	for id in animals.rules.get("items", {}):
+		ids.append(id)
+	for id in fish_data.get("fish", {}):
+		ids.append("fish:" + id)
+	for id in mine_data.get("items", {}):
+		ids.append("mine:" + id)
+	for id in Forage.data().get("items", {}):
+		ids.append(Forage.PREFIX + id)
+	for id in foods:
+		ids.append("food:" + id)
+	var out := []
+	for id in ids:
+		if sell_price(id) > 0:
+			out.append({"id": id, "name": item_name(id)})
+	return out
 
 
 ## What one of `id` fetches in the bin (0 = can't be shipped). Fish are "fish:<id>", dishes

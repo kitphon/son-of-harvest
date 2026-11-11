@@ -19,6 +19,7 @@ func _init() -> void:
 	_settings()
 	_pause_menu()
 	_fish_log()
+	_shipped_page()
 	_controls()
 	_controls_menu()
 	_pad()
@@ -232,7 +233,7 @@ func _settings() -> void:
 func _pause_menu() -> void:
 	var s := Settings.make()
 	var m := PauseMenu.new(s)
-	check(m.page == "main" and m.list.items == (["resume", "save", "settings", "fishlog", "title"] as Array[String]), "main page")
+	check(m.page == "main" and m.list.items == (["resume", "save", "settings", "fishlog", "shipped", "title"] as Array[String]), "main page")
 	check(m.heading() == "Paused" and m.list.current() == "resume", "cursor on resume")
 	check(m.choose() == "resume", "resume closes the menu")
 	check(m.back() == "resume", "Esc on the main page closes it")
@@ -342,7 +343,66 @@ func _fish_log() -> void:
 	empty.open("fishlog")
 	check(empty.list.items == (["back"] as Array[String]) and empty.total_text() == "0 of 0 kinds", "no fish data: an empty log opens without trouble")
 
+## The shipped page: a row per thing the bin takes, shipped ones named with their count, the rest "???".
+func _shipped_page() -> void:
+	var rows := [{"id": "turnip", "name": "Turnip"}, {"id": "egg", "name": "Egg"}, {"id": "fish:funa", "name": "Crucian carp"}]
+	var m := PauseMenu.new(Settings.make(), {}, {}, rows, {"turnip": 14, "fish:funa": 2})
+	m.list.point("shipped")
+	check(m.label("shipped") == "Shipped" and m.choose() == "" and m.page == "shipped" and m.heading() == "Shipped", "the main page opens the shipped page")
+	check(m.list.items == (["turnip", "egg", "fish:funa", "back"] as Array[String]), "a row per item, then Back")
+	check(m.label("turnip") == "Turnip" and m.count_text("turnip") == "x14", "a shipped item: name and count (%s, %s)" % [m.label("turnip"), m.count_text("turnip")])
+	check(m.label("egg") == "???" and m.count_text("egg") == "", "an item never shipped is ???")
+	check(m.shipped_total_text() == "2 of 3 shipped", "the total (%s)" % m.shipped_total_text())
+	check(m.adjust(1) == "" and m.choose() == "" and m.page == "shipped", "left / right and Enter on an item do nothing")
+	m.back()
+	check(m.page == "main" and m.list.current() == "shipped", "Esc goes back with the cursor on the shipped page")
+	m.choose()
+	m.list.point("back")
+	m.choose()
+	check(m.page == "main" and m.list.current() == "shipped", "Back returns too")
+	var empty := PauseMenu.new(Settings.make())
+	empty.open("shipped")
+	check(empty.list.items == (["back"] as Array[String]) and empty.shipped_total_text() == "0 of 0 shipped", "no rows: an empty page opens without trouble")
+
+
+## The shipped page fits its width in English, Thai and a third longer (every real name), and its
+## rows at every UI size.
+func _shipped_fit() -> void:
+	var pause: GDScript = load("res://scripts/ui/pause_screen.gd")
+	var k: Dictionary = pause.get_script_constant_map()
+	var g: Node = root.get_node("Game")
+	var real: Array = g.shippable_rows()
+	# The real rows: every one has a price, a name and an icon key, and none repeats.
+	var seen := {}
+	var ok := real.size() >= 40
+	for r in real:
+		ok = ok and g.sell_price(r.id) > 0 and String(r.name) != "" and not seen.has(r.id)
+		seen[r.id] = true
+	check(ok, "Game.shippable_rows: %d rows, all sellable, named, unique" % real.size())
+	check(seen.has("turnip") and seen.has("egg_good") and seen.has("fish:funa") and seen.has("mine:satetsu") and seen.has("wild:warabi") and seen.has("food:onigiri"), "crops, animal goods, fish, mine finds, wild plants and dishes are all there")
+	var t := PauseMenu.new(Settings.make(), {}, {}, real, {"turnip": 1})
+	t.open("shipped")
+	check(t.shipped_total_text() == "1 of %d shipped" % real.size(), "total over the real rows (%s)" % t.shipped_total_text())
+	var all := {}
+	for r in real:
+		all[r.id] = 99
+	var full := PauseMenu.new(Settings.make(), {}, {}, real, all)
+	full.open("shipped")
+	var name_room: int = k.FISHLOG_WIDTH - 8 - 18 - k.ICON_W - 30
+	for lang in ["en", "th", Lang.PSEUDO]:
+		Lang.set_language(lang)
+		for r in real:
+			check(PixelFont.shown_width(Lang.t(full.label(r.id))) <= name_room, "the name of %s fits in %s" % [r.id, lang])
+		check(PixelFont.shown_width(Lang.t("%d of %d shipped") % [real.size(), real.size()]) <= k.FISHLOG_WIDTH - 8 - 18, "the shipped total fits in %s" % lang)
+	Lang.set_language("en")
+	for wanted in [1.0, 1.25, 1.5]:
+		var n: int = pause.visible_rows(wanted, 270, 0)
+		var h: float = (k.TOP + 8 + n * k.ROW_H + k.ROW_H + 4) * wanted
+		check(n >= 5 and h <= 270 and UiScale.fit(wanted, Vector2(k.FISHLOG_WIDTH, h / wanted), Vector2(480, 270)) == wanted, "shipped page at %d%%: %d rows fit (%d px)" % [int(wanted * 100), n, h])
+
+
 ## The fish log fits its width in English, Thai and a third longer, and its rows at every UI size
+## The fish log fits, Thai and a third longer, and its rows at every UI size
 ## (PauseScreen names the Game autoload, so it is loaded by path once the tree is up).
 func _fish_log_fit() -> void:
 	var rules: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/fish.json"))
@@ -773,6 +833,7 @@ func _settings_in_effect() -> void:
 		rows.append(n)
 	check(rows[0] == k.VISIBLE and rows[2] < rows[1] and rows[1] < rows[0], "bigger UI, fewer rows (%s)" % [rows])
 	_fish_log_fit()
+	_shipped_fit()
 
 
 func _has_button(action: String, button: int) -> bool:
