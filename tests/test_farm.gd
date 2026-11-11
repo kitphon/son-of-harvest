@@ -264,6 +264,7 @@ func _init() -> void:
 	_charge_rules(crops, game_script)
 	_wide_save(crops)
 	_greenhouse_beds(crops)
+	_greenhouse_site_debris(crops)
 	# FarmActions works on the Game autoload, which is in the tree from the first frame.
 
 
@@ -535,6 +536,35 @@ func _wide_save(crops: Dictionary) -> void:
 		and f.item_at(Vector2i(12, 12)) == "potato" and f.items.size() == 1, "cut back: what was inside the fence line stays")
 	check(f.fixed_at(Vector2i(FarmGrid.W - 1, 5)) == "fence" and f.fixed_at(Vector2i(10, FarmGrid.H - 1)) == "fence"
 		and not f.fixed.has(Vector2i(63, 5)), "cut back: the border is fenced again")
+
+
+## The greenhouse's site is open field until it is built, so the new-game debris (15% of the cells)
+## may lie anywhere on it, its door cell included. Building must clear it: the door and every cell of
+## the footprint end up fixed and free of debris; unbuilding gives open ground back. Seeds are
+## searched so that the door cell holds debris at generation (this is what made a test that read
+## the cell on a random farm fail now and then).
+func _greenhouse_site_debris(crops: Dictionary) -> void:
+	var f: FarmGrid = null
+	var rng := RandomNumberGenerator.new()
+	for s in 400:
+		rng.seed = s
+		var t := FarmGrid.new(crops)
+		t.generate(rng)
+		if t.cell(FarmGrid.GREENHOUSE_DOOR).obj != FarmGrid.Obj.NONE:
+			f = t
+			break
+	check(f != null, "some farms open with debris on the greenhouse door cell (rule: the site is open field)")
+	if f == null:
+		return
+	check(f.is_solid(FarmGrid.GREENHOUSE_DOOR) and f.fixed_at(FarmGrid.GREENHOUSE_DOOR) == "", "debris on the unbuilt door cell: solid, not a door")
+	f.set_wings(["greenhouse"])
+	var clear := f.fixed_at(FarmGrid.GREENHOUSE_DOOR) == "greenhouse_door"
+	for y in range(FarmGrid.GREENHOUSE.position.y, FarmGrid.GREENHOUSE.end.y):
+		for x in range(FarmGrid.GREENHOUSE.position.x, FarmGrid.GREENHOUSE.end.x):
+			clear = clear and f.cell(Vector2i(x, y)).obj == FarmGrid.Obj.NONE and f.fixed_at(Vector2i(x, y)) != ""
+	check(clear, "building the greenhouse clears the debris under its footprint and door")
+	f.set_wings([])
+	check(f.fixed_at(FarmGrid.GREENHOUSE_DOOR) == "" and not f.is_solid(FarmGrid.GREENHOUSE_DOOR), "unbuilt again: open ground")
 
 
 ## The greenhouse's beds: a FarmGrid of the plots' size under glass (`sheltered`). Seeds of any
