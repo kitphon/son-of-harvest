@@ -34,6 +34,9 @@ var crops: CropClusters          # tall crops (rice, corn, cucumber, tomato) as 
 ## House windows and shoji doors that light up at night (NightLights draws them over the night tint):
 ## {key: picture, pos: centre, size: Vector2 (w, h), normal: Vector3 out of the wall}.
 var windows: Array[Dictionary] = []
+## The glow of a lamp inside on a glass roof at night (NightLights, under the roof's snow), as
+## LitSpots.greenhouse_roof gives them: {corners, uvs, at, normal, own, share, ...}.
+var roof_glows: Array[Dictionary] = []
 ## Stone lanterns lit at night (NightLights: a glow round the fire box, a pool round the foot):
 ## {pos: the fire box's centre}.
 var lamps: Array[Dictionary] = []

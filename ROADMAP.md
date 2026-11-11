@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-11 The greenhouse's lit front glass on the glass in the flat view (`flat_z`), the lantern's soft glow through the glass roof at night in both views (under the roof snow, hidden while faded; `roof_glow` in data/light.json), and the flat farm roofs' snow in the roofs' drawn shapes, whole from half cover like the 3D roofs (`farm_roofs` 1.0; a snow cone on the 3D silo); see WORKLOG.
 [x] 2026-11-11 The silo's stores on screen: the HUD's E hint at the silo reads "Fodder N, grass N" (ActionHints, both views, Thai); see WORKLOG.
 [x] 2026-11-11 The store's "under glass" rows checked in frames: `--shop-row=N` (ShopScreen.go_to_row) scrolls the buy tab to a row; English, Thai and pseudo frames show the glass rows fitting with their prices; test_shops checks the jump; see WORKLOG.
 [x] 2026-11-11 The greenhouse in snow and at night: snow on the glass roof in bays between the rafters, the ridge and the barrel (3D), the flat farm roofs (greenhouse, farmhouse, coop, barn, silo) whiten under snow (`farm_roofs` in data/snow_cover.json); a paper lantern inside lights two patches of glass at night by the windows' rules (LitSpots.greenhouse, `build:glass_lit`), warm pools in front, both views; an andon inside; see WORKLOG.

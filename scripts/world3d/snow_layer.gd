@@ -18,6 +18,12 @@ const NOISE_CELLS := 8.0
 ## but on a small roof it reads as holes torn in the snow. Snow that sticks to a roof covers
 ## it evenly and only thins (melts off in patches) when little lies.
 const TOP_FULL := 0.5
+## The flat view's farm roofs (farm_roof_mask_image): a mask pixel a picture pixel, so the snow
+## keeps to the roofs' drawn shapes.
+const ROOF_PER_CELL := 16
+## Bare pixels kept round a roof's snow: its eaves' dark rim, as the 3D snow tops stop short of
+## the eaves, and round a door drawn on it.
+const ROOF_RIM := 1
 
 const _SNOW_AT := """
 uniform sampler2D noise : repeat_enable, filter_nearest;
@@ -69,6 +75,24 @@ void vertex() { world = (MODEL_MATRIX * vec4(VERTEX, 0.0, 1.0)).xy / 16.0; }
 void fragment() {
 	float s = snow_at(world, cover * texture(TEXTURE, UV).r);
 	COLOR = s > 1.5 ? vec4(snow_color, 1.0) : (s > 0.5 ? vec4(rim_color, 0.7) : vec4(0.0));
+}
+"""
+
+## The flat view's farm roofs: like CANVAS_SHADER, the amount the 3D snow tops' (whole from
+## top_full up, TOP_SHADER) times what the roof holds (the mask's red, nearest: its drawn shape);
+## the back slopes (the mask's green 0) a shade darker, as the roofs' pictures are, so a white
+## roof still shows its ridge.
+const ROOF_CANVAS_SHADER := "shader_type canvas_item;
+" + _SNOW_AT + """
+uniform float top_full = 0.5;
+uniform float back_shade = 0.88;
+varying vec2 world;
+void vertex() { world = (MODEL_MATRIX * vec4(VERTEX, 0.0, 1.0)).xy / 16.0; }
+void fragment() {
+	vec4 m = texture(TEXTURE, UV);
+	float s = snow_at(world, min(cover / top_full, 1.0) * m.r);
+	float shade = mix(back_shade, 1.0, m.g);
+	COLOR = s > 1.5 ? vec4(snow_color * shade, 1.0) : (s > 0.5 ? vec4(rim_color * shade, 0.7) : vec4(0.0));
 }
 """
 
@@ -128,21 +152,60 @@ static func roof_mask_image(m: MapData, rules: Dictionary) -> Image:
 		return clampf(float(roofs[p.kind]), 0.0, 1.0))
 
 
-## The farm's roofs as the flat view sees them from above, as roof_mask_image does for a map's
-## houses: data/snow_cover.json "farm_roofs" (FarmGrid building kinds with a roof and how much
-## snow they hold) over each building's cells but its front row (the doors and the front wall).
+## The farm's roofs as the flat view draws them (FarmView), for its roof snow
+## (roof_canvas_material): ROOF_PER_CELL pixels a cell, each pixel's red what that roof holds
+## (data/snow_cover.json "farm_roofs": FarmGrid building kinds with a roof), 0 off the roofs, its
+## green 1 on a slope facing the camera (south) and 0 on a back slope.
+## The 3D view's roofs fill whole from TOP_FULL cover, eaves and all, so these do too: the
+## painted roofs (the farmhouse, coop, barn) over their whole box but a ROOF_RIM round it and round
+## the doors drawn on it; the silo's cone; the greenhouse's two glass slopes and the ridge cap
+## between them, as its 3D snow lies: in the bays between the rafters, stopping short of the eaves
+## (it slides off glass), never on the glazed front wall below.
 static func farm_roof_mask_image(farm: FarmGrid, rules: Dictionary) -> Image:
 	var roofs: Dictionary = rules.get("farm_roofs", {})
-	var front := {}   # building kind -> its lowest row
-	for c: Vector2i in farm.fixed:
-		var k := str(farm.fixed[c])
-		if roofs.has(k):
-			front[k] = maxi(int(front.get(k, c.y)), c.y)
-	return _mask(farm.w, farm.h, func(c: Vector2i) -> float:
-		var k := farm.fixed_at(c)
-		if not roofs.has(k) or c.y >= int(front[k]):
-			return 0.0
-		return clampf(float(roofs[k]), 0.0, 1.0))
+	var img := Image.create_empty(farm.w * ROOF_PER_CELL, farm.h * ROOF_PER_CELL, false, Image.FORMAT_RGB8)
+	var px := float(ROOF_PER_CELL) / FarmView.T   # mask pixels a picture pixel
+	for kind: String in roofs:
+		var hold := clampf(float(roofs[kind]), 0.0, 1.0)
+		var box := FarmView.roof_rect(farm, kind)
+		if hold <= 0.0 or not box.has_area():
+			continue
+		var put := func(r: Rect2, front := true) -> void:
+			var ri := Rect2i(Vector2i((r.position * px).round()), Vector2i((r.size * px).round()))
+			if ri.has_area():
+				img.fill_rect(ri, Color(hold, 1.0 if front else 0.0, 0.0))
+		var o := box.position
+		match kind:
+			"greenhouse":
+				var wide := box.size.x
+				var foot := box.size.y - FarmView.GREENHOUSE_WALL   # the roof's foot, over the front wall
+				var ridge := FarmView.GREENHOUSE_RIDGE
+				var bays: Array[float] = [1.0]
+				for x in range(8, int(wide), 8):   # a rafter every 8 px (_draw_greenhouse)
+					bays.append(float(x))
+				bays.append(wide - 1.0)
+				for i in bays.size() - 1:
+					var x0: float = bays[i] + (1.0 if i > 0 else 0.0)
+					put.call(Rect2(o + Vector2(x0, 3), Vector2(bays[i + 1] - x0, ridge - 3)), false)   # the back slope
+					put.call(Rect2(o + Vector2(x0, ridge + 2), Vector2(bays[i + 1] - x0, foot - 4 - ridge - 2)))   # the front
+				put.call(Rect2(o + Vector2(0, ridge), Vector2(wide, 2)))   # the ridge cap
+			"silo":
+				# The cone (_draw_silo): its apex at (16, 1), its foot along y 14 from x 1 to 31.
+				for y in range(3, 13):
+					var half := floorf(15.0 * (y - 1) / 13.0) - 1.0
+					put.call(Rect2(o + Vector2(16 - half, y), Vector2(half * 2, 1)))
+			_:
+				var inner := box.grow(-ROOF_RIM)
+				var ridge := floorf(box.size.y / 2.0)   # the roofs' pictures (RoofArt) are gables along x
+				put.call(Rect2(inner.position, Vector2(inner.size.x, ridge - ROOF_RIM)), false)
+				put.call(Rect2(inner.position + Vector2(0, ridge - ROOF_RIM), Vector2(inner.size.x, inner.size.y - ridge + ROOF_RIM)))
+				for y in range(int(box.position.y / FarmView.T), int(box.end.y / FarmView.T)):
+					for x in range(int(box.position.x / FarmView.T), int(box.end.x / FarmView.T)):
+						if farm.fixed_at(Vector2i(x, y)) != kind:   # a door: bare, with a rim round it
+							var hole := Rect2(Vector2(x, y) * FarmView.T, Vector2.ONE * FarmView.T).grow(ROOF_RIM)
+							var hi := Rect2i(Vector2i((hole.position * px).round()), Vector2i((hole.size * px).round()))
+							img.fill_rect(hi.intersection(Rect2i(Vector2i.ZERO, img.get_size())), Color.BLACK)
+	return img
 
 
 static func _mask(w: int, h: int, hold_at: Callable) -> Image:
@@ -165,6 +228,13 @@ static func ground_material(ground: Texture2D, mask: Texture2D) -> ShaderMateria
 ## For the 2D view: put on a node that draws the mask texture over the whole farm.
 static func canvas_material() -> ShaderMaterial:
 	return _material(CANVAS_SHADER)
+
+
+## For the flat view's farm roofs: put on a node that draws farm_roof_mask_image over the farm.
+static func roof_canvas_material() -> ShaderMaterial:
+	var m := _material(ROOF_CANVAS_SHADER)
+	m.set_shader_parameter("top_full", TOP_FULL)
+	return m
 
 
 static func top_material() -> ShaderMaterial:

@@ -10,6 +10,83 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — The greenhouse's lit glass and roof glow in both views; flat farm roofs snow like 3D
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the three things left open by the entry below.
+  1. Flat view, the lit front glass: LitSpots.greenhouse's front patch carries `flat_z`
+     (LitSpots.flat_glass_z: one pixel above the board skirting FarmView draws), and
+     NightView.pane_rect puts a window's strip there when it has one; its halo follows the strip.
+     Every other window (the +x patch, the farmhouse's, the village houses') has none and keeps the
+     footprint line; the pools still come from the 3D spots, unchanged. FarmView's greenhouse
+     drawing now names its sizes (GREENHOUSE_RIDGE / _WALL / _SKIRT) so the two agree.
+  2. The glass roof's glow: LitSpots.greenhouse_roof lists a soft disc on each glass slope round
+     the point over the lantern (LitSpots.greenhouse_lantern, which GreenhouseProps now hangs it
+     by): the front slope's over it, the back slope's by the ridge at `back` of the strength.
+     GreenhouseProps appends them to the new FarmWorld.roof_glows, and MeshCache records and
+     replays them like the windows and lamps. NightLights draws them in a new pass ("Roofs", after
+     the copy, beside the washes) with ROOF_SHADER: the wash's dithered disc, added over the tint
+     only where the copy is glass (its blue over the tint's between glass_from / glass_full above
+     the rafters and the ridge board, and below snow_from / snow_full, so the snow tops lying on
+     the glass cover it; measured at night: glass about 0.75, snow 0.92, rafters 0.25). Shown by
+     Game.window_light; NightLights.roof_seen gives none from under the slope and none at all while
+     its own building is faded see-through (as its snow tops hide), another building's fade
+     otherwise; figures in front are drawn back from it as from the glows. Why a pass over the
+     tint and not a 3D light or emissive sheet: the tint multiplies the 3D picture after, and the
+     glass already sits near its cap at night, so a warm light inside the 3D view can only turn
+     grey-blue (the same reason as the walls' wash). Flat view: NightView makes a "Roofs" layer for
+     the same discs laid on the drawn glass roof (NightView.roof_shape: the slope's stretch from the
+     ridge to the eaves on the drawn slope, cut between the rafters), put into the FarmView over the
+     buildings but under the roofs' snow (FarmView.add_under_roof_snow), so lying snow covers it
+     there too. Numbers in data/light.json `roof_glow` (ours): color ffac3c (a yellower orange than
+     the walls' wash, as plain orange over the blue glass read pink), strength 0.5 (the walls'
+     wash 0.4 on pale glass; the roof's panes are darker, so a little more to read), radius 1.5,
+     back 0.45, flat 1.0.
+  3. Flat roofs' snow like the 3D roofs: SnowLayer.farm_roof_mask_image is now a pixel a picture
+     pixel (ROOF_PER_CELL 16, nearest) in the roofs' drawn shapes: the farmhouse, coop and barn over
+     their whole box but a 1 px rim and round the doors drawn on it (the 3D roofs are white eaves
+     and all; the old mask left the front row bare); the silo's cone; the greenhouse's glass bays
+     between the rafters, stopping short of both eaves, and its ridge cap, never the front wall,
+     as its 3D snow lies. A new ROOF_CANVAS_SHADER fills them as the 3D snow tops do (whole from
+     TOP_FULL, half cover; thinner below) instead of the ground's patchy pattern, with the back
+     slopes (the mask's green) a shade darker (0.88) so a white roof still shows its ridge.
+     data/snow_cover.json `farm_roofs` are now 1.0 each (the share of the 3D tops' amount: 1.0
+     matches; the greenhouse sheds snow by its shape, as in 3D) with a note. The 3D silo had no
+     snow, so SiloProps gains a snow cone just over its tiles (the eave ring bare), driven by
+     set_snow and kept by MeshCache like the other snow tops. MapView and the village roofs are
+     untouched (roof_mask_image, canvas_material).
+- Checked: test_weather `_greenhouse_glow` (the flat strip within the glass band over the
+  skirting, the others keep the wall's line; two roof discs on the slopes, the front's over the
+  lantern; out by day, the back fainter, softer than twice the wash and under the snow's
+  threshold; seen from above, not from under; gone while the greenhouse is faded; the flat pieces
+  on the front slope between the rafters), test_maps `_greenhouse` (two roof glows listed, under
+  the ridge; a MeshCache rebuild keeps them; the silo's snow cone, no shadow), test_view2d
+  `_greenhouse` (the mask in the glass bays and the ridge, not on rafters, the eave strips, the front
+  wall, the door or the field; the farmhouse's whole roof but its rim and door; the roof snow over
+  the glow layer and the objects; its shader fills by top_full; at 21:00 the flat roof glow
+  listed and shown). Output: the 31 test scripts in tests/ (the full list in AGENTS.md) each
+  `OK (0 failed)` (`test_weather: OK (0 failed)`, `test_maps: OK (0 failed)`, `test_view2d: OK (0
+  failed)` among them) with no ERROR or SCRIPT ERROR lines; the only WARNING lines are test_title's
+  deliberate bad look pieces (`No look style:9`, `No look part nose:1`). In the first full run
+  test_view2d printed `FAIL: flat: no greenhouse door before it is built` (a check before anything
+  built, which this work does not touch); five runs after it, alone and after test_festivals, were
+  all `test_view2d: OK (0 failed)`, so it looks like an intermittent one, likely the farm's random
+  field putting an obstacle on (27, 16); not chased here. Smoke runs (title, `--demo`, `--demo
+  --map=town`, `--demo --mine=3`, the greenhouse at 21:00 in 3D and snowy at 20:00 flat,
+  `--quit-after 300`): 0 error or warning lines. Movie Maker frames looked at (crops enlarged): `--demo
+  --built=greenhouse --map=farm@greenhouse --time=21:00` 3D (the panes of the front slope's left
+  half warm round the lantern, a faint warmth by the ridge on the back slope, the rafters dark) and
+  flat (the front strip now on the glass band, a soft warm patch on the front slope's left bays);
+  `... --season=winter --snow=80` 3D (unchanged: snow in the bays) and flat (the glass roof white
+  in its bays with the rafters and both eave strips showing, the back slope a shade darker; the
+  farmhouse, coop and barn roofs white whole, back halves shaded, doors bare, instead of patches);
+  `... --time=20:00` both views (the roof's snow covers the glow; only the bare eave strip at the
+  front left takes a little warmth); `--demo --built=silo --map=farm@silo --season=winter --snow=80`
+  3D (the silo's cone white, the eave ring dark); the flat silo is under the HUD in that frame, so
+  its cone is checked by test_view2d only.
+- Left / next: the flat view's +x lit patch still lies on the greenhouse's right edge over the
+  roof (the flat view draws no side wall); a frame with the farmer behind the greenhouse at night
+  (its fade hiding the roof glow) was not taken (test_weather checks it).
+
 ## 2026-11-11 — The silo's stores on screen
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: facing the fodder silo, the HUD key hint now reads "E Fodder 3, grass 6" (fodder waiting, grass

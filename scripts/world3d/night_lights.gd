@@ -24,6 +24,10 @@ extends Control
 ##     lamps' light on near-white plaster; and on the earthen and charred board walls of the
 ##     village houses (their red already at the tint's cap) a warm glow or a faint sheen of their
 ##     own, kept to the material between the posts and rails (see `finish_wash`);
+##     And the glass roofs' glow (`FarmWorld.roof_glows`, the greenhouse's lantern seen through its
+##     roof; data/light.json "roof_glow"): a soft disc on the slope, added only on the glass in
+##     the copy (not the dark rafters, not the paler snow lying over it: `ROOF_SHADER`), gone
+##     while its own building is faded see-through, as its snow tops are;
 ##  3. glows: each window of the FarmWorld on show (`FarmWorld.windows`, the farmhouse and
 ##     the village houses) gets its own paper picture added in warm light over its pane and a
 ##     soft glow round it, each lantern (`FarmWorld.lamps`) a glow round its fire box;
@@ -98,6 +102,29 @@ void fragment() {
 	vec3 c = textureLod(screen, SCREEN_UV, 0.0).rgb / max(tint, vec3(0.05));
 	float w = smoothstep(warm.x, warm.y, c.r - max(c.g, c.b)) * (1.0 - smoothstep(pale.x, pale.y, c.b));
 	COLOR = vec4(COLOR.rgb, COLOR.a * k * w);
+}
+"""
+
+## The glass roofs' glow (`roof_glows`): the wash's disc, kept to the glass of the copy: its blue
+## over the tint's blue between `glass` (above the rafters, the ridge board and the dark ground)
+## and under `snow` (the snow lying on the glass is paler, and covers it).
+const ROOF_SHADER := """
+shader_type canvas_item;
+render_mode blend_add;
+
+uniform sampler2D screen : hint_screen_texture, filter_nearest;
+uniform vec3 tint = vec3(1.0);
+uniform vec2 glass = vec2(0.35, 0.5);
+uniform vec2 snow = vec2(0.8, 0.86);
+
+const float BAYER[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
+
+void fragment() {
+	float k = 1.0 - smoothstep(0.0, 1.0, length(UV));
+	ivec2 q = ivec2(mod(floor(FRAGCOORD.xy), 4.0));
+	k = clamp(floor(k * 6.0 + BAYER[q.y * 4 + q.x] / 16.0) / 6.0, 0.0, 1.0);
+	float b = textureLod(screen, SCREEN_UV, 0.0).b / max(tint.b, 0.05);
+	COLOR = vec4(COLOR.rgb, COLOR.a * k * smoothstep(glass.x, glass.y, b) * (1.0 - smoothstep(snow.x, snow.y, b)));
 }
 """
 
@@ -184,6 +211,7 @@ var figure_lift: Control   # pass 0 too: the figures' lift, kept to their own pi
 var pools: Control     # pass 1: the ground pools
 var washes: Control    # pass 2: warm light on the pale walls round lit windows
 var finishes: Control  # pass 2 too: on the earthen and charred board walls
+var roofs: Control     # pass 2 too: the glass roofs' glow
 var glows: Control     # pass 3: panes, halos, lantern glows
 var figures: Control   # pass 4: the figures in front or lifted, drawn back from the copy
 var copy: BackBufferCopy
@@ -192,6 +220,7 @@ var _pools: Array[Dictionary] = []     # {pts: PackedVector2Array, color}
 var _panes: Array[Dictionary] = []     # {win, k} windows to draw
 var _washes: Array[Dictionary] = []    # {pts, uvs, color} wall washes
 var _finishes: Array[Dictionary] = []  # {pts, uvs, color} earthen and board wall washes
+var _roofs: Array[Dictionary] = []     # {pts, uvs, color} the glass roofs' glow
 var _lamps: Array[Dictionary] = []     # {at: Vector2, px, color}
 var _lit: Array[Dictionary] = []       # {rect: Rect2, pos, normal} everything glowing on screen
 var _shields: Array[Dictionary] = []   # {pts, uvs, tex} figure quads drawn back
@@ -235,6 +264,9 @@ func _ready() -> void:
 	finishes = _layer("Finishes")
 	finishes.material = _shader_material(FINISH_SHADER)
 	finishes.draw.connect(_draw_finishes)
+	roofs = _layer("Roofs")
+	roofs.material = _shader_material(ROOF_SHADER)
+	roofs.draw.connect(_draw_roofs)
 	glows = _layer("Glows")
 	var add := CanvasItemMaterial.new()
 	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
@@ -294,6 +326,7 @@ func _process(_delta: float) -> void:
 	pools.queue_redraw()
 	washes.queue_redraw()
 	finishes.queue_redraw()
+	roofs.queue_redraw()
 	glows.queue_redraw()
 	figures.queue_redraw()
 
@@ -304,6 +337,7 @@ func _plan() -> void:
 	_panes.clear()
 	_washes.clear()
 	_finishes.clear()
+	_roofs.clear()
 	_lamps.clear()
 	_lit.clear()
 	_shields.clear()
@@ -328,6 +362,11 @@ func _plan() -> void:
 	fm.set_shader_parameter("tint", Vector3(tint.r, tint.g, tint.b))
 	fm.set_shader_parameter("pale", Vector2(float(wall_rules.get("pale_from", 0.45)), float(wall_rules.get("pale_full", 0.72))))
 	fm.set_shader_parameter("warm", Vector2(float(wall_rules.get("warm_from", 0.03)), float(wall_rules.get("warm_full", 0.1))))
+	var roof_rules: Dictionary = Game.light_data().get("roof_glow", {})
+	var rm := roofs.material as ShaderMaterial
+	rm.set_shader_parameter("tint", Vector3(tint.r, tint.g, tint.b))
+	rm.set_shader_parameter("glass", Vector2(float(roof_rules.get("glass_from", 0.35)), float(roof_rules.get("glass_full", 0.5))))
+	rm.set_shader_parameter("snow", Vector2(float(roof_rules.get("snow_from", 0.8)), float(roof_rules.get("snow_full", 0.86))))
 	var back := cam.global_basis.z
 	var flat_back := Vector3(back.x, 0, back.z).normalized()
 	var worlds: Array[FarmWorld] = []
@@ -366,6 +405,14 @@ func _plan() -> void:
 						fc.a = own.strength
 						_finishes.append({"pts": fpts, "uvs": piece.uvs, "color": fc})
 						_lit.append({"rect": _bounds(fpts), "pos": win.pos, "normal": win.normal})
+		for g in w.roof_glows:
+			var k := roof_glow(g, glow, roof_rules) * roof_seen(g, eye, w.occluders)
+			var gpts := _project(g.corners, cam)
+			if k > 0.0 and not gpts.is_empty():
+				var gc := Color(str(roof_rules.get("color", "ffa050")))
+				gc.a = k
+				_roofs.append({"pts": gpts, "uvs": g.uvs, "color": gc})
+				_lit.append({"rect": _bounds(gpts), "pos": g.at, "normal": g.normal})
 		# The stone lanterns' wash on the walls they stand in front of (lamp_washes).
 		for lw in lamp_washes(w.windows, w.lamps, glow, wall_rules, w.occluders):
 			var at: Vector3 = lw.at + lw.normal * 0.05
@@ -705,6 +752,11 @@ func _draw_finishes() -> void:
 		finishes.draw_colored_polygon(w.pts, w.color, w.uvs)
 
 
+func _draw_roofs() -> void:
+	for r in _roofs:
+		roofs.draw_colored_polygon(r.pts, r.color, r.uvs)
+
+
 func _draw_glows() -> void:
 	var rules: Dictionary = Game.light_data().get("windows", {})
 	for p in _panes:
@@ -726,6 +778,25 @@ static func how_seen(win: Dictionary, eye: Vector3, occ: Occluders) -> float:
 	if win.normal.dot(eye - at) <= 0.0:
 		return 0.0
 	return _through(at, at, eye, occ)
+
+
+## A glass roof's glow `g` (FarmWorld.roof_glows) at window light `glow` by data/light.json
+## "roof_glow" `rules`: its middle's strength, the back slope's its share of it.
+static func roof_glow(g: Dictionary, glow: float, rules: Dictionary) -> float:
+	return maxf(float(rules.get("strength", 0.3)) * float(g.get("share", 1.0)) * glow, 0.0)
+
+
+## How much of roof glow `g` the eye at `eye` sees, 0..1: none from under its slope, none while its
+## own building (whose box holds its lamp) is faded see-through at all (its snow tops hide then
+## too: Occluders), and another building between lets through its fade, as for a window.
+static func roof_seen(g: Dictionary, eye: Vector3, occ: Occluders) -> float:
+	var at: Vector3 = g.at
+	if g.normal.dot(eye - at) <= 0.0:
+		return 0.0
+	for i in occ.count():
+		if occ.box_of(i).has_point(g.own) and occ.fade_of(i) > 0.0:
+			return 0.0
+	return _through(at, g.own, eye, occ)
 
 
 ## How much of the ground (or lantern) at `at` the eye sees past the buildings, 0..1; the thing
