@@ -401,8 +401,8 @@ func _greenhouse_glow() -> void:
 	var foot := float(r.end.y) * 16.0
 	check(strip.end.y <= foot - FarmView.GREENHOUSE_SKIRT and strip.position.y >= foot - FarmView.GREENHOUSE_WALL,
 		"greenhouse glow: the flat strip on the front glass, over the skirting (%s)" % strip)
-	check(not spots[1].has("flat_z") and NV.pane_rect(spots[1]).position.x == spots[1].pos.x * 16.0 - 2.0
-		and LitSpots.farmhouse().all(func(w: Dictionary) -> bool: return not w.has("flat_z")), "greenhouse glow: the other strips keep the wall's line")
+	check(not spots[1].has("flat_z") and spots[1].get("flat_hide", false) and not spots[0].get("flat_hide", false)
+		and LitSpots.farmhouse().all(func(w: Dictionary) -> bool: return not w.has("flat_z")), "greenhouse glow: the +x patch has no flat strip (no side wall drawn), the farmhouse's keep the wall's line")
 	# The glass roof: a soft disc on each slope from the lantern inside, the front's over it, the
 	# back's by the ridge and fainter, on the glass, by the windows' hours.
 	var roof: Array[Dictionary] = LitSpots.greenhouse_roof()

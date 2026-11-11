@@ -53,6 +53,9 @@ static func greenhouse() -> Array[Dictionary]:
 	# skirting (FarmView._draw_greenhouse), not on its footprint line as the houses' walls: its
 	# strip goes on the glass (`flat_z`, the strip's lower edge, map units).
 	out[0].flat_z = flat_glass_z()
+	# Its +x patch is on the gable wall, which the flat view does not draw (only the roof's edge
+	# shows there): no strip or halo for it (`flat_hide`); its pool on the ground stays.
+	out[1].flat_hide = true
 	return out
 
 

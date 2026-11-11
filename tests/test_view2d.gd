@@ -1564,6 +1564,8 @@ func _greenhouse() -> void:
 	var lit: Array = scene.night.pools.filter(func(p: Dictionary) -> bool: return FarmGrid.GREENHOUSE.grow(1).has_point(Vector2i(int(p.center.x), int(p.center.z))))
 	check(scene.night.glow == 1.0 and lit.size() == 2, "flat: at night a warm pool in front of the greenhouse's glass and beside it (%d)" % lit.size())
 	check(scene.night.roof_glows.size() == 2 and glow_layer.visible, "flat: and the lantern's glow on the glass roof")
+	check(scene.night.windows.filter(func(w: Dictionary) -> bool: return w.get("flat_hide", false)).size() == 1
+		and scene.night.pools.size() >= scene.night.windows.size(), "flat: the +x patch draws no strip (no side wall) but keeps its pool")
 	g.hour = was[0]
 	g.minute = was[1]
 	await process_frame
