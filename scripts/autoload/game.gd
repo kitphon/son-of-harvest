@@ -2850,7 +2850,7 @@ func shop_buy(id: String, item: String, n := 1) -> Dictionary:
 		if k.ok:
 			kitchen_tools.append(k.tool)
 		return _shop_paid(k)
-	var r := s.buy(inventory, money, item, n, season_name(), shop_room(id, item))
+	var r := s.buy(inventory, money, item, n, season_name(), shop_room(id, item), house_built)
 	if r.ok and r.to == "animal":
 		var a := Shop.animal_of(item)
 		for i in n:

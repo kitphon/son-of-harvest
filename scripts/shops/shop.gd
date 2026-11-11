@@ -21,6 +21,7 @@ var days_off: Array[String] = []
 var keeper := ""                    # the villager at the counter; "" = the counter works alone
 var stock_by_season: Dictionary = {}   # season, "any" or "supplies" -> [{item, price?, name?, to?, full?}]
 var buys: Dictionary = {}           # kind (crop, dish, food; stone, ore, gem from the mine) -> percent of the item's value
+var under_glass: Dictionary = {}    # {needs (a built farm job), percent}: other seasons' seeds once it stands
 var upgrade_tools: Array[String] = []
 var upgrade_levels: Dictionary = {}    # "2".."5" -> {price, days, items?}
 var tool_upgrade_levels: Dictionary = {}   # tool -> its own levels (the rod)
@@ -86,6 +87,7 @@ static func make(shop_id: String, crop_data: Dictionary, food_data: Dictionary, 
 	shop.keeper = str(s.get("keeper", ""))
 	shop.stock_by_season = s.get("stock", {})
 	shop.buys = s.get("buys", {})
+	shop.under_glass = s.get("under_glass", {})
 	shop.upgrade_tools.assign(s.get("upgrades", {}).get("tools", []))
 	shop.upgrade_levels = s.get("upgrades", {}).get("levels", {})
 	shop.tool_upgrade_levels = s.get("upgrades", {}).get("tool_levels", {})
@@ -173,14 +175,44 @@ func base_price(item: String) -> int:
 
 
 ## What is for sale in `season`: [{item, price, to}], the supplies first, then that season's
-## goods, then "any". `to` is where it goes: "rucksack", "animal", "feed" or "fodder".
-func stock(season: String) -> Array[Dictionary]:
+## goods, then "any". `to` is where it goes: "rucksack", "animal", "feed" or "fodder". `built`
+## is the farm jobs standing (Game.house_built): once the under_glass job is among them, the
+## seeds of the other seasons come last, marked glass (under_glass.percent of their price).
+func stock(season: String, built := []) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for key in ["supplies", season, "any"]:
 		for e in stock_by_season.get(key, []):
 			var p := int(e.get("price", base_price(e.item)))
 			if p > 0:
 				out.append({"item": str(e.item), "price": p, "to": str(e.get("to", "rucksack"))})
+	if glass_built(built):
+		out.append_array(_under_glass(season, out))
+	return out
+
+
+## Is the under_glass job built (its "needs" among `built`)? Shops without the rule: never.
+func glass_built(built: Array) -> bool:
+	return not under_glass.is_empty() and str(under_glass.get("needs", "")) in built
+
+
+## The seeds of the other seasons the shop lists, not already in `have` (this season's rows),
+## at under_glass.percent of their price: [{item, price, to, glass}], in season order.
+func _under_glass(season: String, have: Array[Dictionary]) -> Array[Dictionary]:
+	var shown := {}
+	for e in have:
+		shown[e.item] = true
+	var out: Array[Dictionary] = []
+	for s in ["spring", "summer", "fall", "winter"]:
+		if s == season:
+			continue
+		for e in stock_by_season.get(s, []):
+			var item := str(e.item)
+			if not item.begins_with("seeds:") or shown.has(item):
+				continue
+			shown[item] = true
+			var p := base_price(item) * int(under_glass.get("percent", 100)) / 100
+			if p > 0:
+				out.append({"item": item, "price": p, "to": "rucksack", "glass": true})
 	return out
 
 
@@ -201,8 +233,8 @@ func entry(item: String) -> Dictionary:
 
 
 ## The price of `item` here in `season`, -1 when it isn't sold then.
-func price(item: String, season: String) -> int:
-	for e in stock(season):
+func price(item: String, season: String, built := []) -> int:
+	for e in stock(season, built):
 		if e.item == item:
 			return e.price
 	return -1
@@ -233,8 +265,8 @@ func buy_back(item: String) -> int:
 ## Buys `n` of `item`: it must be in stock this season, paid in full and fit (all or
 ## nothing). Rucksack goods go into `inv`; others (to "animal" / "feed" / "fodder") need `room` for that
 ## many, and the caller delivers them when the result is ok (the result's `to`).
-func buy(inv: Inventory, money: int, item: String, n: int, season: String, room := 0) -> Dictionary:
-	var p := price(item, season)
+func buy(inv: Inventory, money: int, item: String, n: int, season: String, room := 0, built := []) -> Dictionary:
+	var p := price(item, season, built)
 	if p < 0 or n < 1:
 		return _no(money, "That isn't sold in %s." % season)
 	if money < p * n:

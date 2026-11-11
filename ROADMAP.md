@@ -23,7 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
-[ ] Off-season seeds for the greenhouse: the Yorozu Store sells any season's seeds once the greenhouse stands (today only the season's), so a winter under glass needs no seeds kept from the fall.
+[x] 2026-11-11 Off-season seeds for the greenhouse: the Yorozu Store sells any season's seeds once the greenhouse stands (today only the season's), so a winter under glass needs no seeds kept from the fall. Done: `under_glass` in data/shops.json (150% of the seed price), the rows marked "under glass" in the buy tab; see WORKLOG.
 [x] 2026-11-11 The greenhouse (Hachiro builds it, 30000 G, 6 days; the field's bottom right corner, a timber-and-glass house in both views): a door to 32 beds where any seed grows in any season, no rain, storm, snow or weeds, watered by hand from the tub; saved; Thai; `farm@greenhouse`, `--map=greenhouse`; farm jobs now finish on time (Hachiro's `building_<x>` days count); see WORKLOG.
 [x] 2026-11-11 The fodder silo (Hachiro builds it, 3000 G, 3 days; north-east corner, round wooden tower with a tiled cone, both views): weeds cut with the sickle fill its grass pile, two bundles ferment to one fodder a night, E carries the fodder to the barn's loft; saved; Thai; `farm@silo` spawn; see WORKLOG.
 [x] 2026-11-11 The coop and barn extensions seen from outside: the coop two cells wider (left, towards the stand), the barn one cell longer (right, up to the pond), in both views, footprints in FarmGrid (`set_wings`), doors, yards and the gap unchanged; see WORKLOG.

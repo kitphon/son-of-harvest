@@ -10,6 +10,33 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Off-season seeds under glass
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: once the greenhouse stands, the Yorozu Store also sells the seeds of every other season
+  (a winter under glass needs no seeds kept from the fall). Data: shops.json general
+  `under_glass` {needs "greenhouse", percent 150}: the price is 150% of the seed's own price
+  (crops.json seed_price), ours. Shop.stock(season, built) appends, after this season's rows,
+  each seed listed in another season once (rice, listed in summer and fall, once), marked
+  `glass`; Shop.price / buy take the same `built` (Game.house_built), and Game.shop_buy and
+  ShopMenu pass it. Nothing else changes: the field still follows FarmGrid's season rule (a bought
+  seed sows outdoors only in its season). The buy tab shows these rows with the label
+  "%s  under glass" (ShopScreen._row_name; Thai "%s  ในโรงเรือน" in ui.json). Marked by a row flag,
+  not a season tag, so the list keeps one price rule. Before the greenhouse stands nothing changes.
+- Checked: test_shops `_greenhouse_job` (before the build: no off-season seeds on the winter shelf,
+  a fall seed refused in winter) and `_off_season_seeds` (after it: each other season's seed once,
+  marked, at 150%; rice once; spring seeds glass in summer and not repeated in spring; the buy tab
+  row; a purchase of two; sown under glass in winter (9 cells); the field outside still refuses
+  it, 0). Output: `test_shops: OK (0 failed)`. Also `test_farm: OK (0 failed)`,
+  `test_lang: OK (0 failed)`, `test_save: OK (0 failed)`, `test_view2d`, `test_cooking`,
+  `test_festivals`, `test_relationships`: all `OK (0 failed)`. lang_report `th: 2671 of 2671 done
+  (100%), 0 missing, 0 stale`. Smoke runs (title, `--demo`, `--demo --map=town`, `--demo
+  --mine=3`, `--quit-after 300`): no error or warning lines. Movie Maker frame `--demo --shop=general
+  --built=greenhouse --season=winter`: the buy tab's first rows (rucksack, animals, feed) fit; the
+  glass rows are below the scroll and not in the frame, so the label is not seen on screen yet.
+- Left / next: look at the glass rows in a frame (scroll the buy tab in a screenshot run). The
+  spouse's morning watering does not reach the beds. No snow on the glass roof, no light in it at
+  night.
+
 ## 2026-11-11 — The greenhouse
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a fourth farm job in the Yorozu Store's Build tab: the greenhouse (`greenhouse`, 30000 G,

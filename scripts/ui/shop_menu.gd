@@ -49,7 +49,7 @@ func rows() -> Array[Dictionary]:
 			if not bag.is_empty():
 				out.append(bag)
 			out.append_array(shop.kitchen_offers(g.kitchen_tools, g.house_built))
-			out.append_array(shop.stock(g.season_name()))
+			out.append_array(shop.stock(g.season_name(), g.house_built))
 			return out
 		"build":
 			var out: Array[Dictionary] = []

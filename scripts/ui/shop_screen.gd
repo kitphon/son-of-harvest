@@ -206,6 +206,8 @@ func _row_name(row: Dictionary) -> String:
 		"buy":
 			if row.item == "rucksack":
 				return "%s (%d slots)" % [name, int(row.slots)]
+			if row.get("glass", false):   # another season's seeds, sold under the greenhouse's glass
+				return "%s  under glass" % name
 		"build":
 			match str(row.state):
 				"done":

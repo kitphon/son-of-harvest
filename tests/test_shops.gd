@@ -935,6 +935,15 @@ func _greenhouse_job(g: Node, said: Array) -> void:
 		if b != "greenhouse" and jobs[b].has("farm"):
 			check(int(gh.price) > int(jobs[b].price), "the greenhouse is the dearest farm job (%d over %s's %d)" % [gh.price, b, jobs[b].price])
 	check(int(gh.price) == 30000 and int(gh.days) == 6 and gh.farm == "greenhouse" and gh.work_flag == "greenhouse_work", "the greenhouse job: 30000 G, 6 days")
+	# Off-season seeds: none on the shelf and none to buy until the greenhouse stands (winter here).
+	var store := Shop.make("general", crops, foods)
+	g.season = 3   # winter
+	g.money = 1000
+	check(store.under_glass.get("needs", "") == "greenhouse" and not store.glass_built(g.house_built), "data: the store's under_glass waits for the greenhouse")
+	check(store.price("seeds:carrot", "winter", g.house_built) == -1 and store.stock("winter", g.house_built).size() == store.stock("winter").size(),
+		"before the greenhouse: no off-season seeds on the winter shelf")
+	var early: Dictionary = g.shop_buy("general", "seeds:carrot", 1)
+	check(not early.ok and g.money == 1000 and g.count("seeds:carrot") == 0, "before the greenhouse a fall seed can't be bought in winter: %s" % early.note)
 	g.money = 30000
 	g.weather_today = "sunny"
 	g.weather_tomorrow = "sunny"
@@ -952,4 +961,44 @@ func _greenhouse_job(g: Node, said: Array) -> void:
 	check("Hachiro the carpenter has finished the greenhouse." in said, "the morning message")
 	check(g.farm.fixed_at(FarmGrid.GREENHOUSE_DOOR) == "greenhouse_door" and g.house_rooms() == 3, "its door on the farm; House built leaves it out")
 	check(MapManager.data("farm").door_at(FarmGrid.GREENHOUSE_DOOR).get("to", "") == "greenhouse", "the farm map's door into it")
+	_off_season_seeds(g, store)
+
+
+## Once the greenhouse stands the store sells every other season's seeds (winter here): each
+## once, marked glass, at under_glass.percent of the seed price. They buy and sow under glass
+## only; the field outside still refuses them out of season.
+func _off_season_seeds(g: Node, store: Shop) -> void:
+	g.season = 3   # winter
+	g.money = 10000
+	var want := {}
+	for season in ["spring", "summer", "fall"]:
+		for crop in crops:
+			if season in crops[crop].seasons:
+				want["seeds:" + crop] = true
+	var shelf := store.stock("winter", g.house_built)
+	var glass := shelf.filter(func(e): return e.get("glass", false))
+	var items := glass.map(func(e): return e.item)
+	check(glass.size() == want.size() and want.keys().all(func(i): return i in items) and items.size() == glass.size(),
+		"under the greenhouse: each other season's seeds once (%d of %d)" % [glass.size(), want.size()])
+	var pct: int = int(store.under_glass.percent)
+	var carrot := int(crops.carrot.seed_price) * pct / 100
+	check(store.price("seeds:carrot", "winter", g.house_built) == carrot and carrot > int(crops.carrot.seed_price) and pct == 150,
+		"carrot seeds in winter at %d (%d%% of %d)" % [carrot, pct, crops.carrot.seed_price])
+	check(store.price("seeds:rice", "winter", g.house_built) == int(crops.rice.seed_price) * pct / 100 and store.price("seeds:turnip", "winter") == -1,
+		"rice (listed in two seasons) once; the plain winter shelf has no seeds")
+	check(store.price("seeds:turnip", "summer", g.house_built) == int(crops.turnip.seed_price) * pct / 100 and store.price("seeds:turnip", "spring", g.house_built) == int(crops.turnip.seed_price),
+		"in summer the spring seeds are the glass ones, the summer seeds keep their price")
+	check(store.stock("spring", g.house_built).filter(func(e): return e.get("glass", false)).size() == want.size() - 3,
+		"in spring the spring seeds are not repeated as glass")
+	var menu := ShopMenu.new(g, "general")
+	check(menu.tab_id() == "buy" and menu.rows().any(func(r): return r.get("glass", false) and r.item == "seeds:carrot"),
+		"the buy tab lists the carrot seeds under glass")
+	var r: Dictionary = g.shop_buy("general", "seeds:carrot", 2)
+	check(r.ok and g.money == 10000 - 2 * carrot and g.count("seeds:carrot") == 2, "two carrot seeds bought in winter: %s" % r.note)
+	var bed := Vector2i(1, 1)
+	for dy in range(-1, 2):
+		for dx in range(-1, 2):
+			g.beds().till(bed + Vector2i(dx, dy))
+	check(g.beds().sow(bed, "carrot", "winter") == 9, "the carrot seed sown under glass in winter")
+	check(g.farm.sow(Vector2i(10, 10), "carrot", "winter") == 0, "but the field outside still refuses a fall seed in winter")
 
