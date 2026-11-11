@@ -934,6 +934,16 @@ func _carrying_art() -> void:
 		var a_img := PlaceholderArt.tex("animal:%s:idle:0:dl" % ck).get_image()
 		var p_img := PlaceholderArt.tex("animal:%s:idle:0:dl" % kind).get_image()
 		check(_opaque(a_img) > _opaque(p_img), ck + " is rounder (%d against %d pixels)" % [_opaque(a_img), _opaque(p_img)])
+		# Enough belly to read at the game's size in every facing (the shorn ewe's was only 15).
+		for facing in AnimalArt.FACINGS:
+			var ci := PlaceholderArt.tex("animal:%s:idle:0:%s" % [ck, facing]).get_image()
+			var pi := PlaceholderArt.tex("animal:%s:idle:0:%s" % [kind, facing]).get_image()
+			var added := 0
+			for y in pi.get_height():
+				for x in pi.get_width():
+					if ci.get_pixel(x, y).a > 0.5 and pi.get_pixel(x, y).a <= 0.5:
+						added += 1
+			check(added >= 24, "%s %s: the belly adds %d pixels (24 or more to read)" % [ck, facing, added])
 	# Both views take the sprite kind from Animals.look: carrying, then back after the birth.
 	var a := _herd(["cow", "sheep"])
 	for x in a.list:

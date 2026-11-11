@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — The shorn ewe's carrying belly reads; a test for the cord's store line
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: data/animal_art.json `carrying.belly_of` overrides the belly per kind; the shorn ewe
+  gets [0.05, 1.0, 0.68, 1.1] (bigger and lower) because her small, pale body hid the plain
+  one between her legs; AnimalArt reads it (`belly_of.get(kind, belly)`). The cow and the ewe
+  in wool are unchanged. test_animals `_carrying_art` now asks every carrying kind, in every
+  facing, to add 24 or more drawn pixels to the plain picture (the shorn ewe added 15-16
+  before, 29 now; the woolly ewe 27, the cow 61-62). test_shops `_counter_and_screen` opens
+  the store, walks its buy rows and checks the cord's row says "Hold it up, then E on a happy,
+  grown cow or ewe." and no other item row does.
+- Checked: test_animals, test_shops, test_view2d, test_save, test_lang `OK (0 failed)`; with the
+  override taken out test_animals fails the four shorn facings (16, 16, 15, 15 pixels); smoke
+  runs (title, `--demo --map=barn --carrying`) 0 error or warning lines; a 5x sheet of the
+  shorn and woolly ewes, plain and carrying, in all four facings looked at.
+- Left / next: `--carrying` adds a woolly ewe, so no in-game frame of a shorn carrying ewe.
+
 ## 2026-11-11 — Merge: the carrying look, the cord's Tie hint, Kota and Tome's snow lines
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three subagents in their own worktrees, the model picked by the job: b9f1964 a carrying

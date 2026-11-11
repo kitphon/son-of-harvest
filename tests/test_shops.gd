@@ -874,6 +874,21 @@ func _counter_and_screen() -> void:
 	screen._refresh()
 	check(screen._info_text() == "Needs 3 Akagane ore. 2 days.", "screen: %s" % screen._info_text())
 	screen.close()
+	# The store's screen says how the Musubi cord is used, on its own row only.
+	screen.open("general")
+	check(screen.menu.tab_id() == "buy", "the store opens on its buy tab")
+	var cord: String = g.animals.breed_item()
+	var seen := false
+	for i in screen.menu.rows().size():
+		screen.menu.cursor = i
+		var row: Dictionary = screen.menu.current()
+		if row.get("item", "") == cord:
+			seen = true
+			check(screen._info_text() == "Hold it up, then E on a happy, grown cow or ewe.", "the cord's row: %s" % screen._info_text())
+		elif not row.is_empty() and str(row.get("to", "")) == "":
+			check(screen._info_text() != "Hold it up, then E on a happy, grown cow or ewe.", "%s's row has its own line" % row.get("item", ""))
+	check(seen, "the store sells the cord (%s)" % cord)
+	screen.close()
 	screen.free()
 	g.new_game()
 

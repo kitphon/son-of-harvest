@@ -421,7 +421,7 @@ static func _quad(kind: String, pose: String, frame: int, away: bool, carrying :
 		_tail(img, s, kind, bx, by, rx, ry, body, false, sick)
 	# The body (carrying: a rounder belly hung under it, data/animal_art.json "carrying").
 	var cr: Dictionary = art().carrying
-	var bl: Array = cr.belly
+	var bl: Array = cr.get("belly_of", {}).get(kind, cr.belly)
 	var belly := Vector4(bx + rx * float(bl[0]), by + ry * float(bl[1]), rx * float(bl[2]), ry * float(bl[3]))
 	var low := by + ry
 	if fleece:
