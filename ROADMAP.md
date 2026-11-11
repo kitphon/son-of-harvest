@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-11 Fish log: a pause menu page listing every fish kind (icon, name, count, where / when it bites; "???" until caught; "N of M kinds"), `--pause=fishlog`; see WORKLOG.
 [x] 2026-11-11 Portraits' first pass: `_portrait_of` lays flat materials straight for PortraitArt.refine, so OUTLINE is only a colour tests look for; same keys, moods and pictures.
 [x] Thai coverage complete (2026-11-10): the last 36 gaps were showcase view names, node and class names, a shader marker and a fallback format, none shown; LangCatalog leaves them out (DATA_SKIP, NOT_SHOWN), th 2599 of 2599; see WORKLOG.
 [x] Unrefined figure path removed (2026-11-10): FigureArt's `_refine` flag and branches, the near-black outline stamp and the `OUTLINE` const gone (no picture reached them); `_stamp` is the refined stamp; 918 figure pictures identical before and after; see WORKLOG.

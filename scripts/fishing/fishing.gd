@@ -128,3 +128,49 @@ static func pick(weights: Dictionary, roll: float) -> String:
 		if at < 0.0:
 			return id
 	return "" if weights.is_empty() else weights.keys().back()
+
+
+# --- the fish log (pause menu) ---------------------------------------------------
+
+## One row per fish kind in data/fish.json, in file order: {id, count (0 = never caught)}.
+## `caught` is Game.fish_caught (fish id -> how many were caught this game).
+static func log_rows(fish_rules: Dictionary, caught: Dictionary) -> Array:
+	var out := []
+	for id in fish_rules.get("fish", {}):
+		out.append({"id": id, "count": int(caught.get(id, 0))})
+	return out
+
+
+## How many kinds were caught at least once (only kinds still in the data count).
+static func kinds_caught(fish_rules: Dictionary, caught: Dictionary) -> int:
+	var n := 0
+	for row in log_rows(fish_rules, caught):
+		n += int(row.count > 0)
+	return n
+
+
+## The places a fish bites, as names shown to the player, most common first.
+static func places_of(fish_rules: Dictionary, id: String) -> Array[String]:
+	var weights: Dictionary = fish_rules.get("fish", {}).get(id, {}).get("places", {})
+	var ids := weights.keys()
+	ids.sort_custom(func(a, b): return float(weights[a]) > float(weights[b]))
+	var out: Array[String] = []
+	for p in ids:
+		out.append(String(fish_rules.get("places", {}).get(p, {}).get("name", p)))
+	return out
+
+
+## The seasons a fish bites in, as ids in calendar order (`all`); every one when the data names none.
+static func seasons_of(fish_rules: Dictionary, id: String, all: Array) -> Array[String]:
+	var f: Dictionary = fish_rules.get("fish", {}).get(id, {})
+	var out: Array[String] = []
+	for s in all:
+		if not f.has("seasons") or s in f.seasons:
+			out.append(s)
+	return out
+
+
+## The clock hours a fish bites in, [from, to), or [] for all day.
+static func hours_of(fish_rules: Dictionary, id: String) -> Array:
+	var h: Array = fish_rules.get("fish", {}).get(id, {}).get("hours", [])
+	return h if h.size() == 2 else []

@@ -18,6 +18,7 @@ func _init() -> void:
 	_pause_rule()
 	_settings()
 	_pause_menu()
+	_fish_log()
 	_controls()
 	_controls_menu()
 	_pad()
@@ -231,7 +232,7 @@ func _settings() -> void:
 func _pause_menu() -> void:
 	var s := Settings.make()
 	var m := PauseMenu.new(s)
-	check(m.page == "main" and m.list.items == (["resume", "save", "settings", "title"] as Array[String]), "main page")
+	check(m.page == "main" and m.list.items == (["resume", "save", "settings", "fishlog", "title"] as Array[String]), "main page")
 	check(m.heading() == "Paused" and m.list.current() == "resume", "cursor on resume")
 	check(m.choose() == "resume", "resume closes the menu")
 	check(m.back() == "resume", "Esc on the main page closes it")
@@ -312,6 +313,64 @@ func _pause_menu() -> void:
 	check(l.current() == "c" and not l.point("b") and l.point("a"), "off items skipped")
 	l.cursor = 1
 	check(l.choose() == "", "an item that is off can't be chosen")
+
+
+## The fish log page: a row per kind, caught ones named with their count, the rest "???".
+func _fish_log() -> void:
+	var rules: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/fish.json"))
+	var caught := {"funa": 12, "ayu": 3}
+	var m := PauseMenu.new(Settings.make(), rules, caught)
+	m.list.point("fishlog")
+	check(m.label("fishlog") == "Fish log" and m.choose() == "" and m.page == "fishlog" and m.heading() == "Fish log", "the main page opens the fish log")
+	var ids: Array = rules.fish.keys()
+	check(m.list.items.size() == ids.size() + 1 and m.list.items.back() == "back" and m.list.items[0] == ids[0], "a row per kind, then Back")
+	check(m.label("funa") == "Crucian carp" and m.count_text("funa") == "x12", "a caught fish: name and count (%s, %s)" % [m.label("funa"), m.count_text("funa")])
+	check(m.label("koi") == "???" and m.count_text("koi") == "", "an uncaught fish is ???")
+	check(m.total_text() == "2 of %d kinds" % ids.size(), "the total (%s)" % m.total_text())
+	check(m.fish_details("koi") == (["", "", ""] as Array[String]) and m.fish_details("back")[0] == "", "no details for an unknown fish or Back")
+	var d := m.fish_details("ayu")
+	check(d[0] == "Where: the river and the village pond" and d[1] == "Season: Summer" and d[2] == "Hours: 5:00-12:00", "details from the data (%s)" % [d])
+	check(m.fish_details("funa")[1] == "Season: All year" and m.fish_details("funa")[2] == "Hours: Any hour", "all year, any hour")
+	check(m.adjust(1) == "" and m.choose() == "" and m.page == "fishlog", "left / right and Enter on a fish do nothing")
+	m.back()
+	check(m.page == "main" and m.list.current() == "fishlog", "Esc goes back with the cursor on the fish log")
+	m.choose()
+	m.list.point("back")
+	m.choose()
+	check(m.page == "main" and m.list.current() == "fishlog", "Back returns too")
+	var empty := PauseMenu.new(Settings.make())
+	empty.open("fishlog")
+	check(empty.list.items == (["back"] as Array[String]) and empty.total_text() == "0 of 0 kinds", "no fish data: an empty log opens without trouble")
+
+## The fish log fits its width in English, Thai and a third longer, and its rows at every UI size
+## (PauseScreen names the Game autoload, so it is loaded by path once the tree is up).
+func _fish_log_fit() -> void:
+	var rules: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/fish.json"))
+	var ids: Array = rules.fish.keys()
+	var pause: GDScript = load("res://scripts/ui/pause_screen.gd")
+	var k: Dictionary = pause.get_script_constant_map()
+	# Every row and detail fits the box, in English and a third longer.
+	var room: int = k.FISHLOG_WIDTH - 8 - 18   # a detail line
+	var name_room: int = room - k.ICON_W - 30   # a name, with the count and the icon beside it
+	var worst := 0
+	var all := {}
+	for id in ids:
+		all[id] = 1
+	var full := PauseMenu.new(Settings.make(), rules, all)
+	full.open("fishlog")
+	for lang in ["en", "th", Lang.PSEUDO]:
+		Lang.set_language(lang)
+		for id in ids:
+			check(PixelFont.shown_width(full.label(id)) <= name_room, "the name of %s fits in %s" % [id, lang])
+			for line in full.fish_details(id):
+				worst = maxi(worst, PixelFont.shown_width(Lang.t(line)))
+		check(worst <= room, "the fish log fits its width in %s (%d of %d px)" % [lang, worst, room])
+		worst = 0
+	Lang.set_language("en")
+	for wanted in [1.0, 1.25, 1.5]:
+		var n: int = pause.visible_rows(wanted, 270, k.FISH_LINES)
+		var h: float = (k.TOP + 8 + n * k.ROW_H + (1 + k.FISH_LINES) * k.ROW_H + 4) * wanted
+		check(n >= 5 and h <= 270 and UiScale.fit(wanted, Vector2(k.FISHLOG_WIDTH, h / wanted), Vector2(480, 270)) == wanted, "fish log at %d%%: %d rows fit (%d px)" % [int(wanted * 100), n, h])
 
 
 ## Controls: defaults from data, binding, swapping, refusing, clearing, the InputMap, the
@@ -713,6 +772,7 @@ func _settings_in_effect() -> void:
 		check(h <= 270 and UiScale.fit(wanted, Vector2(k.CONTROLS_WIDTH, h / wanted), Vector2(480, 270)) == wanted, "pause menu at %d%%: %d rows fit (%d px)" % [int(wanted * 100), n, h])
 		rows.append(n)
 	check(rows[0] == k.VISIBLE and rows[2] < rows[1] and rows[1] < rows[0], "bigger UI, fewer rows (%s)" % [rows])
+	_fish_log_fit()
 
 
 func _has_button(action: String, button: int) -> bool:
