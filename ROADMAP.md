@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-11 Dish icons set apart by more than colour: each food look in data/foods.json can add its own detail (`top`, `marks`, `bare`, `steam` as drawing steps), the bowl shows its contents from a little above; noodles and chopsticks, tofu, chunks, mixed rice, mochi, a caramel pudding, kagami mochi, the dobin pot, a matcha bowl and more; test_menu `_dish_details`; see WORKLOG.
 [x] 2026-11-11 Morning mist (asagiri): soft low sheets over the water, the farm's pond and the rice paddies at dawn, thickest 5:00-6:30, gone by 8:00; most in spring and fall, a little in summer, winter over open water only; none in a storm or indoors, thin in rain and wind; tinted by the dawn sky; both views (MistRules, MistLayer, MistView, data/mist.json, test_mist); see WORKLOG.
 [x] 2026-11-11 Every shippable item's icon checked for a fallback picture: none uses one (all 86 shipped-page rows have their own, no two alike), so nothing new was drawn; test_menu `_no_fallback_icons` keeps it so; see WORKLOG.
 [x] 2026-11-11 The silo's grass pile checked in frames: 3D at night (dim, no glow), 3D in winter (white cap), flat winter (beside the silo, white cap); all 31 test scripts OK, no code change; see WORKLOG.
