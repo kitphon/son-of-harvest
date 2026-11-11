@@ -25,6 +25,7 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 ## Next up
 [x] 2026-11-11 A carrying cow or ewe looks it in both views: a rounder, lower belly and a fuller udder (data/animal_art.json `carrying`, sprite kind + `breeding.sprite_suffix`), plain again after the birth; `--carrying`; see WORKLOG.
 [x] 2026-11-11 The Musubi cord says how it is used: the E hint reads "Tie" on a cow or ewe it would take, the store screen says how to use it; `--cord`; Thai; see WORKLOG.
+[x] 2026-11-11 Kota and Tome get snow lines (snow picks, a winter storm counts as the blizzard and gets snow, not thunder; two lines each, EN and TH); see WORKLOG.
 [x] 2026-11-11 Kota and Tome get rain and storm lines (talk picks, Thai); snow still open for both, see WORKLOG.
 [x] 2026-11-11 Fish log: a pause menu page listing every fish kind (icon, name, count, where / when it bites; "???" until caught; "N of M kinds"), `--pause=fishlog`; see WORKLOG.
 [x] 2026-11-11 Cow and sheep breeding: the Musubi cord (Yorozu Store, 600 G) held up and tied on a grown, healthy cow or ewe at 60+ happiness; 12 / 9 nights carrying without milk or wool, "(in calf)" / "(in lamb)" in her name, the due date on E; the calf / lamb born in the barn on the due night (named from the list, a little happier), waits while the barn is full; saved (old saves load); its own refined icon; Thai; see WORKLOG.

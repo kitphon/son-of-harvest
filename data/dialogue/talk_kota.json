@@ -7,6 +7,8 @@
 		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
 		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
 		{"if": {"festival": ["years_turn"], "time": ["19:00", "24:00"]}, "at": ["festival_years_turn"]},
+		{"if": {"weather": ["snow"]}, "at": ["snow_1", "snow_2"]},
+		{"if": {"weather": ["storm"], "season": ["winter"]}, "at": ["snow_1", "snow_2"]},
 		{"if": {"weather": ["storm"]}, "at": ["storm_1", "storm_2"]},
 			{"if": {"weather": ["rain"]}, "at": ["rain_1", "rain_2"]},
 			{"if": {"band": [6, 6], "flags": ["heart_kota_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
@@ -91,6 +93,8 @@
 		{"id": "rain_1", "speaker": "kota", "mood": "happy", "text": "Puddles everywhere! I'm gonna jump in every single one before Mom sees.", "next": "end"},
 		{"id": "rain_2", "speaker": "kota", "mood": "neutral", "text": "Rain on the roof is so loud I can't hear my own thoughts. That's the best part.", "next": "end"},
 		{"id": "storm_1", "speaker": "kota", "mood": "surprised", "text": "Did you hear that thunder? It shook the whole shrine roof! ...I'm not scared. A little.", "next": "end"},
-		{"id": "storm_2", "speaker": "kota", "mood": "neutral", "text": "The wind's so strong it nearly took my hat to the river. Hold on to yours!", "next": "end"}
+		{"id": "storm_2", "speaker": "kota", "mood": "neutral", "text": "The wind's so strong it nearly took my hat to the river. Hold on to yours!", "next": "end"},
+		{"id": "snow_1", "speaker": "kota", "mood": "happy", "text": "It's snowing! Watch me catch a flake on my tongue. I'm gonna get it on the first try.", "next": "end"},
+		{"id": "snow_2", "speaker": "kota", "mood": "neutral", "text": "My boots are soaked already. Mom's gonna yell. ...Worth it, though.", "next": "end"}
 	]
 }

@@ -168,6 +168,12 @@ func _picks() -> void:
 	check(Talk.pick("kota", _state({"band": 2, "weather": "sunny"})) not in ["rain_1", "rain_2", "storm_1", "storm_2"], "Kota on a sunny day has no weather line")
 	check(Talk.pick("tome", _state({"band": 2, "weather": "rain"})) in ["rain_1", "rain_2"], "Tome on a wet day")
 	check(Talk.pick("tome", _state({"band": 2, "weather": "storm"})) in ["storm_1", "storm_2"], "Tome in a storm")
+	# Snow: Kota and Tome have a snow pick of their own; a winter storm is a blizzard (snow), not thunder.
+	for who in ["kota", "tome"]:
+		check(Talk.pick(who, _state({"band": 2, "weather": "snow", "season": "winter"})) in ["snow_1", "snow_2"], "%s on a snowy day" % who)
+		check(Talk.pick(who, _state({"band": 2, "weather": "storm", "season": "winter"})) in ["snow_1", "snow_2"], "%s in a winter blizzard" % who)
+		check(Talk.pick(who, _state({"band": 2, "weather": "storm", "season": "spring"})) in ["storm_1", "storm_2"], "%s in a spring storm is still thunder" % who)
+		check(Talk.pick(who, _state({"band": 2, "weather": "sunny", "season": "winter"})) in ["winter", "winter_1", "winter_2"], "%s on a dry winter day has a winter line" % who)
 	check(Talk.pick("hachiro", _state({"band": 2, "time": 480})) in ["morning_1", "morning_2"], "Hachiro before the smithy opens")
 	check(Talk.pick("kota", _state({"band": 2, "season": "summer", "time": 900})) in ["cicada_1", "cicada_2"], "Kota's summer afternoons")
 	check(Talk.pick("sayo", _state({"band": 6, "flags": {"heart_sayo_6": true}, "season": "fall", "day": 15, "festival": "moon_night", "time": 1200}))

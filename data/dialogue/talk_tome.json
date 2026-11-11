@@ -16,6 +16,8 @@
 		{"if": {"weekday": ["fri"], "flags": ["heart_kaede_6"], "not_flags": ["spouse", "engaged"]}, "at": ["knot_hint"]},
 		{"if": {"weekday": ["fri"], "flags": ["heart_shino_6"], "not_flags": ["spouse", "engaged"]}, "at": ["knot_hint"]},
 		{"if": {"weekday": ["fri"], "flags": ["heart_ren_6"], "not_flags": ["spouse", "engaged"]}, "at": ["knot_hint"]},
+		{"if": {"weather": ["snow"]}, "at": ["snow_1", "snow_2"]},
+		{"if": {"weather": ["storm"], "season": ["winter"]}, "at": ["snow_1", "snow_2"]},
 		{"if": {"weather": ["storm"]}, "at": ["storm_1", "storm_2"]},
 			{"if": {"weather": ["rain"]}, "at": ["rain_1", "rain_2"]},
 			{"if": {"band": [6, 6], "flags": ["heart_tome_6"]}, "at": ["dear_1", "dear_2", "dear_3"]},
@@ -105,6 +107,8 @@
 		{"id": "rain_1", "speaker": "tome", "mood": "neutral", "text": "Put your umbrella up, child, and come in before you get soaked. The tea's already hot.", "next": "end"},
 		{"id": "rain_2", "speaker": "tome", "mood": "happy", "text": "Rain on the tiles and my husband would doze off in his chair. Lucky man.", "next": "end"},
 		{"id": "storm_1", "speaker": "tome", "mood": "sad", "text": "Keep clear of the bamboo in this wind, child. It bends, but a falling branch doesn't.", "next": "end"},
-		{"id": "storm_2", "speaker": "tome", "mood": "neutral", "text": "Shutters closed, lamp lit, kettle on. That's how we waited out a storm in my day. Come and sit.", "next": "end"}
+		{"id": "storm_2", "speaker": "tome", "mood": "neutral", "text": "Shutters closed, lamp lit, kettle on. That's how we waited out a storm in my day. Come and sit.", "next": "end"},
+		{"id": "snow_1", "speaker": "tome", "mood": "neutral", "text": "Snow on the tiles again, child. My husband used to sweep the path before I was even up. Mind the step by the gate.", "next": "end"},
+		{"id": "snow_2", "speaker": "tome", "mood": "happy", "text": "Come in and warm your hands. He always said snow is the sky tucking the fields in for the winter.", "next": "end"}
 	]
 }
