@@ -111,7 +111,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   from `data/maps` (the villagers' homes: `--map=tome_house --time=6:30` shows Tome by her
   hearth; `kota_house`, `sayo_house`; `town@sayo` stands at Sayo's side door of the store;
   `--map=clinic --time=12:00` shows the village clinic with Dr. Yae at her counter, `town@clinic` its door), `--rucksack` (or `--rucksack=storage`) to open the rucksack (or the
-  storage chest; `--demo` puts a few crops in both), `--cord` (with `--demo --map=barn`) to hold the Musubi cord below a happy grown animal, the hint "Tie", `--hold` to start with a turnip overhead
+  storage chest; `--demo` puts a few crops in both), `--cord` (with `--demo --map=barn`) to hold the Musubi cord below a happy grown animal, the hint "Tie", `--dog-held` to start with the dog in the farmer's arms (add `--old` for the old dog's grey face), `--hold` to start with a turnip overhead
   and a potato on the ground in front of the bin, `--time=H:MM` (after `--demo`) to set the
   clock (villagers stand where their plans say then; `--demo --map=town` at 10:00 shows Kota
   and Tome by the start spawn; add `--whistle` (or `--whistle=<id>`) and every walker whistles at

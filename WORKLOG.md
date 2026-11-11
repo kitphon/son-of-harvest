@@ -10,6 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — `--dog-held`: screenshots of the old dog in the arms
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a start flag `--dog-held` (after `--demo`) lifts the dog into the farmer's arms
+  (Animals.dog_lift), so the held dog can be shot; with `--old` it is the old dog. AGENTS.md's
+  screenshot list and README say so.
+- Checked: Movie Maker frames of `--demo --dog-held` and `--demo --dog-held --old` (3D) and
+  `res://scenes/main_2d.tscn -- --demo --dog-held --old` (flat): the farmer holds the dog
+  overhead with the "Put down" hint; side by side, 6x, the old dog's head and chest are paler
+  and greyer than the young one's, the body still red-tan; the flat view shows the same grey
+  head. Smoke runs 0 error or warning lines; test_animals OK.
+- Left / next: nothing for this.
+
 ## 2026-11-11 — The old dog in the arms has its grey face
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: Game.held_key gives `animal:<Animals.dog_look()>:held:0`, so an old dog in the farmer's

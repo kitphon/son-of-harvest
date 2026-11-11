@@ -390,6 +390,8 @@ func new_game() -> void:
 			var cows := animals.in_home("barn")
 			if maps.current().id == "barn" and not cows.is_empty():   # stand below the first one, facing her
 				maps.place("barn", animals.spot(cows[0]) + Vector2i.DOWN, Vector2i.UP)
+		elif arg == "--dog-held":   # e.g. `-- --demo --dog-held` (add `--old` for the old dog): the dog in the farmer's arms
+			animals.dog_lift()
 		elif arg == "--hold":   # e.g. `-- --demo --hold`: a turnip overhead, a potato in front of the bin
 			held = "turnip"
 			farm.place_item(Vector2i(8, 4), "potato")
