@@ -6,8 +6,9 @@ extends RefCounted
 ##
 ## The brush, the milker and the shears hang in the barn, so E on an animal does the first
 ## thing that is due: milk / shear it when its product is ready (into the hands, overhead),
-## else brush it, else talk to it; then it tells how the animal feels (and when a carrying
-## one is due). With the musubi cord held up, E ties it on her stall instead (Animals.breed).
+## else brush it, else talk to it; then it tells how the animal feels (when a carrying one is
+## due, and on a talk how old it is). With the musubi cord held up, E ties it on her stall
+## instead (Animals.breed).
 
 
 ## The barn's map id (data/animals.json homes.barn.map).
@@ -96,11 +97,11 @@ static func tend(i: int) -> void:
 		Sfx.play("brush_stroke")
 		Game.message.emit(Lang.join(["You brushed %s." % a.label(beast), mood(beast, a.happy_max()) % a.label(beast), due_note(beast)]))
 	elif a.pet(i):
-		Game.message.emit(Lang.join([mood(beast, a.happy_max()) % a.label(beast), due_note(beast)]))
+		Game.message.emit(Lang.join([mood(beast, a.happy_max()) % a.label(beast), due_note(beast), a.age_text(beast)]))
 	elif a.product_ready(beast):
 		Game.message.emit("Your hands are full.")
 	else:
-		Game.message.emit(Lang.join([mood(beast, a.happy_max()) % a.label(beast), due_note(beast)]))
+		Game.message.emit(Lang.join([mood(beast, a.happy_max()) % a.label(beast), due_note(beast), a.age_text(beast)]))
 
 
 ## The musubi cord held up, tied on animal `i`'s stall: she carries from tonight and the cord
@@ -142,7 +143,7 @@ static func due_note(beast: Dictionary) -> String:
 static func mood(beast: Dictionary, most: int) -> String:
 	var p := float(beast.happy) / most
 	if p < 0.2:
-		return "%s looks unhappy"
+		return "%s looks unhappy."
 	if p < 0.6:
-		return "%s seems content"
-	return "%s looks very happy"
+		return "%s seems content."
+	return "%s looks very happy."

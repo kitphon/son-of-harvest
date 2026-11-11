@@ -10,6 +10,48 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Animals grow old
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: Animals counts every animal's `age` (nights lived, already saved) towards old age.
+  data/animals.json: per kind `bought_days` (a bought or starting animal's age: hen 30, cow
+  120, ewe 60; was adult_days), `old_days` (hen 360, ewe 480, cow 840) and `pass_days` (hen
+  480-600, ewe 600-720, cow 1080-1320), and an `aging` block (the calendar it is told in,
+  `skip_chance` 0.25, the passing line, the age lines). Animals.is_old / label ("Kome (old)";
+  "(in calf)" says more and wins), age_text (one whole sentence per case: "was born last
+  night", "a day", "%d days", "a season", "%d seasons", "a year", "%d years", and the four
+  year-and-season forms), pass_days / pass_chance, bought_age. day_end: an old animal skips
+  its egg, or its milk / wool doesn't grow, on a skip_chance roll of a fed night; then
+  `_passings` (before the births) takes away whoever rolls under pass_chance = 1 / (nights
+  left to pass_days[1] + 1): every night of the range equally likely, sure at its end; a
+  carrying mother rolls 0 until her young is born. The news "%s passed away peacefully in the
+  night, old and well cared for." waits in her home like the other animal news; her place is
+  free. E on a hen (a stroke) or a cow / sheep (a talk, not the brushing line) adds the age
+  line; the coop and barn mood lines now end with a full stop (Thai keys renamed with them).
+  A saved animal without an age loads as if just bought. `--old` (after `--demo`) makes every
+  grown animal old. Thai for all 13 new lines (data/lang/th/ui.json). README → Cows and sheep,
+  AGENTS.md (test list and screenshot flags).
+- Balance: the record plays on day 240 (year 3); the first hens (bought age 30) can't pass
+  before night 450 of the game, so the starting flock sees the record and a bit more, and a
+  hen is "old" for about a year first: visible well ahead. A hen pays ~40 G a day, so four
+  years of eggs is many times her 1,400 G; a quarter fewer eggs when old is a nudge to
+  hatch a chick, not a loss. Ewes sit between hens and cows; a cow (6,000 G) is a long friend
+  (9-11 years), and the cord gives calves long before. Uniform odds over the range keep it
+  unpredictable to the night but never early; nothing but age ends a life (DESIGN proposal 4).
+- Checked: after `--import`, all 31 tests/test_*.gd print `OK (0 failed)`; test_animals
+  `_aging` (data ranges, bought / young ages, the "(old)" name, twelve age_text cases, the
+  pass odds even over each kind's range and none left after, a passing through day_end with
+  the news and the place freed, a carrying cow giving birth first and passing the night
+  after, old hens laying fewer than the young flock's 240 eggs over 40 nights but more than
+  half, old cows the same against 120 milkings), `_aging_save`
+  (round trip, no age loads as bought, a negative age refused), `_aging_actions` (E on an old
+  hen and an old cow ends with the age line, the passing news on entering the coop, Thai);
+  test_save: an old hen's age back. Smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, `--demo --map=barn`, `--demo --map=barn --old`) 0 error or warning
+  lines; lang_report `th: 2648 of 2648 done (100%), 0 missing, 0 stale`. No screenshot taken
+  (nothing new is drawn).
+- Left / next: no old look in the sprites (grey muzzle etc.); the dog doesn't age; the old
+  skip is a roll, not shown on E.
+
 ## 2026-11-11 — The shorn ewe's carrying belly reads; a test for the cord's store line
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: data/animal_art.json `carrying.belly_of` overrides the belly per kind; the shorn ewe

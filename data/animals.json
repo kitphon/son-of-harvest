@@ -13,7 +13,12 @@
 			"_adult_days": "A hatched chick grows up after this many nights; only adults lay.",
 			"lays": "egg",
 			"price": 1400,
-			"_price": "What the store asks (data/shops.json holds the real price): a hen pays about 40 G a day after feed, so she pays back in about 5 weeks."
+			"_price": "What the store asks (data/shops.json holds the real price): a hen pays about 40 G a day after feed, so she pays back in about 5 weeks.",
+			"bought_days": 30,
+			"_bought_days": "Age of a bought (or starting) hen: a season old, already laying.",
+			"old_days": 360,
+			"pass_days": [480, 600],
+			"_old_days": "Ages in days lived (a season is 30, a year 120). A hen is old from her fourth year (360) and passes away between 4 and 5 years (480-600): a bought hen gives about 4 years of eggs, 40 G a day after feed, so about 60x her price, and the first hens live past the record on the first morning of year 3."
 		},
 		"cow": {
 			"name": "Cow",
@@ -39,7 +44,12 @@
 				"_breed": "Nights from the musubi cord to the calf (Animals.breed). 12 nights without milk is about 1,800 G (150 a day after fodder), so with the cord a calf costs about 2,400 against the store's 3,200: worth it, not a money machine."
 			},
 			"price": 6000,
-			"_price": "What the store asks (data/shops.json; a calf 3200): a cow gives 110-240 G a day, about 150 after fodder, so she pays back in about 6 weeks."
+			"_price": "What the store asks (data/shops.json; a calf 3200): a cow gives 110-240 G a day, about 150 after fodder, so she pays back in about 6 weeks.",
+			"bought_days": 120,
+			"_bought_days": "A bought cow is a year old.",
+			"old_days": 840,
+			"pass_days": [1080, 1320],
+			"_old_days": "A cow is old from her eighth year (840) and passes away between 9 and 11 years (1080-1320): she is a long friend, and a calf from the cord keeps the barn going long before."
 		},
 		"sheep": {
 			"name": "Sheep",
@@ -65,7 +75,12 @@
 				"_breed": "9 nights: three wool cycles missed (about 900 G), with the cord about 1,500 against the store's 1,900 for a lamb."
 			},
 			"price": 3600,
-			"_price": "What the store asks (data/shops.json; a lamb 1900): 180-420 G of wool every 3 days (60-140 G a day) for the same fodder as a cow."
+			"_price": "What the store asks (data/shops.json; a lamb 1900): 180-420 G of wool every 3 days (60-140 G a day) for the same fodder as a cow.",
+			"bought_days": 60,
+			"_bought_days": "A bought ewe is two seasons old.",
+			"old_days": 480,
+			"pass_days": [600, 720],
+			"_old_days": "A ewe is old from her fifth year (480) and passes away between 5 and 6 years (600-720), between the hen and the cow."
 		}
 	},
 	"homes": {
@@ -139,6 +154,29 @@
 		"_born_happy": "A calf or lamb born on the farm starts this much happier than a bought one (happy_start).",
 		"sprite_suffix": "_carrying",
 		"_sprite_suffix": "Added to a carrying cow's or ewe's sprite kind (Animals.look: cow_carrying, sheep_carrying, sheep_shorn_carrying), drawn by AnimalArt with a rounder, lower belly (data/animal_art.json carrying); gone again after the birth."
+	},
+	"aging": {
+		"_about": "Every animal counts the nights it has lived (age; a bought one starts at its kind's bought_days, a farm-born one at 0; saves from before kept the age they had). From its kind's old_days it is old: its name says so (Kome (old), Animals.label) and its products thin out a little. Once its age reaches pass_days[0] it may pass away peacefully at night, with a chance each night of 1 / (nights left to pass_days[1] + 1), so the night falls evenly over the range and is sure at pass_days[1]. Never sick, starved or hurried: only old age, and a carrying mother waits for her young first (DESIGN proposal 4: seen ahead, kind).",
+		"season_days": 30,
+		"seasons": 4,
+		"_season_days": "The calendar the age is told in (Game.DAYS_PER_SEASON, Game.SEASONS); test_animals checks they match.",
+		"skip_chance": 0.25,
+		"_skip_chance": "An old hen skips laying, and an old cow's or ewe's milk or wool doesn't grow, on about one fed night in four.",
+		"passed": "%s passed away peacefully in the night, old and well cared for.",
+		"age_lines": {
+			"new": "%s was born last night.",
+			"day": "%s is a day old.",
+			"days": "%s is %d days old.",
+			"season": "%s is a season old.",
+			"seasons": "%s is %d seasons old.",
+			"year": "%s is a year old.",
+			"years": "%s is %d years old.",
+			"year_season": "%s is a year and a season old.",
+			"year_seasons": "%s is a year and %d seasons old.",
+			"years_season": "%s is %d years and a season old.",
+			"years_seasons": "%s is %d years and %d seasons old."
+		},
+		"_age_lines": "What E on an animal says about its age (Animals.age_text): days under a season, then years and seasons."
 	},
 	"incubator": {
 		"hatch_days": 3,

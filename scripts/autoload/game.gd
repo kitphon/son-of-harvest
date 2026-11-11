@@ -371,6 +371,11 @@ func new_game() -> void:
 					animals.list.back().carry_days = 3
 					animals.list.back().prod_days = int(animals.gives(animals.list.back()).every)   # the ewe in full wool
 			animals.changed.emit()
+		elif arg == "--old":   # e.g. `-- --demo --map=barn --old`: every grown animal old ("Kome (old)", its age on E)
+			for beast in animals.list:
+				if animals.is_adult(beast):
+					beast.age = maxi(int(beast.age), int(animals.kind_rule(beast.kind).get("old_days", beast.age)))
+			animals.changed.emit()
 		elif arg == "--barn-out":   # e.g. `-- --demo --map=farm@barn --barn-out`: cows and sheep grazing
 			animals.state.barn.out = true
 		elif arg == "--pause=fishlog":   # `-- --demo --pause=fishlog`: a few catches in the log already

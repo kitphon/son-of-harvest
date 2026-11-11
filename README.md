@@ -184,6 +184,16 @@ effect the moment it changes and saved to `user://settings.json` (version 2; a v
   lower belly (the cow's udder fuller), her sprite kind plus `breeding.sprite_suffix`
   ("cow_carrying"), numbers in `data/animal_art.json` `carrying`; plain again after the birth.
   `-- --demo --map=barn --carrying` adds a carrying cow and ewe beside the demo's.
+- Aging (`data/animals.json` `aging` and each kind's `bought_days` / `old_days` /
+  `pass_days`): every hen, cow and sheep counts the nights it has lived (a bought one starts a
+  season / a year / two seasons old, a farm-born one at 0). E on it tells its age ("Kome is 3
+  years and a season old."). From its fourth year (a hen), fifth (a ewe) or eighth (a cow) it
+  is old: "Kome (old)", and on about one fed night in four it lays no egg or grows no milk or
+  wool. Between 4 and 5 years (hen), 5 and 6 (ewe) or 9 and 11 (cow) it passes away in its
+  sleep, any night in that range as likely, surely by its end; nothing else ends a life. The
+  morning news in its home says so and its place is free. A carrying mother has her young
+  first. The age is saved (a saved animal without one loads as if just bought).
+  `-- --demo --map=barn --old` makes the demo's grown animals old.
 - The dog (Goro): wanders near its spot right of the stand, and once fond enough (about a
   week of pats) follows the farmer about the farm. E pets it (once a day counts), E again
   picks it up; either button sets it down in front. A day without either costs affection.
