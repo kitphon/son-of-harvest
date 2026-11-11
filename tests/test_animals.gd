@@ -25,6 +25,8 @@ func _init() -> void:
 	_carrying_art()
 	_aging()
 	_aging_save()
+	_old_look()
+	_dog_age()
 
 
 func _process(_delta: float) -> bool:
@@ -747,9 +749,105 @@ func _aging_actions() -> void:
 	var th := [Lang.t("%s (old)" % cow_name), Lang.t(String(a.aging().passed) % name0), Lang.t("%s is 3 years and a season old." % name0)]
 	check(th[0].begins_with(cow_name) and not th[0].contains("old") and not th[1].contains("passed") and not th[2].contains("years") and th[2].contains("3"), "the Thai lines: %s" % [th])
 	Lang.set_language("en")
+	# Petting the dog tells its age after its mood.
+	var DogActions: GDScript = load("res://scripts/animals/dog_actions.gd")
+	g.go_to_map("farm", a.dog.cell + Vector2i.DOWN, Vector2i.UP)
+	a.dog.petted = false
+	a.dog.age = int(a.dog_rule().old_days)
+	check(DogActions.interact(a.dog.cell) and said.back().ends_with(". %s is 7 years old." % a.dog.name), "petting the old dog: %s" % said.back())
 	g.message.disconnect(hear)
 	g.new_game()
 
+
+## An old animal's picture: the sprite kind gets aging.sprite_suffix last, the drawn shapes stay
+## (same size, same opaque pixels), the face (a hen's comb) is greyer / paler.
+func _old_look() -> void:
+	var osuf := AnimalArt.old_suffix()
+	check(osuf != "" and osuf == String(Animals.data().aging.sprite_suffix), "the old suffix comes from data/animals.json (%s)" % osuf)
+	var csuf := AnimalArt.carrying_suffix()
+	check(AnimalArt.base_of("cow_carrying" + osuf) == ["cow", true, true] and AnimalArt.base_of("dog" + osuf) == ["dog", false, true] 			and AnimalArt.base_of("chicken" + osuf) == ["chicken", false, true] and AnimalArt.base_of("cow") == ["cow", false, false], "old kinds split")
+	var kinds: Array = ["chicken", "cow", "sheep", "sheep_shorn", "dog", "cow" + csuf, "sheep" + csuf]
+	for kind in kinds:
+		for facing in AnimalArt.FACINGS:
+			var plain := AnimalArt.make(kind, "idle", 0, facing)
+			var old := AnimalArt.make(kind + osuf, "idle", 0, facing)
+			var same_shape := plain.get_size() == old.get_size()
+			var differ := 0
+			if same_shape:
+				for y in plain.get_height():
+					for x in plain.get_width():
+						var p := plain.get_pixel(x, y)
+						var o := old.get_pixel(x, y)
+						same_shape = same_shape and ((p.a > 0.0) == (o.a > 0.0))
+						differ += int(p.a > 0.0 and not p.is_equal_approx(o))
+			check(same_shape and differ >= 8, "%s old (%s): same shape, %d pixels greyer" % [kind, facing, differ])
+	# A quad's old face is nearer the frost colour than its plain one.
+	var frost := Color(str(AnimalArt.art().old.frost))
+	var c0 := AnimalArt.tones_of("cow", "head").base as Color
+	AnimalArt._old = true
+	var c1 := AnimalArt.tones_of("cow", "head").base as Color
+	var b1 := AnimalArt.tones_of("cow", "body").base as Color
+	AnimalArt._old = false
+	check(_dist(c1, frost) < _dist(c0, frost) and b1.is_equal_approx(AnimalArt.tones_of("cow", "body").base), "an old cow's head greys, her body doesn't")
+	# Animals.look adds the suffix after the carrying one.
+	var a := _herd(["cow", "chicken"])
+	var cow := a.list[0]
+	var old_days := int(a.kind_rule("cow").old_days)
+	cow.age = old_days - 1
+	check(a.look(cow) == "cow", "not old yet: the plain cow")
+	cow.age = old_days
+	check(a.look(cow) == "cow" + osuf, "old: %s" % a.look(cow))
+	cow.carrying = true
+	check(a.look(cow) == "cow" + csuf + osuf, "old and carrying: %s" % a.look(cow))
+	a.list[1].age = int(a.kind_rule("chicken").old_days)
+	check(a.look(a.list[1]) == "chicken" + osuf, "an old hen: %s" % a.look(a.list[1]))
+
+
+static func _dist(x: Color, y: Color) -> float:
+	return absf(x.r - y.r) + absf(x.g - y.g) + absf(x.b - y.b)
+
+
+## The dog ages each night, is old from dog.old_days (a greying face, slower steps, its age on
+## E) and never passes away; the age is saved, and a save from before loads a year-old dog.
+func _dog_age() -> void:
+	var a := _herd([])
+	var r := a.dog_rule()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 3
+	check(int(a.dog.age) == int(r.start_days) and int(r.start_days) == 120, "a new dog is a year old (%d)" % a.dog.age)
+	a.day_end("sunny", rng)
+	check(int(a.dog.age) == int(r.start_days) + 1, "a night older")
+	check(not a.dog_old() and a.dog_look() == "dog", "not old yet")
+	a.dog.age = int(r.old_days)
+	check(a.dog_old() and a.dog_look() == "dog" + AnimalArt.old_suffix(), "old from old_days: %s" % a.dog_look())
+	check(a.age_text(a.dog) == "%s is 7 years old." % a.dog.name, "its age told: %s" % a.age_text(a.dog))
+	for i in 400:
+		a.day_end("sunny", rng)
+	check(a.dog.name == String(r.name) and int(a.dog.age) == int(r.old_days) + 400, "the dog never passes away")
+	# Slower steps once old: the same time gives fewer steps.
+	var counts := []
+	for age in [int(r.start_days), int(r.old_days)]:
+		var b := _herd([])
+		b.dog.age = age
+		b.dog.affection = 100
+		b.dog.cell = Vector2i(5, 5)
+		var n := 0
+		for i in 12:   # 1.2 s, the farmer 8 cells off: young 4 steps, old 2
+			var before: Vector2i = b.dog.cell
+			b.dog_walk(0.1, Vector2i(5, 13), func(_c): return true, rng)
+			n += int(b.dog.cell != before)
+		counts.append(n)
+	check(counts[1] < counts[0] and counts[1] > 0, "an old dog walks slower (%d steps, young %d)" % [counts[1], counts[0]])
+	# Saved; a save from before has a year-old dog.
+	a.dog.age = 900
+	var back: Array = Animals.parse(JSON.parse_string(JSON.stringify(a.to_dict())))
+	check(back[0] == "" and int(back[1].dog.age) == 900, "the dog's age survives a save")
+	var old_save: Dictionary = JSON.parse_string(JSON.stringify(a.to_dict()))
+	old_save.dog.erase("age")
+	back = Animals.parse(old_save)
+	check(back[0] == "" and int(back[1].dog.age) == int(r.start_days), "a save from before: a year-old dog")
+	old_save.dog.age = -3
+	check(Animals.parse(old_save)[0] != "", "a negative dog age is refused")
 
 func _herd(kinds: Array) -> Animals:
 	var a := Animals.new()
@@ -1063,7 +1161,7 @@ func _carrying_art() -> void:
 	var old_line := FigureArt._key(Color("2a1e1e"))
 	for kind in AnimalArt.CARRYING:
 		var ck: String = kind + suf
-		check(AnimalArt.base_of(ck) == [kind, true] and AnimalArt.base_of(kind) == [kind, false], ck + " splits into its kind")
+		check(AnimalArt.base_of(ck) == [kind, true, false] and AnimalArt.base_of(kind) == [kind, false, false], ck + " splits into its kind")
 		check(AnimalArt.size_of(ck) == AnimalArt.size_of(kind), ck + " keeps the size %s" % AnimalArt.size_of(kind))
 		var m := AnimalArt.tones_of(ck, "body")
 		check(m.base == AnimalArt.tones_of(kind, "body").base, ck + " has her kind's colours")

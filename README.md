@@ -192,8 +192,14 @@ effect the moment it changes and saved to `user://settings.json` (version 2; a v
   wool. Between 4 and 5 years (hen), 5 and 6 (ewe) or 9 and 11 (cow) it passes away in its
   sleep, any night in that range as likely, surely by its end; nothing else ends a life. The
   morning news in its home says so and its place is free. A carrying mother has her young
-  first. The age is saved (a saved animal without one loads as if just bought).
-  `-- --demo --map=barn --old` makes the demo's grown animals old.
+  first. The age is saved (a saved animal without one loads as if just bought). An old animal
+  looks it in both views: its sprite kind gets `aging.sprite_suffix` ("cow_old",
+  "cow_carrying_old") and AnimalArt draws a greying head and muzzle (a hen a paler comb and
+  greyer wings), numbers in `data/animal_art.json` `old`.
+  The dog ages too (`dog.start_days` / `old_days` / `old_step`): a year old in a new game,
+  its age told after its mood when petted, old from its eighth year (a greying face, slower
+  steps), and it never passes away. A save from before has a year-old dog.
+  `-- --demo --map=barn --old` makes the demo's grown animals and the dog old.
 - The dog (Goro): wanders near its spot right of the stand, and once fond enough (about a
   week of pats) follows the farmer about the farm. E pets it (once a day counts), E again
   picks it up; either button sets it down in front. A day without either costs affection.

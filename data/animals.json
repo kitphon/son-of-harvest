@@ -160,6 +160,8 @@
 		"season_days": 30,
 		"seasons": 4,
 		"_season_days": "The calendar the age is told in (Game.DAYS_PER_SEASON, Game.SEASONS); test_animals checks they match.",
+		"sprite_suffix": "_old",
+		"_sprite_suffix": "Added last to an old animal's sprite kind (Animals.look, Animals.dog_look: cow_old, cow_carrying_old, dog_old); AnimalArt draws it with a greying face (data/animal_art.json old).",
 		"skip_chance": 0.25,
 		"_skip_chance": "An old hen skips laying, and an old cow's or ewe's milk or wool doesn't grow, on about one fed night in four.",
 		"passed": "%s passed away peacefully in the night, old and well cared for.",
@@ -245,6 +247,10 @@
 		"wander_range": 4,
 		"_wander": "Otherwise a step this often, staying this many cells from home.",
 		"step_seconds": 0.3,
-		"_step_seconds": "Real seconds between steps (the view slides between cells)."
+		"_step_seconds": "Real seconds between steps (the view slides between cells).",
+		"start_days": 120,
+		"old_days": 840,
+		"old_step": 1.5,
+		"_age": "The dog counts the nights it has lived like the other animals (a new game's dog is a year old; a save from before loads it so). From old_days (its 8th year) it is old: a greying face, its age on E, and old_step times as long between steps. It never passes away: it is the farm's companion for good."
 	}
 }

@@ -61,7 +61,7 @@ func _draw() -> void:
 		var tex := PlaceholderArt.tex("animal:%s:%s:0" % [a.look(s[0]), "sick" if s[0].sick else "idle"])
 		_draw_animal(tex, s[1] * T + Vector2(0, 4))
 	if on_farm and not a.dog.held:
-		var tex := PlaceholderArt.tex("animal:dog:idle:0")
+		var tex := PlaceholderArt.tex("animal:%s:idle:0" % a.dog_look())
 		var at := (Vector2(a.dog.cell) + Vector2(0.5, 0.5)) * T
 		_draw_animal(tex, at + Vector2(0, 4))
 

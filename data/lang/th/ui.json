@@ -439,9 +439,9 @@
 		"You picked %s up.": "อุ้ม%sขึ้นมา",
 		"Put %s down first.": "วาง%sลงก่อน",
 		"No room to put %s down.": "ไม่มีที่ให้วาง%s",
-		"%s sniffs your hand": "%sดมมือคุณ",
-		"%s wags its tail": "%sกระดิกหาง",
-		"%s jumps up, wagging all over": "%sกระโดดใส่ ส่ายหางไม่หยุด",
+		"%s sniffs your hand.": "%sดมมือคุณ",
+		"%s wags its tail.": "%sกระดิกหาง",
+		"%s jumps up, wagging all over.": "%sกระโดดใส่ ส่ายหางไม่หยุด",
 
 		"You're getting tired.": "เริ่มเหนื่อยแล้ว",
 		"You're exhausted. Get some sleep.": "เหนื่อยมากแล้ว ไปนอนพักเถอะ",

@@ -164,6 +164,8 @@ func look(a: Dictionary) -> String:
 		sprite = String(k.shorn_sprite)
 	if a.get("carrying", false):   # a carrying cow or ewe: her rounder picture until the birth
 		sprite += String(breeding().get("sprite_suffix", ""))
+	if is_old(a):   # a greying face from old_days on (data/animals.json aging.sprite_suffix)
+		sprite += String(aging().get("sprite_suffix", ""))
 	return sprite
 
 
@@ -645,7 +647,19 @@ func _dog_home() -> Vector2i:
 func new_dog() -> Dictionary:
 	var r := dog_rule()
 	return {"name": String(r.get("name", "Dog")), "affection": int(r.get("affection_start", 0)),
-		"petted": false, "lifted": false, "held": false, "cell": _dog_home(), "facing": Vector2i.DOWN}
+		"petted": false, "lifted": false, "held": false, "cell": _dog_home(), "facing": Vector2i.DOWN,
+		"age": int(r.get("start_days", 0))}
+
+
+## The dog is old from data/animals.json dog.old_days on (it never passes away).
+func dog_old() -> bool:
+	var r := dog_rule()
+	return r.has("old_days") and int(dog.get("age", 0)) >= int(r.old_days)
+
+
+## The dog's sprite kind: "dog", or with aging.sprite_suffix once old ("dog_old").
+func dog_look() -> String:
+	return "dog" + (String(aging().get("sprite_suffix", "")) if dog_old() else "")
 
 
 func _dog_add(key: String) -> void:
@@ -718,6 +732,8 @@ func dog_step(farmer: Vector2i, free: Callable, rng: RandomNumberGenerator) -> b
 func dog_walk(delta: float, farmer: Vector2i, free: Callable, rng: RandomNumberGenerator) -> void:
 	_dog_time += delta
 	var every := maxf(float(dog_rule().get("step_seconds", 0.3)), 0.05)
+	if dog_old():
+		every *= maxf(float(dog_rule().get("old_step", 1.0)), 1.0)
 	while _dog_time >= every:
 		_dog_time -= every
 		dog_step(farmer, free, rng)
@@ -729,6 +745,7 @@ func _dog_night() -> void:
 	dog.petted = false
 	dog.lifted = false
 	dog.held = false
+	dog.age = int(dog.get("age", 0)) + 1
 	dog.cell = _dog_home()
 	dog.facing = Vector2i.DOWN
 
@@ -755,7 +772,7 @@ func to_dict() -> Dictionary:
 		"eggs": eggs.duplicate(), "incubator": incubator.duplicate(), "named": named,
 		"barn": {"out": barn.out, "stock": barn.stock, "box": barn.box},
 		"dog": {"name": dog.name, "affection": dog.affection, "petted": dog.petted, "lifted": dog.lifted,
-			"cell": [dog.cell.x, dog.cell.y]}}
+			"cell": [dog.cell.x, dog.cell.y], "age": int(dog.get("age", 0))}}
 
 
 ## [error, Animals] checked from saved data; nothing else changes. Saves from before version 4
@@ -821,8 +838,9 @@ static func parse(v: Variant, r := data(), version := SaveGame.VERSION) -> Array
 	var aff = SaveGame.whole(sd.get("affection"), 0, maxi(int(out.dog_rule().get("max", 100)), 1))
 	var cx = SaveGame.whole(sd.cell[0], 1, FarmGrid.W - 2)
 	var cy = SaveGame.whole(sd.cell[1], 1, FarmGrid.H - 2)
-	if aff == null or cx == null or cy == null:
+	var dage = SaveGame.whole(sd.get("age", int(out.dog_rule().get("start_days", 0))), 0, 1 << 30)   # a save from before: a year old
+	if aff == null or cx == null or cy == null or dage == null:
 		return ["The saved dog is broken", null]
 	out.dog = {"name": sd.name, "affection": aff, "petted": sd.petted, "lifted": sd.lifted,
-		"held": false, "cell": Vector2i(cx, cy), "facing": Vector2i.DOWN}
+		"held": false, "cell": Vector2i(cx, cy), "facing": Vector2i.DOWN, "age": dage}
 	return ["", out]

@@ -10,6 +10,29 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Old animals look it; the dog ages
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: Animals.look adds data/animals.json `aging.sprite_suffix` ("_old") last for an old
+  animal ("cow_old", "cow_carrying_old", "chicken_old"); AnimalArt.base_of splits it off
+  ([kind, carrying, old]) and draws the same shapes with a greying face: a quad's head and muzzle
+  mixed towards a frost grey (0.3 / 0.45), a hen's comb paler and her wings a little greyer
+  (data/animal_art.json `old`). Both views pick it up from look(). The dog now ages too
+  (data/animals.json dog `start_days` 120: a year old in a new game; `old_days` 840: old from its
+  eighth year; `old_step` 1.5): a night older each night, its age told after its mood when
+  petted ("Goro wags its tail. Goro is a year old."; the mood lines now end in a full stop, Thai
+  keys renamed), Animals.dog_look() "dog_old" with the greying face in both views, slower steps
+  when old, never passes away; saved (a save from before loads a year-old dog; a negative age is
+  refused). `--old` makes the dog old too. Numbers ours: the dog outlives the game's first
+  record on purpose; it is the farm's companion.
+- Checked: test_animals `_old_look` (old splits, every kind and facing: same shape, 8+ pixels
+  greyer, the cow's head greyer and her body not, look() order with carrying), `_dog_age` (a
+  night older, old from old_days, its age line, 400 nights later still there, fewer steps when
+  old, the save, an old save, a negative age refused) and the pet line through DogActions:
+  `test_animals: OK (0 failed)`; a 4x sheet of cow, sheep, shorn ewe, hen and dog plain and old
+  looked at (grey faces read, the hen's comb paler); barn / coop / farm `--old` smoke runs 0
+  error or warning lines.
+- Left / next: the dog held in the arms keeps its plain small picture (PlaceholderArt._beast).
+
 ## 2026-11-11 — test_fishing exit leak
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the two Game nodes the fish-log counts made (`counted`, `again`) were never freed;

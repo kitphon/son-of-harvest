@@ -46,7 +46,7 @@ func _catalog() -> void:
 	check(parts.dialogue.size() > 500 and parts.data.size() > 200 and parts.code.size() > 200,
 		"text from dialogue, data and scripts (%d, %d, %d)" % [parts.dialogue.size(), parts.data.size(), parts.code.size()])
 	for k in ["So this is the farm. The fence leans, and the grass is up to my knees...", "Turnip",
-			"Bought %s for %d G.", "Found %s (rucksack full).", "%s wags its tail", "a kitchen knife",
+			"Bought %s for %d G.", "Found %s (rucksack full).", "%s wags its tail.", "a kitchen knife",
 			"Spring", "1st", "Watering can", "ready", "Saved food is broken"]:
 		check(cat.has(k), "the catalogue has \"%s\"" % k)
 	for k in ["tools is a dictionary", "SFX", "Held", "res://data/", "hoe", "Esc", "No dialogue %s"]:

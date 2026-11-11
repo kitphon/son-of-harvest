@@ -67,7 +67,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   Shops (data/shops.json, buying / selling, tool upgrades and their ores, mine finds sold, the smithy while Hachiro builds,
   shop maps and doors, the screen, Fumi's teahouse):
   `res://tests/test_shops.gd` must print `test_shops: OK (0 failed)`.
-  Animals (chickens, cows, sheep, the coop and barn, products, brushing, sickness, the dog,
+  Animals (chickens, cows, sheep, old age and the old look, the dog's age, the coop and barn, products, brushing, sickness, the dog,
   the save, the carrying cow's and ewe's look in both views, aging: the age on E, old, the peaceful passing): `res://tests/test_animals.gd`
   must print `test_animals: OK (0 failed)`. Fishing (bites, fish tables, the river, the catch, the fish log counts and its save, poses,
   fish art): `res://tests/test_fishing.gd` must print `test_fishing: OK (0 failed)`.
@@ -145,7 +145,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `--demo` adds eggs, a fish, a carrot and one learned recipe), `--map=coop` to look inside the chicken
   coop (`--demo` adds a chick, two eggs and a filled feed box), `--hens-out` (with
   `--map=farm@coop`) to have the hens out in the yard, `--map=barn` for the barn (`--demo`
-  adds a cow with milk, a sheep in full wool and a calf; the dog follows the farmer; add `--carrying` for a carrying cow and ewe beside them, rounder and lower in the belly; `--old` makes every grown animal old: "(old)" in its name, its age on E),
+  adds a cow with milk, a sheep in full wool and a calf; the dog follows the farmer; add `--carrying` for a carrying cow and ewe beside them, rounder and lower in the belly; `--old` makes every grown animal and the dog old: "(old)" in its name, a greying face, its age on E),
   `--barn-out` (with `--map=farm@barn`) for the cows and sheep out grazing, `--fishing` (or `--fishing=wait`) to start at
   the farm pond with the line out and a fish biting (or still waiting; `--fishing=river`, `--fishing=river:wait` at the
   river south of the village, `--map=river` its path in), `--festival=<id>`

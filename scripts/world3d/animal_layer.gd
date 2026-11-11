@@ -80,7 +80,7 @@ func _add_dog() -> void:
 	var dog: Dictionary = Game.animals.dog
 	if dog.held:
 		return
-	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:dog:idle:0"))
+	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:%s:idle:0" % Game.animals.dog_look()))
 	s.pixel_size = ANIMAL_PX
 	NightLights.figure(s)
 	s.add_to_group(Parting.GROUP)   # the grass and crops part round the dog too
@@ -182,5 +182,5 @@ func _place_dog(delta: float) -> void:
 		_dog.still += delta
 		_dog.pose = "sit" if _dog.still > 2.5 else "idle"
 	var frame := int(_dog.time * (WALK_FPS * 1.5 if _dog.pose == "walk" else 1.5)) % 2
-	_dog.sprite.texture = PlaceholderArt.tex("animal:dog:%s:%d:%s" % [_dog.pose, frame, _dog.facing])
+	_dog.sprite.texture = PlaceholderArt.tex("animal:%s:%s:%d:%s" % [Game.animals.dog_look(), _dog.pose, frame, _dog.facing])
 	_dog.sprite.position = Vector3(_dog.pos.x, 0, _dog.pos.y)

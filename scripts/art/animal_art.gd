@@ -22,6 +22,9 @@ extends RefCounted
 ## - A carrying cow or ewe: the kind with data/animals.json breeding.sprite_suffix
 ##   ("cow_carrying", "sheep_carrying", "sheep_shorn_carrying"; Animals.look) has a rounder, lower
 ##   belly and (the cow) a fuller udder, numbers in data/animal_art.json "carrying".
+## - An old animal: the kind with data/animals.json aging.sprite_suffix last ("cow_old",
+##   "cow_carrying_old", "dog_old"; Animals.look, Animals.dog_look) has a greying face (a hen a
+##   paler comb), numbers in data/animal_art.json "old".
 
 const SCALE := 2
 const ART_PATH := "res://data/animal_art.json"
@@ -55,6 +58,8 @@ const QUADS := {
 
 static var _art := {}
 static var _suffix := ""
+static var _old_suffix := ""
+static var _old := false   # drawing an old animal (make), read by _colour
 static var _reg := {}   # a tone's colour key -> [its material's base key, its deep tone]
 
 
@@ -72,15 +77,30 @@ static func carrying_suffix() -> String:
 	return _suffix
 
 
-## A sprite kind split into its drawn kind and whether she is carrying: "cow_carrying" ->
-## ["cow", true]; any other kind -> [kind, false].
+## The sprite-kind suffix of an old animal (data/animals.json aging.sprite_suffix).
+static func old_suffix() -> String:
+	if _old_suffix == "":
+		_old_suffix = String(Animals.data().get("aging", {}).get("sprite_suffix", "_old"))
+	return _old_suffix
+
+
+## A sprite kind split into its drawn kind, whether she is carrying and whether it is old:
+## "cow_carrying_old" -> ["cow", true, true]; "dog_old" -> ["dog", false, true]; a plain kind ->
+## [kind, false, false].
 static func base_of(kind: String) -> Array:
+	var old := false
+	var osuf := old_suffix()
+	if osuf != "" and kind.ends_with(osuf):
+		var rest := kind.trim_suffix(osuf)
+		if QUADS.has(rest) or BIRDS.has(rest) or rest.ends_with(carrying_suffix()):
+			kind = rest
+			old = true
 	var suf := carrying_suffix()
 	if suf != "" and kind.ends_with(suf):
 		var b := kind.trim_suffix(suf)
 		if QUADS.has(b) or BIRDS.has(b):
-			return [b, QUADS.has(b)]
-	return [kind, false]
+			return [b, QUADS.has(b), old]
+	return [kind, false, old]
 
 
 ## A material from its base colour: {base, shade, lit, deep} (FigureArt.tones with our numbers).
@@ -106,6 +126,20 @@ static func tones_of(kind: String, part: String, sick := false) -> Dictionary:
 
 
 static func _colour(kind: String, part: String, sick: bool) -> Color:
+	var c0 := _colour_plain(kind, part, sick)
+	if not _old:
+		return c0
+	var o: Dictionary = art().get("old", {})
+	if QUADS.has(kind) and part in ["head", "muzzle"]:
+		return c0.lerp(Color(str(o.frost)), float(o.get(part, 0.0)))
+	if BIRDS.has(kind) and part == "comb":
+		return c0.lerp(Color(str(o.comb_to)), float(o.comb))
+	if BIRDS.has(kind) and part == "wing":
+		return c0.lerp(Color(str(o.wing_to)), float(o.wing))
+	return c0
+
+
+static func _colour_plain(kind: String, part: String, sick: bool) -> Color:
 	var a := art()
 	if QUADS.has(kind):
 		var c := Color(str(a.kinds[kind][part]))
@@ -142,10 +176,12 @@ static func make(kind: String, pose: String, frame: int, facing: String = "dl") 
 	var split := base_of(kind)
 	kind = split[0]
 	var img: Image
+	_old = split[2]
 	if QUADS.has(kind):
 		img = _quad(kind, pose, frame, away, split[1])
 	else:
 		img = _bird(kind, pose, frame, away)
+	_old = false
 	img = _rim(_tilt(img, away))   # the rim before the mirror, so the right facings mirror exactly
 	if facing.ends_with("r"):
 		img.flip_x()

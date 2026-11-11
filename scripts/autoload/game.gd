@@ -375,6 +375,7 @@ func new_game() -> void:
 			for beast in animals.list:
 				if animals.is_adult(beast):
 					beast.age = maxi(int(beast.age), int(animals.kind_rule(beast.kind).get("old_days", beast.age)))
+			animals.dog.age = maxi(int(animals.dog.age), int(animals.dog_rule().get("old_days", 0)))   # the dog too
 			animals.changed.emit()
 		elif arg == "--barn-out":   # e.g. `-- --demo --map=farm@barn --barn-out`: cows and sheep grazing
 			animals.state.barn.out = true
