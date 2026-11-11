@@ -396,6 +396,40 @@ func _silhouettes() -> void:
 	check(pause.icon_of("ui:fish:funa", false) == pause.icon_of("ui:fish:funa", false), "a silhouette is made once")
 
 
+## Every shippable thing (the shipped page, the fish log) has a picture of its own: a crop's fruit, an animal good, a
+## fish, a find, a wild plant or a dish; never the wrapped cloth bundle PlaceholderArt._item_icon lays for an id it does
+## not know, the magenta square, or the same pixels as another row. So the "???" silhouettes show real shapes.
+func _no_fallback_icons() -> void:
+	var g: Node = root.get_node("Game")
+	var rows: Array = g.shippable_rows()
+	var seen := {}
+	var bad: Array[String] = []
+	for r in rows:
+		var id := String(r.id)
+		var key := PlaceholderArt.item_key(id)
+		if key.begins_with("ui:item:") and not (g.crops.has(id) or PlaceholderArt.is_animal_good(id)):
+			bad.append(id + " (cloth bundle)")
+			continue
+		var img := PlaceholderArt.tex(key).get_image()
+		img.convert(Image.FORMAT_RGBA8)
+		var used := img.get_used_rect()
+		if img.get_size() != Vector2i(14, 14) or used.size.x < 4 or used.size.y < 4:
+			bad.append(id + " (size)")
+			continue
+		var magenta := 0
+		for y in 14:
+			for x in 14:
+				if img.get_pixel(x, y) == Color("ff00ff"):
+					magenta += 1
+		if magenta > 0:
+			bad.append(id + " (magenta)")
+		var data := Marshalls.raw_to_base64(img.get_data())
+		if seen.has(data):
+			bad.append("%s (same picture as %s)" % [id, seen[data]])
+		seen[data] = id
+	check(bad.is_empty() and rows.size() >= 80, "no shippable item uses a fallback picture (%d rows; bad: %s)" % [rows.size(), ", ".join(bad)])
+
+
 func _shipped_fit() -> void:
 	var pause: GDScript = load("res://scripts/ui/pause_screen.gd")
 	var k: Dictionary = pause.get_script_constant_map()
@@ -864,6 +898,7 @@ func _settings_in_effect() -> void:
 	_fish_log_fit()
 	_shipped_fit()
 	_silhouettes()
+	_no_fallback_icons()
 
 
 func _has_button(action: String, button: int) -> bool:
