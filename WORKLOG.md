@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Kota and Tome: snow lines
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: talk_kota.json and talk_tome.json get a snow pick (`weather: snow`) after the storm
+  pick's place and before the rain pick, and the winter storm too (`weather: storm` with
+  `season: winter`), which is the blizzard look (Game.weather_look). Blizzard uses the snow
+  lines, as the wet-day picks of the other villagers do (they take rain, storm and snow alike).
+  Two lines each (snow_1, snow_2): Kota's short "gonna" lines, Tome's "child" and the husband
+  she misses. Thai for the four new lines in data/lang/th/dialogue.json, in the same voices.
+  Found on the way: Talk takes the raw weather (a winter storm arrives as `storm`), so before
+  this change Kota and Tome said thunder lines in a winter blizzard. The storm pick is not
+  changed; the winter rule sits before it, so only spring, summer and fall storms get thunder.
+- Checked: test_talk: OK (0 failed) (new checks: Kota and Tome on a snowy day, in a winter
+  blizzard, a spring storm still thunder, a dry winter day keeps a winter line); test_lang: OK
+  (0 failed); test_dialogue: OK (0 failed); lang_report --lang=th: `th: 2633 of 2633 done
+  (100%), 0 missing, 0 stale`.
+- Left / next: no screenshot or play check of the snow lines in a real talk; the blizzard
+  look is not a talk state of its own (a winter storm is read as snow, by season).
+
 ## 2026-11-11 — Merge: breeding, the fish log, Kota and Tome's wet-day lines
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three subagents in their own worktrees, the model picked by the job: 1de2930 cow and
