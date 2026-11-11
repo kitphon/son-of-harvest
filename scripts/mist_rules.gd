@@ -69,6 +69,21 @@ static func amounts_now(game: Object, m: MapData, wind := -1.0, cfg := {}) -> Di
 	return out
 
 
+## The farm's planted rice plots (any growth): their cells, row by row. Rice stands in water, so
+## each is a paddy to the mist, like the village paddies.
+static func rice_cells(farm: FarmGrid) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if farm == null:
+		return out
+	for y in farm.h:
+		for x in farm.w:
+			var d: Dictionary = farm.cells[y * farm.w + x]
+			var id := str(d.get("crop", ""))
+			if id != "" and bool((farm.crops.get(id, {}) as Dictionary).get("holds_water", false)):
+				out.append(Vector2i(x, y))
+	return out
+
+
 ## The cells a map's mist rises from: {area: Rect2 in cells, cells: Array[Vector2] (cell
 ## centres), kinds: Array[String] (each cell's kind)}. `farm` (FarmGrid) gives the farm's pond.
 static func scene_of(m: MapData, farm: FarmGrid = null, cfg := {}) -> Dictionary:
@@ -87,6 +102,9 @@ static func scene_of(m: MapData, farm: FarmGrid = null, cfg := {}) -> Dictionary
 			if kind in from:
 				s.cells.append(Vector2(x, y) + Vector2(0.5, 0.5))
 				s.kinds.append(kind)
+	for c in rice_cells(farm):
+		s.cells.append(Vector2(c) + Vector2(0.5, 0.5))
+		s.kinds.append("paddy")
 	return s
 
 
