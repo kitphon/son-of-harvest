@@ -13,8 +13,9 @@ const ROPE_COLOR := Color("8a6a3a")
 ## gable roof built as a mesh (Minka.gable) with a dark ridge bundle; a board sliding door on
 ## the front (+z) over FarmGrid.COOP_DOOR, a bamboo-barred window beside it and a hen hatch
 ## with a little ramp on the +x face.
-static func coop(w: FarmWorld) -> void:
-	var r := Rect2(FarmGrid.COOP)
+static func coop(w: FarmWorld, built: Array = []) -> void:
+	var r := Rect2(FarmGrid.coop_rect(built))
+	var wing := "coop_wing" in built
 	var timber := FarmWorld.flat_material(TIMBER)
 	var front := r.end.y - 0.15
 	var back := r.position.y + 0.1
@@ -42,7 +43,10 @@ static func coop(w: FarmWorld) -> void:
 		Minka.gable_wall(w, x, back, front, wall, apex, "build:sugi", signf(x - cx))
 	var ridge := Vector3(cx, crest, mid_z)
 	w._box(Vector3(eave.size.x + 0.1, 0.2, 0.34), ridge + Vector3(0, 0.06, 0), FarmWorld.flat_material(Color("5a4a30")))
-	for x in [cx - 1.6, cx - 0.5, cx + 0.6, cx + 1.7]:   # crossed sticks holding the ridge down
+	var sticks := [cx - 1.6, cx - 0.5, cx + 0.6, cx + 1.7]
+	if wing:   # the longer ridge: two more pairs over the wing
+		sticks.append_array([cx - 2.7, cx - 3.2])
+	for x in sticks:   # crossed sticks holding the ridge down
 		w._box(Vector3(0.05, 0.42, 0.05), ridge + Vector3(x - cx, 0.24, 0), timber, Vector3(0.6, 0, 0))
 		w._box(Vector3(0.05, 0.42, 0.05), ridge + Vector3(x - cx, 0.24, 0), timber, Vector3(-0.6, 0, 0))
 	# Board door on the door cell, with a dark frame; a step stone in front.
@@ -52,7 +56,12 @@ static func coop(w: FarmWorld) -> void:
 	w._box(Vector3(0.1, 0.05, 0.05), Vector3(dx + 0.26, 0.5, front + 0.07), FarmWorld.flat_material(Color("1e1c1c")))
 	w._box(Vector3(0.5, 0.05, 0.28), Vector3(dx, 0.025, front + 0.3), FarmWorld.flat_material(Color("8a8680")))
 	# A window with bamboo bars left of the door, another on the side.
-	for at in [Vector3(r.position.x + 1.0, 0.85, front + 0.01)]:
+	var windows := [Vector3(r.position.x + 1.0, 0.85, front + 0.01)]
+	if wing:   # the wing has its own window and a bundle of straw leaning on its wall
+		windows.append(Vector3(r.position.x + 2.6, 0.85, front + 0.01))
+		for k in 3:
+			w._box(Vector3(0.1, 0.7, 0.1), Vector3(r.position.x + 0.45 + k * 0.12, 0.35, front + 0.22), FarmWorld.flat_material(STRAW_COLOR), Vector3(0.0, 0.3 * k, 0.12 - 0.1 * k))
+	for at in windows:
 		w._box(Vector3(0.7, 0.4, 0.02), at, FarmWorld.flat_material(Color("1a1410")))
 		for i in 5:
 			w._box(Vector3(0.05, 0.4, 0.04), at + Vector3(-0.28 + i * 0.14, 0, 0.02), FarmWorld.flat_material(Color("9ab060")))

@@ -39,6 +39,7 @@ func _process(_delta: float) -> bool:
 		_cord_hint()
 		_aging_actions()
 		_wings_built()
+		_wings_outside()
 		print("test_animals: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -929,6 +930,53 @@ func _wings_built() -> void:
 	check(g.from_dict(d) == "" and g.animals.in_home("coop").size() + int(g.animals.incubator.size() > 0) == 10 and "coop_wing" in g.animals.built, "a full coop of ten loads with its extension")
 	g.new_game()
 	check(g.animals.home_rule("coop").capacity == 6 and MapManager.load_map("coop")[1].w == 8, "a new game: the small coop again")
+
+
+## The wings seen from outside: the farm's footprints grow with what is built, nothing else moves.
+func _wings_outside() -> void:
+	var g: Node = root.get_node("Game")
+	g.new_game()
+	var before: Dictionary = g.farm.fixed.duplicate()
+	check(FarmGrid.coop_rect([]) == FarmGrid.COOP and FarmGrid.barn_rect([]) == FarmGrid.BARN, "unbuilt: the footprints are the old ones")
+	check(FarmView.roof_rect(g.farm, "coop") == Rect2(13 * 16, 16, 5 * 16, 3 * 16) and FarmView.roof_rect(g.farm, "barn") == Rect2(19 * 16, 16, 5 * 16, 3 * 16), "unbuilt: the flat roofs as before")
+	g.money = 50000
+	for wing in ["coop_wing", "barn_wing"]:
+		check(g.shop_build("general", wing).ok, "%s ordered" % wing)
+		g._finish_build(g.house_job.duplicate())
+	check(FarmGrid.coop_rect(g.house_built) == Rect2i(11, 1, 7, 3) and FarmGrid.barn_rect(g.house_built) == Rect2i(19, 1, 6, 3), "built: the coop 7 wide, the barn 6")
+	check(FarmView.roof_rect(g.farm, "coop") == Rect2(11 * 16, 16, 7 * 16, 3 * 16) and FarmView.roof_rect(g.farm, "barn") == Rect2(19 * 16, 16, 6 * 16, 3 * 16), "built: the flat roofs follow")
+	var added := 0
+	for c in g.farm.fixed:
+		if not before.has(c):
+			added += 1
+			check(g.farm.fixed[c] in ["coop", "barn"] and (FarmGrid.COOP_WING.has_point(c) or FarmGrid.BARN_WING.has_point(c)), "only the wings' cells are new: %s" % c)
+		elif before[c] != g.farm.fixed[c]:
+			check(false, "a cell changed: %s" % c)
+	check(added == 2 * 3 + 1 * 3, "nine cells added (%d)" % added)
+	check(g.farm.fixed_at(FarmGrid.COOP_DOOR) == "coop_door" and g.farm.fixed_at(FarmGrid.BARN_DOOR) == "barn_door", "the doors are where they were")
+	for c in [Vector2i(15, 4), Vector2i(21, 4), Vector2i(18, 1), Vector2i(18, 2), Vector2i(18, 3), Vector2i(10, 4), Vector2i(24, 4)]:
+		check(g.farm.fixed_at(c) == "", "%s stays free" % c)
+	for c in [Vector2i(10, 3), Vector2i(25, 2), Vector2i(25, 4)]:
+		check(g.farm.fixed_at(c) == before.get(c, ""), "%s untouched" % c)
+	var yard: Array = Animals.data().homes.coop.yard
+	for y in range(yard[1], yard[1] + yard[3]):
+		for x in range(yard[0], yard[0] + yard[2]):
+			check(g.farm.fixed_at(Vector2i(x, y)) == "", "the hens' yard (%d, %d) is free" % [x, y])
+	yard = Animals.data().homes.barn.yard
+	for y in range(yard[1], yard[1] + yard[3]):
+		for x in range(yard[0], yard[0] + yard[2]):
+			check(g.farm.fixed_at(Vector2i(x, y)) == "", "the grazing yard (%d, %d) is free" % [x, y])
+	# Saved and loaded: the wings load, and an old save (a wing built but its cells missing) gets them.
+	var d: Dictionary = JSON.parse_string(JSON.stringify(g.to_dict()))
+	g.new_game()
+	check(g.from_dict(d) == "" and g.farm.fixed_at(Vector2i(11, 1)) == "coop" and g.farm.fixed_at(Vector2i(24, 3)) == "barn", "a save with the wings loads with them")
+	var old: Dictionary = JSON.parse_string(JSON.stringify(d))
+	old.farm.fixed = old.farm.fixed.filter(func(s): return not (s[2] in ["coop", "barn"] and (FarmGrid.COOP_WING.has_point(Vector2i(s[0], s[1])) or FarmGrid.BARN_WING.has_point(Vector2i(s[0], s[1])))))
+	g.new_game()
+	check(g.from_dict(old) == "" and g.farm.fixed_at(Vector2i(12, 2)) == "coop", "a save whose farm lacks the wing's cells gets them")
+	g.new_game()
+	check(g.farm.fixed == before, "a new game: the old footprints")
+	check(g.farm.fixed_at(Vector2i(11, 1)) == "" and g.farm.fixed_at(Vector2i(24, 2)) == "", "a new game: no wings")
 
 
 func _herd(kinds: Array) -> Animals:

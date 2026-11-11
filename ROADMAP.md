@@ -23,7 +23,8 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
-[ ] A new farm building (a fodder silo or a greenhouse) and the coop / barn extensions seen from outside.
+[ ] A new farm building: a fodder silo, then a greenhouse.
+[x] 2026-11-11 The coop and barn extensions seen from outside: the coop two cells wider (left, towards the stand), the barn one cell longer (right, up to the pond), in both views, footprints in FarmGrid (`set_wings`), doors, yards and the gap unchanged; see WORKLOG.
 [x] 2026-11-11 Farm upgrades: the coop extension (5000 G) and the barn extension (12000 G) from Hachiro, ten places each, bigger maps with their props moved (`moves`), Hachiro at work between the buildings, House built unchanged, saved; `--full`; Thai; see WORKLOG.
 [x] 2026-11-11 `--dog-held` starts with the dog in the arms; frames of the old dog held in both views looked at; see WORKLOG.
 [x] 2026-11-11 The old dog in the farmer's arms has its greying face too (`animal:dog_old:held:0`); see WORKLOG.

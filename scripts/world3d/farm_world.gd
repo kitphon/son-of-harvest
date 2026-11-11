@@ -234,8 +234,11 @@ func _make_buildings() -> void:
 	MeshCache.build(self, "farm|chest", func(): FarmProps.chest(self))
 	MeshCache.build(self, "farm|bin", func(): FarmProps.bin(self))
 	occlude(func(): MeshCache.build(self, "farm|stand", func(): FarmProps.stand(self)))
-	occlude(func(): MeshCache.build(self, "farm|coop", func(): CoopProps.coop(self)))
-	occlude(func(): MeshCache.build(self, "farm|barn", func(): BarnProps.barn(self)))
+	var built: Array = Game.house_built.duplicate()   # the wings (coop_wing, barn_wing) make the buildings longer
+	var coop_id := "farm|coop" + ("|wing" if "coop_wing" in built else "")
+	var barn_id := "farm|barn" + ("|wing" if "barn_wing" in built else "")
+	occlude(func(): MeshCache.build(self, coop_id, func(): CoopProps.coop(self, built)))
+	occlude(func(): MeshCache.build(self, barn_id, func(): BarnProps.barn(self, built)))
 
 
 ## Runs a builder and keeps what it made as one thing that fades when in the way (if tall).

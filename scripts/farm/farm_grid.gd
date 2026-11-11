@@ -27,6 +27,11 @@ const COOP := Rect2i(13, 1, 5, 3)    # the chicken coop's footprint, its door in
 const COOP_DOOR := Vector2i(15, 3)
 const BARN := Rect2i(19, 1, 5, 3)    # the barn's footprint, between the coop and the pond
 const BARN_DOOR := Vector2i(21, 3)
+## The extensions seen from outside (Game.house_built: coop_wing, barn_wing). The coop grows two
+## cells to the left, towards the stand, and the barn one cell to the right, up to the pond; the
+## gap between them (Hachiro's work spot and lumber), the doors and the yards stay as they were.
+const COOP_WING := Rect2i(11, 1, 2, 3)
+const BARN_WING := Rect2i(24, 1, 1, 3)
 const WEED_CHANCE := 0.01   # per empty cell per night, not in winter
 const STORM_LOSS := 1.0 / 16.0
 
@@ -100,6 +105,38 @@ func add_missing_fixed() -> void:
 	cells[CHEST.y * W + CHEST.x] = _empty_cell()
 	fixed[CHEST] = "chest"
 	cells_changed.emit()
+
+
+## The coop's footprint with its wing when `built` (Game.house_built) holds it.
+static func coop_rect(built: Array) -> Rect2i:
+	return COOP.merge(COOP_WING) if "coop_wing" in built else COOP
+
+
+## The barn's footprint with its wing when `built` holds it.
+static func barn_rect(built: Array) -> Rect2i:
+	return BARN.merge(BARN_WING) if "barn_wing" in built else BARN
+
+
+## Puts the wings in or out of the fixed cells to match `built` (a new game, a load, a finished
+## job): a wing's cells are cleared ground turned to its building, and go back to open ground
+## when the wing is not built. Wings are derived from `built`, so an old save loads either way.
+func set_wings(built: Array) -> void:
+	var changed := false
+	for wing in [["coop_wing", COOP_WING, "coop"], ["barn_wing", BARN_WING, "barn"]]:
+		var want: bool = wing[0] in built
+		for y in range(wing[1].position.y, wing[1].end.y):
+			for x in range(wing[1].position.x, wing[1].end.x):
+				var c := Vector2i(x, y)
+				if want and fixed_at(c) != wing[2]:
+					cells[y * W + x] = _empty_cell()
+					items.erase(c)
+					fixed[c] = wing[2]
+					changed = true
+				elif not want and fixed_at(c) == wing[2]:
+					fixed.erase(c)
+					changed = true
+	if changed:
+		cells_changed.emit()
 
 
 ## The chicken coop (cleared ground, then its cells; saves from before animals get it too).

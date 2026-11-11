@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — The coop and barn extensions seen from outside
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: a built wing now shows on the farm map. FarmGrid.COOP_WING (11,1,2,3: two cells left of
+  the coop, towards the stand) and BARN_WING (24,1,1,3: one cell right of the barn, the pond
+  begins at 25), `coop_rect(built)` / `barn_rect(built)` and `set_wings(built)`, which turns the
+  wing cells into coop / barn cells (cleared ground) or back to open ground; called when a job
+  finishes, and after a load (the wings follow Game.house_built, so an old save or a save whose
+  farm lacks the cells loads right). The 3D coop and barn (CoopProps.coop / BarnProps.barn take
+  `built`) are built over the wider footprint: a second window, a straw bundle and more ridge
+  sticks on the coop; a post at the join and two hay bales on the barn; the MeshCache id gets
+  `|wing`. The flat view needed no change: FarmView.roof_rect is the box of the kind's cells.
+  Doors, the gap at x 18 (Hachiro's spot and lumber), both yards and the pond are untouched; the
+  barn's wing is one cell because the pond is next to it, and the coop's two because the stand
+  stands at x 10.
+- Checked: test_animals `_wings_outside` (footprints before and after, the flat roofs, only the
+  nine wing cells new, doors, the gap, both yards, the cells beside free, the pond and the stand
+  untouched, save / load, an old save, a new game back to the old footprints). All 31 tests `OK
+  (0 failed)`; smoke runs (title, `--demo`, `--map=town`, `--mine=3`, built wings, `--building=barn_wing`,
+  the flat view with wings) 0 error or warning lines. Movie Maker frames looked at: `--demo
+  --built=coop_wing,barn_wing --map=farm@coop` (3D: the wider thatched coop) and the same through
+  main_2d.tscn (the wider coop and the longer barn), the unbuilt farm (as before), and the
+  barn's wing from `farm@barn` (a longer tiled roof, hay bales at the end, the pond clear).
+- Left / next: no new farm building yet (a fodder silo, a greenhouse).
+
 ## 2026-11-11 — Farm upgrades: the coop and barn extensions
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: two new jobs in the Yorozu Store's Build tab, built by Hachiro like the house's:

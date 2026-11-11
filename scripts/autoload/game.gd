@@ -2922,6 +2922,7 @@ func _finish_build(job: Dictionary) -> void:
 	sync_build_flag()
 	MapManager.set_built(house_built)
 	animals.built.assign(house_built)   # a wing: room for more
+	farm.set_wings(house_built)   # and the wing on the farm map
 	message.emit(s.build_done % s.item_name(job.build).to_lower())
 	changed.emit()
 
@@ -3326,6 +3327,7 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	if err != "":
 		return err
 	farm.add_missing_fixed()   # saves from before the storage chest / the coop / the barn get them
+	farm.set_wings(n.house_built)   # the extensions seen from outside follow what is built
 	for key in n:
 		set(key, n[key])
 	baby_held = false   # never saved: the baby is back in the cradle

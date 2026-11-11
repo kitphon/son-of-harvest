@@ -10,8 +10,9 @@ const TIMBER := Color("2e221a")
 ## A cow shed in the satoyama way: dark cedar boards on a plastered band and a stone-grey
 ## skirting, a tiled (kawara) gable roof built as a mesh (Minka.gable) with real tile rolls, a wide two-leaf board door on the front (+z) over
 ## FarmGrid.BARN_DOOR, slatted windows and a hay-loft hatch under the gable on the +x face.
-static func barn(w: FarmWorld) -> void:
-	var r := Rect2(FarmGrid.BARN)
+static func barn(w: FarmWorld, built: Array = []) -> void:
+	var r := Rect2(FarmGrid.barn_rect(built))
+	var wing := "barn_wing" in built
 	var timber := FarmWorld.flat_material(TIMBER)
 	var front := r.end.y - 0.12
 	var back := r.position.y + 0.08
@@ -41,6 +42,10 @@ static func barn(w: FarmWorld) -> void:
 	for x in [cx - wide / 2 - 0.002, cx + wide / 2 + 0.002]:
 		Minka.gable_wall(w, x, back, front, wall, apex, "build:sugi", signf(x - cx))
 	Minka.ridge(w, eave.position.x + 0.05, eave.end.x - 0.05, crest - 0.04, mid_z)
+	if wing:   # the longer barn: a post at the join and a stack of hay bales leaning on the new wall
+		w._box(Vector3(0.12, wall, 0.1), Vector3(FarmGrid.BARN.end.x, wall / 2, front + 0.03), timber)
+		for k in 2:
+			w._box(Vector3(0.4, 0.25, 0.3), Vector3(r.end.x - 0.3, 0.125 + 0.25 * k, front + 0.2 - 0.02 * k), FarmWorld.flat_material(Color("d2b25e")))
 	# The hay-loft hatch high on the +x gable, a little door of planks.
 	w._box(Vector3(0.03, 0.4, 0.5), Vector3(r.end.x - 0.04, wall + 0.3, mid_z), FarmWorld.surface_material("build:planks_dark"))
 	# Two board door leaves over the door cell (one slid a little open), a dark gap, a step stone.
