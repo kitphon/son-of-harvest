@@ -94,6 +94,8 @@
 			"_spots": "Coop cells where animal 0, 1, ... stand inside (the coop map); one per place.",
 			"yard": [12, 4, 8, 3],
 			"_yard": "Farm cells x, y, w, h where the hens peck about when they are out (not solid).",
+			"wing": {"build": "coop_wing", "capacity": 10, "spots": [[7, 2], [6, 3], [8, 3], [7, 4]]},
+			"_wing": "Once the coop extension (data/shops.json builds coop_wing) is built: this capacity, and these spots after the home's own (Animals.home_rule).",
 			"feed_name": "chicken feed",
 			"out_news": "The hens were out all night."
 		},
@@ -104,6 +106,8 @@
 			"feed_start": 20,
 			"_feed_start": "Bundles of hay fodder in the loft on a new game (Game.animals.add_fodder adds more).",
 			"feed_name": "fodder",
+			"wing": {"build": "barn_wing", "capacity": 10, "spots": [[13, 2], [15, 2], [17, 2], [19, 2]]},
+			"_wing": "Once the barn extension (barn_wing) is built: ten stalls, the four new ones east of the old six.",
 			"spots": [[1, 2], [3, 2], [5, 2], [7, 2], [9, 2], [11, 2]],
 			"_spots": "Stall cells in the barn map, one per place.",
 			"yard": [19, 5, 10, 2],

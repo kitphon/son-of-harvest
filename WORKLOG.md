@@ -10,6 +10,44 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Farm upgrades: the coop and barn extensions
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: two new jobs in the Yorozu Store's Build tab, built by Hachiro like the house's:
+  the coop extension (`coop_wing`, 5000 G, 3 days) and the barn extension (`barn_wing`,
+  12000 G, 4 days); data/shops.json jobs with `"farm": "<home>"`. Built, its home holds ten
+  instead of six: data/animals.json `homes.<home>.wing` {build, capacity 10, spots}, merged by
+  Animals.home_rule while the wing is in `Animals.built` (kept equal to Game.house_built: new
+  game, the load, the finish), so room, the spots, the feed / fodder places and the nests
+  follow. The maps grow through their `extensions`: the coop three cells wider (a longer feed
+  box, a second row of nests on the new right wall, the incubator in the far corner, the hen
+  hatch low in the new wall), the barn eight cells longer (ten stalls, the trough along them,
+  the tool board, hay and gate at the new east end). MapManager.with_extensions learned
+  `moves` {kind: {key: value}} to move or resize props already on the map. While a farm job is
+  under way `farm_work` (Game.FARM_FLAG) is set beside `house_work`: Hachiro's new
+  `building_farm` plan hammers at the coop's and the barn's walls from the gap between them
+  (18, 3), his lumber lies at (18, 1) and not by the house (`unless`). The record's House
+  built counts only the house's own (Game.house_rooms), so its steps stay 1 / 2 / 3. A save
+  with a bigger flock loads only with its wing (Animals.parse gets the built list). `--full`
+  (after `--demo`) fills the coop and the barn. Thai for the two names and their lines.
+  Prices ours: the coop's about three and a half hens, the barn's two cows; cheaper than the
+  second room (18000 G) because they only pay off with the animals bought to fill them.
+- Checked: test_animals `_wing_rules` (both homes: capacity and spots before and after, every
+  spot free floor on the extended map, ten hens fit, the save refused without the wing and
+  loaded with it) and `_wings_built` (through Game: the order, farm_work and house_work, the
+  lumber between the buildings and the gap free, Hachiro's building_farm plan, room only once
+  done, the wider coop with two nest rows and the hatch moved, the longer barn with its gate
+  moved, House built 0 with both wings and 1 with the chest, a full coop of ten saved and
+  loaded, a new game's small coop); test_shops reads each job's own map and the wing's build.
+  All 31 tests `OK (0 failed)`; smoke runs (title, `--demo`, `--map=town`, `--mine=3`, both
+  `--full` rooms, `--building=barn_wing`) 0 error or warning lines; lang_report `th: 2657 of
+  2657 done (100%), 0 missing, 0 stale`. Movie Maker frames looked at: `--built=coop_wing --map=coop
+  --full` and `--built=barn_wing --map=barn --full` in 3D and flat (ten hens, ten stalls, the
+  moved hatch / gate / hay), `--building=coop_wing --time=10:00 --map=farm@coop` (Hachiro in
+  the gap at work).
+- Left / next: the coop and the barn look the same from outside (FarmGrid's footprints and
+  CoopProps / BarnProps unchanged): only the inside grows. No new farm building yet (a silo,
+  a greenhouse) and no bigger field.
+
 ## 2026-11-11 — `--dog-held`: screenshots of the old dog in the arms
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a start flag `--dog-held` (after `--demo`) lifts the dog into the farmer's arms

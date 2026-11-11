@@ -99,10 +99,14 @@ func _data() -> void:
 			last = int(e.slots)
 		for b in s.builds:
 			check(s.build_map == MapManager.HOME and int(s.builds[b].price) > 0 and int(s.builds[b].days) >= 1, "data: %s builds %s" % [id, b])
-			var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/maps/house.json"))
-			check(raw.extensions.has(b), "data: house.json has the %s extension" % b)
+			var on_map := str(s.builds[b].get("farm", "house"))   # a farm job builds onto that building's map
+			var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/maps/%s.json" % on_map))
+			check(raw.extensions.has(b), "data: %s.json has the %s extension" % [on_map, b])
+			if s.builds[b].has("farm"):
+				var wing: Dictionary = Animals.data().homes[on_map].get("wing", {})
+				check(str(wing.get("build", "")) == b, "data: homes.%s.wing is built by %s" % [on_map, b])
 	# Every mix of extensions makes a house that still has its futon, door and spawns free.
-	var ext: Array = Shop.make("general", crops, foods).builds.keys()
+	var ext: Array = Shop.make("general", crops, foods).builds.keys().filter(func(b): return not Shop.make("general", crops, foods).builds[b].has("farm"))   # the farm jobs: test_animals
 	for mask in 1 << ext.size():
 		var on := []
 		for i in ext.size():
@@ -501,7 +505,7 @@ func _builds() -> void:
 	var states := []
 	for row in m.rows():
 		states.append(row.state)
-	check(m.tab_id() == "build" and states == ["busy", "building", "busy"], "build rows: %s" % [states])
+	check(m.tab_id() == "build" and states == ["busy", "building", "busy", "busy", "busy"], "build rows: %s" % [states])
 	g.end_day()
 	g.end_day()
 	check(not g.has_built("kitchen") and MapManager.data("house").prop_at(Vector2i(1, 5)).is_empty(), "not done before the ready day")

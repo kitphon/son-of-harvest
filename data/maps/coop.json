@@ -1,5 +1,5 @@
 {
-	"_note": "The chicken coop inside (Animals, data/animals.json): rice straw on the floor, a packed-earth strip by the door, a long feed box along the back wall, straw nests on the left, the feed sack, an incubator in a straw basket and the little hen hatch in the right wall. The clock stands still in here like in every building. Format: README.md, Maps.",
+	"_note": "The chicken coop inside (Animals, data/animals.json): rice straw on the floor, a packed-earth strip by the door, a long feed box along the back wall, straw nests on the left, the feed sack, an incubator in a straw basket and the little hen hatch in the right wall. The clock stands still in here like in every building. Format: README.md, Maps. extensions: the coop extension (data/shops.json builds coop_wing) makes it three cells wider: a longer feed box, the incubator moved to the far corner, a second row of nests along the new right wall and the hen hatch low in that wall (moves: the props of that kind take these keys).",
 	"id": "coop",
 	"name": "Chicken coop",
 	"size": [
@@ -112,5 +112,56 @@
 			],
 			"up"
 		]
+	},
+	"extensions": {
+		"coop_wing": {
+			"size": [
+				11,
+				7
+			],
+			"ground": [
+				"###########",
+				"#.........#",
+				"#.........#",
+				"#.........#",
+				"#.........#",
+				"#eeeeeeeee#",
+				"####D######"
+			],
+			"props": [
+				{
+					"kind": "nest",
+					"cell": [
+						9,
+						2
+					],
+					"size": [
+						1,
+						3
+					],
+					"use": "nest"
+				}
+			],
+			"moves": {
+				"feed_box": {
+					"size": [
+						7,
+						1
+					]
+				},
+				"incubator": {
+					"cell": [
+						9,
+						1
+					]
+				},
+				"hatch": {
+					"cell": [
+						10,
+						5
+					]
+				}
+			}
+		}
 	}
 }

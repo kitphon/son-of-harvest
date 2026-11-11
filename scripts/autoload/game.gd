@@ -115,6 +115,7 @@ var kitchen_tools: Array[String] = [] # cooking tools owned (data/recipes.json t
 ## morning after the order until it is done; sync_build_flag). Day plans (data/villagers),
 ## talk picks and map props (the lumber by the farmhouse) read it like any flag.
 const BUILD_FLAG := "house_work"
+const FARM_FLAG := "farm_work"   # also set while the job builds onto a farm building (data/shops.json builds jobs with "farm")
 const CLINIC_VISITS := "clinic_visits"   # flag: how many times a knock-out woke the farmer away from home
 const WAKE_FLAG := "clinic_wake"         # flag: just woke up there (triggers_clinic.json plays the doctor's line)
 const FREE_FLAG := "clinic_free"         # flag: and the doctor let the fee go
@@ -245,6 +246,7 @@ func new_game() -> void:
 	MapManager.set_flags(flags)   # props gated by story flags (the bell, the store's sign)
 	animals = Animals.new()
 	animals.start()
+	animals.built.assign(house_built)
 	animal_news = []
 	build_news = ""
 	help_news = ""
@@ -390,6 +392,15 @@ func new_game() -> void:
 			var cows := animals.in_home("barn")
 			if maps.current().id == "barn" and not cows.is_empty():   # stand below the first one, facing her
 				maps.place("barn", animals.spot(cows[0]) + Vector2i.DOWN, Vector2i.UP)
+		elif arg == "--full":   # e.g. `-- --demo --built=coop_wing --map=coop --full`: the coop and the barn filled to their places
+			while animals.add("chicken"):
+				pass
+			var kinds := ["cow", "sheep"]
+			var k := 0
+			while animals.add(kinds[k % 2]):
+				k += 1
+			animals.fill_feed_box()
+			animals.fill_feed_box("barn")
 		elif arg == "--dog-held":   # e.g. `-- --demo --dog-held` (add `--old` for the old dog): the dog in the farmer's arms
 			animals.dog_lift()
 		elif arg == "--hold":   # e.g. `-- --demo --hold`: a turnip overhead, a potato in front of the bin
@@ -1988,7 +1999,7 @@ func ending_values() -> Dictionary:
 	for t in FIELD_TOOLS:
 		levels += maxi(int(tool_levels.get(t, 1)) - 1, 0)
 	return {"shipped_value": value, "crop_kinds": kinds, "animal_care": cared, "heart_bands": hearts,
-		"neighbours_known": known, "mine_deepest": mine_deepest, "fish_kinds": fish_caught.size(), "house_built": house_built.size(),
+		"neighbours_known": known, "mine_deepest": mine_deepest, "fish_kinds": fish_caught.size(), "house_built": house_rooms(),
 		"tool_levels": levels, "contest_wins": int(flags.get("contest_wins", 0)),
 		"recipes_known": Cooking.known_ids(flags).size()}
 
@@ -2823,8 +2834,13 @@ func sync_build_flag() -> void:
 	var b: Dictionary = s.builds.get(house_job.build, {}) if s != null else {}
 	if not b.is_empty() and day_number() > int(house_job.ready) - int(b.days) - int(house_job.get("late", 0)):
 		flags[BUILD_FLAG] = house_job.build
+		if b.has("farm"):
+			flags[FARM_FLAG] = house_job.build
+		else:
+			flags.erase(FARM_FLAG)
 	else:
 		flags.erase(BUILD_FLAG)
+		flags.erase(FARM_FLAG)
 
 
 ## Does a solid prop of the farm map (data/maps/farm.json, the ones its story flags show)
@@ -2873,6 +2889,15 @@ func has_built(build: String) -> bool:
 	return build in house_built
 
 
+## House extensions built (the farm buildings' wings left out): the record's House built.
+func house_rooms() -> int:
+	var n := 0
+	for b in house_built:
+		var sid := _builder_shop(b)
+		n += int(sid != "" and not shop(sid).builds[b].has("farm"))
+	return n
+
+
 ## The shop that builds extension `build` ("" when none does).
 func _builder_shop(build: String) -> String:
 	for sid in Shop.ids():
@@ -2896,6 +2921,7 @@ func _finish_build(job: Dictionary) -> void:
 		house_job = {}
 	sync_build_flag()
 	MapManager.set_built(house_built)
+	animals.built.assign(house_built)   # a wing: room for more
 	message.emit(s.build_done % s.item_name(job.build).to_lower())
 	changed.emit()
 
@@ -3187,12 +3213,13 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	# Version 2 added the animals; older saves start with the new-game flock.
 	var flock := Animals.new()
 	if version >= 2 or data.has("animals"):
-		var parsed_animals := Animals.parse(data.get("animals"), Animals.data(), version)
+		var parsed_animals := Animals.parse(data.get("animals"), Animals.data(), version, n.house_built)
 		if parsed_animals[0] != "":
 			return parsed_animals[0]
 		flock = parsed_animals[1]
 	else:
 		flock.start()
+	flock.built.assign(n.house_built)
 	n.animals = flock
 	n.animal_news = [] as Array[String]
 	# Saves from before fishing: nothing caught, and the rod goes in a free tool slot (else the chest).

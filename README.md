@@ -564,6 +564,18 @@ day plan follows it (Hachiro's `building` plan: on the farm hammering at the far
 08:20-17:00, any weather but a storm), so does a talk pick (`build_1`..`3`) and the farm
 map's `lumber` prop (left of the house front). His own counter then says `builds.away`
 (`Game.keeper_away_text`). `-- --demo --building=kitchen --time=10:00` shows it.
+Farm jobs (a job with `"farm": "<home>"`): the coop extension (`coop_wing`, 5000 G, 3 days)
+and the barn extension (`barn_wing`, 12000 G, 4 days) build onto that farm building instead.
+Its map's `extensions` make the room bigger, and `moves` {kind: {key: value}} moves or resizes
+the props already there (the coop's hatch to the new wall, the barn's trough along ten stalls);
+data/animals.json `homes.<home>.wing` {build, capacity, spots} gives the home ten places
+(`Animals.home_rule`, with `Animals.built` kept equal to `Game.house_built`; a save with a
+bigger flock loads only with its wing). While one is under way `farm_work` (`Game.FARM_FLAG`)
+is set too: Hachiro's `building_farm` plan hammers at the coop's and the barn's walls from the
+gap between them (18, 3), his lumber lies there instead of by the house. The record's House
+built counts only the house's own (`Game.house_rooms`). `-- --demo --building=coop_wing
+--time=10:00 --map=farm@coop` shows him at it; `-- --demo --built=coop_wing --map=coop --full`
+(or `barn_wing`, `--map=barn`) a full extended coop (barn).
 The smithy's `upgrades.tool_levels` gives one tool its own price list (the rod, whose levels
 are `rod.bite_factor` in data/fish.json: the bite chance per check is multiplied by it).
 

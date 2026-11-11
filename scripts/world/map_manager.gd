@@ -80,7 +80,9 @@ static func load_map(map_id: String, ext: Variant = null, f: Variant = null) -> 
 
 
 ## A map file's data with the extensions in `ext` applied, in the file's order: their props
-## are added, any other key replaces the map's own. The "extensions" key itself goes.
+## are added, "moves" {kind: {key: value}} sets those keys on the map's props of that kind
+## (the coop's hatch to the new wall), any other key replaces the map's own. The "extensions"
+## key itself goes.
 static func with_extensions(raw: Variant, ext: Array) -> Variant:
 	if not raw is Dictionary or not raw.get("extensions") is Dictionary:
 		return raw
@@ -95,6 +97,14 @@ static func with_extensions(raw: Variant, ext: Array) -> Variant:
 				var props: Array = out.get("props", []).duplicate()
 				props.append_array(patch.props.duplicate(true))
 				out.props = props
+			elif k == "moves" and patch.moves is Dictionary:
+				var moved: Array = out.get("props", []).duplicate(true)
+				for prop in moved:
+					if prop is Dictionary and patch.moves.get(prop.get("kind", "")) is Dictionary:
+						var m: Dictionary = patch.moves[prop.kind]
+						for mk in m:
+							prop[mk] = m[mk].duplicate(true) if m[mk] is Array or m[mk] is Dictionary else m[mk]
+				out.props = moved
 			else:
 				out[k] = patch[k].duplicate(true) if patch[k] is Array or patch[k] is Dictionary else patch[k]
 	return out

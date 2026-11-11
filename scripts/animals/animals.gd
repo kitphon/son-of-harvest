@@ -43,6 +43,7 @@ var eggs: Array[String] = []  # egg items lying in the nests, oldest first
 var incubator := {}           # {} or {item, days}: an egg warming towards a chick
 var named := 0                # how many names were given (the next one is names[named])
 var dog := {}                 # the farm dog (see above)
+var built: Array[String] = []   # extensions done (Game.house_built): a built wing makes its home bigger (home_rule); not saved here
 var _dog_time := 0.0
 
 ## The coop's door, stock and box under their first names (the chickens came first).
@@ -102,8 +103,16 @@ func kind_rule(kind: String) -> Dictionary:
 	return rules.get("kinds", {}).get(kind, {})
 
 
+## A home's rules, with its wing's capacity and extra spots once that wing is built (homes.<home>.wing).
 func home_rule(home: String) -> Dictionary:
-	return rules.get("homes", {}).get(home, {})
+	var h: Dictionary = rules.get("homes", {}).get(home, {})
+	var w = h.get("wing")
+	if not w is Dictionary or not String(w.get("build", "")) in built:
+		return h
+	var out := h.duplicate()
+	out.capacity = int(w.get("capacity", h.get("capacity", 0)))
+	out.spots = h.get("spots", []) + w.get("spots", [])
+	return out
 
 
 func home_of(a: Dictionary) -> String:
@@ -777,8 +786,9 @@ func to_dict() -> Dictionary:
 
 ## [error, Animals] checked from saved data; nothing else changes. Saves from before version 4
 ## (the barn and the dog) get the new-game fodder and dog.
-static func parse(v: Variant, r := data(), version := SaveGame.VERSION) -> Array:
+static func parse(v: Variant, r := data(), version := SaveGame.VERSION, done: Array = []) -> Array:
 	var out := Animals.new(r)
+	out.built.assign(done)   # the wings built, so a bigger flock fits
 	if not v is Dictionary or not v.get("animals") is Array or not v.get("eggs") is Array \
 			or not v.get("outside") is bool or not v.get("incubator") is Dictionary:
 		return ["Saved animals are broken", null]

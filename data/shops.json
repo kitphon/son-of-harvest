@@ -44,13 +44,18 @@
 					"forge": "Word from the smithy: \"Too wild out to raise beams. No building today; the %s will be a day late. -Hachiro\"",
 					"birthday": "Word from the smithy: \"My birthday, so the hammer rests today. The %s will be a day late. -Hachiro\""
 				},
+				"_farm_jobs": "A job with \"farm\" builds onto that farm building (data/animals.json homes.<home>.wing; the map's extensions) instead of the house: Game.FARM_FLAG holds its id while it is under way (Hachiro's building_farm plan, his lumber between the coop and the barn), and the record's House built leaves it out. Prices ours: the coop's about three and a half hens, the barn's two cows.",
 				"jobs": {
 					"chest": {"name": "Bigger storage chest", "about": "48 slots, with a second lid in the house.",
 						"price": 3000, "days": 2, "chest_slots": 48},
 					"kitchen": {"name": "Kitchen corner", "about": "A clay stove and a cupboard by the door.",
 						"price": 6500, "days": 3},
 					"room": {"name": "Second room", "about": "A tatami room east of the first, with a kotatsu.",
-						"price": 18000, "days": 5}
+						"price": 18000, "days": 5},
+					"coop_wing": {"name": "Coop extension", "about": "Room for ten hens, with a second row of nests.",
+						"price": 5000, "days": 3, "farm": "coop"},
+					"barn_wing": {"name": "Barn extension", "about": "Ten stalls instead of six, and a longer trough.",
+						"price": 12000, "days": 4, "farm": "barn"}
 				}
 			}
 		},

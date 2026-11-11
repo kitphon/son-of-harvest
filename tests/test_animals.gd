@@ -26,6 +26,7 @@ func _init() -> void:
 	_aging()
 	_aging_save()
 	_old_look()
+	_wing_rules()
 	_dog_age()
 
 
@@ -37,6 +38,7 @@ func _process(_delta: float) -> bool:
 		_breeding_actions()
 		_cord_hint()
 		_aging_actions()
+		_wings_built()
 		print("test_animals: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -848,6 +850,86 @@ func _dog_age() -> void:
 	check(back[0] == "" and int(back[1].dog.age) == int(r.start_days), "a save from before: a year-old dog")
 	old_save.dog.age = -3
 	check(Animals.parse(old_save)[0] != "", "a negative dog age is refused")
+
+## The coop and barn extensions (data/shops.json builds coop_wing / barn_wing): a built wing
+## gives its home the wing's capacity and its spots after the home's own; a save with a bigger
+## flock loads only with the wing built.
+func _wing_rules() -> void:
+	for home in ["coop", "barn"]:
+		var a := _herd([])
+		var h: Dictionary = Animals.data().homes[home]
+		var w: Dictionary = h.wing
+		check(int(a.home_rule(home).capacity) == int(h.capacity), "%s: its own capacity before the wing" % home)
+		a.built.assign([String(w.build)])
+		var r := a.home_rule(home)
+		check(int(r.capacity) == int(w.capacity) and int(w.capacity) > int(h.capacity), "%s: %d places with the wing" % [home, r.capacity])
+		check(r.spots.size() == int(w.capacity) and r.spots.slice(0, h.spots.size()) == h.spots, "%s: a spot for every place, the old ones first" % home)
+		check(int(Animals.data().homes[home].capacity) == int(h.capacity), "%s: the data itself unchanged" % home)
+		# Every spot is a free floor cell of the extended map, none twice.
+		var m: MapData = MapManager.load_map(home, [String(w.build)])[1]
+		var seen := {}
+		for c in r.spots:
+			var cell := Vector2i(int(c[0]), int(c[1]))
+			check(m.in_bounds(cell) and not m.is_solid(cell) and not seen.has(cell), "%s spot %s is free floor" % [home, cell])
+			seen[cell] = true
+	# A coop of ten: fills up, and a save of it loads only with the wing.
+	var b := _herd([])
+	b.built.assign(["coop_wing"])
+	var n := 0
+	while b.add("chicken"):
+		n += 1
+	check(b.in_home("coop").size() == 10, "ten hens with the coop extension (%d)" % b.in_home("coop").size())
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(b.to_dict()))
+	check(Animals.parse(saved)[0] != "", "ten hens refused without the extension")
+	check(Animals.parse(saved, Animals.data(), SaveGame.VERSION, ["coop_wing"])[0] == "", "and loaded with it")
+
+
+## Through Game: ordering an extension sets farm_work (Hachiro's building_farm, his lumber
+## between the coop and the barn, none by the house), finishing it makes room for more, the
+## maps grow with their props moved, and the record's House built leaves it out.
+func _wings_built() -> void:
+	var g: Node = root.get_node("Game")
+	g.new_game()
+	g.money = 50000
+	var r: Dictionary = g.shop_build("general", "coop_wing")
+	check(r.ok, "the coop extension ordered: %s" % r.get("note", ""))
+	g.day += 1
+	g.sync_build_flag()
+	check(g.flags.get("farm_work") == "coop_wing" and g.flags.get("house_work") == "coop_wing", "under way: farm_work and house_work set")
+	var farm: MapData = MapManager.load_map("farm", null, g.flags)[1]
+	var lumber := farm.props.filter(func(p): return p.kind == "lumber")
+	check(lumber.size() == 1 and lumber[0].cell == Vector2i(18, 1), "the lumber lies between the coop and the barn, not by the house")
+	for y in range(1, 4):
+		check(not g.farm.fixed.has(Vector2i(18, y)), "the gap at (18, %d) is free" % y)
+	var plan := Villagers.pick_plan(Villagers.all().hachiro, {"season": "spring", "day": g.day, "weekday": "tue", "weather": "sunny", "year": 1, "flags": g.flags, "festival": ""})
+	check(plan == "building_farm", "Hachiro builds on the farm: %s" % plan)
+	check(g.animals.room("coop") == 6 - 2, "not bigger before it is done")
+	g._finish_build(g.house_job.duplicate())
+	g.sync_build_flag()
+	check(not g.flags.has("farm_work") and not g.flags.has("house_work") and "coop_wing" in g.house_built, "done: the flags gone")
+	check(g.animals.room("coop") == 10 - 2, "room for ten hens now (%d free)" % g.animals.room("coop"))
+	var coop: MapData = MapManager.load_map("coop")[1]
+	var nests := coop.props.filter(func(p): return p.get("use", "") == "nest")
+	var hatch := coop.props.filter(func(p): return p.get("use", "") == "hatch")
+	check(Vector2i(coop.w, coop.h) == Vector2i(11, 7) and nests.size() == 2 and hatch[0].cell == Vector2i(10, 5), "the coop is wider, two rows of nests, the hatch in the new wall")
+	check(g.house_rooms() == 0, "the record's House built leaves the coop out")
+	r = g.shop_build("general", "barn_wing")
+	check(r.ok, "the barn extension ordered")
+	g._finish_build(g.house_job.duplicate())
+	var barn: MapData = MapManager.load_map("barn")[1]
+	var gate := barn.props.filter(func(p): return p.get("use", "") == "barn_gate")
+	check(Vector2i(barn.w, barn.h) == Vector2i(23, 8) and gate[0].cell == Vector2i(22, 3) and g.animals.home_rule("barn").capacity == 10, "the barn is longer, its gate at the new end, ten stalls")
+	r = g.shop_build("general", "chest")
+	g._finish_build(g.house_job.duplicate())
+	check(g.house_rooms() == 1 and g.house_built.size() == 3, "the chest counts for the house, the wings don't")
+	# Saved and loaded with a full coop of ten.
+	while g.animals.add("chicken"):
+		pass
+	var d: Dictionary = JSON.parse_string(JSON.stringify(g.to_dict()))
+	check(g.from_dict(d) == "" and g.animals.in_home("coop").size() + int(g.animals.incubator.size() > 0) == 10 and "coop_wing" in g.animals.built, "a full coop of ten loads with its extension")
+	g.new_game()
+	check(g.animals.home_rule("coop").capacity == 6 and MapManager.load_map("coop")[1].w == 8, "a new game: the small coop again")
+
 
 func _herd(kinds: Array) -> Animals:
 	var a := Animals.new()
