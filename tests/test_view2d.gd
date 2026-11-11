@@ -1512,6 +1512,9 @@ func _greenhouse() -> void:
 	player.farm = g.farm
 	g.go_to_map("farm", Vector2i(27, 17), Vector2i.UP)
 	await process_frame
+	# The site is open field and the farm is random: debris (15% of the field cells) may lie on the
+	# door cell. Clear that one cell so the check reads the door, not the dice.
+	g.farm.cell(Vector2i(27, 16)).obj = FarmGrid.Obj.NONE
 	check(not g.maps.is_solid(Vector2i(27, 16), g.farm) and g.maps.door_at(Vector2i(27, 16)).is_empty(), "flat: no greenhouse door before it is built")
 	g.money = 50000
 	check(g.shop_build("general", "greenhouse").ok, "flat: the greenhouse ordered")

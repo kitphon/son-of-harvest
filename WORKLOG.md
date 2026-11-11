@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-11 — Flaky test_view2d greenhouse-door check: the test read the random field
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: root cause found. `FarmGrid.generate` puts debris (weed / rock / branch / stump) on 15% of the
+  field cells, and the greenhouse site (25..29, 14..16, door (27, 16)) is open field until it is built,
+  so on about one farm in seven the door cell holds debris and `is_solid` is true. The test
+  `flat: no greenhouse door before it is built` asserted "not solid" on that cell of a randomly
+  generated farm. The game is right: `set_wings` clears the cells when the greenhouse is built, so
+  debris under the site is harmless. Fix is in the tests only: test_view2d clears that one cell first
+  (comment says why); test_farm `_greenhouse_site_debris` searches seeds for a farm with debris on the door cell,
+  checks it is solid and not a door, that building clears the whole footprint and makes the door, and that
+  unbuilding gives open ground back.
+- Checked: all test scripts, test_view2d in a loop, smoke runs (see the report of this commit).
+- Left / next: other view2d checks that read fixed cells of a random farm may be similarly fragile; none known.
+
 ## 2026-11-11 — The greenhouse's lit glass and roof glow in both views; flat farm roofs snow like 3D
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the three things left open by the entry below.
