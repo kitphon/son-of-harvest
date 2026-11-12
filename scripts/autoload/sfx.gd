@@ -38,6 +38,7 @@ var _song_fade: Dictionary = {}    # track key -> s its fade-in takes
 var _song_streams: Dictionary = {} # track key -> AudioStreamWAV, once made
 var _song_jobs: Dictionary = {}    # track key -> [WorkerThreadPool task, {stream}] being made
 var _walked := 0.0
+var last := ""                   # the key played last (tests check when a sound plays)
 var _water_map := ""               # the map _water_cells are for
 var _water_cells: Array[Vector2i] = []
 var _last_bin := 0
@@ -215,6 +216,7 @@ func play(key: String) -> void:
 	if not sounds.has(key):
 		push_warning("Sfx: no sound '%s' in %s" % [key, DATA])
 		return
+	last = key
 	var s: Dictionary = sounds[key]
 	var p := _voices[_next_voice]
 	_next_voice = (_next_voice + 1) % VOICES

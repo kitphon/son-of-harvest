@@ -11,7 +11,8 @@ extends RefCounted
 ##
 ## Targets: hoe "soil" (tilled), "soft" (a mine soft spot dug), "miss"; can "water"; sickle
 ## "weed", "miss"; axe "wood" (a stump or a branch hit), "miss"; hammer "rock", "ice" (a mine
-## ice block), "miss"; "crop" a harvest pick-up (the leaf puff, no tool). Ground states: "dry",
+## ice block), "miss"; seeds "sow" (the seeds falling from the hand on the cells sown; a scatter
+## that sowed nothing throws nothing); "crop" a harvest pick-up (the leaf puff, no tool). Ground states: "dry",
 ## "wet", "snow", "mine".
 
 const PATH := "res://data/tool_fx.json"
@@ -21,6 +22,7 @@ const TARGETS := {
 	"sickle": ["weed", "miss"],
 	"axe": ["wood", "miss"],
 	"hammer": ["rock", "ice", "miss"],
+	"seeds": ["sow"],
 }
 
 static var _cfg: Dictionary = {}
@@ -108,7 +110,7 @@ static func effect(tool: String, target: String, ground: String, level := 1, opt
 		d.merge(extra, true)
 		groups.append(d)
 	if target == "miss":
-		if not TARGETS.has(tool):
+		if not TARGETS.has(tool) or tool == "seeds":   # a scatter that sowed nothing throws nothing
 			return {}
 		g.call("puff", _puff_colors(ground, cfg))
 	elif target == "crop":
@@ -125,6 +127,8 @@ static func effect(tool: String, target: String, ground: String, level := 1, opt
 					groups.append(dust)
 			"water":
 				g.call("spray", _kind_colors("spray", cfg))
+			"sow":
+				g.call("seeds", _kind_colors("seeds", cfg))
 			"weed":
 				g.call("blades", _kind_colors("blades", cfg), {"toward": bool(opts.get("toward", false))})
 			"wood":
@@ -231,6 +235,10 @@ static func particles(b: Dictionary, seed: int, cfg := {}) -> Array[Dictionary]:
 						if gr.kind == "spark":
 							p.kind = "spark"
 						p.pos = mid + Vector3(rng.randf_range(-0.15, 0.15), 0.05, rng.randf_range(-0.15, 0.15))
+						if k.has("drop"):   # seeds: let go at the hand's height, spread over the cell, a few at a time
+							var sp_cell := float(k.get("spread", 0.35))
+							p.pos = mid + Vector3(rng.randf_range(-sp_cell, sp_cell), _rr(rng, k.drop), rng.randf_range(-sp_cell, sp_cell))
+							p.delay = rng.randf_range(0.0, float(k.get("stagger", 0.1)))
 						if gr.get("toward", false):   # the cut grass flies to the farmer (for the silo's pile)
 							var to := Vector3(farmer.x, 0.0, farmer.y) - mid
 							to.y = 0.0

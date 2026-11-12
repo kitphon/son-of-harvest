@@ -95,8 +95,11 @@ var events_seen: Dictionary = {}   # event id -> true once it has played (once-o
 var fatigue := 0                # 0..FATIGUE_MAX, rises with work and late nights; sleep and food lower it
 var work_fatigue_half := false  # a food halves swing fatigue until the day ends
 var eat_pose := ""   # "eat" / "drink" while the farmer eats or drinks (FarmerAnim pose), else ""
-var swing := {}      # the farmer's tool swing playing: {tool, time, bursts, hit} (start_swing), else {}
+var swing := {}      # the farmer's tool swing playing: {tool, time, bursts, hit, land, map, floor} (start_swing), else {}
+var charge_tool := "" # the tool the farmer holds the button down with to charge (Player), else "": its wind-up pose
 var demo_swing := "" # `--swing=<tool>`: the farmer swings that tool in place on repeat (FarmActions.demo_swing)
+var demo_swing_facing := Vector2i.ZERO   # `--swing=<tool>:<up|down|left|right>`: turned that way first (ZERO = as he stands)
+const DEMO_FACINGS := {"up": Vector2i.UP, "down": Vector2i.DOWN, "left": Vector2i.LEFT, "right": Vector2i.RIGHT}
 var eat_left := 0.0  # seconds of that pose still to play (foods.json pose); not saved
 ## The item carried overhead in the holding hand ("" = hands free). It is the rucksack's
 ## hand slot (Inventory "hand"): what the rucksack menu takes in hand is held up the same way.
@@ -229,6 +232,7 @@ func new_game() -> void:
 	eat_pose = ""
 	eat_left = 0.0
 	swing = {}
+	charge_tool = ""
 	_shown_state = "fine"
 	water = WATER_MAX
 	snow_cover = 0
@@ -326,8 +330,10 @@ func new_game() -> void:
 		elif arg == "--eat" or arg == "--eat=drink":   # `-- --demo --eat`: mid-bite (or mid-sip), the pose kept going
 			start_eat_pose(arg == "--eat=drink")
 			eat_left = 1000.0
-		elif arg.begins_with("--swing="):   # `-- --demo --swing=hoe` (can, sickle, axe, hammer): swinging it in place on repeat
-			demo_swing = arg.trim_prefix("--swing=")
+		elif arg.begins_with("--swing="):   # `-- --demo --swing=hoe` (can, sickle, axe, hammer, seeds): swinging it in place on repeat; `--swing=hoe:up` (down, left, right) facing that way
+			var sw := arg.trim_prefix("--swing=").split(":")
+			demo_swing = sw[0]
+			demo_swing_facing = DEMO_FACINGS.get(sw[1] if sw.size() > 1 else "", Vector2i.ZERO)
 		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
 			fatigue = int(body.get("states", {}).get("exhausted", {}).get("fatigue", 80))
 			_shown_state = body_state()
@@ -722,6 +728,8 @@ func go_to_map(map_id: String, cell: Vector2i, face: Vector2i) -> bool:
 	if map_id == mine_map("floor_map"):
 		depth = maps.mine_floor.depth + 1 if maps.mine_floor != null else maxi(_mine_start, 1)
 	_mine_start = 0
+	finish_swing()   # a swing still in the air lands on the map it was swung on, before leaving it
+	charge_tool = ""
 	baby_held = false   # the baby stays in the farmhouse: back in the cradle (doors wait, BabyActions)
 	crawler_back()   # the crawler too: back to the plan's place (doors wait while held)
 	maps.place(map_id, cell, face)
@@ -1183,6 +1191,7 @@ func knock_out(kind: String) -> void:
 ## Ends the day and starts the next one; the farmer wakes on map `wake_map` at its spawn
 ## `wake_spawn` (at home by the futon unless a knock-out says otherwise).
 func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
+	finish_swing()   # a swing in the air (a collapse mid-swing) lands on the day it was swung
 	baby_held = false   # asleep in the cradle by morning
 	crawler_back()   # and the crawler in bed
 	pay_bin()
@@ -1754,7 +1763,7 @@ func dialogue_closed(id: String) -> void:
 ## else up overhead, else they stay lying on their cell. Returns {result: "swung",
 ## "hands_full" or "wrong_tool"; worked, tough, hole (the way down opened), finds: [{item, to:
 ## "bag" / "hand" / "floor"}]}.
-func mine_swing(tool: String, origin: Vector2i, facing: Vector2i, charge := 0) -> Dictionary:
+func mine_swing(tool: String, origin: Vector2i, facing: Vector2i, charge := 0, pay := true) -> Dictionary:
 	var out := {"result": "swung", "worked": false, "tough": false, "hole": false, "finds": []}
 	var f := maps.mine_floor
 	if f == null or not tool in ["hammer", "hoe"]:
@@ -1764,7 +1773,8 @@ func mine_swing(tool: String, origin: Vector2i, facing: Vector2i, charge := 0) -
 		out.result = "hands_full"
 		return out
 	var rule := charge_rule(tool, charge)
-	spend_stamina(swing_stamina(tool, charge))
+	if pay:   # FarmActions.mine pays on the press and calls this on the hit with pay false
+		spend_stamina(swing_stamina(tool, charge))
 	for c in f.area_cells(origin, facing, rule.area):
 		var r: Dictionary = f.hit(c, int(rule.get("hits", 1))) if tool == "hammer" else f.dig(c)
 		out.tough = out.tough or r.result == "tough"
@@ -1973,14 +1983,25 @@ func scoop_pose() -> String:
 
 
 ## A tool swing starts: the farmer's swing_<tool> pose, raised for data/tool_fx.json
-## swing.windup, then the blow; `bursts` (ToolFxRules.burst, the empty ones left out) go out on
-## tool_fx as the blow lands. The farmer stands still until it ends (Player).
-func start_swing(tool: String, bursts: Array) -> void:
+## swing.windup, then the blow. On the hit (the blow frame's start) `land` is called, if given:
+## it works the cells (the rule's result, the tool's sound) and returns the bursts
+## (ToolFxRules.burst) to send out on tool_fx, else `bursts` go out (the empty ones are left out).
+## A swing still in the air lands first (finish_swing). The swing remembers its map and mine
+## floor: if either changed before the hit (nothing calls finish_swing then), it lands on nothing.
+## The farmer stands still until it ends (Player).
+func start_swing(tool: String, bursts: Array, land := Callable()) -> void:
+	finish_swing()
+	swing = {"tool": tool, "time": 0.0, "bursts": _bursts_of(bursts), "hit": false, "land": land,
+		"map": maps.id, "floor": maps.mine_floor}
+
+
+static func _bursts_of(bursts: Variant) -> Array[Dictionary]:
 	var list: Array[Dictionary] = []
-	for b in bursts:
-		if b is Dictionary and not b.is_empty():
-			list.append(b)
-	swing = {"tool": tool, "time": 0.0, "bursts": list, "hit": false}
+	if bursts is Array:
+		for b in bursts:
+			if b is Dictionary and not b.is_empty():
+				list.append(b)
+	return list
 
 
 ## Is a tool swing playing?
@@ -1988,29 +2009,54 @@ func swinging() -> bool:
 	return not swing.is_empty()
 
 
-## The farmer's pose on a tool swing (FarmerAnim): "swing_<tool>", or "" when none plays.
+## The farmer's pose on a tool swing (FarmerAnim): "swing_<tool>"; while the button is held to
+## charge a tool (charge_tool), its wind-up; "" when neither.
 func swing_pose() -> String:
-	return "swing_" + str(swing.tool) if swinging() and str(swing.tool) in FigureArt.SWING_TOOLS else ""
+	var tool := str(swing.tool) if swinging() else charge_tool
+	return "swing_" + tool if tool in FigureArt.SWING_TOOLS else ""
 
 
-## The swing's frame: 0 the wind-up, 1 the blow (from the hit on).
+## The swing's frame: 0 the wind-up (also while charging), 1 the blow (from the hit on).
 func swing_frame() -> int:
 	return 1 if swinging() and swing.hit else 0
 
 
-## Plays `delta` seconds of the swing: on reaching the hit its bursts go out (tool_fx), at the
-## end it stops.
+## Plays `delta` seconds of the swing: on reaching the hit it lands (_hit_swing), at the end it stops.
 func swing_step(delta: float) -> void:
 	if not swinging():
 		return
 	var t := ToolFxRules.swing_times()
 	swing.time += delta
 	if not swing.hit and swing.time >= t.windup:
-		swing.hit = true
-		for b in swing.bursts:
-			tool_fx.emit(b)
-	if swing.time >= t.windup + t.blow:
+		_hit_swing()
+	if swinging() and swing.time >= t.windup + t.blow:
 		swing = {}
+
+
+## The hit: the cells are worked (`land`) unless the map or the mine floor changed since the
+## press, then the bursts go out.
+func _hit_swing() -> void:
+	var s := swing
+	s.hit = true
+	var list: Array[Dictionary] = s.bursts
+	var land: Callable = s.get("land", Callable())
+	if land.is_valid():
+		list = []
+		if maps.id == s.map and maps.mine_floor == s.floor:
+			list = _bursts_of(land.call())
+	for b in list:
+		tool_fx.emit(b)
+
+
+## Lands a swing still in the air at once and ends it (the hit's work and bits as on the blow
+## frame): before a new swing, an action, a map change, the day's end or a save, and in tests
+## that want the result without stepping the clock.
+func finish_swing() -> void:
+	if not swinging():
+		return
+	if not swing.hit:
+		_hit_swing()
+	swing = {}
 
 
 ## Is the eat / drink pose playing?
@@ -3473,6 +3519,8 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 		set(key, n[key])
 	baby_held = false   # never saved: the baby is back in the cradle
 	crawler_back()   # never saved: the crawler at the plan's place
+	swing = {}   # never saved: a swing in the air when loading is dropped, it never lands on the loaded game
+	charge_tool = ""
 	Child.sync_stage(flags, day_number())   # the cradle follows the loaded day
 	Scion.record(flags, day_number())   # a save from before the twig's planting day: planted the day it is loaded on
 	DateFlags.day_start(flags, year, season_name(), day)   # a date already past (Nana's scarf, fall 19): set at the load, as the morning would

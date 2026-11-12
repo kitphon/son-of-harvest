@@ -199,6 +199,8 @@ func act(kind: String, origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	player.position = Vector2(origin * 16) + Vector2(8, 8)
 	player.facing = facing
 	player.action.emit(kind, origin, facing, charge)
+	while g.swinging():   # a tool swing lands on its hit: step it through, as the frames would (Game.swing_step)
+		g.swing_step(1.0 / 30.0)
 
 
 func select(tool: String) -> void:

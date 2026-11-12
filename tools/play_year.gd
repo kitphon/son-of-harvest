@@ -427,6 +427,7 @@ func _use(tool: String, origin: Vector2i, face: Vector2i, charge := 0) -> bool:
 	_walk(origin, face)
 	g.maps.place(g.maps.id, origin, face)
 	_actions.use_tool(origin, face, charge)
+	g.finish_swing()   # the cells change on the swing's hit: land it now (the time is passed below)
 	# A swing takes about 0.4 s, and each charge step float(charge_seconds) more.
 	return _pass((0.4 + charge * float(g.tools_data.get("charge_seconds", 0.6))) / GameRules.SECONDS_PER_MINUTE)
 

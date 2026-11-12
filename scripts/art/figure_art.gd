@@ -38,9 +38,12 @@ const BLADE := Color("c8ccd2")           # the bright edge of the farmer's hoe, 
 const CAN := Color("5f7f8c")             # the farmer's tin watering can
 const CAN_DARK := Color("46606a")
 const CAN_WATER := Color("bfe4f4")       # the water running from its spout
+const SEED := Color("e6d49a")            # seeds in the hand on the scatter (swing_seeds)
+const SEED_DARK := Color("b89a5a")
 ## The farmer's tool swings (FarmerAnim, Game.swing_pose): frame 0 the wind-up, frame 1 the blow,
-## when the tool meets the cell (data/tool_fx.json swing; ToolFxRules starts the effect then).
-const SWING_TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe"]
+## when the tool meets the cell (data/tool_fx.json swing; the cell changes and ToolFxRules starts
+## the effect then). Seeds: 0 the hand back in the hip basket, 1 out in front scattering.
+const SWING_TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe", "seeds"]
 const MORSEL := Color("f4ecd8")
 const CUP := Color("d8c8a8")
 const CUP_TEA := Color("7aa848")
@@ -53,6 +56,8 @@ const ART_PATH := "res://data/farmer_art.json"
 const VILLAGER_ART_PATH := "res://data/villager_art.json"
 
 static var _art := {}
+static var _in_tool := false   # drawing a swing's tool: count its pixels that fall off the picture
+static var _tool_out := 0
 static var _villager_art := {}
 ## The numbers of the figure being drawn (art() or villager_art()); empty between drawings.
 static var _cur := {}
@@ -127,6 +132,9 @@ const POSES := {
 	"swing_hammer": [[0, 0, 0, 0, 0, 0, 0], [1, -1, 0, 1, 0, 0, 0]],
 	"swing_axe": [[0, 0, 0, 0, 0, 0, 0], [1, -1, 0, 1, 0, 0, 0]],
 	"swing_can": [[0, 0, 0, 0, 0, 0, 0], [1, -1, 0, 1, 0, 0, 0]],
+	# Sowing: the near hand down in the hip basket for a pinch of seed (0), then flung out in front
+	# at chest height with the seeds falling from it, a half step forward (1).
+	"swing_seeds": [[0, 0, 0, 0, 0, 0, 0], [0, -1, 0, 1, 0, 0, 0]],
 	"fish": [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]],
 	# A villager putting a letter in at a door (Ren's round): the near hand up in front with the
 	# letter (0), then pushed a pixel further as it slips in (1).
@@ -292,7 +300,7 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 	elif pose.begins_with("swing_"):
 		var tool := pose.trim_prefix("swing_")
 		_tool(img, tool, hd.near, frame % 2 == 0, back)
-		_arm(img, near_sh, hd.near, c, sleeve, frame % 2 == 0 and tool != "can")
+		_arm(img, near_sh, hd.near, c, sleeve, frame % 2 == 0 and not tool in ["can", "seeds"])
 	else:
 		_arm(img, near_sh, hd.near, c, sleeve, false)
 	if tired and farmer:   # a drop of sweat by the brow: before the face, or behind the head
@@ -436,6 +444,11 @@ static func _hands(r: Dictionary, back: bool, pose: String, frame: int) -> Dicti
 		far = Vector2i(r.x1 + 2 if back else r.x0 + 1, r.hip - 3)   # from the back, out at the far side
 	elif pose == "post":   # up in front at the chest (from the back, up at the shoulder, toward the door)
 		near = Vector2i(r.x0 - 3 - frame % 2, r.sh + (-2 if back else 1) - frame % 2)
+	elif pose == "swing_seeds":
+		if frame % 2 == 0:   # down at the near hip, in the basket
+			near = Vector2i(r.x0 - 3 if back else r.x1 + 1, r.hip - 3)
+		else:   # out in front at the chest, letting go
+			near = Vector2i(r.x0 - 4, r.sh + 2)
 	elif pose == "swing_can":
 		if frame % 2 == 0:   # held out in front at the waist
 			near = Vector2i(r.x0 - 2, r.hip - 5)
@@ -877,6 +890,19 @@ static func _hammer(dst: Image, hand: Vector2i, raised: bool, back: bool) -> voi
 ## One of the farmer's tools in the near hand on a swing frame: raised (the wind-up) or brought
 ## down on the cell in front (the blow). The hammer is the carpenter's; the can tips instead.
 static func _tool(dst: Image, tool: String, hand: Vector2i, raised: bool, back: bool) -> void:
+	_in_tool = true
+	_tool_art(dst, tool, hand, raised, back)
+	_in_tool = false
+
+
+## How many of the tool's pixels fall off the 24 x 32 picture on that swing frame (none should).
+static func tool_clipped(tool: String, back: bool, frame: int, look: Dictionary = FARMER_LOOK) -> int:
+	_tool_out = 0
+	draw(look, back, "swing_" + tool, frame, true)
+	return _tool_out
+
+
+static func _tool_art(dst: Image, tool: String, hand: Vector2i, raised: bool, back: bool) -> void:
 	if tool == "hammer":
 		_hammer(dst, hand, raised, back)
 		return
@@ -888,20 +914,20 @@ static func _tool(dst: Image, tool: String, hand: Vector2i, raised: bool, back: 
 				_r(L, x, hand.y - 8, 1, 9, HAMMER_WOOD)
 				_r(L, x - 3, hand.y - 9, 4, 1, HAMMER_IRON)
 				_r(L, x - 3, hand.y - 8, 1, 2, BLADE)
-			else:   # the handle down and out in front, the blade bitten into the ground
-				for i in 6:
+			else:   # the handle down and out in front, the blade bitten into the ground (inside the picture's edge)
+				for i in 4:
 					_dot(L, hand.x - i, hand.y + 1 + i / 2, HAMMER_WOOD)
-				_r(L, hand.x - 7, hand.y + 2, 2, 3, HAMMER_IRON)
-				_r(L, hand.x - 7, hand.y + 5, 2, 1, BLADE)
+				_r(L, hand.x - 5, hand.y + 2, 2, 3, HAMMER_IRON)
+				_r(L, hand.x - 5, hand.y + 5, 2, 1, BLADE)
 		"axe":
 			if raised:   # the haft up, the wedge head at its top, the edge forward
 				_r(L, x, hand.y - 7, 1, 7, HAMMER_WOOD)
 				_r(L, x - 2, hand.y - 8, 4, 3, HAMMER_IRON)
 				_r(L, x - 3, hand.y - 8, 1, 3, BLADE)
 			else:   # the haft out in front, the head turned down, its edge at the bottom
-				_r(L, hand.x - 4, hand.y + 1, 4, 1, HAMMER_WOOD)
-				_r(L, hand.x - 6, hand.y - 1, 3, 3, HAMMER_IRON)
-				_r(L, hand.x - 6, hand.y + 2, 3, 1, BLADE)
+				_r(L, hand.x - 2, hand.y + 1, 2, 1, HAMMER_WOOD)
+				_r(L, hand.x - 5, hand.y - 1, 3, 3, HAMMER_IRON)
+				_r(L, hand.x - 5, hand.y + 2, 3, 1, BLADE)
 		"sickle":
 			if raised:   # a short grip, the curved blade over it
 				_r(L, x, hand.y - 3, 1, 3, HAMMER_WOOD)
@@ -909,8 +935,15 @@ static func _tool(dst: Image, tool: String, hand: Vector2i, raised: bool, back: 
 					_dot(L, x + d.x, hand.y + d.y, BLADE)
 			else:   # swept low in front, the hook of the blade at the grass
 				_r(L, hand.x - 2, hand.y + 1, 2, 1, HAMMER_WOOD)
-				for d in [Vector2i(-3, 1), Vector2i(-4, 0), Vector2i(-5, 0), Vector2i(-6, 1), Vector2i(-6, 2)]:
+				for d in [Vector2i(-3, 1), Vector2i(-3, 0), Vector2i(-4, -1), Vector2i(-5, 0), Vector2i(-5, 1)]:
 					_dot(L, hand.x + d.x, hand.y + d.y, BLADE)
+		"seeds":   # loose single pixels straight on the figure: a part's outline would make them a chain
+			if raised:   # a pinch of seed showing over the fist
+				_dot(dst, hand.x, hand.y - 1, SEED)
+				_dot(dst, hand.x + 1, hand.y - 1, SEED_DARK)
+			else:   # let go: a few seeds falling under the open hand, spreading as they fall
+				for d in [Vector2i(0, 3), Vector2i(-2, 6), Vector2i(1, 7), Vector2i(-1, 10)]:
+					_dot(dst, hand.x + d.x, hand.y + d.y, SEED if d.y % 2 == 1 else SEED_DARK)
 		"can":
 			_r(L, hand.x - 4, hand.y - 1, 4, 3, CAN)
 			_r(L, hand.x - 4, hand.y + 1, 4, 1, CAN_DARK)
@@ -918,11 +951,11 @@ static func _tool(dst: Image, tool: String, hand: Vector2i, raised: bool, back: 
 			if raised:   # the spout up and forward
 				_dot(L, hand.x - 5, hand.y - 1, CAN_DARK)
 				_dot(L, hand.x - 6, hand.y - 2, CAN_DARK)
-			else:   # tipped: the spout down, the water running
+			else:   # tipped: the spout down at the picture's edge, the water running
 				_dot(L, hand.x - 5, hand.y + 1, CAN_DARK)
-				_dot(L, hand.x - 6, hand.y + 2, CAN_DARK)
-				_dot(L, hand.x - 7, hand.y + 3, CAN_WATER)
-				_dot(L, hand.x - 7, hand.y + 5, CAN_WATER)
+				_dot(L, hand.x - 5, hand.y + 2, CAN_DARK)
+				_dot(L, hand.x - 5, hand.y + 4, CAN_WATER)
+				_dot(L, hand.x - 5, hand.y + 6, CAN_WATER)
 	_stamp(dst, L)
 
 
@@ -940,6 +973,8 @@ static func _inside(x: int, y: int) -> bool:
 
 static func _r(img: Image, x: int, y: int, w: int, h: int, c: Color) -> void:
 	var rect := Rect2i(x, y, w, h).intersection(Rect2i(0, 0, W, H))
+	if _in_tool:
+		_tool_out += w * h - rect.get_area()
 	if rect.has_area():
 		img.fill_rect(rect, c)
 
@@ -947,6 +982,8 @@ static func _r(img: Image, x: int, y: int, w: int, h: int, c: Color) -> void:
 static func _dot(img: Image, x: int, y: int, c: Color) -> void:
 	if _inside(x, y):
 		img.set_pixel(x, y, c)
+	elif _in_tool:
+		_tool_out += 1
 
 
 ## Filled ellipse, tested at pixel centres.
