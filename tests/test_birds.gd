@@ -33,6 +33,8 @@ func _run() -> void:
 	_sparrows()
 	_others()
 	_shadows()
+	_edges()
+	_rebuild()
 	_art()
 	await _views()
 	await _flat_order()
@@ -364,6 +366,69 @@ func _shadows() -> void:
 		_when(c[0], c[1], 0, c[2])
 		check(is_equal_approx(float(BR.shadow_of(ground, g.sun_shadow(), g.sun_direction(g.sun_light())).alpha), float(s0.alpha)) and BR.shadow_of(roof_bird, g.sun_shadow(), g.sun_direction(g.sun_light()), {}, {}).is_empty(), "shadow: %s at %d:00 the ground blob is unchanged, a flier casts none" % [c[2], c[1]])
 	_when(0, 10, 0, "sunny")
+
+
+## A flier's shadow only partly on a building: a share of its oval (data/birds.json blocked_share, 0.2)
+## or more on it leaves the shadow out; a corner grazing a roof keeps it. The flier is placed so its
+## shadow lands at a known spot (a crow at 2.5 cells, the sun at 40 degrees: run = the sun's way).
+func _edges() -> void:
+	var dir: Vector3 = g.sun_direction({"elevation": 40.0, "yaw": -40.0})
+	var run := Vector2(dir.x, dir.z) * (2.5 / -dir.y)
+	var share := float(BR.config().shadow.get("blocked_share", 0.0))
+	check(share > 0.0 and share < 1.0, "edges: a blocked share in data (%.2f)" % share)
+	var blk := {}   # every cell from x 11 east, rows 0..29: a wall whose edge runs through the oval
+	for y in range(0, 30):
+		for x in range(11, 40):
+			blk[Vector2i(x, y)] = true
+	# The oval's edge at x 11 covers about 2% of it at 10.6 (kept) and about 38% at 10.9 (left out).
+	for pair in [[Vector2(10.6, 10.5), true], [Vector2(10.9, 10.5), false]]:
+		var at: Vector2 = pair[0]
+		var b := {"kind": "crow", "pose": "fly", "pos": Vector3(at.x - run.x, 2.5, at.y - run.y), "alpha": 1.0}
+		var open: Dictionary = BR.shadow_of(b, 1.0, dir)
+		check(not open.is_empty() and ((open.at as Vector2) - at).length() < 0.001, "edges: the test crow's shadow lands at %s (%s)" % [at, open.get("at")])
+		var s: Dictionary = BR.shadow_of(b, 1.0, dir, {}, blk)
+		check(s.is_empty() == (not bool(pair[1])), "edges: a shadow at %s with its oval on the wall %s" % [at, "is kept" if bool(pair[1]) else "is left out"])
+	check(BR._share_blocked(Vector2(10.6, 10.5), Vector2(0.88, 0.57), blk, 0.2) == false and BR._share_blocked(Vector2(10.9, 10.5), Vector2(0.88, 0.57), blk, 0.2) == true, "edges: the share test reads the oval's cover")
+
+
+## A building finished mid-day (a silo) blocks the shadows from then on: the 3D layer and the flat
+## view rebuild their blocked set when Game.house_built changes, not only the next morning.
+func _rebuild() -> void:
+	var LayerS2: GDScript = load("res://scripts/world3d/bird_layer.gd")
+	var ViewS2: GDScript = load("res://scripts/world/bird_view.gd")
+	var farm_map: MapData = MM.data("farm")
+	var saved: Array = g.house_built.duplicate()
+	g.house_built.clear()
+	g.farm.set_wings([])
+	_when(0, 10, 0, "sunny")
+	var lay: Node3D = LayerS2.new(farm_map, g.farm)
+	root.add_child(lay)
+	var fv: Node2D = ViewS2.new().setup(farm_map, g.farm, null)
+	root.add_child(fv)
+	lay.refresh()
+	fv.refresh()
+	check(lay.shown_count() > 0 and fv.sprites().size() > 0, "rebuild: birds by the farmhouse on a spring morning (3D %d, flat %d)" % [lay.shown_count(), fv.sprites().size()])
+	var silo_cells: Array[Vector2i] = []
+	for y in range(FarmGrid.SILO.position.y, FarmGrid.SILO.end.y):
+		for x in range(FarmGrid.SILO.position.x, FarmGrid.SILO.end.x):
+			silo_cells.append(Vector2i(x, y))
+	var none_before := true
+	for c in silo_cells:
+		none_before = none_before and not (lay.get("_scene").blocked as Dictionary).has(c) and not (fv.get("_scene").blocked as Dictionary).has(c)
+	check(none_before, "rebuild: no silo cell blocked before it is built")
+	g.house_built.append("silo")
+	g.farm.set_wings(g.house_built)
+	lay.refresh()
+	fv.refresh()
+	var all_after := true
+	for c in silo_cells:
+		all_after = all_after and (lay.get("_scene").blocked as Dictionary).has(c) and (fv.get("_scene").blocked as Dictionary).has(c)
+	check(all_after and silo_cells.size() == 4, "rebuild: the silo's cells block the shadows the same day, both views")
+	check((lay.get("_scene").blocked as Dictionary).has(Vector2i(4, 3)), "rebuild: the farmhouse stays blocked too")
+	g.house_built.assign(saved)
+	g.farm.set_wings(saved)
+	lay.free()
+	fv.free()
 
 
 func _art() -> void:
