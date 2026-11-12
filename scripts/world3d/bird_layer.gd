@@ -139,20 +139,26 @@ func _make_shadow() -> MeshInstance3D:
 ## A white disc fading out to its rim (the shadows' soft edge; tinted black by the material).
 static func soft_texture() -> Texture2D:
 	if _soft == null:
-		var g := Gradient.new()
-		g.set_color(0, Color(1, 1, 1, 1))
-		g.set_color(1, Color(1, 1, 1, 0))
 		var sh: Dictionary = BirdRules.config().get("shadow", {})   # a darker centre, a wide soft edge (core, core_alpha)
-		g.add_point(float(sh.get("core", 0.4)), Color(1, 1, 1, float(sh.get("core_alpha", 0.9))))
-		var t := GradientTexture2D.new()
-		t.gradient = g
-		t.fill = GradientTexture2D.FILL_RADIAL
-		t.fill_from = Vector2(0.5, 0.5)
-		t.fill_to = Vector2(1.0, 0.5)
-		t.width = 32
-		t.height = 32
-		_soft = t
+		_soft = blob_texture(float(sh.get("core", 0.4)), float(sh.get("core_alpha", 0.9)))
 	return _soft
+
+
+## The blob's texture for a darker centre of `core_alpha` out to the radius `core` (0..1), fading
+## to nothing at the rim. Shared with the insects' shadows (InsectLayer).
+static func blob_texture(core: float, core_alpha: float) -> Texture2D:
+	var g := Gradient.new()
+	g.set_color(0, Color(1, 1, 1, 1))
+	g.set_color(1, Color(1, 1, 1, 0))
+	g.add_point(core, Color(1, 1, 1, core_alpha))
+	var t := GradientTexture2D.new()
+	t.gradient = g
+	t.fill = GradientTexture2D.FILL_RADIAL
+	t.fill_from = Vector2(0.5, 0.5)
+	t.fill_to = Vector2(1.0, 0.5)
+	t.width = 32
+	t.height = 32
+	return t
 
 
 ## The birds showing now (for tests).
