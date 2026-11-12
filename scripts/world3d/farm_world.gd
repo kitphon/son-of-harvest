@@ -353,7 +353,7 @@ func set_ice(style: Dictionary, snow := 0.0) -> void:
 ## The farmer's feet (Main3D, each frame): the grass tufts and tall crops round them part
 ## (Parting), on the map and on the apron past its edge. So do they round the villagers and
 ## the dog on this map (their sprites are in Parting.GROUP), the nearest to the farmer first.
-func set_farmer(feet: Vector3) -> void:
+func set_farmer(feet: Vector3, facing := Vector2.ZERO, running := false, tired := false) -> void:
 	var others: Array = []
 	var startle: Array = []   # the walkers the birds take fright at (the crawler does not: BirdRules.scares)
 	var walkers := {"farmer": Vector2(feet.x, feet.z)}   # for the footprints (Footprints): the same walkers
@@ -376,6 +376,9 @@ func set_farmer(feet: Vector3) -> void:
 	if birds != null:
 		birds.farmer = Vector2(feet.x, feet.z)   # sparrows and the heron fly off from him
 		birds.others = startle                   # and from the villagers, the dog and the walking child
+	var breath := get_node_or_null("Breath") as BreathLayer
+	if breath != null:   # the farmer's breath (BreathLayer): his feet, the way he faces, running or tired
+		breath.farmer = {"cell": Vector2(feet.x, feet.z), "facing": facing, "running": running, "tired": tired}
 	_leave_prints(walkers)
 
 

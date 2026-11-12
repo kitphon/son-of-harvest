@@ -324,6 +324,7 @@ static func new_world(m: MapData) -> Array:
 		var steps := fw.setup_steps(Game.farm, m.gate_cells())
 		steps.append(func() -> void: fw.add_child(DriftLayer.new(m, Game.farm)))   # petals, leaves, fireflies
 		steps.append(func() -> void: fw.add_child(BirdLayer.new(m, Game.farm)))   # swallows, crows, the heron, sparrows
+		steps.append(func() -> void: fw.add_child(BreathLayer.new(m, Game.farm)))   # the puffs of breath in the cold
 		steps.append(func() -> void: fw.add_child(MistLayer.new(m, Game.farm)))   # morning mist over the pond
 		steps.append(func() -> void: fw.add_child(PuddleLayer.new(m, Game.farm)))   # puddles in rain
 		steps.append(func() -> void: fw.add_child(WetLayer.new(m)))   # the wet look of the ground, roofs and stone in rain
@@ -507,7 +508,7 @@ func _process(delta: float) -> void:
 	_update_flash(delta)
 	_follow()
 	world.occluders.update(sprite.position, lens.back, delta)
-	world.set_farmer(sprite.position)   # the grass and tall crops part round the feet
+	world.set_farmer(sprite.position, Vector2(player.facing), player.running, Game.body_state() != "fine")   # the grass and tall crops part round the feet; his breath
 	_aim_lantern()
 	_fly(delta)
 	_show_fishing()

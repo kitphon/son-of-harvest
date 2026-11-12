@@ -99,7 +99,21 @@ func figures() -> Array[Dictionary]:
 	return out
 
 
-## The animals drawn now: [[picture, feet in pixels]] (the dog last).
+## The grown animals and the dog drawn now as breathers (BreathRules): [{id, cell, facing, kind}]
+## (the dog's id "dog", a young one is left out: it does not breathe yet).
+func breathers() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for s in _shown():
+		var animal = s[2]
+		if animal != null and not Game.animals.is_adult(animal):
+			continue
+		var cell := ((s[1] as Vector2) - Vector2(0, 4)) / float(T)
+		out.append({"id": "dog" if animal == null else "a:%s" % str(animal.name), "cell": cell,
+			"facing": Vector2.ZERO, "kind": "animal"})
+	return out
+
+
+## The animals drawn now: [[picture, feet in pixels, animal (null for the dog)]] (the dog last).
 func _shown() -> Array[Array]:
 	var a := Game.animals
 	var shown: Array[Array] = []   # [animal, spot]
@@ -121,9 +135,9 @@ func _shown() -> Array[Array]:
 					shown.append([a.list[i], Vector2(c) + Vector2(0.5, 0.5)])
 	var out: Array[Array] = []
 	for s in shown:
-		out.append([PlaceholderArt.tex("animal:%s:%s:0" % [a.look(s[0]), "sick" if s[0].sick else "idle"]), s[1] * T + Vector2(0, 4)])
+		out.append([PlaceholderArt.tex("animal:%s:%s:0" % [a.look(s[0]), "sick" if s[0].sick else "idle"]), s[1] * T + Vector2(0, 4), s[0]])
 	if on_farm and not a.dog.held:
-		out.append([PlaceholderArt.tex("animal:%s:idle:0" % a.dog_look()), (Vector2(a.dog.cell) + Vector2(0.5, 0.5)) * T + Vector2(0, 4)])
+		out.append([PlaceholderArt.tex("animal:%s:idle:0" % a.dog_look()), (Vector2(a.dog.cell) + Vector2(0.5, 0.5)) * T + Vector2(0, 4), null])
 	return out
 
 

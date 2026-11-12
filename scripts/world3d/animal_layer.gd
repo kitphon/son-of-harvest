@@ -68,6 +68,9 @@ func _add_beast(beast: Dictionary, area: Rect2, start: Vector2) -> void:
 	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:%s:idle:0:%s" % [kind, facing]))
 	s.pixel_size = ANIMAL_PX
 	NightLights.figure(s)
+	if Game.animals.is_adult(beast):   # the grown ones breathe in the cold (BreathLayer)
+		s.add_to_group(BreathLayer.GROUP)
+		s.set_meta("breath_kind", "animal")
 	add_child(s)
 	SpriteShadow.attach(s, 0.25)
 	_beasts.append({"sprite": s, "kind": kind, "sick": bool(beast.sick), "home": area, "pos": start,
@@ -84,6 +87,8 @@ func _add_dog() -> void:
 	s.pixel_size = ANIMAL_PX
 	NightLights.figure(s)
 	s.add_to_group(Parting.GROUP)   # the grass and crops part round the dog too
+	s.add_to_group(BreathLayer.GROUP)   # and it breathes in the cold
+	s.set_meta("breath_kind", "animal")
 	add_child(s)
 	SpriteShadow.attach(s, 0.25)
 	_dog = {"sprite": s, "pos": Vector2(dog.cell) + Vector2(0.5, 0.5), "pose": "idle", "time": 0.0, "still": 0.0,

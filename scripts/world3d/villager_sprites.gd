@@ -30,6 +30,7 @@ func refresh() -> void:
 			s = FarmWorld.make_figure(PlaceholderArt.tex(Villagers.sprite_key(w)))
 			NightLights.figure(s)
 			s.add_to_group(Parting.GROUP)   # the grass and crops part round them
+			s.add_to_group(BreathLayer.GROUP)   # and they breathe in the cold
 			SpriteShadow.attach(s)
 			add_child(s)
 			_sprites[w.id] = s
@@ -42,6 +43,8 @@ func refresh() -> void:
 			Sfx.play("letter_post")   # a letter slipped in at a door on Ren's round
 		s.set_meta("key", key)
 		s.set_meta("bird_scare", BirdRules.scares(str(w.id), str(w.get("stage", ""))))   # the crawler startles no birds (FarmWorld.set_farmer)
+		s.set_meta("facing", Vector2(w.facing))   # for the breath (BreathLayer)
+		s.set_meta("breath_kind", "child" if str(w.get("stage", "")) != "" else "person")
 		s.texture = PlaceholderArt.tex(key)
 		s.flip_h = FarmerAnim.is_mirrored(w.facing)
 		_show_held(s, w)

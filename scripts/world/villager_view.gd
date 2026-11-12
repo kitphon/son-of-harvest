@@ -48,6 +48,8 @@ func refresh() -> void:
 		s.set_meta("key", key)
 		s.texture = PlaceholderArt.tex(key)
 		s.flip_h = FarmerAnim.is_mirrored(w.facing)
+		s.set_meta("facing", Vector2(w.facing))   # for the breath (BreathView)
+		s.set_meta("breath_kind", "child" if str(w.get("stage", "")) != "" else "person")
 		# The world's light (FlatLight) on the figure and what it carries; the note puff keeps its picture.
 		s.self_modulate = FlatLight.at(s.position, s.texture.get_height(), FlatLight.figure_px())
 		_show_held(s, w)
@@ -121,6 +123,17 @@ func figures() -> Array[Sprite2D]:
 
 func shown() -> Array:
 	return _sprites.keys().filter(func(id): return _sprites[id].visible)
+
+
+## The shown villagers as breathers (BreathRules): [{id, cell, facing, kind}].
+func breathers() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for id in _sprites:
+		var s: Sprite2D = _sprites[id]
+		if s.visible:
+			out.append({"id": "v:%s" % id, "cell": s.position / T, "facing": s.get_meta("facing", Vector2.ZERO),
+				"kind": str(s.get_meta("breath_kind", "person"))})
+	return out
 
 
 ## Where the shown villagers stand, {id: Vector2 cell position} (the footprints in snow).

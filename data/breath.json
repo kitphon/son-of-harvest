@@ -1,0 +1,19 @@
+{
+	"_about": "Breath in the cold (BreathRules; the 3D view's BreathLayer, the flat view's BreathView). On cold mornings and evenings the figures outdoors breathe out small pale puffs: the farmer, the villagers and the walking child / toddler, the grown animals and the dog. `cold`: the windows of the year that feel cold. Each entry has a `season`, a `days` range (1..30), a `strength` (0..1) and the clock `hours` [from, to] (a window past midnight wraps; [0, 24] is all day, with no fade), easing in and out over `fade_hours` at its ends. A `midday` window (hours, fade_hours) lowers the strength toward `share` while it lasts, so winter days are milder than its dawns and dusks. Late fall (the season's last ten days) and early spring (the first seven) breathe only on the mornings before about 8:00. `looks`: the share of the strength under each weather look of data/weather_fx.json (rain thins it; a storm or a blizzard hides it: too dark and gusty to see). `gap`: a figure puffs every `min`..`max` seconds (its own gap, from its id), each breath moved by `jitter` (a share of the gap) so no two figures puff in step. `rate`: the puff rate factor for a walking figure, a running farmer and a tired one (a tired farmer takes the larger of this and his walk's). `life`: seconds a puff lives (it fades in and out over it). `mouth`: a figure's mouth height above its feet in cells, for a person, a child and an animal; `forward` cells out in front of it on the side it faces. `drift`: a puff drifts `forward` cells in front and `rise` cells up over its life, and the wind (data/wind.json, the same as the rice, the hearth smoke and the drifting petals) pushes it `wind_push` cells x the wind a life. `size`: its width in cells, from `start` to `end`. `alpha`: the most a puff shows (`max`, scaled by the strength), with `in` and `out_from` the shape of its fade (shares of its life). `color`: pale blue-white. `flat`: `height_px` pixels a cell of height lifts a mouth on the flat view's screen; `z` the puffs' draw order over the figures there. Balance numbers are ours.",
+	"cold": [
+		{"season": "winter", "days": [1, 30], "strength": 1.0, "hours": [0.0, 24.0], "fade_hours": 1.0,
+			"midday": {"hours": [10.0, 15.0], "fade_hours": 1.5, "share": 0.55}},
+		{"season": "fall", "days": [21, 30], "strength": 0.7, "hours": [4.0, 8.0], "fade_hours": 0.75},
+		{"season": "spring", "days": [1, 7], "strength": 0.7, "hours": [4.0, 8.0], "fade_hours": 0.75}
+	],
+	"looks": {"sunny": 1.0, "rain": 0.5, "snow": 1.0, "storm": 0.0, "blizzard": 0.0},
+	"gap": {"min": 2.0, "max": 4.0, "jitter": 0.2},
+	"rate": {"walk": 1.15, "run": 1.6, "tired": 1.4},
+	"life": 1.0,
+	"mouth": {"person": 0.8, "child": 0.6, "animal": 0.45, "forward": 0.22},
+	"drift": {"forward": 0.22, "rise": 0.3, "wind_push": 0.25},
+	"size": {"start": 0.12, "end": 0.24},
+	"alpha": {"max": 0.5, "in": 0.15, "out_from": 0.45},
+	"color": "e6eef7",
+	"flat": {"height_px": 22, "z": 19}
+}
