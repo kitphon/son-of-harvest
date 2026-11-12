@@ -10,6 +10,108 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-12 — Tool-use effects, both views
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a tool swing now looks like one. The farmer had no pose for a tool (only the villagers'
+  carpenter "work" pose), so a swing just changed the cell. (1) Poses: FigureArt `swing_hoe`,
+  `swing_can`, `swing_sickle`, `swing_hammer`, `swing_axe` (FigureArt.SWING_TOOLS), two frames on
+  the "work" rig: 0 the wind-up (the tool raised over the near shoulder; the can held out), 1 the
+  blow (the hoe's blade bitten into the ground, the sickle swept low, the axe's edge down, the
+  hammer's head down, the can tipped with water running). (2) Timing: `Game.start_swing(tool,
+  bursts)` / `swing_step` / `swing_pose()` / `swing_frame()`: `swing.windup` 0.12 s raised, then the
+  blow for `swing.blow` 0.22 s (data/tool_fx.json); the bursts go out on `Game.tool_fx` the moment
+  the blow frame starts. Both FarmerAnims (the Player's, Main3D's) take the pose over walking; the
+  Player stands still through the swing (0.34 s), as it does while eating. The cell's rule is still
+  resolved on the press (FarmGrid / MineFloor unchanged, every test calling FarmActions directly
+  unchanged), so the cell's new look shows 0.12 s (about 4 frames) before the blow; only the bits wait
+  for contact. (3) Rules: `scripts/tool_fx_rules.gd` (ToolFxRules, pure) maps (tool, target, ground,
+  tool level, opts) to groups of bits; `burst` adds the map cells, the farmer's spot and facing;
+  `particles` lays it out from a seed, `step` moves it (gravity, a bounce keeping `bounce` of the fall
+  speed, else rest; a can drop landing turns into a ring), `specks` says what to draw. Targets: hoe
+  soil (clods + dust when dry or in the mine), a mine soft spot, miss; can water (spray to every cell
+  it poured on, rings where the drops land); sickle weed (grass bits; with the silo standing and grass
+  cut they fly toward the farmer, to the pile); axe wood (stump or branch, tough hits too); hammer
+  rock (stone chips; a spark on a charged blow), and down the mine rock / ice chips, a spark when the
+  rock still stands or the blow was charged, a glint in the find's own colour when an ore or a gem
+  comes out (data/mine.json items' look: an ore's `vein`, a gem's `shine`). A swing that did nothing
+  anywhere (the hoe on tilled soil or a path, the hammer on air) puffs dust on the first cell only;
+  when some cells worked, the misses among them throw nothing. A harvest pick-up (farm and
+  greenhouse) puffs a few leaf and soil bits at once (no swing). Ground colours: dry = the tilled
+  tile's base a07446 with a darker and a lit tone; wet (wetness >= `wet_from` 0.35, WetRules.wetness_now
+  on that map) = those three through wet.json's `tilled` surface tone at that wetness (so they match
+  the wet tilled ground the rain makes); snow (snow lying outdoors) = two snow whites and a soil
+  brown; mine = a darker cave soil. Wet soil and snow don't dust. The can adds no darkening: the
+  watered cell is already drawn with its own `ground:wet` tile (PlaceholderArt) and the ground masks,
+  so the rings are the only mark of the landing. (4) FarmActions: `use_tool` records what each cell
+  met and calls `_swing_fx` (grouped by target, map cells: the greenhouse's beds offset by its plots
+  corner); `mine` snapshots the rocks and soft spots of the swing's cells before `Game.mine_swing`
+  and `_mine_fx` compares after; `interact` / the greenhouse pick-up call `_pick_puff`. (5) Views:
+  3D `ToolFxLayer` (scripts/world3d/, one per world via `_add_layer`): a `Burst` child per effect, a
+  MultiMesh of unshaded billboard quads with vertex colours like DriftLayer's petals, a sprite pixel
+  = FarmWorld.PX, the colours times SpriteLight.now (the sun's share on the sprites); the night and
+  the mine's light come from Main3D's full-screen tint like every unshaded sprite. Flat
+  `ToolFxView` (scripts/world/, added to each map view): a `Burst` Node2D per effect drawing whole
+  pixels (height lifts a bit 16 px a cell up the screen), modulated by FlatLight.at. Where it sorts:
+  each burst is put in the view's FigureLayer at its first cell's middle + 6 px (where its bits fall
+  back), not in a pass of its own over everything: bits kicked up from the cell below the farmer
+  then draw over the farmer's feet, bits from the cell above draw behind the farmer (as a sparrow
+  there does), and like every figure they are over the ground, the crops, props and lights, under
+  the thrown item, the fliers' Air pass, the weather, the night tint and the mine's light, which
+  darken them with the rest. Every burst frees itself (`queue_free`) when its last particle is gone;
+  a map change frees what is left with the view / world. (6) `--swing=<tool>` (hoe, water or can,
+  sickle, axe, hammer): FarmActions.demo_tick (called from the Player's physics step, so both views)
+  swings it every 0.9 s from 0.3 s on, first making the cell in front ready (bare ground for the hoe,
+  a dry tilled cell for the can, a weed, a branch, a rock; down the mine a rock or a soft spot) and
+  topping up stamina, fatigue and the can.
+- Numbers (data/tool_fx.json, ours): swing 0.12 + 0.22 s: long enough to read the wind-up at 30 fps
+  (3-4 frames) without making field work feel slow (a held charge already waits 0.6 s a step).
+  Counts per cell: clods 5 (+2 dust puffs), chips 5, stone 5, blades 6, spray 3 drops, spark 3, glint
+  2, miss puff 3; `per_level` 0.15 (level 5 throws 1.6x); `max_particles` 90 a burst so the widest
+  charged hoe (6 x 3 cells) is scaled down rather than burying the cells. Speeds in cells/s: clods
+  rise 1.6-2.5 against gravity 9 (about 0.2-0.35 cells high, a third of the farmer's knee-to-waist),
+  out 0.4-1.1, so they land within the cell or just past it and never cover the next row; grass bits
+  fall slower (gravity 4) so they read as light; lives 0.4-0.8 s (sparks 0.08-0.16) with the last 35%
+  fading, so a swing's bits are gone before the next swing at a brisk pace. Sizes 2-3 sprite px for
+  clods, chips and stone (1-2 px read as noise at 480 x 270 in the 3D view), 1.5-2 for drops and
+  sparks, puffs 3-4 growing 2x. Grass bits are a lighter, yellower green (a8d070, c8e090, 86c25a)
+  than the grass tile, which hid the first try's greens.
+- Checked: `test_tool_fx` (new) prints `test_tool_fx: OK (0 failed)`: every tool and target's groups,
+  counts and colours; levels; the swing's length; the ground states and colours (dry = data, wet =
+  WetRules.tone of dry by `tilled`, half wet between, snow, mine, the puff by ground); the particles
+  (one per bit planned, start on the cell, same seed same burst, the 90 cap on a 30-cell swing, they
+  rise, never sink, come to rest and die out in under 1 s; the can's drops start at the spout and
+  every one lands on the cells as a ring that fades; a ring is 8 specks; the silo's grass flies to the
+  farmer; flat_of); FarmActions (the hoe still tills on the press, the swing starts raised with
+  nothing thrown, nothing just before the wind-up ends, the burst goes out as frame 1 starts, once;
+  the miss puff; the can a spray only; sickle / axe on a branch and a stump / hammer, a charged blow
+  sparks; rain gives wet clods, snow snowy ones; the silo; the harvest puff); the mine (`_mine_fx`: a
+  broken rock with akagane chips and a copper glint, an ice block left standing ice chips and a spark,
+  a soft spot with kogane mine soil and a gold glint, a blow on nothing a puff); the art (every
+  swing pose two frames, the blow unlike the wind-up and the idle, both sides; FarmerAnim shows the
+  swing over walking and goes back); and both real views (main_2d.tscn and main.tscn): an action
+  from the Player puts the farmer in swing_hoe, no blow frame before the effect, the effect on frame
+  1, the blow frame showing, the farmer standing still, one burst in the view's ToolFx layer (flat:
+  in the FigureLayer, in front of the farmer, whole pixels; 3D: specks shown), it frees itself, the
+  node count back to before, five at once all freed. A deliberate break (the flat view not adding
+  its burst) made it fail 2 checks, so the view checks bite.
+  Every tests/test_*.gd script (35, one after another) printed `OK (0 failed)` with no ERROR lines
+  in its log. Smoke runs with no ERROR or WARNING lines: title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, `--demo --swing=hoe`; main_2d.tscn `--demo --swing=sickle`, `--demo --mine=3 --swing=hoe`.
+  Frames (`--write-movie`, 30 fps, crops 2-3x), 3D: `--demo --swing=hoe` frame 12 the hoe raised,
+  15 the blow with a dust puff and clods on the cell, 18 clods in the air, 22 settling; `--swing=water`
+  drops from the spout at 15-18, rings on the cell at 22; `--swing=sickle` light green bits (the
+  first greens were lost on the grass, so lightened); `--swing=axe` pale chips; `--swing=hammer` grey
+  chips; `--weather=rain --time=11:00 --swing=hoe` dark wet clods; `--season=winter --snow=80
+  --swing=hoe` brown clods over the snow (the white bits hardly show on white); `--mine=3
+  --swing=hammer` pale stone chips at the lantern-lit cell. Flat view: `--swing=hoe` clods and puff
+  on the cell under the farmer, `--swing=water` drops then a ring of white specks, `--mine=3
+  --swing=hammer` white-grey chips in the target cell. No frames of the parent commit were taken
+  (it had no swing to show: the same swing there changed the cell with no pose and nothing flying).
+- Left / next: the cell changes on the press, 0.12 s before the blow (resolving the rule on the
+  hit would change every FarmActions caller and test). No swing pose for seeds, the rod or food.
+  Holding the button to charge still shows the plain standing pose until the swing. No sound timing
+  change (the tool sound still plays on the press).
+
 ## 2026-11-12 — The flat view's figures sort by their feet
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the thing "Ground birds sort with the figures" left open. The flat view drew its figures in

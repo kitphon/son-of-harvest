@@ -5,6 +5,10 @@ extends RefCounted
 
 const T := 16
 const HOME := Vector2(4 * T + 8, 4 * T + 10)   # in front of the door, in player pixels
+const DEMO_FIRST := 0.3   # `--swing=<tool>`: seconds to the first swing (its hit about frame 13 at 30 fps)
+const DEMO_EVERY := 0.9   # and between swings
+
+static var _demo_wait := DEMO_FIRST
 
 
 ## A view's Player hooked to the actions, and the view-side start flag `--talk=<villager>`.
@@ -206,8 +210,11 @@ static func interact(c: Vector2i) -> void:
 	if BabyActions.look_in(c):   # the baby's cradle: a line by the clock
 		return
 	if Game.in_greenhouse():   # the beds: an item lying there, else a ripe crop, goes up overhead
+		var crop := _ripe_here(c)
 		var got := Game.pick_up(c)
 		if got != "":
+			if crop:
+				_pick_puff(c)
 			Sfx.play("pick")
 			Game.message.emit("Picked up: %s." % item_name(got))
 			return
@@ -244,8 +251,11 @@ static func interact(c: Vector2i) -> void:
 			buy_food() if Game.current_tool() == "food" else buy_seeds()
 		_:
 			# An item on the ground, else a ripe crop, goes up overhead.
+			var crop := _ripe_here(c)
 			var id := Game.pick_up(c)
 			if id != "":
+				if crop:
+					_pick_puff(c)
 				Sfx.play("pick")
 				Game.message.emit("Picked up: %s." % item_name(id))
 
@@ -427,10 +437,14 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 		return
 	Sfx.play("tool_" + tool)
 	var worked := false
+	var hits := {}   # what each cell met, for the swing's effect: target -> field cells (ToolFxRules)
+	var fx_opts := {}
 	match tool:
 		"hoe":
 			for cell in cells:
-				worked = farm.till(cell) or worked
+				var tilled := farm.till(cell)
+				worked = tilled or worked
+				_fx_add(hits, "soil" if tilled else "miss", cell)
 		"can":
 			# Water per cell the can pours on, nearest rows first; a short can stops early.
 			var per := int(Game.tools_data.tools.can.get("water_per_cell", 1))
@@ -438,6 +452,7 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 			Game.water -= cells.size() * per
 			for cell in cells:
 				worked = farm.water_cell(cell) or worked
+				_fx_add(hits, "water", cell)
 			Game.changed.emit()
 		_:
 			var tough := false
@@ -448,6 +463,8 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 				tough = got == 1 or tough
 				worked = got > 0 or worked
 				grass += int(got == 2 and weed and tool == "sickle")
+				_fx_add(hits, {"sickle": "weed", "axe": "wood", "hammer": "rock"}.get(tool, "miss") if got > 0 else "miss", cell)
+			fx_opts = {"hard": int(rule.get("hits", 1)) > 1, "toward": grass > 0 and Game.animals.silo_built()}
 			if tough:
 				Game.message.emit("It's tough. Keep hitting.")
 			if grass > 0 and Game.animals.silo_built():
@@ -456,14 +473,64 @@ static func use_tool(origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 					Game.message.emit("Grass for the silo: %d bundles in the pile." % Game.animals.silo.grass)
 				else:
 					Game.message.emit("The silo's grass pile is full.")
+	_swing_fx(tool, hits, c, origin, facing, fx_opts)
 	# Every swing teaches the tool a little, one that did some work more.
 	Game.add_tool_exp(tool, Game.swing_exp(worked))
+
+
+static func _fx_add(hits: Dictionary, target: String, cell: Vector2i) -> void:
+	if not hits.has(target):
+		hits[target] = []
+	hits[target].append(cell)
+
+
+## Starts the farmer's swing with what it throws (ToolFxRules): a group of bits for each kind of
+## thing met, on its cells (map cells: the greenhouse's beds start at its plots corner); a swing
+## that did nothing anywhere puffs a little dust on the first cell in front (`front`, a field cell).
+static func _swing_fx(tool: String, hits: Dictionary, front: Vector2i, origin: Vector2i, facing: Vector2i, opts := {}) -> void:
+	var corner := Game.maps.current().plots.position if Game.in_greenhouse() else Vector2i.ZERO
+	var outdoors := Game.maps.on_farm()
+	var wet := WetRules.wetness_now(Game, Game.maps.current())
+	var ground := ToolFxRules.ground_state(Game.snow_cover / 100.0 if outdoors else 0.0, wet)
+	opts = opts.duplicate()
+	opts.wet = wet
+	var did := hits.keys().any(func(k): return k != "miss")
+	if hits.is_empty():
+		hits = {"miss": [front]}
+	var bursts := []
+	for target in hits:
+		if target == "miss" and did:
+			continue
+		var on: Array = []
+		for cell in (hits[target] if target != "miss" else [hits[target][0]]):
+			on.append(cell + corner)
+		var fx := ToolFxRules.effect(tool, target, ground, Game.tool_level(tool), opts)
+		bursts.append(ToolFxRules.burst(fx, on, Vector2(origin + corner) + Vector2(0.5, 0.6), facing))
+	Game.start_swing(tool, bursts)
+
+
+## Is there a ripe crop (nothing lying on it) on map cell `c` of the field here?
+static func _ripe_here(c: Vector2i) -> bool:
+	var f := Game.field()
+	var fc := Game.field_cell(c)
+	return f.in_bounds(fc) and f.item_at(fc) == "" and f.is_ripe(fc)
+
+
+## A harvest: a small puff of leaves and soil where the crop came out, at once (no swing).
+static func _pick_puff(c: Vector2i) -> void:
+	var fx := ToolFxRules.effect("", "crop", "dry")
+	Game.tool_fx.emit(ToolFxRules.burst(fx, [c], Vector2(c) + Vector2(0.5, 0.5), Vector2i.DOWN))
 
 
 ## Down the mine the hammer breaks rocks and the hoe digs soft spots (Game.mine_swing); the
 ## other tools do nothing here (food is eaten before this, in use_tool).
 static func mine(origin: Vector2i, facing: Vector2i, charge: int) -> void:
 	var tool := Game.current_tool()
+	var f := Game.maps.mine_floor
+	var rule := Game.charge_rule(tool, charge) if tool in ["hammer", "hoe"] else {}
+	var before := {}   # what lay on each cell of the swing before it: for the effect
+	for c in f.area_cells(origin, facing, rule.get("area", ["@", "#"])):
+		before[c] = f.rocks[c].duplicate() if f.rocks.has(c) else ({"soft": f.soft[c]} if f.soft.has(c) else {})
 	var r := Game.mine_swing(tool, origin, facing, charge)
 	match r.result:
 		"hands_full":
@@ -472,12 +539,13 @@ static func mine(origin: Vector2i, facing: Vector2i, charge: int) -> void:
 		"wrong_tool":
 			Game.message.emit("Use the hammer on rocks and the hoe on soft ground." if tool != "" else "No tool in hand (I = rucksack).")
 			return
+	_mine_fx(tool, f, before, origin, facing, int(rule.get("hits", 1)) > 1)
 	Sfx.play("tool_" + tool)
 	if r.worked and tool == "hammer":
 		Sfx.play("rock_break")
 	var said: Array[String] = []
-	for f in r.finds:
-		said.append({"bag": "Found %s.", "hand": "Found %s (rucksack full).", "floor": "Found %s (left it on the ground)."}[f.to] % item_name(f.item))
+	for fd in r.finds:
+		said.append({"bag": "Found %s.", "hand": "Found %s (rucksack full).", "floor": "Found %s (left it on the ground)."}[fd.to] % item_name(fd.item))
 	if not r.finds.is_empty():
 		Sfx.play("mine_find")
 	if r.hole:
@@ -486,6 +554,103 @@ static func mine(origin: Vector2i, facing: Vector2i, charge: int) -> void:
 		said.append("It's tough. Keep hitting.")
 	if not said.is_empty():
 		Game.message.emit(Lang.join(said))
+
+
+## The swing's effect down the mine: stone (or ice) chips off each rock hit, a spark on a hard blow
+## (charged, or the rock still standing), soil from a soft spot dug, and a glint in the find's own
+## colour when an ore or a gem comes out; a swing that met nothing puffs dust on the cell in front.
+static func _mine_fx(tool: String, f: MineFloor, before: Dictionary, origin: Vector2i, facing: Vector2i, charged: bool) -> void:
+	var bursts := []
+	var level := Game.tool_level(tool)
+	var farmer := Vector2(origin) + Vector2(0.5, 0.6)
+	for c in before:
+		var was: Dictionary = before[c]
+		var target := ""
+		var opts := {}
+		var find := ""
+		if tool == "hammer" and was.has("kind"):
+			target = "ice" if was.kind == "ice" else "rock"
+			opts.hard = charged or f.rocks.has(c)
+			find = str(was.find) if not f.rocks.has(c) else ""
+		elif tool == "hoe" and was.has("soft") and not f.soft.has(c):
+			target = "soft"
+			find = str(was.soft)
+		if target == "":
+			continue
+		var glint: Variant = _find_glint(find)
+		if glint != null:
+			opts.glint = glint
+		bursts.append(ToolFxRules.burst(ToolFxRules.effect(tool, target, "mine", level, opts), [c], farmer, facing))
+	if bursts.is_empty():
+		bursts.append(ToolFxRules.burst(ToolFxRules.effect(tool, "miss", "mine", level), [origin + facing], farmer, facing))
+	Game.start_swing(tool, bursts)
+
+
+## The glint colour of a mine find (an ore's vein, a gem's shine; data/mine.json items' look), or
+## null for a stone, nothing or the hole.
+static func _find_glint(find: String) -> Variant:
+	if find == "" or find == "stairs":
+		return null
+	var id := MineFloor.item_id(find).trim_prefix("mine:")
+	var item: Dictionary = Game.mine_data.get("items", {}).get(id, {})
+	if not str(item.get("kind", "")) in ["ore", "gem"]:
+		return null
+	var look: Dictionary = item.get("look", {})
+	return Color(str(look.get("vein", look.get("shine", look.get("body", "ffffff")))))
+
+
+## `--swing=<tool>` (hoe, water or can, sickle, axe, hammer): every DEMO_EVERY seconds the farmer
+## swings that tool at the cell in front, made ready for it first (bare ground for the hoe, a dry
+## tilled cell for the can, a weed, a branch, a rock; down the mine a rock or a soft spot), with
+## the stamina and the can topped up. The Player calls it each physics step.
+static func demo_tick(player: Player, delta: float) -> void:
+	if Game.demo_swing == "" or Game.swinging() or Game.paused():
+		return
+	_demo_wait -= delta
+	if _demo_wait > 0.0:
+		return
+	_demo_wait = DEMO_EVERY
+	var tool := "can" if Game.demo_swing == "water" else Game.demo_swing
+	for i in Game.inventory.size("tools"):
+		if Game.inventory.id_at("tools", i) == tool:
+			Game.select_tool(i)
+	if Game.current_tool() != tool:
+		push_warning("--swing: no %s in the rucksack" % tool)
+		Game.demo_swing = ""
+		return
+	var at := Player.cell_of(player.position)
+	_demo_ready(tool, at + player.facing)
+	Game.stamina = Game.max_stamina
+	Game.fatigue = 0
+	Game.water = Game.WATER_MAX
+	use_tool(at, player.facing, 0)
+
+
+static func _demo_ready(tool: String, c: Vector2i) -> void:
+	var f := Game.maps.mine_floor
+	if f != null:
+		if f.map.in_bounds(c) and not f.map.is_solid(c) and c != f.stairs:
+			if tool == "hammer" and not f.rocks.has(c):
+				f.rocks[c] = {"kind": "rock", "hits": 1, "done": 0, "find": ""}
+			elif tool == "hoe" and not f.soft.has(c) and not f.rocks.has(c):
+				f.soft[c] = ""
+			f.changed.emit()
+		return
+	if not Game.maps.on_farm() and not Game.in_greenhouse():
+		return
+	var field := Game.field()
+	var fc := Game.field_cell(c)
+	if not field.can_farm(fc):
+		return
+	var d := field.cell(fc)
+	field.items.erase(fc)
+	d.crop = ""
+	d.stage = 0
+	d.hits = 0
+	d.obj = {"sickle": FarmGrid.Obj.WEED, "axe": FarmGrid.Obj.BRANCH, "hammer": FarmGrid.Obj.ROCK}.get(tool, FarmGrid.Obj.NONE)
+	d.tilled = tool == "can"
+	d.wet = false
+	field.cells_changed.emit()
 
 
 ## Number keys / Tab / Q (next seed, or next food with the food slot), the same in both views.

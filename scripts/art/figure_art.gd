@@ -34,6 +34,13 @@ const ROD_NODE := Color("8a6a32")
 const VILLAGER_ROD := Color("7a5a32")   # a villager's (darker, older) rod
 const HAMMER_WOOD := Color("a07a4a")
 const HAMMER_IRON := Color("5a5e66")
+const BLADE := Color("c8ccd2")           # the bright edge of the farmer's hoe, sickle and axe
+const CAN := Color("5f7f8c")             # the farmer's tin watering can
+const CAN_DARK := Color("46606a")
+const CAN_WATER := Color("bfe4f4")       # the water running from its spout
+## The farmer's tool swings (FarmerAnim, Game.swing_pose): frame 0 the wind-up, frame 1 the blow,
+## when the tool meets the cell (data/tool_fx.json swing; ToolFxRules starts the effect then).
+const SWING_TOOLS: Array[String] = ["hoe", "can", "sickle", "hammer", "axe"]
 const MORSEL := Color("f4ecd8")
 const CUP := Color("d8c8a8")
 const CUP_TEA := Color("7aa848")
@@ -113,6 +120,13 @@ const POSES := {
 	"drink": [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]],
 	# A villager's hammer (0 = raised over the shoulder, 1 = the blow, dipping into it) and rod.
 	"work": [[0, 0, 0, 0, 0, 0, 0], [1, -1, 0, 1, 0, 0, 0]],
+	# The farmer's tool swings: like the hammer's, raised (0) then the blow, dipping into it (1);
+	# the can is held out in front (0), then tipped over the cells, leaning into it (1).
+	"swing_hoe": [[0, 0, 0, 0, 0, 0, 0], [1, -1, 0, 1, 0, 0, 0]],
+	"swing_sickle": [[0, 0, 0, 0, 0, 0, 0], [1, -1, 0, 1, 0, 0, 0]],
+	"swing_hammer": [[0, 0, 0, 0, 0, 0, 0], [1, -1, 0, 1, 0, 0, 0]],
+	"swing_axe": [[0, 0, 0, 0, 0, 0, 0], [1, -1, 0, 1, 0, 0, 0]],
+	"swing_can": [[0, 0, 0, 0, 0, 0, 0], [1, -1, 0, 1, 0, 0, 0]],
 	"fish": [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]],
 	# A villager putting a letter in at a door (Ren's round): the near hand up in front with the
 	# letter (0), then pushed a pixel further as it slips in (1).
@@ -275,6 +289,10 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 	elif pose == "work":
 		_hammer(img, hd.near, frame % 2 == 0, back)
 		_arm(img, near_sh, hd.near, c, sleeve, frame % 2 == 0)
+	elif pose.begins_with("swing_"):
+		var tool := pose.trim_prefix("swing_")
+		_tool(img, tool, hd.near, frame % 2 == 0, back)
+		_arm(img, near_sh, hd.near, c, sleeve, frame % 2 == 0 and tool != "can")
 	else:
 		_arm(img, near_sh, hd.near, c, sleeve, false)
 	if tired and farmer:   # a drop of sweat by the brow: before the face, or behind the head
@@ -418,7 +436,12 @@ static func _hands(r: Dictionary, back: bool, pose: String, frame: int) -> Dicti
 		far = Vector2i(r.x1 + 2 if back else r.x0 + 1, r.hip - 3)   # from the back, out at the far side
 	elif pose == "post":   # up in front at the chest (from the back, up at the shoulder, toward the door)
 		near = Vector2i(r.x0 - 3 - frame % 2, r.sh + (-2 if back else 1) - frame % 2)
-	elif pose == "work":
+	elif pose == "swing_can":
+		if frame % 2 == 0:   # held out in front at the waist
+			near = Vector2i(r.x0 - 2, r.hip - 5)
+		else:   # tipped, a little lower and further out
+			near = Vector2i(r.x0 - 3, r.hip - 4)
+	elif pose == "work" or pose.begins_with("swing_"):
 		if frame % 2 == 0:   # raised over the near shoulder
 			near = Vector2i(r.x0 - 3 if back else r.x1 + 2, r.sh - 4)
 		else:   # the blow, out in front at the waist
@@ -848,6 +871,58 @@ static func _hammer(dst: Image, hand: Vector2i, raised: bool, back: bool) -> voi
 		_r(L, hand.x - 3, hand.y + 1, 3, 1, HAMMER_WOOD)
 		_r(L, hand.x - 5, hand.y - 1, 2, 4, HAMMER_IRON)
 		_dot(L, hand.x - 5, hand.y - 1, HAMMER_IRON.lightened(0.25))
+	_stamp(dst, L)
+
+
+## One of the farmer's tools in the near hand on a swing frame: raised (the wind-up) or brought
+## down on the cell in front (the blow). The hammer is the carpenter's; the can tips instead.
+static func _tool(dst: Image, tool: String, hand: Vector2i, raised: bool, back: bool) -> void:
+	if tool == "hammer":
+		_hammer(dst, hand, raised, back)
+		return
+	var L := _blank()
+	var x := hand.x + (0 if back else 1)
+	match tool:
+		"hoe":
+			if raised:   # a long handle up from the fist, the blade bent forward at its top
+				_r(L, x, hand.y - 8, 1, 9, HAMMER_WOOD)
+				_r(L, x - 3, hand.y - 9, 4, 1, HAMMER_IRON)
+				_r(L, x - 3, hand.y - 8, 1, 2, BLADE)
+			else:   # the handle down and out in front, the blade bitten into the ground
+				for i in 6:
+					_dot(L, hand.x - i, hand.y + 1 + i / 2, HAMMER_WOOD)
+				_r(L, hand.x - 7, hand.y + 2, 2, 3, HAMMER_IRON)
+				_r(L, hand.x - 7, hand.y + 5, 2, 1, BLADE)
+		"axe":
+			if raised:   # the haft up, the wedge head at its top, the edge forward
+				_r(L, x, hand.y - 7, 1, 7, HAMMER_WOOD)
+				_r(L, x - 2, hand.y - 8, 4, 3, HAMMER_IRON)
+				_r(L, x - 3, hand.y - 8, 1, 3, BLADE)
+			else:   # the haft out in front, the head turned down, its edge at the bottom
+				_r(L, hand.x - 4, hand.y + 1, 4, 1, HAMMER_WOOD)
+				_r(L, hand.x - 6, hand.y - 1, 3, 3, HAMMER_IRON)
+				_r(L, hand.x - 6, hand.y + 2, 3, 1, BLADE)
+		"sickle":
+			if raised:   # a short grip, the curved blade over it
+				_r(L, x, hand.y - 3, 1, 3, HAMMER_WOOD)
+				for d in [Vector2i(0, -4), Vector2i(-1, -5), Vector2i(-2, -5), Vector2i(-3, -4), Vector2i(-3, -3)]:
+					_dot(L, x + d.x, hand.y + d.y, BLADE)
+			else:   # swept low in front, the hook of the blade at the grass
+				_r(L, hand.x - 2, hand.y + 1, 2, 1, HAMMER_WOOD)
+				for d in [Vector2i(-3, 1), Vector2i(-4, 0), Vector2i(-5, 0), Vector2i(-6, 1), Vector2i(-6, 2)]:
+					_dot(L, hand.x + d.x, hand.y + d.y, BLADE)
+		"can":
+			_r(L, hand.x - 4, hand.y - 1, 4, 3, CAN)
+			_r(L, hand.x - 4, hand.y + 1, 4, 1, CAN_DARK)
+			_dot(L, hand.x - 2, hand.y - 2, CAN_DARK)   # the handle's top
+			if raised:   # the spout up and forward
+				_dot(L, hand.x - 5, hand.y - 1, CAN_DARK)
+				_dot(L, hand.x - 6, hand.y - 2, CAN_DARK)
+			else:   # tipped: the spout down, the water running
+				_dot(L, hand.x - 5, hand.y + 1, CAN_DARK)
+				_dot(L, hand.x - 6, hand.y + 2, CAN_DARK)
+				_dot(L, hand.x - 7, hand.y + 3, CAN_WATER)
+				_dot(L, hand.x - 7, hand.y + 5, CAN_WATER)
 	_stamp(dst, L)
 
 
