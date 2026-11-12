@@ -22,6 +22,7 @@ const NO_AIM := Vector2(-99999.0, -99999.0)   # not forced (see forced())
 static var _cfg: Dictionary = {}
 static var _forced: Array = []
 static var _perched_forced: Array = []
+static var _perched_on := ""   # `--insects=dragonfly:perched:rice`: only a perch of that kind
 static var _forced_read := false
 
 
@@ -35,7 +36,9 @@ static func config() -> Dictionary:
 ## `-- --insects` (every kind) or `--insects=dragonfly,butterfly` on the command line: those kinds
 ## show at full strength whatever the season, weather and clock (screenshots), placed round the
 ## farmer (the map's middle without one) at the start. `--insects=dragonfly:perched` also holds the
-## first dragonfly resting on the perch nearest the farmer (held_perch), for a frame of it.
+## first dragonfly resting on the perch nearest the farmer (held_perch), for a frame of it; add the
+## perch's kind (`dragonfly:perched:rice`, also corn, tomato, cucumber, eggplant, paddy, fence,
+## wood_fence, hasa) to take the nearest of that kind.
 static func forced() -> Array:
 	_read_args()
 	return _forced
@@ -61,6 +64,8 @@ static func _read_args() -> void:
 					_forced.append(parts[0])
 					if parts.size() > 1 and parts[1] == "perched":
 						_perched_forced.append(parts[0])
+						if parts.size() > 2:
+							_perched_on = parts[2]
 
 
 ## A steady pseudo-random number in 0..1 from three integers (the drift's, so everywhere the same).
@@ -148,6 +153,7 @@ static func scene_of(m: MapData, farm: FarmGrid = null, seed_value := 0, cfg := 
 	var grass: Array[Vector2] = []
 	var wet: Array[Vector2] = []
 	var perches: Array[Vector3] = []
+	var perch_kinds: Array[String] = []   # what each perch is (fence, wood_fence, hasa, rice, corn, ... paddy), same order
 	if farm != null:
 		var stage_min := int(dk.perch_stage)
 		var gates := m.gate_cells()   # the gate road has no post (FarmWorld._make_fence leaves it open)
@@ -162,6 +168,7 @@ static func scene_of(m: MapData, farm: FarmGrid = null, seed_value := 0, cfg := 
 				if f == "fence":
 					if not c in gates:
 						perches.append(Vector3(mid.x, float(ph.fence), mid.y))
+						perch_kinds.append("fence")
 					continue
 				if f != "":
 					continue
@@ -172,8 +179,9 @@ static func scene_of(m: MapData, farm: FarmGrid = null, seed_value := 0, cfg := 
 						wet.append(mid)
 					else:
 						lures.append(mid)
-					if int(d.get("stage", 0)) >= stage_min and ph.has(id):
-						perches.append(Vector3(mid.x, float(ph[id]), mid.y))
+					if int(d.get("stage", 0)) >= stage_min and id in (dk.perch_crops as Array):
+						perches.append(plant_perch(c, PlaceholderArt.cell_key(farm, d)))
+						perch_kinds.append(id)
 				elif not farm.is_solid(c):
 					grass.append(mid)
 	else:
@@ -185,7 +193,8 @@ static func scene_of(m: MapData, farm: FarmGrid = null, seed_value := 0, cfg := 
 				if t == "water" or t == "paddy":
 					wet.append(mid)
 					if t == "paddy" and rnd(x, y, 81) < float(dk.paddy_perch_share):
-						perches.append(Vector3(mid.x, float(ph.paddy), mid.y))
+						perches.append(plant_perch(c, _clusters().paddy_key(str(dk.paddy_perch_season))))
+						perch_kinds.append("paddy")
 				elif t == "grass" and not m.is_solid(c):
 					grass.append(mid)
 		for p in m.props:
@@ -196,10 +205,36 @@ static func scene_of(m: MapData, farm: FarmGrid = null, seed_value := 0, cfg := 
 						lures.append(Vector2(int(p.cell[0]) + x, int(p.cell[1]) + y) + Vector2(0.5, 0.5))
 			elif kind == "wood_fence" or kind == "hasa":
 				_posts(p, float(ph[kind]), perches, 0.1 if kind == "wood_fence" else 0.15)
+				while perch_kinds.size() < perches.size():
+					perch_kinds.append(kind)
 		for sp in Forage.spots(m.id):
 			lures.append(Vector2(sp.cell) + Vector2(0.5, 0.5))
-	return {"area": Rect2(0, 0, m.w, m.h), "lures": lures, "grass": grass, "wet": wet, "perches": perches,
+	return {"area": Rect2(0, 0, m.w, m.h), "lures": lures, "grass": grass, "wet": wet, "perches": perches, "perch_kinds": perch_kinds,
 		"seed": seed_value, "near": {}}
+
+
+## CropClusters, loaded when first needed (a static name would pull the 3D view's scripts, and
+## through them the Game autoload, into this rule script's compile).
+static func _clusters() -> GDScript:
+	return load("res://scripts/world3d/crop_clusters.gd")
+
+
+## Where a dragonfly rests on the crop standing in cell `c` as `key` (PlaceholderArt.cell_key, or
+## CropClusters.paddy_key): Vector3 (x, height, z). A cluster crop (rice, corn, tomato, cucumber):
+## the top of its tallest plant, where CropClusters.spots_for puts it (the picture's top row,
+## CropClusters.top_of, times the plant's size); a single sprite (eggplant): its picture's top over
+## the middle of the cell, as FarmWorld stands it.
+static func plant_perch(c: Vector2i, key: String) -> Vector3:
+	var cc := _clusters()
+	var cluster: String = key if key.begins_with("stalk:") else cc.key_for(key)
+	if cluster == "":
+		return Vector3(c.x + 0.5, cc.top_of(key), c.y + 0.5)
+	var best := Vector3.ZERO
+	for s in cc.spots_for({c: cluster}):
+		var h: float = cc.top_of(str(s.tex)) * float(s.size)
+		if h > best.y:
+			best = Vector3(s.pos.x, h, s.pos.z)
+	return best
 
 
 ## The post tops of a fence or drying rack prop `p` (a post at each whole step along it, as the 3D
@@ -248,7 +283,7 @@ static func insects(kind: String, amount_now: float, t: float, scene: Dictionary
 	var held := kind in perched_forced()
 	for i in n:
 		if i == 0 and held:   # `:perched`: the first one rests on the perch nearest the aim, for good
-			var r := held_perch(scene, aim)
+			var r := held_perch(scene, aim, _perched_on)
 			if not r.is_empty():
 				out.append(r)
 			continue
@@ -260,11 +295,15 @@ static func insects(kind: String, amount_now: float, t: float, scene: Dictionary
 
 ## A dragonfly held resting on the perch nearest `aim` (a screenshot's; it never lifts off, so no
 ## state): wings flat, facing right. {} when the map has no perch.
-static func held_perch(scene: Dictionary, aim: Vector2) -> Dictionary:
+static func held_perch(scene: Dictionary, aim: Vector2, want := "") -> Dictionary:
 	var best := Vector3.ZERO
 	var found := false
 	var best_d := INF
-	for p in scene.perches:
+	var kinds: Array = scene.get("perch_kinds", [])
+	for i in (scene.perches as Array).size():
+		var p: Vector3 = scene.perches[i]
+		if want != "" and (i >= kinds.size() or kinds[i] != want):
+			continue
 		var d := Vector2(p.x, p.z).distance_to(aim)
 		if d < best_d:
 			best_d = d
@@ -287,6 +326,15 @@ static func shadow_of(b: Dictionary, sun: float, sun_dir: Vector3, cfg := {}, bl
 	var s := BirdRules.shadow_of(b, sun, sun_dir, cfg, blocked)
 	if s.is_empty() or flying(b):
 		return s
+	# In sun the blob falls along the light, off the post or stalk it rests on (`perch_offset` cells at
+	# most, held by the sun's strength), so it shows beside its perch instead of behind it.
+	var h := maxf(float(b.pos.y), 0.0)
+	if sun > 0.0 and sun_dir.y <= -0.05 and h > 0.0:
+		var run := Vector2(sun_dir.x, sun_dir.z) * (h / -sun_dir.y)
+		var most := float(cfg.get("shadow", {}).get("perch_offset", 0.0)) * clampf(sun, 0.0, 1.0)
+		if run.length() > most:
+			run = run.normalized() * most
+		s.at = (s.at as Vector2) + run
 	if blocked.has(Vector2i(floori(s.at.x), floori(s.at.y))):
 		return {}
 	return s

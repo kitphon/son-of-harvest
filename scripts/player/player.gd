@@ -105,6 +105,10 @@ func _physics_process(delta: float) -> void:
 			action.emit("tool", cell_of(position), facing, 0)
 		return
 	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	if Game.demo_walk_left > 0.0:   # `--walk=<dir>`: that key held
+		Game.demo_walk_left -= delta
+		dir = Game.demo_walk
+		if Game.demo_walk_left <= 0.0: print("DBGWALK ", Game.maps.id, " ", position, " ", cell_of(position), " solid ahead ", Game.maps.is_solid(cell_of(position + Vector2(facing) * 8), farm))
 	moving = dir != Vector2.ZERO
 	running = moving and Input.is_action_pressed("run") != Game.always_run and Game.can_run()
 	if moving:
