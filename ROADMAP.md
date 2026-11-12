@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-12 The birds' shadow edges: a flier's shadow is left out when the buildings cover 0.2 of its oval (data/birds.json `shadow` `blocked_share`), and the blocked set is rebuilt when the farm's buildings change (BirdRules.built_key, both views); test_birds `_edges` / `_rebuild`; see WORKLOG.
 [x] 2026-11-12 The birds' shadow limits: a flier's shadow is left out over buildings (BirdRules.shadow_of `blocked`, scene_of / blocked_cells, both views) and the ground blobs read clearly (alpha 0.62, depth 0.65, bigger, darker centre, wider soft edge; data/birds.json `shadow`); test_birds; see WORKLOG.
 [x] 2026-11-12 Ground birds sort with the figures in the flat view: a sparrow or the heron on the ground is drawn just before the first villager / animal / farmer it overlaps standing in front of it, or just after the last one behind it (a small node each, BirdView.slot_of); figures keep their own order, fliers stay in the air pass, shadows under every figure; see WORKLOG.
 [x] 2026-11-12 Green tea and milk icons read at 1x: green tea a dark rim, a darker band and a two-tone leaf on a stalk standing up (chabashira); milk a kraft paper cap with a dark crimped rim and a red string tie over the printed band; same keys and size (data/foods.json marks); see WORKLOG.

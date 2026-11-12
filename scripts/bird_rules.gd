@@ -243,9 +243,39 @@ static func shadow_of(b: Dictionary, sun: float, sun_dir: Vector3, cfg := {}, bl
 		run = run.normalized() * most
 	var spread := 1.0 + h * float(sh.get("spread", 0.0))   # a higher bird's shadow a little wider and softer
 	var at := Vector2(pos.x, pos.z) + run
-	if not blocked.is_empty() and blocked.has(Vector2i(floori(at.x), floori(at.y))):
+	var size := Vector2(w, w * depth) * float(sh.get("fly_size", 1.0)) * spread
+	if not blocked.is_empty() and _share_blocked(at, size, blocked, float(sh.get("blocked_share", 0.2))):
 		return {}
-	return {"at": at, "size": Vector2(w, w * depth) * float(sh.get("fly_size", 1.0)) * spread, "alpha": a}
+	return {"at": at, "size": size, "alpha": a}
+
+
+## Does the building share `share` (0..1) or more of the oval at `at` (`size` across, deep) cover?
+## Sampled on a 5 x 5 grid over its box, the points inside the oval only (its centre is always one).
+static func _share_blocked(at: Vector2, size: Vector2, blocked: Dictionary, share: float) -> bool:
+	var half := size / 2.0
+	var inside := 0
+	var hit := 0
+	for j in 5:
+		for i in 5:
+			var u := (i + 0.5) / 2.5 - 1.0
+			var v := (j + 0.5) / 2.5 - 1.0
+			if u * u + v * v > 1.0:
+				continue
+			inside += 1
+			var p := at + Vector2(u * half.x, v * half.y)
+			if blocked.has(Vector2i(floori(p.x), floori(p.y))):
+				hit += 1
+	return inside > 0 and float(hit) / inside >= share
+
+
+## A key that changes when the farm's buildings do (Game.house_built: a silo or greenhouse finished
+## mid-day), so the views rebuild the blocked set (blocked_cells) without waiting for the next day.
+static func built_key(game: Object) -> String:
+	var out := ""
+	if game != null:
+		for b in game.get("house_built"):
+			out += str(b) + ","
+	return out
 
 
 ## A straight crossing of the map's width, edge to edge, from rnd-chosen sides: [from, to] in cells

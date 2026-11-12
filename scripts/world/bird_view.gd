@@ -29,6 +29,7 @@ var air: Node2D   # the fliers' pass, over the figures
 var _t := 0.0
 var _scene := {}
 var _scene_key := ""
+var _built_key := ""   # the farm's buildings when the blocked set was made (BirdRules.built_key)
 var _state := {}
 var _shown: Array[Dictionary] = []
 var _sun := 0.0
@@ -70,6 +71,10 @@ func refresh() -> void:
 		_scene_key = key
 		_state.clear()
 		_scene = BirdRules.scene_of(map, farm, game.day + 28 * game.season)
+	var bkey := BirdRules.built_key(game)
+	if bkey != _built_key:   # a building finished today: its roof and walls block the shadows now
+		_built_key = bkey
+		_scene["blocked"] = BirdRules.blocked_cells(map, farm)
 	_sun = game.sun_shadow()
 	_sun_dir = game.sun_direction(game.sun_light())
 	var farmer := BirdRules.NO_FARMER if player == null else player.position / float(T)

@@ -23,6 +23,7 @@ var others: Array = []   # the other walkers' places (cells), from FarmWorld.set
 var _t := 0.0
 var _scene := {}
 var _scene_key := ""
+var _built_key := ""   # the farm's buildings when the blocked set was made (BirdRules.built_key)
 var _state := {}
 var _pool: Array[Sprite3D] = []
 var _shown: Array[Dictionary] = []
@@ -59,6 +60,10 @@ func refresh() -> void:
 			_scene_key = key
 			_state.clear()
 			_scene = BirdRules.scene_of(map, farm, game.day + 28 * game.season)
+		var bkey := BirdRules.built_key(game)
+		if bkey != _built_key:   # a building finished today: its roof and walls block the shadows now
+			_built_key = bkey
+			_scene["blocked"] = BirdRules.blocked_cells(map, farm)
 		for kind in BirdRules.KINDS:
 			if amounts.has(kind):
 				_shown.append_array(BirdRules.birds(kind, float(amounts[kind]), _t, _scene, farmer, _state, {}, others))
