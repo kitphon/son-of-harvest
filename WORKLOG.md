@@ -30,6 +30,31 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
   the demo rucksack, so not in it).
 - Left / next: at 14 x 14 the green tea's leaf is small; a stronger leaf or a band on the yunomi
   would read better if a later pass wants it. The milk cap reads pale, not clearly paper.
+## 2026-11-12 — Small birds outdoors: swallows, dusk crows, the heron, sparrows
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: ambient life that moves, in both views. data/birds.json (numbers, windows, colours),
+  BirdRules (pure: the season / weather look / clock window through DriftRules.amount, counts,
+  places and flight paths as seeded functions of time, the startle memory as a caller-kept
+  `state`), BirdArt (pictures drawn in code, keys `bird:<kind>:<pose>:<frame>[:r]` through
+  PlaceholderArt: swallow and crow 3 wing frames, heron stand x2 and fly x3, sparrow stand / peck /
+  hop / fly; three tones lit from the upper left and a deep-tone rim on the lower and right edges,
+  no black), BirdLayer (3D: one camera-facing unshaded Sprite3D per bird, mirrored to the screen
+  side it heads to) and BirdView (flat: whole pixels, a bird's height lifts it up the screen).
+  Swallows cross low in spring and summer days (fewer in rain), a flock of six crows crosses at
+  16:30-18:30 in every season, one heron lands by a shore cell of water or paddy on the morning's
+  maps (5:30-9:30) and lifts off, sparrows in threes hop and peck in front of the village houses and
+  at the farmhouse door. Sparrows and the heron fly off from the farmer (FarmWorld.set_farmer hands
+  BirdLayer his place; BirdView reads the Player) and come back after a while once he has gone. None
+  indoors, in the mine or at night; none in a storm or blizzard. `--birds` (or `--birds=crow,heron`)
+  forces kinds for screenshots, placed round the farmer at the start (AGENTS.md).
+  Balance: swallow 4, crow 6, heron 1, sparrow 6 at most, kept few so it is a touch of life; crows
+  fly at 2.2-3.2 cells, lower than a real flock, because the fixed camera shows only about 3 cells
+  above the farmer. Their shadows on the ground were left out (optional).
+- Checked: test_birds (gating, places, heights, the startle and return, art, both views) and every
+  other test script in AGENTS.md OK; smoke runs; frames in 3D (dusk town with swallows and a crow
+  flock, Kaminoda morning with the heron by the paddies in mist) and the flat view (town, dusk).
+- Left / next: no ground shadows; sparrows and the heron take no notice of the dog or villagers;
+  birds draw over buildings in the flat view's view layer order (under the figures).
 
 ## 2026-11-11 — Flaky test_maps ("farm spawn greenhouse is free") fixed
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

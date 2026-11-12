@@ -1,0 +1,73 @@
+{
+	"_about": "Small birds crossing and resting on the outdoor maps (BirdRules; the 3D view's BirdLayer, the flat view's BirdView; pictures drawn in code by BirdArt). Nothing indoors or in the mine, nothing at night, nothing in a storm or blizzard, fewer in rain and snow. `seasons`, `hours` [from, to] (fade over `fade_hours` at each end) and `looks` (the share of `count` under each weather look of data/weather_fx.json) work as in data/drift.json. `count` is the most birds of that kind in a scene. Fliers (swallow, crow): each bird (a crow flock together) crosses the map edge to edge once every `period` seconds at `speed` cells a second, `height` [min, max] cells up, `flap` wing beats a second (a swallow glides now and then: `glide` is the share of its path); a swallow darts (`dart` cells, `dart_cycles` swings a crossing) and a crow flock keeps a loose formation (`spread` cells across and along) with `stagger` seconds between birds. Herons: one, standing at a shore cell of water or paddy; each `period` seconds it glides in (`land` share of the period), stands (until `stand`, a share), then lifts off and leaves over `fly_time` seconds, `fly_dist` cells away. Sparrows: groups of `group` birds on the ground in front of the village houses (and by the farmhouse door), each hops about `wander` cells round its spot every `hop` seconds (+-`hop_var`), the hop itself `hop_time` seconds and `hop_height` cells high, now and then pecking. A heron or sparrow whose spot the farmer comes within `scare` cells of flies off away from them (`fly_time`, `fly_dist`, rising to `fly_height`), and comes back after `return_after` seconds once the farmer is further than 1.5 x `scare`. `flat` is the flat view: `height_px` pixels a cell of height lifts a bird on screen. `art` is BirdArt's colours: per kind and part the base colour; shade, lit and deep tones come from `tone` (the shade mix toward the cool dark, the lit mix toward warm light, the deep rim mix). Balance numbers are ours.",
+	"swallow": {
+		"seasons": ["spring", "summer"],
+		"hours": [7.0, 17.5],
+		"fade_hours": 0.5,
+		"looks": {"sunny": 1.0, "rain": 0.35, "snow": 0.0, "storm": 0.0, "blizzard": 0.0},
+		"count": 4,
+		"period": 34.0,
+		"speed": 4.6,
+		"height": [0.5, 1.7],
+		"flap": 7.0,
+		"glide": 0.35,
+		"dart": 1.3,
+		"dart_cycles": 3.5
+	},
+	"crow": {
+		"seasons": ["spring", "summer", "fall", "winter"],
+		"hours": [16.5, 18.5],
+		"fade_hours": 0.25,
+		"looks": {"sunny": 1.0, "rain": 0.6, "snow": 0.6, "storm": 0.0, "blizzard": 0.0},
+		"count": 6,
+		"period": 48.0,
+		"speed": 3.6,
+		"height": [2.2, 3.2],
+		"flap": 3.6,
+		"spread": 2.6,
+		"stagger": 0.45
+	},
+	"heron": {
+		"seasons": ["spring", "summer", "fall", "winter"],
+		"hours": [5.5, 9.5],
+		"fade_hours": 0.5,
+		"looks": {"sunny": 1.0, "rain": 0.6, "snow": 0.5, "storm": 0.0, "blizzard": 0.0},
+		"count": 1,
+		"period": 120.0,
+		"land": 0.06,
+		"stand": 0.72,
+		"fly_time": 9.0,
+		"fly_dist": 34.0,
+		"fly_height": 5.0,
+		"flap": 2.4,
+		"scare": 4.0,
+		"return_after": 40.0
+	},
+	"sparrow": {
+		"seasons": ["spring", "summer", "fall", "winter"],
+		"hours": [6.0, 17.5],
+		"fade_hours": 0.5,
+		"looks": {"sunny": 1.0, "rain": 0.3, "snow": 0.5, "storm": 0.0, "blizzard": 0.0},
+		"count": 6,
+		"group": 3,
+		"wander": 0.9,
+		"hop": 1.5,
+		"hop_var": 0.5,
+		"hop_time": 0.22,
+		"hop_height": 0.28,
+		"flap": 12.0,
+		"fly_time": 2.6,
+		"fly_dist": 12.0,
+		"fly_height": 3.0,
+		"scare": 2.4,
+		"return_after": 14.0
+	},
+	"flat": {"height_px": 9.0},
+	"tone": {"shade": 0.32, "lit": 0.28, "deep": 0.55, "cool": "26304a", "warm": "fff4d8"},
+	"art": {
+		"swallow": {"back": "2b3f78", "belly": "efe4cc", "throat": "b8562e", "wing": "26346a", "beak": "20202a"},
+		"crow": {"body": "2a2733", "wing": "32303f", "beak": "55524f"},
+		"heron": {"body": "8a9aa8", "wing": "7a8a9a", "neck": "e9eef0", "beak": "d9a82e", "leg": "a89a5a", "crest": "2e3440"},
+		"sparrow": {"back": "9a6a3c", "wing": "7a4c2a", "belly": "cdbfa6", "bib": "3a2e28", "cheek": "e2d6c0", "beak": "5e4a38"}
+	}
+}

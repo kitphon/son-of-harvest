@@ -365,6 +365,9 @@ func set_farmer(feet: Vector3) -> void:
 		surroundings.tufts.set_pushers(pushers)
 	if crops != null:
 		crops.set_pushers(pushers)
+	var birds := get_node_or_null("Birds") as BirdLayer
+	if birds != null:
+		birds.farmer = Vector2(feet.x, feet.z)   # sparrows and the heron fly off from him
 	_leave_prints(walkers)
 
 
