@@ -299,8 +299,12 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 		_arm(img, near_sh, hd.near, c, sleeve, frame % 2 == 0)
 	elif pose.begins_with("swing_"):
 		var tool := pose.trim_prefix("swing_")
-		_tool(img, tool, hd.near, frame % 2 == 0, back)
+		var pinch := tool == "seeds" and frame % 2 == 0   # the pinch of seed over the fist, so over the sleeve too
+		if not pinch:
+			_tool(img, tool, hd.near, frame % 2 == 0, back)
 		_arm(img, near_sh, hd.near, c, sleeve, frame % 2 == 0 and not tool in ["can", "seeds"])
+		if pinch:
+			_tool(img, tool, hd.near, true, back)
 	else:
 		_arm(img, near_sh, hd.near, c, sleeve, false)
 	if tired and farmer:   # a drop of sweat by the brow: before the face, or behind the head
@@ -939,11 +943,10 @@ static func _tool_art(dst: Image, tool: String, hand: Vector2i, raised: bool, ba
 					_dot(L, hand.x + d.x, hand.y + d.y, BLADE)
 		"seeds":   # loose single pixels straight on the figure: a part's outline would make them a chain
 			if raised:   # a pinch of seed showing over the fist
-				_dot(dst, hand.x, hand.y - 1, SEED)
-				_dot(dst, hand.x + 1, hand.y - 1, SEED_DARK)
+				_seed_bit(dst, hand.x, hand.y - 2)
 			else:   # let go: a few seeds falling under the open hand, spreading as they fall
 				for d in [Vector2i(0, 3), Vector2i(-2, 6), Vector2i(1, 7), Vector2i(-1, 10)]:
-					_dot(dst, hand.x + d.x, hand.y + d.y, SEED if d.y % 2 == 1 else SEED_DARK)
+					_seed_bit(dst, hand.x + d.x, hand.y + d.y)
 		"can":
 			_r(L, hand.x - 4, hand.y - 1, 4, 3, CAN)
 			_r(L, hand.x - 4, hand.y + 1, 4, 1, CAN_DARK)
@@ -960,6 +963,14 @@ static func _tool_art(dst: Image, tool: String, hand: Vector2i, raised: bool, ba
 
 
 # --- painting helpers -----------------------------------------------------------------------
+
+## One seed of the sowing as a 2 x 2 bit: pale on its top row, a shade darker along the bottom edge.
+static func _seed_bit(dst: Image, x: int, y: int) -> void:
+	_dot(dst, x, y, SEED)
+	_dot(dst, x + 1, y, SEED)
+	_dot(dst, x, y + 1, SEED_DARK)
+	_dot(dst, x + 1, y + 1, SEED_DARK)
+
 
 static func _blank() -> Image:
 	var img := Image.create_empty(W, H, false, Image.FORMAT_RGBA8)

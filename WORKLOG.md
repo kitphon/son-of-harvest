@@ -10,6 +10,37 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — Tool-use effects: seeds read at 2 px, the charge can be framed
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: the two open limits of "Tool-use effects: the result lands on the hit" above.
+  1. Seeds: the seed bits are 2 px (data/tool_fx.json `kinds.seeds.size` [2, 2], was [1, 1.5]), colours
+     pale cream fbf0b4, gold f0d27a, near-white fff9e0 so they stand out on the brown soil and the green
+     grass. A single-colour speck cannot have a darker edge, so the edge is left out (noted). Count still
+     3 a cell. In the hand, the falling seeds are 2 x 2 bits (`FigureArt._seed_bit`: a pale top row, a
+     darker SEED_DARK bottom row) and the pinch over the fist is one too. The pinch was painted and then
+     covered by the arm (4 px on the basket frame were hidden), so the seed pose's basket frame now draws
+     it after the arm (`pinch` in `FigureArt._draw`, the swing branch): 0 seed pixels became 4.
+  2. Charge: `--charge=<tool>[:<up|down|left|right>]` (Game.demo_charge, demo_charge_facing; water maps to
+     the can as `--swing` does). Player.begin_charge() is the button's press branch, pulled out; FarmActions
+     .demo_charge(player) selects the tool from the rucksack, turns the farmer and starts the charge each
+     physics step while the Player is not charging. Player._charge_step counts `Game.demo_charge != ""` as
+     held, so it never lets go; clearing the flag releases it (the swing). A tool that charges nothing or a
+     missing tool clears the flag with a warning. A menu (pause) still drops the charge, and the demo starts
+     it again when the menu closes; a map change clears Game.charge_tool, so the pose ends there (the
+     demo runs stay on one map).
+- Checked: test_tool_fx OK (0 failed): the seed bits are 2 px; in each real view (flat and 3D) `--charge`
+  holds swing_hoe frame 0 for 90 physics frames with the charge climbing, nothing tilled or swung meanwhile;
+  clearing the flag lets go, swings and tills on the hit. The seed sowing and the charge tests of before still pass.
+  Frames (30 fps, `--write-movie`): `--demo --swing=seeds` 3D and flat, frames 11, 13, 14, 16 (zoomed 8x
+  crops): the pinch shows in 11, the falling 2 x 2 bits in 13-16 read cream on the green and the soil.
+  `--demo --charge=hoe:left --quit-after 60` frame 45 in both views: the hoe raised, the pips over the head
+  in 3D and "Hoe" with its pips in the HUD in both views, the charge's area outlined in the flat view.
+  `--demo --swing=hoe:left` frame 13 (flat) matches the charged farmer's picture, so the left facing is the same.
+  Every tests/test_*.gd (37, run one after another) printed `OK (0 failed)`. Smoke runs with `--quit-after 300`:
+  title, `-- --demo`, `-- --demo --swing=seeds`, `-- --demo --charge=hoe`: exit 0, no ERROR or SCRIPT ERROR lines.
+- Left / next: the seed bits have no darker edge (one colour per bit); the pinch is small (4 px) in the
+  flat view. The charge pose ends on a map change in a demo run.
+
 ## 2026-11-12 — Breath in the cold, the open limits closed
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: the limits left by "Breath in the cold (shiroi iki)" below.

@@ -100,6 +100,8 @@ var charge_tool := "" # the tool the farmer holds the button down with to charge
 var demo_swing := "" # `--swing=<tool>`: the farmer swings that tool in place on repeat (FarmActions.demo_swing)
 var demo_swing_facing := Vector2i.ZERO   # `--swing=<tool>:<up|down|left|right>`: turned that way first (ZERO = as he stands)
 const DEMO_FACINGS := {"up": Vector2i.UP, "down": Vector2i.DOWN, "left": Vector2i.LEFT, "right": Vector2i.RIGHT}
+var demo_charge := ""   # `--charge=<tool>`: the farmer holds the button down with that tool from the start, never lets go (FarmActions.demo_charge)
+var demo_charge_facing := Vector2i.ZERO   # `--charge=<tool>:<up|down|left|right>`: turned that way first (ZERO = as he stands)
 var eat_left := 0.0  # seconds of that pose still to play (foods.json pose); not saved
 ## The item carried overhead in the holding hand ("" = hands free). It is the rucksack's
 ## hand slot (Inventory "hand"): what the rucksack menu takes in hand is held up the same way.
@@ -334,6 +336,10 @@ func new_game() -> void:
 			var sw := arg.trim_prefix("--swing=").split(":")
 			demo_swing = sw[0]
 			demo_swing_facing = DEMO_FACINGS.get(sw[1] if sw.size() > 1 else "", Vector2i.ZERO)
+		elif arg.begins_with("--charge="):   # `-- --demo --charge=hoe` (water, sickle, axe, hammer): the button held down, the wind-up and the pips shown; `--charge=hoe:up` (down, left, right) facing that way
+			var ch := arg.trim_prefix("--charge=").split(":")
+			demo_charge = ch[0]
+			demo_charge_facing = DEMO_FACINGS.get(ch[1] if ch.size() > 1 else "", Vector2i.ZERO)
 		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
 			fatigue = int(body.get("states", {}).get("exhausted", {}).get("fatigue", 80))
 			_shown_state = body_state()

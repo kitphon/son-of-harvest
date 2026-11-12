@@ -78,6 +78,8 @@ func _physics_process(delta: float) -> void:
 		if Input.is_action_pressed("use_tool") or Input.is_action_pressed("interact"):
 			return
 		_after_menu = false
+	if Game.demo_charge != "" and not charging and not Game.swinging():
+		FarmActions.demo_charge(self)   # `--charge=<tool>`: held down from the start
 	if charging:
 		_charge_step(delta)
 		return
@@ -131,26 +133,34 @@ func _physics_process(delta: float) -> void:
 			_slide(Vector2(facing) * speed * delta)
 	if Input.is_action_just_pressed("use_tool"):
 		# Hands full (an item overhead): the button sets it down, nothing charges.
-		if Game.max_charge(Game.current_tool()) > 0 and not Game.holding():
-			charging = true
-			charge = 0
-			_charge_time = 0.0
-			_charge_tool = Game.current_tool()
-			Game.charge_tool = _charge_tool   # the wind-up pose while the button is held (Game.swing_pose)
-			moving = false
-			running = false
-			queue_redraw()
-		else:
+		if not begin_charge():
 			action.emit("tool", cell_of(position), facing, 0)
 	if Input.is_action_just_pressed("interact"):
 		action.emit("interact", cell_of(position), facing, 0)
 
 
+## Starts a charge with the tool in hand (the button went down); false when it charges nothing
+## (a tool without charge steps, or hands full: then the button sets the item down).
+func begin_charge() -> bool:
+	if Game.max_charge(Game.current_tool()) <= 0 or Game.holding():
+		return false
+	charging = true
+	charge = 0
+	_charge_time = 0.0
+	_charge_tool = Game.current_tool()
+	Game.charge_tool = _charge_tool   # the wind-up pose while the button is held (Game.swing_pose)
+	moving = false
+	running = false
+	queue_redraw()
+	return true
+
+
 ## Held: the charge goes up every charge step. Let go: the swing. Switching tools drops it.
+## `--charge=<tool>` (Game.demo_charge) counts as held for good.
 func _charge_step(delta: float) -> void:
 	if Game.current_tool() != _charge_tool:
 		cancel_charge()
-	elif Input.is_action_pressed("use_tool"):
+	elif Input.is_action_pressed("use_tool") or Game.demo_charge != "":
 		_charge_time += delta
 		var c := Game.charge_after(_charge_tool, _charge_time)
 		if c != charge:

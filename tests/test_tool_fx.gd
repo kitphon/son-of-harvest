@@ -174,6 +174,7 @@ func _particles() -> void:
 	var sk: Dictionary = ToolFxRules.config().kinds.seeds
 	check(sp.size() == int(sk.count) * 2, "seeds: %d a cell sown (%d)" % [int(sk.count), sp.size()])
 	check(sp.all(func(p): return p.pos.y >= float(sk.drop[0]) - 0.001 and p.pos.x > 2.6 and p.pos.x < 5.4 and p.pos.z > 5.1 and p.pos.z < 5.9), "seeds start at the hand's height over their cells")
+	check(sp.all(func(p): return absf(p.size - 2.0) < 0.001), "seed bits are 2 px (%s)" % [sp.map(func(p): return p.size).slice(0, 3)])
 	t = 0.0
 	var landed := true
 	while not sp.is_empty() and t < 3.0:
@@ -644,6 +645,29 @@ func _view(path: String, three_d: bool) -> void:
 		await process_frame
 		w2 += 1
 	check(g.farm.cell(c2 + Vector2i.DOWN).tilled, "%s: the charged swing tilled on the hit" % name)
+	# `--charge=hoe` (Game.demo_charge): the button held from the start and never let go: the
+	# wind-up pose and the pips stay while the charge climbs; clearing the flag lets go and swings.
+	var c3 := c + Vector2i(6, 0)
+	clear(c3)
+	player.position = Vector2(c3 * 16) + Vector2(8, 8)
+	player.facing = Vector2i.DOWN
+	g.demo_charge = "hoe"
+	for i in 90:
+		await physics_frame
+		await process_frame
+	check(player.charging and g.charge_tool == "hoe" and anim.pose == "swing_hoe" and anim.frame() == 0, "%s: --charge holds the hoe's wind-up (%s %d, charging %s)" % [name, anim.pose, anim.frame(), player.charging])
+	check(player.charge >= 1 and not g.swinging() and not g.farm.cell(c3 + Vector2i.DOWN).tilled, "%s: --charge climbs and never lets go (charge %d)" % [name, player.charge])
+	g.demo_charge = ""
+	w2 = 0
+	while not g.swinging() and w2 < 60:
+		await physics_frame
+		w2 += 1
+	check(g.swinging(), "%s: clearing --charge lets go and swings" % name)
+	w2 = 0
+	while g.swinging() and w2 < 600:
+		await process_frame
+		w2 += 1
+	check(g.farm.cell(c3 + Vector2i.DOWN).tilled, "%s: the released charge tilled on the hit" % name)
 	scene.queue_free()
 	await process_frame
 	await process_frame

@@ -677,6 +677,27 @@ static func demo_tick(player: Player, delta: float) -> void:
 	use_tool(at, player.facing, 0)
 
 
+## `--charge=<tool>` (hoe, water or can, sickle, axe, hammer): the use button held down from the start
+## with that tool in hand, so the farmer stays in the wind-up pose and the charge pips climb; it is
+## never let go (Player._charge_step counts Game.demo_charge as held). `--charge=<tool>:<facing>`
+## turns him that way first. The Player calls it each physics step while it is not charging.
+static func demo_charge(player: Player) -> void:
+	var tool := "can" if Game.demo_charge == "water" else Game.demo_charge
+	for i in Game.inventory.size("tools"):
+		if Game.inventory.id_at("tools", i) == tool:
+			Game.select_tool(i)
+	if Game.current_tool() != tool:
+		push_warning("--charge: no %s in the rucksack" % tool)
+		Game.demo_charge = ""
+		return
+	if Game.demo_charge_facing != Vector2i.ZERO:
+		player.facing = Game.demo_charge_facing
+		Game.maps.facing = player.facing
+	if not player.begin_charge():
+		push_warning("--charge: %s charges nothing" % tool)
+		Game.demo_charge = ""
+
+
 static func _demo_ready(tool: String, c: Vector2i) -> void:
 	var f := Game.maps.mine_floor
 	if f != null:

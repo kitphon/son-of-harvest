@@ -495,6 +495,10 @@ Light and Farmhouse model hold the technical detail of what is built.
       every facing, now they sit inside it. Facings checked in frames, both views (`--swing=<tool>:<up|down|left|right>`):
       the tool is always in the near hand and goes out on the facing side; in the flat view, down and
       up still point the tool sideways (the 3/4 pictures face down-left / up-right, as for walking).
+      (2026-11-13, this commit) The seed bits are 2 px, pale cream and gold, so they read on the soil
+      and the grass at 480 x 270 (were 1-1.5 px); the sowing's falling seeds and the pinch in the hand
+      are 2 x 2 bits too, the pinch drawn over the sleeve (it was hidden under the arm). `--charge=<tool>`
+      holds the wind-up for framing; checked in frames, both views.
 - [x] Keep the blob shadows, or switch to real sprite shadows (test how billboards cast). (f261048: real shadows won; `SpriteShadow`, data/light.json "sprite_shadows", see the Done table)
 
 ### 5. Finish
