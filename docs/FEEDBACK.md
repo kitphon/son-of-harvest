@@ -23,6 +23,20 @@ None right now.
 4. ~~Item 6 (night), then 7 and 8.~~ Fixed.
 
 ## Fixed
+- The user's playtest (2026-11-13), E (talk, pick up, give, use) only worked with the farmer
+  lined up to the pixel: it looked only at the one cell straight ahead of the feet's cell. Now,
+  when that cell has nothing, E also reaches the cell beside it on the side the feet lean
+  towards, and a villager one more step on within 1.6 cells of the feet (ActionHints.reach, used
+  by the button and the HUD hint alike). Commit: see WORKLOG 2026-11-13 "E reaches, villagers
+  give way, figures stand upright".
+- Same playtest, a villager in the only way out of a dead end trapped the farmer (a villager
+  stops every step closer, and a bumped one stands waiting). Now pushing into a villager for
+  0.35 s lets the farmer slip past; villagers stop the feet again once clear of them. Same commit.
+- Same playtest, figures sank into houses and walls in almost every scene: the 3D figures were
+  full billboards leaning back with the camera's 30° pitch, so the head of a farmer 3 px from a
+  wall stood ~0.6 units inside it and the wall hid the upper body. The farmer, villagers,
+  animals and the dog now stand upright (turned about y only), stretched so the picture covers
+  the same pixels on screen as before. Same commit.
 - The user's playtest (2026-11-07, second round), running never went through an exit: blocked
   feet stop up to one step short of the edge (running 1.7 px a frame), and the exit was looked
   for only 1 px past the feet, so only walking (1 px a frame) reached it. The look now reaches

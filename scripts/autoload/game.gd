@@ -346,7 +346,6 @@ func new_game() -> void:
 			var wk := arg.trim_prefix("--walk=").split(":")
 			demo_walk = Vector2(DEMO_FACINGS.get(wk[0], Vector2i.ZERO))
 			demo_walk_left = float(wk[1]) if wk.size() > 1 else INF
-			print("DBGPARSE ", demo_walk, " ", demo_walk_left)
 		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
 			fatigue = int(body.get("states", {}).get("exhausted", {}).get("fatigue", 80))
 			_shown_state = body_state()
@@ -2665,6 +2664,11 @@ func heart_band(speaker: String) -> int:
 ## Is a villager in the way of the farmer stepping from `from` to `to` (cell pixels)?
 func villager_in_way(from: Vector2, to: Vector2) -> bool:
 	return Villagers.blocks(maps.id, day_minutes(), trigger_state(Vector2i.ZERO), from / 16.0, to / 16.0)
+
+
+## Does a villager on this map stand within block_reach of the farmer's feet at `at` (pixels)?
+func villager_near(at: Vector2) -> bool:
+	return Villagers.near(maps.id, day_minutes(), trigger_state(Vector2i.ZERO), at / 16.0)
 
 
 ## Plays event `id` (data/events/<id>.json) in the view's EventPlayer.

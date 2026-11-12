@@ -96,15 +96,17 @@ func _ready() -> void:
 	mark_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	target_mark.material_override = mark_mat
 	add_child(target_mark)
-	charge_pips = FarmWorld.make_sprite(PlaceholderArt.tex(PlaceholderArt.charge_key(0, 1)))
-	charge_pips.position = Vector3(0, 1.38, 0)   # over the farmer's head (its top about 1.17)
+	# The figure stands upright and stretched (FarmWorld.upright): its sprite children are upright
+	# too and their heights are on the picture (1.2: just over the head, where 1.38 straight up was).
+	charge_pips = FarmWorld.upright_child(FarmWorld.make_sprite(PlaceholderArt.tex(PlaceholderArt.charge_key(0, 1))))
+	charge_pips.position = Vector3(0, 1.2, 0)   # over the farmer's head (its top about 1.17)
 	charge_pips.visible = false
 	SpriteLight.unlit(charge_pips)   # a mark, as drawn
 	sprite.add_child(charge_pips)
-	held_sprite = FarmWorld.make_sprite(PlaceholderArt.tex("item:turnip"))
+	held_sprite = FarmWorld.upright_child(FarmWorld.make_sprite(PlaceholderArt.tex("item:turnip")))
 	held_sprite.visible = false
 	sprite.add_child(held_sprite)
-	lantern_sprite = FarmWorld.make_sprite(PlaceholderArt.tex("mine:lantern"))
+	lantern_sprite = FarmWorld.upright_child(FarmWorld.make_sprite(PlaceholderArt.tex("mine:lantern")))
 	lantern_sprite.offset.y = -lantern_sprite.texture.get_height() / 2.0   # hangs from its top
 	lantern_sprite.visible = false
 	SpriteLight.unlit(lantern_sprite)   # it gives light
@@ -115,8 +117,8 @@ func _ready() -> void:
 	bobber = FarmWorld.make_sprite(PlaceholderArt.tex("fish_fx:bobber"))
 	bobber.visible = false
 	add_child(bobber)
-	bite_mark = FarmWorld.make_sprite(PlaceholderArt.tex("fish_fx:alert"))
-	bite_mark.position = Vector3(0, 1.3, 0)   # clear of the head
+	bite_mark = FarmWorld.upright_child(FarmWorld.make_sprite(PlaceholderArt.tex("fish_fx:alert")))
+	bite_mark.position = Vector3(0, 1.13, 0)   # clear of the head
 	bite_mark.visible = false
 	SpriteLight.unlit(bite_mark)   # a mark, as drawn
 	sprite.add_child(bite_mark)
@@ -515,6 +517,7 @@ func _process(delta: float) -> void:
 	_fly(delta)
 	_show_fishing()
 	_prebuild(delta)
+	FarmWorld.stand_all(get_tree(), cam)   # the upright figures stretched for the camera as it is now
 	if _warm != null and not fade.holding():
 		_end_warm()
 	elif _warm != null:
@@ -579,8 +582,8 @@ func _show_held() -> void:
 
 
 ## Down the mine the lantern hangs at its pixel on the farmer's frame (PlaceholderArt.lantern_at),
-## placed along the camera's right and up like the rod tip, a hair towards the camera so it
-## shows in front of the body.
+## placed along the camera's right and up the upright picture like the rod tip, a hair towards
+## the camera so it shows in front of the body.
 func _show_lantern() -> void:
 	lantern_sprite.visible = Game.maps.mine_floor != null
 	if not lantern_sprite.visible:
@@ -589,7 +592,9 @@ func _show_lantern() -> void:
 	var axes := cam.global_transform.basis
 	var fig := PlaceholderArt.FIGURE_SIZE
 	var side := (at.x + 3.5 - fig.x / 2.0) * (-1.0 if sprite.flip_h else 1.0)
-	lantern_sprite.position = axes.x * side * FarmWorld.FIGURE_PX + axes.y * (fig.y - at.y) * FarmWorld.FIGURE_PX + axes.z * 0.02
+	var toward := Vector3(axes.z.x, 0, axes.z.z).normalized()   # level, towards the camera
+	# In the figure's frame: its stretch (scale y) puts the picture's row at the right height.
+	lantern_sprite.position = axes.x * side * FarmWorld.FIGURE_PX + Vector3.UP * (fig.y - at.y) * FarmWorld.FIGURE_PX + toward * 0.02
 
 
 ## While the line is out: the bobber rocks on its cell (on a bite it dips under and shakes),
@@ -606,12 +611,12 @@ func _show_fishing() -> void:
 	var dip := -3.0 * FarmWorld.PX if bite else sin(f.time * 3.0) * 0.4 * FarmWorld.PX
 	var shake := sin(f.time * 40.0) * FarmWorld.PX if bite else 0.0
 	bobber.position = Vector3(f.spot.x + 0.5 + shake, dip, f.spot.y + 0.5)
-	# The rod tip: a pixel of the billboard sprite, so along the camera's right and up.
+	# The rod tip: a pixel of the upright figure, so along the camera's right and up the stretched picture.
 	var tip := PlaceholderArt.rod_tip(anim.pose, anim.frame())
 	var axes := cam.global_transform.basis
 	var fig := PlaceholderArt.FIGURE_SIZE
 	var side := (tip.x + 0.5 - fig.x / 2.0) * (-1.0 if sprite.flip_h else 1.0)
-	var from := sprite.position + axes.x * side * FarmWorld.FIGURE_PX + axes.y * (fig.y - tip.y - 0.5) * FarmWorld.FIGURE_PX
+	var from := sprite.position + axes.x * side * FarmWorld.FIGURE_PX + Vector3.UP * (fig.y - tip.y - 0.5) * FarmWorld.FIGURE_PX * sprite.scale.y
 	_line_mesh.clear_surfaces()
 	_line_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
 	_line_mesh.surface_add_vertex(from)
@@ -651,7 +656,7 @@ func _on_thrown(item: String, _from: Vector2i, to: Vector2i, result: String) -> 
 	flying.texture = PlaceholderArt.tex(PlaceholderArt.world_item_key(item))
 	flying.visible = true
 	_flight = {
-		"from": sprite.position + held_sprite.position, "to": Vector3(to.x + 0.5, end_y, to.y + 0.5),
+		"from": held_sprite.global_position, "to": Vector3(to.x + 0.5, end_y, to.y + 0.5),
 		"time": 0.0, "seconds": float(Game.hold_rules.get("flight_seconds", 0.35)),
 		"height": float(Game.hold_rules.get("arc_height", 1.2)),
 	}

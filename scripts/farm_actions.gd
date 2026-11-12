@@ -52,6 +52,11 @@ static func talk_flag(player: Player, id: String) -> void:
 ## first asks the map's trigger table about the spot faced (examine).
 static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge := 0) -> void:
 	Game.finish_swing()   # a swing still in the air lands first (the Player waits for it; a test or a script may not)
+	# E reaches a little to the side or ahead when the cell in front has nothing (ActionHints.reach);
+	# throws and the tool keep the farmer's own cell.
+	var at := origin
+	if kind == "interact":
+		at = ActionHints.reach(origin, facing, ActionHints.feet_on(origin))
 	if Game.fishing.active():   # the line is out: either button reels in
 		reel()
 	elif Game.animals.dog.held:
@@ -62,7 +67,7 @@ static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge :
 		BabyActions.crawler_held_action(kind, origin, facing)
 	elif kind == "enter":
 		interact(origin + facing)
-	elif kind == "interact" and talk_to(origin, facing):
+	elif kind == "interact" and talk_to(at, facing):
 		pass
 	elif kind != "interact" and BabyActions.lift(origin + facing):   # the tool button on the cradle
 		pass
@@ -70,7 +75,7 @@ static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge :
 		pass
 	elif kind != "interact" and Game.current_tool() == "food" and Game.edible(Game.held):
 		eat_held()
-	elif kind == "interact" and scion_fruit(origin + facing):   # Kiku's fruiting tree takes the press even with hands full (never a throw at it)
+	elif kind == "interact" and scion_fruit(at + facing):   # Kiku's fruiting tree takes the press even with hands full (never a throw at it)
 		pass
 	elif Game.holding() and Game.maps.on_farm():
 		if kind == "interact":
@@ -80,8 +85,8 @@ static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge :
 	elif Game.holding() and Game.in_greenhouse() and kind != "interact":   # set down on a bed (no throwing under glass)
 		put_down(origin + facing)
 	elif kind == "interact":
-		if not examine(origin + facing):
-			interact(origin + facing)
+		if not examine(at + facing):
+			interact(at + facing)
 	else:
 		use_tool(origin, facing, charge)
 

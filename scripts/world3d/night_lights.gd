@@ -1112,6 +1112,9 @@ static func sprite_corners(s: SpriteBase3D, basis: Basis) -> Array[Vector3]:
 	var px := s.pixel_size
 	var right := basis.x.normalized() * px
 	var up := basis.y.normalized() * px
+	if s.billboard == BaseMaterial3D.BILLBOARD_FIXED_Y:   # upright (FarmWorld.upright): straight up, stretched
+		right = Vector3(basis.x.x, 0, basis.x.z).normalized() * px
+		up = Vector3.UP * px * s.global_transform.basis.get_scale().y
 	var o := s.global_position
 	return [o + right * r.position.x + up * r.end.y, o + right * r.end.x + up * r.end.y,
 		o + right * r.end.x + up * r.position.y, o + right * r.position.x + up * r.position.y]

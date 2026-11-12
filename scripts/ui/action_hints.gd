@@ -14,8 +14,54 @@ const USE_VERBS := {"sleep": "Sleep", "shop": "Shop", "storage": "Open", "cook":
 	"fodder": "Feed", "barn_tools": "Look", "barn_gate": "Gate", "cradle": "Look"}
 
 
-## {interact, use_tool} for the farmer on cell `origin` facing `facing`.
-static func pick(origin: Vector2i, facing: Vector2i) -> Dictionary:
+## How far (cells) the feet lean off the middle of their cell, across the facing, before E also
+## reaches the cell beside the one in front; how far from the feet a villager a step further on
+## may stand and still be talked to (playtest 2026-11-13).
+const LEAN := 0.1
+const TALK_REACH := 1.6
+
+
+## The cell E works from (playtest 2026-11-13: E only worked with the farmer lined up to the
+## pixel): `origin` when the cell in front has something to use or talk to; else the cell beside
+## `origin` on the side the feet (`feet`, in cells) lean towards, when the cell in front of that
+## one has something (a door there is left alone: doors are walked into); else, for a villager
+## one more step on within TALK_REACH of the feet, the cell in front. `origin` when nothing is found.
+static func reach(origin: Vector2i, facing: Vector2i, feet: Vector2) -> Vector2i:
+	if usable(origin, facing):
+		return origin
+	var across := Vector2i(absi(facing.y), absi(facing.x))
+	var lean := (feet - Vector2(origin) - Vector2(0.5, 0.5)).dot(Vector2(across))
+	if absf(lean) >= LEAN:
+		var side := origin + across * int(signf(lean))
+		if Game.maps.door_at(side + facing).is_empty() and usable(side, facing):
+			return side
+	var ahead := origin + facing
+	var w := Talk.facing_villager(Game.maps.current(), ahead, facing, Game.day_minutes(), Game.trigger_state(ahead))
+	if not w.is_empty() and feet.distance_to(w.pos) <= TALK_REACH:
+		return ahead
+	return origin
+
+
+## The feet of the farmer on cell `origin` in cells: where they stand (Game.maps.pos) when that is on
+## `origin`, else the cell's middle (a test or a script naming only the cell).
+static func feet_on(origin: Vector2i) -> Vector2:
+	var p: Vector2 = Game.maps.pos / 16.0
+	return p if Vector2i(p.floor()) == origin else Vector2(origin) + Vector2(0.5, 0.5)
+
+
+## Does E facing `facing` from cell `origin` have something to do: a word to show, or an "examine"
+## row of the map's trigger table for the cell in front?
+static func usable(origin: Vector2i, facing: Vector2i) -> bool:
+	if interact_verb(origin, facing) != "":
+		return true
+	var tree := Engine.get_main_loop() as SceneTree
+	var p := tree.get_first_node_in_group(EventPlayer.GROUP) as EventPlayer if tree != null else null
+	return p != null and p.can_examine(origin + facing)
+
+
+## {interact, use_tool} for the farmer on cell `origin` facing `facing`; the interact word is
+## for the cell E reaches from the feet (`feet`, in cells; reach).
+static func pick(origin: Vector2i, facing: Vector2i, feet := Vector2(-1, -1)) -> Dictionary:
 	if Game.fishing.active():
 		return {"interact": "Reel in", "use_tool": "Reel in"}
 	if Game.animals.dog.held:
@@ -26,7 +72,8 @@ static func pick(origin: Vector2i, facing: Vector2i) -> Dictionary:
 		return {"interact": back, "use_tool": back}
 	if Game.crawler_held():   # set down in front, or back where they were (BabyActions)
 		return {"interact": "Put down", "use_tool": "Put down"}
-	var out := {"interact": interact_verb(origin, facing), "use_tool": tool_verb(origin, facing)}
+	var at := reach(origin, facing, feet if feet.x >= 0.0 else feet_on(origin))
+	var out := {"interact": interact_verb(at, facing), "use_tool": tool_verb(origin, facing)}
 	if Game.holding() and Game.maps.on_farm():
 		if out.interact == "":
 			out.interact = "Throw"

@@ -211,7 +211,7 @@ func _on_settings() -> void:
 func _show_hints() -> void:
 	var pairs: Array[String] = []
 	if Game.key_hints and not Game.paused():
-		var h := ActionHints.pick(Player.cell_of(Game.maps.pos), Game.maps.facing)
+		var h := ActionHints.pick(Player.cell_of(Game.maps.pos), Game.maps.facing, Game.maps.pos / 16.0)
 		pairs = hint_pairs(h, ActionHints.key_text("interact"), ActionHints.key_text("use_tool"))
 	var x := 6
 	for i in _hint_labels.size():

@@ -63,7 +63,7 @@ func _show_held(s: Sprite3D, w: Dictionary) -> void:
 			held.visible = false
 		return
 	if held == null:
-		held = FarmWorld.make_sprite(PlaceholderArt.tex(PlaceholderArt.world_item_key(item)))
+		held = FarmWorld.upright_child(FarmWorld.make_sprite(PlaceholderArt.tex(PlaceholderArt.world_item_key(item))))
 		held.name = "Held"
 		s.add_child(held)
 	held.position = Vector3(0, (PlaceholderArt.FIGURE_SIZE.y - PlaceholderArt.villager_top(w.id) - 1) * FarmWorld.FIGURE_PX, 0)
@@ -82,7 +82,7 @@ func _show_note(s: Sprite3D, w: Dictionary) -> void:
 		return
 	var look := Whistles.puff_look(p)
 	if note == null:
-		note = FarmWorld.make_sprite(PlaceholderArt.tex(look.key))
+		note = FarmWorld.upright_child(FarmWorld.make_sprite(PlaceholderArt.tex(look.key)))
 		note.name = "Note"
 		note.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED   # it fades
 		SpriteLight.unlit(note)   # a mark over the world, as drawn

@@ -136,11 +136,55 @@ static func make_sprite(tex: Texture2D) -> Sprite3D:
 	return s
 
 
-## A figure's sprite (farmer, villager): make_sprite at FIGURE_PX, feet on the ground.
+## A figure's sprite (farmer, villager): make_sprite at FIGURE_PX, feet on the ground, upright.
 static func make_figure(tex: Texture2D) -> Sprite3D:
 	var s := make_sprite(tex)
 	s.pixel_size = FIGURE_PX
+	upright(s)
 	return s
+
+
+## Figures that stand upright (upright): Main3D stretches them each frame (stand_all).
+const UPRIGHT := "upright_figures"
+
+
+## Stands figure `s` upright (playtest 2026-11-13: figures sank into walls): a full billboard
+## leans back with the camera's pitch, so a figure's head stood ~0.6 units behind its feet, inside
+## a wall the feet were 3 px from. Turned about y only it stays vertical over its feet; stand_all
+## stretches it up so it covers the same pixels on screen as the billboard did. Its sprite
+## children (a held item, a note, the marks over the head) are turned the same way (upright_child).
+static func upright(s: SpriteBase3D) -> void:
+	s.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	s.add_to_group(UPRIGHT)
+
+
+## A sprite child of an upright figure: upright too, so the figure's stretch fits it (a full
+## billboard under a stretched parent would come out stretched on screen).
+static func upright_child(s: SpriteBase3D) -> SpriteBase3D:
+	s.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	return s
+
+
+## How much an upright picture `h` units tall standing at `feet` must be stretched up for its top
+## to show where a camera-facing billboard's top would, for a camera at `cam` (looking down). In
+## the camera's frame the feet are `y0` up and `d` ahead, and the world's up is (0, c, s) there: the
+## billboard's top shows at (y0 + h) / d, the stretched picture's at (y0 + k h c) / (d - k h s).
+## A little under 1 / cos(pitch) at the middle of the screen (the top is nearer the eye; 1.09 at
+## the medium lens), more near its bottom edge.
+static func stretch(cam: Transform3D, feet: Vector3, h: float) -> float:
+	var local := cam.affine_inverse() * feet
+	var up := cam.basis.inverse() * Vector3.UP
+	var d := -local.z
+	var den := d * up.y + up.z * (local.y + h)
+	return d / den if d > 0.01 and den > 0.01 else 1.0
+
+
+## Stretches every upright figure in `tree` for camera `cam` (Main3D, after the camera moved).
+static func stand_all(tree: SceneTree, cam: Camera3D) -> void:
+	var xf := cam.global_transform
+	for s: SpriteBase3D in tree.get_nodes_in_group(UPRIGHT):
+		if s.is_visible_in_tree() and s is Sprite3D and s.texture != null:
+			s.scale = Vector3(1, stretch(xf, s.global_position, s.texture.get_height() * s.pixel_size), 1)
 
 
 static func flat_material(color: Color) -> StandardMaterial3D:

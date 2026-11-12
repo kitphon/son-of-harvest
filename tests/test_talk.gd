@@ -28,6 +28,8 @@ func _process(_delta: float) -> bool:
 		_save_round_trip()
 		_event_hook()
 		_delay_and_bump()
+		_reach()
+		_pass_villager()
 		_talk_at_river()
 		_kiku_scion()
 		print("test_talk: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
@@ -592,6 +594,86 @@ func _delay_and_bump() -> void:
 	check(Villagers.blocks("town", 490.0, s, at + Vector2(0, 1.0), at + Vector2(0, 0.6)), "a step into her is blocked")
 	check(not Villagers.blocks("town", 490.0, s, at + Vector2(0, 0.6), at + Vector2(0, 0.65)), "a step away is not")
 	check(not Villagers.blocks("town", 490.0, s, at + Vector2(0, 2.0), at + Vector2(0, 1.9)), "nor a step that stays clear")
+	Villagers.reset_day()
+
+
+## E without lining up to the pixel (playtest 2026-11-13): from the cell beside the one below Tome,
+## feet leaning towards her, E talks to her (and the HUD says Talk); leaning away or standing in
+## the middle it does not; a step short of her cell, near enough, it does.
+func _reach() -> void:
+	var g := _game()
+	var seen := _listen(g)
+	var hints: GDScript = load("res://scripts/ui/action_hints.gd")   # it reads Game: loaded once the tree runs
+	g.hour = 7
+	g.minute = 40
+	Villagers.reset_day()
+	var w := Villagers.where("tome", g.day_minutes(), g.trigger_state(Vector2i.ZERO))
+	var tc := Vector2i(w.pos.floor())
+	var below := tc + Vector2i.DOWN
+	var left := below + Vector2i.LEFT
+	g.go_to_map("town", left, Vector2i.UP)
+	var feet := Vector2(left) + Vector2(0.9, 0.5)   # leaning right, towards the cell below her
+	check(hints.reach(left, Vector2i.UP, feet) == below, "reach: leaning towards her, E reaches the cell below her")
+	check(hints.pick(left, Vector2i.UP, feet).interact == "Talk", "reach: and the HUD says Talk")
+	check(hints.reach(left, Vector2i.UP, Vector2(left) + Vector2(0.5, 0.5)) == left, "reach: from the middle of the cell, not")
+	check(hints.reach(left, Vector2i.UP, Vector2(left) + Vector2(0.1, 0.5)) == left, "reach: leaning away, not")
+	g.maps.pos = feet * 16.0
+	var actions: GDScript = load("res://scripts/farm_actions.gd")
+	actions.on_action("interact", left, Vector2i.UP)
+	check(seen.said.size() == 1 and seen.said[0][0] == "talk_tome", "reach: E talks to her from beside %s" % [seen.said])
+	# A step further off, straight below: the feet near the top of their cell, within TALK_REACH.
+	var two := tc + Vector2i(0, 2)
+	g.go_to_map("town", two, Vector2i.UP)
+	var near := Vector2(w.pos.x, float(two.y) + 0.05)
+	check(near.distance_to(w.pos) <= hints.TALK_REACH and hints.reach(two, Vector2i.UP, near) == two + Vector2i.UP,
+		"reach: two cells below, the feet %.2f from her, E reaches her" % near.distance_to(w.pos))
+	var far := Vector2(w.pos.x, float(two.y) + 0.9)
+	check(hints.reach(two, Vector2i.UP, far) == two, "reach: from the bottom of that cell (%.2f away) it does not" % far.distance_to(w.pos))
+	# A thing on the ground, too: a turnip lying up and to the right of the cell in front.
+	g.go_to_map("farm", Vector2i(10, 12), Vector2i.UP)
+	var f: FarmGrid = g.farm
+	for c in [Vector2i(10, 11), Vector2i(11, 11), Vector2i(9, 11)]:
+		f.cell(c).obj = FarmGrid.Obj.NONE
+		f.take_item_at(c)
+	check(f.place_item(Vector2i(11, 11), "turnip"), "reach: a turnip lies beside the cell in front")
+	g.maps.pos = (Vector2(10, 12) + Vector2(0.8, 0.5)) * 16.0
+	actions.on_action("interact", Vector2i(10, 12), Vector2i.UP)
+	check(g.held == "turnip" and f.item_at(Vector2i(11, 11)) == "", "reach: E picks it up, leaning towards it (%s)" % g.held)
+	Villagers.reset_day()
+
+
+## A villager in the only way out (playtest 2026-11-13: trapped in a dead end): pushing into them
+## for PASS_AFTER lets the farmer slip past; once clear of them they stop the feet again.
+func _pass_villager() -> void:
+	var g := _game()
+	g.hour = 7
+	g.minute = 40
+	Villagers.reset_day()
+	var w := Villagers.where("tome", g.day_minutes(), g.trigger_state(Vector2i.ZERO))
+	g.go_to_map("town", Vector2i(w.pos.floor()) + Vector2i(0, 2), Vector2i.UP)
+	var p: Node2D = load("res://scripts/player/player.gd").new()
+	p.farm = g.farm
+	var at: Vector2 = w.pos * 16.0
+	p.position = at + Vector2(0, 20)
+	for i in 30:
+		p._try_move(Vector2(0, -1))
+	check(p.position.y > at.y + 0.6 * 16.0, "pass: walking into her stops short (%.1f px below)" % (p.position.y - at.y))
+	p._push_villager(Vector2.UP, Vector2(0, -1), p.PASS_AFTER * 0.5)
+	check(not p.passing and not p._try_move(Vector2(0, -1)), "pass: a moment's push still stops")
+	p._push_villager(Vector2.UP, Vector2(0, -1), p.PASS_AFTER * 0.6)
+	check(p.passing, "pass: pushing on, the farmer may pass")
+	for i in 40:
+		p._try_move(Vector2(0, -1))
+	check(p.position.y < at.y - 0.7 * 16.0, "pass: and walks through to the far side (%.1f px above)" % (at.y - p.position.y))
+	p._end_pass()
+	check(not p.passing, "pass: clear of her, villagers stop the feet again")
+	p._push_villager(Vector2.DOWN, Vector2(0, 1), 0.1)
+	for i in 40:
+		p._try_move(Vector2(0, 1))
+	check(p.position.y < at.y - 0.6 * 16.0, "pass: and walking back into her is stopped again")
+	p._push_villager(Vector2.LEFT, Vector2(-1, 0), 1.0)
+	check(not p.passing or g.villager_in_way(p.position, p.position + Vector2(-1, 0)), "pass: pushing where no villager stands passes nothing")
+	p.free()
 	Villagers.reset_day()
 
 

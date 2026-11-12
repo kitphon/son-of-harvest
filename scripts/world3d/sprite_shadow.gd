@@ -166,3 +166,4 @@ func _sync(force: bool) -> void:
 		_quad.center_offset = Vector3(sprite.offset.x * px, sprite.offset.y * px, 0)
 		_caster_mat.albedo_texture = tex
 	_caster.scale.x = -1.0 if sprite.flip_h else 1.0
+	_caster.scale.y = 1.0 / maxf(sprite.scale.y, 0.01)   # an upright figure's stretch is for the camera, not the sun

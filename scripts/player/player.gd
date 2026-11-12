@@ -22,6 +22,11 @@ var charge := 0         # charge steps reached so far
 var _charge_time := 0.0
 var _charge_tool := ""
 var _after_menu := false   # keys held from a menu do nothing until let go
+## Pushing into a villager who will not give way (a dead end, a narrow lane: playtest 2026-11-13):
+## after PASS_AFTER seconds of it the farmer slips past villagers until clear of them all.
+const PASS_AFTER := 0.35
+var _pushed_for := 0.0
+var passing := false
 var anim := FarmerAnim.new()   # which picture: pose and frame by what the farmer does
 var figure: Sprite2D           # the farmer's picture (FigureArt via PlaceholderArt)
 ## The world's light on the farmer (FlatLight; main_2d sets it with the figure's self_modulate):
@@ -108,7 +113,6 @@ func _physics_process(delta: float) -> void:
 	if Game.demo_walk_left > 0.0:   # `--walk=<dir>`: that key held
 		Game.demo_walk_left -= delta
 		dir = Game.demo_walk
-		if Game.demo_walk_left <= 0.0: print("DBGWALK ", Game.maps.id, " ", position, " ", cell_of(position), " solid ahead ", Game.maps.is_solid(cell_of(position + Vector2(facing) * 8), farm))
 	moving = dir != Vector2.ZERO
 	running = moving and Input.is_action_pressed("run") != Game.always_run and Game.can_run()
 	if moving:
@@ -120,6 +124,7 @@ func _physics_process(delta: float) -> void:
 		var step := dir * speed * delta
 		var moved_x := _try_move(Vector2(step.x, 0))   # one axis at a time, so walls slide
 		var moved_y := _try_move(Vector2(0, step.y))
+		_push_villager(dir, step, delta)
 		Game.maps.pos = position
 		Game.maps.facing = facing
 		var cell := cell_of(position)
@@ -133,8 +138,11 @@ func _physics_process(delta: float) -> void:
 			action.emit("enter", ahead - facing, facing, 0)
 			return
 		# Straight into a corner or a villager: slide round it when the way is clear a little to the side.
-		if pushed and minf(absf(dir.x), absf(dir.y)) < 0.25 * maxf(absf(dir.x), absf(dir.y)):
+		if pushed and not passing and minf(absf(dir.x), absf(dir.y)) < 0.25 * maxf(absf(dir.x), absf(dir.y)):
 			_slide(Vector2(facing) * speed * delta)
+	else:
+		_pushed_for = 0.0
+	_end_pass()
 	if Input.is_action_just_pressed("use_tool"):
 		# Hands full (an item overhead): the button sets it down, nothing charges.
 		if not begin_charge():
@@ -228,9 +236,27 @@ const SLIDE_WALL := 8
 const SLIDE_VILLAGER := 12
 
 
-## May the feet go from `from` to `to`?
+## Held towards a villager in the way (`dir` the stick, `step` this frame's move): counts the time
+## pushed; past PASS_AFTER the farmer is `passing`. Walking freely or away resets it.
+func _push_villager(dir: Vector2, step: Vector2, delta: float) -> void:
+	var to := position + dir.normalized() * maxf(step.length(), 1.0)
+	if not passing and Game.villager_in_way(position, to):
+		_pushed_for += delta
+		if _pushed_for >= PASS_AFTER:
+			passing = true
+	else:
+		_pushed_for = 0.0
+
+
+## Clear of every villager: they stop the feet again.
+func _end_pass() -> void:
+	if passing and not Game.villager_near(position):
+		passing = false
+
+
+## May the feet go from `from` to `to`? Villagers do not stop them while `passing`.
 func _free(from: Vector2, to: Vector2) -> bool:
-	if Game.villager_in_way(from, to):
+	if not passing and Game.villager_in_way(from, to):
 		return false
 	var under := {}
 	for corner in CORNERS:

@@ -91,6 +91,15 @@ func examine(spot: Vector2i) -> bool:
 	return runner != null
 
 
+## Would E on `spot` play an "examine" row now? Only looks (ActionHints.reach).
+func can_examine(spot: Vector2i) -> bool:
+	if runner != null or Game.paused():
+		return false
+	var s := Game.trigger_state(Player.cell_of(player.position))
+	s.spot = spot
+	return table.pick("examine", s) != ""
+
+
 ## The farmer talks to villager `who`: plays the map's first matching "talk" row for them
 ## and says whether one played (then the villager's own lines wait for another time).
 func talked_to(who: String) -> bool:

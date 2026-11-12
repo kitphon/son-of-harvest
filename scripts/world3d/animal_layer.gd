@@ -67,6 +67,7 @@ func _add_beast(beast: Dictionary, area: Rect2, start: Vector2) -> void:
 	var facing: String = AnimalArt.FACINGS[_rng.randi() % 2]   # at first they face the camera, left or right
 	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:%s:idle:0:%s" % [kind, facing]))
 	s.pixel_size = ANIMAL_PX
+	FarmWorld.upright(s)   # standing straight, so a wall behind does not swallow its back (FarmWorld.upright)
 	NightLights.figure(s)
 	if Game.animals.is_adult(beast):   # the grown ones breathe in the cold (BreathLayer)
 		s.add_to_group(BreathLayer.GROUP)
@@ -85,6 +86,7 @@ func _add_dog() -> void:
 		return
 	var s := FarmWorld.make_sprite(PlaceholderArt.tex("animal:%s:idle:0" % Game.animals.dog_look()))
 	s.pixel_size = ANIMAL_PX
+	FarmWorld.upright(s)   # standing straight, so a wall behind does not swallow its back (FarmWorld.upright)
 	NightLights.figure(s)
 	s.add_to_group(Parting.GROUP)   # the grass and crops part round the dog too
 	s.add_to_group(BreathLayer.GROUP)   # and it breathes in the cold

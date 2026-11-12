@@ -315,6 +315,15 @@ static func blocks(map_id: String, t: float, s: Dictionary, from: Vector2, to: V
 	return false
 
 
+## Does a villager on `map_id` stand within block_reach of `at` (cells)?
+static func near(map_id: String, t: float, s: Dictionary, at: Vector2) -> bool:
+	var reach := float(common().get("block_reach", 0.7))
+	for w in on_map(map_id, t, s):
+		if at.distance_to(w.pos) < reach:
+			return true
+	return false
+
+
 ## Clears every turn and delay (a new game, tests).
 static func reset_day() -> void:
 	_today_key = ""

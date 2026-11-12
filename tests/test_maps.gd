@@ -183,6 +183,50 @@ func _footprints() -> void:
 
 
 ## Camera lenses (data/camera.json): ps1 is the measured camera, every lens frames the feet alike.
+## Figures stand upright (playtest 2026-11-13: they sank into walls): FarmWorld.stretch makes an
+## upright picture's top show where a camera-facing billboard's would, for every lens and across
+## the screen; the head of an upright figure 3 px from a wall stays out of it.
+func _upright() -> void:
+	var fw: GDScript = load("res://scripts/world3d/farm_world.gd")   # it reads Game: loaded once the tree runs
+	var cam_data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/camera.json"))
+	var h: float = 32 * fw.FIGURE_PX
+	for lid in cam_data.lenses:
+		var l := CameraLens.pick(cam_data, lid)
+		var target := Vector3(10, 0, 10)
+		var cam := Transform3D(Basis(), target + l.back * l.dist).looking_at(target, Vector3.UP)
+		var mid: float = fw.stretch(cam, target, h)
+		check(mid > 1.03 and mid < 1.0 / cos(deg_to_rad(float(cam_data.lenses[lid].pitch))),
+			"upright: lens %s stretches a figure at the middle a little, under 1 / cos(pitch) as its top is nearer (%.3f)" % [lid, mid])
+		var worst := 0.0
+		for off in [Vector3(0, 0, 0), Vector3(3, 0, 3), Vector3(-3, 0, -3), Vector3(4, 0, -4), Vector3(-2, 0, 3)]:
+			var feet: Vector3 = target + off
+			var k: float = fw.stretch(cam, feet, h)
+			var inv := cam.affine_inverse()
+			var bill: Vector3 = inv * feet + Vector3(0, h, 0)   # a billboard's top: straight up in the camera's frame
+			var upr: Vector3 = inv * (feet + Vector3(0, h * k, 0))
+			worst = maxf(worst, absf(bill.y / -bill.z - upr.y / -upr.z))
+		check(worst < 1e-5, "upright: lens %s, the stretched top shows where the billboard's did across the view (%f)" % [lid, worst])
+		# 3 px (0.19 units) from a wall behind: the billboard's top went into it, the upright one stays out.
+		var lean: float = h * sin(deg_to_rad(float(cam_data.lenses[lid].pitch)))
+		check(lean > 0.19, "upright: lens %s, a full billboard's top leans %.2f back, past a wall 0.19 away" % [lid, lean])
+	var s: Sprite3D = fw.make_figure(PlaceholderArt.tex("item:turnip"))
+	check(s.billboard == BaseMaterial3D.BILLBOARD_FIXED_Y and s.is_in_group(fw.UPRIGHT), "upright: make_figure turns the figure about y only")
+	s.free()
+	var src := FileAccess.get_file_as_string("res://scripts/world3d/animal_layer.gd")
+	check(src.count("FarmWorld.upright(s)") == 2, "upright: the animals and the dog stand upright too")
+	var vs := FileAccess.get_file_as_string("res://scripts/world3d/villager_sprites.gd")
+	check(vs.count("FarmWorld.upright_child(") == 2, "upright: a villager's held item and note turn with them")
+
+
+## In the real view: the farmer's figure is upright, stretched for the camera, its children upright.
+func _upright_in_view() -> void:
+	var s: Sprite3D = _scene.sprite
+	check(s.billboard == BaseMaterial3D.BILLBOARD_FIXED_Y and s.scale.y > 1.05 and s.scale.y < 1.6,
+		"upright: the farmer stands upright, stretched %.3f for the camera" % s.scale.y)
+	for c in [_scene.held_sprite, _scene.charge_pips, _scene.lantern_sprite, _scene.bite_mark]:
+		check(c.billboard == BaseMaterial3D.BILLBOARD_FIXED_Y, "upright: %s turns with the farmer" % c.name)
+
+
 func _lenses() -> void:
 	var cam_data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/camera.json"))
 	var ps1 := CameraLens.pick(cam_data, "ps1")
@@ -247,6 +291,7 @@ func _process(delta: float) -> bool:
 		_edges_and_fades()
 		_backdrop()
 		_walk_slide()
+		_upright()
 		_fade_steps()
 		_mesh_cache()
 		_occluder_own()
@@ -394,6 +439,7 @@ func _check_view() -> void:
 	var events: Array = _scene.get_children().filter(func(n): return n.get_script() != null and n.get_script().resource_path.ends_with("event_player.gd"))
 	check(events.size() == 1 and events[0].map_id == "house" and events[0].table.map_id == "house",
 		"the event triggers follow the map")
+	_upright_in_view()
 	_kept_worlds(g)
 	_prebuilt_worlds(g)
 	_scene.free()

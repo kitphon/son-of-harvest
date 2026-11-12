@@ -10,6 +10,52 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — E reaches, villagers give way, figures stand upright (playtest)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Found (the user's playtest): (1) E (talk, pick up, give, use) looked only at the one cell straight
+  ahead of the feet's cell, so a villager or an item half a cell to the side, or a villager walking a
+  little further on, took exact lining up. (2) Villagers.blocks stops every step closer to a villager
+  within block_reach, and a bumped villager stands waiting (the bump delay), so one standing in the only
+  way out of a dead end trapped the farmer; the slide round them needs free floor beside. (3) The 3D
+  figures were full billboards: the quad faces the camera, so it leans back by the camera's pitch. A
+  figure 1.28 units tall leans 0.64 back at the medium lens; with the feet stopped 3 px (0.19) from a
+  wall, its head was inside the wall. Frames with the new `--walk` flag (`--demo --map=coop --walk=up:2.2`,
+  `--map=house`, `--map=farm@coop`, `--map=town`, frame 74) showed only the legs, the wall hiding the rest.
+- Done: (1) `ActionHints.reach(origin, facing, feet)`: the cell in front when it has something (the HUD's
+  interact word or an "examine" row: EventPlayer.can_examine, a look only); else the cell beside it on the
+  side the feet lean (0.1 cells off the middle or more; a door there is left alone, doors are walked
+  into); else a villager one more step on within TALK_REACH (1.6 cells) of the feet. FarmActions.on_action
+  uses it for talk, Kiku's tree, examine and interact (throws, set-downs and tools keep the farmer's own
+  cell), and the HUD's hint asks the same (ActionHints.pick takes the feet). The feet are Game.maps.pos
+  when that is on the origin cell, else the cell's middle (a test or a script naming a cell gets the old
+  behaviour). (2) Player: holding the stick into a villager in the way for PASS_AFTER (0.35 s) sets
+  `passing`: villagers stop nothing until the feet are clear of them all (Villagers.near / Game.villager_near,
+  block_reach), then they block again. (3) FarmWorld.upright: the farmer, villagers, animals and the dog
+  turn about y only (BILLBOARD_FIXED_Y) and FarmWorld.stand_all (Main3D, each frame after the camera)
+  stretches each up by FarmWorld.stretch, worked out from the camera so the stretched top shows exactly
+  where the billboard's did (1.09 for the farmer at the medium lens: a little under 1 / cos(pitch), as the top is nearer the eye; more near the screen's bottom). Their sprite children
+  (the held item, the charge pips, the lantern, the "!", a villager's held item and note) turn the same
+  way (upright_child); the pips and "!" heights became 1.2 / 1.13 so they sit where 1.38 / 1.3 straight up
+  showed; the lantern and the rod tip are placed up the upright picture; a throw starts from the held
+  item's global place; the shadow caster undoes the stretch (it is for the camera, not the sun);
+  NightLights.sprite_corners knows upright sprites. `--walk=<dir>[:seconds]` holds a move key (Player).
+- Checked: test_talk (new: reach from the side cell talks to Tome and the HUD says Talk, not from the middle
+  or leaning away, a step further on within reach and not beyond, a turnip beside the cell in front picked
+  up; pushing into Tome stops, a short push still stops, a longer one passes, through to her far side,
+  clear of her she blocks again). test_maps (new: for every lens the stretched top lands where the
+  billboard's did, within 1e-5, at the middle and across the view; a billboard's lean past a wall 3 px
+  away; make_figure, the animals, the dog, the villagers' children upright; in the real view the farmer
+  stretched 1.05..1.6 with his four children upright). Every tests/test_*.gd (37, one after another) printed `OK (0 failed)` (test_maps after its new checks were moved to run once the tree is up: named in `_init` they stopped the script compiling).
+  Smoke runs with `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`): exit 0,
+  no ERROR or SCRIPT ERROR lines. Frames (480x270): the same `--walk` runs after the fix show the farmer
+  whole against the coop, farmhouse, barn and village walls; `--demo --map=town@clinic --hold` frame 19,
+  old code against new: the farmer covers the same pixels, the held turnip sits 1-2 px higher, resting on
+  the raised hands as the flat view draws it; `--fishing` (rod line from the tip, "!" over the head),
+  `--mine=3` (the lantern in hand), `--charge=hoe` (pips over the head), `--map=town --whistle` (the note).
+- Left / next: a figure's side may still touch a wall's corner at the 45° view where the wall runs across
+  in front of it (the upright plane is through the feet). The passing farmer overlaps the villager for a
+  moment. E's reach is not shown by the 3D target bracket (it marks the tool's cell).
+
 ## 2026-11-13 — Tool-use effects: seeds read at 2 px, the charge can be framed
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: the two open limits of "Tool-use effects: the result lands on the hit" above.
