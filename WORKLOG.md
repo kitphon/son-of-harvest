@@ -10,6 +10,60 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-12 — Ground birds sort with the figures in the flat view
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the first thing "The birds' limits" left open. The flat view has no y-sort: it draws its
+  figures in tree order (VillagerView's sprites in the order they were made, AnimalView's one node
+  for every animal and the dog, then the Player after the whole map view), all at z 0, so a bird on
+  the ground (all drawn inside BirdView, before them) sat under every figure, even one standing
+  behind it. Turning y-sort on would have reordered the figures among themselves (villagers by
+  feet, the animals' single node under the villagers, the greenhouse beds and the thrown item
+  sorting by their own y), so instead each bird on the ground (sparrows standing, pecking, hopping;
+  the heron standing) is now its own small node (`BirdView.Ground`) placed in that drawing order:
+  `BirdView.figures()` lists the figures in drawing order with their feet and picture rects
+  (VillagerView.figures(): its shown sprites in child order; AnimalView.figures(): each animal and
+  the dog, from the same list its _draw uses, now `_shown()`; the farmer), and `BirdView.slot_of`
+  puts the bird just before the first figure it overlaps whose feet are at or below its own (in
+  front of it), else just after the last one it overlaps (all behind it); a bird overlapping nobody
+  stays in BirdView as before. So the node moves into VillagerView beside the villager's sprite,
+  into the map view beside AnimalView, or into Main2D just before or after the Player (still before
+  the thrown item in flight, under the weather at z 50 and the fliers' Air pass at z 20, on the
+  world's canvas under the night tint; the HUD and the fade are canvas layers above). Overlap only
+  counts, so a villager far off in the same row changes nothing. The figures' own order is
+  untouched. BirdView still draws the shadows in its own _draw, under every figure (shadow logic
+  unchanged), and frees the nodes sitting outside it when it leaves the tree (a map change).
+  Where figures already overlap each other out of depth order (a villager in front of the farmer
+  is drawn under him today), a bird between them follows the rule above: never over a figure in
+  front of it, but it may be hidden by a later-drawn one just behind it.
+- Checked: test_birds `_ground_sort` on main_2d.tscn as built (spring noon, the farmhouse door's
+  sparrows, nobody about): one node a bird on the ground, all in BirdView with nobody near; a
+  villager sprite (as VillagerView makes them) 6 px behind a sparrow puts the sparrow after it in
+  VillagerView, 6 px in front puts it before, 200 px aside sends it back to BirdView; the farmer 6 px
+  behind: the sparrow after the Player and all its children (what he carries), before the thrown
+  item, at the figures' z under the weather and the Air pass, on the tinted canvas; the farmer 6 px
+  in front: after the map view, before the Player; the dog in front: before AnimalView, after
+  VillagerView; the Air pass where it was, no flier among the ground nodes; the node in Main2D
+  queued for freeing when its BirdView leaves. A mutation (slot_of never finding a figure in front)
+  made three of these fail, so they bite. Every test script in AGENTS.md printed OK (0 failed):
+  test_farm, test_save, test_title, test_weather, test_dialogue, test_menu, test_body,
+  test_events, test_maps, test_inventory, test_food, test_cooking, test_hold, test_villagers,
+  test_talk, test_relationships, test_shops, test_animals, test_fishing, test_forage, test_mine,
+  test_ending, test_festivals, test_view2d, test_child, test_goals, test_lang, test_showcase,
+  test_puddles, test_drift, test_mist, test_audio, test_birds, test_wet; no ERROR lines in their
+  logs. Smoke runs with no ERROR or WARNING lines: title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, and main_2d.tscn `--demo --map=town --time=10:00 --birds` and
+  `--demo --map=farm --time=10:00 --birds`. Frames: main_2d.tscn `--demo --time=10:00 --map=town
+  --birds=sparrow --weather=sunny --no-hud` (sparrows in front of the lower-left house, nobody
+  near, looks as before); and, because every walker startles the sparrows before it can overlap
+  them, a throwaway driver scene in shots/ (deleted) that refreshed the birds with nobody near and
+  then put the farmer's spot 5 px above two sparrows and Tome's 8 px below another, the same frame
+  with and without the new placement, 4x crops side by side: before, the sparrows at the farmer's
+  feet are hidden under his legs; now they are drawn over his shins and feet; the sparrow behind
+  Tome is hidden by her in both.
+- Left / next: the figures themselves still do not sort with each other in the flat view. A
+  flier's shadow in 3D can fall inside a building, and in the flat view it is drawn over a roof.
+  In 3D the ground blobs are subtle under the billboards.
+
 ## 2026-11-12 — Green tea and milk icons read at 1x
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: the two icons from the last entry redrawn with their own marks (data/foods.json, same keys,

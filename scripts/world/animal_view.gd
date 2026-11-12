@@ -30,6 +30,33 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	var a := Game.animals
+	if not on_farm and map != null and a.home_on_map(map.id) == "coop":   # the eggs in the nests, under the hens
+		var n := 0
+		for p in map.props:
+			if p.get("use", "") == "nest":
+				for y in p.size.y:
+					if n < a.eggs.size():
+						var e := PlaceholderArt.tex(PlaceholderArt.world_item_key(a.eggs[n]))
+						var ep := Vector2(p.cell.x * T, (p.cell.y + y) * T) + (Vector2(T, T) - e.get_size()) / 2.0
+						draw_texture(e, ep, FlatLight.at(ep + Vector2(e.get_width() / 2.0, e.get_height()), e.get_height(), FlatLight.field_px() * 0.8))
+					n += 1
+	for s in _shown():
+		_draw_animal(s[0], s[1])
+
+
+## Where the animals stand and what they cover, in this node's pixels, in drawing order:
+## [{feet, rect}] (the flat view's birds on the ground sort in among the figures by them, BirdView).
+func figures() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for s in _shown():
+		var size := (s[0] as Texture2D).get_size() / float(AnimalArt.SCALE)
+		out.append({"feet": s[1], "rect": Rect2((s[1] as Vector2) - Vector2(size.x / 2.0, size.y), size)})
+	return out
+
+
+## The animals drawn now, in drawing order: [[picture, feet in pixels]] (the dog last).
+func _shown() -> Array[Array]:
+	var a := Game.animals
 	var shown: Array[Array] = []   # [animal, spot]
 	if on_farm:
 		for home in a.state:
@@ -47,23 +74,12 @@ func _draw() -> void:
 				var c := a.spot(i)
 				if c.x >= 0:
 					shown.append([a.list[i], Vector2(c) + Vector2(0.5, 0.5)])
-		if home == "coop":
-			var n := 0
-			for p in map.props:
-				if p.get("use", "") == "nest":
-					for y in p.size.y:
-						if n < a.eggs.size():
-							var e := PlaceholderArt.tex(PlaceholderArt.world_item_key(a.eggs[n]))
-							var ep := Vector2(p.cell.x * T, (p.cell.y + y) * T) + (Vector2(T, T) - e.get_size()) / 2.0
-							draw_texture(e, ep, FlatLight.at(ep + Vector2(e.get_width() / 2.0, e.get_height()), e.get_height(), FlatLight.field_px() * 0.8))
-						n += 1
+	var out: Array[Array] = []
 	for s in shown:
-		var tex := PlaceholderArt.tex("animal:%s:%s:0" % [a.look(s[0]), "sick" if s[0].sick else "idle"])
-		_draw_animal(tex, s[1] * T + Vector2(0, 4))
+		out.append([PlaceholderArt.tex("animal:%s:%s:0" % [a.look(s[0]), "sick" if s[0].sick else "idle"]), s[1] * T + Vector2(0, 4)])
 	if on_farm and not a.dog.held:
-		var tex := PlaceholderArt.tex("animal:%s:idle:0" % a.dog_look())
-		var at := (Vector2(a.dog.cell) + Vector2(0.5, 0.5)) * T
-		_draw_animal(tex, at + Vector2(0, 4))
+		out.append([PlaceholderArt.tex("animal:%s:idle:0" % a.dog_look()), (Vector2(a.dog.cell) + Vector2(0.5, 0.5)) * T + Vector2(0, 4)])
+	return out
 
 
 ## An animal picture with its feet at `feet`, at the flat view's pixel size (the pictures have
