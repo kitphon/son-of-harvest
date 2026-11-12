@@ -591,8 +591,113 @@ func _flat_order() -> void:
 	check(scene.fade is CanvasLayer and scene.fade.layer > 0, "flat (main_2d): the map fade is over the fliers")
 	bv.refresh()
 	check(bv.sprites().all(func(s): return s.air == (s.key as String).contains(":fly:")), "flat (main_2d): fliers in the air pass, the rest on the ground")
+	await _ground_sort(scene, bv)
 	scene.queue_free()
 	await process_frame
+
+
+## The birds on the ground sort in among the figures by their feet in the built main_2d view: a
+## sparrow just in front of a villager or the farmer (feet lower on the screen) is drawn after
+## them, one just behind is drawn before them; one overlapping nobody stays in the bird view (under
+## them all); the fliers stay in the air pass; the shadows stay in the bird view's own drawing.
+func _ground_sort(scene: Node, bv: Node2D) -> void:
+	var view: Node2D = scene.view
+	var player: Node2D = scene.player
+	player.position = Vector2(-5000, -5000)   # far off: nothing startled
+	if not g.animals.dog.is_empty():
+		g.animals.dog.held = true   # the dog out of the way (no walker by the door)
+	_when(0, 12, 0, "sunny")
+	bv.refresh()
+	var ground: Array = bv.sprites().filter(func(s): return not s.air)
+	check(not ground.is_empty(), "flat (main_2d): sparrows on the ground by the farmhouse door at a spring noon (%d)" % ground.size())
+	if ground.is_empty():
+		return
+	check(bv.ground_nodes().size() == ground.size(), "flat (main_2d): one node a bird on the ground (%d for %d)" % [bv.ground_nodes().size(), ground.size()])
+	check(bv.ground_nodes().all(func(n): return n.get_parent() == bv), "flat (main_2d): with nobody about the birds on the ground stay in the bird view, under every figure")
+	var s: Dictionary = ground[0]
+	var at: Vector2 = s.at
+	var node: Node2D = bv.ground_nodes()[0]
+	var vv: Node = null
+	for n in view.get_children():
+		if n.get_script() == load("res://scripts/world/villager_view.gd"):
+			vv = n
+	check(vv != null, "flat (main_2d): the map view has its villagers")
+	if vv == null:
+		return
+	# A villager sprite as VillagerView makes them (feet 2 px below the spot), standing by the bird.
+	var v := Sprite2D.new()
+	v.centered = false
+	v.offset = player.figure.offset   # as VillagerView sets it
+	v.texture = player.figure.texture   # a figure-sized picture
+	vv.add_child(v)
+	vv._sprites["test_walker"] = v
+	v.position = at + Vector2(0, -6)   # just behind the bird (north): the bird draws over them
+	bv._place_ground()
+	var order := _draw_order(scene)
+	check(node.get_parent() == vv and order.find(node) > order.find(v), "flat (main_2d): a sparrow in front of a villager is drawn after them (%s, %d > %d)" % [node.get_parent().name, order.find(node), order.find(v)])
+	check(node.position == at, "flat (main_2d): the bird keeps its place among the villagers (%s, %s)" % [node.position, at])
+	v.position = at + Vector2(0, 6)   # just in front (south): the villager draws over the bird
+	bv._place_ground()
+	order = _draw_order(scene)
+	check(order.find(node) < order.find(v), "flat (main_2d): a sparrow behind a villager is drawn before them (%d < %d)" % [order.find(node), order.find(v)])
+	v.position = at + Vector2(200, 0)   # far to one side: overlaps nobody
+	bv._place_ground()
+	check(node.get_parent() == bv, "flat (main_2d): a sparrow overlapping nobody goes back to the bird view")
+	vv._sprites.erase("test_walker")
+	v.free()
+	# The farmer (drawn after the whole map view).
+	player.position = at + Vector2(0, -6)
+	bv._place_ground()
+	order = _draw_order(scene)
+	var last_of_player := order.find(player)
+	for c in player.get_children():
+		last_of_player = maxi(last_of_player, order.find(c))
+	check(order.find(node) > last_of_player, "flat (main_2d): a sparrow in front of the farmer is drawn over the farmer and what he carries (%d > %d)" % [order.find(node), last_of_player])
+	check(order.find(node) < order.find(scene.flying), "flat (main_2d): ... still under a thrown item in flight")
+	check(_z_of(node) == _z_of(player) and _z_of(node) < _z_of(scene.weather) and _z_of(node) < _z_of(bv.air), "flat (main_2d): ... at the figures' z, under the weather and the fliers")
+	check(node.get_canvas() == scene.tint.get_canvas() and node.get_canvas_layer_node() == null, "flat (main_2d): ... on the world's canvas, under the night tint")
+	player.position = at + Vector2(0, 6)
+	bv._place_ground()
+	order = _draw_order(scene)
+	check(order.find(node) < order.find(player) and order.find(node) > order.find(view), "flat (main_2d): a sparrow behind the farmer is drawn after the map view and before the farmer")
+	# The dog (AnimalView): in front of the bird.
+	if not g.animals.dog.is_empty():
+		var animals: Node = view.get_children().filter(func(n): return n.get_script() == load("res://scripts/world/animal_view.gd"))[0]
+		g.animals.dog.held = false
+		var placed := false
+		for dy in [0, 1, -1]:
+			g.animals.dog.cell = Vector2i(floori(at.x / 16.0), floori(at.y / 16.0) + dy)
+			var f: Dictionary = animals.figures().back()
+			if (f.feet as Vector2).y > at.y and (f.rect as Rect2).intersects(Rect2(at - Vector2(4, 6), Vector2(8, 6))):
+				placed = true
+				break
+		player.position = Vector2(-5000, -5000)
+		bv._place_ground()
+		order = _draw_order(scene)
+		check(placed and order.find(node) < order.find(animals) and order.find(node) > order.find(vv), "flat (main_2d): a sparrow behind the dog is drawn before the animals' node (%s)" % node.get_parent().name)
+		g.animals.dog.held = true
+	# The fliers stay in the air pass, the shadows in the bird view's own drawing.
+	player.position = Vector2(-5000, -5000)
+	bv._place_ground()
+	check(bv.air.get_parent() == bv and bv.air.z_index == int(BR.config().flat.air_z), "flat (main_2d): the fliers' pass is where it was (z %d)" % bv.air.z_index)
+	check(not bv.ground_nodes().any(func(n): return (str(n.bird.key)).contains(":fly:")), "flat (main_2d): no flier among the birds on the ground")
+	# A map change takes the nodes sitting among the figures away with the bird view.
+	player.position = at + Vector2(0, -6)
+	bv._place_ground()
+	var outside: Node2D = node
+	check(outside.get_parent() == scene, "flat (main_2d): the bird sits in the scene beside the farmer")
+	bv.get_parent().remove_child(bv)
+	check(outside.is_queued_for_deletion(), "flat (main_2d): its bird view leaving takes it along")
+	bv.queue_free()
+	await process_frame
+
+
+## Every canvas item under `n` in drawing order (tree order; all at z 0 here but the noted ones).
+func _draw_order(n: Node, out: Array = []) -> Array:
+	out.append(n)
+	for c in n.get_children():
+		_draw_order(c, out)
+	return out
 
 
 ## The z a canvas item is drawn at (its z_index added to its parents' while relative).

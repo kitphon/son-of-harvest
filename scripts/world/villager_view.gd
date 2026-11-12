@@ -105,6 +105,16 @@ func held(id: String) -> String:
 	return h.get_meta("item", "") if h != null and h.visible else ""
 
 
+## The shown villagers' sprites in drawing order (child order; feet at each one's position, the
+## flat view's birds on the ground sort in among them, BirdView).
+func figures() -> Array[Sprite2D]:
+	var out: Array[Sprite2D] = []
+	for n in get_children():
+		if n is Sprite2D and n.visible and _sprites.values().has(n):
+			out.append(n)
+	return out
+
+
 func shown() -> Array:
 	return _sprites.keys().filter(func(id): return _sprites[id].visible)
 
