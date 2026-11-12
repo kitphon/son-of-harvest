@@ -41,6 +41,7 @@ func refresh() -> void:
 		elif key.ends_with(":post:1") and s.get_meta("key", "") != key:
 			Sfx.play("letter_post")   # a letter slipped in at a door on Ren's round
 		s.set_meta("key", key)
+		s.set_meta("bird_scare", BirdRules.scares(str(w.id), str(w.get("stage", ""))))   # the crawler startles no birds (FarmWorld.set_farmer)
 		s.texture = PlaceholderArt.tex(key)
 		s.flip_h = FarmerAnim.is_mirrored(w.facing)
 		_show_held(s, w)

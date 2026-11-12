@@ -3,19 +3,32 @@ extends Node2D
 ## Small birds on an outdoor map in the flat view (rules: BirdRules, data/birds.json; pictures:
 ## BirdArt; the 3D view's is BirdLayer): each bird's pixel picture at whole pixels, its feet (or a
 ## flier's belly) at the foot of the picture. Seen from above, a bird's height lifts it up the
-## screen (data "flat".height_px). `player` is the farmer: sparrows and the heron fly off when he
-## comes near. Made with the map's view; indoor maps and the mine get nothing.
+## screen (data "flat".height_px). Made with the map's view; indoor maps and the mine get nothing.
+##
+## Two passes. This node, in the map view's ground order (over the ground, roofs and props, under
+## the figures), draws the shadows on the ground (BirdRules.shadow_of: a soft blob under each bird
+## on the ground, a faint one cast along the sun for a flier by day in sun) and the birds on the
+## ground (standing, pecking, hopping). Its child `air` (z_index "flat".air_z) draws the birds in the
+## air over the roofs, props and figures, still under the weather and the night tint (the
+## CanvasModulate covers every z), and the HUD and the map fade (their own canvas layers).
+##
+## `player` is the farmer; the villagers (the map view's VillagerView: the child only once walking,
+## BirdRules.scares) and the farm dog are the other walkers: sparrows and the heron fly off when
+## any of them comes near.
 
 const T := 16
 
 var map: MapData
 var farm: FarmGrid
 var player: Node2D
+var air: Node2D   # the fliers' pass, over the figures
 var _t := 0.0
 var _scene := {}
 var _scene_key := ""
 var _state := {}
 var _shown: Array[Dictionary] = []
+var _sun := 0.0
+var _sun_dir := Vector3.DOWN
 
 
 func setup(m: MapData, f: FarmGrid = null, p: Node2D = null) -> BirdView:
@@ -23,6 +36,11 @@ func setup(m: MapData, f: FarmGrid = null, p: Node2D = null) -> BirdView:
 	farm = f
 	player = p
 	name = "Birds"
+	air = Node2D.new()
+	air.name = "Air"
+	air.z_index = int(BirdRules.config().flat.get("air_z", 20))
+	air.draw.connect(_draw_air)
+	add_child(air)
 	_t = 0.0 if not BirdRules.forced().is_empty() else float(m.w * 13 + m.h * 29) * 0.31   # `--birds`: from the start, so a frame is the same
 	refresh()
 	return self
@@ -33,7 +51,7 @@ func _process(delta: float) -> void:
 	refresh()
 
 
-## Reads the clock and the weather, then places every bird of the kinds on show.
+## Reads the clock, the weather and the sun, then places every bird of the kinds on show.
 func refresh() -> void:
 	var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
 	var amounts := BirdRules.amounts_now(game, map)
@@ -46,11 +64,34 @@ func refresh() -> void:
 		_scene_key = key
 		_state.clear()
 		_scene = BirdRules.scene_of(map, farm, game.day + 28 * game.season)
+	_sun = game.sun_shadow()
+	_sun_dir = game.sun_direction(game.sun_light())
 	var farmer := BirdRules.NO_FARMER if player == null else player.position / float(T)
+	var others := walkers()
 	for kind in BirdRules.KINDS:
 		if amounts.has(kind):
-			_shown.append_array(BirdRules.birds(kind, float(amounts[kind]), _t, _scene, farmer, _state))
+			_shown.append_array(BirdRules.birds(kind, float(amounts[kind]), _t, _scene, farmer, _state, {}, others))
 	queue_redraw()
+	air.queue_redraw()
+
+
+## The other walkers here now, in cells: the villagers of the map view's VillagerView (the child
+## once walking) and, on the farm, the dog when it is not in the farmer's arms.
+func walkers() -> Array:
+	var out := []
+	var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
+	var parent := get_parent()
+	if parent != null:
+		for n in parent.get_children():
+			if n is VillagerView:
+				var stage := str(game.flags.get(Child.STAGE, "")) if game != null else ""
+				var feet: Dictionary = n.feet()
+				for id in feet:
+					if BirdRules.scares(str(id), stage):
+						out.append(feet[id])
+	if farm != null and game != null and game.animals != null and not game.animals.dog.is_empty() and not game.animals.dog.held:
+		out.append(Vector2(game.animals.dog.cell) + Vector2(0.5, 0.5))
+	return out
 
 
 ## Where a bird's feet are on the screen, in whole pixels.
@@ -58,15 +99,57 @@ func screen_of(pos: Vector3) -> Vector2:
 	return (Vector2(pos.x, pos.z) * T - Vector2(0, pos.y * float(BirdRules.config().flat.height_px))).round()
 
 
-## The birds now: [{at: pixel (feet), key: picture key, right: faces right}].
+## The birds now: [{at: pixel (feet), key: picture key, right: faces right, air: drawn in the air
+## pass (over the figures)}].
 func sprites() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for b in _shown:
-		out.append({"at": screen_of(b.pos), "key": BirdRules.key_of(b), "right": (b.dir as Vector2).x > 0.0})
+		out.append({"at": screen_of(b.pos), "key": BirdRules.key_of(b), "right": (b.dir as Vector2).x > 0.0, "air": BirdRules.flying(b)})
+	return out
+
+
+## The shadows now: [{rect: Rect2 in whole pixels, alpha}] (BirdRules.shadow_of).
+func shadows() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for b in _shown:
+		var s := BirdRules.shadow_of(b, _sun, _sun_dir)
+		if s.is_empty():
+			continue
+		var size := ((s.size as Vector2) * T).round().max(Vector2(2, 1))
+		var at := ((s.at as Vector2) * T - size / 2.0).round()
+		out.append({"rect": Rect2(at, size), "alpha": float(s.alpha), "air": BirdRules.flying(b)})
 	return out
 
 
 func _draw() -> void:
+	for s in shadows():
+		draw_blob(self, s.rect, s.alpha)
 	for s in sprites():
-		var tex := PlaceholderArt.tex(str(s.key) + (":r" if s.right else ""))
-		draw_texture(tex, (s.at as Vector2) - Vector2(floorf(tex.get_width() / 2.0), tex.get_height()))
+		if not s.air:
+			_draw_bird(self, s)
+
+
+func _draw_air() -> void:
+	for s in sprites():
+		if s.air:
+			_draw_bird(air, s)
+
+
+static func _draw_bird(canvas: CanvasItem, s: Dictionary) -> void:
+	var tex := PlaceholderArt.tex(str(s.key) + (":r" if s.right else ""))
+	canvas.draw_texture(tex, (s.at as Vector2) - Vector2(floorf(tex.get_width() / 2.0), tex.get_height()))
+
+
+## A soft dark oval in whole-pixel rows over `r`: a faint rim and a darker core.
+static func draw_blob(canvas: CanvasItem, r: Rect2, alpha: float) -> void:
+	for layer in [[1.0, 0.5], [0.6, 0.5]]:
+		var w: float = r.size.x * float(layer[0])
+		var h: float = maxf(r.size.y * float(layer[0]), 1.0)
+		var c := r.get_center()
+		var rows := int(ceilf(h))
+		for i in rows:
+			var y := (float(i) + 0.5) / float(rows) * 2.0 - 1.0
+			var half := roundf(w / 2.0 * sqrt(maxf(1.0 - y * y, 0.0)))
+			if half < 1.0:
+				continue
+			canvas.draw_rect(Rect2(Vector2(roundf(c.x - half), roundf(c.y - h / 2.0) + i), Vector2(half * 2.0, 1.0)), Color(0, 0, 0, alpha * float(layer[1])))

@@ -355,6 +355,7 @@ func set_ice(style: Dictionary, snow := 0.0) -> void:
 ## the dog on this map (their sprites are in Parting.GROUP), the nearest to the farmer first.
 func set_farmer(feet: Vector3) -> void:
 	var others: Array = []
+	var startle: Array = []   # the walkers the birds take fright at (the crawler does not: BirdRules.scares)
 	var walkers := {"farmer": Vector2(feet.x, feet.z)}   # for the footprints (Footprints): the same walkers
 	if is_inside_tree():
 		for n in get_tree().get_nodes_in_group(Parting.GROUP):
@@ -362,6 +363,8 @@ func set_farmer(feet: Vector3) -> void:
 			if s != null and s.visible and is_ancestor_of(s):
 				others.append(Vector2(s.position.x, s.position.z))
 				walkers[s.get_instance_id()] = Vector2(s.position.x, s.position.z)
+				if s.get_meta("bird_scare", true):
+					startle.append(Vector2(s.position.x, s.position.z))
 	var pushers := Parting.pick(Vector2(feet.x, feet.z), others, int(Parting.rules("grass").max))
 	if tufts != null:
 		tufts.set_pushers(pushers)
@@ -372,6 +375,7 @@ func set_farmer(feet: Vector3) -> void:
 	var birds := get_node_or_null("Birds") as BirdLayer
 	if birds != null:
 		birds.farmer = Vector2(feet.x, feet.z)   # sparrows and the heron fly off from him
+		birds.others = startle                   # and from the villagers, the dog and the walking child
 	_leave_prints(walkers)
 
 

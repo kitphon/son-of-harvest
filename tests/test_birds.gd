@@ -2,8 +2,10 @@ extends SceneTree
 ## Headless checks for the small birds outdoors (BirdRules, data/birds.json, BirdArt): swallows in
 ## spring and summer days, crows at dusk in every season, a heron by the water in the morning,
 ## sparrows by the houses; the season / weather / clock / indoor gating, the places and heights, the
-## farmer startling sparrows and the heron, the pictures, and both views (BirdLayer in 3D, BirdView
-## in the flat view) building and showing them. Run:
+## farmer startling sparrows and the heron (and the villagers, the dog and the walking child doing
+## it too), the shadows (a blob under a bird on the ground, a faint one cast along the sun for a
+## flier, none without sun), the pictures, and both views (BirdLayer in 3D, BirdView in the flat
+## view) building and showing them, the flat view's fliers drawn over the roofs and figures. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_birds.gd
 
 var failures := 0
@@ -29,8 +31,11 @@ func _run() -> void:
 	_swallows_and_crows()
 	_heron()
 	_sparrows()
+	_others()
+	_shadows()
 	_art()
 	await _views()
+	await _flat_order()
 	print("test_birds: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
 
@@ -244,6 +249,91 @@ func _sparrows() -> void:
 	check(state.is_empty(), "sparrows: they come back once he has gone")
 
 
+## Villagers, the dog and the walking child startle sparrows and the heron as the farmer does.
+func _others() -> void:
+	var town: MapData = MM.data("town")
+	var scene: Dictionary = BR.scene_of(town, null, 5)
+	var cfg: Dictionary = BR.config()
+	var k: Dictionary = cfg.sparrow
+	check(float(cfg.startle.others) > 0.0 and float(cfg.startle.others) <= 1.0, "startle: the others' share in the data")
+	var first: Dictionary = BR.birds("sparrow", 1.0, 5.0, scene, BR.NO_FARMER, {})[0]
+	var spot := Vector2(first.pos.x, first.pos.z)
+	var villager := spot + Vector2(0.0, 1.0)
+	var state := {}
+	var bs: Array[Dictionary] = BR.birds("sparrow", 1.0, 5.0, scene, BR.NO_FARMER, state, {}, [villager])
+	var up := bs.filter(func(b): return b.pose == "fly")
+	check(up.size() >= 1 and state.has(first.id), "sparrows: a villager walking up sends them off with no farmer about (%d)" % up.size())
+	var b1: Array = BR.birds("sparrow", 1.0, 6.0, scene, BR.NO_FARMER, state, {}, [villager]).filter(func(b): return b.id == first.id)
+	check(not b1.is_empty() and float(b1[0].pos.z) < villager.y, "sparrows: they fly away from the villager (up the map, away from below)")
+	BR.birds("sparrow", 1.0, 5.0 + float(k.return_after) + 2.0, scene, BR.NO_FARMER, state, {}, [villager])
+	check(state.has(first.id), "sparrows: not back while the villager still stands there")
+	BR.birds("sparrow", 1.0, 5.0 + float(k.return_after) + 3.0, scene, BR.NO_FARMER, state, {}, [])
+	check(not state.has(first.id), "sparrows: back once the villager has gone")
+	var far := spot + Vector2(float(k.scare) * float(cfg.startle.others) + 1.0, 0.0)
+	var calm := {}
+	BR.birds("sparrow", 1.0, 5.0, scene, BR.NO_FARMER, calm, {}, [far])
+	check(not calm.has(first.id), "sparrows: a villager a little further than his scare share does not startle them")
+	# The dog by the heron.
+	var river: Dictionary = BR.scene_of(MM.data("river"), null, 5)
+	var t := 0.0
+	var home := Vector2.ZERO
+	while t < 240.0:
+		var hs: Array[Dictionary] = BR.birds("heron", 1.0, t, river, BR.NO_FARMER, {})
+		if not hs.is_empty() and hs[0].pose == "stand":
+			home = Vector2(hs[0].pos.x, hs[0].pos.z)
+			break
+		t += 0.5
+	var hstate := {}
+	var hb: Array[Dictionary] = BR.birds("heron", 1.0, t, river, BR.NO_FARMER, hstate, {}, [home + Vector2(-1.0, 0.0)])
+	check(not hb.is_empty() and hb[0].pose == "fly" and not hstate.is_empty(), "heron: the dog trotting up makes it lift off")
+	check(BR.scares("tome") and BR.scares("dog") and BR.scares("child", "toddler") and BR.scares("child", "child"), "startle: villagers, the dog, the toddler and the child do")
+	check(not BR.scares("child", "crawler") and not BR.scares("child", "baby"), "startle: the crawler and the baby do not")
+
+
+## Shadows: a soft blob under a bird on the ground always; a flier's only in sun, cast along it.
+func _shadows() -> void:
+	var cfg: Dictionary = BR.config()
+	var sh: Dictionary = cfg.shadow
+	for kind in BR.KINDS:
+		check(float(sh.size.get(kind, 0.0)) > 0.0, "shadow: a size for %s" % kind)
+	var dir: Vector3 = g.sun_direction({"elevation": 40.0, "yaw": -40.0})
+	var ground := {"kind": "sparrow", "pose": "stand", "pos": Vector3(4.5, 0.0, 6.5), "alpha": 1.0}
+	var s0: Dictionary = BR.shadow_of(ground, 0.0, dir)
+	check(not s0.is_empty() and s0.at == Vector2(4.5, 6.5) and float(s0.alpha) > 0.0, "shadow: a sparrow standing has a blob at its feet without sun")
+	check(not BR.shadow_of(ground, 1.0, dir).is_empty(), "shadow: and in sun too")
+	var hop := ground.duplicate()
+	hop.pose = "hop"
+	hop.pos = Vector3(4.5, 0.25, 6.5)
+	var sh_hop: Dictionary = BR.shadow_of(hop, 1.0, dir)
+	check(float(sh_hop.alpha) < float(s0.alpha) and (sh_hop.size as Vector2).x < (s0.size as Vector2).x, "shadow: a hop lifts it off its blob (smaller, fainter)")
+	var crow := {"kind": "crow", "pose": "fly", "pos": Vector3(10.0, 2.5, 8.0), "alpha": 1.0}
+	check(BR.shadow_of(crow, 0.0, dir).is_empty(), "shadow: a flier casts none without sun")
+	var sc: Dictionary = BR.shadow_of(crow, 1.0, dir)
+	check(not sc.is_empty() and float(sc.alpha) < float(sh.ground_alpha), "shadow: a flier in sun casts a faint one")
+	if not sc.is_empty():
+		var off: Vector2 = (sc.at as Vector2) - Vector2(10.0, 8.0)
+		check(off.length() > 0.3 and off.dot(Vector2(dir.x, dir.z)) > 0.0, "shadow: offset along the sun's way (%s)" % off)
+		check(off.length() <= float(sh.max_offset) + 0.001, "shadow: never further than max_offset")
+	var low_sun: Dictionary = BR.shadow_of(crow, 1.0, g.sun_direction({"elevation": 4.0, "yaw": -40.0}))
+	check(not low_sun.is_empty() and ((low_sun.at as Vector2) - Vector2(10.0, 8.0)).length() <= float(sh.max_offset) + 0.001, "shadow: a low sun's long shadow is held to max_offset")
+	var high := crow.duplicate()
+	high.pos = Vector3(10.0, 6.0, 8.0)
+	check(float(BR.shadow_of(high, 1.0, dir).get("alpha", 0.0)) < float(sc.alpha), "shadow: fainter the higher it flies")
+	# Through the game's sun: by the weather and the clock (Game.sun_shadow).
+	var cases := [[0, 10, "sunny", true], [1, 14, "sunny", true], [0, 10, "rain", false], [3, 10, "snow", false], [0, 21, "sunny", false], [0, 3, "sunny", false]]
+	for c in cases:
+		_when(c[0], c[1], 0, c[2])
+		var sun: float = g.sun_shadow()
+		var d: Vector3 = g.sun_direction(g.sun_light())
+		var s: Dictionary = BR.shadow_of(crow, sun, d)
+		if c[3]:
+			check(not s.is_empty(), "shadow: a flier casts one at %d:00 %s (sun %.2f)" % [c[1], c[2], sun])
+		else:
+			check(s.is_empty(), "shadow: a flier casts none at %d:00 %s (sun %.2f)" % [c[1], c[2], sun])
+		check(not BR.shadow_of(ground, sun, d).is_empty(), "shadow: a bird on the ground keeps its blob at %d:00 %s" % [c[1], c[2]])
+	_when(0, 10, 0, "sunny")
+
+
 func _art() -> void:
 	var BA: GDScript = load("res://scripts/art/bird_art.gd")
 	for kind in BA.POSES:
@@ -318,6 +408,51 @@ func _views() -> void:
 		w3.set_farmer(Vector3(sp[0].pos.x, 0.0, sp[0].pos.z))
 		layer.refresh()
 		check(layer.shown().any(func(b): return b.kind == "sparrow" and b.pose == "fly"), "3D: set_farmer next to the sparrows sends them up")
+		# Shadows: a blob under each sparrow on the ground (on a fresh layer, nobody about).
+		var calm_layer: Node3D = LayerS.new(town)
+		w3.add_child(calm_layer)
+		_when(0, 10, 0, "sunny")
+		calm_layer.refresh()
+		var on_ground: Array = calm_layer.shown().filter(func(b): return not BR.flying(b))
+		var blobs: Array = calm_layer.get_children().filter(func(n): return n is MeshInstance3D and n.visible)
+		check(on_ground.size() > 0 and calm_layer.shadows().size() == calm_layer.shown_count() and blobs.size() == calm_layer.shadows().size(),
+			"3D: a shadow under every bird on a sunny morning (%d birds, %d shadows, %d meshes)" % [calm_layer.shown_count(), calm_layer.shadows().size(), blobs.size()])
+		var blob_y := true
+		for m in blobs:
+			blob_y = blob_y and m.position.y > 0.0 and m.position.y < 0.05 and m.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and m.layers == 2
+		check(blob_y, "3D: the shadows lie just over the ground, cast nothing and sit on the ground layer (no night lamp light)")
+		# Startled by the others: a villager (any Parting sprite in the world) by the sparrows, the farmer far off.
+		var sp2: Array = calm_layer.shown().filter(func(b): return b.kind == "sparrow")
+		var pushers: String = load("res://scripts/world3d/parting.gd").GROUP   # the villagers' and the dog's sprites
+		var crawler := Sprite3D.new()
+		crawler.add_to_group(pushers)
+		crawler.set_meta("bird_scare", false)   # as VillagerSprites marks the crawler
+		var walker := Sprite3D.new()
+		walker.add_to_group(pushers)
+		w3.add_child(crawler)
+		w3.add_child(walker)
+		w3.remove_child(layer)   # set_farmer hands its places to the node named Birds: the calm layer now
+		layer.free()
+		calm_layer.name = "Birds"
+		crawler.position = Vector3(sp2[0].pos.x, 0.0, sp2[0].pos.z + 0.3)
+		walker.position = Vector3(-50.0, 0.0, -50.0)
+		w3.set_farmer(Vector3(-40.0, 0.0, -40.0))
+		calm_layer.refresh()
+		check(not calm_layer.shown().any(func(b): return b.kind == "sparrow" and b.pose == "fly"), "3D: the crawler sitting by the sparrows startles none")
+		walker.position = crawler.position
+		w3.set_farmer(Vector3(-40.0, 0.0, -40.0))
+		calm_layer.refresh()
+		check(calm_layer.others.size() == 1 and calm_layer.shown().any(func(b): return b.kind == "sparrow" and b.pose == "fly"), "3D: a villager or the dog by the sparrows sends them up, the farmer far off")
+		var air_shadows: Array = calm_layer.shadows().filter(func(s): return s.air)
+		check(not air_shadows.is_empty(), "3D: the startled sparrows cast shadows in the sun")
+		_when(0, 10, 0, "rain")
+		calm_layer.refresh()
+		check(calm_layer.shown_count() > 0 and calm_layer.shadows().filter(func(s): return s.air).is_empty(), "3D: in rain no flier casts a shadow")
+		var cut := true
+		for n in calm_layer.get_children():
+			if n is Sprite3D:
+				cut = cut and n.alpha_cut == SpriteBase3D.ALPHA_CUT_DISCARD
+		check(cut, "3D: the bird sprites are alpha-cut (solid, so a faded building blends over them, never hides one in front)")
 	w3.free()
 	var M3: GDScript = load("res://scripts/main_3d.gd")
 	var made: Array = M3.new_world(MM.data("farm"))
@@ -354,7 +489,87 @@ func _views() -> void:
 	fv.refresh()
 	check(fv.visible and fv.sprites().size() > 0, "flat: the farm gets sparrows by the door (%d)" % fv.sprites().size())
 	check(v.screen_of(Vector3(2, 1, 3)).y < v.screen_of(Vector3(2, 0, 3)).y, "flat: higher is further up the screen")
+	# Flat shadows: a blob under each sparrow, in whole pixels; none cast by a flier in rain.
+	_when(2, 10, 0, "sunny")
+	fv.refresh()
+	var shs: Array[Dictionary] = fv.shadows()
+	var whole := true
+	for s in shs:
+		whole = whole and s.rect.position == s.rect.position.round() and s.rect.size == s.rect.size.round() and s.alpha > 0.0
+	check(shs.size() == fv.sprites().size() and whole, "flat: a shadow under every sparrow, in whole pixels (%d)" % shs.size())
+	# The dog by the sparrows at the farmhouse door sends them up (the farmer far off).
+	var dog: Dictionary = g.animals.dog
+	var dog_cell: Vector2i = dog.cell
+	var sp: Dictionary = fv._shown.filter(func(b): return b.kind == "sparrow")[0]
+	dog.cell = Vector2i(int(sp.pos.x), int(sp.pos.z))
+	dog.held = false
+	check(fv.walkers().has(Vector2(dog.cell) + Vector2(0.5, 0.5)), "flat: the dog is one of the walkers on the farm")
+	fv.refresh()
+	check(fv._shown.any(func(b): return b.kind == "sparrow" and b.pose == "fly"), "flat: the dog by the door sends the sparrows up")
+	check(fv.shadows().any(func(s): return s.air), "flat: a startled sparrow casts its shadow in the sun")
+	check(fv.sprites().any(func(s): return s.air), "flat: a startled sparrow goes to the air pass")
+	_when(2, 10, 0, "rain")
+	fv.refresh()
+	check(not fv.shadows().any(func(s): return s.air), "flat: in rain no flier casts a shadow")
+	dog.cell = dog_cell
+	# The villagers of the map view's VillagerView are walkers too.
+	_when(0, 10, 0, "sunny")
+	var parent := Node2D.new()
+	root.add_child(parent)
+	var vv: Node2D = load("res://scripts/world/villager_view.gd").new("town")
+	parent.add_child(vv)
+	var tv: Node2D = ViewS.new().setup(town, null, player)
+	parent.add_child(tv)
+	vv.refresh()
+	check(vv.feet().size() > 0 and tv.walkers().size() == vv.feet().size(), "flat: the villagers in town are walkers (%d of %d)" % [tv.walkers().size(), vv.feet().size()])
+	parent.free()
 	v.free()
 	room.free()
 	fv.free()
 	player.free()
+
+
+## The flat view's built scene (main_2d.tscn): the ground pass sits in the map view under the
+## figures, the air pass draws over the roofs, props, villagers, animals and the farmer, under the
+## weather (z 50), with the HUD and the fade on their own canvas layers above.
+func _flat_order() -> void:
+	_when(0, 12, 0, "sunny")
+	var scene: Node = load("res://scenes/main_2d.tscn").instantiate()
+	root.add_child(scene)
+	await process_frame
+	var view: Node2D = scene.view
+	var bv: Node2D = null
+	for n in view.get_children():
+		if n.get_script() == load("res://scripts/world/bird_view.gd"):
+			bv = n
+	check(bv != null, "flat (main_2d): the map view has its birds")
+	if bv == null:
+		scene.free()
+		return
+	var air: Node2D = bv.air
+	var idx := bv.get_index()
+	var animals := view.get_children().filter(func(n): return n.get_script() == load("res://scripts/world/animal_view.gd"))
+	var villagers := view.get_children().filter(func(n): return n.get_script() == load("res://scripts/world/villager_view.gd"))
+	check(not animals.is_empty() and idx < animals[0].get_index(), "flat (main_2d): the ground pass is drawn before the animals and the dog")
+	check(idx > 0 and view.get_child(0).get_index() < idx, "flat (main_2d): the ground pass is over the ground, roofs and props (the view's first children)")
+	var air_z := _z_of(air)
+	check(air_z > _z_of(scene.player) and air_z > _z_of(view) and (villagers.is_empty() or air_z > _z_of(villagers[0])), "flat (main_2d): fliers over the farmer, villagers, roofs and props (z %d)" % air_z)
+	check(air_z < _z_of(scene.weather), "flat (main_2d): fliers under the rain and snow (z %d < %d)" % [air_z, _z_of(scene.weather)])
+	check(air.get_canvas_layer_node() == null and scene.tint.get_canvas() == air.get_canvas(), "flat (main_2d): fliers on the world's canvas, under the night tint, not glowing")
+	check(scene.fade is CanvasLayer and scene.fade.layer > 0, "flat (main_2d): the map fade is over the fliers")
+	bv.refresh()
+	check(bv.sprites().all(func(s): return s.air == (s.key as String).contains(":fly:")), "flat (main_2d): fliers in the air pass, the rest on the ground")
+	scene.queue_free()
+	await process_frame
+
+
+## The z a canvas item is drawn at (its z_index added to its parents' while relative).
+func _z_of(n: CanvasItem) -> int:
+	var z := 0
+	var c: Node = n
+	while c is CanvasItem:
+		z += (c as CanvasItem).z_index
+		if not (c as CanvasItem).z_as_relative:
+			break
+		c = c.get_parent()
+	return z
