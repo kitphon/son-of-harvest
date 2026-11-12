@@ -48,7 +48,7 @@ func _ready() -> void:
 ## scooping goldfish);
 ## redrawn each frame as the pose steps.
 func _process(delta: float) -> void:
-	anim.step(delta, moving, running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose, Game.scoop_pose())
+	anim.step(delta, moving, running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose, Game.scoop_pose(), Game.swing_pose(), Game.swing_frame())
 	figure.texture = PlaceholderArt.tex(anim.key(facing))
 	figure.flip_h = FarmerAnim.is_mirrored(facing)
 	queue_redraw()
@@ -75,6 +75,13 @@ func _physics_process(delta: float) -> void:
 		_after_menu = false
 	if charging:
 		_charge_step(delta)
+		return
+	FarmActions.demo_tick(self, delta)   # `--swing=<tool>`: the next swing in place
+	if Game.swinging():
+		# A tool swing plays (Game.swing_pose): stand still until the blow is done.
+		moving = false
+		running = false
+		queue_redraw()
 		return
 	if Game.eating():
 		# Eating or drinking (Game.eat_pose): stand still, no tool, no interact until it ends.

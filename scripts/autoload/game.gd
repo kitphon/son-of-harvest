@@ -20,6 +20,7 @@ signal ending_requested(record: Dictionary)   # an EndingScreen shows the villag
 signal game_requested(festival: String, partner: String)   # a MochiScreen plays that festival's game (a mochi pounding)
 signal race_changed(what: String)    # the fishing race: "start", "go", "fish", "time", "done" (RaceScreen plays the cues)
 signal fishing_event(kind: String)   # "bite" / "escaped" while the line is out (FarmActions plays the cue)
+signal tool_fx(burst: Dictionary)   # a tool's hit: what flies (ToolFxRules.burst), on the swing's hit frame (ToolFxLayer / ToolFxView)
 signal forage_changed            # a wild spot was picked, or they grew back (ForageLayer / ForageView redraw)
 
 const SECONDS_PER_MINUTE := 0.5
@@ -94,6 +95,8 @@ var events_seen: Dictionary = {}   # event id -> true once it has played (once-o
 var fatigue := 0                # 0..FATIGUE_MAX, rises with work and late nights; sleep and food lower it
 var work_fatigue_half := false  # a food halves swing fatigue until the day ends
 var eat_pose := ""   # "eat" / "drink" while the farmer eats or drinks (FarmerAnim pose), else ""
+var swing := {}      # the farmer's tool swing playing: {tool, time, bursts, hit} (start_swing), else {}
+var demo_swing := "" # `--swing=<tool>`: the farmer swings that tool in place on repeat (FarmActions.demo_swing)
 var eat_left := 0.0  # seconds of that pose still to play (foods.json pose); not saved
 ## The item carried overhead in the holding hand ("" = hands free). It is the rucksack's
 ## hand slot (Inventory "hand"): what the rucksack menu takes in hand is held up the same way.
@@ -225,6 +228,7 @@ func new_game() -> void:
 	work_fatigue_half = false
 	eat_pose = ""
 	eat_left = 0.0
+	swing = {}
 	_shown_state = "fine"
 	water = WATER_MAX
 	snow_cover = 0
@@ -322,6 +326,8 @@ func new_game() -> void:
 		elif arg == "--eat" or arg == "--eat=drink":   # `-- --demo --eat`: mid-bite (or mid-sip), the pose kept going
 			start_eat_pose(arg == "--eat=drink")
 			eat_left = 1000.0
+		elif arg.begins_with("--swing="):   # `-- --demo --swing=hoe` (can, sickle, axe, hammer): swinging it in place on repeat
+			demo_swing = arg.trim_prefix("--swing=")
 		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
 			fatigue = int(body.get("states", {}).get("exhausted", {}).get("fatigue", 80))
 			_shown_state = body_state()
@@ -627,6 +633,8 @@ func _demo_kitchen() -> void:
 func _process(delta: float) -> void:
 	if eating() and not paused():
 		_eat_step(delta)
+	if swinging() and not paused():
+		swing_step(delta)
 	if race != null and not paused():
 		_race_step(delta)
 	if fishing.active() and not paused():
@@ -1962,6 +1970,47 @@ func scoop_pose() -> String:
 	if not scooping:
 		return ""
 	return "scoop_lift" if scoop_lifted else "scoop"
+
+
+## A tool swing starts: the farmer's swing_<tool> pose, raised for data/tool_fx.json
+## swing.windup, then the blow; `bursts` (ToolFxRules.burst, the empty ones left out) go out on
+## tool_fx as the blow lands. The farmer stands still until it ends (Player).
+func start_swing(tool: String, bursts: Array) -> void:
+	var list: Array[Dictionary] = []
+	for b in bursts:
+		if b is Dictionary and not b.is_empty():
+			list.append(b)
+	swing = {"tool": tool, "time": 0.0, "bursts": list, "hit": false}
+
+
+## Is a tool swing playing?
+func swinging() -> bool:
+	return not swing.is_empty()
+
+
+## The farmer's pose on a tool swing (FarmerAnim): "swing_<tool>", or "" when none plays.
+func swing_pose() -> String:
+	return "swing_" + str(swing.tool) if swinging() and str(swing.tool) in FigureArt.SWING_TOOLS else ""
+
+
+## The swing's frame: 0 the wind-up, 1 the blow (from the hit on).
+func swing_frame() -> int:
+	return 1 if swinging() and swing.hit else 0
+
+
+## Plays `delta` seconds of the swing: on reaching the hit its bursts go out (tool_fx), at the
+## end it stops.
+func swing_step(delta: float) -> void:
+	if not swinging():
+		return
+	var t := ToolFxRules.swing_times()
+	swing.time += delta
+	if not swing.hit and swing.time >= t.windup:
+		swing.hit = true
+		for b in swing.bursts:
+			tool_fx.emit(b)
+	if swing.time >= t.windup + t.blow:
+		swing = {}
 
 
 ## Is the eat / drink pose playing?

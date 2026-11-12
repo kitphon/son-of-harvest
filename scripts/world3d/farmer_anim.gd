@@ -13,6 +13,7 @@ const DRINK_FPS := 2.0   # cup at the lips, tipped up: one sip a second
 var pose := "idle"
 var time := 0.0
 var fast := false   # running: a hold walk steps at the run rate
+var _swing_frame := 0   # on a tool swing (pose swing_<tool>): the frame Game.swing_frame() says
 
 
 ## Advance by `delta` seconds. A new pose starts on its first step frame, so a key press
@@ -22,10 +23,15 @@ var fast := false   # running: a hold walk steps at the run rate
 ## `fishing` (Fishing.state while the line is out: "wait" / "bite") wins over everything.
 ## `eating` (Game.eat_pose: "eat" / "drink") wins over the tired poses; the farmer stands.
 ## `scooping` (Game.scoop_pose(): "scoop" / "scoop_lift" at the goldfish tub) wins over all.
-func step(delta: float, moving: bool, running: bool, tired := false, holding := false, fishing := "", eating := "", scooping := "") -> void:
+## `swing` (Game.swing_pose(): "swing_<tool>" while a tool swing plays, else "") wins over the
+## rest; `swing_frame` (Game.swing_frame()) is its frame: 0 the wind-up, 1 the blow.
+func step(delta: float, moving: bool, running: bool, tired := false, holding := false, fishing := "", eating := "", scooping := "", swing := "", swing_frame := 0) -> void:
 	var p := "idle" if not moving else ("run" if running else "walk")
+	_swing_frame = swing_frame
 	if scooping != "":
 		p = scooping
+	elif swing != "":
+		p = swing
 	elif fishing != "" and fishing != "idle":
 		p = "fish_" + fishing
 	elif holding:
@@ -45,6 +51,8 @@ func step(delta: float, moving: bool, running: bool, tired := false, holding := 
 func frame() -> int:
 	if pose == "idle" or pose == "hold_idle" or pose == "fish_wait":
 		return 0
+	if pose.begins_with("swing_"):
+		return _swing_frame
 	return int(time * _fps()) % PlaceholderArt.farmer_frames(pose)
 
 

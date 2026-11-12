@@ -257,6 +257,7 @@ func _enter_map() -> void:
 	_add_layer(VillagerSprites.new(m.id))
 	_add_layer(ForageLayer.new(m.id))   # what grows wild there today (data/forage.json)
 	_add_layer(CradleLayer.new(m.id))   # the baby's cradle in the second room, while the child is a baby
+	_add_layer(ToolFxLayer.new())   # what a tool swing throws (ToolFxRules)
 	add_child(world)
 	move_child(world, 0)
 	var animals := AnimalLayer.new()   # the animals, eggs and feed (coop, barn, or the farm and its dog)
@@ -505,7 +506,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	anim.step(delta, player.moving, player.running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose, Game.scoop_pose())
+	anim.step(delta, player.moving, player.running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose, Game.scoop_pose(), Game.swing_pose(), Game.swing_frame())
 	_update_flash(delta)
 	_follow()
 	world.occluders.update(sprite.position, lens.back, delta)
