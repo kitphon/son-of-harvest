@@ -129,6 +129,7 @@ func _enter_map() -> void:
 	var drift := DriftView.new().setup(m, Game.farm if Game.maps.on_farm() else null)   # petals, leaves, fireflies
 	drift.tint = tint
 	view.add_child(drift)
+	view.add_child(BirdView.new().setup(m, Game.farm if Game.maps.on_farm() else null, player))   # swallows, crows, the heron, sparrows
 	view.add_child(StoryView.new(m))   # what the heart events left (the bell, the store's sign)
 	view.add_child(FerryView.new(m))   # Mio's ferry boat, moving when she takes it across
 	view.add_child(MistView.new().setup(m, Game.farm if Game.maps.on_farm() else null))   # morning mist over the water, paddies and the ferry boat, under the figures

@@ -33,6 +33,7 @@ func build_steps(m: MapData) -> Array[Callable]:
 		steps.append(_make_village_smoke)
 	if not map.sheltered and not map.indoor:
 		steps.append(func() -> void: add_child(DriftLayer.new(map)))   # petals, leaves, fireflies
+		steps.append(func() -> void: add_child(BirdLayer.new(map)))   # swallows, crows, the heron, sparrows
 		steps.append(func() -> void: add_child(MistLayer.new(map)))   # morning mist over the water and paddies
 		steps.append(func() -> void: add_child(PuddleLayer.new(map)))   # puddles on the paths in rain
 	if not map.sheltered and not map.indoor:

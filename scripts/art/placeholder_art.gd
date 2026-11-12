@@ -60,6 +60,8 @@ static func _make(key: String) -> Image:
 			if AnimalArt.base_of(parts[1])[0] == "dog" and parts[2] == "held":   # dog or dog_old
 				return _beast(parts[1], parts[2], int(parts[3]))
 			return AnimalArt.make(parts[1], parts[2], int(parts[3]), parts[4] if parts.size() > 4 else "dl")
+		"bird":     # bird:<swallow|crow|heron|sparrow>:<fly|stand|peck|hop>:<frame>[:r], BirdArt (facing left, ":r" mirrored)
+			return BirdArt.make(parts[1], parts[2], int(parts[3]), parts.size() > 4 and parts[4] == "r")
 		"build":    # build:<plaster|tsuchi|board|kawara|kawara_edge|thatch|kaya|kaya_edge|hay|planks|planks_dark|sugi|glass|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
 		"ground":   # ground:<grass|tilled|wet|bed|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>
