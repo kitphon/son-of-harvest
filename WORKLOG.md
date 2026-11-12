@@ -10,6 +10,29 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-12 — Green tea and milk icons read at 1x
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: the two icons from the last entry redrawn with their own marks (data/foods.json, same keys,
+  same 14 x 14 size, no code change). Green tea: a dark rim across the top of the yunomi, a pale tea
+  surface under it, a darker band across the body, and a two-tone leaf (light over dark) on a stalk
+  standing up out of the tea (chabashira), 3 x 2 px, instead of the 3 x 2 oval it was. Milk: a
+  kraft paper cap (two rows, tan with a light top row) over a dark crimped rim row, and a red string
+  tie across the neck; the printed white band on the blue label is kept. The cap no longer blends
+  into the white glass. Marks are drawn in fixed colours (not toned), so the colours hold at 1x.
+  Docs: ART_DIRECTION "Dish icons, set apart" row updated.
+- Checked: pixels dumped from PlaceholderArt.tex("ui:food:<id>") with Godot (shots/dump_icons.gd,
+  14 x 14) and cropped with python -I + Pillow: a 1x copy and a 4x nearest copy side by side. At 1x
+  the tea reads as a green-topped cup with a leaf standing up; the milk as a bottle with a tan cap
+  and a red tie. Frames: `--demo --shop=teahouse` (green tea in the teahouse list, the cup green) and
+  `--demo --shop=general --shop-row=30` (milk bottle in the Yorozu list, cap tan, blue band). Every
+  script in AGENTS.md ran in turn (34 scripts, a shell loop writing each output): every line is
+  "OK (0 failed)" and no output had an ERROR line, e.g. "test_farm: OK (0 failed)", "test_save: OK
+  (0 failed)", "test_menu: OK (0 failed)", "test_wet: OK (0 failed)", "test_birds: OK (0 failed)",
+  "test_audio: OK (0 failed)" (the full list is the same as in the previous entry).
+- Left / next: judged by eye at 1x and 4x only, not on a real screen; the steam columns of the cup
+  (`steam` is not used here, the cup code draws them at x 5 and 8) pass close to the leaf but do not
+  touch it.
+
 ## 2026-11-12 — Green tea and milk icons set apart
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: the last two plain dish icons. Green tea (a cup) gets a `top` in data/foods.json: a pale
