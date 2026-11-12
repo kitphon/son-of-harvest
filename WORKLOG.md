@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-12 — Green tea and milk icons set apart
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: the last two plain dish icons. Green tea (a cup) gets a `top` in data/foods.json: a pale
+  tea-green surface and a dark leaf floating on it (the yunomi's shape and the steam are as
+  before). Milk (a glass bottle) gets a paper cap (`top`, tan, two rows with a fold line) and a
+  printed white band on its blue label (`marks`, kept in their colour). No new drawing step, no
+  code change; same keys and size. Docs: ART_DIRECTION "Dish icons, set apart" row.
+- Checked: test_menu (`_dish_details` and `_no_fallback_icons` pass inside it, "test_menu: OK (0
+  failed)"); every test script in AGENTS.md printed OK (0 failed): test_farm, test_save,
+  test_title, test_weather, test_dialogue, test_menu, test_body, test_events, test_maps,
+  test_inventory, test_food, test_cooking, test_hold, test_villagers, test_talk,
+  test_relationships, test_shops, test_animals, test_fishing, test_forage, test_mine, test_ending,
+  test_festivals, test_view2d, test_child, test_goals, test_lang, test_showcase, test_puddles,
+  test_drift, test_mist, test_audio. No ERROR lines in their output. Frames: `--demo --shop=teahouse`
+  (green tea enlarged 8x: a cup with a green top and a dark leaf, clearly not the matcha bowl)
+  and `--demo --shop=general --shop-row=30` (milk bottle: white glass, blue band, light cap,
+  next to the mugwort tea's dark cup). Frame of `--demo --rucksack` taken too (no tea or milk in
+  the demo rucksack, so not in it).
+- Left / next: at 14 x 14 the green tea's leaf is small; a stronger leaf or a band on the yunomi
+  would read better if a later pass wants it. The milk cap reads pale, not clearly paper.
+
 ## 2026-11-11 — Flaky test_maps ("farm spawn greenhouse is free") fixed
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the check of every map's spawns read the new game's random debris on the farm (15% a

@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-12 Green tea and milk icons set apart: green tea a yunomi with a pale tea surface and a leaf floating on it, milk a glass bottle with a paper cap and a printed white band (`top` / `marks` in data/foods.json); test_menu `_dish_details`; see WORKLOG.
 [x] 2026-11-11 Flaky test_maps fixed: a farm spawn is checked against buildings and props, not the new game's random debris; see WORKLOG.
 [x] 2026-11-11 Mist over the ferry boat in the flat view, under the figures: MistView is added after FerryView (child order, test_mist checks both sides); see WORKLOG.
 [x] 2026-11-11 The farm field's planted rice plots make morning mist as paddies (by season / weather like the village paddies), both views (MistRules.rice_cells, test_mist); see WORKLOG.
