@@ -12,7 +12,7 @@ extends RefCounted
 ## for a demo run.
 
 const DATA_PATH := "res://data/breath.json"
-const KINDS: Array[String] = ["person", "child", "animal"]
+const KINDS: Array[String] = ["person", "child", "crawler", "animal"]
 const FARMER := "farmer"
 
 static var _cfg: Dictionary = {}
@@ -177,7 +177,7 @@ static func shape(cell: Vector2, facing: Vector2, kind: String, u: float, streng
 	var dir := DriftRules.wind_dir()
 	var at := Vector2(m.x, m.z) + f * float(d.forward) * u + dir * wind * float(d.wind_push) * u
 	var h := m.y + float(d.rise) * u
-	var size := lerpf(float(cfg.size.start), float(cfg.size.end), u)
+	var size := lerpf(float(cfg.size.start), float(cfg.size.end), u) * float((cfg.get("scale", {}) as Dictionary).get(kind, 1.0))
 	var a: Dictionary = cfg.alpha
 	var fade := smoothstep(0.0, float(a["in"]), u) * (1.0 - smoothstep(float(a.out_from), 1.0, u))
 	return {
@@ -185,7 +185,48 @@ static func shape(cell: Vector2, facing: Vector2, kind: String, u: float, streng
 		"alpha": float(a.max) * clampf(strength, 0.0, 1.0) * clampf(fade, 0.0, 1.0),
 		"size": size,
 		"color": Color(str(cfg.color)),
+		"stretch": float((cfg.get("wisp", {}) as Dictionary).get("stretch", 1.0)),
 	}
+
+
+## The kind of a villager from its stage ("" for a grown villager): the little ones breathe lower
+## and smaller.
+static func kind_of(stage: String) -> String:
+	if stage == "crawler":
+		return "crawler"
+	return "child" if stage != "" else "person"
+
+
+## A breath as its overlapping sub-puffs (data "wisp"): the first starts at the mouth, each next
+## one `lag` of the life later, with its own weight and size, set a little aside and up by the
+## hash of the breath (`seed`, `cycle`). [{pos, alpha, size, color, stretch}], empty before the first.
+static func wisp(cell: Vector2, facing: Vector2, kind: String, u: float, strength: float, wind: float, seed := 0, cycle := 0, cfg := {}) -> Array[Dictionary]:
+	if cfg.is_empty():
+		cfg = config()
+	var w: Dictionary = cfg.get("wisp", {"count": 1, "lag": 0.0, "weight": [1.0], "size": [1.0], "spread": 0.0})
+	var out: Array[Dictionary] = []
+	var f := unit_facing(facing)
+	var side := Vector2(-f.y, f.x)
+	for j in int(w.count):
+		var d := float(w.lag) * j
+		if u <= d:
+			continue
+		var p := shape(cell, facing, kind, (u - d) / (1.0 - d), strength, wind, cfg)
+		p.size = float(p.size) * float(w.size[j])
+		p.alpha = float(p.alpha) * float(w.weight[j])
+		if j > 0:
+			var spread := float(w.spread) * float(p.size)
+			var lat := (rnd(seed, cycle, 10 + j) * 2.0 - 1.0) * spread
+			var up := (rnd(seed, cycle, 20 + j) * 2.0 - 1.0) * spread * 0.6
+			var pos: Vector3 = p.pos
+			p.pos = Vector3(pos.x + side.x * lat, pos.y + up, pos.z + side.y * lat)
+		out.append(p)
+	return out
+
+
+## The first `limit` puffs of a list (the farmer's first): the most shown at once (data "cap").
+static func capped(list: Array[Dictionary], limit: int) -> Array[Dictionary]:
+	return list.slice(0, maxi(limit, 0))
 
 
 ## Follows a figure from the last frame: its facing (a unit vector) and whether it moved. A
@@ -205,9 +246,10 @@ static func track(state: Dictionary, id: String, cell: Vector2, given: Vector2) 
 
 
 ## The puffs of the figures now, at time `t` (seconds), strength 0..1 and wind 0..1. Each figure is
-## {id, cell (Vector2), facing (Vector2, zero when unknown), kind, moving, running, tired}; the
-## moving flag and facing are filled in from `state` (track). Returns [{pos, alpha, size, color,
-## u, id}] for the ones that show.
+## {id, cell (Vector2), facing (Vector2, zero when unknown), kind, moving, running, tired, lift
+## (cells up, optional), origin (the flat view's figure origin in px, optional)}; the moving flag
+## and facing are filled in from `state` (track). Returns [{pos, alpha, size, color, stretch, u,
+## id, origin?}] for the ones that show: a breath gives several sub-puffs (wisp).
 static func puffs_now(figs: Array, state: Dictionary, t: float, strength: float, wind: float, cfg := {}) -> Array[Dictionary]:
 	if cfg.is_empty():
 		cfg = config()
@@ -219,10 +261,14 @@ static func puffs_now(figs: Array, state: Dictionary, t: float, strength: float,
 		var ph := phase(seed_of(id), t, rate, strength, cfg)
 		if ph.is_empty():
 			continue
-		var p := shape(f.cell, tr.facing, str(f.kind), float(ph.u), strength, wind, cfg)
-		p["u"] = ph.u
-		p["id"] = id
-		out.append(p)
+		var lift := float(f.get("lift", 0.0))   # a figure lifted standing in the ferry boat
+		for p in wisp(f.cell, tr.facing, str(f.kind), float(ph.u), strength, wind, seed_of(id), int(ph.cycle), cfg):
+			p.pos = (p.pos as Vector3) + Vector3(0, lift, 0)
+			p["u"] = ph.u
+			p["id"] = id
+			if f.has("origin"):
+				p["origin"] = f.origin
+			out.append(p)
 	return out
 
 

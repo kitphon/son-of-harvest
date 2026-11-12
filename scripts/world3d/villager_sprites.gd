@@ -44,7 +44,7 @@ func refresh() -> void:
 		s.set_meta("key", key)
 		s.set_meta("bird_scare", BirdRules.scares(str(w.id), str(w.get("stage", ""))))   # the crawler startles no birds (FarmWorld.set_farmer)
 		s.set_meta("facing", Vector2(w.facing))   # for the breath (BreathLayer)
-		s.set_meta("breath_kind", "child" if str(w.get("stage", "")) != "" else "person")
+		s.set_meta("breath_kind", BreathRules.kind_of(str(w.get("stage", ""))))
 		s.texture = PlaceholderArt.tex(key)
 		s.flip_h = FarmerAnim.is_mirrored(w.facing)
 		_show_held(s, w)

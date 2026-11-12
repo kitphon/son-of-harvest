@@ -14,7 +14,7 @@ const LAYERS := "breath_layers"
 
 var map: MapData
 var farm: FarmGrid
-var farmer := {}   # {} or {cell, facing, running, tired} from FarmWorld.set_farmer (the farmer's feet)
+var farmer := {}   # {} or {cell, facing, running, tired, lift} from FarmWorld.set_farmer (the farmer's feet)
 var _t := 0.0
 var _state := {}
 var _mm: MultiMesh
@@ -41,7 +41,7 @@ func _init(m: MapData, f: FarmGrid = null) -> void:
 	_mm.transform_format = MultiMesh.TRANSFORM_3D
 	_mm.use_colors = true
 	_mm.mesh = q
-	_mm.instance_count = 64
+	_mm.instance_count = int(BreathRules.config().cap.puffs_3d)   # the most puffs at once (data "cap")
 	_mm.visible_instance_count = 0
 	_mmi = MultiMeshInstance3D.new()
 	_mmi.multimesh = _mm
@@ -71,12 +71,13 @@ func refresh() -> void:
 	var world := get_parent() as FarmWorld
 	var wind: float = world.wind if world != null else float(game.wind_strength())
 	_puffs = BreathRules.puffs_now(figures(), _state, _t, strength, wind)
-	var shown := mini(_puffs.size(), _mm.instance_count)
+	_puffs = BreathRules.capped(_puffs, _mm.instance_count)
+	var shown := _puffs.size()
 	_mm.visible_instance_count = shown
 	for i in shown:
 		var p := _puffs[i]
 		var s: float = p.size
-		_mm.set_instance_transform(i, Transform3D(Basis.IDENTITY.scaled(Vector3(s, s, 1.0)), p.pos))
+		_mm.set_instance_transform(i, Transform3D(Basis.IDENTITY.scaled(Vector3(s * float(p.stretch), s, 1.0)), p.pos))   # a wisp, wider than tall
 		var c: Color = p.color
 		c.a = float(p.alpha)
 		_mm.set_instance_color(i, c)
@@ -88,7 +89,7 @@ func figures() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	if not farmer.is_empty():
 		out.append({"id": BreathRules.FARMER, "cell": farmer.cell, "facing": farmer.facing, "kind": "person",
-			"running": bool(farmer.running), "tired": bool(farmer.tired)})
+			"running": bool(farmer.running), "tired": bool(farmer.tired), "lift": float(farmer.get("lift", 0.0))})
 	var world := get_parent()
 	if world == null or not is_inside_tree():
 		return out
@@ -96,7 +97,7 @@ func figures() -> Array[Dictionary]:
 		var s := n as Node3D
 		if s == null or not s.visible or not world.is_ancestor_of(s):
 			continue
-		out.append({"id": str(s.get_instance_id()), "cell": Vector2(s.position.x, s.position.z),
+		out.append({"id": str(s.get_instance_id()), "cell": Vector2(s.position.x, s.position.z), "lift": s.position.y,   # lifted standing in the ferry boat
 			"facing": s.get_meta("facing", Vector2.ZERO), "kind": str(s.get_meta("breath_kind", "person"))})
 	return out
 
@@ -110,14 +111,15 @@ static func soft_texture() -> Texture2D:
 		var g := Gradient.new()
 		g.set_color(0, Color(1, 1, 1, 1))
 		g.set_color(1, Color(1, 1, 1, 0))
-		g.add_point(0.5, Color(1, 1, 1, 0.85))
+		g.add_point(0.35, Color(1, 1, 1, 0.8))
+		g.add_point(0.7, Color(1, 1, 1, 0.3))
 		var t := GradientTexture2D.new()
 		t.gradient = g
 		t.fill = GradientTexture2D.FILL_RADIAL
 		t.fill_from = Vector2(0.5, 0.5)
 		t.fill_to = Vector2(1.0, 0.5)
-		t.width = 16
-		t.height = 16
+		t.width = 32
+		t.height = 32
 		_soft = t
 	return _soft
 

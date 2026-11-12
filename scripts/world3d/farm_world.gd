@@ -378,7 +378,7 @@ func set_farmer(feet: Vector3, facing := Vector2.ZERO, running := false, tired :
 		birds.others = startle                   # and from the villagers, the dog and the walking child
 	var breath := get_node_or_null("Breath") as BreathLayer
 	if breath != null:   # the farmer's breath (BreathLayer): his feet, the way he faces, running or tired
-		breath.farmer = {"cell": Vector2(feet.x, feet.z), "facing": facing, "running": running, "tired": tired}
+		breath.farmer = {"cell": Vector2(feet.x, feet.z), "facing": facing, "running": running, "tired": tired, "lift": feet.y}   # his puffs follow a lifted sprite
 	var insects := get_node_or_null("Insects") as InsectLayer
 	if insects != null:
 		insects.farmer = Vector2(feet.x, feet.z)   # a resting dragonfly lifts off and a butterfly veers from him

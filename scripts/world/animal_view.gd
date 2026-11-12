@@ -108,7 +108,7 @@ func breathers() -> Array[Dictionary]:
 		if animal != null and not Game.animals.is_adult(animal):
 			continue
 		var cell := ((s[1] as Vector2) - Vector2(0, 4)) / float(T)
-		out.append({"id": "dog" if animal == null else "a:%s" % str(animal.name), "cell": cell,
+		out.append({"id": "dog" if animal == null else "a:%s" % str(animal.name), "cell": cell, "origin": (s[1] as Vector2) - Vector2(0, FigureLayer.FOOT),
 			"facing": Vector2.ZERO, "kind": "animal"})
 	return out
 
