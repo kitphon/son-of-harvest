@@ -1,5 +1,5 @@
 {
-	"_about": "Small birds crossing and resting on the outdoor maps (BirdRules; the 3D view's BirdLayer, the flat view's BirdView; pictures drawn in code by BirdArt). Nothing indoors or in the mine, nothing at night, nothing in a storm or blizzard, fewer in rain and snow. `seasons`, `hours` [from, to] (fade over `fade_hours` at each end) and `looks` (the share of `count` under each weather look of data/weather_fx.json) work as in data/drift.json. `count` is the most birds of that kind in a scene. Fliers (swallow, crow): each bird (a crow flock together) crosses the map edge to edge once every `period` seconds at `speed` cells a second, `height` [min, max] cells up, `flap` wing beats a second (a swallow glides now and then: `glide` is the share of its path); a swallow darts (`dart` cells, `dart_cycles` swings a crossing) and a crow flock keeps a loose formation (`spread` cells across and along) with `stagger` seconds between birds. Herons: one, standing at a shore cell of water or paddy; each `period` seconds it glides in (`land` share of the period), stands (until `stand`, a share), then lifts off and leaves over `fly_time` seconds, `fly_dist` cells away. Sparrows: groups of `group` birds on the ground in front of the village houses (and by the farmhouse door), each hops about `wander` cells round its spot every `hop` seconds (+-`hop_var`), the hop itself `hop_time` seconds and `hop_height` cells high, now and then pecking. A heron or sparrow whose spot the farmer comes within `scare` cells of flies off away from them (`fly_time`, `fly_dist`, rising to `fly_height`), and comes back after `return_after` seconds once the farmer is further than 1.5 x `scare`. `flat` is the flat view: `height_px` pixels a cell of height lifts a bird on screen. `art` is BirdArt's colours: per kind and part the base colour; shade, lit and deep tones come from `tone` (the shade mix toward the cool dark, the lit mix toward warm light, the deep rim mix). Balance numbers are ours.",
+	"_about": "Small birds crossing and resting on the outdoor maps (BirdRules; the 3D view's BirdLayer, the flat view's BirdView; pictures drawn in code by BirdArt). Nothing indoors or in the mine, nothing at night, nothing in a storm or blizzard, fewer in rain and snow. `seasons`, `hours` [from, to] (fade over `fade_hours` at each end) and `looks` (the share of `count` under each weather look of data/weather_fx.json) work as in data/drift.json. `count` is the most birds of that kind in a scene. Fliers (swallow, crow): each bird (a crow flock together) crosses the map edge to edge once every `period` seconds at `speed` cells a second, `height` [min, max] cells up, `flap` wing beats a second (a swallow glides now and then: `glide` is the share of its path); a swallow darts (`dart` cells, `dart_cycles` swings a crossing) and a crow flock keeps a loose formation (`spread` cells across and along) with `stagger` seconds between birds. Herons: one, standing at a shore cell of water or paddy; each `period` seconds it glides in (`land` share of the period), stands (until `stand`, a share), then lifts off and leaves over `fly_time` seconds, `fly_dist` cells away. Sparrows: groups of `group` birds on the ground in front of the village houses (and by the farmhouse door), each hops about `wander` cells round its spot every `hop` seconds (+-`hop_var`), the hop itself `hop_time` seconds and `hop_height` cells high, now and then pecking. A heron or sparrow whose spot the farmer comes within `scare` cells of flies off away from them (`fly_time`, `fly_dist`, rising to `fly_height`), and comes back after `return_after` seconds once the farmer is further than 1.5 x `scare`. Other walkers startle them too: villagers, the dog, and the child once walking (`startle`: `others` is their share of `scare`, `child_stages` the child's stages that count). `shadow`: a soft dark blob under each bird on the ground (`ground_alpha`; `size` cells across per kind, `depth` its depth as a share; a hop shrinks and fades it over `hop_fade` cells of height), and for a bird in the air a faint one (`fly_alpha` times the sun's shadow strength, Game.sun_shadow(), so none at night, at dusk or under cloud, rain or snow) cast along the sun's direction, at most `max_offset` cells from under it, `fly_size` and `spread` (a share a cell of height) wider, gone by `fade_height` cells up. `flat` is the flat view: `height_px` pixels a cell of height lifts a bird on screen; fliers draw at `air_z` (z_index) over the roofs, props and figures, under the weather (50). `art` is BirdArt's colours: per kind and part the base colour; shade, lit and deep tones come from `tone` (the shade mix toward the cool dark, the lit mix toward warm light, the deep rim mix). Balance numbers are ours.",
 	"swallow": {
 		"seasons": ["spring", "summer"],
 		"hours": [7.0, 17.5],
@@ -62,7 +62,19 @@
 		"scare": 2.4,
 		"return_after": 14.0
 	},
-	"flat": {"height_px": 9.0},
+	"startle": {"others": 0.75, "child_stages": ["toddler", "child"]},
+	"shadow": {
+		"size": {"swallow": 0.5, "crow": 0.7, "heron": 0.9, "sparrow": 0.5},
+		"depth": 0.5,
+		"ground_alpha": 0.4,
+		"hop_fade": 0.6,
+		"fly_alpha": 0.16,
+		"fly_size": 1.1,
+		"spread": 0.06,
+		"fade_height": 9.0,
+		"max_offset": 3.5
+	},
+	"flat": {"height_px": 9.0, "air_z": 20},
 	"tone": {"shade": 0.32, "lit": 0.28, "deep": 0.55, "cool": "26304a", "warm": "fff4d8"},
 	"art": {
 		"swallow": {"back": "2b3f78", "belly": "efe4cc", "throat": "b8562e", "wing": "26346a", "beak": "20202a"},

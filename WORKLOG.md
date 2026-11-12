@@ -10,6 +10,74 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-12 — The birds' limits: fliers over the roofs, shadows, startled by others
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the three things "Small birds outdoors" left open.
+  1. Flat view layering: BirdView now draws in two passes. The node itself stays in the map view
+     (over the ground, roofs and props, under the villagers, animals, dog and farmer) and draws
+     the shadows and the birds on the ground (stand, peck, hop). A child `Air` (z_index
+     data/birds.json `flat.air_z` = 20) draws the birds in the air (BirdRules.flying: pose "fly", so
+     crows, swallows, a heron gliding in or lifting off, a startled sparrow) over the roofs, props and
+     figures, under the weather (z 50). It stays on the world's canvas, so the night tint
+     (CanvasModulate) covers it and the birds do not glow; the HUD and the map fade are canvas layers
+     above it. In the top-down flat view a bird on the ground never overlaps a roof from behind, so
+     the ground order needed no change. 3D: the bird sprites are alpha-cut (opaque pass,
+     depth-tested), so a building that fades to see-through (Occluders: alpha blend) blends over a
+     bird behind it, and nothing hides a bird in front of a roof; test_birds checks the alpha cut.
+  2. Shadows: `BirdRules.shadow_of(bird, sun, sun_dir)` (pure). A bird on the ground gets a soft
+     dark blob at its feet whatever the light (a hop shrinks and fades it). A flier gets a faint one
+     only while the sun throws shadows (`Game.sun_shadow()`, the strength the sprite shadows use), cast
+     along the sun's direction (`Game.sun_direction(Game.sun_light())`) to where its height meets the
+     ground, at most `max_offset` cells away, fainter the higher it flies. So none in rain, snow, at
+     night, and weak at dusk. 3D: BirdLayer keeps a pool of flat ovals 0.015 over the ground, with a
+     radial soft texture, unshaded black, casting nothing, on NightLamps.GROUND_LAYER (the night lamps
+     leave them out as they do the ground; test_maps caught it on the first full run). Flat: BirdView draws a two-step pixel oval
+     in whole pixels. Numbers in data/birds.json `shadow`: sizes swallow 0.5, crow 0.7, heron 0.9,
+     sparrow 0.5 cells, depth 0.5, ground_alpha 0.4, fly_alpha 0.16, max_offset 3.5, fade_height 9.
+     The sizes went up from a first try of about 0.35: in 3D the billboard's lower half covers most of
+     a smaller blob.
+  3. Startled by others: `BirdRules.birds(..., cfg, others)` takes the other walkers' places. A
+     sparrow or the heron flies off from the nearest walker inside its distance (the farmer at
+     `scare`, the others at `startle.others` = 0.75 of it) and comes back once every walker is
+     further than 1.5 x their distance. `BirdRules.scares(id, stage)`: everyone but the child before
+     `startle.child_stages` (toddler, child), so the crawler startles none. 3D: FarmWorld.set_farmer
+     already gathers the Parting sprites (villagers, the child, the dog) and now hands those not marked
+     `bird_scare` false to BirdLayer.others (VillagerSprites marks each sprite with BirdRules.scares).
+     Flat: BirdView.walkers() reads the map view's VillagerView.feet() (same filter) and, on the farm,
+     the dog's cell when it is not held. Forced `--birds` sparrows now pick spots clear of every
+     walker, so a frame does not open on a group that has just been scared off.
+- Checked: test_birds extended (`_others`: a villager sends sparrows off with no farmer about, away
+  from him, they stay away while he stands there and come back once he goes, a villager just past
+  his share does nothing, the dog by the heron, scares() for villagers, the dog, toddler, child, crawler,
+  baby; `_shadows`: ground blob with and without sun, a hop's smaller blob, none for a flier without
+  sun, the flier's offset along the sun and capped at max_offset, fainter higher, and through Game at
+  10:00 / 14:00 sunny (cast), 10:00 rain and snow, 21:00 and 3:00 (none for fliers, ground blobs
+  kept); `_views`: 3D shadow meshes one per bird just over the ground, the crawler sprite startles
+  none and a villager / dog sprite does with the farmer far off, startled sparrows cast in sun, none
+  in rain, the alpha cut; flat: whole-pixel shadows, the dog at the farmhouse door sends the sparrows
+  up into the air pass with their sun shadows, none in rain, VillagerView's villagers are walkers;
+  `_flat_order` on main_2d.tscn as built: the ground pass before the AnimalView, the air pass's z
+  above the farmer, villagers and the map view and below the weather, on the tinted world canvas,
+  the fade a canvas layer above, fliers in the air pass and the rest on the ground). Every test
+  script in AGENTS.md printed OK (lines below). Smoke runs with no ERROR or WARNING lines: title,
+  `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --map=town --time=10:00 --birds`,
+  `--demo --map=farm --time=10:00 --birds`, and the flat view `--demo --map=town --time=10:00 --birds`.
+  Frames: flat `--demo --time=17:30 --map=town@shrine --birds=crow,swallow`, frames 19-89 (crows
+  crossing the lower edge of the house roof right of the shrine and a swallow over the roof beyond
+  are drawn over the roofs; a crow passes beside the farmer's legs); flat 11:00 sunny with
+  crow,swallow,sparrow (a crow over the farmer's hair, drawn over him; faint grey ovals on the grass
+  below and beside the crows; sparrows with small blobs) and the same in rain (no ovals under the
+  fliers); flat `--demo --time=10:00 --map=town --birds=sparrow --weather=sunny --no-hud` (sparrows in
+  front of the lower-left house, each with a small dark blob); 3D the same at `town` (the sparrows'
+  spots near the start are now taken by Kota and Tome, so they sit off screen) and at `town@clinic`
+  (five sparrows on the grass by the clinic, a soft dark patch under each, subtle); 3D 11:00 sunny at
+  the shrine with crows (faint soft shadows on the grass below them) and in rain (none); 3D 17:30
+  crows by the torii.
+- Left / next: in the flat view a bird on the ground is always drawn under every figure, even one
+  standing just north of it (the flat view has no y-sort between its figure nodes). A flier's shadow
+  in 3D can fall inside a building (hidden), and in the flat view it is drawn over a roof. In 3D the
+  ground blobs are subtle under the billboards.
+
 ## 2026-11-12 — Green tea and milk icons set apart
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: the last two plain dish icons. Green tea (a cup) gets a `top` in data/foods.json: a pale

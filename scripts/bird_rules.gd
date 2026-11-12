@@ -136,7 +136,10 @@ static func _wet(m: MapData, c: Vector2i) -> bool:
 ## keeps from frame to frame (who was startled and when: this fills it in). Each:
 ## {id: "kind:i", kind, pos: Vector3 (x, height, z) in cells, pose, frame, dir: Vector2 (the way it
 ## heads or faces, cells), alpha}. The pictures are "bird:<kind>:<pose>:<frame>" (BirdArt).
-static func birds(kind: String, amount_now: float, t: float, scene: Dictionary, farmer: Vector2, state: Dictionary, cfg := {}) -> Array[Dictionary]:
+## `others` are the other walkers' places in cells (villagers, the dog, the walking child: the
+## views hand them in, see scares()): sparrows and the heron fly off from them too, at the data's
+## "startle" "others" share of the farmer's distance.
+static func birds(kind: String, amount_now: float, t: float, scene: Dictionary, farmer: Vector2, state: Dictionary, cfg := {}, others: Array = []) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var n := count_for(kind, amount_now, cfg)
 	if n == 0:
@@ -158,12 +161,12 @@ static func birds(kind: String, amount_now: float, t: float, scene: Dictionary, 
 			out.append_array(_crows(n, k, t, scene, aim))
 		"heron":
 			for i in n:
-				var b := _heron(i, k, t, scene, farmer, state, aim)
+				var b := _heron(i, k, t, scene, _walkers(farmer, others, cfg), state, aim)
 				if not b.is_empty():
 					out.append(b)
 		"sparrow":
 			for i in n:
-				var b := _sparrow(i, k, t, scene, farmer, state, aim)
+				var b := _sparrow(i, k, t, scene, _walkers(farmer, others, cfg), state, aim)
 				if not b.is_empty():
 					out.append(b)
 	return out
@@ -172,6 +175,47 @@ static func birds(kind: String, amount_now: float, t: float, scene: Dictionary, 
 ## The picture key of a bird from birds().
 static func key_of(b: Dictionary) -> String:
 	return "bird:%s:%s:%d" % [b.kind, b.pose, int(b.frame)]
+
+
+## Is bird `b` (from birds()) in the air? Fliers draw over the roofs and figures in the flat view;
+## the rest (standing, pecking, hopping) keep to the ground's order.
+static func flying(b: Dictionary) -> bool:
+	return str(b.get("pose", "")) == "fly"
+
+
+## The shadow bird `b` throws on the ground (data/birds.json "shadow"), {} for none:
+## {at: Vector2 (cells, its middle on the ground), size: Vector2 (cells across, deep), alpha}.
+## On the ground (or hopping) a soft dark blob right under it, always. In the air only while the
+## sun throws shadows: `sun` is the strength 0..1 (Game.sun_shadow(): none at night, at dusk or under
+## cloud, rain or snow) and `sun_dir` the way the light shines (Game.sun_direction), so the shadow
+## falls away from the sun, the further the higher the bird (at most "max_offset" cells), fainter
+## the higher it flies ("fade_height") and the weaker the sun.
+static func shadow_of(b: Dictionary, sun: float, sun_dir: Vector3, cfg := {}) -> Dictionary:
+	if cfg.is_empty():
+		cfg = config()
+	var sh: Dictionary = cfg.get("shadow", {})
+	if sh.is_empty():
+		return {}
+	var pos: Vector3 = b.pos
+	var w := float((sh.get("size", {}) as Dictionary).get(str(b.kind), 0.4))
+	var depth := float(sh.get("depth", 0.5))
+	var h := maxf(pos.y, 0.0)
+	if not flying(b):
+		var lift := clampf(1.0 - h / maxf(float(sh.get("hop_fade", 1.0)), 0.01), 0.4, 1.0)   # a hop lifts it off its blob
+		return {"at": Vector2(pos.x, pos.z), "size": Vector2(w, w * depth) * lift,
+			"alpha": float(sh.get("ground_alpha", 0.3)) * lift * float(b.get("alpha", 1.0))}
+	if sun <= 0.0 or sun_dir.y > -0.05:
+		return {}
+	var fade := 1.0 - h / maxf(float(sh.get("fade_height", 8.0)), 0.01)
+	var a := float(sh.get("fly_alpha", 0.15)) * clampf(sun, 0.0, 1.0) * fade * float(b.get("alpha", 1.0))
+	if a <= 0.005:
+		return {}
+	var run := Vector2(sun_dir.x, sun_dir.z) * (h / -sun_dir.y)   # along the light down to the ground
+	var most := float(sh.get("max_offset", 4.0))
+	if run.length() > most:
+		run = run.normalized() * most
+	var spread := 1.0 + h * float(sh.get("spread", 0.0))   # a higher bird's shadow a little wider and softer
+	return {"at": Vector2(pos.x, pos.z) + run, "size": Vector2(w, w * depth) * float(sh.get("fly_size", 1.0)) * spread, "alpha": a}
 
 
 ## A straight crossing of the map's width, edge to edge, from rnd-chosen sides: [from, to] in cells
@@ -265,24 +309,59 @@ static func _crows(n: int, k: Dictionary, t: float, scene: Dictionary, aim: Vect
 	return out
 
 
-## Seconds since this bird was startled by the farmer, or -1.0 while it was not (and it is not
-## startled now). `present` is whether it stands there now; it only startles then. The bird
-## returns once `return_after` seconds have passed and the farmer is further than 1.5 x scare.
-static func _startled(key: String, home: Vector2, farmer: Vector2, t: float, present: bool, k: Dictionary, state: Dictionary) -> float:
+## The walkers a bird takes fright at: [[place (cells), its scare share], ...], the farmer whole
+## (share 1) and every other at the data's "startle" "others" share.
+static func _walkers(farmer: Vector2, others: Array, cfg: Dictionary) -> Array:
+	var out := [[farmer, 1.0]]
+	var share := float(cfg.get("startle", {}).get("others", 1.0))
+	for o in others:
+		if o is Vector2:
+			out.append([o, share])
+	return out
+
+
+## Does a walker of villager id `id` (the child: at `stage`) startle the birds? Everyone does but
+## the little one before the stages of the data's "startle" "child_stages" (the crawler, the baby).
+static func scares(id: String, stage := "", cfg := {}) -> bool:
+	if id != "child":
+		return true
+	if cfg.is_empty():
+		cfg = config()
+	return stage in (cfg.get("startle", {}).get("child_stages", []) as Array)
+
+
+## Seconds since this bird was startled, or -1.0 while it was not (and it is not startled now).
+## `walkers` are [[place, share], ...] (_walkers): it startles when one comes within share x
+## `scare` of `home`, and only while `present` (it stands there now), flying away from the
+## nearest such one. It returns once `return_after` seconds have passed and every walker is
+## further than 1.5 x its own distance.
+static func _startled(key: String, home: Vector2, walkers: Array, t: float, present: bool, k: Dictionary, state: Dictionary) -> float:
 	var scare := float(k.scare)
 	if state.has(key):
 		var el := t - float((state[key] as Array)[0])
-		if el > float(k.return_after) and farmer.distance_to(home) > scare * 1.5:
+		var clear := true
+		for w in walkers:
+			clear = clear and (w[0] as Vector2).distance_to(home) > scare * float(w[1]) * 1.5
+		if el > float(k.return_after) and clear:
 			state.erase(key)
 			return -1.0
 		return el
-	if present and farmer.distance_to(home) < scare:
-		var away := (home - farmer).normalized()
-		if away == Vector2.ZERO:
-			away = Vector2.RIGHT
-		state[key] = [t, away]
-		return 0.0
-	return -1.0
+	if not present:
+		return -1.0
+	var near := NO_FARMER
+	var best := INF
+	for w in walkers:
+		var d := (w[0] as Vector2).distance_to(home)
+		if d < scare * float(w[1]) and d < best:
+			best = d
+			near = w[0]
+	if near == NO_FARMER:
+		return -1.0
+	var away := (home - near).normalized()
+	if away == Vector2.ZERO:
+		away = Vector2.RIGHT
+	state[key] = [t, away]
+	return 0.0
 
 
 ## A bird leaving its spot: `w` 0..1 along the way, heading `dir`, rising to `rise` cells.
@@ -292,7 +371,7 @@ static func _leaving(home: Vector2, dir: Vector2, w: float, dist: float, rise: f
 	return Vector3(p.x, lift + rise * minf(e * 2.0, 1.0), p.y)
 
 
-static func _heron(i: int, k: Dictionary, t: float, scene: Dictionary, farmer: Vector2, state: Dictionary, aim: Vector2) -> Dictionary:
+static func _heron(i: int, k: Dictionary, t: float, scene: Dictionary, walkers: Array, state: Dictionary, aim: Vector2) -> Dictionary:
 	var shore: Array = scene.shore
 	if shore.is_empty():
 		return {}
@@ -313,7 +392,7 @@ static func _heron(i: int, k: Dictionary, t: float, scene: Dictionary, farmer: V
 	var dist := float(k.fly_dist)
 	var rise := float(k.fly_height)
 	var standing := s >= float(k.land) and s < float(k.stand)
-	var el := _startled(key, home, farmer, t, standing and not state.has(key), k, state)
+	var el := _startled(key, home, walkers, t, standing and not state.has(key), k, state)
 	var b := {"id": key, "kind": "heron", "alpha": 1.0}
 	if el >= 0.0:   # startled: lifts off away from the farmer
 		var w := el / fly_time
@@ -350,21 +429,23 @@ static func _heron(i: int, k: Dictionary, t: float, scene: Dictionary, farmer: V
 	return b
 
 
-static func _sparrow(i: int, k: Dictionary, t: float, scene: Dictionary, farmer: Vector2, state: Dictionary, aim: Vector2) -> Dictionary:
+static func _sparrow(i: int, k: Dictionary, t: float, scene: Dictionary, walkers: Array, state: Dictionary, aim: Vector2) -> Dictionary:
 	var houses: Array = scene.houses
 	if houses.is_empty():
 		return {}
 	var sd := int(scene.seed)
 	var g := i / maxi(int(k.group), 1)
 	var spot: Vector2 = houses[int(rnd(g, sd, 21) * houses.size()) % houses.size()]
-	if aim != NO_AIM:   # forced: the group's spots are the nearest to the aim that are not under his feet
-		var by_dist := houses.filter(func(c): return (c as Vector2).distance_to(aim) > float(k.scare) + 0.6)
+	if aim != NO_AIM:   # forced: the group's spots are the nearest to the aim that are not under his feet (nor anyone's)
+		var by_dist := houses.filter(func(c): return walkers.all(func(w): return (c as Vector2).distance_to(w[0]) > float(k.scare) * float(w[1]) + 0.6))
+		if by_dist.is_empty():
+			by_dist = houses.filter(func(c): return (c as Vector2).distance_to(aim) > float(k.scare) + 0.6)
 		by_dist.sort_custom(func(a, b): return (a as Vector2).distance_to(aim) < (b as Vector2).distance_to(aim))
 		if not by_dist.is_empty():
 			spot = by_dist[g % by_dist.size()]
 	var home := spot + Vector2(rnd(i, sd, 22) - 0.5, rnd(i, sd, 23) - 0.5) * 1.2
 	var key := "sparrow:%d" % i
-	var el := _startled(key, home, farmer, t, true, k, state)
+	var el := _startled(key, home, walkers, t, true, k, state)
 	var b := {"id": key, "kind": "sparrow", "alpha": 1.0}
 	if el >= 0.0:
 		var w := el / float(k.fly_time)
