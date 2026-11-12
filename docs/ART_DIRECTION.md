@@ -418,6 +418,11 @@ Light and Farmhouse model hold the technical detail of what is built.
       pixel puffs climbing from the same vents seen from above; the timing, fade, storm rule, vents
       and a puff's path are SmokeRules, scripts/smoke_rules.gd, shared by both views).
       (this commit)
+      2026-11-13: a 3D puff is a smooth sphere (data `sides` / `rings`), so a puff near the camera
+      reads as soft smoke, not a faceted stone; and the smoke fades with its own house while the
+      house is see-through in front of the farmer (down to `faded_keep`, 0.2 of its opacity, in
+      step with the walls: SmokeRules.house_keep, Occluders.fade_at), so it never hangs whole over
+      a roof that is barely there. The flat view has no see-through houses, so it is unchanged.
 
 - [x] Seasonal drifting life: cherry petals in spring, maple / persimmon leaves in fall, fireflies on
       summer nights, outdoor maps only, in both views, on the same wind as the rice and smoke
