@@ -58,6 +58,16 @@ static func strength_now(game: Object, cfg := {}) -> float:
 	return strength_at(float(game.hour) + float(game.minute) / 60.0, cfg)
 
 
+## The share of the smoke's opacity left while its house is `fade` see-through (Occluders: 0
+## solid .. `faded` fully faded): 1 for a solid house, down to `faded_keep` (data) at the full
+## fade, in step with the walls. The flat view has no see-through houses, so only the 3D view asks.
+static func house_keep(fade: float, faded: float, cfg := {}) -> float:
+	if cfg.is_empty():
+		cfg = config()
+	var k := clampf(fade / maxf(faded, 0.001), 0.0, 1.0)
+	return lerpf(1.0, float(cfg.faded_keep), k)
+
+
 ## Where smoke leaves a roof: over the middle of `eave` (x / z of its outer edge) at the ridge
 ## height. Its soffit is `low` at the eaves, rising `pitch` per unit run; a hip roof's ridge
 ## is half its shorter side up, a roof whose ridge runs along x is half its depth (z) up.

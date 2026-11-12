@@ -3822,6 +3822,45 @@ func _hearth_smoke() -> void:
 	var qa: Dictionary = SR.puff(1.5, 0, 4, 0, 0.0)
 	var qb: Dictionary = SR.puff(1.5, 0, 4, 0, 1.0)
 	check(float(qb.lean) > float(qa.lean) and float(qa.grow) > 1.0, "the wind leans a puff more; it grows as it rises")
+	# The smoke fades with its own house (the 2026-11-13 fix: a see-through house in front of the
+	# farmer at 6:30 left its smoke whole, a big faceted pale blob hanging over the road).
+	var OC: GDScript = load("res://scripts/world3d/occluders.gd")
+	var keep := float(cfg.faded_keep)
+	check(keep > 0.0 and keep < 0.5, "smoke data: faded_keep is a small share (%.2f)" % keep)
+	check(SR.house_keep(0.0, OC.FADED) == 1.0 and is_equal_approx(SR.house_keep(OC.FADED, OC.FADED), keep), "SmokeRules.house_keep: whole for a solid house, faded_keep at the full fade")
+	var half_keep: float = SR.house_keep(OC.FADED / 2.0, OC.FADED)
+	check(half_keep < 1.0 and half_keep > keep, "SmokeRules.house_keep: in step with the walls' fade (%.2f)" % half_keep)
+	var puff_mesh: Mesh = HS.puff_mesh()
+	check(puff_mesh is SphereMesh and (puff_mesh as SphereMesh).radial_segments >= int(cfg.sides) and int(cfg.sides) >= 12, "a smoke puff is a smooth sphere (%d sides), not a faceted lathe" % int(cfg.sides))
+	if not smokes.is_empty():
+		var sm: Node3D = smokes[0]
+		var occ = town.occluders
+		var own := -1
+		for i in occ.count():
+			if occ.box_of(i).grow(0.25).has_point(sm.position):
+				own = i
+		check(own >= 0, "the first house's vent is in its own see-through box")
+		check(occ.fade_at(sm.position) == 0.0 and occ.fade_at(Vector3(-50, 0, -50)) == 0.0, "Occluders.fade_at: 0 while solid and where nothing stands")
+		g.hour = 7
+		g.minute = 0
+		g.weather_today = "sunny"
+		sm.refresh()
+		var solid_a := 0.0
+		for mi in sm._puffs:
+			solid_a = maxf(solid_a, (mi.material_override as StandardMaterial3D).albedo_color.a)
+		check(sm.house_keep() == 1.0 and solid_a > 0.0, "a solid house's smoke is whole (%.2f)" % solid_a)
+		if own >= 0:
+			occ._groups[own].now = OC.FADED
+			check(is_equal_approx(occ.fade_at(sm.position), OC.FADED), "Occluders.fade_at: the faded house's vent")
+			sm.refresh()
+			var faded_a := 0.0
+			for mi in sm._puffs:
+				faded_a = maxf(faded_a, (mi.material_override as StandardMaterial3D).albedo_color.a)
+			check(is_equal_approx(sm.house_keep(), keep) and faded_a <= solid_a * keep + 0.02, "a see-through house's smoke fades with it (%.2f of %.2f)" % [faded_a, solid_a])
+			occ._groups[own].now = 0.0
+			sm.refresh()
+			check(sm.house_keep() == 1.0, "the smoke comes back whole with its house")
+		g.weather_today = weather0
 	town.free()
 	var inside: Node3D = load("res://scripts/world3d/map_world.gd").new()
 	inside.build(MapManager.data("tome_house"))

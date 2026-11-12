@@ -98,6 +98,16 @@ func fade_of(i: int) -> float:
 	return _groups[i].now
 
 
+## How see-through the thing holding `at` is now (0 opaque .. FADED): the most faded thing whose
+## box, grown by `margin`, holds the point (a roof's vent just over its ridge); 0 when none does.
+func fade_at(at: Vector3, margin := 0.25) -> float:
+	var best := 0.0
+	for g in _groups:
+		if (g.box as AABB).grow(margin).has_point(at):
+			best = maxf(best, g.now)
+	return best
+
+
 ## Picks each thing's target for the farmer at `feet` (world units) with the camera along
 ## `back` (unit, from the ground towards the eye) and moves its fade `delta` seconds on.
 func update(feet: Vector3, back: Vector3, delta: float) -> void:
