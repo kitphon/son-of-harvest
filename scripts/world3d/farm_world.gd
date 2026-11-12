@@ -376,6 +376,10 @@ func set_farmer(feet: Vector3) -> void:
 	if birds != null:
 		birds.farmer = Vector2(feet.x, feet.z)   # sparrows and the heron fly off from him
 		birds.others = startle                   # and from the villagers, the dog and the walking child
+	var insects := get_node_or_null("Insects") as InsectLayer
+	if insects != null:
+		insects.farmer = Vector2(feet.x, feet.z)   # a resting dragonfly lifts off and a butterfly veers from him
+		insects.others = startle                   # and from the villagers, the dog and the walking child
 	_leave_prints(walkers)
 
 

@@ -10,6 +10,64 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-12 — Insects of the seasons, both views
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: small flying insects outdoors, built as the birds were (pure rules, a data file, a code-drawn
+  art class, a 3D layer and a flat view). `InsectRules` (scripts/insect_rules.gd, numbers in the new
+  data/insects.json): which kinds show (DriftRules.amount's season / weather look / clock window, plus
+  a "days" window inside a season: butterflies spring and days 1-16 of summer, dragonflies days 17-28 of
+  summer and all fall, both easing over 3 days at the ends; none at night, in rain, storm or snow, nor
+  in rooms or the mine), thinned by the wind (count x 1 - wind_thin x data/wind.json strength), the
+  scene (lures: the farm's planted crops, forage spots, garden beds; grass; wet: the pond, the paddies,
+  the farm's rice and the river; perches: the farm's fence posts, the maps' wood fences and drying
+  racks' poles at the heights the 3D props have, tall crops' tops from growth stage 2, one paddy cell
+  in 25 as a rice tip) and every insect's place at a time `t` (a seeded hash, no random numbers; the
+  only memory is the caller's `state` for startled dragonflies). Butterflies: each keeps to a home (a
+  lure 7 times in 10, else grass) and flies leg by leg (3.4 s each, smoothstep) between the places within
+  5 cells, with a small circling flutter, a bob, a wing beat of 5.5 a second and a glide now and then; a
+  walker within 2.2 cells pushes it away and up (continuous, no state). Dragonflies: swarms of 4 over a
+  home (water 7 times in 10), each hovering 68 per cent of a 2.6 s cycle and darting the rest to a new
+  hover point within 2.6 cells; every 26 s a dragonfly has a 55 per cent chance to dart to a perch within
+  9 cells, rest 5-8 s with its wings flat, and dart off. A walker within 1.9 cells of a resting one
+  (villagers and the dog at 0.75 of that, the baby and crawler never) makes it flee 6 cells and hover
+  there, and it flies back to its day 12 s later once the walker is further than 1.5 x that distance.
+  `InsectArt` (scripts/art/insect_art.gd, keys `insect:<kind>:<pose>:<frame>[:r]`, colours in the data):
+  butterfly and butterfly_y 5 x 4 px, two wing frames, dark tips; dragonfly 8 x 5 px, a 6 px red body, clear
+  pale half-see-through wings with a lit edge, two flying frames and a resting pose. 3D: `InsectLayer`
+  (unshaded sprites like the birds', made in MapWorld.build_steps and Main3D.new_world, fed by
+  FarmWorld.set_farmer). Flat: `InsectView` in main_2d, fliers in its `Air` child at the birds' air z, a
+  resting dragonfly a `Perched` node in the y-sorted FigureLayer, its origin 2 px above the ground under
+  it and the picture drawn up at the perch's height. `--insects[=dragonfly,butterfly]` forces them
+  round the farmer at full strength.
+- Balance: the sunny breeze (0.15) is the only wind a showing look has, so thinning keeps 85 of 100: a
+  count of 4 butterflies shows 3, 8 dragonflies show 7; a calmer data change would show all. Few and
+  small, because a pixel the size of a butterfly is already a lot of motion at 480 x 270: 3-4 butterflies
+  and 7-8 dragonflies on a map in two swarms, which puts 1-3 butterflies and a swarm of 3-4 in a 30 x 17
+  cell view on the 32 x 20 maps. Butterfly heights 0.8-1.5 cells so they fly over the crops' tops (at 0.45
+  the crop sprites hid them, found in a frame). Perching is common enough to be seen within half a
+  minute (a chance 0.55 every 26 s per dragonfly) and long enough to read (5-8 s).
+- Checked: `test_insects` (new): the data; the gating (every season, the days of summer, fade at the days'
+  ends and the clock's, rain / snow / storm / blizzard, night, rooms, the mine, the wind through amounts_now
+  and thinned()); the scenes (farm lures from planted crops, rice as water, grown corn a perch, kaminoda's
+  fence and rack posts at 0.76 and 1.44, the hill's forage spots, the river); butterflies (count, a pure
+  function of time, stay round their lure, heights, both colours, two frames, no jumps, they wander,
+  veer from the farmer and from others at 0.75 of the distance); dragonflies (over the paddies, heights,
+  hover and dart speeds, smooth, swarm together); on kaminoda and the farm a dragonfly rests on one of
+  the scene's perches for 5-8 s, darts in and out without a jump, lifts off when the farmer or a villager
+  is beside it, flees, stays away while he stands there, returns when he leaves and the state is gone,
+  stays when he is just outside the distance, and only a resting one is startled; the pictures (sizes,
+  frames differ, no black, mirrored, clear wings, a red body of 5-7 px, yellow vs white); 3D (a layer on an
+  outdoor map, none in rooms or the mine, alpha-cut sprites, none in rain or at night, set_farmer sends a
+  resting one up, the farm builds one) and the flat view (the node before the figures, the air z over the
+  farmer and under the weather, fliers in the air pass, a resting one in the figure layer at the right
+  origin). Frames: `--demo --season=fall --time=11:00 --map=kaminoda --insects` (3D) red-bodied dragonflies
+  with pale wings over the path and rice edge, 15-20 px wide; `--demo --time=11:00 --insects=butterfly` (3D)
+  white and yellow butterflies over the farm's turnips and fence; main_2d versions of both: butterflies as
+  white and yellow dots, dragonflies as a red line with pale wings, readable at 1x.
+- Left / next: no shadows for insects (a faint one under a dragonfly would help it sit in the 3D view); the
+  heights of the perches are taken from the prop code and not measured in frames of a resting dragonfly;
+  cicadas, fireflies by the stream and bees on the blossom are the next small life.
+
 ## 2026-11-12 — The flat view's figures sort by their feet
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the thing "Ground birds sort with the figures" left open. The flat view drew its figures in
