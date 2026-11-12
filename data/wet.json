@@ -1,0 +1,38 @@
+{
+	"_about": "The wet look of the open air in rain (WetRules; the 3D view's WetLayer and the ground shader's wet uniforms, the flat view's tints on the ground tiles, roofs and stone props). Weather is one look a day, so the rain 'starts' when the day does (`day_start`): the wetness (0..1) grows to the look's `max` over `grow_hours` of game time, as the puddles do (data/puddles.json), and when a rainy day is followed by a dry one it dries out linearly over `dry_hours` from `day_start` (Game.weather_yesterday; so it is dry again by late morning). None while any snow lies (a snow-covered surface is never wet), indoors, under the greenhouse glass or in the mine. `surfaces`: how a kind of surface looks fully wet: `dark` its brightness (a multiplier), `sat` its saturation (a gain about the grey of the same brightness), `gloss` 0..1 how glossy (3D: the roughness and specular move to `gloss.roughness` / `gloss.specular` by it; the ground gets a sky sheen of `sheen.share` and a sun glint of `sheen.glint` by it). Tilled soil darkest; kawara tile the glossiest; thatch and kaya darken little and stay matt; grass barely changes. `ground`: the farm's and the maps' ground kinds to a surface (water, the greenhouse beds and floors none). `materials`: the 3D surfaces' picture keys (PlaceholderArt; a key or its variants `key:N`) to a surface; a lit plain colour is `plain.stone` when it is a grey (saturation under `plain.grey`), else `plain.other`; unshaded, glowing, see-through and unlisted pictures stay as they are (paper, glass, cloth). `flat`: the flat view's prop kinds drawn as plain boxes to a surface, the painted roofs' materials (RoofArt) to a surface, and `drips`: pale glints on the bottom eave of the painted roofs from `drips.min` wetness, one every `every` px (by a hash). Balance numbers are ours.",
+	"looks": {"rain": {"max": 1.0}, "storm": {"max": 1.0}},
+	"day_start": 6,
+	"grow_hours": 1.0,
+	"dry_hours": 5.0,
+	"surfaces": {
+		"tilled": {"dark": 0.6, "sat": 1.25, "gloss": 0.3},
+		"watered": {"dark": 0.86, "sat": 1.1, "gloss": 0.35},
+		"path": {"dark": 0.7, "sat": 1.22, "gloss": 0.4},
+		"gravel": {"dark": 0.74, "sat": 1.15, "gloss": 0.5},
+		"stone": {"dark": 0.7, "sat": 1.15, "gloss": 0.6},
+		"paddy": {"dark": 0.86, "sat": 1.1, "gloss": 0.35},
+		"grass": {"dark": 0.9, "sat": 1.06, "gloss": 0.08},
+		"kawara": {"dark": 0.66, "sat": 1.3, "gloss": 0.9},
+		"thatch": {"dark": 0.84, "sat": 1.08, "gloss": 0.08},
+		"kaya": {"dark": 0.87, "sat": 1.05, "gloss": 0.05},
+		"wood": {"dark": 0.8, "sat": 1.12, "gloss": 0.15},
+		"plaster": {"dark": 0.93, "sat": 1.0, "gloss": 0.05},
+		"plain": {"dark": 0.86, "sat": 1.08, "gloss": 0.1}
+	},
+	"ground": {"grass": "grass", "path": "path", "soil": "path", "tilled": "tilled", "wet": "watered",
+		"gravel": "gravel", "scree": "gravel", "rock_wall": "stone", "step": "stone", "paddy": "paddy"},
+	"materials": {"build:kawara": "kawara", "build:kawara_edge": "kawara", "build:thatch": "thatch",
+		"build:kaya": "kaya", "build:kaya_edge": "kaya", "build:planks": "wood", "build:planks_dark": "wood",
+		"build:board": "wood", "build:sugi": "wood", "build:plaster": "plaster", "build:tsuchi": "plaster",
+		"ground:rock_wall": "stone"},
+	"plain": {"grey": 0.2, "stone": "stone", "other": "plain"},
+	"gloss": {"roughness": 0.12, "specular": 1.0},
+	"sheen": {"color": "a3b3c4", "share": 0.16, "glint": 0.5},
+	"flat": {
+		"props": {"stone_lantern": "stone", "well": "stone", "river_rock": "stone", "jizo": "stone", "torii": "wood",
+			"hokora": "wood", "woodpile": "wood", "wood_fence": "wood", "hen_barn": "wood", "kiln": "plaster",
+			"hasa": "wood", "fence": "wood", "bin": "wood", "chest": "wood", "stand": "wood"},
+		"roofs": {"kawara": "kawara", "thatch": "thatch", "kaya": "kaya"},
+		"drips": {"min": 0.5, "every": 7, "color": "dbe5f0", "alpha": 0.85}
+	}
+}

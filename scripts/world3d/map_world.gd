@@ -36,6 +36,7 @@ func build_steps(m: MapData) -> Array[Callable]:
 		steps.append(func() -> void: add_child(BirdLayer.new(map)))   # swallows, crows, the heron, sparrows
 		steps.append(func() -> void: add_child(MistLayer.new(map)))   # morning mist over the water and paddies
 		steps.append(func() -> void: add_child(PuddleLayer.new(map)))   # puddles on the paths in rain
+		steps.append(func() -> void: add_child(WetLayer.new(map)))   # the wet look of the ground, roofs and stone in rain
 	if not map.sheltered and not map.indoor:
 		steps.append(_make_grass)
 	if not map.sheltered:
@@ -115,7 +116,7 @@ func _make_tile_ground() -> void:
 	var mat: Material
 	if SnowLayer.map_has_snow(map):
 		var snow := ImageTexture.create_from_image(SnowLayer.map_mask_image(map, Game.snow_rules))
-		mat = SnowLayer.ground_material(picture, snow)
+		mat = SnowLayer.ground_material(picture, snow, ImageTexture.create_from_image(WetRules.map_mask(map)))
 		_snow_mats.append(mat)
 	else:
 		var flat := flat_material(Color.WHITE)

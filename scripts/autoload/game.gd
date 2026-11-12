@@ -305,6 +305,8 @@ func new_game() -> void:
 			snow_cover = next_snow_cover(0, weather_look(weather_today, season_name()), season_name(), snow_rules)
 		elif arg == "--footprints":   # e.g. `-- --demo --season=winter --snow=80 --footprints`: a trail behind the farmer and another walker's
 			demo_footprints = true
+		elif arg.begins_with("--wet="):   # e.g. `-- --demo --map=town --wet=1.0`: the wet look forced, 0..1 (still none indoors or under snow)
+			WetRules.forced = clampf(float(arg.trim_prefix("--wet=")), 0.0, 1.0)
 		elif arg.begins_with("--snow="):   # e.g. `-- --demo --season=winter --map=town --snow=80`: snow lying, 0..100
 			snow_cover = clampi(int(arg.trim_prefix("--snow=")), 0, 100)
 		elif arg.begins_with("--time="):   # e.g. `-- --demo --map=town --time=14:30` (villagers by their plans)

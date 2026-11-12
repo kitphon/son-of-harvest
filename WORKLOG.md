@@ -30,6 +30,7 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
   the demo rucksack, so not in it).
 - Left / next: at 14 x 14 the green tea's leaf is small; a stronger leaf or a band on the yunomi
   would read better if a later pass wants it. The milk cap reads pale, not clearly paper.
+
 ## 2026-11-12 — Small birds outdoors: swallows, dusk crows, the heron, sparrows
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: ambient life that moves, in both views. data/birds.json (numbers, windows, colours),
@@ -55,6 +56,48 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
   flock, Kaminoda morning with the heron by the paddies in mist) and the flat view (town, dusk).
 - Left / next: no ground shadows; sparrows and the heron take no notice of the dog or villagers;
   birds draw over buildings in the flat view's view layer order (under the figures).
+
+## 2026-11-12 — The wet look in rain
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: in rain and storm the open air goes wet: ground, paths, gravel, stone and roofs slowly turn
+  darker, a little more saturated and glossier over the first game hour (the puddles' timing: from
+  06:00, full by 07:00) and dry over the next morning after the rain stops (linear over 5 game hours,
+  dry by 11:00). Never while any snow lies, never indoors, under the greenhouse glass or in the mine.
+  Rules in `scripts/wet_rules.gd` (WetRules: wetness by weather, yesterday's weather, clock, snow,
+  indoor; the surfaces; the tone sum; masks; the 3D material wetting; the eave glints), numbers in
+  `data/wet.json`: per surface `dark` / `sat` / `gloss`: tilled soil 0.6 (darkest; watered soil, already
+  dark, 0.86), path 0.7, gravel 0.74, stone 0.7 (gloss 0.6), kawara 0.66 with gloss 0.9 (the
+  glossiest), thatch 0.84 and kaya 0.87 nearly matt, grass 0.9, wood 0.8, plaster 0.93. 3D: the ground
+  shader (SnowLayer.GROUND_SHADER, the maps' ground and the land past the edge) got a `wet` uniform and a
+  one-pixel-a-cell `wet_mask` (WetRules.mask_image: red dark, green half the saturation gain, blue
+  gloss) plus a sky sheen and a sun glint by the gloss; at wet 0 its branches are skipped. A new
+  `WetLayer` (scripts/world3d/wet_layer.gd) on the farm's and every outdoor map's world sets it and wets
+  every lit StandardMaterial3D by its PlaceholderArt key (data/wet.json `materials`) or plain colour (a
+  grey under saturation 0.2 is stone): albedo to the wet tone (a picture by its mean colour), roughness
+  toward 0.12 and specular toward 1.0 by the gloss, so wet kawara shows a soft sky reflection; the dry
+  values are kept on the material and put back exactly at 0; the Occluders' fade alpha is left alone.
+  Redone when the wetness moves a 1/50 step or the world gets new children; the farm's mask is redrawn
+  when the field changed (a cell hoed in the rain). Flat view: MapView and FarmView draw the ground tiles,
+  the painted roofs (RoofArt) and the plain prop boxes (stone lantern, well, river rock, jizo, torii,
+  fence, bin, chest, stand ...: data/wet.json `flat.props`) with a modulate taking their mean colour to
+  the same wet tone (whole pixels), plus pale drip glints on the painted roofs' bottom eave from half wet
+  (`flat.drips`). The 3D ground's FarmView picture stays dry (the shader wets it). `--wet=1.0` forces the
+  look in a frame (still none indoors or under snow).
+- Checked: test_wet (new) and every test script AGENTS.md lists print OK (lines below). Smoke runs with no
+  errors: title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --map=town --weather=rain
+  --time=11:00`, `--demo --wet=1.0`, the flat view in a storm in town. Frames before and after: 3D farm and
+  town at 11:00 in rain (paths and tilled soil clearly darker, kawara roofs darker with a sky sheen,
+  the stone lantern darker, grass about the same, thatch little), town at 06:30 (half wet), `--wet=1.0`
+  on a sunny day; the flat view's farm and town in rain (darker paths, gravel and roofs, darker stone
+  lantern and torii boxes, eave glints). Zero wetness pixel-identical: with the RNG seeded the same in a
+  copy of HEAD and in this tree (a temporary patch, removed again; the new game's debris is random
+  otherwise), `python -I` pixel diffs show 0 differing pixels for the 3D farm sunny, the flat farm sunny,
+  the flat town sunny, the farmhouse indoors in rain, and in winter with `--weather=rain --snow=80` the 3D
+  town, the 3D farm and the flat town; the 3D town sunny also matched unseeded.
+- Left / next: the 3D gloss is the material's specular and a sky sheen, not a reflection (no SSR in
+  Compatibility); the sun glint barely shows on rain days, whose sun is dim. The flat view's silo and
+  greenhouse are not wetted (glass and their own drawing). For a frame with snow and rain, put `--snow=N`
+  after `--weather=rain` (the weather flag resets the snow lying).
 
 ## 2026-11-11 — Flaky test_maps ("farm spawn greenhouse is free") fixed
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

@@ -19,6 +19,9 @@ var _sprites: Dictionary = {}   # Vector2i -> [art key, Sprite3D] standing on th
 var _snow_mask: ImageTexture
 var _mask_dirty := false   # the field changed since the snow mask was last drawn
 var _snow_mats: Array[ShaderMaterial] = []
+## The ground's wet look by cell (WetRules.farm_mask; WetLayer redraws it when wet_dirty).
+var _wet_mask: ImageTexture
+var wet_dirty := false   # the field changed since the wet mask was last drawn
 ## Buildings and trees that fade while they stand between the camera and the farmer.
 var occluders := Occluders.new()
 var surroundings: Surroundings   # the land past the map's edge (outdoors)
@@ -168,7 +171,8 @@ func _make_ground() -> void:
 		mat = flat
 	else:
 		_snow_mask = ImageTexture.create_from_image(SnowLayer.mask_image(farm, Game.snow_rules))
-		mat = SnowLayer.ground_material(vp.get_texture(), _snow_mask)
+		_wet_mask = ImageTexture.create_from_image(WetRules.farm_mask(farm))
+		mat = SnowLayer.ground_material(vp.get_texture(), _snow_mask, _wet_mask)
 		_snow_mats.append(mat)
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(farm.w, farm.h)
@@ -587,12 +591,20 @@ func _update_mask() -> void:
 	_mask_dirty = false
 
 
+## Redraws the ground's wet mask from the field as it is now (WetLayer, while it is wet).
+func update_wet_mask() -> void:
+	wet_dirty = false
+	if _wet_mask != null:
+		_wet_mask.update(WetRules.farm_mask(farm))
+
+
 func _rebuild_objects() -> void:
 	if away:
 		_stale = true
 		return
 	# The snow mask only matters while snow lies; otherwise it waits for set_snow (none under glass).
 	_mask_dirty = not farm.sheltered
+	wet_dirty = _wet_mask != null
 	if Game.snow_cover > 0 and not farm.sheltered:
 		_update_mask()
 	# Only cells whose picture changed get a new sprite, and bare cells are skipped first (the

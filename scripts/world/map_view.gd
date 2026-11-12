@@ -41,6 +41,9 @@ var _tall := false           # paddies stand (their rice sways while the wind bl
 var _sway := {}              # the sway handed to CropPatches.draw ({wind, t}, {} in still air)
 var _glint := {}             # the water patches' glint time (CropPatches.glint_now; {} where no water shows)
 var _cover := 0.0            # snow lying, 0..1 (set_snow): the paddies' rice stands where it is not white
+## How wet the open air is (WetRules, in its 1/50 steps): the ground tiles, the painted roofs and the
+## stone props are drawn in their wet tones; 0 draws them as they are.
+var wet := 0.0
 
 
 ## The picture key of a maple in the flat view: its season and whether the map lies under snow.
@@ -129,7 +132,11 @@ func _draw() -> void:
 	for y in map.h:
 		for x in map.w:
 			var c := Vector2i(x, y)
-			draw_texture(PlaceholderArt.tex(ground_key_in(c, paddies)), Vector2(c * T))
+			var key := ground_key_in(c, paddies)
+			if wet > 0.0:
+				draw_texture(PlaceholderArt.tex(key), Vector2(c * T), WetRules.picture_tint(key, WetRules.ground_surface(map.tile(c)), wet))
+			else:
+				draw_texture(PlaceholderArt.tex(key), Vector2(c * T))
 			if map.tile(c) == "wall" and map.walls == "glass":   # the greenhouse: panes in a timber grid
 				draw_texture(PlaceholderArt.tex("build:glass"), Vector2(c * T))
 			elif map.tile(c) == "wall":
@@ -192,8 +199,20 @@ func _glint_for(seconds: float) -> Dictionary:
 	return crops.glint_now(game.wind_strength() if game != null else 0.0, seconds)
 
 
+## The wetness now (WetRules, outdoors only), in its steps: redraws the ground and the objects when it moved.
+func update_wet() -> void:
+	var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
+	var now := float(WetRules.step_of(WetRules.wetness_now(game, map))) / 50.0 if game != null and map != null else 0.0
+	if now != wet:
+		wet = now
+		queue_redraw()
+		if _objects != null:
+			_objects.queue_redraw()
+
+
 ## Redraws the objects when the swaying paddies or the water's glint move on a frame (a few times a second).
 func _process(_delta: float) -> void:
+	update_wet()
 	if _tall and _objects != null:
 		var now := Time.get_ticks_msec() / 1000.0
 		if _sway_for(now) != _sway or _glint_for(now) != _glint:
@@ -221,7 +240,9 @@ func _draw_objects() -> void:
 		if p.kind == "village_house":   # a painted kawara roof, the old box's size (RoofArt)
 			var style := LitSpots.village_style(p)
 			var inner := r.grow(-1)
-			_objects.draw_texture(PlaceholderArt.tex(RoofArt.key("kawara", style.roof, style.storeys, Vector2i(inner.size))), inner.position)
+			var roof_key := RoofArt.key("kawara", style.roof, style.storeys, Vector2i(inner.size))
+			_objects.draw_texture(PlaceholderArt.tex(roof_key), inner.position, roof_tint(roof_key, "kawara", wet))
+			draw_drips(_objects, inner, wet)
 			continue
 		if p.kind == "ferry_boat":   # drawn by FerryView, which moves it when Mio takes it across
 			continue
@@ -231,11 +252,38 @@ func _draw_objects() -> void:
 		var fill: Color = COLORS.get(p.kind, Color.MAGENTA)
 		if p.kind == "water_tub" and p.has("color"):   # a tub of its own water (Shino's indigo vats)
 			fill = Color(str(p.color))
-		_objects.draw_rect(r.grow(-1), fill)
+		_objects.draw_rect(r.grow(-1), prop_tone(fill, p.kind, wet))
 	for door in map.doors:
 		for c in door.cells:
 			if map.in_bounds(c):
 				_objects.draw_rect(Rect2(Vector2(c * T), Vector2(T, T)).grow(-2), COLORS.door)
+
+
+## The modulate of a painted roof (RoofArt `key` of `material`) at wetness `wet`: white when dry.
+static func roof_tint(key: String, material: String, wet_now: float) -> Color:
+	if wet_now <= 0.0:
+		return Color.WHITE
+	return WetRules.picture_tint(key, str(WetRules.config().flat.roofs.get(material, "")), wet_now)
+
+
+## A plain prop box's `fill` of prop `kind` at wetness `wet` (data/wet.json flat.props; others as they are).
+static func prop_tone(fill: Color, kind: String, wet_now: float) -> Color:
+	if wet_now <= 0.0:
+		return fill
+	var surface := str(WetRules.config().flat.props.get(kind, ""))
+	return WetRules.tone(fill, WetRules.surface(surface), wet_now) if surface != "" else fill
+
+
+## The pale glints of water on a painted roof's bottom eave over `r` (WetRules.drips), on `canvas`.
+static func draw_drips(canvas: CanvasItem, r: Rect2, wet_now: float) -> void:
+	var spots := WetRules.drips(r, wet_now)
+	if spots.is_empty():
+		return
+	var d: Dictionary = WetRules.config().flat.drips
+	var col := Color(str(d.color))
+	col.a = float(d.alpha)
+	for at in spots:
+		canvas.draw_rect(Rect2(at, Vector2.ONE), col)
 
 
 ## Mio's plank landing over the water, in pixels (her boat is FerryView's).
