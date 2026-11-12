@@ -374,17 +374,17 @@ func _charge_actions() -> void:
 	g.stamina = 100
 	var tools: Dictionary = g.tools_data.tools
 	g.select_tool(g.TOOLS.find("hoe"))
-	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 1)
+	swing(actions, Vector2i(10, 8), Vector2i.DOWN, 1)
 	var tilled := []
 	for y in range(9, 13):
 		tilled.append(g.farm.cell(Vector2i(10, y)).tilled)
 	check(tilled == [true, true, true, false], "charged hoe tills 3 in a line %s" % [tilled])
 	check(g.stamina == 100 - int(tools.hoe.charges[1].stamina), "charged hoe costs its stamina")
-	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 4)
+	swing(actions, Vector2i(10, 8), Vector2i.DOWN, 4)
 	check(g.stamina == 100 - 2 * int(tools.hoe.charges[1].stamina), "charge past the level costs the level's top charge")
 	g.tool_levels.hoe = 5
 	g.stamina = 100
-	actions.use_tool(Vector2i(14, 8), Vector2i.DOWN, 4)
+	swing(actions, Vector2i(14, 8), Vector2i.DOWN, 4)
 	check(g.stamina == 100 - g.swing_stamina("hoe", 4) and g.swing_stamina("hoe", 4) < int(tools.hoe.charges[4].stamina),
 		"a level 5 hoe's swing costs the master's stamina (%d)" % (100 - g.stamina))
 	g.tool_levels.hoe = 1
@@ -396,7 +396,7 @@ func _charge_actions() -> void:
 		g.farm.till(Vector2i(x, 10))
 	g.select_tool(g.TOOLS.find("can"))
 	g.water = 40
-	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 2)
+	swing(actions, Vector2i(10, 8), Vector2i.DOWN, 2)
 	var wet := 0
 	for y in range(9, 11):
 		for x in range(9, 12):
@@ -412,28 +412,28 @@ func _charge_actions() -> void:
 				nd.obj = FarmGrid.Obj.NONE
 				nd.tilled = true
 	g.water = 2
-	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 2)
+	swing(actions, Vector2i(10, 8), Vector2i.DOWN, 2)
 	check(g.water == 0 and g.farm.cell(Vector2i(9, 9)).wet and g.farm.cell(Vector2i(10, 9)).wet 		and not g.farm.cell(Vector2i(11, 9)).wet, "a can with 2 water waters the first 2 cells")
 	g.water = 5
-	actions.use_tool(Vector2i(24, 3), Vector2i.RIGHT, 2)
+	swing(actions, Vector2i(24, 3), Vector2i.RIGHT, 2)
 	check(g.water == g.WATER_MAX, "the pond fills the can whatever the charge")
 	# Sickle charge 1 cuts the three weeds ahead; hammer charge 1 = two hits.
 	for x in range(14, 17):
 		g.farm.cell(Vector2i(x, 13)).obj = FarmGrid.Obj.WEED
 	g.select_tool(g.TOOLS.find("sickle"))
-	actions.use_tool(Vector2i(15, 12), Vector2i.DOWN, 1)
+	swing(actions, Vector2i(15, 12), Vector2i.DOWN, 1)
 	var cut := true
 	for x in range(14, 17):
 		cut = cut and g.farm.cell(Vector2i(x, 13)).obj == FarmGrid.Obj.NONE
 	check(cut, "charged sickle cuts 3 across")
 	g.farm.cell(Vector2i(20, 13)).obj = FarmGrid.Obj.STUMP
 	g.select_tool(g.TOOLS.find("axe"))
-	actions.use_tool(Vector2i(20, 12), Vector2i.DOWN, 1)
+	swing(actions, Vector2i(20, 12), Vector2i.DOWN, 1)
 	check(g.farm.cell(Vector2i(20, 13)).hits == 2, "charged axe hits twice")
 	# Out of stamina the swing still happens; the missing stamina becomes fatigue (test_body.gd).
 	g.stamina = 1
 	g.fatigue = 0
-	actions.use_tool(Vector2i(20, 12), Vector2i.DOWN, 1)
+	swing(actions, Vector2i(20, 12), Vector2i.DOWN, 1)
 	check(g.farm.cell(Vector2i(20, 13)).obj == FarmGrid.Obj.NONE and g.stamina == 0 and g.fatigue > 0, "overwork: the swing clears the stump, fatigue %d" % g.fatigue)
 
 
@@ -459,27 +459,27 @@ func _tool_exp() -> void:
 	g.stamina = 100
 	check(g.tool_exp.hoe == 0 and g.tool_level("hoe") == 1, "a new game: no exp, level 1")
 	g.select_tool(g.TOOLS.find("hoe"))
-	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 0)
+	swing(actions, Vector2i(10, 8), Vector2i.DOWN, 0)
 	check(g.tool_exp.hoe == work, "a hoe swing that tills gives work exp (%d)" % g.tool_exp.hoe)
-	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 0)
+	swing(actions, Vector2i(10, 8), Vector2i.DOWN, 0)
 	check(g.tool_exp.hoe == work + miss, "a hoe swing on tilled soil gives miss exp (%d)" % g.tool_exp.hoe)
 	check(g.tool_exp.can == 0 and g.tool_exp.sickle == 0, "only the tool used learns")
 	g.stamina = 1
-	actions.use_tool(Vector2i(11, 8), Vector2i.DOWN, 0)
+	swing(actions, Vector2i(11, 8), Vector2i.DOWN, 0)
 	# Fatigue rule: an empty stamina bar doesn't stop the swing, the shortfall turns into fatigue.
 	check(g.tool_exp.hoe == work + miss + work and g.farm.cell(Vector2i(11, 9)).tilled, "overworked swing still tills and teaches (%d)" % g.tool_exp.hoe)
 	g.stamina = 100
 	g.select_tool(g.TOOLS.find("can"))
 	g.water = 0
-	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 0)
+	swing(actions, Vector2i(10, 8), Vector2i.DOWN, 0)
 	check(g.tool_exp.can == 0, "an empty can gives no exp")
-	actions.use_tool(Vector2i(24, 3), Vector2i.RIGHT, 0)
+	swing(actions, Vector2i(24, 3), Vector2i.RIGHT, 0)
 	check(g.tool_exp.can == 0 and g.water == g.WATER_MAX, "filling at the pond gives no exp")
-	actions.use_tool(Vector2i(10, 8), Vector2i.DOWN, 0)
+	swing(actions, Vector2i(10, 8), Vector2i.DOWN, 0)
 	check(g.tool_exp.can == work and g.farm.cell(Vector2i(10, 9)).wet, "watering tilled soil gives work exp")
 	g.select_tool(g.TOOLS.find("axe"))
 	g.farm.cell(Vector2i(20, 13)).obj = FarmGrid.Obj.STUMP
-	actions.use_tool(Vector2i(20, 12), Vector2i.DOWN, 0)
+	swing(actions, Vector2i(20, 12), Vector2i.DOWN, 0)
 	check(g.tool_exp.axe == work, "a hit on a stump that holds still counts as work")
 
 	# Thresholds: one swing short of the step, then the swing that reaches it levels up.
@@ -488,14 +488,14 @@ func _tool_exp() -> void:
 	check(need == int(g.tools_data.tools.hoe.exp_to_level[0]), "level 2 needs the first exp step")
 	g.select_tool(g.TOOLS.find("hoe"))
 	g.tool_exp.hoe = need - work - 1
-	actions.use_tool(Vector2i(12, 8), Vector2i.DOWN, 0)
+	swing(actions, Vector2i(12, 8), Vector2i.DOWN, 0)
 	check(g.tool_level("hoe") == 1, "one exp short: still level 1")
 	said.clear()
-	actions.use_tool(Vector2i(13, 8), Vector2i.DOWN, 0)
+	swing(actions, Vector2i(13, 8), Vector2i.DOWN, 0)
 	check(g.tool_level("hoe") == 2 and g.tool_exp.hoe >= need, "reaching the step: level 2")
 	check(said.size() == 1 and said[0].contains("level 2"), "level-up message %s" % [said])
 	check(g.max_charge("hoe") == 2 and g.charge_after("hoe", step * 5) == 2, "level 2 hoe charges twice")
-	actions.use_tool(Vector2i(14, 4), Vector2i.DOWN, 2)
+	swing(actions, Vector2i(14, 4), Vector2i.DOWN, 2)
 	var tilled := 0
 	for y in range(5, 10):
 		tilled += int(g.farm.cell(Vector2i(14, y)).tilled)
@@ -850,6 +850,15 @@ func _edge_pixels(img: Image) -> int:
 						n += 1
 						break
 	return n
+
+## A tool through FarmActions: the press, then the swing stepped through to its end (the cells
+## change on its hit, Game.swing_step).
+func swing(actions: GDScript, origin: Vector2i, facing: Vector2i, charge := 0) -> void:
+	var g: Node = root.get_node("Game")
+	actions.use_tool(origin, facing, charge)
+	while g.swinging():
+		g.swing_step(1.0 / 30.0)
+
 
 func check(ok: bool, what: String) -> void:
 	if not ok:

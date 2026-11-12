@@ -1049,12 +1049,12 @@ func _silo() -> void:
 	check(g.current_tool() == "sickle", "the sickle is in hand: %s" % g.current_tool())
 	g.stamina = 100
 	said.clear()
-	FarmActions.use_tool(weed + Vector2i.DOWN, Vector2i.UP)
+	swing(FarmActions, weed + Vector2i.DOWN, Vector2i.UP)
 	check(g.farm.cell(weed).obj == FarmGrid.Obj.NONE and g.animals.silo.grass == 1, "a weed cut: one bundle of grass (%d)" % g.animals.silo.grass)
 	check(said.has("Grass for the silo: 1 bundles in the pile."), "and told so: %s" % str(said))
 	g.farm.cell(weed).obj = FarmGrid.Obj.ROCK
 	g.select_tool(g.TOOLS.find("hammer"))
-	FarmActions.use_tool(weed + Vector2i.DOWN, Vector2i.UP)
+	swing(FarmActions, weed + Vector2i.DOWN, Vector2i.UP)
 	check(g.animals.silo.grass == 1, "a rock is no grass")
 	# Fermenting, the caps.
 	check(g.animals.silo_cut(100) == 39 and g.animals.silo.grass == 40, "the pile holds 40")
@@ -1613,6 +1613,15 @@ func _flock(n: int) -> Animals:
 
 func _json(path: String) -> Dictionary:
 	return JSON.parse_string(FileAccess.get_file_as_string(path))
+
+
+## A tool through FarmActions (`actions`): the press, then the swing stepped through to its end
+## (the cells change on its hit, Game.swing_step).
+func swing(actions: GDScript, origin: Vector2i, facing: Vector2i, charge := 0) -> void:
+	var g: Node = root.get_node("Game")
+	actions.use_tool(origin, facing, charge)
+	while g.swinging():
+		g.swing_step(1.0 / 30.0)
 
 
 func check(ok: bool, what: String) -> void:

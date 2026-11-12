@@ -30,7 +30,7 @@ static func image(key: String) -> Image:
 static func _make(key: String) -> Image:
 	var parts := key.split(":")
 	match parts[0]:
-		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk|fish_wait|fish_bite|eat|drink|scoop|scoop_lift|swing_<hoe|can|sickle|hammer|axe>>:<frame>, 24 x 32 (FigureArt), in the chosen look (FarmerLooks.current)
+		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk|fish_wait|fish_bite|eat|drink|scoop|scoop_lift|swing_<hoe|can|sickle|hammer|axe|seeds>>:<frame>, 24 x 32 (FigureArt), in the chosen look (FarmerLooks.current)
 			return FigureArt.draw(FarmerLooks.current_look(), parts[1] == "back", parts[2], int(parts[3]), true)
 		"villager": # villager:<id>:<front|back>:<idle|walk|work|fish|post|pole>:<frame>, 24 x 32, from the look in data/villagers/<id>.json
 			return FigureArt.draw(Villagers.look(parts[1]), parts[2] == "back", parts[3], int(parts[4]))

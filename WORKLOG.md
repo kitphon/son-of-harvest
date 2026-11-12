@@ -10,6 +10,70 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-12 — Tool-use effects: the result lands on the hit, seeds, charge, snow, facings
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the open limits of "Tool-use effects, both views". (1) Timing: the cell's change (FarmGrid till /
+  water / hit / sow), the mine's rock or soft spot (Game.mine_swing), the finds and messages, the tool's
+  experience and the tool sound now all happen when the blow frame starts, with the bits. `Game.start_swing(tool,
+  bursts, land)` takes a Callable for the hit; `_hit_swing` calls it (it returns the bursts) as the windup ends;
+  FarmActions splits each swing into the press (checks, stamina, `start_swing`) and `_land_tool` / `_land_seeds` /
+  `_land_mine` (the old bodies, now returning `_swing_bursts` / `_mine_bursts`). `Game.mine_swing` takes
+  `pay := true`; FarmActions pays on the press and calls it with false on the hit (test_mine's direct calls
+  unchanged). Safety: the swing remembers its map id and mine floor and lands on nothing if either changed
+  under it; `Game.finish_swing()` lands a swing still in the air at once and ends it, called before a new
+  swing (start_swing), at the top of every FarmActions.on_action, in go_to_map (before the map changes), in
+  end_day (a collapse or pass-out mid-swing) and in SaveGame.write (the save holds the result); from_dict
+  drops a swing in the air (it never lands on the loaded game). The Player still stands still and takes no
+  action during the 0.34 s swing. Charged swings: unchanged rules, the charge step goes with the release.
+  `--swing=<tool>:<up|down|left|right>` turns the farmer first; `--swing=seeds` sows a seed of the season.
+  (2) Poses: `swing_seeds` (FigureArt.SWING_TOOLS): frame 0 the near hand down in the hip basket with a pinch
+  showing, frame 1 the hand out at the chest and four seeds falling under it as loose single pixels (drawn
+  straight on the figure: a part's outline turned them into a chain), plus `seeds` bits (ToolFxRules target
+  "sow", 3 a cell sown, let go 0.35-0.5 cells up, spread over the cell, staggered 0.12 s, resting on the
+  soil); a scatter that sows nothing still poses but throws nothing and keeps the packet. Holding the button
+  to charge shows the tool's wind-up frame: the Player sets `Game.charge_tool`, `Game.swing_pose()` returns
+  `swing_<tool>` frame 0 for it (both FarmerAnims), cleared on release, cancel, the Player leaving the tree,
+  a map change and a load. The rod: its cast already plays the fishing poses (fish_wait / fish_bite); left
+  as it was. (3) Snow bits: data/tool_fx.json `ground.snow` c3d0df / aebdd0 (+ soil a07446), `puff.snow`
+  b8c6d6 / ccd7e3: blue-grey, at least 0.1 luminance under the lying snow's eff4fb (data/snow_cover.json),
+  both views (they share the colours). (4) Facings: frames of every tool facing down, up, left and right
+  in both views showed the tool always in the near hand and going out on the facing side (3D: down =
+  down-left, right = down-right, up = up-right, left = up-left, matching the cells). The real fault was the
+  blow frames: the hoe's head and blade, the axe's head, the sickle's tip and the can's spout and water were
+  drawn 1-3 px past the 24 px picture's left edge and cut off in every facing (the hoe read as a bare stick).
+  The blow tools are now shorter and sit inside the picture; `FigureArt.tool_clipped(tool, back, frame)`
+  counts a tool's pixels off the picture (`_in_tool` / `_tool_out` in `_r` / `_dot`). `Sfx.last` records the
+  last key played (for the timing checks).
+- Stamina on the press: the press is where the swing is decided (no stamina left turns the missing points
+  into fatigue then, as before), the HUD drops at once on the button like the wind-up starts, and nothing can
+  refund it between the press and the hit: a map change, the day's end or a save lands the swing, and a load
+  replaces the stamina with the saved one anyway.
+- Checked: every tests/test_*.gd (37, one after another) printed `OK (0 failed)` with no SCRIPT ERROR or
+  ERROR line in its log. test_tool_fx now checks: the hoe not tilled, no sound, stamina paid on the press;
+  tilled and `tool_hoe` played on the hit; the tool learns on the hit; a map change mid-swing lands it on the
+  farm first; a swing whose map changed under it lands on nothing; the day's end lands it; a save mid-swing
+  holds the tilled cell; a load mid-swing drops it and it never lands; the charge's wind-up pose (none for
+  the rod); the seed scatter (pose, sown and packet taken on the hit, `tool_seeds`, seeds on the 9 cells, a
+  scatter on sown ground throws nothing and keeps the packet); till, water, sow and harvest by the buttons;
+  the mine's rock and soft spot change on the hit, nothing with hands full; snow bits darker than the lying
+  snow; seed particles; every swing tool, front and back, both frames, 0 px off the picture; seeds falling
+  under the hand; in both real views a held button shows swing_hoe frame 0 and the release tills on the hit.
+  A deliberate break (landing the hit inside start_swing) made test_tool_fx fail 15 checks. test_farm,
+  test_animals (a `swing` helper: use_tool, then Game.swing_step until it ends) and test_view2d (`act` steps
+  the swing) were changed to step through the swing; test_hold, test_mine, test_body, test_save and the rest
+  needed no change. Smoke runs, no SCRIPT ERROR / ERROR / WARNING lines: title, `--demo`, `--demo
+  --map=town`, `--demo --mine=3`, `--demo --swing=hoe`, `--demo --swing=seeds:up`; main_2d.tscn `--demo
+  --swing=sickle`, `--demo --mine=3 --swing=hammer:left`. tools/play_year.gd passes `--check-only`.
+  Frames (30 fps, crops 2-6x): 3D `--demo --map=farm@gate --swing=<hoe|sickle|axe|hammer|water|seeds>:<down|up|left|right>`
+  frames 11 (wind-up), 13-16 (blow): before the fix the hoe's blow read as a bare stick (facing down most plainly), after
+  it the iron head and blade show at the picture's edge; the flat view the same for hoe, seeds and axe;
+  `--season=winter --snow=80 --swing=hoe` both views, frames 13-17: blue-grey bits read on the white.
+- Left / next: in the flat view (top-down) the 3/4 pictures still point the tool sideways when facing down
+  (down-left) or up (up-right), as walking does; the seeds in the hand are 1 px each and hard to see at
+  480 x 270 in 3D; the seed bits are 1-1.5 px. A FarmActions.use_tool called twice in a row without stepping
+  lands the first swing at the second press (finish_swing), so scripts that loop over use_tool get every
+  result but the last until they step or call `Game.finish_swing()` (tools/play_year.gd now does).
+
 ## 2026-11-12 — Breath in the cold (shiroi iki)
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: on cold mornings and evenings the figures outdoors breathe out small pale puffs: the farmer, the villagers and the walking child / toddler, the grown animals and the dog. Rules in `BreathRules` (scripts/breath_rules.gd, pure): `cold_strength` (season, day, clock, weather look), `strength_now` (none indoors, in a room or the mine), `phase` (each figure's own gap, from a hash of its id, moved by a per-breath jitter, so no two puff in step; at most one puff at a time), `shape` (the puff from the mouth on the side the figure faces, drifting forward, on the wind and up, growing, fading in and out over `life`), `track` (facing from a given facing or the way the figure last walked), `puffs_now` and `pixels`. Numbers in data/breath.json. Two views: `BreathLayer` (scripts/world3d/breath_layer.gd, 3D: one MultiMesh of unshaded billboard quads with a soft round texture, tinted with the field like DriftLayer; the figures are the farmer, passed by `FarmWorld.set_farmer(feet, facing, running, tired)`, and the nodes in group `breath_figures`: villager and child sprites, the dog, the grown animals), and `BreathView` (scripts/world/breath_view.gd, flat: whole pixels, z_index 19 so it draws over the figures, under the birds' air pass and the weather; the farmer from Player, villagers via `VillagerView.breathers()`, grown animals and the dog via `AnimalView.breathers()`). `--breath` forces full strength on any season, clock or weather (outdoors only); `--breath=strong` also multiplies the rate by 1.6.

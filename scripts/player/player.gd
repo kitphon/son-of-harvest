@@ -30,6 +30,11 @@ var light := Color.WHITE
 const FIGURE_TOP := 2 - PlaceholderArt.FIGURE_SIZE.y   # the picture's top row, from the spot (feet 2 px below)
 
 
+func _exit_tree() -> void:
+	if charging:
+		Game.charge_tool = ""
+
+
 func _ready() -> void:
 	Game.changed.connect(queue_redraw)   # picking up / putting down while standing still
 	# The contact shadow under the feet is drawn by the map view's FigureLayer (its Shadows), on the
@@ -131,6 +136,7 @@ func _physics_process(delta: float) -> void:
 			charge = 0
 			_charge_time = 0.0
 			_charge_tool = Game.current_tool()
+			Game.charge_tool = _charge_tool   # the wind-up pose while the button is held (Game.swing_pose)
 			moving = false
 			running = false
 			queue_redraw()
@@ -158,6 +164,7 @@ func _charge_step(delta: float) -> void:
 
 func cancel_charge() -> void:
 	charging = false
+	Game.charge_tool = ""
 	charge = 0
 	_charge_time = 0.0
 	queue_redraw()

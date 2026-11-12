@@ -21,6 +21,8 @@ const BACKUP := ".bak"
 
 ## Returns "" when written, else what went wrong (the old save is then left as it was).
 static func write(game, path := SLOT) -> String:
+	if game.has_method("finish_swing"):
+		game.finish_swing()   # a tool swing in the air lands first, so the save holds its result
 	var text := JSON.stringify({"version": VERSION, "game": game.to_dict()}, "\t")
 	var temp := path + TEMP
 	var f := FileAccess.open(temp, FileAccess.WRITE)
