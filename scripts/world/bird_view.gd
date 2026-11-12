@@ -112,7 +112,7 @@ func sprites() -> Array[Dictionary]:
 func shadows() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for b in _shown:
-		var s := BirdRules.shadow_of(b, _sun, _sun_dir)
+		var s := BirdRules.shadow_of(b, _sun, _sun_dir, {}, _scene.get("blocked", {}))
 		if s.is_empty():
 			continue
 		var size := ((s.size as Vector2) * T).round().max(Vector2(2, 1))

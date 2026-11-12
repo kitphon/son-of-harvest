@@ -89,7 +89,8 @@ static func count_for(kind: String, amount_now: float, cfg := {}) -> int:
 ## seed: an int that changes the choices day to day}. `farm` (FarmGrid) gives the farm's pond and
 ## the farmhouse door; `seed` is usually Game.day + 28 x season.
 static func scene_of(m: MapData, farm: FarmGrid = null, seed_value := 0) -> Dictionary:
-	var s := {"area": Rect2(0, 0, m.w, m.h), "houses": [] as Array[Vector2], "shore": [] as Array[Vector2], "seed": seed_value}
+	var s := {"area": Rect2(0, 0, m.w, m.h), "houses": [] as Array[Vector2], "shore": [] as Array[Vector2], "seed": seed_value,
+		"blocked": blocked_cells(m, farm)}
 	if farm != null:
 		for y in m.h:
 			for x in m.w:
@@ -124,6 +125,30 @@ static func scene_of(m: MapData, farm: FarmGrid = null, seed_value := 0) -> Dict
 			if m.in_bounds(at) and not m.is_solid(at) and m.tile(at) in ["grass", "path", "gravel"]:
 				s.houses.append(Vector2(at) + Vector2(0.5, 0.5))
 	return s
+
+
+## The cells a building covers, as a set {Vector2i: true}: where a flier's shadow would fall on a roof
+## or into a wall and is left out (shadow_of). The map's props named in data/birds.json
+## "shadow" "blocked_props" (the village houses, the shrine) and, on the farm, FarmGrid's fixed
+## cells of the "blocked_fixed" kinds (the farmhouse, coop, barn, silo, greenhouse and their doors).
+static func blocked_cells(m: MapData, farm: FarmGrid = null, cfg := {}) -> Dictionary:
+	if cfg.is_empty():
+		cfg = config()
+	var sh: Dictionary = cfg.get("shadow", {})
+	var out := {}
+	if farm != null:
+		var kinds: Array = sh.get("blocked_fixed", [])
+		for c in farm.fixed:
+			if str(farm.fixed[c]) in kinds:
+				out[c] = true
+		return out
+	var props: Array = sh.get("blocked_props", [])
+	for p in m.props:
+		if str(p.get("kind", "")) in props:
+			for y in int(p.size[1]):
+				for x in int(p.size[0]):
+					out[Vector2i(int(p.cell[0]) + x, int(p.cell[1]) + y)] = true
+	return out
 
 
 static func _wet(m: MapData, c: Vector2i) -> bool:
@@ -189,8 +214,10 @@ static func flying(b: Dictionary) -> bool:
 ## sun throws shadows: `sun` is the strength 0..1 (Game.sun_shadow(): none at night, at dusk or under
 ## cloud, rain or snow) and `sun_dir` the way the light shines (Game.sun_direction), so the shadow
 ## falls away from the sun, the further the higher the bird (at most "max_offset" cells), fainter
-## the higher it flies ("fade_height") and the weaker the sun.
-static func shadow_of(b: Dictionary, sun: float, sun_dir: Vector3, cfg := {}) -> Dictionary:
+## the higher it flies ("fade_height") and the weaker the sun. `blocked` is the set of building cells
+## (scene.blocked, blocked_cells): a flier's shadow that would land on one is left out (it would sit
+## in the wall in 3D and flat over the roof in the flat view); birds on the ground are never over one.
+static func shadow_of(b: Dictionary, sun: float, sun_dir: Vector3, cfg := {}, blocked := {}) -> Dictionary:
 	if cfg.is_empty():
 		cfg = config()
 	var sh: Dictionary = cfg.get("shadow", {})
@@ -215,7 +242,10 @@ static func shadow_of(b: Dictionary, sun: float, sun_dir: Vector3, cfg := {}) ->
 	if run.length() > most:
 		run = run.normalized() * most
 	var spread := 1.0 + h * float(sh.get("spread", 0.0))   # a higher bird's shadow a little wider and softer
-	return {"at": Vector2(pos.x, pos.z) + run, "size": Vector2(w, w * depth) * float(sh.get("fly_size", 1.0)) * spread, "alpha": a}
+	var at := Vector2(pos.x, pos.z) + run
+	if not blocked.is_empty() and blocked.has(Vector2i(floori(at.x), floori(at.y))):
+		return {}
+	return {"at": at, "size": Vector2(w, w * depth) * float(sh.get("fly_size", 1.0)) * spread, "alpha": a}
 
 
 ## A straight crossing of the map's width, edge to edge, from rnd-chosen sides: [from, to] in cells

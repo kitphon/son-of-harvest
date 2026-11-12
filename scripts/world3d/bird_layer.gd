@@ -93,7 +93,7 @@ func _place_shadows(game: Node) -> void:
 		var sun: float = game.sun_shadow()
 		var dir: Vector3 = game.sun_direction(game.sun_light())
 		for b in _shown:
-			var sh := BirdRules.shadow_of(b, sun, dir)
+			var sh := BirdRules.shadow_of(b, sun, dir, {}, _scene.get("blocked", {}))
 			if not sh.is_empty():
 				sh.air = BirdRules.flying(b)
 				_shadows.append(sh)
@@ -137,7 +137,8 @@ static func soft_texture() -> Texture2D:
 		var g := Gradient.new()
 		g.set_color(0, Color(1, 1, 1, 1))
 		g.set_color(1, Color(1, 1, 1, 0))
-		g.add_point(0.55, Color(1, 1, 1, 0.8))
+		var sh: Dictionary = BirdRules.config().get("shadow", {})   # a darker centre, a wide soft edge (core, core_alpha)
+		g.add_point(float(sh.get("core", 0.4)), Color(1, 1, 1, float(sh.get("core_alpha", 0.9))))
 		var t := GradientTexture2D.new()
 		t.gradient = g
 		t.fill = GradientTexture2D.FILL_RADIAL

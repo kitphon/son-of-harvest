@@ -331,6 +331,38 @@ func _shadows() -> void:
 		else:
 			check(s.is_empty(), "shadow: a flier casts none at %d:00 %s (sun %.2f)" % [c[1], c[2], sun])
 		check(not BR.shadow_of(ground, sun, d).is_empty(), "shadow: a bird on the ground keeps its blob at %d:00 %s" % [c[1], c[2]])
+	# Fliers over buildings: no shadow on a roof or in a wall (both views hand scene.blocked in).
+	var town_scene: Dictionary = BR.scene_of(MM.data("town"), null, 5)
+	var tb: Dictionary = town_scene.blocked
+	var farm_scene: Dictionary = BR.scene_of(MM.data("farm"), g.farm, 5)
+	var fb: Dictionary = farm_scene.blocked
+	check(tb.has(Vector2i(1, 8)) and not tb.has(Vector2i(20, 1)), "shadow: the town's blocked cells hold a village house, not open ground (%d)" % tb.size())
+	check(fb.has(Vector2i(4, 3)) and fb.has(Vector2i(FarmGrid.COOP.position.x, FarmGrid.COOP.position.y)) and not fb.has(Vector2i(5, 12)), "shadow: the farm's blocked cells hold the farmhouse and the coop (%d)" % fb.size())
+	var roof_bird := crow.duplicate()
+	var no_h := Vector2(dir.x, dir.z) * (2.5 / -dir.y)
+	var over_at := Vector2(1.5, 8.5) - no_h   # its shadow falls on the house at (1, 8)
+	roof_bird.pos = Vector3(over_at.x, 2.5, over_at.y)
+	check(BR.shadow_of(roof_bird, 1.0, dir, {}, tb).is_empty(), "shadow: a flier whose shadow falls on a house casts none (town)")
+	check(not BR.shadow_of(roof_bird, 1.0, dir).is_empty(), "shadow: the same flier casts one with no blocked set")
+	var farm_bird := crow.duplicate()
+	var fover := Vector2(4.5, 3.5) - no_h
+	farm_bird.pos = Vector3(fover.x, 2.5, fover.y)
+	check(BR.shadow_of(farm_bird, 1.0, dir, {}, fb).is_empty(), "shadow: a flier whose shadow falls on the farmhouse casts none (farm)")
+	var clear_bird := crow.duplicate()
+	clear_bird.pos = Vector3(20.5, 2.5, 20.5)
+	check(not BR.shadow_of(clear_bird, 1.0, dir, {}, tb).is_empty(), "shadow: over open ground it still casts one")
+	check(not BR.shadow_of(ground, 1.0, dir, {}, tb).is_empty(), "shadow: a bird on the ground keeps its blob with a blocked set")
+	# The ground blob reads as the sprites' own shadows' family: as dark, as deep, a wide soft edge.
+	var ss: Dictionary = SpriteShadow.rules()
+	check(float(sh.ground_alpha) >= 0.5 and float(sh.ground_alpha) <= 0.8, "shadow: the ground blob is clearly readable (alpha %.2f)" % float(sh.ground_alpha))
+	check(float(sh.depth) >= float(ss.blob_depth) * 0.95 and float(sh.depth) <= 0.8, "shadow: as deep as the figures' own blobs (%.2f vs %.2f)" % [float(sh.depth), float(ss.blob_depth)])
+	check(float(sh.size.sparrow) >= 0.6 and float(sh.core) > 0.2 and float(sh.core) < 0.6 and float(sh.core_alpha) > 0.8, "shadow: a bigger blob, a darker centre, a wide soft edge")
+	var soft_t: GradientTexture2D = load("res://scripts/world3d/bird_layer.gd").soft_texture()
+	check(soft_t.gradient.get_color(0).a > 0.99 and soft_t.gradient.get_color(soft_t.gradient.get_point_count() - 1).a < 0.01, "shadow: the soft texture is whole in the middle and nothing at the rim")
+	# Rain, night: nothing changes for the blob under a bird on the ground, a flier still casts none.
+	for c in [[0, 10, "rain"], [0, 23, "sunny"]]:
+		_when(c[0], c[1], 0, c[2])
+		check(is_equal_approx(float(BR.shadow_of(ground, g.sun_shadow(), g.sun_direction(g.sun_light())).alpha), float(s0.alpha)) and BR.shadow_of(roof_bird, g.sun_shadow(), g.sun_direction(g.sun_light()), {}, {}).is_empty(), "shadow: %s at %d:00 the ground blob is unchanged, a flier casts none" % [c[2], c[1]])
 	_when(0, 10, 0, "sunny")
 
 

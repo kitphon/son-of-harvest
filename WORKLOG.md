@@ -10,6 +10,12 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-12 — The birds' shadow limits: none on roofs, readable blobs
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: (1) A flier's shadow that would fall on a building is left out: `BirdRules.shadow_of(b, sun, sun_dir, cfg, blocked)` takes a set of cells; `BirdRules.scene_of` now carries `blocked` (`blocked_cells`: the maps' `village_house` and `hokora` props, on the farm FarmGrid's fixed house / door / coop / barn / silo / greenhouse cells, lists in data/birds.json `shadow` `blocked_props` / `blocked_fixed`). BirdLayer (3D) and BirdView (flat) pass `_scene.blocked`. The bird itself is unchanged; birds on the ground are never over a building. Left out rather than laid on the roof: a roof's height differs by house and the shadow of a bird over a roof is small and faint anyway. (2) The ground blobs: `ground_alpha` 0.4 to 0.62, `depth` 0.5 to 0.65 (the figures' blob_depth is 0.6), sizes sparrow 0.7, swallow 0.62, crow 0.85, heron 1.1 (were 0.5 / 0.5 / 0.7 / 0.9), and the 3D soft texture is now whole to `core` 0.4 at `core_alpha` 0.9 then fades to nothing at the rim (a wider soft edge, a darker centre; was 0.8 at 0.55). Fliers' `fly_size` 1.1 to 0.9 so their faint shadows stay about as they were. The flat blobs follow the same numbers.
+- Checked: test_birds adds the blocked sets of the town and the farm, a flier over a house / the farmhouse casts none, over open ground still does, the blob numbers against SpriteShadow's, the texture ends, rain and night unchanged. All test scripts, smoke runs and frames: see the final report.
+- Left / next: a shadow only half on a roof is kept (the check is its middle cell).
+
 ## 2026-11-12 — Green tea and milk icons read at 1x
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: the two icons from the last entry redrawn with their own marks (data/foods.json, same keys,

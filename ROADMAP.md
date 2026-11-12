@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-12 The birds' shadow limits: a flier's shadow is left out over buildings (BirdRules.shadow_of `blocked`, scene_of / blocked_cells, both views) and the ground blobs read clearly (alpha 0.62, depth 0.65, bigger, darker centre, wider soft edge; data/birds.json `shadow`); test_birds; see WORKLOG.
 [x] 2026-11-12 Green tea and milk icons read at 1x: green tea a dark rim, a darker band and a two-tone leaf on a stalk standing up (chabashira); milk a kraft paper cap with a dark crimped rim and a red string tie over the printed band; same keys and size (data/foods.json marks); see WORKLOG.
 [x] 2026-11-12 The silo and the greenhouse get wet in rain (flat view parts as wood / kawara / glass with rain glints; 3D marked flat-coloured parts and glass via `wet_surface`), and `--snow=N` wins over `--weather=` in any order; see WORKLOG.
 [x] 2026-11-12 The birds' limits: fliers drawn over the roofs, props and figures in the flat view (a second pass), ground birds in the ground order; a soft shadow under each bird on the ground and a faint sun-cast one under fliers by day in sun, both views; sparrows and the heron startled by villagers, the dog and the walking child too (BirdRules.shadow_of / scares, data/birds.json `shadow` / `startle`, test_birds); see WORKLOG.
