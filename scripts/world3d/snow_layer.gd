@@ -49,19 +49,41 @@ void vertex() { world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 const SUN_SHARE := 0.045
 
 ## Lit only to take shadows: flat light (no slope shading), the sun scaled by sun_share.
+## In rain the bare ground looks wet (WetRules, data/wet.json): `wet` 0..1 and `wet_mask` (one
+## pixel a cell: red the surface's dark, green half its saturation gain, blue its gloss) darken
+## and saturate it, add a sky sheen and a glint toward the sun by the gloss. At wet 0 it is as
+## before (no wetness while snow lies, so the snow's pixels are never wet).
 const GROUND_SHADER := "shader_type spatial;\n" + _COMMON + """
 uniform sampler2D ground : source_color, filter_nearest;
 uniform sampler2D mask : filter_linear;
 uniform float sun_share = 0.7;
+uniform float wet = 0.0;
+uniform sampler2D wet_mask : filter_nearest;
+uniform vec3 sheen_color : source_color = vec3(0.64, 0.7, 0.77);
+uniform float sheen = 0.16;
+uniform float glint = 0.5;
+varying float gloss;
 void fragment() {
 	vec3 g = texture(ground, UV).rgb;
 	float s = snow_at(world.xz, cover * texture(mask, UV).r);
+	gloss = 0.0;
+	if (wet > 0.0) {
+		vec4 k = texture(wet_mask, UV);
+		float l = dot(g, vec3(0.299, 0.587, 0.114));
+		g = clamp((vec3(l) + (g - vec3(l)) * mix(1.0, k.g * 2.0, wet)) * mix(1.0, k.r, wet), 0.0, 1.0);
+		gloss = k.b * wet;
+		g = mix(g, sheen_color, gloss * sheen);
+	}
 	ALBEDO = s > 1.5 ? snow_color : (s > 0.5 ? mix(g, rim_color, 0.7) : g);
 	ROUGHNESS = 1.0;
 	SPECULAR = 0.0;
 }
 void light() {
 	DIFFUSE_LIGHT += ATTENUATION * LIGHT_COLOR * sun_share;
+	if (gloss > 0.0) {
+		vec3 hv = normalize(LIGHT + VIEW);
+		SPECULAR_LIGHT += ATTENUATION * LIGHT_COLOR * sun_share * pow(max(dot(NORMAL, hv), 0.0), 24.0) * gloss * glint * 8.0;
+	}
 }
 """
 
@@ -217,12 +239,23 @@ static func _mask(w: int, h: int, hold_at: Callable) -> Image:
 	return img
 
 
-static func ground_material(ground: Texture2D, mask: Texture2D) -> ShaderMaterial:
+## `wet_mask`: the ground's WetRules mask (one pixel a cell, laid out as `ground`); none = never wet.
+static func ground_material(ground: Texture2D, mask: Texture2D, wet_mask: Texture2D = null) -> ShaderMaterial:
 	var m := _material(GROUND_SHADER)
 	m.set_shader_parameter("sun_share", SUN_SHARE)
 	m.set_shader_parameter("ground", ground)
 	m.set_shader_parameter("mask", mask)
+	m.set_shader_parameter("wet_mask", wet_mask if wet_mask != null else WetRules.neutral_texture())
+	var sheen: Dictionary = WetRules.config().sheen
+	m.set_shader_parameter("sheen_color", Color(str(sheen.color)))
+	m.set_shader_parameter("sheen", float(sheen.share))
+	m.set_shader_parameter("glint", float(sheen.glint))
 	return m
+
+
+## Is `m` a ground material (ground_material: it takes the `wet` uniform)?
+static func is_ground(m: Material) -> bool:
+	return m is ShaderMaterial and (m as ShaderMaterial).shader == shader(GROUND_SHADER)
 
 
 ## For the 2D view: put on a node that draws the mask texture over the whole farm.

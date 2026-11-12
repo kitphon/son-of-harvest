@@ -65,6 +65,9 @@ var hidden_item := Vector2i(-1, -1):
 
 
 var _water: WaterView        # the moving skin on the pond (over the ground, under the objects)
+## How wet the open air is (WetRules, in its 1/50 steps; never for ground_only, the 3D ground, nor
+## under glass): the ground tiles, the painted roofs and the fixed boxes are drawn in their wet tones.
+var wet := 0.0
 var _tall := false           # the last draw had tall crops (they sway while the wind blows)
 var _sway := {}              # the sway handed to CropPatches.draw ({wind, t}, {} in still air)
 
@@ -97,8 +100,22 @@ func _sway_for(seconds: float) -> Dictionary:
 	return patches.sway_now(game.wind_strength() if game != null else 0.0, seconds)
 
 
+## The wetness now (WetRules): redraws the ground and the objects when it moved a step.
+func update_wet() -> void:
+	var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
+	var now := 0.0
+	if game != null and farm != null and not ground_only:
+		now = float(WetRules.step_of(WetRules.wetness_of(game, farm.sheltered))) / 50.0
+	if now != wet:
+		wet = now
+		queue_redraw()
+		if _objects != null:
+			_objects.queue_redraw()
+
+
 ## Redraws the objects when the swaying crops move on a frame (a few times a second).
 func _process(_delta: float) -> void:
+	update_wet()
 	if _tall and _objects != null and _sway_for(Time.get_ticks_msec() / 1000.0) != _sway:
 		_objects.queue_redraw()
 
@@ -161,7 +178,11 @@ func _draw() -> void:
 	for y in farm.h:
 		for x in farm.w:
 			var c := Vector2i(x, y)
-			draw_texture(PlaceholderArt.tex(PlaceholderArt.ground_key(farm, c)), Vector2(c * T))
+			var key := PlaceholderArt.ground_key(farm, c)
+			if wet > 0.0:
+				draw_texture(PlaceholderArt.tex(key), Vector2(c * T), WetRules.picture_tint(key, WetRules.ground_surface(key.get_slice(":", 1)), wet))
+			else:
+				draw_texture(PlaceholderArt.tex(key), Vector2(c * T))
 
 
 func _draw_objects() -> void:
@@ -170,7 +191,9 @@ func _draw_objects() -> void:
 	for kind in ROOFS:   # the roofs first: the doors in their front rows are drawn over them below
 		var r := roof_rect(farm, kind)
 		if r.has_area():
-			_objects.draw_texture(PlaceholderArt.tex(RoofArt.key(ROOFS[kind], "gable", 1, Vector2i(r.size))), r.position)
+			var roof_key := RoofArt.key(ROOFS[kind], "gable", 1, Vector2i(r.size))
+			_objects.draw_texture(PlaceholderArt.tex(roof_key), r.position, MapView.roof_tint(roof_key, ROOFS[kind], wet))
+			MapView.draw_drips(_objects, r, wet)
 	_draw_silo()
 	_draw_greenhouse()
 	for y in farm.h:
@@ -253,7 +276,7 @@ func _draw_cell(c: Vector2i) -> void:
 	if f != "":
 		# The flat view marks buildings and the fence on top of their ground (roofs: _draw_objects).
 		if not f in ["pond", "silo", "greenhouse", "greenhouse_door"] and not f in ROOFS and not c in gaps:
-			_objects.draw_rect(r.grow(-5) if f == "fence" else r, COLORS[f])
+			_objects.draw_rect(r.grow(-5) if f == "fence" else r, MapView.prop_tone(COLORS[f], f, wet))
 		return
 	var d := farm.cell(c)
 	# Same sprites as the 3D view, standing on the cell's bottom edge (tall ones overlap the

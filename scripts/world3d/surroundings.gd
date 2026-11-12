@@ -44,7 +44,7 @@ func build(w: int, h: int, kind_at: Callable, hold_at: Callable, back_cells := M
 	if not _kept.has(id):   # the same map looks the same past its edges: kept a run
 		_kept[id] = _lay(w, h, kind, hold)
 	var made: Dictionary = _kept[id]
-	material = SnowLayer.ground_material(made.ground, made.mask)
+	material = SnowLayer.ground_material(made.ground, made.mask, made.wet)
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(cw, ch)
 	var ground := MeshInstance3D.new()
@@ -77,7 +77,10 @@ func _lay(w: int, h: int, kind: Callable, hold: Callable) -> Dictionary:
 			var v: float = hold.call(edge_cell(c, w, h))
 			var m := SnowLayer.MASK_PER_CELL
 			mask.fill_rect(Rect2i((x + back) * m, (y + back) * m, m, m), Color(v, v, v))
+	var wet := WetRules.mask_image(cw, ch, func(c: Vector2i) -> String:   # the edge cell's ground, as the picture
+		return kind.call(edge_cell(c - Vector2i(back, back), w, h)))
 	return {"ground": ImageTexture.create_from_image(img), "mask": ImageTexture.create_from_image(mask),
+		"wet": ImageTexture.create_from_image(wet),
 		"pines": _pine_spots(w, h, kind), "tufts": _tuft_cells(w, h, kind)}
 
 
