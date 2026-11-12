@@ -325,6 +325,7 @@ static func new_world(m: MapData) -> Array:
 		steps.append(func() -> void: fw.add_child(DriftLayer.new(m, Game.farm)))   # petals, leaves, fireflies
 		steps.append(func() -> void: fw.add_child(BirdLayer.new(m, Game.farm)))   # swallows, crows, the heron, sparrows
 		steps.append(func() -> void: fw.add_child(BreathLayer.new(m, Game.farm)))   # the puffs of breath in the cold
+		steps.append(func() -> void: fw.add_child(InsectLayer.new(m, Game.farm)))   # butterflies, dragonflies
 		steps.append(func() -> void: fw.add_child(MistLayer.new(m, Game.farm)))   # morning mist over the pond
 		steps.append(func() -> void: fw.add_child(PuddleLayer.new(m, Game.farm)))   # puddles in rain
 		steps.append(func() -> void: fw.add_child(WetLayer.new(m)))   # the wet look of the ground, roofs and stone in rain
