@@ -17,6 +17,8 @@ extends Node2D
 ##
 ## `player` is the farmer; the villagers (the map view's VillagerView: the child only once walking,
 ## InsectRules.scares) and the farm dog are the other walkers a resting dragonfly lifts off from.
+## Its shadows (InsectRules.shadow_of: a blob under a perched one, a faint sun-cast oval under a flier)
+## are drawn in this node's own ground pass, under the figures.
 
 const T := 16
 
@@ -30,6 +32,8 @@ var _scene_key := ""
 var _farm_key := ""
 var _state := {}
 var _shown: Array[Dictionary] = []
+var _sun := 0.0
+var _sun_dir := Vector3.DOWN
 var _perched: Array[Node2D] = []   # the resting ones, a node each, in the figure layer
 
 
@@ -61,6 +65,7 @@ func refresh() -> void:
 	visible = not amounts.is_empty()
 	if not visible:
 		_place_perched()   # hides them, wherever they sit
+		queue_redraw()
 		return
 	var key := "%s|%d|%d" % [map.id, game.season, game.day]
 	var fkey := InsectRules.farm_key(farm)
@@ -70,12 +75,16 @@ func refresh() -> void:
 		_scene_key = key
 		_farm_key = fkey
 		_scene = InsectRules.scene_of(map, farm, game.day + 28 * game.season)
+	InsectRules.blocked_for(_scene, map, farm, game)   # a building finished today blocks the shadows now
+	_sun = game.sun_shadow()
+	_sun_dir = game.sun_direction(game.sun_light())
 	var farmer := InsectRules.NO_FARMER if player == null else player.position / float(T)
 	var others := walkers()
 	for kind in InsectRules.KINDS:
 		if amounts.has(kind):
 			_shown.append_array(InsectRules.insects(kind, float(amounts[kind]), _t, _scene, farmer, _state, {}, others))
 	_place_perched()
+	queue_redraw()
 	air.queue_redraw()
 
 
@@ -105,6 +114,26 @@ func walkers() -> Array:
 func screen_of(pos: Vector3, lift := true) -> Vector2:
 	var up := pos.y * float(InsectRules.config().flat.height_px) if lift else 0.0
 	return (Vector2(pos.x, pos.z) * T - Vector2(0, up)).round()
+
+
+## The shadows now: [{rect: Rect2 in whole pixels, alpha}] (InsectRules.shadow_of: a perched
+## dragonfly's blob under it, a flier's faint sun-cast oval). Under the figures, in the ground pass.
+func shadows() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var blocked: Dictionary = _scene.get("blocked", {})
+	for b in _shown:
+		var s := InsectRules.shadow_of(b, _sun, _sun_dir, {}, blocked)
+		if s.is_empty():
+			continue
+		var size := ((s.size as Vector2) * T).round().max(Vector2(2, 1))
+		var at := ((s.at as Vector2) * T - size / 2.0).round()
+		out.append({"rect": Rect2(at, size), "alpha": float(s.alpha)})
+	return out
+
+
+func _draw() -> void:
+	for s in shadows():
+		BirdView.draw_blob(self, s.rect, s.alpha)
 
 
 ## The insects now: [{at: pixel (feet), ground: pixel (the point on the ground under it), key:

@@ -32,6 +32,8 @@ func _run() -> void:
 	_dragonflies()
 	_perch_and_startle()
 	_art()
+	_shadows()
+	_held()
 	await _views()
 	await _flat()
 	print("test_insects: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
@@ -145,8 +147,8 @@ func _scenes() -> void:
 	var kam: Dictionary = IR.scene_of(MM.data("kaminoda"), null, 5)
 	check(kam.wet.size() > 50 and kam.grass.size() > 100 and kam.perches.size() > 8, "kaminoda: paddies, grass and perches (%d / %d / %d)" % [kam.wet.size(), kam.grass.size(), kam.perches.size()])
 	check(kam.lures.size() >= 4, "kaminoda: the garden bed's cells lure butterflies (%d)" % kam.lures.size())
-	# The wood fence (24, 8, 3 x 1): posts at 24..27 along its middle, 0.76 up.
-	check(kam.perches.any(func(p): return is_equal_approx(p.x, 24.1) and is_equal_approx(p.z, 8.5) and is_equal_approx(p.y, 0.76)), "kaminoda: the wood fence's first post")
+	# The wood fence (24, 8, 3 x 1): posts at 24..27 along its middle, 0.72 up (the board tops, FieldProps.board_fence).
+	check(kam.perches.any(func(p): return is_equal_approx(p.x, 24.1) and is_equal_approx(p.z, 8.5) and is_equal_approx(p.y, 0.72)), "kaminoda: the wood fence's first post")
 	check(kam.perches.any(func(p): return is_equal_approx(p.x, 2.15) and is_equal_approx(p.z, 9.5) and p.y > 1.3), "kaminoda: the drying rack's poles")
 	var hill: Dictionary = IR.scene_of(MM.data("hill"), null, 5)
 	check(hill.lures.size() > 0, "hill: its forage spots lure butterflies (%d)" % hill.lures.size())
@@ -440,6 +442,83 @@ func _art() -> void:
 	check(pa.tex("insect:dragonfly:perch:0:r").get_size() == Vector2(8, 5) and pa.tex("insect:butterfly_y:fly:1").get_size() == Vector2(5, 4), "PlaceholderArt hands out the keys insect:<kind>:<pose>:<frame>[:r]")
 
 
+## Shadows (data/insects.json "shadow", the birds' rules via InsectRules.shadow_of): a perched
+## dragonfly's blob under it at any sun, a flier's faint sun-cast oval only in sun, none on a building.
+func _shadows() -> void:
+	var sh: Dictionary = IR.config().shadow
+	check(sh.size.has("butterfly") and sh.size.has("dragonfly") and float(sh.fly_alpha) > 0.0 and float(sh.fly_alpha) < 0.1, "shadow: data has sizes and a very faint flier alpha")
+	check(float(sh.ground_alpha) > 3.0 * float(sh.fly_alpha), "shadow: a perched one's blob is far darker than a flier's cast")
+	var dir: Vector3 = g.sun_direction({"elevation": 40.0, "yaw": -40.0})
+	var perch := {"id": "dragonfly:0", "kind": "dragonfly", "art": "dragonfly", "pos": Vector3(4.5, 0.7, 6.5), "pose": "perch", "frame": 0, "dir": Vector2.RIGHT, "alpha": 1.0}
+	var s0: Dictionary = IR.shadow_of(perch, 0.0, dir)
+	check(not s0.is_empty() and (s0.at as Vector2).is_equal_approx(Vector2(4.5, 6.5)), "shadow: a perched dragonfly has a blob under it, with no sun")
+	check(s0 == IR.shadow_of(perch, 1.0, dir), "shadow: the blob is the same in sun")
+	var lift := clampf(1.0 - 0.7 / float(sh.hop_fade), 0.4, 1.0)
+	check(not s0.is_empty() and is_equal_approx(float(s0.get("alpha", -1.0)), float(sh.ground_alpha) * lift), "shadow: its alpha is ground_alpha lifted by the perch's height (%.3f)" % float(s0.get("alpha", -1.0)))
+	check(not s0.is_empty() and (s0.size as Vector2).x < 0.4, "shadow: a small blob")
+	var fly := {"id": "dragonfly:1", "kind": "dragonfly", "art": "dragonfly", "pos": Vector3(4.5, 1.0, 6.5), "pose": "fly", "frame": 0, "dir": Vector2.RIGHT, "alpha": 1.0}
+	check(IR.shadow_of(fly, 0.0, dir).is_empty(), "shadow: a flier casts none without sun")
+	var sf: Dictionary = IR.shadow_of(fly, 1.0, dir)
+	check(not sf.is_empty() and float(sf.alpha) > 0.0 and float(sf.alpha) <= float(sh.fly_alpha) + 0.001, "shadow: a flier in sun casts a very faint one (%.3f)" % float(sf.get("alpha", -1.0)))
+	check(not sf.is_empty() and ((sf.at as Vector2) - Vector2(4.5, 6.5)).length() <= float(sh.max_offset) + 0.001 and not (sf.at as Vector2).is_equal_approx(Vector2(4.5, 6.5)), "shadow: it falls along the sun, held to max_offset")
+	check(IR.shadow_of(fly, 1.0, Vector3.UP).is_empty(), "shadow: a flier casts none when the sun is not low over it")
+	var bf := fly.duplicate()
+	bf.kind = "butterfly"
+	var sb: Dictionary = IR.shadow_of(bf, 1.0, dir)
+	check(not sb.is_empty() and (sb.size as Vector2).x < (sf.size as Vector2).x, "shadow: a butterfly's oval is smaller than a dragonfly's")
+	# Buildings: a blob on one is left out; a flier whose oval lands on one casts none.
+	check(IR.shadow_of(perch, 1.0, dir, {}, {Vector2i(4, 6): true}).is_empty(), "shadow: a perched one's blob on a building is left out")
+	check(not IR.shadow_of(perch, 1.0, dir, {}, {Vector2i(9, 9): true}).is_empty(), "shadow: a perched one's blob off the buildings stays")
+	var wall := {}
+	for x in range(-2, 12):
+		for y in range(-2, 14):
+			wall[Vector2i(x, y)] = true
+	check(IR.shadow_of(fly, 1.0, dir, {}, wall).is_empty(), "shadow: a flier whose shadow falls on a building casts none")
+	var sc := {}
+	var tb: Dictionary = IR.blocked_for(sc, MM.data("town"), null, g)
+	check(tb.has(Vector2i(1, 8)) and not tb.has(Vector2i(20, 1)), "shadow: the blocked cells hold the town's houses (%d)" % tb.size())
+	sc.blocked = {}   # the same built key: kept, not rebuilt
+	check(IR.blocked_for(sc, MM.data("town"), null, g).is_empty(), "shadow: the blocked set is kept while the buildings stay")
+	sc.built_key = "changed"   # a building finished: rebuilt
+	check(IR.blocked_for(sc, MM.data("town"), null, g).size() == tb.size(), "shadow: rebuilt when the buildings change")
+
+
+## `--insects=dragonfly:perched`: the first dragonfly rests on the perch nearest the aim, for good
+## (held_perch; insects() with the kind forced to perch, set here as the command line sets it).
+func _held() -> void:
+	var sc: Dictionary = IR.scene_of(MM.data("kaminoda"), null, 3)
+	check(not (sc.perches as Array).is_empty(), "held: kaminoda has perches (%d)" % (sc.perches as Array).size())
+	var aim := Vector2(5.0, 9.0)
+	var want := Vector3.ZERO
+	var best := INF
+	for p in sc.perches:
+		if Vector2(p.x, p.z).distance_to(aim) < best:
+			best = Vector2(p.x, p.z).distance_to(aim)
+			want = p
+	var h: Dictionary = IR.held_perch(sc, aim)
+	check(h.get("pose", "") == "perch" and (h.get("pos", Vector3.ZERO) as Vector3).is_equal_approx(want), "held: the perch nearest the aim")
+	# The farm's gate road has no fence post in 3D, so no fence perch may sit on it.
+	var fm: MapData = MM.data("farm")
+	var gates := fm.gate_cells()
+	var fs: Dictionary = IR.scene_of(fm, g.farm, 3)
+	var on_gate := false
+	for p in fs.perches:
+		on_gate = on_gate or Vector2i(floori(p.x), floori(p.z)) in gates
+	check(not gates.is_empty() and not on_gate and not (fs.perches as Array).is_empty(), "held: no fence perch on the gate road (%d gate cells, %d perches)" % [gates.size(), (fs.perches as Array).size()])
+	# A fence perch stands on the post's top (OutdoorProps.FENCE_POST_H, 0.64 and its cap), not above it.
+	var post_h: float = load("res://scripts/world3d/outdoor_props.gd").FENCE_POST_H
+	check(absf(float((IR.config().dragonfly.perch_h as Dictionary).fence) - post_h) <= 0.01, "held: the fence perch is on the post's top (%.3f vs %.3f)" % [float(IR.config().dragonfly.perch_h.fence), post_h])
+	IR._forced_read = true
+	IR._forced = ["dragonfly"]
+	IR._perched_forced = ["dragonfly"]
+	var at_t: Array = IR.insects("dragonfly", 1.0, 40.0, sc, aim, {}, {}, [])
+	check(not at_t.is_empty() and at_t[0].pose == "perch" and (at_t[0].pos as Vector3).is_equal_approx(want), "held: the first dragonfly rests there at 40 s too")
+	check(at_t.size() > 1 and at_t.slice(1).any(func(b): return b.pose == "fly"), "held: the others still fly")
+	IR._forced = []
+	IR._perched_forced = []
+	check(IR.insects("dragonfly", 1.0, 40.0, sc, aim, {}, {}, []).all(func(b): return b.pose == "fly" or b.pose == "perch"), "held: back to the rules when not forced")
+
+
 ## Both 3D views build the node and show or hide it by the rules.
 func _views() -> void:
 	await process_frame
@@ -491,9 +570,18 @@ func _views() -> void:
 			layer.refresh()
 			var spot: Vector3 = rest[2]
 			check(layer.shown().any(func(b): return b.id == rest[1] and b.pose == "perch"), "3D: it rests on its perch")
+			check(layer.shadows().any(func(s): return (s.at as Vector2).is_equal_approx(Vector2(spot.x, spot.z))), "3D: a blob under the resting dragonfly")
 			w3.set_farmer(Vector3(spot.x + 0.4, 0.0, spot.z))
 			layer.refresh()
 			check(layer.shown().any(func(b): return b.id == rest[1] and b.pose == "fly"), "3D: set_farmer by the perch sends the dragonfly up")
+		_when(2, 11, 0, "sunny", 12)
+		layer.refresh()
+		var meshes := layer.get_children().filter(func(n): return n is MeshInstance3D and n.visible)
+		check(meshes.size() == layer.shadows().size(), "3D: a shadow mesh per insect shadow (%d)" % meshes.size())
+		var ground := true
+		for m in meshes:
+			ground = ground and m.layers == load("res://scripts/world3d/night_lamps.gd").GROUND_LAYER and m.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and m.position.y > 0.0 and m.position.y < 0.05
+		check(ground, "3D: the insect shadows lie on the ground layer, cast nothing")
 	w3.free()
 	var M3: GDScript = load("res://scripts/main_3d.gd")
 	var made: Array = M3.new_world(MM.data("farm"))
@@ -526,6 +614,7 @@ func _flat() -> void:
 	check(air.get_canvas_layer_node() == null and scene.tint.get_canvas() == air.get_canvas(), "flat (main_2d): fliers under the night tint")
 	bv.refresh()
 	check(bv.visible and bv.sprites().size() >= IR.count_for("dragonfly", 0.85), "flat (main_2d): dragonflies on a fall morning (%d)" % bv.sprites().size())
+	check(bv.shadows().size() <= bv.sprites().size() and bv.shadows().all(func(s): return float(s.alpha) > 0.0), "flat (main_2d): shadows for some of them, each with an alpha")
 	check(bv.sprites().all(func(s): return s.air == (s.key as String).contains(":fly:")), "flat (main_2d): fliers in the air pass, the resting ones not")
 	_when(2, 11, 0, "rain", 12)
 	bv.refresh()
@@ -549,6 +638,7 @@ func _flat() -> void:
 		var s: Dictionary = resting[0]
 		check(n.get_parent() == figs, "flat (main_2d): it is in the figure layer, sorted with the figures")
 		check(n.position == (s.ground as Vector2) - Vector2(0, FOOT), "flat (main_2d): its origin is FOOT px above the ground under it, not up on the perch")
+		check(bv.shadows().any(func(sh): return (sh.rect as Rect2).get_center().distance_to(s.ground) <= 2.0), "flat (main_2d): a blob on the ground under the resting one")
 		check(n.picture.at.y < FOOT and n.picture.at.y == FOOT - ((s.ground as Vector2).y - (s.at as Vector2).y), "flat (main_2d): the picture is drawn up at the perch's height")
 		check(not (bv.sprites() as Array).any(func(x): return x.air and (x.key as String).contains(":perch:")), "flat (main_2d): no resting picture in the air pass")
 	bv.refresh()

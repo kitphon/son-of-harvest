@@ -8,7 +8,9 @@ extends Node3D
 ## The farmer's place comes from FarmWorld.set_farmer (`farmer`, cells), so a resting dragonfly
 ## lifts off and a butterfly veers away when he comes near, and `others` (cells) are the villagers,
 ## the dog and the walking child that do it too. The sprites are alpha-cut (drawn with the solid
-## things, depth-tested), as the birds'. Only outdoor maps build one.
+## things, depth-tested), as the birds'. Shadows (InsectRules.shadow_of): a soft blob under a perched
+## dragonfly and a very faint sun-cast oval under a flier while the sun throws shadows, none on a
+## building; on the ground layer. Only outdoor maps build one.
 
 const GROUP := "insect_layers"
 
@@ -23,6 +25,9 @@ var _farm_key := ""
 var _state := {}
 var _pool: Array[Sprite3D] = []
 var _shown: Array[Dictionary] = []
+var _shadow_pool: Array[MeshInstance3D] = []
+var _shadows: Array[Dictionary] = []
+static var _soft: Texture2D
 
 
 func _init(m: MapData, f: FarmGrid = null) -> void:
@@ -80,6 +85,62 @@ func refresh() -> void:
 		s.offset = Vector2(0, tex.get_height() / 2.0)
 		s.position = b.pos
 		s.visible = true
+	_place_shadows(game)
+
+
+## The shadows of the insects shown (InsectRules.shadow_of), one flat soft oval each, just over the
+## ground: a blob under a perched dragonfly, a faint sun-cast oval under a flier while the sun
+## throws shadows. On the ground layer, as the birds' (the night lamps leave it out).
+func _place_shadows(game: Node) -> void:
+	_shadows.clear()
+	if not _shown.is_empty() and game != null:
+		var sun: float = game.sun_shadow()
+		var dir: Vector3 = game.sun_direction(game.sun_light())
+		var blocked := InsectRules.blocked_for(_scene, map, farm, game)
+		for b in _shown:
+			var sh := InsectRules.shadow_of(b, sun, dir, {}, blocked)
+			if not sh.is_empty():
+				_shadows.append(sh)
+	while _shadow_pool.size() < _shadows.size():
+		_shadow_pool.append(_make_shadow())
+	for i in _shadow_pool.size():
+		var m := _shadow_pool[i]
+		if i >= _shadows.size():
+			m.visible = false
+			continue
+		var sh := _shadows[i]
+		var size: Vector2 = sh.size
+		m.position = Vector3(sh.at.x, 0.015, sh.at.y)
+		m.scale = Vector3(size.x, 1.0, size.y)
+		(m.material_override as StandardMaterial3D).albedo_color = Color(0, 0, 0, float(sh.alpha))
+		m.visible = true
+
+
+func _make_shadow() -> MeshInstance3D:
+	var m := MeshInstance3D.new()
+	var plane := PlaneMesh.new()
+	plane.size = Vector2.ONE
+	m.mesh = plane
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_texture = soft_texture()
+	mat.albedo_color = Color(0, 0, 0, 0.3)
+	m.material_override = mat
+	m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	m.layers = NightLamps.GROUND_LAYER   # lies on the ground: the night lamps leave it out as they do the ground
+	m.visible = false
+	m.name = "Shadow"
+	add_child(m)
+	return m
+
+
+## The soft disc of the insects' shadows (data/insects.json "shadow" core, core_alpha; BirdLayer's blob).
+static func soft_texture() -> Texture2D:
+	if _soft == null:
+		var sh: Dictionary = InsectRules.config().get("shadow", {})
+		_soft = BirdLayer.blob_texture(float(sh.get("core", 0.4)), float(sh.get("core_alpha", 0.9)))
+	return _soft
 
 
 ## The insects showing now (for tests).
@@ -89,3 +150,8 @@ func shown() -> Array[Dictionary]:
 
 func shown_count() -> int:
 	return _shown.size()
+
+
+## The shadows showing now (for tests): [{at, size, alpha}] (InsectRules.shadow_of).
+func shadows() -> Array[Dictionary]:
+	return _shadows

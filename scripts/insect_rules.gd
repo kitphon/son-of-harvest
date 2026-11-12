@@ -21,6 +21,7 @@ const NO_AIM := Vector2(-99999.0, -99999.0)   # not forced (see forced())
 
 static var _cfg: Dictionary = {}
 static var _forced: Array = []
+static var _perched_forced: Array = []
 static var _forced_read := false
 
 
@@ -33,18 +34,33 @@ static func config() -> Dictionary:
 
 ## `-- --insects` (every kind) or `--insects=dragonfly,butterfly` on the command line: those kinds
 ## show at full strength whatever the season, weather and clock (screenshots), placed round the
-## farmer (the map's middle without one) at the start.
+## farmer (the map's middle without one) at the start. `--insects=dragonfly:perched` also holds the
+## first dragonfly resting on the perch nearest the farmer (held_perch), for a frame of it.
 static func forced() -> Array:
-	if not _forced_read:
-		_forced_read = true
-		for arg in OS.get_cmdline_user_args():
-			if arg == "--insects":
-				_forced = KINDS.duplicate()
-			elif arg.begins_with("--insects="):
-				for k in arg.trim_prefix("--insects=").split(","):
-					if k in KINDS:
-						_forced.append(k)
+	_read_args()
 	return _forced
+
+
+## The kinds forced to perch (`--insects=<kind>:perched`).
+static func perched_forced() -> Array:
+	_read_args()
+	return _perched_forced
+
+
+static func _read_args() -> void:
+	if _forced_read:
+		return
+	_forced_read = true
+	for arg in OS.get_cmdline_user_args():
+		if arg == "--insects":
+			_forced = KINDS.duplicate()
+		elif arg.begins_with("--insects="):
+			for item in arg.trim_prefix("--insects=").split(","):
+				var parts := item.split(":")
+				if parts[0] in KINDS:
+					_forced.append(parts[0])
+					if parts.size() > 1 and parts[1] == "perched":
+						_perched_forced.append(parts[0])
 
 
 ## A steady pseudo-random number in 0..1 from three integers (the drift's, so everywhere the same).
@@ -134,6 +150,7 @@ static func scene_of(m: MapData, farm: FarmGrid = null, seed_value := 0, cfg := 
 	var perches: Array[Vector3] = []
 	if farm != null:
 		var stage_min := int(dk.perch_stage)
+		var gates := m.gate_cells()   # the gate road has no post (FarmWorld._make_fence leaves it open)
 		for y in farm.h:
 			for x in farm.w:
 				var c := Vector2i(x, y)
@@ -143,7 +160,8 @@ static func scene_of(m: MapData, farm: FarmGrid = null, seed_value := 0, cfg := 
 					wet.append(mid)
 					continue
 				if f == "fence":
-					perches.append(Vector3(mid.x, float(ph.fence), mid.y))
+					if not c in gates:
+						perches.append(Vector3(mid.x, float(ph.fence), mid.y))
 					continue
 				if f != "":
 					continue
@@ -227,11 +245,61 @@ static func insects(kind: String, amount_now: float, t: float, scene: Dictionary
 	if kind in forced():
 		aim = farmer if farmer != NO_FARMER else (scene.area as Rect2).get_center()
 	var walkers := _walkers(farmer, others, cfg)
+	var held := kind in perched_forced()
 	for i in n:
+		if i == 0 and held:   # `:perched`: the first one rests on the perch nearest the aim, for good
+			var r := held_perch(scene, aim)
+			if not r.is_empty():
+				out.append(r)
+			continue
 		var b := _butterfly(i, k, t, scene, walkers, aim) if kind == "butterfly" else _dragonfly(i, k, t, scene, walkers, state, aim)
 		if not b.is_empty():
 			out.append(b)
 	return out
+
+
+## A dragonfly held resting on the perch nearest `aim` (a screenshot's; it never lifts off, so no
+## state): wings flat, facing right. {} when the map has no perch.
+static func held_perch(scene: Dictionary, aim: Vector2) -> Dictionary:
+	var best := Vector3.ZERO
+	var found := false
+	var best_d := INF
+	for p in scene.perches:
+		var d := Vector2(p.x, p.z).distance_to(aim)
+		if d < best_d:
+			best_d = d
+			best = p
+			found = true
+	if not found:
+		return {}
+	return {"id": "dragonfly:0", "kind": "dragonfly", "art": "dragonfly", "pos": best, "pose": "perch",
+		"frame": 0, "dir": Vector2.RIGHT, "alpha": 1.0}
+
+
+## The shadow insect `b` throws on the ground (data/insects.json "shadow", the birds' rules via
+## BirdRules.shadow_of, the same shape: {at, size, alpha}, or {}). A perched dragonfly's soft blob
+## on the ground under it; a flier's faint sun-cast oval (none without sun). Nothing falls on a
+## building: `blocked` (scene.blocked, blocked_for) leaves out a flier's oval that lands on one and a
+## perched one's blob that sits on one.
+static func shadow_of(b: Dictionary, sun: float, sun_dir: Vector3, cfg := {}, blocked := {}) -> Dictionary:
+	if cfg.is_empty():
+		cfg = config()
+	var s := BirdRules.shadow_of(b, sun, sun_dir, cfg, blocked)
+	if s.is_empty() or flying(b):
+		return s
+	if blocked.has(Vector2i(floori(s.at.x), floori(s.at.y))):
+		return {}
+	return s
+
+
+## The buildings' cells a shadow is kept off (BirdRules.blocked_cells with the insects' lists),
+## rebuilt when the farm's buildings change (BirdRules.built_key) and kept in `scene`.
+static func blocked_for(scene: Dictionary, m: MapData, farm: FarmGrid, game: Object) -> Dictionary:
+	var key := BirdRules.built_key(game)
+	if not scene.has("blocked") or scene.get("built_key", null) != key:
+		scene.built_key = key
+		scene.blocked = BirdRules.blocked_cells(m, farm, config())
+	return scene.blocked
 
 
 ## The picture key of an insect from insects().
