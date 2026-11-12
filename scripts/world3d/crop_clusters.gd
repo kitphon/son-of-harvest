@@ -242,6 +242,29 @@ func materials() -> Array[ShaderMaterial]:
 	return out
 
 
+static var _tops := {}
+
+
+## How high the top of a picture's first opaque row stands over its root, in cells (the quad
+## FarmWorld.PX a pixel tall, standing on its bottom middle; a single crop sprite is the same).
+## Times a plant's `size` it is where a dragonfly's feet rest (InsectRules.plant_perch).
+static func top_of(tex_key: String) -> float:
+	if not _tops.has(tex_key):
+		var img := PlaceholderArt.tex(tex_key).get_image()
+		var top := img.get_height()
+		for y in img.get_height():
+			var hit := false
+			for x in img.get_width():
+				if img.get_pixel(x, y).a > 0.1:
+					hit = true
+					break
+			if hit:
+				top = y
+				break
+		_tops[tex_key] = float(img.get_height() - top) * FarmWorld.PX
+	return _tops[tex_key]
+
+
 ## The cluster key for a cell's crop key (`crop:<id>:<growth>:<state>` from
 ## PlaceholderArt.cell_key), or "" when that crop at that growth is a single sprite.
 static func key_for(crop_key: String) -> String:

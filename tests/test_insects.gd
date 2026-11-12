@@ -34,6 +34,7 @@ func _run() -> void:
 	_art()
 	_shadows()
 	_held()
+	await _crop_perches()
 	await _views()
 	await _flat()
 	print("test_insects: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
@@ -137,8 +138,8 @@ func _scenes() -> void:
 	var ps: Dictionary = IR.scene_of(MM.data("farm"), g.farm, 5)
 	check(ps.lures.has(Vector2(10.5, 10.5)) and ps.lures.has(Vector2(11.5, 10.5)) and not ps.lures.has(Vector2(12.5, 10.5)), "farm: planted crops lure butterflies, the rice does not")
 	check(ps.wet.has(Vector2(12.5, 10.5)), "farm: the rice stands in water")
-	check(ps.perches.any(func(p): return is_equal_approx(p.x, 11.5) and is_equal_approx(p.z, 10.5) and p.y > 0.8), "farm: the grown corn's top is a perch")
-	check(not ps.perches.any(func(p): return is_equal_approx(p.x, 10.5) and is_equal_approx(p.z, 10.5)), "farm: a turnip is not")
+	check(ps.perches.any(func(p): return floori(p.x) == 11 and floori(p.z) == 10 and p.y > 0.8), "farm: the grown corn's top is a perch")
+	check(not ps.perches.any(func(p): return floori(p.x) == 10 and floori(p.z) == 10), "farm: a turnip is not")
 	check(IR.farm_key(g.farm) != "" and IR.farm_key(null) == "", "the farm's key follows its plantings")
 	for c in cs:
 		var d: Dictionary = g.farm.cell(c)
@@ -446,16 +447,20 @@ func _art() -> void:
 ## dragonfly's blob under it at any sun, a flier's faint sun-cast oval only in sun, none on a building.
 func _shadows() -> void:
 	var sh: Dictionary = IR.config().shadow
-	check(sh.size.has("butterfly") and sh.size.has("dragonfly") and float(sh.fly_alpha) > 0.0 and float(sh.fly_alpha) < 0.1, "shadow: data has sizes and a very faint flier alpha")
+	var bsh: Dictionary = (load("res://scripts/bird_rules.gd") as GDScript).config().shadow
+	check(sh.size.has("butterfly") and sh.size.has("dragonfly") and float(sh.fly_alpha) > 0.0 and float(sh.fly_alpha) <= float(bsh.fly_alpha), "shadow: data has sizes and a faint flier alpha, not above a bird's (%.2f)" % float(sh.fly_alpha))
+	check(float(sh.ground_alpha) <= float(bsh.ground_alpha) and float(sh.size.dragonfly) >= 0.4 and float(sh.size.dragonfly) <= float(bsh.size.sparrow), "shadow: a perched one's blob reads at 480 x 270 and is never darker or larger than a sparrow's")
 	check(float(sh.ground_alpha) > 3.0 * float(sh.fly_alpha), "shadow: a perched one's blob is far darker than a flier's cast")
 	var dir: Vector3 = g.sun_direction({"elevation": 40.0, "yaw": -40.0})
 	var perch := {"id": "dragonfly:0", "kind": "dragonfly", "art": "dragonfly", "pos": Vector3(4.5, 0.7, 6.5), "pose": "perch", "frame": 0, "dir": Vector2.RIGHT, "alpha": 1.0}
 	var s0: Dictionary = IR.shadow_of(perch, 0.0, dir)
 	check(not s0.is_empty() and (s0.at as Vector2).is_equal_approx(Vector2(4.5, 6.5)), "shadow: a perched dragonfly has a blob under it, with no sun")
-	check(s0 == IR.shadow_of(perch, 1.0, dir), "shadow: the blob is the same in sun")
+	var s1: Dictionary = IR.shadow_of(perch, 1.0, dir)
+	var slid: Vector2 = (s1.at as Vector2) - (s0.at as Vector2)
+	check(not s1.is_empty() and slid.length() > 0.05 and slid.length() <= float(sh.perch_offset) + 0.001 and s1.size == s0.size, "shadow: in sun the blob falls along the light off its perch (%.2f cells, at most %.2f)" % [slid.length(), float(sh.perch_offset)])
 	var lift := clampf(1.0 - 0.7 / float(sh.hop_fade), 0.4, 1.0)
 	check(not s0.is_empty() and is_equal_approx(float(s0.get("alpha", -1.0)), float(sh.ground_alpha) * lift), "shadow: its alpha is ground_alpha lifted by the perch's height (%.3f)" % float(s0.get("alpha", -1.0)))
-	check(not s0.is_empty() and (s0.size as Vector2).x < 0.4, "shadow: a small blob")
+	check(not s0.is_empty() and (s0.size as Vector2).x < 0.6, "shadow: a small blob")
 	var fly := {"id": "dragonfly:1", "kind": "dragonfly", "art": "dragonfly", "pos": Vector3(4.5, 1.0, 6.5), "pose": "fly", "frame": 0, "dir": Vector2.RIGHT, "alpha": 1.0}
 	check(IR.shadow_of(fly, 0.0, dir).is_empty(), "shadow: a flier casts none without sun")
 	var sf: Dictionary = IR.shadow_of(fly, 1.0, dir)
@@ -467,7 +472,7 @@ func _shadows() -> void:
 	var sb: Dictionary = IR.shadow_of(bf, 1.0, dir)
 	check(not sb.is_empty() and (sb.size as Vector2).x < (sf.size as Vector2).x, "shadow: a butterfly's oval is smaller than a dragonfly's")
 	# Buildings: a blob on one is left out; a flier whose oval lands on one casts none.
-	check(IR.shadow_of(perch, 1.0, dir, {}, {Vector2i(4, 6): true}).is_empty(), "shadow: a perched one's blob on a building is left out")
+	check(IR.shadow_of(perch, 0.0, dir, {}, {Vector2i(4, 6): true}).is_empty(), "shadow: a perched one's blob on a building is left out")
 	check(not IR.shadow_of(perch, 1.0, dir, {}, {Vector2i(9, 9): true}).is_empty(), "shadow: a perched one's blob off the buildings stays")
 	var wall := {}
 	for x in range(-2, 12):
@@ -485,6 +490,81 @@ func _shadows() -> void:
 
 ## `--insects=dragonfly:perched`: the first dragonfly rests on the perch nearest the aim, for good
 ## (held_perch; insects() with the kind forced to perch, set here as the command line sets it).
+func _crop_perches() -> void:
+	# The perch heights come from the 3D field's own plants: each crop's perch stands where a plant
+	# of CropClusters.planted is, at that plant's top (its picture's top row times its size, no more
+	# than the quad CropClusters draws and within 3 pixels of it); the eggplant (a single sprite) at
+	# its picture's top over the cell's middle.
+	var fm: MapData = MM.data("farm")
+	var cases := {Vector2i(10, 10): "corn", Vector2i(12, 10): "rice", Vector2i(14, 10): "tomato", Vector2i(16, 10): "cucumber", Vector2i(18, 10): "eggplant"}
+	for c in cases:
+		var d: Dictionary = g.farm.cell(c)
+		d.obj = 0
+		d.crop = cases[c]
+		d.stage = g.farm.ripe_stage(cases[c])
+	var sc: Dictionary = IR.scene_of(fm, g.farm, 5)
+	var CC: GDScript = load("res://scripts/world3d/crop_clusters.gd")
+	var cc: Node3D = CC.new()
+	root.add_child(cc)
+	var clusters := {}
+	for c in cases:
+		var key: String = load("res://scripts/art/placeholder_art.gd").cell_key(g.farm, g.farm.cell(c))
+		if CC.key_for(key) != "":
+			clusters[c] = CC.key_for(key)
+	cc.plant(clusters, func(_c: Vector2i) -> float: return 0.0)
+	var kinds: Array = sc.perch_kinds
+	check(kinds.size() == (sc.perches as Array).size(), "crop perches: every perch has a kind (%d)" % kinds.size())
+	for c in cases:
+		var id: String = cases[c]
+		var mine: Array = []
+		for i in kinds.size():
+			if kinds[i] == id and floori(sc.perches[i].x) == c.x and floori(sc.perches[i].z) == c.y:
+				mine.append(sc.perches[i])
+		check(mine.size() == 1, "crop perches: %s has one perch" % id)
+		if mine.size() != 1:
+			continue
+		var p: Vector3 = mine[0]
+		if clusters.has(c):
+			var hit: Array = cc.planted.filter(func(sp): return sp.cell == c and is_equal_approx(sp.pos.x, p.x) and is_equal_approx(sp.pos.z, p.z))
+			check(hit.size() == 1, "crop perches: %s rests where a plant stands" % id)
+			if hit.size() == 1:
+				var sp: Dictionary = hit[0]
+				var quad: float = (cc._layers[sp.tex].multimesh.mesh as QuadMesh).size.y * float(sp.size)
+				check(is_equal_approx(p.y, CC.top_of(sp.tex) * float(sp.size)) and p.y <= quad + 0.001 and quad - p.y <= 3.0 * 0.045 + 0.001, "crop perches: %s rests on its plant's top (%.3f of a %.3f quad)" % [id, p.y, quad])
+				check(cc.planted.all(func(o): return o.cell != c or o.pos.y + CC.top_of(o.tex) * float(o.size) <= p.y + 0.001), "crop perches: %s is its tallest plant" % id)
+		else:
+			var tex: Texture2D = load("res://scripts/art/placeholder_art.gd").tex(load("res://scripts/art/placeholder_art.gd").cell_key(g.farm, g.farm.cell(c)))
+			var spr: Node = load("res://scripts/world3d/farm_world.gd").make_sprite(tex)
+			var full: float = tex.get_height() * float(spr.pixel_size)
+			spr.free()
+			check(is_equal_approx(p.x, c.x + 0.5) and p.y <= full + 0.001 and full - p.y <= 3.0 * 0.045 + 0.001, "crop perches: %s rests on its sprite's top (%.3f of %.3f)" % [id, p.y, full])
+	var ph: Dictionary = IR.config().dragonfly.perch_h
+	check(not ph.has("rice") and not ph.has("corn") and not ph.has("paddy"), "crop perches: no crop height is guessed in the data any more")
+	# The paddies' rice: a perch on a plant of the summer rice's own picture.
+	var kam: Dictionary = IR.scene_of(MM.data("kaminoda"), null, 3)
+	var pk: String = CC.paddy_key(str(IR.config().dragonfly.paddy_perch_season))
+	var n := 0
+	for i in (kam.perches as Array).size():
+		if kam.perch_kinds[i] != "paddy":
+			continue
+		n += 1
+		var q: Vector3 = kam.perches[i]
+		var spots: Array = CC.spots_for({Vector2i(floori(q.x), floori(q.z)): pk})
+		check(spots.any(func(sp): return is_equal_approx(sp.pos.x, q.x) and is_equal_approx(sp.pos.z, q.z) and is_equal_approx(q.y, CC.top_of(sp.tex) * float(sp.size))), "crop perches: a paddy perch rests on a rice plant's top (%.3f)" % q.y)
+	check(n > 0, "crop perches: kaminoda has paddy perches (%d)" % n)
+	for season in ["summer", "fall"]:
+		check(is_equal_approx(CC.top_of(CC.paddy_key(season) + ":0"), CC.top_of(pk + ":0")), "crop perches: the %s rice is as tall as the summer rice" % season)
+	# `--insects=dragonfly:perched:rice`: the nearest perch of that kind.
+	var hr: Dictionary = IR.held_perch(sc, Vector2(10.5, 10.5), "rice")
+	check(not hr.is_empty() and floori(hr.pos.x) == 12, "crop perches: held on the nearest rice")
+	check(IR.held_perch(sc, Vector2(10.5, 10.5), "pumpkin").is_empty(), "crop perches: no perch of a kind the map has none of")
+	cc.free()
+	for c in cases:
+		var d: Dictionary = g.farm.cell(c)
+		d.crop = ""
+		d.stage = 0
+
+
 func _held() -> void:
 	var sc: Dictionary = IR.scene_of(MM.data("kaminoda"), null, 3)
 	check(not (sc.perches as Array).is_empty(), "held: kaminoda has perches (%d)" % (sc.perches as Array).size())
@@ -570,7 +650,7 @@ func _views() -> void:
 			layer.refresh()
 			var spot: Vector3 = rest[2]
 			check(layer.shown().any(func(b): return b.id == rest[1] and b.pose == "perch"), "3D: it rests on its perch")
-			check(layer.shadows().any(func(s): return (s.at as Vector2).is_equal_approx(Vector2(spot.x, spot.z))), "3D: a blob under the resting dragonfly")
+			check(layer.shadows().any(func(s): return (s.at as Vector2).distance_to(Vector2(spot.x, spot.z)) <= float(IR.config().shadow.perch_offset) + 0.01), "3D: a blob under the resting dragonfly")
 			w3.set_farmer(Vector3(spot.x + 0.4, 0.0, spot.z))
 			layer.refresh()
 			check(layer.shown().any(func(b): return b.id == rest[1] and b.pose == "fly"), "3D: set_farmer by the perch sends the dragonfly up")
@@ -638,7 +718,7 @@ func _flat() -> void:
 		var s: Dictionary = resting[0]
 		check(n.get_parent() == figs, "flat (main_2d): it is in the figure layer, sorted with the figures")
 		check(n.position == (s.ground as Vector2) - Vector2(0, FOOT), "flat (main_2d): its origin is FOOT px above the ground under it, not up on the perch")
-		check(bv.shadows().any(func(sh): return (sh.rect as Rect2).get_center().distance_to(s.ground) <= 2.0), "flat (main_2d): a blob on the ground under the resting one")
+		check(bv.shadows().any(func(sh): return (sh.rect as Rect2).get_center().distance_to(s.ground) <= float(IR.config().shadow.perch_offset) * 16.0 + 2.0), "flat (main_2d): a blob on the ground under the resting one")
 		check(n.picture.at.y < FOOT and n.picture.at.y == FOOT - ((s.ground as Vector2).y - (s.at as Vector2).y), "flat (main_2d): the picture is drawn up at the perch's height")
 		check(not (bv.sprites() as Array).any(func(x): return x.air and (x.key as String).contains(":perch:")), "flat (main_2d): no resting picture in the air pass")
 	bv.refresh()
