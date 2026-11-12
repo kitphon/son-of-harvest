@@ -32,10 +32,8 @@ const FIGURE_TOP := 2 - PlaceholderArt.FIGURE_SIZE.y   # the picture's top row, 
 
 func _ready() -> void:
 	Game.changed.connect(queue_redraw)   # picking up / putting down while standing still
-	var shadow := Node2D.new()   # contact shadow under the feet, behind the picture and the overlays
-	shadow.show_behind_parent = true
-	shadow.draw.connect(func(): shadow.draw_circle(Vector2(0, 2), 5, Color(0, 0, 0, 0.25)))
-	add_child(shadow)
+	# The contact shadow under the feet is drawn by the map view's FigureLayer (its Shadows), on the
+	# ground under every figure; the farmer sorts with the other figures by the spot (the feet 2 px below).
 	figure = Sprite2D.new()
 	figure.show_behind_parent = true   # the target box, lantern, carried item and fishing marks draw over it
 	figure.name = "Figure"

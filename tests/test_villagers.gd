@@ -867,7 +867,7 @@ func _check_views() -> void:
 	check(ids == ["kaede", "kota", "mio", "nana", "tome"], "Kaede (folding charms at the shrine), Kota, Mio (selling her catch at the store's front), Nana and Tome are in the village at 14:20 (the keepers are in their shops) %s" % [ids])
 	var layers3: Array = _scene3.world.get_children().filter(func(n): return _script_is(n, "villager_sprites.gd"))
 	check(layers3.size() == 1 and layers3[0].map_id == "town", "the 3D village world has its villagers")
-	var layers2: Array = _scene2.view.get_children().filter(func(n): return _script_is(n, "villager_view.gd"))
+	var layers2: Array = _figs(_scene2.view).get_children().filter(func(n): return _script_is(n, "villager_view.gd"))
 	check(layers2.size() == 1 and layers2[0].map_id == "town", "the 2D village view has its villagers")
 	if layers3.size() != 1 or layers2.size() != 1:
 		return
@@ -914,7 +914,7 @@ func _check_farm_views() -> void:
 	var g: Node = root.get_node("Game")
 	check(MapManager.data("farm").props.any(func(p): return p.kind == "lumber" and p.cell == Vector2i(1, 4)), "the lumber by the house")
 	var layers3: Array = _farm3.world.get_children().filter(func(n): return _script_is(n, "villager_sprites.gd"))
-	var layers2: Array = _farm2.view.get_children().filter(func(n): return _script_is(n, "villager_view.gd"))
+	var layers2: Array = _figs(_farm2.view).get_children().filter(func(n): return _script_is(n, "villager_view.gd"))
 	var story2: Array = _farm2.view.get_children().filter(func(n): return _script_is(n, "story_view.gd"))
 	check(story2.size() == 1 and story2[0].map.props.any(func(p): return p.kind == "lumber"), "the flat view draws the lumber")
 	if layers3.size() == 1 and layers2.size() == 1:
@@ -966,7 +966,7 @@ func _check_river_views() -> void:
 	var want := Villagers.on_map("river", g.day_minutes(), g.trigger_state(Vector2i.ZERO))
 	check(g.weekday() == "sun" and want.map(func(w): return w.id) == ["hachiro", "kota"], "both at the river at 14:30 %s" % [want])
 	var layers3: Array = _scene3.world.get_children().filter(func(n): return _script_is(n, "villager_sprites.gd"))
-	var layers2: Array = _scene2.view.get_children().filter(func(n): return _script_is(n, "villager_view.gd"))
+	var layers2: Array = _figs(_scene2.view).get_children().filter(func(n): return _script_is(n, "villager_view.gd"))
 	if layers3.size() == 1 and layers2.size() == 1:
 		for w in want:
 			var key := Villagers.sprite_key(w)
@@ -994,3 +994,29 @@ func check(ok: bool, what: String) -> void:
 	if not ok:
 		failures += 1
 		print("FAIL: " + what)
+
+
+## The flat view's figure layer (FigureLayer, found by name: the tests load before the autoloads,
+## so they do not name the class) and the villagers' / animals' views in it.
+const FOOT := 2   # FigureLayer.FOOT (checked in test_view2d)
+
+
+func _figs(view: Node) -> Node2D:
+	return view.get_node_or_null("Figures") as Node2D if view != null else null
+
+
+func _vv(view: Node) -> Node:
+	return _in_figs(view, "villager_view.gd")
+
+
+func _av(view: Node) -> Node:
+	return _in_figs(view, "animal_view.gd")
+
+
+func _in_figs(view: Node, file: String) -> Node:
+	var layer := _figs(view)
+	if layer != null:
+		for n in layer.get_children():
+			if n.get_script() != null and n.get_script().resource_path.ends_with(file):
+				return n
+	return null

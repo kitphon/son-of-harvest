@@ -8,11 +8,11 @@ extends Node2D
 ## Two passes. This node, in the map view's ground order (over the ground, roofs and props, under
 ## the figures), draws the shadows on the ground (BirdRules.shadow_of: a soft blob under each bird
 ## on the ground, a faint one cast along the sun for a flier by day in sun), under every figure.
-## Each bird on the ground (standing, pecking, hopping) is a small `Ground` node of its own, sorted
-## in among the figures by its feet (slot_of): the flat view draws its figures in tree order (the
-## villagers' sprites, the animals' node, then the farmer after the map view) with no y-sort, so a
-## bird overlapping a figure is moved to just before the first one standing in front of it, or
-## just after the last one behind it; one overlapping none stays in this node. Its child `air` (z_index "flat".air_z) draws the birds in the
+## Each bird on the ground (standing, pecking, hopping) is a small `Ground` node of its own in the
+## map view's FigureLayer, which sorts it with the villagers, the animals, the dog and the farmer
+## by its feet (its origin FigureLayer.FOOT px above them, as theirs): in front of a figure it draws
+## over them, behind it is hidden by them. With no figure layer (a bird view on its own) they stay
+## in this node, under everything after it. Its child `air` (z_index "flat".air_z) draws the birds in the
 ## air over the roofs, props and figures, still under the weather and the night tint (the
 ## CanvasModulate covers every z), and the HUD and the map fade (their own canvas layers).
 ##
@@ -33,7 +33,7 @@ var _state := {}
 var _shown: Array[Dictionary] = []
 var _sun := 0.0
 var _sun_dir := Vector3.DOWN
-var _ground: Array[Node2D] = []   # the birds on the ground, a node each, sorted in among the figures
+var _ground: Array[Node2D] = []   # the birds on the ground, a node each, in the figure layer
 
 
 func setup(m: MapData, f: FarmGrid = null, p: Node2D = null) -> BirdView:
@@ -89,13 +89,16 @@ func walkers() -> Array:
 	var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
 	var parent := get_parent()
 	if parent != null:
-		for n in parent.get_children():
-			if n is VillagerView:
-				var stage := str(game.flags.get(Child.STAGE, "")) if game != null else ""
-				var feet: Dictionary = n.feet()
-				for id in feet:
-					if BirdRules.scares(str(id), stage):
-						out.append(feet[id])
+		var views: Array = parent.get_children().filter(func(n): return n is VillagerView)
+		var in_layer := FigureLayer.villagers_of(parent)
+		if in_layer != null:
+			views.append(in_layer)
+		for n in views:
+			var stage := str(game.flags.get(Child.STAGE, "")) if game != null else ""
+			var feet: Dictionary = n.feet()
+			for id in feet:
+				if BirdRules.scares(str(id), stage):
+					out.append(feet[id])
 	if farm != null and game != null and game.animals != null and not game.animals.dog.is_empty() and not game.animals.dog.held:
 		out.append(Vector2(game.animals.dog.cell) + Vector2(0.5, 0.5))
 	return out
@@ -133,8 +136,8 @@ func _draw() -> void:
 		draw_blob(self, s.rect, s.alpha)
 
 
-## One bird on the ground, its own small node so it can sit in the figures' drawing order: its
-## feet at the node's position.
+## One bird on the ground, its own small node so it sorts with the figures (FigureLayer): its
+## origin FigureLayer.FOOT px above its feet, as a villager's or the farmer's spot is.
 class Ground extends Node2D:
 	var bird := {}
 
@@ -143,51 +146,15 @@ class Ground extends Node2D:
 			BirdView._draw_bird(self, bird)
 
 
-## The figures a bird on the ground can overlap, in the order they are drawn: the map view's
-## villagers (VillagerView), its animals and the dog (AnimalView, one node for all) and the farmer
-## (drawn after the map view). [{feet: y in this node's pixels, rect: Rect2, anchor: the node drawn}].
-func figures() -> Array[Dictionary]:
-	var out: Array[Dictionary] = []
-	var to_me := get_global_transform().affine_inverse()
-	var parent := get_parent()
-	if parent != null:
-		for n in parent.get_children():
-			if n is VillagerView:
-				for s in (n as VillagerView).figures():
-					var x := to_me * s.get_global_transform()
-					var r := Rect2(s.offset, s.texture.get_size()) if s.texture != null else Rect2()
-					out.append({"feet": (x * Vector2.ZERO).y, "rect": x * r, "anchor": s})
-			elif n is AnimalView and (n as AnimalView).visible:
-				var x := to_me * (n as AnimalView).get_global_transform()
-				for f in (n as AnimalView).figures():
-					out.append({"feet": (x * (f.feet as Vector2)).y, "rect": x * (f.rect as Rect2), "anchor": n})
-	if player != null and player.is_inside_tree() and player.visible and player.get_parent() != null:
-		var x := to_me * player.get_global_transform()
-		var size := Vector2(PlaceholderArt.FIGURE_SIZE)
-		out.append({"feet": (x * Vector2.ZERO).y, "rect": x * Rect2(Vector2(-size.x / 2.0, Player.FIGURE_TOP), size), "anchor": player})
-	return out
+## Where the birds on the ground go: the map view's FigureLayer (sorted with the figures by their
+## feet), or this node when there is none.
+func ground_host() -> Node2D:
+	var layer := FigureLayer.of(get_parent()) if is_inside_tree() else null
+	return layer if layer != null and layer.is_inside_tree() else self
 
 
-## Where bird `s` (one of sprites(), on the ground) is drawn among the figures `figs` it overlaps:
-## just before the first one (in drawing order) whose feet are below its own (in front of it), else
-## just after the last one it overlaps (all behind it); {} when it overlaps none (drawn in this node,
-## under them all). {anchor, after}.
-static func slot_of(s: Dictionary, figs: Array[Dictionary]) -> Dictionary:
-	var tex := PlaceholderArt.tex(str(s.key))
-	var at: Vector2 = s.at
-	var r := Rect2(at - Vector2(floorf(tex.get_width() / 2.0), tex.get_height()), tex.get_size())
-	var last := {}
-	for f in figs:
-		if not (f.rect as Rect2).intersects(r):
-			continue
-		if float(f.feet) >= at.y:
-			return {"anchor": f.anchor, "after": false}
-		last = {"anchor": f.anchor, "after": true}
-	return last
-
-
-## Puts each bird on the ground in its own node, in the figures' drawing order (slot_of): so a
-## sparrow in front of a villager or the farmer draws over them and one behind draws under.
+## Puts each bird on the ground in its own node in the figure layer, at its feet: so a sparrow in
+## front of a villager, an animal or the farmer draws over them and one behind draws under.
 func _place_ground() -> void:
 	var on_ground := sprites().filter(func(s): return not s.air)
 	while _ground.size() < on_ground.size():
@@ -195,28 +162,19 @@ func _place_ground() -> void:
 		n.name = "Ground%d" % _ground.size()
 		add_child(n)
 		_ground.append(n)
-	var figs: Array[Dictionary] = []
-	if not on_ground.is_empty() and visible and is_inside_tree():
-		figs = figures()
+	var host := ground_host()
 	for i in _ground.size():
 		var n: Ground = _ground[i]
 		if i >= on_ground.size() or not visible:
 			n.visible = false
 			continue
 		var s: Dictionary = on_ground[i]
-		var slot := slot_of(s, figs)
-		var host: Node = self if slot.is_empty() else (slot.anchor as Node).get_parent()
 		if n.get_parent() != host:
 			n.get_parent().remove_child(n)
 			host.add_child(n)
-		if not slot.is_empty():
-			var to := (slot.anchor as Node).get_index() + (1 if slot.after else 0)
-			if n.get_index() < to:
-				to -= 1
-			if n.get_index() != to:
-				host.move_child(n, to)
-		n.position = s.at if host == self else ((host as CanvasItem).get_global_transform().affine_inverse() * (get_global_transform() * (s.at as Vector2))).round()
-		n.bird = {"at": Vector2.ZERO, "key": s.key, "right": s.right}
+		var feet: Vector2 = s.at if host == self else (host.get_global_transform().affine_inverse() * (get_global_transform() * (s.at as Vector2))).round()
+		n.position = feet - Vector2(0, FigureLayer.FOOT)
+		n.bird = {"at": Vector2(0, FigureLayer.FOOT), "key": s.key, "right": s.right}
 		n.visible = true
 		n.queue_redraw()
 

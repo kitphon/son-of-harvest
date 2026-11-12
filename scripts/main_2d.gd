@@ -6,6 +6,8 @@ extends Node2D
 ## snow, Lightning for the flashes, FestivalGlow for the lanterns and fireworks at night,
 ## NightView for the lit windows, stone lanterns and the warm pools under them, FlatLight for
 ## the sun's share and the warm night lift on the farmer, villagers, animals and field pictures.
+## The standing figures (the farmer, villagers and the child, animals and the dog, birds on the
+## ground) sort by their feet in the view's FigureLayer; the Player moves into it on each map change.
 
 const T := 16
 
@@ -99,8 +101,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 ## Swaps in the view for Game.maps and puts the farmer where it says.
 func _enter_map() -> void:
-	if view != null:
-		view.queue_free()
+	var old := view
 	var m := Game.maps.current()
 	if Game.maps.on_farm():
 		var fv := FarmView.new()
@@ -137,7 +138,6 @@ func _enter_map() -> void:
 	view.add_child(CradleView.new())   # the baby's cradle in the second room, while the child is a baby
 	view.add_child(FestivalView.new(m.id))   # today's festival decorations, in its hours
 	view.add_child(ForageView.new(m.id))   # what grows wild there today (data/forage.json)
-	view.add_child(VillagerView.new(m.id))
 	if Game.maps.mine_floor != null:   # rocks, soft spots and the hole down
 		view.add_child(MineView.new(Game.maps.mine_floor))
 	if m.plots.has_area():   # the greenhouse's beds (Game.greenhouse), drawn as the field is
@@ -146,9 +146,17 @@ func _enter_map() -> void:
 		beds.position = Vector2(m.plots.position * T)
 		view.add_child(beds)
 	move_child(view, 0)
+	# The standing figures, last in the view, sorted by their feet (FigureLayer): the villagers and
+	# the child, the animals and the dog (their eggs under them all), the farmer, the birds on the ground.
+	var figures := FigureLayer.build(view, player)
+	figures.add_child(VillagerView.new(m.id))
 	var animals := AnimalView.new()   # the animals and eggs (coop, barn, or the farm and its dog)
-	view.add_child(animals)
+	figures.add_child(animals)
 	animals.setup(m, Game.maps.on_farm(), player)
+	if player.get_parent() != figures:   # the farmer moves into the new view's figures, out of the old one
+		player.reparent(figures, false)
+	if old != null:
+		old.queue_free()
 	cam.limit_left = 0
 	cam.limit_top = 0
 	cam.limit_right = m.w * T
@@ -238,9 +246,9 @@ func _leave_prints() -> void:
 	if prints == null or view == null:
 		return
 	var walkers := {"farmer": player.position / T}
-	for n in view.get_children():
-		if n is VillagerView:
-			walkers.merge((n as VillagerView).feet())
+	var villagers := FigureLayer.villagers_of(view)
+	if villagers != null:
+		walkers.merge(villagers.feet())
 	var dog: Dictionary = Game.animals.dog
 	if Game.maps.on_farm() and not dog.get("held", false) and not dog.get("lifted", false):
 		walkers["dog"] = Vector2(dog.cell) + Vector2(0.5, 0.5)

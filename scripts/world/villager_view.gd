@@ -2,6 +2,9 @@ class_name VillagerView
 extends Node2D
 ## The villagers on one map in the flat view: their sprites at their plan's place now
 ## (Villagers.on_map), feet on the spot, redrawn every frame. Made fresh with the map's view.
+## It sits in the map view's FigureLayer, y-sorted: each sprite (origin on the spot, the feet
+## FigureLayer.FOOT px below it) sorts with the farmer, the animals and the other villagers by
+## its feet; what a villager holds and the note puff are the sprite's children, drawn with it.
 
 const T := 16
 
@@ -11,6 +14,8 @@ var _sprites := {}   # villager id -> Sprite2D
 
 func _init(map: String) -> void:
 	map_id = map
+	name = "Villagers"
+	y_sort_enabled = true
 
 
 func _ready() -> void:
@@ -105,8 +110,7 @@ func held(id: String) -> String:
 	return h.get_meta("item", "") if h != null and h.visible else ""
 
 
-## The shown villagers' sprites in drawing order (child order; feet at each one's position, the
-## flat view's birds on the ground sort in among them, BirdView).
+## The shown villagers' sprites (child order; feet FigureLayer.FOOT px below each one's position).
 func figures() -> Array[Sprite2D]:
 	var out: Array[Sprite2D] = []
 	for n in get_children():

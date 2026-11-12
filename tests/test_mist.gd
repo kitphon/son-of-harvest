@@ -303,10 +303,10 @@ func _views() -> void:
 	check(found != null, "flat: main_2d's view holds a mist view")
 	if found != null:   # drawn over the ferry boat, under the figures (child order of the map view)
 		var ferry := _find(main2d, load("res://scripts/world/ferry_view.gd"))
-		var villager := _find(main2d, load("res://scripts/world/villager_view.gd"))
-		var same := ferry != null and villager != null and found.get_parent() == ferry.get_parent() and villager.get_parent() == ferry.get_parent()
+		var figures: Node = found.get_parent().get_node_or_null("Figures")   # FigureLayer: the villagers, animals and the farmer
+		var same := ferry != null and figures != null and found.get_parent() == ferry.get_parent() and _find(figures, load("res://scripts/world/villager_view.gd")) != null
 		check(same and found.get_index() > ferry.get_index(), "flat: mist draws above the ferry boat")
-		check(same and found.get_index() < villager.get_index(), "flat: mist draws below the figures")
+		check(same and found.get_index() < figures.get_index(), "flat: mist draws below the figures")
 	main2d.queue_free()
 	v.free()
 	room.free()

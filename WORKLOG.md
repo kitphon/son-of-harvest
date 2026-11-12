@@ -10,6 +10,62 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-12 — The flat view's figures sort by their feet
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the thing "Ground birds sort with the figures" left open. The flat view drew its figures in
+  tree order (VillagerView's sprites as made, AnimalView's one node for every animal and the dog,
+  the Player after the whole map view), so a villager in front of the farmer was drawn under him and
+  the animals under every villager. Now every standing figure is in one y-sorted node,
+  `FigureLayer` (scripts/world/figure_layer.gd, name "Figures"), the map view's last child: the
+  VillagerView (y-sorted itself, so each villager's and the child's sprite joins the sort; what they
+  hold and the note puff are the sprite's children and go with it), the AnimalView (y-sorted; each
+  animal and the dog is now a `Beast` node of its own, the eggs it still draws itself at y 0, under
+  them all), the Player (main_2d builds the new view's layer, then `reparent`s the farmer into it
+  before freeing the old view; camera, EventPlayer and FarmActions keep the same node) and the birds
+  on the ground (BirdView's `Ground` nodes). Every origin is 2 px above the bottom row of its picture
+  (`FigureLayer.FOOT`, the farmer's and villagers' spot, their feet 2 px below), so kinds compare
+  fairly: animals and birds sit FOOT above their feet. What the farmer carries (an item, the baby,
+  the crawler, the dog), the lantern, the rod line, the bobber and the "!" are the Player's own
+  drawing, so they stay with him. His contact shadow moved out of the Player into `Shadows`, the
+  layer's sibling just before it, so it lies on the ground under every figure. The thrown item in
+  flight (Main2D, after the view), the fliers' Air pass (z 20), the weather (z 50), the night tint,
+  the mine light, the HUD and the fade are untouched; the ground things (crops, the greenhouse beds,
+  eggs, props, the cradle, the ferry boat, mist, puddles, lights) stay before the layer. The layer
+  moves itself back to the end of the view if anything is added to the view later. BirdView:
+  `figures()` and `slot_of` are gone; each bird on the ground is put in the figure layer at its feet
+  (`ground_host()`, falling back to the bird view itself when there is no layer); shadow code untouched.
+  `walkers()` finds the villagers in the layer too. Tests find the layer by name (they load before
+  the autoloads).
+- Checked: test_view2d `_figure_sort` (new): the layer is the view's last child, y-sorted, holding the
+  farmer, the y-sorted villagers and animals; the shadow just before it and not on the Player; the
+  thrown item after the view; a villager sprite 6 px south of the farmer after him in the layer's
+  draw order (`FigureLayer.draw_order()`: the items of the sort by y, ties in tree order, as Godot
+  sorts), 6 px north before him; the held turnip has no node of its own; a map change to the barn
+  moves the farmer into the new layer; the cow a node of its own FOOT above its feet; a villager 5 px
+  in front of the cow after it, 5 px behind before it; the farmer behind the cow before it.
+  test_birds `_ground_sort` rewritten to the same intent: the ground birds in the layer, origin FOOT
+  above the feet; a sparrow in front of a villager / the farmer after them, behind before them; the
+  dog by its feet both ways; fliers in the Air pass; a lone bird view keeps its birds; the nodes
+  leave with their bird view. test_mist and test_villagers look for the villagers in the layer.
+  Every test script AGENTS.md lists plus test_birds and test_wet, rerun after the last change, printed OK (0 failed), no ERROR lines in their logs. Smoke runs with no ERROR or
+  WARNING lines: title, `--demo`, `--demo --map=town`, `--demo --mine=3`; main_2d.tscn
+  `--demo --map=town`, `--demo --map=barn`, `--demo --map=coop --full`, `--festival=blossom_day`.
+  Frames (main_2d, before = this commit's parent built from `git archive`, after = this tree): the
+  plain frames `--demo --map=town --time=10:00`, `--demo --map=barn --full`, `--festival=blossom_day`,
+  `--demo --map=house --built=room --flags=married_sayo,spouse=sayo --time=19:00`, `--demo --map=coop
+  --full` (all `--no-hud`) were pixel-identical before and after: nobody overlapped there. So a
+  throwaway driver scene in shots/ (deleted) put the farmer just behind (north of) the first villager
+  each frame (behind the first cow in the barn), 4x crops: town, a villager in front of the farmer:
+  before the farmer is drawn over her, now she covers his legs; barn, the farmer 9 px behind a black
+  cow: before his legs over the cow, now the cow over his legs; Blossom Day, a purple-kimono villager
+  in front: before under the farmer, now over him (the grey-haired villager further south still over
+  both); the house, Sayo in front of the farmer: now over him; the yard by the coop, the toddler in
+  front: now over his legs. Also looked at (after only): the baby held at 19:00, the dog held, the
+  fishing bite (line, bobber, "!"), the turnip held, mine floor 3 with the lantern: all drawn with
+  the farmer as before.
+- Left / next: a villager lifted standing in the ferry boat sorts by the lifted spot (nobody else is
+  on the water). The 3D view was not touched (its sprites already sort by depth).
+
 ## 2026-11-12 — The birds' shadow limits: none on roofs, readable blobs
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Done: (1) A flier's shadow that would fall on a building is left out: `BirdRules.shadow_of(b, sun, sun_dir, cfg, blocked)` takes a set of cells; `BirdRules.scene_of` now carries `blocked` (`blocked_cells`: the maps' `village_house` and `hokora` props, on the farm FarmGrid's fixed house / door / coop / barn / silo / greenhouse cells, lists in data/birds.json `shadow` `blocked_props` / `blocked_fixed`). BirdLayer (3D) and BirdView (flat) pass `_scene.blocked`. The bird itself is unchanged; birds on the ground are never over a building. Left out rather than laid on the roof: a roof's height differs by house and the shadow of a bird over a roof is small and faint anyway. (2) The ground blobs: `ground_alpha` 0.4 to 0.62, `depth` 0.5 to 0.65 (the figures' blob_depth is 0.6), sizes sparrow 0.7, swallow 0.62, crow 0.85, heron 1.1 (were 0.5 / 0.5 / 0.7 / 0.9), and the 3D soft texture is now whole to `core` 0.4 at `core_alpha` 0.9 then fades to nothing at the rim (a wider soft edge, a darker centre; was 0.8 at 0.55). Fliers' `fly_size` 1.1 to 0.9 so their faint shadows stay about as they were. The flat blobs follow the same numbers.

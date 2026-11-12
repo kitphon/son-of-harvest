@@ -580,12 +580,12 @@ func _flat_order() -> void:
 		return
 	var air: Node2D = bv.air
 	var idx := bv.get_index()
-	var animals := view.get_children().filter(func(n): return n.get_script() == load("res://scripts/world/animal_view.gd"))
-	var villagers := view.get_children().filter(func(n): return n.get_script() == load("res://scripts/world/villager_view.gd"))
-	check(not animals.is_empty() and idx < animals[0].get_index(), "flat (main_2d): the ground pass is drawn before the animals and the dog")
+	var figs = _figs(view)
+	check(figs != null and idx < figs.get_index(), "flat (main_2d): the ground pass (the shadows) is drawn before the figure layer (villagers, animals, the dog, the farmer)")
 	check(idx > 0 and view.get_child(0).get_index() < idx, "flat (main_2d): the ground pass is over the ground, roofs and props (the view's first children)")
 	var air_z := _z_of(air)
-	check(air_z > _z_of(scene.player) and air_z > _z_of(view) and (villagers.is_empty() or air_z > _z_of(villagers[0])), "flat (main_2d): fliers over the farmer, villagers, roofs and props (z %d)" % air_z)
+	var villagers: Node2D = _vv(view)
+	check(air_z > _z_of(scene.player) and air_z > _z_of(view) and (villagers == null or air_z > _z_of(villagers)), "flat (main_2d): fliers over the farmer, villagers, roofs and props (z %d)" % air_z)
 	check(air_z < _z_of(scene.weather), "flat (main_2d): fliers under the rain and snow (z %d < %d)" % [air_z, _z_of(scene.weather)])
 	check(air.get_canvas_layer_node() == null and scene.tint.get_canvas() == air.get_canvas(), "flat (main_2d): fliers on the world's canvas, under the night tint, not glowing")
 	check(scene.fade is CanvasLayer and scene.fade.layer > 0, "flat (main_2d): the map fade is over the fliers")
@@ -596,13 +596,15 @@ func _flat_order() -> void:
 	await process_frame
 
 
-## The birds on the ground sort in among the figures by their feet in the built main_2d view: a
-## sparrow just in front of a villager or the farmer (feet lower on the screen) is drawn after
-## them, one just behind is drawn before them; one overlapping nobody stays in the bird view (under
-## them all); the fliers stay in the air pass; the shadows stay in the bird view's own drawing.
+## The birds on the ground sort with the figures by their feet in the built main_2d view: each is
+## a node in the map view's FigureLayer (y-sorted), its origin FigureLayer.FOOT px above its feet
+## as the villagers' and the farmer's spots are; a sparrow just in front of a villager, the farmer
+## or the dog (feet lower on the screen) is drawn after them, one just behind before them; the
+## fliers stay in the air pass; the shadows in the bird view's own drawing, before the figures.
 func _ground_sort(scene: Node, bv: Node2D) -> void:
 	var view: Node2D = scene.view
 	var player: Node2D = scene.player
+	var figs = _figs(view)
 	player.position = Vector2(-5000, -5000)   # far off: nothing startled
 	if not g.animals.dog.is_empty():
 		g.animals.dog.held = true   # the dog out of the way (no walker by the door)
@@ -613,14 +615,12 @@ func _ground_sort(scene: Node, bv: Node2D) -> void:
 	if ground.is_empty():
 		return
 	check(bv.ground_nodes().size() == ground.size(), "flat (main_2d): one node a bird on the ground (%d for %d)" % [bv.ground_nodes().size(), ground.size()])
-	check(bv.ground_nodes().all(func(n): return n.get_parent() == bv), "flat (main_2d): with nobody about the birds on the ground stay in the bird view, under every figure")
+	check(bv.ground_nodes().all(func(n): return n.get_parent() == figs), "flat (main_2d): the birds on the ground sit in the figure layer")
 	var s: Dictionary = ground[0]
 	var at: Vector2 = s.at
 	var node: Node2D = bv.ground_nodes()[0]
-	var vv: Node = null
-	for n in view.get_children():
-		if n.get_script() == load("res://scripts/world/villager_view.gd"):
-			vv = n
+	check(node.position == at - Vector2(0, FOOT) and node.bird.at == Vector2(0, FOOT), "flat (main_2d): a bird's node sits FOOT px above its feet, its picture where it was (%s, %s)" % [node.position, at])
+	var vv = _vv(view)
 	check(vv != null, "flat (main_2d): the map view has its villagers")
 	if vv == null:
 		return
@@ -631,73 +631,66 @@ func _ground_sort(scene: Node, bv: Node2D) -> void:
 	v.texture = player.figure.texture   # a figure-sized picture
 	vv.add_child(v)
 	vv._sprites["test_walker"] = v
-	v.position = at + Vector2(0, -6)   # just behind the bird (north): the bird draws over them
+	v.position = at + Vector2(0, -6 - FOOT)   # feet 6 px behind the bird (north): the bird draws over them
 	bv._place_ground()
-	var order := _draw_order(scene)
-	check(node.get_parent() == vv and order.find(node) > order.find(v), "flat (main_2d): a sparrow in front of a villager is drawn after them (%s, %d > %d)" % [node.get_parent().name, order.find(node), order.find(v)])
-	check(node.position == at, "flat (main_2d): the bird keeps its place among the villagers (%s, %s)" % [node.position, at])
-	v.position = at + Vector2(0, 6)   # just in front (south): the villager draws over the bird
+	var order: Array = figs.draw_order()
+	check(order.find(node) > order.find(v) and order.find(v) >= 0, "flat (main_2d): a sparrow in front of a villager is drawn after them (%d > %d)" % [order.find(node), order.find(v)])
+	v.position = at + Vector2(0, 6 - FOOT)   # feet 6 px in front (south): the villager draws over the bird
 	bv._place_ground()
-	order = _draw_order(scene)
+	order = figs.draw_order()
 	check(order.find(node) < order.find(v), "flat (main_2d): a sparrow behind a villager is drawn before them (%d < %d)" % [order.find(node), order.find(v)])
-	v.position = at + Vector2(200, 0)   # far to one side: overlaps nobody
+	v.position = at + Vector2(200, 0)   # far to one side: no matter, still sorted by the feet
 	bv._place_ground()
-	check(node.get_parent() == bv, "flat (main_2d): a sparrow overlapping nobody goes back to the bird view")
+	check(node.get_parent() == figs, "flat (main_2d): a sparrow overlapping nobody stays in the figure layer")
 	vv._sprites.erase("test_walker")
 	v.free()
-	# The farmer (drawn after the whole map view).
-	player.position = at + Vector2(0, -6)
+	# The farmer: the Player is a figure of the layer, what he carries is drawn by the Player itself.
+	player.position = at + Vector2(0, -6 - FOOT)
 	bv._place_ground()
-	order = _draw_order(scene)
-	var last_of_player := order.find(player)
-	for c in player.get_children():
-		last_of_player = maxi(last_of_player, order.find(c))
-	check(order.find(node) > last_of_player, "flat (main_2d): a sparrow in front of the farmer is drawn over the farmer and what he carries (%d > %d)" % [order.find(node), last_of_player])
-	check(order.find(node) < order.find(scene.flying), "flat (main_2d): ... still under a thrown item in flight")
+	order = figs.draw_order()
+	check(player.get_parent() == figs and not player.y_sort_enabled and order.find(node) > order.find(player), "flat (main_2d): a sparrow in front of the farmer is drawn over the farmer and what he carries (%d > %d)" % [order.find(node), order.find(player)])
+	check(scene.flying.get_index() > view.get_index() and scene.flying.get_parent() == scene, "flat (main_2d): ... still under a thrown item in flight (drawn after the map view)")
 	check(_z_of(node) == _z_of(player) and _z_of(node) < _z_of(scene.weather) and _z_of(node) < _z_of(bv.air), "flat (main_2d): ... at the figures' z, under the weather and the fliers")
 	check(node.get_canvas() == scene.tint.get_canvas() and node.get_canvas_layer_node() == null, "flat (main_2d): ... on the world's canvas, under the night tint")
-	player.position = at + Vector2(0, 6)
+	player.position = at + Vector2(0, 6 - FOOT)
 	bv._place_ground()
-	order = _draw_order(scene)
-	check(order.find(node) < order.find(player) and order.find(node) > order.find(view), "flat (main_2d): a sparrow behind the farmer is drawn after the map view and before the farmer")
-	# The dog (AnimalView): in front of the bird.
+	order = figs.draw_order()
+	check(order.find(node) < order.find(player), "flat (main_2d): a sparrow behind the farmer is drawn before the farmer")
+	# The dog (AnimalView, a node of its own): in front of the bird, then behind it.
 	if not g.animals.dog.is_empty():
-		var animals: Node = view.get_children().filter(func(n): return n.get_script() == load("res://scripts/world/animal_view.gd"))[0]
+		var animals = _av(view)
 		g.animals.dog.held = false
-		var placed := false
-		for dy in [0, 1, -1]:
-			g.animals.dog.cell = Vector2i(floori(at.x / 16.0), floori(at.y / 16.0) + dy)
-			var f: Dictionary = animals.figures().back()
-			if (f.feet as Vector2).y > at.y and (f.rect as Rect2).intersects(Rect2(at - Vector2(4, 6), Vector2(8, 6))):
-				placed = true
-				break
 		player.position = Vector2(-5000, -5000)
+		g.animals.dog.cell = Vector2i(floori(at.x / 16.0), floori(at.y / 16.0))
+		animals.sync()
+		var dog: Node2D = animals.figures().back().node
 		bv._place_ground()
-		order = _draw_order(scene)
-		check(placed and order.find(node) < order.find(animals) and order.find(node) > order.find(vv), "flat (main_2d): a sparrow behind the dog is drawn before the animals' node (%s)" % node.get_parent().name)
+		order = figs.draw_order()
+		var dog_feet: float = animals.figures().back().feet.y
+		check(dog != null and (order.find(node) < order.find(dog)) == (dog_feet > at.y), "flat (main_2d): a sparrow sorts with the dog by their feet (dog %.0f, bird %.0f; %d, %d)" % [dog_feet, at.y, order.find(dog), order.find(node)])
+		g.animals.dog.cell = Vector2i(floori(at.x / 16.0), floori(at.y / 16.0) - 2)   # two cells behind
+		animals.sync()
+		order = figs.draw_order()
+		check(order.find(node) > order.find(dog), "flat (main_2d): a sparrow in front of the dog is drawn over it")
 		g.animals.dog.held = true
 	# The fliers stay in the air pass, the shadows in the bird view's own drawing.
 	player.position = Vector2(-5000, -5000)
 	bv._place_ground()
 	check(bv.air.get_parent() == bv and bv.air.z_index == int(BR.config().flat.air_z), "flat (main_2d): the fliers' pass is where it was (z %d)" % bv.air.z_index)
 	check(not bv.ground_nodes().any(func(n): return (str(n.bird.key)).contains(":fly:")), "flat (main_2d): no flier among the birds on the ground")
+	# A bird view on its own (no figure layer) keeps its birds on the ground in itself.
+	var lone: Node2D = load("res://scripts/world/bird_view.gd").new().setup(MapManager.data("farm"), g.farm, null)
+	root.add_child(lone)
+	lone.refresh()
+	check(lone.ground_nodes().all(func(n): return n.get_parent() == lone), "flat: with no figure layer the birds on the ground stay in the bird view")
+	lone.free()
 	# A map change takes the nodes sitting among the figures away with the bird view.
-	player.position = at + Vector2(0, -6)
-	bv._place_ground()
 	var outside: Node2D = node
-	check(outside.get_parent() == scene, "flat (main_2d): the bird sits in the scene beside the farmer")
+	check(outside.get_parent() == figs, "flat (main_2d): the bird sits in the figure layer beside the farmer")
 	bv.get_parent().remove_child(bv)
 	check(outside.is_queued_for_deletion(), "flat (main_2d): its bird view leaving takes it along")
 	bv.queue_free()
 	await process_frame
-
-
-## Every canvas item under `n` in drawing order (tree order; all at z 0 here but the noted ones).
-func _draw_order(n: Node, out: Array = []) -> Array:
-	out.append(n)
-	for c in n.get_children():
-		_draw_order(c, out)
-	return out
 
 
 ## The z a canvas item is drawn at (its z_index added to its parents' while relative).
@@ -710,3 +703,29 @@ func _z_of(n: CanvasItem) -> int:
 			break
 		c = c.get_parent()
 	return z
+
+
+## The flat view's figure layer (FigureLayer, found by name: the tests load before the autoloads,
+## so they do not name the class) and the villagers' / animals' views in it.
+const FOOT := 2   # FigureLayer.FOOT (checked in test_view2d)
+
+
+func _figs(view: Node) -> Node2D:
+	return view.get_node_or_null("Figures") as Node2D if view != null else null
+
+
+func _vv(view: Node) -> Node:
+	return _in_figs(view, "villager_view.gd")
+
+
+func _av(view: Node) -> Node:
+	return _in_figs(view, "animal_view.gd")
+
+
+func _in_figs(view: Node, file: String) -> Node:
+	var layer := _figs(view)
+	if layer != null:
+		for n in layer.get_children():
+			if n.get_script() != null and n.get_script().resource_path.ends_with(file):
+				return n
+	return null

@@ -34,6 +34,7 @@ func _run() -> void:
 	player = scene.player
 	_scene_built()
 	await _figure()
+	await _figure_sort()
 	_tools()
 	await _hold_and_throw()
 	_bin_and_food()
@@ -67,6 +68,78 @@ func _scene_built() -> void:
 	check(_is(scene.view, "farm_view.gd") and g.maps.on_farm(), "it starts with the farm view")
 	check(player.action.is_connected(actions.on_action), "the Player's actions go to FarmActions")
 	check(not g.event_running, "no event is playing")
+
+
+## The standing figures sort by their feet (FigureLayer, the map view's last child, y-sorted):
+## a villager south of the farmer draws over him, one north under him; an animal and a villager the
+## same; what the farmer carries is drawn by the Player, so it goes with him; the thrown item, the
+## weather and the fades stay where they were; the farmer's shadow is on the ground under them all;
+## a map change moves the farmer into the new view's figures.
+func _figure_sort() -> void:
+	var figs = _figs(scene.view)
+	check(load("res://scripts/world/figure_layer.gd").FOOT == FOOT, "the tests' FOOT is FigureLayer's")
+	check(figs != null and figs.y_sort_enabled and figs.get_index() == scene.view.get_child_count() - 1, "the flat view's figures are one y-sorted layer, the map view's last child")
+	if figs == null:
+		return
+	var vv = _vv(scene.view)
+	var av = _av(scene.view)
+	check(player.get_parent() == figs and vv != null and vv.y_sort_enabled and av != null and av.y_sort_enabled and not player.y_sort_enabled,
+		"in it: the farmer, the villagers and the animals (each sorting their own figures with the rest)")
+	check(figs.shadows != null and figs.shadows.get_index() == figs.get_index() - 1 and player.get_children().all(func(n): return n is Camera2D or n.name == "Figure"),
+		"the farmer's contact shadow is drawn on the ground just before the figures, not by the Player")
+	check(scene.flying.get_parent() == scene and scene.flying.get_index() > scene.view.get_index() and scene.weather.z_index > 0,
+		"the thrown item in flight is drawn after the whole map view, the weather over it")
+	var was := player.position
+	player.position = Vector2(14 * 16 + 8, 8 * 16 + 8)
+	var v := Sprite2D.new()   # a villager sprite as VillagerView makes them
+	v.centered = false
+	v.offset = player.figure.offset
+	v.texture = player.figure.texture
+	vv.add_child(v)
+	v.position = player.position + Vector2(4, 6)   # south of the farmer, overlapping him
+	var order: Array = figs.draw_order()
+	check(order.find(v) > order.find(player) and order.find(player) >= 0, "a villager south of the farmer draws over him (%d > %d)" % [order.find(v), order.find(player)])
+	v.position = player.position + Vector2(4, -6)   # north of the farmer
+	order = figs.draw_order()
+	check(order.find(v) < order.find(player) and order.find(v) >= 0, "a villager north of the farmer draws under him (%d < %d)" % [order.find(v), order.find(player)])
+	# What the farmer carries overhead is the Player's own drawing: over the villager behind him too.
+	g.held = "turnip"
+	check(g.holding() and not order.any(func(n): return n.get_parent() == player), "the held item has no node of its own: the Player draws it with the farmer")
+	g.held = ""
+	v.free()
+	# The barn: an animal and a villager sort by their feet, the farmer among them.
+	g.animals.add("cow")
+	g.go_to_map("barn", Vector2i(3, 6), Vector2i.UP)
+	await _wait_view("map_view.gd")
+	figs = _figs(scene.view)
+	av = _av(scene.view)
+	vv = _vv(scene.view)
+	check(figs != null and player.get_parent() == figs and player.is_inside_tree(), "a map change moves the farmer into the new view's figures")
+	var cows: Array = av.figures() if av != null else []
+	check(not cows.is_empty() and cows[0].node != null and cows[0].node.get_parent() == av, "the barn's cow is a node of its own in the animals")
+	if not cows.is_empty() and vv != null:
+		var cow: Node2D = cows[0].node
+		var feet: Vector2 = cows[0].feet
+		check(cow.position == feet - Vector2(0, FOOT), "an animal's node sits FOOT px above its feet")
+		var w := Sprite2D.new()
+		w.centered = false
+		w.offset = player.figure.offset
+		w.texture = player.figure.texture
+		vv.add_child(w)
+		w.position = feet - Vector2(0, FOOT) + Vector2(0, 5)   # the villager's feet 5 px in front of the cow's
+		order = figs.draw_order()
+		check(order.find(w) > order.find(cow), "a villager in front of an animal draws over it")
+		w.position = feet - Vector2(0, FOOT) + Vector2(0, -5)
+		order = figs.draw_order()
+		check(order.find(w) < order.find(cow), "a villager behind an animal draws under it")
+		player.position = feet + Vector2(0, -12)
+		order = figs.draw_order()
+		check(order.find(player) < order.find(cow), "the farmer behind the cow draws under it")
+		w.free()
+	g.animals.list.pop_back()
+	g.go_to_map("farm", Vector2i(14, 8), Vector2i.DOWN)
+	await _wait_view("farm_view.gd")
+	player.position = was
 
 
 ## The flat farmer is the FigureArt picture the 3D view uses: 24 x 32, feet 2 px below the spot
@@ -270,10 +343,7 @@ func _crawler() -> void:
 	g.hour = 7
 	Villagers.reset_day()
 	await process_frame
-	var vv: Node = null
-	for n in scene.view.get_children():
-		if _is(n, "villager_view.gd"):
-			vv = n
+	var vv = _vv(scene.view)
 	var w := Villagers.where(Child.ID, g.day_minutes(), g.trigger_state(Vector2i.ZERO))
 	var cell := Vector2i(w.pos.floor())
 	check(g.flags.get(Child.STAGE) == "crawler" and vv != null and Child.ID in vv.shown(), "the flat house draws the crawler (%s)" % g.flags.get(Child.STAGE))
@@ -428,12 +498,9 @@ func _night() -> void:
 	check(strip.size.y == 2.0 and absf(strip.get_center().x - front.pos.x * 16.0) < 0.01, "a window shows as a strip on its wall")
 	var side: Rect2 = nv.pane_rect(spots.windows.filter(func(w): return w.normal.x > 0.5)[0])
 	check(side.size.x == 2.0 and side.size.y > 8.0, "a side window is a strip along its wall")
-	# Under the figures: the glow is a child of the view, drawn before the villagers; the farmer is above the view.
-	var order := true
-	for n in scene.view.get_children():
-		if _is(n, "villager_view.gd") or _is(n, "animal_view.gd"):
-			order = order and n.get_index() > nv.get_index()
-	check(order and scene.player.get_index() > scene.view.get_index() and nv.z_index == 0, "the glow is drawn under the villagers, animals and farmer")
+	# Under the figures: the glow is a child of the view, drawn before its figure layer (the villagers, animals and the farmer).
+	var figs = _figs(scene.view)
+	check(figs != null and figs.get_index() > nv.get_index() and scene.player.get_parent() == figs and nv.z_index == 0, "the glow is drawn under the villagers, animals and farmer")
 	# The night tint is divided out of the colour, so the light is not darkened by it.
 	await process_frame
 	var mat: ShaderMaterial = nv.get_node("Pools").material
@@ -537,10 +604,7 @@ func _sprite_light() -> void:
 	await process_frame
 	check(player.figure.self_modulate.is_equal_approx(Color.WHITE), "flat light: plain at noon")
 	check(scene.view._objects.is_in_group(FL.GROUP), "flat light: the field's pictures are redrawn with the light")
-	var animals: Node = null
-	for n in scene.view.get_children():
-		if _is(n, "animal_view.gd"):
-			animals = n
+	var animals = _av(scene.view)
 	check(animals != null and animals.is_in_group(FL.GROUP), "flat light: the animals and the dog are too")
 	# A plant of the tall crops is measured at its picture's middle (the 3D field's place).
 	var spot := {"tex": "stalk:corn:3:ripe:0", "pos": Vector3(3.5, 0, 4.5), "size": 1.0}
@@ -569,10 +633,7 @@ func _sprite_light() -> void:
 	check(lift > 0.1 and near.is_equal_approx(FL.color_for(FL.sun, lift, rules, scene.tint.color)) and near.r > near.b and near.r > 1.0,
 		"flat light: by a lit window the farmer reads warm (lift %.2f, %s)" % [lift, near])
 	check(FL.at(Vector2(-40, -40) * 16.0, 32, FW.FIGURE_PX).is_equal_approx(Color.WHITE), "flat light: in the dark no lift")
-	var villagers: Node = null
-	for n in scene.view.get_children():
-		if _is(n, "villager_view.gd"):
-			villagers = n
+	var villagers: Node = _vv(scene.view)
 	var vs: Array = villagers._sprites.values().filter(func(v): return v.visible) if villagers != null else []
 	var v_ok := true
 	for v in vs:
@@ -1621,3 +1682,29 @@ func _greenhouse() -> void:
 	g.held = ""
 	g.go_to_map("farm", Vector2i(27, 17), Vector2i.DOWN)
 	await _wait_view("farm_view.gd")
+
+
+## The flat view's figure layer (FigureLayer, found by name: the tests load before the autoloads,
+## so they do not name the class) and the villagers' / animals' views in it.
+const FOOT := 2   # FigureLayer.FOOT (checked in test_view2d)
+
+
+func _figs(view: Node) -> Node2D:
+	return view.get_node_or_null("Figures") as Node2D if view != null else null
+
+
+func _vv(view: Node) -> Node:
+	return _in_figs(view, "villager_view.gd")
+
+
+func _av(view: Node) -> Node:
+	return _in_figs(view, "animal_view.gd")
+
+
+func _in_figs(view: Node, file: String) -> Node:
+	var layer := _figs(view)
+	if layer != null:
+		for n in layer.get_children():
+			if n.get_script() != null and n.get_script().resource_path.ends_with(file):
+				return n
+	return null
