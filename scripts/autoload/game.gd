@@ -287,6 +287,7 @@ func new_game() -> void:
 	weather_tomorrow = roll_weather(_tomorrow_season())
 	var lift_after := false   # `--child=crawler:held`
 	var scion_ago := -1   # `--scion=`: Kiku's persimmon planted this many days ago
+	var snow_flag := -1   # `--snow=N`, wherever it stands among the flags: `--weather=` leaves the snow alone then
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--festival="):   # `-- --demo --festival=lantern_night`: its day, hours and place
 			Festivals.start_at(self, arg.trim_prefix("--festival="))
@@ -302,13 +303,15 @@ func new_game() -> void:
 				maps.place(m.id, spot[0], spot[1])
 		elif arg.begins_with("--weather="):   # e.g. `-- --demo --weather=storm` for screenshots
 			weather_today = arg.trim_prefix("--weather=")
-			snow_cover = next_snow_cover(0, weather_look(weather_today, season_name()), season_name(), snow_rules)
+			if snow_flag < 0:
+				snow_cover = next_snow_cover(0, weather_look(weather_today, season_name()), season_name(), snow_rules)
 		elif arg == "--footprints":   # e.g. `-- --demo --season=winter --snow=80 --footprints`: a trail behind the farmer and another walker's
 			demo_footprints = true
 		elif arg.begins_with("--wet="):   # e.g. `-- --demo --map=town --wet=1.0`: the wet look forced, 0..1 (still none indoors or under snow)
 			WetRules.forced = clampf(float(arg.trim_prefix("--wet=")), 0.0, 1.0)
 		elif arg.begins_with("--snow="):   # e.g. `-- --demo --season=winter --map=town --snow=80`: snow lying, 0..100
-			snow_cover = clampi(int(arg.trim_prefix("--snow=")), 0, 100)
+			snow_flag = clampi(int(arg.trim_prefix("--snow=")), 0, 100)
+			snow_cover = snow_flag
 		elif arg.begins_with("--time="):   # e.g. `-- --demo --map=town --time=14:30` (villagers by their plans)
 			var t := EventTriggers.clock(arg.trim_prefix("--time="))
 			if t < 0 or t >= 24 * 60:

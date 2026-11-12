@@ -35,9 +35,9 @@ static func silo(w: FarmWorld) -> void:
 	var c := r.get_center()
 	var radius := 0.84
 	var wall := 1.8
-	var timber := FarmWorld.flat_material(TIMBER)
-	var iron := FarmWorld.flat_material(IRON)
-	_drum(w, c, radius + 0.06, radius + 0.1, 0.3, 0.0, FarmWorld.flat_material(Color("8a8680")))   # the stone footing
+	var timber := WetRules.mark(FarmWorld.flat_material(TIMBER), "wood")   # marked: they get wet in rain (WetRules)
+	var iron := WetRules.mark(FarmWorld.flat_material(IRON), "plain")
+	_drum(w, c, radius + 0.06, radius + 0.1, 0.3, 0.0, WetRules.mark(FarmWorld.flat_material(Color("8a8680")), "stone"))   # the stone footing
 	_drum(w, c, radius, radius, wall, 0.3, FarmWorld.surface_material("build:sugi"))   # the staves
 	for y in [0.65, 1.15, 1.65]:   # the hoops
 		_drum(w, c, radius + 0.025, radius + 0.025, 0.07, y, iron)
@@ -58,7 +58,7 @@ static func silo(w: FarmWorld) -> void:
 	w._box(Vector3(0.5, 0.62, 0.05), Vector3(c.x, 0.3 + 0.31, fz - 0.03), FarmWorld.flat_material(Color("1a1410")))
 	w._box(Vector3(0.44, 0.5, 0.04), Vector3(c.x, 0.3 + 0.28, fz + 0.0), FarmWorld.surface_material("build:planks_dark"))
 	w._box(Vector3(0.56, 0.05, 0.05), Vector3(c.x, 0.3 + 0.62, fz + 0.01), timber)
-	w._box(Vector3(0.8, 0.06, 0.3), Vector3(c.x, 0.03, fz + 0.2), FarmWorld.flat_material(Color("8a8680")))
+	w._box(Vector3(0.8, 0.06, 0.3), Vector3(c.x, 0.03, fz + 0.2), WetRules.mark(FarmWorld.flat_material(Color("8a8680")), "stone"))
 	# The loading door high on the +x side, with a small pitched cap, and a ladder of rungs below.
 	var sx := c.x + radius
 	w._box(Vector3(0.05, 0.5, 0.36), Vector3(sx - 0.02, 1.5, c.y), FarmWorld.flat_material(Color("1a1410")))

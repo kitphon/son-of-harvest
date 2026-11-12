@@ -230,10 +230,20 @@ static func plain_surface(c: Color, cfg := {}) -> String:
 	return str(cfg.plain.stone if c.s < float(cfg.plain.grey) else cfg.plain.other)
 
 
-## The surface a 3D material shows ("" for none: unshaded, glowing, see-through, unlisted pictures).
+## Marks a 3D material as surface `kind` (data/wet.json surfaces), so it gets wet although it is
+## unshaded or see-through (the silo's and the greenhouse's flat-coloured parts, the glass). Returns `m`.
+static func mark(m: StandardMaterial3D, kind: String) -> StandardMaterial3D:
+	m.set_meta("wet_surface", kind)
+	return m
+
+
+## The surface a 3D material shows ("" for none: unshaded, glowing, see-through, unlisted pictures
+## unless marked).
 static func material_surface(m: StandardMaterial3D, cfg := {}) -> String:
 	if cfg.is_empty():
 		cfg = config()
+	if m.has_meta("wet_surface"):
+		return str(m.get_meta("wet_surface"))
 	if m.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED or m.emission_enabled:
 		return ""
 	var solid: Variant = m.get_meta("solid") if m.has_meta("solid") else null   # Occluders' fade keeps the real one
@@ -281,6 +291,27 @@ static func wet_material(m: StandardMaterial3D, wet: float, cfg := {}) -> bool:
 	m.roughness = lerpf(dry[1], float(cfg.gloss.roughness), g)
 	m.metallic_specular = lerpf(dry[2], float(cfg.gloss.specular), g)
 	return true
+
+
+## The flat view's glints on a glass roof over `r` (px) at wetness `wet`: a few pale pixels spread
+## over the panes by a hash (data/wet.json flat.glints); none below `glints.min`.
+static func glints(r: Rect2, wet: float, cfg := {}) -> Array[Vector2]:
+	if cfg.is_empty():
+		cfg = config()
+	var out: Array[Vector2] = []
+	var d: Dictionary = cfg.flat.glints
+	if wet < float(d.min) or r.size.x < 6.0 or r.size.y < 6.0:
+		return out
+	var every := maxi(int(d.every), 3)
+	var y := r.position.y + 2.0
+	while y < r.end.y - 2.0:
+		var x := r.position.x + 2.0 + floorf(DriftRules.rnd(int(y), int(r.position.x), 5) * every)
+		while x < r.end.x - 2.0:
+			if DriftRules.rnd(int(x), int(y), 9) < 0.5:
+				out.append(Vector2(x, y))
+			x += every
+		y += 3.0
+	return out
 
 
 ## The flat view's eave glints of a painted roof over `r` (px) at wetness `wet`: the pixels on its

@@ -16,12 +16,13 @@
 		"thatch": {"dark": 0.84, "sat": 1.08, "gloss": 0.08},
 		"kaya": {"dark": 0.87, "sat": 1.05, "gloss": 0.05},
 		"wood": {"dark": 0.8, "sat": 1.12, "gloss": 0.15},
+		"glass": {"dark": 0.9, "sat": 1.05, "gloss": 0.7},
 		"plaster": {"dark": 0.93, "sat": 1.0, "gloss": 0.05},
 		"plain": {"dark": 0.86, "sat": 1.08, "gloss": 0.1}
 	},
 	"ground": {"grass": "grass", "path": "path", "soil": "path", "tilled": "tilled", "wet": "watered",
 		"gravel": "gravel", "scree": "gravel", "rock_wall": "stone", "step": "stone", "paddy": "paddy"},
-	"materials": {"build:kawara": "kawara", "build:kawara_edge": "kawara", "build:thatch": "thatch",
+	"marks": "A material may carry the meta `wet_surface` (WetRules.mark): its surface, even unshaded or see-through (the silo's and the greenhouse's flat-colored timber, hoops and stone, the greenhouse glass).", "materials": {"build:kawara": "kawara", "build:kawara_edge": "kawara", "build:thatch": "thatch",
 		"build:kaya": "kaya", "build:kaya_edge": "kaya", "build:planks": "wood", "build:planks_dark": "wood",
 		"build:board": "wood", "build:sugi": "wood", "build:plaster": "plaster", "build:tsuchi": "plaster",
 		"ground:rock_wall": "stone"},
@@ -31,8 +32,11 @@
 	"flat": {
 		"props": {"stone_lantern": "stone", "well": "stone", "river_rock": "stone", "jizo": "stone", "torii": "wood",
 			"hokora": "wood", "woodpile": "wood", "wood_fence": "wood", "hen_barn": "wood", "kiln": "plaster",
-			"hasa": "wood", "fence": "wood", "bin": "wood", "chest": "wood", "stand": "wood"},
+			"hasa": "wood", "fence": "wood", "bin": "wood", "chest": "wood", "stand": "wood",
+			"silo_staves": "wood", "silo_hoops": "plain", "silo_cone": "kawara", "silo_hatch": "wood",
+			"gh_frame": "wood", "gh_glass": "glass", "gh_skirt": "wood", "gh_door": "wood"},
 		"roofs": {"kawara": "kawara", "thatch": "thatch", "kaya": "kaya"},
-		"drips": {"min": 0.5, "every": 7, "color": "dbe5f0", "alpha": 0.85}
+		"drips": {"min": 0.5, "every": 7, "color": "dbe5f0", "alpha": 0.85},
+		"glints": {"min": 0.5, "every": 11, "color": "f2f8fc", "alpha": 0.8}
 	}
 }

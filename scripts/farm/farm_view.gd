@@ -201,6 +201,11 @@ func _draw_objects() -> void:
 			_draw_cell(Vector2i(x, y))
 
 
+## A flat part's colour `c` of prop kind `kind` at the wetness now (data/wet.json flat.props): as it is when dry.
+func _wt(c: Color, kind: String) -> Color:
+	return MapView.prop_tone(c, kind, wet)
+
+
 ## The fodder silo, once built: a round wooden tower with iron hoops and a grey tiled cone (the
 ## 3D view's SiloProps), a little hatch low on the front.
 func _draw_silo() -> void:
@@ -208,20 +213,20 @@ func _draw_silo() -> void:
 	if not r.has_area():
 		return
 	var o := r.position
-	_objects.draw_rect(Rect2(o + Vector2(3, 12), Vector2(26, 19)), Color("a0764a"))
+	_objects.draw_rect(Rect2(o + Vector2(3, 12), Vector2(26, 19)), _wt(Color("a0764a"), "silo_staves"))
 	for x in [8, 13, 19, 24]:   # the staves
-		_objects.draw_rect(Rect2(o + Vector2(x, 12), Vector2(1, 19)), Color("86603a"))
+		_objects.draw_rect(Rect2(o + Vector2(x, 12), Vector2(1, 19)), _wt(Color("86603a"), "silo_staves"))
 	for y in [17, 24]:   # the hoops
-		_objects.draw_rect(Rect2(o + Vector2(3, y), Vector2(26, 2)), Color("3a3430"))
-	_objects.draw_rect(Rect2(o + Vector2(13, 24), Vector2(6, 7)), Color("3a2010"))
-	_objects.draw_colored_polygon(PackedVector2Array([o + Vector2(16, 1), o + Vector2(31, 14), o + Vector2(1, 14)]), Color("55687a"))
-	_objects.draw_line(o + Vector2(16, 1), o + Vector2(16, 14), Color("6d8397"), 1.0)
+		_objects.draw_rect(Rect2(o + Vector2(3, y), Vector2(26, 2)), _wt(Color("3a3430"), "silo_hoops"))
+	_objects.draw_rect(Rect2(o + Vector2(13, 24), Vector2(6, 7)), _wt(Color("3a2010"), "silo_hatch"))
+	_objects.draw_colored_polygon(PackedVector2Array([o + Vector2(16, 1), o + Vector2(31, 14), o + Vector2(1, 14)]), _wt(Color("55687a"), "silo_cone"))
+	_objects.draw_line(o + Vector2(16, 1), o + Vector2(16, 14), _wt(Color("6d8397"), "silo_cone"), 1.0)
 	_objects.draw_rect(Rect2(o + Vector2(15, 0), Vector2(2, 2)), Color("3a3430"))
 	var at := silo_pile_rect()   # the cut grass piled at its front right corner (none while empty)
 	if at.has_area():
 		var tex := PlaceholderArt.tex(SiloPile.key())
 		var light: GDScript = load(FLAT_LIGHT)
-		_objects.draw_texture(tex, at.position, light.at(Vector2(at.get_center().x, at.end.y), tex.get_height(), light.field_px()))
+		_objects.draw_texture(tex, at.position, light.at(Vector2(at.get_center().x, at.end.y), tex.get_height(), light.field_px()) * WetRules.picture_tint(SiloPile.key(), "grass", wet))
 
 
 ## Where the silo's grass pile is drawn now (SiloPile), px; empty with no silo or no grass.
@@ -246,25 +251,27 @@ func _draw_greenhouse() -> void:
 	var wide := r.size.x
 	var front := r.size.y - GREENHOUSE_WALL   # the roof's foot; the wall and the door below it
 	var ridge := GREENHOUSE_RIDGE
-	_objects.draw_rect(Rect2(o + Vector2(0, 1), Vector2(wide, front)), Color("7a5a3a"))   # the frame's edge
-	for half in [[1.0, ridge, Color("a6c4bc")], [ridge + 2.0, front - 1.0, Color("bcd8d0")]]:
+	_objects.draw_rect(Rect2(o + Vector2(0, 1), Vector2(wide, front)), _wt(Color("7a5a3a"), "gh_frame"))   # the frame's edge
+	for half in [[1.0, ridge, _wt(Color("a6c4bc"), "gh_glass")], [ridge + 2.0, front - 1.0, _wt(Color("bcd8d0"), "gh_glass")]]:
 		var top: float = half[0]
 		var bottom: float = half[1]
 		_objects.draw_rect(Rect2(o + Vector2(1, top), Vector2(wide - 2, bottom - top)), half[2])
 		for i in int(wide / 8):   # the green rows inside, seen through the panes
 			_objects.draw_rect(Rect2(o + Vector2(3 + i * 8, top + 3), Vector2(4, bottom - top - 6)), Color("7aa86a") if i % 2 else Color("8cb67a"))
 		for x in range(8, int(wide), 8):   # the rafters
-			_objects.draw_rect(Rect2(o + Vector2(x, top), Vector2(1, bottom - top)), Color("8a6a48"))
+			_objects.draw_rect(Rect2(o + Vector2(x, top), Vector2(1, bottom - top)), _wt(Color("8a6a48"), "gh_frame"))
 		_objects.draw_line(o + Vector2(3, top + 2), o + Vector2(wide - 3, top + 2), Color("e4f0ea"), 1.0)   # a glint along the slope
-	_objects.draw_rect(Rect2(o + Vector2(0, ridge), Vector2(wide, 2)), Color("6e4c30"))   # the ridge board
-	_objects.draw_rect(Rect2(o + Vector2(0, ridge + 0.5), Vector2(wide, 1)), Color("2e221a"))
+		for g in WetRules.glints(Rect2(o + Vector2(1, top), Vector2(wide - 2, bottom - top)), wet):   # rain on the panes
+			_objects.draw_rect(Rect2(g, Vector2(1, 1)), Color(Color(WetRules.config().flat.glints.color), float(WetRules.config().flat.glints.alpha)))
+	_objects.draw_rect(Rect2(o + Vector2(0, ridge), Vector2(wide, 2)), _wt(Color("6e4c30"), "gh_frame"))   # the ridge board
+	_objects.draw_rect(Rect2(o + Vector2(0, ridge + 0.5), Vector2(wide, 1)), _wt(Color("2e221a"), "gh_frame"))
 	var wall := o + Vector2(0, front)
-	_objects.draw_rect(Rect2(wall, Vector2(wide, GREENHOUSE_WALL)), Color("b8d4cc"))   # the glazed front wall
-	_objects.draw_rect(Rect2(wall + Vector2(0, GREENHOUSE_WALL - GREENHOUSE_SKIRT), Vector2(wide, GREENHOUSE_SKIRT)), Color("3e3028"))   # the board skirting
+	_objects.draw_rect(Rect2(wall, Vector2(wide, GREENHOUSE_WALL)), _wt(Color("b8d4cc"), "gh_glass"))   # the glazed front wall
+	_objects.draw_rect(Rect2(wall + Vector2(0, GREENHOUSE_WALL - GREENHOUSE_SKIRT), Vector2(wide, GREENHOUSE_SKIRT)), _wt(Color("3e3028"), "gh_skirt"))   # the board skirting
 	for x in range(0, int(wide) + 1, 16):
-		_objects.draw_rect(Rect2(wall + Vector2(clampf(x, 0, wide - 1), 0), Vector2(1, GREENHOUSE_WALL)), Color("6e4c30"))
+		_objects.draw_rect(Rect2(wall + Vector2(clampf(x, 0, wide - 1), 0), Vector2(1, GREENHOUSE_WALL)), _wt(Color("6e4c30"), "gh_frame"))
 	var door := Vector2(FarmGrid.GREENHOUSE_DOOR.x * T + 3, o.y + r.size.y - 14)
-	_objects.draw_rect(Rect2(door, Vector2(10, 14)), Color("2a3a32"))
+	_objects.draw_rect(Rect2(door, Vector2(10, 14)), _wt(Color("2a3a32"), "gh_door"))
 	_objects.draw_rect(Rect2(door + Vector2(1, 1), Vector2(8, 7)), Color("cfe4dc"))
 	_objects.draw_rect(Rect2(door + Vector2(7, 9), Vector2(1, 2)), Color("1e1c1c"))
 
