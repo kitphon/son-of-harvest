@@ -33,6 +33,8 @@ func _run() -> void:
 	_materials()
 	await _world3d()
 	_flat()
+	await _farm_buildings()
+	_snow_flag()
 	print("test_wet: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
 
@@ -336,3 +338,98 @@ func _flat() -> void:
 	check(ground.wet == 0.0, "the 3D ground's picture stays dry (the shader wets it)")
 	fv.free()
 	ground.free()
+
+
+## The silo and the greenhouse on the farm get wet like the other buildings: in 3D their flat-colored
+## timber, hoops, stone and the glass are marked surfaces (the staves and cone are pictures) and go
+## back exactly; in the flat view their parts take the tones of data/wet.json flat.props and the glass
+## roof gets a few rain glints.
+func _farm_buildings() -> void:
+	var w: Node3D = FW.new()
+	load("res://scripts/world3d/silo_props.gd").silo(w)
+	load("res://scripts/world3d/greenhouse_props.gd").greenhouse(w)
+	var snap := func() -> Dictionary:
+		var out := {}
+		for n in w.find_children("*", "GeometryInstance3D", true, false):
+			var m := (n as GeometryInstance3D).material_override
+			if m is StandardMaterial3D:
+				out[m] = [m.albedo_color, m.roughness, m.metallic_specular]
+		return out
+	var dry: Dictionary = snap.call()
+	var kinds := {}
+	for m in dry:
+		var k := WetRules.material_surface(m)
+		kinds[k] = int(kinds.get(k, 0)) + 1
+	for k in ["wood", "kawara", "stone", "glass", "plain"]:
+		check(kinds.get(k, 0) > 0, "3D silo + greenhouse: some %s surfaces (%s)" % [k, kinds])
+	var count := WetLayer.apply(w, 1.0)
+	check(count > 0, "3D silo + greenhouse: wetted (%d)" % count)
+	var glass_ok := false
+	var frame_ok := false
+	var cone_ok := false
+	for m in dry:
+		var kind := WetRules.material_surface(m)
+		if kind == "glass":
+			glass_ok = m.albedo_color.v < dry[m][0].v and is_equal_approx(m.albedo_color.a, dry[m][0].a) and m.roughness < dry[m][1]
+		elif kind == "wood" and m.albedo_texture == null:
+			frame_ok = m.albedo_color.v < dry[m][0].v
+		elif kind == "kawara":
+			cone_ok = m.albedo_color.v < dry[m][0].v
+	check(glass_ok, "3D greenhouse glass: slightly darker, glossier, same see-through alpha")
+	check(frame_ok, "3D greenhouse / silo timber (flat color): darker")
+	check(cone_ok, "3D silo's tiled cone: darker")
+	WetLayer.apply(w, 0.0)
+	var again: Dictionary = snap.call()
+	var same := again.size() == dry.size()
+	for m in dry:
+		same = same and again.has(m) and again[m] == dry[m]
+	check(same, "3D silo + greenhouse dry again: every material exactly as built")
+	w.free()
+	# Flat view: the parts.
+	var cfg := WetRules.config()
+	for part in ["silo_staves", "silo_cone", "silo_hoops", "silo_hatch", "gh_frame", "gh_glass", "gh_skirt", "gh_door"]:
+		check(cfg.flat.props.has(part), "flat part %s has a surface" % part)
+		var c := Color("a0764a")
+		check(MapView.prop_tone(c, part, 0.0) == c, "flat part %s dry: as it is" % part)
+		check(MapView.prop_tone(c, part, 1.0).v < c.v, "flat part %s wet: darker" % part)
+	var gl := Color("bcd8d0")
+	var gt := MapView.prop_tone(gl, "gh_glass", 1.0)
+	var wt := MapView.prop_tone(Color("7a5a3a"), "gh_frame", 1.0)
+	check(gt.v > gl.v * 0.85 and gt.v < gl.v, "flat glass: only a slight darkening (%.2f -> %.2f)" % [gl.v, gt.v])
+	check(wt.v < Color("7a5a3a").v * 0.85, "flat greenhouse frame: darkens as wood")
+	var roof := Rect2(0, 0, 64, 22)
+	check(WetRules.glints(roof, 0.3).is_empty(), "flat glass: no glints while barely wet")
+	var spots := WetRules.glints(roof, 1.0)
+	var inside := not spots.is_empty()
+	for p in spots:
+		inside = inside and roof.has_point(p)
+	check(inside, "flat glass: glints inside the roof when wet (%d)" % spots.size())
+	check(WetRules.glints(roof, 1.0) == spots, "flat glass: the glints are always the same ones")
+	# Drawn: a built farm's flat view in rain differs from dry, never under snow.
+	g.new_game()
+	g.clock_running = false
+	g._finish_build({"build": "greenhouse", "shop": "general", "ready": 0})
+	g._finish_build({"build": "silo", "shop": g._builder_shop("silo"), "ready": 0})
+	var fv := FarmView.new()   # no pixels in a headless run: the view's own wetness and part tones
+	fv.farm = g.farm
+	root.add_child(fv)
+	var staves := Color("a0764a")
+	_when(12, 0, "sunny")
+	fv.update_wet()
+	check(fv.wet == 0.0 and fv._wt(staves, "silo_staves") == staves, "flat farm with silo + greenhouse: a fair day draws them as they are")
+	check(fv.silo_pile_rect() == Rect2() or fv.wet == 0.0, "flat silo pile: nothing special when dry")
+	_when(12, 0, "rain")
+	fv.update_wet()
+	check(fv.wet == 1.0 and fv._wt(staves, "silo_staves").v < staves.v and fv._wt(Color("55687a"), "silo_cone").v < Color("55687a").v, "flat farm: rain wets the silo's staves and cone")
+	check(WetRules.picture_tint("silo:grass:1:0", "grass", 1.0) != Color.WHITE, "flat silo pile: tinted as grass in rain")
+	g.snow_cover = 60
+	fv.update_wet()
+	check(fv.wet == 0.0 and fv._wt(staves, "silo_staves") == staves, "flat farm: rain with snow lying draws the buildings as they are")
+	g.snow_cover = 0
+	fv.free()
+
+
+## `--snow=N` wins over `--weather=` whatever their order (Game._ready reads the flags).
+func _snow_flag() -> void:
+	var src := FileAccess.get_file_as_string("res://scripts/autoload/game.gd")
+	check(src.contains("if snow_flag < 0:") and src.contains("snow_flag = clampi("), "Game: --snow= is kept when --weather= comes after it")

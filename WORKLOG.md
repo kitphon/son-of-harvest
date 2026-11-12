@@ -80,6 +80,36 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Left / next: no ground shadows; sparrows and the heron take no notice of the dog or villagers;
   birds draw over buildings in the flat view's view layer order (under the figures).
 
+## 2026-11-12 — The silo and the greenhouse wet in rain, and `--snow` wins over `--weather`
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: the two limits the wet look left. (1) The fodder silo, its grass pile and the greenhouse get wet like the
+  other farm buildings. Flat view (FarmView): the silo's staves and hatch as wood, its tiled cone as kawara, its
+  hoops as plain, the grass pile tinted as grass; the greenhouse's frame, ridge, rafters, skirting and door as
+  wood and its glass (roof panes and glazed front wall) as the new `glass` surface (dark 0.9, sat 1.05, gloss
+  0.7: only a slightly darker, bluer tint, not mud) plus a few pale rain glints scattered over the panes from half
+  wet (WetRules.glints, data/wet.json `flat.glints`; the parts are `flat.props` entries `silo_*` / `gh_*`). 3D: the
+  silo's staves and cone and the greenhouse's board skirting were already wetted (pictures); their flat-coloured
+  timber, hoops, stone footing and the glass (unshaded or see-through, so skipped) were not. A material may now
+  carry the meta `wet_surface` (WetRules.mark) naming its surface, which WetLayer honours even when unshaded or
+  see-through; SiloProps and GreenhouseProps mark their timber / dark frame as wood, hoops as plain, stone as stone,
+  and `glass_material()` as glass (albedo darker, roughness lower, the alpha untouched). Put back exactly at 0, none
+  under snow. (2) `--snow=N` is kept whatever the flag order: Game reads it as `snow_flag`, and `--weather=` no
+  longer resets the snow lying once `--snow` has been seen (`--snow` after `--weather` sets it as before).
+- Checked: test_wet extended (marked 3D surfaces on a built silo + greenhouse: wood, kawara, stone, glass, plain;
+  wetted, the glass darker / glossier with its alpha, timber and cone darker, every material exactly as built at
+  0; the flat parts all dry = as is and wet darker, glass only slightly, glints none below half wet and always the
+  same ones inside the roof; a flat FarmView with both buildings built: the parts as they are on a fair day and under snow,
+  darker in rain; the `--snow` flag in game.gd). Every test script AGENTS.md lists and the smoke runs
+  were run (lines in the report). Frames (480 x 270): 3D and flat `--demo --built=silo,greenhouse
+  --map=farm@greenhouse --wet=1.0` before and after (glass a shade darker with glints, frame wood darker),
+  `--built=silo --silo=30:4 --map=farm@silo --wet=1.0` both views (silo cone and staves darker; the flat silo is half
+  off screen behind the farmer); `--demo --season=winter --snow=80 --weather=rain --map=town` now shows the snow.
+  Zero wetness identical: with the new game's debris RNG seeded the same in a copy of HEAD and in this tree (a
+  temporary patch, removed again), the 3D farm sunny frame has 0 differing pixels; the flat farm sunny frame has 0
+  over frames 0..17 and 206 from frame 18 in a 30 x 12 px patch that is the dog moving (random, unrelated).
+- Left / next: the 3D silo's grass pile (a sprite) and the farm's crops are not wetted (grass barely changes); the
+  flat greenhouse's rows seen through the glass stay as they are.
+
 ## 2026-11-12 — The wet look in rain
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: in rain and storm the open air goes wet: ground, paths, gravel, stone and roofs slowly turn
@@ -119,8 +149,8 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   town, the 3D farm and the flat town; the 3D town sunny also matched unseeded.
 - Left / next: the 3D gloss is the material's specular and a sky sheen, not a reflection (no SSR in
   Compatibility); the sun glint barely shows on rain days, whose sun is dim. The flat view's silo and
-  greenhouse are not wetted (glass and their own drawing). For a frame with snow and rain, put `--snow=N`
-  after `--weather=rain` (the weather flag resets the snow lying).
+  greenhouse are not wetted (glass and their own drawing; done in the next entry). A frame with snow and
+  rain needed `--snow=N` after `--weather=rain` (fixed in the next entry: `--snow` wins in any order).
 
 ## 2026-11-11 — Flaky test_maps ("farm spawn greenhouse is free") fixed
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit

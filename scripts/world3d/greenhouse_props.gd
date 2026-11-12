@@ -26,7 +26,7 @@ static func glass_material() -> StandardMaterial3D:
 	m.albedo_color = Color(1, 1, 1, 0.55)
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	m.roughness = 0.2
-	return m
+	return WetRules.mark(m, "glass")   # a little darker and glossier in rain (WetRules)
 
 
 static func greenhouse(w: FarmWorld) -> void:
@@ -39,8 +39,8 @@ static func greenhouse(w: FarmWorld) -> void:
 	var right := r.end.x - 0.1
 	var cx := (left + right) / 2
 	var wide := right - left
-	var timber := FarmWorld.flat_material(TIMBER)
-	var dark := FarmWorld.flat_material(DARK)
+	var timber := WetRules.mark(FarmWorld.flat_material(TIMBER), "wood")   # marked: they get wet in rain (WetRules)
+	var dark := WetRules.mark(FarmWorld.flat_material(DARK), "wood")
 	var glass := glass_material()
 	# What shows through the glass first (opaque): the beds inside, dark soil with green rows.
 	for i in 3:
@@ -51,7 +51,7 @@ static func greenhouse(w: FarmWorld) -> void:
 			var green := Color("5e9a3a") if (i + k) % 2 else Color("7aae48")
 			w._box(Vector3(0.28, 0.3 + 0.08 * ((i + k) % 3), 0.32), Vector3(x, 0.3, z), FarmWorld.flat_material(green))
 	# The footing and the board skirting.
-	w._box(Vector3(wide + 0.08, 0.12, depth + 0.08), Vector3(cx, 0.06, mid_z), FarmWorld.flat_material(STONE))
+	w._box(Vector3(wide + 0.08, 0.12, depth + 0.08), Vector3(cx, 0.06, mid_z), WetRules.mark(FarmWorld.flat_material(STONE), "stone"))
 	var skirt := 0.5
 	for side in [[Vector3(wide, skirt - 0.12, 0.08), Vector3(cx, 0.12 + (skirt - 0.12) / 2, front)],
 			[Vector3(wide, skirt - 0.12, 0.08), Vector3(cx, 0.12 + (skirt - 0.12) / 2, back)],
@@ -120,7 +120,7 @@ static func greenhouse(w: FarmWorld) -> void:
 	for y in [0.14, 0.7, 1.24]:
 		w._box(Vector3(0.84, 0.06, 0.08), Vector3(dx, y, front + 0.06), dark)
 	w._box(Vector3(0.04, 0.12, 0.03), Vector3(dx + 0.3, 0.72, front + 0.11), FarmWorld.flat_material(Color("1e1c1c")))
-	w._box(Vector3(0.62, 0.06, 0.3), Vector3(dx, 0.03, front + 0.28), FarmWorld.flat_material(STONE))
+	w._box(Vector3(0.62, 0.06, 0.3), Vector3(dx, 0.03, front + 0.28), WetRules.mark(FarmWorld.flat_material(STONE), "stone"))
 	# A rain barrel of staves at the front +x corner, for the watering can's look of the place.
 	var barrel := Vector3(right + 0.3, 0, front - 0.25)
 	w._box(Vector3(0.36, 0.5, 0.36), barrel + Vector3(0, 0.25, 0), FarmWorld.surface_material("build:sugi"))
