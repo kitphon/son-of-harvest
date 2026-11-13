@@ -462,10 +462,13 @@ func _hearts_in_text_box() -> void:
 	check(tb._heart.visible and tb._heart.texture == PlaceholderArt.tex("ui:heart:3"), "Tome's line shows her band 3 heart")
 	var tag_w: float = tb._name_tag.size.x
 	check(tb._heart.position.x + 9 <= tag_w - 3 and tb._heart.position.x >= tb._name.position.x + PixelFont.width("Tome"), "the heart sits after her name, inside the tag")
+	tb._close()   # one dialogue at a time: a second open waits for the first to close
 	tb.open("examine_house", "spring")
 	check(not tb._heart.visible, "narration shows no heart")
+	tb._close()
 	tb.open("examine_house", "radio")
 	check(not tb._heart.visible, "nor does the farmer")
+	tb._close()
 	tb.open("talk_kota", "new_1")
 	check(tb._heart.visible and tb._heart.texture == PlaceholderArt.tex("ui:heart:0"), "Kota, not met yet, shows an empty heart")
 	tb._close()

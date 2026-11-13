@@ -37,6 +37,12 @@ static func goal(id: String) -> Dictionary:
 	return {}
 
 
+## Seconds of free screen after a text box closes before a goal's note opens (data/goals.json
+## note_quiet_seconds), so the note never lands in the gap between two talks with a villager.
+static func note_quiet() -> float:
+	return maxf(float(data().get("note_quiet_seconds", 2.0)), 0.0)
+
+
 static func message(key: String) -> String:
 	return String(data().get("messages", {}).get(key, ""))
 

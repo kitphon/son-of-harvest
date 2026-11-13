@@ -18,6 +18,54 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
   Frames (480 x 270, `--quit-after 40`, frame 39): 3D with the scion flags, and `res://scenes/main_2d.tscn` with the same flags. Magnified crops show a pale-winged, dark-bodied cicada clinging to the trunk in both views (small at this size).
 - Left / next: the return after the farmer walks off was not re-rendered in this entry (the startle and return logic is unchanged and covered by test_cicadas `_startle`).
 
+## 2026-11-13 — Nana's face turning into Tome's: goal notes wait for a quiet moment, one dialogue at a time
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Save: `%APPDATA%\Godot\app_userdata\Harvest Son\save1.json` (and `.bak`) were written 2026-11-13 14:02
+  and hold year 2, spring 2, 06:00 in the farmhouse, married to Sayo with a crawler named Sora, but no
+  talks, no gifts, nothing shipped, no goals done, a fresh farm (53 debris): the state the tests write
+  (test_child and others use the slot), not a played two-year game, so the user's own save is gone and
+  could not be replayed. A copy was worked on; the file was not touched.
+- Found (by reading the code, then shown in a scratch replay of that save with real key presses, the
+  replay script not kept): Tome's first-week list opens a goal's note (data/dialogue/goals.json: the
+  farmer's line, then a villager's thank-you) as soon as nothing holds the screen. That includes the
+  gap between two talks: pressing E at Nana again every third of a second, the hello note opened in
+  such a gap at frame 319, one frame before the next E press, and that press ran on past the farmer's
+  line to the villager's (`portrait:nana:happy` → `portrait:sayo:happy`). The plant, forage and earn
+  notes end in Tome's voice, so talking to Nana her face turns into Tome's. The talk itself counts
+  towards hello, so a note is due right after a talk. Second hole: TextBox.open replaced an open
+  dialogue with no check, so any line asked for while a box is up took the box over mid-talk.
+- Ruled out (test_talk `_nana_portraits`, a reachability walk of every dialogue file): talk_nana.json
+  has only Nana's lines and every pick, gift answer and line ends in her file; her heart events
+  (heart_events, _5, _6 from `nana`) reach only Nana, the farmer and narration down every choice; no
+  dialogue line reached from a `nana` id names Tome; the trigger tables of shige_house, minamino and town
+  name only heart_nana events for `who: nana`; no event triggers in Shige's house on spring 2; Tome's
+  plan never brings her into Shige's house (she stands on the cell above Nana at the village pond from
+  14:30 to 16:30, and E from Nana's sides, leaning either way, still reaches Nana); the portrait key
+  comes from each line's own speaker (DialogueRunner.portrait_key) and PlaceholderArt caches by that key;
+  Nana's and Tome's looks and faces are distinct; the keeper's Buy / Talk menu keeps its own speaker and
+  Nana keeps no shop; the child's talk (talk_child, Child.ID) is never Nana's.
+- Done: Game counts the seconds of free screen since a text box last closed (`_since_box`, reset in
+  dialogue_closed) and a goal's note opens only after Goals.note_quiet() of them (data/goals.json
+  `note_quiet_seconds` 2.0, ours: well past the gap of pressing E again at a villager). TextBox.open,
+  with a dialogue open, puts the new one in `waiting` (with its mood) and opens it when the box closes.
+  test_relationships closed the box between its opens (it relied on the takeover).
+- Checked: test_talk `_nana_portraits` (spring 2, year 2, married to Sayo with the crawler: every half
+  hour 6:00-23:30 where Nana's plan has her, from each free side at three leans, the real E path
+  (FarmActions.on_action): her file and every line her face; gifts of each reaction, a keepsake, dishes,
+  the second gift, her birthday answer; her heart events down every choice; every pick row's lines;
+  the trigger rows) and `_nana_box` (a real TextBox: a line asked for while hers is open waits and her
+  face stays on every line; the forage goal reached during her talk: its note neither opens the moment
+  her box closes nor takes the next E, opens after the quiet time with the farmer's line first). With
+  game.gd and text_box.gd put back as before, `_nana_box` printed 6 FAIL lines (`test_talk: FAILED (6
+  failed)`). The scratch replay with the fix, the same presses: Nana's lines only, the hello goal paid
+  and its note waiting. All 38 tests/test_*.gd printed `OK (0 failed)`. Smoke runs `--headless
+  --quit-after 300` (title, `-- --demo`, `-- --demo --map=town`, `-- --demo --mine=3`, `-- --demo
+  --map=shige_house --time=7:03 --talk=nana`, `-- --demo --map=minamino@shige --time=9:00 --talk=nana`):
+  exit 0, 0 ERROR lines. Windowed `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the user's own save is gone, so which note it was (plant, forage or earn) is not known;
+  a screenshot of the box with Tome's face would show the farmer's goal line before it if this is the
+  cause. Tests still share user://save1.json with a real game (noted under 2026-11-04 "Feedback items 4-8 merged into main").
+
 ## 2026-11-13 — Hearth smoke tied to its own house
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Found: HearthSmoke read `Occluders.fade_at(vent)`, the fade of whatever box covered the vent: a tree or neighbouring building over another house's vent could fade that smoke, and a vent above its own box was missed.
