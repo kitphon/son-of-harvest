@@ -10,6 +10,17 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — Merge: icicles (Opus), carp streamers (Sonnet), wind chime (Haiku)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged 6f90419 icicles on the eaves, 043ce0c koinobori and 34c2318 furin, each from its own
+  worktree. Conflicts only in AGENTS.md, ROADMAP.md, WORKLOG.md and docs/ART_DIRECTION.md, where both
+  sides added lines; both kept. Added tests/test_koinobori.gd.uid (made by the importer, missing on its branch).
+- Checked: after `--import`, all 41 tests/test_*.gd print `OK (0 failed)` (test_icicles, test_koinobori,
+  test_furin among them); smoke runs (`--quit-after 300`: title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, the icicle, koinobori and summer flags): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo`: exit 0. No frames were rendered after the merge (each branch looked at its own).
+- Left / next: icicles stay solid when their house turns see-through; the carp are big against the 3D houses.
+
 ## 2026-11-13 — Icicles on the eaves in winter
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: IcicleRules (scripts/icicle_rules.gd, numbers in data/icicles.json, pure): winter only, outdoors
