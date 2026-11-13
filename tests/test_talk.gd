@@ -31,6 +31,7 @@ func _process(_delta: float) -> bool:
 		_reach()
 		_reach_mark()
 		_pass_villager()
+		_closing_press()
 		_talk_at_river()
 		_kiku_scion()
 		print("test_talk: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
@@ -77,9 +78,9 @@ func _portraits(id: String) -> void:
 
 func _file_errors() -> void:
 	var good := {"picks": [{"if": {"band": [0, 2]}, "at": ["a"]}, {"at": ["a"]}],
-		"lines": [{"id": "a", "text": "Hi."}]}
+		"lines": [{"id": "a", "text": "Hi."}, {"text": "Nice day.", "next": "end"}]}   # an answer of two lines
 	for g in Talk.GIFT_LINES:
-		good.lines.append({"id": g, "text": "Thanks."})
+		good.lines.append({"id": g, "text": "Thanks.", "next": "end"})
 	check(Talk.check(good) == "", "a small talk file passes: %s" % Talk.check(good))
 	var with_items: Dictionary = good.duplicate(true)
 	with_items.gift_items = {"keep:daruma": "a", "food:onigiri": "a", "dish:like": "a", "keepsake:neutral": "a"}
@@ -95,6 +96,8 @@ func _file_errors() -> void:
 		["a bad season", func(d): d.picks[0].if = {"season": ["monsoon"]}],
 		["a map with no file", func(d): d.picks[0].if = {"map": ["moon"]}],
 		["no gift answer", func(d): d.lines.pop_back()],
+		["an answer running on into the next one", func(d): d.lines[2].erase("next")],
+		["the last line running on past the end", func(d): d.lines[-1].erase("next")],
 		["gift_items not a table", func(d): d.gift_items = ["a"]],
 		["a gift line for a crop", func(d): d.gift_items = {"turnip": "a"}],
 		["a gift line for an unknown keepsake", func(d): d.gift_items = {"keep:kite": "a"}],
@@ -677,6 +680,26 @@ func _reach_mark() -> void:
 	check(q.reach_mark() == hints.NO_MARK, "reach mark: Player.reach_mark none from the middle of the cell")
 	q.free()
 	Villagers.reset_day()
+
+
+## The E that closes a text box doesn't talk again (playtest 2026-11-13: the box opened right back
+## up): pressed and let go before the next tick, it still reads just pressed there.
+func _closing_press() -> void:
+	var g := _game()
+	g.dialogue_open = false
+	var p: Node2D = load("res://scripts/player/player.gd").new()
+	p.farm = g.farm
+	var sent: Array = []
+	p.action.connect(func(kind, _c, _f, _ch): sent.append(kind))
+	p._after_menu = true   # the box just closed
+	Input.action_press("interact")
+	Input.action_release("interact")
+	check(Input.is_action_just_pressed("interact") and not Input.is_action_pressed("interact"), "closing press: reads just pressed though let go")
+	p._physics_process(0.0)
+	check(sent.is_empty(), "closing press: the press that closed the box doesn't talk again %s" % [sent])
+	p._physics_process(0.0)   # the next tick: a press read now is a new one
+	check(sent == ["interact"], "closing press: the next press talks %s" % [sent])
+	p.free()
 
 
 ## A villager in the only way out (playtest 2026-11-13: trapped in a dead end): pushing into them

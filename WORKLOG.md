@@ -109,6 +109,25 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   shed shells (nukegara) and a cicada on a villager's net (Kota hunts them at the shrine) could come
   later. Not listened to by ear here (headless and Movie Maker runs are silent).
 
+## 2026-11-13 — Talk fixes: the child's lines end, the closing E doesn't talk again
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: data/dialogue/talk_child.json had no `"next": "end"` on any line, so one talk to the little
+  one ran through all 52 lines (crawler, child, toddler, gift answers). Every line now ends. Talk.check
+  refuses a talk file where a line with no next and no choices runs into a line with an id (the next
+  answer) or past the file's end; a two-line answer runs into a line without an id, as before.
+  Player: the E (or tool button) that closes a text box or menu is pressed and let go before the next
+  physics tick when frames come faster than ticks; Godot still reads it as just pressed on that tick, so
+  _after_menu cleared and the farmer talked again (the box opened right back up). That tick now does
+  nothing; a later press works.
+- Checked: test_talk `_file_errors` (the sample answers end; refused: an answer running on into the next,
+  the last line running past the end), `_closing_press` (fails without the player.gd change: 2 failed;
+  passes with it). Every tests/test_*.gd printed `OK (0 failed)`; smoke runs `--quit-after 300` (title,
+  `-- --demo`, `-- --demo --map=town`, `-- --demo --mine=3`): exit 0, no ERROR lines.
+- Left / next: the user's report that Nana's portrait turned into Tome's while talking to her in Shige's
+  house (save1: year 2, spring 2, 07:03) was not reproduced: the save loaded, Nana talked to from her side
+  with direct calls and with real E presses showed `portrait:nana:*` on every line. The two bugs above were
+  found on the way; a screenshot of the text box with Tome's face is needed to go on.
+
 ## 2026-11-13 — E reaches, villagers give way, figures stand upright (playtest)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Found (the user's playtest): (1) E (talk, pick up, give, use) looked only at the one cell straight

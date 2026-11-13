@@ -48,6 +48,15 @@ static func check(d: Variant) -> String:
 	for g in GIFT_LINES:
 		if not ids.has(g):
 			return "no line " + g
+	# Each answer ends: a line that runs on (no next, no choices) runs into a line of its own
+	# answer (one without an id), never into the next answer (talk_child's ran through all of them).
+	for i in d.lines.size():
+		var l: Variant = d.lines[i]
+		if not l is Dictionary or l.has("next") or l.has("choices"):
+			continue
+		var on: Variant = d.lines[i + 1] if i + 1 < d.lines.size() else null
+		if not on is Dictionary or on.has("id"):
+			return "line %s runs on into %s: end it with \"next\": \"end\"" % [l.get("id", i), "the end" if on == null else on.get("id", i + 1)]
 	var picks: Variant = d.get("picks")
 	if not picks is Array or picks.is_empty():
 		return "needs picks"

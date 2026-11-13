@@ -83,6 +83,10 @@ func _physics_process(delta: float) -> void:
 		if Input.is_action_pressed("use_tool") or Input.is_action_pressed("interact"):
 			return
 		_after_menu = false
+		# Pressed and let go between two ticks, it still reads just pressed here: it is the press
+		# that closed the box, so it must not talk again (the text box opened right back up).
+		if Input.is_action_just_pressed("use_tool") or Input.is_action_just_pressed("interact"):
+			return
 	if Game.demo_charge != "" and not charging and not Game.swinging():
 		FarmActions.demo_charge(self)   # `--charge=<tool>`: held down from the start
 	if charging:
