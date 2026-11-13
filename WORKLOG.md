@@ -10,6 +10,12 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — Bees on the blossom
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: a new insect kind `bee` (data/insects.json `bee`, InsectRules._bee, InsectArt 5 x 3 px striped amber and dark with pale wings, two wing frames). Spring and days 1-16 of summer, 9:00-16:00, fair days only, thinned by the wind like the butterflies; none indoors, at night, in rain, storm or snow. InsectRules.scene_of adds `flowers` (Vector3): 7 blossom points high in each cherry (sakura) tree's canopy (1.5-2.3 cells, 0.9 cell radius) and every lure (crops, forage spots, garden beds) at 0.55. A bee works the flowers within 3.2 cells of a home flower (a cherry with 60% share): a hover with a tremble (72% of a 2.2 s cycle), then a quick zigzag hop to the next; it veers from walkers. Shadow size 0.24 (the shared shadow rules). `--insects=bee` forces them round the nearest flowers. Both views pick the new kind up through InsectRules.KINDS; no layer code changed. AGENTS.md insects text updated. Balance numbers are ours.
+- Checked: test_insects (gating, data, scene flowers, hover / hop mix, no jumps, heights, veer, picture key, shadow, art, 3D layer with butterflies and bees); every tests/test_*.gd and the smoke runs (see the commit message / report); screenshots of `--demo --season=spring --time=11:00 --map=kaminoda --insects=bee` in 3D and the flat view: bees seen as small striped specks over the garden and by the cherry tree.
+- Left / next: no buzz sound (the ambient system has no per-insect source); farms have no blossom trees, so farm bees only work crops; cicadas and fireflies by the stream remain.
+
 ## 2026-11-13 — E reaches, villagers give way, figures stand upright (playtest)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Found (the user's playtest): (1) E (talk, pick up, give, use) looked only at the one cell straight

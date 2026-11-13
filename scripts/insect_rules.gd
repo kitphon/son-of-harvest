@@ -2,7 +2,8 @@ class_name InsectRules
 extends RefCounted
 ## Small flying insects on the outdoor maps (data/insects.json): white and pale yellow
 ## butterflies wandering over the crops, forage spots, garden beds and open grass of spring and
-## early summer days, and red dragonflies (akatombo) of late summer and fall that hover, dart and
+## early summer days, honeybees buzzing from flower to flower over the blossoms (cherry trees,
+## the crops, forage spots and garden beds), and red dragonflies (akatombo) of late summer and fall that hover, dart and
 ## hover again in small swarms over the paddies, the water and open ground, now and then landing
 ## on a fence post, a drying rack's pole or a tall crop's top to rest with their wings flat. This
 ## is the logic both views share: which kinds show now (season, the day of the season, weather
@@ -15,7 +16,7 @@ extends RefCounted
 ## here draws.
 
 const DATA_PATH := "res://data/insects.json"
-const KINDS: Array[String] = ["butterfly", "dragonfly"]
+const KINDS: Array[String] = ["butterfly", "dragonfly", "bee"]
 const NO_FARMER := Vector2(-9999.0, -9999.0)
 const NO_AIM := Vector2(-99999.0, -99999.0)   # not forced (see forced())
 
@@ -209,8 +210,23 @@ static func scene_of(m: MapData, farm: FarmGrid = null, seed_value := 0, cfg := 
 					perch_kinds.append(kind)
 		for sp in Forage.spots(m.id):
 			lures.append(Vector2(sp.cell) + Vector2(0.5, 0.5))
+	var flowers: Array[Vector3] = []   # where a bee can work: blossoms (cherry trees) first, then the lures near the ground
+	var blossoms := 0
+	var bk: Dictionary = cfg.bee
+	if farm == null:
+		for p in m.props:
+			if str(p.get("kind", "")) == "sakura":
+				var mid := Vector2(float(p.cell[0]), float(p.cell[1])) + Vector2(0.5, 0.5)
+				for j in int(bk.blossom_points):
+					var a := rnd(int(mid.x), int(mid.y), 90 + j) * TAU
+					var r := sqrt(rnd(int(mid.x), int(mid.y), 100 + j)) * float(bk.blossom_radius)
+					var hs: Array = bk.blossom_height
+					flowers.append(Vector3(mid.x + cos(a) * r, lerpf(float(hs[0]), float(hs[1]), rnd(int(mid.x), int(mid.y), 110 + j)), mid.y + sin(a) * r))
+		blossoms = flowers.size()
+	for l in lures:
+		flowers.append(Vector3(l.x, float(bk.flower_height), l.y))
 	return {"area": Rect2(0, 0, m.w, m.h), "lures": lures, "grass": grass, "wet": wet, "perches": perches, "perch_kinds": perch_kinds,
-		"seed": seed_value, "near": {}}
+		"flowers": flowers, "blossoms": blossoms, "seed": seed_value, "near": {}}
 
 
 ## CropClusters, loaded when first needed (a static name would pull the 3D view's scripts, and
@@ -287,7 +303,11 @@ static func insects(kind: String, amount_now: float, t: float, scene: Dictionary
 			if not r.is_empty():
 				out.append(r)
 			continue
-		var b := _butterfly(i, k, t, scene, walkers, aim) if kind == "butterfly" else _dragonfly(i, k, t, scene, walkers, state, aim)
+		var b: Dictionary
+		match kind:
+			"butterfly": b = _butterfly(i, k, t, scene, walkers, aim)
+			"bee": b = _bee(i, k, t, scene, walkers, aim)
+			_: b = _dragonfly(i, k, t, scene, walkers, state, aim)
 		if not b.is_empty():
 			out.append(b)
 	return out
@@ -458,6 +478,72 @@ static func _waypoint(i: int, seg: int, near: Array, home: Vector2) -> Vector2:
 		return home
 	var c: Vector2 = near[int(rnd(i, seg, 54) * near.size()) % near.size()]
 	return c + (Vector2(rnd(i, seg, 55), rnd(i, seg, 56)) - Vector2(0.5, 0.5)) * 1.2
+
+
+# --- bees ---------------------------------------------------------------------------------------
+
+## A honeybee at time `t`: it works a home flower (a cherry blossom with `blossom_share`, else a
+## crop, forage spot or garden bed) and the flowers within `roam` of it, one after another: a short
+## hover at a flower (a small tremble), then a quick zigzag hop to the next. {} on a map with no
+## flower.
+static func _bee(i: int, k: Dictionary, t: float, scene: Dictionary, walkers: Array, aim: Vector2) -> Dictionary:
+	var flowers: Array = scene.get("flowers", [])
+	if flowers.is_empty():
+		return {}
+	var sd := int(scene.seed)
+	var nb := int(scene.get("blossoms", 0))
+	var home: Vector3
+	if aim != NO_AIM:   # forced: the i-th of the nearest flowers that are not under his feet
+		var key := "bee|%d,%d" % [roundi(aim.x * 4.0), roundi(aim.y * 4.0)]
+		var cache: Dictionary = scene.near
+		if not cache.has(key):
+			var sorted := flowers.filter(func(f): return Vector2(f.x, f.z).distance_to(aim) > 1.2)
+			sorted.sort_custom(func(a, b): return Vector2(a.x, a.z).distance_to(aim) < Vector2(b.x, b.z).distance_to(aim))
+			cache[key] = sorted
+		var by: Array = cache[key]
+		home = by[(i * 3) % by.size()] if not by.is_empty() else flowers[0]
+	elif nb > 0 and rnd(i, sd, 120) < float(k.blossom_share):
+		home = flowers[int(rnd(i, sd, 121) * nb) % nb]
+	else:
+		home = flowers[int(rnd(i, sd, 122) * flowers.size()) % flowers.size()]
+	var near: Array = _near(scene, "e%d|%d,%d" % [i, roundi(home.x * 4.0), roundi(home.z * 4.0)], Vector2(home.x, home.z), float(k.roam), [flowers])
+	if near.is_empty():
+		near = [home]
+	var cyc := float(k.cycle) * (1.0 + (rnd(i, 0, 123) - 0.5) * 2.0 * float(k.cycle_var))
+	var tt := t + (0.0 if aim != NO_AIM else rnd(i, 0, 124) * cyc * 20.0) + float(i) * cyc * 0.41
+	var n := floori(tt / cyc)
+	var u := tt / cyc - float(n)
+	var a: Vector3 = near[int(rnd(i, n, 125) * near.size()) % near.size()]
+	var b: Vector3 = near[int(rnd(i, n + 1, 125) * near.size()) % near.size()]
+	var ph := rnd(i, 0, 126) * TAU
+	var hv := float(k.hover)
+	var p := Vector2(a.x, a.z)
+	var h := a.y + float(k.over)
+	var dir := Vector2(b.x - a.x, b.z - a.z)
+	if u < hv:   # hovering at the flower: a small tremble
+		p += Vector2(sin(tt * 9.0 + ph), cos(tt * 7.3 + ph)) * float(k.tremble)
+		h += sin(tt * 11.0 + ph) * float(k.tremble)
+	else:   # a quick zigzag hop to the next flower
+		var w := (u - hv) / (1.0 - hv)
+		var e := _ease(w)
+		p = Vector2(a.x, a.z).lerp(Vector2(b.x, b.z), e)
+		var side := dir.orthogonal().normalized() if dir.length() > 0.01 else Vector2.ZERO
+		p += side * sin(w * PI * float(k.zigs)) * sin(w * PI) * float(k.zigzag)
+		h = lerpf(a.y, b.y, e) + float(k.over) + sin(w * PI) * float(k.hop_rise)
+	if dir.length() < 0.05:
+		dir = Vector2.RIGHT if rnd(i, n, 127) < 0.5 else Vector2.LEFT
+	for w in walkers:   # a walker close by sends it off
+		var r := float(k.veer) * float(w[1])
+		var d := p.distance_to(w[0])
+		if d < r:
+			var away: Vector2 = (p - (w[0] as Vector2)).normalized() if d > 0.001 else Vector2.RIGHT
+			p += away * (r - d) * float(k.veer_push)
+			h += (1.0 - d / r) * float(k.veer_rise)
+			dir = away
+	return {
+		"id": "bee:%d" % i, "kind": "bee", "art": "bee", "pos": Vector3(p.x, maxf(h, 0.2), p.y),
+		"pose": "fly", "frame": int(fposmod(tt * float(k.flap), 2.0)), "dir": dir, "alpha": 1.0,
+	}
 
 
 # --- dragonflies --------------------------------------------------------------------------------
