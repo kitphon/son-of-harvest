@@ -259,6 +259,7 @@ func _make_prop(p: Dictionary) -> void:
 		"ferry_boat": OutdoorProps.ferry_boat(self, r, SnowLayer.map_has_snow(map))
 		"landing": OutdoorProps.landing(self, r)
 		"cloth_rack": OutdoorProps.cloth_rack(self, p, r)
+		"koinobori": KoinoboriProps.build(self, p, r)
 		"feed_box", "nest", "incubator", "feed_sack", "hatch": CoopProps.prop(self, p, mid, r)
 		"fodder_box", "stalls", "hay", "barn_gate": BarnProps.prop(self, p, mid, r)
 		"well", "jizo", "persimmon", "sakura", "maple", "hasa", "woodpile", "garden", "wood_fence", "kiln", "hen_barn", "ditch": CountryProps.prop(self, p, mid, r, Game.season_name())

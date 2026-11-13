@@ -74,6 +74,8 @@ static func _make(key: String) -> Image:
 			return _fx(parts[1])
 		"cloth":    # cloth:<hex>, one indigo length drying over a pole (DyeCloth: 22 x 24, the pole across the top)
 			return _dye_cloth(Color(parts[1]))
+		"koi":      # koi:<black|red|blue|stream|wheel>:<level 0..2>:<frame>, a carp streamer's carp, streamer or wheel (KoiArt, KoinoboriRules.art_key)
+			return KoiArt.make(parts[1], int(parts[2]), int(parts[3]))
 		"fish_fx":  # fish_fx:<bobber|alert>, the float on the water and the "!" of a bite
 			return _fish_fx(parts[1])
 		"tree":     # tree:maple:<spring|summer|fall|winter>:<snow 0|1>, a Japanese maple in the flat view (MapView), 24 x 32

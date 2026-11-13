@@ -1,0 +1,18 @@
+{
+	"_about": "Carp streamers (koinobori) on a tall bamboo pole in the village in late spring (KoinoboriRules; the 3D view KoinoboriProps, the flat view KoinoboriView; the pictures KoiArt). A 'koinobori' map prop (data/maps/town.json: on the grass in front of Kota's house, south-west of the road, clear of every path, door and spawn) stands on a small stone socket all year; the pole, the spinning wheel, the fukinagashi streamer and the three carp go up only on `days` of `season` between `hours`, and come down in the weather of `wet` (a prop may carry its own `season`, `days` and `hours`). The wind of data/wind.json (Game.wind_strength) fills them: the effective wind is the day's strength times a slow gust swing of `gust` x (1 - the strength), so a sunny breeze of 0.15 swings between nothing and about twice that while a gale hardly gusts, `calm` and `full` are the effective winds at which a carp is limp and wholly filled, and the fill is cut at `levels` (limp hanging, half filled and slanting, full and streaming); a carp flaps its tail `flap` times a second (base + fill x gain), the wheel turns `wheel` periods a second (base + effective wind x gain) through `frames` pictures. The pictures change `rate` times a second in both views. Heights are in picture pixels above the pole's foot (the 3D view takes them at FarmWorld.PX a pixel). Carp are drawn by KoiArt from `length`, `radius` and the tones lit from the upper left (light, base, dark) and a belly. Balance and colours are ours.",
+	"season": "spring",
+	"days": [16, 30],
+	"hours": ["06:00", "18:00"],
+	"wet": ["rain", "storm", "snow", "blizzard"],
+	"rate": 12,
+	"wind": {"calm": 0.03, "full": 0.28, "gust": 1.2, "levels": [0.3, 0.7]},
+	"flap": {"base": 0.6, "gain": 2.4},
+	"wheel": {"base": 0.4, "gain": 5.0, "frames": 6, "y": 70},
+	"pole": {"height": 70, "color": "b4a463", "node": "8a7a45", "stone": "8e8a82"},
+	"streamer": {"y": 65, "length": 24, "radius": 3, "stripes": ["3c68c0", "c8402c", "f0ecdc", "e0b830", "3a2c44"]},
+	"carp": [
+		{"id": "black", "y": 55, "length": 22, "radius": 4.5, "light": "5a5a72", "base": "2e2e3c", "dark": "1a1a24", "belly": "7c7c8e", "fin": "22222e"},
+		{"id": "red", "y": 42, "length": 19, "radius": 4, "light": "f0705c", "base": "d8402c", "dark": "9c2a20", "belly": "f4b8a0", "fin": "b43224"},
+		{"id": "blue", "y": 31, "length": 16, "radius": 3.5, "light": "6aa0e0", "base": "3c68c0", "dark": "264488", "belly": "a8c8ec", "fin": "30509c"}
+	]
+}

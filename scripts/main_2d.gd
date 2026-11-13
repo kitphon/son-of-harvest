@@ -139,6 +139,7 @@ func _enter_map() -> void:
 	view.add_child(FerryView.new(m))   # Mio's ferry boat, moving when she takes it across
 	view.add_child(MistView.new().setup(m, Game.farm if Game.maps.on_farm() else null))   # morning mist over the water, paddies and the ferry boat, under the figures
 	view.add_child(DyeClothView.new(m))   # Shino's indigo drying by her vats, in her hours on dry days
+	view.add_child(KoinoboriView.new(m))   # the village's carp streamers in late spring (data/koinobori.json)
 	view.add_child(CradleView.new())   # the baby's cradle in the second room, while the child is a baby
 	view.add_child(FestivalView.new(m.id))   # today's festival decorations, in its hours
 	view.add_child(ForageView.new(m.id))   # what grows wild there today (data/forage.json)

@@ -24,6 +24,7 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 
 ## Next up
 [x] 2026-11-13 Icicles on the eaves in winter: grown over the cold days, melted back and dripping round a sunny midday, frozen again by night; hung from the real eave lines Minka lists (FarmWorld.eaves, kept through MeshCache) in 3D (IcicleLayer) and under the painted roofs' bottom eave in the flat view (IcicleView), clear of the doors; none indoors, in the mine or the greenhouse (IcicleRules, data/icicles.json); `--icicles` / `--icicles=long`; test_icicles; see WORKLOG.
+[x] 2026-11-13 Carp streamers (koinobori) on a pole in front of Kota's house in late spring: KoinoboriRules, data/koinobori.json, KoiArt, 3D and flat views, wind-driven fill / flap / wheel, `--koinobori`; test_koinobori; see WORKLOG.
 [x] 2026-11-13 Tests, tools, Movie Maker and --demo runs save to user://dev/save1.json (SaveGame.slot / is_dev_run), never the player's user://save1.json; test_save `_dev_slot`; see WORKLOG.
 [x] 2026-11-13 Kiku's persimmon cicadas: forced ones settle for 3 s on the trunks (cicadas.json forced_calm), so the plain demo flags show one by frame ~30; flat draw order and the farm's 3D CicadaLayer tested; AGENTS.md updated; see WORKLOG.
 [x] 2026-11-13 The figures' wall pull sees the real low geometry (ReachMap: props and walls drawn bigger than their cells, posts, rails) and a pulled figure stays behind the figure in front of its feet (FarmWorld.cap_pulls); test_maps, tools/reach_dump.gd; see WORKLOG.
