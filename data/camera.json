@@ -2,6 +2,12 @@
 	"_note": "Lenses for the 3D view's follow camera (scripts/world3d/camera_lens.gd). yaw is fixed at 45°. pitch: degrees the eye looks down at the farmer; fov: vertical field of view in degrees. The eye's distance is worked out so the picture at the farmer's feet is half_height world units from the centre to the top edge, the same for every lens; a wider lens then shows more far away and has more depth. `use` is the lens the game uses; `-- --lens=<id>` picks another for one run (screenshots for choosing).",
 	"use": "medium",
 	"half_height": 3.025,
+	"figure_pull": {
+		"_note": "The upright figures (FarmWorld.upright) are planes through the feet along the camera's right, so at the 45-degree view a figure's side reaches diagonally into a wall, fence or prop just behind its feet and the wall hid that side (the farmer's hand and leg against the coop's and the farmhouse's back walls). FarmWorld.wall_pull draws such a figure nearer the eye along its view ray, the same pixels, by what brings its deepest side back out of the solid cells behind it (cells in front of the feet still hide it): step is the spacing of the points tried along the picture's width (world units), margin is added to the pull, most caps it (a nearer pull could put the figure over something standing just in front of it). Ours.",
+		"step": 0.04,
+		"margin": 0.03,
+		"most": 0.45
+	},
 	"lenses": {
 		"ps1": {"pitch": 26.6, "fov": 13.69,
 			"_note": "Back to Nature's field camera, measured in the RE project (NOTES.md 'Camera'): pitch 26.6°, the eye 25.2 cells away, fov 2 * atan(120 / 1000). Nearly isometric."},

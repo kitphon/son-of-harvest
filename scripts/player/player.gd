@@ -129,6 +129,8 @@ func _physics_process(delta: float) -> void:
 		var moved_x := _try_move(Vector2(step.x, 0))   # one axis at a time, so walls slide
 		var moved_y := _try_move(Vector2(0, step.y))
 		_push_villager(dir, step, delta)
+		if passing:
+			_step_aside(dir, delta)
 		Game.maps.pos = position
 		Game.maps.facing = facing
 		var cell := cell_of(position)
@@ -252,10 +254,29 @@ func _push_villager(dir: Vector2, step: Vector2, delta: float) -> void:
 		_pushed_for = 0.0
 
 
-## Clear of every villager: they stop the feet again.
+## Clear of every villager and not still headed into one (a pass begins a little short of block_reach,
+## where the push stopped the feet): they stop the feet again. Game hears it (the give-way step).
 func _end_pass() -> void:
-	if passing and not Game.villager_near(position):
+	if passing and not Game.villager_near(position) and not Game.villager_in_way(position, position + Vector2(facing) * float(T) * 0.5):
 		passing = false
+	Game.farmer_passing = passing
+
+
+## Slipping past a villager (`dir` the stick): the farmer steps across the way, away from the
+## villager (who steps the other way: Villagers.give_way), until their feet are `apart` cells
+## across it, walls allowing, so the two figures pass side by side, not through each other.
+func _step_aside(dir: Vector2, delta: float) -> void:
+	var v := Game.villager_nearest(position)
+	var r := Villagers.give_rules()
+	var me := position / float(T)
+	if v == Vector2.INF or me.distance_to(v) > r.reach:
+		return
+	var perp := Vector2(-dir.y, dir.x).normalized()
+	var lat := (me - v).dot(perp)
+	if absf(lat) >= r.apart:
+		return
+	var away := signf(lat) if absf(lat) > 0.01 else -1.0
+	_try_move(perp * away * minf(r.farmer_speed * delta, r.apart - absf(lat)) * T)
 
 
 ## May the feet go from `from` to `to`? Villagers do not stop them while `passing`.

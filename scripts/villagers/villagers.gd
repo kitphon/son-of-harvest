@@ -30,6 +30,8 @@ static var _delay := {}        # id -> [part of the day, minutes]: plan time los
 ## Villagers acting in the event playing now (EventPlayer sets it): id -> {map, pos, facing,
 ## moving, walked}. While one is in it, its day plan is set aside.
 static var actors := {}
+## Villagers stepping aside for the passing farmer (give_way): id -> {map, off (cells), side}.
+static var _give := {}
 
 
 ## Every usable villager, id -> data. A broken file is left out with an error printed.
@@ -238,6 +240,9 @@ static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 		w.fishing = false   # and reels the line in
 		w.posting = false   # and holds the letter back
 		w.poling = false    # and rests the pole
+	var g: Variant = _give.get(id)
+	if g != null and g.map == w.get("map", ""):
+		w.pos = w.pos + g.off   # stepped aside for the passing farmer
 	return w
 
 
@@ -324,9 +329,85 @@ static func near(map_id: String, t: float, s: Dictionary, at: Vector2) -> bool:
 	return false
 
 
+## The nearest villager on `map_id` to `at` (cells): their feet, or Vector2.INF for none.
+static func nearest(map_id: String, t: float, s: Dictionary, at: Vector2) -> Vector2:
+	var best := Vector2.INF
+	for w in on_map(map_id, t, s):
+		if best == Vector2.INF or at.distance_to(w.pos) < at.distance_to(best):
+			best = w.pos
+	return best
+
+
+## The give-way numbers (data/villagers/_common.json "give_way").
+static func give_rules() -> Dictionary:
+	var g: Dictionary = common().get("give_way", {})
+	return {"reach": float(g.get("reach", 1.2)), "step": float(g.get("step", 0.35)),
+		"speed": float(g.get("speed", 1.5)), "margin": float(g.get("margin", 0.2)),
+		"apart": float(g.get("apart", 0.45)), "farmer_speed": float(g.get("farmer_speed", 2.0))}
+
+
+## A villager the farmer slips past steps aside (playtest 2026-11-13: the passing farmer walked
+## through the villager, their figures crossing). While `passing` (Player.passing), anyone on
+## `map_id` within `reach` of the farmer's feet `farmer` (cells) eases `step` cells across the
+## farmer's way `dir`, to the side they already stand on (the free one if that is blocked:
+## `free` takes a cell; the feet keep `margin` off a solid cell), at `speed` cells a second;
+## when the pass ends they ease back onto their plan's path. The farmer steps the other way
+## (Player._step_aside), so the two feet stay `apart` across the way where the floor allows.
+## `seconds`: this frame's time. Called every frame the clock runs (Game).
+static func give_way(map_id: String, t: float, s: Dictionary, farmer: Vector2, dir: Vector2, passing: bool, seconds: float, free: Callable) -> void:
+	var r := give_rules()
+	var seen := {}
+	for w in on_map(map_id, t, s):
+		var id: String = w.id
+		seen[id] = true
+		var g: Dictionary = _give.get(id, {"map": map_id, "off": Vector2.ZERO, "side": 0.0})
+		if g.map != map_id:
+			g = {"map": map_id, "off": Vector2.ZERO, "side": 0.0}
+		var base: Vector2 = w.pos - g.off
+		var target := Vector2.ZERO
+		if passing and dir != Vector2.ZERO and base.distance_to(farmer) < r.reach and not actors.has(id):
+			var perp := Vector2(-dir.y, dir.x).normalized()
+			if g.side == 0.0:
+				var lat := (base - farmer).dot(perp)
+				var first := 1.0 if lat >= 0.0 else -1.0
+				for sd: float in [first, -first]:
+					if _clear(base + perp * sd * r.step, perp * sd, r.margin, free):
+						g.side = sd
+						break
+			if g.side != 0.0:
+				target = perp * g.side * r.step
+		else:
+			g.side = 0.0
+		g.off = (g.off as Vector2).move_toward(target, r.speed * seconds)
+		if g.off == Vector2.ZERO and g.side == 0.0:
+			_give.erase(id)
+		else:
+			_give[id] = g
+	for id in _give.keys():
+		if not seen.has(id):
+			_give.erase(id)
+
+
+## May feet stand at `at` (cells), `margin` clear of solid cells towards `way`?
+static func _clear(at: Vector2, way: Vector2, margin: float, free: Callable) -> bool:
+	if not free.is_valid():
+		return true
+	for p: Vector2 in [at, at + way * margin]:
+		if not bool(free.call(Vector2i(floori(p.x), floori(p.y)))):
+			return false
+	return true
+
+
+## How far villager `id` stands aside now (cells; zero when not giving way).
+static func gave(id: String) -> Vector2:
+	var g: Variant = _give.get(id)
+	return g.off if g != null else Vector2.ZERO
+
+
 ## Clears every turn and delay (a new game, tests).
 static func reset_day() -> void:
 	_today_key = ""
+	_give = {}
 	_turns = {}
 	_delay = {}
 

@@ -18,6 +18,8 @@ static func connect_view(player: Player) -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--talk="):   # `-- --demo --map=town --time=14:30 --talk=tome`: E facing her
 			talk_flag.call_deferred(player, arg.trim_prefix("--talk="))
+		elif arg.begins_with("--pass="):   # `-- --demo --map=town --time=7:40 --pass=tome`: walks up into her and slips past
+			pass_flag.call_deferred(player, arg.trim_prefix("--pass="))
 
 
 ## The `--talk=<villager>` screenshot flag: the farmer stands below them, facing up, and talks
@@ -40,6 +42,21 @@ static func talk_flag(player: Player, id: String) -> void:
 	Game.maps.pos = player.position
 	Game.maps.facing = player.facing
 	on_action("interact", c, player.facing)
+
+
+## The `--pass=<villager>` screenshot flag: the farmer stands two cells below them and walks up
+## for good, into them and past (Player.passing; the villager steps aside: Villagers.give_way).
+static func pass_flag(player: Player, id: String) -> void:
+	var w := Villagers.where(id, Game.day_minutes(), Game.trigger_state(Vector2i.ZERO))
+	if w.get("map", "") != Game.maps.id:
+		push_warning("--pass: %s is not on this map now" % id)
+		return
+	player.position = w.pos * T + Vector2(0, 2 * T)
+	player.facing = Vector2i.UP
+	Game.maps.pos = player.position
+	Game.maps.facing = player.facing
+	Game.demo_walk = Vector2.UP
+	Game.demo_walk_left = INF
 
 
 ## kind "enter" = the farmer walked into a door cell `origin + facing`. Interact facing a

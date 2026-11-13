@@ -56,6 +56,66 @@ Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
   check yet, only the frames. The exact request's flags show no cicada because the farmer starts beside
   the tree (above); a frame of them needs `--walk`.
 
+## 2026-11-13 — Figures clear of the walls behind them; villagers step aside for the passing farmer
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Found (the open limits of "E reaches, villagers give way, figures stand upright (playtest)"): (1) an
+  upright figure is a plane through the feet along the camera's right, so at the 45-degree view its
+  side reaches diagonally (north-east for the right side, south-west for the left) into a wall, fence or
+  prop just behind the feet, and the wall hid that side. Frames (480x270, last of 80, `--walk=up:2`):
+  `--demo --map=coop` and `--map=house` the farmer's right hand lost a column and a corner of the right
+  leg to the back wall; `--map=town@clinic --walk=up:3` the same at the clinic's wall; `--walk=left`,
+  `--walk=right` (coop, house, barn) and `--map=tome_house --time=6:30`, `--map=town@shrine
+  --walk=right:3` showed nothing cut (the farmer's feet box keeps 5 px off side walls, villagers walk
+  mid-cell). (2) The pass: Player._end_pass ended a pass in the same frame it began whenever the
+  push had stopped the feet a little past block_reach (0.70-0.76 cells), and once passing the farmer
+  walked straight through the villager's feet: level in depth, the two figures stood 0.0 apart on
+  screen, one picture inside the other.
+- Done: (1) FarmWorld.wall_pull(feet, left, right, cam, solid): samples the picture's base along the
+  camera's right out to its opaque columns on each side (FarmWorld.extents / opaque_columns, cached per
+  texture, mirrored with flip_h); a sample inside a solid cell (Game.maps.is_solid) counts only when the
+  feet stand beyond that cell's face towards the camera (a wall behind; a wall in front keeps hiding the
+  figure; the feet's own cell never counts); the pull is the distance along the view ray that brings the
+  deepest sample back out through that face, plus margin, at most most (data/camera.json "figure_pull":
+  step 0.04, margin 0.03, most 0.45). FarmWorld.stand_all takes the solid cells (Main3D `_solid`) and
+  sets it on every upright figure and its upright alpha-cut children (held item, lantern, marks):
+  FarmWorld.set_pull gives a pulled sprite a ShaderMaterial (PULL_SHADER: the default sprite material's
+  look, unshaded, the modulate as sRGB vertex colour, alpha cut, BILLBOARD_FIXED_Y, with every vertex
+  scaled towards the eye in view space, so the same pixels and a nearer depth; not in shadow passes); at 0
+  the sprite keeps its own material. The camera is unchanged. (2) Villagers.give_way: while
+  Game.farmer_passing (Player sets it), a villager within reach 1.2 cells eases step 0.35 cells across the
+  farmer's way to the side she already stands on (the other side when a wall is there, her feet margin
+  0.2 off a solid cell; none in a one-cell lane) at 3 cells/s, through Villagers.where (both views, E,
+  blocking all see her there); she eases back once he is past. Player._step_aside moves the farmer the
+  other way at 3 cells/s until their feet are apart 0.45 across his way, walls allowing. Data:
+  data/villagers/_common.json "give_way". Player._end_pass keeps the pass while the farmer is still
+  headed into a villager (the bug in (1) of Found). `--pass=<villager>` (FarmActions.pass_flag) stands
+  the farmer two cells below a villager and walks up into them and past.
+- Checked: test_maps `_wall_pull` (every lens: open floor 0; the row behind the feet pulls and the pulled
+  right end comes out through the wall's face; a wall in front, a wall out of reach, the east side and the
+  feet's own cell pull nothing; the west wall pulls by the left side only; the cap; opaque columns and
+  their mirror; the pull material on and off) and in the real view (the farmer 3 px in front of a wall
+  pulled with his held item and lantern; in the open his own material again). test_talk `_give_way`: the
+  same walk into Tome and past as the Player and Game do it each frame, level in depth their feet stand
+  0.71 apart on screen with the give-way and 0.0 without; her side, a wall on that side, the one-cell
+  lane, easing back, where() puts her aside. Every tests/test_*.gd (38, one after another) printed `OK (0
+  failed)`. Smoke runs `--headless --quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo
+  --mine=3`, `--demo --map=coop --walk=up:2`, `--demo --map=town --time=10:00 --pass=kota`): exit 0, no
+  ERROR lines; windowed `--quit-after 150 -- --demo` and `-- --demo --map=coop --walk=up:2`: exit 0.
+  Frames, pull off against on (same run otherwise): `--map=coop --walk=up:2` and `--map=house
+  --walk=up:2` differ in 26 pixels, all on the farmer (the right hand's outer column and the leg's corner
+  now drawn; the bottom row of the sandals no longer darkened by his own contact blob, which now lies
+  behind him); `--map=town@clinic --walk=up:3` 17 pixels, the same; walks into side and front walls
+  (`--walk=left`, `--walk=right` in the coop, house and barn): 0 pixels. With the pull forced on a
+  figure in the open (`--demo`) the farmer's pixels were unchanged (the differences were the
+  butterflies and the field's random objects between runs). `--demo --map=town --time=10:00
+  --pass=kota`, frames 14-22 with give_way's step and apart at 0 against the data: without, the farmer
+  walks into Kota and covers him; with, Kota steps left and the farmer right, the nearer one drawn over.
+- Left / next: the pull is by the map's solid cells: a mesh reaching past its solid cells (an eave, a
+  prop drawn larger than its cell) is not known to it. A pulled figure is drawn up to 0.45 nearer, so
+  something standing within that much in front of it (another figure right at its feet by a wall) could
+  draw behind it. In a one-cell lane the villager has no room and only the farmer's own step (walls
+  allowing) keeps them apart.
+
 ## 2026-11-13 — Shopkeepers: Buy or Talk at the counter
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Found (the user): E on Sayo across the store counter always opened the shop, so a keeper's own

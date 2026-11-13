@@ -180,12 +180,184 @@ static func stretch(cam: Transform3D, feet: Vector3, h: float) -> float:
 	return d / den if d > 0.01 and den > 0.01 else 1.0
 
 
-## Stretches every upright figure in `tree` for camera `cam` (Main3D, after the camera moved).
-static func stand_all(tree: SceneTree, cam: Camera3D) -> void:
+## Stretches every upright figure in `tree` for camera `cam` (Main3D, after the camera moved),
+## and draws it clear of a wall or prop behind its feet (wall_pull) when `solid` (a cell ->
+## bool, the map's solid cells) is given.
+static func stand_all(tree: SceneTree, cam: Camera3D, solid := Callable()) -> void:
 	var xf := cam.global_transform
 	for s: SpriteBase3D in tree.get_nodes_in_group(UPRIGHT):
 		if s.is_visible_in_tree() and s is Sprite3D and s.texture != null:
 			s.scale = Vector3(1, stretch(xf, s.global_position, s.texture.get_height() * s.pixel_size), 1)
+			var pull := 0.0
+			if solid.is_valid():
+				var ext := extents(s)
+				pull = wall_pull(s.global_position, ext.x, ext.y, xf, solid)
+			set_pull(s, pull)
+
+
+## The pull's numbers (data/camera.json "figure_pull"), read once.
+static var _pull_rules := {}
+
+
+static func pull_rules() -> Dictionary:
+	if _pull_rules.is_empty():
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/camera.json"))
+		_pull_rules = data.get("figure_pull", {}) if data is Dictionary else {}
+		_pull_rules["read"] = true
+	return _pull_rules
+
+
+## How far (view depth, world units) an upright figure standing at `feet` must be drawn towards
+## the eye so no part of it shows inside a solid cell behind it (playtest 2026-11-13: a figure's
+## side went into a wall's corner). The upright picture is a plane through the feet along the
+## camera's right; at the 45-degree view its ends reach diagonally, `left` / `right` units to
+## either side (its opaque pixels: extents), so the end towards a wall the feet stand in front of
+## crosses into it and the wall hides it. Only cells behind the feet count: a cell whose face
+## towards the camera the feet stand beyond (north or west of them at our yaw); a wall in front
+## of the figure keeps hiding it as it should. The pull is what brings the deepest end back out
+## through that face along the view ray, plus `margin`, at most `most`. Drawn nearer along the
+## ray, the figure covers exactly the same pixels; only the depth test changes.
+static func wall_pull(feet: Vector3, left: float, right: float, cam: Transform3D, solid: Callable, rules := {}) -> float:
+	if rules.is_empty():
+		rules = pull_rules()
+	var along := Vector3(cam.basis.x.x, 0, cam.basis.x.z).normalized()   # the picture's right
+	var toward := Vector3(cam.basis.z.x, 0, cam.basis.z.z)   # level, towards the eye
+	var level := toward.length()   # a unit along the view ray moves this far over the ground
+	if level < 0.01:
+		return 0.0
+	toward /= level
+	var own := Vector2i(floori(feet.x), floori(feet.z))
+	var step := maxf(float(rules.get("step", 0.04)), 0.005)
+	var need := 0.0
+	for side: float in [-1.0, 1.0]:
+		var reach := right if side > 0.0 else left
+		var k := 0.0
+		while k < reach:
+			k = minf(k + step, reach)
+			var p := feet + along * side * k
+			var c := Vector2i(floori(p.x), floori(p.z))
+			if c != own and solid.call(c):
+				need = maxf(need, _out_of(p, c, feet, toward))
+	if need <= 0.0:
+		return 0.0
+	return minf(need / level + float(rules.get("margin", 0.03)), float(rules.get("most", 0.6)))
+
+
+## How far over the ground point `p` (inside cell `c`) moves along `toward` to come out through
+## a face of `c` that `feet` stand beyond (0 when the cell is not behind the feet).
+static func _out_of(p: Vector3, c: Vector2i, feet: Vector3, toward: Vector3) -> float:
+	var best := INF
+	if toward.x > 0.0 and feet.x >= c.x + 1:
+		best = minf(best, (c.x + 1 - p.x) / toward.x)
+	elif toward.x < 0.0 and feet.x <= c.x:
+		best = minf(best, (c.x - p.x) / toward.x)
+	if toward.z > 0.0 and feet.z >= c.y + 1:
+		best = minf(best, (c.y + 1 - p.z) / toward.z)
+	elif toward.z < 0.0 and feet.z <= c.y:
+		best = minf(best, (c.y - p.z) / toward.z)
+	return 0.0 if best == INF else maxf(best, 0.0)
+
+
+static var _extent_cache := {}   # texture RID -> Vector2(left, right) opaque columns in pixels from the middle
+
+
+## How far sprite `s`'s opaque pixels reach to the picture's left and right of its middle, in
+## world units (its mirror, offset and width scale taken in).
+static func extents(s: Sprite3D) -> Vector2:
+	var rid := s.texture.get_rid()
+	var px: Variant = _extent_cache.get(rid)
+	if px == null:
+		px = opaque_columns(s.texture.get_image())
+		_extent_cache[rid] = px
+	var e: Vector2 = px
+	if s.flip_h:
+		e = Vector2(e.y, e.x)
+	var k := s.pixel_size * (s.global_transform.basis.x.length() if s.is_inside_tree() else s.scale.x)
+	return Vector2(maxf(e.x - s.offset.x, 0.0), maxf(e.y + s.offset.x, 0.0)) * k
+
+
+## The opaque columns of `img` as (pixels left of the middle, pixels right of it).
+static func opaque_columns(img: Image) -> Vector2:
+	if img == null or img.is_empty():
+		return Vector2.ZERO
+	var lo := img.get_width()
+	var hi := -1
+	for x in img.get_width():
+		for y in img.get_height():
+			if img.get_pixel(x, y).a > 0.5:
+				lo = mini(lo, x)
+				hi = maxi(hi, x)
+				break
+	if hi < 0:
+		return Vector2.ZERO
+	var mid := img.get_width() / 2.0
+	return Vector2(mid - lo, hi + 1 - mid)
+
+
+## The upright figure's own picture as the default sprite material draws it (unshaded, the
+## modulate as vertex colour, alpha cut), turned about y like BILLBOARD_FIXED_Y, with every vertex
+## moved `pull` towards the eye along its view ray: the same pixels, nearer in the depth test.
+const PULL_SHADER := "shader_type spatial;
+render_mode unshaded, cull_disabled;
+uniform sampler2D tex : source_color, filter_nearest;
+uniform float pull = 0.0;
+uniform float cut = 0.5;
+void vertex() {
+	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(vec4(normalize(cross(vec3(0.0, 1.0, 0.0), INV_VIEW_MATRIX[2].xyz)), 0.0), vec4(0.0, 1.0, 0.0, 0.0), vec4(normalize(cross(INV_VIEW_MATRIX[0].xyz, vec3(0.0, 1.0, 0.0))), 0.0), MODEL_MATRIX[3]);
+	MODELVIEW_MATRIX = MODELVIEW_MATRIX * mat4(vec4(length(MODEL_MATRIX[0].xyz), 0.0, 0.0, 0.0), vec4(0.0, length(MODEL_MATRIX[1].xyz), 0.0, 0.0), vec4(0.0, 0.0, length(MODEL_MATRIX[2].xyz), 0.0), vec4(0.0, 0.0, 0.0, 1.0));
+	MODELVIEW_NORMAL_MATRIX = mat3(MODELVIEW_MATRIX);
+	vec4 v = MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
+	float d = -v.z;
+	if (PROJECTION_MATRIX[3][3] == 0.0 && d > 0.01) {
+		v.xyz *= max(d - pull, 0.01) / d;
+	}
+	POSITION = PROJECTION_MATRIX * v;
+	if (!OUTPUT_IS_SRGB) {
+		COLOR.rgb = mix(pow((COLOR.rgb + vec3(0.055)) * (1.0 / (1.0 + 0.055)), vec3(2.4)), COLOR.rgb * (1.0 / 12.92), lessThan(COLOR.rgb, vec3(0.04045)));
+	}
+}
+void fragment() {
+	vec4 c = texture(tex, UV) * COLOR;
+	if (c.a < cut) {
+		discard;
+	}
+	ALBEDO = c.rgb;
+}
+"
+static var _pull_shader: Shader
+
+
+## Draws upright sprite `s` (and its upright, alpha-cut sprite children: the held item, the
+## lantern, the marks) `pull` nearer the eye (wall_pull). At 0 they keep the sprite's own
+## material, as drawn before; otherwise each wears a pull material of its own.
+static func set_pull(s: Sprite3D, pull: float) -> void:
+	for n: Node in [s] + s.get_children():
+		var t := n as Sprite3D
+		if t == null or (t != s and (t.billboard != BaseMaterial3D.BILLBOARD_FIXED_Y or t.alpha_cut != SpriteBase3D.ALPHA_CUT_DISCARD)):
+			continue
+		if pull <= 0.0 or t.texture == null:
+			if t.material_override != null and t.has_meta("pull_mat"):
+				t.material_override = null
+			continue
+		var m: ShaderMaterial = t.get_meta("pull_mat") if t.has_meta("pull_mat") else null
+		if m == null:
+			if _pull_shader == null:
+				_pull_shader = Shader.new()
+				_pull_shader.code = PULL_SHADER
+			m = ShaderMaterial.new()
+			m.shader = _pull_shader
+			t.set_meta("pull_mat", m)
+		m.set_shader_parameter("tex", t.texture)
+		m.set_shader_parameter("pull", pull)
+		m.set_shader_parameter("cut", t.alpha_scissor_threshold)
+		t.material_override = m
+
+
+## How far sprite `s` is drawn towards the eye now (0: its own material).
+static func pull_of(s: Sprite3D) -> float:
+	if s.material_override == null or not s.has_meta("pull_mat"):
+		return 0.0
+	return float((s.material_override as ShaderMaterial).get_shader_parameter("pull"))
 
 
 static func flat_material(color: Color) -> StandardMaterial3D:
