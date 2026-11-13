@@ -54,11 +54,12 @@ func refresh() -> void:
 	_shown.clear()
 	visible = not amounts.is_empty()
 	if visible:
-		var key := "%s|%d|%d" % [map.id, game.season, game.day]
+		var key := "%s|%d|%d|%s" % [map.id, game.season, game.day, CicadaRules.scion_stage(game.flags, game.day_number())]
 		if key != _scene_key:
 			_scene_key = key
 			_state.clear()
 			_scene = CicadaRules.scene_of(map, game.day + 30 * game.season)
+			CicadaRules.add_scion(_scene, map, CicadaRules.scion_stage(game.flags, game.day_number()), str(game.flags.get(Scion.FLAG, "")))
 		var farmer := CicadaRules.NO_FARMER if player == null else player.position / float(T)
 		var others := walkers()
 		var fled := false
@@ -107,9 +108,14 @@ func screen_of(pos: Vector3, lift := true) -> Vector2:
 ## point on the ground under it), key: picture key, right: faces right, air: drawn in the air pass}].
 func sprites() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
+	var scion := {}   # the cells of Kiku's persimmon (its trunk, a story prop drawn over the figures)
+	for t in _scene.get("trunks", []):
+		if t.kind == "scion":
+			scion[t.cell] = true
 	for c in _shown:
 		out.append({"at": screen_of(c.pos), "ground": screen_of(c.pos, false), "key": CicadaRules.key_of(c),
-			"right": (c.dir as Vector2).x > 0.0, "air": CicadaRules.flying(c)})
+			"right": (c.dir as Vector2).x > 0.0, "air": CicadaRules.flying(c),
+			"scion": scion.has(Vector2i(floori(c.pos.x), floori(c.pos.z)))})
 	return out
 
 
@@ -135,13 +141,15 @@ func _place_clinging() -> void:
 		n.name = "Cicada%d" % _clinging.size()
 		add_child(n)
 		_clinging.append(n)
-	var host := cling_host()
+	var fig := cling_host()
 	for i in _clinging.size():
 		var n: Clinging = _clinging[i]
 		if i >= on_trunks.size() or not visible:
 			n.visible = false
 			continue
 		var s: Dictionary = on_trunks[i]
+		# Kiku's persimmon's cicadas go over the story props (StoryView, drawn over the figures); the rest sort with the figures.
+		var host: Node2D = self if s.scion else fig
 		if n.get_parent() != host:
 			n.get_parent().remove_child(n)
 			host.add_child(n)

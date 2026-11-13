@@ -45,11 +45,12 @@ func refresh() -> void:
 	_shown.clear()
 	var fled := false
 	if not amounts.is_empty():
-		var key := "%s|%d|%d" % [map.id, game.season, game.day]
+		var key := "%s|%d|%d|%s" % [map.id, game.season, game.day, CicadaRules.scion_stage(game.flags, game.day_number())]
 		if key != _scene_key:   # a new day: other trees, nobody startled
 			_scene_key = key
 			_state.clear()
 			_scene = CicadaRules.scene_of(map, game.day + 30 * game.season)
+			CicadaRules.add_scion(_scene, map, CicadaRules.scion_stage(game.flags, game.day_number()), str(game.flags.get(Scion.FLAG, "")))
 		for kind in CicadaRules.KINDS:
 			if amounts.has(kind):
 				for c in CicadaRules.cicadas(kind, float(amounts[kind]), _t, _scene, farmer, _state, {}, others):

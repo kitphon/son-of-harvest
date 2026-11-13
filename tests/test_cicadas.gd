@@ -30,6 +30,7 @@ func _run() -> void:
 	_gating()
 	_sound()
 	_trunks()
+	_scion()
 	_startle()
 	_art()
 	await _sfx()
@@ -153,8 +154,8 @@ func _trunks() -> void:
 	for s in all:
 		var tr: Dictionary = scene.trunks[s.tree]
 		var spot: Vector3 = s.spot
-		var span: Array = CR.config().trunks[tr.kind]
-		on_trunk = on_trunk and spot.y >= float(span[0]) - 0.001 and spot.y <= float(span[1]) + 0.001
+		
+		on_trunk = on_trunk and spot.y >= float(tr.lo) - 0.001 and spot.y <= float(tr.hi) + 0.001
 		var lean: Vector3 = tr.lean
 		var axis: Vector3 = lean * (spot.y / lean.y)
 		var off := Vector2(spot.x, spot.z) - ((tr.foot as Vector2) + Vector2(axis.x, axis.z))
@@ -172,6 +173,48 @@ func _trunks() -> void:
 			if c.id == all[0].id:
 				frames[c.frame] = true
 	check(frames.size() == 2, "cicadas: a singing one pumps (frames %s)" % str(frames.keys()))
+
+
+## Kiku's persimmon as a trunk (CicadaRules.add_scion): a young or a fruiting tree on the farm when
+## its flag places it, never the sapling nor an unplanted twig; its cicadas on the trunk, by the same
+## chances as the other trees; the stage read from the planting day (CicadaRules.scion_stage).
+func _scion() -> void:
+	var farm: MapData = MM.data("farm")
+	var door_map: MapData = MM.load_map("farm", null, {"kiku_scion": "door"})[1]
+	var field_map: MapData = MM.load_map("farm", null, {"kiku_scion": "field"})[1]
+	var spans: Dictionary = CR.config().scion
+	check(CR.scene_of(farm, 7).trunks.is_empty(), "scion: the farm's own scene has no trunks (the scion is added)")
+	check(CR.add_scion(CR.scene_of(farm, 7), door_map, "sapling", "door").trunks.is_empty(), "scion: no cicada trunk as a sapling")
+	check(CR.add_scion(CR.scene_of(farm, 7), farm, "young", "").trunks.is_empty(), "scion: none unless the twig is planted")
+	var door: Dictionary = CR.add_scion(CR.scene_of(farm, 7), door_map, "tree", "door")
+	check(door.trunks.size() == 1 and (door.trunks[0].cell as Vector2i) == Vector2i(3, 4) and door.trunks[0].kind == "scion", "scion: the door twig's trunk stands on its cell (3,4)")
+	check(Vector2(door.trunks[0].foot).is_equal_approx(Vector2(3.5, 4.7)), "scion: the trunk's foot is the picture's plane, 0.2 toward the camera (3.5, 4.7)")
+	check(is_equal_approx(float(door.trunks[0].lo), float(spans.tree[0])) and is_equal_approx(float(door.trunks[0].hi), float(spans.tree[1])), "scion: the tree's trunk heights from data/cicadas.json")
+	var field: Dictionary = CR.add_scion(CR.scene_of(farm, 7), field_map, "young", "field")
+	check(field.trunks.size() == 1 and (field.trunks[0].cell as Vector2i) == Vector2i(30, 8), "scion: the field twig's trunk stands on its cell (30,8)")
+	var planted := {"kiku_scion": "door", "kiku_scion_day": 0}
+	check(CR.scion_stage({}, 50) == "" and CR.scion_stage(planted, 5) == "sapling" and CR.scion_stage(planted, 130) == "young" and CR.scion_stage(planted, 250) == "tree", "scion: the stage by the planting day (sapling, young, tree; none unplanted)")
+	# Over seeds: a fruiting tree gets a cicada on its trunk, within the trunk's heights and against the bark.
+	var on := 0
+	var placed := true
+	for seed_value in 200:
+		var scene: Dictionary = CR.add_scion(CR.scene_of(farm, seed_value), door_map, "tree", "door")
+		for s in CR.spots("semi", 1.0, scene):
+			var tr: Dictionary = scene.trunks[s.tree]
+			if tr.kind != "scion":
+				continue
+			on += 1
+			var spot: Vector3 = s.spot
+			placed = placed and spot.y >= float(spans.tree[0]) - 0.001 and spot.y <= float(spans.tree[1]) + 0.001 and Vector2(spot.x, spot.z).distance_to(Vector2(3.5, 4.7)) < 0.2 and (spot.x - 3.5) + (spot.z - 4.7) > 0.0
+	check(on > 40 and placed, "scion: a fruiting tree holds cicadas on its trunk (%d of 200 seeds, on the trunk: %s)" % [on, str(placed)])
+	var young_on := 0
+	for seed_value in 200:
+		var scene: Dictionary = CR.add_scion(CR.scene_of(farm, seed_value), door_map, "young", "door")
+		for s in CR.spots("semi", 1.0, scene):
+			if scene.trunks[s.tree].kind == "scion":
+				young_on += 1
+	check(young_on > 40, "scion: a young tree holds cicadas too (%d of 200 seeds)" % young_on)
+	check(CR.spots("semi", 1.0, CR.scene_of(farm, 7)).is_empty(), "scion: nothing on the farm without the twig's trunk")
 
 
 func _startle() -> void:

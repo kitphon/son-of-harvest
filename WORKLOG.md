@@ -10,6 +10,45 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — Open limits: cucumber perch, tomato and eggplant frames, Kiku's persimmon cicadas
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: (1) Crop perch height: CropClusters.top_of measures the first opaque pixel of the picture's middle
+  column (both central columns, averaged, on an even width), not the first opaque row anywhere, so a
+  dragonfly's legs rest on the plant at its centre line; the perch's x is unchanged (InsectRules.plant_perch).
+  The cucumber's tip sat 2 px off the middle, so its legs stood 2 px above the plant. (2) `--crops=tomato,
+  eggplant[:stage]` (Game.demo_crops_of, Game._demo_crops): a row of those crops along the demo plot's top
+  row (row 5, in equal runs), each at its stage (`ripe` when none), placed straight on the cells, so
+  eggplant (fall's crop) can be framed in summer. (3) Kiku's persimmon holds cicadas as a young or fruiting
+  tree (never the sapling, never unplanted): CicadaRules.add_scion adds its trunk (data/cicadas.json
+  `scion`: young [0.2, 0.6], tree [0.3, 0.8] cells, read off the sprite's bare trunk; `trunk_radius` scion
+  0.6). Its foot sits on the picture's own plane (`scion_plane` 0.2 cells toward the camera, the offset
+  StoryProps gives the "scion" picture), so the cicadas stand in front of it. The farm's 3D world had no
+  CicadaLayer (only the cicada sound), so main_3d's new_world now builds one; the flat view's StoryView is
+  added before the CicadaView (the persimmon drew over the cicadas), and the scion's clinging cicadas
+  are hosted on the view, not the FigureLayer. The cicada caches are keyed on the scion's stage too.
+- Found while framing: the farmer's start cell (4,4) stands beside the persimmon (3,4), so the cicadas on
+  it fly off within about half a second, and they only come back about 20 s later once every walker is
+  2.4 cells or more away. The exact flags of the request (`--demo --flags=kiku_scion=door --scion=tree
+  --season=summer --day=20 --time=12:00 --cicadas`) show no cicada on the trunk at 25 frames. With
+  `--walk=right:0.6` the farmer steps east and the cicadas are back on the trunk.
+- Checked: `test_insects` (new: each cluster crop's perch has the plant's middle-column top pixel at its
+  height within 1 px (`legs touch`), the --crops parse (`demo crops:`)); `test_cicadas` (new `_scion`:
+  no trunk as a sapling or unplanted, the door and field twigs' trunks on their cells, the foot on the
+  plane (3.5, 4.7), the stage by the planting day, cicadas on the young and the fruiting tree over 200
+  seeds, nothing without the trunk). All 38 `tests/test_*.gd` print `OK (0 failed)`. Smoke runs
+  (`--quit-after 300`: title, `--demo`, `--demo --map=town`, `--demo --crops=tomato,eggplant`): 0 ERROR
+  lines. Windowed `--quit-after 150 -- --demo` and `-- --demo --crops=tomato,eggplant`: exit 0.
+  Frames (480 x 270, magnified with Pillow): 3D `--demo --season=summer --time=11:00 --crops=tomato,eggplant
+  --insects=dragonfly:perched:tomato` (a red dragonfly on the tomato's green top, legs touching, no gap);
+  the same with `:eggplant` (a dragonfly on the eggplant's top, its legs on the leaf); 3D and flat
+  `--demo --flags=kiku_scion=door --scion=tree --season=summer --day=20 --time=12:00 --cicadas
+  --walk=right:0.6` at frame 799 (3D: an amber cicada clinging on the trunk, in front of the bark) and
+  frame 899 (flat: an amber cicada on the trunk over the persimmon).
+- Left / next: the cucumber perch is checked by the new test (the legs touch the middle column), not by
+  eye. The flat cicada check (the story props drawn under them) and the farm's CicadaLayer have no test
+  check yet, only the frames. The exact request's flags show no cicada because the farmer starts beside
+  the tree (above); a frame of them needs `--walk`.
+
 ## 2026-11-13 — Shopkeepers: Buy or Talk at the counter
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Found (the user): E on Sayo across the store counter always opened the shop, so a keeper's own
