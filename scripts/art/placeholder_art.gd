@@ -90,6 +90,8 @@ static func _make(key: String) -> Image:
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
 		"furin":    # furin, the wind chime under the farmhouse eave (FurinRules), 14 x 22
 			return _furin()
+		"hoshigaki":   # hoshigaki:<fruit>:<stage>:<big|small>, a string of drying persimmons under an eave (HoshigakiArt, HoshigakiRules.art_key)
+			return HoshigakiArt.make(int(parts[1]) if parts.size() > 1 else 6, int(parts[2]) if parts.size() > 2 else 0, parts.size() > 3 and parts[3] == "small")
 		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|noren_rows|noren_flowers|noren_shino|ume_jar|carp_streamer|scion:<sapling|young|tree>:<season>:<snow 0|1>[:<persimmons shown>]|lumber|rope_lift|jizo_bibs|jizo_scarf|kiln_mark|kiln_site|kiln_new|kiln_worn|captain_jar|frog|ribbon_board:<places>|sky_map:<steady|beside>:<near|field>>, things the story leaves in the world (StoryProps)
 			if parts[1] == "scion":
 				return _scion_story(parts[2] if parts.size() > 2 else "sapling", parts[3] if parts.size() > 3 else "spring", parts.size() > 4 and parts[4] == "1", int(parts[5]) if parts.size() > 5 else -1)

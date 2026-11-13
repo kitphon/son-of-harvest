@@ -337,6 +337,7 @@ static func new_world(m: MapData) -> Array:
 		steps.append(func() -> void: fw.add_child(PuddleLayer.new(m, Game.farm)))   # puddles in rain
 		steps.append(func() -> void: fw.add_child(WetLayer.new(m)))   # the wet look of the ground, roofs and stone in rain
 		steps.append(func() -> void: fw.add_child(IcicleLayer.new(m, fw.eaves)))   # icicles on the buildings' eaves in winter
+		steps.append(func() -> void: fw.add_child(HoshigakiLayer.new(m, fw.eaves, Game.farm)))   # drying persimmons under the farmhouse eave in late fall
 		steps.append(fw.make_story_props.bind(m))   # the door bell, once Hachiro has given it
 		return [fw, steps]
 	var mw := MapWorld.new()

@@ -10,6 +10,45 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — Hoshigaki: drying persimmons under the eaves in late fall
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: HoshigakiRules (scripts/hoshigaki_rules.gd, numbers in data/hoshigaki.json, pure): strings hang
+  in fall days 10-30, outdoors only (not rooms, the mine, the greenhouse), taken in on a day whose look
+  is rain, storm, snow or blizzard. Days hung = day - 10; dried share = days / 18; four picture stages
+  (fresh bright orange 5 x 6 px fruit -> deep red-brown 3 x 4 px with a pale sugar bloom). Balance
+  reasoning: real hoshigaki take two to four weeks; 18 days lets a player see the whole change inside
+  one fall, starting mid-season when persimmons are picked. Sway: none in calm, up to 7 degrees at a
+  gale, 0.32 Hz quickened by the wind, a per-string phase (heavy fruit swing less than the furin's 16).
+  Hosts: the farmhouse always; a village house when a murmur3 hash of its cell is below 0.55 (7 of 14
+  houses over the four outdoor village maps). Spots along an eave from a hash of its ends: inset 0.32,
+  gaps 0.44-0.58, 15 % skipped, at most 9, clear of door cells by 0.12, tucked 0.06 under the soffit;
+  6-10 persimmons each. HoshigakiArt (our own picture, PlaceholderArt "hoshigaki:<fruit>:<stage>:<big|small>"):
+  a twisted straw rope from a loop, the fruit hanging left and right in turn, a dark stalk knot on the rope,
+  the calyx on top, acorn-shaped ovals in three tones lit from the upper left. HoshigakiLayer (3D): finds each
+  host's front eave among FarmWorld.eaves (facing +z, near its front, spanning its walls, the lowest: a
+  two-storey house's pent roof), hangs a pivot + camera-facing sprite (0.03 units a pixel) per string,
+  swung by the world's wind, and fades it with its house (Occluders.fade_of_tag: alpha cut off, modulate
+  alpha 1 - fade); built on outdoor maps (MapWorld) and the farm (Main3D.new_world). HoshigakiView (flat):
+  smaller strings (at most 6 fruit, about a cell long) from the row under the painted roof's bottom eave,
+  clear of the doors, a pixel's swing, FlatLight; added before the figures in main_2d so figures in front
+  cover them. `--hoshigaki` / `--hoshigaki=<days hung>`; AGENTS.md test line and flag, ART_DIRECTION row.
+- Checked: tests/test_hoshigaki.gd `test_hoshigaki: OK (0 failed)` (data, gating by season / day / weather /
+  map, drying stages darker and smaller, sway, the picture's tones and light side, spots on the eave,
+  tucked, clear of doors, deterministic; some but not all village houses; 3D on the farm and the village:
+  every string on a listed eave, the stage by the days, still in calm and swinging in wind, fading with
+  the farmhouse, taken in on rain, none in spring; flat: under the roofs' bottom eave, clear of doors,
+  storm takes them in, main_2d builds it on the farm). All 42 tests/test_*.gd print `OK (0 failed)`.
+  Smoke runs (`--quit-after 300`: title, `--demo`, `--demo --map=town`, `--demo --mine=3`, the hoshigaki
+  flags on the farm, the town, a room and the flat view): 0 ERROR lines. Windowed `--quit-after 150 -- --demo`: exit 0.
+  Frames (480 x 270, frame 19): `--demo --season=fall --day=20 --weather=sunny --time=11:00 --hoshigaki`
+  3D farm: five strings of red-orange persimmons along the farmhouse eave over the engawa, none over the
+  door, readable as fruit on a rope; flat farm: four short strings under the farmhouse roof in the yard row.
+  `--map=town`: strings under the front eaves of several village houses in both views (the flat ones
+  small but readable). `--hoshigaki=0 --time=15:00`: bright plump orange strings; `--map=minamino@shige
+  --hoshigaki=18`: dark shrunken strings under a two-storey house's pent roof.
+- Left / next: no sound; the strings do not cast shadows; the village houses picked are fixed by the hash
+  (a story or data list could choose them later).
+
 ## 2026-11-13 — Merge: icicles (Opus), carp streamers (Sonnet), wind chime (Haiku)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 6f90419 icicles on the eaves, 043ce0c koinobori and 34c2318 furin, each from its own

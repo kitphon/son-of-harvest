@@ -1,0 +1,21 @@
+{
+	"_about": "Hoshigaki: strings of peeled persimmons drying under the eaves in late fall (HoshigakiRules; HoshigakiLayer in 3D, HoshigakiView in the flat view; pictures: HoshigakiArt, PlaceholderArt \"hoshigaki\"). They hang from day days[0] to day days[1] of the seasons listed, outdoors only, under the farmhouse's front eave and under the front eave of the village houses whose hash of their cell falls below village_share. They are taken in on a day whose weather look is one of `taken_in` (rain, a storm, snow). `dry`: the days hung (0 on the first day) until they are fully dried (`full_days`); the picture's stage is the dried share in `stages` steps, each with its three tones lit from the upper left (light, base, dark), a fruit size in pixels for the 3D picture (`big`: w, h) and the flat one (`small`), from fresh bright orange to a shrunken deep red-brown with a pale sugar bloom (`bloom`). `fruit`: how many persimmons a string carries (fruit[0] .. fruit[1], from a hash of its spot). `eave`: the 3D strings along a front eave: `inset` in from each end, `gap` between strings (units), a `skip` share left bare, `door_margin` kept clear each side of a door cell, at most `most` a house, tucked `tuck` under the soffit. `flat`: the flat view's strings under the painted roof's bottom eave (pixels: inset, gap, skip, door margin; at most `most_fruit` persimmons on a flat string, so it hangs about a cell). `sway`: a slow swing with the wind (data/wind.json, 0 .. 1), none in dead calm, `max_deg` at a gale; `rate_hz` swings a second, `rate_gain` how much the wind quickens them; `flat.shift_px` the flat view's sideways shift at a full swing. `pixel_size`: the 3D picture's world units a pixel. `force`: `--hoshigaki` hangs them on outdoors whatever the date and weather, `days` hung when the date is outside the window (`--hoshigaki=N`: N days hung). Balance numbers are ours.",
+	"seasons": ["fall"],
+	"days": [10, 30],
+	"taken_in": ["rain", "storm", "snow", "blizzard"],
+	"village_share": 0.55,
+	"dry": {"full_days": 18},
+	"stages": [
+		{"light": "ffc46a", "base": "f08a2a", "dark": "b8561a", "big": [5, 6], "small": [3, 4]},
+		{"light": "f0a050", "base": "d46a24", "dark": "98421a", "big": [4, 5], "small": [3, 4]},
+		{"light": "cc7a40", "base": "a64a22", "dark": "6e3018", "big": [3, 5], "small": [2, 3]},
+		{"light": "a86a44", "base": "7e3a20", "dark": "4e2214", "big": [3, 4], "small": [2, 3], "bloom": "d8c0a8"}
+	],
+	"rope": {"light": "dcc488", "dark": "b49656", "stem": "3e2a1a", "calyx": "5a4426"},
+	"fruit": [6, 10],
+	"eave": {"inset": 0.32, "gap": [0.44, 0.58], "skip": 0.15, "door_margin": 0.12, "most": 9, "tuck": 0.06},
+	"flat": {"inset": 3, "gap": [10, 13], "skip": 0.15, "door_margin": 1, "shift_px": 1.0, "most_fruit": 6},
+	"sway": {"max_deg": 7.0, "rate_hz": 0.32, "rate_gain": 0.6, "gust_hz": 0.06, "gust_depth": 0.35},
+	"pixel_size": 0.03,
+	"force": {"days": 6}
+}
