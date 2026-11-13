@@ -10,7 +10,11 @@ extends RefCounted
 ## saves load with defaults (the starting flock, everyone a stranger, the new-game fodder and
 ## dog, the tools of the recipes already known, every landing down to the deepest floor).
 const VERSION := 6
-const SLOT := "user://save1.json"
+const SLOT := "user://save1.json"   # the player's slot; code asks slot(), never this directly
+## Runs that are not someone playing (a --script test or tool, a --demo run, a Movie Maker run)
+## save here instead, so they can never overwrite the player's game: a test run that stopped
+## before putting the slot back once lost the user's two-year save.
+const DEV_SLOT := "user://dev/save1.json"
 ## Saving writes <slot>.tmp first and renames it over the slot only once it is whole, so a
 ## reader (another Godot, a crash mid-write) never sees half a file; the slot it replaces is
 ## kept as <slot>.bak while it was a good save, and loading falls back to that backup when
@@ -19,11 +23,28 @@ const TEMP := ".tmp"
 const BACKUP := ".bak"
 
 
+## The slot this run reads and writes: SLOT for a player, DEV_SLOT for tests, tools and dev runs.
+static func slot() -> String:
+	return DEV_SLOT if is_dev_run() else SLOT
+
+
+## True for a --script run (a test or tool: the main loop is that script, or not made yet while
+## the script itself is being built), a Movie Maker run (the "movie" feature) or a --demo run.
+static func is_dev_run() -> bool:
+	var loop := Engine.get_main_loop()
+	if loop == null or loop.get_script() != null:
+		return true
+	return OS.has_feature("movie") or OS.get_cmdline_user_args().has("--demo") or OS.get_cmdline_args().has("--demo")
+
+
 ## Returns "" when written, else what went wrong (the old save is then left as it was).
-static func write(game, path := SLOT) -> String:
+static func write(game, path := "") -> String:
+	if path == "":
+		path = slot()
 	if game.has_method("finish_swing"):
 		game.finish_swing()   # a tool swing in the air lands first, so the save holds its result
 	var text := JSON.stringify({"version": VERSION, "game": game.to_dict()}, "\t")
+	DirAccess.make_dir_recursive_absolute(_abs(path.get_base_dir()))
 	var temp := path + TEMP
 	var f := FileAccess.open(temp, FileAccess.WRITE)
 	if f == null:
@@ -44,7 +65,9 @@ static func write(game, path := SLOT) -> String:
 
 
 ## Returns "" when loaded, else what was wrong (and the game is unchanged).
-static func read(game, path := SLOT) -> String:
+static func read(game, path := "") -> String:
+	if path == "":
+		path = slot()
 	var parsed := _parse(path)
 	if parsed[0] != "":
 		return parsed[0]
@@ -55,7 +78,9 @@ static func read(game, path := SLOT) -> String:
 ## loaded into a scratch Game that shares the game's data tables (crops, foods, tools, the
 ## mine...), then thrown away. (It used to share only the crops, so every save holding a
 ## food failed here with "Saved food is broken" and the title turned Continue off.)
-static func check(game, path := SLOT) -> String:
+static func check(game, path := "") -> String:
+	if path == "":
+		path = slot()
 	var parsed := _parse(path)
 	if parsed[0] != "":
 		return parsed[0]
@@ -70,7 +95,9 @@ static func check(game, path := SLOT) -> String:
 
 ## "" or a note for the title screen when Continue will load the backup: the slot itself is
 ## missing or broken but its backup is good.
-static func backup_note(path := SLOT) -> String:
+static func backup_note(path := "") -> String:
+	if path == "":
+		path = slot()
 	var own: String = _parse_one(path)[0]
 	if own == "" or _parse_one(path + BACKUP)[0] != "":
 		return ""
@@ -116,7 +143,9 @@ static func whole(v: Variant, lo: int, hi: int) -> Variant:
 
 ## Every file of a slot (the save, its backup, a left-over temp file) as {path: text}, the
 ## missing ones as null; `restore` puts them back. Tests that must write the real slot use it.
-static func snapshot(path := SLOT) -> Dictionary:
+static func snapshot(path := "") -> Dictionary:
+	if path == "":
+		path = slot()
 	var snap := {}
 	for p in [path, path + BACKUP, path + TEMP]:
 		snap[p] = FileAccess.get_file_as_string(p) if FileAccess.file_exists(p) else null

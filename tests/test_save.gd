@@ -13,6 +13,8 @@ func _init() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 
+	_dev_slot(game_script, crops)
+
 	# A farm with crops, obstacles and wet soil, and a Game state away from the defaults.
 	var a: Node = _game(game_script, crops, 7)
 	var f: FarmGrid = a.farm
@@ -444,6 +446,28 @@ func _put(text: String) -> void:
 	var file := FileAccess.open(PATH, FileAccess.WRITE)
 	file.store_string(text)
 	file.close()
+
+
+## A test run never touches the player's slot: it is a dev run, so the default slot is
+## DEV_SLOT, and saving with the default path writes there and leaves SLOT's files as they were.
+func _dev_slot(game_script: GDScript, crops: Dictionary) -> void:
+	check(SaveGame.is_dev_run(), "dev slot: a --script run is a dev run")
+	check(SaveGame.slot() == SaveGame.DEV_SLOT, "dev slot: the default slot is the dev one")
+	check(SaveGame.DEV_SLOT != SaveGame.SLOT and SaveGame.DEV_SLOT.begins_with("user://dev/"), "dev slot: apart from the player's")
+	var player := SaveGame.SLOT
+	var before := {}
+	for p in [player, player + SaveGame.BACKUP, player + SaveGame.TEMP]:
+		before[p] = FileAccess.get_modified_time(p) if FileAccess.file_exists(p) else -1
+	var keep := SaveGame.snapshot()   # the dev slot's own files, put back after
+	var g: Node = _game(game_script, crops, 3)
+	check(SaveGame.write(g) == "", "dev slot: a default save writes")
+	check(FileAccess.file_exists(SaveGame.DEV_SLOT), "dev slot: the save is in the dev folder")
+	check(SaveGame.check(g) == "", "dev slot: a default check reads it back")
+	for p in before:
+		var now: int = FileAccess.get_modified_time(p) if FileAccess.file_exists(p) else -1
+		check(now == before[p], "dev slot: the player's %s untouched" % p.get_file())
+	g.free()
+	SaveGame.restore(keep)
 
 
 func check(ok: bool, what: String) -> void:

@@ -15,7 +15,7 @@ func _init() -> void:
 
 
 ## The menu for the save at `path`; the cursor starts on Continue when there is one.
-static func make(game, path := SaveGame.SLOT) -> TitleMenu:
+static func make(game, path := "") -> TitleMenu:
 	var m := TitleMenu.new()
 	m.why_no_continue = SaveGame.check(game, path)
 	m.enabled.continue = m.why_no_continue == ""

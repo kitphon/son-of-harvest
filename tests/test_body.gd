@@ -2,7 +2,7 @@ extends SceneTree
 ## Headless checks for fatigue, tired states, oversleeping and collapse (Game + data/body.json). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_body.gd
 
-const SAVE_PATH := SaveGame.SLOT   # Game.sleep() writes the real slot; put back after
+var SAVE_PATH := SaveGame.slot()   # Game.sleep() writes the slot (the dev one in a test run); put back after
 
 var failures := 0
 

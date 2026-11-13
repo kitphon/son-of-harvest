@@ -10,6 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — Tests, tools and dev runs save to their own slot, never the player's
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Found: the player's two-year save (user://save1.json) was gone, replaced by a test run's state
+  (year 2, spring 2, married to Sayo, a fresh farm). Some tests (Game.sleep in test_body,
+  test_maps) and tools/play_year.gd write the default slot and put it back afterwards, but a run
+  that is stopped or crashes before that never restores it, and the other tests that save on the
+  way had no snapshot at all.
+- Done: SaveGame.slot() picks the slot. A player's run keeps `user://save1.json` (SLOT); a dev run
+  uses `user://dev/save1.json` (DEV_SLOT). SaveGame.is_dev_run(): a --script run (the main loop
+  is a script, or not made yet while the test script itself is built), a Movie Maker run
+  (OS.has_feature("movie")) or a `--demo` run. write / read / check / backup_note / snapshot take
+  "" for the run's slot, and write makes the folder first. TitleMenu.make, the title screen,
+  test_body and tools/play_year.gd ask SaveGame.slot().
+- Checked: a temporary print in Game._ready (taken out again) showed `false user://save1.json` for
+  the title run, `true user://dev/save1.json` for `-- --demo` and for a `--write-movie` run (the
+  first try read `--write-movie` from the command line; the engine takes it off, so it is the
+  `movie` feature now). test_save `_dev_slot` (a --script run is a dev run, a default save lands
+  in user://dev/ and the player's save, backup and temp file keep their modified times).
+  All 38 tests/test_*.gd print `OK (0 failed)`; tools/play_year.gd printed
+  `play_year: OK (no problems seen)`; smoke runs (title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`) had no ERROR lines; the windowed `--quit-after 150 -- --demo` exited 0. The
+  player's save1.json and .bak had the same modified time and bytes before and after the whole run.
+- Left / next: the lost save cannot be brought back (no copy of it was kept anywhere). A player
+  who once saved in a `--demo` run finds that save in user://dev/, not on the title screen.
+
 ## 2026-11-13 — Kiku's persimmon cicadas: settled first look, flat draw order and the farm's CicadaLayer tested
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: (1) The forced cicadas (`--cicadas`) start settled for `forced_calm` (data/cicadas.json, 3.0 s): CicadaRules.cicadas leaves every walker out of the scare until then, so the farmer starting beside Kiku's persimmon no longer sends them off at once. After the settle the scare works as before. The plain flags `--demo --flags=kiku_scion=door --scion=tree --season=summer --day=20 --time=12:00 --cicadas` now show one on the trunk from the first frames. (2) AGENTS.md's run line for them: the plain flags, frame ~30; `--walk=right:0.6` and ~800 frames kept for the return.

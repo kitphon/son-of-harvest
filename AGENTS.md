@@ -184,6 +184,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `-- --lang=th` for one language, `-- --list` for every missing line) prints what each
   language covers and writes `build/lang/<id>_todo.json`. A screenshot with `--lang=pseudo`
   shows every text a third longer (README → Settings → Language).
+- Saves: a player's run saves to `user://save1.json`; every test or tool (`--script`), Movie Maker
+  run and `--demo` run uses `user://dev/save1.json` instead (SaveGame.slot / is_dev_run), so no
+  check can overwrite the player's game. Never write SaveGame.SLOT directly from a test or tool.
 - Run Python as `python -I` (numpy and Pillow are installed) for pixel checks.
 - Export (Windows): `Godot_v4.7.2-stable_win64_console.exe --headless --path . --export-release
   "Windows Desktop" build/HarvestSon.exe` (preset in `export_presets.cfg`, .pck embedded,

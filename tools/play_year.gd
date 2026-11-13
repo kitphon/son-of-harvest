@@ -98,14 +98,14 @@ var _frame := 0
 func _process(_delta: float) -> bool:
 	_frame += 1
 	if _frame == 1:
-		var keep := FileAccess.get_file_as_string(SaveGame.SLOT) if FileAccess.file_exists(SaveGame.SLOT) else ""
+		var keep := FileAccess.get_file_as_string(SaveGame.slot()) if FileAccess.file_exists(SaveGame.slot()) else ""
 		_run()
 		if keep != "":
-			var f := FileAccess.open(SaveGame.SLOT, FileAccess.WRITE)
+			var f := FileAccess.open(SaveGame.slot(), FileAccess.WRITE)
 			f.store_string(keep)
 			f.close()
-		elif FileAccess.file_exists(SaveGame.SLOT):
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(SaveGame.SLOT))
+		elif FileAccess.file_exists(SaveGame.slot()):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(SaveGame.slot()))
 		quit(1 if not _bugs.is_empty() else 0)
 	return false
 
