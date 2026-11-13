@@ -64,6 +64,8 @@ static func _make(key: String) -> Image:
 			return BirdArt.make(parts[1], parts[2], int(parts[3]), parts.size() > 4 and parts[4] == "r")
 		"insect":   # insect:<butterfly|butterfly_y|dragonfly>:<fly|perch>:<frame>[:r], InsectArt (facing left, ":r" mirrored)
 			return InsectArt.make(parts[1], parts[2], int(parts[3]), parts.size() > 4 and parts[4] == "r")
+		"cicada":   # cicada:<semi|higurashi>:<cling|fly>:<frame>[:r], CicadaArt (facing left, ":r" mirrored)
+			return CicadaArt.make(parts[1], parts[2], int(parts[3]), parts.size() > 4 and parts[4] == "r")
 		"build":    # build:<plaster|tsuchi|board|kawara|kawara_edge|thatch|kaya|kaya_edge|hay|planks|planks_dark|sugi|glass|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
 		"ground":   # ground:<grass|tilled|wet|bed|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>

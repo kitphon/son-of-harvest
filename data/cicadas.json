@@ -1,0 +1,50 @@
+{
+	"_about": "Cicadas (semi) of summer (CicadaRules; the 3D view's CicadaLayer, the flat view's CicadaView; pictures drawn in code by CicadaArt; their loops in data/sfx.json, played by the Sfx autoload). Two kinds: `semi`, the day cicada whose sizzling chorus fills the summer days (a dark green-black body, clear wings), and `higurashi`, the evening cicada of late summer whose falling call rings at dusk (an amber body, clear wings). `days` [first, last] counts days from the first of summer (summer 1..30, fall 31..60), easing in over `fade_in` and out over `fade_out` days at each end: the day chorus grows through early summer, is fullest from mid summer and lingers a few days into fall; the evening cicada starts in mid summer and stays a little longer. `hours` [from, to] with `fade_hours` at each end and `looks` (the weather look's share; none in rain, storm or snow) work as in data/insects.json; none at night (the crickets of data/sfx.json take over). Outdoor maps only: none indoors or in the mine. Sound: the kind's `loop` plays at its amount times `level` times the map's share (`map_level`, `default` for the rest: the wooded hill is loudest, the open farm hears the woods round it more softly) times 1 - `wind_quiet` x the wind of data/wind.json (a breeze covers them a little). Sight: on the trees in `trunks` (kind -> [lowest, highest] height on the trunk in cells, where the eye sees the trunk under the crown as the 3D trees draw it: Trees.broadleaf's crown starts about 1.0 up, a pine's lowest pad of needles at 0.55 hides all but the foot of its trunk; a village pine leans as Trees.pine_lean says; the trunk's radius `radius` at the foot, `radius_top` at 1.2 up, times `trunk_radius` for a kind: the pine's square trunk is thinner) each tree holds one cicada of a kind on a day with chance `tree_share` x the amount (`pair_share` of those hold a second), on the side of the trunk facing the camera (`front` degrees round y, `front_spread` either way); a singing one pumps its body at `pulse` frames a second. A walker within `scare` cells of a clinging one makes it fly off away from them, buzzing (`flee_time` seconds, `flee_dist` cells out, `flee_height` up, wings at `flap` frames a second); it comes back to its trunk `return_after` seconds later once every walker is further than 1.5 x `scare`, along the same path. `startle` as data/insects.json's. `flat`: `height_px` pixels a cell of height lifts a picture, fliers draw at `air_z` (z_index). `art` is CicadaArt's colours (RRGGBB or RRGGBBAA hex). Balance numbers are ours.",
+	"kinds": ["semi", "higurashi"],
+	"semi": {
+		"days": [4, 34],
+		"fade_in": 8,
+		"fade_out": 5,
+		"hours": [6.5, 18.0],
+		"fade_hours": 3.0,
+		"looks": {"sunny": 1.0, "rain": 0.0, "snow": 0.0, "storm": 0.0, "blizzard": 0.0},
+		"loop": "amb_cicadas",
+		"level": 1.0,
+		"tree_share": 0.45,
+		"pair_share": 0.25,
+		"pulse": 7.0
+	},
+	"higurashi": {
+		"days": [14, 37],
+		"fade_in": 5,
+		"fade_out": 4,
+		"hours": [16.75, 19.25],
+		"fade_hours": 0.75,
+		"looks": {"sunny": 1.0, "rain": 0.0, "snow": 0.0, "storm": 0.0, "blizzard": 0.0},
+		"loop": "amb_higurashi",
+		"level": 0.9,
+		"tree_share": 0.3,
+		"pair_share": 0.0,
+		"pulse": 5.0
+	},
+	"map_level": {"default": 0.8, "hill": 1.0, "sakurazaka": 0.9, "farm": 0.6, "river": 0.7, "mine": 0.9},
+	"wind_quiet": 0.4,
+	"trunks": {"sakura": [0.38, 0.66], "persimmon": [0.38, 0.66], "maple": [0.36, 0.62], "pine": [0.1, 0.24]},
+	"trunk_radius": {"pine": 0.62},
+	"radius": 0.115,
+	"radius_top": 0.065,
+	"front": 45.0,
+	"front_spread": 50.0,
+	"scare": 1.6,
+	"flee_time": 1.4,
+	"flee_dist": 6.0,
+	"flee_height": 2.2,
+	"flap": 20.0,
+	"return_after": 20.0,
+	"startle": {"others": 0.75, "child_stages": ["toddler", "child"]},
+	"flat": {"height_px": 9.0, "air_z": 20},
+	"art": {
+		"semi": {"eye": "1e1e18", "head": "4e6a44", "body": "2c3a2a", "wing": "b4c6bc98", "lit": "dfeae2c0", "vein": "5e7a64d0"},
+		"higurashi": {"eye": "221a12", "head": "a07e3c", "body": "7a5a28", "wing": "c2cab498", "lit": "e8eed8c0", "vein": "7a7a4ec8"}
+	}
+}

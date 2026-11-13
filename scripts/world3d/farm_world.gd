@@ -427,6 +427,10 @@ func set_farmer(feet: Vector3, facing := Vector2.ZERO, running := false, tired :
 	if insects != null:
 		insects.farmer = Vector2(feet.x, feet.z)   # a resting dragonfly lifts off and a butterfly veers from him
 		insects.others = startle                   # and from the villagers, the dog and the walking child
+	var cicadas := get_node_or_null("Cicadas") as CicadaLayer
+	if cicadas != null:
+		cicadas.farmer = Vector2(feet.x, feet.z)   # a clinging cicada flies off from him
+		cicadas.others = startle                   # and from the villagers, the dog and the walking child
 	_leave_prints(walkers)
 
 

@@ -59,7 +59,8 @@ func _init() -> void:
 	for g in ["grass", "soil", "snow"]:
 		used["step_" + g] = "sfx.gd walk"
 	used["thunder"] = "sfx.gd thunder_after_flash"
-	for key in AmbientPicker.loops(rules):
+	used["cicada_buzz"] = "CicadaLayer / CicadaView, one flying off"
+	for key in AmbientPicker.loops(rules) + CicadaRules.loops():   # the cicadas' loops: data/cicadas.json
 		used[key] = "ambient rules"
 		check(sounds.has(key) and sounds[key].has("loop"), "ambient loop %s is a loop" % key)
 	for key in used:
@@ -77,7 +78,7 @@ func _init() -> void:
 	check(not storm.has("amb_cicadas"), "no cicadas in a storm")
 	var rain: Dictionary = at.call("rain", "spring", 9)
 	check(rain.get("amb_rain", 0.0) > 0.0 and rain.get("amb_rain", 0.0) < 1.0 and not rain.has("amb_wind"), "rain: softer rain, no wind")
-	check(at.call("sunny", "summer", 12).keys() == ["amb_cicadas"], "summer noon: cicadas only")
+	check(at.call("sunny", "summer", 12).is_empty(), "summer noon: no rule loop (the cicadas are CicadaRules', tests/test_cicadas.gd)")
 	check(not at.call("rain", "summer", 12).has("amb_cicadas"), "summer rain: no cicadas")
 	check(at.call("sunny", "summer", 22).keys() == ["amb_crickets"], "summer night: crickets only")
 	check(at.call("sunny", "fall", 2).has("amb_crickets"), "crickets after midnight")

@@ -129,7 +129,7 @@ static func fallen_petals(p: FarmProps.Parts, at: Vector3, seed: int) -> void:
 static func pine(p: FarmProps.Parts, at: Vector3, seed: int, garden: bool, snow: bool) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
-	var lean := _dir(rng.randf() * TAU, rng.randf_range(0.08, 0.16) if garden else rng.randf_range(0.0, 0.04))
+	var lean := _lean(rng, garden)
 	var tiers := [[0.55, 0.62], [0.88, 0.5], [1.2, 0.38], [1.5, 0.26]]
 	var top := 1.75
 	var bark := p.st(BARK)
@@ -148,6 +148,19 @@ static func pine(p: FarmProps.Parts, at: Vector3, seed: int, garden: bool, snow:
 		_pad(p.st(green), c, r, yaw)
 		if snow:
 			_pad_snow(p.st(FarmProps.Parts.SNOW), c, r, yaw)
+
+
+## The way a pine of `seed` leans (a unit vector; a `garden` pine leans more): the cicadas on its
+## trunk sit along it (CicadaRules.scene_of).
+static func pine_lean(seed: int, garden: bool) -> Vector3:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	return _lean(rng, garden)
+
+
+## A pine's lean from its first two draws of `rng` (pine and pine_lean share it).
+static func _lean(rng: RandomNumberGenerator, garden: bool) -> Vector3:
+	return _dir(rng.randf() * TAU, rng.randf_range(0.08, 0.16) if garden else rng.randf_range(0.0, 0.04))
 
 
 ## A tier of needles of radius r, its foot at `c`: a low cone, the edge drooping a little.
