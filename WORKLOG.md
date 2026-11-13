@@ -60,6 +60,36 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Checked: new tests/test_koinobori.gd prints `test_koinobori: OK (0 failed)` (gating, wind fill and flap, art, placement and reachability, 3D and flat views incl. the flat scene). All 39 tests/test_*.gd print OK (0 failed) (test_maps needed a flat colour for the new kind). Smoke runs (title, --demo, --demo --map=town, --demo --mine=3, the koinobori flags) had no ERROR lines; windowed `--quit-after 150 -- --demo` exit 0. Frames of `--demo --season=spring --day=20 --weather=sunny --time=11:00 --map=town@koinobori --koinobori[=0.6|=0]` in 3D and the flat view looked at: wheel, streamer and three carp stream right in wind, hang as a limp bundle at =0.
 - Left / next: the carp are drawn big against the 3D houses (matching the flat view's 1:1 pixels); the farmer's depth against the pole in the flat view follows the other props (figures over the view).
 
+## 2026-11-13 — Wind chime under the farmhouse eave (furin): summer, swings with the wind, taken in in a storm
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Found: no furin code existed. The Lantern Night chime stall and the keepsake "wind chime" (a 14 x 14
+  item icon in one tone, data/keepsakes.json) are a different thing; the stall's chimes stay as they are
+  and the furin's own picture was drawn instead of reusing the icon (too small and single-toned for a
+  hung chime lit from the side).
+- Done: data/furin.json (seasons ["summer"], taken_in storm and blizzard, place x 3.2 z 3.85 top 1.3:
+  left of the door, under the eave over the engawa, the eave being 1.45 high at z 4.05; sway max 16 deg
+  at a full gale, rate 0.45 Hz quickened by the wind, a gust swell 0.07 Hz dipping it by 40%). `scripts/furin_rules.gd` (FurinRules: `hangs` pure,
+  `hangs_now` for the Game clock and weather, `sway_angle(wind, t)`: zero in calm, reach and rate grow
+  with the wind). `PlaceholderArt "furin"` (`_furin`, 14 x 22): the glass bell lit from the upper left in
+  three tones, a red band and an indigo dot, the clapper, the cream paper strip with a red top edge.
+  `FurinLayer` (3D, added by main_3d.new_world for the farm after the cicadas): a pivot at the hang point
+  turned about z by the farm's wind (FarmWorld.wind); the sprite hangs under it. `FurinView` (flat, added
+  by main_2d on the farm after StoryView): drawn at whole pixels, shifted sideways by the swing. No sound:
+  data/sfx.json has no chime and adding one was not trivial, so it was skipped.
+- Checked: `test_furin` (gating by season and weather, indoors and off the farm; the sway still in calm,
+  growing with the wind, never past the reach; the picture's size and its three tones lit from the
+  upper left with the band; the 3D layer built on the farm and hidden in a storm and in spring, swinging
+  under wind 0.8; the flat view on the farm and not on the hill, hidden in a storm).
+  Full suite: `test_*.gd` 39 files, each `exit=0` and `OK (0 failed)` (per-file run; the list in the
+  run's summary file). Smoke runs (`--quit-after 300`: title, `-- --demo`, `-- --demo --map=town`,
+  `-- --demo --mine=3`) exit 0 with no SCRIPT ERROR or parse error lines. Windowed `--quit-after 150 -- --demo`: exit 0.
+  Frames (`--demo --season=summer --weather=sunny --time=10:00 --map=farm`, frame 39): 3D, the chime hangs
+  under the eave left of the farmer, over the engawa, blue glass with the red band and the white strip
+  visible against the plaster; flat (`res://scenes/main_2d.tscn`), the chime in front of the house wall
+  left of the door, same three parts.
+- Left / next: the chime's own sound (a soft ring when the wind blows) is not in data/sfx.json. The
+  picture's size and the 3D position were chosen by eye from those frames (pixel_size 0.028).
+
 ## 2026-11-13 — Tests, tools and dev runs save to their own slot, never the player's
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Found: the player's two-year save (user://save1.json) was gone, replaced by a test run's state

@@ -1,0 +1,9 @@
+{
+	"_about": "The wind chime (furin) hung under the farmhouse's eave over the engawa (FurinLayer in 3D, FurinView in the flat view; rules: FurinRules, pictures: PlaceholderArt \"furin\"). It hangs out on the farm's open air in the seasons listed, and is taken in when the weather's look is one of `taken_in` (a storm, a blizzard). `place`: where it hangs, in cells (x, z, z at the engawa in front of the eave) and its top in world height (1 unit = 1 cell; the eave is 1.45 high at z 4.05, FarmWorld). `pixel_size`: the 3D picture's pixel size. `sway`: how it swings with the wind (data/wind.json, 0 .. 1): none in dead calm, `max_deg` at a full gale (the swing grows linearly with the wind), `rate_hz` swings a second in dead calm, `rate_gain` how much the wind quickens them (1 means a gale doubles them), and a slow gust swell of `gust_hz` cycles a second that dips the swing by up to `gust_depth`. `flat`: the flat view's height in pixels per unit of world height (the chime's top sits under the eave), and `hang_px`, the most the picture shifts sideways in whole pixels at a full swing. Balance numbers are ours.",
+	"seasons": ["summer"],
+	"taken_in": ["storm", "blizzard"],
+	"place": {"x": 3.2, "z": 3.85, "top": 1.3},
+	"pixel_size": 0.028,
+	"sway": {"max_deg": 16.0, "rate_hz": 0.45, "rate_gain": 1.0, "gust_hz": 0.07, "gust_depth": 0.4},
+	"flat": {"px_per_height": 12.0, "hang_px": 4.0}
+}
