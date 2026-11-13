@@ -29,6 +29,7 @@ func _run() -> void:
 	_gating()
 	_scenes()
 	_butterflies()
+	_bees()
 	_dragonflies()
 	_perch_and_startle()
 	_art()
@@ -62,7 +63,7 @@ func _data() -> void:
 		for look in ["sunny", "rain", "snow", "storm", "blizzard"]:
 			check(cfg[kind].looks.has(look), "%s: a share for %s" % [kind, look])
 			check(look == "sunny" or float(cfg[kind].looks[look]) == 0.0, "%s: none in %s" % [kind, look])
-	for art in ["butterfly", "butterfly_y", "dragonfly"]:
+	for art in ["butterfly", "butterfly_y", "dragonfly", "bee"]:
 		check(cfg.art.has(art), "%s: art colours in the data" % art)
 	check(cfg.butterfly.seasons == ["spring", "summer"] and cfg.dragonfly.seasons == ["summer", "fall"], "butterflies: spring and summer, dragonflies: summer and fall")
 	check(cfg.flat.air_z == load("res://scripts/bird_rules.gd").config().flat.air_z, "fliers share the birds' air pass z")
@@ -81,7 +82,7 @@ func _gating() -> void:
 	check(IR.amount("dragonfly", "fall", "sunny", 12.0, 3) == 1.0 and IR.amount("dragonfly", "fall", "sunny", 12.0, 27) == 1.0, "dragonflies: all fall")
 	check(IR.amount("dragonfly", "spring", "sunny", 12.0, 5) == 0.0 and IR.amount("dragonfly", "winter", "sunny", 12.0, 5) == 0.0, "dragonflies: not in spring or winter")
 	for kind in IR.KINDS:
-		var s := "spring" if kind == "butterfly" else "fall"
+		var s := "fall" if kind == "dragonfly" else "spring"
 		check(IR.amount(kind, s, "sunny", 22.0, 5) == 0.0 and IR.amount(kind, s, "sunny", 4.0, 5) == 0.0, "%s: not at night" % kind)
 		check(IR.amount(kind, s, "sunny", 6.0, 5) == 0.0 and IR.amount(kind, s, "sunny", 18.5, 5) == 0.0, "%s: not at dawn or dusk" % kind)
 		for look in ["rain", "snow", "storm", "blizzard"]:
@@ -101,7 +102,7 @@ func _gating() -> void:
 	var mine: MapData = MM.data("mine_floor")
 	_when(0, 12, 0, "sunny", 5)
 	var spring: Dictionary = IR.amounts_now(g, kam)
-	check(spring.has("butterfly") and not spring.has("dragonfly"), "spring noon outdoors: butterflies only")
+	check(spring.has("butterfly") and spring.has("bee") and not spring.has("dragonfly"), "spring noon outdoors: butterflies and bees, no dragonflies")
 	check(float(spring.butterfly) < 1.0 and float(spring.butterfly) > 0.7, "spring noon: the fair day's breeze thins them a little (%.2f)" % float(spring.butterfly))
 	check(IR.amounts_now(g, kam, {}, 0.0).butterfly == 1.0 and float(IR.amounts_now(g, kam, {}, 0.7).butterfly) < float(spring.butterfly), "amounts_now: the wind it is given")
 	check(IR.amounts_now(g, house).is_empty() and IR.amounts_now(g, mine).is_empty(), "indoors / in the mine: nothing")
@@ -155,6 +156,64 @@ func _scenes() -> void:
 	check(hill.lures.size() > 0, "hill: its forage spots lure butterflies (%d)" % hill.lures.size())
 	var riv: Dictionary = IR.scene_of(MM.data("river"), null, 5)
 	check(riv.wet.size() > 20, "river: water for the swarms (%d)" % riv.wet.size())
+
+
+## Honeybees: spring and early summer fair days only, over blossoms and flowers, hovering and hopping.
+func _bees() -> void:
+	var cfg: Dictionary = IR.config()
+	var k: Dictionary = cfg.bee
+	check(cfg.bee.seasons == ["spring", "summer"], "bees: spring and summer")
+	check(IR.amount("bee", "spring", "sunny", 12.0, 5) == 1.0 and IR.amount("bee", "summer", "sunny", 12.0, 8) == 1.0, "bees: a fair spring noon and early summer")
+	check(IR.amount("bee", "summer", "sunny", 12.0, 24) == 0.0 and IR.amount("bee", "fall", "sunny", 12.0, 5) == 0.0 and IR.amount("bee", "winter", "sunny", 12.0, 5) == 0.0, "bees: not in late summer, fall or winter")
+	check(IR.thinned(IR.amount("bee", "spring", "sunny", 12.0, 5), 0.6) < IR.thinned(1.0, 0.15), "bees: thinned by the wind")
+	# The kaminoda cherry tree gives blossoms high up; the garden bed and crops give low flowers.
+	var kam: Dictionary = IR.scene_of(MM.data("kaminoda"), null, 5)
+	check(int(kam.blossoms) == int(k.blossom_points) * 2 and kam.flowers.size() > int(kam.blossoms), "kaminoda: the two cherry trees' blossom points (%d) and the low flowers (%d)" % [kam.blossoms, kam.flowers.size()])
+	var high := 0
+	for i in int(kam.blossoms):
+		var f: Vector3 = kam.flowers[i]
+		high += 1 if f.y >= float(k.blossom_height[0]) and f.y <= float(k.blossom_height[1]) and minf(Vector2(f.x, f.z).distance_to(Vector2(30.5, 2.5)), Vector2(f.x, f.z).distance_to(Vector2(8.5, 16.5))) <= float(k.blossom_radius) + 0.01 else 0
+	check(high == int(kam.blossoms), "kaminoda: every blossom point hangs in the canopy over the tree (%d)" % high)
+	var n: int = IR.count_for("bee", 1.0)
+	check(_at("bee", 12.0, kam).size() == n, "bees: the count (%d)" % n)
+	check(str(_at("bee", 12.0, kam)) == str(_at("bee", 12.0, kam)), "bees: a place is a function of the time")
+	var bare: Dictionary = IR.scene_of(MM.data("farm"), g.farm, 5)
+	check(_at("bee", 12.0, bare).is_empty(), "the bare farm: no flower, no bees")
+	var hovering := 0
+	var hopping := 0
+	var frames := {}
+	var jump := 0.0
+	var hmin := 99.0
+	var hmax := 0.0
+	var prev := {}
+	for step in 800:
+		var t := float(step) * 0.05
+		for b in _at("bee", t, kam):
+			check(b.kind == "bee" and b.art == "bee" and b.pose == "fly" and IR.flying(b), "bee: in the air")
+			frames[b.frame] = true
+			hmin = minf(hmin, b.pos.y)
+			hmax = maxf(hmax, b.pos.y)
+			if prev.has(b.id):
+				var d := Vector2(b.pos.x, b.pos.z).distance_to(Vector2(prev[b.id].x, prev[b.id].z))
+				jump = maxf(jump, d)
+				if d < 0.02:
+					hovering += 1
+				elif d > 0.05:
+					hopping += 1
+			prev[b.id] = b.pos
+	check(hovering > hopping and hopping > 40, "bees: mostly hovering at a flower, with quick hops between (%d / %d)" % [hovering, hopping])
+	check(jump < 0.6, "bees: no jumps (%.2f cells in 0.05 s)" % jump)
+	check(hmin >= 0.2 and hmax <= float(k.blossom_height[1]) + 0.5 and hmax > float(k.flower_height) + 0.5, "bees: work low flowers and the canopy (%.2f..%.2f)" % [hmin, hmax])
+	check(frames.size() == 2, "bees: two wing frames")
+	# A bee near the farmer veers away.
+	var b0: Dictionary = _at("bee", 7.3, kam)[0]
+	var p0 := Vector2(b0.pos.x, b0.pos.z)
+	var near_f := p0 + Vector2(0.5, 0.0)
+	var b1: Dictionary = _at("bee", 7.3, kam, 1.0, near_f)[0]
+	check(Vector2(b1.pos.x, b1.pos.z).distance_to(near_f) > p0.distance_to(near_f) + 0.3, "a bee veers away from the farmer")
+	check(IR.key_of(b0) == "insect:bee:fly:%d" % b0.frame, "the picture key of a bee")
+	var sh: Dictionary = IR.shadow_of(b0, 1.0, Vector3(0.3, -0.9, 0.2), {}, {})
+	check(sh.is_empty() or (sh.size.x <= 0.3 and sh.alpha <= 0.13), "a bee's shadow is tiny and faint")
 
 
 ## Every insect of `kind` at time `t` over `scene`, nobody about.
@@ -638,7 +697,7 @@ func _views() -> void:
 		check(layer.shown_count() == 0, "3D: none at night")
 		_when(0, 11, 0, "sunny", 5)
 		layer.refresh()
-		check(layer.shown().all(func(b): return b.kind == "butterfly") and layer.shown_count() > 0, "3D: butterflies on a spring day")
+		check(layer.shown().all(func(b): return b.kind == "butterfly" or b.kind == "bee") and layer.shown().any(func(b): return b.kind == "butterfly") and layer.shown().any(func(b): return b.kind == "bee"), "3D: butterflies and bees on a spring day")
 		# set_farmer hands over the farmer's place: a resting dragonfly lifts off.
 		_when(2, 11, 0, "sunny", 12)
 		layer.refresh()

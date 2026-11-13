@@ -1,5 +1,5 @@
 {
-	"_about": "Small flying insects outdoors (InsectRules; the 3D view's InsectLayer, the flat view's InsectView; pictures drawn in code by InsectArt). Outdoor maps only: none in rooms, under a roof of rock (the mine), at night or in rain, storm or snow (the `looks` shares are 0 for all but a fair day). `seasons`, `hours` [from, to] (fade over `fade_hours` at each end) and `looks` work as in data/drift.json and data/birds.json. `days`: season -> [first, last] day the kind shows in that season (fading over `fade_days` at each end): butterflies fill spring and early summer, dragonflies (akatombo) come with late summer and stay through fall. `wind_thin`: the wind of data/wind.json thins them, the count times 1 - wind_thin x the wind (a fair day's breeze of 0.15 keeps about 85 of every 100; a calmer day would keep more). `count` is the most of that kind on a map. Butterflies (cabbage-white-like, white or pale yellow by `yellow_share`): each stays round a home (a crop, a forage spot or garden bed with `lure_share`, else open grass), wandering from point to point among the places within `roam` cells of home, one leg every `leg` seconds (+-`leg_var`), swaying `wobble` cells across its path at `wobble_freq` and bobbing `bob` cells; `height` [min, max] cells; wings beat `flap` times a second, now and then gliding (`glide` share). A walker within `veer` cells makes it veer away (pushed `veer_push` x the depth into the circle, rising `veer_rise`). Dragonflies: swarms of `group` round a home (over water and paddies with `wet_share`, else open grass, spread `spread` cells), each hovering, then darting to a new hover point within `roam` cells: a cycle is `cycle` seconds (+-`cycle_var`), `hover` of it spent hovering and the rest darting; `height` [min, max]; wings blur at `flap` frames a second. Every `perch_period` seconds a dragonfly may (`perch_chance`) dart to a perch within `perch_range` cells of home (fence posts, the drying racks' poles, tall crops' tops, now and then a rice tip in a paddy: `paddy_perch_share` of the paddy cells; heights `perch_h` for the props; a farm crop in `perch_crops` only from growth stage `perch_stage`, resting on its tallest plant's top as the 3D field draws it (no number here: InsectRules.plant_perch from CropClusters.top_of and spots_for; the paddies' rice is `paddy_perch_season`'s picture)), arriving after `approach` seconds, resting wings flat `rest` [min, max] seconds, then darting off after `lift`. A walker within `scare` cells of a resting one makes it lift off away from them (`flee_time`, `flee_dist`, `flee_height`), hover there, and come back to its day `return_after` seconds later once the walker is further than 1.5 x `scare` (`blend` seconds to fly back, `settle` seconds to ease into its hover after the dart). Other walkers startle them too: `startle` `others` is their share of the distance and `child_stages` the child's stages that count. `flat` is the flat view: `height_px` pixels a cell of height lifts a picture, fliers draw at `air_z` (z_index, as the birds' fliers). `tone` and `art` are InsectArt's colours (RRGGBB or RRGGBBAA hex; the wings are clear and pale, partly see-through). `shadow` (as data/birds.json's, read by BirdRules.shadow_of and blocked_cells): a perched dragonfly throws a small soft blob on the ground under it (`ground_alpha`, lifted by its height over `hop_fade`; in sun it falls along the light, at most `perch_offset` cells, so it shows beside its post); a flier casts a very faint sun-cast oval only while the sun throws shadows (`fly_alpha`, `fly_size`, at most `max_offset` cells along the sun); no shadow falls on a building (`blocked_props`, `blocked_fixed`, `blocked_share`). Balance numbers are ours.",
+	"_about": "Small flying insects outdoors (InsectRules; the 3D view's InsectLayer, the flat view's InsectView; pictures drawn in code by InsectArt). Outdoor maps only: none in rooms, under a roof of rock (the mine), at night or in rain, storm or snow (the `looks` shares are 0 for all but a fair day). `seasons`, `hours` [from, to] (fade over `fade_hours` at each end) and `looks` work as in data/drift.json and data/birds.json. `days`: season -> [first, last] day the kind shows in that season (fading over `fade_days` at each end): butterflies fill spring and early summer, dragonflies (akatombo) come with late summer and stay through fall. `wind_thin`: the wind of data/wind.json thins them, the count times 1 - wind_thin x the wind (a fair day's breeze of 0.15 keeps about 85 of every 100; a calmer day would keep more). `count` is the most of that kind on a map. Butterflies (cabbage-white-like, white or pale yellow by `yellow_share`): each stays round a home (a crop, a forage spot or garden bed with `lure_share`, else open grass), wandering from point to point among the places within `roam` cells of home, one leg every `leg` seconds (+-`leg_var`), swaying `wobble` cells across its path at `wobble_freq` and bobbing `bob` cells; `height` [min, max] cells; wings beat `flap` times a second, now and then gliding (`glide` share). A walker within `veer` cells makes it veer away (pushed `veer_push` x the depth into the circle, rising `veer_rise`). Dragonflies: swarms of `group` round a home (over water and paddies with `wet_share`, else open grass, spread `spread` cells), each hovering, then darting to a new hover point within `roam` cells: a cycle is `cycle` seconds (+-`cycle_var`), `hover` of it spent hovering and the rest darting; `height` [min, max]; wings blur at `flap` frames a second. Every `perch_period` seconds a dragonfly may (`perch_chance`) dart to a perch within `perch_range` cells of home (fence posts, the drying racks' poles, tall crops' tops, now and then a rice tip in a paddy: `paddy_perch_share` of the paddy cells; heights `perch_h` for the props; a farm crop in `perch_crops` only from growth stage `perch_stage`, resting on its tallest plant's top as the 3D field draws it (no number here: InsectRules.plant_perch from CropClusters.top_of and spots_for; the paddies' rice is `paddy_perch_season`'s picture)), arriving after `approach` seconds, resting wings flat `rest` [min, max] seconds, then darting off after `lift`. A walker within `scare` cells of a resting one makes it lift off away from them (`flee_time`, `flee_dist`, `flee_height`), hover there, and come back to its day `return_after` seconds later once the walker is further than 1.5 x `scare` (`blend` seconds to fly back, `settle` seconds to ease into its hover after the dart). Other walkers startle them too: `startle` `others` is their share of the distance and `child_stages` the child's stages that count. `flat` is the flat view: `height_px` pixels a cell of height lifts a picture, fliers draw at `air_z` (z_index, as the birds' fliers). `tone` and `art` are InsectArt's colours (RRGGBB or RRGGBBAA hex; the wings are clear and pale, partly see-through). `shadow` (as data/birds.json's, read by BirdRules.shadow_of and blocked_cells): a perched dragonfly throws a small soft blob on the ground under it (`ground_alpha`, lifted by its height over `hop_fade`; in sun it falls along the light, at most `perch_offset` cells, so it shows beside its post); a flier casts a very faint sun-cast oval only while the sun throws shadows (`fly_alpha`, `fly_size`, at most `max_offset` cells along the sun); no shadow falls on a building (`blocked_props`, `blocked_fixed`, `blocked_share`). Honeybees (`bee`, spring and early summer fair days like the butterflies, thinned by the wind): each works flowers within `roam` cells of a home flower (a cherry tree's blossom with `blossom_share`: `blossom_points` points in `blossom_radius` cells at `blossom_height`; else a crop, forage spot or garden bed at `flower_height`), a cycle every `cycle` seconds (+-`cycle_var`) of which `hover` is spent hovering (a `tremble`) at a flower and the rest a quick hop to the next, zigzagging `zigzag` cells across (`zigs` swings) and rising `hop_rise`; wings blur at `flap`. They veer from walkers as butterflies do. Balance numbers are ours.",
 	"wind_thin": 1.0,
 	"butterfly": {
 		"seasons": ["spring", "summer"],
@@ -23,6 +23,33 @@
 		"veer": 2.2,
 		"veer_push": 1.1,
 		"veer_rise": 0.5
+	},
+	"bee": {
+		"seasons": ["spring", "summer"],
+		"days": {"summer": [1, 16]},
+		"fade_days": 3,
+		"hours": [9.0, 16.0],
+		"fade_hours": 0.75,
+		"looks": {"sunny": 1.0, "rain": 0.0, "snow": 0.0, "storm": 0.0, "blizzard": 0.0},
+		"count": 5,
+		"blossom_share": 0.6,
+		"blossom_points": 7,
+		"blossom_radius": 0.9,
+		"blossom_height": [1.5, 2.3],
+		"flower_height": 0.55,
+		"roam": 3.2,
+		"cycle": 2.2,
+		"cycle_var": 0.3,
+		"hover": 0.72,
+		"over": 0.06,
+		"tremble": 0.025,
+		"zigzag": 0.22,
+		"zigs": 4,
+		"hop_rise": 0.12,
+		"flap": 30.0,
+		"veer": 1.6,
+		"veer_push": 1.0,
+		"veer_rise": 0.4
 	},
 	"dragonfly": {
 		"seasons": ["summer", "fall"],
@@ -63,7 +90,7 @@
 	"startle": {"others": 0.75, "child_stages": ["toddler", "child"]},
 	"flat": {"height_px": 9.0, "air_z": 20},
 	"shadow": {
-		"size": {"butterfly": 0.34, "dragonfly": 0.5},
+		"size": {"butterfly": 0.34, "dragonfly": 0.5, "bee": 0.24},
 		"depth": 0.7,
 		"ground_alpha": 0.55,
 		"hop_fade": 4.0,
@@ -83,6 +110,7 @@
 	"art": {
 		"butterfly": {"wing": "ecebe3", "lit": "ffffff", "shade": "b6b8b4", "tip": "56565c", "body": "4a3c32"},
 		"butterfly_y": {"wing": "f0dc78", "lit": "fff3a8", "shade": "c2aa3c", "tip": "7a6420", "body": "4a3c32"},
+		"bee": {"head": "2e2418", "amber": "e8a82a", "stripe": "3a2c18", "tip": "241a10", "wing": "e4eef2b8", "wing_lit": "fffffff0"},
 		"dragonfly": {"body": "c8321e", "body_lit": "e65c32", "body_shade": "8e2216", "eye": "6a1a14", "wing": "d4e6efcc", "wing_lit": "fffffff0", "wing_vein": "8fa8b8d0", "leg": "3a2a24"}
 	}
 }
