@@ -10,6 +10,13 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — Hearth smoke tied to its own house
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Found: HearthSmoke read `Occluders.fade_at(vent)`, the fade of whatever box covered the vent: a tree or neighbouring building over another house's vent could fade that smoke, and a vent above its own box was missed.
+- Done: Occluders things carry a `tag` (add / add_children_from / FarmWorld.occlude take it); `fade_of_tag(tag)` gives that thing's fade and `tag_of(i)` its tag. The farmhouse is tagged `FarmWorld.FARM_HOUSE`, every village house prop `MapWorld.house_tag(p)` ("house:x,y"); HearthSmoke takes its house's tag in `_init` and reads only that. `fade_at` is removed (nothing else used it).
+- Checked: test_maps (new: each village smoke tied to its own occluder, fade_of_tag 0 while solid / unknown tag, a solid house's smoke whole, another faded thing whose box holds the vent does not fade it, the faded house's smoke fades, comes back; the farmhouse smoke carries FARM_HOUSE). Frames `--demo --season=winter --time=6:30 --map=town` and `--demo --weather=sunny --time=7:00` looked right (faded houses, no pale blob).
+- Left / next: nothing open.
+
 ## 2026-11-13 — Shopkeepers: Buy or Talk at the counter
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Found (the user): E on Sayo across the store counter always opened the shop, so a keeper's own

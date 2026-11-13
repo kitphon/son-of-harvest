@@ -17,6 +17,7 @@ const WALL_LOW := SmokeRules.WALL_LOW
 const RIDGE_LIFT := SmokeRules.RIDGE_LIFT
 
 var _sd := 0
+var _tag := ""   # the Occluders tag of the smoke's own house
 var _t := 0.0
 var _wind := 0.0
 var _strength := 0.0
@@ -42,8 +43,9 @@ static func village_vent(r: Rect2, style: Dictionary) -> Vector3:
 	return SmokeRules.village_vent(r, style)
 
 
-func _init(sd := 0, at := Vector3.ZERO) -> void:
+func _init(sd := 0, at := Vector3.ZERO, house := "") -> void:
 	_sd = sd
+	_tag = house
 	position = at
 	var cfg := config()
 	_rgb = Color(str(cfg.color))
@@ -91,7 +93,7 @@ func refresh() -> void:
 	var world := get_parent() as FarmWorld
 	_wind = world.wind if world != null else 0.0
 	_strength = SmokeRules.strength_now(game, cfg)
-	_house = SmokeRules.house_keep(world.occluders.fade_at(position) if world != null else 0.0, Occluders.FADED, cfg)
+	_house = SmokeRules.house_keep(world.occluders.fade_of_tag(_tag) if world != null and _tag != "" else 0.0, Occluders.FADED, cfg)
 	visible = _strength > 0.0
 	if visible:
 		_place(cfg)

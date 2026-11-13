@@ -3789,6 +3789,7 @@ func _hearth_smoke() -> void:
 	check(farm_smoke.size() == 1, "the farmhouse has one hearth smoke (%d)" % farm_smoke.size())
 	if farm_smoke.size() == 1:
 		var fs: Node3D = farm_smoke[0]
+		check(fs._tag == farm.FARM_HOUSE and fs._tag != "", "the farmhouse smoke is tied to the farmhouse's occluder tag")
 		check(fs.position.distance_to(Vector3(4.5, 1.45 + 1.75 * 1.25 + HS.RIDGE_LIFT, 2.3)) < 0.001, "the farmhouse's smoke rises from the ridge's middle (%s)" % fs.position)
 		g.hour = 7
 		g.minute = 0
@@ -3883,10 +3884,10 @@ func _hearth_smoke() -> void:
 		var occ = town.occluders
 		var own := -1
 		for i in occ.count():
-			if occ.box_of(i).grow(0.25).has_point(sm.position):
+			if occ.tag_of(i) == sm._tag:
 				own = i
-		check(own >= 0, "the first house's vent is in its own see-through box")
-		check(occ.fade_at(sm.position) == 0.0 and occ.fade_at(Vector3(-50, 0, -50)) == 0.0, "Occluders.fade_at: 0 while solid and where nothing stands")
+		check(sm._tag != "" and own >= 0, "the first house's smoke is tied to its own house's occluder (%s)" % sm._tag)
+		check(occ.fade_of_tag(sm._tag) == 0.0 and occ.fade_of_tag("nothing") == 0.0, "Occluders.fade_of_tag: 0 while solid and for an unknown tag")
 		g.hour = 7
 		g.minute = 0
 		g.weather_today = "sunny"
@@ -3896,8 +3897,18 @@ func _hearth_smoke() -> void:
 			solid_a = maxf(solid_a, (mi.material_override as StandardMaterial3D).albedo_color.a)
 		check(sm.house_keep() == 1.0 and solid_a > 0.0, "a solid house's smoke is whole (%.2f)" % solid_a)
 		if own >= 0:
+			# Another thing faded, with a box that holds the vent (a tree, a neighbour): no effect.
+			for i in occ.count():
+				if i != own:
+					occ._groups[i].now = OC.FADED
+			occ._groups.append({"nodes": [], "box": AABB(sm.position - Vector3.ONE, Vector3.ONE * 2.0), "now": OC.FADED, "target": 0.0, "tag": ""})
+			sm.refresh()
+			check(sm.house_keep() == 1.0, "a faded tree or neighbour over the vent does not fade another house's smoke")
+			occ._groups.pop_back()
+			for i in occ.count():
+				occ._groups[i].now = 0.0
 			occ._groups[own].now = OC.FADED
-			check(is_equal_approx(occ.fade_at(sm.position), OC.FADED), "Occluders.fade_at: the faded house's vent")
+			check(is_equal_approx(occ.fade_of_tag(sm._tag), OC.FADED), "Occluders.fade_of_tag: the faded house")
 			sm.refresh()
 			var faded_a := 0.0
 			for mi in sm._puffs:

@@ -28,7 +28,7 @@ func build_steps(m: MapData) -> Array[Callable]:
 	map = m
 	var steps: Array[Callable] = [_make_tile_ground, _make_walls]
 	for p in map.props:
-		steps.append(occlude.bind(_prop.bind(p)))
+		steps.append(occlude.bind(_prop.bind(p), house_tag(p) if str(p.kind) == "village_house" else ""))
 	if not map.indoor:
 		steps.append(_make_village_smoke)
 	if not map.sheltered and not map.indoor:
@@ -54,6 +54,11 @@ func _shape_id() -> String:
 		map.walls, map.indoor, SnowLayer.map_has_snow(map)]
 
 
+## The Occluders tag of the village house prop `p` (its smoke reads the fade of this one house).
+static func house_tag(p: Dictionary) -> String:
+	return "house:%d,%d" % [int(p.cell.x), int(p.cell.y)]
+
+
 ## Hearth smoke (HearthSmoke) from the ridge of every village house on an outdoor map. Its own
 ## nodes, not inside occlude or MeshCache: the houses' meshes stay as they are.
 func _make_village_smoke() -> void:
@@ -62,7 +67,7 @@ func _make_village_smoke() -> void:
 			continue
 		var r := Rect2(Vector2(p.cell), Vector2(p.size))
 		var at := HearthSmoke.village_vent(r, LitSpots.village_style(p))
-		add_child(HearthSmoke.new(int(r.position.x) * 7 + int(r.position.y) * 13, at))
+		add_child(HearthSmoke.new(int(r.position.x) * 7 + int(r.position.y) * 13, at, house_tag(p)))
 
 
 ## Rock, door thresholds and a room's walls (RoomWalls), kept a run by the map's shape.

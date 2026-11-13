@@ -21,8 +21,9 @@ var _groups: Array[Dictionary] = []   # {nodes: Array[GeometryInstance3D], box: 
 
 
 ## Adds the meshes `nodes` (world-space children of a world at the origin) as one thing;
-## too low ones are left out. Returns whether it was added.
-func add(nodes: Array) -> bool:
+## too low ones are left out. Returns whether it was added. A `tag` names the thing for those
+## that follow it (the hearth smoke of a house reads fade_of_tag of its own house).
+func add(nodes: Array, tag := "") -> bool:
 	var geo: Array[GeometryInstance3D] = []
 	var box := AABB()
 	for n in nodes:
@@ -42,7 +43,7 @@ func add(nodes: Array) -> bool:
 			for n in geo:
 				if n.material_override == m:
 					n.material_override = mine
-	_groups.append({"nodes": geo, "box": box, "now": 0.0, "target": 0.0})
+	_groups.append({"nodes": geo, "box": box, "now": 0.0, "target": 0.0, "tag": tag})
 	return true
 
 
@@ -68,8 +69,8 @@ const HELD_HERE := 4
 
 
 ## Adds everything `parent` got after it had `first` children (what one builder made).
-func add_children_from(parent: Node, first: int) -> bool:
-	return add(parent.get_children().slice(first))
+func add_children_from(parent: Node, first: int, tag := "") -> bool:
+	return add(parent.get_children().slice(first), tag)
 
 
 func count() -> int:
@@ -98,12 +99,17 @@ func fade_of(i: int) -> float:
 	return _groups[i].now
 
 
-## How see-through the thing holding `at` is now (0 opaque .. FADED): the most faded thing whose
-## box, grown by `margin`, holds the point (a roof's vent just over its ridge); 0 when none does.
-func fade_at(at: Vector3, margin := 0.25) -> float:
+## The tag thing `i` was added with.
+func tag_of(i: int) -> String:
+	return _groups[i].tag
+
+
+## How see-through the thing added with `tag` is now (0 opaque .. FADED); 0 when none has it.
+## Only that thing counts, whatever else stands round the asker (a tree, a neighbour).
+func fade_of_tag(tag: String) -> float:
 	var best := 0.0
 	for g in _groups:
-		if (g.box as AABB).grow(margin).has_point(at):
+		if str(g.tag) == tag:
 			best = maxf(best, g.now)
 	return best
 

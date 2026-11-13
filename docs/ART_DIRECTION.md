@@ -423,6 +423,8 @@ Light and Farmhouse model hold the technical detail of what is built.
       house is see-through in front of the farmer (down to `faded_keep`, 0.2 of its opacity, in
       step with the walls: SmokeRules.house_keep, Occluders.fade_at), so it never hangs whole over
       a roof that is barely there. The flat view has no see-through houses, so it is unchanged.
+      2026-11-13: each smoke reads the fade of its own house only (an Occluders tag: FarmWorld.FARM_HOUSE,
+      MapWorld.house_tag), so a tree or neighbour whose box covers its vent never fades it.
 
 - [x] Seasonal drifting life: cherry petals in spring, maple / persimmon leaves in fall, fireflies on
       summer nights, outdoor maps only, in both views, on the same wind as the rice and smoke

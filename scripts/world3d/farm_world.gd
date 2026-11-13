@@ -24,6 +24,7 @@ var _wet_mask: ImageTexture
 var wet_dirty := false   # the field changed since the wet mask was last drawn
 ## Buildings and trees that fade while they stand between the camera and the farmer.
 var occluders := Occluders.new()
+const FARM_HOUSE := "farmhouse"   # the farmhouse's Occluders tag (its hearth smoke follows it)
 var surroundings: Surroundings   # the land past the map's edge (outdoors)
 var backdrop: Backdrop           # the far mountain ridges past it (data/backdrop.json maps; else null)
 var tufts: GrassTufts            # grass tufts on the grass cells (outdoors)
@@ -300,7 +301,7 @@ func lit_lamp(at: Vector3) -> void:
 func _make_buildings() -> void:
 	# The same every time: kept a run (MeshCache), the lit windows and the stand's noren with
 	# the rest.
-	occlude(_make_house)
+	occlude(_make_house, FARM_HOUSE)
 	_make_hearth_smoke()
 	MeshCache.build(self, "farm|chest", func(): FarmProps.chest(self))
 	MeshCache.build(self, "farm|bin", func(): FarmProps.bin(self))
@@ -318,10 +319,10 @@ func _make_buildings() -> void:
 
 
 ## Runs a builder and keeps what it made as one thing that fades when in the way (if tall).
-func occlude(build: Callable) -> void:
+func occlude(build: Callable, tag := "") -> void:
 	var first := get_child_count()
 	build.call()
-	occluders.add_children_from(self, first)
+	occluders.add_children_from(self, first, tag)
 
 
 ## The apron and the wood past a w x h map's edge (Surroundings), its snow with the rest; on
@@ -502,9 +503,9 @@ func _make_house() -> void:
 
 ## The farmhouse's hearth smoke (HearthSmoke) from the middle of its ridge: the roof of
 ## _house_body (eave Rect2(1.45, 0.55, 6.1, 3.5), soffit 1.45, pitch 1.25, the ridge along x).
-## Not inside occlude (it is no wall of its own), but it fades with the house (HearthSmoke.house_keep).
+## Not inside occlude (it is no wall of its own), but it fades with the house (HearthSmoke.house_keep, by FARM_HOUSE).
 func _make_hearth_smoke() -> void:
-	add_child(HearthSmoke.new(4, SmokeRules.farm_vent()))
+	add_child(HearthSmoke.new(4, SmokeRules.farm_vent(), FARM_HOUSE))
 
 
 ## The farmhouse's walls, frame, engawa and roof (_make_house).
