@@ -103,6 +103,7 @@ const DEMO_FACINGS := {"up": Vector2i.UP, "down": Vector2i.DOWN, "left": Vector2
 var demo_charge := ""   # `--charge=<tool>`: the farmer holds the button down with that tool from the start, never lets go (FarmActions.demo_charge)
 var demo_charge_facing := Vector2i.ZERO   # `--charge=<tool>:<up|down|left|right>`: turned that way first (ZERO = as he stands)
 var demo_walk := Vector2.ZERO   # `--walk=<up|down|left|right>[:seconds]`: the farmer walks that way as if the key were held (Player)
+var farmer_passing := false   # the farmer slips past a villager now (Player.passing): they step aside (Villagers.give_way)
 var demo_walk_left := 0.0       # seconds of that walk still to go (INF without a time)
 var eat_left := 0.0  # seconds of that pose still to play (foods.json pose); not saved
 ## The item carried overhead in the holding hand ("" = hands free). It is the rucksack's
@@ -669,6 +670,8 @@ func _process(delta: float) -> void:
 	if not ticking():
 		return
 	Villagers.bump(maps.id, day_minutes(), delta / SECONDS_PER_MINUTE, maps.pos / 16.0, trigger_state(Vector2i.ZERO))
+	Villagers.give_way(maps.id, day_minutes(), trigger_state(Vector2i.ZERO), maps.pos / 16.0, Vector2(maps.facing),
+		farmer_passing, delta, func(c: Vector2i) -> bool: return not maps.is_solid(c, farm))   # a villager steps aside for the farmer slipping past
 	_accum += delta
 	while _accum >= SECONDS_PER_MINUTE:
 		_accum -= SECONDS_PER_MINUTE
@@ -2698,6 +2701,11 @@ func villager_in_way(from: Vector2, to: Vector2) -> bool:
 ## Does a villager on this map stand within block_reach of the farmer's feet at `at` (pixels)?
 func villager_near(at: Vector2) -> bool:
 	return Villagers.near(maps.id, day_minutes(), trigger_state(Vector2i.ZERO), at / 16.0)
+
+
+## The feet (cells) of the villager on this map nearest the farmer's feet at `at` (pixels), or Vector2.INF.
+func villager_nearest(at: Vector2) -> Vector2:
+	return Villagers.nearest(maps.id, day_minutes(), trigger_state(Vector2i.ZERO), at / 16.0)
 
 
 ## Plays event `id` (data/events/<id>.json) in the view's EventPlayer.

@@ -61,6 +61,16 @@ Light and Farmhouse model hold the technical detail of what is built.
   (FigureArt, 24 x 32) are drawn at `FarmWorld.FIGURE_PX` (0.04): the farmer is about 1.17
   units tall. Doors and eaves must clear the farmer (front eaves at 1.45
   or more).
+- **Figures stand upright, in front of the walls behind them.** The farmer, villagers, animals and
+  the dog are upright pictures turned to the camera about y and stretched for it
+  (`FarmWorld.upright` / `stretch`). At the 45-degree view such a picture's side reaches diagonally
+  into a wall, fence or prop just behind the feet; `FarmWorld.wall_pull` (data/camera.json
+  "figure_pull") then draws the figure nearer the eye along its view ray: the same pixels, only the
+  depth test changes, so the wall behind no longer cuts the hand or leg. Cells in front of the feet
+  still hide the figure. A figure in the open keeps the sprite's own material. When the farmer
+  slips past a villager in the way, she steps aside and he steps the other way
+  (`Villagers.give_way`, data/villagers/_common.json "give_way"), so the two pass side by side
+  instead of one figure walking through the other.
 - **Meshes in code.** Build with SurfaceTool as in `scripts/world3d/minka.gd` (`roof` for a
   thatched hip roof, `hip` for a tiled one, `gable` for a gable roof, `FarmProps.block` for tapered boxes and bevelled lids, thatch or kawara with tile rolls, `ridge` for a tiled
   ridge with curled ends, `beam` for any beam along a curve; `Shrine.lathe` for round or

@@ -216,6 +216,61 @@ func _upright() -> void:
 	check(src.count("FarmWorld.upright(s)") == 2, "upright: the animals and the dog stand upright too")
 	var vs := FileAccess.get_file_as_string("res://scripts/world3d/villager_sprites.gd")
 	check(vs.count("FarmWorld.upright_child(") == 2, "upright: a villager's held item and note turn with them")
+	_wall_pull(fw, cam_data)
+
+
+## A figure by a wall behind it (playtest 2026-11-13: its side went into the wall's corner): the
+## upright plane's end reaches diagonally into the solid cell behind the feet, so FarmWorld.wall_pull
+## draws the figure that much nearer the eye; a wall in front, open floor or a wall far enough
+## away pull nothing. Its numbers are data/camera.json "figure_pull".
+func _wall_pull(fw: GDScript, cam_data: Dictionary) -> void:
+	var rules: Dictionary = cam_data.get("figure_pull", {})
+	check(float(rules.get("step", 0)) > 0.0 and float(rules.get("most", 0)) > 0.0, "wall pull: numbers in camera.json %s" % [rules])
+	for lid in cam_data.lenses:
+		var l := CameraLens.pick(cam_data, lid)
+		var target := Vector3(10.5, 0, 10.5)
+		var cam := Transform3D(Basis(), target + l.back * l.dist).looking_at(target, Vector3.UP)
+		var row := func(z: int) -> Callable: return func(c: Vector2i) -> bool: return c.y == z
+		var col := func(x: int) -> Callable: return func(c: Vector2i) -> bool: return c.x == x
+		var none := func(_c: Vector2i) -> bool: return false
+		var feet := Vector3(10.5, 0, 10.19)   # 3 px (the farmer's feet box) south of the row z = 9
+		check(fw.wall_pull(feet, 0.4, 0.4, cam, none) == 0.0, "wall pull: lens %s, open floor pulls nothing" % lid)
+		var pull: float = fw.wall_pull(feet, 0.4, 0.4, cam, row.call(9))
+		check(pull > 0.0 and pull <= float(rules.most), "wall pull: lens %s, the wall row behind the feet pulls (%.3f)" % [lid, pull])
+		# Pulled along the view ray, the right end (towards the north-east) is out of the wall's cell.
+		var along := Vector3(cam.basis.x.x, 0, cam.basis.x.z).normalized()
+		var toward := Vector3(cam.basis.z.x, 0, cam.basis.z.z)
+		var tip: Vector3 = feet + along * 0.4
+		check(tip.z < 10.0, "wall pull: lens %s, unpulled the right end is inside the wall (z %.3f)" % [lid, tip.z])
+		var moved: Vector3 = tip + toward * (pull - float(rules.margin))
+		check(moved.z >= 10.0 - 1e-4, "wall pull: lens %s, pulled it comes out through the wall's face (z %.3f)" % [lid, moved.z])
+		check(fw.wall_pull(Vector3(10.5, 0, 10.81), 0.4, 0.4, cam, row.call(11)) == 0.0,
+			"wall pull: lens %s, a wall in front of the feet still hides the figure (no pull)" % lid)
+		check(fw.wall_pull(Vector3(10.5, 0, 10.6), 0.3, 0.3, cam, row.call(9)) == 0.0,
+			"wall pull: lens %s, a wall the picture does not reach pulls nothing" % lid)
+		check(fw.wall_pull(Vector3(10.1, 0, 10.5), 0.4, 0.4, cam, col.call(9)) > 0.0,
+			"wall pull: lens %s, a wall behind on the west pulls (the left end)" % lid)
+		check(fw.wall_pull(Vector3(10.1, 0, 10.5), 0.05, 0.4, cam, col.call(9)) == 0.0,
+			"wall pull: lens %s, only the side that reaches it counts" % lid)
+		check(fw.wall_pull(Vector3(10.9, 0, 10.5), 0.4, 0.4, cam, col.call(11)) == 0.0,
+			"wall pull: lens %s, a wall in front on the east pulls nothing" % lid)
+		check(fw.wall_pull(Vector3(10.5, 0, 10.01), 3.0, 3.0, cam, row.call(9)) == float(rules.most),
+			"wall pull: lens %s, at most %s" % [lid, rules.most])
+		check(fw.wall_pull(Vector3(10.5, 0, 10.19), 0.4, 0.4, cam, func(c: Vector2i) -> bool: return c == Vector2i(10, 10)) == 0.0,
+			"wall pull: lens %s, the feet's own cell never counts" % lid)
+	# The opaque columns: the farmer's picture reaches to both sides, mirrored with flip_h.
+	var s: Sprite3D = fw.make_figure(PlaceholderArt.tex("item:turnip"))
+	var cols: Vector2 = fw.opaque_columns(s.texture.get_image())
+	check(cols.x > 0.0 and cols.y > 0.0 and cols.x + cols.y <= s.texture.get_width(), "wall pull: a picture's opaque columns %s" % [cols])
+	var e: Vector2 = fw.extents(s)
+	s.flip_h = true
+	var f: Vector2 = fw.extents(s)
+	check(is_equal_approx(e.x, f.y) and is_equal_approx(e.y, f.x), "wall pull: mirrored, its reach swaps sides %s %s" % [e, f])
+	fw.set_pull(s, 0.2)
+	check(s.material_override is ShaderMaterial and is_equal_approx(fw.pull_of(s), 0.2), "wall pull: a pulled figure wears the pull material")
+	fw.set_pull(s, 0.0)
+	check(s.material_override == null and fw.pull_of(s) == 0.0, "wall pull: unpulled it keeps its own material, as drawn before")
+	s.free()
 
 
 ## In the real view: the farmer's figure is upright, stretched for the camera, its children upright.
@@ -225,6 +280,20 @@ func _upright_in_view() -> void:
 		"upright: the farmer stands upright, stretched %.3f for the camera" % s.scale.y)
 	for c in [_scene.held_sprite, _scene.charge_pips, _scene.lantern_sprite, _scene.bite_mark]:
 		check(c.billboard == BaseMaterial3D.BILLBOARD_FIXED_Y, "upright: %s turns with the farmer" % c.name)
+	# Against a wall behind him he is drawn nearer the eye, his held item and lantern with him; in
+	# the open he keeps his own material (FarmWorld.wall_pull).
+	var fw: GDScript = load("res://scripts/world3d/farm_world.gd")
+	var keep := s.position
+	var cell := Vector2i(floori(keep.x), floori(keep.z))
+	s.position = Vector3(cell.x + 0.5, 0, cell.y + 0.19)
+	var wall := func(c: Vector2i) -> bool: return c.y == cell.y - 1
+	fw.stand_all(_scene.get_tree(), _scene.cam, wall)
+	check(fw.pull_of(s) > 0.0, "wall pull: the farmer 3 px in front of a wall is drawn nearer (%.3f)" % fw.pull_of(s))
+	check(is_equal_approx(fw.pull_of(_scene.held_sprite), fw.pull_of(s)) and is_equal_approx(fw.pull_of(_scene.lantern_sprite), fw.pull_of(s)),
+		"wall pull: his held item and lantern come with him")
+	fw.stand_all(_scene.get_tree(), _scene.cam, func(_c: Vector2i) -> bool: return false)
+	check(s.material_override == null and _scene.held_sprite.material_override == null, "wall pull: in the open, his own material again")
+	s.position = keep
 
 
 func _lenses() -> void:

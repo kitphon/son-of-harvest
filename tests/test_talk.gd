@@ -732,6 +732,88 @@ func _pass_villager() -> void:
 	check(not p.passing or g.villager_in_way(p.position, p.position + Vector2(-1, 0)), "pass: pushing where no villager stands passes nothing")
 	p.free()
 	Villagers.reset_day()
+	_give_way()
+
+
+## Slipping past (playtest 2026-11-13: the passing farmer walked through the villager): she steps
+## aside across his way and he steps the other way, so where the two stand level in the 3D view's
+## depth their figures are side by side on screen, not one inside the other; once past she goes
+## back onto her path. With the give-way numbers at nothing the same walk goes through her.
+func _give_way() -> void:
+	var r := Villagers.give_rules()
+	check(r.step > 0.0 and r.apart > 0.0 and r.speed > 0.0 and r.farmer_speed > 0.0, "give way: numbers in _common.json %s" % [r])
+	var worst := _walk_past(true)
+	# At the 45-degree view a cell across the screen is (x - y) / sqrt 2 and the depth (x + y) / sqrt 2.
+	check(worst >= 0.5, "give way: level in depth, the two figures stand %.2f apart on screen (two half bodies are under 0.5)" % worst)
+	check(_walk_past(false) < 0.2, "give way: without it the farmer walks through her (sanity of the measure)")
+	# Her side: the one she stands on, the other when a wall is there; never into a wall.
+	Villagers.reset_day()
+	var g := _game()
+	var t: float = g.day_minutes()
+	var s: Dictionary = g.trigger_state(Vector2i.ZERO)
+	var w := Villagers.where("tome", t, s)
+	var base: Vector2 = w.pos
+	var open := func(_c: Vector2i) -> bool: return true
+	Villagers.give_way(w.map, t, s, base + Vector2(0.1, 0.6), Vector2.UP, true, 1.0, open)
+	check(Villagers.gave("tome").x < -0.3, "give way: he comes up on her right, she steps left %s" % [Villagers.gave("tome")])
+	check(Villagers.where("tome", t, s).pos.is_equal_approx(base + Villagers.gave("tome")), "give way: where() puts her aside (both views draw her there)")
+	Villagers.reset_day()
+	var wall_left := func(c: Vector2i) -> bool: return c.x >= floori(base.x)
+	Villagers.give_way(w.map, t, s, base + Vector2(0.1, 0.6), Vector2.UP, true, 1.0, wall_left)
+	check(Villagers.gave("tome").x > 0.3, "give way: a wall on her left, she steps right %s" % [Villagers.gave("tome")])
+	Villagers.reset_day()
+	var lane := func(c: Vector2i) -> bool: return c.x == floori(base.x)
+	Villagers.give_way(w.map, t, s, base + Vector2(0, 0.6), Vector2.UP, true, 1.0, lane)
+	check(Villagers.gave("tome") == Vector2.ZERO, "give way: in a one-cell lane she has no room and stays %s" % [Villagers.gave("tome")])
+	Villagers.reset_day()
+	Villagers.give_way(w.map, t, s, base + Vector2(0.1, 0.6), Vector2.UP, true, 1.0, open)
+	Villagers.give_way(w.map, t, s, base + Vector2(0.1, -0.9), Vector2.UP, false, 0.05, open)
+	check(Villagers.gave("tome") != Vector2.ZERO, "give way: she eases back, not at once")
+	Villagers.give_way(w.map, t, s, base + Vector2(0.1, -0.9), Vector2.UP, false, 1.0, open)
+	check(Villagers.gave("tome") == Vector2.ZERO, "give way: the farmer past, she is back on her path")
+	Villagers.reset_day()
+
+
+## Walks the farmer up into Tome and past (as Game and the Player do it each frame) and returns
+## the least on-screen distance between their feet while the two stand level in depth.
+func _walk_past(giving: bool) -> float:
+	var g := _game()
+	g.hour = 7
+	g.minute = 40
+	Villagers.reset_day()
+	var saved: Dictionary = Villagers.common().get("give_way", {}).duplicate()
+	if not giving:
+		Villagers.common()["give_way"] = {"step": 0.0, "apart": 0.0, "speed": 1.0, "farmer_speed": 1.0, "reach": 1.2, "margin": 0.2}
+	var t: float = g.day_minutes()
+	var s: Dictionary = g.trigger_state(Vector2i.ZERO)
+	var w := Villagers.where("tome", t, s)
+	g.go_to_map("town", Vector2i(w.pos.floor()) + Vector2i(0, 2), Vector2i.UP)
+	var p: Node2D = load("res://scripts/player/player.gd").new()
+	p.farm = g.farm
+	p.position = w.pos * 16.0 + Vector2(0, 32)
+	p.facing = Vector2i.UP
+	var free := func(c: Vector2i) -> bool: return not g.maps.is_solid(c, g.farm)
+	var worst := INF
+	var dt := 1.0 / 60.0
+	for i in 150:
+		var step := Vector2(0, -p.WALK_SPEED * dt)
+		p._try_move(step)
+		p._push_villager(Vector2.UP, step, dt)
+		if p.passing:
+			p._step_aside(Vector2.UP, dt)
+		g.maps.pos = p.position
+		Villagers.give_way("town", t, s, p.position / 16.0, Vector2.UP, p.passing, dt, free)
+		p._end_pass()
+		var me: Vector2 = p.position / 16.0
+		var her: Vector2 = Villagers.where("tome", t, s).pos
+		if absf((me.x + me.y) - (her.x + her.y)) / sqrt(2.0) < 0.05:
+			worst = minf(worst, absf((me.x - me.y) - (her.x - her.y)) / sqrt(2.0))
+	check(p.position.y < w.pos.y * 16.0 - 16.0, "give way (%s): the farmer got past her (%s, she %s, worst %.2f)" % [giving, p.position / 16.0, w.pos, worst])
+	check(not g.farmer_passing, "give way (%s): Game hears the pass is over" % giving)
+	Villagers.common()["give_way"] = saved
+	p.free()
+	Villagers.reset_day()
+	return worst
 
 
 func check(ok: bool, what: String) -> void:

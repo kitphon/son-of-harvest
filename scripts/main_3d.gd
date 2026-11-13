@@ -67,6 +67,8 @@ var bobber: Sprite3D             # the float on the water while the line is out
 var bite_mark: Sprite3D          # the "!" over the head when a fish bites
 var fish_line: MeshInstance3D    # from the rod tip to the bobber
 var _line_mesh := ImmediateMesh.new()
+## The map's solid cells, for the figures drawn clear of a wall behind them (FarmWorld.wall_pull).
+var _solid := func(c: Vector2i) -> bool: return Game.maps.is_solid(c, Game.farm)
 const RING_EVERY := 1.7            # seconds between the gentle rings round a waiting bobber
 const RING_BITE_EVERY := 0.4       # and between the strong ones in a bite
 var _ring_state := "idle"
@@ -517,7 +519,7 @@ func _process(delta: float) -> void:
 	_fly(delta)
 	_show_fishing()
 	_prebuild(delta)
-	FarmWorld.stand_all(get_tree(), cam)   # the upright figures stretched for the camera as it is now
+	FarmWorld.stand_all(get_tree(), cam, _solid)   # the upright figures stretched for the camera as it is now, clear of walls behind them
 	if _warm != null and not fade.holding():
 		_end_warm()
 	elif _warm != null:
