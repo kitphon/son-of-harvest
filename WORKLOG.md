@@ -10,6 +10,29 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — Carp streamers at a believable size in 3D
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: the 3D koinobori were drawn at the flat view's 1:1 (FarmWorld.PX a pixel) and the black carp's
+  picture (36 px square, 1.62 units at PX) was as tall as a village house's wall (VILLAGE_WALL 1.625).
+  data/koinobori.json gets `scale_3d` 0.75; KoinoboriProps.pixel() = FarmWorld.PX x scale_3d, used for every
+  sprite's pixel_size, the hang heights (y_px x pixel) and the pole height (70 x pixel = 2.36 units, about
+  1.45 eave heights, under twice). Node spacing scales with it. The whole rig scales together so the
+  wheel stays on the pole's top and the streamer and carp keep their spacing. The flat view is untouched.
+  Scale reasoning: a real koinobori is about 1.5 m against a 3 m wall, so 0.75 puts the black carp's body
+  (about 0.74 units) at about half a wall, and the pole at a plausible 1.5 times the eave.
+- Checked: before/after frames (`--demo --season=spring --day=20 --weather=sunny --time=11:00 --map=town@koinobori --koinobori=0.6`,
+  frame 19): before the carp hang as big as the farmer's whole upper body beside the house; after they are about
+  40 % of the house's height, the wheel and streamer read at the top, carp hang separately (no overlap).
+  test_koinobori: new checks that every 3D sprite uses pixel_size = PX x scale_3d, the black picture no longer than
+  a wall, the pole between 1 and 2 wall heights, and each neighbour carp's gap above the sum of their radii.
+  Found on the way: naming KoinoboriProps or LitSpots in test_koinobori.gd breaks the compile (the Game
+  autoload in farm_world.gd), so those are reached with load() as the test already did for FarmWorld.
+  Results: all 41 tests/test_*.gd print `OK (0 failed)` (test_koinobori among them, quoted: `test_koinobori: OK (0 failed)`).
+  Smoke runs `--headless --path . --quit-after 300` (title, `-- --demo`, `-- --demo --map=town`, `-- --demo --mine=3`):
+  exit 0, no ERROR lines. Windowed `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the pole's thickness and node boxes are not scaled (they were drawn at 0.06 units either way);
+  the carp hanging limp may sag closer to the next carp in a long calm. Not checked in motion.
+
 ## 2026-11-13 — Merge: icicles (Opus), carp streamers (Sonnet), wind chime (Haiku)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 6f90419 icicles on the eaves, 043ce0c koinobori and 34c2318 furin, each from its own
