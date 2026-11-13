@@ -32,10 +32,12 @@ func _run() -> void:
 	_trunks()
 	_scion()
 	_startle()
+	_forced_calm()
 	_art()
 	await _sfx()
 	await _views()
 	await _flat()
+	await _scion_views()
 	print("test_cicadas: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
 
@@ -264,6 +266,85 @@ func _startle() -> void:
 	CR.cicadas("semi", 1.0, 1.0, scene, FAR, others_state, {}, [near_v])
 	check(others_state.has(target.id), "startle: a villager close by sends it off")
 	check(CR.scares("kota") and not CR.scares("child", "crawler") and CR.scares("child", "child"), "startle: the crawler does not, the walking child does")
+
+
+## `--cicadas` (forced): they start settled for "forced_calm" seconds whoever stands by, so the
+## first frames show them on the trunks; once the settle is over the farmer beside them scares them.
+func _forced_calm() -> void:
+	var calm := float(CR.config().forced_calm)
+	check(calm >= 2.0 and calm <= 5.0, "forced: the settle lasts a few seconds (%s)" % calm)
+	CR._forced = ["semi"]
+	CR._forced_read = true
+	var scene: Dictionary = CR.scene_of(MM.data("hill"), 7)
+	var all: Array = CR.spots("semi", 1.0, scene)
+	var near := Vector2(all[0].spot.x + 0.5, all[0].spot.z)
+	var state := {}
+	var early: Array = CR.cicadas("semi", 1.0, 0.5, scene, near, state)
+	check(early.size() == all.size() and early.all(func(c): return c.pose == "cling" and not c.fled) and state.is_empty(), "forced: all settled on the trunks at the start, the farmer by one (%d)" % early.size())
+	var late: Array = CR.cicadas("semi", 1.0, calm + 0.1, scene, near, state)
+	check(late.any(func(c): return c.fled and c.pose == "cling") and not state.is_empty(), "forced: the farmer scares them once the settle is over")
+	CR._forced = []
+	CR._forced_read = true
+
+
+## Kiku's persimmon as a fruiting tree on the farm: in the flat view its cicadas draw over the story
+## props (StoryView before CicadaView, their nodes hosted on the view), and the farm's 3D world has
+## a CicadaLayer with its trunk's cicadas on it.
+func _scion_views() -> void:
+	_when(1, 20, 12, 30, "sunny")
+	g.flags[Scion.day_flag()] = g.day_number() - 250   # a fruiting tree (stage "tree" from 240 days)
+	g.flags[Scion.FLAG] = "door"
+	g.maps.place("farm", Vector2i(4, 4), Vector2i.UP)
+	var scene: Node = load("res://scenes/main_2d.tscn").instantiate()
+	root.add_child(scene)
+	await process_frame
+	var view: Node2D = scene.view
+	var story: Node2D = null
+	var cv: Node2D = null
+	for n in view.get_children():
+		if n.get_script() == load("res://scripts/world/story_view.gd"):
+			story = n
+		if n.get_script() == load("res://scripts/world/cicada_view.gd"):
+			cv = n
+	check(story != null and cv != null, "flat scion: the farm view has its story props and its cicadas")
+	var on_trunk := false
+	if cv != null:
+		for d in range(20, 35):   # the cicadas shift with the day; one of these days has one on the persimmon
+			_when(1, d, 12, 30, "sunny")
+			cv.refresh()
+			if cv.sprites().any(func(s): return s.scion):
+				on_trunk = true
+				break
+	check(on_trunk and cv != null, "flat scion: a cicada on Kiku's persimmon's trunk")
+	if on_trunk and story != null:
+		var hosted: Array = cv.clinging_nodes().filter(func(n): return n.get_parent() == cv)
+		var on_scion: Array = cv.sprites().filter(func(s): return s.scion and not s.air)
+		check(hosted.size() == on_scion.size() and not hosted.is_empty(), "flat scion: its cicadas are hosted on the view, not the figures (%d)" % hosted.size())
+		check(cv.get_index() > story.get_index() and _z_of(cv) >= _z_of(story), "flat scion: drawn after StoryView, over the persimmon")
+		check(absf(float(on_scion[0].at.x) - 56.0) <= 3.0, "flat scion: on the trunk's column of cell (3,4) (x %s)" % str(on_scion[0].at.x))
+	scene.queue_free()
+	await process_frame
+	# The farm's 3D world: its CicadaLayer, with the scion's trunk spots in it.
+	var LayerS: GDScript = load("res://scripts/world3d/cicada_layer.gd")
+	var made: Array = load("res://scripts/main_3d.gd").new_world(MM.data("farm"))
+	for step in made[1]:
+		step.call()
+	var layers := (made[0] as Node).get_children().filter(func(n): return n.get_script() == LayerS)
+	check(layers.size() == 1, "3D scion: the farm's world has one cicada layer (%d)" % layers.size())
+	if layers.size() == 1:
+		var layer: Node3D = layers[0]
+		var on_3d := false
+		for d in range(20, 35):
+			_when(1, d, 12, 30, "sunny")
+			layer.refresh()
+			if layer.shown().any(func(c): return str(c.id).begins_with("semi:3,4:")):
+				on_3d = true
+				break
+		check(on_3d, "3D scion: a cicada on the persimmon's trunk at cell (3,4)")
+		check(layer._scene.trunks.size() == 1 and str(layer._scene.trunks[0].kind) == "scion", "3D scion: the farm's only trunk is the persimmon")
+	(made[0] as Node).free()
+	g.flags.erase(Scion.FLAG)
+	g.flags.erase(Scion.day_flag())
 
 
 func _art() -> void:

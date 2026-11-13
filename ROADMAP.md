@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-13 Kiku's persimmon cicadas: forced ones settle for 3 s on the trunks (cicadas.json forced_calm), so the plain demo flags show one by frame ~30; flat draw order and the farm's 3D CicadaLayer tested; AGENTS.md updated; see WORKLOG.
 [x] 2026-11-13 Hearth smoke tied to its own house (Occluders tags, fade_of_tag instead of fade_at); see WORKLOG.
 [x] 2026-11-13 Open limits closed: the cucumber's perch legs touch the plant's middle column (CropClusters.top_of), `--crops=tomato,eggplant[:stage]` on the demo field (the tomato and eggplant perches framed), Kiku's persimmon holds cicadas as a young or fruiting tree (CicadaRules.add_scion; the farm's 3D CicadaLayer added); test_insects, test_cicadas; see WORKLOG.
 [x] 2026-11-13 Figures drawn clear of a wall, fence or prop just behind their feet (FarmWorld.wall_pull, data/camera.json figure_pull: the same pixels, nearer the eye in the depth test) and a villager steps aside while the farmer slips past, he the other way (Villagers.give_way, _common.json give_way; the pass no longer ends the frame it begins); `--pass=<villager>`; test_maps, test_talk; see WORKLOG.

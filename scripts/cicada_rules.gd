@@ -274,6 +274,9 @@ static func cicadas(kind: String, amount_now: float, t: float, scene: Dictionary
 	for o in others:
 		if o is Vector2:
 			walkers.append([o, float(cfg.get("startle", {}).get("others", 1.0))])
+	# `--cicadas` (forced): they start settled, whoever stands by, for "forced_calm" seconds (the frame shows them on the trunks at once).
+	if kind in forced() and t < float(cfg.get("forced_calm", 0.0)):
+		walkers = []
 	for s in spots(kind, amount_now, scene, cfg):
 		var spot: Vector3 = s.spot
 		var ground := Vector2(spot.x, spot.z)

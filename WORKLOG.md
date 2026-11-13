@@ -10,6 +10,14 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — Kiku's persimmon cicadas: settled first look, flat draw order and the farm's CicadaLayer tested
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: (1) The forced cicadas (`--cicadas`) start settled for `forced_calm` (data/cicadas.json, 3.0 s): CicadaRules.cicadas leaves every walker out of the scare until then, so the farmer starting beside Kiku's persimmon no longer sends them off at once. After the settle the scare works as before. The plain flags `--demo --flags=kiku_scion=door --scion=tree --season=summer --day=20 --time=12:00 --cicadas` now show one on the trunk from the first frames. (2) AGENTS.md's run line for them: the plain flags, frame ~30; `--walk=right:0.6` and ~800 frames kept for the return.
+- Checked: `test_cicadas` (new `_forced_calm`: all settled at 0.5 s with the farmer by one and nothing in the state, the farmer scares them once past the settle; `_scion_views`: the flat farm view with kiku_scion=door at stage tree has StoryView before CicadaView (index and z), its scion cicadas' nodes hosted on the view and one on the trunk column of cell (3,4); the farm's 3D world has one CicadaLayer whose only trunk is the persimmon, with a cicada spot on cell (3,4)). The view scripts are loaded with load(): naming their class in the test made the test fail to compile (Game-dependent scripts parsed too early).
+  All 38 `tests/test_*.gd` print `OK (0 failed)`, `test_cicadas: OK (0 failed)` among them. Smoke runs (`--quit-after 300`: title, `-- --demo`, `-- --demo --map=town`, the scion flags): no ERROR lines. Windowed `--quit-after 150 -- --demo`: exit 0.
+  Frames (480 x 270, `--quit-after 40`, frame 39): 3D with the scion flags, and `res://scenes/main_2d.tscn` with the same flags. Magnified crops show a pale-winged, dark-bodied cicada clinging to the trunk in both views (small at this size).
+- Left / next: the return after the farmer walks off was not re-rendered in this entry (the startle and return logic is unchanged and covered by test_cicadas `_startle`).
+
 ## 2026-11-13 — Hearth smoke tied to its own house
 Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Found: HearthSmoke read `Occluders.fade_at(vent)`, the fade of whatever box covered the vent: a tree or neighbouring building over another house's vent could fade that smoke, and a vent above its own box was missed.
