@@ -245,24 +245,42 @@ func materials() -> Array[ShaderMaterial]:
 static var _tops := {}
 
 
-## How high the top of a picture's first opaque row stands over its root, in cells (the quad
-## FarmWorld.PX a pixel tall, standing on its bottom middle; a single crop sprite is the same).
-## Times a plant's `size` it is where a dragonfly's feet rest (InsectRules.plant_perch).
+## How high the top of a picture stands over its root, in cells, at the column the root sits in: the
+## first opaque row of the centre column(s) (the sprite stands on its bottom middle, so the root
+## is at the picture's middle: two columns when the width is even, averaged; the tip, the topmost
+## pixel anywhere, when that column is empty). Times a plant's `size` it is where a dragonfly's feet
+## rest (InsectRules.plant_perch), so its legs touch the plant as it is drawn (FarmWorld.PX a pixel).
 static func top_of(tex_key: String) -> float:
 	if not _tops.has(tex_key):
 		var img := PlaceholderArt.tex(tex_key).get_image()
-		var top := img.get_height()
-		for y in img.get_height():
-			var hit := false
-			for x in img.get_width():
-				if img.get_pixel(x, y).a > 0.1:
-					hit = true
-					break
-			if hit:
-				top = y
-				break
-		_tops[tex_key] = float(img.get_height() - top) * FarmWorld.PX
+		var w := img.get_width()
+		var h := img.get_height()
+		var cols: Array = [w / 2 - 1, w / 2] if w % 2 == 0 else [w / 2]
+		var sum := 0.0
+		for x in cols:
+			var row := _first_opaque_row(img, x)
+			if row < 0:
+				row = _first_opaque_row_any(img)
+			sum += float(row if row >= 0 else h)
+		_tops[tex_key] = (float(h) - sum / cols.size()) * FarmWorld.PX
 	return _tops[tex_key]
+
+
+## The first row of column `x` with an opaque pixel, or -1.
+static func _first_opaque_row(img: Image, x: int) -> int:
+	for y in img.get_height():
+		if img.get_pixel(x, y).a > 0.1:
+			return y
+	return -1
+
+
+## The topmost opaque row of the picture, or -1.
+static func _first_opaque_row_any(img: Image) -> int:
+	for y in img.get_height():
+		for x in img.get_width():
+			if img.get_pixel(x, y).a > 0.1:
+				return y
+	return -1
 
 
 ## The cluster key for a cell's crop key (`crop:<id>:<growth>:<state>` from

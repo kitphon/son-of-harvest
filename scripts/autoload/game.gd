@@ -596,6 +596,43 @@ func _demo_greenhouse() -> void:
 	greenhouse.cells_changed.emit()
 
 
+## `--crops=tomato,eggplant[:stage]` (`-- --demo --crops=...`): the crops listed, in a row along the
+## demo plot's top row (row 5, in equal runs), each grown to its stage (`ripe` when none is given).
+## Placed straight on the cells, so a crop out of its season (eggplant is fall's) can still be framed.
+static func demo_crops_of(args: PackedStringArray) -> Array:
+	var out := []
+	for arg in args:
+		if arg.begins_with("--crops="):
+			for item in arg.trim_prefix("--crops=").split(",", false):
+				var parts := item.split(":")
+				out.append([parts[0], parts[1] if parts.size() > 1 else "ripe"])
+	return out
+
+
+func _demo_crops() -> void:
+	var want := demo_crops_of(OS.get_cmdline_user_args())
+	if want.is_empty():
+		return
+	var n := want.size()
+	for i in n:
+		var id: String = want[i][0]
+		if not crops.has(id):
+			push_warning("No crop " + id + " for --crops")
+			continue
+		var first := 2 + i * 9 / n
+		var last := 2 + (i + 1) * 9 / n - 1
+		var ripe: int = farm.ripe_stage(id)
+		var stage: int = ripe if want[i][1] == "ripe" else clampi(int(want[i][1]), 0, ripe)
+		for x in range(first, last + 1):
+			var d := farm.cell(Vector2i(x, 5))
+			farm.till(Vector2i(x, 5))
+			d.obj = FarmGrid.Obj.NONE
+			d.crop = id
+			d.stage = stage
+			d.days = 0
+			d.wet = x % 2 == 0
+
+
 func _demo_field() -> void:
 	hour = 10
 	for y in range(5, 8):
@@ -616,6 +653,7 @@ func _demo_field() -> void:
 	farm.cell(Vector2i(9, 8)).obj = FarmGrid.Obj.WEED
 	add_item("food:onigiri", 2)
 	add_item("food:green_tea", 1)
+	_demo_crops()
 	farm.cells_changed.emit()
 	_demo_greenhouse()
 	# Something to see in the rucksack and the chest (`-- --demo --rucksack`).

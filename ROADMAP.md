@@ -24,6 +24,7 @@ a board roof and an indigo noren, and a lidded cedar shipping bin with a straw r
 
 ## Next up
 [x] 2026-11-13 Hearth smoke tied to its own house (Occluders tags, fade_of_tag instead of fade_at); see WORKLOG.
+[x] 2026-11-13 Open limits closed: the cucumber's perch legs touch the plant's middle column (CropClusters.top_of), `--crops=tomato,eggplant[:stage]` on the demo field (the tomato and eggplant perches framed), Kiku's persimmon holds cicadas as a young or fruiting tree (CicadaRules.add_scion; the farm's 3D CicadaLayer added); test_insects, test_cicadas; see WORKLOG.
 [x] 2026-11-13 Shopkeepers ask Buy / Talk / Never mind when talked to at their open counter, so their own lines can be heard (Game.ask_keeper, shops.json ask / keeper_choices); test_talk, test_view2d; see WORKLOG.
 [x] 2026-11-13 The E reach frame taken out again at the user's wish (no white frame round villagers and items); the tool's target frame stays where the tools work; see WORKLOG.
 [x] 2026-11-13 Talk fixes: the little one's talk ran through every line of talk_child.json (each line now ends; Talk.check refuses a line running on into the next answer); the E that closes a text box no longer opens the talk again when let go before the next tick (Player._after_menu); test_talk, test_child; see WORKLOG. The report of Nana's portrait turning into Tome's in Shige's house is still not reproduced (open).

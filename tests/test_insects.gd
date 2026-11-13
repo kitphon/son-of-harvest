@@ -591,6 +591,19 @@ func _crop_perches() -> void:
 				var quad: float = (cc._layers[sp.tex].multimesh.mesh as QuadMesh).size.y * float(sp.size)
 				check(is_equal_approx(p.y, CC.top_of(sp.tex) * float(sp.size)) and p.y <= quad + 0.001 and quad - p.y <= 3.0 * 0.045 + 0.001, "crop perches: %s rests on its plant's top (%.3f of a %.3f quad)" % [id, p.y, quad])
 				check(cc.planted.all(func(o): return o.cell != c or o.pos.y + CC.top_of(o.tex) * float(o.size) <= p.y + 0.001), "crop perches: %s is its tallest plant" % id)
+				# The legs touch: the perch's height is the first opaque pixel of the plant's middle column(s).
+				var img: Image = PlaceholderArt.tex(sp.tex).get_image()
+				var iw := img.get_width()
+				var ih := img.get_height()
+				var px_h: float = p.y / (load("res://scripts/world3d/farm_world.gd").PX * float(sp.size))   # the perch, in the picture's pixels above its root
+				var mid_cols: Array = [iw / 2 - 1, iw / 2] if iw % 2 == 0 else [iw / 2]
+				for mx in mid_cols:
+					var row := -1
+					for y in ih:
+						if img.get_pixel(mx, y).a > 0.1:
+							row = y
+							break
+					check(row >= 0 and absf(float(ih - row) - px_h) <= 1.0, "crop perches: %s's legs touch the plant's middle column %d (%.2f px vs row %d)" % [id, mx, px_h, row])
 		else:
 			var tex: Texture2D = load("res://scripts/art/placeholder_art.gd").tex(load("res://scripts/art/placeholder_art.gd").cell_key(g.farm, g.farm.cell(c)))
 			var spr: Node = load("res://scripts/world3d/farm_world.gd").make_sprite(tex)
@@ -617,6 +630,11 @@ func _crop_perches() -> void:
 	var hr: Dictionary = IR.held_perch(sc, Vector2(10.5, 10.5), "rice")
 	check(not hr.is_empty() and floori(hr.pos.x) == 12, "crop perches: held on the nearest rice")
 	check(IR.held_perch(sc, Vector2(10.5, 10.5), "pumpkin").is_empty(), "crop perches: no perch of a kind the map has none of")
+	# `--crops=tomato,eggplant:2` (Game.demo_crops_of): each crop with its stage, ripe when none is given.
+	var GM: GDScript = load("res://scripts/autoload/game.gd")
+	var parsed: Array = GM.demo_crops_of(PackedStringArray(["--demo", "--crops=tomato,eggplant:2"]))
+	check(parsed == [["tomato", "ripe"], ["eggplant", "2"]], "demo crops: --crops=tomato,eggplant:2 is tomato ripe, eggplant at 2 (%s)" % str(parsed))
+	check(GM.demo_crops_of(PackedStringArray(["--demo"])).is_empty(), "demo crops: none without the flag")
 	cc.free()
 	for c in cases:
 		var d: Dictionary = g.farm.cell(c)

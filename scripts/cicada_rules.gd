@@ -186,6 +186,32 @@ static func scene_of(m: MapData, seed_value := 0, cfg := {}) -> Dictionary:
 	return {"trunks": trunks, "seed": seed_value}
 
 
+## Kiku's persimmon's stage for the cicadas' key: "" while it is not planted (Scion.planted).
+static func scion_stage(flags: Dictionary, today: int) -> String:
+	return Scion.stage(flags, today) if Scion.planted(flags) else ""
+
+
+## Adds Kiku's persimmon to `scene` (scene_of) as a trunk when it stands on the farm: the farm's
+## scion prop whose flag_value is `flag_value` (the story flag kiku_scion, "" when none), at `stage`
+## (Scion.stage: a trunk only where cfg.scion has it, so never the sapling). Returns `scene`.
+static func add_scion(scene: Dictionary, m: MapData, stage: String, flag_value: String, cfg := {}) -> Dictionary:
+	if cfg.is_empty():
+		cfg = config()
+	var span: Variant = (cfg.get("scion", {}) as Dictionary).get(stage)
+	if m == null or span == null or flag_value == "":
+		return scene
+	for p in m.props:
+		if str(p.get("kind", "")) != "scion" or str(p.get("flag_value", "")) != flag_value:
+			continue
+		var c := Vector2i(int(p.cell[0]), int(p.cell[1]))
+		# The picture stands on its plane `scion_plane` cells toward the camera from the cell's middle
+		# (StoryProps, "scion"), so the cicadas sit on that plane, not behind it.
+		var plane := float(cfg.get("scion_plane", 0.0))
+		(scene.trunks as Array).append({"cell": c, "kind": "scion", "foot": Vector2(c.x + 0.5, c.y + 0.5 + plane),
+			"lo": float(span[0]), "hi": float(span[1]), "lean": Vector3.UP})
+	return scene
+
+
 ## The trunk's radius at height `h` (cells): "radius" at the foot narrowing to "radius_top" at 1.2.
 static func radius_at(h: float, cfg := {}) -> float:
 	if cfg.is_empty():

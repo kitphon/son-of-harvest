@@ -133,9 +133,9 @@ func _enter_map() -> void:
 	view.add_child(BirdView.new().setup(m, Game.farm if Game.maps.on_farm() else null, player))   # swallows, crows, the heron, sparrows
 	view.add_child(BreathView.new().setup(m, Game.farm if Game.maps.on_farm() else null, player))   # breath in the cold, over the figures (its z_index)
 	view.add_child(InsectView.new().setup(m, Game.farm if Game.maps.on_farm() else null, player))   # butterflies, dragonflies
+	view.add_child(StoryView.new(m))   # what the heart events left (the bell, the store's sign, Kiku's persimmon: before the cicadas, which cling to its trunk)
 	if CicadaRules.outdoors(m):
 		view.add_child(CicadaView.new().setup(m, player))   # cicadas on the trees' trunks in summer
-	view.add_child(StoryView.new(m))   # what the heart events left (the bell, the store's sign)
 	view.add_child(FerryView.new(m))   # Mio's ferry boat, moving when she takes it across
 	view.add_child(MistView.new().setup(m, Game.farm if Game.maps.on_farm() else null))   # morning mist over the water, paddies and the ferry boat, under the figures
 	view.add_child(DyeClothView.new(m))   # Shino's indigo drying by her vats, in her hours on dry days
