@@ -29,6 +29,7 @@ func _process(_delta: float) -> bool:
 		_event_hook()
 		_delay_and_bump()
 		_reach()
+		_reach_mark()
 		_pass_villager()
 		_talk_at_river()
 		_kiku_scion()
@@ -639,6 +640,42 @@ func _reach() -> void:
 	g.maps.pos = (Vector2(10, 12) + Vector2(0.8, 0.5)) * 16.0
 	actions.on_action("interact", Vector2i(10, 12), Vector2i.UP)
 	check(g.held == "turnip" and f.item_at(Vector2i(11, 11)) == "", "reach: E picks it up, leaning towards it (%s)" % g.held)
+	Villagers.reset_day()
+
+
+## The target marker where E reaches (ActionHints.reach_mark, Player.reach_mark: the 3D bracket and the
+## flat view's outline): on the cell E acts on when reach moved it off the tool's cell, none otherwise.
+func _reach_mark() -> void:
+	var g := _game()
+	var hints: GDScript = load("res://scripts/ui/action_hints.gd")
+	g.hour = 7
+	g.minute = 40
+	Villagers.reset_day()
+	var w := Villagers.where("tome", g.day_minutes(), g.trigger_state(Vector2i.ZERO))
+	var tc := Vector2i(w.pos.floor())
+	var left := tc + Vector2i.DOWN + Vector2i.LEFT
+	g.go_to_map("town", left, Vector2i.UP)
+	var feet := Vector2(left) + Vector2(0.9, 0.5)
+	check(hints.reach_mark(left, Vector2i.UP, feet) == tc, "reach mark: from beside her, it sits on her cell (where E reaches)")
+	check(hints.reach_mark(left, Vector2i.UP, feet) != left + Vector2i.UP, "reach mark: not the tool's cell")
+	check(hints.reach_mark(left, Vector2i.UP, Vector2(left) + Vector2(0.5, 0.5)) == hints.NO_MARK, "reach mark: none when E works from the farmer's cell")
+	var two := tc + Vector2i(0, 2)
+	g.go_to_map("town", two, Vector2i.UP)
+	check(hints.reach_mark(two, Vector2i.UP, Vector2(w.pos.x, float(two.y) + 0.05)) == tc, "reach mark: a step on, it sits on her cell")
+	check(hints.reach_mark(two, Vector2i.UP, Vector2(w.pos.x, float(two.y) + 0.9)) == hints.NO_MARK, "reach mark: none out of reach")
+	# The Player's marker reads the farmer's position the HUD reads (Game.maps.pos, facing).
+	g.go_to_map("town", left, Vector2i.UP)
+	g.maps.pos = feet * 16.0
+	g.maps.facing = Vector2i.UP
+	var p: Node2D = load("res://scripts/player/player.gd").new()
+	p.farm = g.farm
+	check(p.reach_mark() == tc, "reach mark: Player.reach_mark on the same cell as the HUD's reach")
+	p.free()
+	g.maps.pos = (Vector2(left) + Vector2(0.5, 0.5)) * 16.0
+	var q: Node2D = load("res://scripts/player/player.gd").new()
+	q.farm = g.farm
+	check(q.reach_mark() == hints.NO_MARK, "reach mark: Player.reach_mark none from the middle of the cell")
+	q.free()
 	Villagers.reset_day()
 
 

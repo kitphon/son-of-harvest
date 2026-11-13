@@ -49,6 +49,22 @@ static func feet_on(origin: Vector2i) -> Vector2:
 	return p if Vector2i(p.floor()) == origin else Vector2(origin) + Vector2(0.5, 0.5)
 
 
+## The cell E acts on when reach moved it off the tool's cell (the side cell, or a villager a step
+## on): the target marker shows there, subtler than the tool's bracket (playtest 2026-11-13).
+## NO_MARK when E works from the farmer's own cell (the tool's cell is the one), when the HUD's
+## interact word is empty, or when the hands or a line are doing something else (pick returns
+## early for those).
+const NO_MARK := Vector2i(-99999, -99999)
+
+static func reach_mark(origin: Vector2i, facing: Vector2i, feet: Vector2) -> Vector2i:
+	if Game.fishing.active() or Game.animals.dog.held or Game.baby_held or Game.crawler_held():
+		return NO_MARK
+	var at := reach(origin, facing, feet)
+	if at == origin or interact_verb(at, facing) == "":
+		return NO_MARK
+	return at + facing
+
+
 ## Does E facing `facing` from cell `origin` have something to do: a word to show, or an "examine"
 ## row of the map's trigger table for the cell in front?
 static func usable(origin: Vector2i, facing: Vector2i) -> bool:

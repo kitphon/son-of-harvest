@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — E's reach shown by the target marker
+Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
+- Done: when E reaches off the tool's cell (the side cell, or a villager a step on), the target marker
+  shows there too. ActionHints.reach_mark(origin, facing, feet) returns the cell E acts on (reach + facing),
+  or NO_MARK when reach stays on the farmer's cell, when the HUD's interact word is empty, or while
+  fishing, a dog, the baby or the crawler is in hand (the same early returns as pick). Player.reach_mark()
+  reads the HUD's origin and feet. 3D: a second, fainter bracket (alpha 0.4, same texture) on that cell in
+  main_3d.gd _follow, hidden while charging or fishing; the tool's bracket is unchanged. Flat view:
+  Player._draw draws a fainter outline (alpha 0.3) on that cell.
+- Checked: test_talk `_reach_mark` (new: from beside Tome the mark sits on her cell and not on the tool's
+  cell; none from the middle of the cell; a step on sits on her cell; none out of reach; Player.reach_mark
+  agrees with the HUD's cell and is none from the middle). Every tests/test_*.gd (37) printed `OK (0 failed)`;
+  smoke runs `--quit-after 300` (title, `-- --demo`, `-- --demo --map=town`, `-- --demo --mine=3`): exit 0,
+  no ERROR lines.
+- Left / next: the picture of the faint bracket beside a villager was not captured: `--talk` opens the
+  dialogue at once, and walking from the town start did not reach a villager, so the check is the cell
+  test, not a frame. A frame with a villager a step on (or a side item) is still to look at.
+
 ## 2026-11-13 — E reaches, villagers give way, figures stand upright (playtest)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Found (the user's playtest): (1) E (talk, pick up, give, use) looked only at the one cell straight
