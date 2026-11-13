@@ -8,6 +8,8 @@ extends CanvasLayer
 ## W / S and the mouse pick a choice. While it is open Game.dialogue_open holds the clock and
 ## the farmer. The stepping is DialogueRunner's; this only draws it. `-- --dialogue=<id>`
 ## (or `<id>@<line id>`) opens one at the start, `-- --lift` the cave mouth's rope lift choice.
+## A dialogue asked for while one is open waits its turn (`waiting`) and opens when that one
+## closes: it never takes over the box mid-talk (a villager's face turning into someone else's).
 
 var runner: DialogueRunner
 var _catch: Control          # takes clicks anywhere on screen while the box is open
@@ -24,6 +26,7 @@ var _choice_rows: Array[Label] = []
 var _choice_mark: Label
 var _wrapped := ""
 var _blink := 0.0
+var waiting: Array = []      # [id, at, mood] asked for while a dialogue was open, in order
 
 
 func _ready() -> void:
@@ -67,6 +70,10 @@ func _ready() -> void:
 
 ## Opens dialogue `id` at line `at` ("" = its first line). Bad data is reported, not shown.
 func open(id: String, at := "") -> void:
+	if runner != null:   # one at a time: this one waits until the box closes
+		waiting.append([id, at, Game.dialogue_mood])
+		Game.dialogue_mood = ""
+		return
 	var r: DialogueRunner
 	if Game.dialogue_made.has(id):   # lines Game built in code (the rope lift's choice at the cave mouth)
 		r = DialogueRunner.new(Game.dialogue_made[id], DialogueRunner.speakers(), Game.flags, DialogueRunner.settings(), at)
@@ -102,6 +109,10 @@ func _close() -> void:
 	_catch.visible = false
 	if was != "":
 		Game.dialogue_closed(was)   # the cave mouth's choice takes the farmer down
+	while runner == null and not waiting.is_empty():   # the next one asked for while it was open
+		var next: Array = waiting.pop_front()
+		Game.dialogue_mood = next[2]
+		open(next[0], next[1])
 
 
 func _process(delta: float) -> void:

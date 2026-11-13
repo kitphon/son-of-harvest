@@ -180,6 +180,10 @@ var affection := Affection.new()   # how much each villager likes the farmer (sa
 var goals := Goals.new()           # Tome's first-week list: which goals are done (data/goals.json, saved)
 var goals_on := true               # the list is checked and shown (off for plain --demo runs; `--goals` turns it on)
 var _goal_wait := 1.0              # seconds to the next look at the list
+## Seconds of free screen since the last text box closed (INF: none yet). A goal's note waits for
+## Goals.note_quiet() of it, so it never cuts in between two talks with a villager (playtest
+## 2026-11-13: pressing E at Nana again, the note opened in the gap and E ran on to Tome's line).
+var _since_box := INF
 var _accum := 0.0
 var _shown_state := "fine"      # the tired state last told to the player
 
@@ -277,6 +281,7 @@ func new_game() -> void:
 	goals = Goals.new()
 	goals_on = not "--demo" in OS.get_cmdline_user_args()
 	_goal_wait = 1.0   # the first look a second in, once the views are up
+	_since_box = INF
 	Villagers.reset_day()
 	Whistles.reset()
 	mine_deepest = 0
@@ -699,6 +704,8 @@ func _process(delta: float) -> void:
 		var ev := fishing.step(delta, chance, rng)
 		if ev != "":
 			fishing_event.emit(ev)
+	if not paused():
+		_since_box += delta
 	# The list is looked at only while a view listens (the HUD), so a goal is never told to nobody.
 	if goals_on and clock_running and not paused() and not message.get_connections().is_empty():
 		_goal_wait -= delta
@@ -1807,6 +1814,7 @@ func ask_mine_lift() -> void:
 ## The view's text box closed dialogue `id`: after the cave mouth's choice, down the mine.
 func dialogue_closed(id: String) -> void:
 	dialogue_made.erase(id)
+	_since_box = 0.0   # a goal's note waits a moment (Goals.note_quiet)
 	if id == KEEPER_DIALOGUE:   # the keeper's question: the shop, their line or nothing
 		var pick := str(flags.get(KEEPER_FLAG, ""))
 		flags.erase(KEEPER_FLAG)
@@ -2657,7 +2665,8 @@ func goal_stats() -> Dictionary:
 
 ## Pays every goal that has just been reached (in list order) and tells it on the message
 ## line; their villager lines wait in goals.waiting and the first one opens in a text box as
-## soon as nothing holds the screen (no menu, text box or event). Returns the goal ids done
+## soon as nothing holds the screen (no menu, text box or event) and no text box has closed for
+## Goals.note_quiet() seconds (not in the gap between two talks). Returns the goal ids done
 ## now. Game._process calls it a few times a second while the list is on.
 func check_goals() -> Array[String]:
 	var now := goals.reached(goal_stats())
@@ -2670,7 +2679,7 @@ func check_goals() -> Array[String]:
 			goals.waiting.append(id)
 	if not now.is_empty():
 		changed.emit()
-	if not goals.waiting.is_empty() and not paused():
+	if not goals.waiting.is_empty() and not paused() and _since_box >= Goals.note_quiet():
 		var say: Dictionary = Goals.goal(goals.waiting.pop_front()).get("say", {})
 		if say.has("dialogue"):
 			talk(String(say.dialogue), String(say.get("at", "")))

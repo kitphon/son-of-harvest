@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-13 Nana's face turning into Tome's: a goal's note (Tome's thank-you under the plant, forage or earn line) opened in the gap between two talks and the E meant for Nana ran on into it; notes now wait `note_quiet_seconds` (2.0, data/goals.json) after a text box closes, and a dialogue asked for while one is open waits its turn instead of taking over the box (TextBox.waiting); test_talk (Nana all day from every side, gifts, heart events, a real text box), test_relationships; see WORKLOG.
 [x] 2026-11-13 Hearth smoke tied to its own house (Occluders tags, fade_of_tag instead of fade_at); see WORKLOG.
 [x] 2026-11-13 Open limits closed: the cucumber's perch legs touch the plant's middle column (CropClusters.top_of), `--crops=tomato,eggplant[:stage]` on the demo field (the tomato and eggplant perches framed), Kiku's persimmon holds cicadas as a young or fruiting tree (CicadaRules.add_scion; the farm's 3D CicadaLayer added); test_insects, test_cicadas; see WORKLOG.
 [x] 2026-11-13 Figures drawn clear of a wall, fence or prop just behind their feet (FarmWorld.wall_pull, data/camera.json figure_pull: the same pixels, nearer the eye in the depth test) and a villager steps aside while the farmer slips past, he the other way (Villagers.give_way, _common.json give_way; the pass no longer ends the frame it begins); `--pass=<villager>`; test_maps, test_talk; see WORKLOG.

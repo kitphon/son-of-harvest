@@ -33,6 +33,8 @@ func _process(_delta: float) -> bool:
 		_closing_press()
 		_talk_at_river()
 		_kiku_scion()
+		_nana_portraits()
+		_nana_box()
 		print("test_talk: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 		quit(1 if failures else 0)
 	return false
@@ -814,6 +816,189 @@ func _walk_past(giving: bool) -> float:
 	p.free()
 	Villagers.reset_day()
 	return worst
+
+
+# --- Nana's face (playtest 2026-11-13: it turned into Tome's in Shige's house) ----
+
+## The day of the report: year 2, spring 2, married to Sayo with a crawler at home (the slot's
+## state when the report came in).
+func _report_day() -> Node:
+	var g := _game()
+	g.year = 2
+	g.season = 0
+	g.day = 2
+	g.weather_today = "sunny"
+	g.flags.merge({"married_sayo": true, "spouse": "sayo", "child_born": 90, "child_news": 90, "child_name": "Sora",
+		"child_stage": "crawler", "help_feed": true}, true)
+	Villagers.reset_day()
+	return g
+
+
+## Every line of dialogue `id` from `at`, down every choice: [[speaker, portrait key], ...].
+func _all_lines(id: String, at: String, picks: Array = []) -> Array:
+	var r := DialogueRunner.open(id, {}, at)
+	r.set_speed(0)
+	var out := []
+	var n := 0
+	for _i in 300:
+		if r.done():
+			break
+		out.append([str(r.line().get("speaker", "")), r.portrait()])
+		if not r.line().has("choices"):
+			r.press()
+		elif n < picks.size():
+			r.pick(picks[n])
+			n += 1
+		else:
+			for c in r.line().choices.size():
+				out.append_array(_all_lines(id, at, picks + [c]))
+			break
+	return out
+
+
+## Every line of `lines` is Nana's own, with her face (the farmer and narration show none).
+func _nana_only(lines: Array, what: String) -> bool:
+	var ok := not lines.is_empty()
+	for l in lines:
+		var own: bool = l[0] == "nana" and String(l[1]).begins_with("portrait:nana:")
+		ok = ok and (own or (l[0] in ["farmer", ""] and l[1] == ""))
+	check(ok, "Nana's face: %s %s" % [what, lines])
+	return ok
+
+
+## E at Nana from every free side, every half hour of spring 2 in year 2 (wherever her plan has
+## her, Tome's plan running too), a gift of each kind, her heart events down every choice, and E
+## twice: each opens her own file and every line shows her face.
+func _nana_portraits() -> void:
+	var g := _report_day()
+	var said: Array = _listen(g).said
+	var actions: GDScript = load("res://scripts/farm_actions.gd")
+	var hints: GDScript = load("res://scripts/ui/action_hints.gd")   # it reads Game: loaded once the tree runs
+	var talks := 0
+	for t in range(6 * 60, 24 * 60, 30):
+		g.hour = t / 60
+		g.minute = t % 60
+		g.affection.talked = {}
+		var s: Dictionary = g.trigger_state(Vector2i.ZERO)
+		var w := Villagers.where("nana", t, s)
+		if w.is_empty() or not MapManager.has(str(w.map)):
+			continue
+		var cell := Vector2i(w.pos.floor())
+		g.go_to_map(str(w.map), cell + Vector2i.DOWN, Vector2i.UP)
+		var m: MapData = g.maps.current()
+		# At the pond (14:00-17:00) Tome strolls up to the cell above Nana; E from Nana's sides,
+		# leaning either way, still reaches Nana.
+		for d in [Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP]:
+			var from: Vector2i = cell + d
+			if m == null or g.maps.is_solid(from, g.farm):
+				continue
+			var across := Vector2(absi(d.y), absi(d.x))
+			for lean in [-0.4, 0.0, 0.4]:
+				var feet: Vector2 = Vector2(from) + Vector2(0.5, 0.5) + across * float(lean)
+				g.maps.pos = feet * 16.0
+				var reached: Vector2i = hints.reach(from, -d, feet)
+				var faced := Talk.facing_villager(m, reached, -d, t, s)
+				check(faced.get("id", "") == "nana", "%02d:%02d on %s: E from %s (lean %.1f) reaches Nana, not %s"
+					% [g.hour, g.minute, w.map, from, lean, faced.get("id", "")])
+				var before := said.size()
+				actions.on_action("interact", from, -d)
+				if said.size() != before + 1 or said.back()[0] != "talk_nana":
+					check(false, "%02d:%02d: E at Nana opens her lines %s" % [g.hour, g.minute, said.slice(before)])
+					continue
+				talks += 1
+				_nana_only(_all_lines(said.back()[0], said.back()[1]), "%02d:%02d %s" % [g.hour, g.minute, said.back()[1]])
+	check(talks >= 120, "Nana talked to from every side all day (%d talks)" % talks)
+	# Gifts of every kind, the second one of a day and her birthday answer.
+	g.hour = 7
+	g.minute = 3
+	for item in ["food:dango", "egg", "turnip", "onion", "mine:stone", "keep:clay_rabbit", "food:tamagoyaki", "food:green_tea"]:
+		g.affection.gifted = {}
+		g.held = item
+		check(g.talk_to("nana", Vector2i.UP) == "gift" and said.back()[0] == "talk_nana", "a gift of %s: her answer %s" % [item, said.back()])
+		_nana_only(_all_lines(said.back()[0], said.back()[1]), "gift %s" % item)
+	g.held = "egg"
+	g.talk_to("nana", Vector2i.UP)
+	check(said.back() == ["talk_nana", "gift_again"], "a second gift: %s" % [said.back()])
+	_nana_only(_all_lines("talk_nana", "gift_birthday"), "her birthday thanks")
+	# Her heart events, every choice; and every pick row's lines, whatever the day.
+	for file in ["heart_events", "heart_events_5", "heart_events_6"]:
+		_nana_only(_all_lines(file, "nana"), file)
+	for row in Talk.data("nana").picks:
+		for at in row.at:
+			_nana_only(_all_lines("talk_nana", at), "pick %s" % at)
+	# The trigger rows of the maps she stands on name her own events only.
+	for map_id in ["shige_house", "minamino", "town"]:
+		for row in EventTriggers.open(map_id).rows:
+			if str(row.get("who", "")) == "nana":
+				check(str(row.event).begins_with("heart_nana"), "%s: E at Nana plays her own event, not %s" % [map_id, row.event])
+	Villagers.reset_day()
+
+
+## How many dialogues wait their turn in text box `tb` (-1: it keeps no queue).
+func _queued(tb: Node) -> int:
+	var q: Variant = tb.get("waiting")
+	return q.size() if q is Array else -1
+
+
+## In a real text box: a dialogue asked for while Nana's is open waits its turn (it took over the
+## box before), and a goal's note (Tome's thank-you under the forage line) waits for a quiet
+## moment after a talk, so E pressed at her again never runs on into it.
+func _nana_box() -> void:
+	var g := _report_day()
+	var tb: CanvasLayer = load("res://scripts/ui/text_box.gd").new()   # loaded late: it uses the Game autoload
+	root.add_child(tb)
+	var notes: Array = _listen(g).said
+	var actions: GDScript = load("res://scripts/farm_actions.gd")
+	g.hour = 7
+	g.minute = 3
+	var w := Villagers.where("nana", g.day_minutes(), g.trigger_state(Vector2i.ZERO))
+	check(w.get("map", "") == "shige_house", "07:03: Nana at home %s" % [w])
+	var below := Vector2i(w.pos.floor()) + Vector2i.DOWN
+	g.go_to_map("shige_house", below, Vector2i.UP)
+	g.maps.pos = (Vector2(below) + Vector2(0.5, 0.5)) * 16.0
+	actions.on_action("interact", below, Vector2i.UP)
+	check(tb.runner != null and tb.runner.id == "talk_nana" and tb.runner.portrait().begins_with("portrait:nana:"), "box: E opens Nana's line")
+	# Asked for while she talks (another talk, an event's line): it waits, her face stays.
+	g.talk("talk_tome", "new_1")
+	actions.on_action("interact", below, Vector2i.UP)   # E again at her, as if the farmer could
+	check(tb.runner.id == "talk_nana" and tb.runner.portrait().begins_with("portrait:nana:") and _queued(tb) == 2,
+		"box: Tome's line waits, Nana's face stays (%s, %d waiting)" % [tb.runner.portrait(), _queued(tb)])
+	var faces := []
+	for _i in 20:   # E through her lines
+		if tb.runner == null or tb.runner.id != "talk_nana":
+			break
+		faces.append(tb.runner.portrait())
+		tb._advance(-1)
+	check(faces.all(func(k): return String(k).begins_with("portrait:nana:")), "box: every line of hers has her face %s" % [faces])
+	check(tb.runner != null and tb.runner.id == "talk_tome" and tb.runner.portrait().begins_with("portrait:tome:"), "box: then Tome's line, on its own")
+	while tb.runner != null:
+		tb._advance(-1)
+	check(not g.dialogue_open and _queued(tb) == 0, "box: all closed")
+	# The forage goal is reached while she talks; its note waits for a quiet moment.
+	g.goals_on = true
+	g.goals.done.assign(["plant", "hello"])
+	g.goals.add("forage", 4)
+	actions.on_action("interact", below, Vector2i.UP)
+	check(tb.runner != null and tb.runner.id == "talk_nana", "goal: talking to Nana again")
+	check(g.check_goals() == ["forage"] and g.goals.waiting == ["forage"], "goal: reached while the box is open, the note waits")
+	while tb.runner != null:
+		tb._advance(-1)
+	check(g.check_goals().is_empty() and g.goals.waiting == ["forage"] and tb.runner == null, "goal: not in the moment after her box closes")
+	actions.on_action("interact", below, Vector2i.UP)   # E at her again straight away
+	check(tb.runner != null and tb.runner.id == "talk_nana" and tb.runner.portrait().begins_with("portrait:nana:"), "goal: E again talks to Nana, not the note")
+	while tb.runner != null:
+		tb._advance(-1)
+	g._process(Goals.note_quiet() * 0.5)
+	g.check_goals()
+	check(tb.runner == null and g.goals.waiting == ["forage"], "goal: half the quiet time, still waiting")
+	g._process(Goals.note_quiet() * 0.6)
+	g.check_goals()
+	check(tb.runner != null and tb.runner.id == "goals" and tb.runner.portrait() == "" and notes.back() == ["goals", "forage"],
+		"goal: then the note opens, the farmer's line first %s" % [notes.back()])
+	tb._close()
+	tb.free()
+	g.goals_on = false
+	Villagers.reset_day()
 
 
 func check(ok: bool, what: String) -> void:
