@@ -102,6 +102,9 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
 - Smoke run (no errors expected): `... --headless --path . --quit-after 300` (title screen) and
   the same with `-- --demo` (the field), `-- --demo --map=town` (the village) and
   `-- --demo --mine=3` (a mine floor).
+- Windowed run (headless runs and Movie Maker make no sound jobs, so they cannot catch a crash in
+  the sound threads): `Godot_v4.7.2-stable_win64_console.exe --path . --quit-after 150 -- --demo`
+  must exit 0 (a crash shows as exit 139 / signal 11).
 - Screenshot: `Godot_v4.7.2-stable_win64_console.exe --path . --write-movie shots/frame.png
   --fixed-fps 30 --quit-after 20 -- --demo` writes `shots/frameNNNNNNNN.png` (git-ignored). `--demo`
   starts at 10:00 with planted plots (without `--demo` the frame shows the title screen);

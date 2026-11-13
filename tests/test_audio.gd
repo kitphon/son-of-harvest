@@ -471,6 +471,15 @@ func _loop_checks(sfx: Node) -> void:
 		var old: AudioStreamWAV = SfxSynth.to_stream(SfxSynth.render(sfx.sounds[key], hash(key)), true)
 		check(sfx._streams[key].data == old.data and sfx._streams[key].loop_mode == old.loop_mode
 				and sfx._streams[key].loop_end == old.loop_end, "loop %s from the worker equals the plain synthesis" % key)
+	# Quitting with a loop still being made: _exit_tree waits for it (a task left behind
+	# crashed the windowed game on quit, signal 11).
+	sfx._streams.erase("amb_crickets")
+	sfx.loop_stream("amb_crickets")
+	var out: Dictionary = sfx._loop_jobs["amb_crickets"][1]
+	sfx._exit_tree()
+	check(sfx._loop_jobs.is_empty(), "the way out leaves no loop job behind")
+	check(out.get("stream") is AudioStreamWAV, "the way out waits for a loop still being made")
+	sfx._streams["amb_crickets"] = cached
 
 
 func _scripts(dir: String) -> Array:

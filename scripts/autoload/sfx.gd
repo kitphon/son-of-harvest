@@ -182,7 +182,8 @@ func song_stream(key: String) -> AudioStreamWAV:
 		return _song_streams[key]
 	if not _song_jobs.has(key):
 		var out := {}
-		_song_jobs[key] = [WorkerThreadPool.add_task(func(): out.stream = make_song(key)), out]
+		var job := song_job(key)   # its inputs copied here: the thread touches nothing shared
+		_song_jobs[key] = [WorkerThreadPool.add_task(func(): out.stream = job.call()), out]
 		return null
 	var job: Array = _song_jobs[key]
 	if not WorkerThreadPool.is_task_completed(job[0]):
@@ -195,9 +196,25 @@ func song_stream(key: String) -> AudioStreamWAV:
 
 ## A music track's loop, or (key "whistle:<id>") a villager's tune, played once.
 func make_song(key: String) -> AudioStreamWAV:
+	return song_job(key).call()
+
+
+## The work of making a track's loop, with its inputs deep-copied now (on the main thread), so a
+## worker thread running it reads no Dictionary the game also holds and no lazy static data
+## (Whistles.data()): several threads reading them at once crashed the game (signal 11).
+func song_job(key: String) -> Callable:
 	if key.begins_with("whistle:"):
-		return SfxSynth.to_stream(Whistles.render(key.trim_prefix("whistle:")), false)
-	return SfxSynth.to_stream(MusicSynth.render(music.tracks[key], music.instruments, hash(key)), true)
+		var id := key.trim_prefix("whistle:")
+		var tune := Whistles.track(id).duplicate(true)
+		var inst := {"whistle": (Whistles.data().instrument as Dictionary).duplicate(true)}
+		var seed := hash(id)
+		return func() -> AudioStreamWAV:
+			return SfxSynth.to_stream(MusicSynth.render(tune, inst, seed, 1), false)
+	var track: Dictionary = (music.tracks[key] as Dictionary).duplicate(true)
+	var insts: Dictionary = (music.instruments as Dictionary).duplicate(true)
+	var song_seed := hash(key)
+	return func() -> AudioStreamWAV:
+		return SfxSynth.to_stream(MusicSynth.render(track, insts, song_seed), true)
 
 
 ## Music wanted right now (track key -> level), for checks.
@@ -279,8 +296,15 @@ func stream(key: String) -> AudioStreamWAV:
 
 ## A sound made from its recipe (the same every time: the noise is seeded by the key).
 func make_sound(key: String) -> AudioStreamWAV:
-	var s: Dictionary = sounds[key]
-	return SfxSynth.to_stream(SfxSynth.render(s, hash(key)), s.has("loop"))
+	return sound_job(key).call()
+
+
+## The work of making a sound, its recipe deep-copied now (see song_job).
+func sound_job(key: String) -> Callable:
+	var recipe: Dictionary = (sounds[key] as Dictionary).duplicate(true)
+	var seed := hash(key)
+	return func() -> AudioStreamWAV:
+		return SfxSynth.to_stream(SfxSynth.render(recipe, seed), recipe.has("loop"))
 
 
 ## The ambient loop for a key, or null while it is still being made. Made on a worker thread
@@ -293,7 +317,8 @@ func loop_stream(key: String) -> AudioStreamWAV:
 		return stream(key)
 	if not _loop_jobs.has(key):
 		var out := {}
-		_loop_jobs[key] = [WorkerThreadPool.add_task(func(): out.stream = make_sound(key)), out]
+		var job := sound_job(key)   # its recipe copied here: the thread touches nothing shared
+		_loop_jobs[key] = [WorkerThreadPool.add_task(func(): out.stream = job.call()), out]
 		return null
 	var job: Array = _loop_jobs[key]
 	if not WorkerThreadPool.is_task_completed(job[0]):
@@ -358,6 +383,9 @@ func _exit_tree() -> void:
 	for key in _song_jobs:
 		WorkerThreadPool.wait_for_task_completion(_song_jobs[key][0])
 	_song_jobs.clear()
+	for key in _loop_jobs:   # loops a map never asked for are never collected: a task left
+		WorkerThreadPool.wait_for_task_completion(_loop_jobs[key][0])   # un-waited crashed the quit (signal 11)
+	_loop_jobs.clear()
 	if stop_all():
 		OS.delay_msec(60)
 

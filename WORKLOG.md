@@ -10,7 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
-## 2026-11-13 — E's reach shown by the target marker
+## 2026-11-13 — The windowed game crashed on quit (sound threads)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Found (the user, trying to hear the cicadas): every windowed run (`Godot_v4.7.2-stable_win64.exe
+  --path . -- --demo ...`) ended in `CrashHandlerException: Program crashed with signal 11`. Exit 139
+  for the title, `--demo`, `--demo --map=hill` and on older commits too (3597fea, 8050ee4); exit 0
+  with `--write-movie` (sound jobs off or made on the main thread) and in headless runs (Sfx.silent),
+  so no test or smoke run saw it. With `--audio-driver Dummy` it still crashed; with the ambient loops
+  made on the main thread it did not; with only the songs made there it still did. Cause: the
+  ambient loops are made ahead on WorkerThreadPool tasks (since ab15d81, 2026-11-07), and a loop the
+  map never asks for is never collected; Sfx._exit_tree waited for the song jobs only, so the engine
+  shut down with loop tasks un-waited and crashed.
+- Done: Sfx._exit_tree waits for every loop job too. The worker jobs no longer read shared state:
+  Sfx.sound_job / song_job deep-copy the recipe, the track and instruments (and a whistle's tune
+  from Whistles.data()) on the main thread and hand the thread a Callable; make_sound / make_song
+  call the same. AGENTS.md: a windowed run must exit 0. A stray `Rep="*res://shots/rep_node.gd"`
+  autoload left in project.godot by an earlier debugging run (its file gone) was put back to the
+  committed project.godot.
+- Checked: windowed `--quit-after 150` runs exit 0: title, `--demo`, `--demo --map=town`,
+  `--demo --map=hill --season=summer --day=20 --time=12:00 --cicadas`; `--quit-after 3 -- --demo`
+  (quit while the loops are still being made) exit 0. test_audio (new: quitting with a loop job
+  running leaves none behind and waits for it); every tests/test_*.gd and the headless smoke runs
+  (see the commit's run).
+- Left / next: not heard by ear here (the agent has no speakers). Deep copies were kept though the
+  quit was the cause, so the threads never share a Dictionary with the game.
+
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: when E reaches off the tool's cell (the side cell, or a villager a step on), the target marker
   shows there too. ActionHints.reach_mark(origin, facing, feet) returns the cell E acts on (reach + facing),
