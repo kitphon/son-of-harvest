@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — Icicles fade with their own building (3D)
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: FarmWorld.occlude tags every eave its builder listed with the building's Occluders tag
+  (the given one, else "thing:N"; only when the building can fade at all); the tag rides through
+  MeshCache's replay (eaves are duplicated whole). IcicleLayer keeps each spot's tag, writes the
+  building's fade (occluders.fade_of_tag, read from its parent world, untyped to avoid a load cycle with
+  FarmWorld) into every icicle's MultiMesh custom data (x) and every drop's (w); the shaders multiply
+  their alpha by 1 - fade. Only the faded building's instances are rewritten, when its fade moves.
+- Checked: test_icicles gained `_fade_with_building` (eaves carry tags for >= 2 buildings; a faded group's
+  icicles read FADED, other buildings' stay 0, solid again after). Frame `--demo --season=winter
+  --snow=80 --map=town@koinobori --icicles=long --time=11:00 --weather=snow`: Kota's house see-through
+  beside the farmer, no solid icicles left hanging on its eaves. Test and smoke results: see this commit's report.
+- Left / next: the flat view is unchanged (painted roofs do not fade).
+
 ## 2026-11-13 — Merge: icicles (Opus), carp streamers (Sonnet), wind chime (Haiku)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 6f90419 icicles on the eaves, 043ce0c koinobori and 34c2318 furin, each from its own

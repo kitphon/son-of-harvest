@@ -47,7 +47,8 @@ var roof_glows: Array[Dictionary] = []
 ## {pos: the fire box's centre}.
 var lamps: Array[Dictionary] = []
 ## The roofs' eave lines where the winter's icicles hang (Minka.note_eave; IcicleLayer):
-## {a, b: the ends at the soffit's height, out: the way out of the eave}.
+## {a, b: the ends at the soffit's height, out: the way out of the eave, tag: the Occluders tag of the
+## building it belongs to (set by occlude; none when that building never fades)}.
 var eaves: Array[Dictionary] = []
 ## Kept out of the tree by the view (Main3D's kept worlds): field changes only mark it stale.
 var away := false
@@ -571,8 +572,12 @@ func _make_buildings() -> void:
 ## Runs a builder and keeps what it made as one thing that fades when in the way (if tall).
 func occlude(build: Callable, tag := "") -> void:
 	var first := get_child_count()
+	var eaves_first := eaves.size()
 	build.call()
-	occluders.add_children_from(self, first, tag)
+	var tagged := tag if tag != "" else "thing:%d" % occluders.count()
+	if occluders.add_children_from(self, first, tagged):
+		for i in range(eaves_first, eaves.size()):
+			eaves[i].tag = tagged   # its icicles fade with it (IcicleLayer)
 
 
 ## The apron and the wood past a w x h map's edge (Surroundings), its snow with the rest; on

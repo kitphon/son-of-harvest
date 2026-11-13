@@ -245,6 +245,7 @@ func _layer3d() -> void:
 		on_eave = on_eave and hit
 	check(on_eave, "3D: every icicle's top on a listed eave line")
 	check(layer.drop_count() == 0, "a sunny morning: no drops yet")
+	await _fade_with_building(w, layer)
 	var morning: int = layer.shown_count()
 	var total := func() -> float:
 		var sum := 0.0
@@ -264,6 +265,41 @@ func _layer3d() -> void:
 	var hl := IcicleLayer.new(MapManager.data("house"), [] as Array[Dictionary])
 	check(hl.spot_list().is_empty(), "indoors: no spots even with eaves given")
 	hl.free()
+
+
+## A building turning see-through takes its icicles (and drops) with it; the others stay solid.
+func _fade_with_building(w: Node3D, layer: IcicleLayer) -> void:
+	var tags := {}
+	for i in layer.shown_count():
+		tags[layer.tag_of_instance(i)] = true
+	var named: Array = tags.keys().filter(func(t: String) -> bool: return t != "")
+	check(named.size() >= 2, "3D: the eaves carry their building's tag (%d buildings)" % named.size())
+	if named.size() < 2:
+		return
+	var mine: String = named[0]
+	var other: String = named[1]
+	var tagged_groups := 0
+	for gr in w.occluders._groups:
+		if str(gr.tag) == mine:
+			gr.now = w.occluders.FADED
+			tagged_groups += 1
+	check(tagged_groups > 0, "an Occluders group carries the icicles' tag")
+	await process_frame
+	var f_mine := true
+	var f_other := true
+	for i in layer.shown_count():
+		var t := layer.tag_of_instance(i)
+		if t == mine:
+			f_mine = f_mine and is_equal_approx(layer.instance_fade(i), w.occluders.FADED)
+		else:
+			f_other = f_other and is_zero_approx(layer.instance_fade(i))
+	check(f_mine, "a faded building's icicles take its fade (%.2f)" % layer.fade_of_tag(mine))
+	check(f_other and is_zero_approx(layer.fade_of_tag(other)), "other buildings' icicles stay solid")
+	for gr in w.occluders._groups:
+		if str(gr.tag) == mine:
+			gr.now = 0.0
+	await process_frame
+	check(is_zero_approx(layer.instance_fade(0)) and is_zero_approx(layer.fade_of_tag(mine)), "solid again when the building is")
 
 
 ## IcicleView in the flat view: the village houses and the farm's buildings, clear of their doors.
