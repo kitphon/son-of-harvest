@@ -20,7 +20,9 @@ uniform vec3 tip_color : source_color = vec3(0.96, 0.98, 0.99);
 uniform float alpha_top = 0.85;
 uniform float alpha_tip = 0.5;
 varying float along;
+varying float own;
 void vertex() {
+	own = 1.0 - INSTANCE_CUSTOM.x;   // the fade of its own building (see-through in front of the farmer)
 	along = clamp(0.5 - VERTEX.y, 0.0, 1.0);   // 0 at the eave, 1 at the point
 }
 void fragment() {
@@ -28,7 +30,7 @@ void fragment() {
 	vec3 c = mix(core_color, ice_color, face);   // the sides turning away show the deeper blue
 	c = mix(c, tip_color, smoothstep(0.55, 1.0, along));
 	ALBEDO = c;
-	ALPHA = mix(alpha_top, alpha_tip, along);
+	ALPHA = mix(alpha_top, alpha_tip, along) * own;
 	ROUGHNESS = 0.18;
 	SPECULAR = 0.9;
 	RIM = 0.5;
@@ -36,14 +38,16 @@ void fragment() {
 }
 "
 
-## A falling drop: each instance's custom data is (seed, period, fall, 0); it slides down from the
-## tip, stretching a little, and fades as it goes.
+## A falling drop: each instance's custom data is (seed, period, fall, building fade); it slides down
+## from the tip, stretching a little, and fades as it goes (and with its building).
 const DROP_SHADER := "shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_back, shadows_disabled, unshaded;
 uniform vec3 drop_color : source_color = vec3(0.9, 0.95, 0.98);
 uniform float light = 1.0;
 varying float fade;
+varying float own;
 void vertex() {
+	own = 1.0 - INSTANCE_CUSTOM.w;
 	float t = fract(TIME / INSTANCE_CUSTOM.y + INSTANCE_CUSTOM.x);
 	VERTEX.y *= 1.0 + t * 1.5;
 	VERTEX.y -= t * t * INSTANCE_CUSTOM.z;
@@ -51,13 +55,17 @@ void vertex() {
 }
 void fragment() {
 	ALBEDO = drop_color * light;
-	ALPHA = 0.8 * fade;
+	ALPHA = 0.8 * fade * own;
 }
 "
 
 var _spots: Array[Dictionary] = []
 var _hung: Array = []   # [top, length] of each instance placed (the headless renderer keeps no transforms)
 var _step := -1
+var _fades := {}   # tag -> its building's fade now (0 opaque .. Occluders.FADED)
+var _cone_fade: Array[float] = []   # the fade written to each icicle (the headless renderer keeps no custom data)
+var _cone_tag: Array[String] = []   # the tag of each icicle instance placed
+var _drop_tag: Array[String] = []   # the tag of each drop instance placed
 var _drip := false
 var _mm: MultiMesh
 var _drops: MultiMesh
@@ -73,7 +81,9 @@ func _init(m: MapData, eaves: Array[Dictionary]) -> void:
 	var cfg := IcicleRules.config()
 	if IcicleRules.outdoors(m):
 		for e in eaves:
-			_spots.append_array(IcicleRules.spots(e.a, e.b, e.out, cfg))
+			for s in IcicleRules.spots(e.a, e.b, e.out, cfg):
+				s.tag = str(e.get("tag", ""))
+				_spots.append(s)
 	var cone := CylinderMesh.new()
 	cone.top_radius = 1.0
 	cone.bottom_radius = 0.0
@@ -83,6 +93,7 @@ func _init(m: MapData, eaves: Array[Dictionary]) -> void:
 	cone.cap_bottom = false
 	_mm = MultiMesh.new()
 	_mm.transform_format = MultiMesh.TRANSFORM_3D
+	_mm.use_custom_data = true
 	_mm.mesh = cone
 	_mm.instance_count = _spots.size()
 	_mm.visible_instance_count = 0
@@ -132,6 +143,54 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	refresh()
+	_follow_buildings()
+
+
+## Each building's icicles and drops take its fade (Occluders.fade_of_tag of the world they hang in).
+func _follow_buildings() -> void:
+	var occ: Variant = get_parent().get("occluders") if get_parent() != null else null   # FarmWorld's (untyped: no load cycle)
+	if occ == null:
+		return
+	var tags := {}
+	for t in _cone_tag:
+		tags[t] = true
+	for t in _drop_tag:
+		tags[t] = true
+	for t: String in tags:
+		if t == "":
+			continue
+		var f: float = occ.fade_of_tag(t)
+		if not is_equal_approx(f, float(_fades.get(t, 0.0))):
+			_fades[t] = f
+			_apply_fade(t)
+
+
+func _apply_fade(t: String) -> void:
+	var f := float(_fades.get(t, 0.0))
+	for i in _cone_tag.size():
+		if _cone_tag[i] == t:
+			_mm.set_instance_custom_data(i, Color(f, 0, 0, 0))
+			_cone_fade[i] = f
+	for i in _drop_tag.size():
+		if _drop_tag[i] == t:
+			var c := _drops.get_instance_custom_data(i)
+			c.a = f
+			_drops.set_instance_custom_data(i, c)
+
+
+## How see-through the icicles of `tag`'s building are now (for tests): 0 opaque .. Occluders.FADED.
+func fade_of_tag(tag: String) -> float:
+	return float(_fades.get(tag, 0.0))
+
+
+## The building tag of icicle instance `i` (for tests).
+func tag_of_instance(i: int) -> String:
+	return _cone_tag[i]
+
+
+## The fade written into icicle instance `i` (for tests).
+func instance_fade(i: int) -> float:
+	return _cone_fade[i]
 
 
 ## Reads the season, the snow, the weather and the clock; redoes the icicles when their length
@@ -156,6 +215,8 @@ func refresh() -> void:
 func _place(a: float, cfg: Dictionary) -> void:
 	var n := 0
 	_hung.clear()
+	_cone_tag.clear()
+	_cone_fade.clear()
 	for s in _spots:
 		var l := IcicleRules.length_of(s, a, cfg)
 		if l <= 0.0:
@@ -163,7 +224,10 @@ func _place(a: float, cfg: Dictionary) -> void:
 		var w := float(s.width)
 		var top: Vector3 = s.at
 		_mm.set_instance_transform(n, Transform3D(Basis.IDENTITY.scaled(Vector3(w, l, w)), top - Vector3(0, l / 2.0, 0)))
+		_mm.set_instance_custom_data(n, Color(float(_fades.get(str(s.tag), 0.0)), 0, 0, 0))
 		_hung.append([top, l])
+		_cone_tag.append(str(s.tag))
+		_cone_fade.append(float(_fades.get(str(s.tag), 0.0)))
 		n += 1
 	_mm.visible_instance_count = n
 	visible = n > 0
@@ -171,6 +235,7 @@ func _place(a: float, cfg: Dictionary) -> void:
 
 func _place_drops(a: float, cfg: Dictionary) -> void:
 	var n := 0
+	_drop_tag.clear()
 	if _drip:
 		for s in _spots:
 			if not s.drip:
@@ -180,7 +245,8 @@ func _place_drops(a: float, cfg: Dictionary) -> void:
 				continue
 			var top: Vector3 = s.at
 			_drops.set_instance_transform(n, Transform3D(Basis.IDENTITY, top - Vector3(0, l, 0)))
-			_drops.set_instance_custom_data(n, Color(float(s.seed), IcicleRules.drip_period(float(s.seed), cfg), float(cfg.drip.fall), 0.0))
+			_drops.set_instance_custom_data(n, Color(float(s.seed), IcicleRules.drip_period(float(s.seed), cfg), float(cfg.drip.fall), float(_fades.get(str(s.tag), 0.0))))
+			_drop_tag.append(str(s.tag))
 			n += 1
 	_drops.visible_instance_count = n
 	_drop_node.visible = n > 0
