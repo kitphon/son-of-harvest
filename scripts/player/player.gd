@@ -221,12 +221,6 @@ func target_cell() -> Vector2i:
 	return cell_of(position) + facing
 
 
-## The cell E reaches to when that is not the tool's cell (ActionHints.reach_mark, the same
-## origin and feet as the HUD's hint); ActionHints.NO_MARK when there is none.
-func reach_mark() -> Vector2i:
-	return ActionHints.reach_mark(Player.cell_of(Game.maps.pos), Game.maps.facing, Game.maps.pos / float(T))
-
-
 ## Moves by `d` unless a corner of the feet would end on a solid cell or the step goes into
 ## a villager; false when blocked. A solid cell the feet already stand on does not block (a
 ## crate set down or a villager's spot that came over the feet must never trap the farmer).
@@ -296,10 +290,6 @@ func _draw() -> void:
 	# Target cell outline (on the farm, down the mine); while charging, every cell of the charge's area and the pips.
 	for tc in (area_preview() if charging else [target_cell()]) if Game.maps.on_farm() or Game.maps.mine_floor != null or Game.in_greenhouse() else []:
 		draw_rect(Rect2(Vector2(tc * T) - position, Vector2(T, T)), Color(1, 1, 1, 0.6), false, 1.0)
-	# Where E reaches, when that is not the tool's cell: a fainter outline (ActionHints.reach_mark).
-	var rm := reach_mark()
-	if rm != ActionHints.NO_MARK and not charging:
-		draw_rect(Rect2(Vector2(rm * T) - position, Vector2(T, T)), Color(1, 1, 1, 0.3), false, 1.0)
 	if charging:
 		var pips := PlaceholderArt.tex(PlaceholderArt.charge_key(charge, Game.max_charge(_charge_tool)))
 		draw_texture(pips, Vector2(-pips.get_width() / 2.0, FIGURE_TOP + FigureArt.head_top(FigureArt.FARMER_LOOK) - 2 - pips.get_height()))

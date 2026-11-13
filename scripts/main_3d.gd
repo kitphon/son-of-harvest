@@ -23,7 +23,6 @@ var player: Player
 var sprite: Sprite3D
 var anim := FarmerAnim.new()
 var target_mark: MeshInstance3D
-var reach_mark: MeshInstance3D   # the fainter bracket where E reaches off the tool's cell
 var area_marks: Array[MeshInstance3D] = []   # brackets on every cell of a charging tool's area
 var charge_pips: Sprite3D
 var cam: Camera3D
@@ -97,16 +96,6 @@ func _ready() -> void:
 	mark_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	target_mark.material_override = mark_mat
 	add_child(target_mark)
-	# Where E reaches when that is not the tool's cell (the side cell, a villager a step on): the
-	# same brackets, fainter (ActionHints.reach_mark). The tool's bracket stays where the tool lands.
-	reach_mark = MeshInstance3D.new()
-	reach_mark.mesh = quad
-	var reach_mat := FarmWorld.flat_material(Color(1, 1, 1, 0.4))
-	reach_mat.albedo_texture = PlaceholderArt.tex("target")
-	reach_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	reach_mark.material_override = reach_mat
-	reach_mark.visible = false
-	add_child(reach_mark)
 	# The figure stands upright and stretched (FarmWorld.upright): its sprite children are upright
 	# too and their heights are on the picture (1.2: just over the head, where 1.38 straight up was).
 	charge_pips = FarmWorld.upright_child(FarmWorld.make_sprite(PlaceholderArt.tex(PlaceholderArt.charge_key(0, 1))))
@@ -542,10 +531,6 @@ func _follow() -> void:
 	sprite.flip_h = FarmerAnim.is_mirrored(player.facing)
 	var tc := player.target_cell()
 	target_mark.position = Vector3(tc.x + 0.5, 0.02, tc.y + 0.5)
-	var rm := player.reach_mark()
-	reach_mark.visible = rm != ActionHints.NO_MARK and not player.charging and not Game.fishing.active()
-	if reach_mark.visible:
-		reach_mark.position = Vector3(rm.x + 0.5, 0.02, rm.y + 0.5)
 	if _tools_work():
 		_show_charge()
 	_show_held()

@@ -10,7 +10,17 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
-## 2026-11-13 — The windowed game crashed on quit (sound threads)
+## 2026-11-13 — The E reach frame taken out (the user's wish)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user did not want the white frame that d7cc430 put where E reaches (a fainter 3D bracket and
+  the flat view's outline round a villager or an item off the tool's cell). Reverted its code:
+  ActionHints.reach_mark / NO_MARK, Player.reach_mark and its outline, main_3d's reach_mark mesh, and
+  test_talk `_reach_mark`. E's reach itself (ActionHints.reach) and the HUD hint are unchanged; the
+  tool's target frame stays on the maps where the tools work (farm, mine, greenhouse).
+- Checked: every tests/test_*.gd, the headless smoke runs and a windowed `--demo --map=town --time=14:30`
+  run (see the commit's run).
+- Left / next: nothing open.
+
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Found (the user, trying to hear the cicadas): every windowed run (`Godot_v4.7.2-stable_win64.exe
   --path . -- --demo ...`) ended in `CrashHandlerException: Program crashed with signal 11`. Exit 139
