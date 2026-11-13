@@ -17,6 +17,52 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Checked: test_maps (new: each village smoke tied to its own occluder, fade_of_tag 0 while solid / unknown tag, a solid house's smoke whole, another faded thing whose box holds the vent does not fade it, the faded house's smoke fades, comes back; the farmhouse smoke carries FARM_HOUSE). Frames `--demo --season=winter --time=6:30 --map=town` and `--demo --weather=sunny --time=7:00` looked right (faded houses, no pale blob).
 - Left / next: nothing open.
 
+## 2026-11-13 — The wall pull sees real geometry; a pulled figure stays behind the one in front
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Found (the two open limits of "Figures clear of the walls behind them" below): (1) the pull only knew the
+  map's solid cells. Measured with the new tools/reach_dump.gd (builds every map's 3D world, prints the cells
+  the low meshes reach into and where the farmer's pull changes with them): the indoor walls are drawn 1/8
+  cell thicker than their cells (every room's back wall and west wall spill a strip into the floor row
+  beside them: a figure 0.19 from the wall was pulled 0.08 and needed 0.28), and outdoors the pines',
+  sakuras', persimmons' and bamboo's low skirts and the village's trunks reach 0.1-0.4 past their cells
+  (town: 22 spots at 0.19 per cell offset; river, hill, minamino, sakurazaka more). Eaves do not hide a
+  figure's edge: the soffits are 1.45 up (the coop's, the barn's, the farmhouse's, the village houses', the
+  stand's) and a figure's top is about 1.3, so what an eave covers is the roof's business (Occluders fades
+  it); the stone lanterns, the well and the stalls stay inside their cells (0 changed spots; frames
+  below). (2) A pulled figure is drawn up to 0.45 nearer the eye, so it could end up over a figure standing
+  right in front of its feet.
+- Done: (1) ReachMap (scripts/world3d/reach_map.gd): the footprint, in 1/8-cell tiles, of every mesh
+  triangle that reaches into 0.2-1.3 up (data/camera.json figure_pull.reach: res, low, high, max_cells),
+  from the built world's own meshes (nodes with a script, the ground layer, hidden meshes and the land past
+  the edge left out); rasterized once per mesh for the whole run (the meshes MeshCache shares are the same
+  objects, a second world only places them: yaw and position). FarmWorld.build_reach is the last step of the
+  farm's setup and of a map's build_steps (a map's whole build stays at 40-330 ms headless). Main3D
+  hands world.reach to FarmWorld.stand_all. FarmWorld.wall_pull now follows each point of the picture's
+  plane that lies inside a solid cell or a reach tile along the view ray (march 0.02) until it comes out,
+  and counts it only when it comes out through a face towards the camera that the feet stand beyond, so a
+  wall in front of the feet (or a long sill beside them) never pulls, as before; the pull is the longest
+  way out plus margin, at most most. (2) FarmWorld.cap_pulls (stand_all): the figures are sorted by depth;
+  each figure's pull is capped so it is not drawn nearer the eye than another figure whose feet are in front
+  of it and whose picture box it overlaps on the screen (that figure's own pull counted; gap 0.02 apart in
+  depth, data figure_pull.gap). Figures beside or behind it, and ones that do not overlap, do not cap it.
+  The camera, the collision and the flat view are unchanged.
+- Checked: test_maps `_wall_reach` (every lens: a post behind the feet pulls and its pulled end comes out of
+  it; an eave over the head, a thin slab on the ground, a post in front of the feet and one out of reach pull
+  nothing; a turned prop's footprint turns; with a wall too the pull is at least the wall's),
+  `_wall_reach_world` (the town's world has its reach, every lantern stands in its cell) and, in the real
+  view, two figures by a wall (alone against it the farmer is pulled 0.307; with a figure 0.28 in front of
+  his feet the pull is capped below 0.307 and his depth stays behind theirs; one to the side or behind does not cap him).
+  Frames, reach off (high 0) against on (`--demo --map=coop --walk=up:2`, 80 frames): the farmer's right arm
+  and leg, cut by the wall's thicker base before, are whole now. `--demo --map=town@tome --walk=left:2`
+  (the lantern), `--map=town@kota --walk=right:1` (under the house's eave), `--demo --walk=up:3` (the
+  farmhouse) and `--map=town@north` (a pine): 0 pixels differ on the farmer (the 135 that differ in the
+  corner are the clock). Walks along the farm's fence differ between runs (the animals), so they say
+  nothing.
+- Left / next: a wall's reach counts only for the pixels the figure's plane covers on the ground line;
+  a high eave nearer the eye than the figure's raised hand (a held item overhead near a low roof) is still
+  the roof's own business. A pull capped by a figure in front leaves a little of the wall's cut showing
+  when they stand closer in depth than the wall needs.
+
 ## 2026-11-13 — Open limits: cucumber perch, tomato and eggplant frames, Kiku's persimmon cicadas
 Agent: Claude Code (claude-haiku-5-5) · Commit: this commit
 - Done: (1) Crop perch height: CropClusters.top_of measures the first opaque pixel of the picture's middle
