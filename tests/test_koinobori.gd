@@ -302,7 +302,28 @@ func _views() -> void:
 			tall = tall and s.position.y > 0.3 and s.texture != null
 		check(tall, "3D: each sprite has its picture and hangs up the pole")
 		var top := (rig.sprites()[0] as Sprite3D).position.y
-		check(is_equal_approx(top, float(cfg.wheel.y) * load("res://scripts/world3d/farm_world.gd").PX), "3D: the wheel at the top (%.2f)" % top)
+		# the 3D scale: every picture at FarmWorld.PX times data/koinobori.json scale_3d, not the flat 1:1
+		# (KoinoboriProps and FarmWorld are reached by load() here: naming them in code breaks the
+		# compile of this script, as the Game autoload does in farm_world.gd)
+		var scale := float(cfg.get("scale_3d", 1.0))
+		var px: float = load("res://scripts/world3d/farm_world.gd").PX * scale
+		check(scale > 0.0 and scale < 1.0 and is_equal_approx(px, load("res://scripts/world3d/koinobori_props.gd").pixel()), "3D: the rig scale is scale_3d (%.3f)" % scale)
+		check(is_equal_approx(top, float(cfg.wheel.y) * px), "3D: the wheel at the top (%.2f)" % top)
+		for s in rig.sprites():
+			check(is_equal_approx((s as Sprite3D).pixel_size, px), "3D: sprite pixel size is the scaled one (%.4f)" % (s as Sprite3D).pixel_size)
+		# the largest carp (black) no longer than a village house's wall, and the pole about 1.5 eave heights
+		var wall: float = load("res://scripts/world3d/lit_spots.gd").VILLAGE_WALL
+		var black := rig.sprites()[2] as Sprite3D
+		check(float(black.texture.get_width()) * px <= wall, "3D: the black carp's picture no longer than a wall (%.2f <= %.2f)" % [float(black.texture.get_width()) * px, wall])
+		var pole_top := float(cfg.pole.height) * px
+		check(pole_top > wall and pole_top < wall * 2.0, "3D: the pole stands above the eaves, under twice their height (%.2f)" % pole_top)
+		# the carp hang apart: the gap between neighbours is more than their two half-thicknesses
+		for i in range(2, 4):
+			var upper := rig.sprites()[i] as Sprite3D
+			var lower := rig.sprites()[i + 1] as Sprite3D
+			var gap := upper.position.y - lower.position.y
+			var need := (float(cfg.carp[i - 2].radius) + float(cfg.carp[i - 1].radius)) * px
+			check(gap > need, "3D: carp %d and %d do not overlap (gap %.3f > %.3f)" % [i - 1, i, gap, need])
 		rig.wind = 0.0
 		rig._frame = -1
 		rig.pose(5.0)
