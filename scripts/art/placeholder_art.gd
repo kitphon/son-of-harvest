@@ -86,6 +86,8 @@ static func _make(key: String) -> Image:
 			if parts[1] == Child.ID and parts.size() > 7:   # portrait:child:<mood>:<stage>:<style>:<skin>:<hair>:<top>
 				return _child_portrait(parts[2], parts[3], _little_look(PackedStringArray(["", "", "", parts[4], parts[5], parts[6], parts[7]])))
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
+		"furin":    # furin, the wind chime under the farmhouse eave (FurinRules), 14 x 22
+			return _furin()
 		"story":    # story:<door_bell|sign_old|sign_new|boat_father|boat_new|noren_rows|noren_flowers|noren_shino|ume_jar|carp_streamer|scion:<sapling|young|tree>:<season>:<snow 0|1>[:<persimmons shown>]|lumber|rope_lift|jizo_bibs|jizo_scarf|kiln_mark|kiln_site|kiln_new|kiln_worn|captain_jar|frog|ribbon_board:<places>|sky_map:<steady|beside>:<near|field>>, things the story leaves in the world (StoryProps)
 			if parts[1] == "scion":
 				return _scion_story(parts[2] if parts.size() > 2 else "sapling", parts[3] if parts.size() > 3 else "spring", parts.size() > 4 and parts[4] == "1", int(parts[5]) if parts.size() > 5 else -1)
@@ -3030,6 +3032,45 @@ static func _portrait_mood(img: Image, mood: String, ey: int, my: int, brow: Col
 					img.set_pixel(x, ey - 1, white)
 				_px(img, x - 1, ey - 3 - (1 if soft else 0), 4, brow_h, brow)
 			_px(img, 18, my, 4, 1, lips)
+
+
+## The farmhouse's furin (FurinRules, FurinLayer, FurinView): a clear glass bell lit from the upper
+## left in three tones (a pale light, the glass, a deep shade on the lower right), a red band and an
+## indigo dot painted on it, a dark clapper and a cream paper strip (tanzaku) under the rim, the
+## cord at the top. 14 x 22 px, its top at the cord. Its own picture, not the keepsake icon: that is
+## 14 x 14 in one tone for the rucksack.
+static func _furin() -> Image:
+	var img := _blank(14, 22)
+	var cord := Color("4a3424")
+	var light := Color("f4fbff")
+	var glass := Color("a8d4ec")
+	var shade := Color("5f8fb4")
+	var red := Color("c8442c")
+	var indigo := Color("2c4a8a")
+	var paper := Color("f4f0e6")
+	var ink := Color("2e2a26")
+	_px(img, 6, 0, 3, 1, cord)                       # the hanger's hook
+	_px(img, 7, 1, 1, 1, cord)                       # the cord to the bell's top
+	for y in range(1, 14):
+		for x in range(1, 13):
+			var dx := (x + 0.5 - 7.0) / 5.0
+			var dy := (y + 0.5 - 7.5) / 6.0
+			if dx * dx + dy * dy > 1.0:
+				continue
+			var lit := -dx - dy          # > 0 towards the upper left, the light's side
+			var c := glass
+			if lit > 0.8:
+				c = light
+			elif lit < -0.8:
+				c = shade
+			if y == 8 or y == 9:         # the painted band
+				c = red
+			img.set_pixel(x, y, c)
+	img.set_pixel(7, 4, indigo)          # a dot of indigo above the band
+	_px(img, 7, 14, 1, 2, ink)           # the clapper, hung in the bell's mouth
+	_px(img, 9, 14, 3, 7, paper)         # the paper strip hanging from the rim
+	_px(img, 9, 14, 3, 1, red)           # its red top edge
+	return img
 
 
 ## A keepsake: a glass wind chime (bell, clapper, paper strip), a round paper fan on a
