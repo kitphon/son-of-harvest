@@ -1,5 +1,5 @@
 {
-	"_note": "The first village map (its north lane at x 10-11 leads to Kaminoda, kaminoda.json; the road's east end to Sakurazaka, sakurazaka.json, and on to the mine; the south lane to Minamino, minamino.json, and on to the river): an east-west road from the farm gate (west edge), a shrine with a torii up the north path, four houses and a pond; the lane behind Kota's house runs off the south edge down to the river (river.json). The noren house south of the road is the Yorozu Store, with Sayo's rooms behind its plain side door; the one north-east is the Kurogane Smithy (data/shops.json), where Hachiro also lives, and the small one east of it the Hinata Clinic (Dr. Yae; a collapse wakes the farmer there). The little timber house by the farm road (door 1, 9) is the post office, where Ren lives in the back. The west house is Grandma Tome's, the one south-west Kota's family's; their doors (and Sayo's) are open by their `hours` and say `closed` otherwise. Format: README.md, Maps. The two store_sign props are the store's new sign on its roof, one for each answer Sayo got (flag sayo_sign, flag_value old / new, heart_sayo_5).",
+	"_note": "The first village map (its north lane at x 10-11 leads to Kaminoda, kaminoda.json; the road's east end to Sakurazaka, sakurazaka.json, and on to the mine; the south lane to Minamino, minamino.json, and on to the river): an east-west road from the farm gate (west edge), a shrine with a torii up the north path, four houses and a pond; the lane behind Kota's house runs off the south edge down to the river (river.json). The noren house south of the road is the Yorozu Store, with Sayo's rooms behind its plain side door; the one north-east is the Kurogane Smithy (data/shops.json), where Hachiro also lives, and the small one east of it the Hinata Clinic (Dr. Yae; a collapse wakes the farmer there). The little timber house by the farm road (door 1, 9) is the post office, where Ren lives in the back. The west house is Grandma Tome's, the one south-west Kota's family's; their doors (and Sayo's) are open by their `hours` and say `closed` otherwise. Format: README.md, Maps. The two store_sign props are the store's new sign on its roof, one for each answer Sayo got (flag sayo_sign, flag_value old / new, heart_sayo_5). The koinobori prop is the carp streamers' stone socket on the grass in front of Kota's house, clear of the path and the doors (the pole and carp go up on late spring days: data/koinobori.json, KoinoboriRules).",
 	"id": "town",
 	"name": "Village",
 	"size": [
@@ -284,6 +284,13 @@
 			"flag": "sayo_sign",
 			"flag_value": "new",
 			"style": "new"
+		},
+		{
+			"kind": "koinobori",
+			"cell": [
+				5,
+				17
+			]
 		}
 	],
 	"doors": [
@@ -469,6 +476,7 @@
 	],
 	"spawns": {
 		"post": [[1, 10], "up"],
+		"koinobori": [[4, 14], "down"],
 		"river": [
 			[
 				4,

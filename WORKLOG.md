@@ -10,6 +10,12 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — Carp streamers (koinobori) on a bamboo pole in the village
+Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
+- Done: late spring (days 16-30, 6:00-18:00, down in rain, storm, snow) a tall bamboo pole stands on a stone socket in front of Kota's house (town (5, 17), a `koinobori` prop, grass beside the west lane, solid; the socket stays all year; spawn `town@koinobori` at (4, 14)). A pinwheel on top, a five-colour fukinagashi streamer and black, red and blue carp, our own pixel drawings (KoiArt: tubes along a bending spine, three tones lit from the upper left, pale belly, eye, outline), each in three fills (limp / half / full) and two tail frames. KoinoboriRules (pure; data/koinobori.json holds season, days, hours, wet looks, fill thresholds, gust, flap and wheel rates, pole heights, carp tones): the wind of data/wind.json times a gust swing (wide in a breeze, none in a gale) picks the fill, a fuller carp flaps faster, the wheel turns faster. 3D: KoinoboriProps (billboard sprites on the pole, 12 changes a second); flat: KoinoboriView. `--koinobori` (or `=<0..1>` for the wind) forces the pole up; AGENTS.md and ART_DIRECTION updated.
+- Checked: new tests/test_koinobori.gd prints `test_koinobori: OK (0 failed)` (gating, wind fill and flap, art, placement and reachability, 3D and flat views incl. the flat scene). All 39 tests/test_*.gd print OK (0 failed) (test_maps needed a flat colour for the new kind). Smoke runs (title, --demo, --demo --map=town, --demo --mine=3, the koinobori flags) had no ERROR lines; windowed `--quit-after 150 -- --demo` exit 0. Frames of `--demo --season=spring --day=20 --weather=sunny --time=11:00 --map=town@koinobori --koinobori[=0.6|=0]` in 3D and the flat view looked at: wheel, streamer and three carp stream right in wind, hang as a limp bundle at =0.
+- Left / next: the carp are drawn big against the 3D houses (matching the flat view's 1:1 pixels); the farmer's depth against the pole in the flat view follows the other props (figures over the view).
+
 ## 2026-11-13 — Tests, tools and dev runs save to their own slot, never the player's
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Found: the player's two-year save (user://save1.json) was gone, replaced by a test run's state
