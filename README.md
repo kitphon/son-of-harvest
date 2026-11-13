@@ -434,7 +434,7 @@ turns them to the farmer (`Villagers.turn`) and calls `Game.talk_to(id, face)`:
   villager's `gifts` (`{"love" | "like" | "dislike" | "hate": [items]}`, `"fish:*"` = any
   fish, anything else neutral), the item is gone, affection changes by the reaction
   (`_common.json` `affection.gift`), at most one gift a day (a second stays in hand);
-- a shopkeeper at their map's `keeper` spot opens the shop (`data/shops.json` `keeper`);
+- a shopkeeper at their map's `keeper` spot asks first: Buy opens the shop, Talk gives their line for now, Never mind closes the box (`data/shops.json` `keeper`, `ask`, `keeper_choices`; `Game.ask_keeper`);
 - anyone else opens their lines, `data/dialogue/talk_<id>.json`: an ordinary dialogue plus
   `picks`, `[{"if": {conditions}, "at": [line ids]}]`, the last row without `if`. Conditions
   are the rule ones above plus `time` (`["H:MM", "H:MM"]`), `band` (heart band `[low, high]`,
@@ -613,8 +613,8 @@ are `rod.bite_factor` in data/fish.json: the bite chance per check is multiplied
 
 A map prop with `use: "shop"` and `shop: "<id>"` is a counter: E on it calls
 `Game.open_shop(id)`, which says the closed message (or the shop's `away` note, by default
-"Nobody is at the counter", while the keeper is out) or emits `shop_requested(id)`. Talking to the keeper calls the same function
-(Villagers); each shop map has a `keeper` spawn
+"Nobody is at the counter", while the keeper is out) or emits `shop_requested(id)`. Talking to the keeper while the shop would open asks Buy / Talk / Never mind
+(`Game.ask_keeper`; Buy calls the same function, Talk their line, Villagers); each shop map has a `keeper` spawn
 behind the counter and a `counter` spawn in front of it (`-- --demo --shop=<id>` starts there
 with the screen open, hours ignored). The smithy takes the tool out of its slot; once the
 days have passed (`Game.day_number()`), picking it up puts it back and calls

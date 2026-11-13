@@ -382,8 +382,13 @@ func _talk_and_shop() -> void:
 	g.go_to_map(s.map, g.maps.data(s.map).spawns.start[0], Vector2i.UP)
 	await _wait_view("map_view.gd")
 	said.shop.clear()
-	act("interact", Vector2i(3, 4), Vector2i.UP)   # at the counter
-	check(said.shop == ["general"], "the counter opens the store's screen %s" % [said.shop])
+	said.dialogue.clear()
+	act("interact", Vector2i(3, 4), Vector2i.UP)   # at the counter, Sayo behind it: she asks buy or talk
+	check(said.shop.is_empty() and said.dialogue.size() == 1 and said.dialogue[0][0] == g.KEEPER_DIALOGUE, "Sayo asks first %s" % [said.dialogue])
+	g.dialogue_open = false
+	g.flags[g.KEEPER_FLAG] = "buy"
+	g.dialogue_closed(g.KEEPER_DIALOGUE)
+	check(said.shop == ["general"], "Buy opens the store's screen %s" % [said.shop])
 
 
 func _mine() -> void:

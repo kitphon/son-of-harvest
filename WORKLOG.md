@@ -10,6 +10,28 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — Shopkeepers: Buy or Talk at the counter
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Found (the user): E on Sayo across the store counter always opened the shop, so a keeper's own
+  lines (talk_sayo, talk_hachiro, talk_yae, talk_fumi) could never be heard while they kept shop.
+  Game.talk_to opened the shop whenever Talk.keeper_shop matched.
+- Done: a keeper at their open counter now asks first (Game.ask_keeper, a text box built in code
+  like the rope lift's): Buy opens the shop, Talk says the line Talk.pick chose for now (left out
+  when there is none), Never mind closes the box. The answer waits in the flag keeper_pick until
+  the box closes (Game.dialogue_closed). The question only comes when the shop would open
+  (Game.shop_ready: hours, festival, keeper in; _shop_shut says nothing then); a shut shop still
+  gives the keeper's line. E on the counter itself still opens the shop at once. Data:
+  shops.json `ask` per shop (each keeper's own words) and `keeper_choices`; Thai in
+  data/lang/th/ui.json. README → Shops / Talking.
+- Checked: test_talk `_keepers` (the question's speaker, text and answers; Talk gives her line,
+  Buy the store, Never mind nothing; the counter beside her opens at once; Hachiro asks too),
+  test_view2d (the flat view asks, Buy opens). Every tests/test_*.gd (37) printed `OK (0 failed)`;
+  smoke runs `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`): no
+  ERROR lines; windowed `--demo --map=store --time=10:00 --quit-after 150` exit 0. Screenshots
+  `--demo --map=store --time=10:00 --talk=sayo` (Sayo's question, Buy / Talk / Never mind) and
+  `--map=teahouse --talk=fumi --lang=th` (the Thai question) looked right.
+- Left / next: nothing open.
+
 ## 2026-11-13 — The E reach frame taken out (the user's wish)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user did not want the white frame that d7cc430 put where E reaches (a fainter 3D bracket and

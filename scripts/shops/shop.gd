@@ -19,6 +19,7 @@ var open_hour := 0
 var close_hour := 24
 var days_off: Array[String] = []
 var keeper := ""                    # the villager at the counter; "" = the counter works alone
+var ask := ""                       # the keeper's line when talked to at the counter (Game.talk_to asks buy or talk)
 var stock_by_season: Dictionary = {}   # season, "any" or "supplies" -> [{item, price?, name?, to?, full?}]
 var buys: Dictionary = {}           # kind (crop, dish, food; stone, ore, gem from the mine) -> percent of the item's value
 var under_glass: Dictionary = {}    # {needs (a built farm job), percent}: other seasons' seeds once it stands
@@ -64,6 +65,12 @@ static func mine_data() -> Dictionary:
 	return _mine_items
 
 
+## The answers when a keeper is talked to at the counter: {buy, talk, leave} (data/shops.json keeper_choices).
+static func keeper_choices(d := data()) -> Dictionary:
+	var c: Dictionary = d.get("keeper_choices", {})
+	return {"buy": str(c.get("buy", "Buy")), "talk": str(c.get("talk", "Talk")), "leave": str(c.get("leave", "Never mind"))}
+
+
 static func ids(d := data()) -> Array[String]:
 	var out: Array[String] = []
 	out.assign(d.get("shops", {}).keys())
@@ -85,6 +92,7 @@ static func make(shop_id: String, crop_data: Dictionary, food_data: Dictionary, 
 	shop.close_hour = int(hours[1])
 	shop.days_off.assign(s.get("days_off", []))
 	shop.keeper = str(s.get("keeper", ""))
+	shop.ask = str(s.get("ask", "What can I do for you?"))
 	shop.stock_by_season = s.get("stock", {})
 	shop.buys = s.get("buys", {})
 	shop.under_glass = s.get("under_glass", {})

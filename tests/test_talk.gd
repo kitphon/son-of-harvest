@@ -520,11 +520,45 @@ func _keepers() -> void:
 		and Talk.keeper_shop("tome", "store", Vector2i(3, 2)) == "", "keeper_shop knows who keeps what, where")
 	var actions: GDScript = load("res://scripts/farm_actions.gd")
 	actions.on_action("interact", Vector2i(3, 4), Vector2i.UP)
-	check(seen.shops == ["general"] and seen.said.is_empty(), "talking to her opens the Yorozu Store %s %s" % [seen.shops, seen.said])
+	# She asks first: buy, talk or never mind (data/shops.json ask, keeper_choices).
+	var ask: Dictionary = g.dialogue_made.get(g.KEEPER_DIALOGUE, {})
+	var line: Dictionary = ask.get("lines", [{}])[0]
+	var c := Shop.keeper_choices()
+	var texts := []
+	for ch in line.get("choices", []):
+		texts.append(ch.text)
+	check(seen.shops.is_empty() and seen.said == [[g.KEEPER_DIALOGUE, ""]] and line.get("speaker", "") == "sayo"
+		and line.get("text", "") == g.shop("general").ask and texts == [c.buy, c.talk, c.leave],
+		"talking to her at the counter asks buy or talk %s %s %s" % [seen.shops, seen.said, texts])
 	check(g.affection.talked_on("sayo", g.day_number()), "and counts as the day's talk")
+	var r := DialogueRunner.new(ask, DialogueRunner.speakers(), g.flags, DialogueRunner.settings())
+	check(r.error == "", "the question is good dialogue: %s" % r.error)
+	g.flags[g.KEEPER_FLAG] = "talk"   # the Talk answer, as the text box sets it
+	g.dialogue_closed(g.KEEPER_DIALOGUE)
+	check(seen.shops.is_empty() and seen.said.size() == 2 and seen.said[1][0] == "talk_sayo" and seen.said[1][1] != ""
+		and not g.flags.has(g.KEEPER_FLAG) and not g.dialogue_made.has(g.KEEPER_DIALOGUE), "Talk: her own line %s" % [seen.said])
+	actions.on_action("interact", Vector2i(3, 4), Vector2i.UP)
+	g.flags[g.KEEPER_FLAG] = "buy"
+	g.dialogue_closed(g.KEEPER_DIALOGUE)
+	check(seen.shops == ["general"] and seen.said.size() == 3, "Buy opens the Yorozu Store %s %s" % [seen.shops, seen.said])
+	actions.on_action("interact", Vector2i(3, 4), Vector2i.UP)
+	g.dialogue_closed(g.KEEPER_DIALOGUE)   # never mind: no flag set
+	check(seen.shops == ["general"] and seen.said.size() == 4, "Never mind: nothing opens %s %s" % [seen.shops, seen.said])
+	actions.interact(Vector2i(3, 3))
+	check(seen.shops == ["general", "general"] and seen.said.size() == 4, "the counter beside her opens the store at once")
 	g.go_to_map("smithy", Vector2i(3, 4), Vector2i.UP)
 	actions.on_action("interact", Vector2i(3, 4), Vector2i.UP)
-	check(seen.shops == ["general", "smithy"], "Hachiro opens the smithy %s" % [seen.shops])
+	g.flags[g.KEEPER_FLAG] = "buy"
+	g.dialogue_closed(g.KEEPER_DIALOGUE)
+	check(seen.shops == ["general", "general", "smithy"] and seen.said.back()[0] == g.KEEPER_DIALOGUE, "Hachiro asks too, then opens the smithy %s" % [seen.shops])
+	# Shut (after hours): no question, just a line for now.
+	g.hour = 19
+	g.go_to_map("store", Vector2i(3, 4), Vector2i.UP)
+	var n: int = seen.said.size()
+	if not Talk.facing_villager(g.maps.current(), Vector2i(3, 4), Vector2i.UP, g.day_minutes(), g.trigger_state(Vector2i.ZERO)).is_empty():
+		actions.on_action("interact", Vector2i(3, 4), Vector2i.UP)
+		check(seen.said.size() == n or seen.said.back()[0] != g.KEEPER_DIALOGUE, "a shut store: no buy question %s" % [seen.said.back()])
+	g.hour = 10
 	# Held back half an hour at 9:10 (a long chat outside), she isn't at the counter yet.
 	g.hour = 9
 	g.minute = 10

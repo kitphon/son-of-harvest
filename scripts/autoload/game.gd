@@ -1715,6 +1715,9 @@ func new_mine_floor(depth: int) -> MineFloor:
 
 const MINE_LIFT_DIALOGUE := "mine_lift"   # the choice at the cave mouth (built in code: dialogue_made)
 const MINE_START_FLAG := "mine_start"     # the floor picked there (a flag only until the text box closes)
+const KEEPER_DIALOGUE := "keeper_ask"     # a keeper's buy-or-talk question at the counter (built in code)
+const KEEPER_FLAG := "keeper_pick"         # its answer (a flag only until the text box closes)
+var _keeper_talk: Dictionary = {}          # {shop, file, at} while that question is open
 
 
 ## Floor `depth` reached: a landing's first visit is kept, sets the lift's story flag (the winch
@@ -1763,6 +1766,16 @@ func ask_mine_lift() -> void:
 ## The view's text box closed dialogue `id`: after the cave mouth's choice, down the mine.
 func dialogue_closed(id: String) -> void:
 	dialogue_made.erase(id)
+	if id == KEEPER_DIALOGUE:   # the keeper's question: the shop, their line or nothing
+		var pick := str(flags.get(KEEPER_FLAG, ""))
+		flags.erase(KEEPER_FLAG)
+		var k := _keeper_talk
+		_keeper_talk = {}
+		if pick == "buy":
+			open_shop(str(k.get("shop", "")))
+		elif pick == "talk" and str(k.get("at", "")) != "":
+			talk(str(k.file), str(k.at))
+		return
 	if id == MINE_LIFT_DIALOGUE and flags.has(MINE_START_FLAG):
 		var depth := int(flags[MINE_START_FLAG])
 		flags.erase(MINE_START_FLAG)
@@ -2490,7 +2503,7 @@ func talk(id: String, at := "", mood := "") -> void:
 
 
 ## E facing villager `id` (Talk.facing_villager) from the farmer's side `face` (the way the
-## villager turns): an item overhead is a gift, a keeper at their counter opens the shop,
+## villager turns): an item overhead is a gift, a keeper at their open counter asks buy or talk (ask_keeper),
 ## anyone else says a line picked for now (Talk.pick). A keepsake they love, once given, is
 ## kept in their home (story flag Keepsakes.given_flag). Returns "gift", "shop" or "talk".
 func talk_to(id: String, face: Vector2i) -> String:
@@ -2524,12 +2537,28 @@ func talk_to(id: String, face: Vector2i) -> String:
 	s.merge({"band": affection.band(id), "again": affection.talked_on(id, today), "day_number": today, "birthday": birthday,
 		"map": str(w.get("map", maps.id)), "scion": Scion.stage(flags, today) if Scion.planted(flags) else ""})
 	affection.talk(id, today)
-	if shop_id != "" and open_shop(shop_id):
-		return "shop"
 	var at := Talk.pick(id, s)
+	if shop_id != "" and shop_ready(shop_id):
+		ask_keeper(shop_id, file, at)
+		return "shop"
 	if at != "":
 		talk(file, at)
 	return "talk"
+
+
+## A keeper at their open counter asks first (data/shops.json ask, keeper_choices): buy opens
+## the shop, talk says their line for now (`file` at `at`, picked when E was pressed), leave
+## closes the box. The answer waits in KEEPER_FLAG until the text box closes (dialogue_closed).
+func ask_keeper(shop_id: String, file: String, at: String) -> void:
+	var s := shop(shop_id)
+	var c := Shop.keeper_choices()
+	_keeper_talk = {"shop": shop_id, "file": file, "at": at}
+	var choices := [{"text": c.buy, "next": "end", "set": {KEEPER_FLAG: "buy"}}]
+	if at != "":
+		choices.append({"text": c.talk, "next": "end", "set": {KEEPER_FLAG: "talk"}})
+	choices.append({"text": c.leave, "next": "end"})
+	dialogue_made[KEEPER_DIALOGUE] = {"lines": [{"speaker": s.keeper, "text": s.ask, "choices": choices}]}
+	talk(KEEPER_DIALOGUE)
 
 
 ## E facing the little one (the crawler or the toddler about the house; Child): a talk counts
@@ -2701,6 +2730,13 @@ func open_shop(id: String, force := false) -> bool:
 	return true
 
 
+## Would open_shop(`id`) open now? Says nothing (the keeper's talk asks only when it would).
+func shop_ready(id: String) -> bool:
+	var s := shop(id)
+	return s != null and not _shop_shut(s, false) and (s.keeper == ""
+		or Villagers.is_on(s.keeper, s.map, day_minutes(), trigger_state(Vector2i.ZERO)))
+
+
 ## What the counter of shop `s` says while its keeper is out: the builder's note while they
 ## are at work on the farm (data/shops.json builds away), the keeper's note on a festival day
 ## (festival_away), else the shop's own note (away; by default that nobody is there).
@@ -2717,13 +2753,15 @@ func keeper_away_text(s: Shop) -> String:
 
 
 ## Is shop `s` shut now (its hours, its day off, or a festival that closes it)? Says why.
-func _shop_shut(s: Shop) -> bool:
+func _shop_shut(s: Shop, say := true) -> bool:
 	var fest := festival_today()
 	if Festivals.closes(fest, s.id):
-		message.emit("%s is closed today for %s." % [s.name, Festivals.name_of(fest)])
+		if say:
+			message.emit("%s is closed today for %s." % [s.name, Festivals.name_of(fest)])
 		return true
 	if not s.is_open(hour, weekday()):
-		message.emit(s.closed_text())
+		if say:
+			message.emit(s.closed_text())
 		return true
 	return false
 

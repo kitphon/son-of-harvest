@@ -23,6 +23,7 @@ shoji), a low bamboo lattice fence with rope ties, the seed stand as a roadside 
 a board roof and an indigo noren, and a lidded cedar shipping bin with a straw rope.
 
 ## Next up
+[x] 2026-11-13 Shopkeepers ask Buy / Talk / Never mind when talked to at their open counter, so their own lines can be heard (Game.ask_keeper, shops.json ask / keeper_choices); test_talk, test_view2d; see WORKLOG.
 [x] 2026-11-13 The E reach frame taken out again at the user's wish (no white frame round villagers and items); the tool's target frame stays where the tools work; see WORKLOG.
 [x] 2026-11-13 Talk fixes: the little one's talk ran through every line of talk_child.json (each line now ends; Talk.check refuses a line running on into the next answer); the E that closes a text box no longer opens the talk again when let go before the next tick (Player._after_menu); test_talk, test_child; see WORKLOG. The report of Nana's portrait turning into Tome's in Shige's house is still not reproduced (open).
 [x] 2026-11-13 The windowed game crashed on quit (signal 11, every run with sound since 2026-11-07): Sfx._exit_tree now waits for the ambient loops still being made on worker threads, as it did for the songs; the worker jobs get their inputs deep-copied (Sfx.sound_job / song_job); a windowed run joins the checks in AGENTS.md; test_audio; see WORKLOG.
