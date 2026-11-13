@@ -46,6 +46,9 @@ var roof_glows: Array[Dictionary] = []
 ## Stone lanterns lit at night (NightLights: a glow round the fire box, a pool round the foot):
 ## {pos: the fire box's centre}.
 var lamps: Array[Dictionary] = []
+## The roofs' eave lines where the winter's icicles hang (Minka.note_eave; IcicleLayer):
+## {a, b: the ends at the soffit's height, out: the way out of the eave}.
+var eaves: Array[Dictionary] = []
 ## Kept out of the tree by the view (Main3D's kept worlds): field changes only mark it stale.
 var away := false
 var _stale := false

@@ -143,6 +143,7 @@ func _enter_map() -> void:
 	view.add_child(FestivalView.new(m.id))   # today's festival decorations, in its hours
 	view.add_child(ForageView.new(m.id))   # what grows wild there today (data/forage.json)
 	view.add_child(ToolFxView.new())   # what a tool swing throws (its bursts sort with the figures)
+	view.add_child(IcicleView.new().setup(m, Game.farm if Game.maps.on_farm() else null))   # icicles under the painted roofs' eaves in winter
 	if Game.maps.mine_floor != null:   # rocks, soft spots and the hole down
 		view.add_child(MineView.new(Game.maps.mine_floor))
 	if m.plots.has_area():   # the greenhouse's beds (Game.greenhouse), drawn as the field is

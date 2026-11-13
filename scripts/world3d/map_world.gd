@@ -40,6 +40,7 @@ func build_steps(m: MapData) -> Array[Callable]:
 		steps.append(func() -> void: add_child(MistLayer.new(map)))   # morning mist over the water and paddies
 		steps.append(func() -> void: add_child(PuddleLayer.new(map)))   # puddles on the paths in rain
 		steps.append(func() -> void: add_child(WetLayer.new(map)))   # the wet look of the ground, roofs and stone in rain
+		steps.append(func() -> void: add_child(IcicleLayer.new(map, eaves)))   # icicles on the eaves in winter (the props listed them)
 	if not map.sheltered and not map.indoor:
 		steps.append(_make_grass)
 	if not map.sheltered:

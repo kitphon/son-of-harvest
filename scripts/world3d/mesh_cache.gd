@@ -12,7 +12,7 @@ extends RefCounted
 ##    back (`commit` places them);
 ##  - `build(w, id, make)`: runs `make()` on the world `w` the first time and keeps what it
 ##    added (plain MeshInstance3Ds: mesh, material, transform, shadow, layers; the snow materials
-##    among them; the lit windows, lamps and roof glows it listed for NightLights; what it hung in the
+##    among them; the lit windows, lamps and roof glows it listed for NightLights; the eaves it listed for the icicles (FarmWorld.eaves); what it hung in the
 ##    world's Sway: a noren, a curtain); the next time the same pieces are made again from that,
 ##    with new materials made like the first ones, and make's return value given back. A build
 ##    that adds anything else (a MultiMesh, a scripted node, a group other than NightLights', a
@@ -59,7 +59,7 @@ static func build(w: FarmWorld, id: String, make: Callable) -> Variant:
 		return _replay(w, _made[id])
 	var first := w.get_child_count()
 	var sway := w.get_node_or_null(OutdoorProps.SWAY) as OutdoorProps.Sway
-	var before := {"snow": w._snow_mats.size(), "windows": w.windows.size(), "lamps": w.lamps.size(), "roof_glows": w.roof_glows.size(),
+	var before := {"snow": w._snow_mats.size(), "windows": w.windows.size(), "lamps": w.lamps.size(), "roof_glows": w.roof_glows.size(), "eaves": w.eaves.size(),
 		"groups": w.get_groups(), "metas": w.get_meta_list().size(), "sway": sway.count() if sway != null else 0}
 	var out: Variant = make.call()
 	_made[id] = _record(w, first, before, out)
@@ -120,7 +120,7 @@ static func _record(w: FarmWorld, first: int, before: Dictionary, out: Variant) 
 			swaying.append(it)
 	return {"pieces": pieces, "mats": mats, "snow": snowy, "out": out, "sway": swaying,
 		"windows": w.windows.slice(int(before.windows)), "lamps": w.lamps.slice(int(before.lamps)),
-		"roof_glows": w.roof_glows.slice(int(before.roof_glows))}
+		"roof_glows": w.roof_glows.slice(int(before.roof_glows)), "eaves": w.eaves.slice(int(before.eaves))}
 
 
 static func _replay(w: FarmWorld, rec: Dictionary) -> Variant:
@@ -157,6 +157,8 @@ static func _replay(w: FarmWorld, rec: Dictionary) -> Variant:
 		w.lamps.append(lamp.duplicate())
 	for glow: Dictionary in rec.roof_glows:
 		w.roof_glows.append(glow.duplicate())
+	for eave: Dictionary in rec.eaves:
+		w.eaves.append(eave.duplicate())
 	if not (rec.windows.is_empty() and rec.lamps.is_empty() and rec.roof_glows.is_empty()) and not w.is_in_group(NightLights.GROUP):
 		w.add_to_group(NightLights.GROUP)
 	return rec.out

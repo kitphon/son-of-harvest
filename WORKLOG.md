@@ -10,6 +10,50 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — Icicles on the eaves in winter
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: IcicleRules (scripts/icicle_rules.gd, numbers in data/icicles.json, pure): winter only, outdoors
+  only (not indoor / sheltered / non-outdoor ambient: rooms, the mine, the greenhouse), from 15 snow cover
+  (the roofs carry snow). Length 0..1 grows by the day of winter (grow.curve 0.35 on day 1 -> 1.0 on day
+  18 -> 0.6 on day 30) plus 0.15 x cover; a sunny day melts up to half of it (ramp 10:00-13:30, held to
+  16:00, frozen back by 21:00) and drips 11:00-16:00; snow / blizzard days never melt. Balance reasoning:
+  long icicles by mid-winter read as "deep cold", the late-winter shortening hints at spring; half off at
+  a sunny noon is visible without them vanishing. Placement from a murmur3 hash (Godot `hash`) of the
+  eave's ends: gaps 0.07-0.2, 30 % skipped, lengths 0.25-1 (15 % full), widths 0.022-0.045, max 0.36 units.
+  (DriftRules.rnd was tried first: its values at neighbouring x with different salts came out correlated,
+  half below 0.3, leaving a 35 px bare stretch; the hash is uniform, 0.313 below 0.3 over 1200 draws.)
+  Real eave lines: Minka.roof / gable / hip list every eave edge they band (Minka.note_eave ->
+  FarmWorld.eaves {a, b at the soffit height, out}); MeshCache records and replays them with the windows
+  and lamps, so kept village houses and farm buildings list them again. The greenhouse (its own glass
+  gable) lists none. IcicleLayer (3D, one MultiMesh of 6-sided cones hung point down, tucked 0.03 under the
+  soffit; translucent pale blue-white going bluer at the sides, rim light, default lighting so the sun
+  glints and the night lamps warm them; a second MultiMesh of drops moved by its shader while dripping),
+  added as a build step on outdoor maps (MapWorld) and the farm (Main3D.new_world). IcicleView (flat):
+  1-2 px whole-pixel strips under the painted roofs' bottom eave (village houses: the roof picture's box;
+  farmhouse / coop / barn: FarmView.roof_rect), top row 2 px (pale lit left, shaded `6f90b2` right) so they
+  read against snow, up to 9 px, a 1 px drop falling while dripping, never over a door's columns.
+  `--icicles` (0.7) / `--icicles=long` (1.0) force them outdoors; AGENTS.md run notes and test line,
+  ART_DIRECTION row, LangCatalog NOT_SHOWN "Icicles" (node name).
+- Checked: tests/test_icicles.gd `test_icicles: OK (0 failed)` (gating by season / cover / map, growth,
+  melt and refreeze, drip, spots: deterministic, differ per eave, on the line inside the insets, tucked,
+  min gap, varied lengths; flat spots clear of a door; every village house's front eave listed at
+  z = body end + 0.35, y = 1.45, out +z; a MeshCache rebuild lists the same count; the farmhouse front
+  eave z 4.05 y 1.45; no eaves from the greenhouse; the 3D layer shows what the rules give, every top on a
+  listed eave, drops at 14:00 not 08:00, total length lower at a sunny 14:00, none in summer; the flat view
+  likewise for the village and the farm). All 39 tests/test_*.gd print `OK (0 failed)`. Smoke runs
+  (`--quit-after 300`: title, `--demo`, `--demo --map=town`, `--demo --mine=3`, and the icicle flags): 0
+  ERROR lines. Windowed `--quit-after 150 -- --demo`: exit 0.
+  Frames (480 x 270, frame 19): `--demo --season=winter --snow=80 --map=town` before (a HEAD export)
+  and after with `--icicles`: after shows rows of thin pale icicles of mixed lengths along the front and
+  side eaves of the village houses; the before has none. Same at `--time=19:00`: the icicles darker, those
+  near the lit window and lantern warm. The farm (`--demo --season=winter --snow=80 --icicles`): icicles
+  along the farmhouse's thatch eaves. Flat view (`res://scenes/main_2d.tscn`, same flags): 5x crops show
+  short blue-white ticks under the village roofs' bottom eave (longer with `--icicles=long`), a gap under
+  the door; on the farm the same under the farmhouse, coop and barn, faint against the snow at 0.7.
+- Left / next: the icicles do not fade with their building when it turns see-through in front of the
+  farmer (Occluders); they stay drawn. The drip look in 3D (drops falling) was not checked in a frame
+  (only in test_icicles by count). Back eaves are built though the camera rarely sees them.
+
 ## 2026-11-13 — Tests, tools and dev runs save to their own slot, never the player's
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Found: the player's two-year save (user://save1.json) was gone, replaced by a test run's state

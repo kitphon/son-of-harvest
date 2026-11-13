@@ -1,0 +1,15 @@
+{
+	"_about": "Icicles (tsurara) on the roofs' low eaves in winter (IcicleRules). Outdoors only, while at least min_cover of snow lies (the roofs carry snow from there: SnowLayer.top_amount). Their length (0..1 of eave.max) grows over the winter by grow.curve (day of the season -> share; long by mid-winter, shorter again as late winter softens), a little longer with more snow lying (cover_bonus x cover). On a sunny day they melt back round midday by melt: the share lost ramps up from hours[0] to hours[1], holds to hours[2] and freezes back by hours[3]. While melting they drip (drip: looks and hours). Each eave's icicles come from a hash of its ends: gaps between gap[0] and gap[1] units, a skip share left bare, each one's own length between length[0] and 1 (a long share of them always full), its own width. flat: the flat view's 1-2 px strips under the painted roofs' bottom eave (gaps and length in pixels; every one 2 px wide in its top row, the shaded right pixel flat_rim, so it reads on the snow below; wide_from and longer ones 2 px down half their length).",
+	"seasons": ["winter"],
+	"min_cover": 15,
+	"grow": {"curve": [[1, 0.35], [4, 0.6], [10, 0.85], [18, 1.0], [25, 0.85], [30, 0.6]], "cover_bonus": 0.15},
+	"melt": {"looks": {"sunny": 0.5}, "hours": [10.0, 13.5, 16.0, 21.0]},
+	"drip": {"looks": ["sunny"], "hours": [11.0, 16.0], "share": 0.35, "period": [1.3, 2.8], "fall": 1.1},
+	"step": 0.02,
+	"eave": {"inset": 0.1, "tuck": 0.03, "gap": [0.07, 0.2], "skip": 0.3, "length": [0.25, 1.0], "long": 0.15,
+		"width": [0.022, 0.045], "max": 0.36, "min": 0.03},
+	"flat": {"inset": 1, "gap": [2, 5], "skip": 0.3, "length": [0.3, 1.0], "long": 0.15, "max": 9, "wide_from": 0.6, "drip_rate": 6},
+	"colors": {"ice": "dbe9f4", "core": "9fbcd6", "tip": "f4f9fd", "drop": "e8f3fb", "flat_core": "8eaccb", "flat_rim": "6f90b2"},
+	"alpha": {"top": 0.85, "tip": 0.5, "flat": 0.92, "flat_tip": 0.6},
+	"force": {"plain": 0.7, "long": 1.0}
+}

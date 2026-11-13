@@ -41,7 +41,7 @@ const NOT_SHOWN := [
 	"TOOLS", "%s,", "The save file is from a newer",   # a constant's name, a saved list, a prefix compared
 	"Game", "/root/Game",     # the autoload's node name and path
 	"Figure", "Cradle", "Drift", "DyeCloth", "Ferry", "Puddles", "Lamp%d", "FieldCopy", "Field",
-	"FigureLift", "Washes", "Finishes", "WindSway", "FerryBoat", "Pole", "ShaderWarm", "WarmLamp",
+	"FigureLift", "Icicles", "Washes", "Finishes", "WindSway", "FerryBoat", "Pole", "ShaderWarm", "WarmLamp",
 	"SpriteShadow",           # node names
 	"StandardMaterial3D", "GeometryInstance3D",   # class names
 	"//ICE//",                # a marker in the water shader's code

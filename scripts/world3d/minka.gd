@@ -60,6 +60,7 @@ static func roof(w: FarmWorld, eave: Rect2, low: float, pitch: float, thick: flo
 	var corners := [Vector3(x0, 0, z1), Vector3(x1, 0, z1), Vector3(x1, 0, z0), Vector3(x0, 0, z0)]
 	for i in 4:
 		_eave_band(band, corners[i], corners[(i + 1) % 4], low, thick, float(i) * 7.0)
+		note_eave(w, corners[i], corners[(i + 1) % 4], low)
 
 	for pair in [[outer, straw], [under, straw], [band, edge]]:
 		add_mesh(w, pair[0], pair[1])
@@ -126,6 +127,8 @@ static func gable(w: FarmWorld, eave: Rect2, low: float, pitch: float, thick: fl
 	# cross section, a chevron as thick as the roof, the edge texture's dark top at the slope.
 	_eave_band(band, Vector3(x0, 0, z1), Vector3(x1, 0, z1), low, thick, -shift)
 	_eave_band(band, Vector3(x1, 0, z0), Vector3(x0, 0, z0), low, thick, -shift)
+	note_eave(w, Vector3(x0, 0, z1), Vector3(x1, 0, z1), low)
+	note_eave(w, Vector3(x1, 0, z0), Vector3(x0, 0, z0), low)
 	for x: float in [x0, x1]:
 		var n := Vector3(signf(x - (x0 + x1) / 2.0), 0, 0)
 		var uv := func(p: Vector3) -> Vector2:
@@ -220,6 +223,7 @@ static func hip(w: FarmWorld, eave: Rect2, low: float, pitch: float, thick: floa
 	var corners := [Vector3(x0, 0, z1), Vector3(x1, 0, z1), Vector3(x1, 0, z0), Vector3(x0, 0, z0)]
 	for i in 4:
 		_eave_band(band, corners[i], corners[(i + 1) % 4], low, thick, 0.0)
+		note_eave(w, corners[i], corners[(i + 1) % 4], low)
 
 	# A point on the outer roof `up` above it: every slope rises `pitch` a unit in from its eave,
 	# so the height goes with the distance to the nearest eave line.
@@ -396,6 +400,14 @@ static func _eave_band(st: SurfaceTool, p: Vector3, q: Vector3, low: float, thic
 		return Vector2(start + (v - p).dot(along), low + thick - v.y)
 	quad(st, p + Vector3(0, low, 0), q + Vector3(0, low, 0),
 		q + Vector3(0, low + thick, 0), p + Vector3(0, low + thick, 0), out, uv)
+
+
+## Lists the eave line p -> q (y ignored; clockwise round the roof seen from above, so outside
+## is right of the way) at the soffit's height `low` in `w.eaves`, where the winter's icicles hang
+## (IcicleLayer): {a, b: its ends at that height, out: the level way out of the eave}.
+static func note_eave(w: FarmWorld, p: Vector3, q: Vector3, low: float) -> void:
+	var along := (q - p).normalized()
+	w.eaves.append({"a": Vector3(p.x, low, p.z), "b": Vector3(q.x, low, q.z), "out": Vector3(-along.z, 0, along.x)})
 
 
 static func _material(key: String) -> StandardMaterial3D:
