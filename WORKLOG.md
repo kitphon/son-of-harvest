@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-13 — Merge: hoshigaki (Opus), icicles fading (Sonnet), carp size in 3D (Haiku)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: merged 99ab2b8 hoshigaki under the eaves, 28c99c7 icicles fade with their own building and
+  6874ce3 the koinobori at scale_3d 0.75 in 3D, each from its own worktree. Conflicts only in ROADMAP.md,
+  WORKLOG.md (both sides added lines; both kept) and docs/ART_DIRECTION.md (the Icicles row from the
+  icicle branch, the Carp streamers row from the carp branch).
+- Checked: after `--import`, all 42 tests/test_*.gd print `OK (0 failed)` (test_hoshigaki, test_icicles,
+  test_koinobori among them); smoke runs (`--quit-after 300`: title, `--demo`, `--demo --map=town`,
+  `--demo --mine=3`, the hoshigaki, icicle and koinobori flags): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo`: exit 0. No frames were rendered after the merge (each branch looked at its own).
+- Left / next: hoshigaki cast no shadow and which village houses hang them is a hash, not data; the
+  icicles' flat view never fades (painted roofs); the koinobori pole's thickness is not scaled.
+
 ## 2026-11-13 — Hoshigaki: drying persimmons under the eaves in late fall
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: HoshigakiRules (scripts/hoshigaki_rules.gd, numbers in data/hoshigaki.json, pure): strings hang
