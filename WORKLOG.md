@@ -34,6 +34,57 @@ Agent: Claude Code (claude-sonnet-5-5) · Commit: this commit
 - Checked: test_insects (gating, data, scene flowers, hover / hop mix, no jumps, heights, veer, picture key, shadow, art, 3D layer with butterflies and bees); every tests/test_*.gd and the smoke runs (see the commit message / report); screenshots of `--demo --season=spring --time=11:00 --map=kaminoda --insects=bee` in 3D and the flat view: bees seen as small striped specks over the garden and by the cherry tree.
 - Left / next: no buzz sound (the ambient system has no per-insect source); farms have no blossom trees, so farm bees only work crops; cicadas and fireflies by the stream remain.
 
+## 2026-11-13 — Cicadas of summer: the chorus, the evening call, a few on the trunks
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: CicadaRules (data/cicadas.json), pure: two kinds, `semi` (the day cicada) and `higurashi`
+  (the evening cicada). Their days count from the first of summer (summer 1..30, fall 31..60): the day
+  chorus from summer 4, easing in over 8 days, full from about summer 11, out over 5 days by fall 4;
+  hours 6:30..18:00 easing over 3 h, so full only 9:30..15:00 (loudest round midday). The evening
+  cicada summer 14 .. fall 7, 16:45..19:15 easing over 45 min. Only on a fair day (looks: none in rain,
+  storm, snow, blizzard), only outdoors (not indoor, not sheltered, map ambient "outdoor"), none at night
+  (the crickets keep the night), none in spring and winter. Sound: amb_cicadas left data/sfx.json's
+  ambient rules (whose season / hour steps could not do the day of summer or the soft midday peak);
+  CicadaRules.sound_now gives {loop: amount x level x the map's share x (1 - 0.4 x wind)}, the Sfx
+  autoload makes a player for each loop (CicadaRules.loops) and merges them into its ambient targets
+  (highest wins). Map shares: hill 1.0, sakurazaka and the mine's mouth 0.9, the default 0.8, river 0.7,
+  the open farm 0.6. The loops, synthesized as before: amb_cicadas remade softer (-27 dB, was -24; a
+  6 s loop of a hissing noise band and two close high tones under slow swells, and a pulsing lower
+  "call" voice), amb_higurashi new (-27 dB, 9.6 s: three voices, near, middle and far, each a falling
+  pulsed call 4.4 -> 3.65 kHz, 4.1 -> 3.45, 4.65 -> 3.9, about 8 pulses a second, fading as it falls),
+  cicada_buzz new (a 0.45 s raspy one-shot as one flies off, -22 dB). SfxSynth: a loop layer with
+  `"phrase": true` keeps its own `at` / `dur` (a call that starts and ends) instead of running the
+  whole loop. Sight: on the trees (sakura, persimmon, maple, and the village pines' foot) each tree
+  holds a cicada of a kind on a day with chance tree_share x amount (semi 0.45, a quarter of those a
+  second one; higurashi 0.3), on the trunk's camera side (45 degrees +-50) at the heights the eye sees
+  under the 3D crown (broadleaf 0.36..0.66, worked out from Trees.broadleaf's lowest lumps and the 30
+  degree lens; a pine's lowest pad at 0.55 hides all but 0.1..0.24); a leaning village pine's cicadas
+  follow its lean (Trees.pine_lean, shared with Trees.pine so they agree). A singing one pumps (two
+  frames). A walker within 1.6 cells (the villagers, the dog and the walking child at 0.75 of it, as
+  the insects) sends it off away and up (1.4 s, 6 cells out, 2.2 up) with the buzz; it waits until
+  every walker is 2.4 cells off, 20 s more, then flies back in along the same path to the same spot.
+  CicadaArt: cling 4 x 6 (head up, eyes either side, dark body between pale tented wings), fly 5 x 4;
+  semi dark green-black, higurashi amber. CicadaLayer (3D, MapWorld's outdoor maps; FarmWorld.set_farmer
+  hands it the farmer and the startle walkers), CicadaView (flat: the clinging ones a node each in the
+  FigureLayer by their foot, fliers in an air pass at z 20). `--cicadas` / `--cicadas=semi,higurashi`
+  forces them (sound too) on every tree.
+- Checked: tests/test_cicadas.gd (new): the data, the gating by day of summer / clock / look / map, the
+  sound levels and Sfx's ambient targets (chorus at a summer noon in the village, the evening cicada
+  at dusk, crickets not cicadas at night, none in a storm or the store), the phrase layer's gap, the
+  trunk spots (on the trunk below the crown, camera side, the pines' lean), the pulse, the flee, the
+  wait and the return to the same spot, the villagers and the crawler, the pictures, both views.
+  test_audio updated (summer noon has no rule loop now; the cicadas' loops and the buzz counted) and
+  passes. Every tests/test_*.gd (38, one after another) printed `OK (0 failed)`. Smoke runs with
+  `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, and `--demo --map=hill
+  --season=summer --day=20 --time=12:00 --cicadas`): exit 0, no ERROR lines. Frames (480x270)
+  `--demo --map=sakurazaka@teahouse --season=summer --day=20 --time=12:00 --cicadas` in 3D and the flat
+  view: a small pale-winged cicada on the near side of the cherry trunks under the crown (3D, cropped
+  and enlarged to look), dark body and eyes readable; in the flat view on the cherry and pine boxes.
+  The first wing colours (near-white) read as a white blot; darkened and made more see-through.
+- Left / next: the sound has no direction (it is one ambient loop, not from the trees); no cicada on
+  the farm (it has no trees; the chorus comes from the woods round it) nor on Kiku's persimmon; the
+  shed shells (nukegara) and a cicada on a villager's net (Kota hunts them at the shrine) could come
+  later. Not listened to by ear here (headless and Movie Maker runs are silent).
+
 ## 2026-11-13 — E reaches, villagers give way, figures stand upright (playtest)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Found (the user's playtest): (1) E (talk, pick up, give, use) looked only at the one cell straight

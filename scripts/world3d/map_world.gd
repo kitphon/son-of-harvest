@@ -36,6 +36,7 @@ func build_steps(m: MapData) -> Array[Callable]:
 		steps.append(func() -> void: add_child(BirdLayer.new(map)))   # swallows, crows, the heron, sparrows
 		steps.append(func() -> void: add_child(BreathLayer.new(map)))   # the puffs of breath in the cold
 		steps.append(func() -> void: add_child(InsectLayer.new(map)))   # butterflies, dragonflies
+		steps.append(func() -> void: add_child(CicadaLayer.new(map)))   # cicadas on the trees' trunks in summer
 		steps.append(func() -> void: add_child(MistLayer.new(map)))   # morning mist over the water and paddies
 		steps.append(func() -> void: add_child(PuddleLayer.new(map)))   # puddles on the paths in rain
 		steps.append(func() -> void: add_child(WetLayer.new(map)))   # the wet look of the ground, roofs and stone in rain

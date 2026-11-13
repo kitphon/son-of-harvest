@@ -8,7 +8,8 @@ extends RefCounted
 ## A recipe is a list of layers, mixed and then normalized to PEAK. Every layer has dur (s),
 ## at (start, s), gain, attack (s, linear rise), decay (s, exponential fall after the attack;
 ## 0 or missing = hold), release (s, linear fade at the end), trem [[rate Hz, depth 0..1], ...]
-## and gate [period s, on s, offset s] (soft-edged pulses, for chirps). Kinds:
+## and gate [period s, on s, offset s] (soft-edged pulses, for chirps); in a loop a layer runs
+## the whole length unless it has "phrase": true (then its own at / dur, a call with a start and end). Kinds:
 ##   noise  - white (or "color": "brown") noise through lp / hp one-pole filters (Hz)
 ##   tone   - sine partials [[ratio, gain], ...] at freq, gliding to freq_end
 ##   pluck  - a plucked string (Karplus-Strong) at freq, damping 0..1 (higher = duller)
@@ -33,8 +34,8 @@ static func render(recipe: Dictionary, seed := 0) -> PackedFloat32Array:
 	out.resize(maxi(int(total * RATE), 1))
 	for l in recipe.get("layers", []):
 		var layer: Dictionary = l.duplicate()
-		if loop_len > 0.0:
-			layer.dur = total   # loop layers run the whole length
+		if loop_len > 0.0 and not bool(layer.get("phrase", false)):
+			layer.dur = total   # loop layers run the whole length (a "phrase" keeps its own)
 		_mix(out, layer, rng)
 	if loop_len > 0.0:
 		out = _wrap(out, int(loop_len * RATE))

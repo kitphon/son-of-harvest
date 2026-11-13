@@ -59,7 +59,7 @@ func _ready() -> void:
 		p.bus = "SFX"
 		add_child(p)
 		_voices.append(p)
-	for key in AmbientPicker.loops(ambient_rules):
+	for key in AmbientPicker.loops(ambient_rules) + CicadaRules.loops():   # the cicadas' loops come from data/cicadas.json
 		var p := AudioStreamPlayer.new()
 		p.bus = "Ambient"
 		p.volume_linear = 0.0
@@ -91,6 +91,9 @@ func _process(delta: float) -> void:
 	_target = AmbientPicker.pick(ambient_rules, Game.weather_look(Game.weather_today, Game.season_name()),
 			Game.season_name(), Game.hour, m.ambient if m != null else "outdoor", Game.maps.id,
 			water_distance()) if Game.clock_running else {}
+	var cicadas := CicadaRules.sound_now(Game, m)   # the summer chorus and the evening cicada
+	for key in cicadas:
+		_target[key] = maxf(float(_target.get(key, 0.0)), float(cicadas[key]))
 	var step := delta / maxf(_fade_seconds, 0.01)
 	for key in _loops:
 		var p: AudioStreamPlayer = _loops[key]
