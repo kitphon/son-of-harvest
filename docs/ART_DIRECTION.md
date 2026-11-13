@@ -67,8 +67,11 @@ Light and Farmhouse model hold the technical detail of what is built.
   (`FarmWorld.upright` / `stretch`). At the 45-degree view such a picture's side reaches diagonally
   into a wall, fence or prop just behind the feet; `FarmWorld.wall_pull` (data/camera.json
   "figure_pull") then draws the figure nearer the eye along its view ray: the same pixels, only the
-  depth test changes, so the wall behind no longer cuts the hand or leg. Cells in front of the feet
-  still hide the figure. A figure in the open keeps the sprite's own material. When the farmer
+  depth test changes, so the wall behind no longer cuts the hand or leg. What counts is the map's
+  solid cells and the built world's real low geometry (`ReachMap`: a prop or a wall base drawn bigger than
+  its cell, a post, a rail; eaves hang above a figure and are left out), and only what is behind the
+  feet: cells in front of the feet still hide the figure. A pulled figure is never drawn nearer the eye
+  than another whose feet are in front of it (`FarmWorld.cap_pulls`). A figure in the open keeps the sprite's own material. When the farmer
   slips past a villager in the way, she steps aside and he steps the other way
   (`Villagers.give_way`, data/villagers/_common.json "give_way"), so the two pass side by side
   instead of one figure walking through the other.

@@ -24,6 +24,8 @@ var _wet_mask: ImageTexture
 var wet_dirty := false   # the field changed since the wet mask was last drawn
 ## Buildings and trees that fade while they stand between the camera and the farmer.
 var occluders := Occluders.new()
+## Where the built meshes stand low enough to hide a figure's side, finer than the cells (ReachMap).
+var reach: ReachMap
 const FARM_HOUSE := "farmhouse"   # the farmhouse's Occluders tag (its hearth smoke follows it)
 var surroundings: Surroundings   # the land past the map's edge (outdoors)
 var backdrop: Backdrop           # the far mountain ridges past it (data/backdrop.json maps; else null)
@@ -64,7 +66,7 @@ func setup(f: FarmGrid, open_cells: Array[Vector2i] = []) -> void:
 func setup_steps(f: FarmGrid, open_cells: Array[Vector2i] = []) -> Array[Callable]:
 	farm = f
 	gaps = open_cells
-	return [_make_ground, _make_buildings, _make_fence, _make_edges, _make_field]
+	return [_make_ground, _make_buildings, _make_fence, _make_edges, _make_field, build_reach]
 
 
 ## The greenhouse's beds (Game.greenhouse, a sheltered FarmGrid) as a world of their own over
@@ -75,6 +77,13 @@ func setup_plots(f: FarmGrid) -> void:
 	farm = f
 	_make_ground()
 	_make_field()
+
+
+## What the world's meshes stand on at a figure's height (ReachMap), the land past the map's edge
+## left out; wall_pull reads it. The last step of a build.
+func build_reach() -> void:
+	reach = ReachMap.new()
+	reach.collect(self, [surroundings, backdrop])
 
 
 ## The land past the fence (Surroundings).
@@ -182,17 +191,58 @@ static func stretch(cam: Transform3D, feet: Vector3, h: float) -> float:
 
 ## Stretches every upright figure in `tree` for camera `cam` (Main3D, after the camera moved),
 ## and draws it clear of a wall or prop behind its feet (wall_pull) when `solid` (a cell ->
-## bool, the map's solid cells) is given.
-static func stand_all(tree: SceneTree, cam: Camera3D, solid := Callable()) -> void:
+## bool, the map's solid cells) is given, `reach` (the built world's low geometry) as well. A
+## figure is never drawn nearer the eye than another whose feet are in front of it and whose
+## picture it overlaps (cap_pulls).
+static func stand_all(tree: SceneTree, cam: Camera3D, solid := Callable(), reach: ReachMap = null) -> void:
 	var xf := cam.global_transform
+	var figs: Array[Dictionary] = []
 	for s: SpriteBase3D in tree.get_nodes_in_group(UPRIGHT):
 		if s.is_visible_in_tree() and s is Sprite3D and s.texture != null:
 			s.scale = Vector3(1, stretch(xf, s.global_position, s.texture.get_height() * s.pixel_size), 1)
 			var pull := 0.0
+			var ext := extents(s)
 			if solid.is_valid():
-				var ext := extents(s)
-				pull = wall_pull(s.global_position, ext.x, ext.y, xf, solid)
-			set_pull(s, pull)
+				pull = wall_pull(s.global_position, ext.x, ext.y, xf, solid, {}, reach)
+			figs.append({"s": s, "pull": pull, "ext": ext})
+	cap_pulls(figs, cam)
+	for f in figs:
+		set_pull(f.s, f.pull)
+
+
+## Caps each figure's pull in `figs` ({s: Sprite3D, pull, ext: Vector2 reach left / right}; pull is
+## changed) so no figure is drawn nearer the eye than another whose feet are in front of it (nearer
+## the camera) and whose picture on screen it overlaps: a pulled figure stays behind the figure
+## standing in front of its feet (the other's own pull counts, it is drawn nearer by that much). Nearest
+## figures are settled first. `gap` (data/camera.json "figure_pull") keeps them apart in depth.
+static func cap_pulls(figs: Array[Dictionary], cam: Camera3D) -> void:
+	var gap := float(pull_rules().get("gap", 0.02))
+	var inv := cam.global_transform.affine_inverse()
+	for f in figs:
+		var s: Sprite3D = f.s
+		var local: Vector3 = inv * s.global_position
+		var d := maxf(-local.z, 0.01)
+		f["depth"] = d
+		var top: Vector3 = inv * (s.global_position + Vector3(0, s.texture.get_height() * s.pixel_size * s.scale.y, 0))
+		# The picture's box on the screen (the camera's frame over the depth); the top is the figure's
+		# head, the feet its bottom.
+		f["x0"] = (local.x - f.ext.x) / d
+		f["x1"] = (local.x + f.ext.y) / d
+		f["y0"] = local.y / d
+		f["y1"] = top.y / (maxf(-top.z, 0.01))
+	var order := figs.duplicate()
+	order.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.depth < b.depth)
+	for i in order.size():
+		var f: Dictionary = order[i]
+		if f.pull <= 0.0:
+			continue
+		for j in i:
+			var o: Dictionary = order[j]   # nearer the eye than f
+			if o.depth >= f.depth - 1e-4:
+				continue
+			if f.x0 >= o.x1 or o.x0 >= f.x1 or f.y0 >= o.y1 or o.y0 >= f.y1:
+				continue   # side by side or one above the other on the screen
+			f.pull = minf(f.pull, maxf(f.depth - (o.depth - o.pull) - gap, 0.0))
 
 
 ## The pull's numbers (data/camera.json "figure_pull"), read once.
@@ -212,12 +262,15 @@ static func pull_rules() -> Dictionary:
 ## side went into a wall's corner). The upright picture is a plane through the feet along the
 ## camera's right; at the 45-degree view its ends reach diagonally, `left` / `right` units to
 ## either side (its opaque pixels: extents), so the end towards a wall the feet stand in front of
-## crosses into it and the wall hides it. Only cells behind the feet count: a cell whose face
-## towards the camera the feet stand beyond (north or west of them at our yaw); a wall in front
-## of the figure keeps hiding it as it should. The pull is what brings the deepest end back out
-## through that face along the view ray, plus `margin`, at most `most`. Drawn nearer along the
-## ray, the figure covers exactly the same pixels; only the depth test changes.
-static func wall_pull(feet: Vector3, left: float, right: float, cam: Transform3D, solid: Callable, rules := {}) -> float:
+## crosses into it and the wall hides it. What stands there is the map's solid cells and, when
+## `reach` is given, the low geometry of the built world (ReachMap: a prop drawn bigger than its
+## cell, a post, a rail). Each point of the plane inside such a thing is followed along the view
+## ray until it comes out; that counts only when it comes out through a face the feet stand beyond
+## (towards the camera along x or z): a wall behind the feet. A wall in front of the figure (its
+## way out is a face beyond the feet) keeps hiding it as it should. The pull is the longest way
+## out, plus `margin`, at most `most`. Drawn nearer along the ray, the figure covers exactly the
+## same pixels; only the depth test changes.
+static func wall_pull(feet: Vector3, left: float, right: float, cam: Transform3D, solid: Callable, rules := {}, reach: ReachMap = null) -> float:
 	if rules.is_empty():
 		rules = pull_rules()
 	var along := Vector3(cam.basis.x.x, 0, cam.basis.x.z).normalized()   # the picture's right
@@ -226,36 +279,58 @@ static func wall_pull(feet: Vector3, left: float, right: float, cam: Transform3D
 	if level < 0.01:
 		return 0.0
 	toward /= level
-	var own := Vector2i(floori(feet.x), floori(feet.z))
 	var step := maxf(float(rules.get("step", 0.04)), 0.005)
+	var most := float(rules.get("most", 0.6))
+	var march := maxf(float(rules.get("march", 0.02)), 0.005)
+	var far := float(rules.get("follow", 3.0))   # the longest way out looked for over the ground
 	var need := 0.0
 	for side: float in [-1.0, 1.0]:
-		var reach := right if side > 0.0 else left
+		var reach_len := right if side > 0.0 else left
 		var k := 0.0
-		while k < reach:
-			k = minf(k + step, reach)
+		while k < reach_len:
+			k = minf(k + step, reach_len)
 			var p := feet + along * side * k
-			var c := Vector2i(floori(p.x), floori(p.z))
-			if c != own and solid.call(c):
-				need = maxf(need, _out_of(p, c, feet, toward))
+			var t: Variant = _tile_at(p, solid, reach)
+			if t == null:
+				continue
+			var run := 0.0
+			while run < far:
+				run += march
+				var q := p + toward * run
+				var u: Variant = _tile_at(q, solid, reach)
+				if u == null:
+					if _leaves_behind(t, q, feet, toward):
+						need = maxf(need, run)
+					break
+				t = u
 	if need <= 0.0:
 		return 0.0
-	return minf(need / level + float(rules.get("margin", 0.03)), float(rules.get("most", 0.6)))
+	return minf(need / level + float(rules.get("margin", 0.03)), most)
 
 
-## How far over the ground point `p` (inside cell `c`) moves along `toward` to come out through
-## a face of `c` that `feet` stand beyond (0 when the cell is not behind the feet).
-static func _out_of(p: Vector3, c: Vector2i, feet: Vector3, toward: Vector3) -> float:
-	var best := INF
-	if toward.x > 0.0 and feet.x >= c.x + 1:
-		best = minf(best, (c.x + 1 - p.x) / toward.x)
-	elif toward.x < 0.0 and feet.x <= c.x:
-		best = minf(best, (c.x - p.x) / toward.x)
-	if toward.z > 0.0 and feet.z >= c.y + 1:
-		best = minf(best, (c.y + 1 - p.z) / toward.z)
-	elif toward.z < 0.0 and feet.z <= c.y:
-		best = minf(best, (c.y - p.z) / toward.z)
-	return 0.0 if best == INF else maxf(best, 0.0)
+## The solid cell or reach tile (a Rect2 on the ground) that ground point `p` is in, or null.
+static func _tile_at(p: Vector3, solid: Callable, reach: ReachMap) -> Variant:
+	var c := Vector2i(floori(p.x), floori(p.z))
+	if solid.call(c):
+		return Rect2(Vector2(c), Vector2.ONE)
+	if reach != null:
+		var fx := floori(p.x / reach.res)
+		var fz := floori(p.z / reach.res)
+		if reach.has_tile(fx, fz):
+			return Rect2(Vector2(fx, fz) * reach.res, Vector2(reach.res, reach.res))
+	return null
+
+
+## The ray left tile `t` at `q` (the first free point): through a face towards the camera that the
+## feet stand beyond (a wall behind them)?
+static func _leaves_behind(t: Rect2, q: Vector3, feet: Vector3, toward: Vector3) -> bool:
+	if toward.x > 0.0 and q.x >= t.end.x and feet.x >= t.end.x:
+		return true
+	if toward.x < 0.0 and q.x < t.position.x and feet.x <= t.position.x:
+		return true
+	if toward.z > 0.0 and q.z >= t.end.y and feet.z >= t.end.y:
+		return true
+	return toward.z < 0.0 and q.z < t.position.y and feet.z <= t.position.y
 
 
 static var _extent_cache := {}   # texture RID -> Vector2(left, right) opaque columns in pixels from the middle

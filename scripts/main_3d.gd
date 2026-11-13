@@ -520,7 +520,7 @@ func _process(delta: float) -> void:
 	_fly(delta)
 	_show_fishing()
 	_prebuild(delta)
-	FarmWorld.stand_all(get_tree(), cam, _solid)   # the upright figures stretched for the camera as it is now, clear of walls behind them
+	FarmWorld.stand_all(get_tree(), cam, _solid, world.reach if world != null else null)   # the upright figures stretched for the camera as it is now, clear of walls behind them
 	if _warm != null and not fade.holding():
 		_end_warm()
 	elif _warm != null:

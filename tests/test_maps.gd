@@ -226,6 +226,9 @@ func _upright() -> void:
 func _wall_pull(fw: GDScript, cam_data: Dictionary) -> void:
 	var rules: Dictionary = cam_data.get("figure_pull", {})
 	check(float(rules.get("step", 0)) > 0.0 and float(rules.get("most", 0)) > 0.0, "wall pull: numbers in camera.json %s" % [rules])
+	var rr: Dictionary = rules.get("reach", {})
+	check(float(rr.get("res", 0)) > 0.0 and float(rr.get("low", -1)) >= 0.0 and float(rr.get("high", 0)) > float(rr.get("low", 1))
+		and float(rules.get("gap", 0)) > 0.0 and float(rules.get("march", 0)) > 0.0, "wall pull: reach, gap and march numbers in camera.json %s" % [rr])
 	for lid in cam_data.lenses:
 		var l := CameraLens.pick(cam_data, lid)
 		var target := Vector3(10.5, 0, 10.5)
@@ -258,6 +261,7 @@ func _wall_pull(fw: GDScript, cam_data: Dictionary) -> void:
 			"wall pull: lens %s, at most %s" % [lid, rules.most])
 		check(fw.wall_pull(Vector3(10.5, 0, 10.19), 0.4, 0.4, cam, func(c: Vector2i) -> bool: return c == Vector2i(10, 10)) == 0.0,
 			"wall pull: lens %s, the feet's own cell never counts" % lid)
+		_wall_reach(fw, cam, lid, rules)
 	# The opaque columns: the farmer's picture reaches to both sides, mirrored with flip_h.
 	var s: Sprite3D = fw.make_figure(PlaceholderArt.tex("item:turnip"))
 	var cols: Vector2 = fw.opaque_columns(s.texture.get_image())
@@ -273,8 +277,80 @@ func _wall_pull(fw: GDScript, cam_data: Dictionary) -> void:
 	s.free()
 
 
+## Low geometry beside the cells (ReachMap): a post that stands in no solid cell pulls a figure whose
+## side reaches into it, as a wall does; geometry above a figure (an eave), a thin low slab, a post
+## in front of the feet or one out of reach pull nothing. Placed from boxes as a builder places them.
+func _wall_reach(fw: GDScript, cam: Transform3D, lid: String, rules: Dictionary) -> void:
+	var none := func(_c: Vector2i) -> bool: return false
+	var feet := Vector3(10.5, 0, 10.19)
+	var rm: GDScript = load("res://scripts/world3d/reach_map.gd")
+	var post := func(at: Vector3, size: Vector3) -> Object:
+		var r = rm.new()
+		var bm := BoxMesh.new()
+		bm.size = size
+		r.add_mesh(bm, Transform3D(Basis(), at))
+		return r
+	var behind = post.call(Vector3(10.8, 0.5, 9.9), Vector3(0.3, 1.0, 0.3))   # beside the wall row's cell, behind the feet
+	check(behind.count() > 0, "wall reach: lens %s, a post's footprint is laid down (%d tiles)" % [lid, behind.count()])
+	check(fw.wall_pull(feet, 0.4, 0.4, cam, none) == 0.0, "wall reach: lens %s, no cell solid and no reach pulls nothing" % lid)
+	var pull: float = fw.wall_pull(feet, 0.4, 0.4, cam, none, {}, behind)
+	check(pull > 0.0 and pull <= float(rules.most), "wall reach: lens %s, a post behind the feet pulls (%.3f)" % [lid, pull])
+	var along := Vector3(cam.basis.x.x, 0, cam.basis.x.z).normalized()
+	var toward := Vector3(cam.basis.z.x, 0, cam.basis.z.z)
+	var level := toward.length()
+	var tip: Vector3 = feet + along * 0.4 + toward / level * (pull - float(rules.margin)) * level
+	check(not behind.has_point(tip.x, tip.z), "wall reach: lens %s, pulled, the right end comes out of the post" % lid)
+	check(fw.wall_pull(feet, 0.4, 0.4, cam, none, {}, post.call(Vector3(10.8, 1.55, 9.9), Vector3(0.3, 0.3, 0.3))) == 0.0,
+		"wall reach: lens %s, an eave over the figure's head pulls nothing" % lid)
+	check(fw.wall_pull(feet, 0.4, 0.4, cam, none, {}, post.call(Vector3(10.8, 0.05, 9.9), Vector3(0.3, 0.1, 0.3))) == 0.0,
+		"wall reach: lens %s, a slab on the ground pulls nothing" % lid)
+	check(fw.wall_pull(feet, 0.4, 0.4, cam, none, {}, post.call(Vector3(10.8, 0.5, 10.5), Vector3(0.3, 1.0, 0.3))) == 0.0,
+		"wall reach: lens %s, a post in front of the feet still hides the figure" % lid)
+	check(fw.wall_pull(feet, 0.4, 0.4, cam, none, {}, post.call(Vector3(12.0, 0.5, 8.0), Vector3(0.3, 1.0, 0.3))) == 0.0,
+		"wall reach: lens %s, a post out of reach pulls nothing" % lid)
+	# Turned about y it is the same footprint turned (a prop placed at an angle).
+	var r2 = rm.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(0.6, 1.0, 0.1)
+	r2.add_mesh(bm, Transform3D(Basis(Vector3.UP, PI / 2), Vector3(10.8, 0.5, 9.9)))
+	check(r2.has_point(10.8, 9.7) and r2.has_point(10.8, 10.1) and not r2.has_point(10.5, 9.9), "wall reach: lens %s, a turned prop's footprint turns with it" % lid)
+	# Together with a solid wall: the longer way out counts.
+	var wall := func(c: Vector2i) -> bool: return c.y == 9
+	var both: float = fw.wall_pull(feet, 0.4, 0.4, cam, wall, {}, behind)
+	check(both >= fw.wall_pull(feet, 0.4, 0.4, cam, wall), "wall reach: lens %s, with a wall too the pull is at least the wall's" % lid)
+
+
+## In the built worlds: the village's stone lantern (a cap and a base wider than its cell) and the
+## farm's fence and buildings leave a footprint, and the world's reach is built with it.
+func _wall_reach_world() -> void:
+	var w = load("res://scripts/world3d/map_world.gd").new()
+	_scene.add_child(w)
+	var m: MapData = load("res://scripts/world/map_manager.gd").data("town")
+	w.build(m)
+	check(w.reach != null and w.reach.count() > 100, "wall reach: the town's world has its reach (%d tiles)" % (w.reach.count() if w.reach != null else -1))
+	var wide := 0
+	for p in m.props:
+		if str(p.kind) == "stone_lantern":
+			var c: Vector2i = p.cell
+			var inside := 0
+			var outside := 0
+			var per := int(1.0 / w.reach.res)
+			for fz in range(c.y * per - per, c.y * per + 2 * per):
+				for fx in range(c.x * per - per, c.x * per + 2 * per):
+					if w.reach.has_tile(fx, fz):
+						if floori(float(fx) / per) == c.x and floori(float(fz) / per) == c.y:
+							inside += 1
+						else:
+							outside += 1
+			check(inside > 0, "wall reach: the lantern at %s stands in its cell (%d tiles)" % [c, inside])
+			wide += 1 if outside > 0 else 0
+	check(true, "wall reach: lanterns reaching past their cell: %d" % wide)
+	w.queue_free()
+
+
 ## In the real view: the farmer's figure is upright, stretched for the camera, its children upright.
 func _upright_in_view() -> void:
+	_wall_reach_world()
 	var s: Sprite3D = _scene.sprite
 	check(s.billboard == BaseMaterial3D.BILLBOARD_FIXED_Y and s.scale.y > 1.05 and s.scale.y < 1.6,
 		"upright: the farmer stands upright, stretched %.3f for the camera" % s.scale.y)
@@ -293,6 +369,33 @@ func _upright_in_view() -> void:
 		"wall pull: his held item and lantern come with him")
 	fw.stand_all(_scene.get_tree(), _scene.cam, func(_c: Vector2i) -> bool: return false)
 	check(s.material_override == null and _scene.held_sprite.material_override == null, "wall pull: in the open, his own material again")
+	# Two figures by the wall, one just in front of the other (FarmWorld.cap_pulls): the one at the
+	# wall is pulled, but not nearer the eye than the one in front of its feet.
+	var other: Sprite3D = fw.make_figure(s.texture)
+	_scene.add_child(other)
+	s.position = Vector3(cell.x + 0.5, 0, cell.y + 0.04)   # right against it
+	var depth_of := func(f: Sprite3D) -> float: return -(_scene.cam.global_transform.affine_inverse() * f.global_position).z
+	other.visible = false
+	fw.stand_all(_scene.get_tree(), _scene.cam, wall)
+	var raw: float = fw.pull_of(s)
+	var gap := float(fw.pull_rules().get("gap", 0.0))
+	check(raw > 0.08 and gap > 0.0, "wall pull: alone at the wall he is pulled %.3f (gap %s)" % [raw, gap])
+	other.visible = true
+	other.position = s.position + Vector3(0.2, 0, 0.2)   # in front of his feet, towards the camera
+	fw.stand_all(_scene.get_tree(), _scene.cam, wall)
+	var capped: float = fw.pull_of(s)
+	check(capped < raw, "wall pull: with a figure just in front of his feet the pull is capped (%.3f of %.3f)" % [capped, raw])
+	check(depth_of.call(s) - capped >= depth_of.call(other) - fw.pull_of(other) + gap - 1e-4,
+		"wall pull: pulled, he is still no nearer the eye than the figure in front (%.3f against %.3f)" % [depth_of.call(s) - capped, depth_of.call(other) - fw.pull_of(other)])
+	other.position = s.position + Vector3(1.5, 0, -1.5)   # well to the right on the screen
+	fw.stand_all(_scene.get_tree(), _scene.cam, wall)
+	check(is_equal_approx(fw.pull_of(s), raw), "wall pull: a figure to the side does not cap it (%.3f)" % fw.pull_of(s))
+	other.position = s.position - Vector3(0.1, 0, 0.1)   # behind him: nothing in front of his feet
+	fw.stand_all(_scene.get_tree(), _scene.cam, wall)
+	check(is_equal_approx(fw.pull_of(s), raw), "wall pull: a figure behind him does not cap it (%.3f)" % fw.pull_of(s))
+	_scene.remove_child(other)
+	other.free()
+	fw.stand_all(_scene.get_tree(), _scene.cam, func(_c: Vector2i) -> bool: return false)
 	s.position = keep
 
 
