@@ -126,14 +126,14 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   `--map=clinic --time=12:00` shows the village clinic with Dr. Yae at her counter, `town@clinic` its door), `--rucksack` (or `--rucksack=storage`) to open the rucksack (or the
   storage chest; `--demo` puts a few crops in both), `--cord` (with `--demo --map=barn`) to hold the Musubi cord below a happy grown animal, the hint "Tie", `--full` (after `--demo`) to fill the coop and the barn to their places (with `--built=coop_wing` / `barn_wing`, the extended ones: `--demo --built=coop_wing --map=coop --full`), `--dog-held` to start with the dog in the farmer's arms (add `--old` for the old dog's grey face), `--hold` to start with a turnip overhead
   and a potato on the ground in front of the bin, `--time=H:MM` (after `--demo`) to set the
-  clock (villagers stand where their plans say then; `--demo --map=town` at 10:00 shows Kota
-  and Tome by the start spawn; add `--whistle` (or `--whistle=<id>`) and every walker whistles at
+  clock (villagers stand where their plans say then; `--demo --map=town@temple --time=7:40` shows
+  Tome at the temple gate; add `--whistle` (or `--whistle=<id>`) and every walker whistles at
   once, a note puff over their head), `--shop=<id>` (general, smithy, clinic, teahouse; `general@build` opens a tab; `--shop-row=N` puts the cursor on row N of the open tab and scrolls to it, e.g. `--demo --built=greenhouse --shop=general --shop-row=99` the last "under glass" row) to stand at that shop's
   counter with its screen open (hours ignored), `--talk=<villager>` (with `--map` / `--time`
   where they are, e.g. `--map=town --time=14:30 --talk=tome`) to stand below them and talk
   (`--pass=<villager>` instead stands two cells below them and walks up into them and past: `--demo --map=town --time=10:00 --pass=kota`, frames 14-22 show the give-way step;
   add `--hearts=N` to start every villager at heart band N, e.g. to see the heart colours;
-  the wedding: `--demo --map=town@shrine --time=10:00 --event=wedding_sayo` (or `wedding_fumi`),
+  the wedding: `--demo --map=town@temple --time=10:00 --event=wedding_sayo` (or `wedding_fumi`),
   the first line at about 110 frames; married at home: `--demo --map=house --built=room
   --flags=married_sayo,spouse=sayo --time=19:00`; add `--baby` for a child born that day, asleep or awake in the
   bamboo cradle in the second room by `--time`, the farmer standing below it (named the spouse's first name, or

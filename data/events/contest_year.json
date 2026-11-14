@@ -6,10 +6,7 @@
 			"who": "hachiro",
 			"at": "plan",
 			"holds": "mine:kogane",
-			"to": [
-				13,
-				5
-			],
+			"to": [3, 17],
 			"face": "up",
 			"meanwhile": true
 		},
@@ -18,10 +15,7 @@
 			"who": "kota",
 			"at": "plan",
 			"holds": "mine:suisho",
-			"to": [
-				17,
-				5
-			],
+			"to": [7, 17],
 			"face": "up",
 			"meanwhile": true
 		},
@@ -30,10 +24,7 @@
 			"who": "sayo",
 			"at": "plan",
 			"holds": "mine:meno",
-			"to": [
-				12,
-				5
-			],
+			"to": [2, 17],
 			"face": "up",
 			"meanwhile": true
 		},
@@ -42,10 +33,7 @@
 			"who": "ichiro",
 			"at": "plan",
 			"holds": "mine:kohaku",
-			"to": [
-				11,
-				5
-			],
+			"to": [1, 17],
 			"face": "up",
 			"meanwhile": true
 		},

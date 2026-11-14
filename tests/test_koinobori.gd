@@ -260,8 +260,8 @@ func _place() -> void:
 			if m.tiles[n.y * m.w + n.x] in ["path", "gravel"]:
 				path_next = true
 	check(path_next, "it stands beside Kota's lane, in view of the walkers")
-	# the house with children: Kota's, the one south-west of the road
-	var kota := m.prop_at(Vector2i(8, 14))
+	# the house with children: Kota's, the one by the riverside walk west of the street
+	var kota := m.prop_at(Vector2i(8, 28))
 	check(kota.get("kind", "") == "village_house" and absf(c.x - (kota.cell.x + kota.size.x / 2.0)) < 6.0 and absi(c.y - kota.cell.y) < 6,
 		"next to Kota's house")
 	# nothing is cut off: every spawn and every door is still reachable from the start

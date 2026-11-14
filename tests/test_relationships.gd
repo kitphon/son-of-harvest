@@ -1487,7 +1487,7 @@ func _marriage_in_game() -> void:
 			cast[id] = true
 	check(ev.done() and said.back() == ["marriage", "sayo_wedding"], "the wedding plays out")
 	check(cast.has("sayo") and cast.has("tome") and cast.size() >= 6, "Sayo, Tome and the guests are there (%s)" % [cast.keys()])
-	check(Vector2i((ev.pos / 16.0).floor()) == Vector2i(18, 5), "the farmer stands before the shrine (%s)" % [ev.pos / 16.0])
+	check(Vector2i((ev.pos / 16.0).floor()) == Vector2i(5, 19), "the farmer stands before the temple hall (%s)" % [ev.pos / 16.0])
 	check(Marriage.spouse(g.flags) == "sayo" and EventRunner.is_set(g.flags, "married_sayo"), "married to Sayo")
 	check(Marriage.engaged(g.flags) == "" and not EventRunner.is_set(g.flags, "engaged_sayo") and not EventRunner.is_set(g.flags, Marriage.DUE)
 		and g.flags.get(Marriage.DAY) is int, "the engaged flags are cleared; the wedding day stays for the record")

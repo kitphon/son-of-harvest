@@ -6,10 +6,7 @@
 			"who": "sayo",
 			"at": "plan",
 			"holds": "milk_good",
-			"to": [
-				21,
-				9
-			],
+			"to": [23, 30],
 			"face": "up",
 			"meanwhile": true
 		},
@@ -18,10 +15,7 @@
 			"who": "tome",
 			"at": "plan",
 			"holds": "egg_best",
-			"to": [
-				24,
-				9
-			],
+			"to": [26, 30],
 			"face": "up",
 			"meanwhile": true
 		},
@@ -30,10 +24,7 @@
 			"who": "kota",
 			"at": "plan",
 			"holds": "wool",
-			"to": [
-				25,
-				9
-			],
+			"to": [27, 30],
 			"face": "up",
 			"meanwhile": true
 		},
@@ -42,10 +33,7 @@
 			"who": "haru",
 			"at": "plan",
 			"holds": "egg_good",
-			"to": [
-				20,
-				9
-			],
+			"to": [22, 30],
 			"face": "up",
 			"meanwhile": true
 		},

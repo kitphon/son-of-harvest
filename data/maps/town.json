@@ -1,10 +1,10 @@
 {
-	"_note": "The first village map (its north lane at x 10-11 leads to Kaminoda, kaminoda.json; the road's east end to Sakurazaka, sakurazaka.json, and on to the mine; the south lane to Minamino, minamino.json, and on to the river): an east-west road from the farm gate (west edge), a shrine with a torii up the north path, four houses and a pond; the lane behind Kota's house runs off the south edge down to the river (river.json). The noren house south of the road is the Yorozu Store, with Sayo's rooms behind its plain side door; the one north-east is the Kurogane Smithy (data/shops.json), where Hachiro also lives, and the small one east of it the Hinata Clinic (Dr. Yae; a collapse wakes the farmer there). The little timber house by the farm road (door 1, 9) is the post office, where Ren lives in the back. The west house is Grandma Tome's, the one south-west Kota's family's; their doors (and Sayo's) are open by their `hours` and say `closed` otherwise. Format: README.md, Maps. The two store_sign props are the store's new sign on its roof, one for each answer Sayo got (flag sayo_sign, flag_value old / new, heart_sayo_5). The koinobori prop is the carp streamers' stone socket on the grass in front of Kota's house, clear of the path and the doors (the pole and carp go up on late spring days: data/koinobori.json, KoinoboriRules).",
+	"_note": "The village (rebuilt 2026-11-14 after the Arashiyama-style plan; the old one is git tag town-classic): a north-south main street (x 12-14) from the lane to Kaminoda (north edge, x 13-14) down to the riverside walk (y 30) and the wooden bridge (x 12-14, y 31-33) that crosses to Minamino (south edge). West: the farm lane (y 9-10) to the farm gate, the bamboo grove with the little shrine and its torii (north-west), the post office by the lane (door 9, 8; Ren lives in the back), the temple grounds behind a fence with their gate on the street (y 17-18): the hall, raked gravel and the garden pond (fishing: the village water in data/fish.json), Kota's family's house by the river (door 8, 29) with the carp streamers' socket west of it. East: Grandma Tome's house (door 18, 3), the Kurogane Smithy (door 15, 8; Hachiro lives there) and the Hinata Clinic (door 22, 8; Dr. Yae; a collapse wakes the farmer there) along an alley (y 9), the station (scenery), the road east to Sakurazaka (y 20-21), the Yorozu Store (door 18, 24) with Sayo's side door (20, 24), two more shops (scenery). Doors open by their `hours` and say `closed` otherwise. The two store_sign props are the store's new sign (flag sayo_sign, old / new, heart_sayo_5). Format: README.md, Maps.",
 	"id": "town",
 	"name": "Village",
 	"size": [
-		36,
-		22
+		28,
+		34
 	],
 	"indoor": false,
 	"ambient": "outdoor",
@@ -21,39 +21,67 @@
 		"w": {
 			"tile": "water",
 			"solid": true
+		},
+		"b": {
+			"tile": "floor",
+			"step": "floor"
 		}
 	},
 	"ground": [
-		"ggggggggggrrgggggggggggggggggggggggg",
-		"ggggggggggrrggssssssssssgggggggggggg",
-		"ggggggggggrrggssssssssssgggggggggggg",
-		"ggggggggggrrggssssssssssgggggggggggg",
-		"ggggggggggrrggssssssssssgggggggggggg",
-		"ggggggggggrrggssssssssssgggggggggggg",
-		"ggggggggggrrggggggrrgggggggggggggggg",
-		"gggggrggggrrggggggrrgggggggrgggggrgg",
-		"gggggrggggrrggggggrrgggggggrgggggrgg",
-		"gggggrggggrrggggggrrgggggggrgggggrgg",
-		"rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
-		"rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
-		"ggggrggggggggggggggggggggggggrgggggg",
-		"ggggrggggggggggggggggggggggggrgggggg",
-		"ggggrggggggggggggggggggggggggrgwwwwg",
-		"ggggrggggggggggggggggggggggggrgwwwwg",
-		"ggggrrrrrggggggggggggggrrrrrrrgwwwwg",
-		"ggggrggggggggggggggggggggggggggwwwwg",
-		"ggggrggggggggggggggggggggggggggggggg",
-		"ggggrggggggggggggggggggggggggggggggg",
-		"ggggrggggggggggggggggggggggggggggggg",
-		"ggggrggggggggggggggggggggggggggggggg"
+		"gggggggggggggrrggggggggggggg",
+		"gggssssggggggrrggggggggggggg",
+		"gggssssggggggrrggggggggggggg",
+		"gggssssggggggrrggggggggggggg",
+		"gggssssggggggrrrrrrggggggggg",
+		"ggggrrgggggggrrggggggggggggg",
+		"ggggrrggggggrrrggggggggggggg",
+		"ggggrrggggggrrrggggggggggggg",
+		"ggggrrggggggrrrggggggggggggg",
+		"rrrrrrrrrrrrrrrrrrrrrrrrrggg",
+		"rrrrrrrrrrrrrrrggggggggggggg",
+		"ggggggggggggrrrggggggggggggg",
+		"gssssssssssgrrrggggggggggggg",
+		"gssssssssssgrrrggggggggggggg",
+		"gssssssssssgrrrggggggggggggg",
+		"gssssrsssssgrrrrrrrrrrrggggg",
+		"gssssrsssssgrrrggggggggggggg",
+		"gssssrrrrrrrrrrggggggggggggg",
+		"gssssrrrrrrrrrrggggggggggggg",
+		"gssssssssssgrrrggggggggggggg",
+		"gswwwwsssssgrrrrrrrrrrrrrrrr",
+		"gswwwwsssssgrrrrrrrrrrrrrrrr",
+		"gswwwwsssssgrrrggggggggggggg",
+		"gswwwwsssssgrrrggggggggggggg",
+		"gssssssssssgrrrggggggggggggg",
+		"gssssssssssgrrrrrrrrrrgggggg",
+		"ggggggggggggrrrggggggggggggg",
+		"ggggggggggggrrrggggggggggggg",
+		"ggggggggggggrrrggggggggggggg",
+		"ggggggggggggrrrrrrrrrrrrrggg",
+		"rrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+		"wwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"wwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"wwwwwwwwwwwwbbbwwwwwwwwwwwww"
 	],
 	"props": [
-		{"kind": "village_house", "cell": [0, 7], "size": [3, 3], "door": 1, "wall": "timber"},
 		{
 			"kind": "village_house",
 			"cell": [
+				8,
+				6
+			],
+			"size": [
 				3,
-				4
+				3
+			],
+			"door": 1,
+			"wall": "timber"
+		},
+		{
+			"kind": "village_house",
+			"cell": [
+				16,
+				1
 			],
 			"size": [
 				5,
@@ -66,14 +94,14 @@
 		{
 			"kind": "village_house",
 			"cell": [
-				25,
-				4
+				15,
+				6
 			],
 			"size": [
 				5,
 				3
 			],
-			"door": 2,
+			"door": 0,
 			"noren": true,
 			"storeys": 2,
 			"wall": "yakisugi"
@@ -81,34 +109,49 @@
 		{
 			"kind": "village_house",
 			"cell": [
-				31,
-				4
+				21,
+				6
 			],
 			"size": [
 				4,
 				3
 			],
-			"door": 2,
+			"door": 1,
 			"roof": "hip"
 		},
 		{
 			"kind": "village_house",
 			"cell": [
-				6,
-				13
+				2,
+				12
 			],
 			"size": [
-				5,
+				7,
 				3
 			],
-			"door": 2,
-			"wall": "yakisugi"
+			"door": 3,
+			"roof": "hip",
+			"storeys": 2,
+			"wall": "timber"
 		},
 		{
 			"kind": "village_house",
 			"cell": [
-				21,
-				13
+				17,
+				12
+			],
+			"size": [
+				6,
+				3
+			],
+			"door": 0,
+			"wall": "timber"
+		},
+		{
+			"kind": "village_house",
+			"cell": [
+				16,
+				22
 			],
 			"size": [
 				6,
@@ -119,9 +162,50 @@
 			"side_door": 4
 		},
 		{
+			"kind": "village_house",
+			"cell": [
+				16,
+				26
+			],
+			"size": [
+				4,
+				3
+			],
+			"door": 0,
+			"noren": true,
+			"wall": "timber"
+		},
+		{
+			"kind": "village_house",
+			"cell": [
+				21,
+				26
+			],
+			"size": [
+				4,
+				3
+			],
+			"door": 1,
+			"roof": "hip",
+			"noren": true
+		},
+		{
+			"kind": "village_house",
+			"cell": [
+				6,
+				27
+			],
+			"size": [
+				5,
+				3
+			],
+			"door": 2,
+			"wall": "yakisugi"
+		},
+		{
 			"kind": "hokora",
 			"cell": [
-				18,
+				4,
 				1
 			],
 			"size": [
@@ -132,8 +216,8 @@
 		{
 			"kind": "torii",
 			"cell": [
-				17,
-				6
+				3,
+				5
 			],
 			"size": [
 				4,
@@ -153,113 +237,381 @@
 		{
 			"kind": "stone_lantern",
 			"cell": [
-				16,
-				3
-			]
-		},
-		{
-			"kind": "stone_lantern",
-			"cell": [
-				21,
-				3
-			]
-		},
-		{
-			"kind": "stone_lantern",
-			"cell": [
 				3,
-				7
+				3
 			]
 		},
 		{
 			"kind": "stone_lantern",
 			"cell": [
-				32,
-				7
+				6,
+				3
 			]
 		},
 		{
-			"kind": "pine",
+			"kind": "wood_fence",
 			"cell": [
-				13,
+				0,
+				11
+			],
+			"size": [
+				11,
 				1
 			]
 		},
 		{
-			"kind": "pine",
+			"kind": "wood_fence",
 			"cell": [
-				13,
-				4
-			]
-		},
-		{
-			"kind": "pine",
-			"cell": [
-				24,
+				0,
+				26
+			],
+			"size": [
+				11,
 				1
 			]
 		},
 		{
-			"kind": "pine",
+			"kind": "wood_fence",
 			"cell": [
-				24,
-				4
-			]
-		},
-		{
-			"kind": "pine",
-			"cell": [
+				11,
+				11
+			],
+			"size": [
 				1,
-				1
+				6
+			]
+		},
+		{
+			"kind": "wood_fence",
+			"cell": [
+				11,
+				19
+			],
+			"size": [
+				1,
+				8
+			]
+		},
+		{
+			"kind": "stone_lantern",
+			"cell": [
+				10,
+				13
+			]
+		},
+		{
+			"kind": "stone_lantern",
+			"cell": [
+				10,
+				22
 			]
 		},
 		{
 			"kind": "pine",
 			"cell": [
 				9,
-				1
-			]
-		},
-		{
-			"kind": "pine",
-			"cell": [
-				32,
-				1
+				13
 			]
 		},
 		{
 			"kind": "pine",
 			"cell": [
 				1,
-				19
+				13
 			]
 		},
 		{
-			"kind": "pine",
+			"kind": "maple",
+			"cell": [
+				7,
+				21
+			]
+		},
+		{
+			"kind": "maple",
+			"cell": [
+				8,
+				24
+			]
+		},
+		{
+			"kind": "sakura",
+			"cell": [
+				1,
+				24
+			]
+		},
+		{
+			"kind": "river_rock",
+			"cell": [
+				8,
+				22
+			]
+		},
+		{
+			"kind": "stone_lantern",
+			"cell": [
+				11,
+				29
+			]
+		},
+		{
+			"kind": "stone_lantern",
 			"cell": [
 				15,
-				19
+				28
+			]
+		},
+		{
+			"kind": "sakura",
+			"cell": [
+				26,
+				23
+			]
+		},
+		{
+			"kind": "sakura",
+			"cell": [
+				26,
+				27
+			]
+		},
+		{
+			"kind": "sakura",
+			"cell": [
+				2,
+				28
 			]
 		},
 		{
 			"kind": "pine",
 			"cell": [
-				33,
-				20
+				0,
+				28
 			]
 		},
 		{
 			"kind": "pine",
 			"cell": [
-				12,
-				14
+				11,
+				2
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				24,
+				3
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				26,
+				6
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				26,
+				13
+			]
+		},
+		{
+			"kind": "stone_lantern",
+			"cell": [
+				25,
+				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				0,
+				0
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				0,
+				2
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				0,
+				4
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				0,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				1,
+				1
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				1,
+				3
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				1,
+				5
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				1,
+				7
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				2,
+				0
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				2,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				2,
+				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				3,
+				0
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				6,
+				0
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				7,
+				0
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				7,
+				2
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				7,
+				5
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				7,
+				7
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				8,
+				1
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				8,
+				3
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				9,
+				0
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				9,
+				2
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				9,
+				4
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				10,
+				1
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				10,
+				5
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				6,
+				7
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				0,
+				8
 			]
 		},
 		{
 			"kind": "store_sign",
 			"cell": [
-				22,
-				14
+				17,
+				23
 			],
 			"size": [
 				4,
@@ -273,8 +625,8 @@
 		{
 			"kind": "store_sign",
 			"cell": [
-				22,
-				14
+				17,
+				23
 			],
 			"size": [
 				4,
@@ -288,8 +640,8 @@
 		{
 			"kind": "koinobori",
 			"cell": [
-				5,
-				17
+				4,
+				29
 			]
 		}
 	],
@@ -298,11 +650,11 @@
 			"cells": [
 				[
 					-1,
-					10
+					9
 				],
 				[
 					-1,
-					11
+					10
 				]
 			],
 			"to": "farm",
@@ -312,12 +664,30 @@
 			],
 			"facing": "left"
 		},
-		{"cells": [[1, 9]], "to": "post_office", "spawn": [3, 5], "facing": "up", "hours": ["06:00", "21:00"], "closed": "The post office is shut. Ren must be asleep."},
 		{
 			"cells": [
 				[
-					5,
-					6
+					9,
+					8
+				]
+			],
+			"to": "post_office",
+			"spawn": [
+				3,
+				5
+			],
+			"facing": "up",
+			"hours": [
+				"06:00",
+				"21:00"
+			],
+			"closed": "The post office is shut. Ren must be asleep."
+		},
+		{
+			"cells": [
+				[
+					18,
+					3
 				]
 			],
 			"to": "tome_house",
@@ -335,8 +705,8 @@
 		{
 			"cells": [
 				[
-					27,
-					6
+					15,
+					8
 				]
 			],
 			"to": "smithy",
@@ -350,8 +720,8 @@
 		{
 			"cells": [
 				[
-					33,
-					6
+					22,
+					8
 				]
 			],
 			"to": "clinic",
@@ -366,7 +736,7 @@
 			"cells": [
 				[
 					8,
-					15
+					29
 				]
 			],
 			"to": "kota_house",
@@ -384,8 +754,8 @@
 		{
 			"cells": [
 				[
-					23,
-					15
+					18,
+					24
 				]
 			],
 			"to": "store",
@@ -399,8 +769,8 @@
 		{
 			"cells": [
 				[
-					25,
-					15
+					20,
+					24
 				]
 			],
 			"to": "sayo_house",
@@ -418,12 +788,12 @@
 		{
 			"cells": [
 				[
-					36,
-					10
+					28,
+					20
 				],
 				[
-					36,
-					11
+					28,
+					21
 				]
 			],
 			"to": "sakurazaka",
@@ -436,16 +806,16 @@
 		{
 			"cells": [
 				[
-					3,
-					22
+					12,
+					34
 				],
 				[
-					4,
-					22
+					13,
+					34
 				],
 				[
-					5,
-					22
+					14,
+					34
 				]
 			],
 			"to": "minamino",
@@ -458,11 +828,11 @@
 		{
 			"cells": [
 				[
-					10,
+					13,
 					-1
 				],
 				[
-					11,
+					14,
 					-1
 				]
 			],
@@ -475,84 +845,117 @@
 		}
 	],
 	"spawns": {
-		"post": [[1, 10], "up"],
-		"koinobori": [[4, 14], "down"],
-		"river": [
+		"post": [
+			[
+				9,
+				9
+			],
+			"up"
+		],
+		"koinobori": [
 			[
 				4,
-				20
+				25
+			],
+			"down"
+		],
+		"river": [
+			[
+				13,
+				32
 			],
 			"up"
 		],
 		"start": [
 			[
-				2,
-				10
+				1,
+				9
 			],
 			"right"
 		],
 		"shrine": [
 			[
-				18,
-				8
+				4,
+				7
 			],
 			"up"
 		],
 		"store": [
 			[
-				23,
-				16
+				18,
+				25
 			],
 			"down"
 		],
 		"smithy": [
 			[
-				27,
-				7
+				15,
+				9
 			],
 			"down"
 		],
 		"clinic": [
 			[
-				33,
-				7
+				22,
+				9
 			],
 			"down"
 		],
 		"tome": [
 			[
-				5,
-				7
+				18,
+				4
 			],
 			"down"
 		],
 		"kota": [
 			[
 				8,
-				16
+				30
 			],
 			"down"
 		],
 		"sayo": [
 			[
-				25,
-				16
+				20,
+				25
 			],
 			"down"
 		],
 		"north": [
 			[
-				10,
+				13,
 				1
 			],
 			"down"
 		],
 		"east": [
 			[
-				34,
-				10
+				26,
+				20
 			],
 			"left"
+		],
+		"temple": [
+			[
+				8,
+				17
+			],
+			"left"
+		],
+		"bridge": [
+			[
+				13,
+				29
+			],
+			"down"
+		],
+		"station": [
+			[
+				19,
+				15
+			],
+			"up"
 		]
 	}
 }

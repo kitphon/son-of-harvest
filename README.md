@@ -48,7 +48,7 @@ Save / load, the title menu, weather, dialogue and events: the same with `res://
 | E / K | interact: harvest (the crop goes up overhead, into the hand slot), pick up an item lying in front, ship the rucksack's crops at the bin (with nothing to ship: read the note on it), buy seeds at the stand, open the storage chest right of the house, go through doors (walking into one works too), sleep at the futon in the house. With an item overhead on the farm: throw it up to 2 cells ahead; into the bin it's shipped, into the pond it's gone |
 | E / Space / Enter, click | in a text box: show the whole line, then go on; arrows / W / S or the mouse pick a choice |
 | 1-8 / Tab | pick a tool slot (at the start: hoe, watering can, sickle, hammer, axe, seeds, food, fishing rod; Space / J eats or drinks the food in hand, on any map; with a crop, egg, milk, fish or dish overhead it eats that instead) |
-| Space / J with the rod | cast at water up to 2 cells ahead (the farm pond, the village pond, the river down the lane off the village's south edge); wait for the "!" and a plip, then Space / J / E in time to land the fish (it goes up overhead: throw it in the bin to ship it, or put it in the rucksack). Pressing before a bite reels in empty. Fish per place / season / hour / weather: `data/fish.json` |
+| Space / J with the rod | cast at water up to 2 cells ahead (the farm pond, the temple pond by the village's main street, the river over the bridge off the village's south edge); wait for the "!" and a plip, then Space / J / E in time to land the fish (it goes up overhead: throw it in the bin to ship it, or put it in the rucksack). Pressing before a bite reels in empty. Fish per place / season / hour / weather: `data/fish.json` |
 | I | rucksack: arrows / WASD move, Enter / Space pick up and put down (stack, swap), E takes it in hand (tool slot = tool in hand, an item = the item hand), Esc / I close; mouse: left click pick / put, right click hold, F eats or drinks the thing under the cursor (food, crops, eggs, milk, fish; not out of the chest). The chest screen works the same. The clock stops while it is open |
 | Q | next seed type, or next food with the food slot (for eating and for buying) |
 | E at the kitchen stove / cupboard | (kitchen corner built) the cooking screen: up / down pick a recipe, Enter / Space / E cook it once, Esc / I leave (README → Cooking) |
@@ -239,16 +239,18 @@ scaled up); it writes `icon.png` (project icon) and `icon.ico` (16 to 256 px, fo
 ## Maps
 Maps live in `data/maps/<id>.json`: the farm (`farm`, its ground and buildings stay
 FarmGrid's, so the file only adds doors and spawns), the farmhouse inside (`house`) and the
-village (`town`), the river south of it, past Minamino (`river`, its own fish table: place `river` in
+village (`town`: since 2026-11-14 laid out after Arashiyama, a north-south main street from the lane to Kaminoda down to a
+riverside walk and a wooden bridge to Minamino, the temple grounds with their pond west of it, the bamboo grove and the
+little shrine north-west, the farm lane west, the road to Sakurazaka east; the old layout is git tag `town-classic`), the river south of it, past Minamino (`river`, its own fish table: place `river` in
 `data/fish.json`; water at a map's side edge draws no bank, so the river flows on; Mio's driftwood hut on its north bank, `mio_hut`), Kaminoda up
-the village's north lane (`kaminoda`: a farming hamlet of terraced paddies, a drying rack, a
+the village's main street north (`kaminoda`: a farming hamlet of terraced paddies, a drying rack, a
 well, jizo and a persimmon orchard; Genzo's and Haru's houses, `genzo_house` / `haru_house`),
 Sakurazaka on the
-village road's east end, on the way to the mine (`sakurazaka`: cherry trees along the road, a
+village's road east, on the way to the mine (`sakurazaka`: cherry trees along the road, a
 creek under a plank bridge with its own stream fish, place `sakurazaka` in `data/fish.json`;
 Fumi's Hanami teahouse, `teahouse`, and Ichiro the charcoal burner's house, `ichiro_house`),
 Minamino
-between the village's south lane and the river (`minamino`: vegetable gardens behind a board
+between the village's bridge and the river (`minamino`: vegetable gardens behind a board
 fence, a well, a roadside water shrine, Kiku's persimmon orchard; Shige and Nana's house,
 `shige_house`, and Kiku's, `kiku_house`), the bamboo hill above Kaminoda (`hill`: a switchback path through `bamboo` clumps to a lookout with a
 little shrine; its view and shrine can be examined). Countryside props (CountryProps, both
@@ -515,7 +517,7 @@ but only before noon (`"time": ["00:00", "12:00"]` in the pick row); after noon 
 the married lines.
 The village record names the spouse under the title (Ending).
 All of it is story flags, so it is saved with them. The view:
-`-- --demo --map=town@shrine --time=10:00 --event=wedding_sayo`; married at home:
+`-- --demo --map=town@temple --time=10:00 --event=wedding_sayo`; married at home:
 `-- --demo --map=house --built=room --flags=married_sayo,spouse=sayo --time=19:00`.
 A villager stands `talk_turn_minutes` after a talk, and one walking into the farmer waits
 (`bump_reach`); that time is their delay, the whole plan runs later, at most `delay_max`
@@ -621,7 +623,7 @@ days have passed (`Game.day_number()`), picking it up puts it back and calls
 `Game.raise_tool_level()`.
 
 ## Mine
-The village road's east end leads to the mine entrance (`data/maps/mine.json`); its cave mouth
+The village's road east leads through Sakurazaka to the mine entrance (`data/maps/mine.json`); its cave mouth
 goes down to `mine_floor`, one cave map that every floor is laid out on. `MineFloor`
 (`scripts/mine/mine_floor.gd`, pure rules) makes a floor fresh on every entry from a seed,
 the depth and the season: rocks and big rocks (hammer, hits per floor band), soft spots (hoe)
@@ -935,7 +937,7 @@ on; `--contest=mochi:auto` swings by itself for screenshots.
 
 **A second played contest: the fishing race.** Moon Night's `game` is the Moon Pond Race
 (kind `fishing`, `FishingRace`), at a `race_flag` prop (a bamboo pole with an indigo banner
-and the race's creel) at [30, 13], just north-west of the village pond. E there with empty
+and the race's creel) at [1, 21], on the west bank of the temple pond. E there with empty
 hands and the rod in a tool slot starts it: the rod goes in hand, a `lead` of 3 seconds counts
 in (`mochi_count` clicks, `chime_morning` for the start), and for `seconds` (60) the farmer
 fishes the pond with the real rod and bite rules (`data/fish.json`; casts cost stamina as

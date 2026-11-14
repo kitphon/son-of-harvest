@@ -540,7 +540,7 @@ func _shadows() -> void:
 	check(IR.shadow_of(fly, 1.0, dir, {}, wall).is_empty(), "shadow: a flier whose shadow falls on a building casts none")
 	var sc := {}
 	var tb: Dictionary = IR.blocked_for(sc, MM.data("town"), null, g)
-	check(tb.has(Vector2i(1, 8)) and not tb.has(Vector2i(20, 1)), "shadow: the blocked cells hold the town's houses (%d)" % tb.size())
+	check(tb.has(Vector2i(9, 7)) and not tb.has(Vector2i(25, 1)), "shadow: the blocked cells hold the town's houses (%d)" % tb.size())
 	sc.blocked = {}   # the same built key: kept, not rebuilt
 	check(IR.blocked_for(sc, MM.data("town"), null, g).is_empty(), "shadow: the blocked set is kept while the buildings stay")
 	sc.built_key = "changed"   # a building finished: rebuilt

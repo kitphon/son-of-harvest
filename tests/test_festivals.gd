@@ -84,11 +84,11 @@ func _data() -> void:
 	seasons.sort()
 	check(seasons == ["fall", "spring", "summer", "winter"], "one festival per season %s" % [seasons])
 	var good := {"name": "Test Day", "season": "spring", "day": 3, "hours": ["9:00", "12:00"], "map": "town",
-		"place": [18, 8], "event": "festival_blossom"}
+		"place": [13, 18], "event": "festival_blossom"}
 	check(Festivals.check({"festivals": {"a": good}}) == "", "a plain festival passes")
 	var bad := {
 		"season": {"season": "monsoon"}, "day": {"day": 31}, "hours": {"hours": ["12:00", "9:00"]},
-		"map": {"map": "moon"}, "place": {"place": [17, 6]},   # the torii's left post is solid
+		"map": {"map": "moon"}, "place": {"place": [3, 5]},   # the torii's left post is solid
 		"event": {"event": "no_such_event"}, "closes": {"closes": ["bakery"]}, "key": {"music": "drums"},
 		"prop": {"props": [{"kind": "stall", "cell": [35, 5], "size": [2, 1]}]},
 		"fireworks": {"fireworks": ["20:00"]},
@@ -131,7 +131,7 @@ func _hours() -> void:
 func _villagers() -> void:
 	var s := {"year": 1, "season": "spring", "day": 8, "weekday": "mon", "weather": "sunny", "flags": {}, "festival": "blossom_day"}
 	var w := Villagers.where("tome", 660.0, s)
-	check(w.map == "town" and w.pos == Vector2(17.5, 8.5) and w.facing == Vector2i.RIGHT, "Tome stands by the torii on a festival %s" % [w])
+	check(w.map == "town" and w.pos == Vector2(13.5, 17.5) and w.facing == Vector2i.RIGHT, "Tome stands by the temple gate on a festival %s" % [w])
 	check(Villagers.where("kota", 1300.0, s).map == "town", "Kota is still out at 21:40 on a festival")
 	var plain := s.merged({"festival": "", "day": 9, "weekday": "tue"}, true)
 	check(Villagers.where("tome", 660.0, plain).pos != Vector2(17.5, 8.5) and Villagers.where("kota", 1300.0, plain).map == "away", "a plain day has the usual plans")
@@ -294,8 +294,8 @@ func _shops() -> void:
 	_set_day(g, "spring", 8, 12, 0)   # a Monday
 	check(not g.open_shop("smithy") and said.back() == "Kurogane Smithy is closed today for Blossom Day.", "the smithy shuts for Blossom Day (%s)" % [said])
 	check(g.open_shop("general") and opened == ["general"], "the store stays open")
-	g.maps.place("town", Vector2i(27, 7), Vector2i.UP)
-	g.use_door({"cells": [Vector2i(27, 6)], "to": "smithy", "spawn": Vector2i(4, 5), "facing": Vector2i.UP, "shop": "smithy"})
+	g.maps.place("town", Vector2i(15, 9), Vector2i.UP)
+	g.use_door({"cells": [Vector2i(15, 8)], "to": "smithy", "spawn": Vector2i(4, 5), "facing": Vector2i.UP, "shop": "smithy"})
 	check(g.maps.id == "town" and said.back().ends_with("for Blossom Day."), "its door stays shut too")
 	g.day = 9
 	check(g.open_shop("smithy"), "the smithy opens the day after")
@@ -352,11 +352,11 @@ func _contest_data() -> void:
 		check(Festivals.at_table(id, Vector2i(int(c.table[0]), int(c.table[1])))
 			and not Festivals.at_table(id, Vector2i(int(f.place[0]), int(f.place[1]))), "%s: the judges' table stands away from the gathering place" % id)
 		check(EventRunner.open(c.event, null).error == "", "%s: the result event %s runs" % [id, c.event])
-	check(Festivals.at_table("blossom_day", Vector2i(21, 8)) and not Festivals.at_table("blossom_day", Vector2i(22, 8)), "the whole table, not the cherry next to it")
-	check(Festivals.stall_at("blossom_day", Vector2i(10, 7)) == "stall:blossom_day", "Blossom Day has the stall")
-	check(Festivals.stall_at("lantern_night", Vector2i(10, 7)) == "stall:lantern_night:eats"
-		and Festivals.stall_at("lantern_night", Vector2i(22, 7)) == "stall:lantern_night:chimes"
-		and not Festivals.at_stall("lantern_night", Vector2i(13, 7)) and not Festivals.at_stall("lantern_night", Vector2i(12, 13)),
+	check(Festivals.at_table("blossom_day", Vector2i(22, 16)) and not Festivals.at_table("blossom_day", Vector2i(23, 16)), "the whole table, not the ground next to it")
+	check(Festivals.stall_at("blossom_day", Vector2i(18, 16)) == "stall:blossom_day", "Blossom Day has the stall")
+	check(Festivals.stall_at("lantern_night", Vector2i(1, 29)) == "stall:lantern_night:eats"
+		and Festivals.stall_at("lantern_night", Vector2i(18, 29)) == "stall:lantern_night:chimes"
+		and not Festivals.at_stall("lantern_night", Vector2i(2, 29)) and not Festivals.at_stall("lantern_night", Vector2i(20, 29)),
 		"Lantern Night sells at two of its four stalls, the others are only looks")
 	check(Festivals.stall_of("stall:lantern_night:chimes")[0] == "lantern_night" and Festivals.stall_of("stall:lantern_night:chimes")[1].name == "Wind Chime Stall"
 		and Festivals.stall_of("stall:blossom_day")[1].name == "Hanami Dango Stall" and Festivals.stall_of("stall:lantern_night")[1].is_empty()
@@ -613,7 +613,7 @@ func _stall() -> void:
 	var menu := ShopMenu.new(g, "stall:blossom_day")
 	check(menu.tabs == ["buy"], "the stall only sells %s" % [menu.tabs])
 	_set_day(g, "spring", 8, 9, 0)
-	g.maps.place("town", Vector2i(9, 8), Vector2i.UP)
+	g.maps.place("town", Vector2i(17, 17), Vector2i.UP)
 	check(not g.open_stall() and opened.is_empty(), "shut before the festival")
 	g.hour = 12
 	check(g.open_stall() and opened == ["stall:blossom_day"], "open during it")
@@ -660,12 +660,12 @@ func _night_stalls() -> void:
 			check(sold.has("food:" + id), "%s is sold at a festival stall or a shop" % id)
 	var FarmActions: GDScript = load("res://scripts/farm_actions.gd")
 	_set_day(g, "summer", 20, 16, 0)
-	g.maps.place("town", Vector2i(22, 8), Vector2i.UP)
-	check(not FarmActions.festival_spot(Vector2i(22, 7)) and opened.is_empty(), "the stalls are shut before 17:00")
+	g.maps.place("town", Vector2i(18, 30), Vector2i.UP)
+	check(not FarmActions.festival_spot(Vector2i(18, 29)) and opened.is_empty(), "the stalls are shut before 17:00")
 	g.hour = 18
-	check(FarmActions.festival_spot(Vector2i(23, 7)) and opened == ["stall:lantern_night:chimes"], "E at the chime stall opens it")
-	check(FarmActions.festival_spot(Vector2i(9, 7)) and opened.back() == "stall:lantern_night:eats", "E at the eats stall opens that one")
-	check(FarmActions.festival_spot(Vector2i(13, 7)) and opened.size() == 2 and g.scooping, "the blue stall sells nothing: it is the goldfish scoop")
+	check(FarmActions.festival_spot(Vector2i(19, 29)) and opened == ["stall:lantern_night:chimes"], "E at the chime stall opens it")
+	check(FarmActions.festival_spot(Vector2i(0, 29)) and opened.back() == "stall:lantern_night:eats", "E at the eats stall opens that one")
+	check(FarmActions.festival_spot(Vector2i(2, 29)) and opened.size() == 2 and g.scooping, "the blue stall sells nothing: it is the goldfish scoop")
 	g.scooping = false
 	check(g.open_stall() and opened.back() == "stall:lantern_night:eats", "open_stall with no id opens the first")
 	var money: int = g.money
@@ -710,11 +710,11 @@ func _fall_winter_stalls() -> void:
 	check(g.foods.amazake.get("shop", false) and not g.foods.yuzu_tea.get("shop", true), "the stand's amazake stays, the stall pours yuzu tea")
 	var FarmActions: GDScript = load("res://scripts/farm_actions.gd")
 	_set_day(g, "fall", 15, 17, 0)
-	g.maps.place("town", Vector2i(13, 8), Vector2i.UP)
-	check(not FarmActions.festival_spot(Vector2i(13, 7)) and opened.is_empty(), "the Moon Night stalls are shut before 18:00")
+	g.maps.place("town", Vector2i(18, 30), Vector2i.UP)
+	check(not FarmActions.festival_spot(Vector2i(18, 29)) and opened.is_empty(), "the Moon Night stalls are shut before 18:00")
 	g.hour = 19
-	check(FarmActions.festival_spot(Vector2i(14, 7)) and opened == ["stall:moon_night:eats"], "E at the chestnut roaster opens it")
-	check(FarmActions.festival_spot(Vector2i(9, 7)) and opened.back() == "stall:moon_night:crafts", "E at the craft stall opens that one")
+	check(FarmActions.festival_spot(Vector2i(19, 29)) and opened == ["stall:moon_night:eats"], "E at the chestnut roaster opens it")
+	check(FarmActions.festival_spot(Vector2i(0, 29)) and opened.back() == "stall:moon_night:crafts", "E at the craft stall opens that one")
 	check(not g.open_stall("stall:years_turn:charms"), "the charm stall isn't out on Moon Night")
 	var money: int = g.money
 	var r: Dictionary = g.shop_buy("stall:moon_night:crafts", "keep:clay_rabbit")
@@ -723,10 +723,10 @@ func _fall_winter_stalls() -> void:
 	r = g.shop_buy("stall:moon_night:eats", "food:baked_imo")
 	check(r.ok and g.edible("food:baked_imo") and g.sell_price("food:baked_imo") == 0, "a baked sweet potato to eat, not to ship")
 	_set_day(g, "winter", 30, 23, 30)
-	g.maps.place("town", Vector2i(14, 3), Vector2i.UP)
-	check(FarmActions.festival_spot(Vector2i(14, 2)) and opened.back() == "stall:years_turn:soba", "E at the soba stall at 23:30")
-	check(FarmActions.festival_spot(Vector2i(23, 2)) and opened.back() == "stall:years_turn:charms", "E at the charm stall")
-	check(FarmActions.festival_spot(Vector2i(14, 4)) and opened.back() == "stall:years_turn:charms", "the judges' table is no stall")
+	g.maps.place("town", Vector2i(1, 17), Vector2i.UP)
+	check(FarmActions.festival_spot(Vector2i(1, 16)) and opened.back() == "stall:years_turn:soba", "E at the soba stall at 23:30")
+	check(FarmActions.festival_spot(Vector2i(10, 16)) and opened.back() == "stall:years_turn:charms", "E at the charm stall")
+	check(FarmActions.festival_spot(Vector2i(4, 16)) and opened.back() == "stall:years_turn:charms", "the judges' table is no stall")
 	var seen := {}
 	for id in Keepsakes.data().keepsakes:
 		var img := PlaceholderArt.tex("ui:keep:" + id).get_image()
@@ -757,7 +757,7 @@ func _ribbons() -> void:
 	check(Keepsakes.board_text(g.flags) == "An empty board for contest ribbons.", "an empty record")
 	# Last place: no ribbon. A full rucksack: the ribbon is noted on the board anyway.
 	_set_day(g, "fall", 15, 19, 0)
-	g.maps.place("town", Vector2i(22, 9), Vector2i.UP)
+	g.maps.place("town", Vector2i(24, 30), Vector2i.UP)
 	var said: Array = []
 	var hear := func(t): said.append(t)
 	g.message.connect(hear)
@@ -820,7 +820,7 @@ func _start_views(season: String, day: int, h: int, m: int) -> void:
 	g.new_game()
 	g.events_seen = {"first_morning": true, "rainy_day": true}
 	_set_day(g, season, day, h, m)
-	g.maps.place("town", Vector2i(18, 9), Vector2i.UP)
+	g.maps.place("town", Vector2i(13, 19), Vector2i.UP)
 	g.pause()   # the clock holds while the views are checked
 	_scene3 = load("res://scenes/main.tscn").instantiate()
 	root.add_child(_scene3)
@@ -1045,8 +1045,8 @@ func _game_data() -> void:
 	var g := Festivals.game("years_turn")
 	check(g.get("kind") == "mochi" and g.id == "mochi" and Festivals.festival_of_game("mochi") == "years_turn"
 		and Festivals.festival_of_game("nope") == "", "Year's Turn has the mochi pounding")
-	check(Festivals.at_game("years_turn", Vector2i(20, 4)) and not Festivals.at_game("years_turn", Vector2i(20, 5))
-		and not Festivals.at_table("years_turn", Vector2i(20, 4)) and not Festivals.at_game("blossom_day", Vector2i(20, 4)),
+	check(Festivals.at_game("years_turn", Vector2i(7, 18)) and not Festivals.at_game("years_turn", Vector2i(7, 19))
+		and not Festivals.at_table("years_turn", Vector2i(7, 18)) and not Festivals.at_game("blossom_day", Vector2i(7, 18)),
 		"the game is played at the mortar, apart from the judges' table")
 	check(Festivals.ribbon_label("mochi") == "Mochi Pounding" and Festivals.ribbon_label("years_turn") == "Year's Turn"
 		and Festivals.ribbon_label("nope") == "", "ribbon keys name a festival or a festival's game")
@@ -1178,7 +1178,7 @@ func _game_play() -> void:
 	_set_day(g, "winter", 30, 19, 30)
 	g.maps.place("farm", Vector2i(4, 4), Vector2i.DOWN)
 	check(g.start_game().why == "none", "no game from the farm")
-	g.maps.place("town", Vector2i(20, 5), Vector2i.UP)
+	g.maps.place("town", Vector2i(7, 19), Vector2i.UP)
 	g.held = "potato"
 	check(g.start_game().why == "held" and said.back() == "The mallet takes both hands. Put the Potato down first." and asked.is_empty(),
 		"the mallet needs empty hands (%s)" % [said.back()])
@@ -1199,7 +1199,7 @@ func _game_play() -> void:
 		"the ribbon goes on the board's record")
 	check(g.start_game().why == "played" and said.back() == "You already took a turn at the Mochi Pounding this year." and asked.size() == 1, "one go a year")
 	# The judged contest beside it goes on as before.
-	g.maps.place("town", Vector2i(14, 5), Vector2i.UP)
+	g.maps.place("town", Vector2i(4, 17), Vector2i.UP)
 	g.held = "mine:stone"
 	var c: Dictionary = g.enter_contest()
 	check(c.ok and g.events_seen.has("contest:years_turn:1") and events.back() == "contest_year" and not g.flags.has("contest_partner_tome"),
@@ -1213,8 +1213,8 @@ func _game_play() -> void:
 	# Year 2, closer to Kota: he turns, and a bad go comes last with nothing.
 	g.year = 2
 	g.affection.add("kota", 50)
-	g.maps.place("town", Vector2i(20, 5), Vector2i.UP)
-	check(load("res://scripts/farm_actions.gd").festival_spot(Vector2i(20, 4)) and asked.back() == ["years_turn", "kota"], "E at the mortar starts the game; Kota turns now")
+	g.maps.place("town", Vector2i(7, 19), Vector2i.UP)
+	check(load("res://scripts/farm_actions.gd").festival_spot(Vector2i(7, 18)) and asked.back() == ["years_turn", "kota"], "E at the mortar starts the game; Kota turns now")
 	var count: int = g.count("food:kinako_mochi")
 	money = g.money
 	r = g.finish_game(0)
@@ -1352,8 +1352,8 @@ func _race_data() -> void:
 	var g := Festivals.game("moon_night")
 	check(g.get("kind") == "fishing" and g.id == "fishing" and Festivals.festival_of_game("fishing") == "moon_night",
 		"Moon Night has the fishing race")
-	check(Festivals.at_game("moon_night", Vector2i(30, 13)) and not Festivals.at_game("moon_night", Vector2i(30, 14))
-		and not Festivals.at_table("moon_night", Vector2i(30, 13)), "the race starts at its flag, apart from the judges' table")
+	check(Festivals.at_game("moon_night", Vector2i(1, 21)) and not Festivals.at_game("moon_night", Vector2i(1, 22))
+		and not Festivals.at_table("moon_night", Vector2i(1, 21)), "the race starts at its flag, apart from the judges' table")
 	check(Festivals.partner_for("moon_night", func(_id): return 0) == "", "a race has no partner")
 	check(Festivals.ribbon_label("fishing") == "Moon Pond Race", "the race's ribbon key names it")
 	for place in [1, 2, 3]:
@@ -1446,9 +1446,9 @@ func _race_play() -> void:
 	_set_day(g, "fall", 15, 18, 30)
 	g.maps.place("farm", Vector2i(4, 4), Vector2i.DOWN)
 	check(g.start_game().why == "none", "no race from the farm")
-	var origin := Vector2i(30, 14)
+	var origin := Vector2i(1, 22)
 	g.maps.place("town", origin, Vector2i.RIGHT)
-	check(g.water_ahead(origin, Vector2i.RIGHT) == Vector2i(31, 14), "below the flag the village pond is right in front")
+	check(g.water_ahead(origin, Vector2i.RIGHT) == Vector2i(2, 22), "below the flag the temple pond is right in front")
 	g.held = "potato"
 	check(g.start_game().why == "held" and said.back() == "The rod takes both hands. Put the Potato down first." and asked.is_empty(), "the rod needs empty hands")
 	g.held = ""
@@ -1466,15 +1466,15 @@ func _race_play() -> void:
 	check(g.cast_line(origin, Vector2i.RIGHT) == "race_wait" and not g.fishing.active(), "no casting in the count-in")
 	g._race_step(3.0)
 	check(cues.back() == "go" and g.race.running(), "the call")
-	check(g.cast_line(origin, Vector2i.RIGHT) == "cast" and g.fishing.place == "town", "the line goes into the village pond")
+	check(g.cast_line(origin, Vector2i.RIGHT) == "cast" and g.fishing.place == "town", "the line goes into the temple pond")
 	g.fishing.state = "bite"
 	var r: Dictionary = g.reel_in()
 	check(r.result == "catch" and r.get("race", false) and g.held == "" and g.race.score() == 1 and g.race.fish[0] == r.fish and cues.back() == "fish",
 		"a landed fish goes in the creel, not overhead (%s)" % [r])
 	check(int(g.fish_caught.get(r.fish.trim_prefix("fish:"), 0)) == 1, "and counts as caught")
-	g.hour = 22   # the moonlit koi's hour (a once-only fish of the village pond)
+	g.hour = 22   # the moonlit koi's hour (a once-only fish of the temple pond)
 	for i in 40:
-		g.fishing.cast("town", Vector2i(31, 14))
+		g.fishing.cast("town", Vector2i(2, 22))
 		g.fishing.state = "bite"
 		g.reel_in()
 	check(g.race.score() == 41 and not "fish:moon_koi" in g.race.fish and not g.fish_caught.has("moon_koi"), "once-only fish don't bite in a race")
@@ -1512,7 +1512,7 @@ func _race_play() -> void:
 	# Year 2: walking off mid-race ends it with the creel as it is (one fish: last, no ribbon).
 	g.year = 2
 	g.maps.place("town", origin, Vector2i.RIGHT)
-	check(load("res://scripts/farm_actions.gd").festival_spot(Vector2i(30, 13)) and g.race != null, "E at the flag starts the race")
+	check(load("res://scripts/farm_actions.gd").festival_spot(Vector2i(1, 21)) and g.race != null, "E at the flag starts the race")
 	g._race_step(3.0)
 	g.race.land("fish:funa")
 	g.go_to_map("farm", Vector2i(4, 4), Vector2i.DOWN)
@@ -1575,9 +1575,9 @@ func _scoop_data() -> void:
 	var g := Festivals.game("lantern_night")
 	check(g.get("kind") == "scoop" and g.id == "scoop" and Festivals.festival_of_game("scoop") == "lantern_night",
 		"Lantern Night has the goldfish scoop")
-	check(Festivals.at_game("lantern_night", Vector2i(13, 7)) and Festivals.at_game("lantern_night", Vector2i(14, 7))
-		and not Festivals.at_game("lantern_night", Vector2i(13, 8)) and not Festivals.at_game("lantern_night", Vector2i(9, 7))
-		and Festivals.stall_at("lantern_night", Vector2i(13, 7)) == "" and not Festivals.at_table("lantern_night", Vector2i(13, 7)),
+	check(Festivals.at_game("lantern_night", Vector2i(2, 29)) and Festivals.at_game("lantern_night", Vector2i(3, 29))
+		and not Festivals.at_game("lantern_night", Vector2i(2, 30)) and not Festivals.at_game("lantern_night", Vector2i(0, 29))
+		and Festivals.stall_at("lantern_night", Vector2i(2, 29)) == "" and not Festivals.at_table("lantern_night", Vector2i(2, 29)),
 		"the scoop is played at the goldfish stall, not the shops or the judges' table")
 	check(Festivals.ribbon_label("scoop") == "Goldfish Scoop" and Keepsakes.name_of("ribbon:scoop:1") == "Goldfish Scoop ribbon (1st)",
 		"the scoop's ribbon")
@@ -1607,7 +1607,7 @@ func _scoop_data() -> void:
 		p.erase("display")
 	check(Festivals.check({"festivals": {"a": plain}}) != "", "a scoop needs the goldfish tub on its stall")
 	var sold := f.duplicate(true)
-	sold.stall[0].cell = [13, 7]
+	sold.stall[0].cell = [2, 29]
 	check(Festivals.check({"festivals": {"a": sold}}) != "", "the goldfish stall sells nothing")
 	var mochi: Dictionary = Festivals.get_festival("years_turn").duplicate(true)
 	mochi.game.paper = 100
@@ -1763,7 +1763,7 @@ func _scoop_play() -> void:
 	_set_day(g, "summer", 20, 18, 0)
 	g.maps.place("farm", Vector2i(4, 4), Vector2i.DOWN)
 	check(g.start_game().why == "none", "no scoop from the farm")
-	g.maps.place("town", Vector2i(13, 8), Vector2i.UP)
+	g.maps.place("town", Vector2i(2, 30), Vector2i.UP)
 	g.held = "potato"
 	check(g.start_game().why == "held" and said.back() == "The scoop and the bowl take both hands. Put the Potato down first." and asked.is_empty(),
 		"the scoop needs empty hands (%s)" % [said.back()])
@@ -1787,7 +1787,7 @@ func _scoop_play() -> void:
 		"the ribbon goes on the board's record")
 	check(g.start_game().why == "played" and said.back() == "You already took a turn at the Goldfish Scoop this year." and asked.size() == 1, "one go a year")
 	# The judged catch contest beside it goes on as before.
-	g.maps.place("town", Vector2i(15, 8), Vector2i.UP)
+	g.maps.place("town", Vector2i(24, 30), Vector2i.UP)
 	g.held = "fish:koi"
 	var c: Dictionary = g.enter_contest()
 	check(c.ok and g.events_seen.has("contest:lantern_night:1") and events.back() == "contest_lanterns", "the Lantern Night Catch still takes its entry")
@@ -1797,8 +1797,8 @@ func _scoop_play() -> void:
 		and g.count("ribbon:scoop:1") == 1 and not g.scooping, "the go, the best count and the ribbon survive a save")
 	# Year 2: E at the tub starts it; nothing scooped comes last with nothing.
 	g.year = 2
-	g.maps.place("town", Vector2i(14, 8), Vector2i.UP)
-	check(load("res://scripts/farm_actions.gd").festival_spot(Vector2i(14, 7)) and asked.back() == ["lantern_night", ""] and g.scooping, "E at the goldfish tub starts the scoop")
+	g.maps.place("town", Vector2i(3, 30), Vector2i.UP)
+	check(load("res://scripts/farm_actions.gd").festival_spot(Vector2i(3, 29)) and asked.back() == ["lantern_night", ""] and g.scooping, "E at the goldfish tub starts the scoop")
 	money = g.money
 	r = g.finish_game(0)
 	check(r.place == 5 and r.prize.is_empty() and g.money == money and g.count("ribbon:scoop:5") == 0 and int(g.flags.get("game_best_scoop", 0)) == top,

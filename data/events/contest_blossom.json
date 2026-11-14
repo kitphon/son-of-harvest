@@ -6,10 +6,7 @@
 			"who": "kota",
 			"at": "plan",
 			"holds": "cucumber",
-			"to": [
-				19,
-				9
-			],
+			"to": [20, 17],
 			"face": "up",
 			"meanwhile": true
 		},
@@ -18,10 +15,7 @@
 			"who": "tome",
 			"at": "plan",
 			"holds": "turnip",
-			"to": [
-				22,
-				9
-			],
+			"to": [23, 17],
 			"face": "up",
 			"meanwhile": true
 		},
@@ -30,10 +24,7 @@
 			"who": "sayo",
 			"at": "plan",
 			"holds": "potato",
-			"to": [
-				23,
-				9
-			],
+			"to": [24, 17],
 			"face": "up",
 			"meanwhile": true
 		},
@@ -42,10 +33,7 @@
 			"who": "shige",
 			"at": "plan",
 			"holds": "potato",
-			"to": [
-				18,
-				9
-			],
+			"to": [19, 17],
 			"face": "up",
 			"meanwhile": true
 		},

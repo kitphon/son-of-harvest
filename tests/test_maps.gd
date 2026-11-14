@@ -684,24 +684,24 @@ func _map_rules() -> void:
 	check(h.door_at(Vector2i(4, 6)).to == "farm", "the house door goes to the farm")
 	check(h.step(Vector2i(3, 3)) == "floor" and h.step(Vector2i(3, 5)) == "soil", "footsteps by floor")
 	var t := MapManager.data("town")
-	check(t.door_at(Vector2i(-1, 10)).to == "farm", "walking off the west edge goes to the farm")
+	check(t.door_at(Vector2i(-1, 9)).to == "farm", "walking off the west edge goes to the farm")
 	_homes(t)
-	check(t.is_solid(Vector2i(17, 6)) and t.is_solid(Vector2i(20, 6)) and not t.is_solid(Vector2i(18, 6)), "torii posts block, the path through it doesn't")
-	check(t.is_solid(Vector2i(32, 15)), "the pond is solid")
-	check(MapView.ground_key(t, Vector2i(31, 14)) == "ground:water:%d" % (PlaceholderArt.WATER_N | PlaceholderArt.WATER_W), "pond banks")
+	check(t.is_solid(Vector2i(3, 5)) and t.is_solid(Vector2i(6, 5)) and not t.is_solid(Vector2i(4, 5)), "torii posts block, the path through it doesn't")
+	check(t.is_solid(Vector2i(3, 21)), "the pond is solid")
+	check(MapView.ground_key(t, Vector2i(2, 20)) == "ground:water:%d" % (PlaceholderArt.WATER_N | PlaceholderArt.WATER_W), "pond banks")
 	# The river: down the lane off the village's south edge and back; water across the map with
 	# banks only at the shores (none at the map's side edges, it flows on), rocks in the current.
 	var rv := MapManager.data("river")
 	var mn := MapManager.data("minamino")
-	check(t.door_at(Vector2i(4, 22)).get("to", "") == "minamino" and mn.door_at(Vector2i(4, -1)).get("to", "") == "town"
+	check(t.door_at(Vector2i(13, 34)).get("to", "") == "minamino" and mn.door_at(Vector2i(4, -1)).get("to", "") == "town"
 		and mn.door_at(Vector2i(4, 20)).get("to", "") == "river" and rv.door_at(Vector2i(4, -1)).get("to", "") == "minamino",
 		"the village lane, Minamino and the river path join up")
-	check(not t.is_solid(Vector2i(4, 21)) and t.tile(Vector2i(4, 21)) == "path", "the lane runs to the village's south edge")
+	check(not t.is_solid(Vector2i(13, 33)) and t.tile(Vector2i(13, 33)) == "floor" and t.tile(Vector2i(13, 30)) == "path", "the street runs down to the bridge at the village's south edge")
 	# The bamboo hill up the village's north lane: doors both ways, the clumps solid, the path
 	# open from the foot to the lookout, the cliff along the top.
 	var hl := MapManager.data("hill")
 	var kn := MapManager.data("kaminoda")
-	check(t.door_at(Vector2i(10, -1)).get("to", "") == "kaminoda" and kn.door_at(Vector2i(10, 20)).get("to", "") == "town"
+	check(t.door_at(Vector2i(13, -1)).get("to", "") == "kaminoda" and kn.door_at(Vector2i(10, 20)).get("to", "") == "town"
 		and kn.door_at(Vector2i(10, 20)).spawn == t.spawns.north[0], "the village's north lane and Kaminoda join up")
 	check(kn.door_at(Vector2i(22, -1)).get("to", "") == "hill" and hl.door_at(Vector2i(19, 30)).get("to", "") == "kaminoda"
 		and hl.door_at(Vector2i(19, 30)).spawn == kn.spawns.hill[0], "Kaminoda's lane north and the hill path join up")
@@ -757,7 +757,7 @@ func _map_rules() -> void:
 
 ## The villagers' homes: doors from the village with hours, the way back out, the furniture.
 func _homes(t: MapData) -> void:
-	var want := {Vector2i(5, 6): "tome_house", Vector2i(8, 15): "kota_house", Vector2i(25, 15): "sayo_house"}
+	var want := {Vector2i(18, 3): "tome_house", Vector2i(8, 29): "kota_house", Vector2i(20, 24): "sayo_house"}
 	for c in want:
 		var d := t.door_at(c)
 		check(d.get("to", "") == want[c] and d.has("hours") and d.closed != "", "the village door %s leads to %s, with hours" % [c, want[c]])
@@ -765,12 +765,12 @@ func _homes(t: MapData) -> void:
 		check(m != null and m.indoor and m.door_at(m.doors[0].cells[0]).to == "town" and m.doors[0].spawn == c + Vector2i.DOWN,
 			"%s is indoors and its door comes out in front of the village door" % want[c])
 		check(m != null and m.spawns.has("home") and not m.is_solid(m.spawns.home[0]), "%s has a free home spot" % want[c])
-	var door := t.door_at(Vector2i(5, 6))
+	var door := t.door_at(Vector2i(18, 3))
 	check(MapData.door_open(door, 7 * 60) and MapData.door_open(door, 6 * 60) and not MapData.door_open(door, 19 * 60)
 		and not MapData.door_open(door, 25 * 60) and MapData.door_open({}, 25 * 60), "a home is open 6:00-19:00, a door without hours always")
-	check(t.door_at(Vector2i(23, 15)).to == "store" and not t.door_at(Vector2i(23, 15)).has("hours"), "the store's own door keeps its shop hours")
-	var store_house: Dictionary = t.prop_at(Vector2i(23, 14))
-	check(store_house.get("side_door", -1) == 4 and store_house.cell.x + 4 == 25, "the store house draws Sayo's side door over its door cell")
+	check(t.door_at(Vector2i(18, 24)).to == "store" and not t.door_at(Vector2i(18, 24)).has("hours"), "the store's own door keeps its shop hours")
+	var store_house: Dictionary = t.prop_at(Vector2i(18, 23))
+	check(store_house.get("side_door", -1) == 4 and store_house.cell.x + 4 == 20, "the store house draws Sayo's side door over its door cell")
 	# Every prop kind on every map has a look in the flat view, and the homes build in 3D
 	# without the magenta stand-in box.
 	for id in MapManager.ids():
@@ -1388,8 +1388,8 @@ func _map_snow() -> void:
 	var k := SnowLayer.MASK_PER_CELL
 	var grass := SnowLayer.map_hold(town, Vector2i(0, 0), rules)
 	var path := SnowLayer.map_hold(town, Vector2i(0, 10), rules)
-	var gravel := SnowLayer.map_hold(town, Vector2i(15, 2), rules)
-	var pond := SnowLayer.map_hold(town, Vector2i(32, 15), rules)
+	var gravel := SnowLayer.map_hold(town, Vector2i(4, 3), rules)
+	var pond := SnowLayer.map_hold(town, Vector2i(3, 21), rules)
 	check(grass == 1.0 and path < grass and gravel < grass and gravel > 0.0 and pond == 0.0,
 		"village snow: grass %s, path %s, gravel %s, pond %s" % [grass, path, gravel, pond])
 	for kind in ["gravel", "scree", "rock_wall"]:
@@ -1408,8 +1408,8 @@ func _map_snow() -> void:
 	check(mask.get_size() == Vector2i(town.w * k, town.h * k) and absf(mask.get_pixel(1, 10 * k + 1).r - path) < 0.01,
 		"the village mask spans the map and holds the path value")
 	var roofs := SnowLayer.roof_mask_image(town, rules)
-	var door: Vector2i = town.doors[1].cells[0]   # Tome's door, on her house front
-	check(roofs.get_pixel(4 * k + 1, 4 * k + 1).r > 0.5 and roofs.get_pixel(door.x * k + 1, door.y * k + 1).r == 0.0
+	var door: Vector2i = town.doors[1].cells[0]   # the post office door, on its house front
+	check(roofs.get_pixel(17 * k + 1, 2 * k + 1).r > 0.5 and roofs.get_pixel(door.x * k + 1, door.y * k + 1).r == 0.0
 		and roofs.get_pixel(4 * k + 1, door.y * k + 1).r == 0.0 and roofs.get_pixel(1, 10 * k + 1).r == 0.0,
 		"2D roof snow over the houses, not on their front row or the road")
 
@@ -3820,8 +3820,8 @@ func _game_maps() -> void:
 	# A villager's home: in by day, shut at night with its message.
 	var said := []
 	g.message.connect(func(text): said.append(text))
-	var tome_door: Dictionary = MapManager.data("town").door_at(Vector2i(5, 6))
-	g.go_to_map("town", Vector2i(5, 7), Vector2i.UP)
+	var tome_door: Dictionary = MapManager.data("town").door_at(Vector2i(18, 3))
+	g.go_to_map("town", Vector2i(18, 4), Vector2i.UP)
 	g.hour = 19
 	g.minute = 30
 	g.use_door(tome_door)
@@ -3831,7 +3831,7 @@ func _game_maps() -> void:
 	g.use_door(tome_door)
 	check(g.maps.id == "tome_house" and g.maps.pos == MapManager.cell_pos(Vector2i(4, 5)) and g.indoors(), "and open at 8:00")
 	g.use_door(MapManager.data("tome_house").doors[0])
-	check(g.maps.id == "town" and g.maps.pos == MapManager.cell_pos(Vector2i(5, 7)), "out again in front of her door")
+	check(g.maps.id == "town" and g.maps.pos == MapManager.cell_pos(Vector2i(18, 4)), "out again in front of her door")
 	g.go_to_map("house", Vector2i(4, 5), Vector2i.UP)
 	g.use_door(MapManager.data("house").doors[0])
 	check(g.maps.id == "farm" and g.maps.pos == MapManager.cell_pos(Vector2i(4, 4)) and g.maps.facing == Vector2i.DOWN, "out of the house to the farm door")
@@ -3880,20 +3880,20 @@ func _bed_and_doors() -> void:
 	g.new_game()
 
 
-## The village clinic: a small house east of the smithy, its door clear of the river lane, a
-## path down to the road; inside a bed (no sleeping), the doctor's counter and the way out.
+## The village clinic: a small house east of the smithy, its door clear of the river lane, the
+## alley along to the street; inside a bed (no sleeping), the doctor's counter and the way out.
 func _clinic() -> void:
 	var t := MapManager.data("town")
-	var d := t.door_at(Vector2i(33, 6))
+	var d := t.door_at(Vector2i(22, 8))
 	check(d.get("to", "") == "clinic" and d.get("shop", "") == "clinic", "the small house east of the smithy is the clinic")
-	var house: Dictionary = t.prop_at(Vector2i(32, 5))
-	check(house.get("kind", "") == "village_house" and Vector2i(house.cell).x + int(house.door) == 33, "the clinic house draws its door at the door cell")
-	for y in [7, 8, 9]:
-		check(t.tile(Vector2i(33, y)) == "path" and not t.is_solid(Vector2i(33, y)), "a path from the clinic door to the road (33, %d)" % y)
-	check(Vector2i(t.spawns.clinic[0]) == Vector2i(33, 7) and t.spawns.clinic[1] == Vector2i.DOWN, "the town's clinic spawn is outside its door")
+	var house: Dictionary = t.prop_at(Vector2i(22, 7))
+	check(house.get("kind", "") == "village_house" and Vector2i(house.cell).x + int(house.door) == 22, "the clinic house draws its door at the door cell")
+	for x in range(15, 23):
+		check(t.tile(Vector2i(x, 9)) == "path" and not t.is_solid(Vector2i(x, 9)), "the alley from the clinic door to the street (%d, 9)" % x)
+	check(Vector2i(t.spawns.clinic[0]) == Vector2i(22, 9) and t.spawns.clinic[1] == Vector2i.DOWN, "the town's clinic spawn is outside its door")
 	check(Vector2i(house.cell).x > 10, "the clinic is far from the river lane on the west side")
 	var c := MapManager.data("clinic")
-	check(c.indoor and c.door_at(Vector2i(4, 6)).to == "town" and Vector2i(c.door_at(Vector2i(4, 6)).spawn) == Vector2i(33, 7), "clinic: indoors, door back to the village by its door")
+	check(c.indoor and c.door_at(Vector2i(4, 6)).to == "town" and Vector2i(c.door_at(Vector2i(4, 6)).spawn) == Vector2i(22, 9), "clinic: indoors, door back to the village by its door")
 	var bed: Vector2i = c.spawns.bed[0]
 	check(not c.is_solid(bed) and c.prop_at(bed + Vector2i.LEFT).get("kind", "") == "futon" and c.prop_at(bed + Vector2i.LEFT).get("use", "") == "",
 		"the bed spawn stands by the clinic bed, which doesn't sleep")
@@ -3908,8 +3908,8 @@ func _clinic_doors() -> void:
 	var said := []
 	var note := func(t): said.append(t)
 	g.message.connect(note)
-	var door := MapManager.data("town").door_at(Vector2i(33, 6))
-	g.go_to_map("town", Vector2i(33, 7), Vector2i.UP)
+	var door := MapManager.data("town").door_at(Vector2i(22, 8))
+	g.go_to_map("town", Vector2i(22, 9), Vector2i.UP)
 	g.hour = 20
 	g.use_door(door)
 	check(g.maps.id == "town" and said.size() > 0 and said.back().begins_with("Hinata Clinic is closed"), "the clinic is shut at 20:00 (%s)" % [said])
@@ -4304,7 +4304,7 @@ func _kept_lit_and_swaying() -> void:
 	for p in MapManager.data("town").props:
 		if str(p.kind) == "village_house":
 			house_ids += int(_k("mesh_cache").kept("prop|%s|%s|%s|%s" % ["town", p, g.season_name(), _k("snow_layer").map_has_snow(MapManager.data("town"))]))
-	check(house_ids == 6, "mesh cache: the village's six houses (the post office since Ren) are kept with their windows (%d)" % house_ids)
+	check(house_ids == 10, "mesh cache: the village's ten houses (the temple hall, the station and the street shops since the Arashiyama-style town) are kept with their windows (%d)" % house_ids)
 	check(a.windows.size() > 0 and a.windows == b.windows and a.lamps == b.lamps and b.is_in_group(_k("night_lights").GROUP),
 		"mesh cache: a village built again lists the same lit windows and lamps (%d, %d) and glows" % [b.windows.size(), b.lamps.size()])
 	var sa: Node3D = a.get_node_or_null("WindSway")

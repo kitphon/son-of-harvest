@@ -78,7 +78,7 @@
 		{"kind": "pine", "cell": [29, 18]}
 	],
 	"doors": [
-		{"cells": [[3, -1], [4, -1], [5, -1]], "to": "town", "spawn": [4, 20], "facing": "up"},
+		{"cells": [[3, -1], [4, -1], [5, -1]], "to": "town", "spawn": [13, 32], "facing": "up"},
 		{"cells": [[3, 20], [4, 20], [5, 20]], "to": "river", "spawn": [5, 1], "facing": "down"},
 		{"cells": [[11, 6]], "to": "shige_house", "spawn": [4, 5], "facing": "up", "hours": ["06:00", "21:00"], "closed": "Shige's house is dark. Nana must be asleep."},
 		{"cells": [[22, 14]], "to": "kiku_house", "spawn": [4, 5], "facing": "up", "hours": ["06:00", "19:00"], "closed": "Kiku's house is shut. She goes to bed with the sun."},

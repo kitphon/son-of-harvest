@@ -330,7 +330,7 @@ func _fish_log() -> void:
 	check(m.total_text() == "2 of %d kinds" % ids.size(), "the total (%s)" % m.total_text())
 	check(m.fish_details("koi") == (["", "", ""] as Array[String]) and m.fish_details("back")[0] == "", "no details for an unknown fish or Back")
 	var d := m.fish_details("ayu")
-	check(d[0] == "Where: the river and the village pond" and d[1] == "Season: Summer" and d[2] == "Hours: 5:00-12:00", "details from the data (%s)" % [d])
+	check(d[0] == "Where: the river and the temple pond" and d[1] == "Season: Summer" and d[2] == "Hours: 5:00-12:00", "details from the data (%s)" % [d])
 	check(m.fish_details("funa")[1] == "Season: All year" and m.fish_details("funa")[2] == "Hours: Any hour", "all year, any hour")
 	check(m.adjust(1) == "" and m.choose() == "" and m.page == "fishlog", "left / right and Enter on a fish do nothing")
 	m.back()

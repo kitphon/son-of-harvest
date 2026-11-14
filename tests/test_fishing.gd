@@ -147,19 +147,19 @@ func _init() -> void:
 
 	# Stopped by a map change and by the night.
 	g.cast_line(by_pond, Vector2i.RIGHT)
-	g.go_to_map("town", Vector2i(30, 15), Vector2i.RIGHT)
+	g.go_to_map("town", Vector2i(1, 21), Vector2i.RIGHT)
 	check(not g.fishing.active(), "a map change takes the line out")
-	check(g.water_ahead(Vector2i(30, 15), Vector2i.RIGHT) == Vector2i(31, 15), "the village pond is water")
-	check(g.cast_line(Vector2i(30, 15), Vector2i.RIGHT) == "cast" and g.fishing.place == "town", "cast in the village")
+	check(g.water_ahead(Vector2i(1, 21), Vector2i.RIGHT) == Vector2i(2, 21), "the temple pond is water")
+	check(g.cast_line(Vector2i(1, 21), Vector2i.RIGHT) == "cast" and g.fishing.place == "town", "cast in the village")
 	g.fishing.state = "bite"
 	var town_fish: String = g.reel_in().fish.trim_prefix("fish:")
 	check(rules.fish[town_fish].places.has("town"), "a village fish (%s)" % town_fish)
 	g.held = ""
 
-	# The river: down the lane off the village's south edge and through Minamino, a cast from the
+	# The river: over the bridge off the village's south edge and through Minamino, a cast from the
 	# shore, a river fish.
-	var lane: Dictionary = MapManager.data("town").door_at(Vector2i(4, 22))
-	check(lane.get("to", "") == "minamino", "the village's south lane goes to Minamino")
+	var lane: Dictionary = MapManager.data("town").door_at(Vector2i(13, 34))
+	check(lane.get("to", "") == "minamino", "the village's bridge goes to Minamino")
 	g.use_door(lane)
 	lane = MapManager.data("minamino").door_at(Vector2i(4, 20))
 	check(g.maps.id == "minamino" and lane.get("to", "") == "river", "Minamino's lane goes on to the river")
@@ -189,8 +189,8 @@ func _init() -> void:
 	check(Villagers.reaction("kota", "fish:nushi") == "love" and Villagers.reaction("kota", "fish:ugui") == "like", "Kota: the river elder best, any fish")
 	check(Villagers.reaction("hachiro", "fish:sake") == "love" and Villagers.reaction("tome", "fish:sake") == "like", "the fall salmon for Hachiro and Tome")
 	check(Villagers.reaction("sayo", "fish:ugui") == "dislike", "Sayo minds the bony dace")
-	g.go_to_map("town", Vector2i(30, 15), Vector2i.RIGHT)
-	g.cast_line(Vector2i(30, 15), Vector2i.RIGHT)
+	g.go_to_map("town", Vector2i(1, 21), Vector2i.RIGHT)
+	g.cast_line(Vector2i(1, 21), Vector2i.RIGHT)
 	g.end_day()
 	check(not g.fishing.active(), "the night takes the line out")
 

@@ -908,19 +908,24 @@ func _footprints() -> void:
 	var layer: Node = scene.prints
 	check(layer != null and _is(layer, "footprint_view.gd") and layer.get_parent() == scene.view and layer.trail.prints.is_empty(), "flat footprints: the view has its FootprintView, empty")
 	var row := -1
+	var from_x := 0
 	for y in scene.view.map.h:
-		var all := true
-		for x in range(3, 14):
-			all = all and fpc.ground_snow(Vector2(x + 0.5, y + 0.5)) >= float(rules.min_hold)
-		if all:
-			row = y
+		for left in scene.view.map.w - 10:
+			var all := true
+			for x in range(left, left + 11):
+				all = all and fpc.ground_snow(Vector2(x + 0.5, y + 0.5)) >= float(rules.min_hold)
+			if all:
+				row = y
+				from_x = left
+				break
+		if row >= 0:
 			break
 	check(row >= 0, "flat footprints: the village has a row of ground that holds snow (row %d)" % row)
 	var walk := func(x0: float, x1: float, y: float) -> void:
 		for i in 41:
 			player.position = Vector2(lerpf(x0, x1, i / 40.0), y) * 16.0
 			scene._leave_prints()
-	walk.call(3.5, 13.5, row + 0.5)
+	walk.call(from_x + 0.5, from_x + 10.5, row + 0.5)
 	var n: int = layer.trail.prints.size()
 	check(n >= 10 and n <= int(rules.cap), "flat footprints: the farmer's walk leaves a trail (%d)" % n)
 	var sides := {}
@@ -948,10 +953,10 @@ func _footprints() -> void:
 	scene._leave_prints()
 	check(layer.trail.prints.is_empty(), "flat footprints: the snow thinning under the threshold takes them away")
 	g.snow_cover = 80
-	walk.call(3.5, 13.5, row + 0.5)
+	walk.call(from_x + 0.5, from_x + 10.5, row + 0.5)
 	scene._on_day_started()
 	check(scene.prints.trail.prints.is_empty(), "flat footprints: a new day clears them")
-	walk.call(3.5, 13.5, row + 0.5)
+	walk.call(from_x + 0.5, from_x + 10.5, row + 0.5)
 	check(not scene.prints.trail.prints.is_empty(), "flat footprints: and a new trail starts")
 	scene._age_prints()
 	check(is_equal_approx(scene.prints.trail.strength(scene.prints.trail.prints[0]), 1.0 - 1.0 / float(rules.life)), "flat footprints: a minute passing dims them")

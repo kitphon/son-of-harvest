@@ -438,30 +438,30 @@ func _listen(g: Node) -> Dictionary:
 	return seen
 
 
-## Tome at the torii at 7:40: E facing her turns her round and opens her line; once a day it counts.
+## Tome at the temple gate at 7:40: E facing her turns her round and opens her line; once a day it counts.
 func _talk_in_town() -> void:
 	var g := _game()
 	var seen := _listen(g)
 	g.hour = 7
 	g.minute = 40
-	g.go_to_map("town", Vector2i(18, 9), Vector2i.UP)
-	var w: Dictionary = Talk.facing_villager(g.maps.current(), Vector2i(18, 9), Vector2i.UP, g.day_minutes(), g.trigger_state(Vector2i.ZERO))
-	check(w.get("id", "") == "tome", "the farmer below the torii faces Tome %s" % [w])
-	check(Talk.facing_villager(g.maps.current(), Vector2i(18, 9), Vector2i.LEFT, g.day_minutes(), g.trigger_state(Vector2i.ZERO)).is_empty(),
+	g.go_to_map("town", Vector2i(13, 19), Vector2i.UP)
+	var w: Dictionary = Talk.facing_villager(g.maps.current(), Vector2i(13, 19), Vector2i.UP, g.day_minutes(), g.trigger_state(Vector2i.ZERO))
+	check(w.get("id", "") == "tome", "the farmer below the temple gate faces Tome %s" % [w])
+	check(Talk.facing_villager(g.maps.current(), Vector2i(13, 19), Vector2i.LEFT, g.day_minutes(), g.trigger_state(Vector2i.ZERO)).is_empty(),
 		"nobody to the left")
 	var actions: GDScript = load("res://scripts/farm_actions.gd")
-	actions.on_action("interact", Vector2i(18, 9), Vector2i.UP)
+	actions.on_action("interact", Vector2i(13, 19), Vector2i.UP)
 	check(seen.said == [["talk_tome", "new_morning"]], "E opens Tome's morning line %s" % [seen.said])
 	check(g.affection.of("tome") == int(Affection.rules().talk), "the first talk of the day counts")
 	var t: float = g.day_minutes()
 	var turned: Dictionary = Villagers.where("tome", t, g.trigger_state(Vector2i.ZERO))
 	check(turned.facing == Vector2i.DOWN and not turned.moving, "she turns to the farmer %s" % [turned])
-	actions.on_action("interact", Vector2i(18, 9), Vector2i.UP)
+	actions.on_action("interact", Vector2i(13, 19), Vector2i.UP)
 	check(seen.said.size() == 2 and seen.said[1][1] in ["again_1", "again_2"], "a second talk: %s" % [seen.said])
 	check(g.affection.of("tome") == int(Affection.rules().talk), "it doesn't count again")
 	# She stands a moment after the talk, then her plan runs on that much later.
 	var stand := float(Villagers.common().talk_turn_minutes)
-	check(Villagers.where("tome", t + stand + 1.0, g.trigger_state(Vector2i.ZERO)).facing == Vector2i.UP, "then turns back to the torii")
+	check(Villagers.where("tome", t + stand + 1.0, g.trigger_state(Vector2i.ZERO)).facing == Vector2i.UP, "then turns back to the temple gate")
 	check(is_equal_approx(Villagers.delay_of("tome", t + stand + 1.0), stand), "the talk joined her delay")
 	g.end_day()
 	check(not g.affection.talked_on("tome", g.day_number()) and g.affection.of("tome") == int(Affection.rules().talk), "a new day, a new talk")
@@ -617,13 +617,13 @@ func _delay_and_bump() -> void:
 	var g := _game()
 	var s: Dictionary = g.trigger_state(Vector2i.ZERO)
 	Villagers.reset_day()
-	# Tome walks east along the road at 7:05 (x 10.0, y 10.5).
+	# Tome walks south down the main street at 7:05 (x 13.5, y 7.0).
 	var w := Villagers.where("tome", 425.0, s)
-	var farmer: Vector2 = w.pos + Vector2(0.6, 0)
+	var farmer: Vector2 = w.pos + Vector2(0, 0.6)
 	check(Villagers.bump("town", 425.0, 0.5, farmer, s) == ["tome"], "Tome bumps into the farmer ahead")
 	check(is_equal_approx(Villagers.delay_of("tome", 425.0), 0.5), "and waits half a minute")
 	var now: Vector2 = Villagers.where("tome", 425.0, s).pos
-	check(Villagers.bump("town", 425.0, 0.5, now - Vector2(0.6, 0), s).is_empty(), "the farmer behind her doesn't stop her")
+	check(Villagers.bump("town", 425.0, 0.5, now - Vector2(0, 0.6), s).is_empty(), "the farmer behind her doesn't stop her")
 	for i in 100:   # a long wait
 		Villagers.add_delay("tome", 425.0, 1.0)
 	check(is_equal_approx(Villagers.delay_of("tome", 425.0), float(Villagers.common().delay_max)), "the delay stops at delay_max")

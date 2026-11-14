@@ -10,6 +10,37 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-14 — Village rebuilt after Arashiyama (layout, step 1 of 2) — branch arashiyama-town
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: data/maps/town.json laid out again at 28 x 34 after the user's Arashiyama plan (the old map is git tag
+  `town-classic`; this work is on branch `arashiyama-town`, main untouched): a north-south main street (x 12-14) from
+  the lane to Kaminoda (north edge) down to a riverside walk (y 30) and a wooden bridge (floor tiles, x 12-14, y 31-33)
+  that crosses to Minamino; west the farm lane (y 9-10), the bamboo grove with the little shrine and its torii, the post
+  office, the temple grounds behind a board fence with their gate on the street (y 17-18): the hall, raked gravel and the
+  garden pond (the village's fishing water: "the temple pond" in data/fish.json and the Thai table), Kota's house by the
+  river with the koinobori socket; east Tome's house, the smithy and the clinic along an alley (y 9), the station, the
+  road to Sakurazaka (y 20-21), the store with Sayo's side door and two more shops. The hall, the station and the shops
+  are still village_house props (step 2 gives them their own looks). Doors back into the village from the 11 maps next
+  door point at the new spawns; new spawns `temple`, `bridge`, `station`.
+  Villagers: every town stop in data/villagers moved by one table of old -> new places (the old shrine plaza onto the
+  temple court, the old road's south side onto the grass north of the station, the pond onto the temple pond with the
+  face turned to the water) and the routes between them re-walked on the new map (fewest turns, paths first), by a
+  one-off script; every leg checked against the game's walk-time rule. Ren walks 1.9 cells a minute (was 1.6): his
+  round now crosses a longer village and the bridge. Shino's married birthday trip leaves 5 minutes earlier (9:30).
+  Festivals: Moon Night and Year's Turn in the temple court (the plaza's places moved the same way as the villagers),
+  the Lantern Night and Moon Night stalls and judges' table along the riverside walk (stand on the walk to use them),
+  Blossom Day's stall and table north of the store; the fishing race flag on the temple pond's west bank; the contest
+  and wedding events' cells moved with them.
+- Checked: all 42 tests/test_*.gd print `OK (0 failed)` (town cells updated in test_maps, test_festivals, test_talk,
+  test_villagers, test_fishing, test_birds, test_insects, test_koinobori, test_menu, test_relationships, test_view2d);
+  smoke runs (`--quit-after 300`: title, `--demo`, `--demo --map=town`, `--demo --mine=3`, koinobori, the four
+  `--festival=`): 0 ERROR lines; windowed `--quit-after 150 -- --demo`: exit 0. Frames at 10:00 (town@temple,
+  town@bridge, town@station in 3D, town@temple in the flat view): the gravel court, the pond, the bridge over the
+  river, the street and its houses draw; the east side is still open grass.
+- Left / next: step 2, the looks: a temple gate and hall, the station with its line, machiya fronts along the street,
+  stone paving, a black-wood torii. The street's houses face south (the engine's houses have only a south front), so
+  they show their side walls to the street.
+
 ## 2026-11-13 — Merge: hoshigaki (Opus), icicles fading (Sonnet), carp size in 3D (Haiku)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: merged 99ab2b8 hoshigaki under the eaves, 28c99c7 icicles fade with their own building and
