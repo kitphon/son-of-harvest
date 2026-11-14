@@ -4,7 +4,7 @@
 	"day_start": 6,
 	"grow_hours": 1.0,
 	"dry_hours": 2.0,
-	"tiles": ["path", "gravel"],
+	"tiles": ["path", "gravel", "stone"],
 	"farm_fixed": ["door", "coop_door", "barn_door"],
 	"density": 0.3,
 	"farm_density": 1.0,

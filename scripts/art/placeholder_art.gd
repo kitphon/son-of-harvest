@@ -1635,6 +1635,28 @@ static func _ground(kind: String, n: int) -> Image:
 				var y := rng.randi_range(0, 15)
 				_px(img, x, y, 1 + i % 2, 1, Color("5a4028") if i % 3 else Color("846446"))
 			_px(img, rng.randi_range(1, 14), rng.randi_range(1, 14), 1, 1, Color("a89478"))
+		"stone":
+			# Stone paving (ishidatami) of the village's main street: grey flags of two sizes laid in
+			# courses, offset course to course, a dark joint round each and a pale chip or two; the
+			# variant shifts the courses so neighbouring cells don't repeat.
+			img.fill(Color("5e5a54"))
+			var flags := [Color("9c978c"), Color("a8a296"), Color("908b80")]
+			for row in 3:
+				var y0 := row * 5 + (1 if row == 2 else 0)
+				var h := 5 if row < 2 else 4
+				var x := -((row * 5 + n * 3) % 7)
+				var k := 0
+				while x < 16:
+					var w := 6 if (k + row + n) % 3 else 4
+					var a := maxi(x + 1, 0)
+					var b := mini(x + w, 16)
+					if b > a:
+						_px(img, a, y0 + 1, b - a, h - 1, flags[(k + row) % 3])
+						_px(img, a, y0 + 1, b - a, 1, Color("b4aea2"))
+					x += w
+					k += 1
+			for i in 3:
+				_px(img, rng.randi_range(1, 14), rng.randi_range(1, 14), 1, 1, Color("c2bcb0"))
 		"gravel":
 			# Raked shrine gravel: light grey stones on a paler ground.
 			img.fill(Color("c8c4b8"))

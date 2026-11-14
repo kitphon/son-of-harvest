@@ -8,6 +8,10 @@ extends Node2D
 const T := 16
 const CROP_PATCHES := "res://scripts/world/crop_patches.gd"   # loaded when drawn: it needs the autoloads
 const FLAT_LIGHT := "res://scripts/world/flat_light.gd"       # the same (the paddies' rice takes the world's light)
+## The temple wall, its gate, the station and the line (TempleProps in 3D; named here so the flat
+## view keeps no link to the 3D scripts).
+const TEMPLE_KINDS: Array[String] = ["tsuiji", "temple_gate", "station", "rails"]
+
 const COLORS := {
 	"wall": Color("6a5a48"), "door": Color("4a2a14"), "futon": Color("e8e2d0"),
 	"low_table": Color("5a3a24"), "tansu": Color("3e3028"), "andon": Color("ffe6a8"),
@@ -17,6 +21,7 @@ const COLORS := {
 	"well": Color("8e8a80"), "jizo": Color("c8342c"), "persimmon": Color("e8782a"), "sakura": Color("f2bccb"), "maple": Color("c42a1e"),
 	"hasa": Color("d8b85a"), "woodpile": Color("8a6440"), "garden": Color("5a9a3a"), "wood_fence": Color("b08a5a"), "kiln": Color("9a7656"),
 	"hen_barn": Color("7a5a3a"), "ditch": Color("3e5a50"),
+	"tsuiji": Color("d2b06a"), "temple_gate": Color("5a3a26"), "station": Color("8a8680"), "rails": Color("6e6e72"),
 	"counter": Color("4a3424"), "shelf": Color("6a4a30"), "rice_sacks": Color("d8c088"),
 	"forge": Color("7a746c"), "anvil": Color("2a2a2e"), "tool_rack": Color("8a6a48"), "water_tub": Color("2a4a5a"), "river_rock": Color("6e6a62"), "ferry_boat": Color("8a6440"), "landing": Color("9a7650"), "cloth_rack": Color("2f5a96"), "koinobori": Color("8e8a82"),
 	"feed_box": Color("9a7048"), "nest": Color("d8bc78"), "incubator": Color("c8a868"),
@@ -249,9 +254,14 @@ func _draw_objects() -> void:
 		if p.kind == "landing":
 			_draw_landing(r)
 			continue
+		if p.kind in TEMPLE_KINDS:
+			_draw_temple(str(p.kind), r)
+			continue
 		var fill: Color = COLORS.get(p.kind, Color.MAGENTA)
 		if p.kind == "water_tub" and p.has("color"):   # a tub of its own water (Shino's indigo vats)
 			fill = Color(str(p.color))
+		if p.kind == "torii" and str(p.get("color", "")) == "black":   # the black-wood torii by the bamboo
+			fill = Color("3a2e26")
 		_objects.draw_rect(r.grow(-1), prop_tone(fill, p.kind, wet))
 	for door in map.doors:
 		for c in door.cells:
@@ -284,6 +294,35 @@ static func draw_drips(canvas: CanvasItem, r: Rect2, wet_now: float) -> void:
 	col.a = float(d.alpha)
 	for at in spots:
 		canvas.draw_rect(Rect2(at, Vector2.ONE), col)
+
+
+## The temple's wall, its gate and the station seen from above, in whole pixels (TempleProps in 3D):
+## the wall an ochre band under a grey tiled coping with its dark ridge, the gate and the station
+## a painted kawara roof (RoofArt) over their footprint, the line its sleepers and two steel rails.
+func _draw_temple(kind: String, r: Rect2) -> void:
+	match kind:
+		"tsuiji":
+			var along_x := r.size.x >= r.size.y
+			var band := Rect2(r.position.x, r.get_center().y - 5, r.size.x, 10) if along_x else Rect2(r.get_center().x - 5, r.position.y, 10, r.size.y)
+			_objects.draw_rect(band, prop_tone(Color("d2b06a"), "tsuiji", wet))
+			var cap := band.grow_individual(0, -2, 0, -2) if along_x else band.grow_individual(-2, 0, -2, 0)
+			_objects.draw_rect(cap, prop_tone(Color("6a6e76"), "tsuiji", wet))
+			var ridge := Rect2(band.position.x, band.get_center().y - 1, band.size.x, 2) if along_x else Rect2(band.get_center().x - 1, band.position.y, 2, band.size.y)
+			_objects.draw_rect(ridge, Color("3e4248"))
+		"temple_gate", "station":
+			var roof := r.grow(6) if kind == "temple_gate" else r.grow(2)
+			var size := Vector2i(roof.size)
+			var roof_key := RoofArt.key("kawara", "gable", 1, size)
+			_objects.draw_texture(PlaceholderArt.tex(roof_key), roof.position, roof_tint(roof_key, "kawara", wet))
+		"rails":
+			var y := r.get_center().y
+			_objects.draw_rect(Rect2(r.position.x, y - 6, r.size.x, 12), Color("8a857a"))
+			var x := r.position.x + 2.0
+			while x < r.end.x:
+				_objects.draw_rect(Rect2(x, y - 5, 2, 10), Color("4a3626"))
+				x += 7.0
+			for dy in [-3.0, 2.0]:
+				_objects.draw_rect(Rect2(r.position.x, y + dy, r.size.x, 1), Color("6e6e72"))
 
 
 ## Mio's plank landing over the water, in pixels (her boat is FerryView's).

@@ -14,9 +14,11 @@ const STONE := Color("9a968e")
 ## posts on black footings, the tie beam (nuki) through them, a short strut with a name plaque,
 ## and the top beams: the vermilion shimaki under the black kasagi, both rising `curl` from the
 ## middle to their ends with the square of the way out (the torii's soft upward sweep).
-static func torii(w: FarmWorld, mid: Vector3, r: Rect2) -> void:
-	var red := Minka.plain(VERMILION)
-	var black := Minka.plain(BLACK)
+## `kuroki`: a black-wood torii instead (posts and beams of dark unpainted wood, the top beam
+## straight), the kind that stands in a bamboo grove (the village's little shrine, data/maps/town.json).
+static func torii(w: FarmWorld, mid: Vector3, r: Rect2, kuroki := false) -> void:
+	var red := Minka.plain(Color("4a3a2e") if kuroki else VERMILION)
+	var black := Minka.plain(Color("2a221c") if kuroki else BLACK)
 	var span := r.size.x - 1.0
 	for x in [r.position.x + 0.5, r.end.x - 0.5]:
 		_cylinder(w, 0.085, 0.11, 2.05, Vector3(x, 1.025, mid.z), red)
@@ -27,7 +29,7 @@ static func torii(w: FarmWorld, mid: Vector3, r: Rect2) -> void:
 	w._box(Vector3(0.1, 0.34, 0.1), Vector3(mid.x, 1.84, mid.z), red)            # strut (gakuzuka)
 	w._box(Vector3(0.3, 0.36, 0.04), Vector3(mid.x, 1.84, mid.z + 0.07), black)  # plaque
 	w._box(Vector3(0.22, 0.28, 0.02), Vector3(mid.x, 1.84, mid.z + 0.09), Minka.plain(Color("c8a050")))
-	var curl := 0.16
+	var curl := 0.0 if kuroki else 0.16
 	var half := span / 2 + 0.65
 	var lift := func(x: float) -> float:
 		var t := absf(x - mid.x) / half

@@ -154,6 +154,7 @@ static func village_style(p: Dictionary) -> Dictionary:
 		"roof": str(p.get("roof", "gable")),
 		"storeys": clampi(int(p.get("storeys", 1)), 1, 2),
 		"wall": str(p.get("wall", "plaster")),
+		"street": str(p.get("street", "")),
 	}
 
 

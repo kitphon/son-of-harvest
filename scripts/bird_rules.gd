@@ -122,7 +122,7 @@ static func scene_of(m: MapData, farm: FarmGrid = null, seed_value := 0) -> Dict
 		var size := Vector2i(int(p.size[0]), int(p.size[1]))
 		for dx in [0, size.x - 1]:
 			var at := Vector2i(cell.x + dx, cell.y + size.y)
-			if m.in_bounds(at) and not m.is_solid(at) and m.tile(at) in ["grass", "path", "gravel"]:
+			if m.in_bounds(at) and not m.is_solid(at) and m.tile(at) in ["grass", "path", "gravel", "stone"]:
 				s.houses.append(Vector2(at) + Vector2(0.5, 0.5))
 	return s
 

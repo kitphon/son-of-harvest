@@ -251,7 +251,7 @@ func _make_prop(p: Dictionary) -> void:
 		return
 	match str(p.kind):
 		"village_house": _village_house(r, int(p.get("door", 1)), bool(p.get("noren", false)), int(p.get("side_door", -1)), LitSpots.village_style(p))
-		"torii": Shrine.torii(self, mid, r)
+		"torii": Shrine.torii(self, mid, r, str(p.get("color", "")) == "black")
 		"hokora": Shrine.hokora(self, mid)
 		"stone_lantern": Shrine.stone_lantern(self, mid)
 		"pine": _pine(mid, Vector2i(p.cell))
@@ -261,6 +261,7 @@ func _make_prop(p: Dictionary) -> void:
 		"landing": OutdoorProps.landing(self, r)
 		"cloth_rack": OutdoorProps.cloth_rack(self, p, r)
 		"koinobori": KoinoboriProps.build(self, p, r)
+		"tsuiji", "temple_gate", "station", "rails": TempleProps.prop(self, p, r, SnowLayer.map_has_snow(map))
 		"feed_box", "nest", "incubator", "feed_sack", "hatch": CoopProps.prop(self, p, mid, r)
 		"fodder_box", "stalls", "hay", "barn_gate": BarnProps.prop(self, p, mid, r)
 		"well", "jizo", "persimmon", "sakura", "maple", "hasa", "woodpile", "garden", "wood_fence", "kiln", "hen_barn", "ditch": CountryProps.prop(self, p, mid, r, Game.season_name())
@@ -296,8 +297,11 @@ func _village_house(r: Rect2, door: int, noren: bool, side_door := -1, style := 
 	var wall := LitSpots.VILLAGE_WALL   # 1.45 + overhang * pitch
 	var body := LitSpots.village_body(r)
 	# The walls and roofs depend on the footprint and the look only: kept a run (MeshCache).
-	MeshCache.build(self, "village_house|%s|%s|%s|%s|%s" % [body, roof, storeys, finish, SnowLayer.map_has_snow(map)], func() -> void:
+	var street := str(style.get("street", ""))
+	MeshCache.build(self, "village_house|%s|%s|%s|%s|%s|%s" % [body, roof, storeys, finish, street, SnowLayer.map_has_snow(map)], func() -> void:
 		_house_walls(body, 0.0, wall, finish, true)
+		if street == "east":
+			_machiya_front(body)
 		if storeys < 2:
 			_house_roof(body, wall, overhang, pitch, roof, _gable_key(finish))
 		else:
@@ -313,6 +317,26 @@ func _village_house(r: Rect2, door: int, noren: bool, side_door := -1, style := 
 		OutdoorProps.sway_picture(self, cloth, Vector2(0.95, 0.36), dx * 1.1)   # it blows out in the wind
 	for spot in LitSpots.village_house(r, door, noren, side_door, storeys, finish):
 		_lit_spot(spot)
+
+
+## A shop front (machiya) on the east wall of `body`, the side that faces the main street: a
+## dark lattice (koshi) of close slats over the ground floor, a short tiled eave (hisashi) over it,
+## clear of the side window above (LitSpots.village_house). The door stays on the south front.
+func _machiya_front(body: Rect2) -> void:
+	var p := FarmProps.Parts.new()
+	var x := body.end.x
+	var z0 := body.position.y + 0.18
+	var z1 := body.end.y - 0.18
+	FarmProps.block(p.st(Color("2e2016")), Rect2(x, z0, 0.03, z1 - z0), 0.1, Rect2(x, z0, 0.03, z1 - z0), 0.78)
+	var slat := p.st(Color("5a3c26"))
+	var z := z0 + 0.03
+	while z < z1 - 0.02:
+		FarmProps.block(slat, Rect2(x + 0.03, z, 0.035, 0.03), 0.1, Rect2(x + 0.03, z, 0.035, 0.03), 0.78)
+		z += 0.075
+	for y in [0.1, 0.74]:
+		FarmProps.block(slat, Rect2(x + 0.03, z0, 0.04, z1 - z0), y, Rect2(x + 0.03, z0, 0.04, z1 - z0), y + 0.04)
+	FarmProps.block(p.st("build:kawara"), Rect2(x, z0 - 0.12, 0.34, z1 - z0 + 0.24), 0.8, Rect2(x, z0 - 0.12, 0.04, z1 - z0 + 0.24), 0.88)
+	p.commit(self)
 
 
 ## The walls of a village house (or of its upper floor) over `body` (x / z), from `base` up to

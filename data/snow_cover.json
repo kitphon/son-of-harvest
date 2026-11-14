@@ -3,7 +3,7 @@
 	"melt_per_day": {"spring": 100, "summer": 100, "fall": 100, "winter": 20},
 	"rain_melt": 60,
 	"ground": {"grass": 1.0, "path": 0.85, "tilled": 0.6, "wet": 0.3, "water": 0.0,
-		"gravel": 0.75, "scree": 0.7, "rock_wall": 0.5, "paddy": 0.5},
+		"gravel": 0.75, "stone": 0.8, "scree": 0.7, "rock_wall": 0.5, "paddy": 0.5},
 	"roofs": {"village_house": 0.7, "hokora": 0.7},
 	"_farm_roofs": "The flat view's farm roofs (SnowLayer.farm_roof_mask_image, drawn shapes: the painted roofs, the silo's cone, the greenhouse's glass bays and ridge cap): the share of the 3D snow tops' amount each takes, which is whole from SnowLayer.TOP_FULL (half) cover up, so 1.0 matches the 3D roofs. The greenhouse's glass sheds snow by its shape (bare at the eaves and along the rafters), as in 3D, not by holding less. The village maps' roofs (roofs) keep the ground's patchy pattern.",
 	"farm_roofs": {"house": 1.0, "coop": 1.0, "barn": 1.0, "silo": 1.0, "greenhouse": 1.0},

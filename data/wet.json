@@ -21,7 +21,7 @@
 		"plain": {"dark": 0.86, "sat": 1.08, "gloss": 0.1}
 	},
 	"ground": {"grass": "grass", "path": "path", "soil": "path", "tilled": "tilled", "wet": "watered",
-		"gravel": "gravel", "scree": "gravel", "rock_wall": "stone", "step": "stone", "paddy": "paddy"},
+		"gravel": "gravel", "stone": "stone", "scree": "gravel", "rock_wall": "stone", "step": "stone", "paddy": "paddy"},
 	"marks": "A material may carry the meta `wet_surface` (WetRules.mark): its surface, even unshaded or see-through (the silo's and the greenhouse's flat-colored timber, hoops and stone, the greenhouse glass).", "materials": {"build:kawara": "kawara", "build:kawara_edge": "kawara", "build:thatch": "thatch",
 		"build:kaya": "kaya", "build:kaya_edge": "kaya", "build:planks": "wood", "build:planks_dark": "wood",
 		"build:board": "wood", "build:sugi": "wood", "build:plaster": "plaster", "build:tsuchi": "plaster",

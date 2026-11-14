@@ -1,5 +1,5 @@
 {
-	"_note": "The village (rebuilt 2026-11-14 after the Arashiyama-style plan; the old one is git tag town-classic): a north-south main street (x 12-14) from the lane to Kaminoda (north edge, x 13-14) down to the riverside walk (y 30) and the wooden bridge (x 12-14, y 31-33) that crosses to Minamino (south edge). West: the farm lane (y 9-10) to the farm gate, the bamboo grove with the little shrine and its torii (north-west), the post office by the lane (door 9, 8; Ren lives in the back), the temple grounds behind a fence with their gate on the street (y 17-18): the hall, raked gravel and the garden pond (fishing: the village water in data/fish.json), Kota's family's house by the river (door 8, 29) with the carp streamers' socket west of it. East: Grandma Tome's house (door 18, 3), the Kurogane Smithy (door 15, 8; Hachiro lives there) and the Hinata Clinic (door 22, 8; Dr. Yae; a collapse wakes the farmer there) along an alley (y 9), the station (scenery), the road east to Sakurazaka (y 20-21), the Yorozu Store (door 18, 24) with Sayo's side door (20, 24), two more shops (scenery). Doors open by their `hours` and say `closed` otherwise. The two store_sign props are the store's new sign (flag sayo_sign, old / new, heart_sayo_5). Format: README.md, Maps.",
+	"_note": "The village (rebuilt 2026-11-14 after the Arashiyama-style plan; the old one is git tag town-classic): a north-south main street (x 12-14, stone paving) from the lane to Kaminoda (north edge, x 13-14) down to the riverside walk (y 30) and the wooden bridge (x 12-14, y 31-33) that crosses to Minamino (south edge). West: the farm lane (y 9-10) to the farm gate, the bamboo grove with the little shrine and its black-wood torii (north-west), the post office by the lane (door 9, 8; Ren lives in the back), the temple grounds behind an earthen wall with a tiled coping (tsuiji) and their roofed gate on the street (temple_gate, y 17-18): the hall, raked gravel and the garden pond (fishing: the village water in data/fish.json), Kota's family's house by the river (door 8, 29) with the carp streamers' socket west of it. East: Grandma Tome's house (door 18, 3), the Kurogane Smithy (door 15, 8; Hachiro lives there) and the Hinata Clinic (door 22, 8; Dr. Yae; a collapse wakes the farmer there) along an alley (y 9), the station (scenery: a platform under its canopy and the line east, which is crossed on foot), the road east to Sakurazaka (y 20-21), the Yorozu Store (door 18, 24) with Sayo's side door (20, 24), two more shops (scenery). Doors open by their `hours` and say `closed` otherwise. The two store_sign props are the store's new sign (flag sayo_sign, old / new, heart_sayo_5). Format: README.md, Maps. The post office and Kota's house show a shop front (street: east, a lattice under a tiled eave) on the wall that faces the street.",
 	"id": "town",
 	"name": "Village",
 	"size": [
@@ -25,6 +25,10 @@
 		"b": {
 			"tile": "floor",
 			"step": "floor"
+		},
+		"p": {
+			"tile": "stone",
+			"step": "floor"
 		}
 	},
 	"ground": [
@@ -34,31 +38,31 @@
 		"gggssssggggggrrggggggggggggg",
 		"gggssssggggggrrrrrrggggggggg",
 		"ggggrrgggggggrrggggggggggggg",
-		"ggggrrggggggrrrggggggggggggg",
-		"ggggrrggggggrrrggggggggggggg",
-		"ggggrrggggggrrrggggggggggggg",
-		"rrrrrrrrrrrrrrrrrrrrrrrrrggg",
-		"rrrrrrrrrrrrrrrggggggggggggg",
-		"ggggggggggggrrrggggggggggggg",
-		"gssssssssssgrrrggggggggggggg",
-		"gssssssssssgrrrggggggggggggg",
-		"gssssssssssgrrrggggggggggggg",
-		"gssssrsssssgrrrrrrrrrrrggggg",
-		"gssssrsssssgrrrggggggggggggg",
-		"gssssrrrrrrrrrrggggggggggggg",
-		"gssssrrrrrrrrrrggggggggggggg",
-		"gssssssssssgrrrggggggggggggg",
-		"gswwwwsssssgrrrrrrrrrrrrrrrr",
-		"gswwwwsssssgrrrrrrrrrrrrrrrr",
-		"gswwwwsssssgrrrggggggggggggg",
-		"gswwwwsssssgrrrggggggggggggg",
-		"gssssssssssgrrrggggggggggggg",
-		"gssssssssssgrrrrrrrrrrgggggg",
-		"ggggggggggggrrrggggggggggggg",
-		"ggggggggggggrrrggggggggggggg",
-		"ggggggggggggrrrggggggggggggg",
-		"ggggggggggggrrrrrrrrrrrrrggg",
-		"rrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+		"ggggrrggggggpppggggggggggggg",
+		"ggggrrggggggpppggggggggggggg",
+		"ggggrrggggggpppggggggggggggg",
+		"rrrrrrrrrrrrppprrrrrrrrrrggg",
+		"rrrrrrrrrrrrpppggggggggggggg",
+		"ggggggggggggpppggggggggggggg",
+		"gssssssssssgpppggggggggggggg",
+		"gssssssssssgpppggggggggggggg",
+		"gssssssssssgpppggggggggggggg",
+		"gssssrsssssgppprrrrrrrrggggg",
+		"gssssrsssssgpppggggggggggggg",
+		"gssssrrrrrrrpppggggggggggggg",
+		"gssssrrrrrrrpppggggggggggggg",
+		"gssssssssssgpppggggggggggggg",
+		"gswwwwsssssgppprrrrrrrrrrrrr",
+		"gswwwwsssssgppprrrrrrrrrrrrr",
+		"gswwwwsssssgpppggggggggggggg",
+		"gswwwwsssssgpppggggggggggggg",
+		"gssssssssssgpppggggggggggggg",
+		"gssssssssssgppprrrrrrrgggggg",
+		"ggggggggggggpppggggggggggggg",
+		"ggggggggggggpppggggggggggggg",
+		"ggggggggggggpppggggggggggggg",
+		"ggggggggggggppprrrrrrrrrrggg",
+		"rrrrrrrrrrppppppprrrrrrrrrrr",
 		"wwwwwwwwwwwwbbbwwwwwwwwwwwww",
 		"wwwwwwwwwwwwbbbwwwwwwwwwwwww",
 		"wwwwwwwwwwwwbbbwwwwwwwwwwwww"
@@ -75,7 +79,8 @@
 				3
 			],
 			"door": 1,
-			"wall": "timber"
+			"wall": "timber",
+			"street": "east"
 		},
 		{
 			"kind": "village_house",
@@ -137,19 +142,6 @@
 		{
 			"kind": "village_house",
 			"cell": [
-				17,
-				12
-			],
-			"size": [
-				6,
-				3
-			],
-			"door": 0,
-			"wall": "timber"
-		},
-		{
-			"kind": "village_house",
-			"cell": [
 				16,
 				22
 			],
@@ -200,7 +192,87 @@
 				3
 			],
 			"door": 2,
-			"wall": "yakisugi"
+			"wall": "yakisugi",
+			"street": "east"
+		},
+		{
+			"kind": "station",
+			"cell": [
+				17,
+				12
+			],
+			"size": [
+				6,
+				2
+			]
+		},
+		{
+			"kind": "rails",
+			"cell": [
+				17,
+				14
+			],
+			"size": [
+				11,
+				1
+			],
+			"solid": false
+		},
+		{
+			"kind": "tsuiji",
+			"cell": [
+				0,
+				11
+			],
+			"size": [
+				11,
+				1
+			]
+		},
+		{
+			"kind": "tsuiji",
+			"cell": [
+				0,
+				26
+			],
+			"size": [
+				11,
+				1
+			]
+		},
+		{
+			"kind": "tsuiji",
+			"cell": [
+				11,
+				11
+			],
+			"size": [
+				1,
+				6
+			]
+		},
+		{
+			"kind": "tsuiji",
+			"cell": [
+				11,
+				19
+			],
+			"size": [
+				1,
+				8
+			]
+		},
+		{
+			"kind": "temple_gate",
+			"cell": [
+				11,
+				17
+			],
+			"size": [
+				1,
+				2
+			],
+			"solid": false
 		},
 		{
 			"kind": "hokora",
@@ -232,7 +304,8 @@
 					3,
 					0
 				]
-			]
+			],
+			"color": "black"
 		},
 		{
 			"kind": "stone_lantern",
@@ -246,50 +319,6 @@
 			"cell": [
 				6,
 				3
-			]
-		},
-		{
-			"kind": "wood_fence",
-			"cell": [
-				0,
-				11
-			],
-			"size": [
-				11,
-				1
-			]
-		},
-		{
-			"kind": "wood_fence",
-			"cell": [
-				0,
-				26
-			],
-			"size": [
-				11,
-				1
-			]
-		},
-		{
-			"kind": "wood_fence",
-			"cell": [
-				11,
-				11
-			],
-			"size": [
-				1,
-				6
-			]
-		},
-		{
-			"kind": "wood_fence",
-			"cell": [
-				11,
-				19
-			],
-			"size": [
-				1,
-				8
 			]
 		},
 		{

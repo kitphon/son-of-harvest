@@ -448,6 +448,7 @@ func _process(delta: float) -> bool:
 		_game_maps()
 		_bed_and_doors()
 		_clinic_doors()
+		_arashiyama_town()
 		_story_props()
 		_ferry_boat()
 		_dye_cloth()
@@ -696,7 +697,7 @@ func _map_rules() -> void:
 	check(t.door_at(Vector2i(13, 34)).get("to", "") == "minamino" and mn.door_at(Vector2i(4, -1)).get("to", "") == "town"
 		and mn.door_at(Vector2i(4, 20)).get("to", "") == "river" and rv.door_at(Vector2i(4, -1)).get("to", "") == "minamino",
 		"the village lane, Minamino and the river path join up")
-	check(not t.is_solid(Vector2i(13, 33)) and t.tile(Vector2i(13, 33)) == "floor" and t.tile(Vector2i(13, 30)) == "path", "the street runs down to the bridge at the village's south edge")
+	check(not t.is_solid(Vector2i(13, 33)) and t.tile(Vector2i(13, 33)) == "floor" and t.tile(Vector2i(13, 30)) == "stone", "the street runs down to the bridge at the village's south edge")
 	# The bamboo hill up the village's north lane: doors both ways, the clumps solid, the path
 	# open from the foot to the lookout, the cliff along the top.
 	var hl := MapManager.data("hill")
@@ -965,7 +966,8 @@ func _light_pools(world: Node3D, occ: RefCounted) -> void:
 		var k: float = NightLights.ground_seen(p.center, p.own, p.center + eye, occ)
 		if k == 1.0:
 			seen += 1
-	check(seen >= full.size() / 2, "most pools are in plain view of the eye (%d of %d)" % [seen, full.size()])
+	# A third, not a half, since the village is a close-built street (2026-11-14): more houses stand in front of others.
+	check(seen >= full.size() / 3, "many pools are in plain view of the eye (%d of %d)" % [seen, full.size()])
 	var Occluders: GDScript = load("res://scripts/world3d/occluders.gd")
 	var blocker: RefCounted = Occluders.new()
 	var box := MeshInstance3D.new()
@@ -1720,7 +1722,7 @@ func _hip_roof() -> void:
 ## pent roof and the main eave, snow on every roof, one fading thing.
 func _village_styles() -> void:
 	var plain: Dictionary = LitSpots.village_style({})
-	check(plain == {"roof": "gable", "storeys": 1, "wall": "plaster"}, "a village house's plain look (%s)" % plain)
+	check(plain == {"roof": "gable", "storeys": 1, "wall": "plaster", "street": ""}, "a village house's plain look (%s)" % plain)
 	var seen := {}
 	var odd: Array = []
 	for id in ["town", "kaminoda", "minamino", "sakurazaka"]:
@@ -3880,6 +3882,39 @@ func _bed_and_doors() -> void:
 	g.new_game()
 
 
+## The village after Arashiyama (2026-11-14): the main street in stone paving, the temple's wall
+## solid but its gate open, the black-wood torii, the station and its line (crossed on foot), the
+## shop fronts on the street side, and every new piece built in 3D and drawn in the flat view.
+func _arashiyama_town() -> void:
+	var t := MapManager.data("town")
+	check(t.w == 28 and t.h == 34, "the village is 28 x 34")
+	for y in range(6, 30):
+		check(t.tile(Vector2i(13, y)) == "stone" and not t.is_solid(Vector2i(13, y)), "the main street is stone paving at (13, %d)" % y)
+	check(t.is_solid(Vector2i(11, 14)) and t.is_solid(Vector2i(11, 21)) and t.is_solid(Vector2i(5, 11)) and t.is_solid(Vector2i(5, 26)),
+		"the temple wall stands round the court")
+	check(not t.is_solid(Vector2i(11, 17)) and not t.is_solid(Vector2i(11, 18)) and t.prop_at(Vector2i(11, 17)).get("kind", "") == "temple_gate",
+		"the gate lets the farmer in from the street")
+	check(t.prop_at(Vector2i(3, 5)).get("color", "") == "black", "the little shrine's torii is black wood")
+	check(t.is_solid(Vector2i(19, 12)) and t.prop_at(Vector2i(19, 12)).get("kind", "") == "station"
+		and not t.is_solid(Vector2i(24, 14)) and t.prop_at(Vector2i(24, 14)).get("kind", "") == "rails", "the station stands solid, its line is crossed on foot")
+	var fronts := t.props.filter(func(p): return p.kind == "village_house" and str(p.get("street", "")) == "east")
+	check(fronts.size() == 2 and fronts.all(func(p): return int(p.cell.x) + int(p.size.x) == 11), "the post office and Kota's house show a shop front to the street")
+	check(LitSpots.village_style({"street": "east"}).street == "east" and LitSpots.village_style({}).street == "", "the house style carries its street side")
+	var snow: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/snow_cover.json"))
+	check(SnowLayer.map_hold(t, Vector2i(13, 10), snow) > 0.0 and WetRules.config().ground.get("stone", "") == "stone",
+		"stone paving holds snow and gets wet like stone")
+	check(PlaceholderArt.image("ground:stone:0").get_used_rect().has_area(), "the stone paving has its picture")
+	var temple: GDScript = load("res://scripts/world3d/temple_props.gd")
+	for kind in temple.KINDS:
+		check(MapView.COLORS.has(kind), "%s has a flat colour" % kind)
+		var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+		w.map = t
+		var before := w.get_child_count()
+		temple.prop(w, {"kind": kind}, Rect2(2, 2, 1 if kind == "temple_gate" else 4, 2 if kind == "temple_gate" else 1), false)
+		check(w.get_child_count() > before, "%s builds its meshes in 3D" % kind)
+		w.free()
+
+
 ## The village clinic: a small house east of the smithy, its door clear of the river lane, the
 ## alley along to the street; inside a bed (no sleeping), the doctor's counter and the way out.
 func _clinic() -> void:
@@ -4304,7 +4339,7 @@ func _kept_lit_and_swaying() -> void:
 	for p in MapManager.data("town").props:
 		if str(p.kind) == "village_house":
 			house_ids += int(_k("mesh_cache").kept("prop|%s|%s|%s|%s" % ["town", p, g.season_name(), _k("snow_layer").map_has_snow(MapManager.data("town"))]))
-	check(house_ids == 10, "mesh cache: the village's ten houses (the temple hall, the station and the street shops since the Arashiyama-style town) are kept with their windows (%d)" % house_ids)
+	check(house_ids == 9, "mesh cache: the village's nine houses (the temple hall and the street shops since the Arashiyama-style town) are kept with their windows (%d)" % house_ids)
 	check(a.windows.size() > 0 and a.windows == b.windows and a.lamps == b.lamps and b.is_in_group(_k("night_lights").GROUP),
 		"mesh cache: a village built again lists the same lit windows and lamps (%d, %d) and glows" % [b.windows.size(), b.lamps.size()])
 	var sa: Node3D = a.get_node_or_null("WindSway")

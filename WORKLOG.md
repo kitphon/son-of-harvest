@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-14 — Village after Arashiyama, step 2: the temple wall and gate, the station, stone paving, shop fronts — branch arashiyama-town
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: TempleProps (scripts/world3d/temple_props.gd, FarmProps.block parts, lit): `tsuiji`, the temple's earthen wall
+  (stone footing, ochre plaster with five white bands both sides, a kawara coping from a dark ridge) in place of the
+  board fences round the court; `temple_gate`, a roofed gate on the street (four dark pillars, tie beams, a gilt plaque
+  on the street face, a stone sill, a kawara gable along the wall with ridge end tiles), its cells open; `station`, a
+  stone platform with a pale edge, a canopy of a shallow kawara gable on posts, a ticket booth, a bench and the name
+  board, in place of the stand-in house; `rails`, the line east from it (ballast, sleepers, two rails), crossed on foot.
+  The little shrine's torii is black wood (`"color": "black"`: dark posts, a straight top beam; Shrine.torii `kuroki`).
+  A village house with `"street": "east"` shows a shop front on its east wall, the side on the main street (a lattice of
+  close slats under a short tiled eave, clear of the side window; MapWorld._machiya_front, in its MeshCache key): the
+  post office and Kota's house. A `stone` ground tile (ishidatami: grey flags in offset courses) for the main street and
+  the bridge head walk: PlaceholderArt, snow hold 0.8, wet as stone, puddles, sparrows' ground; footsteps as floor.
+  The flat view: the wall an ochre band under a grey coping, the gate and the station a painted kawara roof, the line
+  its sleepers and rails (MapView._draw_temple; MapView.TEMPLE_KINDS keeps the flat view free of the 3D scripts).
+- Checked: all 42 tests/test_*.gd print `OK (0 failed)`; test_maps `_arashiyama_town` (street in stone, wall solid,
+  gate open, black torii, station solid and line crossable, the two shop fronts, the style key, stone's snow, wet and
+  picture, every new kind's flat colour and 3D meshes); its pools check now asks a third of the pools in plain view, not
+  half (13 of 35: the close-built street stands more houses in front of others); the village house count is 9. Smoke
+  runs (`--quit-after 300`: title, `--demo`, `--demo --map=town`, `--demo --mine=3`, winter icicles in town, rain in town,
+  `--festival=lantern_night`, `--festival=years_turn`): 0 ERROR lines; windowed `--quit-after 150 -- --demo`: exit 0.
+  Frames at 10:00 (town@temple, town@station, town@shrine, town@kota in 3D, town@temple flat): the ochre wall with its
+  tiled coping and the gate (turning see-through in front of the farmer), the station's canopy, booth, bench and board
+  over the line, the black torii among the bamboo, the paved street, the flat view's wall, roofs and rails.
+- Left / next: the east side of the street still faces south (the engine's houses have one front), so only the west
+  side's houses show their shop fronts; the hall is still a village house; the flat view's stone reads as bricks at
+  1x; the gate's flat roof is drawn along x. Then the user's look at the branch, and the merge into main.
+
 ## 2026-11-14 — Village rebuilt after Arashiyama (layout, step 1 of 2) — branch arashiyama-town
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: data/maps/town.json laid out again at 28 x 34 after the user's Arashiyama plan (the old map is git tag
