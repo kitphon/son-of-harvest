@@ -19,8 +19,8 @@
 		"clinic": [
 			{"at": "06:00", "map": "away"},
 			{"at": "08:30", "map": "clinic", "from": [5, 2], "route": [{"face": "down"}]},
-			{"at": "13:00", "map": "town", "from": [22, 9], "route": [{"to": [12, 9]}, {"to": [12, 16]}, {"face": "up"}]},
-			{"at": "13:30", "map": "town", "route": [{"to": [12, 9]}, {"to": [22, 9]}, {"face": "up"}]},
+			{"at": "13:00", "map": "town", "from": [51, 16], "route": [{"to": [39, 16]}, {"to": [39, 20]}, {"face": "up"}]},
+			{"at": "13:30", "map": "town", "route": [{"to": [39, 16]}, {"to": [51, 16]}, {"face": "up"}]},
 			{"at": "13:50", "map": "clinic", "from": [5, 2], "route": [{"face": "down"}]},
 			{"at": "18:00", "map": "away"}
 		],

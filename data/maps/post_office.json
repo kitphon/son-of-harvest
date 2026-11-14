@@ -31,7 +31,7 @@
 		{"kind": "rice_sacks", "cell": [1, 5]}
 	],
 	"doors": [
-		{"cells": [[3, 6]], "to": "town", "spawn": [9, 9], "facing": "down"}
+		{"cells": [[3, 6]], "to": "town", "spawn": [51, 9], "facing": "down"}
 	],
 	"spawns": {
 		"start": [[3, 5], "up"],

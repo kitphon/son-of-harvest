@@ -354,9 +354,9 @@ func _post_step() -> void:
 	var posts := JSON.stringify(Villagers.all().ren.plans.usual).count('"post"')
 	check(posts >= 13, "Ren posts at every door of his round (%d stops)" % posts)
 	Villagers.reset_day()
-	var w := Villagers.where("ren", 8 * 60 + 38, _state())
-	check(w.map == "town" and w.posting and Vector2i(w.pos.floor()) == Vector2i(18, 4) and w.facing == Vector2i.UP,
-		"8:38, Ren slips the post in at Tome's door %s" % [w])
+	var w := Villagers.where("ren", 8 * 60 + 34, _state())
+	check(w.map == "town" and w.posting and Vector2i(w.pos.floor()) == Vector2i(46, 9) and w.facing == Vector2i.UP,
+		"8:34, Ren slips the post in at Tome's door %s" % [w])
 	check(FileAccess.get_file_as_string("res://data/sfx.json").contains('"letter_post"'), "the letter's paper sound is in data/sfx.json")
 
 
@@ -554,7 +554,7 @@ func _doctor() -> void:
 		var t1 := int(shop.open[1]) * 60.0 - 1.0
 		check(Villagers.is_on("yae", "clinic", t0, s) and Villagers.is_on("yae", "clinic", t1, s), "in at opening and closing (%s)" % weather)
 	var walk := Villagers.where("yae", 800.0, _state())
-	check(walk.map == "town" and walk.pos == Vector2(12.5, 16.5) and walk.facing == Vector2i.UP, "on a dry day she stands by the temple gate at 13:20 %s" % [walk])
+	check(walk.map == "town" and walk.pos == Vector2(39.5, 20.5) and walk.facing == Vector2i.UP, "on a dry day she stands by the temple gate at 13:20 %s" % [walk])
 	check(Villagers.where("yae", 800.0, _state({"weather": "rain"})).map == "clinic", "and stays in when it rains")
 
 
@@ -568,12 +568,12 @@ func _town_today() -> void:
 	check(Villagers.on_map("store", 600.0, s).map(func(w): return w.id) == ["sayo"]
 		and Villagers.on_map("smithy", 600.0, s).map(func(w): return w.id) == ["hachiro"], "the keepers at their counters at 10:00")
 	check(at.call(1260.0).is_empty(), "everyone in at 21:00 %s" % [at.call(1260.0)])
-	# Tome's morning: from her door (18, 4) west to the main street, down to the temple gate, 1.5 cells / min.
+	# Tome's morning: from her door (46, 9) west along the alley to the main street, down to the temple gate, 1.5 cells / min.
 	var w := Villagers.where("tome", 425.0, s)
-	check(w.map == "town" and w.pos.is_equal_approx(Vector2(13.5, 7.0)) and w.facing == Vector2i.DOWN and w.moving,
+	check(w.map == "town" and w.pos.is_equal_approx(Vector2(40.5, 11.0)) and w.facing == Vector2i.DOWN and w.moving,
 		"Tome walks down the main street at 7:05 %s" % [w])
 	w = Villagers.where("tome", 460.0, s)
-	check(w.pos == Vector2(13.5, 18.5) and w.facing == Vector2i.UP and not w.moving, "Tome stands at the temple gate at 7:40 %s" % [w])
+	check(w.pos == Vector2(39.5, 22.5) and w.facing == Vector2i.UP and not w.moving, "Tome stands at the temple gate at 7:40 %s" % [w])
 	check(Villagers.where("tome", 425.0, _state({"weather": "rain"})).map == "tome_house", "Tome stays home on a wet day")
 	check(Villagers.where("tome", 425.0, _state({"season": "winter"})).map == "tome_house"
 		and Villagers.where("tome", 620.0, _state({"season": "winter"})).map == "town", "Tome comes out late in winter")
@@ -581,7 +581,7 @@ func _town_today() -> void:
 		and not Villagers.is_on("sayo", "town", 1100.0, s), "Sayo is in the store at noon on a shop day, out on her day off, in at 18:20")
 	check(Villagers.where("sayo", 720.0, s).pos == Vector2(3.5, 2.5), "Sayo stands at the store's keeper spot at noon")
 	check(Villagers.where("sayo", 525.0, s).map == "town", "and sweeps in front before opening")
-	check(Villagers.where("sayo", 720.0, _state({"day": 7, "weekday": "sun"})).pos == Vector2(19.5, 5.5), "on Sunday she is off visiting Tome")
+	check(Villagers.where("sayo", 720.0, _state({"day": 7, "weekday": "sun"})).pos == Vector2(47.5, 10.5), "on Sunday she is off visiting Tome")
 	check(Villagers.where("hachiro", 720.0, _state({"weather": "rain"})).map == "smithy", "Hachiro works the forge in the rain")
 	check(Villagers.where("hachiro", 600.0, _state({"day": 7, "weekday": "sun"})).map == "river", "Hachiro fishes the river on Sunday")
 	check(Villagers.where("nobody", 600.0, s).is_empty() and not Villagers.is_on("nobody", "town", 600.0, s), "an unknown villager is nowhere")
@@ -884,7 +884,7 @@ func _check_views() -> void:
 	check(layers3[0].whistling("tome") and layers2[0].whistling("tome") and not layers3[0].whistling("kota") and not layers2[0].whistling("kota"),
 		"both views show a note puff over Tome, who whistles, and none over Kota")
 	var kota := Villagers.where("kota", g.day_minutes(), g.trigger_state(Vector2i.ZERO))
-	check(kota.pos == Vector2(6.5, 23.5) and kota.facing == Vector2i.LEFT and not kota.moving, "Kota is fishing at the pond by 14:20 %s" % [kota])
+	check(kota.pos == Vector2(26.5, 27.5) and kota.facing == Vector2i.LEFT and not kota.moving, "Kota is fishing at the pond by 14:20 %s" % [kota])
 	_scene3.free()
 	_scene2.free()
 	g.unpause()

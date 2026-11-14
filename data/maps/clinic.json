@@ -108,7 +108,7 @@
 				]
 			],
 			"to": "town",
-			"spawn": [22, 9],
+			"spawn": [51, 16],
 			"facing": "down"
 		}
 	],

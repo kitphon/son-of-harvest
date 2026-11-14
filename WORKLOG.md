@@ -10,6 +10,39 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-14 — Village v2 at 56 x 48, laid out after the user's map of Arashiyama — branch arashiyama-town
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user played the 28 x 34 village and found it did not feel like Arashiyama; they sent a map of the area.
+  data/maps/town.json is now 56 x 48 (written by a one-off script, kept out of the repo), placed as that map has it: the
+  river (6 rows wide) in from a gorge at the west edge, bending east along the south and out at the east edge; a
+  riverside road on its north bank with cherries; a long wooden bridge (x 40-42, rows 35-42) to a park on the south bank
+  with cherries and low pines (nothing tall south of the river: the camera looks from the south-east) and on to Minamino.
+  The stone main street (x 40-42) runs north to the Sagano line (rails, y 2, crossed on foot) and Kaminoda. West of it the
+  temple inside its ochre wall (x 18-34, y 14-30): the gate on the street, a two-storey hall, a kitchen hall, the garden
+  pond (fishing), a north gate to the bamboo path; shops facing the street (street: east) and Kota's family's house by the
+  river, the carp pole beside it; an art museum by the river (scenery). North: the bamboo path (y 11-12) through thick
+  bamboo, the little shrine with its black torii, Ogura pond on the path west (no way out there: the hill), a small station
+  on the line; the hill's pines and maples on the west edge. East along alleys: Tome, the post office, the smithy, the
+  clinic, the station with its line east, the store with Sayo's side door, a shop, the road to Sakurazaka. The farm is
+  reached by a lane off the north edge west of the street (34-35), so the farm's commuters do not cross the whole village.
+  Villagers: every town stop moved from the classic village (tag town-classic) by one table to its place here and the
+  routes re-walked on the new map; where a walk no longer fits before the next entry, that entry starts earlier by the
+  minutes missing, rounded to 5, and the ones before it with it when needed (58 entries, mostly the festival-day returns
+  home and the spouses' trips through the village; Ren's afternoon round from 12:40; worst start along a loop counted).
+  Ren walks at his old 1.6 again. Festivals: Moon Night and Year's Turn in the temple court before the hall, the stalls
+  and judges' table of Blossom Day, Lantern Night and Moon Night along the riverside road (stand on the road to use them),
+  the Blossom Day cherries and mats in the park, the fishing race flag on the pond's west bank; contest and wedding cells
+  moved with them. New spawns: `bamboo`, `park`.
+- Checked: all 42 tests/test_*.gd print `OK (0 failed)` (town cells updated in test_maps (its Arashiyama checks now ask
+  the 56 x 48 size, the street and bridge, a river of over 300 cells in from the west edge, the wall and both gates, the
+  bamboo, the four shop fronts; the run-into-an-exit check uses the north-west exit; 13 kept houses), test_festivals,
+  test_talk, test_villagers, test_fishing, test_birds, test_insects, test_koinobori, test_relationships); smoke runs
+  (`--quit-after 300`: title, `--demo`, `--demo --map=town`, `--demo --mine=3`, winter icicles, rain, the four
+  `--festival=`, koinobori): 0 ERROR lines; windowed `--quit-after 150 -- --demo`: exit 0. Frames at 10:00 (town@bridge,
+  @bamboo, @temple, @koinobori, @station, fall at the bridge, the flat view at the bridge) looked at.
+- Left / next: the east side's houses still face south (one front only); a villager leaving a long loop may cut a corner
+  on the first leg (the game walks straight from wherever the loop has them); the user's look, then the merge into main.
+
 ## 2026-11-14 — Village after Arashiyama, step 2: the temple wall and gate, the station, stone paving, shop fronts — branch arashiyama-town
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: TempleProps (scripts/world3d/temple_props.gd, FarmProps.block parts, lit): `tsuiji`, the temple's earthen wall

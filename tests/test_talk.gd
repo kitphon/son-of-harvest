@@ -444,19 +444,19 @@ func _talk_in_town() -> void:
 	var seen := _listen(g)
 	g.hour = 7
 	g.minute = 40
-	g.go_to_map("town", Vector2i(13, 19), Vector2i.UP)
-	var w: Dictionary = Talk.facing_villager(g.maps.current(), Vector2i(13, 19), Vector2i.UP, g.day_minutes(), g.trigger_state(Vector2i.ZERO))
+	g.go_to_map("town", Vector2i(39, 23), Vector2i.UP)
+	var w: Dictionary = Talk.facing_villager(g.maps.current(), Vector2i(39, 23), Vector2i.UP, g.day_minutes(), g.trigger_state(Vector2i.ZERO))
 	check(w.get("id", "") == "tome", "the farmer below the temple gate faces Tome %s" % [w])
-	check(Talk.facing_villager(g.maps.current(), Vector2i(13, 19), Vector2i.LEFT, g.day_minutes(), g.trigger_state(Vector2i.ZERO)).is_empty(),
+	check(Talk.facing_villager(g.maps.current(), Vector2i(39, 23), Vector2i.LEFT, g.day_minutes(), g.trigger_state(Vector2i.ZERO)).is_empty(),
 		"nobody to the left")
 	var actions: GDScript = load("res://scripts/farm_actions.gd")
-	actions.on_action("interact", Vector2i(13, 19), Vector2i.UP)
+	actions.on_action("interact", Vector2i(39, 23), Vector2i.UP)
 	check(seen.said == [["talk_tome", "new_morning"]], "E opens Tome's morning line %s" % [seen.said])
 	check(g.affection.of("tome") == int(Affection.rules().talk), "the first talk of the day counts")
 	var t: float = g.day_minutes()
 	var turned: Dictionary = Villagers.where("tome", t, g.trigger_state(Vector2i.ZERO))
 	check(turned.facing == Vector2i.DOWN and not turned.moving, "she turns to the farmer %s" % [turned])
-	actions.on_action("interact", Vector2i(13, 19), Vector2i.UP)
+	actions.on_action("interact", Vector2i(39, 23), Vector2i.UP)
 	check(seen.said.size() == 2 and seen.said[1][1] in ["again_1", "again_2"], "a second talk: %s" % [seen.said])
 	check(g.affection.of("tome") == int(Affection.rules().talk), "it doesn't count again")
 	# She stands a moment after the talk, then her plan runs on that much later.

@@ -338,11 +338,11 @@ func _shadows() -> void:
 	var tb: Dictionary = town_scene.blocked
 	var farm_scene: Dictionary = BR.scene_of(MM.data("farm"), g.farm, 5)
 	var fb: Dictionary = farm_scene.blocked
-	check(tb.has(Vector2i(9, 7)) and not tb.has(Vector2i(25, 1)), "shadow: the town's blocked cells hold a village house, not open ground (%d)" % tb.size())
+	check(tb.has(Vector2i(45, 7)) and not tb.has(Vector2i(25, 1)), "shadow: the town's blocked cells hold a village house, not open ground (%d)" % tb.size())
 	check(fb.has(Vector2i(4, 3)) and fb.has(Vector2i(FarmGrid.COOP.position.x, FarmGrid.COOP.position.y)) and not fb.has(Vector2i(5, 12)), "shadow: the farm's blocked cells hold the farmhouse and the coop (%d)" % fb.size())
 	var roof_bird := crow.duplicate()
 	var no_h := Vector2(dir.x, dir.z) * (2.5 / -dir.y)
-	var over_at := Vector2(9.5, 7.5) - no_h   # its shadow falls on the house at (9, 7)
+	var over_at := Vector2(45.5, 7.5) - no_h   # its shadow falls on the house at (45, 7)
 	roof_bird.pos = Vector3(over_at.x, 2.5, over_at.y)
 	check(BR.shadow_of(roof_bird, 1.0, dir, {}, tb).is_empty(), "shadow: a flier whose shadow falls on a house casts none (town)")
 	check(not BR.shadow_of(roof_bird, 1.0, dir).is_empty(), "shadow: the same flier casts one with no blocked set")

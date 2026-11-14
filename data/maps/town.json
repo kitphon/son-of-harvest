@@ -1,10 +1,10 @@
 {
-	"_note": "The village (rebuilt 2026-11-14 after the Arashiyama-style plan; the old one is git tag town-classic): a north-south main street (x 12-14, stone paving) from the lane to Kaminoda (north edge, x 13-14) down to the riverside walk (y 30) and the wooden bridge (x 12-14, y 31-33) that crosses to Minamino (south edge). West: the farm lane (y 9-10) to the farm gate, the bamboo grove with the little shrine and its black-wood torii (north-west), the post office by the lane (door 9, 8; Ren lives in the back), the temple grounds behind an earthen wall with a tiled coping (tsuiji) and their roofed gate on the street (temple_gate, y 17-18): the hall, raked gravel and the garden pond (fishing: the village water in data/fish.json), Kota's family's house by the river (door 8, 29) with the carp streamers' socket west of it. East: Grandma Tome's house (door 18, 3), the Kurogane Smithy (door 15, 8; Hachiro lives there) and the Hinata Clinic (door 22, 8; Dr. Yae; a collapse wakes the farmer there) along an alley (y 9), the station (scenery: a platform under its canopy and the line east, which is crossed on foot), the road east to Sakurazaka (y 20-21), the Yorozu Store (door 18, 24) with Sayo's side door (20, 24), two more shops (scenery). Doors open by their `hours` and say `closed` otherwise. The two store_sign props are the store's new sign (flag sayo_sign, old / new, heart_sayo_5). Format: README.md, Maps. The post office and Kota's house show a shop front (street: east, a lattice under a tiled eave) on the wall that faces the street.",
+	"_note": "The village, rebuilt 2026-11-14 after the user's map of Arashiyama (v2, 56 x 48; the old one is git tag town-classic): the river in from the gorge at the west edge, bending east along the south, with a riverside road on its north bank and a long wooden bridge (x 40-42) to the park on the south bank and on to Minamino (south edge). The stone main street (x 40-42) runs north from the bridge to the Sagano line (y 2) and Kaminoda (north edge). West of it the temple (Tenryu-ji in spirit) inside its earthen wall: the gate on the street (34, 21-22), the hall, the kitchen hall, the garden pond (the village's fishing water, data/fish.json), a north gate to the bamboo path; shops facing the street (street: east) and Kota's family's house by the river (door 37, 33) with the carp streamers' socket beside it; the art museum by the river. North the bamboo path (y 11-12) through thick bamboo, the little shrine (Nonomiya in spirit) with its black torii, Ogura pond on its path west, the lane up to the farm (north edge, x 34-35), the small station on the line in the north-west; the hill's pines and maples west. East along alleys: Grandma Tome's house (door 46, 8), the post office (door 51, 8; Ren lives there), the Kurogane Smithy (door 44, 15; Hachiro), the Hinata Clinic (door 51, 15; Dr. Yae; a collapse wakes the farmer there), the station with its line east, the Yorozu Store (door 46, 28) with Sayo's side door (48, 28), a shop, and the road east to Sakurazaka (y 29-30). Doors open by their `hours` and say `closed` otherwise. The two store_sign props are the store's new sign (flag sayo_sign, old / new, heart_sayo_5). Format: README.md, Maps.",
 	"id": "town",
 	"name": "Village",
 	"size": [
-		28,
-		34
+		56,
+		48
 	],
 	"indoor": false,
 	"ambient": "outdoor",
@@ -32,61 +32,61 @@
 		}
 	},
 	"ground": [
-		"gggggggggggggrrggggggggggggg",
-		"gggssssggggggrrggggggggggggg",
-		"gggssssggggggrrggggggggggggg",
-		"gggssssggggggrrggggggggggggg",
-		"gggssssggggggrrrrrrggggggggg",
-		"ggggrrgggggggrrggggggggggggg",
-		"ggggrrggggggpppggggggggggggg",
-		"ggggrrggggggpppggggggggggggg",
-		"ggggrrggggggpppggggggggggggg",
-		"rrrrrrrrrrrrppprrrrrrrrrrggg",
-		"rrrrrrrrrrrrpppggggggggggggg",
-		"ggggggggggggpppggggggggggggg",
-		"gssssssssssgpppggggggggggggg",
-		"gssssssssssgpppggggggggggggg",
-		"gssssssssssgpppggggggggggggg",
-		"gssssrsssssgppprrrrrrrrggggg",
-		"gssssrsssssgpppggggggggggggg",
-		"gssssrrrrrrrpppggggggggggggg",
-		"gssssrrrrrrrpppggggggggggggg",
-		"gssssssssssgpppggggggggggggg",
-		"gswwwwsssssgppprrrrrrrrrrrrr",
-		"gswwwwsssssgppprrrrrrrrrrrrr",
-		"gswwwwsssssgpppggggggggggggg",
-		"gswwwwsssssgpppggggggggggggg",
-		"gssssssssssgpppggggggggggggg",
-		"gssssssssssgppprrrrrrrgggggg",
-		"ggggggggggggpppggggggggggggg",
-		"ggggggggggggpppggggggggggggg",
-		"ggggggggggggpppggggggggggggg",
-		"ggggggggggggppprrrrrrrrrrggg",
-		"rrrrrrrrrrppppppprrrrrrrrrrr",
-		"wwwwwwwwwwwwbbbwwwwwwwwwwwww",
-		"wwwwwwwwwwwwbbbwwwwwwwwwwwww",
-		"wwwwwwwwwwwwbbbwwwwwwwwwwwww"
+		"ggggggggggggggggggggggggggggggggggrrggggpppggggggggggggg",
+		"ggggggggggggggggggggggggggggggggggrrggggpppggggggggggggg",
+		"ggggggggggggggggggggggggggggggggggrrggggpppggggggggggggg",
+		"ggggggggggggggggggggggggggggggggggrrrrrrpppggggggggggggg",
+		"rrrrrrrrrrrrggggggggggggggggggggggrrrrrrpppggggggggggggg",
+		"rrrrrrrrrrrrggggggggggggggggggggggggggggpppggggggggggggg",
+		"ggggggggggrrggggggggggggggggssssggggggggpppggggggggggggg",
+		"ggwwwwwwggrrggggggggggggggggssssggggggggpppggggggggggggg",
+		"ggwwwwwwggrrggggggggggggggggssssgggrrrrrpppggggggggggggg",
+		"ggwwwwwwggrrggggggggggggggggssssggggggggppprrrrrrrrrrrrr",
+		"ggggggggrrrrgggggggggggggggggrrgggggggggpppggggggggggggg",
+		"ggggggggrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrpppggggggggggggg",
+		"ggggggggrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrpppggggggggggggg",
+		"ggggggggrrgggggggggggggggrrgggggggggggggpppggggggggggggg",
+		"ggggggggrrgggggggggggggggrrgggggggggggggpppggggggggggggg",
+		"ggggggggrrgggggggggsssssssssssssssggggggpppggggggggggggg",
+		"ggggggggrrgggggggggsssssssssssssssggggggppprrrrrrrrrrrrr",
+		"ggggggggrrgggggggggsssssssssssssssggggggpppggggggggggggg",
+		"ggggggggrrgggggggggsssssssssssssssgrrrrrpppggggggggggggg",
+		"ggggggggrrgggggggggsssssssssssssssggggggpppggggggggggggg",
+		"ggggggggrrgggggggggssssssssrssssssggggggpppggggggggggggg",
+		"ggggggggrrgggggggggssssssssrrrrrrrrgggggppprrrrrrrrggggg",
+		"ggggggggrrgggggggggssssssssrrrrrrrrgggggpppggggggggggggg",
+		"ggggggggrrgggggggggsssssssssssssssggggggpppggggggggggggg",
+		"ggggggggrrgggggggggsssssssssssssssggggggpppggggggggggggg",
+		"ggggggggrrgggggggggswwwwwwssssssssggggggpppggggggggggggg",
+		"wgggggggrrgggggggggswwwwwwssssssssggggggpppggggggggggggg",
+		"wwwgggggrrgggggggggswwwwwwssssssssgrrrrrpppggggggggggggg",
+		"wwwwwgggrrgggggggggswwwwwwssssssssggggggpppggggggggggggg",
+		"wwwwwwggrrgggggggggswwwwwwssssssssggggggppprrrrrrrrrrrrr",
+		"wwwwwwwwrrrgggggggggggggggggggggggggggggppprrrrrrrrrrrrr",
+		"wwwwwwwwwrrrrgggggggggggggggggggggggggggpppggggggggggggg",
+		"gwwwwwwwwwwrrrggggggggggggggggggggggggggpppggggggggggggg",
+		"gggwwwwwwwwwwrrrgggggggggggggggggggggggppppggggggggggggg",
+		"gggggwwwwwwwwwrrrrggggggggrrrrrrrrrrrrrrpppggggggggggggg",
+		"ggggggwwwwwwwwwwrrrrrrrrrrrrrrrrrrrrrrrrbbbggggggggggggg",
+		"ggggggggwwwwwwwwwwrrrrrrrrrrrrrrrrrrrrrrbbbwwwwwwwwwwwww",
+		"gggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"gggggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"gggggggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"ggggggggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"ggggggggggggggggwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"ggggggggggggggggggwwwwwwwwwwwwwwwwwwwwwwbbbggggggggggggg",
+		"ggggggggggggggggggggggggggggggggggggggggrrrggggggggggggg",
+		"ggggggggggggggggggggggggggggggggggggggggrrrggggggggggggg",
+		"ggggggggggggggggggggggggggggggggggggggggrrrggggggggggggg",
+		"ggggggggggggggggggggggggggggggggggggggggrrrggggggggggggg",
+		"ggggggggggggggggggggggggggggggggggggggggrrrggggggggggggg"
 	],
 	"props": [
 		{
 			"kind": "village_house",
 			"cell": [
-				8,
+				44,
 				6
-			],
-			"size": [
-				3,
-				3
-			],
-			"door": 1,
-			"wall": "timber",
-			"street": "east"
-		},
-		{
-			"kind": "village_house",
-			"cell": [
-				16,
-				1
 			],
 			"size": [
 				5,
@@ -99,8 +99,21 @@
 		{
 			"kind": "village_house",
 			"cell": [
-				15,
+				50,
 				6
+			],
+			"size": [
+				4,
+				3
+			],
+			"door": 1,
+			"wall": "timber"
+		},
+		{
+			"kind": "village_house",
+			"cell": [
+				44,
+				13
 			],
 			"size": [
 				5,
@@ -114,8 +127,8 @@
 		{
 			"kind": "village_house",
 			"cell": [
-				21,
-				6
+				50,
+				13
 			],
 			"size": [
 				4,
@@ -127,23 +140,8 @@
 		{
 			"kind": "village_house",
 			"cell": [
-				2,
-				12
-			],
-			"size": [
-				7,
-				3
-			],
-			"door": 3,
-			"roof": "hip",
-			"storeys": 2,
-			"wall": "timber"
-		},
-		{
-			"kind": "village_house",
-			"cell": [
-				16,
-				22
+				44,
+				26
 			],
 			"size": [
 				6,
@@ -156,21 +154,7 @@
 		{
 			"kind": "village_house",
 			"cell": [
-				16,
-				26
-			],
-			"size": [
-				4,
-				3
-			],
-			"door": 0,
-			"noren": true,
-			"wall": "timber"
-		},
-		{
-			"kind": "village_house",
-			"cell": [
-				21,
+				51,
 				26
 			],
 			"size": [
@@ -184,11 +168,57 @@
 		{
 			"kind": "village_house",
 			"cell": [
-				6,
-				27
+				35,
+				5
 			],
 			"size": [
-				5,
+				4,
+				3
+			],
+			"door": 1,
+			"noren": true,
+			"wall": "timber",
+			"street": "east"
+		},
+		{
+			"kind": "village_house",
+			"cell": [
+				35,
+				15
+			],
+			"size": [
+				4,
+				3
+			],
+			"door": 1,
+			"noren": true,
+			"storeys": 2,
+			"wall": "timber",
+			"street": "east"
+		},
+		{
+			"kind": "village_house",
+			"cell": [
+				35,
+				24
+			],
+			"size": [
+				4,
+				3
+			],
+			"door": 2,
+			"noren": true,
+			"wall": "yakisugi",
+			"street": "east"
+		},
+		{
+			"kind": "village_house",
+			"cell": [
+				35,
+				31
+			],
+			"size": [
+				4,
 				3
 			],
 			"door": 2,
@@ -196,10 +226,53 @@
 			"street": "east"
 		},
 		{
+			"kind": "village_house",
+			"cell": [
+				26,
+				31
+			],
+			"size": [
+				6,
+				3
+			],
+			"door": 2,
+			"roof": "hip",
+			"wall": "plaster"
+		},
+		{
+			"kind": "village_house",
+			"cell": [
+				23,
+				16
+			],
+			"size": [
+				9,
+				4
+			],
+			"door": 4,
+			"roof": "hip",
+			"storeys": 2,
+			"wall": "timber"
+		},
+		{
+			"kind": "village_house",
+			"cell": [
+				28,
+				26
+			],
+			"size": [
+				6,
+				3
+			],
+			"door": 2,
+			"roof": "hip",
+			"wall": "plaster"
+		},
+		{
 			"kind": "station",
 			"cell": [
-				17,
-				12
+				44,
+				22
 			],
 			"size": [
 				6,
@@ -209,11 +282,34 @@
 		{
 			"kind": "rails",
 			"cell": [
-				17,
-				14
+				44,
+				24
 			],
 			"size": [
-				11,
+				12,
+				1
+			],
+			"solid": false
+		},
+		{
+			"kind": "station",
+			"cell": [
+				5,
+				0
+			],
+			"size": [
+				6,
+				2
+			]
+		},
+		{
+			"kind": "rails",
+			"cell": [
+				0,
+				2
+			],
+			"size": [
+				56,
 				1
 			],
 			"solid": false
@@ -221,30 +317,52 @@
 		{
 			"kind": "tsuiji",
 			"cell": [
-				0,
-				11
+				18,
+				14
 			],
 			"size": [
-				11,
+				7,
 				1
 			]
 		},
 		{
 			"kind": "tsuiji",
 			"cell": [
-				0,
-				26
+				27,
+				14
 			],
 			"size": [
-				11,
+				8,
 				1
 			]
 		},
 		{
 			"kind": "tsuiji",
 			"cell": [
-				11,
-				11
+				18,
+				30
+			],
+			"size": [
+				17,
+				1
+			]
+		},
+		{
+			"kind": "tsuiji",
+			"cell": [
+				18,
+				15
+			],
+			"size": [
+				1,
+				15
+			]
+		},
+		{
+			"kind": "tsuiji",
+			"cell": [
+				34,
+				15
 			],
 			"size": [
 				1,
@@ -254,19 +372,19 @@
 		{
 			"kind": "tsuiji",
 			"cell": [
-				11,
-				19
+				34,
+				23
 			],
 			"size": [
 				1,
-				8
+				7
 			]
 		},
 		{
 			"kind": "temple_gate",
 			"cell": [
-				11,
-				17
+				34,
+				21
 			],
 			"size": [
 				1,
@@ -277,8 +395,8 @@
 		{
 			"kind": "hokora",
 			"cell": [
-				4,
-				1
+				29,
+				6
 			],
 			"size": [
 				2,
@@ -288,8 +406,8 @@
 		{
 			"kind": "torii",
 			"cell": [
-				3,
-				5
+				28,
+				10
 			],
 			"size": [
 				4,
@@ -310,280 +428,903 @@
 		{
 			"kind": "stone_lantern",
 			"cell": [
-				3,
-				3
+				28,
+				8
 			]
 		},
 		{
 			"kind": "stone_lantern",
 			"cell": [
-				6,
-				3
+				31,
+				8
 			]
 		},
 		{
 			"kind": "stone_lantern",
 			"cell": [
-				10,
+				33,
+				19
+			]
+		},
+		{
+			"kind": "stone_lantern",
+			"cell": [
+				33,
+				25
+			]
+		},
+		{
+			"kind": "stone_lantern",
+			"cell": [
+				24,
 				13
 			]
 		},
 		{
 			"kind": "stone_lantern",
 			"cell": [
-				10,
-				22
+				27,
+				13
+			]
+		},
+		{
+			"kind": "stone_lantern",
+			"cell": [
+				43,
+				33
+			]
+		},
+		{
+			"kind": "stone_lantern",
+			"cell": [
+				39,
+				35
+			]
+		},
+		{
+			"kind": "stone_lantern",
+			"cell": [
+				55,
+				8
+			]
+		},
+		{
+			"kind": "stone_lantern",
+			"cell": [
+				55,
+				14
+			]
+		},
+		{
+			"kind": "river_rock",
+			"cell": [
+				26,
+				29
+			]
+		},
+		{
+			"kind": "river_rock",
+			"cell": [
+				26,
+				28
 			]
 		},
 		{
 			"kind": "pine",
 			"cell": [
-				9,
-				13
+				19,
+				24
 			]
 		},
 		{
 			"kind": "pine",
 			"cell": [
-				1,
-				13
+				19,
+				16
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				32,
+				16
 			]
 		},
 		{
 			"kind": "maple",
 			"cell": [
-				7,
+				19,
 				21
 			]
 		},
 		{
 			"kind": "maple",
 			"cell": [
-				8,
-				24
-			]
-		},
-		{
-			"kind": "sakura",
-			"cell": [
-				1,
-				24
-			]
-		},
-		{
-			"kind": "river_rock",
-			"cell": [
-				8,
-				22
-			]
-		},
-		{
-			"kind": "stone_lantern",
-			"cell": [
-				11,
+				27,
 				29
 			]
 		},
 		{
-			"kind": "stone_lantern",
+			"kind": "maple",
 			"cell": [
-				15,
-				28
+				33,
+				29
 			]
 		},
 		{
 			"kind": "sakura",
 			"cell": [
-				26,
-				23
+				19,
+				29
 			]
 		},
 		{
 			"kind": "sakura",
 			"cell": [
-				26,
-				27
+				21,
+				17
 			]
 		},
 		{
 			"kind": "sakura",
 			"cell": [
-				2,
-				28
+				12,
+				30
 			]
 		},
 		{
-			"kind": "pine",
+			"kind": "sakura",
 			"cell": [
-				0,
-				28
+				16,
+				33
 			]
 		},
 		{
-			"kind": "pine",
+			"kind": "sakura",
 			"cell": [
-				11,
-				2
+				20,
+				34
 			]
 		},
 		{
-			"kind": "pine",
+			"kind": "sakura",
 			"cell": [
 				24,
-				3
+				34
+			]
+		},
+		{
+			"kind": "sakura",
+			"cell": [
+				44,
+				44
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				47,
+				44
+			]
+		},
+		{
+			"kind": "sakura",
+			"cell": [
+				50,
+				46
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				53,
+				46
+			]
+		},
+		{
+			"kind": "sakura",
+			"cell": [
+				46,
+				44
+			]
+		},
+		{
+			"kind": "sakura",
+			"cell": [
+				52,
+				46
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				2,
+				34
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				6,
+				37
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				10,
+				39
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				14,
+				42
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				20,
+				44
 			]
 		},
 		{
 			"kind": "pine",
 			"cell": [
 				26,
-				6
+				44
 			]
 		},
 		{
 			"kind": "pine",
 			"cell": [
-				26,
+				32,
+				44
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				36,
+				44
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				3,
 				13
 			]
 		},
 		{
-			"kind": "stone_lantern",
+			"kind": "maple",
 			"cell": [
-				25,
-				8
+				7,
+				13
 			]
 		},
 		{
-			"kind": "bamboo",
+			"kind": "pine",
 			"cell": [
-				0,
-				0
+				2,
+				14
 			]
 		},
 		{
-			"kind": "bamboo",
+			"kind": "maple",
 			"cell": [
-				0,
-				2
+				6,
+				14
 			]
 		},
 		{
-			"kind": "bamboo",
-			"cell": [
-				0,
-				4
-			]
-		},
-		{
-			"kind": "bamboo",
-			"cell": [
-				0,
-				6
-			]
-		},
-		{
-			"kind": "bamboo",
+			"kind": "pine",
 			"cell": [
 				1,
-				1
+				15
+			]
+		},
+		{
+			"kind": "maple",
+			"cell": [
+				5,
+				15
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				0,
+				16
+			]
+		},
+		{
+			"kind": "maple",
+			"cell": [
+				4,
+				16
+			]
+		},
+		{
+			"kind": "maple",
+			"cell": [
+				3,
+				17
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				7,
+				17
+			]
+		},
+		{
+			"kind": "maple",
+			"cell": [
+				2,
+				18
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				6,
+				18
+			]
+		},
+		{
+			"kind": "maple",
+			"cell": [
+				1,
+				19
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				5,
+				19
+			]
+		},
+		{
+			"kind": "maple",
+			"cell": [
+				0,
+				20
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				4,
+				20
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				3,
+				21
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				7,
+				21
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				2,
+				22
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				6,
+				22
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				1,
+				23
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				5,
+				23
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				4,
+				24
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				3,
+				25
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				7,
+				25
+			]
+		},
+		{
+			"kind": "pine",
+			"cell": [
+				6,
+				26
 			]
 		},
 		{
 			"kind": "bamboo",
 			"cell": [
-				1,
-				3
-			]
-		},
-		{
-			"kind": "bamboo",
-			"cell": [
-				1,
+				13,
 				5
 			]
 		},
 		{
 			"kind": "bamboo",
 			"cell": [
-				1,
-				7
+				15,
+				5
 			]
 		},
 		{
 			"kind": "bamboo",
 			"cell": [
-				2,
-				0
+				17,
+				5
 			]
 		},
 		{
 			"kind": "bamboo",
 			"cell": [
-				2,
+				19,
+				5
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				21,
+				5
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				23,
+				5
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				25,
+				5
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				33,
+				5
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				12,
 				6
 			]
 		},
 		{
 			"kind": "bamboo",
 			"cell": [
-				2,
+				14,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				16,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				18,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				20,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				22,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				24,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				26,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				13,
+				7
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				15,
+				7
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				17,
+				7
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				19,
+				7
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				21,
+				7
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				23,
+				7
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				25,
+				7
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				33,
+				7
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				12,
 				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				14,
+				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				16,
+				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				18,
+				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				20,
+				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				22,
+				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				24,
+				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				26,
+				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				13,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				15,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				17,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				19,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				21,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				23,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				25,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				33,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				12,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				13,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				14,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				15,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				16,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				17,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				18,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				19,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				20,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				21,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				22,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				23,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				24,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				25,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				26,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				33,
+				10
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				12,
+				13
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				13,
+				13
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				14,
+				13
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				15,
+				13
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				16,
+				13
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				17,
+				13
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				0,
+				3
 			]
 		},
 		{
 			"kind": "bamboo",
 			"cell": [
 				3,
-				0
+				3
 			]
 		},
 		{
 			"kind": "bamboo",
 			"cell": [
 				6,
-				0
-			]
-		},
-		{
-			"kind": "bamboo",
-			"cell": [
-				7,
-				0
-			]
-		},
-		{
-			"kind": "bamboo",
-			"cell": [
-				7,
-				2
-			]
-		},
-		{
-			"kind": "bamboo",
-			"cell": [
-				7,
-				5
-			]
-		},
-		{
-			"kind": "bamboo",
-			"cell": [
-				7,
-				7
-			]
-		},
-		{
-			"kind": "bamboo",
-			"cell": [
-				8,
-				1
-			]
-		},
-		{
-			"kind": "bamboo",
-			"cell": [
-				8,
 				3
 			]
 		},
@@ -591,56 +1332,63 @@
 			"kind": "bamboo",
 			"cell": [
 				9,
-				0
-			]
-		},
-		{
-			"kind": "bamboo",
-			"cell": [
-				9,
-				2
-			]
-		},
-		{
-			"kind": "bamboo",
-			"cell": [
-				9,
-				4
-			]
-		},
-		{
-			"kind": "bamboo",
-			"cell": [
-				10,
-				1
-			]
-		},
-		{
-			"kind": "bamboo",
-			"cell": [
-				10,
-				5
-			]
-		},
-		{
-			"kind": "bamboo",
-			"cell": [
-				6,
-				7
+				3
 			]
 		},
 		{
 			"kind": "bamboo",
 			"cell": [
 				0,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				9,
+				6
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				1,
+				7
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				8,
 				8
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				0,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				9,
+				9
+			]
+		},
+		{
+			"kind": "bamboo",
+			"cell": [
+				1,
+				10
 			]
 		},
 		{
 			"kind": "store_sign",
 			"cell": [
-				17,
-				23
+				45,
+				27
 			],
 			"size": [
 				4,
@@ -654,8 +1402,8 @@
 		{
 			"kind": "store_sign",
 			"cell": [
-				17,
-				23
+				45,
+				27
 			],
 			"size": [
 				4,
@@ -669,8 +1417,8 @@
 		{
 			"kind": "koinobori",
 			"cell": [
-				4,
-				29
+				33,
+				33
 			]
 		}
 	],
@@ -678,12 +1426,12 @@
 		{
 			"cells": [
 				[
-					-1,
-					9
+					34,
+					-1
 				],
 				[
-					-1,
-					10
+					35,
+					-1
 				]
 			],
 			"to": "farm",
@@ -696,7 +1444,7 @@
 		{
 			"cells": [
 				[
-					9,
+					51,
 					8
 				]
 			],
@@ -715,8 +1463,8 @@
 		{
 			"cells": [
 				[
-					18,
-					3
+					46,
+					8
 				]
 			],
 			"to": "tome_house",
@@ -734,8 +1482,8 @@
 		{
 			"cells": [
 				[
-					15,
-					8
+					44,
+					15
 				]
 			],
 			"to": "smithy",
@@ -749,8 +1497,8 @@
 		{
 			"cells": [
 				[
-					22,
-					8
+					51,
+					15
 				]
 			],
 			"to": "clinic",
@@ -764,8 +1512,8 @@
 		{
 			"cells": [
 				[
-					8,
-					29
+					37,
+					33
 				]
 			],
 			"to": "kota_house",
@@ -783,8 +1531,8 @@
 		{
 			"cells": [
 				[
-					18,
-					24
+					46,
+					28
 				]
 			],
 			"to": "store",
@@ -798,8 +1546,8 @@
 		{
 			"cells": [
 				[
-					20,
-					24
+					48,
+					28
 				]
 			],
 			"to": "sayo_house",
@@ -817,12 +1565,12 @@
 		{
 			"cells": [
 				[
-					28,
-					20
+					56,
+					29
 				],
 				[
-					28,
-					21
+					56,
+					30
 				]
 			],
 			"to": "sakurazaka",
@@ -835,16 +1583,16 @@
 		{
 			"cells": [
 				[
-					12,
-					34
+					40,
+					48
 				],
 				[
-					13,
-					34
+					41,
+					48
 				],
 				[
-					14,
-					34
+					42,
+					48
 				]
 			],
 			"to": "minamino",
@@ -857,11 +1605,15 @@
 		{
 			"cells": [
 				[
-					13,
+					40,
 					-1
 				],
 				[
-					14,
+					41,
+					-1
+				],
+				[
+					42,
 					-1
 				]
 			],
@@ -876,115 +1628,129 @@
 	"spawns": {
 		"post": [
 			[
-				9,
+				51,
 				9
 			],
 			"up"
 		],
 		"koinobori": [
 			[
-				4,
-				25
+				30,
+				34
 			],
-			"down"
+			"right"
 		],
 		"river": [
 			[
-				13,
-				32
+				41,
+				46
 			],
 			"up"
 		],
 		"start": [
 			[
-				1,
-				9
+				34,
+				1
 			],
-			"right"
+			"down"
 		],
 		"shrine": [
 			[
-				4,
-				7
+				29,
+				11
 			],
 			"up"
 		],
 		"store": [
 			[
-				18,
-				25
+				46,
+				29
 			],
 			"down"
 		],
 		"smithy": [
 			[
-				15,
-				9
+				44,
+				16
 			],
 			"down"
 		],
 		"clinic": [
 			[
-				22,
-				9
+				51,
+				16
 			],
 			"down"
 		],
 		"tome": [
 			[
-				18,
-				4
+				46,
+				9
 			],
 			"down"
 		],
 		"kota": [
 			[
-				8,
-				30
+				37,
+				34
 			],
 			"down"
 		],
 		"sayo": [
 			[
-				20,
-				25
+				48,
+				29
 			],
 			"down"
 		],
 		"north": [
 			[
-				13,
+				41,
 				1
 			],
 			"down"
 		],
 		"east": [
 			[
-				26,
-				20
+				54,
+				29
 			],
 			"left"
 		],
 		"temple": [
 			[
-				8,
-				17
+				28,
+				21
 			],
 			"left"
 		],
 		"bridge": [
 			[
-				13,
-				29
+				41,
+				34
 			],
 			"down"
 		],
 		"station": [
 			[
-				19,
-				15
+				46,
+				21
 			],
 			"up"
+		],
+		"bamboo": [
+			[
+				20,
+				12
+			],
+			"left"
+		],
+		"park": [
+			[
+				41,
+				45
+			],
+			"down"
 		]
 	}
 }

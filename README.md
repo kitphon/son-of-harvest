@@ -239,9 +239,11 @@ scaled up); it writes `icon.png` (project icon) and `icon.ico` (16 to 256 px, fo
 ## Maps
 Maps live in `data/maps/<id>.json`: the farm (`farm`, its ground and buildings stay
 FarmGrid's, so the file only adds doors and spawns), the farmhouse inside (`house`) and the
-village (`town`: since 2026-11-14 laid out after Arashiyama, a north-south main street from the lane to Kaminoda down to a
-riverside walk and a wooden bridge to Minamino, the temple grounds with their pond west of it, the bamboo grove and the
-little shrine north-west, the farm lane west, the road to Sakurazaka east; the old layout is git tag `town-classic`), the river south of it, past Minamino (`river`, its own fish table: place `river` in
+village (`town`, 56 x 48: since 2026-11-14 laid out after a map of Arashiyama, a wide river in from a gorge in the west
+along the south, a riverside road and a long wooden bridge to a park and on to Minamino, the stone main street north to
+Kaminoda, the temple grounds with their pond west of it, the bamboo path through thick bamboo past the little shrine to
+Ogura pond, a small line along the north and another east from the street's station, the lane north-west to the farm, the
+alleys of houses east and the road to Sakurazaka; the old layout is git tag `town-classic`), the river south of it, past Minamino (`river`, its own fish table: place `river` in
 `data/fish.json`; water at a map's side edge draws no bank, so the river flows on; Mio's driftwood hut on its north bank, `mio_hut`), Kaminoda up
 the village's main street north (`kaminoda`: a farming hamlet of terraced paddies, a drying rack, a
 well, jizo and a persimmon orchard; Genzo's and Haru's houses, `genzo_house` / `haru_house`),

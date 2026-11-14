@@ -63,7 +63,7 @@
 		{"kind": "pine", "cell": [10, 1]}
 	],
 	"doors": [
-		{"cells": [[10, 20], [11, 20]], "to": "town", "spawn": [13, 1], "facing": "down"},
+		{"cells": [[10, 20], [11, 20]], "to": "town", "spawn": [41, 1], "facing": "down"},
 		{"cells": [[22, -1], [23, -1]], "to": "hill", "spawn": [19, 28], "facing": "up"},
 		{"cells": [[15, 6]], "to": "genzo_house", "spawn": [4, 5], "facing": "up", "hours": ["06:00", "20:00"], "closed": "Genzo's house is dark. Farmers sleep early here."},
 		{"cells": [[27, 6]], "to": "haru_house", "spawn": [4, 5], "facing": "up", "hours": ["06:00", "21:00"], "closed": "Haru's lamp is out. She must be asleep."}

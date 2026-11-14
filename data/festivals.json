@@ -7,25 +7,25 @@
 			"day": 8,
 			"hours": ["10:00", "16:00"],
 			"map": "town",
-			"place": [13, 18],
+			"place": [38, 35],
 			"event": "festival_blossom",
 			"closes": ["smithy"],
 			"props": [
-				{"kind": "sakura", "cell": [16, 18]},
-				{"kind": "sakura", "cell": [20, 18]},
-				{"kind": "sakura", "cell": [25, 18]},
-				{"kind": "sakura", "cell": [9, 25]},
-				{"kind": "sakura", "cell": [5, 25]},
-				{"kind": "sakura", "cell": [10, 24]},
-				{"kind": "picnic_mat", "cell": [2, 24], "size": [2, 2]},
-				{"kind": "picnic_mat", "cell": [6, 24], "size": [2, 1]},
-				{"kind": "stall", "cell": [17, 16], "size": [2, 1], "cloth": "e89ab0"},
-				{"kind": "judge_table", "cell": [21, 16], "size": [2, 1]}
+				{"kind": "sakura", "cell": [43, 43]},
+				{"kind": "sakura", "cell": [45, 43]},
+				{"kind": "sakura", "cell": [49, 43]},
+				{"kind": "sakura", "cell": [51, 44]},
+				{"kind": "sakura", "cell": [54, 43]},
+				{"kind": "sakura", "cell": [55, 45]},
+				{"kind": "picnic_mat", "cell": [44, 45], "size": [2, 2]},
+				{"kind": "picnic_mat", "cell": [48, 44], "size": [2, 1]},
+				{"kind": "stall", "cell": [21, 34], "size": [2, 1], "cloth": "e89ab0"},
+				{"kind": "judge_table", "cell": [35, 34], "size": [2, 1]}
 			],
 			"contest": {
 				"name": "Blossom Crop Show",
 				"takes": "crop",
-				"table": [21, 16],
+				"table": [35, 34],
 				"ask": "blossom_day_ask",
 				"in_season": 1.5,
 				"rivals": [
@@ -43,7 +43,7 @@
 			},
 			"stall": {
 				"name": "Hanami Dango Stall",
-				"cell": [17, 16],
+				"cell": [21, 34],
 				"stock": [
 					{"item": "food:dango"},
 					{"item": "food:sakura_mochi"},
@@ -57,27 +57,27 @@
 			"day": 20,
 			"hours": ["17:00", "22:00"],
 			"map": "town",
-			"place": [13, 19],
+			"place": [36, 35],
 			"event": "festival_lanterns",
 			"closes": ["general", "smithy"],
 			"fireworks": ["19:30", "22:00"],
 			"props": [
-				{"kind": "lantern_line", "cell": [15, 10], "size": [10, 1]},
-				{"kind": "lantern_line", "cell": [15, 19], "size": [7, 1]},
-				{"kind": "lantern_line", "cell": [1, 16], "size": [10, 1]},
-				{"kind": "lantern_line", "cell": [15, 11], "size": [9, 1]},
-				{"kind": "stall", "cell": [0, 29], "size": [2, 1], "cloth": "c8442c"},
-				{"kind": "stall", "cell": [2, 29], "size": [2, 1], "cloth": "2c4a8a", "display": "goldfish"},
-				{"kind": "stall", "cell": [18, 29], "size": [2, 1], "cloth": "e0a838"},
-				{"kind": "stall", "cell": [20, 29], "size": [2, 1], "cloth": "3a7a4a", "display": "masks"},
-				{"kind": "drum_stage", "cell": [25, 24], "size": [2, 2]},
-				{"kind": "judge_table", "cell": [24, 29], "size": [2, 1]}
+				{"kind": "lantern_line", "cell": [43, 10], "size": [10, 1]},
+				{"kind": "lantern_line", "cell": [19, 33], "size": [7, 1]},
+				{"kind": "lantern_line", "cell": [43, 17], "size": [10, 1]},
+				{"kind": "lantern_line", "cell": [43, 31], "size": [9, 1]},
+				{"kind": "stall", "cell": [21, 34], "size": [2, 1], "cloth": "c8442c"},
+				{"kind": "stall", "cell": [18, 34], "size": [2, 1], "cloth": "2c4a8a", "display": "goldfish"},
+				{"kind": "stall", "cell": [28, 34], "size": [2, 1], "cloth": "e0a838"},
+				{"kind": "stall", "cell": [31, 34], "size": [2, 1], "cloth": "3a7a4a", "display": "masks"},
+				{"kind": "drum_stage", "cell": [48, 42], "size": [2, 2]},
+				{"kind": "judge_table", "cell": [35, 34], "size": [2, 1]}
 			],
 			"game": {
 				"id": "scoop",
 				"name": "Goldfish Scoop",
 				"kind": "scoop",
-				"cell": [2, 29],
+				"cell": [18, 34],
 				"lead": 3.0,
 				"seconds": 45,
 				"paper": 100,
@@ -101,7 +101,7 @@
 			"contest": {
 				"name": "Lantern Night Catch",
 				"takes": "fish",
-				"table": [24, 29],
+				"table": [35, 34],
 				"ask": "lantern_night_ask",
 				"rivals": [
 					{"who": "hachiro", "score": [90, 190]},
@@ -120,7 +120,7 @@
 				{
 					"id": "eats",
 					"name": "Night Eats Stall",
-					"cell": [0, 29],
+					"cell": [21, 34],
 					"stock": [
 						{"item": "food:yakisoba"},
 						{"item": "food:shaved_ice"},
@@ -130,7 +130,7 @@
 				{
 					"id": "chimes",
 					"name": "Wind Chime Stall",
-					"cell": [18, 29],
+					"cell": [28, 34],
 					"stock": [
 						{"item": "keep:wind_chime", "price": 300},
 						{"item": "keep:paper_fan", "price": 120}
@@ -144,27 +144,27 @@
 			"day": 15,
 			"hours": ["18:00", "23:00"],
 			"map": "town",
-			"place": [5, 19],
+			"place": [27, 24],
 			"event": "festival_moon",
 			"closes": ["smithy"],
 			"props": [
-				{"kind": "moon_table", "cell": [6, 18]},
-				{"kind": "pampas", "cell": [4, 18]},
-				{"kind": "pampas", "cell": [7, 18]},
-				{"kind": "red_mat", "cell": [1, 18], "size": [2, 1]},
-				{"kind": "red_mat", "cell": [9, 18], "size": [2, 1]},
-				{"kind": "paper_lantern", "cell": [2, 16]},
-				{"kind": "paper_lantern", "cell": [9, 16]},
-				{"kind": "stall", "cell": [0, 29], "size": [2, 1], "cloth": "2a3460"},
-				{"kind": "stall", "cell": [18, 29], "size": [2, 1], "cloth": "b8742c"},
-				{"kind": "judge_table", "cell": [24, 29], "size": [2, 1]},
-				{"kind": "race_flag", "cell": [1, 21]}
+				{"kind": "moon_table", "cell": [28, 23]},
+				{"kind": "pampas", "cell": [26, 23]},
+				{"kind": "pampas", "cell": [29, 23]},
+				{"kind": "red_mat", "cell": [23, 23], "size": [2, 1]},
+				{"kind": "red_mat", "cell": [31, 23], "size": [2, 1]},
+				{"kind": "paper_lantern", "cell": [24, 21]},
+				{"kind": "paper_lantern", "cell": [31, 21]},
+				{"kind": "stall", "cell": [21, 34], "size": [2, 1], "cloth": "2a3460"},
+				{"kind": "stall", "cell": [28, 34], "size": [2, 1], "cloth": "b8742c"},
+				{"kind": "judge_table", "cell": [35, 34], "size": [2, 1]},
+				{"kind": "race_flag", "cell": [19, 26]}
 			],
 			"game": {
 				"id": "fishing",
 				"name": "Moon Pond Race",
 				"kind": "fishing",
-				"cell": [1, 21],
+				"cell": [19, 26],
 				"lead": 3.0,
 				"seconds": 60,
 				"rivals": [
@@ -184,7 +184,7 @@
 			"contest": {
 				"name": "Moon Offering",
 				"takes": "animal",
-				"table": [24, 29],
+				"table": [35, 34],
 				"ask": "moon_night_ask",
 				"rivals": [
 					{"who": "sayo", "score": [80, 170]},
@@ -203,7 +203,7 @@
 				{
 					"id": "eats",
 					"name": "Chestnut Roaster",
-					"cell": [18, 29],
+					"cell": [28, 34],
 					"stock": [
 						{"item": "food:roast_chestnuts"},
 						{"item": "food:baked_imo"}
@@ -212,7 +212,7 @@
 				{
 					"id": "crafts",
 					"name": "Moon Craft Stall",
-					"cell": [0, 29],
+					"cell": [21, 34],
 					"stock": [
 						{"item": "keep:clay_rabbit", "price": 240},
 						{"item": "keep:moon_lantern", "price": 160}
@@ -226,25 +226,25 @@
 			"day": 30,
 			"hours": ["19:00", "24:00"],
 			"map": "town",
-			"place": [5, 19],
+			"place": [27, 24],
 			"event": "festival_year",
 			"closes": ["general", "smithy"],
 			"props": [
-				{"kind": "kadomatsu", "cell": [10, 15]},
-				{"kind": "kadomatsu", "cell": [10, 20]},
-				{"kind": "bonfire", "cell": [9, 18]},
-				{"kind": "stall", "cell": [1, 16], "size": [2, 1], "cloth": "e8e2d0"},
-				{"kind": "stall", "cell": [9, 16], "size": [2, 1], "cloth": "a8282c"},
-				{"kind": "paper_lantern", "cell": [3, 19]},
-				{"kind": "paper_lantern", "cell": [8, 19]},
-				{"kind": "judge_table", "cell": [4, 16], "size": [2, 1]},
-				{"kind": "mochi_usu", "cell": [7, 18]}
+				{"kind": "kadomatsu", "cell": [33, 20]},
+				{"kind": "kadomatsu", "cell": [33, 23]},
+				{"kind": "bonfire", "cell": [31, 23]},
+				{"kind": "stall", "cell": [23, 21], "size": [2, 1], "cloth": "e8e2d0"},
+				{"kind": "stall", "cell": [31, 21], "size": [2, 1], "cloth": "a8282c"},
+				{"kind": "paper_lantern", "cell": [25, 24]},
+				{"kind": "paper_lantern", "cell": [30, 24]},
+				{"kind": "judge_table", "cell": [23, 23], "size": [2, 1]},
+				{"kind": "mochi_usu", "cell": [29, 23]}
 			],
 			"game": {
 				"id": "mochi",
 				"name": "Mochi Pounding",
 				"kind": "mochi",
-				"cell": [7, 18],
+				"cell": [29, 23],
 				"partners": ["tome", "kota"],
 				"lead": 2.0,
 				"gap": 1.6,
@@ -272,7 +272,7 @@
 			"contest": {
 				"name": "First Stone of the Year",
 				"takes": "mine",
-				"table": [4, 16],
+				"table": [23, 23],
 				"ask": "years_turn_ask",
 				"rivals": [
 					{"who": "hachiro", "score": [35, 90]},
@@ -291,7 +291,7 @@
 				{
 					"id": "soba",
 					"name": "Year-End Soba Stall",
-					"cell": [1, 16],
+					"cell": [23, 21],
 					"stock": [
 						{"item": "food:year_soba"},
 						{"item": "food:yuzu_tea"}
@@ -300,7 +300,7 @@
 				{
 					"id": "charms",
 					"name": "Lucky Charm Stall",
-					"cell": [9, 16],
+					"cell": [31, 21],
 					"stock": [
 						{"item": "keep:daruma", "price": 280},
 						{"item": "keep:omamori", "price": 150}

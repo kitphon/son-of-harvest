@@ -37,8 +37,8 @@
 		"festival_day": [
 			{"at": "06:00", "map": "shige_house", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "09:40", "map": "minamino", "from": [11, 7], "route": [{"to": [11, 9]}, {"to": [4, 9]}, {"to": [4, 0]}]},
-			{"at": "09:55", "map": "town", "from": [13, 33], "route": [{"to": [13, 11]}, {"to": [19, 11]}, {"face": "up"}]},
-			{"at": "15:45", "map": "town", "route": [{"to": [13, 11]}, {"to": [13, 33]}]},
+			{"at": "09:55", "map": "town", "from": [41, 47], "route": [{"to": [41, 19]}, {"to": [47, 19]}, {"face": "up"}]},
+			{"at": "15:40", "map": "town", "route": [{"to": [41, 19]}, {"to": [41, 47]}]},
 			{"at": "16:05", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 9]}, {"to": [11, 9]}, {"to": [11, 7]}, {"face": "up"}]},
 			{"at": "16:20", "map": "shige_house", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "21:00", "map": "away"}
@@ -46,16 +46,16 @@
 		"festival_night": [
 			{"at": "06:00", "map": "shige_house", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "17:25", "map": "minamino", "from": [11, 7], "route": [{"to": [11, 9]}, {"to": [4, 9]}, {"to": [4, 0]}]},
-			{"at": "17:40", "map": "town", "from": [13, 33], "route": [{"to": [13, 18]}, {"to": [8, 18]}, {"to": [8, 20]}, {"face": "left"}]},
-			{"at": "21:40", "map": "town", "route": [{"to": [8, 18]}, {"to": [13, 18]}, {"to": [13, 33]}]},
+			{"at": "17:40", "map": "town", "from": [41, 47], "route": [{"to": [41, 22]}, {"to": [22, 22]}, {"to": [22, 24]}, {"face": "left"}]},
+			{"at": "21:35", "map": "town", "route": [{"to": [22, 22]}, {"to": [41, 22]}, {"to": [41, 47]}]},
 			{"at": "22:10", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 9]}, {"to": [11, 9]}, {"to": [11, 7]}, {"face": "up"}]},
 			{"at": "22:25", "map": "away"}
 		],
 		"festival_year": [
 			{"at": "06:00", "map": "shige_house", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "18:30", "map": "minamino", "from": [11, 7], "route": [{"to": [11, 9]}, {"to": [4, 9]}, {"to": [4, 0]}]},
-			{"at": "18:45", "map": "town", "from": [13, 33], "route": [{"to": [13, 18]}, {"to": [5, 18]}, {"to": [5, 19]}, {"face": "up"}]},
-			{"at": "23:00", "map": "town", "route": [{"to": [5, 18]}, {"to": [13, 18]}, {"to": [13, 33]}]},
+			{"at": "18:45", "map": "town", "from": [41, 47], "route": [{"to": [41, 22]}, {"to": [27, 22]}, {"to": [27, 24]}, {"face": "up"}]},
+			{"at": "22:55", "map": "town", "route": [{"to": [27, 22]}, {"to": [41, 22]}, {"to": [41, 47]}]},
 			{"at": "23:25", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 9]}, {"to": [11, 9]}, {"to": [11, 7]}, {"face": "up"}]},
 			{"at": "23:40", "map": "away"}
 		],

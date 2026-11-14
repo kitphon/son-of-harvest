@@ -74,7 +74,7 @@
 		{"kind": "pine", "cell": [17, 18]}
 	],
 	"doors": [
-		{"cells": [[-1, 10], [-1, 11]], "to": "town", "spawn": [26, 20], "facing": "left"},
+		{"cells": [[-1, 10], [-1, 11]], "to": "town", "spawn": [54, 29], "facing": "left"},
 		{"cells": [[30, 10], [30, 11]], "to": "mine", "spawn": [1, 7], "facing": "right"},
 		{"cells": [[7, 7]], "to": "teahouse", "spawn": [4, 5], "facing": "up", "hours": ["09:00", "18:00"], "closed": "The teahouse's shutters are closed. Open 9:00 to 18:00."},
 		{"cells": [[22, 15]], "to": "ichiro_house", "spawn": [4, 5], "facing": "up", "hours": ["06:00", "20:00"], "closed": "Ichiro's house is dark. Charcoal burners rise early."}
