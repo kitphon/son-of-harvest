@@ -201,6 +201,8 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
 - Farmhouse model: `--path . --script res://tools/house_model.gd -- --shots=shots` (with a
   window) writes `shots/house_<front|left|back|above>.png`; `--headless ... -- --glb=models/farmhouse.glb`
   rewrites the Blender copy (re-run it after changing the house; README → Farmhouse model).
+- Map overviews: `--path . --script res://tools/map_overview.gd -- --out=shots/maps` (with a window) writes
+  every map whole in the flat view as `shots/maps/<id>.png` (`--maps=town,farm`, `--season=`, `--time=H:MM`).
 - App icon: `icon.png` (project) and `icon.ico` (exe) are drawn by `tools/make_icon.gd`; change
   the drawing there and re-run it (`--headless --path . --script res://tools/make_icon.gd`).
 

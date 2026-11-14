@@ -10,6 +10,16 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-14 — tools/map_overview.gd: every map whole in the flat view
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user asked for a top-down picture of every map. tools/map_overview.gd runs the real flat scene
+  (scenes/main_2d.tscn) in a viewport the size of each map with its own camera over the middle and the HUD and screens
+  hidden, the farmer at the map's first spawn, noon on a fair spring day (`--season=`, `--time=H:MM`, `--maps=a,b`), and
+  writes shots/maps/<id>.png at one pixel a pixel. Needs a window. No game code changed.
+- Checked: `--path . --script res://tools/map_overview.gd -- --out=shots/maps` printed a line for all 29 maps (town
+  896 x 768, farm 512 x 320, the rooms 128-160 wide) with no ERROR lines; town, farm, kaminoda and the store looked at.
+- Left / next: the flat view draws trees and bamboo as small squares, so the pictures show the layout more than the look.
+
 ## 2026-11-14 — Village v2 at 56 x 48, laid out after the user's map of Arashiyama — branch arashiyama-town
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user played the 28 x 34 village and found it did not feel like Arashiyama; they sent a map of the area.
