@@ -58,24 +58,24 @@
 		"ggggggggrrgggggggggsssssssssssssssggggggpppggggggggggggg",
 		"rrrrrrrrrrgggggggggsssssssssssssssggggggpppggggggggggggg",
 		"rrrrrrrrrrgggggggggswwwwwwssssssssggggggpppggggggggggggg",
-		"wgggggggrrgggggggggswwwwwwssssssssggggggpppggggggggggggg",
-		"wwwgggggrrgggggggggswwwwwwssssssssgrrrrrpppggggggggggggg",
-		"wwwwwgggrrgggggggggswwwwwwssssssssggggggpppggggggggggggg",
-		"wwwwwwggrrgggggggggswwwwwwssssssssggggggppprrrrrrrrrrrrg",
-		"gwwwwwwwrrrgggggggggggggggggggggggggggggppprrrrrrrrrrrrg",
-		"gggwwwwwwrrrrgggggggggggggggggggggggggggpppggggggggggggg",
-		"gggggwwwwwwrrrggggggggggggggggggggggggggpppggggggggggggg",
-		"ggggggwwwwwwwrrrgggggggggggggggggggggggppppggggggggggggg",
-		"ggggggwwwwwwwwrrrrggggggggrrrrrrrrrrrrrrpppggggggggggggg",
-		"ggggggggwwwwwwwwrrrrrrrrrrrrrrrrrrrrrrrrbbbggggggggggggg",
-		"gggggggggwwwwwwwwwrrrrrrrrrrrrrrrrrrrrrrbbbwwwwwwwwwwwww",
-		"gggggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
-		"ggggggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
-		"gggggggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
-		"ggggggggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
-		"ggggggggggggggggwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
-		"ggggggggggggggggggwwwwwwwwwwwwwwwwwwwwwwbbbggggggggggggg",
-		"ggggggggggggggggggggggggggggggggggggggggrrrggggggggggggg",
+		"wwwwwwwwrrgggggggggswwwwwwssssssssggggggpppggggggggggggg",
+		"wwwwwwwwrrgggggggggswwwwwwssssssssgrrrrrpppggggggggggggg",
+		"wwwwwwwwrrgggggggggswwwwwwssssssssggggggpppggggggggggggg",
+		"wwwwwwwwrrgggggggggswwwwwwssssssssggggggppprrrrrrrrrrrrg",
+		"ggwwwwwwrrggggggggggggggggggggggggggggggppprrrrrrrrrrrrg",
+		"ggwwwwwwrrggggggggggggggggggggggggggggggpppggggggggggggg",
+		"ggwwwwwwrrggggggggggggggggggggggggggggggpppggggggggggggg",
+		"ggwwwwwwrrgggggggggggggggggggggggggggggppppggggggggggggg",
+		"ggwwwwwwrrggggggggggggggggrrrrrrrrrrrrrrpppggggggggggggg",
+		"ggwwwwwwrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrpppggggggggggggg",
+		"ggwwwwwwrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrbbbggggggggggggg",
+		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"ggggggggggggggggggggggggggggggggggggggggbbbggggggggggggg",
 		"ggggggggggggggggggggggggggggggggggggggggrrrggggggggggggg",
 		"ggggggggggggggggggggggggggggggggggggggggrrrggggggggggggg",
 		"ggggggggggggggggggggggggggggggggggggggggrrrggggggggggggg",
@@ -267,6 +267,18 @@
 			"door": 2,
 			"roof": "hip",
 			"wall": "plaster"
+		},
+		{
+			"kind": "bridge",
+			"cell": [
+				40,
+				36
+			],
+			"size": [
+				3,
+				8
+			],
+			"solid": false
 		},
 		{
 			"kind": "station",
@@ -569,14 +581,14 @@
 			"kind": "sakura",
 			"cell": [
 				12,
-				30
+				34
 			]
 		},
 		{
 			"kind": "sakura",
 			"cell": [
 				16,
-				33
+				34
 			]
 		},
 		{
@@ -639,28 +651,28 @@
 			"kind": "pine",
 			"cell": [
 				2,
-				34
+				44
 			]
 		},
 		{
 			"kind": "pine",
 			"cell": [
 				6,
-				37
+				44
 			]
 		},
 		{
 			"kind": "pine",
 			"cell": [
 				10,
-				39
+				44
 			]
 		},
 		{
 			"kind": "pine",
 			"cell": [
 				14,
-				42
+				44
 			]
 		},
 		{
@@ -829,27 +841,6 @@
 			"cell": [
 				6,
 				22
-			]
-		},
-		{
-			"kind": "pine",
-			"cell": [
-				1,
-				23
-			]
-		},
-		{
-			"kind": "pine",
-			"cell": [
-				5,
-				23
-			]
-		},
-		{
-			"kind": "pine",
-			"cell": [
-				6,
-				26
 			]
 		},
 		{

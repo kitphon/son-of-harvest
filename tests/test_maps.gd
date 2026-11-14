@@ -3891,8 +3891,15 @@ func _arashiyama_town() -> void:
 	check(t.w == 56 and t.h == 48, "the village is 56 x 48")
 	for y in range(0, 35):
 		check(t.tile(Vector2i(41, y)) == "stone" and not t.is_solid(Vector2i(41, y)), "the main street is stone paving at (41, %d)" % y)
-	for y in range(35, 43):
-		check(t.tile(Vector2i(41, y)) == "floor" and t.tile(Vector2i(39, y)) != "floor", "the bridge over the river at (41, %d)" % y)
+	for y in range(36, 44):
+		check(t.tile(Vector2i(41, y)) == "floor" and t.tile(Vector2i(39, y)) != "floor" and t.prop_at(Vector2i(41, y)).get("kind", "") == "bridge"
+			and not t.is_solid(Vector2i(41, y)), "the bridge (its deck, railings and piers) over the river at (41, %d)" % y)
+	for x in [2, 20, 39, 43, 55]:
+		var col := []
+		for y in t.h:
+			if t.tile(Vector2i(x, y)) == "water":
+				col.append(y)
+		check(col.slice(-6) == [37, 38, 39, 40, 41, 42], "the river's long reach lies on rows 37-42 at x %d, banks straight (%s)" % [x, col])
 	var water := 0
 	for x in t.w:
 		for y in t.h:

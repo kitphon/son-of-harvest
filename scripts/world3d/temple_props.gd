@@ -7,7 +7,7 @@ extends RefCounted
 ## shapes, read from no other game; the proportions are picked by eye at the medium lens.
 ## Same units as the farm: 1 unit = 1 cell. Snow tops only where snow lies (map_has_snow).
 
-const KINDS: Array[String] = ["tsuiji", "temple_gate", "station", "rails"]
+const KINDS: Array[String] = ["tsuiji", "temple_gate", "station", "rails", "bridge"]
 
 const OCHRE := Color("d2b06a")     # the wall's earthen plaster
 const LINE := Color("efe8d8")      # the white bands along it (suji)
@@ -25,6 +25,7 @@ static func prop(w: FarmWorld, p: Dictionary, r: Rect2, snow: bool) -> void:
 		"temple_gate": gate(w, r, snow)
 		"station": station(w, r, snow)
 		"rails": rails(w, r)
+		"bridge": bridge(w, r, snow)
 
 
 ## An earthen wall (tsuiji-bei) along the long side of `r`, in the middle of its cells: a stone
@@ -125,6 +126,46 @@ static func station(w: FarmWorld, r: Rect2, snow: bool) -> void:
 		FarmProps.block(wood, Rect2(px - 0.03, z1 - 0.35, 0.06, 0.06), 0.3, Rect2(px - 0.03, z1 - 0.35, 0.06, 0.06), 1.35)
 	FarmProps.block(p.st(Color("f2eee2")), Rect2(nx - 0.5, z1 - 0.34, 1.0, 0.03), 1.0, Rect2(nx - 0.5, z1 - 0.34, 1.0, 0.03), 1.32)
 	FarmProps.block(p.st(Color("2a2420")), Rect2(nx - 0.32, z1 - 0.305, 0.64, 0.01), 1.1, Rect2(nx - 0.32, z1 - 0.305, 0.64, 0.01), 1.22)
+	p.commit(w)
+
+
+## The long wooden bridge over the river along z across `r` (its deck on the floor cells, so the
+## farmer walks it as before): a plank deck a little over the water, its boards across the way,
+## dark beams along its edges, timber piers standing in the water two by two every two cells,
+## and a low railing each side (posts every cell, a top rail and a middle rail).
+static func bridge(w: FarmWorld, r: Rect2, snow: bool) -> void:
+	var p := FarmProps.Parts.new()
+	var x0 := r.position.x + 0.02
+	var x1 := r.end.x - 0.02
+	var z0 := r.position.y
+	var z1 := r.end.y
+	var boards := p.st("build:planks")
+	var z := z0
+	var k := 0
+	while z < z1 - 0.01:   # boards across the way, a hair apart
+		var dz := minf(0.32, z1 - z)
+		FarmProps.block(boards, Rect2(x0, z + 0.01, x1 - x0, dz - 0.02), 0.08 + 0.004 * (k % 2), Rect2(x0, z + 0.01, x1 - x0, dz - 0.02), 0.14 + 0.004 * (k % 2))
+		z += 0.32
+		k += 1
+	var dark := p.st(PILLAR)
+	for x in [x0, x1 - 0.12]:
+		FarmProps.block(dark, Rect2(x, z0, 0.12, z1 - z0), -0.02, Rect2(x, z0, 0.12, z1 - z0), 0.16)   # edge beams
+	z = z0 + 1.0
+	while z < z1 - 0.5:   # piers in the water, every two cells, a cross-beam under the deck
+		for x in [x0 + 0.25, x1 - 0.25]:
+			FarmProps.block(dark, Rect2(x - 0.09, z - 0.09, 0.18, 0.18), -0.6, Rect2(x - 0.08, z - 0.08, 0.16, 0.16), 0.06)
+		FarmProps.block(dark, Rect2(x0, z - 0.06, x1 - x0, 0.12), -0.04, Rect2(x0, z - 0.06, x1 - x0, 0.12), 0.06)
+		z += 2.0
+	var rail := p.st("build:sugi")
+	for x in [x0 + 0.02, x1 - 0.1]:
+		var pz := z0 + 0.06
+		while pz <= z1 - 0.05:
+			FarmProps.block(rail, Rect2(x, pz - 0.04, 0.08, 0.08), 0.14, Rect2(x + 0.005, pz - 0.035, 0.07, 0.07), 0.7)
+			pz += 1.0
+		FarmProps.block(rail, Rect2(x - 0.01, z0, 0.1, z1 - z0), 0.66, Rect2(x - 0.01, z0, 0.1, z1 - z0), 0.74)
+		FarmProps.block(rail, Rect2(x + 0.01, z0, 0.06, z1 - z0), 0.4, Rect2(x + 0.01, z0, 0.06, z1 - z0), 0.45)
+		if snow:
+			FarmProps.block(p.st(FarmProps.Parts.SNOW), Rect2(x - 0.005, z0, 0.09, z1 - z0), 0.74, Rect2(x + 0.005, z0, 0.07, z1 - z0), 0.77)
 	p.commit(w)
 
 

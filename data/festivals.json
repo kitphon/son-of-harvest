@@ -70,7 +70,7 @@
 				{"kind": "stall", "cell": [18, 34], "size": [2, 1], "cloth": "2c4a8a", "display": "goldfish"},
 				{"kind": "stall", "cell": [28, 34], "size": [2, 1], "cloth": "e0a838"},
 				{"kind": "stall", "cell": [31, 34], "size": [2, 1], "cloth": "3a7a4a", "display": "masks"},
-				{"kind": "drum_stage", "cell": [48, 42], "size": [2, 2]},
+				{"kind": "drum_stage", "cell": [48, 44], "size": [2, 2]},
 				{"kind": "judge_table", "cell": [35, 34], "size": [2, 1]}
 			],
 			"game": {

@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-14 — The village's river straightened and a real bridge over it — branch arashiyama-town
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user found the river crooked (one row higher east of the bridge than west, a staircase down from the gorge)
+  and the bridge unreadable (a strip of floor). The river now comes in from the gorge at the west edge (rows 26-29, where
+  the river map joins), turns south down a short reach (x 2-7) and runs level on rows 37-42 to the east edge: straight
+  banks, square bends; the riverside road runs straight on rows 35-36, the hill path down to it on x 8-9. The bridge is a
+  prop of its own (TempleProps `bridge`, on the floor cells x 40-42, rows 36-43, not solid): in 3D a plank deck a little
+  over the water with its boards across the way, dark edge beams, timber piers two by two every two cells with a
+  cross-beam, a low railing each side (posts every cell, top and middle rails, snow on the top rail); in the flat view the
+  boards across, dark railings with their posts, and a shadow on the water each side (MapView._draw_temple). The street's
+  stone now reaches the bridge head (row 35). Lantern Night's drum stage moved off the water (48, 44). Seven plans walked
+  again on the straight road; Kota's Sunday walk in along the river's top row kept (he would meet Hachiro on the shore).
+- Checked: all 42 tests/test_*.gd print `OK (0 failed)`; test_maps: the bridge's deck cells hold the bridge prop and stay
+  walkable, the river lies on rows 37-42 at x 2, 20, 39, 43 and 55. Smoke runs (`--quit-after 300`: title, `--demo`,
+  town, the mine, river, rain and snow in town, Lantern Night): 0 ERROR lines; windowed `--quit-after 150 -- --demo`:
+  exit 0. Frames at town@bridge, flat and 3D: the boards, railings and shadows read as a bridge, the banks line up.
+- Left / next: the user's look, then the merge into main.
+
 ## 2026-11-14 — The outdoor maps joined up on one plan of the valley (data/world.json) — branch arashiyama-town
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user laid the map pictures side by side and found they did not fit. data/world.json places each outdoor map
