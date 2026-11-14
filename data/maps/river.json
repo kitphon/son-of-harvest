@@ -1,5 +1,5 @@
 {
-	"_note": "The river south of the village: the lane behind Kota's house (the village's south edge) comes down a grassy slope to a gravel shore; the river runs across the whole map from edge to edge (water at the map's side edges keeps flowing in the drawing, MapView.ground_key), with stepping rocks out in the current and pines on the far bank, which the farmer can't reach. Mio's driftwood hut stands on the north bank east of the path (door 13, 3; data/maps/mio_hut.json), a tub for her catch beside it, and below it her plank landing and the old ferry boat tied to it (13..15, 7), her father's; once she names it (mio_boat, heart_mio_6) the name is painted on its side. Fish here use place `river` in data/fish.json (its own table: dace, chub, sculpin, the fall salmon run, and the stream fish that also come down into the village pond). A map of its own, not more water in the village: the village has no room for a river without moving houses that events and day plans use, and a map id is what the fish tables already key on. Format: README.md, Maps.",
+	"_note": "The river south of the village: the river upstream of the village, in its gorge west of it (the shore path comes in from the village's west edge, rows 24-25 there, along a gravel shore; the water joins the village's river, rows 26-29 there); the river runs across the whole map from edge to edge (water at the map's side edges keeps flowing in the drawing, MapView.ground_key), with stepping rocks out in the current and pines on the far bank, which the farmer can't reach. Mio's driftwood hut stands on the north bank east of the path (door 13, 3; data/maps/mio_hut.json), a tub for her catch beside it, and below it her plank landing and the old ferry boat tied to it (13..15, 7), her father's; once she names it (mio_boat, heart_mio_6) the name is painted on its side. Fish here use place `river` in data/fish.json (its own table: dace, chub, sculpin, the fall salmon run, and the stream fish that also come down into the village pond). A map of its own, not more water in the village: the village has no room for a river without moving houses that events and day plans use, and a map id is what the fish tables already key on. Format: README.md, Maps.",
 	"id": "river",
 	"name": "River",
 	"size": [20, 14],
@@ -12,11 +12,11 @@
 		"w": {"tile": "water", "solid": true}
 	},
 	"ground": [
-		"ggggrrgggggggggggggg",
-		"ggggrrgggggggggggggg",
-		"gggggrrggggggggggggg",
-		"ggggggrrrrgggggggggg",
-		"gggssssrrssssssggggg",
+		"gggggggggggggggggggg",
+		"gggggggggggggggggggg",
+		"gggggggggggggggggggg",
+		"gggggggggggggggggggg",
+		"gggssssrrsssssssssss",
 		"ssssssssssssssssssss",
 		"wwwwwwwwwwwwwwwwwwww",
 		"wwwwwwwwwwwwwwwwwwww",
@@ -44,11 +44,11 @@
 		{"kind": "pine", "cell": [18, 11]}
 	],
 	"doors": [
-		{"cells": [[3, -1], [4, -1], [5, -1], [6, -1]], "to": "minamino", "spawn": [4, 18], "facing": "up"},
+		{"cells": [[20, 4], [20, 5]], "to": "town", "spawn": [0, 24], "facing": "right"},
 		{"cells": [[13, 3]], "to": "mio_hut", "spawn": [3, 4], "facing": "up", "hours": ["06:00", "21:00"], "closed": "Mio's lamp is out. She must be asleep."}
 	],
 	"spawns": {
-		"start": [[4, 1], "down"],
+		"start": [[18, 5], "left"],
 		"shore": [[8, 5], "down"],
 		"mio": [[13, 4], "down"],
 		"ferry": [[14, 5], "down"]

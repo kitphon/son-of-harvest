@@ -5,6 +5,8 @@ extends SceneTree
 ## `--season=`, `--time=H:MM` say otherwise. Needs a window (not --headless):
 ##   Godot_v4.7.2-stable_win64_console.exe --path . --script res://tools/map_overview.gd -- --out=shots/maps
 ## (writes shots/maps/<map id>.png at one pixel a pixel; add `--maps=town,farm` for some only).
+## `--world` draws the outdoor maps of data/world.json and lays them on one picture as they meet,
+## shots/maps/_world.png (one pixel a pixel) and _world_half.png.
 
 const T := 16
 
@@ -13,6 +15,8 @@ var _only: Array = []
 var _season := "spring"
 var _hour := 12
 var _minute := 0
+var _world := false
+var _shots := {}   # map id -> its picture, for --world
 
 
 func _init() -> void:
@@ -21,6 +25,8 @@ func _init() -> void:
 			_out = "res://" + arg.trim_prefix("--out=")
 		elif arg.begins_with("--maps="):
 			_only = Array(arg.trim_prefix("--maps=").split(",", false))
+		elif arg == "--world":
+			_world = true
 		elif arg.begins_with("--season="):
 			_season = arg.trim_prefix("--season=")
 		elif arg.begins_with("--time="):
@@ -38,7 +44,10 @@ func _run() -> void:
 	game.set("season", ["spring", "summer", "fall", "winter"].find(_season))
 	game.weather_today = "sunny"
 	game.snow_cover = 0
+	var plan: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/world.json")).maps
 	var ids: Array = maps.ids() if _only.is_empty() else _only
+	if _world:
+		ids = plan.keys()
 	for id in ids:
 		var m = maps.data(id)
 		if m == null:
@@ -70,7 +79,32 @@ func _run() -> void:
 		var img := vp.get_texture().get_image()
 		var path := "%s/%s.png" % [_out, id]
 		img.save_png(path)
+		_shots[id] = img
 		print("map_overview: ", path, " ", img.get_size())
 		vp.queue_free()
 		await process_frame
+	if _world:
+		_lay_world(plan)
 	quit()
+
+
+## The pictures laid at their places on the plan (data/world.json), the gaps between them dark.
+func _lay_world(plan: Dictionary) -> void:
+	var lo := Vector2i(1 << 20, 1 << 20)
+	var hi := Vector2i(-(1 << 20), -(1 << 20))
+	for id in _shots:
+		var at := Vector2i(int(plan[id][0]), int(plan[id][1])) * T
+		lo = Vector2i(mini(lo.x, at.x), mini(lo.y, at.y))
+		hi = Vector2i(maxi(hi.x, at.x + _shots[id].get_width()), maxi(hi.y, at.y + _shots[id].get_height()))
+	var world := Image.create(hi.x - lo.x, hi.y - lo.y, false, Image.FORMAT_RGBA8)
+	world.fill(Color("1c1a18"))
+	for id in _shots:
+		var img: Image = _shots[id]
+		img.convert(Image.FORMAT_RGBA8)
+		var at := Vector2i(int(plan[id][0]), int(plan[id][1])) * T - lo
+		world.blit_rect(img, Rect2i(Vector2i.ZERO, img.get_size()), at)
+	world.save_png(_out + "/_world.png")
+	var half := world.duplicate()
+	half.resize(world.get_width() / 2, world.get_height() / 2, Image.INTERPOLATE_NEAREST)
+	half.save_png(_out + "/_world_half.png")
+	print("map_overview: the world ", world.get_size())

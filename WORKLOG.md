@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-14 — The outdoor maps joined up on one plan of the valley (data/world.json) — branch arashiyama-town
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user laid the map pictures side by side and found they did not fit. data/world.json places each outdoor map
+  (its top-left corner in cells, the village at [0, 0]): the farm west of the village (its gate meets the village's lane
+  past Ogura pond, rows 4-5; the village's exit to the farm moved back from its north edge to its west edge), the river map
+  upstream in its gorge west of the village too (a shore path off the village's west edge, rows 24-25, its water joining
+  the village's river, which narrows to 4 rows there; the river map's lane north gone, its door east), Kaminoda north up
+  the main street (its lane into the village three cells wide, as the street), the bamboo hill north of Kaminoda,
+  Sakurazaka east (the road east now leaves along the y 16-17 alley, so Sakurazaka lies clear north of the river, which
+  runs on off the east edge), the mine east of Sakurazaka, Minamino south over the bridge (no way down to a second river
+  from it now). Villagers: a trip Minamino <-> river now crosses the village (an entry inserted); a plain walk through
+  Minamino between the river and the village dropped (the village entry starts or ends at the west edge, the river keeping
+  its own start so its loops run as before); every route on the village, Minamino and the river walked again, then the
+  start-time shifts (58 entries). Ren walks at 2.0 (was 1.6): his round now goes west to the river and back south to
+  Minamino. Kota's Sunday walk in along the river's top row so he no longer runs into Hachiro on the shore. tools/
+  map_overview.gd `--world` lays the outdoor maps' pictures out by the plan in one picture (shots/maps/_world.png).
+- Checked: all 42 tests/test_*.gd print `OK (0 failed)`; test_maps `_world` (eight maps on the plan, none overlapping,
+  every way across lining up cell for cell with the way back and coming out on an open cell by the edge, water meeting
+  water along touching edges, the river running on from the gorge into the village); test_villagers, test_relationships,
+  test_fishing updated for the new ways. Smoke runs (`--quit-after 300`: title, `--demo`, town, the mine, river, Minamino,
+  Kaminoda, Sakurazaka, two festivals, winter icicles): 0 ERROR lines; windowed `--quit-after 150 -- --demo`: exit 0.
+  The world picture looked at: the farm's gate on the lane, the gorge's water into the village's river, Kaminoda's lane
+  onto the street, Sakurazaka's road onto the alley, Minamino's lane below the bridge.
+- Left / next: Sakurazaka's creek runs off its south edge into no map; the gaps between maps are dark in the picture
+  (land the camera never sees); the user's look, then the merge into main.
+
 ## 2026-11-14 — tools/map_overview.gd: every map whole in the flat view
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user asked for a top-down picture of every map. tools/map_overview.gd runs the real flat scene

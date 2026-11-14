@@ -280,7 +280,7 @@ func _building_day() -> void:
 				break
 
 
-## A fair Sunday: Hachiro down the lane behind Kota's house to the river by 9:30, rod out on
+## A fair Sunday: Hachiro west through the village and along the gorge to the river upstream by 9:30, rod out on
 ## the shore until 15:00; Kota beside him 14:10-17:00. A wet Sunday they stay in.
 func _river_sunday() -> void:
 	var sun := _state({"day": 7, "weekday": "sun"})
@@ -295,7 +295,7 @@ func _river_sunday() -> void:
 		check(m.map != "river" or ((hm.map != "river" or m.pos.distance_to(hm.pos) >= 1.0) and (km.map != "river" or m.pos.distance_to(km.pos) >= 1.0)),
 			"Mio keeps clear of Hachiro and Kota at %d (%s)" % [t, m])
 	var w := Villagers.where("hachiro", 555.0, sun)
-	check(w.map == "minamino" and w.moving, "Hachiro walks down through Minamino at 9:15 %s" % [w])
+	check(w.map == "town" and w.moving, "Hachiro walks west through the village to the gorge at 9:15 %s" % [w])
 	w = Villagers.where("hachiro", 600.0, sun)
 	check(w.map == "river" and w.pos == Vector2(10.5, 5.5) and w.facing == Vector2i.DOWN and w.fishing, "Hachiro's rod is out at 10:00 %s" % [w])
 	check(on.call(780.0, sun) == ["hachiro"], "alone at the river at 13:00")

@@ -1,0 +1,13 @@
+{
+	"_note": "Where the outdoor maps lie on one plan of the valley (2026-11-14), in cells: each map's top-left corner, the village (town) at [0, 0]. Neighbours meet edge to edge, and a way across (a door on or off a map's edge) lines up cell for cell with the door back on the other side: the farm west of the village (its gate, rows 4-5 there), the river upstream in its gorge west of it too (rows 24-25, the water joining rows 26-29), Kaminoda north up the main street, the bamboo hill north of Kaminoda, Sakurazaka east (rows 16-17) and the mine east of it, Minamino south over the bridge. test_maps `_world` checks it; tools/world_overview.gd draws it. The rooms are not on it.",
+	"maps": {
+		"town": [0, 0],
+		"farm": [-32, -1],
+		"river": [-20, 20],
+		"kaminoda": [30, -20],
+		"hill": [33, -50],
+		"sakurazaka": [56, 6],
+		"mine": [86, 9],
+		"minamino": [37, 48]
+	}
+}

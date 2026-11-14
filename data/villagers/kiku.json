@@ -60,7 +60,7 @@
 			{"at": "11:00", "map": "minamino", "route": [{"to": [26, 15]}, {"to": [22, 15]}, {"face": "up"}]},
 			{"at": "11:15", "map": "kiku_house", "from": [3, 2], "route": [{"face": "right"}]},
 			{"at": "14:00", "map": "minamino", "from": [22, 15], "route": [{"to": [19, 15]}, {"to": [19, 9]}, {"to": [2, 9]}, {"face": "up"}, {"wait": 15}]},
-			{"at": "15:00", "map": "minamino", "route": [{"to": [19, 9]}, {"to": [19, 15]}, {"to": [26, 15]}, {"to": [26, 12]}, {"face": "right"}]},
+			{"at": "15:00", "map": "minamino", "route": [{"to": [26, 9]}, {"to": [26, 12]}, {"face": "right"}]},
 			{"at": "17:30", "map": "minamino", "route": [{"to": [26, 15]}, {"to": [22, 15]}, {"face": "up"}]},
 			{"at": "17:45", "map": "kiku_house", "from": [3, 2], "route": [{"face": "right"}]},
 			{"at": "19:00", "map": "away"}

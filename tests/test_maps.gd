@@ -449,6 +449,7 @@ func _process(delta: float) -> bool:
 		_bed_and_doors()
 		_clinic_doors()
 		_arashiyama_town()
+		_world()
 		_story_props()
 		_ferry_boat()
 		_dye_cloth()
@@ -685,7 +686,7 @@ func _map_rules() -> void:
 	check(h.door_at(Vector2i(4, 6)).to == "farm", "the house door goes to the farm")
 	check(h.step(Vector2i(3, 3)) == "floor" and h.step(Vector2i(3, 5)) == "soil", "footsteps by floor")
 	var t := MapManager.data("town")
-	check(t.door_at(Vector2i(34, -1)).to == "farm", "walking off the north edge west of the street goes to the farm")
+	check(t.door_at(Vector2i(-1, 4)).to == "farm", "walking off the west edge by Ogura pond goes to the farm")
 	_homes(t)
 	check(t.is_solid(Vector2i(28, 10)) and t.is_solid(Vector2i(31, 10)) and not t.is_solid(Vector2i(29, 10)), "torii posts block, the path through it doesn't")
 	check(t.is_solid(Vector2i(22, 27)), "the pond is solid")
@@ -695,8 +696,8 @@ func _map_rules() -> void:
 	var rv := MapManager.data("river")
 	var mn := MapManager.data("minamino")
 	check(t.door_at(Vector2i(41, 48)).get("to", "") == "minamino" and mn.door_at(Vector2i(4, -1)).get("to", "") == "town"
-		and mn.door_at(Vector2i(4, 20)).get("to", "") == "river" and rv.door_at(Vector2i(4, -1)).get("to", "") == "minamino",
-		"the village lane, Minamino and the river path join up")
+		and t.door_at(Vector2i(-1, 24)).get("to", "") == "river" and rv.door_at(Vector2i(20, 4)).get("to", "") == "town" and mn.door_at(Vector2i(4, 20)).is_empty(),
+		"the bridge to Minamino, the gorge path to the river upstream; Minamino has no way down to it now")
 	check(not t.is_solid(Vector2i(41, 40)) and t.tile(Vector2i(41, 40)) == "floor" and t.tile(Vector2i(41, 30)) == "stone" and t.tile(Vector2i(41, 46)) == "path", "the street runs down to the bridge at the village's south edge")
 	# The bamboo hill up the village's north lane: doors both ways, the clumps solid, the path
 	# open from the foot to the lookout, the cliff along the top.
@@ -3925,6 +3926,86 @@ func _arashiyama_town() -> void:
 		w.free()
 
 
+## The outdoor maps on one plan (data/world.json): no two overlap, every way across lines up cell
+## for cell with the way back (a door off or on a map's edge to its neighbour), it leads to an open
+## cell near where it comes out, and water meets water along the edges where two maps touch
+## (the river upstream joining the village's), the farm's fence aside.
+func _world() -> void:
+	var plan: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/world.json")).maps
+	check(plan.size() == 8 and plan.has("town") and Vector2i(plan.town[0], plan.town[1]) == Vector2i.ZERO, "the plan has the village at its middle and its seven neighbours")
+	var at := func(id: String) -> Vector2i: return Vector2i(int(plan[id][0]), int(plan[id][1]))
+	var ids: Array = plan.keys()
+	for i in ids.size():
+		for j in range(i + 1, ids.size()):
+			var a := Rect2i(at.call(ids[i]), Vector2i(MapManager.data(ids[i]).w, MapManager.data(ids[i]).h))
+			var b := Rect2i(at.call(ids[j]), Vector2i(MapManager.data(ids[j]).w, MapManager.data(ids[j]).h))
+			check(not a.intersects(b), "%s and %s do not overlap" % [ids[i], ids[j]])
+	# Each way across as pairs (this side's cell, the cell across), in plan cells.
+	var crossings := func(id: String, door: Dictionary) -> Dictionary:
+		var m := MapManager.data(id)
+		var out := {}
+		for c: Vector2i in door.cells:
+			var d := Vector2i.ZERO
+			var inside := c
+			if c.x < 0: d = Vector2i.LEFT
+			elif c.x >= m.w: d = Vector2i.RIGHT
+			elif c.y < 0: d = Vector2i.UP
+			elif c.y >= m.h: d = Vector2i.DOWN
+			elif c.x == m.w - 1: d = Vector2i.RIGHT
+			elif c.x == 0: d = Vector2i.LEFT
+			if d == Vector2i.ZERO:
+				continue
+			if not m.in_bounds(c):
+				inside = c - d
+			out[[inside + at.call(id), inside + d + at.call(id)]] = true
+		return out
+	for id in ids:
+		for door in MapManager.data(id).doors:
+			var to := str(door.get("to", ""))
+			if not plan.has(to):
+				continue
+			var here: Dictionary = crossings.call(id, door)
+			var back := {}
+			for bd in MapManager.data(to).doors:
+				if str(bd.get("to", "")) == id:
+					for p in crossings.call(to, bd):
+						back[[p[1], p[0]]] = true
+			check(not here.is_empty() and here.keys().all(func(k): return back.has(k)) and here.size() == back.size(),
+				"%s -> %s lines up cell for cell with the way back (%d cells)" % [id, to, here.size()])
+			var spawn: Vector2i = Vector2i(door.spawn) + at.call(to)
+			check(here.keys().any(func(k): return (k[1] as Vector2i).distance_to(spawn) <= 2.0) and not MapManager.data(to).is_solid(Vector2i(door.spawn)),
+				"%s -> %s comes out on an open cell by the edge" % [id, to])
+	# Water meets water where two maps touch (the farm's fence aside).
+	var owner := func(c: Vector2i) -> String:
+		for id in ids:
+			if Rect2i(at.call(id), Vector2i(MapManager.data(id).w, MapManager.data(id).h)).has_point(c):
+				return id
+		return ""
+	var met := 0
+	for id in ids:
+		if id == "farm":
+			continue
+		var m := MapManager.data(id)
+		for y in m.h:
+			for x in m.w:
+				if x != 0 and y != 0 and x != m.w - 1 and y != m.h - 1:
+					continue
+				for d in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+					var c := Vector2i(x, y)
+					if m.in_bounds(c + d):
+						continue
+					var other: String = owner.call(c + d + at.call(id))
+					if other == "" or other == "farm":
+						continue
+					var om := MapManager.data(other)
+					var oc: Vector2i = c + d + at.call(id) - at.call(other)
+					var wet_here := m.tile(c) == "water"
+					if wet_here or om.tile(oc) == "water":
+						met += 1
+						check(wet_here == (om.tile(oc) == "water"), "%s %s and %s %s: water meets water" % [id, c, other, oc])
+	check(met >= 8, "the river runs on from the gorge into the village (%d edge cells)" % met)
+
+
 ## The village clinic: a small house east of the smithy, its door clear of the river lane, the
 ## alley along to the street; inside a bed (no sleeping), the doctor's counter and the way out.
 func _clinic() -> void:
@@ -4569,22 +4650,22 @@ func _walk_slide() -> void:
 	check(not r._try_move(Vector2(-4, 0)), "walking: but not into the next one")
 	# Running into a map's edge exit (playtest 2026-11-07: only walking went through): the feet
 	# stop up to a running step short of the edge, and the exit is still found (the village's
-	# lane north-west to the farm, off its north edge).
-	g.maps.place("town", Vector2i(34, 0), Vector2i.UP)
+	# lane west to the farm, off its west edge).
+	g.maps.place("town", Vector2i(0, 4), Vector2i.LEFT)
 	var e: Node2D = load("res://scripts/player/player.gd").new()
 	e.farm = saved_farm
 	var entered := []
 	e.action.connect(func(kind, origin, face, _c): entered.append([kind, origin, face]))
 	for gap_px in [0.2, 1.0, 1.6]:
 		entered.clear()
-		e.position = Vector2(34 * 16 + 8, 3.0 + gap_px)
-		Input.action_press("move_up")
+		e.position = Vector2(5.0 + gap_px, 4 * 16 + 10)
+		Input.action_press("move_left")
 		Input.action_press("run")
 		e._physics_process(1.0 / 60.0)
-		Input.action_release("move_up")
+		Input.action_release("move_left")
 		Input.action_release("run")
-		check(not entered.is_empty() and entered[0][0] == "enter" and entered[0][2] == Vector2i.UP,
-			"walking: running into the village's north-west exit %.1f px short of the edge goes through (%s, running %s)" % [gap_px, entered, e.running])
+		check(not entered.is_empty() and entered[0][0] == "enter" and entered[0][2] == Vector2i.LEFT,
+			"walking: running into the village's west exit %.1f px short of the edge goes through (%s, running %s)" % [gap_px, entered, e.running])
 	for n in [p, q, r, e]:
 		n.free()
 	g.farm = saved_farm

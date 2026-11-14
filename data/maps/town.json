@@ -1,5 +1,5 @@
 {
-	"_note": "The village, rebuilt 2026-11-14 after the user's map of Arashiyama (v2, 56 x 48; the old one is git tag town-classic): the river in from the gorge at the west edge, bending east along the south, with a riverside road on its north bank and a long wooden bridge (x 40-42) to the park on the south bank and on to Minamino (south edge). The stone main street (x 40-42) runs north from the bridge to the Sagano line (y 2) and Kaminoda (north edge). West of it the temple (Tenryu-ji in spirit) inside its earthen wall: the gate on the street (34, 21-22), the hall, the kitchen hall, the garden pond (the village's fishing water, data/fish.json), a north gate to the bamboo path; shops facing the street (street: east) and Kota's family's house by the river (door 37, 33) with the carp streamers' socket beside it; the art museum by the river. North the bamboo path (y 11-12) through thick bamboo, the little shrine (Nonomiya in spirit) with its black torii, Ogura pond on its path west, the lane up to the farm (north edge, x 34-35), the small station on the line in the north-west; the hill's pines and maples west. East along alleys: Grandma Tome's house (door 46, 8), the post office (door 51, 8; Ren lives there), the Kurogane Smithy (door 44, 15; Hachiro), the Hinata Clinic (door 51, 15; Dr. Yae; a collapse wakes the farmer there), the station with its line east, the Yorozu Store (door 46, 28) with Sayo's side door (48, 28), a shop, and the road east to Sakurazaka (y 29-30). Doors open by their `hours` and say `closed` otherwise. The two store_sign props are the store's new sign (flag sayo_sign, old / new, heart_sayo_5). Format: README.md, Maps.",
+	"_note": "The village, rebuilt 2026-11-14 after the user's map of Arashiyama (v2, 56 x 48; the old one is git tag town-classic): the river in from the gorge at the west edge, bending east along the south, with a riverside road on its north bank and a long wooden bridge (x 40-42) to the park on the south bank and on to Minamino (south edge). The stone main street (x 40-42) runs north from the bridge to the Sagano line (y 2) and Kaminoda (north edge). West of it the temple (Tenryu-ji in spirit) inside its earthen wall: the gate on the street (34, 21-22), the hall, the kitchen hall, the garden pond (the village's fishing water, data/fish.json), a north gate to the bamboo path; shops facing the street (street: east) and Kota's family's house by the river (door 37, 33) with the carp streamers' socket beside it; the art museum by the river. North the bamboo path (y 11-12) through thick bamboo, the little shrine (Nonomiya in spirit) with its black torii, Ogura pond on the lane west to the farm (west edge, y 4-5), the path west along the gorge to the river upstream (west edge, y 24-25), the small station on the line in the north-west; the hill's pines and maples west. East along alleys: Grandma Tome's house (door 46, 8), the post office (door 51, 8; Ren lives there), the Kurogane Smithy (door 44, 15; Hachiro), the Hinata Clinic (door 51, 15; Dr. Yae; a collapse wakes the farmer there), the station with its line east, the Yorozu Store (door 46, 28) with Sayo's side door (48, 28), a shop, and the road east to Sakurazaka (y 16-17). Doors open by their `hours` and say `closed` otherwise. The two store_sign props are the store's new sign (flag sayo_sign, old / new, heart_sayo_5). Format: README.md, Maps.",
 	"id": "town",
 	"name": "Village",
 	"size": [
@@ -32,16 +32,16 @@
 		}
 	},
 	"ground": [
-		"ggggggggggggggggggggggggggggggggggrrggggpppggggggggggggg",
-		"ggggggggggggggggggggggggggggggggggrrggggpppggggggggggggg",
-		"ggggggggggggggggggggggggggggggggggrrggggpppggggggggggggg",
-		"ggggggggggggggggggggggggggggggggggrrrrrrpppggggggggggggg",
-		"rrrrrrrrrrrrggggggggggggggggggggggrrrrrrpppggggggggggggg",
+		"ggggggggggggggggggggggggggggggggggggggggpppggggggggggggg",
+		"ggggggggggggggggggggggggggggggggggggggggpppggggggggggggg",
+		"ggggggggggggggggggggggggggggggggggggggggpppggggggggggggg",
+		"ggggggggggggggggggggggggggggggggggggggggpppggggggggggggg",
+		"rrrrrrrrrrrrggggggggggggggggggggggggggggpppggggggggggggg",
 		"rrrrrrrrrrrrggggggggggggggggggggggggggggpppggggggggggggg",
 		"ggggggggggrrggggggggggggggggssssggggggggpppggggggggggggg",
 		"ggwwwwwwggrrggggggggggggggggssssggggggggpppggggggggggggg",
 		"ggwwwwwwggrrggggggggggggggggssssgggrrrrrpppggggggggggggg",
-		"ggwwwwwwggrrggggggggggggggggssssggggggggppprrrrrrrrrrrrr",
+		"ggwwwwwwggrrggggggggggggggggssssggggggggppprrrrrrrrrrrrg",
 		"ggggggggrrrrgggggggggggggggggrrgggggggggpppggggggggggggg",
 		"ggggggggrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrpppggggggggggggg",
 		"ggggggggrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrpppggggggggggggg",
@@ -49,28 +49,28 @@
 		"ggggggggrrgggggggggggggggrrgggggggggggggpppggggggggggggg",
 		"ggggggggrrgggggggggsssssssssssssssggggggpppggggggggggggg",
 		"ggggggggrrgggggggggsssssssssssssssggggggppprrrrrrrrrrrrr",
-		"ggggggggrrgggggggggsssssssssssssssggggggpppggggggggggggg",
+		"ggggggggrrgggggggggsssssssssssssssggggggppprrrrrrrrrrrrr",
 		"ggggggggrrgggggggggsssssssssssssssgrrrrrpppggggggggggggg",
 		"ggggggggrrgggggggggsssssssssssssssggggggpppggggggggggggg",
 		"ggggggggrrgggggggggssssssssrssssssggggggpppggggggggggggg",
 		"ggggggggrrgggggggggssssssssrrrrrrrrgggggppprrrrrrrrggggg",
 		"ggggggggrrgggggggggssssssssrrrrrrrrgggggpppggggggggggggg",
 		"ggggggggrrgggggggggsssssssssssssssggggggpppggggggggggggg",
-		"ggggggggrrgggggggggsssssssssssssssggggggpppggggggggggggg",
-		"ggggggggrrgggggggggswwwwwwssssssssggggggpppggggggggggggg",
+		"rrrrrrrrrrgggggggggsssssssssssssssggggggpppggggggggggggg",
+		"rrrrrrrrrrgggggggggswwwwwwssssssssggggggpppggggggggggggg",
 		"wgggggggrrgggggggggswwwwwwssssssssggggggpppggggggggggggg",
 		"wwwgggggrrgggggggggswwwwwwssssssssgrrrrrpppggggggggggggg",
 		"wwwwwgggrrgggggggggswwwwwwssssssssggggggpppggggggggggggg",
-		"wwwwwwggrrgggggggggswwwwwwssssssssggggggppprrrrrrrrrrrrr",
-		"wwwwwwwwrrrgggggggggggggggggggggggggggggppprrrrrrrrrrrrr",
-		"wwwwwwwwwrrrrgggggggggggggggggggggggggggpppggggggggggggg",
-		"gwwwwwwwwwwrrrggggggggggggggggggggggggggpppggggggggggggg",
-		"gggwwwwwwwwwwrrrgggggggggggggggggggggggppppggggggggggggg",
-		"gggggwwwwwwwwwrrrrggggggggrrrrrrrrrrrrrrpppggggggggggggg",
-		"ggggggwwwwwwwwwwrrrrrrrrrrrrrrrrrrrrrrrrbbbggggggggggggg",
-		"ggggggggwwwwwwwwwwrrrrrrrrrrrrrrrrrrrrrrbbbwwwwwwwwwwwww",
-		"gggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"wwwwwwggrrgggggggggswwwwwwssssssssggggggppprrrrrrrrrrrrg",
+		"gwwwwwwwrrrgggggggggggggggggggggggggggggppprrrrrrrrrrrrg",
+		"gggwwwwwwrrrrgggggggggggggggggggggggggggpppggggggggggggg",
+		"gggggwwwwwwrrrggggggggggggggggggggggggggpppggggggggggggg",
+		"ggggggwwwwwwwrrrgggggggggggggggggggggggppppggggggggggggg",
+		"ggggggwwwwwwwwrrrrggggggggrrrrrrrrrrrrrrpppggggggggggggg",
+		"ggggggggwwwwwwwwrrrrrrrrrrrrrrrrrrrrrrrrbbbggggggggggggg",
+		"gggggggggwwwwwwwwwrrrrrrrrrrrrrrrrrrrrrrbbbwwwwwwwwwwwww",
 		"gggggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
+		"ggggggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
 		"gggggggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
 		"ggggggggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
 		"ggggggggggggggggwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
@@ -286,7 +286,7 @@
 				24
 			],
 			"size": [
-				12,
+				10,
 				1
 			],
 			"solid": false
@@ -843,27 +843,6 @@
 			"cell": [
 				5,
 				23
-			]
-		},
-		{
-			"kind": "pine",
-			"cell": [
-				4,
-				24
-			]
-		},
-		{
-			"kind": "pine",
-			"cell": [
-				3,
-				25
-			]
-		},
-		{
-			"kind": "pine",
-			"cell": [
-				7,
-				25
 			]
 		},
 		{
@@ -1426,18 +1405,36 @@
 		{
 			"cells": [
 				[
-					34,
-					-1
+					-1,
+					4
 				],
 				[
-					35,
-					-1
+					-1,
+					5
 				]
 			],
 			"to": "farm",
 			"spawn": [
 				30,
-				6
+				5
+			],
+			"facing": "left"
+		},
+		{
+			"cells": [
+				[
+					-1,
+					24
+				],
+				[
+					-1,
+					25
+				]
+			],
+			"to": "river",
+			"spawn": [
+				18,
+				4
 			],
 			"facing": "left"
 		},
@@ -1566,11 +1563,11 @@
 			"cells": [
 				[
 					56,
-					29
+					16
 				],
 				[
 					56,
-					30
+					17
 				]
 			],
 			"to": "sakurazaka",
@@ -1649,10 +1646,17 @@
 		],
 		"start": [
 			[
-				34,
-				1
+				1,
+				4
 			],
-			"down"
+			"right"
+		],
+		"gorge": [
+			[
+				1,
+				24
+			],
+			"right"
 		],
 		"shrine": [
 			[
@@ -1713,7 +1717,7 @@
 		"east": [
 			[
 				54,
-				29
+				16
 			],
 			"left"
 		],

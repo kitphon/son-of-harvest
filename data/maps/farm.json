@@ -82,7 +82,7 @@
 				]
 			],
 			"to": "town",
-			"spawn": [34, 1], "facing": "down",
+			"spawn": [0, 4], "facing": "right",
 			"gate": true
 		},
 		{

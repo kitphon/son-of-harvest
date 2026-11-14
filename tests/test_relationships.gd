@@ -1121,7 +1121,7 @@ func _married_plans_and_lines() -> void:
 		"single, Kaede wakes in her house in Minamino and sweeps the shrine by 9:00")
 	var shday := day.merged({"flags": {"married_shino": true}}, true)
 	Villagers.reset_day()
-	check(Villagers.is_on("shino", "house", 6 * 60 + 30, shday) and Villagers.is_on("shino", "minamino", 9 * 60, shday) and Villagers.is_on("shino", "shino_house", 12 * 60, shday)
+	check(Villagers.is_on("shino", "house", 6 * 60 + 15, shday) and Villagers.is_on("shino", "minamino", 9 * 60, shday) and Villagers.is_on("shino", "shino_house", 12 * 60, shday)
 		and Villagers.is_on("shino", "minamino", 14 * 60, shday) and Villagers.is_on("shino", "house", 18 * 60, shday) and Villagers.where("shino", 22 * 60, shday).map == "away",
 		"married, Shino works her vats in Minamino by day, lunch at the dye house, home to the farmhouse by 16:45")
 	Villagers.reset_day()
@@ -1132,8 +1132,8 @@ func _married_plans_and_lines() -> void:
 		"single, Shino wakes in her dye house, works the vats by 9:00 and rinses at the river at 13:00")
 	var rday := day.merged({"flags": {"married_ren": true}}, true)
 	Villagers.reset_day()
-	var on_round := [[6 * 60 + 30, "house"], [7 * 60 + 30, "post_office"], [9 * 60, "town"], [10 * 60, "sakurazaka"], [11 * 60 + 20, "kaminoda"], [12 * 60 + 30, "post_office"],
-		[13 * 60 + 40, "river"], [14 * 60 + 20, "minamino"], [16 * 60, "post_office"], [18 * 60, "house"]]
+	var on_round := [[6 * 60 + 15, "house"], [7 * 60 + 30, "post_office"], [9 * 60, "town"], [10 * 60, "sakurazaka"], [11 * 60 + 20, "kaminoda"], [12 * 60 + 10, "post_office"],
+		[13 * 60, "river"], [14 * 60 + 20, "minamino"], [16 * 60, "post_office"], [18 * 60, "house"]]
 	var round_ok: bool = Villagers.where("ren", 22 * 60, rday).map == "away"
 	for at in on_round:
 		round_ok = round_ok and Villagers.is_on("ren", at[1], at[0], rday)
