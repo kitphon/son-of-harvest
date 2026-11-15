@@ -29,7 +29,8 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   the bridge's and the hill's views (the mountains as before, a little farther). All 43 tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`: title, `--demo`, town, the mine,
   the hill, the river, Minamino, Kaminoda, Sakurazaka in fall): 0 ERROR lines; windowed `--quit-after 150 -- --demo
   --map=minamino`: exit 0.
-- Left / next: the user's look.
+- Left / next: the user played it and found it smooth (2026-11-15); the merge into arashiyama-town and main waits on
+  their word.
 
 ## 2026-11-15 — The whole apron on the mountain maps; the grass darkening toward the mountains — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
