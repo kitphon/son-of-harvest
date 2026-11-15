@@ -26,7 +26,8 @@ Agent: Claude Code (claude-opus-5-5) · Commit: this commit
   fixed, and test_vista now builds the farm); smoke runs (`--quit-after 300`: title, `--demo`, town, the mine, the
   hill's top, the river, Minamino, Kaminoda, Sakurazaka, the farm in winter snow): 0 ERROR lines; windowed
   `--quit-after 150 -- --demo`: exit 0.
-- Left / next: the user's look.
+- Left / next: the user played both and found them fixed (2026-11-15); the merge into arashiyama-town and main
+  waits on their word.
 
 ## 2026-11-15 — The 1-2 s stall on a new map gone: the mountains built fast, a step each — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
