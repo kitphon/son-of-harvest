@@ -102,3 +102,30 @@ static func place(parent: Node3D, cols: int, rows: int, origin: Vector2, is_wate
 		b.position = Vector3(0, y, 0)
 		parent.add_child(b)
 	return g
+
+
+## Which cells of `map` lie sunk: its water tiles, or the farm's pond cells when `farm` is given
+## (the farm's map tiles say nothing of the pond). Cells past the edge take the nearest edge
+## cell's, as the land past the edges continues the water (Surroundings).
+static func water_of(map: MapData, farm: FarmGrid = null) -> Callable:
+	if farm != null:
+		return func(c: Vector2i) -> bool:
+			return str(farm.fixed.get(Vector2i(clampi(c.x, 0, farm.w - 1), clampi(c.y, 0, farm.h - 1)), "")) == "pond"
+	return func(c: Vector2i) -> bool:
+		return map.tile(Vector2i(clampi(c.x, 0, map.w - 1), clampi(c.y, 0, map.h - 1))) == "water"
+
+
+## How far the ground lies below the land at `p` (cells, x / z), smoothed between cell centres
+## (0 on land, -DROP over open water, between at a bank), so something drifting or flying low
+## over the shore sinks and rises with the water without a jump (the mist, the heron).
+static func sink_at(p: Vector2, is_water: Callable) -> float:
+	var q := p - Vector2(0.5, 0.5)
+	var x0 := floori(q.x)
+	var y0 := floori(q.y)
+	var fx := q.x - x0
+	var fy := q.y - y0
+	var w := 0.0
+	for d in [[0, 0, (1.0 - fx) * (1.0 - fy)], [1, 0, fx * (1.0 - fy)], [0, 1, (1.0 - fx) * fy], [1, 1, fx * fy]]:
+		if is_water.call(Vector2i(x0 + int(d[0]), y0 + int(d[1]))):
+			w += float(d[2])
+	return -DROP * w

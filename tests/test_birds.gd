@@ -497,6 +497,25 @@ func _views() -> void:
 		_when(2, 17, 30, "sunny")
 		layer.refresh()
 		check(layer.shown_count() >= 0 and layer.is_in_group("bird_layers"), "3D: the layer is in its group")
+		# The heron wades: on a sunk water cell (SunkenGround) its sprite stands at the water's height.
+		var sg: GDScript = load("res://scripts/world3d/sunken_ground.gd")
+		var wet: Callable = sg.water_of(town)
+		var waded := false
+		var t_h := 0.0
+		while t_h < 240.0 and not waded:
+			layer._t = t_h
+			_when(0, 7, 0, "sunny")
+			layer.refresh()
+			var all: Array[Dictionary] = layer.shown()
+			for i in all.size():
+				var hb: Dictionary = all[i]
+				if hb.kind == "heron" and hb.pose == "stand" and town.tile(Vector2i(floori(hb.pos.x), floori(hb.pos.z))) == "water":
+					var spr: Sprite3D = layer._pool[i]
+					check(is_equal_approx(spr.position.y, -sg.DROP) and is_equal_approx(sg.sink_at(Vector2(hb.pos.x, hb.pos.z), wet), -sg.DROP), "3D: the heron stands in the sunk river (y %.2f)" % spr.position.y)
+					waded = true
+			t_h += 2.0
+		check(waded, "3D: found the heron standing in the village's river")
+		layer._t = 0.0
 		# The farmer's place startles the sparrows (FarmWorld.set_farmer hands it over).
 		_when(0, 12, 0, "sunny")
 		layer.refresh()

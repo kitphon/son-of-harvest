@@ -229,8 +229,8 @@ func _upgrades() -> void:
 ## The village doors lead into the shops and back; the counters are props.
 func _maps() -> void:
 	var t := MapManager.data("town")
-	var store := t.door_at(Vector2i(23, 15))
-	var smith := t.door_at(Vector2i(27, 6))
+	var store := _door_to(t, "store")   # found by where it leads: the village's layout moves
+	var smith := _door_to(t, "smithy")
 	check(store.to == "store" and store.shop == "general", "the noren house is the store")
 	check(smith.to == "smithy" and smith.shop == "smithy", "the north-east house is the smithy")
 	for id in ["store", "smithy"]:
@@ -239,18 +239,28 @@ func _maps() -> void:
 		check(not m.is_solid(m.spawns.keeper[0]), "%s: the keeper spot is free" % id)
 
 
+## The door of map `m` that leads to `to` ({} when there is none).
+func _door_to(m: MapData, to: String) -> Dictionary:
+	for d in m.doors:
+		if str(d.get("to", "")) == to:
+			return d
+	return {}
+
+
 ## Game: closed doors and counters, buying, selling, an upgrade over days.
 func _game() -> void:
 	var g := _new_game()
 	var seen := {"opened": [], "said": []}
 	g.shop_requested.connect(func(id): seen.opened.append(id))
 	g.message.connect(func(t): seen.said.append(t))
-	g.go_to_map("town", Vector2i(23, 16), Vector2i.UP)
+	var store_door := _door_to(MapManager.data("town"), "store")
+	var at: Vector2i = store_door.cells[0]
+	g.go_to_map("town", at + Vector2i.DOWN, Vector2i.UP)
 	g.hour = 7
-	g.use_door(MapManager.data("town").door_at(Vector2i(23, 15)))
+	g.use_door(store_door)
 	check(g.maps.id == "town" and seen.said.back().begins_with("Yorozu Store is closed"), "a shut shop's door says so")
 	g.hour = 10
-	g.use_door(MapManager.data("town").door_at(Vector2i(23, 15)))
+	g.use_door(store_door)
 	check(g.maps.id == "store", "an open shop's door leads in")
 	check(g.weekday() == "mon" and g.day_number() == 0, "the first day is a Monday, day 0")
 	g.day = 7

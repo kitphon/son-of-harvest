@@ -88,6 +88,35 @@ func _run() -> void:
 	quit()
 
 
+## The water running off the maps drawn on in the dark gaps (data/world.json `waters`, WorldPlan):
+## a stream going up or down carried on to the picture's edge, two that meet carried to their
+## meeting, the one that meets carried on past it. Only on cells no map covers.
+func _draw_off_plan(world: Image, plan: Dictionary, lo: Vector2i) -> void:
+	var cfg: Dictionary = WorldPlan.config()
+	var places: Dictionary = WorldPlan.places(cfg)
+	var runs: Array[Dictionary] = WorldPlan.off_plan_runs(places)
+	var waters: Dictionary = cfg.get("waters", {})
+	var far := maxi(world.get_width(), world.get_height()) / T
+	var cells: Array[Vector2i] = []
+	for r in runs:
+		var w: Dictionary = waters.get(r.key, {})
+		if w.has("meets"):
+			var b := WorldPlan.run_of(runs, str(w.meets))
+			var m := WorldPlan.meeting(r, b)
+			if m.has_area():
+				cells.append_array(WorldPlan.carried(r, m))
+				for y in range(m.position.y, m.end.y):
+					for x in range(m.position.x, m.end.x):
+						cells.append(Vector2i(x, y))
+				continue
+		cells.append_array(WorldPlan.carried(r, Rect2i(), far))
+	var water := Color("3d6680")
+	for c in cells:
+		var px := c * T - lo
+		if WorldPlan.owner(c, places) == "" and Rect2i(Vector2i.ZERO, world.get_size()).encloses(Rect2i(px, Vector2i(T, T))):
+			world.fill_rect(Rect2i(px, Vector2i(T, T)), water)
+
+
 ## The pictures laid at their places on the plan (data/world.json), the gaps between them dark.
 func _lay_world(plan: Dictionary) -> void:
 	var lo := Vector2i(1 << 20, 1 << 20)
@@ -103,6 +132,7 @@ func _lay_world(plan: Dictionary) -> void:
 		img.convert(Image.FORMAT_RGBA8)
 		var at := Vector2i(int(plan[id][0]), int(plan[id][1])) * T - lo
 		world.blit_rect(img, Rect2i(Vector2i.ZERO, img.get_size()), at)
+	_draw_off_plan(world, plan, lo)
 	world.save_png(_out + "/_world.png")
 	var half := world.duplicate()
 	half.resize(world.get_width() / 2, world.get_height() / 2, Image.INTERPOLATE_NEAREST)

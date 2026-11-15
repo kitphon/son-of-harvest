@@ -241,7 +241,7 @@ func _maps() -> void:
 	var entrance := MapManager.data("mine")
 	var cave := MapManager.data("mine_floor")
 	var east := MapManager.data("sakurazaka")
-	check(town.door_at(Vector2i(36, 10)).to == "sakurazaka" and east.door_at(Vector2i(30, 10)).to == "mine" and east.door_at(Vector2i(30, 11)).to == "mine",
+	check(town.doors.any(func(d): return d.to == "sakurazaka" and (d.cells[0] as Vector2i).x == town.w) and east.door_at(Vector2i(30, 10)).to == "mine" and east.door_at(Vector2i(30, 11)).to == "mine",
 		"the village road's east end leads through Sakurazaka to the mine")
 	check(entrance.door_at(Vector2i(-1, 7)).to == "sakurazaka" and east.door_at(Vector2i(-1, 10)).to == "town", "the entrance leads back through Sakurazaka to the village")
 	check(entrance.door_at(Vector2i(7, 2)).to == "mine_floor" and entrance.prop_at(Vector2i(8, 2)).kind == "cave_mouth", "the cave mouth goes down")

@@ -1412,7 +1412,7 @@ func _map_snow() -> void:
 	check(mask.get_size() == Vector2i(town.w * k, town.h * k) and absf(mask.get_pixel(1, 4 * k + 1).r - path) < 0.01,
 		"the village mask spans the map and holds the path value")
 	var roofs := SnowLayer.roof_mask_image(town, rules)
-	var door: Vector2i = town.doors[1].cells[0]   # the post office door, on its house front
+	var door: Vector2i = town.doors.filter(func(d): return d.to == "post_office")[0].cells[0]   # the post office door, on its house front
 	check(roofs.get_pixel(45 * k + 1, 6 * k + 1).r > 0.5 and roofs.get_pixel(door.x * k + 1, door.y * k + 1).r == 0.0
 		and roofs.get_pixel(4 * k + 1, door.y * k + 1).r == 0.0 and roofs.get_pixel(1, 4 * k + 1).r == 0.0,
 		"2D roof snow over the houses, not on their front row or the road")
@@ -4012,6 +4012,39 @@ func _world() -> void:
 						met += 1
 						check(wet_here == (om.tile(oc) == "water"), "%s %s and %s %s: water meets water" % [id, c, other, oc])
 	check(met >= 8, "the river runs on from the gorge into the village (%d edge cells)" % met)
+	# The water running off the maps (data/world.json `waters`, WorldPlan): every off-plan stream
+	# is listed, once per map edge, and a meeting meets on no map.
+	var cfg: Dictionary = WorldPlan.config()
+	var places: Dictionary = WorldPlan.places(cfg)
+	var runs: Array[Dictionary] = WorldPlan.off_plan_runs(places)
+	var waters: Dictionary = cfg.get("waters", {})
+	check(runs.size() == 4, "four streams run off the maps (%s)" % ", ".join(runs.map(func(r): return r.key)))
+	for r in runs:
+		check(waters.has(r.key), "%s: where its water goes is on the plan" % r.key)
+		var span: Rect2i = WorldPlan._span(r.cells)
+		check(span.size.x == 1 or span.size.y == 1, "%s: one stream along the edge" % r.key)
+		check(r.cells.size() == (span.size.y if span.size.x == 1 else span.size.x), "%s: no gap in it" % r.key)
+		var w: Dictionary = waters.get(r.key, {})
+		if w.has("goes"):
+			check(w.goes in ["up", "down"], "%s goes up or down" % r.key)
+	for key in waters:
+		if key.begins_with("_"):
+			continue
+		var a := WorldPlan.run_of(runs, key)
+		check(not a.is_empty(), "%s: a stream on that edge" % key)
+		if waters[key].has("meets"):
+			var b := WorldPlan.run_of(runs, str(waters[key].meets))
+			var r := WorldPlan.meeting(a, b) if not b.is_empty() else Rect2i()
+			check(r.has_area(), "%s meets %s" % [key, waters[key].meets])
+			var on_none := true
+			for c in WorldPlan.carried(a, r) + WorldPlan.carried(b, r):
+				on_none = on_none and WorldPlan.owner(c, places) == ""
+			for y in range(r.position.y, r.end.y):
+				for x in range(r.position.x, r.end.x):
+					on_none = on_none and WorldPlan.owner(Vector2i(x, y), places) == ""
+			check(r.has_area() and on_none, "%s and %s meet in the gap, on no map (%s)" % [key, waters[key].meets, r])
+	var creek := WorldPlan.meeting(WorldPlan.run_of(runs, "sakurazaka:south"), WorldPlan.run_of(runs, "town:east"))
+	check(creek == Rect2i(70, 37, 2, 6), "the creek falls into the river at plan x 70-71, rows 37-42 (%s)" % creek)
 
 
 ## Water lies lower than the land (SunkenGround): the village's ground is a grid with its water
@@ -4020,6 +4053,27 @@ func _world() -> void:
 ## over it, the farm's pond sunk the same; the flat view draws the banks.
 func _sunken_water() -> void:
 	var sg: GDScript = load("res://scripts/world3d/sunken_ground.gd")
+	# sink_at: the depth smoothed between cell centres, the full drop at a water cell's centre,
+	# none at a land cell's, half way across a bank's edge; past the edge the edge cell's.
+	var rvr := MapManager.data("town")
+	var wc := Vector2i(-1, -1)
+	var lc := Vector2i(-1, -1)
+	for y in rvr.h:
+		for x in rvr.w - 1:
+			if rvr.tile(Vector2i(x, y)) != "water" and rvr.tile(Vector2i(x + 1, y)) == "water" and rvr.tile(Vector2i(x, y - 1)) != "water" and rvr.tile(Vector2i(x, y + 1)) != "water" 					and rvr.tile(Vector2i(x + 1, y - 1)) == "water" and rvr.tile(Vector2i(x + 1, y + 1)) == "water" and lc.x < 0:
+				lc = Vector2i(x, y)
+				wc = Vector2i(x + 1, y)
+	var wf: Callable = sg.water_of(rvr)
+	check(wc.x >= 0, "a west bank of the village's river found (%s)" % wc)
+	if wc.x >= 0:
+		check(is_equal_approx(sg.sink_at(Vector2(wc) + Vector2(0.5, 0.5), wf), -sg.DROP), "sink_at: the full drop at a water cell's centre")
+		check(is_zero_approx(sg.sink_at(Vector2(lc) + Vector2(0.5, 0.5), wf)), "sink_at: none at a land cell's")
+		check(is_equal_approx(sg.sink_at(Vector2(wc.x, wc.y + 0.5), wf), -sg.DROP * 0.5), "sink_at: half across the bank")
+	check(wf.call(Vector2i(-3, 39)) == (rvr.tile(Vector2i(0, 39)) == "water"), "water_of: past the edge the edge cell's")
+	var fg := FarmGrid.new({})
+	fg.fixed[Vector2i(2, 2)] = "pond"
+	var ff: Callable = sg.water_of(MapManager.data("farm"), fg)
+	check(ff.call(Vector2i(2, 2)) and not ff.call(Vector2i(3, 2)), "water_of: the farm's pond cells")
 	var t := MapManager.data("town")
 	var wet := func(c: Vector2i) -> bool: return t.tile(c) == "water"
 	var mesh: ArrayMesh = sg.ground(t.w, t.h, Vector2.ZERO, wet)

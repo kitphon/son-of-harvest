@@ -30,12 +30,14 @@ var _shown: Array[Dictionary] = []
 var _shadow_pool: Array[MeshInstance3D] = []
 var _shadows: Array[Dictionary] = []
 static var _soft: Texture2D
+var _water: Callable   # the sunk water cells (SunkenGround): the heron wades in them
 
 
 func _init(m: MapData, f: FarmGrid = null) -> void:
 	map = m
 	farm = f
 	name = "Birds"
+	_water = SunkenGround.water_of(m, f)
 	_t = 0.0 if not BirdRules.forced().is_empty() else float(m.w * 13 + m.h * 29) * 0.31   # `--birds`: from the start, so a frame is the same
 
 
@@ -86,7 +88,7 @@ func refresh() -> void:
 		var tex := PlaceholderArt.tex(BirdRules.key_of(b) + (":r" if to_right else ""))
 		s.texture = tex
 		s.offset = Vector2(0, tex.get_height() / 2.0)
-		s.position = b.pos
+		s.position = _placed(b)
 		s.visible = true
 	_place_shadows(game)
 
@@ -101,6 +103,7 @@ func _place_shadows(game: Node) -> void:
 			var sh := BirdRules.shadow_of(b, sun, dir, {}, _scene.get("blocked", {}))
 			if not sh.is_empty():
 				sh.air = BirdRules.flying(b)
+				sh.sink = _sink(b, sh.at)
 				_shadows.append(sh)
 	while _shadow_pool.size() < _shadows.size():
 		_shadow_pool.append(_make_shadow())
@@ -111,10 +114,23 @@ func _place_shadows(game: Node) -> void:
 			continue
 		var sh := _shadows[i]
 		var size: Vector2 = sh.size
-		m.position = Vector3(sh.at.x, 0.015, sh.at.y)
+		m.position = Vector3(sh.at.x, 0.015 + float(sh.get("sink", 0.0)), sh.at.y)
 		m.scale = Vector3(size.x, 1.0, size.y)
 		(m.material_override as StandardMaterial3D).albedo_color = Color(0, 0, 0, float(sh.alpha))
 		m.visible = true
+
+
+## Where a bird's sprite stands in the world: the rules' place, a heron's lowered by the sunk water
+## under it (it wades in the river, not over it; smoothed across the bank, so its glide in and out
+## has no jump). The other birds keep to the land's height (they stand on dry ground).
+func _placed(b: Dictionary) -> Vector3:
+	var p: Vector3 = b.pos
+	p.y += _sink(b, Vector2(p.x, p.z))
+	return p
+
+
+func _sink(b: Dictionary, at: Vector2) -> float:
+	return SunkenGround.sink_at(at, _water) if str(b.get("kind", "")) == "heron" else 0.0
 
 
 func _make_shadow() -> MeshInstance3D:

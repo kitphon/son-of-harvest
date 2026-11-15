@@ -245,6 +245,22 @@ func _views() -> void:
 		_when(3, 5, 30, "sunny")
 		layer.refresh()
 		check(layer.shown_count() > 0, "3D: the river steams on a winter dawn (%d)" % layer.shown_count())
+		# The river lies sunk (SunkenGround): a sheet over open water lies as far below the land's
+		# height as the water does, the same height over the water as a land sheet over the land.
+		var sg: GDScript = load("res://scripts/world3d/sunken_ground.gd")
+		var wet: Callable = sg.water_of(rv)
+		var hs: Array = MistRulesS().config().height
+		var bob := float(MistRulesS().config().bob)
+		var over_water := 0
+		var right := true
+		for o: Vector3 in layer.placed():
+			var sink: float = sg.sink_at(Vector2(o.x, o.z), wet)
+			var above := o.y - sink   # its height over the ground under it
+			right = right and above >= minf(float(hs[0]) - bob, 0.02) - 0.001 and above <= float(hs[1]) + bob + 0.001
+			if sink < -sg.DROP * 0.9:
+				over_water += 1
+				right = right and o.y < 0.45 - sg.DROP + bob + 0.001
+		check(over_water > 0 and right, "3D: the sheets over the river lie down on the sunk water (%d)" % over_water)
 	w3.free()
 	inside.free()
 	cave.free()
@@ -322,3 +338,7 @@ func _find(n: Node, s: GDScript) -> Node:
 		if f != null:
 			return f
 	return null
+
+
+func MistRulesS() -> GDScript:
+	return load("res://scripts/mist_rules.gd")

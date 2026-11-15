@@ -49,12 +49,15 @@ var _scene := {}
 var _scene_key := ""
 var _mm: MultiMesh
 var _mmi: MultiMeshInstance3D
+var _placed: Array[Vector3] = []   # where the sheets shown stand (for tests: a headless MultiMesh keeps no transforms)
+var _water: Callable   # the sunk water cells (SunkenGround): the sheets over them lie as much lower
 
 
 func _init(m: MapData, f: FarmGrid = null) -> void:
 	map = m
 	farm = f
 	name = "Mist"
+	_water = SunkenGround.water_of(m, f)
 	_t = float(m.w * 23 + m.h * 11) * 0.41
 	if _shader == null:
 		_shader = Shader.new()
@@ -92,6 +95,7 @@ func refresh() -> void:
 	var world := get_parent() as FarmWorld
 	var wind: float = world.wind if world != null else (float(game.wind_strength()) if game != null else 0.0)
 	var amounts := MistRules.amounts_now(game, map, wind)
+	_placed.clear()
 	if amounts.is_empty():
 		_mm.visible_instance_count = 0
 		return
@@ -107,8 +111,16 @@ func refresh() -> void:
 		var s: Dictionary = shown[i]
 		var size: Vector2 = s.size
 		var b := Basis(Vector3.UP, -float(s.angle)) * Basis.from_scale(Vector3(size.x, 1.0, size.y))
-		_mm.set_instance_transform(i, Transform3D(b, s.pos))
+		var pos: Vector3 = s.pos
+		pos.y += SunkenGround.sink_at(Vector2(pos.x, pos.z), _water)   # over the sunk water, as low over it as over the land
+		_mm.set_instance_transform(i, Transform3D(b, pos))
+		_placed.append(pos)
 		_mm.set_instance_color(i, Color(rgb, float(s.alpha)))
+
+
+## Where each sheet shown stands, in cells (x, height, z) (for tests).
+func placed() -> Array[Vector3]:
+	return _placed
 
 
 ## How many sheets are showing (for tests).

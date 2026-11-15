@@ -10,6 +10,36 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-15 — Mist and the heron down on the sunk water; where the water off the maps goes — branch arashiyama-town
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: two limits the last entries left open. (1) The water lies DROP below the land since SunkenGround, but the
+  morning mist and the heron stood at the land's height over it. SunkenGround.sink_at gives the ground's drop at a
+  point, smoothed between cell centres (the full DROP over open water, none on land, half across a bank's edge), and
+  SunkenGround.water_of says which cells lie sunk (a map's water tiles, the farm's pond cells; past an edge the edge
+  cell's). MistLayer lowers each sheet by it (a sheet drifting over the bank sinks and rises with no jump; MistLayer.
+  placed for the tests, since a headless MultiMesh keeps no transforms) and BirdLayer the heron and its shadow (it wades
+  in the river; the other birds keep to the dry ground). The flat view is unchanged. (2) Sakurazaka's creek ran off its
+  south edge into no map. data/world.json `waters` now says where every stream running off the maps goes: the gorge's
+  head (river:west) and the creek's (sakurazaka:north) up past the plan, the village's river (town:east) down out of the
+  valley, and the creek's mouth (sakurazaka:south) meets that river: carried straight on, the creek falls into it at plan
+  x 70-71, rows 37-42, in the gap between the maps. WorldPlan (scripts/world/world_plan.gd) holds the plan's geometry
+  (places, owner, the off-plan runs, where two meet, the cells carried on); tools/map_overview.gd `--world` draws that
+  water in the dark gaps. Also: test_maps `_map_snow` looked up the post office door as `town.doors[1]`, which since
+  the plan of the valley is the river's way off the west edge (an `Index p_x = -3` ERROR line in an OK run); it now
+  finds the door by where it leads. The same kind of stale door left SCRIPT ERROR lines in test_mine (the village's east
+  door at x 36) and test_shops (the store and smithy doors at their 28 x 34 places, so `_maps` and `_game` stopped
+  part way and still printed OK); both now find the doors by where they lead.
+- Checked: all 42 tests/test_*.gd print `OK (0 failed)`, with no SCRIPT ERROR or ERROR lines in test_maps, test_mine
+  and test_shops any more; test_maps `_sunken_water` (sink_at at a
+  water cell's centre, a land cell's, half across a bank; water_of past the edge and on the farm) and `_world` (four
+  streams off the maps, each listed, each one stream with no gap, the creek meeting the river at Rect2i(70, 37, 2, 6) on
+  no map); test_mist (every 3D sheet at its height over the ground under it, the ones over the river below the land);
+  test_birds (the heron's sprite standing at -DROP in the village's river). Frames: `--demo --weather=sunny --time=6:15
+  --map=river@shore` the mist low on the water and the heron standing in it; `map_overview --world` the creek into the
+  river past the bridge. Smoke runs (`--quit-after 300`: title, `--demo`, town, the mine, river at 6:15, Sakurazaka,
+  the farm with the heron): 0 ERROR lines; windowed `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the figures still walk at one height (no steps up or down); the user's look, then the merge into main.
+
 ## 2026-11-14 — Water lies lower than the land, the bridge over it (SunkenGround) — branch arashiyama-town
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user asked for layers: the bridge higher than the water, the water lower than the ground. SunkenGround
