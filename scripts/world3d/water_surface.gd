@@ -38,6 +38,7 @@ const SHADER := """shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, shadows_disabled;
 varying vec3 world;
 varying float land_mask;
+varying float jade;   // 1 over the temple pond's green water (UV2.y, set_looks): green troughs, softer glints
 uniform float sun_share = 0.045;
 uniform vec3 glint_color : source_color = vec3(1.0, 0.93, 0.7);
 uniform vec3 trough_color : source_color = vec3(0.13, 0.31, 0.56);
@@ -49,7 +50,7 @@ uniform float dimple_life = 0.9;      // seconds a dimple lasts (= the length of
 float hash2(vec2 v) { return fract(sin(dot(v, vec2(12.9898, 78.233))) * 43758.5453); }
 uniform vec4 ripples[8];   // x, z of the centre, clock time it began, life (0 = unused; < 0 = strong)
 //ICE//
-void vertex() { world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; land_mask = UV2.x; }
+void vertex() { world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; land_mask = UV2.x; jade = UV2.y; }
 void fragment() {
 	vec2 p = (floor(world.xz * 16.0) + 0.5) / 16.0;
 	float t = TIME;
@@ -100,10 +101,10 @@ void fragment() {
 	float b = sin((q.x + q.y) * 3.7 + sin(q.y * 2.1 + t * 0.5) * 1.7 - t * 0.9);
 	float h = 0.25 * a + 0.5 * b;   // -1 .. 1
 	if (h > 0.62) {
-		ALBEDO = glint_color;
-		ALPHA = 0.5;
+		ALBEDO = mix(glint_color, vec3(0.86, 0.96, 0.82), jade);
+		ALPHA = mix(0.5, 0.3, jade);
 	} else if (h < -0.7) {
-		ALBEDO = trough_color;
+		ALBEDO = mix(trough_color, vec3(0.1, 0.3, 0.25), jade);
 		ALPHA = 0.32;
 	} else {
 		discard;
@@ -120,6 +121,9 @@ void light() {
 
 ## The quads laid, as {cell, rect} (the rect in world x, z), for tests.
 var quads: Array[Dictionary] = []
+var look_at := Callable()   # a cell's own water look ("jade" or ""), set_looks; none: plain
+var _laid: Array[Vector2i] = []
+var _water_at := Callable()
 
 var clock := 0.0                         # seconds since the sheet was made; the rings' time
 var ripples := PackedVector4Array()      # the slots the shader reads (see `ripple`)
@@ -205,6 +209,13 @@ func build(w: int, h: int, kind_at: Callable, margin: int, back := -1) -> void:
 	set_cells(cells, func(c: Vector2i) -> bool: return is_water(kind_at, w, h, c))
 
 
+## Gives the cells their own looks (`look(c)`: "jade" for the temple pond's green water) and lays
+## the sheet again with them.
+func set_looks(look: Callable) -> void:
+	look_at = look
+	set_cells(_laid, _water_at)
+
+
 static func is_water(kind_at: Callable, w: int, h: int, c: Vector2i) -> bool:
 	return kind_at.call(Surroundings.edge_cell(c, w, h)) == "water"
 
@@ -212,6 +223,8 @@ static func is_water(kind_at: Callable, w: int, h: int, c: Vector2i) -> bool:
 ## One quad a cell, pulled in from each side that touches land (`water_at(c)` false).
 func set_cells(cells: Array[Vector2i], water_at: Callable) -> void:
 	quads.clear()
+	_laid = cells
+	_water_at = water_at
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for c in cells:
@@ -224,7 +237,7 @@ func set_cells(cells: Array[Vector2i], water_at: Callable) -> void:
 		var v := [Vector3(x0, 0, z0), Vector3(x1, 0, z0), Vector3(x1, 0, z1), Vector3(x0, 0, z1)]
 		for i in [0, 1, 2, 0, 2, 3]:
 			st.set_normal(Vector3.UP)
-			st.set_uv2(Vector2(land, 0))
+			st.set_uv2(Vector2(land, 1.0 if look_at.is_valid() and look_at.call(c) == "jade" else 0.0))
 			st.add_vertex(v[i])
 	mesh = st.commit() if not cells.is_empty() else null
 	position = Vector3(0, LIFT - SunkenGround.DROP, 0)   # over the sunk bed (SunkenGround)

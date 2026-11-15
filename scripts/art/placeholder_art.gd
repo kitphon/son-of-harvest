@@ -68,14 +68,16 @@ static func _make(key: String) -> Image:
 			return CicadaArt.make(parts[1], parts[2], int(parts[3]), parts.size() > 4 and parts[4] == "r")
 		"build":    # build:<plaster|tsuchi|board|kawara|kawara_edge|thatch|kaya|kaya_edge|hay|planks|planks_dark|sugi|glass|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
-		"ground":   # ground:<grass|tilled|wet|bed|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>
-			return _ground(parts[1], int(parts[2]))
+		"ground":   # ground:<grass|tilled|wet|bed|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>[:jade]
+			return _ground(parts[1], int(parts[2]), parts[3] if parts.size() > 3 else "")
 		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour); fx:<note|notes>, a whistler's note puff
 			return _fx(parts[1])
 		"cloth":    # cloth:<hex>, one indigo length drying over a pole (DyeCloth: 22 x 24, the pole across the top)
 			return _dye_cloth(Color(parts[1]))
 		"koi":      # koi:<black|red|blue|stream|wheel>:<level 0..2>:<frame>, a carp streamer's carp, streamer or wheel (KoiArt, KoinoboriRules.art_key)
 			return KoiArt.make(parts[1], int(parts[2]), int(parts[3]))
+		"pondkoi":  # pondkoi:<kohaku|orange|ogon|showa|shiro|asagi>:<frame 0..2>, a koi in the temple pond seen from above (KoiPondArt)
+			return KoiPondArt.make(parts[1], int(parts[2]))
 		"fish_fx":  # fish_fx:<bobber|alert>, the float on the water and the "!" of a bite
 			return _fish_fx(parts[1])
 		"tree":     # tree:maple:<spring|summer|fall|winter>:<snow 0|1>, a Japanese maple in the flat view (MapView), 24 x 32
@@ -1546,7 +1548,7 @@ static func ground_key(farm: FarmGrid, c: Vector2i) -> String:
 	return "ground:path:%d" % v
 
 
-static func _ground(kind: String, n: int) -> Image:
+static func _ground(kind: String, n: int, look := "") -> Image:
 	var img := _blank(16, 16)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(kind) + n
@@ -1753,11 +1755,13 @@ static func _ground(kind: String, n: int) -> Image:
 				var y := rng.randi_range(0, 15)
 				_px(img, x, y, 2, 1, Color("7a7068") if i % 2 == 0 else Color("b8b0a4"))
 		"water":
-			img.fill(Color("3d7fc4"))
+			# "jade": the temple pond's still green water (after the user's photos), a mossy bank, no white foam.
+			var jade := look == "jade"
+			img.fill(Color("3a7f72") if jade else Color("3d7fc4"))
 			for i in 4:
-				_px(img, rng.randi_range(1, 10), rng.randi_range(2, 13), rng.randi_range(3, 5), 1, Color("5d9ad8"))
-			var bank := Color("6b5a3a")
-			var foam := Color("a8d0f0")
+				_px(img, rng.randi_range(1, 10), rng.randi_range(2, 13), rng.randi_range(3, 5), 1, Color("4f9686") if jade else Color("5d9ad8"))
+			var bank := Color("4f5a34") if jade else Color("6b5a3a")
+			var foam := Color("6aa894") if jade else Color("a8d0f0")
 			if n & WATER_N:
 				_px(img, 0, 0, 16, 2, bank)
 				_px(img, 0, 2, 16, 1, foam)

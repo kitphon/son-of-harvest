@@ -1,0 +1,14 @@
+{
+	"_about": "Koi in the temple garden's pond (after the user's photos of a Zen temple's pond full of carp; rules: KoiPondRules, pictures: KoiPondArt, drawn by KoiPondLayer in 3D and KoiPondView in the flat view). `ponds`: where they swim, a map and a rect of cells (`cell`, `size`); they keep to that rect's water cells with no prop on them (not the rocks), `margin` cells off the banks. `count` fish by season (fewer show in winter: the rest keep to the deep). `patterns`: the koi's colours, one each in turn (KoiPondArt). `speed`: cells a second cruising (`winter` in the cold), each fish a share of it by `spread`; `turn`: how fast they turn, radians a second. `rest`: the chance a fish drifts slowly a while on reaching where it was going, for `rest_s` seconds (min, max). `gather`: a fish within `reach` cells of the farmer standing on the bank swims to the water by his feet, that much more often than elsewhere (`chance` of each new aim), as koi do for food. `wiggle_hz`: the tail's beats a second at full speed. The pictures are drawn at the ground's own pixel size (a fish about 0.8 of a cell long). Balance numbers are ours.",
+	"ponds": [
+		{"map": "town", "cell": [19, 21], "size": [8, 9]}
+	],
+	"count": {"spring": 8, "summer": 9, "fall": 8, "winter": 3},
+	"patterns": ["kohaku", "orange", "ogon", "showa", "orange", "shiro", "kohaku", "orange", "asagi"],
+	"margin": 0.35,
+	"speed": {"cruise": 0.45, "winter": 0.15, "spread": 0.35},
+	"turn": 1.8,
+	"rest": {"chance": 0.3, "rest_s": [1.5, 4.0]},
+	"gather": {"reach": 2.5, "chance": 0.6},
+	"wiggle_hz": 2.2
+}

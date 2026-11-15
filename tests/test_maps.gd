@@ -13,6 +13,96 @@ func _init() -> void:
 	_sprite_casts()
 
 
+## The temple's pond garden (2026-11-15, after the user's photos): the pond a ragged shape of
+## jade water ("look": "jade", its own ground picture and the skin's green troughs), garden rocks
+## out in it and on its banks, clipped shrubs, a way to its bank left for fishing; GardenProps
+## builds every rock shape and the shrub, the flat view draws them (no plain box).
+func _temple_garden() -> void:
+	var t := MapManager.data("town")
+	var jade := 0
+	var plain_in_pond := 0
+	for y in range(21, 30):
+		for x in range(19, 27):
+			var c := Vector2i(x, y)
+			if t.tile(c) == "water":
+				jade += 1 if t.look(c) == "jade" else 0
+				plain_in_pond += 0 if t.look(c) == "jade" else 1
+	check(jade >= 30 and plain_in_pond == 0, "temple pond: %d cells of jade water, none plain" % jade)
+	check(t.look(Vector2i(10, 40)) == "" and MapView.ground_key(t, Vector2i(10, 40)).count(":") == 2, "the river's water keeps the plain look")
+	var img := PlaceholderArt.image("ground:water:0:jade")
+	var plain := PlaceholderArt.image("ground:water:0")
+	var px: Color = img.get_pixel(0, 0)
+	check(px.g > px.b and plain.get_pixel(0, 0).b > plain.get_pixel(0, 0).g, "the jade water is green, the plain water blue")
+	var rocks := t.props.filter(func(p): return p.kind == "garden_rock")
+	var shrubs := t.props.filter(func(p): return p.kind == "shrub")
+	var in_water := rocks.filter(func(p): return t.tile(Vector2i(p.cell)) == "water").size()
+	var shapes := {}
+	for p in rocks:
+		shapes[str(p.get("shape", "low"))] = true
+	check(rocks.size() >= 8 and in_water >= 3 and shrubs.size() >= 4 and shapes.size() == 4,
+		"temple pond: %d garden rocks (%d in the water, every shape), %d shrubs" % [rocks.size(), in_water, shrubs.size()])
+	var spot: Array = t.spawns.get("pond", [])
+	check(not spot.is_empty() and not t.is_solid(spot[0]) and t.tile(spot[0] + spot[1]) == "water", "the pond spawn stands on the bank facing the water")
+	check(not t.is_solid(Vector2i(27, 21)) and not t.is_solid(Vector2i(27, 20)), "the shrubs leave the hall's path to the gate open")
+	# Every shape and the shrub build meshes, in snow too.
+	var GP: GDScript = load("res://scripts/world3d/garden_props.gd")
+	var FW: GDScript = load("res://scripts/world3d/farm_world.gd")
+	for snow in [false, true]:
+		var w: Node3D = FW.new()
+		for shape in GP.SHAPES:
+			GP.rock(w, shape, Vector3(2, 0, 2), shape == "pair", 3, snow)
+		GP.shrub(w, Rect2(4, 4, 1, 1), "spring", 20, 5, snow)
+		var meshes := w.get_children().filter(func(n): return n is MeshInstance3D and n.mesh != null)
+		check(meshes.size() >= 2, "GardenProps builds its rocks and shrub (snow %s): %d meshes" % [snow, meshes.size()])
+		w.free()
+	check(GP.blooms("spring", 20) and GP.blooms("summer", 3) and not GP.blooms("spring", 5) and not GP.blooms("fall", 20),
+		"the shrubs flower in late spring and the first days of summer")
+	var mv_src := FileAccess.get_file_as_string("res://scripts/world/map_view.gd")
+	check("p.kind in GardenLook.KINDS" in mv_src and "func _draw_garden" in mv_src, "the flat view draws the garden rocks and shrubs (no plain box)")
+	var mw_src := FileAccess.get_file_as_string("res://scripts/world3d/map_world.gd")
+	check("\"garden_rock\", \"shrub\": GardenProps.prop" in mw_src and "surroundings.water.set_looks" in mw_src, "MapWorld builds the garden pieces and gives the water skin its jade look")
+
+
+## Named places (MapData.zones) and the name shown on arriving (PlaceName, the Hud's place box):
+## the map's name on a map change, a zone's on walking into it, nothing on walking out, nothing on
+## coming back within AGAIN seconds, none on a mine floor; the fade's shape; the zones' names in
+## the Thai table.
+func _place_names() -> void:
+	var t := MapManager.data("town")
+	check(t.zone_at(Vector2i(25, 25)).get("name", "") == "Tenryo-ji Temple" and t.zone_at(Vector2i(41, 40)).get("id", "") == "bridge"
+		and t.zone_at(Vector2i(29, 7)).get("id", "") == "shrine" and t.zone_at(Vector2i(20, 12)).get("id", "") == "bamboo" and t.zone_at(Vector2i(45, 30)).is_empty(),
+		"the village's named places: the temple, the bridge, the shrine, the bamboo path")
+	var ids := {}
+	for z in t.zones:
+		ids[z.id] = true
+	check(ids.size() == t.zones.size(), "every zone id is its own")
+	var bad := MapData.parse({"id": "x", "size": [4, 4], "legend": {"g": {"tile": "grass"}}, "ground": ["gggg", "gggg", "gggg", "gggg"],
+		"spawns": {"start": [[0, 0], "down"]}, "zones": [{"id": "a", "name": "A", "cell": [3, 3], "size": [2, 2]}]})
+	check(bad[1] == null and "zone" in str(bad[0]), "a zone off the map is refused: %s" % str(bad[0]))
+	var pn := PlaceName.new()
+	check(pn.arrive(t, Vector2i(45, 30)) == "Village", "arriving shows the map's name")
+	check(pn.arrive(t, Vector2i(28, 21)) == "Tenryo-ji Temple" and pn.zone == "temple", "arriving inside a named place shows its name")
+	check(pn.walk(t, Vector2i(28, 22), 0.5) == "", "walking about inside it shows nothing")
+	check(pn.walk(t, Vector2i(36, 21), 0.5) == "" and pn.zone == "", "walking out shows nothing")
+	check(pn.walk(t, Vector2i(33, 21), 0.5) == "", "back in within %d s: nothing" % int(PlaceName.AGAIN))
+	pn.walk(t, Vector2i(36, 21), 0.5)
+	pn.walk(t, Vector2i(37, 21), PlaceName.AGAIN + 0.5)
+	check(pn.walk(t, Vector2i(33, 21), 0.5) == "Tenryo-ji Temple", "back in after a while: the name again")
+	check(pn.walk(t, Vector2i(41, 39), 0.1) == "Tsukiwatari Bridge", "walking onto the bridge names it")
+	check(pn.arrive(MapManager.data("mine_floor"), Vector2i(1, 1), true) == "", "a mine floor shows no name (its message says the floor)")
+	check(pn.arrive(MapManager.data("tome_house"), Vector2i(2, 2)) == MapManager.data("tome_house").name, "a room shows its name")
+	check(PlaceName.alpha(0.0) == 0.0 and PlaceName.alpha(PlaceName.FADE_IN + 1.0) == 1.0 and PlaceName.alpha(PlaceName.FADE_IN + PlaceName.HOLD + PlaceName.FADE_OUT * 0.5) > 0.4
+		and PlaceName.alpha(PlaceName.FADE_IN + PlaceName.HOLD + PlaceName.FADE_OUT + 0.01) == 0.0 and is_equal_approx(PlaceName.HOLD, 2.0),
+		"the name comes up, stays 2 s and fades away")
+	var th: Dictionary = load("res://scripts/ui/lang.gd").table("th")
+	var missing := t.zones.filter(func(z): return not th.has(z.name)).map(func(z): return z.name)
+	check(missing.is_empty(), "the zones' names are in the Thai table (missing: %s)" % [missing])
+	var hud_src := FileAccess.get_file_as_string("res://scripts/ui/hud.gd")
+	check("Game.map_entered.connect" in hud_src and "places.walk(" in hud_src and HudLayout.GROUPS.place == HudLayout.GROUPS.message,
+		"the HUD shows the name on arriving and on walking into a place, in the message's corner")
+	check(HudLayout.place_width("Tenryo-ji Temple") < 240, "the place box fits the top left (%d px)" % HudLayout.place_width("Tenryo-ji Temple"))
+
+
 ## Billboard sprites cast nothing themselves (their shadow is SpriteShadow's caster, steady under
 ## any lens); the farmer, villagers, animals and the dog each get a SpriteShadow.
 func _sprite_casts() -> void:
@@ -449,6 +539,8 @@ func _process(delta: float) -> bool:
 		_bed_and_doors()
 		_clinic_doors()
 		_arashiyama_town()
+		_temple_garden()
+		_place_names()
 		_world()
 		_sunken_water()
 		_story_props()
@@ -691,7 +783,7 @@ func _map_rules() -> void:
 	_homes(t)
 	check(t.is_solid(Vector2i(28, 10)) and t.is_solid(Vector2i(31, 10)) and not t.is_solid(Vector2i(29, 10)), "torii posts block, the path through it doesn't")
 	check(t.is_solid(Vector2i(22, 27)), "the pond is solid")
-	check(MapView.ground_key(t, Vector2i(20, 25)) == "ground:water:%d" % (PlaceholderArt.WATER_N | PlaceholderArt.WATER_W), "pond banks")
+	check(MapView.ground_key(t, Vector2i(20, 22)) == "ground:water:%d:jade" % (PlaceholderArt.WATER_N | PlaceholderArt.WATER_W), "pond banks, its jade water")
 	# The river: down the lane off the village's south edge and back; water across the map with
 	# banks only at the shores (none at the map's side edges, it flows on), rocks in the current.
 	var rv := MapManager.data("river")

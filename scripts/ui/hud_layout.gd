@@ -4,7 +4,7 @@ extends RefCounted
 ## the Game autoload) so headless tests can check it.
 
 ## Boxes in viewport pixels (480 x 270). The message box keeps its corner and grows with
-## its text.
+## its text; while the place's name shows it moves down under that (message_drop).
 const BOXES := {
 	"clock": Rect2i(384, 4, 92, 42),
 	"festival": Rect2i(384, 48, 92, 17),   # today's festival, or a villager's birthday; hidden on other days
@@ -14,12 +14,13 @@ const BOXES := {
 	"hand": Rect2i(176, 238, 28, 28),    # the item in the other hand, only while there is one
 	"status": Rect2i(384, 226, 92, 40),
 	"message": Rect2i(4, 4, 0, 19),
+	"place": Rect2i(4, 4, 0, 30),   # the place's name a moment on arriving (PlaceName); grows with its text, the message box moves under it while it shows
 	"hint": Rect2i(4, 196, 168, 16),   # what E / Space do now (ActionHints); grows with its text, hidden when empty
 }
 ## Boxes that grow together with the UI size setting (UiScale), one group per corner, so the
 ## boxes in a corner keep their gaps.
 const GROUPS := {"clock": "top_right", "festival": "top_right", "goal": "top_right", "item": "bottom_left",
-	"tools": "bottom_left", "hand": "bottom_left", "hint": "bottom_left", "status": "bottom_right", "message": "top_left"}
+	"tools": "bottom_left", "hand": "bottom_left", "hint": "bottom_left", "status": "bottom_right", "message": "top_left", "place": "top_left"}
 const SCREEN := Vector2(480, 270)
 const SLOT := 18
 const SLOT_GAP := 2
@@ -39,6 +40,22 @@ static func day_tag(ids: Array[String]) -> String:
 	if ids.is_empty():
 		return ""
 	return "%s's birthday" % Villagers.all()[ids[0]].name
+
+
+## How far the message box moves down while the place's name shows over it.
+const PLACE_GAP := 3
+
+
+static func message_drop() -> int:
+	return BOXES.place.size.y + PLACE_GAP
+
+
+## How wide the place name's box is for its name drawn twice the size (PLACE_SCALE).
+const PLACE_SCALE := 2
+
+
+static func place_width(text: String) -> int:
+	return 8 + PixelFont.shown_width(text) * PLACE_SCALE + 8
 
 
 ## How wide the goal tag's box is for its tag ("Goal") and text (Goals.hud_text).

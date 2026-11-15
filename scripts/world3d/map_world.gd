@@ -38,6 +38,8 @@ func build_steps(m: MapData) -> Array[Callable]:
 		steps.append(func() -> void: add_child(InsectLayer.new(map)))   # butterflies, dragonflies
 		steps.append(func() -> void: add_child(CicadaLayer.new(map)))   # cicadas on the trees' trunks in summer
 		steps.append(func() -> void: add_child(MistLayer.new(map)))   # morning mist over the water and paddies
+		if not KoiPondRules.ponds_on(map.id).is_empty():
+			steps.append(func() -> void: add_child(KoiPondLayer.new(map)))   # koi in the temple pond (data/koi.json)
 		steps.append(func() -> void: add_child(PuddleLayer.new(map)))   # puddles on the paths in rain
 		steps.append(func() -> void: add_child(WetLayer.new(map)))   # the wet look of the ground, roofs and stone in rain
 		steps.append(func() -> void: add_child(IcicleLayer.new(map, eaves)))   # icicles on the eaves in winter (the props listed them)
@@ -107,6 +109,8 @@ func _make_edges() -> void:
 	var rules: Dictionary = Game.snow_rules
 	add_surroundings(map.w, map.h, func(c: Vector2i) -> String: return map.tile(c),
 		func(c: Vector2i) -> float: return SnowLayer.map_hold(map, c, rules), map.id)
+	if map.looks.any(func(l: String) -> bool: return l != ""):   # the temple pond's jade water: its own glints and troughs
+		surroundings.water.set_looks(func(c: Vector2i) -> String: return map.look(c))
 
 
 ## Rice in the paddy cells with no prop, by the season (CropClusters.paddy_key: the stubble in
@@ -235,7 +239,8 @@ func _prop(p: Dictionary) -> void:
 	if str(p.kind) in StoryView.KINDS or str(p.kind) == "bamboo":
 		_make_prop(p)
 		return
-	MeshCache.build(self, "prop|%s|%s|%s|%s" % [map.id, p, Game.season_name(), SnowLayer.map_has_snow(map)], _make_prop.bind(p))
+	var bloom := str(p.kind) == "shrub" and GardenProps.blooms(Game.season_name(), Game.day)   # a shrub's look changes with its flowers
+	MeshCache.build(self, "prop|%s|%s|%s|%s" % [map.id, p, Game.season_name(), SnowLayer.map_has_snow(map)] + ("|bloom" if bloom else ""), _make_prop.bind(p))
 
 
 func _make_prop(p: Dictionary) -> void:
@@ -263,6 +268,7 @@ func _make_prop(p: Dictionary) -> void:
 		"cave_mouth": _cave_mouth(mid, r)
 		"door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "keepsake", "rope_lift", "jizo_bibs", "jizo_scarf", "kiln_mark", "kiln_site", "kiln_new", "boat_name", "noren", "captain_jar", "frog", "sky_map": StoryProps.prop(self, p)
 		"ladder": _ladder(mid)
+		"garden_rock", "shrub": GardenProps.prop(self, p, mid, map, Game.season_name(), Game.day, SnowLayer.map_has_snow(map))
 		"cradle": pass   # the baby's cradle: CradleLayer shows it (it changes as the farmer lifts the baby)
 		_:
 			push_warning("MapWorld: no look for prop '%s'" % p.kind)

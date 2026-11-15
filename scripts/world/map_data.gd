@@ -29,10 +29,12 @@ var walls := "plaster"     # an indoor map's wall infill: "plaster", "board" or 
 var plots := Rect2i()
 var tiles: Array[String] = []          # w * h ground kinds, row by row
 var steps: Array[String] = []          # w * h footstep kinds ("" = by the ground)
+var looks: Array[String] = []          # w * h a tile's own look ("" = the plain one; "jade": the temple pond's green water)
 var _solid: Array[bool] = []
 var props: Array[Dictionary] = []      # {kind, cell, size, use, ...the rest from the file}
 var doors: Array[Dictionary] = []      # {cells: Array[Vector2i], to, spawn, facing, message, gate, shop, hours?, closed?}
 var spawns: Dictionary = {}            # name -> [cell, facing]
+var zones: Array[Dictionary] = []      # {id, name, rect: Rect2i}: named places on the map (PlaceName shows the name on entering)
 
 ## A bridge's deck (a `bridge` prop over the water, along y) lies flat DECK_TOP over the land, a
 ## short ease up from each bank, on legs standing in the sunk water, which runs on under it; its
@@ -75,6 +77,7 @@ func _read(d: Variant) -> String:
 	for i in w * h:
 		tiles.append("grass")
 		steps.append("")
+		looks.append("")
 		_solid.append(false)
 	if not farm:
 		var err := _read_ground(d)
@@ -134,6 +137,12 @@ func _read(d: Variant) -> String:
 			out.hours = [open, close]
 			out.closed = str(door.closed)
 		doors.append(out)
+	for z in d.get("zones", []):
+		var zc = _cell(z.get("cell")) if z is Dictionary else null
+		var zs = _cell(z.get("size")) if z is Dictionary else null
+		if zc == null or zs == null or zs.x < 1 or zs.y < 1 or not in_bounds(zc) or not in_bounds(zc + zs - Vector2i.ONE) 				or str(z.get("id", "")) == "" or str(z.get("name", "")) == "":
+			return "a zone needs an id, a name and a cell and size on the map"
+		zones.append({"id": str(z.id), "name": str(z.name), "rect": Rect2i(zc, zs)})
 	var sp = d.get("spawns", {})
 	if not sp is Dictionary or not sp.has("start"):
 		return "needs a start spawn"
@@ -161,6 +170,7 @@ func _read_ground(d: Dictionary) -> String:
 				return "ground '%s' is not in the legend" % row[x]
 			tiles[y * w + x] = str(key.tile)
 			steps[y * w + x] = str(key.get("step", ""))
+			looks[y * w + x] = str(key.get("look", ""))
 			_solid[y * w + x] = bool(key.get("solid", false))
 	return ""
 
@@ -188,6 +198,11 @@ func tile(c: Vector2i) -> String:
 
 
 ## The footstep sound kind on a cell, "" to let the ground decide (Sfx.ground).
+## Cell `c`'s own look ("" for the tile's plain one), from the legend's `look`.
+func look(c: Vector2i) -> String:
+	return looks[c.y * w + c.x] if in_bounds(c) else ""
+
+
 func step(c: Vector2i) -> String:
 	return steps[c.y * w + c.x] if in_bounds(c) else ""
 
@@ -254,6 +269,14 @@ func rail_blocks(from: Rect2, to: Rect2) -> bool:
 		if to.intersects(r) and not from.intersects(r):
 			return true
 	return false
+
+
+## The named place (zone) cell `c` lies in, the first listed one holding it; {} for none.
+func zone_at(c: Vector2i) -> Dictionary:
+	for z in zones:
+		if (z.rect as Rect2i).has_point(c):
+			return z
+	return {}
 
 
 func prop_at(c: Vector2i) -> Dictionary:

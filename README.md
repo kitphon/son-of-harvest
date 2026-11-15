@@ -266,7 +266,9 @@ cells as a timber frame, the back walls full height, the front ones a low sill, 
 edge where boards or tatami meet the earth and a shoe stone below the door's step) and
 `background`, then:
 - `legend` + `ground`: one row of characters per map row; each character is
-  `{tile, solid?, step?}` (tile = a `ground:<kind>` placeholder, step = footstep sound kind);
+  `{tile, solid?, step?, look?}` (tile = a `ground:<kind>` placeholder, step = footstep sound kind,
+  look = the tile's own look: `jade` water is the temple pond's green, its ground picture
+  `ground:water:<mask>:jade` and green troughs and softer glints on the 3D water's skin, WaterSurface.set_looks);
 - `props`: `{kind, cell, size?, solid? (default true), blocks? (only these cell offsets
   block), use?}`; `use: "sleep"` is the futon. Their 3D looks are in `scripts/world3d/map_world.gd`;
 - `doors`: `{cells, to, spawn, facing, shop?, hours?, closed?}`, or `{cells, message}` for a
@@ -316,7 +318,21 @@ edge where boards or tatami meet the earth and a shoe stone below the door's ste
 - the village clinic (`clinic`, door east of the smithy, shop `clinic`) has a `bed` spawn by
   its futon (a futon prop without `use` is only a bed), where a collapse wakes the farmer;
 - `spawns`: named `[cell, facing]`, `start` needed (`--map=<id>@<spawn>`), the house has
-  `home` (where a new day starts); the villagers' homes have `home` where their owner sits.
+  `home` (where a new day starts); the villagers' homes have `home` where their owner sits;
+- `zones`: named places on the map, `{id, name, cell, size}` (MapData.zone_at, the first listed
+  holding a cell). On arriving on a map its `name` comes up large at the top left (or the zone's
+  name when the farmer arrives inside one), and again a zone's name on walking into it: up in
+  0.25 s, 2 s full, faded in 0.7 s; walking out shows nothing, coming back within 6 s neither; a
+  mine floor shows none (its message says the floor). The message line moves down under it
+  while it shows (PlaceName, Hud, HudLayout `place`). The village's: Tenryo-ji Temple (the
+  temple court, our name after Tenryu-ji), Nonomori Shrine, Bamboo Path, Tsukiwatari Bridge;
+- the temple garden (2026-11-15, after the user's photos of a Zen temple's pond garden): the
+  pond a ragged shape of `jade` water, `garden_rock` props (`shape` tall, flat, low, pair; out
+  in the water they stand on the sunk bed) and `shrub` (a clipped round azalea, pink in late
+  spring, a few red leaves in fall) on its mossy banks (GardenProps in 3D, GardenLook and
+  MapView._draw_garden flat), koi swimming in it (data/koi.json, KoiPondRules, KoiPondArt,
+  KoiPondLayer, KoiPondView: fewer and slower in winter, under the ice; they come to the farmer
+  standing on the bank); `--map=town@pond` stands on its bank.
 
 `Game.maps` (MapManager) holds the map, the farmer's position and facing (saved);
 `Game.go_to_map()` changes it and emits `map_changed` (the views fade, rebuild, place the

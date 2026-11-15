@@ -120,6 +120,8 @@ func _enter_map() -> void:
 		mv.set_snow(Game.snow_cover / 100.0)
 		mv.set_season(Game.season_name())
 	view.add_child(PuddleView.new().setup(m, Game.farm if Game.maps.on_farm() else null))   # puddles in rain, on the ground
+	if not KoiPondRules.ponds_on(m.id).is_empty() and view is MapView:   # koi in the temple pond, under the water's skin
+		(view as MapView).add_under_water(KoiPondView.new().setup(m))
 	prints = FootprintView.new()   # footprints in lying snow, over the ground, under everything else
 	view.add_child(prints)
 	night = NightView.new().setup(m.props, Game.maps.on_farm(), m.id)

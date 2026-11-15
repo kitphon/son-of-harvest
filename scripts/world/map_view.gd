@@ -23,7 +23,7 @@ const COLORS := {
 	"hen_barn": Color("7a5a3a"), "ditch": Color("3e5a50"),
 	"tsuiji": Color("d2b06a"), "temple_gate": Color("5a3a26"), "station": Color("8a8680"), "rails": Color("6e6e72"), "bridge": Color("8a6440"),
 	"counter": Color("4a3424"), "shelf": Color("6a4a30"), "rice_sacks": Color("d8c088"),
-	"forge": Color("7a746c"), "anvil": Color("2a2a2e"), "tool_rack": Color("8a6a48"), "water_tub": Color("2a4a5a"), "river_rock": Color("6e6a62"), "ferry_boat": Color("8a6440"), "landing": Color("9a7650"), "cloth_rack": Color("2f5a96"), "koinobori": Color("8e8a82"),
+	"forge": Color("7a746c"), "anvil": Color("2a2a2e"), "tool_rack": Color("8a6a48"), "water_tub": Color("2a4a5a"), "river_rock": Color("6e6a62"), "garden_rock": Color("6a675f"), "shrub": Color("3f6e2e"), "ferry_boat": Color("8a6440"), "landing": Color("9a7650"), "cloth_rack": Color("2f5a96"), "koinobori": Color("8e8a82"),
 	"feed_box": Color("9a7048"), "nest": Color("d8bc78"), "incubator": Color("c8a868"),
 	"feed_sack": Color("a88a52"), "hatch": Color("4a2a14"),
 	"fodder_box": Color("8a6440"), "stalls": Color("d0b478"), "hay": Color("c8b060"), "barn_gate": Color("4a2a14"),
@@ -67,7 +67,7 @@ static func ground_key(m: MapData, c: Vector2i) -> String:
 			var n: Vector2i = c + side[0]
 			if m.in_bounds(n) and m.tile(n) != "water":
 				mask |= side[1]
-		return "ground:water:%d" % mask
+		return "ground:water:%d" % mask + ("" if m.look(c) == "" else ":" + m.look(c))   # the temple pond's jade green
 	return "ground:%s:%d" % [kind, posmod(c.x * 7 + c.y * 13 + (c.x * c.y) % 5, PlaceholderArt.GROUND_VARIANTS)]
 
 
@@ -85,6 +85,13 @@ func _ready() -> void:
 			move_child(_water, _objects.get_index())
 		else:
 			water.free()
+
+
+## Adds `node` over the ground and under the water's moving skin (the pond's koi), or under the
+## props when the map has no water.
+func add_under_water(node: Node) -> void:
+	add_child(node)
+	move_child(node, (_water if _water != null else _objects).get_index())
 
 
 ## The season the maples are drawn in (the flat view calls it on each day's start).
@@ -284,6 +291,9 @@ func _draw_objects() -> void:
 		if p.kind in TEMPLE_KINDS:
 			_draw_temple(str(p.kind), r)
 			continue
+		if p.kind in GardenLook.KINDS:
+			_draw_garden(p, r)
+			continue
 		var fill: Color = COLORS.get(p.kind, Color.MAGENTA)
 		if p.kind == "water_tub" and p.has("color"):   # a tub of its own water (Shino's indigo vats)
 			fill = Color(str(p.color))
@@ -321,6 +331,61 @@ static func draw_drips(canvas: CanvasItem, r: Rect2, wet_now: float) -> void:
 	col.a = float(d.alpha)
 	for at in spots:
 		canvas.draw_rect(Rect2(at, Vector2.ONE), col)
+
+
+## The temple garden's rocks and clipped shrubs seen from above (GardenProps in 3D), in whole
+## pixels (GardenLook): a rock a rounded grey blob, dark at its foot, pale on top with a fleck of moss (out in
+## the water a dark rim where it meets the skin); a shrub a round green mound lit from the upper
+## left, dotted pink while the azaleas flower, a few red leaves in fall, snow on top when it lies.
+func _draw_garden(p: Dictionary, r: Rect2) -> void:
+	var c := r.get_center().floor()
+	var seed := int(p.cell.x) * 31 + int(p.cell.y) * 17
+	var snow := SnowLayer.map_has_snow(map) and _cover >= 0.3   # snow lying now
+	if str(p.kind) == "shrub":
+		var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
+		var day: int = game.day if game != null else 1
+		var leaf: Array[Color] = GardenLook.LEAF_WINTER if season == "winter" else GardenLook.LEAF
+		var rx := int(r.size.x / 2) - 2
+		var ry := int(r.size.y / 2) - 3
+		blob(_objects, c + Vector2(0, 1), rx, ry, leaf, seed)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = seed
+		var dot := GardenLook.BLOOM if GardenLook.blooms(season, day) else (GardenLook.FALL_RED if season == "fall" else Color.TRANSPARENT)
+		if dot.a > 0.0:
+			for i in 7:
+				_objects.draw_rect(Rect2(c + Vector2(rng.randi_range(-rx + 2, rx - 2), rng.randi_range(-ry + 1, ry)), Vector2.ONE), dot)
+		if snow:
+			blob(_objects, c + Vector2(-1, -1), rx - 2, ry - 3, [Color("e8eef2"), Color("f4f8fa"), Color("ffffff")], seed)
+		return
+	var sizes := {"tall": [3, 5], "flat": [6, 4], "pair": [5, 4], "low": [4, 3]}
+	var shape := str(p.get("shape", "low"))
+	var sz: Array = sizes.get(shape, sizes.low)
+	var wet := map.tile(Vector2i(p.cell)) == "water"
+	if wet:
+		blob(_objects, c + Vector2(0, 2), int(sz[0]) + 1, int(sz[1]), [Color("2c4c6a"), Color("2c4c6a"), Color("2c4c6a")], seed)
+	blob(_objects, c, int(sz[0]), int(sz[1]), GardenLook.STONE, seed)
+	if shape == "pair":
+		blob(_objects, c + Vector2(5, 3), 3, 2, GardenLook.STONE, seed + 1)
+	elif shape == "tall" or shape == "low":
+		blob(_objects, c + Vector2(4, 4), 2, 1, GardenLook.STONE, seed + 2)
+	_objects.draw_rect(Rect2(c + Vector2(-1, -int(sz[1]) + 1), Vector2(2, 1)), GardenLook.MOSS)
+	if snow:
+		_objects.draw_rect(Rect2(c + Vector2(-int(sz[0]) + 2, -int(sz[1])), Vector2(int(sz[0]) * 2 - 3, 2)), Color("f4f8fa"))
+
+
+## A rounded blob of whole pixels centred at `c`, `rx` x `ry` pixels from the middle: `tones`
+## [dark, mid, light] darkest at the foot (bottom rows) and lightest at the upper left.
+static func blob(canvas: CanvasItem, c: Vector2, rx: int, ry: int, tones: Array, seed: int) -> void:
+	for dy in range(-ry, ry + 1):
+		var half := int(round(rx * sqrt(maxf(1.0 - pow(float(dy) / (ry + 0.5), 2.0), 0.0)) + 0.25 * sin(seed + dy)))
+		if half <= 0:
+			continue
+		var tone: Color = tones[1]
+		if dy >= ry - 1:
+			tone = tones[0]
+		canvas.draw_rect(Rect2(c + Vector2(-half, dy), Vector2(half * 2, 1)), tone)
+		if dy < 0 and dy > -ry:
+			canvas.draw_rect(Rect2(c + Vector2(-half + 1, dy), Vector2(maxi(half - 1, 1), 1)), tones[2])
 
 
 ## The temple's wall, its gate and the station seen from above, in whole pixels (TempleProps in 3D):

@@ -3,7 +3,9 @@ extends CanvasLayer
 ## Paper-and-wood HUD in our pixel font: date, clock and the weather for today and tomorrow
 ## (top right) with today's festival (or a villager's birthday) under it, the tool bar (the rucksack's tool slots) with the tool in hand and its level
 ## pips and, when there is one, the item held in the other hand (bottom left), money, shipping bin and a
-## stamina bar (bottom right), and a message line (top left). Under the clock (or under the
+## stamina bar (bottom right), and a message line (top left); over the message line, a moment on
+## arriving on a map or walking into a named place, the place's name, large, fading away
+## (PlaceName). Under the clock (or under the
 ## festival tag) the first-week list's goal now and how far it is (Goals), until the list is done. Reads Game and redraws on its
 ## signals; hidden while the "Show HUD" setting is off, its corners grown by the "UI size"
 ## setting (HudLayout.scaled_box). Over the tool bar, while the "Key hints" setting is on, a line
@@ -40,6 +42,11 @@ var _stamina_fill: ColorRect
 var _msg_box: NinePatchRect
 var _msg: Label
 var _msg_time := 0.0
+var _place_box: NinePatchRect
+var _place: Label
+var _place_rule: ColorRect
+var _place_time := -1.0   # seconds since the place's name came up (< 0: not up)
+var places := PlaceName.new()
 var _hint_box: NinePatchRect
 var _hint_labels: Array[Label] = []   # key, word, key, word
 var _hint_time := 0.0                 # seconds to the next look
@@ -56,12 +63,23 @@ func _ready() -> void:
 	_msg_box = _box(HudLayout.BOXES.message, "paper", "message")
 	_msg = _label(_msg_box, Vector2i(6, 5))
 	_msg_box.visible = false
+	_place_box = _box(HudLayout.BOXES.place, "paper", "place")
+	_place = _label(_place_box, Vector2i(8, 6))
+	_place.scale = Vector2.ONE * HudLayout.PLACE_SCALE
+	_place_rule = ColorRect.new()
+	_place_rule.color = PlaceholderArt.UI_SEAL
+	_place_rule.position = Vector2(8, HudLayout.BOXES.place.size.y - 5)
+	_place_rule.size = Vector2(12, 1)
+	_place_box.add_child(_place_rule)
+	_place_box.visible = false
 	_hint_box = _box(HudLayout.BOXES.hint, "paper", "hint")
 	for i in 4:
 		_hint_labels.append(_label(_hint_box, Vector2i(6, 4), PlaceholderArt.UI_SEAL if i % 2 == 0 else INK))
 	_hint_box.visible = false
 	Game.changed.connect(_refresh)
 	Game.message.connect(_show)
+	Game.map_entered.connect(func(_id: String) -> void:
+		show_place(places.arrive(Game.maps.current(), Player.cell_of(Game.maps.pos), Game.maps.mine_floor != null)))
 	Game.settings_changed.connect(_on_settings)
 	Game.input_device_changed.connect(func(_pad: bool) -> void: _show_hints())   # keys <-> pad buttons
 	_on_settings()
@@ -195,6 +213,37 @@ func _process(delta: float) -> void:
 		_msg_time -= delta
 		if _msg_time <= 0.0:
 			_msg_box.visible = false
+	if not Game.paused():
+		var named := places.walk(Game.maps.current(), Player.cell_of(Game.maps.pos), delta)
+		if named != "":
+			show_place(named)
+	if _place_time >= 0.0:
+		_place_time += delta
+		var a := PlaceName.alpha(_place_time)
+		_place_box.modulate.a = a
+		if a <= 0.0 and _place_time > PlaceName.FADE_IN:
+			_place_time = -1.0
+			_place_box.visible = false
+			_place_message()
+
+
+## Shows `text` as the place's name (nothing for ""), from its fade-in.
+func show_place(text: String) -> void:
+	if text == "":
+		return
+	_place.text = text
+	_place_box.size.x = HudLayout.place_width(text)
+	_place_box.visible = true
+	_place_box.modulate.a = 0.0
+	_place_time = 0.0
+	_place_message()
+
+
+## The message box under the place's name while that shows, else in its corner.
+func _place_message() -> void:
+	var r := HudLayout.scaled_box("message", Game.ui_scale)
+	var s := HudLayout.group_scale("message", Game.ui_scale)
+	_msg_box.position.y = r.position.y + (HudLayout.message_drop() * s if _place_box.visible else 0.0)
 
 
 ## Esc -> Settings -> Show HUD hides all of it (messages too).
@@ -204,6 +253,8 @@ func _on_settings() -> void:
 		var r := HudLayout.scaled_box(key, Game.ui_scale)
 		_placed[key].position = r.position
 		_placed[key].scale = Vector2.ONE * HudLayout.group_scale(key, Game.ui_scale)
+	if _place_box != null:
+		_place_message()
 
 
 ## The key hints for the farmer's spot now, or none while a menu, a text box or an event

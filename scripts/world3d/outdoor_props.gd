@@ -878,6 +878,16 @@ static func _build_spray(season: String) -> ArrayMesh:
 # --- helpers ------------------------------------------------------------------
 
 ## A triangle facing `n` (corners turned to it), no UVs.
+## A faceted boulder (for GardenProps' garden rocks): see _boulder.
+static func boulder(p: FarmProps.Parts, sn: SurfaceTool, at: Vector3, rx: float, h: float, rz: float, seed: int, tones: Array[Color]) -> void:
+	_boulder(p, sn, at, rx, h, rz, seed, tones)
+
+
+## One flat-shaded triangle with normal `n` (for GardenProps).
+static func tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, n: Vector3) -> void:
+	_tri(st, a, b, c, n)
+
+
 static func _tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, n: Vector3) -> void:
 	Minka.tri(st, a, b, c, n, func(_q: Vector3) -> Vector2: return Vector2.ZERO)
 

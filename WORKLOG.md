@@ -10,6 +10,46 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-15 — The temple named, place names at the top left, the temple pond after the photos — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: (1) The temple has a name of its own close to Tenryu-ji: **Tenryo-ji Temple** (Thai วัดเท็นเรียวจิ). Maps can
+  name places: `zones` in data/maps (`{id, name, cell, size}`, MapData.zone_at); the village's are Tenryo-ji Temple (the
+  court inside the wall), Nonomori Shrine, Bamboo Path and Tsukiwatari Bridge (our names; Thai in data/lang/th/items.json).
+  (2) Place names: on every map change the map's name (or the zone's, when the farmer arrives inside one) comes up large
+  at the top left in a paper box with a seal-red rule, 0.25 s up, 2 s full, 0.7 s fade (PlaceName, Hud `place`,
+  HudLayout); walking into a zone shows its name; walking out shows nothing and coming back within 6 s neither (no flicker
+  on a zone's edge); a mine floor shows none (its message says the floor). The message line moves down under the name
+  while it shows. (3) The temple pond after the user's three photos: a ragged pond 8 x 9 cells (was a 6 x 5 box) of
+  jade-green water (legend `j`, `look: jade`: its own ground picture with a mossy bank line and no white foam, and the 3D
+  skin's troughs green and its glints softer, WaterSurface.set_looks); garden rocks in four shapes (`garden_rock`: a tall
+  standing stone, a flat slab, a low stone, a pair / little island; four out in the water standing on the sunk bed, six on
+  the banks) with moss on their tops and snow in winter; clipped round shrubs (`shrub`, karikomi azaleas: pink in late
+  spring and the first days of summer, a few red leaves in fall, darker with snow on top in winter) on the grass banks; the
+  pine moved to lean over the water. GardenProps (3D), GardenLook and MapView._draw_garden (flat). (4) Koi: 8 (summer 9,
+  winter 3 and slower) kohaku, orange, ogon, showa, shiro and asagi carp swim the pond (data/koi.json, KoiPondRules,
+  KoiPondArt 16 x 7 px with three tail frames, KoiPondLayer: flat sprites on the sunk bed under the water's skin so the
+  glints and the winter ice lie over them; KoiPondView: the flat view's, under MapView's water skin); they keep `margin`
+  off the banks and rocks, turn at most 1.8 rad/s, now and then rest, and come to the farmer standing on the bank. The
+  river and the farm pond have none. A `pond` spawn on the bank (`--map=town@pond`). Balance numbers are ours (koi.json).
+  (5) The villagers' day plans that crossed the old open gravel west of the hall or stood where the pond, rocks and shrubs
+  now are (31 entries of 11 villagers) walk round them: a corner now under water is left out, a broken straight walk takes
+  the shortest way round (along row 20 north of the pond), a stand spot now solid moves to the nearest open cell, facing the
+  water when it is beside it (a one-off script; test_villagers found every crossing).
+- Checked: test_koi (new): `test_koi: OK (0 failed)`; test_maps (the pond's jade cells, rocks and shrubs, the paths kept
+  open, GardenProps' meshes in snow and not, the zones, a zone off the map refused, PlaceName's arrive / walk / again /
+  fade, the Thai names, the HUD's hooks): `test_maps: OK (0 failed)`. Frames `--demo --map=town@pond --time=11:00
+  --weather=sunny`: 3D the pond green with the rocks, shrubs and koi, the name "Tenryo-ji Temple" at the top left; the flat
+  view the same; `--lang=th` the Thai name fits its box. All 44 tests/test_*.gd print `OK (0 failed)` (a first full run caught the
+  villagers' plans crossing the new pond (test_villagers, 76 checks) and, after the re-route, Nana's spot moved onto
+  Tome's (test_view2d's talk to Tome reached Nana): Nana now stands on the bank cell (25, 25); test_villagers, test_talk,
+  test_view2d, test_relationships, test_festivals, test_child, test_events run again after it: all OK). Smoke
+  `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the flat view's water skin keeps its blue troughs over the jade (faint there, alpha 0.2); the kitchen hall
+  in front of the pond turns see-through as before when the farmer stands by it; the re-routed stand spots were checked
+  for walking through solids, not for two villagers meeting on one cell at the same hour (only Nana and Tome were caught).
+  The user's look at the pond and names.
+
 ## 2026-11-15 — No warm flash over the screen at night; the bridge's two lanterns a pair — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: (1) the user saw a pale yellow wash over the screen at night when trees hid the farmer. Measured on the
