@@ -1,8 +1,10 @@
 class_name VistaRules
 extends RefCounted
 ## The view of the mountains (data/vista.json): the mountains' ground past the maps and the
-## viewpoints where the camera turns toward them and tilts up. Pure: VistaMountain builds the
-## mesh from height(), Main3D eases its camera by view_at() / step() / blend(). test_vista.
+## viewpoints where the camera tilts up over the horizon. Pure: VistaMountain builds the mesh from
+## height(), Main3D eases its camera by view_at() / step() / blend(). The views keep the play
+## camera's yaw (only the pitch, lens and distance change), so the move keys match the screen.
+## test_vista.
 
 const PATH := "res://data/vista.json"
 

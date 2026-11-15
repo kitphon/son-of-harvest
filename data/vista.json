@@ -1,16 +1,27 @@
 {
-	"_note": "The view of the mountains (2026-11-15, branch arashiyama-vista; VistaRules, VistaMountain, Main3D). The play camera looks 16 degrees down at the top of the frame, so no mountain ever shows from it: a few viewpoints turn the camera toward the mountains and tilt it up while the farmer stands in them, and ease it back as he leaves. `mountains`: the land rising past the maps, in plan cells (data/world.json, the village at [0, 0]), built on the maps in `maps` (each in its own cells, moved by its place on the plan). Each is a `ridge` of [x, z, height] points (world units, a cell is 1): the ground at a point is the ridge's height at the nearest point of the line less `slope` x the distance to it, with `lumps` (a value noise `lump_scale` cells across) on top, and it eases down to nothing within `foot` cells of any map on the plan (`foot` [start, full]), so it never stands on a cell anyone walks; `sink` keeps its foot below the land past the edges. `area` [x0, z0, x1, z1] bounds the mesh, `step` cells between its points. Arashiyama: the forested mountain south and south-west across the river from the long bridge, as on the real map, wrapping round the gorge's mouth to the west and on behind Minamino (Iwatayama). `colors` by season: `dark` and `light` the forest's two tones, `accent` the patches among them (spring's wild cherry, fall's maples) on `accent_share` (0..1) of the slope, `snow` on what lies above `snow_line` (a share of the highest peak, 1 for none). `ambient` the share of light in shade; `haze` [near, far, most]: the sky's colour laid over it by its distance from the eye. `views`: on map `map`, the cells `rect` [x, y, w, h]: the camera turns to `yaw` (degrees; the play camera's is 45, the eye south-east of the farmer), looks down `pitch` (degrees, less than the play camera's 30), through `fov` (vertical degrees), `dist` units back from the target, which sits `lift` units over the farmer's feet; it eases in and out over `ease` seconds. Balance numbers are ours.",
-	"maps": ["town", "minamino", "river"],
+	"_note": "The view of the mountains (2026-11-15, branch arashiyama-vista; VistaRules, VistaMountain, Main3D). The play camera looks 16 degrees down at the top of the frame, so no mountain ever shows from it: a few viewpoints tilt the camera up while the farmer stands in them and ease it back as he leaves. They keep the play camera's yaw (45, looking north-west), so the move keys still match the screen (a first try turned the camera round to the south and the user found it dizzying and hard to steer); the mountains to see stand where it looks. `mountains`: the land rising past the maps, in plan cells (data/world.json, the village at [0, 0]), built on the maps in `maps` (each in its own cells, moved by its place on the plan). Each is a `ridge` of [x, z, height] points (world units, a cell is 1): the ground at a point is the ridge's height at the nearest point of the line less `slope` x the distance to it, with `lumps` (a value noise `lump_scale` cells across) on top, and it eases down to nothing within `foot` cells of any map on the plan (`foot` [start, full]), so it never stands on a cell anyone walks; `sink` keeps its foot below the land past the edges. `area` [x0, z0, x1, z1] bounds the mesh, `step` cells between its points. Ogura: north-west of the village, beyond the farm and west of Kaminoda and the bamboo hill, as on the real map: the one the viewpoints look at. Arashiyama: south and south-west across the river from the long bridge, wrapping round the gorge's mouth to the west and on behind Minamino (Iwatayama); only its foot shows from the play camera, past the south-west edges. A ridge ends low and the mesh's `area` runs on past it, so it never stops in a cliff. `colors` by season: `dark` and `light` the forest's two tones, `accent` the patches among them (spring's wild cherry, fall's maples) on `accent_share` (0..1) of the slope, `snow` on what lies above `snow_line` (a share of the highest peak, 1 for none). `ambient` the share of light in shade; `haze` [near, far, most]: the sky's colour laid over it by its distance from the eye. `views`: on map `map`, the cells `rect` [x, y, w, h]: the camera keeps `yaw` (degrees; the play camera's 45, the eye south-east of the farmer; another would turn it the short way round), looks down `pitch` (degrees, less than the play camera's 30), through `fov` (vertical degrees), `dist` units back from the target, which sits `lift` units over the farmer's feet; it eases in and out over `ease` seconds. Balance numbers are ours.",
+	"maps": ["town", "minamino", "river", "farm", "kaminoda", "hill", "sakurazaka"],
 	"mountains": [
 		{
 			"id": "arashiyama",
-			"ridge": [[-44, 30, 7], [-30, 46, 10], [-12, 64, 13], [8, 76, 14], [26, 88, 12], [46, 100, 11], [70, 104, 8]],
+			"ridge": [[-60, 22, 3], [-44, 32, 7], [-30, 46, 10], [-12, 64, 13], [8, 76, 14], [26, 88, 12], [46, 100, 11], [70, 104, 8]],
 			"slope": 0.42,
 			"lumps": 2.4,
 			"lump_scale": 9.0,
 			"foot": [1.0, 9.0],
 			"sink": 0.6,
-			"area": [-64, 30, 96, 130],
+			"area": [-84, 6, 104, 140],
+			"step": 2.0
+		},
+		{
+			"id": "ogura",
+			"ridge": [[-96, 12, 10], [-70, -18, 17], [-46, -38, 22], [-22, -50, 23], [2, -66, 18], [16, -86, 10], [24, -104, 3]],
+			"slope": 0.62,
+			"lumps": 2.4,
+			"lump_scale": 9.0,
+			"foot": [1.0, 9.0],
+			"sink": 0.6,
+			"area": [-124, -130, 60, 40],
 			"step": 2.0
 		}
 	],
@@ -28,11 +39,22 @@
 			"id": "togetsu",
 			"map": "town",
 			"rect": [40, 37, 3, 6],
-			"yaw": 160.0,
-			"pitch": 7.0,
+			"yaw": 45.0,
+			"pitch": 8.0,
 			"fov": 42.0,
-			"dist": 9.0,
-			"lift": 1.2,
+			"dist": 10.0,
+			"lift": 1.4,
+			"ease": 1.4
+		},
+		{
+			"id": "kaminoda",
+			"map": "kaminoda",
+			"rect": [17, 9, 5, 2],
+			"yaw": 45.0,
+			"pitch": 8.0,
+			"fov": 42.0,
+			"dist": 10.0,
+			"lift": 1.4,
 			"ease": 1.4
 		}
 	]

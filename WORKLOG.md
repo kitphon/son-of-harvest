@@ -10,6 +10,29 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-15 — Viewpoints tilt up without turning; Ogura north-west where the camera looks — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user played the bridge viewpoint and found it dizzying and hard to steer: the camera swung 115 degrees
+  while he walked and the move keys (world north is up) no longer matched the screen. They chose "tilt only": a
+  viewpoint keeps the play camera's yaw (45, looking north-west) and only tilts up (pitch 8, a 42-degree lens 10 units
+  back from a target 1.4 over his feet), so the keys still match. The mountain to see must stand where the camera looks,
+  so data/vista.json adds Ogura north-west of the village, beyond the farm and west of Kaminoda and the bamboo hill (as
+  on the real map), its ridge peaking at 23 and ending low at both ends, slope 0.62 so the foothills by Kaminoda stay
+  low. The mountains are built on every outdoor map of the plan near them (town, Minamino, the river, the farm,
+  Kaminoda, the hill, Sakurazaka). Viewpoints: the middle of the long bridge (the village, the river and Ogura behind)
+  and Kaminoda's lane by the well (the paddies and Ogura). Arashiyama stays (its foot past the south-west edges); its
+  ridge now starts low at the west and its area runs past the ridge: test_vista's new edge check found it ending in a
+  6.5-high cliff at its area's north edge. Scouted first with a test lens at six spots (the bridge, the temple, the
+  park, the hill's lookout, the farm, Kaminoda): the temple's and the lookout's views are blocked by a wall in front.
+- Checked: test_vista (every mountain: never on or by a map, rising past them, no cliff at its area's edge; Arashiyama
+  south-west of the bridge, Ogura north-west of the village, none north-east; every viewpoint at the play yaw; half way
+  the same yaw and a pitch between; a view of another yaw still turns the short way). Frames: both viewpoints with
+  `--vista` in spring, summer and fall; the play camera on the farm, its gate, the river, Kaminoda, the hill's top and
+  Sakurazaka unchanged. All 43 tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`: title, `--demo`,
+  town, the mine, town@togetsu, kaminoda@well, the hill, Kaminoda in winter with `--vista`): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo --map=kaminoda@well`: exit 0.
+- Left / next: the user's look; more viewpoints (the hill's lookout needs its wall lowered first).
+
 ## 2026-11-15 — The view of the mountains: Arashiyama and the viewpoint on the long bridge — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user wants to see the mountains while playing. Turning the play camera round would not show them (it looks

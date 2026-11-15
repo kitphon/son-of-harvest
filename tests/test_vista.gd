@@ -52,8 +52,25 @@ func _data() -> void:
 
 ## Nothing rises on a map; it rises in the plan's empty land, highest along the ridge.
 func _heights() -> void:
+	for m: Dictionary in VistaRules.config().mountains:
+		_heights_of(m)
+	# The real map: Arashiyama across the river south-west of the long bridge, Ogura north-west of
+	# the village (where the play camera looks), none north-east of the bridge.
 	var rects := VistaRules.map_rects()
-	var m: Dictionary = VistaRules.config().mountains[0]
+	var ms: Array = VistaRules.config().mountains
+	var arashi: Dictionary = ms.filter(func(x): return x.id == "arashiyama")[0]
+	var ogura: Dictionary = ms.filter(func(x): return x.id == "ogura")[0]
+	var bridge := Vector2(41, 40)
+	check(VistaRules.height(arashi, bridge + Vector2(-33, 36), rects) > 8.0, "Arashiyama south-west of the bridge")
+	check(VistaRules.height(ogura, Vector2(-30, -45), rects) > 12.0, "Ogura north-west of the village")
+	var ne := 0.0
+	for m in ms:
+		ne = maxf(ne, VistaRules.height(m, bridge + Vector2(30, -50), rects))
+	check(ne == 0.0, "none north-east of the bridge (%.1f)" % ne)
+
+
+func _heights_of(m: Dictionary) -> void:
+	var rects := VistaRules.map_rects()
 	var on_map := 0.0
 	var any := 0.0
 	var area: Array = m.area
@@ -65,16 +82,18 @@ func _heights() -> void:
 			if VistaRules.map_distance(p, rects) <= float(m.foot[0]):
 				on_map = maxf(on_map, h)
 			any = maxf(any, h)
-	check(on_map == 0.0, "nothing rises on or by a map (%.2f)" % on_map)
-	check(any > 8.0 and any <= VistaRules.peak(m), "it rises past the maps (%.1f, at most the peak %.1f)" % [any, VistaRules.peak(m)])
+	check(on_map == 0.0, "%s: nothing rises on or by a map (%.2f)" % [m.id, on_map])
+	check(any > 8.0 and any <= VistaRules.peak(m), "%s: it rises past the maps (%.1f, at most the peak %.1f)" % [m.id, any, VistaRules.peak(m)])
 	var mid: Array = m.ridge[3]
-	check(VistaRules.height(m, Vector2(float(mid[0]), float(mid[1])), rects) > float(mid[2]) - float(m.lumps), "the ridge stands near its height")
+	check(VistaRules.height(m, Vector2(float(mid[0]), float(mid[1])), rects) > float(mid[2]) - float(m.lumps), "%s: the ridge stands near its height" % m.id)
 	check(VistaRules.noise(Vector2(3.3, 7.1)) >= 0.0 and VistaRules.noise(Vector2(3.3, 7.1)) <= 1.0 and VistaRules.noise(Vector2(3.3, 7.1)) == VistaRules.noise(Vector2(3.3, 7.1)), "the lumps' noise: 0..1, the same each time")
-	# The real map: across the river, south-west of the long bridge.
-	var bridge := Vector2(41, 40)
-	var sw := VistaRules.height(m, bridge + Vector2(-33, 36), rects)
-	var ne := VistaRules.height(m, bridge + Vector2(30, -50), rects)
-	check(sw > 8.0 and ne == 0.0, "south-west of the bridge (%.1f), none north-east (%.1f)" % [sw, ne])
+	# No cliff where the mesh stops: its outer ring lies flat under the land.
+	var edge := 0.0
+	for x in range(int(area[0]), int(area[2]) + 1, 2):
+		edge = maxf(edge, maxf(VistaRules.height(m, Vector2(x, float(area[1])), rects), VistaRules.height(m, Vector2(x, float(area[3])), rects)))
+	for z in range(int(area[1]), int(area[3]) + 1, 2):
+		edge = maxf(edge, maxf(VistaRules.height(m, Vector2(float(area[0]), z), rects), VistaRules.height(m, Vector2(float(area[2]), z), rects)))
+	check(edge < 1.0, "%s: down to the land at its area's edge, no cliff (%.1f)" % [m.id, edge])
 
 
 ## The mesh lies in the map's own cells: under the land on the map, up past it.
@@ -113,6 +132,7 @@ func _views() -> void:
 				if not m.is_solid(Vector2i(x, y)):
 					open += 1
 		check(open > 0, "%s: cells to stand on (%d)" % [v.id, open])
+		check(float(v.yaw) == CameraLens.YAW, "%s: the play camera's yaw, so the keys still match the screen" % v.id)
 		check(float(v.pitch) < 30.0 - 10.0 and float(v.fov) - float(v.pitch) * 2.0 > 0.0, "%s: tilted up enough to see over the horizon" % v.id)
 		check(VistaRules.view_at(str(v.map), Vector2i(int(r[0]), int(r[1]))) == v, "%s: view_at finds it" % v.id)
 		check(VistaRules.view_at(str(v.map), Vector2i(int(r[0]) - 1, int(r[1]))).is_empty(), "%s: not beside it" % v.id)
@@ -120,6 +140,7 @@ func _views() -> void:
 	check(tg.get("id", "") == "togetsu", "the middle of the long bridge is a viewpoint")
 	var sp: Array = MapManager.data("town").spawns.get("togetsu", [])
 	check(not sp.is_empty() and VistaRules.view_at("town", Vector2i(sp[0])) == tg, "the togetsu spawn stands in it")
+	check(VistaRules.view_at("kaminoda", Vector2i(19, 9)).get("id", "") == "kaminoda", "Kaminoda's lane by the well is a viewpoint")
 
 
 ## The camera between the play lens and the view.
@@ -136,7 +157,11 @@ func _blend() -> void:
 	check(is_equal_approx((b1.back as Vector3).length(), 1.0) and is_equal_approx((VistaRules.blend(lens, v, 0.5).back as Vector3).length(), 1.0), "the way back to the eye stays a unit")
 	var half := VistaRules.blend(lens, v, 0.5)
 	var hy := rad_to_deg(atan2((half.back as Vector3).x, (half.back as Vector3).z))
-	check(hy > CameraLens.YAW and hy < float(v.yaw), "half way: turning the short way round (%.1f)" % hy)
+	var hp := rad_to_deg(asin((half.back as Vector3).y))
+	check(absf(hy - CameraLens.YAW) < 0.01 and hp < lens.pitch and hp > float(v.pitch), "half way: the same yaw, the pitch between (%.1f, %.1f)" % [hy, hp])
+	var turned := VistaRules.blend(lens, {"yaw": 160.0, "pitch": 8.0, "fov": 42.0, "dist": 10.0}, 0.5)
+	var ty := rad_to_deg(atan2((turned.back as Vector3).x, (turned.back as Vector3).z))
+	check(ty > CameraLens.YAW and ty < 160.0, "a view of another yaw: turning the short way round (%.1f)" % ty)
 	# The ease: in over `ease` seconds standing in it, out as long after.
 	var w := 0.0
 	var e := float(v.ease)
