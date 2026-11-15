@@ -70,6 +70,26 @@ func _heights() -> void:
 	for m in ms:
 		ne = maxf(ne, VistaRules.height(m, bridge + Vector2(30, -50), rects))
 	check(ne == 0.0, "none north-east of the bridge (%.1f)" % ne)
+	# Clear of the water running off the maps (the user saw a mountainside rise over the river's
+	# west end): the river out of the gorge runs on in a valley.
+	var clear := VistaRules.clear_rects()
+	check(clear.size() > rects.size(), "the water running off the maps kept clear too (%d)" % (clear.size() - rects.size()))
+	var on_water := 0.0
+	for x in range(-100, -21, 4):
+		for m in ms:
+			on_water = maxf(on_water, VistaRules.height(m, Vector2(x, 27.5), clear))
+	check(on_water == 0.0, "no mountain over the river carried west from the gorge (%.1f)" % on_water)
+	# No slope close by from the play camera: nothing rises within the land past any map's edges.
+	var margin := int(load("res://scripts/world3d/surroundings.gd").MARGIN)
+	var close := 0.0
+	for m in ms:
+		var area: Array = m.area
+		for z in range(int(area[1]), int(area[3]), 3):
+			for x in range(int(area[0]), int(area[2]), 3):
+				var p := Vector2(x, z)
+				if VistaRules.map_distance(p, rects) <= margin:
+					close = maxf(close, VistaRules.height(m, p, clear))
+	check(close == 0.0, "no slope within %d cells of any map (%.2f)" % [margin, close])
 
 
 func _heights_of(m: Dictionary) -> void:
@@ -87,7 +107,10 @@ func _heights_of(m: Dictionary) -> void:
 			any = maxf(any, h)
 	check(on_map == 0.0, "%s: nothing rises on or by a map (%.2f)" % [m.id, on_map])
 	check(any > 8.0 and any <= VistaRules.peak(m), "%s: it rises past the maps (%.1f, at most the peak %.1f)" % [m.id, any, VistaRules.peak(m)])
-	var mid: Array = m.ridge[3]
+	var mid: Array = m.ridge[0]   # the ridge's point farthest from every map: its full height there
+	for r in m.ridge:
+		if VistaRules.map_distance(Vector2(float(r[0]), float(r[1])), rects) > VistaRules.map_distance(Vector2(float(mid[0]), float(mid[1])), rects):
+			mid = r
 	check(VistaRules.height(m, Vector2(float(mid[0]), float(mid[1])), rects) > float(mid[2]) - float(m.lumps), "%s: the ridge stands near its height" % m.id)
 	check(VistaRules.noise(Vector2(3.3, 7.1)) >= 0.0 and VistaRules.noise(Vector2(3.3, 7.1)) <= 1.0 and VistaRules.noise(Vector2(3.3, 7.1)) == VistaRules.noise(Vector2(3.3, 7.1)), "the lumps' noise: 0..1, the same each time")
 	# No cliff where the mesh stops: its outer ring lies flat under the land.
@@ -270,6 +293,10 @@ func _worlds() -> void:
 			check(SL.is_ground(vm.floor_mat) and uses, "the open land wears the ground's grass material")
 			w3.set_snow(0.6)
 			check(is_equal_approx(float(vm.floor_mat.get_shader_parameter("cover")), 0.6) and is_equal_approx(float(vm.tint_mat.get_shader_parameter("cover")), 0.6), "and takes the world's snow cover, its darkening too")
+			check(w3.surroundings.share == VistaRules.apron_pines() and VistaRules.apron_pines() < int(load("res://scripts/world3d/surroundings.gd").TREE_SHARE), "a thinner wood past the edges (%d in a hundred)" % w3.surroundings.share)
+			vm.tone("spring", Color.WHITE, Vector3.UP)
+			var fc: Color = vm.mat.get_shader_parameter("foot_color")
+			check(fc.g > fc.r and fc.g > fc.b and float(vm.mat.get_shader_parameter("foot_blend")) > 0.0, "the slopes' feet take the darkened grass's colour (%s)" % fc)
 			vm.tone("fall", Color.WHITE, Vector3.UP)
 			check(Color(vm.tint_mat.get_shader_parameter("tint")).is_equal_approx(Color(str(VistaRules.config().colors.fall.foot))), "the darkening by the season")
 		w3.free()

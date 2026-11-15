@@ -21,6 +21,8 @@ uniform vec3 sun_dir = vec3(0.4, 0.8, 0.3);   // toward the sun, world
 uniform float ambient = 0.55;
 uniform vec3 sky : source_color = vec3(0.7, 0.8, 0.9);
 uniform vec3 haze = vec3(24.0, 150.0, 0.6);   // near, far, most
+uniform vec3 foot_color : source_color = vec3(0.4, 0.6, 0.3);   // the open grass at its feet (darkened)
+uniform float foot_blend = 3.0;   // units up the slope over which it turns from that grass to the forest
 varying vec3 world;
 varying vec3 wn;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -39,6 +41,7 @@ void fragment() {
 	float a = noise(q * 0.18 + 17.0) * 0.45 + noise(q * 1.6 + 3.0) * 0.55;   // scattered trees, more in some stands
 	c = mix(c, accent, step(1.0 - accent_share, a) * 0.8);
 	float jag = (noise(q * 0.3) - 0.5) * 3.0;
+	c = mix(foot_color, c, smoothstep(0.0, foot_blend, world.y));   // grass at the foot, woods up the slope
 	if (world.y > snow_line + jag) { c = mix(c, snow, 0.85); }
 	float lit = ambient + (1.0 - ambient) * max(dot(normalize(wn), normalize(sun_dir)), 0.0);
 	c *= lit;
@@ -93,7 +96,7 @@ func _ready() -> void:
 ## forest floor where `map`'s own land past its edges stops.
 static func _make(at: Vector2, map: MapData) -> Array[ArrayMesh]:
 	var out: Array[ArrayMesh] = []
-	var rects := VistaRules.map_rects()
+	var rects := VistaRules.clear_rects()   # the maps and the water running off them
 	for m: Dictionary in VistaRules.config().get("mountains", []):
 		out.append(mesh_of(m, at, rects, map))
 	return out
@@ -114,6 +117,7 @@ void fragment() {
 
 static var _tint_shader: Shader
 static var _floor_tex: Texture2D
+static var _grass_avg := Color(0.45, 0.65, 0.3)   # the grass picture's average colour
 static var _floor_mask: Texture2D
 
 
@@ -129,6 +133,13 @@ static func floor_material() -> ShaderMaterial:
 				var tile := PlaceholderArt.image("ground:grass:%d" % posmod(x * 7 + y * 13 + (x * y) % 5, PlaceholderArt.GROUND_VARIANTS))
 				img.blit_rect(tile, Rect2i(0, 0, 16, 16), Vector2i(x, y) * 16)
 		_floor_tex = ImageTexture.create_from_image(img)
+		var sum := Vector3.ZERO
+		for y in img.get_height():
+			for x in img.get_width():
+				var px := img.get_pixel(x, y)
+				sum += Vector3(px.r, px.g, px.b)
+		sum /= float(img.get_width() * img.get_height())
+		_grass_avg = Color(sum.x, sum.y, sum.z)
 		var mask := Image.create(1, 1, false, Image.FORMAT_L8)
 		mask.fill(Color.WHITE)   # grass holds snow fully (data/snow_cover.json)
 		_floor_mask = ImageTexture.create_from_image(mask)
@@ -257,8 +268,11 @@ func tone(season_id: String, sky: Color, to_sun: Vector3) -> void:
 	var cfg := VistaRules.config()
 	var c: Dictionary = cfg.colors.get(season_id, cfg.colors.values()[0])
 	mat.set_shader_parameter("dark", Color(str(c.dark)))
+	var foot := Color(str(c.get("foot", "9abf8e")))
 	if tint_mat != null:
-		tint_mat.set_shader_parameter("tint", Color(str(c.get("foot", "9abf8e"))))
+		tint_mat.set_shader_parameter("tint", foot)
+	mat.set_shader_parameter("foot_color", Color(_grass_avg.r * foot.r, _grass_avg.g * foot.g, _grass_avg.b * foot.b))   # where the darkened grass ends
+	mat.set_shader_parameter("foot_blend", float(cfg.get("foot_blend", 3.0)))
 	mat.set_shader_parameter("light", Color(str(c.light)))
 	mat.set_shader_parameter("accent", Color(str(c.accent)))
 	mat.set_shader_parameter("accent_share", float(c.accent_share))

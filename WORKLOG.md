@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-15 — No mountain over the river running off; the feet past the apron, a thinner wood, feet in the grass's colour — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: (1) at the river map's west end a mountainside rose over the river running on: the mountains kept clear of the
+  maps but not of the water running off them. VistaRules.clear_rects adds the water of data/world.json `waters`
+  carried on (WorldPlan: a stream going up or down for `corridor` 120 cells, two that meet out to their meeting), and
+  the mountain meshes ease down near those as near a map, so the river leaves the gorge in a valley. (2) In Minamino
+  the trees past the edges stood thick and the mountains' dark feet met the grass close by: the feet started 9 cells
+  off the maps, inside the 14-cell land past their edges. Every mountain's `foot` is now [14, 24] (nothing rises
+  within that land, so the play camera sees no slope close by); the land past these maps' edges has a thinner wood
+  (`apron_pines` 22 in a hundred, was 45); and a slope's first `foot_blend` 3 units take the open grass's colour (the
+  grass picture's average times the season's `foot`, where the grass's darkening ends) before the forest's, so the
+  grass runs up into the woods.
+- Checked: test_vista (more rects kept clear than the maps; no mountain over the river carried west from the gorge;
+  no slope within 14 cells of any map; the village's wood at 22; the feet's colour green and set; the ridge's farthest
+  point stands near its height; the rest as before). Frames: the river map's west end (the river runs on, no
+  mountainside), Minamino by Shino's cloths at 15:00 and by the shrine at 17:00 (no dark slope near, a thinner wood),
+  the bridge's and the hill's views (the mountains as before, a little farther). All 43 tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`: title, `--demo`, town, the mine,
+  the hill, the river, Minamino, Kaminoda, Sakurazaka in fall): 0 ERROR lines; windowed `--quit-after 150 -- --demo
+  --map=minamino`: exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-15 — The whole apron on the mountain maps; the grass darkening toward the mountains — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: (1) the user found places where the scene broke off: at the river map's west end the gravel path and the

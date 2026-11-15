@@ -586,6 +586,8 @@ func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable, map_
 	var far := Backdrop.on_map(map_id) and not VistaRules.on_map(map_id)
 	if far:
 		surroundings.build(w, h, kind_at, hold_at, Backdrop.rim(), Backdrop.rim_pines())
+	elif VistaRules.on_map(map_id):   # the whole apron, a thinner wood: the mountains' grass and slopes past it
+		surroundings.build(w, h, kind_at, hold_at, Surroundings.MARGIN, VistaRules.apron_pines())
 	else:
 		surroundings.build(w, h, kind_at, hold_at)
 	if far:

@@ -38,6 +38,41 @@ static func map_rects() -> Array[Rect2]:
 	return out
 
 
+## What the mountains keep clear of (Rect2s on the plan): every map, and the water running off
+## the maps carried on as data/world.json `waters` says (WorldPlan): a stream going up or down
+## for `corridor` cells, two that meet out to their meeting. So the river runs on out of the
+## gorge in a valley, not into a mountainside (the user saw one rise over the river's west end).
+static func clear_rects() -> Array[Rect2]:
+	var out := map_rects()
+	var cfg := WorldPlan.config()
+	var at := WorldPlan.places(cfg)
+	var runs := WorldPlan.off_plan_runs(at)
+	var waters: Dictionary = cfg.get("waters", {})
+	var far := int(config().get("corridor", 120))
+	for r in runs:
+		var w: Dictionary = waters.get(r.key, {})
+		var cells: Array[Vector2i] = []
+		if w.has("meets"):
+			var m := WorldPlan.meeting(r, WorldPlan.run_of(runs, str(w.meets)))
+			if m.has_area():
+				cells = WorldPlan.carried(r, m)
+				out.append(Rect2(m))
+		else:
+			cells = WorldPlan.carried(r, Rect2i(), far)
+		if cells.is_empty():
+			continue
+		var box := Rect2(Vector2(cells[0]), Vector2.ONE)
+		for c in cells:
+			box = box.merge(Rect2(Vector2(c), Vector2.ONE))
+		out.append(box)
+	return out
+
+
+## How many pines in a hundred cells of the land past a mountain map's edges (Surroundings).
+static func apron_pines() -> int:
+	return int(config().get("apron_pines", 45))   # 45: Surroundings.TREE_SHARE (named here, it would tie this pure script to the Game autoload)
+
+
 ## How far plan point `p` lies from the nearest map (0 inside one).
 static func map_distance(p: Vector2, rects: Array[Rect2]) -> float:
 	var best := INF
