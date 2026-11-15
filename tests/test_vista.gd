@@ -136,7 +136,14 @@ func _floor() -> void:
 	check(not VM.floor_at(town, Vector2(town.w + margin + 2, 40)) and VM.floor_at(town, Vector2(town.w + margin + 2, 20)), "not over the river running on east, beside it yes")
 	var ogura: Dictionary = VistaRules.config().mountains.filter(func(x): return x.id == "ogura")[0]
 	var at: Vector2i = WorldPlan.places().hill
-	var verts: PackedVector3Array = VM.mesh_of(ogura, Vector2(at), VistaRules.map_rects(), hill).surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var om: ArrayMesh = VM.mesh_of(ogura, Vector2(at), VistaRules.map_rects(), hill)
+	var verts := PackedVector3Array()
+	var floor_surface := -1
+	for i in om.get_surface_count():
+		verts.append_array(om.surface_get_arrays(i)[Mesh.ARRAY_VERTEX])
+		if om.surface_get_name(i) == "floor":
+			floor_surface = i
+	check(floor_surface >= 0 and (om.surface_get_arrays(floor_surface)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size() > 0, "the open land a surface of its own")
 	var floor_pts := 0
 	var gap := 0
 	for v in verts:
@@ -235,5 +242,15 @@ func _worlds() -> void:
 			check(float(vm.mat.get_shader_parameter("snow_line")) < 1000.0, "winter: a snow line")
 			vm.tone("summer", Color.WHITE, Vector3.UP)
 			check(float(vm.mat.get_shader_parameter("snow_line")) >= 1000.0, "summer: none")
+			# The open land at the mountains' feet: the ground's own grass, lit, wetted and snowed on as the land past the edges.
+			var SL: GDScript = load("res://scripts/world3d/snow_layer.gd")
+			var uses := false
+			for mi in vm.get_children():
+				for i in (mi.mesh as ArrayMesh).get_surface_count():
+					if (mi.mesh as ArrayMesh).surface_get_name(i) == "floor":
+						uses = uses or mi.get_surface_override_material(i) == vm.floor_mat
+			check(SL.is_ground(vm.floor_mat) and uses, "the open land wears the ground's grass material")
+			w3.set_snow(0.6)
+			check(is_equal_approx(float(vm.floor_mat.get_shader_parameter("cover")), 0.6), "and takes the world's snow cover")
 		w3.free()
 	await process_frame

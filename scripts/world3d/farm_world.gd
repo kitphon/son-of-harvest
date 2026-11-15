@@ -593,6 +593,7 @@ func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable, map_
 		vista = VistaMountain.new()
 		add_child(vista)
 		vista.build(map_id, WorldPlan.places().get(map_id, Vector2i.ZERO))
+		_snow_mats.append(vista.floor_mat)   # its open land takes the snow as the land past the edges does
 	if surroundings.water != null:
 		surroundings.water.set_rain(rain)
 		surroundings.water.set_ice(ice, ice_snow)

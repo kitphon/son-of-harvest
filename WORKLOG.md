@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-15 — The open land at the mountains' feet in the ground's own grass — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user found the floor laid last time a band of another colour against the grass (it wore the mountains'
+  forest shader). VistaMountain now builds the open land (quads with no corner rising) as a surface of its own, named
+  "floor", worn with SnowLayer's ground material on a repeated 8 x 8 cell picture of the grass tiles the land past the
+  edges is laid with (floor_material, UVs in world cells / 8), so it lights, wets and takes snow as that land does;
+  FarmWorld adds it to its snow materials. Only the slopes keep the forest's shader, so the grass meets the trees at the
+  mountains' feet.
+- Checked: test_vista (the open land a surface of its own; it wears the ground material; the world's snow cover reaches
+  it). Frames with `--vista` walking west on the hill: noon, winter with snow 70, 17:30: no seam where the land past the
+  edge ends, the snow and the evening light the same on both. All 43 tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`: title, `--demo`, town, the mine,
+  the hill, the hill in rain, the farm in winter snow, town@togetsu): 0 ERROR lines; windowed `--quit-after 150 --
+  --demo --map=hill`: exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-15 — Forest floor out to the mountains past the rim: no white gap in a tilted view — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user saw a band of white sky past the bamboo hill's west edge in its view. On the maps with the far country
