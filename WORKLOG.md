@@ -10,6 +10,16 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-15 — The river map's shore path one even width, one colour — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user found the gravel shore path on the river map uneven in width and with an odd-coloured spot. Its top
+  row (data/maps/river.json row 4) began as grass for three cells at the west edge, so the path narrowed to one cell
+  there and on past the edge, and two `path` cells (dirt, 7..8) sat in the gravel as a brown patch. Row 4 is now gravel
+  edge to edge, so the shore path is two cells of gravel all along.
+- Checked: frames `--demo --map=river@shore --time=18:13 --weather=sunny` (and `--walk=left:3` to the west edge and the
+  land past it): the path one width and one colour; 0 ERROR lines. All 43 tests/test_*.gd print `OK (0 failed)`; smoke `--quit-after 300 -- --demo --map=river`: 0 ERROR lines; windowed `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the merge into arashiyama-town and main waits on the user's word.
+
 ## 2026-11-15 — Past the bamboo hill's cliff: grass and pines, not a bare stone yard — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user asked why the land behind the hill's top was empty. The land past a map's edges repeats its edge cells'
