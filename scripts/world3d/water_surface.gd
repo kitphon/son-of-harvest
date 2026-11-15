@@ -227,7 +227,7 @@ func set_cells(cells: Array[Vector2i], water_at: Callable) -> void:
 			st.set_uv2(Vector2(land, 0))
 			st.add_vertex(v[i])
 	mesh = st.commit() if not cells.is_empty() else null
-	position = Vector3(0, LIFT, 0)
+	position = Vector3(0, LIFT - SunkenGround.DROP, 0)   # over the sunk bed (SunkenGround)
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	layers = NightLamps.GROUND_LAYER   # lit as the ground: the night's lamps leave it out
 	var m := ShaderMaterial.new()

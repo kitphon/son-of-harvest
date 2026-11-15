@@ -186,6 +186,8 @@ func _draw() -> void:
 
 
 func _draw_objects() -> void:
+	if not farm.sheltered:   # the pond lies lower (SunkenGround in 3D): its bank over the water's skin, under the rest
+		MapView.draw_banks(_objects, farm.w, farm.h, func(c: Vector2i) -> bool: return farm.fixed_at(c) == "pond")
 	_tall = false
 	_sway = _sway_for(Time.get_ticks_msec() / 1000.0)
 	for kind in ROOFS:   # the roofs first: the doors in their front rows are drawn over them below

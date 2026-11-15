@@ -148,6 +148,31 @@ func _draw() -> void:
 				draw_rect(Rect2(Vector2(c * T), Vector2(T, T)), COLORS.wall)
 
 
+## The water lies lower than the land (SunkenGround in 3D): seen from above, the stone bank the
+## 3D view shows under a north shore is a band of grey stones along the water's top edge with a
+## dark line of shadow under it, and a narrower one along a west shore; a map's edge, where the
+## water runs on, has none. Whole pixels, over the ground tiles.
+static func draw_banks(canvas: CanvasItem, w: int, h: int, is_water: Callable) -> void:
+	var stone := Color("8e877a")
+	var lit := Color("aaa395")
+	var shade := Color(0.06, 0.08, 0.12, 0.5)
+	for y in h:
+		for x in w:
+			var c := Vector2i(x, y)
+			if not is_water.call(c):
+				continue
+			var at := Vector2(c * T)
+			if y > 0 and not is_water.call(c + Vector2i.UP):
+				canvas.draw_rect(Rect2(at, Vector2(T, 4)), stone)
+				canvas.draw_rect(Rect2(at, Vector2(T, 1)), lit)
+				for k in range(2, T, 5):   # the joints between the stones
+					canvas.draw_rect(Rect2(at + Vector2(k + (y % 2) * 2, 1), Vector2(1, 3)), shade)
+				canvas.draw_rect(Rect2(at + Vector2(0, 4), Vector2(T, 2)), shade)
+			if x > 0 and not is_water.call(c + Vector2i.LEFT):
+				canvas.draw_rect(Rect2(at, Vector2(3, T)), stone)
+				canvas.draw_rect(Rect2(at + Vector2(3, 0), Vector2(1, T)), shade)
+
+
 ## The ground picture of cell `c` as the flat view draws it: a paddy cell that grows rice (`paddies`,
 ## paddy_cells) gets the calm picture CropPatches.paddy_ground gives, so the rice and the winter
 ## water patches read on it; every other cell is ground_key.
@@ -225,6 +250,8 @@ func _process(_delta: float) -> void:
 
 
 func _draw_objects() -> void:
+	if not map.indoor:   # over the water's moving skin, under the props
+		draw_banks(_objects, map.w, map.h, func(c: Vector2i) -> bool: return map.tile(c) == "water")
 	var paddies := paddy_cells()
 	_tall = not paddies.is_empty()
 	var now := Time.get_ticks_msec() / 1000.0

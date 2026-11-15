@@ -646,7 +646,7 @@ class BoatRide extends Node3D:
 			return
 		var w := Villagers.where(FerryRun.villager(), game.day_minutes(), game.trigger_state(Vector2i.ZERO))
 		var off := FerryRun.boat_offset(w)
-		position = Vector3(off.x, 0, off.y)
+		position = Vector3(off.x, -SunkenGround.DROP, off.y)   # afloat on the sunk river
 		get_node(POLE).visible = not FerryRun.in_use(w)
 
 
@@ -660,7 +660,7 @@ static func landing(w: FarmWorld, r: Rect2) -> void:
 	var top := 0.16
 	for x in [r.position.x + 0.15, r.end.x - 0.22]:
 		for z in [r.position.y - 0.25, r.end.y - 0.2]:
-			FarmProps.block(post, Rect2(x, z, 0.07, 0.07), -0.1, Rect2(x, z, 0.07, 0.07), top)
+			FarmProps.block(post, Rect2(x, z, 0.07, 0.07), -0.1 - SunkenGround.DROP, Rect2(x, z, 0.07, 0.07), top)   # down into the sunk river
 	var n := 6
 	var deck := r.size.y + 0.35
 	for i in n:

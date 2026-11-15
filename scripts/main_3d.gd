@@ -616,7 +616,7 @@ func _show_fishing() -> void:
 	var bite := f.state == "bite"
 	var dip := -3.0 * FarmWorld.PX if bite else sin(f.time * 3.0) * 0.4 * FarmWorld.PX
 	var shake := sin(f.time * 40.0) * FarmWorld.PX if bite else 0.0
-	bobber.position = Vector3(f.spot.x + 0.5 + shake, dip, f.spot.y + 0.5)
+	bobber.position = Vector3(f.spot.x + 0.5 + shake, dip - SunkenGround.DROP, f.spot.y + 0.5)   # on the sunk water
 	# The rod tip: a pixel of the upright figure, so along the camera's right and up the stretched picture.
 	var tip := PlaceholderArt.rod_tip(anim.pose, anim.frame())
 	var axes := cam.global_transform.basis

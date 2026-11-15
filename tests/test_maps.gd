@@ -450,6 +450,7 @@ func _process(delta: float) -> bool:
 		_clinic_doors()
 		_arashiyama_town()
 		_world()
+		_sunken_water()
 		_story_props()
 		_ferry_boat()
 		_dye_cloth()
@@ -1334,7 +1335,7 @@ func _night_lamps(world: Node3D) -> void:
 			return true
 		return n.get_script() != null and n.get_script().resource_path.get_file() in ["water_surface.gd", "grass_tufts.gd"]
 	var grounds: Array = world.find_children("*", "GeometryInstance3D", true, false).filter(is_ground)
-	var plain_ground: Array = world.find_children("*", "MeshInstance3D", true, false).filter(func(n): return n.mesh != null and n.mesh.get_class() == "PlaneMesh")   # not a QuadMesh picture
+	var plain_ground: Array = world.find_children("*", "MeshInstance3D", true, false).filter(func(n): return n.mesh != null and (n.mesh.get_class() == "PlaneMesh" or n.has_meta("ground")))   # not a QuadMesh picture
 	var lit: Array = (grounds + plain_ground).filter(func(n): return n.layers != NightLamps.GROUND_LAYER or (n.layers & NightLamps.LIT_MASK) != 0)
 	check(not grounds.is_empty() and not plain_ground.is_empty() and lit.is_empty(),
 		"the ground, water and grass are left out of the lamps (%d lit as the ground; still lit: %s)" % [grounds.size() + plain_ground.size(),
@@ -3358,8 +3359,8 @@ func _water() -> void:
 			stray += 1
 	check(inset > 0 and inset < cover.size() and stray == 0, "the sheet is pulled in from the banks only (%d of %d quads) and stays in its cells" % [inset, cover.size()])
 	check(sheet.material_override is ShaderMaterial and sheet.material_override.shader.code.contains("TIME")
-		and sheet.position.y > 0.0 and sheet.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and sheet.mesh != null,
-		"the sheet moves with time, lies above the ground and casts no shadow")
+		and sheet.position.y > -load("res://scripts/world3d/sunken_ground.gd").DROP and sheet.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and sheet.mesh != null,
+		"the sheet moves with time, lies above the sunk bed and casts no shadow")
 	# Ripple rings: slots, strength, life, reuse of the oldest, and the shader draws them.
 	check(sheet.material_override.shader.code.contains("ripples[8]") and sheet.ripples.size() == sheet.MAX_RIPPLES
 		and sheet.ripples_alive() == 0, "the sheet has room for %d ripple rings and none at the start" % sheet.MAX_RIPPLES)
@@ -4011,6 +4012,48 @@ func _world() -> void:
 						met += 1
 						check(wet_here == (om.tile(oc) == "water"), "%s %s and %s %s: water meets water" % [id, c, other, oc])
 	check(met >= 8, "the river runs on from the gorge into the village (%d edge cells)" % met)
+
+
+## Water lies lower than the land (SunkenGround): the village's ground is a grid with its water
+## cells DROP down and stone banks where water meets land (none along the map's edge, where the
+## river runs on), the water's skin over the sunk bed, the bridge's deck at the land's height
+## over it, the farm's pond sunk the same; the flat view draws the banks.
+func _sunken_water() -> void:
+	var sg: GDScript = load("res://scripts/world3d/sunken_ground.gd")
+	var t := MapManager.data("town")
+	var wet := func(c: Vector2i) -> bool: return t.tile(c) == "water"
+	var mesh: ArrayMesh = sg.ground(t.w, t.h, Vector2.ZERO, wet)
+	var verts: PackedVector3Array = mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var low := 0
+	var flat := 0
+	for v in verts:
+		if is_equal_approx(v.y, -sg.DROP):
+			low += 1
+			check(t.tile(Vector2i(floori(v.x - 0.001 if v.x >= t.w else v.x), floori(v.z - 0.001 if v.z >= t.h else v.z))) == "water" or v.x == floorf(v.x) or v.z == floorf(v.z), "a sunk corner belongs to water (%s)" % v)
+		elif is_equal_approx(v.y, 0.0):
+			flat += 1
+	check(verts.size() == t.w * t.h * 6 and low > 0 and flat > 0, "the village ground: a quad a cell, some sunk (%d), most flat (%d)" % [low, flat])
+	var banks: ArrayMesh = sg.banks(t.w, t.h, Vector2.ZERO, wet)
+	var walls: PackedVector3Array = banks.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var in_range := true
+	var on_edge := 0
+	for i in range(0, walls.size(), 6):
+		var all_west := true
+		for k in 6:
+			var v: Vector3 = walls[i + k]
+			in_range = in_range and v.y <= 0.001 and v.y >= -sg.DROP - 0.001
+			all_west = all_west and absf(v.x) < 0.001
+		on_edge += int(all_west)
+	check(walls.size() > 0 and walls.size() % 6 == 0 and in_range, "stone banks stand from the land down to the water (%d walls)" % (walls.size() / 6))
+	check(on_edge == 0, "no bank along the map's west edge where the river runs on from the gorge")
+	var none: ArrayMesh = sg.banks(4, 4, Vector2.ZERO, func(_c): return false)
+	check(none == null, "no water, no banks")
+	var ws: GDScript = load("res://scripts/world3d/water_surface.gd")
+	var skin: Node3D = ws.new()
+	skin.set_cells([Vector2i(2, 37)] as Array[Vector2i], func(c): return true)
+	check(is_equal_approx(skin.position.y, ws.LIFT - sg.DROP), "the water's skin lies just over the sunk bed")
+	skin.free()
+	check(sg.DROP > 0.2 and sg.DROP < 0.6, "the water a third of a cell or so below the land (%.2f)" % sg.DROP)
 
 
 ## The village clinic: a small house east of the smithy, its door clear of the river lane, the

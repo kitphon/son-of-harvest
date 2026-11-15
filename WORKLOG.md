@@ -10,6 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-14 — Water lies lower than the land, the bridge over it (SunkenGround) — branch arashiyama-town
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user asked for layers: the bridge higher than the water, the water lower than the ground. SunkenGround
+  (scripts/world3d/sunken_ground.gd) builds the ground as a grid of cell quads instead of one flat sheet (the picture
+  mapped as before, u = x / columns, v = y / rows, so snow, wet and tile pictures land on the same cells), every water
+  cell DROP (0.35) lower, and a bank of grey river stones (`ground:scree:1`, both sides drawn) on every side of a water
+  cell that meets land inside the grid, from the land down to the water; none along a map's edge where the water runs on.
+  Used for the maps (MapWorld), the land past their edges (Surroundings: its water sunk too, its banks only off the map)
+  and the farm (its pond cells). The water's moving skin lies LIFT over the sunk bed (WaterSurface), the fishing bobber
+  on it (Main3D), Mio's boat afloat on it with her standing in it (BoatRide, VillagerSprites: a lifted figure lowered by
+  DROP), her landing's posts and a stepping rock out in the water go down to it. The bridge's deck stays at the land's
+  height, now clear over the water, its piers into it. The flat view draws the banks over the water's skin (MapView.
+  draw_banks: a band of grey stones with joints and a shadow under a north shore, a narrower one on a west shore; the
+  farm pond too). A first try asked FarmGrid.water_cell, which is the watering action (it wetted tilled cells); the
+  pond cells (`fixed` "pond") are asked instead.
+- Checked: all 42 tests/test_*.gd print `OK (0 failed)`; test_maps `_sunken_water` (a quad a cell, the water's corners
+  sunk, banks from 0 down to -DROP, none on the map's west edge where the river runs on, no water no banks, the skin over
+  the bed); the ground nodes still left out of the lamps (tagged `ground`), the skin above the bed. Smoke runs
+  (`--quit-after 300`: title, `--demo`, town, the mine, river, `--fishing`, `--fishing=river`, winter and rain in town,
+  the greenhouse): 0 ERROR lines; windowed `--quit-after 150 -- --demo`: exit 0. Frames: the bridge over the sunk river
+  with its piers, the farm pond with its banks and the bobber on the water, the river map's banks, the gorge, the bridge
+  in snow; the flat view's bank bands at the bridge and the farm pond.
+- Left / next: the figures still walk at one height (no steps up or down); the morning mist and the heron stand at the
+  land's height over the water (a little high); the user's look, then the merge into main.
+
 ## 2026-11-14 — The village's river straightened and a real bridge over it — branch arashiyama-town
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user found the river crooked (one row higher east of the bridge than west, a staircase down from the gorge)

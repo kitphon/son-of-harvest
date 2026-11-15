@@ -45,14 +45,12 @@ func build(w: int, h: int, kind_at: Callable, hold_at: Callable, back_cells := M
 		_kept[id] = _lay(w, h, kind, hold)
 	var made: Dictionary = _kept[id]
 	material = SnowLayer.ground_material(made.ground, made.mask, made.wet)
-	var plane := PlaneMesh.new()
-	plane.size = Vector2(cw, ch)
-	var ground := MeshInstance3D.new()
-	ground.mesh = plane
-	ground.material_override = material
-	ground.position = Vector3((w + MARGIN - back) / 2.0, -0.02, (h + MARGIN - back) / 2.0)   # just under the map's ground
-	ground.layers = NightLamps.GROUND_LAYER
-	add_child(ground)
+	# A grid of cells just under the map's ground, the water past the edges sunk with the map's
+	# (SunkenGround); its banks only off the map (the map's own are the map ground's).
+	var off := Vector2i(back, back)
+	var wet := func(c: Vector2i) -> bool: return kind.call(edge_cell(c - off, w, h)) == "water"
+	var outside := func(c: Vector2i) -> bool: return not Rect2i(Vector2i.ZERO, Vector2i(w, h)).has_point(c - off)
+	SunkenGround.place(self, cw, ch, Vector2(-back, -back), wet, material, -0.02, outside)
 	water = WaterSurface.new()
 	add_child(water)
 	water.build(w, h, kind, MARGIN, back)

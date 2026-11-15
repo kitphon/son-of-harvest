@@ -134,14 +134,8 @@ func _make_tile_ground() -> void:
 		flat.albedo_texture = picture
 		flat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		mat = flat
-	var plane := PlaneMesh.new()
-	plane.size = Vector2(map.w, map.h)
-	var ground := MeshInstance3D.new()
-	ground.mesh = plane
-	ground.material_override = mat
-	ground.position = Vector3(map.w / 2.0, 0, map.h / 2.0)
-	ground.layers = NightLamps.GROUND_LAYER   # the night's lamps leave it to the drawn pools
-	add_child(ground)
+	# A grid of cells, the water's sunk below the land with stone banks (SunkenGround).
+	SunkenGround.place(self, map.w, map.h, Vector2.ZERO, func(c: Vector2i) -> bool: return map.tile(c) == "water", mat)
 
 
 static var _grounds := {}   # map id and tiles -> the ground picture (the same every visit)
@@ -256,7 +250,7 @@ func _make_prop(p: Dictionary) -> void:
 		"stone_lantern": Shrine.stone_lantern(self, mid)
 		"pine": _pine(mid, Vector2i(p.cell))
 		"bamboo": _bamboo(mid, Vector2i(p.cell))
-		"river_rock": _river_rock(mid)
+		"river_rock": _river_rock(mid + Vector3(0, -SunkenGround.DROP if map.tile(Vector2i(p.cell)) == "water" else 0.0, 0))   # out in the water: on the sunk bed
 		"ferry_boat": OutdoorProps.ferry_boat(self, r, SnowLayer.map_has_snow(map))
 		"landing": OutdoorProps.landing(self, r)
 		"cloth_rack": OutdoorProps.cloth_rack(self, p, r)

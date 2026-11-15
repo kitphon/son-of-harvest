@@ -470,14 +470,8 @@ func _make_ground() -> void:
 		_wet_mask = ImageTexture.create_from_image(WetRules.farm_mask(farm))
 		mat = SnowLayer.ground_material(vp.get_texture(), _snow_mask, _wet_mask)
 		_snow_mats.append(mat)
-	var plane := PlaneMesh.new()
-	plane.size = Vector2(farm.w, farm.h)
-	var ground := MeshInstance3D.new()
-	ground.mesh = plane
-	ground.material_override = mat
-	ground.position = Vector3(farm.w / 2.0, 0, farm.h / 2.0)
-	ground.layers = NightLamps.GROUND_LAYER   # the night's lamps leave it to the drawn pools
-	add_child(ground)
+	# A grid of cells, the pond sunk below the land with stone banks (SunkenGround).
+	SunkenGround.place(self, farm.w, farm.h, Vector2.ZERO, func(c: Vector2i) -> bool: return farm.fixed.get(c, "") == "pond", mat)
 
 
 ## Lit material with a PlaceholderArt surface repeated once per world unit. Triplanar in the
