@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-15 — Forest floor out to the mountains past the rim: no white gap in a tilted view — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user saw a band of white sky past the bamboo hill's west edge in its view. On the maps with the far country
+  (Backdrop) the land past the back (west and north) edges stops after a rim of 3 cells and the old ridges stand far
+  out below the ground's level, made for the play camera looking down; the tilted view looks level over the rim, into
+  the empty gap between it and the mountains' feet. VistaMountain now lays the mountains' flat land as forest floor
+  (FLOOR -0.05, the same shader, so it reads as woods) wherever the land past the map's edges stops (floor_at: past
+  the rim less a cell on the back sides, past Surroundings' apron less a cell on the others, starting under the land's
+  end so no seam shows), never over water running on off an edge. The old ridges are left built (test_maps checks
+  them) but lie under the floor on these maps.
+- Checked: test_vista `_floor` (floor past the hill's west and north rim, not just inside it; past its south edge only
+  where its apron stops; not over the village's river running on east, beside it yes; the hill's Ogura mesh has floor
+  points and nothing sunk past the rim to the west). Frames with `--vista`: the hill's foot walking west to its edge
+  and its top walking west (the floor running into the mountains' feet, no white); the farm's play camera unchanged.
+  All 43 tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`: title, `--demo`, town, the
+  mine, the hill, the river, Sakurazaka, the bridge in winter snow): 0 ERROR lines; windowed `--quit-after 150 --
+  --demo --map=hill`: exit 0.
+- Left / next: the user's look; past an edge no mountain's area reaches (east of the village's north half) the old gap
+  is still there, out of the views.
+
 ## 2026-11-15 — The whole bamboo hill a viewpoint instead of Kaminoda's lane; Kitayama north — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user asked for Kaminoda's lane by the well not to be a viewpoint and for the whole bamboo hill map to be one

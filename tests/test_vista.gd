@@ -24,6 +24,7 @@ func _run() -> void:
 	_data()
 	_heights()
 	_mesh()
+	_floor()
 	_views()
 	_blend()
 	await _worlds()
@@ -119,6 +120,31 @@ func _mesh() -> void:
 	var tv: PackedVector3Array = town.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
 	var aabb := town.get_aabb()
 	check(tv.size() == verts.size() and is_equal_approx(aabb.position.x, mesh.get_aabb().position.x + float(at.x)) and is_equal_approx(aabb.position.z, mesh.get_aabb().position.z + float(at.y)), "the same mountain moved by the map's place")
+
+
+## The forest floor past the land round a map (VistaMountain.floor_at): from a cell short of where
+## the land stops (Backdrop's rim on the back sides, Surroundings' apron on the others), so the
+## tilted view never looks into a gap there (the user saw white sky past the bamboo hill's west
+## edge); never over water running on off an edge.
+func _floor() -> void:
+	var hill := MapManager.data("hill")
+	var rim := int(load("res://scripts/world3d/backdrop.gd").rim())
+	var margin := int(load("res://scripts/world3d/surroundings.gd").MARGIN)
+	check(VM.floor_at(hill, Vector2(-rim, 10)) and not VM.floor_at(hill, Vector2(-rim + 2, 10)) and VM.floor_at(hill, Vector2(20, -rim - 1)), "past the hill's west and north rim: floor")
+	check(not VM.floor_at(hill, Vector2(20, hill.h + 5)) and VM.floor_at(hill, Vector2(20, hill.h + margin)), "past its south edge only where the land past it stops")
+	var town := MapManager.data("town")
+	check(not VM.floor_at(town, Vector2(town.w + margin + 2, 40)) and VM.floor_at(town, Vector2(town.w + margin + 2, 20)), "not over the river running on east, beside it yes")
+	var ogura: Dictionary = VistaRules.config().mountains.filter(func(x): return x.id == "ogura")[0]
+	var at: Vector2i = WorldPlan.places().hill
+	var verts: PackedVector3Array = VM.mesh_of(ogura, Vector2(at), VistaRules.map_rects(), hill).surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var floor_pts := 0
+	var gap := 0
+	for v in verts:
+		if is_equal_approx(v.y, VM.FLOOR):
+			floor_pts += 1
+		if v.x < -rim - 1.0 and v.x > -20.0 and v.z > 0.0 and v.z < hill.h and v.y < VM.FLOOR - 0.01:
+			gap += 1
+	check(floor_pts > 0 and gap == 0, "the hill's west: floor out to the mountain, nothing sunk past the rim (%d floor points, %d sunk)" % [floor_pts, gap])
 
 
 ## The viewpoints: on their map, on open cells the farmer can stand on.

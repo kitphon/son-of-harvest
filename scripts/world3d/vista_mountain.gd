@@ -63,7 +63,7 @@ func build(map_id: String, at: Vector2i) -> void:
 	mat = ShaderMaterial.new()
 	mat.shader = _shader
 	if not _kept.has(map_id):
-		_kept[map_id] = _make(Vector2(at))
+		_kept[map_id] = _make(Vector2(at), MapManager.data(map_id))
 	for mesh: ArrayMesh in _kept[map_id]:
 		var mi := MeshInstance3D.new()
 		mi.mesh = mesh
@@ -79,18 +79,38 @@ func _ready() -> void:
 	Game.day_started.connect(refresh)
 
 
-## One mesh per mountain, in the map's cells (the plan's moved by -`at`).
-static func _make(at: Vector2) -> Array[ArrayMesh]:
+## One mesh per mountain, in the map's cells (the plan's moved by -`at`), its flat land laid as
+## forest floor where `map`'s own land past its edges stops.
+static func _make(at: Vector2, map: MapData) -> Array[ArrayMesh]:
 	var out: Array[ArrayMesh] = []
 	var rects := VistaRules.map_rects()
 	for m: Dictionary in VistaRules.config().get("mountains", []):
-		out.append(mesh_of(m, at, rects))
+		out.append(mesh_of(m, at, rects, map))
 	return out
 
 
+const FLOOR := -0.05   # the forest floor between the land past a map's edges and the mountains
+
+
+## Does the land past `map`'s edges (Surroundings) stop before cell point `c` (the map's cells)?
+## It runs on Backdrop.rim() cells past the back (west, north) edges on a map with the far country,
+## Surroundings.MARGIN past the others; the floor starts a cell short of that, under its end, so
+## no gap shows between them. Never over water running on off an edge (it stays the river's).
+static func floor_at(map: MapData, c: Vector2) -> bool:
+	var back := float(Backdrop.rim() if Backdrop.on_map(map.id) else Surroundings.MARGIN) - 1.0
+	var front := float(Surroundings.MARGIN) - 1.0
+	var past := c.x < -back or c.y < -back or c.x > map.w + front or c.y > map.h + front
+	if not past:
+		return false
+	var edge := Surroundings.edge_cell(Vector2i(floori(c.x), floori(c.y)), map.w, map.h)
+	return map.tile(edge) != "water"
+
+
 ## The heightfield of mountain `m` over its area, faceted (each triangle its own normal), moved
-## by -`at`; points where it does not rise sit `sink` under the land.
-static func mesh_of(m: Dictionary, at: Vector2, rects: Array[Rect2]) -> ArrayMesh:
+## by -`at`; points where it does not rise sit `sink` under the land, or with `map` given lie as
+## forest floor (FLOOR) where its land past the edges stops (floor_at), so the tilted view never
+## looks down into a gap between that land and the mountains.
+static func mesh_of(m: Dictionary, at: Vector2, rects: Array[Rect2], map: MapData = null) -> ArrayMesh:
 	var area: Array = m.area
 	var s := float(m.step)
 	var cols := int(ceil((float(area[2]) - float(area[0])) / s)) + 1
@@ -102,7 +122,12 @@ static func mesh_of(m: Dictionary, at: Vector2, rects: Array[Rect2]) -> ArrayMes
 		for i in cols:
 			var p := Vector2(float(area[0]) + i * s, float(area[1]) + j * s)
 			var h := VistaRules.height(m, p, rects)
-			hs[j * cols + i] = h - sink if h > 0.05 else -sink - 1.0
+			if h > 0.05:
+				hs[j * cols + i] = h - sink
+			elif map != null and floor_at(map, p - at):
+				hs[j * cols + i] = FLOOR
+			else:
+				hs[j * cols + i] = -sink - 1.0
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for j in rows - 1:
