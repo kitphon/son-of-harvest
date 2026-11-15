@@ -217,6 +217,7 @@ func _ready() -> void:
 	Game.fishing_event.connect(func(kind): FarmActions.on_fishing_event(kind))
 	if warm:
 		fade.cover()   # the first map is built and warmed behind black too (no fade led here)
+	VistaMountain.warm()   # the mountains' own shapes, once, behind that black (a new map then pays only for its open land)
 	_enter_map()
 	Game.map_arrived()
 	FarmActions.connect_view(player)   # the actions, and the --talk flag

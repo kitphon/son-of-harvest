@@ -10,6 +10,47 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-15 — Past the bamboo hill's cliff: grass and pines, not a bare stone yard — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user asked why the land behind the hill's top was empty. The land past a map's edges repeats its edge cells'
+  ground; the hill's top row is a cliff (rock_wall) and its top corners scree, so since that land runs its whole 14
+  cells it was a wide flat yard of dark stone with no tree on it (pines stand on grass only). On the mountain maps a
+  cliff or scree at the edge now runs on as grass (data/vista.json `apron_runs_as`, VistaRules.apron_kind, taken in
+  FarmWorld.add_surroundings with the grass's snow hold), so the pines, tufts and snow come with it. The cliff itself
+  on the map is unchanged.
+- Checked: test_vista (a cliff or scree runs on as grass, a path as a path; pines past the hill's north cliff, asked from
+  Surroundings' spots: a headless MultiMesh keeps no transforms, so test_maps' "none past the rim" pine count is
+  empty there and proves nothing either). Frames on the hill's top by the shrine (`--walk=up`): pines and grass behind
+  the cliff, the mountains past them; walking east in spring and in winter snow. All 43 tests/test_*.gd print `OK (0 failed)` (run once with the hill-top change too, one
+  commit; a first full run caught the farm's step list built as an untyped Array, so the farm did not build:
+  fixed, and test_vista now builds the farm); smoke runs (`--quit-after 300`: title, `--demo`, town, the mine, the
+  hill's top, the river, Minamino, Kaminoda, Sakurazaka, the farm in winter snow): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the user's look.
+
+## 2026-11-15 — The 1-2 s stall on a new map gone: the mountains built fast, a step each — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user felt the game freeze 1-2 s a while after a map change (the next maps are built ahead while the farmer
+  stands still). Timed: the mountains took about 2.4 s for every map, all in the land-past-the-edges build step.
+  Nearly all of it was VistaMountain.floor_at asking Backdrop.on_map, which reads data/backdrop.json, at every point
+  of every mountain's grid (now asked once a map: floor_back); the rest was building 100,000 vertices through a
+  SurfaceTool a map. Now: each mountain's own shape (heights, where it rises, the distance to its feet, its faceted
+  triangles) is worked out once a run in plan cells (_grid_of) and only moved for each map; the meshes are built from
+  packed arrays; the open land's flat runs are merged into long quads and its darkening laid only near the feet;
+  VistaRules.clear_rects is worked out once. VistaMountain.begin lays the node and its materials with the land past the
+  edges, and each mountain is a build step of its own (add_part; FarmWorld.vista_steps in the farm's and MapWorld's
+  steps); Main3D works the shapes out behind the first black (VistaMountain.warm, 150 ms).
+- Checked: timed with a throwaway script (removed): the mountains for a map from 2,370-2,490 ms to 64-69 ms (216 ms
+  for the first map before warm), the worst build step of the village from 2,552 ms to 258 ms, of Minamino 2,412 to
+  101 ms, of the hill 2,496 to 136 ms, of the river map 2,479 to 35 ms; the worst left is the last step, build_reach
+  (the figures' wall pull; the mountains are not in it), which was there before. test_vista (the mountains a build step
+  each, begun empty, every shape worked out once; the rest as before, the meshes the same). All 43 tests/test_*.gd print `OK (0 failed)` (run once with the hill-top change too, one
+  commit; a first full run caught the farm's step list built as an untyped Array, so the farm did not build:
+  fixed, and test_vista now builds the farm); smoke runs (`--quit-after 300`: title, `--demo`, town, the mine, the
+  hill's top, the river, Minamino, Kaminoda, Sakurazaka, the farm in winter snow): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo`: exit 0.
+- Left / next: build_reach still takes 100-260 ms on the bigger maps in one step.
+
 ## 2026-11-15 — No mountain over the river running off; the feet past the apron, a thinner wood, feet in the grass's colour — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: (1) at the river map's west end a mountainside rose over the river running on: the mountains kept clear of the

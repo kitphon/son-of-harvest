@@ -9,6 +9,7 @@ extends RefCounted
 const PATH := "res://data/vista.json"
 
 static var _cfg := {}
+static var _clear: Array[Rect2] = []   # clear_rects, worked out once
 
 
 static func config() -> Dictionary:
@@ -43,6 +44,8 @@ static func map_rects() -> Array[Rect2]:
 ## for `corridor` cells, two that meet out to their meeting. So the river runs on out of the
 ## gorge in a valley, not into a mountainside (the user saw one rise over the river's west end).
 static func clear_rects() -> Array[Rect2]:
+	if not _clear.is_empty():
+		return _clear   # the plan does not change in a run
 	var out := map_rects()
 	var cfg := WorldPlan.config()
 	var at := WorldPlan.places(cfg)
@@ -65,7 +68,14 @@ static func clear_rects() -> Array[Rect2]:
 		for c in cells:
 			box = box.merge(Rect2(Vector2(c), Vector2.ONE))
 		out.append(box)
+	_clear = out
 	return out
+
+
+## The ground a map's edge cell of `kind` runs on as past the edge on a mountain map
+## (data/vista.json `apron_runs_as`: a cliff or scree turns to grass), else itself.
+static func apron_kind(kind: String) -> String:
+	return str((config().get("apron_runs_as", {}) as Dictionary).get(kind, kind))
 
 
 ## How many pines in a hundred cells of the land past a mountain map's edges (Surroundings).

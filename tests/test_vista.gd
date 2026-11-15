@@ -269,6 +269,44 @@ func _blend() -> void:
 ## The 3D worlds: the village builds the mountain, a room and the mine do not.
 func _worlds() -> void:
 	var MapWorldS: GDScript = load("res://scripts/world3d/map_world.gd")
+	# A step each (a new map's mountains once stalled the game 2.4 s in one frame): the node and its
+	# materials with the land past the edges, then one mountain a step, its shape worked out once.
+	var probe: Node3D = MapWorldS.new()
+	root.add_child(probe)
+	var steps: Array = probe.build_steps(MapManager.data("minamino"))
+	check(steps.size() >= VM.count() + 2, "the mountains a build step each (%d steps)" % steps.size())
+	VM.warm()
+	check(VM._grids.size() == VistaRules.config().mountains.size(), "every mountain's own shape worked out once (%d)" % VM._grids.size())
+	var parts_before := -1
+	for st in steps:
+		st.call()
+		if probe.vista != null and parts_before < 0:
+			parts_before = probe.vista.get_child_count()
+	check(parts_before == 0 and probe.vista.get_child_count() == VM.count(), "begun empty, a mountain added a step (%d, then %d)" % [parts_before, probe.vista.get_child_count()])
+	probe.free()
+	# Past the bamboo hill's cliff the land runs on as grass with its pines, not as bare stone
+	# (data/vista.json apron_runs_as; the user saw an empty stone yard there).
+	check(VistaRules.apron_kind("rock_wall") == "grass" and VistaRules.apron_kind("scree") == "grass" and VistaRules.apron_kind("path") == "path", "a cliff or scree at the edge runs on as grass, a path as a path")
+	var hw: Node3D = MapWorldS.new()
+	root.add_child(hw)
+	for st in hw.build_steps(MapManager.data("hill")):
+		st.call()
+	var north := 0   # (a headless MultiMesh keeps no transforms: ask where the pines stand)
+	var hill_map := MapManager.data("hill")
+	var soft := func(c: Vector2i) -> String: return VistaRules.apron_kind(hill_map.tile(c))
+	for shape: Array in hw.surroundings._pine_spots(hill_map.w, hill_map.h, soft):
+		for xf: Transform3D in shape:
+			if xf.origin.z < -2.0:
+				north += 1
+	check(north > 0, "pines past the hill's north cliff (%d parts)" % north)
+	hw.free()
+	# The farm lays them a step each too (its own step list: a slip there left the farm unbuilt).
+	var M3: GDScript = load("res://scripts/main_3d.gd")
+	var made: Array = M3.new_world(MapManager.data("farm"))
+	for st in made[1]:
+		st.call()
+	check(made[0].vista != null and made[0].vista.get_child_count() == VM.count(), "the farm builds its mountains, a step each")
+	made[0].free()
 	for id in ["town", "house", "mine_floor"]:
 		var w3: Node3D = MapWorldS.new()
 		root.add_child(w3)

@@ -46,6 +46,7 @@ func build_steps(m: MapData) -> Array[Callable]:
 		steps.append(_make_grass)
 	if not map.sheltered:
 		steps.append(_make_edges)
+		steps.append_array(vista_steps())   # the mountains past it, one a step
 	steps.append(build_reach)   # last: what the meshes stand on, for the figures' wall pull
 	return steps
 

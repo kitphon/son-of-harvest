@@ -71,7 +71,10 @@ func setup(f: FarmGrid, open_cells: Array[Vector2i] = []) -> void:
 func setup_steps(f: FarmGrid, open_cells: Array[Vector2i] = []) -> Array[Callable]:
 	farm = f
 	gaps = open_cells
-	return [_make_ground, _make_buildings, _make_fence, _make_edges, _make_field, build_reach]
+	var steps: Array[Callable] = [_make_ground, _make_buildings, _make_fence, _make_edges]
+	steps.append_array(vista_steps())
+	steps.append_array([_make_field, build_reach])
+	return steps
 
 
 ## The greenhouse's beds (Game.greenhouse, a sheltered FarmGrid) as a world of their own over
@@ -89,6 +92,17 @@ func setup_plots(f: FarmGrid) -> void:
 func build_reach() -> void:
 	reach = ReachMap.new()
 	reach.collect(self, [surroundings, backdrop])
+
+
+## A build step for each mountain past the map (VistaMountain.add_part), so a new map's
+## mountains never stall one frame together; each does nothing where there are none.
+func vista_steps() -> Array[Callable]:
+	var out: Array[Callable] = []
+	for i in VistaMountain.count():
+		out.append(func() -> void:
+			if vista != null:
+				vista.add_part(i))
+	return out
 
 
 ## The land past the fence (Surroundings).
@@ -587,7 +601,13 @@ func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable, map_
 	if far:
 		surroundings.build(w, h, kind_at, hold_at, Backdrop.rim(), Backdrop.rim_pines())
 	elif VistaRules.on_map(map_id):   # the whole apron, a thinner wood: the mountains' grass and slopes past it
-		surroundings.build(w, h, kind_at, hold_at, Surroundings.MARGIN, VistaRules.apron_pines())
+		# A wall or scree at the edge runs on past it as grass (VistaRules.apron_kind): fourteen
+		# cells of bare stone past the bamboo hill's cliff read as an empty yard (the user's word).
+		var soft := func(c: Vector2i) -> String: return VistaRules.apron_kind(kind_at.call(c))
+		var grass_hold := float((Game.snow_rules.get("ground", {}) as Dictionary).get("grass", 1.0))
+		var soft_hold := func(c: Vector2i) -> float:
+			return grass_hold if VistaRules.apron_kind(kind_at.call(c)) != kind_at.call(c) else hold_at.call(c)
+		surroundings.build(w, h, soft, soft_hold, Surroundings.MARGIN, VistaRules.apron_pines())
 	else:
 		surroundings.build(w, h, kind_at, hold_at)
 	if far:
@@ -597,7 +617,7 @@ func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable, map_
 	if VistaRules.on_map(map_id):   # the mountains past the maps (data/vista.json), seen from the viewpoints
 		vista = VistaMountain.new()
 		add_child(vista)
-		vista.build(map_id, WorldPlan.places().get(map_id, Vector2i.ZERO))
+		vista.begin(map_id, WorldPlan.places().get(map_id, Vector2i.ZERO))   # its mountains: add_vista_part, a build step each
 		_snow_mats.append(vista.floor_mat)   # its open land takes the snow as the land past the edges does
 		_snow_mats.append(vista.tint_mat)   # and its darkening under the snow fades away
 	if surroundings.water != null:
