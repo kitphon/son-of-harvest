@@ -10,6 +10,36 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-15 — The view of the mountains: Arashiyama and the viewpoint on the long bridge — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user wants to see the mountains while playing. Turning the play camera round would not show them (it looks
+  16 degrees down at the top of the frame, so a mountain is always above the picture; worked out with a side view to
+  scale) and would mean turning every house, so the play camera stays and a viewpoint turns the camera instead. On a new
+  branch (arashiyama-vista, off arashiyama-town) so it can be dropped whole. data/vista.json: the mountain Arashiyama on
+  the plan's empty land south-west across the river from the long bridge and on behind Minamino (Iwatayama), as on the
+  user's map of the real place: a ridge line of [x, z, height] points, the ground falling away from it at `slope` with
+  noise lumps, eased down to nothing within 9 cells of any map (never on or within a cell of one); heights about 8-14
+  over the land, so from the bridge the peaks stand some 10 degrees over the horizon with sky above. VistaRules (pure:
+  heights, viewpoints, the ease, the camera blend), VistaMountain (a faceted heightfield 2 cells a point, built on the
+  village, Minamino and the river maps in their own cells, kept a run; unshaded with its own light from the sun's
+  direction, the forest's two tones broken by a world-locked noise, the season's patches: wild cherry in spring, maples
+  in fall, snow above 0.3 of the peak in winter; the sky's colour over it by distance). The viewpoint `togetsu`: the
+  middle of the long bridge (town x 40-42, rows 37-42); standing in it the camera eases (1.4 s) round the short way from
+  the play yaw 45 to 160 (looking south past the bridge), tilts up to pitch 7 through a 42-degree lens 9 units back
+  from a target 1.2 over his feet, and eases back as he steps off (Main3D._follow; the occluders get the blended view).
+  A `togetsu` spawn on the bridge; `--vista` skips the ease for frames.
+- Checked: tests/test_vista.gd prints `test_vista: OK (0 failed)` (nothing rises on or by a map, it rises past them
+  south-west of the bridge and not north-east, the mesh in Minamino's cells holds nothing over its ground, the same
+  mesh moved by each map's place, the viewpoint's cells open and found by view_at, the blend at 0 the play lens and at 1
+  the view's yaw / pitch / lens / distance, turning the short way, the ease's seconds, the village builds it and a room
+  and the mine do not, a snow line in winter only); all 43 tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`: title, `--demo`, town, the mine, town@togetsu, Minamino, the river, winter on the bridge with `--vista`): 0 ERROR lines; windowed `--quit-after 150 -- --demo --map=town@togetsu`: exit 0. Frames: the view from the bridge
+  at 11:00 in all four seasons; the walk onto the bridge and off (camera traced: weight 0 -> 1 on the deck, back to 0
+  about 1.5 s after stepping off); the play camera on Minamino (the mountain's foot in the top corner from its west
+  edge), the river map and the village's south bank unchanged.
+- Left / next: the user's look. Seen from the bridge, the land between the river and the mountain is the apron's grass
+  (Minamino itself is not built in the village's scene); more viewpoints (the river bank, the bamboo hill's lookout);
+  the mountain in the flat view (none: it looks straight down).
+
 ## 2026-11-15 — Mist and the heron down on the sunk water; where the water off the maps goes — branch arashiyama-town
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: two limits the last entries left open. (1) The water lies DROP below the land since SunkenGround, but the

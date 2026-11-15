@@ -27,6 +27,9 @@ var area_marks: Array[MeshInstance3D] = []   # brackets on every cell of a charg
 var charge_pips: Sprite3D
 var cam: Camera3D
 var lens := CameraLens.current()
+var view_w := 0.0          # 0 the play camera .. 1 a viewpoint's (VistaRules, data/vista.json)
+var _view := {}             # the viewpoint the camera turns to, kept while it eases back out
+var _cam := {}              # the camera now: VistaRules.blend's {back, dist, fov, lift}
 var tint: ColorRect
 var _mul: CanvasItemMaterial       # the tint's plain multiply
 var _lantern: ShaderMaterial       # the tint down the mine: the floor's light and the lantern
@@ -517,7 +520,7 @@ func _process(delta: float) -> void:
 	anim.step(delta, player.moving, player.running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose, Game.scoop_pose(), Game.swing_pose(), Game.swing_frame())
 	_update_flash(delta)
 	_follow()
-	world.occluders.update(sprite.position, lens.back, delta)
+	world.occluders.update(sprite.position, _cam.get("back", lens.back), delta)
 	world.set_farmer(sprite.position, Vector2(player.facing), player.running, Game.body_state() != "fine")   # the grass and tall crops part round the feet; his breath
 	_aim_lantern()
 	_fly(delta)
@@ -544,7 +547,19 @@ func _follow() -> void:
 
 	var m := Game.maps.current()
 	var target := Vector3(_clamp_view(feet.x, CAM_MARGIN.x, m.w), 0, _clamp_view(feet.z, CAM_MARGIN.y, m.h))
-	cam.position = target + lens.back * lens.dist
+	# A viewpoint (data/vista.json): the camera turns to the mountains and tilts up, eased in and out.
+	var here := VistaRules.view_at(Game.maps.id, Vector2i(floori(feet.x), floori(feet.z)))
+	if not here.is_empty():
+		_view = here
+	var dt := get_process_delta_time()
+	view_w = VistaRules.step(view_w, not here.is_empty(), dt, float(_view.get("ease", 1.0)))
+	if VistaRules.forced() and not here.is_empty():
+		view_w = 1.0   # `--vista`: in the view from the first frame
+	_cam = VistaRules.blend(lens, _view, view_w)
+	if view_w > 0.0:
+		target = target.lerp(feet, smoothstep(0.0, 1.0, view_w)) + Vector3.UP * float(_cam.lift)
+	cam.position = target + (_cam.back as Vector3) * float(_cam.dist)
+	cam.fov = float(_cam.fov)
 	cam.look_at(target, Vector3.UP)
 	weather.follow(target)
 

@@ -29,6 +29,7 @@ var reach: ReachMap
 const FARM_HOUSE := "farmhouse"   # the farmhouse's Occluders tag (its hearth smoke follows it)
 var surroundings: Surroundings   # the land past the map's edge (outdoors)
 var backdrop: Backdrop           # the far mountain ridges past it (data/backdrop.json maps; else null)
+var vista: VistaMountain        # the mountains past the maps (data/vista.json maps; else null)
 var tufts: GrassTufts            # grass tufts on the grass cells (outdoors)
 var rain: Dictionary = {}         # the rain dimples' style on the water (set_rain)
 var prints: FootprintLayer      # footprints in lying snow (made when snow first lies)
@@ -588,6 +589,10 @@ func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable, map_
 		backdrop = Backdrop.new()
 		add_child(backdrop)
 		backdrop.build(w, h)
+	if VistaRules.on_map(map_id):   # the mountains past the maps (data/vista.json), seen from the viewpoints
+		vista = VistaMountain.new()
+		add_child(vista)
+		vista.build(map_id, WorldPlan.places().get(map_id, Vector2i.ZERO))
 	if surroundings.water != null:
 		surroundings.water.set_rain(rain)
 		surroundings.water.set_ice(ice, ice_snow)
