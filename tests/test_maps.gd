@@ -947,6 +947,19 @@ func _light_pools(world: Node3D, occ: RefCounted) -> void:
 		"a lantern's pool is a circle round its foot")
 	var c: Array = NightLights.pool_corners(wp)
 	check(c.size() == 4 and c.all(func(v): return absf(v.y - 0.02) < 0.001), "a pool's corners lie on the ground")
+	# A quad with a corner just in front of the eye's plane (the ground under and behind the eye) is
+	# not drawn: it would project huge and smear its soft round warm over the whole screen.
+	var pcam := Camera3D.new()
+	root.add_child(pcam)
+	pcam.look_at_from_position(Vector3(0, 6, 10), Vector3.ZERO)
+	var ahead := -pcam.global_basis.z
+	var far_q: Array[Vector3] = [Vector3(-1, 0, -1), Vector3(1, 0, -1), Vector3(1, 0, 1), Vector3(-1, 0, 1)]
+	var shown: PackedVector2Array = NightLights._project(far_q, pcam)
+	var grazing: Array[Vector3] = far_q.duplicate()
+	grazing[3] = pcam.global_position + ahead * (NightLights.MIN_DEPTH * 0.5) + pcam.global_basis.x * 4.0
+	check(shown.size() == 4 and NightLights._project(grazing, pcam).is_empty(),
+		"a quad in plain view projects; one with a corner nearer the eye than %.1f is left out" % NightLights.MIN_DEPTH)
+	pcam.free()
 	# They follow the windows' schedule: the same dusk / dawn rise and lit hours.
 	var rules: Dictionary = light.windows
 	var base: Array = full.map(func(p): return p.strength)

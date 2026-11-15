@@ -1120,10 +1120,19 @@ static func sprite_corners(s: SpriteBase3D, basis: Basis) -> Array[Vector3]:
 		o + right * r.end.x + up * r.position.y, o + right * r.position.x + up * r.position.y]
 
 
+## A quad's corners on screen, or none when any corner lies nearer the eye than MIN_DEPTH (or
+## behind it). Why: a corner just in front of the camera's plane (the ground under and behind the
+## eye, far below the picture) projects to tens of thousands of pixels, and the quad's soft round,
+## laid flat over that huge shape, smeared a pool or a wall wash warm over the whole screen for
+## the frames a lit window or lantern passed under the eye.
+const MIN_DEPTH := 1.0
+
 static func _project(pts: Array[Vector3], cam: Camera3D) -> PackedVector2Array:
 	var out := PackedVector2Array()
+	var eye := cam.global_position
+	var ahead := -cam.global_basis.z.normalized()
 	for p in pts:
-		if cam.is_position_behind(p):
+		if (p - eye).dot(ahead) < MIN_DEPTH:
 			return PackedVector2Array()
 		out.append(cam.unproject_position(p))
 	return out

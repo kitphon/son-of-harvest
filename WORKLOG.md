@@ -10,8 +10,28 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
-## 2026-11-15 — The river map's shore path one even width, one colour — branch arashiyama-vista
+## 2026-11-15 — No warm flash over the screen at night; the bridge's two lanterns a pair — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: (1) the user saw a pale yellow wash over the screen at night when trees hid the farmer. Measured on the
+  village's bamboo path at 21:57 walking west: every few steps the 3D picture went pale for 4-6 frames (mean
+  brightness of the middle 40 -> up to 103) and snapped back. Not the bamboo's fade (an instant fade did the same; with
+  NightLights off it never happened): NightLights._project refused only corners behind the camera, so a lit window's
+  pool or wall wash on the ground under and behind the eye, a corner just in front of the camera's plane, projected to
+  tens of thousands of pixels (one polygon 4.6e9 px²) and its soft round, laid flat over that shape, came out warm
+  over the whole screen. A corner nearer the eye than NightLights.MIN_DEPTH (1 unit; the screen's bottom edge is about
+  9 units away) now leaves the quad out. (2) The two stone lanterns at the long bridge's north end stood two rows apart
+  ((39, 35) and (43, 33)); the east one is now at (43, 35), the pair across the street from each other where it meets
+  the bridge.
+- Checked: the same 200-frame walk: the middle's brightness stays 35-40 every frame, no flash; frames by the bridge at
+  1:14: both lanterns lit on one row. test_maps checks a quad in view projects and one with a corner nearer than
+  MIN_DEPTH is left out. All 43 tests/test_*.gd print `OK (0 failed)` (run before the new check; test_maps run again
+  with it: `test_maps: OK (0 failed)`); smoke `--quit-after 300` (title, `--demo`, town, `--mine=3`): 0 ERROR lines;
+  windowed `--quit-after 150 -- --demo`: exit 0.
+- Left / next: FestivalGlow and DriftGlow place single glow dots the same way (only "behind" refused); a dot off the
+  screen is harmless, so they are left as they are.
+
+## 2026-11-15 — The river map's shore path one even width, one colour — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: aa2b519
 - Done: the user found the gravel shore path on the river map uneven in width and with an odd-coloured spot. Its top
   row (data/maps/river.json row 4) began as grass for three cells at the west edge, so the path narrowed to one cell
   there and on past the edge, and two `path` cells (dirt, 7..8) sat in the gravel as a brown patch. Row 4 is now gravel
