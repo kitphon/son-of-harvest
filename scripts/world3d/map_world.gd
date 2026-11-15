@@ -28,7 +28,8 @@ func build_steps(m: MapData) -> Array[Callable]:
 	map = m
 	var steps: Array[Callable] = [_make_tile_ground, _make_walls]
 	for p in map.props:
-		steps.append(occlude.bind(_prop.bind(p), house_tag(p) if str(p.kind) == "village_house" else ""))
+		steps.append(occlude.bind(_prop.bind(p), house_tag(p) if str(p.kind) == "village_house" else "",
+			Occluders.THIN if str(p.kind) == "bamboo" else Occluders.FADED))
 	if not map.indoor:
 		steps.append(_make_village_smoke)
 	if not map.sheltered and not map.indoor:
@@ -415,9 +416,20 @@ func _pine(mid: Vector3, c: Vector2i) -> void:
 
 
 ## A clump of bamboo (OutdoorProps.bamboo): segmented culms, leaf sprays, swaying; the
-## clump's cell picks its look, the season its colours.
+## clump's cell picks its look, the season its colours. A brushwood fence runs along its edges
+## that meet a walkable path (fence_sides).
 func _bamboo(mid: Vector3, c: Vector2i) -> void:
 	OutdoorProps.bamboo(self, mid, c, Game.season_name(), SnowLayer.map_has_snow(map))
+	OutdoorProps.brush_fence(self, mid, fence_sides(map, c))
+
+
+## The edges of bamboo cell `c` that face a path (a walkable path or gravel cell), as directions.
+static func fence_sides(m: MapData, c: Vector2i) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for d in [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]:
+		if m.tile(c + d) in ["path", "gravel"] and not m.is_solid(c + d):
+			out.append(d)
+	return out
 
 
 # --- the mine (data/maps/mine.json, mine_floor.json) ---------------------------

@@ -84,7 +84,7 @@ func _data() -> void:
 	seasons.sort()
 	check(seasons == ["fall", "spring", "summer", "winter"], "one festival per season %s" % [seasons])
 	var good := {"name": "Test Day", "season": "spring", "day": 3, "hours": ["9:00", "12:00"], "map": "town",
-		"place": [13, 18], "event": "festival_blossom"}
+		"place": [9, 18], "event": "festival_blossom"}
 	check(Festivals.check({"festivals": {"a": good}}) == "", "a plain festival passes")
 	var bad := {
 		"season": {"season": "monsoon"}, "day": {"day": 31}, "hours": {"hours": ["12:00", "9:00"]},

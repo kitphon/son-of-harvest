@@ -10,6 +10,9 @@ extends RefCounted
 ## blending only while faded; snow tops (shader) hide instead, sprites use their modulate.
 
 const FADED := 0.6       # how see-through a thing in the way gets (1 - alpha)
+## A bamboo clump in the way goes nearly clear (2026-11-16): the grove's stands are tall and close,
+## so the path is seen through several clumps at once, and at FADED they still made a wall.
+const THIN := 0.93
 const SPEED := 4.0       # transparency per second, towards the target
 const MIN_HEIGHT := 1.0  # lower things (tables, fences, the bin) never fade
 const RING := 1.25       # cells round the feet that should stay in view
@@ -22,8 +25,9 @@ var _groups: Array[Dictionary] = []   # {nodes: Array[GeometryInstance3D], box: 
 
 ## Adds the meshes `nodes` (world-space children of a world at the origin) as one thing;
 ## too low ones are left out. Returns whether it was added. A `tag` names the thing for those
-## that follow it (the hearth smoke of a house reads fade_of_tag of its own house).
-func add(nodes: Array, tag := "") -> bool:
+## that follow it (the hearth smoke of a house reads fade_of_tag of its own house). `most` is how
+## see-through it gets in the way (FADED; THIN for a bamboo clump).
+func add(nodes: Array, tag := "", most := FADED) -> bool:
 	var geo: Array[GeometryInstance3D] = []
 	var box := AABB()
 	for n in nodes:
@@ -43,7 +47,7 @@ func add(nodes: Array, tag := "") -> bool:
 			for n in geo:
 				if n.material_override == m:
 					n.material_override = mine
-	_groups.append({"nodes": geo, "box": box, "now": 0.0, "target": 0.0, "tag": tag})
+	_groups.append({"nodes": geo, "box": box, "now": 0.0, "target": 0.0, "tag": tag, "most": most})
 	return true
 
 
@@ -69,8 +73,8 @@ const HELD_HERE := 4
 
 
 ## Adds everything `parent` got after it had `first` children (what one builder made).
-func add_children_from(parent: Node, first: int, tag := "") -> bool:
-	return add(parent.get_children().slice(first), tag)
+func add_children_from(parent: Node, first: int, tag := "", most := FADED) -> bool:
+	return add(parent.get_children().slice(first), tag, most)
 
 
 func count() -> int:
@@ -94,7 +98,7 @@ func box_of(i: int) -> AABB:
 	return _groups[i].box
 
 
-## How see-through thing `i` is now (0 opaque .. FADED).
+## How see-through thing `i` is now (0 opaque .. its most: FADED, or THIN for bamboo).
 func fade_of(i: int) -> float:
 	return _groups[i].now
 
@@ -118,7 +122,7 @@ func fade_of_tag(tag: String) -> float:
 ## `back` (unit, from the ground towards the eye) and moves its fade `delta` seconds on.
 func update(feet: Vector3, back: Vector3, delta: float) -> void:
 	for g in _groups:
-		g.target = FADED if hides(g.box, feet, back) else 0.0
+		g.target = float(g.get("most", FADED)) if hides(g.box, feet, back) else 0.0
 		var was: float = g.now
 		g.now = move_toward(g.now, g.target, SPEED * delta)
 		if g.now != was:

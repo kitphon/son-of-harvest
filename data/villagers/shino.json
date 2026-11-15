@@ -50,10 +50,10 @@
 		],
 		"married_birthday": [
 			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
-			{"at": "09:15", "map": "town", "from": [0, 4], "route": [{"to": [10, 4]}, {"to": [10, 24]}, {"to": [0, 24]}, {"face": "left"}]},
+			{"at": "09:15", "map": "town", "from": [0, 4], "route": [{"to": [10, 4]}, {"to": [10, 12]}, {"to": [9, 12]}, {"to": [9, 24]}, {"to": [0, 24]}, {"face": "left"}]},
 			{"at": "10:15", "map": "river", "from": [19, 4], "route": [{"to": [19, 5]}, {"to": [1, 5]}, {"face": "down"}], "loop": [{"wait": 20}, {"face": "right"}, {"wait": 10}, {"face": "down"}]},
 			{"at": "14:40", "map": "river", "route": [{"to": [19, 5]}, {"to": [19, 4]}, {"face": "right"}]},
-			{"at": "14:55", "map": "town", "from": [0, 24], "route": [{"to": [10, 24]}, {"to": [10, 4]}, {"to": [0, 4]}, {"face": "left"}]},
+			{"at": "14:55", "map": "town", "from": [0, 24], "route": [{"to": [9, 24]}, {"to": [9, 12]}, {"to": [10, 12]}, {"to": [10, 4]}, {"to": [0, 4]}, {"face": "left"}]},
 			{"at": "15:50", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
 			{"at": "21:00", "map": "away"}
 		],

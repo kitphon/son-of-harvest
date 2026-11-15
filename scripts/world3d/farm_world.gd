@@ -578,13 +578,14 @@ func _make_buildings() -> void:
 		occlude(func(): MeshCache.build(self, "farm|greenhouse", func(): GreenhouseProps.greenhouse(self)))
 
 
-## Runs a builder and keeps what it made as one thing that fades when in the way (if tall).
-func occlude(build: Callable, tag := "") -> void:
+## Runs a builder and keeps what it made as one thing that fades when in the way (if tall),
+## as see-through as `most` (Occluders.FADED, THIN for a bamboo clump).
+func occlude(build: Callable, tag := "", most := Occluders.FADED) -> void:
 	var first := get_child_count()
 	var eaves_first := eaves.size()
 	build.call()
 	var tagged := tag if tag != "" else "thing:%d" % occluders.count()
-	if occluders.add_children_from(self, first, tagged):
+	if occluders.add_children_from(self, first, tagged, most):
 		for i in range(eaves_first, eaves.size()):
 			eaves[i].tag = tagged   # its icicles fade with it (IcicleLayer)
 

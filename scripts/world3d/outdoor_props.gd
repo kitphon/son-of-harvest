@@ -18,6 +18,20 @@ const SCARF_RED := Color("d02a3c")   # Nana's scarf on the jizo by the Minamino 
 const KILN_CLAY := Color("9a7656")
 const KILN_FACE := 0.8               # the kiln's clay face, this far in front of its middle
 const CLUMP_LOOKS := 8   # bamboo clump shapes; a cell picks one and turns it
+## A grove's clump (2026-11-16, after the user's photos of Arashiyama's bamboo path: tall, close,
+## a wall of culms on each side): CULMS culms a cell, CULM_TALL units high, nearly upright, the
+## leaves only above CROWN of their height, an old yellowing culm (OLD_CULM) among them now and then.
+const CULMS := Vector2i(7, 9)
+const CULM_TALL := Vector2(3.4, 4.6)
+const CROWN := 0.62
+const OLD_SHARE := 0.15
+const OLD_CULM := Color("b4ac7c")
+const LITTER := [Color("8c8250"), Color("9c9058"), Color("7a7448")]   # old leaves under the stand
+## The brushwood fence along a grove's path (brush_fence): height and how far in from the cell's
+## middle (units), twigs a cell edge, the rails' heights (shares of the height).
+const FENCE := {"height": 0.55, "inset": 0.44, "twigs": 18, "rails": [0.3, 0.75]}
+const FENCE_TWIGS := [Color("5e4c38"), Color("6c5a42"), Color("4e402e"), Color("7a6a4e")]
+const FENCE_RAIL := Color("9a9258")
 const SWAY := "WindSway"  # the world's node that moves things in the wind (Sway)
 
 ## Bamboo colours by season: culm, node ring, three leaf tones. Evergreen: winter only dulls.
@@ -42,8 +56,9 @@ static func clump_yaw(c: Vector2i) -> float:
 
 # --- bamboo ---------------------------------------------------------------
 
-## A clump of bamboo at `mid` (the middle of its cell): three or four culms leaning a little
-## apart, their nodes ringed, leaf sprays near the tops. One mesh a clump (colours on the
+## A clump of bamboo at `mid` (the middle of its cell): seven to nine tall culms standing
+## nearly upright over the cell, their nodes ringed, bare below and their leaf sprays up in
+## the crown, old leaves on the ground under them. One mesh a clump (colours on the
 ## vertices, so it can fade as one) shared by the clumps of the same look, and a Sway moves
 ## it a little in the wind. `snow` adds the snow skin on the leaves.
 static func bamboo(w: FarmWorld, mid: Vector3, c: Vector2i, season: String, snow: bool) -> void:
@@ -83,27 +98,32 @@ static func _build_clump(season: String, snow: bool, look: int) -> Dictionary:
 	if snow:
 		sn = SurfaceTool.new()
 		sn.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var n := 3 + look % 2
+	var n := CULMS.x + look % (CULMS.y - CULMS.x + 1)
 	for i in n:
-		var a := TAU * (i + rng.randf() * 0.4) / n
-		var foot := Vector3(cos(a), 0, sin(a)) * 0.2
-		var tall := rng.randf_range(2.2, 2.9)
+		# Feet scattered over the cell, so neighbouring clumps close up into one stand.
+		var a := TAU * (i + rng.randf() * 0.6) / n
+		var foot := Vector3(cos(a), 0, sin(a)) * rng.randf_range(0.06, 0.36)
+		var tall := rng.randf_range(CULM_TALL.x, CULM_TALL.y)
 		var low_end := tall * 0.55
-		var d1 := _dir(a, rng.randf_range(0.02, 0.05))
-		var d2 := _dir(a + rng.randf_range(-0.4, 0.4), rng.randf_range(0.07, 0.11))
+		var d1 := _dir(a, rng.randf_range(0.0, 0.03))
+		var d2 := _dir(a + rng.randf_range(-0.4, 0.4), rng.randf_range(0.03, 0.07))
 		var mid_p := foot + d1 * low_end
-		var r0 := 0.05
-		var r1 := 0.04
-		var r2 := 0.026
-		var tint := 1.0 + rng.randf_range(-0.07, 0.07)
-		var col := Color(culm_col.r * tint, culm_col.g * tint, culm_col.b * tint)
-		_tube(st, foot, d1, [Vector2(r0, 0.0), Vector2(r1, low_end)], 6, col)
-		_tube(st, mid_p, d2, [Vector2(r1, 0.0), Vector2(r2, tall - low_end)], 6, col)
-		var s := rng.randf_range(0.22, 0.32)
+		var r0 := rng.randf_range(0.05, 0.065)
+		var r1 := r0 * 0.85
+		var r2 := r0 * 0.55
+		var col: Color
+		if rng.randf() < OLD_SHARE:   # an old culm, yellowing grey among the green
+			col = culm_col.lerp(OLD_CULM, 0.6)
+		else:
+			var tint := 1.0 + rng.randf_range(-0.07, 0.07)
+			col = Color(culm_col.r * tint, culm_col.g * tint, culm_col.b * tint)
+		_tube(st, foot, d1, [Vector2(r0, 0.0), Vector2(r1, low_end)], 5, col)
+		_tube(st, mid_p, d2, [Vector2(r1, 0.0), Vector2(r2, tall - low_end)], 5, col)
+		var s := rng.randf_range(0.25, 0.35)
 		var nodes: Array[float] = []
 		while s < tall - 0.12:
 			nodes.append(s)
-			s += rng.randf_range(0.27, 0.4)
+			s += rng.randf_range(0.3, 0.42)
 		for s_k in nodes:
 			var at: Vector3
 			var dir: Vector3
@@ -116,8 +136,8 @@ static func _build_clump(season: String, snow: bool, look: int) -> Dictionary:
 				at = mid_p + d2 * (s_k - low_end)
 				dir = d2
 				r = lerpf(r1, r2, (s_k - low_end) / (tall - low_end))
-			_tube(st, at, dir, [Vector2(r, -0.012), Vector2(r * 1.32, 0.0), Vector2(r, 0.012)], 6, node_col)
-			if s_k > tall * 0.58:
+			_tube(st, at, dir, [Vector2(r * 1.25, -0.012), Vector2(r * 1.25, 0.012)], 5, node_col)
+			if s_k > tall * CROWN:   # bare stems below, the leaves up in the crown
 				_spray(st, sn, at, dir, a, rng, leaves, 5, false)
 		var tip := mid_p + d2 * (tall - low_end)
 		_spray(st, sn, tip, d2, a, rng, leaves, 7, true)
@@ -127,16 +147,71 @@ static func _build_clump(season: String, snow: bool, look: int) -> Dictionary:
 			var at := Vector3(cos(a), 0, sin(a)) * rng.randf_range(0.28, 0.4)
 			_tube(st, at, Vector3.UP, [Vector2(0.035, 0.0), Vector2(0.032, 0.09), Vector2(0.018, 0.16), Vector2(0.0, 0.21)],
 				6, Color("b09a6a"))
-	if season == "fall":   # fallen leaves on the ground
-		st.set_color(Color("b8a040"))
-		for k in 8:
-			var a := rng.randf() * TAU
-			var at := Vector3(cos(a), 0.012, sin(a)) * rng.randf_range(0.25, 0.45)
-			var along := Vector3(cos(a + 1.0), 0, sin(a + 1.0)) * 0.07
-			var across := Vector3(-along.z, 0, along.x) * 0.25
-			_tri(st, at - along, at + across, at + along, Vector3.UP)
-			_tri(st, at - along, at + along, at - across, Vector3.UP)
+	# The litter of old leaves on the ground under the stand (more of it in fall).
+	for k in (0 if snow else (14 if season == "fall" else 8)):
+		st.set_color(LITTER[k % LITTER.size()] if season != "fall" else Color("b8a040"))
+		var a := rng.randf() * TAU
+		var at := Vector3(cos(a), 0.012, sin(a)) * rng.randf_range(0.1, 0.45)
+		var along := Vector3(cos(a + 1.0), 0, sin(a + 1.0)) * 0.08
+		var across := Vector3(-along.z, 0, along.x) * 0.25
+		_tri(st, at - along, at + across, at + along, Vector3.UP)
+		_tri(st, at - along, at + along, at - across, Vector3.UP)
 	return {"mesh": st.commit(), "snow": sn.commit() if sn != null else null}
+
+
+## A low brushwood fence (shibagaki) along the edges of a bamboo cell at `mid` that face a path:
+## `sides` are the directions (Vector2i, x / z) of those edges. Upright dry twigs packed side by
+## side between two bamboo rails, a post at each end, standing just inside the cell. Not in the
+## wind. One mesh for all the sides of a cell, kept by its sides (and snow is not laid on it).
+static func brush_fence(w: FarmWorld, mid: Vector3, sides: Array[Vector2i]) -> MeshInstance3D:
+	if sides.is_empty():
+		return null
+	var key := "fence|%s" % [sides]
+	if not _clumps.has(key):
+		_clumps[key] = _build_fence(sides)
+	var mi := MeshInstance3D.new()
+	mi.name = "BrushFence"
+	mi.set_meta("fence", true)
+	mi.mesh = _clumps[key]
+	mi.material_override = _vertex_material()
+	mi.position = mid
+	w.add_child(mi)
+	return mi
+
+
+static func _build_fence(sides: Array[Vector2i]) -> Mesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4111
+	var h: float = FENCE.height
+	for d in sides:
+		var out := Vector3(d.x, 0, d.y)
+		var along := Vector3(-d.y, 0, d.x)
+		var face := out * FENCE.inset
+		var count := int(FENCE.twigs)
+		var gap := 1.0 / count
+		for k in count:
+			var x := -0.5 + (k + 0.5) * gap + rng.randf_range(-0.2, 0.2) * gap
+			var top := h * rng.randf_range(0.88, 1.08)
+			var lean := along * rng.randf_range(-0.03, 0.03)
+			var wid := along * gap * rng.randf_range(0.55, 0.8)
+			var foot := face + along * x + out * rng.randf_range(-0.02, 0.02)
+			st.set_color(FENCE_TWIGS[rng.randi() % FENCE_TWIGS.size()])
+			var a0 := foot - wid / 2
+			var a1 := foot + wid / 2
+			var b0 := foot + lean + Vector3(0, top, 0) - wid * 0.3
+			var b1 := foot + lean + Vector3(0, top, 0) + wid * 0.3
+			_tri(st, a0, a1, b1, out)
+			_tri(st, a0, b1, b0, out)
+			_tri(st, a0, b1, a1, -out)
+			_tri(st, a0, b0, b1, -out)
+		for y in FENCE.rails:   # the bamboo rails on the path's side, tied across the twigs
+			var at: Vector3 = face + out * 0.03 + Vector3(0, float(y) * h, 0) - along * 0.5
+			_tube(st, at, along, [Vector2(0.022, 0.0), Vector2(0.022, 1.0)], 5, FENCE_RAIL)
+		for e in [-0.47, 0.47]:   # a post at each end
+			_tube(st, face + along * e, Vector3.UP, [Vector2(0.03, 0.0), Vector2(0.026, h * 1.12)], 5, FENCE_RAIL.darkened(0.15))
+	return st.commit()
 
 
 ## A spray of leaves off a node: `count` long thin leaves fanned round, drooping (the plume at

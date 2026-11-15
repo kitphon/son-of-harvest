@@ -2409,8 +2409,9 @@ func _outdoor_props() -> void:
 	var mid := Vector3(5.5, 0, 7.5)
 	var new_world := func() -> Node3D:
 		return load("res://scripts/world3d/farm_world.gd").new()
-	# Bamboo: a clump is one lit mesh at its cell's middle, culms 2.2..3.6 high, nodes and
-	# leaves in the season's colours, snow only where it lies, tips staying near the cell.
+	# Bamboo: a clump is one lit mesh at its cell's middle, a grove's tall culms (CULM_TALL), nodes
+	# and leaves in the season's colours, snow only where it lies, the crowns reaching a little
+	# over the neighbouring cells (the stands close up into one).
 	var seen_culm := {}
 	for season in ["spring", "summer", "fall", "winter"]:
 		for snow in [false, true]:
@@ -2433,13 +2434,50 @@ func _outdoor_props() -> void:
 				"bamboo (%s, snow %s): %d mesh(es), %d primitives, %d unlit, %d facing faults, %d snow" % [season, snow, meshes.size(), f.prim, f.unlit, f.bad, f.snow])
 			check(body.position == mid and body.material_override.vertex_color_use_as_albedo and node >= 40 and leaf >= 100 and culm >= 40,
 				"bamboo (%s): at its cell, %d culm / %d node ring / %d leaf vertices" % [season, culm, node, leaf])
-			check(f.hi.y > 2.2 and f.hi.y < 3.7 and f.lo.y >= -0.02 and f.lo.x > mid.x - 0.95 and f.hi.x < mid.x + 0.95 and f.lo.z > mid.z - 0.95 and f.hi.z < mid.z + 0.95,
+			check(f.hi.y > op.CULM_TALL.x and f.hi.y < op.CULM_TALL.y + 0.3 and f.lo.y >= -0.02 and f.lo.x > mid.x - 1.25 and f.hi.x < mid.x + 1.25 and f.lo.z > mid.z - 1.25 and f.hi.z < mid.z + 1.25,
 				"bamboo (%s): %.2f..%.2f high, x %.2f..%.2f, z %.2f..%.2f" % [season, f.lo.y, f.hi.y, f.lo.x - mid.x, f.hi.x - mid.x, f.lo.z - mid.z, f.hi.z - mid.z])
 			if snow:
 				check(meshes[1].material_override in w._snow_mats, "bamboo (%s): snow skin driven by set_snow" % season)
 			seen_culm[season] = rows.culm
 			w.free()
 	check(seen_culm["spring"] != seen_culm["summer"] and seen_culm["summer"] != seen_culm["fall"] and seen_culm["fall"] != seen_culm["winter"], "bamboo: a colour for each season")
+	# The brushwood fence along a grove's path: on the edges facing a path only, low, just
+	# inside the cell, lit, not in the wind; none with no path beside.
+	var fw: Node3D = new_world.call()
+	var sides: Array[Vector2i] = [Vector2i(0, 1)]
+	var fence: MeshInstance3D = op.brush_fence(fw, mid, sides)
+	var ff: Dictionary = faults.call(fw)
+	check(fence != null and fence.has_meta("fence") and ff.prim == 0 and ff.unlit == 0 and ff.bad == 0
+		and ff.hi.y > 0.45 and ff.hi.y < 0.8 and ff.lo.z > mid.z + 0.35 and ff.hi.z < mid.z + 0.55 and ff.lo.x > mid.x - 0.56 and ff.hi.x < mid.x + 0.56,
+		"bamboo: the brushwood fence along the +z edge, %.2f high, z %.2f..%.2f" % [ff.hi.y, ff.lo.z - mid.z, ff.hi.z - mid.z])
+	check(op.brush_fence(fw, mid, [] as Array[Vector2i]) == null and op._sway(fw).count() == 0, "bamboo: no fence with no path beside; the fence is not in the wind")
+	fw.free()
+	var town := MapManager.data("town")
+	var MW: GDScript = load("res://scripts/world3d/map_world.gd")
+	check(MW.fence_sides(town, Vector2i(20, 13)) == ([Vector2i(0, -1)] as Array[Vector2i]) and MW.fence_sides(town, Vector2i(20, 10)) == ([Vector2i(0, 1)] as Array[Vector2i])
+		and MW.fence_sides(town, Vector2i(20, 7)).is_empty(), "bamboo: the village's grove fences the bamboo path on both sides, none inside the stand")
+	# The grove is a stand, not a scatter: the path's two sides full of clumps along its length.
+	var grove := {}
+	for q in town.props:
+		if q.kind == "bamboo":
+			grove[Vector2i(q.cell)] = true
+	var lined := range(12, 24).all(func(x): return grove.has(Vector2i(x, 10)) and grove.has(Vector2i(x, 13)))
+	var deep := range(5, 11).all(func(y): return grove.has(Vector2i(16, y))) and grove.has(Vector2i(16, 3)) and not grove.has(Vector2i(16, 4))
+	var lane := range(13, 24).all(func(y): return grove.has(Vector2i(10, y)))
+	check(lined and deep and lane, "bamboo: the village's grove lines the path x 12-23 both sides, six deep north of it (row 4 kept open: the walk west), and the west lane down to the gorge path")
+	# A bamboo clump in the way fades nearly clear (Occluders.THIN), more than a house (FADED).
+	var Occ: GDScript = load("res://scripts/world3d/occluders.gd")
+	var oc: RefCounted = Occ.new()
+	var stalk := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(1, 4, 1)
+	stalk.mesh = bm
+	stalk.position = Vector3(0, 2, 2)
+	stalk.material_override = StandardMaterial3D.new()
+	oc.add([stalk], "", Occ.THIN)
+	oc.update(Vector3.ZERO, Vector3(0, 0.5, 1).normalized(), 1.0)
+	check(Occ.THIN > Occ.FADED and is_equal_approx(oc.fade_of(0), Occ.THIN), "bamboo: a clump in front of the farmer fades to %.2f" % oc.fade_of(0))
+	stalk.free()
 	# Many clumps: the same shapes shared, each its own yaw; the sway leans them about their
 	# feet and never moves a foot.
 	var w: Node3D = new_world.call()
@@ -2549,7 +2587,7 @@ func _outdoor_props() -> void:
 			if str(p.kind) in spots[id]:
 				rects.append(Rect2(Vector2(p.cell), Vector2(p.get("size", [1, 1]))))
 		for n in m.get_children():
-			if n is MeshInstance3D and n.mesh is ArrayMesh and n.material_override is StandardMaterial3D and n.material_override.vertex_color_use_as_albedo:
+			if n is MeshInstance3D and n.mesh is ArrayMesh and n.material_override is StandardMaterial3D and n.material_override.vertex_color_use_as_albedo 					and not n.has_meta("fence"):
 				clumps += 1
 			if n is MeshInstance3D and (n.mesh is BoxMesh or n.mesh is CylinderMesh or n.mesh is SphereMesh):
 				var q: Vector3 = n.position

@@ -10,6 +10,37 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-16 — The bamboo grove a real stand: tall, close culms, a longer walk, brushwood fences — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user's two photos of Arashiyama's bamboo path: the game's grove looked thin and sparse, not a thick wood,
+  and the walk through it short. (1) A clump (OutdoorProps._build_clump, every map's bamboo) is now 7-9 culms
+  (`CULMS`, was 3-4) 3.4-4.6 units high (`CULM_TALL`, was 2.2-2.9), nearly upright, feet scattered over the cell so
+  neighbouring clumps close up, bare below and the leaves only in the crown (above `CROWN` 0.62 of the height), an old
+  yellowing culm now and then (`OLD_SHARE` 0.15), old leaves on the ground under it (not on snow). (2) The village's
+  grove is filled solid and longer: north of the path rows 5-10 and row 3 from x 12 to 26 (row 4 kept open, the
+  spouses' festival walk west), south of it row 13 x 10-23, and on down the west lane, x 10-17 rows 13-23, so the walk
+  through bamboo runs from the gorge path up the lane and east along the path, about 30 cells (was about 15, with one
+  side only 6 clumps long); 214 clumps placed by a script on the open grass, none on a spawn or another prop.
+  (3) A low brushwood fence (shibagaki: dry twigs packed upright between two bamboo rails, a post at each end;
+  OutdoorProps.brush_fence, `FENCE`) along every edge of a bamboo cell that meets a walkable path or gravel
+  (MapWorld.fence_sides), so the path is lined both sides as in the photos; the hill's paths get it too. Not in the
+  wind, no snow on it. (4) The stand on the camera's side of the path hid the farmer and the path entirely at the old
+  fade (several clumps at 60% still made a wall): a thing in the way now fades to its own `most` (Occluders.add /
+  FarmWorld.occlude), Occluders.THIN 0.93 for a bamboo clump, FADED 0.6 for everything else as before. (5) Shino's
+  married birthday walk went straight down x 10 through the new stand: it takes the lane (x 9) instead; the test
+  festival in test_festivals stood at (13, 18), now in the grove: (9, 18).
+- Checked: frames `--demo --map=town@bamboo --time=11:00 --walk=left:1.5` (the farmer in view through the near stand, a
+  wall of culms behind, fences both sides), `--walk=right:0.3`, `--walk=left:3.5` (the lane's corner), `--map=town@gorge
+  --walk=right:1.6` (the lane's foot), `--season=winter --snow=80`, `--season=fall`, `--time=21:57`, `--map=hill`; the
+  flat view (bamboo still its plain green cells). Cost on the bamboo path, 120 frames: GPU 4.56 -> 6.02 ms a frame, CPU
+  7.79 -> 8.32 ms. test_maps: the clump's height and reach, the fence (on the path's edge only, low, lit, not in the wind),
+  fence_sides on the village grove, the grove lining the path both sides, six deep, the lane, a clump fading to THIN.
+  test_villagers found the two crossings (fixed). All 44 tests/test_*.gd print `OK (0 failed)`; smoke `--quit-after 300`
+  (title, `--demo`, town, `--mine=3`, the hill, the village in winter snow): 0 ERROR lines; windowed `--quit-after 150 --
+  --demo --map=town@bamboo`: exit 0.
+- Left / next: the flat view draws bamboo as plain green cells (as before) and no fence; the ground under the stand is
+  still the grass tile.
+
 ## 2026-11-15 — The temple named, place names at the top left, the temple pond after the photos — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: (1) The temple has a name of its own close to Tenryu-ji: **Tenryo-ji Temple** (Thai วัดเท็นเรียวจิ). Maps can
