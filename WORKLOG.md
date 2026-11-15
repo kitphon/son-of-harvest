@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-15 — The whole bamboo hill a viewpoint instead of Kaminoda's lane; Kitayama north — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user asked for Kaminoda's lane by the well not to be a viewpoint and for the whole bamboo hill map to be one
+  instead. data/vista.json: the `kaminoda` view gone; `hill` covers the hill's every cell (0, 0, 40 x 30), tilted a
+  little more than the bridge (pitch 4, a 44-degree lens) so the ridges sit under the frame's top. From the hill Ogura
+  stood too close and tall and the view north was empty sky: Ogura's east end is lower (14 and 8 where it was 18 and
+  10) and a third range, Kitayama, stands far north beyond the hill (peaks 10-13, about 70 cells off), so the hill
+  looks over Ogura to the west and Kitayama to the north. Arriving on the hill the camera is up at once (set on arrival,
+  no ease).
+- Checked: test_vista (Kaminoda's lane no viewpoint; every cell of the hill one, its foot and top spawns too; Kitayama
+  north beyond the hill; every mountain never on or by a map and no cliff at its area's edge). Frames with `--vista`:
+  the hill's foot, part way up the path, the shrine at the top (both ranges with sky above). All 43 tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`:
+  title, `--demo`, town, the mine, the hill, its top, kaminoda@well, town@togetsu): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo --map=hill`: exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-15 — The river runs on under the long bridge, round its legs; villagers inside its railings; the camera still through a scene change — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: three things the user found. (1) The bridge should stand over the water with its legs in it and the river seen

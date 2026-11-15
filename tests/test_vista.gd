@@ -63,6 +63,8 @@ func _heights() -> void:
 	var bridge := Vector2(41, 40)
 	check(VistaRules.height(arashi, bridge + Vector2(-33, 36), rects) > 8.0, "Arashiyama south-west of the bridge")
 	check(VistaRules.height(ogura, Vector2(-30, -45), rects) > 12.0, "Ogura north-west of the village")
+	var kita: Dictionary = ms.filter(func(x): return x.id == "kitayama")[0]
+	check(VistaRules.height(kita, Vector2(52, -122), rects) > 8.0, "Kitayama north beyond the bamboo hill")
 	var ne := 0.0
 	for m in ms:
 		ne = maxf(ne, VistaRules.height(m, bridge + Vector2(30, -50), rects))
@@ -145,7 +147,18 @@ func _views() -> void:
 	check(VistaRules.view_at("town", Vector2i(41, 35)).is_empty(), "not on the street north of the bridge")
 	var sp: Array = MapManager.data("town").spawns.get("togetsu", [])
 	check(not sp.is_empty() and VistaRules.view_at("town", Vector2i(sp[0])) == tg, "the togetsu spawn stands in it")
-	check(VistaRules.view_at("kaminoda", Vector2i(19, 9)).get("id", "") == "kaminoda", "Kaminoda's lane by the well is a viewpoint")
+	check(VistaRules.view_at("kaminoda", Vector2i(19, 9)).is_empty(), "Kaminoda's lane by the well is not a viewpoint (the user's word)")
+	var hill := MapManager.data("hill")
+	var whole := true
+	for y in hill.h:
+		for x in hill.w:
+			whole = whole and VistaRules.view_at("hill", Vector2i(x, y)).get("id", "") == "hill"
+	check(whole, "the whole bamboo hill is a viewpoint")
+	check(VistaRules.view_at("hill", Vector2i(sp_cell(hill, "start"))).get("id", "") == "hill" and VistaRules.view_at("hill", Vector2i(sp_cell(hill, "top"))).get("id", "") == "hill", "from its foot to its top")
+
+
+func sp_cell(m: MapData, id: String) -> Vector2i:
+	return Vector2i(m.spawns[id][0])
 
 
 ## The camera between the play lens and the view.
