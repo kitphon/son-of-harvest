@@ -10,6 +10,29 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-15 — The whole apron on the mountain maps; the grass darkening toward the mountains — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: (1) the user found places where the scene broke off: at the river map's west end the gravel path and the
+  land past the edge stopped after the 3-cell rim (Backdrop) and the open grass laid last time cut straight across
+  them. The rim and the low ridges below the ground's level were made for the play camera looking down; on the maps
+  with the mountains (data/vista.json: all seven outdoor maps) the land past the edges now runs its whole apron, 14
+  cells, on every side, its pine wood on the back sides as before the far country came, and no ridges are built there
+  (FarmWorld.add_surroundings, VistaMountain.floor_at with the same rule); the open grass starts past the apron. (2) The
+  user asked for the grass to go from light to dark green toward the mountains: the open land has a third surface,
+  `tint`, laid a hair over it and multiplied over the grass (so the light and the snow under it stay right), its weight
+  by each point's distance to where the mountain rises (a chamfer over the mesh's grid), 1 at the feet and 0 from 12
+  cells off, in the season's `foot` colour (data/vista.json), faded out under snow (its `cover` set with the world's
+  snow). The mountain's foot no longer dips under the open land (its low points held at the floor's level there).
+- Checked: test_vista (open land only past the whole apron on the hill's west and north; nothing sunk past it; the
+  tint surface light far off and dark at the feet; the season's colour; the world's snow cover on the tint) and
+  test_maps `_backdrop` (the village: the whole apron, the mountains, no ridges; the ridges and a rimmed apron still
+  build on their own). Frames: the river map's west end before and after (the path and the river run on), the bridge
+  and the hill in their views (grass, then the pine wood, then the mountains). All 43 tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`: title,
+  `--demo`, town, the mine, the hill, the river, Kaminoda, Minamino in winter snow, Sakurazaka): 0 ERROR lines;
+  windowed `--quit-after 150 -- --demo --map=river`: exit 0.
+- Left / next: the user's look. Backdrop is now built on no map (every map with the far country has the mountains); it
+  stays for a map that would have the one and not the other.
+
 ## 2026-11-15 — The open land at the mountains' feet in the ground's own grass — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user found the floor laid last time a band of another colour against the grass (it wore the mountains'

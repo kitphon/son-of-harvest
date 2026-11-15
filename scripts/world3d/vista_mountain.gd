@@ -53,6 +53,7 @@ static var _kept := {}   # mesh by map id: the same map's mountains are the same
 
 var mat: ShaderMaterial
 var floor_mat: ShaderMaterial   # the open land's grass (floor_material); FarmWorld sets its snow cover
+var tint_mat: ShaderMaterial    # the grass darkening toward the mountains' feet, laid over it (multiplied)
 
 
 ## Builds the mountains for map `map_id`, whose top-left corner lies at `at` on the plan.
@@ -66,11 +67,17 @@ func build(map_id: String, at: Vector2i) -> void:
 	if not _kept.has(map_id):
 		_kept[map_id] = _make(Vector2(at), MapManager.data(map_id))
 	floor_mat = floor_material()
+	if _tint_shader == null:
+		_tint_shader = Shader.new()
+		_tint_shader.code = TINT_SHADER
+	tint_mat = ShaderMaterial.new()
+	tint_mat.shader = _tint_shader
 	for mesh: ArrayMesh in _kept[map_id]:
 		var mi := MeshInstance3D.new()
 		mi.mesh = mesh
 		for i in mesh.get_surface_count():
-			mi.set_surface_override_material(i, floor_mat if mesh.surface_get_name(i) == "floor" else mat)
+			var surface := mesh.surface_get_name(i)
+			mi.set_surface_override_material(i, floor_mat if surface == "floor" else tint_mat if surface == "tint" else mat)
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mi.extra_cull_margin = 4.0
 		add_child(mi)
@@ -95,6 +102,17 @@ static func _make(at: Vector2, map: MapData) -> Array[ArrayMesh]:
 const FLOOR := -0.05   # the open land between the land past a map's edges and the mountains
 const GRASS_CELLS := 8   # the floor's grass picture: this many cells square, repeated
 
+const TINT_REACH := 12.0   # cells from the mountains' feet over which the grass darkens toward the woods
+const TINT_SHADER := """shader_type spatial;
+render_mode unshaded, blend_mul, depth_draw_never, cull_disabled, shadows_disabled, fog_disabled;
+uniform vec3 tint : source_color = vec3(0.6, 0.75, 0.58);
+uniform float cover = 0.0;   // the world's snow: a snowy field is white to the trees
+void fragment() {
+	ALBEDO = mix(vec3(1.0), tint, COLOR.r * (1.0 - clamp(cover * 1.5, 0.0, 1.0)));
+}
+"""
+
+static var _tint_shader: Shader
 static var _floor_tex: Texture2D
 static var _floor_mask: Texture2D
 
@@ -122,7 +140,8 @@ static func floor_material() -> ShaderMaterial:
 ## Surroundings.MARGIN past the others; the floor starts a cell short of that, under its end, so
 ## no gap shows between them. Never over water running on off an edge (it stays the river's).
 static func floor_at(map: MapData, c: Vector2) -> bool:
-	var back := float(Backdrop.rim() if Backdrop.on_map(map.id) else Surroundings.MARGIN) - 1.0
+	var far := Backdrop.on_map(map.id) and not VistaRules.on_map(map.id)   # FarmWorld.add_surroundings' rule
+	var back := float(Backdrop.rim() if far else Surroundings.MARGIN) - 1.0
 	var front := float(Surroundings.MARGIN) - 1.0
 	var past := c.x < -back or c.y < -back or c.x > map.w + front or c.y > map.h + front
 	if not past:
@@ -147,12 +166,36 @@ static func mesh_of(m: Dictionary, at: Vector2, rects: Array[Rect2], map: MapDat
 		for i in cols:
 			var p := Vector2(float(area[0]) + i * s, float(area[1]) + j * s)
 			var h := VistaRules.height(m, p, rects)
+			var open := map != null and floor_at(map, p - at)
 			if h > 0.05:
-				hs[j * cols + i] = h - sink
-			elif map != null and floor_at(map, p - at):
+				hs[j * cols + i] = maxf(h - sink, FLOOR) if open else h - sink   # its foot rises from the open land, no dip under it
+			elif open:
 				hs[j * cols + i] = FLOOR
 			else:
 				hs[j * cols + i] = -sink - 1.0
+	# How near each point is to where the mountain rises (cells, a chamfer over the grid): the
+	# open land darkens toward its feet over TINT_REACH.
+	var near := PackedFloat32Array()
+	near.resize(cols * rows)
+	for n in cols * rows:
+		near[n] = 0.0 if hs[n] > FLOOR + 0.01 else INF
+	for pass_i in 2:
+		var js := range(rows) if pass_i == 0 else range(rows - 1, -1, -1)
+		var is_ := range(cols) if pass_i == 0 else range(cols - 1, -1, -1)
+		var d := -1 if pass_i == 0 else 1
+		for j in js:
+			for i in is_:
+				var n: int = j * cols + i
+				var best := near[n]
+				if i + d >= 0 and i + d < cols:
+					best = minf(best, near[n + d] + s)
+				if j + d >= 0 and j + d < rows:
+					best = minf(best, near[n + d * cols] + s)
+					if i + d >= 0 and i + d < cols:
+						best = minf(best, near[n + d * cols + d] + s * 1.414)
+				near[n] = best
+	var tt := SurfaceTool.new()   # the darkening over the open land
+	tt.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var st := SurfaceTool.new()   # the mountain: the forest's shader
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var gt := SurfaceTool.new()   # the open land at its foot: the ground's own grass (floor_material)
@@ -177,6 +220,12 @@ static func mesh_of(m: Dictionary, at: Vector2, rects: Array[Rect2], map: MapDat
 				forest = true
 			else:
 				grass = true
+				for tri in [[0, 1, 2], [0, 2, 3]]:
+					for q in tri:
+						var w := 1.0 - smoothstep(0.0, TINT_REACH, near[k[q]])
+						tt.set_color(Color(w, w, w))
+						tt.set_normal(Vector3.UP)
+						tt.add_vertex(v[q] + Vector3(0, 0.004, 0))
 			for tri in [[0, 1, 2], [0, 2, 3]]:
 				var a: Vector3 = v[tri[0]]
 				var b: Vector3 = v[tri[1]]
@@ -194,6 +243,8 @@ static func mesh_of(m: Dictionary, at: Vector2, rects: Array[Rect2], map: MapDat
 	if grass:
 		gt.commit(mesh)
 		mesh.surface_set_name(mesh.get_surface_count() - 1, "floor")
+		tt.commit(mesh)
+		mesh.surface_set_name(mesh.get_surface_count() - 1, "tint")
 	return mesh
 
 
@@ -206,6 +257,8 @@ func tone(season_id: String, sky: Color, to_sun: Vector3) -> void:
 	var cfg := VistaRules.config()
 	var c: Dictionary = cfg.colors.get(season_id, cfg.colors.values()[0])
 	mat.set_shader_parameter("dark", Color(str(c.dark)))
+	if tint_mat != null:
+		tint_mat.set_shader_parameter("tint", Color(str(c.get("foot", "9abf8e"))))
 	mat.set_shader_parameter("light", Color(str(c.light)))
 	mat.set_shader_parameter("accent", Color(str(c.accent)))
 	mat.set_shader_parameter("accent_share", float(c.accent_share))

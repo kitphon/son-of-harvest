@@ -580,7 +580,10 @@ func occlude(build: Callable, tag := "") -> void:
 func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable, map_id := "") -> void:
 	surroundings = Surroundings.new()
 	add_child(surroundings)
-	var far := Backdrop.on_map(map_id)
+	# The far country's rim and low ridges suit the play camera looking down; where the mountains
+	# stand (data/vista.json) the viewpoints look level, so the land runs on its whole apron
+	# there and the mountains' open land takes over past it (2026-11-15).
+	var far := Backdrop.on_map(map_id) and not VistaRules.on_map(map_id)
 	if far:
 		surroundings.build(w, h, kind_at, hold_at, Backdrop.rim(), Backdrop.rim_pines())
 	else:
@@ -594,6 +597,7 @@ func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable, map_
 		add_child(vista)
 		vista.build(map_id, WorldPlan.places().get(map_id, Vector2i.ZERO))
 		_snow_mats.append(vista.floor_mat)   # its open land takes the snow as the land past the edges does
+		_snow_mats.append(vista.tint_mat)   # and its darkening under the snow fades away
 	if surroundings.water != null:
 		surroundings.water.set_rain(rain)
 		surroundings.water.set_ice(ice, ice_snow)

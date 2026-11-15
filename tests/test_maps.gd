@@ -1481,22 +1481,33 @@ func _backdrop() -> void:
 	check(rim > 0 and rim < Surroundings.MARGIN and Backdrop.rim_pines() < Surroundings.TREE_SHARE and cfg.layers.size() >= 2,
 		"the land stops %d cells past the back edges, a thinner wood on the rim" % rim)
 	var town := MapManager.data("town")
+	# Where the mountains stand (data/vista.json, every outdoor map now) the land runs on its whole
+	# apron and no ridges are built: the viewpoints look level, past any rim (2026-11-15).
 	var world: Node3D = load("res://scripts/world3d/map_world.gd").new()
 	root.add_child(world)
 	world.build(town)
-	var bd = world.backdrop
-	check(bd != null and bd.layers.size() == cfg.layers.size() and world.surroundings.back == rim,
-		"the village has the ridges and its land stops at the rim")
+	check(world.backdrop == null and world.surroundings.back == Surroundings.MARGIN and world.vista != null,
+		"the village: the land runs its whole apron, the mountains past it, no ridges")
+	world.free()
+	# The ridges themselves (a map with the far country and no mountains would have them).
+	var bd: Node3D = Backdrop.new()
+	root.add_child(bd)
+	bd.build(town.w, town.h)
+	check(bd.layers.size() == cfg.layers.size(), "the ridges build their layers")
+	var rimmed: Node3D = load("res://scripts/world3d/surroundings.gd").new()
+	root.add_child(rimmed)
+	rimmed.build(town.w, town.h, func(c: Vector2i) -> String: return town.tile(c), func(_c: Vector2i) -> float: return 0.0, rim, Backdrop.rim_pines())
 	var past_rim := 0
 	var wood := 0
-	for n in world.surroundings.get_children():
+	for n in rimmed.get_children():
 		if n is MultiMeshInstance3D:
 			for i in n.multimesh.instance_count:
 				var o: Vector3 = n.multimesh.get_instance_transform(i).origin
 				wood += 1
 				if o.x < -rim or o.z < -rim:
 					past_rim += 1
-	check(wood > 0 and past_rim == 0, "pines on the rim, none past it (%d pine parts)" % wood)
+	check(wood > 0 and past_rim == 0, "a rimmed apron: pines on the rim, none past it (%d pine parts)" % wood)
+	rimmed.free()
 	# The ridges: past the rim, below the ground, so they never stand in front of the land.
 	var points := []   # [layer index, Vector3 peak]
 	var bad := 0
@@ -1546,7 +1557,7 @@ func _backdrop() -> void:
 		if _in_frame(lens, Vector3(town.w / 2.0, 0, town.h / 2.0), p[1], rim):
 			mid += 1
 	check(mid == 0, "from the middle of the village the rim hides them (%d)" % mid)
-	world.free()
+	bd.free()
 	for id in ["house", "mine"]:
 		var other: Node3D = load("res://scripts/world3d/map_world.gd").new()
 		root.add_child(other)

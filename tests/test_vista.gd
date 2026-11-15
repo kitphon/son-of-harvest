@@ -130,7 +130,9 @@ func _floor() -> void:
 	var hill := MapManager.data("hill")
 	var rim := int(load("res://scripts/world3d/backdrop.gd").rim())
 	var margin := int(load("res://scripts/world3d/surroundings.gd").MARGIN)
-	check(VM.floor_at(hill, Vector2(-rim, 10)) and not VM.floor_at(hill, Vector2(-rim + 2, 10)) and VM.floor_at(hill, Vector2(20, -rim - 1)), "past the hill's west and north rim: floor")
+	# On a map with the mountains the land runs its whole apron on every side (no rim: the paths
+	# and the river run on as far west and north as south and east; the user saw them cut short).
+	check(not VM.floor_at(hill, Vector2(-rim - 1, 10)) and not VM.floor_at(hill, Vector2(-margin + 2, 10)) and VM.floor_at(hill, Vector2(-margin, 10)) and VM.floor_at(hill, Vector2(20, -margin - 1)), "the hill: open land only past its whole apron, west and north too")
 	check(not VM.floor_at(hill, Vector2(20, hill.h + 5)) and VM.floor_at(hill, Vector2(20, hill.h + margin)), "past its south edge only where the land past it stops")
 	var town := MapManager.data("town")
 	check(not VM.floor_at(town, Vector2(town.w + margin + 2, 40)) and VM.floor_at(town, Vector2(town.w + margin + 2, 20)), "not over the river running on east, beside it yes")
@@ -144,12 +146,28 @@ func _floor() -> void:
 		if om.surface_get_name(i) == "floor":
 			floor_surface = i
 	check(floor_surface >= 0 and (om.surface_get_arrays(floor_surface)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size() > 0, "the open land a surface of its own")
+	# Its grass darkens toward the mountains' feet (the user's ask): the tint's weight 1 at a foot,
+	# 0 far off, and more where nearer.
+	var tint := -1
+	for i in om.get_surface_count():
+		if om.surface_get_name(i) == "tint":
+			tint = i
+	check(tint >= 0, "a darkening over the open land")
+	if tint >= 0:
+		var tv: PackedVector3Array = om.surface_get_arrays(tint)[Mesh.ARRAY_VERTEX]
+		var tc: PackedColorArray = om.surface_get_arrays(tint)[Mesh.ARRAY_COLOR]
+		var lo := 1.0
+		var hi := 0.0
+		for c in tc:
+			lo = minf(lo, c.r)
+			hi = maxf(hi, c.r)
+		check(tv.size() == tc.size() and lo < 0.05 and hi > 0.6, "light far from the mountains, dark at their feet (%.2f .. %.2f)" % [lo, hi])
 	var floor_pts := 0
 	var gap := 0
 	for v in verts:
 		if is_equal_approx(v.y, VM.FLOOR):
 			floor_pts += 1
-		if v.x < -rim - 1.0 and v.x > -20.0 and v.z > 0.0 and v.z < hill.h and v.y < VM.FLOOR - 0.01:
+		if v.x < -margin - 1.0 and v.x > -30.0 and v.z > 0.0 and v.z < hill.h and v.y < VM.FLOOR - 0.01:
 			gap += 1
 	check(floor_pts > 0 and gap == 0, "the hill's west: floor out to the mountain, nothing sunk past the rim (%d floor points, %d sunk)" % [floor_pts, gap])
 
@@ -251,6 +269,8 @@ func _worlds() -> void:
 						uses = uses or mi.get_surface_override_material(i) == vm.floor_mat
 			check(SL.is_ground(vm.floor_mat) and uses, "the open land wears the ground's grass material")
 			w3.set_snow(0.6)
-			check(is_equal_approx(float(vm.floor_mat.get_shader_parameter("cover")), 0.6), "and takes the world's snow cover")
+			check(is_equal_approx(float(vm.floor_mat.get_shader_parameter("cover")), 0.6) and is_equal_approx(float(vm.tint_mat.get_shader_parameter("cover")), 0.6), "and takes the world's snow cover, its darkening too")
+			vm.tone("fall", Color.WHITE, Vector3.UP)
+			check(Color(vm.tint_mat.get_shader_parameter("tint")).is_equal_approx(Color(str(VistaRules.config().colors.fall.foot))), "the darkening by the season")
 		w3.free()
 	await process_frame
