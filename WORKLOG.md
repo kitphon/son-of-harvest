@@ -10,6 +10,39 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-15 — The river runs on under the long bridge, round its legs; villagers inside its railings; the camera still through a scene change — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: three things the user found. (1) The bridge should stand over the water with its legs in it and the river seen
+  running under it. The cells under the deck were `floor` tiles (to be walked), so the ground there was never sunk: the
+  river stopped at stone banks either side of the bridge and land ran under it. They are now water that is walked over
+  (town.json legend `B`: tile water, not solid, wood underfoot), so the river bed, its skin and the mist run on under
+  the deck; Game.is_water leaves the deck's cells out (no line cast onto the boards) and BirdRules leaves them out of
+  the heron's shore. The bridge prop covers the water's rows only (x 40-42, rows 37-42; rows 36 and 43 are road). The
+  deck lies flat DECK_TOP 0.2 over the land, eased up over DECK_RAMP 0.5 cells from each bank (MapData.deck_height;
+  the figures stand on it, deck_at), 0.55 over the water; boards, thin beams and rails are sloped slabs where it eases
+  (TempleProps.slab); legs two by two every cell under the deck's edges, from the river bed up, a cross-beam under the
+  deck; at each leg a little white wake on the water (BridgeWake: a V of dashed foam opening downstream, east, stepping
+  at the current's pace, a cap of foam against the leg; whole world pixels, unshaded). A high arch was tried first
+  (0.6 over the land); the user chose the flat deck back. The deck, beams and legs carry `no_reach`, so the figures'
+  wall pull (ReachMap) does not take the deck under their feet for a wall; MeshCache keeps the mark when it replays
+  meshes (the test caught it dropped). (2) Villagers walked through the railings: Shino, Ren and Mio walk the riverside
+  road along row 36, the old deck's end row (sampling every villager's place each tenth of a minute for a week: 32
+  hits); with the deck off that row, 0. (3) At a scene change the camera seemed to zoom back into the town: Game.maps
+  already named the next map while the fade went dark, so the view eased out and the camera's target was clamped to the
+  next map's size over the old world. Main3D holds the camera still while the world shown is not the map Game is on,
+  and on arriving sets the view weight at once (1 in a viewpoint, else 0).
+- Checked: test_maps `_bridge_walk` (the deck over rows 37-42; easing up from the bank, flat between; the water 0.55
+  under the boards; no fishing line onto the deck, the river either side; the heron never under it; the riverside road
+  past its end crosses no railing; the farmer stopped by the west railing; no villager inside a railing in a week; the
+  3D town: the deck's middle not a wall, both railings walls, a wake at each of twelve legs, the bed sunk under the
+  deck) and `_arashiyama_town` (water walked over under the deck, wood underfoot; road at its ends); `_map_snow` leaves
+  the wake out of the snow-cover count. Frames: the bridge's east side from the north road (legs in the water, the
+  river under the deck, the wakes), the farmer on the deck in winter, the walk off the south edge into Minamino frame
+  by frame (the camera still through the fade, the play camera at once in Minamino). All 43 tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`: title, `--demo`,
+  town, the mine, town@togetsu, the heron at 7:00 and the mist at 6:00 in town, town in winter snow, `--fishing=river`):
+  0 ERROR lines; windowed `--quit-after 150 -- --demo --map=town@bridge`: exit 0.
+- Left / next: the flat view draws the bridge as before (from above; no legs or wakes).
+
 ## 2026-11-15 — The long bridge walked on its deck, inside its railings — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user found the farmer walking out through the bridge's railing and his feet sunk in its boards. The deck's

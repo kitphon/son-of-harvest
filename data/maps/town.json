@@ -22,6 +22,7 @@
 			"tile": "water",
 			"solid": true
 		},
+		"B": {"tile": "water", "solid": false, "step": "floor"},
 		"b": {
 			"tile": "floor",
 			"step": "floor"
@@ -68,14 +69,14 @@
 		"ggwwwwwwrrgggggggggggggggggggggggggggggppppggggggggggggg",
 		"ggwwwwwwrrggggggggggggggggrrrrrrrrrrrrrrpppggggggggggggg",
 		"ggwwwwwwrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrpppggggggggggggg",
-		"ggwwwwwwrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrbbbggggggggggggg",
-		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
-		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
-		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
-		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
-		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
-		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbbbwwwwwwwwwwwww",
-		"ggggggggggggggggggggggggggggggggggggggggbbbggggggggggggg",
+		"ggwwwwwwrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrggggggggggggg",
+		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwBBBwwwwwwwwwwwww",
+		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwBBBwwwwwwwwwwwww",
+		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwBBBwwwwwwwwwwwww",
+		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwBBBwwwwwwwwwwwww",
+		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwBBBwwwwwwwwwwwww",
+		"ggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwBBBwwwwwwwwwwwww",
+		"ggggggggggggggggggggggggggggggggggggggggrrrggggggggggggg",
 		"ggggggggggggggggggggggggggggggggggggggggrrrggggggggggggg",
 		"ggggggggggggggggggggggggggggggggggggggggrrrggggggggggggg",
 		"ggggggggggggggggggggggggggggggggggggggggrrrggggggggggggg",
@@ -272,11 +273,11 @@
 			"kind": "bridge",
 			"cell": [
 				40,
-				36
+				37
 			],
 			"size": [
 				3,
-				8
+				6
 			],
 			"solid": false
 		},

@@ -34,10 +34,13 @@ var props: Array[Dictionary] = []      # {kind, cell, size, use, ...the rest fro
 var doors: Array[Dictionary] = []      # {cells: Array[Vector2i], to, spawn, facing, message, gate, shop, hours?, closed?}
 var spawns: Dictionary = {}            # name -> [cell, facing]
 
-## A bridge's deck (a `bridge` prop, along y) stands DECK_TOP over the land, its railings along its
-## two long sides RAIL cells into it: the figures stand on the deck (deck_at) and the railings stop
-## the feet (rails), so it is walked on and off only at its ends (2026-11-15).
-const DECK_TOP := 0.144   # the boards' top in TempleProps.bridge (world units)
+## A bridge's deck (a `bridge` prop over the water, along y) lies flat DECK_TOP over the land, a
+## short ease up from each bank, on legs standing in the sunk water, which runs on under it; its
+## railings along its two long sides RAIL cells into it: the figures stand on the deck (deck_at)
+## and the railings stop the feet (rails), so it is walked on and off only at its ends (2026-11-15;
+## an arch high over the water was tried and the user chose the flat deck back).
+const DECK_TOP := 0.2     # the boards' top (world units)
+const DECK_RAMP := 0.5    # cells from a bank to the full height (eased)
 const RAIL := 0.16        # the railing's strip along each side, cells (posts and rails at 0.02-0.12)
 
 
@@ -228,12 +231,21 @@ func rails() -> Array[Rect2]:
 	return out
 
 
-## How high the ground under `p` (cells) stands for a figure: DECK_TOP on a bridge's deck, else 0.
+## How high the ground under `p` (cells) stands for a figure: the deck's height on a bridge
+## (deck_height), else 0.
 func deck_at(p: Vector2) -> float:
 	for r in decks():
 		if r.has_point(p):
-			return DECK_TOP
+			return deck_height(r, p.y)
 	return 0.0
+
+
+## The deck of bridge `r` at `y` (cells along it): 0 at each end, eased up over DECK_RAMP cells to
+## DECK_TOP, flat between (TempleProps.bridge builds its boards on it).
+static func deck_height(r: Rect2, y: float) -> float:
+	var a := clampf((y - r.position.y) / DECK_RAMP, 0.0, 1.0)
+	var b := clampf((r.end.y - y) / DECK_RAMP, 0.0, 1.0)
+	return DECK_TOP * smoothstep(0.0, 1.0, a) * smoothstep(0.0, 1.0, b)
 
 
 ## Does the feet box `to` (Rect2 in cells) cross a railing the box `from` does not already touch?

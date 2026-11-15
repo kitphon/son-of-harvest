@@ -699,7 +699,7 @@ func _map_rules() -> void:
 	check(t.door_at(Vector2i(41, 48)).get("to", "") == "minamino" and mn.door_at(Vector2i(4, -1)).get("to", "") == "town"
 		and t.door_at(Vector2i(-1, 24)).get("to", "") == "river" and rv.door_at(Vector2i(20, 4)).get("to", "") == "town" and mn.door_at(Vector2i(4, 20)).is_empty(),
 		"the bridge to Minamino, the gorge path to the river upstream; Minamino has no way down to it now")
-	check(not t.is_solid(Vector2i(41, 40)) and t.tile(Vector2i(41, 40)) == "floor" and t.tile(Vector2i(41, 30)) == "stone" and t.tile(Vector2i(41, 46)) == "path", "the street runs down to the bridge at the village's south edge")
+	check(not t.is_solid(Vector2i(41, 40)) and t.prop_at(Vector2i(41, 40)).get("kind", "") == "bridge" and t.tile(Vector2i(41, 30)) == "stone" and t.tile(Vector2i(41, 46)) == "path", "the street runs down to the bridge at the village's south edge")
 	# The bamboo hill up the village's north lane: doors both ways, the clumps solid, the path
 	# open from the foot to the lookout, the cliff along the top.
 	var hl := MapManager.data("hill")
@@ -1442,7 +1442,7 @@ func _map_snow() -> void:
 
 	# 3D: the village ground and roofs take the cover; the mine floor has nothing to whiten.
 	var tops := func(w: Node3D) -> Array:
-		return w.get_children().filter(func(n): return n is MeshInstance3D and n.material_override is ShaderMaterial)
+		return w.get_children().filter(func(n): return n is MeshInstance3D and n.material_override is ShaderMaterial and n.name != "BridgeWake")   # the wake on the open water holds no snow
 	var v3: Node3D = load("res://scripts/world3d/map_world.gd").new()
 	v3.build(town)
 	v3.set_snow(0.5)
@@ -3888,34 +3888,90 @@ func _bed_and_doors() -> void:
 ## the user walked out through the railing at the deck's ends, where land lies beside, and saw
 ## the feet sunk in the boards): MapData.deck_at / rails / rail_blocks, the farmer's steps.
 func _bridge_walk(t: MapData) -> void:
+	var SG: GDScript = load("res://scripts/world3d/sunken_ground.gd")
+	var VG: GDScript = load("res://scripts/villagers/villagers.gd")
+	var FW: GDScript = load("res://scripts/world3d/farm_world.gd")
+	var RM: GDScript = load("res://scripts/world3d/reach_map.gd")
 	var decks := t.decks()
-	check(decks.size() == 1 and decks[0] == Rect2(40, 36, 3, 8), "one deck, the bridge's (%s)" % [decks])
-	check(t.deck_at(Vector2(41.5, 40.0)) == MapData.DECK_TOP and t.deck_at(Vector2(40.05, 36.1)) == MapData.DECK_TOP and t.deck_at(Vector2(41.5, 35.9)) == 0.0 and t.deck_at(Vector2(39.9, 40.0)) == 0.0,
-		"deck_at: the boards' top on the deck, the land's height off it")
+	check(decks.size() == 1 and decks[0] == Rect2(40, 37, 3, 6), "one deck, the bridge's, over the water's rows (%s)" % [decks])
+	var r := decks[0]
+	check(is_equal_approx(t.deck_at(Vector2(41.5, 40.0)), MapData.DECK_TOP) and t.deck_at(Vector2(41.5, 37.0)) == 0.0 and t.deck_at(Vector2(41.5, 36.9)) == 0.0 and t.deck_at(Vector2(39.9, 40.0)) == 0.0,
+		"deck_at: high over the middle, the land's height at its ends and off it")
+	var prev := -1.0
+	var rising := true
+	for k in 6:
+		var h := MapData.deck_height(r, r.position.y + k * 0.1)
+		rising = rising and h >= prev
+		prev = h
+	var mid_h := MapData.deck_height(r, r.position.y + MapData.DECK_RAMP * 0.5)
+	check(rising and mid_h > 0.0 and mid_h < MapData.DECK_TOP, "it eases up from the bank (no step)")
+	var flat := true
+	var y := r.position.y + MapData.DECK_RAMP
+	while y <= r.end.y - MapData.DECK_RAMP:
+		flat = flat and is_equal_approx(MapData.deck_height(r, y), MapData.DECK_TOP)
+		y += 0.25
+	check(flat, "flat between its ends")
+	check(MapData.DECK_TOP + SG.DROP > 0.5, "the water runs under it, %.2f below the boards" % (MapData.DECK_TOP + SG.DROP))
+	var g0: Node = root.get_node("Game")
+	var kept_id: String = g0.maps.id
+	var kept_pos: Vector2 = g0.maps.pos
+	g0.maps.place("town", Vector2i(41, 36), Vector2i.DOWN)
+	check(not g0.is_water(Vector2i(41, 40)) and g0.is_water(Vector2i(38, 40)), "no fishing line onto the deck; the open river either side")
+	g0.maps.place(kept_id, Vector2i(kept_pos / 16.0), Vector2i.DOWN)
+	var BR: GDScript = load("res://scripts/bird_rules.gd")
+	var shore: Array = BR.scene_of(t, null, 1).shore
+	check(not shore.any(func(c): return t.prop_at(Vector2i(c)).get("kind", "") == "bridge"), "the heron never stands under the deck")
 	check(t.rails().size() == 2 and is_equal_approx(t.rails()[0].size.x, MapData.RAIL) and t.rails()[1].end.x == 43.0, "a railing strip along each long side")
 	var box := func(px: Vector2) -> Rect2: return Rect2((px - Vector2(5, 3)) / 16.0, Vector2(10, 6) / 16.0)
-	var mid_end := Vector2(41.5, 36.5) * 16.0
-	check(not t.rail_blocks(box.call(mid_end), box.call(mid_end + Vector2(0, -16))) and not t.rail_blocks(box.call(mid_end), box.call(mid_end + Vector2(0, 16))), "walking along the deck and off its end is free")
-	check(not t.rail_blocks(box.call(Vector2(41.5, 35.5) * 16.0), box.call(Vector2(41.5, 36.2) * 16.0)), "walking onto it from the street is free")
-	check(t.rail_blocks(box.call(Vector2(40.5, 36.5) * 16.0), box.call(Vector2(40.5, 36.5) * 16.0 + Vector2(-4, 0))), "the west railing stops a step out sideways at the deck's end")
-	check(t.rail_blocks(box.call(Vector2(42.5, 43.5) * 16.0), box.call(Vector2(42.5, 43.5) * 16.0 + Vector2(4, 0))), "the east railing too")
+	var end := Vector2(41.5, 37.5) * 16.0
+	check(not t.rail_blocks(box.call(end), box.call(end + Vector2(0, -16))) and not t.rail_blocks(box.call(end), box.call(end + Vector2(0, 16))), "walking along the deck and off its end is free")
+	check(not t.rail_blocks(box.call(Vector2(41.5, 36.5) * 16.0), box.call(Vector2(41.5, 37.2) * 16.0)), "walking onto it from the road is free")
+	check(not t.rail_blocks(box.call(Vector2(38.5, 36.5) * 16.0), box.call(Vector2(44.5, 36.5) * 16.0)), "the riverside road past the bridge's end crosses no railing")
+	check(t.rail_blocks(box.call(Vector2(40.5, 37.5) * 16.0), box.call(Vector2(40.5, 37.5) * 16.0 + Vector2(-4, 0))), "the west railing stops a step out sideways")
+	check(t.rail_blocks(box.call(Vector2(42.5, 42.5) * 16.0), box.call(Vector2(42.5, 42.5) * 16.0 + Vector2(4, 0))), "the east railing too")
 	# The farmer's own steps (Player._free asks Game.maps.rail_blocks).
 	var g: Node = root.get_node("Game")
 	var saved_id: String = g.maps.id
 	var saved_pos: Vector2 = g.maps.pos
-	g.maps.place("town", Vector2i(41, 36), Vector2i.LEFT)
+	g.maps.place("town", Vector2i(41, 37), Vector2i.LEFT)
 	var p: Node2D = load("res://scripts/player/player.gd").new()
 	p.farm = g.farm
-	p.position = Vector2(40.6, 36.5) * 16.0
+	p.position = Vector2(40.6, 37.5) * 16.0
 	var moved := 0
 	for i in 20:
 		if p._try_move(Vector2(-1, 0)):
 			moved += 1
-	check(p.position.x / 16.0 - 5.0 / 16.0 >= 40.0 + MapData.RAIL - 0.001 and moved < 20, "the farmer stops at the west railing at the deck's end (feet at %.2f)" % (p.position.x / 16.0))
-	p.position = Vector2(41.5, 36.5) * 16.0
-	check(p._try_move(Vector2(0, -8)) and p._try_move(Vector2(0, -8)), "and walks off the deck's end onto the street")
+	check(p.position.x / 16.0 - 5.0 / 16.0 >= 40.0 + MapData.RAIL - 0.001 and moved < 20, "the farmer stops at the west railing (feet at %.2f)" % (p.position.x / 16.0))
+	p.position = Vector2(41.5, 37.5) * 16.0
+	check(p._try_move(Vector2(0, -8)) and p._try_move(Vector2(0, -8)), "and walks off the deck's end onto the road")
 	p.free()
 	g.maps.place(saved_id, Vector2i(saved_pos / 16.0), Vector2i.DOWN)
+	# The villagers keep inside the railings too (their routes crossed the old deck's end row).
+	var crossed := {}
+	var saved_day: int = g.day
+	for day in range(1, 8):
+		g.day = day
+		var m := 360.0
+		while m < 1320.0:
+			for w in VG.on_map("town", m, g.trigger_state(Vector2i.ZERO)):
+				for rail in t.rails():
+					if rail.has_point(w.pos):
+						crossed[w.id] = true
+			m += 0.1
+	g.day = saved_day
+	check(crossed.is_empty(), "no villager walks through a railing in a week (%s)" % [crossed.keys()])
+	# 3D: the deck, its beams and piers stay out of the figures' wall pull; the railings count.
+	var mw: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	root.add_child(mw)
+	for step in mw.build_steps(t):
+		step.call()
+	var reach: RefCounted = RM.new(FW.pull_rules().get("reach", {}))
+	reach.collect(mw)
+	check(not reach.has_point(41.5, 40.0) and reach.has_point(40.08, 40.0) and reach.has_point(42.9, 40.0), "the deck is walked on (no pull), the railings stood against")
+	var wakes := mw.get_children().filter(func(n): return n.name == "BridgeWake")
+	check(wakes.size() == 1 and wakes[0].legs() == 12, "a wake at each of its twelve legs (%s)" % [wakes.map(func(n): return n.legs())])
+	check(SG.ground(t.w, t.h, Vector2.ZERO, func(c: Vector2i) -> bool: return t.tile(c) == "water").surface_get_arrays(0)[Mesh.ARRAY_VERTEX].has(Vector3(41, -SG.DROP, 40)), "the river bed sunk under the deck")
+	mw.free()
 
 
 
@@ -3927,9 +3983,11 @@ func _arashiyama_town() -> void:
 	check(t.w == 56 and t.h == 48, "the village is 56 x 48")
 	for y in range(0, 35):
 		check(t.tile(Vector2i(41, y)) == "stone" and not t.is_solid(Vector2i(41, y)), "the main street is stone paving at (41, %d)" % y)
-	for y in range(36, 44):
-		check(t.tile(Vector2i(41, y)) == "floor" and t.tile(Vector2i(39, y)) != "floor" and t.prop_at(Vector2i(41, y)).get("kind", "") == "bridge"
-			and not t.is_solid(Vector2i(41, y)), "the bridge (its deck, railings and piers) over the river at (41, %d)" % y)
+	for y in range(37, 43):
+		check(t.tile(Vector2i(41, y)) == "water" and t.is_solid(Vector2i(39, y)) and t.prop_at(Vector2i(41, y)).get("kind", "") == "bridge"
+			and not t.is_solid(Vector2i(41, y)) and t.step(Vector2i(41, y)) == "floor", "the bridge over the river at (41, %d): the water runs on under its deck, walked over (wood underfoot)" % y)
+	for y in [36, 43]:
+		check(t.tile(Vector2i(41, y)) == "path" and t.prop_at(Vector2i(41, y)).is_empty(), "the road at the bridge's end, off the deck (41, %d)" % y)
 	_bridge_walk(t)
 	for x in [2, 20, 39, 43, 55]:
 		var col := []

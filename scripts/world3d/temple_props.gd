@@ -129,44 +129,85 @@ static func station(w: FarmWorld, r: Rect2, snow: bool) -> void:
 	p.commit(w)
 
 
-## The long wooden bridge over the river along z across `r` (its deck on the floor cells, so the
-## farmer walks it as before): a plank deck a little over the water, its boards across the way,
-## dark beams along its edges, timber piers standing in the water two by two every two cells,
-## and a low railing each side (posts every cell, a top rail and a middle rail).
+## The long wooden bridge over the river along z across `r` (the water's rows; its deck on their
+## floor cells, so the farmer walks it as before): a flat plank deck a little over the land
+## (MapData.deck_height, a short ease up from each bank), its boards across the way on thin dark
+## beams, legs standing two by two down into the sunk water every cell with a cross-beam under the
+## deck, and a low railing each side (posts every cell, a top rail and a middle rail). The water
+## runs on under it, seen between the legs, breaking into a little white wake downstream of each
+## leg (BridgeWake). The deck, beams and legs are left out of the figures' wall pull (no_reach:
+## walked on, not stood against); the railings count.
 static func bridge(w: FarmWorld, r: Rect2, snow: bool) -> void:
 	var p := FarmProps.Parts.new()
 	var x0 := r.position.x + 0.02
 	var x1 := r.end.x - 0.02
 	var z0 := r.position.y
 	var z1 := r.end.y
+	var hz := func(z: float) -> float: return MapData.deck_height(r, z)
 	var boards := p.st("build:planks")
+	var dark := p.st(PILLAR)
 	var z := z0
 	var k := 0
-	while z < z1 - 0.01:   # boards across the way, a hair apart
+	while z < z1 - 0.01:   # boards across the way, a hair apart, on the deck's height there
 		var dz := minf(0.32, z1 - z)
-		FarmProps.block(boards, Rect2(x0, z + 0.01, x1 - x0, dz - 0.02), 0.08 + 0.004 * (k % 2), Rect2(x0, z + 0.01, x1 - x0, dz - 0.02), 0.14 + 0.004 * (k % 2))
+		var lift := 0.004 * (k % 2)
+		slab(boards, x0, x1, z + 0.01, z + dz - 0.01, hz.call(z + 0.01) + lift, hz.call(z + dz - 0.01) + lift, 0.06)
+		for x in [x0, x1 - 0.1]:
+			slab(dark, x, x + 0.1, z, z + dz, hz.call(z) - 0.05, hz.call(z + dz) - 0.05, 0.08)   # thin beams under the boards' edges
 		z += 0.32
 		k += 1
-	var dark := p.st(PILLAR)
-	for x in [x0, x1 - 0.12]:
-		FarmProps.block(dark, Rect2(x, z0, 0.12, z1 - z0), -0.02, Rect2(x, z0, 0.12, z1 - z0), 0.16)   # edge beams
-	z = z0 + 1.0
-	while z < z1 - 0.5:   # piers in the water, every two cells, a cross-beam under the deck
-		for x in [x0 + 0.25, x1 - 0.25]:
-			FarmProps.block(dark, Rect2(x - 0.09, z - 0.09, 0.18, 0.18), -0.6, Rect2(x - 0.08, z - 0.08, 0.16, 0.16), 0.06)
-		FarmProps.block(dark, Rect2(x0, z - 0.06, x1 - x0, 0.12), -0.04, Rect2(x0, z - 0.06, x1 - x0, 0.12), 0.06)
-		z += 2.0
-	var rail := p.st("build:sugi")
+	var legs: Array[Vector2] = []
+	z = z0 + 0.5
+	while z < z1:   # legs in the water every cell, two by two, a cross-beam under the deck
+		var h: float = hz.call(z)
+		for x in [x0 + 0.08, x1 - 0.08]:   # under the deck's edges, seen from the bank
+			FarmProps.block(dark, Rect2(x - 0.07, z - 0.07, 0.14, 0.14), -SunkenGround.DROP - 0.5, Rect2(x - 0.06, z - 0.06, 0.12, 0.12), h - 0.1)
+			legs.append(Vector2(x, z))
+		FarmProps.block(dark, Rect2(x0, z - 0.05, x1 - x0, 0.1), h - 0.2, Rect2(x0, z - 0.05, x1 - x0, 0.1), h - 0.12)
+		z += 1.0
+	var first := w.get_child_count()
+	p.commit(w)
+	for i in range(first, w.get_child_count()):
+		w.get_child(i).set_meta("no_reach", true)
+	var q := FarmProps.Parts.new()
+	var rail := q.st("build:sugi")
 	for x in [x0 + 0.02, x1 - 0.1]:
 		var pz := z0 + 0.06
 		while pz <= z1 - 0.05:
-			FarmProps.block(rail, Rect2(x, pz - 0.04, 0.08, 0.08), 0.14, Rect2(x + 0.005, pz - 0.035, 0.07, 0.07), 0.7)
+			var ph: float = hz.call(pz)
+			FarmProps.block(rail, Rect2(x, pz - 0.04, 0.08, 0.08), ph - 0.02, Rect2(x + 0.005, pz - 0.035, 0.07, 0.07), ph + 0.56)
 			pz += 1.0
-		FarmProps.block(rail, Rect2(x - 0.01, z0, 0.1, z1 - z0), 0.66, Rect2(x - 0.01, z0, 0.1, z1 - z0), 0.74)
-		FarmProps.block(rail, Rect2(x + 0.01, z0, 0.06, z1 - z0), 0.4, Rect2(x + 0.01, z0, 0.06, z1 - z0), 0.45)
-		if snow:
-			FarmProps.block(p.st(FarmProps.Parts.SNOW), Rect2(x - 0.005, z0, 0.09, z1 - z0), 0.74, Rect2(x + 0.005, z0, 0.07, z1 - z0), 0.77)
-	p.commit(w)
+		z = z0
+		while z < z1 - 0.01:   # the rails in short lengths, following the deck
+			var dz := minf(0.32, z1 - z)
+			var ha: float = hz.call(z)
+			var hb: float = hz.call(z + dz)
+			slab(rail, x - 0.01, x + 0.09, z, z + dz, ha + 0.6, hb + 0.6, 0.08)
+			slab(rail, x + 0.01, x + 0.07, z, z + dz, ha + 0.31, hb + 0.31, 0.05)
+			if snow:
+				slab(q.st(FarmProps.Parts.SNOW), x - 0.005, x + 0.085, z, z + dz, ha + 0.63, hb + 0.63, 0.03)
+			z += 0.32
+	q.commit(w)
+	w.add_child(BridgeWake.make(legs))
+
+
+## A slab from x `xa` to `xb` and z `za` to `zb` whose top slopes from `ha` (at za) to `hb` (at zb),
+## `thick` deep: the bridge's boards, beams and rails follow its arch with no steps between them.
+static func slab(st: SurfaceTool, xa: float, xb: float, za: float, zb: float, ha: float, hb: float, thick: float) -> void:
+	var t: Array[Vector3] = [Vector3(xa, ha, za), Vector3(xb, ha, za), Vector3(xb, hb, zb), Vector3(xa, hb, zb)]
+	var d := Vector3(0, -thick, 0)
+	var flat := func(q: Vector3) -> Vector2: return Vector2(q.x, q.z)
+	var up := (t[3] - t[0]).cross(t[1] - t[0]).normalized()
+	if up.y < 0.0:
+		up = -up
+	Minka.quad(st, t[0], t[1], t[2], t[3], up, flat)
+	Minka.quad(st, t[0] + d, t[1] + d, t[2] + d, t[3] + d, Vector3.DOWN, flat)
+	var side := func(q: Vector3) -> Vector2: return Vector2(q.z, -q.y)
+	Minka.quad(st, t[0], t[3], t[3] + d, t[0] + d, Vector3.LEFT, side)
+	Minka.quad(st, t[1], t[2], t[2] + d, t[1] + d, Vector3.RIGHT, side)
+	var across := func(q: Vector3) -> Vector2: return Vector2(q.x, -q.y)
+	Minka.quad(st, t[0], t[1], t[1] + d, t[0] + d, Vector3.FORWARD, across)
+	Minka.quad(st, t[3], t[2], t[2] + d, t[3] + d, Vector3.BACK, across)
 
 
 ## The line along x across `r`: a bed of ballast, sleepers every 0.45 and two steel rails.

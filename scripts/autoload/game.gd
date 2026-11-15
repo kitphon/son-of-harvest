@@ -1674,7 +1674,7 @@ func spend_stamina(n: int) -> bool:
 func is_water(c: Vector2i) -> bool:
 	if maps.on_farm():
 		return farm.fixed_at(c) == "pond"
-	return maps.current().tile(c) == "water"
+	return maps.current().tile(c) == "water" and maps.current().prop_at(c).get("kind", "") != "bridge"   # the water under a bridge's deck is walked over, not fished
 
 
 ## The first water cell up to the rod's reach in front of `origin` (data/tools.json rod);

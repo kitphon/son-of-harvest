@@ -104,7 +104,7 @@ static func _record(w: FarmWorld, first: int, before: Dictionary, out: Variant) 
 			snowy.append(snow_new.has(m))
 		piece_of[mi] = pieces.size()
 		pieces.append({"mesh": mi.mesh, "mat": index[m], "at": mi.transform, "shadow": mi.cast_shadow,
-			"layers": mi.layers, "visible": mi.visible})
+			"layers": mi.layers, "visible": mi.visible, "no_reach": mi.has_meta("no_reach")})
 	if snowy.count(true) != snow_new.size():
 		return null
 	var swaying: Array[Dictionary] = []   # the Sway's new items, their nodes as places in pieces
@@ -142,6 +142,8 @@ static func _replay(w: FarmWorld, rec: Dictionary) -> Variant:
 		mi.cast_shadow = piece.shadow
 		mi.layers = piece.layers
 		mi.visible = piece.visible
+		if piece.get("no_reach", false):
+			mi.set_meta("no_reach", true)   # a bridge's deck: out of the figures' wall pull (ReachMap)
 		w.add_child(mi)
 		nodes.append(mi)
 	mats.clear()   # the pieces hold them now (Occluders.add sees a material no one else has)

@@ -288,6 +288,11 @@ func _enter_map() -> void:
 	if Game.demo_footprints:   # `--footprints`: a trail already there to look at
 		world.seed_prints(Vector3(player.position.x / T, 0, player.position.y / T))
 	_update_tint()
+	# Arriving in a viewpoint the camera is already up, elsewhere already down: no ease after the fade.
+	var arrived := VistaRules.view_at(m.id, Vector2i(floori(player.position.x / T), floori(player.position.y / T)))
+	if not arrived.is_empty():
+		_view = arrived
+	view_w = 0.0 if arrived.is_empty() else 1.0
 	_follow()
 	_end_warm()
 	if warm and fade.busy():
@@ -546,6 +551,8 @@ func _follow() -> void:
 	_show_held()
 	_show_lantern()
 
+	if world != null and str(world.get_meta("map_id", Game.maps.id)) != Game.maps.id:
+		return   # a door used, the fade going dark: the camera holds still over the map being left
 	var m := Game.maps.current()
 	var target := Vector3(_clamp_view(feet.x, CAM_MARGIN.x, m.w), 0, _clamp_view(feet.z, CAM_MARGIN.y, m.h))
 	feet.y = 0.0   # the camera keeps to the land's height (no bob stepping on and off a deck)

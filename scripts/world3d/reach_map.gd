@@ -56,7 +56,7 @@ func collect(root: Node, skip: Array = []) -> void:
 
 func _walk(n: Node, xf: Transform3D, skip: Array) -> void:
 	for c in n.get_children():
-		if c in skip or c.get_script() != null:
+		if c in skip or c.get_script() != null or c.has_meta("no_reach"):   # no_reach: a bridge's deck, walked on
 			continue
 		var t := xf
 		if c is Node3D:

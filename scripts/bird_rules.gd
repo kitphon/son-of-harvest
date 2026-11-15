@@ -110,7 +110,7 @@ static func scene_of(m: MapData, farm: FarmGrid = null, seed_value := 0) -> Dict
 	for y in m.h:
 		for x in m.w:
 			var c := Vector2i(x, y)
-			if _wet(m, c):
+			if _wet(m, c) and m.prop_at(c).get("kind", "") != "bridge":   # not under a bridge's deck
 				for d in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
 					if m.in_bounds(c + d) and not _wet(m, c + d):
 						s.shore.append(Vector2(x, y) + Vector2(0.5, 0.5))
