@@ -138,6 +138,11 @@ func _views() -> void:
 		check(VistaRules.view_at(str(v.map), Vector2i(int(r[0]) - 1, int(r[1]))).is_empty(), "%s: not beside it" % v.id)
 	var tg := VistaRules.view_at("town", Vector2i(41, 40))
 	check(tg.get("id", "") == "togetsu", "the middle of the long bridge is a viewpoint")
+	var town := MapManager.data("town")
+	var south: Dictionary = town.doors.filter(func(d): return d.to == "minamino")[0]
+	var last: Vector2i = (south.cells[0] as Vector2i) + Vector2i.UP   # the path's last cell before the way to Minamino
+	check(VistaRules.view_at("town", last) == tg and VistaRules.view_at("town", Vector2i(41, 44)) == tg, "the view runs on down the path south of the bridge to the edge (%s)" % last)
+	check(VistaRules.view_at("town", Vector2i(41, 35)).is_empty(), "not on the street north of the bridge")
 	var sp: Array = MapManager.data("town").spawns.get("togetsu", [])
 	check(not sp.is_empty() and VistaRules.view_at("town", Vector2i(sp[0])) == tg, "the togetsu spawn stands in it")
 	check(VistaRules.view_at("kaminoda", Vector2i(19, 9)).get("id", "") == "kaminoda", "Kaminoda's lane by the well is a viewpoint")

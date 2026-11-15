@@ -34,6 +34,12 @@ var props: Array[Dictionary] = []      # {kind, cell, size, use, ...the rest fro
 var doors: Array[Dictionary] = []      # {cells: Array[Vector2i], to, spawn, facing, message, gate, shop, hours?, closed?}
 var spawns: Dictionary = {}            # name -> [cell, facing]
 
+## A bridge's deck (a `bridge` prop, along y) stands DECK_TOP over the land, its railings along its
+## two long sides RAIL cells into it: the figures stand on the deck (deck_at) and the railings stop
+## the feet (rails), so it is walked on and off only at its ends (2026-11-15).
+const DECK_TOP := 0.144   # the boards' top in TempleProps.bridge (world units)
+const RAIL := 0.16        # the railing's strip along each side, cells (posts and rails at 0.02-0.12)
+
 
 ## [error, MapData]: the error is "" when the file's data is usable.
 static func parse(d: Variant) -> Array:
@@ -202,6 +208,40 @@ func gate_cells() -> Array[Vector2i]:
 		if door.gate:
 			out.append_array(door.cells)
 	return out
+
+
+## The bridges' decks (Rect2 in cells).
+func decks() -> Array[Rect2]:
+	var out: Array[Rect2] = []
+	for p in props:
+		if p.kind == "bridge":
+			out.append(Rect2(Vector2(p.cell), Vector2(p.size)))
+	return out
+
+
+## The railings' strips (Rect2 in cells) the feet may not cross.
+func rails() -> Array[Rect2]:
+	var out: Array[Rect2] = []
+	for r in decks():
+		out.append(Rect2(r.position, Vector2(RAIL, r.size.y)))
+		out.append(Rect2(Vector2(r.end.x - RAIL, r.position.y), Vector2(RAIL, r.size.y)))
+	return out
+
+
+## How high the ground under `p` (cells) stands for a figure: DECK_TOP on a bridge's deck, else 0.
+func deck_at(p: Vector2) -> float:
+	for r in decks():
+		if r.has_point(p):
+			return DECK_TOP
+	return 0.0
+
+
+## Does the feet box `to` (Rect2 in cells) cross a railing the box `from` does not already touch?
+func rail_blocks(from: Rect2, to: Rect2) -> bool:
+	for r in rails():
+		if to.intersects(r) and not from.intersects(r):
+			return true
+	return false
 
 
 func prop_at(c: Vector2i) -> Dictionary:

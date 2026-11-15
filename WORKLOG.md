@@ -10,6 +10,42 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-15 — The long bridge walked on its deck, inside its railings — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user found the farmer walking out through the bridge's railing and his feet sunk in its boards. The deck's
+  cells are walkable floor and the railings were only drawn, so at the deck's two end rows (36 and 43), where land lies
+  beside, a step sideways went straight out through the railing; and the boards' top stands 0.144 over the land while
+  every figure stood at 0. MapData now reads each `bridge` prop's deck (decks), its height for a figure (deck_at:
+  DECK_TOP on the deck, 0 off it) and a railing strip RAIL (0.16) cells wide along each long side (rails, rail_blocks:
+  the feet box may not cross a strip it is not already over). Player._free asks it (Game.maps.rail_blocks), so the
+  bridge is walked on and off only at its ends, in both views. The 3D view stands the farmer (Main3D: his sprite, so its
+  shadow too, and the target marker) and the villagers (VillagerSprites) on the deck; the camera keeps to the land's
+  height (no bob stepping on).
+- Checked: test_maps `_bridge_walk` (one deck at 40, 36 3 x 8; deck_at on and off it; two strips; along the deck, off its
+  end and onto it from the street free; a step out sideways at either end blocked; the farmer's own steps stop at the
+  west railing at the deck's end, then walk off the end onto the street). A winter frame on the bridge pushing west
+  (`--map=town@togetsu --walk=left:1.5 --vista --season=winter`): his feet on the boards with his shadow, the railing
+  behind him. All 43 tests/test_*.gd print `OK (0 failed)` (run with the bridge
+  fix and the longer view together, one commit); smoke runs (`--quit-after 300`: title, `--demo`, town, the mine,
+  town@togetsu, the same walking west into the railing, kaminoda@well): 0 ERROR lines; windowed `--quit-after 150 --
+  --demo --map=town@togetsu`: exit 0.
+- Left / next: villagers walk the deck by their path cells' middles, so they keep inside the railings; the give-way
+  step aside is not checked against them.
+
+## 2026-11-15 — The bridge's view runs on down the path south of it — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user asked for the view camera from the bridge on down the path south of it, up to the way into Minamino
+  (before the scene changes). The `togetsu` viewpoint's cells (data/vista.json) are now x 39-43, rows 37-47: the bridge
+  (x 40-42), the path below it (rows 43-47) and a cell either side, so walking at the side of the path does not tip the
+  camera in and out.
+- Checked: test_vista (the path's last cell before the door to Minamino and row 44 are in the view, the street north
+  of the bridge is not); a frame walking down off the bridge with `--vista` (frame 69: the farmer on the south bank's
+  path, the bridge, the village and Ogura behind). All 43 tests/test_*.gd print `OK (0 failed)` (run with the bridge
+  fix and the longer view together, one commit); smoke runs (`--quit-after 300`: title, `--demo`, town, the mine,
+  town@togetsu, the same walking west into the railing, kaminoda@well): 0 ERROR lines; windowed `--quit-after 150 --
+  --demo --map=town@togetsu`: exit 0.
+- Left / next: the merge into arashiyama-town and main waits on the user's word.
+
 ## 2026-11-15 — Viewpoints tilt up without turning; Ogura north-west where the camera looks — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user played the bridge viewpoint and found it dizzying and hard to steer: the camera swung 115 degrees

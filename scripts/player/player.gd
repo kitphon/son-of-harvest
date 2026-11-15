@@ -290,6 +290,10 @@ func _free(from: Vector2, to: Vector2) -> bool:
 		var c := cell_of(to + corner)
 		if not under.has(c) and Game.maps.is_solid(c, farm):
 			return false
+	# A bridge's railing (MapData.rails): the feet box may not cross one it is not already over.
+	var box := Rect2(-FEET, FEET * 2.0)
+	if Game.maps.rail_blocks(Rect2((from + box.position) / T, box.size / T), Rect2((to + box.position) / T, box.size / T)):
+		return false
 	return true
 
 

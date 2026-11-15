@@ -535,11 +535,12 @@ func _process(delta: float) -> void:
 
 func _follow() -> void:
 	var feet := Vector3(player.position.x / T, 0, player.position.y / T)
+	feet.y = Game.maps.deck_at(Vector2(feet.x, feet.z))   # on a bridge's deck, not sunk in its boards
 	sprite.position = feet
 	sprite.texture = PlaceholderArt.tex(anim.key(player.facing))
 	sprite.flip_h = FarmerAnim.is_mirrored(player.facing)
 	var tc := player.target_cell()
-	target_mark.position = Vector3(tc.x + 0.5, 0.02, tc.y + 0.5)
+	target_mark.position = Vector3(tc.x + 0.5, 0.02 + Game.maps.deck_at(Vector2(tc) + Vector2(0.5, 0.5)), tc.y + 0.5)
 	if _tools_work():
 		_show_charge()
 	_show_held()
@@ -547,6 +548,7 @@ func _follow() -> void:
 
 	var m := Game.maps.current()
 	var target := Vector3(_clamp_view(feet.x, CAM_MARGIN.x, m.w), 0, _clamp_view(feet.z, CAM_MARGIN.y, m.h))
+	feet.y = 0.0   # the camera keeps to the land's height (no bob stepping on and off a deck)
 	# A viewpoint (data/vista.json): the camera turns to the mountains and tilts up, eased in and out.
 	var here := VistaRules.view_at(Game.maps.id, Vector2i(floori(feet.x), floori(feet.z)))
 	if not here.is_empty():

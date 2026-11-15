@@ -196,6 +196,16 @@ func is_solid(c: Vector2i, farm: FarmGrid) -> bool:
 	return current().is_solid(c) or (mine_floor != null and mine_floor.is_solid(c))
 
 
+## Does the feet box `to` (cells) cross a bridge's railing that `from` does not touch (MapData.rail_blocks)?
+func rail_blocks(from: Rect2, to: Rect2) -> bool:
+	return not on_farm() and current().rail_blocks(from, to)
+
+
+## How high a figure at `p` (cells) stands: on a bridge's deck, DECK_TOP (MapData.deck_at).
+func deck_at(p: Vector2) -> float:
+	return 0.0 if on_farm() else current().deck_at(p)
+
+
 func door_at(c: Vector2i) -> Dictionary:
 	var door := current().door_at(c)
 	if door.is_empty() and mine_floor != null:

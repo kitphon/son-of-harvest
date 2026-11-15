@@ -3884,6 +3884,41 @@ func _bed_and_doors() -> void:
 	g.new_game()
 
 
+## The long bridge is walked on its deck, not in it, and on and off only at its ends (2026-11-15:
+## the user walked out through the railing at the deck's ends, where land lies beside, and saw
+## the feet sunk in the boards): MapData.deck_at / rails / rail_blocks, the farmer's steps.
+func _bridge_walk(t: MapData) -> void:
+	var decks := t.decks()
+	check(decks.size() == 1 and decks[0] == Rect2(40, 36, 3, 8), "one deck, the bridge's (%s)" % [decks])
+	check(t.deck_at(Vector2(41.5, 40.0)) == MapData.DECK_TOP and t.deck_at(Vector2(40.05, 36.1)) == MapData.DECK_TOP and t.deck_at(Vector2(41.5, 35.9)) == 0.0 and t.deck_at(Vector2(39.9, 40.0)) == 0.0,
+		"deck_at: the boards' top on the deck, the land's height off it")
+	check(t.rails().size() == 2 and is_equal_approx(t.rails()[0].size.x, MapData.RAIL) and t.rails()[1].end.x == 43.0, "a railing strip along each long side")
+	var box := func(px: Vector2) -> Rect2: return Rect2((px - Vector2(5, 3)) / 16.0, Vector2(10, 6) / 16.0)
+	var mid_end := Vector2(41.5, 36.5) * 16.0
+	check(not t.rail_blocks(box.call(mid_end), box.call(mid_end + Vector2(0, -16))) and not t.rail_blocks(box.call(mid_end), box.call(mid_end + Vector2(0, 16))), "walking along the deck and off its end is free")
+	check(not t.rail_blocks(box.call(Vector2(41.5, 35.5) * 16.0), box.call(Vector2(41.5, 36.2) * 16.0)), "walking onto it from the street is free")
+	check(t.rail_blocks(box.call(Vector2(40.5, 36.5) * 16.0), box.call(Vector2(40.5, 36.5) * 16.0 + Vector2(-4, 0))), "the west railing stops a step out sideways at the deck's end")
+	check(t.rail_blocks(box.call(Vector2(42.5, 43.5) * 16.0), box.call(Vector2(42.5, 43.5) * 16.0 + Vector2(4, 0))), "the east railing too")
+	# The farmer's own steps (Player._free asks Game.maps.rail_blocks).
+	var g: Node = root.get_node("Game")
+	var saved_id: String = g.maps.id
+	var saved_pos: Vector2 = g.maps.pos
+	g.maps.place("town", Vector2i(41, 36), Vector2i.LEFT)
+	var p: Node2D = load("res://scripts/player/player.gd").new()
+	p.farm = g.farm
+	p.position = Vector2(40.6, 36.5) * 16.0
+	var moved := 0
+	for i in 20:
+		if p._try_move(Vector2(-1, 0)):
+			moved += 1
+	check(p.position.x / 16.0 - 5.0 / 16.0 >= 40.0 + MapData.RAIL - 0.001 and moved < 20, "the farmer stops at the west railing at the deck's end (feet at %.2f)" % (p.position.x / 16.0))
+	p.position = Vector2(41.5, 36.5) * 16.0
+	check(p._try_move(Vector2(0, -8)) and p._try_move(Vector2(0, -8)), "and walks off the deck's end onto the street")
+	p.free()
+	g.maps.place(saved_id, Vector2i(saved_pos / 16.0), Vector2i.DOWN)
+
+
+
 ## The village after Arashiyama (2026-11-14): the main street in stone paving, the temple's wall
 ## solid but its gate open, the black-wood torii, the station and its line (crossed on foot), the
 ## shop fronts on the street side, and every new piece built in 3D and drawn in the flat view.
@@ -3895,6 +3930,7 @@ func _arashiyama_town() -> void:
 	for y in range(36, 44):
 		check(t.tile(Vector2i(41, y)) == "floor" and t.tile(Vector2i(39, y)) != "floor" and t.prop_at(Vector2i(41, y)).get("kind", "") == "bridge"
 			and not t.is_solid(Vector2i(41, y)), "the bridge (its deck, railings and piers) over the river at (41, %d)" % y)
+	_bridge_walk(t)
 	for x in [2, 20, 39, 43, 55]:
 		var col := []
 		for y in t.h:
