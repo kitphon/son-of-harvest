@@ -27,6 +27,7 @@ const PEBBLE: Array[Color] = [Color("7a766c"), Color("8e8a80")]
 const WET := Color("3c3a2c")
 const EDGE := Color("4f9686")   # the water's own line at the foot of the bank
 const JADE := Color("3a7f72")
+const GRASS_U := 0.42        # how far down the bank (0..1) the grass runs before the moss and earth
 const STONE_LEVEL := 0.68    # the field's level the shore stones sit on (down the bank, at the waterline)
 const STONE_STEP := 0.2      # cells between the points tried along it
 const STONE_GAP := 0.42      # cells at least between two stones
@@ -111,7 +112,9 @@ func on_bed(p: Vector2) -> bool:
 
 ## The ground picture over `bounds` repainted for the soft shore: `base(px)` gives the plain
 ## picture's pixel at a map pixel (Vector2i), `grass(px)` a grass pixel there. Over the bed the
-## plain water stays; down the bank moss, then earth with pebbles, then wet earth and the water's
+## plain water stays; the land's own grass runs on over the bank's top, darkening as it goes down
+## (GRASS_U of the way, no dither, so the grass edge reads as one smooth curve: the user,
+## 2026-11-16, saw square blocks there), then moss, earth with pebbles, wet earth and the water's
 ## line at its foot; on the land side of the shoreline the land stays, and where a water cell's
 ## corner is rounded off it turns to grass.
 func paint(base: Callable, grass: Callable) -> Image:
@@ -127,31 +130,40 @@ func paint(base: Callable, grass: Callable) -> Image:
 			if f >= DEEP:
 				col = base.call(at) if water else JADE
 			elif f >= SHORE:
-				col = bank_colour((f - SHORE) / (DEEP - SHORE), at)
-				if f < SHORE + 0.05 and posmod(at.x * 5 + at.y * 3, 4) != 0:
-					col = grass.call(at)   # the grass hanging over the bank's top, a ragged edge
+				var u := (f - SHORE) / (DEEP - SHORE)
+				var edge := GRASS_U + _soft_noise(at) * 0.12   # where the grass gives way, a gentle wave
+				if u < edge:   # the grass going over the bank's top, darker the further down
+					var land: Color = grass.call(at) if water else base.call(at)
+					col = land.darkened(0.28 * u / edge)
+				else:
+					col = bank_colour((u - edge) / (1.0 - edge), at)
 			else:
 				col = grass.call(at) if water else base.call(at)
 			img.set_pixel(px, py, col)
 	return img
 
 
-## The bank's colour `u` of the way down (0 at the shoreline, 1 at the bed), at map pixel `at`:
-## moss, then earth with pebbles, wet earth and the water's line at the foot, their borders broken
-## by a little noise so they do not run in even stripes.
+## The bank's colour `u` of the way down below the grass (0 at the grass's foot, 1 at the bed),
+## at map pixel `at`: moss in soft patches, then earth with pebbles, wet earth and the water's
+## line at the foot; the borders follow a smooth noise (whole patches, not single pixels).
 static func bank_colour(u: float, at: Vector2i) -> Color:
 	var h := posmod(at.x * 73 + at.y * 151 + (at.x * at.y) % 7, 97)
-	var n := sin(at.x * 0.45 + at.y * 0.21) * 0.5 + sin(at.y * 0.53 - at.x * 0.17) * 0.5
-	var v := u + n * 0.18 + (h % 5 - 2) * 0.025
-	if u > 0.9:
-		return EDGE if u > 0.95 else WET
-	if v > 0.84:
+	var n := _soft_noise(at)
+	var v := u + n * 0.2
+	if u > 0.88:
+		return EDGE if u > 0.94 else WET
+	if v > 0.82:
 		return WET
-	if v < 0.5:   # moss over the upper bank, a pebble here and there
-		return MOSS[h % 2] if h % 9 != 0 else PEBBLE[0]
-	if h % 6 == 0 or h % 11 == 0:
+	if v < 0.32:   # moss next to the grass, two shades in patches
+		return MOSS[1] if n > 0.1 else MOSS[0]
+	if h % 7 == 0 or h % 13 == 0:
 		return PEBBLE[h % 2]
-	return EARTH[h % 2]
+	return EARTH[0] if n > -0.2 else EARTH[1]
+
+
+## A smooth noise over the map's pixels, -1..1 (slow waves: patches several pixels across).
+static func _soft_noise(at: Vector2i) -> float:
+	return sin(at.x * 0.45 + at.y * 0.21) * 0.5 + sin(at.y * 0.53 - at.x * 0.17) * 0.5
 
 
 ## Small stones along the waterline: {pos: Vector2 (cells), size: 0..1, seed}. Points every

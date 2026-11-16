@@ -148,6 +148,20 @@ func _soft_pond() -> void:
 		for x in range(0, pic.get_width(), 2):
 			bank_n += 1 if bank_cols.has(pic.get_pixel(x, y)) else 0
 	check(bank_n > 400, "picture: the bank painted round the shore (%d of every fourth pixel)" % bank_n)
+	# The user (2026-11-16): square blocks along the grass edge: the bank's top just past the shoreline
+	# is the land's own grass, darkened a little (no moss, pebble or dither pixels there).
+	var top_bad := 0
+	var top_n := 0
+	for y in pic.get_height():
+		for x in pic.get_width():
+			var at := o + Vector2i(x, y)
+			var f := pond.field((Vector2(at) + Vector2(0.5, 0.5)) / 16.0)
+			if f >= PondShape.SHORE and f < PondShape.SHORE + 0.04:
+				top_n += 1
+				var c := pic.get_pixel(x, y)
+				if bank_cols.has(c) or not (c.g > c.r and c.g > c.b) and t.tile(Vector2i(at / 16)) != "gravel":
+					top_bad += 1
+	check(top_n > 100 and top_bad == 0, "picture: the bank's top is the land's grass going over the edge (%d of %d pixels not)" % [top_bad, top_n])
 	var stones := pond.shore_stones()
 	var ok_stones := stones.all(func(st) -> bool: return absf(pond.field(st.pos) - PondShape.STONE_LEVEL) <= 0.07)
 	var gaps := true

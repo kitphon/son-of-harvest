@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-16 — The pond's grass edge a smooth curve (no square blocks) — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user still saw the grass edge along the pond's north shore as squares, unlike the round south shore. Looked
+  into: the painted picture's shoreline is round (saved and zoomed); leaving the grass tufts out changed nothing. The
+  north bank faces the camera, so its top strip shows: it was a checker of two moss shades, a one-pixel dither of grass
+  over moss and a scatter of grey pebble pixels, every texel a visible square at the game's resolution; the south bank
+  faces away, so there the grass meets the water in one line. Now the land's own grass runs on over the bank's top
+  (PondShape.GRASS_U 0.42 of the way down, give or take a smooth wave), darkening a little as it goes (up to 28%), with
+  no dither; below it the moss lies in soft patches (two shades by a smooth noise, not pixel by pixel), then earth with
+  a few pebbles, wet earth and the water's line. Both views take the same picture.
+- Checked: test_maps (every pixel of the bank's top just past the shoreline is the land's grass, none moss, pebble or
+  dither: 0 bad): `test_maps: OK (0 failed)`; `test_koi: OK (0 failed)`. Frames `--demo --map=town@pond --time=11:00
+  --weather=sunny`, zoomed on the north shore: the grass edge one smooth curve down to a thin earth strip; the flat view
+  the same. All 44 tests/test_*.gd print `OK (0 failed)`; smoke
+  `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the user's look at the pond.
+
 ## 2026-11-16 — Slower koi; no square green blocks along the pond's edge — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user's look (2026-11-16): the koi a little too quick; square green blocks along the pond's edge. (1) Koi:

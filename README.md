@@ -329,7 +329,7 @@ edge where boards or tatami meet the earth and a shoe stone below the door's ste
 - the temple garden (2026-11-15, after the user's photos of a Zen temple's pond garden): the
   pond a ragged shape of `jade` water with a soft shore (PondShape, 2026-11-16: the cells
   blurred into one smooth shape, every corner rounded, the bank sloping from the land down to the
-  bed in moss, earth and pebbles instead of a stone wall, in the 3D ground's height and both views'
+  bed (the land's grass going over its top, then moss, earth and pebbles) instead of a stone wall, in the 3D ground's height and both views'
   pictures), `garden_rock` props (`shape` tall, flat, low, pair: rounded stones, no points; out
   in the water they stand on the bed at its depth there and rise only GardenProps.WET_SHOW (0.6)
   of their height above it; two, each by a bank, the middle of the pond left open; the shoreline wobbles
