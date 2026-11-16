@@ -9,11 +9,12 @@ extends RefCounted
 ## sunken bed; the bridge's deck stays at the land's height, over the water.
 ## A soft pond (PondShape, the temple's jade pond, 2026-11-16) has no stone walls: the cells it
 ## reaches are laid as SUB x SUB quads whose corners sink by PondShape.sink, so its bank slopes
-## down from a rounded shoreline to the bed.
+## down from a rounded shoreline to the bed; each corner's height is worked out once (a grid over
+## the pond's bounds) and its normal from the grid round it, so the slope shades smoothly.
 
 const DROP := 0.35   # how far the water lies below the land (world units, a cell is 1)
 const BANK_KEY := "ground:scree:1"   # the bank's grey river stones (PlaceholderArt, repeated a unit)
-const SUB := 4          # quads a side in a cell a soft pond reaches
+const SUB := 8          # quads a side in a cell a soft pond reaches (fine, so the slope's facets don't read as blocks)
 
 
 ## The ground mesh over `cols` x `rows` cells whose top-left corner stands at `origin` (cells);
@@ -22,10 +23,11 @@ const SUB := 4          # quads a side in a cell a soft pond reaches
 static func ground(cols: int, rows: int, origin: Vector2, is_water: Callable, pond: PondShape = null) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var heights := _pond_heights(pond) if pond != null else PackedFloat32Array()
 	for y in rows:
 		for x in cols:
 			if pond != null and pond.bounds.has_point(Vector2i(origin) + Vector2i(x, y)):
-				_soft_cell(st, cols, rows, origin, Vector2i(x, y), pond)
+				_soft_cell(st, cols, rows, origin, Vector2i(x, y), pond, heights)
 				continue
 			var h := -DROP if is_water.call(Vector2i(x, y)) else 0.0
 			var x0 := origin.x + x
@@ -41,24 +43,36 @@ static func ground(cols: int, rows: int, origin: Vector2, is_water: Callable, po
 	return st.commit()
 
 
-## One cell of a soft pond: SUB x SUB quads, each corner sunk by the pond's slope, the normals
-## from the slope, the picture mapped as on a flat cell.
-static func _soft_cell(st: SurfaceTool, cols: int, rows: int, origin: Vector2, c: Vector2i, pond: PondShape) -> void:
-	var height := func(q: Vector2) -> float: return -DROP * pond.sink(q)
-	var e := 0.05
+## The height of every quad corner over `pond`'s bounds (SUB a cell), row by row.
+static func _pond_heights(pond: PondShape) -> PackedFloat32Array:
+	var n := pond.bounds.size * SUB + Vector2i.ONE
+	var out := PackedFloat32Array()
+	out.resize(n.x * n.y)
+	for j in n.y:
+		for i in n.x:
+			out[j * n.x + i] = -DROP * pond.sink(Vector2(pond.bounds.position) + Vector2(i, j) / SUB)
+	return out
+
+
+## One cell of a soft pond: SUB x SUB quads, their corners at the grid's heights, the normals from
+## the grid round each corner, the picture mapped as on a flat cell.
+static func _soft_cell(st: SurfaceTool, cols: int, rows: int, origin: Vector2, c: Vector2i, pond: PondShape, heights: PackedFloat32Array) -> void:
+	var n := pond.bounds.size * SUB + Vector2i.ONE
+	var base := (Vector2i(origin) + c - pond.bounds.position) * SUB
+	var h := func(i: int, j: int) -> float: return heights[clampi(j, 0, n.y - 1) * n.x + clampi(i, 0, n.x - 1)]
+	var step := 1.0 / SUB
 	for j in SUB:
 		for i in SUB:
-			var corners: Array[Vector2] = []
-			for k in [Vector2(i, j), Vector2(i + 1, j), Vector2(i + 1, j + 1), Vector2(i, j + 1)]:
-				corners.append(Vector2(c) + k / SUB)
-			for n in [0, 1, 2, 0, 2, 3]:
-				var q: Vector2 = corners[n]
+			for k in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1), Vector2i(0, 0), Vector2i(1, 1), Vector2i(0, 1)]:
+				var gi: int = base.x + i + k.x
+				var gj: int = base.y + j + k.y
+				var hx := float(h.call(gi + 1, gj)) - float(h.call(gi - 1, gj))
+				var hz := float(h.call(gi, gj + 1)) - float(h.call(gi, gj - 1))
+				var q := Vector2(c) + Vector2(i + k.x, j + k.y) * step
 				var w := origin + q
-				var hx := float(height.call(w + Vector2(e, 0))) - float(height.call(w - Vector2(e, 0)))
-				var hz := float(height.call(w + Vector2(0, e))) - float(height.call(w - Vector2(0, e)))
-				st.set_normal(Vector3(-hx / (2 * e), 1.0, -hz / (2 * e)).normalized())
+				st.set_normal(Vector3(-hx / (2 * step), 1.0, -hz / (2 * step)).normalized())
 				st.set_uv(Vector2(q.x / cols, q.y / rows))
-				st.add_vertex(Vector3(w.x, height.call(w), w.y))
+				st.add_vertex(Vector3(w.x, h.call(gi, gj), w.y))
 
 
 ## The banks round the water of the same grid: a wall on every side of a water cell that meets a

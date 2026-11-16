@@ -106,6 +106,18 @@ func _soft_pond() -> void:
 	check(l_shape.field(Vector2(1.05, 1.05)) > PondShape.SHORE, "pond field: a concave corner is rounded in (%.2f)" % l_shape.field(Vector2(1.05, 1.05)))
 	check(box.sink(Vector2(1.5, -0.2)) == 0.0 and box.sink(Vector2(1.5, 1.5)) == 1.0 and box.sink(Vector2(1.5, 0.2)) > 0.0 and box.sink(Vector2(1.5, 0.2)) < 1.0,
 		"pond bank: 0 on land, 1 on the bed, sloping between")
+	# The user (2026-11-16): square green blocks at the edge: the grass along the bank's top lies on level ground (the lip).
+	var lip_ok := true
+	for i in 60:
+		var q := Vector2(0.3 + i * 0.04, 0.0)
+		for dy in 40:
+			var p2 := Vector2(q.x, -0.4 + dy * 0.02)
+			var f := box.field(p2)
+			if f >= PondShape.SHORE and f < PondShape.SHORE + PondShape.LIP:
+				lip_ok = lip_ok and box.sink(p2) == 0.0
+	check(lip_ok and PondShape.LIP > 0.0, "pond bank: its top lip past the shoreline stays level (the grass edge on flat ground)")
+	var SG2: GDScript = load("res://scripts/world3d/sunken_ground.gd")
+	check(int(SG2.SUB) >= 8, "the bank's slope laid fine (%d quads a cell side), so its facets don't read as blocks" % int(SG2.SUB))
 	var t := MapManager.data("town")
 	var pond := PondShape.of(t)
 	check(pond != null and pond.cells.size() >= 30 and pond.bounds.has_point(Vector2i(19, 21)), "the town's pond shape from its jade cells")

@@ -1,14 +1,14 @@
 {
-	"_about": "Koi in the temple garden's pond (after the user's photos of a Zen temple's pond full of carp; rules: KoiPondRules, pictures: KoiPondArt, drawn by KoiPondLayer in 3D and KoiPondView in the flat view). `ponds`: where they swim, a map and a rect of cells (`cell`, `size`); they keep to that rect's water cells with no prop on them (not the rocks), `margin` cells off the rocks and over the pond's flat bed, clear of the bank's slope (PondShape). `count` fish by season (fewer show in winter: the rest keep to the deep). `patterns`: the koi's colours, one each in turn (KoiPondArt). Each fish wanders on its own (2026-11-16, the user: every fish should swim about at random, now resting, now swimming): `speed`: cells a second cruising (`winter` in the cold), each fish a share of it by `spread`, and each leg to a random spot at its own pace, `leg` (min, max) times that; `turn`: how fast they turn, radians a second. `rest`: the chance a fish stops on reaching its spot, hanging still for `rest_s` seconds (min, max) with only a `drift` (cells a second) and its tail barely beating; `pause_per_s`: the chance a second it stops on the way, for half as long. `wiggle_hz`: the tail's beats a second at full speed. The pictures are drawn at the ground's own pixel size (a fish about 0.8 of a cell long). Balance numbers are ours.",
+	"_about": "Koi in the temple garden's pond (after the user's photos of a Zen temple's pond full of carp; rules: KoiPondRules, pictures: KoiPondArt, drawn by KoiPondLayer in 3D and KoiPondView in the flat view). `ponds`: where they swim, a map and a rect of cells (`cell`, `size`); they keep to that rect's water cells with no prop on them (not the rocks), `margin` cells off the rocks and over the pond's flat bed, clear of the bank's slope (PondShape). `count` fish by season (fewer show in winter: the rest keep to the deep). `patterns`: the koi's colours, one each in turn (KoiPondArt). Each fish wanders on its own (2026-11-16, the user: every fish should swim about at random, now resting, now swimming): `speed`: cells a second cruising (`winter` in the cold), each fish a share of it by `spread`, and each leg to a random spot at its own pace, `leg` (min, max) times that; `turn`: how fast they turn, radians a second (2026-11-16, the user: a little slower; cruise 0.45 -> 0.3, turn 1.8 -> 1.3). `rest`: the chance a fish stops on reaching its spot, hanging still for `rest_s` seconds (min, max) with only a `drift` (cells a second) and its tail barely beating; `pause_per_s`: the chance a second it stops on the way, for half as long. `wiggle_hz`: the tail's beats a second at full speed. The pictures are drawn at the ground's own pixel size (a fish about 0.8 of a cell long). Balance numbers are ours.",
 	"ponds": [
 		{"map": "town", "cell": [19, 21], "size": [8, 9]}
 	],
 	"count": {"spring": 8, "summer": 9, "fall": 8, "winter": 3},
 	"patterns": ["kohaku", "orange", "ogon", "showa", "orange", "shiro", "kohaku", "orange", "asagi"],
 	"margin": 0.35,
-	"speed": {"cruise": 0.45, "winter": 0.15, "spread": 0.35},
+	"speed": {"cruise": 0.3, "winter": 0.1, "spread": 0.35},
 	"leg": [0.55, 1.4],
-	"turn": 1.8,
+	"turn": 1.3,
 	"rest": {"chance": 0.45, "rest_s": [2.0, 6.0], "drift": 0.02},
 	"pause_per_s": 0.05,
 	"wiggle_hz": 2.2

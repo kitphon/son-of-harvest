@@ -49,6 +49,7 @@ func _town() -> MapData:
 
 func _data() -> void:
 	var cfg := KoiPondRules.config()
+	check(float(cfg.speed.cruise) <= 0.3 and float(cfg.turn) <= 1.4, "the koi swim and turn slowly (the user, 2026-11-16: a little slower)")
 	check(not (cfg.ponds as Array).is_empty() and float(cfg.margin) > 0.0 and float(cfg.margin) < 0.5 and float(cfg.speed.winter) < float(cfg.speed.cruise),
 		"data/koi.json: ponds, a margin under half a cell, slower in winter")
 	for s in ["spring", "summer", "fall", "winter"]:

@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-16 — Slower koi; no square green blocks along the pond's edge — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user's look (2026-11-16): the koi a little too quick; square green blocks along the pond's edge. (1) Koi:
+  cruise 0.3 cells/s (was 0.45), winter 0.1 (was 0.15), turning 1.3 rad/s (was 1.8) (data/koi.json). (2) The blocks:
+  the bank's slope began right at the shoreline and was laid as quarter-cell quads, so the grass painted along the
+  bank's top sat on those quads, each catching the light at its own angle: steps of brighter and darker grass. The bank
+  now keeps a level lip past the shoreline (PondShape.LIP 0.07 of the field) before it slopes, so the grass edge lies on
+  flat ground, and the slope is laid in eighth-cell quads (SunkenGround.SUB 8, was 4), each corner's height worked out
+  once over the pond's bounds and its normal from the grid round it, so it shades smoothly.
+- Checked: test_maps (the lip level past the shoreline, SUB 8), test_koi (the slower numbers; every fish still rests,
+  swims and goes all over the pond): `test_maps: OK (0 failed)`, `test_koi: OK (0 failed)`. Frames `--demo
+  --map=town@pond --time=11:00 --weather=sunny`, zoomed on the east shore: a clean grass edge, no bright squares.
+  `tools/build_times.gd -- --maps=town`: town cold 1789.5 ms, warm 640.2 ms (the commit before: 1934.9 / 750.2 ms;
+  the finer slope costs nothing seen, the heights worked out once). All 44 tests/test_*.gd print `OK (0 failed)`; smoke
+  `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the user's look at the pond.
+
 ## 2026-11-16 — The temple pond's top-left arm deep water again — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user asked for the pond's top-left arm (cells (20, 22) and (21, 22), two cells wide, one row above the rest)

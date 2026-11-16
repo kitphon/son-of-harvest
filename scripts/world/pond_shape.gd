@@ -16,6 +16,7 @@ extends RefCounted
 const SOFT := 0.85    # half width of the smoothing, cells (corners round to about this)
 const WOBBLE := 0.16  # how much the slow waves move the field near the shore (about a fifth of a cell)
 const SHORE := 0.5    # the field's level on the shoreline
+const LIP := 0.07     # the bank's top stays flat this far past the shoreline, so the grass edge lies on level ground
 const DEEP := 0.8     # the field's level where the bank's slope reaches the bed (a steep, narrow bank, so a two-cell arm of the pond is still deep: the user, 2026-11-16)
 const LOOK := "jade"
 const T := 16
@@ -97,10 +98,10 @@ static func _cover(t: float) -> float:
 	return smoothstep(-SOFT, SOFT, t) - smoothstep(-SOFT, SOFT, t - 1.0)
 
 
-## How far down the ground lies at `p`: 0 on the land and the shoreline, 1 on the bed (times
-## SunkenGround.DROP), easing down the bank between.
+## How far down the ground lies at `p`: 0 on the land, the shoreline and the bank's lip (LIP), 1
+## on the bed (times SunkenGround.DROP), easing down the bank between.
 func sink(p: Vector2) -> float:
-	return smoothstep(SHORE, DEEP, field(p))
+	return smoothstep(SHORE + LIP, DEEP, field(p))
 
 
 ## Whether `p` is out over the pond's flat bed (past the bank's slope).
