@@ -10,6 +10,36 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-16 — The temple pond's soft shore, wandering koi, rounded rocks — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user's look at the pond (2026-11-16): every fish should swim about at random, now resting, now swimming;
+  the pond looked too square with a straight drop at its edge; the rocks were pointed. (1) Koi: each fish wanders on its
+  own to random spots of open water (anywhere in a cell, not its middle), each leg at its own pace (`leg` 0.55-1.4 of
+  its cruise), stops on arriving nearly half the time for 2-6 s hanging still (`drift` 0.02 cells/s, the tail barely
+  beating), and pauses on the way now and then (`pause_per_s` 0.05). The pull toward the farmer on the bank is gone (it
+  bunched the school at his feet). (2) Soft shore: PondShape sees the jade cells as one smooth shape, the cells' squares
+  blurred by a smoothstep of half width 0.6 (a sum over the 3 x 3 cells round a point): 0.5 on the shoreline, which keeps
+  a straight cell edge but rounds every corner, convex off and concave in; between 0.5 and 0.97 the bank slopes from the
+  land's height down to the bed (smoothstep, about half a cell wide). The 3D ground lays the cells the pond reaches as
+  4 x 4 quads sunk by that slope, normals from it, and no stone wall round them (SunkenGround `pond`); the ground
+  picture of both views is repainted over the pond (PondShape.paint, MapView.pond_picture): moss over the upper bank,
+  earth and pebbles below, wet earth and the water's line at its foot, grass where a water cell's corner is rounded off;
+  the flat view draws no grey stone band round it. The koi keep over the flat bed (PondShape.on_bed). The river and
+  other water keep their stone banks. (3) Rocks: a rounded stone (GardenProps.pebble: rings swelling out and closing over
+  a low dome, no apex) in place of the faceted boulder with its point; the tall one an upright rounded stone; a rock out
+  in the water stands on the bed at the pond's depth there.
+- Checked: test_koi (every fish rests and swims, goes all over the pond (6+ cells each in three minutes), the school
+  not crowded (mean 1.5+ cells apart), none on the bank's slope, none faster or turning sharper than allowed):
+  `test_koi: OK (0 failed)`; test_maps `_soft_pond` (the field on a straight edge, a convex corner rounded off, a
+  concave one in, the slope, the town's shape, the river none, the 3D ground sloped with no walls in the pond, the
+  painted bank and a rounded-off corner as grass, no pointed boulder): `test_maps: OK (0 failed)`. Frames
+  `--demo --map=town@pond --time=11:00 --weather=sunny`: 3D the rounded shore and its mossy bank sloping to the
+  water, round rocks, koi apart; flat view the same soft shape. All 44 tests/test_*.gd print `OK (0 failed)`;
+  smoke `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the flat view's water skin still lays its glints by whole cells, so a few faint ones show over a
+  rounded-off corner; the user's look at the soft pond.
+
 ## 2026-11-16 — The bamboo grove a real stand: tall, close culms, a longer walk, brushwood fences — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user's two photos of Arashiyama's bamboo path: the game's grove looked thin and sparse, not a thick wood,

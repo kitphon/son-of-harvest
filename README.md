@@ -327,12 +327,15 @@ edge where boards or tatami meet the earth and a shoe stone below the door's ste
   while it shows (PlaceName, Hud, HudLayout `place`). The village's: Tenryo-ji Temple (the
   temple court, our name after Tenryu-ji), Nonomori Shrine, Bamboo Path, Tsukiwatari Bridge;
 - the temple garden (2026-11-15, after the user's photos of a Zen temple's pond garden): the
-  pond a ragged shape of `jade` water, `garden_rock` props (`shape` tall, flat, low, pair; out
-  in the water they stand on the sunk bed) and `shrub` (a clipped round azalea, pink in late
+  pond a ragged shape of `jade` water with a soft shore (PondShape, 2026-11-16: the cells
+  blurred into one smooth shape, every corner rounded, the bank sloping from the land down to the
+  bed in moss, earth and pebbles instead of a stone wall, in the 3D ground's height and both views'
+  pictures), `garden_rock` props (`shape` tall, flat, low, pair: rounded stones, no points; out
+  in the water they stand on the bed at its depth there) and `shrub` (a clipped round azalea, pink in late
   spring, a few red leaves in fall) on its mossy banks (GardenProps in 3D, GardenLook and
   MapView._draw_garden flat), koi swimming in it (data/koi.json, KoiPondRules, KoiPondArt,
-  KoiPondLayer, KoiPondView: fewer and slower in winter, under the ice; they come to the farmer
-  standing on the bank); `--map=town@pond` stands on its bank.
+  KoiPondLayer, KoiPondView: each wanders on its own to random spots at its own pace, stops a
+  while and pauses on the way, over the flat bed; fewer and slower in winter, under the ice); `--map=town@pond` stands on its bank.
 
 `Game.maps` (MapManager) holds the map, the farmer's position and facing (saved);
 `Game.go_to_map()` changes it and emits `map_changed` (the views fade, rebuild, place the

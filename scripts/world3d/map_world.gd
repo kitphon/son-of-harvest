@@ -141,7 +141,7 @@ func _make_tile_ground() -> void:
 		flat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		mat = flat
 	# A grid of cells, the water's sunk below the land with stone banks (SunkenGround).
-	SunkenGround.place(self, map.w, map.h, Vector2.ZERO, func(c: Vector2i) -> bool: return map.tile(c) == "water", mat)
+	SunkenGround.place(self, map.w, map.h, Vector2.ZERO, func(c: Vector2i) -> bool: return map.tile(c) == "water", mat, 0.0, Callable(), PondShape.of(map))   # the temple pond's soft, sloping bank
 
 
 static var _grounds := {}   # map id and tiles -> the ground picture (the same every visit)
@@ -149,7 +149,7 @@ static var _grounds := {}   # map id and tiles -> the ground picture (the same e
 ## The map's tiles laid into one picture (indoors with the corners shaded), kept a run.
 func ground_picture() -> ImageTexture:
 	var season := Game.season_name()
-	var id := "%s|%d|%s|%s|%d" % [map.id, map.tiles.hash(), map.indoor, season, str(map.props).hash()]
+	var id := "%s|%d|%s|%s|%d|%d" % [map.id, map.tiles.hash(), map.indoor, season, str(map.props).hash(), map.looks.hash()]
 	if not _grounds.has(id):
 		var keys := ground_keys(map, season)
 		var img := Image.create(map.w * T, map.h * T, false, Image.FORMAT_RGBA8)
@@ -159,6 +159,9 @@ func ground_picture() -> ImageTexture:
 				img.blit_rect(tile, Rect2i(0, 0, T, T), Vector2i(x * T, y * T))
 		if map.indoor:
 			_shade_corners(img)
+		var pond := PondShape.of(map)
+		if pond != null:   # the soft shore: rounded, its bank painted down to the water (PondShape.paint)
+			img.blit_rect(MapView.pond_picture(map, keys), Rect2i(Vector2i.ZERO, pond.bounds.size * T), pond.bounds.position * T)
 		_grounds[id] = ImageTexture.create_from_image(img)
 	return _grounds[id]
 

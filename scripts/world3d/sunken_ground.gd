@@ -7,18 +7,26 @@ extends RefCounted
 ## is mapped over the grid exactly as it was over the flat sheet (u = x / columns, v = y / rows),
 ## so the snow, wet and tile pictures land on the same cells. WaterSurface lies its LIFT over the
 ## sunken bed; the bridge's deck stays at the land's height, over the water.
+## A soft pond (PondShape, the temple's jade pond, 2026-11-16) has no stone walls: the cells it
+## reaches are laid as SUB x SUB quads whose corners sink by PondShape.sink, so its bank slopes
+## down from a rounded shoreline to the bed.
 
 const DROP := 0.35   # how far the water lies below the land (world units, a cell is 1)
 const BANK_KEY := "ground:scree:1"   # the bank's grey river stones (PlaceholderArt, repeated a unit)
+const SUB := 4          # quads a side in a cell a soft pond reaches
 
 
 ## The ground mesh over `cols` x `rows` cells whose top-left corner stands at `origin` (cells);
-## `is_water(c)` (c counted from that corner) says which cells are sunk.
-static func ground(cols: int, rows: int, origin: Vector2, is_water: Callable) -> ArrayMesh:
+## `is_water(c)` (c counted from that corner) says which cells are sunk; `pond` (map cells from
+## that corner too) lays its cells as a sloping bank instead.
+static func ground(cols: int, rows: int, origin: Vector2, is_water: Callable, pond: PondShape = null) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for y in rows:
 		for x in cols:
+			if pond != null and pond.bounds.has_point(Vector2i(origin) + Vector2i(x, y)):
+				_soft_cell(st, cols, rows, origin, Vector2i(x, y), pond)
+				continue
 			var h := -DROP if is_water.call(Vector2i(x, y)) else 0.0
 			var x0 := origin.x + x
 			var z0 := origin.y + y
@@ -33,10 +41,30 @@ static func ground(cols: int, rows: int, origin: Vector2, is_water: Callable) ->
 	return st.commit()
 
 
+## One cell of a soft pond: SUB x SUB quads, each corner sunk by the pond's slope, the normals
+## from the slope, the picture mapped as on a flat cell.
+static func _soft_cell(st: SurfaceTool, cols: int, rows: int, origin: Vector2, c: Vector2i, pond: PondShape) -> void:
+	var height := func(q: Vector2) -> float: return -DROP * pond.sink(q)
+	var e := 0.05
+	for j in SUB:
+		for i in SUB:
+			var corners: Array[Vector2] = []
+			for k in [Vector2(i, j), Vector2(i + 1, j), Vector2(i + 1, j + 1), Vector2(i, j + 1)]:
+				corners.append(Vector2(c) + k / SUB)
+			for n in [0, 1, 2, 0, 2, 3]:
+				var q: Vector2 = corners[n]
+				var w := origin + q
+				var hx := float(height.call(w + Vector2(e, 0))) - float(height.call(w - Vector2(e, 0)))
+				var hz := float(height.call(w + Vector2(0, e))) - float(height.call(w - Vector2(0, e)))
+				st.set_normal(Vector3(-hx / (2 * e), 1.0, -hz / (2 * e)).normalized())
+				st.set_uv(Vector2(q.x / cols, q.y / rows))
+				st.add_vertex(Vector3(w.x, height.call(w), w.y))
+
+
 ## The banks round the water of the same grid: a wall on every side of a water cell that meets a
 ## land cell inside the grid (`inside(c)` false leaves a side out, e.g. the map's own cells under
-## the apron), facing into the water. Null when there is none.
-static func banks(cols: int, rows: int, origin: Vector2, is_water: Callable, inside := Callable()) -> ArrayMesh:
+## the apron), facing into the water; none round a soft pond's cells (`pond`). Null when there is none.
+static func banks(cols: int, rows: int, origin: Vector2, is_water: Callable, inside := Callable(), pond: PondShape = null) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var any := false
@@ -44,6 +72,8 @@ static func banks(cols: int, rows: int, origin: Vector2, is_water: Callable, ins
 		for x in cols:
 			var c := Vector2i(x, y)
 			if not is_water.call(c) or (inside.is_valid() and not inside.call(c)):
+				continue
+			if pond != null and pond.cells.has(Vector2i(origin) + c):
 				continue
 			for d in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
 				var n: Vector2i = c + d
@@ -86,15 +116,15 @@ static func bank_material() -> Material:
 
 
 ## Adds the ground (with `mat`) and its banks to `parent` at `y`; returns the ground's node.
-static func place(parent: Node3D, cols: int, rows: int, origin: Vector2, is_water: Callable, mat: Material, y := 0.0, inside := Callable()) -> MeshInstance3D:
+static func place(parent: Node3D, cols: int, rows: int, origin: Vector2, is_water: Callable, mat: Material, y := 0.0, inside := Callable(), pond: PondShape = null) -> MeshInstance3D:
 	var g := MeshInstance3D.new()
-	g.mesh = ground(cols, rows, origin, is_water)
+	g.mesh = ground(cols, rows, origin, is_water, pond)
 	g.material_override = mat
 	g.position = Vector3(0, y, 0)
 	g.layers = NightLamps.GROUND_LAYER   # the night's lamps leave it to the drawn pools
 	g.set_meta("ground", true)
 	parent.add_child(g)
-	var bm := banks(cols, rows, origin, is_water, inside)
+	var bm := banks(cols, rows, origin, is_water, inside, pond)
 	if bm != null:
 		var b := MeshInstance3D.new()
 		b.mesh = bm

@@ -56,9 +56,8 @@ func _process(delta: float) -> void:
 	if game != null and game.season_name() != _season:
 		_make()
 		return
-	var farmer: Variant = (game.maps.pos / 16.0) if game != null and game.maps.id == map.id else null
 	for school in schools:
-		school.step(delta, farmer)
+		school.step(delta)
 	_place_all()
 
 

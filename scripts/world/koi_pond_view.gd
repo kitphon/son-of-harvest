@@ -37,9 +37,8 @@ func _process(delta: float) -> void:
 	var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
 	if game != null and game.season_name() != _season:
 		_make()
-	var farmer: Variant = (game.maps.pos / float(T)) if game != null and game.maps.id == map.id else null
 	for school in schools:
-		school.step(delta, farmer)
+		school.step(delta)
 	queue_redraw()
 
 

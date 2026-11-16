@@ -2,7 +2,8 @@ extends SceneTree
 ## Headless checks for the koi in the temple garden's pond (KoiPondRules, data/koi.json; KoiPondArt;
 ## KoiPondLayer in 3D, KoiPondView in the flat view): the pond's water cells (no rocks), fish by
 ## season, every fish kept in open water off the banks while it swims, moving and turning no faster
-## than allowed, coming to the farmer standing on the bank, the tail's frames; the pictures; both
+## than allowed, over the pond's flat bed (never on the bank's slope), each wandering on its own
+## (now resting, now swimming, all over the pond, no crowding), the tail's frames; the pictures; both
 ## views build the fish on the village and none elsewhere, the flat one under the water's skin. Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_koi.gd
 
@@ -28,7 +29,7 @@ func _run() -> void:
 	g.new_game()
 	_data()
 	_swim()
-	_gather()
+	_wander()
 	_art()
 	await _view_3d()
 	await _view_flat()
@@ -75,7 +76,7 @@ func _swim() -> void:
 	var sharp := 0
 	var travelled := 0.0
 	var cfg := KoiPondRules.config()
-	var cap := float(cfg.speed.cruise) * (1.0 + float(cfg.speed.spread)) + 0.01
+	var cap := float(cfg.speed.cruise) * (1.0 + float(cfg.speed.spread)) * float(cfg.leg[1]) + 0.01
 	for i in 1800:   # a minute at 30 frames a second
 		var before: Array = k.fish.map(func(f): return [f.pos, f.heading])
 		k.step(1.0 / 30.0)
@@ -90,6 +91,8 @@ func _swim() -> void:
 			if absf(wrapf(float(f.heading) - float(before[j][1]), -PI, PI)) > float(cfg.turn) / 30.0 + 0.0001:
 				sharp += 1
 	check(stray == 0, "every fish stays in open water off the banks and rocks (%d strays)" % stray)
+	var on_slope := k.fish.filter(func(f): return not k.shape.on_bed(f.pos))
+	check(k.shape != null and on_slope.is_empty(), "every fish keeps over the pond's flat bed, off the bank's slope")
 	check(fast == 0 and sharp == 0, "no fish swims or turns faster than allowed (%d / %d)" % [fast, sharp])
 	var moved_far := 0
 	for j in k.fish.size():
@@ -104,27 +107,43 @@ func _swim() -> void:
 	check(frames.size() == 3, "the tail's three frames")
 
 
-## Koi come to the farmer standing on the bank (the pond spawn, by the water's east side).
-func _gather() -> void:
+## Each fish wanders on its own (the user, 2026-11-16): over three minutes every fish both rests
+## and swims, goes to many places all over the pond, and the school does not crowd into one spot.
+func _wander() -> void:
 	var t := _town()
 	var pond: Dictionary = KoiPondRules.ponds_on("town")[0]
-	var spot: Vector2 = Vector2(t.spawns.pond[0]) + Vector2(0.5, 0.5)
-	var near := func(k: KoiPondRules) -> float:
-		var d := 0.0
-		for f in k.fish:
-			d += (f.pos as Vector2).distance_to(spot)
-		return d / k.fish.size()
-	var with_him := 0.0
-	var without := 0.0
-	for seed in 6:
-		var a := KoiPondRules.make(t, pond, "summer", 100 + seed)
-		var b := KoiPondRules.make(t, pond, "summer", 100 + seed)
-		for i in 1200:
-			a.step(1.0 / 30.0, spot)
-			b.step(1.0 / 30.0, null)
-		with_him += near.call(a)
-		without += near.call(b)
-	check(with_him < without, "koi gather by the farmer on the bank (mean distance %.2f with him, %.2f without)" % [with_him / 6.0, without / 6.0])
+	var k := KoiPondRules.make(t, pond, "summer", 31)
+	var rested := {}
+	var swam := {}
+	var places := {}
+	var rest_frames := 0
+	var frames := 5400   # three minutes at 30 a second
+	for i in frames:
+		k.step(1.0 / 30.0)
+		for j in k.fish.size():
+			var f: Dictionary = k.fish[j]
+			if KoiPondRules.resting(f):
+				rested[j] = true
+				rest_frames += 1
+			elif float(f.speed) > 0.1:
+				swam[j] = true
+			if not places.has(j):
+				places[j] = {}
+			places[j][Vector2i((f.pos as Vector2).floor())] = true
+	var share := float(rest_frames) / (frames * k.fish.size())
+	check(rested.size() == k.fish.size() and swam.size() == k.fish.size(), "every fish both rests and swims (%d rested, %d swam of %d)" % [rested.size(), swam.size(), k.fish.size()])
+	check(share > 0.15 and share < 0.7, "they rest a fair share of the time, not all of it (%.0f%%)" % (share * 100.0))
+	var few := places.keys().filter(func(j): return places[j].size() < 6)
+	check(few.is_empty(), "every fish goes all over the pond (fish with under 6 cells visited: %s)" % [few])
+	var spread := 0.0
+	var pairs := 0
+	for a in k.fish.size():
+		for b in range(a + 1, k.fish.size()):
+			spread += (k.fish[a].pos as Vector2).distance_to(k.fish[b].pos)
+			pairs += 1
+	check(spread / pairs > 1.5, "the school does not crowd into one spot (mean %.2f cells apart)" % (spread / pairs))
+	var cfg := KoiPondRules.config()
+	check(not cfg.has("gather"), "no fish is drawn to the farmer (each wanders on its own)")
 
 
 func _art() -> void:

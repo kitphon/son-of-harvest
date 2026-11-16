@@ -50,7 +50,7 @@ func _temple_garden() -> void:
 	for snow in [false, true]:
 		var w: Node3D = FW.new()
 		for shape in GP.SHAPES:
-			GP.rock(w, shape, Vector3(2, 0, 2), shape == "pair", 3, snow)
+			GP.rock(w, shape, Vector3(2, 0, 2), 0.35 if shape == "pair" else 0.0, 3, snow)
 		GP.shrub(w, Rect2(4, 4, 1, 1), "spring", 20, 5, snow)
 		var meshes := w.get_children().filter(func(n): return n is MeshInstance3D and n.mesh != null)
 		check(meshes.size() >= 2, "GardenProps builds its rocks and shrub (snow %s): %d meshes" % [snow, meshes.size()])
@@ -61,6 +61,55 @@ func _temple_garden() -> void:
 	check("p.kind in GardenLook.KINDS" in mv_src and "func _draw_garden" in mv_src, "the flat view draws the garden rocks and shrubs (no plain box)")
 	var mw_src := FileAccess.get_file_as_string("res://scripts/world3d/map_world.gd")
 	check("\"garden_rock\", \"shrub\": GardenProps.prop" in mw_src and "surroundings.water.set_looks" in mw_src, "MapWorld builds the garden pieces and gives the water skin its jade look")
+
+
+## The temple pond's soft shore (PondShape, 2026-11-16, the user: too square, a straight drop): the
+## field is 0.5 on a straight cell edge, rounds a convex corner off and a concave one in, 1 over the
+## bed; the bank slopes from the land down to the bed; the 3D ground is sloped there with no stone
+## walls round it; the picture paints the bank and the rounded-off corners; the rocks have no point.
+func _soft_pond() -> void:
+	var sq: Array[Vector2i] = []
+	for y in 3:
+		for x in 3:
+			sq.append(Vector2i(x, y))
+	var box := PondShape.from_cells(sq)
+	check(absf(box.field(Vector2(1.5, 0.0)) - 0.5) < 0.01 and box.field(Vector2(1.5, 1.5)) > 0.99 and box.field(Vector2(-0.7, 1.5)) < 0.01,
+		"pond field: 0.5 on a straight edge, 1 inside, 0 outside")
+	check(box.field(Vector2(0.08, 0.08)) < PondShape.SHORE, "pond field: a convex corner is rounded off (%.2f)" % box.field(Vector2(0.08, 0.08)))
+	var ell: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1)]
+	var l_shape := PondShape.from_cells(ell)
+	check(l_shape.field(Vector2(1.05, 1.05)) > PondShape.SHORE, "pond field: a concave corner is rounded in (%.2f)" % l_shape.field(Vector2(1.05, 1.05)))
+	check(box.sink(Vector2(1.5, -0.2)) == 0.0 and box.sink(Vector2(1.5, 1.5)) == 1.0 and box.sink(Vector2(1.5, 0.2)) > 0.0 and box.sink(Vector2(1.5, 0.2)) < 1.0,
+		"pond bank: 0 on land, 1 on the bed, sloping between")
+	var t := MapManager.data("town")
+	var pond := PondShape.of(t)
+	check(pond != null and pond.cells.size() >= 30 and pond.bounds.has_point(Vector2i(19, 21)), "the town's pond shape from its jade cells")
+	check(PondShape.of(MapManager.data("river")) == null, "the river has no soft pond (its banks stay stone)")
+	var SG: GDScript = load("res://scripts/world3d/sunken_ground.gd")
+	var water := func(c: Vector2i) -> bool: return t.tile(c) == "water"
+	var mesh: ArrayMesh = SG.ground(t.w, t.h, Vector2.ZERO, water, pond)
+	var verts: PackedVector3Array = mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var slope := 0
+	for v in verts:
+		if v.y < -0.02 and v.y > -float(SG.DROP) + 0.02:
+			slope += 1
+	check(slope > 100, "3D: the pond's bank slopes down (%d vertices between the land and the bed)" % slope)
+	var walls: ArrayMesh = SG.banks(t.w, t.h, Vector2.ZERO, water, Callable(), pond)
+	var in_pond := 0
+	if walls != null:
+		for v in walls.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+			if Rect2(pond.bounds).grow(-0.5).has_point(Vector2(v.x, v.z)):
+				in_pond += 1
+	check(in_pond == 0, "3D: no stone wall round the soft pond (%d wall vertices in it)" % in_pond)
+	var pic := MapView.pond_picture(t)
+	var o := pond.bounds.position * 16
+	var bank_px := pic.get_pixel(20 * 16 + 8 - o.x, 22 * 16 + 1 - o.y)
+	var bank_cols: Array = PondShape.MOSS + PondShape.EARTH + PondShape.PEBBLE + [PondShape.WET, PondShape.EDGE]
+	check(bank_cols.has(bank_px), "picture: the bank painted along the shore (%s)" % bank_px)
+	var corner := pic.get_pixel(20 * 16 - o.x, 22 * 16 - o.y)
+	check(corner.g > corner.b and not bank_cols.has(corner) and corner != PondShape.JADE, "picture: a rounded-off corner of water is grass (%s)" % corner)
+	var GP_src := FileAccess.get_file_as_string("res://scripts/world3d/garden_props.gd")
+	check("OutdoorProps.boulder(" not in GP_src and "static func pebble(" in GP_src, "the garden rocks are rounded stones (no pointed boulder)")
 
 
 ## Named places (MapData.zones) and the name shown on arriving (PlaceName, the Hud's place box):
@@ -540,6 +589,7 @@ func _process(delta: float) -> bool:
 		_clinic_doors()
 		_arashiyama_town()
 		_temple_garden()
+		_soft_pond()
 		_place_names()
 		_world()
 		_sunken_water()

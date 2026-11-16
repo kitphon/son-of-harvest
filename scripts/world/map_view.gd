@@ -153,6 +153,38 @@ func _draw() -> void:
 				draw_texture(PlaceholderArt.tex("build:glass"), Vector2(c * T))
 			elif map.tile(c) == "wall":
 				draw_rect(Rect2(Vector2(c * T), Vector2(T, T)), COLORS.wall)
+	var pond := PondShape.of(map)
+	if pond != null:   # the temple pond's soft shore over its tiles (the 3D ground has the same picture)
+		draw_texture(pond_texture(map), Vector2(pond.bounds.position * T))
+
+
+static var _ponds: Dictionary = {}   # map id and tiles -> the soft pond's picture
+
+
+## The soft pond's picture over its bounds (PondShape.paint on the plain tiles; `keys`: the cells'
+## ground keys when the caller has them, else ground_key), kept a run.
+static func pond_picture(m: MapData, keys: Dictionary = {}) -> Image:
+	var id := "%s|%d|%d" % [m.id, m.tiles.hash(), m.looks.hash()]
+	if not _ponds.has(id):
+		var pond := PondShape.of(m)
+		var base := func(at: Vector2i) -> Color:
+			var c := Vector2i(floori(at.x / float(T)), floori(at.y / float(T)))
+			var key: String = keys.get(c, ground_key(m, c))
+			return PlaceholderArt.image(key).get_pixel(posmod(at.x, T), posmod(at.y, T))
+		var grass := func(at: Vector2i) -> Color:
+			return PlaceholderArt.image("ground:grass:%d" % posmod(at.x / T * 7 + at.y / T * 13, PlaceholderArt.GROUND_VARIANTS)).get_pixel(posmod(at.x, T), posmod(at.y, T))
+		_ponds[id] = pond.paint(base, grass)
+	return _ponds[id]
+
+
+static var _pond_tex: Dictionary = {}
+
+
+static func pond_texture(m: MapData) -> ImageTexture:
+	var id := "%s|%d|%d" % [m.id, m.tiles.hash(), m.looks.hash()]
+	if not _pond_tex.has(id):
+		_pond_tex[id] = ImageTexture.create_from_image(pond_picture(m))
+	return _pond_tex[id]
 
 
 ## The water lies lower than the land (SunkenGround in 3D): seen from above, the stone bank the
@@ -258,7 +290,7 @@ func _process(_delta: float) -> void:
 
 func _draw_objects() -> void:
 	if not map.indoor:   # over the water's moving skin, under the props
-		draw_banks(_objects, map.w, map.h, func(c: Vector2i) -> bool: return map.tile(c) == "water")
+		draw_banks(_objects, map.w, map.h, func(c: Vector2i) -> bool: return map.tile(c) == "water" and map.look(c) != PondShape.LOOK)   # the soft pond has its own sloping bank
 	var paddies := paddy_cells()
 	_tall = not paddies.is_empty()
 	var now := Time.get_ticks_msec() / 1000.0

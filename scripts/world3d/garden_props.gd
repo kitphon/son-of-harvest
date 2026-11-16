@@ -27,39 +27,83 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, map: MapData, season
 	var wet := map.tile(cell) == "water"
 	var seed := cell.x * 31 + cell.y * 17
 	match str(p.kind):
-		"garden_rock": rock(w, str(p.get("shape", "low")), mid + Vector3(0, -SunkenGround.DROP if wet else 0.0, 0), wet, seed, snow)
+		"garden_rock":
+			# Out in the water it stands on the bed there: the pond's own depth at its spot (PondShape's slope), else the full drop.
+			var pond := PondShape.of(map)
+			var sink := (pond.sink(Vector2(mid.x, mid.z)) if pond != null and pond.cells.has(cell) else 1.0) if wet else 0.0
+			rock(w, str(p.get("shape", "low")), mid + Vector3(0, -SunkenGround.DROP * sink, 0), SunkenGround.DROP * sink, seed, snow)
 		"shrub": shrub(w, Rect2(Vector2(p.cell), Vector2(p.size)), season, day, seed, snow)
 
 
-## A garden rock of `shape` standing at `foot` (its base); `wet` when it rises out of the water,
-## so it is taller by the drop to show as much above the skin.
-static func rock(w: FarmWorld, shape: String, foot: Vector3, wet: bool, seed: int, snow: bool) -> void:
+## A garden rock of `shape` standing at `foot` (its base), `under` deep in the water (that much
+## taller, to show as much above the skin): rounded stones, worn smooth (pebble), never a point.
+static func rock(w: FarmWorld, shape: String, foot: Vector3, under: float, seed: int, snow: bool) -> void:
 	var p := FarmProps.Parts.new()
 	var sn: SurfaceTool = null
 	var snow_parts: FarmProps.Parts = null
 	if snow:
 		snow_parts = FarmProps.Parts.new()
 		sn = snow_parts.st(FarmProps.Parts.SNOW)
-	var under := SunkenGround.DROP if wet else 0.0
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
 	var off := Vector3(rng.randf_range(-0.08, 0.08), 0, rng.randf_range(-0.08, 0.08))
 	match shape:
-		"tall":
-			OutdoorProps.boulder(p, sn, foot + off, 0.24, 0.78 + under, 0.2, seed + 1, STONE)
-			OutdoorProps.boulder(p, sn, foot + off + Vector3(0.22, 0, 0.16), 0.15, 0.2 + under, 0.13, seed + 2, STONE)
+		"tall":   # an upright stone, rounded on top
+			pebble(p, sn, foot + off, 0.27, 0.56 + under, 0.22, seed + 1)
+			pebble(p, sn, foot + off + Vector3(0.24, 0, 0.16), 0.15, 0.16 + under, 0.13, seed + 2)
 		"flat":
-			OutdoorProps.boulder(p, sn, foot + off, 0.42, 0.16 + under, 0.34, seed + 1, STONE)
-		"pair":
-			OutdoorProps.boulder(p, sn, foot + off + Vector3(-0.08, 0, -0.05), 0.3, 0.44 + under, 0.26, seed + 1, STONE)
-			OutdoorProps.boulder(p, sn, foot + off + Vector3(0.22, 0, 0.12), 0.2, 0.26 + under, 0.18, seed + 2, STONE)
-			OutdoorProps.boulder(p, sn, foot + off + Vector3(-0.26, 0, 0.22), 0.14, 0.14 + under, 0.12, seed + 3, STONE)
+			pebble(p, sn, foot + off, 0.42, 0.15 + under, 0.34, seed + 1)
+		"pair":   # a little island of three
+			pebble(p, sn, foot + off + Vector3(-0.08, 0, -0.05), 0.31, 0.36 + under, 0.27, seed + 1)
+			pebble(p, sn, foot + off + Vector3(0.23, 0, 0.12), 0.21, 0.22 + under, 0.18, seed + 2)
+			pebble(p, sn, foot + off + Vector3(-0.27, 0, 0.22), 0.15, 0.13 + under, 0.13, seed + 3)
 		_:   # low
-			OutdoorProps.boulder(p, sn, foot + off, 0.32, 0.3 + under, 0.27, seed + 1, STONE)
-			OutdoorProps.boulder(p, sn, foot + off + Vector3(0.24, 0, -0.18), 0.12, 0.1 + under, 0.1, seed + 2, STONE)
+			pebble(p, sn, foot + off, 0.33, 0.26 + under, 0.28, seed + 1)
+			pebble(p, sn, foot + off + Vector3(0.25, 0, -0.18), 0.13, 0.09 + under, 0.11, seed + 2)
 	p.commit(w)
 	if snow_parts != null:
 		snow_parts.commit(w)
+
+
+## A rounded stone at `at` (its foot), `rx` x `rz` wide and `h` high: rings swelling out above the
+## foot and closing over a low dome (no apex point), a little uneven; dark low down, lighter up,
+## moss on some top facets, snow on the upward ones (`sn`, or null).
+static func pebble(p: FarmProps.Parts, sn: SurfaceTool, at: Vector3, rx: float, h: float, rz: float, seed: int) -> void:
+	const SIDES := 10
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var rings := [[0.0, 0.88], [0.32, 1.0], [0.62, 0.94], [0.84, 0.7], [0.96, 0.36]]
+	var phase := rng.randf() * TAU
+	var rows: Array = []
+	for ring in rings:
+		var row: Array[Vector3] = []
+		for k in SIDES:
+			var a := phase + TAU * k / SIDES
+			var rr: float = float(ring[1]) * (1.0 + rng.randf_range(-0.06, 0.06))
+			row.append(at + Vector3(cos(a) * rx * rr, h * float(ring[0]), sin(a) * rz * rr))
+		rows.append(row)
+	var top := at + Vector3(0, h, 0)
+	var centre := at + Vector3(0, h * 0.4, 0)
+	var facet := func(a: Vector3, b: Vector3, c: Vector3, tone: int) -> void:
+		var n := (b - a).cross(c - a).normalized()
+		if n.dot((a + b + c) / 3.0 - centre) < 0.0:
+			n = -n
+		var col: Color = STONE[tone]
+		if tone == 2 and rng.randf() < 0.3:
+			col = GardenLook.MOSS
+		var j := 1.0 + rng.randf_range(-0.05, 0.05)
+		OutdoorProps.tri(p.st(Color(col.r * j, col.g * j, col.b * j)), a, b, c, n)
+		if sn != null and n.y > 0.45:
+			var lift := Vector3(0, 0.012, 0)
+			OutdoorProps.tri(sn, a + lift, b + lift, c + lift, Vector3.UP)
+	for ri in rows.size() - 1:
+		var tone := 0 if ri == 0 else (1 if ri < 3 else 2)
+		for k in SIDES:
+			var k2 := (k + 1) % SIDES
+			facet.call(rows[ri][k], rows[ri][k2], rows[ri + 1][k2], tone)
+			facet.call(rows[ri][k], rows[ri + 1][k2], rows[ri + 1][k], tone)
+	for k in SIDES:
+		facet.call(rows[4][k], rows[4][(k + 1) % SIDES], top, 2)
 
 
 ## Whether a shrub flowers on day `day` of `season` (GardenLook.blooms).
