@@ -207,7 +207,33 @@ func _soft_pond() -> void:
 	var corner := pic.get_pixel(20 * 16 - o.x, 22 * 16 - o.y)
 	check(corner.g > corner.b and not bank_cols.has(corner) and corner != PondShape.JADE, "picture: a rounded-off corner of water is grass (%s)" % corner)
 	var GP_src := FileAccess.get_file_as_string("res://scripts/world3d/garden_props.gd")
-	check("OutdoorProps.boulder(" not in GP_src and "static func pebble(" in GP_src, "the garden rocks are rounded stones (no pointed boulder)")
+	check("OutdoorProps.boulder(" not in GP_src and "static func stone(" in GP_src and "pebble(" not in GP_src, "the garden rocks are rock-shaped stones (no pointed boulder, no ball)")
+	# The user (2026-11-16): the stones looked like balls. A stone has an irregular outline and a broad top
+	# face: its top facets are near level and wide, and its outline's reach varies round it.
+	var GPs: GDScript = load("res://scripts/world3d/garden_props.gd")
+	var FPs: GDScript = load("res://scripts/world3d/farm_props.gd")
+	var parts: Object = FPs.Parts.new()
+	GPs.stone(parts, null, Vector3.ZERO, 0.3, 0.3, 0.26, 11)
+	var reach_min := 10.0
+	var reach_max := 0.0
+	var top_area := 0.0
+	var all_area := 0.0
+	for key in parts._tools:
+		var arr: Array = (parts._tools[key] as SurfaceTool).commit_to_arrays()
+		var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		for i in range(0, vs.size(), 3):
+			var cr := (vs[i + 1] - vs[i]).cross(vs[i + 2] - vs[i])
+			var area := cr.length() * 0.5
+			all_area += area
+			if absf(cr.normalized().y) > 0.9:
+				top_area += area
+		for v in vs:
+			if absf(v.y) < 0.001:
+				var r := Vector2(v.x / 0.3, v.z / 0.26).length()
+				reach_min = minf(reach_min, r)
+				reach_max = maxf(reach_max, r)
+	check(top_area / all_area > 0.15 and reach_max - reach_min > 0.12,
+		"a stone has a broad flat top (%.0f%% of its faces) and an uneven outline (reach %.2f..%.2f)" % [top_area / all_area * 100.0, reach_min, reach_max])
 
 
 ## Named places (MapData.zones) and the name shown on arriving (PlaceName, the Hud's place box):

@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-16 — The pond's stones shaped like rocks, not balls — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user found the stones in and round the pond looking like balls (the rounded pebble: ten even sides closing
+  over a dome). GardenProps.stone replaces it for the garden rocks and the small stones along the waterline: 6 or 7
+  sides at uneven angles and uneven reach (an irregular outline), steep sides, the upper part leaning off to one side, a
+  broad top face tilted a little and uneven (no dome, no point); flat facets toned by how they face (the sides dark, the
+  shoulders mid grey, the top light) and moss on a patch of the top (a run of its facets, not scattered). Snow on the
+  upward facets as before. The flat view's stones are unchanged.
+- Checked: test_maps (no pebble or boulder left; a stone's near-level faces are over 15% of its surface and its outline's
+  reach varies by more than 0.12): `test_maps: OK (0 failed)`. Frames `--demo --map=town@pond --time=11:00
+  --weather=sunny --walk=up:0.9`, zoomed: angular flat-topped rocks on the bank and in the water. All 44 tests/test_*.gd print `OK (0 failed)`; smoke
+  `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the user's look at the pond.
+
 ## 2026-11-16 — The pond's east shore: no spit of land; the lawn round it in one wider arc — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user circled a point of grass sticking out into the pond's east side. It was cell (25, 25): one cell of land

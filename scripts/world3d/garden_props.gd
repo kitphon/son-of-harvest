@@ -37,7 +37,7 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, map: MapData, season
 
 ## A garden rock of `shape` standing at `foot` (its base), `under` deep in the water (that much
 ## taller, so its top rises WET_SHOW of its height above the skin: low stones in the pond, 2026-11-16
-## the user found them too tall): rounded stones, worn smooth (pebble), never a point.
+## the user found them too tall): stones shaped like real rocks (stone), never a point.
 const WET_SHOW := 0.6
 
 
@@ -54,64 +54,82 @@ static func rock(w: FarmWorld, shape: String, foot: Vector3, under: float, seed:
 	var show := WET_SHOW if under > 0.0 else 1.0
 	match shape:
 		"tall":   # the tallest stone, still broad and rounded (the user, 2026-11-16: the bank's tall one was too pointed and high)
-			pebble(p, sn, foot + off, 0.31, 0.38 * show + under, 0.26, seed + 1)
-			pebble(p, sn, foot + off + Vector3(0.24, 0, 0.16), 0.15, 0.16 * show + under, 0.13, seed + 2)
+			stone(p, sn, foot + off, 0.31, 0.38 * show + under, 0.26, seed + 1)
+			stone(p, sn, foot + off + Vector3(0.24, 0, 0.16), 0.15, 0.16 * show + under, 0.13, seed + 2)
 		"flat":
-			pebble(p, sn, foot + off, 0.42, 0.15 * show + under, 0.34, seed + 1)
+			stone(p, sn, foot + off, 0.42, 0.15 * show + under, 0.34, seed + 1)
 		"pair":   # a little island of three
-			pebble(p, sn, foot + off + Vector3(-0.08, 0, -0.05), 0.31, 0.36 * show + under, 0.27, seed + 1)
-			pebble(p, sn, foot + off + Vector3(0.23, 0, 0.12), 0.21, 0.22 * show + under, 0.18, seed + 2)
-			pebble(p, sn, foot + off + Vector3(-0.27, 0, 0.22), 0.15, 0.13 * show + under, 0.13, seed + 3)
+			stone(p, sn, foot + off + Vector3(-0.08, 0, -0.05), 0.31, 0.36 * show + under, 0.27, seed + 1)
+			stone(p, sn, foot + off + Vector3(0.23, 0, 0.12), 0.21, 0.22 * show + under, 0.18, seed + 2)
+			stone(p, sn, foot + off + Vector3(-0.27, 0, 0.22), 0.15, 0.13 * show + under, 0.13, seed + 3)
 		_:   # low
-			pebble(p, sn, foot + off, 0.33, 0.26 * show + under, 0.28, seed + 1)
-			pebble(p, sn, foot + off + Vector3(0.25, 0, -0.18), 0.13, 0.09 * show + under, 0.11, seed + 2)
+			stone(p, sn, foot + off, 0.33, 0.26 * show + under, 0.28, seed + 1)
+			stone(p, sn, foot + off + Vector3(0.25, 0, -0.18), 0.13, 0.09 * show + under, 0.11, seed + 2)
 	p.commit(w)
 	if snow_parts != null:
 		snow_parts.commit(w)
 
 
-## A rounded stone at `at` (its foot), `rx` x `rz` wide and `h` high: rings swelling out above the
-## foot and closing over a low dome (no apex point), a little uneven; dark low down, lighter up,
-## moss on some top facets, snow on the upward ones (`sn`, or null).
-static func pebble(p: FarmProps.Parts, sn: SurfaceTool, at: Vector3, rx: float, h: float, rz: float, seed: int) -> void:
-	const SIDES := 10
+## A garden stone at `at` (its foot), `rx` x `rz` wide and `h` high, shaped like a real rock, not a
+## ball (the user, 2026-11-16): a few sides (6 or 7) at uneven angles and uneven reach, so its
+## outline is irregular; the sides go up steep and the upper part leans off to one side; the top is
+## a broad, slightly tilted face, a little uneven (no dome, no point). Flat facets toned by how they
+## face: the sides dark, the shoulders mid grey, the top light with moss on part of it in a patch;
+## snow on the upward facets (`sn`, or null).
+static func stone(p: FarmProps.Parts, sn: SurfaceTool, at: Vector3, rx: float, h: float, rz: float, seed: int) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
-	var rings := [[0.0, 0.88], [0.32, 1.0], [0.62, 0.94], [0.84, 0.7], [0.96, 0.36]]
+	var sides := 6 + seed % 2
 	var phase := rng.randf() * TAU
+	var angles: Array[float] = []
+	var reach: Array[float] = []
+	for k in sides:
+		angles.append(phase + TAU * (k + rng.randf_range(-0.28, 0.28)) / sides)
+		reach.append(1.0 + rng.randf_range(-0.24, 0.2))
+	var lean := Vector3(rng.randf_range(-0.16, 0.16) * rx, 0, rng.randf_range(-0.16, 0.16) * rz)
+	var tilt := Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(0.04, 0.12)
+	# rings from the foot up: [height share, reach share]; the last is the top face's rim
+	var rings := [[0.0, 0.94], [0.2, 1.0], [0.68, 0.9], [0.93, 0.66]]
 	var rows: Array = []
-	for ring in rings:
+	for ri in rings.size():
+		var ring: Array = rings[ri]
 		var row: Array[Vector3] = []
-		for k in SIDES:
-			var a := phase + TAU * k / SIDES
-			var rr: float = float(ring[1]) * (1.0 + rng.randf_range(-0.06, 0.06))
-			row.append(at + Vector3(cos(a) * rx * rr, h * float(ring[0]), sin(a) * rz * rr))
+		for k in sides:
+			var d := Vector2(cos(angles[k]), sin(angles[k]))
+			var rr: float = float(ring[1]) * reach[k] * (1.0 + rng.randf_range(-0.05, 0.05))
+			var y := h * float(ring[0])
+			if ri == rings.size() - 1:   # the top face's rim, tilted a little and uneven
+				y = h * (0.94 + tilt.dot(d) + rng.randf_range(-0.03, 0.02))
+			row.append(at + lean * float(ring[0]) + Vector3(d.x * rx * rr, y, d.y * rz * rr))
 		rows.append(row)
-	var top := at + Vector3(0, h, 0)
+	var top := at + lean + Vector3(0, h * (0.97 + rng.randf_range(-0.02, 0.02)), 0)
 	var centre := at + Vector3(0, h * 0.4, 0)
-	var facet := func(a: Vector3, b: Vector3, c: Vector3, tone: int) -> void:
+	var moss_from := rng.randi() % sides   # the moss lies on a patch of the top: a run of its facets
+	var moss_run := rng.randi_range(1, maxi(sides / 2, 1))
+	var facet := func(a: Vector3, b: Vector3, c: Vector3, mossy: bool) -> void:
 		var n := (b - a).cross(c - a).normalized()
 		if n.dot((a + b + c) / 3.0 - centre) < 0.0:
 			n = -n
-		var col: Color = STONE[tone]
-		if tone == 2 and rng.randf() < 0.3:
+		var col: Color = STONE[2] if n.y > 0.72 else (STONE[1] if n.y > 0.3 else STONE[0])
+		if mossy and n.y > 0.72:
 			col = GardenLook.MOSS
-		var j := 1.0 + rng.randf_range(-0.05, 0.05)
+		var j := 1.0 + rng.randf_range(-0.07, 0.07)
 		OutdoorProps.tri(p.st(Color(col.r * j, col.g * j, col.b * j)), a, b, c, n)
 		if sn != null and n.y > 0.45:
 			var lift := Vector3(0, 0.012, 0)
 			OutdoorProps.tri(sn, a + lift, b + lift, c + lift, Vector3.UP)
 	for ri in rows.size() - 1:
-		var tone := 0 if ri == 0 else (1 if ri < 3 else 2)
-		for k in SIDES:
-			var k2 := (k + 1) % SIDES
-			facet.call(rows[ri][k], rows[ri][k2], rows[ri + 1][k2], tone)
-			facet.call(rows[ri][k], rows[ri + 1][k2], rows[ri + 1][k], tone)
-	for k in SIDES:
-		facet.call(rows[4][k], rows[4][(k + 1) % SIDES], top, 2)
+		for k in sides:
+			var k2 := (k + 1) % sides
+			facet.call(rows[ri][k], rows[ri][k2], rows[ri + 1][k2], false)
+			facet.call(rows[ri][k], rows[ri + 1][k2], rows[ri + 1][k], false)
+	var last: Array = rows[rows.size() - 1]
+	for k in sides:
+		var mossy := posmod(k - moss_from, sides) < moss_run
+		facet.call(last[k], last[(k + 1) % sides], top, mossy)
 
 
-## The small rounded stones along `pond`'s waterline (PondShape.shore_stones), each set into the
+## The small stones along `pond`'s waterline (PondShape.shore_stones), each set into the
 ## bank at the ground's height there, a little sunk, low and wide; one mesh set for them all.
 static func shore_stones(w: FarmWorld, pond: PondShape, snow: bool) -> void:
 	var p := FarmProps.Parts.new()
@@ -121,7 +139,7 @@ static func shore_stones(w: FarmWorld, pond: PondShape, snow: bool) -> void:
 		var at: Vector2 = st.pos
 		var size := float(st.size)
 		var y := -SunkenGround.DROP * pond.sink(at) - 0.03
-		pebble(p, sn, Vector3(at.x, y, at.y), 0.09 + 0.1 * size, 0.1 + 0.08 * size, 0.08 + 0.08 * size, int(st.seed))
+		stone(p, sn, Vector3(at.x, y, at.y), 0.09 + 0.1 * size, 0.1 + 0.08 * size, 0.08 + 0.08 * size, int(st.seed))
 	p.commit(w)
 	if snow_parts != null:
 		snow_parts.commit(w)
