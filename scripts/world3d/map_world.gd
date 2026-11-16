@@ -26,7 +26,7 @@ func build(m: MapData) -> void:
 ## all at once; Main3D runs a neighbour map's over idle frames, ahead of the visit).
 func build_steps(m: MapData) -> Array[Callable]:
 	map = m
-	var steps: Array[Callable] = [_make_tile_ground, _make_walls]
+	var steps: Array[Callable] = [_make_tile_ground, _make_walls, _make_pond_stones]
 	for p in map.props:
 		steps.append(occlude.bind(_prop.bind(p), house_tag(p) if str(p.kind) == "village_house" else "",
 			Occluders.THIN if str(p.kind) == "bamboo" else Occluders.FADED))
@@ -75,6 +75,14 @@ func _make_village_smoke() -> void:
 		var r := Rect2(Vector2(p.cell), Vector2(p.size))
 		var at := HearthSmoke.village_vent(r, LitSpots.village_style(p))
 		add_child(HearthSmoke.new(int(r.position.x) * 7 + int(r.position.y) * 13, at, house_tag(p)))
+
+
+## The small stones along the temple pond's waterline (PondShape.shore_stones), kept a run.
+func _make_pond_stones() -> void:
+	var pond := PondShape.of(map)
+	if pond == null:
+		return
+	MeshCache.build(self, "pond_stones|" + _shape_id(), func() -> void: GardenProps.shore_stones(self, pond, SnowLayer.map_has_snow(map)))
 
 
 ## Rock, door thresholds and a room's walls (RoomWalls), kept a run by the map's shape.

@@ -572,22 +572,6 @@
 		{
 			"kind": "garden_rock",
 			"cell": [
-				22,
-				25
-			],
-			"shape": "tall"
-		},
-		{
-			"kind": "garden_rock",
-			"cell": [
-				24,
-				26
-			],
-			"shape": "pair"
-		},
-		{
-			"kind": "garden_rock",
-			"cell": [
 				21,
 				23
 			],

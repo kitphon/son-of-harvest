@@ -10,6 +10,33 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-16 — The temple pond: fewer, lower rocks; a natural, stone-edged shore — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user's look (2026-11-16): the rocks in the pond too tall and too many in the middle; the edge still not
+  natural; the tall stone on the bank (24, 23) too pointed and high. (1) Rocks: the tall standing stone at (22, 25) and
+  the three-stone island at (24, 26), both out in the middle, are gone; the two left in the water stand by a bank (the
+  flat stone at (21, 23), the low one at (22, 28)), so the middle is open water for the koi, and a rock in the water
+  rises only GardenProps.WET_SHOW (0.6) of its height above the skin. The `tall` shape is a broad rounded stone 0.38
+  high (was 0.56), 0.31 wide (the flat view's 8 x 8 px). (2) Shore: PondShape's smoothing is wider (SOFT 0.85, was
+  0.6), so the corners turn in broad bends, and a few slow waves move the field near the shore only (WOBBLE 0.16, the
+  bed and the land untouched), so the shoreline no longer runs straight along the cell edges but in small bays and
+  points. The bank's moss, earth, pebbles and wet foot blend by a little noise instead of even stripes, and the grass
+  hangs over its top edge in a ragged line. Small rounded stones lie along the waterline (PondShape.shore_stones: where
+  the field crosses 0.8, a little over half the spots kept by a hash, 0.42 cells apart at least): rounded pebbles set
+  into the bank at its height in 3D (GardenProps.shore_stones, MapWorld._make_pond_stones, kept by MeshCache) and grey
+  blobs in the flat view, as on the rock-edged pond of the user's photos.
+- Checked: test_maps (at most two rocks in the water, each with the bank beside it; a rock in the water shows less above
+  it; the field about 0.5 on a straight edge give or take the wobble, the shoreline wobbling along it, the bank painted
+  round the shore, 20+ shore stones each on the waterline and none crowding another, both views laying them):
+  `test_maps: OK (0 failed)`; `test_koi: OK (0 failed)`. Frames `--demo --map=town@pond --time=11:00 --weather=sunny`,
+  3D and flat: a wobbling stone-edged shore, a mossy bank, the middle open, the bank's tall stone low and round. (A first
+  frame came out all grass: the bank's overhang line had caught the picture's `else`, so every pixel took the land;
+  fixed before the run above.) All 44 tests/test_*.gd print `OK (0 failed)`;
+  smoke `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the wider smoothing narrows the pond's thinnest arm (row 22, two cells wide) to a shallow bay; the user's
+  look at the pond.
+
 ## 2026-11-16 — The temple pond's soft shore, wandering koi, rounded rocks — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user's look at the pond (2026-11-16): every fish should swim about at random, now resting, now swimming;

@@ -6,11 +6,15 @@ extends RefCounted
 ## round p, so it is cheap): 1 out in open water, 0 on dry land, 0.5 on the shoreline, which runs
 ## along a straight cell edge but rounds every corner, convex and concave, to about SOFT. Between
 ## SHORE and DEEP the bank slopes from the land's height down to the bed (`sink`, 0..1 of
-## SunkenGround.DROP). One shape drives the 3D ground's height (SunkenGround), the ground picture
+## SunkenGround.DROP). The shoreline wobbles a little (WOBBLE: a few slow waves added near the
+## shore only, so the bed stays 1 and the land 0), so it does not run straight along the cell edges,
+## and small stones lie along the waterline (shore_stones: GardenProps in 3D, MapView flat), as on
+## a rock-edged garden pond (the user, 2026-11-16: the edge still looked unnatural). One shape drives the 3D ground's height (SunkenGround), the ground picture
 ## of both views (paint: moss, earth and pebbles down the bank, grass where a corner of water is
 ## rounded off) and where the koi may swim (KoiPondRules). Pure: no world classes.
 
-const SOFT := 0.6     # half width of the smoothing, cells (corners round to about this)
+const SOFT := 0.85    # half width of the smoothing, cells (corners round to about this)
+const WOBBLE := 0.16  # how much the slow waves move the field near the shore (about a fifth of a cell)
 const SHORE := 0.5    # the field's level on the shoreline
 const DEEP := 0.97    # the field's level where the bank's slope reaches the bed
 const LOOK := "jade"
@@ -22,9 +26,13 @@ const PEBBLE: Array[Color] = [Color("7a766c"), Color("8e8a80")]
 const WET := Color("3c3a2c")
 const EDGE := Color("4f9686")   # the water's own line at the foot of the bank
 const JADE := Color("3a7f72")
+const STONE_LEVEL := 0.8     # the field's level the shore stones sit on (low on the bank, at the waterline)
+const STONE_STEP := 0.2      # cells between the points tried along it
+const STONE_GAP := 0.42      # cells at least between two stones
 
 var cells: Dictionary = {}   # Vector2i -> true: the pond's water cells
 var bounds := Rect2i()       # the cells the shape reaches (its water cells grown by one)
+var _stones: Array = []      # shore_stones, worked out once
 
 static var _kept: Dictionary = {}
 
@@ -74,7 +82,14 @@ func field(p: Vector2) -> float:
 			var c := Vector2i(cx + dx, cy + dy)
 			if cells.has(c):
 				sum += _cover(p.x - c.x) * _cover(p.y - c.y)
-	return clampf(sum, 0.0, 1.0)
+	sum = clampf(sum, 0.0, 1.0)
+	return clampf(sum + wobble(p) * 4.0 * sum * (1.0 - sum), 0.0, 1.0)
+
+
+## A few slow waves over the map (cells), -WOBBLE..WOBBLE: the shoreline's bays and points.
+static func wobble(p: Vector2) -> float:
+	var w := sin(p.x * 1.7 + p.y * 0.6 + 0.4) * 0.5 + sin(p.y * 2.3 - p.x * 0.9 + 1.9) * 0.35 + sin((p.x + p.y) * 4.1 + 0.7) * 0.15
+	return WOBBLE * w
 
 
 ## A unit interval's share at `t` from its start, blurred.
@@ -112,19 +127,53 @@ func paint(base: Callable, grass: Callable) -> Image:
 				col = base.call(at) if water else JADE
 			elif f >= SHORE:
 				col = bank_colour((f - SHORE) / (DEEP - SHORE), at)
+				if f < SHORE + 0.05 and posmod(at.x * 5 + at.y * 3, 4) != 0:
+					col = grass.call(at)   # the grass hanging over the bank's top, a ragged edge
 			else:
 				col = grass.call(at) if water else base.call(at)
 			img.set_pixel(px, py, col)
 	return img
 
 
-## The bank's colour `u` of the way down (0 at the shoreline, 1 at the bed), at map pixel `at`.
+## The bank's colour `u` of the way down (0 at the shoreline, 1 at the bed), at map pixel `at`:
+## moss, then earth with pebbles, wet earth and the water's line at the foot, their borders broken
+## by a little noise so they do not run in even stripes.
 static func bank_colour(u: float, at: Vector2i) -> Color:
 	var h := posmod(at.x * 73 + at.y * 151 + (at.x * at.y) % 7, 97)
-	if u > 0.86:
-		return EDGE if u > 0.93 else WET
-	if u < 0.5:   # moss over the upper bank, a pebble here and there
+	var n := sin(at.x * 0.45 + at.y * 0.21) * 0.5 + sin(at.y * 0.53 - at.x * 0.17) * 0.5
+	var v := u + n * 0.18 + (h % 5 - 2) * 0.025
+	if u > 0.9:
+		return EDGE if u > 0.95 else WET
+	if v > 0.84:
+		return WET
+	if v < 0.5:   # moss over the upper bank, a pebble here and there
 		return MOSS[h % 2] if h % 9 != 0 else PEBBLE[0]
 	if h % 6 == 0 or h % 11 == 0:
 		return PEBBLE[h % 2]
 	return EARTH[h % 2]
+
+
+## Small stones along the waterline: {pos: Vector2 (cells), size: 0..1, seed}. Points every
+## STONE_STEP cells over the shape where the field crosses STONE_LEVEL, kept by a hash of the spot
+## (a little over half of them) and at least STONE_GAP apart. Worked out once.
+func shore_stones() -> Array:
+	if not _stones.is_empty() or cells.is_empty():
+		return _stones
+	var steps := int(1.0 / STONE_STEP)
+	for y in range(bounds.position.y * steps, bounds.end.y * steps):
+		for x in range(bounds.position.x * steps, bounds.end.x * steps):
+			var p := Vector2(x, y) * STONE_STEP
+			var f := field(p)
+			if absf(f - STONE_LEVEL) > 0.07:
+				continue
+			var h := posmod(x * 7919 + y * 104729, 1000)
+			if h > 560:
+				continue
+			var close := false
+			for st in _stones:
+				if (st.pos as Vector2).distance_to(p) < STONE_GAP:
+					close = true
+					break
+			if not close:
+				_stones.append({"pos": p, "size": 0.35 + (h % 100) / 150.0, "seed": h})
+	return _stones

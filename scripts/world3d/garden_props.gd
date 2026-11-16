@@ -36,7 +36,11 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, map: MapData, season
 
 
 ## A garden rock of `shape` standing at `foot` (its base), `under` deep in the water (that much
-## taller, to show as much above the skin): rounded stones, worn smooth (pebble), never a point.
+## taller, so its top rises WET_SHOW of its height above the skin: low stones in the pond, 2026-11-16
+## the user found them too tall): rounded stones, worn smooth (pebble), never a point.
+const WET_SHOW := 0.6
+
+
 static func rock(w: FarmWorld, shape: String, foot: Vector3, under: float, seed: int, snow: bool) -> void:
 	var p := FarmProps.Parts.new()
 	var sn: SurfaceTool = null
@@ -47,19 +51,20 @@ static func rock(w: FarmWorld, shape: String, foot: Vector3, under: float, seed:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
 	var off := Vector3(rng.randf_range(-0.08, 0.08), 0, rng.randf_range(-0.08, 0.08))
+	var show := WET_SHOW if under > 0.0 else 1.0
 	match shape:
-		"tall":   # an upright stone, rounded on top
-			pebble(p, sn, foot + off, 0.27, 0.56 + under, 0.22, seed + 1)
-			pebble(p, sn, foot + off + Vector3(0.24, 0, 0.16), 0.15, 0.16 + under, 0.13, seed + 2)
+		"tall":   # the tallest stone, still broad and rounded (the user, 2026-11-16: the bank's tall one was too pointed and high)
+			pebble(p, sn, foot + off, 0.31, 0.38 * show + under, 0.26, seed + 1)
+			pebble(p, sn, foot + off + Vector3(0.24, 0, 0.16), 0.15, 0.16 * show + under, 0.13, seed + 2)
 		"flat":
-			pebble(p, sn, foot + off, 0.42, 0.15 + under, 0.34, seed + 1)
+			pebble(p, sn, foot + off, 0.42, 0.15 * show + under, 0.34, seed + 1)
 		"pair":   # a little island of three
-			pebble(p, sn, foot + off + Vector3(-0.08, 0, -0.05), 0.31, 0.36 + under, 0.27, seed + 1)
-			pebble(p, sn, foot + off + Vector3(0.23, 0, 0.12), 0.21, 0.22 + under, 0.18, seed + 2)
-			pebble(p, sn, foot + off + Vector3(-0.27, 0, 0.22), 0.15, 0.13 + under, 0.13, seed + 3)
+			pebble(p, sn, foot + off + Vector3(-0.08, 0, -0.05), 0.31, 0.36 * show + under, 0.27, seed + 1)
+			pebble(p, sn, foot + off + Vector3(0.23, 0, 0.12), 0.21, 0.22 * show + under, 0.18, seed + 2)
+			pebble(p, sn, foot + off + Vector3(-0.27, 0, 0.22), 0.15, 0.13 * show + under, 0.13, seed + 3)
 		_:   # low
-			pebble(p, sn, foot + off, 0.33, 0.26 + under, 0.28, seed + 1)
-			pebble(p, sn, foot + off + Vector3(0.25, 0, -0.18), 0.13, 0.09 + under, 0.11, seed + 2)
+			pebble(p, sn, foot + off, 0.33, 0.26 * show + under, 0.28, seed + 1)
+			pebble(p, sn, foot + off + Vector3(0.25, 0, -0.18), 0.13, 0.09 * show + under, 0.11, seed + 2)
 	p.commit(w)
 	if snow_parts != null:
 		snow_parts.commit(w)
@@ -104,6 +109,22 @@ static func pebble(p: FarmProps.Parts, sn: SurfaceTool, at: Vector3, rx: float, 
 			facet.call(rows[ri][k], rows[ri + 1][k2], rows[ri + 1][k], tone)
 	for k in SIDES:
 		facet.call(rows[4][k], rows[4][(k + 1) % SIDES], top, 2)
+
+
+## The small rounded stones along `pond`'s waterline (PondShape.shore_stones), each set into the
+## bank at the ground's height there, a little sunk, low and wide; one mesh set for them all.
+static func shore_stones(w: FarmWorld, pond: PondShape, snow: bool) -> void:
+	var p := FarmProps.Parts.new()
+	var snow_parts: FarmProps.Parts = FarmProps.Parts.new() if snow else null
+	var sn: SurfaceTool = snow_parts.st(FarmProps.Parts.SNOW) if snow else null
+	for st in pond.shore_stones():
+		var at: Vector2 = st.pos
+		var size := float(st.size)
+		var y := -SunkenGround.DROP * pond.sink(at) - 0.03
+		pebble(p, sn, Vector3(at.x, y, at.y), 0.09 + 0.1 * size, 0.1 + 0.08 * size, 0.08 + 0.08 * size, int(st.seed))
+	p.commit(w)
+	if snow_parts != null:
+		snow_parts.commit(w)
 
 
 ## Whether a shrub flowers on day `day` of `season` (GardenLook.blooms).

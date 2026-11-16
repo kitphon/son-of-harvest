@@ -39,8 +39,17 @@ func _temple_garden() -> void:
 	var shapes := {}
 	for p in rocks:
 		shapes[str(p.get("shape", "low"))] = true
-	check(rocks.size() >= 8 and in_water >= 3 and shrubs.size() >= 4 and shapes.size() == 4,
+	check(rocks.size() >= 8 and in_water >= 1 and in_water <= 2 and shrubs.size() >= 4 and shapes.size() == 4,
 		"temple pond: %d garden rocks (%d in the water, every shape), %d shrubs" % [rocks.size(), in_water, shrubs.size()])
+	# The user (2026-11-16): too many rocks in the middle; the ones in the water stand by a bank.
+	var mid_pond := rocks.filter(func(p) -> bool:
+		if t.tile(Vector2i(p.cell)) != "water":
+			return false
+		for d in [Vector2i(-1, -1), Vector2i(0, -1), Vector2i(1, -1), Vector2i(-1, 0), Vector2i(1, 0), Vector2i(-1, 1), Vector2i(0, 1), Vector2i(1, 1)]:
+			if t.tile(Vector2i(p.cell) + d) != "water":
+				return false
+		return true)
+	check(mid_pond.is_empty(), "no rock out in the middle of the pond: each in the water has the bank beside it (%s)" % [mid_pond.map(func(p): return p.cell)])
 	var spot: Array = t.spawns.get("pond", [])
 	check(not spot.is_empty() and not t.is_solid(spot[0]) and t.tile(spot[0] + spot[1]) == "water", "the pond spawn stands on the bank facing the water")
 	check(not t.is_solid(Vector2i(27, 21)) and not t.is_solid(Vector2i(27, 20)), "the shrubs leave the hall's path to the gate open")
@@ -55,6 +64,18 @@ func _temple_garden() -> void:
 		var meshes := w.get_children().filter(func(n): return n is MeshInstance3D and n.mesh != null)
 		check(meshes.size() >= 2, "GardenProps builds its rocks and shrub (snow %s): %d meshes" % [snow, meshes.size()])
 		w.free()
+	# A rock in the water rises WET_SHOW of its dry height above the skin (the user: too tall).
+	var tops := []
+	for under in [0.0, 0.35]:
+		var w2: Node3D = FW.new()
+		GP.rock(w2, "tall", Vector3(2, -under, 2), under, 3, false)
+		var top := -10.0
+		for n in w2.get_children():
+			if n is MeshInstance3D and n.mesh != null:
+				top = maxf(top, n.mesh.get_aabb().end.y)
+		tops.append(top)
+		w2.free()
+	check(float(GP.WET_SHOW) < 1.0 and tops[1] < tops[0] * 0.75, "a rock in the water shows less above it (%.2f above the skin, %.2f on land)" % [tops[1], tops[0]])
 	check(GP.blooms("spring", 20) and GP.blooms("summer", 3) and not GP.blooms("spring", 5) and not GP.blooms("fall", 20),
 		"the shrubs flower in late spring and the first days of summer")
 	var mv_src := FileAccess.get_file_as_string("res://scripts/world/map_view.gd")
@@ -73,8 +94,12 @@ func _soft_pond() -> void:
 		for x in 3:
 			sq.append(Vector2i(x, y))
 	var box := PondShape.from_cells(sq)
-	check(absf(box.field(Vector2(1.5, 0.0)) - 0.5) < 0.01 and box.field(Vector2(1.5, 1.5)) > 0.99 and box.field(Vector2(-0.7, 1.5)) < 0.01,
-		"pond field: 0.5 on a straight edge, 1 inside, 0 outside")
+	check(absf(box.field(Vector2(1.5, 0.0)) - 0.5) <= PondShape.WOBBLE + 0.01 and box.field(Vector2(1.5, 1.5)) > 0.99 and box.field(Vector2(-0.9, 1.5)) < 0.01,
+		"pond field: about 0.5 on a straight edge (give or take the wobble), 1 inside, 0 outside")
+	var levels := {}
+	for i in 40:
+		levels[snappedf(box.field(Vector2(0.0, 0.5 + i * 0.05)), 0.01)] = true
+	check(levels.size() > 5, "pond field: the shoreline wobbles along a straight cell edge (%d levels)" % levels.size())
 	check(box.field(Vector2(0.08, 0.08)) < PondShape.SHORE, "pond field: a convex corner is rounded off (%.2f)" % box.field(Vector2(0.08, 0.08)))
 	var ell: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1)]
 	var l_shape := PondShape.from_cells(ell)
@@ -103,9 +128,21 @@ func _soft_pond() -> void:
 	check(in_pond == 0, "3D: no stone wall round the soft pond (%d wall vertices in it)" % in_pond)
 	var pic := MapView.pond_picture(t)
 	var o := pond.bounds.position * 16
-	var bank_px := pic.get_pixel(20 * 16 + 8 - o.x, 22 * 16 + 1 - o.y)
 	var bank_cols: Array = PondShape.MOSS + PondShape.EARTH + PondShape.PEBBLE + [PondShape.WET, PondShape.EDGE]
-	check(bank_cols.has(bank_px), "picture: the bank painted along the shore (%s)" % bank_px)
+	var bank_n := 0
+	for y in range(0, pic.get_height(), 2):
+		for x in range(0, pic.get_width(), 2):
+			bank_n += 1 if bank_cols.has(pic.get_pixel(x, y)) else 0
+	check(bank_n > 400, "picture: the bank painted round the shore (%d of every fourth pixel)" % bank_n)
+	var stones := pond.shore_stones()
+	var ok_stones := stones.all(func(st) -> bool: return absf(pond.field(st.pos) - PondShape.STONE_LEVEL) <= 0.07)
+	var gaps := true
+	for a in stones.size():
+		for b in range(a + 1, stones.size()):
+			gaps = gaps and (stones[a].pos as Vector2).distance_to(stones[b].pos) >= PondShape.STONE_GAP
+	check(stones.size() > 20 and ok_stones and gaps, "shore stones: %d along the waterline, each on it, none crowding another" % stones.size())
+	var stone_mw := FileAccess.get_file_as_string("res://scripts/world3d/map_world.gd")
+	check("_make_pond_stones" in stone_mw and "pond.shore_stones()" in FileAccess.get_file_as_string("res://scripts/world/map_view.gd"), "both views lay the shore stones")
 	var corner := pic.get_pixel(20 * 16 - o.x, 22 * 16 - o.y)
 	check(corner.g > corner.b and not bank_cols.has(corner) and corner != PondShape.JADE, "picture: a rounded-off corner of water is grass (%s)" % corner)
 	var GP_src := FileAccess.get_file_as_string("res://scripts/world3d/garden_props.gd")

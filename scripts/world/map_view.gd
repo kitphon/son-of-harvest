@@ -291,6 +291,11 @@ func _process(_delta: float) -> void:
 func _draw_objects() -> void:
 	if not map.indoor:   # over the water's moving skin, under the props
 		draw_banks(_objects, map.w, map.h, func(c: Vector2i) -> bool: return map.tile(c) == "water" and map.look(c) != PondShape.LOOK)   # the soft pond has its own sloping bank
+	var pond := PondShape.of(map)
+	if pond != null:   # the small stones along the temple pond's waterline (GardenProps.shore_stones in 3D)
+		for st in pond.shore_stones():
+			var size := float(st.size)
+			blob(_objects, ((st.pos as Vector2) * T).round(), 1 + int(round(size * 2.0)), 1 + int(size), GardenLook.STONE, int(st.seed))
 	var paddies := paddy_cells()
 	_tall = not paddies.is_empty()
 	var now := Time.get_ticks_msec() / 1000.0
@@ -389,7 +394,7 @@ func _draw_garden(p: Dictionary, r: Rect2) -> void:
 		if snow:
 			blob(_objects, c + Vector2(-1, -1), rx - 2, ry - 3, [Color("e8eef2"), Color("f4f8fa"), Color("ffffff")], seed)
 		return
-	var sizes := {"tall": [3, 5], "flat": [6, 4], "pair": [5, 4], "low": [4, 3]}
+	var sizes := {"tall": [4, 4], "flat": [6, 4], "pair": [5, 4], "low": [4, 3]}
 	var shape := str(p.get("shape", "low"))
 	var sz: Array = sizes.get(shape, sizes.low)
 	var wet := map.tile(Vector2i(p.cell)) == "water"

@@ -331,7 +331,9 @@ edge where boards or tatami meet the earth and a shoe stone below the door's ste
   blurred into one smooth shape, every corner rounded, the bank sloping from the land down to the
   bed in moss, earth and pebbles instead of a stone wall, in the 3D ground's height and both views'
   pictures), `garden_rock` props (`shape` tall, flat, low, pair: rounded stones, no points; out
-  in the water they stand on the bed at its depth there) and `shrub` (a clipped round azalea, pink in late
+  in the water they stand on the bed at its depth there and rise only GardenProps.WET_SHOW (0.6)
+  of their height above it; two, each by a bank, the middle of the pond left open; the shoreline wobbles
+  (PondShape.WOBBLE) and small stones line the waterline, PondShape.shore_stones) and `shrub` (a clipped round azalea, pink in late
   spring, a few red leaves in fall) on its mossy banks (GardenProps in 3D, GardenLook and
   MapView._draw_garden flat), koi swimming in it (data/koi.json, KoiPondRules, KoiPondArt,
   KoiPondLayer, KoiPondView: each wanders on its own to random spots at its own pace, stops a
