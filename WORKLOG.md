@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-16 — The pond's east shore: no spit of land; the lawn round it in one wider arc — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user circled a point of grass sticking out into the pond's east side. It was cell (25, 25): one cell of land
+  with water west and south, so its corner jutted into the pond and the rounding could only blunt it. It is jade water
+  now, the shore there a smooth bay. Round it: the `pond` spawn moves to (26, 25) facing the water; the flat rock at
+  (26, 26) moves to (26, 28) and the shrub at (25, 24) to the grass corner (19, 22), so the east bank stays open; Nana's
+  afternoon spot by the pond (usual and birthday, 13:40 until 16:55 / 17:55) is the bank at (25, 24) facing the water,
+  reached by (26, 22) -> (26, 24) (Tome keeps (26, 25), so the talk below Tome at (26, 26) is clear). Then the user drew
+  the lawn's edge wanted: one arc against the gravel, not the cells' steps. PondShape.lawn_field blurs the grass and water
+  cells round the pond by LAWN_SOFT 1.4 cells (with a little of the wobble), and over the repainted picture (the pond's
+  bounds and LAWN_REACH 3 cells round them, PondShape.picture) every grass or gravel cell is drawn as grass or gravel by
+  that field, so the staircase of cells along the east side and the north edge reads as one smooth curve. Only the
+  picture: the cells walk as before (both are walkable). Last, the user asked for more lawn on the east so the grass round
+  the pond looks even, and for the two shrubs standing on the gravel to go: the shrubs at (23, 21) and (25, 21) are gone,
+  and the gravel cells (23, 21), (24, 22), (25, 22), (25, 23), (26, 23), (26, 24), (26, 25) are lawn, so the arc swells out
+  to the gravel path at x 27 as the user drew it (the villagers' walks over them unchanged: both walkable).
+- Checked: test_maps (the cell water, no lone land cell with water on three sides inside the pond, the spawn facing the
+  water; along the east side, rows 21-29, where the lawn gives way to the gravel moves at most 3 px from pixel row to
+  row (the old steps were 16 px; a first try counted the grass picture's white flowers as gravel, so a gravel run must be
+  three pixels)): `test_maps: OK (0 failed)`; test_koi, test_villagers, test_view2d, test_talk: OK. Frames `--demo
+  --map=town@pond --time=11:00 --weather=sunny` (and `--walk=up:0.9` for the 3D east shore out from under the kitchen
+  hall's roof): a smooth bay, the lawn's edge one curve to the gravel; the flat view the same. All 44 tests/test_*.gd print `OK (0 failed)`
+  (run after the last change); smoke `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`): 0 ERROR
+  lines; windowed `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the user's look at the pond.
+
 ## 2026-11-16 — The pond's grass edge a smooth curve (no square blocks) — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user still saw the grass edge along the pond's north shore as squares, unlike the round south shore. Looked

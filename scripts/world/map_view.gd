@@ -155,13 +155,13 @@ func _draw() -> void:
 				draw_rect(Rect2(Vector2(c * T), Vector2(T, T)), COLORS.wall)
 	var pond := PondShape.of(map)
 	if pond != null:   # the temple pond's soft shore over its tiles (the 3D ground has the same picture)
-		draw_texture(pond_texture(map), Vector2(pond.bounds.position * T))
+		draw_texture(pond_texture(map), Vector2(pond.picture.position * T))
 
 
 static var _ponds: Dictionary = {}   # map id and tiles -> the soft pond's picture
 
 
-## The soft pond's picture over its bounds (PondShape.paint on the plain tiles; `keys`: the cells'
+## The soft pond's picture over its `picture` rect (the pond and the lawn's curve round it) (PondShape.paint on the plain tiles; `keys`: the cells'
 ## ground keys when the caller has them, else ground_key), kept a run.
 static func pond_picture(m: MapData, keys: Dictionary = {}) -> Image:
 	var id := "%s|%d|%d" % [m.id, m.tiles.hash(), m.looks.hash()]
@@ -173,7 +173,9 @@ static func pond_picture(m: MapData, keys: Dictionary = {}) -> Image:
 			return PlaceholderArt.image(key).get_pixel(posmod(at.x, T), posmod(at.y, T))
 		var grass := func(at: Vector2i) -> Color:
 			return PlaceholderArt.image("ground:grass:%d" % posmod(at.x / T * 7 + at.y / T * 13, PlaceholderArt.GROUND_VARIANTS)).get_pixel(posmod(at.x, T), posmod(at.y, T))
-		_ponds[id] = pond.paint(base, grass)
+		var gravel := func(at: Vector2i) -> Color:
+			return PlaceholderArt.image("ground:gravel:%d" % posmod(at.x / T * 7 + at.y / T * 13, PlaceholderArt.GROUND_VARIANTS)).get_pixel(posmod(at.x, T), posmod(at.y, T))
+		_ponds[id] = pond.paint(base, grass, gravel)
 	return _ponds[id]
 
 

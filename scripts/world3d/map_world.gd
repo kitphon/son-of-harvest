@@ -169,7 +169,7 @@ func ground_picture() -> ImageTexture:
 			_shade_corners(img)
 		var pond := PondShape.of(map)
 		if pond != null:   # the soft shore: rounded, its bank painted down to the water (PondShape.paint)
-			img.blit_rect(MapView.pond_picture(map, keys), Rect2i(Vector2i.ZERO, pond.bounds.size * T), pond.bounds.position * T)
+			img.blit_rect(MapView.pond_picture(map, keys), Rect2i(Vector2i.ZERO, pond.picture.size * T), pond.picture.position * T)
 		_grounds[id] = ImageTexture.create_from_image(img)
 	return _grounds[id]
 

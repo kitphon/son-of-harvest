@@ -59,11 +59,11 @@
 		"ggggggggrrgggggggggsssssssssssssssgrrrrrpppggggggggggggg",
 		"ggggggggrrgggggggggsssssssssssssssggggggpppggggggggggggg",
 		"ggggggggrrgggggggggssssssssrssssssggggggpppggggggggggggg",
-		"ggggggggrrgggggggggggggssssrrrrrrrrgggggppprrrrrrrrggggg",
-		"ggggggggrrggggggggggjjggsssrrrrrrrrgggggpppggggggggggggg",
-		"ggggggggrrggggggggggjjjjgsssssssssggggggpppggggggggggggg",
-		"rrrrrrrrrrgggggggggjjjjjjgssssssssggggggpppggggggggggggg",
-		"rrrrrrrrrrgggggggggjjjjjjgssssssssggggggpppggggggggggggg",
+		"ggggggggrrggggggggggggggsssrrrrrrrrgggggppprrrrrrrrggggg",
+		"ggggggggrrggggggggggjjggggsrrrrrrrrgggggpppggggggggggggg",
+		"ggggggggrrggggggggggjjjjgggsssssssggggggpppggggggggggggg",
+		"rrrrrrrrrrgggggggggjjjjjjggsssssssggggggpppggggggggggggg",
+		"rrrrrrrrrrgggggggggjjjjjjjgsssssssggggggpppggggggggggggg",
 		"wwwwwwwwrrggggggggggjjjjjjgsssssssggggggpppggggggggggggg",
 		"wwwwwwwwrrggggggggggjjjjjjgsssssssgrrrrrpppggggggggggggg",
 		"wwwwwwwwrrgggggggggggjjjjggsssssssggggggpppggggggggggggg",
@@ -605,7 +605,7 @@
 			"kind": "garden_rock",
 			"cell": [
 				26,
-				26
+				28
 			],
 			"shape": "flat"
 		},
@@ -636,8 +636,8 @@
 		{
 			"kind": "shrub",
 			"cell": [
-				25,
-				24
+				19,
+				22
 			]
 		},
 		{
@@ -645,13 +645,6 @@
 			"cell": [
 				25,
 				28
-			]
-		},
-		{
-			"kind": "shrub",
-			"cell": [
-				23,
-				21
 			]
 		},
 		{
@@ -666,13 +659,6 @@
 			"cell": [
 				21,
 				29
-			]
-		},
-		{
-			"kind": "shrub",
-			"cell": [
-				25,
-				21
 			]
 		},
 		{
@@ -2891,7 +2877,7 @@
 		],
 		"pond": [
 			[
-				25,
+				26,
 				25
 			],
 			"left"

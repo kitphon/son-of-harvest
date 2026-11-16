@@ -122,6 +122,21 @@ func _soft_pond() -> void:
 	var pond := PondShape.of(t)
 	check(pond != null and pond.cells.size() >= 30 and pond.bounds.has_point(Vector2i(19, 21)), "the town's pond shape from its jade cells")
 	check(PondShape.of(MapManager.data("river")) == null, "the river has no soft pond (its banks stay stone)")
+	# The user (2026-11-16): a spit of land stuck out into the pond's east side at (25, 25); it is water now, a
+	# smooth bay, and no lone cell of land pokes into the pond (land with water on three sides).
+	check(t.tile(Vector2i(25, 25)) == "water" and t.look(Vector2i(25, 25)) == "jade", "the east shore's spit at (25, 25) is water")
+	var spits: Array = []
+	for y in range(pond.bounds.position.y, pond.bounds.end.y):
+		for x in range(pond.bounds.position.x, pond.bounds.end.x):
+			var lc := Vector2i(x, y)
+			if t.tile(lc) == "water":
+				continue
+			var wet_sides := 0
+			for d in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+				wet_sides += 1 if pond.cells.has(lc + d) else 0
+			if wet_sides >= 3:
+				spits.append(lc)
+	check(spits.is_empty(), "no lone cell of land pokes into the pond (%s)" % [spits])
 	# The user (2026-11-16): the top-left arm (cells (20, 22), (21, 22), two cells wide) stays deep water.
 	check(pond.on_bed(Vector2(21.0, 22.5)) and pond.on_bed(Vector2(20.6, 22.6)), "the pond's top-left arm is deep water (%.2f, %.2f)" % [pond.field(Vector2(21.0, 22.5)), pond.field(Vector2(20.6, 22.6))])
 	var SG: GDScript = load("res://scripts/world3d/sunken_ground.gd")
@@ -141,7 +156,7 @@ func _soft_pond() -> void:
 				in_pond += 1
 	check(in_pond == 0, "3D: no stone wall round the soft pond (%d wall vertices in it)" % in_pond)
 	var pic := MapView.pond_picture(t)
-	var o := pond.bounds.position * 16
+	var o := pond.picture.position * 16
 	var bank_cols: Array = PondShape.MOSS + PondShape.EARTH + PondShape.PEBBLE + [PondShape.WET, PondShape.EDGE]
 	var bank_n := 0
 	for y in range(0, pic.get_height(), 2):
@@ -162,6 +177,24 @@ func _soft_pond() -> void:
 				if bank_cols.has(c) or not (c.g > c.r and c.g > c.b) and t.tile(Vector2i(at / 16)) != "gravel":
 					top_bad += 1
 	check(top_n > 100 and top_bad == 0, "picture: the bank's top is the land's grass going over the edge (%d of %d pixels not)" % [top_bad, top_n])
+	# The user (2026-11-16) drew the lawn's edge wanted: one arc against the gravel, not the cells' steps. Along
+	# the east side (rows 21-29), where the lawn gives way to the gravel moves at most 3 px from row to row.
+	var edge_x: Array = []
+	for y in range(21 * 16, 30 * 16):
+		var found := -1
+		var grey := func(x: int) -> bool:
+			var c := pic.get_pixel(x - o.x, y - o.y)
+			return c.g < c.r + 0.08 and c.r > 0.6   # pale grey gravel, not green
+		for x in range(23 * 16, 29 * 16 - 2):
+			if grey.call(x) and grey.call(x + 1) and grey.call(x + 2):   # three in a row: not a flower in the grass
+				found = x
+				break
+		if found >= 0:
+			edge_x.append(found)
+	var jump := 0
+	for i in range(1, edge_x.size()):
+		jump = maxi(jump, absi(int(edge_x[i]) - int(edge_x[i - 1])))
+	check(edge_x.size() > 100 and jump <= 3, "the lawn meets the gravel in a smooth arc on the east (largest step %d px over %d rows)" % [jump, edge_x.size()])
 	var stones := pond.shore_stones()
 	var ok_stones := stones.all(func(st) -> bool: return absf(pond.field(st.pos) - PondShape.STONE_LEVEL) <= 0.07)
 	var gaps := true

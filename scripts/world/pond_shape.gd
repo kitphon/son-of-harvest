@@ -9,11 +9,16 @@ extends RefCounted
 ## SunkenGround.DROP). The shoreline wobbles a little (WOBBLE: a few slow waves added near the
 ## shore only, so the bed stays 1 and the land 0), so it does not run straight along the cell edges,
 ## and small stones lie along the waterline (shore_stones: GardenProps in 3D, MapView flat), as on
-## a rock-edged garden pond (the user, 2026-11-16: the edge still looked unnatural). One shape drives the 3D ground's height (SunkenGround), the ground picture
+## a rock-edged garden pond (the user, 2026-11-16: the edge still looked unnatural). The lawn round
+## the pond meets the gravel in a smooth arc too (lawn_field: the grass and water cells blurred
+## wider, LAWN_SOFT, so the cells' staircase becomes one curve; only the picture, the cells walk as
+## before: the user, 2026-11-16, drew the curve wanted). One shape drives the 3D ground's height (SunkenGround), the ground picture
 ## of both views (paint: moss, earth and pebbles down the bank, grass where a corner of water is
 ## rounded off) and where the koi may swim (KoiPondRules). Pure: no world classes.
 
 const SOFT := 0.85    # half width of the smoothing, cells (corners round to about this)
+const LAWN_SOFT := 1.4   # the lawn's edge against the gravel: a wider smoothing, so a staircase of cells reads as one arc
+const LAWN_REACH := 3    # cells past the pond's bounds the lawn's edge is repainted
 const WOBBLE := 0.16  # how much the slow waves move the field near the shore (about a fifth of a cell)
 const SHORE := 0.5    # the field's level on the shoreline
 const LIP := 0.07     # the bank's top stays flat this far past the shoreline, so the grass edge lies on level ground
@@ -34,6 +39,9 @@ const STONE_GAP := 0.42      # cells at least between two stones
 
 var cells: Dictionary = {}   # Vector2i -> true: the pond's water cells
 var bounds := Rect2i()       # the cells the shape reaches (its water cells grown by one)
+var picture := Rect2i()      # the cells the repainted picture covers (bounds and the lawn's edge round it)
+var lawn: Dictionary = {}    # Vector2i -> true: grass or water cells (the lawn) near the pond
+var swaps: Dictionary = {}   # Vector2i -> its tile: grass and gravel cells in `picture` whose picture follows the lawn's curve
 var _stones: Array = []      # shore_stones, worked out once
 
 static var _kept: Dictionary = {}
@@ -58,6 +66,16 @@ static func of(m: MapData) -> PondShape:
 			for c in s.cells:
 				r = r.merge(Rect2i(c, Vector2i.ONE))
 			s.bounds = r.grow(1).intersection(Rect2i(0, 0, m.w, m.h))
+			s.picture = s.bounds.grow(LAWN_REACH).intersection(Rect2i(0, 0, m.w, m.h))
+			var near := s.picture.grow(2)
+			for y in range(near.position.y, near.end.y):
+				for x in range(near.position.x, near.end.x):
+					var c := Vector2i(x, y)
+					var tile := m.tile(c) if m.in_bounds(c) else ""
+					if tile == "grass" or tile == "water":
+						s.lawn[c] = true
+					if s.picture.has_point(c) and (tile == "grass" or tile == "gravel"):
+						s.swaps[c] = tile
 			_kept[id] = s
 	return _kept[id]
 
@@ -71,6 +89,7 @@ static func from_cells(water: Array[Vector2i]) -> PondShape:
 	for c in water:
 		r = r.merge(Rect2i(c, Vector2i.ONE))
 	s.bounds = r.grow(1)
+	s.picture = s.bounds
 	return s
 
 
@@ -94,6 +113,25 @@ static func wobble(p: Vector2) -> float:
 	return WOBBLE * w
 
 
+## How much lawn there is at `p` (cells), 0..1: the grass and water cells blurred by LAWN_SOFT, with
+## a little of the wobble; 0.5 is the lawn's edge against the gravel.
+func lawn_field(p: Vector2) -> float:
+	var cx := floori(p.x)
+	var cy := floori(p.y)
+	var sum := 0.0
+	for dy in range(-2, 3):
+		for dx in range(-2, 3):
+			var c := Vector2i(cx + dx, cy + dy)
+			if lawn.has(c):
+				sum += _cover_by(p.x - c.x, LAWN_SOFT) * _cover_by(p.y - c.y, LAWN_SOFT)
+	sum = clampf(sum, 0.0, 1.0)
+	return clampf(sum + wobble(p * 0.6) * 2.0 * sum * (1.0 - sum), 0.0, 1.0)
+
+
+static func _cover_by(t: float, soft: float) -> float:
+	return smoothstep(-soft, soft, t) - smoothstep(-soft, soft, t - 1.0)
+
+
 ## A unit interval's share at `t` from its start, blurred.
 static func _cover(t: float) -> float:
 	return smoothstep(-SOFT, SOFT, t) - smoothstep(-SOFT, SOFT, t - 1.0)
@@ -110,16 +148,25 @@ func on_bed(p: Vector2) -> bool:
 	return field(p) >= DEEP
 
 
-## The ground picture over `bounds` repainted for the soft shore: `base(px)` gives the plain
+## The ground picture over `picture` repainted for the soft shore: `base(px)` gives the plain
 ## picture's pixel at a map pixel (Vector2i), `grass(px)` a grass pixel there. Over the bed the
 ## plain water stays; the land's own grass runs on over the bank's top, darkening as it goes down
 ## (GRASS_U of the way, no dither, so the grass edge reads as one smooth curve: the user,
 ## 2026-11-16, saw square blocks there), then moss, earth with pebbles, wet earth and the water's
 ## line at its foot; on the land side of the shoreline the land stays, and where a water cell's
 ## corner is rounded off it turns to grass.
-func paint(base: Callable, grass: Callable) -> Image:
-	var img := Image.create(bounds.size.x * T, bounds.size.y * T, false, Image.FORMAT_RGBA8)
-	var o := bounds.position * T
+func paint(base: Callable, grass: Callable, gravel := Callable()) -> Image:
+	var img := Image.create(picture.size.x * T, picture.size.y * T, false, Image.FORMAT_RGBA8)
+	var o := picture.position * T
+	# The land's picture at a map pixel: a grass or gravel cell by the lawn's curve, else as it is.
+	var land_at := func(at: Vector2i, q: Vector2) -> Color:
+		var cell := Vector2i(floori(q.x), floori(q.y))
+		if not swaps.has(cell) or not gravel.is_valid():
+			return base.call(at)
+		var want := "grass" if lawn_field(q) >= 0.5 else "gravel"
+		if want == swaps[cell]:
+			return base.call(at)
+		return grass.call(at) if want == "grass" else gravel.call(at)
 	for py in img.get_height():
 		for px in img.get_width():
 			var at := o + Vector2i(px, py)
@@ -133,12 +180,12 @@ func paint(base: Callable, grass: Callable) -> Image:
 				var u := (f - SHORE) / (DEEP - SHORE)
 				var edge := GRASS_U + _soft_noise(at) * 0.12   # where the grass gives way, a gentle wave
 				if u < edge:   # the grass going over the bank's top, darker the further down
-					var land: Color = grass.call(at) if water else base.call(at)
+					var land: Color = grass.call(at) if water else land_at.call(at, p)
 					col = land.darkened(0.28 * u / edge)
 				else:
 					col = bank_colour((u - edge) / (1.0 - edge), at)
 			else:
-				col = grass.call(at) if water else base.call(at)
+				col = grass.call(at) if water else land_at.call(at, p)
 			img.set_pixel(px, py, col)
 	return img
 
