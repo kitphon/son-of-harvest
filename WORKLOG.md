@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-16 — The temple pond's top-left arm deep water again — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user asked for the pond's top-left arm (cells (20, 22) and (21, 22), two cells wide, one row above the rest)
+  to be deep water as before. Measured: with the wider smoothing the field over the arm ran 0.52-0.87, all inside the
+  bank's slope band (0.5-0.97), so the whole arm was a shallow bay. The bed now starts at field 0.8 (PondShape.DEEP, was
+  0.97): a steeper, narrower bank everywhere (about a third of a cell instead of half), the rounded and wobbling
+  shoreline where it was; the arm is deep from about half a cell in. The shore stones sit a little higher on the bank
+  (STONE_LEVEL 0.68, was 0.8), at the waterline of the narrower bank. The koi have the arm to swim in again.
+- Checked: test_maps (the arm's middle on the bed at (21.0, 22.5) and (20.6, 22.6)): `test_maps: OK (0 failed)`;
+  `test_koi: OK (0 failed)`. Frames `--demo --map=town@pond --time=11:00 --weather=sunny`, 3D and flat: the arm deep
+  water, the shore rounded with its stones. All 44 tests/test_*.gd print `OK (0 failed)`;
+  smoke `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the user's look at the pond.
+
 ## 2026-11-16 — The temple pond: fewer, lower rocks; a natural, stone-edged shore — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user's look (2026-11-16): the rocks in the pond too tall and too many in the middle; the edge still not

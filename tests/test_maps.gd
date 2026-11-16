@@ -110,6 +110,8 @@ func _soft_pond() -> void:
 	var pond := PondShape.of(t)
 	check(pond != null and pond.cells.size() >= 30 and pond.bounds.has_point(Vector2i(19, 21)), "the town's pond shape from its jade cells")
 	check(PondShape.of(MapManager.data("river")) == null, "the river has no soft pond (its banks stay stone)")
+	# The user (2026-11-16): the top-left arm (cells (20, 22), (21, 22), two cells wide) stays deep water.
+	check(pond.on_bed(Vector2(21.0, 22.5)) and pond.on_bed(Vector2(20.6, 22.6)), "the pond's top-left arm is deep water (%.2f, %.2f)" % [pond.field(Vector2(21.0, 22.5)), pond.field(Vector2(20.6, 22.6))])
 	var SG: GDScript = load("res://scripts/world3d/sunken_ground.gd")
 	var water := func(c: Vector2i) -> bool: return t.tile(c) == "water"
 	var mesh: ArrayMesh = SG.ground(t.w, t.h, Vector2.ZERO, water, pond)

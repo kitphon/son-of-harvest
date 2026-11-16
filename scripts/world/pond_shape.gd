@@ -16,7 +16,7 @@ extends RefCounted
 const SOFT := 0.85    # half width of the smoothing, cells (corners round to about this)
 const WOBBLE := 0.16  # how much the slow waves move the field near the shore (about a fifth of a cell)
 const SHORE := 0.5    # the field's level on the shoreline
-const DEEP := 0.97    # the field's level where the bank's slope reaches the bed
+const DEEP := 0.8     # the field's level where the bank's slope reaches the bed (a steep, narrow bank, so a two-cell arm of the pond is still deep: the user, 2026-11-16)
 const LOOK := "jade"
 const T := 16
 
@@ -26,7 +26,7 @@ const PEBBLE: Array[Color] = [Color("7a766c"), Color("8e8a80")]
 const WET := Color("3c3a2c")
 const EDGE := Color("4f9686")   # the water's own line at the foot of the bank
 const JADE := Color("3a7f72")
-const STONE_LEVEL := 0.8     # the field's level the shore stones sit on (low on the bank, at the waterline)
+const STONE_LEVEL := 0.68    # the field's level the shore stones sit on (down the bank, at the waterline)
 const STONE_STEP := 0.2      # cells between the points tried along it
 const STONE_GAP := 0.42      # cells at least between two stones
 
