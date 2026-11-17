@@ -261,6 +261,14 @@ Light and Farmhouse model hold the technical detail of what is built.
       crown (_maple_tone): fall mostly crimson, orange (MAPLE_FLAME) and amber (MAPLE_AMBER) low and inside;
       spring fresh green with red-bronze new leaves (MAPLE_NEW); summer deep green, darker inside. The flat
       view's maple has the same stems, three tiers of thin layers and colours.
+      (2026-11-17, later) Leaves and blossom you can see (FoliageArt): a 32 x 32 pixel tile a kind and season
+      laid on the crowns' sprays at 16 texels a cell (box-mapped UVs in the spray's own space, so it sways
+      with it; `Trees.leaf_material`, nearest filtering, no mipmaps: they blurred the leaves away), multiplied
+      by the vertex colours. Leaf tiles are grey (five-pointed maple leaves, the cherry's pointed ovals, the
+      ginkgo's fans, lit from the upper left with a vein, every 3 texels over darker gaps), so the colour
+      stays the tree's; the cherry in bloom's tile is in colour over a pale blossom tint (Trees.BLOOM):
+      five-petalled flowers with deep pink hearts, buds, deep pink gaps, a twig now and then. The flat
+      view stamps the same tiles on its tree pictures' crowns (FoliageArt.stamp; the trunks left clean).
 - [x] Bamboo: segmented culms with node rings, leaf sprays, swaying, by season, snow on the
       leaves (`OutdoorProps.bamboo`). (this commit) The wind follows the weather (data/wind.json,
       see "Wind by weather" in the table): in a storm the clumps lean further, sway faster and

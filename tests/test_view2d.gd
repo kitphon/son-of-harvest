@@ -683,6 +683,7 @@ func _maples() -> void:
 			var white := 0
 			var bark := 0
 			var clear := 0
+			var crown := 0
 			for y in img.get_height():
 				for x in img.get_width():
 					var c := img.get_pixel(x, y)
@@ -699,6 +700,8 @@ func _maples() -> void:
 						white += 1
 					if c.r < 0.35 and c.g < 0.25 and c.a > 0.5 and c.r > c.g:
 						bark += 1
+					elif c.r > 0.35 or c.g > 0.35:
+						crown += 1
 			var what := "%s, snow %s" % [season, snow]
 			check(img.get_size() == Vector2i(24, 32), "maple %s: a 24 x 32 picture" % what)
 			check(clear > img.get_width() * img.get_height() * 0.4, "maple %s: round, not a box (%d clear)" % [what, clear])
@@ -706,7 +709,7 @@ func _maples() -> void:
 				"maple %s: clear corners" % what)
 			check(bark > 10, "maple %s: a trunk or bare branches in bark (%d)" % [what, bark])
 			if leaves.has(season):
-				check(green + red + orange > 90, "maple %s: a leafy crown (%d)" % [what, green + red + orange])
+				check(crown > 90 and green + red + orange > 60, "maple %s: a leafy crown (%d, %d in leaf colours)" % [what, crown, green + red + orange])
 				check((green > 40) == (season in ["spring", "summer"]), "maple %s: green leaves only in spring and summer (%d)" % [what, green])
 				check((orange > 0) == (season == "fall"), "maple %s: orange lumps only in fall (%d)" % [what, orange])
 				check(red > 0 or season != "fall", "maple %s: red in fall" % what)

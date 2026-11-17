@@ -242,6 +242,8 @@ const CROWN_KINDS: Array[String] = ["sakura", "maple", "ginkgo"]
 const FLORET := Color("fff2f6")       # the small open flowers dotted over a cherry in bloom
 const BLOSSOM_DEEP := Color("e898b0")  # the deeper pink of the buds under a cherry's sprays
 const CHERRY_GOLD := Color("d89a3c")   # the gold sprays among a cherry's orange-brown in fall
+const LEAF_TILE := 2.0   # cells a leaf tile (FoliageArt, 32 texels) covers on a crown: 16 texels a cell
+const BLOOM := Color("fff0f4")   # a cherry in bloom's sprays: the pale tint its flower tile is laid over
 const LIMBS := 7   # a grand cherry's limbs, each ending in a spray (every other one rising steeper)
 static var _crowns := {}   # "kind|season|shape" -> {trunk: {key: ArrayMesh}, sprays: [{mesh: ArrayMesh, hinge: Vector3}]}
 
@@ -296,7 +298,7 @@ static func place_crowned(w: FarmWorld, at: Vector3, kind: String, season: Strin
 	for i in sprays.size():
 		var mi := MeshInstance3D.new()
 		mi.mesh = sprays[i].mesh
-		mi.material_override = OutdoorProps._vertex_material()
+		mi.material_override = leaf_material(kind, season)
 		var hinge: Vector3 = at + turn * (sprays[i].hinge as Vector3)
 		mi.transform = Transform3D(turn, hinge)
 		mi.set_meta("crown", true)   # a tree's spray (not a bamboo clump: test_maps tells them apart)
@@ -334,6 +336,8 @@ static func _build_crown(kind: String, season: String, shape: int) -> Dictionary
 ## (seven lumps of blossom; the low ring's with two small deeper ones hanging under), one more big
 ## spray over the trunk; petals lying far round its foot in spring.
 static func _sakura_sprays(p: FarmProps.Parts, bark: SurfaceTool, sprays: Array, leaf: Color, season: String, rng: RandomNumberGenerator) -> void:
+	if season == "spring":
+		leaf = BLOOM   # in bloom the flower tile carries the pinks: the sprays are its pale tint
 	var turn := rng.randf() * TAU
 	for i in LIMBS:
 		var yaw := turn + TAU * i / LIMBS + rng.randf_range(-0.2, 0.2)
@@ -465,6 +469,18 @@ static func _ginkgo_sprays(p: FarmProps.Parts, bark: SurfaceTool, sprays: Array,
 			FarmProps.block(fallen, Rect2(c.x - s / 2, c.z - s / 2, s, s), 0.002, Rect2(c.x - s / 2, c.z - s / 2, s, s), 0.012)
 
 
+## The material of a `kind` tree's sprays in `season`: their vertex colours times the leaf or blossom
+## tile (FoliageArt) at LEAF_TILE, the texels kept sharp. A new one each
+## call (each tree fades on its own: Occluders).
+static func leaf_material(kind: String, season: String) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.vertex_color_use_as_albedo = true
+	m.vertex_color_is_srgb = true
+	m.albedo_texture = PlaceholderArt.tex("foliage:%s:%s" % [kind, season if season != "" else "spring"])
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST   # crisp pixels, as the rest of the game (mipmaps blurred the leaves away)
+	return m
+
+
 ## A kind's bark colour.
 static func bark_of(kind: String) -> Color:
 	match kind:
@@ -510,7 +526,7 @@ static func _dots(st: SurfaceTool, c: Vector3, r: float, leaf: Color, season: St
 	var tones: Array[Color] = []
 	match season:
 		"spring":
-			if leaf == LEAVES.sakura.spring:
+			if leaf == LEAVES.sakura.spring or leaf == BLOOM:
 				tones = [FLORET, Color("fbdce6")]
 		"summer": tones = [leaf.lightened(0.28), leaf.lightened(0.18)]
 		"fall":
@@ -551,6 +567,13 @@ static func _coloured_lump(st: SurfaceTool, c: Vector3, r: float, squash: float,
 			var t := rng.randf_range(-jitter, jitter) + (0.06 if n[i].y > 0.6 else 0.0)
 			face = col.lightened(t) if t > 0.0 else col.darkened(-t)
 		st.set_color(face)
+		# The leaf tile (FoliageArt) laid on the facet from the side it faces most: its UVs are the
+		# spray's own coordinates on the other two axes, LEAF_TILE cells a tile.
+		var fn := xf.basis * n[i]
+		var axis := 0 if absf(fn.x) >= absf(fn.y) and absf(fn.x) >= absf(fn.z) else (1 if absf(fn.y) >= absf(fn.z) else 2)
 		for j in 3:
+			var q := xf * v[i + j]
+			var uv := Vector2(q.z, q.y) if axis == 0 else (Vector2(q.x, q.z) if axis == 1 else Vector2(q.x, q.y))
+			st.set_uv(uv / LEAF_TILE)
 			st.set_normal(xf.basis * n[i + j])
-			st.add_vertex(xf * v[i + j])
+			st.add_vertex(q)

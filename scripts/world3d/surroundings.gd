@@ -220,7 +220,7 @@ func _make_broadleaf(at: Array) -> Array:
 				var placed: Array[Transform3D] = []
 				for xf in spots:
 					placed.append(xf * Transform3D(Basis(), sp.hinge))
-				_multi(sp.mesh, placed, OutdoorProps._vertex_material())
+				_multi(sp.mesh, placed, Trees.leaf_material(kind, season))
 		else:
 			var meshes := MeshCache.parts("wood_%s:%d" % [kind, shape],
 				func(parts: FarmProps.Parts): Trees.broadleaf(parts, Vector3.ZERO, kind, "winter", 211 + shape * 53, true))

@@ -2563,6 +2563,7 @@ func _trees() -> void:
 					"%s in %s (seed %d, snow %s): %d faults, reaches %.2f, %.2f high, %d snow" % [kind, case[0], seed, case[1], l.bad, l.reach, l.top, l.snow])
 				w.free()
 	_crowned_trees(trees)
+	_foliage_tiles()
 	for garden in [true, false]:
 		for snow in [true, false]:
 			var w: Node3D = parts_of.call(func(p): trees.pine(p, Vector3.ZERO, 7, garden, snow))
@@ -2691,6 +2692,10 @@ func _crowned_trees(trees: GDScript) -> void:
 				check(trunk_r > 0.08 and trunk_r < 0.14, "crowned %s: the old trunk under the crown (%.3f)" % [what, trunk_r])
 				var sway = w.get_node("WindSway")
 				check(sway.count_of("crown") == sprays.size(), "crowned %s: every spray in the Sway" % what)
+				var lm: StandardMaterial3D = (sprays[0] as MeshInstance3D).material_override
+				var uvs = (sprays[0] as MeshInstance3D).mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV]
+				check(lm.albedo_texture != null and lm.vertex_color_use_as_albedo and lm.texture_filter == BaseMaterial3D.TEXTURE_FILTER_NEAREST
+					and uvs != null and (uvs as PackedVector2Array).size() > 0, "crowned %s: its leaf tile laid on the sprays, crisp" % what)
 				if seed == 3:
 					var first: Transform3D = sprays[0].transform
 					var moved := 0.0
@@ -2709,6 +2714,43 @@ func _crowned_trees(trees: GDScript) -> void:
 					sway.pose(1.3)
 					check(not (sprays[1] as Node3D).basis.is_equal_approx(calm_a), "crowned %s: a spray stirs even in a calm" % what)
 				w.free()
+
+
+## The leaf and blossom tiles (FoliageArt): 32 x 32, opaque; a leaf tile grey (the tree's colour comes
+## from its vertices) with lit leaves and darker gaps; the cherry in bloom's in colour with petals,
+## deep pink hearts and gaps; the pattern runs on across the tile's edges (it repeats).
+func _foliage_tiles() -> void:
+	var fa: GDScript = load("res://scripts/art/foliage_art.gd")
+	for kind in ["sakura", "maple", "ginkgo"]:
+		for season in ["spring", "summer", "fall"]:
+			var img: Image = fa.make(kind, season)
+			var lit := 0
+			var gap := 0
+			var hearts := 0
+			var petals := 0
+			var grey := true
+			for y in 32:
+				for x in 32:
+					var c := img.get_pixel(x, y)
+					if c.a < 1.0:
+						grey = false
+					var near := func(k: Color) -> bool: return Vector3(c.r - k.r, c.g - k.g, c.b - k.b).length() < 0.01
+					if near.call(fa.HEART):
+						hearts += 1
+					if near.call(fa.PETAL) or near.call(fa.PETAL_SHADE):
+						petals += 1
+					if absf(c.r - c.g) > 0.01 or absf(c.g - c.b) > 0.01:
+						grey = false
+					if c.r >= 0.8:
+						lit += 1
+					if absf(c.r - fa.GAP) < 0.01:
+						gap += 1
+			var what := "%s in %s" % [kind, season]
+			check(img.get_size() == Vector2i(32, 32), "foliage %s: a 32 x 32 tile" % what)
+			if kind == "sakura" and season == "spring":
+				check(hearts >= 20 and petals >= 200 and not grey, "foliage %s: flowers with deep pink hearts (%d petals, %d hearts)" % [what, petals, hearts])
+			else:
+				check(grey and lit >= 400 and gap >= 60, "foliage %s: grey leaves (%d lit) over darker gaps (%d)" % [what, lit, gap])
 
 
 ## The outdoor small props (OutdoorProps): bamboo, well, jizo, woodpile and river rock are lit

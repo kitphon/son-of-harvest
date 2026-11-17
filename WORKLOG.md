@@ -10,6 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-17 — Leaves and cherry blossom you can see — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user wanted more detail: leaves on the maples and cherries, the cherry's flowers clear. New FoliageArt
+  (scripts/art/foliage_art.gd, PlaceholderArt "foliage:<kind>:<season>"): a seamless 32 x 32 pixel tile a kind and
+  season. Leaf tiles are grey, so the tree's own vertex colours stay (the maple's crimson to amber, the ginkgo's gold):
+  five-pointed maple leaves, the cherry's pointed oval leaves, the ginkgo's fans, each turned one of four ways, lit
+  from the upper left with a vein, strewn every 3 texels over darker gaps (GAP 0.6). The cherry in bloom's tile is in
+  colour: five-petalled flowers (white and shaded petals) with deep pink hearts, buds, deep pink gaps and a dark twig
+  now and then, laid over a pale blossom tint (Trees.BLOOM fff0f4, the sprays' vertex colour in spring). Trees: every
+  facet of a spray gets UVs from the spray's own coordinates on the two axes it faces least (box mapping, LEAF_TILE
+  2 cells a tile: 16 texels a cell, a texel a little over a screen pixel, a leaf or flower five or six pixels), so the
+  pattern sways with the spray; Trees.leaf_material: vertex colours times the tile, nearest filtering (a first try
+  with mipmaps blurred the leaves away at the play camera's distance). The wood past Nishiki Hill's edges uses it too.
+  The flat view stamps the same tiles onto its maple, cherry and ginkgo pictures' crowns after ItemArt's toning
+  (FoliageArt.stamp, masked by the picture before toning, so the trunks stay clean: a first try speckled them).
+- Checked: test_maps `_foliage_tiles` (32 x 32 tiles; leaf tiles grey with 400+ lit leaf texels over darker gaps; the
+  bloom tile in colour with 200+ petal texels and 20+ hearts) and `_crowned_trees` (every crowned tree's sprays carry
+  UVs and the crisp leaf tile); test_view2d (the flat maple's leafy crown counted as any crown pixel now that the leaf
+  pattern tones it): OK. Frames: the Sakurazaka maple in spring, summer and fall and the hill's cherries in spring,
+  zoomed: leaves and blossom read as a pattern of leaves and flowers; the flat view the same, trunks clean. All 44
+  tests/test_*.gd print `OK (0 failed)`; smoke `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo
+  --mine=3`, `--demo --map=hill --season=spring`): 0 ERROR lines; windowed `--quit-after 150 -- --demo --map=hill`: exit 0.
+- Left / next: the crowns' outlines are still the lumps' (the leaves are painted on them, not cut out at the edge);
+  a closer look (the viewpoints) shows the most.
+
 ## 2026-11-17 — A maple shaped like a real Japanese maple — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user asked for the maples to look more like real ones. Trees._maple_sprays rebuilt after how a Japanese

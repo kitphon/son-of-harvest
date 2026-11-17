@@ -80,6 +80,8 @@ static func _make(key: String) -> Image:
 			return KoiPondArt.make(parts[1], int(parts[2]))
 		"fish_fx":  # fish_fx:<bobber|alert>, the float on the water and the "!" of a bite
 			return _fish_fx(parts[1])
+		"foliage":  # foliage:<sakura|maple|ginkgo>:<season>, the leaves or blossom painted on a crown (FoliageArt, 32 x 32 tile)
+			return FoliageArt.make(parts[1], parts[2])
 		"tree":     # tree:<maple|sakura|ginkgo>:<spring|summer|fall|winter>:<snow 0|1>, a Japanese maple (24 x 32), a grand cherry (32 x 40) or a ginkgo (24 x 44) in the flat view (MapView)
 			if parts[1] == "sakura":
 				return _sakura_tree(parts[2], parts[3] == "1")
@@ -2404,7 +2406,10 @@ static func _maple_tree(season: String, snow: bool) -> Image:
 			if img.get_pixelv(p).a > 0.5 and img.get_pixelv(p) != bark:
 				img.set_pixelv(p, MAPLE_NEW)
 		fixed.append(MAPLE_NEW)
-	return ItemArt.refine(img, fixed)
+	var before := img.duplicate() as Image
+	ItemArt.refine(img, fixed)
+	FoliageArt.stamp(img, before, "maple", season, bark, fixed)   # the leaves
+	return img
 
 
 ## A bare tree of the flat view's 24 x 32 pictures (the maple's and the cherry's winter): five
@@ -2473,7 +2478,9 @@ static func _sakura_tree(season: String, snow: bool) -> Image:
 		if img.get_pixelv(p).a > 0.5 and img.get_pixelv(p) != SAKURA_BARK:
 			img.set_pixelv(p, dots[i % dots.size()])
 	fixed.append_array(dots)
+	var before := img.duplicate() as Image
 	ItemArt.refine(img, fixed)
+	FoliageArt.stamp(img, before, "sakura", season, SAKURA_BARK, fixed)   # the flowers or leaves
 	if season == "spring":
 		for i in 12:   # petals on the grass far round the foot (after the rim: no dark edge)
 			var ang := i * 2.4
@@ -2514,7 +2521,9 @@ static func _ginkgo_tree(season: String, snow: bool) -> Image:
 		var p := Vector2i(2 + (i * 7) % 20, 3 + (i * 11) % 27)
 		if img.get_pixelv(p).a > 0.5 and img.get_pixelv(p) != GINKGO_BARK:
 			img.set_pixelv(p, dots[i % dots.size()])
+	var before := img.duplicate() as Image
 	ItemArt.refine(img, dots + [GINKGO_BARK])
+	FoliageArt.stamp(img, before, "ginkgo", season, GINKGO_BARK, dots)   # the fan leaves
 	if season == "fall":
 		for i in 16:   # the gold carpet round its foot (after the rim: no dark edge)
 			var ang := i * 2.4
