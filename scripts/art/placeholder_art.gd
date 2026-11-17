@@ -80,9 +80,11 @@ static func _make(key: String) -> Image:
 			return KoiPondArt.make(parts[1], int(parts[2]))
 		"fish_fx":  # fish_fx:<bobber|alert>, the float on the water and the "!" of a bite
 			return _fish_fx(parts[1])
-		"tree":     # tree:<maple|sakura>:<spring|summer|fall|winter>:<snow 0|1>, a Japanese maple (24 x 32) or a grand cherry (32 x 40) in the flat view (MapView)
+		"tree":     # tree:<maple|sakura|ginkgo>:<spring|summer|fall|winter>:<snow 0|1>, a Japanese maple (24 x 32), a grand cherry (32 x 40) or a ginkgo (24 x 44) in the flat view (MapView)
 			if parts[1] == "sakura":
 				return _sakura_tree(parts[2], parts[3] == "1")
+			if parts[1] == "ginkgo":
+				return _ginkgo_tree(parts[2], parts[3] == "1")
 			return _maple_tree(parts[2], parts[3] == "1")
 		"ui":       # ui:<frame|slot|weather|tool|seeds|food|item|cursor|coin|stamina|heart>:<kind>, HUD pieces
 			return _ui(parts[1], parts[2] if parts.size() > 2 else "")
@@ -2390,25 +2392,26 @@ static func _maple_tree(season: String, snow: bool) -> Image:
 
 ## A bare tree of the flat view's 24 x 32 pictures (the maple's and the cherry's winter): five
 ## branches and their twigs off the trunk in `bark`, snow on their upper side when `snow`.
-static func _bare_tree(img: Image, bark: Color, snow: bool) -> Image:
+static func _bare_tree(img: Image, bark: Color, snow: bool, keep_bark := false) -> Image:
 	var snow_white := Color("f4f8fc")
 	_px(img, 11, 15, 2, 15, bark)
 	for seg in [[Vector2i(12, 15), Vector2i(6, 9)], [Vector2i(12, 15), Vector2i(18, 9)], [Vector2i(12, 15), Vector2i(12, 3)],
 			[Vector2i(6, 9), Vector2i(2, 5)], [Vector2i(6, 9), Vector2i(4, 13)], [Vector2i(18, 9), Vector2i(22, 5)],
 			[Vector2i(18, 9), Vector2i(20, 13)], [Vector2i(12, 6), Vector2i(8, 2)], [Vector2i(12, 6), Vector2i(16, 2)]]:
 		_line(img, seg[0], seg[1], bark)
+	var kept: Array = [bark] if keep_bark else []   # a pale bark kept as it is (its deep tone would read as an outline)
 	if not snow:
-		return ItemArt.refine(img)
+		return ItemArt.refine(img, kept)
 	for y in range(1, 32):   # snow on the upper side of every branch pixel
 		for x in 24:
 			if img.get_pixel(x, y).a > 0.5 and img.get_pixel(x, y - 1).a < 0.5:
 				img.set_pixel(x, y - 1, snow_white)
-	return ItemArt.refine(img, [snow_white])
+	return ItemArt.refine(img, [snow_white] + kept)
 
 
 ## The 3D cherry's leaf colours by season and its bark (Trees.LEAVES.sakura, Trees.SAKURA_BARK,
 ## Trees.PETAL; a test keeps them equal). Kept here, not read from Trees, so this script compiles alone.
-const SAKURA_LEAVES := {"spring": Color("f2bccb"), "summer": Color("4e8a3a"), "fall": Color("c8783a")}
+const SAKURA_LEAVES := {"spring": Color("f2bccb"), "summer": Color("4e8a3a"), "fall": Color("c4562e")}
 const SAKURA_BARK := Color("3e302c")
 const SAKURA_PETAL := Color("f6c4d2")
 
@@ -2458,6 +2461,47 @@ static func _sakura_tree(season: String, snow: bool) -> Image:
 		for i in 12:   # petals on the grass far round the foot (after the rim: no dark edge)
 			var ang := i * 2.4
 			img.set_pixel(clampi(int(16 + cos(ang) * (4 + i % 4 * 3.0)), 1, 30), clampi(int(38 + sin(ang) * 1.5), 36, 39), SAKURA_PETAL)
+	return img
+
+
+## The 3D ginkgo's leaf colours by season, bark and fallen leaves (Trees.LEAVES.ginkgo,
+## Trees.GINKGO_BARK, Trees.GINKGO_LEAF; a test keeps them equal).
+const GINKGO_LEAVES := {"spring": Color("9cc84a"), "summer": Color("4f8a32"), "fall": Color("f0c020")}
+const GINKGO_BARK := Color("6a5a4c")
+const GINKGO_LEAF := Color("eec02a")
+
+
+## A ginkgo for the flat view (24 x 44, the trunk's foot at (12, 42)): a straight trunk under a
+## tall upright oval of leaf tiers, in the 3D ginkgo's colours, light dots over it (paler gold in
+## fall), a gold carpet of fallen leaves round its foot in fall; bare branches in winter (the
+## maple's bare form on a taller trunk, snow on them where the map has snow).
+static func _ginkgo_tree(season: String, snow: bool) -> Image:
+	var img := _blank(24, 44)
+	var leaf: Color = GINKGO_LEAVES.get(season, Color(0, 0, 0, 0))
+	if leaf.a == 0.0:
+		var bare := _bare_tree(_blank(24, 32), GINKGO_BARK, snow, true)
+		img.blit_rect(bare, Rect2i(0, 0, 24, 32), Vector2i(0, 4))
+		_px(img, 11, 34, 2, 9, GINKGO_BARK)
+		return img
+	_px(img, 11, 22, 2, 21, GINKGO_BARK)
+	# [x, y, rx, ry, shade]: the tiers from the bottom up, an upright oval
+	var tiers := [
+		[6.5, 27.0, 4.5, 3.5, 0], [17.5, 27.0, 4.5, 3.5, 0], [12.0, 24.5, 6.5, 4.5, 1],
+		[7.5, 19.0, 4.2, 3.6, 0], [16.5, 19.0, 4.2, 3.6, 1], [12.0, 15.5, 5.8, 4.4, 1],
+		[9.0, 10.0, 3.8, 3.4, 1], [15.0, 10.0, 3.8, 3.4, 2], [12.0, 5.5, 3.6, 4.0, 2],
+	]
+	for t in tiers:
+		_oval(img, t[0], t[1], t[2], t[3], [leaf.darkened(0.12), leaf, leaf.lightened(0.1)][t[4]])
+	var dots: Array = [Color("ffe066"), Color("e0a010")] if season == "fall" else [leaf.lightened(0.3)]
+	for i in 18:
+		var p := Vector2i(2 + (i * 7) % 20, 3 + (i * 11) % 27)
+		if img.get_pixelv(p).a > 0.5 and img.get_pixelv(p) != GINKGO_BARK:
+			img.set_pixelv(p, dots[i % dots.size()])
+	ItemArt.refine(img, dots + [GINKGO_BARK])
+	if season == "fall":
+		for i in 16:   # the gold carpet round its foot (after the rim: no dark edge)
+			var ang := i * 2.4
+			img.set_pixel(clampi(int(12 + cos(ang) * (2 + i % 5 * 2.2)), 0, 23), clampi(int(42 + sin(ang) * 1.6), 39, 43), GINKGO_LEAF)
 	return img
 
 

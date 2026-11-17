@@ -11,6 +11,8 @@ extends RefCounted
 
 const BARK := Color("4a3428")
 const SAKURA_BARK := Color("3e302c")
+const GINKGO_BARK := Color("6a5a4c")   # the ginkgo's paler grey-brown bark
+const GINKGO_LEAF := Color("eec02a")   # its fallen leaves, a gold carpet round its foot in fall
 const NEEDLES: Array[Color] = [Color("2f5a34"), Color("3a6a3c"), Color("467a44")]
 const FRUIT := Color("e8782a")
 const PETAL := Color("f6c4d2")
@@ -22,7 +24,9 @@ const LEAVES := {
 	"persimmon": {"spring": Color("5e9a3e"), "summer": Color("4a8434"), "fall": Color("a8402c"), "winter": Color(0, 0, 0, 0)},
 	# A Japanese maple (momiji): fresh light green in spring, deep green in summer, vivid red in fall.
 	"maple": {"spring": Color("86b844"), "summer": Color("2f6e32"), "fall": Color("c42a1e"), "winter": Color(0, 0, 0, 0)},
-	"sakura": {"spring": Color("f2bccb"), "summer": Color("4e8a3a"), "fall": Color("c8783a"), "winter": Color(0, 0, 0, 0)},
+	"sakura": {"spring": Color("f2bccb"), "summer": Color("4e8a3a"), "fall": Color("c4562e"), "winter": Color(0, 0, 0, 0)},
+	# A Japanese ginkgo (icho): fresh yellow-green in spring, mid green in summer, bright gold in fall.
+	"ginkgo": {"spring": Color("9cc84a"), "summer": Color("4f8a32"), "fall": Color("f0c020"), "winter": Color(0, 0, 0, 0)},
 }
 
 
@@ -34,7 +38,7 @@ static func broadleaf(p: FarmProps.Parts, at: Vector3, kind: String, season: Str
 	var leaf: Color = colours.get(season, colours.spring)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
-	var bark := p.st(SAKURA_BARK if kind == "sakura" else BARK)
+	var bark := p.st(bark_of(kind))
 	Shrine.lathe(bark, at, [Vector2(0.13, 0.0), Vector2(0.1, 0.12), Vector2(0.085, 0.7), Vector2(0.065, 1.2)], 6)
 	var bare := leaf.a == 0.0
 	var fruit := kind == "persimmon" and season in ["fall", "winter"]
@@ -219,7 +223,7 @@ static func _dir(yaw: float, tilt: float) -> Vector3:
 
 
 ## --- Grand swaying crowns (2026-11-17) -------------------------------------------------------
-## The cherries and maples in leaf (or in bloom) are built as a trunk with spreading limbs and a
+## The cherries, maples and ginkgos in leaf (or in bloom) are built as a trunk with spreading limbs and a
 ## crown of separate sprays, each its own mesh that the world's Sway rocks about the fork it grows
 ## from (OutdoorProps.Sway "crown": a gentle stir even in a calm, more in a wind, every spray on its
 ## own beat), so the crown seems to rustle. The sprays carry their colours on the vertices, every
@@ -232,7 +236,7 @@ static func _dir(yaw: float, tilt: float) -> Vector3:
 ## Bare (winter) trees and the persimmon keep broadleaf.
 
 const CROWN_SHAPES := 6
-const CROWN_KINDS: Array[String] = ["sakura", "maple"]
+const CROWN_KINDS: Array[String] = ["sakura", "maple", "ginkgo"]
 const FLORET := Color("fff2f6")       # the small open flowers dotted over a cherry in bloom
 const BLOSSOM_DEEP := Color("e898b0")  # the deeper pink of the buds under a cherry's sprays
 const CHERRY_GOLD := Color("d89a3c")   # the gold sprays among a cherry's orange-brown in fall
@@ -281,7 +285,7 @@ static func place_crowned(w: FarmWorld, at: Vector3, kind: String, season: Strin
 		mi.mesh = made.trunk[key]
 		mi.material_override = FarmProps.Parts.material(key, w._snow_mats)
 		mi.transform = Transform3D(turn, at)
-		if not FarmProps.Parts.casts_shadow(key) or (key is Color and key == PETAL):
+		if not FarmProps.Parts.casts_shadow(key) or (key is Color and (key == PETAL or key == GINKGO_LEAF)):
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		w.add_child(mi)
 	var nodes: Array = []
@@ -304,11 +308,13 @@ static func _build_crown(kind: String, season: String, shape: int) -> Dictionary
 	rng.seed = hash(kind) + shape * 7919 + 17
 	var leaf: Color = LEAVES[kind][season]
 	var p := FarmProps.Parts.new()
-	var bark := p.st(SAKURA_BARK if kind == "sakura" else BARK)
+	var bark := p.st(bark_of(kind))
 	Shrine.lathe(bark, Vector3.ZERO, [Vector2(0.13, 0.0), Vector2(0.1, 0.12), Vector2(0.085, 0.7), Vector2(0.065, 1.2)], 6)
 	var sprays: Array = []
 	if kind == "sakura":
 		_sakura_sprays(p, bark, sprays, leaf, season, rng)
+	elif kind == "ginkgo":
+		_ginkgo_sprays(p, bark, sprays, leaf, season, rng)
 	else:
 		_maple_sprays(bark, sprays, leaf, season, rng)
 	var out := []
@@ -387,6 +393,51 @@ static func _maple_sprays(bark: SurfaceTool, sprays: Array, leaf: Color, season:
 	sprays.append({"st": top, "hinge": hinge_top})
 
 
+## A ginkgo: tall and upright, its leader running on up from the trunk to 2.7, short limbs off it
+## and its crown an upright oval of sprays in tiers (four low and wide, three in the middle, two
+## near the top, one on it), about 0.95 round and 3.2 up; in fall a gold carpet of fallen leaves
+## round its foot.
+static func _ginkgo_sprays(p: FarmProps.Parts, bark: SurfaceTool, sprays: Array, leaf: Color, season: String, rng: RandomNumberGenerator) -> void:
+	_limb(bark, Vector3(0, 1.15, 0), Vector3.UP, 1.55, 0.065, 0.025)
+	var turn := rng.randf() * TAU
+	# [count, height, out, lump radius]
+	for tier in [[4, 1.45, 0.42, 0.3], [3, 1.95, 0.34, 0.28], [2, 2.45, 0.22, 0.25]]:
+		for i in int(tier[0]):
+			var a: float = turn + TAU * i / float(tier[0]) + rng.randf_range(-0.25, 0.25) + float(tier[1])
+			var out := Vector3(cos(a), 0, sin(a))
+			var fork := Vector3(0, float(tier[1]) - 0.25, 0)
+			var centre := fork + out * float(tier[2]) + Vector3(0, 0.22, 0)
+			_limb(bark, fork, (centre - fork).normalized(), (centre - fork).length() * 0.8, 0.035, 0.015)
+			var st := _spray_tool()
+			var r: float = float(tier[3]) * rng.randf_range(0.92, 1.08)
+			_leafy_lump(st, centre - fork, r, 0.95, leaf.darkened(0.1 if i % 2 == 0 else 0.03), rng)
+			_leafy_lump(st, centre - fork + out * r * 0.5 + Vector3(0, r * 0.3, 0), r * 0.72, 0.95, leaf, rng)
+			_leafy_lump(st, centre - fork - out * r * 0.2 + Vector3(0, -r * 0.45, 0), r * 0.6, 0.9, leaf.darkened(0.14), rng)
+			_dots(st, centre - fork, r * 1.05, leaf, season, rng, 5)
+			sprays.append({"st": st, "hinge": fork})
+	var top := _spray_tool()
+	var hinge := Vector3(0, 2.45, 0)
+	_leafy_lump(top, Vector3(0, 0.42, 0), 0.22, 1.1, leaf.lightened(0.08), rng)
+	_dots(top, Vector3(0, 0.45, 0), 0.22, leaf, season, rng, 3)
+	sprays.append({"st": top, "hinge": hinge})
+	if season == "fall":
+		var fallen := p.st(GINKGO_LEAF)
+		for i in 48:
+			var a := i * 2.4 + rng.randf()
+			var d := 0.2 + (i % 8) * 0.1
+			var c := Vector3(cos(a) * d, 0, sin(a) * d)
+			var s := rng.randf_range(0.06, 0.1)
+			FarmProps.block(fallen, Rect2(c.x - s / 2, c.z - s / 2, s, s), 0.002, Rect2(c.x - s / 2, c.z - s / 2, s, s), 0.012)
+
+
+## A kind's bark colour.
+static func bark_of(kind: String) -> Color:
+	match kind:
+		"sakura": return SAKURA_BARK
+		"ginkgo": return GINKGO_BARK
+	return BARK
+
+
 static func _spray_tool() -> SurfaceTool:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -427,7 +478,11 @@ static func _dots(st: SurfaceTool, c: Vector3, r: float, leaf: Color, season: St
 			if leaf == LEAVES.sakura.spring:
 				tones = [FLORET, Color("fbdce6")]
 		"summer": tones = [leaf.lightened(0.28), leaf.lightened(0.18)]
-		"fall": tones = [Color("e8b040"), Color("e07a28"), leaf.lightened(0.2)]
+		"fall":
+			if leaf == LEAVES.ginkgo.fall:   # paler and deeper golds over a ginkgo
+				tones = [Color("ffe066"), Color("e0a010")]
+			else:
+				tones = [Color("e8b040"), Color("e07a28"), leaf.lightened(0.2)]
 	if tones.is_empty():
 		return
 	for i in count:

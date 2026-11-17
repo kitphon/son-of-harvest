@@ -51,6 +51,7 @@ func _run() -> void:
 	await _maples()
 	await _maple_art_refined()
 	_sakuras()
+	_ginkgos()
 	await _footprints()
 	await _hearth_smoke()
 	await _roofs()
@@ -757,6 +758,34 @@ func _sakuras() -> void:
 			check((green > 90) == (season == "summer"), "cherry %s: a green crown in summer only (%d)" % [what, green])
 			check((brown > 90) == (season == "fall"), "cherry %s: an orange-brown crown in fall only (%d)" % [what, brown])
 			check((white > 0) == (season == "spring" or (season == "winter" and snow)), "cherry %s: blossom spots in spring, snow in winter with snow (%d)" % [what, white])
+
+
+## The ginkgo in the flat view (PlaceholderArt "tree:ginkgo:<season>:<snow>", MapView.ginkgo_key):
+## a tall 24 x 44 picture, its crown green in spring and summer and gold in fall only, bare branches
+## in winter, refined (no near-black outline).
+func _ginkgos() -> void:
+	var outline := Color("2a1e1e")
+	for season in ["spring", "summer", "fall", "winter"]:
+		for snow in [false, true]:
+			var img: Image = PlaceholderArt.image(MapView.ginkgo_key(snow, season))
+			var what := "%s, snow %s" % [season, snow]
+			var green := 0
+			var gold := 0
+			var outlined := 0
+			for y in img.get_height():
+				for x in img.get_width():
+					var c := img.get_pixel(x, y)
+					if c.a < 0.5:
+						continue
+					if c.g > c.r and c.g > c.b:
+						green += 1
+					elif c.r > 0.75 and c.g > 0.55 and c.b < 0.35:
+						gold += 1
+					if Vector3(c.r, c.g, c.b).distance_to(Vector3(outline.r, outline.g, outline.b)) < 0.02:
+						outlined += 1
+			check(img.get_size() == Vector2i(24, 44) and img.get_pixel(0, 0).a < 0.5 and img.get_pixel(23, 0).a < 0.5, "ginkgo %s: a tall 24 x 44 picture, clear corners" % what)
+			check(outlined == 0, "ginkgo %s: no near-black outline (%d)" % [what, outlined])
+			check((green > 90) == (season in ["spring", "summer"]) and (gold > 90) == (season == "fall"), "ginkgo %s: green %d, gold %d" % [what, green, gold])
 
 
 ## The maple picture is refined (PlaceholderArt._maple_tree through ItemArt.refine): every season

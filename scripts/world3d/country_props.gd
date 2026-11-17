@@ -7,7 +7,7 @@ extends RefCounted
 ## charcoal kiln, Shige's little hen barn and the ditch behind his beds (OutdoorProps), all lit
 ## meshes. Same units as MapWorld (1 unit = 1 cell).
 
-const KINDS: Array[String] = ["well", "jizo", "persimmon", "sakura", "maple", "hasa", "woodpile", "garden", "wood_fence", "kiln", "hen_barn", "ditch"]
+const KINDS: Array[String] = ["well", "jizo", "persimmon", "sakura", "maple", "ginkgo", "hasa", "woodpile", "garden", "wood_fence", "kiln", "hen_barn", "ditch"]
 
 
 ## A countryside prop by its kind (MapWorld calls this). `season` picks the trees' and the
@@ -16,7 +16,7 @@ static func prop(w: MapWorld, p: Dictionary, mid: Vector3, r: Rect2, season: Str
 	match str(p.kind):
 		"well": OutdoorProps.well(w, mid)
 		"jizo": OutdoorProps.jizo(w, mid, SnowLayer.map_has_snow(w.map))
-		"persimmon", "sakura", "maple":
+		"persimmon", "sakura", "maple", "ginkgo":
 			var seed := int(p.cell[0]) * 31 + int(p.cell[1]) * 17
 			if Trees.crowned(str(p.kind), season):   # in leaf or bloom: the swaying crown (the cherry grand)
 				Trees.place_crowned(w, mid, str(p.kind), season, seed)

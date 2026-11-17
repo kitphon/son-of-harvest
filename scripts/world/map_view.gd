@@ -18,7 +18,7 @@ const COLORS := {
 	"kamado": Color("c8b498"), "mizuya": Color("4a3424"), "nagamochi": Color("8a6a48"), "kotatsu": Color("3a4a7a"),
 	"village_house": Color("a0522d"), "torii": Color("c8442c"), "hokora": Color("8a6a48"),
 	"stone_lantern": Color("9a968e"), "pine": Color("2f5a34"), "bamboo": Color("6e9c42"),
-	"well": Color("8e8a80"), "jizo": Color("c8342c"), "persimmon": Color("e8782a"), "sakura": Color("f2bccb"), "maple": Color("c42a1e"),
+	"well": Color("8e8a80"), "jizo": Color("c8342c"), "persimmon": Color("e8782a"), "sakura": Color("f2bccb"), "maple": Color("c42a1e"), "ginkgo": Color("f0c020"),
 	"hasa": Color("d8b85a"), "woodpile": Color("8a6440"), "garden": Color("5a9a3a"), "wood_fence": Color("b08a5a"), "kiln": Color("9a7656"),
 	"hen_barn": Color("7a5a3a"), "ditch": Color("3e5a50"),
 	"tsuiji": Color("d2b06a"), "temple_gate": Color("5a3a26"), "station": Color("8a8680"), "rails": Color("6e6e72"), "bridge": Color("8a6440"),
@@ -59,6 +59,11 @@ static func maple_key(snow: bool, season: String) -> String:
 ## The picture key of a cherry in the flat view, as maple_key.
 static func sakura_key(snow: bool, season: String) -> String:
 	return "tree:sakura:%s:%d" % [season, 1 if snow else 0]
+
+
+## The picture key of a ginkgo in the flat view, as maple_key.
+static func ginkgo_key(snow: bool, season: String) -> String:
+	return "tree:ginkgo:%s:%d" % [season, 1 if snow else 0]
 
 
 ## The ground key for a cell: water gets banks where it meets land, others a variant by spot.
@@ -315,9 +320,10 @@ func _draw_objects() -> void:
 	for p in map.props:
 		if p.kind in StoryView.KINDS or p.kind == DyeCloth.KIND or p.kind == KoinoboriRules.KIND or p.kind == Child.CRADLE:   # drawn as pictures by StoryView / DyeClothView / KoinoboriView / CradleView
 			continue
-		if p.kind == "maple" or p.kind == "sakura":   # a small tree picture, its foot on the cell's middle (PlaceholderArt "tree:")
+		if p.kind in ["maple", "sakura", "ginkgo"]:   # a tree picture, its foot on the cell's middle (PlaceholderArt "tree:")
 			var snowy := SnowLayer.map_has_snow(map)
-			var tex := PlaceholderArt.tex(maple_key(snowy, season) if p.kind == "maple" else sakura_key(snowy, season))
+			var key := maple_key(snowy, season) if p.kind == "maple" else (sakura_key(snowy, season) if p.kind == "sakura" else ginkgo_key(snowy, season))
+			var tex := PlaceholderArt.tex(key)
 			_objects.draw_texture(tex, Vector2(p.cell * T) + Vector2(T / 2 - tex.get_width() / 2, T - tex.get_height()))
 			continue
 		var r := Rect2(Vector2(p.cell * T), Vector2(p.size * T))

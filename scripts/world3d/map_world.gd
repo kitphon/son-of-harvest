@@ -276,7 +276,7 @@ func _make_prop(p: Dictionary) -> void:
 		"tsuiji", "temple_gate", "station", "rails", "bridge": TempleProps.prop(self, p, r, SnowLayer.map_has_snow(map))
 		"feed_box", "nest", "incubator", "feed_sack", "hatch": CoopProps.prop(self, p, mid, r)
 		"fodder_box", "stalls", "hay", "barn_gate": BarnProps.prop(self, p, mid, r)
-		"well", "jizo", "persimmon", "sakura", "maple", "hasa", "woodpile", "garden", "wood_fence", "kiln", "hen_barn", "ditch": CountryProps.prop(self, p, mid, r, Game.season_name())
+		"well", "jizo", "persimmon", "sakura", "maple", "ginkgo", "hasa", "woodpile", "garden", "wood_fence", "kiln", "hen_barn", "ditch": CountryProps.prop(self, p, mid, r, Game.season_name())
 		"cave_mouth": _cave_mouth(mid, r)
 		"door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "keepsake", "rope_lift", "jizo_bibs", "jizo_scarf", "kiln_mark", "kiln_site", "kiln_new", "boat_name", "noren", "captain_jar", "frog", "sky_map": StoryProps.prop(self, p)
 		"ladder": _ladder(mid)

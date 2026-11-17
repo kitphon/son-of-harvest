@@ -608,7 +608,10 @@ func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable, map_
 		var grass_hold := float((Game.snow_rules.get("ground", {}) as Dictionary).get("grass", 1.0))
 		var soft_hold := func(c: Vector2i) -> float:
 			return grass_hold if VistaRules.apron_kind(kind_at.call(c)) != kind_at.call(c) else hold_at.call(c)
-		surroundings.build(w, h, soft, soft_hold, Surroundings.MARGIN, VistaRules.apron_pines())
+		var mix := VistaRules.apron_trees(map_id)   # broadleaf trees in that wood (Nishiki Hill)
+		surroundings.broadleaf = mix.get("kinds", {})
+		surroundings.season = Game.season_name()
+		surroundings.build(w, h, soft, soft_hold, Surroundings.MARGIN, int(mix.get("share", VistaRules.apron_pines())))
 	else:
 		surroundings.build(w, h, kind_at, hold_at)
 	if far:

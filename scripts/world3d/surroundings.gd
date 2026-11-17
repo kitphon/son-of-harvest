@@ -21,12 +21,20 @@ var snow_mats: Array[ShaderMaterial] = []   # the snow on the pines' pads, set w
 var tufts: GrassTufts   # the apron's grass tufts (FarmWorld.set_farmer parts them too)
 var back := MARGIN   # cells of land past the north and west edges (the rim, with a backdrop)
 var share := TREE_SHARE   # % of the allowed cells with a pine (fewer on a rim, so the ridges show)
+var broadleaf := {}   # kind -> % of the wood's trees that are that broadleaf tree instead of a pine (VistaRules.apron_trees)
+var season := "spring"   # the season the broadleaf trees of the wood are drawn in
+const BROAD_SHAPES := 3   # Trees crown shapes the wood's broadleaf trees pick from
+const BROAD_CLEAR := 2.0   # a broadleaf tree's wider crown needs this much more room behind the map than a pine
+var _size := Vector2i.ZERO   # the map's cells (build)
+var broad_at: Array[Vector3] = []   # where the wood's broadleaf trees stand (their feet; for tests: a headless MultiMesh keeps no transforms)
+var broad_kinds: Array[String] = []   # and their kinds
 
 
 ## Builds the apron for a w x h map. `kind_at(c)` gives an in-map cell's ground kind
 ## (grass, path, water...), `hold_at(c)` how much snow it holds (0..1). `back_cells`: the land
 ## past the north and west edges (MARGIN, or the rim before the far country).
 func build(w: int, h: int, kind_at: Callable, hold_at: Callable, back_cells := MARGIN, pine_share := TREE_SHARE) -> void:
+	_size = Vector2i(w, h)
 	back = back_cells
 	share = pine_share
 	var cw := w + MARGIN + back
@@ -146,8 +154,11 @@ static func pine_at(kind_at: Callable, w: int, h: int, c: Vector2i, pct := TREE_
 
 
 ## The wood: straight pines (Trees.pine, PINE_SHAPES shapes), each nudged in its cell,
-## turned and a little taller or shorter, one MultiMesh per shape and material.
+## turned and a little taller or shorter, one MultiMesh per shape and material. Where `broadleaf`
+## asks, some of them are cherries, maples or ginkgos instead (_make_broadleaf).
 func _make_pines(at: Array) -> void:
+	if not broadleaf.is_empty():
+		at = _make_broadleaf(at)
 	for i in PINE_SHAPES:
 		if at[i].is_empty():
 			continue
@@ -157,6 +168,65 @@ func _make_pines(at: Array) -> void:
 			var mmi := _multi(meshes[key], at[i], FarmProps.Parts.material(key, snow_mats))
 			if not FarmProps.Parts.casts_shadow(key):
 				mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+## Takes the broadleaf trees out of the wood's spots `at` (per pine shape), each by a hash of its
+## place and `broadleaf`'s shares, and lays them: in leaf (Trees.crowned) a trunk and its sprays
+## in their crown shape (still: the wood is far, it does not sway), bare in winter
+## (Trees.broadleaf, snow on the branches driven with the rest). One MultiMesh per kind, shape
+## and piece. Returns the spots left for pines.
+func _make_broadleaf(at: Array) -> Array:
+	var pines := []
+	var trees := {}   # "kind|shape" -> Array[Transform3D]
+	var kinds := broadleaf.keys()
+	kinds.sort()
+	for i in at.size():
+		pines.append([] as Array[Transform3D])
+		for xf: Transform3D in at[i]:
+			var roll := posmod(int(xf.origin.x * 73.0) * 31 + int(xf.origin.z * 59.0) * 17, 100)
+			var kind := ""
+			var acc := 0
+			for k in kinds:
+				acc += int(broadleaf[k])
+				if roll < acc:
+					kind = str(k)
+					break
+			var o := Vector2(xf.origin.x, xf.origin.z)
+			if kind == "" or not behind_map(o + Vector2(BROAD_CLEAR, BROAD_CLEAR) * 0.5, _size.x, _size.y) or not behind_map(o + Vector2(BROAD_CLEAR, -BROAD_CLEAR) * 0.5, _size.x, _size.y) 					or not behind_map(o + Vector2(-BROAD_CLEAR, BROAD_CLEAR) * 0.5, _size.x, _size.y):
+				pines[i].append(xf)   # too near the map for a broad crown: a pine
+				continue
+			var shape := posmod(int(xf.origin.x) * 7 + int(xf.origin.z) * 3, BROAD_SHAPES)
+			var key := "%s|%d" % [kind, shape]
+			if not trees.has(key):
+				trees[key] = [] as Array[Transform3D]
+			var s := clampf(xf.basis.get_scale().x, 0.9, 1.15)   # the pines' size spread, kept small
+			(trees[key] as Array).append(Transform3D(Basis(Vector3.UP, roll * 0.21).scaled(Vector3(s, s, s)), xf.origin))
+			broad_at.append(xf.origin)
+			broad_kinds.append(kind)
+	for key: String in trees:
+		var kind := key.get_slice("|", 0)
+		var shape := int(key.get_slice("|", 1))
+		var spots: Array[Transform3D] = []
+		spots.assign(trees[key])
+		if Trees.crowned(kind, season):
+			var made := Trees.crown_of(kind, season, shape)
+			for mk in made.trunk:
+				var mmi := _multi(made.trunk[mk], spots, FarmProps.Parts.material(mk, snow_mats))
+				if not FarmProps.Parts.casts_shadow(mk) or (mk is Color and (mk == Trees.PETAL or mk == Trees.GINKGO_LEAF)):
+					mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			for sp: Dictionary in made.sprays:
+				var placed: Array[Transform3D] = []
+				for xf in spots:
+					placed.append(xf * Transform3D(Basis(), sp.hinge))
+				_multi(sp.mesh, placed, OutdoorProps._vertex_material())
+		else:
+			var meshes := MeshCache.parts("wood_%s:%d" % [kind, shape],
+				func(parts: FarmProps.Parts): Trees.broadleaf(parts, Vector3.ZERO, kind, "winter", 211 + shape * 53, true))
+			for mk in meshes:
+				var mmi := _multi(meshes[mk], spots, FarmProps.Parts.material(mk, snow_mats))
+				if not FarmProps.Parts.casts_shadow(mk):
+					mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return pines
 
 
 ## Where the wood's pines stand: per shape, their transforms.

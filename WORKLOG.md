@@ -10,6 +10,38 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-17 — More trees on Nishiki Hill, and ginkgos for the fall — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user wanted more cherries and maples, and Japanese ginkgos in the fall. (1) A ginkgo tree kind (prop
+  `ginkgo`, Trees: LEAVES.ginkgo, GINKGO_BARK, GINKGO_LEAF, _ginkgo_sprays): a straight trunk with its leader running
+  on up, an upright oval crown of ten swaying sprays in tiers (about 0.95 round with its leaves, 3.1 up), fresh
+  yellow-green in spring, green in summer, bright gold in fall dotted with paler and deeper golds and a gold carpet of
+  fallen leaves round its foot, bare in winter; CountryProps / MapWorld build it, its fallen leaves join the drift's
+  fall leaves (data/drift.json: the trees and two golds), the cicadas cling to its trunk as to the cherry's
+  (data/cicadas.json), the flat view draws it as a 24 x 44 picture (PlaceholderArt._ginkgo_tree,
+  MapView.ginkgo_key; its pale bark kept out of ItemArt.refine's toning, whose deep tone read as an outline).
+  (2) More trees: data/maps/hill.json thickened by a second seeded pass: trees may now stand diagonally next to each
+  other (never side by side, at most one diagonal neighbour), a cell clear of the paths all round, a quarter of the
+  free spots left as glades, the lookout's view and the way in still open: 59 cherries, 67 maples, 11 ginkgos (was
+  48 / 51 / 0): the cherries and maples along the upper path's east run (rows 4-15, x 24-34) turned to a gold
+  ginkgo avenue, and a pair of ginkgos by the lookout (x 12 and 26, row 2). Every forage spot still reachable; the
+  one by the avenue gives ginkgo nuts in fall (33, 12; was chestnuts). (3) The wood past the hill's edges: data/vista.json
+  `apron_trees` hill {share 38, kinds sakura 42, maple 30, ginkgo 14}: that many of the wood's trees are those kinds
+  instead of pines, in their season's crown (still, MultiMeshes of the shared crown shapes) or bare in winter, none
+  where a broad crown could hang over the map (Surroundings._make_broadleaf, BROAD_CLEAR; broad_at / broad_kinds kept
+  for the tests, a headless MultiMesh keeps no transforms). (4) The cherry's fall colour is redder (c4562e, was c8783a)
+  so the hill reads red, orange and gold, not all one orange.
+- Checked: test_maps (ginkgo crowned, tall and upright, its gold carpet in fall only, flat colours equal the 3D ones;
+  the hill's 50+ cherries and maples and 8+ ginkgos; the hill's wood with broadleaf trees of all three kinds by
+  season, none too near the map, Kaminoda's pines only), test_view2d (the ginkgo picture by season and snow): OK.
+  Frames `--demo --map=hill@start --season=fall` and `hill@top` (spring and fall, the flat view too): a full slope of
+  red, orange and gold, yellow ginkgos up the path and round the rim. Measured headless: the hill builds in 1.08 s the
+  first time, 354 ms from MeshCache; 868 swaying pieces, their pose 1.71 ms a frame. All 44 tests/test_*.gd print
+  `OK (0 failed)`; smoke `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo
+  --map=hill --season=fall`): 0 ERROR lines; windowed `--quit-after 150 -- --demo --map=hill`: exit 0.
+- Left / next: the user's look; the wood past the edges does not sway; if the sway's 1.7 ms matters, pose only the
+  sprays near the camera.
+
 ## 2026-11-17 — Grand cherries with crowns that sway — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user wanted the cherries grander, with leaves that stir beautifully. Trees.place_crowned: the cherry

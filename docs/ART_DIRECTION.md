@@ -240,6 +240,13 @@ Light and Farmhouse model hold the technical detail of what is built.
       in spring, light new leaves in summer, gold sprays among the orange-brown in fall, petals far round
       its foot. Six shapes a kind and season are built once and shared, each tree turned by its seed. The
       flat view's cherry is a 32 x 40 picture of the same crown. Bare trees and persimmons unchanged.
+      (2026-11-17, later) Ginkgos (icho, prop `ginkgo`): a straight trunk with its leader running on up,
+      an upright oval of sprays in tiers (four, three, two and one on top; about 0.95 round, 3.1 up), fresh
+      yellow-green in spring, green in summer, bright gold in fall with paler and deeper gold dots and a gold
+      carpet of fallen leaves round its foot, bare in winter; swaying like the others; the flat view's a
+      24 x 44 picture. The cherry's fall leaves are redder (c4562e), so the hill reads red, orange and gold.
+      The wood past Nishiki Hill's edges is cherries, maples and ginkgos among its pines (data/vista.json
+      `apron_trees`: still, in MultiMeshes, never near enough to the map for a broad crown to hang over it).
 - [x] Bamboo: segmented culms with node rings, leaf sprays, swaying, by season, snow on the
       leaves (`OutdoorProps.bamboo`). (this commit) The wind follows the weather (data/wind.json,
       see "Wind by weather" in the table): in a storm the clumps lean further, sway faster and

@@ -148,7 +148,7 @@ The engine binaries `Godot_v4.7.2-stable_win64.exe` / `_console.exe` sit in the 
   --child=child --time=12:00 --map=store` the child by Sayo at the store),
   `--flags=a,b=c` to set story flags (`--flags=hachiro_bell` the bell by the farmhouse door,
   `--map=town@sayo --flags=sayo_sign=new` the store's new sign, `--map=house
-  --flags=tome_grandma` Tome's plum jar; `--map=hill` the foot of Nishiki Hill (its forage spots by `--season`; cherries in bloom in spring, maples red in fall), `hill@top` its
+  --flags=tome_grandma` Tome's plum jar; `--map=hill` the foot of Nishiki Hill (its forage spots by `--season`; cherries in bloom in spring, maples, cherries and ginkgos red and gold in fall), `hill@top` its
   lookout; `--map=kaminoda@well --time=8:30` the hamlet north of the village, Genzo and Haru out;
   `--map=sakurazaka@bridge --time=12:10` the cherry road east, Ichiro at lunch by the teahouse;
   `--map=sakurazaka@newkiln --flags=ichiro_kiln` the new kiln half built beside Ichiro's old one, `--flags=ichiro_mark` (or both) the finished kiln with the farmer's thumbprint;

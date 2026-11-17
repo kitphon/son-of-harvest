@@ -980,9 +980,10 @@ func _map_rules() -> void:
 	var at_foot := func(p) -> bool: return hl.is_solid(Vector2i(p.cell)) and hl.tile(Vector2i(p.cell)) == "grass" and int(p.cell[0]) <= 7 and int(p.cell[1]) >= 21
 	check(clumps.size() >= 10 and clumps.size() <= 25 and clumps.all(at_foot), "a small bamboo stand at the hill's foot (%d clumps)" % clumps.size())
 	check(hl.name == "Nishiki Hill", "the hill's name: %s" % hl.name)
+	check(hl.props.filter(func(p): return p.kind == "ginkgo").size() >= 8, "Nishiki Hill has its ginkgos")
 	for kind in ["sakura", "maple"]:
 		var trs := hl.props.filter(func(p): return p.kind == kind)
-		check(trs.size() >= 30 and trs.all(func(p): return hl.is_solid(Vector2i(p.cell)) and hl.tile(Vector2i(p.cell)) == "grass"),
+		check(trs.size() >= 50 and trs.all(func(p): return hl.is_solid(Vector2i(p.cell)) and hl.tile(Vector2i(p.cell)) == "grass"),
 			"the hill's %s trees stand solid on grass (%d)" % [kind, trs.size()])
 		check(trs.filter(func(p): return p.cell[1] < 15).size() >= 10 and trs.filter(func(p): return p.cell[1] >= 15).size() >= 10,
 			"the hill's %s trees all the way up, low and high" % kind)
@@ -2479,6 +2480,10 @@ func _trees() -> void:
 	for season in ["spring", "summer", "fall"]:
 		check(flat_art.SAKURA_LEAVES[season] == trees.LEAVES.sakura[season], "the flat cherry's %s leaves are the 3D cherry's" % season)
 	check(flat_art.SAKURA_BARK == trees.SAKURA_BARK and flat_art.SAKURA_PETAL == trees.PETAL, "the flat cherry's bark and petals are the 3D cherry's")
+	for season in ["spring", "summer", "fall"]:
+		check(flat_art.GINKGO_LEAVES[season] == trees.LEAVES.ginkgo[season], "the flat ginkgo's %s leaves are the 3D ginkgo's" % season)
+	check(flat_art.GINKGO_BARK == trees.GINKGO_BARK and flat_art.GINKGO_LEAF == trees.GINKGO_LEAF, "the flat ginkgo's bark and fallen leaves are the 3D ginkgo's")
+	_apron_broadleaf()
 	check(not trees.LEAVES.maple.has("winter") or trees.LEAVES.maple.winter.a == 0.0, "the 3D maple is bare in winter, as the flat one")
 	var parts_of := func(build: Callable) -> Node3D:
 		var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
@@ -2561,6 +2566,46 @@ func _trees() -> void:
 	m.free()
 
 
+## The wood past Nishiki Hill's edges (data/vista.json apron_trees): cherries, maples and ginkgos
+## stand among its pines, in their season's crown in leaf and bare in winter, none near enough to
+## the map for a broad crown to hang over it; other maps' woods are pines only.
+func _apron_broadleaf() -> void:
+	var g: Node = root.get_node("Game")
+	var old_season = g.get("season")
+	for season in ["spring", "fall", "winter"]:
+		g.set("season", ["spring", "summer", "fall", "winter"].find(season))
+		var m: Node3D = load("res://scripts/world3d/map_world.gd").new()
+		m.build(MapManager.data("hill"))
+		var s: Node3D = m.surroundings
+		var colours := {}
+		var vertex := 0
+		var near := 0
+		var hl := MapManager.data("hill")
+		for n in s.get_children():
+			if not n is MultiMeshInstance3D:
+				continue
+			var mat: StandardMaterial3D = n.material_override as StandardMaterial3D
+			if mat != null and mat.vertex_color_use_as_albedo:
+				vertex += 1
+			elif mat != null:
+				colours[mat.albedo_color.to_html(false)] = true
+		for o: Vector3 in s.broad_at:
+			if not s.behind_map(Vector2(o.x, o.z) + Vector2(0.9, 0.9), hl.w, hl.h):
+				near += 1
+		check(s.broad_at.size() > 60 and s.broad_kinds.has("sakura") and s.broad_kinds.has("maple") and s.broad_kinds.has("ginkgo"),
+			"the hill's wood in %s: %d broadleaf trees of %s" % [season, s.broad_at.size(), s.broad_kinds.duplicate()])
+		var gold: bool = colours.has(load("res://scripts/world3d/trees.gd").GINKGO_LEAF.to_html(false))
+		check((vertex > 0) == (season != "winter") and near == 0, "the hill's wood in %s: %d swaying-crown pieces, %d too near the map" % [season, vertex, near])
+		check(gold == (season == "fall") and colours.has(load("res://scripts/world3d/trees.gd").GINKGO_BARK.to_html(false)), "the hill's wood in %s: ginkgos among the pines (gold carpet %s)" % [season, gold])
+		m.free()
+	g.set("season", old_season)
+	var k: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	k.build(MapManager.data("kaminoda"))
+	check(k.surroundings.get_children().all(func(n): return not (n is MultiMeshInstance3D and n.material_override is StandardMaterial3D and n.material_override.vertex_color_use_as_albedo)),
+		"Kaminoda's wood: pines only")
+	k.free()
+
+
 ## The swaying crowns (Trees.place_crowned, 2026-11-17): cherries and maples in leaf or bloom get
 ## them, bare trees and persimmons do not; the cherry is grand (eight sprays, reaching past the old
 ## 0.95 but inside 1.5 round and 3.05 up), the maple keeps its size (four sprays); every spray a lit
@@ -2568,10 +2613,10 @@ func _trees() -> void:
 ## in spring only; each spray in the world's Sway as a "crown" that stirs even in a calm, more in a
 ## wind, staying near its rest; the trunk below 1.2 as the old one (the cicadas' trunk).
 func _crowned_trees(trees: GDScript) -> void:
-	for kind in ["persimmon", "sakura", "maple"]:
+	for kind in ["persimmon", "sakura", "maple", "ginkgo"]:
 		for season in ["spring", "summer", "fall", "winter"]:
 			check(trees.crowned(kind, season) == (kind != "persimmon" and season != "winter"), "crowned: %s in %s" % [kind, season])
-	for kind in ["sakura", "maple"]:
+	for kind in ["sakura", "maple", "ginkgo"]:
 		for season in ["spring", "summer", "fall"]:
 			for seed in [3, 40, 517]:
 				var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
@@ -2604,7 +2649,7 @@ func _crowned_trees(trees: GDScript) -> void:
 						top = maxf(top, q.y)
 						if q.y > 0.15 and q.y < 0.9 and n in sprays:
 							bad += 1   # no spray hangs down by the trunk's foot
-						if q.y > 0.3 and q.y < 0.8 and not n in sprays and mat.albedo_color == (trees.SAKURA_BARK if kind == "sakura" else trees.BARK):
+						if q.y > 0.3 and q.y < 0.8 and not n in sprays and mat.albedo_color == trees.bark_of(kind):
 							trunk_r = maxf(trunk_r, Vector2(q.x - at.x, q.z - at.z).length())
 					if n in sprays:
 						check(mat.vertex_color_use_as_albedo and cols != null and (cols as PackedColorArray).size() == v.size(), "crowned %s: a spray of vertex colours" % kind)
@@ -2613,11 +2658,17 @@ func _crowned_trees(trees: GDScript) -> void:
 							if c.is_equal_approx(trees.FLORET):
 								florets += 1
 				var what := "%s in %s (seed %d)" % [kind, season, seed]
-				var wide := 1.5 if kind == "sakura" else 1.0
-				var high := 3.05 if kind == "sakura" else 2.3
+				var wide: float = {"sakura": 1.5, "maple": 1.0, "ginkgo": 1.05}[kind]
+				var high: float = {"sakura": 3.05, "maple": 2.3, "ginkgo": 3.4}[kind]
 				check(bad == 0 and reach < wide and top < high, "crowned %s: %d faults, reaches %.2f, %.2f high" % [what, bad, reach, top])
 				check(kind != "sakura" or (reach > 1.2 and top > 2.6), "crowned %s: grand, reaching %.2f, %.2f high" % [what, reach, top])
-				check(sprays.size() == (trees.LIMBS + 1 if kind == "sakura" else 4) and tones.size() > 12, "crowned %s: %d sprays, %d tones" % [what, sprays.size(), tones.size()])
+				check(kind != "ginkgo" or (top > 2.9 and reach < 1.05), "crowned %s: tall and upright, %.2f high, %.2f round" % [what, top, reach])
+				var golds := 0
+				for n in w.get_children():
+					if n is MeshInstance3D and n.material_override.albedo_color == trees.GINKGO_LEAF:
+						golds += 1
+				check((golds > 0) == (kind == "ginkgo" and season == "fall"), "crowned %s: the gold carpet of fallen leaves only under a ginkgo in fall" % what)
+				check(sprays.size() == {"sakura": trees.LIMBS + 1, "maple": 4, "ginkgo": 10}[kind] and tones.size() > 12, "crowned %s: %d sprays, %d tones" % [what, sprays.size(), tones.size()])
 				check((florets > 0) == (kind == "sakura" and season == "spring"), "crowned %s: florets %d" % [what, florets])
 				check(trunk_r > 0.08 and trunk_r < 0.14, "crowned %s: the old trunk under the crown (%.3f)" % [what, trunk_r])
 				var sway = w.get_node("WindSway")

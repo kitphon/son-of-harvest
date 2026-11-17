@@ -83,6 +83,13 @@ static func apron_pines() -> int:
 	return int(config().get("apron_pines", 45))   # 45: Surroundings.TREE_SHARE (named here, it would tie this pure script to the Game autoload)
 
 
+## The broadleaf trees in the wood past map `map_id`'s edges (data/vista.json `apron_trees`):
+## {share: trees in a hundred cells (instead of apron_pines), kinds: {kind: % of those trees}};
+## the rest stay pines. {} = pines only.
+static func apron_trees(map_id: String) -> Dictionary:
+	return (config().get("apron_trees", {}) as Dictionary).get(map_id, {})
+
+
 ## How far plan point `p` lies from the nearest map (0 inside one).
 static func map_distance(p: Vector2, rects: Array[Rect2]) -> float:
 	var best := INF

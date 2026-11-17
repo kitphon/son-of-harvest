@@ -27,7 +27,7 @@
 		"fade_hours": 0.5,
 		"looks": {"sunny": 1.0, "rain": 0.35, "snow": 0.0, "storm": 0.0, "blizzard": 0.0},
 		"count": 22,
-		"trees": ["maple", "persimmon"],
+		"trees": ["maple", "persimmon", "ginkgo"],
 		"near_tree": 0.8,
 		"tree_radius": 2.0,
 		"tree_height": 2.2,
@@ -39,7 +39,7 @@
 		"sway": 0.55,
 		"sway_cycles": 4.0,
 		"size": 0.14,
-		"colors": ["d2381c", "e07a22", "c8541e", "d9a02c"]
+		"colors": ["d2381c", "e07a22", "c8541e", "d9a02c", "f0c020", "e8b018"]
 	},
 	"firefly": {
 		"seasons": ["summer"],

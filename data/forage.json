@@ -36,7 +36,7 @@
 			{"cell": [27, 4], "spring": "fukinoto", "fall": "matsutake"},
 			{"cell": [18, 10], "spring": "warabi", "summer": "kiichigo", "fall": "akebi"},
 			{"cell": [25, 12], "summer": "myoga", "fall": "chestnut", "winter": "enoki"},
-			{"cell": [33, 12], "spring": "fukinoto", "summer": "kiichigo", "fall": "chestnut"},
+			{"cell": [33, 12], "spring": "fukinoto", "summer": "kiichigo", "fall": "ginnan"},
 			{"cell": [36, 9], "summer": "myoga", "fall": "akebi"},
 			{"cell": [5, 14], "fall": "chestnut"}
 		],
