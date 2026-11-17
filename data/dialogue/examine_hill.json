@@ -1,9 +1,11 @@
 {
-	"_note": "Lines for the bamboo hill's events (data/events/triggers_hill.json): the mountain shrine, the view from the lookout (and in winter), the first climb. Each part ends with next: end.",
+	"_note": "Lines for Nishiki Hill's events (data/events/triggers_hill.json): the mountain shrine, the view from the lookout (in spring over the cherries, in fall over the maples, in winter under snow), the first climb. Each part ends with next: end.",
 	"lines": [
 		{"id": "shrine", "speaker": "farmer", "face": "calm", "text": "A shrine no bigger than a birdhouse, tucked against the rock. Someone has left a fresh sprig of green in its little vase.", "next": "end"},
 		{"id": "view", "speaker": "farmer", "face": "smile", "text": "From up here the whole valley shows: the paddies shining, roofs along the road, and far off, my own field.", "next": "end"},
+		{"id": "view_spring", "speaker": "farmer", "face": "smile", "text": "Cherry blossom spills down the slope below me, and past it lies the whole valley: the paddies, the roofs, my own field.", "next": "end"},
+		{"id": "view_fall", "speaker": "farmer", "face": "smile", "text": "The slope below burns red and gold with maples. Past it, the valley looks small and warm.", "next": "end"},
 		{"id": "view_snow", "speaker": "farmer", "face": "calm", "text": "The valley lies white and quiet. Smoke climbs straight up from the chimneys along the road.", "next": "end"},
-		{"id": "first", "speaker": "farmer", "face": "smile", "text": "Phew, what a climb. The bamboo whispers all the way up, and the air smells green.", "next": "end"}
+		{"id": "first", "speaker": "farmer", "face": "smile", "text": "Phew, what a climb. Cherries and maples line the path all the way up, and the air smells green.", "next": "end"}
 	]
 }

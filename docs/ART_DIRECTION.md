@@ -226,6 +226,11 @@ Light and Farmhouse model hold the technical detail of what is built.
       in Kaminoda and Sakurazaka (props `maple`; the flat view draws a red box like the other
       trees). The hill's trees were checked from the lookout (`--map=hill@top`): a maple stands
       in the left of the view, the rest are out of frame.
+      (2026-11-17) The bamboo hill became Nishiki Hill, a cherry and maple viewing spot: about fifty
+      cherries and fifty maples up the slope in place of the bamboo (a small stand left at the foot), the
+      slope just below the lookout kept open for the view. The flat view draws the cherry as a picture
+      too (`PlaceholderArt._sakura_tree`, `tree:sakura:<season>:<snow>`, MapView.sakura_key): a round
+      cloud in the 3D cherry's colours, blossom spots and petals in spring, bare in winter like the maple.
 - [x] Bamboo: segmented culms with node rings, leaf sprays, swaying, by season, snow on the
       leaves (`OutdoorProps.bamboo`). (this commit) The wind follows the weather (data/wind.json,
       see "Wind by weather" in the table): in a storm the clumps lean further, sway faster and

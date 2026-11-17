@@ -1,5 +1,5 @@
 {
-	"_note": "What Haru, the straw weaver of Kaminoda, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction. On the bamboo hill she has her own lines (map condition). The birthday lines (summer 27), the close lines from band 4 and the sandal lines once her band 5 scene is seen (heart_haru_5), the dear lines at band 6 once her band 6 scene is (heart_haru_6) until she is promised; engaged_ lines once she said yes to the knot, and married (married_haru) help_ lines on a morning she did a chore, wed_morning_ / wed_evening_ at the farmhouse and wed_out_ elsewhere (data/marriage.json). Our own lines.",
+	"_note": "What Haru, the straw weaver of Kaminoda, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction. On Nishiki Hill she has her own lines (map condition). The birthday lines (summer 27), the close lines from band 4 and the sandal lines once her band 5 scene is seen (heart_haru_5), the dear lines at band 6 once her band 6 scene is (heart_haru_6) until she is promised; engaged_ lines once she said yes to the knot, and married (married_haru) help_ lines on a morning she did a chore, wed_morning_ / wed_evening_ at the farmhouse and wed_out_ elsewhere (data/marriage.json). Our own lines.",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
@@ -38,7 +38,7 @@
 		{"id": "new_1", "speaker": "haru", "mood": "surprised", "text": "Oh! A new face up here. I'm Haru. I weave straw: sandals, mats, rope, whatever's needed."},
 		{"speaker": "haru", "mood": "happy", "text": "If your sandals wear through, come see me before you buy some in the village.", "next": "end"},
 		{"id": "hill_1", "speaker": "haru", "mood": "happy", "text": "You found my spot. On a clear day you can count every roof in the valley from here.", "next": "end"},
-		{"id": "hill_2", "speaker": "haru", "mood": "neutral", "text": "The bamboo creaks when the wind turns. Grandma said it's the hill talking in its sleep.", "next": "end"},
+		{"id": "hill_2", "speaker": "haru", "mood": "neutral", "text": "When the wind turns, the cherries and maples all rustle at once. Grandma said it's the hill talking in its sleep.", "next": "end"},
 		{"id": "wet", "speaker": "haru", "mood": "neutral", "text": "Rain's good for straw work: damp straw doesn't snap. My fingers say otherwise.", "next": "end"},
 		{"id": "garden_1", "speaker": "haru", "mood": "happy", "text": "The eggplants are coming along. I talk to them. Don't laugh, it works.", "next": "end"},
 		{"id": "garden_2", "speaker": "haru", "mood": "neutral", "text": "Morning's for the garden, before the slugs wake up and have their breakfast.", "next": "end"},

@@ -81,7 +81,7 @@
 		{"id": "haru_door", "speaker": "haru", "mood": "happy", "text": "You said to go if it called me. It called. Then I read this letter and found I could answer it from here. Funny. Nobody holding the door is what let me stay."},
 		{"id": "haru_tag", "speaker": "haru", "mood": "neutral", "text": "They asked what the tag should say. The place, or my name? I have written both on scraps and thrown both away.",
 			"choices": [{"text": "Kaminoda. Let them find the hamlet.", "next": "haru_place", "set": {"haru_tag": "place"}}, {"text": "Haru. Let them find you.", "next": "haru_name", "set": {"haru_tag": "name"}}]},
-		{"id": "haru_place", "speaker": "haru", "mood": "happy", "text": "Kaminoda, in small black ink, with the bamboo hill under it. Then they'll have to come up the lane to see where the straw grew.", "next": "haru_end"},
+		{"id": "haru_place", "speaker": "haru", "mood": "happy", "text": "Kaminoda, in small black ink, with Nishiki Hill under it. Then they'll have to come up the lane to see where the straw grew.", "next": "haru_end"},
 		{"id": "haru_name", "speaker": "haru", "mood": "surprised", "text": "My name, on a tag, in a city shop... I'll have to braid very straight, then. Everybody will check.", "next": "haru_end"},
 		{"id": "haru_end", "speaker": "haru", "mood": "happy", "text": "One more thing. I wave from the lookout every afternoon, and you never wave back. Tomorrow, wave. Then I'll know it isn't only the wind.", "next": "end"},
 

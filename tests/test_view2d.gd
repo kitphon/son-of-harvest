@@ -50,6 +50,7 @@ func _run() -> void:
 	await _ripples()
 	await _maples()
 	await _maple_art_refined()
+	_sakuras()
 	await _footprints()
 	await _hearth_smoke()
 	await _roofs()
@@ -712,6 +713,50 @@ func _maples() -> void:
 				check(green == 0 and red == 0 and orange == 0, "maple %s: no leaves in winter" % what)
 			check((white > 0) == (season == "winter" and snow), "maple %s: snow on the branches only in winter with snow (%d)" % [what, white])
 	mv.free()
+
+
+## The cherry in the flat view is a picture of a tree (PlaceholderArt "tree:sakura:<season>:<snow>",
+## MapView.sakura_key), not the old pink box: a round crown with a trunk and clear corners, pink with
+## white blossom spots in spring only, green in summer, orange-brown in fall, bare branches in winter
+## with snow only where the map has snow; refined (no near-black outline, four colours at least).
+func _sakuras() -> void:
+	var outline := Color("2a1e1e")
+	for season in ["spring", "summer", "fall", "winter"]:
+		for snow in [false, true]:
+			var img: Image = PlaceholderArt.image(MapView.sakura_key(snow, season))
+			var what := "%s, snow %s" % [season, snow]
+			var pink := 0
+			var green := 0
+			var brown := 0
+			var white := 0
+			var clear := 0
+			var outlined := 0
+			var colours := {}
+			for y in img.get_height():
+				for x in img.get_width():
+					var c := img.get_pixel(x, y)
+					if c.a < 0.5:
+						clear += 1
+						continue
+					colours[c.to_html(false)] = true
+					if c.r > 0.75 and c.b > 0.6 and c.g < c.r and c.b > c.g and c.r < 0.99:
+						pink += 1
+					elif c.g > c.r and c.g > c.b:
+						green += 1
+					elif c.r > 0.5 and c.g > 0.3 and c.b < c.g * 0.75:
+						brown += 1
+					if c.r > 0.9 and c.g > 0.9 and c.b > 0.9:
+						white += 1
+					if Vector3(c.r, c.g, c.b).distance_to(Vector3(outline.r, outline.g, outline.b)) < 0.02:
+						outlined += 1
+			check(img.get_size() == Vector2i(24, 32), "cherry %s: a 24 x 32 picture" % what)
+			check(clear > img.get_width() * img.get_height() * 0.35 and img.get_pixel(0, 0).a < 0.5 and img.get_pixel(23, 0).a < 0.5,
+				"cherry %s: round with clear corners (%d clear)" % [what, clear])
+			check(outlined == 0 and colours.size() >= 4, "cherry %s: refined (%d outline, %d colours)" % [what, outlined, colours.size()])
+			check((pink > 90) == (season == "spring"), "cherry %s: a pink crown in spring only (%d)" % [what, pink])
+			check((green > 90) == (season == "summer"), "cherry %s: a green crown in summer only (%d)" % [what, green])
+			check((brown > 90) == (season == "fall"), "cherry %s: an orange-brown crown in fall only (%d)" % [what, brown])
+			check((white > 0) == (season == "spring" or (season == "winter" and snow)), "cherry %s: blossom spots in spring, snow in winter with snow (%d)" % [what, white])
 
 
 ## The maple picture is refined (PlaceholderArt._maple_tree through ItemArt.refine): every season

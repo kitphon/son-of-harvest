@@ -308,7 +308,7 @@ func _to_river() -> void:
 	_go("river", Vector2i(5, 1))
 
 
-## The bamboo hill's wild things, and Kaminoda's on the way (data/forage.json).
+## Nishiki Hill's wild things, and Kaminoda's on the way (data/forage.json).
 func _hill_round() -> void:
 	_to_town()
 	_walk(Vector2i(10, 0), Vector2i.UP)

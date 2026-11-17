@@ -254,8 +254,9 @@ Fumi's Hanami teahouse, `teahouse`, and Ichiro the charcoal burner's house, `ich
 Minamino
 between the village's bridge and the river (`minamino`: vegetable gardens behind a board
 fence, a well, a roadside water shrine, Kiku's persimmon orchard; Shige and Nana's house,
-`shige_house`, and Kiku's, `kiku_house`), the bamboo hill above Kaminoda (`hill`: a switchback path through `bamboo` clumps to a lookout with a
-little shrine; its view and shrine can be examined). Countryside props (CountryProps, both
+`shige_house`, and Kiku's, `kiku_house`), Nishiki Hill above Kaminoda (`hill`, the valley's cherry and maple viewing spot since 2026-11-17: a switchback path between
+`sakura` and `maple` trees, pink in spring and red and gold in fall, a small `bamboo` stand left at its foot, to a lookout with a
+little shrine; its view (its own line in spring, fall and winter) and shrine can be examined). Countryside props (CountryProps, both
 views): `well`, `jizo`, `persimmon` and `sakura` (their leaves follow the season), `hasa` (a
 rice drying rack, sheaves hung in fall), `woodpile`, `garden`, `wood_fence`. Ground tiles include the
 solid `paddy` (a flooded rice paddy). A file has `id`, `size` [w, h], `indoor` (the clock stands still inside, as
@@ -691,7 +692,7 @@ are sheltered by default) apart from `indoor` (the clock stops).
 ## Forage
 Wild things grow on fixed spots (`data/forage.json`): per map id a list of `{cell, spring?,
 summer?, fall?, winter?}`, each season naming an item of `items` (`wild:<id>`: `name`, `sell`
-in the bin, `look` for the placeholder icon) or nothing. The bamboo hill has fifteen spots:
+in the bin, `look` for the placeholder icon) or nothing. Nishiki Hill has fifteen spots:
 bamboo shoots, bracken and butterbur buds in spring, wild raspberries and myoga in summer,
 chestnuts, akebi and mushrooms (one matsutake spot) in fall, a few wild enoki in winter. The
 village's three outer parts have smaller rounds with things of their own: Kaminoda (nine spots:
@@ -1104,7 +1105,7 @@ in winter (a little left in spring). The fixed lens looks 16° down at the top o
 so nothing standing on level ground far off could show; the ridges stand far out and below
 the ground's level instead, and from within a few cells of the north or west edge the frame's
 top corners look over the rim down onto them, with sky above the peaks; farther in the rim
-hides them. test_maps checks this through the game's own lens. The view of the mountains (2026-11-15, `data/vista.json`): Ogura north-west of the village (where the camera looks) and Arashiyama south-west across the river, forested mountains on the plan's empty land (`scripts/world3d/vista_mountain.gd`, VistaMountain: a faceted heightfield from a ridge line, eased down to nothing near every map, its forest toned by season, lit by the sun and hazed with the sky by distance). From the play camera only their feet show past the edges; at a viewpoint (the long bridge and the path south of it to the map's edge, the whole bamboo hill, looking over Ogura and the far hills of Kitayama) the camera eases up over the horizon at the same yaw, so the move keys still match the screen (`scripts/vista_rules.gd`, VistaRules.blend: pitch, lens and distance from the play lens to the view's), and eases back as the farmer steps off. On the maps with the mountains the land past the edges runs its whole apron on every side (the rim and the low ridges above were for the play camera only; the level views looked past them into a gap), then open grass in the ground's own material out to the mountains' feet, darkening toward them. Every tree is built by `scripts/world3d/trees.gd` (Trees: lumpy lit crowns that
+hides them. test_maps checks this through the game's own lens. The view of the mountains (2026-11-15, `data/vista.json`): Ogura north-west of the village (where the camera looks) and Arashiyama south-west across the river, forested mountains on the plan's empty land (`scripts/world3d/vista_mountain.gd`, VistaMountain: a faceted heightfield from a ridge line, eased down to nothing near every map, its forest toned by season, lit by the sun and hazed with the sky by distance). From the play camera only their feet show past the edges; at a viewpoint (the long bridge and the path south of it to the map's edge, the whole of Nishiki Hill, looking over Ogura and the far hills of Kitayama) the camera eases up over the horizon at the same yaw, so the move keys still match the screen (`scripts/vista_rules.gd`, VistaRules.blend: pitch, lens and distance from the play lens to the view's), and eases back as the farmer steps off. On the maps with the mountains the land past the edges runs its whole apron on every side (the rim and the low ridges above were for the play camera only; the level views looked past them into a gap), then open grass in the ground's own material out to the mountains' feet, darkening toward them. Every tree is built by `scripts/world3d/trees.gd` (Trees: lumpy lit crowns that
 follow the season, tiered pines). Grass tufts sway on the grass cells, the farm's untilled ground and the
 apron (`scripts/world3d/grass_tufts.gd`: one MultiMesh each, tips by season, gone under snow).
 Rice and corn grown past the sprout stand as clusters of small pixel sprites instead of one

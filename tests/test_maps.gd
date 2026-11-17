@@ -974,8 +974,18 @@ func _map_rules() -> void:
 		and kn.door_at(Vector2i(10, 20)).spawn == t.spawns.north[0], "the village's north lane and Kaminoda join up")
 	check(kn.door_at(Vector2i(22, -1)).get("to", "") == "hill" and hl.door_at(Vector2i(19, 30)).get("to", "") == "kaminoda"
 		and hl.door_at(Vector2i(19, 30)).spawn == kn.spawns.hill[0], "Kaminoda's lane north and the hill path join up")
+	# Nishiki Hill (2026-11-17): cherries and maples up the slope in place of the old bamboo, a
+	# small bamboo stand left at the foot (its bamboo shoots), every tree solid on grass off the path.
 	var clumps := hl.props.filter(func(p): return p.kind == "bamboo")
-	check(clumps.size() > 50 and clumps.all(func(p): return hl.is_solid(Vector2i(p.cell)) and hl.tile(Vector2i(p.cell)) == "grass"), "bamboo clumps stand solid on grass")
+	var at_foot := func(p) -> bool: return hl.is_solid(Vector2i(p.cell)) and hl.tile(Vector2i(p.cell)) == "grass" and int(p.cell[0]) <= 7 and int(p.cell[1]) >= 21
+	check(clumps.size() >= 10 and clumps.size() <= 25 and clumps.all(at_foot), "a small bamboo stand at the hill's foot (%d clumps)" % clumps.size())
+	check(hl.name == "Nishiki Hill", "the hill's name: %s" % hl.name)
+	for kind in ["sakura", "maple"]:
+		var trs := hl.props.filter(func(p): return p.kind == kind)
+		check(trs.size() >= 30 and trs.all(func(p): return hl.is_solid(Vector2i(p.cell)) and hl.tile(Vector2i(p.cell)) == "grass"),
+			"the hill's %s trees stand solid on grass (%d)" % [kind, trs.size()])
+		check(trs.filter(func(p): return p.cell[1] < 15).size() >= 10 and trs.filter(func(p): return p.cell[1] >= 15).size() >= 10,
+			"the hill's %s trees all the way up, low and high" % kind)
 	var seen := {hl.spawns.start[0]: true}
 	var todo: Array = [hl.spawns.start[0]]
 	while not todo.is_empty():
@@ -2466,6 +2476,9 @@ func _trees() -> void:
 	for season in ["spring", "summer", "fall"]:
 		check(flat_art.MAPLE_LEAVES[season] == trees.LEAVES.maple[season], "the flat maple's %s leaves are the 3D maple's" % season)
 	check(flat_art.MAPLE_FLAME == trees.MAPLE_FLAME, "the flat maple's orange is the 3D maple's")
+	for season in ["spring", "summer", "fall"]:
+		check(flat_art.SAKURA_LEAVES[season] == trees.LEAVES.sakura[season], "the flat cherry's %s leaves are the 3D cherry's" % season)
+	check(flat_art.SAKURA_BARK == trees.SAKURA_BARK and flat_art.SAKURA_PETAL == trees.PETAL, "the flat cherry's bark and petals are the 3D cherry's")
 	check(not trees.LEAVES.maple.has("winter") or trees.LEAVES.maple.winter.a == 0.0, "the 3D maple is bare in winter, as the flat one")
 	var parts_of := func(build: Callable) -> Node3D:
 		var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()

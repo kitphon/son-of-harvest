@@ -56,6 +56,11 @@ static func maple_key(snow: bool, season: String) -> String:
 	return "tree:maple:%s:%d" % [season, 1 if snow else 0]
 
 
+## The picture key of a cherry in the flat view, as maple_key.
+static func sakura_key(snow: bool, season: String) -> String:
+	return "tree:sakura:%s:%d" % [season, 1 if snow else 0]
+
+
 ## The ground key for a cell: water gets banks where it meets land, others a variant by spot.
 ## Water at the map's edge has no bank there (the river flows on off the map).
 static func ground_key(m: MapData, c: Vector2i) -> String:
@@ -94,7 +99,7 @@ func add_under_water(node: Node) -> void:
 	move_child(node, (_water if _water != null else _objects).get_index())
 
 
-## The season the maples are drawn in (the flat view calls it on each day's start).
+## The season the maples and cherries are drawn in (the flat view calls it on each day's start).
 func set_season(season_name: String) -> void:
 	if season_name != season:
 		season = season_name
@@ -310,8 +315,9 @@ func _draw_objects() -> void:
 	for p in map.props:
 		if p.kind in StoryView.KINDS or p.kind == DyeCloth.KIND or p.kind == KoinoboriRules.KIND or p.kind == Child.CRADLE:   # drawn as pictures by StoryView / DyeClothView / KoinoboriView / CradleView
 			continue
-		if p.kind == "maple":   # a small tree picture, its foot on the cell's middle (PlaceholderArt "tree:")
-			var tex := PlaceholderArt.tex(maple_key(SnowLayer.map_has_snow(map), season))
+		if p.kind == "maple" or p.kind == "sakura":   # a small tree picture, its foot on the cell's middle (PlaceholderArt "tree:")
+			var snowy := SnowLayer.map_has_snow(map)
+			var tex := PlaceholderArt.tex(maple_key(snowy, season) if p.kind == "maple" else sakura_key(snowy, season))
 			_objects.draw_texture(tex, Vector2(p.cell * T) + Vector2(T / 2 - 12, T - 32))
 			continue
 		var r := Rect2(Vector2(p.cell * T), Vector2(p.size * T))

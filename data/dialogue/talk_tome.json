@@ -74,7 +74,7 @@
 		{"id": "fall_2", "speaker": "tome", "mood": "neutral", "text": "Harvest time. Everyone is busy, and the evenings come in early.", "next": "end"},
 		{"id": "plain_1", "speaker": "tome", "mood": "neutral", "text": "The pond is calm today. Days like this are a gift.", "next": "end"},
 		{"id": "plain_2", "speaker": "tome", "mood": "happy", "text": "My knees say rain tomorrow. They're right more often than the radio.", "next": "end"},
-		{"id": "forage_spring", "speaker": "tome", "mood": "happy", "text": "When the butterbur buds push up on the bamboo hill, I know spring has really come. Pick them small, before they open.", "next": "end"},
+		{"id": "forage_spring", "speaker": "tome", "mood": "happy", "text": "When the butterbur buds push up on Nishiki Hill, I know spring has really come. Pick them small, before they open.", "next": "end"},
 		{"id": "forage_summer", "speaker": "tome", "mood": "happy", "text": "The wild raspberries are ripe on the hill. I used to send the children up with a basket. Back came an empty basket and red mouths.", "next": "end"},
 		{"id": "forage_fall", "speaker": "tome", "mood": "neutral", "text": "Chestnuts are falling on the hill. Mind the burrs. And look near the top, under the pines. Something rare grows there, if you're lucky.", "next": "end"},
 		{"id": "forage_winter", "speaker": "tome", "mood": "neutral", "text": "Even under snow, the old stumps on the hill keep a few enoki. The old folk got through winter by knowing where to look.", "next": "end"},

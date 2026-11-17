@@ -42,7 +42,7 @@ func _data() -> void:
 			"data: %s has a name that fits the item box" % id)
 		check(int(it.get("sell", 0)) > 0 and int(it.sell) <= 100, "data: %s sells for %s" % [id, it.get("sell")])
 		check(it.get("look", {}).get("shape", "") in SHAPES, "data: %s has a known shape" % id)
-	check(d.spots.has("hill"), "data: the bamboo hill has spots")
+	check(d.spots.has("hill"), "data: Nishiki Hill has spots")
 	for map_id in d.spots:
 		var m := MapManager.data(map_id)
 		check(m != null and not m.indoor, "data: %s is an outdoor map" % map_id)

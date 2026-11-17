@@ -12,7 +12,7 @@ written once, plainly and the same way everywhere. test_lang checks the rules ma
 - Things are in sentence case: only the first word starts with a capital (Kitchen knife,
   Golden yolk egg, Animal medicine, Chicken coop, Genzo's house). (checked for items)
 - Proper names keep their capitals: people, festivals and their contests and stalls, shops
-  (Yorozu Store, Kurogane Smithy, Hanami Teahouse, Hinata Clinic), landmarks (Bamboo Hill),
+  (Yorozu Store, Kurogane Smithy, Hanami Teahouse, Hinata Clinic), landmarks (Nishiki Hill),
   the record's ranks (Heart of the Village).
 - A name put into a sentence stays as it is written (some older code lowers it; leave that).
 

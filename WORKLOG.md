@@ -10,6 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-17 — The bamboo hill becomes Nishiki Hill: cherry blossom in spring, maples in fall — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user wanted the hill above Kaminoda, all bamboo, to be the place to see the cherry blossom in spring and the
+  maples in fall instead. data/maps/hill.json: the bamboo groves are gone but for a small stand at the foot (18 clumps, x 1-7,
+  rows 21-27, where the bamboo shoots are picked); in their place 47 cherries and 51 maples (the old few included) laid once by
+  a seeded script and kept as data: on free grass, not next to another tree or a forage spot, one cell clear behind a path and
+  two in front of it (the camera's side), the way in at the foot open, more cherries low and more maples high and on the east
+  slope so each season has colour all the way up; the slope just below the lookout (x 12-28, rows 3-10) is left open so the
+  view from the top is clear (a first try had trees standing in front of it). The map is named Nishiki Hill (brocade, for
+  the colours; Thai เนินนิชิกิ), and the lines that called it the bamboo hill say so (Tome's butterbur, Haru's ink map); the
+  first climb's line and Haru's hill_2 talk of the cherries and maples now, both with their Thai. The lookout has its own
+  view in spring (over the blossom, hill_view_spring) and fall (over the maples, hill_view_fall); summer keeps the old
+  view, winter the snow one. Three forage spots that gave bamboo shoots away from the stand give butterbur or bracken now.
+  The flat view drew a cherry as a pink box: it is a tree picture now like the maple's (PlaceholderArt._sakura_tree,
+  `tree:sakura:<season>:<snow>`, MapView.sakura_key): a round cloud in the 3D cherry's colours, blossom spots and petals in
+  spring, green in summer, orange-brown in fall, bare in winter (the maple's bare form, now PlaceholderArt._bare_tree).
+- Checked: test_maps (the stand at the foot only, 30+ cherries and maples each, solid on grass, low and high; the flat
+  cherry's colours equal the 3D one's), test_events (the view by season), test_view2d (the cherry picture by season and
+  snow: pink only in spring, green only in summer, brown only in fall, blossom or snow white, refined), test_forage: OK.
+  Frames `--demo --map=hill@start` and `hill@top --vista`, `--season=spring` / `fall --weather=sunny --time=11:00`: pink
+  cherries and red maples up the slope, the lookout's view open; the flat view (`res://scenes/main_2d.tscn`) the same.
+  All 44 tests/test_*.gd print `OK (0 failed)`; smoke `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo
+  --mine=3`, `--demo --map=hill --season=fall`): 0 ERROR lines; windowed `--quit-after 150 -- --demo --map=hill`: exit 0.
+- Left / next: the user's look at the hill; the bamboo stand at the foot can go too if the user wants none.
+
 ## 2026-11-16 — The pond's stones shaped like rocks, not balls — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user found the stones in and round the pond looking like balls (the rounded pebble: ten even sides closing
