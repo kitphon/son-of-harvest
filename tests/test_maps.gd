@@ -2490,7 +2490,8 @@ func _trees() -> void:
 	var flat_art: GDScript = load("res://scripts/art/placeholder_art.gd")
 	for season in ["spring", "summer", "fall"]:
 		check(flat_art.MAPLE_LEAVES[season] == trees.LEAVES.maple[season], "the flat maple's %s leaves are the 3D maple's" % season)
-	check(flat_art.MAPLE_FLAME == trees.MAPLE_FLAME, "the flat maple's orange is the 3D maple's")
+	check(flat_art.MAPLE_FLAME == trees.MAPLE_FLAME and flat_art.MAPLE_AMBER == trees.MAPLE_AMBER and flat_art.MAPLE_NEW == trees.MAPLE_NEW,
+		"the flat maple's orange, amber and new leaves are the 3D maple's")
 	for season in ["spring", "summer", "fall"]:
 		check(flat_art.SAKURA_LEAVES[season] == trees.LEAVES.sakura[season], "the flat cherry's %s leaves are the 3D cherry's" % season)
 	check(flat_art.SAKURA_BARK == trees.SAKURA_BARK and flat_art.SAKURA_PETAL == trees.PETAL, "the flat cherry's bark and petals are the 3D cherry's")
@@ -2674,17 +2675,18 @@ func _crowned_trees(trees: GDScript) -> void:
 							if c.is_equal_approx(trees.FLORET):
 								florets += 1
 				var what := "%s in %s (seed %d)" % [kind, season, seed]
-				var wide: float = {"sakura": 1.5, "maple": 1.0, "ginkgo": 1.05}[kind]
+				var wide: float = {"sakura": 1.5, "maple": 1.3, "ginkgo": 1.05}[kind]
 				var high: float = {"sakura": 3.05, "maple": 2.3, "ginkgo": 3.4}[kind]
 				check(bad == 0 and reach < wide and top < high, "crowned %s: %d faults, reaches %.2f, %.2f high" % [what, bad, reach, top])
 				check(kind != "sakura" or (reach > 1.2 and top > 2.6), "crowned %s: grand, reaching %.2f, %.2f high" % [what, reach, top])
+				check(kind != "maple" or (reach > 0.95 and top < 2.3 and reach * 2.0 > top), "crowned %s: a wide low umbrella, %.2f round, %.2f high" % [what, reach, top])
 				check(kind != "ginkgo" or (top > 2.9 and reach < 1.05), "crowned %s: tall and upright, %.2f high, %.2f round" % [what, top, reach])
 				var golds := 0
 				for n in w.get_children():
 					if n is MeshInstance3D and n.material_override.albedo_color == trees.GINKGO_LEAF:
 						golds += 1
 				check((golds > 0) == (kind == "ginkgo" and season == "fall"), "crowned %s: the gold carpet of fallen leaves only under a ginkgo in fall" % what)
-				check(sprays.size() == {"sakura": trees.LIMBS + 1, "maple": 4, "ginkgo": 10}[kind] and tones.size() > 12, "crowned %s: %d sprays, %d tones" % [what, sprays.size(), tones.size()])
+				check(sprays.size() == {"sakura": trees.LIMBS + 1, "maple": 7, "ginkgo": 10}[kind] and tones.size() > 12, "crowned %s: %d sprays, %d tones" % [what, sprays.size(), tones.size()])
 				check((florets > 0) == (kind == "sakura" and season == "spring"), "crowned %s: florets %d" % [what, florets])
 				check(trunk_r > 0.08 and trunk_r < 0.14, "crowned %s: the old trunk under the crown (%.3f)" % [what, trunk_r])
 				var sway = w.get_node("WindSway")

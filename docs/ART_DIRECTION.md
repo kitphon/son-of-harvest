@@ -253,6 +253,14 @@ Light and Farmhouse model hold the technical detail of what is built.
       too near the map stays grass). Every tree there has a size (map prop `scale` 0.5-1.2, Trees.place_crowned
       and the bare form; the Sway keeps it), small, middling, big and a few grand ones mixed; the wood's
       trees are mixed sizes too. The flat view draws them all at one size.
+      (2026-11-17, later) The maple as a real Japanese maple grows (Trees._maple_sprays): a short trunk
+      splitting at 0.55 into three stems leaning out, each forking into two limbs running out nearly level,
+      so the crown is a wide low umbrella (about 1.2 round, 2.1 up); its leaves lie in thin flat layers along
+      the limbs (an outer pad near each tip, a higher one further in, gaps between where the limbs show),
+      their edges ragged with small leaf clusters, a few hanging; one pad on top. Colours by place in the
+      crown (_maple_tone): fall mostly crimson, orange (MAPLE_FLAME) and amber (MAPLE_AMBER) low and inside;
+      spring fresh green with red-bronze new leaves (MAPLE_NEW); summer deep green, darker inside. The flat
+      view's maple has the same stems, three tiers of thin layers and colours.
 - [x] Bamboo: segmented culms with node rings, leaf sprays, swaying, by season, snow on the
       leaves (`OutdoorProps.bamboo`). (this commit) The wind follows the weather (data/wind.json,
       see "Wind by weather" in the table): in a storm the clumps lean further, sway faster and

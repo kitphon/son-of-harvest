@@ -2358,36 +2358,53 @@ static func _heart(band: int) -> Image:
 ## a test keeps them equal). Kept here, not read from Trees, so this script compiles alone.
 const MAPLE_LEAVES := {"spring": Color("86b844"), "summer": Color("2f6e32"), "fall": Color("c42a1e")}
 const MAPLE_FLAME := Color("dc6a1e")
+const MAPLE_AMBER := Color("e0a028")
+const MAPLE_NEW := Color("b0583a")
 
 
-## A Japanese maple for the flat view (24 x 32, the trunk's foot at (12, 30)): a small layered
-## crown, a wide lower tier of four lumps, a narrower middle pair and a top lump, in the 3D
-## maple's colours (Trees.LEAVES; the orange lumps among the reds in fall). In winter it is bare
-## branches off the trunk, with snow on their upper side when the map has snow. Laid in flat
-## materials (the bark, each lump's leaf tone, the snow) and toned by ItemArt.refine like the
-## item icons: three tones lit from the upper left, deep-tone part lines between the lumps, a
-## rim in the material's own deep tone instead of the near-black outline. The snow stays white.
+## A Japanese maple for the flat view (24 x 32, the trunk's foot at (12, 30)), as the 3D one grows:
+## a short trunk splitting low into three stems, wide flat layers of leaves in three tiers with gaps
+## between them where the limbs show, ragged edges. In fall crimson on top and outside, orange in the
+## middle and amber low (Trees.MAPLE_AMBER, MAPLE_FLAME); in spring fresh green with red-bronze new
+## leaves (MAPLE_NEW); deep green in summer. Bare branches in winter (with snow where the map has snow).
+## Toned by ItemArt.refine like the item icons.
 static func _maple_tree(season: String, snow: bool) -> Image:
 	var img := _blank(24, 32)
 	var bark := Color("4a3428")
 	var leaf: Color = MAPLE_LEAVES.get(season, Color(0, 0, 0, 0))
 	if leaf.a == 0.0:   # winter: bare branches
 		return _bare_tree(img, bark, snow)
-	_px(img, 11, 15, 2, 15, bark)
-	# [x, y, rx, ry, colour, fall: lump turns orange]
-	var lumps := [
-		[5.5, 13.0, 4.0, 3.2, leaf.darkened(0.16), true], [18.5, 13.0, 4.0, 3.2, leaf.darkened(0.08), true],
-		[8.0, 16.5, 4.0, 3.0, leaf.darkened(0.08), false], [16.0, 16.5, 4.0, 3.0, leaf.darkened(0.16), true],
-		[8.0, 9.0, 4.0, 3.2, leaf.darkened(0.03), false], [16.0, 9.0, 4.0, 3.2, leaf.darkened(0.03), false],
-		[12.0, 11.0, 4.0, 3.0, leaf, false], [12.0, 6.0, 3.2, 3.0, leaf.lightened(0.1), false],
+	_px(img, 11, 22, 2, 8, bark)
+	for seg in [[Vector2i(12, 23), Vector2i(5, 16)], [Vector2i(12, 23), Vector2i(19, 15)], [Vector2i(12, 22), Vector2i(12, 8)],
+			[Vector2i(6, 17), Vector2i(2, 15)], [Vector2i(18, 16), Vector2i(22, 14)]]:
+		_line(img, seg[0], seg[1], bark)
+	# [x, y, rx, ry, tier 0 low .. 2 top]: wide thin layers, the limbs showing between them
+	var pads := [
+		[4.5, 17.0, 4.5, 1.8, 0], [19.5, 16.0, 4.5, 1.8, 0], [9.0, 19.0, 3.8, 1.6, 0], [15.5, 19.0, 3.8, 1.6, 0],
+		[6.5, 11.5, 4.5, 1.9, 1], [17.5, 11.0, 4.5, 1.9, 1], [12.0, 13.5, 3.8, 1.6, 1],
+		[12.0, 6.0, 5.5, 2.2, 2], [8.0, 8.0, 3.0, 1.4, 2], [16.5, 7.5, 3.0, 1.4, 2],
 	]
-	for i in lumps.size():
-		var l: Array = lumps[i]
-		var c: Color = l[4]
-		if season == "fall" and l[5]:
-			c = MAPLE_FLAME.darkened(0.04 * (i % 3))
-		_oval(img, l[0], l[1], l[2], l[3], c)
-	return ItemArt.refine(img)
+	var tones: Array = [leaf.darkened(0.16), leaf.darkened(0.06), leaf.lightened(0.06)]
+	if season == "fall":
+		tones = [MAPLE_AMBER, MAPLE_FLAME, leaf]
+	for pd in pads:
+		_oval(img, pd[0], pd[1], pd[2], pd[3], tones[pd[4]])
+		for k in 3:   # a ragged edge: leaf clusters off the pad's rim, one hanging below
+			var x := int(pd[0] + (k - 1) * pd[2] * 0.9)
+			var y := int(pd[1] + pd[3] * (0.9 if k != 1 else 1.4))
+			if x >= 0 and x < 24 and y < 32 and img.get_pixel(x, y).a == 0.0:
+				img.set_pixel(x, y, tones[pd[4]])
+	if season == "fall":   # crimson on the outer ends of the lower tiers too
+		for pd in pads.slice(0, 2):
+			_oval(img, pd[0] + (-2.0 if pd[0] < 12 else 2.0), pd[1] - 0.5, 2.0, 1.2, leaf)
+	var fixed: Array = []
+	if season == "spring":   # red-bronze new leaves among the green
+		for i in 9:
+			var p := Vector2i(2 + (i * 7) % 20, 5 + (i * 5) % 15)
+			if img.get_pixelv(p).a > 0.5 and img.get_pixelv(p) != bark:
+				img.set_pixelv(p, MAPLE_NEW)
+		fixed.append(MAPLE_NEW)
+	return ItemArt.refine(img, fixed)
 
 
 ## A bare tree of the flat view's 24 x 32 pictures (the maple's and the cherry's winter): five

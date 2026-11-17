@@ -10,6 +10,28 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-17 — A maple shaped like a real Japanese maple — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user asked for the maples to look more like real ones. Trees._maple_sprays rebuilt after how a Japanese
+  maple grows: the trunk short (to 0.62) and splitting at 0.55 into three stems leaning out, each forking into two
+  limbs that run out nearly level, so the crown is a wide low umbrella broader than tall (about 1.2 round, 2.1 up;
+  was a round stack of lumps 0.85 round). The leaves lie in thin flat layers (Trees._maple_pad: a flat middle and four
+  lobes, squash about 0.4), an outer pad near each limb's tip and a higher one further in, with gaps between them
+  where the limbs show; ragged edges of small leaf clusters, every third hanging lower; one more pad on top. Each
+  limb's pads are a spray (seven a tree) swaying about its fork. Colours by the cluster's place (Trees._maple_tone):
+  in fall mostly crimson, orange (MAPLE_FLAME) and amber (MAPLE_AMBER e0a028) only low and inside; in spring the fresh
+  green with about a fifth red-bronze new leaves (MAPLE_NEW b0583a); in summer deep green, darker inside. The flat
+  view's maple (PlaceholderArt._maple_tree) redrawn to match: the stems, three tiers of thin wide layers with gaps,
+  ragged edges, the same colours by tier.
+- Checked: test_maps (the maple a wide low umbrella: reach over 0.95, under 1.3, top under 2.3, wider than half its
+  height; seven sprays; the flat maple's amber and new-leaf colours equal the 3D ones), test_view2d (the flat maple
+  by season and snow): OK. Frames `--demo --map=sakurazaka@mine --walk=up:1.6` in spring, summer and fall (its maple
+  zoomed: flat layered tiers, crimson outside and orange inside in fall, green with bronze new leaves in spring),
+  `--demo --map=hill@top` in both views. All 44 tests/test_*.gd print `OK (0 failed)`; smoke `--quit-after 300`
+  (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --map=sakurazaka --season=fall`): 0 ERROR lines;
+  windowed `--quit-after 150 -- --demo --map=hill`: exit 0.
+- Left / next: the user's look at the maples.
+
 ## 2026-11-17 — Nishiki Hill: no cliff, no pines, trees of mixed sizes — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user's look: with trees that thick the rock wall along the top need not close the hill in, the trees

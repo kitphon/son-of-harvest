@@ -17,6 +17,8 @@ const NEEDLES: Array[Color] = [Color("2f5a34"), Color("3a6a3c"), Color("467a44")
 const FRUIT := Color("e8782a")
 const PETAL := Color("f6c4d2")
 const MAPLE_FLAME := Color("dc6a1e")   # the orange lumps among a maple's reds in fall
+const MAPLE_AMBER := Color("e0a028")   # the amber low and inside a maple's crown in fall
+const MAPLE_NEW := Color("b0583a")     # a maple's red-bronze new leaves among the spring green
 const LUMP_SIDES := 7
 
 ## Leaf colours of the broadleaf kinds by season; a clear colour = bare branches.
@@ -310,7 +312,10 @@ static func _build_crown(kind: String, season: String, shape: int) -> Dictionary
 	var leaf: Color = LEAVES[kind][season]
 	var p := FarmProps.Parts.new()
 	var bark := p.st(bark_of(kind))
-	Shrine.lathe(bark, Vector3.ZERO, [Vector2(0.13, 0.0), Vector2(0.1, 0.12), Vector2(0.085, 0.7), Vector2(0.065, 1.2)], 6)
+	if kind == "maple":   # a short trunk that splits low into stems (_maple_sprays)
+		Shrine.lathe(bark, Vector3.ZERO, [Vector2(0.12, 0.0), Vector2(0.095, 0.12), Vector2(0.085, 0.62)], 6)
+	else:
+		Shrine.lathe(bark, Vector3.ZERO, [Vector2(0.13, 0.0), Vector2(0.1, 0.12), Vector2(0.085, 0.7), Vector2(0.065, 1.2)], 6)
 	var sprays: Array = []
 	if kind == "sakura":
 		_sakura_sprays(p, bark, sprays, leaf, season, rng)
@@ -355,43 +360,72 @@ static func _sakura_sprays(p: FarmProps.Parts, bark: SurfaceTool, sprays: Array,
 			FarmProps.block(petal, Rect2(c.x - 0.035, c.z - 0.035, 0.07, 0.07), 0.002, Rect2(c.x - 0.035, c.z - 0.035, 0.07, 0.07), 0.01)
 
 
-## The maple's layered crown (_maple_crown's tiers) cut into sprays: the wide low tier in three
-## (two lumps, two lumps, one), the narrow tier, the cap and the middle as one more on top.
+## A Japanese maple as it grows: a short trunk splitting at 0.55 into three stems leaning out, each
+## forking into two limbs that run out nearly level, so the crown is a wide low umbrella (about 1.15
+## round, 2.1 up), broader than it is tall. Its leaves lie in thin flat layers along the limbs, an
+## outer pad near each tip and a higher one further in, with gaps between them where the limbs show,
+## the pads' edges ragged with small leaf clusters, a few drooping; one more pad on top. Each limb's
+## pads are one spray swaying about its fork. The colours run as on a real tree: in fall crimson at
+## the top and the outside, fading through orange to amber low and inside; in spring fresh green with
+## red-bronze new leaves among it; in summer deep green, darker inside.
 static func _maple_sprays(bark: SurfaceTool, sprays: Array, leaf: Color, season: String, rng: RandomNumberGenerator) -> void:
 	var turn := rng.randf() * TAU
-	var low: Array = []
-	for i in 5:
-		var a := turn + TAU * i / 5 + rng.randf_range(-0.25, 0.25)
-		var d := rng.randf_range(0.4, 0.5)
-		var c := Vector3(cos(a) * d, rng.randf_range(1.22, 1.34), sin(a) * d)
-		var col := leaf.darkened(0.16 if i % 2 == 0 else 0.08)
-		if season == "fall" and i in [1, 4]:
-			col = MAPLE_FLAME.darkened(0.04 * (i % 3))
-		low.append([c, rng.randf_range(0.32, 0.37), col])
-		_limb(bark, Vector3(0, 1.0, 0), (c - Vector3(0, 1.0, 0)).normalized(), (c - Vector3(0, 1.0, 0)).length() * 0.8, 0.045, 0.02)
-	for group in [[0, 1], [2, 3], [4]]:
-		var st := _spray_tool()
-		var mid := Vector3.ZERO
-		for j in group:
-			mid += low[j][0] / float(group.size())
-		var hinge := Vector3(mid.x * 0.3, 1.05, mid.z * 0.3)
-		for j in group:
-			_leafy_lump(st, low[j][0] - hinge, low[j][1], 0.58, low[j][2], rng)
-		_dots(st, mid - hinge, 0.34, leaf, season, rng, 4)
-		sprays.append({"st": st, "hinge": hinge})
+	var base := Vector3(0, 0.55, 0)
+	for s in 3:
+		var sy := turn + TAU * s / 3.0 + rng.randf_range(-0.3, 0.3)
+		var sdir := _dir(sy, rng.randf_range(0.3, 0.48))
+		var slong := rng.randf_range(0.55, 0.68)
+		_limb(bark, base, sdir, slong, 0.075, 0.05)
+		var fork := base + sdir * slong
+		for side in [-1.0, 1.0]:
+			var ldir := _dir(sy + side * rng.randf_range(0.35, 0.6), rng.randf_range(1.05, 1.3))
+			var llong := rng.randf_range(0.38, 0.5)
+			_limb(bark, fork, ldir, llong, 0.045, 0.018)
+			var st := _spray_tool()
+			var outer := fork + ldir * llong * 0.95 + Vector3(0, 0.1, 0)
+			var inner := fork + ldir * llong * 0.45 + Vector3(0, 0.32, 0)
+			_maple_pad(st, outer - fork, outer, rng.randf_range(0.3, 0.34), leaf, season, rng)
+			_maple_pad(st, inner - fork, inner, rng.randf_range(0.24, 0.28), leaf, season, rng)
+			sprays.append({"st": st, "hinge": fork})
 	var top := _spray_tool()
-	var hinge_top := Vector3(0, 1.25, 0)
-	for i in 3:
-		var a := turn + 0.6 + TAU * i / 3 + rng.randf_range(-0.2, 0.2)
-		var d := rng.randf_range(0.14, 0.2)
-		var col := leaf.darkened(0.03)
-		if season == "fall" and i == 1:
-			col = MAPLE_FLAME
-		_leafy_lump(top, Vector3(cos(a) * d, rng.randf_range(1.5, 1.6), sin(a) * d) - hinge_top, rng.randf_range(0.28, 0.32), 0.6, col, rng)
-	_leafy_lump(top, Vector3(0, 1.78, 0) - hinge_top, 0.26, 0.7, leaf.lightened(0.1), rng)
-	_leafy_lump(top, Vector3(0, 1.45, 0) - hinge_top, 0.34, 0.7, leaf, rng)
-	_dots(top, Vector3(0, 1.6, 0) - hinge_top, 0.3, leaf, season, rng, 5)
-	sprays.append({"st": top, "hinge": hinge_top})
+	var hinge := Vector3(0, 1.3, 0)
+	var crown := Vector3(rng.randf_range(-0.06, 0.06), 1.88, rng.randf_range(-0.06, 0.06))
+	_limb(bark, base, (crown - base).normalized(), (crown - base).length() * 0.85, 0.05, 0.02)
+	_maple_pad(top, crown - hinge, crown, 0.3, leaf, season, rng)
+	sprays.append({"st": top, "hinge": hinge})
+
+
+## A maple's layer of leaves round `c` (`world` its place in the tree, for its colour): a thin flat
+## middle and four lobes round it, ragged at the edge with small leaf clusters, a few hanging lower.
+static func _maple_pad(st: SurfaceTool, c: Vector3, world: Vector3, r: float, leaf: Color, season: String, rng: RandomNumberGenerator) -> void:
+	_leafy_lump(st, c, r, 0.36, _maple_tone(leaf, season, world, rng), rng)
+	var turn := rng.randf() * TAU
+	for i in 4:
+		var a := turn + TAU * i / 4.0 + rng.randf_range(-0.3, 0.3)
+		var at := c + Vector3(cos(a), 0, sin(a)) * r * rng.randf_range(0.55, 0.7) + Vector3(0, rng.randf_range(-0.04, 0.04), 0)
+		_leafy_lump(st, at, r * rng.randf_range(0.5, 0.62), 0.42, _maple_tone(leaf, season, world + (at - c), rng), rng)
+	for i in 10:   # the ragged edge: small clusters round the rim, every third hanging lower
+		var a := rng.randf() * TAU
+		var at := c + Vector3(cos(a), 0, sin(a)) * r * rng.randf_range(0.95, 1.2) + Vector3(0, -0.05 - (0.07 if i % 3 == 0 else 0.0), 0)
+		_coloured_lump(st, at, rng.randf_range(0.05, 0.075), 0.7, 5, rng.randf() * TAU, _maple_tone(leaf, season, world + (at - c), rng), 0.0, rng)
+
+
+## A maple leaf cluster's colour at `at` (tree-local): fall runs from amber low and inside through
+## orange to the season's crimson at the top and the outside; spring is fresh green with a share of
+## red-bronze new leaves; summer is deep green, darker inside.
+static func _maple_tone(leaf: Color, season: String, at: Vector3, rng: RandomNumberGenerator) -> Color:
+	var high := clampf((at.y - 1.2) / 0.75, 0.0, 1.0)
+	var out := clampf(Vector2(at.x, at.z).length() / 1.0, 0.0, 1.0)
+	var t := clampf(0.55 * high + 0.45 * out + rng.randf_range(-0.15, 0.15), 0.0, 1.0)
+	match season:
+		"fall":   # mostly crimson: orange and amber only low and inside
+			var f := clampf(0.3 + t, 0.0, 1.0)
+			if f < 0.45:
+				return MAPLE_AMBER.lerp(MAPLE_FLAME, f / 0.45)
+			return MAPLE_FLAME.lerp(leaf, clampf((f - 0.45) / 0.35, 0.0, 1.0))
+		"spring":
+			return MAPLE_NEW if rng.randf() < 0.18 else leaf.darkened(0.1 * (1.0 - t))
+	return leaf.darkened(0.16 * (1.0 - t))
 
 
 ## A ginkgo: tall and upright, its leader running on up from the trunk to 2.7, short limbs off it
