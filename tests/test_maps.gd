@@ -2542,6 +2542,7 @@ func _trees() -> void:
 				check(l.bad == 0 and l.reach < 0.95 and l.top < 2.3 and (l.snow > 0) == want and snow_mesh == want,
 					"%s in %s (seed %d, snow %s): %d faults, reaches %.2f, %.2f high, %d snow" % [kind, case[0], seed, case[1], l.bad, l.reach, l.top, l.snow])
 				w.free()
+	_crowned_trees(trees)
 	for garden in [true, false]:
 		for snow in [true, false]:
 			var w: Node3D = parts_of.call(func(p): trees.pine(p, Vector3.ZERO, 7, garden, snow))
@@ -2558,6 +2559,87 @@ func _trees() -> void:
 	var driven: bool = not m.surroundings.snow_mats.is_empty() and m.surroundings.snow_mats.all(func(s): return s in m._snow_mats)
 	check(wood.size() >= 4 and instances > 20 and driven, "the wood: %d MultiMeshes, %d pine parts, snow driven %s" % [wood.size(), instances, driven])
 	m.free()
+
+
+## The swaying crowns (Trees.place_crowned, 2026-11-17): cherries and maples in leaf or bloom get
+## them, bare trees and persimmons do not; the cherry is grand (eight sprays, reaching past the old
+## 0.95 but inside 1.5 round and 3.05 up), the maple keeps its size (four sprays); every spray a lit
+## mesh of vertex colours wound to its normals, its facets in several tones; florets on the cherry
+## in spring only; each spray in the world's Sway as a "crown" that stirs even in a calm, more in a
+## wind, staying near its rest; the trunk below 1.2 as the old one (the cicadas' trunk).
+func _crowned_trees(trees: GDScript) -> void:
+	for kind in ["persimmon", "sakura", "maple"]:
+		for season in ["spring", "summer", "fall", "winter"]:
+			check(trees.crowned(kind, season) == (kind != "persimmon" and season != "winter"), "crowned: %s in %s" % [kind, season])
+	for kind in ["sakura", "maple"]:
+		for season in ["spring", "summer", "fall"]:
+			for seed in [3, 40, 517]:
+				var w: Node3D = load("res://scripts/world3d/farm_world.gd").new()
+				var at := Vector3(5.5, 0, 7.5)
+				var sprays: Array = trees.place_crowned(w, at, kind, season, seed)
+				var bad := 0
+				var reach := 0.0
+				var top := 0.0
+				var tones := {}
+				var florets := 0
+				var trunk_r := 0.0
+				for n in w.get_children():
+					if not n is MeshInstance3D:
+						continue
+					var mat: StandardMaterial3D = n.material_override
+					if mat == null or mat.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED:
+						bad += 1
+						continue
+					var arr: Array = n.mesh.surface_get_arrays(0)
+					var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+					var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+					var cols = arr[Mesh.ARRAY_COLOR]
+					for i in range(0, v.size(), 3):
+						var c := (v[i + 1] - v[i]).cross(v[i + 2] - v[i])
+						if c.length() > 1e-9 and c.dot(nm[i]) >= 0.0:
+							bad += 1
+					for i in v.size():
+						var q: Vector3 = n.transform * v[i]
+						reach = maxf(reach, Vector2(q.x - at.x, q.z - at.z).length())
+						top = maxf(top, q.y)
+						if q.y > 0.15 and q.y < 0.9 and n in sprays:
+							bad += 1   # no spray hangs down by the trunk's foot
+						if q.y > 0.3 and q.y < 0.8 and not n in sprays and mat.albedo_color == (trees.SAKURA_BARK if kind == "sakura" else trees.BARK):
+							trunk_r = maxf(trunk_r, Vector2(q.x - at.x, q.z - at.z).length())
+					if n in sprays:
+						check(mat.vertex_color_use_as_albedo and cols != null and (cols as PackedColorArray).size() == v.size(), "crowned %s: a spray of vertex colours" % kind)
+						for c in cols:
+							tones[c.to_html(false)] = true
+							if c.is_equal_approx(trees.FLORET):
+								florets += 1
+				var what := "%s in %s (seed %d)" % [kind, season, seed]
+				var wide := 1.5 if kind == "sakura" else 1.0
+				var high := 3.05 if kind == "sakura" else 2.3
+				check(bad == 0 and reach < wide and top < high, "crowned %s: %d faults, reaches %.2f, %.2f high" % [what, bad, reach, top])
+				check(kind != "sakura" or (reach > 1.2 and top > 2.6), "crowned %s: grand, reaching %.2f, %.2f high" % [what, reach, top])
+				check(sprays.size() == (trees.LIMBS + 1 if kind == "sakura" else 4) and tones.size() > 12, "crowned %s: %d sprays, %d tones" % [what, sprays.size(), tones.size()])
+				check((florets > 0) == (kind == "sakura" and season == "spring"), "crowned %s: florets %d" % [what, florets])
+				check(trunk_r > 0.08 and trunk_r < 0.14, "crowned %s: the old trunk under the crown (%.3f)" % [what, trunk_r])
+				var sway = w.get_node("WindSway")
+				check(sway.count_of("crown") == sprays.size(), "crowned %s: every spray in the Sway" % what)
+				if seed == 3:
+					var first: Transform3D = sprays[0].transform
+					var moved := 0.0
+					var most := 0.0
+					for wind in [0.0, 0.9]:
+						sway.wind = wind
+						for t in [0.0, 0.7, 1.9, 3.3]:
+							sway.pose(t)
+							var tip: Vector3 = (sprays[0] as Node3D).transform * Vector3(0.4, 0.5, 0)
+							most = maxf(most, tip.distance_to(first * Vector3(0.4, 0.5, 0)))
+							moved = maxf(moved, (sprays[0] as Node3D).transform.basis.x.distance_to(first.basis.x))
+					check(moved > 0.01 and most < 0.25, "crowned %s: the sprays stir (%.3f) and stay near rest (%.3f)" % [what, moved, most])
+					sway.wind = 0.0
+					sway.pose(0.0)
+					var calm_a: Basis = (sprays[1] as Node3D).basis
+					sway.pose(1.3)
+					check(not (sprays[1] as Node3D).basis.is_equal_approx(calm_a), "crowned %s: a spray stirs even in a calm" % what)
+				w.free()
 
 
 ## The outdoor small props (OutdoorProps): bamboo, well, jizo, woodpile and river rock are lit
@@ -2774,7 +2856,7 @@ func _outdoor_props() -> void:
 			if str(p.kind) in spots[id]:
 				rects.append(Rect2(Vector2(p.cell), Vector2(p.get("size", [1, 1]))))
 		for n in m.get_children():
-			if n is MeshInstance3D and n.mesh is ArrayMesh and n.material_override is StandardMaterial3D and n.material_override.vertex_color_use_as_albedo 					and not n.has_meta("fence"):
+			if n is MeshInstance3D and n.mesh is ArrayMesh and n.material_override is StandardMaterial3D and n.material_override.vertex_color_use_as_albedo 					and not n.has_meta("fence") and not n.has_meta("crown"):
 				clumps += 1
 			if n is MeshInstance3D and (n.mesh is BoxMesh or n.mesh is CylinderMesh or n.mesh is SphereMesh):
 				var q: Vector3 = n.position

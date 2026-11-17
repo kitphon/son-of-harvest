@@ -216,3 +216,251 @@ static func _limb(st: SurfaceTool, base: Vector3, dir: Vector3, long: float, thi
 ## The unit vector `tilt` radians off straight up, leaning towards `yaw` round y.
 static func _dir(yaw: float, tilt: float) -> Vector3:
 	return Vector3(cos(yaw) * sin(tilt), cos(tilt), sin(yaw) * sin(tilt))
+
+
+## --- Grand swaying crowns (2026-11-17) -------------------------------------------------------
+## The cherries and maples in leaf (or in bloom) are built as a trunk with spreading limbs and a
+## crown of separate sprays, each its own mesh that the world's Sway rocks about the fork it grows
+## from (OutdoorProps.Sway "crown": a gentle stir even in a calm, more in a wind, every spray on its
+## own beat), so the crown seems to rustle. The sprays carry their colours on the vertices, every
+## facet toned a little apart (lighter where it faces up), and the cherry's are dotted with small
+## white-pink florets, the summer crowns with light new leaves, the fall ones with gold and orange:
+## a pattern of leaves and flowers instead of flat lumps. The cherry is grand: seven limbs spreading
+## wide in two rings, a spray of blossom at the end of each and one on top, about 1.45 round and 2.95 up, petals
+## under it far round. The trunk below 1.2 is the old one's (the cicadas cling to it). A few shapes
+## per kind and season (CROWN_SHAPES) are built once and shared, each tree turned by its seed.
+## Bare (winter) trees and the persimmon keep broadleaf.
+
+const CROWN_SHAPES := 6
+const CROWN_KINDS: Array[String] = ["sakura", "maple"]
+const FLORET := Color("fff2f6")       # the small open flowers dotted over a cherry in bloom
+const BLOSSOM_DEEP := Color("e898b0")  # the deeper pink of the buds under a cherry's sprays
+const CHERRY_GOLD := Color("d89a3c")   # the gold sprays among a cherry's orange-brown in fall
+const LIMBS := 7   # a grand cherry's limbs, each ending in a spray (every other one rising steeper)
+static var _crowns := {}   # "kind|season|shape" -> {trunk: {key: ArrayMesh}, sprays: [{mesh: ArrayMesh, hinge: Vector3}]}
+
+
+## Whether a `kind` tree in `season` is built with a swaying crown (place_crowned).
+static func crowned(kind: String, season: String) -> bool:
+	if not kind in CROWN_KINDS:
+		return false
+	var colours: Dictionary = LEAVES[kind]
+	return (colours.get(season if season != "" else "spring", colours.spring) as Color).a > 0.0
+
+
+## A tree's crown shape and turn by its seed.
+static func crown_shape(seed: int) -> int:
+	return posmod(seed * 7 + 3, CROWN_SHAPES)
+
+
+static func crown_yaw(seed: int) -> float:
+	return fposmod(seed * 0.618, 1.0) * TAU
+
+
+## The built pieces of a `kind` tree in `season` of `shape` (tree-local: the trunk's foot at
+## the origin): {trunk: {Parts key: ArrayMesh}, sprays: [{mesh, hinge}]}, each spray's mesh
+## round its hinge (the fork it sways about). Built once and kept.
+static func crown_of(kind: String, season: String, shape: int) -> Dictionary:
+	var s := season if season != "" else "spring"
+	var key := "%s|%s|%d" % [kind, s, shape]
+	if not _crowns.has(key):
+		_crowns[key] = _build_crown(kind, s, shape)
+	return _crowns[key]
+
+
+## Places a crowned tree (crowned() true) with its foot at `at` into `w`: the trunk's meshes in
+## their materials, then each spray as a mesh of vertex colours, all turned by the seed's yaw,
+## the sprays handed to the world's Sway. Returns the spray nodes.
+static func place_crowned(w: FarmWorld, at: Vector3, kind: String, season: String, seed: int) -> Array:
+	var made := crown_of(kind, season, crown_shape(seed))
+	var yaw := crown_yaw(seed)
+	var turn := Basis(Vector3.UP, yaw)
+	var sway := OutdoorProps._sway(w)
+	for key in made.trunk:
+		var mi := MeshInstance3D.new()
+		mi.mesh = made.trunk[key]
+		mi.material_override = FarmProps.Parts.material(key, w._snow_mats)
+		mi.transform = Transform3D(turn, at)
+		if not FarmProps.Parts.casts_shadow(key) or (key is Color and key == PETAL):
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		w.add_child(mi)
+	var nodes: Array = []
+	var sprays: Array = made.sprays
+	for i in sprays.size():
+		var mi := MeshInstance3D.new()
+		mi.mesh = sprays[i].mesh
+		mi.material_override = OutdoorProps._vertex_material()
+		var hinge: Vector3 = at + turn * (sprays[i].hinge as Vector3)
+		mi.transform = Transform3D(turn, hinge)
+		mi.set_meta("crown", true)   # a tree's spray (not a bamboo clump: test_maps tells them apart)
+		w.add_child(mi)
+		sway.add_crown([mi], hinge, yaw, seed * 0.71 + i * 1.93)
+		nodes.append(mi)
+	return nodes
+
+
+static func _build_crown(kind: String, season: String, shape: int) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(kind) + shape * 7919 + 17
+	var leaf: Color = LEAVES[kind][season]
+	var p := FarmProps.Parts.new()
+	var bark := p.st(SAKURA_BARK if kind == "sakura" else BARK)
+	Shrine.lathe(bark, Vector3.ZERO, [Vector2(0.13, 0.0), Vector2(0.1, 0.12), Vector2(0.085, 0.7), Vector2(0.065, 1.2)], 6)
+	var sprays: Array = []
+	if kind == "sakura":
+		_sakura_sprays(p, bark, sprays, leaf, season, rng)
+	else:
+		_maple_sprays(bark, sprays, leaf, season, rng)
+	var out := []
+	for s: Dictionary in sprays:
+		out.append({"mesh": (s.st as SurfaceTool).commit(), "hinge": s.hinge})
+	return {"trunk": p.meshes(), "sprays": out}
+
+
+## The grand cherry: seven limbs from 1.0-1.2 up, every other one leaning well out (a low wide ring)
+## and the rest rising steeper (a higher ring), each forking once, a spray at each limb's end
+## (seven lumps of blossom; the low ring's with two small deeper ones hanging under), one more big
+## spray over the trunk; petals lying far round its foot in spring.
+static func _sakura_sprays(p: FarmProps.Parts, bark: SurfaceTool, sprays: Array, leaf: Color, season: String, rng: RandomNumberGenerator) -> void:
+	var turn := rng.randf() * TAU
+	for i in LIMBS:
+		var yaw := turn + TAU * i / LIMBS + rng.randf_range(-0.2, 0.2)
+		var tilt := rng.randf_range(0.9, 1.2) if i % 2 == 0 else rng.randf_range(0.6, 0.8)   # every other limb rises steeper: a second, higher ring
+		var base := Vector3(0, rng.randf_range(1.0, 1.2), 0)
+		var long := rng.randf_range(0.74, 0.86) if i % 2 == 0 else rng.randf_range(0.7, 0.8)
+		var dir := _dir(yaw, tilt)
+		_limb(bark, base, dir, long, 0.09, 0.04)
+		var fork := base + dir * long * 0.5
+		var twig := _dir(yaw + (0.55 if i % 2 == 0 else -0.55), tilt - 0.35)
+		_limb(bark, fork, twig, 0.4, 0.045, 0.02)
+		var tip := base + dir * long
+		var centre := tip + Vector3(0, 0.24, 0) + Vector3(cos(yaw), 0, sin(yaw)) * 0.05
+		sprays.append(_spray(centre, fork, leaf, season, rng, rng.randf_range(0.33, 0.37), 6, i % 2 == 0))
+	var top := Vector3(rng.randf_range(-0.05, 0.05), 2.45, rng.randf_range(-0.05, 0.05))
+	_limb(bark, Vector3(0, 1.15, 0), (top - Vector3(0, 1.15, 0)).normalized(), 1.1, 0.07, 0.03)
+	sprays.append(_spray(top, Vector3(0, 1.3, 0), leaf, season, rng, 0.42, 7, false))
+	if season == "spring":
+		var petal := p.st(PETAL)
+		for i in 34:
+			var a := i * 2.4 + rng.randf()
+			var d := 0.25 + (i % 7) * 0.18
+			var c := Vector3(cos(a) * d, 0, sin(a) * d)
+			FarmProps.block(petal, Rect2(c.x - 0.035, c.z - 0.035, 0.07, 0.07), 0.002, Rect2(c.x - 0.035, c.z - 0.035, 0.07, 0.07), 0.01)
+
+
+## The maple's layered crown (_maple_crown's tiers) cut into sprays: the wide low tier in three
+## (two lumps, two lumps, one), the narrow tier, the cap and the middle as one more on top.
+static func _maple_sprays(bark: SurfaceTool, sprays: Array, leaf: Color, season: String, rng: RandomNumberGenerator) -> void:
+	var turn := rng.randf() * TAU
+	var low: Array = []
+	for i in 5:
+		var a := turn + TAU * i / 5 + rng.randf_range(-0.25, 0.25)
+		var d := rng.randf_range(0.4, 0.5)
+		var c := Vector3(cos(a) * d, rng.randf_range(1.22, 1.34), sin(a) * d)
+		var col := leaf.darkened(0.16 if i % 2 == 0 else 0.08)
+		if season == "fall" and i in [1, 4]:
+			col = MAPLE_FLAME.darkened(0.04 * (i % 3))
+		low.append([c, rng.randf_range(0.32, 0.37), col])
+		_limb(bark, Vector3(0, 1.0, 0), (c - Vector3(0, 1.0, 0)).normalized(), (c - Vector3(0, 1.0, 0)).length() * 0.8, 0.045, 0.02)
+	for group in [[0, 1], [2, 3], [4]]:
+		var st := _spray_tool()
+		var mid := Vector3.ZERO
+		for j in group:
+			mid += low[j][0] / float(group.size())
+		var hinge := Vector3(mid.x * 0.3, 1.05, mid.z * 0.3)
+		for j in group:
+			_leafy_lump(st, low[j][0] - hinge, low[j][1], 0.58, low[j][2], rng)
+		_dots(st, mid - hinge, 0.34, leaf, season, rng, 4)
+		sprays.append({"st": st, "hinge": hinge})
+	var top := _spray_tool()
+	var hinge_top := Vector3(0, 1.25, 0)
+	for i in 3:
+		var a := turn + 0.6 + TAU * i / 3 + rng.randf_range(-0.2, 0.2)
+		var d := rng.randf_range(0.14, 0.2)
+		var col := leaf.darkened(0.03)
+		if season == "fall" and i == 1:
+			col = MAPLE_FLAME
+		_leafy_lump(top, Vector3(cos(a) * d, rng.randf_range(1.5, 1.6), sin(a) * d) - hinge_top, rng.randf_range(0.28, 0.32), 0.6, col, rng)
+	_leafy_lump(top, Vector3(0, 1.78, 0) - hinge_top, 0.26, 0.7, leaf.lightened(0.1), rng)
+	_leafy_lump(top, Vector3(0, 1.45, 0) - hinge_top, 0.34, 0.7, leaf, rng)
+	_dots(top, Vector3(0, 1.6, 0) - hinge_top, 0.3, leaf, season, rng, 5)
+	sprays.append({"st": top, "hinge": hinge_top})
+
+
+static func _spray_tool() -> SurfaceTool:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	return st
+
+
+## A cherry's spray round `centre`, built round `hinge`: a big lump of radius `r`, `ring` lumps
+## round it a little lower (every other one darker; some gold in fall), two small deeper ones
+## hanging under it when `hang`, and its florets or new leaves dotted over the top.
+static func _spray(centre: Vector3, hinge: Vector3, leaf: Color, season: String, rng: RandomNumberGenerator, r: float, ring: int, hang: bool) -> Dictionary:
+	var st := _spray_tool()
+	var c := centre - hinge
+	_leafy_lump(st, c, r, 0.78, leaf, rng)
+	var turn := rng.randf() * TAU
+	for i in ring:
+		var a := turn + TAU * i / ring + rng.randf_range(-0.3, 0.3)
+		var d := r * rng.randf_range(0.75, 0.95)
+		var shade := leaf.darkened(0.12 if i % 2 == 0 else 0.05)
+		if season == "fall" and i % 3 == 1:
+			shade = CHERRY_GOLD
+		_leafy_lump(st, c + Vector3(cos(a) * d, rng.randf_range(-0.12, 0.04), sin(a) * d), r * rng.randf_range(0.62, 0.78), 0.72, shade, rng)
+	if hang:
+		for i in 2:
+			var a := turn + PI * i + 0.6
+			var deep := BLOSSOM_DEEP if season == "spring" else leaf.darkened(0.22)
+			_leafy_lump(st, c + Vector3(cos(a) * r * 0.55, -r * 0.62, sin(a) * r * 0.55), r * 0.42, 0.9, deep, rng)
+	_dots(st, c, r * 1.05, leaf, season, rng, 9)
+	return {"st": st, "hinge": hinge}
+
+
+## Small dots over the upper side of a spray round `c` (reach `r`): florets on a cherry in bloom,
+## light new leaves in summer, gold and orange in fall (none on a maple in spring: its new
+## leaves are light already).
+static func _dots(st: SurfaceTool, c: Vector3, r: float, leaf: Color, season: String, rng: RandomNumberGenerator, count: int) -> void:
+	var tones: Array[Color] = []
+	match season:
+		"spring":
+			if leaf == LEAVES.sakura.spring:
+				tones = [FLORET, Color("fbdce6")]
+		"summer": tones = [leaf.lightened(0.28), leaf.lightened(0.18)]
+		"fall": tones = [Color("e8b040"), Color("e07a28"), leaf.lightened(0.2)]
+	if tones.is_empty():
+		return
+	for i in count:
+		var a := rng.randf() * TAU
+		var up := rng.randf_range(0.25, 0.85)   # how far up the dome
+		var d := Vector3(cos(a) * sqrt(1.0 - up * up), up, sin(a) * sqrt(1.0 - up * up))
+		_coloured_lump(st, c + d * r, rng.randf_range(0.055, 0.08), 1.0, 5, rng.randf() * TAU, tones[i % tones.size()], 0.0, rng)
+
+
+## A lump of leaves (_lump's shape) laid straight into a vertex-colour SurfaceTool, each facet
+## its own tone round `col` (a little lighter or darker by chance, lighter facing up), so the
+## crown reads as leaves and blossom instead of one flat colour.
+static func _leafy_lump(st: SurfaceTool, c: Vector3, r: float, squash: float, col: Color, rng: RandomNumberGenerator) -> void:
+	_coloured_lump(st, c, r, squash, LUMP_SIDES, rng.randf() * TAU, col, 0.07, rng)
+
+
+static func _coloured_lump(st: SurfaceTool, c: Vector3, r: float, squash: float, sides: int, yaw: float, col: Color, jitter: float, rng: RandomNumberGenerator) -> void:
+	var k := r * squash
+	var profile := [Vector2(r * 0.5, 0.0), Vector2(r * 0.92, k * 0.3), Vector2(r, k * 0.75), Vector2(r * 0.85, k * 1.2),
+		Vector2(r * 0.45, k * 1.55), Vector2(0.0, k * 1.7)]
+	var tmp := SurfaceTool.new()
+	tmp.begin(Mesh.PRIMITIVE_TRIANGLES)
+	Shrine.lathe(tmp, Vector3.ZERO, profile, sides)
+	var arr := tmp.commit_to_arrays()
+	var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+	var n: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+	var xf := Transform3D(Basis(Vector3.UP, yaw), c - Vector3(0, k * 0.85, 0))
+	for i in range(0, v.size(), 3):
+		var face := col
+		if jitter > 0.0:
+			var t := rng.randf_range(-jitter, jitter) + (0.06 if n[i].y > 0.6 else 0.0)
+			face = col.lightened(t) if t > 0.0 else col.darkened(-t)
+		st.set_color(face)
+		for j in 3:
+			st.set_normal(xf.basis * n[i + j])
+			st.add_vertex(xf * v[i + j])

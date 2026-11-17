@@ -231,6 +231,15 @@ Light and Farmhouse model hold the technical detail of what is built.
       slope just below the lookout kept open for the view. The flat view draws the cherry as a picture
       too (`PlaceholderArt._sakura_tree`, `tree:sakura:<season>:<snow>`, MapView.sakura_key): a round
       cloud in the 3D cherry's colours, blossom spots and petals in spring, bare in winter like the maple.
+      (2026-11-17, later) Grand, swaying crowns (`Trees.place_crowned`): the cherry and the maple in leaf
+      or bloom are a trunk with limbs and a crown of separate sprays, each a mesh of vertex colours (every
+      facet its own tone, lighter facing up) rocked by the world's Sway about its fork (`add_crown`: a
+      stir even in a calm, more and quicker in a wind with a lean downwind, each spray on its own beat).
+      The cherry is grand: seven limbs in a low wide ring and a higher one, a spray on each and a big one
+      on top (about 1.45 round, 2.95 up), white-pink florets dotted over it and deeper buds hanging under
+      in spring, light new leaves in summer, gold sprays among the orange-brown in fall, petals far round
+      its foot. Six shapes a kind and season are built once and shared, each tree turned by its seed. The
+      flat view's cherry is a 32 x 40 picture of the same crown. Bare trees and persimmons unchanged.
 - [x] Bamboo: segmented culms with node rings, leaf sprays, swaying, by season, snow on the
       leaves (`OutdoorProps.bamboo`). (this commit) The wind follows the weather (data/wind.json,
       see "Wind by weather" in the table): in a storm the clumps lean further, sway faster and

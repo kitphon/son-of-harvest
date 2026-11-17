@@ -715,7 +715,7 @@ func _maples() -> void:
 	mv.free()
 
 
-## The cherry in the flat view is a picture of a tree (PlaceholderArt "tree:sakura:<season>:<snow>",
+## The cherry in the flat view is a grand tree picture, 32 x 40 (PlaceholderArt "tree:sakura:<season>:<snow>",
 ## MapView.sakura_key), not the old pink box: a round crown with a trunk and clear corners, pink with
 ## white blossom spots in spring only, green in summer, orange-brown in fall, bare branches in winter
 ## with snow only where the map has snow; refined (no near-black outline, four colours at least).
@@ -749,8 +749,8 @@ func _sakuras() -> void:
 						white += 1
 					if Vector3(c.r, c.g, c.b).distance_to(Vector3(outline.r, outline.g, outline.b)) < 0.02:
 						outlined += 1
-			check(img.get_size() == Vector2i(24, 32), "cherry %s: a 24 x 32 picture" % what)
-			check(clear > img.get_width() * img.get_height() * 0.35 and img.get_pixel(0, 0).a < 0.5 and img.get_pixel(23, 0).a < 0.5,
+			check(img.get_size() == Vector2i(32, 40), "cherry %s: a 32 x 40 picture (grander than the maple's)" % what)
+			check(clear > img.get_width() * img.get_height() * 0.35 and img.get_pixel(0, 0).a < 0.5 and img.get_pixel(31, 0).a < 0.5,
 				"cherry %s: round with clear corners (%d clear)" % [what, clear])
 			check(outlined == 0 and colours.size() >= 4, "cherry %s: refined (%d outline, %d colours)" % [what, outlined, colours.size()])
 			check((pink > 90) == (season == "spring"), "cherry %s: a pink crown in spring only (%d)" % [what, pink])

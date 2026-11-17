@@ -318,7 +318,7 @@ func _draw_objects() -> void:
 		if p.kind == "maple" or p.kind == "sakura":   # a small tree picture, its foot on the cell's middle (PlaceholderArt "tree:")
 			var snowy := SnowLayer.map_has_snow(map)
 			var tex := PlaceholderArt.tex(maple_key(snowy, season) if p.kind == "maple" else sakura_key(snowy, season))
-			_objects.draw_texture(tex, Vector2(p.cell * T) + Vector2(T / 2 - 12, T - 32))
+			_objects.draw_texture(tex, Vector2(p.cell * T) + Vector2(T / 2 - tex.get_width() / 2, T - tex.get_height()))
 			continue
 		var r := Rect2(Vector2(p.cell * T), Vector2(p.size * T))
 		if p.kind == "village_house":   # a painted kawara roof, the old box's size (RoofArt)

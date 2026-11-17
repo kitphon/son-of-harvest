@@ -10,6 +10,37 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-17 — Grand cherries with crowns that sway — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user wanted the cherries grander, with leaves that stir beautifully. Trees.place_crowned: the cherry
+  and the maple in leaf or bloom are now a trunk with limbs and a crown of separate sprays, each a mesh of vertex
+  colours (every facet its own tone, lighter facing up: a pattern of leaves and blossom, not flat lumps) that the
+  world's Sway rocks about the fork it grows from (OutdoorProps.Sway.add_crown, kind "crown": CROWN_CALM 0.05 rad
+  of stir even in a calm, + CROWN_WIND 0.12 per unit of wind in gusts, leaning downwind CROWN_LEAN 0.05; each spray
+  on its own beat, so the crown rustles). The cherry is grand: seven limbs from 1.0-1.2 up, a low wide ring and a
+  higher one, a spray of seven blossom lumps on each, deeper buds hanging under the low ring, a big spray on top
+  (about 1.45 round, 2.95 up, was 0.9 and 2.1), white-pink florets dotted over it in spring, light new leaves in
+  summer, gold sprays among the orange-brown in fall, 34 petals far round its foot. The maple keeps its size, its
+  tiers cut into four sprays, dotted the same way. Six shapes a kind and season are built once and shared, each
+  tree turned by its seed; the sprays carry meta `crown` (kept through MeshCache) so the bamboo checks tell them
+  apart. The trunk below 1.2 is the old one (the cicadas cling to it). Bare trees and persimmons keep
+  Trees.broadleaf. To match: the bees' blossom points reach the bigger crown (data/insects.json blossom_radius 1.2,
+  blossom_height 1.7-2.8), the petals fall from higher and are more (data/drift.json petal count 40, the test's cap,
+  tree_height 2.7, tree_radius 2.4, near_tree 0.8). The flat view's cherry is a 32 x 40 picture of the same crown
+  (rings of sprays, buds, florets or bright leaves dotted over it), drawn by its own size (MapView).
+- Checked: test_maps `_crowned_trees` (crowned by kind and season; the cherry reaching 1.2-1.5 round and 2.6-3.05
+  up, the maple inside 1.0 and 2.3; 8 / 4 sprays, lit vertex-colour meshes wound right, more than 12 tones, florets
+  only on a cherry in bloom, the old trunk's radius under it, every spray in the Sway, stirring in a calm and in a
+  wind and staying near rest): `test_maps: OK (0 failed)`; test_view2d (the 32 x 40 cherry by season and snow), test_drift: OK.
+  Frames `--demo --map=hill@start --weather=sunny --time=11:00` in spring, summer and fall: full wide cherries
+  dotted with florets, swaying between frames; the flat view the same. The hill's build: the first about as before
+  (2.0 s headless, the shapes made once), a rebuild from MeshCache 324 ms (was 146 ms). All 44 tests/test_*.gd print
+  `OK (0 failed)` (test_drift rerun after the petal count went 45 -> 40); smoke `--quit-after 300` (title, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`, `--demo --map=hill --season=fall`): 0 ERROR lines; windowed `--quit-after
+  150 -- --demo --map=hill`: exit 0.
+- Left / next: the user's look at the cherries; the flat view's trees do not sway; the cherry bare in winter keeps
+  the old smaller bare form; the festival cherries (FestivalProps) are the old ones.
+
 ## 2026-11-17 — The bamboo hill becomes Nishiki Hill: cherry blossom in spring, maples in fall — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user wanted the hill above Kaminoda, all bamboo, to be the place to see the cherry blossom in spring and the

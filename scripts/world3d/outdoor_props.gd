@@ -1056,8 +1056,11 @@ static func sway_picture(w: FarmWorld, mi: MeshInstance3D, size: Vector2, phase:
 ##    wave on it;
 ##  - cloth (`add_cloth`: the noren, the stalls' curtains, the race banner): hung by its top
 ##    edge, the bottom blows out from its face (`lift`) and streams downwind (a shear, so the
-##    top edge stays on its rod), fluttering in gusts.
-## Leaves and cloth stand still at wind 0, as they did before. Posts, culms and rods are not in
+##    top edge stays on its rod), fluttering in gusts;
+##  - a tree's spray of leaves or blossom (`add_crown`, Trees.place_crowned): rocked about the
+##    fork it grows from, a gentle stir even in a calm (CROWN_CALM), more and quicker in a wind
+##    with a lean downwind, each spray on its own beat so the crown rustles.
+## Leaves and cloth stand still at wind 0, as they did before (a crown's sprays still stir). Posts, culms and rods are not in
 ## it. `pose(t)` sets everything for a time (tests).
 class Sway extends Node3D:
 	const AMPLITUDE := 0.028   # radians: about 0.07 units at the tip of a 2.5 high culm
@@ -1066,6 +1069,9 @@ class Sway extends Node3D:
 	const CLOTH_LIFT := 0.35   # a hanging cloth's steady blow-out per unit of wind (sine of the angle)
 	const CLOTH_FLUTTER := 0.22
 	const CLOTH_STREAM := 0.3  # the downwind shear per unit of wind (the hem moves this x its drop)
+	const CROWN_CALM := 0.05   # a tree's spray: radians of stir in a calm (about 0.04 at a cherry's spray) ...
+	const CROWN_WIND := 0.12   # ... and more per unit of wind ...
+	const CROWN_LEAN := 0.05   # ... leaning downwind by this per unit of wind
 	var wind := 0.0            # 0 dead calm .. 1 a gale (FarmWorld.set_wind, data/wind.json)
 	var _items: Array[Dictionary] = []
 	var _time := 0.0
@@ -1084,6 +1090,11 @@ class Sway extends Node3D:
 	## a counter (it only ever lifts away from it), 0 for one free on both faces (it swings both ways).
 	func add_cloth(nodes: Array, hinge: Vector3, yaw: float, phase: float, offset := Vector3.ZERO, lift := CLOTH_LIFT) -> void:
 		_put({"kind": "cloth", "nodes": nodes, "hinge": hinge, "yaw": yaw, "phase": phase, "offset": offset, "lift": lift})
+
+	## A tree's spray (Trees.place_crowned): its mesh built round `hinge` (the node's place), turned
+	## by `yaw`, rocked about it.
+	func add_crown(nodes: Array, hinge: Vector3, yaw: float, phase: float) -> void:
+		_put({"kind": "crown", "nodes": nodes, "hinge": hinge, "yaw": yaw, "phase": phase})
 
 	func _put(it: Dictionary) -> void:
 		_items.append(it)
@@ -1124,6 +1135,7 @@ class Sway extends Node3D:
 		match str(it.kind):
 			"leaves": return _lean(float(it.phase)) * local
 			"cloth": return _cloth(float(it.phase), float(it.lift), float(it.yaw)) * local
+			"crown": return _crown(float(it.phase)) * local
 		return Basis(Vector3.BACK, _angle(float(it.phase))) * local
 
 	func _process(delta: float) -> void:
@@ -1132,7 +1144,7 @@ class Sway extends Node3D:
 	func pose(t: float) -> void:
 		_time = t
 		for it in _items:
-			if it.kind != "clump" and wind == 0.0 and it.get("still", false):
+			if it.kind != "clump" and it.kind != "crown" and wind == 0.0 and it.get("still", false):
 				continue   # calm: already set at rest
 			_apply(it)
 
@@ -1146,6 +1158,16 @@ class Sway extends Node3D:
 		var gust := 1.0 + wind * (0.8 * sin(_time * 0.55) + 0.4 * sin(_time * 1.7))
 		var t := _time * (1.0 + 0.6 * wind)
 		return AMPLITUDE * (1.0 + 1.5 * wind) * gust * (0.7 * sin(t * 1.3 + phase) + 0.3 * sin(t * 2.9 + phase * 1.7))
+
+	## A tree's spray: a slow two-wave rock with a nod across and a little twist, CROWN_CALM in a
+	## calm, growing and quickening with the wind (in gusts) and leaning downwind (+x).
+	func _crown(phase: float) -> Basis:
+		var t := _time * (1.0 + 0.7 * wind)
+		var amp := (CROWN_CALM + CROWN_WIND * wind) * (_gust(phase) if wind > 0.0 else 1.0)
+		var a := amp * (0.6 * sin(t * 1.15 + phase) + 0.4 * sin(t * 2.6 + phase * 1.7)) - wind * CROWN_LEAN
+		var nod := amp * 0.7 * sin(t * 1.4 + phase * 0.8)
+		var twist := amp * 0.5 * sin(t * 0.9 + phase * 1.3)
+		return Basis(Vector3.BACK, a) * Basis(Vector3.RIGHT, nod) * Basis(Vector3.UP, twist)
 
 	## Leaves: a lean downwind (+x) with a quicker wave on it, a smaller nod across; none at 0.
 	func _lean(phase: float) -> Basis:
@@ -1180,6 +1202,11 @@ class Sway extends Node3D:
 			var bc := Basis(Vector3.BACK, _angle(float(it.phase))) * yaw_b
 			for n: Node3D in it.nodes:
 				n.basis = bc
+			return
+		if it.kind == "crown":
+			var bt := _crown(float(it.phase)) * yaw_b
+			for n: Node3D in it.nodes:
+				n.transform = Transform3D(bt, it.hinge)
 			return
 		var b: Basis
 		if it.kind == "cloth":   # the motion in the cloth's own frame, then turned to its face

@@ -80,7 +80,7 @@ static func _make(key: String) -> Image:
 			return KoiPondArt.make(parts[1], int(parts[2]))
 		"fish_fx":  # fish_fx:<bobber|alert>, the float on the water and the "!" of a bite
 			return _fish_fx(parts[1])
-		"tree":     # tree:<maple|sakura>:<spring|summer|fall|winter>:<snow 0|1>, a Japanese maple or a cherry in the flat view (MapView), 24 x 32
+		"tree":     # tree:<maple|sakura>:<spring|summer|fall|winter>:<snow 0|1>, a Japanese maple (24 x 32) or a grand cherry (32 x 40) in the flat view (MapView)
 			if parts[1] == "sakura":
 				return _sakura_tree(parts[2], parts[3] == "1")
 			return _maple_tree(parts[2], parts[3] == "1")
@@ -2413,38 +2413,51 @@ const SAKURA_BARK := Color("3e302c")
 const SAKURA_PETAL := Color("f6c4d2")
 
 
-## A cherry for the flat view (24 x 32, the trunk's foot at (12, 30)), the 3D cherry's crown
-## seen from the camera: a wide rounded cloud of lumps over a short dark trunk, pink with white
-## blossom spots in spring and petals on the grass round its foot, green in summer, orange-brown
-## in fall; bare branches in winter (with snow on them where the map has snow). Toned by
-## ItemArt.refine like the maple.
+## A cherry for the flat view (32 x 40, the trunk's foot at (16, 38)), the 3D cherry's grand crown
+## seen from the camera: a dark trunk forking into limbs under a wide cloud of sprays (a low wide
+## ring, a higher ring and a big one on top, the outer ones a little darker), pink with white
+## florets and deeper buds hanging under in spring and petals far round its foot, green with light
+## new leaves in summer, orange-brown with gold sprays in fall; bare branches in winter (with snow
+## where the map has snow). Toned by ItemArt.refine like the maple.
 static func _sakura_tree(season: String, snow: bool) -> Image:
-	var img := _blank(24, 32)
+	var img := _blank(32, 40)
 	var leaf: Color = SAKURA_LEAVES.get(season, Color(0, 0, 0, 0))
-	if leaf.a == 0.0:
-		return _bare_tree(img, SAKURA_BARK, snow)
-	_px(img, 11, 16, 2, 14, SAKURA_BARK)
-	_line(img, Vector2i(12, 19), Vector2i(8, 15), SAKURA_BARK)
-	_line(img, Vector2i(12, 18), Vector2i(16, 14), SAKURA_BARK)
-	# [x, y, rx, ry, colour]: four round the middle a little lower and darker, a big one in the middle, one on top
-	var lumps := [
-		[5.0, 13.5, 4.5, 3.6, leaf.darkened(0.14)], [19.0, 13.5, 4.5, 3.6, leaf.darkened(0.06)],
-		[8.0, 16.0, 4.5, 3.0, leaf.darkened(0.06)], [16.0, 16.0, 4.5, 3.0, leaf.darkened(0.14)],
-		[12.0, 11.0, 6.5, 5.0, leaf], [12.0, 5.5, 5.0, 3.8, leaf.lightened(0.12)],
+	if leaf.a == 0.0:   # the maple's bare form, set in the middle of the wider picture
+		var bare := _bare_tree(_blank(24, 32), SAKURA_BARK, snow)
+		img.blit_rect(bare, Rect2i(0, 0, 24, 32), Vector2i(4, 8))
+		return img
+	_px(img, 15, 22, 3, 17, SAKURA_BARK)
+	for seg in [[Vector2i(16, 24), Vector2i(7, 17)], [Vector2i(16, 24), Vector2i(25, 17)], [Vector2i(16, 23), Vector2i(11, 13)],
+			[Vector2i(16, 23), Vector2i(21, 13)], [Vector2i(16, 22), Vector2i(17, 15)]]:
+		_line(img, seg[0], seg[1], SAKURA_BARK)
+	var gold := Color("d89a3c")
+	# [x, y, rx, ry, shade: 0 darker .. 2 lighter]: the low ring, the higher ring, the top
+	var sprays := [
+		[5.0, 17.5, 4.6, 3.4, 0], [27.0, 17.5, 4.6, 3.4, 0], [10.5, 20.0, 4.6, 3.0, 0], [21.5, 20.0, 4.6, 3.0, 0],
+		[8.0, 12.5, 5.0, 3.8, 1], [24.5, 13.0, 5.0, 3.8, 1], [16.0, 15.0, 6.5, 4.5, 1],
+		[11.0, 8.0, 5.0, 3.8, 2], [21.5, 7.0, 5.0, 3.8, 2], [15.0, 4.5, 5.0, 3.8, 2],
 	]
-	for l in lumps:
-		_oval(img, l[0], l[1], l[2], l[3], l[4])
-	if season != "spring":
-		return ItemArt.refine(img)
-	var spot := Color("fff4f8")
-	for i in 10:   # blossom spots on the cloud
-		var p := Vector2i(3 + (i * 7) % 18, 4 + (i * 5) % 13)
-		if img.get_pixelv(p).a > 0.5:
-			img.set_pixelv(p, spot)
-	ItemArt.refine(img, [spot])
-	for i in 7:   # petals on the grass round the foot (after the rim: no dark edge)
-		var ang := i * 2.4
-		img.set_pixel(clampi(int(12 + cos(ang) * (4 + i % 3 * 2.5)), 1, 22), clampi(int(30 + sin(ang) * 1.5), 27, 31), SAKURA_PETAL)
+	for i in sprays.size():
+		var sp: Array = sprays[i]
+		var c: Color = [leaf.darkened(0.12), leaf, leaf.lightened(0.1)][sp[4]]
+		if season == "fall" and i % 3 == 1:
+			c = gold
+		_oval(img, sp[0], sp[1], sp[2], sp[3], c)
+	var fixed: Array = []
+	if season == "spring":   # deeper buds hanging under the low ring
+		for b in [[5, 21], [10, 23], [22, 23], [27, 21]]:
+			_oval(img, b[0], b[1], 1.6, 1.2, Color("e898b0"))
+	var dots: Array = {"spring": [Color("fff4f8"), Color("fbdce6")], "summer": [leaf.lightened(0.3)], "fall": [Color("e8b040"), Color("e07a28")]}.get(season, [])
+	for i in 22:   # florets, new leaves or bright fall leaves dotted over the crown
+		var p := Vector2i(2 + (i * 11) % 29, 2 + (i * 7) % 20)
+		if img.get_pixelv(p).a > 0.5 and img.get_pixelv(p) != SAKURA_BARK:
+			img.set_pixelv(p, dots[i % dots.size()])
+	fixed.append_array(dots)
+	ItemArt.refine(img, fixed)
+	if season == "spring":
+		for i in 12:   # petals on the grass far round the foot (after the rim: no dark edge)
+			var ang := i * 2.4
+			img.set_pixel(clampi(int(16 + cos(ang) * (4 + i % 4 * 3.0)), 1, 30), clampi(int(38 + sin(ang) * 1.5), 36, 39), SAKURA_PETAL)
 	return img
 
 

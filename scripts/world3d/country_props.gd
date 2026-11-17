@@ -1,7 +1,8 @@
 class_name CountryProps
 extends RefCounted
 ## The countryside things of the village's outer parts in 3D: a well and a stone jizo in a red
-## bib (OutdoorProps), a persimmon, a cherry and a maple tree (Trees: their look follows the season), a rice
+## bib (OutdoorProps), a persimmon, a cherry and a maple tree (Trees: their look follows the season; the cherry
+## and maple in leaf with a swaying crown, Trees.place_crowned), a rice
 ## drying rack, a stack of firewood, a kitchen garden, a low board fence (FieldProps) and Ichiro's
 ## charcoal kiln, Shige's little hen barn and the ditch behind his beds (OutdoorProps), all lit
 ## meshes. Same units as MapWorld (1 unit = 1 cell).
@@ -16,8 +17,12 @@ static func prop(w: MapWorld, p: Dictionary, mid: Vector3, r: Rect2, season: Str
 		"well": OutdoorProps.well(w, mid)
 		"jizo": OutdoorProps.jizo(w, mid, SnowLayer.map_has_snow(w.map))
 		"persimmon", "sakura", "maple":
+			var seed := int(p.cell[0]) * 31 + int(p.cell[1]) * 17
+			if Trees.crowned(str(p.kind), season):   # in leaf or bloom: the swaying crown (the cherry grand)
+				Trees.place_crowned(w, mid, str(p.kind), season, seed)
+				return
 			var parts := FarmProps.Parts.new()
-			Trees.broadleaf(parts, mid, str(p.kind), season, int(p.cell[0]) * 31 + int(p.cell[1]) * 17, SnowLayer.map_has_snow(w.map))
+			Trees.broadleaf(parts, mid, str(p.kind), season, seed, SnowLayer.map_has_snow(w.map))
 			parts.commit(w)
 		"hasa": FieldProps.hasa(w, r, mid, season, SnowLayer.map_has_snow(w.map))
 		"woodpile": OutdoorProps.woodpile(w, r, mid, SnowLayer.map_has_snow(w.map))
