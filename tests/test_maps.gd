@@ -967,7 +967,7 @@ func _map_rules() -> void:
 		"the bridge to Minamino, the gorge path to the river upstream; Minamino has no way down to it now")
 	check(not t.is_solid(Vector2i(41, 40)) and t.prop_at(Vector2i(41, 40)).get("kind", "") == "bridge" and t.tile(Vector2i(41, 30)) == "stone" and t.tile(Vector2i(41, 46)) == "path", "the street runs down to the bridge at the village's south edge")
 	# The bamboo hill up the village's north lane: doors both ways, the clumps solid, the path
-	# open from the foot to the lookout, the cliff along the top.
+	# open from the foot to the lookout; no cliff along the top (2026-11-17): a band of trees there.
 	var hl := MapManager.data("hill")
 	var kn := MapManager.data("kaminoda")
 	check(t.door_at(Vector2i(41, -1)).get("to", "") == "kaminoda" and kn.door_at(Vector2i(10, 20)).get("to", "") == "town"
@@ -997,7 +997,21 @@ func _map_rules() -> void:
 				seen[n] = true
 				todo.append(n)
 	check(seen.has(hl.spawns.top[0]), "the lookout can be walked to from the foot")
-	check(hl.is_solid(Vector2i(5, 0)) and hl.tile(Vector2i(5, 0)) == "rock_wall", "the cliff along the top")
+	var band := hl.props.filter(func(p): return p.cell[1] <= 1 and p.kind in ["sakura", "maple", "ginkgo"])
+	var rock := 0
+	for x in hl.w:
+		for y in hl.h:
+			if hl.tile(Vector2i(x, y)) in ["rock_wall", "scree"]:
+				rock += 1
+	check(hl.props.filter(func(p): return p.kind == "pine").is_empty(), "no pines on Nishiki Hill: cherries, maples and ginkgos")
+	check(rock == 0 and band.size() >= 25, "no cliff along the top: %d rock cells, a band of %d trees" % [rock, band.size()])
+	check(band.filter(func(p): return p.cell[0] >= 13 and p.cell[0] <= 26).all(func(p): return float(p.get("scale", 1.0)) <= 0.65),
+		"the trees behind the lookout are small (the mountains show over them)")
+	var sized := hl.props.filter(func(p): return p.kind in ["sakura", "maple", "ginkgo", "persimmon"])
+	var small := sized.filter(func(p): return float(p.get("scale", 1.0)) < 0.75).size()
+	var big := sized.filter(func(p): return float(p.get("scale", 1.0)) >= 0.95).size()
+	check(sized.all(func(p): return p.has("scale") and float(p.scale) >= 0.5 and float(p.scale) <= 1.2) and small >= 20 and big >= 20,
+		"the hill's trees of mixed sizes: %d small, %d big of %d" % [small, big, sized.size()])
 	# Maples (momiji): a few on the hill, one each in Kaminoda and Sakurazaka, all on open grass
 	# clear of the paths, the bamboo and every other prop.
 	for spot in [["hill", 3], ["kaminoda", 1], ["sakurazaka", 1]]:
@@ -2596,7 +2610,9 @@ func _apron_broadleaf() -> void:
 			"the hill's wood in %s: %d broadleaf trees of %s" % [season, s.broad_at.size(), s.broad_kinds.duplicate()])
 		var gold: bool = colours.has(load("res://scripts/world3d/trees.gd").GINKGO_LEAF.to_html(false))
 		check((vertex > 0) == (season != "winter") and near == 0, "the hill's wood in %s: %d swaying-crown pieces, %d too near the map" % [season, vertex, near])
-		check(gold == (season == "fall") and colours.has(load("res://scripts/world3d/trees.gd").GINKGO_BARK.to_html(false)), "the hill's wood in %s: ginkgos among the pines (gold carpet %s)" % [season, gold])
+		check(gold == (season == "fall") and colours.has(load("res://scripts/world3d/trees.gd").GINKGO_BARK.to_html(false)), "the hill's wood in %s: ginkgos in it (gold carpet %s)" % [season, gold])
+		var needles: Array = load("res://scripts/world3d/trees.gd").NEEDLES
+		check(not needles.any(func(c): return colours.has(c.to_html(false))), "the hill's wood in %s: no pines (user, 2026-11-17)" % season)
 		m.free()
 	g.set("season", old_season)
 	var k: Node3D = load("res://scripts/world3d/map_world.gd").new()

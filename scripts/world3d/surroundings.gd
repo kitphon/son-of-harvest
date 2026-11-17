@@ -174,12 +174,13 @@ func _make_pines(at: Array) -> void:
 ## place and `broadleaf`'s shares, and lays them: in leaf (Trees.crowned) a trunk and its sprays
 ## in their crown shape (still: the wood is far, it does not sway), bare in winter
 ## (Trees.broadleaf, snow on the branches driven with the rest). One MultiMesh per kind, shape
-## and piece. Returns the spots left for pines.
+## and piece. Returns the spots left for pines (none where the shares add to 100: Nishiki Hill).
 func _make_broadleaf(at: Array) -> Array:
 	var pines := []
 	var trees := {}   # "kind|shape" -> Array[Transform3D]
 	var kinds := broadleaf.keys()
 	kinds.sort()
+	var no_pines: bool = broadleaf.values().reduce(func(a, b): return a + int(b), 0) >= 100   # every tree broadleaf: none left as pines
 	for i in at.size():
 		pines.append([] as Array[Transform3D])
 		for xf: Transform3D in at[i]:
@@ -193,13 +194,14 @@ func _make_broadleaf(at: Array) -> Array:
 					break
 			var o := Vector2(xf.origin.x, xf.origin.z)
 			if kind == "" or not behind_map(o + Vector2(BROAD_CLEAR, BROAD_CLEAR) * 0.5, _size.x, _size.y) or not behind_map(o + Vector2(BROAD_CLEAR, -BROAD_CLEAR) * 0.5, _size.x, _size.y) 					or not behind_map(o + Vector2(-BROAD_CLEAR, BROAD_CLEAR) * 0.5, _size.x, _size.y):
-				pines[i].append(xf)   # too near the map for a broad crown: a pine
+				if not no_pines:
+					pines[i].append(xf)   # too near the map for a broad crown: a pine (or, with no pines wanted, grass)
 				continue
 			var shape := posmod(int(xf.origin.x) * 7 + int(xf.origin.z) * 3, BROAD_SHAPES)
 			var key := "%s|%d" % [kind, shape]
 			if not trees.has(key):
 				trees[key] = [] as Array[Transform3D]
-			var s := clampf(xf.basis.get_scale().x, 0.9, 1.15)   # the pines' size spread, kept small
+			var s: float = [0.62, 0.78, 0.9, 1.0, 1.12][posmod(roll * 7 + int(xf.origin.x) * 3, 5)]   # small, middling and big trees mixed
 			(trees[key] as Array).append(Transform3D(Basis(Vector3.UP, roll * 0.21).scaled(Vector3(s, s, s)), xf.origin))
 			broad_at.append(xf.origin)
 			broad_kinds.append(kind)

@@ -255,7 +255,7 @@ Minamino
 between the village's bridge and the river (`minamino`: vegetable gardens behind a board
 fence, a well, a roadside water shrine, Kiku's persimmon orchard; Shige and Nana's house,
 `shige_house`, and Kiku's, `kiku_house`), Nishiki Hill above Kaminoda (`hill`, the valley's cherry and maple viewing spot since 2026-11-17: a switchback path between
-`sakura` and `maple` trees, pink in spring and red and gold in fall, a small `bamboo` stand left at its foot, to a lookout with a
+`sakura`, `maple` and `ginkgo` trees of mixed sizes (a prop's `scale`), pink in spring and red and gold in fall, no cliff and no pines (a band of trees closes its top), a small `bamboo` stand left at its foot, to a lookout with a
 little shrine; its view (its own line in spring, fall and winter) and shrine can be examined). Countryside props (CountryProps, both
 views): `well`, `jizo`, `persimmon` and `sakura` (their leaves follow the season), `hasa` (a
 rice drying rack, sheaves hung in fall), `woodpile`, `garden`, `wood_fence`. Ground tiles include the

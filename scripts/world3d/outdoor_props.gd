@@ -1092,9 +1092,9 @@ class Sway extends Node3D:
 		_put({"kind": "cloth", "nodes": nodes, "hinge": hinge, "yaw": yaw, "phase": phase, "offset": offset, "lift": lift})
 
 	## A tree's spray (Trees.place_crowned): its mesh built round `hinge` (the node's place), turned
-	## by `yaw`, rocked about it.
-	func add_crown(nodes: Array, hinge: Vector3, yaw: float, phase: float) -> void:
-		_put({"kind": "crown", "nodes": nodes, "hinge": hinge, "yaw": yaw, "phase": phase})
+	## by `yaw`, sized by `scale` (the tree's), rocked about it.
+	func add_crown(nodes: Array, hinge: Vector3, yaw: float, phase: float, scale := 1.0) -> void:
+		_put({"kind": "crown", "nodes": nodes, "hinge": hinge, "yaw": yaw, "phase": phase, "scale": scale})
 
 	func _put(it: Dictionary) -> void:
 		_items.append(it)
@@ -1204,7 +1204,8 @@ class Sway extends Node3D:
 				n.basis = bc
 			return
 		if it.kind == "crown":
-			var bt := _crown(float(it.phase)) * yaw_b
+			var k := float(it.get("scale", 1.0))   # the tree's size (Trees.place_crowned)
+			var bt := (_crown(float(it.phase)) * yaw_b).scaled(Vector3(k, k, k))
 			for n: Node3D in it.nodes:
 				n.transform = Transform3D(bt, it.hinge)
 			return

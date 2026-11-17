@@ -284,7 +284,7 @@ func _worlds() -> void:
 			parts_before = probe.vista.get_child_count()
 	check(parts_before == 0 and probe.vista.get_child_count() == VM.count(), "begun empty, a mountain added a step (%d, then %d)" % [parts_before, probe.vista.get_child_count()])
 	probe.free()
-	# Past the bamboo hill's cliff the land runs on as grass with its pines, not as bare stone
+	# Past a cliff the land runs on as grass with its trees, not as bare stone
 	# (data/vista.json apron_runs_as; the user saw an empty stone yard there).
 	check(VistaRules.apron_kind("rock_wall") == "grass" and VistaRules.apron_kind("scree") == "grass" and VistaRules.apron_kind("path") == "path", "a cliff or scree at the edge runs on as grass, a path as a path")
 	var hw: Node3D = MapWorldS.new()
@@ -298,7 +298,7 @@ func _worlds() -> void:
 		for xf: Transform3D in shape:
 			if xf.origin.z < -2.0:
 				north += 1
-	check(north > 0, "pines past the hill's north cliff (%d parts)" % north)
+	check(north > 0, "trees past the hill's north edge (%d spots; on Nishiki Hill broadleaf, Surroundings.broadleaf)" % north)
 	hw.free()
 	# The farm lays them a step each too (its own step list: a slip there left the farm unbuilt).
 	var M3: GDScript = load("res://scripts/main_3d.gd")

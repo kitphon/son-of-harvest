@@ -18,12 +18,16 @@ static func prop(w: MapWorld, p: Dictionary, mid: Vector3, r: Rect2, season: Str
 		"jizo": OutdoorProps.jizo(w, mid, SnowLayer.map_has_snow(w.map))
 		"persimmon", "sakura", "maple", "ginkgo":
 			var seed := int(p.cell[0]) * 31 + int(p.cell[1]) * 17
+			var scale := float(p.get("scale", 1.0))   # a map's trees of mixed sizes (data/maps: Nishiki Hill)
 			if Trees.crowned(str(p.kind), season):   # in leaf or bloom: the swaying crown (the cherry grand)
-				Trees.place_crowned(w, mid, str(p.kind), season, seed)
+				Trees.place_crowned(w, mid, str(p.kind), season, seed, scale)
 				return
 			var parts := FarmProps.Parts.new()
-			Trees.broadleaf(parts, mid, str(p.kind), season, seed, SnowLayer.map_has_snow(w.map))
+			Trees.broadleaf(parts, Vector3.ZERO, str(p.kind), season, seed, SnowLayer.map_has_snow(w.map))
+			var first := w.get_child_count()
 			parts.commit(w)
+			for n in w.get_children().slice(first):   # the bare tree, built at the origin, set on its cell at its size
+				(n as Node3D).transform = Transform3D(Basis.from_scale(Vector3(scale, scale, scale)), mid)
 		"hasa": FieldProps.hasa(w, r, mid, season, SnowLayer.map_has_snow(w.map))
 		"woodpile": OutdoorProps.woodpile(w, r, mid, SnowLayer.map_has_snow(w.map))
 		"garden": FieldProps.garden(w, r, mid, season, SnowLayer.map_has_snow(w.map))

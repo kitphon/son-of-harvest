@@ -247,6 +247,12 @@ Light and Farmhouse model hold the technical detail of what is built.
       24 x 44 picture. The cherry's fall leaves are redder (c4562e), so the hill reads red, orange and gold.
       The wood past Nishiki Hill's edges is cherries, maples and ginkgos among its pines (data/vista.json
       `apron_trees`: still, in MultiMeshes, never near enough to the map for a broad crown to hang over it).
+      (2026-11-17, later) No cliff and no pines on Nishiki Hill: the rock wall along its top is grass under a
+      band of trees two rows deep (small ones behind the lookout so the mountains show), its seven pines are
+      cherries, maples and ginkgos, and the wood past its edges is all broadleaf (the kinds add to 100; a spot
+      too near the map stays grass). Every tree there has a size (map prop `scale` 0.5-1.2, Trees.place_crowned
+      and the bare form; the Sway keeps it), small, middling, big and a few grand ones mixed; the wood's
+      trees are mixed sizes too. The flat view draws them all at one size.
 - [x] Bamboo: segmented culms with node rings, leaf sprays, swaying, by season, snow on the
       leaves (`OutdoorProps.bamboo`). (this commit) The wind follows the weather (data/wind.json,
       see "Wind by weather" in the table): in a storm the clumps lean further, sway faster and

@@ -10,6 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-17 — Nishiki Hill: no cliff, no pines, trees of mixed sizes — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user's look: with trees that thick the rock wall along the top need not close the hill in, the trees
+  should be small, middling and big mixed, and the pines should go. (1) data/maps/hill.json: rows 0-1 (rock wall)
+  and the scree of row 2 are grass, the `c` / `d` legend gone; a band of trees along the top two rows in a checker
+  (33 trees: never side by side, the shrine's yard and the lookout's front on row 1 open), the ones behind the
+  lookout (x 13-26) small (scale 0.5-0.62) so the mountains past the rim still show; the map's edge keeps the farmer
+  in as before. The shrine's line says it stands under the trees, not against the rock (and its Thai). (2) Sizes: a
+  map prop's `scale` sizes a tree (CountryProps: Trees.place_crowned's new `scale`, the bare winter form built at
+  the origin and set on its cell at that size; OutdoorProps.Sway.add_crown keeps it, so the swaying keeps the size);
+  every tree on the hill has one, by chance: a quarter small (0.58-0.7), a third middling (0.78-0.9), most of the rest
+  big (0.95-1.05) and a tenth grand (1.12-1.2). The wood past the edges mixes 0.62-1.12 the same way. (3) No pines: the
+  hill's seven are cherries, maples and ginkgos (sized by hand), and its wood's kinds add to 100 (data/vista.json
+  apron_trees hill: sakura 45, maple 37, ginkgo 18), so the spots too near the map for a broad crown stay grass
+  instead of falling back to a pine (Surroundings._make_broadleaf). Now 69 cherries, 83 maples, 18 ginkgos.
+- Checked: test_maps (no rock or scree cells, a band of 25+ trees along the top, small behind the lookout; every tree
+  sized 0.5-1.2 with 20+ small and 20+ big; no pine props; the hill's wood without the pines' needle colours in
+  spring, fall and winter), test_vista (trees past the north edge): OK. Frames `--demo --map=hill@top --vista` (spring,
+  fall), `hill@start` (spring, winter with `--snow=60`): no wall, the forest running on past the top, trees of
+  every size, no pines. All 44 tests/test_*.gd print `OK (0 failed)`; smoke `--quit-after 300` (title, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`, `--demo --map=hill --season=winter --snow=60`): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo --map=hill`: exit 0.
+- Left / next: the flat view draws every tree at one size; a small tree's trunk is thinner than the cicadas' data
+  says (they sit a hair off it).
+
 ## 2026-11-17 — More trees on Nishiki Hill, and ginkgos for the fall — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user wanted more cherries and maples, and Japanese ginkgos in the fall. (1) A ginkgo tree kind (prop

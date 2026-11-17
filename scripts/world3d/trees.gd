@@ -274,11 +274,12 @@ static func crown_of(kind: String, season: String, shape: int) -> Dictionary:
 
 ## Places a crowned tree (crowned() true) with its foot at `at` into `w`: the trunk's meshes in
 ## their materials, then each spray as a mesh of vertex colours, all turned by the seed's yaw,
-## the sprays handed to the world's Sway. Returns the spray nodes.
-static func place_crowned(w: FarmWorld, at: Vector3, kind: String, season: String, seed: int) -> Array:
+## the sprays handed to the world's Sway; `scale` sizes the whole tree (a map prop's `scale`: small,
+## middling and big trees mixed). Returns the spray nodes.
+static func place_crowned(w: FarmWorld, at: Vector3, kind: String, season: String, seed: int, scale := 1.0) -> Array:
 	var made := crown_of(kind, season, crown_shape(seed))
 	var yaw := crown_yaw(seed)
-	var turn := Basis(Vector3.UP, yaw)
+	var turn := Basis(Vector3.UP, yaw).scaled(Vector3(scale, scale, scale))
 	var sway := OutdoorProps._sway(w)
 	for key in made.trunk:
 		var mi := MeshInstance3D.new()
@@ -298,7 +299,7 @@ static func place_crowned(w: FarmWorld, at: Vector3, kind: String, season: Strin
 		mi.transform = Transform3D(turn, hinge)
 		mi.set_meta("crown", true)   # a tree's spray (not a bamboo clump: test_maps tells them apart)
 		w.add_child(mi)
-		sway.add_crown([mi], hinge, yaw, seed * 0.71 + i * 1.93)
+		sway.add_crown([mi], hinge, yaw, seed * 0.71 + i * 1.93, scale)
 		nodes.append(mi)
 	return nodes
 
