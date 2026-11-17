@@ -1075,6 +1075,7 @@ class Sway extends Node3D:
 	var wind := 0.0            # 0 dead calm .. 1 a gale (FarmWorld.set_wind, data/wind.json)
 	var _items: Array[Dictionary] = []
 	var _time := 0.0
+	var _half := 0   # which half of the tree sprays this frame sets (_process)
 
 	## A bamboo clump's meshes (standing at its foot, turned by `yaw`).
 	func add(nodes: Array, yaw: float, phase: float) -> void:
@@ -1139,12 +1140,21 @@ class Sway extends Node3D:
 		return Basis(Vector3.BACK, _angle(float(it.phase))) * local
 
 	func _process(delta: float) -> void:
-		pose(_time + delta)
+		_half = 1 - _half
+		pose(_time + delta, _half)
 
-	func pose(t: float) -> void:
+	## Sets everything for time `t` (tests call it bare). `half` (0 or 1, the game's frames in turn)
+	## sets only every other tree spray, so each is moved 30 times a second and a hill full of
+	## trees costs half as much a frame; the rest are set every frame.
+	func pose(t: float, half := -1) -> void:
 		_time = t
+		var crowns := 0
 		for it in _items:
-			if it.kind != "clump" and it.kind != "crown" and wind == 0.0 and it.get("still", false):
+			if it.kind == "crown":
+				crowns += 1
+				if half >= 0 and crowns % 2 != half:
+					continue
+			elif it.kind != "clump" and wind == 0.0 and it.get("still", false):
 				continue   # calm: already set at rest
 			_apply(it)
 

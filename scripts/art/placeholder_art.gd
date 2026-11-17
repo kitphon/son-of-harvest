@@ -82,6 +82,8 @@ static func _make(key: String) -> Image:
 			return _fish_fx(parts[1])
 		"foliage":  # foliage:<sakura|maple|ginkgo>:<season>, the leaves or blossom painted on a crown (FoliageArt, 32 x 32 tile)
 			return FoliageArt.make(parts[1], parts[2])
+		"foliage_edge":   # foliage_edge:<kind>:<season>, a cut-out leaf tuft for a crown's edge (FoliageArt.edge, 8 x 8)
+			return FoliageArt.edge(parts[1], parts[2])
 		"tree":     # tree:<maple|sakura|ginkgo>:<spring|summer|fall|winter>:<snow 0|1>, a Japanese maple (24 x 32), a grand cherry (32 x 40) or a ginkgo (24 x 44) in the flat view (MapView)
 			if parts[1] == "sakura":
 				return _sakura_tree(parts[2], parts[3] == "1")

@@ -109,9 +109,44 @@ static func _bloom(img: Image, rng: RandomNumberGenerator) -> void:
 				return PETAL)
 
 
+## A leaf tuft for the crowns' ragged edges (Trees: cut-out cards sticking out of the clumps), EDGE x
+## EDGE, clear round it: three leaves of the kind's shape (grey, as the tiles) or, for a cherry in
+## bloom, two flowers and a bud in colour. PlaceholderArt "foliage_edge:<kind>:<season>".
+const EDGE := 8
+
+
+static func edge(kind: String, season: String) -> Image:
+	var img := Image.create(EDGE, EDGE, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	if kind == "sakura" and season == "spring":
+		var petals := func(ch: String, _x: int, _y: int) -> Color:
+			match ch:
+				"c": return HEART
+				"w": return PETAL_SHADE
+			return PETAL
+		_stamp(img, FLOWER, Vector2i(0, 0), 0, petals, false)
+		_stamp(img, FLOWER, Vector2i(3, 3), 2, petals, false)
+		for o in [Vector2i(6, 0), Vector2i(7, 0), Vector2i(6, 1), Vector2i(7, 1)]:
+			img.set_pixelv(o, BUD)
+		return img
+	var shape: Array = MAPLE
+	if kind == "sakura":
+		shape = CHERRY_LEAF
+	elif kind == "ginkgo":
+		shape = GINKGO
+	var grey := func(ch: String, x: int, y: int) -> Color:
+		var v := 0.78 if ch == "v" else (1.0 if x + y < 4 else 0.86)
+		return Color(v, v, v)
+	_stamp(img, shape, Vector2i(0, 2), 3, grey, false)
+	_stamp(img, shape, Vector2i(3, 3), 1, grey, false)
+	_stamp(img, shape, Vector2i(2, 0), 0, grey, false)
+	return img
+
+
 ## Lays `shape` (rows of characters, "." clear) with its corner at `at`, turned `turn` quarter turns,
-## wrapping round the tile's edges; `colour` gives each pixel's colour from its character and place.
-static func _stamp(img: Image, shape: Array, at: Vector2i, turn: int, colour: Callable) -> void:
+## wrapping round the tile's edges (`wrap`, else cut off at them); `colour` gives each pixel's colour
+## from its character and place.
+static func _stamp(img: Image, shape: Array, at: Vector2i, turn: int, colour: Callable, wrap := true) -> void:
 	var h := shape.size()
 	var w := (shape[0] as String).length()
 	for y in h:
@@ -124,7 +159,12 @@ static func _stamp(img: Image, shape: Array, at: Vector2i, turn: int, colour: Ca
 				1: q = Vector2i(h - 1 - y, x)
 				2: q = Vector2i(w - 1 - x, h - 1 - y)
 				3: q = Vector2i(y, w - 1 - x)
-			img.set_pixel(posmod(at.x + q.x, SIZE), posmod(at.y + q.y, SIZE), colour.call(ch, x, y))
+			var p := at + q
+			if wrap:
+				p = Vector2i(posmod(p.x, img.get_width()), posmod(p.y, img.get_height()))
+			elif p.x < 0 or p.y < 0 or p.x >= img.get_width() or p.y >= img.get_height():
+				continue
+			img.set_pixelv(p, colour.call(ch, x, y))
 
 
 ## Stamps the tile of `kind` in `season` onto a flat tree picture's crown: every pixel that was crown

@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-18 — Leafy crown edges: cut-out leaves and flowers round every clump — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user said yes to leafier outlines. FoliageArt.edge (PlaceholderArt "foliage_edge:<kind>:<season>"): an 8 x 8
+  tuft, clear round it: three leaves of the kind's shape in grey (maple, cherry, ginkgo) or, for a cherry in bloom,
+  two five-petalled flowers and a bud in colour (FoliageArt._stamp can now cut off at the edges instead of wrapping).
+  Trees._leaf_cards: round every lump of 0.15 or more in a spray, three or four crossed pairs of upright cards
+  (CARD 0.42 across, sized by the lump) standing on its side and a little above, their normal pointing out of the
+  lump (lit as it), in its colour; each spray's cards are a mesh of their own (Trees.leaf_edge_material: the tuft
+  cut out at half alpha, both faces drawn, crisp, no shadow) swaying with it in the same Sway item, and the wood past
+  the hill's edges lays them too. The see-through fade puts each material's own transparency back (alpha scissor
+  stays). The Sway now sets every other tree spray each game frame (pose's `half`; tests still set all), so each
+  moves 30 times a second.
+- Checked: test_maps (every crowned tree's sprays have a card mesh, cut out, both faces, tagged `crown`; the winding
+  check leaves the two-faced cards out; the edge tufts 18-56 of 64 pixels, clear round them): OK. Frames: the
+  Sakurazaka maple and the hill's cherries in spring and fall, zoomed: the outlines ragged with leaves and flowers;
+  winter bare with no cards. Measured headless on the hill: first build 2.84 s, a rebuild from MeshCache 1.75 s
+  (1.42 s at the last commit without the cards: the band and the extra trees did most of it; every prop is a build
+  step of its own, spread over the fade), 3105 nodes, 1388 swaying items, their pose 1.74 ms a frame with the halves
+  (3.26 ms setting all). All 44 tests/test_*.gd print `OK (0 failed)`; smoke `--quit-after 300` (title, `--demo`,
+  `--demo --map=town`, `--demo --mine=3`, `--demo --map=hill --season=fall`): 0 ERROR lines; windowed `--quit-after
+  150 -- --demo --map=hill`: exit 0.
+- Left / next: the hill's rebuild from MeshCache (1.75 s headless) could be cut by sharing the trees' leaf
+  materials; the flat view has no cut-out edges (its pictures carry the stamped pattern).
+
 ## 2026-11-17 — Leaves and cherry blossom you can see — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user wanted more detail: leaves on the maples and cherries, the cherry's flowers clear. New FoliageArt

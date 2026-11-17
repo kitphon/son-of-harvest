@@ -221,6 +221,8 @@ func _make_broadleaf(at: Array) -> Array:
 				for xf in spots:
 					placed.append(xf * Transform3D(Basis(), sp.hinge))
 				_multi(sp.mesh, placed, Trees.leaf_material(kind, season))
+				var cards := _multi(sp.edge, placed, Trees.leaf_edge_material(kind, season))
+				cards.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		else:
 			var meshes := MeshCache.parts("wood_%s:%d" % [kind, shape],
 				func(parts: FarmProps.Parts): Trees.broadleaf(parts, Vector3.ZERO, kind, "winter", 211 + shape * 53, true))

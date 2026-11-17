@@ -245,6 +245,7 @@ const CHERRY_GOLD := Color("d89a3c")   # the gold sprays among a cherry's orange
 const LEAF_TILE := 2.0   # cells a leaf tile (FoliageArt, 32 texels) covers on a crown: 16 texels a cell
 const BLOOM := Color("fff0f4")   # a cherry in bloom's sprays: the pale tint its flower tile is laid over
 const LIMBS := 7   # a grand cherry's limbs, each ending in a spray (every other one rising steeper)
+static var _edges := {}   # a spray's SurfaceTool -> its edge cards' SurfaceTool, while a crown is built
 static var _crowns := {}   # "kind|season|shape" -> {trunk: {key: ArrayMesh}, sprays: [{mesh: ArrayMesh, hinge: Vector3}]}
 
 
@@ -303,7 +304,14 @@ static func place_crowned(w: FarmWorld, at: Vector3, kind: String, season: Strin
 		mi.transform = Transform3D(turn, hinge)
 		mi.set_meta("crown", true)   # a tree's spray (not a bamboo clump: test_maps tells them apart)
 		w.add_child(mi)
-		sway.add_crown([mi], hinge, yaw, seed * 0.71 + i * 1.93, scale)
+		var cards := MeshInstance3D.new()   # its leaf tufts at the edge, cut out, swaying with it
+		cards.mesh = sprays[i].edge
+		cards.material_override = leaf_edge_material(kind, season)
+		cards.transform = mi.transform
+		cards.set_meta("crown", true)
+		cards.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		w.add_child(cards)
+		sway.add_crown([mi, cards], hinge, yaw, seed * 0.71 + i * 1.93, scale)
 		nodes.append(mi)
 	return nodes
 
@@ -327,7 +335,8 @@ static func _build_crown(kind: String, season: String, shape: int) -> Dictionary
 		_maple_sprays(bark, sprays, leaf, season, rng)
 	var out := []
 	for s: Dictionary in sprays:
-		out.append({"mesh": (s.st as SurfaceTool).commit(), "hinge": s.hinge})
+		out.append({"mesh": (s.st as SurfaceTool).commit(), "edge": (_edges[s.st] as SurfaceTool).commit(), "hinge": s.hinge})
+	_edges.clear()
 	return {"trunk": p.meshes(), "sprays": out}
 
 
@@ -481,6 +490,20 @@ static func leaf_material(kind: String, season: String) -> StandardMaterial3D:
 	return m
 
 
+## The material of a spray's leaf cards (_leaf_cards): the edge tuft (FoliageArt.edge) cut out at
+## half alpha, both faces drawn, in the vertex colours, crisp.
+static func leaf_edge_material(kind: String, season: String) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.vertex_color_use_as_albedo = true
+	m.vertex_color_is_srgb = true
+	m.albedo_texture = PlaceholderArt.tex("foliage_edge:%s:%s" % [kind, season if season != "" else "spring"])
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	m.alpha_scissor_threshold = 0.5
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	return m
+
+
 ## A kind's bark colour.
 static func bark_of(kind: String) -> Color:
 	match kind:
@@ -492,6 +515,9 @@ static func bark_of(kind: String) -> Color:
 static func _spray_tool() -> SurfaceTool:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var edge := SurfaceTool.new()   # its leaf cards (_leaf_cards), a mesh of their own (cut out)
+	edge.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_edges[st] = edge
 	return st
 
 
@@ -548,6 +574,35 @@ static func _dots(st: SurfaceTool, c: Vector3, r: float, leaf: Color, season: St
 ## crown reads as leaves and blossom instead of one flat colour.
 static func _leafy_lump(st: SurfaceTool, c: Vector3, r: float, squash: float, col: Color, rng: RandomNumberGenerator) -> void:
 	_coloured_lump(st, c, r, squash, LUMP_SIDES, rng.randf() * TAU, col, 0.07, rng)
+	if _edges.has(st) and r >= 0.15:
+		_leaf_cards(_edges[st], c, r, squash, col, rng)
+
+
+## Leaf tufts sticking out round a lump of leaves (its middle `c`, radius `r`), so the crown's edge is
+## ragged with leaves instead of the lump's smooth facets: a few crossed pairs of upright cards (the
+## edge tile FoliageArt.edge, cut out), each about CARD across, standing on the lump's side and a
+## little above; lit as the lump there (their normal points out of it), in its colour.
+const CARD := 0.42
+static func _leaf_cards(st: SurfaceTool, c: Vector3, r: float, squash: float, col: Color, rng: RandomNumberGenerator) -> void:
+	var count := 3 if r < 0.28 else 4
+	for i in count:
+		var a := rng.randf() * TAU + TAU * i / count
+		var up := rng.randf_range(-0.15, 0.45) * r * squash
+		var at := c + Vector3(cos(a) * r * 0.92, up, sin(a) * r * 0.92)
+		var nrm := Vector3(cos(a), 0.5, sin(a)).normalized()
+		var size := CARD * clampf(r / 0.32, 0.75, 1.1)
+		var face := col.lightened(rng.randf_range(0.0, 0.08))
+		var b := rng.randf() * TAU
+		for along: Vector3 in [Vector3(cos(b), 0, sin(b)), Vector3(-sin(b), 0, cos(b))]:
+			var h: Vector3 = along * size * 0.5
+			var v := Vector3(0, size * 0.5, 0)
+			var corners: Array[Vector3] = [at - h - v, at + h - v, at + h + v, at - h + v]
+			var uvs: Array[Vector2] = [Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0)]
+			for k in [0, 1, 2, 0, 2, 3]:
+				st.set_color(face)
+				st.set_uv(uvs[k])
+				st.set_normal(nrm)
+				st.add_vertex(corners[k])
 
 
 static func _coloured_lump(st: SurfaceTool, c: Vector3, r: float, squash: float, sides: int, yaw: float, col: Color, jitter: float, rng: RandomNumberGenerator) -> void:

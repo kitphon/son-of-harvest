@@ -269,6 +269,11 @@ Light and Farmhouse model hold the technical detail of what is built.
       stays the tree's; the cherry in bloom's tile is in colour over a pale blossom tint (Trees.BLOOM):
       five-petalled flowers with deep pink hearts, buds, deep pink gaps, a twig now and then. The flat
       view stamps the same tiles on its tree pictures' crowns (FoliageArt.stamp; the trunks left clean).
+      (2026-11-18) Ragged leafy edges: round every lump of a crown a few crossed pairs of upright cards
+      (Trees._leaf_cards, CARD 0.42) carry a cut-out tuft (FoliageArt.edge, 8 x 8: three leaves of the kind,
+      or two cherry flowers and a bud), alpha scissor, both faces, lit as the lump there, in its colour; a
+      mesh a spray swaying with it (Trees.leaf_edge_material). The crowns' outlines read as leaves and
+      flowers, not facets. The Sway sets every other tree spray each frame (each 30 times a second).
 - [x] Bamboo: segmented culms with node rings, leaf sprays, swaying, by season, snow on the
       leaves (`OutdoorProps.bamboo`). (this commit) The wind follows the weather (data/wind.json,
       see "Wind by weather" in the table): in a storm the clumps lean further, sway faster and

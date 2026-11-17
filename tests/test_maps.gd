@@ -2645,6 +2645,7 @@ func _crowned_trees(trees: GDScript) -> void:
 				var top := 0.0
 				var tones := {}
 				var florets := 0
+				var cards := 0
 				var trunk_r := 0.0
 				for n in w.get_children():
 					if not n is MeshInstance3D:
@@ -2657,6 +2658,10 @@ func _crowned_trees(trees: GDScript) -> void:
 					var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
 					var nm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
 					var cols = arr[Mesh.ARRAY_COLOR]
+					if mat.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR:   # leaf cards: both faces drawn, lit as their lump
+						cards += 1
+						check(mat.cull_mode == BaseMaterial3D.CULL_DISABLED and mat.albedo_texture != null and n.has_meta("crown"), "crowned %s: leaf cards cut out, both faces" % kind)
+						continue
 					for i in range(0, v.size(), 3):
 						var c := (v[i + 1] - v[i]).cross(v[i + 2] - v[i])
 						if c.length() > 1e-9 and c.dot(nm[i]) >= 0.0:
@@ -2689,6 +2694,7 @@ func _crowned_trees(trees: GDScript) -> void:
 				check((golds > 0) == (kind == "ginkgo" and season == "fall"), "crowned %s: the gold carpet of fallen leaves only under a ginkgo in fall" % what)
 				check(sprays.size() == {"sakura": trees.LIMBS + 1, "maple": 7, "ginkgo": 10}[kind] and tones.size() > 12, "crowned %s: %d sprays, %d tones" % [what, sprays.size(), tones.size()])
 				check((florets > 0) == (kind == "sakura" and season == "spring"), "crowned %s: florets %d" % [what, florets])
+				check(cards == sprays.size(), "crowned %s: leaf cards round every spray (%d)" % [what, cards])
 				check(trunk_r > 0.08 and trunk_r < 0.14, "crowned %s: the old trunk under the crown (%.3f)" % [what, trunk_r])
 				var sway = w.get_node("WindSway")
 				check(sway.count_of("crown") == sprays.size(), "crowned %s: every spray in the Sway" % what)
@@ -2747,6 +2753,14 @@ func _foliage_tiles() -> void:
 						gap += 1
 			var what := "%s in %s" % [kind, season]
 			check(img.get_size() == Vector2i(32, 32), "foliage %s: a 32 x 32 tile" % what)
+			var tuft: Image = fa.edge(kind, season)
+			var solid := 0
+			for y in fa.EDGE:
+				for x in fa.EDGE:
+					if tuft.get_pixel(x, y).a > 0.5:
+						solid += 1
+			check(tuft.get_pixel(0, 7).a < 0.5 or tuft.get_pixel(7, 7).a < 0.5, "foliage %s: the edge tuft cut out round its leaves" % what)
+			check(solid >= 18 and solid <= 56, "foliage %s: an edge tuft of leaves, clear between (%d of 64)" % [what, solid])
 			if kind == "sakura" and season == "spring":
 				check(hearts >= 20 and petals >= 200 and not grey, "foliage %s: flowers with deep pink hearts (%d petals, %d hearts)" % [what, petals, hearts])
 			else:
