@@ -315,6 +315,8 @@ func new_game() -> void:
 			var want := arg.trim_prefix("--map=").split("@")
 			var m := MapManager.data(want[0]) if MapManager.has(want[0]) else null
 			var spot: Variant = m.spawns.get(want[1] if want.size() > 1 else "start") if m != null else null
+			if m != null and want.size() > 1 and "," in want[1]:   # town@19,29: that cell, facing down
+				spot = [Vector2i(int(want[1].get_slice(",", 0)), int(want[1].get_slice(",", 1))), Vector2i.DOWN]
 			if spot == null:
 				push_warning("No map spawn " + arg.trim_prefix("--map="))
 			else:

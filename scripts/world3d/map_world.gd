@@ -270,7 +270,7 @@ func _make_prop(p: Dictionary) -> void:
 		"landing": OutdoorProps.landing(self, r)
 		"cloth_rack": OutdoorProps.cloth_rack(self, p, r)
 		"koinobori": KoinoboriProps.build(self, p, r)
-		"tsuiji", "temple_gate", "station", "rails", "bridge": TempleProps.prop(self, p, r, SnowLayer.map_has_snow(map))
+		"tsuiji", "temple_gate", "station", "rails", "bridge": TempleProps.prop(self, p, r, SnowLayer.map_has_snow(map), map.wall_span(p) if str(p.kind) == "tsuiji" else Vector2.INF)   # the wall's pieces closed at the corners
 		"feed_box", "nest", "incubator", "feed_sack", "hatch": CoopProps.prop(self, p, mid, r)
 		"fodder_box", "stalls", "hay", "barn_gate": BarnProps.prop(self, p, mid, r)
 		"well", "jizo", "persimmon", "sakura", "maple", "ginkgo", "hasa", "woodpile", "garden", "wood_fence", "kiln", "hen_barn", "ditch": CountryProps.prop(self, p, mid, r, Game.season_name())

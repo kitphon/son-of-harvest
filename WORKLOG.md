@@ -10,6 +10,38 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-19 — The farmhouse's second room reachable; the temple wall's corners closed — branch arashiyama-town
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: two reports from the user, with screenshots.
+  - The farmhouse with the room extension: the farmer could not walk into the second room, where
+    the spouse and the child are. The partition's only doorway is (7, 3), and the house's andon
+    stood at (6, 3), right in front of it, so the room was shut off whatever the villagers did.
+    The andon moved to (6, 2), beside the chest (data/maps/house.json; nothing else uses that
+    cell). New check test_maps `_rooms_reachable`: on every indoor map, with every set of its
+    extensions, every free floor cell can be walked to from its first spawn. It found only cells
+    shut off on purpose: the keeper's side of the smithy's and the post office's counters, and a
+    two-cell pocket behind Kota's hearth with only a keepsake on show. Those are listed in the test.
+  - The temple's earthen wall: a gap at each of its four corners. Each piece ran from its first
+    cell's edge to its last's along the middle of its cells, so one piece stopped a third of a
+    cell short of the other's line and the other stuck out past its outer face.
+    MapData.wall_span (pure) works out each piece's ends: on into the middle of a wall running
+    across its end; flush with the outer face of a wall that runs into its end cell; else at the
+    cell's edge (the gate, the north lane). TempleProps.tsuiji (3D) and MapView (flat) lay it by
+    that. test_maps `_wall_corners`: the four corners closed and flush, the gate's end unchanged,
+    both views use it.
+  - Dev flag: `--map=<id>@x,y` starts on that cell facing down, for frames where no spawn stands.
+- Checked: a headless walk (Player._try_move with the give-way step, as test_talk does) from
+  the first room's middle on spring 2 year 2 at 6:10, married to Sayo with a crawler: it
+  reached (10, 3), (10, 2), (9, 4) and (8, 2) in the second room. Before the move the room was
+  walled off: the old cell fails `_rooms_reachable`. `_wall_corners` fails with wall_span
+  returning the old cell ends. Frames: `--demo --map=house@6,3 --built=room,chest
+  --flags=married_sayo,spouse=sayo --child=crawler --time=6:00`, the andon by the chest and the
+  doorway open. The temple's corners from `town@17,16`, `town@17,32` and others, before and
+  after, joined. map_overview's flat town: the wall closed all round. All 44 tests/test_*.gd print `OK (0 failed)`;
+  smoke `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`, `--demo --map=house
+  --built=room`): 0 ERROR lines; windowed `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-18 — arashiyama-vista merged into arashiyama-town
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user asked to merge arashiyama-vista into arashiyama-town. arashiyama-town had no

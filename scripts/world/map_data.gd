@@ -284,3 +284,43 @@ func prop_at(c: Vector2i) -> Dictionary:
 		if Rect2i(p.cell, p.size).has_point(c):
 			return p
 	return {}
+
+
+const WALL_HALF := 0.2   # half a wall's (tsuiji) footing across, cells (TempleProps)
+
+## Where wall piece `p` (a `tsuiji` prop, laid along the middle of its cells) begins and ends along
+## its length (cells: x for a wall along x, else y), so the pieces close at the corners (the user,
+## 2026-11-18: the temple wall's four corners stood apart). At each end:
+## - another wall's cell just past it (a wall running across): it runs on to that wall's middle;
+## - another wall's cell beside its end cell (that wall runs into this end): it stops flush with
+##   that wall's outer face, the end cell's middle plus WALL_HALF;
+## - else (a gate, a lane, the open): at its end cell's edge, as before.
+func wall_span(p: Dictionary) -> Vector2:
+	var r := Rect2i(p.cell, p.size)
+	var along_x := r.size.x >= r.size.y
+	var ax := Vector2i(1, 0) if along_x else Vector2i(0, 1)
+	var across := Vector2i(0, 1) if along_x else Vector2i(1, 0)
+	var wall_at := func(c: Vector2i) -> bool:
+		if r.has_point(c):
+			return false
+		var q := prop_at(c)
+		return str(q.get("kind", "")) == "tsuiji"
+	var lo := float(r.position.x if along_x else r.position.y)
+	var hi := float(r.end.x if along_x else r.end.y)
+	var out := Vector2(lo, hi)
+	for e in [[r.position, -1], [r.end - Vector2i.ONE, 1]]:
+		var cell: Vector2i = e[0]
+		var o: int = e[1]
+		var mid := (lo if o < 0 else hi - 1.0) + 0.5
+		var at: float
+		if wall_at.call(cell + ax * o):
+			at = mid + o
+		elif wall_at.call(cell + across) or wall_at.call(cell - across):
+			at = mid + WALL_HALF * o
+		else:
+			at = lo if o < 0 else hi
+		if o < 0:
+			out.x = at
+		else:
+			out.y = at
+	return out

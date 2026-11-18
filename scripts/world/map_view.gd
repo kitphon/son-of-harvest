@@ -343,7 +343,7 @@ func _draw_objects() -> void:
 			_draw_landing(r)
 			continue
 		if p.kind in TEMPLE_KINDS:
-			_draw_temple(str(p.kind), r)
+			_draw_temple(str(p.kind), r, p)
 			continue
 		if p.kind in GardenLook.KINDS:
 			_draw_garden(p, r)
@@ -445,11 +445,12 @@ static func blob(canvas: CanvasItem, c: Vector2, rx: int, ry: int, tones: Array,
 ## The temple's wall, its gate and the station seen from above, in whole pixels (TempleProps in 3D):
 ## the wall an ochre band under a grey tiled coping with its dark ridge, the gate and the station
 ## a painted kawara roof (RoofArt) over their footprint, the line its sleepers and two steel rails.
-func _draw_temple(kind: String, r: Rect2) -> void:
+func _draw_temple(kind: String, r: Rect2, p: Dictionary = {}) -> void:
 	match kind:
 		"tsuiji":
 			var along_x := r.size.x >= r.size.y
-			var band := Rect2(r.position.x, r.get_center().y - 5, r.size.x, 10) if along_x else Rect2(r.get_center().x - 5, r.position.y, 10, r.size.y)
+			var span := map.wall_span(p) * T if not p.is_empty() else (Vector2(r.position.x, r.end.x) if along_x else Vector2(r.position.y, r.end.y))   # closed at the corners
+			var band := Rect2(span.x, r.get_center().y - 5, span.y - span.x, 10) if along_x else Rect2(r.get_center().x - 5, span.x, 10, span.y - span.x)
 			_objects.draw_rect(band, prop_tone(Color("d2b06a"), "tsuiji", wet))
 			var cap := band.grow_individual(0, -2, 0, -2) if along_x else band.grow_individual(-2, 0, -2, 0)
 			_objects.draw_rect(cap, prop_tone(Color("6a6e76"), "tsuiji", wet))

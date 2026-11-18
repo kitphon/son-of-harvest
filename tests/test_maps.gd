@@ -88,6 +88,92 @@ func _temple_garden() -> void:
 ## field is 0.5 on a straight cell edge, rounds a convex corner off and a concave one in, 1 over the
 ## bed; the bank slopes from the land down to the bed; the 3D ground is sloped there with no stone
 ## walls round it; the picture paints the bank and the rounded-off corners; the rocks have no point.
+## The temple wall's pieces close at its four corners (the user, 2026-11-18: a gap at each):
+## where two pieces meet at a corner their footings overlap and neither runs past the other's
+## outer face; an end at the gate or the north lane stays at its cell's edge.
+func _wall_corners() -> void:
+	var t := MapManager.data("town")
+	var walls := t.props.filter(func(p) -> bool: return str(p.kind) == "tsuiji")
+	var foot := func(p: Dictionary) -> Rect2:
+		var r := Rect2(Vector2(p.cell), Vector2(p.size))
+		var sp := t.wall_span(p)
+		var h := MapData.WALL_HALF
+		return Rect2(sp.x, r.get_center().y - h, sp.y - sp.x, h * 2) if r.size.x >= r.size.y else Rect2(r.get_center().x - h, sp.x, h * 2, sp.y - sp.x)
+	var corners := 0
+	var bad: Array = []
+	for i in walls.size():
+		for j in range(i + 1, walls.size()):
+			var a: Dictionary = walls[i]
+			var b: Dictionary = walls[j]
+			var ra := Rect2i(a.cell, a.size)
+			var rb := Rect2i(b.cell, b.size)
+			if (ra.size.x >= ra.size.y) == (rb.size.x >= rb.size.y) or not ra.grow(1).intersects(rb):
+				continue
+			corners += 1
+			var h: Rect2 = foot.call(a if ra.size.x >= ra.size.y else b)   # the piece along x
+			var v: Rect2 = foot.call(b if ra.size.x >= ra.size.y else a)   # the one along y
+			var eq := func(x: float, y: float) -> bool: return absf(x - y) < 0.001
+			# Closed: they overlap. Flush: the x piece ends on the y piece's outer face (no stub past it),
+			# and the y piece runs on to the x piece's middle line.
+			var flush_h: bool = eq.call(h.position.x, v.position.x) or eq.call(h.end.x, v.end.x)
+			var flush_v: bool = eq.call(v.position.y, h.get_center().y) or eq.call(v.end.y, h.get_center().y)
+			if not h.intersects(v) or not flush_h or not flush_v:
+				bad.append("%s / %s: %s %s" % [a.cell, b.cell, h, v])
+	check(corners == 4 and bad.is_empty(), "the temple wall: its %d corners closed and flush (%s)" % [corners, bad])
+	var gate_side: Dictionary = walls.filter(func(p) -> bool: return Vector2i(p.cell) == Vector2i(34, 15))[0]
+	check(t.wall_span(gate_side).y == 21.0, "the temple wall: its piece by the gate still ends at the gate's edge (%s)" % t.wall_span(gate_side))
+	check("wall_span" in FileAccess.get_file_as_string("res://scripts/world/map_view.gd") and "wall_span" in FileAccess.get_file_as_string("res://scripts/world3d/map_world.gd"), "the temple wall: both views lay it by wall_span")
+
+
+## Every free floor cell of every indoor map can be walked to from its first spawn, with each
+## set of its extensions built (the user, 2026-11-18: the farmhouse's andon stood in the room
+## extension's doorway and shut the second room off).
+func _rooms_reachable() -> void:
+	# Shut off on purpose: the keeper's side of a shop counter, and a pocket behind Kota's hearth with
+	# nothing to use in it (only a keepsake on show).
+	var meant := {"smithy": [Vector2i(3, 1), Vector2i(4, 1), Vector2i(3, 2)],
+		"post_office": [Vector2i(4, 1), Vector2i(5, 1), Vector2i(1, 2), Vector2i(2, 2), Vector2i(3, 2), Vector2i(4, 2), Vector2i(5, 2), Vector2i(6, 2), Vector2i(6, 3)],
+		"kota_house": [Vector2i(4, 1), Vector2i(5, 1)]}
+	var shut: Array = []
+	for f in DirAccess.get_files_at("res://data/maps"):
+		if not f.ends_with(".json"):
+			continue
+		var id := f.get_basename()
+		var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/maps/" + f))
+		if not raw.get("indoor", false):
+			continue
+		var exts: Array = (raw.get("extensions", {}) as Dictionary).keys()
+		var sets: Array = [[]]
+		for e in exts:   # every subset
+			var more: Array = []
+			for st in sets:
+				more.append(st + [e])
+			sets.append_array(more)
+		for st in sets:
+			var r := MapManager.load_map(id, st)
+			var m: MapData = r[1]
+			if m == null or m.spawns.is_empty():
+				continue
+			var start: Vector2i = Vector2i(m.spawns.values()[0][0][0], m.spawns.values()[0][0][1])
+			var seen := {start: true}
+			var todo: Array[Vector2i] = [start]
+			while not todo.is_empty():
+				var c: Vector2i = todo.pop_back()
+				for d in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+					var n: Vector2i = c + d
+					if not seen.has(n) and m.in_bounds(n) and not m.is_solid(n):
+						seen[n] = true
+						todo.append(n)
+			for y in m.h:
+				for x in m.w:
+					var c := Vector2i(x, y)
+					if not m.is_solid(c) and not seen.has(c) and not c in meant.get(id, []):
+						shut.append("%s%s %s" % [id, st, c])
+	check(shut.is_empty(), "indoor maps: every free floor cell can be walked to (%s)" % [shut])
+	var room: MapData = MapManager.load_map("house", ["room"])[1]
+	check(not room.is_solid(Vector2i(6, 3)) and not room.is_solid(Vector2i(7, 3)), "the farmhouse: the way into the second room is clear (no andon before its doorway)")
+
+
 ## The plainer soft ponds (2026-11-18, the user: the farm pond and Ogura pond by the bamboo with a
 ## shore like the temple's, but less): look `pond`, a sloping bank and no stone walls in 3D, the bank
 ## painted, fewer and smaller stones than the temple's, no lawn curve, garden rocks, shrubs or koi.
@@ -851,6 +937,8 @@ func _process(delta: float) -> bool:
 		_arashiyama_town()
 		_temple_garden()
 		_soft_pond()
+		_rooms_reachable()
+		_wall_corners()
 		_plain_ponds()
 		_place_names()
 		_world()

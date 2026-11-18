@@ -19,9 +19,9 @@ const BALLAST := Color("8a857a")
 const SLEEPER := Color("4a3626")
 
 
-static func prop(w: FarmWorld, p: Dictionary, r: Rect2, snow: bool) -> void:
+static func prop(w: FarmWorld, p: Dictionary, r: Rect2, snow: bool, span := Vector2.INF) -> void:
 	match str(p.kind):
-		"tsuiji": tsuiji(w, r, snow)
+		"tsuiji": tsuiji(w, r, snow, span)
 		"temple_gate": gate(w, r, snow)
 		"station": station(w, r, snow)
 		"rails": rails(w, r)
@@ -30,8 +30,9 @@ static func prop(w: FarmWorld, p: Dictionary, r: Rect2, snow: bool) -> void:
 
 ## An earthen wall (tsuiji-bei) along the long side of `r`, in the middle of its cells: a stone
 ## footing, ochre plaster with five white bands on both faces, a coping of kawara tiles sloping
-## both ways from a dark ridge.
-static func tsuiji(w: FarmWorld, r: Rect2, snow: bool) -> void:
+## both ways from a dark ridge. `span`: where it begins and ends along its length (MapData.wall_span,
+## so the pieces close at the corners); none: its cells' ends.
+static func tsuiji(w: FarmWorld, r: Rect2, snow: bool, span := Vector2.INF) -> void:
 	var p := FarmProps.Parts.new()
 	var along_x := r.size.x >= r.size.y
 	var mid := r.get_center()
@@ -40,6 +41,9 @@ static func tsuiji(w: FarmWorld, r: Rect2, snow: bool) -> void:
 		return Rect2(a0, mid.y + b0, a1 - a0, b1 - b0) if along_x else Rect2(mid.x + b0, a0, b1 - b0, a1 - a0)
 	var a0: float = r.position.x if along_x else r.position.y
 	var a1: float = r.end.x if along_x else r.end.y
+	if span != Vector2.INF:
+		a0 = span.x
+		a1 = span.y
 	FarmProps.block(p.st(BASE), rc.call(a0, a1, -0.2, 0.2), 0.0, rc.call(a0, a1, -0.19, 0.19), 0.18)
 	FarmProps.block(p.st(OCHRE), rc.call(a0, a1, -0.16, 0.16), 0.18, rc.call(a0, a1, -0.15, 0.15), 1.22)
 	for i in 5:
