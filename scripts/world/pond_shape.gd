@@ -15,6 +15,11 @@ extends RefCounted
 ## before: the user, 2026-11-16, drew the curve wanted). One shape drives the 3D ground's height (SunkenGround), the ground picture
 ## of both views (paint: moss, earth and pebbles down the bank, grass where a corner of water is
 ## rounded off) and where the koi may swim (KoiPondRules). Pure: no world classes.
+## The same soft shore on the plainer ponds (2026-11-18, the user: the farm pond and Ogura pond by
+## the bamboo should have a shore like the temple's, but less, so the temple keeps its own look):
+## look `pond` (a map's legend, or the farm's pond: of_farm). Its water stays a natural blue-green,
+## its stones are fewer and smaller (STYLES), and it has no lawn curve, garden rocks, shrubs or
+## koi (those stay the temple garden's).
 
 const SOFT := 0.85    # half width of the smoothing, cells (corners round to about this)
 const LAWN_SOFT := 1.4   # the lawn's edge against the gravel: a wider smoothing, so a staircase of cells reads as one arc
@@ -24,6 +29,13 @@ const SHORE := 0.5    # the field's level on the shoreline
 const LIP := 0.07     # the bank's top stays flat this far past the shoreline, so the grass edge lies on level ground
 const DEEP := 0.8     # the field's level where the bank's slope reaches the bed (a steep, narrow bank, so a two-cell arm of the pond is still deep: the user, 2026-11-16)
 const LOOK := "jade"
+const LOOKS: Array[String] = ["jade", "pond"]   # the water looks laid with a soft shore, each its own shape
+## A look's own touches: `water` the colour where the rounded shore runs past a water cell,
+## `keep` how many in 1000 of the waterline's spots get a stone, `size` its smallest and `grow` its spread.
+const STYLES := {
+	"jade": {"water": Color("3a7f72"), "keep": 560, "size": 0.35, "grow": 1.0 / 1.5},
+	"pond": {"water": Color("3d7790"), "keep": 300, "size": 0.25, "grow": 0.45},
+}
 const T := 16
 
 const MOSS: Array[Color] = [Color("5f7a3a"), Color("6c8a42")]
@@ -37,6 +49,7 @@ const STONE_LEVEL := 0.68    # the field's level the shore stones sit on (down t
 const STONE_STEP := 0.2      # cells between the points tried along it
 const STONE_GAP := 0.42      # cells at least between two stones
 
+var look := LOOK             # the water's look (LOOKS): the jade temple pond or a plain one
 var cells: Dictionary = {}   # Vector2i -> true: the pond's water cells
 var bounds := Rect2i()       # the cells the shape reaches (its water cells grown by one)
 var picture := Rect2i()      # the cells the repainted picture covers (bounds and the lawn's edge round it)
@@ -47,17 +60,19 @@ var _stones: Array = []      # shore_stones, worked out once
 static var _kept: Dictionary = {}
 
 
-## The pond of map `m` (its `jade` water cells), kept a run; null when it has none.
-static func of(m: MapData) -> PondShape:
+## The pond of map `m` with water look `look` (its water cells of that look), kept a run; null
+## when it has none. The plain `jade` one is the temple's (the koi swim in it).
+static func of(m: MapData, look := LOOK) -> PondShape:
 	if m == null:
 		return null
-	var id := "%s|%d|%d" % [m.id, m.tiles.hash(), m.looks.hash()]
+	var id := "%s|%d|%d|%s" % [m.id, m.tiles.hash(), m.looks.hash(), look]
 	if not _kept.has(id):
 		var s := PondShape.new()
+		s.look = look
 		for y in m.h:
 			for x in m.w:
 				var c := Vector2i(x, y)
-				if m.tile(c) == "water" and m.look(c) == LOOK:
+				if m.tile(c) == "water" and m.look(c) == look:
 					s.cells[c] = true
 		if s.cells.is_empty():
 			_kept[id] = null
@@ -66,6 +81,10 @@ static func of(m: MapData) -> PondShape:
 			for c in s.cells:
 				r = r.merge(Rect2i(c, Vector2i.ONE))
 			s.bounds = r.grow(1).intersection(Rect2i(0, 0, m.w, m.h))
+			s.picture = s.bounds
+			_kept[id] = s
+			if look != LOOK:   # the lawn's curve against the gravel is the temple garden's only
+				return s
 			s.picture = s.bounds.grow(LAWN_REACH).intersection(Rect2i(0, 0, m.w, m.h))
 			var near := s.picture.grow(2)
 			for y in range(near.position.y, near.end.y):
@@ -76,13 +95,49 @@ static func of(m: MapData) -> PondShape:
 						s.lawn[c] = true
 					if s.picture.has_point(c) and (tile == "grass" or tile == "gravel"):
 						s.swaps[c] = tile
-			_kept[id] = s
 	return _kept[id]
 
 
+## Every soft pond on map `m` (one a look of LOOKS that it has), the temple's first.
+static func all_of(m: MapData) -> Array[PondShape]:
+	var out: Array[PondShape] = []
+	for look in LOOKS:
+		var s := of(m, look)
+		if s != null:
+			out.append(s)
+	return out
+
+
+## The farm's pond (FarmGrid's `pond` cells) as a plain soft pond, kept a run; null when the farm
+## has none (the greenhouse's grid).
+static func of_farm(farm: FarmGrid) -> PondShape:
+	if farm == null:
+		return null
+	var water: Array[Vector2i] = []
+	for c in farm.fixed:
+		if farm.fixed[c] == "pond":
+			water.append(c)
+	if water.is_empty():
+		return null
+	water.sort()
+	var id := "farm|%d|%d|%s" % [farm.w, farm.h, str(water).hash()]
+	if not _kept.has(id):
+		var s := from_cells(water, "pond")
+		s.bounds = s.bounds.intersection(Rect2i(0, 0, farm.w, farm.h))
+		s.picture = s.bounds
+		_kept[id] = s
+	return _kept[id]
+
+
+## The colour of open water where the rounded shore runs past a water cell (STYLES).
+func water_colour() -> Color:
+	return STYLES[look].water
+
+
 ## A shape from a set of cells (tests).
-static func from_cells(water: Array[Vector2i]) -> PondShape:
+static func from_cells(water: Array[Vector2i], with_look := LOOK) -> PondShape:
 	var s := PondShape.new()
+	s.look = with_look
 	for c in water:
 		s.cells[c] = true
 	var r := Rect2i(water[0], Vector2i.ONE)
@@ -175,7 +230,7 @@ func paint(base: Callable, grass: Callable, gravel := Callable()) -> Image:
 			var water := cells.has(Vector2i(floori(p.x), floori(p.y)))
 			var col: Color
 			if f >= DEEP:
-				col = base.call(at) if water else JADE
+				col = base.call(at) if water else water_colour()
 			elif f >= SHORE:
 				var u := (f - SHORE) / (DEEP - SHORE)
 				var edge := GRASS_U + _soft_noise(at) * 0.12   # where the grass gives way, a gentle wave
@@ -227,7 +282,7 @@ func shore_stones() -> Array:
 			if absf(f - STONE_LEVEL) > 0.07:
 				continue
 			var h := posmod(x * 7919 + y * 104729, 1000)
-			if h > 560:
+			if h > int(STYLES[look].keep):
 				continue
 			var close := false
 			for st in _stones:
@@ -235,5 +290,5 @@ func shore_stones() -> Array:
 					close = true
 					break
 			if not close:
-				_stones.append({"pos": p, "size": 0.35 + (h % 100) / 150.0, "seed": h})
+				_stones.append({"pos": p, "size": float(STYLES[look].size) + (h % 100) / 100.0 * float(STYLES[look].grow), "seed": h})
 	return _stones

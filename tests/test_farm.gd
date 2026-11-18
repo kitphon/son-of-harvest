@@ -170,8 +170,8 @@ func _init() -> void:
 	for y in range(2, 5):
 		for x in range(25, 29):
 			pond.fixed[Vector2i(x, y)] = "pond"
-	check(PlaceholderArt.ground_key(pond, Vector2i(25, 2)) == "ground:water:%d" % (PlaceholderArt.WATER_N | PlaceholderArt.WATER_W), "pond corner has two banks")
-	check(PlaceholderArt.ground_key(pond, Vector2i(26, 3)) == "ground:water:0", "pond middle has no bank")
+	check(PlaceholderArt.ground_key(pond, Vector2i(25, 2)) == "ground:water:%d:pond" % (PlaceholderArt.WATER_N | PlaceholderArt.WATER_W), "pond corner has two banks")
+	check(PlaceholderArt.ground_key(pond, Vector2i(26, 3)) == "ground:water:0:pond", "pond middle has no bank")
 	for key in ["ground:grass:1", "ground:path:2", "ground:water:15", "ground:wet:3"]:
 		var img := PlaceholderArt.tex(key).get_image()
 		check(img.get_size() == Vector2i(16, 16) and img.get_used_rect().size == Vector2i(16, 16) \

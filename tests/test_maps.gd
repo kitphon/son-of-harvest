@@ -88,6 +88,74 @@ func _temple_garden() -> void:
 ## field is 0.5 on a straight cell edge, rounds a convex corner off and a concave one in, 1 over the
 ## bed; the bank slopes from the land down to the bed; the 3D ground is sloped there with no stone
 ## walls round it; the picture paints the bank and the rounded-off corners; the rocks have no point.
+## The plainer soft ponds (2026-11-18, the user: the farm pond and Ogura pond by the bamboo with a
+## shore like the temple's, but less): look `pond`, a sloping bank and no stone walls in 3D, the bank
+## painted, fewer and smaller stones than the temple's, no lawn curve, garden rocks, shrubs or koi.
+func _plain_ponds() -> void:
+	var t := MapManager.data("town")
+	var ogura := PondShape.of(t, "pond")
+	var ponds := PondShape.all_of(t)
+	check(ogura != null and ogura.cells.size() == 18 and ogura.bounds == Rect2i(1, 6, 8, 5), "Ogura pond is a plain soft pond (%s)" % [ogura.bounds if ogura != null else null])
+	check(ponds.size() == 2 and ponds[0].look == "jade" and ponds[1] == ogura, "the village has the temple's pond and Ogura pond")
+	check(ogura.swaps.is_empty() and ogura.picture == ogura.bounds, "Ogura pond: no lawn curve (the temple garden's only)")
+	var shrubs := t.props.filter(func(p) -> bool: return str(p.kind) in GardenLook.KINDS and Rect2i(ogura.bounds).grow(2).has_point(Vector2i(int(p.cell[0]), int(p.cell[1]))))
+	check(shrubs.is_empty(), "Ogura pond: no garden rocks or shrubs by it")
+	var koi_ok := true
+	for k in KoiPondRules.ponds_on("town"):
+		for c in KoiPondRules.water_cells(t, k):
+			koi_ok = koi_ok and t.look(c) == "jade"
+	check(koi_ok, "the koi swim in the temple's jade pond only")
+	var stones := ogura.shore_stones()
+	var jade_st := ponds[0].shore_stones()
+	var per := func(p: PondShape, n: int) -> float: return float(n) / p.cells.size()
+	check(stones.size() >= 4 and float(per.call(ogura, stones.size())) < float(per.call(ponds[0], jade_st.size())), "Ogura pond: a few stones (%d), fewer to the cell than the temple's (%d)" % [stones.size(), jade_st.size()])
+	check(float(PondShape.STYLES.pond.size) < float(PondShape.STYLES.jade.size) and PondShape.STYLES.pond.water != PondShape.JADE, "the plain ponds' stones smaller, their water not jade")
+	var SG: GDScript = load("res://scripts/world3d/sunken_ground.gd")
+	var water := func(c: Vector2i) -> bool: return t.tile(c) == "water"
+	var verts: PackedVector3Array = SG.ground(t.w, t.h, Vector2.ZERO, water, ponds).surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var slope := 0
+	for v in verts:
+		if Rect2(ogura.bounds).has_point(Vector2(v.x, v.z)) and v.y < -0.02 and v.y > -float(SG.DROP) + 0.02:
+			slope += 1
+	check(slope > 100, "3D: Ogura pond's bank slopes down (%d vertices)" % slope)
+	var walls: ArrayMesh = SG.banks(t.w, t.h, Vector2.ZERO, water, Callable(), ponds)
+	var in_pond := 0
+	if walls != null:
+		for v in walls.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+			if Rect2(ogura.bounds).grow(-0.5).has_point(Vector2(v.x, v.z)):
+				in_pond += 1
+	check(in_pond == 0, "3D: no stone wall round Ogura pond (%d wall vertices)" % in_pond)
+	var bank_cols: Array = PondShape.MOSS + PondShape.EARTH + PondShape.PEBBLE + [PondShape.WET, PondShape.EDGE]
+	var count_bank := func(img: Image) -> int:
+		var n := 0
+		for y in img.get_height():
+			for x in img.get_width():
+				n += 1 if bank_cols.has(img.get_pixel(x, y)) else 0
+		return n
+	var WS: GDScript = load("res://scripts/world3d/water_surface.gd")
+	var FV: GDScript = load("res://scripts/farm/farm_view.gd")
+	var bank_n: int = count_bank.call(MapView.pond_picture(t, {}, "pond"))
+	check(bank_n > 400, "Ogura pond: its bank painted (%d pixels)" % bank_n)
+	check(PlaceholderArt.image("ground:water:0:pond").get_pixel(0, 0) != PlaceholderArt.image("ground:water:0:jade").get_pixel(0, 0) 		and float(WS.look_mix("pond")) > 0.0 and float(WS.look_mix("pond")) < float(WS.look_mix("jade")), "the plain pond's water its own, between plain and jade")
+	# The farm's pond.
+	var farm := FarmGrid.new(root.get_node("Game").crops)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	farm.generate(rng)
+	var fp := PondShape.of_farm(farm)
+	check(fp != null and fp.look == "pond" and fp.cells.size() == 12 and fp.bounds == Rect2i(24, 1, 6, 5), "the farm pond is a plain soft pond (%s)" % [fp.bounds if fp != null else null])
+	var fwater := func(c: Vector2i) -> bool: return farm.fixed.get(c, "") == "pond"
+	var fwalls: ArrayMesh = SG.banks(farm.w, farm.h, Vector2.ZERO, fwater, Callable(), [fp])
+	check(fwalls == null, "3D: no stone walls round the farm pond")
+	var fpic: Image = FV.pond_texture(farm, fp).get_image()
+	check(fpic.get_size() == fp.picture.size * 16 and int(count_bank.call(fpic)) > 300, "the farm pond's bank painted (%d pixels)" % count_bank.call(fpic))
+	check(fp.shore_stones().size() >= 4, "the farm pond: stones along its waterline (%d)" % fp.shore_stones().size())
+	check(PondShape.of_farm(FarmGrid.new(root.get_node("Game").crops)) == null, "a grid with no pond has no soft pond (the greenhouse's)")
+	var fw_src := FileAccess.get_file_as_string("res://scripts/world3d/farm_world.gd")
+	var fv_src := FileAccess.get_file_as_string("res://scripts/farm/farm_view.gd")
+	check("PondShape.of_farm" in fw_src and "GardenProps.shore_stones" in fw_src and "MapView.shore_stones" in fv_src and "MapView.draw_banks" not in fv_src, "both farm views lay the soft shore and its stones")
+
+
 func _soft_pond() -> void:
 	var sq: Array[Vector2i] = []
 	for y in 3:
@@ -141,14 +209,14 @@ func _soft_pond() -> void:
 	check(pond.on_bed(Vector2(21.0, 22.5)) and pond.on_bed(Vector2(20.6, 22.6)), "the pond's top-left arm is deep water (%.2f, %.2f)" % [pond.field(Vector2(21.0, 22.5)), pond.field(Vector2(20.6, 22.6))])
 	var SG: GDScript = load("res://scripts/world3d/sunken_ground.gd")
 	var water := func(c: Vector2i) -> bool: return t.tile(c) == "water"
-	var mesh: ArrayMesh = SG.ground(t.w, t.h, Vector2.ZERO, water, pond)
+	var mesh: ArrayMesh = SG.ground(t.w, t.h, Vector2.ZERO, water, [pond])
 	var verts: PackedVector3Array = mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
 	var slope := 0
 	for v in verts:
 		if v.y < -0.02 and v.y > -float(SG.DROP) + 0.02:
 			slope += 1
 	check(slope > 100, "3D: the pond's bank slopes down (%d vertices between the land and the bed)" % slope)
-	var walls: ArrayMesh = SG.banks(t.w, t.h, Vector2.ZERO, water, Callable(), pond)
+	var walls: ArrayMesh = SG.banks(t.w, t.h, Vector2.ZERO, water, Callable(), [pond])
 	var in_pond := 0
 	if walls != null:
 		for v in walls.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
@@ -714,6 +782,7 @@ func _process(delta: float) -> bool:
 		_arashiyama_town()
 		_temple_garden()
 		_soft_pond()
+		_plain_ponds()
 		_place_names()
 		_world()
 		_sunken_water()

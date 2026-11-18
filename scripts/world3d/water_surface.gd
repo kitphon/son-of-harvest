@@ -216,6 +216,17 @@ func set_looks(look: Callable) -> void:
 	set_cells(_laid, _water_at)
 
 
+## How far a water look takes the skin toward the jade pond's (UV2.y): 1 the temple's jade, a
+## little for a plain soft pond's stiller blue-green ("pond"), 0 the plain water.
+static func look_mix(look: String) -> float:
+	match look:
+		"jade":
+			return 1.0
+		"pond":
+			return 0.35
+	return 0.0
+
+
 static func is_water(kind_at: Callable, w: int, h: int, c: Vector2i) -> bool:
 	return kind_at.call(Surroundings.edge_cell(c, w, h)) == "water"
 
@@ -237,7 +248,7 @@ func set_cells(cells: Array[Vector2i], water_at: Callable) -> void:
 		var v := [Vector3(x0, 0, z0), Vector3(x1, 0, z0), Vector3(x1, 0, z1), Vector3(x0, 0, z1)]
 		for i in [0, 1, 2, 0, 2, 3]:
 			st.set_normal(Vector3.UP)
-			st.set_uv2(Vector2(land, 1.0 if look_at.is_valid() and look_at.call(c) == "jade" else 0.0))
+			st.set_uv2(Vector2(land, look_mix(look_at.call(c) if look_at.is_valid() else "")))
 			st.add_vertex(v[i])
 	mesh = st.commit() if not cells.is_empty() else null
 	position = Vector3(0, LIFT - SunkenGround.DROP, 0)   # over the sunk bed (SunkenGround)

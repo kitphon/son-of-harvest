@@ -77,12 +77,10 @@ func _make_village_smoke() -> void:
 		add_child(HearthSmoke.new(int(r.position.x) * 7 + int(r.position.y) * 13, at, house_tag(p)))
 
 
-## The small stones along the temple pond's waterline (PondShape.shore_stones), kept a run.
+## The small stones along the soft ponds' waterlines (PondShape.shore_stones), kept a run.
 func _make_pond_stones() -> void:
-	var pond := PondShape.of(map)
-	if pond == null:
-		return
-	MeshCache.build(self, "pond_stones|" + _shape_id(), func() -> void: GardenProps.shore_stones(self, pond, SnowLayer.map_has_snow(map)))
+	for pond in PondShape.all_of(map):
+		MeshCache.build(self, "pond_stones|%s|%s" % [pond.look, _shape_id()], func() -> void: GardenProps.shore_stones(self, pond, SnowLayer.map_has_snow(map)))
 
 
 ## Rock, door thresholds and a room's walls (RoomWalls), kept a run by the map's shape.
@@ -149,7 +147,7 @@ func _make_tile_ground() -> void:
 		flat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		mat = flat
 	# A grid of cells, the water's sunk below the land with stone banks (SunkenGround).
-	SunkenGround.place(self, map.w, map.h, Vector2.ZERO, func(c: Vector2i) -> bool: return map.tile(c) == "water", mat, 0.0, Callable(), PondShape.of(map))   # the temple pond's soft, sloping bank
+	SunkenGround.place(self, map.w, map.h, Vector2.ZERO, func(c: Vector2i) -> bool: return map.tile(c) == "water", mat, 0.0, Callable(), PondShape.all_of(map))   # the soft ponds' sloping banks
 
 
 static var _grounds := {}   # map id and tiles -> the ground picture (the same every visit)
@@ -167,9 +165,8 @@ func ground_picture() -> ImageTexture:
 				img.blit_rect(tile, Rect2i(0, 0, T, T), Vector2i(x * T, y * T))
 		if map.indoor:
 			_shade_corners(img)
-		var pond := PondShape.of(map)
-		if pond != null:   # the soft shore: rounded, its bank painted down to the water (PondShape.paint)
-			img.blit_rect(MapView.pond_picture(map, keys), Rect2i(Vector2i.ZERO, pond.picture.size * T), pond.picture.position * T)
+		for pond in PondShape.all_of(map):   # the soft shore: rounded, its bank painted down to the water (PondShape.paint)
+			img.blit_rect(MapView.pond_picture(map, keys, pond.look), Rect2i(Vector2i.ZERO, pond.picture.size * T), pond.picture.position * T)
 		_grounds[id] = ImageTexture.create_from_image(img)
 	return _grounds[id]
 

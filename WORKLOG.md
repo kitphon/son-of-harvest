@@ -10,6 +10,36 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-18 — Soft shores for the farm pond and Ogura pond — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user wanted the farm pond and the pond beside the bamboo (Ogura pond, the village's
+  north-west) to have a pond and shore like the temple's, with no fish and not so close to it
+  that the temple pond loses its own look. PondShape handles more than one look now: LOOKS jade
+  and `pond`, STYLES per look (the water colour where the rounded shore runs past a water cell,
+  how many waterline spots get a stone, their size). `of(m, look)`, `all_of(m)` (every soft pond
+  on a map), `of_farm(farm)` (FarmGrid's pond cells). A `pond` shore has no lawn curve (that
+  stays the temple garden's). Its water is a still blue-green (ground:water:<mask>:pond, 3d7790;
+  WaterSurface.look_mix 0.35 of the way to jade's skin), and its stones are fewer and smaller
+  (300 of 1000 spots, size 0.25-0.7, against the temple's 560 and 0.35-1.0). It has no garden
+  rocks, shrubs or koi. Town legend `o` (Ogura pond's 18 cells). SunkenGround takes a list of
+  ponds (`ponds`). MapWorld / MapView lay every soft pond's slope, picture and stones. The farm:
+  FarmView paints the pond's shore over its tiles (FarmView.pond_texture, kept while the ground
+  round it stays the same, wet-tinted as the grass), so the 3D ground has it too. FarmWorld lays
+  the slope with no stone walls and the stones through MeshCache. Its water skin takes the
+  `pond` look. The flat farm view lays the stones in place of the old stone banks.
+- Checked: test_maps `_plain_ponds` (Ogura pond 18 cells, bounds (1, 6, 8, 5); both village
+  ponds found, the temple's first; no lawn curve, no garden props by it, the koi in jade cells
+  only; fewer stones a cell than the temple's; 3D slope over 100 vertices and no walls; bank
+  painted; its water its own; the farm pond's bounds (24, 1, 6, 5), no walls, bank painted,
+  stones; no soft pond on a pondless grid); test_farm (the pond keys now end `:pond`): OK.
+  Frames: `--demo --map=farm@silo`, 3D and flat, rounded blue-green pond, sloping mossy bank,
+  a few small stones; `--demo --map=town@start --walk=right:0.5`, Ogura pond likewise; flat
+  town the same; `--demo --map=town@pond` the temple pond as before. All 44 tests/test_*.gd print `OK (0 failed)`;
+  smoke `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo --mine=3`): 0 ERROR lines;
+  windowed `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the user finds the farm pond still plain: suggested an irregular shape (not the
+  4 x 3 block), reeds and irises on its banks, lily pads, a small fishing jetty; awaiting their pick.
+
 ## 2026-11-18 — Leafy crown edges: cut-out leaves and flowers round every clump — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user said yes to leafier outlines. FoliageArt.edge (PlaceholderArt "foliage_edge:<kind>:<season>"): an 8 x 8

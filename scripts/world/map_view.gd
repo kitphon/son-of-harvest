@@ -163,9 +163,15 @@ func _draw() -> void:
 				draw_texture(PlaceholderArt.tex("build:glass"), Vector2(c * T))
 			elif map.tile(c) == "wall":
 				draw_rect(Rect2(Vector2(c * T), Vector2(T, T)), COLORS.wall)
-	var pond := PondShape.of(map)
-	if pond != null:   # the temple pond's soft shore over its tiles (the 3D ground has the same picture)
-		draw_texture(pond_texture(map), Vector2(pond.picture.position * T))
+	for pond in PondShape.all_of(map):   # the soft ponds' shores over their tiles (the 3D ground has the same picture)
+		draw_texture(pond_texture(map, pond.look), Vector2(pond.picture.position * T))
+
+
+## The small stones along `pond`'s waterline seen from above (GardenProps.shore_stones in 3D).
+static func shore_stones(ci: CanvasItem, pond: PondShape) -> void:
+	for st in pond.shore_stones():
+		var size := float(st.size)
+		blob(ci, ((st.pos as Vector2) * T).round(), 1 + int(round(size * 2.0)), 1 + int(size), GardenLook.STONE, int(st.seed))
 
 
 static var _ponds: Dictionary = {}   # map id and tiles -> the soft pond's picture
@@ -173,10 +179,10 @@ static var _ponds: Dictionary = {}   # map id and tiles -> the soft pond's pictu
 
 ## The soft pond's picture over its `picture` rect (the pond and the lawn's curve round it) (PondShape.paint on the plain tiles; `keys`: the cells'
 ## ground keys when the caller has them, else ground_key), kept a run.
-static func pond_picture(m: MapData, keys: Dictionary = {}) -> Image:
-	var id := "%s|%d|%d" % [m.id, m.tiles.hash(), m.looks.hash()]
+static func pond_picture(m: MapData, keys: Dictionary = {}, look := PondShape.LOOK) -> Image:
+	var id := "%s|%d|%d|%s" % [m.id, m.tiles.hash(), m.looks.hash(), look]
 	if not _ponds.has(id):
-		var pond := PondShape.of(m)
+		var pond := PondShape.of(m, look)
 		var base := func(at: Vector2i) -> Color:
 			var c := Vector2i(floori(at.x / float(T)), floori(at.y / float(T)))
 			var key: String = keys.get(c, ground_key(m, c))
@@ -192,10 +198,10 @@ static func pond_picture(m: MapData, keys: Dictionary = {}) -> Image:
 static var _pond_tex: Dictionary = {}
 
 
-static func pond_texture(m: MapData) -> ImageTexture:
-	var id := "%s|%d|%d" % [m.id, m.tiles.hash(), m.looks.hash()]
+static func pond_texture(m: MapData, look := PondShape.LOOK) -> ImageTexture:
+	var id := "%s|%d|%d|%s" % [m.id, m.tiles.hash(), m.looks.hash(), look]
 	if not _pond_tex.has(id):
-		_pond_tex[id] = ImageTexture.create_from_image(pond_picture(m))
+		_pond_tex[id] = ImageTexture.create_from_image(pond_picture(m, {}, look))
 	return _pond_tex[id]
 
 
@@ -302,12 +308,9 @@ func _process(_delta: float) -> void:
 
 func _draw_objects() -> void:
 	if not map.indoor:   # over the water's moving skin, under the props
-		draw_banks(_objects, map.w, map.h, func(c: Vector2i) -> bool: return map.tile(c) == "water" and map.look(c) != PondShape.LOOK)   # the soft pond has its own sloping bank
-	var pond := PondShape.of(map)
-	if pond != null:   # the small stones along the temple pond's waterline (GardenProps.shore_stones in 3D)
-		for st in pond.shore_stones():
-			var size := float(st.size)
-			blob(_objects, ((st.pos as Vector2) * T).round(), 1 + int(round(size * 2.0)), 1 + int(size), GardenLook.STONE, int(st.seed))
+		draw_banks(_objects, map.w, map.h, func(c: Vector2i) -> bool: return map.tile(c) == "water" and not map.look(c) in PondShape.LOOKS)   # a soft pond has its own sloping bank
+	for pond in PondShape.all_of(map):   # the small stones along the soft ponds' waterlines (GardenProps.shore_stones in 3D)
+		shore_stones(_objects, pond)
 	var paddies := paddy_cells()
 	_tall = not paddies.is_empty()
 	var now := Time.get_ticks_msec() / 1000.0

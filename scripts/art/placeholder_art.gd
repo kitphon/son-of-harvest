@@ -68,7 +68,7 @@ static func _make(key: String) -> Image:
 			return CicadaArt.make(parts[1], parts[2], int(parts[3]), parts.size() > 4 and parts[4] == "r")
 		"build":    # build:<plaster|tsuchi|board|kawara|kawara_edge|thatch|kaya|kaya_edge|hay|planks|planks_dark|sugi|glass|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
-		"ground":   # ground:<grass|tilled|wet|bed|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>[:jade]
+		"ground":   # ground:<grass|tilled|wet|bed|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>[:jade|:pond]
 			return _ground(parts[1], int(parts[2]), parts[3] if parts.size() > 3 else "")
 		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour); fx:<note|notes>, a whistler's note puff
 			return _fx(parts[1])
@@ -1550,7 +1550,7 @@ static func ground_key(farm: FarmGrid, c: Vector2i) -> String:
 			for side in [[Vector2i.UP, WATER_N], [Vector2i.RIGHT, WATER_E], [Vector2i.DOWN, WATER_S], [Vector2i.LEFT, WATER_W]]:
 				if farm.fixed_at(c + side[0]) != "pond":
 					mask |= side[1]
-			return "ground:water:%d" % mask
+			return "ground:water:%d:pond" % mask   # a plain soft pond (PondShape.of_farm)
 		"fence":
 			return "ground:grass:%d" % v
 	return "ground:path:%d" % v
@@ -1764,12 +1764,14 @@ static func _ground(kind: String, n: int, look := "") -> Image:
 				_px(img, x, y, 2, 1, Color("7a7068") if i % 2 == 0 else Color("b8b0a4"))
 		"water":
 			# "jade": the temple pond's still green water (after the user's photos), a mossy bank, no white foam.
+			# "pond": a plain pond with a soft shore (the farm's, Ogura pond): still, blue-green, less green than jade.
 			var jade := look == "jade"
-			img.fill(Color("3a7f72") if jade else Color("3d7fc4"))
+			var still := look == "pond"
+			img.fill(Color("3a7f72") if jade else (Color("3d7790") if still else Color("3d7fc4")))
 			for i in 4:
-				_px(img, rng.randi_range(1, 10), rng.randi_range(2, 13), rng.randi_range(3, 5), 1, Color("4f9686") if jade else Color("5d9ad8"))
-			var bank := Color("4f5a34") if jade else Color("6b5a3a")
-			var foam := Color("6aa894") if jade else Color("a8d0f0")
+				_px(img, rng.randi_range(1, 10), rng.randi_range(2, 13), rng.randi_range(3, 5), 1, Color("4f9686") if jade else (Color("5290a6") if still else Color("5d9ad8")))
+			var bank := Color("4f5a34") if jade or still else Color("6b5a3a")
+			var foam := Color("6aa894") if jade else (Color("6aa0b0") if still else Color("a8d0f0"))
 			if n & WATER_N:
 				_px(img, 0, 0, 16, 2, bank)
 				_px(img, 0, 2, 16, 1, foam)

@@ -183,11 +183,40 @@ func _draw() -> void:
 				draw_texture(PlaceholderArt.tex(key), Vector2(c * T), WetRules.picture_tint(key, WetRules.ground_surface(key.get_slice(":", 1)), wet))
 			else:
 				draw_texture(PlaceholderArt.tex(key), Vector2(c * T))
+	var pond := PondShape.of_farm(farm)
+	if pond != null:   # the pond's soft shore over its tiles (the 3D ground is this picture too)
+		var tex := pond_texture(farm, pond)
+		if wet > 0.0:
+			draw_texture(tex, Vector2(pond.picture.position * T), WetRules.picture_tint("ground:grass:0", WetRules.ground_surface("grass"), wet))
+		else:
+			draw_texture(tex, Vector2(pond.picture.position * T))
+
+
+static var _pond_tex: Dictionary = {}   # the farm pond's cells and the ground under them -> its soft shore's picture
+
+
+## The farm pond's soft shore (PondShape.paint over the cells' own ground pictures), kept while
+## the ground round it stays the same.
+static func pond_texture(f: FarmGrid, pond: PondShape) -> ImageTexture:
+	var keys := {}
+	for y in range(pond.picture.position.y, pond.picture.end.y):
+		for x in range(pond.picture.position.x, pond.picture.end.x):
+			var c := Vector2i(x, y)
+			keys[c] = PlaceholderArt.ground_key(f, c)
+	var id := "%d|%d" % [pond.cells.hash(), keys.hash()]
+	if not _pond_tex.has(id):
+		var base := func(at: Vector2i) -> Color:
+			return PlaceholderArt.image(keys.get(Vector2i(floori(at.x / float(T)), floori(at.y / float(T))), "ground:grass:0")).get_pixel(posmod(at.x, T), posmod(at.y, T))
+		var grass := func(at: Vector2i) -> Color:
+			return PlaceholderArt.image("ground:grass:%d" % posmod(at.x / T * 7 + at.y / T * 13, PlaceholderArt.GROUND_VARIANTS)).get_pixel(posmod(at.x, T), posmod(at.y, T))
+		_pond_tex[id] = ImageTexture.create_from_image(pond.paint(base, grass))
+	return _pond_tex[id]
 
 
 func _draw_objects() -> void:
-	if not farm.sheltered:   # the pond lies lower (SunkenGround in 3D): its bank over the water's skin, under the rest
-		MapView.draw_banks(_objects, farm.w, farm.h, func(c: Vector2i) -> bool: return farm.fixed_at(c) == "pond")
+	var pond := PondShape.of_farm(farm)
+	if not farm.sheltered and pond != null:   # the pond lies lower (a sloping shore in 3D): its stones over the water's skin, under the rest
+		MapView.shore_stones(_objects, pond)
 	_tall = false
 	_sway = _sway_for(Time.get_ticks_msec() / 1000.0)
 	for kind in ROOFS:   # the roofs first: the doors in their front rows are drawn over them below

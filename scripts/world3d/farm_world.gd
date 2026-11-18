@@ -111,6 +111,8 @@ func _make_edges() -> void:
 	add_surroundings(FarmGrid.W, FarmGrid.H,
 		func(c: Vector2i) -> String: return PlaceholderArt.ground_key(farm, c).get_slice(":", 1),
 		func(c: Vector2i) -> float: return SnowLayer.hold(farm, c, rules), "farm")
+	if surroundings.water != null and PondShape.of_farm(farm) != null:   # the pond's stiller blue-green skin
+		surroundings.water.set_looks(func(c: Vector2i) -> String: return "pond" if farm.fixed_at(c) == "pond" else "")
 
 
 ## The grass tufts, the tall crops and what stands or lies on the field, then the snow.
@@ -485,8 +487,12 @@ func _make_ground() -> void:
 		_wet_mask = ImageTexture.create_from_image(WetRules.farm_mask(farm))
 		mat = SnowLayer.ground_material(vp.get_texture(), _snow_mask, _wet_mask)
 		_snow_mats.append(mat)
-	# A grid of cells, the pond sunk below the land with stone banks (SunkenGround).
-	SunkenGround.place(self, farm.w, farm.h, Vector2.ZERO, func(c: Vector2i) -> bool: return farm.fixed.get(c, "") == "pond", mat)
+	# A grid of cells, the pond sunk below the land, its soft shore sloping down (SunkenGround,
+	# PondShape.of_farm, 2026-11-18: no longer stone banks) with small stones along its waterline.
+	var pond := PondShape.of_farm(farm)
+	SunkenGround.place(self, farm.w, farm.h, Vector2.ZERO, func(c: Vector2i) -> bool: return farm.fixed.get(c, "") == "pond", mat, 0.0, Callable(), [pond] if pond != null else [])
+	if pond != null:   # kept a run (MeshCache), as the village ponds' stones
+		MeshCache.build(self, "pond_stones|farm|%d|%s" % [pond.cells.hash(), farm.sheltered], func() -> void: GardenProps.shore_stones(self, pond, not farm.sheltered))
 
 
 ## Lit material with a PlaceholderArt surface repeated once per world unit. Triplanar in the
