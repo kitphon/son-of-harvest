@@ -10,6 +10,16 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-18 — arashiyama-vista merged into arashiyama-town
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user asked to merge arashiyama-vista into arashiyama-town. arashiyama-town had no
+  commits of its own past 8bb8cf4, so it was fast-forwarded to 7db016e, 34 commits (`git fetch .
+  arashiyama-vista:arashiyama-town`, pushed). This entry is on both branches.
+- Checked: arashiyama-town, origin/arashiyama-town and arashiyama-vista all at 7db016e before
+  this commit; the tree is the one the last entry tested (all 44 tests OK, smoke 0 ERROR,
+  windowed exit 0).
+- Left / next: merge into main when the user says so.
+
 ## 2026-11-18 — The farm pond's reeds taken out — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user did not want the reed clumps (circled on a screenshot: the tall spiky stems
