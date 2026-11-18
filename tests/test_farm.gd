@@ -316,7 +316,7 @@ func _charge_rules(crops: Dictionary, game_script: GDScript) -> void:
 	check(ff.area_cells(Vector2i(4, 4), Vector2i.UP, hoe5).is_empty(), "area leaves out the house")
 	var can6: Array = tools.tools.can.charges[2].area
 	var by_pond := ff.area_cells(Vector2i(24, 4), Vector2i.RIGHT, can6)
-	check(by_pond == ([Vector2i(25, 5), Vector2i(26, 5)] as Array[Vector2i]), "can area leaves out the pond (%s)" % [by_pond])
+	check(by_pond == ([Vector2i(25, 5), Vector2i(25, 4), Vector2i(26, 5)] as Array[Vector2i]), "can area leaves out the pond, (25, 4) land since the pond's own shape (%s)" % [by_pond])
 	# A charged swing hits harder: 2 hits on a 4-hit stump, then a 4-hit swing clears it.
 	var st := Vector2i(12, 12)
 	ff.cell(st).obj = FarmGrid.Obj.STUMP

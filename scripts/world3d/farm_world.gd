@@ -111,8 +111,11 @@ func _make_edges() -> void:
 	add_surroundings(FarmGrid.W, FarmGrid.H,
 		func(c: Vector2i) -> String: return PlaceholderArt.ground_key(farm, c).get_slice(":", 1),
 		func(c: Vector2i) -> float: return SnowLayer.hold(farm, c, rules), "farm")
-	if surroundings.water != null and PondShape.of_farm(farm) != null:   # the pond's stiller blue-green skin
+	var pond := PondShape.of_farm(farm)
+	if surroundings.water != null and pond != null:   # the pond's stiller blue-green skin
 		surroundings.water.set_looks(func(c: Vector2i) -> String: return "pond" if farm.fixed_at(c) == "pond" else "")
+	if pond != null and not farm.sheltered:   # its reeds, irises and lily pads (data/pond_plants.json)
+		add_child(PondPlantLayer.new(pond))
 
 
 ## The grass tufts, the tall crops and what stands or lies on the field, then the snow.

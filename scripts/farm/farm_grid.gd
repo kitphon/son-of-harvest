@@ -25,6 +25,14 @@ const CLEAR_RULES := {
 const CHEST := Vector2i(7, 3)   # the storage chest, right of the house
 const COOP := Rect2i(13, 1, 5, 3)    # the chicken coop's footprint, its door in the front middle
 const COOP_DOOR := Vector2i(15, 3)
+## The pond (2026-11-18, the user: the farm pond looked plain): not a 4 x 3 block but a pond of
+## its own shape, a bulge up north under the fence and its south-west corner land, so its soft
+## shore (PondShape.of_farm) reads as a pond, not a rounded box. (25, 3) stays water: the farmer
+## fishes there from (24, 3); (28, 1), the barn's yard (y 5) and the silo's cells stay land.
+const POND: Array[Vector2i] = [Vector2i(26, 1), Vector2i(27, 1),
+	Vector2i(25, 2), Vector2i(26, 2), Vector2i(27, 2), Vector2i(28, 2),
+	Vector2i(25, 3), Vector2i(26, 3), Vector2i(27, 3), Vector2i(28, 3),
+	Vector2i(26, 4), Vector2i(27, 4), Vector2i(28, 4)]
 const BARN := Rect2i(19, 1, 5, 3)    # the barn's footprint, between the coop and the pond
 const BARN_DOOR := Vector2i(21, 3)
 ## The extensions seen from outside (Game.house_built: coop_wing, barn_wing). The coop grows two
@@ -91,9 +99,7 @@ func generate(rng: RandomNumberGenerator) -> void:
 	fixed[Vector2i(10, 3)] = "stand"
 	_place_coop()
 	_place_barn()
-	for y in range(2, 5):
-		for x in range(25, 29):
-			fixed[Vector2i(x, y)] = "pond"
+	_shape_pond()
 
 	for y in range(7, H - 1):
 		for x in range(1, W - 1):
@@ -120,11 +126,31 @@ func add_missing_fixed() -> void:
 	if not "barn" in fixed.values():
 		_place_barn()
 		cells_changed.emit()
+	if "pond" in fixed.values() and _shape_pond():   # a save from before the pond's own shape
+		cells_changed.emit()
 	if "chest" in fixed.values() or fixed_at(CHEST) != "":
 		return
 	cells[CHEST.y * W + CHEST.x] = _empty_cell()
 	fixed[CHEST] = "chest"
 	cells_changed.emit()
+
+
+## Lays the pond on POND's cells: other pond cells go back to open ground, POND's cells that are
+## open ground are cleared and turned to water. True when anything changed.
+func _shape_pond() -> bool:
+	var changed := false
+	for c in fixed.keys():
+		if fixed[c] == "pond" and not c in POND:
+			fixed.erase(c)
+			cells[c.y * W + c.x] = _empty_cell()
+			changed = true
+	for c in POND:
+		if fixed_at(c) == "":
+			cells[c.y * W + c.x] = _empty_cell()
+			items.erase(c)
+			fixed[c] = "pond"
+			changed = true
+	return changed
 
 
 ## The coop's footprint with its wing when `built` (Game.house_built) holds it.

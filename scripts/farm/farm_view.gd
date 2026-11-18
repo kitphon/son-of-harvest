@@ -192,6 +192,24 @@ func _draw() -> void:
 			draw_texture(tex, Vector2(pond.picture.position * T))
 
 
+## The pond's lily pads, reeds and irises seen from the flat view (PondPlantRules): pads lying
+## on the water centred on their spot, then the clumps standing on theirs (feet at the spot).
+static func draw_pond_plants(ci: CanvasItem, season: String, day: int) -> void:
+	var spots := PondPlantRules.spots("farm")
+	for pads in [true, false]:
+		for spot in spots:
+			if (spot.kind == "lily") != pads:
+				continue
+			var key := PondPlantRules.key(spot, season, day)
+			if key == "":
+				continue
+			var tex := PlaceholderArt.tex(key)
+			var at: Vector2 = (spot.pos as Vector2) * T
+			var size := Vector2(tex.get_size())
+			var top := at - Vector2(size.x / 2.0, size.y / 2.0 if pads else size.y)
+			ci.draw_texture(tex, top.round())
+
+
 static var _pond_tex: Dictionary = {}   # the farm pond's cells and the ground under them -> its soft shore's picture
 
 
@@ -217,6 +235,8 @@ func _draw_objects() -> void:
 	var pond := PondShape.of_farm(farm)
 	if not farm.sheltered and pond != null:   # the pond lies lower (a sloping shore in 3D): its stones over the water's skin, under the rest
 		MapView.shore_stones(_objects, pond)
+		var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
+		draw_pond_plants(_objects, game.season_name() if game != null else "summer", int(game.day) if game != null else 10)
 	_tall = false
 	_sway = _sway_for(Time.get_ticks_msec() / 1000.0)
 	for kind in ROOFS:   # the roofs first: the doors in their front rows are drawn over them below

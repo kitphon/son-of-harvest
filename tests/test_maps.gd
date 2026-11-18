@@ -143,7 +143,23 @@ func _plain_ponds() -> void:
 	rng.seed = 7
 	farm.generate(rng)
 	var fp := PondShape.of_farm(farm)
-	check(fp != null and fp.look == "pond" and fp.cells.size() == 12 and fp.bounds == Rect2i(24, 1, 6, 5), "the farm pond is a plain soft pond (%s)" % [fp.bounds if fp != null else null])
+	check(fp != null and fp.look == "pond" and fp.cells.size() == FarmGrid.POND.size() and fp.bounds == Rect2i(24, 0, 6, 6), "the farm pond is a plain soft pond (%s)" % [fp.bounds if fp != null else null])
+	# The user (2026-11-18): the farm pond looked plain. Its own shape, not a block: a bulge north, its south-west corner land.
+	check(farm.fixed_at(Vector2i(26, 1)) == "pond" and farm.fixed_at(Vector2i(25, 4)) == "" and farm.fixed_at(Vector2i(25, 3)) == "pond" and farm.fixed_at(Vector2i(24, 3)) == "" and farm.fixed_at(Vector2i(28, 1)) == "",
+		"the farm pond's own shape: north bulge, south-west corner land, the fishing spot (24, 3) -> (25, 3) kept")
+	check(float(PondShape.STYLES.pond.wobble) > float(PondShape.STYLES.jade.wobble), "the plain pond's shoreline wobbles more than the temple's")
+	var old := FarmGrid.new(root.get_node("Game").crops)
+	old.generate(rng)
+	for c in old.fixed.keys():
+		if old.fixed[c] == "pond":
+			old.fixed.erase(c)
+	for y in range(2, 5):
+		for x in range(25, 29):
+			old.fixed[Vector2i(x, y)] = "pond"
+	old.add_missing_fixed()
+	var old_pond := old.fixed.keys().filter(func(c) -> bool: return old.fixed[c] == "pond")
+	check(old_pond.size() == FarmGrid.POND.size() and FarmGrid.POND.all(func(c: Vector2i) -> bool: return old.fixed_at(c) == "pond"), "a save with the old block pond loads with the new shape")
+	_pond_plants(farm, fp)
 	var fwater := func(c: Vector2i) -> bool: return farm.fixed.get(c, "") == "pond"
 	var fwalls: ArrayMesh = SG.banks(farm.w, farm.h, Vector2.ZERO, fwater, Callable(), [fp])
 	check(fwalls == null, "3D: no stone walls round the farm pond")
@@ -154,6 +170,63 @@ func _plain_ponds() -> void:
 	var fw_src := FileAccess.get_file_as_string("res://scripts/world3d/farm_world.gd")
 	var fv_src := FileAccess.get_file_as_string("res://scripts/farm/farm_view.gd")
 	check("PondShape.of_farm" in fw_src and "GardenProps.shore_stones" in fw_src and "MapView.shore_stones" in fv_src and "MapView.draw_banks" not in fv_src, "both farm views lay the soft shore and its stones")
+
+
+## The farm pond's reeds, irises and lily pads (data/pond_plants.json, PondPlantRules, PondPlantArt,
+## PondPlantLayer, FarmView.draw_pond_plants; 2026-11-18, the user: the farm pond looked plain).
+func _pond_plants(farm: FarmGrid, fp: PondShape) -> void:
+	var cfg := PondPlantRules.data()
+	var spots := PondPlantRules.spots("farm")
+	var kinds := {}
+	var placed := true
+	var clear := Vector2(float(cfg.clear.cell[0]), float(cfg.clear.cell[1]))
+	for spot in spots:
+		kinds[spot.kind] = int(kinds.get(spot.kind, 0)) + 1
+		var f := fp.field(spot.pos)
+		var ok := fp.on_bed(spot.pos) if spot.kind == "lily" else (f >= float(cfg.bank[0]) and f <= float(cfg.bank[1]))
+		ok = ok and (spot.pos as Vector2).distance_to(clear) > float(cfg.clear.radius)
+		if not ok:
+			placed = false
+			print("  pond plant off its place: %s %s field %.2f" % [spot.kind, spot.pos, f])
+	check(kinds.get("reed", 0) >= 3 and kinds.get("iris", 0) >= 2 and kinds.get("lily", 0) >= 3, "pond plants: reeds, irises and lily pads (%s)" % [kinds])
+	check(placed, "pond plants: reeds and irises in the shallows on the bank, pads over the bed, none by the fishing spot")
+	# None hides the water: no reed or iris on the south bank (in front, from the camera).
+	var front := spots.filter(func(sp) -> bool: return sp.kind == "reed" and (sp.pos as Vector2).y > 3.5)
+	check(front.is_empty(), "pond plants: no reed on the near bank (%s)" % [front])
+	var reed: Dictionary = spots.filter(func(sp) -> bool: return sp.kind == "reed")[0]
+	var iris: Dictionary = spots.filter(func(sp) -> bool: return sp.kind == "iris")[0]
+	var pads := spots.filter(func(sp) -> bool: return sp.kind == "lily")
+	check(PondPlantRules.key(reed, "winter", 10) == "pondplant:reed:dry:0" and PondPlantRules.key(iris, "winter", 10) == "" and PondPlantRules.key(pads[0], "winter", 10) == "",
+		"pond plants: winter leaves dry reeds only")
+	check(PondPlantRules.key(iris, "summer", 5).contains(":bloom:") and not PondPlantRules.key(iris, "summer", 20).contains(":bloom:") and PondPlantRules.key(iris, "spring", 25).contains(":bloom:"),
+		"pond plants: the irises flower late spring into early summer only")
+	var pad_blooms := pads.filter(func(sp) -> bool: return PondPlantRules.key(sp, "summer", 10).contains(":bloom:")).size()
+	check(pad_blooms >= 1 and pad_blooms < pads.size() and not PondPlantRules.key(pads[0], "fall", 10).contains(":bloom:"), "pond plants: some pads flower in summer (%d)" % pad_blooms)
+	var sizes_ok := true
+	for k in ["pondplant:reed:tall:0", "pondplant:reed:dry:1", "pondplant:iris:bloom:0", "pondplant:iris:fade:2", "pondplant:lily:full:0", "pondplant:lily:bloom:3"]:
+		var img := PlaceholderArt.image(k)
+		var used := img.get_used_rect()
+		sizes_ok = sizes_ok and used.size.x >= 6 and used.size.y >= 6
+	check(sizes_ok, "pond plants: every picture drawn")
+	var bloom_img := PlaceholderArt.image("pondplant:iris:bloom:0")
+	var violet := 0
+	for y in bloom_img.get_height():
+		for x in bloom_img.get_width():
+			violet += 1 if PondPlantArt.IRIS_FLOWER.has(bloom_img.get_pixel(x, y)) else 0
+	check(violet >= 8, "pond plants: the iris in bloom shows violet flowers (%d pixels)" % violet)
+	var layer: Node3D = load("res://scripts/world3d/pond_plant_layer.gd").new(fp)
+	layer._make()
+	var season: String = root.get_node("Game").season_name()
+	var want := spots.filter(func(sp) -> bool: return PondPlantRules.key(sp, season, root.get_node("Game").day) != "").size()
+	check(layer.count() == want and want > 0, "3D: a sprite for each plant showing (%d of %d)" % [layer.count(), want])
+	var drop := float(load("res://scripts/world3d/sunken_ground.gd").DROP)
+	var pad_ok := layer.get_children().filter(func(n: Node) -> bool: return n.get_meta("pond_plant") == "lily").all(func(n: Sprite3D) -> bool:
+		return n.billboard == BaseMaterial3D.BILLBOARD_DISABLED and n.render_priority > 0 and n.position.y > -drop + 0.01)
+	check(pad_ok, "3D: the pads lie flat over the water's skin, drawn after it")
+	layer.free()
+	var fw_src := FileAccess.get_file_as_string("res://scripts/world3d/farm_world.gd")
+	var fv_src := FileAccess.get_file_as_string("res://scripts/farm/farm_view.gd")
+	check("PondPlantLayer.new" in fw_src and "draw_pond_plants(" in fv_src, "both farm views draw the pond's plants")
 
 
 func _soft_pond() -> void:

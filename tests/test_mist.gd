@@ -108,7 +108,7 @@ func _scenes() -> void:
 	var rs: Dictionary = MR.scene_of(MM.data("river"))
 	check(rs.cells.size() > 20 and rs.kinds.has("water") and not rs.kinds.has("paddy"), "river: its water (%d)" % rs.cells.size())
 	var fs: Dictionary = MR.scene_of(MM.data("farm"), g.farm)
-	check(fs.cells.size() == 12 and fs.kinds.count("water") == 12, "farm: the pond's twelve cells (%d)" % fs.cells.size())
+	check(fs.cells.size() == FarmGrid.POND.size() and fs.kinds.count("water") == FarmGrid.POND.size(), "farm: the pond's cells (%d)" % fs.cells.size())
 	# Planted rice on the farm's plots is paddy, any growth; other crops make none.
 	var rice_at: Array = []
 	for rx in range(8, 20):
@@ -117,7 +117,7 @@ func _scenes() -> void:
 		g.farm.cells[c.y * g.farm.w + c.x].crop = "rice"
 	g.farm.cells[12 * g.farm.w + 12].crop = "turnip"
 	var fr: Dictionary = MR.scene_of(MM.data("farm"), g.farm)
-	check(fr.kinds.count("paddy") == 12 and fr.kinds.count("water") == 12, "farm: twelve rice plots add twelve paddy cells (%d)" % fr.kinds.count("paddy"))
+	check(fr.kinds.count("paddy") == 12 and fr.kinds.count("water") == FarmGrid.POND.size(), "farm: twelve rice plots add twelve paddy cells (%d)" % fr.kinds.count("paddy"))
 	check(fr.cells.has(Vector2(10.5, 10.5)) and not fr.cells.has(Vector2(12.5, 12.5)), "farm: rice cells yes, a turnip no")
 	check(MR.rice_cells(g.farm).size() == 12 and MR.rice_cells(null).is_empty(), "rice_cells: the planted rice only")
 	var fa: Array = MR.sheets(fr, {"paddy": 1.0}, 3.0, 0.0, "summer")

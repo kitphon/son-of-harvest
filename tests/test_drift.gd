@@ -167,7 +167,7 @@ func _scenes() -> void:
 	check(ts.wet.size() > 0 and ts.dry.size() > 0, "town: water and open grass spots (%d / %d)" % [ts.wet.size(), ts.dry.size()])
 	var farm: FarmGrid = g.farm
 	var fs: Dictionary = DR.scene_of(MM.data("farm"), farm)
-	check(fs.wet.size() == 12 and fs.dry.size() > 0, "farm: the pond's twelve cells and grass spots (%d / %d)" % [fs.wet.size(), fs.dry.size()])
+	check(fs.wet.size() == FarmGrid.POND.size() and fs.dry.size() > 0, "farm: the pond's cells and grass spots (%d / %d)" % [fs.wet.size(), fs.dry.size()])
 	var plus: Dictionary = DR.scene_of(town, null, [{"kind": "sakura", "cell": [12, 7]}])
 	check(plus.trees.petal.size() == ts.trees.petal.size() + 1, "a festival cherry adds a petal tree")
 	_when(0, 10, 0, "sunny")

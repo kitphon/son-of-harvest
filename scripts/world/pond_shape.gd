@@ -31,10 +31,11 @@ const DEEP := 0.8     # the field's level where the bank's slope reaches the bed
 const LOOK := "jade"
 const LOOKS: Array[String] = ["jade", "pond"]   # the water looks laid with a soft shore, each its own shape
 ## A look's own touches: `water` the colour where the rounded shore runs past a water cell,
-## `keep` how many in 1000 of the waterline's spots get a stone, `size` its smallest and `grow` its spread.
+## `keep` how many in 1000 of the waterline's spots get a stone, `size` its smallest and `grow` its spread,
+## `wobble` how far the shoreline's slow waves reach (times WOBBLE: the plain pond's wilder, 2026-11-18).
 const STYLES := {
-	"jade": {"water": Color("3a7f72"), "keep": 560, "size": 0.35, "grow": 1.0 / 1.5},
-	"pond": {"water": Color("3d7790"), "keep": 300, "size": 0.25, "grow": 0.45},
+	"jade": {"water": Color("3a7f72"), "keep": 560, "size": 0.35, "grow": 1.0 / 1.5, "wobble": 1.0},
+	"pond": {"water": Color("3d7790"), "keep": 300, "size": 0.25, "grow": 0.45, "wobble": 1.7},
 }
 const T := 16
 
@@ -159,7 +160,7 @@ func field(p: Vector2) -> float:
 			if cells.has(c):
 				sum += _cover(p.x - c.x) * _cover(p.y - c.y)
 	sum = clampf(sum, 0.0, 1.0)
-	return clampf(sum + wobble(p) * 4.0 * sum * (1.0 - sum), 0.0, 1.0)
+	return clampf(sum + wobble(p) * float(STYLES[look].wobble) * 4.0 * sum * (1.0 - sum), 0.0, 1.0)
 
 
 ## A few slow waves over the map (cells), -WOBBLE..WOBBLE: the shoreline's bays and points.

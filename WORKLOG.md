@@ -10,6 +10,42 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-18 — The farm pond: its own shape, reeds, irises and lily pads — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user still found the farm pond plain and picked three of the suggested changes: an
+  irregular shape, plants on its banks and lily pads.
+  - Shape: FarmGrid.POND (13 cells, not the 4 x 3 block). It has a bulge north under the fence
+    ((26, 1), (27, 1)) and its south-west corner (25, 4) is land. (25, 3) stays water for fishing
+    from (24, 3). (28, 1), the barn's yard and the silo's cells stay land. FarmGrid._shape_pond
+    lays it in generate and in add_missing_fixed, so an old save's block is reshaped on load.
+    PondShape STYLES `wobble`: the plain pond's shoreline waves 1.7 times the temple's.
+  - Plants: data/pond_plants.json places reed and iris clumps in the shallows on the bank's slope
+    and lily pads over the bed, by hand on the pond's shape. The reeds stand on the far
+    (north-east) and east banks, so none hides the water from the camera (a first try with
+    clumps on the south bank covered the pond). Nothing grows by the fishing spot.
+  - Seasons: reeds young in spring, tall with cattail heads in summer, gold in fall, dry straw
+    in winter. Irises are leaves, then violet flowers from spring 20 to summer 14, yellowing in
+    fall, and gone in winter. Pads are young in spring, full in summer (two of five with a pink
+    flower), yellow-brown in fall, and gone in winter.
+  - Code: PondPlantRules (pure); PondPlantArt (pictures lit from the upper left; PlaceholderArt
+    `pondplant:<kind>:<stage>:<variant>`). PondPlantLayer in 3D: the clumps upright on the
+    slope's height, the pads flat and blended, drawn after the water's skin (render_priority 1:
+    with alpha cut the skin veiled them). FarmView.draw_pond_plants in the flat view.
+- Checked: test_maps `_plain_ponds` / `_pond_plants`:
+  - the pond's shape and the fishing spot kept;
+  - an old block pond reshaped on load;
+  - every spot on its band or over the bed and clear of the fishing spot, no reed on the near bank;
+  - winter dry reeds only; the irises' flowering window; some pads flowering;
+  - the pictures drawn (violet in the iris); the 3D layer's sprites with the pads flat over the
+    skin; both views wired.
+  test_farm: the can's area by the pond now takes in (25, 4). Frames
+  `--demo --map=farm@silo --time=11:00 --weather=sunny` in spring 25, summer 5, fall 10 and
+  winter 10, and the flat view in summer: as described. test_drift and test_mist
+  counted 12 pond cells; now FarmGrid.POND's. All 44 tests/test_*.gd print `OK (0 failed)` (drift
+  and mist after that fix); smoke `--quit-after 300` (title, `--demo`, `--demo --map=town`, `--demo
+  --mine=3`, `--demo --season=summer --day=5`): 0 ERROR lines; windowed `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the user's look; Ogura pond has no plants (only the farm pond was asked for).
+
 ## 2026-11-18 — Soft shores for the farm pond and Ogura pond — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user wanted the farm pond and the pond beside the bamboo (Ogura pond, the village's
