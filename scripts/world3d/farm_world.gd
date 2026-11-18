@@ -114,7 +114,7 @@ func _make_edges() -> void:
 	var pond := PondShape.of_farm(farm)
 	if surroundings.water != null and pond != null:   # the pond's stiller blue-green skin
 		surroundings.water.set_looks(func(c: Vector2i) -> String: return "pond" if farm.fixed_at(c) == "pond" else "")
-	if pond != null and not farm.sheltered:   # its reeds, irises and lily pads (data/pond_plants.json)
+	if pond != null and not farm.sheltered:   # its irises and lily pads (data/pond_plants.json)
 		add_child(PondPlantLayer.new(pond))
 
 

@@ -172,7 +172,7 @@ func _plain_ponds() -> void:
 	check("PondShape.of_farm" in fw_src and "GardenProps.shore_stones" in fw_src and "MapView.shore_stones" in fv_src and "MapView.draw_banks" not in fv_src, "both farm views lay the soft shore and its stones")
 
 
-## The farm pond's reeds, irises and lily pads (data/pond_plants.json, PondPlantRules, PondPlantArt,
+## The farm pond's irises and lily pads (data/pond_plants.json, PondPlantRules, PondPlantArt,
 ## PondPlantLayer, FarmView.draw_pond_plants; 2026-11-18, the user: the farm pond looked plain).
 func _pond_plants(farm: FarmGrid, fp: PondShape) -> void:
 	var cfg := PondPlantRules.data()
@@ -188,22 +188,18 @@ func _pond_plants(farm: FarmGrid, fp: PondShape) -> void:
 		if not ok:
 			placed = false
 			print("  pond plant off its place: %s %s field %.2f" % [spot.kind, spot.pos, f])
-	check(kinds.get("reed", 0) >= 3 and kinds.get("iris", 0) >= 2 and kinds.get("lily", 0) >= 3, "pond plants: reeds, irises and lily pads (%s)" % [kinds])
-	check(placed, "pond plants: reeds and irises in the shallows on the bank, pads over the bed, none by the fishing spot")
-	# None hides the water: no reed or iris on the south bank (in front, from the camera).
-	var front := spots.filter(func(sp) -> bool: return sp.kind == "reed" and (sp.pos as Vector2).y > 3.5)
-	check(front.is_empty(), "pond plants: no reed on the near bank (%s)" % [front])
-	var reed: Dictionary = spots.filter(func(sp) -> bool: return sp.kind == "reed")[0]
+	check(kinds.get("iris", 0) >= 2 and kinds.get("lily", 0) >= 3 and not kinds.has("reed"), "pond plants: irises and lily pads, no reeds (the user, 2026-11-18) (%s)" % [kinds])
+	check(placed, "pond plants: irises in the shallows on the bank, pads over the bed, none by the fishing spot")
 	var iris: Dictionary = spots.filter(func(sp) -> bool: return sp.kind == "iris")[0]
 	var pads := spots.filter(func(sp) -> bool: return sp.kind == "lily")
-	check(PondPlantRules.key(reed, "winter", 10) == "pondplant:reed:dry:0" and PondPlantRules.key(iris, "winter", 10) == "" and PondPlantRules.key(pads[0], "winter", 10) == "",
-		"pond plants: winter leaves dry reeds only")
+	check(PondPlantRules.key(iris, "winter", 10) == "" and PondPlantRules.key(pads[0], "winter", 10) == "",
+		"pond plants: none in winter")
 	check(PondPlantRules.key(iris, "summer", 5).contains(":bloom:") and not PondPlantRules.key(iris, "summer", 20).contains(":bloom:") and PondPlantRules.key(iris, "spring", 25).contains(":bloom:"),
 		"pond plants: the irises flower late spring into early summer only")
 	var pad_blooms := pads.filter(func(sp) -> bool: return PondPlantRules.key(sp, "summer", 10).contains(":bloom:")).size()
 	check(pad_blooms >= 1 and pad_blooms < pads.size() and not PondPlantRules.key(pads[0], "fall", 10).contains(":bloom:"), "pond plants: some pads flower in summer (%d)" % pad_blooms)
 	var sizes_ok := true
-	for k in ["pondplant:reed:tall:0", "pondplant:reed:dry:1", "pondplant:iris:bloom:0", "pondplant:iris:fade:2", "pondplant:lily:full:0", "pondplant:lily:bloom:3"]:
+	for k in ["pondplant:iris:bloom:0", "pondplant:iris:fade:2", "pondplant:lily:full:0", "pondplant:lily:bloom:3"]:
 		var img := PlaceholderArt.image(k)
 		var used := img.get_used_rect()
 		sizes_ok = sizes_ok and used.size.x >= 6 and used.size.y >= 6

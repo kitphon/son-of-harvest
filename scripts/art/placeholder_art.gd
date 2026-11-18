@@ -78,7 +78,7 @@ static func _make(key: String) -> Image:
 			return KoiArt.make(parts[1], int(parts[2]), int(parts[3]))
 		"pondkoi":  # pondkoi:<kohaku|orange|ogon|showa|shiro|asagi>:<frame 0..2>, a koi in the temple pond seen from above (KoiPondArt)
 			return KoiPondArt.make(parts[1], int(parts[2]))
-		"pondplant":  # pondplant:<reed|iris|lily>:<stage>:<variant>, the farm pond's reeds, irises and lily pads (PondPlantArt, PondPlantRules)
+		"pondplant":  # pondplant:<iris|lily>:<stage>:<variant>, the farm pond's irises and lily pads (PondPlantArt, PondPlantRules)
 			return PondPlantArt.make(parts[1], parts[2], int(parts[3]))
 		"fish_fx":  # fish_fx:<bobber|alert>, the float on the water and the "!" of a bite
 			return _fish_fx(parts[1])

@@ -192,7 +192,7 @@ func _draw() -> void:
 			draw_texture(tex, Vector2(pond.picture.position * T))
 
 
-## The pond's lily pads, reeds and irises seen from the flat view (PondPlantRules): pads lying
+## The pond's lily pads and irises seen from the flat view (PondPlantRules): pads lying
 ## on the water centred on their spot, then the clumps standing on theirs (feet at the spot).
 static func draw_pond_plants(ci: CanvasItem, season: String, day: int) -> void:
 	var spots := PondPlantRules.spots("farm")

@@ -1,7 +1,7 @@
 class_name PondPlantLayer
 extends Node3D
-## The farm pond's reeds, irises and lily pads in 3D (PondPlantRules, data/pond_plants.json;
-## pictures: PondPlantArt). Reeds and irises stand upright on the bank's slope where they grow, in
+## The farm pond's irises and lily pads in 3D (PondPlantRules, data/pond_plants.json;
+## pictures: PondPlantArt). Irises stand upright on the bank's slope where they grow, in
 ## the shallows; pads lie flat a hair over the water's skin (WaterSurface.LIFT), drawn at the
 ## ground's own pixel size like the koi, drawn after the skin. Made again each morning (the season, the flowers).
 
@@ -50,7 +50,7 @@ func _make() -> void:
 		add_child(s)
 
 
-## How far below the land `spot` stands (world units, negative): reeds and irises on the bank's
+## How far below the land `spot` stands (world units, negative): irises on the bank's
 ## slope where they grow, pads just over the water's skin.
 static func height(spot: Dictionary, shape: PondShape) -> float:
 	if spot.kind == "lily":

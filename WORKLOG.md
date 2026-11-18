@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-18 — The farm pond's reeds taken out — branch arashiyama-vista
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user did not want the reed clumps (circled on a screenshot: the tall spiky stems
+  with cattail heads on the north-east bank). I first took the irises out by mistake. That was
+  put back before anything was committed, and the reeds were taken out instead.
+  - Data and rules: data/pond_plants.json has no `reed` spots or seasons left, and
+    PondPlantRules.KINDS is iris and lily.
+  - Art: PondPlantArt lost the reed picture.
+  - Tests: test_maps checks there are irises and pads and no reeds, and that none show in winter.
+- Checked: frames `--demo --map=farm@silo --season=summer --day=5 --time=11:00
+  --weather=sunny`, 3D and flat: irises on the banks and pads on the water, no reeds. All 44
+  tests/test_*.gd print `OK (0 failed)`. Smoke `--quit-after 300` (title, `--demo`, `--demo
+  --map=town`, `--demo --mine=3`, `--demo --season=summer --day=5`): 0 ERROR lines. Windowed
+  `--quit-after 150 -- --demo`: exit 0.
+- Left / next: the user's look at the pond now.
+
 ## 2026-11-18 — The farm pond: its own shape, reeds, irises and lily pads — branch arashiyama-vista
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user still found the farm pond plain and picked three of the suggested changes: an

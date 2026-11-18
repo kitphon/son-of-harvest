@@ -1,12 +1,12 @@
 class_name PondPlantRules
 extends RefCounted
-## Reeds, irises and lily pads in and round the farm pond (data/pond_plants.json; 2026-11-18, the
+## Irises and lily pads in and round the farm pond (data/pond_plants.json; 2026-11-18, the
 ## user: the farm pond looked plain). Pure: which spots a map has, what each looks like on a day
 ## (its picture's key, or "" when it is not there), and where it stands. PondPlantLayer (3D) and
 ## FarmView (flat) draw them; PondPlantArt paints the pictures.
 
 const PATH := "res://data/pond_plants.json"
-const KINDS: Array[String] = ["reed", "iris", "lily"]
+const KINDS: Array[String] = ["iris", "lily"]   # reeds tried and taken out (2026-11-18, the user: their spiky clumps did not look good)
 
 static var _cfg: Dictionary = {}
 
@@ -17,7 +17,7 @@ static func data() -> Dictionary:
 	return _cfg
 
 
-## The spots on map `map_id`: [{kind, pos: Vector2 (cells), variant}], reeds and irises before pads.
+## The spots on map `map_id`: [{kind, pos: Vector2 (cells), variant}], irises before pads.
 static func spots(map_id: String, cfg: Dictionary = {}) -> Array:
 	var c := cfg if not cfg.is_empty() else data()
 	var here: Dictionary = (c.ponds as Dictionary).get(map_id, {})
