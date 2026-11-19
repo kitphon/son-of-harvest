@@ -10,6 +10,16 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-19 — arashiyama-town merged into main
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user asked to merge into main. main (2a8b01b) had no commits of its own, so it was
+  fast-forwarded to arashiyama-town's 8d2b726: 44 commits, the Arashiyama village and the
+  mountain views, the soft ponds, the farm pond's plants, the room and wall fixes. Pushed. The
+  work goes on on main now.
+- Checked: `git merge --ff-only`; the tree is the one the last entry tested (all 44 tests OK,
+  smoke 0 ERROR, windowed exit 0).
+- Left / next: arashiyama-town and arashiyama-vista are kept as they are (not deleted).
+
 ## 2026-11-19 — The farmhouse's second room reachable; the temple wall's corners closed — branch arashiyama-town
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: two reports from the user, with screenshots.
