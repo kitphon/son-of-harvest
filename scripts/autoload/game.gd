@@ -1371,6 +1371,12 @@ func arms_full() -> bool:
 	return baby_held or crawler_held() or animals.dog.held
 
 
+## The baby or the crawler is in the farmer's arms: held against the chest (the cradle pose,
+## FigureArt.cradle_at), not overhead like an item or the dog.
+func cradling() -> bool:
+	return baby_held or crawler_held()
+
+
 ## The sprite key for what is carried overhead: the held item, the dog in the arms, the baby or the crawler.
 func held_key() -> String:
 	if baby_held:

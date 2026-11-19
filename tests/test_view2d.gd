@@ -87,7 +87,7 @@ func _figure_sort() -> void:
 	var av = _av(scene.view)
 	check(player.get_parent() == figs and vv != null and vv.y_sort_enabled and av != null and av.y_sort_enabled and not player.y_sort_enabled,
 		"in it: the farmer, the villagers and the animals (each sorting their own figures with the rest)")
-	check(figs.shadows != null and figs.shadows.get_index() == figs.get_index() - 1 and player.get_children().all(func(n): return n is Camera2D or n.name == "Figure"),
+	check(figs.shadows != null and figs.shadows.get_index() == figs.get_index() - 1 and player.get_children().all(func(n): return n is Camera2D or n.name in ["Figure", "HeldBehind"]),
 		"the farmer's contact shadow is drawn on the ground just before the figures, not by the Player")
 	check(scene.flying.get_parent() == scene and scene.flying.get_index() > scene.view.get_index() and scene.weather.z_index > 0,
 		"the thrown item in flight is drawn after the whole map view, the weather over it")
@@ -324,7 +324,9 @@ func _cradle() -> void:
 	check(_is(cv, "cradle_view.gd") and cv.key().begins_with("child:cradle:") and not cv.key().contains(":empty:"), "the flat house draws the baby's cradle")
 	act("tool", Vector2i(10, 2), Vector2i.UP)
 	await process_frame
-	check(g.baby_held and player.anim.key(Vector2i.UP).contains("hold"), "the tool button lifts the baby, the farmer in the hold pose (%s)" % player.anim.key(Vector2i.UP))
+	check(g.baby_held and player.anim.key(Vector2i.UP).contains("cradle"), "the tool button lifts the baby, the farmer in the cradle pose (%s)" % player.anim.key(Vector2i.UP))
+	check(player.held_behind.visible and player.held_behind.texture == PlaceholderArt.tex(g.held_key()) and player.held_behind.get_index() < player.figure.get_index(),
+		"facing away, the baby goes behind the farmer, over the shoulder")
 	check(cv.key().contains(":empty:"), "the flat cradle is empty while held")
 	act("enter", Vector2i(4, 5), Vector2i.DOWN)
 	check(g.maps.id == "house" and g.baby_held, "the farmhouse door waits while the baby is held")
@@ -353,8 +355,8 @@ func _crawler() -> void:
 	check(g.flags.get(Child.STAGE) == "crawler" and vv != null and Child.ID in vv.shown(), "the flat house draws the crawler (%s)" % g.flags.get(Child.STAGE))
 	act("tool", cell + Vector2i.LEFT, Vector2i.RIGHT)
 	await process_frame
-	check(g.crawler_held() and player.anim.key(Vector2i.RIGHT).contains("hold") and not Child.ID in vv.shown(),
-		"the tool button lifts the crawler, the farmer in the hold pose, off the floor (%s)" % player.anim.key(Vector2i.RIGHT))
+	check(g.crawler_held() and player.anim.key(Vector2i.RIGHT).contains("cradle") and not Child.ID in vv.shown() and not player.held_behind.visible,
+		"the tool button lifts the crawler, the farmer in the cradle pose (in front, at the chest), off the floor (%s)" % player.anim.key(Vector2i.RIGHT))
 	act("enter", Vector2i(4, 5), Vector2i.DOWN)
 	check(g.maps.id == "house" and g.crawler_held(), "the farmhouse door waits while the crawler is held")
 	act("interact", cell + Vector2i.LEFT, Vector2i.RIGHT)

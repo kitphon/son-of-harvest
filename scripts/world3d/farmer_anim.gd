@@ -19,13 +19,14 @@ var _swing_frame := 0   # on a tool swing (pose swing_<tool>): the frame Game.sw
 ## Advance by `delta` seconds. A new pose starts on its first step frame, so a key press
 ## shows a lifted foot at once. `tired` (Game.body_state() not "fine") swaps idle / walk for
 ## the tired poses; a tired farmer who can still run runs normally. `holding` (an item
-## overhead) wins over both: hold_idle / hold_walk, the walk stepping faster when running.
+## overhead) wins over both: hold_idle / hold_walk, the walk stepping faster when running;
+## with `cradling` (Game.cradling(): the baby or the crawler in the arms) cradle_idle / cradle_walk.
 ## `fishing` (Fishing.state while the line is out: "wait" / "bite") wins over everything.
 ## `eating` (Game.eat_pose: "eat" / "drink") wins over the tired poses; the farmer stands.
 ## `scooping` (Game.scoop_pose(): "scoop" / "scoop_lift" at the goldfish tub) wins over all.
 ## `swing` (Game.swing_pose(): "swing_<tool>" while a tool swing plays, else "") wins over the
 ## rest; `swing_frame` (Game.swing_frame()) is its frame: 0 the wind-up, 1 the blow.
-func step(delta: float, moving: bool, running: bool, tired := false, holding := false, fishing := "", eating := "", scooping := "", swing := "", swing_frame := 0) -> void:
+func step(delta: float, moving: bool, running: bool, tired := false, holding := false, fishing := "", eating := "", scooping := "", swing := "", swing_frame := 0, cradling := false) -> void:
 	var p := "idle" if not moving else ("run" if running else "walk")
 	_swing_frame = swing_frame
 	if scooping != "":
@@ -35,7 +36,7 @@ func step(delta: float, moving: bool, running: bool, tired := false, holding := 
 	elif fishing != "" and fishing != "idle":
 		p = "fish_" + fishing
 	elif holding:
-		p = "hold_walk" if moving else "hold_idle"
+		p = ("cradle_" if cradling else "hold_") + ("walk" if moving else "idle")
 	elif eating != "":
 		p = eating
 	elif tired and p != "run":
@@ -49,7 +50,7 @@ func step(delta: float, moving: bool, running: bool, tired := false, holding := 
 
 
 func frame() -> int:
-	if pose == "idle" or pose == "hold_idle" or pose == "fish_wait":
+	if pose == "idle" or pose == "hold_idle" or pose == "cradle_idle" or pose == "fish_wait":
 		return 0
 	if pose.begins_with("swing_"):
 		return _swing_frame
@@ -72,7 +73,7 @@ func _fps() -> float:
 	match pose:
 		"run":
 			return RUN_FPS
-		"hold_walk":
+		"hold_walk", "cradle_walk":
 			return RUN_FPS if fast else WALK_FPS
 		"tired_walk":
 			return TIRED_WALK_FPS

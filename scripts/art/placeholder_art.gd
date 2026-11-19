@@ -30,7 +30,7 @@ static func image(key: String) -> Image:
 static func _make(key: String) -> Image:
 	var parts := key.split(":")
 	match parts[0]:
-		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk|fish_wait|fish_bite|eat|drink|scoop|scoop_lift|swing_<hoe|can|sickle|hammer|axe|seeds>>:<frame>, 24 x 32 (FigureArt), in the chosen look (FarmerLooks.current)
+		"player":   # player:<front|back>:<idle|walk|run|tired_idle|tired_walk|hold_idle|hold_walk|cradle_idle|cradle_walk|fish_wait|fish_bite|eat|drink|scoop|scoop_lift|swing_<hoe|can|sickle|hammer|axe|seeds>>:<frame>, 24 x 32 (FigureArt), in the chosen look (FarmerLooks.current)
 			return FigureArt.draw(FarmerLooks.current_look(), parts[1] == "back", parts[2], int(parts[3]), true)
 		"villager": # villager:<id>:<front|back>:<idle|walk|work|fish|post|pole>:<frame>, 24 x 32, from the look in data/villagers/<id>.json
 			return FigureArt.draw(Villagers.look(parts[1]), parts[2] == "back", parts[3], int(parts[4]))
@@ -115,7 +115,7 @@ static func _make(key: String) -> Image:
 		"festival": # festival:<kind>:<w>x<h>[:<cloth hex>], a festival decoration in the flat view (FestivalView)
 			var wh := parts[2].split("x") if parts.size() > 2 else PackedStringArray(["1", "1"])
 			return _festival(parts[1], int(wh[0]), int(wh[1]), Color(parts[3]) if parts.size() > 3 else Color("c8442c"))
-		"child":    # child:<cradle|held>:<empty|asleep|awake|cry>:<skin>:<hair>:<top>, the baby in its bamboo cradle (20 x 14) or held up in the arms (12 x 12), in the child's colours (Child.look); child:carry:<style>:<skin>:<hair>:<top>, the crawler held up in the arms (16 x 14, Child.carry_key); child:figure:<crawler|toddler|child>:<style>:<skin>:<hair>:<top>:<front|back>:<idle|walk>:<frame>, the little one about the house (24 x 32, FigureArt.draw_little)
+		"child":    # child:<cradle|held>:<empty|asleep|awake|cry>:<skin>:<hair>:<top>, the baby in its bamboo cradle (20 x 16) or held in the arms (10 x 7), in the child's colours (Child.look); child:carry:<style>:<skin>:<hair>:<top>, the crawler held in the arms (10 x 9, Child.carry_key); child:figure:<crawler|toddler|child>:<style>:<skin>:<hair>:<top>:<front|back>:<idle|walk>:<frame>, the little one about the house (24 x 32, FigureArt.draw_little)
 			if parts[1] == "figure":
 				return FigureArt.draw_little(parts[2], _little_look(parts), parts[7] == "back", parts[8], int(parts[9]))
 			if parts[1] == "carry":
@@ -443,6 +443,12 @@ static func hold_row(pose: String, frame: int) -> int:
 ## Where the mine lantern (mine:lantern, 7 x 11) goes on a farmer frame: its top-left pixel.
 ## It hangs from the near hand (screen right from the front, screen left from the back) and
 ## swings with it; with the arms up or both hands on the rod, at the near hip instead.
+## Where a little one held in the arms sits (FigureArt.cradle_at): the middle column and the row
+## just below their picture; from the back they go behind the figure.
+static func cradle_at(pose: String, frame: int, back := false) -> Vector2i:
+	return FigureArt.cradle_at(pose, frame, back)
+
+
 static func lantern_at(pose: String, frame: int, back := false) -> Vector2i:
 	return FigureArt.lantern_at(pose, frame, back)
 
@@ -574,62 +580,57 @@ static func _baby_cradle(look: String, skin: Color, hair: Color, top: Color) -> 
 	return BabyArt.refine(img, _baby_fixed(skin, b, weave), [skin])
 
 
-## The baby held up in the arms (the hold pose), 12 x 12 like a carried item: a small bundle
-## lying across the hands, swaddled in the house's indigo, the face in its white wrap at one end.
+## The baby held in the arms against the chest (the cradle pose, FigureArt.cradle_at), 10 x 7: a
+## small bundle lying across the arms, swaddled in a white wrap (it reads against the farmer's
+## indigo) tied with a band of the house's indigo (`top`), the face at one end; asleep the eyes
+## shut (in the skin's shade), awake open with a mouth.
 static func _baby_held(look: String, skin: Color, hair: Color, top: Color) -> Image:
 	var b := BabyArt.colours()
-	var img := _blank(12, 12)
-	_oval(img, 7.5, 8.5, 4.4, 2.8, top)              # the swaddle
-	_px(img, 7, 9, 1, 1, Color(str(b.pale)))
-	_px(img, 10, 9, 1, 1, Color(str(b.pale)))
-	_oval(img, 3.5, 7.5, 3.4, 3.4, Color(str(b.pad)))  # the white wrap round the face
-	_oval(img, 3.5, 7.5, 2.3, 2.2, skin)             # the face
-	_px(img, 3, 5, 2, 1, hair)                       # the tuft
-	var eye := Color(str(b.eye))
+	var img := _blank(10, 7)
+	_oval(img, 6.2, 3.8, 3.8, 2.6, Color(str(b.pad)))  # the swaddle
+	_oval(img, 3.0, 3.5, 3.0, 3.0, Color(str(b.pad)))  # the wrap round the face
+	_px(img, 6, 1, 2, 6, top)                        # the indigo band tied round it
+	_oval(img, 3.0, 3.6, 2.0, 1.9, skin)             # the face
+	_px(img, 2, 1, 2, 1, hair)                       # the tuft
 	if look == "asleep":
-		_px(img, 2, 7, 1, 1, eye)
-		_px(img, 4, 7, 1, 1, eye)
+		_px(img, 2, 3, 1, 1, skin.darkened(0.3))
+		_px(img, 4, 3, 1, 1, skin.darkened(0.3))
 	else:
-		_px(img, 2, 6, 1, 1, eye)
-		_px(img, 4, 6, 1, 1, eye)
-		_px(img, 3, 8, 1, 1, skin.darkened(0.3))
+		var eye := Color(str(b.eye))
+		_px(img, 2, 3, 1, 1, eye)
+		_px(img, 4, 3, 1, 1, eye)
+		_px(img, 3, 5, 1, 1, Color(str(b.mouth)))
 	return BabyArt.refine(img, _baby_fixed(skin, b), [skin])
 
 
-## The crawler held up in the arms (the hold pose), 16 x 14, a little bigger than the swaddled
-## baby: sitting up on the hands facing out, the round head with the spouse's hair (`style`: a
-## bun on top for long hair), the indigo happi (`top`) with its pale sash and dots, both arms
-## out to the sides and the bare feet hanging below. Refined like the figures (BabyArt).
+## The crawler held in the arms against the chest (the cradle pose), 10 x 9, a little taller than
+## the swaddled baby: sitting up facing out, the round head with the spouse's hair (`style`: a
+## small bun on top for long hair), the indigo happi (`top`) with its pale dots, the small hands
+## on the farmer's arms and the bare feet below. Refined like the figures (BabyArt).
 static func _crawler_carry(style: String, skin: Color, hair: Color, top: Color) -> Image:
 	var b := BabyArt.colours()
-	var img := _blank(16, 14)
+	var img := _blank(10, 9)
 	var pale := Color(str(b.pale))
-	_px(img, 1, 7, 3, 2, top)                        # the sleeves, arms out
-	_px(img, 12, 7, 3, 2, top)
-	_px(img, 0, 7, 1, 2, skin)                       # the small hands
-	_px(img, 15, 7, 1, 2, skin)
-	_oval(img, 8.0, 9.5, 4.4, 3.4, top)              # the happi over the round body
-	_px(img, 4, 10, 8, 1, pale)                      # the sash
-	_px(img, 6, 9, 1, 1, pale)                       # the happi's dots
-	_px(img, 10, 9, 1, 1, pale)
-	_px(img, 5, 12, 2, 2, skin)                      # the bare feet hanging below
-	_px(img, 9, 12, 2, 2, skin)
-	_oval(img, 8.0, 4.0, 3.6, 3.4, skin)             # the head
-	_px(img, 5, 0, 6, 2, hair)                       # the hair on top
-	_px(img, 4, 1, 1, 2, hair)
-	_px(img, 11, 1, 1, 2, hair)
+	_oval(img, 5.0, 6.6, 3.7, 2.4, top)              # the happi over the round body
+	_px(img, 3, 6, 1, 1, pale)                       # the happi's dots
+	_px(img, 6, 6, 1, 1, pale)
+	_px(img, 0, 6, 1, 2, skin)                       # the small hands at the sides
+	_px(img, 9, 6, 1, 2, skin)
+	_px(img, 2, 8, 2, 1, skin)                       # the bare feet below
+	_px(img, 6, 8, 2, 1, skin)
+	_oval(img, 5.0, 3.0, 2.9, 2.8, skin)             # the head
+	_px(img, 3, 0, 4, 1, hair)                       # the hair on top
+	_px(img, 2, 1, 1, 1, hair)
+	_px(img, 7, 1, 1, 1, hair)
 	if style == "bun":
-		_px(img, 7, 0, 2, 1, hair.lightened(0.15))
-	elif style == "long" or style == "headband":
-		_px(img, 4, 2, 1, 3, hair)
-		_px(img, 11, 2, 1, 3, hair)
+		_px(img, 4, 0, 2, 1, hair.lightened(0.15))
 	var eye := Color(str(b.eye))
-	_px(img, 6, 4, 1, 1, eye)                        # eyes open, a small smile, pink cheeks
-	_px(img, 9, 4, 1, 1, eye)
-	_px(img, 7, 6, 2, 1, skin.darkened(0.3))
+	_px(img, 3, 3, 1, 1, eye)                        # eyes open, a small smile, pink cheeks
+	_px(img, 6, 3, 1, 1, eye)
+	_px(img, 4, 4, 2, 1, skin.darkened(0.3))
 	var cheek := Color(str(b.cheek)).lerp(skin, 0.4)
-	_px(img, 5, 5, 1, 1, cheek)
-	_px(img, 10, 5, 1, 1, cheek)
+	_px(img, 2, 4, 1, 1, cheek)
+	_px(img, 7, 4, 1, 1, cheek)
 	return BabyArt.refine(img, _baby_fixed(skin, b) + [hair.lightened(0.15)], [skin])
 
 

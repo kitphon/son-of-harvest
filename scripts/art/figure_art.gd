@@ -115,6 +115,10 @@ const POSES := {
 	# the load bobbing with the body.
 	"hold_idle": [[0, 0, 0, 0, 0, 0, 0]],
 	"hold_walk": [[1, -2, 0, 2, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0], [1, 2, 0, -2, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0]],
+	# Cradling: the baby or the crawler held in both arms in front of the chest, the hands under
+	# them (cradle_at); the same careful steps as holding.
+	"cradle_idle": [[0, 0, 0, 0, 0, 0, 0]],
+	"cradle_walk": [[1, -2, 0, 2, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0], [1, 2, 0, -2, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0]],
 	# Fishing: both hands together in front on the rod butt; waiting the rod stands up still, on
 	# a bite the farmer leans in and the tip jerks down.
 	"fish_wait": [[0, 0, 0, 0, 0, 0, 0]],
@@ -197,6 +201,17 @@ static func hold_row(pose: String, frame: int) -> int:
 	return hands(FARMER_LOOK, false, pose, frame).near.y + 1
 
 
+## Where a little one held in the arms (the cradle poses) sits on a frame: the column of the
+## middle of their picture and the row just below it. From the front they sit against the chest
+## on the near side, on the arm at the hip, the farmer's chin clear, the hands under them; from the back they go behind the farmer, raised to
+## look over the near shoulder (the views draw them behind the figure then).
+static func cradle_at(pose: String, frame: int, back := false) -> Vector2i:
+	var r := _rig(FARMER_LOOK, pose, frame)
+	if back:
+		return Vector2i(r.x0 - 1, r.sh + 4)
+	return Vector2i(r.x1 - 1, r.hip + 1)
+
+
 ## Where the mine lantern (7 x 11, its loop at x 3) hangs: from the near hand, swinging with it;
 ## with the arms up holding something or both hands on the rod, at the near hip instead.
 static func lantern_at(pose: String, frame: int, back := false) -> Vector2i:
@@ -240,6 +255,7 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 	var hd := _hands(r, back, pose, frame)
 	var tired := pose.begins_with("tired")
 	var hold := pose.begins_with("hold")
+	var cradle := pose.begins_with("cradle")
 	var rod := ROD_TIPS.has(pose) or pose == "fish"
 	var poling := pose == "pole"
 	var scoop := pose.begins_with("scoop")
@@ -254,7 +270,7 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 	if style == "long" and not back:
 		_long_hair_behind(img, r, c)
 	# The far arm, behind the body (rod and work poses draw it after, both hands in front).
-	if not rod and not poling and not scoop:
+	if not rod and not poling and not scoop and not (cradle and not back):
 		_arm(img, far_sh, hd.far, c, sleeve, hold)
 	# Legs: far first, then near. From the front the far leg is on the left, from the back on the right.
 	var far_x: int = (r.bx + 1 if back else r.bx - 3) + p[3]
@@ -279,6 +295,8 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 		_pole(img, r, frame % 2 == 1)
 		_arm(img, far_sh, hd.far, c, sleeve, false)
 	if scoop:   # the far hand reaches round in front of the belly to hold the bowl
+		_arm(img, far_sh, hd.far, c, sleeve, false)
+	if cradle and not back:   # both hands in front under the little one
 		_arm(img, far_sh, hd.far, c, sleeve, false)
 	_head(img, r, c, style, back, tired)
 	if hold:
@@ -325,60 +343,91 @@ static func draw_little(build: String, look: Dictionary, back: bool, pose: Strin
 	return draw(l, back, pose if pose == "walk" else "idle", frame)
 
 
-## A baby crawling on hands and knees, the big head in front (screen left, the way the figure
-## faces), the happi over the back, the rump up behind, the soles of the feet turned up.
-## Seen from the back the head shows its hair and the rump is nearer. Feet (knees) on the
-## bottom row like every figure.
+## A baby crawling on hands and knees, small beside the grown-ups (about 15 x 11 px: a third of
+## the farmer's height), the big round head in front (screen left, the way the figure faces), the
+## happi over the back, the rump up behind, the soles of the feet turned up. Seen from the back the
+## head shows its hair. Hands and knees on the bottom rows like every figure's feet.
 static func draw_crawler(look: Dictionary, back: bool, pose: String, frame: int) -> Image:
 	var img := _blank()
 	var c := colors(look)
 	_begin(c, look, false)
 	var rows: Array = CRAWL.get(pose, CRAWL.idle)
 	var p: Array = rows[frame % rows.size()]
-	var drop: int = p[4]
-	var ground := FOOT
+	var d: int = p[4]
+	var g := FOOT
 	# The far arm and leg, behind the body.
 	var L := _blank()
-	_limb(L, Vector2i(9, 23 + drop), Vector2i(6 + p[1], ground - 1), c.t, c.T)
-	_r(L, 5 + p[1], ground - 1, 3, 2, c.S)   # the far hand, flat on the floor
-	_limb(L, Vector2i(18, 25 + drop), Vector2i(17 + p[3], ground - 1), c.l, c.L)
-	_r(L, 17 + p[3], ground - 1, 5, 2, c.L)   # the shin along the floor
-	_r(L, 21 + p[3], ground - 2, 2, 2, c.S)   # the sole turned up
+	_limb(L, Vector2i(9, g - 5 + d), Vector2i(8 + p[1], g - 1), c.t, c.T)
+	_r(L, 7 + p[1], g, 2, 1, c.S)            # the far hand, flat on the floor
+	_limb(L, Vector2i(15, g - 4 + d), Vector2i(15 + p[3], g - 1), c.l, c.L)
+	_r(L, 15 + p[3], g - 1, 4, 2, c.L)       # the shin along the floor
+	_r(L, 19 + p[3], g - 2, 1, 2, c.S)       # the sole turned up
 	_stamp(img, L)
 	# The body: a round back in the happi, the sash, the rump up behind.
 	L = _blank()
-	_oval(L, 14.5, 23.5 + drop, 6.0, 3.6, c.t)
-	_oval(L, 18.5, 22.5 + drop, 2.6, 2.6, c.t)
-	for y in range(20 + drop, 28 + drop):   # the side away from the light
-		for x in range(17, 22):
-			if _inside(x, y) and L.get_pixel(x, y).a > 0.0 and (x + 0.5 - 14.5) + (y + 0.5 - 23.5 - drop) > 4.5:
+	var by := g - 4.5 + d
+	_oval(L, 13.5, by, 4.2, 2.5, c.t)
+	_oval(L, 16.0, by - 1.0, 2.0, 2.0, c.t)
+	for y in range(g - 9 + d, g + d):   # the side away from the light
+		for x in range(14, 19):
+			if _inside(x, y) and L.get_pixel(x, y).a > 0.0 and (x + 0.5 - 13.5) + (y + 0.5 - by) > 3.0:
 				_dot(L, x, y, c.T)
-	_r(L, 10, 21 + drop, 3, 1, c["t+"])
-	_r(L, 15, 20 + drop, 1, 7, c.W)   # the sash round the middle
-	_r(L, 14, 20 + drop, 1, 7, c.w)
+	_r(L, 10, g - 7 + d, 2, 1, c["t+"])
+	_r(L, 13, g - 7 + d, 1, 5, c.W)          # the sash round the middle
+	_r(L, 12, g - 7 + d, 1, 5, c.w)
 	if back:   # the round crest (mon) on the back of the happi
-		_r(L, 18, 21 + drop, 2, 1, c.w)
-		_dot(L, 17, 22 + drop, c.w)
-		_dot(L, 20, 22 + drop, c.w)
-		_r(L, 18, 23 + drop, 2, 1, c.w)
+		_r(L, 15, g - 7 + d, 2, 2, c.w)
 	_stamp(img, L)
 	# The near leg: the thigh down from the hip to the knee, the shin back along the floor.
 	L = _blank()
-	_limb(L, Vector2i(16, 25 + drop), Vector2i(15 + p[2], ground - 1), c.l, c.L)
-	_r(L, 15 + p[2], ground - 1, 5, 2, c.l)
-	_r(L, 19 + p[2], ground - 2, 2, 2, c.s)
+	_limb(L, Vector2i(14, g - 3 + d), Vector2i(13 + p[2], g - 1), c.l, c.L)
+	_r(L, 13 + p[2], g - 1, 4, 2, c.l)
+	_r(L, 17 + p[2], g - 2, 1, 2, c.s)
 	_stamp(img, L)
 	# The head, big and forward, a little above the hands.
-	var r := {"cx": 8.0, "cy": 19.0 + drop, "rx": 4.6, "ry": 4.4}
 	var style := str(look.get("hair_style", "short"))
-	_head(img, r, c, style if style in ["short", "bun"] else "short", back, false)
+	_baby_head(img, 7.5, g - 7.0 + d, c, style if style in ["short", "bun"] else "short", back)
 	# The near arm in front of the body, down to the hand on the floor.
 	L = _blank()
-	_limb(L, Vector2i(11, 24 + drop), Vector2i(9 + p[0], ground - 1), c.t, c.T)
-	_r(L, 8 + p[0], ground - 1, 3, 2, c.s)
-	_dot(L, 10 + p[0], ground, c.S)
+	_limb(L, Vector2i(10, g - 4 + d), Vector2i(9 + p[0], g - 1), c.t, c.T)
+	_r(L, 8 + p[0], g, 3, 1, c.s)
 	_stamp(img, L)
 	return _end(img)
+
+
+## A crawler's round head (rx 3.2, ry 3.0) at (cx, cy): the hair on the crown and, from the front,
+## the back of the head; a small face turned towards the lower left (dot eyes, a pink cheek), or
+## from the back the hair all over but the near cheek. A short tuft or a small bun on top.
+static func _baby_head(dst: Image, cx: float, cy: float, c: Dictionary, style: String, back: bool) -> void:
+	var L := _blank()
+	var rx := 3.2
+	var ry := 3.0
+	_oval(L, cx, cy, rx, ry, c.s)
+	var icx := roundi(cx)
+	var icy := floori(cy)
+	var top := floori(cy - ry)
+	for y in range(top, ceili(cy + ry) + 1):
+		for x in range(floori(cx - rx), ceili(cx + rx) + 1):
+			if not _inside(x, y) or L.get_pixel(x, y).a == 0.0:
+				continue
+			var fx := x + 0.5 - cx
+			var fy := y + 0.5 - cy
+			var hair := (not (fx < -1.5 and fy > -0.5)) if back else (fy < -1.4 or (fx > 1.8 and fy < 1.0))
+			if hair:
+				_dot(L, x, y, c["h+"] if fx + fy < -3.0 else (c.H if fx + fy > 2.0 else c.h))
+	if not back:
+		_dot(L, icx - 2, icy, c.e)
+		_dot(L, icx, icy, c.e)
+		_dot(L, icx - 1, icy + 1, c.s.lerp(Color("e87060"), 0.35))   # a round pink cheek
+		_dot(L, icx + 1, icy + 1, c.S)                              # the ear
+	else:
+		_dot(L, icx - 3, icy + 1, c.S)                              # the near ear's edge
+	if style == "bun":   # a little knot of hair on the crown
+		_oval(L, cx + (0.0 if back else 1.0), top - 0.5, 1.6, 1.2, c.h)
+	else:
+		_dot(L, icx - 1, top - 1, c.h)
+		_dot(L, icx + 1, top - 1, c.h)
+	_stamp(dst, L)
 
 
 ## A short limb 2 px wide from `a` to `b` (a crawler's arm or thigh), its far side darker.
@@ -431,6 +480,9 @@ static func _hands(r: Dictionary, back: bool, pose: String, frame: int) -> Dicti
 	if pose.begins_with("hold"):   # up beside the head, at its top
 		near = Vector2i(r.x0 - 3 if back else r.x1 + 1, top - 1)
 		far = Vector2i(r.x1 + 1 if back else r.x0 - 3, top - 1)
+	elif pose.begins_with("cradle"):   # in front under the little one (from the back, bent in at the sides)
+		near = Vector2i(r.x0 - 1, r.hip - 4) if back else Vector2i(r.x1 + 1, r.hip + 1)
+		far = Vector2i(r.x1, r.hip - 4) if back else Vector2i(r.x0 + 1, r.hip + 1)
 	elif ROD_TIPS.has(pose) or pose == "fish":   # together in front on the rod butt
 		near = Vector2i(r.x0 - 1, r.hip - 4)
 		far = Vector2i(r.x0 - 3, r.hip - 5)

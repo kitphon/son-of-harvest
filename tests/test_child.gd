@@ -35,6 +35,7 @@ func _init() -> void:
 	_little_data()
 	_little_days()
 	_little_art()
+	_in_arms_art()
 	_little_lines()
 	_child_days()
 	_child_help_rules()
@@ -427,7 +428,7 @@ func _cradle_rules() -> void:
 		check(Lang.covered(k), "in Thai: %s" % k)
 	Lang.set_language("en")
 	Lang.release()
-	# The art: the cradle 20 x 16 in four looks, the baby held 12 x 12 like a carried item.
+	# The art: the cradle 20 x 16 in four looks, the baby held 10 x 7, a bundle against the chest.
 	var look := Child.look({"hair_style": "long", "hair": "2a1a14", "skin": "f0c8a0"}, "c08a60")
 	var seen := {}
 	for st in ["empty", "asleep", "awake", "cry"]:
@@ -436,7 +437,7 @@ func _cradle_rules() -> void:
 		seen[img.get_data()] = st
 	check(seen.size() == 4, "the four cradle pictures differ")
 	var held := PlaceholderArt.tex(Child.held_key("awake", look)).get_image()
-	check(held.get_size() == Vector2i(12, 12), "the baby held is 12 x 12, like an item overhead")
+	check(held.get_size() == Vector2i(10, 7), "the baby held is 10 x 7, a small bundle in the arms (%s)" % held.get_size())
 	check(Child.held_key("cry", look) == Child.held_key("awake", look) and Child.held_key("asleep", look) != Child.held_key("awake", look), "held: asleep or awake")
 	# Refined like the figures: no pure-black outline pixel, several tones, the keys' sizes kept.
 	var fair := Child.look({"hair_style": "long", "hair": "7a5a3a", "skin": "f0c8a0"}, "c08a60")   # dark hair has dark tones of its own
@@ -453,7 +454,7 @@ func _cradle_rules() -> void:
 						dark += 1
 		check(dark == 0, "%s: no black outline pixels (the old line colour or near 0) (%d)" % [key.get_slice(":", 1), dark])
 		check(tones.size() >= 8, "%s: several tones (%d)" % [key.get_slice(":", 1), tones.size()])
-	check(PlaceholderArt.tex(Child.carry_key(look)).get_image().get_size() == Vector2i(16, 14), "the carried crawler stays 16 x 14")
+	check(PlaceholderArt.tex(Child.carry_key(look)).get_image().get_size() == Vector2i(10, 9), "the carried crawler is 10 x 9")
 	var skin := Color(look.skin)
 	var found := false
 	for y in held.get_height():
@@ -619,6 +620,38 @@ func _little_art() -> void:
 		for x in img.get_width():
 			found = found or img.get_pixel(x, y).is_equal_approx(Color(look.skin))
 	check(found and Color(look.skin).is_equal_approx(Color(skin.to_html(false))), "the toddler in the skin between the parents")
+
+
+## The little one in the arms: the cradle poses, held against the chest under the farmer's chin
+## with the hands under them (from the back, behind the farmer over the near shoulder); and the
+## crawler on the floor small beside the grown-ups.
+func _in_arms_art() -> void:
+	var a := FarmerAnim.new()
+	a.step(0.1, false, false, false, true, "", "", "", "", 0, true)
+	check(a.pose == "cradle_idle" and a.frame() == 0, "a little one in the arms: the cradle pose (%s)" % a.pose)
+	a.step(0.1, true, false, true, true, "", "", "", "", 0, true)
+	check(a.pose == "cradle_walk", "walking with them: cradle_walk, over the tired walk (%s)" % a.pose)
+	a.step(0.1, false, false, false, true)
+	check(a.pose == "hold_idle", "an item still goes overhead")
+	var fig := FigureArt.BUILDS.adult
+	var chin := ceili(float(fig.cy) + float(fig.ry))
+	for pose in ["cradle_idle", "cradle_walk"]:
+		for f in FigureArt.frames(pose):
+			var at := PlaceholderArt.cradle_at(pose, f)
+			var drop := PlaceholderArt.farmer_drop(pose, f)
+			var hd := FigureArt.hands(FigureArt.FARMER_LOOK, false, pose, f)
+			for key in ["child:carry:bun:e0a878:3a2420:2e4a8c", "child:held:awake:e0a878:3a2420:2e4a8c"]:
+				var h := PlaceholderArt.image(key).get_height()
+				check(at.y - h >= chin - 1 + drop, "%s %d: %s clear of the farmer's chin (top %d, chin %d)" % [pose, f, key.get_slice(":", 1), at.y - h, chin + drop])
+			check(hd.near.y >= at.y - 1 and hd.far.y >= at.y - 1, "%s %d: the hands under the little one" % [pose, f])
+			var back := PlaceholderArt.cradle_at(pose, f, true)
+			check(back.x < FigureArt.W / 2 and back.y < at.y, "%s %d: from the back, raised to the near shoulder" % [pose, f])
+	var crawl := PlaceholderArt.image("child:figure:crawler:short:e0a878:3a2420:2e4a8c:front:idle:0").get_used_rect()
+	var farmer := PlaceholderArt.image("player:front:idle:0").get_used_rect()
+	check(crawl.size.y * 2 < farmer.size.y and crawl.size.x <= 18, "the crawler is small: under half the farmer's height (%s vs %s)" % [crawl.size, farmer.size])
+	for f in 4:
+		var r := PlaceholderArt.image("child:figure:crawler:bun:e0a878:3a2420:2e4a8c:back:walk:%d" % f).get_used_rect()
+		check(r.end.y == FigureArt.H and r.size.y * 2 < farmer.size.y, "crawl frame %d: on the floor, small (%s)" % [f, r])
 
 
 func _little_lines() -> void:
@@ -829,7 +862,8 @@ func _baby_in_arms() -> void:
 	FA.on_action("tool", at, Vector2i.UP)
 	check(g.baby_held and g.holding() and g.held == "", "the tool button lifts the baby (the hand slot stays empty)")
 	check(said.back() == "You lift Sora from the cradle.", "lifted: %s" % said.back())
-	check(g.held_key() == Child.held_key("awake", g.child_look()), "the baby is the picture overhead (%s)" % g.held_key())
+	check(g.held_key() == Child.held_key("awake", g.child_look()), "the baby is the picture in the arms (%s)" % g.held_key())
+	check(g.cradling(), "held against the chest (the cradle pose), not overhead")
 	crad.refresh()
 	layer.refresh()
 	check(crad.key() == Child.cradle_key("empty", g.child_look()) and layer.sprite.get_meta("key") == crad.key(), "both views show the cradle empty")
@@ -976,7 +1010,8 @@ func _crawler_in_arms() -> void:
 	FA.on_action("tool", from, Vector2i.RIGHT)
 	check(g.crawler_held() and g.holding() and g.held == "" and not g.baby_held, "the tool button lifts the crawler (the hand slot stays empty)")
 	check(not said.is_empty() and said.back() == "You pick Sora up.", "lifted: %s" % [said])
-	check(g.held_key() == Child.carry_key(g.child_look()) and g.held_key().begins_with("child:carry:"), "the crawler is the picture overhead (%s)" % g.held_key())
+	check(g.held_key() == Child.carry_key(g.child_look()) and g.held_key().begins_with("child:carry:"), "the crawler is the picture in the arms (%s)" % g.held_key())
+	check(g.cradling(), "the crawler held against the chest too")
 	check(_crawler_where(g).map == DayPlan.AWAY and Villagers.on_map("house", g.day_minutes(), g.trigger_state(Vector2i.ZERO)).filter(func(v): return v.id == Child.ID).is_empty(),
 		"held: not on the floor any more")
 	var img := PlaceholderArt.tex(g.held_key()).get_image()
@@ -990,7 +1025,7 @@ func _crawler_in_arms() -> void:
 			var px := img.get_pixel(x, y)
 			has_top = has_top or px.is_equal_approx(top)
 			has_skin = has_skin or px.is_equal_approx(skin)
-	check(img.get_size() == Vector2i(16, 14) and img.get_width() > baby.get_width(), "the held crawler is 16 x 14, bigger than the swaddled baby (%s)" % img.get_size())
+	check(img.get_size() == Vector2i(10, 9) and img.get_height() > baby.get_height(), "the held crawler is 10 x 9, taller than the swaddled baby (%s)" % img.get_size())
 	check(has_top and has_skin, "in the child's colours: the happi and the skin")
 	check(AH.pick(from, Vector2i.RIGHT) == {"interact": "Put down", "use_tool": "Put down"} and AH.pick(from, Vector2i.UP) == {"interact": "Put down", "use_tool": "Put down"},
 		"the key hints while held: Put down either way")

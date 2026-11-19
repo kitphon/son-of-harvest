@@ -311,8 +311,10 @@ edge where boards or tatami meet the earth and a shoe stone below the door's ste
   at the birth, on loading). It is drawn by its own layer in both views (CradleLayer,
   CradleView, art `child:cradle:<empty|asleep|awake|cry>:<skin>:<hair>:<top>`), read every
   frame, so it shows the moment the baby is born. E looks in (data/child.json `cradle.times`:
-  a line and a picture by the clock); the tool button lifts the baby into the hold pose
-  (`child:held:...` overhead, Game.baby_held, not saved); while held either button facing the
+  a line and a picture by the clock); the tool button lifts the baby into the cradle pose
+  (`child:held:...`, 10 x 7, a white bundle against the chest on the near side over the hands,
+  FigureArt.cradle_at; from the back it goes behind the farmer, over the near shoulder;
+  Game.baby_held, not saved); while held either button facing the
   cradle lays them back, nothing else takes the baby (no throw, no setting down, no talk or
   sleep), doors wait ("Lay ... back in the cradle first."), and any map change or new day
   lays the baby back (BabyActions);
@@ -426,8 +428,10 @@ item overhead is a gift (`gifts` in data/child.json), the crawler takes none. Th
 at band 3 and never fall below it, the nightly loss included (`Affection.day_end`).
 
 **Holding the crawler.** The tool button facing the crawler (data/child.json `hold.stages`)
-lifts them into the hold pose, drawn overhead as `child:carry:<style>:<skin>:<hair>:<top>`
-(16 x 14, `Child.carry_key`). Held, they are on no map (`Child.carried`, read by
+lifts them into the cradle pose (Game.cradling: both arms in front, not overhead like an item or
+the dog), drawn against the chest as `child:carry:<style>:<skin>:<hair>:<top>` (10 x 9,
+`Child.carry_key`; placed like the baby, FigureArt.cradle_at). On the floor the crawler is about
+15 x 11 px, a third of the farmer's height (FigureArt.draw_crawler). Held, they are on no map (`Child.carried`, read by
 `Villagers.where` through `Child.carried_place`); either button sets them down on the free cell
 in front (`Game.crawler_spot_free`: floor, no door, prop or anyone there), turned to the farmer,
 or back where they were lifted. They sit there `hold.stay_minutes` of the clock (the house's

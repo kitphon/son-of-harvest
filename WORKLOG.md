@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-19 — The little one held against the chest; the crawler smaller
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: two reports from the user, with screenshots: the crawler looked too big for a baby, and
+  held it looked odd (lifted overhead like a turnip, its arms stuck out, the farmer's head under it).
+  - The crawler on the floor redrawn small (FigureArt.draw_crawler): about 15 x 11 px, a third of
+    the farmer's height (was about 20 x 17, over half), its own small round head
+    (FigureArt._baby_head: dot eyes, a cheek, a tuft or a little bun).
+  - Held in the arms instead of overhead: new farmer poses `cradle_idle` / `cradle_walk`
+    (FarmerAnim picks them when Game.cradling(): the baby or the crawler in the arms; items and
+    the dog still go overhead). Both hands in front at the hips; the little one sits against the
+    chest on the near side, just below the farmer's chin, the hands showing under them
+    (FigureArt.cradle_at). From the back they go behind the farmer, raised to look over the near
+    shoulder (3D: a hair away from the camera; flat: Player.held_behind, a sprite under the figure).
+  - New pictures: the crawler held 10 x 9 (was 16 x 14 with the arms out), sitting up facing out,
+    small hands at the sides; the baby held 10 x 7 (was 12 x 12), a white swaddle tied with the
+    house's indigo so it reads against the farmer's indigo jacket.
+- Checked: test_child (new `_in_arms_art`: the cradle poses picked, the pictures clear of the chin
+  on every frame, the hands under them, the back view raised to the shoulder, the crawler under
+  half the farmer's height on every crawl frame; the new sizes), test_view2d (the cradle pose in
+  the flat view, the baby behind the farmer facing away); frames in both views of the crawler on
+  the floor, held from the front and the baby held from the front and the back. Full suite, smoke
+  and windowed runs: all 44 tests OK (0 failed), smoke 0 ERROR (title, demo, town, mine 3), windowed exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-19 — arashiyama-town merged into main
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user asked to merge into main. main (2a8b01b) had no commits of its own, so it was

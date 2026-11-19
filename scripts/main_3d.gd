@@ -523,7 +523,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	anim.step(delta, player.moving, player.running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose, Game.scoop_pose(), Game.swing_pose(), Game.swing_frame())
+	anim.step(delta, player.moving, player.running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose, Game.scoop_pose(), Game.swing_pose(), Game.swing_frame(), Game.cradling())
 	_update_flash(delta)
 	_follow()
 	world.occluders.update(sprite.position, _cam.get("back", lens.back), delta)
@@ -603,10 +603,21 @@ func _show_charge() -> void:
 			PlaceholderArt.charge_key(player.charge, Game.max_charge(Game.current_tool())))
 
 
-## The held item rests on the raised hands at the top of the sprite and bobs with the body.
+## The held item rests on the raised hands at the top of the sprite and bobs with the body; the
+## baby or the crawler sits against the chest over the hands (FigureArt.cradle_at), a hair towards
+## the camera, or from the back a hair away from it, behind the farmer, over the near shoulder.
 func _show_held() -> void:
 	held_sprite.visible = Game.holding()
-	if Game.holding():
+	if Game.cradling():
+		held_sprite.texture = PlaceholderArt.tex(Game.held_key())
+		var back := FarmerAnim.is_back(player.facing)
+		var at := PlaceholderArt.cradle_at(anim.pose, anim.frame(), back)
+		var axes := cam.global_transform.basis
+		var fig := PlaceholderArt.FIGURE_SIZE
+		var side := (at.x - fig.x / 2.0) * (-1.0 if sprite.flip_h else 1.0)
+		var toward := Vector3(axes.z.x, 0, axes.z.z).normalized()
+		held_sprite.position = axes.x * side * FarmWorld.FIGURE_PX + Vector3.UP * (fig.y - at.y) * FarmWorld.FIGURE_PX + toward * (-0.03 if back else 0.03)
+	elif Game.holding():
 		held_sprite.texture = PlaceholderArt.tex(Game.held_key())
 		var top := PlaceholderArt.FIGURE_SIZE.y - PlaceholderArt.hold_row(anim.pose, anim.frame())
 		held_sprite.position = Vector3(0, top * FarmWorld.FIGURE_PX, 0)

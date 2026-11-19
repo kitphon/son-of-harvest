@@ -29,6 +29,7 @@ var _pushed_for := 0.0
 var passing := false
 var anim := FarmerAnim.new()   # which picture: pose and frame by what the farmer does
 var figure: Sprite2D           # the farmer's picture (FigureArt via PlaceholderArt)
+var held_behind: Sprite2D      # a little one in the arms seen from the back: behind the figure
 ## The world's light on the farmer (FlatLight; main_2d sets it with the figure's self_modulate):
 ## what the farmer carries takes it too, the marks over the head do not.
 var light := Color.WHITE
@@ -44,6 +45,13 @@ func _ready() -> void:
 	Game.changed.connect(queue_redraw)   # picking up / putting down while standing still
 	# The contact shadow under the feet is drawn by the map view's FigureLayer (its Shadows), on the
 	# ground under every figure; the farmer sorts with the other figures by the spot (the feet 2 px below).
+	held_behind = Sprite2D.new()
+	held_behind.show_behind_parent = true   # before the figure: under it
+	held_behind.name = "HeldBehind"
+	held_behind.centered = false
+	held_behind.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	held_behind.visible = false
+	add_child(held_behind)
 	figure = Sprite2D.new()
 	figure.show_behind_parent = true   # the target box, lantern, carried item and fishing marks draw over it
 	figure.name = "Figure"
@@ -58,9 +66,17 @@ func _ready() -> void:
 ## scooping goldfish);
 ## redrawn each frame as the pose steps.
 func _process(delta: float) -> void:
-	anim.step(delta, moving, running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose, Game.scoop_pose(), Game.swing_pose(), Game.swing_frame())
+	anim.step(delta, moving, running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose, Game.scoop_pose(), Game.swing_pose(), Game.swing_frame(), Game.cradling())
 	figure.texture = PlaceholderArt.tex(anim.key(facing))
 	figure.flip_h = FarmerAnim.is_mirrored(facing)
+	var back := FarmerAnim.is_back(facing)
+	held_behind.visible = Game.cradling() and back
+	if held_behind.visible:
+		var pic := PlaceholderArt.tex(Game.held_key())
+		var at := PlaceholderArt.cradle_at(anim.pose, anim.frame(), true)
+		held_behind.texture = pic
+		held_behind.position = Vector2(_px(at.x) - pic.get_width() / 2.0, FIGURE_TOP + at.y - pic.get_height())
+		held_behind.self_modulate = light
 	queue_redraw()
 
 
@@ -333,7 +349,11 @@ func _draw() -> void:
 		if bite:
 			var mark := PlaceholderArt.tex("fish_fx:alert")
 			draw_texture(mark, Vector2(-mark.get_width() / 2.0, FIGURE_TOP + FigureArt.head_top(FigureArt.FARMER_LOOK) - 2 - mark.get_height()))
-	if Game.holding():   # carried overhead, resting on the raised hands of the picture
+	if Game.cradling() and not FarmerAnim.is_back(facing):   # the little one against the chest, over the hands
+		var pic := PlaceholderArt.tex(Game.held_key())
+		var at := PlaceholderArt.cradle_at(anim.pose, anim.frame())
+		draw_texture(pic, Vector2(_px(at.x) - pic.get_width() / 2.0, FIGURE_TOP + at.y - pic.get_height()), light)
+	elif Game.holding() and not Game.cradling():   # carried overhead, resting on the raised hands of the picture
 		var item := PlaceholderArt.tex(Game.held_key())
 		var row := PlaceholderArt.hold_row(anim.pose, anim.frame())
 		draw_texture(item, Vector2(-item.get_width() / 2.0, FIGURE_TOP + row - item.get_height()), light)
