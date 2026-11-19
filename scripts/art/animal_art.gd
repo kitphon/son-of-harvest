@@ -594,8 +594,10 @@ static func _tail(img: Image, s: Dictionary, kind: String, bx: float, by: float,
 			_blob(img, x, by - ry * 0.25, 2.2 if big else 1.6, 2.2 if big else 1.6,
 				mat(body.base.darkened(0.05)) if s.has("fleece") else body, big)
 		"curl":   # a ring curled over the back, its hole dark, a cream tip
-			var cx := bx + rx * 0.7 if not over else bx + rx * 0.3
-			var cy := by - ry - 1.0
+			# Over the rump at the back end in every facing: seen from behind it is the nearest thing,
+			# not a hump in the middle of the back.
+			var cx := bx + rx * 0.7 if not over else bx + rx * 0.72
+			var cy := by - ry - 1.0 if not over else by - ry * 0.9
 			_blob(img, cx, cy, 3.4, 3.2, body)
 			_disc(img, cx - 0.4, cy + 0.2, 1.1, 1.0, body.shade)
 			_px(img, roundi(cx) - 3, roundi(cy) + 1, 2, 2, tones_of(kind, "muzzle").base)
@@ -646,8 +648,6 @@ static func _head(img: Image, s: Dictionary, kind: String, h: Vector2, r: float,
 				_px(img, roundi(hx), roundi(h.y - r) - 2, 1, 1, horn.lit)
 		else:   # a tuft of forelock
 			_px(img, roundi(h.x - 1.0), roundi(h.y - r) - 1, 3, 2, head_m.lit)
-	if kind == "dog" and away:
-		_px(img, roundi(h.x - 1.0), roundi(h.y - r * 0.2), 2, 3, body.shade)   # the nape
 
 
 static func _ears(img: Image, s: Dictionary, h: Vector2, r: float, away: bool, flick: bool, m: Dictionary) -> void:
@@ -664,7 +664,8 @@ static func _ears(img: Image, s: Dictionary, h: Vector2, r: float, away: bool, f
 				_px(img, ex, ey, wid + 1, 1, m.base)
 				_px(img, ex, ey, 1, 1, m.lit)
 				_px(img, ex + wid, ey, 1, 1, m.shade)
-			_px(img, roundi(x), roundi(h.y - r * 0.5) - 1, 1, 2, inner)
+			if not away:   # from behind the ears show their backs
+				_px(img, roundi(x), roundi(h.y - r * 0.5) - 1, 1, 2, inner)
 		return
 	# Flap ears out to the sides, lowered a pixel when one flicks; the far one darker.
 	_blob(img, h.x - r * 1.15, y + (1.0 if flick else 0.0), r * 0.62, r * 0.3, m, false)

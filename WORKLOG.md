@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-19 — The dog from behind no longer looks crippled
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user found the dog seen from behind (facings ul / ur) looked crippled. Its curled
+  tail was drawn at the middle of the back (bx + rx * 0.3) when seen from behind, so it rose as a
+  hump between the head and the rump; a dark 2 x 3 "nape" mark sat in the back of the head like a
+  wound, and the pink inside of the ears showed from behind.
+  - AnimalArt._tail "curl": seen from behind the ring sits over the rump at the back end
+    (bx + rx * 0.72, a little lower than from the front), where it is the nearest thing.
+  - The nape mark is gone; _ears draws a prick ear's pink inside only from the front.
+- Checked: test_animals (new: for the dog's idle and walk frames from behind, the highest point
+  past the head is in the back third of the picture, the tail over the rump, and no pink inner
+  ear; with the old tail put back the check fails, column 23 of 7..34); the dog's pictures large
+  and following the farmer on the farm. All 44 tests OK (0 failed), smoke 0 ERROR (title, demo,
+  town, mine 3), windowed exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-19 — A black-and-white dairy cow; no animal cut at the picture's edge
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user sent a crop of the cow and asked whether it was a cow or a water buffalo, and

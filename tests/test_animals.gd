@@ -1660,6 +1660,28 @@ func _animal_art() -> void:
 	check(coat.base.get_luminance() > 0.8 and patch.base.get_luminance() < 0.2, "the cow's coat is white, her patches black")
 	check(cow_cols.has(FigureArt._key(coat.base)) and cow_cols.has(FigureArt._key(patch.base)), "her picture shows both the white coat and the black patches")
 	check(not cow_cols.has(FigureArt._key(horn.base)) and not AnimalArt.QUADS.cow.has("horns"), "no horns on the dairy cow")
+	# The dog from behind (the user saw a crippled dog): the curled tail sits over the rump at the
+	# back end, not as a hump mid-back, and the ears show their backs (no pink inner ear).
+	var inner := Color(str(AnimalArt.art().features.prick_inner))
+	for pose in ["idle", "walk"]:
+		for frame in 2:
+			var dog := PlaceholderArt.image("animal:dog:%s:%d:ul" % [pose, frame])
+			var u := dog.get_used_rect()
+			var best_x := -1
+			var best_top := 999
+			for x in range(u.position.x + int(u.size.x * 0.55), u.end.x):   # past the head and its ears
+				for y in u.end.y:
+					if dog.get_pixel(x, y).a > 0.0:
+						if y < best_top:
+							best_top = y
+							best_x = x
+						break
+			check(best_x >= u.position.x + u.size.x * 0.65, "dog %s %d from behind: the back's highest point is the tail over the rump (column %d of %d..%d)" % [pose, frame, best_x, u.position.x, u.end.x])
+			var pink := false
+			for y in dog.get_height():
+				for x in dog.get_width():
+					pink = pink or dog.get_pixel(x, y).is_equal_approx(inner)
+			check(not pink, "dog %s %d from behind: no inner ear showing" % [pose, frame])
 	var hen := PlaceholderArt.tex("animal:chicken:idle:0:dl").get_image()
 	var used := hen.get_used_rect()
 	var thick := 0
