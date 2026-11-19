@@ -18,7 +18,10 @@ extends RefCounted
 ## - The refined look of the figures (FigureArt), numbers and colours in data/animal_art.json:
 ##   every material in three tones (shade / base / lit, lit from the upper left), a part's edge
 ##   over another material in its deep tone, and a rim in the deep tone of the material it
-##   touches instead of a near-black outline. The sick pose keeps its dull colours.
+##   touches instead of a near-black outline. The sick pose keeps its dull colours. The rim is
+##   SCALE art pixels wide, one of the figures' pixels, and as dark as theirs, so the animals'
+##   line weighs the same as the people's beside them while the finer drawing inside keeps their
+##   faces clear.
 ## - A carrying cow or ewe: the kind with data/animals.json breeding.sprite_suffix
 ##   ("cow_carrying", "sheep_carrying", "sheep_shorn_carrying"; Animals.look) has a rounder, lower
 ##   belly and (the cow) a fuller udder, numbers in data/animal_art.json "carrying".
@@ -182,7 +185,7 @@ static func make(kind: String, pose: String, frame: int, facing: String = "dl") 
 	else:
 		img = _bird(kind, pose, frame, away)
 	_old = false
-	img = _rim(_tilt(img, away))   # the rim before the mirror, so the right facings mirror exactly
+	img = _rim(_tilt(img, away), SCALE)   # the rim before the mirror, so the right facings mirror exactly
 	if facing.ends_with("r"):
 		img.flip_x()
 	return img
@@ -320,7 +323,8 @@ static func _bar(img: Image, x: int, y: int, w: int, h: int, m: Dictionary) -> v
 		_px(img, x, y, 1, 1, m.lit)
 
 
-## Tilts the figure (see SHEAR) and sets its lowest row on the canvas's second last row.
+## Tilts the figure (see SHEAR) and sets its lowest row SCALE rows above the canvas's last (the rim
+## goes under it).
 static func _tilt(img: Image, away: bool) -> Image:
 	var size := img.get_size()
 	var out := _blank(size.x, size.y)
@@ -336,7 +340,7 @@ static func _tilt(img: Image, away: bool) -> Image:
 				low = maxi(low, y + sh)
 	if low == -999:
 		return img
-	var lift := low - (size.y - 2)
+	var lift := low - (size.y - 1 - SCALE)   # room under the feet for the rim
 	for x in size.x:
 		for y in size.y:
 			var c := img.get_pixel(x, y)
@@ -347,33 +351,39 @@ static func _tilt(img: Image, away: bool) -> Image:
 	return out
 
 
-## The rim round the silhouette: the deep tone of the material it touches, pulled towards the
-## rim colour (data/animal_art.json), instead of one near-black outline. A feature colour (an
-## eye, a nostril) on the edge gives its own colour darkened.
-static func _rim(img: Image) -> Image:
+## The rim round the silhouette, `width` pixels wide (SCALE: one of the figures' pixels): the deep
+## tone of the material it touches, pulled towards the rim colour (data/animal_art.json, the
+## figures' numbers), instead of one near-black outline; each further ring takes the colour of the
+## rim pixel inside it. A feature colour (an eye, a nostril) on the edge gives its own colour
+## darkened.
+static func _rim(img: Image, width := 1) -> Image:
 	var a := art()
 	var rim := Color(str(a.rim))
 	var mix: float = a.rim_mix
-	var src := img.duplicate() as Image
 	var size := img.get_size()
-	for y in size.y:
-		for x in size.x:
-			if src.get_pixel(x, y).a > 0.0:
-				continue
-			# The pixel below first (under a foot, the foot), then the sides, then above.
-			for d in [Vector2i.UP, Vector2i.LEFT, Vector2i.RIGHT, Vector2i.DOWN]:
-				var q: Vector2i = Vector2i(x, y) - d
-				if q.x < 0 or q.y < 0 or q.x >= size.x or q.y >= size.y:
+	var inside := img.duplicate() as Image   # the figure before any rim
+	for ring in width:
+		var src := img.duplicate() as Image
+		for y in size.y:
+			for x in size.x:
+				if src.get_pixel(x, y).a > 0.0:
 					continue
-				var n := src.get_pixelv(q)
-				if n.a == 0.0:
-					continue
-				var r: Array = _reg.get(FigureArt._key(n), [])
-				var deep: Color = r[1] if not r.is_empty() else n.darkened(float(a.deep))
-				var c := deep.lerp(rim, mix)
-				c.a = 1.0
-				img.set_pixel(x, y, c)
-				break
+				# The pixel below first (under a foot, the foot), then the sides, then above.
+				for d in [Vector2i.UP, Vector2i.LEFT, Vector2i.RIGHT, Vector2i.DOWN]:
+					var q: Vector2i = Vector2i(x, y) - d
+					if q.x < 0 or q.y < 0 or q.x >= size.x or q.y >= size.y:
+						continue
+					var n := src.get_pixelv(q)
+					if n.a == 0.0:
+						continue
+					var c := n
+					if ring == 0 or inside.get_pixelv(q).a > 0.0:
+						var r: Array = _reg.get(FigureArt._key(n), [])
+						var deep: Color = r[1] if not r.is_empty() else n.darkened(float(a.deep))
+						c = deep.lerp(rim, mix)
+					c.a = 1.0
+					img.set_pixel(x, y, c)
+					break
 	return img
 
 

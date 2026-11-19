@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-19 — The animals' line as heavy as the people's
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user found the line of the dog and the farm animals unlike the people's. AnimalArt
+  draws them at twice the figures' pixel density (SCALE 2), so their rim was half as thick, and
+  it was pulled less to the rim colour (0.4 against the people's 0.6): a thin, light line beside
+  the people's heavy one.
+  - Tried first: shrinking the animals to the people's pixels (each 2 x 2 block to its main
+    material, retoned, the eyes stamped on after). The line matched, but the heads came down to
+    4-6 pixels and the faces were lost; the user found it worse than before. Dropped, not kept.
+  - Kept: the fine drawing as it was, with the rim SCALE art pixels wide (one figure pixel; each
+    ring past the first takes the colour of the rim inside it) and pulled to the rim colour as
+    much as the people's (data/animal_art.json rim_mix 0.6). The feet sit SCALE rows above the
+    canvas's last so the rim goes under them; sizes, keys, poses and facings unchanged.
+- Checked: test_animals (the rim the people's colour and mix; two art pixels wide on most of a
+  hen's top edge; a pale coat's rim still a grey, over 0.15; the carrying belly 16 pixels or more,
+  the plain picture's wider rim now covering the edge of that spot); a sheet of before / the
+  dropped try / now, sprites beside the farmer and in the game (the farm's hens and dog, the
+  barn). All 44 tests OK (0 failed), smoke 0 ERROR (title, demo, town, mine 3), windowed exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-19 — The little one held against the chest; the crawler smaller
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: two reports from the user, with screenshots: the crawler looked too big for a baby, and

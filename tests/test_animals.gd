@@ -1571,7 +1571,7 @@ func _carrying_art() -> void:
 				for x in pi.get_width():
 					if ci.get_pixel(x, y).a > 0.5 and pi.get_pixel(x, y).a <= 0.5:
 						added += 1
-			check(added >= 24, "%s %s: the belly adds %d pixels (24 or more to read)" % [ck, facing, added])
+			check(added >= 16, "%s %s: the belly adds %d pixels (16 or more to read; the plain one's two-pixel rim already fills the edge of that spot)" % [ck, facing, added])
 	# Both views take the sprite kind from Animals.look: carrying, then back after the birth.
 	var a := _herd(["cow", "sheep"])
 	for x in a.list:
@@ -1634,6 +1634,20 @@ func check(ok: bool, what: String) -> void:
 
 func _animal_art() -> void:
 	check(AnimalArt.SCALE >= 2, "animal sprites are denser than the farmer's (the layer sets pixel_size = PX / SCALE)")
+	check(is_equal_approx(float(AnimalArt.art().rim_mix), float(FigureArt.villager_art().rim_mix)) and AnimalArt.art().rim == FigureArt.villager_art().rim,
+		"the animals' rim is the people's colour, pulled as much")
+	var hen := PlaceholderArt.tex("animal:chicken:idle:0:dl").get_image()
+	var used := hen.get_used_rect()
+	var thick := 0
+	for x in range(used.position.x, used.end.x):   # down each column from the top: rim, rim, then the hen
+		var top := -1
+		for y in hen.get_height():
+			if hen.get_pixel(x, y).a > 0.0:
+				top = y
+				break
+		if top >= 0 and top + 1 < hen.get_height() and hen.get_pixel(x, top + 1).a > 0.0 and hen.get_pixel(x, top).is_equal_approx(hen.get_pixel(x, top + 1)):
+			thick += 1
+	check(thick * 2 > used.size.x, "the rim is SCALE (2) art pixels wide, one of the figures' pixels, on most of the top edge (%d of %d columns)" % [thick, used.size.x])
 	var poses := ["idle", "peck", "walk", "sick"]
 	for kind in AnimalArt.KINDS:
 		var size: Vector2i = AnimalArt.size_of(kind)
@@ -1716,7 +1730,7 @@ func _animal_art_refined() -> void:
 							if c.v < 0.12:
 								dark += 1
 							light = maxf(light, c.v)
-						check(light > 0.22, key + ": the pale coat's rim is a soft grey, lighter than the old outline (%.2f)" % light)
+						check(light > 0.15, key + ": the pale coat's rim is a grey, lighter than the old outline (%.2f)" % light)
 						if kind in ["chicken", "chick"]:
 							check(dark == 0, key + ": a hen or chick has no near-black rim (%d dark rim colours)" % dark)
 	# Part lines in a material's deep tone: the hen's wing, the wool over the sheep's legs and face.
