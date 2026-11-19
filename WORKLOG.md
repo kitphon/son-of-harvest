@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-19 — A black-and-white dairy cow; no animal cut at the picture's edge
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user sent a crop of the cow and asked whether it was a cow or a water buffalo, and
+  why her front was cut off.
+  - Cut off: her head and near ear reach past the left edge of the 52 x 38 picture and were
+    cut flat there (the new two-pixel rim had no room either). Most kinds touched an edge
+    somewhere: the hen's comb, the chick, the lamb, the dog's ears. Every animal picture now has
+    PAD (6) art pixels of margin left, right and on top (AnimalArt._canvas; _px and _mat_at add
+    the pad, so the shapes keep their numbers). The feet stay on the bottom, so the views place
+    them as before; the pictures are 12 wider and 6 taller.
+  - Buffalo: the cow and calf were black Japanese cattle with horns. Now a black-and-white dairy
+    cow, fitting the farm's milk: a white coat with black patches (QUADS `patches`, drawn by
+    _patch only over the coat's own pixels, so they never spill), a black head and neck, a pink
+    muzzle and udder, white legs, a black tail tip, no horns (data/animal_art.json kinds cow / calf,
+    a "patch" colour, dulled when sick like the coat).
+- Checked: test_animals (new: no picture of any kind, pose, frame or facing touches its left,
+  right or top edge; the cow's coat white and patches black, both in her picture, no horns; the
+  sizes with the margin); frames of the barn, the cows out on the farm in 3D and in the flat view.
+  All 44 tests OK (0 failed), smoke 0 ERROR (title, demo, town, mine 3), windowed exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-19 — The animals' line as heavy as the people's
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user found the line of the dog and the farm animals unlike the people's. AnimalArt

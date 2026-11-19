@@ -360,8 +360,8 @@ func _map_and_art() -> void:
 	check(f.fixed_at(Vector2i(14, 2)) == "coop" and not f.cell(Vector2i(14, 2)).tilled and f.item_at(Vector2i(16, 1)) == "", "coop added to an older farm")
 	# Art.
 	for key in ["animal:chicken:idle:0", "animal:chicken:idle:1", "animal:chicken:peck:1", "animal:chicken:walk:1", "animal:chicken:sick:0"]:
-		check(PlaceholderArt.tex(key).get_size() == Vector2(30, 28), key + " is 30 x 28")
-	check(PlaceholderArt.tex("animal:chick:walk:1").get_size() == Vector2(18, 16), "chick is 18 x 16")
+		check(PlaceholderArt.tex(key).get_size() == Vector2(42, 34), key + " is 42 x 34 (30 x 28 and the margin)")
+	check(PlaceholderArt.tex("animal:chick:walk:1").get_size() == Vector2(30, 22), "chick is 30 x 22 (18 x 16 and the margin)")
 	check(PlaceholderArt.tex("animal:chicken:idle:0").get_image().get_data() != PlaceholderArt.tex("animal:chicken:sick:0").get_image().get_data(), "a sick hen looks different")
 	for egg in ["egg", "egg_good", "egg_best"]:
 		check(PlaceholderArt.world_item_key(egg) == "item:" + egg and PlaceholderArt.tex("item:" + egg).get_size() == Vector2(12, 12), egg + " world sprite")
@@ -1500,8 +1500,8 @@ func _barn_map_and_art() -> void:
 	f.add_missing_fixed()
 	check(f.fixed_at(Vector2i(20, 2)) == "barn" and not f.cell(Vector2i(20, 2)).tilled and f.fixed_at(FarmGrid.BARN_DOOR) == "barn_door", "barn added to an older farm")
 	# Art.
-	var sizes := {"cow": Vector2(52, 38), "calf": Vector2(34, 26), "sheep": Vector2(40, 32), "sheep_shorn": Vector2(40, 32),
-		"lamb": Vector2(26, 22), "dog": Vector2(30, 24)}
+	var sizes := {"cow": Vector2(64, 44), "calf": Vector2(46, 32), "sheep": Vector2(52, 38), "sheep_shorn": Vector2(52, 38),
+		"lamb": Vector2(38, 28), "dog": Vector2(42, 30)}
 	for kind in sizes:
 		for pose in ["idle", "peck", "walk", "sick"]:
 			for frame in 2:
@@ -1636,6 +1636,30 @@ func _animal_art() -> void:
 	check(AnimalArt.SCALE >= 2, "animal sprites are denser than the farmer's (the layer sets pixel_size = PX / SCALE)")
 	check(is_equal_approx(float(AnimalArt.art().rim_mix), float(FigureArt.villager_art().rim_mix)) and AnimalArt.art().rim == FigureArt.villager_art().rim,
 		"the animals' rim is the people's colour, pulled as much")
+	# Nothing cut flat by the picture's edge (the user saw a cow's face cut off): no drawn pixel on
+	# the left, right or top edge in any kind, pose or facing (AnimalArt.PAD).
+	var cut := []
+	for kind in AnimalArt.KINDS:
+		for pose in ["idle", "peck", "walk", "sick"] + (["sit"] if kind == "dog" else []):
+			for frame in 2:
+				for facing in AnimalArt.FACINGS:
+					var pic := PlaceholderArt.image("animal:%s:%s:%d:%s" % [kind, pose, frame, facing])
+					var u := pic.get_used_rect()
+					if u.position.x == 0 or u.position.y == 0 or u.end.x == pic.get_width():
+						cut.append("%s:%s:%d:%s" % [kind, pose, frame, facing])
+	check(cut.is_empty(), "no animal picture touches its left, right or top edge %s" % [cut])
+	# The cow reads as a dairy cow, not a water buffalo: a white coat with black patches, no horns.
+	var cow := PlaceholderArt.image("animal:cow:idle:0:dl")
+	var coat := AnimalArt.tones_of("cow", "body")
+	var patch := AnimalArt.tones_of("cow", "patch")
+	var horn := AnimalArt.tones_of("cow", "horns")
+	var cow_cols := {}
+	for y in cow.get_height():
+		for x in cow.get_width():
+			cow_cols[FigureArt._key(cow.get_pixel(x, y))] = true
+	check(coat.base.get_luminance() > 0.8 and patch.base.get_luminance() < 0.2, "the cow's coat is white, her patches black")
+	check(cow_cols.has(FigureArt._key(coat.base)) and cow_cols.has(FigureArt._key(patch.base)), "her picture shows both the white coat and the black patches")
+	check(not cow_cols.has(FigureArt._key(horn.base)) and not AnimalArt.QUADS.cow.has("horns"), "no horns on the dairy cow")
 	var hen := PlaceholderArt.tex("animal:chicken:idle:0:dl").get_image()
 	var used := hen.get_used_rect()
 	var thick := 0
@@ -1694,8 +1718,8 @@ func _animal_art() -> void:
 ## material's own deep tone instead of the old near-black outline; sizes and the sick dullness kept.
 func _animal_art_refined() -> void:
 	var old_line := FigureArt._key(Color("2a1e1e"))
-	var sizes := {"chicken": Vector2i(30, 28), "chick": Vector2i(18, 16), "cow": Vector2i(52, 38), "calf": Vector2i(34, 26),
-		"sheep": Vector2i(40, 32), "sheep_shorn": Vector2i(40, 32), "lamb": Vector2i(26, 22), "dog": Vector2i(30, 24)}
+	var sizes := {"chicken": Vector2i(42, 34), "chick": Vector2i(30, 22), "cow": Vector2i(64, 44), "calf": Vector2i(46, 32),
+		"sheep": Vector2i(52, 38), "sheep_shorn": Vector2i(52, 38), "lamb": Vector2i(38, 28), "dog": Vector2i(42, 30)}
 	var main_part := {"chicken": "hen", "chick": "chick"}
 	for kind in AnimalArt.KINDS:
 		check(AnimalArt.size_of(kind) == sizes[kind], kind + " keeps its size %s" % AnimalArt.size_of(kind))

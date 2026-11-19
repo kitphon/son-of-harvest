@@ -1,11 +1,13 @@
 class_name AnimalArt
 extends RefCounted
-## The farm animals as pixel sprites, drawn in code (our own designs): hens and chicks, Japanese
-## Black cattle and calves, cream-wool sheep (shorn, and lambs), a red-tan shiba-like dog.
+## The farm animals as pixel sprites, drawn in code (our own designs): hens and chicks, black-and-
+## white dairy cows and calves (no horns), cream-wool sheep (shorn, and lambs), a red-tan shiba-like dog.
 ## Keys "animal:<kind>:<pose>:<frame>[:<facing>]" (PlaceholderArt hands them here).
 ##
 ## - Twice the pixel density of the farmer's sprites (SCALE art pixels per world pixel), so the
 ##   3D view sets pixel_size = FarmWorld.PX / SCALE and the animals keep their world size.
+## - Every picture has PAD art pixels of margin left, right and on top (_canvas), so nothing
+##   reaching past a kind's box is cut flat by the edge; the feet stay on the bottom.
 ## - Four facings for the diagonal camera: "dl" (down-left, towards the camera and to screen
 ##   left, the default), "dr", "ul" (away, up-left) and "ur". The right ones are the left ones
 ##   mirrored. Seen from the front the face shows (both eyes, the muzzle); seen from behind the
@@ -34,17 +36,21 @@ const ART_PATH := "res://data/animal_art.json"
 const FACINGS := ["dl", "dr", "ul", "ur"]
 const KINDS := ["chicken", "chick", "cow", "calf", "sheep", "sheep_shorn", "lamb", "dog"]
 const CARRYING := ["cow", "sheep", "sheep_shorn"]   # the kinds with a carrying picture
+const PAD := Vector2i(6, 6)   # art pixels of margin left / right and top of every picture (_canvas)
 const SHEAR := 0.085   # rows a column moves per column away from the middle
 
 ## Per kind (all in art pixels): canvas w x h; body ellipse b = [x, y, rx, ry]; leg columns
 ## [near front, far front, near hind, far hind], their top row and length; head hd = [x, y, r].
 ## Colours are in data/animal_art.json "kinds".
 const QUADS := {
+	# A black-and-white dairy cow (she gives the farm's milk; no horns): patches [x, y, rx, ry] as
+	# shares of the body's centre and radii.
 	"cow": {"w": 52, "h": 38, "b": [28.0, 16.0, 15.0, 8.5], "hd": [9.0, 12.0, 5.8],
-		"legs": [14, 18, 36, 40], "leg_y": 20, "leg_len": 14, "leg_w": 3, "tail": "rope", "horns": true,
-		"ear": "flap"},
+		"legs": [14, 18, 36, 40], "leg_y": 20, "leg_len": 14, "leg_w": 3, "tail": "rope",
+		"ear": "flap", "patches": [[-0.62, -0.35, 0.34, 0.6], [0.12, -0.55, 0.36, 0.55], [0.7, 0.05, 0.3, 0.6], [-0.05, 0.55, 0.22, 0.3]]},
 	"calf": {"w": 34, "h": 26, "b": [18.0, 11.0, 9.5, 5.4], "hd": [6.5, 9.0, 3.6],
-		"legs": [9, 12, 23, 26], "leg_y": 13, "leg_len": 10, "leg_w": 2, "tail": "rope", "ear": "flap"},
+		"legs": [9, 12, 23, 26], "leg_y": 13, "leg_len": 10, "leg_w": 2, "tail": "rope", "ear": "flap",
+		"patches": [[-0.5, -0.3, 0.4, 0.65], [0.45, -0.2, 0.42, 0.7]]},
 	"sheep": {"w": 40, "h": 32, "b": [23.0, 14.0, 12.0, 8.0], "hd": [8.0, 17.0, 4.4],
 		"legs": [14, 17, 28, 31], "leg_y": 20, "leg_len": 10, "leg_w": 2, "tail": "stub", "fleece": true,
 		"ear": "flap"},
@@ -64,6 +70,7 @@ static var _suffix := ""
 static var _old_suffix := ""
 static var _old := false   # drawing an old animal (make), read by _colour
 static var _reg := {}   # a tone's colour key -> [its material's base key, its deep tone]
+static var _pad := Vector2i.ZERO   # the drawing's offset into its canvas (_canvas)
 
 
 ## The numbers and colours of data/animal_art.json.
@@ -146,7 +153,7 @@ static func _colour_plain(kind: String, part: String, sick: bool) -> Color:
 	var a := art()
 	if QUADS.has(kind):
 		var c := Color(str(a.kinds[kind][part]))
-		if sick and part in ["body", "head", "leg"]:
+		if sick and part in ["body", "head", "leg", "patch"]:
 			var sk: Dictionary = a.sick
 			var g := Color(str(sk.grey))
 			c = c.lerp(g, float(sk.leg_mix)) if part == "leg" else c.lerp(g, float(sk.mix)).darkened(float(sk.dark))
@@ -195,7 +202,7 @@ static func make(kind: String, pose: String, frame: int, facing: String = "dl") 
 static func size_of(kind: String) -> Vector2i:
 	kind = base_of(kind)[0]
 	var s: Dictionary = QUADS[kind] if QUADS.has(kind) else BIRDS[kind]
-	return Vector2i(s.w, s.h)
+	return Vector2i(s.w + PAD.x * 2, s.h + PAD.y)
 
 
 ## Facing from a step on the ground (cells x, z): the camera looks along (-1, 0, -1), so screen
@@ -229,8 +236,16 @@ static func _blank(w: int, h: int) -> Image:
 	return img
 
 
+## A drawing canvas for a kind's w x h: PAD more on the left, the right and the top, so a head, an
+## ear or a tail reaching past the numbers' box (and the rim round it) is never cut flat. The
+## drawing helpers add the pad, so the shapes keep their numbers.
+static func _canvas(w: int, h: int) -> Image:
+	_pad = Vector2i(PAD.x, PAD.y)
+	return _blank(w + PAD.x * 2, h + PAD.y)
+
+
 static func _px(img: Image, x: int, y: int, w: int, h: int, c: Color) -> void:
-	var r := Rect2i(x, y, w, h).intersection(Rect2i(Vector2i.ZERO, img.get_size()))
+	var r := Rect2i(x + _pad.x, y + _pad.y, w, h).intersection(Rect2i(Vector2i.ZERO, img.get_size()))
 	if r.has_area():
 		img.fill_rect(r, c)
 
@@ -241,6 +256,8 @@ static func _p(img: Image, x: float, y: float, c: Color) -> void:
 
 ## The material (its base key) a drawn pixel belongs to, "" for none, "?" for a feature.
 static func _mat_at(img: Image, x: int, y: int) -> String:
+	x += _pad.x
+	y += _pad.y
 	if x < 0 or y < 0 or x >= img.get_width() or y >= img.get_height():
 		return ""
 	var c := img.get_pixel(x, y)
@@ -287,6 +304,17 @@ static func _blob(img: Image, cx: float, cy: float, rx: float, ry: float, m: Dic
 			put.append([x, y, c])
 	for q in put:
 		_px(img, q[0], q[1], 1, 1, q[2])
+
+
+## A patch of the coat (a dairy cow's black patches): an ellipse in material m's tones, lit from
+## the upper left, laid only on the pixels of material `onto` (the coat), so it never spills past it.
+static func _patch(img: Image, cx: float, cy: float, rx: float, ry: float, m: Dictionary, onto: String) -> void:
+	for y in range(floori(cy - ry), ceili(cy + ry) + 1):
+		for x in range(floori(cx - rx), ceili(cx + rx) + 1):
+			if not _in(x, y, cx, cy, rx, ry) or _mat_at(img, x, y) != onto:
+				continue
+			var t := (x + 0.5 - cx) / rx * 0.4 + (y + 0.5 - cy) / ry * 0.85
+			_px(img, x, y, 1, 1, m.shade if t > 0.5 else (m.lit if t < -0.5 else m.base))
 
 
 ## Round blobs along a line, from radius r0 to r1 (a neck, a tail), in a material's tones by the
@@ -433,7 +461,7 @@ static func _eye(img: Image, x: float, y: float, shut: bool, glint: Color, pupil
 
 static func _quad(kind: String, pose: String, frame: int, away: bool, carrying := false) -> Image:
 	var s: Dictionary = QUADS[kind]
-	var img := _blank(s.w, s.h)
+	var img := _canvas(s.w, s.h)
 	var sick := pose == "sick"
 	var sit := pose == "sit"
 	var body := tones_of(kind, "body", sick)
@@ -489,6 +517,10 @@ static func _quad(kind: String, pose: String, frame: int, away: bool, carrying :
 			for i in 3:
 				var rxp := bx - 4.0 + i * 3.0
 				_px(img, roundi(rxp), roundi(by - ry * 0.25), 1, 3, body.shade)
+		if s.has("patches"):   # black patches over the white coat, only on the coat itself
+			var pm := tones_of(kind, "patch", sick)
+			for pt: Array in s.patches:
+				_patch(img, bx + rx * float(pt[0]), by + ry * float(pt[1]), rx * float(pt[2]), ry * float(pt[3]), pm, body.id)
 		if kind == "cow" and not sick:   # the udder (fuller when she carries)
 			var ug: Array = cr.udder_grow if carrying else [0.0, 0.0]
 			_blob(img, bx + rx * 0.3, low + 0.4, 2.6 + float(ug[0]), 1.8 + float(ug[1]), tones_of(kind, "udder"), false)
@@ -650,7 +682,7 @@ static func _bird(kind: String, pose: String, frame: int, away: bool) -> Image:
 
 static func _hen(pose: String, frame: int, away: bool) -> Image:
 	var s: Dictionary = BIRDS.chicken
-	var img := _blank(s.w, s.h)
+	var img := _canvas(s.w, s.h)
 	var sick := pose == "sick"
 	var white := tones_of("chicken", "hen", sick)
 	var wing := tones_of("chicken", "wing", sick)
@@ -730,7 +762,7 @@ static func _hen_tail(img: Image, bx: float, by: float, m: Dictionary, away: boo
 
 static func _chick(pose: String, frame: int, away: bool) -> Image:
 	var s: Dictionary = BIRDS.chick
-	var img := _blank(s.w, s.h)
+	var img := _canvas(s.w, s.h)
 	var sick := pose == "sick"
 	var body := tones_of("chick", "chick", sick)
 	var wing := mat(body.base.darkened(0.1))
