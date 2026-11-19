@@ -229,6 +229,50 @@ func _views() -> void:
 			whole = whole and VistaRules.view_at("hill", Vector2i(x, y)).get("id", "") == "hill"
 	check(whole, "the whole bamboo hill is a viewpoint")
 	check(VistaRules.view_at("hill", Vector2i(sp_cell(hill, "start"))).get("id", "") == "hill" and VistaRules.view_at("hill", Vector2i(sp_cell(hill, "top"))).get("id", "") == "hill", "from its foot to its top")
+	_more_views()
+
+
+## The viewpoints added 2026-11-19: the gorge, the farm pond, Minamino's riverside.
+func _more_views() -> void:
+	var river := MapManager.data("river")
+	var whole := true
+	for y in river.h:
+		for x in river.w:
+			whole = whole and VistaRules.view_at("river", Vector2i(x, y)).get("id", "") == "gorge"
+	check(whole, "the whole river gorge is a viewpoint")
+	check(VistaRules.view_at("river", sp_cell(river, "shore")).get("id", "") == "gorge", "the shore spawn stands in it")
+	# The farm pond: its banks and the fishing spot, never the farm's daily ways.
+	check(VistaRules.view_at("farm", Vector2i(24, 3)).get("id", "") == "farm_pond", "the pond's fishing spot is a viewpoint")
+	check(VistaRules.view_at("farm", Vector2i(25, 4)).get("id", "") == "farm_pond", "the pond's south-west bank is one")
+	var busy := [Vector2i(31, 5), Vector2i(31, 6), Vector2i(29, 6), Vector2i(21, 5), Vector2i(23, 6), Vector2i(29, 3), Vector2i(30, 4), Vector2i(21, 4)]
+	for c in FarmGrid.SILO.size.x * FarmGrid.SILO.size.y:
+		busy.append(FarmGrid.SILO.position + Vector2i(c % FarmGrid.SILO.size.x, c / FarmGrid.SILO.size.x))
+	var farm := MapManager.data("farm")
+	for id in farm.spawns:
+		if id != "silo":
+			busy.append(sp_cell(farm, id))
+	var clear := true
+	for c: Vector2i in busy:
+		if not VistaRules.view_at("farm", c).is_empty():
+			clear = false
+			print("  on a viewpoint: farm %s" % c)
+	check(clear, "the gate road, the barn's yard and door, the silo and its front, the spawns: no viewpoint")
+	var pond_cells := 0
+	for c in FarmGrid.POND:
+		if VistaRules.view_at("farm", c).get("id", "") == "farm_pond":
+			pond_cells += 1
+	check(pond_cells == FarmGrid.POND.size(), "the pond lies inside its viewpoint (%d of %d)" % [pond_cells, FarmGrid.POND.size()])
+	# Minamino's riverside: the lane's end, not the way round Kiku's front to her door.
+	var mina := MapManager.data("minamino")
+	check(VistaRules.view_at("minamino", sp_cell(mina, "river")).get("id", "") == "minamino_bank", "Minamino's riverside spawn stands in it")
+	var kiku: Dictionary = mina.doors.filter(func(d): return d.to == "kiku_house")[0]
+	var ok := true
+	for x in range(18, 24):
+		ok = ok and VistaRules.view_at("minamino", Vector2i(x, 15)).is_empty()
+	check(ok and VistaRules.view_at("minamino", kiku.cells[0] as Vector2i).is_empty(), "the path round Kiku's front and her door are no viewpoint")
+	for id in ["start", "shige", "kaede", "kiku", "shino", "shrine", "barn"]:
+		check(VistaRules.view_at("minamino", sp_cell(mina, id)).is_empty(), "Minamino's %s spawn is no viewpoint" % id)
+	check(VistaRules.view_at("sakurazaka", Vector2i(15, 10)).is_empty(), "Sakurazaka's roofed bridge is no viewpoint")
 
 
 func sp_cell(m: MapData, id: String) -> Vector2i:

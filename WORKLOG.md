@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-19 — More viewpoints: the river gorge, the farm pond, Minamino's riverside
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user asked for more viewpoints (ROADMAP's open item). Scouted four spots with a test
+  view at the same tilt (yaw 45, pitch 8): the river map's shore path, the farm pond, Sakurazaka's
+  bridge and Minamino's riverside. Ogura stands big over the gorge and the pond, and further off
+  over Minamino's south fields. Sakurazaka's bridge was left out because its roofed bridge fills the
+  tilted view. data/vista.json gets three views, each tuned like the bridge's (pitch 8, fov 42, dist 10, lift 1.4,
+  ease 1.4):
+  - `gorge`: the whole river map (like the hill: no tilting in and out along the shore).
+  - `farm_pond`: x 24-28, y 1-4, the pond, its west and north banks and the fishing spot (24, 3);
+    clear of the gate road (31, 5..6), the barn's yard and door, the silo and the cells in front of
+    it, so daily farm work never tilts the camera.
+  - `minamino_bank`: Minamino rows 16-19, the lane's end by the river; clear of the path round
+    Kiku's front (row 15) and every door and spawn.
+- Checked: test_vista `_more_views` (the whole river map is `gorge`, the shore spawn inside; the
+  pond's every cell and the fishing spot in `farm_pond`, the gate road, barn yard and door, silo,
+  its front and the farm's spawns outside it; Minamino's river spawn inside `minamino_bank`, Kiku's
+  path and door and the other spawns outside; Sakurazaka's bridge none). Frames with `--vista` at
+  11:00: the pond in spring and fall (`--map=farm@24,4`), the gorge in fall and in winter with
+  snow 60 (`--map=river@shore`), Minamino in spring and summer (`--map=minamino@river`); walking
+  right from (21, 4) into the pond eases the camera up to Ogura; walking left from the gate keeps
+  the play camera. All 44 tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`:
+  title, `--demo`, town, mine 3, river@shore, minamino@river, farm@24,4): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo --map=farm@24,4`: exit 0.
+- Left / next: the user's look. Seen from the gorge, the valley's south side is a steep hazy face
+  on the left (the mountain eased down round the water running off west); it reads as the gorge's
+  wall, so it was left as it is.
+
 ## 2026-11-19 — The dog in the arms is the same dog as on the ground
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user found the dog held in the farmer's arms unlike the dog on the ground. It was
