@@ -608,8 +608,13 @@ func _show_charge() -> void:
 ## the camera, or from the back a hair away from it, behind the farmer, over the near shoulder.
 func _show_held() -> void:
 	held_sprite.visible = Game.holding()
+	if not Game.holding():
+		return
+	held_sprite.texture = PlaceholderArt.tex(Game.held_key())
+	held_sprite.offset = Vector2(0, held_sprite.texture.get_height() / 2.0)   # its bottom on the row
 	if Game.cradling():
-		held_sprite.texture = PlaceholderArt.tex(Game.held_key())
+		# A little one at the figures' density; the dog at its own, the same as on the ground.
+		held_sprite.pixel_size = AnimalLayer.ANIMAL_PX if Game.held_density() > 1.0 else FarmWorld.FIGURE_PX
 		var back := FarmerAnim.is_back(player.facing)
 		var at := PlaceholderArt.cradle_at(anim.pose, anim.frame(), back)
 		var axes := cam.global_transform.basis
@@ -617,8 +622,8 @@ func _show_held() -> void:
 		var side := (at.x - fig.x / 2.0) * (-1.0 if sprite.flip_h else 1.0)
 		var toward := Vector3(axes.z.x, 0, axes.z.z).normalized()
 		held_sprite.position = axes.x * side * FarmWorld.FIGURE_PX + Vector3.UP * (fig.y - at.y) * FarmWorld.FIGURE_PX + toward * (-0.03 if back else 0.03)
-	elif Game.holding():
-		held_sprite.texture = PlaceholderArt.tex(Game.held_key())
+	else:
+		held_sprite.pixel_size = FarmWorld.PX
 		var top := PlaceholderArt.FIGURE_SIZE.y - PlaceholderArt.hold_row(anim.pose, anim.frame())
 		held_sprite.position = Vector3(0, top * FarmWorld.FIGURE_PX, 0)
 

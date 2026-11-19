@@ -56,9 +56,7 @@ static func _make(key: String) -> Image:
 			return _paddy_water()
 		"item":     # item:<id>, a picked crop held overhead or lying on the ground (12 x 12)
 			return _item(parts[1])
-		"animal":   # animal:<chicken|chick|cow|calf|sheep|sheep_shorn|lamb|dog>:<idle|peck|walk|sick, dog: sit|held>:<frame>[:<dl|dr|ul|ur>], AnimalArt (twice the farmer's pixel density; the dog "held" is the small old one)
-			if AnimalArt.base_of(parts[1])[0] == "dog" and parts[2] == "held":   # dog or dog_old
-				return _beast(parts[1], parts[2], int(parts[3]))
+		"animal":   # animal:<chicken|chick|cow|calf|sheep|sheep_shorn|lamb|dog>:<idle|peck|walk|sick, dog: sit|held>:<frame>[:<dl|dr|ul|ur>], AnimalArt (twice the farmer's pixel density; the dog "held" is the same dog lying in the arms)
 			return AnimalArt.make(parts[1], parts[2], int(parts[3]), parts[4] if parts.size() > 4 else "dl")
 		"bird":     # bird:<swallow|crow|heron|sparrow>:<fly|stand|peck|hop>:<frame>[:r], BirdArt (facing left, ":r" mirrored)
 			return BirdArt.make(parts[1], parts[2], int(parts[3]), parts.size() > 4 and parts[4] == "r")
@@ -269,85 +267,6 @@ static func _egg(id: String, size: int) -> Image:
 		_px(img, size - 3, 1, 1, 3, SPARKLE)
 		_px(img, size - 4, 2, 3, 1, SPARKLE)
 	return ItemArt.refine(img, [shell.lightened(0.5), SPARKLE])
-
-
-## The first, low resolution animal drawing, side view facing left: only the dog held in the
-## farmer's arms (key "animal:dog:held:0", 14 x 11) still uses it; AnimalArt draws every other
-## animal and pose. A red-tan shiba-like dog with a cream chest and a tail curled over its back;
-## an old dog ("dog_old", Animals.dog_look) has the greying head and muzzle of data/animal_art.json "old".
-const BEASTS := {
-	"dog": {"w": 14, "h": 11, "body": Color("c8783c"), "head": Color("c8783c"), "muzzle": Color("f2e2c8"),
-		"leg": Color("c8783c"), "hoof": Color("f2e2c8"), "b": [7.5, 5.5, 4.2, 2.3], "hd": [3.0, 3.6, 2.2],
-		"legs": [4, 6, 9, 11], "leg_y": 7, "leg_len": 3, "tail": "curl", "ears": true},
-}
-
-
-## idle (frame 1 lifts the head a little), peck (head down: grazing, eating), walk (legs
-## swing), sick (lying down, dull, eyes shut); the dog also sit (on its haunches) and held.
-static func _beast(kind: String, pose: String, frame: int) -> Image:
-	var split := AnimalArt.base_of(kind)
-	var s: Dictionary = BEASTS[split[0]].duplicate()
-	if split[2]:   # old: the face greys like AnimalArt's old dog
-		var o: Dictionary = AnimalArt.art().old
-		var frost := Color(str(o.frost))
-		s.head = (s.head as Color).lerp(frost, float(o.head))
-		s.muzzle = (s.muzzle as Color).lerp(frost, float(o.muzzle))
-	var img := _blank(s.w, s.h)
-	var sick := pose == "sick"
-	var sit := pose == "sit" or pose == "held"
-	var body: Color = s.body.darkened(0.15) if sick else s.body
-	var head_c: Color = s.head.darkened(0.15) if sick else s.head
-	var b: Array = s.b
-	var bx: float = b[0] + (1.0 if sit else 0.0)
-	var by: float = b[1] + (float(s.leg_len) - 1.0 if sick else (1.0 if sit else 0.0))
-	var thick := 2 if s.w > 14 else 1
-	# Legs: four, swinging in pairs on a walk; folded away when lying, only the front pair sitting.
-	if not sick:
-		var swing := frame % 2 * 2 - 1 if pose == "walk" else 0
-		for k in s.legs.size():
-			if sit and k >= 2:
-				continue
-			var x: int = s.legs[k] + (swing if k % 3 == 0 else -swing)
-			var top: int = s.leg_y - (1 if sit else 0)
-			var long: int = s.leg_len + (1 if sit else 0)
-			_px(img, x, top, thick, long, s.leg)
-			_px(img, x, top + long - 1, thick, 1, s.hoof)
-	# The tail, then the body over it.
-	var tail_x := int(bx + b[2]) - 1
-	_oval(img, tail_x - 0.5, by - b[3] - 0.2, 1.6, 1.5, body)   # the tail curled over its back
-	_px(img, int(tail_x - 0.5), int(by - b[3]), 1, 1, s.muzzle)
-	if sit:
-		_oval(img, bx + 0.5, by + 0.5, b[2] * 0.8, b[3] * 1.05, body)   # haunch down, chest up
-		_oval(img, bx - b[2] * 0.45, by - 0.5, b[2] * 0.45, b[3] * 1.1, body)
-	else:
-		_oval(img, bx, by, b[2], b[3], body)
-	_oval(img, bx + 0.5, by + b[3] * 0.55, b[2] * 0.72, b[3] * 0.38, s.muzzle)
-	# The head: up, a little raised, down to the grass, sunk while lying, up when sitting.
-	var hd: Array = s.hd
-	var head := Vector2(hd[0], hd[1])
-	if pose == "peck":
-		head = Vector2(hd[0] - 0.5, s.h - hd[2] - 1.0)
-	elif pose == "idle" and frame % 2 == 1:
-		head.y -= 1.0
-	elif sick:
-		head = Vector2(hd[0] + 0.5, by)
-	elif sit:
-		head = Vector2(hd[0] + 0.5, hd[1] - 0.5)
-	var r: float = hd[2]
-	var dark := Color(str(AnimalArt.art().features.nostril))   # eye and nose: no black outline colour
-	_oval(img, head.x, head.y, r * 1.1, r, head_c)
-	_oval(img, head.x - r * 0.75, head.y + r * 0.35, r * 0.55, r * 0.5, s.muzzle)
-	var eye := Vector2i(int(head.x - r * 0.15), int(head.y - r * 0.35))
-	if sick:
-		_px(img, eye.x - 1, eye.y + 1, 2, 1, head_c.darkened(0.5))
-	else:
-		_px(img, eye.x, eye.y, 1, 1, dark)
-	_px(img, int(head.x), int(head.y - r) - 1, 1, 2, head_c.darkened(0.15))   # pricked shiba ears
-	_px(img, int(head.x + r * 0.7), int(head.y - r) - 1, 1, 2, head_c.darkened(0.15))
-	if not sick:
-		_px(img, int(head.x - r * 1.3), int(head.y + r * 0.1), 1, 1, dark)   # nose
-	# Toned like the animals (AnimalArt): three tones a material, a rim in its deep tone.
-	return AnimalArt.refine_flat(img, [dark, Color("e8e0d0"), head_c.darkened(0.5)])
 
 
 ## Animal goods as items (data/animals.json): eggs, milk, wool. Grades differ by colour.

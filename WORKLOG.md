@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-19 — The dog in the arms is the same dog as on the ground
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user found the dog held in the farmer's arms unlike the dog on the ground. It was
+  still the first 14 x 11 placeholder drawing (PlaceholderArt._beast) at the farmer's pixel size,
+  lifted overhead like an item, while the dog on the ground is AnimalArt's at twice the density.
+  - AnimalArt draws the held dog itself (pose "held": the same dog, its front paws hanging short,
+    the far hind leg tucked); PlaceholderArt._beast, BEASTS and AnimalArt.refine_flat are gone.
+  - Held against the chest in the arms like the baby and the crawler (Game.cradling includes the
+    dog: the cradle pose, FigureArt.cradle_at), not overhead; from the back it shows over the
+    near shoulder behind the farmer.
+  - Drawn at its own density in both views (Game.held_density: AnimalArt.SCALE for the dog): 3D
+    the held sprite at AnimalLayer.ANIMAL_PX like the dog on the ground (the little ones at
+    FIGURE_PX, items at PX as before; the sprite's offset now follows each picture's height);
+    flat, the picture drawn at 1 / SCALE (Player.held_behind scaled the same).
+- Checked: test_animals (the held picture the dog's own size, in the standing dog's colours, as
+  long with the paws short; picked up: the cradle pose at the ground dog's density), test_view2d,
+  test_hold, test_child; frames of the dog in the arms on the farm, from the front and the back in
+  3D and in the flat view. All 44 tests OK (0 failed), smoke 0 ERROR (title, demo, town, mine 3),
+  windowed exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-19 — The dog from behind, second pass: level, a smaller head, a cream cheek
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user sent three frames of the dog from behind: it still looked crippled after the

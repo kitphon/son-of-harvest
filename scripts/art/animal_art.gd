@@ -15,8 +15,8 @@ extends RefCounted
 ##   (SHEAR): at the game's low camera the near end of a body stands lower on screen.
 ## - Poses: idle (frame 1 lifts the head, flicks an ear), peck (head to the ground: grazing,
 ##   pecking, eating), walk (diagonal pairs of legs), sick (lying, dull colours, eyes shut);
-##   the dog also sit. The dog "held" in the arms stays the old 14 x 11 picture at the farmer's
-##   pixel size (PlaceholderArt._beast), toned by refine_flat.
+##   the dog also sit and held (lying in the farmer's arms: the same dog, its paws hanging short,
+##   the hind legs tucked; the views draw it at this density like the dog on the ground).
 ## - The refined look of the figures (FigureArt), numbers and colours in data/animal_art.json:
 ##   every material in three tones (shade / base / lit, lit from the upper left), a part's edge
 ##   over another material in its deep tone, and a rim in the deep tone of the material it
@@ -221,13 +221,6 @@ static func facing_of(step: Vector2, keep: String = "dl") -> String:
 	if absf(right) < 0.001:
 		h = keep.substr(1, 1)
 	return v + h
-
-
-## A picture laid in flat colours (one a material; `fixed` left as they are) toned like the
-## animals: shade / base / lit by the side of a part that is open, a rim in the deep tone pulled
-## towards the rim colour. For the dog held in the arms (PlaceholderArt._beast).
-static func refine_flat(img: Image, fixed: Array) -> Image:
-	return BabyArt.refine(img, fixed, [], art())
 
 
 # --- drawing helpers -------------------------------------------------------
@@ -466,6 +459,10 @@ static func _quad(kind: String, pose: String, frame: int, away: bool, carrying :
 	var img := _canvas(s.w, s.h)
 	var sick := pose == "sick"
 	var sit := pose == "sit"
+	var held := pose == "held"   # the dog in the farmer's arms: front paws hanging short, hind legs tucked
+	if held:
+		s = s.duplicate()
+		s.leg_len = 4
 	var body := tones_of(kind, "body", sick)
 	var head_m := tones_of(kind, "head", sick)
 	var leg := tones_of(kind, "leg", sick)
@@ -489,7 +486,7 @@ static func _quad(kind: String, pose: String, frame: int, away: bool, carrying :
 	var swing := (frame % 2) * 2 - 1 if pose == "walk" else 0
 	if not sick:
 		for k in [1, 3]:
-			if sit and k == 3:
+			if (sit or held) and k == 3:
 				continue
 			_leg(img, s, k, swing, sit, leg_far, hoof_far, -1)
 	# The tail goes behind the body seen from the front, over the rump seen from behind.

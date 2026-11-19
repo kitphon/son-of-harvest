@@ -74,8 +74,10 @@ func _process(delta: float) -> void:
 	if held_behind.visible:
 		var pic := PlaceholderArt.tex(Game.held_key())
 		var at := PlaceholderArt.cradle_at(anim.pose, anim.frame(), true)
+		var k := Game.held_density()   # the dog's picture at its own density
 		held_behind.texture = pic
-		held_behind.position = Vector2(_px(at.x) - pic.get_width() / 2.0, FIGURE_TOP + at.y - pic.get_height())
+		held_behind.scale = Vector2.ONE / k
+		held_behind.position = Vector2(_px(at.x) - pic.get_width() / 2.0 / k, FIGURE_TOP + at.y - pic.get_height() / k)
 		held_behind.self_modulate = light
 	queue_redraw()
 
@@ -352,7 +354,8 @@ func _draw() -> void:
 	if Game.cradling() and not FarmerAnim.is_back(facing):   # the little one against the chest, over the hands
 		var pic := PlaceholderArt.tex(Game.held_key())
 		var at := PlaceholderArt.cradle_at(anim.pose, anim.frame())
-		draw_texture(pic, Vector2(_px(at.x) - pic.get_width() / 2.0, FIGURE_TOP + at.y - pic.get_height()), light)
+		var size := pic.get_size() / Game.held_density()   # the dog's picture at its own density
+		draw_texture_rect(pic, Rect2(Vector2(_px(at.x) - size.x / 2.0, FIGURE_TOP + at.y - size.y), size), false, light)
 	elif Game.holding() and not Game.cradling():   # carried overhead, resting on the raised hands of the picture
 		var item := PlaceholderArt.tex(Game.held_key())
 		var row := PlaceholderArt.hold_row(anim.pose, anim.frame())

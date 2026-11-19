@@ -1371,10 +1371,16 @@ func arms_full() -> bool:
 	return baby_held or crawler_held() or animals.dog.held
 
 
-## The baby or the crawler is in the farmer's arms: held against the chest (the cradle pose,
-## FigureArt.cradle_at), not overhead like an item or the dog.
+## The baby, the crawler or the dog is in the farmer's arms: held against the chest (the cradle
+## pose, FigureArt.cradle_at), not overhead like an item.
 func cradling() -> bool:
-	return baby_held or crawler_held()
+	return baby_held or crawler_held() or animals.dog.held
+
+
+## How many picture pixels make one of the figure's pixels for what is held (held_key): the dog's
+## picture is AnimalArt's, at AnimalArt.SCALE times the density, like the dog on the ground.
+func held_density() -> float:
+	return float(AnimalArt.SCALE) if animals.dog.held and not (baby_held or crawler_held()) else 1.0
 
 
 ## The sprite key for what is carried overhead: the held item, the dog in the arms, the baby or the crawler.

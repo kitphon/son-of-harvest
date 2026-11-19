@@ -1278,6 +1278,7 @@ func _barn_actions() -> void:
 	check(a.dog.petted and a.dog.affection > aff and not a.dog.held, "E pets the dog")
 	FarmActions.on_action("interact", dog + Vector2i.DOWN, Vector2i.UP)
 	check(a.dog.held and g.holding() and g.held == "" and g.held_key() == "animal:dog:held:0", "E again picks it up")
+	check(g.cradling() and g.held_density() == float(AnimalArt.SCALE), "held in the arms against the chest (the cradle pose), drawn at the ground dog's density")
 	var young_age: int = a.dog.age
 	a.dog.age = int(a.dog_rule().old_days)
 	check(g.held_key() == "animal:dog%s:held:0" % AnimalArt.old_suffix(), "an old dog in the arms: %s" % g.held_key())
@@ -1508,7 +1509,7 @@ func _barn_map_and_art() -> void:
 				var key := "animal:%s:%s:%d" % [kind, pose, frame]
 				check(PlaceholderArt.tex(key).get_size() == sizes[kind], key + " size")
 	check(PlaceholderArt.tex("animal:dog:sit:0").get_size() == sizes.dog, "dog sit")
-	check(PlaceholderArt.tex("animal:dog:held:0").get_size() == Vector2(14, 11), "the dog in the arms keeps its small picture")
+	check(PlaceholderArt.tex("animal:dog:held:0").get_size() == sizes.dog, "the dog in the arms is the same dog's picture (AnimalArt, its size)")
 	var data_of := func(k): return PlaceholderArt.tex(k).get_image().get_data()
 	check(data_of.call("animal:sheep:idle:0") != data_of.call("animal:sheep_shorn:idle:0"), "a shorn sheep looks different")
 	check(data_of.call("animal:cow:idle:0") != data_of.call("animal:cow:sick:0"), "a sick cow looks different")
@@ -1801,7 +1802,18 @@ func _animal_art_refined() -> void:
 	# The dog in the arms: the same toning, its size kept.
 	var held := PlaceholderArt.tex("animal:dog:held:0").get_image()
 	var hc := _colours(held)
-	check(held.get_size() == Vector2i(14, 11) and not hc.has(old_line) and hc.size() >= 8, "the dog in the arms is toned, no old outline (%d colours)" % hc.size())
+	check(held.get_size() == AnimalArt.size_of("dog") and not hc.has(old_line) and hc.size() >= 8, "the dog in the arms is toned, no old outline (%d colours)" % hc.size())
+	# The same dog as on the ground (the user saw two different dogs): its picture's colours are the
+	# standing dog's, and it is drawn at the ground dog's density in both views (Game.held_density).
+	var standing := _colours(PlaceholderArt.tex("animal:dog:idle:0").get_image())
+	var shared := 0
+	for k in hc:
+		if standing.has(k):
+			shared += 1
+	check(shared * 10 >= hc.size() * 8, "the dog in the arms in the standing dog's colours (%d of %d)" % [shared, hc.size()])
+	var held_img := held.get_used_rect()
+	var stand_img := PlaceholderArt.tex("animal:dog:idle:0").get_image().get_used_rect()
+	check(held_img.size.y < stand_img.size.y and absi(held_img.size.x - stand_img.size.x) <= 2, "held: as long as the standing dog, the paws hanging short (%s against %s)" % [held_img.size, stand_img.size])
 	# An old dog in the arms: the same shape, its face greyer (data/animal_art.json "old").
 	var aged := PlaceholderArt.tex("animal:dog%s:held:0" % AnimalArt.old_suffix()).get_image()
 	var same := aged.get_size() == held.get_size()
