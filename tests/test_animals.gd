@@ -1682,6 +1682,18 @@ func _animal_art() -> void:
 				for x in dog.get_width():
 					pink = pink or dog.get_pixel(x, y).is_equal_approx(inner)
 			check(not pink, "dog %s %d from behind: no inner ear showing" % [pose, frame])
+			# All four feet on the ground: the front feet (the left third) at most a pixel over the hind ones.
+			var foot := func(x0: int, x1: int) -> int:
+				var low := -1
+				for x in range(x0, x1):
+					for y in range(dog.get_height() - 1, -1, -1):
+						if dog.get_pixel(x, y).a > 0.0:
+							low = maxi(low, y)
+							break
+				return low
+			var front: int = foot.call(u.position.x, u.position.x + u.size.x / 3)
+			var hind: int = foot.call(u.end.x - u.size.x / 3, u.end.x)
+			check(pose == "walk" or hind - front <= 1, "dog %s %d from behind: the front feet stand with the hind ones (rows %d, %d), not lifted short" % [pose, frame, front, hind])
 	var hen := PlaceholderArt.tex("animal:chicken:idle:0:dl").get_image()
 	var used := hen.get_used_rect()
 	var thick := 0

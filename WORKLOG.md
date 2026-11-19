@@ -10,6 +10,25 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-19 — The dog from behind, second pass: level, a smaller head, a cream cheek
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user sent three frames of the dog from behind: it still looked crippled after the
+  tail fix. Three causes, seen frame by frame at 8x:
+  - The tilt (SHEAR) lifts the far end of a figure; seen from behind that is the head end, so the
+    front feet stood 2-3 pixels over the hind ones and the front legs read short and bent. Seen
+    from behind the tilt is now AWAY_SHEAR (0.4) of it: the dog (and the cow, calf, sheep, lamb
+    and hen from behind) stands level.
+  - The back of the head was a plain red ball as big as the haunch. From behind the dog's head is
+    a little smaller (r x 0.88) and a pixel higher, the pricked ears up over it, and the cream
+    cheek (urajiro) shows past its far side.
+  - The cream chest showed mid-body from behind like a bandage: from behind only a thinner line
+    of the cream underside shows.
+- Checked: test_animals (new: on the dog's standing frames from behind the front feet are at most
+  a pixel over the hind ones); every kind from behind large; the dog following the farmer on the
+  farm in 3D and in the flat view. All 44 tests OK (0 failed), smoke 0 ERROR (title, demo, town,
+  mine 3), windowed exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-19 — The dog from behind no longer looks crippled
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user found the dog seen from behind (facings ul / ur) looked crippled. Its curled

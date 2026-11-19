@@ -38,6 +38,8 @@ const KINDS := ["chicken", "chick", "cow", "calf", "sheep", "sheep_shorn", "lamb
 const CARRYING := ["cow", "sheep", "sheep_shorn"]   # the kinds with a carrying picture
 const PAD := Vector2i(6, 6)   # art pixels of margin left / right and top of every picture (_canvas)
 const SHEAR := 0.085   # rows a column moves per column away from the middle
+const AWAY_SHEAR := 0.4   # share of the tilt seen from behind: the far (head) end lifted less, or the
+                          # front feet float over the hind ones and the front legs read short
 
 ## Per kind (all in art pixels): canvas w x h; body ellipse b = [x, y, rx, ry]; leg columns
 ## [near front, far front, near hind, far hind], their top row and length; head hd = [x, y, r].
@@ -360,7 +362,7 @@ static func _tilt(img: Image, away: bool) -> Image:
 	var shifts := PackedInt32Array()
 	var low := -999
 	for x in size.x:
-		var d := (mid - x) * SHEAR      # the left end is the head's
+		var d := (mid - x) * (SHEAR if not away else SHEAR * AWAY_SHEAR)   # the left end is the head's
 		var sh := roundi(-d if away else d)
 		shifts.append(sh)
 		for y in size.y:
@@ -509,10 +511,11 @@ static func _quad(kind: String, pose: String, frame: int, away: bool, carrying :
 		if carrying:
 			_blob(img, belly.x, belly.y, belly.z, belly.w, body)
 			low = maxf(low, belly.y + belly.w - 0.6)
-		if s.has("urajiro"):   # cream chest and underside
+		if s.has("urajiro"):   # cream chest and underside (from behind the chest is turned away)
 			var cream := tones_of(kind, "muzzle")
-			_blob(img, bx - rx * 0.62, by + ry * 0.42, rx * 0.34, ry * 0.62, cream, false)
-			_blob(img, bx + rx * 0.05, by + ry * 0.7, rx * 0.7, ry * 0.3, cream, false)
+			if not away:
+				_blob(img, bx - rx * 0.62, by + ry * 0.42, rx * 0.34, ry * 0.62, cream, false)
+			_blob(img, bx + rx * 0.05, by + ry * 0.7, rx * 0.7, ry * (0.3 if not away else 0.22), cream, false)
 		if s.has("ribs"):
 			for i in 3:
 				var rxp := bx - 4.0 + i * 3.0
@@ -555,6 +558,9 @@ static func _quad(kind: String, pose: String, frame: int, away: bool, carrying :
 			head = Vector2(hd[0] + 1.0, hd[1] - 1.0)
 	if away:   # seen from behind the head sits a little higher and in, hidden by the shoulders
 		head += Vector2(1.5, -1.0)
+		if kind == "dog":   # and farther off: a little smaller and higher, the ears up over it
+			r *= 0.88
+			head.y -= 1.0
 	var woolly := fleece or kind == "sheep_shorn"
 	_stroke(img, shoulder, head + Vector2(r * 0.5, r * 0.3), ry * 0.78 if not woolly else ry * 0.55,
 		r * 0.75 if not fleece else r * 0.6, head_m if not woolly else body)
@@ -619,6 +625,8 @@ static func _head(img: Image, s: Dictionary, kind: String, h: Vector2, r: float,
 		# The muzzle peeks out below and ahead of the skull.
 		_blob(img, h.x - r * 0.25, h.y + r * 0.55, r * 0.55, r * 0.45, muzzle, false)
 	_blob(img, h.x, h.y, r * 1.08, r, head_m)
+	if away and kind == "dog":   # the cream cheek showing past the far side of the head
+		_blob(img, h.x - r * 0.78, h.y + r * 0.42, r * 0.42, r * 0.38, muzzle, false)
 	if not away:
 		# The muzzle, wider seen from the front.
 		var mw := r * 0.85
