@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-20 — The village's main street paved right up to the bridge, no stray paving
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user saw on the map overview a paving stone sticking out by a house at the main
+  street's south end and the street stopping a row short of the bridge. data/maps/town.json:
+  (39, 33) grass instead of stone; row 36 (x 40-42) stone instead of the dirt path, so the paving
+  runs three wide onto the bridge. The bridge's south end stays Minamino's dirt road.
+- Checked: test_maps `_arashiyama_town` (the paving reaches row 36, none at x 39 or 43 from row 26
+  to 36; the road at the bridge's ends: stone north, path south). Frames: the flat overview of the
+  village (`tools/map_overview.gd --maps=town`) and 3D `--map=town@41,35`. All 44
+  tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`: title, `--demo`, town,
+  mine 3, town@41,35): 0 ERROR lines; windowed `--quit-after 150 -- --demo --map=town@41,35`:
+  exit 0.
+- Left / next: the user asked for the station east of the street to be replaced: next.
+
 ## 2026-11-20 — The river's banks run on level past the apron; no dark band at the mountains' feet
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user saw the ground by the river past the apron at another level. Three things:

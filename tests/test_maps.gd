@@ -4790,11 +4790,15 @@ func _arashiyama_town() -> void:
 	check(t.w == 56 and t.h == 48, "the village is 56 x 48")
 	for y in range(0, 35):
 		check(t.tile(Vector2i(41, y)) == "stone" and not t.is_solid(Vector2i(41, y)), "the main street is stone paving at (41, %d)" % y)
+	# Its south end: the paving three wide right up to the bridge, none stray beside it (the user saw
+	# a paving stone out by a house at (39, 33) and the dirt row before the bridge, 2026-11-20).
+	check([40, 41, 42].all(func(x: int) -> bool: return t.tile(Vector2i(x, 36)) == "stone"), "the paving reaches the bridge (row 36)")
+	check(range(26, 37).all(func(y: int) -> bool: return t.tile(Vector2i(39, y)) != "stone" and t.tile(Vector2i(43, y)) != "stone"), "no paving stray beside the street's south end")
 	for y in range(37, 43):
 		check(t.tile(Vector2i(41, y)) == "water" and t.is_solid(Vector2i(39, y)) and t.prop_at(Vector2i(41, y)).get("kind", "") == "bridge"
 			and not t.is_solid(Vector2i(41, y)) and t.step(Vector2i(41, y)) == "floor", "the bridge over the river at (41, %d): the water runs on under its deck, walked over (wood underfoot)" % y)
-	for y in [36, 43]:
-		check(t.tile(Vector2i(41, y)) == "path" and t.prop_at(Vector2i(41, y)).is_empty(), "the road at the bridge's end, off the deck (41, %d)" % y)
+	for y in [36, 43]:   # the village's paving at the north end (since 2026-11-20), Minamino's dirt road at the south
+		check(t.tile(Vector2i(41, y)) == ("stone" if y == 36 else "path") and t.prop_at(Vector2i(41, y)).is_empty(), "the road at the bridge's end, off the deck (41, %d)" % y)
 	_bridge_walk(t)
 	for x in [2, 20, 39, 43, 55]:
 		var col := []
