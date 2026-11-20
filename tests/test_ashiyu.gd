@@ -119,6 +119,12 @@ func _pose() -> void:
 			if side == "front":
 				check(img.get_used_rect().position.y > idle.get_used_rect().position.y, "sat lower than standing (frame %d)" % f)
 	check(PA.image("player:front:soak:0").get_data() != PA.image("player:front:soak:1").get_data(), "the foot stirs the water")
+	# Sat, not stood: a lap across both legs under the waist (FigureArt._lap): the trousers' colour
+	# runs from the lap's outer edge to the inner leg, where stood the shins have their edge there.
+	var sat: Image = PA.image("player:front:soak:0")
+	var hip: int = int(FG.plan(FG.FARMER_LOOK).hip) + int(FG.row("soak", 0)[0])
+	check(sat.get_pixel(8, hip).is_equal_approx(sat.get_pixel(10, hip)) and sat.get_pixel(13, hip).is_equal_approx(sat.get_pixel(14, hip)) and sat.get_pixel(11, hip).is_equal_approx(sat.get_pixel(8, hip))
+		and not idle.get_pixel(8, FG.FOOT - 3).is_equal_approx(idle.get_pixel(10, FG.FOOT - 3)), "a lap across the legs when sat (the hands at the knees)")
 	var anim: RefCounted = AN.new()
 	anim.step(0.1, false, false, false, false, "", "soak")
 	check(anim.pose == "soak" and anim.key(Vector2i.DOWN).begins_with("player:front:soak:"), "FarmerAnim takes the soak pose")

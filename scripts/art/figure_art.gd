@@ -153,9 +153,10 @@ const POSES := {
 	# ("scoop_lift"). Colours: data/farmer_art.json `scoop`.
 	"scoop": [[3, -1, 0, 1, 0, 0, 0]],
 	"scoop_lift": [[2, -1, 0, 1, 0, 0, 0]],
-	# Soaking at the footbath (Game.soak): sat low on its bench, the hands at the knees, the feet
-	# down in the water; now and then the near foot stirs the water (1).
-	"soak": [[3, -1, 0, 1, 0, 1, -1], [3, -1, 1, 1, 0, 1, -1]],
+	# Soaking at the footbath (Game.soak): sat on its edge, the thighs toward the eye as a lap
+	# (_lap, from the front), the shins hanging down into the water, the hands at the knees; now
+	# and then the near foot stirs the water (1).
+	"soak": [[2, -1, 0, 1, 0, 1, -1], [2, -1, 1, 1, 0, 1, -1]],
 }
 ## Per eat / drink frame: [hand offset from the mouth, what it holds: "bite" (a morsel at the
 ## lips), "chew" (the bitten rest), "cup" (upright at the lips), "tip" (tipped up)].
@@ -281,6 +282,8 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 	for leg in [[far_x, p[4]], [near_x, p[2]]]:
 		_leg(img, r, c, outfit, leg[0], leg[1])
 	_torso(img, r, c, outfit, back, farmer)
+	if pose == "soak" and not back:
+		_lap(img, r, c, outfit)
 	if style == "long" and back:
 		_long_hair_down_back(img, r, c)
 	if farmer:
@@ -556,6 +559,20 @@ static func _leg(dst: Image, r: Dictionary, c: Dictionary, outfit: String, x: in
 	_r(L, x - 1, bottom - 1, 4, 2, c.k)
 	_r(L, x + 2, bottom - 1, 1, 1, c.K)
 	_dot(L, x - 1, bottom, c.K)
+	_stamp(dst, L)
+
+
+## The lap of a figure sat down, seen from the front (the soak pose): the thighs coming toward the
+## eye side by side below the waist, a darker row under the knees and a line between them, so the
+## shins below read as hanging down from a seat, not as legs stood on.
+static func _lap(dst: Image, r: Dictionary, c: Dictionary, outfit: String) -> void:
+	var L := _blank()
+	var top: int = r.hip
+	var col: Color = c.get("s", c.get("l", c.k)) if outfit == "shirt_shorts" else c.get("l", c.k)
+	var dark: Color = c.get("S", c.get("L", c.K)) if outfit == "shirt_shorts" else c.get("L", c.K)
+	_r(L, r.bx - 4, top, 9, 2, col)
+	_r(L, r.bx - 4, top + 2, 9, 1, dark)
+	_r(L, r.bx, top, 1, 2, dark)
 	_stamp(dst, L)
 
 

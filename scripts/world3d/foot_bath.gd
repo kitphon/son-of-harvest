@@ -18,7 +18,7 @@ const ROOF_LOW := 1.55
 const WATER := Color("6fa8a0")   # the spring's pale milky green
 const CEDAR := Color("a07a52")
 const STEAM_SCALE := 4.0
-const STEAM_PUFFS := 3   # Steam nodes along the tub
+const STEAM_PUFFS := 3   # Steam nodes over the tub
 
 
 ## The tub and its benches over `r` (the prop's cells).
@@ -71,7 +71,8 @@ static func steam(w: Node3D, r: Rect2) -> Array[Node3D]:
 	for k in STEAM_PUFFS:
 		var s := StallWares.Steam.new(int(r.position.x) * 7 + k * 31)
 		s.scale = Vector3.ONE * STEAM_SCALE
-		s.position = Vector3(r.position.x + r.size.x * (k + 0.5) / STEAM_PUFFS, WATER_Y + 0.15, r.get_center().y)
+		# Over the tub's far half (+z, toward the eye) and its ends, clear of the bench people sit on.
+		s.position = Vector3(r.position.x + r.size.x * [0.18, 0.5, 0.82][k % 3], WATER_Y + 0.15, r.get_center().y + (0.1 if k % 2 == 0 else 0.4))
 		s.name = "FootBathSteam%d" % k
 		w.add_child(s)
 		out.append(s)

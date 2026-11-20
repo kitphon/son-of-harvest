@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-20 — The footbath: sat on its edge, only the shins and feet in the water
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user found the farmer standing in the water with the whole legs in it and asked for
+  him to sit with only the legs or feet dipped.
+  - The soak pose sits (FigureArt): from the front a lap below the waist (FigureArt._lap: the
+    thighs toward the eye side by side, a darker row under the knees and a line between them),
+    the hands at the knees, the shins hanging down; the body two pixels lower, not four.
+  - In 3D the figure is raised `lift` 0.17 (data/ashiyu.json; was 0.12) so the lap sits at the
+    rim's height and only the shins and feet go under the water's top; the steam moved off the
+    seat to the tub's far half and its ends (FootBath.steam), so it no longer drifts in front of
+    him. The flat view keeps its band of water over the feet.
+- Checked: test_ashiyu (a lap across the legs when sat: the trousers' colour from the lap's outer
+  edge to the inner leg, where the stood shins have an edge; the hand at the near knee). Frames:
+  the standing and the two sitting pictures side by side at 8x; `--map=town@ashiyu --soak` in 3D
+  (summer, winter with snow 60) and the flat view. All 45 tests/test_*.gd print `OK (0 failed)`
+  (the full run before this check was added; test_ashiyu after it: OK); smoke runs
+  (`--quit-after 300`: title, `--demo`, town, mine 3, town@ashiyu --soak): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo --map=town@ashiyu --soak`: exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-20 — The footbath: the feet in the water, and E again to get up
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user asked for the feet to really go into the water and for E to stop soaking at any
