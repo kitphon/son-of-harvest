@@ -10,6 +10,16 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-20 — The user passed the viewpoints, the soft ponds and the place names
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: frames sent to the user at 11:00: the river gorge (summer, winter with snow 60), the farm
+  pond's viewpoint (spring), Minamino's riverside (summer), the farm pond (summer day 5), Ogura
+  pond by the bamboo, the place names Tenryo-ji Temple and Tsukiwatari Bridge at the top left.
+  The user passed both. ROADMAP: those looks ticked, and "The view of the mountains" closed.
+- Checked: every frame's run printed 0 error lines. No code changed.
+- Left / next: the user's look at the village after Arashiyama (the dog in the arms among it);
+  the .exe waits on the export templates.
+
 ## 2026-11-20 — The fall mountain after the user's photo: tried and dropped
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user sent a photo of Arashiyama in fall (the slope a mosaic of red, orange, yellow and
