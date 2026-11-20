@@ -254,6 +254,9 @@ static func interact(c: Vector2i) -> void:
 				Game.open_cooking()
 			"ribbons":   # the farmhouse's board of contest ribbons
 				Game.message.emit(Keepsakes.board_text(Game.flags))
+			"soak":   # the village footbath (data/ashiyu.json)
+				if Game.soak().ok:
+					Sfx.play("hold_splash")
 		return
 	if DogActions.interact(c):
 		return

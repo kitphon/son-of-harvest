@@ -115,6 +115,7 @@
 		"Shop": "ซื้อของ",
 		"Open": "เปิด",
 		"Cook": "ทำอาหาร",
+		"Soak": "แช่เท้า",
 		"Look": "ดู",
 		"Feed": "ให้อาหาร",
 		"Take egg": "เก็บไข่",
@@ -464,6 +465,9 @@
 		"You collapsed! You woke up in the village clinic. Dr. Yae's fee: %d G.": "คุณล้มหมดแรง! ตื่นมาอยู่ที่คลินิกหมู่บ้าน ค่ารักษาหมอยาเอะ: %d G",
 		"You collapsed! You woke up in the village clinic. Dr. Yae let the fee go, this once.": "คุณล้มหมดแรง! ตื่นมาอยู่ที่คลินิกหมู่บ้าน หมอยาเอะไม่คิดเงิน แค่ครั้งนี้นะ",
 		"You're full. Save it for later.": "อิ่มแล้ว เก็บไว้กินทีหลังเถอะ",
+		"You soak your feet in the hot spring water. The tiredness eases.": "แช่เท้าในน้ำพุร้อน ความเหนื่อยค่อย ๆ คลายลง",
+		"You soak your feet a while. They're still warm from earlier.": "แช่เท้าอีกสักพัก เท้ายังอุ่นอยู่จากเมื่อกี้",
+		"Put down what you're holding first.": "วางของที่ถืออยู่ลงก่อน",
 		"Strength wells up in you. Max stamina +%d!": "รู้สึกมีแรงขึ้นมาก พลังกายสูงสุด +%d!",
 		"Your body feels light. Work tires you less today.": "ตัวเบาสบาย วันนี้ทำงานเหนื่อยน้อยลง",
 

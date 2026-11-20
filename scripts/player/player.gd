@@ -66,7 +66,7 @@ func _ready() -> void:
 ## scooping goldfish);
 ## redrawn each frame as the pose steps.
 func _process(delta: float) -> void:
-	anim.step(delta, moving, running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose, Game.scoop_pose(), Game.swing_pose(), Game.swing_frame(), Game.cradling())
+	anim.step(delta, moving, running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.still_pose(), Game.scoop_pose(), Game.swing_pose(), Game.swing_frame(), Game.cradling())
 	figure.texture = PlaceholderArt.tex(anim.key(facing))
 	figure.flip_h = FarmerAnim.is_mirrored(facing)
 	var back := FarmerAnim.is_back(facing)
@@ -117,8 +117,9 @@ func _physics_process(delta: float) -> void:
 		running = false
 		queue_redraw()
 		return
-	if Game.eating():
-		# Eating or drinking (Game.eat_pose): stand still, no tool, no interact until it ends.
+	if Game.eating() or Game.soaking():
+		# Eating or drinking (Game.eat_pose), or soaking at the footbath: stay still, no tool, no
+		# interact until it ends.
 		moving = false
 		running = false
 		queue_redraw()

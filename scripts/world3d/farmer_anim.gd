@@ -9,6 +9,7 @@ const TIRED_WALK_FPS := 6.0   # slower, dragging steps (the exhausted farmer is 
 const TIRED_IDLE_FPS := 1.5   # one slow breath in, one out
 const EAT_FPS := 5.0     # bite, chew, bite...: 1.2 s of eating (foods.json pose) = three bites
 const DRINK_FPS := 2.0   # cup at the lips, tipped up: one sip a second
+const SOAK_FPS := 0.8   # sat at the footbath, the near foot stirring the water now and then
 
 var pose := "idle"
 var time := 0.0
@@ -83,4 +84,6 @@ func _fps() -> float:
 			return EAT_FPS
 		"drink":
 			return DRINK_FPS
+		"soak":
+			return SOAK_FPS
 	return WALK_FPS

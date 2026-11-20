@@ -153,6 +153,9 @@ const POSES := {
 	# ("scoop_lift"). Colours: data/farmer_art.json `scoop`.
 	"scoop": [[3, -1, 0, 1, 0, 0, 0]],
 	"scoop_lift": [[2, -1, 0, 1, 0, 0, 0]],
+	# Soaking at the footbath (Game.soak): sat low on its bench, the hands at the knees, the feet
+	# down in the water; now and then the near foot stirs the water (1).
+	"soak": [[4, -1, 0, 1, 0, 1, -1], [4, -1, 1, 1, 0, 1, -1]],
 }
 ## Per eat / drink frame: [hand offset from the mouth, what it holds: "bite" (a morsel at the
 ## lips), "chew" (the bitten rest), "cup" (upright at the lips), "tip" (tipped up)].

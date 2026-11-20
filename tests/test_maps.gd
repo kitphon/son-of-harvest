@@ -4819,14 +4819,12 @@ func _arashiyama_town() -> void:
 	check(t.prop_at(Vector2i(28, 10)).get("color", "") == "black", "the little shrine's torii is black wood")
 	var bamboo := t.props.filter(func(p): return p.kind == "bamboo" and int(p.cell.y) >= 5 and int(p.cell.y) <= 13)
 	check(bamboo.size() > 60 and t.tile(Vector2i(20, 11)) == "path" and t.tile(Vector2i(20, 12)) == "path", "thick bamboo either side of the bamboo path (%d)" % bamboo.size())
-	# The station east of the street is gone (the user's word, 2026-11-20): the neighbourhood well at
-	# the lane's end, a persimmon, vegetable beds behind a fence; the one station is the north-west's.
+	# The station east of the street is gone (the user's word, 2026-11-20): the footbath at the
+	# lane's end (test_ashiyu); the one station is the north-west's.
 	check(t.props.filter(func(p): return p.kind == "station").size() == 1 and t.props.filter(func(p): return p.kind == "rails").size() == 1
 		and t.props.any(func(p): return p.kind == "station" and Vector2i(p.cell) == Vector2i(5, 0)), "one station and its line, in the north-west")
-	check(t.prop_at(Vector2i(46, 22)).get("kind", "") == "well" and t.is_solid(Vector2i(46, 22)) and t.tile(Vector2i(46, 21)) == "path"
-		and Vector2i(t.spawns.well[0]) == Vector2i(46, 21), "the well at the end of the lane off the street, a spawn before it")
-	check(t.prop_at(Vector2i(49, 22)).get("kind", "") == "garden" and t.prop_at(Vector2i(52, 23)).get("kind", "") == "garden"
-		and t.prop_at(Vector2i(44, 22)).get("kind", "") == "persimmon", "vegetable beds and a persimmon by it")
+	check(t.prop_at(Vector2i(46, 22)).get("kind", "") == "ashiyu" and t.is_solid(Vector2i(46, 22)) and t.tile(Vector2i(46, 21)) == "path"
+		and Vector2i(t.spawns.ashiyu[0]) == Vector2i(46, 21), "the footbath at the end of the lane off the street, a spawn before it")
 	var fronts := t.props.filter(func(p): return p.kind == "village_house" and str(p.get("street", "")) == "east")
 	check(fronts.size() == 4 and fronts.all(func(p): return int(p.cell.x) + int(p.size.x) == 39), "the houses west of the street show a shop front to it")
 	check(LitSpots.village_style({"street": "east"}).street == "east" and LitSpots.village_style({}).street == "", "the house style carries its street side")

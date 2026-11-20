@@ -524,7 +524,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	anim.step(delta, player.moving, player.running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.eat_pose, Game.scoop_pose(), Game.swing_pose(), Game.swing_frame(), Game.cradling())
+	anim.step(delta, player.moving, player.running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.still_pose(), Game.scoop_pose(), Game.swing_pose(), Game.swing_frame(), Game.cradling())
 	_update_flash(delta)
 	_follow()
 	world.occluders.update(sprite.position, _cam.get("back", lens.back), delta)

@@ -106,6 +106,8 @@ var demo_walk := Vector2.ZERO   # `--walk=<up|down|left|right>[:seconds]`: the f
 var farmer_passing := false   # the farmer slips past a villager now (Player.passing): they step aside (Villagers.give_way)
 var demo_walk_left := 0.0       # seconds of that walk still to go (INF without a time)
 var eat_left := 0.0  # seconds of that pose still to play (foods.json pose); not saved
+var soak_left := 0.0   # seconds the farmer still sits soaking at the footbath (data/ashiyu.json, Game.soak); not saved
+var soaked_today := false   # the day's first soak at the footbath given (its stamina and rest); saved, cleared each morning
 ## The item carried overhead in the holding hand ("" = hands free). It is the rucksack's
 ## hand slot (Inventory "hand"): what the rucksack menu takes in hand is held up the same way.
 var held: String:
@@ -160,6 +162,7 @@ var tools_data: Dictionary = {}    # data/tools.json: charge steps per tool
 var snow_rules: Dictionary = {}    # how snow builds up and melts (data/snow_cover.json)
 var body: Dictionary = {}          # fatigue, tired states, oversleeping, collapse (data/body.json)
 var food_data: Dictionary = {}     # data/foods.json: food and drink, the stand's food stock
+var ashiyu: Dictionary = {}   # data/ashiyu.json: the village footbath's soak
 var foods: Dictionary = {}         # food id -> {name, price, stamina, fatigue, ...}
 var hold_rules: Dictionary = {}    # throw reach, flight, what the bin and the pond do (data/hold.json)
 var fish_data: Dictionary = {}     # data/fish.json: bites, fish per place / season / hour / weather
@@ -202,6 +205,7 @@ func _ready() -> void:
 	tools_data = _load_json("res://data/tools.json")
 	snow_rules = _load_json("res://data/snow_cover.json")
 	body = _load_json("res://data/body.json")
+	ashiyu = _load_json("res://data/ashiyu.json")
 	set_food_data(_load_json("res://data/foods.json"))
 	hold_rules = _load_json("res://data/hold.json")
 	fish_data = _load_json("res://data/fish.json")
@@ -240,6 +244,8 @@ func new_game() -> void:
 	work_fatigue_half = false
 	eat_pose = ""
 	eat_left = 0.0
+	soak_left = 0.0
+	soaked_today = false
 	swing = {}
 	charge_tool = ""
 	_shown_state = "fine"
@@ -354,6 +360,8 @@ func new_game() -> void:
 			var wk := arg.trim_prefix("--walk=").split(":")
 			demo_walk = Vector2(DEMO_FACINGS.get(wk[0], Vector2i.ZERO))
 			demo_walk_left = float(wk[1]) if wk.size() > 1 else INF
+		elif arg == "--soak":   # `-- --demo --map=town@ashiyu --soak`: sitting at the footbath, the pose kept going
+			soak_left = 1000.0
 		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
 			fatigue = int(body.get("states", {}).get("exhausted", {}).get("fatigue", 80))
 			_shown_state = body_state()
@@ -697,6 +705,8 @@ func _demo_kitchen() -> void:
 func _process(delta: float) -> void:
 	if eating() and not paused():
 		_eat_step(delta)
+	if soaking() and not paused():
+		soak_left = maxf(soak_left - delta, 0.0)
 	if swinging() and not paused():
 		swing_step(delta)
 	if race != null and not paused():
@@ -1266,6 +1276,8 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 			year += 1
 			flags["record_due"] = true   # Tome brings this New Year's page (triggers_house.json)
 	work_fatigue_half = false
+	soaked_today = false   # the footbath gives its rest again tomorrow
+	soak_left = 0.0
 	_count_build_day()   # before the date moves: did the builder work today?
 	animal_news.append_array(animals.day_end(weather_today, rng))
 	fishing.stop()
@@ -2060,6 +2072,42 @@ func start_eat_pose(drink: bool) -> void:
 	eat_left = float(food_data.get("pose", {}).get(eat_pose, 0.0))
 	if eat_left <= 0.0:
 		eat_pose = ""
+
+
+## Soaks the feet at the village footbath (data/ashiyu.json): the sitting pose for `seconds`; the
+## day's first soak gives its stamina (up to the max) and takes its fatigue off, a later one only
+## rests. Not while holding something or cradling the little one. Says what happened; returns
+## {ok, note}.
+func soak() -> Dictionary:
+	if holding() or soaking():
+		var no := String(ashiyu.get("hands_message", "")) if holding() else ""
+		if no != "":
+			message.emit(no)
+		return {"ok": false, "note": no}
+	soak_left = float(ashiyu.get("seconds", 5.0))
+	var note := String(ashiyu.get("again_message", ""))
+	if not soaked_today:
+		soaked_today = true
+		stamina = clampi(stamina + int(ashiyu.get("stamina", 0)), 0, max_stamina)
+		add_fatigue(int(ashiyu.get("fatigue", 0)))
+		_shown_state = body_state()   # feeling better: a later tired state is told again
+		note = String(ashiyu.get("message", ""))
+	changed.emit()
+	message.emit(note)
+	return {"ok": true, "note": note}
+
+
+## Is the farmer sitting at the footbath?
+func soaking() -> bool:
+	return soak_left > 0.0
+
+
+## The pose that holds the farmer still now (FarmerAnim's `eating`): eat / drink, "soak" at the
+## footbath, else "".
+func still_pose() -> String:
+	if eat_pose != "":
+		return eat_pose
+	return "soak" if soaking() else ""
 
 
 ## The farmer's pose at the goldfish tub (FarmerAnim): "scoop" while the scoop game is on,
@@ -3286,7 +3334,7 @@ const SAVED_NUMBERS := {
 }
 ## Numbers added after the first saves went out: an older save without them gets these.
 const SAVED_DEFAULTS := {"snow_cover": 0, "fatigue": 0}
-const SAVED_FLAGS: Array[String] = ["work_fatigue_half"]   # true / false; older saves: false
+const SAVED_FLAGS: Array[String] = ["work_fatigue_half", "soaked_today"]   # true / false; older saves: false
 
 
 ## The run's state as plain data, the farm included (SaveGame writes it).

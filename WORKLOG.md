@@ -10,6 +10,38 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-20 — The village footbath (ashiyu) where the station stood
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user picked the footbath for the spot east of the main street (it replaces the well
+  and beds of the last commit).
+  - Rules (data/ashiyu.json, Game.soak / soaking / still_pose): E from the lane's end; the farmer
+    sits on its bench and soaks the feet for 5 s, kept still as when eating. The day's first soak
+    gives stamina +20 (to the max) and fatigue -15; a later one the same day only rests ("still
+    warm from earlier"). Not while holding something or cradling the little one. Game.soaked_today
+    is saved (SAVED_FLAGS) and cleared each morning. Balance: green tea is +5 / -5 and a night's
+    sleep at least -10, so it's worth the walk on a long day but no stand-in for sleep.
+  - The sitting pose "soak" (FigureArt: four pixels lower, hands at the knees, the near foot
+    stirring the water now and then; FarmerAnim SOAK_FPS 0.8), both views through still_pose.
+  - 3D (FootBath): a stone tub with a light coping, pale green spring water, cedar benches along
+    both long sides; the posts and board gable roof are a prop of their own (`ashiyu_roof`), so
+    only the roof fades in front of the farmer sat at the tub (the tub is under
+    Occluders.MIN_HEIGHT); steam (StallWares.Steam x4) made outside the mesh cache.
+  - Flat view (MapView.draw_foot_bath / draw_foot_bath_roof): rim, water, ripples, benches, steam
+    wisps, the roof as a thin see-through sheet.
+  - The map: the tub (45-47, 22-23, "use": "soak") and its roof between two stone lanterns, a maple,
+    a cherry, a flat garden rock and two shrubs; spawn `ashiyu` (46, 21) facing it. The hint "Soak",
+    the Thai lines (แช่เท้า), `--soak`, AGENTS.md, docs/DESIGN.md (stamina section).
+- Checked: tests/test_ashiyu.gd prints `test_ashiyu: OK (0 failed)` (the data; the first soak's
+  stamina and fatigue, the pose on and ending, a later soak only resting, the max and zero limits,
+  the save and an older save, the morning clearing it, not while holding; the pose's frames drawn,
+  lower than standing, the foot stirring, FarmerAnim; the map's tub, roof, spawn; the hint and E
+  through FarmActions; the Thai; the 3D steam over the tub, the tub low and the roof high; the flat
+  colours). test_maps follows. Frames: `--map=town@ashiyu --soak` summer and winter (snow 60),
+  `town@49,19` fall, the flat view. All 45 tests/test_*.gd print `OK (0 failed)`; smoke runs
+  (`--quit-after 300`: title, `--demo`, town, mine 3, town@ashiyu --soak): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo --map=town@ashiyu`: exit 0.
+- Left / next: the user's look. No sound of its own (the splash on sitting reuses hold_splash).
+
 ## 2026-11-20 — The station east of the street becomes the neighbourhood well
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user asked for the station east of the main street (and its short line) to go and

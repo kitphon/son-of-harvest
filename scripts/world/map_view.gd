@@ -20,7 +20,7 @@ const COLORS := {
 	"stone_lantern": Color("9a968e"), "pine": Color("2f5a34"), "bamboo": Color("6e9c42"),
 	"well": Color("8e8a80"), "jizo": Color("c8342c"), "persimmon": Color("e8782a"), "sakura": Color("f2bccb"), "maple": Color("c42a1e"), "ginkgo": Color("f0c020"),
 	"hasa": Color("d8b85a"), "woodpile": Color("8a6440"), "garden": Color("5a9a3a"), "wood_fence": Color("b08a5a"), "kiln": Color("9a7656"),
-	"hen_barn": Color("7a5a3a"), "ditch": Color("3e5a50"),
+	"hen_barn": Color("7a5a3a"), "ditch": Color("3e5a50"), "ashiyu": Color("8cc4bc"), "ashiyu_roof": Color("4a3626"),
 	"tsuiji": Color("d2b06a"), "temple_gate": Color("5a3a26"), "station": Color("8a8680"), "rails": Color("6e6e72"), "bridge": Color("8a6440"),
 	"counter": Color("4a3424"), "shelf": Color("6a4a30"), "rice_sacks": Color("d8c088"),
 	"forge": Color("7a746c"), "anvil": Color("2a2a2e"), "tool_rack": Color("8a6a48"), "water_tub": Color("2a4a5a"), "river_rock": Color("6e6a62"), "garden_rock": Color("6a675f"), "shrub": Color("3f6e2e"), "ferry_boat": Color("8a6440"), "landing": Color("9a7650"), "cloth_rack": Color("2f5a96"), "koinobori": Color("8e8a82"),
@@ -306,6 +306,33 @@ func _process(_delta: float) -> void:
 			_objects.queue_redraw()
 
 
+## The footbath (ashiyu) seen from above over `r` (pixels; FootBath in 3D): a stone rim with a lighter
+## coping, the pale green spring water with a few light ripples, cedar benches along both long sides,
+## wisps of steam.
+static func draw_foot_bath(c: CanvasItem, r: Rect2) -> void:
+	var box := r.grow(-1)
+	c.draw_rect(box, Color("8e8a80"))
+	c.draw_rect(box, Color("a29e94"), false, 1.0)
+	var water := box.grow(-3)
+	c.draw_rect(water, Color("8cc4bc"))
+	for k in 3:   # ripples
+		var y := water.position.y + 2 + k * maxf(water.size.y - 4, 1.0) / 3.0
+		c.draw_rect(Rect2(water.position.x + 3 + k * 5, floorf(y), maxf(water.size.x * 0.35, 2.0), 1), Color("b4ddd6"))
+	var cedar := Color("a07a52")
+	c.draw_rect(Rect2(box.position.x + 2, box.position.y + 1, box.size.x - 4, 2), cedar)
+	c.draw_rect(Rect2(box.position.x + 2, box.end.y - 3, box.size.x - 4, 2), cedar)
+	for k in 3:   # steam
+		var x := water.position.x + water.size.x * (k + 0.5) / 3.0
+		c.draw_rect(Rect2(floorf(x) - 1, water.position.y + 1, 3, 2), Color(1, 1, 1, 0.45))
+
+
+## The footbath's board roof (ashiyu_roof) seen from above over `r` (pixels), laid thin: a darker
+## see-through sheet a pixel past the tub, the ridge across its middle, so the water still reads.
+static func draw_foot_bath_roof(c: CanvasItem, r: Rect2) -> void:
+	c.draw_rect(r.grow(1), Color(0.29, 0.21, 0.15, 0.32))
+	c.draw_rect(Rect2(r.position.x - 1, floorf(r.get_center().y) - 1, r.size.x + 2, 2), Color(0.24, 0.17, 0.12, 0.7))
+
+
 func _draw_objects() -> void:
 	if not map.indoor:   # over the water's moving skin, under the props
 		draw_banks(_objects, map.w, map.h, func(c: Vector2i) -> bool: return map.tile(c) == "water" and not map.look(c) in PondShape.LOOKS)   # a soft pond has its own sloping bank
@@ -347,6 +374,12 @@ func _draw_objects() -> void:
 			continue
 		if p.kind in GardenLook.KINDS:
 			_draw_garden(p, r)
+			continue
+		if p.kind == "ashiyu":
+			draw_foot_bath(_objects, r)
+			continue
+		if p.kind == "ashiyu_roof":
+			draw_foot_bath_roof(_objects, r)
 			continue
 		var fill: Color = COLORS.get(p.kind, Color.MAGENTA)
 		if p.kind == "water_tub" and p.has("color"):   # a tub of its own water (Shino's indigo vats)

@@ -250,6 +250,8 @@ func _prop(p: Dictionary) -> void:
 		return
 	var bloom := str(p.kind) == "shrub" and GardenProps.blooms(Game.season_name(), Game.day)   # a shrub's look changes with its flowers
 	MeshCache.build(self, "prop|%s|%s|%s|%s" % [map.id, p, Game.season_name(), SnowLayer.map_has_snow(map)] + ("|bloom" if bloom else ""), _make_prop.bind(p))
+	if str(p.kind) == "ashiyu":   # the footbath's steam moves: made each time, not kept
+		FootBath.steam(self, Rect2(Vector2(p.cell), Vector2(p.size)))
 
 
 func _make_prop(p: Dictionary) -> void:
@@ -275,6 +277,8 @@ func _make_prop(p: Dictionary) -> void:
 		"fodder_box", "stalls", "hay", "barn_gate": BarnProps.prop(self, p, mid, r)
 		"well", "jizo", "persimmon", "sakura", "maple", "ginkgo", "hasa", "woodpile", "garden", "wood_fence", "kiln", "hen_barn", "ditch": CountryProps.prop(self, p, mid, r, Game.season_name())
 		"cave_mouth": _cave_mouth(mid, r)
+		"ashiyu": FootBath.build(self, r)
+		"ashiyu_roof": FootBath.roof(self, r)
 		"door_bell", "store_sign", "ume_jar", "carp_streamer", "ribbon_board", "keepsake", "rope_lift", "jizo_bibs", "jizo_scarf", "kiln_mark", "kiln_site", "kiln_new", "boat_name", "noren", "captain_jar", "frog", "sky_map": StoryProps.prop(self, p)
 		"ladder": _ladder(mid)
 		"garden_rock", "shrub": GardenProps.prop(self, p, mid, map, Game.season_name(), Game.day, SnowLayer.map_has_snow(map))

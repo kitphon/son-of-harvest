@@ -11,7 +11,7 @@ const TOOL_VERBS := {"hoe": "Till", "can": "Water", "sickle": "Cut", "hammer": "
 const USE_VERBS := {"sleep": "Sleep", "shop": "Shop", "storage": "Open", "cook": "Cook",
 	"ribbons": "Look", "examine": "Look", "feed_box": "Feed", "feed_sack": "Look",
 	"nest": "Take egg", "incubator": "Incubator", "hatch": "Hatch", "fodder_box": "Feed",
-	"fodder": "Feed", "barn_tools": "Look", "barn_gate": "Gate", "cradle": "Look"}
+	"fodder": "Feed", "barn_tools": "Look", "barn_gate": "Gate", "cradle": "Look", "soak": "Soak"}
 
 
 ## How far (cells) the feet lean off the middle of their cell, across the facing, before E also
