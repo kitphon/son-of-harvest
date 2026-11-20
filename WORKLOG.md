@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-20 — The station east of the street becomes the neighbourhood well
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user asked for the station east of the main street (and its short line) to go and
+  something else to stand there. data/maps/town.json: the well (46, 22) at the end of the lane off
+  the street (row 21), a persimmon (44, 22), the neighbours' two vegetable beds (49, 22) and
+  (52, 22) behind a low wood fence (49-53, 24), a woodpile (44, 24) and a water tub (47, 23); all
+  props the other maps use, drawn in both views. The spawn `station` is `well` (46, 21, facing the
+  well). The north-west station and the line along the north edge stay. AGENTS.md's spawn list and
+  the map's note follow.
+- Checked: test_maps `_arashiyama_town` (one station and its line, in the north-west; the well at
+  the lane's end with the spawn before it; the beds and the persimmon). Frames: 3D `--map=town@well`
+  in summer and fall, the flat overview of the village. All 44 tests/test_*.gd print
+  `OK (0 failed)`; smoke runs (`--quit-after 300`: title, `--demo`, town, mine 3, town@well):
+  0 ERROR lines; windowed `--quit-after 150 -- --demo --map=town@well`: exit 0.
+- Left / next: the user's pick: other ideas were offered for the spot (a little shrine, a garden,
+  a rice-drying yard; with new art: a footbath, a food stall, a tea field, a notice board).
+
 ## 2026-11-20 — The village's main street paved right up to the bridge, no stray paving
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user saw on the map overview a paving stone sticking out by a house at the main
