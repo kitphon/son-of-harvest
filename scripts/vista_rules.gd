@@ -83,6 +83,12 @@ static func apron_pines() -> int:
 	return int(config().get("apron_pines", 45))   # 45: Surroundings.TREE_SHARE (named here, it would tie this pure script to the Game autoload)
 
 
+## How far (cells from a map's edge) the water running off a mountain map is carried on past
+## its apron (data/vista.json `far_water`): Surroundings' skin, VistaMountain's bed under it.
+static func far_water() -> int:
+	return int(config().get("far_water", 0))
+
+
 ## The broadleaf trees in the wood past map `map_id`'s edges (data/vista.json `apron_trees`):
 ## {share: trees in a hundred cells (instead of apron_pines), kinds: {kind: % of those trees}};
 ## the rest stay pines. {} = pines only.

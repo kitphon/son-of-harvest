@@ -25,6 +25,7 @@ func _run() -> void:
 	_heights()
 	_mesh()
 	_floor()
+	_far_water()
 	_views()
 	_blend()
 	await _worlds()
@@ -193,6 +194,45 @@ func _floor() -> void:
 		if v.x < -margin - 1.0 and v.x > -30.0 and v.z > 0.0 and v.z < hill.h and v.y < VM.FLOOR - 0.01:
 			gap += 1
 	check(floor_pts > 0 and gap == 0, "the hill's west: floor out to the mountain, nothing sunk past the rim (%d floor points, %d sunk)" % [floor_pts, gap])
+
+
+## The water running off a mountain map carried on past its apron (data/vista.json `far_water`):
+## past the land beyond the edges the open land lays the river's bed and slopes down to it as a
+## bank, and Surroundings' skin lies over it, so no hole opens over the river like a chasm (the
+## user saw one past the river map's west edge, 2026-11-20).
+func _far_water() -> void:
+	var river := MapManager.data("river")
+	var margin := int(load("res://scripts/world3d/surroundings.gd").MARGIN)
+	var far := VistaRules.far_water()
+	check(far > margin * 3, "the river runs on well past the apron (%d cells)" % far)
+	check(VM.water_past(river, Vector2(-30, 7)) and not VM.floor_at(river, Vector2(-30, 7)), "past the apron west, over the river: its bed, no grass")
+	check(VM.floor_at(river, Vector2(-30, 2)) and not VM.water_past(river, Vector2(-30, 2)), "beside it: the grass")
+	check(not VM.water_past(river, Vector2(-5, 7)) and not VM.water_past(river, Vector2(-far - 4, 7)), "not under the apron's own water, nor past far_water")
+	var ogura: Dictionary = VistaRules.config().mountains.filter(func(x): return x.id == "ogura")[0]
+	var rm: ArrayMesh = VM.mesh_of(ogura, Vector2(WorldPlan.places().river), VistaRules.map_rects(), river)
+	var bed := PackedVector3Array()
+	var low := 0
+	for i in rm.get_surface_count():
+		var vs: PackedVector3Array = rm.surface_get_arrays(i)[Mesh.ARRAY_VERTEX]
+		if rm.surface_get_name(i) == "bed":
+			bed = vs
+		elif rm.surface_get_name(i) == "floor":
+			for v in vs:
+				if v.x < -margin - 2.0 and v.x > -far + 2.0 and v.z > 5.0 and v.z < 10.0 and v.y < VM.BED_Y - 0.01:
+					low += 1
+	var on_river := bed.size() > 0
+	for v in bed:
+		on_river = on_river and is_equal_approx(v.y, VM.BED_Y) and v.z >= 4.0 and v.z <= 12.0
+	check(on_river, "a bed at the water's depth along the river's rows west (%d points)" % bed.size())
+	check(low == 0, "nothing beside the river past the apron sinks below its bed (%d points)" % low)
+	var kinds := func(c: Vector2i) -> String: return river.tile(c)
+	var cells: Array[Vector2i] = load("res://scripts/world3d/water_surface.gd").far_cells(river.w, river.h, kinds, margin, margin, far)
+	var west := cells.filter(func(c: Vector2i) -> bool: return c.x < 0)
+	var rows := {}
+	for c: Vector2i in west:
+		rows[c.y] = true
+	check(west.size() == 4 * (far - margin) and rows.keys().size() == 4 and Vector2i(-margin - 1, 6) in west and Vector2i(-far, 9) in west, "the skin carried on west over the river's four rows (%d cells)" % west.size())
+	check(not cells.any(func(c: Vector2i) -> bool: return c.y < 6 and c.x < 0), "no skin over the bank beside it")
 
 
 ## The viewpoints: on their map, on open cells the farmer can stand on.

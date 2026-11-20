@@ -20,6 +20,7 @@ var water: WaterSurface   # the moving skin on the water cells (and past the edg
 var snow_mats: Array[ShaderMaterial] = []   # the snow on the pines' pads, set with it
 var tufts: GrassTufts   # the apron's grass tufts (FarmWorld.set_farmer parts them too)
 var back := MARGIN   # cells of land past the north and west edges (the rim, with a backdrop)
+var far_water := 0   # cells from the map's edge the water running off it is carried on past the apron (the mountains' maps: VistaMountain lays its bed)
 var share := TREE_SHARE   # % of the allowed cells with a pine (fewer on a rim, so the ridges show)
 var broadleaf := {}   # kind -> % of the wood's trees that are that broadleaf tree instead of a pine (VistaRules.apron_trees)
 var season := "spring"   # the season the broadleaf trees of the wood are drawn in
@@ -61,7 +62,7 @@ func build(w: int, h: int, kind_at: Callable, hold_at: Callable, back_cells := M
 	SunkenGround.place(self, cw, ch, Vector2(-back, -back), wet, material, -0.02, outside)
 	water = WaterSurface.new()
 	add_child(water)
-	water.build(w, h, kind, MARGIN, back)
+	water.build(w, h, kind, MARGIN, back, far_water)
 	_make_pines(made.pines)
 	_make_tufts(made.tufts, w, h, hold)
 

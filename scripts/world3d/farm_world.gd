@@ -620,6 +620,7 @@ func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable, map_
 		var mix := VistaRules.apron_trees(map_id)   # broadleaf trees in that wood (Nishiki Hill)
 		surroundings.broadleaf = mix.get("kinds", {})
 		surroundings.season = Game.season_name()
+		surroundings.far_water = VistaRules.far_water()   # the river runs on down its valley past the apron, over the mountains' bed
 		surroundings.build(w, h, soft, soft_hold, Surroundings.MARGIN, int(mix.get("share", VistaRules.apron_pines())))
 	else:
 		surroundings.build(w, h, kind_at, hold_at)

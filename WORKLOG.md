@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-20 — The river runs on past the land beyond the edges (no chasm)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user saw a chasm past the river map's west edge from the gorge's viewpoint (winter).
+  The land past a map's edges (Surroundings) runs 14 cells; past that the mountains' open land
+  takes over, but it leaves out the cells over water running off an edge, and nothing filled that
+  hole: its grass sloped 1.6 units down into it (NONE_Y), a striped drop with nothing below.
+  - data/vista.json `far_water` (120 cells, VistaRules.far_water): on the mountains' maps the
+    water running off an edge is carried on straight past the apron that far.
+  - VistaMountain's open land lays the river's bed there (surface "bed", BED_Y at the water's
+    depth, the water tile's picture, no snow: bed_material; water_past), and the grass beside it
+    slopes down to that bed as a bank instead of into a hole (floor_at / water_past share _past).
+  - Surroundings / WaterSurface carry the moving skin on over it (WaterSurface.far_cells, from
+    FarmWorld via `far_water`), so it ripples, freezes at the shore and takes the rain as the
+    river does. The gravel path still ends where the apron ends (the open land is grass only).
+- Checked: test_vista `_far_water` (the river map: bed past the apron west over the river's rows,
+  grass beside it, none under the apron's own water or past far_water; the mesh's bed at BED_Y on
+  the river's rows; nothing beside the river sinking below the bed; the skin's far cells the four
+  river rows out to far_water, none over the bank). Frames: `--vista --map=river@1,5 --time=13:15`
+  in winter (snow 60) and summer: the river runs on west between grassy banks, no drop. All 44
+  tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`: title, `--demo`, town,
+  mine 3, river@1,5 in winter, Sakurazaka, the hill): 0 ERROR lines; windowed `--quit-after 150
+  -- --demo --map=river@1,5`: exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-20 — The user passed the viewpoints, the soft ponds and the place names
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: frames sent to the user at 11:00: the river gorge (summer, winter with snow 60), the farm
