@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-20 — The fall mountain after the user's photo: tried and dropped
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user sent a photo of Arashiyama in fall (the slope a mosaic of red, orange, yellow and
+  green crowns). Tried in VistaMountain's shader, fall only (data/vista.json `leaves`,
+  `leaf_share`), four ways: bands of a value noise (marbled squiggles), one colour per cell of a
+  jittered grid with dark edges (tiles like stones laid in rows), the old texture coloured by
+  stand (a heat map), and one colour per tree with soft shading (a mix of crowns). The user found
+  it not pretty and asked for it back, so nothing of it was kept: the shader and data are as at
+  973ae5b (fall olive and brown, no orange stains). Only this log and ROADMAP change.
+- Checked: `git status` clean after the revert; no code changed, so the tests of 973ae5b stand
+  (all 44 OK).
+- Left / next: the user's look at the new viewpoints and the winter snow.
+
 ## 2026-11-20 — No stains on the mountains; snow that reads as snow
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user found grey stains on the mountain in spring, orange ones in fall, and the winter
