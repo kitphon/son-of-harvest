@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-20 — The farm pond's view looks level: Ogura's ridge and the sky in the frame
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user found the mountain behind the farm pond odd. Ogura stands nearest the farm, so
+  at the bridge's pitch 8 its ridge (about 21 degrees up from the pond) ran past the top of the
+  frame (13 degrees up): no skyline, the slope filled the sky like a green wall. Tried pitch 3
+  (the ridge just under the top edge, cramped) and pitch 0; `farm_pond` now looks level (pitch 0,
+  data/vista.json): the ridge, its haze and sky above it show, the farm and pond still in front.
+  The other viewpoints are unchanged.
+- Checked: frames with `--vista --map=farm@24,4` at 11:00 in summer (pitch 0 and 3), fall and
+  winter with snow 60. All 44 tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after
+  300`: title, `--demo`, town, mine 3, farm@24,4): 0 ERROR lines; windowed `--quit-after 150 --
+  --demo --map=farm@24,4`: exit 0.
+- Left / next: the user's look. The pink specks over the slope in spring are the drifting cherry
+  petals (data/drift.json) in the air near the farmer, not marks on the mountain.
+
 ## 2026-11-19 — More viewpoints: the river gorge, the farm pond, Minamino's riverside
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user asked for more viewpoints (ROADMAP's open item). Scouted four spots with a test
