@@ -196,43 +196,57 @@ func _floor() -> void:
 	check(floor_pts > 0 and gap == 0, "the hill's west: floor out to the mountain, nothing sunk past the rim (%d floor points, %d sunk)" % [floor_pts, gap])
 
 
-## The water running off a mountain map carried on past its apron (data/vista.json `far_water`):
-## past the land beyond the edges the open land lays the river's bed and slopes down to it as a
-## bank, and Surroundings' skin lies over it, so no hole opens over the river like a chasm (the
-## user saw one past the river map's west edge, 2026-11-20).
+## The water running off a mountain map carried on past its apron (data/vista.json `far_water`,
+## VistaRules.far_river): laid cell by cell as the apron lays the map's own (its bed, stone walls,
+## grass banks at the land's height either side, Surroundings' skin over it), so no hole opens over
+## the river like a chasm and its banks run on level (the user saw both past the river map's west
+## edge, 2026-11-20); only down the plan's corridors; the open land runs on past its far end.
 func _far_water() -> void:
 	var river := MapManager.data("river")
 	var margin := int(load("res://scripts/world3d/surroundings.gd").MARGIN)
 	var far := VistaRules.far_water()
 	check(far > margin * 3, "the river runs on well past the apron (%d cells)" % far)
-	check(VM.water_past(river, Vector2(-30, 7)) and not VM.floor_at(river, Vector2(-30, 7)), "past the apron west, over the river: its bed, no grass")
-	check(VM.floor_at(river, Vector2(-30, 2)) and not VM.water_past(river, Vector2(-30, 2)), "beside it: the grass")
-	check(not VM.water_past(river, Vector2(-5, 7)) and not VM.water_past(river, Vector2(-far - 4, 7)), "not under the apron's own water, nor past far_water")
-	var ogura: Dictionary = VistaRules.config().mountains.filter(func(x): return x.id == "ogura")[0]
-	var rm: ArrayMesh = VM.mesh_of(ogura, Vector2(WorldPlan.places().river), VistaRules.map_rects(), river)
-	var bed := PackedVector3Array()
-	var low := 0
-	for i in rm.get_surface_count():
-		var vs: PackedVector3Array = rm.surface_get_arrays(i)[Mesh.ARRAY_VERTEX]
-		if rm.surface_get_name(i) == "bed":
-			bed = vs
-		elif rm.surface_get_name(i) == "floor":
-			for v in vs:
-				if v.x < -margin - 2.0 and v.x > -far + 2.0 and v.z > 5.0 and v.z < 10.0 and v.y < VM.BED_Y - 0.01:
-					low += 1
-	var on_river := bed.size() > 0
-	for v in bed:
-		on_river = on_river and is_equal_approx(v.y, VM.BED_Y) and v.z >= 4.0 and v.z <= 12.0
-	check(on_river, "a bed at the water's depth along the river's rows west (%d points)" % bed.size())
-	check(low == 0, "nothing beside the river past the apron sinks below its bed (%d points)" % low)
-	var kinds := func(c: Vector2i) -> String: return river.tile(c)
-	var cells: Array[Vector2i] = load("res://scripts/world3d/water_surface.gd").far_cells(river.w, river.h, kinds, margin, margin, far)
+	var cells := VistaRules.far_river(river, margin)
 	var west := cells.filter(func(c: Vector2i) -> bool: return c.x < 0)
 	var rows := {}
 	for c: Vector2i in west:
 		rows[c.y] = true
-	check(west.size() == 4 * (far - margin) and rows.keys().size() == 4 and Vector2i(-margin - 1, 6) in west and Vector2i(-far, 9) in west, "the skin carried on west over the river's four rows (%d cells)" % west.size())
-	check(not cells.any(func(c: Vector2i) -> bool: return c.y < 6 and c.x < 0), "no skin over the bank beside it")
+	check(west.size() == 4 * (far - margin) and rows.keys().size() == 4 and Vector2i(-margin - 1, 6) in west and Vector2i(-far, 9) in west, "west: the river's four rows from the apron's end out to far_water (%d cells)" % west.size())
+	check(not cells.any(func(c: Vector2i) -> bool: return c.x < 0 and (c.y < 6 or c.y > 9)), "none over the banks")
+	var east := cells.filter(func(c: Vector2i) -> bool: return c.x >= river.w)
+	check(east.size() > 0 and east.all(func(c: Vector2i) -> bool: return c.x < 20 + 56), "east: into the village's river, not past the village (%d cells)" % east.size())
+	var saku := MapManager.data("sakurazaka")
+	var down := VistaRules.far_river(saku, margin).filter(func(c: Vector2i) -> bool: return c.y >= saku.h)
+	check(down.all(func(c: Vector2i) -> bool: return c.y + 6 < 43), "Sakurazaka's creek south: only to where it meets the river")
+	# The open land: none at a corner of that river, grass beside it.
+	check(not VM.floor_at(river, Vector2(-30, 7)) and not VM.floor_at(river, Vector2(-30, 10)) and not VM.floor_at(river, Vector2(-30, 6)), "no open land at the river's corners past the apron")
+	check(VM.floor_at(river, Vector2(-30, 2)) and VM.floor_at(river, Vector2(-30, 12)), "beside it: the open land")
+	check(VM.floor_at(river, Vector2(-far - 6, 7)), "past its far end the open land runs on over its line")
+	var ogura: Dictionary = VistaRules.config().mountains.filter(func(x): return x.id == "ogura")[0]
+	var first: Dictionary = VistaRules.config().mountains[0]
+	var rm: ArrayMesh = VM.mesh_of(first, Vector2(WorldPlan.places().river), VistaRules.map_rects(), river)
+	var parts := {}
+	for i in rm.get_surface_count():
+		parts[rm.surface_get_name(i)] = rm.surface_get_arrays(i)[Mesh.ARRAY_VERTEX]
+	var bed: PackedVector3Array = parts.get("bed", PackedVector3Array())
+	var banks: PackedVector3Array = parts.get("banks", PackedVector3Array())
+	var walls: PackedVector3Array = parts.get("walls", PackedVector3Array())
+	var bed_y: float = VM.LAND_Y - float(load("res://scripts/world3d/sunken_ground.gd").DROP)
+	check(bed.size() == cells.size() * 6 and Array(bed).all(func(v: Vector3) -> bool: return is_equal_approx(v.y, bed_y)), "a bed quad a river cell at the water's depth (%d)" % bed.size())
+	check(banks.size() > 0 and Array(banks).all(func(v: Vector3) -> bool: return is_equal_approx(v.y, VM.LAND_Y)), "its banks at the land's height, level with the apron's")
+	var on_rows := Array(banks).filter(func(v: Vector3) -> bool: return v.x < -margin - 1 and v.x > -far)
+	check(on_rows.all(func(v: Vector3) -> bool: return (v.z >= 4.0 and v.z <= 6.0) or (v.z >= 10.0 and v.z <= 12.0)), "two cells of grass either side of the river's rows")
+	check(walls.size() > 0 and Array(walls).all(func(v: Vector3) -> bool: return is_equal_approx(v.y, VM.LAND_Y) or is_equal_approx(v.y, bed_y)), "stone walls from the land down to the bed")
+	var other: ArrayMesh = VM.mesh_of(ogura, Vector2(WorldPlan.places().river), VistaRules.map_rects(), river)
+	var twice := false
+	for i in other.get_surface_count():
+		twice = twice or other.surface_get_name(i) in ["bed", "banks", "walls"]
+	check(ogura == first or not twice, "laid once a map, with the first mountain only")
+	# The open land runs west past the river's far end, so no sky shows under the far hills.
+	var west_land := INF
+	for m: Dictionary in VistaRules.config().mountains:
+		west_land = minf(west_land, float(m.area[0]))
+	check(west_land <= float(WorldPlan.places().river.x) - far - 60.0, "the open land reaches %.0f, well west of the river's far end" % west_land)
 
 
 ## The viewpoints: on their map, on open cells the farmer can stand on.

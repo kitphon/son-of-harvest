@@ -84,9 +84,41 @@ static func apron_pines() -> int:
 
 
 ## How far (cells from a map's edge) the water running off a mountain map is carried on past
-## its apron (data/vista.json `far_water`): Surroundings' skin, VistaMountain's bed under it.
+## its apron (data/vista.json `far_water`): Surroundings' skin, VistaMountain's bed and banks.
 static func far_water() -> int:
 	return int(config().get("far_water", 0))
+
+
+## The water cells of `map` (its own cells) carried on past its apron (`margin` cells past every
+## edge): each water cell on an edge straight on out to far_water() cells from the edge, only
+## where the plan keeps the way clear for it (clear_rects: a map, or the corridor the stream runs
+## down or to its meeting), so it never runs on under a mountain or past where two streams meet.
+static func far_river(map: MapData, margin: int) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	var far := far_water()
+	if far <= margin:
+		return out
+	var at: Vector2 = Vector2(WorldPlan.places().get(map.id, Vector2i.ZERO))
+	var rects := clear_rects()
+	var keep := func(c: Vector2i) -> bool:
+		var p := at + Vector2(c) + Vector2(0.5, 0.5)
+		return rects.any(func(r: Rect2) -> bool: return r.has_point(p))
+	var bands := []   # [edge cell, step out]
+	for y in map.h:
+		bands.append([Vector2i(0, y), Vector2i.LEFT])
+		bands.append([Vector2i(map.w - 1, y), Vector2i.RIGHT])
+	for x in map.w:
+		bands.append([Vector2i(x, 0), Vector2i.UP])
+		bands.append([Vector2i(x, map.h - 1), Vector2i.DOWN])
+	for b in bands:
+		if map.tile(b[0]) != "water":
+			continue
+		for d in range(margin + 1, far + 1):
+			var c: Vector2i = b[0] + b[1] * d
+			if not keep.call(c):
+				break
+			out.append(c)
+	return out
 
 
 ## The broadleaf trees in the wood past map `map_id`'s edges (data/vista.json `apron_trees`):

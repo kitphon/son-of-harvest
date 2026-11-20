@@ -197,10 +197,9 @@ func ripples_alive() -> int:
 ## Lays the sheet over every water cell of a w x h map and the apron round it (cells past the
 ## edge take the nearest edge cell's kind, as Surroundings does). `kind_at(c)` is an in-map
 ## cell's ground kind. `back`: the apron past the north and west edges when it is shorter
-## (Surroundings' rim before the far country), else `margin`. `far`: the water running off an
-## edge carried on straight past that, out to `far` cells from the edge (the mountains' maps: the
-## river runs on down its valley over VistaMountain's bed instead of ending at the apron).
-func build(w: int, h: int, kind_at: Callable, margin: int, back := -1, far := 0) -> void:
+## (Surroundings' rim before the far country), else `margin`. `extra`: more cells to lay (the
+## water running off an edge carried on past that: VistaRules.far_river, over VistaMountain's bed).
+func build(w: int, h: int, kind_at: Callable, margin: int, back := -1, extra: Array[Vector2i] = []) -> void:
 	var near := margin if back < 0 else back
 	var cells: Array[Vector2i] = []
 	for y in range(-near, h + margin):
@@ -208,7 +207,7 @@ func build(w: int, h: int, kind_at: Callable, margin: int, back := -1, far := 0)
 			var c := Vector2i(x, y)
 			if is_water(kind_at, w, h, c):
 				cells.append(c)
-	cells.append_array(far_cells(w, h, kind_at, margin, near, far))
+	cells.append_array(extra)
 	set_cells(cells, func(c: Vector2i) -> bool: return is_water(kind_at, w, h, c))
 
 
@@ -228,29 +227,6 @@ static func look_mix(look: String) -> float:
 		"pond":
 			return 0.35
 	return 0.0
-
-
-## The water cells past the apron (`margin` past the south and east edges, `near` past the north and
-## west) out to `far` cells from the edge: each water cell on an edge carried straight on.
-static func far_cells(w: int, h: int, kind_at: Callable, margin: int, near: int, far: int) -> Array[Vector2i]:
-	var out: Array[Vector2i] = []
-	if far <= 0:
-		return out
-	for y in h:
-		if kind_at.call(Vector2i(0, y)) == "water":
-			for x in range(-far, -near):
-				out.append(Vector2i(x, y))
-		if kind_at.call(Vector2i(w - 1, y)) == "water":
-			for x in range(w + margin, w + far):
-				out.append(Vector2i(x, y))
-	for x in w:
-		if kind_at.call(Vector2i(x, 0)) == "water":
-			for y in range(-far, -near):
-				out.append(Vector2i(x, y))
-		if kind_at.call(Vector2i(x, h - 1)) == "water":
-			for y in range(h + margin, h + far):
-				out.append(Vector2i(x, y))
-	return out
 
 
 static func is_water(kind_at: Callable, w: int, h: int, c: Vector2i) -> bool:

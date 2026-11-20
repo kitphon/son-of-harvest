@@ -144,9 +144,10 @@ func _ready() -> void:
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = SKY_LIGHT
 	env.ambient_light_energy = SKY_ENERGY
-	env.glow_enabled = true   # a soft bloom on the brightest things (snow, festival lights)
-	env.glow_intensity = 0.4
-	env.glow_hdr_threshold = 0.9
+	# No glow (2026-11-20): it hardly changed the play view, but it washed the viewpoints' sky white
+	# and darkened the grass at the mountains' feet into a black band like a ledge (the user saw it
+	# from the river gorge; with glow on, its blend mode and threshold made no difference).
+	env.glow_enabled = false
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)

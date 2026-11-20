@@ -10,6 +10,40 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-20 — The river's banks run on level past the apron; no dark band at the mountains' feet
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user saw the ground by the river past the apron at another level. Three things:
+  - The bank: past the apron the open land sloped down to the river's bed over a 2-cell grid
+    step, where the apron before it has a stone wall at the land's height. Now the river carried
+    on (VistaRules.far_river: each water cell on an edge straight on to `far_water`, only inside
+    the plan's clear rects, so it stops where two streams meet and never runs under a mountain)
+    is laid cell by cell as the apron lays the map's own (VistaMountain._add_river, once a map with
+    the first mountain): its bed DROP down, stone walls where it meets land and across its far end
+    (SunkenGround's bank material), two cells of grass either side at the land's height (LAND_Y)
+    over the open land's slope down under it. The open land leaves the river's corners
+    (floor_at). Surroundings takes those cells for its skin (`far_river`, WaterSurface.build's
+    `extra`; WaterSurface.far_cells is gone).
+  - The far end: the open land ended at Ogura's area (-124 on the plan) and sky showed under the far
+    hills down the gorge; Ogura's and Arashiyama's `area` now run west to -220.
+  - The dark band like a ledge under the mountains (found by turning things off one at a time:
+    not the mountain, the tint, the shadows or the land past the edges, but the glow): the 3D
+    view's glow darkened the far grass next to the bright haze and washed the viewpoints' sky
+    white; its blend mode and threshold changed nothing. Main3D now has no glow: the play view's
+    average colour is the same to a tenth (snowy village, Lantern Night measured), the viewpoints'
+    sky is its own blue (8fc6e8).
+  - Tried and left out: lighting the mountain's foot fully (no change: the band was the glow).
+- Checked: test_vista `_far_water` (the river's cells west four rows to far_water, none over the
+  banks; east into the village's river only; Sakurazaka's creek south only to the meeting; no open
+  land at the river's corners, beside it yes, past its far end yes; the bed a quad a cell at the
+  water's depth; the banks at LAND_Y on two rows either side; the walls from the land to the bed;
+  laid once a map; the open land reaching well west of the far end). Frames: `--vista
+  --map=river@1,5 --time=13:15` summer and winter, `town@togetsu` fall, `hill@top` spring,
+  `farm@24,4` glow on and off side by side, the snowy village and Lantern Night with and without
+  glow. All 44 tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`: title,
+  `--demo`, town, mine 3, river@1,5 in winter, Sakurazaka, the hill, Minamino): 0 ERROR lines;
+  windowed `--quit-after 150 -- --demo --map=river@1,5`: exit 0.
+- Left / next: the user's look (the blue sky in the viewpoints is new).
+
 ## 2026-11-20 — A dead-end path past a map's edge narrows and ends in a thicket
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user saw the river map's shore path run on past the west edge and stop dead, and

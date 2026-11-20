@@ -113,7 +113,17 @@ func add_part(i: int) -> void:
 	mi.mesh = mesh
 	for k in mesh.get_surface_count():
 		var surface := mesh.surface_get_name(k)
-		mi.set_surface_override_material(k, floor_mat if surface == "floor" else tint_mat if surface == "tint" else bed_material() if surface == "bed" else mat)
+		var m: Material = mat
+		match surface:
+			"floor", "banks":
+				m = floor_mat
+			"tint":
+				m = tint_mat
+			"bed":
+				m = bed_material()
+			"walls":
+				m = wall_material()
+		mi.set_surface_override_material(k, m)
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mi.extra_cull_margin = 4.0
 	add_child(mi)
@@ -152,6 +162,14 @@ static var _floor_mask: Texture2D
 
 
 static var _bed_mat: ShaderMaterial
+static var _wall_mat: Material
+
+
+## The stone walls of the river past the apron: the map's own banks' (SunkenGround).
+static func wall_material() -> Material:
+	if _wall_mat == null:
+		_wall_mat = SunkenGround.bank_material()
+	return _wall_mat
 
 
 ## The river's bed past the land beyond the edges: the water tile's picture repeated, holding no
@@ -197,30 +215,30 @@ static func floor_material() -> ShaderMaterial:
 ## Does the land past `map`'s edges (Surroundings) stop before cell point `c` (the map's cells)?
 ## It runs on Backdrop.rim() cells past the back (west, north) edges on a map with the far country,
 ## Surroundings.MARGIN past the others; the floor starts a cell short of that, under its end, so
-## no gap shows between them. Never over water running on off an edge (it stays the river's).
+## no gap shows between them. Never at a corner of the river carried on past that land
+## (river_of): its banks lie over the land beside it (_add_river).
 static func floor_at(map: MapData, c: Vector2, back := -1.0) -> bool:
-	return _past(map, c, back) and not _edge_water(map, c)
-
-
-## Does the water running off `map` run on at cell point `c`, past the land beyond its edges
-## (data/vista.json `far_water`)? There the open land lays the river's bed (BED_Y) and slopes down
-## to it as a bank; Surroundings' skin lies over it.
-static func water_past(map: MapData, c: Vector2, back := -1.0) -> bool:
-	if not _past(map, c, back) or not _edge_water(map, c):
-		return false
-	var far := float(VistaRules.far_water())
-	return c.x >= -far and c.y >= -far and c.x <= map.w + far and c.y <= map.h + far
-
-
-static func _past(map: MapData, c: Vector2, back := -1.0) -> bool:
 	if back < 0.0:
 		back = floor_back(map)
 	var front := float(Surroundings.MARGIN) - 1.0
-	return c.x < -back or c.y < -back or c.x > map.w + front or c.y > map.h + front
+	if not (c.x < -back or c.y < -back or c.x > map.w + front or c.y > map.h + front):
+		return false
+	var river := river_of(map)
+	var p := Vector2i(floori(c.x), floori(c.y))
+	return not (river.has(p) or river.has(p + Vector2i.LEFT) or river.has(p + Vector2i.UP) or river.has(p - Vector2i.ONE))
 
 
-static func _edge_water(map: MapData, c: Vector2) -> bool:
-	return map.tile(Surroundings.edge_cell(Vector2i(floori(c.x), floori(c.y)), map.w, map.h)) == "water"
+static var _rivers := {}   # map id -> {cell: true} of VistaRules.far_river, the plan does not change in a run
+
+
+## The water cells of `map` carried on past its apron (VistaRules.far_river), as a set.
+static func river_of(map: MapData) -> Dictionary:
+	if not _rivers.has(map.id):
+		var cells := {}
+		for c in VistaRules.far_river(map, Surroundings.MARGIN):
+			cells[c] = true
+		_rivers[map.id] = cells
+	return _rivers[map.id]
 
 
 ## How far past `map`'s back (west, north) edges its land runs, less a cell (floor_at). Asked once
@@ -251,6 +269,8 @@ static func mesh_of(m: Dictionary, at: Vector2, rects: Array[Rect2], map: MapDat
 		_add(mesh, "mountain", verts, g.rn)
 	if map != null:
 		_add_open_land(mesh, g, at, map)
+		if str(m.id) == str(VistaRules.config().mountains[0].id):   # once a map, not once a mountain
+			_add_river(mesh, map)
 	return mesh
 
 
@@ -322,7 +342,8 @@ static func _grid_of(m: Dictionary, rects: Array[Rect2]) -> Dictionary:
 
 
 const NONE_Y := -1.6   # a point of the open land under the map's own land: sloped away under it
-const BED_Y := -SunkenGround.DROP - 0.03   # the river's bed past the land beyond a map's edges, under the skin (water_past)
+const LAND_Y := -0.02   # the land past the edges (Surroundings' apron), the banks of the river carried on past it
+const BANK_ROWS := 2   # cells of land laid either side of that river, over the open land's slope down under it
 
 
 ## The open land of grid `g` for `map` (at `at` on the plan): the grass quads, a flat run of quads
@@ -339,35 +360,25 @@ static func _add_open_land(mesh: ArrayMesh, g: Dictionary, at: Vector2, map: Map
 	var back := floor_back(map)
 	var open := PackedByteArray()
 	open.resize(cols * rows)
-	var wet := PackedByteArray()   # the river's bed past the land beyond the edges (water_past)
-	wet.resize(cols * rows)
 	for j in rows:
 		for i in cols:
 			var n := j * cols + i
-			var p := Vector2(ox + i * s, oz + j * s)
-			open[n] = 1 if up[n] == 0 and floor_at(map, p, back) else 0
-			wet[n] = 1 if up[n] == 0 and open[n] == 0 and water_past(map, p, back) else 0
+			open[n] = 1 if up[n] == 0 and floor_at(map, Vector2(ox + i * s, oz + j * s), back) else 0
 	var fv := PackedVector3Array()
 	var fuv := PackedVector2Array()
-	var bv := PackedVector3Array()
-	var buv := PackedVector2Array()
 	var tv := PackedVector3Array()
 	var tc := PackedColorArray()
-	var y_of := func(n: int) -> float: return FLOOR if open[n] == 1 or up[n] == 1 else (BED_Y if wet[n] == 1 else NONE_Y)
+	var y_of := func(n: int) -> float: return FLOOR if open[n] == 1 or up[n] == 1 else NONE_Y
 	for j in rows - 1:
 		var run := -1   # the first quad of a run of all-open quads
 		for i in cols:
 			var all_open := false
 			var any_open := false
-			var all_wet := false
-			var any_wet := false
 			var rises := false
 			if i < cols - 1:
 				var k := [j * cols + i, j * cols + i + 1, (j + 1) * cols + i + 1, (j + 1) * cols + i]
 				all_open = open[k[0]] == 1 and open[k[1]] == 1 and open[k[2]] == 1 and open[k[3]] == 1
 				any_open = open[k[0]] == 1 or open[k[1]] == 1 or open[k[2]] == 1 or open[k[3]] == 1
-				all_wet = wet[k[0]] == 1 and wet[k[1]] == 1 and wet[k[2]] == 1 and wet[k[3]] == 1
-				any_wet = wet[k[0]] == 1 or wet[k[1]] == 1 or wet[k[2]] == 1 or wet[k[3]] == 1
 				rises = up[k[0]] == 1 or up[k[1]] == 1 or up[k[2]] == 1 or up[k[3]] == 1
 				# The darkening, quad by quad, only where the grass nears the mountain.
 				if any_open and not rises:
@@ -390,9 +401,7 @@ static func _add_open_land(mesh: ArrayMesh, g: Dictionary, at: Vector2, map: Map
 					Vector3(ox + i * s, FLOOR, oz + (j + 1) * s), Vector3(ox + run * s, FLOOR, oz + (j + 1) * s)]
 				_put_floor(fv, fuv, v)
 				run = -1
-			if i < cols - 1 and all_wet:   # the river's bed, flat under the skin
-				_put_floor(bv, buv, _quad_corners(ox, oz, s, i, j, [BED_Y, BED_Y, BED_Y, BED_Y]))
-			elif i < cols - 1 and (any_open or any_wet) and not rises:   # at the land's end: sloped under it; by the river: a bank down to its bed
+			if i < cols - 1 and any_open and not rises:   # at the land's end, and by the river: sloped under it
 				var k := [j * cols + i, j * cols + i + 1, (j + 1) * cols + i + 1, (j + 1) * cols + i]
 				_put_floor(fv, fuv, _quad_corners(ox, oz, s, i, j, [y_of.call(k[0]), y_of.call(k[1]), y_of.call(k[2]), y_of.call(k[3])]))
 	if not fv.is_empty():
@@ -405,11 +414,73 @@ static func _add_open_land(mesh: ArrayMesh, g: Dictionary, at: Vector2, map: Map
 			tn.resize(tv.size())
 			tn.fill(Vector3.UP)
 			_add(mesh, "tint", tv, tn, PackedVector2Array(), tc)
-	if not bv.is_empty():
-		var bn := PackedVector3Array()
-		bn.resize(bv.size())
-		bn.fill(Vector3.UP)
-		_add(mesh, "bed", bv, bn, buv)
+
+
+## The river carried on past the land beyond `map`'s edges (river_of), cell by cell as that land
+## lays the map's own: its bed DROP below the land under Surroundings' skin, a stone wall where it
+## meets land (and across its far end), and BANK_ROWS cells of grass either side at the land's
+## height, over the open land's slope down under it, so its banks run on level with the stone
+## banks before them (a 2-cell slope there read as ground at another level: the user's word).
+static func _add_river(mesh: ArrayMesh, map: MapData) -> void:
+	var river := river_of(map)
+	if river.is_empty():
+		return
+	var apron := Rect2i(-Surroundings.MARGIN, -Surroundings.MARGIN, map.w + Surroundings.MARGIN * 2, map.h + Surroundings.MARGIN * 2)
+	var bed_y := LAND_Y - SunkenGround.DROP
+	var bv := PackedVector3Array()
+	var buv := PackedVector2Array()
+	var land := {}
+	var wv := PackedVector3Array()
+	var wn := PackedVector3Array()
+	for c: Vector2i in river:
+		_put_floor(bv, buv, [Vector3(c.x, bed_y, c.y), Vector3(c.x + 1, bed_y, c.y), Vector3(c.x + 1, bed_y, c.y + 1), Vector3(c.x, bed_y, c.y + 1)])
+		for d in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+			var n: Vector2i = c + d
+			if river.has(n) or apron.has_point(n):
+				continue   # more river, or the apron's own (Surroundings lays it)
+			for k in BANK_ROWS:
+				land[n + d * k] = true
+			_river_wall(wv, wn, c, d, bed_y)
+	var lv := PackedVector3Array()
+	var luv := PackedVector2Array()
+	for c: Vector2i in land:
+		if river.has(c) or apron.has_point(c):
+			continue
+		_put_floor(lv, luv, [Vector3(c.x, LAND_Y, c.y), Vector3(c.x + 1, LAND_Y, c.y), Vector3(c.x + 1, LAND_Y, c.y + 1), Vector3(c.x, LAND_Y, c.y + 1)])
+	for part in [["bed", bv, buv], ["banks", lv, luv]]:
+		var verts: PackedVector3Array = part[1]
+		if verts.is_empty():
+			continue
+		var nn := PackedVector3Array()
+		nn.resize(verts.size())
+		nn.fill(Vector3.UP)
+		_add(mesh, part[0], verts, nn, part[2])
+	if not wv.is_empty():
+		_add(mesh, "walls", wv, wn)
+
+
+## A stone wall on side `d` of river cell `c`, from the land down to the bed, facing into the water.
+static func _river_wall(wv: PackedVector3Array, wn: PackedVector3Array, c: Vector2i, d: Vector2i, bed_y: float) -> void:
+	var a: Vector3
+	var b: Vector3
+	match d:
+		Vector2i.UP:
+			a = Vector3(c.x + 1, 0, c.y)
+			b = Vector3(c.x, 0, c.y)
+		Vector2i.DOWN:
+			a = Vector3(c.x, 0, c.y + 1)
+			b = Vector3(c.x + 1, 0, c.y + 1)
+		Vector2i.LEFT:
+			a = Vector3(c.x, 0, c.y)
+			b = Vector3(c.x, 0, c.y + 1)
+		_:
+			a = Vector3(c.x + 1, 0, c.y + 1)
+			b = Vector3(c.x + 1, 0, c.y)
+	var top := Vector3(0, LAND_Y, 0)
+	var low := Vector3(0, bed_y, 0)
+	for p in [a + top, b + top, b + low, a + top, b + low, a + low]:
+		wv.append(p)
+		wn.append(-Vector3(d.x, 0, d.y))
 
 
 static func _quad_corners(ox: float, oz: float, s: float, i: int, j: int, ys: Array) -> Array:

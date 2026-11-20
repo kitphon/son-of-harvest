@@ -28,7 +28,7 @@ var tufts: GrassTufts   # the apron's grass tufts (FarmWorld.set_farmer parts th
 var back := MARGIN   # cells of land past the north and west edges (the rim, with a backdrop)
 var ways := {}   # cells just past the map's edges a door leads through (a path there runs on): set before build
 var dead := {}   # dead_ends: {grass: apron cells of a tapered path left grass, thicket: cells of the trees closing it}
-var far_water := 0   # cells from the map's edge the water running off it is carried on past the apron (the mountains' maps: VistaMountain lays its bed)
+var far_river: Array[Vector2i] = []   # the water running off the map carried on past the apron (VistaRules.far_river; VistaMountain lays its bed and banks)
 var share := TREE_SHARE   # % of the allowed cells with a pine (fewer on a rim, so the ridges show)
 var broadleaf := {}   # kind -> % of the wood's trees that are that broadleaf tree instead of a pine (VistaRules.apron_trees)
 var season := "spring"   # the season the broadleaf trees of the wood are drawn in
@@ -71,7 +71,7 @@ func build(w: int, h: int, kind_at: Callable, hold_at: Callable, back_cells := M
 	SunkenGround.place(self, cw, ch, Vector2(-back, -back), wet, material, -0.02, outside)
 	water = WaterSurface.new()
 	add_child(water)
-	water.build(w, h, kind, MARGIN, back, far_water)
+	water.build(w, h, kind, MARGIN, back, far_river)
 	_make_pines(made.pines)
 	_make_tufts(made.tufts, w, h, hold)
 
