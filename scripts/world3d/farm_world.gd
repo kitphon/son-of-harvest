@@ -604,6 +604,11 @@ func occlude(build: Callable, tag := "", most := Occluders.FADED) -> void:
 func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable, map_id := "") -> void:
 	surroundings = Surroundings.new()
 	add_child(surroundings)
+	var md: MapData = MapManager.data(map_id) if map_id != "" else null
+	if md != null:   # the doors' cells: a path at the edge by one runs on to the next map, others end
+		for door: Dictionary in md.doors:
+			for c in door.cells:
+				surroundings.ways[Vector2i(c)] = true
 	# The far country's rim and low ridges suit the play camera looking down; where the mountains
 	# stand (data/vista.json) the viewpoints look level, so the land runs on its whole apron
 	# there and the mountains' open land takes over past it (2026-11-15).

@@ -1310,6 +1310,38 @@ func _homes(t: MapData) -> void:
 		"door hours without a closed message are refused")
 
 
+## A path running off an edge with no door past it narrows into the grass and ends in a thicket
+## (Surroundings.dead_ends; the user saw the river map's shore path run on and stop dead,
+## 2026-11-20); one with a door past it runs on to the next map.
+func _dead_ends(Surroundings: GDScript) -> void:
+	var ways_of := func(m: MapData) -> Dictionary:
+		var ways := {}
+		for d in m.doors:
+			for c in d.cells:
+				ways[Vector2i(c)] = true
+		return ways
+	var river := MapManager.data("river")
+	var rk := func(c: Vector2i) -> String: return river.tile(c)
+	var dd: Dictionary = Surroundings.dead_ends(rk, river.w, river.h, ways_of.call(river))
+	var g: Dictionary = dd.grass
+	var taper: int = Surroundings.TAPER
+	check(not g.has(Vector2i(-1, 4)) and not g.has(Vector2i(-1, 5)), "the river's shore path: both rows just past the west edge")
+	check(int(g.has(Vector2i(-3, 4))) + int(g.has(Vector2i(-3, 5))) == 1, "a few cells on, one row")
+	check(g.has(Vector2i(-taper, 4)) and g.has(Vector2i(-taper, 5)) and g.has(Vector2i(-Surroundings.MARGIN, 4)), "gone by %d cells, grass to the apron's end" % taper)
+	check(Surroundings.ground_key(rk, river.w, river.h, Vector2i(-taper, 4), g).begins_with("ground:grass:") and Surroundings.ground_key(rk, river.w, river.h, Vector2i(-1, 4), g).begins_with("ground:gravel:"), "its picture: gravel, then grass")
+	var t: Dictionary = dd.thicket
+	var ok := t.size() > 0
+	for c: Vector2i in t:
+		ok = ok and not river.in_bounds(c) and river.tile(Surroundings.edge_cell(c, river.w, river.h)) != "water" and Surroundings.behind_map(Vector2(c) + Vector2(0.5, 0.5), river.w, river.h)
+	check(ok, "a thicket closing it (%d cells), off the map, behind it, never on the water" % t.size())
+	check([3, 4, 5].all(func(y: int) -> bool: return range(-taper - 3, -taper + 3).any(func(x: int) -> bool: return t.has(Vector2i(x, y)))), "across the path's rows and beside them, where it ends")
+	check(not g.has(Vector2i(river.w, 4)) and not g.has(Vector2i(river.w + 5, 5)), "the path east to the village (its door) runs on")
+	for id in ["town", "farm", "kaminoda", "hill", "sakurazaka", "minamino"]:
+		var m := MapManager.data(id)
+		var mk := func(c: Vector2i) -> String: return m.tile(c)
+		check((Surroundings.dead_ends(mk, m.w, m.h, ways_of.call(m)).grass as Dictionary).is_empty(), "%s: every path off an edge leads through a door and runs on" % id)
+
+
 ## The land past an outdoor map's edge (Surroundings) and buildings fading while in the
 ## farmer's way (Occluders), in the 3D view.
 func _edges_and_fades() -> void:
@@ -1327,6 +1359,7 @@ func _edges_and_fades() -> void:
 		"the west road runs on past the edge")
 	check(Surroundings.ground_key(kind, town.w, town.h, Vector2i(3, -4)).begins_with("ground:grass:"), "grass past the north edge")
 	check(Surroundings.edge_cell(Vector2i(-3, town.h + 6), town.w, town.h) == Vector2i(0, town.h - 1), "an apron cell takes the nearest edge cell")
+	_dead_ends(Surroundings)
 	# Pines only off the map, behind it on screen, never on the road or the near (south / east) sides.
 	var pines := 0
 	var margin: int = Surroundings.MARGIN

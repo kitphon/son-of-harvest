@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-20 — A dead-end path past a map's edge narrows and ends in a thicket
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user saw the river map's shore path run on past the west edge and stop dead, and
+  asked for it to narrow until it can't be walked and be closed by a thicket. Surroundings.dead_ends:
+  a run of path cells (path, gravel, stone) along an edge with no door on it or just past it
+  keeps fewer cells a row the further it runs past the edge (the ones nearest its middle) and is
+  gone within TAPER (6) cells, grass from there to the apron's end; THICKET (3) rows of younger
+  trees close it across its width and a cell either side, only where they stand behind the map on
+  screen and never on water. The apron's picture, snow mask, wet mask, grass tufts and pines all
+  read the tapered cells as grass. FarmWorld gives Surroundings the map's door cells (`ways`), so
+  every road with a door past it runs on as before. On today's maps only the river map's paths end
+  this way: the shore path west, and the one-row gravel of the south bank both ways (it meets the
+  village's grass on the plan).
+- Checked: test_maps `_dead_ends` (the shore path two rows wide just past the edge, one a few
+  cells on, gone by 6 and grass to the apron's end; its picture gravel then grass; the thicket off
+  the map, behind it, not on water, across the path's rows and beside them; east to the village
+  it runs on; town, farm, Kaminoda, the hill, Sakurazaka and Minamino: no dead ends). Frames:
+  `--vista --map=river@1,5 --time=13:15` in winter and summer; `farm@gate` unchanged. All 44
+  tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`: title, `--demo`, town,
+  mine 3, river@1,5 in winter, Minamino): 0 ERROR lines; windowed `--quit-after 150 -- --demo
+  --map=river@1,5`: exit 0.
+- Left / next: the user saw the ground past the apron by the river at another level (the bank
+  sloping where the stone bank stands, the open land ending far off): next.
+
 ## 2026-11-20 — The river runs on past the land beyond the edges (no chasm)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user saw a chasm past the river map's west edge from the gorge's viewpoint (winter).

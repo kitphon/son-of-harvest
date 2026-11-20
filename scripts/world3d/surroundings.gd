@@ -8,18 +8,26 @@ extends Node3D
 ## Snow lies on the apron as on the map (SnowLayer's ground shader, the edge cells' hold).
 ## Where the far country stands (Backdrop), the land past the back (north and west) edges
 ## stops after `back` cells, so the camera looks over that rim onto the far ridges.
+## A path running off an edge with no way across there (no door past it) does not run on: it
+## narrows over a few cells into the grass and ends in a thicket of trees (dead_ends; the user
+## saw the river map's shore path run on and stop dead, 2026-11-20).
 
 const MARGIN := 14          # cells of apron round the map (the view reaches ~10 past an edge)
 const T := 16
 const TREE_SHARE := 45      # % of the allowed cells with a pine
 const PINE_SHAPES := 3      # Trees.pine shapes the wood picks from, by cell
 const TREE_KINDS: Array[String] = ["grass"]   # ground a pine stands on
+const PATH_KINDS: Array[String] = ["path", "gravel", "stone"]   # ground that tapers off at a dead end
+const TAPER := 6   # cells past the edge over which a dead-end path narrows to nothing
+const THICKET := 3   # rows of trees closing it past where it ends
 
 var material: ShaderMaterial   # the apron's ground; FarmWorld.set_snow sets its cover
 var water: WaterSurface   # the moving skin on the water cells (and past the edges)
 var snow_mats: Array[ShaderMaterial] = []   # the snow on the pines' pads, set with it
 var tufts: GrassTufts   # the apron's grass tufts (FarmWorld.set_farmer parts them too)
 var back := MARGIN   # cells of land past the north and west edges (the rim, with a backdrop)
+var ways := {}   # cells just past the map's edges a door leads through (a path there runs on): set before build
+var dead := {}   # dead_ends: {grass: apron cells of a tapered path left grass, thicket: cells of the trees closing it}
 var far_water := 0   # cells from the map's edge the water running off it is carried on past the apron (the mountains' maps: VistaMountain lays its bed)
 var share := TREE_SHARE   # % of the allowed cells with a pine (fewer on a rim, so the ridges show)
 var broadleaf := {}   # kind -> % of the wood's trees that are that broadleaf tree instead of a pine (VistaRules.apron_trees)
@@ -49,7 +57,8 @@ func build(w: int, h: int, kind_at: Callable, hold_at: Callable, back_cells := M
 			holds.append(hold_at.call(Vector2i(x, y)))
 	var kind := func(c: Vector2i) -> String: return kinds[c.y * w + c.x]
 	var hold := func(c: Vector2i) -> float: return holds[c.y * w + c.x]
-	var id := "%d|%d|%d|%d|%d|%d" % [w, h, back, share, hash(kinds), hash(holds)]
+	dead = dead_ends(kind, w, h, ways)
+	var id := "%d|%d|%d|%d|%d|%d|%d" % [w, h, back, share, hash(kinds), hash(holds), hash(ways.keys())]
 	if not _kept.has(id):   # the same map looks the same past its edges: kept a run
 		_kept[id] = _lay(w, h, kind, hold)
 	var made: Dictionary = _kept[id]
@@ -79,13 +88,13 @@ func _lay(w: int, h: int, kind: Callable, hold: Callable) -> Dictionary:
 	for y in range(-back, h + MARGIN):
 		for x in range(-back, w + MARGIN):
 			var c := Vector2i(x, y)   # under the map too: its edge pixels must not show a gap
-			var tile := PlaceholderArt.image(ground_key(kind, w, h, c))
+			var tile := PlaceholderArt.image(ground_key(kind, w, h, c, dead.grass))
 			img.blit_rect(tile, Rect2i(0, 0, T, T), Vector2i(x + back, y + back) * T)
-			var v: float = hold.call(edge_cell(c, w, h))
+			var v: float = 1.0 if dead.grass.has(c) else hold.call(edge_cell(c, w, h))   # grass holds snow fully (data/snow_cover.json)
 			var m := SnowLayer.MASK_PER_CELL
 			mask.fill_rect(Rect2i((x + back) * m, (y + back) * m, m, m), Color(v, v, v))
 	var wet := WetRules.mask_image(cw, ch, func(c: Vector2i) -> String:   # the edge cell's ground, as the picture
-		return kind.call(edge_cell(c - Vector2i(back, back), w, h)))
+		return "grass" if dead.grass.has(c - Vector2i(back, back)) else kind.call(edge_cell(c - Vector2i(back, back), w, h)))
 	return {"ground": ImageTexture.create_from_image(img), "mask": ImageTexture.create_from_image(mask),
 		"wet": ImageTexture.create_from_image(wet),
 		"pines": _pine_spots(w, h, kind), "tufts": _tuft_cells(w, h, kind)}
@@ -105,7 +114,7 @@ func _tuft_cells(w: int, h: int, kind: Callable) -> Array[Vector2i]:
 	for y in range(-back, h + MARGIN):
 		for x in range(-back, w + MARGIN):
 			var c := Vector2i(x, y)
-			if (x < 0 or y < 0 or x >= w or y >= h) and kind.call(edge_cell(c, w, h)) == "grass":
+			if (x < 0 or y < 0 or x >= w or y >= h) and (kind.call(edge_cell(c, w, h)) == "grass" or dead.grass.has(c)):
 				cells.append(c)
 	return cells
 
@@ -117,8 +126,8 @@ static func edge_cell(c: Vector2i, w: int, h: int) -> Vector2i:
 
 ## The ground picture for apron cell `c`: the nearest edge cell's kind, its own variant
 ## (so the repeat doesn't show), water banks where the stretched kinds meet.
-static func ground_key(kind_at: Callable, w: int, h: int, c: Vector2i) -> String:
-	var kind: String = kind_at.call(edge_cell(c, w, h))
+static func ground_key(kind_at: Callable, w: int, h: int, c: Vector2i, grass := {}) -> String:
+	var kind: String = "grass" if grass.has(c) else kind_at.call(edge_cell(c, w, h))
 	if kind == "water":
 		var mask := 0
 		for side in [[Vector2i.UP, PlaceholderArt.WATER_N], [Vector2i.RIGHT, PlaceholderArt.WATER_E],
@@ -127,6 +136,62 @@ static func ground_key(kind_at: Callable, w: int, h: int, c: Vector2i) -> String
 				mask |= side[1]
 		return "ground:water:%d" % mask
 	return "ground:%s:%d" % [kind, posmod(c.x * 7 + c.y * 13 + (c.x * c.y) % 5, PlaceholderArt.GROUND_VARIANTS)]
+
+
+## The paths running off a w x h map's edges where no way leads across (no cell of `ways` just
+## past the run, nor on it): each such run of path cells (PATH_KINDS) along an edge keeps fewer
+## cells a row the further it runs past the edge, the ones nearest its middle (ties to the side a
+## hash of the run picks), until none are left within TAPER cells; past where it ends THICKET rows
+## of trees close it across its width and a cell either side (only behind the map on screen, so
+## never in the way; not on water). {grass: {cell: true} the apron cells left grass,
+## thicket: {cell: true}}.
+static func dead_ends(kind_at: Callable, w: int, h: int, ways: Dictionary) -> Dictionary:
+	var grass := {}
+	var thicket := {}
+	# Each side: its edge cells in order, the way out.
+	var sides := [
+		[range(h).map(func(i: int) -> Vector2i: return Vector2i(0, i)), Vector2i.LEFT],
+		[range(h).map(func(i: int) -> Vector2i: return Vector2i(w - 1, i)), Vector2i.RIGHT],
+		[range(w).map(func(i: int) -> Vector2i: return Vector2i(i, 0)), Vector2i.UP],
+		[range(w).map(func(i: int) -> Vector2i: return Vector2i(i, h - 1)), Vector2i.DOWN]]
+	for side in sides:
+		var cells: Array = side[0]
+		var out: Vector2i = side[1]
+		var i := 0
+		while i < cells.size():
+			if not kind_at.call(cells[i]) in PATH_KINDS:
+				i += 1
+				continue
+			var a := i
+			while i < cells.size() and kind_at.call(cells[i]) in PATH_KINDS:
+				i += 1
+			var run: Array = cells.slice(a, i)
+			if run.any(func(e: Vector2i) -> bool: return ways.has(e) or ways.has(e + out)):
+				continue   # a way across: the path runs on to the next map
+			var mid := (run.size() - 1) / 2.0
+			var lean := 0.01 if posmod(run[0].x * 7 + run[0].y * 13, 2) == 0 else -0.01
+			var order := range(run.size())
+			order.sort_custom(func(p: int, q: int) -> bool: return absf(p - mid + lean) < absf(q - mid + lean))
+			var end := TAPER
+			for d in range(1, TAPER + 1):
+				var keep := int(round(run.size() * (1.0 - float(d - 1) / TAPER)))
+				if keep <= 0:
+					end = d
+					break
+				for k in range(keep, run.size()):
+					grass[run[order[k]] + out * d] = true
+			for d in range(end, Surroundings.MARGIN + 1):
+				for e: Vector2i in run:
+					grass[e + out * d] = true
+			var across := Vector2i(absi(out.y), absi(out.x))   # along the edge
+			for d in range(end, end + THICKET):
+				for t in range(-1, run.size() + 1):
+					var e: Vector2i = run[0] + across * t
+					var c := e + out * d
+					if kind_at.call(edge_cell(c, w, h)) == "water" or not behind_map(Vector2(c) + Vector2(0.5, 0.5), w, h):
+						continue
+					thicket[c] = true
+	return {"grass": grass, "thicket": thicket}
 
 
 ## Does a tall thing at `p` (x, z in cells) stand behind every map cell in its screen column?
@@ -242,10 +307,11 @@ func _pine_spots(w: int, h: int, kind: Callable) -> Array:
 	for y in range(-back, h + MARGIN):
 		for x in range(-back, w + MARGIN):
 			var c := Vector2i(x, y)
-			if not pine_at(kind, w, h, c, share):
+			var thick: bool = dead.thicket.has(c)
+			if not thick and not pine_at(kind, w, h, c, share):
 				continue
 			var r := posmod(c.x * 131 + c.y * 197, 1000) / 1000.0
-			var s := 0.85 + 0.45 * r
+			var s := (0.7 + 0.35 * r) if thick else (0.85 + 0.45 * r)   # the thicket's trees younger, close together
 			var nudge := Vector3(posmod(c.x * 37 + c.y * 11, 7) - 3, 0, posmod(c.x * 17 + c.y * 41, 7) - 3) * 0.08
 			var basis := Basis(Vector3.UP, r * TAU).scaled(Vector3(s, s, s))
 			at[posmod(c.x * 5 + c.y * 3, PINE_SHAPES)].append(Transform3D(basis, Vector3(x + 0.5, 0, y + 0.5) + nudge))
