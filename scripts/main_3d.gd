@@ -543,7 +543,8 @@ func _process(delta: float) -> void:
 func _follow() -> void:
 	var feet := Vector3(player.position.x / T, 0, player.position.y / T)
 	feet.y = Game.maps.deck_at(Vector2(feet.x, feet.z))   # on a bridge's deck, not sunk in its boards
-	sprite.position = feet
+	var seat := Vector2(player.facing) * Game.soak_seat()   # at the footbath: on its bench, the feet down in the water
+	sprite.position = feet + Vector3(seat.x, Game.soak_lift(), seat.y)
 	sprite.texture = PlaceholderArt.tex(anim.key(player.facing))
 	sprite.flip_h = FarmerAnim.is_mirrored(player.facing)
 	var tc := player.target_cell()

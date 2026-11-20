@@ -66,6 +66,8 @@ static func pick(origin: Vector2i, facing: Vector2i, feet := Vector2(-1, -1)) ->
 		return {"interact": "Reel in", "use_tool": "Reel in"}
 	if Game.animals.dog.held:
 		return {"interact": "Put down", "use_tool": "Put down"}
+	if Game.soaking():   # at the footbath: E stands up
+		return {"interact": "Get up", "use_tool": ""}
 	var c := origin + facing
 	if Game.baby_held:   # only the cradle takes the baby back (BabyActions)
 		var back := "Put back" if Game.is_cradle(c) else ""

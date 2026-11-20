@@ -106,7 +106,7 @@ var demo_walk := Vector2.ZERO   # `--walk=<up|down|left|right>[:seconds]`: the f
 var farmer_passing := false   # the farmer slips past a villager now (Player.passing): they step aside (Villagers.give_way)
 var demo_walk_left := 0.0       # seconds of that walk still to go (INF without a time)
 var eat_left := 0.0  # seconds of that pose still to play (foods.json pose); not saved
-var soak_left := 0.0   # seconds the farmer still sits soaking at the footbath (data/ashiyu.json, Game.soak); not saved
+var soaking_now := false   # the farmer sits at the footbath, the feet in the water, until E again (data/ashiyu.json, Game.soak); not saved
 var soaked_today := false   # the day's first soak at the footbath given (its stamina and rest); saved, cleared each morning
 ## The item carried overhead in the holding hand ("" = hands free). It is the rucksack's
 ## hand slot (Inventory "hand"): what the rucksack menu takes in hand is held up the same way.
@@ -244,7 +244,7 @@ func new_game() -> void:
 	work_fatigue_half = false
 	eat_pose = ""
 	eat_left = 0.0
-	soak_left = 0.0
+	soaking_now = false
 	soaked_today = false
 	swing = {}
 	charge_tool = ""
@@ -360,8 +360,8 @@ func new_game() -> void:
 			var wk := arg.trim_prefix("--walk=").split(":")
 			demo_walk = Vector2(DEMO_FACINGS.get(wk[0], Vector2i.ZERO))
 			demo_walk_left = float(wk[1]) if wk.size() > 1 else INF
-		elif arg == "--soak":   # `-- --demo --map=town@ashiyu --soak`: sitting at the footbath, the pose kept going
-			soak_left = 1000.0
+		elif arg == "--soak":   # `-- --demo --map=town@ashiyu --soak`: sitting at the footbath, the feet in the water
+			soaking_now = true
 		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
 			fatigue = int(body.get("states", {}).get("exhausted", {}).get("fatigue", 80))
 			_shown_state = body_state()
@@ -705,8 +705,6 @@ func _demo_kitchen() -> void:
 func _process(delta: float) -> void:
 	if eating() and not paused():
 		_eat_step(delta)
-	if soaking() and not paused():
-		soak_left = maxf(soak_left - delta, 0.0)
 	if swinging() and not paused():
 		swing_step(delta)
 	if race != null and not paused():
@@ -807,6 +805,7 @@ func go_to_map(map_id: String, cell: Vector2i, face: Vector2i) -> bool:
 	maps.place(map_id, cell, face)
 	maps.mine_floor = new_mine_floor(depth) if depth > 0 else null
 	fishing.stop()
+	soaking_now = false   # up from the footbath
 	if race != null:   # walked off in the middle: the race ends with the creel as it is
 		_end_race()
 	if maps.on_farm() and farm.in_bounds(cell) and farm.cell(cell).obj != FarmGrid.Obj.NONE:
@@ -1277,7 +1276,7 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 			flags["record_due"] = true   # Tome brings this New Year's page (triggers_house.json)
 	work_fatigue_half = false
 	soaked_today = false   # the footbath gives its rest again tomorrow
-	soak_left = 0.0
+	soaking_now = false   # and the farmer is up in his bed
 	_count_build_day()   # before the date moves: did the builder work today?
 	animal_news.append_array(animals.day_end(weather_today, rng))
 	fishing.stop()
@@ -2074,17 +2073,17 @@ func start_eat_pose(drink: bool) -> void:
 		eat_pose = ""
 
 
-## Soaks the feet at the village footbath (data/ashiyu.json): the sitting pose for `seconds`; the
-## day's first soak gives its stamina (up to the max) and takes its fatigue off, a later one only
-## rests. Not while holding something or cradling the little one. Says what happened; returns
-## {ok, note}.
+## Soaks the feet at the village footbath (data/ashiyu.json): the farmer sits down with the feet in
+## the water and stays until stop_soak (E again); the day's first soak gives its stamina (up to the
+## max) and takes its fatigue off, a later one only rests. Not while holding something or cradling
+## the little one. Says what happened; returns {ok, note}.
 func soak() -> Dictionary:
 	if holding() or soaking():
 		var no := String(ashiyu.get("hands_message", "")) if holding() else ""
 		if no != "":
 			message.emit(no)
 		return {"ok": false, "note": no}
-	soak_left = float(ashiyu.get("seconds", 5.0))
+	soaking_now = true
 	var note := String(ashiyu.get("again_message", ""))
 	if not soaked_today:
 		soaked_today = true
@@ -2099,7 +2098,26 @@ func soak() -> Dictionary:
 
 ## Is the farmer sitting at the footbath?
 func soaking() -> bool:
-	return soak_left > 0.0
+	return soaking_now
+
+
+## Up from the footbath (E again while soaking).
+func stop_soak() -> void:
+	if soaking_now:
+		soaking_now = false
+		changed.emit()
+
+
+## How far the sitting farmer is drawn from his spot toward the tub he faces, in cells (data/ashiyu.json
+## `seat`): on its bench, the feet in the water. 0 when not soaking.
+func soak_seat() -> float:
+	return float(ashiyu.get("seat", 0.85)) if soaking_now else 0.0
+
+
+## How far the sitting farmer is raised in 3D (data/ashiyu.json `lift`, units): sat on the bench's
+## edge, only the feet and shins under the water's top. 0 when not soaking.
+func soak_lift() -> float:
+	return float(ashiyu.get("lift", 0.0)) if soaking_now else 0.0
 
 
 ## The pose that holds the farmer still now (FarmerAnim's `eating`): eat / drink, "soak" at the

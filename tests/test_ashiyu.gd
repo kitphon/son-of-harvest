@@ -56,7 +56,8 @@ func check(ok: bool, what: String) -> void:
 
 func _data() -> void:
 	var a: Dictionary = g.ashiyu
-	check(float(a.get("seconds", 0.0)) > 1.0 and int(a.get("stamina", 0)) > 0 and int(a.get("fatigue", 0)) < 0, "a soak lasts a few seconds, gives stamina and takes fatigue off")
+	check(int(a.get("stamina", 0)) > 0 and int(a.get("fatigue", 0)) < 0, "a soak gives stamina and takes fatigue off")
+	check(float(a.get("seat", 0.0)) > 0.5 and float(a.seat) < 1.0, "the farmer sits on the bench, short of the cell's far side (%.2f)" % float(a.get("seat", 0.0)))
 	check(int(a.stamina) <= 30 and int(a.fatigue) >= -20, "worth a walk, never a stand-in for sleep (%d / %d)" % [int(a.stamina), int(a.fatigue)])
 	for k in ["message", "again_message", "hands_message"]:
 		var t := String(a.get(k, ""))
@@ -74,18 +75,21 @@ func _soak() -> void:
 	check(g.soaked_today and g.soaking() and g.still_pose() == "soak", "sat soaking, the day's soak given")
 	check(said.back() == String(a.message), "says the soak")
 	check(not g.soak().ok, "no second soak while sitting")
-	g._process(float(a.seconds) + 0.1)
-	check(not g.soaking() and g.still_pose() == "", "the soak ends after %.1f s" % float(a.seconds))
+	check(is_equal_approx(g.soak_seat(), float(a.seat)), "drawn on the bench, the feet in the water")
+	g._process(600.0)
+	check(g.soaking(), "still soaking after ten minutes: until E again")
+	g.stop_soak()
+	check(not g.soaking() and g.still_pose() == "" and g.soak_seat() == 0.0, "E again: up from the footbath")
 	var st: int = g.stamina
 	var fa: int = g.fatigue
 	check(g.soak().ok and g.stamina == st and g.fatigue == fa and said.back() == String(a.again_message), "a later soak the same day only rests")
-	g._process(float(a.seconds) + 0.1)
+	g.stop_soak()
 	g.stamina = g.max_stamina - 5
 	g.fatigue = 3
 	g.soaked_today = false
 	g.soak()
 	check(g.stamina == g.max_stamina and g.fatigue == 0, "never past the max stamina or under no fatigue")
-	g._process(float(a.seconds) + 0.1)
+	g.stop_soak()
 	# The save keeps the day's soak; the morning clears it.
 	var d: Dictionary = g.to_dict()
 	check(d.get("soaked_today", null) == true, "the day's soak saved")
@@ -94,8 +98,9 @@ func _soak() -> void:
 	d.erase("soaked_today")
 	check(g.from_dict(d) == "" and not g.soaked_today, "an older save: no soak yet")
 	g.soaked_today = true
+	g.soaking_now = true
 	g.end_day()
-	check(not g.soaked_today and not g.soaking(), "a new day: the footbath rests again")
+	check(not g.soaked_today and not g.soaking(), "a new day: up from the footbath, its rest given again")
 	# Holding something overhead: put it down first.
 	g.held = "crop:turnip"
 	check(not g.soak().ok and not g.soaking() and said.back() == String(a.hands_message), "not while holding something")
@@ -138,9 +143,13 @@ func _action() -> void:
 	g.soaked_today = false
 	FA.on_action("interact", Vector2i(46, 21), Vector2i.DOWN)
 	check(g.soaking() and g.soaked_today and g.stamina == 40 + int(g.ashiyu.stamina), "E at the footbath soaks the feet")
-	g.soak_left = 0.0
+	check(AH.pick(Vector2i(46, 21), Vector2i.DOWN).interact == "Get up", "the hint while soaking: Get up")
+	var src := FileAccess.get_file_as_string("res://scripts/player/player.gd")
+	check("Game.soaking() and Input.is_action_just_pressed(\"interact\")" in src and "Game.stop_soak()" in src, "the farmer's E stands him up while soaking")
+	g.go_to_map("town", Vector2i(46, 25), Vector2i.UP)
+	check(not g.soaking(), "a map change stands him up")
 	var th := Lang.table("th")
-	check(th.get("Soak", "") != "" and ["message", "again_message", "hands_message"].all(func(k): return th.has(String(g.ashiyu[k]))), "the verb and the messages in Thai")
+	check(th.get("Soak", "") != "" and th.get("Get up", "") != "" and ["message", "again_message", "hands_message"].all(func(k): return th.has(String(g.ashiyu[k]))), "the verb and the messages in Thai")
 
 
 func _views() -> void:

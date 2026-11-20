@@ -10,6 +10,26 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-20 — The footbath: the feet in the water, and E again to get up
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user asked for the feet to really go into the water and for E to stop soaking at any
+  time.
+  - The soak lasts until E is pressed again (Game.soaking_now instead of a 5 s timer; `seconds`
+    gone from data/ashiyu.json). Player: while soaking, E calls Game.stop_soak; the hint reads
+    "Get up" (ลุกขึ้น). A map change (Game.go_to_map) and the day's end stand the farmer up too.
+  - The figure is drawn `seat` (0.85) cells from the spot toward the tub he faces, so he sits at
+    its edge: in 3D raised `lift` (0.12) so only the feet and shins are below the water's top
+    (first tried without the lift: the water came up to his waist); in the flat view a band of
+    the spring's water (3 px, a lighter ripple on top) over the feet (Player.soak_offset,
+    SOAK_DEPTH). The pose drops 3 px instead of 4.
+- Checked: test_ashiyu (the seat and lift in the data; still soaking after ten minutes; stop_soak
+  ends it and clears the seat; the hint "Get up" while soaking; the Player's E calls stop_soak; a
+  map change stands him up; the Thai). Frames: `--map=town@ashiyu --soak` in 3D (summer) and the
+  flat view. All 45 tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`: title,
+  `--demo`, town, mine 3, town@ashiyu --soak): 0 ERROR lines; windowed `--quit-after 150 --
+  --demo --map=town@ashiyu --soak`: exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-20 — The village footbath (ashiyu) where the station stood
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user picked the footbath for the spot east of the main street (it replaces the well

@@ -69,6 +69,7 @@ func _process(delta: float) -> void:
 	anim.step(delta, moving, running, Game.body_state() != "fine", Game.holding(), Game.fishing.state, Game.still_pose(), Game.scoop_pose(), Game.swing_pose(), Game.swing_frame(), Game.cradling())
 	figure.texture = PlaceholderArt.tex(anim.key(facing))
 	figure.flip_h = FarmerAnim.is_mirrored(facing)
+	figure.position = soak_offset()
 	var back := FarmerAnim.is_back(facing)
 	held_behind.visible = Game.cradling() and back
 	if held_behind.visible:
@@ -118,11 +119,13 @@ func _physics_process(delta: float) -> void:
 		queue_redraw()
 		return
 	if Game.eating() or Game.soaking():
-		# Eating or drinking (Game.eat_pose), or soaking at the footbath: stay still, no tool, no
-		# interact until it ends.
+		# Eating or drinking (Game.eat_pose), or soaking at the footbath: stay still, no tool; at the
+		# footbath E stands up again (Game.stop_soak).
 		moving = false
 		running = false
 		queue_redraw()
+		if Game.soaking() and Input.is_action_just_pressed("interact"):
+			Game.stop_soak()
 		return
 	if Game.fishing.active():
 		# The line is out: stand still; either button reels in.
@@ -330,7 +333,24 @@ func _slide(d: Vector2) -> bool:
 	return false
 
 
+## Where the figure is drawn from the farmer's spot (pixels): on the footbath's bench toward the tub
+## he faces while soaking (Game.soak_seat), else at the spot.
+func soak_offset() -> Vector2:
+	return (Vector2(facing) * Game.soak_seat() * T).round()
+
+
+## The water over the sitting farmer's feet at the footbath (flat view): a band of the spring's
+## water across the bottom of the figure, with a lighter ripple line on top.
+const SOAK_WATER := Color("8cc4bc")
+const SOAK_RIPPLE := Color("b4ddd6")
+const SOAK_DEPTH := 3   # pixels of the legs under the water: the feet and the shins
+
+
 func _draw() -> void:
+	if Game.soaking():
+		var at := soak_offset() + Vector2(-6, 2 - SOAK_DEPTH)
+		draw_rect(Rect2(at, Vector2(12, SOAK_DEPTH)), SOAK_WATER)
+		draw_rect(Rect2(at, Vector2(12, 1)), SOAK_RIPPLE)
 	# Target cell outline (on the farm, down the mine); while charging, every cell of the charge's area and the pips.
 	for tc in (area_preview() if charging else [target_cell()]) if Game.maps.on_farm() or Game.maps.mine_floor != null or Game.in_greenhouse() else []:
 		draw_rect(Rect2(Vector2(tc * T) - position, Vector2(T, T)), Color(1, 1, 1, 0.6), false, 1.0)
