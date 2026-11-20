@@ -10,6 +10,25 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-20 — No stains on the mountains; snow that reads as snow
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user found grey stains on the mountain in spring, orange ones in fall, and the winter
+  snow not like snow. A first try redrew the slopes as a canopy of round crowns; the user asked
+  for the old look back with only the stains gone, so that was undone.
+  - The stains were the season's accent patches: spring's pale pink went grey under the slope's
+    shade, fall's red-orange read as orange smears. data/vista.json `accent_share` is 0 in spring
+    and fall (summer's and winter's greens stay); fall keeps its olive and brown tones.
+  - Snow (VistaMountain's shader): it was 85% white laid over the forest before the light, so it
+    came out grey like fog. Now a soft line (`jag` as before), thick on the gentle slopes and
+    thinner on the steep faces, the trees showing dark through it near the line, and lit on its
+    own: white in sun, blue-grey in shade.
+- Checked: frames with `--vista` at 11:00: the farm pond in spring, fall and winter (snow 60),
+  the long bridge and the river gorge in winter. All 44 tests/test_*.gd print `OK (0 failed)`;
+  smoke runs (`--quit-after 300`: title, `--demo`, town, mine 3, farm@24,4 in winter): 0 ERROR
+  lines; windowed `--quit-after 150 -- --demo --map=farm@24,4`: exit 0.
+- Left / next: the user sent a photo of Arashiyama in fall (a mosaic of red, orange, yellow and
+  green crowns); the fall mountain is to look like that next.
+
 ## 2026-11-20 — The farm pond's view looks level: Ogura's ridge and the sky in the frame
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user found the mountain behind the farm pond odd. Ogura stands nearest the farm, so

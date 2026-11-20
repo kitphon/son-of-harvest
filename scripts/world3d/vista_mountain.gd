@@ -4,8 +4,8 @@ extends Node3D
 ## faceted triangles over each mountain's area, in the map's own cells (moved by its place on
 ## the plan, data/world.json). Drawn unshaded with its own light: the sun's direction (Game) on
 ## each facet's normal over `ambient`, the forest's two tones broken up by a world-locked noise,
-## the season's patches (spring's wild cherry, fall's maples), snow above the snow line in
-## winter, and the sky's colour laid over it by its distance from the eye, so the far slopes
+## the season's patches (none in spring and fall: data/vista.json), snow above the snow line in
+## winter (thick on the gentle slopes, trees through it near the line, blue-grey in shade), and the sky's colour laid over it by its distance from the eye, so the far slopes
 ## fade into the sky as a real mountain does. From the play camera only its foot shows past the
 ## south-west edges; the viewpoints (VistaRules.views) turn the camera to see it whole.
 
@@ -42,9 +42,16 @@ void fragment() {
 	c = mix(c, accent, step(1.0 - accent_share, a) * 0.8);
 	float jag = (noise(q * 0.3) - 0.5) * 3.0;
 	c = mix(foot_color, c, smoothstep(0.0, foot_blend, world.y));   // grass at the foot, woods up the slope
-	if (world.y > snow_line + jag) { c = mix(c, snow, 0.85); }
-	float lit = ambient + (1.0 - ambient) * max(dot(normalize(wn), normalize(sun_dir)), 0.0);
-	c *= lit;
+	float sun = max(dot(normalize(wn), normalize(sun_dir)), 0.0);
+	c *= ambient + (1.0 - ambient) * sun;
+	// Snow: a soft line, thick on the gentle slopes and thin on the steep faces, the trees showing
+	// dark through it near the line; lit by the sun, blue-grey in shade (not the forest's light).
+	float line = snow_line + jag;
+	float cover = smoothstep(line - 1.0, line + 2.0, world.y) * mix(0.35, 1.0, smoothstep(0.55, 0.85, normalize(wn).y));
+	float trees = smoothstep(0.55, 0.7, noise(q * 2.4 + 3.3)) * (1.0 - smoothstep(line + 3.0, line + 10.0, world.y));
+	cover *= 1.0 - trees * 0.6;
+	vec3 lit_snow = snow * mix(vec3(0.7, 0.76, 0.88), vec3(1.0), 0.35 + 0.65 * sun);
+	c = mix(c, lit_snow, cover);
 	float d = length(world - CAMERA_POSITION_WORLD);
 	c = mix(c, sky, smoothstep(haze.x, haze.y, d) * haze.z);
 	ALBEDO = c;
