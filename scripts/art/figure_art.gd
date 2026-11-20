@@ -279,7 +279,7 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 	# Legs: far first, then near. From the front the far leg is on the left, from the back on the right.
 	var far_x: int = (r.bx + 1 if back else r.bx - 3) + p[3]
 	var near_x: int = (r.bx - 3 if back else r.bx + 1) + p[1]
-	for leg in [[far_x, p[4]], [near_x, p[2]]]:
+	for leg in [[far_x, p[4]], [near_x, p[2]]] if not (pose == "soak" and back) else []:   # sat from behind: the legs are in front of him
 		_leg(img, r, c, outfit, leg[0], leg[1])
 	_torso(img, r, c, outfit, back, farmer)
 	if pose == "soak" and not back:

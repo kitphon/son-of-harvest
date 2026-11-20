@@ -9,6 +9,8 @@ const DEMO_FIRST := 0.3   # `--swing=<tool>`: seconds to the first swing (its hi
 const DEMO_EVERY := 0.9   # and between swings
 
 static var _demo_wait := DEMO_FIRST
+static var _from := Vector2i(-1, -1)   # the cell and facing of the last E (the footbath's seat: Game.soak)
+static var _facing := Vector2i.ZERO
 
 
 ## A view's Player hooked to the actions, and the view-side start flag `--talk=<villager>`.
@@ -102,8 +104,11 @@ static func on_action(kind: String, origin: Vector2i, facing: Vector2i, charge :
 	elif Game.holding() and Game.in_greenhouse() and kind != "interact":   # set down on a bed (no throwing under glass)
 		put_down(origin + facing)
 	elif kind == "interact":
+		_from = at
+		_facing = facing
 		if not examine(at + facing):
 			interact(at + facing)
+		_from = Vector2i(-1, -1)
 	else:
 		use_tool(origin, facing, charge)
 
@@ -254,9 +259,9 @@ static func interact(c: Vector2i) -> void:
 				Game.open_cooking()
 			"ribbons":   # the farmhouse's board of contest ribbons
 				Game.message.emit(Keepsakes.board_text(Game.flags))
-			"soak":   # the village footbath (data/ashiyu.json)
-				if Game.soak().ok:
-					Sfx.play("hold_splash")
+			"soak":   # the village footbath (data/ashiyu.json), from one of its seats
+				if Game.soak(_from, _facing).ok:
+					Sfx.play("soak_in")
 		return
 	if DogActions.interact(c):
 		return

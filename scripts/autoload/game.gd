@@ -107,6 +107,8 @@ var farmer_passing := false   # the farmer slips past a villager now (Player.pas
 var demo_walk_left := 0.0       # seconds of that walk still to go (INF without a time)
 var eat_left := 0.0  # seconds of that pose still to play (foods.json pose); not saved
 var soaking_now := false   # the farmer sits at the footbath, the feet in the water, until E again (data/ashiyu.json, Game.soak); not saved
+var soak_at := Vector2i(-1, -1)   # the seat he sits on (a cell before the tub, Game.soak_spots); not saved
+var soak_facing := Vector2i.DOWN   # and the way he faces there, into the tub
 var soaked_today := false   # the day's first soak at the footbath given (its stamina and rest); saved, cleared each morning
 ## The item carried overhead in the holding hand ("" = hands free). It is the rucksack's
 ## hand slot (Inventory "hand"): what the rucksack menu takes in hand is held up the same way.
@@ -360,8 +362,15 @@ func new_game() -> void:
 			var wk := arg.trim_prefix("--walk=").split(":")
 			demo_walk = Vector2(DEMO_FACINGS.get(wk[0], Vector2i.ZERO))
 			demo_walk_left = float(wk[1]) if wk.size() > 1 else INF
-		elif arg == "--soak":   # `-- --demo --map=town@ashiyu --soak`: sitting at the footbath, the feet in the water
+		elif arg == "--soak" or arg.begins_with("--soak="):   # `-- --demo --map=town --soak` (after --map): sat at the footbath's north seat, the feet in the water; `--soak=1` its south seat
 			soaking_now = true
+			for p in maps.current().props:
+				if str(p.get("use", "")) == "soak":
+					var spots := soak_spots(p)
+					var k := clampi(int(arg.get_slice("=", 1)) if "=" in arg else 0, 0, spots.size() - 1)
+					soak_at = spots[k][0]
+					soak_facing = spots[k][1]
+					break
 		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
 			fatigue = int(body.get("states", {}).get("exhausted", {}).get("fatigue", 80))
 			_shown_state = body_state()
@@ -2077,13 +2086,21 @@ func start_eat_pose(drink: bool) -> void:
 ## the water and stays until stop_soak (E again); the day's first soak gives its stamina (up to the
 ## max) and takes its fatigue off, a later one only rests. Not while holding something or cradling
 ## the little one. Says what happened; returns {ok, note}.
-func soak() -> Dictionary:
+func soak(origin := Vector2i(-1, -1), facing := Vector2i.ZERO) -> Dictionary:
+	if origin != Vector2i(-1, -1) and not can_soak_at(origin, facing):
+		var where := String(ashiyu.get("seat_message", ""))
+		if where != "":
+			message.emit(where)
+		return {"ok": false, "note": where}
 	if holding() or soaking():
 		var no := String(ashiyu.get("hands_message", "")) if holding() else ""
 		if no != "":
 			message.emit(no)
 		return {"ok": false, "note": no}
 	soaking_now = true
+	if origin != Vector2i(-1, -1):
+		soak_at = origin
+		soak_facing = facing
 	var note := String(ashiyu.get("again_message", ""))
 	if not soaked_today:
 		soaked_today = true
@@ -2109,15 +2126,45 @@ func stop_soak() -> void:
 
 
 ## How far the sitting farmer is drawn from his spot toward the tub he faces, in cells (data/ashiyu.json
-## `seat`): on its bench, the feet in the water. 0 when not soaking.
-func soak_seat() -> float:
-	return float(ashiyu.get("seat", 0.85)) if soaking_now else 0.0
+## `seat`): at its edge, the feet in the water; seen from behind (`back`: facing up or left) on the
+## rim itself (`seat_back`). 0 when not soaking.
+func soak_seat(back := false) -> float:
+	if not soaking_now:
+		return 0.0
+	return float(ashiyu.get("seat_back" if back else "seat", 0.85))
 
 
-## How far the sitting farmer is raised in 3D (data/ashiyu.json `lift`, units): sat on the bench's
-## edge, only the feet and shins under the water's top. 0 when not soaking.
-func soak_lift() -> float:
-	return float(ashiyu.get("lift", 0.0)) if soaking_now else 0.0
+## How far the sitting farmer is raised in 3D (data/ashiyu.json `lift`, `lift_back` from behind,
+## units): the hips at the bench's height, only the feet and shins under the water's top. 0 when not
+## soaking.
+func soak_lift(back := false) -> float:
+	if not soaking_now:
+		return 0.0
+	return float(ashiyu.get("lift_back" if back else "lift", 0.0))
+
+
+## Where one sits at footbath prop `prop`: before the middle of each long side, facing the tub
+## ([cell, facing] pairs); the ends and corners are no seats (the user saw the farmer sat at a
+## corner by a post).
+static func soak_spots(prop: Dictionary) -> Array:
+	var cell := Vector2i(prop.cell)
+	var size := Vector2i(prop.get("size", [1, 1]))
+	var out := []
+	if size.x >= size.y:   # along x: the north and south sides
+		var mid := cell.x + size.x / 2
+		out.append([Vector2i(mid, cell.y - 1), Vector2i.DOWN])
+		out.append([Vector2i(mid, cell.y + size.y), Vector2i.UP])
+	else:
+		var mid := cell.y + size.y / 2
+		out.append([Vector2i(cell.x - 1, mid), Vector2i.RIGHT])
+		out.append([Vector2i(cell.x + size.x, mid), Vector2i.LEFT])
+	return out
+
+
+## May the farmer on `origin` facing `facing` sit at the footbath in front (one of its soak_spots)?
+func can_soak_at(origin: Vector2i, facing: Vector2i) -> bool:
+	var prop := maps.current().prop_at(origin + facing)
+	return str(prop.get("use", "")) == "soak" and soak_spots(prop).has([origin, facing])
 
 
 ## The pose that holds the farmer still now (FarmerAnim's `eating`): eat / drink, "soak" at the

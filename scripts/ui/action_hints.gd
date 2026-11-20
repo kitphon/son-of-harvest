@@ -123,6 +123,8 @@ static func interact_verb(origin: Vector2i, facing: Vector2i) -> String:
 		if Festivals.stall_at(fid, c) != "":
 			return "Shop"
 	var use := str(m.prop_at(c).get("use", ""))
+	if use == "soak" and not Game.can_soak_at(origin, facing):
+		return ""   # the footbath: only from the middle of a long side (Game.soak_spots)
 	if USE_VERBS.has(use):
 		return USE_VERBS[use]
 	if Game.in_greenhouse() and not Game.holding():   # the beds, as the field (FarmActions.interact)

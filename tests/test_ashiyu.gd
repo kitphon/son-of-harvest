@@ -119,6 +119,8 @@ func _pose() -> void:
 			if side == "front":
 				check(img.get_used_rect().position.y > idle.get_used_rect().position.y, "sat lower than standing (frame %d)" % f)
 	check(PA.image("player:front:soak:0").get_data() != PA.image("player:front:soak:1").get_data(), "the foot stirs the water")
+	var from_back: Image = PA.image("player:back:soak:0")
+	check(from_back.get_used_rect().end.y <= PA.image("player:front:soak:0").get_used_rect().end.y - 3, "from behind no legs: they are in front of him in the water (%s)" % from_back.get_used_rect())
 	# Sat, not stood: a lap across both legs under the waist (FigureArt._lap): the trousers' colour
 	# runs from the lap's outer edge to the inner leg, where stood the shins have their edge there.
 	var sat: Image = PA.image("player:front:soak:0")
@@ -150,8 +152,31 @@ func _action() -> void:
 	FA.on_action("interact", Vector2i(46, 21), Vector2i.DOWN)
 	check(g.soaking() and g.soaked_today and g.stamina == 40 + int(g.ashiyu.stamina), "E at the footbath soaks the feet")
 	check(AH.pick(Vector2i(46, 21), Vector2i.DOWN).interact == "Get up", "the hint while soaking: Get up")
+	check(g.soak_at == Vector2i(46, 21) and g.soak_facing == Vector2i.DOWN, "sat on that seat")
+	g.stop_soak()
+	# Only the middle of each long side is a seat: never the ends or corners (the user saw him sat by a post).
+	var tub: Dictionary = g.maps.current().prop_at(Vector2i(46, 22))
+	check(g.soak_spots(tub) == [[Vector2i(46, 21), Vector2i.DOWN], [Vector2i(46, 24), Vector2i.UP]], "two seats: the middle of the north and the south side")
+	check(AH.interact_verb(Vector2i(45, 21), Vector2i.DOWN) == "" and AH.interact_verb(Vector2i(44, 23), Vector2i.RIGHT) == "", "no Soak hint at an end or a corner")
+	var said: Array[String] = []
+	var hear := func(t: String): said.append(t)
+	g.message.connect(hear)
+	g.maps.place("town", Vector2i(47, 21), Vector2i.DOWN)
+	FA.on_action("interact", Vector2i(47, 21), Vector2i.DOWN)
+	check(not g.soaking() and said.back() == String(g.ashiyu.seat_message), "E at an end: sit in the middle")
+	g.message.disconnect(hear)
+	g.maps.place("town", Vector2i(46, 24), Vector2i.UP)
+	FA.on_action("interact", Vector2i(46, 24), Vector2i.UP)
+	check(g.soaking() and g.soak_at == Vector2i(46, 24) and g.soak_facing == Vector2i.UP, "the south seat, facing the tub")
+	check(is_equal_approx(g.soak_seat(true), float(g.ashiyu.seat_back)) and is_equal_approx(g.soak_lift(true), float(g.ashiyu.lift_back))
+		and g.soak_seat(true) < g.soak_seat(false), "from behind on the rim itself, nearer than the front seat")
+	g.stop_soak()
+	var sfx: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/sfx.json")).sounds
+	check(sfx.has("soak_in") and sfx.has("soak_out"), "a sound for the feet going in and coming out")
+	check("Sfx.play(\"soak_in\")" in FileAccess.get_file_as_string("res://scripts/farm_actions.gd") and "Sfx.play(\"soak_out\")" in FileAccess.get_file_as_string("res://scripts/player/player.gd"), "played on sitting down and getting up")
 	var src := FileAccess.get_file_as_string("res://scripts/player/player.gd")
-	check("Game.soaking() and Input.is_action_just_pressed(\"interact\")" in src and "Game.stop_soak()" in src, "the farmer's E stands him up while soaking")
+	check("if Input.is_action_just_pressed(\"interact\"):
+				Game.stop_soak()" in src, "the farmer's E stands him up while soaking")
 	g.go_to_map("town", Vector2i(46, 25), Vector2i.UP)
 	check(not g.soaking(), "a map change stands him up")
 	var th := Lang.table("th")

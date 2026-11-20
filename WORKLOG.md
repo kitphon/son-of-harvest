@@ -10,6 +10,33 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-20 — The footbath: two seats, sat on the rim from behind, its own water sounds
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user sent three frames: from the south and the east the farmer still sat inside the
+  tub; the sound of sitting down was not like water; and E worked at the tub's ends, sitting him
+  by a corner post.
+  - Seats (Game.soak_spots / can_soak_at): the cell before the middle of each long side, facing
+    the tub (the village tub: (46, 21) facing down, (46, 24) facing up). The hint "Soak" shows only
+    there (ActionHints); E anywhere else at the tub says "Sit down in the middle of the bench."
+    (`seat_message`, Thai นั่งตรงกลางม้านั่งสิ). The soak keeps its seat (Game.soak_at /
+    soak_facing; FarmActions passes the E's cell and facing) and the Player is put on it, facing
+    the tub (E reaching from the next cell over sits him in the middle, not where he stood).
+  - From behind (facing up or left) the farmer sits on the rim itself (`seat_back` 0.7, `lift_back`
+    0.2) and the soak pose draws no legs (they are in front of him in the water); the flat view's
+    band of water only from the front.
+  - Sounds (data/sfx.json): `soak_in` (a soft low slosh, a swirl of water, three small bubbles,
+    a few drops) on sitting down, `soak_out` (a slosh and dripping) on getting up, in place of the
+    thrown item's splash.
+  - `--soak` (after `--map`) sits at the first seat, `--soak=1` the second.
+- Checked: test_ashiyu (the two seats; no hint at an end or a corner; E at an end says the seat
+  message and doesn't sit; E from the south seat sits facing up; the back seat and lift nearer
+  than the front; no legs from behind; both sounds in the data and played). Frames: `--map=town@ashiyu
+  --soak=1` (from behind on the rim) and `--soak`. All 45 tests/test_*.gd print `OK (0 failed)`;
+  smoke runs (`--quit-after 300`: title, `--demo`, town, mine 3, town@ashiyu --soak=1): 0 ERROR
+  lines; windowed `--quit-after 150 -- --demo --map=town@ashiyu --soak`: exit 0. The new sounds
+  were not listened to here (no sound in headless runs); test_audio builds every sound in the data.
+- Left / next: the user's look and listen.
+
 ## 2026-11-20 — The footbath: sat on its edge, only the shins and feet in the water
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user found the farmer standing in the water with the whole legs in it and asked for

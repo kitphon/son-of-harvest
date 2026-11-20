@@ -124,8 +124,13 @@ func _physics_process(delta: float) -> void:
 		moving = false
 		running = false
 		queue_redraw()
-		if Game.soaking() and Input.is_action_just_pressed("interact"):
-			Game.stop_soak()
+		if Game.soaking():
+			if Game.soak_at != Vector2i(-1, -1):   # on the seat, facing the tub
+				position = (Vector2(Game.soak_at) + Vector2(0.5, 0.5)) * T
+				facing = Game.soak_facing
+			if Input.is_action_just_pressed("interact"):
+				Game.stop_soak()
+				Sfx.play("soak_out")
 		return
 	if Game.fishing.active():
 		# The line is out: stand still; either button reels in.
@@ -336,7 +341,7 @@ func _slide(d: Vector2) -> bool:
 ## Where the figure is drawn from the farmer's spot (pixels): on the footbath's bench toward the tub
 ## he faces while soaking (Game.soak_seat), else at the spot.
 func soak_offset() -> Vector2:
-	return (Vector2(facing) * Game.soak_seat() * T).round()
+	return (Vector2(facing) * Game.soak_seat(FarmerAnim.is_back(facing)) * T).round()
 
 
 ## The water over the sitting farmer's feet at the footbath (flat view): a band of the spring's
@@ -347,7 +352,7 @@ const SOAK_DEPTH := 3   # pixels of the legs under the water: the feet and the s
 
 
 func _draw() -> void:
-	if Game.soaking():
+	if Game.soaking() and not FarmerAnim.is_back(facing):   # from behind the feet are in front of him, out of sight
 		var at := soak_offset() + Vector2(-6, 2 - SOAK_DEPTH)
 		draw_rect(Rect2(at, Vector2(12, SOAK_DEPTH)), SOAK_WATER)
 		draw_rect(Rect2(at, Vector2(12, 1)), SOAK_RIPPLE)
