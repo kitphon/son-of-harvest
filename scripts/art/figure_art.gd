@@ -160,6 +160,9 @@ const POSES := {
 	# On the way down onto the footbath's bench and up off it: bent at the knees, the hands going
 	# to them (Game.still_pose while soak_amount < 0.6).
 	"soak_down": [[1, -1, 0, 1, 0, 1, -1]],
+	# Sat on the bench, the legs lifted over the rim on the way into the water (and back out): the
+	# lap, the shins raised under it (Game.still_pose between sit_steps).
+	"soak_swing": [[2, -1, 3, 1, 3, 1, -1]],
 }
 ## Per eat / drink frame: [hand offset from the mouth, what it holds: "bite" (a morsel at the
 ## lips), "chew" (the bitten rest), "cup" (upright at the lips), "tip" (tipped up)].
@@ -285,7 +288,7 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 	for leg in [[far_x, p[4]], [near_x, p[2]]] if not (pose == "soak" and back) else []:   # sat from behind: the legs are in front of him
 		_leg(img, r, c, outfit, leg[0], leg[1])
 	_torso(img, r, c, outfit, back, farmer)
-	if pose == "soak" and not back:
+	if (pose == "soak" or pose == "soak_swing") and not back:
 		_lap(img, r, c, outfit)
 	if style == "long" and back:
 		_long_hair_down_back(img, r, c)

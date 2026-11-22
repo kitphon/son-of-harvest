@@ -87,6 +87,25 @@ func _soak() -> void:
 	check(g.soak_amount() > 0.1 and g.soak_amount() < 0.9 and g.soak_seat() > 0.0 and g.soak_seat() < float(a.seat), "half way down: part way onto the seat (%.2f)" % g.soak_amount())
 	g._process(float(a.sit_seconds))
 	check(g.soak_phase == "sit" and g.still_pose() == "soak" and is_equal_approx(g.soak_amount(), 1.0), "sat after %.1f s, the feet in" % float(a.sit_seconds))
+	# Never glided through the rim: the seat is either on the way to the bench or the edge itself,
+	# and the move from one to the other happens with the legs up over the rim (soak_swing).
+	var saved_t: float = g.soak_t
+	var steps: Array = a.sit_steps
+	var between := 0
+	var poses := {}
+	for i in 101:
+		g.soak_t = i / 100.0
+		var x: float = g.soak_seat()
+		if x > float(a.bench) + 0.001 and x < float(a.seat) - 0.001:
+			between += 1
+		poses[g.still_pose()] = true
+	g.soak_t = float(steps[1]) - 0.01
+	var swing: String = g.still_pose()
+	var on_bench: float = g.soak_seat()
+	g.soak_t = float(steps[1]) + 0.01
+	check(between == 0 and swing == "soak_swing" and is_equal_approx(on_bench, float(a.bench)) and is_equal_approx(g.soak_seat(), float(a.seat)), "to the bench, the legs over the rim, then the edge: never in between (%d)" % between)
+	check(poses.has("soak_down") and poses.has("soak_swing") and poses.has("soak"), "the half crouch, the legs over, sat")
+	g.soak_t = saved_t
 	check(said.back() == String(a.message), "says the soak")
 	check(not g.soak().ok, "no second soak while sitting")
 	check(is_equal_approx(g.soak_seat(), float(a.seat)), "drawn on the bench, the feet in the water")
@@ -129,6 +148,8 @@ func _soak() -> void:
 
 func _pose() -> void:
 	check(FG.frames("soak") == 2 and FG.frames("soak_down") == 1, "the soak pose has two frames, the half crouch one")
+	var lifted: Image = PA.image("player:front:soak_swing:0")
+	check(lifted.get_used_rect().end.y < PA.image("player:front:soak:0").get_used_rect().end.y, "the legs lifted over the rim (soak_swing) end higher than sat")
 	var crouch: Image = PA.image("player:front:soak_down:0")
 	check(crouch.get_used_rect().position.y > PA.image("player:front:idle:0").get_used_rect().position.y
 		and crouch.get_used_rect().position.y < PA.image("player:front:soak:0").get_used_rect().position.y, "the half crouch between standing and sat")

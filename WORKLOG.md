@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-22 — The footbath: onto the bench, the legs over the rim, then the feet in
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user saw the farmer's body glide slowly through the tub on sitting down and asked
+  for him to get over onto the seat, sit, then dip the feet instead. Game._soak_path (data/ashiyu.json
+  `sit_steps` [0.45, 0.72], `bench` 0.57, `bench_lift` 0.16): up to the first step he goes to the
+  bench behind the rim and sits on it, half crouched ("soak_down"); then the legs go up over the rim
+  (a new pose "soak_swing": the lap, the shins raised under it) and with the legs up he is put on
+  the edge; from the second step the feet are down in the water ("soak"). The seat is never between
+  the bench and the edge, so he never passes through the rim; getting up runs the same back. From
+  behind (the south seat) he goes straight onto the rim, no swing. The Player's step onto the seat
+  cell follows the first part. The steam moved to the tub's near half and its ends, clear of the
+  figure on the north seat.
+- Checked: test_ashiyu (along the whole sitting down the seat is never strictly between the bench
+  and the edge; just before the second step on the bench in soak_swing, just after on the edge;
+  all three poses seen; soak_swing's legs end higher than sat). Frames: `--map=town@ashiyu
+  --soak=down` frames 8, 15, 20, 24, 32 as a strip (standing; sat on the bench behind the rim; the
+  legs over; sat at the edge, the feet in). All 45 tests/test_*.gd print `OK (0 failed)`; smoke runs
+  (`--quit-after 300`: title, `--demo`, town, mine 3, town@ashiyu --soak=down): 0 ERROR lines;
+  windowed `--quit-after 150 -- --demo --map=town@ashiyu --soak=down`: exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-22 — The footbath: sitting down and getting up eased, the user's splash sound
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user wanted a transition instead of the farmer jumping onto the seat and off it, and

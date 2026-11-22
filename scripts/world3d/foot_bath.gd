@@ -72,7 +72,7 @@ static func steam(w: Node3D, r: Rect2) -> Array[Node3D]:
 		var s := StallWares.Steam.new(int(r.position.x) * 7 + k * 31)
 		s.scale = Vector3.ONE * STEAM_SCALE
 		# Over the tub's far half (+z, toward the eye) and its ends, clear of the bench people sit on.
-		s.position = Vector3(r.position.x + r.size.x * [0.18, 0.5, 0.82][k % 3], WATER_Y + 0.15, r.get_center().y + (0.1 if k % 2 == 0 else 0.4))
+		s.position = Vector3(r.position.x + r.size.x * [0.15, 0.85, 0.5][k % 3], WATER_Y + 0.15, r.get_center().y + [0.35, 0.35, 0.55][k % 3])
 		s.name = "FootBathSteam%d" % k
 		w.add_child(s)
 		out.append(s)

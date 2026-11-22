@@ -127,7 +127,7 @@ func _physics_process(delta: float) -> void:
 		if Game.soaking():
 			if Game.soak_at != Vector2i(-1, -1):   # onto the seat, facing the tub: a step over in the first half of sitting down
 				var seat := (Vector2(Game.soak_at) + Vector2(0.5, 0.5)) * T
-				var step := clampf(Game.soak_t * 2.0, 0.0, 1.0) if Game.soak_phase == "down" else 1.0
+				var step := clampf(Game.soak_t / float(Game.ashiyu.get("sit_steps", [0.45])[0]), 0.0, 1.0) if Game.soak_phase == "down" else 1.0
 				position = Game.soak_from.lerp(seat, smoothstep(0.0, 1.0, step)) if Game.soak_from != Vector2.ZERO else seat
 				facing = Game.soak_facing
 			if Input.is_action_just_pressed("interact") and Game.soak_phase != "up":

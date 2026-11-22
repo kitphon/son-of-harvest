@@ -2175,7 +2175,22 @@ func _stand_up_now() -> void:
 func soak_seat(back := false) -> float:
 	if not soaking_now:
 		return 0.0
-	return float(ashiyu.get("seat_back" if back else "seat", 0.85)) * soak_amount()
+	return _soak_path(back).x
+
+
+## Where the sitting farmer is along the way to the seat, for soak_t now: x the seat (cells toward
+## the tub), y the lift (units). From the front: to the bench behind the rim and sat on it up to
+## sit_steps[0], held there while the legs go over (to sit_steps[1]), then on the edge with the
+## feet in (`seat`, `lift`) — never between the bench and the edge, so he never glides through
+## the rim. From behind: straight onto the rim (`seat_back`, `lift_back`) by sit_steps[0].
+func _soak_path(back: bool) -> Vector2:
+	var steps: Array = ashiyu.get("sit_steps", [0.45, 0.72])
+	var e := smoothstep(0.0, 1.0, clampf(soak_t / maxf(float(steps[0]), 0.01), 0.0, 1.0))
+	if back:
+		return Vector2(float(ashiyu.get("seat_back", 0.7)), float(ashiyu.get("lift_back", 0.2))) * e
+	if soak_t < float(steps[1]):
+		return Vector2(float(ashiyu.get("bench", 0.57)), float(ashiyu.get("bench_lift", 0.16))) * e
+	return Vector2(float(ashiyu.get("seat", 0.85)), float(ashiyu.get("lift", 0.17)))
 
 
 ## How far the sitting farmer is raised in 3D (data/ashiyu.json `lift`, `lift_back` from behind,
@@ -2184,7 +2199,7 @@ func soak_seat(back := false) -> float:
 func soak_lift(back := false) -> float:
 	if not soaking_now:
 		return 0.0
-	return float(ashiyu.get("lift_back" if back else "lift", 0.0)) * soak_amount()
+	return _soak_path(back).y
 
 
 ## Where one sits at footbath prop `prop`: before the middle of each long side, facing the tub
@@ -2218,7 +2233,14 @@ func still_pose() -> String:
 		return eat_pose
 	if not soaking():
 		return ""
-	return "soak" if soak_amount() >= 0.6 else "soak_down"   # half crouched on the way down and up
+	# Half crouched on the way to the bench; the legs going over the rim; sat with the feet in.
+	var steps: Array = ashiyu.get("sit_steps", [0.45, 0.72])
+	if soak_t < float(steps[0]):
+		return "soak_down"
+	var back := soak_facing == Vector2i.UP or soak_facing == Vector2i.LEFT
+	if soak_t < float(steps[1]) and not back:
+		return "soak_swing"
+	return "soak"
 
 
 ## The farmer's pose at the goldfish tub (FarmerAnim): "scoop" while the scoop game is on,
