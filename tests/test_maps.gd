@@ -4870,8 +4870,8 @@ func _yumachi() -> void:
 	check(house.size() == 1 and bool(house[0].get("noren", false)) and int(house[0].get("storeys", 1)) == 2, "the bath: one two-storey house with a noren")
 	var door := Vector2i(house[0].cell) + Vector2i(int(house[0].door), int(house[0].size[1]) - 1)
 	var front: Dictionary = y.door_at(door)
-	check(not front.is_empty() and str(front.message) != "" and str(front.to) == "" and reach.has(door + Vector2i.DOWN) and y.tile(door + Vector2i.DOWN) == "path",
-		"its door at the end of the path, speaking until the bath opens inside")
+	check(not front.is_empty() and str(front.to) == "sento" and str(front.get("shop", "")) == "sento" and reach.has(door + Vector2i.DOWN) and y.tile(door + Vector2i.DOWN) == "path",
+		"its door at the end of the path, into the bath under the shop's hours (test_baths)")
 	check(y.spawns.sento[0] == door + Vector2i.DOWN and reach.has(y.spawns.river[0]), "spawns before the door and on the river walk, both walkable")
 	var stack: Array = y.props.filter(func(p): return p.kind == "chimney")
 	check(stack.size() == 1 and y.is_solid(Vector2i(stack[0].cell)) and MapView.COLORS.has("chimney"), "the bath's chimney: one, solid, with a flat colour")

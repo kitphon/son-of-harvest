@@ -84,6 +84,6 @@ func _fps() -> float:
 			return EAT_FPS
 		"drink":
 			return DRINK_FPS
-		"soak":
+		"soak", "bathe":
 			return SOAK_FPS
 	return WALK_FPS

@@ -10,6 +10,51 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-22 — Baths step 2: inside Kawasemi-yu, one bath for everyone
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user picked one bath for everyone, all in bathing wraps (the farmer has no set gender;
+  separate rooms the player picks freely would let anyone into either side). DESIGN updated.
+  - Map `sento` (data/maps/sento.json, 15 x 8, indoors): the lobby left (an earth entry with the
+    shoe lockers `getabako`, wooden floor, the counter = shop `sento`, the milk cooler
+    `milk_fridge`, a `bench`, the `basket_shelf`), a partition with a doorway at (7, 4) hung with
+    the `bath_noren`, the bath right on a new `bath_tile` floor: the washing island `kran` and the
+    big tiled tub `yubune` (6 x 2) along the back wall under `bath_mural`, Ogura painted in our own
+    picture (BathArt: 192 x 32, sky, clouds, far ridge, the mountain, pines, the river).
+  - Shop `sento` (data/shops.json): open 14:00-23:00, shut on Thursdays and on all four
+    festivals (data/festivals.json closes), sells the milk bottle. New `entry_fee` 120: Yumachi's
+    bath door (7, 4) is now a shop door into the map; the first time through on a day
+    Game.pay_entry takes the fee (Game.bath_paid_today, saved, cleared each morning), short of
+    it the door stays shut with `entry_short`. Shop.own() gives a shop's own row.
+  - Getting in: data/baths.json `sento` is a soak config like data/ashiyu.json; the soak prop's
+    `bath` picks it (Game.soak_config / soak_cfg, back to the footbath's when up). `seats`
+    "front": every cell before the tub's front, facing it. The way in steps up onto the rim
+    (lift 0.5 on the feet), then down into the water in the new pose `bathe`, turned to face the
+    room (`turn` / `turn_at`, Game.soak_look; Player and Main3D draw the seat along soak_facing).
+    The day's first bath: +40 stamina, -20 fatigue and the clock run on 60 minutes
+    (Game.pass_minutes: the clock stands still indoors, so the hour is taken at once); later
+    ones only rest. `day` "bath" counts toward Game.bathed_today (saved), which the rotenburo
+    will share; the footbath keeps its own soaked_today.
+  - Pose `bathe` (FigureArt._bathe): the head, the bare shoulders and a folded towel low in the
+    picture, the water across its bottom rows, no clothes and nothing lower; a hat is left out;
+    a one-pixel breath. FarmerAnim plays it slow like `soak`.
+  - 3D BathProps (every kind, the steam over the tub), flat BathLook (its own names and colours,
+    so the flat view never loads the 3D scripts), MapView.COLORS for each kind, the ground tile.
+  - Thai for the prop lines, the bath's messages and the fee; the stale step 1 door message and
+    chimney line replaced.
+  - Tests: new tests/test_baths.gd; test_maps' Yumachi door check now expects the door in.
+- Balance: 120 G (a little more than the 90 G milk) for +40 / -20 and an hour, once a day; the
+  footbath +20 / -15 free; a night's sleep from 22:00 about -42. Thursday is the day off so the
+  sento is open on Sundays when the shops shut.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths new). Smoke runs
+  (`--quit-after 300`: title, `--demo`, town, mine 3, `sento@bath --soak`, `yumachi@sento
+  --walk=up:1`): 0 ERROR lines; windowed `--quit-after 150 -- --demo --map=sento@bath --soak=down`:
+  exit 0. Frames: walking up into the street door paid 120 G (500 -> 380 G, the message shown) and
+  stood in the lobby; `--soak=down` steps onto the rim and sinks into the water facing the room;
+  sat, the head, shoulders and towel show over the water under the mural; the flat view draws the
+  lobby, the tub and the farmer in it.
+- Left / next: step 2b the bath's keeper at the counter (a new villager: look, day plan, talk,
+  Thai, festival plans); step 3 villagers' evening baths and lines; step 4 Kajika-yu.
+
 ## 2026-11-22 — Baths step 1: Yumachi, the bath lane east of the village, and the bath's front
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a new outdoor map `yumachi` (data/maps/yumachi.json, 14 x 22) at plan [56, 26]

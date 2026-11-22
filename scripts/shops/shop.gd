@@ -79,6 +79,11 @@ static func ids(d := data()) -> Array[String]:
 
 ## The shop `shop_id` from `d`, or null when there is none. `crop_data` / `food_data` give
 ## the items' own prices and names (crops.json, foods.json "foods").
+## This shop's own entry in data/shops.json (its `shops` row).
+func own() -> Dictionary:
+	return data().get("shops", {}).get(id, {})
+
+
 static func make(shop_id: String, crop_data: Dictionary, food_data: Dictionary, d := data()) -> Shop:
 	var s = d.get("shops", {}).get(shop_id)
 	if not s is Dictionary:

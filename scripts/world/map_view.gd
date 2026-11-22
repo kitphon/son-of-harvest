@@ -31,6 +31,8 @@ const COLORS := {
 	"irori": Color("8a847a"), "tokonoma": Color("c9a26b"), "butsudan": Color("1a1616"), "zabuton": Color("8a3a3a"),
 	"byobu": Color("e8dcb8"), "toy_box": Color("c8442c"), "mizugame": Color("6a4028"),
 	"potting_bench": Color("8a6a48"),
+	"yubune": Color("5fa6a2"), "kran": Color("d8e4e6"), "milk_fridge": Color("eeeee8"), "basket_shelf": Color("d8c088"),
+	"bench": Color("a07a52"), "getabako": Color("4a3424"), "bath_noren": Color("2f4a7a"), "bath_mural": Color("4e8a4a"),
 }
 
 var map: MapData
@@ -403,6 +405,9 @@ func _draw_objects() -> void:
 			continue
 		if p.kind == "chimney":
 			draw_chimney(_objects, r)
+			continue
+		if p.kind in BathLook.KINDS:   # the public bath's inside
+			BathLook.draw(_objects, str(p.kind), r)
 			continue
 		var fill: Color = COLORS.get(p.kind, Color.MAGENTA)
 		if p.kind == "water_tub" and p.has("color"):   # a tub of its own water (Shino's indigo vats)

@@ -165,6 +165,10 @@ const POSES := {
 	"soak_swing": [[2, -1, 4, 1, 4, 1, -1]],
 	# Half way: the legs coming up off the bench (and down again into the water).
 	"soak_lift": [[2, -1, 2, 1, 2, 1, -1]],
+	# In a bath up to the shoulders (data/baths.json, _bathe): only the head, the bare shoulders
+	# and a folded towel on the head over the water, which is the picture's bottom; a slow breath
+	# lifts them a pixel (1).
+	"bathe": [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]],
 }
 ## Per eat / drink frame: [hand offset from the mouth, what it holds: "bite" (a morsel at the
 ## lips), "chew" (the bitten rest), "cup" (upright at the lips), "tip" (tipped up)].
@@ -240,7 +244,7 @@ static func draw(look: Dictionary, back: bool, pose: String, frame: int, farmer 
 	var img := _blank()
 	var c := colors(look)
 	_begin(c, look, farmer)
-	var out := _draw(img, c, look, back, pose, frame, farmer)
+	var out := _bathe(img, c, look, back, frame) if pose == "bathe" else _draw(img, c, look, back, pose, frame, farmer)
 	return _end(out)
 
 
@@ -344,6 +348,51 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 		var sy := roundi(r.cy) - 3
 		_dot(img, sx, sy, Color.WHITE)
 		_r(img, sx, sy + 1, 1, 2, SWEAT)
+	return img
+
+
+## In a bath up to the shoulders (pose "bathe"): the head and the bare shoulders, low in the
+## picture, the water across its bottom rows (BATH_WATER, its lit ripple on top) so the figure
+## reads as sat in it; a folded white towel on the crown. Nothing below the shoulders is drawn:
+## everyone bathes in a wrap in this valley (data/baths.json). A hat stays out of the water.
+const BATH_WATER := Color("6fb0aa")
+const BATH_RIPPLE := Color("a9dcd4")
+const TOWEL := Color("f2f0ea")
+const TOWEL_FOLD := Color("c9c6bc")
+
+
+static func _bathe(img: Image, c: Dictionary, look: Dictionary, back: bool, frame: int) -> Image:
+	var r := _rig(look, "idle", 0)
+	var style := str(look.get("hair_style", "short"))
+	if style == "straw_hat":
+		style = "short"
+	var surface := FOOT - 1   # the ripple's row; the water fills the row under it
+	var shift: int = surface - (int(r.sh) + 3) + frame % 2   # the shoulders three rows over the water; a breath lifts them
+	r.cy = float(r.cy) + shift
+	r.sh = int(r.sh) + shift
+	r.hip = int(r.hip) + shift
+	var x0: int = int(r.x0) - 2
+	var x1: int = int(r.x1) + 2
+	for y in range(int(r.sh), surface):   # the shoulders, rounded at the top corners, shaded down the right
+		var inset := 1 if y == int(r.sh) else 0
+		_r(img, x0 + inset, y, x1 - x0 - inset * 2, 1, c.s)
+		_dot(img, x1 - 1 - inset, y, c.S)
+	_dot(img, roundi(r.cx) - 2, int(r.sh) + 1, c.S)   # the collarbone's shadow under the chin
+	_dot(img, roundi(r.cx) + 1, int(r.sh) + 1, c.S)
+	if style == "long":   # the hair behind the head from the front, down the back from behind
+		if back:
+			_long_hair_down_back(img, r, c)
+		else:
+			_long_hair_behind(img, r, c)
+	_head(img, r, c, style, back, false)
+	# The towel folded flat on the crown.
+	var top := floori(float(r.cy) - float(r.ry)) - (2 if style == "bun" else 1)
+	_r(img, roundi(r.cx) - 4, top - 1, 8, 2, TOWEL)
+	_r(img, roundi(r.cx) - 4, top, 8, 1, TOWEL_FOLD)
+	_dot(img, roundi(r.cx) + 3, top - 1, TOWEL_FOLD)
+	# The water: its lit ripple, then the water to the bottom.
+	_r(img, x0 - 2, surface, x1 - x0 + 4, 1, BATH_RIPPLE)
+	_r(img, x0 - 3, surface + 1, x1 - x0 + 6, H - surface - 1, BATH_WATER)
 	return img
 
 

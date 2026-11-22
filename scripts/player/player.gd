@@ -127,9 +127,9 @@ func _physics_process(delta: float) -> void:
 		if Game.soaking():
 			if Game.soak_at != Vector2i(-1, -1):   # onto the seat, facing the tub: a step over in the first half of sitting down
 				var seat := (Vector2(Game.soak_at) + Vector2(0.5, 0.5)) * T
-				var step := clampf(Game.soak_t / maxf(float(Game.ashiyu.get("step_until", 0.3)), 0.01), 0.0, 1.0) if Game.soak_phase == "down" else 1.0
+				var step := clampf(Game.soak_t / maxf(float(Game.soak_cfg.get("step_until", 0.3)), 0.01), 0.0, 1.0) if Game.soak_phase == "down" else 1.0
 				position = Game.soak_from.lerp(seat, smoothstep(0.0, 1.0, step)) if Game.soak_from != Vector2.ZERO else seat
-				facing = Game.soak_facing
+				facing = Game.soak_look()   # in a bath they turn to face the room once in the water
 			if Input.is_action_just_pressed("interact") and Game.soak_phase != "up":
 				Game.stop_soak()
 				Sfx.play("soak_out")
@@ -341,9 +341,11 @@ func _slide(d: Vector2) -> bool:
 
 
 ## Where the figure is drawn from the farmer's spot (pixels): on the footbath's bench toward the tub
-## he faces while soaking (Game.soak_seat), else at the spot.
+## he went to (Game.soak_facing, Game.soak_seat), in a bath out in its water, else at the spot.
 func soak_offset() -> Vector2:
-	return (Vector2(facing) * Game.soak_seat(FarmerAnim.is_back(facing)) * T).round()
+	if not Game.soaking():
+		return Vector2.ZERO
+	return (Vector2(Game.soak_facing) * Game.soak_seat(FarmerAnim.is_back(Game.soak_facing)) * T).round()
 
 
 ## The water over the sitting farmer's feet at the footbath (flat view): a band of the spring's

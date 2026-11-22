@@ -66,8 +66,10 @@ static func _make(key: String) -> Image:
 			return CicadaArt.make(parts[1], parts[2], int(parts[3]), parts.size() > 4 and parts[4] == "r")
 		"build":    # build:<plaster|tsuchi|board|kawara|kawara_edge|thatch|kaya|kaya_edge|hay|planks|planks_dark|sugi|glass|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
-		"ground":   # ground:<grass|tilled|wet|bed|path|tatami|floor|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>[:jade|:pond]
+		"ground":   # ground:<grass|tilled|wet|bed|path|tatami|floor|bath_tile|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>[:jade|:pond]
 			return _ground(parts[1], int(parts[2]), parts[3] if parts.size() > 3 else "")
+		"bath":     # bath:<tile|mural>, the public bath's glazed tiles and the mountain on its wall (BathArt)
+			return BathArt.make(parts[1])
 		"fx":       # fx:<rain|snow|splash>, weather particles (white, tinted by the particle colour); fx:<note|notes>, a whistler's note puff
 			return _fx(parts[1])
 		"cloth":    # cloth:<hex>, one indigo length drying over a pole (DyeCloth: 22 x 24, the pole across the top)
@@ -1511,6 +1513,13 @@ static func _ground(kind: String, n: int, look := "") -> Image:
 				var y := rng.randi_range(0, 14)
 				_px(img, x, y, 2, 1, Color("a89068"))
 				_px(img, x, y + 1, 2, 1, Color("8f7a58") if i % 2 == 0 else Color("d6c29a"))
+		"bath_tile":
+			# The public bath's floor (data/maps/sento.json): pale glazed tiles in grey grout, a
+			# little wetter-looking (bluer) every other cell.
+			img.blit_rect(BathArt.tile(), Rect2i(0, 0, 16, 16), Vector2i.ZERO)
+			if n % 2 == 1:
+				for i in 4:
+					_px(img, rng.randi_range(1, 14), rng.randi_range(0, 14), 2, 1, Color("c8dade"))
 		"tatami":
 			# Half a mat per cell: pale straw rush in fine weave lines, a dark cloth edge (heri)
 			# along the long sides; variants alternate the way the mats lie.

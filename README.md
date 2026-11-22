@@ -256,7 +256,7 @@ between the village's bridge and the river (`minamino`: vegetable gardens behind
 fence, a well, a roadside water shrine, Kiku's persimmon orchard; Shige and Nana's house,
 `shige_house`, and Kiku's, `kiku_house`), Yumachi east of the village below Sakurazaka (`yumachi`, the bath lane, 2026-11-22:
 the village's path along rows 29-30 runs on into it to Kawasemi-yu, the public bath (a two-storey house with a noren, its door
-only speaking until the bath opens inside; a `chimney` prop at its east wall's front corner, BathProps in 3D and MapView.draw_chimney
+into the bath's inside, `sento`: see Baths below; a `chimney` prop at its east wall's front corner, BathProps in 3D and MapView.draw_chimney
 flat, firewood behind it), a little garden and a gravel walk along the river, which runs on through it; the walk is a viewpoint,
 `yumachi_walk` in data/vista.json, where the camera eases up to the chimney and the mountains: `--demo --map=yumachi@8,10 --vista`), Nishiki Hill above Kaminoda (`hill`, the valley's cherry and maple viewing spot since 2026-11-17: a switchback path between
 `sakura`, `maple` and `ginkgo` trees of mixed sizes (a prop's `scale`), pink in spring and red and gold in fall, no cliff and no pines (a band of trees closes its top), a small `bamboo` stand left at its foot, to a lookout with a
@@ -362,6 +362,29 @@ are kept for the whole run by `MeshCache` (scripts/world3d/mesh_cache.gd) and on
 again, with each world's own materials; so are the maps' ground pictures and the land past
 their edges. `tools/build_times.gd` times every map's build, first and again
 (`-- --parts` per step, `-- --maps=farm,town`; run with a window for the renderer's share).
+
+### Baths
+
+Kawasemi-yu, the public bath in Yumachi (2026-11-22, Baths step 2; docs/DESIGN.md → ที่อาบน้ำ). Its
+street door (Yumachi (7, 4)) is a shop door (data/shops.json `sento`: open 14:00-23:00, shut on
+Thursdays and on festival days); the first time through on a day it takes `entry_fee` (120 G,
+Game.pay_entry, `bath_paid_today`, saved), and short of the money it stays shut. Inside
+(data/maps/sento.json, 15 x 8, indoors so the clock stands): the lobby on the left (the counter,
+shop `sento`, selling the cold milk; the milk cooler, a bench, the basket shelf, the shoe lockers)
+and, through the noren in the partition, the bath: the washing island and the big tiled tub
+(`yubune`) along the back wall under the painted mountain (`bath_mural`, BathArt). One bath for
+everyone, all in bathing wraps (the user's pick: the farmer has no set gender). E from any tile in
+front of the tub (its `seats` "front") gets in (Game.soak with data/baths.json `sento` as its
+soak_cfg): over the rim, down into the water and turned to face the room (`turn`, Game.soak_look),
+drawn in the pose `bathe` (FigureArt._bathe: the head, the bare shoulders and a folded towel over
+the water); E again gets out. The day's first bath gives +40 stamina and -20 fatigue and runs the
+clock on an hour (`minutes`, Game.pass_minutes, even indoors); a later one only rests. The baths
+share one rest a day (`day` "bath", Game.bathed_today, saved; the rotenburo will count toward it
+too), apart from the footbath's own (soaked_today). 3D: BathProps (`yubune`, `kran`, `milk_fridge`,
+`basket_shelf`, `bench`, `getabako`, `bath_noren`, `bath_mural`, the steam); flat: BathLook.
+`--demo --map=sento@bath --time=15:00` stands before the tub, `--soak` sat in it (`--soak=N` the
+Nth seat from the left, `--soak=down` getting in), `--demo --map=yumachi@sento --time=15:00` the
+street door. test_baths.
 
 ## Villagers
 Each villager is a file `data/villagers/<id>.json` (shared numbers in `_common.json`: walk

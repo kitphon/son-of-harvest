@@ -113,6 +113,9 @@ var soak_phase := ""   # "down" sitting down, "sit" sat, "up" getting up (soak_a
 var soak_t := 0.0   # how far sat down, 0 standing .. 1 sat (stepped by soak_phase over data/ashiyu.json sit_seconds / stand_seconds)
 var soak_from := Vector2.ZERO   # where the farmer stood (pixels) when he went to sit: he steps from there onto the seat
 var soaked_today := false   # the day's first soak at the footbath given (its stamina and rest); saved, cleared each morning
+var bathed_today := false   # the day's first bath given (the sento and the rotenburo share it: data/baths.json `day`); saved, cleared each morning
+var bath_paid_today := false   # the sento's entry paid today (in and out free after; data/shops.json sento entry_fee); saved, cleared each morning
+var soak_cfg: Dictionary = {}   # the soak going on now: data/ashiyu.json, or a bath of data/baths.json (Game.soak_config); not saved
 ## The item carried overhead in the holding hand ("" = hands free). It is the rucksack's
 ## hand slot (Inventory "hand"): what the rucksack menu takes in hand is held up the same way.
 var held: String:
@@ -168,6 +171,7 @@ var snow_rules: Dictionary = {}    # how snow builds up and melts (data/snow_cov
 var body: Dictionary = {}          # fatigue, tired states, oversleeping, collapse (data/body.json)
 var food_data: Dictionary = {}     # data/foods.json: food and drink, the stand's food stock
 var ashiyu: Dictionary = {}   # data/ashiyu.json: the village footbath's soak
+var baths: Dictionary = {}    # data/baths.json: the baths one gets into up to the shoulders (the sento's tub)
 var foods: Dictionary = {}         # food id -> {name, price, stamina, fatigue, ...}
 var hold_rules: Dictionary = {}    # throw reach, flight, what the bin and the pond do (data/hold.json)
 var fish_data: Dictionary = {}     # data/fish.json: bites, fish per place / season / hour / weather
@@ -211,6 +215,8 @@ func _ready() -> void:
 	snow_rules = _load_json("res://data/snow_cover.json")
 	body = _load_json("res://data/body.json")
 	ashiyu = _load_json("res://data/ashiyu.json")
+	baths = _load_json("res://data/baths.json")
+	soak_cfg = ashiyu
 	set_food_data(_load_json("res://data/foods.json"))
 	hold_rules = _load_json("res://data/hold.json")
 	fish_data = _load_json("res://data/fish.json")
@@ -251,6 +257,8 @@ func new_game() -> void:
 	eat_left = 0.0
 	_stand_up_now()
 	soaked_today = false
+	bathed_today = false
+	bath_paid_today = false
 	swing = {}
 	charge_tool = ""
 	_shown_state = "fine"
@@ -369,6 +377,7 @@ func new_game() -> void:
 			for p in maps.current().props:
 				if str(p.get("use", "")) == "soak":
 					var spots := soak_spots(p)
+					soak_cfg = soak_config(p)
 					var k := clampi(int(arg.get_slice("=", 1)) if "=" in arg and arg.get_slice("=", 1).is_valid_int() else 0, 0, spots.size() - 1)
 					if arg == "--soak=down":   # `--soak=down`: sits down at the north seat from the first frame (the transition)
 						soak(spots[0][0], spots[0][1])
@@ -843,6 +852,8 @@ func use_door(door: Dictionary) -> void:
 	var s := shop(door.get("shop", ""))
 	if s != null and _shop_shut(s):
 		return
+	if s != null and not pay_entry(s):
+		return
 	if not MapData.door_open(door, day_minutes()):
 		message.emit(door.closed)
 		return
@@ -1295,6 +1306,8 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 			flags["record_due"] = true   # Tome brings this New Year's page (triggers_house.json)
 	work_fatigue_half = false
 	soaked_today = false   # the footbath gives its rest again tomorrow
+	bathed_today = false   # and the baths theirs
+	bath_paid_today = false   # the sento's ticket is for the day
 	_stand_up_now()   # and the farmer is up in his bed
 	_count_build_day()   # before the date moves: did the builder work today?
 	animal_news.append_array(animals.day_end(weather_today, rng))
@@ -2092,18 +2105,22 @@ func start_eat_pose(drink: bool) -> void:
 		eat_pose = ""
 
 
-## Soaks the feet at the village footbath (data/ashiyu.json): the farmer sits down with the feet in
-## the water and stays until stop_soak (E again); the day's first soak gives its stamina (up to the
-## max) and takes its fatigue off, a later one only rests. Not while holding something or cradling
-## the little one. Says what happened; returns {ok, note}.
+## Soaks the feet at the village footbath (data/ashiyu.json), or gets into a bath up to the
+## shoulders (the soak prop's `bath` in data/baths.json, the sento's tub): the farmer sits down and
+## stays until stop_soak (E again); the day's first soak gives its stamina (up to the max) and takes
+## its fatigue off (a bath's first also its `minutes` of the clock), a later one only rests. The
+## footbath counts its own day (soaked_today), the baths share one (bathed_today). Not while holding
+## something or cradling the little one. Says what happened; returns {ok, note}.
 func soak(origin := Vector2i(-1, -1), facing := Vector2i.ZERO) -> Dictionary:
+	if origin != Vector2i(-1, -1):
+		soak_cfg = soak_config(maps.current().prop_at(origin + facing))
 	if origin != Vector2i(-1, -1) and not can_soak_at(origin, facing):
-		var where := String(ashiyu.get("seat_message", ""))
+		var where := String(soak_cfg.get("seat_message", ""))
 		if where != "":
 			message.emit(where)
 		return {"ok": false, "note": where}
 	if holding() or soaking():
-		var no := String(ashiyu.get("hands_message", "")) if holding() else ""
+		var no := String(soak_cfg.get("hands_message", "")) if holding() else ""
 		if no != "":
 			message.emit(no)
 		return {"ok": false, "note": no}
@@ -2114,13 +2131,18 @@ func soak(origin := Vector2i(-1, -1), facing := Vector2i.ZERO) -> Dictionary:
 	if origin != Vector2i(-1, -1):
 		soak_at = origin
 		soak_facing = facing
-	var note := String(ashiyu.get("again_message", ""))
-	if not soaked_today:
-		soaked_today = true
-		stamina = clampi(stamina + int(ashiyu.get("stamina", 0)), 0, max_stamina)
-		add_fatigue(int(ashiyu.get("fatigue", 0)))
+	var note := String(soak_cfg.get("again_message", ""))
+	var bath := str(soak_cfg.get("day", "foot")) == "bath"
+	if not (bathed_today if bath else soaked_today):
+		if bath:
+			bathed_today = true
+		else:
+			soaked_today = true
+		pass_minutes(int(soak_cfg.get("minutes", 0)))   # a bath's hour, though the clock stands still indoors
+		stamina = clampi(stamina + int(soak_cfg.get("stamina", 0)), 0, max_stamina)
+		add_fatigue(int(soak_cfg.get("fatigue", 0)))
 		_shown_state = body_state()   # feeling better: a later tired state is told again
-		note = String(ashiyu.get("message", ""))
+		note = String(soak_cfg.get("message", ""))
 	changed.emit()
 	message.emit(note)
 	return {"ok": true, "note": note}
@@ -2149,14 +2171,14 @@ func soak_amount() -> float:
 func _soak_step(delta: float) -> void:
 	match soak_phase:
 		"down":
-			soak_t = minf(soak_t + delta / maxf(float(ashiyu.get("sit_seconds", 0.7)), 0.01), 1.0)
+			soak_t = minf(soak_t + delta / maxf(float(soak_cfg.get("sit_seconds", 0.7)), 0.01), 1.0)
 			if soak_t >= 1.0:
 				soak_phase = "sit"
 				var sfx := get_node_or_null("/root/Sfx")   # not named: tests load this script without the autoload
 				if sfx != null:
 					sfx.play("soak_in")
 		"up":
-			soak_t = maxf(soak_t - delta / maxf(float(ashiyu.get("stand_seconds", 0.5)), 0.01), 0.0)
+			soak_t = maxf(soak_t - delta / maxf(float(soak_cfg.get("stand_seconds", 0.5)), 0.01), 0.0)
 			if soak_t <= 0.0:
 				_stand_up_now()
 				changed.emit()
@@ -2167,6 +2189,7 @@ func _stand_up_now() -> void:
 	soaking_now = false
 	soak_phase = ""
 	soak_t = 0.0
+	soak_cfg = ashiyu   # the next soak names its own (Game.soak); the footbath's by default
 
 
 ## How far the sitting farmer is drawn from his spot toward the tub he faces, in cells (data/ashiyu.json
@@ -2184,7 +2207,7 @@ func soak_seat(back := false) -> float:
 func _soak_path(back: bool) -> Vector2:
 	var keys := _soak_keys(back)
 	if keys.is_empty():
-		return Vector2(float(ashiyu.get("seat_back" if back else "seat", 0.8)), float(ashiyu.get("lift_back" if back else "lift", 0.0))) * soak_t
+		return Vector2(float(soak_cfg.get("seat_back" if back else "seat", 0.8)), float(soak_cfg.get("lift_back" if back else "lift", 0.0))) * soak_t
 	var i := _soak_key_at(keys)
 	var a: Array = keys[i]
 	if i >= keys.size() - 1:
@@ -2195,7 +2218,7 @@ func _soak_path(back: bool) -> Vector2:
 
 
 func _soak_keys(back: bool) -> Array:
-	return ashiyu.get("sit_path_back" if back else "sit_path", [])
+	return soak_cfg.get("sit_path_back" if back and soak_cfg.has("sit_path_back") else "sit_path", [])
 
 
 ## The key the stretch of the way at soak_t starts from.
@@ -2208,7 +2231,7 @@ func _soak_key_at(keys: Array) -> int:
 
 ## Are the feet in the water now (sat, past data/ashiyu.json `feet_in`; from the front)?
 func feet_in() -> bool:
-	return soaking_now and soak_t >= float(ashiyu.get("feet_in", 0.92))
+	return soaking_now and soak_cfg.has("feet_in") and soak_t >= float(soak_cfg.feet_in)   # a bath has no feet showing
 
 
 ## How far the sitting farmer is raised in 3D (data/ashiyu.json `lift`, `lift_back` from behind,
@@ -2222,11 +2245,15 @@ func soak_lift(back := false) -> float:
 
 ## Where one sits at footbath prop `prop`: before the middle of each long side, facing the tub
 ## ([cell, facing] pairs); the ends and corners are no seats (the user saw the farmer sat at a
-## corner by a post).
+## corner by a post). A bath with `seats` "front" (the sento's tub): every cell before its front.
 static func soak_spots(prop: Dictionary) -> Array:
 	var cell := Vector2i(prop.cell)
 	var size := Vector2i(prop.get("size", [1, 1]))
 	var out := []
+	if str(prop.get("seats", "")) == "front":   # a bath against the back wall: in from any cell before its front, facing it
+		for x in range(cell.x, cell.x + size.x):
+			out.append([Vector2i(x, cell.y + size.y), Vector2i.UP])
+		return out
 	if size.x >= size.y:   # along x: the north and south sides
 		var mid := cell.x + size.x / 2
 		out.append([Vector2i(mid, cell.y - 1), Vector2i.DOWN])
@@ -2242,6 +2269,28 @@ static func soak_spots(prop: Dictionary) -> Array:
 func can_soak_at(origin: Vector2i, facing: Vector2i) -> bool:
 	var prop := maps.current().prop_at(origin + facing)
 	return str(prop.get("use", "")) == "soak" and soak_spots(prop).has([origin, facing])
+
+
+## The soak data for soak prop `prop`: its bath's in data/baths.json (`bath`), else the footbath's.
+func soak_config(prop: Dictionary) -> Dictionary:
+	var id := str(prop.get("bath", ""))
+	return baths.get(id, ashiyu) if id != "" else ashiyu
+
+
+## The way the soaking farmer is drawn facing: in a bath they turn to face the room once sat in the
+## water (data/baths.json `turn` from `turn_at`); else the way they went in (soak_facing).
+func soak_look() -> Vector2i:
+	var turn := str(soak_cfg.get("turn", ""))
+	if soaking_now and turn != "" and soak_t >= float(soak_cfg.get("turn_at", 1.0)):
+		return DEMO_FACINGS.get(turn, soak_facing)
+	return soak_facing
+
+
+## Runs the clock on by `n` minutes at once, as if they had passed (a bath's hour; even indoors,
+## where the clock stands): every minute's own work, the hour's news, the payout, the night.
+func pass_minutes(n: int) -> void:
+	for i in maxi(n, 0):
+		_tick_minute()
 
 
 ## The pose that holds the farmer still now (FarmerAnim's `eating`): eat / drink, "soak" at the
@@ -3032,6 +3081,24 @@ func _shop_shut(s: Shop, say := true) -> bool:
 	return false
 
 
+## A shop with an entry fee (data/shops.json `entry_fee`, the sento's): paid once a day on the way
+## in through its street door, then in and out are free that day. Says what happened; false (the
+## door stays shut) when the money is short.
+func pay_entry(s: Shop) -> bool:
+	var d := s.own()
+	var fee := int(d.get("entry_fee", 0))
+	if fee <= 0 or bath_paid_today:
+		return true
+	if money < fee:
+		message.emit(str(d.get("entry_short", "Not enough money (%d G).")) % fee)
+		return false
+	money -= fee
+	bath_paid_today = true
+	changed.emit()
+	message.emit(str(d.get("entry_message", "Paid %d G.")) % fee)
+	return true
+
+
 ## The villagers whose birthday is today (data/villagers birthday), sorted.
 func birthdays_today() -> Array[String]:
 	return Villagers.birthdays_on(season_name(), day)
@@ -3483,7 +3550,7 @@ const SAVED_NUMBERS := {
 }
 ## Numbers added after the first saves went out: an older save without them gets these.
 const SAVED_DEFAULTS := {"snow_cover": 0, "fatigue": 0}
-const SAVED_FLAGS: Array[String] = ["work_fatigue_half", "soaked_today"]   # true / false; older saves: false
+const SAVED_FLAGS: Array[String] = ["work_fatigue_half", "soaked_today", "bathed_today", "bath_paid_today"]   # true / false; older saves: false
 
 
 ## The run's state as plain data, the farm included (SaveGame writes it).

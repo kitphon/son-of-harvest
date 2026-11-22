@@ -9,7 +9,7 @@
 			"map": "town",
 			"place": [38, 35],
 			"event": "festival_blossom",
-			"closes": ["smithy"],
+			"closes": ["smithy", "sento"],
 			"props": [
 				{"kind": "sakura", "cell": [43, 43]},
 				{"kind": "sakura", "cell": [45, 43]},
@@ -59,7 +59,7 @@
 			"map": "town",
 			"place": [36, 35],
 			"event": "festival_lanterns",
-			"closes": ["general", "smithy"],
+			"closes": ["general", "smithy", "sento"],
 			"fireworks": ["19:30", "22:00"],
 			"props": [
 				{"kind": "lantern_line", "cell": [43, 10], "size": [10, 1]},
@@ -146,7 +146,7 @@
 			"map": "town",
 			"place": [27, 24],
 			"event": "festival_moon",
-			"closes": ["smithy"],
+			"closes": ["smithy", "sento"],
 			"props": [
 				{"kind": "moon_table", "cell": [28, 23]},
 				{"kind": "pampas", "cell": [26, 23]},
@@ -228,7 +228,7 @@
 			"map": "town",
 			"place": [27, 24],
 			"event": "festival_year",
-			"closes": ["general", "smithy"],
+			"closes": ["general", "smithy", "sento"],
 			"props": [
 				{"kind": "kadomatsu", "cell": [33, 20]},
 				{"kind": "kadomatsu", "cell": [33, 23]},

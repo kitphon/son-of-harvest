@@ -127,6 +127,20 @@
 				"winter": [{"item": "food:zenzai"}],
 				"any": [{"item": "food:green_tea", "price": 45}, {"item": "food:matcha"}, {"item": "food:dango"}]
 			}
+		},
+		"sento": {
+			"_note": "Kawasemi-yu, the public bath in Yumachi (data/maps/sento.json; Baths step 2, 2026-11-22): open 14:00-23:00, shut on Thursdays and on festival days (data/festivals.json closes). `entry_fee` is paid once a day on the way in through its street door (Game.pay_entry: `entry_message`, or `entry_short` and the door stays shut; Game.bath_paid_today), then in and out are free that day; the bath itself is the tub inside (data/baths.json sento). The counter sells the cold milk bottle at the stand's price. No keeper yet: the counter works on its own until the bath's keeper comes (Baths step 2, the next commit). 120 G is ours: a little more than the milk, for +40 stamina and -20 fatigue once a day (the clinic's tonic -15 for 400 G).",
+			"name": "Kawasemi-yu",
+			"map": "sento",
+			"open": [14, 23],
+			"days_off": ["thu"],
+			"keeper": "",
+			"entry_fee": 120,
+			"entry_message": "You pay %d G at the counter. The bath is through the noren.",
+			"entry_short": "The bath is %d G. You don't have enough money.",
+			"stock": {
+				"any": [{"item": "food:milk"}]
+			}
 		}
 	}
 }

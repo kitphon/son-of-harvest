@@ -1,0 +1,27 @@
+{
+	"_note": "The baths a farmer gets into up to the shoulders (2026-11-22, Baths step 2; docs/DESIGN.md → ที่อาบน้ำ): per bath id (a soak prop's `bath`, e.g. the tub `yubune` in data/maps/sento.json) the same keys as the footbath's data/ashiyu.json (Game.soak with this as its soak_cfg: `sit_path` [t, seat (cells toward the tub), lift (units up in 3D), pose], `seat`, `lift`, sit_seconds, stand_seconds, step_until, the messages), and: `turn` the facing the farmer turns to once sat, from `turn_at` (t) on (in the tub they sit facing the room, the eye); `day` which daily rest it counts toward: \"bath\" (Game.bathed_today: the sento and the rotenburo share one a day) or \"foot\" (the footbath's own); `minutes` the game minutes the day's first bath takes (the clock runs on by them at once, though the clock stands still indoors: a real hour's soak, Game.pass_minutes). The pose \"bathe\" (FigureArt._bathe): the head and bare shoulders over the water with a folded towel on the head; the picture's bottom row is the water's surface, so `lift` is the water's height (BathProps.WATER). Everyone bathes in a wrap in this valley (one bath for all, the user's pick): nothing below the shoulders is drawn. Balance numbers are ours: the sento's 120 G buys +40 stamina and -20 fatigue for an hour (the footbath +20 / -15 free and quick, a night's sleep from 22:00 about -42): worth an evening, never a stand-in for bed.",
+	"sento": {
+		"seat": 1.0,
+		"lift": 0.42,
+		"sit_seconds": 1.6,
+		"stand_seconds": 1.2,
+		"step_until": 0.25,
+		"turn": "down",
+		"turn_at": 0.7,
+		"sit_path": [
+			[0.0, 0.0, 0.0, "walk"],
+			[0.25, 0.3, 0.0, "walk"],
+			[0.45, 0.55, 0.5, "walk"],
+			[0.7, 0.85, 0.42, "bathe"],
+			[1.0, 1.0, 0.42, "bathe"]
+		],
+		"day": "bath",
+		"minutes": 60,
+		"stamina": 40,
+		"fatigue": -20,
+		"message": "You sink into the hot water up to your shoulders. An hour slips by, and the day's aches with it.",
+		"again_message": "You sink into the water again. Pleasant, but the day's rest is already had.",
+		"hands_message": "Put down what you're holding first.",
+		"seat_message": "Step down into the tub from the tiles in front of it."
+	}
+}

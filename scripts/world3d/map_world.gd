@@ -252,6 +252,8 @@ func _prop(p: Dictionary) -> void:
 	MeshCache.build(self, "prop|%s|%s|%s|%s" % [map.id, p, Game.season_name(), SnowLayer.map_has_snow(map)] + ("|bloom" if bloom else ""), _make_prop.bind(p))
 	if str(p.kind) == "ashiyu":   # the footbath's steam moves: made each time, not kept
 		FootBath.steam(self, Rect2(Vector2(p.cell), Vector2(p.size)))
+	if str(p.kind) == "yubune":   # and the bath's, over its water
+		BathProps.steam(self, Rect2(Vector2(p.cell), Vector2(p.size)))
 
 
 func _make_prop(p: Dictionary) -> void:
@@ -259,6 +261,9 @@ func _make_prop(p: Dictionary) -> void:
 	var mid := Vector3(r.get_center().x, 0, r.get_center().y)
 	if str(p.kind) in RoomProps.KINDS:
 		RoomProps.prop(self, p, mid, r)
+		return
+	if str(p.kind) in BathProps.KINDS:   # the public bath's inside (data/maps/sento.json)
+		BathProps.prop(self, p, mid, r)
 		return
 	match str(p.kind):
 		"village_house": _village_house(r, int(p.get("door", 1)), bool(p.get("noren", false)), int(p.get("side_door", -1)), LitSpots.village_style(p))
