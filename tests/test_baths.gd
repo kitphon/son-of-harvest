@@ -250,7 +250,7 @@ func _entry() -> void:
 	g.message.connect(hear)
 	var street: Dictionary = MapManager.data("yumachi").door_at(Vector2i(7, 4))
 	var noren: Dictionary = MapManager.data("sento").doors.filter(func(d): return d.to == "sento_changing")[0]
-	check(str(noren.get("fee", "")) == "sento" and str(street.get("fee", "")) == "", "the fee at the noren into the changing room, not the street door")
+	check(str(noren.get("fee", "")) == "sento" and str(street.get("fee", "")) == "", "the noren into the changing room asks for the day's ticket, not the street door")
 	g.maps.place("yumachi", Vector2i(7, 5), Vector2i.UP)
 	g.day = 1
 	while g.weekday() == "thu" or g.festival_today() != "":
@@ -262,10 +262,23 @@ func _entry() -> void:
 	g.hour = 15
 	g.use_door(street)
 	check(g.maps.id == "sento" and g.money == 1000 and not g.bath_paid_today, "open: into the lobby for nothing (the milk is for anyone)")
+	var own: Dictionary = g.shop("sento").own()
 	g.maps.place("sento", Vector2i(6, 4), Vector2i.RIGHT)
 	g.use_door(noren)
-	check(g.maps.id == "sento_changing" and g.money == 880 and g.bath_paid_today, "through the noren: 120 G paid")
-	check(said.back() == String(g.shop("sento").own().entry_message) % 120, "says the fee")
+	check(g.maps.id == "sento" and g.money == 1000 and not g.bath_paid_today and said.back() == String(own.entry_needed) % 120, "unpaid: the noren stays shut, pay at the counter first")
+	# At the counter Masa offers the bath first; picking it pays.
+	g.ask_keeper("sento", "", "")
+	var box: Dictionary = g.dialogue_made[g.KEEPER_DIALOGUE]
+	var first: Dictionary = box.lines[0].choices[0]
+	check(str(first.text) == String(own.entry_choice) % 120 and first.set.get(g.KEEPER_FLAG, "") == "pay", "the keeper's first answer: pay for a bath (120 G)")
+	g.flags[g.KEEPER_FLAG] = "pay"
+	g.dialogue_closed(g.KEEPER_DIALOGUE)
+	check(g.money == 880 and g.bath_paid_today and said.back() == String(own.entry_message) % 120, "picked: 120 G paid, the key handed over")
+	g.ask_keeper("sento", "", "")
+	check(not g.dialogue_made[g.KEEPER_DIALOGUE].lines[0].choices.any(func(c): return c.get("set", {}).get(g.KEEPER_FLAG, "") == "pay"), "paid: no second offer today")
+	g.dialogue_made.erase(g.KEEPER_DIALOGUE)
+	g.use_door(noren)
+	check(g.maps.id == "sento_changing" and g.money == 880, "paid: through the noren")
 	g.go_to_map("sento", Vector2i(6, 4), Vector2i.RIGHT)
 	g.use_door(noren)
 	check(g.maps.id == "sento_changing" and g.money == 880, "back through the same day for nothing")
@@ -277,8 +290,13 @@ func _entry() -> void:
 	check(g.from_dict(d) == "" and not g.bath_paid_today, "an older save: not paid yet")
 	g.go_to_map("sento", Vector2i(6, 4), Vector2i.RIGHT)
 	g.money = 100
+	g.flags[g.KEEPER_FLAG] = "pay"
+	g._keeper_talk = {"shop": "sento", "file": "", "at": ""}
+	g.dialogue_made[g.KEEPER_DIALOGUE] = {}
+	g.dialogue_closed(g.KEEPER_DIALOGUE)
+	check(g.money == 100 and not g.bath_paid_today and said.back() == String(own.entry_short) % 120, "short of 120 G: not paid")
 	g.use_door(noren)
-	check(g.maps.id == "sento" and g.money == 100 and said.back() == String(g.shop("sento").own().entry_short) % 120, "short of 120 G: the noren stays shut")
+	check(g.maps.id == "sento", "and the noren stays shut")
 	g.money = 1000
 	g.bath_paid_today = true
 	g.end_day()

@@ -129,16 +129,18 @@
 			}
 		},
 		"sento": {
-			"_note": "Kawasemi-yu, the public bath in Yumachi (data/maps/sento.json; Baths step 2, 2026-11-22): open 14:00-23:00, shut on Thursdays and on festival days (data/festivals.json closes). `entry_fee` is paid once a day at the lobby's noren into the changing room (a door with `fee` naming the shop; Game.pay_entry: `entry_message`, or `entry_short` and the door stays shut; Game.bath_paid_today), then in and out are free that day; the street door only keeps the hours, the lobby and its milk free (the fee first stood at the street door, 2026-11-22); the bath itself is the tub inside (data/baths.json sento). The counter sells the cold milk bottle at the stand's price. Masa (data/villagers/masa.json) keeps the counter from 13:30, so the milk is sold while she is there; the entry is paid at the street door either way. 120 G is ours: a little more than the milk, for +40 stamina and -20 fatigue once a day (the clinic's tonic -15 for 400 G).",
+			"_note": "Kawasemi-yu, the public bath in Yumachi (data/maps/sento.json; Baths step 2, 2026-11-22): open 14:00-23:00, shut on Thursdays and on festival days (data/festivals.json closes). `entry_fee` is paid once a day at the counter: talking to Masa there offers `entry_choice` first (Game.ask_keeper, Game.pay_entry: `entry_message`, or `entry_short`; Game.bath_paid_today); the lobby's noren into the changing room (a door with `fee` naming the shop) stays shut until it is paid (`entry_needed`, Game.entry_paid; the user wanted the bath paid for at the counter before going in, 2026-11-22), then in and out are free that day; the street door only keeps the hours, the lobby and its milk free (the fee first stood at the street door, 2026-11-22); the bath itself is the tub inside (data/baths.json sento). The counter sells the cold milk bottle at the stand's price. Masa (data/villagers/masa.json) keeps the counter from 13:30, so the milk is sold while she is there; the entry is paid at the street door either way. 120 G is ours: a little more than the milk, for +40 stamina and -20 fatigue once a day (the clinic's tonic -15 for 400 G).",
 			"name": "Kawasemi-yu",
 			"map": "sento",
 			"open": [14, 23],
 			"days_off": ["thu"],
 			"keeper": "masa",
-			"ask": "Welcome to Kawasemi-yu. A cold milk, or just a chat?",
+			"ask": "Welcome to Kawasemi-yu. A bath, a cold milk, or just a chat?",
 			"away": "A bell on the counter and a note: \"Feeding the boiler. Ring if you need me. -Masa\"",
 			"entry_fee": 120,
-			"entry_message": "You pay %d G at the counter and go through the noren.",
+			"entry_choice": "Pay for a bath (%d G)",
+			"entry_needed": "Pay %d G for your bath at the counter first.",
+			"entry_message": "You pay %d G. Masa slides a locker key across the counter.",
 			"entry_short": "The bath is %d G. You don't have enough money.",
 			"stock": {
 				"any": [{"item": "food:milk"}]

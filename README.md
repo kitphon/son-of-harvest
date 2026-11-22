@@ -367,10 +367,11 @@ their edges. `tools/build_times.gd` times every map's build, first and again
 
 Kawasemi-yu, the public bath in Yumachi (2026-11-22, Baths step 2; docs/DESIGN.md → ที่อาบน้ำ). Its
 street door (Yumachi (7, 4)) is a shop door (data/shops.json `sento`: open 14:00-23:00, shut on
-Thursdays and on festival days); the lobby is free to walk into. The lobby's noren into the
-changing room is a door with `fee` "sento": the first time through on a day it takes
-`entry_fee` (120 G, Game.pay_entry, `bath_paid_today`, saved), and short of the money it stays
-shut. One bath for
+Thursdays and on festival days); the lobby is free to walk into. The bath is paid for at the
+counter: talking to Masa there offers "Pay for a bath (120 G)" first (data/shops.json
+`entry_choice`, Game.ask_keeper, Game.pay_entry, `bath_paid_today`, saved; once a day). The
+lobby's noren into the changing room is a door with `fee` "sento": unpaid it stays shut and says
+to pay at the counter first (`entry_needed`, Game.entry_paid). One bath for
 everyone, all in bathing towels (the user's pick: the farmer has no set gender).
 
 Three maps, each its own room (the user's asks: the bath apart, a changing room before it, and

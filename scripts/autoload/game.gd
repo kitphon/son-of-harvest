@@ -862,8 +862,8 @@ func use_door(door: Dictionary) -> void:
 	var s := shop(door.get("shop", ""))
 	if s != null and _shop_shut(s):
 		return
-	var fee := shop(door.get("fee", ""))   # the sento's noren into its changing room: the day's ticket
-	if fee != null and (_shop_shut(fee) or not pay_entry(fee)):
+	var fee := shop(door.get("fee", ""))   # the sento's noren into its changing room: paid at the counter first
+	if fee != null and (_shop_shut(fee) or not entry_paid(fee)):
 		return
 	if door.get("towel", false) and not in_towel:   # the bath's door: undressed first
 		message.emit(str(baths.get("changing", {}).get("need_towel", "")))
@@ -1897,6 +1897,8 @@ func dialogue_closed(id: String) -> void:
 		_keeper_talk = {}
 		if pick == "buy":
 			open_shop(str(k.get("shop", "")))
+		elif pick == "pay":
+			pay_entry(shop(str(k.get("shop", ""))))
 		elif pick == "talk" and str(k.get("at", "")) != "":
 			talk(str(k.file), str(k.at))
 		return
@@ -2899,14 +2901,17 @@ func talk_to(id: String, face: Vector2i) -> String:
 	return "talk"
 
 
-## A keeper at their open counter asks first (data/shops.json ask, keeper_choices): buy opens
-## the shop, talk says their line for now (`file` at `at`, picked when E was pressed), leave
+## A keeper at their open counter asks first (data/shops.json ask, keeper_choices): pay (a shop with
+## an `entry_fee` not yet paid today, the sento's bath) pays it, buy opens the shop, talk says their line for now (`file` at `at`, picked when E was pressed), leave
 ## closes the box. The answer waits in KEEPER_FLAG until the text box closes (dialogue_closed).
 func ask_keeper(shop_id: String, file: String, at: String) -> void:
 	var s := shop(shop_id)
 	var c := Shop.keeper_choices()
 	_keeper_talk = {"shop": shop_id, "file": file, "at": at}
 	var choices := [{"text": c.buy, "next": "end", "set": {KEEPER_FLAG: "buy"}}]
+	var own := s.own()
+	if int(own.get("entry_fee", 0)) > 0 and not bath_paid_today:   # the sento: the day's bath paid here first
+		choices.push_front({"text": str(own.get("entry_choice", "Pay %d G")) % int(own.entry_fee), "next": "end", "set": {KEEPER_FLAG: "pay"}})
 	if at != "":
 		choices.append({"text": c.talk, "next": "end", "set": {KEEPER_FLAG: "talk"}})
 	choices.append({"text": c.leave, "next": "end"})
@@ -3125,8 +3130,20 @@ func _shop_shut(s: Shop, say := true) -> bool:
 	return false
 
 
-## A shop with an entry fee (data/shops.json `entry_fee`, the sento's): paid once a day at a door
-## whose `fee` names it (the lobby's noren into the changing room), then in and out are free that day. Says what happened; false (the
+## Has the day's entry to shop `s` been paid (data/shops.json `entry_fee`)? The door whose `fee`
+## names it (the sento's noren into the changing room) asks; unpaid, it stays shut and says to pay
+## at the counter first (`entry_needed`).
+func entry_paid(s: Shop) -> bool:
+	var d := s.own()
+	var fee := int(d.get("entry_fee", 0))
+	if fee <= 0 or bath_paid_today:
+		return true
+	message.emit(str(d.get("entry_needed", "Pay %d G at the counter first.")) % fee)
+	return false
+
+
+## Pays shop `s`'s entry fee (the sento's bath, at its counter: ask_keeper's `entry_choice`), once a
+## day; then in and out are free that day. Says what happened; false (the
 ## door stays shut) when the money is short.
 func pay_entry(s: Shop) -> bool:
 	var d := s.own()

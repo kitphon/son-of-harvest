@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-22 — The bath paid for at the counter first
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's ask: make the farmer go and pay the 120 G before going in): the noren into
+  the changing room no longer takes the money by itself; unpaid it stays shut and says "Pay 120
+  G for your bath at the counter first." (`entry_needed`, Game.entry_paid). Talking to Masa at
+  the counter offers "Pay for a bath (120 G)" as the first answer while the day's bath is unpaid
+  (`entry_choice`, Game.ask_keeper); picking it pays (Game.pay_entry: "You pay 120 G. Masa slides
+  a locker key across the counter.", or `entry_short` with too little money). Her ask now names
+  the bath. Thai for the three lines.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the noren shut unpaid,
+  Masa's first answer "Pay for a bath (120 G)", picked it pays and is not offered again that
+  day, the noren open after, too little money pays nothing). Smoke runs (`--quit-after 300`:
+  title, `--demo`, town, mine 3, `sento --talk=masa`): 0 ERROR lines; windowed `--quit-after 150
+  -- --demo --map=sento@counter --time=15:00`: exit 0. Frames of `--talk=masa` in English and
+  `--lang=th`: the four answers with the bath first.
+- Left / next: step 3 villagers' evening baths and their lines; step 4 Kajika-yu.
+
 ## 2026-11-22 — The bath fee at the changing room's noren, stepping out of the tub forwards
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's two points after playing):
