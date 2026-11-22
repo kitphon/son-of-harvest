@@ -261,6 +261,8 @@ static func interact(c: Vector2i) -> void:
 				Game.message.emit(Keepsakes.board_text(Game.flags))
 			"soak":   # the village footbath (data/ashiyu.json), from one of its seats
 				Game.soak(_from, _facing)   # the feet go in with their sound as he settles (Game._soak_step)
+			"change":   # the sento's changing room: into a towel, or dressed again
+				Game.change_clothes()
 		return
 	if DogActions.interact(c):
 		return

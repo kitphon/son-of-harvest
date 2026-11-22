@@ -1,9 +1,11 @@
 extends SceneTree
 ## Headless checks for the public bath, Kawasemi-yu (Baths step 2; docs/DESIGN.md → ที่อาบน้ำ):
 ## data/baths.json and the sento's shop (hours 14:00-23:00, shut on Thursdays and festival days,
-## the 120 G paid once a day at the street door: Game.pay_entry, bath_paid_today, saved), the map
-## data/maps/sento.json (the lobby and the bath through the noren, every floor cell reachable from
-## the door, the counter, the tub's seats before its front), getting into the tub (Game.soak with the
+## the 120 G paid once a day at the street door: Game.pay_entry, bath_paid_today, saved), the maps
+## data/maps/sento.json, sento_changing.json and sento_bath.json (the lobby, the changing room and
+## the bath, each on its own map, the doors each way, every floor cell reachable, the counter, the
+## tub's seats before its front), the changing room (Game.change_clothes, in_towel, the towel look,
+## the bath's door only in a towel and the lobby's only dressed), getting into the tub (Game.soak with the
 ## bath's soak_cfg: the day's first bath gives +40 / -20 and runs the clock on an hour, a later one
 ## only rests, the baths share bathed_today apart from the footbath's soaked_today, the farmer turns to
 ## face the room once in: Game.soak_look), the pose "bathe" (FigureArt._bathe: the head, the bare
@@ -40,6 +42,7 @@ func _run() -> void:
 	g.clock_running = false
 	_data()
 	_map()
+	_changing()
 	_entry()
 	_bath()
 	_pose()
@@ -80,21 +83,8 @@ func _data() -> void:
 		check(Festivals.closes(fid, "sento"), "shut on %s" % fid)
 
 
-func _map() -> void:
-	var m: MapData = MapManager.data("sento")
-	check(m != null and m.indoor and m.name == "Kawasemi-yu" and Vector2i(m.w, m.h) == Vector2i(15, 8), "the bath's inside, 15 x 8, indoors")
-	var kinds := {}
-	for p in m.props:
-		kinds[str(p.kind)] = p
-	for k in BP.KINDS:
-		check(kinds.has(k), "the bath has its %s" % k)
-	check(str(kinds.counter.get("shop", "")) == "sento", "the counter is the sento's shop")
-	check(not m.is_solid(Vector2i(kinds.bath_noren.cell)), "the noren hangs in the doorway, walked through")
-	var tub: Dictionary = kinds.yubune
-	check(str(tub.get("use", "")) == "soak" and str(tub.get("bath", "")) == "sento" and int(tub.cell[1]) == 1, "the tub along the back wall, a bath to soak in")
-	check(Vector2i(kinds.bath_mural.cell).y == 0 and int(kinds.bath_mural.cell[0]) == int(tub.cell[0]), "the mountain painted on the wall over the tub")
-	# Every floor cell reached from the door, the bath's included (through the noren).
-	var start := Vector2i(m.spawns.start[0][0], m.spawns.start[0][1])
+## The cells reached from `start` on `m` walking (doors are solid, so a map's own floor only).
+func _reach(m: MapData, start: Vector2i) -> Dictionary:
 	var seen := {start: true}
 	var todo: Array[Vector2i] = [start]
 	while not todo.is_empty():
@@ -104,21 +94,125 @@ func _map() -> void:
 			if m.in_bounds(n) and not m.is_solid(n) and not seen.has(n):
 				seen[n] = true
 				todo.append(n)
+	return seen
+
+
+func _floor_left(m: MapData, seen: Dictionary) -> Array:
 	var shut := []
 	for y in m.h:
 		for x in m.w:
 			var c := Vector2i(x, y)
 			if not m.is_solid(c) and not seen.has(c):
 				shut.append(c)
-	check(shut.is_empty(), "every floor cell reached from the door (%s)" % [shut])
+	return shut
+
+
+func _map() -> void:
+	# Three maps (the user's asks): the lobby, the changing room apart so the lobby never sees into
+	# it, and the bath.
+	var m: MapData = MapManager.data("sento")
+	var c: MapData = MapManager.data("sento_changing")
+	var b: MapData = MapManager.data("sento_bath")
+	check(m != null and m.indoor and m.name == "Kawasemi-yu" and m.towel == "", "the lobby, indoors, no towels")
+	check(c != null and c.indoor and c.towel == "allowed" and c.name == "Changing Room", "the changing room on its own map, a towel allowed")
+	check(b != null and b.indoor and b.towel == "always" and b.name == "Kawasemi-yu Bath", "the bath on its own map, all of it in a towel")
+	var kinds := {}
+	for p in m.props + c.props + b.props:
+		kinds[str(p.kind)] = p
+	for k in BP.KINDS:
+		check(kinds.has(k), "the bath has its %s" % k)
+	for k in ["yubune", "kran", "bath_mural"]:
+		check(b.props.any(func(p): return p.kind == k), "%s in the bath" % k)
+	check(m.props.any(func(p): return p.kind == "counter" and str(p.get("shop", "")) == "sento"), "the counter in the lobby, the sento's shop")
+	var change: Array = c.props.filter(func(p): return str(p.get("use", "")) == "change")
+	check(change.size() == 1 and change[0].kind == "basket_shelf" and not m.props.any(func(p): return str(p.get("use", "")) == "change"),
+		"the baskets in the changing room only: where one changes")
+	var tub: Dictionary = kinds.yubune
+	check(str(tub.get("use", "")) == "soak" and str(tub.get("bath", "")) == "sento" and int(tub.cell[1]) == 1, "the tub along the back wall, a bath to soak in")
+	check(Vector2i(kinds.bath_mural.cell).y == 0 and int(kinds.bath_mural.cell[0]) == int(tub.cell[0]), "the mountain painted on the wall over the tub")
+	var reach := {}
+	for map in [m, c, b]:
+		var start := Vector2i(map.spawns.start[0][0], map.spawns.start[0][1])
+		reach[map.id] = _reach(map, start)
+		check(_floor_left(map, reach[map.id]).is_empty(), "%s: every floor reached from its door (%s)" % [map.id, _floor_left(map, reach[map.id])])
 	var seats: Array = g.soak_spots(tub)
-	check(seats.size() == int(tub.size[0]) and seats.all(func(s): return seen.has(s[0]) and s[1] == Vector2i.UP), "a seat before every cell of the tub's front, facing it (%d)" % seats.size())
-	check(seen.has(Vector2i(m.spawns.counter[0][0], m.spawns.counter[0][1])) and seen.has(Vector2i(m.spawns.bath[0][0], m.spawns.bath[0][1])), "the counter and the bath spawns on the floor")
-	check(m.doors.size() == 1 and str(m.doors[0].to) == "yumachi", "out to Yumachi")
+	check(seats.size() == int(tub.size[0]) and seats.all(func(s): return reach.sento_bath.has(s[0]) and s[1] == Vector2i.UP), "a seat before every cell of the tub's front, facing it (%d)" % seats.size())
+	# The doors, each way, the spawns on the floor beyond them, a noren or a glass door hung in each.
+	var way := func(from: MapData, to: String) -> Dictionary:
+		var ds := from.doors.filter(func(d): return d.to == to)
+		return ds[0] if ds.size() == 1 else {}
+	var pairs := [[m, "sento_changing", "bath_noren"], [c, "sento", "bath_noren"], [c, "sento_bath", "glass_door"], [b, "sento_changing", "glass_door"]]
+	for pr in pairs:
+		var d: Dictionary = way.call(pr[0], pr[1])
+		check(not d.is_empty() and reach[pr[1]].has(Vector2i(d.spawn)), "%s -> %s: a door, its spawn on the floor" % [pr[0].id, pr[1]])
+		check(not d.is_empty() and pr[0].props.any(func(p): return p.kind == pr[2] and Vector2i(p.cell) == Vector2i(d.cells[0])), "%s -> %s: its %s" % [pr[0].id, pr[1], pr[2]])
+	check(way.call(c, "sento_bath").towel and way.call(c, "sento").dressed, "into the bath only in a towel, out to the lobby only dressed")
+	check(not way.call(m, "sento_changing").towel and not way.call(b, "sento_changing").dressed, "the other ways open")
 	var y: MapData = MapManager.data("yumachi")
 	var front: Dictionary = y.door_at(Vector2i(7, 4))
-	check(str(front.get("to", "")) == "sento" and str(front.get("shop", "")) == "sento" and Vector2i(front.spawn) == start, "Yumachi's bath door leads in, under the shop's hours")
-	check(Vector2i(m.doors[0].spawn) == Vector2i(7, 5), "and back out before it")
+	var lobby := Vector2i(m.spawns.start[0][0], m.spawns.start[0][1])
+	check(str(front.get("to", "")) == "sento" and str(front.get("shop", "")) == "sento" and Vector2i(front.spawn) == lobby, "Yumachi's bath door leads in, under the shop's hours")
+	check(Vector2i(way.call(m, "yumachi").spawn) == Vector2i(7, 5), "and back out before it")
+
+
+## Into a towel at the baskets and back; the bath only in one, the lobby only dressed.
+func _changing() -> void:
+	var said: Array[String] = []
+	var hear := func(t: String): said.append(t)
+	g.message.connect(hear)
+	var ch: Dictionary = g.baths.get("changing", {})
+	for k in ["to_towel", "to_clothes", "need_towel", "dress_first", "hands"]:
+		check(String(ch.get(k, "")).right(1) in [".", "!", "?"], "the changing room's %s is a sentence" % k)
+	var c: MapData = MapManager.data("sento_changing")
+	var into: Dictionary = c.doors.filter(func(d): return d.to == "sento_bath")[0]
+	var out: Dictionary = c.doors.filter(func(d): return d.to == "sento")[0]
+	var at := Vector2i(c.spawns.change[0][0], c.spawns.change[0][1])
+	g.go_to_map("sento", Vector2i(6, 4), Vector2i.RIGHT)
+	FA.on_action("interact", Vector2i(6, 4), Vector2i.UP)
+	check(not g.in_towel, "no changing in the lobby")
+	g.go_to_map("sento_changing", at, Vector2i.UP)
+	check(AH.interact_verb(at, Vector2i.UP) == "Change", "the hint at the baskets: Change")
+	g.use_door(into)
+	check(g.maps.id == "sento_changing" and said.back() == String(ch.need_towel), "dressed: not into the bath")
+	FA.on_action("interact", at, Vector2i.UP)
+	check(g.in_towel and g.wearing_towel() and said.back() == String(ch.to_towel), "E at the baskets: into a towel")
+	g._process(0.0)
+	check(FarmerLooks.towel and FarmerLooks.cache_key("player:front:idle:0").ends_with("@towel"), "the farmer's pictures in the towel kept apart")
+	g.use_door(out)
+	check(g.maps.id == "sento_changing" and said.back() == String(ch.dress_first), "in a towel: not out to the lobby")
+	g.use_door(into)
+	check(g.maps.id == "sento_bath" and g.in_towel, "in a towel: into the bath")
+	g.use_door(MapManager.data("sento_bath").doors[0])
+	check(g.maps.id == "sento_changing" and g.in_towel, "back in the changing room still in the towel")
+	g.maps.place("sento_changing", at, Vector2i.UP)
+	FA.on_action("interact", at, Vector2i.UP)
+	check(not g.in_towel and not g.wearing_towel() and said.back() == String(ch.to_clothes), "E again: dressed")
+	g.use_door(out)
+	check(g.maps.id == "sento", "dressed: out to the lobby")
+	g.go_to_map("sento_changing", at, Vector2i.UP)
+	g.held = "crop:turnip"
+	FA.on_action("interact", at, Vector2i.UP)
+	check(not g.in_towel and said.back() == String(ch.hands), "not while holding something")
+	g.held = ""
+	g.in_towel = true
+	g.go_to_map("yumachi", Vector2i(7, 5), Vector2i.DOWN)
+	check(not g.in_towel, "off the bath's maps: dressed (never a towel outside)")
+	g.go_to_map("sento_bath", Vector2i(1, 3), Vector2i.RIGHT)
+	check(g.in_towel, "on the bath's map: always in the towel")
+	g.end_day()
+	check(not g.in_towel, "a new day: dressed")
+	var th := Lang.table("th")
+	check(["to_towel", "to_clothes", "need_towel", "dress_first"].all(func(k): return th.has(String(ch[k]))) and th.has("Change") and th.has("Get in") and th.has("Changing Room") and th.has("Kawasemi-yu Bath"), "the changing room in Thai")
+	# The farmer's picture in the towel: no jacket, bare shoulders, arms and feet, the towel's white.
+	FarmerLooks.towel = true
+	var look := FarmerLooks.current_look()
+	check(look.outfit == "towel" and look.top == FarmerLooks.TOWEL, "the look in the towel")
+	var img: Image = FG.draw(look, false, "idle", 0, true)
+	check(not _has_colour(img, Color(str(FG.FARMER_LOOK.top))), "no jacket under the towel")
+	FarmerLooks.towel = false
+	g.message.disconnect(hear)
+	g.new_game()
+	g.clock_running = false
 
 
 ## The door under the shop's hours, and the fee once a day.
@@ -173,9 +267,9 @@ func _bath() -> void:
 	var hear := func(t: String): said.append(t)
 	g.message.connect(hear)
 	var b := _sento()
-	var seat := Vector2i(10, 3)
-	g.maps.place("sento", seat, Vector2i.UP)
-	check(AH.interact_verb(seat, Vector2i.UP) == "Soak", "the hint at the tub: Soak")
+	var seat := Vector2i(6, 3)
+	g.go_to_map("sento_bath", seat, Vector2i.UP)
+	check(AH.interact_verb(seat, Vector2i.UP) == "Get in", "the hint at the tub: Get in (not the footbath's Soak)")
 	g.hour = 16
 	g.minute = 0
 	g.stamina = 30
@@ -209,11 +303,11 @@ func _bath() -> void:
 	g._process(float(b.stand_seconds) + 0.05)
 	# The footbath keeps its own day: a bath does not use it up, nor the other way round.
 	check(not g.soaked_today, "the footbath's rest still there after the bath")
-	g.maps.place("sento", Vector2i(10, 4), Vector2i.UP)
-	FA.on_action("interact", Vector2i(10, 4), Vector2i.UP)
+	g.maps.place("sento_bath", Vector2i(6, 4), Vector2i.UP)
+	FA.on_action("interact", Vector2i(6, 4), Vector2i.UP)
 	check(not g.soaking(), "not from two cells off")
 	g.held = "crop:turnip"
-	g.maps.place("sento", seat, Vector2i.UP)
+	g.maps.place("sento_bath", seat, Vector2i.UP)
 	FA.on_action("interact", seat, Vector2i.UP)
 	check(not g.soaking() and said.back() == String(b.hands_message), "not while holding something")
 	g.held = ""
@@ -261,10 +355,10 @@ func _has_colour(img: Image, col: Color) -> bool:
 func _views() -> void:
 	var world: Node3D = load("res://scripts/world3d/map_world.gd").new()
 	root.add_child(world)
-	world.build(MapManager.data("sento"))
+	world.build(MapManager.data("sento_bath"))
 	var steam := world.get_children().filter(func(n): return str(n.name).begins_with("BathSteam"))
 	check(steam.size() == BP.STEAM_PUFFS, "steam over the bath (%d)" % steam.size())
-	check(steam.all(func(n): return n.position.y > BP.WATER and Rect2(8, 1, 6, 2).has_point(Vector2(n.position.x, n.position.z))), "rising off the tub's water")
+	check(steam.all(func(n): return n.position.y > BP.WATER and Rect2(3, 1, 7, 2).has_point(Vector2(n.position.x, n.position.z))), "rising off the tub's water")
 	world.queue_free()
 	for k in BP.KINDS:
 		check(MV.COLORS.has(k), "%s in the flat view" % k)

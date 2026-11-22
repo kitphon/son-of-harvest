@@ -4,11 +4,13 @@ extends RefCounted
 ## above in whole pixels, lit from the upper left: the tiled tub with its water, ripples and a
 ## wisp of steam, the washing island's panel, mirrors, stools and buckets, the milk cooler's
 ## bottle caps, the basket cubbies, the bench's planks, the shoe lockers' key tags, the noren
-## across the doorway and the painted mountain along the back wall (MapView._draw_objects).
+## across the doorway, the bath's glass sliding door and the painted mountain along the back wall
+## (MapView._draw_objects).
 
 # Its own names and colours (BathProps in 3D takes them from here): the flat view is loaded by
 # headless tests, which must not pull in the 3D scripts (they need the Game autoload).
-const KINDS: Array[String] = ["yubune", "kran", "milk_fridge", "basket_shelf", "bench", "getabako", "bath_noren", "bath_mural"]
+const KINDS: Array[String] = ["yubune", "kran", "milk_fridge", "basket_shelf", "bench", "getabako", "bath_noren", "bath_mural", "glass_door"]
+const GLASS := Color(0.78, 0.88, 0.9, 0.55)
 const WATER_COLOR := Color("5fa6a2")
 const STONE_CAP := Color("cfc9bc")
 const BRASS := Color("b89448")
@@ -57,6 +59,10 @@ static func draw(c: CanvasItem, kind: String, r: Rect2) -> void:
 			var x := floorf(r.get_center().x) - 1
 			c.draw_rect(Rect2(x, r.position.y + 1, 3, r.size.y - 2), Color("2f4a7a"))
 			c.draw_rect(Rect2(x, floorf(r.get_center().y), 3, 1), Color("1e3258"))   # the slit between its two halves
+		"glass_door":   # the bath's sliding door, a pale frame with frosted panes across the doorway
+			c.draw_rect(r.grow(-2), Color("6a4a30"))
+			c.draw_rect(r.grow(-3), GLASS)
+			c.draw_rect(Rect2(r.position.x + 3, floorf(r.get_center().y), r.size.x - 6, 1), Color("6a4a30"))
 		"bath_mural":
 			c.draw_texture_rect(PlaceholderArt.tex("bath:mural"), Rect2(r.position.x + 1, r.position.y + 2, r.size.x - 2, r.size.y - 4), false)
 

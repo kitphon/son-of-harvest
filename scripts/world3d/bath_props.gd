@@ -11,8 +11,9 @@ extends RefCounted
 ## each place), `milk_fridge` the glass-fronted cooler of milk bottles, `basket_shelf` the cubbies
 ## of rattan baskets for clothes, `bench` a long bench, `getabako` the shoe lockers with wooden
 ## keys, `bath_noren` the indigo curtain hung in the partition's doorway on a rod between two posts,
-## `bath_mural` the mountain painted across the back wall over the tub (BathArt). The flat view
-## draws them in BathLook.
+## `bath_mural` the mountain painted across the back wall over the tub (BathArt), `glass_door` the
+## bath's sliding door in a side wall (the changing room's right wall, the bath's left one: a wooden
+## frame, frosted panes, half open). The flat view draws them in BathLook.
 
 const HEIGHT := 5.2          # the top of the lip, world units (a cell is 1)
 const SHAFT := Color("8c8174")
@@ -74,6 +75,7 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, r: Rect2) -> void:
 		"getabako": _getabako(parts, r)
 		"bath_noren": _noren(w, parts, r)
 		"bath_mural": _mural(w, r)
+		"glass_door": _glass_door(parts, r)
 	parts.commit(w)
 
 
@@ -224,3 +226,25 @@ static func _noren(w: FarmWorld, p: FarmProps.Parts, r: Rect2) -> void:
 ## The mountain painted on the back wall over the tub, a little proud of its posts and beam.
 static func _mural(w: FarmWorld, r: Rect2) -> void:
 	w._picture("bath:mural", Vector2(r.size.x - 0.06, 1.04), Vector3(r.get_center().x, 1.08, r.position.y + 1.06))
+
+
+## The sliding door between the changing room and the bath, standing in its side-wall cell (a door
+## cell, so the wall leaves it open): a wooden frame up to the wall's beam, two frosted panes along
+## z, the near one slid half over the far one so the way through shows, a pull on each.
+static func _glass_door(p: FarmProps.Parts, r: Rect2) -> void:
+	var x := r.get_center().x
+	var z0 := r.position.y
+	var z1 := r.end.y
+	var frame := p.st(RoomProps.TIMBER)
+	for z in [z0 + 0.03, z1 - 0.03]:
+		RoomProps._cube(frame, Vector3(x, 0, z), Vector3(0.12, 1.6, 0.06))
+	RoomProps._cube(frame, Vector3(x, 1.52, r.get_center().y), Vector3(0.12, 0.1, r.size.y))
+	RoomProps._cube(frame, Vector3(x, 0, r.get_center().y), Vector3(0.14, 0.04, r.size.y))   # the sill's track
+	var glass := p.st(Color(0.8, 0.9, 0.92))
+	for k in 2:   # the far pane closed at the back, the near one slid behind it: the front half open
+		var zc := z0 + 0.3 + k * 0.08
+		var off := 0.03 * (1 - 2 * k)
+		RoomProps._cube(p.st(RoomProps.WOOD), Vector3(x + off, 0.04, zc), Vector3(0.04, 1.44, 0.5))
+		RoomProps._cube(glass, Vector3(x + off + (0.021 if k == 0 else -0.021), 0.12, zc), Vector3(0.006, 1.28, 0.42))
+		for y in [0.55, 1.0]:   # the panes' crossbars
+			RoomProps._cube(p.st(RoomProps.WOOD), Vector3(x + off, y, zc), Vector3(0.05, 0.03, 0.5))

@@ -368,23 +368,39 @@ their edges. `tools/build_times.gd` times every map's build, first and again
 Kawasemi-yu, the public bath in Yumachi (2026-11-22, Baths step 2; docs/DESIGN.md → ที่อาบน้ำ). Its
 street door (Yumachi (7, 4)) is a shop door (data/shops.json `sento`: open 14:00-23:00, shut on
 Thursdays and on festival days); the first time through on a day it takes `entry_fee` (120 G,
-Game.pay_entry, `bath_paid_today`, saved), and short of the money it stays shut. Inside
-(data/maps/sento.json, 15 x 8, indoors so the clock stands): the lobby on the left (the counter,
-shop `sento`, selling the cold milk; the milk cooler, a bench, the basket shelf, the shoe lockers)
-and, through the noren in the partition, the bath: the washing island and the big tiled tub
-(`yubune`) along the back wall under the painted mountain (`bath_mural`, BathArt). One bath for
-everyone, all in bathing wraps (the user's pick: the farmer has no set gender). E from any tile in
-front of the tub (its `seats` "front") gets in (Game.soak with data/baths.json `sento` as its
-soak_cfg): over the rim, down into the water and turned to face the room (`turn`, Game.soak_look),
-drawn in the pose `bathe` (FigureArt._bathe: the head, the bare shoulders and a folded towel over
-the water); E again gets out. The day's first bath gives +40 stamina and -20 fatigue and runs the
-clock on an hour (`minutes`, Game.pass_minutes, even indoors); a later one only rests. The baths
-share one rest a day (`day` "bath", Game.bathed_today, saved; the rotenburo will count toward it
-too), apart from the footbath's own (soaked_today). 3D: BathProps (`yubune`, `kran`, `milk_fridge`,
-`basket_shelf`, `bench`, `getabako`, `bath_noren`, `bath_mural`, the steam); flat: BathLook.
-`--demo --map=sento@bath --time=15:00` stands before the tub, `--soak` sat in it (`--soak=N` the
-Nth seat from the left, `--soak=down` getting in), `--demo --map=yumachi@sento --time=15:00` the
-street door. test_baths.
+Game.pay_entry, `bath_paid_today`, saved), and short of the money it stays shut. One bath for
+everyone, all in bathing towels (the user's pick: the farmer has no set gender).
+
+Three maps, each its own room (the user's asks: the bath apart, a changing room before it, and
+that one apart too so nobody at the counter sees anyone changing). Indoors, so the clock stands.
+- `sento` (data/maps/sento.json, 8 x 8): the lobby (the counter, shop `sento`, selling the cold
+  milk; the milk cooler, two benches, the shoe lockers), the noren in its right wall the door on.
+- `sento_changing` (data/maps/sento_changing.json, 9 x 8, `towel` "allowed"): E at its basket shelf
+  ("use": "change", the hint "Change") folds the clothes into a basket and wraps the farmer in a
+  towel (Game.change_clothes, Game.in_towel; E again dresses). Its noren back to the lobby is a
+  door with `dressed` ("Get dressed at the baskets..."), the glass sliding door in its right wall
+  one with `towel` ("Change into a towel...").
+- `sento_bath` (data/maps/sento_bath.json, 12 x 8, `towel` "always": the whole map is for the
+  farmer in a towel), in through the glass door in its left wall: the washing island and the big
+  tiled tub (`yubune`) along the back wall under the painted mountain (`bath_mural`, BathArt).
+- The towel: FarmerLooks.towel (set each frame from Game.wearing_towel) draws the farmer's look in
+  the outfit "towel" (FarmerLooks.towel_look, FigureArt: white from the chest to the knees, bare
+  shoulders, arms, legs and feet, no hip basket), its pictures kept apart ("@towel"). Leaving the
+  bath's maps or a new day dresses the farmer; arriving on `sento_bath` always wraps them.
+- E from any tile in front of the tub (its `seats` "front"; the hint "Get in") gets in (Game.soak
+  with data/baths.json `sento` as its soak_cfg): over the rim, down into the water and turned to
+  face the room (`turn`, Game.soak_look), drawn in the pose `bathe` (FigureArt._bathe: the head,
+  the bare shoulders and a folded towel over the water); E again gets out. The day's first bath
+  gives +40 stamina and -20 fatigue and runs the clock on an hour (`minutes`, Game.pass_minutes,
+  even indoors); a later one only rests. The baths share one rest a day (`day` "bath",
+  Game.bathed_today, saved; the rotenburo will count toward it too), apart from the footbath's own
+  (soaked_today).
+- 3D: BathProps (`yubune`, `kran`, `milk_fridge`, `basket_shelf`, `bench`, `getabako`,
+  `bath_noren`, `bath_mural`, `glass_door`, the steam); flat: BathLook.
+- `--demo --map=sento_changing@change --time=15:00` stands at the baskets (add `--towel` to start in the
+  towel), `--demo --map=sento_bath@bath --time=15:00` before the tub, `--soak` sat in it
+  (`--soak=N` the Nth seat from the left, `--soak=down` getting in), `--demo --map=yumachi@sento
+  --time=15:00` the street door. test_baths.
 
 ## Villagers
 Each villager is a file `data/villagers/<id>.json` (shared numbers in `_common.json`: walk

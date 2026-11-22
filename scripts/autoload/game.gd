@@ -115,6 +115,7 @@ var soak_from := Vector2.ZERO   # where the farmer stood (pixels) when he went t
 var soaked_today := false   # the day's first soak at the footbath given (its stamina and rest); saved, cleared each morning
 var bathed_today := false   # the day's first bath given (the sento and the rotenburo share it: data/baths.json `day`); saved, cleared each morning
 var bath_paid_today := false   # the sento's entry paid today (in and out free after; data/shops.json sento entry_fee); saved, cleared each morning
+var in_towel := false   # wrapped in a bathing towel, the clothes in a basket (the sento's changing room: Game.change_clothes); not saved, off on leaving the bath's maps
 var soak_cfg: Dictionary = {}   # the soak going on now: data/ashiyu.json, or a bath of data/baths.json (Game.soak_config); not saved
 ## The item carried overhead in the holding hand ("" = hands free). It is the rucksack's
 ## hand slot (Inventory "hand"): what the rucksack menu takes in hand is held up the same way.
@@ -388,6 +389,8 @@ func new_game() -> void:
 						soak_at = spots[k][0]
 						soak_facing = spots[k][1]
 					break
+		elif arg == "--towel":   # `-- --demo --map=sento_changing@change --towel` (after --map): wrapped in a bathing towel
+			in_towel = true
 		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
 			fatigue = int(body.get("states", {}).get("exhausted", {}).get("fatigue", 80))
 			_shown_state = body_state()
@@ -733,6 +736,7 @@ func _process(delta: float) -> void:
 		_eat_step(delta)
 	if soak_phase != "" and not paused():
 		_soak_step(delta)
+	FarmerLooks.towel = wearing_towel()   # the farmer's pictures in the towel (FarmerLooks.cache_key)
 	if swinging() and not paused():
 		swing_step(delta)
 	if race != null and not paused():
@@ -834,6 +838,10 @@ func go_to_map(map_id: String, cell: Vector2i, face: Vector2i) -> bool:
 	maps.mine_floor = new_mine_floor(depth) if depth > 0 else null
 	fishing.stop()
 	_stand_up_now()   # up from the footbath
+	if maps.current().towel == "always":   # the bath: only ever in a towel (a debug start too)
+		in_towel = true
+	elif maps.current().towel == "":   # out of the bath's maps: dressed
+		in_towel = false
 	if race != null:   # walked off in the middle: the race ends with the creel as it is
 		_end_race()
 	if maps.on_farm() and farm.in_bounds(cell) and farm.cell(cell).obj != FarmGrid.Obj.NONE:
@@ -853,6 +861,12 @@ func use_door(door: Dictionary) -> void:
 	if s != null and _shop_shut(s):
 		return
 	if s != null and not pay_entry(s):
+		return
+	if door.get("towel", false) and not in_towel:   # the bath's door: undressed first
+		message.emit(str(baths.get("changing", {}).get("need_towel", "")))
+		return
+	if door.get("dressed", false) and in_towel:   # the lobby's: dressed first
+		message.emit(str(baths.get("changing", {}).get("dress_first", "")))
 		return
 	if not MapData.door_open(door, day_minutes()):
 		message.emit(door.closed)
@@ -1307,6 +1321,7 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 	work_fatigue_half = false
 	soaked_today = false   # the footbath gives its rest again tomorrow
 	bathed_today = false   # and the baths theirs
+	in_towel = false
 	bath_paid_today = false   # the sento's ticket is for the day
 	_stand_up_now()   # and the farmer is up in his bed
 	_count_build_day()   # before the date moves: did the builder work today?
@@ -2269,6 +2284,29 @@ static func soak_spots(prop: Dictionary) -> Array:
 func can_soak_at(origin: Vector2i, facing: Vector2i) -> bool:
 	var prop := maps.current().prop_at(origin + facing)
 	return str(prop.get("use", "")) == "soak" and soak_spots(prop).has([origin, facing])
+
+
+## Is the farmer wrapped in a bathing towel now (in_towel, or anywhere on a towel map)?
+func wearing_towel() -> bool:
+	var m := maps.current() if maps != null else null
+	return in_towel or (m != null and m.towel == "always")
+
+
+## The sento's changing room (a prop with "use": "change", the basket shelf): the clothes into a
+## basket and a towel round the farmer, or dressed again (data/baths.json `changing`). Only on a
+## map where a towel may be worn (`towel`); not while holding something. Says what happened; returns whether it changed.
+func change_clothes() -> bool:
+	var say: Dictionary = baths.get("changing", {})
+	if holding() or cradling():
+		message.emit(str(say.get("hands", "")))
+		return false
+	if maps.current().towel == "":
+		return false
+	in_towel = not in_towel
+	FarmerLooks.towel = wearing_towel()
+	changed.emit()
+	message.emit(str(say.get("to_towel" if in_towel else "to_clothes", "")))
+	return true
 
 
 ## The soak data for soak prop `prop`: its bath's in data/baths.json (`bath`), else the footbath's.

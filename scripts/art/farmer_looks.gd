@@ -16,6 +16,10 @@ static var current: Dictionary = {}:   # {} or a full choice; {} is the default
 		current = v
 		_sig = signature(v)
 static var _sig := ""   # signature(current), kept: the farmer's sprite asks every frame
+## Wrapped in a bathing towel (the sento's changing room and bath: Game.wearing_towel, set each
+## frame): the same look in the outfit "towel" (FigureArt), its pictures kept apart ("@towel").
+static var towel := false
+const TOWEL := "eeeae2"
 static var _data: Dictionary = {}
 
 
@@ -109,7 +113,19 @@ static func figure_look(choice: Dictionary) -> Dictionary:
 
 ## The look of the game's farmer now.
 static func current_look() -> Dictionary:
-	return figure_look(current)
+	return towel_look(figure_look(current)) if towel else figure_look(current)
+
+
+## `look` wrapped in a bathing towel from the chest to the knees: bare shoulders, arms, legs and
+## feet; the hair and its band as they are.
+static func towel_look(look: Dictionary) -> Dictionary:
+	var out := look.duplicate()
+	out.outfit = "towel"
+	out.top = TOWEL
+	out.waist = TOWEL
+	out.lower = str(look.skin)
+	out.shoes = str(look.skin)
+	return out
 
 
 ## "" for the default look, else the ids joined: what tells one look's pictures from another's.
@@ -128,7 +144,8 @@ static func signature(choice: Dictionary) -> String:
 static func cache_key(key: String) -> String:
 	if not key.begins_with("player:"):
 		return key
-	return key if _sig == "" else key + "@" + _sig
+	var k := key if _sig == "" else key + "@" + _sig
+	return k + "@towel" if towel else k
 
 
 ## A debug flag's look (`--look=style:2,hair:1,skin:3,clothes:4`): each part by its place in

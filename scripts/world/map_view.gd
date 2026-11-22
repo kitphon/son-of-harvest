@@ -32,7 +32,7 @@ const COLORS := {
 	"byobu": Color("e8dcb8"), "toy_box": Color("c8442c"), "mizugame": Color("6a4028"),
 	"potting_bench": Color("8a6a48"),
 	"yubune": Color("5fa6a2"), "kran": Color("d8e4e6"), "milk_fridge": Color("eeeee8"), "basket_shelf": Color("d8c088"),
-	"bench": Color("a07a52"), "getabako": Color("4a3424"), "bath_noren": Color("2f4a7a"), "bath_mural": Color("4e8a4a"),
+	"bench": Color("a07a52"), "getabako": Color("4a3424"), "bath_noren": Color("2f4a7a"), "bath_mural": Color("4e8a4a"), "glass_door": Color("c8e0e6"),
 }
 
 var map: MapData

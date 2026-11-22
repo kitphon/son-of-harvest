@@ -276,7 +276,7 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 	var poling := pose == "pole"
 	var scoop := pose.begins_with("scoop")
 	var mouth: Array = MOUTH[pose][frame % frames(pose)] if MOUTH.has(pose) else []
-	var sleeve := "wide" if outfit == "kimono" else ("short" if outfit == "shirt_shorts" else "narrow")
+	var sleeve := "wide" if outfit == "kimono" else ("short" if outfit == "shirt_shorts" else ("bare" if outfit == "towel" else "narrow"))
 	# Screen-left / -right shoulders (the top-left of each sleeve's first row).
 	var sh_l := Vector2i(r.x0 - 3 if not back else r.x0 - 2, r.sh + 1)
 	var sh_r := Vector2i(r.x1 - 1 if not back else r.x1 + 1, r.sh + 1)
@@ -298,7 +298,7 @@ static func _draw(img: Image, c: Dictionary, look: Dictionary, back: bool, pose:
 		_lap(img, r, c, outfit)
 	if style == "long" and back:
 		_long_hair_down_back(img, r, c)
-	if farmer:
+	if farmer and outfit != "towel":   # no hip basket over a bathing towel
 		_basket(img, r, back)
 	if look.has("bag"):   # a shoulder bag: the strap across the body, the bag at the far hip
 		_bag(img, r, back, Color(str(look.bag)))
@@ -595,8 +595,8 @@ static func _leg(dst: Image, r: Dictionary, c: Dictionary, outfit: String, x: in
 		_stamp(dst, L)
 		return
 	var top: int = r.hip - 1
-	var shin: Color = c.s if outfit == "shirt_shorts" else c.l
-	var shin_dark: Color = c.S if outfit == "shirt_shorts" else c.L
+	var shin: Color = c.s if outfit in ["shirt_shorts", "towel"] else c.l
+	var shin_dark: Color = c.S if outfit in ["shirt_shorts", "towel"] else c.L
 	if outfit == "noragi":   # the farmer's monpe tucked into jika-tabi
 		_r(L, x, top, 3, bottom - top - 2, shin)
 		_r(L, x + 2, top, 1, bottom - top - 2, shin_dark)
@@ -648,6 +648,23 @@ static func _torso(dst: Image, r: Dictionary, c: Dictionary, outfit: String, bac
 			hem = FOOT - 2
 		"shirt_shorts":
 			hem = hip - 2
+		"towel":   # a bathing towel wrapped from under the arms to the knees, the shoulders bare
+			hem = hip + 3
+			_r(L, x0 + 1, sh, w - 2, 1, c.s)
+			_r(L, x0, sh + 1, w, 2, c.s)
+			_r(L, x1 - 1, sh + 1, 2, 2, c.S)
+			if not back:
+				_r(L, bx - 1, sh - 1, 2, 1, c.S)   # the neck's shadow
+			_r(L, x0, sh + 3, w, hem - sh - 2, c.t)
+			_r(L, x1 - 1, sh + 3, 2, hem - sh - 2, c.T)   # the side away from the light
+			_r(L, x0, sh + 3, w, 1, c["t+"])   # its rolled top edge
+			if not back:   # the tucked corner on the chest, a fold down from it
+				_dot(L, bx - 2, sh + 4, c.T)
+				_dot(L, bx - 2, sh + 5, c.T)
+				_dot(L, bx - 1, hem - 1, c.T)
+			_r(L, x0, hem, w, 1, c.T)
+			_stamp(dst, L)
+			return
 	_r(L, x0 + 1, sh, w - 2, 1, c.t)   # rounded shoulders
 	_r(L, x0, sh + 1, w, hem - sh, c.t)
 	_r(L, x1 - 1, sh + 1, 2, hem - sh, c.T)   # the side away from the light
@@ -729,7 +746,7 @@ static func _arm(dst: Image, s: Vector2i, hand: Vector2i, c: Dictionary, sleeve:
 		var q := Vector2(s).lerp(Vector2(end), float(i) / maxi(n, 1)).round()
 		var col: Color = c.t
 		var dark: Color = c.T
-		if sleeve == "short" and i > mini(1, n / 3):   # a short sleeve, then the bare arm
+		if sleeve == "bare" or (sleeve == "short" and i > mini(1, n / 3)):   # a short sleeve, then the bare arm (bare all the way in a towel)
 			col = c.s
 			dark = c.S
 		_r(L, int(q.x), int(q.y), wide, 2, col)

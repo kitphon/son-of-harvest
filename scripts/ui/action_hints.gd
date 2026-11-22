@@ -11,7 +11,7 @@ const TOOL_VERBS := {"hoe": "Till", "can": "Water", "sickle": "Cut", "hammer": "
 const USE_VERBS := {"sleep": "Sleep", "shop": "Shop", "storage": "Open", "cook": "Cook",
 	"ribbons": "Look", "examine": "Look", "feed_box": "Feed", "feed_sack": "Look",
 	"nest": "Take egg", "incubator": "Incubator", "hatch": "Hatch", "fodder_box": "Feed",
-	"fodder": "Feed", "barn_tools": "Look", "barn_gate": "Gate", "cradle": "Look", "soak": "Soak"}
+	"fodder": "Feed", "barn_tools": "Look", "barn_gate": "Gate", "cradle": "Look", "soak": "Soak", "change": "Change"}
 
 
 ## How far (cells) the feet lean off the middle of their cell, across the facing, before E also
@@ -125,6 +125,8 @@ static func interact_verb(origin: Vector2i, facing: Vector2i) -> String:
 	var use := str(m.prop_at(c).get("use", ""))
 	if use == "soak" and not Game.can_soak_at(origin, facing):
 		return ""   # the footbath: only from the middle of a long side (Game.soak_spots)
+	if use == "soak" and str(m.prop_at(c).get("bath", "")) != "":
+		return "Get in"   # a bath up to the shoulders (the sento's tub), not the feet
 	if USE_VERBS.has(use):
 		return USE_VERBS[use]
 	if Game.in_greenhouse() and not Game.holding():   # the beds, as the field (FarmActions.interact)

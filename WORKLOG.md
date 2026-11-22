@@ -10,6 +10,42 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-22 — The lobby, the changing room and the bath on three maps, with towels
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's asks after looking in the game): the bath on its own map, a changing room
+  before it, and the changing room a map of its own too, since the low partition walls inside
+  let anyone at the counter see into it (the user's point). Now:
+  - `sento` (8 x 8): the lobby only (the counter, the milk cooler, the shoe lockers, two
+    benches), a noren in its right wall (a door) to the changing room.
+  - `sento_changing` (data/maps/sento_changing.json, 9 x 8, `towel` "allowed", "Changing
+    Room"): the basket shelf with "use": "change" (hint "Change"), a bench, the noren back to the
+    lobby (a door with `dressed`) and the glass sliding door to the bath (a door with `towel`).
+  - `sento_bath` (data/maps/sento_bath.json, 12 x 8, `towel` "always"): the tub (7 wide), the
+    mural and the washing island, in through the glass door in its left wall.
+  - Game.change_clothes: E at the baskets wraps the farmer in a towel (Game.in_towel) or dresses
+    them; not while holding something, only where a towel is allowed. The bath's door only in a
+    towel (`need_towel`), the lobby's only dressed (`dress_first`). Off the bath's maps (a door
+    out, the night) dressed again; on `sento_bath` always wrapped (a debug start too). `--towel`
+    starts wrapped.
+  - The towel look: FarmerLooks.towel (Game sets it each frame from wearing_towel) turns the
+    look into the outfit "towel" (FarmerLooks.towel_look: white top and waist, skin for the lower
+    and the shoes), its pictures cached apart ("@towel"); FigureArt draws "towel": bare shoulders,
+    a white towel from under the arms to the knees with a rolled top edge and a tucked corner,
+    bare arms ("bare" sleeve), legs and feet, no hip basket.
+  - MapData: a map's `towel` ("", "allowed", "always"); doors keep `towel` and `dressed`.
+  - New prop `glass_door` (BathProps 3D: frame, two frosted panes, half open; BathLook flat).
+  - The tub's hint is now "Get in" (the footbath keeps "Soak", which reads as soaking the feet in Thai).
+  - Thai for the new names, lines and hints. test_baths: the three maps, every floor reached, the
+    doors each way with their noren or glass door, changing and its rules, the towel look.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)`. Smoke runs (`--quit-after 300`: title,
+  `--demo`, town, mine 3, `sento_bath@bath --soak`, `sento_changing@change --towel`,
+  `yumachi@sento --walk=up:1`): 0 ERROR lines; windowed `--quit-after 150 -- --demo
+  --map=sento_changing@change --towel`: exit 0. Frames: the lobby with its noren door on the right
+  and no view into the changing room; the changing room with the noren left and the glass door
+  right, the farmer in the towel (bare shoulders, arms and feet); the bath on its own map, the
+  farmer sat in the tub; the flat view of the changing room.
+- Left / next: step 2b the bath's keeper at the counter; step 3 villagers' baths; step 4 Kajika-yu.
+
 ## 2026-11-22 — Baths step 2: inside Kawasemi-yu, one bath for everyone
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user picked one bath for everyone, all in bathing wraps (the farmer has no set gender;
