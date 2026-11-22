@@ -248,33 +248,37 @@ func _entry() -> void:
 	var said: Array[String] = []
 	var hear := func(t: String): said.append(t)
 	g.message.connect(hear)
-	var door: Dictionary = MapManager.data("yumachi").door_at(Vector2i(7, 4))
+	var street: Dictionary = MapManager.data("yumachi").door_at(Vector2i(7, 4))
+	var noren: Dictionary = MapManager.data("sento").doors.filter(func(d): return d.to == "sento_changing")[0]
+	check(str(noren.get("fee", "")) == "sento" and str(street.get("fee", "")) == "", "the fee at the noren into the changing room, not the street door")
 	g.maps.place("yumachi", Vector2i(7, 5), Vector2i.UP)
 	g.day = 1
 	while g.weekday() == "thu" or g.festival_today() != "":
 		g.day += 1
 	g.hour = 11
 	g.money = 1000
-	g.use_door(door)
+	g.use_door(street)
 	check(g.maps.id == "yumachi" and g.money == 1000 and said.back() == g.shop("sento").closed_text(), "shut before two: the hours said, nothing paid")
 	g.hour = 15
-	g.use_door(door)
-	check(g.maps.id == "sento" and g.money == 880 and g.bath_paid_today, "open: in, 120 G paid")
+	g.use_door(street)
+	check(g.maps.id == "sento" and g.money == 1000 and not g.bath_paid_today, "open: into the lobby for nothing (the milk is for anyone)")
+	g.maps.place("sento", Vector2i(6, 4), Vector2i.RIGHT)
+	g.use_door(noren)
+	check(g.maps.id == "sento_changing" and g.money == 880 and g.bath_paid_today, "through the noren: 120 G paid")
 	check(said.back() == String(g.shop("sento").own().entry_message) % 120, "says the fee")
-	g.go_to_map("yumachi", Vector2i(7, 5), Vector2i.UP)
-	g.use_door(door)
-	check(g.maps.id == "sento" and g.money == 880, "back in the same day for nothing")
-	g.go_to_map("yumachi", Vector2i(7, 5), Vector2i.UP)
+	g.go_to_map("sento", Vector2i(6, 4), Vector2i.RIGHT)
+	g.use_door(noren)
+	check(g.maps.id == "sento_changing" and g.money == 880, "back through the same day for nothing")
 	var d: Dictionary = g.to_dict()
 	check(d.get("bath_paid_today", null) == true, "the day's ticket saved")
 	g.bath_paid_today = false
 	check(g.from_dict(d) == "" and g.bath_paid_today, "and loaded")
 	d.erase("bath_paid_today")
 	check(g.from_dict(d) == "" and not g.bath_paid_today, "an older save: not paid yet")
-	g.maps.place("yumachi", Vector2i(7, 5), Vector2i.UP)
+	g.go_to_map("sento", Vector2i(6, 4), Vector2i.RIGHT)
 	g.money = 100
-	g.use_door(door)
-	check(g.maps.id == "yumachi" and g.money == 100 and said.back() == String(g.shop("sento").own().entry_short) % 120, "short of 120 G: the door stays shut")
+	g.use_door(noren)
+	check(g.maps.id == "sento" and g.money == 100 and said.back() == String(g.shop("sento").own().entry_short) % 120, "short of 120 G: the noren stays shut")
 	g.money = 1000
 	g.bath_paid_today = true
 	g.end_day()
@@ -283,8 +287,11 @@ func _entry() -> void:
 	g.hour = 15
 	while g.weekday() != "thu":
 		g.day += 1
-	g.use_door(door)
+	g.use_door(street)
 	check(g.maps.id == "yumachi" and not g.bath_paid_today, "shut on Thursday")
+	g.maps.place("sento", Vector2i(6, 4), Vector2i.RIGHT)
+	g.use_door(noren)
+	check(g.maps.id == "sento" and not g.bath_paid_today, "and no way through the noren on Thursday either")
 	g.message.disconnect(hear)
 	g.new_game()
 	g.clock_running = false
@@ -322,7 +329,10 @@ func _bath() -> void:
 	g.soak_t = 1.0
 	check(biggest < 0.03, "no jump on the way in (%.3f)" % biggest)
 	g.stop_soak()
-	g._process(float(b.stand_seconds) + 0.05)
+	check(g.soak_look() == Vector2i.DOWN, "getting out: turned away from the tub (not backing out)")
+	g._process(float(b.stand_seconds) * 0.6)
+	check(g.soaking() and g.soak_look() == Vector2i.DOWN, "still facing the way out half way")
+	g._process(float(b.stand_seconds))
 	check(not g.soaking() and g.soak_cfg == g.ashiyu, "out and free; the next soak names its own")
 	var st: int = g.stamina
 	FA.on_action("interact", seat, Vector2i.UP)

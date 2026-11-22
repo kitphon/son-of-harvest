@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-22 — The bath fee at the changing room's noren, stepping out of the tub forwards
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's two points after playing):
+  - "Why could I bathe without paying 120 G?": the fee was taken at Yumachi's street door, so a
+    start inside the lobby (`--map=sento@counter`, the command I gave) never paid. It is now
+    taken at the lobby's noren into the changing room (a door with `fee` "sento", MapData keeps
+    it; Game.use_door checks that shop's hours and Game.pay_entry), once a day as before; the
+    street door only keeps the hours, so the lobby and its milk are free. The message reads "You
+    pay %d G at the counter and go through the noren."
+  - Getting out of the tub the farmer backed out facing the tub; Game.soak_look now turns a bath
+    soaker away from the tub (-soak_facing) for the whole way out, so they step over the rim
+    forwards. `--soak=up` starts sat and getting out.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: into the lobby for
+  nothing, 120 G at the noren, free back through the same day, short money keeps it shut, shut on
+  Thursday; facing away from the tub the whole way out). Smoke runs (`--quit-after 300`: title,
+  `--demo`, town, mine 3, `sento@counter`, `sento_bath@bath --soak=up`): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo --map=sento_bath@bath --time=15:00 --soak=up`: exit 0. Frames of
+  `--soak=up`: in the water facing the room, then up on the rim facing down and out, then
+  standing on the tiles in front of the tub.
+- Left / next: step 3 villagers' evening baths and their lines; step 4 Kajika-yu.
+
 ## 2026-11-22 — Baths step 2b: Masa, the bath's keeper
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a new villager, Masa (data/villagers/masa.json), an old woman who has kept Kawasemi-yu

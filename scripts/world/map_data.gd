@@ -124,7 +124,7 @@ func _read(d: Variant) -> String:
 		if cells.is_empty():
 			return "a door has no cells"
 		var out := {"cells": cells, "to": str(door.get("to", "")), "message": str(door.get("message", "")),
-			"gate": bool(door.get("gate", false)), "shop": str(door.get("shop", "")), "towel": bool(door.get("towel", false)), "dressed": bool(door.get("dressed", false))}
+			"gate": bool(door.get("gate", false)), "shop": str(door.get("shop", "")), "towel": bool(door.get("towel", false)), "dressed": bool(door.get("dressed", false)), "fee": str(door.get("fee", ""))}
 		if out.to != "":
 			out.spawn = _cell(door.get("spawn"))
 			out.facing = FACINGS.get(door.get("facing", "down"))

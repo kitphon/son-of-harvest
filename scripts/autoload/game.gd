@@ -388,6 +388,8 @@ func new_game() -> void:
 						soak_t = 1.0
 						soak_at = spots[k][0]
 						soak_facing = spots[k][1]
+						if arg == "--soak=up":   # `--soak=up`: sat, and getting up from the first frame (the way out)
+							soak_phase = "up"
 					break
 		elif arg == "--towel":   # `-- --demo --map=sento_changing@change --towel` (after --map): wrapped in a bathing towel
 			in_towel = true
@@ -860,7 +862,8 @@ func use_door(door: Dictionary) -> void:
 	var s := shop(door.get("shop", ""))
 	if s != null and _shop_shut(s):
 		return
-	if s != null and not pay_entry(s):
+	var fee := shop(door.get("fee", ""))   # the sento's noren into its changing room: the day's ticket
+	if fee != null and (_shop_shut(fee) or not pay_entry(fee)):
 		return
 	if door.get("towel", false) and not in_towel:   # the bath's door: undressed first
 		message.emit(str(baths.get("changing", {}).get("need_towel", "")))
@@ -2316,9 +2319,12 @@ func soak_config(prop: Dictionary) -> Dictionary:
 
 
 ## The way the soaking farmer is drawn facing: in a bath they turn to face the room once sat in the
-## water (data/baths.json `turn` from `turn_at`); else the way they went in (soak_facing).
+## water (data/baths.json `turn` from `turn_at`) and face away from the tub getting out (the user
+## saw them back out); else the way they went in (soak_facing).
 func soak_look() -> Vector2i:
 	var turn := str(soak_cfg.get("turn", ""))
+	if soaking_now and turn != "" and soak_phase == "up":
+		return -soak_facing   # getting out: turned away from the tub, stepping out forwards (not backing out)
 	if soaking_now and turn != "" and soak_t >= float(soak_cfg.get("turn_at", 1.0)):
 		return DEMO_FACINGS.get(turn, soak_facing)
 	return soak_facing
@@ -3119,8 +3125,8 @@ func _shop_shut(s: Shop, say := true) -> bool:
 	return false
 
 
-## A shop with an entry fee (data/shops.json `entry_fee`, the sento's): paid once a day on the way
-## in through its street door, then in and out are free that day. Says what happened; false (the
+## A shop with an entry fee (data/shops.json `entry_fee`, the sento's): paid once a day at a door
+## whose `fee` names it (the lobby's noren into the changing room), then in and out are free that day. Says what happened; false (the
 ## door stays shut) when the money is short.
 func pay_entry(s: Shop) -> bool:
 	var d := s.own()

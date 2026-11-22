@@ -1,5 +1,5 @@
 {
-	"_note": "Kawasemi-yu, the public bath in Yumachi, inside: the lobby (2026-11-22, Baths step 2; docs/DESIGN.md → ที่อาบน้ำ). One bath for everyone in bathing towels (the user's pick: the farmer has no set gender). A packed-earth entry by the door with the shoe lockers, wooden floor, the counter (shop sento in data/shops.json: the milk; the 120 G entry was paid at the street door, Game.use_door), the milk cooler, two benches for cooling off. The noren in the right wall leads to the changing room, a map of its own (data/maps/sento_changing.json) so nobody at the counter sees anyone changing (the user's point, 2026-11-22). The clock stands still in here like in every building. Format: README.md, Maps.",
+	"_note": "Kawasemi-yu, the public bath in Yumachi, inside: the lobby (2026-11-22, Baths step 2; docs/DESIGN.md → ที่อาบน้ำ). One bath for everyone in bathing towels (the user's pick: the farmer has no set gender). A packed-earth entry by the door with the shoe lockers, wooden floor, the counter (shop sento in data/shops.json: the milk), the milk cooler, two benches for cooling off. The noren in the right wall leads to the changing room (its `fee`: the 120 G is paid there, once a day, the user found the street door let them in without noticing it), a map of its own (data/maps/sento_changing.json) so nobody at the counter sees anyone changing (the user's point, 2026-11-22). The clock stands still in here like in every building. Format: README.md, Maps.",
 	"id": "sento",
 	"name": "Kawasemi-yu",
 	"size": [8, 8],
@@ -34,7 +34,7 @@
 	],
 	"doors": [
 		{"cells": [[3, 7]], "to": "yumachi", "spawn": [7, 5], "facing": "down"},
-		{"cells": [[7, 4]], "to": "sento_changing", "spawn": [1, 3], "facing": "right"}
+		{"cells": [[7, 4]], "to": "sento_changing", "spawn": [1, 3], "facing": "right", "fee": "sento"}
 	],
 	"spawns": {
 		"start": [[3, 6], "up"],

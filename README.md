@@ -367,8 +367,10 @@ their edges. `tools/build_times.gd` times every map's build, first and again
 
 Kawasemi-yu, the public bath in Yumachi (2026-11-22, Baths step 2; docs/DESIGN.md → ที่อาบน้ำ). Its
 street door (Yumachi (7, 4)) is a shop door (data/shops.json `sento`: open 14:00-23:00, shut on
-Thursdays and on festival days); the first time through on a day it takes `entry_fee` (120 G,
-Game.pay_entry, `bath_paid_today`, saved), and short of the money it stays shut. One bath for
+Thursdays and on festival days); the lobby is free to walk into. The lobby's noren into the
+changing room is a door with `fee` "sento": the first time through on a day it takes
+`entry_fee` (120 G, Game.pay_entry, `bath_paid_today`, saved), and short of the money it stays
+shut. One bath for
 everyone, all in bathing towels (the user's pick: the farmer has no set gender).
 
 Three maps, each its own room (the user's asks: the bath apart, a changing room before it, and
@@ -389,7 +391,8 @@ that one apart too so nobody at the counter sees anyone changing). Indoors, so t
   bath's maps or a new day dresses the farmer; arriving on `sento_bath` always wraps them.
 - E from any tile in front of the tub (its `seats` "front"; the hint "Get in") gets in (Game.soak
   with data/baths.json `sento` as its soak_cfg): over the rim, down into the water and turned to
-  face the room (`turn`, Game.soak_look), drawn in the pose `bathe` (FigureArt._bathe: the head,
+  face the room (`turn`, Game.soak_look; getting out they turn away from the tub and step out
+forwards), drawn in the pose `bathe` (FigureArt._bathe: the head,
   the bare shoulders and a folded towel over the water); E again gets out. The day's first bath
   gives +40 stamina and -20 fatigue and runs the clock on an hour (`minutes`, Game.pass_minutes,
   even indoors); a later one only rests. The baths share one rest a day (`day` "bath",
@@ -404,7 +407,7 @@ that one apart too so nobody at the counter sees anyone changing). Indoors, so t
   `bath_noren`, `bath_mural`, `glass_door`, the steam); flat: BathLook.
 - `--demo --map=sento_changing@change --time=15:00` stands at the baskets (add `--towel` to start in the
   towel), `--demo --map=sento_bath@bath --time=15:00` before the tub, `--soak` sat in it
-  (`--soak=N` the Nth seat from the left, `--soak=down` getting in), `--demo --map=yumachi@sento
+  (`--soak=N` the Nth seat from the left, `--soak=down` getting in, `--soak=up` getting out), `--demo --map=yumachi@sento
   --time=15:00` the street door. test_baths.
 
 ## Villagers

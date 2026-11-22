@@ -234,7 +234,7 @@
 		"Done on %s.": "เสร็จวัน%s",
 		"%s is closed. Open %s, %s.": "%s ปิดอยู่ เปิด %s, %s",
 		"%s is closed today for %s.": "วันนี้ %s ปิด เพราะมีงาน%s",
-		"You pay %d G at the counter. The bath is through the noren.": "คุณจ่าย %d G ที่เคาน์เตอร์ ห้องอาบอยู่หลังผ้าโนเรน",
+		"You pay %d G at the counter and go through the noren.": "คุณจ่าย %d G ที่เคาน์เตอร์ แล้วเดินผ่านผ้าโนเรนเข้าไป",
 		"The bath is %d G. You don't have enough money.": "ค่าอาบน้ำ %d G เงินของคุณไม่พอ",
 		"That isn't sold in %s.": "ของนี้ไม่ขายใน%s",
 		"There's no room for that.": "ไม่มีที่ใส่แล้ว",
