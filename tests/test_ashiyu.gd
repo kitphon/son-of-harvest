@@ -48,6 +48,16 @@ func _run() -> void:
 	quit(1 if failures > 0 else 0)
 
 
+## Sits the soak down all the way / gets up all the way (the transitions played through).
+func _sit() -> void:
+	g._process(float(g.ashiyu.sit_seconds) + 0.05)
+
+
+func _up() -> void:
+	g.stop_soak()
+	g._process(float(g.ashiyu.stand_seconds) + 0.05)
+
+
 func check(ok: bool, what: String) -> void:
 	if not ok:
 		failures += 1
@@ -72,24 +82,32 @@ func _soak() -> void:
 	g.fatigue = 40
 	var r: Dictionary = g.soak()
 	check(r.ok and g.stamina == 50 + int(a.stamina) and g.fatigue == 40 + int(a.fatigue), "the first soak: stamina + %d, fatigue %d" % [int(a.stamina), int(a.fatigue)])
-	check(g.soaked_today and g.soaking() and g.still_pose() == "soak", "sat soaking, the day's soak given")
+	check(g.soaked_today and g.soaking() and g.soak_phase == "down" and g.still_pose() == "soak_down" and g.soak_seat() == 0.0, "sitting down: half crouched, still where he stood")
+	g._process(float(a.sit_seconds) * 0.5)
+	check(g.soak_amount() > 0.1 and g.soak_amount() < 0.9 and g.soak_seat() > 0.0 and g.soak_seat() < float(a.seat), "half way down: part way onto the seat (%.2f)" % g.soak_amount())
+	g._process(float(a.sit_seconds))
+	check(g.soak_phase == "sit" and g.still_pose() == "soak" and is_equal_approx(g.soak_amount(), 1.0), "sat after %.1f s, the feet in" % float(a.sit_seconds))
 	check(said.back() == String(a.message), "says the soak")
 	check(not g.soak().ok, "no second soak while sitting")
 	check(is_equal_approx(g.soak_seat(), float(a.seat)), "drawn on the bench, the feet in the water")
 	g._process(600.0)
 	check(g.soaking(), "still soaking after ten minutes: until E again")
 	g.stop_soak()
-	check(not g.soaking() and g.still_pose() == "" and g.soak_seat() == 0.0, "E again: up from the footbath")
+	check(g.soaking() and g.soak_phase == "up", "E again: getting up, not up at once")
+	g._process(float(a.stand_seconds) * 0.5)
+	check(g.soaking() and g.soak_amount() < 0.95 and g.soak_seat() < float(a.seat), "half way up")
+	g._process(float(a.stand_seconds))
+	check(not g.soaking() and g.still_pose() == "" and g.soak_seat() == 0.0, "up after %.1f s and free" % float(a.stand_seconds))
 	var st: int = g.stamina
 	var fa: int = g.fatigue
 	check(g.soak().ok and g.stamina == st and g.fatigue == fa and said.back() == String(a.again_message), "a later soak the same day only rests")
-	g.stop_soak()
+	_up()
 	g.stamina = g.max_stamina - 5
 	g.fatigue = 3
 	g.soaked_today = false
 	g.soak()
 	check(g.stamina == g.max_stamina and g.fatigue == 0, "never past the max stamina or under no fatigue")
-	g.stop_soak()
+	_up()
 	# The save keeps the day's soak; the morning clears it.
 	var d: Dictionary = g.to_dict()
 	check(d.get("soaked_today", null) == true, "the day's soak saved")
@@ -110,7 +128,10 @@ func _soak() -> void:
 
 
 func _pose() -> void:
-	check(FG.frames("soak") == 2, "the soak pose has two frames")
+	check(FG.frames("soak") == 2 and FG.frames("soak_down") == 1, "the soak pose has two frames, the half crouch one")
+	var crouch: Image = PA.image("player:front:soak_down:0")
+	check(crouch.get_used_rect().position.y > PA.image("player:front:idle:0").get_used_rect().position.y
+		and crouch.get_used_rect().position.y < PA.image("player:front:soak:0").get_used_rect().position.y, "the half crouch between standing and sat")
 	var idle: Image = PA.image("player:front:idle:0")
 	for side in ["front", "back"]:
 		for f in 2:
@@ -153,7 +174,7 @@ func _action() -> void:
 	check(g.soaking() and g.soaked_today and g.stamina == 40 + int(g.ashiyu.stamina), "E at the footbath soaks the feet")
 	check(AH.pick(Vector2i(46, 21), Vector2i.DOWN).interact == "Get up", "the hint while soaking: Get up")
 	check(g.soak_at == Vector2i(46, 21) and g.soak_facing == Vector2i.DOWN, "sat on that seat")
-	g.stop_soak()
+	_up()
 	# Only the middle of each long side is a seat: never the ends or corners (the user saw him sat by a post).
 	var tub: Dictionary = g.maps.current().prop_at(Vector2i(46, 22))
 	check(g.soak_spots(tub) == [[Vector2i(46, 21), Vector2i.DOWN], [Vector2i(46, 24), Vector2i.UP]], "two seats: the middle of the north and the south side")
@@ -168,14 +189,15 @@ func _action() -> void:
 	g.maps.place("town", Vector2i(46, 24), Vector2i.UP)
 	FA.on_action("interact", Vector2i(46, 24), Vector2i.UP)
 	check(g.soaking() and g.soak_at == Vector2i(46, 24) and g.soak_facing == Vector2i.UP, "the south seat, facing the tub")
+	_sit()
 	check(is_equal_approx(g.soak_seat(true), float(g.ashiyu.seat_back)) and is_equal_approx(g.soak_lift(true), float(g.ashiyu.lift_back))
 		and g.soak_seat(true) < g.soak_seat(false), "from behind on the rim itself, nearer than the front seat")
-	g.stop_soak()
+	_up()
 	var sfx: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/sfx.json")).sounds
-	check(sfx.has("soak_in") and sfx.has("soak_out"), "a sound for the feet going in and coming out")
-	check("Sfx.play(\"soak_in\")" in FileAccess.get_file_as_string("res://scripts/farm_actions.gd") and "Sfx.play(\"soak_out\")" in FileAccess.get_file_as_string("res://scripts/player/player.gd"), "played on sitting down and getting up")
+	check(sfx.has("soak_in") and sfx.has("soak_out") and str(sfx.soak_in.get("file", "")) == "res://sounds/water_splash.mp3", "a sound for the feet going in (the recorded splash the user picked) and coming out")
+	check("sfx.play(\"soak_in\")" in FileAccess.get_file_as_string("res://scripts/autoload/game.gd") and "Sfx.play(\"soak_out\")" in FileAccess.get_file_as_string("res://scripts/player/player.gd"), "played on sitting down and getting up")
 	var src := FileAccess.get_file_as_string("res://scripts/player/player.gd")
-	check("if Input.is_action_just_pressed(\"interact\"):
+	check("if Input.is_action_just_pressed(\"interact\") and Game.soak_phase != \"up\":
 				Game.stop_soak()" in src, "the farmer's E stands him up while soaking")
 	g.go_to_map("town", Vector2i(46, 25), Vector2i.UP)
 	check(not g.soaking(), "a map change stands him up")

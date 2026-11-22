@@ -21,6 +21,12 @@ func _init() -> void:
 	var started := Time.get_ticks_msec()
 	for key in sounds:
 		var s: Dictionary = sounds[key]
+		if s.has("file"):   # a recorded sound (sounds/): it loads, a one-shot of a sensible length
+			var rec: AudioStream = load(str(s.file))
+			check(rec != null and rec.get_length() > 0.04 and rec.get_length() < 6.0 and not s.has("loop") and not s.has("layers"),
+				"%s plays its file %s (%.2f s)" % [key, s.file, rec.get_length() if rec != null else 0.0])
+			check(FileAccess.get_file_as_string("res://sounds/CREDITS.md").contains(str(s.file).get_file()), "%s's file is credited in sounds/CREDITS.md" % key)
+			continue
 		var wav := SfxSynth.render(s, hash(key))
 		var p := SfxSynth.peak(wav)
 		check(absf(p - SfxSynth.PEAK) < 0.001, "%s normalized (peak %.3f)" % [key, p])

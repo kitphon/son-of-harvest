@@ -260,8 +260,7 @@ static func interact(c: Vector2i) -> void:
 			"ribbons":   # the farmhouse's board of contest ribbons
 				Game.message.emit(Keepsakes.board_text(Game.flags))
 			"soak":   # the village footbath (data/ashiyu.json), from one of its seats
-				if Game.soak(_from, _facing).ok:
-					Sfx.play("soak_in")
+				Game.soak(_from, _facing)   # the feet go in with their sound as he settles (Game._soak_step)
 		return
 	if DogActions.interact(c):
 		return

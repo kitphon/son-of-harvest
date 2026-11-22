@@ -288,9 +288,10 @@ func get_volume(bus: String) -> float:
 	return float(volumes.get(bus, 1.0))
 
 
-func stream(key: String) -> AudioStreamWAV:
+func stream(key: String) -> AudioStream:
 	if not _streams.has(key):
-		_streams[key] = make_sound(key)
+		var file := str((sounds[key] as Dictionary).get("file", ""))
+		_streams[key] = load(file) if file != "" else make_sound(key)   # a recorded sound (`file`) or one made from its recipe
 	return _streams[key]
 
 

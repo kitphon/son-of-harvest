@@ -157,6 +157,9 @@ const POSES := {
 	# (_lap, from the front), the shins hanging down into the water, the hands at the knees; now
 	# and then the near foot stirs the water (1).
 	"soak": [[2, -1, 0, 1, 0, 1, -1], [2, -1, 1, 1, 0, 1, -1]],
+	# On the way down onto the footbath's bench and up off it: bent at the knees, the hands going
+	# to them (Game.still_pose while soak_amount < 0.6).
+	"soak_down": [[1, -1, 0, 1, 0, 1, -1]],
 }
 ## Per eat / drink frame: [hand offset from the mouth, what it holds: "bite" (a morsel at the
 ## lips), "chew" (the bitten rest), "cup" (upright at the lips), "tip" (tipped up)].

@@ -10,6 +10,37 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-22 — The footbath: sitting down and getting up eased, the user's splash sound
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user wanted a transition instead of the farmer jumping onto the seat and off it, and
+  the recorded splash freesound_community-water-splash-46402 for the feet going in.
+  - Game.soak_phase ("down", "sit", "up") and soak_t (0 standing .. 1 sat, soak_amount eased by
+    smoothstep): E starts sitting down over `sit_seconds` 0.8 (data/ashiyu.json), E again gets up
+    over `stand_seconds` 0.6 and only then is he free; a map change, the night and a new game stand
+    him up at once (Game._stand_up_now). The seat and the lift (both views) follow soak_amount.
+    The Player steps from where he stood (Game.soak_from) onto the seat in the first half of
+    sitting down, so E from the next cell over walks him there instead of jumping. The pose is a
+    new half crouch "soak_down" (FigureArt, the body a pixel lower, the hands to the knees) below
+    soak_amount 0.6, the sitting "soak" above it; the flat view's water over the feet only once sat.
+  - Sounds: `soak_in` plays as the feet go in (the end of sitting down, Game._soak_step, through
+    the Sfx node so game.gd still loads without the autoload in tests), `soak_out` on E to get up.
+    `soak_in` is now the user's recorded splash: sounds/water_splash.mp3 (copied from
+    D:\Game-gev\Haunt-hospital\import\sounds\freesound_community-water-splash-46402.mp3; a stock
+    sound library file, not from any game; credited in sounds/CREDITS.md, its licence not checked
+    from here). Sfx plays a sound key with `file` from that file (Sfx.stream); data/sfx.json's note
+    says so.
+  - `--soak=down` sits down at the north seat from the first frame (the transition in frames).
+- Checked: test_ashiyu (sitting down: half crouched and still where he stood, half way part way
+  onto the seat, sat after 0.8 s with the feet in; E again: getting up, half way, up and free after
+  0.6 s; the half crouch drawn between standing and sat; the splash file as soak_in; soak_in played
+  from Game, soak_out from the Player), test_audio (a file sound loads as a one-shot of a sensible
+  length and is credited). Frames: `--map=town@ashiyu --soak=down` frames 8-33 as a strip (standing,
+  lowering, sat). All 45 tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`:
+  title, `--demo`, town, mine 3, town@ashiyu --soak=down): 0 ERROR lines; windowed `--quit-after
+  150 -- --demo --map=town@ashiyu --soak=down`: exit 0. The splash was not listened to here
+  (headless and Movie Maker runs are silent).
+- Left / next: the user's look and listen.
+
 ## 2026-11-20 — The footbath: two seats, sat on the rim from behind, its own water sounds
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user sent three frames: from the south and the east the farmer still sat inside the
