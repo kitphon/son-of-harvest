@@ -214,7 +214,8 @@ func _far_water() -> void:
 	check(west.size() == 4 * (far - margin) and rows.keys().size() == 4 and Vector2i(-margin - 1, 6) in west and Vector2i(-far, 9) in west, "west: the river's four rows from the apron's end out to far_water (%d cells)" % west.size())
 	check(not cells.any(func(c: Vector2i) -> bool: return c.x < 0 and (c.y < 6 or c.y > 9)), "none over the banks")
 	var east := cells.filter(func(c: Vector2i) -> bool: return c.x >= river.w)
-	check(east.size() > 0 and east.all(func(c: Vector2i) -> bool: return c.x < 20 + 56), "east: into the village's river, not past the village (%d cells)" % east.size())
+	# Through the village and Yumachi (the bath lane east of it, 2026-11-22) to the creek's corridor, no further.
+	check(east.size() > 0 and east.all(func(c: Vector2i) -> bool: return c.x < 20 + 72), "east: into the village's river, not past the creek east of the bath lane (%d cells)" % east.size())
 	var saku := MapManager.data("sakurazaka")
 	var down := VistaRules.far_river(saku, margin).filter(func(c: Vector2i) -> bool: return c.y >= saku.h)
 	check(down.all(func(c: Vector2i) -> bool: return c.y + 6 < 43), "Sakurazaka's creek south: only to where it meets the river")

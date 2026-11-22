@@ -20,7 +20,7 @@ const COLORS := {
 	"stone_lantern": Color("9a968e"), "pine": Color("2f5a34"), "bamboo": Color("6e9c42"),
 	"well": Color("8e8a80"), "jizo": Color("c8342c"), "persimmon": Color("e8782a"), "sakura": Color("f2bccb"), "maple": Color("c42a1e"), "ginkgo": Color("f0c020"),
 	"hasa": Color("d8b85a"), "woodpile": Color("8a6440"), "garden": Color("5a9a3a"), "wood_fence": Color("b08a5a"), "kiln": Color("9a7656"),
-	"hen_barn": Color("7a5a3a"), "ditch": Color("3e5a50"), "ashiyu": Color("8cc4bc"), "ashiyu_roof": Color("4a3626"),
+	"hen_barn": Color("7a5a3a"), "ditch": Color("3e5a50"), "ashiyu": Color("8cc4bc"), "ashiyu_roof": Color("4a3626"), "chimney": Color("8c8174"),
 	"tsuiji": Color("d2b06a"), "temple_gate": Color("5a3a26"), "station": Color("8a8680"), "rails": Color("6e6e72"), "bridge": Color("8a6440"),
 	"counter": Color("4a3424"), "shelf": Color("6a4a30"), "rice_sacks": Color("d8c088"),
 	"forge": Color("7a746c"), "anvil": Color("2a2a2e"), "tool_rack": Color("8a6a48"), "water_tub": Color("2a4a5a"), "river_rock": Color("6e6a62"), "garden_rock": Color("6a675f"), "shrub": Color("3f6e2e"), "ferry_boat": Color("8a6440"), "landing": Color("9a7650"), "cloth_rack": Color("2f5a96"), "koinobori": Color("8e8a82"),
@@ -333,6 +333,26 @@ static func draw_foot_bath_roof(c: CanvasItem, r: Rect2) -> void:
 	c.draw_rect(Rect2(r.position.x - 1, floorf(r.get_center().y) - 1, r.size.x + 2, 2), Color(0.24, 0.17, 0.12, 0.7))
 
 
+## The public bath's chimney (Yumachi, BathProps.chimney in 3D) standing up from its cell `r`
+## (pixels) like the trees' pictures, its foot on the cell's lower half: a stone plinth, a
+## tapering shaft of weathered render with dark iron bands, a sooty lip with a dark mouth, lit
+## from the upper left (a lighter left edge).
+static func draw_chimney(c: CanvasItem, r: Rect2) -> void:
+	var cx := floorf(r.get_center().x)
+	var foot := r.end.y - 3
+	var tall := 40.0
+	c.draw_rect(Rect2(cx - 6, foot - 4, 12, 4), Color("9a968e"))
+	c.draw_rect(Rect2(cx - 6, foot - 4, 12, 1), Color("b4b0a8"))
+	var shaft := PackedVector2Array([Vector2(cx - 5, foot - 4), Vector2(cx + 5, foot - 4), Vector2(cx + 3, foot - tall), Vector2(cx - 3, foot - tall)])
+	c.draw_colored_polygon(shaft, Color("8c8174"))
+	c.draw_line(Vector2(cx - 4.5, foot - 4), Vector2(cx - 2.5, foot - tall), Color("a59a8c"), 1.0)   # the lit edge
+	for y in [12.0, 23.0, 33.0]:
+		var half := lerpf(5.0, 3.0, (y - 4.0) / (tall - 4.0)) + 0.5
+		c.draw_rect(Rect2(cx - half, foot - y, half * 2, 2), Color("37302b"))
+	c.draw_rect(Rect2(cx - 4, foot - tall - 3, 8, 3), Color("2a2522"))
+	c.draw_rect(Rect2(cx - 2, foot - tall - 3, 4, 1), Color("100c0a"))
+
+
 func _draw_objects() -> void:
 	if not map.indoor:   # over the water's moving skin, under the props
 		draw_banks(_objects, map.w, map.h, func(c: Vector2i) -> bool: return map.tile(c) == "water" and not map.look(c) in PondShape.LOOKS)   # a soft pond has its own sloping bank
@@ -380,6 +400,9 @@ func _draw_objects() -> void:
 			continue
 		if p.kind == "ashiyu_roof":
 			draw_foot_bath_roof(_objects, r)
+			continue
+		if p.kind == "chimney":
+			draw_chimney(_objects, r)
 			continue
 		var fill: Color = COLORS.get(p.kind, Color.MAGENTA)
 		if p.kind == "water_tub" and p.has("color"):   # a tub of its own water (Shino's indigo vats)

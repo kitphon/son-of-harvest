@@ -1,5 +1,5 @@
 {
-	"_note": "Where the outdoor maps lie on one plan of the valley (2026-11-14), in cells: each map's top-left corner, the village (town) at [0, 0]. Neighbours meet edge to edge, and a way across (a door on or off a map's edge) lines up cell for cell with the door back on the other side: the farm west of the village (its gate, rows 4-5 there), the river upstream in its gorge west of it too (rows 24-25, the water joining rows 26-29), Kaminoda north up the main street, the bamboo hill north of Kaminoda, Sakurazaka east (rows 16-17) and the mine east of it, Minamino south over the bridge. test_maps `_world` checks it; tools/map_overview.gd `--world` draws it. The rooms are not on it.",
+	"_note": "Where the outdoor maps lie on one plan of the valley (2026-11-14), in cells: each map's top-left corner, the village (town) at [0, 0]. Neighbours meet edge to edge, and a way across (a door on or off a map's edge) lines up cell for cell with the door back on the other side: the farm west of the village (its gate, rows 4-5 there), the river upstream in its gorge west of it too (rows 24-25, the water joining rows 26-29), Kaminoda north up the main street, the bamboo hill north of Kaminoda, Sakurazaka east (rows 16-17) and the mine east of it, Minamino south over the bridge, Yumachi (the bath lane, 2026-11-22) east of the village below Sakurazaka (rows 29-30). test_maps `_world` checks it; tools/map_overview.gd `--world` draws it. The rooms are not on it.",
 	"maps": {
 		"town": [0, 0],
 		"farm": [-32, -1],
@@ -8,13 +8,14 @@
 		"hill": [33, -50],
 		"sakurazaka": [56, 6],
 		"mine": [86, 9],
-		"minamino": [37, 48]
+		"minamino": [37, 48],
+		"yumachi": [56, 26]
 	},
 	"waters": {
-		"_note": "Where the water that runs off the maps goes (2026-11-15; WorldPlan). Every stream of water on a map's edge with no map across it is listed by `<map>:<edge>`: `goes` `up` (to its source past the plan) or `down` (out of the valley), or `meets` another such stream: both carried straight on cross in the gap between the maps, on no map. Sakurazaka's creek runs south down past Ichiro's kiln and falls into the village's river where it flows on east past the long bridge (plan x 70-71, rows 37-42). test_maps `_world` checks every off-map stream is here and that a meeting meets; map_overview `--world` draws them in the gaps.",
+		"_note": "Where the water that runs off the maps goes (2026-11-15; WorldPlan). Every stream of water on a map's edge with no map across it is listed by `<map>:<edge>`: `goes` `up` (to its source past the plan) or `down` (out of the valley), or `meets` another such stream: both carried straight on cross in the gap between the maps, on no map. Sakurazaka's creek runs south down past Ichiro's kiln and falls into the village's river where it flows on east past the long bridge (plan x 70-71, rows 37-42), past the east edge of Yumachi, the bath lane (2026-11-22), which the river runs on through below the village. test_maps `_world` checks every off-map stream is here and that a meeting meets; map_overview `--world` draws them in the gaps.",
 		"river:west": {"goes": "up"},
 		"sakurazaka:north": {"goes": "up"},
-		"sakurazaka:south": {"meets": "town:east"},
-		"town:east": {"goes": "down"}
+		"sakurazaka:south": {"meets": "yumachi:east"},
+		"yumachi:east": {"goes": "down"}
 	}
 }

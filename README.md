@@ -254,7 +254,11 @@ Fumi's Hanami teahouse, `teahouse`, and Ichiro the charcoal burner's house, `ich
 Minamino
 between the village's bridge and the river (`minamino`: vegetable gardens behind a board
 fence, a well, a roadside water shrine, Kiku's persimmon orchard; Shige and Nana's house,
-`shige_house`, and Kiku's, `kiku_house`), Nishiki Hill above Kaminoda (`hill`, the valley's cherry and maple viewing spot since 2026-11-17: a switchback path between
+`shige_house`, and Kiku's, `kiku_house`), Yumachi east of the village below Sakurazaka (`yumachi`, the bath lane, 2026-11-22:
+the village's path along rows 29-30 runs on into it to Kawasemi-yu, the public bath (a two-storey house with a noren, its door
+only speaking until the bath opens inside; a `chimney` prop at its east wall's front corner, BathProps in 3D and MapView.draw_chimney
+flat, firewood behind it), a little garden and a gravel walk along the river, which runs on through it; the walk is a viewpoint,
+`yumachi_walk` in data/vista.json, where the camera eases up to the chimney and the mountains: `--demo --map=yumachi@8,10 --vista`), Nishiki Hill above Kaminoda (`hill`, the valley's cherry and maple viewing spot since 2026-11-17: a switchback path between
 `sakura`, `maple` and `ginkgo` trees of mixed sizes (a prop's `scale`), pink in spring and red and gold in fall, no cliff and no pines (a band of trees closes its top), a small `bamboo` stand left at its foot, to a lookout with a
 little shrine; its view (its own line in spring, fall and winter) and shrine can be examined). Countryside props (CountryProps, both
 views): `well`, `jizo`, `persimmon` and `sakura` (their leaves follow the season), `hasa` (a

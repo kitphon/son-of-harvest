@@ -942,6 +942,7 @@ func _process(delta: float) -> bool:
 		_plain_ponds()
 		_place_names()
 		_world()
+		_yumachi()
 		_sunken_water()
 		_story_props()
 		_ferry_boat()
@@ -1336,7 +1337,7 @@ func _dead_ends(Surroundings: GDScript) -> void:
 	check(ok, "a thicket closing it (%d cells), off the map, behind it, never on the water" % t.size())
 	check([3, 4, 5].all(func(y: int) -> bool: return range(-taper - 3, -taper + 3).any(func(x: int) -> bool: return t.has(Vector2i(x, y)))), "across the path's rows and beside them, where it ends")
 	check(not g.has(Vector2i(river.w, 4)) and not g.has(Vector2i(river.w + 5, 5)), "the path east to the village (its door) runs on")
-	for id in ["town", "farm", "kaminoda", "hill", "sakurazaka", "minamino"]:
+	for id in ["town", "farm", "kaminoda", "hill", "sakurazaka", "minamino", "yumachi"]:
 		var m := MapManager.data(id)
 		var mk := func(c: Vector2i) -> String: return m.tile(c)
 		check((Surroundings.dead_ends(mk, m.w, m.h, ways_of.call(m)).grass as Dictionary).is_empty(), "%s: every path off an edge leads through a door and runs on" % id)
@@ -2036,11 +2037,11 @@ func _backdrop() -> void:
 	var cfg: Dictionary = Backdrop.config()
 	var rim: int = Backdrop.rim()
 	var listed := true
-	for id in ["farm", "town", "hill", "kaminoda", "sakurazaka", "minamino", "river"]:
+	for id in ["farm", "town", "hill", "kaminoda", "sakurazaka", "minamino", "river", "yumachi"]:
 		listed = listed and Backdrop.on_map(id) and MapManager.data(id) != null
 	for id in ["house", "mine", "mine_floor", "store", "clinic"]:
 		listed = listed and not Backdrop.on_map(id)
-	check(listed, "the far country on the seven outdoor maps, not in rooms, the mine or its cave mouth")
+	check(listed, "the far country on the eight outdoor maps, not in rooms, the mine or its cave mouth")
 	check(rim > 0 and rim < Surroundings.MARGIN and Backdrop.rim_pines() < Surroundings.TREE_SHARE and cfg.layers.size() >= 2,
 		"the land stops %d cells past the back edges, a thinner wood on the rim" % rim)
 	var town := MapManager.data("town")
@@ -4847,9 +4848,57 @@ func _arashiyama_town() -> void:
 ## for cell with the way back (a door off or on a map's edge to its neighbour), it leads to an open
 ## cell near where it comes out, and water meets water along the edges where two maps touch
 ## (the river upstream joining the village's), the farm's fence aside.
+## Yumachi, the bath lane east of the village (2026-11-22, Baths step 1; docs/DESIGN.md →
+## ที่อาบน้ำ): on the plan below Sakurazaka, the village's path running on into it, the river on
+## through it, the bath's front at the end of the path.
+func _yumachi() -> void:
+	var t := MapManager.data("town")
+	var y := MapManager.data("yumachi")
+	check(y != null and not y.indoor and Vector2i(y.w, y.h) == Vector2i(14, 22) and y.name == "Yumachi", "Yumachi is an outdoor map, 14 x 22")
+	check(WorldPlan.places().get("yumachi", Vector2i(-99, -99)) == Vector2i(56, 26), "it lies at [56, 26] on the plan: east of the village, below Sakurazaka")
+	var east: Dictionary = t.door_at(Vector2i(56, 29))
+	check(east.get("to", "") == "yumachi" and t.door_at(Vector2i(56, 30)) == east and t.tile(Vector2i(55, 29)) == "path" and t.tile(Vector2i(55, 30)) == "path",
+		"the village's path along rows 29-30 runs on to its east edge and into Yumachi")
+	var reach := _walkable(y, y.spawns.start[0])
+	check(y.door_at(Vector2i(-1, 3)).get("to", "") == "town" and reach.has(Vector2i(0, 3)), "the way back west to the village")
+	var rows_wet := true
+	for ry in range(11, 17):
+		for rx in y.w:
+			rows_wet = rows_wet and y.tile(Vector2i(rx, ry)) == "water" and t.tile(Vector2i(55, ry + 26)) == "water"
+	check(rows_wet and y.tile(Vector2i(0, 10)) != "water" and y.tile(Vector2i(0, 17)) != "water", "the village's river runs on through it (rows 11-16, the plan's 37-42)")
+	var house: Array = y.props.filter(func(p): return p.kind == "village_house")
+	check(house.size() == 1 and bool(house[0].get("noren", false)) and int(house[0].get("storeys", 1)) == 2, "the bath: one two-storey house with a noren")
+	var door := Vector2i(house[0].cell) + Vector2i(int(house[0].door), int(house[0].size[1]) - 1)
+	var front: Dictionary = y.door_at(door)
+	check(not front.is_empty() and str(front.message) != "" and str(front.to) == "" and reach.has(door + Vector2i.DOWN) and y.tile(door + Vector2i.DOWN) == "path",
+		"its door at the end of the path, speaking until the bath opens inside")
+	check(y.spawns.sento[0] == door + Vector2i.DOWN and reach.has(y.spawns.river[0]), "spawns before the door and on the river walk, both walkable")
+	var stack: Array = y.props.filter(func(p): return p.kind == "chimney")
+	check(stack.size() == 1 and y.is_solid(Vector2i(stack[0].cell)) and MapView.COLORS.has("chimney"), "the bath's chimney: one, solid, with a flat colour")
+	var chimney_cell := Vector2i(stack[0].cell)
+	var house_rect := Rect2i(Vector2i(house[0].cell), Vector2i(house[0].size))
+	check(chimney_cell.x == house_rect.end.x + 1 and chimney_cell.y == house_rect.end.y - 1, "the chimney stands by the house's east wall at its front corner, where the play camera sees it")
+	var zone: Dictionary = y.zone_at(Vector2i(7, 5))
+	check(zone.get("name", "") == "Kawasemi-yu", "in front of it the bath's name comes up (%s)" % zone.get("name", ""))
+	# 3D: the chimney rises well over the two-storey roof; flat: it stands up from its cell.
+	var w: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	root.add_child(w)
+	var before := w.get_child_count()
+	(load("res://scripts/world3d/bath_props.gd") as GDScript).chimney(w, Vector3(0.5, 0, 0.5), true)   # loaded: it needs Game
+	var top := 0.0
+	for i in range(before, w.get_child_count()):
+		var mi := w.get_child(i) as MeshInstance3D
+		if mi != null and mi.mesh != null:
+			top = maxf(top, mi.get_aabb().end.y)
+	check(w.get_child_count() - before >= 5 and top >= LitSpots.UPPER_TOP + 1.5, "the chimney's parts built, its top %.2f over the roof's" % top)
+	w.free()
+	var mv_src := FileAccess.get_file_as_string("res://scripts/world/map_view.gd")
+	check("p.kind == \"chimney\"" in mv_src and "func draw_chimney" in mv_src, "the flat view draws it standing up from its cell")
+
+
 func _world() -> void:
 	var plan: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/world.json")).maps
-	check(plan.size() == 8 and plan.has("town") and Vector2i(plan.town[0], plan.town[1]) == Vector2i.ZERO, "the plan has the village at its middle and its seven neighbours")
+	check(plan.size() == 9 and plan.has("town") and Vector2i(plan.town[0], plan.town[1]) == Vector2i.ZERO, "the plan has the village at its middle and its eight neighbours")
 	var at := func(id: String) -> Vector2i: return Vector2i(int(plan[id][0]), int(plan[id][1]))
 	var ids: Array = plan.keys()
 	for i in ids.size():
@@ -4952,7 +5001,7 @@ func _world() -> void:
 				for x in range(r.position.x, r.end.x):
 					on_none = on_none and WorldPlan.owner(Vector2i(x, y), places) == ""
 			check(r.has_area() and on_none, "%s and %s meet in the gap, on no map (%s)" % [key, waters[key].meets, r])
-	var creek := WorldPlan.meeting(WorldPlan.run_of(runs, "sakurazaka:south"), WorldPlan.run_of(runs, "town:east"))
+	var creek := WorldPlan.meeting(WorldPlan.run_of(runs, "sakurazaka:south"), WorldPlan.run_of(runs, "yumachi:east"))   # past the bath lane's east edge since 2026-11-22
 	check(creek == Rect2i(70, 37, 2, 6), "the creek falls into the river at plan x 70-71, rows 37-42 (%s)" % creek)
 
 

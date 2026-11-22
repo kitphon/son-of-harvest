@@ -10,6 +10,40 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-22 — Baths step 1: Yumachi, the bath lane east of the village, and the bath's front
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a new outdoor map `yumachi` (data/maps/yumachi.json, 14 x 22) at plan [56, 26]
+  (data/world.json), below Sakurazaka and west of its creek. The village's path along rows 29-30
+  runs on to the east edge (town x 55 now path) and through a new door (56, 29-30) into it; back
+  west at rows 3-4. The path goes down the lane at x 2-3 and east along row 5 to Kawasemi-yu, the
+  public bath: a two-storey hip-roofed village house with an indigo noren (rows 2-4), its door
+  (7, 4) only a message until the bath opens inside (step 2). A new prop `chimney` (BathProps in
+  3D: a stone plinth, a tapering shaft, iron bands, a sooty lip, 5.2 high; MapView.draw_chimney
+  standing up from its cell in the flat view; an examine line) at the house's east front corner,
+  firewood behind it; a garden, a gravel walk along the north bank, the village's river running
+  on through rows 11-16 (plan 37-42) and out of the east edge, the south bank's grass and trees.
+  The map runs down to plan row 47 so the river does not end on its bottom edge.
+  - Water plan: `town:east` became `yumachi:east` (goes down); the creek `sakurazaka:south` now
+    meets it (still at plan x 70-71, rows 37-42).
+  - On the backdrop and vista maps lists; a viewpoint `yumachi_walk` on the river walk (rows 9-10):
+    the camera eases up and the chimney, the bath and Ogura show (the play camera never could:
+    the chimney first stood at the house's back, out of every frame; it moved to the front corner,
+    and a cherry moved off the line from the way in).
+  - Zone "Kawasemi-yu" along row 5; Thai for the names and both messages.
+  - Tests: test_maps `_yumachi` (the place, the door pair and path, the river on through, the
+    house, its speaking door, spawns, the chimney: one, solid, at the front corner, built in 3D
+    over the roof, drawn flat, the zone); the plan's count 9 and the creek's meeting with
+    yumachi:east; Yumachi in the dead-ends and backdrop lists; test_vista's far river from the
+    river map now ends at the creek's corridor east of Yumachi instead of the village's edge.
+- Checked: all 45 tests/test_*.gd print `OK (0 failed)`. Smoke runs (`--quit-after 300`: title,
+  `--demo`, town, mine 3, `yumachi@sento`, `town@53,29 --walk=right:1.5`): 0 ERROR lines; windowed
+  `--quit-after 150 -- --demo --map=yumachi@8,10`: exit 0. Frames: `yumachi@sento`,
+  `yumachi@10,8`, `yumachi@8,10 --vista` (the chimney and the mountains), the flat view at
+  `yumachi@sento` (the chimney stands up beside the roof), `town@52,29 --walk=right:2` (arrives in
+  Yumachi; the bath house turns see-through in front of him there, as houses do).
+- Left / next: step 2, the bath inside; first the user's call on the bath rooms (the farmer has no
+  set gender, docs/STYLE_EN.md, so "men's and women's baths" needs rethinking: DESIGN notes it).
+
 ## 2026-11-22 — The bath plan: a sento east of the village and a rotenburo up the gorge
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: planning only, no game code. The user asked for both a public bath (sento) and an

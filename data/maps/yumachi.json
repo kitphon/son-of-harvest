@@ -1,0 +1,70 @@
+{
+	"_note": "Yumachi, the bath lane east of the village (added 2026-11-22, Baths step 1; docs/DESIGN.md → ที่อาบน้ำ, the user's pick docs/plans/bath_places.webp): on the valley's plan at [56, 26], below Sakurazaka and west of its creek, which runs on past the east edge and falls into the river off the map (data/world.json `waters`). The village's path along rows 29-30 runs on through the west edge (rows 3-4 here), down the lane at x 2-3 and east along row 5 to the door of Kawasemi-yu, the public bath (a two-storey village house with a hip roof and an indigo noren; its tall chimney at its east wall's front corner, where the play camera sees it rise over the lane (one at the back stood out of the frame), the firewood stacked behind it); its door only speaks until the bath opens inside (Baths step 2). The lane runs on down past a little garden to a gravel walk along the river's north bank (rows 9-10); the village's river runs on along rows 11-16 (plan rows 37-42) and out of the east edge, the south bank grass and pines (rows 17-21) as in the village across the bridge. Format: README.md, Maps.",
+	"id": "yumachi",
+	"name": "Yumachi",
+	"size": [14, 22],
+	"indoor": false,
+	"ambient": "outdoor",
+	"legend": {
+		"g": {"tile": "grass"},
+		"r": {"tile": "path"},
+		"s": {"tile": "gravel"},
+		"w": {"tile": "water", "solid": true}
+	},
+	"ground": [
+		"gggggggggggggg",
+		"gggggggggggggg",
+		"gggggggggggggg",
+		"rrrrgggggggggg",
+		"rrrrgggggggggg",
+		"ggrrrrrrrrrrgg",
+		"ggrrgggggggggg",
+		"ggrrgggggggggg",
+		"ggrrgggggggggg",
+		"ggsssssssssssg",
+		"ggsssssssssssg",
+		"wwwwwwwwwwwwww",
+		"wwwwwwwwwwwwww",
+		"wwwwwwwwwwwwww",
+		"wwwwwwwwwwwwww",
+		"wwwwwwwwwwwwww",
+		"wwwwwwwwwwwwww",
+		"gggggggggggggg",
+		"gggggggggggggg",
+		"gggggggggggggg",
+		"gggggggggggggg",
+		"gggggggggggggg"
+	],
+	"props": [
+		{"kind": "village_house", "cell": [4, 2], "size": [6, 3], "door": 3, "noren": true, "roof": "hip", "storeys": 2},
+		{"kind": "chimney", "cell": [11, 4], "use": "examine", "message": "The bathhouse chimney, tall and sooty. No smoke yet."},
+		{"kind": "woodpile", "cell": [11, 2], "size": [2, 1]},
+		{"kind": "woodpile", "cell": [11, 3], "size": [2, 1]},
+		{"kind": "stone_lantern", "cell": [3, 2]},
+		{"kind": "stone_lantern", "cell": [10, 4]},
+		{"kind": "maple", "cell": [1, 1]},
+		{"kind": "pine", "cell": [0, 7]},
+		{"kind": "sakura", "cell": [4, 8]},
+		{"kind": "garden_rock", "cell": [9, 7], "shape": "flat"},
+		{"kind": "shrub", "cell": [7, 8]},
+		{"kind": "maple", "cell": [11, 7]},
+		{"kind": "shrub", "cell": [12, 8]},
+		{"kind": "pine", "cell": [1, 18]},
+		{"kind": "sakura", "cell": [5, 18]},
+		{"kind": "pine", "cell": [9, 18]},
+		{"kind": "pine", "cell": [12, 19]},
+		{"kind": "sakura", "cell": [3, 20]}
+	],
+	"doors": [
+		{"cells": [[-1, 3], [-1, 4]], "to": "town", "spawn": [54, 29], "facing": "left"},
+		{"cells": [[7, 4]], "message": "Kawasemi-yu isn't open yet. Through the door, someone is scrubbing the tubs."}
+	],
+	"zones": [
+		{"id": "sento", "name": "Kawasemi-yu", "cell": [4, 5], "size": [8, 1]}
+	],
+	"spawns": {
+		"start": [[1, 3], "right"],
+		"sento": [[7, 5], "up"],
+		"river": [[6, 9], "down"]
+	}
+}
