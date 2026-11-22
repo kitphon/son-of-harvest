@@ -1,0 +1,71 @@
+{
+	"_note": "Masa keeps Kawasemi-yu, the public bath in Yumachi (2026-11-22, Baths step 2b; docs/DESIGN.md → ที่อาบน้ำ), as she has since she and her late husband took it over; she lives in its back rooms. Late mornings she feeds the boiler and stacks firewood by the chimney (Yumachi's woodpile, 11:00-13:20, not on wet days), then from 13:30 she sits at the lobby counter (the sento map's keeper spot, so talking to her there opens the shop: data/shops.json sento keeper) until closing at 23:00; away before and after. Thursdays the bath is shut: on a dry one she sits by the river walk in Yumachi 10:00-15:00, on a wet one she stays in. On festival days the bath is shut too and she walks down to the village like everyone else. She is a villager without hearts (hearts false, like Dr. Yae: no birthday, heart events or place in the village record); talking and gifts still count. Gifts: cold milk, warm sweet things, miso soup, a fan for the steam; no muddy clay, bony loach or grilled fish (the smell gets into the steam). Format: README.md, Villagers.",
+	"id": "masa",
+	"name": "Masa",
+	"hearts": false,
+	"speed": 1.1,
+	"look": {"build": "elder", "outfit": "happi", "hair_style": "bun", "hair": "c8c4bc", "skin": "e0aa80", "top": "35577a", "waist": "e8e2d0", "lower": "3a3430", "accent": "e8e2d0", "shoes": "4a3a30"},
+	"rules": [
+		{"if": {"festival": ["blossom_day"]}, "plan": "festival_day"},
+		{"if": {"festival": ["lantern_night"]}, "plan": "festival_lantern"},
+		{"if": {"festival": ["moon_night"]}, "plan": "festival_moon"},
+		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
+		{"if": {"weekday": ["thu"], "weather": ["rain", "storm", "snow"]}, "plan": "off_wet"},
+		{"if": {"weekday": ["thu"]}, "plan": "off"},
+		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
+	],
+	"default": "usual",
+	"gifts": {
+		"love": ["milk", "food:zenzai", "food:miso_soup", "keep:paper_fan"],
+		"like": ["food:green_tea", "food:dango", "egg", "turnip", "mine:suisho"],
+		"dislike": ["fish:dojo", "food:grilled_fish", "mine:clay"],
+		"hate": ["mine:stone"]
+	},
+	"plans": {
+		"usual": [
+			{"at": "06:00", "map": "away"},
+			{"at": "11:00", "map": "yumachi", "from": [7, 5], "route": [{"to": [13, 5]}, {"to": [13, 3]}, {"face": "left"}]},
+			{"at": "13:15", "map": "yumachi", "route": [{"to": [13, 5]}, {"to": [7, 5]}, {"face": "up"}]},
+			{"at": "13:30", "map": "sento", "from": [4, 2], "route": [{"face": "down"}]},
+			{"at": "23:00", "map": "away"}
+		],
+		"wet": [
+			{"at": "06:00", "map": "away"},
+			{"at": "13:30", "map": "sento", "from": [4, 2], "route": [{"face": "down"}]},
+			{"at": "23:00", "map": "away"}
+		],
+		"off": [
+			{"at": "06:00", "map": "away"},
+			{"at": "10:00", "map": "yumachi", "from": [7, 5], "route": [{"to": [3, 5]}, {"to": [3, 9]}, {"to": [8, 9]}, {"face": "down"}]},
+			{"at": "15:00", "map": "yumachi", "route": [{"to": [3, 9]}, {"to": [3, 5]}, {"to": [7, 5]}, {"face": "up"}]},
+			{"at": "15:20", "map": "away"}
+		],
+		"off_wet": [
+			{"at": "06:00", "map": "away"}
+		],
+		"festival_day": [
+			{"at": "06:00", "map": "away"},
+			{"at": "09:40", "map": "town", "from": [55, 29], "route": [{"to": [39, 29]}, {"to": [39, 34]}, {"face": "left"}]},
+			{"at": "15:50", "map": "town", "route": [{"to": [39, 29]}, {"to": [55, 29]}]},
+			{"at": "16:15", "map": "away"}
+		],
+		"festival_lantern": [
+			{"at": "06:00", "map": "away"},
+			{"at": "16:40", "map": "town", "from": [55, 29], "route": [{"to": [39, 29]}, {"to": [39, 34]}, {"to": [37, 34]}, {"face": "down"}]},
+			{"at": "22:00", "map": "town", "route": [{"to": [39, 34]}, {"to": [39, 29]}, {"to": [55, 29]}]},
+			{"at": "22:25", "map": "away"}
+		],
+		"festival_moon": [
+			{"at": "06:00", "map": "away"},
+			{"at": "17:40", "map": "town", "from": [55, 29], "route": [{"to": [39, 29]}, {"to": [39, 23]}, {"to": [35, 23]}, {"to": [35, 22]}, {"to": [27, 22]}, {"to": [27, 25]}, {"to": [28, 25]}, {"face": "left"}]},
+			{"at": "23:00", "map": "town", "route": [{"to": [27, 25]}, {"to": [27, 22]}, {"to": [35, 22]}, {"to": [35, 23]}, {"to": [39, 23]}, {"to": [39, 29]}, {"to": [55, 29]}]},
+			{"at": "23:40", "map": "away"}
+		],
+		"festival_year": [
+			{"at": "06:00", "map": "away"},
+			{"at": "18:40", "map": "town", "from": [55, 29], "route": [{"to": [39, 29]}, {"to": [39, 23]}, {"to": [35, 23]}, {"to": [35, 22]}, {"to": [27, 22]}, {"to": [27, 26]}, {"to": [26, 26]}, {"face": "up"}]},
+			{"at": "22:50", "map": "town", "route": [{"to": [27, 26]}, {"to": [27, 22]}, {"to": [35, 22]}, {"to": [35, 23]}, {"to": [39, 23]}, {"to": [39, 29]}, {"to": [55, 29]}]},
+			{"at": "23:50", "map": "away"}
+		]
+	}
+}

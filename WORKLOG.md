@@ -10,6 +10,38 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-22 — Baths step 2b: Masa, the bath's keeper
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a new villager, Masa (data/villagers/masa.json), an old woman who has kept Kawasemi-yu
+  since she and her late husband took it over (he painted the mountain on the bath wall). No
+  hearts, like Dr. Yae (no birthday, heart events or record page); talk and gifts count.
+  - Day plans: `usual` the woodpile behind the chimney in Yumachi (13, 3) 11:00-13:15, the
+    counter (sento keeper spot) 13:30-23:00, away otherwise; `wet` the counter only; `off`
+    (Thursdays, the bath shut) by the river walk (8, 9) 10:00-15:00; `off_wet` in; four festival
+    plans down the Yumachi lane into the village to free cells near each festival's place
+    (39, 34), (37, 34), (28, 25), (26, 26), found with a scratch script that listed the cells
+    no one else stands on at the tests' festival hours.
+  - data/shops.json sento: keeper masa, her ask, an `away` note on the counter.
+  - Talk (data/dialogue/talk_masa.json): first meeting, again, the four festivals, her day off,
+    wet days, the firewood hours, near closing, summer, winter, plain lines, gift answers (a
+    paper fan her own), dishes; data/dialogue/speakers.json her portrait; data/whistles.json her
+    own tune (96 bpm, ten steps).
+  - Thai for every line, her name, the ask and the note (data/lang/th/dialogue.json: rewritten
+    with one indent style, so eleven lines with a single tab moved to two).
+  - test_baths `_keeper`; the villagers, talk, festival, audio and language tests take her in
+    with the others (every villager file, every festival's crowd, every whistle).
+  - The full run caught three more: the record's Neighbors category now has steps [1, 2]
+    (data/ending.json: the top step is everyone without hearts, now Yae and Masa); her gifts
+    gained a loved dish (miso soup) and a disliked one (grilled fish, the smell in the steam);
+    her counter's words moved to the ui table with single quotes in the Thai (the font has no
+    straight double quote glyph there).
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)`. Smoke runs (`--quit-after 300`: title,
+  `--demo`, town, mine 3, `sento@counter --time=15:00`, `yumachi@sento --time=12:00`): 0 ERROR
+  lines; windowed `--quit-after 150 -- --demo --map=sento@counter --time=15:00`: exit 0. Frames:
+  Masa behind the counter at 15:00; `--talk=masa` opens her ask with Buy / Talk / Never mind and
+  her portrait.
+- Left / next: step 3 villagers' evening baths and their lines; step 4 Kajika-yu.
+
 ## 2026-11-22 — A smaller changing room
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user found the changing room too big: `sento_changing` is 7 x 6 now (5 x 4 inside,

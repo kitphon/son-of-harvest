@@ -43,6 +43,7 @@ func _run() -> void:
 	_data()
 	_map()
 	_changing()
+	_keeper()
 	_entry()
 	_bath()
 	_pose()
@@ -213,6 +214,33 @@ func _changing() -> void:
 	g.message.disconnect(hear)
 	g.new_game()
 	g.clock_running = false
+
+
+## Masa, the bath's keeper (data/villagers/masa.json): at the counter through the opening hours,
+## at the woodpile by the chimney late in the morning, by the river on a dry Thursday, in on a wet
+## one, at every festival in the village (the bath shut); no hearts, like Dr. Yae.
+func _keeper() -> void:
+	var v: Dictionary = Villagers.all().get("masa", {})
+	check(not v.is_empty() and v.get("hearts") == false and not v.has("birthday"), "Masa is a villager without hearts")
+	var s: Shop = g.shop("sento")
+	check(s.keeper == "masa" and str(s.own().get("ask", "")) != "" and str(s.own().get("away", "")) != "", "she keeps the sento's counter, asks first, leaves a note when out")
+	var keeper := Vector2(MapManager.data("sento").spawns.keeper[0][0], MapManager.data("sento").spawns.keeper[0][1]) + Vector2(0.5, 0.5)
+	var day := {"year": 1, "season": "spring", "day": 2, "weekday": "tue", "weather": "sunny", "flags": {}, "festival": ""}
+	for t in [14 * 60, 18 * 60, 22 * 60 + 59]:
+		var w := Villagers.where("masa", float(t), day)
+		check(w.map == "sento" and w.pos == keeper, "at the counter at %d:%02d (%s)" % [t / 60, t % 60, w])
+	check(Villagers.where("masa", 600.0, day).map == DayPlan.AWAY and Villagers.where("masa", 23 * 60 + 30.0, day).map == DayPlan.AWAY, "away at 10:00 and 23:30")
+	var wood := Villagers.where("masa", 12 * 60.0, day)
+	check(wood.map == "yumachi" and wood.pos.distance_to(Vector2(13.5, 3.5)) < 0.1, "at noon by the woodpile behind the chimney (%s)" % wood)
+	var wet := day.merged({"weather": "rain"}, true)
+	check(Villagers.where("masa", 12 * 60.0, wet).map == DayPlan.AWAY and Villagers.where("masa", 15 * 60.0, wet).map == "sento", "a wet day: no firewood, the counter all the same")
+	var thu := day.merged({"weekday": "thu", "day": 4}, true)
+	var off := Villagers.where("masa", 12 * 60.0, thu)
+	check(off.map == "yumachi" and off.pos.y > 8.0 and Villagers.where("masa", 15 * 60 + 30.0, thu).map == DayPlan.AWAY, "a dry Thursday: by the river walk, home by half past three (%s)" % off)
+	check(Villagers.where("masa", 12 * 60.0, thu.merged({"weather": "rain"}, true)).map == DayPlan.AWAY, "a wet Thursday: in")
+	check(Talk.pick("masa", {"band": 2, "again": false, "day_number": 0, "time": 15 * 60}.merged(thu, true)) == "day_off", "on her day off she says so")
+	var th := Lang.table("th")
+	check(th.has(str(s.own().ask)) and th.has(str(s.own().away)) and th.has("Masa"), "her counter's words in Thai")
 
 
 ## The door under the shop's hours, and the fee once a day.

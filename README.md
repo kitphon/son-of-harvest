@@ -395,6 +395,11 @@ that one apart too so nobody at the counter sees anyone changing). Indoors, so t
   even indoors); a later one only rests. The baths share one rest a day (`day` "bath",
   Game.bathed_today, saved; the rotenburo will count toward it too), apart from the footbath's own
   (soaked_today).
+- Masa keeps the counter (data/villagers/masa.json, talk_masa.json; no hearts, like Dr. Yae): late
+  mornings at the woodpile behind the chimney in Yumachi (not on wet days), at the counter
+  13:30-23:00, so the milk sells while she is in (her `away` note otherwise); on a dry Thursday by
+  the river walk 10:00-15:00, in on a wet one; at every festival in the village (the bath shut).
+  `--demo --map=sento@counter --time=15:00` stands before her, `--talk=masa` talks to her.
 - 3D: BathProps (`yubune`, `kran`, `milk_fridge`, `basket_shelf`, `bench`, `getabako`,
   `bath_noren`, `bath_mural`, `glass_door`, the steam); flat: BathLook.
 - `--demo --map=sento_changing@change --time=15:00` stands at the baskets (add `--towel` to start in the
