@@ -82,29 +82,35 @@ func _soak() -> void:
 	g.fatigue = 40
 	var r: Dictionary = g.soak()
 	check(r.ok and g.stamina == 50 + int(a.stamina) and g.fatigue == 40 + int(a.fatigue), "the first soak: stamina + %d, fatigue %d" % [int(a.stamina), int(a.fatigue)])
-	check(g.soaked_today and g.soaking() and g.soak_phase == "down" and g.still_pose() == "soak_down" and g.soak_seat() == 0.0, "sitting down: half crouched, still where he stood")
+	check(g.soaked_today and g.soaking() and g.soak_phase == "down" and g.still_pose() == "walk" and g.soak_seat() == 0.0, "sitting down: from where he stood, stepping toward the tub")
 	g._process(float(a.sit_seconds) * 0.5)
 	check(g.soak_amount() > 0.1 and g.soak_amount() < 0.9 and g.soak_seat() > 0.0 and g.soak_seat() < float(a.seat), "half way down: part way onto the seat (%.2f)" % g.soak_amount())
 	g._process(float(a.sit_seconds))
 	check(g.soak_phase == "sit" and g.still_pose() == "soak" and is_equal_approx(g.soak_amount(), 1.0), "sat after %.1f s, the feet in" % float(a.sit_seconds))
-	# Never glided through the rim: the seat is either on the way to the bench or the edge itself,
-	# and the move from one to the other happens with the legs up over the rim (soak_swing).
+	# Eased all the way, never a jump; over the rim only with the legs up (the user found the jumps
+	# and the glide through the rim unnatural): the keys of data/ashiyu.json sit_path.
 	var saved_t: float = g.soak_t
-	var steps: Array = a.sit_steps
-	var between := 0
+	var keys: Array = a.sit_path
+	check(keys.size() >= 5 and float(keys[0][0]) == 0.0 and float(keys[-1][0]) == 1.0 and is_equal_approx(float(keys[-1][1]), float(a.seat)) and is_equal_approx(float(keys[-1][2]), float(a.lift)), "the way from standing to the seat, keyed from 0 to 1")
+	var biggest := 0.0
+	var over_bare := 0
 	var poses := {}
-	for i in 101:
-		g.soak_t = i / 100.0
+	var last: float = 0.0
+	for k in 201:
+		g.soak_t = k / 200.0
 		var x: float = g.soak_seat()
-		if x > float(a.bench) + 0.001 and x < float(a.seat) - 0.001:
-			between += 1
+		biggest = maxf(biggest, absf(x - last))
+		last = x
+		if x > 0.6 and x < 0.8 and not g.still_pose() in ["soak_lift", "soak_swing"]:
+			over_bare += 1   # crossing the rim (0.6 .. 0.8 cells on) with the legs down
 		poses[g.still_pose()] = true
-	g.soak_t = float(steps[1]) - 0.01
-	var swing: String = g.still_pose()
-	var on_bench: float = g.soak_seat()
-	g.soak_t = float(steps[1]) + 0.01
-	check(between == 0 and swing == "soak_swing" and is_equal_approx(on_bench, float(a.bench)) and is_equal_approx(g.soak_seat(), float(a.seat)), "to the bench, the legs over the rim, then the edge: never in between (%d)" % between)
-	check(poses.has("soak_down") and poses.has("soak_swing") and poses.has("soak"), "the half crouch, the legs over, sat")
+	check(biggest < 0.03, "no jump along the way (the biggest step %.3f cells in 1/200 of it)" % biggest)
+	check(over_bare == 0, "across the rim only with the legs lifted (%d)" % over_bare)
+	check(["walk", "soak_down", "soak", "soak_lift", "soak_swing"].all(func(p): return poses.has(p)), "a few steps, bending, sat on the bench, the legs up and over, the feet in (%s)" % [poses.keys()])
+	g.soak_t = 0.5
+	check(not g.feet_in(), "on the bench the feet are not in yet")
+	g.soak_t = 1.0
+	check(g.feet_in(), "sat: the feet in")
 	g.soak_t = saved_t
 	check(said.back() == String(a.message), "says the soak")
 	check(not g.soak().ok, "no second soak while sitting")
@@ -147,7 +153,7 @@ func _soak() -> void:
 
 
 func _pose() -> void:
-	check(FG.frames("soak") == 2 and FG.frames("soak_down") == 1, "the soak pose has two frames, the half crouch one")
+	check(FG.frames("soak") == 2 and FG.frames("soak_down") == 1 and FG.frames("soak_lift") == 1, "the soak pose has two frames, the half crouch and the legs lifting one each")
 	var lifted: Image = PA.image("player:front:soak_swing:0")
 	check(lifted.get_used_rect().end.y < PA.image("player:front:soak:0").get_used_rect().end.y, "the legs lifted over the rim (soak_swing) end higher than sat")
 	var crouch: Image = PA.image("player:front:soak_down:0")

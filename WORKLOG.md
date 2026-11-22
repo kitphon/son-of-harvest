@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-22 — The footbath: sitting down as one eased movement of seven keys
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user found the sitting down jerky and unnatural and asked for more movement. The way
+  down is now keys in data/ashiyu.json `sit_path` ([t, seat, lift, pose], `sit_path_back` from
+  behind) eased per stretch (Game._soak_path: smoothstep between keys, so never a jump; the pose of
+  the key a stretch starts from: Game.still_pose): a few steps toward the tub (walk), bending
+  (soak_down), sat on the bench behind the rim (soak), the legs lifting (soak_lift, new), swung
+  up over the rim as he moves to its edge (soak_swing, the legs higher), coming down (soak_lift),
+  the feet in (soak). Over 1.3 s (`sit_seconds`, was 0.8); getting up runs the keys back over 1.0 s.
+  He walks from where he stood onto the seat cell up to `step_until` (0.3). The flat view's water
+  band shows from `feet_in` (0.92, Game.feet_in) on, not while on the bench. `bench`, `bench_lift`
+  and `sit_steps` are gone.
+- Checked: test_ashiyu (the keys run 0 to 1 and end on `seat` / `lift`; along 200 steps of the way
+  no step moves the seat more than 0.03 cells; across the rim (0.6-0.8 cells on) only in soak_lift
+  or soak_swing; all five poses seen; the feet not in on the bench, in when sat; the legs-lifting
+  pose drawn). Frames: `--map=town@ashiyu --soak=down` frames 6-42 as a strip. All 45
+  tests/test_*.gd print `OK (0 failed)`; smoke runs (`--quit-after 300`: title, `--demo`, town,
+  mine 3, town@ashiyu --soak=down): 0 ERROR lines; windowed `--quit-after 150 -- --demo
+  --map=town@ashiyu --soak=down`: exit 0.
+- Left / next: the user's look.
+
 ## 2026-11-22 — The footbath: onto the bench, the legs over the rim, then the feet in
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user saw the farmer's body glide slowly through the tub on sitting down and asked

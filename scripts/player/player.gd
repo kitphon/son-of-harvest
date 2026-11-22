@@ -127,7 +127,7 @@ func _physics_process(delta: float) -> void:
 		if Game.soaking():
 			if Game.soak_at != Vector2i(-1, -1):   # onto the seat, facing the tub: a step over in the first half of sitting down
 				var seat := (Vector2(Game.soak_at) + Vector2(0.5, 0.5)) * T
-				var step := clampf(Game.soak_t / float(Game.ashiyu.get("sit_steps", [0.45])[0]), 0.0, 1.0) if Game.soak_phase == "down" else 1.0
+				var step := clampf(Game.soak_t / maxf(float(Game.ashiyu.get("step_until", 0.3)), 0.01), 0.0, 1.0) if Game.soak_phase == "down" else 1.0
 				position = Game.soak_from.lerp(seat, smoothstep(0.0, 1.0, step)) if Game.soak_from != Vector2.ZERO else seat
 				facing = Game.soak_facing
 			if Input.is_action_just_pressed("interact") and Game.soak_phase != "up":
@@ -354,7 +354,7 @@ const SOAK_DEPTH := 3   # pixels of the legs under the water: the feet and the s
 
 
 func _draw() -> void:
-	if Game.still_pose() == "soak" and not FarmerAnim.is_back(facing):   # sat (from behind the feet are in front of him, out of sight)
+	if Game.feet_in() and not FarmerAnim.is_back(facing):   # the feet in the water (from behind they are in front of him, out of sight)
 		var at := soak_offset() + Vector2(-6, 2 - SOAK_DEPTH)
 		draw_rect(Rect2(at, Vector2(12, SOAK_DEPTH)), SOAK_WATER)
 		draw_rect(Rect2(at, Vector2(12, 1)), SOAK_RIPPLE)

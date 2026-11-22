@@ -2179,18 +2179,36 @@ func soak_seat(back := false) -> float:
 
 
 ## Where the sitting farmer is along the way to the seat, for soak_t now: x the seat (cells toward
-## the tub), y the lift (units). From the front: to the bench behind the rim and sat on it up to
-## sit_steps[0], held there while the legs go over (to sit_steps[1]), then on the edge with the
-## feet in (`seat`, `lift`) — never between the bench and the edge, so he never glides through
-## the rim. From behind: straight onto the rim (`seat_back`, `lift_back`) by sit_steps[0].
+## the tub), y the lift (units), eased between the keys of data/ashiyu.json `sit_path` (from behind
+## `sit_path_back`) so he never jumps; at soak_t 1 the `seat` / `lift` (`seat_back` / `lift_back`).
 func _soak_path(back: bool) -> Vector2:
-	var steps: Array = ashiyu.get("sit_steps", [0.45, 0.72])
-	var e := smoothstep(0.0, 1.0, clampf(soak_t / maxf(float(steps[0]), 0.01), 0.0, 1.0))
-	if back:
-		return Vector2(float(ashiyu.get("seat_back", 0.7)), float(ashiyu.get("lift_back", 0.2))) * e
-	if soak_t < float(steps[1]):
-		return Vector2(float(ashiyu.get("bench", 0.57)), float(ashiyu.get("bench_lift", 0.16))) * e
-	return Vector2(float(ashiyu.get("seat", 0.85)), float(ashiyu.get("lift", 0.17)))
+	var keys := _soak_keys(back)
+	if keys.is_empty():
+		return Vector2(float(ashiyu.get("seat_back" if back else "seat", 0.8)), float(ashiyu.get("lift_back" if back else "lift", 0.0))) * soak_t
+	var i := _soak_key_at(keys)
+	var a: Array = keys[i]
+	if i >= keys.size() - 1:
+		return Vector2(float(a[1]), float(a[2]))
+	var b: Array = keys[i + 1]
+	var u := smoothstep(0.0, 1.0, (soak_t - float(a[0])) / maxf(float(b[0]) - float(a[0]), 0.001))
+	return Vector2(lerpf(float(a[1]), float(b[1]), u), lerpf(float(a[2]), float(b[2]), u))
+
+
+func _soak_keys(back: bool) -> Array:
+	return ashiyu.get("sit_path_back" if back else "sit_path", [])
+
+
+## The key the stretch of the way at soak_t starts from.
+func _soak_key_at(keys: Array) -> int:
+	var i := 0
+	while i < keys.size() - 1 and soak_t >= float(keys[i + 1][0]):
+		i += 1
+	return i
+
+
+## Are the feet in the water now (sat, past data/ashiyu.json `feet_in`; from the front)?
+func feet_in() -> bool:
+	return soaking_now and soak_t >= float(ashiyu.get("feet_in", 0.92))
 
 
 ## How far the sitting farmer is raised in 3D (data/ashiyu.json `lift`, `lift_back` from behind,
@@ -2233,14 +2251,12 @@ func still_pose() -> String:
 		return eat_pose
 	if not soaking():
 		return ""
-	# Half crouched on the way to the bench; the legs going over the rim; sat with the feet in.
-	var steps: Array = ashiyu.get("sit_steps", [0.45, 0.72])
-	if soak_t < float(steps[0]):
-		return "soak_down"
-	var back := soak_facing == Vector2i.UP or soak_facing == Vector2i.LEFT
-	if soak_t < float(steps[1]) and not back:
-		return "soak_swing"
-	return "soak"
+	# The pose of the key this stretch of the way starts from (data/ashiyu.json sit_path): a few steps,
+	# bending, sat on the bench, the legs lifting and swung over the rim, the feet in.
+	var keys := _soak_keys(soak_facing == Vector2i.UP or soak_facing == Vector2i.LEFT)
+	if keys.is_empty():
+		return "soak"
+	return str(keys[_soak_key_at(keys)][3])
 
 
 ## The farmer's pose at the goldfish tub (FarmerAnim): "scoop" while the scoop game is on,
