@@ -10,6 +10,29 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-22 — The bath plan: a sento east of the village and a rotenburo up the gorge
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: planning only, no game code. The user asked for both a public bath (sento) and an
+  open-air bath (rotenburo). Three places to soak, each with its own job: the footbath a quick
+  free rest by day (as it is), the sento the evening meeting place (a fee, a middling rest), the
+  rotenburo the far reward (unlocked, the most rest). The sento and the rotenburo share one bath
+  a day; the footbath stays apart. Places from the user's own pick on the valley plan
+  (docs/plans/bath_places.webp, kept out of the import by a .gdignore): the sento on a new map
+  east of the village at plan [56, 26] by the river, reached by the village's path rows 29-30;
+  the rotenburo on a new map up the gorge at plan [-40, 20], walked to along the north bank
+  from Mio's landing. Rules, numbers and names in docs/DESIGN.md (ที่อาบน้ำ); the steps in
+  ROADMAP.md → Next up.
+  - Balance (ours): sento 120 G (a milk bottle is 100), an hour, stamina +40, fatigue -20;
+    rotenburo free once built, 1.5 h, stamina full, fatigue -30; bed at 22:00 takes about 42
+    fatigue off (data/body.json sleep 10 + 4 an hour), so neither stands in for sleep.
+  - Looked up for the places (2026-11-22, web): Arashiyama's hot spring was drilled in 2003 and
+    opened in 2004 on the south bank by the bridge; the station footbath there has used its water
+    since 2004; no old chimney-style sento in the Arashiyama area; a super sento lies east by
+    Arisugawa; an inn up the gorge is reached only by boat. Facts about real places only; the
+    names and the baths are ours.
+- Checked: docs only; no test or run needed for it. `git status -sb` clean after the commit.
+- Left / next: step 1 of Baths (the Yumachi map and the sento's front).
+
 ## 2026-11-22 — The footbath: sitting down as one eased movement of seven keys
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: the user found the sitting down jerky and unnatural and asked for more movement. The way
