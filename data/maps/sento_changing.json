@@ -1,8 +1,8 @@
 {
-	"_note": "Kawasemi-yu's changing room (2026-11-22, Baths step 2): a map of its own between the lobby (data/maps/sento.json, through the noren in the left wall) and the bath (data/maps/sento_bath.json, through the glass sliding door in the right wall), so the lobby never sees into it (the user's point). `towel` \"allowed\": the farmer may be in a towel here. The shelf of baskets (\"use\": \"change\": E puts the clothes in a basket and wraps a towel round the farmer, E again dresses again; Game.change_clothes), a bench for drying off. The bath's door only lets the farmer through in a towel (`towel`), the lobby's only dressed (`dressed`). The clock stands still in here like in every building. Format: README.md, Maps.",
+	"_note": "Kawasemi-yu's changing room (2026-11-22, Baths step 2): a map of its own between the lobby (data/maps/sento.json, through the noren in the left wall) and the bath (data/maps/sento_bath.json, through the glass sliding door in the right wall), so the lobby never sees into it (the user's point). `towel` \"allowed\": the farmer may be in a towel here. The shelf of baskets (\"use\": \"change\": E puts the clothes in a basket and wraps a towel round the farmer, E again dresses again; Game.change_clothes), a bench for drying off; small, a room to change in, not to linger (the user found the first one too big, 2026-11-22). The bath's door only lets the farmer through in a towel (`towel`), the lobby's only dressed (`dressed`). The clock stands still in here like in every building. Format: README.md, Maps.",
 	"id": "sento_changing",
 	"name": "Changing Room",
-	"size": [9, 8],
+	"size": [7, 6],
 	"indoor": true,
 	"towel": "allowed",
 	"ambient": "indoor",
@@ -15,28 +15,26 @@
 		"G": {"tile": "bath_tile", "solid": true}
 	},
 	"ground": [
-		"#########",
-		"#wwwwwww#",
-		"#wwwwwww#",
-		"#wwwwwwwG",
-		"Nwwwwwww#",
-		"#wwwwwww#",
-		"#wwwwwww#",
-		"#########"
+		"#######",
+		"#wwwww#",
+		"#wwwwwG",
+		"Nwwwww#",
+		"#wwwww#",
+		"#######"
 	],
 	"props": [
-		{"kind": "basket_shelf", "cell": [2, 1], "size": [4, 1], "use": "change"},
-		{"kind": "bench", "cell": [3, 6], "size": [3, 1], "use": "examine", "message": "A bench in the changing room, for drying off before you dress."},
-		{"kind": "bath_noren", "cell": [0, 4]},
-		{"kind": "glass_door", "cell": [8, 3]}
+		{"kind": "basket_shelf", "cell": [2, 1], "size": [3, 1], "use": "change"},
+		{"kind": "bench", "cell": [2, 4], "size": [3, 1], "use": "examine", "message": "A bench in the changing room, for drying off before you dress."},
+		{"kind": "bath_noren", "cell": [0, 3]},
+		{"kind": "glass_door", "cell": [6, 2]}
 	],
 	"doors": [
-		{"cells": [[0, 4]], "to": "sento", "spawn": [6, 4], "facing": "left", "dressed": true},
-		{"cells": [[8, 3]], "to": "sento_bath", "spawn": [1, 3], "facing": "right", "towel": true}
+		{"cells": [[0, 3]], "to": "sento", "spawn": [6, 4], "facing": "left", "dressed": true},
+		{"cells": [[6, 2]], "to": "sento_bath", "spawn": [1, 3], "facing": "right", "towel": true}
 	],
 	"spawns": {
-		"start": [[1, 4], "right"],
+		"start": [[1, 3], "right"],
 		"change": [[3, 2], "up"],
-		"bath_door": [[7, 3], "right"]
+		"bath_door": [[5, 2], "right"]
 	}
 }

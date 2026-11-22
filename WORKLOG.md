@@ -10,6 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-22 — A smaller changing room
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: the user found the changing room too big: `sento_changing` is 7 x 6 now (5 x 4 inside,
+  from 9 x 8): the basket shelf (3 wide) on the back wall, a bench at the front, the noren in the
+  left wall at row 3, the glass door in the right wall at row 2; the lobby's and the bath's doors
+  lead to the new spawns (1, 3) and (5, 2).
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)`; `--demo --map=sento_changing@change
+  --towel --quit-after 30`: 0 ERROR lines; the frame shows the smaller room, the noren left, the
+  glass door right.
+- Left / next: the user asked about the dark bands along the cut-down front walls of every room
+  (a look to try); step 2b the bath's keeper.
+
 ## 2026-11-22 — The lobby, the changing room and the bath on three maps, with towels
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's asks after looking in the game): the bath on its own map, a changing room

@@ -375,7 +375,7 @@ Three maps, each its own room (the user's asks: the bath apart, a changing room 
 that one apart too so nobody at the counter sees anyone changing). Indoors, so the clock stands.
 - `sento` (data/maps/sento.json, 8 x 8): the lobby (the counter, shop `sento`, selling the cold
   milk; the milk cooler, two benches, the shoe lockers), the noren in its right wall the door on.
-- `sento_changing` (data/maps/sento_changing.json, 9 x 8, `towel` "allowed"): E at its basket shelf
+- `sento_changing` (data/maps/sento_changing.json, 7 x 6, `towel` "allowed"): E at its basket shelf
   ("use": "change", the hint "Change") folds the clothes into a basket and wraps the farmer in a
   towel (Game.change_clothes, Game.in_towel; E again dresses). Its noren back to the lobby is a
   door with `dressed` ("Get dressed at the baskets..."), the glass sliding door in its right wall
