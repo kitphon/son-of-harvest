@@ -1,5 +1,5 @@
 {
-	"_note": "Genzo, an old rice farmer of Kaminoda (the hamlet north of the village), who has worked its terraces all his life. Up at six in his house; from 7:00 he walks his paddies (the terraces top left, then after lunch the lower ones, along the dike between them), lunch at home, a drink of water at the well at 17:00, home at 17:30, asleep from 20:00. Wet days he stays in by his hearth. On his birthday (summer 13, when the paddies stand green and the weeding is done) the weeding waits: home in the morning, then a long sit by the well 10:00-14:00, home again after. His heart events: data/events/heart_genzo.json (band 3), heart_genzo_5.json (band 5). Gifts: rice and rice dishes, plain hot food; no sweets; a daruma for luck and a bit of gold ore please him. Format: README.md, Villagers.",
+	"_note": "Genzo, an old rice farmer of Kaminoda (the hamlet north of the village), who has worked its terraces all his life. Up at six in his house; from 7:00 he walks his paddies (the terraces top left, then after lunch the lower ones, along the dike between them), lunch at home, a drink of water at the well at 17:00, home at 17:30, asleep from 20:00. Wet days he stays in by his hearth. On his birthday (summer 13, when the paddies stand green and the weeding is done) the weeding waits: home in the morning, then a long sit by the well 10:00-14:00, home again after. His heart events: data/events/heart_genzo.json (band 3), heart_genzo_5.json (band 5). Gifts: rice and rice dishes, plain hot food; no sweets; a daruma for luck and a bit of gold ore please him. Format: README.md, Villagers. Evening baths (2026-11-23, Baths step 3): on dry Mondays and Saturdays he walks down to Kawasemi-yu and soaks the paddies' mud off from about 19:20 to 20:15 at the tub's fourth cell (plan bath).",
 	"id": "genzo",
 	"name": "Genzo",
 	"birthday": {"season": "summer", "day": 13},
@@ -20,7 +20,8 @@
 		{"if": {"festival": ["lantern_night", "moon_night"]}, "plan": "festival_night"},
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
 		{"if": {"birthday": true}, "plan": "birthday"},
-		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
+		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"},
+		{"if": {"weekday": ["mon", "sat"]}, "plan": "bath"}
 	],
 	"default": "usual",
 	"gifts": {
@@ -34,6 +35,27 @@
 		"hate": ["mine:stone"]
 	},
 	"plans": {
+		"bath": [
+			{"at": "06:00", "map": "genzo_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "07:00", "map": "kaminoda", "from": [15, 7], "route": [{"to": [15, 9]}, {"to": [9, 9]}, {"to": [9, 4]}, {"face": "left"}], "loop": [{"wait": 20}, {"to": [9, 8]}, {"face": "left"}, {"wait": 20}, {"to": [9, 4]}, {"face": "left"}]},
+			{"at": "11:30", "map": "kaminoda", "route": [{"to": [9, 9]}, {"to": [15, 9]}, {"to": [15, 7]}, {"face": "up"}]},
+			{"at": "12:00", "map": "genzo_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "13:00", "map": "kaminoda", "from": [15, 7], "route": [{"to": [15, 9]}, {"to": [14, 9]}, {"to": [14, 11]}, {"to": [13, 11]}, {"to": [13, 16]}, {"to": [16, 16]}, {"face": "up"}], "loop": [{"wait": 25}, {"to": [24, 16]}, {"face": "down"}, {"wait": 25}, {"to": [16, 16]}, {"face": "up"}]},
+			{"at": "16:40", "map": "kaminoda", "route": [{"to": [13, 16]}, {"to": [13, 11]}, {"face": "up"}]},
+			{"at": "17:00", "map": "kaminoda", "route": [{"to": [13, 11]}, {"to": [19, 11]}, {"to": [19, 9]}, {"face": "up"}, {"wait": 10}]},
+			{"at": "17:20", "map": "kaminoda", "route": [{"to": [15, 9]}, {"to": [15, 7]}, {"face": "up"}]},
+			{"at": "17:30", "map": "genzo_house", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "18:45", "map": "away"},
+			{"at": "19:00", "map": "yumachi", "from": [0, 4], "route": [{"to": [3, 4]}, {"to": [3, 5]}, {"to": [7, 5]}, {"face": "up"}]},
+			{"at": "19:08", "map": "sento", "from": [3, 6], "route": [{"to": [3, 4]}, {"to": [6, 4]}, {"face": "right"}]},
+			{"at": "19:14", "map": "away"},
+			{"at": "19:19", "map": "sento_bath", "from": [1, 3], "route": [{"to": [4, 3]}, {"face": "up"}, {"bathe": 55}]},
+			{"at": "20:18", "map": "sento_bath", "route": [{"to": [1, 3]}, {"face": "left"}]},
+			{"at": "20:22", "map": "away"},
+			{"at": "20:27", "map": "sento", "from": [6, 4], "route": [{"to": [3, 4]}, {"to": [3, 6]}, {"face": "down"}]},
+			{"at": "20:33", "map": "yumachi", "from": [7, 5], "route": [{"to": [3, 5]}, {"to": [3, 4]}, {"to": [0, 4]}, {"face": "left"}]},
+			{"at": "20:41", "map": "away"}
+		],
 		"festival_day": [
 			{"at": "06:00", "map": "genzo_house", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "09:35", "map": "kaminoda", "from": [15, 7], "route": [{"to": [15, 10]}, {"to": [10, 10]}, {"to": [10, 19]}]},

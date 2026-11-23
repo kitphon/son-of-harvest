@@ -1,9 +1,10 @@
 {
-	"_note": "What Ichiro, the charcoal burner of Sakurazaka, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items his own answers to a keepsake and to dishes; gift_birthday on his birthday (fall 9). The close lines from band 4, kiln lines once his band 5 scene is seen (heart_ichiro_5), dear lines at band 6 once his band 6 scene is seen (heart_ichiro_6). A man of few words. Our own lines.",
+	"_note": "What Ichiro, the charcoal burner of Sakurazaka, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items his own answers to a keepsake and to dishes; gift_birthday on his birthday (fall 9). The close lines from band 4, kiln lines once his band 5 scene is seen (heart_ichiro_5), dear lines at band 6 once his band 6 scene is seen (heart_ichiro_6). A man of few words. Our own lines. The bath_ lines are said at Kawasemi-yu (the lobby, the changing room and the bath; Baths step 3).",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
 		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"map": ["sento", "sento_changing", "sento_bath"]}, "at": ["bath_1", "bath_2"]},
 		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
 		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
 		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
@@ -35,6 +36,8 @@
 		"dish:dislike": "gift_dish_dislike"
 	},
 	"lines": [
+		{"id": "bath_1", "speaker": "ichiro", "mood": "neutral", "text": "Masa burns my oak under this tub. ...Feels right, sitting in it.", "next": "end"},
+		{"id": "bath_2", "speaker": "ichiro", "mood": "happy", "text": "Hot. Good.", "next": "end"},
 		{"id": "festival_blossom_day", "speaker": "ichiro", "mood": "neutral", "text": "I took the day off from the axe. The grove gets one quiet day a year too.", "next": "end"},
 		{"id": "festival_lantern_night", "speaker": "ichiro", "mood": "happy", "text": "Hot work by that yakisoba griddle. Still cooler than my kiln.", "next": "end"},
 		{"id": "festival_moon_night", "speaker": "ichiro", "mood": "happy", "text": "Roast chestnuts smell like the end of a good burn. Smells like home to me.", "next": "end"},

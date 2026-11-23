@@ -15,6 +15,7 @@ extends RefCounted
 const GameRules := preload("res://scripts/autoload/game.gd")   # SEASONS, WEEKDAYS
 const DIR := "res://data/villagers/"
 const COMMON := DIR + "_common.json"
+const BATHS := "res://data/baths.json"   # the tubs' seat and water height (a {"bathe": minutes} step)
 const RULE_KEYS: Array[String] = ["season", "weekday", "weather", "days", "year", "flags", "not_flags", "festival", "birthday"]
 const FILE_KEYS: Array[String] = ["_note", "id", "name", "speed", "look", "rules", "default", "plans", "gifts", "birthday", "hearts"]
 const REACTIONS: Array[String] = ["love", "like", "neutral", "dislike", "hate"]   # a gift's reaction, best first
@@ -22,6 +23,7 @@ const DELAY_RESETS: Array[int] = [720, 1080]   # 12:00 and 18:00 as day minutes
 
 static var _people := {}       # id -> the file's data (only files that passed the check)
 static var _common: Variant = null   # data/villagers/_common.json, read on first use
+static var _baths: Variant = null    # data/baths.json, read on first use
 static var _loaded := false
 static var _today_key := ""
 static var _today := {}        # id -> DayPlan for the day in _today_key
@@ -224,6 +226,7 @@ static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 	if actors.has(id):   # acting in an event: its place, not the plan's
 		return actors[id].duplicate()
 	var w: Dictionary = FerryRun.ride(plans[id].where(plan_minute(id, t)), str(s.get("season", "")))   # onto the ferry boat in a crossing
+	w = bath_place(w)   # in the tub's water for a {"bathe": minutes} step
 	if id == Child.ID:   # at the spouse's side while both are at home or out together; drawn in the child's colours
 		var stage := str(s.flags.get(Child.STAGE, ""))
 		var spouse := Marriage.spouse(s.flags)
@@ -244,6 +247,43 @@ static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 	if g != null and g.map == w.get("map", ""):
 		w.pos = w.pos + g.off   # stepped aside for the passing farmer
 	return w
+
+
+## Moves villager place `w` (DayPlan.where) sat in a bath ({"bathe": minutes} before a soak prop
+## with a `bath`, the sento's tub) into its water as the farmer sits there (data/baths.json): `seat`
+## cells on toward the tub, turned to its `turn` (the room), `bath_lift` its water's height in 3D
+## (the views raise the sprite by it), `seat_cell` the cell before the tub they got in from (no one
+## else sits there: Game.soak). Anywhere else, or not bathing, `w` as it was.
+static func bath_place(w: Dictionary) -> Dictionary:
+	if not w.get("bathing", false):
+		return w
+	var map_id := str(w.get("map", ""))
+	var cell := Vector2i(Vector2(w.pos).floor())
+	var prop: Dictionary = MapManager.data(map_id).prop_at(cell + w.facing) if MapManager.has(map_id) else {}
+	var cfg: Variant = baths().get(str(prop.get("bath", "")))
+	if str(prop.get("use", "")) != "soak" or not cfg is Dictionary:
+		return w
+	w.seat_cell = cell
+	w.pos = Vector2(w.pos) + Vector2(w.facing) * float(cfg.get("seat", 1.0))
+	w.facing = MapData.FACINGS.get(str(cfg.get("turn", "")), w.facing)
+	w.bath_lift = float(cfg.get("lift", 0.0))
+	return w
+
+
+## The villagers sat in the bath on map `map_id` now, {cell before the tub: id} (Game.soak keeps
+## the farmer off a taken seat).
+static func bath_seats(map_id: String, t: float, s: Dictionary) -> Dictionary:
+	var out := {}
+	for w in on_map(map_id, t, s):
+		if w.has("seat_cell"):
+			out[w.seat_cell] = w.id
+	return out
+
+
+static func baths() -> Dictionary:
+	if _baths == null:
+		_baths = _json(BATHS)
+	return _baths if _baths is Dictionary else {}
 
 
 ## Everyone on map `map_id` at minute `t`: [{id, pos, facing, moving, walked}], by id.
@@ -466,14 +506,24 @@ static func sprite_key(w: Dictionary) -> String:
 		frame = post_frame(w.posted)
 	elif p == "pole":
 		frame = FerryRun.pole_frame(w.ferried)
-	return "villager:%s:%s:%s:%d" % [w.id, "back" if back else "front", p, frame]
+	var key := "villager:%s:%s:%s:%d" % [w.id, "back" if back else "front", p, frame]
+	return key + ":towel" if in_towel(w) else key
 
 
-## What villager `w` (as on_map gives them) is doing: walk, work, fish, post, pole (poling the
-## ferry boat, FerryRun) or idle.
+## Is villager `w` wrapped in a bathing towel (on a map where everyone is: the sento's bath, MapData
+## `towel` "always")? Their pictures then come in the outfit "towel" (FarmerLooks.towel_look).
+static func in_towel(w: Dictionary) -> bool:
+	var map_id := str(w.get("map", ""))
+	return MapManager.has(map_id) and MapManager.data(map_id).towel == "always"
+
+
+## What villager `w` (as on_map gives them) is doing: walk, work, fish, post, bathe (sat in a
+## tub up to the shoulders, FigureArt._bathe), pole (poling the ferry boat, FerryRun) or idle.
 static func pose(w: Dictionary) -> String:
 	if w.moving:
 		return "walk"
+	if w.has("seat_cell"):
+		return "bathe"
 	if w.get("working", false):
 		return "work"
 	if w.get("fishing", false):

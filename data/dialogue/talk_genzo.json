@@ -1,9 +1,10 @@
 {
-	"_note": "What Genzo, the old rice farmer of Kaminoda, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction. The birthday lines (summer 13), the close lines from band 4 and the jizo lines once his band 5 scene is seen (heart_genzo_5). Our own lines.",
+	"_note": "What Genzo, the old rice farmer of Kaminoda, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction. The birthday lines (summer 13), the close lines from band 4 and the jizo lines once his band 5 scene is seen (heart_genzo_5). Our own lines. The bath_ lines are said at Kawasemi-yu (the lobby, the changing room and the bath; Baths step 3).",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
 		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"map": ["sento", "sento_changing", "sento_bath"]}, "at": ["bath_1", "bath_2"]},
 		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
 		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
 		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
@@ -23,6 +24,8 @@
 		{"at": ["plain_1", "plain_2"]}
 	],
 	"lines": [
+		{"id": "bath_1", "speaker": "genzo", "mood": "happy", "text": "Mud to the knees all day, and here we sit, boiled clean. Good water.", "next": "end"},
+		{"id": "bath_2", "speaker": "genzo", "mood": "neutral", "text": "Hm. Don't splash. An old man gets one quiet hour a day.", "next": "end"},
 		{"id": "festival_blossom_day", "speaker": "genzo", "mood": "happy", "text": "Petals on the shrine steps. My wife used to sweep them into a heap, then never had the heart to burn it.", "next": "end"},
 		{"id": "festival_lantern_night", "speaker": "genzo", "mood": "happy", "text": "I come down for the drums. My ears are old, but they still know a good drum.", "next": "end"},
 		{"id": "festival_moon_night", "speaker": "genzo", "mood": "neutral", "text": "A full moon over drained paddies. The best mirror there is, and nobody owns it.", "next": "end"},

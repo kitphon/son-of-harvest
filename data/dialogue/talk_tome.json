@@ -1,7 +1,8 @@
 {
-	"_note": "What Grandma Tome says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday); gift_items names their own answer to a keepsake or a dish (Talk.gift_line), by item or by dish: / keepsake:<reaction> (gifts in data/villagers/tome.json). Our own lines.",
+	"_note": "What Grandma Tome says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday); gift_items names their own answer to a keepsake or a dish (Talk.gift_line), by item or by dish: / keepsake:<reaction> (gifts in data/villagers/tome.json). Our own lines. The bath_ lines are said at Kawasemi-yu (the lobby, the changing room and the bath; Baths step 3).",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"map": ["sento", "sento_changing", "sento_bath"]}, "at": ["bath_1", "bath_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
 		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
 		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
@@ -48,6 +49,8 @@
 		"dish:dislike": "gift_dish_dislike"
 	},
 	"lines": [
+		{"id": "bath_1", "speaker": "tome", "mood": "happy", "text": "Ah, child, sit by me. The water's just right this time of the evening.", "next": "end"},
+		{"id": "bath_2", "speaker": "tome", "mood": "neutral", "text": "My husband and I came here every Monday for forty years. I still come, dear. Habit keeps you warm.", "next": "end"},
 		{"id": "birthday", "speaker": "tome", "mood": "happy", "text": "Eighty-one autumns today, and still the persimmons ripen on time. Thank you, child.", "next": "end"},
 		{"id": "gift_birthday", "speaker": "tome", "mood": "happy", "text": "A present, on my birthday? You'll make an old woman cry in the street.", "next": "end"},
 		{"id": "again_1", "speaker": "tome", "mood": "happy", "text": "Still here? Don't mind me, I'm only resting my knees.", "next": "end"},

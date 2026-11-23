@@ -37,7 +37,7 @@ func refresh() -> void:
 		s.visible = true
 		var lift := float(w.get("lift", 0.0))
 		var deck := MapManager.data(map_id).deck_at(w.pos) if map_id != "farm" and MapManager.data(map_id) != null else 0.0   # on a bridge's deck
-		s.position = Vector3(w.pos.x, lift - (SunkenGround.DROP if lift > 0.0 else 0.0) + deck, w.pos.y)   # standing in the ferry boat, afloat on the sunk river
+		s.position = Vector3(w.pos.x, lift - (SunkenGround.DROP if lift > 0.0 else 0.0) + deck + float(w.get("bath_lift", 0.0)), w.pos.y)   # standing in the ferry boat, afloat on the sunk river; sat in a bath up to the water (Villagers.bath_place)
 		var key := Villagers.sprite_key(w)
 		if key.ends_with(":work:1") and s.get_meta("key", "") != key:
 			Sfx.play("build_knock")   # each blow of the hammer, heard on this map

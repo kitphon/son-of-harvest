@@ -598,7 +598,7 @@ func _homes() -> void:
 	var w := Villagers.where("tome", 380.0, s)
 	check(w.pos == Vector2(6.5, 3.5) and w.facing == Vector2i.LEFT, "Tome sits right of her hearth %s" % [w])
 	check(on.call("tome_house", 740.0, s) == ["tome"] and on.call("kota_house", 740.0, s) == ["kota"], "home for lunch at 12:20")
-	check(on.call("tome_house", 1100.0, s) == ["tome"] and on.call("kota_house", 1100.0, s) == ["kota"]
+	check(on.call("tome_house", 1070.0, s) == ["tome"] and on.call("kota_house", 1070.0, s) == ["kota"]
 		and on.call("sayo_house", 1050.0, s) == ["sayo"] and on.call("sayo_house", 1230.0, s) == ["sayo"], "home in the evening")
 	var rain := _state({"weather": "rain"})
 	check(on.call("kota_house", 600.0, rain) == ["kota"] and on.call("tome_house", 900.0, rain) == ["tome"], "home all day in the rain")

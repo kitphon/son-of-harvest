@@ -1,6 +1,14 @@
 {
 	"_note": "Thai for dialogue lines (data/dialogue), keyed by the English line. Done so far: the opening, the first morning, the shop greetings, the pond, the bin note, the rainy day, the clinic, the things to look at (farm, house, village, hill), the festival greetings, the year record and the recipe lessons. Also the villagers' daily talk, the heart events, the contests, marriage, the goal notes, the village record and the child's news and birth. Spaces split the phrases so the text box can wrap them.",
 	"text": {
+		"A smith's shoulders and a hot bath. Best hour of the week, this.": "ไหล่ช่างตีเหล็กกับน้ำร้อนสักอ่าง ชั่วโมงที่ดีที่สุดของสัปดาห์เลย",
+		"Masa's boiler? I riveted that firebox myself. Still holding. So am I.": "หม้อต้มของมาสะน่ะเหรอ ข้าตอกหมุดเตาไฟนั่นเอง ยังทนอยู่ ข้าก็เหมือนกัน",
+		"Mud to the knees all day, and here we sit, boiled clean. Good water.": "โคลนท่วมเข่าทั้งวัน แล้วก็มานั่งต้มตัวจนสะอาดอยู่นี่ น้ำดีจริง ๆ",
+		"Hm. Don't splash. An old man gets one quiet hour a day.": "อืม อย่าสาดน้ำ คนแก่ขอชั่วโมงเงียบ ๆ วันละชั่วโมง",
+		"Masa burns my oak under this tub. ...Feels right, sitting in it.": "มาสะเผาไม้โอ๊กของผมใต้อ่างนี้ ...นั่งแช่อยู่ในนี้แล้วรู้สึกถูกที่ดี",
+		"Hot. Good.": "ร้อน ดี",
+		"Ah, child, sit by me. The water's just right this time of the evening.": "อ้าว หลาน มานั่งข้าง ๆ ยายสิ น้ำกำลังดีเลยตอนหัวค่ำแบบนี้",
+		"My husband and I came here every Monday for forty years. I still come, dear. Habit keeps you warm.": "ยายกับตามาที่นี่ทุกวันจันทร์ตั้งสี่สิบปี ยายก็ยังมาอยู่นะหลาน ความเคยชินทำให้อุ่นใจ",
 		"So this is the farm. The fence leans, and the grass is up to my knees...": "นี่สินะไร่ของเรา รั้วก็เอียง หญ้าก็สูงถึงเข่า...",
 		"Ah, there you are! You have your grandfather's ears. I'm Tome, from the village down the road.": "อ้าว มาแล้วเหรอ! หูเหมือนคุณตาเปี๊ยบเลย ยายชื่อโทเมะ อยู่หมู่บ้านถัดไปตามถนนนี่แหละ",
 		"Tsuru, our village head, asked me to meet you. She has her hands full with the spring meeting today.": "สึรุ ผู้ใหญ่บ้านของเรา ฝากยายมารับหลาน วันนี้เธอยุ่งกับประชุมหน้าใบไม้ผลิน่ะ",

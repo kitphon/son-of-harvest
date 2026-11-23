@@ -2130,7 +2130,7 @@ func start_eat_pose(drink: bool) -> void:
 ## stays until stop_soak (E again); the day's first soak gives its stamina (up to the max) and takes
 ## its fatigue off (a bath's first also its `minutes` of the clock), a later one only rests. The
 ## footbath counts its own day (soaked_today), the baths share one (bathed_today). Not while holding
-## something or cradling the little one. Says what happened; returns {ok, note}.
+## something or cradling the little one, nor where a villager already sits (Villagers.bath_seats). Says what happened; returns {ok, note}.
 func soak(origin := Vector2i(-1, -1), facing := Vector2i.ZERO) -> Dictionary:
 	if origin != Vector2i(-1, -1):
 		soak_cfg = soak_config(maps.current().prop_at(origin + facing))
@@ -2139,6 +2139,10 @@ func soak(origin := Vector2i(-1, -1), facing := Vector2i.ZERO) -> Dictionary:
 		if where != "":
 			message.emit(where)
 		return {"ok": false, "note": where}
+	if origin != Vector2i(-1, -1) and Villagers.bath_seats(maps.id, day_minutes(), trigger_state(origin)).has(origin):
+		var taken := String(soak_cfg.get("taken_message", ""))   # a villager sat in the tub there already
+		message.emit(taken)
+		return {"ok": false, "note": taken}
 	if holding() or soaking():
 		var no := String(soak_cfg.get("hands_message", "")) if holding() else ""
 		if no != "":

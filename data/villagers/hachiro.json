@@ -1,5 +1,5 @@
 {
-	"_note": "Hachiro the smith and handyman: lives in the Kurogane Smithy (the north-east house): off hours he is at the anvil behind the counter (out of sight, the smithy's door is shut then) and in bed (away) from 21:00. On work days he mends the roof of Kota's family house south of the road early, keeps the smithy counter (the smithy map's keeper spot) 10:00-16:00, so talking to him there opens the shop (data/shops.json keeper), and looks at the pond in the evening. In bad weather he only works the forge; on a fair Sunday he fishes the river south of the village (the smithy is shut): down the lane behind Kota's house and through Minamino by 9:30, on the gravel shore with his rod until 15:00, Kota beside him in the afternoon; a wet Sunday he spends at the anvil; on his birthday the smithy stays shut too: the shrine in the morning, the pond until 16:00. While a house extension is under way (the house_work flag, Game.sync_build_flag; any weather but a storm, Sundays too, since the job has a day it is due; a day he does not build is not counted, data/shops.json builds plan) he builds on the farm: out the village's west road at 7:30, hammering at the farmhouse's front wall west of the door from about 8:20, fetching boards from the lumber stack left of the house front now and then, lunch standing by the wall at 12:00, back to the smithy for the evening at 17:00; the smithy counter has nobody then (data/shops.json builds away). Gifts: rice balls, eels, catfish, a fall salmon from the river and good ore (hoshigane best); a plain grey stone is an insult. Of the kitchen's dishes, hearty ones (grilled fish, fish and daikon, potato stew best); no sweets. Format: README.md, Villagers.",
+	"_note": "Hachiro the smith and handyman: lives in the Kurogane Smithy (the north-east house): off hours he is at the anvil behind the counter (out of sight, the smithy's door is shut then) and in bed (away) from 21:00. On work days he mends the roof of Kota's family house south of the road early, keeps the smithy counter (the smithy map's keeper spot) 10:00-16:00, so talking to him there opens the shop (data/shops.json keeper), and looks at the pond in the evening. In bad weather he only works the forge; on a fair Sunday he fishes the river south of the village (the smithy is shut): down the lane behind Kota's house and through Minamino by 9:30, on the gravel shore with his rod until 15:00, Kota beside him in the afternoon; a wet Sunday he spends at the anvil; on his birthday the smithy stays shut too: the shrine in the morning, the pond until 16:00. While a house extension is under way (the house_work flag, Game.sync_build_flag; any weather but a storm, Sundays too, since the job has a day it is due; a day he does not build is not counted, data/shops.json builds plan) he builds on the farm: out the village's west road at 7:30, hammering at the farmhouse's front wall west of the door from about 8:20, fetching boards from the lumber stack left of the house front now and then, lunch standing by the wall at 12:00, back to the smithy for the evening at 17:00; the smithy counter has nobody then (data/shops.json builds away). Gifts: rice balls, eels, catfish, a fall salmon from the river and good ore (hoshigane best); a plain grey stone is an insult. Of the kitchen's dishes, hearty ones (grilled fish, fish and daikon, potato stew best); no sweets. Format: README.md, Villagers. Evening baths (2026-11-23, Baths step 3): on dry Tuesdays and Fridays he skips the evening stroll for Kawasemi-yu and soaks from about 19:15 to 20:05 at the tub's eighth cell (plan work_bath).",
 	"id": "hachiro",
 	"name": "Hachiro",
 	"birthday": {"season": "winter", "day": 11},
@@ -16,7 +16,8 @@
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
 		{"if": {"weekday": ["sun"], "weather": ["sunny"]}, "plan": "sunday"},
 		{"if": {"weekday": ["sun"]}, "plan": "sunday_in"},
-		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "forge"}
+		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "forge"},
+		{"if": {"weekday": ["tue", "fri"]}, "plan": "work_bath"}
 	],
 	"default": "work",
 	"gifts": {
@@ -31,6 +32,23 @@
 		"hate": ["cucumber"]
 	},
 	"plans": {
+		"work_bath": [
+			{"at": "06:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "08:00", "map": "town", "from": [44, 16], "route": [{"to": [40, 16]}, {"to": [40, 2]}, {"to": [39, 2]}], "loop": [{"to": [38, 2]}, {"face": "left"}, {"wait": 25}, {"to": [43, 2]}, {"to": [43, 4]}, {"face": "up"}, {"wait": 25}, {"to": [43, 2]}, {"to": [39, 2]}]},
+			{"at": "09:30", "map": "town", "route": [{"to": [42, 2]}, {"to": [42, 16]}, {"to": [44, 16]}, {"face": "up"}]},
+			{"at": "10:00", "map": "smithy", "from": [3, 2], "route": [{"face": "down"}]},
+			{"at": "16:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
+			{"at": "18:40", "map": "away"},
+			{"at": "18:55", "map": "yumachi", "from": [0, 4], "route": [{"to": [3, 4]}, {"to": [3, 5]}, {"to": [7, 5]}, {"face": "up"}]},
+			{"at": "19:02", "map": "sento", "from": [3, 6], "route": [{"to": [3, 4]}, {"to": [6, 4]}, {"face": "right"}]},
+			{"at": "19:07", "map": "away"},
+			{"at": "19:12", "map": "sento_bath", "from": [1, 3], "route": [{"to": [8, 3]}, {"face": "up"}, {"bathe": 50}]},
+			{"at": "20:08", "map": "sento_bath", "route": [{"to": [1, 3]}, {"face": "left"}]},
+			{"at": "20:14", "map": "away"},
+			{"at": "20:19", "map": "sento", "from": [6, 4], "route": [{"to": [3, 4]}, {"to": [3, 6]}, {"face": "down"}]},
+			{"at": "20:24", "map": "yumachi", "from": [7, 5], "route": [{"to": [3, 5]}, {"to": [3, 4]}, {"to": [0, 4]}, {"face": "left"}]},
+			{"at": "20:31", "map": "away"}
+		],
 		"work": [
 			{"at": "06:00", "map": "smithy", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "08:00", "map": "town", "from": [44, 16], "route": [{"to": [40, 16]}, {"to": [40, 2]}, {"to": [39, 2]}], "loop": [{"to": [38, 2]}, {"face": "left"}, {"wait": 25}, {"to": [43, 2]}, {"to": [43, 4]}, {"face": "up"}, {"wait": 25}, {"to": [43, 2]}, {"to": [39, 2]}]},

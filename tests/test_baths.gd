@@ -11,7 +11,9 @@ extends SceneTree
 ## face the room once in: Game.soak_look), the pose "bathe" (FigureArt._bathe: the head, the bare
 ## shoulders and the towel over the water, nothing lower), E at the tub through FarmActions and its
 ## hint, the 3D build (BathProps: every kind, the water at WATER, the steam) and the flat view
-## (BathLook, MapView.COLORS). Run:
+## (BathLook, MapView.COLORS), and the villagers' evening baths (Baths step 3: the {"bathe": minutes}
+## step, Villagers.bath_place in the tub's water turned to the room, the towel on the bath's map, the
+## nights each comes, a taken seat refused, their bath lines in Thai, the 3D sprite at the water). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_baths.gd
 
 var failures := 0
@@ -48,6 +50,7 @@ func _run() -> void:
 	_bath()
 	_pose()
 	_views()
+	_bathers()
 	print("test_baths: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
 
@@ -423,3 +426,101 @@ func _views() -> void:
 	var mural: Image = PA.image("bath:mural")
 	check(mural.get_size() == Vector2i(192, 32), "the mountain painting 192 x 32")
 	check(PA.image("ground:bath_tile:0").get_size() == Vector2i(16, 16), "the tiled floor")
+
+
+## The villagers' evening baths (Baths step 3): who soaks on which night, in the tub's water up to the
+## shoulders facing the room, in a towel on the bath's map, none on Thursdays, wet days or festivals;
+## the farmer kept off a taken seat; their lines there.
+func _bathers() -> void:
+	var r := DayPlan.build([{"at": "06:00", "map": "sento_bath", "from": [5, 3], "route": [{"face": "up"}, {"bathe": 30}]}], 1.5)
+	check(r[0] == "" and r[1].where(370.0).bathing and not r[1].where(400.0).bathing, "a bathe step: bathing for its minutes, then not")
+	check(DayPlan.build([{"at": "06:00", "map": "sento_bath", "from": [5, 3], "route": [{"bathe": 0}]}], 1.5)[0] != "", "refused: a bathe of 0 minutes")
+	var b := _sento()
+	var mon := {"year": 1, "season": "spring", "day": 1, "weekday": "mon", "weather": "sunny", "flags": {}, "festival": ""}
+	var t := 19 * 60 + 22.0   # Tome still in, Genzo just sat down
+	var here := Villagers.on_map("sento_bath", t, mon)
+	var ids := here.map(func(w): return w.id)
+	ids.sort()
+	check(ids == ["genzo", "tome"], "a dry Monday at 19:22: Tome and Genzo in the bath (%s)" % [ids])
+	for w in here:
+		var seat: Vector2i = w.seat_cell
+		check(w.pos.is_equal_approx(Vector2(seat) + Vector2(0.5, 0.5) + Vector2.UP * float(b.seat)) and w.facing == Vector2i.DOWN, "%s sat in the water from %s, facing the room (%s)" % [w.id, seat, w.pos])
+		check(is_equal_approx(float(w.bath_lift), float(b.lift)) and Villagers.pose(w) == "bathe", "%s up to the shoulders (the pose bathe, lifted to the water)" % w.id)
+		var key := Villagers.sprite_key(w)
+		check(key == "villager:%s:front:bathe:0:towel" % w.id, "%s drawn bathing in a towel (%s)" % [w.id, key])
+		check(PA.image(key).get_used_rect().position.y > PA.image("villager:%s:front:idle:0" % w.id).get_used_rect().position.y + 8, "%s: only the head and shoulders over the water" % w.id)
+	check(Villagers.bath_seats("sento_bath", t, mon).size() == 2, "two seats taken")
+	var walking := Villagers.where("tome", 18 * 60 + 28.0, mon)
+	check(walking.map == "sento_bath" and walking.moving and Villagers.sprite_key(walking.merged({"id": "tome"})).ends_with(":towel") and not walking.has("seat_cell"), "Tome walks to the tub in her towel (%s)" % walking)
+	check(not Villagers.sprite_key(Villagers.where("tome", 18 * 60 + 18.0, mon).merged({"id": "tome"})).ends_with(":towel"), "dressed in the lobby")
+	check(Villagers.where("tome", 19 * 60 + 41.0, mon).map == "yumachi", "and home through Yumachi after")
+	var nights := {"mon": ["genzo", "tome"], "tue": ["hachiro"], "wed": ["ichiro"], "thu": [], "fri": ["hachiro", "tome"], "sat": ["genzo"], "sun": ["ichiro"]}
+	for i in g.WEEKDAYS.size():
+		var day: String = g.WEEKDAYS[i]
+		var s := mon.merged({"weekday": day, "day": i + 1}, true)
+		var seen := []
+		for m in range(17 * 60, 23 * 60, 5):
+			for w in Villagers.on_map("sento_bath", float(m), s):
+				if w.has("seat_cell") and not w.id in seen:
+					seen.append(w.id)
+		seen.sort()
+		check(seen == nights[day], "%s: in the bath %s (%s)" % [day, nights[day], seen])
+		var inside := true
+		for m in range(17 * 60, 23 * 60, 5):
+			if not Villagers.bath_seats("sento_bath", float(m), s).is_empty():
+				inside = inside and m >= 14 * 60 and m < 23 * 60
+		check(inside, "%s: only while the bath is open" % day)
+	check(Villagers.on_map("sento_bath", t, mon.merged({"weather": "rain"}, true)).is_empty(), "a wet Monday: no one comes")
+	check(Villagers.on_map("sento_bath", t, mon.merged({"season": "winter"}, true)).map(func(w): return w.id).has("tome"), "Tome comes in winter too")
+	var fests := ["blossom_day", "lantern_night", "moon_night", "years_turn"]
+	for i in fests.size():
+		var fest: String = fests[i]
+		var none := true
+		for m in range(14 * 60, 23 * 60, 10):   # a day of its own: the day's plans are kept by the date (and a festival comes with its date)
+			none = none and Villagers.on_map("sento_bath", float(m), mon.merged({"festival": fest, "day": 22 + i}, true)).is_empty()
+		check(none, "%s: the bath shut, no bathers" % fest)
+	# Every bathe step in every plan sits before a tub.
+	for id in Villagers.all():
+		for name in Villagers.all()[id].plans:
+			for e in Villagers.all()[id].plans[name]:
+				for step in e.get("route", []) + e.get("loop", []):
+					if step.has("bathe"):
+						check(e.map == "sento_bath", "%s %s bathes on the bath's map" % [id, name])
+	# The farmer kept off a taken seat, a free one fine.
+	var said: Array[String] = []
+	var hear := func(x: String): said.append(x)
+	g.message.connect(hear)
+	g.day = 1
+	while g.weekday() != "mon" or g.festival_today() != "":
+		g.day += 1
+	g.weather_today = "sunny"
+	g.go_to_map("sento_bath", Vector2i(5, 3), Vector2i.UP)
+	g.hour = 19
+	g.minute = 22
+	g.soak(Vector2i(5, 3), Vector2i.UP)
+	check(not g.soaking() and said.back() == String(b.taken_message), "Tome's seat taken: %s" % said.back())
+	g.soak(Vector2i(6, 3), Vector2i.UP)
+	check(g.soaking(), "the cell beside her free")
+	g._stand_up_now()
+	g.message.disconnect(hear)
+	# Their lines at the bath, in Thai.
+	var th := Lang.table("th")
+	for id in ["tome", "genzo", "hachiro", "ichiro"]:
+		var at := Talk.pick(id, {"band": 2, "again": false, "day_number": 0, "time": 19 * 60, "map": "sento_bath"}.merged(mon, true))
+		check(at.begins_with("bath_"), "%s says a bath line there (%s)" % [id, at])
+		for l in Talk.data(id).lines:
+			if str(l.get("id", "")).begins_with("bath_"):
+				check(th.has(str(l.text)), "%s's %s in Thai" % [id, l.id])
+	# The 3D sprite raised to the water.
+	g.go_to_map("sento_bath", Vector2i(6, 3), Vector2i.UP)
+	g.hour = 19   # the farmer's bath ran the clock on an hour
+	g.minute = 22
+	var vs: Node3D = load("res://scripts/world3d/villager_sprites.gd").new("sento_bath")
+	root.add_child(vs)
+	vs.refresh()
+	check(vs.shown().has("tome"), "Tome shown in 3D")
+	var sp: Sprite3D = vs._sprites.get("tome")
+	check(sp != null and is_equal_approx(sp.position.y, float(b.lift)), "her sprite at the water's height (%s)" % [sp.position if sp != null else null])
+	vs.queue_free()
+	g.new_game()
+	g.clock_running = false

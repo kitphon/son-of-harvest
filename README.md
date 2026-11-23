@@ -446,7 +446,11 @@ when the file is there), then:
   _common.json; each blow knocks, Sfx `build_knock`), `{"fish": minutes}` (stands with a rod
   out, the line down from its tip; the tip dips one minute in every `fish_bob_minutes`; Kota and
   Hachiro at the river on a fair Sunday), `{"post": minutes}` (the letter held up to a door,
-  then slipped in; Ren's round), `{"ferry": minutes}` (from the shore above her landing, Mio
+  then slipped in; Ren's round), `{"bathe": minutes}` (from the cell before a tub, facing it:
+  sat in its water up to the shoulders, turned to the room, as the farmer sits there (the bath's
+  `seat`, `turn` and `lift` in data/baths.json; Villagers.bath_place), the pose `bathe`; on a
+  map with `towel` "always" a villager is drawn in a bathing towel; the evening bathers at
+  Kawasemi-yu, and the farmer can't sit in a seat taken), `{"ferry": minutes}` (from the shore above her landing, Mio
   takes the old ferry boat across the river and back: data/ferry.json and FerryRun, the step's
   minutes the run's total; she steps down into the stern, poles out and back in the pole pose,
   waits at the far bank and steps off; the boat moves with her in both views, its spare pole in

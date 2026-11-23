@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-23 — Baths step 3: villagers' evening baths and their lines
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a day plan step `{"bathe": minutes}` (DayPlan): from the cell before a tub, facing it,
+  the villager sits in its water as the farmer does (Villagers.bath_place: the bath's `seat` on
+  toward the tub, turned to its `turn`, raised by its `lift` in 3D), the pose "bathe"; on a map
+  with `towel` "always" villagers are drawn in a bathing towel (key `villager:...:towel`,
+  FarmerLooks.towel_look). Four bathers with their own seats and nights (ours): Tome Mondays and
+  Fridays about 18:30-19:25, winter too (plans bath, winter_bath), Genzo Mondays and Saturdays
+  about 19:20-20:15, Hachiro Tuesdays and Fridays about 19:15-20:05 instead of his evening
+  stroll (work_bath), Ichiro Wednesdays and Sundays about 20:20-21:15; none on wet days,
+  Thursdays or festivals (their earlier rules win). Each walks in from Yumachi's west edge, through
+  the lobby, a few minutes away changing, along the tub's front, about an hour in, and back.
+  The farmer can't get in where a villager sits (Villagers.bath_seats, baths.json
+  `taken_message`); talking to a bather from the tiles in front works. Two bath_ lines each in
+  their talk files, picked on the three bath maps, with Thai.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths `_bathers`: the step, Tome
+  and Genzo in the water at 19:22 on a dry Monday facing the room, lifted to the water, in towels,
+  the nights each comes, none on a wet day or a festival, a taken seat refused and the next one
+  free, the lines and their Thai, the 3D sprite at the water's height; test_villagers' "home in
+  the evening" moved to 17:50, as Tome now leaves for the bath on Mondays). Smoke runs
+  (`--quit-after 300`: title, `--demo`, town, mine 3, `sento_bath@start --day=1 --time=19:22`,
+  `yumachi@sento --time=18:12`): 0 ERROR lines; windowed `--quit-after 150 -- --demo
+  --map=sento_bath@start --day=1 --weather=sunny --time=19:22`: exit 0. Frames: Tome and Genzo
+  head and shoulders in the tub with towels on their heads in 3D and the flat view; `--talk=tome`
+  opens "Ah, child, sit by me...".
+- Left / next: the clock stands still indoors, so bathers seen in the lobby stay mid-step while
+  the farmer is inside (as in every building); step 4 Kajika-yu.
+
 ## 2026-11-22 — The bath paid for at the counter first
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's ask: make the farmer go and pay the 120 G before going in): the noren into

@@ -30,6 +30,7 @@
 		"message": "You sink into the hot water up to your shoulders. An hour slips by, and the day's aches with it.",
 		"again_message": "You sink into the water again. Pleasant, but the day's rest is already had.",
 		"hands_message": "Put down what you're holding first.",
-		"seat_message": "Step down into the tub from the tiles in front of it."
+		"seat_message": "Step down into the tub from the tiles in front of it.",
+		"taken_message": "Someone is already soaking there. Find a free spot along the tub."
 	}
 }
