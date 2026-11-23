@@ -4,7 +4,9 @@ extends RefCounted
 ## together": Game.go_bath_together; data/baths.json `together`). Three phases:
 ## - "walk": they walk behind the farmer along the farmer's own path (a trail of the farmer's feet),
 ##   `gap` cells back, on whatever map the farmer is on; through a door they come in at the door
-##   behind them. Stopping, they stop; the farmer may walk back past them (no blocking, no bumps).
+##   behind them. Stopping, they stop; with the farmer back within `gap` they stand and face them,
+##   and a loop of the trail passing by them (`loop_cut`) is cut, so they never walk on to where the
+##   farmer was; the farmer may walk back past them (no blocking, no bumps).
 ## - "bath": once the farmer goes into the changing room, they go and change too (`change`
 ##   minutes), then into the bath from its glass door to a seat by the farmer's (`seats`, the first
 ##   free), soak `bathe` minutes ({"bathe"} step: Villagers.bath_place eases them in and out) and
@@ -96,6 +98,22 @@ static func _follow(map_id: String, farmer: Vector2) -> void:
 	if _trail.is_empty() or _trail.back().distance_to(farmer) >= 0.05:
 		_trail.append(farmer)
 	var gap := float(cfg().get("gap", 1.2))
+	# The farmer back within reach (turned round, walking to them): stand and face them, the trail
+	# forgotten, so no one walks on to where the farmer was and through them (the user saw them walk
+	# backwards after the farmer, back and forth).
+	if _pos.distance_to(farmer) <= gap:
+		_trail.clear()
+		_trail.append(farmer)
+		_moving = false
+		if _pos.distance_to(farmer) > 0.05:
+			_facing = DayPlan.facing_of(farmer - _pos)
+		return
+	# A loop in the trail coming back past them (the farmer went on, turned and came back by): cut it,
+	# going on from the last of the farmer's steps that passes close by.
+	for k in range(_trail.size() - 1, 0, -1):
+		if _trail[k].distance_to(_pos) <= float(cfg().get("loop_cut", 0.5)):
+			_trail = _trail.slice(k)
+			break
 	var length := 0.0
 	var at := _pos
 	for p in _trail:

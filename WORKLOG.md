@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-23 — Baths: the spouse no longer walks backwards after the farmer
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's screenshot: walking back and forth, the spouse followed walking backwards):
+  Companion kept the spouse a fixed length behind along the farmer's whole trail, so when the
+  farmer turned round the spouse walked on to where the farmer had been, into and past them. Now
+  with the farmer back within `gap` they stand and face the farmer and forget the trail, and a
+  loop of the trail coming back within `loop_cut` (0.5) cells of them is cut (data/baths.json
+  together).
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: right, back left past her,
+  on left, right and left again: she never steps away from the farmer, against her facing, or
+  while within a cell of them; the same check run on the old Companion fails with "away" and
+  "crowd"). Smoke runs (`--quit-after 300`: title, `--demo`, town, mine 3, the farm with
+  `--together=shino --walk=down:1.2`): 0 ERROR lines; windowed `--quit-after 150` of the last:
+  exit 0.
+- Left / next: step 4 Kajika-yu.
+
 ## 2026-11-23 — Baths: the spouse walks to the bath with the farmer
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: walk there together for real, no jump): "Let's go together" no longer jumps

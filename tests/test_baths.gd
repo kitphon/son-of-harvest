@@ -605,6 +605,23 @@ func _bathers() -> void:
 	check(not Villagers.where("shino", 1050.0, st).moving, "the farmer stops, so does Shino")
 	var her: Vector2 = Villagers.where("shino", 1050.0, st).pos
 	check(not Villagers.blocks("house", 1050.0, st, feet, her) and not Villagers.near("house", 1050.0, st, her), "no blocking the farmer turning back past her")
+	# Back and forth (the user saw them walk backwards after the farmer): they only ever step toward
+	# the farmer, facing the way they go, and stand facing the farmer once they are close.
+	var away := false
+	var backwards := false
+	var crowd := false
+	for leg in [[Vector2.RIGHT, 30], [Vector2.LEFT, 45], [Vector2.LEFT, 30], [Vector2.RIGHT, 15], [Vector2.LEFT, 15]]:
+		for k in int(leg[1]):
+			var before: Vector2 = Villagers.where("shino", 1050.0, st).pos
+			feet += Vector2(leg[0]) * 0.1
+			Companion.track("house", feet, 1050.0, st)
+			var w := Villagers.where("shino", 1050.0, st)
+			var step: Vector2 = Vector2(w.pos) - before
+			if step.length() > 0.001:
+				away = away or step.dot(feet - before) <= 0.0
+				backwards = backwards or step.dot(Vector2(w.facing)) <= 0.0
+				crowd = crowd or Vector2(w.pos).distance_to(feet) < 1.0
+	check(not away and not backwards and not crowd, "back and forth: never walking away from the farmer, backwards, or on into them (%s %s %s)" % [away, backwards, crowd])
 	Companion.track("farm", Vector2(4.5, 5.5), 1060.0, st)
 	var on_farm := Villagers.where("shino", 1060.0, st)
 	check(on_farm.map == "farm" and Vector2(on_farm.pos).distance_to(Vector2(4.5, 5.5)) < 0.01, "out of the door behind the farmer (%s)" % on_farm)
