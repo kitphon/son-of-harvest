@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-23 — Baths: the spouse walks to the bath with the farmer
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: walk there together for real, no jump): "Let's go together" no longer jumps
+  the clock and the farmer to Yumachi. The spouse walks with the farmer instead (new class
+  Companion, scripts/villagers/companion.gd; Villagers.where asks it for them):
+  - walk: `gap` (1.2) cells behind along the farmer's own trail of steps, on whatever map the
+    farmer is on, in at the door behind them on a map change, stopping when the farmer stops; the
+    spouse never blocks, bumps or steps aside (Villagers.bump / blocks / near / nearest /
+    give_way skip them), and the child doesn't tag along (Child.place).
+  - bath: when the farmer goes into the changing room, the spouse changes too (`change` 3 min),
+    then gets into the bath from its glass door at the first free of `seats` [6, 5, 7], soaks
+    `bathe` (50) minutes, eased in and out as every bather (Villagers.bath_place), and goes.
+  - home: their plain married day after. Past `give_up` (22:00) still walking, or down the mine,
+    they go home; the night, a new game and a load clear it (not saved).
+  The spouse still pays the day's ticket. Debug flag `--together=<spouse>` starts the walk.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: no jump of the clock or
+  the map on yes; Shino walking behind the farmer and turning after them, stopping when they stop,
+  never blocking; out of the farmhouse door behind them; to Yumachi; changing when the farmer goes
+  in, then in the water at the sixth cell; home after; the night ends it). Smoke runs
+  (`--quit-after 300`: title, `--demo`, town, mine 3, the farm with `--together=shino
+  --walk=down:1.2`): 0 ERROR lines; windowed `--quit-after 150` of the last: exit 0. Frames: Shino
+  a step and a half behind the farmer walking down the farm.
+- Left / next: step 4 Kajika-yu.
+
 ## 2026-11-23 — Baths: the clock runs at the sento, going to the bath with the spouse
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's two points after playing):

@@ -225,7 +225,7 @@ static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 		return {}
 	if actors.has(id):   # acting in an event: its place, not the plan's
 		return actors[id].duplicate()
-	var w: Dictionary = FerryRun.ride(plans[id].where(plan_minute(id, t)), str(s.get("season", "")))   # onto the ferry boat in a crossing
+	var w: Dictionary = Companion.place(t) if Companion.has(id) else FerryRun.ride(plans[id].where(plan_minute(id, t)), str(s.get("season", "")))   # with the farmer to the bath (Companion); onto the ferry boat in a crossing
 	w = bath_place(w)   # in the tub's water for a {"bathe": minutes} step
 	if id == Child.ID:   # at the spouse's side while both are at home or out together; drawn in the child's colours
 		var stage := str(s.flags.get(Child.STAGE, ""))
@@ -378,6 +378,8 @@ static func bump(map_id: String, t: float, minutes: float, farmer: Vector2, s: D
 	var reach := float(common().get("bump_reach", 0.9))
 	for w in on_map(map_id, t, s):
 		var to_farmer: Vector2 = farmer - w.pos
+		if w.get("companion", false):
+			continue   # walking with the farmer: never held up by them
 		if w.moving and to_farmer.length() < reach and to_farmer.dot(Vector2(w.facing)) > 0.0:
 			add_delay(w.id, t, minutes)
 			held.append(w.id)
@@ -390,6 +392,8 @@ static func bump(map_id: String, t: float, minutes: float, farmer: Vector2, s: D
 static func blocks(map_id: String, t: float, s: Dictionary, from: Vector2, to: Vector2) -> bool:
 	var reach := float(common().get("block_reach", 0.7))
 	for w in on_map(map_id, t, s):
+		if w.get("companion", false):
+			continue   # the spouse walking with the farmer never blocks the way
 		if to.distance_to(w.pos) < reach and to.distance_to(w.pos) < from.distance_to(w.pos):
 			return true
 	return false
@@ -399,7 +403,7 @@ static func blocks(map_id: String, t: float, s: Dictionary, from: Vector2, to: V
 static func near(map_id: String, t: float, s: Dictionary, at: Vector2) -> bool:
 	var reach := float(common().get("block_reach", 0.7))
 	for w in on_map(map_id, t, s):
-		if at.distance_to(w.pos) < reach:
+		if at.distance_to(w.pos) < reach and not w.get("companion", false):
 			return true
 	return false
 
@@ -408,6 +412,8 @@ static func near(map_id: String, t: float, s: Dictionary, at: Vector2) -> bool:
 static func nearest(map_id: String, t: float, s: Dictionary, at: Vector2) -> Vector2:
 	var best := Vector2.INF
 	for w in on_map(map_id, t, s):
+		if w.get("companion", false):
+			continue
 		if best == Vector2.INF or at.distance_to(w.pos) < at.distance_to(best):
 			best = w.pos
 	return best
@@ -434,6 +440,8 @@ static func give_way(map_id: String, t: float, s: Dictionary, farmer: Vector2, d
 	var seen := {}
 	for w in on_map(map_id, t, s):
 		var id: String = w.id
+		if w.get("companion", false):
+			continue   # walking with the farmer: no stepping aside
 		seen[id] = true
 		var g: Dictionary = _give.get(id, {"map": map_id, "off": Vector2.ZERO, "side": 0.0})
 		if g.map != map_id:

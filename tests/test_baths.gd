@@ -564,7 +564,8 @@ func _bathers() -> void:
 		for l in Talk.data(id).lines:
 			if str(l.get("id", "")).begins_with("wed_bath"):
 				check(Lang.table("th").has(str(l.text)), "%s's %s in Thai" % [id, l.id])
-	# "Let's go together": the farmer goes to the bath's door in Yumachi as the spouse comes along the lane.
+	# "Let's go together": the spouse walks with the farmer, behind them along their path, through the
+	# doors, into the bath beside them once the farmer goes in to change, and home after (Companion).
 	var inv: Dictionary = Talk.data("shino").lines.filter(func(l): return l.get("id", "") == "wed_bath_invite")[0]
 	check(inv.get("choices", []).size() == 2 and inv.choices[0].get("set", {}).get(g.BATH_TOGETHER_FLAG, "") == "yes", "the ask has a choice: together, or not tonight")
 	check(Talk.pick("shino", {"band": 6, "again": true, "day_number": 0, "time": 17 * 60 + 30, "map": "house"}.merged(mon.merged({"weekday": "tue", "day": 2, "flags": {"married_shino": true, "spouse": "shino"}}, true), true)) == "wed_bath_invite",
@@ -584,12 +585,47 @@ func _bathers() -> void:
 	check(g.maps.id == "house" and not g.flags.has(g.BATH_TOGETHER_FLAG), "not tonight: still at home")
 	g.flags[g.BATH_TOGETHER_FLAG] = "yes"
 	g.dialogue_closed("talk_shino")
-	check(g.maps.id == "yumachi" and Vector2i((g.maps.pos / 16.0).floor()) == Vector2i(8, 5) and g.hour == 19 and g.minute == 14 and g.bath_paid_today and not g.flags.has(g.BATH_TOGETHER_FLAG),
-		"together: by the bath's door in Yumachi at 19:14, the ticket paid (%s %s %d:%02d)" % [g.maps.id, g.maps.pos / 16.0, g.hour, g.minute])
-	var sh := Villagers.where("shino", g.day_minutes(), g.trigger_state(Vector2i.ZERO))
-	check(sh.map == "yumachi" and sh.moving, "Shino coming along the lane (%s)" % sh)
-	var at_door := Villagers.where("shino", 19 * 60 + 16.9, g.trigger_state(Vector2i.ZERO))
-	check(at_door.map == "yumachi" and Vector2(at_door.pos).distance_to(Vector2(8.5, 5.5)) <= 1.05, "at the door beside the farmer (%s)" % at_door)
+	var st: Dictionary = g.trigger_state(Vector2i.ZERO)
+	check(g.maps.id == "house" and g.hour == 17 and g.minute == 30 and g.bath_paid_today and Companion.has("shino") and Companion.phase == "walk",
+		"together: no jump, Shino comes along from here, the ticket paid (%s %d:%02d)" % [g.maps.id, g.hour, g.minute])
+	var gap := float(b.get("together", {}).get("gap", 1.2)) if b.has("together") else float(g.baths.together.gap)
+	var feet := Vector2(4.5, 4.5)
+	Companion.track("house", feet, 1050.0, st)
+	var far := 0.0
+	var ok_gap := true
+	for k in 40:   # the farmer walks right, then down
+		feet += Vector2(0.1, 0.0) if k < 20 else Vector2(0.0, 0.1)
+		Companion.track("house", feet, 1050.0, st)
+		var w := Villagers.where("shino", 1050.0, st)
+		far = maxf(far, Vector2(w.pos).distance_to(feet))
+		ok_gap = ok_gap and w.map == "house" and w.companion
+	var w1 := Villagers.where("shino", 1050.0, st)
+	check(ok_gap and far <= gap + 1.5 and w1.moving and w1.facing == Vector2i.DOWN, "Shino walks behind, turning down after the farmer (%s, farthest %.2f)" % [w1, far])
+	Companion.track("house", feet, 1050.0, st)
+	check(not Villagers.where("shino", 1050.0, st).moving, "the farmer stops, so does Shino")
+	var her: Vector2 = Villagers.where("shino", 1050.0, st).pos
+	check(not Villagers.blocks("house", 1050.0, st, feet, her) and not Villagers.near("house", 1050.0, st, her), "no blocking the farmer turning back past her")
+	Companion.track("farm", Vector2(4.5, 5.5), 1060.0, st)
+	var on_farm := Villagers.where("shino", 1060.0, st)
+	check(on_farm.map == "farm" and Vector2(on_farm.pos).distance_to(Vector2(4.5, 5.5)) < 0.01, "out of the door behind the farmer (%s)" % on_farm)
+	Companion.track("yumachi", Vector2(7.5, 5.5), 1150.0, st)
+	check(Villagers.where("shino", 1150.0, st).map == "yumachi", "all the way to Yumachi")
+	Companion.track("sento_changing", Vector2(1.5, 3.5), 1160.0, st)
+	check(Companion.phase == "bath" and Villagers.where("shino", 1161.0, st).map == DayPlan.AWAY, "the farmer goes in to change: so does Shino")
+	var in_bath := {}
+	for m in range(1163, 1240):
+		var w := Villagers.where("shino", float(m), st)
+		if w.has("seat_cell") and float(w.bathed) > 5.0:
+			in_bath = w
+			break
+	check(not in_bath.is_empty() and in_bath.map == "sento_bath" and in_bath.seat_cell == Vector2i(6, 3) and in_bath.bath_pose == "bathe", "Shino in the water at the sixth cell (%s)" % in_bath)
+	Companion.track("sento_bath", Vector2(5.5, 3.5), 1300.0, st)
+	check(Companion.phase == "home" and not Villagers.where("shino", 1300.0, st).get("companion", false), "the bath done, home on her plain married day")
+	Companion.clear()
+	g.flags[g.BATH_TOGETHER_FLAG] = "yes"
+	g.dialogue_closed("talk_shino")
+	g.end_day()
+	check(Companion.id == "", "the night ends the walk")
 	g.flags.erase("married_shino")
 	g.flags.erase("spouse")
 	var fam := {"married_sayo": true, "spouse": "sayo", Child.BORN: 1, Child.STAGE: "child", "child_name": "Sora"}

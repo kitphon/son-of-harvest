@@ -262,6 +262,7 @@ func new_game() -> void:
 	eat_pose = ""
 	eat_left = 0.0
 	soak_owed = 0
+	Companion.clear()
 	_stand_up_now()
 	soaked_today = false
 	bathed_today = false
@@ -397,6 +398,8 @@ func new_game() -> void:
 						if arg == "--soak=up":   # `--soak=up`: sat, and getting up from the first frame (the way out)
 							soak_phase = "up"
 					break
+		elif arg.begins_with("--together="):   # `-- --demo --map=house --built=room --flags=married_shino,spouse=shino --time=17:30 --together=shino` (after --map): the spouse walking with the farmer to the bath (Companion)
+			go_bath_together.call_deferred(arg.trim_prefix("--together="))
 		elif arg == "--towel":   # `-- --demo --map=sento_changing@change --towel` (after --map): wrapped in a bathing towel
 			in_towel = true
 		elif arg == "--tired":   # e.g. `-- --demo --tired` to see the exhausted farmer
@@ -744,6 +747,8 @@ func _process(delta: float) -> void:
 		_eat_step(delta)
 	if soak_phase != "" and not paused():
 		_soak_step(delta)
+	if Companion.id != "" and not paused():   # the spouse walking with the farmer to the bath
+		Companion.track(maps.id, maps.pos / 16.0, day_minutes(), trigger_state(Vector2i.ZERO))
 	FarmerLooks.towel = wearing_towel()   # the farmer's pictures in the towel (FarmerLooks.cache_key)
 	if swinging() and not paused():
 		swing_step(delta)
@@ -1342,6 +1347,7 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 	in_towel = false
 	bath_paid_today = false   # the sento's ticket is for the day
 	soak_owed = 0
+	Companion.clear()   # the spouse home for the night
 	_stand_up_now()   # and the farmer is up in his bed
 	_count_build_day()   # before the date moves: did the builder work today?
 	animal_news.append_array(animals.day_end(weather_today, rng))
@@ -3181,23 +3187,14 @@ func entry_paid(s: Shop) -> bool:
 ## day; then in and out are free that day. Says what happened; false (the
 ## door stays shut) when the money is short.
 ## Off to Kawasemi-yu with spouse `id` (their bath night's ask answered yes; data/baths.json
-## `together`): the walk there passes (the clock on to `at`), the spouse pays Masa for the two of them,
-## and the farmer stands by the bath's door in Yumachi as the spouse comes along the lane to it
-## (their married_bath plan: in from the west at 19:10, at the door at 19:17), so the two go in
-## together. Not while holding something. Returns whether they went.
+## `together`): they walk with the farmer from here (Companion: behind them along their path, through
+## every door, into the bath by them once the farmer goes in to change), and pay Masa for the two of
+## them (bath_paid_today). Returns whether they came.
 func go_bath_together(id: String) -> bool:
 	var cfg: Dictionary = baths.get("together", {})
-	if holding() or cradling():
-		message.emit(str(cfg.get("hands", "")))
-		return false
-	var at := DayPlan.minute_of(str(cfg.get("at", "19:14")))
-	var now := int(day_minutes())
-	if now < at:
-		pass_minutes(at - now)   # the walk down to Yumachi together
+	Companion.start(id, Villagers.where(id, day_minutes(), trigger_state(Vector2i.ZERO)))
 	if not bath_paid_today:
 		bath_paid_today = true   # the spouse's treat
-	var cell: Array = cfg.get("cell", [8, 5])
-	go_to_map(str(cfg.get("map", "yumachi")), Vector2i(int(cell[0]), int(cell[1])), DEMO_FACINGS.get(str(cfg.get("facing", "left")), Vector2i.LEFT))
 	changed.emit()
 	message.emit(str(cfg.get("paid", "%s")) % Villagers.all().get(id, {}).get("name", id))
 	return true
@@ -4029,6 +4026,7 @@ func from_dict(data: Dictionary, version := SaveGame.VERSION) -> String:
 	swing = {}   # never saved: a swing in the air when loading is dropped, it never lands on the loaded game
 	charge_tool = ""
 	Child.sync_stage(flags, day_number())   # the cradle follows the loaded day
+	Companion.clear()   # no one walking with the farmer in a loaded game
 	Scion.record(flags, day_number())   # a save from before the twig's planting day: planted the day it is loaded on
 	DateFlags.day_start(flags, year, season_name(), day)   # a date already past (Nana's scarf, fall 19): set at the load, as the morning would
 	sync_build_flag()
