@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-23 — Baths: the spouse no longer slides along backwards after a talk
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's second screenshot: it still happened after turning round to talk to the spouse
+  and walking on through them): a talk holds every villager turned to the farmer, standing, for
+  talk_turn_minutes (Villagers.turn), and Companion kept moving them after the farmer meanwhile,
+  so they slid along in the idle pose facing back to the talk. Villagers.where now skips the talk's
+  turn for the spouse walking with the farmer while they move; standing, they still face the farmer.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: talk to her with her turned to
+  the farmer, then walk through her and on: every step she takes she is walking and facing the way
+  she goes; the same check on the code before fails). Smoke runs (`--quit-after 300`: title,
+  `--demo`, town, mine 3, the farm with `--together=shino --walk=down:1.2`): 0 ERROR lines;
+  windowed `--quit-after 150` of the last: exit 0. Not looked at in a frame (Movie Maker can't
+  talk and walk back in one run).
+- Left / next: step 4 Kajika-yu.
+
 ## 2026-11-23 — Baths: the spouse no longer walks backwards after the farmer
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's screenshot: walking back and forth, the spouse followed walking backwards):

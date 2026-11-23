@@ -621,6 +621,24 @@ func _bathers() -> void:
 				away = away or step.dot(feet - before) <= 0.0
 				backwards = backwards or step.dot(Vector2(w.facing)) <= 0.0
 				crowd = crowd or Vector2(w.pos).distance_to(feet) < 1.0
+	# Turned round to talk to her, then on through her to the other side (the user's case): after the
+	# talk she walks after the farmer facing her way, never sliding along turned back to the talk.
+	var her_at: Vector2 = Villagers.where("shino", 1050.0, st).pos
+	feet = her_at + Vector2(0.8, 0.0)
+	Companion.track("house", feet, 1050.0, st)
+	Villagers.turn("shino", Vector2i.RIGHT, 1050.0)   # the talk: she turns to the farmer on her right
+	var slid := false
+	var walked_on := false
+	for k in 40:   # the farmer walks left, through her and on
+		var before: Vector2 = Villagers.where("shino", 1050.0, st).pos
+		feet += Vector2.LEFT * 0.1
+		Companion.track("house", feet, 1050.0, st)
+		var w := Villagers.where("shino", 1050.0, st)
+		var step: Vector2 = Vector2(w.pos) - before
+		if step.length() > 0.001:
+			walked_on = true
+			slid = slid or not w.moving or step.dot(Vector2(w.facing)) <= 0.0
+	check(walked_on and not slid, "after a talk, through her and on: she walks after the farmer facing the way she goes")
 	check(not away and not backwards and not crowd, "back and forth: never walking away from the farmer, backwards, or on into them (%s %s %s)" % [away, backwards, crowd])
 	Companion.track("farm", Vector2(4.5, 5.5), 1060.0, st)
 	var on_farm := Villagers.where("shino", 1060.0, st)
