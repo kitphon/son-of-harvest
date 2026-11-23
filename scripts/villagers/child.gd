@@ -328,7 +328,8 @@ static func free_side(map_id: String, pos: Vector2, first: Vector2) -> Vector2:
 static func place(w: Dictionary, spouse: Dictionary, stage: String, t: float, spouse_id: String, plan_name: String) -> Dictionary:
 	var win := with_window(stage, plan_name, spouse_id)
 	var out_now: bool = not win.is_empty() and t >= float(win[0]) and t < float(win[1]) \
-		and spouse.has("pos") and str(spouse.get("map", DayPlan.AWAY)) != DayPlan.AWAY
+		and spouse.has("pos") and str(spouse.get("map", DayPlan.AWAY)) != DayPlan.AWAY \
+		and not str(spouse.get("map", "")) in days_of(stage).get("with", {}).get("not_with", [])   # not along to the spouse's bath
 	if not out_now:
 		return by_spouse(w, spouse, stage)
 	var home := str(data().get("days", {}).get("home", "house"))

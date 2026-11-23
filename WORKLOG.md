@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-23 — Baths step 3c: the spouse to the bath
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user said yes to the offer): every spouse (Fumi, Haru, Ichiro, Kaede, Mio, Ren, Sayo,
+  Shino) has a plan married_bath, picked on sunny Tuesdays and Saturdays before their plain married
+  day: home as usual until 19:00, then Kawasemi-yu, in the tub about 19:30-20:20 at the sixth cell
+  (free on every night, so the farmer can sit beside them at the fifth or seventh), home by about
+  20:45. At home 16:00-19:00 on those nights talking to them asks the farmer along
+  (wed_bath_invite); at the bath two spouse's lines each (wed_bath_1 / 2), ahead of their single
+  bath rows. The child doesn't follow the spouse to Yumachi or the bath (data/child.json
+  with.not_with, Child.place). Thai for all 24 lines.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: each spouse in the bath on a
+  sunny Tuesday and Saturday at the sixth cell, not Wednesday or a wet Tuesday, no two on one seat
+  those nights, the invite only at home on a bath night, the bath lines, the Thai, the child at
+  home while Sayo bathes; the single Sayo, Shino and Ren once married only on these nights). Smoke
+  runs (`--quit-after 300`: title, `--demo`, town, mine 3, `sento_bath@start --day=2 --time=19:45
+  --flags=married_shino,spouse=shino`): 0 ERROR lines; windowed `--quit-after 150` of the last:
+  exit 0. Frames: Shino at the sixth cell beside Hachiro saying "Quiet, warm, you. That's all of
+  it."; at home at 17:30 (`--hearts=6`) "Bath night. Come. My hands want to forget the vats."
+- Left / next: the spouse goes whether or not the farmer comes (no walking together); step 4
+  Kajika-yu.
+
 ## 2026-11-23 — Baths step 3b: Sayo, Shino and Ren bathe too
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user asked for villagers the farmer can court at the bath): Sayo on sunny Tuesdays and

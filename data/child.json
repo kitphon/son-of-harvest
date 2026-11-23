@@ -95,7 +95,9 @@
 				"join_at": {"mio": "10:30"},
 				"side": [-1, 0],
 				"tries": [[1, 0], [0, 1], [-1, 1], [1, 1], [0, -1]],
-				"sides": {}
+				"sides": {},
+				"_not_with": "Maps the child never follows the spouse onto (Child.place): the spouse's evening bath at Kawasemi-yu (data/villagers/<spouse>.json married_bath) is the two grown-ups' hour; the child stays at home.",
+				"not_with": ["yumachi", "sento", "sento_changing", "sento_bath"]
 			}
 		}
 	},

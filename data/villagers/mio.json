@@ -1,5 +1,5 @@
 {
-	"_note": "Mio keeps the fish traps and the old ferry on the river south of the village (data/maps/river.json) and lives in her father's driftwood hut on the north bank (data/maps/mio_hut.json). Mornings she works her traps along the shore east of the path (the fishing pose), and at 9:30 on a fine day she takes the old ferry across from her landing and back (a {\"ferry\": 30} step, data/ferry.json; not in winter, when she only looks at it from the shore); lunch at the hut; at 13:00 she takes the lane up through Minamino to sell her catch at the Yorozu Store's front (13:30-14:30); back to mend nets on the gravel by the path until 18:00, at the hut until bed at 21:00. Wet days she mends nets by the stove. On her birthday (spring 12, when the river runs high with snowmelt) no traps and no ferry: she sits on the far east end of the shore 9:00-16:00 watching the far bank. Festivals bring her up to the village for their hours, standing on the south road. Married to the farmer (married_mio, data/marriage.json) she lives at the farmhouse: by the kotatsu in the second room before 6:40 and from 18:00, the river and the store as before in between, and on a wet day she mends nets by the kotatsu. Her heart events: data/events/heart_mio.json (band 3), heart_mio_5.json (band 5), heart_mio_6.json (band 6; after it she can be asked to marry). Gifts: river fish and fish dishes, rice balls and hearty rice; amber from the mine (it washes up in rivers, she says); a moon lantern above all, for night crossings; fancy sweets and matcha are too dainty for her; a plain stone is an insult. A character of our own, one of the four new candidates (docs/DESIGN.md, ความรักและแต่งงาน). Format: README.md, Villagers.",
+	"_note": "Mio keeps the fish traps and the old ferry on the river south of the village (data/maps/river.json) and lives in her father's driftwood hut on the north bank (data/maps/mio_hut.json). Mornings she works her traps along the shore east of the path (the fishing pose), and at 9:30 on a fine day she takes the old ferry across from her landing and back (a {\"ferry\": 30} step, data/ferry.json; not in winter, when she only looks at it from the shore); lunch at the hut; at 13:00 she takes the lane up through Minamino to sell her catch at the Yorozu Store's front (13:30-14:30); back to mend nets on the gravel by the path until 18:00, at the hut until bed at 21:00. Wet days she mends nets by the stove. On her birthday (spring 12, when the river runs high with snowmelt) no traps and no ferry: she sits on the far east end of the shore 9:00-16:00 watching the far bank. Festivals bring her up to the village for their hours, standing on the south road. Married to the farmer (married_mio, data/marriage.json) she lives at the farmhouse: by the kotatsu in the second room before 6:40 and from 18:00, the river and the store as before in between, and on a wet day she mends nets by the kotatsu. Her heart events: data/events/heart_mio.json (band 3), heart_mio_5.json (band 5), heart_mio_6.json (band 6; after it she can be asked to marry). Gifts: river fish and fish dishes, rice balls and hearty rice; amber from the mine (it washes up in rivers, she says); a moon lantern above all, for night crossings; fancy sweets and matcha are too dainty for her; a plain stone is an insult. A character of our own, one of the four new candidates (docs/DESIGN.md, ความรักและแต่งงาน). Format: README.md, Villagers. Married, on sunny Tuesdays and Saturdays they go to Kawasemi-yu from the farmhouse and soak from about 19:30 to 20:20 at the tub's sixth cell, the farmer's place beside them (plan married_bath; 2026-11-23, Baths step 3c).",
 	"id": "mio",
 	"name": "Mio",
 	"birthday": {"season": "spring", "day": 12},
@@ -15,6 +15,7 @@
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
 		{"if": {"birthday": true}, "plan": "birthday"},
 		{"if": {"flags": ["married_mio"], "weather": ["rain", "storm", "snow"]}, "plan": "married_wet"},
+		{"if": {"flags": ["married_mio"], "weekday": ["tue", "sat"], "weather": ["sunny"]}, "plan": "married_bath"},
 		{"if": {"flags": ["married_mio"]}, "plan": "married"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
 	],
@@ -26,6 +27,29 @@
 		"hate": ["mine:stone"]
 	},
 	"plans": {
+		"married_bath": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "06:40", "map": "river", "from": [19, 4], "route": [{"to": [19, 5]}, {"to": [16, 5]}, {"face": "down"}], "loop": [{"fish": 20}, {"wait": 4}, {"to": [18, 5]}, {"face": "down"}, {"fish": 20}, {"wait": 4}, {"to": [16, 5]}, {"face": "down"}]},
+			{"at": "09:30", "map": "river", "route": [{"to": [14, 5]}, {"face": "down"}, {"ferry": 30}, {"to": [16, 5]}, {"face": "down"}], "loop": [{"fish": 20}, {"wait": 4}, {"to": [18, 5]}, {"face": "down"}, {"fish": 20}, {"wait": 4}, {"to": [16, 5]}, {"face": "down"}]},
+			{"at": "11:30", "map": "river", "route": [{"to": [16, 4]}, {"to": [13, 4]}, {"face": "up"}]},
+			{"at": "11:40", "map": "mio_hut", "from": [2, 3], "route": [{"face": "down"}]},
+			{"at": "13:00", "map": "river", "route": [{"to": [19, 4]}], "from": [13, 4]},
+			{"at": "13:15", "map": "town", "from": [0, 24], "route": [{"to": [9, 24]}, {"to": [9, 36]}, {"to": [42, 36]}, {"to": [42, 29]}, {"to": [45, 29]}, {"face": "up"}]},
+			{"at": "14:20", "map": "town", "route": [{"to": [40, 29]}, {"to": [40, 36]}, {"to": [8, 36]}, {"to": [8, 24]}, {"to": [0, 24]}, {"face": "left"}]},
+			{"at": "15:05", "map": "river", "from": [19, 4], "route": [{"to": [10, 4]}, {"face": "down"}], "loop": [{"work": 20}, {"wait": 10}]},
+			{"at": "17:30", "map": "river", "route": [{"to": [19, 4]}, {"face": "right"}]},
+			{"at": "18:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "19:00", "map": "away"},
+			{"at": "19:10", "map": "yumachi", "from": [0, 4], "route": [{"to": [3, 4]}, {"to": [3, 5]}, {"to": [7, 5]}, {"face": "up"}]},
+			{"at": "19:16", "map": "sento", "from": [3, 6], "route": [{"to": [3, 4]}, {"to": [6, 4]}, {"face": "right"}]},
+			{"at": "19:20", "map": "away"},
+			{"at": "19:25", "map": "sento_bath", "from": [1, 3], "route": [{"to": [6, 3]}, {"face": "up"}, {"bathe": 50}]},
+			{"at": "20:19", "map": "sento_bath", "route": [{"to": [1, 3]}, {"face": "left"}]},
+			{"at": "20:23", "map": "away"},
+			{"at": "20:28", "map": "sento", "from": [6, 4], "route": [{"to": [3, 4]}, {"to": [3, 6]}, {"face": "down"}]},
+			{"at": "20:32", "map": "yumachi", "from": [7, 5], "route": [{"to": [3, 5]}, {"to": [3, 4]}, {"to": [0, 4]}, {"face": "left"}]},
+			{"at": "20:38", "map": "away"}
+		],
 		"married_festival_day": [
 			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
 			{"at": "09:55", "map": "town", "from": [0, 4], "route": [{"to": [45, 4]}, {"face": "up"}]},

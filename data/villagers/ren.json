@@ -1,5 +1,5 @@
 {
-	"_note": "Ren carries the post. He lives in the back of the little post office by the farm road (data/maps/post_office.json) and walks the round through every part of the valley, rain or shine: the village houses, Sakurazaka, Kaminoda, then after lunch Minamino, the river and Minamino's houses. He talks a lot and knows everyone's news, but never what is in a letter. Up at 6:00; sorting the morning bag behind the counter 7:00-8:30; the village round from 8:30, stopping at each door to slip the post in (a post step) (Tome, Kota's family, the store and Sayo's side door, the smithy, the clinic) and east to Sakurazaka at 9:45 (the teahouse, Ichiro's house), back through the village at 10:35 and up to Kaminoda at 11:00 (Genzo, Haru); lunch at the post office 12:05; down the south lane at 13:00, the river at 13:30 (Mio's hut), Minamino's houses from 13:55 (Shino, Shige and Nana, Kaede, Kiku); the counter again 15:20-17:30, asleep from 21:00. No wet-day plan: the post goes out in any weather. He carries a canvas mailbag (look.bag). Sundays the post office is shut and he sits by the village pond 9:00-15:00 with a book. On his birthday (spring 15) he takes the day off at the pond too. Festivals he stands in the village for their hours and goes straight to bed after (the post office door shuts at 21:00). Married to the farmer (married_ren, data/marriage.json) he lives at the farmhouse: by the kotatsu in the second room before 6:45 and from 17:45, the same round and counter in between. His heart events: data/events/heart_ren.json (band 3), heart_ren_5.json (band 5), heart_ren_6.json (band 6; after it he can be asked to marry). Gifts: grilled fish, rice balls and tea for the road, a daruma above all (he never gives up on a round); baked sweet potato, chestnuts, amazake and amber he likes; the bitter herb tonic, shaved ice (it melts before he gets anywhere) and clay he doesn't, a plain stone is an insult. A character of our own, one of the four new candidates (docs/DESIGN.md, ความรักและแต่งงาน). Format: README.md, Villagers. Evening baths (2026-11-23, Baths step 3b): on sunny Fridays and Saturdays, after the post office shuts, he rests his feet at Kawasemi-yu from about 19:30 to 20:25 at the tub's ninth cell (plan bath; not once married).",
+	"_note": "Ren carries the post. He lives in the back of the little post office by the farm road (data/maps/post_office.json) and walks the round through every part of the valley, rain or shine: the village houses, Sakurazaka, Kaminoda, then after lunch Minamino, the river and Minamino's houses. He talks a lot and knows everyone's news, but never what is in a letter. Up at 6:00; sorting the morning bag behind the counter 7:00-8:30; the village round from 8:30, stopping at each door to slip the post in (a post step) (Tome, Kota's family, the store and Sayo's side door, the smithy, the clinic) and east to Sakurazaka at 9:45 (the teahouse, Ichiro's house), back through the village at 10:35 and up to Kaminoda at 11:00 (Genzo, Haru); lunch at the post office 12:05; down the south lane at 13:00, the river at 13:30 (Mio's hut), Minamino's houses from 13:55 (Shino, Shige and Nana, Kaede, Kiku); the counter again 15:20-17:30, asleep from 21:00. No wet-day plan: the post goes out in any weather. He carries a canvas mailbag (look.bag). Sundays the post office is shut and he sits by the village pond 9:00-15:00 with a book. On his birthday (spring 15) he takes the day off at the pond too. Festivals he stands in the village for their hours and goes straight to bed after (the post office door shuts at 21:00). Married to the farmer (married_ren, data/marriage.json) he lives at the farmhouse: by the kotatsu in the second room before 6:45 and from 17:45, the same round and counter in between. His heart events: data/events/heart_ren.json (band 3), heart_ren_5.json (band 5), heart_ren_6.json (band 6; after it he can be asked to marry). Gifts: grilled fish, rice balls and tea for the road, a daruma above all (he never gives up on a round); baked sweet potato, chestnuts, amazake and amber he likes; the bitter herb tonic, shaved ice (it melts before he gets anywhere) and clay he doesn't, a plain stone is an insult. A character of our own, one of the four new candidates (docs/DESIGN.md, ความรักและแต่งงาน). Format: README.md, Villagers. Evening baths (2026-11-23, Baths step 3b): on sunny Fridays and Saturdays, after the post office shuts, he rests his feet at Kawasemi-yu from about 19:30 to 20:25 at the tub's ninth cell (plan bath; not once married). Married, on sunny Tuesdays and Saturdays they go to Kawasemi-yu from the farmhouse and soak from about 19:30 to 20:20 at the tub's sixth cell, the farmer's place beside them (plan married_bath; 2026-11-23, Baths step 3c).",
 	"id": "ren",
 	"name": "Ren",
 	"birthday": {"season": "spring", "day": 15},
@@ -16,6 +16,7 @@
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
 		{"if": {"birthday": true}, "plan": "birthday"},
 		{"if": {"weekday": ["sun"]}, "plan": "day_off"},
+		{"if": {"flags": ["married_ren"], "weekday": ["tue", "sat"], "weather": ["sunny"]}, "plan": "married_bath"},
 		{"if": {"flags": ["married_ren"]}, "plan": "married"},
 		{"if": {"weekday": ["fri", "sat"], "weather": ["sunny"]}, "plan": "bath"}
 	],
@@ -27,6 +28,35 @@
 		"hate": ["mine:stone"]
 	},
 	"plans": {
+		"married_bath": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "06:30", "map": "town", "from": [0, 4], "route": [{"to": [11, 4]}, {"to": [11, 11]}, {"to": [42, 11]}, {"to": [42, 9]}, {"to": [51, 9]}, {"face": "up"}]},
+			{"at": "07:00", "map": "post_office", "from": [3, 2], "route": [{"face": "down"}], "loop": [{"work": 20}, {"face": "left"}, {"wait": 5}, {"face": "down"}]},
+			{"at": "08:30", "map": "town", "from": [51, 9], "route": [{"to": [46, 9]}, {"face": "up"}, {"post": 2}, {"to": [40, 9]}, {"to": [40, 34]}, {"to": [37, 34]}, {"face": "up"}, {"post": 2}, {"to": [42, 34]}, {"to": [42, 29]}, {"to": [46, 29]}, {"face": "up"}, {"post": 2}, {"to": [48, 29]}, {"face": "up"}, {"post": 2}, {"to": [42, 29]}, {"to": [42, 16]}, {"to": [44, 16]}, {"face": "up"}, {"post": 2}, {"to": [51, 16]}, {"face": "up"}, {"post": 2}, {"to": [55, 16]}, {"face": "right"}]},
+			{"at": "09:45", "map": "sakurazaka", "from": [0, 10], "route": [{"to": [7, 10]}, {"to": [7, 8]}, {"face": "up"}, {"post": 3}, {"to": [7, 10]}, {"to": [19, 10]}, {"to": [19, 16]}, {"to": [22, 16]}, {"face": "up"}, {"post": 2}, {"to": [19, 16]}, {"to": [19, 10]}, {"to": [0, 10]}, {"face": "left"}]},
+			{"at": "10:30", "map": "town", "from": [55, 16], "route": [{"to": [42, 16]}, {"to": [42, 0]}, {"face": "up"}]},
+			{"at": "11:00", "map": "kaminoda", "from": [10, 19], "route": [{"to": [10, 10]}, {"to": [15, 10]}, {"to": [15, 7]}, {"face": "up"}, {"post": 2}, {"to": [15, 10]}, {"to": [27, 10]}, {"to": [27, 7]}, {"face": "up"}, {"post": 2}, {"to": [27, 10]}, {"to": [10, 10]}, {"to": [10, 19]}, {"face": "down"}]},
+			{"at": "11:50", "map": "town", "from": [42, 0], "route": [{"to": [42, 9]}, {"to": [51, 9]}, {"face": "up"}]},
+			{"at": "12:05", "map": "post_office", "from": [5, 2], "route": [{"face": "down"}]},
+			{"at": "12:15", "map": "town", "from": [51, 9], "route": [{"to": [40, 9]}, {"to": [40, 12]}, {"to": [8, 12]}, {"to": [8, 24]}, {"to": [0, 24]}, {"face": "left"}]},
+			{"at": "12:50", "map": "river", "from": [19, 4], "route": [{"to": [13, 4]}, {"face": "up"}, {"post": 3}, {"to": [19, 4]}, {"face": "right"}]},
+			{"at": "13:09", "map": "town", "from": [0, 24], "route": [{"to": [9, 24]}, {"to": [9, 36]}, {"to": [41, 36]}, {"to": [41, 47]}, {"face": "down"}]},
+			{"at": "13:45", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 14]}, {"to": [1, 14]}, {"face": "up"}, {"post": 2}, {"to": [4, 14]}, {"to": [4, 7]}, {"to": [11, 7]}, {"face": "up"}, {"post": 2}, {"to": [11, 9]}, {"to": [23, 9]}, {"to": [23, 7]}, {"face": "up"}, {"post": 2}, {"to": [19, 7]}, {"to": [19, 15]}, {"to": [22, 15]}, {"face": "up"}, {"post": 2}, {"to": [19, 15]}, {"to": [19, 9]}, {"to": [4, 9]}, {"to": [4, 0]}, {"face": "up"}]},
+			{"at": "14:50", "map": "town", "from": [41, 47], "route": [{"to": [41, 9]}, {"to": [51, 9]}, {"face": "up"}]},
+			{"at": "15:20", "map": "post_office", "from": [3, 2], "route": [{"face": "down"}], "loop": [{"work": 20}, {"face": "left"}, {"wait": 5}, {"face": "down"}]},
+			{"at": "17:15", "map": "town", "from": [51, 9], "route": [{"to": [40, 9]}, {"to": [40, 11]}, {"to": [10, 11]}, {"to": [10, 4]}, {"to": [0, 4]}, {"face": "left"}]},
+			{"at": "17:45", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "19:00", "map": "away"},
+			{"at": "19:10", "map": "yumachi", "from": [0, 4], "route": [{"to": [3, 4]}, {"to": [3, 5]}, {"to": [7, 5]}, {"face": "up"}]},
+			{"at": "19:15", "map": "sento", "from": [3, 6], "route": [{"to": [3, 4]}, {"to": [6, 4]}, {"face": "right"}]},
+			{"at": "19:19", "map": "away"},
+			{"at": "19:24", "map": "sento_bath", "from": [1, 3], "route": [{"to": [6, 3]}, {"face": "up"}, {"bathe": 50}]},
+			{"at": "20:18", "map": "sento_bath", "route": [{"to": [1, 3]}, {"face": "left"}]},
+			{"at": "20:22", "map": "away"},
+			{"at": "20:27", "map": "sento", "from": [6, 4], "route": [{"to": [3, 4]}, {"to": [3, 6]}, {"face": "down"}]},
+			{"at": "20:31", "map": "yumachi", "from": [7, 5], "route": [{"to": [3, 5]}, {"to": [3, 4]}, {"to": [0, 4]}, {"face": "left"}]},
+			{"at": "20:36", "map": "away"}
+		],
 		"bath": [
 			{"at": "06:00", "map": "post_office", "from": [5, 2], "route": [{"face": "down"}]},
 			{"at": "07:00", "map": "post_office", "route": [{"to": [3, 2]}, {"face": "down"}], "loop": [{"work": 20}, {"face": "left"}, {"wait": 5}, {"face": "down"}]},

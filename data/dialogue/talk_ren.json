@@ -1,7 +1,8 @@
 {
-	"_note": "What Ren, who carries the post, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items his own answers to a daruma and to dishes. At the counter he talks of the sorting, on Sundays of his day off. The birthday lines (spring 15), the close lines from band 4, the round lines once his band 5 scene is seen (heart_ren_5), the dear lines at band 6 once his band 6 scene is (heart_ren_6) until he is promised; engaged_ lines once he said yes to the knot, and married (married_ren) help_ lines on a morning he did a chore, wed_morning_ / wed_evening_ at the farmhouse and wed_out_ elsewhere (data/marriage.json). He talks a lot and knows who writes to whom, never what. Our own lines. The bath_ lines are said at Kawasemi-yu (the lobby, the changing room and the bath), bath_close_ from heart band 4 (Baths step 3b).",
+	"_note": "What Ren, who carries the post, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items his own answers to a daruma and to dishes. At the counter he talks of the sorting, on Sundays of his day off. The birthday lines (spring 15), the close lines from band 4, the round lines once his band 5 scene is seen (heart_ren_5), the dear lines at band 6 once his band 6 scene is (heart_ren_6) until he is promised; engaged_ lines once he said yes to the knot, and married (married_ren) help_ lines on a morning he did a chore, wed_morning_ / wed_evening_ at the farmhouse and wed_out_ elsewhere (data/marriage.json). He talks a lot and knows who writes to whom, never what. Our own lines. The bath_ lines are said at Kawasemi-yu (the lobby, the changing room and the bath), bath_close_ from heart band 4 (Baths step 3b). Married: wed_bath_invite at home on a bath night's evening, wed_bath_ at Kawasemi-yu (Baths step 3c).",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"flags": ["married_ren"], "map": ["sento", "sento_changing", "sento_bath"]}, "at": ["wed_bath_1", "wed_bath_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
 		{"if": {"band": [0, 0]}, "at": ["new_1"]},
 		{"if": {"map": ["sento", "sento_changing", "sento_bath"], "band": [4, 6]}, "at": ["bath_close_1", "bath_close_2"]},
@@ -13,6 +14,7 @@
 		{"if": {"flags": ["engaged_ren"]}, "at": ["engaged_1", "engaged_2"]},
 		{"if": {"flags": ["married_ren", "help_water"], "time": ["00:00", "12:00"]}, "at": ["help_water_1", "help_water_2"]},
 		{"if": {"flags": ["married_ren", "help_feed"], "time": ["00:00", "12:00"]}, "at": ["help_feed_1", "help_feed_2"]},
+		{"if": {"flags": ["married_ren"], "map": ["house"], "weekday": ["tue", "sat"], "weather": ["sunny"], "time": ["16:00", "19:00"]}, "at": ["wed_bath_invite"]},
 		{"if": {"flags": ["married_ren"], "map": ["house"], "time": ["06:00", "12:00"]}, "at": ["wed_morning_1", "wed_morning_2", "wed_morning_3"]},
 		{"if": {"flags": ["married_ren"], "map": ["house"]}, "at": ["wed_evening_1", "wed_evening_2", "wed_evening_3"]},
 		{"if": {"flags": ["married_ren"]}, "at": ["wed_out_1", "wed_out_2"]},
@@ -26,6 +28,9 @@
 		{"at": ["plain_1", "plain_2", "plain_3"]}
 	],
 	"lines": [
+		{"id": "wed_bath_invite", "speaker": "ren", "mood": "happy", "text": "Bath night. My feet have been asking since noon. Coming to Kawasemi-yu?", "next": "end"},
+		{"id": "wed_bath_1", "speaker": "ren", "mood": "happy", "text": "Every house in the valley today, and this is the best stop on the round.", "next": "end"},
+		{"id": "wed_bath_2", "speaker": "ren", "mood": "happy", "text": "Remember the first night you sat by me here? I do. I didn't say much. I was busy being happy.", "next": "end"},
 		{"id": "bath_close_1", "speaker": "ren", "mood": "happy", "text": "There you are. I passed your farm on the round and hoped you'd come tonight.", "next": "end"},
 		{"id": "bath_close_2", "speaker": "ren", "mood": "happy", "text": "If I wrote you a letter, I'd have to deliver it to myself first. Easier to say it: I like these evenings.", "next": "end"},
 		{"id": "bath_1", "speaker": "ren", "mood": "happy", "text": "Twelve kilometers on these feet today. They've earned the hot water more than I have.", "next": "end"},

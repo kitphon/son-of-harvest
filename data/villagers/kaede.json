@@ -1,5 +1,5 @@
 {
-	"_note": "Kaede keeps the village shrine. She lives in the shrine keepers' house in Minamino's east (data/maps/kaede_house.json; her grandfather kept the shrine before her) and Grandma Tome is teaching her the rites he never wrote down. Up at 6:00; at 6:30 she walks the track west, bows at Minamino's roadside shrine, and goes up the lane; from 7:00 she sweeps the shrine's gravel in front of the hall, lunch on its step at 11:30, then folds paper charms by the hall until 16:00, home by 16:55, asleep from 21:00. Wet days she folds charms at home. On her birthday (fall 4, when the first leaves turn on the shrine path) she leaves the broom: home in the morning, then the roadside shrine in Minamino 10:00-15:00, telling herself the old tales. Festivals she stands by the hall for their hours. Married to the farmer (married_kaede, data/marriage.json) she lives at the farmhouse: by the kotatsu in the second room before 7:00 and from 16:30, the shrine as before in between; a wet day she folds charms by the kotatsu. Her heart events: data/events/heart_kaede.json (band 3), heart_kaede_5.json (band 5), heart_kaede_6.json (band 6; after it she can be asked to marry). Gifts: sweets for the gods and for herself (dango, amazake, kinako mochi), an omamori from somewhere else above all, quartz from the mine; strong medicine, fish stewed with daikon and muddy clay she doesn't like, a plain stone is an insult. A character of our own, one of the four new candidates (docs/DESIGN.md, ความรักและแต่งงาน). Format: README.md, Villagers.",
+	"_note": "Kaede keeps the village shrine. She lives in the shrine keepers' house in Minamino's east (data/maps/kaede_house.json; her grandfather kept the shrine before her) and Grandma Tome is teaching her the rites he never wrote down. Up at 6:00; at 6:30 she walks the track west, bows at Minamino's roadside shrine, and goes up the lane; from 7:00 she sweeps the shrine's gravel in front of the hall, lunch on its step at 11:30, then folds paper charms by the hall until 16:00, home by 16:55, asleep from 21:00. Wet days she folds charms at home. On her birthday (fall 4, when the first leaves turn on the shrine path) she leaves the broom: home in the morning, then the roadside shrine in Minamino 10:00-15:00, telling herself the old tales. Festivals she stands by the hall for their hours. Married to the farmer (married_kaede, data/marriage.json) she lives at the farmhouse: by the kotatsu in the second room before 7:00 and from 16:30, the shrine as before in between; a wet day she folds charms by the kotatsu. Her heart events: data/events/heart_kaede.json (band 3), heart_kaede_5.json (band 5), heart_kaede_6.json (band 6; after it she can be asked to marry). Gifts: sweets for the gods and for herself (dango, amazake, kinako mochi), an omamori from somewhere else above all, quartz from the mine; strong medicine, fish stewed with daikon and muddy clay she doesn't like, a plain stone is an insult. A character of our own, one of the four new candidates (docs/DESIGN.md, ความรักและแต่งงาน). Format: README.md, Villagers. Married, on sunny Tuesdays and Saturdays they go to Kawasemi-yu from the farmhouse and soak from about 19:30 to 20:20 at the tub's sixth cell, the farmer's place beside them (plan married_bath; 2026-11-23, Baths step 3c).",
 	"id": "kaede",
 	"name": "Kaede",
 	"birthday": {"season": "fall", "day": 4},
@@ -15,6 +15,7 @@
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
 		{"if": {"birthday": true}, "plan": "birthday"},
 		{"if": {"flags": ["married_kaede"], "weather": ["rain", "storm", "snow"]}, "plan": "married_wet"},
+		{"if": {"flags": ["married_kaede"], "weekday": ["tue", "sat"], "weather": ["sunny"]}, "plan": "married_bath"},
 		{"if": {"flags": ["married_kaede"]}, "plan": "married"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"}
 	],
@@ -26,6 +27,24 @@
 		"hate": ["mine:stone"]
 	},
 	"plans": {
+		"married_bath": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "07:00", "map": "town", "from": [0, 4], "route": [{"to": [11, 4]}, {"to": [11, 12]}, {"to": [25, 12]}, {"to": [25, 15]}, {"to": [22, 15]}, {"to": [22, 20]}, {"to": [24, 20]}, {"to": [24, 22]}, {"to": [25, 22]}, {"to": [25, 23]}, {"face": "up"}], "loop": [{"work": 15}, {"to": [30, 23]}, {"face": "up"}, {"work": 15}, {"to": [25, 23]}, {"face": "up"}]},
+			{"at": "11:30", "map": "town", "route": [{"to": [28, 23]}, {"to": [28, 24]}, {"face": "down"}], "loop": [{"wait": 30}]},
+			{"at": "12:30", "map": "town", "route": [{"to": [28, 22]}, {"to": [27, 22]}, {"face": "up"}], "loop": [{"wait": 20}, {"face": "left"}, {"wait": 10}, {"face": "up"}]},
+			{"at": "15:55", "map": "town", "route": [{"to": [27, 20]}, {"to": [22, 20]}, {"to": [22, 15]}, {"to": [25, 15]}, {"to": [25, 11]}, {"to": [10, 11]}, {"to": [10, 4]}, {"to": [0, 4]}, {"face": "left"}]},
+			{"at": "16:30", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "19:00", "map": "away"},
+			{"at": "19:10", "map": "yumachi", "from": [0, 4], "route": [{"to": [3, 4]}, {"to": [3, 5]}, {"to": [7, 5]}, {"face": "up"}]},
+			{"at": "19:17", "map": "sento", "from": [3, 6], "route": [{"to": [3, 4]}, {"to": [6, 4]}, {"face": "right"}]},
+			{"at": "19:22", "map": "away"},
+			{"at": "19:27", "map": "sento_bath", "from": [1, 3], "route": [{"to": [6, 3]}, {"face": "up"}, {"bathe": 50}]},
+			{"at": "20:22", "map": "sento_bath", "route": [{"to": [1, 3]}, {"face": "left"}]},
+			{"at": "20:27", "map": "away"},
+			{"at": "20:32", "map": "sento", "from": [6, 4], "route": [{"to": [3, 4]}, {"to": [3, 6]}, {"face": "down"}]},
+			{"at": "20:37", "map": "yumachi", "from": [7, 5], "route": [{"to": [3, 5]}, {"to": [3, 4]}, {"to": [0, 4]}, {"face": "left"}]},
+			{"at": "20:44", "map": "away"}
+		],
 		"married_festival_day": [
 			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
 			{"at": "09:45", "map": "town", "from": [0, 4], "route": [{"to": [11, 4]}, {"to": [11, 12]}, {"to": [25, 12]}, {"to": [25, 15]}, {"to": [22, 15]}, {"to": [22, 20]}, {"to": [29, 20]}, {"to": [29, 23]}, {"face": "down"}]},

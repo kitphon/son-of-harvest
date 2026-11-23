@@ -1,7 +1,8 @@
 {
-	"_note": "What Fumi, who keeps the Hanami teahouse in Sakurazaka, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction (gift_birthday on her birthday, spring 26), gift_items her own answers to a keepsake and to dishes. The close lines from band 4, after_tea once her band 5 scene is seen (heart_fumi_5). Our own lines.",
+	"_note": "What Fumi, who keeps the Hanami teahouse in Sakurazaka, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction (gift_birthday on her birthday, spring 26), gift_items her own answers to a keepsake and to dishes. The close lines from band 4, after_tea once her band 5 scene is seen (heart_fumi_5). Our own lines. Married: wed_bath_invite at home on a bath night's evening, wed_bath_ at Kawasemi-yu (Baths step 3c).",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
+		{"if": {"flags": ["married_fumi"], "map": ["sento", "sento_changing", "sento_bath"]}, "at": ["wed_bath_1", "wed_bath_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
 		{"if": {"band": [0, 0]}, "at": ["new_1"]},
 		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
@@ -11,6 +12,7 @@
 		{"if": {"flags": ["engaged_fumi"]}, "at": ["engaged_1", "engaged_2"]},
 		{"if": {"flags": ["married_fumi", "help_water"], "time": ["00:00", "12:00"]}, "at": ["help_water_1", "help_water_2"]},
 		{"if": {"flags": ["married_fumi", "help_feed"], "time": ["00:00", "12:00"]}, "at": ["help_feed_1", "help_feed_2"]},
+		{"if": {"flags": ["married_fumi"], "map": ["house"], "weekday": ["tue", "sat"], "weather": ["sunny"], "time": ["16:00", "19:00"]}, "at": ["wed_bath_invite"]},
 		{"if": {"flags": ["married_fumi"], "map": ["house"], "time": ["06:00", "12:00"]}, "at": ["wed_morning_1", "wed_morning_2", "wed_morning_3"]},
 		{"if": {"flags": ["married_fumi"], "map": ["house"]}, "at": ["wed_evening_1", "wed_evening_2", "wed_evening_3"]},
 		{"if": {"flags": ["married_fumi"]}, "at": ["wed_out_1", "wed_out_2"]},
@@ -36,6 +38,9 @@
 		"dish:dislike": "gift_dish_dislike"
 	},
 	"lines": [
+		{"id": "wed_bath_invite", "speaker": "fumi", "mood": "happy", "text": "Bath night. Close the shutters early and walk with me to Kawasemi-yu?", "next": "end"},
+		{"id": "wed_bath_1", "speaker": "fumi", "mood": "happy", "text": "Tea all day, hot water all evening. I'm one big teapot now.", "next": "end"},
+		{"id": "wed_bath_2", "speaker": "fumi", "mood": "happy", "text": "Sit closer. Masa says the two on one bench get the warm side.", "next": "end"},
 		{"id": "festival_blossom_day", "speaker": "fumi", "mood": "happy", "text": "I shut the teahouse for this. Someone else's dango, for once, and I just sit and eat it.", "next": "end"},
 		{"id": "festival_lantern_night", "speaker": "fumi", "mood": "happy", "text": "Shaved ice! At home I'd never let myself. Tonight doesn't count.", "next": "end"},
 		{"id": "festival_moon_night", "speaker": "fumi", "mood": "neutral", "text": "The moon looks the same from the teahouse, but it's better with company.", "next": "end"},

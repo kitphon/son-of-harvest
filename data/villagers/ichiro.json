@@ -1,5 +1,5 @@
 {
-	"_note": "Ichiro burns charcoal in Sakurazaka (the village's east part): a big quiet man who smells of smoke. Out early (6:30) to the bamboo grove and the woods north-east of the creek, where he cuts and hauls wood till noon; lunch at the Hanami teahouse (on its gravel, 12:00-12:45); stacking firewood by his house in the afternoon; home at 17:00, asleep from 20:00. Wet days he works in his earth-floored entry. Married to the farmer (married_ichiro, data/marriage.json) he lives at the farmhouse: by the kotatsu in the second room before 6:30 and from 17:00, his woods, lunch at the teahouse and his woodpile as before in between; on a wet day he walks over to split wood in his old earth-floored entry 7:00-17:00. On his birthday (fall 9, when the burning season starts) the axe rests: home in the morning, then a long sit on the teahouse gravel 10:00-14:00, home again after. His heart events: data/events/heart_ichiro.json (band 3), heart_ichiro_5.json (band 5). Gifts: hearty food, sweet potatoes, chestnuts; ores; he dislikes sweets and milk. Format: README.md, Villagers. Evening baths (2026-11-23, Baths step 3): on dry Wednesdays and Sundays he soaks at Kawasemi-yu, whose boiler burns his oak, from about 20:20 to 21:15 at the tub's seventh cell (plan bath).",
+	"_note": "Ichiro burns charcoal in Sakurazaka (the village's east part): a big quiet man who smells of smoke. Out early (6:30) to the bamboo grove and the woods north-east of the creek, where he cuts and hauls wood till noon; lunch at the Hanami teahouse (on its gravel, 12:00-12:45); stacking firewood by his house in the afternoon; home at 17:00, asleep from 20:00. Wet days he works in his earth-floored entry. Married to the farmer (married_ichiro, data/marriage.json) he lives at the farmhouse: by the kotatsu in the second room before 6:30 and from 17:00, his woods, lunch at the teahouse and his woodpile as before in between; on a wet day he walks over to split wood in his old earth-floored entry 7:00-17:00. On his birthday (fall 9, when the burning season starts) the axe rests: home in the morning, then a long sit on the teahouse gravel 10:00-14:00, home again after. His heart events: data/events/heart_ichiro.json (band 3), heart_ichiro_5.json (band 5). Gifts: hearty food, sweet potatoes, chestnuts; ores; he dislikes sweets and milk. Format: README.md, Villagers. Evening baths (2026-11-23, Baths step 3): on dry Wednesdays and Sundays he soaks at Kawasemi-yu, whose boiler burns his oak, from about 20:20 to 21:15 at the tub's seventh cell (plan bath). Married, on sunny Tuesdays and Saturdays they go to Kawasemi-yu from the farmhouse and soak from about 19:30 to 20:20 at the tub's sixth cell, the farmer's place beside them (plan married_bath; 2026-11-23, Baths step 3c).",
 	"id": "ichiro",
 	"name": "Ichiro",
 	"birthday": {"season": "fall", "day": 9},
@@ -25,6 +25,7 @@
 		{"if": {"festival": ["years_turn"]}, "plan": "festival_year"},
 		{"if": {"birthday": true}, "plan": "birthday"},
 		{"if": {"flags": ["married_ichiro"], "weather": ["rain", "storm", "snow"]}, "plan": "married_wet"},
+		{"if": {"flags": ["married_ichiro"], "weekday": ["tue", "sat"], "weather": ["sunny"]}, "plan": "married_bath"},
 		{"if": {"flags": ["married_ichiro"]}, "plan": "married"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"},
 		{"if": {"weekday": ["wed", "sun"]}, "plan": "bath"}
@@ -42,6 +43,25 @@
 		"hate": ["mine:clay"]
 	},
 	"plans": {
+		"married_bath": [
+			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "06:30", "map": "sakurazaka", "from": [22, 16], "route": [{"to": [19, 16]}, {"to": [19, 10]}, {"to": [21, 10]}, {"to": [21, 6]}, {"face": "up"}], "loop": [{"work": 20}, {"to": [23, 6]}, {"face": "up"}, {"work": 20}, {"to": [21, 6]}, {"face": "up"}]},
+			{"at": "11:40", "map": "sakurazaka", "route": [{"to": [21, 6]}, {"to": [21, 10]}, {"to": [9, 10]}, {"to": [9, 9]}, {"face": "up"}]},
+			{"at": "12:00", "map": "sakurazaka", "route": [{"wait": 40}]},
+			{"at": "12:45", "map": "sakurazaka", "route": [{"to": [9, 10]}, {"to": [19, 10]}, {"to": [19, 16]}, {"to": [25, 16]}, {"face": "right"}], "loop": [{"work": 15}, {"to": [25, 15]}, {"face": "right"}, {"work": 15}, {"to": [25, 16]}, {"face": "right"}]},
+			{"at": "16:45", "map": "sakurazaka", "route": [{"to": [22, 16]}, {"face": "up"}]},
+			{"at": "17:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
+			{"at": "19:00", "map": "away"},
+			{"at": "19:10", "map": "yumachi", "from": [0, 4], "route": [{"to": [3, 4]}, {"to": [3, 5]}, {"to": [7, 5]}, {"face": "up"}]},
+			{"at": "19:17", "map": "sento", "from": [3, 6], "route": [{"to": [3, 4]}, {"to": [6, 4]}, {"face": "right"}]},
+			{"at": "19:22", "map": "away"},
+			{"at": "19:27", "map": "sento_bath", "from": [1, 3], "route": [{"to": [6, 3]}, {"face": "up"}, {"bathe": 50}]},
+			{"at": "20:22", "map": "sento_bath", "route": [{"to": [1, 3]}, {"face": "left"}]},
+			{"at": "20:27", "map": "away"},
+			{"at": "20:32", "map": "sento", "from": [6, 4], "route": [{"to": [3, 4]}, {"to": [3, 6]}, {"face": "down"}]},
+			{"at": "20:37", "map": "yumachi", "from": [7, 5], "route": [{"to": [3, 5]}, {"to": [3, 4]}, {"to": [0, 4]}, {"face": "left"}]},
+			{"at": "20:44", "map": "away"}
+		],
 		"bath": [
 			{"at": "06:00", "map": "ichiro_house", "from": [5, 2], "route": [{"face": "left"}]},
 			{"at": "06:30", "map": "sakurazaka", "from": [22, 16], "route": [{"to": [19, 16]}, {"to": [19, 10]}, {"to": [21, 10]}, {"to": [21, 6]}, {"face": "up"}], "loop": [{"work": 20}, {"to": [23, 6]}, {"face": "up"}, {"work": 20}, {"to": [21, 6]}, {"face": "up"}]},

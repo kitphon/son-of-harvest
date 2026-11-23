@@ -478,7 +478,7 @@ func _bathers() -> void:
 		for m in range(17 * 60, 23 * 60, 2):
 			clash = clash or Villagers.bath_seats("sento_bath", float(m), s).size() != Villagers.on_map("sento_bath", float(m), s).filter(func(w): return w.has("seat_cell")).size()
 		check(not clash, "%s: no two bathers on one seat" % g.WEEKDAYS[i])
-	# The ones the farmer can marry come while single, not once married (their own day at home then).
+	# The ones the farmer can marry come on their own nights while single; once married only on the spouse's nights, at the sixth cell.
 	for id in ["sayo", "shino", "ren"]:
 		var seen := false
 		var wed := false
@@ -487,8 +487,9 @@ func _bathers() -> void:
 			var m := mon.merged({"weekday": g.WEEKDAYS[i], "day": i + 8, "flags": {"married_" + id: true, "spouse": id}}, true)
 			for x in range(17 * 60, 23 * 60, 5):
 				seen = seen or Villagers.where(id, float(x), s).has("seat_cell")
-				wed = wed or Villagers.where(id, float(x), m).has("seat_cell")
-		check(seen and not wed, "%s bathes while single, not once married" % id)
+				var mw := Villagers.where(id, float(x), m)
+				wed = wed or (mw.has("seat_cell") and (mw.seat_cell != Vector2i(6, 3) or not g.WEEKDAYS[i] in ["tue", "sat"]))
+		check(seen and not wed, "%s bathes on their own nights while single, not once married" % id)
 	check(Villagers.on_map("sento_bath", t, mon.merged({"season": "winter"}, true)).map(func(w): return w.id).has("tome"), "Tome comes in winter too")
 	var fests := ["blossom_day", "lantern_night", "moon_night", "years_turn"]
 	for i in fests.size():
@@ -504,6 +505,37 @@ func _bathers() -> void:
 				for step in e.get("route", []) + e.get("loop", []):
 					if step.has("bathe"):
 						check(e.map == "sento_bath", "%s %s bathes on the bath's map" % [id, name])
+	# Married: the spouse goes on sunny Tuesdays and Saturdays, to the sixth cell, the child stays home.
+	var spouses := ["fumi", "haru", "ichiro", "kaede", "mio", "ren", "sayo", "shino"]
+	for k in spouses.size():
+		var id: String = spouses[k]
+		var f := {"married_" + id: true, "spouse": id}
+		var tue := mon.merged({"weekday": "tue", "day": 2 + 7 * (k % 3), "flags": f}, true)
+		var w := Villagers.where(id, 19 * 60 + 45.0, tue)
+		check(w.get("seat_cell", Vector2i(-1, -1)) == Vector2i(6, 3), "married to %s: in the bath at 19:45 on a sunny Tuesday, the sixth cell (%s)" % [id, w])
+		var sat := tue.merged({"weekday": "sat", "day": 6 + 7 * (k % 3)}, true)
+		check(Villagers.where(id, 19 * 60 + 45.0, sat).has("seat_cell"), "and on Saturday")
+		check(not Villagers.where(id, 19 * 60 + 45.0, tue.merged({"weekday": "wed", "day": 3 + 7 * (k % 3)}, true)).has("seat_cell"), "%s: not on Wednesday" % id)
+		check(not Villagers.where(id, 19 * 60 + 45.0, tue.merged({"weather": "rain"}, true)).has("seat_cell"), "%s: not on a wet Tuesday" % id)
+		for d in [tue, sat]:
+			var clash := false
+			for m in range(17 * 60, 23 * 60, 2):
+				clash = clash or Villagers.bath_seats("sento_bath", float(m), d).size() != Villagers.on_map("sento_bath", float(m), d).filter(func(x): return x.has("seat_cell")).size()
+			check(not clash, "married to %s, %s: no two bathers on one seat" % [id, d.weekday])
+		var ts := {"band": 6, "again": false, "day_number": 0}
+		check(Talk.pick(id, ts.merged(tue, true).merged({"time": 19 * 60 + 45, "map": "sento_bath"}, true)).begins_with("wed_bath_"), "%s says a spouse's line at the bath" % id)
+		check(Talk.pick(id, ts.merged(tue, true).merged({"time": 17 * 60, "map": "house"}, true)) == "wed_bath_invite", "%s asks the farmer along at home on a bath night" % id)
+		check(Talk.pick(id, ts.merged(tue, true).merged({"weekday": "wed", "time": 17 * 60, "map": "house"}, true)) != "wed_bath_invite", "%s: not on another night" % id)
+		for l in Talk.data(id).lines:
+			if str(l.get("id", "")).begins_with("wed_bath"):
+				check(Lang.table("th").has(str(l.text)), "%s's %s in Thai" % [id, l.id])
+	var fam := {"married_sayo": true, "spouse": "sayo", Child.BORN: 1, Child.STAGE: "child", "child_name": "Sora"}
+	var fam_day := mon.merged({"year": 3, "weekday": "tue", "day": 2, "flags": fam}, true)
+	var tagged := false
+	for m in range(19 * 60, 21 * 60, 3):
+		var c := Villagers.where(Child.ID, float(m), fam_day)
+		tagged = tagged or str(c.get("map", "")) in ["yumachi", "sento", "sento_changing", "sento_bath"]
+	check(Villagers.where("sayo", 19 * 60 + 45.0, fam_day).has("seat_cell") and not tagged, "the child stays home while Sayo bathes")
 	# The farmer kept off a taken seat, a free one fine.
 	var said: Array[String] = []
 	var hear := func(x: String): said.append(x)
