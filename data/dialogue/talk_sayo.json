@@ -1,5 +1,5 @@
 {
-	"_note": "What Sayo says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday); gift_items names their own answer to a keepsake or a dish (Talk.gift_line), by item or by dish: / keepsake:<reaction> (gifts in data/villagers/sayo.json). Our own lines. The bath_ lines are said at Kawasemi-yu (the lobby, the changing room and the bath), bath_close_ from heart band 4 (Baths step 3b). Married: wed_bath_invite at home on a bath night's evening, wed_bath_ at Kawasemi-yu (Baths step 3c).",
+	"_note": "What Sayo says when the farmer talks to them (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; the gift_ lines answer a gift by its reaction (gift_birthday on their birthday); gift_items names their own answer to a keepsake or a dish (Talk.gift_line), by item or by dish: / keepsake:<reaction> (gifts in data/villagers/sayo.json). Our own lines. The bath_ lines are said at Kawasemi-yu (the lobby, the changing room and the bath), bath_close_ from heart band 4 (Baths step 3b). Married: wed_bath_invite at home on a bath night's evening, wed_bath_ at Kawasemi-yu (Baths step 3c). wed_bath_out getting out of the tub with the farmer, wed_bath_home back in the farmhouse after (said by Companion).",
 	"picks": [
 		{"if": {"flags": ["married_sayo"], "map": ["house"], "weekday": ["tue", "sat"], "weather": ["sunny"], "time": ["16:00", "19:00"]}, "at": ["wed_bath_invite"]},
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
@@ -53,6 +53,8 @@
 		{"id": "wed_bath_invite", "speaker": "sayo", "mood": "happy", "text": "Bath night! I closed the till early. Walk me to Kawasemi-yu?", "choices": [{"text": "Let's go together", "next": "wed_bath_yes", "set": {"bath_together": "yes"}}, {"text": "Not tonight", "next": "wed_bath_no"}]},
 		{"id": "wed_bath_yes", "speaker": "sayo", "mood": "happy", "text": "Yay! Let me grab the soap. Masa never has the good kind.", "next": "end"},
 		{"id": "wed_bath_no", "speaker": "sayo", "mood": "neutral", "text": "Oh. Then I'll tell you all the news when I'm back.", "next": "end"},
+		{"id": "wed_bath_out", "speaker": "sayo", "mood": "happy", "text": "Getting out? Wait for me, I want to walk home together.", "next": "end"},
+		{"id": "wed_bath_home", "speaker": "sayo", "mood": "happy", "text": "We're home. Thank you for coming with me tonight.", "next": "end"},
 		{"id": "wed_bath_1", "speaker": "sayo", "mood": "happy", "text": "Masa winked at me when we came in together. I'll be red all night.", "next": "end"},
 		{"id": "wed_bath_2", "speaker": "sayo", "mood": "happy", "text": "Father would have liked this. Us, here, the whole village saying hello through the steam.", "next": "end"},
 		{"id": "bath_close_1", "speaker": "sayo", "mood": "happy", "text": "Oh, it's you! Sit here, there's room. I was hoping you'd come on a bath night.", "next": "end"},

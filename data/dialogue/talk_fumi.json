@@ -1,5 +1,5 @@
 {
-	"_note": "What Fumi, who keeps the Hanami teahouse in Sakurazaka, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction (gift_birthday on her birthday, spring 26), gift_items her own answers to a keepsake and to dishes. The close lines from band 4, after_tea once her band 5 scene is seen (heart_fumi_5). Our own lines. Married: wed_bath_invite at home on a bath night's evening, wed_bath_ at Kawasemi-yu (Baths step 3c).",
+	"_note": "What Fumi, who keeps the Hanami teahouse in Sakurazaka, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction (gift_birthday on her birthday, spring 26), gift_items her own answers to a keepsake and to dishes. The close lines from band 4, after_tea once her band 5 scene is seen (heart_fumi_5). Our own lines. Married: wed_bath_invite at home on a bath night's evening, wed_bath_ at Kawasemi-yu (Baths step 3c). wed_bath_out getting out of the tub with the farmer, wed_bath_home back in the farmhouse after (said by Companion).",
 	"picks": [
 		{"if": {"flags": ["married_fumi"], "map": ["house"], "weekday": ["tue", "sat"], "weather": ["sunny"], "time": ["16:00", "19:00"]}, "at": ["wed_bath_invite"]},
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
@@ -41,6 +41,8 @@
 		{"id": "wed_bath_invite", "speaker": "fumi", "mood": "happy", "text": "Bath night. Close the shutters early and walk with me to Kawasemi-yu?", "choices": [{"text": "Let's go together", "next": "wed_bath_yes", "set": {"bath_together": "yes"}}, {"text": "Not tonight", "next": "wed_bath_no"}]},
 		{"id": "wed_bath_yes", "speaker": "fumi", "mood": "happy", "text": "Good. I'll put the kettle out and lock up. Come.", "next": "end"},
 		{"id": "wed_bath_no", "speaker": "fumi", "mood": "neutral", "text": "Another night, then. I'll bring you back a bottle of milk.", "next": "end"},
+		{"id": "wed_bath_out", "speaker": "fumi", "mood": "happy", "text": "Out already? Then so am I. Wait for me by the noren.", "next": "end"},
+		{"id": "wed_bath_home", "speaker": "fumi", "mood": "happy", "text": "Home. I'll make us something warm before bed.", "next": "end"},
 		{"id": "wed_bath_1", "speaker": "fumi", "mood": "happy", "text": "Tea all day, hot water all evening. I'm one big teapot now.", "next": "end"},
 		{"id": "wed_bath_2", "speaker": "fumi", "mood": "happy", "text": "Sit closer. Masa says the two on one bench get the warm side.", "next": "end"},
 		{"id": "festival_blossom_day", "speaker": "fumi", "mood": "happy", "text": "I shut the teahouse for this. Someone else's dango, for once, and I just sit and eat it.", "next": "end"},

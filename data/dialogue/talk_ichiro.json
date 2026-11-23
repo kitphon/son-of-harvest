@@ -1,5 +1,5 @@
 {
-	"_note": "What Ichiro, the charcoal burner of Sakurazaka, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items his own answers to a keepsake and to dishes; gift_birthday on his birthday (fall 9). The close lines from band 4, kiln lines once his band 5 scene is seen (heart_ichiro_5), dear lines at band 6 once his band 6 scene is seen (heart_ichiro_6). A man of few words. Our own lines. The bath_ lines are said at Kawasemi-yu (the lobby, the changing room and the bath; Baths step 3). Married: wed_bath_invite at home on a bath night's evening, wed_bath_ at Kawasemi-yu (Baths step 3c).",
+	"_note": "What Ichiro, the charcoal burner of Sakurazaka, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items his own answers to a keepsake and to dishes; gift_birthday on his birthday (fall 9). The close lines from band 4, kiln lines once his band 5 scene is seen (heart_ichiro_5), dear lines at band 6 once his band 6 scene is seen (heart_ichiro_6). A man of few words. Our own lines. The bath_ lines are said at Kawasemi-yu (the lobby, the changing room and the bath; Baths step 3). Married: wed_bath_invite at home on a bath night's evening, wed_bath_ at Kawasemi-yu (Baths step 3c). wed_bath_out getting out of the tub with the farmer, wed_bath_home back in the farmhouse after (said by Companion).",
 	"picks": [
 		{"if": {"flags": ["married_ichiro"], "map": ["house"], "weekday": ["tue", "sat"], "weather": ["sunny"], "time": ["16:00", "19:00"]}, "at": ["wed_bath_invite"]},
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
@@ -41,6 +41,8 @@
 		{"id": "wed_bath_invite", "speaker": "ichiro", "mood": "happy", "text": "Bath tonight. My oak's in Masa's fire. Come.", "choices": [{"text": "Let's go together", "next": "wed_bath_yes", "set": {"bath_together": "yes"}}, {"text": "Not tonight", "next": "wed_bath_no"}]},
 		{"id": "wed_bath_yes", "speaker": "ichiro", "mood": "happy", "text": "Good. Towels are by the door.", "next": "end"},
 		{"id": "wed_bath_no", "speaker": "ichiro", "mood": "neutral", "text": "...Next time, then.", "next": "end"},
+		{"id": "wed_bath_out", "speaker": "ichiro", "mood": "happy", "text": "Out? ...Me too. Meet you outside.", "next": "end"},
+		{"id": "wed_bath_home", "speaker": "ichiro", "mood": "happy", "text": "Home. Good night for it.", "next": "end"},
 		{"id": "wed_bath_1", "speaker": "ichiro", "mood": "happy", "text": "Good water. Better company.", "next": "end"},
 		{"id": "wed_bath_2", "speaker": "ichiro", "mood": "happy", "text": "...Don't splash. Fine. Splash a little.", "next": "end"},
 		{"id": "bath_1", "speaker": "ichiro", "mood": "neutral", "text": "Masa burns my oak under this tub. ...Feels right, sitting in it.", "next": "end"},

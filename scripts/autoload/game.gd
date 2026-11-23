@@ -747,8 +747,12 @@ func _process(delta: float) -> void:
 		_eat_step(delta)
 	if soak_phase != "" and not paused():
 		_soak_step(delta)
-	if Companion.id != "" and not paused():   # the spouse walking with the farmer to the bath
-		Companion.track(maps.id, maps.pos / 16.0, day_minutes(), trigger_state(Vector2i.ZERO))
+	if Companion.id != "" and not paused():   # the spouse walking with the farmer to the bath and home
+		Companion.track(maps.id, maps.pos / 16.0, day_minutes(), trigger_state(Vector2i.ZERO), soaking_now and soak_phase != "up")
+		if Companion.say != "" and not dialogue_open:   # getting out with the farmer, home again
+			var line := Companion.say
+			Companion.say = ""
+			talk(Talk.dialogue_id(Companion.id), line)
 	FarmerLooks.towel = wearing_towel()   # the farmer's pictures in the towel (FarmerLooks.cache_key)
 	if swinging() and not paused():
 		swing_step(delta)

@@ -639,6 +639,16 @@ func _bathers() -> void:
 			walked_on = true
 			slid = slid or not w.moving or step.dot(Vector2(w.facing)) <= 0.0
 	check(walked_on and not slid, "after a talk, through her and on: she walks after the farmer facing the way she goes")
+	# Stopping again after the talk she faces the farmer, never back the way she faced in the talk
+	# (the user: she kept turning back to it every time she stopped).
+	var stood: Vector2 = Villagers.where("shino", 1050.0, st).pos
+	feet = stood + Vector2(0.0, 0.9)   # the farmer just below her, within the gap
+	Companion.track("house", feet, 1050.0, st)
+	var w2 := Villagers.where("shino", 1050.0, st)
+	check(not w2.moving and w2.facing == Vector2i.DOWN, "stood after the talk: facing the farmer below, not the talk's right (%s)" % w2.facing)
+	feet = stood + Vector2(-0.9, 0.0)
+	Companion.track("house", feet, 1050.0, st)
+	check(Villagers.where("shino", 1050.0, st).facing == Vector2i.LEFT, "and to the left when the farmer is there")
 	check(not away and not backwards and not crowd, "back and forth: never walking away from the farmer, backwards, or on into them (%s %s %s)" % [away, backwards, crowd])
 	Companion.track("farm", Vector2(4.5, 5.5), 1060.0, st)
 	var on_farm := Villagers.where("shino", 1060.0, st)
@@ -654,8 +664,43 @@ func _bathers() -> void:
 			in_bath = w
 			break
 	check(not in_bath.is_empty() and in_bath.map == "sento_bath" and in_bath.seat_cell == Vector2i(6, 3) and in_bath.bath_pose == "bathe", "Shino in the water at the sixth cell (%s)" % in_bath)
-	Companion.track("sento_bath", Vector2(5.5, 3.5), 1300.0, st)
-	check(Companion.phase == "home" and not Villagers.where("shino", 1300.0, st).get("companion", false), "the bath done, home on her plain married day")
+	# She stays in the water as long as the farmer (the user: she got up and left on her own, as if
+	# strangers), gets out with them saying so, dresses, and walks home with them.
+	Companion.track("sento_bath", Vector2(5.5, 3.5), 1200.0, st, true)
+	Companion.track("sento_bath", Vector2(5.5, 3.5), 1290.0, st, true)
+	var still: Dictionary = Villagers.where("shino", 1290.0, st)
+	check(Companion.phase == "bath" and still.get("bath_pose", "") == "bathe", "an hour and a half on, the farmer still in: so is she (%s)" % still)
+	Companion.track("sento_bath", Vector2(5.5, 3.5), 1290.5, st, false)
+	check(Companion.phase == "dress" and Companion.say == "wed_bath_out", "the farmer gets out: so does she, saying so (%s %s)" % [Companion.phase, Companion.say])
+	Companion.say = ""
+	var rising := Villagers.where("shino", 1293.0, st)
+	check(rising.map == "sento_bath" and rising.has("seat_cell") and Vector2(rising.pos).y > 2.6 and str(rising.bath_pose) == "walk" and rising.facing == Vector2i.DOWN, "rising out of the water beside the farmer (%s)" % rising)
+	var hop := 0.0
+	var last_w: Dictionary = Villagers.where("shino", 1290.5, st)
+	var mm := 1290.5
+	while mm < 1298.0:
+		mm += 0.05
+		var now_w: Dictionary = Villagers.where("shino", mm, st)
+		if now_w.map == last_w.map:
+			hop = maxf(hop, Vector2(now_w.pos).distance_to(last_w.pos))
+		last_w = now_w
+	check(hop < 0.15, "out of the tub and off to the door with no jump (%.3f)" % hop)
+	Companion.track("sento_changing", Vector2(1.5, 3.5), 1310.0, st)
+	check(Companion.phase == "dress", "the farmer still changing: she waits dressed")
+	Companion.track("sento", Vector2(5.5, 4.5), 1311.0, st)
+	var lobby := Villagers.where("shino", 1311.0, st)
+	check(Companion.phase == "walk_back" and lobby.map == "sento" and Vector2(lobby.pos).distance_to(Companion.NOREN) < 0.3, "out of the noren behind the farmer in the lobby (%s)" % lobby)
+	Companion.track("yumachi", Vector2(7.5, 5.5), 1313.0, st)
+	Companion.track("town", Vector2(54.5, 29.5), 1320.0, st)
+	check(Villagers.where("shino", 1320.0, st).map == "town", "walking home through the village with the farmer")
+	Companion.track("house", Vector2(4.5, 4.5), 1340.0, st)
+	check(Companion.phase == "walk_back" and Villagers.where("shino", 1340.0, st).map == "house", "in at the farmhouse door behind them")
+	Companion.track("house", Vector2(4.5, 3.2), 1340.0, st)
+	var home := Villagers.where("shino", 1340.0, st)
+	check(Companion.phase == "settled" and Companion.say == "wed_bath_home" and home.map == "house" and not home.moving, "home: she stays in and says so (%s %s)" % [Companion.phase, Companion.say])
+	Companion.say = ""
+	for l in ["wed_bath_out", "wed_bath_home"]:
+		check(Talk.has_line("shino", l), "Shino's %s" % l)
 	Companion.clear()
 	g.flags[g.BATH_TOGETHER_FLAG] = "yes"
 	g.dialogue_closed("talk_shino")

@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-24 — Baths: the spouse keeps the farmer company in the bath and walks home with them
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's two points after playing):
+  - "Whichever way she faced during the talk, she keeps turning back to it": a talk's hold
+    (Villagers.turn) is run out by a villager's own plan clock (plan_minute), which the spouse
+    walking with the farmer never uses, so it never ended and she snapped back to it whenever she
+    stopped. Villagers.where now drops the talk's hold for the companion altogether; standing
+    close, Companion turns them to the farmer.
+  - "We came together, but in the bath she got up and walked off, as if strangers; no going home
+    together, no goodbye": Companion's bath no longer lasts a fixed 50 minutes. The spouse stays in
+    the water as long as the farmer (until the farmer gets out of the tub, leaves the room, or the
+    bath is about to shut at `close` 22:50), gets out with them, eased up out of the tub (a plan
+    built at that minute, Companion.leave_bath), saying "wed_bath_out"; dresses (`change`) while
+    the farmer does, comes out of the lobby's noren behind the farmer (phase walk_back) and walks
+    home with them; inside the farmhouse door they stay (phase settled) and say "wed_bath_home".
+    Game says Companion.say's line when no box is open. Two lines more for all eight spouses, Thai.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: stood after the talk she faces
+  the farmer below, then left, not the talk's right; the same check on the code before fails;
+  still in the water at 21:30 with the farmer; out with them saying wed_bath_out, stepping out with
+  no jump; waiting while the farmer changes; out of the noren in the lobby; through the village;
+  in at the farmhouse door and settled saying wed_bath_home). Smoke runs (`--quit-after 300`: title,
+  `--demo`, town, mine 3, the changing room with `--together=shino`): 0 ERROR lines; windowed
+  `--quit-after 150` on the farm with `--together=shino`: exit 0. Not looked at in a frame (Movie
+  Maker can't take the farmer through the doors and the tub in one run).
+- Left / next: step 4 Kajika-yu.
+
 ## 2026-11-23 — Baths: the spouse no longer slides along backwards after a talk
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's second screenshot: it still happened after turning round to talk to the spouse

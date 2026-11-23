@@ -236,7 +236,10 @@ static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 		w.stage = stage
 		w.look = Child.colours(s.flags)
 	var turn: Variant = _turns.get(id)
-	if turn != null and t >= turn.from and not (w.get("companion", false) and w.moving):   # the spouse walking with the farmer turns to their walk, not back to the talk (the user saw them slide along backwards)
+	if turn != null and w.get("companion", false):
+		_turns.erase(id)   # the spouse walking with the farmer: no talk's hold (their plan never runs it out); Companion faces them to the farmer when close
+		turn = null
+	if turn != null and t >= turn.from:
 		w.facing = turn.facing
 		w.moving = false
 		w.working = false   # puts the hammer down to talk
