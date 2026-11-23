@@ -19,6 +19,7 @@ var w := 0
 var h := 0
 var farm := false          # ground, solids and objects come from FarmGrid
 var indoor := false        # the clock stands still in here (DESIGN: time stops in buildings)
+var clock := false         # indoors, yet the clock runs (the sento's maps: the bathers come and go in their time)
 var towel := ""            # the bathing towel here (Game.in_towel): "always" (the sento's bath), "allowed" (its changing room), "" not
 var sheltered := false     # under a roof of rock (the mine): no weather, but the clock runs
 var ambient := "outdoor"   # which ambient rules apply (data/sfx.json "places")
@@ -66,6 +67,7 @@ func _read(d: Variant) -> String:
 	h = int(size[1])
 	farm = bool(d.get("farm", false))
 	indoor = bool(d.get("indoor", false))
+	clock = bool(d.get("clock", false))
 	towel = str(d.get("towel", ""))
 	if not towel in ["", "allowed", "always"]:
 		return "towel must be \"allowed\" or \"always\""

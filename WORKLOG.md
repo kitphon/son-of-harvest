@@ -10,6 +10,33 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-23 — Baths: the clock runs at the sento, going to the bath with the spouse
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's two points after playing):
+  - "Getting out of the tub, the bathers warp away": the rest of the bath's hour still passed at
+    once on getting out. The sento's three maps now keep the clock running though indoors (map
+    key `clock`, MapData.clock, Game.ticking), so the bathers arrive, soak and leave in their own
+    time wherever the farmer stands; each minute there pays one of the bath's hour (soak_owed),
+    and only what is left passes on leaving the room, out of sight (Game.soak_owed_paid on a map
+    change; cleared on a new game and at night).
+  - "Shino asked me to the bath, but we never went together": the clock stands still in the
+    farmhouse, so the spouse never left while the farmer waited there, and the ask had no answer.
+    The ask (wed_bath_invite, now picked before `again` so a talk earlier in the day doesn't hide
+    it) has a choice: "Let's go together" or "Not tonight", with an answer line each for all eight
+    spouses. Together sets the flag bath_together; on the box closing Game.go_bath_together runs
+    the clock on to 19:14, the spouse pays the day's ticket, and the farmer stands by the bath's
+    door in Yumachi as the spouse comes along the lane to it (their plan: at the door 19:16, in at
+    19:17) (data/baths.json `together`). Thai for the choice, the 16 answers and the message.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the clock ticks in the bath's
+  room; getting out leaves the clock and Ren where they are, leaving the room pays the rest; the
+  ask's two choices, asked even after an earlier talk; "no" stays home, "yes" goes to Yumachi
+  (8, 5) at 19:14 paid, Shino coming along the lane and at the door beside the farmer). Smoke runs
+  (`--quit-after 300`: title, `--demo`, town, mine 3, `sento_bath@bath --day=6 --time=20:00`, the
+  farmhouse married to Shino at 17:30): 0 ERROR lines; windowed `--quit-after 150` of the bath:
+  exit 0. Frames: the ask with "Let's go together / Not tonight"; Yumachi at 19:16 with Shino
+  beside the farmer at the bath's door.
+- Left / next: the walk there is skipped (a jump to the door); step 4 Kajika-yu.
+
 ## 2026-11-23 — Baths: the hour run while sat, bathers getting in and out eased
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's two reports after playing):

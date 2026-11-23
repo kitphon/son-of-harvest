@@ -118,8 +118,9 @@ var bath_paid_today := false   # the sento's entry paid today (in and out free a
 var in_towel := false   # wrapped in a bathing towel, the clothes in a basket (the sento's changing room: Game.change_clothes); not saved, off on leaving the bath's maps
 var soak_cfg: Dictionary = {}   # the soak going on now: data/ashiyu.json, or a bath of data/baths.json (Game.soak_config); not saved
 ## The minutes the day's first bath still owes the clock (data/baths.json `minutes`): the clock runs at
-## its own pace while the farmer sits in the water, even indoors, so the bathers beside them finish and
-## get out as they would; getting out runs on whatever is left at once (Game.soak_owed_paid). Not saved.
+## its own pace on the bath's maps (MapData `clock`) and while sat in any soak, so the bathers beside the
+## farmer finish and get out as they would, and each minute that passes pays one; leaving the map runs
+## on whatever is left at once (Game.soak_owed_paid), out of sight. Not saved.
 var soak_owed := 0
 ## The item carried overhead in the holding hand ("" = hands free). It is the rucksack's
 ## hand slot (Inventory "hand"): what the rucksack menu takes in hand is held up the same way.
@@ -260,6 +261,7 @@ func new_game() -> void:
 	work_fatigue_half = false
 	eat_pose = ""
 	eat_left = 0.0
+	soak_owed = 0
 	_stand_up_now()
 	soaked_today = false
 	bathed_today = false
@@ -772,8 +774,8 @@ func _process(delta: float) -> void:
 
 
 func _tick_minute() -> void:
-	if soak_clock():
-		soak_owed -= 1   # one of the bath's minutes sat through
+	if soak_owed > 0:
+		soak_owed -= 1   # one of the bath's minutes had
 	minute += 1
 	if minute == 60:
 		minute = 0
@@ -807,10 +809,11 @@ func paused() -> bool:
 
 
 ## Does time pass now (not on the title screen, no menu open, not inside a building)?
-## Indoors only the clock stands; the farmer still walks (paused() is for menus).
+## Indoors only the clock stands (not on a map with `clock`, the sento's, nor while sat in a soak that
+## owes minutes); the farmer still walks (paused() is for menus).
 ## The clock also holds through a fishing race, so all its bites come at the same hour.
 func ticking() -> bool:
-	return clock_running and not paused() and (not indoors() or soak_clock()) and race == null
+	return clock_running and not paused() and (not indoors() or maps.current().clock or soak_clock()) and race == null
 
 
 ## Does the clock run indoors now: sat in a bath that still owes minutes of its hour (soak_owed)?
@@ -850,7 +853,7 @@ func go_to_map(map_id: String, cell: Vector2i, face: Vector2i) -> bool:
 	maps.place(map_id, cell, face)
 	maps.mine_floor = new_mine_floor(depth) if depth > 0 else null
 	fishing.stop()
-	soak_owed_paid()   # the bath's hour is had all the same
+	soak_owed_paid()   # the bath's hour is had all the same, out of sight
 	_stand_up_now()   # up from the footbath
 	if maps.current().towel == "always":   # the bath: only ever in a towel (a debug start too)
 		in_towel = true
@@ -1338,6 +1341,7 @@ func end_day(wake_map := MapManager.HOME, wake_spawn := "home") -> void:
 	bathed_today = false   # and the baths theirs
 	in_towel = false
 	bath_paid_today = false   # the sento's ticket is for the day
+	soak_owed = 0
 	_stand_up_now()   # and the farmer is up in his bed
 	_count_build_day()   # before the date moves: did the builder work today?
 	animal_news.append_array(animals.day_end(weather_today, rng))
@@ -1852,6 +1856,7 @@ const MINE_LIFT_DIALOGUE := "mine_lift"   # the choice at the cave mouth (built 
 const MINE_START_FLAG := "mine_start"     # the floor picked there (a flag only until the text box closes)
 const KEEPER_DIALOGUE := "keeper_ask"     # a keeper's buy-or-talk question at the counter (built in code)
 const KEEPER_FLAG := "keeper_pick"         # its answer (a flag only until the text box closes)
+const BATH_TOGETHER_FLAG := "bath_together"   # "yes" from the spouse's bath night ask (wed_bath_invite), until the box closes
 var _keeper_talk: Dictionary = {}          # {shop, file, at} while that question is open
 
 
@@ -1913,6 +1918,12 @@ func dialogue_closed(id: String) -> void:
 			pay_entry(shop(str(k.get("shop", ""))))
 		elif pick == "talk" and str(k.get("at", "")) != "":
 			talk(str(k.file), str(k.at))
+		return
+	if id.begins_with("talk_") and flags.has(BATH_TOGETHER_FLAG):   # off to the bath with the spouse
+		var yes := str(flags[BATH_TOGETHER_FLAG]) == "yes"
+		flags.erase(BATH_TOGETHER_FLAG)
+		if yes:
+			go_bath_together(id.trim_prefix("talk_"))
 		return
 	if id == MINE_LIFT_DIALOGUE and flags.has(MINE_START_FLAG):
 		var depth := int(flags[MINE_START_FLAG])
@@ -2194,11 +2205,11 @@ func soaking() -> bool:
 func stop_soak() -> void:
 	if soaking_now and soak_phase != "up":
 		soak_phase = "up"
-		soak_owed_paid()
 		changed.emit()
 
 
-## The bath's hour run out at once: what the clock did not run while sat (soak_owed) passes now.
+## The bath's hour run out at once: what the clock has not yet run of it (soak_owed) passes now (on
+## leaving the map, out of sight, so no bather is seen to jump).
 func soak_owed_paid() -> void:
 	var rest := soak_owed
 	soak_owed = 0
@@ -2230,7 +2241,6 @@ func _soak_step(delta: float) -> void:
 
 ## Up from the footbath at once (a map change, the night, a new game).
 func _stand_up_now() -> void:
-	soak_owed = 0
 	soaking_now = false
 	soak_phase = ""
 	soak_t = 0.0
@@ -3170,6 +3180,29 @@ func entry_paid(s: Shop) -> bool:
 ## Pays shop `s`'s entry fee (the sento's bath, at its counter: ask_keeper's `entry_choice`), once a
 ## day; then in and out are free that day. Says what happened; false (the
 ## door stays shut) when the money is short.
+## Off to Kawasemi-yu with spouse `id` (their bath night's ask answered yes; data/baths.json
+## `together`): the walk there passes (the clock on to `at`), the spouse pays Masa for the two of them,
+## and the farmer stands by the bath's door in Yumachi as the spouse comes along the lane to it
+## (their married_bath plan: in from the west at 19:10, at the door at 19:17), so the two go in
+## together. Not while holding something. Returns whether they went.
+func go_bath_together(id: String) -> bool:
+	var cfg: Dictionary = baths.get("together", {})
+	if holding() or cradling():
+		message.emit(str(cfg.get("hands", "")))
+		return false
+	var at := DayPlan.minute_of(str(cfg.get("at", "19:14")))
+	var now := int(day_minutes())
+	if now < at:
+		pass_minutes(at - now)   # the walk down to Yumachi together
+	if not bath_paid_today:
+		bath_paid_today = true   # the spouse's treat
+	var cell: Array = cfg.get("cell", [8, 5])
+	go_to_map(str(cfg.get("map", "yumachi")), Vector2i(int(cell[0]), int(cell[1])), DEMO_FACINGS.get(str(cfg.get("facing", "left")), Vector2i.LEFT))
+	changed.emit()
+	message.emit(str(cfg.get("paid", "%s")) % Villagers.all().get(id, {}).get("name", id))
+	return true
+
+
 func pay_entry(s: Shop) -> bool:
 	var d := s.own()
 	var fee := int(d.get("entry_fee", 0))

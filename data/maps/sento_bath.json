@@ -1,9 +1,10 @@
 {
-	"_note": "Kawasemi-yu's bath (2026-11-22, Baths step 2; the user asked for it on its own map, through a changing room): in from the changing room (data/maps/sento_changing.json) through the glass sliding door in the left wall. A tiled floor, the big tiled tub along the back wall under the painted mountain (bath_mural: Ogura in our own painting), the washing island with its taps, stools and buckets. `towel` always: the whole map is for the farmer in a towel (Game.in_towel; the door from the changing room only lets them in so). E from the row in front of the tub (`seats`: front) gets in (data/baths.json sento, Game.soak). The clock stands still in here like in every building; the day's first bath takes its hour. Format: README.md, Maps.",
+	"_note": "Kawasemi-yu's bath (2026-11-22, Baths step 2; the user asked for it on its own map, through a changing room): in from the changing room (data/maps/sento_changing.json) through the glass sliding door in the left wall. A tiled floor, the big tiled tub along the back wall under the painted mountain (bath_mural: Ogura in our own painting), the washing island with its taps, stools and buckets. `towel` always: the whole map is for the farmer in a towel (Game.in_towel; the door from the changing room only lets them in so). E from the row in front of the tub (`seats`: front) gets in (data/baths.json sento, Game.soak). The clock stands still in here like in every building; the day's first bath takes its hour. Format: README.md, Maps. `clock` true: the clock runs in here though indoors, so the evening bathers arrive, soak and leave in their own time (2026-11-23, the user saw them vanish while the clock stood).",
 	"id": "sento_bath",
 	"name": "Kawasemi-yu Bath",
 	"size": [12, 8],
 	"indoor": true,
+	"clock": true,
 	"towel": "always",
 	"ambient": "indoor",
 	"light": "eef2ee",

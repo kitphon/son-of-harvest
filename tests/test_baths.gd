@@ -356,12 +356,18 @@ func _bath() -> void:
 	g.soak_t = 1.0
 	check(biggest < 0.03, "no jump on the way in (%.3f)" % biggest)
 	g.stop_soak()
-	check(g.hour == 17 and g.minute == 0 and g.soak_owed == 0, "getting out: the rest of the hour at once (%d:%02d)" % [g.hour, g.minute])
+	check(g.hour == 16 and g.minute == 10 and g.soak_owed == 50, "getting out: no jump of the clock in the room (the bathers stay put) (%d:%02d)" % [g.hour, g.minute])
 	check(g.soak_look() == Vector2i.DOWN, "getting out: turned away from the tub (not backing out)")
 	g._process(float(b.stand_seconds) * 0.6)
 	check(g.soaking() and g.soak_look() == Vector2i.DOWN, "still facing the way out half way")
 	g._process(float(b.stand_seconds))
 	check(not g.soaking() and g.soak_cfg == g.ashiyu, "out and free; the next soak names its own")
+	g.clock_running = true
+	check(g.ticking(), "the clock runs in the bath's room though indoors (MapData clock)")
+	g.clock_running = false
+	g.go_to_map("sento_changing", Vector2i(5, 2), Vector2i.LEFT)
+	check(g.hour == 17 and g.minute == 0 and g.soak_owed == 0, "out of the room: the rest of the hour at once, out of sight (%d:%02d)" % [g.hour, g.minute])
+	g.go_to_map("sento_bath", seat, Vector2i.UP)
 	var st: int = g.stamina
 	FA.on_action("interact", seat, Vector2i.UP)
 	check(g.soaking() and g.stamina == st and g.hour == 17 and said.back() == String(b.again_message), "a second bath the same day only rests, no hour taken")
@@ -558,6 +564,34 @@ func _bathers() -> void:
 		for l in Talk.data(id).lines:
 			if str(l.get("id", "")).begins_with("wed_bath"):
 				check(Lang.table("th").has(str(l.text)), "%s's %s in Thai" % [id, l.id])
+	# "Let's go together": the farmer goes to the bath's door in Yumachi as the spouse comes along the lane.
+	var inv: Dictionary = Talk.data("shino").lines.filter(func(l): return l.get("id", "") == "wed_bath_invite")[0]
+	check(inv.get("choices", []).size() == 2 and inv.choices[0].get("set", {}).get(g.BATH_TOGETHER_FLAG, "") == "yes", "the ask has a choice: together, or not tonight")
+	check(Talk.pick("shino", {"band": 6, "again": true, "day_number": 0, "time": 17 * 60 + 30, "map": "house"}.merged(mon.merged({"weekday": "tue", "day": 2, "flags": {"married_shino": true, "spouse": "shino"}}, true), true)) == "wed_bath_invite",
+		"asked even after an earlier talk that day")
+	g.day = 1
+	while g.weekday() != "tue" or g.festival_today() != "":
+		g.day += 1
+	g.weather_today = "sunny"
+	g.flags["married_shino"] = true
+	g.flags["spouse"] = "shino"
+	g.bath_paid_today = false
+	g.go_to_map("house", Vector2i(4, 4), Vector2i.UP)
+	g.hour = 17
+	g.minute = 30
+	g.flags[g.BATH_TOGETHER_FLAG] = "no"
+	g.dialogue_closed("talk_shino")
+	check(g.maps.id == "house" and not g.flags.has(g.BATH_TOGETHER_FLAG), "not tonight: still at home")
+	g.flags[g.BATH_TOGETHER_FLAG] = "yes"
+	g.dialogue_closed("talk_shino")
+	check(g.maps.id == "yumachi" and Vector2i((g.maps.pos / 16.0).floor()) == Vector2i(8, 5) and g.hour == 19 and g.minute == 14 and g.bath_paid_today and not g.flags.has(g.BATH_TOGETHER_FLAG),
+		"together: by the bath's door in Yumachi at 19:14, the ticket paid (%s %s %d:%02d)" % [g.maps.id, g.maps.pos / 16.0, g.hour, g.minute])
+	var sh := Villagers.where("shino", g.day_minutes(), g.trigger_state(Vector2i.ZERO))
+	check(sh.map == "yumachi" and sh.moving, "Shino coming along the lane (%s)" % sh)
+	var at_door := Villagers.where("shino", 19 * 60 + 16.9, g.trigger_state(Vector2i.ZERO))
+	check(at_door.map == "yumachi" and Vector2(at_door.pos).distance_to(Vector2(8.5, 5.5)) <= 1.05, "at the door beside the farmer (%s)" % at_door)
+	g.flags.erase("married_shino")
+	g.flags.erase("spouse")
 	var fam := {"married_sayo": true, "spouse": "sayo", Child.BORN: 1, Child.STAGE: "child", "child_name": "Sora"}
 	var fam_day := mon.merged({"year": 3, "weekday": "tue", "day": 2, "flags": fam}, true)
 	var tagged := false
@@ -597,6 +631,13 @@ func _bathers() -> void:
 	g.clock_running = true
 	g._process(g.SECONDS_PER_MINUTE * 15.0 + 0.01)
 	check(g.minute == 15 and ren_in.call(), "a quarter of an hour on, still soaking with him (20:%02d)" % g.minute)
+	g.clock_running = false
+	g.stop_soak()
+	g._process(float(b.stand_seconds) + 0.05)
+	check(not g.soaking() and g.minute == 15 and ren_in.call(), "getting out: Ren still in the water, no jump of the clock (20:%02d)" % g.minute)
+	g.soak(Vector2i(7, 3), Vector2i.UP)
+	g._process(float(b.sit_seconds) + 0.05)
+	g.clock_running = true
 	g._process(g.SECONDS_PER_MINUTE * 20.0 + 0.01)
 	check(not ren_in.call() and Villagers.where("ren", g.day_minutes(), g.trigger_state(Vector2i(7, 3))).get("map", "") != "", "past 20:29 he has got out (20:%02d)" % g.minute)
 	g.clock_running = false

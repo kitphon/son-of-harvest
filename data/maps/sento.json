@@ -1,9 +1,10 @@
 {
-	"_note": "Kawasemi-yu, the public bath in Yumachi, inside: the lobby (2026-11-22, Baths step 2; docs/DESIGN.md → ที่อาบน้ำ). One bath for everyone in bathing towels (the user's pick: the farmer has no set gender). A packed-earth entry by the door with the shoe lockers, wooden floor, the counter (shop sento in data/shops.json: the milk), the milk cooler, two benches for cooling off. The noren in the right wall leads to the changing room (its `fee`: the 120 G is paid there, once a day, the user found the street door let them in without noticing it), a map of its own (data/maps/sento_changing.json) so nobody at the counter sees anyone changing (the user's point, 2026-11-22). The clock stands still in here like in every building. Format: README.md, Maps.",
+	"_note": "Kawasemi-yu, the public bath in Yumachi, inside: the lobby (2026-11-22, Baths step 2; docs/DESIGN.md → ที่อาบน้ำ). One bath for everyone in bathing towels (the user's pick: the farmer has no set gender). A packed-earth entry by the door with the shoe lockers, wooden floor, the counter (shop sento in data/shops.json: the milk), the milk cooler, two benches for cooling off. The noren in the right wall leads to the changing room (its `fee`: the 120 G is paid there, once a day, the user found the street door let them in without noticing it), a map of its own (data/maps/sento_changing.json) so nobody at the counter sees anyone changing (the user's point, 2026-11-22). The clock stands still in here like in every building. Format: README.md, Maps. `clock` true: the clock runs in here though indoors, so the evening bathers arrive, soak and leave in their own time (2026-11-23, the user saw them vanish while the clock stood).",
 	"id": "sento",
 	"name": "Kawasemi-yu",
 	"size": [8, 8],
 	"indoor": true,
+	"clock": true,
 	"ambient": "indoor",
 	"light": "f2f0e6",
 	"background": "14181a",

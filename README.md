@@ -264,7 +264,8 @@ little shrine; its view (its own line in spring, fall and winter) and shrine can
 views): `well`, `jizo`, `persimmon` and `sakura` (their leaves follow the season), `hasa` (a
 rice drying rack, sheaves hung in fall), `woodpile`, `garden`, `wood_fence`. Ground tiles include the
 solid `paddy` (a flooded rice paddy). A file has `id`, `size` [w, h], `indoor` (the clock stands still inside, as
-DESIGN asks for every building), `ambient` (which `places` of the ambient rules in
+DESIGN asks for every building; `clock` true keeps it running indoors, the sento's three maps, so the
+bathers come and go in their time), `ambient` (which `places` of the ambient rules in
 `data/sfx.json` apply), optional `light` (a fixed room light instead of day / night),
 `walls` (an indoor map's wall infill in 3D, `plaster` or `board`; RoomWalls builds the "wall"
 cells as a timber frame, the back walls full height, the front ones a low sill, plus a step
@@ -395,8 +396,9 @@ that one apart too so nobody at the counter sees anyone changing). Indoors, so t
   face the room (`turn`, Game.soak_look; getting out they turn away from the tub and step out
 forwards), drawn in the pose `bathe` (FigureArt._bathe: the head,
   the bare shoulders and a folded towel over the water); E again gets out. The day's first bath
-  gives +40 stamina and -20 fatigue and runs the clock on an hour (`minutes`, Game.pass_minutes,
-  even indoors); a later one only rests. The baths share one rest a day (`day` "bath",
+  gives +40 stamina and -20 fatigue and takes an hour (`minutes`): the clock runs at its own pace
+  in the bath's rooms (MapData `clock`), each minute paying one (Game.soak_owed), and whatever is
+  left passes on leaving the room, out of sight (Game.soak_owed_paid); a later one only rests. The baths share one rest a day (`day` "bath",
   Game.bathed_today, saved; the rotenburo will count toward it too), apart from the footbath's own
   (soaked_today).
 - Masa keeps the counter (data/villagers/masa.json, talk_masa.json; no hearts, like Dr. Yae): late

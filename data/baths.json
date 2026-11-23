@@ -1,5 +1,14 @@
 {
 	"_note": "The baths a farmer gets into up to the shoulders (2026-11-22, Baths step 2; docs/DESIGN.md → ที่อาบน้ำ); `changing` the sento's changing room's lines (its own note). Per bath id (a soak prop's `bath`, e.g. the tub `yubune` in data/maps/sento_bath.json) the same keys as the footbath's data/ashiyu.json (Game.soak with this as its soak_cfg: `sit_path` [t, seat (cells toward the tub), lift (units up in 3D), pose], `seat`, `lift`, sit_seconds, stand_seconds, step_until, the messages), and: `turn` the facing the farmer turns to once sat, from `turn_at` (t) on (in the tub they sit facing the room, the eye); `day` which daily rest it counts toward: \"bath\" (Game.bathed_today: the sento and the rotenburo share one a day) or \"foot\" (the footbath's own); `minutes` the game minutes the day's first bath takes (the clock runs at its own pace while sat, even indoors, and the rest passes on getting out: Game.soak_owed); `villager_in` / `villager_out` the game minutes a villager's {\"bathe\": minutes} step takes to get in and out along sit_path (Villagers.bath_place; the farmer's sit_seconds / stand_seconds at 0.5 s a minute, about). The pose \"bathe\" (FigureArt._bathe): the head and bare shoulders over the water with a folded towel on the head; the picture's bottom row is the water's surface, so `lift` is the water's height (BathProps.WATER). Everyone bathes in a wrap in this valley (one bath for all, the user's pick): nothing below the shoulders is drawn. Balance numbers are ours: the sento's 120 G buys +40 stamina and -20 fatigue for an hour (the footbath +20 / -15 free and quick, a night's sleep from 22:00 about -42): worth an evening, never a stand-in for bed.",
+	"together": {
+		"_note": "The spouse's bath night (data/villagers/<spouse>.json married_bath, sunny Tuesdays and Saturdays): talking to them at home 16:00-19:00 asks the farmer along (talk_<spouse>.json wed_bath_invite); \"Let's go together\" sets the flag bath_together and Game.go_bath_together takes the farmer to `map` / `cell` facing `facing` at `at` (the clock run on to it), where the spouse comes along the lane to the bath's door at 19:17 (their plan), and the day's ticket is paid by the spouse (bath_paid_today). `paid` names the spouse (%s).",
+		"at": "19:14",
+		"map": "yumachi",
+		"cell": [8, 5],
+		"facing": "left",
+		"paid": "You walk down to Yumachi together. %s will pay Masa for the two of you.",
+		"hands": "Put down what you're holding first."
+	},
 	"changing": {
 		"_note": "The sento's changing room (data/maps/sento_changing.json, the basket shelf's \"use\": \"change\"; Game.change_clothes): into a bathing towel and back, the bath's door only for the farmer in a towel (`need_towel`), the lobby's only dressed (`dress_first`).",
 		"to_towel": "You fold your clothes into a basket and wrap a towel round yourself.",

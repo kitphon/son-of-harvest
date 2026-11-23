@@ -1,9 +1,10 @@
 {
-	"_note": "Kawasemi-yu's changing room (2026-11-22, Baths step 2): a map of its own between the lobby (data/maps/sento.json, through the noren in the left wall) and the bath (data/maps/sento_bath.json, through the glass sliding door in the right wall), so the lobby never sees into it (the user's point). `towel` \"allowed\": the farmer may be in a towel here. The shelf of baskets (\"use\": \"change\": E puts the clothes in a basket and wraps a towel round the farmer, E again dresses again; Game.change_clothes), a bench for drying off; small, a room to change in, not to linger (the user found the first one too big, 2026-11-22). The bath's door only lets the farmer through in a towel (`towel`), the lobby's only dressed (`dressed`). The clock stands still in here like in every building. Format: README.md, Maps.",
+	"_note": "Kawasemi-yu's changing room (2026-11-22, Baths step 2): a map of its own between the lobby (data/maps/sento.json, through the noren in the left wall) and the bath (data/maps/sento_bath.json, through the glass sliding door in the right wall), so the lobby never sees into it (the user's point). `towel` \"allowed\": the farmer may be in a towel here. The shelf of baskets (\"use\": \"change\": E puts the clothes in a basket and wraps a towel round the farmer, E again dresses again; Game.change_clothes), a bench for drying off; small, a room to change in, not to linger (the user found the first one too big, 2026-11-22). The bath's door only lets the farmer through in a towel (`towel`), the lobby's only dressed (`dressed`). The clock stands still in here like in every building. Format: README.md, Maps. `clock` true: the clock runs in here though indoors, so the evening bathers arrive, soak and leave in their own time (2026-11-23, the user saw them vanish while the clock stood).",
 	"id": "sento_changing",
 	"name": "Changing Room",
 	"size": [7, 6],
 	"indoor": true,
+	"clock": true,
 	"towel": "allowed",
 	"ambient": "indoor",
 	"light": "f2f0e6",
