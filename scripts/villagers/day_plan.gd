@@ -175,10 +175,11 @@ func entry_at(t: float) -> Dictionary:
 ## {map, pos (cells, Vector2), facing, moving, walked (cells into the current walk), working,
 ## worked (minutes into the current stretch of work), fishing, fished (minutes with the rod out),
 ## posting, posted (minutes at the door with a letter), bathing (sat in the tub in front: the place
-## still the cell before it, Villagers.bath_place moves them in), ferrying, ferried (minutes into a crossing)}.
+## still the cell before it, Villagers.bath_place moves them in), bathed / bathe_len (minutes into
+## the bath and its length, for getting in and out), ferrying, ferried (minutes into a crossing)}.
 func where(t: float) -> Dictionary:
 	var e := entry_at(t)
-	var out := {"map": e.map, "pos": e.pos, "facing": e.facing, "moving": false, "walked": 0.0, "working": false, "worked": 0.0, "fishing": false, "fished": 0.0, "posting": false, "posted": 0.0, "bathing": false, "ferrying": false, "ferried": 0.0}
+	var out := {"map": e.map, "pos": e.pos, "facing": e.facing, "moving": false, "walked": 0.0, "working": false, "worked": 0.0, "fishing": false, "fished": 0.0, "posting": false, "posted": 0.0, "bathing": false, "bathed": 0.0, "bathe_len": 0.0, "ferrying": false, "ferried": 0.0}
 	if e.map == AWAY:
 		return out
 	var legs: Array = e.legs
@@ -202,6 +203,8 @@ func where(t: float) -> Dictionary:
 	out.posting = leg.post
 	out.posted = t - leg.t0 if leg.post else 0.0
 	out.bathing = leg.bathe
+	out.bathed = t - leg.t0 if leg.bathe else 0.0
+	out.bathe_len = leg.t1 - leg.t0 if leg.bathe else 0.0
 	out.ferrying = leg.ferry
 	out.ferried = t - leg.t0 if leg.ferry else 0.0
 	out.pos = leg.a.lerp(leg.b, (t - leg.t0) / (leg.t1 - leg.t0))

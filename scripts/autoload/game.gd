@@ -117,6 +117,10 @@ var bathed_today := false   # the day's first bath given (the sento and the rote
 var bath_paid_today := false   # the sento's entry paid today (in and out free after; data/shops.json sento entry_fee); saved, cleared each morning
 var in_towel := false   # wrapped in a bathing towel, the clothes in a basket (the sento's changing room: Game.change_clothes); not saved, off on leaving the bath's maps
 var soak_cfg: Dictionary = {}   # the soak going on now: data/ashiyu.json, or a bath of data/baths.json (Game.soak_config); not saved
+## The minutes the day's first bath still owes the clock (data/baths.json `minutes`): the clock runs at
+## its own pace while the farmer sits in the water, even indoors, so the bathers beside them finish and
+## get out as they would; getting out runs on whatever is left at once (Game.soak_owed_paid). Not saved.
+var soak_owed := 0
 ## The item carried overhead in the holding hand ("" = hands free). It is the rucksack's
 ## hand slot (Inventory "hand"): what the rucksack menu takes in hand is held up the same way.
 var held: String:
@@ -768,6 +772,8 @@ func _process(delta: float) -> void:
 
 
 func _tick_minute() -> void:
+	if soak_clock():
+		soak_owed -= 1   # one of the bath's minutes sat through
 	minute += 1
 	if minute == 60:
 		minute = 0
@@ -804,7 +810,12 @@ func paused() -> bool:
 ## Indoors only the clock stands; the farmer still walks (paused() is for menus).
 ## The clock also holds through a fishing race, so all its bites come at the same hour.
 func ticking() -> bool:
-	return clock_running and not paused() and not indoors() and race == null
+	return clock_running and not paused() and (not indoors() or soak_clock()) and race == null
+
+
+## Does the clock run indoors now: sat in a bath that still owes minutes of its hour (soak_owed)?
+func soak_clock() -> bool:
+	return soaking_now and soak_phase == "sit" and soak_owed > 0
 
 
 # --- maps -------------------------------------------------------------------
@@ -839,6 +850,7 @@ func go_to_map(map_id: String, cell: Vector2i, face: Vector2i) -> bool:
 	maps.place(map_id, cell, face)
 	maps.mine_floor = new_mine_floor(depth) if depth > 0 else null
 	fishing.stop()
+	soak_owed_paid()   # the bath's hour is had all the same
 	_stand_up_now()   # up from the footbath
 	if maps.current().towel == "always":   # the bath: only ever in a towel (a debug start too)
 		in_towel = true
@@ -2162,7 +2174,7 @@ func soak(origin := Vector2i(-1, -1), facing := Vector2i.ZERO) -> Dictionary:
 			bathed_today = true
 		else:
 			soaked_today = true
-		pass_minutes(int(soak_cfg.get("minutes", 0)))   # a bath's hour, though the clock stands still indoors
+		soak_owed = int(soak_cfg.get("minutes", 0))   # a bath's hour: run while sat (soak_clock), the rest on getting out
 		stamina = clampi(stamina + int(soak_cfg.get("stamina", 0)), 0, max_stamina)
 		add_fatigue(int(soak_cfg.get("fatigue", 0)))
 		_shown_state = body_state()   # feeling better: a later tired state is told again
@@ -2182,7 +2194,15 @@ func soaking() -> bool:
 func stop_soak() -> void:
 	if soaking_now and soak_phase != "up":
 		soak_phase = "up"
+		soak_owed_paid()
 		changed.emit()
+
+
+## The bath's hour run out at once: what the clock did not run while sat (soak_owed) passes now.
+func soak_owed_paid() -> void:
+	var rest := soak_owed
+	soak_owed = 0
+	pass_minutes(rest)
 
 
 ## How far sat down now, eased: 0 standing .. 1 sat with the feet in the water.
@@ -2210,6 +2230,7 @@ func _soak_step(delta: float) -> void:
 
 ## Up from the footbath at once (a map change, the night, a new game).
 func _stand_up_now() -> void:
+	soak_owed = 0
 	soaking_now = false
 	soak_phase = ""
 	soak_t = 0.0

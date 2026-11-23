@@ -10,6 +10,29 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-23 — Baths: the hour run while sat, bathers getting in and out eased
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's two reports after playing):
+  - "Ren was in the tub, but when I pressed E to get in he was gone": the day's first bath ran
+    the clock on its whole hour the moment the farmer got in (20:00 to 21:00, past Ren's 20:29).
+    Now the hour is owed (Game.soak_owed): while sat in the water the clock runs at its own pace
+    even indoors (Game.soak_clock, ticking), so the bathers beside the farmer finish and get out in
+    their own time; getting out (or leaving the map) runs on whatever is left at once
+    (Game.soak_owed_paid). The rest it gives is unchanged.
+  - "Sometimes someone warps in front of the tub": a villager's bathe step jumped straight into
+    the water and, at its end, straight out to the tiles. Villagers.bath_place now eases them
+    along the bath's own sit_path, as the farmer goes: in over `villager_in` (3) minutes facing the
+    tub, turning to the room at turn_at, out over `villager_out` (2.5) minutes turned away from it,
+    stepping over the rim in the walk pose (DayPlan.where's bathed / bathe_len; data/baths.json).
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the hour owed, ten minutes
+  sat pay ten, getting out pays the rest; sat beside Ren on a Saturday from 20:00 he is still in
+  at 20:15 and out after 20:29; Tome's whole way in and out sampled every 0.05 minutes with no
+  jump; the bather checks moved to a Friday at 19:21, when both are settled). Smoke runs
+  (`--quit-after 300`: title, `--demo`, town, mine 3, `sento_bath@start --day=1 --time=19:23`):
+  0 ERROR lines; windowed `--quit-after 150` of the last: exit 0. Frame at 19:23 on a Monday:
+  Genzo on the rim stepping in, back to the eye; Tome rising out, facing the room.
+- Left / next: step 4 Kajika-yu.
+
 ## 2026-11-23 — Baths step 3c: the spouse to the bath
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user said yes to the offer): every spouse (Fumi, Haru, Ichiro, Kaede, Mio, Ren, Sayo,

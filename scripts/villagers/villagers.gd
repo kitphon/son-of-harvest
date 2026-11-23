@@ -253,7 +253,11 @@ static func where(id: String, t: float, s: Dictionary) -> Dictionary:
 ## with a `bath`, the sento's tub) into its water as the farmer sits there (data/baths.json): `seat`
 ## cells on toward the tub, turned to its `turn` (the room), `bath_lift` its water's height in 3D
 ## (the views raise the sprite by it), `seat_cell` the cell before the tub they got in from (no one
-## else sits there: Game.soak). Anywhere else, or not bathing, `w` as it was.
+## else sits there: Game.soak). Getting in and out is eased along the bath's own `sit_path` as the
+## farmer's is (over `villager_in` and `villager_out` minutes): in facing the tub, turning to the room
+## at `turn_at`; out turned away from the tub, stepping out forwards, so no one jumps in or out of the
+## water. `bath_pose` the pose (walk while stepping, bathe in the water). Anywhere else, or not
+## bathing, `w` as it was.
 static func bath_place(w: Dictionary) -> Dictionary:
 	if not w.get("bathing", false):
 		return w
@@ -263,11 +267,42 @@ static func bath_place(w: Dictionary) -> Dictionary:
 	var cfg: Variant = baths().get(str(prop.get("bath", "")))
 	if str(prop.get("use", "")) != "soak" or not cfg is Dictionary:
 		return w
+	var into := Vector2(w.facing)
+	var bathed := float(w.get("bathed", 0.0))
+	var left := float(w.get("bathe_len", 0.0)) - bathed
+	var t_in := clampf(bathed / maxf(float(cfg.get("villager_in", 3.0)), 0.01), 0.0, 1.0)
+	var t_out := clampf(left / maxf(float(cfg.get("villager_out", 2.5)), 0.01), 0.0, 1.0)
+	var k := minf(t_in, t_out)
+	var at := bath_path(cfg, k)
 	w.seat_cell = cell
-	w.pos = Vector2(w.pos) + Vector2(w.facing) * float(cfg.get("seat", 1.0))
-	w.facing = MapData.FACINGS.get(str(cfg.get("turn", "")), w.facing)
-	w.bath_lift = float(cfg.get("lift", 0.0))
+	w.pos = Vector2(w.pos) + into * at.seat
+	w.bath_lift = at.lift
+	w.bath_pose = at.pose
+	var turned: Vector2i = MapData.FACINGS.get(str(cfg.get("turn", "")), w.facing)
+	if t_out < 1.0:
+		w.facing = turned if str(cfg.get("turn", "")) != "" else w.facing   # getting out: away from the tub
+	elif t_in >= float(cfg.get("turn_at", 1.0)):
+		w.facing = turned
+	w.moving = at.pose == "walk" and k < 1.0
+	w.walked = k * float(cfg.get("seat", 1.0))
 	return w
+
+
+## Where one getting into bath `cfg` is at `k` (0 standing before it .. 1 sat): {seat (cells toward
+## the tub), lift (units up in 3D), pose}, eased between the keys of its sit_path (data/baths.json).
+static func bath_path(cfg: Dictionary, k: float) -> Dictionary:
+	var keys: Array = cfg.get("sit_path", [])
+	if keys.is_empty():
+		return {"seat": float(cfg.get("seat", 1.0)) * k, "lift": float(cfg.get("lift", 0.0)) * k, "pose": "bathe" if k >= 1.0 else "walk"}
+	var i := 0
+	while i < keys.size() - 1 and k >= float(keys[i + 1][0]):
+		i += 1
+	var a: Array = keys[i]
+	if i >= keys.size() - 1:
+		return {"seat": float(a[1]), "lift": float(a[2]), "pose": str(a[3])}
+	var b: Array = keys[i + 1]
+	var u := smoothstep(0.0, 1.0, (k - float(a[0])) / maxf(float(b[0]) - float(a[0]), 0.001))
+	return {"seat": lerpf(float(a[1]), float(b[1]), u), "lift": lerpf(float(a[2]), float(b[2]), u), "pose": str(a[3])}
 
 
 ## The villagers sat in the bath on map `map_id` now, {cell before the tub: id} (Game.soak keeps
@@ -523,7 +558,7 @@ static func pose(w: Dictionary) -> String:
 	if w.moving:
 		return "walk"
 	if w.has("seat_cell"):
-		return "bathe"
+		return str(w.get("bath_pose", "bathe"))
 	if w.get("working", false):
 		return "work"
 	if w.get("fishing", false):

@@ -333,13 +333,19 @@ func _bath() -> void:
 	FA.on_action("interact", seat, Vector2i.UP)
 	check(g.soaking() and g.bathed_today and not g.soaked_today, "E at the tub: in, the baths' rest given (not the footbath's)")
 	check(g.stamina == 70 and g.fatigue == 30, "+40 stamina, -20 fatigue (%d / %d)" % [g.stamina, g.fatigue])
-	check(g.hour == 17 and g.minute == 0, "an hour gone in the water, though the clock stands indoors (%d:%02d)" % [g.hour, g.minute])
+	check(g.hour == 16 and g.minute == 0 and g.soak_owed == 60 and not g.ticking(), "the hour owed, not jumped: the clock still while stepping in (%d:%02d)" % [g.hour, g.minute])
 	check(said.back() == String(b.message), "says the bath")
 	check(g.soak_look() == Vector2i.UP and g.still_pose() == "walk", "stepping up to the tub, back to the eye")
 	g._process(float(b.sit_seconds) + 0.05)
 	check(g.soak_phase == "sit" and g.still_pose() == "bathe" and g.soak_look() == Vector2i.DOWN, "sat in the water, turned to face the room")
 	check(is_equal_approx(g.soak_seat(true), float(b.seat)) and is_equal_approx(g.soak_lift(true), float(b.lift)), "a cell into the tub, at the water's height")
 	check(not g.feet_in(), "no footbath water band in a bath")
+	# Sat, the clock runs at its own pace though indoors (the bathers beside the farmer get out in time).
+	g.clock_running = true
+	check(g.ticking() and g.soak_clock(), "sat: the clock runs indoors")
+	g._process(g.SECONDS_PER_MINUTE * 10.0 + 0.01)
+	check(g.hour == 16 and g.minute == 10 and g.soak_owed == 50, "ten minutes sat, ten paid (%d:%02d, %d owed)" % [g.hour, g.minute, g.soak_owed])
+	g.clock_running = false
 	var biggest := 0.0
 	var last := 0.0
 	for k in 201:
@@ -350,6 +356,7 @@ func _bath() -> void:
 	g.soak_t = 1.0
 	check(biggest < 0.03, "no jump on the way in (%.3f)" % biggest)
 	g.stop_soak()
+	check(g.hour == 17 and g.minute == 0 and g.soak_owed == 0, "getting out: the rest of the hour at once (%d:%02d)" % [g.hour, g.minute])
 	check(g.soak_look() == Vector2i.DOWN, "getting out: turned away from the tub (not backing out)")
 	g._process(float(b.stand_seconds) * 0.6)
 	check(g.soaking() and g.soak_look() == Vector2i.DOWN, "still facing the way out half way")
@@ -437,11 +444,12 @@ func _bathers() -> void:
 	check(DayPlan.build([{"at": "06:00", "map": "sento_bath", "from": [5, 3], "route": [{"bathe": 0}]}], 1.5)[0] != "", "refused: a bathe of 0 minutes")
 	var b := _sento()
 	var mon := {"year": 1, "season": "spring", "day": 1, "weekday": "mon", "weather": "sunny", "flags": {}, "festival": ""}
-	var t := 19 * 60 + 22.0   # Tome still in, Genzo just sat down
-	var here := Villagers.on_map("sento_bath", t, mon)
+	var t := 19 * 60 + 21.0   # a Friday: Tome nearly done, Hachiro just settled
+	var fri := mon.merged({"weekday": "fri", "day": 5}, true)
+	var here := Villagers.on_map("sento_bath", t, fri)
 	var ids := here.map(func(w): return w.id)
 	ids.sort()
-	check(ids == ["genzo", "tome"], "a dry Monday at 19:22: Tome and Genzo in the bath (%s)" % [ids])
+	check(ids == ["hachiro", "tome"], "a dry Friday at 19:21: Tome and Hachiro in the bath (%s)" % [ids])
 	for w in here:
 		var seat: Vector2i = w.seat_cell
 		check(w.pos.is_equal_approx(Vector2(seat) + Vector2(0.5, 0.5) + Vector2.UP * float(b.seat)) and w.facing == Vector2i.DOWN, "%s sat in the water from %s, facing the room (%s)" % [w.id, seat, w.pos])
@@ -449,7 +457,28 @@ func _bathers() -> void:
 		var key := Villagers.sprite_key(w)
 		check(key == "villager:%s:front:bathe:0:towel" % w.id, "%s drawn bathing in a towel (%s)" % [w.id, key])
 		check(PA.image(key).get_used_rect().position.y > PA.image("villager:%s:front:idle:0" % w.id).get_used_rect().position.y + 8, "%s: only the head and shoulders over the water" % w.id)
-	check(Villagers.bath_seats("sento_bath", t, mon).size() == 2, "two seats taken")
+	check(Villagers.bath_seats("sento_bath", t, fri).size() == 2, "two seats taken")
+	# Getting in and out eased along the bath's sit_path, never a jump (the user saw them pop up in
+	# front of the tub): every 0.05 minutes from the walk to the tub to the walk away.
+	var jump := 0.0
+	var lift_jump := 0.0
+	var was: Dictionary = Villagers.where("tome", 18 * 60 + 27.0, mon)
+	var sat_up := false
+	var out_down := false
+	var m0 := 18 * 60 + 27.0
+	while m0 < 19 * 60 + 30.0:
+		m0 += 0.05
+		var now: Dictionary = Villagers.where("tome", m0, mon)
+		if now.map == was.map:
+			jump = maxf(jump, Vector2(now.pos).distance_to(was.pos))
+			lift_jump = maxf(lift_jump, absf(float(now.get("bath_lift", 0.0)) - float(was.get("bath_lift", 0.0))))
+		if now.has("seat_cell") and float(now.bathed) > 0.5 and float(now.bathed) < 1.0:
+			sat_up = sat_up or (now.facing == Vector2i.UP and Villagers.pose(now.merged({"id": "tome"})) == "walk")
+		if now.has("seat_cell") and float(now.bathe_len) - float(now.bathed) < 0.5:
+			out_down = out_down or (now.facing == Vector2i.DOWN and float(now.bath_lift) < float(b.lift))
+		was = now
+	check(jump < 0.15 and lift_jump < 0.1, "Tome into the tub and out again with no jump (%.3f cells, %.3f up)" % [jump, lift_jump])
+	check(sat_up and out_down, "stepping in facing the tub, out facing the room, rising out of the water")
 	var walking := Villagers.where("tome", 18 * 60 + 28.0, mon)
 	check(walking.map == "sento_bath" and walking.moving and Villagers.sprite_key(walking.merged({"id": "tome"})).ends_with(":towel") and not walking.has("seat_cell"), "Tome walks to the tub in her towel (%s)" % walking)
 	check(not Villagers.sprite_key(Villagers.where("tome", 18 * 60 + 18.0, mon).merged({"id": "tome"})).ends_with(":towel"), "dressed in the lobby")
@@ -552,6 +581,26 @@ func _bathers() -> void:
 	g.soak(Vector2i(6, 3), Vector2i.UP)
 	check(g.soaking(), "the cell beside her free")
 	g._stand_up_now()
+	# Sat beside a bather, the farmer sees them still there, then get out when their time is up (the
+	# user's report: Ren was gone the moment the farmer got in, the hour jumped at once).
+	g.day = 1
+	while g.weekday() != "sat" or g.festival_today() != "":
+		g.day += 1
+	g.bathed_today = false
+	g.go_to_map("sento_bath", Vector2i(7, 3), Vector2i.UP)
+	g.hour = 20
+	g.minute = 0
+	g.soak(Vector2i(7, 3), Vector2i.UP)
+	var ren_in := func() -> bool: return Villagers.bath_seats("sento_bath", g.day_minutes(), g.trigger_state(Vector2i(7, 3))).values().has("ren")
+	check(g.soaking() and g.hour == 20 and ren_in.call(), "in beside Ren at 20:00: he is still there")
+	g._process(float(b.sit_seconds) + 0.05)
+	g.clock_running = true
+	g._process(g.SECONDS_PER_MINUTE * 15.0 + 0.01)
+	check(g.minute == 15 and ren_in.call(), "a quarter of an hour on, still soaking with him (20:%02d)" % g.minute)
+	g._process(g.SECONDS_PER_MINUTE * 20.0 + 0.01)
+	check(not ren_in.call() and Villagers.where("ren", g.day_minutes(), g.trigger_state(Vector2i(7, 3))).get("map", "") != "", "past 20:29 he has got out (20:%02d)" % g.minute)
+	g.clock_running = false
+	g._stand_up_now()
 	g.message.disconnect(hear)
 	# Their lines at the bath, in Thai.
 	var th := Lang.table("th")
@@ -568,6 +617,9 @@ func _bathers() -> void:
 				check(th.has(str(l.text)), "%s's %s in Thai" % [id, l.id])
 	# The 3D sprite raised to the water.
 	g.go_to_map("sento_bath", Vector2i(6, 3), Vector2i.UP)
+	g.day = 1   # a Monday again: Tome's night
+	while g.weekday() != "mon" or g.festival_today() != "":
+		g.day += 1
 	g.hour = 19   # the farmer's bath ran the clock on an hour
 	g.minute = 22
 	var vs: Node3D = load("res://scripts/world3d/villager_sprites.gd").new("sento_bath")
