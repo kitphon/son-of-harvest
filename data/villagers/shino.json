@@ -1,5 +1,5 @@
 {
-	"_note": "Shino dyes indigo. She came back from the city, where she studied textiles, to take over her family's dye house in Minamino, west of the lane down to the river (data/maps/shino_house.json); her mother dyed there before her and left a box of stencils. Her hands are blue all year. Up at 6:00; from 6:30 she works the two vats in front of the house (dipping, airing, dipping again), home for lunch at 11:30, down to the river at 12:30 to rinse the cloth on the west shore until 14:00, back at the vats 14:10-17:30, home, asleep from 21:00. Sundays the vats rest: from 9:00 she walks the grass east of the lane picking wildflowers to try for color. Wet days she works the vats inside. On her birthday (winter 4, the day she lights the stove under the vats for the cold dyeing) she leaves the vats and sits on the river shore 10:00-15:00. Festivals she goes up to the village for their hours. Married to the farmer (married_shino, data/marriage.json) she lives at the farmhouse: by the kotatsu in the second room before 7:00 and from 16:45, the vats in Minamino in between with lunch at the dye house; a wet day she sews by the kotatsu. Her heart events: data/events/heart_shino.json (band 3), heart_shino_5.json (band 5), heart_shino_6.json (band 6; after it she can be asked to marry). Gifts: wild colors above all (mulberries, akebi), warabi mochi and a painted paper fan; wild greens tempura too; mugwort, eggplant, tea, chestnut rice and agate she likes; fizzy soda, milk pudding (the city's sweets) and iron sand (it dulls a vat) she doesn't, a plain stone is an insult. A character of our own, one of the four new candidates (docs/DESIGN.md, ความรักและแต่งงาน). Format: README.md, Villagers.",
+	"_note": "Shino dyes indigo. She came back from the city, where she studied textiles, to take over her family's dye house in Minamino, west of the lane down to the river (data/maps/shino_house.json); her mother dyed there before her and left a box of stencils. Her hands are blue all year. Up at 6:00; from 6:30 she works the two vats in front of the house (dipping, airing, dipping again), home for lunch at 11:30, down to the river at 12:30 to rinse the cloth on the west shore until 14:00, back at the vats 14:10-17:30, home, asleep from 21:00. Sundays the vats rest: from 9:00 she walks the grass east of the lane picking wildflowers to try for color. Wet days she works the vats inside. On her birthday (winter 4, the day she lights the stove under the vats for the cold dyeing) she leaves the vats and sits on the river shore 10:00-15:00. Festivals she goes up to the village for their hours. Married to the farmer (married_shino, data/marriage.json) she lives at the farmhouse: by the kotatsu in the second room before 7:00 and from 16:45, the vats in Minamino in between with lunch at the dye house; a wet day she sews by the kotatsu. Her heart events: data/events/heart_shino.json (band 3), heart_shino_5.json (band 5), heart_shino_6.json (band 6; after it she can be asked to marry). Gifts: wild colors above all (mulberries, akebi), warabi mochi and a painted paper fan; wild greens tempura too; mugwort, eggplant, tea, chestnut rice and agate she likes; fizzy soda, milk pudding (the city's sweets) and iron sand (it dulls a vat) she doesn't, a plain stone is an insult. A character of our own, one of the four new candidates (docs/DESIGN.md, ความรักและแต่งงาน). Format: README.md, Villagers. Evening baths (2026-11-23, Baths step 3b): on sunny Mondays and Wednesdays she soaks the vats' cold out of her hands at Kawasemi-yu from about 20:00 to 20:55 at the tub's ninth cell (plan bath; not once married).",
 	"id": "shino",
 	"name": "Shino",
 	"birthday": {"season": "winter", "day": 4},
@@ -17,7 +17,8 @@
 		{"if": {"flags": ["married_shino"], "weather": ["rain", "storm", "snow"]}, "plan": "married_wet"},
 		{"if": {"flags": ["married_shino"]}, "plan": "married"},
 		{"if": {"weather": ["rain", "storm", "snow"]}, "plan": "wet"},
-		{"if": {"weekday": ["sun"]}, "plan": "sunday"}
+		{"if": {"weekday": ["sun"]}, "plan": "sunday"},
+		{"if": {"weekday": ["mon", "wed"], "weather": ["sunny"]}, "plan": "bath"}
 	],
 	"default": "usual",
 	"gifts": {
@@ -27,6 +28,30 @@
 		"hate": ["mine:stone"]
 	},
 	"plans": {
+		"bath": [
+			{"at": "06:00", "map": "shino_house", "from": [2, 2], "route": [{"face": "down"}]},
+			{"at": "06:30", "map": "minamino", "from": [1, 14], "route": [{"to": [4, 14]}, {"to": [4, 16]}, {"to": [3, 16]}, {"face": "up"}], "loop": [{"work": 15}, {"to": [2, 16]}, {"face": "up"}, {"work": 15}, {"to": [3, 16]}, {"face": "up"}]},
+			{"at": "10:45", "map": "minamino", "route": [{"to": [4, 16]}, {"to": [4, 14]}, {"to": [1, 14]}, {"face": "up"}]},
+			{"at": "11:00", "map": "shino_house", "from": [2, 2], "route": [{"face": "down"}]},
+			{"at": "11:45", "map": "minamino", "from": [1, 14], "route": [{"to": [4, 14]}, {"to": [4, 0]}, {"face": "up"}]},
+			{"at": "11:59", "map": "town", "from": [41, 47], "route": [{"to": [41, 36]}, {"to": [8, 36]}, {"to": [8, 24]}, {"to": [0, 24]}, {"face": "left"}]},
+			{"at": "12:45", "map": "river", "from": [19, 4], "route": [{"to": [19, 5]}, {"to": [2, 5]}, {"face": "down"}], "loop": [{"work": 15}, {"wait": 5}]},
+			{"at": "13:10", "map": "river", "route": [{"to": [19, 5]}, {"to": [19, 4]}, {"face": "right"}]},
+			{"at": "13:24", "map": "town", "from": [0, 24], "route": [{"to": [9, 24]}, {"to": [9, 36]}, {"to": [41, 36]}, {"to": [41, 47]}, {"face": "down"}]},
+			{"at": "14:10", "map": "minamino", "from": [4, 0], "route": [{"to": [4, 16]}, {"to": [3, 16]}, {"face": "up"}], "loop": [{"work": 15}, {"to": [2, 16]}, {"face": "up"}, {"work": 15}, {"to": [3, 16]}, {"face": "up"}]},
+			{"at": "17:30", "map": "minamino", "route": [{"to": [4, 16]}, {"to": [4, 14]}, {"to": [1, 14]}, {"face": "up"}]},
+			{"at": "17:45", "map": "shino_house", "from": [2, 2], "route": [{"face": "down"}]},
+			{"at": "19:30", "map": "away"},
+			{"at": "19:40", "map": "yumachi", "from": [0, 4], "route": [{"to": [3, 4]}, {"to": [3, 5]}, {"to": [7, 5]}, {"face": "up"}]},
+			{"at": "19:47", "map": "sento", "from": [3, 6], "route": [{"to": [3, 4]}, {"to": [6, 4]}, {"face": "right"}]},
+			{"at": "19:52", "map": "away"},
+			{"at": "19:57", "map": "sento_bath", "from": [1, 3], "route": [{"to": [9, 3]}, {"face": "up"}, {"bathe": 55}]},
+			{"at": "20:59", "map": "sento_bath", "route": [{"to": [1, 3]}, {"face": "left"}]},
+			{"at": "21:06", "map": "away"},
+			{"at": "21:11", "map": "sento", "from": [6, 4], "route": [{"to": [3, 4]}, {"to": [3, 6]}, {"face": "down"}]},
+			{"at": "21:16", "map": "yumachi", "from": [7, 5], "route": [{"to": [3, 5]}, {"to": [3, 4]}, {"to": [0, 4]}, {"face": "left"}]},
+			{"at": "21:23", "map": "away"}
+		],
 		"married_festival_day": [
 			{"at": "06:00", "map": "house", "from": [9, 3], "route": [{"face": "up"}]},
 			{"at": "09:40", "map": "town", "from": [0, 4], "route": [{"to": [11, 4]}, {"to": [11, 12]}, {"to": [43, 12]}, {"to": [43, 18]}, {"face": "up"}]},

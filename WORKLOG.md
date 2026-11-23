@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-23 — Baths step 3b: Sayo, Shino and Ren bathe too
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user asked for villagers the farmer can court at the bath): Sayo on sunny Tuesdays and
+  Saturdays about 20:30-21:20 after her shrine offering (plan shop_bath, seat 3), Shino on sunny
+  Mondays and Wednesdays about 20:00-20:55 (plan bath, seat 9), Ren on sunny Fridays and Saturdays
+  about 19:30-20:25 after the post office shuts (plan bath, seat 9); their rules come after the
+  married ones, so once married they keep the spouse's day at home. Two bath_ lines each, and two
+  bath_close_ lines from heart band 4 (warmer, nothing about the farmer's body), with Thai.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: each night's bathers with
+  the three, no two on one seat on any night, the three bathe single and not married, their
+  lines only on the bath maps, the closer ones from band 4, the Thai). Smoke runs (`--quit-after
+  300`: title, `--demo`, town, mine 3, `sento_bath@bath --day=6 --time=20:00`): 0 ERROR lines;
+  windowed `--quit-after 150` of the last: exit 0. Frames: Saturday 20:00 Genzo and Ren in the
+  tub; `--day=6 --time=20:28 --hearts=4 --talk=sayo` her "Don't look at me, my face goes red..."
+- Left / next: a spouse coming along to the bath was offered, not done; step 4 Kajika-yu.
+
 ## 2026-11-23 — Baths step 3: villagers' evening baths and their lines
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a day plan step `{"bathe": minutes}` (DayPlan): from the cell before a tub, facing it,

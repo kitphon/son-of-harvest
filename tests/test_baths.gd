@@ -454,7 +454,7 @@ func _bathers() -> void:
 	check(walking.map == "sento_bath" and walking.moving and Villagers.sprite_key(walking.merged({"id": "tome"})).ends_with(":towel") and not walking.has("seat_cell"), "Tome walks to the tub in her towel (%s)" % walking)
 	check(not Villagers.sprite_key(Villagers.where("tome", 18 * 60 + 18.0, mon).merged({"id": "tome"})).ends_with(":towel"), "dressed in the lobby")
 	check(Villagers.where("tome", 19 * 60 + 41.0, mon).map == "yumachi", "and home through Yumachi after")
-	var nights := {"mon": ["genzo", "tome"], "tue": ["hachiro"], "wed": ["ichiro"], "thu": [], "fri": ["hachiro", "tome"], "sat": ["genzo"], "sun": ["ichiro"]}
+	var nights := {"mon": ["genzo", "shino", "tome"], "tue": ["hachiro", "sayo"], "wed": ["ichiro", "shino"], "thu": [], "fri": ["hachiro", "ren", "tome"], "sat": ["genzo", "ren", "sayo"], "sun": ["ichiro"]}
 	for i in g.WEEKDAYS.size():
 		var day: String = g.WEEKDAYS[i]
 		var s := mon.merged({"weekday": day, "day": i + 1}, true)
@@ -471,6 +471,24 @@ func _bathers() -> void:
 				inside = inside and m >= 14 * 60 and m < 23 * 60
 		check(inside, "%s: only while the bath is open" % day)
 	check(Villagers.on_map("sento_bath", t, mon.merged({"weather": "rain"}, true)).is_empty(), "a wet Monday: no one comes")
+	# Every seat of a night apart, whoever overlaps.
+	for i in g.WEEKDAYS.size():
+		var s := mon.merged({"weekday": g.WEEKDAYS[i], "day": i + 1}, true)
+		var clash := false
+		for m in range(17 * 60, 23 * 60, 2):
+			clash = clash or Villagers.bath_seats("sento_bath", float(m), s).size() != Villagers.on_map("sento_bath", float(m), s).filter(func(w): return w.has("seat_cell")).size()
+		check(not clash, "%s: no two bathers on one seat" % g.WEEKDAYS[i])
+	# The ones the farmer can marry come while single, not once married (their own day at home then).
+	for id in ["sayo", "shino", "ren"]:
+		var seen := false
+		var wed := false
+		for i in g.WEEKDAYS.size():
+			var s := mon.merged({"weekday": g.WEEKDAYS[i], "day": i + 1}, true)
+			var m := mon.merged({"weekday": g.WEEKDAYS[i], "day": i + 8, "flags": {"married_" + id: true, "spouse": id}}, true)
+			for x in range(17 * 60, 23 * 60, 5):
+				seen = seen or Villagers.where(id, float(x), s).has("seat_cell")
+				wed = wed or Villagers.where(id, float(x), m).has("seat_cell")
+		check(seen and not wed, "%s bathes while single, not once married" % id)
 	check(Villagers.on_map("sento_bath", t, mon.merged({"season": "winter"}, true)).map(func(w): return w.id).has("tome"), "Tome comes in winter too")
 	var fests := ["blossom_day", "lantern_night", "moon_night", "years_turn"]
 	for i in fests.size():
@@ -505,9 +523,14 @@ func _bathers() -> void:
 	g.message.disconnect(hear)
 	# Their lines at the bath, in Thai.
 	var th := Lang.table("th")
-	for id in ["tome", "genzo", "hachiro", "ichiro"]:
+	for id in ["tome", "genzo", "hachiro", "ichiro", "sayo", "shino", "ren"]:
 		var at := Talk.pick(id, {"band": 2, "again": false, "day_number": 0, "time": 19 * 60, "map": "sento_bath"}.merged(mon, true))
-		check(at.begins_with("bath_"), "%s says a bath line there (%s)" % [id, at])
+		check(at.begins_with("bath_") and not at.begins_with("bath_close"), "%s says a bath line there (%s)" % [id, at])
+		check(not Talk.pick(id, {"band": 2, "again": false, "day_number": 0, "time": 19 * 60, "map": "town"}.merged(mon, true)).begins_with("bath_"), "%s: not elsewhere" % id)
+	for id in ["sayo", "shino", "ren"]:
+		var at := Talk.pick(id, {"band": 4, "again": false, "day_number": 0, "time": 19 * 60, "map": "sento_bath"}.merged(mon, true))
+		check(at.begins_with("bath_close_"), "%s closer from band 4 (%s)" % [id, at])
+	for id in ["tome", "genzo", "hachiro", "ichiro", "sayo", "shino", "ren"]:
 		for l in Talk.data(id).lines:
 			if str(l.get("id", "")).begins_with("bath_"):
 				check(th.has(str(l.text)), "%s's %s in Thai" % [id, l.id])

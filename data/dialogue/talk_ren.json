@@ -1,9 +1,11 @@
 {
-	"_note": "What Ren, who carries the post, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items his own answers to a daruma and to dishes. At the counter he talks of the sorting, on Sundays of his day off. The birthday lines (spring 15), the close lines from band 4, the round lines once his band 5 scene is seen (heart_ren_5), the dear lines at band 6 once his band 6 scene is (heart_ren_6) until he is promised; engaged_ lines once he said yes to the knot, and married (married_ren) help_ lines on a morning he did a chore, wed_morning_ / wed_evening_ at the farmhouse and wed_out_ elsewhere (data/marriage.json). He talks a lot and knows who writes to whom, never what. Our own lines.",
+	"_note": "What Ren, who carries the post, says when the farmer talks to him (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items his own answers to a daruma and to dishes. At the counter he talks of the sorting, on Sundays of his day off. The birthday lines (spring 15), the close lines from band 4, the round lines once his band 5 scene is seen (heart_ren_5), the dear lines at band 6 once his band 6 scene is (heart_ren_6) until he is promised; engaged_ lines once he said yes to the knot, and married (married_ren) help_ lines on a morning he did a chore, wed_morning_ / wed_evening_ at the farmhouse and wed_out_ elsewhere (data/marriage.json). He talks a lot and knows who writes to whom, never what. Our own lines. The bath_ lines are said at Kawasemi-yu (the lobby, the changing room and the bath), bath_close_ from heart band 4 (Baths step 3b).",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
 		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"map": ["sento", "sento_changing", "sento_bath"], "band": [4, 6]}, "at": ["bath_close_1", "bath_close_2"]},
+		{"if": {"map": ["sento", "sento_changing", "sento_bath"]}, "at": ["bath_1", "bath_2"]},
 		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
 		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
 		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
@@ -24,6 +26,10 @@
 		{"at": ["plain_1", "plain_2", "plain_3"]}
 	],
 	"lines": [
+		{"id": "bath_close_1", "speaker": "ren", "mood": "happy", "text": "There you are. I passed your farm on the round and hoped you'd come tonight.", "next": "end"},
+		{"id": "bath_close_2", "speaker": "ren", "mood": "happy", "text": "If I wrote you a letter, I'd have to deliver it to myself first. Easier to say it: I like these evenings.", "next": "end"},
+		{"id": "bath_1", "speaker": "ren", "mood": "happy", "text": "Twelve kilometers on these feet today. They've earned the hot water more than I have.", "next": "end"},
+		{"id": "bath_2", "speaker": "ren", "mood": "neutral", "text": "No letters in the bath. Masa's rule, and mine. Anything said here stays in the steam.", "next": "end"},
 		{"id": "festival_blossom_day", "speaker": "ren", "mood": "happy", "text": "Blossom Day! Half my bag this week was invitations to it. The other half was people saying they can't come. They all came.", "next": "end"},
 		{"id": "festival_lantern_night", "speaker": "ren", "mood": "happy", "text": "Lanterns everywhere. I know who sent which one to whom. I'm not telling. I'm just smiling.", "next": "end"},
 		{"id": "festival_moon_night", "speaker": "ren", "mood": "neutral", "text": "Moon Night is the one night nobody writes letters. They just look up. Even I take my bag off.", "next": "end"},

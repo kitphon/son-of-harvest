@@ -1,6 +1,18 @@
 {
 	"_note": "Thai for dialogue lines (data/dialogue), keyed by the English line. Done so far: the opening, the first morning, the shop greetings, the pond, the bin note, the rainy day, the clinic, the things to look at (farm, house, village, hill), the festival greetings, the year record and the recipe lessons. Also the villagers' daily talk, the heart events, the contests, marriage, the goal notes, the village record and the child's news and birth. Spaces split the phrases so the text box can wrap them.",
 	"text": {
+		"Oh, it's you! Sit here, there's room. I was hoping you'd come on a bath night.": "อ้าว เธอนี่เอง! มานั่งตรงนี้สิ ยังมีที่ว่าง ฉันแอบหวังว่า เธอจะมาคืนที่ฉันมาอาบน้ำพอดี",
+		"Don't look at me, my face goes red in hot water. It's the water. Only the water.": "อย่ามองสิ แช่น้ำร้อนทีไร หน้าฉันแดงทุกที เพราะน้ำนะ น้ำล้วน ๆ",
+		"Ten hours of counting change, and now my fingers are finally warm. Evening!": "นับเงินทอนมาสิบชั่วโมง ตอนนี้นิ้วเพิ่งจะอุ่นขึ้นมา สวัสดีตอนค่ำจ้ะ!",
+		"Father used to say the village's news is half shop talk, half bath talk. I'm doing my share.": "พ่อเคยบอกว่า ข่าวในหมู่บ้าน ครึ่งหนึ่งมาจากหน้าร้าน อีกครึ่งมาจากโรงอาบน้ำ ฉันก็ทำหน้าที่ของฉันอยู่",
+		"You came. ...Good. The bath is quieter with someone who doesn't need to talk.": "มาแล้วเหรอ ...ดี อ่างนี้เงียบกว่าเดิม เมื่อมีคนที่ไม่ต้องพูดอะไร นั่งอยู่ด้วย",
+		"In the city the baths had no mountain on the wall. I missed this one more than I said.": "ในเมือง โรงอาบน้ำไม่มีภูเขาบนผนัง ฉันคิดถึงที่นี่ มากกว่าที่เคยพูดออกไป",
+		"Hot water. My hands forget they're blue for an hour.": "น้ำร้อน มือฉันลืมไปชั่วโมงหนึ่ง ว่ามันเป็นสีคราม",
+		"Don't stare at the water. Yes, it's a little blue around me. It always is.": "อย่าจ้องน้ำ ใช่ รอบตัวฉันมันฟ้าขึ้นนิดหน่อย เป็นแบบนี้ตลอด",
+		"There you are. I passed your farm on the round and hoped you'd come tonight.": "มาแล้ว ตอนเดินส่งจดหมาย ผมผ่านไร่ของคุณ แล้วก็หวังว่าคืนนี้คุณจะมา",
+		"If I wrote you a letter, I'd have to deliver it to myself first. Easier to say it: I like these evenings.": "ถ้าผมเขียนจดหมายถึงคุณ ผมก็ต้องส่งให้ตัวเองก่อน พูดออกมาตรง ๆ ง่ายกว่า ผมชอบค่ำแบบนี้",
+		"Twelve kilometers on these feet today. They've earned the hot water more than I have.": "วันนี้เท้าคู่นี้เดินมาสิบสองกิโล มันสมควรได้แช่น้ำร้อน มากกว่าผมอีก",
+		"No letters in the bath. Masa's rule, and mine. Anything said here stays in the steam.": "ในอ่างไม่มีจดหมาย กฎของมาสะ และของผมด้วย อะไรที่พูดกันตรงนี้ ก็หายไปกับไอน้ำ",
 		"A smith's shoulders and a hot bath. Best hour of the week, this.": "ไหล่ช่างตีเหล็กกับน้ำร้อนสักอ่าง ชั่วโมงที่ดีที่สุดของสัปดาห์เลย",
 		"Masa's boiler? I riveted that firebox myself. Still holding. So am I.": "หม้อต้มของมาสะน่ะเหรอ ข้าตอกหมุดเตาไฟนั่นเอง ยังทนอยู่ ข้าก็เหมือนกัน",
 		"Mud to the knees all day, and here we sit, boiled clean. Good water.": "โคลนท่วมเข่าทั้งวัน แล้วก็มานั่งต้มตัวจนสะอาดอยู่นี่ น้ำดีจริง ๆ",

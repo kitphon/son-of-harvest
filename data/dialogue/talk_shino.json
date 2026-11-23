@@ -1,9 +1,11 @@
 {
-	"_note": "What Shino, the indigo dyer of Minamino, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items her own answers to a paper fan and to dishes. Mornings at the vats she talks of the dyeing. The birthday lines (winter 4), the close lines from band 4, the pattern lines once her band 5 scene is seen (heart_shino_5), the dear lines at band 6 once her band 6 scene is (heart_shino_6) until she is promised; engaged_ lines once she said yes to the knot, and married (married_shino) help_ lines on a morning she did a chore, wed_morning_ / wed_evening_ at the farmhouse and wed_out_ elsewhere (data/marriage.json). She speaks plainly and briefly. Our own lines.",
+	"_note": "What Shino, the indigo dyer of Minamino, says when the farmer talks to her (Talk, README.md, Villagers): the first pick whose if holds names the lines, one of them by the day; gift_ lines answer a gift by its reaction, gift_items her own answers to a paper fan and to dishes. Mornings at the vats she talks of the dyeing. The birthday lines (winter 4), the close lines from band 4, the pattern lines once her band 5 scene is seen (heart_shino_5), the dear lines at band 6 once her band 6 scene is (heart_shino_6) until she is promised; engaged_ lines once she said yes to the knot, and married (married_shino) help_ lines on a morning she did a chore, wed_morning_ / wed_evening_ at the farmhouse and wed_out_ elsewhere (data/marriage.json). She speaks plainly and briefly. Our own lines. The bath_ lines are said at Kawasemi-yu (the lobby, the changing room and the bath), bath_close_ from heart band 4 (Baths step 3b).",
 	"picks": [
 		{"if": {"again": true}, "at": ["again_1", "again_2"]},
 		{"if": {"birthday": true}, "at": ["birthday"]},
 		{"if": {"band": [0, 0]}, "at": ["new_1"]},
+		{"if": {"map": ["sento", "sento_changing", "sento_bath"], "band": [4, 6]}, "at": ["bath_close_1", "bath_close_2"]},
+		{"if": {"map": ["sento", "sento_changing", "sento_bath"]}, "at": ["bath_1", "bath_2"]},
 		{"if": {"festival": ["blossom_day"], "time": ["10:00", "16:00"]}, "at": ["festival_blossom_day"]},
 		{"if": {"festival": ["lantern_night"], "time": ["17:00", "22:00"]}, "at": ["festival_lantern_night"]},
 		{"if": {"festival": ["moon_night"], "time": ["18:00", "23:00"]}, "at": ["festival_moon_night"]},
@@ -24,6 +26,10 @@
 		{"at": ["plain_1", "plain_2", "plain_3"]}
 	],
 	"lines": [
+		{"id": "bath_close_1", "speaker": "shino", "mood": "happy", "text": "You came. ...Good. The bath is quieter with someone who doesn't need to talk.", "next": "end"},
+		{"id": "bath_close_2", "speaker": "shino", "mood": "neutral", "text": "In the city the baths had no mountain on the wall. I missed this one more than I said.", "next": "end"},
+		{"id": "bath_1", "speaker": "shino", "mood": "neutral", "text": "Hot water. My hands forget they're blue for an hour.", "next": "end"},
+		{"id": "bath_2", "speaker": "shino", "mood": "neutral", "text": "Don't stare at the water. Yes, it's a little blue around me. It always is.", "next": "end"},
 		{"id": "festival_blossom_day", "speaker": "shino", "mood": "happy", "text": "Cherry blossoms are the hardest pink to dye. The tree makes it look easy. I'm a little jealous.", "next": "end"},
 		{"id": "festival_lantern_night", "speaker": "shino", "mood": "neutral", "text": "Half the yukata here are from our vats. Mother's patterns, my dipping. Look at the hems.", "next": "end"},
 		{"id": "festival_moon_night", "speaker": "shino", "mood": "happy", "text": "Moonlight turns indigo almost black. This is the one night my cloth looks the way I see it in my head.", "next": "end"},
