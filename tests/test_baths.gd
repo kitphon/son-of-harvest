@@ -754,8 +754,15 @@ func _bathers() -> void:
 	g.soak(Vector2i(7, 3), Vector2i.UP)
 	g._process(float(b.sit_seconds) + 0.05)
 	g.clock_running = true
-	g._process(g.SECONDS_PER_MINUTE * 20.0 + 0.01)
+	for k in 400:   # frame by frame, as the game runs: a bump is judged each frame
+		g._process(g.SECONDS_PER_MINUTE * 20.0 / 400.0)
 	check(not ren_in.call() and Villagers.where("ren", g.day_minutes(), g.trigger_state(Vector2i(7, 3))).get("map", "") != "", "past 20:29 he has got out (20:%02d)" % g.minute)
+	# On his way to the door he passes in front of the farmer sat in the tub (whose spot is the tiles
+	# before it): he walks on, no stopping to wait (the user saw bathers stand still for ten seconds).
+	for k in 120:
+		g._process(g.SECONDS_PER_MINUTE * 6.0 / 120.0)
+	check(Villagers.where("ren", g.day_minutes(), g.trigger_state(Vector2i(7, 3))).get("map", "") != "sento_bath" and Villagers.delay_of("ren", g.day_minutes()) == 0.0,
+		"by 20:41 he is out of the room, never held up by the farmer in the tub (20:%02d, %s, delay %.1f)" % [g.minute, Villagers.where("ren", g.day_minutes(), g.trigger_state(Vector2i(7, 3))).get("map", ""), Villagers.delay_of("ren", g.day_minutes())])
 	g.clock_running = false
 	g._stand_up_now()
 	g.message.disconnect(hear)

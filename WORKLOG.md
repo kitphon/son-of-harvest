@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-24 — Baths: bathers no longer stand still by the farmer in the tub
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: a bather getting out walked 3-5 steps, stood about ten seconds, then left):
+  sat in the tub the farmer's spot stays the tiles before it, and a bather walking that row to
+  the glass door "bumped" into it every frame (Villagers.bump: they wait for the farmer, up to
+  delay_max, 30 game minutes = 15 s). Game no longer bumps villagers while the farmer soaks: they
+  are in the water, not in the way.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: sat in the tub at (7, 3) on a
+  Saturday, Ren from the ninth seat walks out past in front by 20:41 with no delay, the clock run
+  frame by frame; on the code before it fails with "sento_bath, delay 11.5"). Smoke runs
+  (`--quit-after 300`: title, `--demo`, town, mine 3, `sento_bath@bath --day=6 --time=20:00`):
+  0 ERROR lines; windowed `--quit-after 150` of the last: exit 0.
+- Left / next: a farmer standing on the tiles in a bather's way still holds them (as everywhere,
+  up to 15 s); step 4 Kajika-yu.
+
 ## 2026-11-24 — Baths: the spouse keeps the farmer company in the bath and walks home with them
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's two points after playing):

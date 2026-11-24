@@ -773,7 +773,8 @@ func _process(delta: float) -> void:
 			check_goals()
 	if not ticking():
 		return
-	Villagers.bump(maps.id, day_minutes(), delta / SECONDS_PER_MINUTE, maps.pos / 16.0, trigger_state(Vector2i.ZERO))
+	if not soaking_now:   # sat in a soak the farmer is in the water, not on the tiles before it: no one waits for them (the user saw bathers stand ten seconds by the tub)
+		Villagers.bump(maps.id, day_minutes(), delta / SECONDS_PER_MINUTE, maps.pos / 16.0, trigger_state(Vector2i.ZERO))
 	Villagers.give_way(maps.id, day_minutes(), trigger_state(Vector2i.ZERO), maps.pos / 16.0, Vector2(maps.facing),
 		farmer_passing, delta, func(c: Vector2i) -> bool: return not maps.is_solid(c, farm))   # a villager steps aside for the farmer slipping past
 	_accum += delta
