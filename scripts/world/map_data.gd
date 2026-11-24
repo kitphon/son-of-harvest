@@ -24,6 +24,7 @@ var indoor := false        # the clock stands still in here (DESIGN: time stops 
 var clock := false         # indoors, yet the clock runs (the sento's maps: the bathers come and go in their time)
 var towel := ""            # the bathing towel here (Game.in_towel): "always" (the sento's bath), "allowed" (its changing room), "" not
 var sheltered := false     # under a roof of rock (the mine): no weather, but the clock runs
+var cliff := ""            # "gorge": the rock_wall cells stand as one natural cliff in 3D (GorgeCliff), not a block a cell
 var ambient := "outdoor"   # which ambient rules apply (data/sfx.json "places")
 var light = null           # a fixed Color for the room, or null for the day / night light
 var background := Color("8fc6e8")
@@ -74,6 +75,9 @@ func _read(d: Variant) -> String:
 	if not towel in ["", "allowed", "always"]:
 		return "towel must be \"allowed\" or \"always\""
 	sheltered = bool(d.get("sheltered", indoor))
+	cliff = str(d.get("cliff", ""))
+	if not cliff in ["", "gorge"]:
+		return "cliff must be \"gorge\""
 	ambient = str(d.get("ambient", "indoor" if indoor else "outdoor"))
 	if d.has("light"):
 		light = Color(str(d.light))

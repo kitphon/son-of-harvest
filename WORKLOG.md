@@ -10,6 +10,28 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-24 — Kajika Gorge: the rock wall one natural cliff
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: rework the rock wall, which read as brown blocks): a map with "cliff": "gorge"
+  (MapData.cliff; Kajika Gorge) builds its rock_wall cells as one cliff (scripts/world3d/
+  gorge_cliff.gd, GorgeCliff) instead of a box a cell: the cells blurred into a soft mass with a
+  wobbling foot, a steep rise to an uneven top (two value noises, about 2.1 units), pulled into
+  ledges, carried on past the north edge (full for 2 cells, gone by 7) and tapering off past the
+  side edges over 4 cells; flat facets toned by how they face: bare rock in bands of strata with
+  streaks of moss, mossy ledges, grass on the top, snow on the flat faces in winter; stones at its
+  foot. The apron's wood past the north edge now stands on its top. Row 1's two rock cells by the
+  lantern (13-14, 1) are grass, so no outcrop hides the pool's back corner. The mine keeps its
+  blocks.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_maps `_gorge_cliff`: tall over the
+  rock, under 0.05 at the middle of every open cell, on past the north edge and gone by 9 cells,
+  tapered past the sides with no cut at the edge, an uneven top, grass / snow on top, rock on its
+  face). Smoke runs (title, `--demo`, town, mine 3, `kajika@pool --flags=kajika_built
+  --time=20:00 --towel --soak`): 0 ERROR lines; windowed `--quit-after 150` on the gorge: exit 0.
+  Frames: `--demo --map=kajika@pool --season=summer --weather=sunny --time=17:30
+  --flags=kajika_built --towel --soak` (strata, the grass top, trees over it) and `--season=winter
+  --snow=70 --time=16:30` (snow on the top and ledges).
+- Left / next: the user's look at the gorge; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-24 — Kajika-yu like a forest onsen, part 2: the wood, lanterns, bucket, the low camera
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (part 2 of the user's photo): maples and shrubs close round the pool (four maples, four

@@ -86,10 +86,12 @@ func _make_pond_stones() -> void:
 ## Rock, door thresholds and a room's walls (RoomWalls), kept a run by the map's shape.
 func _make_walls() -> void:
 	MeshCache.build(self, "walls|" + _shape_id(), func() -> void:
+		if map.cliff == "gorge":   # the rock as one natural cliff, carried on past the edges
+			GorgeCliff.of(map).build(self, SnowLayer.map_has_snow(map))
 		for y in map.h:
 			for x in map.w:
 				var c := Vector2i(x, y)
-				if map.tile(c) == "rock_wall":
+				if map.tile(c) == "rock_wall" and map.cliff == "":
 					_rock_wall(c)
 				elif map.is_solid(c) and not map.door_at(c).is_empty() and map.prop_at(c).is_empty() and map.indoor:
 					_box(Vector3(1, 0.06, 0.9), Vector3(x + 0.5, 0.03, y + 0.5), flat_material(Color("4a3424")))   # threshold

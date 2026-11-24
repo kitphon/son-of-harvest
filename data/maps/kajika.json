@@ -5,6 +5,7 @@
 	"size": [20, 14],
 	"indoor": false,
 	"towel": "allowed",
+	"cliff": "gorge",
 	"ambient": "outdoor",
 	"legend": {
 		"#": {"tile": "rock_wall", "solid": true},
@@ -15,7 +16,7 @@
 	},
 	"ground": [
 		"####################",
-		"##gggoooooogg##ggg##",
+		"##gggooooooggggggg##",
 		"#gggoooooooooggggggg",
 		"ggggoooooooooggggggg",
 		"ggggggoooooogggggggg",

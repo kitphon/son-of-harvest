@@ -943,6 +943,7 @@ func _process(delta: float) -> bool:
 		_place_names()
 		_world()
 		_yumachi()
+		_gorge_cliff()
 		_sunken_water()
 		_story_props()
 		_ferry_boat()
@@ -6394,3 +6395,33 @@ func _cradle() -> void:
 	check(full.begins_with("child:cradle:") and not full.contains(":empty:") and layer.sprite.get_meta("key").contains(":empty:"), "and shows it empty while the baby is held")
 	layer.free()
 	g.new_game()
+
+
+## Kajika Gorge's rock wall as one natural cliff (GorgeCliff, the map's "cliff": "gorge"; the user
+## found the block a cell read as brown blocks, 2026-11-24): tall over the rock, clear of every cell
+## one walks, carried on past the north edge and tapering off past the sides, ledges and moss.
+func _gorge_cliff() -> void:
+	var m := MapManager.data("kajika")
+	check(m.cliff == "gorge" and MapManager.data("mine").cliff == "", "the gorge's wall a cliff; the mine's rock as before")
+	var GC: GDScript = load("res://scripts/world3d/gorge_cliff.gd")   # loaded, not named: its 3D helpers reach the Game autoload
+	var cliff = GC.of(m)
+	var tall := true
+	var clear := true
+	for y in m.h:
+		for x in m.w:
+			var c := Vector2i(x, y)
+			var mid := Vector2(c) + Vector2(0.5, 0.5)
+			if m.tile(c) == "rock_wall" and m.tile(c + Vector2i.DOWN) == "rock_wall":
+				tall = tall and cliff.height(mid) > 1.2
+			if not m.is_solid(c):
+				clear = clear and cliff.height(mid) < 0.05
+	check(tall, "tall over the rock")
+	check(clear, "clear of the middle of every open cell")
+	check(cliff.height(Vector2(8.5, -2.5)) > 1.0 and cliff.height(Vector2(8.5, -9.0)) == 0.0, "running on past the north edge, then rounding away")
+	check(cliff.height(Vector2(m.w + 5.0, 0.5)) == 0.0 and cliff.height(Vector2(-5.0, 0.5)) == 0.0 and cliff.height(Vector2(m.w + 0.5, 0.5)) > 0.5, "tapering off past the sides, no cut at the edge")
+	var tops := {}
+	for x in range(2, 18):
+		tops[snappedf(cliff.height(Vector2(x + 0.3, 0.4)), 0.1)] = true
+	check(tops.size() >= 4, "an uneven top (%d heights)" % tops.size())
+	check(GC.face_key(Vector3.UP, Vector3(5, 2, 0), false) in GC.TOP_GRASS and str(GC.face_key(Vector3.UP, Vector3(5, 2, 0), true)) == "snow", "grass on its top, snow when snow lies")
+	check(GC.face_key(Vector3(0, 0.1, 1).normalized(), Vector3(5, 1, 0.5), false) is Color, "its face bare rock")
