@@ -291,7 +291,7 @@ func _enter_map() -> void:
 		world.seed_prints(Vector3(player.position.x / T, 0, player.position.y / T))
 	_update_tint()
 	# Arriving in a viewpoint the camera is already up, elsewhere already down: no ease after the fade.
-	var arrived := VistaRules.view_at(m.id, Vector2i(floori(player.position.x / T), floori(player.position.y / T)))
+	var arrived := VistaRules.view_at(m.id, Vector2i(floori(player.position.x / T), floori(player.position.y / T)), Game.soaking())
 	if not arrived.is_empty():
 		_view = arrived
 	view_w = 0.0 if arrived.is_empty() else 1.0
@@ -561,7 +561,7 @@ func _follow() -> void:
 	var target := Vector3(_clamp_view(feet.x, CAM_MARGIN.x, m.w), 0, _clamp_view(feet.z, CAM_MARGIN.y, m.h))
 	feet.y = 0.0   # the camera keeps to the land's height (no bob stepping on and off a deck)
 	# A viewpoint (data/vista.json): the camera turns to the mountains and tilts up, eased in and out.
-	var here := VistaRules.view_at(Game.maps.id, Vector2i(floori(feet.x), floori(feet.z)))
+	var here := VistaRules.view_at(Game.maps.id, Vector2i(floori(feet.x), floori(feet.z)), Game.soaking() and Game.soak_phase != "up")   # a bath's view while sat in it
 	if not here.is_empty():
 		_view = here
 	var dt := get_process_delta_time()

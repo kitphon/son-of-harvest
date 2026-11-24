@@ -29,7 +29,7 @@ var MV: GDScript
 var BP: GDScript
 var FG: GDScript
 var PA: GDScript
-const GORGE_KINDS := ["onsen", "bath_hut", "bamboo_screen"]   # Kajika-yu's, up the gorge (_kajika)
+const GORGE_KINDS := ["onsen", "bath_hut", "bamboo_screen", "oke"]   # Kajika-yu's, up the gorge (_kajika)
 
 
 func _initialize() -> void:
@@ -826,6 +826,10 @@ func _kajika() -> void:
 	var spots: Array = g.soak_spots(pool[0], m)
 	check(spots.size() >= 10 and spots.all(func(s): return m.tile(s[0]) != "water" and not m.is_solid(s[0]) and m.tile(s[0] + s[1]) == "water"), "in from all round its shore (%d spots), each a dry open cell facing its water" % spots.size())
 	check(spots.has([Vector2i(8, 5), Vector2i.UP]) and spots.has([Vector2i(13, 2), Vector2i.LEFT]), "from the path below and from its east bank")
+	# Part 2 of the user's photo: the wood close round it, lanterns, the bucket and towel.
+	var near := func(kind: String) -> int: return m.props.filter(func(p): return p.kind == kind and Rect2i(0, 0, 18, 6).has_point(Vector2i(p.cell))).size()
+	check(near.call("maple") >= 3 and near.call("shrub") >= 3 and near.call("stone_lantern") >= 3 and near.call("oke") == 1, "maples, shrubs, lanterns and the bucket close round the pool")
+	check(not (VistaRules.apron_trees("kajika") as Dictionary).is_empty(), "a broadleaf wood past the gorge's edges")
 	check(m.props.any(func(p): return p.kind == "bath_hut" and str(p.get("use", "")) == "change"), "the hut to change in")
 	var way: Dictionary = river.door_at(Vector2i(-1, 4))
 	check(way.get("to", "") == "kajika" and str(way.get("needs", "")) == "kajika_built" and str(way.get("locked", "")) != "", "the shore path up the gorge needs the pool built")

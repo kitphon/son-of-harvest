@@ -33,7 +33,7 @@ const COLORS := {
 	"potting_bench": Color("8a6a48"),
 	"yubune": Color("5fa6a2"), "kran": Color("d8e4e6"), "milk_fridge": Color("eeeee8"), "basket_shelf": Color("d8c088"),
 	"bench": Color("a07a52"), "getabako": Color("4a3424"), "bath_noren": Color("2f4a7a"), "bath_mural": Color("4e8a4a"), "glass_door": Color("c8e0e6"),
-	"onsen": Color("5ea8a2"), "bath_hut": Color("4e3a2c"), "bamboo_screen": Color("a8a464"),
+	"onsen": Color("5ea8a2"), "oke": Color("d8b884"), "bath_hut": Color("4e3a2c"), "bamboo_screen": Color("a8a464"),
 }
 
 var map: MapData

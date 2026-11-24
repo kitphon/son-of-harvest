@@ -184,9 +184,13 @@ static func _hash(p: Vector2) -> float:
 	return v - floorf(v)
 
 
-## The viewpoint on map `map_id` at cell `c`, {} for none.
-static func view_at(map_id: String, c: Vector2i) -> Dictionary:
+## The viewpoint on map `map_id` at cell `c`, {} for none. A view with `soak` (Kajika-yu's) is
+## only there while the farmer sits in the water (`soaking`): the camera comes down and in, low
+## over the pool, and eases back as they get out.
+static func view_at(map_id: String, c: Vector2i, soaking := false) -> Dictionary:
 	for v: Dictionary in config().get("views", []):
+		if bool(v.get("soak", false)) and not soaking:
+			continue
 		if str(v.map) == map_id:
 			var r: Array = v.rect
 			if Rect2i(int(r[0]), int(r[1]), int(r[2]), int(r[3])).has_point(c):

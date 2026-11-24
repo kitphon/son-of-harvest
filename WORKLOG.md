@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-24 — Kajika-yu like a forest onsen, part 2: the wood, lanterns, bucket, the low camera
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (part 2 of the user's photo): maples and shrubs close round the pool (four maples, four
+  shrubs), a broadleaf wood past the gorge's edges (data/vista.json apron_trees kajika: maples and
+  cherries), three stone lanterns (the pool's two back corners and by the path), a cypress bucket
+  with a white towel hung over its rim on a mossy stone at the pool's south-west edge (`oke`,
+  BathProps / BathLook, E reads it). Sat in the pool the camera eases down and in over the water
+  (data/vista.json `kajika_soak`: a view with `soak` true, only while soaking: VistaRules.view_at's
+  `soaking`, Main3D passing Game.soaking() and not getting up), and back as they get out.
+  `--soak` at a shore pool sits at the spot nearest the spawn.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: maples, shrubs, lanterns and
+  the bucket round the pool, the wood past the edges; test_vista: a soak view found only while
+  sat, the camera nearer). Smoke runs (title, `--demo`, town, mine 3, `kajika@pool
+  --flags=kajika_built --time=20:00 --towel --soak`): 0 ERROR lines; windowed `--quit-after 150`
+  on the gorge: exit 0. Frames: `--demo --map=kajika@pool --time=17:00 --season=summer
+  --weather=sunny --flags=kajika_built` (walking), the same `--time=17:30 --towel --soak` (the low
+  camera: the pool, the steam, the wood over the cliff), `--season=winter --snow=60 --time=21:00
+  --towel --soak` (the back lantern lit over the snow).
+- Left / next: the gorge's rock wall still reads as brown blocks (the rock_wall tile), the
+  user's look at it all; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-24 — Kajika-yu like a forest onsen, part 1: a soft pool, mossy boulders, steam
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's photo of a forest onsen; part 1 of 2): the square rock pool became a pool in

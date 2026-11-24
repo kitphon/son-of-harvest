@@ -9,7 +9,8 @@ extends RefCounted
 
 # Its own names and colours (BathProps in 3D takes them from here): the flat view is loaded by
 # headless tests, which must not pull in the 3D scripts (they need the Game autoload).
-const KINDS: Array[String] = ["yubune", "kran", "milk_fridge", "basket_shelf", "bench", "getabako", "bath_noren", "bath_mural", "glass_door", "onsen", "bath_hut", "bamboo_screen"]
+const KINDS: Array[String] = ["yubune", "kran", "milk_fridge", "basket_shelf", "bench", "getabako", "bath_noren", "bath_mural", "glass_door", "onsen", "bath_hut", "bamboo_screen", "oke"]
+const OKE := Color("d8b884")   # the bathing bucket's cypress
 const CEDAR := Color("6a4a34")
 const BARK := Color("4e3a2c")
 const CULM := Color("a8a464")
@@ -30,6 +31,13 @@ static func draw(c: CanvasItem, kind: String, r: Rect2) -> void:
 			_tub(c, r)
 		"onsen":
 			pass   # Kajika-yu's pool is the map's own water (look onsen) and its shore
+		"oke":   # the bucket on its stone, from above: the stone, the bucket's rim and the towel over it
+			var mid := r.get_center().floor()
+			c.draw_rect(Rect2(mid.x - 5, mid.y - 3, 10, 7), Color("6a675f"))
+			c.draw_rect(Rect2(mid.x - 5, mid.y - 3, 10, 1), Color("85817a"))
+			c.draw_rect(Rect2(mid.x - 3, mid.y - 4, 6, 6), OKE)
+			c.draw_rect(Rect2(mid.x - 2, mid.y - 3, 4, 4), OKE.darkened(0.35))
+			c.draw_rect(Rect2(mid.x - 2, mid.y, 4, 3), Color("f2f0ea"))
 		"bath_hut":   # the roof from above: bark, its ridge, the noren's edge at the front
 			c.draw_rect(r.grow(-1), BARK)
 			c.draw_rect(Rect2(r.position.x + 1, r.position.y + 1, r.size.x - 2, 1), BARK.lightened(0.15))

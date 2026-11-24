@@ -385,6 +385,9 @@ func new_game() -> void:
 			for p in maps.current().props:
 				if str(p.get("use", "")) == "soak":
 					var spots := soak_spots(p, maps.current())
+					if str(p.get("seats", "")) == "shore":   # a pool's shore: the spot nearest the spawn first
+						var here := Vector2i((maps.pos / 16.0).floor())
+						spots.sort_custom(func(a, b): return Vector2(a[0] - here).length() < Vector2(b[0] - here).length())
 					soak_cfg = soak_config(p)
 					var k := clampi(int(arg.get_slice("=", 1)) if "=" in arg and arg.get_slice("=", 1).is_valid_int() else 0, 0, spots.size() - 1)
 					if arg == "--soak=down":   # `--soak=down`: sits down at the north seat from the first frame (the transition)

@@ -17,7 +17,8 @@ extends RefCounted
 ## Up the gorge (Kajika-yu, data/maps/kajika.json, Baths step 4): `onsen` names the hot spring pool
 ## in the ground (its water and stony shore are the map's own, look `onsen`: PondShape, SunkenGround;
 ## the farmer sat in it at ONSEN_WATER, data/baths.json kajika lift), so it builds nothing but its
-## steam; `bath_hut` the little cedar changing hut with a hip roof of
+## steam; `oke` a wooden bathing bucket of pale cypress with two dark hoops, a white towel hung
+## over its rim, on a flat mossy stone by the water; `bath_hut` the little cedar changing hut with a hip roof of
 ## bark and an indigo noren over its doorway; `bamboo_screen` a screen of upright culms bound with
 ## two black cords (between the hut and the pool).
 
@@ -42,6 +43,9 @@ const CEDAR := BathLook.CEDAR
 const BARK := BathLook.BARK
 const CULM := BathLook.CULM
 const CORD := Color("2a2420")
+const OKE := BathLook.OKE
+const HOOP := Color("3a2c22")
+const TOWEL := Color("f2f0ea")
 
 
 static func chimney(w: FarmWorld, mid: Vector3, snowy: bool) -> void:
@@ -81,6 +85,7 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, r: Rect2, snowy := f
 		"onsen": pass   # the pool is the map's ground (look onsen); MapWorld adds its steam
 		"bath_hut": _hut(w, parts, r, snowy)
 		"bamboo_screen": _screen(parts, r)
+		"oke": _oke(parts, r, snowy)
 		"yubune": _yubune(parts, r)
 		"kran": _kran(parts, r)
 		"milk_fridge": _milk_fridge(parts, mid)
@@ -302,3 +307,21 @@ static func _screen(p: FarmProps.Parts, r: Rect2) -> void:
 	for y in [0.45, 1.05]:
 		var size := Vector3(0.1, 0.035, length) if along_z else Vector3(length, 0.035, 0.1)
 		RoomProps._cube(p.st(CORD), Vector3(r.get_center().x, y, r.get_center().y), size)
+
+
+## The bathing bucket on its stone: a flat stone (GardenProps.stone, moss on its top), a cypress
+## bucket on it (a little wider at the rim), two dark hoops, the rim's lip, and a folded white towel
+## hung over the rim on the near side, down the bucket's front. Snow on the stone (`snowy`).
+static func _oke(p: FarmProps.Parts, r: Rect2, snowy: bool) -> void:
+	var at := Vector3(r.get_center().x, 0.0, r.get_center().y)
+	var sn: SurfaceTool = p.st(FarmProps.Parts.SNOW) if snowy else null
+	GardenProps.stone(p, sn, at + Vector3(0, -0.02, 0), 0.38, 0.16, 0.32, int(r.position.x) * 13 + int(r.position.y))
+	var base := at + Vector3(-0.04, 0.13, -0.02)
+	Shrine.lathe(p.st(OKE), base, [Vector2(0.15, 0.0), Vector2(0.18, 0.24)], 12)
+	Shrine.lathe(p.st(OKE.darkened(0.25)), base, [Vector2(0.172, 0.21), Vector2(0.172, 0.24), Vector2(0.15, 0.24), Vector2(0.15, 0.03)], 12)   # the rim's lip and the dark inside
+	for y in [0.05, 0.17]:
+		var rr := lerpf(0.15, 0.18, y / 0.24) + 0.008
+		Shrine.lathe(p.st(HOOP), base, [Vector2(rr, y), Vector2(rr, y + 0.025)], 12)
+	var towel := p.st(TOWEL)
+	RoomProps._cube(towel, base + Vector3(0.0, 0.235, 0.05), Vector3(0.2, 0.025, 0.28))   # folded over the rim
+	RoomProps._cube(towel, base + Vector3(0.0, 0.08, 0.19), Vector3(0.2, 0.16, 0.025))    # hanging down its front
