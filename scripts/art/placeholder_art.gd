@@ -69,7 +69,7 @@ static func _make(key: String) -> Image:
 			return CicadaArt.make(parts[1], parts[2], int(parts[3]), parts.size() > 4 and parts[4] == "r")
 		"build":    # build:<plaster|tsuchi|board|kawara|kawara_edge|thatch|kaya|kaya_edge|hay|planks|planks_dark|sugi|glass|bamboo|quilt|noren|shoji_door|shoji>
 			return _building(parts[1])
-		"ground":   # ground:<grass|tilled|wet|bed|path|tatami|floor|bath_tile|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>[:jade|:pond]
+		"ground":   # ground:<grass|moss|tilled|wet|bed|path|tatami|floor|bath_tile|earth|gravel|wall|cave|rock_wall|scree|paddy>:<variant> or ground:water:<land sides mask>[:jade|:pond]
 			return _ground(parts[1], int(parts[2]), parts[3] if parts.size() > 3 else "")
 		"bath":     # bath:<tile|mural>, the public bath's glazed tiles and the mountain on its wall (BathArt)
 			return BathArt.make(parts[1])
@@ -1689,6 +1689,23 @@ static func _ground(kind: String, n: int, look := "") -> Image:
 				var y := rng.randi_range(0, 12)
 				_px(img, x, y, rng.randi_range(3, 6), 1, Color("6a625a"))
 				_px(img, x, y + 1, 1, rng.randi_range(2, 4), Color("2e2824"))
+		"moss":
+			# The forest floor round Kajika-yu (the user's photos: no lawn under the trees): deep
+			# green moss in soft patches, a lighter cushion or two, small fern sprigs and a few brown
+			# leaves fallen from the wood.
+			img.fill(Color("3f6a34"))
+			for i in 5:
+				_px(img, rng.randi_range(0, 12), rng.randi_range(0, 13), rng.randi_range(2, 4), rng.randi_range(1, 2), Color("4a7a3a"))
+			for i in 2:
+				_px(img, rng.randi_range(1, 12), rng.randi_range(1, 12), 3, 2, Color("5a8a42"))
+				_px(img, rng.randi_range(1, 12), rng.randi_range(1, 12), 2, 1, Color("6a9a4a"))
+			for i in 2:   # a fern sprig: a stem and its leaflets
+				var fx := rng.randi_range(2, 12)
+				var fy := rng.randi_range(2, 11)
+				_px(img, fx, fy, 1, 3, Color("6aa04c"))
+				_px(img, fx - 1, fy + 1, 3, 1, Color("5a9442"))
+			for i in 3:
+				_px(img, rng.randi_range(0, 15), rng.randi_range(0, 15), 1, 1, Color("6a5236") if i % 2 == 0 else Color("7a4a2a"))
 		"scree":
 			# Loose grey rubble under the cliff.
 			img.fill(Color("9a9086"))
@@ -1703,11 +1720,11 @@ static func _ground(kind: String, n: int, look := "") -> Image:
 			var jade := look == "jade"
 			var still := look == "pond"
 			var onsen := look == "onsen"
-			img.fill(Color("4f9a8a") if onsen else (Color("3a7f72") if jade else (Color("3d7790") if still else Color("3d7fc4"))))
+			img.fill(Color("3f8a78") if onsen else (Color("3a7f72") if jade else (Color("3d7790") if still else Color("3d7fc4"))))
 			for i in (1 if onsen else 4):   # the hot spring lies still: one faint streak (the user's photos: calm, clear, green)
-				_px(img, rng.randi_range(1, 10), rng.randi_range(2, 13), rng.randi_range(3, 5), 1, Color("5aa594") if onsen else (Color("4f9686") if jade else (Color("5290a6") if still else Color("5d9ad8"))))
+				_px(img, rng.randi_range(1, 10), rng.randi_range(2, 13), rng.randi_range(3, 5), 1, Color("4a957f") if onsen else (Color("4f9686") if jade else (Color("5290a6") if still else Color("5d9ad8"))))
 			var bank := Color("4f5a34") if jade or still or onsen else Color("6b5a3a")
-			var foam := Color("7cbaa8") if onsen else (Color("6aa894") if jade else (Color("6aa0b0") if still else Color("a8d0f0")))
+			var foam := Color("6aa894") if onsen else (Color("6aa894") if jade else (Color("6aa0b0") if still else Color("a8d0f0")))
 			if n & WATER_N:
 				_px(img, 0, 0, 16, 2, bank)
 				_px(img, 0, 2, 16, 1, foam)

@@ -10,6 +10,25 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-24 — Kajika-yu tuned again: a moss floor, deeper jade water, a fuller wood
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: "tune it more"): against the photos the clearing's bright lime lawn and the
+  water turned pale cyan by the daytime steam differed most. A new ground tile `moss` (the forest
+  floor: deep green moss in soft patches, a lighter cushion, fern sprigs, a few fallen leaves;
+  PlaceholderArt; no grass tufts on it; snow lies on it as on any open ground) covers all the
+  clearing's land but the path (legend `m`, step `grass`). The soft pond's rounded corners are
+  painted with the land round it (moss here, grass elsewhere: MapView.pond_picture), where the flat
+  view had shown lawn squares. The onsen water a deeper jade (3f8a78, one faint streak; PondShape,
+  MapView), the steam thin by midday (onsen curve 0.5 at 12:00, 0.55 at 15:00, 0.85 by 18:00) so
+  the green shows through, every cell of the back rows a tree, and three big maples (1.75) at the
+  pool's ends reaching out over the water.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)`. Smoke runs (title, `--demo`, town, mine
+  3, `kajika_yu@pool --flags=kajika_built --time=20:00 --towel --soak`, `kajika@start`): 0 ERROR
+  lines; windowed `--quit-after 150` in the clearing: exit 0. Frames sat in it: summer 16:00 (the
+  moss floor, jade water, the full wood), winter 21:00 with snow (snow on the moss); the flat
+  view at 12:00 (moss round the pool, no lawn squares).
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-24 — Kajika-yu tuned toward the photos: still green water, soft steam, a tall wood, granite
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: "tune it more"; the frame against the two photos): the water's strong blue

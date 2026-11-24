@@ -33,7 +33,7 @@ const COLORS := {
 	"potting_bench": Color("8a6a48"),
 	"yubune": Color("5fa6a2"), "kran": Color("d8e4e6"), "milk_fridge": Color("eeeee8"), "basket_shelf": Color("d8c088"),
 	"bench": Color("a07a52"), "getabako": Color("4a3424"), "bath_noren": Color("2f4a7a"), "bath_mural": Color("4e8a4a"), "glass_door": Color("c8e0e6"),
-	"onsen": Color("4f9a8a"), "oke": Color("d8b884"), "bath_pavilion": Color("5a4636"), "yukimi_doro": Color("aaa498"), "bath_hut": Color("4e3a2c"), "bamboo_screen": Color("a8a464"),
+	"onsen": Color("3f8a78"), "oke": Color("d8b884"), "bath_pavilion": Color("5a4636"), "yukimi_doro": Color("aaa498"), "bath_hut": Color("4e3a2c"), "bamboo_screen": Color("a8a464"),
 }
 
 var map: MapData
@@ -190,8 +190,17 @@ static func pond_picture(m: MapData, keys: Dictionary = {}, look := PondShape.LO
 			var c := Vector2i(floori(at.x / float(T)), floori(at.y / float(T)))
 			var key: String = keys.get(c, ground_key(m, c))
 			return PlaceholderArt.image(key).get_pixel(posmod(at.x, T), posmod(at.y, T))
+		# The land round the water where a corner of it is rounded off: the pond's own land (moss round
+		# Kajika-yu's hot spring, else grass), not a lawn's square on the forest floor (the user saw them).
+		var mossy := 0
+		var lawn := 0
+		for y in range(pond.bounds.position.y, pond.bounds.end.y):
+			for x in range(pond.bounds.position.x, pond.bounds.end.x):
+				mossy += int(m.tile(Vector2i(x, y)) == "moss")
+				lawn += int(m.tile(Vector2i(x, y)) == "grass")
+		var land := "moss" if mossy > lawn else "grass"
 		var grass := func(at: Vector2i) -> Color:
-			return PlaceholderArt.image("ground:grass:%d" % posmod(at.x / T * 7 + at.y / T * 13, PlaceholderArt.GROUND_VARIANTS)).get_pixel(posmod(at.x, T), posmod(at.y, T))
+			return PlaceholderArt.image("ground:%s:%d" % [land, posmod(at.x / T * 7 + at.y / T * 13, PlaceholderArt.GROUND_VARIANTS)]).get_pixel(posmod(at.x, T), posmod(at.y, T))
 		var gravel := func(at: Vector2i) -> Color:
 			return PlaceholderArt.image("ground:gravel:%d" % posmod(at.x / T * 7 + at.y / T * 13, PlaceholderArt.GROUND_VARIANTS)).get_pixel(posmod(at.x, T), posmod(at.y, T))
 		_ponds[id] = pond.paint(base, grass, gravel)
