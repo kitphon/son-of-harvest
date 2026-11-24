@@ -1345,8 +1345,8 @@ func _dead_ends(Surroundings: GDScript) -> void:
 	var gorge := MapManager.data("kajika")
 	var gk := func(c: Vector2i) -> String: return gorge.tile(c)
 	var up: Dictionary = Surroundings.dead_ends(gk, gorge.w, gorge.h, ways_of.call(gorge)).grass
-	check([4, 5].all(func(y: int) -> bool: return not up.has(Vector2i(gorge.w + 2, y))), "the gorge's shore path runs on east down to the river map")
-	for id in ["town", "farm", "kaminoda", "hill", "sakurazaka", "minamino", "yumachi"]:
+	check([4, 5].all(func(y: int) -> bool: return not up.has(Vector2i(gorge.w + 2, y)) and not up.has(Vector2i(-3, y))), "the gorge's path runs on east down to the river map and west into the clearing")
+	for id in ["town", "farm", "kaminoda", "hill", "sakurazaka", "minamino", "yumachi", "kajika_yu"]:
 		var m := MapManager.data(id)
 		var mk := func(c: Vector2i) -> String: return m.tile(c)
 		check((Surroundings.dead_ends(mk, m.w, m.h, ways_of.call(m)).grass as Dictionary).is_empty(), "%s: every path off an edge leads through a door and runs on" % id)
@@ -4907,7 +4907,7 @@ func _yumachi() -> void:
 
 func _world() -> void:
 	var plan: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/world.json")).maps
-	check(plan.size() == 10 and plan.has("town") and Vector2i(plan.town[0], plan.town[1]) == Vector2i.ZERO, "the plan has the village at its middle and the nine maps round it")
+	check(plan.size() == 11 and plan.has("town") and Vector2i(plan.town[0], plan.town[1]) == Vector2i.ZERO, "the plan has the village at its middle and the ten maps round it")
 	var at := func(id: String) -> Vector2i: return Vector2i(int(plan[id][0]), int(plan[id][1]))
 	var ids: Array = plan.keys()
 	for i in ids.size():

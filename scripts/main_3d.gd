@@ -570,7 +570,7 @@ func _follow() -> void:
 		view_w = 1.0   # `--vista`: in the view from the first frame
 	_cam = VistaRules.blend(lens, _view, view_w)
 	if view_w > 0.0:
-		target = target.lerp(feet, smoothstep(0.0, 1.0, view_w)) + Vector3.UP * float(_cam.lift)
+		target = target.lerp(feet, smoothstep(0.0, 1.0, view_w)) + Vector3.UP * float(_cam.lift) + (_cam.shift as Vector3)
 	cam.position = target + (_cam.back as Vector3) * float(_cam.dist)
 	cam.fov = float(_cam.fov)
 	cam.look_at(target, Vector3.UP)

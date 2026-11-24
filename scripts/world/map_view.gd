@@ -473,7 +473,7 @@ func _draw_garden(p: Dictionary, r: Rect2) -> void:
 		if snow:
 			blob(_objects, c + Vector2(-1, -1), rx - 2, ry - 3, [Color("e8eef2"), Color("f4f8fa"), Color("ffffff")], seed)
 		return
-	var sizes := {"tall": [4, 4], "flat": [6, 4], "pair": [5, 4], "low": [4, 3]}
+	var sizes := {"tall": [4, 4], "flat": [6, 4], "pair": [5, 4], "low": [4, 3], "boulder": [8, 6]}
 	var shape := str(p.get("shape", "low"))
 	var sz: Array = sizes.get(shape, sizes.low)
 	var wet := map.tile(Vector2i(p.cell)) == "water"
@@ -482,6 +482,10 @@ func _draw_garden(p: Dictionary, r: Rect2) -> void:
 	blob(_objects, c, int(sz[0]), int(sz[1]), GardenLook.STONE, seed)
 	if shape == "pair":
 		blob(_objects, c + Vector2(5, 3), 3, 2, GardenLook.STONE, seed + 1)
+	elif shape == "boulder":   # a big mossy rock: two lesser ones at its foot, moss over its top
+		blob(_objects, c + Vector2(7, 3), 4, 3, GardenLook.STONE, seed + 1)
+		blob(_objects, c + Vector2(-6, 4), 3, 2, GardenLook.STONE, seed + 2)
+		_objects.draw_rect(Rect2(c + Vector2(-4, -5), Vector2(6, 2)), GardenLook.MOSS)
 	elif shape == "tall" or shape == "low":
 		blob(_objects, c + Vector2(4, 4), 2, 1, GardenLook.STONE, seed + 2)
 	_objects.draw_rect(Rect2(c + Vector2(-1, -int(sz[1]) + 1), Vector2(2, 1)), GardenLook.MOSS)

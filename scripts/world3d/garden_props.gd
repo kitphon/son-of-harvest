@@ -61,6 +61,10 @@ static func rock(w: FarmWorld, shape: String, foot: Vector3, under: float, seed:
 			stone(p, sn, foot + off + Vector3(0.24, 0, 0.16), 0.15, 0.16 * show + under, 0.13, seed + 2)
 		"flat":
 			stone(p, sn, foot + off, 0.42, 0.15 * show + under, 0.34, seed + 1)
+		"boulder":   # a big mossy rock standing out of the water like an island (Kajika-yu, the user's photo)
+			stone(p, sn, foot + off, 0.62, 0.62 * show + under, 0.5, seed + 1)
+			stone(p, sn, foot + off + Vector3(0.48, 0, 0.22), 0.36, 0.38 * show + under, 0.32, seed + 2)
+			stone(p, sn, foot + off + Vector3(-0.42, 0, 0.3), 0.28, 0.22 * show + under, 0.26, seed + 3)
 		"pair":   # a little island of three
 			stone(p, sn, foot + off + Vector3(-0.08, 0, -0.05), 0.31, 0.36 * show + under, 0.27, seed + 1)
 			stone(p, sn, foot + off + Vector3(0.23, 0, 0.12), 0.21, 0.22 * show + under, 0.18, seed + 2)

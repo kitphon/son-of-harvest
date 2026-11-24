@@ -206,9 +206,10 @@ static func step(w: float, inside: bool, delta: float, ease_s: float) -> float:
 
 
 ## The camera between `lens` (CameraLens) and viewpoint `view` at weight `w` (eased):
-## {back: unit vector target -> eye, dist, fov, lift}.
+## {back: unit vector target -> eye, dist, fov, lift, shift}: `shift` (Vector3) moves the target
+## off the farmer by the view's [x, z] (units), eased in with it (Kajika-yu's: over the pool's middle).
 static func blend(lens: CameraLens, view: Dictionary, w: float) -> Dictionary:
-	var out := {"back": lens.back, "dist": lens.dist, "fov": lens.fov, "lift": 0.0}
+	var out := {"back": lens.back, "dist": lens.dist, "fov": lens.fov, "lift": 0.0, "shift": Vector3.ZERO}
 	if view.is_empty() or w <= 0.0:
 		return out
 	var e := smoothstep(0.0, 1.0, w)
@@ -221,4 +222,6 @@ static func blend(lens: CameraLens, view: Dictionary, w: float) -> Dictionary:
 	out.dist = lerpf(lens.dist, float(view.dist), e)
 	out.fov = lerpf(lens.fov, float(view.fov), e)
 	out.lift = float(view.get("lift", 0.0)) * e
+	var sh: Array = view.get("shift", [0.0, 0.0])
+	out.shift = Vector3(float(sh[0]), 0.0, float(sh[1])) * e
 	return out

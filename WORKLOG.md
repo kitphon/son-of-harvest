@@ -10,6 +10,41 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-24 — Kajika-yu moved to its own clearing in the wood, like the user's photo
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user, with the photo again: "it doesn't look like the picture at all"): between the
+  gorge's cliff and the river there were four rows, so the pool could never be big or shut in by
+  trees, and the cliff and the river filled the view. The pool now has its own map,
+  data/maps/kajika_yu.json "Kajika-yu" (20 x 20 at plan [-60, 6], its east edge rows 18-19 meeting
+  the gorge's west edge rows 4-5; data/world.json): a pool of about 13 x 8 cells (look onsen, 80+
+  water cells) in the clearing's middle, big mossy boulders standing in it as islands (garden_rock
+  shape `boulder`: GardenProps, MapView), a thick wood behind it (every other cell of rows 0-2, the
+  sides) and past the edges (apron_trees kajika_yu 80), nothing tall between its south shore and
+  the eye, five lanterns in the trees round it, the bucket and towel on the south shore, the
+  changing hut at the back past the water beside its bamboo screen (where the photo's lit building
+  stands: first placed south-east, it stood between the camera and the pool). The path comes in
+  along row 18 and up column 9 to the south shore. The gorge (data/maps/kajika.json) is now only
+  the way along the river under its cliff, with maples, pines and shrubs, its path off the west
+  edge into the clearing; no towels there. The steam: `onsen` was missing from mist.json's
+  `sources`, so no sheet ever lay on the pool (only the four steam puffs): added, and thicker
+  (onsen seasons 0.85-1.0, curve 0.8-1.0, 0.6 a cell up to 44 sheets, 2.0-3.4 cells, alpha 0.95;
+  the layer's max 92). Sat in it the camera (kajika_soak) is pitch 13, 7 units back, and its
+  target is `shift`ed [-1.2, -1.6] toward the pool's middle (VistaRules.blend's new `shift`,
+  Main3D), so the water fills the view and the wood stands behind it.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the gorge without pool or
+  towels, the clearing on the plan, the path on into it, 70+ onsen cells, 3+ boulders in the
+  water, the hut past the water, 20+ trees behind and none between the south shore and the eye, in
+  from the path's end (9, 12) and the east bank (16, 8); test_maps: the plan's eleven maps, the
+  gorge's path running on east and west). Smoke runs (title, `--demo`, town, mine 3,
+  `kajika_yu@pool --flags=kajika_built --time=20:00 --towel --soak`, `kajika@start`): 0 ERROR
+  lines; windowed `--quit-after 150` in the clearing: exit 0. Frames sat in it (`--demo
+  --map=kajika_yu@pool --flags=kajika_built --towel --soak`): summer 17:30 (the pool in the middle,
+  the steam over it, the hut and the wood behind), fall 7:30 (white steam, red maples), winter
+  21:00 with snow (the lanterns lit); walking up (`--time=17:00`, no soak) and the flat view.
+- Left / next: still pixel and low-poly, not a photo: the trees read as separate crowns, the
+  clipped shrubs flower pink in spring and summer, the evening light tints the steam pink. The
+  user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-24 — Kajika Gorge: the rock wall one natural cliff
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: rework the rock wall, which read as brown blocks): a map with "cliff": "gorge"
