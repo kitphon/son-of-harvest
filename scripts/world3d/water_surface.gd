@@ -226,6 +226,8 @@ static func look_mix(look: String) -> float:
 			return 1.0
 		"pond":
 			return 0.35
+		"onsen":
+			return 0.7
 	return 0.0
 
 

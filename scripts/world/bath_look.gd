@@ -9,8 +9,7 @@ extends RefCounted
 
 # Its own names and colours (BathProps in 3D takes them from here): the flat view is loaded by
 # headless tests, which must not pull in the 3D scripts (they need the Game autoload).
-const KINDS: Array[String] = ["yubune", "kran", "milk_fridge", "basket_shelf", "bench", "getabako", "bath_noren", "bath_mural", "glass_door", "rock_pool", "bath_hut", "bamboo_screen"]
-const POOL_COLOR := Color("7fb8ae")   # Kajika-yu's water, paler and milkier than the sento's
+const KINDS: Array[String] = ["yubune", "kran", "milk_fridge", "basket_shelf", "bench", "getabako", "bath_noren", "bath_mural", "glass_door", "onsen", "bath_hut", "bamboo_screen"]
 const CEDAR := Color("6a4a34")
 const BARK := Color("4e3a2c")
 const CULM := Color("a8a464")
@@ -29,8 +28,8 @@ static func draw(c: CanvasItem, kind: String, r: Rect2) -> void:
 	match kind:
 		"yubune":
 			_tub(c, r)
-		"rock_pool":
-			_rock_pool(c, r)
+		"onsen":
+			pass   # Kajika-yu's pool is the map's own water (look onsen) and its shore
 		"bath_hut":   # the roof from above: bark, its ridge, the noren's edge at the front
 			c.draw_rect(r.grow(-1), BARK)
 			c.draw_rect(Rect2(r.position.x + 1, r.position.y + 1, r.size.x - 2, 1), BARK.lightened(0.15))
@@ -113,19 +112,3 @@ static func _kran(c: CanvasItem, r: Rect2) -> void:
 		c.draw_rect(Rect2(x - 3, r.position.y + 11, 4, 3), Color("8a5a34"))   # the stool
 		c.draw_rect(Rect2(x + 2, r.position.y + 11, 3, 3), Color("b08a5a"))   # the bucket
 
-
-## Kajika-yu's pool: rough grey stones round its edge (lit from the upper left), the pale water inside
-## with ripples, and the bamboo pipe at the back left.
-static func _rock_pool(c: CanvasItem, r: Rect2) -> void:
-	c.draw_rect(r.grow(-1), Color("6a675f"))
-	var water := r.grow(-4)
-	c.draw_rect(water, POOL_COLOR)
-	for k in 5:
-		var y := water.position.y + 3 + (k % 2) * maxf(water.size.y - 7, 1.0)
-		c.draw_rect(Rect2(water.position.x + 5 + k * water.size.x / 5.0, floorf(y), 7, 1), POOL_COLOR.lightened(0.3))
-	for k in int(r.size.x / 5):   # the stones' lit tops along the near and far rims
-		var x := r.position.x + 2 + k * 5
-		c.draw_rect(Rect2(x, r.position.y + 1, 3, 2), Color("85817a"))
-		c.draw_rect(Rect2(x + 1, r.end.y - 3, 3, 1), Color("85817a"))
-		c.draw_rect(Rect2(x + 1, r.end.y - 2, 3, 1), Color("4e4c47"))
-	c.draw_rect(Rect2(r.position.x + 14, r.position.y, 2, 5), CULM)   # the bamboo pipe

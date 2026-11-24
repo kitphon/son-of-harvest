@@ -1,5 +1,5 @@
 {
-	"_note": "Kajika Gorge, up the river from the river map (2026-11-24, Baths step 4; docs/DESIGN.md → ที่อาบน้ำ, the user's pick docs/plans/bath_places.webp: 2): on the valley's plan at [-40, 20], west of the river map, the river running on along rows 6-9 (plan rows 26-29) out of the west edge toward its source (data/world.json `waters`). The shore path comes in from the river map's west edge (rows 4-5 there, past Mio's landing) and runs on here as one worn earth track along row 4 through the grass to the hut and the flat stones before the pool (the user found a wide gravel strip read as concrete, 2026-11-24); that way stays shut until the pool is made (the door's `needs` flag kajika_built: the path ends in a thicket past the river map's edge, `locked` says why). Under the gorge's rock wall (rows 0-1) lies Kajika-yu, a rock pool of hot spring water (`rock_pool`: in from the flat stones in front of it, data/baths.json kajika, open 16:00-02:00), a little changing hut beside it (`bath_hut`, \"use\": \"change\": into a towel and back, Game.change_clothes; `towel` allowed on this map, the way out only dressed), a bamboo screen between them, stone lanterns lit at night. The far bank is grass and pines, out of reach. Format: README.md, Maps.",
+	"_note": "Kajika Gorge, up the river from the river map (2026-11-24, Baths step 4; docs/DESIGN.md → ที่อาบน้ำ, the user's pick docs/plans/bath_places.webp: 2): on the valley's plan at [-40, 20], west of the river map, the river running on along rows 6-9 (plan rows 26-29) out of the west edge toward its source (data/world.json `waters`). The shore path comes in from the river map's west edge (rows 4-5 there, past Mio's landing) and runs on here as one worn earth track along row 5 through the grass (the user found a wide gravel strip read as concrete, 2026-11-24); that way stays shut until the pool is made (the door's `needs` flag kajika_built: the path ends in a thicket past the river map's edge, `locked` says why). Under the gorge's rock wall lies Kajika-yu, a hot spring pool in the ground after the user's photo of a forest onsen (2026-11-24): its water the map's `onsen` look (legend `o`: milky turquoise, a soft stony shore sloping down, PondShape; the steam lying on it all day, MistRules `onsen`), mossy boulders in it and round it (garden_rock), the `onsen` prop over it naming the bath (no look of its own; \"seats\": \"shore\": in from any open dry cell beside its water, Game.soak_spots; data/baths.json kajika, open 16:00-02:00), a little changing hut beside it (`bath_hut`, \"use\": \"change\": into a towel and back, Game.change_clothes; `towel` allowed on this map, the way out only dressed), a bamboo screen between them, stone lanterns lit at night. The far bank is grass and pines, out of reach. Format: README.md, Maps.",
 	"id": "kajika",
 	"name": "Kajika Gorge",
 	"size": [20, 14],
@@ -10,16 +10,16 @@
 		"#": {"tile": "rock_wall", "solid": true},
 		"g": {"tile": "grass"},
 		"r": {"tile": "path"},
-		"k": {"tile": "stone"},
+		"o": {"tile": "water", "solid": true, "look": "onsen"},
 		"w": {"tile": "water", "solid": true}
 	},
 	"ground": [
 		"####################",
-		"####################",
-		"gg#gggggggggggggg#gg",
-		"gggggggggggggggggggg",
-		"gggggkkkkkkkrrrrrrrr",
-		"gggggggggggggggggggg",
+		"##gggoooooogg##ggg##",
+		"#gggoooooooooggggggg",
+		"ggggoooooooooggggggg",
+		"ggggggoooooogggggggg",
+		"gggrrrrrrrrrrrrrrrrr",
 		"wwwwwwwwwwwwwwwwwwww",
 		"wwwwwwwwwwwwwwwwwwww",
 		"wwwwwwwwwwwwwwwwwwww",
@@ -30,14 +30,20 @@
 		"gggggggggggggggggggg"
 	],
 	"props": [
-		{"kind": "rock_pool", "cell": [6, 2], "size": [6, 2], "use": "soak", "bath": "kajika", "seats": "front"},
-		{"kind": "bamboo_screen", "cell": [12, 2], "size": [1, 2]},
-		{"kind": "bath_hut", "cell": [13, 2], "size": [3, 2], "use": "change"},
-		{"kind": "stone_lantern", "cell": [5, 3]},
-		{"kind": "stone_lantern", "cell": [16, 3]},
-		{"kind": "pine", "cell": [0, 2]},
-		{"kind": "maple", "cell": [3, 3]},
-		{"kind": "pine", "cell": [18, 2]},
+		{"kind": "onsen", "cell": [4, 1], "size": [9, 4], "solid": false, "use": "soak", "bath": "kajika", "seats": "shore"},
+		{"kind": "garden_rock", "cell": [10, 2], "shape": "tall"},
+		{"kind": "garden_rock", "cell": [5, 3], "shape": "low"},
+		{"kind": "garden_rock", "cell": [8, 1], "shape": "pair"},
+		{"kind": "garden_rock", "cell": [3, 3], "shape": "tall"},
+		{"kind": "garden_rock", "cell": [12, 1], "shape": "tall"},
+		{"kind": "garden_rock", "cell": [13, 3], "shape": "pair"},
+		{"kind": "garden_rock", "cell": [3, 1], "shape": "low"},
+		{"kind": "bamboo_screen", "cell": [14, 2], "size": [1, 2]},
+		{"kind": "bath_hut", "cell": [15, 2], "size": [3, 2], "use": "change"},
+		{"kind": "stone_lantern", "cell": [3, 4]},
+		{"kind": "stone_lantern", "cell": [13, 4]},
+		{"kind": "pine", "cell": [1, 4]},
+		{"kind": "maple", "cell": [18, 3]},
 		{"kind": "river_rock", "cell": [4, 8]},
 		{"kind": "river_rock", "cell": [14, 7]},
 		{"kind": "pine", "cell": [2, 12]},
@@ -50,11 +56,11 @@
 		{"cells": [[20, 4], [20, 5]], "to": "river", "spawn": [0, 4], "facing": "right", "dressed": true}
 	],
 	"zones": [
-		{"id": "kajika", "name": "Kajika-yu", "cell": [5, 2], "size": [12, 3]}
+		{"id": "kajika", "name": "Kajika-yu", "cell": [3, 1], "size": [15, 5]}
 	],
 	"spawns": {
-		"start": [[18, 4], "left"],
-		"pool": [[8, 4], "up"],
-		"hut": [[14, 4], "up"]
+		"start": [[18, 5], "left"],
+		"pool": [[8, 5], "up"],
+		"hut": [[16, 4], "up"]
 	}
 }

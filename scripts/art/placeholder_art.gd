@@ -1699,13 +1699,15 @@ static func _ground(kind: String, n: int, look := "") -> Image:
 		"water":
 			# "jade": the temple pond's still green water (after the user's photos), a mossy bank, no white foam.
 			# "pond": a plain pond with a soft shore (the farm's, Ogura pond): still, blue-green, less green than jade.
+			# "onsen": Kajika-yu's hot spring, milky turquoise with paler drifts of mineral in it.
 			var jade := look == "jade"
 			var still := look == "pond"
-			img.fill(Color("3a7f72") if jade else (Color("3d7790") if still else Color("3d7fc4")))
+			var onsen := look == "onsen"
+			img.fill(Color("5ea8a2") if onsen else (Color("3a7f72") if jade else (Color("3d7790") if still else Color("3d7fc4"))))
 			for i in 4:
-				_px(img, rng.randi_range(1, 10), rng.randi_range(2, 13), rng.randi_range(3, 5), 1, Color("4f9686") if jade else (Color("5290a6") if still else Color("5d9ad8")))
-			var bank := Color("4f5a34") if jade or still else Color("6b5a3a")
-			var foam := Color("6aa894") if jade else (Color("6aa0b0") if still else Color("a8d0f0"))
+				_px(img, rng.randi_range(1, 10), rng.randi_range(2, 13), rng.randi_range(3, 5), 1, Color("86c4bc") if onsen else (Color("4f9686") if jade else (Color("5290a6") if still else Color("5d9ad8"))))
+			var bank := Color("4f5a34") if jade or still or onsen else Color("6b5a3a")
+			var foam := Color("9cd2c6") if onsen else (Color("6aa894") if jade else (Color("6aa0b0") if still else Color("a8d0f0")))
 			if n & WATER_N:
 				_px(img, 0, 0, 16, 2, bank)
 				_px(img, 0, 2, 16, 1, foam)

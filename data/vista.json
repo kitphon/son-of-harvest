@@ -86,17 +86,6 @@
 			"ease": 1.4
 		},
 		{
-			"id": "kajika",
-			"map": "kajika",
-			"rect": [0, 0, 20, 14],
-			"yaw": 45.0,
-			"pitch": 8.0,
-			"fov": 42.0,
-			"dist": 10.0,
-			"lift": 1.4,
-			"ease": 1.4
-		},
-		{
 			"id": "farm_pond",
 			"map": "farm",
 			"rect": [24, 1, 5, 4],

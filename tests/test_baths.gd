@@ -29,7 +29,7 @@ var MV: GDScript
 var BP: GDScript
 var FG: GDScript
 var PA: GDScript
-const GORGE_KINDS := ["rock_pool", "bath_hut", "bamboo_screen"]   # Kajika-yu's, up the gorge (_kajika)
+const GORGE_KINDS := ["onsen", "bath_hut", "bamboo_screen"]   # Kajika-yu's, up the gorge (_kajika)
 
 
 func _initialize() -> void:
@@ -812,15 +812,20 @@ func _kajika() -> void:
 	var k: Dictionary = g.baths.get("kajika", {})
 	check(str(k.get("day", "")) == "bath" and int(k.get("minutes", 0)) == 90 and bool(k.get("stamina_full", false)) and int(k.get("fatigue", 0)) == -30, "Kajika-yu: the baths' day, 1.5 h, stamina full, -30 (DESIGN)")
 	check(int(k.fatigue) > -42 and int(k.fatigue) < int(_sento().fatigue), "more than the sento, never a night's sleep")
-	check(is_equal_approx(float(k.lift), BP.POOL_WATER), "sat at the pool's water (%.2f)" % float(k.lift))
+	check(is_equal_approx(float(k.lift), BP.ONSEN_WATER), "sat at the pool's water, sunk with the map's (%.2f)" % float(k.lift))
 	check(k.get("hours") == ["16:00", "02:00"] and bool(k.get("towel", false)), "open 16:00-02:00, in a towel")
 	check(not g.bath_open(k, 15 * 60 + 59.0) and g.bath_open(k, 16 * 60.0) and g.bath_open(k, 25 * 60 + 59.0) and not g.bath_open(k, 26 * 60.0), "its hours run on past midnight to 02:00")
 	var m: MapData = MapManager.data("kajika")
 	var river: MapData = MapManager.data("river")
 	check(m != null and not m.indoor and m.towel == "allowed", "the gorge map outdoors, a towel allowed")
 	check(WorldPlan.places().get("kajika") == Vector2i(-40, 20), "on the plan at [-40, 20], west of the river map")
-	var pool := m.props.filter(func(p): return p.kind == "rock_pool")
-	check(pool.size() == 1 and str(pool[0].get("use", "")) == "soak" and str(pool[0].get("bath", "")) == "kajika", "the rock pool, a soak of its own")
+	var pool := m.props.filter(func(p): return p.kind == "onsen")
+	check(pool.size() == 1 and str(pool[0].get("use", "")) == "soak" and str(pool[0].get("bath", "")) == "kajika" and str(pool[0].get("seats", "")) == "shore", "the hot spring, a soak of its own, in from its shore")
+	var shape := PondShape.of(m, "onsen")
+	check(shape != null and shape.cells.size() >= 24 and m.props[0] == pool[0], "its water a soft pond of look onsen (%d cells), the prop first so E finds it" % (shape.cells.size() if shape != null else 0))
+	var spots: Array = g.soak_spots(pool[0], m)
+	check(spots.size() >= 10 and spots.all(func(s): return m.tile(s[0]) != "water" and not m.is_solid(s[0]) and m.tile(s[0] + s[1]) == "water"), "in from all round its shore (%d spots), each a dry open cell facing its water" % spots.size())
+	check(spots.has([Vector2i(8, 5), Vector2i.UP]) and spots.has([Vector2i(13, 2), Vector2i.LEFT]), "from the path below and from its east bank")
 	check(m.props.any(func(p): return p.kind == "bath_hut" and str(p.get("use", "")) == "change"), "the hut to change in")
 	var way: Dictionary = river.door_at(Vector2i(-1, 4))
 	check(way.get("to", "") == "kajika" and str(way.get("needs", "")) == "kajika_built" and str(way.get("locked", "")) != "", "the shore path up the gorge needs the pool built")
@@ -834,9 +839,9 @@ func _kajika() -> void:
 	check(not g.door_unlocked(way), "locked by the story")
 	g.flags["kajika_built"] = true
 	g.use_door(way)
-	check(g.maps.id == "kajika" and Vector2i(g.maps.pos / 16.0) == Vector2i(19, 4), "built: up the gorge (%s)" % g.maps.pos)
+	check(g.maps.id == "kajika" and Vector2i(g.maps.pos / 16.0) == Vector2i(19, 5), "built: up the gorge (%s)" % g.maps.pos)
 	# The pool: shut by day, in a towel only, then the rest.
-	var seat := Vector2i(8, 4)
+	var seat := Vector2i(8, 5)
 	g.bathed_today = false
 	g.hour = 12
 	g.minute = 0
@@ -846,8 +851,8 @@ func _kajika() -> void:
 	g.hour = 20
 	FA.on_action("interact", seat, Vector2i.UP)
 	check(not g.soaking() and said.back() == str(k.towel_message) and not g.bathed_today, "dressed: change at the hut first")
-	g.go_to_map("kajika", Vector2i(14, 4), Vector2i.UP)
-	FA.on_action("interact", Vector2i(14, 4), Vector2i.UP)
+	g.go_to_map("kajika", Vector2i(16, 4), Vector2i.UP)
+	FA.on_action("interact", Vector2i(16, 4), Vector2i.UP)
 	check(g.in_towel and g.wearing_towel(), "the hut: into a towel")
 	g.use_door(back)
 	check(g.maps.id == "kajika", "not out in a towel")
@@ -862,6 +867,11 @@ func _kajika() -> void:
 	check(g.still_pose() == "bathe" and g.soak_look() == Vector2i.DOWN and is_equal_approx(g.soak_lift(true), float(k.lift)), "sat in the water, facing the river")
 	g.stop_soak()
 	g._process(float(k.stand_seconds) + 0.05)
+	g.go_to_map("kajika", Vector2i(13, 2), Vector2i.LEFT)
+	FA.on_action("interact", Vector2i(13, 2), Vector2i.LEFT)
+	check(g.soaking() and g.soak_at == Vector2i(13, 2) and g.soak_facing == Vector2i.LEFT, "in from the east bank too")
+	g.stop_soak()
+	g._process(float(k.stand_seconds) + 0.05)
 	check(not g.soaking(), "out again")
 	# The day's bath is shared with the sento's.
 	g.go_to_map("kajika", seat, Vector2i.UP)
@@ -872,8 +882,8 @@ func _kajika() -> void:
 	g.stop_soak()
 	g._process(float(k.stand_seconds) + 0.05)
 	g.stamina = st
-	g.go_to_map("kajika", Vector2i(14, 4), Vector2i.UP)
-	FA.on_action("interact", Vector2i(14, 4), Vector2i.UP)
+	g.go_to_map("kajika", Vector2i(16, 4), Vector2i.UP)
+	FA.on_action("interact", Vector2i(16, 4), Vector2i.UP)
 	check(not g.in_towel, "dressed again at the hut")
 	g.use_door(back)
 	check(g.maps.id == "river", "dressed: back down to the river")
@@ -885,7 +895,7 @@ func _kajika() -> void:
 	world.build(m)
 	var steam := world.get_children().filter(func(n): return str(n.name).begins_with("BathSteam"))
 	var r := Rect2(Vector2(pool[0].cell), Vector2(pool[0].size))
-	check(steam.size() == BP.STEAM_PUFFS and steam.all(func(n): return n.position.y > BP.POOL_WATER and r.has_point(Vector2(n.position.x, n.position.z))), "steam off the pool (%d)" % steam.size())
+	check(steam.size() == BP.STEAM_PUFFS and steam.all(func(n): return n.position.y > BP.ONSEN_WATER and r.has_point(Vector2(n.position.x, n.position.z))), "steam off the pool (%d)" % steam.size())
 	world.queue_free()
 	for kind in GORGE_KINDS:
 		check(MV.COLORS.has(kind) and kind in BP.KINDS, "%s drawn in both views" % kind)

@@ -6,6 +6,10 @@ extends RefCounted
 ## at a time `t` (cells x, height, z), drifting slowly on the wind of data/wind.json. The 3D view
 ## (MistLayer) lays them as low flat sheets, the flat view (MistView) draws them from above as
 ## stepped ellipses. Pure: nothing here draws.
+## Over a hot spring (Kajika-yu's water, look `onsen`; 2026-11-24, the user's photo of a forest
+## onsen) the steam lies on the water all day and night (kind `onsen`, data/mist.json `onsen`): its
+## own share by season and weather, a gentle swell by the clock, smaller, lower, slower sheets that
+## keep to the pool, counted apart from the river's so its mist never thins them.
 
 const DATA_PATH := "res://data/mist.json"
 const KINDS: Array[String] = ["water", "paddy"]
@@ -66,7 +70,25 @@ static func amounts_now(game: Object, m: MapData, wind := -1.0, cfg := {}) -> Di
 		var a := amount(kind, game.season_name(), look, hour, w, cfg)
 		if a > 0.0:
 			out[kind] = a
+	var hot := onsen_amount(game.season_name(), look, hour, w, cfg) if m.looks.has("onsen") else 0.0   # only where a hot spring is
+	if hot > 0.0:
+		out["onsen"] = hot
 	return out
+
+
+## How thick the steam over a hot spring is (0..1): data/mist.json `onsen` by season and weather
+## look, its own `curve` over the whole day (thicker in the cold of the night and the morning), the
+## wind thinning it a little less than the river's mist (`wind_thin`).
+static func onsen_amount(season_id: String, look: String, hour: float, wind := 0.0, cfg := {}) -> float:
+	if cfg.is_empty():
+		cfg = config()
+	var o: Dictionary = cfg.get("onsen", {})
+	var s := float((o.get("seasons", {}) as Dictionary).get(season_id, 0.0))
+	var w := float((o.get("looks", {}) as Dictionary).get(look, 0.0))
+	if s <= 0.0 or w <= 0.0:
+		return 0.0
+	var thin := clampf(1.0 - float(o.get("wind_thin", 0.0)) * clampf(wind, 0.0, 1.0), 0.0, 1.0)
+	return clampf(s * w * thin * curve(fposmod(hour, 24.0), o), 0.0, 1.0)
 
 
 ## The farm's planted rice plots (any growth): their cells, row by row. Rice stands in water, so
@@ -99,6 +121,8 @@ static func scene_of(m: MapData, farm: FarmGrid = null, cfg := {}) -> Dictionary
 				kind = "water" if str(farm.fixed.get(c, "")) == "pond" else ""
 			else:
 				kind = m.tile(c)
+				if kind == "water" and m.look(c) == "onsen":
+					kind = "onsen"   # a hot spring's water steams on its own (onsen_amount)
 			if kind in from:
 				s.cells.append(Vector2(x, y) + Vector2(0.5, 0.5))
 				s.kinds.append(kind)
@@ -152,7 +176,28 @@ static func sheets(scene: Dictionary, amounts: Dictionary, t: float, wind: float
 	if cfg.is_empty():
 		cfg = config()
 	var kinds: Array = scene.kinds
-	var n := count_for(cells.size(), cfg)
+	# The hot spring's sheets are their own set (data onsen), the rest the morning mist's.
+	var plain: Array[int] = []
+	var hot: Array[int] = []
+	for k in cells.size():
+		(hot if kinds[k] == "onsen" else plain).append(k)
+	out.append_array(_sheets_of(scene, plain, count_for(plain.size(), cfg), 0, amounts, t, wind, season_id, cfg))
+	var o: Dictionary = cfg.get("onsen", {})
+	if not hot.is_empty() and float(amounts.get("onsen", 0.0)) > 0.0:
+		var oc := cfg.merged(o, true)   # its own size, height, drift and life over the mist's
+		var n := clampi(int(round(float(hot.size()) * float(o.get("per_cell", 1.0)))), 1, int(o.get("max", 16)))
+		out.append_array(_sheets_of(scene, hot, n, 500, amounts, t, wind, season_id, oc))
+	return out
+
+
+## The sheets of one set: `n` sheets homed on the source cells `pick` (indexes into the scene's
+## cells), numbered from `first` (their own random draws), with the settings of `cfg`.
+static func _sheets_of(scene: Dictionary, pick: Array[int], n: int, first: int, amounts: Dictionary, t: float, wind: float, season_id: String, cfg: Dictionary) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if pick.is_empty():
+		return out
+	var cells: Array = scene.cells
+	var kinds: Array = scene.kinds
 	var dir := wind_dir(cfg)
 	var side := Vector2(-dir.y, dir.x)
 	var angle := dir.angle()
@@ -160,12 +205,13 @@ static func sheets(scene: Dictionary, amounts: Dictionary, t: float, wind: float
 	var sz: Array = cfg.size
 	var hs: Array = cfg.height
 	var ph: Array = (cfg.get("paddy_height", {}) as Dictionary).get(season_id, cfg.height)
-	for i in n:
+	for j0 in n:
+		var i := first + j0
 		var life := float(cfg.life) * (1.0 + (DriftRules.rnd(i, 0, 61) - 0.5) * 2.0 * float(cfg.life_var))
 		var tt := t + DriftRules.rnd(i, 0, 62) * life
 		var cycle := floori(tt / life)
 		var u := tt / life - float(cycle)
-		var at := int(DriftRules.rnd(i, cycle, 63) * cells.size()) % cells.size()
+		var at: int = pick[int(DriftRules.rnd(i, cycle, 63) * pick.size()) % pick.size()]
 		var kind: String = kinds[at]
 		var a := float(amounts.get(kind, 0.0))
 		if a <= 0.0:

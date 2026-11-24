@@ -29,8 +29,11 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, map: MapData, season
 	match str(p.kind):
 		"garden_rock":
 			# Out in the water it stands on the bed there: the pond's own depth at its spot (PondShape's slope), else the full drop.
-			var pond := PondShape.of(map)
-			var sink := (pond.sink(Vector2(mid.x, mid.z)) if pond != null and pond.cells.has(cell) else 1.0) if wet else 0.0
+			var pond: PondShape = null
+			for s in PondShape.all_of(map):   # the soft pond it stands in (the temple's, or Kajika-yu's)
+				if s.cells.has(cell):
+					pond = s
+			var sink := (pond.sink(Vector2(mid.x, mid.z)) if pond != null else 1.0) if wet else 0.0
 			rock(w, str(p.get("shape", "low")), mid + Vector3(0, -SunkenGround.DROP * sink, 0), SunkenGround.DROP * sink, seed, snow)
 		"shrub": shrub(w, Rect2(Vector2(p.cell), Vector2(p.size)), season, day, seed, snow)
 

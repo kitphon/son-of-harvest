@@ -254,8 +254,8 @@ func _prop(p: Dictionary) -> void:
 		FootBath.steam(self, Rect2(Vector2(p.cell), Vector2(p.size)))
 	if str(p.kind) == "yubune":   # and the bath's, over its water
 		BathProps.steam(self, Rect2(Vector2(p.cell), Vector2(p.size)))
-	if str(p.kind) == "rock_pool":   # and Kajika-yu's, out in the cold air: fuller
-		BathProps.steam(self, Rect2(Vector2(p.cell), Vector2(p.size)), BathProps.POOL_WATER, 1.1)
+	if str(p.kind) == "onsen":   # and Kajika-yu's, out in the cold air: fuller
+		BathProps.steam(self, Rect2(Vector2(p.cell), Vector2(p.size)), BathProps.ONSEN_WATER, 1.1)
 
 
 func _make_prop(p: Dictionary) -> void:

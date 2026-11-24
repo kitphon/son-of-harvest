@@ -384,7 +384,7 @@ func new_game() -> void:
 		elif arg == "--soak" or arg.begins_with("--soak="):   # `-- --demo --map=town --soak` (after --map): sat at the footbath's north seat, the feet in the water; `--soak=1` its south seat; `--soak=down` sitting down
 			for p in maps.current().props:
 				if str(p.get("use", "")) == "soak":
-					var spots := soak_spots(p)
+					var spots := soak_spots(p, maps.current())
 					soak_cfg = soak_config(p)
 					var k := clampi(int(arg.get_slice("=", 1)) if "=" in arg and arg.get_slice("=", 1).is_valid_int() else 0, 0, spots.size() - 1)
 					if arg == "--soak=down":   # `--soak=down`: sits down at the north seat from the first frame (the transition)
@@ -2338,11 +2338,21 @@ func soak_lift(back := false) -> float:
 
 ## Where one sits at footbath prop `prop`: before the middle of each long side, facing the tub
 ## ([cell, facing] pairs); the ends and corners are no seats (the user saw the farmer sat at a
-## corner by a post). A bath with `seats` "front" (the sento's tub): every cell before its front.
-static func soak_spots(prop: Dictionary) -> Array:
+## corner by a post). A bath with `seats` "front" (the sento's tub): every cell before its front;
+## "shore" (Kajika-yu's pool in the ground, map `m`): every dry, open cell beside one of its water cells.
+static func soak_spots(prop: Dictionary, m: MapData = null) -> Array:
 	var cell := Vector2i(prop.cell)
 	var size := Vector2i(prop.get("size", [1, 1]))
 	var out := []
+	if str(prop.get("seats", "")) == "shore" and m != null:   # a pool in the ground (Kajika-yu): in from any dry cell beside its water
+		for d in [Vector2i.UP, Vector2i.RIGHT, Vector2i.LEFT, Vector2i.DOWN]:   # the front first (stood below the water, facing up)
+			for y in range(cell.y, cell.y + size.y):
+				for x in range(cell.x, cell.x + size.x):
+					var wc := Vector2i(x, y)
+					var at: Vector2i = wc - d
+					if m.tile(wc) == "water" and m.in_bounds(at) and m.tile(at) != "water" and not m.is_solid(at):
+						out.append([at, d])
+		return out
 	if str(prop.get("seats", "")) == "front":   # a bath against the back wall: in from any cell before its front, facing it
 		for x in range(cell.x, cell.x + size.x):
 			out.append([Vector2i(x, cell.y + size.y), Vector2i.UP])
@@ -2361,7 +2371,7 @@ static func soak_spots(prop: Dictionary) -> Array:
 ## May the farmer on `origin` facing `facing` sit at the footbath in front (one of its soak_spots)?
 func can_soak_at(origin: Vector2i, facing: Vector2i) -> bool:
 	var prop := maps.current().prop_at(origin + facing)
-	return str(prop.get("use", "")) == "soak" and soak_spots(prop).has([origin, facing])
+	return str(prop.get("use", "")) == "soak" and soak_spots(prop, maps.current()).has([origin, facing])
 
 
 ## Is the farmer wrapped in a bathing towel now (in_towel, or anywhere on a towel map)?

@@ -14,10 +14,10 @@ extends RefCounted
 ## `bath_mural` the mountain painted across the back wall over the tub (BathArt), `glass_door` the
 ## bath's sliding door in a side wall (the changing room's right wall, the bath's left one: a wooden
 ## frame, frosted panes, half open). The flat view draws them in BathLook.
-## Up the gorge (Kajika-yu, data/maps/kajika.json, Baths step 4): `rock_pool` the hot spring's pool
-## ringed with rough stones (low ones along the front, where the farmer steps over, big ones at the
-## back against the rock wall), its pale water at POOL_WATER (data/baths.json kajika lift), a bamboo
-## pipe pouring into it at the back; `bath_hut` the little cedar changing hut with a hip roof of
+## Up the gorge (Kajika-yu, data/maps/kajika.json, Baths step 4): `onsen` names the hot spring pool
+## in the ground (its water and stony shore are the map's own, look `onsen`: PondShape, SunkenGround;
+## the farmer sat in it at ONSEN_WATER, data/baths.json kajika lift), so it builds nothing but its
+## steam; `bath_hut` the little cedar changing hut with a hip roof of
 ## bark and an indigo noren over its doorway; `bamboo_screen` a screen of upright culms bound with
 ## two black cords (between the hut and the pool).
 
@@ -37,8 +37,7 @@ const ENAMEL := BathLook.ENAMEL
 const BOTTLE := Color("f8f8f2")
 const CAP := BathLook.CAP
 const STEAM_PUFFS := 4
-const POOL_WATER := 0.3       # the rock pool's water top (data/baths.json kajika lift)
-const POOL_COLOR := BathLook.POOL_COLOR
+const ONSEN_WATER := WaterSurface.LIFT - SunkenGround.DROP   # the hot spring's water top, sunk with the map's water (data/baths.json kajika lift)
 const CEDAR := BathLook.CEDAR
 const BARK := BathLook.BARK
 const CULM := BathLook.CULM
@@ -79,7 +78,7 @@ static func chimney(w: FarmWorld, mid: Vector3, snowy: bool) -> void:
 static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, r: Rect2, snowy := false) -> void:
 	var parts := FarmProps.Parts.new()
 	match str(p.kind):
-		"rock_pool": _rock_pool(parts, r, snowy)
+		"onsen": pass   # the pool is the map's ground (look onsen); MapWorld adds its steam
 		"bath_hut": _hut(w, parts, r, snowy)
 		"bamboo_screen": _screen(parts, r)
 		"yubune": _yubune(parts, r)
@@ -263,41 +262,6 @@ static func _glass_door(p: FarmProps.Parts, r: Rect2) -> void:
 		RoomProps._cube(glass, Vector3(x + off + (0.021 if k == 0 else -0.021), 0.12, zc), Vector3(0.006, 1.28, 0.42))
 		for y in [0.55, 1.0]:   # the panes' crossbars
 			RoomProps._cube(p.st(RoomProps.WOOD), Vector3(x + off, y, zc), Vector3(0.05, 0.03, 0.5))
-
-
-## The hot spring's pool among rough stones over its cells: the water a sheet at POOL_WATER (in from
-## the cells' edges, so the stones sit on its rim), a few lighter ripples on it; stones all round its
-## edge, low and flat along the front (+z) where one steps in, taller at the ends and big at the back;
-## a bamboo pipe from the rock wall pouring in at the back left. Snow on the stones' tops (`snowy`),
-## never on the water.
-static func _rock_pool(p: FarmProps.Parts, r: Rect2, snowy: bool) -> void:
-	var sn: SurfaceTool = p.st(FarmProps.Parts.SNOW) if snowy else null
-	var inner := r.grow(-0.2)
-	var water := p.st(POOL_COLOR)
-	FarmProps.block(water, inner.grow(-0.06), 0.0, inner, POOL_WATER)
-	for k in 6:   # lighter ripples
-		var x := inner.position.x + 0.35 + k * (inner.size.x - 0.7) / 5.0
-		var z := inner.position.y + 0.3 + 0.35 * (k % 3)
-		RoomProps._cube(p.st(POOL_COLOR.lightened(0.25)), Vector3(x, POOL_WATER, z), Vector3(0.3, 0.004, 0.03))
-	var seed := int(r.position.x) * 31 + int(r.position.y) * 7
-	var n := int(r.size.x * 2.2)
-	for k in n:   # the front: low, flat stones to step over
-		var x := r.position.x + 0.12 + (k + 0.5) * (r.size.x - 0.24) / n
-		GardenProps.stone(p, sn, Vector3(x, -0.03, r.end.y - 0.16), 0.2, 0.36 + 0.06 * (k % 2), 0.15, seed + k)
-	var m := int(r.size.x * 1.6)
-	for k in m:   # the back: big stones against the rock wall
-		var x := r.position.x + 0.15 + (k + 0.5) * (r.size.x - 0.3) / m
-		GardenProps.stone(p, sn, Vector3(x, -0.05, r.position.y + 0.2), 0.32, 0.62 + 0.09 * ((k * 5) % 3), 0.24, seed + 50 + k)
-	var ends := int(r.size.y * 1.5)
-	for side in [r.position.x + 0.16, r.end.x - 0.16]:   # the two ends
-		for j in ends:
-			var z := r.position.y + 0.35 + j * (r.size.y - 0.7) / maxf(ends - 1, 1)
-			GardenProps.stone(p, sn, Vector3(side, -0.04, z), 0.18, 0.44 + 0.08 * (j % 2), 0.22, seed + 90 + j + int(side) * 3)
-	# The bamboo pipe (kakehi) out of the rock wall at the back left, pouring in.
-	var pipe := Vector3(r.position.x + 0.9, 0.78, r.position.y + 0.05)
-	RoomProps._cube(p.st(CULM), pipe, Vector3(0.07, 0.07, 0.55))
-	RoomProps._cube(p.st(CULM.darkened(0.25)), Vector3(pipe.x, 0.0, pipe.z + 0.3), Vector3(0.06, 0.8, 0.06))   # its prop
-	RoomProps._cube(p.st(POOL_COLOR.lightened(0.45)), Vector3(pipe.x, POOL_WATER, pipe.z + 0.55), Vector3(0.035, 0.8 - POOL_WATER, 0.035))   # the falling water
 
 
 ## The changing hut over its cells: cedar board walls on a stone sill, a hip roof of cedar bark wider

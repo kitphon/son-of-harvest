@@ -20,6 +20,8 @@ extends RefCounted
 ## look `pond` (a map's legend, or the farm's pond: of_farm). Its water stays a natural blue-green,
 ## its stones are fewer and smaller (STYLES), and it has no lawn curve, garden rocks, shrubs or
 ## koi (those stay the temple garden's).
+## Kajika-yu's hot spring (2026-11-24, the user's photo of a forest onsen): look `onsen`, milky
+## turquoise water, a shore thick with stones; mossy boulders stand in and round it as map props.
 
 const SOFT := 0.85    # half width of the smoothing, cells (corners round to about this)
 const LAWN_SOFT := 1.4   # the lawn's edge against the gravel: a wider smoothing, so a staircase of cells reads as one arc
@@ -29,13 +31,14 @@ const SHORE := 0.5    # the field's level on the shoreline
 const LIP := 0.07     # the bank's top stays flat this far past the shoreline, so the grass edge lies on level ground
 const DEEP := 0.8     # the field's level where the bank's slope reaches the bed (a steep, narrow bank, so a two-cell arm of the pond is still deep: the user, 2026-11-16)
 const LOOK := "jade"
-const LOOKS: Array[String] = ["jade", "pond"]   # the water looks laid with a soft shore, each its own shape
+const LOOKS: Array[String] = ["jade", "pond", "onsen"]   # the water looks laid with a soft shore, each its own shape
 ## A look's own touches: `water` the colour where the rounded shore runs past a water cell,
 ## `keep` how many in 1000 of the waterline's spots get a stone, `size` its smallest and `grow` its spread,
 ## `wobble` how far the shoreline's slow waves reach (times WOBBLE: the plain pond's wilder, 2026-11-18).
 const STYLES := {
 	"jade": {"water": Color("3a7f72"), "keep": 560, "size": 0.35, "grow": 1.0 / 1.5, "wobble": 1.0},
 	"pond": {"water": Color("3d7790"), "keep": 300, "size": 0.25, "grow": 0.45, "wobble": 1.7},
+	"onsen": {"water": Color("5ea8a2"), "keep": 820, "size": 0.4, "grow": 0.9, "wobble": 1.4},
 }
 const T := 16
 

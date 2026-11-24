@@ -45,7 +45,7 @@
 	],
 	"doors": [
 		{"cells": [[20, 4], [20, 5]], "to": "town", "spawn": [0, 24], "facing": "right"},
-		{"cells": [[-1, 4], [-1, 5]], "to": "kajika", "spawn": [19, 4], "facing": "left", "needs": "kajika_built", "locked": "Fallen rock and brambles choke the shore path upstream. There's no way through."},
+		{"cells": [[-1, 4], [-1, 5]], "to": "kajika", "spawn": [19, 5], "facing": "left", "needs": "kajika_built", "locked": "Fallen rock and brambles choke the shore path upstream. There's no way through."},
 		{"cells": [[13, 3]], "to": "mio_hut", "spawn": [3, 4], "facing": "up", "hours": ["06:00", "21:00"], "closed": "Mio's lamp is out. She must be asleep."}
 	],
 	"spawns": {

@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-24 — Kajika-yu like a forest onsen, part 1: a soft pool, mossy boulders, steam
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's photo of a forest onsen; part 1 of 2): the square rock pool became a pool in
+  the ground: the map's water of a new look `onsen` (PondShape LOOKS / STYLES: milky turquoise,
+  a thick stony shore, a wilder line; PlaceholderArt's water picture, WaterSurface.look_mix 0.7)
+  over rows 1-4 under the rock wall, mossy garden_rock boulders in it and on its banks
+  (GardenProps finds the soft pond a rock stands in, whichever look). The `onsen` prop over it
+  builds nothing but its steam (BathProps / BathLook); "seats": "shore" lets the farmer in from
+  any open dry cell beside its water (Game.soak_spots(prop, map)), sat at BathProps.ONSEN_WATER
+  (-0.34, the sunk water's top; data/baths.json kajika lift and sit_path stepping down). Steam
+  lies on it day and night (data/mist.json `onsen`, MistRules.onsen_amount: by season and
+  weather, a swell by the clock, its own smaller, lower, slower sheets counted apart from the
+  river's mist; only on a map with onsen water; the layer's max 72). The earth track moved to
+  row 5 by the river (the river's door lands on [19, 5]). The map is no longer a viewpoint: the
+  normal, nearer camera shows the pool far better than the tilted far one.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the onsen pond of 24+
+  cells, the prop first, 10+ shore spots each dry and open facing water, in from the path below
+  and from the east bank, the sunk lift; test_mist still has no mist at noon or in a storm in the
+  village). Smoke runs (title, `--demo`, town, mine 3, `kajika@pool --flags=kajika_built
+  --time=20:00`): 0 ERROR lines; windowed `--quit-after 150` on the gorge: exit 0. Frames:
+  `--demo --map=kajika@pool --time=17:00 --weather=sunny --flags=kajika_built`, `--season=fall
+  --time=7:00` (wisps over the pool, the river's morning mist), `--season=winter --snow=60
+  --time=21:00 --towel --soak`, and the flat view.
+- Left / next: part 2 (the wood close round it, more lanterns, a wooden bucket and towel, the
+  camera tilting up while soaking); step 4b.
+
 ## 2026-11-24 — Kajika Gorge: grass and one earth track instead of the gravel strip
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: the wide pale walk in front of the pool should be grass): the gorge map's two
