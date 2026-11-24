@@ -10,6 +10,25 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-24 — Kajika-yu tuned toward the photos: still green water, soft steam, a tall wood, granite
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: "tune it more"; the frame against the two photos): the water's strong blue
+  ripple stripes, the round steam puffs, the short even trees and the bare lawn in front were what
+  differed most. The onsen water is a still green now (PlaceholderArt one faint streak, 4f9a8a;
+  PondShape STYLES; WaterSurface.look_mix 1.0, the jade pond's softer glints and green troughs;
+  MapView); the round Steam puffs over it are gone (they read as cotton balls), its steam is the
+  mist's soft sheets, larger, higher and more of them (data/mist.json onsen size 2.6-4.4, height
+  0.04-0.42, 0.75 a cell up to 60; the layer's max 108); the wood's trees stand 1.35-1.9 times
+  their size, a wall round the water; big granite frames the view from the south shore either
+  side of the bather (6-7, 12-13; 10-12, 13-15), the bucket, the tall rock and a lantern moved
+  to make room, the way round the west side on row 14.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: no puffs, the steam over all
+  70+ water cells; everything still reached on foot). Smoke runs (title, `--demo`, town, mine 3,
+  `kajika_yu@pool --flags=kajika_built --time=20:00 --towel --soak`, `kajika@start`): 0 ERROR
+  lines; windowed `--quit-after 150` in the clearing: exit 0. Frames sat in it: summer 16:00 (green
+  still water under a milky haze, the tall wood, granite either side), winter 21:00 with snow.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-24 — Kajika-yu: the changing house, a yukimi lantern, granite, a creek (the second photo)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's second photo, a wooden pavilion by a rock-edged onsen pool): the little hut

@@ -38,7 +38,7 @@ const LOOKS: Array[String] = ["jade", "pond", "onsen"]   # the water looks laid 
 const STYLES := {
 	"jade": {"water": Color("3a7f72"), "keep": 560, "size": 0.35, "grow": 1.0 / 1.5, "wobble": 1.0},
 	"pond": {"water": Color("3d7790"), "keep": 300, "size": 0.25, "grow": 0.45, "wobble": 1.7},
-	"onsen": {"water": Color("5ea8a2"), "keep": 820, "size": 0.4, "grow": 0.9, "wobble": 1.4},
+	"onsen": {"water": Color("4f9a8a"), "keep": 820, "size": 0.4, "grow": 0.9, "wobble": 1.4},
 }
 const T := 16
 

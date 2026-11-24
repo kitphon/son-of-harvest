@@ -931,8 +931,8 @@ func _kajika() -> void:
 	root.add_child(world)
 	world.build(m)
 	var steam := world.get_children().filter(func(n): return str(n.name).begins_with("BathSteam"))
-	var r := Rect2(Vector2(pool[0].cell), Vector2(pool[0].size))
-	check(steam.size() == BP.STEAM_PUFFS and steam.all(func(n): return n.position.y > BP.ONSEN_WATER and r.has_point(Vector2(n.position.x, n.position.z))), "steam off the pool (%d)" % steam.size())
+	var hot := (MistRules.scene_of(m).kinds as Array).count("onsen")
+	check(steam.is_empty() and hot >= 70, "its steam the mist's soft sheets over every water cell (%d), no round puffs (%d)" % [hot, steam.size()])
 	world.queue_free()
 	for kind in GORGE_KINDS:
 		check(MV.COLORS.has(kind) and kind in BP.KINDS, "%s drawn in both views" % kind)

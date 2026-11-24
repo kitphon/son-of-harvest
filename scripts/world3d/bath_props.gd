@@ -16,8 +16,8 @@ extends RefCounted
 ## frame, frosted panes, half open). The flat view draws them in BathLook.
 ## Up the gorge (Kajika-yu, data/maps/kajika.json, Baths step 4): `onsen` names the hot spring pool
 ## in the ground (its water and stony shore are the map's own, look `onsen`: PondShape, SunkenGround;
-## the farmer sat in it at ONSEN_WATER, data/baths.json kajika lift), so it builds nothing but its
-## steam; `oke` a wooden bathing bucket of pale cypress with two dark hoops, a white towel hung
+## the farmer sat in it at ONSEN_WATER, data/baths.json kajika lift), so it builds nothing (its
+## steam is the mist's soft sheets, MistRules `onsen`: round puffs read as cotton balls); `oke` a wooden bathing bucket of pale cypress with two dark hoops, a white towel hung
 ## over its rim, on a flat mossy stone by the water; `bath_hut` the little cedar changing hut with a hip roof of
 ## bark and an indigo noren over its doorway; `bamboo_screen` a screen of upright culms bound with
 ## two black cords (between the hut and the pool). After the user's second photo (2026-11-24):

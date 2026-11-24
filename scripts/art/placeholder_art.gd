@@ -1703,11 +1703,11 @@ static func _ground(kind: String, n: int, look := "") -> Image:
 			var jade := look == "jade"
 			var still := look == "pond"
 			var onsen := look == "onsen"
-			img.fill(Color("5ea8a2") if onsen else (Color("3a7f72") if jade else (Color("3d7790") if still else Color("3d7fc4"))))
-			for i in 4:
-				_px(img, rng.randi_range(1, 10), rng.randi_range(2, 13), rng.randi_range(3, 5), 1, Color("86c4bc") if onsen else (Color("4f9686") if jade else (Color("5290a6") if still else Color("5d9ad8"))))
+			img.fill(Color("4f9a8a") if onsen else (Color("3a7f72") if jade else (Color("3d7790") if still else Color("3d7fc4"))))
+			for i in (1 if onsen else 4):   # the hot spring lies still: one faint streak (the user's photos: calm, clear, green)
+				_px(img, rng.randi_range(1, 10), rng.randi_range(2, 13), rng.randi_range(3, 5), 1, Color("5aa594") if onsen else (Color("4f9686") if jade else (Color("5290a6") if still else Color("5d9ad8"))))
 			var bank := Color("4f5a34") if jade or still or onsen else Color("6b5a3a")
-			var foam := Color("9cd2c6") if onsen else (Color("6aa894") if jade else (Color("6aa0b0") if still else Color("a8d0f0")))
+			var foam := Color("7cbaa8") if onsen else (Color("6aa894") if jade else (Color("6aa0b0") if still else Color("a8d0f0")))
 			if n & WATER_N:
 				_px(img, 0, 0, 16, 2, bank)
 				_px(img, 0, 2, 16, 1, foam)

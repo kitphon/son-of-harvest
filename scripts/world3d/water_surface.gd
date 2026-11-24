@@ -227,7 +227,7 @@ static func look_mix(look: String) -> float:
 		"pond":
 			return 0.35
 		"onsen":
-			return 0.7
+			return 1.0   # still and green like the temple pond's jade (the user's photos)
 	return 0.0
 
 
