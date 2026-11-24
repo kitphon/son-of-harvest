@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-25 — Kajika-yu: the wood behind the pool back (trees on moss past the edges)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user, with the frame before the moss floor: "I want the wood behind with many trees
+  like before"): the wood past a map's edges only stood on ground running on from grass
+  (Surroundings.TREE_KINDS ["grass"]); with the clearing's floor moss, the whole wood past its
+  edges was gone and the view behind the pool opened onto bare land. Moss is in TREE_KINDS now,
+  so the dense broadleaf wood (apron_trees kajika_yu) stands behind and round the clearing again,
+  with the moss floor and the jade water kept.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_maps: moss and grass in
+  TREE_KINDS). Smoke runs (title, `--demo`, town, mine 3, `kajika_yu@pool --flags=kajika_built
+  --time=20:00 --towel --soak`, `kajika@start`): 0 ERROR lines; windowed `--quit-after 150` in
+  the clearing: exit 0. Frame sat in it, summer 16:00: the wood layered behind the pool to the
+  horizon again.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-24 — Kajika-yu tuned again: a moss floor, deeper jade water, a fuller wood
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: "tune it more"): against the photos the clearing's bright lime lawn and the

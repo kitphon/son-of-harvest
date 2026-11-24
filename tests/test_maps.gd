@@ -1340,6 +1340,7 @@ func _dead_ends(Surroundings: GDScript) -> void:
 	check(ok, "a thicket closing it (%d cells), off the map, behind it, never on the water" % t.size())
 	check([3, 4, 5].all(func(y: int) -> bool: return range(-taper - 3, -taper + 3).any(func(x: int) -> bool: return t.has(Vector2i(x, y)))), "across the path's rows and beside them, where it ends")
 	check(not g.has(Vector2i(river.w, 4)) and not g.has(Vector2i(river.w + 5, 5)), "the path east to the village (its door) runs on")
+	check("moss" in Surroundings.TREE_KINDS and "grass" in Surroundings.TREE_KINDS, "the wood past the edges stands on moss as on grass (Kajika-yu's forest floor: without it the wood behind the pool was gone, the user saw)")
 	var built: Dictionary = Surroundings.dead_ends(rk, river.w, river.h, ways_of.call(river, true)).grass
 	check([4, 5].all(func(y: int) -> bool: return range(-Surroundings.MARGIN, 0).all(func(x: int) -> bool: return not built.has(Vector2i(x, y)))), "the pool built: the shore path runs on west up the gorge")
 	var gorge := MapManager.data("kajika")
