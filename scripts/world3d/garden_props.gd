@@ -61,6 +61,9 @@ static func rock(w: FarmWorld, shape: String, foot: Vector3, under: float, seed:
 			stone(p, sn, foot + off + Vector3(0.24, 0, 0.16), 0.15, 0.16 * show + under, 0.13, seed + 2)
 		"flat":
 			stone(p, sn, foot + off, 0.42, 0.15 * show + under, 0.34, seed + 1)
+		"granite":   # big pale granite boulders heaped on a shore (Kajika-yu, the user's second photo), a little moss
+			stone(p, sn, foot + off, 0.56, 0.5 * show + under, 0.46, seed + 1, GardenLook.GRANITE, seed % 3 == 0)
+			stone(p, sn, foot + off + Vector3(0.44, 0, 0.26), 0.34, 0.3 * show + under, 0.3, seed + 2, GardenLook.GRANITE, false)
 		"boulder":   # a big mossy rock standing out of the water like an island (Kajika-yu, the user's photo)
 			stone(p, sn, foot + off, 0.62, 0.62 * show + under, 0.5, seed + 1)
 			stone(p, sn, foot + off + Vector3(0.48, 0, 0.22), 0.36, 0.38 * show + under, 0.32, seed + 2)
@@ -83,7 +86,7 @@ static func rock(w: FarmWorld, shape: String, foot: Vector3, under: float, seed:
 ## a broad, slightly tilted face, a little uneven (no dome, no point). Flat facets toned by how they
 ## face: the sides dark, the shoulders mid grey, the top light with moss on part of it in a patch;
 ## snow on the upward facets (`sn`, or null).
-static func stone(p: FarmProps.Parts, sn: SurfaceTool, at: Vector3, rx: float, h: float, rz: float, seed: int) -> void:
+static func stone(p: FarmProps.Parts, sn: SurfaceTool, at: Vector3, rx: float, h: float, rz: float, seed: int, tones: Array[Color] = STONE, mossy_top := true) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
 	var sides := 6 + seed % 2
@@ -117,8 +120,8 @@ static func stone(p: FarmProps.Parts, sn: SurfaceTool, at: Vector3, rx: float, h
 		var n := (b - a).cross(c - a).normalized()
 		if n.dot((a + b + c) / 3.0 - centre) < 0.0:
 			n = -n
-		var col: Color = STONE[2] if n.y > 0.72 else (STONE[1] if n.y > 0.3 else STONE[0])
-		if mossy and n.y > 0.72:
+		var col: Color = tones[2] if n.y > 0.72 else (tones[1] if n.y > 0.3 else tones[0])
+		if mossy and mossy_top and n.y > 0.72:
 			col = GardenLook.MOSS
 		var j := 1.0 + rng.randf_range(-0.07, 0.07)
 		OutdoorProps.tri(p.st(Color(col.r * j, col.g * j, col.b * j)), a, b, c, n)

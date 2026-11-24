@@ -9,7 +9,7 @@ extends RefCounted
 
 # Its own names and colours (BathProps in 3D takes them from here): the flat view is loaded by
 # headless tests, which must not pull in the 3D scripts (they need the Game autoload).
-const KINDS: Array[String] = ["yubune", "kran", "milk_fridge", "basket_shelf", "bench", "getabako", "bath_noren", "bath_mural", "glass_door", "onsen", "bath_hut", "bamboo_screen", "oke"]
+const KINDS: Array[String] = ["yubune", "kran", "milk_fridge", "basket_shelf", "bench", "getabako", "bath_noren", "bath_mural", "glass_door", "onsen", "bath_hut", "bamboo_screen", "oke", "bath_pavilion", "yukimi_doro"]
 const OKE := Color("d8b884")   # the bathing bucket's cypress
 const CEDAR := Color("6a4a34")
 const BARK := Color("4e3a2c")
@@ -31,6 +31,22 @@ static func draw(c: CanvasItem, kind: String, r: Rect2) -> void:
 			_tub(c, r)
 		"onsen":
 			pass   # Kajika-yu's pool is the map's own water (look onsen) and its shore
+		"bath_pavilion":   # the gable roof from above: two slopes of shingles, the ridge, the deck and steps in front
+			var roof := Rect2(r.position.x + 1, r.position.y + 1, r.size.x - 2, r.size.y - 9)
+			var half := floorf(roof.size.x / 2)
+			c.draw_rect(Rect2(roof.position, Vector2(half, roof.size.y)), Color("6a5442"))
+			c.draw_rect(Rect2(roof.position.x + half, roof.position.y, roof.size.x - half, roof.size.y), Color("5a4636"))
+			for y in range(int(roof.position.y) + 3, int(roof.end.y), 4):
+				c.draw_rect(Rect2(roof.position.x, y, roof.size.x, 1), Color("4a3a2c"))
+			c.draw_rect(Rect2(roof.position.x + half - 1, roof.position.y, 2, roof.size.y), Color("c8a274"))
+			c.draw_rect(Rect2(r.position.x + 3, roof.end.y, r.size.x - 6, 4), Color("9a7452"))
+			c.draw_rect(Rect2(r.get_center().x - 6, roof.end.y + 4, 12, 3), Color("9a968e"))
+		"yukimi_doro":   # the wide hexagonal hat from above on its pale rock
+			var mid := r.get_center().floor()
+			c.draw_rect(Rect2(mid.x - 6, mid.y - 3, 12, 8), Color("8c877c"))
+			c.draw_rect(Rect2(mid.x - 5, mid.y - 5, 10, 7), Color("c6c0b2"))
+			c.draw_rect(Rect2(mid.x - 3, mid.y - 6, 6, 1), Color("d8d2c4"))
+			c.draw_rect(Rect2(mid.x - 1, mid.y - 2, 2, 2), Color("8c877c"))
 		"oke":   # the bucket on its stone, from above: the stone, the bucket's rim and the towel over it
 			var mid := r.get_center().floor()
 			c.draw_rect(Rect2(mid.x - 5, mid.y - 3, 10, 7), Color("6a675f"))

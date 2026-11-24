@@ -20,7 +20,12 @@ extends RefCounted
 ## steam; `oke` a wooden bathing bucket of pale cypress with two dark hoops, a white towel hung
 ## over its rim, on a flat mossy stone by the water; `bath_hut` the little cedar changing hut with a hip roof of
 ## bark and an indigo noren over its doorway; `bamboo_screen` a screen of upright culms bound with
-## two black cords (between the hut and the pool).
+## two black cords (between the hut and the pool). After the user's second photo (2026-11-24):
+## `bath_pavilion` the changing house standing at the back of the pool, facing it: a stone base, a
+## raised cedar deck along its front, cedar walls with lattice (koshi) panels either side of a dark
+## doorway hung with the noren, a gable roof of cedar shingles with its gable to the water, pale
+## bargeboards and a dark name board under the gable, two stone steps, its doorway lit at night;
+## `yukimi_doro` the snow-viewing lantern with its wide hat, standing on a pale rock out in the water.
 
 const HEIGHT := 5.2          # the top of the lip, world units (a cell is 1)
 const SHAFT := Color("8c8174")
@@ -44,6 +49,11 @@ const BARK := BathLook.BARK
 const CULM := BathLook.CULM
 const CORD := Color("2a2420")
 const OKE := BathLook.OKE
+const PAVILION_WOOD := Color("8a6444")
+const PAVILION_DARK := Color("4a3424")
+const SHINGLE := Color("5a4636")
+const BARGE := Color("c8a274")
+const GRANITE := GardenLook.GRANITE
 const HOOP := Color("3a2c22")
 const TOWEL := Color("f2f0ea")
 
@@ -86,6 +96,8 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, r: Rect2, snowy := f
 		"bath_hut": _hut(w, parts, r, snowy)
 		"bamboo_screen": _screen(parts, r)
 		"oke": _oke(parts, r, snowy)
+		"bath_pavilion": _pavilion(w, parts, r, snowy)
+		"yukimi_doro": _yukimi(w, parts, r, snowy)
 		"yubune": _yubune(parts, r)
 		"kran": _kran(parts, r)
 		"milk_fridge": _milk_fridge(parts, mid)
@@ -325,3 +337,119 @@ static func _oke(p: FarmProps.Parts, r: Rect2, snowy: bool) -> void:
 	var towel := p.st(TOWEL)
 	RoomProps._cube(towel, base + Vector3(0.0, 0.235, 0.05), Vector3(0.2, 0.025, 0.28))   # folded over the rim
 	RoomProps._cube(towel, base + Vector3(0.0, 0.08, 0.19), Vector3(0.2, 0.16, 0.025))    # hanging down its front
+
+
+## The changing house over its cells, its front (+z) to the pool (see the class note).
+static func _pavilion(w: FarmWorld, p: FarmProps.Parts, r: Rect2, snowy: bool) -> void:
+	var foot := Rect2(r.position.x + 0.15, r.position.y + 0.1, r.size.x - 0.3, r.size.y - 0.75)
+	var deck := Rect2(foot.position.x - 0.05, foot.end.y, foot.size.x + 0.1, 0.42)
+	FarmProps.block(p.st(Color(Shrine.STONE)), foot.grow(0.06), 0.0, foot.grow(0.06), 0.3)   # the stone base
+	FarmProps.block(p.st(Color(Shrine.STONE)), deck, 0.0, deck, 0.22)
+	FarmProps.block(p.st(PAVILION_WOOD.lightened(0.12)), deck, 0.22, deck, 0.3)   # the deck's boards
+	for k in 2:   # two stone steps up to it in the middle
+		var s := Rect2(r.get_center().x - 0.42, deck.end.y + k * 0.16, 0.84, 0.18)
+		FarmProps.block(p.st(Color(Shrine.STONE).lightened(0.06)), s, 0.0, s, 0.2 - k * 0.1)
+	var top := 1.85
+	FarmProps.block(p.st(PAVILION_WOOD), foot, 0.3, foot, top)   # the walls
+	var front := foot.end.y + 0.004
+	var cx := r.get_center().x
+	# The doorway, dark, the noren over it; the lattice panels either side.
+	RoomProps._front(p.st(Color("1c1510")), cx - 0.38, cx + 0.38, 0.3, 1.5, front)
+	w._picture("build:noren", Vector2(0.76, 0.42), Vector3(cx, 1.28, front + 0.02))
+	for side: float in [-1.0, 1.0]:
+		var a0 := cx + side * 0.48
+		var a1 := cx + side * (foot.size.x / 2 - 0.12)
+		var lo := minf(a0, a1)
+		var hi := maxf(a0, a1)
+		RoomProps._front(p.st(Color("2a1e16")), lo, hi, 0.55, 1.55, front)   # the dim room behind
+		var slats := int((hi - lo) / 0.07)
+		for k in slats + 1:   # the koshi's upright slats
+			var x := lo + k * (hi - lo) / maxf(slats, 1)
+			RoomProps._cube(p.st(PAVILION_WOOD.lightened(0.18)), Vector3(x, 0.55, front + 0.01), Vector3(0.025, 1.0, 0.02))
+		RoomProps._cube(p.st(PAVILION_DARK), Vector3((lo + hi) / 2, 0.5, front + 0.012), Vector3(hi - lo + 0.04, 0.06, 0.03))
+		RoomProps._cube(p.st(PAVILION_DARK), Vector3((lo + hi) / 2, 1.55, front + 0.012), Vector3(hi - lo + 0.04, 0.06, 0.03))
+	for x in [foot.position.x, foot.end.x, cx - 0.42, cx + 0.42]:   # posts on the front
+		RoomProps._cube(p.st(PAVILION_DARK), Vector3(x, 0.3, front + 0.015), Vector3(0.08, top - 0.3, 0.05))
+	RoomProps._cube(p.st(PAVILION_DARK), Vector3(cx, top - 0.08, front + 0.02), Vector3(foot.size.x + 0.1, 0.1, 0.06))   # the beam
+	# The gable roof: its ridge along z, the gable to the front; eaves past the walls.
+	var ov := 0.38
+	var x0 := foot.position.x - ov
+	var x1 := foot.end.x + ov
+	var z0 := foot.position.y - 0.3
+	var z1 := deck.end.y + 0.12
+	var ridge := top + 0.95
+	var shingle := p.st(SHINGLE)
+	for side in [[x0, cx], [x1, cx]]:
+		var ex: float = side[0]
+		var a := Vector3(ex, top - 0.05, z0)
+		var b := Vector3(ex, top - 0.05, z1)
+		var c := Vector3(cx, ridge, z1)
+		var d := Vector3(cx, ridge, z0)
+		var n := (b - a).cross(c - a).normalized()
+		if n.y < 0.0:
+			n = -n
+		OutdoorProps.tri(shingle, a, b, c, n)
+		OutdoorProps.tri(shingle, a, c, d, n)
+		OutdoorProps.tri(p.st(SHINGLE.darkened(0.35)), a, c, b, -n)   # its underside
+		OutdoorProps.tri(p.st(SHINGLE.darkened(0.35)), a, d, c, -n)
+		for k in 4:   # rows of shingles: lighter lines across the slope
+			var t := (k + 1) / 5.0
+			var q0 := a.lerp(d, t) + n * 0.01
+			var q1 := b.lerp(c, t) + n * 0.01
+			OutdoorProps.tri(p.st(SHINGLE.lightened(0.15)), q0, q1, q1 + (c - b).normalized() * 0.03, n)
+			OutdoorProps.tri(p.st(SHINGLE.lightened(0.15)), q0, q1 + (c - b).normalized() * 0.03, q0 + (d - a).normalized() * 0.03, n)
+		if snowy:
+			var up := Vector3(0, 0.03, 0)
+			OutdoorProps.tri(p.st(FarmProps.Parts.SNOW), a + up, b + up, c + up, Vector3.UP)
+			OutdoorProps.tri(p.st(FarmProps.Parts.SNOW), a + up, c + up, d + up, Vector3.UP)
+	# The gable's triangle of wall at the front, its bargeboards and the name board.
+	var gz := foot.end.y + 0.002
+	OutdoorProps.tri(p.st(PAVILION_WOOD.darkened(0.08)), Vector3(foot.position.x, top, gz), Vector3(foot.end.x, top, gz), Vector3(cx, ridge - 0.08, gz), Vector3.BACK)
+	for ex: float in [x0, x1]:
+		var lo := Vector3(ex, top - 0.1, z1 + 0.01)
+		var hi := Vector3(cx, ridge + 0.02, z1 + 0.01)
+		var along := (hi - lo).normalized()
+		var up := Vector3(-along.y, along.x, 0) * (1.0 if ex < cx else -1.0)
+		if up.y < 0.0:
+			up = -up
+		OutdoorProps.tri(p.st(BARGE), lo, hi, hi + up * 0.1, Vector3.BACK)
+		OutdoorProps.tri(p.st(BARGE), lo, hi + up * 0.1, lo + up * 0.1, Vector3.BACK)
+	RoomProps._cube(p.st(PAVILION_DARK), Vector3(cx, top + 0.18, gz + 0.03), Vector3(0.9, 0.3, 0.04))   # the name board
+	for k in 3:   # its pale letters
+		RoomProps._cube(p.st(BARGE.lightened(0.3)), Vector3(cx - 0.24 + k * 0.24, top + 0.25, gz + 0.055), Vector3(0.12, 0.14, 0.01))
+	w.lit_lamp(Vector3(cx, 1.0, front + 0.3))   # the doorway's light at night
+
+
+## The snow-viewing lantern on its rock in the water: a pale rock rising out of the sunk water (the
+## pool's own depth there), and on it three short legs, a hexagonal fire box with lit windows,
+## the wide hat with its corners turned up, a jewel on top. Lit at night.
+static func _yukimi(w: FarmWorld, p: FarmProps.Parts, r: Rect2, snowy: bool) -> void:
+	var mid := Vector3(r.get_center().x, 0.0, r.get_center().y)
+	var bed := -SunkenGround.DROP
+	var sn: SurfaceTool = p.st(FarmProps.Parts.SNOW) if snowy else null
+	GardenProps.stone(p, sn, mid + Vector3(0, bed, 0), 0.5, 0.5 - bed, 0.42, int(r.position.x) * 7 + 3, GRANITE, false)
+	var base := mid + Vector3(0, 0.46, 0)
+	var stone := p.st(GRANITE[2])
+	for k in 3:   # three short splayed legs
+		var a := TAU * k / 3.0 + 0.3
+		var leg := base + Vector3(sin(a), 0, cos(a)) * 0.16
+		RoomProps._cube(stone, leg, Vector3(0.07, 0.22, 0.07))
+	Shrine.lathe(stone, base + Vector3(0, 0.2, 0), [Vector2(0.24, 0.0), Vector2(0.24, 0.05), Vector2(0.16, 0.08)], 6)   # the deck
+	Shrine.lathe(stone, base + Vector3(0, 0.27, 0), [Vector2(0.14, 0.0), Vector2(0.14, 0.24)], 6)   # the fire box
+	var apothem := 0.14 * cos(PI / 6)
+	for angle in [0.0, 60.0, -60.0]:
+		var dir := Vector3(sin(deg_to_rad(angle)), 0, cos(deg_to_rad(angle)))
+		var c := base + Vector3(0, 0.39, 0) + dir * (apothem + 0.004)
+		var side := Vector3(dir.z, 0, -dir.x)
+		var glow := p.st(Color("ffd890"))
+		OutdoorProps.tri(glow, c - side * 0.05 - Vector3(0, 0.06, 0), c + side * 0.05 - Vector3(0, 0.06, 0), c + side * 0.05 + Vector3(0, 0.06, 0), dir)
+		OutdoorProps.tri(glow, c - side * 0.05 - Vector3(0, 0.06, 0), c + side * 0.05 + Vector3(0, 0.06, 0), c - side * 0.05 + Vector3(0, 0.06, 0), dir)
+	var hat := base + Vector3(0, 0.5, 0)
+	Shrine.lathe(stone, hat, [Vector2(0.12, 0.0), Vector2(0.52, 0.06), Vector2(0.52, 0.1), Vector2(0.16, 0.24)], 6)   # the wide hat
+	for k in 6:   # its corners turned up
+		var a := TAU * (k + 0.5) / 6
+		RoomProps._cube(stone, hat + Vector3(sin(a), 0, cos(a)) * 0.52 + Vector3(0, 0.06, 0), Vector3(0.07, 0.08, 0.07))
+	Shrine.lathe(stone, hat + Vector3(0, 0.23, 0), [Vector2(0.06, 0.0), Vector2(0.07, 0.06), Vector2(0.0, 0.13)], 8)   # the jewel
+	if sn != null:
+		Shrine.lathe(sn, hat + Vector3(0, 0.02, 0), [Vector2(0.5, 0.1), Vector2(0.15, 0.25)], 6)
+	w.lit_lamp(base + Vector3(0, 0.39, 0))

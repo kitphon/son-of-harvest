@@ -16,6 +16,7 @@
 	"waters": {
 		"_note": "Where the water that runs off the maps goes (2026-11-15; WorldPlan). Every stream of water on a map's edge with no map across it is listed by `<map>:<edge>`: `goes` `up` (to its source past the plan) or `down` (out of the valley), or `meets` another such stream: both carried straight on cross in the gap between the maps, on no map. Sakurazaka's creek runs south down past Ichiro's kiln and falls into the village's river where it flows on east past the long bridge (plan x 70-71, rows 37-42), past the east edge of Yumachi, the bath lane (2026-11-22), which the river runs on through below the village. test_maps `_world` checks every off-map stream is here and that a meeting meets; map_overview `--world` draws them in the gaps.",
 		"kajika:west": {"goes": "up"},
+		"kajika_yu:east": {"goes": "up"},
 		"sakurazaka:north": {"goes": "up"},
 		"sakurazaka:south": {"meets": "yumachi:east"},
 		"yumachi:east": {"goes": "down"}

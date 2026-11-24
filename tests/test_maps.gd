@@ -4985,7 +4985,7 @@ func _world() -> void:
 	var places: Dictionary = WorldPlan.places(cfg)
 	var runs: Array[Dictionary] = WorldPlan.off_plan_runs(places)
 	var waters: Dictionary = cfg.get("waters", {})
-	check(runs.size() == 4, "four streams run off the maps (%s)" % ", ".join(runs.map(func(r): return r.key)))
+	check(runs.size() == 5, "five streams run off the maps (%s)" % ", ".join(runs.map(func(r): return r.key)))
 	for r in runs:
 		check(waters.has(r.key), "%s: where its water goes is on the plan" % r.key)
 		var span: Rect2i = WorldPlan._span(r.cells)

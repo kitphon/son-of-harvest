@@ -290,4 +290,6 @@ static func of_map(props: Array) -> Dictionary:
 					village_style(p).storeys, village_style(p).wall))
 			"stone_lantern":
 				lamps.append({"pos": lantern(Vector3(r.get_center().x, 0, r.get_center().y))})
+			"yukimi_doro", "bath_pavilion":   # Kajika-yu's lantern on its rock and the changing house's doorway
+				lamps.append({"pos": Vector3(r.get_center().x, 0.85, r.get_center().y if str(p.kind) == "yukimi_doro" else r.end.y - 0.3)})
 	return {"windows": windows, "lamps": lamps}

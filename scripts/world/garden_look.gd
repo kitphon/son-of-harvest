@@ -5,7 +5,8 @@ extends RefCounted
 ## when the shrubs flower. Pure (no world classes), so the flat view loads without the 3D ones.
 
 const KINDS: Array[String] = ["garden_rock", "shrub"]
-const SHAPES: Array[String] = ["tall", "flat", "low", "pair", "boulder"]
+const SHAPES: Array[String] = ["tall", "flat", "low", "pair", "boulder", "granite"]
+const GRANITE: Array[Color] = [Color("8c877c"), Color("aaa498"), Color("c6c0b2")]   # pale granite (Kajika-yu's shore)
 const STONE: Array[Color] = [Color("4e4c47"), Color("6a675f"), Color("85817a")]
 const MOSS := Color("5f7a3a")
 const LEAF: Array[Color] = [Color("2f5626"), Color("3f6e2e"), Color("58893a")]

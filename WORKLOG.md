@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-24 — Kajika-yu: the changing house, a yukimi lantern, granite, a creek (the second photo)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's second photo, a wooden pavilion by a rock-edged onsen pool): the little hut
+  became the changing house (`bath_pavilion`, BathProps / BathLook, "use": "change"): a stone base,
+  a raised cedar deck and two stone steps, cedar walls with lattice (koshi) panels either side of a
+  dark doorway under the noren, a shingled gable roof with its gable to the water, pale
+  bargeboards, a dark name board, snow on the roof, its doorway lit at night (FarmWorld.lit_lamp;
+  LitSpots for the flat view). It stands at the pool's north-west back corner (cells 2-5, 0-2): the
+  camera looks north-west, so there it stands in the middle of the view behind the water (first
+  placed at the north middle, it showed at the frame's right edge). A snow-viewing lantern
+  (`yukimi_doro`: legs, a fire box with lit windows, the wide hat with its corners up, a jewel) on
+  a pale rock out in the water before it, lit at night. Pale granite boulders on the shores and in
+  the creek (garden_rock `granite`, GardenLook.GRANITE; GardenProps.stone takes its tones and
+  whether its top grows moss). A creek of the same hot water (look onsen) runs in from the east
+  edge along rows 7-8 (data/world.json `waters` kajika_yu:east goes up). Row 3 kept open so the
+  house's steps are reached from the west side.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the changing house behind the
+  water, the lantern in the water, 4+ granite rocks, the creek one water with the pool, its steps,
+  the path's end and the east shore (13, 11) reached on foot; test_maps: five streams off the
+  maps). Smoke runs (title, `--demo`, town, mine 3, `kajika_yu@pool --flags=kajika_built
+  --time=20:00 --towel --soak`, `kajika@start`): 0 ERROR lines; windowed `--quit-after 150` in
+  the clearing: exit 0. Frames sat in it: summer 17:30 (the house in the middle behind the pool,
+  the lantern before it), winter 21:00 with snow (snow on its roof, the doorway and the lantern
+  lit); `kajika_yu@15,10` by the creek; the flat view.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-24 — Kajika-yu: wild undergrowth, white steam, the hut reachable
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's three points):
