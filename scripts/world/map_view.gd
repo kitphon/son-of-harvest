@@ -466,7 +466,7 @@ func _draw_garden(p: Dictionary, r: Rect2) -> void:
 		blob(_objects, c + Vector2(0, 1), rx, ry, leaf, seed)
 		var rng := RandomNumberGenerator.new()
 		rng.seed = seed
-		var dot := GardenLook.BLOOM if GardenLook.blooms(season, day) else (GardenLook.FALL_RED if season == "fall" else Color.TRANSPARENT)
+		var dot := GardenLook.BLOOM if GardenLook.blooms(season, day) and not bool(p.get("wild", false)) else (GardenLook.FALL_RED if season == "fall" else Color.TRANSPARENT)   # a wild bush never flowers
 		if dot.a > 0.0:
 			for i in 7:
 				_objects.draw_rect(Rect2(c + Vector2(rng.randi_range(-rx + 2, rx - 2), rng.randi_range(-ry + 1, ry)), Vector2.ONE), dot)

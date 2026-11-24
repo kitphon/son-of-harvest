@@ -19,6 +19,7 @@ var _scene_key := ""
 var _wind := 0.0
 var _amounts := {}
 var _rgb := Color.WHITE
+var _steam := Color.WHITE   # a hot spring's steam (MistRules.color_now "onsen")
 var _season := ""
 
 
@@ -49,6 +50,7 @@ func refresh() -> void:
 		_scene_key = key
 		_scene = MistRules.scene_of(map, farm)
 	_rgb = MistRules.color_now(game)
+	_steam = MistRules.color_now(game, {}, "onsen")
 	_season = game.season_name()
 	queue_redraw()
 
@@ -67,6 +69,7 @@ func patches() -> Array[Dictionary]:
 			"size": (s.size as Vector2) * T,
 			"angle": float(s.angle),
 			"alpha": float(s.alpha),
+			"kind": str(s.kind),
 		})
 	return out
 
@@ -90,7 +93,7 @@ func _draw() -> void:
 		var a: float = p.alpha
 		if a < 0.004:
 			continue
-		var c := Color(_rgb, a * share)
+		var c := Color(_steam if p.kind == "onsen" else _rgb, a * share)
 		for k in rings:
 			var scale := 1.0 - float(k) / float(rings) * 0.75
 			var half: Vector2 = p.size * 0.5 * scale

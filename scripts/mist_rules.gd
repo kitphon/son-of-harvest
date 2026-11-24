@@ -151,9 +151,11 @@ static func wind_dir(cfg := {}) -> Vector2:
 
 ## The mist's colour now: its own, taken toward the hue of the sky by sky_share (the sky made
 ## bright, so the hue tints it without darkening it; the tint over the picture darkens it).
-static func color_now(game: Object, cfg := {}) -> Color:
+static func color_now(game: Object, cfg := {}, kind := "") -> Color:
 	if cfg.is_empty():
 		cfg = config()
+	if kind == "onsen":   # a hot spring's steam: its own colour and share of the sky's hue (white, not the sunset's pink)
+		cfg = cfg.merged(cfg.get("onsen", {}), true)
 	var base := Color(str(cfg.color))
 	if game == null:
 		return base

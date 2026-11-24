@@ -35,7 +35,7 @@ static func prop(w: FarmWorld, p: Dictionary, mid: Vector3, map: MapData, season
 					pond = s
 			var sink := (pond.sink(Vector2(mid.x, mid.z)) if pond != null else 1.0) if wet else 0.0
 			rock(w, str(p.get("shape", "low")), mid + Vector3(0, -SunkenGround.DROP * sink, 0), SunkenGround.DROP * sink, seed, snow)
-		"shrub": shrub(w, Rect2(Vector2(p.cell), Vector2(p.size)), season, day, seed, snow)
+		"shrub": shrub(w, Rect2(Vector2(p.cell), Vector2(p.size)), season, day, seed, snow, bool(p.get("wild", false)))
 
 
 ## A garden rock of `shape` standing at `foot` (its base), `under` deep in the water (that much
@@ -158,15 +158,32 @@ static func blooms(season: String, day: int) -> bool:
 
 
 ## A clipped round shrub over `r` (cells): a faceted mound a little narrower than its footprint.
-static func shrub(w: FarmWorld, r: Rect2, season: String, day: int, seed: int, snow: bool) -> void:
+static func shrub(w: FarmWorld, r: Rect2, season: String, day: int, seed: int, snow: bool, wild := false) -> void:
 	var p := FarmProps.Parts.new()
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
 	var tones := LEAF_WINTER if season == "winter" else LEAF
-	var c := r.get_center()
-	var rx := r.size.x * 0.42
-	var rz := r.size.y * 0.4
-	var h := 0.42 + rng.randf_range(-0.04, 0.05)
+	var bloom := blooms(season, day) and not wild   # a wild bush (Kajika-yu's undergrowth) never flowers pink
+	var sn: SurfaceTool = p.st(FarmProps.Parts.SNOW) if snow else null
+	# A clipped shrub is one smooth mound; a wild bush (`wild`) three or four rough, uneven ones
+	# heaped together, taller and spilling past its cell.
+	var lumps := [[Vector2.ZERO, 1.0, 1.0]]
+	if wild:
+		lumps = []
+		for k in rng.randi_range(3, 4):
+			var off := Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(0.08, 0.3) * r.size.x
+			lumps.append([off, rng.randf_range(0.6, 0.95), rng.randf_range(1.0, 1.6)])
+	for lump in lumps:
+		_mound(p, sn, rng, r.get_center() + Vector2(lump[0]), r.size * float(lump[1]), float(lump[2]), 0.18 if wild else 0.05, tones, bloom, season)
+	p.commit(w)
+
+
+## One leafy mound of a shrub over `size` round `c`, `tall` times the clipped height, its rings'
+## radii jittered by `rough`.
+static func _mound(p: FarmProps.Parts, sn: SurfaceTool, rng: RandomNumberGenerator, c: Vector2, size: Vector2, tall: float, rough: float, tones: Array[Color], bloom: bool, season: String) -> void:
+	var rx := size.x * 0.42
+	var rz := size.y * 0.4
+	var h := (0.42 + rng.randf_range(-0.04, 0.05)) * tall
 	const SIDES := 10
 	# rings from the foot up: [height share, radius share]
 	var rings := [[0.0, 0.86], [0.3, 1.0], [0.62, 0.9], [0.88, 0.55]]
@@ -175,12 +192,10 @@ static func shrub(w: FarmWorld, r: Rect2, season: String, day: int, seed: int, s
 		var row: Array[Vector3] = []
 		for k in SIDES:
 			var a := TAU * k / SIDES
-			var rr: float = float(ring[1]) * (1.0 + rng.randf_range(-0.05, 0.05))
+			var rr: float = float(ring[1]) * (1.0 + rng.randf_range(-rough, rough))
 			row.append(Vector3(c.x + cos(a) * rx * rr, h * float(ring[0]), c.y + sin(a) * rz * rr))
 		rows.append(row)
 	var apex := Vector3(c.x, h, c.y)
-	var bloom := blooms(season, day)
-	var sn: SurfaceTool = p.st(FarmProps.Parts.SNOW) if snow else null
 	var facet := func(a: Vector3, b: Vector3, cc: Vector3, tone: int) -> void:
 		var n := (b - a).cross(cc - a).normalized()
 		if n.dot((a + b + cc) / 3.0 - Vector3(c.x, h * 0.35, c.y)) < 0.0:
@@ -203,4 +218,3 @@ static func shrub(w: FarmWorld, r: Rect2, season: String, day: int, seed: int, s
 			facet.call(rows[ri][k], rows[ri + 1][k2], rows[ri + 1][k], mini(ri, 2))
 	for k in SIDES:
 		facet.call(rows[3][k], rows[3][(k + 1) % SIDES], apex, 2)
-	p.commit(w)

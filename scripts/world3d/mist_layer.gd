@@ -106,6 +106,7 @@ func refresh() -> void:
 	var shown := MistRules.sheets(_scene, amounts, _t, wind, game.season_name())
 	shown = shown.slice(0, _mm.instance_count)
 	var rgb := MistRules.color_now(game)
+	var steam := MistRules.color_now(game, {}, "onsen")   # a hot spring's own
 	_mm.visible_instance_count = shown.size()
 	for i in shown.size():
 		var s: Dictionary = shown[i]
@@ -115,7 +116,7 @@ func refresh() -> void:
 		pos.y += SunkenGround.sink_at(Vector2(pos.x, pos.z), _water)   # over the sunk water, as low over it as over the land
 		_mm.set_instance_transform(i, Transform3D(b, pos))
 		_placed.append(pos)
-		_mm.set_instance_color(i, Color(rgb, float(s.alpha)))
+		_mm.set_instance_color(i, Color(steam if str(s.kind) == "onsen" else rgb, float(s.alpha)))
 
 
 ## Where each sheet shown stands, in cells (x, height, z) (for tests).

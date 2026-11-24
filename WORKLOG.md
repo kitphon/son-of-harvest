@@ -10,6 +10,32 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-24 — Kajika-yu: wild undergrowth, white steam, the hut reachable
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's three points):
+  - "Why are there pink stains on the rocks?": the clipped garden shrubs (the temple garden's)
+    flower pink in spring and summer, and beside the dark boulders they read as stains; the
+    evening sky's hue tinted the steam pink too. A shrub can now be `wild` (GardenProps.shrub:
+    three or four rough mounds heaped and spilling past the cell, never flowering; MapView draws
+    no flowers for it), and every shrub in the clearing is wild. The hot spring's steam has its
+    own `color` and `sky_share` (0.06) in data/mist.json `onsen` (MistRules.color_now's `kind`;
+    MistLayer and MistView colour each sheet by its kind), so it stays white at sunset.
+  - "It's close but not natural enough": the undergrowth above (about 36 bushes along the shore
+    and under the trees), the wood's trees in mixed sizes (scale 0.9-1.4), a bamboo stand in the
+    back right corner, every free cell of the back rows planted.
+  - "I can't walk to change clothes": a lantern and a boulder shut the hut off at the pool's west
+    side. Column 2 and row 13 are kept open grass round the west side to the hut's door step (no
+    dirt trail: a first try with one showed too much brown ground), the lantern moved to (1, 5),
+    the boulder into the water at (4, 8).
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the hut's door step, the
+  path's end and the east shore (15, 10) reached on foot from the way in; no clipped shrubs; 15+
+  wild bushes). Smoke runs (title, `--demo`, town, mine 3, `kajika_yu@pool --flags=kajika_built
+  --time=20:00 --towel --soak`, `kajika@start`): 0 ERROR lines; windowed `--quit-after 150` in
+  the clearing: exit 0. Frames: sat in it summer 17:30 (green bushes, no pink, white steam), fall
+  7:30 (red maples, bushes with a few red leaves), `kajika_yu@hut` (stood at the hut's door, the
+  hint "Change").
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-24 — Kajika-yu moved to its own clearing in the wood, like the user's photo
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user, with the photo again: "it doesn't look like the picture at all"): between the

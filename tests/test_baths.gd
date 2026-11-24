@@ -829,7 +829,7 @@ func _kajika() -> void:
 	check(shape != null and shape.cells.size() >= 70 and m.props[0] == pool[0], "its water a soft pond of look onsen (%d cells), the prop first so E finds it" % (shape.cells.size() if shape != null else 0))
 	var spots: Array = g.soak_spots(pool[0], m)
 	check(spots.size() >= 10 and spots.all(func(s): return m.tile(s[0]) != "water" and not m.is_solid(s[0]) and m.tile(s[0] + s[1]) == "water"), "in from all round its shore (%d spots), each a dry open cell facing its water" % spots.size())
-	check(spots.has([Vector2i(9, 12), Vector2i.UP]) and spots.has([Vector2i(16, 8), Vector2i.LEFT]), "from the path's end below it and from its east bank")
+	check(spots.has([Vector2i(9, 12), Vector2i.UP]) and spots.has([Vector2i(15, 10), Vector2i.LEFT]), "from the path's end below it and from its east bank")
 	# After the user's photo: a big pool shut in by the wood, boulders standing in its water, the hut
 	# at the back past the water, never between the eye (south-east) and the pool.
 	var rocks_in := m.props.filter(func(p): return p.kind == "garden_rock" and str(p.get("shape", "")) == "boulder" and m.tile(Vector2i(p.cell)) == "water")
@@ -838,10 +838,24 @@ func _kajika() -> void:
 	check(hut.size() == 1 and Vector2i(hut[0].cell).y + Vector2i(hut[0].size).y <= shape.bounds.position.y + 1, "the hut at the back of the clearing, past the water")
 	var behind := m.props.filter(func(p): return p.kind in ["maple", "sakura", "pine"] and Vector2i(p.cell).y <= 3).size()
 	var before := m.props.filter(func(p): return p.kind in ["maple", "sakura", "pine"] and Rect2i(6, 12, 9, 8).has_point(Vector2i(p.cell))).size()
+	# Every place the bather needs reached on foot from the way in (the user could not walk to the hut).
+	var seen := {Vector2i(19, 18): true}
+	var todo: Array[Vector2i] = [Vector2i(19, 18)]
+	while not todo.is_empty():
+		var c: Vector2i = todo.pop_back()
+		for d in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+			var n2: Vector2i = c + d
+			if m.in_bounds(n2) and not m.is_solid(n2) and not seen.has(n2):
+				seen[n2] = true
+				todo.append(n2)
+	var hut_front := Vector2i(int(hut[0].cell.x) + 1, int(hut[0].cell.y) + int(hut[0].size.y))
+	check(seen.has(hut_front) and seen.has(Vector2i(9, 12)) and seen.has(Vector2i(15, 10)), "the hut's door step, the path's end and the east bank all reached on foot from the way in")
+	var clipped := m.props.filter(func(p): return p.kind == "shrub" and not bool(p.get("wild", false))).size()
+	check(clipped == 0, "wild undergrowth, no clipped garden shrubs (their flowers read as pink stains, the user saw)")
 	check(behind >= 20 and before == 0, "a thick wood behind the pool (%d trees), none between the south shore and the eye (%d)" % [behind, before])
 	# Part 2 of the user's photo: the wood close round it, lanterns, the bucket and towel.
 	var near := func(kind: String) -> int: return m.props.filter(func(p): return p.kind == kind and Rect2i(0, 0, 20, 14).has_point(Vector2i(p.cell))).size()
-	check(near.call("maple") >= 3 and near.call("shrub") >= 3 and near.call("stone_lantern") >= 3 and near.call("oke") == 1, "maples, shrubs, lanterns and the bucket close round the pool")
+	check(near.call("maple") >= 3 and m.props.filter(func(p): return p.kind == "shrub" and bool(p.get("wild", false))).size() >= 15 and near.call("stone_lantern") >= 3 and near.call("oke") == 1, "maples, wild undergrowth (rough bushes), lanterns and the bucket close round the pool")
 	check(not (VistaRules.apron_trees("kajika_yu") as Dictionary).is_empty(), "a broadleaf wood past the clearing's edges")
 	check(m.props.any(func(p): return p.kind == "bath_hut" and str(p.get("use", "")) == "change"), "the hut to change in")
 	var way: Dictionary = river.door_at(Vector2i(-1, 4))
@@ -886,9 +900,9 @@ func _kajika() -> void:
 	check(g.still_pose() == "bathe" and g.soak_look() == Vector2i.DOWN and is_equal_approx(g.soak_lift(true), float(k.lift)), "sat in the water, turned to the eye")
 	g.stop_soak()
 	g._process(float(k.stand_seconds) + 0.05)
-	g.go_to_map("kajika_yu", Vector2i(16, 8), Vector2i.LEFT)
-	FA.on_action("interact", Vector2i(16, 8), Vector2i.LEFT)
-	check(g.soaking() and g.soak_at == Vector2i(16, 8) and g.soak_facing == Vector2i.LEFT, "in from the east bank too")
+	g.go_to_map("kajika_yu", Vector2i(15, 10), Vector2i.LEFT)
+	FA.on_action("interact", Vector2i(15, 10), Vector2i.LEFT)
+	check(g.soaking() and g.soak_at == Vector2i(15, 10) and g.soak_facing == Vector2i.LEFT, "in from the east bank too")
 	g.stop_soak()
 	g._process(float(k.stand_seconds) + 0.05)
 	check(not g.soaking(), "out again")
