@@ -10,6 +10,21 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-24 — Kajika Gorge: grass and one earth track instead of the gravel strip
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: the wide pale walk in front of the pool should be grass): the gorge map's two
+  rows of gravel are grass now, with one worn earth track (`path`) along row 4 from the east edge
+  to the hut, flat stones (`stone`) on the six cells before the pool where one steps in, and the
+  far bank's gravel strip grass too. The river map keeps its gravel shore path (its own map; the
+  two are never in one frame).
+- Checked: test_maps, test_baths, test_vista, test_view2d, test_puddles, test_wet and test_lang
+  each print `OK (0 failed)`; the full run of the 46 tests/test_*.gd printed no line other than
+  `OK (0 failed)`. Smoke runs (title, `--demo`, town, mine 3, `kajika@pool --flags=kajika_built
+  --time=20:00`): 0 ERROR lines. Frames: `--demo --map=kajika@pool --time=17:00 --weather=sunny
+  --flags=kajika_built` (grass to the bank, the track to the hut, the stones before the pool) and
+  `--map=river@2,4` (the river's path past its west edge unchanged).
+- Left / next: step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-24 — Baths step 4a: Kajika-yu, the rock pool up the gorge
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done: a new outdoor map, Kajika Gorge (data/maps/kajika.json, 20 x 14 at plan [-40, 20], west of

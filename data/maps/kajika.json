@@ -1,5 +1,5 @@
 {
-	"_note": "Kajika Gorge, up the river from the river map (2026-11-24, Baths step 4; docs/DESIGN.md → ที่อาบน้ำ, the user's pick docs/plans/bath_places.webp: 2): on the valley's plan at [-40, 20], west of the river map, the river running on along rows 6-9 (plan rows 26-29) out of the west edge toward its source (data/world.json `waters`). The gravel shore path along the north bank comes in from the river map's west edge (rows 4-5 there, past Mio's landing); that way stays shut until the pool is made (the door's `needs` flag kajika_built: the path ends in a thicket past the river map's edge, `locked` says why). Under the gorge's rock wall (rows 0-1) lies Kajika-yu, a rock pool of hot spring water (`rock_pool`: in from the gravel in front of it, data/baths.json kajika, open 16:00-02:00), a little changing hut beside it (`bath_hut`, \"use\": \"change\": into a towel and back, Game.change_clothes; `towel` allowed on this map, the way out only dressed), a bamboo screen between them, stone lanterns lit at night. The far bank is grass and pines, out of reach. Format: README.md, Maps.",
+	"_note": "Kajika Gorge, up the river from the river map (2026-11-24, Baths step 4; docs/DESIGN.md → ที่อาบน้ำ, the user's pick docs/plans/bath_places.webp: 2): on the valley's plan at [-40, 20], west of the river map, the river running on along rows 6-9 (plan rows 26-29) out of the west edge toward its source (data/world.json `waters`). The shore path comes in from the river map's west edge (rows 4-5 there, past Mio's landing) and runs on here as one worn earth track along row 4 through the grass to the hut and the flat stones before the pool (the user found a wide gravel strip read as concrete, 2026-11-24); that way stays shut until the pool is made (the door's `needs` flag kajika_built: the path ends in a thicket past the river map's edge, `locked` says why). Under the gorge's rock wall (rows 0-1) lies Kajika-yu, a rock pool of hot spring water (`rock_pool`: in from the flat stones in front of it, data/baths.json kajika, open 16:00-02:00), a little changing hut beside it (`bath_hut`, \"use\": \"change\": into a towel and back, Game.change_clothes; `towel` allowed on this map, the way out only dressed), a bamboo screen between them, stone lanterns lit at night. The far bank is grass and pines, out of reach. Format: README.md, Maps.",
 	"id": "kajika",
 	"name": "Kajika Gorge",
 	"size": [20, 14],
@@ -9,21 +9,22 @@
 	"legend": {
 		"#": {"tile": "rock_wall", "solid": true},
 		"g": {"tile": "grass"},
-		"s": {"tile": "gravel"},
+		"r": {"tile": "path"},
+		"k": {"tile": "stone"},
 		"w": {"tile": "water", "solid": true}
 	},
 	"ground": [
 		"####################",
 		"####################",
-		"gg#ggsssssssggggg#gg",
-		"gggggsssssssgggggggg",
-		"gggsssssssssssssssss",
-		"gggsssssssssssssssss",
+		"gg#gggggggggggggg#gg",
+		"gggggggggggggggggggg",
+		"gggggkkkkkkkrrrrrrrr",
+		"gggggggggggggggggggg",
 		"wwwwwwwwwwwwwwwwwwww",
 		"wwwwwwwwwwwwwwwwwwww",
 		"wwwwwwwwwwwwwwwwwwww",
 		"wwwwwwwwwwwwwwwwwwww",
-		"ssssssssssssssssssss",
+		"gggggggggggggggggggg",
 		"gggggggggggggggggggg",
 		"gggggggggggggggggggg",
 		"gggggggggggggggggggg"
