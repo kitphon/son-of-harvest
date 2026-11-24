@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-24 — Baths step 4a: Kajika-yu, the rock pool up the gorge
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done: a new outdoor map, Kajika Gorge (data/maps/kajika.json, 20 x 14 at plan [-40, 20], west of
+  the river map; data/world.json: the river runs on through it and `kajika:west` goes up). The
+  gorge's rock wall along the top, under it Kajika-yu: a rock pool of hot spring water (BathProps
+  `rock_pool`: low stones along the front to step over, big ones at the back, a bamboo pipe
+  pouring in, fuller steam; BathLook in the flat view), a cedar changing hut with a bark hip roof
+  and a noren (`bath_hut`, "use": "change"), a bamboo screen between them, two stone lanterns. Its
+  data in data/baths.json `kajika`: open 16:00-02:00 (Game.bath_open, the close past midnight on
+  the same game day), only in a towel (`towel`, changed into at the hut; the map's `towel`
+  allowed, the way back down `dressed`), the day's first soak fills stamina (`stamina_full`) and
+  takes 30 fatigue off over 90 minutes, sharing bathed_today with the sento. The way in: a door
+  off the river map's west edge with `needs` kajika_built (MapData doors' `needs` / `locked`,
+  Game.door_unlocked): shut with a message about the fallen rock until then, and the shore path
+  still ends in a thicket past the edge (FarmWorld.add_surroundings skips a locked door). Balance
+  (ours, from DESIGN): free but far and gated, so the most rest of the three, still short of a
+  night's sleep (-42).
+- Checked: all tests/test_*.gd print `OK (0 failed)` (test_baths `_kajika`: the data, the plan,
+  the locked and opened way, shut at 12:00, dressed refused, the hut's towel, in at 20:00 with
+  stamina full / -30 / 90 owed, facing the river, a second bath only rests, out only dressed, the
+  3D build's steam; test_maps: the plan's ten maps, the river's path a thicket until built and
+  running on after). Frames: `--demo --map=kajika@pool --time=17:00 --weather=sunny
+  --flags=kajika_built` (the pool, hut, screen and lantern under the cliff, the camera tilted up
+  to Ogura), `--season=winter --snow=60 --time=21:00 --towel --soak` (sat in the water, snow on
+  the stones, the lantern lit), the flat view at `kajika@hut` (the hint "Change").
+- Left / next: step 4b, Mio's event about the warm water in the gorge and Hachiro's job building
+  the pool, which sets kajika_built; the user's look at the gorge. No villager bathes there yet.
+
 ## 2026-11-24 — Baths: bathers no longer stand still by the farmer in the tub
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: a bather getting out walked 3-5 steps, stood about ten seconds, then left):

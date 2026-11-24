@@ -896,6 +896,9 @@ func use_door(door: Dictionary) -> void:
 	if door.get("dressed", false) and in_towel:   # the lobby's: dressed first
 		message.emit(str(baths.get("changing", {}).get("dress_first", "")))
 		return
+	if not door_unlocked(door):   # a way not yet made (the gorge path before Kajika-yu is built)
+		message.emit(str(door.get("locked", "")))
+		return
 	if not MapData.door_open(door, day_minutes()):
 		message.emit(door.closed)
 		return
@@ -904,6 +907,12 @@ func use_door(door: Dictionary) -> void:
 		ask_mine_lift()
 		return
 	go_to_map(door.to, door.spawn, door.facing)
+
+
+## Is door `door` open by the story: no `needs` flag, or that flag set (MapData doors).
+func door_unlocked(door: Dictionary) -> bool:
+	var need := str(door.get("needs", ""))
+	return need == "" or EventRunner.is_set(flags, need)
 
 
 ## The view finished the change: the farmer is on the map and can see it.
@@ -2177,6 +2186,14 @@ func soak(origin := Vector2i(-1, -1), facing := Vector2i.ZERO) -> Dictionary:
 		var taken := String(soak_cfg.get("taken_message", ""))   # a villager sat in the tub there already
 		message.emit(taken)
 		return {"ok": false, "note": taken}
+	if origin != Vector2i(-1, -1) and not soaking() and not bath_open(soak_cfg):   # Kajika-yu's hours (data/baths.json `hours`)
+		var shut := String(soak_cfg.get("closed_message", ""))
+		message.emit(shut)
+		return {"ok": false, "note": shut}
+	if origin != Vector2i(-1, -1) and not soaking() and bool(soak_cfg.get("towel", false)) and not wearing_towel():   # undressed at the hut first
+		var dress := String(soak_cfg.get("towel_message", ""))
+		message.emit(dress)
+		return {"ok": false, "note": dress}
 	if holding() or soaking():
 		var no := String(soak_cfg.get("hands_message", "")) if holding() else ""
 		if no != "":
@@ -2197,13 +2214,23 @@ func soak(origin := Vector2i(-1, -1), facing := Vector2i.ZERO) -> Dictionary:
 		else:
 			soaked_today = true
 		soak_owed = int(soak_cfg.get("minutes", 0))   # a bath's hour: run while sat (soak_clock), the rest on getting out
-		stamina = clampi(stamina + int(soak_cfg.get("stamina", 0)), 0, max_stamina)
+		stamina = max_stamina if bool(soak_cfg.get("stamina_full", false)) else clampi(stamina + int(soak_cfg.get("stamina", 0)), 0, max_stamina)
 		add_fatigue(int(soak_cfg.get("fatigue", 0)))
 		_shown_state = body_state()   # feeling better: a later tired state is told again
 		note = String(soak_cfg.get("message", ""))
 	changed.emit()
 	message.emit(note)
 	return {"ok": true, "note": note}
+
+
+## Is bath `cfg` open at the clock now: no `hours`, or inside ["H:MM", "H:MM"] (the second may be
+## after midnight, a minute of the same game day: Kajika-yu 16:00-02:00)?
+func bath_open(cfg: Dictionary, t := -1.0) -> bool:
+	var hours = cfg.get("hours")
+	if not hours is Array or hours.size() != 2:
+		return true
+	var now := day_minutes() if t < 0.0 else t
+	return now >= DayPlan.minute_of(hours[0]) and now < DayPlan.minute_of(hours[1])
 
 
 ## Is the farmer at the footbath (sitting down, sat or getting up: kept still all the while)?

@@ -607,6 +607,8 @@ func add_surroundings(w: int, h: int, kind_at: Callable, hold_at: Callable, map_
 	var md: MapData = MapManager.data(map_id) if map_id != "" else null
 	if md != null:   # the doors' cells: a path at the edge by one runs on to the next map, others end
 		for door: Dictionary in md.doors:
+			if not Game.door_unlocked(door):
+				continue   # a way not yet made ends in a thicket like any other path at an edge
 			for c in door.cells:
 				surroundings.ways[Vector2i(c)] = true
 	# The far country's rim and low ridges suit the play camera looking down; where the mountains

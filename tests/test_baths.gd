@@ -13,7 +13,11 @@ extends SceneTree
 ## hint, the 3D build (BathProps: every kind, the water at WATER, the steam) and the flat view
 ## (BathLook, MapView.COLORS), and the villagers' evening baths (Baths step 3: the {"bathe": minutes}
 ## step, Villagers.bath_place in the tub's water turned to the room, the towel on the bath's map, the
-## nights each comes, a taken seat refused, their bath lines in Thai, the 3D sprite at the water). Run:
+## nights each comes, a taken seat refused, their bath lines in Thai, the 3D sprite at the water), and
+## Kajika-yu up the gorge (Baths step 4: data/maps/kajika.json west of the river map on the plan, the
+## way in shut until kajika_built (a door's `needs`), the rock pool's hours 16:00-02:00, only in a
+## towel from the hut, stamina full and -30 for 90 minutes, the day's bath shared with the sento, the
+## way out only dressed, the 3D pool, hut and screen and the pool's steam). Run:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/test_baths.gd
 
 var failures := 0
@@ -25,6 +29,7 @@ var MV: GDScript
 var BP: GDScript
 var FG: GDScript
 var PA: GDScript
+const GORGE_KINDS := ["rock_pool", "bath_hut", "bamboo_screen"]   # Kajika-yu's, up the gorge (_kajika)
 
 
 func _initialize() -> void:
@@ -51,6 +56,7 @@ func _run() -> void:
 	_pose()
 	_views()
 	_bathers()
+	_kajika()
 	print("test_baths: %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
 
@@ -124,7 +130,8 @@ func _map() -> void:
 	for p in m.props + c.props + b.props:
 		kinds[str(p.kind)] = p
 	for k in BP.KINDS:
-		check(kinds.has(k), "the bath has its %s" % k)
+		if not k in GORGE_KINDS:
+			check(kinds.has(k), "the bath has its %s" % k)
 	for k in ["yubune", "kran", "bath_mural"]:
 		check(b.props.any(func(p): return p.kind == k), "%s in the bath" % k)
 	check(m.props.any(func(p): return p.kind == "counter" and str(p.get("shop", "")) == "sento"), "the counter in the lobby, the sento's shop")
@@ -795,3 +802,90 @@ func _bathers() -> void:
 	vs.queue_free()
 	g.new_game()
 	g.clock_running = false
+
+
+## Kajika-yu, the rock pool up the gorge (Baths step 4).
+func _kajika() -> void:
+	var said: Array[String] = []
+	var hear := func(t: String): said.append(t)
+	g.message.connect(hear)
+	var k: Dictionary = g.baths.get("kajika", {})
+	check(str(k.get("day", "")) == "bath" and int(k.get("minutes", 0)) == 90 and bool(k.get("stamina_full", false)) and int(k.get("fatigue", 0)) == -30, "Kajika-yu: the baths' day, 1.5 h, stamina full, -30 (DESIGN)")
+	check(int(k.fatigue) > -42 and int(k.fatigue) < int(_sento().fatigue), "more than the sento, never a night's sleep")
+	check(is_equal_approx(float(k.lift), BP.POOL_WATER), "sat at the pool's water (%.2f)" % float(k.lift))
+	check(k.get("hours") == ["16:00", "02:00"] and bool(k.get("towel", false)), "open 16:00-02:00, in a towel")
+	check(not g.bath_open(k, 15 * 60 + 59.0) and g.bath_open(k, 16 * 60.0) and g.bath_open(k, 25 * 60 + 59.0) and not g.bath_open(k, 26 * 60.0), "its hours run on past midnight to 02:00")
+	var m: MapData = MapManager.data("kajika")
+	var river: MapData = MapManager.data("river")
+	check(m != null and not m.indoor and m.towel == "allowed", "the gorge map outdoors, a towel allowed")
+	check(WorldPlan.places().get("kajika") == Vector2i(-40, 20), "on the plan at [-40, 20], west of the river map")
+	var pool := m.props.filter(func(p): return p.kind == "rock_pool")
+	check(pool.size() == 1 and str(pool[0].get("use", "")) == "soak" and str(pool[0].get("bath", "")) == "kajika", "the rock pool, a soak of its own")
+	check(m.props.any(func(p): return p.kind == "bath_hut" and str(p.get("use", "")) == "change"), "the hut to change in")
+	var way: Dictionary = river.door_at(Vector2i(-1, 4))
+	check(way.get("to", "") == "kajika" and str(way.get("needs", "")) == "kajika_built" and str(way.get("locked", "")) != "", "the shore path up the gorge needs the pool built")
+	var back: Dictionary = m.door_at(Vector2i(20, 4))
+	check(back.get("to", "") == "river" and bool(back.get("dressed", false)), "the way back only dressed")
+	# Shut until it is built, then through.
+	g.flags.erase("kajika_built")
+	g.go_to_map("river", Vector2i(0, 4), Vector2i.LEFT)
+	g.use_door(way)
+	check(g.maps.id == "river" and said.back() == str(way.locked), "shut before the pool is made, and says why")
+	check(not g.door_unlocked(way), "locked by the story")
+	g.flags["kajika_built"] = true
+	g.use_door(way)
+	check(g.maps.id == "kajika" and Vector2i(g.maps.pos / 16.0) == Vector2i(19, 4), "built: up the gorge (%s)" % g.maps.pos)
+	# The pool: shut by day, in a towel only, then the rest.
+	var seat := Vector2i(8, 4)
+	g.bathed_today = false
+	g.hour = 12
+	g.minute = 0
+	g.go_to_map("kajika", seat, Vector2i.UP)
+	FA.on_action("interact", seat, Vector2i.UP)
+	check(not g.soaking() and said.back() == str(k.closed_message), "shut at midday")
+	g.hour = 20
+	FA.on_action("interact", seat, Vector2i.UP)
+	check(not g.soaking() and said.back() == str(k.towel_message) and not g.bathed_today, "dressed: change at the hut first")
+	g.go_to_map("kajika", Vector2i(14, 4), Vector2i.UP)
+	FA.on_action("interact", Vector2i(14, 4), Vector2i.UP)
+	check(g.in_towel and g.wearing_towel(), "the hut: into a towel")
+	g.use_door(back)
+	check(g.maps.id == "kajika", "not out in a towel")
+	g.go_to_map("kajika", seat, Vector2i.UP)
+	check(g.in_towel, "a towel kept on the gorge map")
+	g.stamina = 10
+	g.fatigue = 60
+	FA.on_action("interact", seat, Vector2i.UP)
+	check(g.soaking() and g.bathed_today and g.stamina == g.max_stamina and g.fatigue == 30 and g.soak_owed == 90, "in: stamina full, -30, 90 minutes owed (%d / %d)" % [g.stamina, g.fatigue])
+	check(said.back() == str(k.message), "says the pool")
+	g._process(float(k.sit_seconds) + 0.05)
+	check(g.still_pose() == "bathe" and g.soak_look() == Vector2i.DOWN and is_equal_approx(g.soak_lift(true), float(k.lift)), "sat in the water, facing the river")
+	g.stop_soak()
+	g._process(float(k.stand_seconds) + 0.05)
+	check(not g.soaking(), "out again")
+	# The day's bath is shared with the sento's.
+	g.go_to_map("kajika", seat, Vector2i.UP)
+	var st: int = g.stamina
+	g.stamina = 10
+	FA.on_action("interact", seat, Vector2i.UP)
+	check(g.soaking() and g.stamina == 10 and said.back() == str(k.again_message), "a second bath the same day only rests")
+	g.stop_soak()
+	g._process(float(k.stand_seconds) + 0.05)
+	g.stamina = st
+	g.go_to_map("kajika", Vector2i(14, 4), Vector2i.UP)
+	FA.on_action("interact", Vector2i(14, 4), Vector2i.UP)
+	check(not g.in_towel, "dressed again at the hut")
+	g.use_door(back)
+	check(g.maps.id == "river", "dressed: back down to the river")
+	g.flags.erase("kajika_built")
+	g.message.disconnect(hear)
+	# 3D: every kind built, the pool's steam over its water.
+	var world: Node3D = load("res://scripts/world3d/map_world.gd").new()
+	root.add_child(world)
+	world.build(m)
+	var steam := world.get_children().filter(func(n): return str(n.name).begins_with("BathSteam"))
+	var r := Rect2(Vector2(pool[0].cell), Vector2(pool[0].size))
+	check(steam.size() == BP.STEAM_PUFFS and steam.all(func(n): return n.position.y > BP.POOL_WATER and r.has_point(Vector2(n.position.x, n.position.z))), "steam off the pool (%d)" % steam.size())
+	world.queue_free()
+	for kind in GORGE_KINDS:
+		check(MV.COLORS.has(kind) and kind in BP.KINDS, "%s drawn in both views" % kind)

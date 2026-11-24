@@ -1,0 +1,59 @@
+{
+	"_note": "Kajika Gorge, up the river from the river map (2026-11-24, Baths step 4; docs/DESIGN.md → ที่อาบน้ำ, the user's pick docs/plans/bath_places.webp: 2): on the valley's plan at [-40, 20], west of the river map, the river running on along rows 6-9 (plan rows 26-29) out of the west edge toward its source (data/world.json `waters`). The gravel shore path along the north bank comes in from the river map's west edge (rows 4-5 there, past Mio's landing); that way stays shut until the pool is made (the door's `needs` flag kajika_built: the path ends in a thicket past the river map's edge, `locked` says why). Under the gorge's rock wall (rows 0-1) lies Kajika-yu, a rock pool of hot spring water (`rock_pool`: in from the gravel in front of it, data/baths.json kajika, open 16:00-02:00), a little changing hut beside it (`bath_hut`, \"use\": \"change\": into a towel and back, Game.change_clothes; `towel` allowed on this map, the way out only dressed), a bamboo screen between them, stone lanterns lit at night. The far bank is grass and pines, out of reach. Format: README.md, Maps.",
+	"id": "kajika",
+	"name": "Kajika Gorge",
+	"size": [20, 14],
+	"indoor": false,
+	"towel": "allowed",
+	"ambient": "outdoor",
+	"legend": {
+		"#": {"tile": "rock_wall", "solid": true},
+		"g": {"tile": "grass"},
+		"s": {"tile": "gravel"},
+		"w": {"tile": "water", "solid": true}
+	},
+	"ground": [
+		"####################",
+		"####################",
+		"gg#ggsssssssggggg#gg",
+		"gggggsssssssgggggggg",
+		"gggsssssssssssssssss",
+		"gggsssssssssssssssss",
+		"wwwwwwwwwwwwwwwwwwww",
+		"wwwwwwwwwwwwwwwwwwww",
+		"wwwwwwwwwwwwwwwwwwww",
+		"wwwwwwwwwwwwwwwwwwww",
+		"ssssssssssssssssssss",
+		"gggggggggggggggggggg",
+		"gggggggggggggggggggg",
+		"gggggggggggggggggggg"
+	],
+	"props": [
+		{"kind": "rock_pool", "cell": [6, 2], "size": [6, 2], "use": "soak", "bath": "kajika", "seats": "front"},
+		{"kind": "bamboo_screen", "cell": [12, 2], "size": [1, 2]},
+		{"kind": "bath_hut", "cell": [13, 2], "size": [3, 2], "use": "change"},
+		{"kind": "stone_lantern", "cell": [5, 3]},
+		{"kind": "stone_lantern", "cell": [16, 3]},
+		{"kind": "pine", "cell": [0, 2]},
+		{"kind": "maple", "cell": [3, 3]},
+		{"kind": "pine", "cell": [18, 2]},
+		{"kind": "river_rock", "cell": [4, 8]},
+		{"kind": "river_rock", "cell": [14, 7]},
+		{"kind": "pine", "cell": [2, 12]},
+		{"kind": "pine", "cell": [7, 11]},
+		{"kind": "maple", "cell": [11, 12]},
+		{"kind": "pine", "cell": [15, 11]},
+		{"kind": "pine", "cell": [18, 12]}
+	],
+	"doors": [
+		{"cells": [[20, 4], [20, 5]], "to": "river", "spawn": [0, 4], "facing": "right", "dressed": true}
+	],
+	"zones": [
+		{"id": "kajika", "name": "Kajika-yu", "cell": [5, 2], "size": [12, 3]}
+	],
+	"spawns": {
+		"start": [[18, 4], "left"],
+		"pool": [[8, 4], "up"],
+		"hut": [[14, 4], "up"]
+	}
+}

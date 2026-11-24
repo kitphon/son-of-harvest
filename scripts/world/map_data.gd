@@ -9,7 +9,9 @@ extends RefCounted
 ## Walking into one, or using it, goes to `to` at `spawn` facing `facing`; a door without `to`
 ## only shows its `message` (a locked house). A door with `shop` (data/shops.json) is shut
 ## outside that shop's hours; one with `hours` ["H:MM", "H:MM"] (a villager's home) is open
-## from the first time until the second and shows its `closed` message otherwise.
+## from the first time until the second and shows its `closed` message otherwise. One with
+## `needs` (a story flag) stays shut until that flag is set and shows its `locked` message (the
+## way up the gorge to Kajika-yu before the pool is built); Game.door_unlocked tells.
 
 const FACINGS := {"up": Vector2i.UP, "down": Vector2i.DOWN, "left": Vector2i.LEFT, "right": Vector2i.RIGHT}
 
@@ -34,7 +36,7 @@ var steps: Array[String] = []          # w * h footstep kinds ("" = by the groun
 var looks: Array[String] = []          # w * h a tile's own look ("" = the plain one; "jade": the temple pond's green water)
 var _solid: Array[bool] = []
 var props: Array[Dictionary] = []      # {kind, cell, size, use, ...the rest from the file}
-var doors: Array[Dictionary] = []      # {cells: Array[Vector2i], to, spawn, facing, message, gate, shop, hours?, closed?}
+var doors: Array[Dictionary] = []      # {cells: Array[Vector2i], to, spawn, facing, message, gate, shop, needs, locked, hours?, closed?}
 var spawns: Dictionary = {}            # name -> [cell, facing]
 var zones: Array[Dictionary] = []      # {id, name, rect: Rect2i}: named places on the map (PlaceName shows the name on entering)
 
@@ -126,7 +128,10 @@ func _read(d: Variant) -> String:
 		if cells.is_empty():
 			return "a door has no cells"
 		var out := {"cells": cells, "to": str(door.get("to", "")), "message": str(door.get("message", "")),
-			"gate": bool(door.get("gate", false)), "shop": str(door.get("shop", "")), "towel": bool(door.get("towel", false)), "dressed": bool(door.get("dressed", false)), "fee": str(door.get("fee", ""))}
+			"gate": bool(door.get("gate", false)), "shop": str(door.get("shop", "")), "towel": bool(door.get("towel", false)), "dressed": bool(door.get("dressed", false)), "fee": str(door.get("fee", "")),
+			"needs": str(door.get("needs", "")), "locked": str(door.get("locked", ""))}
+		if out.needs != "" and out.locked == "":
+			return "door to %s needs a locked message with its needs flag" % out.to
 		if out.to != "":
 			out.spawn = _cell(door.get("spawn"))
 			out.facing = FACINGS.get(door.get("facing", "down"))

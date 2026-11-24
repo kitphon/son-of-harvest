@@ -254,6 +254,8 @@ func _prop(p: Dictionary) -> void:
 		FootBath.steam(self, Rect2(Vector2(p.cell), Vector2(p.size)))
 	if str(p.kind) == "yubune":   # and the bath's, over its water
 		BathProps.steam(self, Rect2(Vector2(p.cell), Vector2(p.size)))
+	if str(p.kind) == "rock_pool":   # and Kajika-yu's, out in the cold air: fuller
+		BathProps.steam(self, Rect2(Vector2(p.cell), Vector2(p.size)), BathProps.POOL_WATER, 1.1)
 
 
 func _make_prop(p: Dictionary) -> void:
@@ -263,7 +265,7 @@ func _make_prop(p: Dictionary) -> void:
 		RoomProps.prop(self, p, mid, r)
 		return
 	if str(p.kind) in BathProps.KINDS:   # the public bath's inside (data/maps/sento.json)
-		BathProps.prop(self, p, mid, r)
+		BathProps.prop(self, p, mid, r, SnowLayer.map_has_snow(map))
 		return
 	match str(p.kind):
 		"village_house": _village_house(r, int(p.get("door", 1)), bool(p.get("noren", false)), int(p.get("side_door", -1)), LitSpots.village_style(p))

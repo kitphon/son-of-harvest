@@ -1315,9 +1315,11 @@ func _homes(t: MapData) -> void:
 ## (Surroundings.dead_ends; the user saw the river map's shore path run on and stop dead,
 ## 2026-11-20); one with a door past it runs on to the next map.
 func _dead_ends(Surroundings: GDScript) -> void:
-	var ways_of := func(m: MapData) -> Dictionary:
+	var ways_of := func(m: MapData, built := false) -> Dictionary:
 		var ways := {}
 		for d in m.doors:
+			if str(d.get("needs", "")) != "" and not built:
+				continue   # a way not yet made (the gorge path before Kajika-yu: FarmWorld.add_surroundings)
 			for c in d.cells:
 				ways[Vector2i(c)] = true
 		return ways
@@ -1337,6 +1339,12 @@ func _dead_ends(Surroundings: GDScript) -> void:
 	check(ok, "a thicket closing it (%d cells), off the map, behind it, never on the water" % t.size())
 	check([3, 4, 5].all(func(y: int) -> bool: return range(-taper - 3, -taper + 3).any(func(x: int) -> bool: return t.has(Vector2i(x, y)))), "across the path's rows and beside them, where it ends")
 	check(not g.has(Vector2i(river.w, 4)) and not g.has(Vector2i(river.w + 5, 5)), "the path east to the village (its door) runs on")
+	var built: Dictionary = Surroundings.dead_ends(rk, river.w, river.h, ways_of.call(river, true)).grass
+	check([4, 5].all(func(y: int) -> bool: return range(-Surroundings.MARGIN, 0).all(func(x: int) -> bool: return not built.has(Vector2i(x, y)))), "the pool built: the shore path runs on west up the gorge")
+	var gorge := MapManager.data("kajika")
+	var gk := func(c: Vector2i) -> String: return gorge.tile(c)
+	var up: Dictionary = Surroundings.dead_ends(gk, gorge.w, gorge.h, ways_of.call(gorge)).grass
+	check([4, 5].all(func(y: int) -> bool: return not up.has(Vector2i(gorge.w + 2, y))), "the gorge's shore path runs on east down to the river map")
 	for id in ["town", "farm", "kaminoda", "hill", "sakurazaka", "minamino", "yumachi"]:
 		var m := MapManager.data(id)
 		var mk := func(c: Vector2i) -> String: return m.tile(c)
@@ -4898,7 +4906,7 @@ func _yumachi() -> void:
 
 func _world() -> void:
 	var plan: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/world.json")).maps
-	check(plan.size() == 9 and plan.has("town") and Vector2i(plan.town[0], plan.town[1]) == Vector2i.ZERO, "the plan has the village at its middle and its eight neighbours")
+	check(plan.size() == 10 and plan.has("town") and Vector2i(plan.town[0], plan.town[1]) == Vector2i.ZERO, "the plan has the village at its middle and the nine maps round it")
 	var at := func(id: String) -> Vector2i: return Vector2i(int(plan[id][0]), int(plan[id][1]))
 	var ids: Array = plan.keys()
 	for i in ids.size():
