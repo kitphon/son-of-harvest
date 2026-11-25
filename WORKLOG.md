@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-25 — Kajika-yu: the soak camera follows the drawn bather
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user, after playing: in from the north shore by the pavilion, the bather's face sat
+  under the HUD's tool box all the time, even after wading away from that edge): the bather is
+  drawn a seat's length out from the bank cell they got in from (soak_facing x soak_seat) while
+  the camera followed the bank cell, so from the north shore (facing down, toward the eye) the
+  figure sat about a cell nearer and to the left of the view's spot, under the HUD's boxes, and
+  wading kept that offset. In a bath with `wade` the 3D camera now follows the figure (seat and
+  wade added: Main3D._follow), so the soak view's `shift` puts them in the same place on screen
+  from every edge. The footbath's camera is as before.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)`. Smoke runs (title, `--demo`, town,
+  mine 3, `kajika_yu@8,3 --flags=kajika_built --time=20:00 --towel --soak`, `kajika@start`): 0
+  ERROR lines; windowed `--quit-after 150` sat in the pool from the north shore: exit 0. Frames
+  at summer 17:00 sat from the south spawn and from `kajika_yu@8,3` (the north shore, facing
+  down): the bather lower middle, clear of the tool box, in both.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-25 — Kajika-yu: rings and a slosh while wading; the creek, forest birds, cicadas
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's two asks):

@@ -548,6 +548,8 @@ func _follow() -> void:
 	var seat := Vector2(Game.soak_facing) * Game.soak_seat(back)   # at the footbath: at its edge, the feet down in the water (from behind: on the rim); in a bath out in its water
 	sprite.position = feet + Vector3(seat.x + Game.wade.x, Game.soak_lift(back), seat.y + Game.wade.y)   # moved about in the water too (Game.wade)
 	feet += Vector3(Game.wade.x, 0, Game.wade.y)   # the camera follows them about the pool
+	if Game.soaking() and float(Game.soak_cfg.get("wade", 0.0)) > 0.0:
+		feet += Vector3(seat.x, 0, seat.y)   # out in the pool the camera follows the figure, not the bank's cell: else from the far shore the seat put them under the HUD's boxes (the user, 2026-11-25)
 	sprite.texture = PlaceholderArt.tex(anim.key(player.facing))
 	sprite.flip_h = FarmerAnim.is_mirrored(player.facing)
 	var tc := player.target_cell()
