@@ -142,6 +142,8 @@ func _enter_map() -> void:
 	if CicadaRules.outdoors(m):
 		view.add_child(CicadaView.new().setup(m, player))   # cicadas on the trees' trunks in summer
 	view.add_child(FerryView.new(m))   # Mio's ferry boat, moving when she takes it across
+	if not m.shade.is_empty():
+		view.add_child(DappleView.new().setup(m))   # sunlight through the leaves on a shaded map (Kajika-yu), under the figures
 	view.add_child(MistView.new().setup(m, Game.farm if Game.maps.on_farm() else null))   # morning mist over the water, paddies and the ferry boat, under the figures
 	view.add_child(DyeClothView.new(m))   # Shino's indigo drying by her vats, in her hours on dry days
 	view.add_child(KoinoboriView.new(m))   # the village's carp streamers in late spring (data/koinobori.json)
@@ -206,7 +208,7 @@ func _on_day_started() -> void:
 func _update_tint() -> void:
 	var m := Game.maps.current()
 	var f := Game.maps.mine_floor
-	tint.color = Color.WHITE if f != null else (m.light if m.light != null else Game.light_color())
+	tint.color = Color.WHITE if f != null else (m.light if m.light != null else Game.light_color() * Game.shade_tint())   # under a wood's canopy, greener and dimmer (MapData.shade)
 	mine_light.visible = f != null
 	if f != null:
 		mine_light.color = f.light

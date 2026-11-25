@@ -25,6 +25,10 @@ var clock := false         # indoors, yet the clock runs (the sento's maps: the 
 var towel := ""            # the bathing towel here (Game.in_towel): "always" (the sento's bath), "allowed" (its changing room), "" not
 var sheltered := false     # under a roof of rock (the mine): no weather, but the clock runs
 var cliff := ""            # "gorge": the rock_wall cells stand as one natural cliff in 3D (GorgeCliff), not a block a cell
+## Under a wood's canopy (Kajika-yu): `sun` the sun's share of its light (0..1), `tint` the colour the
+## whole picture is multiplied by (Game.shade_tint), `dapple` / `dapple_color` the leaf shadows
+## (DappleRules). {} for open sky.
+var shade: Dictionary = {}
 var ambient := "outdoor"   # which ambient rules apply (data/sfx.json "places")
 var light = null           # a fixed Color for the room, or null for the day / night light
 var background := Color("8fc6e8")
@@ -76,6 +80,8 @@ func _read(d: Variant) -> String:
 		return "towel must be \"allowed\" or \"always\""
 	sheltered = bool(d.get("sheltered", indoor))
 	cliff = str(d.get("cliff", ""))
+	if d.get("shade") is Dictionary:
+		shade = d.shade
 	if not cliff in ["", "gorge"]:
 		return "cliff must be \"gorge\""
 	ambient = str(d.get("ambient", "indoor" if indoor else "outdoor"))

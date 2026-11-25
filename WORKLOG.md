@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-25 — Kajika-yu shadier: the wood's shade, dappled light, leaves framing the view
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user asked how to make it shadier and picked the shade light and the overhanging
+  leaves): a map can lie under a wood's canopy (MapData.shade, data/maps/kajika_yu.json: `sun`
+  0.65, `tint` dfe9d6, `dapple` 0.8, `dapple_color` 94aa80). Game.shade_tint multiplies both views'
+  day / night tint there and Game.shade_sun dims the 3D sun (outdoors only). Sunlight through the
+  leaves (komorebi): DappleRules (pure: the strength by the map's `dapple` times Game.sun_shadow,
+  so none at night, in rain or under cloud; the pattern of leaf shadows with flecks of sun), laid in
+  3D as one multiplying sheet over the ground and sunk water (DappleLayer, its own shader with the
+  same pattern, drifting faster in wind; props and figures in front keep their light) and drawn
+  flat in 4-pixel blocks under the figures (DappleView, main_2d). Two more big maples (1.75) on the
+  pool's back shore reach over the water. Sat in it, dark leaves hang over the top corners of the
+  view (data/vista.json kajika_soak `canopy`; Main3D._show_canopy fades them with the view and
+  darkens them with the day / night light; PlaceholderArt canopy:<season>, 240 x 48 drawn over
+  480 x 96 so they read as close: spring green with a little pink, summer deep green, fall red and
+  orange, winter bare branches with snow; the middle of the top clear so the changing house shows).
+  They sit on a canvas layer of their own: under the tint's layer NightLights redraws the screen
+  and they were lost; and a first lighter, wider band read as part of the wood behind.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the shade data, a greener
+  dimmer light there and the plain light in the village, the dapples by day and none at night or
+  under open sky, flecks of sun among the shadows, the canopy view, each season's leaves in the
+  corners with the middle clear, the DappleLayer in the 3D build). Smoke runs (title, `--demo`,
+  town, mine 3, `kajika_yu@pool --flags=kajika_built --time=20:00 --towel --soak`, `kajika@start`):
+  0 ERROR lines; windowed `--quit-after 150` in the clearing: exit 0. Frames: summer 14:00 sat in
+  it and walking (the dapples on the path and the water), fall 15:00 sat in it (red leaves in the
+  corners), winter 21:00 with snow (no dapples, the leaves dark), the flat view at 13:00.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-25 — Kajika-yu: no tree's leaves through the changing house's roof
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: the leaves of the trees beside the changing house went through its roof): the

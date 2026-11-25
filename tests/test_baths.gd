@@ -931,12 +931,40 @@ func _kajika() -> void:
 	check(g.maps.id == "kajika", "dressed: back down to the gorge")
 	g.flags.erase("kajika_built")
 	g.message.disconnect(hear)
+	# Shadier (the user, 2026-11-25): under the wood's canopy the sun dimmed and the picture greener,
+	# the leaves' dappled shadows by day, leaves hanging over the top of the view sat in the water.
+	check(float(m.shade.get("sun", 1.0)) < 1.0 and float(m.shade.get("dapple", 0.0)) > 0.0 and m.shade.has("tint"), "the clearing in the wood's shade")
+	g.go_to_map("kajika_yu", Vector2i(9, 12), Vector2i.UP)
+	g.hour = 14
+	g.minute = 0
+	var tint_here: Color = g.shade_tint()
+	var sun_here: float = g.shade_sun()
+	check(tint_here.get_luminance() < 1.0 and tint_here.g >= tint_here.r and sun_here < 1.0, "a greener, dimmer light there (%s, sun %.2f)" % [tint_here, sun_here])
+	var by_day: float = DappleRules.strength(g, m)
+	g.hour = 22
+	var by_night: float = DappleRules.strength(g, m)
+	g.hour = 14
+	check(by_day > 0.3 and by_night == 0.0, "the leaves' dappled light by day, none at night (%.2f / %.2f)" % [by_day, by_night])
+	check(DappleRules.strength(g, MapManager.data("town")) == 0.0, "none under open sky")
+	var lit := 0
+	for spot in 400:
+		lit += int(DappleRules.light_at(Vector2(spot % 20, spot / 20) + Vector2(0.37, 0.61), 3.0) > 0.5)
+	check(lit > 40 and lit < 360, "flecks of sun among the leaves' shadow (%d of 400 lit)" % lit)
+	g.go_to_map("town", Vector2i(41, 40), Vector2i.UP)
+	check(g.shade_tint() == Color.WHITE and is_equal_approx(g.shade_sun(), 1.0), "the plain light elsewhere")
+	var soak_view: Dictionary = VistaRules.view_at("kajika_yu", Vector2i(9, 12), true)
+	check(bool(soak_view.get("canopy", false)), "sat in the water, leaves hang over the top of the view")
+	for season in ["spring", "summer", "fall", "winter"]:
+		var leaves: Image = PA.image("canopy:" + season)
+		check(leaves.get_size() == Vector2i(240, 48) and leaves.get_pixel(120, 1).a == 0.0 and leaves.get_pixel(2, 2).a > 0.0 and leaves.get_pixel(237, 2).a > 0.0,
+			"%s's leaves in the top corners, the middle clear (the changing house in view)" % season)
 	# 3D: every kind built, the pool's steam over its water.
 	var world: Node3D = load("res://scripts/world3d/map_world.gd").new()
 	root.add_child(world)
 	world.build(m)
 	var steam := world.get_children().filter(func(n): return str(n.name).begins_with("BathSteam"))
 	var hot := (MistRules.scene_of(m).kinds as Array).count("onsen")
+	check(world.get_children().any(func(n): return n is DappleLayer), "the dappled light laid over it in 3D")
 	check(steam.is_empty() and hot >= 70, "its steam the mist's soft sheets over every water cell (%d), no round puffs (%d)" % [hot, steam.size()])
 	world.queue_free()
 	for kind in GORGE_KINDS:

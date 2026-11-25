@@ -1196,6 +1196,21 @@ static func window_glow(light: Color, m: int, rules: Dictionary) -> float:
 	return clampf((1.0 - light.get_luminance() - from) / maxf(full - from, 0.01), 0.0, 1.0)
 
 
+## The current map's own shade under a wood's canopy (MapData.shade `tint`): what the views'
+## day / night tint is multiplied by there (white elsewhere and down the mine).
+func shade_tint() -> Color:
+	var m := maps.current() if maps != null else null
+	if m == null or maps.mine_floor != null or m.shade.is_empty():
+		return Color.WHITE
+	return Color(str(m.shade.get("tint", "ffffff")))
+
+
+## The sun's share of its light on the current map (MapData.shade `sun`, 1 under open sky).
+func shade_sun() -> float:
+	var m := maps.current() if maps != null else null
+	return clampf(float(m.shade.get("sun", 1.0)), 0.0, 1.0) if m != null else 1.0
+
+
 ## How strong the sun's shadows are outdoors, 0..1: full by day, fading out as the daylight
 ## dims (dusk, night) and gone under a clouded sky (data/weather_fx.json "sun", 1 if left out).
 func sun_shadow() -> float:
