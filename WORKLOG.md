@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-25 — Kajika-yu: in only where it is deep, wading about at half the walk
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's two points after playing):
+  - "At some corners of the pool the figure sinks into the bank getting in": a shore spot whose
+    water one cell in lies on the soft shore's sloping bank (a rounded corner) let the bather sit
+    there at the water's depth, inside the bank. Game.soak_spots now keeps a shore spot only when
+    that water is deep (PondShape.sink at its middle >= WADE_DEEP 0.9: Game._deep_seat); 22 ways in
+    are left round the pool.
+  - "Let the figure move in the water, 50% slower than walking": sat in a bath with `wade`
+    (data/baths.json kajika: 0.5 of WALK_SPEED) the move keys wade about (Game.can_wade, wade_by:
+    each axis on its own so they slide along an edge, facing the way they go: soak_look), only to
+    points deep in the pool and clear of the props standing in it by 0.45 cells (Game.wade_ok,
+    over every prop on the cell: prop_at gave the pool's own `onsen` prop, which covers them all,
+    so the boulders were missed at first), drawn at Game.bath_point in both views (Player
+    soak_offset, Main3D's sprite) with the 3D camera following. E gets out at the nearest edge
+    whose seat is within 0.8 cells (Game._wade_to_edge: that spot becomes soak_at, the rest of the
+    way eased off while getting up), else says `edge_message` ("Wade over to the edge to get out.",
+    Thai added) and stays in. `--walk` while sat wades.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: every way in lands in deep
+  water; wading out, 200 pushes every way always deep and clear of rocks, not onto land or into a
+  boulder; E in the middle refused with the message, by the path's end out there, the wade
+  cleared; the east way in now (13, 11) facing up). Smoke runs (title, `--demo`, town, mine 3,
+  `kajika_yu@pool --flags=kajika_built --time=20:00 --towel --soak`, `kajika@start`): 0 ERROR
+  lines; windowed `--quit-after 150` sat in the pool: exit 0. Frames: `--demo --map=kajika_yu@pool
+  --time=17:00 --season=summer --weather=sunny --flags=kajika_built --towel --soak --walk=up:3`
+  in 3D (waded up across the pool, the camera after them, stopped short of the boulders) and flat.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-25 — Kajika-yu: no frame of leaves over the soak view
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user, after playing: the green leaves coming up along the top of the screen in the

@@ -130,9 +130,18 @@ func _physics_process(delta: float) -> void:
 				var step := clampf(Game.soak_t / maxf(float(Game.soak_cfg.get("step_until", 0.3)), 0.01), 0.0, 1.0) if Game.soak_phase == "down" else 1.0
 				position = Game.soak_from.lerp(seat, smoothstep(0.0, 1.0, step)) if Game.soak_from != Vector2.ZERO else seat
 				facing = Game.soak_look()   # in a bath they turn to face the room once in the water
+			if Game.can_wade():   # in a pool to move about in (Kajika-yu): the move keys, slower than walking (data/baths.json `wade`)
+				var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+				if Game.demo_walk_left > 0.0:   # `--walk=<dir>` while sat in the pool: wading that way
+					Game.demo_walk_left -= delta
+					dir = Game.demo_walk
+				if dir != Vector2.ZERO:
+					Game.wade_by(dir * WALK_SPEED * float(Game.soak_cfg.get("wade", 0.5)) * delta / T)
+					facing = Game.soak_look()
 			if Input.is_action_just_pressed("interact") and Game.soak_phase != "up":
 				Game.stop_soak()
-				Sfx.play("soak_out")
+				if Game.soak_phase == "up":
+					Sfx.play("soak_out")
 		return
 	if Game.fishing.active():
 		# The line is out: stand still; either button reels in.
@@ -345,7 +354,7 @@ func _slide(d: Vector2) -> bool:
 func soak_offset() -> Vector2:
 	if not Game.soaking():
 		return Vector2.ZERO
-	return (Vector2(Game.soak_facing) * Game.soak_seat(FarmerAnim.is_back(Game.soak_facing)) * T).round()
+	return ((Vector2(Game.soak_facing) * Game.soak_seat(FarmerAnim.is_back(Game.soak_facing)) + Game.wade) * T).round()   # moved about in the water too
 
 
 ## The water over the sitting farmer's feet at the footbath (flat view): a band of the spring's

@@ -545,7 +545,8 @@ func _follow() -> void:
 	feet.y = Game.maps.deck_at(Vector2(feet.x, feet.z))   # on a bridge's deck, not sunk in its boards
 	var back := FarmerAnim.is_back(Game.soak_facing)
 	var seat := Vector2(Game.soak_facing) * Game.soak_seat(back)   # at the footbath: at its edge, the feet down in the water (from behind: on the rim); in a bath out in its water
-	sprite.position = feet + Vector3(seat.x, Game.soak_lift(back), seat.y)
+	sprite.position = feet + Vector3(seat.x + Game.wade.x, Game.soak_lift(back), seat.y + Game.wade.y)   # moved about in the water too (Game.wade)
+	feet += Vector3(Game.wade.x, 0, Game.wade.y)   # the camera follows them about the pool
 	sprite.texture = PlaceholderArt.tex(anim.key(player.facing))
 	sprite.flip_h = FarmerAnim.is_mirrored(player.facing)
 	var tc := player.target_cell()

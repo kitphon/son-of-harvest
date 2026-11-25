@@ -116,6 +116,8 @@ var soaked_today := false   # the day's first soak at the footbath given (its st
 var bathed_today := false   # the day's first bath given (the sento and the rotenburo share it: data/baths.json `day`); saved, cleared each morning
 var bath_paid_today := false   # the sento's entry paid today (in and out free after; data/shops.json sento entry_fee); saved, cleared each morning
 var in_towel := false   # wrapped in a bathing towel, the clothes in a basket (the sento's changing room: Game.change_clothes); not saved, off on leaving the bath's maps
+var wade := Vector2.ZERO   # how far the bather has moved in the water from where they sat (cells; a bath with `wade`: Kajika-yu); not saved
+var wade_facing := Vector2i.ZERO   # the way they last moved in the water (soak_look), ZERO before they move
 var soak_cfg: Dictionary = {}   # the soak going on now: data/ashiyu.json, or a bath of data/baths.json (Game.soak_config); not saved
 ## The minutes the day's first bath still owes the clock (data/baths.json `minutes`): the clock runs at
 ## its own pace on the bath's maps (MapData `clock`) and while sat in any soak, so the bathers beside the
@@ -2220,6 +2222,8 @@ func soak(origin := Vector2i(-1, -1), facing := Vector2i.ZERO) -> Dictionary:
 	soaking_now = true
 	soak_phase = "down"
 	soak_t = 0.0
+	wade = Vector2.ZERO
+	wade_facing = Vector2i.ZERO
 	soak_from = maps.pos
 	if origin != Vector2i(-1, -1):
 		soak_at = origin
@@ -2260,8 +2264,85 @@ func soaking() -> bool:
 ## stand_seconds, then is free.
 func stop_soak() -> void:
 	if soaking_now and soak_phase != "up":
+		if wade != Vector2.ZERO and not _wade_to_edge():
+			message.emit(str(soak_cfg.get("edge_message", "")))   # out in the middle: wade to an edge first
+			return
 		soak_phase = "up"
 		changed.emit()
+
+
+## Where the bather is in the water now (map cells, a point): the seat they got in at, moved by `wade`.
+func bath_point() -> Vector2:
+	return Vector2(soak_at) + Vector2(0.5, 0.5) + Vector2(soak_facing) * float(soak_cfg.get("seat", 1.0)) + wade
+
+
+## May the bather move about in the water now (sat in a bath with `wade`, not getting in or out)?
+func can_wade() -> bool:
+	return soaking_now and soak_phase == "sit" and float(soak_cfg.get("wade", 0.0)) > 0.0
+
+
+## Moves the bather by `step` (cells) in the water if the point they would reach is deep water clear
+## of the rocks standing in it (wade_ok); each axis on its own, so they slide along an edge. Turns them
+## the way they move. Returns whether they moved.
+func wade_by(step: Vector2) -> bool:
+	if not can_wade() or step == Vector2.ZERO:
+		return false
+	var moved := false
+	for part in [Vector2(step.x, 0), Vector2(0, step.y)]:
+		if part != Vector2.ZERO and wade_ok(bath_point() + part):
+			wade += part
+			moved = true
+	if absf(step.x) > absf(step.y):
+		wade_facing = Vector2i.RIGHT if step.x > 0.0 else Vector2i.LEFT
+	else:
+		wade_facing = Vector2i.DOWN if step.y > 0.0 else Vector2i.UP
+	return moved
+
+
+## Is point `p` (map cells) somewhere a bather may be: deep in a soft pond's water (its own depth
+## there, PondShape.sink: never on the sloping bank, where the figure would sink into it) and clear
+## of the props standing in it (the boulders, the lantern's rock) by WADE_CLEAR.
+const WADE_DEEP := 0.9
+const WADE_CLEAR := 0.45
+func wade_ok(p: Vector2) -> bool:
+	var m := maps.current()
+	var c := Vector2i(floori(p.x), floori(p.y))
+	if m.tile(c) != "water":
+		return false
+	var pond := PondShape.of(m, m.look(c))
+	if pond == null or pond.sink(p) < WADE_DEEP:
+		return false
+	for o in [Vector2(WADE_CLEAR, 0), Vector2(-WADE_CLEAR, 0), Vector2(0, WADE_CLEAR), Vector2(0, -WADE_CLEAR), Vector2.ZERO]:
+		var q: Vector2 = p + o
+		var qc := Vector2i(floori(q.x), floori(q.y))
+		for prop in m.props:   # every prop on that cell (the pool's own `onsen` prop covers them all, so not prop_at)
+			if str(prop.get("use", "")) != "soak" and bool(prop.get("solid", true)) and Rect2i(prop.cell, prop.size).has_point(qc):
+				return false
+	return true
+
+
+## Out at the edge nearest the bather (they moved in the water): the soak spot whose seat is within
+## reach of where they are becomes the one they get out at, `wade` what is left to cover (eased away
+## while getting up). False when no edge is that near.
+const EDGE_REACH := 0.8
+func _wade_to_edge() -> bool:
+	var prop := maps.current().prop_at(soak_at + soak_facing)
+	var here := bath_point()
+	var best := []
+	var best_d := EDGE_REACH
+	for spot in soak_spots(prop, maps.current()):
+		var seat := Vector2(spot[0]) + Vector2(0.5, 0.5) + Vector2(spot[1]) * float(soak_cfg.get("seat", 1.0))
+		var d := seat.distance_to(here)
+		if d <= best_d:
+			best_d = d
+			best = spot
+	if best.is_empty():
+		return false
+	soak_at = best[0]
+	soak_facing = best[1]
+	wade = here - (Vector2(soak_at) + Vector2(0.5, 0.5) + Vector2(soak_facing) * float(soak_cfg.get("seat", 1.0)))
+	wade_facing = Vector2i.ZERO
+	return true
 
 
 ## The bath's hour run out at once: what the clock has not yet run of it (soak_owed) passes now (on
@@ -2289,6 +2370,7 @@ func _soak_step(delta: float) -> void:
 				if sfx != null:
 					sfx.play("soak_in")
 		"up":
+			wade = wade.move_toward(Vector2.ZERO, delta * 3.0)   # to the edge they get out at
 			soak_t = maxf(soak_t - delta / maxf(float(soak_cfg.get("stand_seconds", 0.5)), 0.01), 0.0)
 			if soak_t <= 0.0:
 				_stand_up_now()
@@ -2297,6 +2379,8 @@ func _soak_step(delta: float) -> void:
 
 ## Up from the footbath at once (a map change, the night, a new game).
 func _stand_up_now() -> void:
+	wade = Vector2.ZERO
+	wade_facing = Vector2i.ZERO
 	soaking_now = false
 	soak_phase = ""
 	soak_t = 0.0
@@ -2368,7 +2452,7 @@ static func soak_spots(prop: Dictionary, m: MapData = null) -> Array:
 				for x in range(cell.x, cell.x + size.x):
 					var wc := Vector2i(x, y)
 					var at: Vector2i = wc - d
-					if m.tile(wc) == "water" and m.in_bounds(at) and m.tile(at) != "water" and not m.is_solid(at):
+					if m.tile(wc) == "water" and m.in_bounds(at) and m.tile(at) != "water" and not m.is_solid(at) and _deep_seat(m, wc):
 						out.append([at, d])
 		return out
 	if str(prop.get("seats", "")) == "front":   # a bath against the back wall: in from any cell before its front, facing it
@@ -2384,6 +2468,13 @@ static func soak_spots(prop: Dictionary, m: MapData = null) -> Array:
 		out.append([Vector2i(cell.x - 1, mid), Vector2i.RIGHT])
 		out.append([Vector2i(cell.x + size.x, mid), Vector2i.LEFT])
 	return out
+
+
+## Is water cell `wc` deep where one sits in it (its middle on a soft pond's bed, not its sloping
+## bank: at a rounded corner the bather would sink into the bank, the user saw).
+static func _deep_seat(m: MapData, wc: Vector2i) -> bool:
+	var pond := PondShape.of(m, m.look(wc))
+	return pond == null or pond.sink(Vector2(wc) + Vector2(0.5, 0.5)) >= WADE_DEEP
 
 
 ## May the farmer on `origin` facing `facing` sit at the footbath in front (one of its soak_spots)?
@@ -2428,6 +2519,8 @@ func soak_look() -> Vector2i:
 	var turn := str(soak_cfg.get("turn", ""))
 	if soaking_now and turn != "" and soak_phase == "up":
 		return -soak_facing   # getting out: turned away from the tub, stepping out forwards (not backing out)
+	if soaking_now and soak_phase == "sit" and wade_facing != Vector2i.ZERO:
+		return wade_facing   # moved in the water: facing the way they went
 	if soaking_now and turn != "" and soak_t >= float(soak_cfg.get("turn_at", 1.0)):
 		return DEMO_FACINGS.get(turn, soak_facing)
 	return soak_facing
