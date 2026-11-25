@@ -931,8 +931,8 @@ func _kajika() -> void:
 	check(g.maps.id == "kajika", "dressed: back down to the gorge")
 	g.flags.erase("kajika_built")
 	g.message.disconnect(hear)
-	# Shadier (the user, 2026-11-25): under the wood's canopy the sun dimmed and the picture greener,
-	# the leaves' dappled shadows by day, leaves hanging over the top of the view sat in the water.
+	# Shadier (the user, 2026-11-25): under the wood's canopy the picture greener, the leaves'
+	# dappled shadows by day.
 	check(float(m.shade.get("sun", 1.0)) <= 1.0 and float(m.shade.get("dapple", 0.0)) > 0.0 and m.shade.has("tint"), "the clearing in the wood's shade (the sun full again at the user's word)")
 	g.go_to_map("kajika_yu", Vector2i(9, 12), Vector2i.UP)
 	g.hour = 14
@@ -968,11 +968,7 @@ func _kajika() -> void:
 	g.go_to_map("town", Vector2i(41, 40), Vector2i.UP)
 	check(g.shade_tint() == Color.WHITE and is_equal_approx(g.shade_sun(), 1.0), "the plain light elsewhere")
 	var soak_view: Dictionary = VistaRules.view_at("kajika_yu", Vector2i(9, 12), true)
-	check(bool(soak_view.get("canopy", false)), "sat in the water, leaves hang over the top of the view")
-	for season in ["spring", "summer", "fall", "winter"]:
-		var leaves: Image = PA.image("canopy:" + season)
-		check(leaves.get_size() == Vector2i(240, 48) and leaves.get_pixel(120, 1).a == 0.0 and leaves.get_pixel(2, 2).a > 0.0 and leaves.get_pixel(237, 2).a > 0.0,
-			"%s's leaves in the top corners, the middle clear (the changing house in view)" % season)
+	check(not soak_view.is_empty() and not soak_view.has("canopy"), "sat in the water, no frame of leaves over the top of the view (the user found it comic)")
 	# 3D: every kind built, the pool's steam over its water.
 	var world: Node3D = load("res://scripts/world3d/map_world.gd").new()
 	root.add_child(world)

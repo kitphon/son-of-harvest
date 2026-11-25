@@ -10,6 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-25 — Kajika-yu: no frame of leaves over the soak view
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user, after playing: the green leaves coming up along the top of the screen in the
+  pool look comic): the soak view's `canopy` is gone with all its code (data/vista.json
+  kajika_soak, Main3D's canopy layer and _show_canopy, PlaceholderArt canopy:<season>). The low
+  camera, the dappled light, the shafts and the reflection stay.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the soak view has no
+  canopy). Smoke runs (title, `--demo`, town, mine 3, `kajika_yu@pool --flags=kajika_built
+  --time=20:00 --towel --soak`, `kajika@start`): 0 ERROR lines; windowed `--quit-after 150` sat in
+  the pool: exit 0. Frame sat in it at summer 17:00: the top of the screen clear.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-25 — Kajika-yu: the wood mirrored in the water, shafts of sun through the steam
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user picked points 3 and 4 of the ways to make it shadier):

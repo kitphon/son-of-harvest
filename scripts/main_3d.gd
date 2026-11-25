@@ -39,8 +39,6 @@ var env: Environment
 var sun: DirectionalLight3D
 var lamps: NightLamps
 var flash: ColorRect
-var canopy: TextureRect            # the leaves framing the top of a `canopy` view (VistaRules)
-const CANOPY_HEIGHT := 96.0
 var fade: MapFade
 ## Worlds built earlier today, kept out of the tree for going back (a map build is a long frame):
 ## map id -> {key: what it was built for (world_key), world}. The newest KEEP_WORLDS are kept.
@@ -180,14 +178,6 @@ func _ready() -> void:
 	_mul.blend_mode = CanvasItemMaterial.BLEND_MODE_MUL
 	_lantern = MineLight.material()
 	tint.material = _mul
-	canopy = TextureRect.new()   # leaves hanging at the top of the screen in a view with `canopy` (Kajika-yu sat in the water)
-	canopy.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	canopy.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	canopy.offset_bottom = CANOPY_HEIGHT
-	canopy.stretch_mode = TextureRect.STRETCH_SCALE
-	canopy.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	canopy.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	canopy.visible = false
 	layer.add_child(tint)
 	lamps = NightLamps.new()   # real warm lights at lit windows, lanterns and festival lights
 	lamps.tint = tint
@@ -205,12 +195,6 @@ func _ready() -> void:
 	layer.add_child(FestivalGlow.new())  # festival lanterns and fireworks, over the night tint
 	layer.add_child(DriftGlow.new())     # summer fireflies, over the night tint
 	add_child(layer)
-	# The canopy's leaves on a layer of their own over the tinted picture (NightLights redraws the
-	# screen under it), tinted by hand with the day / night light (_show_canopy).
-	var leaves := CanvasLayer.new()
-	leaves.layer = 0
-	leaves.add_child(canopy)
-	add_child(leaves)
 	add_child(Hud.new())
 	fade = MapFade.new()
 	add_child(fade)
@@ -585,7 +569,6 @@ func _follow() -> void:
 	if VistaRules.forced() and not here.is_empty():
 		view_w = 1.0   # `--vista`: in the view from the first frame
 	_cam = VistaRules.blend(lens, _view, view_w)
-	_show_canopy()
 	if view_w > 0.0:
 		target = target.lerp(feet, smoothstep(0.0, 1.0, view_w)) + Vector3.UP * float(_cam.lift) + (_cam.shift as Vector3)
 	cam.position = target + (_cam.back as Vector3) * float(_cam.dist)
@@ -808,20 +791,3 @@ func _aim_lantern() -> void:
 	var center := cam.unproject_position(at)
 	var cell := center.distance_to(cam.unproject_position(at + cam.global_basis.x))
 	MineLight.aim(_lantern, f, center, cell, tint.size)
-
-
-## The leaves hanging over the top of the screen while a view with `canopy` is up (Kajika-yu sat in
-## the water: the user's photo has them overhead), faded in and out with the view; by the season.
-func _show_canopy() -> void:
-	if canopy == null:
-		return
-	var on := bool(_view.get("canopy", false)) and view_w > 0.0
-	canopy.visible = on
-	if not on:
-		return
-	var lit := tint.color if tint.material == _mul else Color.WHITE
-	canopy.modulate = Color(lit.r, lit.g, lit.b, smoothstep(0.0, 1.0, view_w))   # the night darkens it as it darkens the rest
-	var key := "canopy:" + Game.season_name()
-	if canopy.get_meta("key", "") != key:
-		canopy.texture = PlaceholderArt.tex(key)
-		canopy.set_meta("key", key)

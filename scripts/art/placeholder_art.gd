@@ -103,8 +103,6 @@ static func _make(key: String) -> Image:
 			if parts[1] == Child.ID and parts.size() > 7:   # portrait:child:<mood>:<stage>:<style>:<skin>:<hair>:<top>
 				return _child_portrait(parts[2], parts[3], _little_look(PackedStringArray(["", "", "", parts[4], parts[5], parts[6], parts[7]])))
 			return _portrait(parts[1], parts[2] if parts.size() > 2 else "neutral")
-		"canopy":   # canopy:<season>, leaves hanging over the top of the screen sat in Kajika-yu (Main3D._show_canopy), 480 x 96
-			return _canopy(parts[1] if parts.size() > 1 else "summer")
 		"furin":    # furin, the wind chime under the farmhouse eave (FurinRules), 14 x 22
 			return _furin()
 		"hoshigaki":   # hoshigaki:<fruit>:<stage>:<big|small>, a string of drying persimmons under an eave (HoshigakiArt, HoshigakiRules.art_key)
@@ -4354,82 +4352,3 @@ static func _kine() -> Image:
 	_px(img, 13, 1, 2, 8, MOCHI_WOOD_DARK)
 	_px(img, 1, 4, 14, 1, MOCHI_HOOP)        # its binding
 	return ItemArt.refine(img, [])
-
-
-## Leaves hanging over the top of the view (Kajika-yu sat in the water, the user's photo: the wood
-## overhead), close to the eye, so darker than the wood beyond (in its shade) and lit only at the
-## edges: thick in the top corners and hanging lower at the sides, thin along the middle of the top
-## so the changing house stays in view; sprays of leaves in three tones lit from the upper left, a
-## few short branches in the corners. 240 x 48, drawn over 480 x 96 (each pixel doubled: big, close leaves). Spring green with a little cherry pink, summer
-## deep green, fall red and orange, winter bare dark branches with snow on them.
-static func _canopy(season: String) -> Image:
-	const W := 240
-	const H := 48
-	var img := _blank(W, H)
-	var rng := RandomNumberGenerator.new()
-	rng.seed = hash("canopy:" + season)
-	var tones: Array[Color] = [Color("081409"), Color("112612"), Color("21401e")]
-	var accent := Color.TRANSPARENT
-	match season:
-		"spring":
-			tones = [Color("0a1a0e"), Color("16301a"), Color("2e5228")]
-			accent = Color("e8a8bc")
-		"fall":
-			tones = [Color("220a04"), Color("461408"), Color("7a2a10")]
-			accent = Color("d89a30")
-		"winter":
-			tones = [Color("16120e"), Color("241e18"), Color("342c24")]
-	var branch := Color("120c08")
-	# How far down the leaves reach at x: deep at the corners, shallow in the middle.
-	var reach := func(x: float) -> float:
-		var side := absf(x / W - 0.5) * 2.0   # 0 in the middle .. 1 at the edges
-		return lerpf(-6.0, float(H), pow(side, 2.2))   # nothing over the middle of the top
-	# Branches: from the corners, slanting in and down.
-	for k in 8:
-		var left := k % 2 == 0
-		var x0 := rng.randf_range(0.0, 20.0) if left else rng.randf_range(W - 20.0, W - 1.0)
-		var y0 := rng.randf_range(0.0, 16.0)
-		if k < 2:   # the first pair from the very corners, so a corner is never empty
-			x0 = 0.0 if left else W - 1.0
-			y0 = 1.0
-		var dir := Vector2(1.0 if left else -1.0, rng.randf_range(0.2, 0.6)).normalized()
-		var length := rng.randi_range(20, 45)
-		for i in length:
-			var q := Vector2(x0, y0) + dir * i
-			if q.x < 0 or q.x >= W or q.y < 0 or q.y >= H:
-				break
-			img.set_pixel(int(q.x), int(q.y), branch)
-			if i < length / 2:
-				img.set_pixel(int(q.x), mini(int(q.y) + 1, H - 1), branch)
-			if season == "winter" and i % 3 == 0 and q.y >= 1:
-				img.set_pixel(int(q.x), int(q.y) - 1, Color("dde4ea"))
-	if season == "winter":
-		return img
-	# The leaf sprays: discs of leaves where the reach allows, denser toward the corners.
-	for k in 162:
-		var cx := rng.randf_range(0.0, W)
-		if k >= 160:   # a clump filling each top corner
-			cx = 3.0 if k == 160 else W - 4.0
-		var lim: float = reach.call(cx)
-		var cy := pow(rng.randf(), 1.6) * lim if k < 160 else 3.0
-		if cy > lim:
-			continue
-		var r := rng.randi_range(3, 7)
-		for dy in range(-r, r + 1):
-			for dx2 in range(-r, r + 1):
-				if dx2 * dx2 + dy * dy > r * r or rng.randf() < 0.22:
-					continue
-				var x := int(cx) + dx2
-				var y := int(cy) + dy
-				if x < 0 or x >= W or y < 0 or y >= H:
-					continue
-				var lit := float(-dx2 - dy) / float(r)   # lit from the upper left, only at the rim
-				var t: Color = tones[2] if lit > 0.7 else (tones[1] if lit > -0.2 else tones[0])
-				if accent.a > 0.0 and lit > 0.5 and rng.randf() < 0.12:
-					t = accent
-				img.set_pixel(x, y, t)
-	return img
-
-
-static func winter_snow(season: String) -> bool:
-	return season == "winter"
