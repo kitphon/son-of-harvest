@@ -6,7 +6,7 @@
 	"indoor": false,
 	"towel": "allowed",
 	"ambient": "outdoor",
-	"shade": {"sun": 0.65, "tint": "dfe9d6", "dapple": 0.8, "dapple_color": "94aa80"},
+	"shade": {"sun": 0.9, "tint": "eef4ea", "dapple": 0.8, "dapple_color": "a8bc96"},
 	"legend": {
 		"m": {"tile": "moss", "step": "grass"},
 		"r": {"tile": "path"},

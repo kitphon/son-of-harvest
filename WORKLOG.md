@@ -10,6 +10,17 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-25 — Kajika-yu: the shade's light up to 90%
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: too dark, make it 90%): data/maps/kajika_yu.json `shade`: the sun 0.65 -> 0.9,
+  the tint dfe9d6 -> eef4ea (a lighter green), the dappled shadows' colour 94aa80 -> a8bc96 (their
+  strength kept at 0.8, so the flecks still read).
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)`. Smoke runs (title, `--demo`, town, mine
+  3, `kajika_yu@pool --flags=kajika_built --time=20:00 --towel --soak`, `kajika@start`): 0 ERROR
+  lines; windowed `--quit-after 150` in the clearing: exit 0. Frames at summer 14:00, sat in it and
+  walking: brighter, the dapples still on the path and the water.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-25 — Kajika-yu shadier: the wood's shade, dappled light, leaves framing the view
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user asked how to make it shadier and picked the shade light and the overhanging
