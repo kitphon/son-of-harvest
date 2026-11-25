@@ -37,3 +37,17 @@ static func light_at(p: Vector2, t: float) -> float:
 static func multiply_at(p: Vector2, t: float, strength_now: float, shade: Color) -> Color:
 	var c := shade.lerp(Color.WHITE, light_at(p, t))
 	return Color.WHITE.lerp(c, clampf(strength_now, 0.0, 1.0))
+
+
+## How bright the shafts of sunlight through the steam are now on map `m` (0..1): its shade's
+## `shafts` `strength` times the sun's shadows (none at night, in rain or under cloud) times the
+## clock's `curve` [[hour, share], ...] (eased between keys, 0 outside: the low sun of the morning
+## and the late afternoon slants through the leaves; little at noon).
+static func shaft_strength(game: Object, m: MapData) -> float:
+	if game == null or m == null or m.indoor or m.sheltered:
+		return 0.0
+	var cfg: Dictionary = m.shade.get("shafts", {})
+	if cfg.is_empty():
+		return 0.0
+	var hour := float(game.hour) + float(game.minute) / 60.0
+	return clampf(float(cfg.get("strength", 0.0)) * float(game.sun_shadow()) * MistRules.curve(hour, cfg), 0.0, 1.0)

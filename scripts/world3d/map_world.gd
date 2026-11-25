@@ -41,6 +41,8 @@ func build_steps(m: MapData) -> Array[Callable]:
 		steps.append(func() -> void: add_child(MistLayer.new(map)))   # morning mist over the water and paddies
 		if float(map.shade.get("dapple", 0.0)) > 0.0:
 			steps.append(func() -> void: add_child(DappleLayer.new(map)))   # sunlight through the leaves (Kajika-yu)
+		if map.shade.has("shafts"):
+			steps.append(func() -> void: add_child(LightShafts.new(map)))   # shafts of sun slanting through the steam (Kajika-yu)
 		if not KoiPondRules.ponds_on(map.id).is_empty():
 			steps.append(func() -> void: add_child(KoiPondLayer.new(map)))   # koi in the temple pond (data/koi.json)
 		steps.append(func() -> void: add_child(PuddleLayer.new(map)))   # puddles on the paths in rain

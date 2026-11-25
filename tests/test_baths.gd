@@ -950,6 +950,21 @@ func _kajika() -> void:
 	for spot in 400:
 		lit += int(DappleRules.light_at(Vector2(spot % 20, spot / 20) + Vector2(0.37, 0.61), 3.0) > 0.5)
 	check(lit > 40 and lit < 360, "flecks of sun among the leaves' shadow (%d of 400 lit)" % lit)
+	# Shafts of sun through the steam, the low sun's most; the wood mirrored near the far banks.
+	var shafts: Dictionary = m.shade.get("shafts", {})
+	check((shafts.get("at", []) as Array).size() >= 3 and (shafts.at as Array).all(func(c): return m.tile(Vector2i(int(c[0]), int(c[1]))) == "water"), "shafts of sun standing over the water")
+	g.hour = 7
+	var morning: float = DappleRules.shaft_strength(g, m)
+	g.hour = 12
+	g.minute = 30
+	var noon: float = DappleRules.shaft_strength(g, m)
+	g.hour = 22
+	g.minute = 0
+	var night: float = DappleRules.shaft_strength(g, m)
+	g.hour = 14
+	check(morning > noon and noon > 0.0 and night == 0.0, "the shafts brightest at the low morning sun, faint at noon, none at night (%.2f / %.2f / %.2f)" % [morning, noon, night])
+	var pond := PondShape.of(m, "onsen")
+	check(pond.reflection(Vector2(8.5, 5.4)) > pond.reflection(Vector2(9.5, 8.5)) + 0.15, "the wood mirrored in the water near the far bank, not out in the middle (%.2f / %.2f)" % [pond.reflection(Vector2(8.5, 5.4)), pond.reflection(Vector2(9.5, 8.5))])
 	g.go_to_map("town", Vector2i(41, 40), Vector2i.UP)
 	check(g.shade_tint() == Color.WHITE and is_equal_approx(g.shade_sun(), 1.0), "the plain light elsewhere")
 	var soak_view: Dictionary = VistaRules.view_at("kajika_yu", Vector2i(9, 12), true)
@@ -965,6 +980,8 @@ func _kajika() -> void:
 	var steam := world.get_children().filter(func(n): return str(n.name).begins_with("BathSteam"))
 	var hot := (MistRules.scene_of(m).kinds as Array).count("onsen")
 	check(world.get_children().any(func(n): return n is DappleLayer), "the dappled light laid over it in 3D")
+	var beams: Array = world.get_children().filter(func(n): return str(n.name) == "LightShafts")   # by name: its script reaches the Game autoload
+	check(beams.size() == 1 and beams[0].count() == (m.shade.shafts.at as Array).size(), "the shafts of sun in 3D")
 	check(steam.is_empty() and hot >= 70, "its steam the mist's soft sheets over every water cell (%d), no round puffs (%d)" % [hot, steam.size()])
 	world.queue_free()
 	for kind in GORGE_KINDS:

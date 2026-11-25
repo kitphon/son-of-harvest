@@ -10,6 +10,31 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-25 — Kajika-yu: the wood mirrored in the water, shafts of sun through the steam
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user picked points 3 and 4 of the ways to make it shadier):
+  - The wood mirrored in the water: in the pond's picture (PondShape.paint, both views share it)
+    the hot spring's open water darkens toward the wood's green (REFLECT 1d4a36, at most 0.55)
+    near its far banks, north and west (the side the play camera looks toward, where the trees
+    stand over the water), fading out over 2.2 cells, a little along the near banks too
+    (PondShape.reflection); the middle stays clear.
+  - Shafts of sun through the steam: data/maps/kajika_yu.json `shade` `shafts` (five spots over
+    the water, strength 0.55, warm white, a curve by the clock: 1 at 7:00 and 17:30, 0.3 at
+    12:30, none before 5:30 or after 18:36). DappleRules.shaft_strength (times Game.sun_shadow:
+    none at night, in rain or under cloud); LightShafts (3D): long soft quads faced to the play
+    camera's yaw, leaning 18-22 degrees, glowing additively, out of the leaves and brightest low
+    in the steam, gone at the water, a slow shimmer each. Not in the flat view (from above they
+    would be nothing). A first try with thin shafts brightest at their middle read only up in
+    the trees.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the shafts over water cells,
+  brighter at 7:00 than at 12:30, none at 22:00; the reflection near the far bank above the
+  middle's; the LightShafts in the 3D build, one quad a spot). Smoke runs (title, `--demo`, town,
+  mine 3, `kajika_yu@pool --flags=kajika_built --time=20:00 --towel --soak`, `kajika@start`): 0
+  ERROR lines; windowed `--quit-after 150` in the clearing: exit 0. Frames sat in it: summer 17:00
+  (the shafts through the steam, the dark green by the far bank), fall 7:15 (the shafts among the
+  red maples), summer 12:30 (faint).
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-25 — Kajika-yu: the sun full again (100%)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: the sun back to 100% as before): data/maps/kajika_yu.json `shade` `sun` 0.9 ->

@@ -52,6 +52,9 @@ const GRASS_U := 0.42        # how far down the bank (0..1) the grass runs befor
 const STONE_LEVEL := 0.68    # the field's level the shore stones sit on (down the bank, at the waterline)
 const STONE_STEP := 0.2      # cells between the points tried along it
 const STONE_GAP := 0.42      # cells at least between two stones
+const REFLECT := Color("1d4a36")   # the wood's green mirrored in the hot spring near its far banks
+const REFLECT_REACH := 2.2   # cells out from the far banks the mirrored wood reaches
+const REFLECT_MOST := 0.55   # how far the water takes its colour right under the bank
 
 var look := LOOK             # the water's look (LOOKS): the jade temple pond or a plain one
 var cells: Dictionary = {}   # Vector2i -> true: the pond's water cells
@@ -235,6 +238,8 @@ func paint(base: Callable, grass: Callable, gravel := Callable()) -> Image:
 			var col: Color
 			if f >= DEEP:
 				col = base.call(at) if water else water_colour()
+				if look == "onsen":
+					col = col.lerp(REFLECT, reflection(p))
 			elif f >= SHORE:
 				var u := (f - SHORE) / (DEEP - SHORE)
 				var edge := GRASS_U + _soft_noise(at) * 0.12   # where the grass gives way, a gentle wave
@@ -296,3 +301,20 @@ func shore_stones() -> Array:
 			if not close:
 				_stones.append({"pos": p, "size": float(STYLES[look].size) + (h % 100) / 100.0 * float(STYLES[look].grow), "seed": h})
 	return _stones
+
+
+## How much of the wood is mirrored in the water at `p` (0..REFLECT_MOST): near the far banks, north
+## and west of it (the side the play camera looks toward, where the trees stand over the water: the
+## user's photos), fading out over REFLECT_REACH cells, a little along the near banks too.
+func reflection(p: Vector2) -> float:
+	var far := 0.0
+	for k in 4:
+		var d := REFLECT_REACH * (k + 1) / 4.0
+		var back := minf(field(p + Vector2(0, -d)), field(p + Vector2(-d, 0)))
+		if back < SHORE:
+			far = maxf(far, 1.0 - d / (REFLECT_REACH + 0.4))
+	var near := 0.0
+	for o in [Vector2(0, 0.8), Vector2(0.8, 0)]:
+		if field(p + o) < SHORE:
+			near = 0.35
+	return clampf(maxf(far, near), 0.0, 1.0) * REFLECT_MOST
