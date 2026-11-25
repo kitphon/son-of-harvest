@@ -10,6 +10,19 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-25 — Kajika-yu: no tree's leaves through the changing house's roof
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: the leaves of the trees beside the changing house went through its roof): the
+  wood's trees beside the house stood 1.4-1.9 times their size in the cells next to it (1, 0-2 and
+  6, 0-2), their crowns over the roof. The clearing's map now keeps a cell clear of trees round
+  the house and holds the next ring to a plain tree's size (1.0), so the crowns stand beside it.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: no tree within a cell of
+  the house, none bigger than 1.0 within two). Smoke runs (title, `--demo`, town, mine 3,
+  `kajika_yu@pool --flags=kajika_built --time=20:00 --towel --soak`, `kajika@start`): 0 ERROR
+  lines; windowed `--quit-after 150` in the clearing: exit 0. Frames: sat in the pool in spring
+  (the roof clear against the wood) and `kajika_yu@hut` in fall (the maples beside the roof).
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-25 — Kajika-yu: the wood behind the pool back (trees on moss past the edges)
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user, with the frame before the moss floor: "I want the wood behind with many trees

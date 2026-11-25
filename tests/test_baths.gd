@@ -836,6 +836,11 @@ func _kajika() -> void:
 	check(rocks_in.size() >= 3, "big mossy boulders standing in the water (%d)" % rocks_in.size())
 	var hut: Array = m.props.filter(func(p): return str(p.get("use", "")) == "change")
 	check(hut.size() == 1 and hut[0].kind == "bath_pavilion" and Vector2i(hut[0].cell).y + Vector2i(hut[0].size).y <= shape.bounds.position.y + 1, "the changing house (the user's second photo) at the back of the clearing, past the water")
+	# No tree's crown through the house's roof (the user saw leaves inside it): a cell clear round it,
+	# the next ring no bigger than a plain tree.
+	var house := Rect2i(Vector2i(hut[0].cell), Vector2i(hut[0].size))
+	var crowding := m.props.filter(func(p): return p.kind in ["maple", "sakura", "pine", "bamboo"] and (house.grow(1).has_point(Vector2i(p.cell)) 		or (house.grow(2).has_point(Vector2i(p.cell)) and float(p.get("scale", 1.0)) > 1.0)))
+	check(crowding.is_empty(), "no tree crowding the changing house's roof (%s)" % [crowding.map(func(p): return p.cell)])
 	var lamp: Array = m.props.filter(func(p): return p.kind == "yukimi_doro")
 	check(lamp.size() == 1 and m.tile(Vector2i(lamp[0].cell)) == "water", "the snow-viewing lantern on its rock out in the water")
 	check(m.props.filter(func(p): return str(p.get("shape", "")) == "granite").size() >= 4, "pale granite on the shores")
