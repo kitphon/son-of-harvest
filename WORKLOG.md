@@ -10,6 +10,22 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-25 — Kajika-yu: the wading bather kept off the bank all round
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user, with a frame: wading, the figure still sank into the pool's edge): only the
+  bather's middle was checked for deep water, so they could wade until their shoulders were over
+  the sloping bank. Game.wade_ok now wants deep water all round (wade_depth: the least depth at
+  the point and WADE_RING 0.5 cells each way). From where they sat down (a cell off the bank, not
+  that clear) a step is allowed only away from the bank (Game._wade_sum, the pond's blurred water
+  share round them, must rise: never along the shore). The edge they get out at may be 1.3 cells
+  off (EDGE_REACH, was 0.8), as they now keep further from it.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: wading out from the seat, 200
+  pushes every way always deep all round and clear of the rocks, out at the path's end). Smoke
+  runs (title, `--demo`, town, mine 3, `kajika_yu@pool --flags=kajika_built --time=20:00 --towel
+  --soak`, `kajika@start`): 0 ERROR lines; windowed `--quit-after 150` wading: exit 0. Frame:
+  `--soak --walk=up:7`, the bather stopped in open water short of the boulders and the far bank.
+- Left / next: the wading's ripples and sound (the user's next ask), the clearing's sounds.
+
 ## 2026-11-25 — Kajika-yu: in only where it is deep, wading about at half the walk
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user's two points after playing):

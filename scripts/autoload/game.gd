@@ -2289,7 +2289,11 @@ func wade_by(step: Vector2) -> bool:
 		return false
 	var moved := false
 	for part in [Vector2(step.x, 0), Vector2(0, step.y)]:
-		if part != Vector2.ZERO and wade_ok(bath_point() + part):
+		if part == Vector2.ZERO:
+			continue
+		var to: Vector2 = bath_point() + part
+		# Into the open water, or (sat down near the edge) only away from the bank: never along it.
+		if wade_ok(to) or (_clear_of_rocks(to) and _wade_sum(to) > _wade_sum(bath_point()) + 0.0001):
 			wade += part
 			moved = true
 	if absf(step.x) > absf(step.y):
@@ -2299,19 +2303,48 @@ func wade_by(step: Vector2) -> bool:
 	return moved
 
 
-## Is point `p` (map cells) somewhere a bather may be: deep in a soft pond's water (its own depth
-## there, PondShape.sink: never on the sloping bank, where the figure would sink into it) and clear
-## of the props standing in it (the boulders, the lantern's rock) by WADE_CLEAR.
+## Is point `p` (map cells) somewhere a bather may wade to: deep water all round them (wade_depth:
+## the figure's shoulders WADE_RING cells either side never over the sloping bank, where they would
+## sink into it: the user saw it at the pool's far bank) and clear of the props standing in it (the
+## boulders, the lantern's rock) by WADE_CLEAR.
 const WADE_DEEP := 0.9
 const WADE_CLEAR := 0.45
+const WADE_RING := 0.5
 func wade_ok(p: Vector2) -> bool:
+	return wade_depth(p) >= WADE_DEEP and _clear_of_rocks(p)
+
+
+## How deep the water is all round point `p` (0 on land .. 1): the least of its own depth
+## (PondShape.sink) at p and WADE_RING cells from it each way.
+func wade_depth(p: Vector2) -> float:
 	var m := maps.current()
-	var c := Vector2i(floori(p.x), floori(p.y))
-	if m.tile(c) != "water":
-		return false
-	var pond := PondShape.of(m, m.look(c))
-	if pond == null or pond.sink(p) < WADE_DEEP:
-		return false
+	var least := 1.0
+	for o in [Vector2.ZERO, Vector2(WADE_RING, 0), Vector2(-WADE_RING, 0), Vector2(0, WADE_RING), Vector2(0, -WADE_RING)]:
+		var q: Vector2 = p + o
+		var c := Vector2i(floori(q.x), floori(q.y))
+		if m.tile(c) != "water":
+			return 0.0
+		var pond := PondShape.of(m, m.look(c))
+		least = minf(least, pond.sink(q) if pond != null else 0.0)
+	return least
+
+
+## How much water lies round `p`: the pond's blurred water share (PondShape.field) at it and
+## WADE_RING each way added up (0 for land), so every step away from the bank raises it.
+func _wade_sum(p: Vector2) -> float:
+	var m := maps.current()
+	var sum := 0.0
+	for o in [Vector2.ZERO, Vector2(WADE_RING, 0), Vector2(-WADE_RING, 0), Vector2(0, WADE_RING), Vector2(0, -WADE_RING)]:
+		var q: Vector2 = p + o
+		var c := Vector2i(floori(q.x), floori(q.y))
+		var pond := PondShape.of(m, m.look(c)) if m.tile(c) == "water" else null
+		sum += pond.field(q) if pond != null else 0.0   # the blurred water share: it rises smoothly away from the bank
+	return sum
+
+
+## Is point `p` clear of the props standing in the water (by WADE_CLEAR)?
+func _clear_of_rocks(p: Vector2) -> bool:
+	var m := maps.current()
 	for o in [Vector2(WADE_CLEAR, 0), Vector2(-WADE_CLEAR, 0), Vector2(0, WADE_CLEAR), Vector2(0, -WADE_CLEAR), Vector2.ZERO]:
 		var q: Vector2 = p + o
 		var qc := Vector2i(floori(q.x), floori(q.y))
@@ -2324,7 +2357,7 @@ func wade_ok(p: Vector2) -> bool:
 ## Out at the edge nearest the bather (they moved in the water): the soak spot whose seat is within
 ## reach of where they are becomes the one they get out at, `wade` what is left to cover (eased away
 ## while getting up). False when no edge is that near.
-const EDGE_REACH := 0.8
+const EDGE_REACH := 1.3   # the wading bather keeps WADE_RING off the bank, so the seats are about a cell off
 func _wade_to_edge() -> bool:
 	var prop := maps.current().prop_at(soak_at + soak_facing)
 	var here := bath_point()
