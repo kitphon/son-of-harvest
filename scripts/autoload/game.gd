@@ -118,6 +118,10 @@ var bath_paid_today := false   # the sento's entry paid today (in and out free a
 var in_towel := false   # wrapped in a bathing towel, the clothes in a basket (the sento's changing room: Game.change_clothes); not saved, off on leaving the bath's maps
 var wade := Vector2.ZERO   # how far the bather has moved in the water from where they sat (cells; a bath with `wade`: Kajika-yu); not saved
 var wade_facing := Vector2i.ZERO   # the way they last moved in the water (soak_look), ZERO before they move
+var _wade_since := 0.0   # cells waded since the last ring (data/baths.json `ring_every`)
+## The bather moving in the water stirred it at `at` (map cells): the views start a ring on the
+## water there and the slosh plays (data/baths.json `ring_every` cells apart).
+signal waded(at: Vector2)
 var soak_cfg: Dictionary = {}   # the soak going on now: data/ashiyu.json, or a bath of data/baths.json (Game.soak_config); not saved
 ## The minutes the day's first bath still owes the clock (data/baths.json `minutes`): the clock runs at
 ## its own pace on the bath's maps (MapData `clock`) and while sat in any soak, so the bathers beside the
@@ -2288,6 +2292,7 @@ func wade_by(step: Vector2) -> bool:
 	if not can_wade() or step == Vector2.ZERO:
 		return false
 	var moved := false
+	var from := bath_point()
 	for part in [Vector2(step.x, 0), Vector2(0, step.y)]:
 		if part == Vector2.ZERO:
 			continue
@@ -2296,6 +2301,14 @@ func wade_by(step: Vector2) -> bool:
 		if wade_ok(to) or (_clear_of_rocks(to) and _wade_sum(to) > _wade_sum(bath_point()) + 0.0001):
 			wade += part
 			moved = true
+	if moved:
+		_wade_since += bath_point().distance_to(from)
+		if _wade_since >= float(soak_cfg.get("ring_every", 0.35)):
+			_wade_since = 0.0
+			waded.emit(bath_point())   # a ring round them and the water's slosh
+			var sfx := get_node_or_null("/root/Sfx")   # not named: tests load this script without the autoload
+			if sfx != null:
+				sfx.play("wade")
 	if absf(step.x) > absf(step.y):
 		wade_facing = Vector2i.RIGHT if step.x > 0.0 else Vector2i.LEFT
 	else:

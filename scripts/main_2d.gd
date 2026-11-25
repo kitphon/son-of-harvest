@@ -84,6 +84,7 @@ func _ready() -> void:
 	add_child(flying)   # after the Player: over the farmer
 
 	Game.minute_passed.connect(_update_tint)
+	Game.waded.connect(_on_waded)   # rings on the water where the bather wades
 	Game.day_started.connect(_on_day_started)
 	Game.minute_passed.connect(_age_prints)   # footprints in snow fill in
 	Game.map_changed.connect(func(_id): fade.run(_enter_map))
@@ -291,6 +292,13 @@ func _ring_bobber(delta: float) -> void:
 	if _ring_next <= 0.0:
 		sheet.ripple(at, f.state == "bite")
 		_ring_next = RING_EVERY if f.state == "wait" else RING_BITE_EVERY
+
+
+## A ring on the water where the bather wades (Game.waded).
+func _on_waded(at: Vector2) -> void:
+	var sheet := view.get("_water") as WaterView if view != null else null
+	if sheet != null:
+		sheet.ripple(at * T, false)
 
 
 func _update_flash(delta: float) -> void:

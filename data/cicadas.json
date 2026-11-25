@@ -27,7 +27,7 @@
 		"pair_share": 0.0,
 		"pulse": 5.0
 	},
-	"map_level": {"default": 0.8, "hill": 1.0, "sakurazaka": 0.9, "farm": 0.6, "river": 0.7, "mine": 0.9},
+	"map_level": {"default": 0.8, "hill": 1.0, "sakurazaka": 0.9, "farm": 0.6, "river": 0.7, "mine": 0.9, "kajika_yu": 1.0, "kajika": 0.9},
 	"wind_quiet": 0.4,
 	"trunks": {"sakura": [0.38, 0.66], "persimmon": [0.38, 0.66], "maple": [0.36, 0.62], "ginkgo": [0.38, 0.66], "pine": [0.1, 0.24]},
 	"scion": {"young": [0.2, 0.6], "tree": [0.3, 0.8]},

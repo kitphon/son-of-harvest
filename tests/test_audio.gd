@@ -97,6 +97,20 @@ func _init() -> void:
 	check(AmbientPicker.in_hours(3, 19, 4) and not AmbientPicker.in_hours(4, 19, 4), "hours wrap past midnight")
 	check(AmbientPicker.in_hours(7, 7, 18) and not AmbientPicker.in_hours(18, 7, 18), "hours from .. to (not incl.)")
 
+	# Kajika-yu (the user, 2026-11-25): the creek babbling in the clearing, the river up the gorge,
+	# birds singing in the wood by day (fewer in winter, none at night or in rain).
+	var yu := func(look: String, season_id: String, hour: int, map_id := "kajika_yu") -> Dictionary:
+		return AmbientPicker.pick(rules, look, season_id, hour, "outdoor", map_id, -1.0)
+	var day_yu: Dictionary = yu.call("sunny", "summer", 10)
+	check(day_yu.get("amb_creek", 0.0) > 0.0 and day_yu.get("amb_birds", 0.0) > 0.5, "Kajika-yu by day: the creek and the birds")
+	check(not yu.call("sunny", "summer", 21).has("amb_birds") and yu.call("sunny", "summer", 21).has("amb_creek"), "at night the creek, no birds")
+	check(not yu.call("rain", "summer", 10).has("amb_birds") and yu.call("rain", "summer", 10).get("amb_creek", 0.0) > 0.0, "in rain the creek, no birds")
+	check(yu.call("sunny", "winter", 10).get("amb_birds", 0.0) < day_yu.amb_birds, "fewer birds in winter")
+	check(yu.call("sunny", "summer", 10, "kajika").get("amb_river", 0.0) > 0.0, "the river up the gorge")
+	check(not at.call("sunny", "summer", 10).has("amb_birds"), "no forest birds elsewhere")
+	var cic: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/cicadas.json"))
+	check(float(cic.map_level.get("kajika_yu", 0.0)) >= float(cic.map_level.default), "the cicadas loud in the clearing's wood in summer")
+
 	# Water: the river on its own map, the pond lapping close to the farm (and village) ponds.
 	var on := func(look: String, place: String, map_id: String, water: float) -> Dictionary:
 		return AmbientPicker.pick(rules, look, "spring", 12, place, map_id, water)

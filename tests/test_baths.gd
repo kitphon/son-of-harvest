@@ -912,8 +912,15 @@ func _kajika() -> void:
 	check(is_equal_approx(float(k.get("wade", 0.0)), 0.5) and g.can_wade(), "sat in it, free to move about in the water at half the walk")
 	check(spots.all(func(sp): return PondShape.of(m, "onsen").sink(Vector2(sp[0] + sp[1]) + Vector2(0.5, 0.5)) >= g.WADE_DEEP), "every way in lands in deep water, none on a corner's sloping bank")
 	var start: Vector2 = g.bath_point()
+	var rings: Array[Vector2] = []
+	var on_ring := func(at: Vector2): rings.append(at)
+	g.waded.connect(on_ring)
 	for step in 40:
 		g.wade_by(Vector2(0, -0.1))
+	g.waded.disconnect(on_ring)
+	var waded_far: float = start.distance_to(g.bath_point())
+	check(rings.size() >= int(waded_far / float(k.ring_every)) - 1 and rings.size() > 0 and rings.back().distance_to(g.bath_point()) < float(k.ring_every) + 0.01,
+		"a ring on the water round them every %.2f cells waded (%d over %.1f)" % [float(k.ring_every), rings.size(), waded_far])
 	check(g.bath_point().y < start.y - 1.5 and g.soak_look() == Vector2i.UP, "waded out toward the middle, facing the way (%s)" % g.bath_point())
 	var deep := true
 	for step in 200:   # pushing every way: never onto the bank or into a rock

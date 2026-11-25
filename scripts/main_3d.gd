@@ -210,6 +210,7 @@ func _ready() -> void:
 	add_child(EventPlayer.new(player))   # after the Player: moves it during events
 
 	Game.minute_passed.connect(_update_tint)
+	Game.waded.connect(_on_waded)   # rings on the water where the bather wades
 	Game.day_started.connect(_on_day_started)
 	Game.minute_passed.connect(func(): world.age_prints(1.0))   # footprints in snow fill in
 	Game.map_changed.connect(func(_id): fade.run(_enter_map))
@@ -677,6 +678,12 @@ func _show_fishing() -> void:
 
 ## Ripple rings on the water round the bobber: a strong one as it lands, a gentle one every
 ## RING_EVERY seconds while it waits, and strong ones as a fish bites.
+## A ring on the water where the bather wades (Game.waded).
+func _on_waded(at: Vector2) -> void:
+	if world != null and world.surroundings != null and world.surroundings.water != null:
+		world.surroundings.water.ripple(at, false)
+
+
 func _ring_bobber(f: Fishing) -> void:
 	var was := _ring_state
 	_ring_state = f.state

@@ -46,7 +46,7 @@
 		"taken_message": "Someone is already soaking there. Find a free spot along the tub."
 	},
 	"kajika": {
-		"_note": "Kajika-yu, the rock pool of hot spring water up the river's gorge (data/maps/kajika.json, 2026-11-24, Baths step 4; docs/DESIGN.md → ที่อาบน้ำ): the sento's keys, and `hours` (open from the first until the second, a minute of the same game day: past midnight counts on, DayPlan.minute_of; Game.bath_open, `closed_message` outside them), `towel` (only in a towel, changed into at the hut beside it: `towel_message`), `stamina_full` (the day's first soak fills stamina to the max). The pool is sunk in the ground with the map's water (BathProps.ONSEN_WATER, -0.34): one steps down off its shore into it, from any open cell beside its water (the prop's seats \"shore\"). Ours: free and far, so the most rest of the three (DESIGN: stamina full, fatigue -30, 1.5 h of the clock), still not a night's sleep (about -42 from 22:00). It shares the day's bath with the sento (`day`). `wade`: sat in it the move keys move the bather about in the deep water at that share of walking speed (the user: half), never onto the sloping bank or into a rock (Game.wade_by, wade_ok); E gets them out at the nearest edge in reach, else `edge_message` (Game.stop_soak).",
+		"_note": "Kajika-yu, the rock pool of hot spring water up the river's gorge (data/maps/kajika.json, 2026-11-24, Baths step 4; docs/DESIGN.md → ที่อาบน้ำ): the sento's keys, and `hours` (open from the first until the second, a minute of the same game day: past midnight counts on, DayPlan.minute_of; Game.bath_open, `closed_message` outside them), `towel` (only in a towel, changed into at the hut beside it: `towel_message`), `stamina_full` (the day's first soak fills stamina to the max). The pool is sunk in the ground with the map's water (BathProps.ONSEN_WATER, -0.34): one steps down off its shore into it, from any open cell beside its water (the prop's seats \"shore\"). Ours: free and far, so the most rest of the three (DESIGN: stamina full, fatigue -30, 1.5 h of the clock), still not a night's sleep (about -42 from 22:00). It shares the day's bath with the sento (`day`). `wade`: sat in it the move keys move the bather about in the deep water at that share of walking speed (the user: half), never onto the sloping bank or into a rock (Game.wade_by, wade_ok); E gets them out at the nearest edge in reach, else `edge_message` (Game.stop_soak). Every `ring_every` cells waded a ring spreads on the water round them and the `wade` slosh plays (Game.waded; the user wanted the water to move round them).",
 		"seat": 1.0,
 		"lift": -0.34,
 		"sit_seconds": 1.8,
@@ -77,6 +77,7 @@
 		"towel_message": "Change into a towel at the hut first.",
 		"closed_message": "The pool is being flushed with river water. It's ready again from 16:00.",
 		"wade": 0.5,
+		"ring_every": 0.35,
 		"edge_message": "Wade over to the edge to get out."
 	}
 }

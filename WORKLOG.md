@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-25 — Kajika-yu: rings and a slosh while wading; the creek, forest birds, cicadas
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user's two asks):
+  - "When the figure moves in the pool, the sound of the water and the water round them moving
+    like a real person": every `ring_every` (0.35) cells waded Game.wade_by emits Game.waded at
+    the bather and plays the new `wade` sound (a soft low slosh with a few drops, synthesized;
+    data/sfx.json); both views start a ring on the water there (Main3D on the WaterSurface,
+    Main2D on the WaterView), the same rings as the fishing bobber's.
+  - Point 5 of the shade list, the sounds: `amb_creek` (new: a babbling creek, brighter and lighter
+    than the river) in Kajika-yu's clearing, the river (amb_river) up the gorge, `amb_birds` (new:
+    our own made-up calls, each a phrase in a 9 s loop: rising chirps, a falling two-note call, a
+    trill) in the clearing and the gorge by day 5-18 in spring to fall, softer 7-16 in winter, none
+    at night or in rain; the summer cicadas' map level 1.0 in the clearing and 0.9 in the gorge
+    (data/cicadas.json; the cicadas on the trees' trunks were already there).
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: a ring every 0.35 cells
+  waded, the last near the bather; test_audio: the creek and birds by day, the creek and no birds
+  at night and in rain, fewer birds in winter, the river up the gorge, no forest birds elsewhere,
+  the cicadas' level there, every new loop made). Smoke runs (title, `--demo`, town, mine 3,
+  `kajika_yu@pool --flags=kajika_built --time=20:00 --towel --soak`, `kajika@start`): 0 ERROR
+  lines; windowed `--quit-after 150` wading (the sound threads): exit 0. Frame wading at summer
+  12:30: rings spreading on the water round the bather. Not listened to: the sounds are checked
+  only as data and made without error.
+- Left / next: the user's listen and look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-25 — Kajika-yu: the wading bather kept off the bank all round
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user, with a frame: wading, the figure still sank into the pool's edge): only the
