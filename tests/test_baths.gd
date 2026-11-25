@@ -933,13 +933,13 @@ func _kajika() -> void:
 	g.message.disconnect(hear)
 	# Shadier (the user, 2026-11-25): under the wood's canopy the sun dimmed and the picture greener,
 	# the leaves' dappled shadows by day, leaves hanging over the top of the view sat in the water.
-	check(float(m.shade.get("sun", 1.0)) < 1.0 and float(m.shade.get("dapple", 0.0)) > 0.0 and m.shade.has("tint"), "the clearing in the wood's shade")
+	check(float(m.shade.get("sun", 1.0)) <= 1.0 and float(m.shade.get("dapple", 0.0)) > 0.0 and m.shade.has("tint"), "the clearing in the wood's shade (the sun full again at the user's word)")
 	g.go_to_map("kajika_yu", Vector2i(9, 12), Vector2i.UP)
 	g.hour = 14
 	g.minute = 0
 	var tint_here: Color = g.shade_tint()
 	var sun_here: float = g.shade_sun()
-	check(tint_here.get_luminance() < 1.0 and tint_here.g >= tint_here.r and sun_here < 1.0, "a greener, dimmer light there (%s, sun %.2f)" % [tint_here, sun_here])
+	check(tint_here.get_luminance() < 1.0 and tint_here.g >= tint_here.r and is_equal_approx(sun_here, float(m.shade.get("sun", 1.0))), "a greener light there, the sun as its shade says (%s, sun %.2f)" % [tint_here, sun_here])
 	var by_day: float = DappleRules.strength(g, m)
 	g.hour = 22
 	var by_night: float = DappleRules.strength(g, m)

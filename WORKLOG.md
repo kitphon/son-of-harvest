@@ -10,6 +10,16 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-25 — Kajika-yu: the sun full again (100%)
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: the sun back to 100% as before): data/maps/kajika_yu.json `shade` `sun` 0.9 ->
+  1.0. The light green tint (eef4ea) and the dappled light through the leaves are kept.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the sun as the shade says,
+  no longer required to be dimmed). Smoke runs (title, `--demo`, town, mine 3, `kajika_yu@pool
+  --flags=kajika_built --time=20:00 --towel --soak`, `kajika@start`): 0 ERROR lines; windowed
+  `--quit-after 150` in the clearing: exit 0. Frame sat in it at summer 14:00.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-25 — Kajika-yu: the shade's light up to 90%
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: too dark, make it 90%): data/maps/kajika_yu.json `shade`: the sun 0.65 -> 0.9,
