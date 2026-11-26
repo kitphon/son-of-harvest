@@ -1211,10 +1211,11 @@ func shade_tint() -> Color:
 	return Color(str(m.shade.get("tint", "ffffff")))
 
 
-## The sun's share of its light on the current map (MapData.shade `sun`, 1 under open sky).
+## The sun's share of its light on the current map (MapData.shade `sun`, 1 under open sky; up to
+## 1.5 to lift a clearing the canopy's tint and dapples darken: Kajika-yu, the user wanted it brighter).
 func shade_sun() -> float:
 	var m := maps.current() if maps != null else null
-	return clampf(float(m.shade.get("sun", 1.0)), 0.0, 1.0) if m != null else 1.0
+	return clampf(float(m.shade.get("sun", 1.0)), 0.0, 1.5) if m != null else 1.0
 
 
 ## How strong the sun's shadows are outdoors, 0..1: full by day, fading out as the daylight

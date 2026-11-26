@@ -989,7 +989,7 @@ func _kajika() -> void:
 	g.message.disconnect(hear)
 	# Shadier (the user, 2026-11-25): under the wood's canopy the picture greener, the leaves'
 	# dappled shadows by day.
-	check(float(m.shade.get("sun", 1.0)) <= 1.0 and float(m.shade.get("dapple", 0.0)) > 0.0 and m.shade.has("tint"), "the clearing in the wood's shade (the sun full again at the user's word)")
+	check(float(m.shade.get("sun", 1.0)) > 1.0 and float(m.shade.get("sun", 1.0)) <= 1.5 and float(m.shade.get("dapple", 0.0)) > 0.0 and m.shade.has("tint"), "the clearing in the wood's shade, the sun lifted (the user wanted it brighter, 2026-11-26)")
 	g.go_to_map("kajika_yu", Vector2i(9, 12), Vector2i.UP)
 	g.hour = 14
 	g.minute = 0

@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-26 — Kajika-yu: the clearing brighter
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: "make the light here a little brighter"): the map's `shade` went from sun 1.0,
+  tint eef4ea, dapple 0.8 of a8bc96 to sun 1.35, tint fcfdf8, dapple 0.45 of bccca8.
+  Game.shade_sun now allows up to 1.5 (was capped at 1): the tint is the screen's multiplying
+  sheet, so it cannot lift past white, and only lightening it and the dapples barely showed
+  (a first try at sun 1.0 / f8faf4 / 0.65 measured +0% to the eye). Mean luminance of the soak
+  frame's picture above the HUD, summer, before -> after: 12:00 86.8 -> 98.4, 17:30 71.5 -> 79.1.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the clearing's sun lifted
+  over 1, at most 1.5). Smoke runs (title, `--demo`, town, mine 3, the fall soak, getting in from
+  `kajika_yu@8,3`, `kajika@start`): 0 ERROR lines; windowed `--quit-after 150`: exit 0. Frames
+  before / after at summer 12:00 and 17:30 side by side.
+- Left / next: the moss by season, the user's wading sound.
+
 ## 2026-11-26 — Kajika-yu: stepping in down the bank, never into the ground
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: "pressing E to get in, the figure still sinks into the ground beside the
