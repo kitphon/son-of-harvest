@@ -470,12 +470,15 @@ func _draw_garden(p: Dictionary, r: Rect2) -> void:
 		var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
 		var day: int = game.day if game != null else 1
 		var leaf: Array[Color] = GardenLook.LEAF_WINTER if season == "winter" else GardenLook.LEAF
+		var wild := bool(p.get("wild", false))
+		if wild and season == "fall":
+			leaf = GardenLook.wild_fall_tones(seed, day)   # the whole bush turned its own way (as in 3D)
 		var rx := int(r.size.x / 2) - 2
 		var ry := int(r.size.y / 2) - 3
 		blob(_objects, c + Vector2(0, 1), rx, ry, leaf, seed)
 		var rng := RandomNumberGenerator.new()
 		rng.seed = seed
-		var dot := GardenLook.BLOOM if GardenLook.blooms(season, day) and not bool(p.get("wild", false)) else (GardenLook.FALL_RED if season == "fall" else Color.TRANSPARENT)   # a wild bush never flowers
+		var dot := GardenLook.BLOOM if GardenLook.blooms(season, day) and not wild else (GardenLook.FALL_RED if season == "fall" and not wild else Color.TRANSPARENT)   # a wild bush never flowers nor dots red
 		if dot.a > 0.0:
 			for i in 7:
 				_objects.draw_rect(Rect2(c + Vector2(rng.randi_range(-rx + 2, rx - 2), rng.randi_range(-ry + 1, ry)), Vector2.ONE), dot)

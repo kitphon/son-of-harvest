@@ -166,6 +166,8 @@ static func shrub(w: FarmWorld, r: Rect2, season: String, day: int, seed: int, s
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
 	var tones := LEAF_WINTER if season == "winter" else LEAF
+	if wild and season == "fall":
+		tones = GardenLook.wild_fall_tones(seed, day)   # the whole bush turned its own way, no scattered red facets
 	var bloom := blooms(season, day) and not wild   # a wild bush (Kajika-yu's undergrowth) never flowers pink
 	var sn: SurfaceTool = p.st(FarmProps.Parts.SNOW) if snow else null
 	# A clipped shrub is one smooth mound; a wild bush (`wild`) three or four rough, uneven ones
@@ -177,7 +179,7 @@ static func shrub(w: FarmWorld, r: Rect2, season: String, day: int, seed: int, s
 			var off := Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(0.08, 0.3) * r.size.x
 			lumps.append([off, rng.randf_range(0.6, 0.95), rng.randf_range(1.0, 1.6)])
 	for lump in lumps:
-		_mound(p, sn, rng, r.get_center() + Vector2(lump[0]), r.size * float(lump[1]), float(lump[2]), 0.18 if wild else 0.05, tones, bloom, season)
+		_mound(p, sn, rng, r.get_center() + Vector2(lump[0]), r.size * float(lump[1]), float(lump[2]), 0.18 if wild else 0.05, tones, bloom, "" if wild else season)
 	p.commit(w)
 
 

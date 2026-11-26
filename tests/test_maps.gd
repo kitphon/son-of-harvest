@@ -78,6 +78,19 @@ func _temple_garden() -> void:
 	check(float(GP.WET_SHOW) < 1.0 and tops[1] < tops[0] * 0.75, "a rock in the water shows less above it (%.2f above the skin, %.2f on land)" % [tops[1], tops[0]])
 	check(GP.blooms("spring", 20) and GP.blooms("summer", 3) and not GP.blooms("spring", 5) and not GP.blooms("fall", 20),
 		"the shrubs flower in late spring and the first days of summer")
+	# A wild bush in fall turns as a whole, each its own way, further on late in fall (GardenLook.wild_turn).
+	var GL = load("res://scripts/world/garden_look.gd")
+	var turns := {}
+	var later_ok := true
+	for k in 40:
+		var sd := k * 31 + (k * 7 % 13) * 17
+		var wt: float = GL.wild_turn(sd, 25)
+		turns[snappedf(wt, 0.1)] = true
+		later_ok = later_ok and GL.wild_turn(sd, 2) <= wt and wt >= 0.0 and wt <= 1.0
+	check(turns.size() >= 4 and later_ok, "wild bushes in fall: %d different turns, each further on late in the season" % turns.size())
+	var tones: Array = GL.wild_fall_tones(5 * 31 + 9 * 17, 20)
+	check(tones.size() == 3 and tones[0].v < tones[2].v, "a wild bush's fall tones dark to light")
+	check("wild_fall_tones" in mv_src_early() and "wild_fall_tones" in FileAccess.get_file_as_string("res://scripts/world3d/garden_props.gd"), "both views turn the wild bushes the same way")
 	var mv_src := FileAccess.get_file_as_string("res://scripts/world/map_view.gd")
 	check("p.kind in GardenLook.KINDS" in mv_src and "func _draw_garden" in mv_src, "the flat view draws the garden rocks and shrubs (no plain box)")
 	var mw_src := FileAccess.get_file_as_string("res://scripts/world3d/map_world.gd")
@@ -5305,6 +5318,10 @@ func _k(file: String) -> GDScript:
 ## True when two colours are the same as an RGBA8 picture stores them.
 func _near(a: Color, b: Color) -> bool:
 	return absf(a.r - b.r) < 0.006 and absf(a.g - b.g) < 0.006 and absf(a.b - b.b) < 0.006 and a.a > 0.0
+
+
+func mv_src_early() -> String:
+	return FileAccess.get_file_as_string("res://scripts/world/map_view.gd")
 
 
 func check(ok: bool, what: String) -> void:

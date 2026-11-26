@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-26 — Kajika-yu: the wild bushes turn as a whole in fall
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user, on the fall frames: "why do the rocks look green and orange?"): those were the
+  wild undergrowth bushes, whose fall look painted about one facet in five a flat maple red
+  (FALL_RED), single bright triangles on the green that read as orange stains. A wild bush now
+  turns as a whole: its leaf tones eased from LEAF toward a rust and amber FALL_WILD by its own turn
+  (GardenLook.wild_turn from the cell's seed: about a third keep near green 0.15, two fifths go
+  olive 0.45, a quarter amber-rust 0.8, a little each way; 55% of that on fall's first day up to
+  all of it by its last), no red facets; the flat view the same tones (MapView._draw_garden), no
+  red dots on a wild bush. The temple garden's clipped shrubs keep their few red leaves.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_maps: at least four different
+  turns over 40 bushes, each further on late in fall, the tones dark to light, both views using
+  them). Smoke runs (title, `--demo`, town, mine 3, `kajika_yu@pool --flags=kajika_built
+  --season=fall --time=12:00 --towel --soak`, `kajika@start`): 0 ERROR lines; windowed
+  `--quit-after 150`: exit 0. Frames of fall day 20 at 12:00, sat in the pool (3D: green, olive
+  and golden-amber mounds, no orange facets) and flat.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-26 — No insect drawn in the 3D camera's face
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user, from the seasons-by-hour sheet of Kajika-yu's soak view: in fall at midday a
