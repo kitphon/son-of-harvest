@@ -90,6 +90,22 @@ func _temple_garden() -> void:
 	check(turns.size() >= 4 and later_ok, "wild bushes in fall: %d different turns, each further on late in the season" % turns.size())
 	var tones: Array = GL.wild_fall_tones(5 * 31 + 9 * 17, 20)
 	check(tones.size() == 3 and tones[0].v < tones[2].v, "a wild bush's fall tones dark to light")
+	# The rocks' moss changes a little through the year (GardenLook.moss_of; the user asked).
+	var m_spring: Color = GL.moss_of("spring", 15)
+	var m_rains: Color = GL.moss_of("summer", 9)
+	var m_late: Color = GL.moss_of("summer", 26)
+	var m_winter: Color = GL.moss_of("winter", 15)
+	check(m_rains.s > m_late.s and m_rains.g - m_rains.r > m_late.g - m_late.r, "the moss greenest in the early summer rains, olive in late summer")
+	check(m_winter.s < m_spring.s and m_winter.v < m_spring.v, "duller in winter than in spring")
+	check(GL.moss_of("fall", 16).is_equal_approx(GL.MOSS), "fall's moss the plain one")
+	var near := true
+	for d in 119:
+		var a: Color = GL.moss_of(["spring", "summer", "fall", "winter"][d / 30], d % 30 + 1)
+		var b: Color = GL.moss_of(["spring", "summer", "fall", "winter"][(d + 1) % 120 / 30], (d + 1) % 30 + 1)
+		near = near and absf(a.r - b.r) + absf(a.g - b.g) + absf(a.b - b.b) < 0.03
+		near = near and absf(a.h - GL.MOSS.h) < 0.12 and absf(a.v - GL.MOSS.v) < 0.12
+	check(near, "the moss eased day to day, never far from its green (a little change only)")
+	check("moss_now" in FileAccess.get_file_as_string("res://scripts/world3d/garden_props.gd") and "moss_now" in mv_src_early(), "both views draw the moss of the season")
 	check("wild_fall_tones" in mv_src_early() and "wild_fall_tones" in FileAccess.get_file_as_string("res://scripts/world3d/garden_props.gd"), "both views turn the wild bushes the same way")
 	var mv_src := FileAccess.get_file_as_string("res://scripts/world/map_view.gd")
 	check("p.kind in GardenLook.KINDS" in mv_src and "func _draw_garden" in mv_src, "the flat view draws the garden rocks and shrubs (no plain box)")

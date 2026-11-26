@@ -10,13 +10,33 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-26 — The rocks' moss a little different through the year
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user, after asking whether moss changes colour by season: "make the moss change a
+  little by season"): real moss keeps green all year but its shade follows the wet and the cold,
+  so the rocks' moss (GardenProps.stone's mossy tops in 3D, MapView's moss flecks flat; every map's
+  garden rocks, boulders, shore stones and the gorge's stones) now takes GardenLook.moss_of(season,
+  day), eased day by day between five colours round the year (MOSS_YEAR): fresh light green mid
+  spring (6a8c40), its most vivid in the early summer rains (588c3a, summer 9), olive in late
+  summer's heat (72803e), the plain moss mid fall (5f7a3a, MOSS as before), dull and a little brown
+  in winter (68703f). moss_now reads the Game autoload's season and day (MOSS without one). The
+  bank's painted moss next to the grass (PondShape.MOSS) and the `moss` ground are as before.
+  Also: the last entry's note on the first brightness try corrected (+9%, not +0%).
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_maps: greenest in the early summer
+  rains, olive late summer, duller in winter than spring, fall's the plain one, eased day to day
+  and never far from its green, both views use it). Smoke runs (title, `--demo`, town, mine 3, the
+  fall soak, getting in from `kajika_yu@8,3`, `kajika@start`): 0 ERROR lines; windowed
+  `--quit-after 150`: exit 0. Frames at spring 15, summer 9, summer 26, winter 15 (12:00 sat in
+  the pool), the rocks' tops cropped side by side.
+- Left / next: the user's wading sound.
+
 ## 2026-11-26 — Kajika-yu: the clearing brighter
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: "make the light here a little brighter"): the map's `shade` went from sun 1.0,
   tint eef4ea, dapple 0.8 of a8bc96 to sun 1.35, tint fcfdf8, dapple 0.45 of bccca8.
   Game.shade_sun now allows up to 1.5 (was capped at 1): the tint is the screen's multiplying
   sheet, so it cannot lift past white, and only lightening it and the dapples barely showed
-  (a first try at sun 1.0 / f8faf4 / 0.65 measured +0% to the eye). Mean luminance of the soak
+  (a first try at sun 1.2 / f8faf4 / 0.55 measured only +9% at 12:00 and looked the same). Mean luminance of the soak
   frame's picture above the HUD, summer, before -> after: 12:00 86.8 -> 98.4, 17:30 71.5 -> 79.1.
 - Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the clearing's sun lifted
   over 1, at most 1.5). Smoke runs (title, `--demo`, town, mine 3, the fall soak, getting in from

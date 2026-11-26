@@ -116,13 +116,14 @@ static func stone(p: FarmProps.Parts, sn: SurfaceTool, at: Vector3, rx: float, h
 	var centre := at + Vector3(0, h * 0.4, 0)
 	var moss_from := rng.randi() % sides   # the moss lies on a patch of the top: a run of its facets
 	var moss_run := rng.randi_range(1, maxi(sides / 2, 1))
+	var moss := GardenLook.moss_now()   # by the season (MOSS_YEAR)
 	var facet := func(a: Vector3, b: Vector3, c: Vector3, mossy: bool) -> void:
 		var n := (b - a).cross(c - a).normalized()
 		if n.dot((a + b + c) / 3.0 - centre) < 0.0:
 			n = -n
 		var col: Color = tones[2] if n.y > 0.72 else (tones[1] if n.y > 0.3 else tones[0])
 		if mossy and mossy_top and n.y > 0.72:
-			col = GardenLook.MOSS
+			col = moss
 		var j := 1.0 + rng.randf_range(-0.07, 0.07)
 		OutdoorProps.tri(p.st(Color(col.r * j, col.g * j, col.b * j)), a, b, c, n)
 		if sn != null and n.y > 0.45:

@@ -497,10 +497,10 @@ func _draw_garden(p: Dictionary, r: Rect2) -> void:
 	elif shape == "boulder":   # a big mossy rock: two lesser ones at its foot, moss over its top
 		blob(_objects, c + Vector2(7, 3), 4, 3, GardenLook.STONE, seed + 1)
 		blob(_objects, c + Vector2(-6, 4), 3, 2, GardenLook.STONE, seed + 2)
-		_objects.draw_rect(Rect2(c + Vector2(-4, -5), Vector2(6, 2)), GardenLook.MOSS)
+		_objects.draw_rect(Rect2(c + Vector2(-4, -5), Vector2(6, 2)), GardenLook.moss_now())
 	elif shape == "tall" or shape == "low":
 		blob(_objects, c + Vector2(4, 4), 2, 1, GardenLook.STONE, seed + 2)
-	_objects.draw_rect(Rect2(c + Vector2(-1, -int(sz[1]) + 1), Vector2(2, 1)), GardenLook.MOSS)
+	_objects.draw_rect(Rect2(c + Vector2(-1, -int(sz[1]) + 1), Vector2(2, 1)), GardenLook.moss_now())
 	if snow:
 		_objects.draw_rect(Rect2(c + Vector2(-int(sz[0]) + 2, -int(sz[1])), Vector2(int(sz[0]) * 2 - 3, 2)), Color("f4f8fa"))
 
