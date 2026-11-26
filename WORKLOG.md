@@ -10,6 +10,33 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-26 — Kajika-yu: each way in its own seat out in open water
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user, two night shots: "I can get in at this nook, which I shouldn't" (behind the
+  snow-viewing lantern's rock before the pavilion) and "my figure still sinks into the pool's edge
+  when I press E"): a shore spot only checked the water one cell in for depth, never the props
+  standing in it, so (6, 4) led in right behind the lantern's rock; and every seat was 1.0 cells
+  from the bank cell, half a cell past the water's edge. Seen from the low soak camera (pitch 13)
+  the bank behind a bather facing the eye stands at their head and shoulders until they sit about
+  2.4 cells off it, so they read as sat in its edge; my previous fix (never drawn below the ground)
+  did not change that. Now each spot finds its own seat (Game.shore_reach): stepping out from
+  the bank cell's middle by 0.1, the way clear of the rocks (clear_of_rocks_on, as wading), the
+  first point from SHORE_REACH_LEAST 1.9 (SHORE_REACH_TO_EYE 2.9 in from the far shore, facing
+  down) deep all round (depth_round >= WADE_DEEP) and with no rock between it and the camera
+  within 1.6 cells (_eye_clear: a boulder hid the lower half of one sat behind it); none within
+  3.6, no way in there. The chosen reach is soak_reach (bath_point, seat_reach, _wade_to_edge) and
+  stretches the sit path's keys (_soak_path). 14 ways in are left of 22 (none behind the lantern;
+  the east bank's is now (15, 10) facing left). _deep_seat went; wade_depth / _clear_of_rocks run
+  on the static depth_round / clear_of_rocks_on.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: every way in sits them deep
+  all round, the way in clear of the rocks, none behind the lantern; the rings' count allows the
+  test's 0.1-cell steps, a ring every 0.4 of them, now the bather wades further). Smoke runs
+  (title, `--demo`, town, mine 3, the fall soak, getting in from `kajika_yu@8,3`, `kajika@start`):
+  0 ERROR lines; windowed `--quit-after 150`: exit 0. Frames sat in from (7,3), (10,3), (11,4),
+  (5,4), (3,6), (15,10) at summer 17:30 and getting in at 20:30: open water round them, the bank
+  above their heads, no rock before them.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-26 — Kajika-yu: the user's wading sound, held while moving
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: "change the sound when moving in the water to

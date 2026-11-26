@@ -829,7 +829,7 @@ func _kajika() -> void:
 	check(shape != null and shape.cells.size() >= 70 and m.props[0] == pool[0], "its water a soft pond of look onsen (%d cells), the prop first so E finds it" % (shape.cells.size() if shape != null else 0))
 	var spots: Array = g.soak_spots(pool[0], m)
 	check(spots.size() >= 10 and spots.all(func(s): return m.tile(s[0]) != "water" and not m.is_solid(s[0]) and m.tile(s[0] + s[1]) == "water"), "in from all round its shore (%d spots), each a dry open cell facing its water" % spots.size())
-	check(spots.has([Vector2i(9, 12), Vector2i.UP]) and spots.has([Vector2i(13, 11), Vector2i.UP]), "from the path's end below it and from its east bank")
+	check(spots.has([Vector2i(9, 12), Vector2i.UP]) and spots.has([Vector2i(15, 10), Vector2i.LEFT]), "from the path's end below it and from its east bank")
 	# After the user's photo: a big pool shut in by the wood, boulders standing in its water, the hut
 	# at the back past the water, never between the eye (south-east) and the pool.
 	var rocks_in := m.props.filter(func(p): return p.kind == "garden_rock" and str(p.get("shape", "")) == "boulder" and m.tile(Vector2i(p.cell)) == "water")
@@ -910,7 +910,17 @@ func _kajika() -> void:
 	# Moving about in the water at half the walking pace (the user), only where it is deep, out at the
 	# nearest edge; never sunk into the bank at a corner (the user saw it).
 	check(is_equal_approx(float(k.get("wade", 0.0)), 0.5) and g.can_wade(), "sat in it, free to move about in the water at half the walk")
-	check(spots.all(func(sp): return PondShape.of(m, "onsen").sink(Vector2(sp[0] + sp[1]) + Vector2(0.5, 0.5)) >= g.WADE_DEEP), "every way in lands in deep water, none on a corner's sloping bank")
+	check(spots.all(func(sp): return g.shore_reach(m, sp[0], sp[1]) >= 1.0 and g.depth_round(m, Vector2(sp[0]) + Vector2(0.5, 0.5) + Vector2(sp[1]) * g.shore_reach(m, sp[0], sp[1])) >= g.WADE_DEEP),
+		"every way in sits them in deep water all round, never against the bank (the user saw them sunk in its edge)")
+	var clear_way := true
+	for sp in spots:
+		var reach: float = g.shore_reach(m, sp[0], sp[1])
+		for i in int(reach * 10) - 5:
+			clear_way = clear_way and g.clear_of_rocks_on(m, Vector2(sp[0]) + Vector2(0.5, 0.5) + Vector2(sp[1]) * (0.6 + i * 0.1))
+	check(clear_way, "the way in from every spot clear of the rocks standing in the water")
+	var lantern: Array = m.props.filter(func(p): return p.kind == "yukimi_doro")
+	check(lantern.size() == 1 and not spots.any(func(sp): return Vector2i(lantern[0].cell) == sp[0] + sp[1] or Vector2i(lantern[0].cell) == sp[0] + sp[1] * 2),
+		"no way in behind the snow-viewing lantern's rock (the user found a nook there)")
 	# Getting in from every way: walked down the bank's slope, never drawn below the ground under them,
 	# sat in the bathing pose only over the deep bed (the user saw them sink into the ground beside it).
 	check(is_equal_approx(float(k.get("bed", 0.0)), float(load("res://scripts/world3d/sunken_ground.gd").DROP)), "the pool's bed as deep as the map's water (SunkenGround.DROP)")
@@ -920,6 +930,7 @@ func _kajika() -> void:
 	for sp in spots:
 		g.soak_at = sp[0]
 		g.soak_facing = sp[1]
+		g.soak_reach = g.shore_reach(m, sp[0], sp[1])
 		for i in 41:
 			g.soak_t = i / 40.0
 			var path: Vector2 = g._soak_path(false)
@@ -930,10 +941,11 @@ func _kajika() -> void:
 				shallow_bathe = minf(shallow_bathe, PondShape.of(m, "onsen").sink(at))
 	g.soak_at = keep[0]
 	g.soak_facing = keep[1]
+	g.soak_reach = g.shore_reach(m, keep[0], keep[1])
 	g.soak_t = keep[2]
 	g.soak_phase = keep[3]
 	check(buried <= 0.0001, "getting in from every way, never below the ground under them (%.3f)" % buried)
-	check(shallow_bathe >= 0.95, "the bathing pose only over the deep bed (%.2f of the depth at the shallowest)" % shallow_bathe)
+	check(shallow_bathe >= g.WADE_DEEP, "the bathing pose only over the deep bed (%.2f of the depth at the shallowest)" % shallow_bathe)
 	var start: Vector2 = g.bath_point()
 	var rings: Array[Vector2] = []
 	var on_ring := func(at: Vector2): rings.append(at)
@@ -943,7 +955,7 @@ func _kajika() -> void:
 	g.waded.disconnect(on_ring)
 	check(g.wading_now(), "moving through the water: the wading sound held (Game.wading_now)")
 	var waded_far: float = start.distance_to(g.bath_point())
-	check(rings.size() >= int(waded_far / float(k.ring_every)) - 1 and rings.size() > 0 and rings.back().distance_to(g.bath_point()) < float(k.ring_every) + 0.01,
+	check(rings.size() >= int(waded_far / (float(k.ring_every) + 0.1)) - 1 and rings.size() > 0 and rings.back().distance_to(g.bath_point()) < float(k.ring_every) + 0.01,
 		"a ring on the water round them every %.2f cells waded (%d over %.1f)" % [float(k.ring_every), rings.size(), waded_far])
 	check(g.bath_point().y < start.y - 1.5 and g.soak_look() == Vector2i.UP, "waded out toward the middle, facing the way (%s)" % g.bath_point())
 	var deep := true
@@ -966,9 +978,9 @@ func _kajika() -> void:
 	g._process(float(k.sit_seconds) + 0.05)
 	g.stop_soak()
 	g._process(float(k.stand_seconds) + 0.05)
-	g.go_to_map("kajika_yu", Vector2i(13, 11), Vector2i.UP)
-	FA.on_action("interact", Vector2i(13, 11), Vector2i.UP)
-	check(g.soaking() and g.soak_at == Vector2i(13, 11) and g.soak_facing == Vector2i.UP, "in from the east bank too")
+	g.go_to_map("kajika_yu", Vector2i(15, 10), Vector2i.LEFT)
+	FA.on_action("interact", Vector2i(15, 10), Vector2i.LEFT)
+	check(g.soaking() and g.soak_at == Vector2i(15, 10) and g.soak_facing == Vector2i.LEFT, "in from the east bank too")
 	g.stop_soak()
 	g._process(float(k.stand_seconds) + 0.05)
 	check(not g.soaking(), "out again")

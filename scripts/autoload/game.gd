@@ -116,6 +116,7 @@ var soaked_today := false   # the day's first soak at the footbath given (its st
 var bathed_today := false   # the day's first bath given (the sento and the rotenburo share it: data/baths.json `day`); saved, cleared each morning
 var bath_paid_today := false   # the sento's entry paid today (in and out free after; data/shops.json sento entry_fee); saved, cleared each morning
 var in_towel := false   # wrapped in a bathing towel, the clothes in a basket (the sento's changing room: Game.change_clothes); not saved, off on leaving the bath's maps
+var soak_reach := 0.0   # a pool's shore: how far out from the bank cell they sit (Game.shore_reach), 0 for the bath's `seat`; not saved
 var wade := Vector2.ZERO   # how far the bather has moved in the water from where they sat (cells; a bath with `wade`: Kajika-yu); not saved
 var wade_facing := Vector2i.ZERO   # the way they last moved in the water (soak_look), ZERO before they move
 var _wade_since := 0.0   # cells waded since the last ring (data/baths.json `ring_every`)
@@ -405,6 +406,7 @@ func new_game() -> void:
 						soak_t = 1.0
 						soak_at = spots[k][0]
 						soak_facing = spots[k][1]
+						soak_reach = maxf(shore_reach(maps.current(), soak_at, soak_facing), 0.0)
 						if arg == "--soak=up":   # `--soak=up`: sat, and getting up from the first frame (the way out)
 							soak_phase = "up"
 					break
@@ -2235,6 +2237,7 @@ func soak(origin := Vector2i(-1, -1), facing := Vector2i.ZERO) -> Dictionary:
 	if origin != Vector2i(-1, -1):
 		soak_at = origin
 		soak_facing = facing
+		soak_reach = maxf(shore_reach(maps.current(), origin, facing), 0.0) if str(maps.current().prop_at(origin + facing).get("seats", "")) == "shore" else 0.0
 	var note := String(soak_cfg.get("again_message", ""))
 	var bath := str(soak_cfg.get("day", "foot")) == "bath"
 	if not (bathed_today if bath else soaked_today):
@@ -2280,7 +2283,13 @@ func stop_soak() -> void:
 
 ## Where the bather is in the water now (map cells, a point): the seat they got in at, moved by `wade`.
 func bath_point() -> Vector2:
-	return Vector2(soak_at) + Vector2(0.5, 0.5) + Vector2(soak_facing) * float(soak_cfg.get("seat", 1.0)) + wade
+	return Vector2(soak_at) + Vector2(0.5, 0.5) + Vector2(soak_facing) * seat_reach() + wade
+
+
+## How far out from the cell they got in from the bather sits: a pool's shore its own (soak_reach),
+## else the bath's `seat`.
+func seat_reach() -> float:
+	return soak_reach if soak_reach > 0.0 else float(soak_cfg.get("seat", 1.0))
 
 
 ## Is the bather moving through the water now (moved within the last 0.25 s, still sat in it)?
@@ -2337,7 +2346,10 @@ func wade_ok(p: Vector2) -> bool:
 ## How deep the water is all round point `p` (0 on land .. 1): the least of its own depth
 ## (PondShape.sink) at p and WADE_RING cells from it each way.
 func wade_depth(p: Vector2) -> float:
-	var m := maps.current()
+	return depth_round(maps.current(), p)
+
+
+static func depth_round(m: MapData, p: Vector2) -> float:
 	var least := 1.0
 	for o in [Vector2.ZERO, Vector2(WADE_RING, 0), Vector2(-WADE_RING, 0), Vector2(0, WADE_RING), Vector2(0, -WADE_RING)]:
 		var q: Vector2 = p + o
@@ -2364,7 +2376,10 @@ func _wade_sum(p: Vector2) -> float:
 
 ## Is point `p` clear of the props standing in the water (by WADE_CLEAR)?
 func _clear_of_rocks(p: Vector2) -> bool:
-	var m := maps.current()
+	return clear_of_rocks_on(maps.current(), p)
+
+
+static func clear_of_rocks_on(m: MapData, p: Vector2) -> bool:
 	for o in [Vector2(WADE_CLEAR, 0), Vector2(-WADE_CLEAR, 0), Vector2(0, WADE_CLEAR), Vector2(0, -WADE_CLEAR), Vector2.ZERO]:
 		var q: Vector2 = p + o
 		var qc := Vector2i(floori(q.x), floori(q.y))
@@ -2384,7 +2399,7 @@ func _wade_to_edge() -> bool:
 	var best := []
 	var best_d := EDGE_REACH
 	for spot in soak_spots(prop, maps.current()):
-		var seat := Vector2(spot[0]) + Vector2(0.5, 0.5) + Vector2(spot[1]) * float(soak_cfg.get("seat", 1.0))
+		var seat := Vector2(spot[0]) + Vector2(0.5, 0.5) + Vector2(spot[1]) * shore_reach(maps.current(), spot[0], spot[1])
 		var d := seat.distance_to(here)
 		if d <= best_d:
 			best_d = d
@@ -2393,7 +2408,8 @@ func _wade_to_edge() -> bool:
 		return false
 	soak_at = best[0]
 	soak_facing = best[1]
-	wade = here - (Vector2(soak_at) + Vector2(0.5, 0.5) + Vector2(soak_facing) * float(soak_cfg.get("seat", 1.0)))
+	soak_reach = shore_reach(maps.current(), soak_at, soak_facing)
+	wade = here - (Vector2(soak_at) + Vector2(0.5, 0.5) + Vector2(soak_facing) * soak_reach)
 	wade_facing = Vector2i.ZERO
 	return true
 
@@ -2456,13 +2472,14 @@ func _soak_path(back: bool) -> Vector2:
 	var keys := _soak_keys(back)
 	if keys.is_empty():
 		return Vector2(float(soak_cfg.get("seat_back" if back else "seat", 0.8)), float(soak_cfg.get("lift_back" if back else "lift", 0.0))) * soak_t
+	var far := seat_reach() / maxf(float(soak_cfg.get("seat", 1.0)), 0.01) if soak_reach > 0.0 else 1.0   # a shore spot's own reach: the way stretched out to it
 	var i := _soak_key_at(keys)
 	var a: Array = keys[i]
 	if i >= keys.size() - 1:
-		return Vector2(float(a[1]), float(a[2]))
+		return Vector2(float(a[1]) * far, float(a[2]))
 	var b: Array = keys[i + 1]
 	var u := smoothstep(0.0, 1.0, (soak_t - float(a[0])) / maxf(float(b[0]) - float(a[0]), 0.001))
-	return Vector2(lerpf(float(a[1]), float(b[1]), u), lerpf(float(a[2]), float(b[2]), u))
+	return Vector2(lerpf(float(a[1]), float(b[1]), u) * far, lerpf(float(a[2]), float(b[2]), u))
 
 
 func _soak_keys(back: bool) -> Array:
@@ -2518,7 +2535,7 @@ static func soak_spots(prop: Dictionary, m: MapData = null) -> Array:
 				for x in range(cell.x, cell.x + size.x):
 					var wc := Vector2i(x, y)
 					var at: Vector2i = wc - d
-					if m.tile(wc) == "water" and m.in_bounds(at) and m.tile(at) != "water" and not m.is_solid(at) and _deep_seat(m, wc):
+					if m.tile(wc) == "water" and m.in_bounds(at) and m.tile(at) != "water" and not m.is_solid(at) and shore_reach(m, at, d) > 0.0:
 						out.append([at, d])
 		return out
 	if str(prop.get("seats", "")) == "front":   # a bath against the back wall: in from any cell before its front, facing it
@@ -2536,11 +2553,36 @@ static func soak_spots(prop: Dictionary, m: MapData = null) -> Array:
 	return out
 
 
-## Is water cell `wc` deep where one sits in it (its middle on a soft pond's bed, not its sloping
-## bank: at a rounded corner the bather would sink into the bank, the user saw).
-static func _deep_seat(m: MapData, wc: Vector2i) -> bool:
-	var pond := PondShape.of(m, m.look(wc))
-	return pond == null or pond.sink(Vector2(wc) + Vector2(0.5, 0.5)) >= WADE_DEEP
+## A pool's shore spot: how far out (cells from the middle of bank cell `at`, along `d`) the bather
+## sits, the first point from 1 on where the water is deep all round them and clear of the rocks
+## standing in it (as wading: depth_round, clear_of_rocks_on), the way out to it clear of the rocks
+## too; -1 when there is none within SHORE_REACH_MOST (no way in there: behind the lantern's rock,
+## the user found a nook). So they never sit against the bank (the user saw them sunk in its edge).
+const SHORE_REACH_LEAST := 1.9   # at least 1.4 cells out past the water's edge: open water between them and the bank
+const SHORE_REACH_TO_EYE := 2.9   # in from the far (north) shore, facing the eye: the low soak camera (pitch 13) sees the bank behind them; under about 2.4 cells off it the bank stood behind their head and shoulders and they read as sat in its edge (the user, twice)
+const SHORE_REACH_MOST := 3.6
+const EYE_WAY := Vector2(0.7071, 0.7071)   # toward the play and soak cameras (south-east, yaw 45)
+
+
+## No rock standing in the water between seat `p` and the camera within 1.6 cells (one would hide
+## the bather sat behind it, read as sunk: Kajika-yu's boulder before the north shore).
+static func _eye_clear(m: MapData, p: Vector2) -> bool:
+	for t in [0.5, 1.0, 1.6]:
+		if not clear_of_rocks_on(m, p + EYE_WAY * t):
+			return false
+	return true
+static func shore_reach(m: MapData, at: Vector2i, d: Vector2i) -> float:
+	var from := Vector2(at) + Vector2(0.5, 0.5)
+	var least := SHORE_REACH_TO_EYE if d == Vector2i.DOWN else SHORE_REACH_LEAST
+	var x := 0.6
+	while x <= SHORE_REACH_MOST + 0.001:
+		var p := from + Vector2(d) * x
+		if not clear_of_rocks_on(m, p):
+			return -1.0
+		if x >= least - 0.001 and depth_round(m, p) >= WADE_DEEP and _eye_clear(m, p):
+			return x
+		x += 0.1
+	return -1.0
 
 
 ## May the farmer on `origin` facing `facing` sit at the footbath in front (one of its soak_spots)?
