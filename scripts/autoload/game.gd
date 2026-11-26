@@ -117,6 +117,7 @@ var bathed_today := false   # the day's first bath given (the sento and the rote
 var bath_paid_today := false   # the sento's entry paid today (in and out free after; data/shops.json sento entry_fee); saved, cleared each morning
 var in_towel := false   # wrapped in a bathing towel, the clothes in a basket (the sento's changing room: Game.change_clothes); not saved, off on leaving the bath's maps
 var soak_reach := 0.0   # a pool's shore: how far out from the bank cell they sit (Game.shore_reach), 0 for the bath's `seat`; not saved
+var soak_entry := 0.0   # and where the deep bed starts on the way there (Game.shore_entry): walked to, then waded in the bathing pose
 var wade := Vector2.ZERO   # how far the bather has moved in the water from where they sat (cells; a bath with `wade`: Kajika-yu); not saved
 var wade_facing := Vector2i.ZERO   # the way they last moved in the water (soak_look), ZERO before they move
 var _wade_since := 0.0   # cells waded since the last ring (data/baths.json `ring_every`)
@@ -407,6 +408,7 @@ func new_game() -> void:
 						soak_at = spots[k][0]
 						soak_facing = spots[k][1]
 						soak_reach = maxf(shore_reach(maps.current(), soak_at, soak_facing), 0.0)
+						soak_entry = shore_entry(maps.current(), soak_at, soak_facing) if soak_reach > 0.0 else 0.0
 						if arg == "--soak=up":   # `--soak=up`: sat, and getting up from the first frame (the way out)
 							soak_phase = "up"
 					break
@@ -2238,6 +2240,7 @@ func soak(origin := Vector2i(-1, -1), facing := Vector2i.ZERO) -> Dictionary:
 		soak_at = origin
 		soak_facing = facing
 		soak_reach = maxf(shore_reach(maps.current(), origin, facing), 0.0) if str(maps.current().prop_at(origin + facing).get("seats", "")) == "shore" else 0.0
+		soak_entry = shore_entry(maps.current(), origin, facing) if soak_reach > 0.0 else 0.0
 	var note := String(soak_cfg.get("again_message", ""))
 	var bath := str(soak_cfg.get("day", "foot")) == "bath"
 	if not (bathed_today if bath else soaked_today):
@@ -2409,6 +2412,7 @@ func _wade_to_edge() -> bool:
 	soak_at = best[0]
 	soak_facing = best[1]
 	soak_reach = shore_reach(maps.current(), soak_at, soak_facing)
+	soak_entry = shore_entry(maps.current(), soak_at, soak_facing)
 	wade = here - (Vector2(soak_at) + Vector2(0.5, 0.5) + Vector2(soak_facing) * soak_reach)
 	wade_facing = Vector2i.ZERO
 	return true
@@ -2432,7 +2436,7 @@ func soak_amount() -> float:
 func _soak_step(delta: float) -> void:
 	match soak_phase:
 		"down":
-			soak_t = minf(soak_t + delta / maxf(float(soak_cfg.get("sit_seconds", 0.7)), 0.01), 1.0)
+			soak_t = minf(soak_t + delta / _soak_seconds("sit_seconds", 0.7), 1.0)
 			if soak_t >= 1.0:
 				soak_phase = "sit"
 				var sfx := get_node_or_null("/root/Sfx")   # not named: tests load this script without the autoload
@@ -2440,7 +2444,7 @@ func _soak_step(delta: float) -> void:
 					sfx.play("soak_in")
 		"up":
 			wade = wade.move_toward(Vector2.ZERO, delta * 3.0)   # to the edge they get out at
-			soak_t = maxf(soak_t - delta / maxf(float(soak_cfg.get("stand_seconds", 0.5)), 0.01), 0.0)
+			soak_t = maxf(soak_t - delta / _soak_seconds("stand_seconds", 0.5), 0.0)
 			if soak_t <= 0.0:
 				_stand_up_now()
 				changed.emit()
@@ -2472,14 +2476,32 @@ func _soak_path(back: bool) -> Vector2:
 	var keys := _soak_keys(back)
 	if keys.is_empty():
 		return Vector2(float(soak_cfg.get("seat_back" if back else "seat", 0.8)), float(soak_cfg.get("lift_back" if back else "lift", 0.0))) * soak_t
-	var far := seat_reach() / maxf(float(soak_cfg.get("seat", 1.0)), 0.01) if soak_reach > 0.0 else 1.0   # a shore spot's own reach: the way stretched out to it
 	var i := _soak_key_at(keys)
 	var a: Array = keys[i]
 	if i >= keys.size() - 1:
-		return Vector2(float(a[1]) * far, float(a[2]))
+		return Vector2(_key_x(keys, i), float(a[2]))
 	var b: Array = keys[i + 1]
 	var u := smoothstep(0.0, 1.0, (soak_t - float(a[0])) / maxf(float(b[0]) - float(a[0]), 0.001))
-	return Vector2(lerpf(float(a[1]), float(b[1]), u) * far, lerpf(float(a[2]), float(b[2]), u))
+	return Vector2(lerpf(_key_x(keys, i), _key_x(keys, i + 1), u), lerpf(float(a[2]), float(b[2]), u))
+
+
+## Key `i`'s x: as written, but a pool's shore spot's last key its own reach (soak_reach): they step
+## down the bank as the keys say, then wade on in the bathing pose out to their seat.
+func _key_x(keys: Array, i: int) -> float:
+	if soak_reach > 0.0 and i == keys.size() - 1:
+		return soak_reach
+	if soak_reach > 0.0 and soak_entry > 0.0 and i == keys.size() - 2:   # into the bathing pose where the deep bed starts
+		return soak_entry
+	if soak_reach > 0.0 and soak_entry > 0.0 and i == keys.size() - 3:   # the bank walked down to just short of it
+		return soak_entry - (float(keys[i + 1][1]) - float(keys[i][1]))
+	return float(keys[i][1])
+
+
+## How long getting in (`sit_seconds`) or out (`stand_seconds`) takes: `per_cell` more for every
+## cell a pool's shore spot sits past the bath's `seat`.
+func _soak_seconds(key: String, fallback: float) -> float:
+	var extra := maxf(soak_reach - float(soak_cfg.get("seat", 1.0)), 0.0) * float(soak_cfg.get("per_cell", 0.0)) if soak_reach > 0.0 else 0.0
+	return maxf(float(soak_cfg.get(key, fallback)) + extra, 0.01)
 
 
 func _soak_keys(back: bool) -> Array:
@@ -2571,6 +2593,20 @@ static func _eye_clear(m: MapData, p: Vector2) -> bool:
 		if not clear_of_rocks_on(m, p + EYE_WAY * t):
 			return false
 	return true
+## Where on the way out from bank cell `at` along `d` the deep bed starts (the pool's sink there
+## at least WADE_DEEP; from 1 cell, never past the spot's reach): walked to, then waded.
+static func shore_entry(m: MapData, at: Vector2i, d: Vector2i) -> float:
+	var reach := shore_reach(m, at, d)
+	var x := 1.0
+	while x < reach:
+		var p := Vector2(at) + Vector2(0.5, 0.5) + Vector2(d) * x
+		var pond := PondShape.of(m, m.look(Vector2i(p.floor()))) if m.tile(Vector2i(p.floor())) == "water" else null
+		if pond != null and pond.sink(p) >= WADE_DEEP:
+			return x
+		x += 0.05
+	return reach
+
+
 static func shore_reach(m: MapData, at: Vector2i, d: Vector2i) -> float:
 	var from := Vector2(at) + Vector2(0.5, 0.5)
 	var least := SHORE_REACH_TO_EYE if d == Vector2i.DOWN else SHORE_REACH_LEAST

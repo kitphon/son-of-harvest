@@ -905,7 +905,7 @@ func _kajika() -> void:
 	FA.on_action("interact", seat, Vector2i.UP)
 	check(g.soaking() and g.bathed_today and g.stamina == g.max_stamina and g.fatigue == 30 and g.soak_owed == 90, "in: stamina full, -30, 90 minutes owed (%d / %d)" % [g.stamina, g.fatigue])
 	check(said.back() == str(k.message), "says the pool")
-	g._process(float(k.sit_seconds) + 0.05)
+	g._process(g._soak_seconds("sit_seconds", 0.7) + 0.05)
 	check(g.still_pose() == "bathe" and g.soak_look() == Vector2i.DOWN and is_equal_approx(g.soak_lift(true), float(k.lift)), "sat in the water, turned to the eye")
 	# Moving about in the water at half the walking pace (the user), only where it is deep, out at the
 	# nearest edge; never sunk into the bank at a corner (the user saw it).
@@ -927,10 +927,13 @@ func _kajika() -> void:
 	var keep := [g.soak_at, g.soak_facing, g.soak_t, g.soak_phase]
 	var buried := 0.0
 	var shallow_bathe := 1.0
+	var walk_far := 0.0
 	for sp in spots:
 		g.soak_at = sp[0]
 		g.soak_facing = sp[1]
 		g.soak_reach = g.shore_reach(m, sp[0], sp[1])
+		g.soak_entry = g.shore_entry(m, sp[0], sp[1])
+		var walk_most := 0.0
 		for i in 41:
 			g.soak_t = i / 40.0
 			var path: Vector2 = g._soak_path(false)
@@ -939,12 +942,17 @@ func _kajika() -> void:
 			var keys: Array = k.sit_path
 			if str(keys[g._soak_key_at(keys)][3]) == "bathe":
 				shallow_bathe = minf(shallow_bathe, PondShape.of(m, "onsen").sink(at))
+			else:
+				walk_most = maxf(walk_most, path.x)
+		walk_far = maxf(walk_far, walk_most - g.soak_entry)
 	g.soak_at = keep[0]
 	g.soak_facing = keep[1]
 	g.soak_reach = g.shore_reach(m, keep[0], keep[1])
+	g.soak_entry = g.shore_entry(m, keep[0], keep[1])
 	g.soak_t = keep[2]
 	g.soak_phase = keep[3]
 	check(buried <= 0.0001, "getting in from every way, never below the ground under them (%.3f)" % buried)
+	check(walk_far <= 0.0001, "walking in only down the bank to where the deep bed starts, then wading in the bathing pose (the bed lies just under the skin: the user saw them walk on the water) (%.2f)" % walk_far)
 	check(shallow_bathe >= g.WADE_DEEP, "the bathing pose only over the deep bed (%.2f of the depth at the shallowest)" % shallow_bathe)
 	var start: Vector2 = g.bath_point()
 	var rings: Array[Vector2] = []
@@ -972,17 +980,17 @@ func _kajika() -> void:
 	g.wade = Vector2(0.2, -0.1)   # back by the path's end
 	g.stop_soak()
 	check(g.soak_phase == "up" and g.soak_at == Vector2i(9, 12), "E by an edge: out there")
-	g._process(float(k.stand_seconds) + 0.05)
+	g._process(g._soak_seconds("stand_seconds", 0.5) + 0.05)
 	check(not g.soaking() and g.wade == Vector2.ZERO, "out on the bank, the wade cleared")
 	FA.on_action("interact", seat, Vector2i.UP)
-	g._process(float(k.sit_seconds) + 0.05)
+	g._process(g._soak_seconds("sit_seconds", 0.7) + 0.05)
 	g.stop_soak()
-	g._process(float(k.stand_seconds) + 0.05)
+	g._process(g._soak_seconds("stand_seconds", 0.5) + 0.05)
 	g.go_to_map("kajika_yu", Vector2i(15, 10), Vector2i.LEFT)
 	FA.on_action("interact", Vector2i(15, 10), Vector2i.LEFT)
 	check(g.soaking() and g.soak_at == Vector2i(15, 10) and g.soak_facing == Vector2i.LEFT, "in from the east bank too")
 	g.stop_soak()
-	g._process(float(k.stand_seconds) + 0.05)
+	g._process(g._soak_seconds("stand_seconds", 0.5) + 0.05)
 	check(not g.soaking(), "out again")
 	# The day's bath is shared with the sento's.
 	g.go_to_map("kajika_yu", seat, Vector2i.UP)
@@ -991,7 +999,7 @@ func _kajika() -> void:
 	FA.on_action("interact", seat, Vector2i.UP)
 	check(g.soaking() and g.stamina == 10 and said.back() == str(k.again_message), "a second bath the same day only rests")
 	g.stop_soak()
-	g._process(float(k.stand_seconds) + 0.05)
+	g._process(g._soak_seconds("stand_seconds", 0.5) + 0.05)
 	g.stamina = st
 	g.go_to_map("kajika_yu", Vector2i(4, 3), Vector2i.UP)
 	FA.on_action("interact", Vector2i(4, 3), Vector2i.UP)

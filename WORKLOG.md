@@ -10,6 +10,27 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-26 — Kajika-yu: no walking on the water on the way in
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: "getting in, the figure now walks further, and sometimes walks on the water
+  before going in"): the last change stretched every key of the sit path out to the spot's new
+  seat (1.9-3.3 cells), so the walking keys ran on over the deep water; the pool's bed lies just
+  under its skin (0.35 down against the water's 0.34), and the figure, never drawn below the
+  ground, walked on the water's top. Now only the last key goes to the seat (Game._key_x): the
+  walk runs down the bank to where the deep bed starts on that spot's line (Game.shore_entry: the
+  first point from 1 cell out where PondShape.sink >= WADE_DEEP, soak_entry), the bathing pose
+  starts there and they wade on in it to the seat. The keys: walk 0 -> 0.3 -> just short of the
+  entry by t 0.4, the bathing pose at the entry at t 0.5, the seat at t 1 (`turn_at` 0.85);
+  getting in and out take `per_cell` 0.55 s more for every cell past `seat` 1.0
+  (Game._soak_seconds).
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: from every way in the walk
+  never past where the deep bed starts, the bathing pose only over the deep bed, the kajika
+  timings through _soak_seconds). Smoke runs (title, `--demo`, town, mine 3, the fall soak,
+  getting in from `kajika_yu@8,3`, `kajika@start`): 0 ERROR lines; windowed `--quit-after 150`:
+  exit 0. Frames 15-109 of getting in from (5,4) (the north shore) and from the path's end: on the
+  bank walking, in the bathing pose from the water's edge, wading out to the seat.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-26 — Kajika-yu: each way in its own seat out in open water
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user, two night shots: "I can get in at this nook, which I shouldn't" (behind the
