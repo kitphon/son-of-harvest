@@ -23,7 +23,7 @@ func _init() -> void:
 		var s: Dictionary = sounds[key]
 		if s.has("file"):   # a recorded sound (sounds/): it loads, a one-shot of a sensible length
 			var rec: AudioStream = load(str(s.file))
-			check(rec != null and rec.get_length() > 0.04 and rec.get_length() < 6.0 and not s.has("loop") and not s.has("layers"),
+			check(rec != null and rec.get_length() > 0.04 and (rec.get_length() < 6.0 or bool(s.get("held", false))) and not s.has("loop") and not s.has("layers"),
 				"%s plays its file %s (%.2f s)" % [key, s.file, rec.get_length() if rec != null else 0.0])
 			check(FileAccess.get_file_as_string("res://sounds/CREDITS.md").contains(str(s.file).get_file()), "%s's file is credited in sounds/CREDITS.md" % key)
 			continue
@@ -97,6 +97,13 @@ func _init() -> void:
 	check(AmbientPicker.in_hours(3, 19, 4) and not AmbientPicker.in_hours(4, 19, 4), "hours wrap past midnight")
 	check(AmbientPicker.in_hours(7, 7, 18) and not AmbientPicker.in_hours(18, 7, 18), "hours from .. to (not incl.)")
 
+	# Wading in Kajika-yu: the user's recorded sound held while the bather moves (Sfx._held_step).
+	var wade_s: Dictionary = sounds.get("wade", {})
+	check(str(wade_s.get("file", "")) == "res://sounds/walking_in_water.mp3" and bool(wade_s.get("held", false)) and float(wade_s.get("fade", 0.0)) > 0.0, "wading: the user's walking-in-water sound, held and faded")
+	var wade_rec: AudioStream = load(str(wade_s.get("file", "")))
+	check(wade_rec is AudioStreamMP3 and wade_rec.get_length() > 2.0, "its file a long enough MP3 to loop (%.1f s)" % (wade_rec.get_length() if wade_rec != null else 0.0))
+	var sfx_src := FileAccess.get_file_as_string("res://scripts/autoload/sfx.gd")
+	check("Game.wading_now()" in sfx_src and ".loop = true" in sfx_src, "Sfx holds it looped while Game.wading_now")
 	# Kajika-yu (the user, 2026-11-25): the creek babbling in the clearing, the river up the gorge,
 	# birds singing in the wood by day (fewer in winter, none at night or in rain).
 	var yu := func(look: String, season_id: String, hour: int, map_id := "kajika_yu") -> Dictionary:

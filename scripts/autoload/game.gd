@@ -119,6 +119,7 @@ var in_towel := false   # wrapped in a bathing towel, the clothes in a basket (t
 var wade := Vector2.ZERO   # how far the bather has moved in the water from where they sat (cells; a bath with `wade`: Kajika-yu); not saved
 var wade_facing := Vector2i.ZERO   # the way they last moved in the water (soak_look), ZERO before they move
 var _wade_since := 0.0   # cells waded since the last ring (data/baths.json `ring_every`)
+var _wade_idle := 9.0   # seconds of game time since the bather last moved in the water: the wading sound plays while they keep moving
 ## The bather moving in the water stirred it at `at` (map cells): the views start a ring on the
 ## water there and the slosh plays (data/baths.json `ring_every` cells apart).
 signal waded(at: Vector2)
@@ -752,6 +753,7 @@ func _demo_kitchen() -> void:
 
 
 func _process(delta: float) -> void:
+	_wade_idle += delta   # game time, so a Movie Maker run's slow frames hold it as play does
 	if eating() and not paused():
 		_eat_step(delta)
 	if soak_phase != "" and not paused():
@@ -2281,6 +2283,12 @@ func bath_point() -> Vector2:
 	return Vector2(soak_at) + Vector2(0.5, 0.5) + Vector2(soak_facing) * float(soak_cfg.get("seat", 1.0)) + wade
 
 
+## Is the bather moving through the water now (moved within the last 0.25 s, still sat in it)?
+## The held `wade` sound plays while this is so (Sfx).
+func wading_now() -> bool:
+	return can_wade() and _wade_idle < 0.25
+
+
 ## May the bather move about in the water now (sat in a bath with `wade`, not getting in or out)?
 func can_wade() -> bool:
 	return soaking_now and soak_phase == "sit" and float(soak_cfg.get("wade", 0.0)) > 0.0
@@ -2306,10 +2314,8 @@ func wade_by(step: Vector2) -> bool:
 		_wade_since += bath_point().distance_to(from)
 		if _wade_since >= float(soak_cfg.get("ring_every", 0.35)):
 			_wade_since = 0.0
-			waded.emit(bath_point())   # a ring round them and the water's slosh
-			var sfx := get_node_or_null("/root/Sfx")   # not named: tests load this script without the autoload
-			if sfx != null:
-				sfx.play("wade")
+			waded.emit(bath_point())   # a ring round them
+		_wade_idle = 0.0   # the wading sound runs on while they keep moving (Sfx, wading_now)
 	if absf(step.x) > absf(step.y):
 		wade_facing = Vector2i.RIGHT if step.x > 0.0 else Vector2i.LEFT
 	else:

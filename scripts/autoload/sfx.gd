@@ -29,6 +29,7 @@ var _loop_jobs: Dictionary = {}    # loop key -> [WorkerThreadPool task, {stream
 var _voices: Array[AudioStreamPlayer] = []
 var _next_voice := 0
 var _loops: Dictionary = {}        # loop key -> AudioStreamPlayer
+var _held: AudioStreamPlayer      # the `wade` sound held while the bather moves through the water (Game.wading_now)
 var _target: Dictionary = {}       # loop key -> level 0..1 it fades to
 var _fade_seconds := 4.0
 var _songs: Dictionary = {}        # track key -> AudioStreamPlayer
@@ -59,6 +60,10 @@ func _ready() -> void:
 		p.bus = "SFX"
 		add_child(p)
 		_voices.append(p)
+	_held = AudioStreamPlayer.new()
+	_held.bus = "SFX"
+	_held.volume_linear = 0.0
+	add_child(_held)
 	for key in AmbientPicker.loops(ambient_rules) + CicadaRules.loops():   # the cicadas' loops come from data/cicadas.json
 		var p := AudioStreamPlayer.new()
 		p.bus = "Ambient"
@@ -108,8 +113,44 @@ func _process(delta: float) -> void:
 		p.volume_linear = level * base
 		if p.playing and level <= 0.0 and to <= 0.0:
 			p.stop()
+	_held_step(delta)
 	_music_step(delta)
 	_whistle_step()
+
+
+## The `wade` sound (data/sfx.json, `held`): looped from a random point while the bather moves
+## through the water, faded in and out over its `fade` seconds.
+func _held_step(delta: float) -> void:
+	var s: Dictionary = sounds.get("wade", {})
+	if s.is_empty() or _held == null:
+		return
+	var on := Game.wading_now() and not silent
+	var base := db_to_linear(float(s.get("volume_db", 0.0)))
+	if on and not _held.playing:
+		var st := held_stream("wade")
+		if st == null:
+			return
+		_held.stream = st
+		_held.volume_linear = 0.0
+		_held.play(rng.randf() * maxf(st.get_length() - 0.5, 0.0))
+	if not _held.playing:
+		return
+	var level := move_toward(_held.volume_linear / base, 1.0 if on else 0.0, delta / maxf(float(s.get("fade", 0.25)), 0.01))
+	_held.volume_linear = level * base
+	if level <= 0.0 and not on:
+		_held.stop()
+
+
+## A `held` recorded sound looped (its file's stream copied with loop on).
+func held_stream(key: String) -> AudioStream:
+	var k := "held:" + key
+	if not _streams.has(k):
+		var st: AudioStream = load(str((sounds[key] as Dictionary).get("file", "")))
+		if st is AudioStreamMP3:
+			st = st.duplicate()
+			(st as AudioStreamMP3).loop = true
+		_streams[k] = st
+	return _streams[k]
 
 
 ## Cross-fades the music to the track MusicPicker wants. A track starts once its loop is made;

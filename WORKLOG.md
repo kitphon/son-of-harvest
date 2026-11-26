@@ -10,6 +10,30 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-26 — Kajika-yu: the user's wading sound, held while moving
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: "change the sound when moving in the water to
+  shakil10000-walking-in-the-water-3-234728"): the file the user put in the project folder (it
+  went into commit e09caf6 at the root by mistake, swept up by `git add -A`) is now
+  `sounds/walking_in_water.mp3` (credited in sounds/CREDITS.md; its library licence not checked
+  from here). It runs about 7 s, a walk through water, so instead of a one-shot every
+  `ring_every` cells (the old synthesized slosh) data/sfx.json `wade` is a `held` file: Sfx
+  plays it looped from a random point while Game.wading_now (moved in the water within the last
+  0.25 s of game time: Game._wade_idle, counted in game time so Movie Maker's slow frames hold
+  it as play does; a first try on the wall clock dropped it there), faded in and out over `fade`
+  0.25 s (Sfx._held_step, held_stream: the MP3 copied with loop on). The rings stay every 0.35
+  cells. Its level: at -6 dB it measured about a sixth of the clearing's night ambient (the walk
+  run less a still run, RMS per half second ~20-26 against ~130); now +4 dB, ~55-80 against
+  ~130, the mix's peak 0.32.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_audio: the wade sound the user's
+  file, held and faded, long enough to loop, a file sound may be long only when held, Sfx loops
+  it on Game.wading_now; test_baths: wading_now while moving). Smoke runs (title, `--demo`,
+  town, mine 3, the fall soak, getting in from `kajika_yu@8,3`, `kajika@start`): 0 ERROR lines;
+  windowed `--quit-after 150`: exit 0. Movie Maker `--movie-audio` runs sat in the pool at winter
+  21:00 with and without `--walk=up:3`: the difference is the wading sound for the 3 s of the
+  walk and silence after. Not listened to by me.
+- Left / next: the user's listen; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-26 — The rocks' moss a little different through the year
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user, after asking whether moss changes colour by season: "make the moss change a

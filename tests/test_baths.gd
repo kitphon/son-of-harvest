@@ -941,6 +941,7 @@ func _kajika() -> void:
 	for step in 40:
 		g.wade_by(Vector2(0, -0.1))
 	g.waded.disconnect(on_ring)
+	check(g.wading_now(), "moving through the water: the wading sound held (Game.wading_now)")
 	var waded_far: float = start.distance_to(g.bath_point())
 	check(rings.size() >= int(waded_far / float(k.ring_every)) - 1 and rings.size() > 0 and rings.back().distance_to(g.bath_point()) < float(k.ring_every) + 0.01,
 		"a ring on the water round them every %.2f cells waded (%d over %.1f)" % [float(k.ring_every), rings.size(), waded_far])
