@@ -85,6 +85,7 @@ func refresh() -> void:
 		s.offset = Vector2(0, tex.get_height() / 2.0)
 		s.position = b.pos
 		s.visible = cam == null or InsectRules.clear_of_camera(b.pos, cam.global_position)   # none in the lens's face
+		s.scale = Vector3.ONE * (InsectRules.close_scale(b.pos.distance_to(cam.global_position)) if cam != null else 1.0)   # smaller near a close camera
 	_place_shadows(game)
 
 

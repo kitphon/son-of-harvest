@@ -10,6 +10,24 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-26 — Insects shrunk near a close 3D camera
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user, circling a white and red block over the water in the fall soak frame after the
+  last fix: "why does it still happen?"): the last fix only left out an insect in the lens's
+  face; this one was a dragonfly over the far water, about 6 units off. The insects' pictures are
+  sized for the play camera (about 12 units off), so from the low soak view one came out as big
+  as the bather's head. The 3D InsectLayer now scales an insect nearer the camera than
+  data/insects.json `close` [8.5, 0.3] by (distance / 8.5)^2, never under 0.3
+  (InsectRules.close_scale); 8.5 is under the play camera's nearest ground at the frame's foot
+  (about 8.6), so the play view is as before. My frame check on the last fix saw this dragonfly
+  and took it for small; it was not.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_insects: full size from the play
+  camera and at 8.5, smaller nearer, never under the least). Smoke runs (title, `--demo`, town,
+  mine 3, `kajika_yu@pool --flags=kajika_built --season=fall --time=12:00 --towel --soak`,
+  `kajika@start`): 0 ERROR lines; windowed `--quit-after 150`: exit 0. Frame of fall day 20 at
+  12:00 sat in the pool, zoomed: the dragonfly a small red body and white wings skimming the water.
+- Left / next: the user's look; moss by season (offered); step 4b.
+
 ## 2026-11-26 — Kajika-yu: the wild bushes turn as a whole in fall
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user, on the fall frames: "why do the rocks look green and orange?"): those were the

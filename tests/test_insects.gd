@@ -71,6 +71,9 @@ func _data() -> void:
 	check(near > 0.0 and near < 6.0, "3D: a clear space round the camera, smaller than the play camera's distance")
 	check(not IR.clear_of_camera(Vector3(1, 1, 1), Vector3(1, 1, 1) + Vector3(0, 0, near * 0.5)), "3D: an insect in the lens's face is not drawn")
 	check(IR.clear_of_camera(Vector3(1, 1, 1), Vector3(1, 1, 1) + Vector3(0, 0, near + 0.1)), "3D: one just past the clear space is drawn")
+	var cl: Array = cfg.close
+	check(IR.close_scale(12.0) == 1.0 and IR.close_scale(float(cl[0])) == 1.0, "3D: full size from the play camera")
+	check(IR.close_scale(6.0) < 0.6 and IR.close_scale(6.0) > IR.close_scale(4.0) and IR.close_scale(0.5) == float(cl[1]), "3D: smaller nearer a close camera, never under the least")
 
 
 ## Which kinds show when: season, day of the season, weather, clock, wind; nothing indoors or in the mine.

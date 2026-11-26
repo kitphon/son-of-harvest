@@ -40,6 +40,18 @@ static func clear_of_camera(pos: Vector3, eye: Vector3) -> bool:
 	return pos.distance_to(eye) >= float(config().get("camera_clear", 0.0))
 
 
+## The 3D size share of an insect `dist` units from the camera: its pictures are sized for the play
+## camera's distance, so nearer than data/insects.json `close` [from, least] they shrink by
+## (dist / from)^2, never under `least` (Kajika-yu's low soak view: a dragonfly over the water was
+## as big as the bather's head). The play camera never sees one that near: 1 there.
+static func close_scale(dist: float) -> float:
+	var c: Array = config().get("close", [0.0, 1.0])
+	var from := float(c[0])
+	if from <= 0.0 or dist >= from:
+		return 1.0
+	return maxf(pow(dist / from, 2.0), float(c[1]))
+
+
 ## `-- --insects` (every kind) or `--insects=dragonfly,butterfly` on the command line: those kinds
 ## show at full strength whatever the season, weather and clock (screenshots), placed round the
 ## farmer (the map's middle without one) at the start. `--insects=dragonfly:perched` also holds the
