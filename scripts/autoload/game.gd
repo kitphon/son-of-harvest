@@ -2481,7 +2481,20 @@ func feet_in() -> bool:
 func soak_lift(back := false) -> float:
 	if not soaking_now:
 		return 0.0
-	return _soak_path(back).y
+	var lift := _soak_path(back).y
+	if soak_cfg.has("bed"):   # a pool in the ground (Kajika-yu): never below the ground under them (its soft bank's slope)
+		lift = maxf(lift, ground_under(Vector2(soak_at) + Vector2(0.5, 0.5) + Vector2(soak_facing) * _soak_path(back).x + wade))
+	return lift
+
+
+## The ground's height (units) at `p` (cells) on this map for a bath with a `bed` (data/baths.json):
+## on a soft pond's water its bank or bed (PondShape.sink times `bed`), else the land, 0.
+func ground_under(p: Vector2) -> float:
+	var m := maps.current() if maps != null else null
+	if m == null or m.tile(Vector2i(p.floor())) != "water":
+		return 0.0
+	var pond := PondShape.of(m, m.look(Vector2i(p.floor())))
+	return -float(soak_cfg.get("bed", 0.35)) * (pond.sink(p) if pond != null else 1.0)
 
 
 ## Where one sits at footbath prop `prop`: before the middle of each long side, facing the tub

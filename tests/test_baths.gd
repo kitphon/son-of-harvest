@@ -911,6 +911,29 @@ func _kajika() -> void:
 	# nearest edge; never sunk into the bank at a corner (the user saw it).
 	check(is_equal_approx(float(k.get("wade", 0.0)), 0.5) and g.can_wade(), "sat in it, free to move about in the water at half the walk")
 	check(spots.all(func(sp): return PondShape.of(m, "onsen").sink(Vector2(sp[0] + sp[1]) + Vector2(0.5, 0.5)) >= g.WADE_DEEP), "every way in lands in deep water, none on a corner's sloping bank")
+	# Getting in from every way: walked down the bank's slope, never drawn below the ground under them,
+	# sat in the bathing pose only over the deep bed (the user saw them sink into the ground beside it).
+	check(is_equal_approx(float(k.get("bed", 0.0)), float(load("res://scripts/world3d/sunken_ground.gd").DROP)), "the pool's bed as deep as the map's water (SunkenGround.DROP)")
+	var keep := [g.soak_at, g.soak_facing, g.soak_t, g.soak_phase]
+	var buried := 0.0
+	var shallow_bathe := 1.0
+	for sp in spots:
+		g.soak_at = sp[0]
+		g.soak_facing = sp[1]
+		for i in 41:
+			g.soak_t = i / 40.0
+			var path: Vector2 = g._soak_path(false)
+			var at: Vector2 = Vector2(sp[0]) + Vector2(0.5, 0.5) + Vector2(sp[1]) * path.x
+			buried = maxf(buried, g.ground_under(at) - g.soak_lift(false))
+			var keys: Array = k.sit_path
+			if str(keys[g._soak_key_at(keys)][3]) == "bathe":
+				shallow_bathe = minf(shallow_bathe, PondShape.of(m, "onsen").sink(at))
+	g.soak_at = keep[0]
+	g.soak_facing = keep[1]
+	g.soak_t = keep[2]
+	g.soak_phase = keep[3]
+	check(buried <= 0.0001, "getting in from every way, never below the ground under them (%.3f)" % buried)
+	check(shallow_bathe >= 0.95, "the bathing pose only over the deep bed (%.2f of the depth at the shallowest)" % shallow_bathe)
 	var start: Vector2 = g.bath_point()
 	var rings: Array[Vector2] = []
 	var on_ring := func(at: Vector2): rings.append(at)

@@ -10,6 +10,25 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-26 — Kajika-yu: stepping in down the bank, never into the ground
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: "pressing E to get in, the figure still sinks into the ground beside the
+  pool"): measured along the way in from all 22 spots, the soft shore's bank slopes down over
+  about the first half of the water cell (PondShape.sink 0 to 0.8 there at most spots), and the
+  old sit_path sat the bather down in the bathing pose at the water's -0.34 already 0.85 cells
+  out, still over the bank: up to 0.34 units below the ground under them. Now data/baths.json
+  kajika has `bed` (0.35, SunkenGround.DROP) and Game.soak_lift never goes below the ground under
+  the drawn point (Game.ground_under: a soft pond's bank or bed, else the land); the path walks
+  them down the slope (to -0.34 by 0.75 cells, the ground the floor) and turns to the bathing pose
+  only at the seat (1.0 cells, t 0.8; `turn_at` 0.8).
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: the bed as deep as the map's
+  water, from every way in never below the ground, the bathing pose only where the bed is at least
+  0.95 of its depth). Smoke runs (title, `--demo`, town, mine 3, the fall soak,
+  `kajika_yu@8,3 --flags=kajika_built --time=16:30 --towel --soak=down`, `kajika@start`): 0 ERROR
+  lines; windowed `--quit-after 150`: exit 0. Frames 10-69 of getting in from the north shore:
+  stood, walking down the bank, sat in the water.
+- Left / next: the clearing brighter, the moss by season, the user's wading sound (asked together).
+
 ## 2026-11-26 — Insects shrunk near a close 3D camera
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user, circling a white and red block over the water in the fall soak frame after the
