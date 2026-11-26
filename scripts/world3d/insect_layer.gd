@@ -84,7 +84,7 @@ func refresh() -> void:
 		s.texture = tex
 		s.offset = Vector2(0, tex.get_height() / 2.0)
 		s.position = b.pos
-		s.visible = true
+		s.visible = cam == null or InsectRules.clear_of_camera(b.pos, cam.global_position)   # none in the lens's face
 	_place_shadows(game)
 
 

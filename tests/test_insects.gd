@@ -67,6 +67,10 @@ func _data() -> void:
 		check(cfg.art.has(art), "%s: art colours in the data" % art)
 	check(cfg.butterfly.seasons == ["spring", "summer"] and cfg.dragonfly.seasons == ["summer", "fall"], "butterflies: spring and summer, dragonflies: summer and fall")
 	check(cfg.flat.air_z == load("res://scripts/bird_rules.gd").config().flat.air_z, "fliers share the birds' air pass z")
+	var near := float(cfg.get("camera_clear", 0.0))
+	check(near > 0.0 and near < 6.0, "3D: a clear space round the camera, smaller than the play camera's distance")
+	check(not IR.clear_of_camera(Vector3(1, 1, 1), Vector3(1, 1, 1) + Vector3(0, 0, near * 0.5)), "3D: an insect in the lens's face is not drawn")
+	check(IR.clear_of_camera(Vector3(1, 1, 1), Vector3(1, 1, 1) + Vector3(0, 0, near + 0.1)), "3D: one just past the clear space is drawn")
 
 
 ## Which kinds show when: season, day of the season, weather, clock, wind; nothing indoors or in the mine.

@@ -34,6 +34,12 @@ static func config() -> Dictionary:
 	return _cfg
 
 
+## Whether an insect at `pos` is drawn with the 3D camera at `eye`: not nearer than data/insects.json
+## `camera_clear` units (Kajika-yu's low soak view had a dragonfly filling the lens).
+static func clear_of_camera(pos: Vector3, eye: Vector3) -> bool:
+	return pos.distance_to(eye) >= float(config().get("camera_clear", 0.0))
+
+
 ## `-- --insects` (every kind) or `--insects=dragonfly,butterfly` on the command line: those kinds
 ## show at full strength whatever the season, weather and clock (screenshots), placed round the
 ## farmer (the map's middle without one) at the start. `--insects=dragonfly:perched` also holds the

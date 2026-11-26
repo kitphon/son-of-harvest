@@ -10,6 +10,20 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-26 — No insect drawn in the 3D camera's face
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user, from the seasons-by-hour sheet of Kajika-yu's soak view: in fall at midday a
+  red dragonfly flew right in front of the low camera, a big blurred white and red block over the
+  rocks): the 3D InsectLayer leaves out any insect nearer the camera than data/insects.json
+  `camera_clear` (3.0 units; InsectRules.clear_of_camera). The play camera stands about 12 units
+  off, so it hides none there; the flat view is as before.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_insects: the clear space set and
+  smaller than the play camera's distance, one inside it not drawn, one past it drawn). Smoke runs
+  (title, `--demo`, town, mine 3, `kajika_yu@pool --flags=kajika_built --season=fall --time=12:00
+  --towel --soak`, `kajika@start`): 0 ERROR lines; windowed `--quit-after 150`: exit 0. Frame of
+  that fall midday soak: the dragonflies small over the far water, none in the lens.
+- Left / next: the user asked about the fall look of the wild bushes (orange facets); step 4b.
+
 ## 2026-11-25 — Kajika-yu: the soak camera follows the drawn bather
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user, after playing: in from the north shore by the pavilion, the bather's face sat
