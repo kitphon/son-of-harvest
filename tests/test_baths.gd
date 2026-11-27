@@ -828,6 +828,11 @@ func _kajika() -> void:
 	var shape := PondShape.of(m, "onsen")
 	check(shape != null and shape.cells.size() >= 70 and m.props[0] == pool[0], "its water a soft pond of look onsen (%d cells), the prop first so E finds it" % (shape.cells.size() if shape != null else 0))
 	var spots: Array = g.soak_spots(pool[0], m)
+	var t0 := Time.get_ticks_usec()
+	for i in 50:
+		g.soak_spots(pool[0], m)
+	var spent := (Time.get_ticks_usec() - t0) / 1000.0
+	check(spent < 20.0 and g.soak_spots(pool[0], m) == spots, "the ways in worked out once a map, asked each frame by the hints at no cost (50 calls %.1f ms; the user felt the game stutter by the pool)" % spent)
 	check(spots.size() >= 10 and spots.all(func(s): return m.tile(s[0]) != "water" and not m.is_solid(s[0]) and m.tile(s[0] + s[1]) == "water"), "in from all round its shore (%d spots), each a dry open cell facing its water" % spots.size())
 	check(spots.has([Vector2i(9, 12), Vector2i.UP]) and spots.has([Vector2i(15, 10), Vector2i.LEFT]), "from the path's end below it and from its east bank")
 	# After the user's photo: a big pool shut in by the wood, boulders standing in its water, the hut

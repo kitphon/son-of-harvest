@@ -2383,13 +2383,29 @@ func _clear_of_rocks(p: Vector2) -> bool:
 
 
 static func clear_of_rocks_on(m: MapData, p: Vector2) -> bool:
+	var rocks := _rock_cells(m)
 	for o in [Vector2(WADE_CLEAR, 0), Vector2(-WADE_CLEAR, 0), Vector2(0, WADE_CLEAR), Vector2(0, -WADE_CLEAR), Vector2.ZERO]:
 		var q: Vector2 = p + o
-		var qc := Vector2i(floori(q.x), floori(q.y))
-		for prop in m.props:   # every prop on that cell (the pool's own `onsen` prop covers them all, so not prop_at)
-			if str(prop.get("use", "")) != "soak" and bool(prop.get("solid", true)) and Rect2i(prop.cell, prop.size).has_point(qc):
-				return false
+		if rocks.has(Vector2i(floori(q.x), floori(q.y))):
+			return false
 	return true
+
+
+## The cells under a solid prop on map `m` (every prop on a cell: the pool's own `onsen` prop covers
+## them all, so not prop_at), worked out once a map instance: asked each frame while wading.
+static var _rocks_cache := {}
+static func _rock_cells(m: MapData) -> Dictionary:
+	var id := m.get_instance_id()
+	if not _rocks_cache.has(id):
+		var cells := {}
+		for prop in m.props:
+			if str(prop.get("use", "")) != "soak" and bool(prop.get("solid", true)):
+				var r := Rect2i(prop.cell, prop.size)
+				for y in range(r.position.y, r.end.y):
+					for x in range(r.position.x, r.end.x):
+						cells[Vector2i(x, y)] = true
+		_rocks_cache[id] = cells
+	return _rocks_cache[id]
 
 
 ## Out at the edge nearest the bather (they moved in the water): the soak spot whose seat is within
@@ -2547,11 +2563,15 @@ func ground_under(p: Vector2) -> float:
 ## ([cell, facing] pairs); the ends and corners are no seats (the user saw the farmer sat at a
 ## corner by a post). A bath with `seats` "front" (the sento's tub): every cell before its front;
 ## "shore" (Kajika-yu's pool in the ground, map `m`): every dry, open cell beside one of its water cells.
+static var _spots_cache := {}
 static func soak_spots(prop: Dictionary, m: MapData = null) -> Array:
 	var cell := Vector2i(prop.cell)
 	var size := Vector2i(prop.get("size", [1, 1]))
 	var out := []
 	if str(prop.get("seats", "")) == "shore" and m != null:   # a pool in the ground (Kajika-yu): in from any dry cell beside its water
+		var key := "%d|%d,%d" % [m.get_instance_id(), cell.x, cell.y]   # worked out once a map (shore_reach's cache)
+		if _spots_cache.has(key):
+			return (_spots_cache[key] as Array).duplicate()
 		for d in [Vector2i.UP, Vector2i.RIGHT, Vector2i.LEFT, Vector2i.DOWN]:   # the front first (stood below the water, facing up)
 			for y in range(cell.y, cell.y + size.y):
 				for x in range(cell.x, cell.x + size.x):
@@ -2559,6 +2579,7 @@ static func soak_spots(prop: Dictionary, m: MapData = null) -> Array:
 					var at: Vector2i = wc - d
 					if m.tile(wc) == "water" and m.in_bounds(at) and m.tile(at) != "water" and not m.is_solid(at) and shore_reach(m, at, d) > 0.0:
 						out.append([at, d])
+		_spots_cache[key] = out.duplicate()
 		return out
 	if str(prop.get("seats", "")) == "front":   # a bath against the back wall: in from any cell before its front, facing it
 		for x in range(cell.x, cell.x + size.x):
@@ -2607,7 +2628,18 @@ static func shore_entry(m: MapData, at: Vector2i, d: Vector2i) -> float:
 	return reach
 
 
+## shore_reach worked out once a map (by the MapData's instance: a map loaded again is new):
+## every way in steps out through the pool against every prop, about 150 ms for the pool's
+## spots, and the action hints ask each frame (the user felt the game stutter by the pool).
+static var _reach_cache := {}
 static func shore_reach(m: MapData, at: Vector2i, d: Vector2i) -> float:
+	var key := "%d|%d,%d|%d,%d" % [m.get_instance_id(), at.x, at.y, d.x, d.y]
+	if not _reach_cache.has(key):
+		_reach_cache[key] = _shore_reach_now(m, at, d)
+	return _reach_cache[key]
+
+
+static func _shore_reach_now(m: MapData, at: Vector2i, d: Vector2i) -> float:
 	var from := Vector2(at) + Vector2(0.5, 0.5)
 	var least := SHORE_REACH_TO_EYE if d == Vector2i.DOWN else SHORE_REACH_LEAST
 	var x := 0.6

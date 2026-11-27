@@ -10,6 +10,29 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-27 — Kajika-yu: no stutter by the pool
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: "why does the game stutter all the time?"): Game.soak_spots for the pool took
+  about 149 ms a call since each way in finds its own seat (shore_reach steps out through the
+  pool, every step testing every prop of the map), and the action hints ask Game.can_soak_at every
+  frame while the farmer faces the pool: a windowed run stood at `kajika_yu@pool` printed 2-3 FPS
+  (`--print-fps`) before this change. Now shore_reach and the shore spots are worked out once a map
+  instance (static caches keyed by the MapData's instance id: a map loaded again is a new one) and
+  clear_of_rocks_on looks the cell up in the map's solid props' cells (_rock_cells, also once a
+  map; wading asks it every frame). The first call 9.7 ms, then 50 calls well under a ms; the
+  same 14 ways in.
+- Measured after (`--print-fps`, windowed, summer 17:00 sunny unless said): stood facing the pool
+  44-48 FPS, sat in it 33-37 (rain 45, 21:00 39), by the hut 67-72; the village 77-85, the gorge
+  136-143; headless (no drawing) sat in it 83-89 against the village's 125-139. So the pool's view
+  is still the heaviest place to draw: tried one at a time, the steam off, the wood past the edges
+  thinned to 5, the dapples off and the shafts off each left it about the same; the sun's shadows
+  cost a few ms (rain 45 against sun 35). Not fixed here.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: 50 cached calls under 20 ms,
+  the same spots). Smoke runs (title, `--demo`, town, mine 3, the fall soak, getting in from
+  `kajika_yu@8,3`, `kajika@start`): 0 ERROR lines; windowed `--quit-after 150`: exit 0.
+- Left / next: the pool's view still draws at ~35-48 FPS (what draws so much there: to find);
+  step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-26 — Kajika-yu: no walking on the water on the way in
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: "getting in, the figure now walks further, and sometimes walks on the water
