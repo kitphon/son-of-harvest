@@ -910,7 +910,20 @@ func _kajika() -> void:
 	FA.on_action("interact", seat, Vector2i.UP)
 	check(g.soaking() and g.bathed_today and g.stamina == g.max_stamina and g.fatigue == 30 and g.soak_owed == 90, "in: stamina full, -30, 90 minutes owed (%d / %d)" % [g.stamina, g.fatigue])
 	check(said.back() == str(k.message), "says the pool")
-	g._process(g._soak_seconds("sit_seconds", 0.7) + 0.05)
+	# Past the bank they wade on out to the seat: rings on the water and the wading sound, not a
+	# slide (the user); none while still walking down the bank.
+	var in_rings: Array[Vector2] = []
+	var on_in := func(at: Vector2): in_rings.append(at)
+	g.waded.connect(on_in)
+	var sounding := false
+	var steps := int((g._soak_seconds("sit_seconds", 0.7) + 0.1) / 0.05)
+	for i in steps:
+		g._process(0.05)
+		sounding = sounding or g.wading_now()
+	g.waded.disconnect(on_in)
+	var past_bank := in_rings.all(func(at: Vector2): return (at - (Vector2(seat) + Vector2(0.5, 0.5))).length() > g.soak_entry)
+	check(in_rings.size() >= int((g.soak_reach - g.soak_entry) / (float(k.ring_every) + 0.1)) and past_bank and sounding,
+		"wading out from the bank to the seat: %d rings past the deep bed's edge, the wading sound" % in_rings.size())
 	check(g.still_pose() == "bathe" and g.soak_look() == Vector2i.DOWN and is_equal_approx(g.soak_lift(true), float(k.lift)), "sat in the water, turned to the eye")
 	# Moving about in the water at half the walking pace (the user), only where it is deep, out at the
 	# nearest edge; never sunk into the bank at a corner (the user saw it).

@@ -2298,7 +2298,7 @@ func seat_reach() -> float:
 ## Is the bather moving through the water now (moved within the last 0.25 s, still sat in it)?
 ## The held `wade` sound plays while this is so (Sfx).
 func wading_now() -> bool:
-	return can_wade() and _wade_idle < 0.25
+	return soaking_now and float(soak_cfg.get("wade", 0.0)) > 0.0 and _wade_idle < 0.25   # wading about, or the way in and out past the bank
 
 
 ## May the bather move about in the water now (sat in a bath with `wade`, not getting in or out)?
@@ -2450,6 +2450,7 @@ func soak_amount() -> float:
 ## Steps the sitting down and the getting up by `delta` seconds: the feet go in (soak_in) as he
 ## settles; up again, he is free (not soaking).
 func _soak_step(delta: float) -> void:
+	_glide_step()
 	match soak_phase:
 		"down":
 			soak_t = minf(soak_t + delta / _soak_seconds("sit_seconds", 0.7), 1.0)
@@ -2464,6 +2465,24 @@ func _soak_step(delta: float) -> void:
 			if soak_t <= 0.0:
 				_stand_up_now()
 				changed.emit()
+
+
+## Getting in or out of a pool from its shore (soak_reach): the stretch waded in the bathing pose
+## between where the deep bed starts and the seat reads as wading, not a slide (the user): a
+## ring on the water every `ring_every` cells (Game.waded) and the wading sound held while it moves.
+var _glide_x := -1.0
+func _glide_step() -> void:
+	if soak_reach <= 0.0 or soak_phase == "sit":
+		_glide_x = -1.0
+		return
+	var x := _soak_path(false).x
+	if _glide_x >= 0.0 and x > soak_entry + 0.01 and not is_equal_approx(x, _glide_x):
+		_wade_idle = 0.0
+		_wade_since += absf(x - _glide_x)
+		if _wade_since >= float(soak_cfg.get("ring_every", 0.35)):
+			_wade_since = 0.0
+			waded.emit(Vector2(soak_at) + Vector2(0.5, 0.5) + Vector2(soak_facing) * x + wade)
+	_glide_x = x
 
 
 ## Up from the footbath at once (a map change, the night, a new game).

@@ -10,6 +10,23 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-27 — Kajika-yu: the way in past the bank waded, not slid
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: "getting in, after the figure has stepped into the pool, it then slides on
+  into it, oddly"): since the seats moved out (1.9-3.3 cells), getting in ends with a stretch in
+  the bathing pose from where the deep bed starts to the seat, eased along with no sign of the
+  water moving: it read as a slide. Now Game._glide_step (each _soak_step, getting in or out from
+  a pool's shore) treats that stretch as wading: a ring on the water every `ring_every` cells
+  (Game.waded at the drawn point) and the held wading sound (Game.wading_now is true while
+  anyone in a `wade` bath moved within 0.25 s, the way in and out too). Its pace stays as it was
+  (about 1.4 cells/s, under the wading's 1.9).
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: getting in from the path's
+  end stepped by 0.05 s, the rings all past the deep bed's edge, as many as the stretch asks, the
+  wading sound on). Smoke runs (title, `--demo`, town, mine 3, the fall soak, getting in from
+  `kajika_yu@8,3`, `kajika@start`): 0 ERROR lines; windowed `--quit-after 150`: exit 0. Not
+  seen moving by me (frames show single moments; the rings' and the sound's timing are in the test).
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-27 — Kajika-yu: the west shore's rocks at the waterline
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user, a night shot of the pool's west side: "I'd like the rocks to look orderly, not
