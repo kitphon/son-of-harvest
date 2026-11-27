@@ -945,32 +945,35 @@ func _kajika() -> void:
 	var keep := [g.soak_at, g.soak_facing, g.soak_t, g.soak_phase]
 	var buried := 0.0
 	var shallow_bathe := 1.0
-	var walk_far := 0.0
+	var on_top := 0.0
+	var sat_short := 0.0
 	for sp in spots:
 		g.soak_at = sp[0]
 		g.soak_facing = sp[1]
 		g.soak_reach = g.shore_reach(m, sp[0], sp[1])
 		g.soak_entry = g.shore_entry(m, sp[0], sp[1])
-		var walk_most := 0.0
 		for i in 41:
 			g.soak_t = i / 40.0
 			var path: Vector2 = g._soak_path(false)
 			var at: Vector2 = Vector2(sp[0]) + Vector2(0.5, 0.5) + Vector2(sp[1]) * path.x
-			buried = maxf(buried, g.ground_under(at) - g.soak_lift(false))
 			var keys: Array = k.sit_path
+			var deep: bool = PondShape.of(m, "onsen").sink(at) >= g.WADE_DEEP and m.tile(Vector2i(at.floor())) == "water"
+			if not deep:
+				buried = maxf(buried, g.ground_under(at) - g.soak_lift(false))
 			if str(keys[g._soak_key_at(keys)][3]) == "bathe":
 				shallow_bathe = minf(shallow_bathe, PondShape.of(m, "onsen").sink(at))
-			else:
-				walk_most = maxf(walk_most, path.x)
-		walk_far = maxf(walk_far, walk_most - g.soak_entry)
+				sat_short = maxf(sat_short, g.soak_reach - path.x)
+			elif path.x >= g.soak_entry + 0.5:
+				on_top = maxf(on_top, g.soak_lift(false) - (BP.ONSEN_WATER - 0.1))   # sinking in as it deepens: the waist by the seat
 	g.soak_at = keep[0]
 	g.soak_facing = keep[1]
 	g.soak_reach = g.shore_reach(m, keep[0], keep[1])
 	g.soak_entry = g.shore_entry(m, keep[0], keep[1])
 	g.soak_t = keep[2]
 	g.soak_phase = keep[3]
-	check(buried <= 0.0001, "getting in from every way, never below the ground under them (%.3f)" % buried)
-	check(walk_far <= 0.0001, "walking in only down the bank to where the deep bed starts, then wading in the bathing pose (the bed lies just under the skin: the user saw them walk on the water) (%.2f)" % walk_far)
+	check(buried <= 0.0001, "getting in from every way, never below the ground over the bank's slope (%.3f)" % buried)
+	check(on_top <= 0.0001, "walking out over the deep bed they stand in the water to the waist, never on its top (the user saw them walk on it, then slide on sat down) (%.2f)" % on_top)
+	check(sat_short <= 0.0001, "sat down into the bathing pose only at the seat")
 	check(shallow_bathe >= g.WADE_DEEP, "the bathing pose only over the deep bed (%.2f of the depth at the shallowest)" % shallow_bathe)
 	var start: Vector2 = g.bath_point()
 	var rings: Array[Vector2] = []

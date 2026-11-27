@@ -2520,16 +2520,16 @@ func _soak_path(back: bool) -> Vector2:
 	return Vector2(lerpf(_key_x(keys, i), _key_x(keys, i + 1), u), lerpf(float(a[2]), float(b[2]), u))
 
 
-## Key `i`'s x: as written, but a pool's shore spot's last key its own reach (soak_reach): they step
-## down the bank as the keys say, then wade on in the bathing pose out to their seat.
+## Key `i`'s x (cells out from the cell they got in from): a number as written, or for a pool's
+## shore spot "entry" where the deep bed starts on its line (soak_entry) and "seat" its own seat
+## (seat_reach); without a shore spot both are the bath's `seat`.
 func _key_x(keys: Array, i: int) -> float:
-	if soak_reach > 0.0 and i == keys.size() - 1:
-		return soak_reach
-	if soak_reach > 0.0 and soak_entry > 0.0 and i == keys.size() - 2:   # into the bathing pose where the deep bed starts
-		return soak_entry
-	if soak_reach > 0.0 and soak_entry > 0.0 and i == keys.size() - 3:   # the bank walked down to just short of it
-		return soak_entry - (float(keys[i + 1][1]) - float(keys[i][1]))
-	return float(keys[i][1])
+	var x: Variant = keys[i][1]
+	if x is String:
+		if x == "entry" and soak_entry > 0.0:
+			return soak_entry
+		return seat_reach()
+	return float(x)
 
 
 ## How long getting in (`sit_seconds`) or out (`stand_seconds`) takes: `per_cell` more for every
@@ -2563,8 +2563,10 @@ func soak_lift(back := false) -> float:
 	if not soaking_now:
 		return 0.0
 	var lift := _soak_path(back).y
-	if soak_cfg.has("bed"):   # a pool in the ground (Kajika-yu): never below the ground under them (its soft bank's slope)
-		lift = maxf(lift, ground_under(Vector2(soak_at) + Vector2(0.5, 0.5) + Vector2(soak_facing) * _soak_path(back).x + wade))
+	if soak_cfg.has("bed"):   # a pool in the ground (Kajika-yu): never below the ground over its bank's slope (it would hide them); over the deep bed they stand in the water to the waist, the bed and the water hiding their legs
+		var under := ground_under(Vector2(soak_at) + Vector2(0.5, 0.5) + Vector2(soak_facing) * _soak_path(back).x + wade)
+		if under > -float(soak_cfg.bed) * WADE_DEEP:
+			lift = maxf(lift, under)
 	return lift
 
 

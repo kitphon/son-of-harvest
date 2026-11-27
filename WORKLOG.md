@@ -10,6 +10,28 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-27 — Kajika-yu: walked in standing to the waist, sat down at the seat
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user, after the rings and sound: "the figure sliding on into the pool after stepping
+  in is still there"): the sat bathing pose gliding 1-2 cells is a slide whatever plays with it.
+  Now they walk on standing: the sit path's keys (data/baths.json kajika) walk down the bank to
+  `entry` (where the deep bed starts, Game.shore_entry) by t 0.35, on to the `seat` (the spot's
+  reach) by t 0.88 sinking to -0.75 (the waist: the lift goes below the bed over the deep water,
+  where the bed and the water hide the legs; Game.soak_lift keeps the ground a floor only over the
+  bank's slope, sink < WADE_DEEP), a little lower (-0.95) by t 0.97 bending to sit, then the
+  bathing pose at -0.34 at t 1 (`turn_at` 0.9). A key's x may be "entry" or "seat" (Game._key_x),
+  so the old trick of picking the last keys by place went. Getting out runs the keys back:
+  standing up waist-deep, walking out and up the bank. The rings and the wading sound of the last
+  entry go on while they walk through the deep water.
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_baths: from every way in never
+  below the ground over the bank, half a cell past the deep bed's edge already below the water's
+  top, the bathing pose only at the seat and only over the deep bed). Smoke runs (title, `--demo`,
+  town, mine 3, the fall soak, getting in from `kajika_yu@8,3`, `kajika@start`): 0 ERROR lines;
+  windowed `--quit-after 150`: exit 0. Frames 20-119 of getting in from (5,4) and the path's end
+  (on the bank, walking in to the waist with rings round them, sat) and 5-89 of getting out
+  (`--soak=up`: stood waist-deep, walking out, on the bank).
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-27 — Kajika-yu: the way in past the bank waded, not slid
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: "getting in, after the figure has stepped into the pool, it then slides on

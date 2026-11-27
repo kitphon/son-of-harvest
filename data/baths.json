@@ -46,20 +46,21 @@
 		"taken_message": "Someone is already soaking there. Find a free spot along the tub."
 	},
 	"kajika": {
-		"_note": "Kajika-yu, the rock pool of hot spring water up the river's gorge (data/maps/kajika.json, 2026-11-24, Baths step 4; docs/DESIGN.md → ที่อาบน้ำ): the sento's keys, and `hours` (open from the first until the second, a minute of the same game day: past midnight counts on, DayPlan.minute_of; Game.bath_open, `closed_message` outside them), `towel` (only in a towel, changed into at the hut beside it: `towel_message`), `stamina_full` (the day's first soak fills stamina to the max). The pool is sunk in the ground with the map's water (BathProps.ONSEN_WATER, -0.34): one steps down off its shore into it, from any open cell beside its water (the prop's seats \"shore\"). Ours: free and far, so the most rest of the three (DESIGN: stamina full, fatigue -30, 1.5 h of the clock), still not a night's sleep (about -42 from 22:00). It shares the day's bath with the sento (`day`). `wade`: sat in it the move keys move the bather about in the deep water at that share of walking speed (the user: half), never onto the sloping bank or into a rock (Game.wade_by, wade_ok); E gets them out at the nearest edge in reach, else `edge_message` (Game.stop_soak). `bed`: the pool's full depth below the land (SunkenGround.DROP): the bather is never drawn below the ground under them (Game.soak_lift: the soft shore's bank slopes down over about the first half of the water cell, so stepping in they walk down it, the path's lift only a floor, and sink into the bathing pose as soon as they are over the deep bed at a cell out (the pool's bed lies just under its skin, so walking on past it they stood on the water: the user saw them walk on it), then wade on in it to their spot's own seat (Game.shore_reach: the last key's x is the spot's reach), `per_cell` seconds more getting in and out for every cell past `seat` (2026-11-26, the user: getting in they still sank into the ground beside the pool: the old path sat them down at -0.34 while still over the bank)). Every `ring_every` cells waded a ring spreads on the water round them and the `wade` slosh plays (Game.waded; the user wanted the water to move round them).",
+		"_note": "Kajika-yu, the rock pool of hot spring water up the river's gorge (data/maps/kajika.json, 2026-11-24, Baths step 4; docs/DESIGN.md → ที่อาบน้ำ): the sento's keys, and `hours` (open from the first until the second, a minute of the same game day: past midnight counts on, DayPlan.minute_of; Game.bath_open, `closed_message` outside them), `towel` (only in a towel, changed into at the hut beside it: `towel_message`), `stamina_full` (the day's first soak fills stamina to the max). The pool is sunk in the ground with the map's water (BathProps.ONSEN_WATER, -0.34): one steps down off its shore into it, from any open cell beside its water (the prop's seats \"shore\"). Ours: free and far, so the most rest of the three (DESIGN: stamina full, fatigue -30, 1.5 h of the clock), still not a night's sleep (about -42 from 22:00). It shares the day's bath with the sento (`day`). `wade`: sat in it the move keys move the bather about in the deep water at that share of walking speed (the user: half), never onto the sloping bank or into a rock (Game.wade_by, wade_ok); E gets them out at the nearest edge in reach, else `edge_message` (Game.stop_soak). `bed`: the pool's full depth below the land (SunkenGround.DROP): the bather is never drawn below the ground under them (Game.soak_lift: the soft shore's bank slopes down over about the first half of the water cell, so stepping in they walk down it, the path's lift only a floor, and sink into the bathing pose as soon as they are over the deep bed at a cell out (the pool's bed lies just under its skin, so walking on past it they stood on the water: the user saw them walk on it), then (2026-11-27, the user: gliding on sat down still read as a slide) walk on standing out to their spot's own seat, sinking to the waist as the water deepens (the lift below the bed there: the bed and the water hide the legs; the ground only a floor over the bank, Game.soak_lift), sink a little lower and sit down into the bathing pose at the seat; a key's x `entry` is where the deep bed starts on that line (Game.shore_entry), `seat` the spot's own reach (Game.shore_reach), Game._key_x, `per_cell` seconds more getting in and out for every cell past `seat` (2026-11-26, the user: getting in they still sank into the ground beside the pool: the old path sat them down at -0.34 while still over the bank)). Every `ring_every` cells waded a ring spreads on the water round them and the `wade` slosh plays (Game.waded; the user wanted the water to move round them).",
 		"seat": 1.0,
 		"lift": -0.34,
 		"sit_seconds": 1.8,
 		"stand_seconds": 1.3,
 		"step_until": 0.25,
 		"turn": "down",
-		"turn_at": 0.85,
+		"turn_at": 0.9,
 		"sit_path": [
 			[0.0, 0.0, 0.0, "walk"],
-			[0.2, 0.3, 0.0, "walk"],
-			[0.4, 0.85, -0.34, "walk"],
-			[0.5, 1.0, -0.34, "bathe"],
-			[1.0, 1.0, -0.34, "bathe"]
+			[0.15, 0.3, 0.0, "walk"],
+			[0.35, "entry", -0.34, "walk"],
+			[0.88, "seat", -0.75, "walk"],
+			[0.97, "seat", -0.95, "walk"],
+			[1.0, "seat", -0.34, "bathe"]
 		],
 		"per_cell": 0.55,
 		"bed": 0.35,
