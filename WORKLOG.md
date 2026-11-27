@@ -10,6 +10,34 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-27 — Rocks and bushes one mesh each: the pool's view smooth
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user: "go on finding it", after the last fix left the pool's view at ~35-48 FPS):
+  measured with a throwaway print of Performance's monitors in Main3D (not committed), summer
+  17:00 sunny: sat in the pool 9,411 draw calls and 21.5 M primitives a frame at 36-38 FPS, by the
+  hut 4,550 draws, the village 715 draws and 0.45 M primitives. Halving the primitives (the wood
+  past the edges cast no shadow: 21.5 M -> 11.4 M) left the FPS the same, so the draws were the
+  cost. Tallying the world's MeshInstance3Ds: 10,262 of them were one-triangle meshes in plain
+  colours: GardenProps.stone's and _mound's facets (and OutdoorProps' rock facets) each took
+  `p.st(Color(col * j))` with its own small jitter j, and FarmProps.Parts makes a mesh a key, so
+  every facet was its own mesh and draw call (Kajika-yu has dozens of boulders, granite, shore
+  stones and wild bushes). Parts now has `tint(color)`: one SurfaceTool (key TINT) whose vertices
+  carry the colour (set_color), drawn with a lit vertex-colour material (Parts.tint_material:
+  vertex_color_use_as_albedo, sRGB like Minka.plain's albedo). The three facet loops use it.
+  Its meshes carry the meta `tint` (kept through MeshCache) so test_maps' bamboo count, which
+  finds clumps by their vertex-colour material, leaves them out; the wet look reads the white
+  albedo as stone, right for the rocks, so a bush's leaves take `tint(color, "plain")`
+  (WetRules.mark) and wet as a plain colour as before.
+- Measured after: sat in the pool 891 draws, 64-65 FPS; by the hut 647 draws, 61-64; the village
+  153 draws, 76-87. The 21.5 M primitives (the broadleaf wood past the edges and its shadows) are
+  left: dropping them did not move the FPS. A fall 12:00 soak frame next to the seasons sheet's:
+  the rocks' and bushes' colours the same (the camera stands elsewhere since the seats moved out).
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)` (test_maps: a boulder and a wild bush
+  built in at most 4 meshes, in snow too; in the rain the rock wets as stone and the bush as plain). Smoke runs (title, `--demo`, town, mine 3, the fall
+  soak, getting in from `kajika_yu@8,3`, `kajika@start`): 0 ERROR lines; windowed
+  `--quit-after 150`: exit 0.
+- Left / next: the user's look; step 4b (Mio's event, Hachiro's job, kajika_built).
+
 ## 2026-11-27 — Kajika-yu: no stutter by the pool
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: "why does the game stutter all the time?"): Game.soak_spots for the pool took

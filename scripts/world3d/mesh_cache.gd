@@ -104,7 +104,7 @@ static func _record(w: FarmWorld, first: int, before: Dictionary, out: Variant) 
 			snowy.append(snow_new.has(m))
 		piece_of[mi] = pieces.size()
 		pieces.append({"mesh": mi.mesh, "mat": index[m], "at": mi.transform, "shadow": mi.cast_shadow,
-			"layers": mi.layers, "visible": mi.visible, "no_reach": mi.has_meta("no_reach"), "crown": mi.has_meta("crown")})
+			"layers": mi.layers, "visible": mi.visible, "no_reach": mi.has_meta("no_reach"), "crown": mi.has_meta("crown"), "tint": mi.has_meta("tint")})
 	if snowy.count(true) != snow_new.size():
 		return null
 	var swaying: Array[Dictionary] = []   # the Sway's new items, their nodes as places in pieces
@@ -146,6 +146,8 @@ static func _replay(w: FarmWorld, rec: Dictionary) -> Variant:
 			mi.set_meta("no_reach", true)   # a bridge's deck: out of the figures' wall pull (ReachMap)
 		if piece.get("crown", false):
 			mi.set_meta("crown", true)   # a tree's spray (Trees.place_crowned)
+		if bool(piece.get("tint", false)):
+			mi.set_meta("tint", true)   # a prop's facets in vertex colours (FarmProps.Parts.tint)
 		w.add_child(mi)
 		nodes.append(mi)
 	mats.clear()   # the pieces hold them now (Occluders.add sees a material no one else has)

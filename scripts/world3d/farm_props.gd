@@ -136,11 +136,22 @@ static func block(st: SurfaceTool, lo: Rect2, y0: float, hi: Rect2, y1: float) -
 
 ## One SurfaceTool per material, made into meshes at the end: a "build:<name>" key is a lit
 ## PlaceholderArt surface (UVs in world units), a Color a lit plain colour, SNOW the snow top,
-## and `glow(color)` an unshaded colour that casts no shadow (embers, flames, lit paper).
+## `glow(color)` an unshaded colour that casts no shadow (embers, flames, lit paper), and
+## `tint(color)` a lit colour carried in the vertices, every tint of a prop in one mesh (a rock's
+## or a bush's facets each a little lighter or darker: as plain Colors they were a mesh and a
+## draw call a facet, about 10,000 at Kajika-yu, the user felt the game stutter there).
 class Parts:
 	const SNOW := "snow"
 	const GLOW := "glow:"
+	const TINT := "tint"
 	var _tools := {}
+
+	## `wet`: the wet look's surface for these tints (data/wet.json surfaces), "" for stone (a white
+	## albedo reads as grey: WetRules.plain_surface); a bush's leaves "plain".
+	func tint(color: Color, wet := "") -> SurfaceTool:
+		var t := st(TINT + (":" + wet if wet != "" else ""))
+		t.set_color(color)
+		return t
 
 	func glow(color: Color) -> SurfaceTool:
 		return st(GLOW + color.to_html(false))
@@ -155,6 +166,8 @@ class Parts:
 	func commit(w: FarmWorld) -> void:
 		for key in _tools:
 			var mi := Minka.add_mesh(w, _tools[key], material(key, w._snow_mats))
+			if key is String and key.begins_with(TINT):
+				mi.set_meta("tint", true)   # a prop's facets in vertex colours (not a bamboo clump's: test_maps tells them apart)
 			if not casts_shadow(key):
 				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
@@ -169,6 +182,11 @@ class Parts:
 	static func material(key: Variant, snow_mats: Array[ShaderMaterial]) -> Material:
 		if key is Color:
 			return Minka.plain(key)
+		if key is String and key.begins_with(TINT):
+			var m := tint_material()
+			if key.length() > TINT.length():
+				WetRules.mark(m, key.substr(TINT.length() + 1))
+			return m
 		if key == SNOW:
 			var snow := SnowLayer.top_material()
 			snow_mats.append(snow)
@@ -176,6 +194,13 @@ class Parts:
 		if key.begins_with(GLOW):
 			return FarmWorld.flat_material(Color(key.substr(GLOW.length())))
 		return FarmWorld.picture_material(key)
+
+	## The lit material of the vertex colours (`tint`): as Minka.plain, the colour from the vertices.
+	static func tint_material() -> StandardMaterial3D:
+		var m := StandardMaterial3D.new()
+		m.vertex_color_use_as_albedo = true
+		m.vertex_color_is_srgb = true
+		return m
 
 	static func casts_shadow(key: Variant) -> bool:
 		return not (key is String and (key == SNOW or key.begins_with(GLOW)))

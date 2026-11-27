@@ -125,7 +125,7 @@ static func stone(p: FarmProps.Parts, sn: SurfaceTool, at: Vector3, rx: float, h
 		if mossy and mossy_top and n.y > 0.72:
 			col = moss
 		var j := 1.0 + rng.randf_range(-0.07, 0.07)
-		OutdoorProps.tri(p.st(Color(col.r * j, col.g * j, col.b * j)), a, b, c, n)
+		OutdoorProps.tri(p.tint(Color(col.r * j, col.g * j, col.b * j)), a, b, c, n)
 		if sn != null and n.y > 0.45:
 			var lift := Vector3(0, 0.012, 0)
 			OutdoorProps.tri(sn, a + lift, b + lift, c + lift, Vector3.UP)
@@ -213,7 +213,7 @@ static func _mound(p: FarmProps.Parts, sn: SurfaceTool, rng: RandomNumberGenerat
 		elif season == "fall" and tone > 0 and roll < 0.2:
 			col = FALL_RED
 		var j := 1.0 + rng.randf_range(-0.06, 0.06)
-		OutdoorProps.tri(p.st(Color(col.r * j, col.g * j, col.b * j)), a, b, cc, n)
+		OutdoorProps.tri(p.tint(Color(col.r * j, col.g * j, col.b * j), "plain"), a, b, cc, n)   # leaves: wet as a plain colour, not stone
 		if sn != null and n.y > 0.5:
 			var lift := Vector3(0, 0.012, 0)
 			OutdoorProps.tri(sn, a + lift, b + lift, cc + lift, Vector3.UP)

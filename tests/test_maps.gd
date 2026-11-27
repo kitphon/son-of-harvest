@@ -64,6 +64,19 @@ func _temple_garden() -> void:
 		var meshes := w.get_children().filter(func(n): return n is MeshInstance3D and n.mesh != null)
 		check(meshes.size() >= 2, "GardenProps builds its rocks and shrub (snow %s): %d meshes" % [snow, meshes.size()])
 		w.free()
+		# Their facets' shades ride in the vertices (Parts.tint): a rock or a bush one mesh and a
+		# draw call, not one a facet (about 10,000 at Kajika-yu: the user felt the game stutter).
+		var w3: Node3D = FW.new()
+		GP.rock(w3, "boulder", Vector3(2, 0, 2), 0.0, 3, snow)
+		GP.shrub(w3, Rect2(4, 4, 1, 1), "fall", 20, 5, snow, true)
+		var few := w3.get_children().filter(func(n): return n is MeshInstance3D and n.mesh != null).size()
+		var surfaces := {}
+		for n in w3.get_children():
+			if n is MeshInstance3D and n.has_meta("tint"):
+				surfaces[load("res://scripts/wet_rules.gd").material_surface(n.material_override)] = true
+		check(surfaces.has("stone") and surfaces.has("plain"), "in the rain the tinted rock wets as stone, the bush's leaves as a plain colour (%s)" % [surfaces.keys()])
+		check(few <= 4, "a boulder and a wild bush in %d meshes (snow %s), their facets' shades in the vertices" % [few, snow])
+		w3.free()
 	# A rock in the water rises WET_SHOW of its dry height above the skin (the user: too tall).
 	var tops := []
 	for under in [0.0, 0.35]:
@@ -3280,7 +3293,7 @@ func _outdoor_props() -> void:
 			if str(p.kind) in spots[id]:
 				rects.append(Rect2(Vector2(p.cell), Vector2(p.get("size", [1, 1]))))
 		for n in m.get_children():
-			if n is MeshInstance3D and n.mesh is ArrayMesh and n.material_override is StandardMaterial3D and n.material_override.vertex_color_use_as_albedo 					and not n.has_meta("fence") and not n.has_meta("crown"):
+			if n is MeshInstance3D and n.mesh is ArrayMesh and n.material_override is StandardMaterial3D and n.material_override.vertex_color_use_as_albedo 					and not n.has_meta("fence") and not n.has_meta("crown") and not n.has_meta("tint"):
 				clumps += 1
 			if n is MeshInstance3D and (n.mesh is BoxMesh or n.mesh is CylinderMesh or n.mesh is SphereMesh):
 				var q: Vector3 = n.position

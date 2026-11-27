@@ -812,7 +812,7 @@ static func _boulder(p: FarmProps.Parts, sn: SurfaceTool, at: Vector3, rx: float
 		if tone == 2 and rng.randf() < 0.25:
 			col = Color("6f7f55")
 		var j := 1.0 + rng.randf_range(-0.05, 0.05)
-		var sh := p.st(Color(col.r * j, col.g * j, col.b * j))
+		var sh := p.tint(Color(col.r * j, col.g * j, col.b * j))
 		_tri(sh, a, b, c, n)
 		if sn != null and n.y > 0.45:
 			var lift := Vector3(0, 0.012, 0)
