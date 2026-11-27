@@ -10,6 +10,18 @@ Agent: <agent / product> (<model>) · Commit: <hash or "this commit">
 - Left / next: what is still open.
 ```
 
+## 2026-11-27 — Kajika-yu: the west shore's rocks at the waterline
+Agent: Claude Code (claude-opus-5-5) · Commit: this commit
+- Done (the user, a night shot of the pool's west side: "I'd like the rocks to look orderly, not
+  in the way of the walk"): the low rock on the moss at [3, 11] (on the walk round the pool's west
+  side to the hut) went, and the granite on the bank at [4, 10] moved into the water at the bank's
+  edge, [4, 9], in line under the boulder at [4, 8]; the land beside them is open moss. Made by
+  the map script (scratchpad make_maps.py, the clearing's file regenerated).
+- Checked: all 46 tests/test_*.gd print `OK (0 failed)`. Smoke runs and the windowed run as the
+  next entry's (checked together). Frames from `kajika_yu@3,8` at summer 22:05 and 17:00: the
+  walk south of the farmer open, the granite and the boulder in a line at the waterline.
+- Left / next: the way in from the bank read as wading (the next entry).
+
 ## 2026-11-27 — Rocks and bushes one mesh each: the pool's view smooth
 Agent: Claude Code (claude-opus-5-5) · Commit: this commit
 - Done (the user: "go on finding it", after the last fix left the pool's view at ~35-48 FPS):
